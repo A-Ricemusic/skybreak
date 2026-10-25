@@ -63,8 +63,14 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 	const width = math.max(320, viewportWidth);
 	const height = math.max(240, viewportHeight);
 	const margin = width < 700 || height < 420 ? 14 : 22;
-	const alert = centered(width, math.min(380, width - margin * 2), margin, 32);
-	const callout = centered(width, math.min(420, width - margin * 2), alert.y + alert.height + 10, 50);
+	// The objective callout sits at the very top of the CoreUI-safe area so it
+	// never crosses the flight view or target bracket. The incoming-warning
+	// alert is a slim pill that stacks below the callout only while active, so
+	// a persistent banner is never reserved across the forward view. Horizontal
+	// centering stays inside the ScreenGui's safe inset, which already excludes
+	// the Roblox topbar on the left and any phone cutout on the right.
+	const callout = centered(width, math.min(420, width - margin * 2), margin, 50);
+	const alert = centered(width, math.min(380, width - margin * 2), callout.y + callout.height + 10, 32);
 
 	if (inputMode === "touch") {
 		const portrait = height > width;
@@ -131,8 +137,9 @@ export function getToastLayout(viewportWidth: number, viewportHeight: number, me
 		return { x: left + math.floor((width - left - 16 - toastWidth) / 2), y: 16, width: toastWidth, height: toastHeight };
 	}
 	if (menu) return centered(width, math.min(380, width - 28), 14, toastHeight);
-	const callout = getHudLayout(viewportWidth, viewportHeight, "keyboard").callout;
-	return centered(width, math.min(380, width - 28), callout.y + callout.height + 8, toastHeight);
+	const hud = getHudLayout(viewportWidth, viewportHeight, "keyboard");
+	const bannerBottom = math.max(hud.callout.y + hud.callout.height, hud.alert.y + hud.alert.height);
+	return centered(width, math.min(380, width - 28), bannerBottom + 8, toastHeight);
 }
 
 /** Gamepad select/back hints: bottom-right beside the side panel, or just above the bottom sheet. */
