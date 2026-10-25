@@ -19,6 +19,7 @@ import {
 } from "../shared/UILayout";
 
 const VIEWPORTS: [number, number][] = [
+	[320, 240],
 	[568, 320],
 	[844, 390],
 	[320, 568],
@@ -67,6 +68,22 @@ describe("minimal mission HUD layout", () => {
 	it("keeps the missile button the most prominent touch action", () => {
 		const touch = getHudLayout(568, 320, "touch").touch!;
 		expect(touch.missile.width).toBeGreaterThan(touch.target.width);
+	});
+
+	it("uses compact rows only when a landscape viewport cannot fit the normal touch layout", () => {
+		const compact = getHudLayout(320, 240, "touch");
+		const compactTouch = compact.touch!;
+		expect(compactTouch.throttleVertical).toBe(false);
+		expect(compactTouch.throttle.y).toBeGreaterThanOrEqual(compact.alert.y + compact.alert.height);
+		expect(compact.status.y).toBe(compactTouch.throttle.y);
+		expect(compactTouch.joystick.width).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
+		expect(compactTouch.target.width).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
+
+		const normalPhone = getHudLayout(568, 320, "touch").touch!;
+		expect(normalPhone.throttleVertical).toBe(true);
+		expect(normalPhone.joystick.width).toBe(112);
+		expect(normalPhone.missile.width).toBe(72);
+		expect(normalPhone.target.width).toBe(52);
 	});
 
 	it("keeps keyboard and gamepad hints clear of the status readout", () => {
