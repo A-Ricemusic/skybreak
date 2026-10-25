@@ -142,6 +142,14 @@ describe("authoritative two-mission rules", () => {
 		expect(failed.reason).toBe("destroyed");
 		expect(failed.elapsed).toBe(15);
 	});
+	it("fails a rescue when a server-owned protected objective is destroyed", () => {
+		const state = MissionRules.NewState(3, 0);
+		MissionRules.Fail(state, "protected", 42);
+		expect(state.outcome).toBe("failed");
+		expect(state.reason).toBe("protected");
+		expect(state.elapsed).toBe(42);
+		expect(MissionRules.RecordKill(state, "late", "air", true, 43)).toBe(false);
+	});
 	it("keeps clocks monotonic and publishes scalar tutorial defaults", () => {
 		const state = MissionRules.NewState(1, 100);
 		MissionRules.Tick(state, 90);

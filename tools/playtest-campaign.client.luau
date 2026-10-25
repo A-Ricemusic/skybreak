@@ -4,6 +4,7 @@
 assert(game:GetService("RunService"):IsStudio(), "QA driver is Studio-only")
 local player = game:GetService("Players").LocalPlayer
 local FlightController = require(player.PlayerScripts.Client.FlightController).FlightController
+local MissionCatalog = require(game:GetService("ReplicatedStorage").Shared.MissionCatalog).MissionCatalog
 local controller = FlightController.GetActive()
 local readyDeadline = os.clock() + 30
 while (not controller or not controller.active) and os.clock() < readyDeadline do
@@ -28,8 +29,8 @@ local finishedConnection = game.ReplicatedStorage.Remotes.MissionState.OnClientE
 	end
 	report:SetAttribute("Outcome", state.kind)
 	if state.kind == "Completed" then
-		local expectedGround = state.missionId == 2 and 5 or 1
-		local minimumAir = state.missionId == 2 and 4 or 3
+		local expectedGround = MissionCatalog.TotalRequiredGroundKills(state.missionId)
+		local minimumAir = MissionCatalog.TotalRequiredAirKills(state.missionId)
 		report:SetAttribute("ResultValid", state.groundKills == expectedGround and state.kills >= minimumAir and state.elapsed < 600)
 	elseif survivalOnly then
 		report:SetAttribute("ResultValid", state.reason == "timeout" and state.elapsed >= 600)
@@ -37,7 +38,7 @@ local finishedConnection = game.ReplicatedStorage.Remotes.MissionState.OnClientE
 end)
 
 task.spawn(function()
-	local started, lastFire, lastCycle = os.clock(), 0, 0
+	local started, lastFire, lastCycle, lastEvade = os.clock(), 0, 0, 0
 	local phase, phaseStarted = "", os.clock()
 	local extendUntil = 0
 	while controller.active and os.clock() - started < 630 do
@@ -82,8 +83,17 @@ task.spawn(function()
 			report:SetAttribute("MissileCommands", report:GetAttribute("MissileCommands") + 1)
 		end
 		if telemetry.targetRequired == false and telemetry.target and os.clock() - lastCycle > 0.4 then
-			controller:CycleTarget()
-			lastCycle = os.clock()
+			-- Survival has only optional attackers; keep the current target there.
+			-- During strikes, cycle away from optional pursuers toward required ground.
+			if phase ~= "survive" then
+				controller:CycleTarget()
+				lastCycle = os.clock()
+			end
+		end
+		if telemetry.incoming and telemetry.evadeCooldown <= 0 and os.clock() - lastEvade > 6 then
+			controller:Evade()
+			lastEvade = os.clock()
+			report:SetAttribute("EvadeCommands", report:GetAttribute("EvadeCommands") + 1)
 		end
 		report:SetAttribute("Kills", telemetry.kills)
 		report:SetAttribute("Health", telemetry.health)
@@ -97,5 +107,5 @@ task.spawn(function()
 		report:SetAttribute("Outcome", controller.active and "TimedOut" or "Stopped")
 	end
 	finishedConnection:Disconnect()
-	print("SKYBREAK playtest:", report:GetAttribute("Outcome"), report:GetAttribute("Kills"))
+	print("EMBERS playtest:", report:GetAttribute("MissionId"), report:GetAttribute("Outcome"), report:GetAttribute("Kills"))
 end)

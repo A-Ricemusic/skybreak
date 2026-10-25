@@ -10,7 +10,7 @@ import { MissionCatalog, PhaseDef, PhaseKind } from "./MissionCatalog";
 
 export type MissionPhase = PhaseKind;
 export type TargetKind = "air" | "ground" | "ace";
-export type MissionReason = "complete" | "timeout" | "destroyed";
+export type MissionReason = "complete" | "timeout" | "destroyed" | "protected";
 export interface MissionRuleState {
 	missionId: number;
 	phases: PhaseDef[];
@@ -113,6 +113,10 @@ export const MissionRules = {
 			const phase = phaseAt(state, state.phaseIndex);
 			if (phase) tryAdvanceSurvive(state, phase);
 		}
+	},
+	Fail(state: MissionRuleState, reason: Exclude<MissionReason, "complete">, now: number): void {
+		MissionRules.Tick(state, now);
+		if (state.outcome === undefined) finish(state, "failed", reason);
 	},
 	ObserveControls(state: MissionRuleState, x: number, y: number, dt: number, now: number): void {
 		MissionRules.Tick(state, now);

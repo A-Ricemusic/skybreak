@@ -368,6 +368,7 @@ function defaultTelemetry(): Telemetry {
 		timeRemaining: 600,
 		tutorialStep: "move",
 		groundKills: 0,
+		protectedHealth: undefined,
 		targetKind: "air",
 		targetRequired: false,
 	};
@@ -455,6 +456,7 @@ function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
 		timeRemaining: math.clamp(finite(payload.timeRemaining, previous.timeRemaining ?? 600), 0, 600),
 		tutorialStep,
 		groundKills: math.max(0, math.floor(finite(payload.groundKills, previous.groundKills ?? 0))),
+		protectedHealth: payload.protectedHealth === undefined ? previous.protectedHealth : math.clamp(finite(payload.protectedHealth, previous.protectedHealth ?? 100), 0, 100),
 		targetKind,
 		targetRequired: payload.targetRequired === undefined ? previous.targetRequired : payload.targetRequired === true,
 	};
@@ -927,7 +929,9 @@ function OutcomeScreen({
 			: `Objective complete. Mission ${string.format("%02d", math.min(MissionCatalog.Count(), outcome.missionId + 1))} is now available.`
 		: timedOut
 			? "The ten-minute operation window closed before the objective was complete."
-			: "The sortie ended before the required objective was complete.";
+			: outcome.reason === "protected"
+				? "A protected civilian objective was lost. Retry and stop the attackers sooner."
+				: "The sortie ended before the required objective was complete.";
 	return (
 		<frame key="OutcomeScreen" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={visible}>
 			<frame key="VictoryPanel" BackgroundTransparency={1} {...panelPosition(menu)}>
@@ -1057,9 +1061,10 @@ function MissionHud({
 	const throttleVertical = touch?.throttleVertical ?? true;
 	const throttleButtonSize = UDim2.fromOffset(44, 44);
 	const tutorial = tutorialInstruction(telemetry.tutorialStep, inputMode);
-	const progress = telemetry.objectiveTotal !== undefined && telemetry.objectiveTotal > 0
+	let progress = telemetry.objectiveTotal !== undefined && telemetry.objectiveTotal > 0
 		? `  ${telemetry.objectiveProgress ?? 0}/${telemetry.objectiveTotal}`
 		: "";
+	if (telemetry.protectedHealth !== undefined) progress += `  CIV ${math.floor(telemetry.protectedHealth + 0.5)}%`;
 	const objectiveText = tutorial !== "" ? tutorial : callout?.title ?? (telemetry.objective ?? "Complete the objective");
 	const objectiveEyebrow = tutorial !== "" ? "FLIGHT TRAINING" : callout?.eyebrow ?? "CURRENT OBJECTIVE";
 	return (

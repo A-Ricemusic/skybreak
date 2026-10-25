@@ -215,6 +215,16 @@ export const MissionWorld = {
 			else if (groundTargets.size() < requiredGround) groundTargets.push(model);
 			else model.SetAttribute("DecorativeObjective", true);
 		}
+		const protectsCivilians = mission.phases.some((phase) => phase.kind === "escort" || phase.kind === "rescue");
+		if (protectsCivilians && protectedCraft.size() === 0) {
+			for (let index = 0; index < 3; index++) {
+				const position = transform((index - 1) * 230, -1350 + index * 90, composition);
+				const craft = createTarget({ kind: "lifeboat", name: `CIVILIAN CONVOY ${index + 1}`, x: 0, z: 0 }, position, composition.yaw + math.pi / 2);
+				craft.SetAttribute("ProtectedObjective", true);
+				craft.Parent = parent;
+				protectedCraft.push(craft);
+			}
+		}
 		return { groundTargets, protectedCraft, compositionKey: `${mission.biome}:${mission.layoutId}:${missionId}:${composition.landmark}` };
 	},
 	RestoreMenu(): void {

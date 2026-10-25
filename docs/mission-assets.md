@@ -1,8 +1,9 @@
 # Blender mission-target pipeline
 
-The radar training installation and military warehouse are authored by
-`tools/build-mission-assets.py`. Their canonical runtime geometry is committed as
-`assets/mission/radar.mesh.json` and `assets/mission/warehouse.mesh.json`. The
+The radar training installation, military warehouse, and Embers civilian rescue
+launch are authored by `tools/build-mission-assets.py`. Their canonical runtime
+geometry is committed as `assets/mission/radar.mesh.json`,
+`assets/mission/warehouse.mesh.json`, and `assets/mission/lifeboat.mesh.json`. The
 generator also creates local `.blend`, `.glb`, and preview PNG files for review;
 those known exports are ignored and are not runtime inputs.
 
@@ -16,7 +17,7 @@ bun run build
 The generator creates complete scenes procedurally, consolidates disconnected
 objects into one delivery mesh per material role, applies transforms and
 modifiers, triangulates evaluated geometry, and exports Blender corner normals.
-Both assets remain below 5,000 triangles. They use solid material colors only;
+All three assets remain below 5,000 triangles. They use solid material colors only;
 there are no image textures or uploaded Roblox asset IDs.
 
 ## Dimensions and placement
@@ -47,7 +48,8 @@ This uses `CreateDataModelContentAsync` followed by `CreateMeshPartAsync`, so it
 requires no API key and produces real replicated Roblox mesh geometry.
 
 The static MeshParts are cached and cloned for each call to
-`MissionAssets.CreateWarehouse(name)` or `MissionAssets.CreateRadar(name)`. Each
+`MissionAssets.CreateWarehouse(name)`, `MissionAssets.CreateRadar(name)`, or
+`MissionAssets.CreateLifeboat(name)`. Each
 returned model has an invisible, anchored `Root` at the origin as `PrimaryPart`.
 The root and every render mesh disable collision, touch, and query participation;
 combat remains analytic. Successful models have `GeometrySource="Blender"`.
@@ -63,8 +65,9 @@ After regeneration:
    metadata and mesh bounds.
 2. Import each `.glb` into a clean Blender scene and compare dimensions with its
    source JSON bounds.
-3. Inspect both preview PNGs for silhouette, dish readability, doors, corrugated
-   cladding, roof vents, and intended material separation.
+3. Inspect all preview PNGs for silhouette, dish readability, doors, corrugated
+   cladding, roof vents, rescue-launch hull/cabin/rail readability, and intended
+   material separation.
 4. Run `bun run build` and `git diff --check`.
 
 Studio, Rojo server, publishing, and live mission QA are intentionally separate

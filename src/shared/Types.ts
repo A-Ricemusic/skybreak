@@ -72,6 +72,7 @@ export interface Telemetry {
 	timeRemaining?: number;
 	tutorialStep?: string;
 	groundKills?: number;
+	protectedHealth?: number;
 	targetKind?: string;
 	targetRequired?: boolean;
 	kind: "Telemetry";

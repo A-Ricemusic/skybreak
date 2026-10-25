@@ -14,14 +14,17 @@ interface Enemy {
 	hiddenParts: { part: BasePart; transparency: number }[];
 }
 interface Projectile {
-	part: Part; position: Vector3; direction: Vector3; target?: Enemy; hostile: boolean; age: number;
+	part: Part; position: Vector3; direction: Vector3; target?: Enemy; protected?: ProtectedObjective; hostile: boolean; age: number;
+}
+interface ProtectedObjective {
+	model: Model; position: Vector3; health: number;
 }
 export interface CombatSession {
 	player: Player; slot: number; folder: Folder; aircraft: Model; state: FlightState; input: FlightInput;
 	rules: MissionRuleState; appliedPhaseIndex?: number; nextHostileAt: number;
 	health: number; kills: number; elapsed: number; missiles: number; missileCooldown: number;
 	evadeCooldown: number; evadeRemaining: number; regen: number; lockProgress: number;
-	enemies: Enemy[]; projectiles: Projectile[]; target?: Enemy; telemetryTime: number;
+	enemies: Enemy[]; projectiles: Projectile[]; protectedObjectives: ProtectedObjective[]; target?: Enemy; telemetryTime: number;
 	lastInput: number; lastInputEvent: number; lastActionEvent: number; active: boolean; finished: boolean; cleaned: boolean;
 	previousReplicationFocus?: BasePart; characterRoot?: BasePart; wasAnchored?: boolean;
 }
@@ -98,11 +101,17 @@ function sendTelemetry(session: CombatSession): void {
 	let distance = 0;
 	if (target) { const [targetDistance] = targetMetrics(session, target); distance = targetDistance; }
 	const objective = MissionRules.Objective(session.rules);
+	let protectedHealth: number | undefined;
+	if (session.protectedObjectives.size() > 0) {
+		protectedHealth = 100;
+		for (const protectedObjective of session.protectedObjectives) protectedHealth = math.min(protectedHealth, protectedObjective.health);
+	}
 	const message: Telemetry = {
 		kind: "Telemetry", missionId: session.rules.missionId, phase: session.rules.phase,
 		objective: objective.objective, objectiveProgress: objective.objectiveProgress,
 		objectiveTotal: objective.objectiveTotal, tutorialStep: objective.tutorialStep,
 		timeRemaining: MissionRules.TimeRemaining(session.rules), groundKills: session.rules.groundKills,
+		protectedHealth,
 		health: session.health, speed: session.state.speed, altitude: session.state.y,
 		kills: session.kills, total: MissionCatalog.TotalRequiredAirKills(session.rules.missionId),
 		missiles: session.missiles, missileCooldown: session.missileCooldown,
@@ -131,6 +140,7 @@ function cleanupSession(session: CombatSession, restore = true): void {
 	session.folder.Destroy();
 	session.projectiles.clear();
 	session.enemies.clear();
+	session.protectedObjectives.clear();
 	session.target = undefined;
 	if (restore) restoreMenu();
 }
@@ -261,14 +271,15 @@ function destroyEnemy(session: CombatSession, enemy: Enemy): void {
 	if (session.target === enemy || !ownsEnemy(session, session.target)) acquireTarget(session);
 	if (session.rules.outcome !== undefined) finish(session);
 }
-function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy): void {
+function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy, protectedObjective?: ProtectedObjective): void {
 	let position: Vector3;
 	let direction: Vector3;
 	let target: Enemy | undefined;
 	if (hostile) {
 		if (!ownsEnemy(session, enemy) || enemy.kind === "ground") return;
 		position = enemy.position.add(enemy.direction.mul(18));
-		direction = unitOr(positionFor(session.state).sub(position), enemy.direction);
+		const destination = protectedObjective?.position ?? positionFor(session.state);
+		direction = unitOr(destination.sub(position), enemy.direction);
 	} else {
 		if (session.lockProgress < 0.99 || !ownsEnemy(session, session.target)) return;
 		if (!MissionRules.CanDamage(session.rules, session.target.kind, session.target.required)) return;
@@ -280,7 +291,7 @@ function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy):
 		session.missiles -= 1;
 		session.missileCooldown = 1.15;
 	}
-	session.projectiles.push({ part: JetFactory.CreateMissile(session.folder, position, direction, hostile), position, direction, target, hostile, age: 0 });
+	session.projectiles.push({ part: JetFactory.CreateMissile(session.folder, position, direction, hostile), position, direction, target, protected: protectedObjective, hostile, age: 0 });
 }
 function evade(session: CombatSession): void {
 	if (session.evadeCooldown > 0) return;
@@ -330,7 +341,12 @@ function stepEnemies(session: CombatSession, dt: number): void {
 			if (enemy.windup <= 0) {
 				enemy.warning!.Enabled = false;
 				enemy.model.SetAttribute("AttackWarning", false);
-				if (separation > 300 && separation < 2100 && session.evadeRemaining <= 0) launchMissile(session, true, enemy);
+				if (separation > 300 && separation < 2100 && session.evadeRemaining <= 0) {
+					const phase = session.rules.phase;
+					const canThreatenObjective = (phase === "escort" || phase === "rescue") && session.protectedObjectives.size() > 0;
+					const protectedObjective = canThreatenObjective && index % 2 === 0 ? session.protectedObjectives[index % session.protectedObjectives.size()] : undefined;
+					launchMissile(session, true, enemy, protectedObjective);
+				}
 				enemy.fireTimer = ace ? 12 : 17;
 			}
 		} else if (enemy.fireTimer <= 0 && session.elapsed >= session.nextHostileAt && separation > 450 && separation < 1800 && aimDot > 0.65 && session.evadeRemaining <= 0) {
@@ -354,8 +370,8 @@ function stepMissiles(session: CombatSession, dt: number): void {
 		missile.age += dt;
 		let removed = missile.age > (missile.hostile ? 5.5 : 8) || (!missile.hostile && !ownsEnemy(session, missile.target));
 		if (!removed) {
-			const targetPosition = missile.hostile ? positionFor(session.state) : missile.target!.position;
-			const velocity = missile.hostile ? directionFor(session.state).mul(session.state.speed) : missile.target!.velocity;
+			const targetPosition = missile.hostile ? (missile.protected?.position ?? positionFor(session.state)) : missile.target!.position;
+			const velocity = missile.hostile && missile.protected === undefined ? directionFor(session.state).mul(session.state.speed) : missile.hostile ? Vector3.zero : missile.target!.velocity;
 			const speed = missile.hostile ? 450 : 750;
 			const distance = targetPosition.sub(missile.position).Magnitude;
 			const lead = missile.hostile ? 0.08 : math.clamp(distance / speed, 0, 0.65);
@@ -367,7 +383,11 @@ function stepMissiles(session: CombatSession, dt: number): void {
 				removed = true;
 				JetFactory.Burst(session.folder, targetPosition, Color3.fromRGB(255, 179, 102), missile.hostile ? 6 : 8);
 				if (missile.hostile) {
-					if (session.evadeRemaining <= 0) session.health = math.max(0, session.health - 10);
+					if (missile.protected !== undefined) {
+						missile.protected.health = math.max(0, missile.protected.health - 14);
+						missile.protected.model.SetAttribute("Health", missile.protected.health);
+						if (missile.protected.health <= 0) MissionRules.Fail(session.rules, "protected", os.clock());
+					} else if (session.evadeRemaining <= 0) session.health = math.max(0, session.health - 10);
 				} else if (MissionRules.CanDamage(session.rules, missile.target!.kind, missile.target!.required)) {
 					const enemy = missile.target!;
 					if (enemy.health <= 55) {
@@ -454,9 +474,14 @@ export const CombatService = {
 				player, slot, folder, aircraft, state, rules: MissionRules.NewState(missionId, startedAt), nextHostileAt: 8,
 				input: { x: 0, y: 0, throttle: 0.65 }, health: 100, kills: 0, elapsed: 0,
 				missiles: MAX_MISSILES, missileCooldown: 0, evadeCooldown: 0, evadeRemaining: 0, regen: 0, lockProgress: 0,
-				enemies: [], projectiles: [], telemetryTime: 0, lastInput: os.clock(), lastInputEvent: -math.huge,
+				enemies: [], projectiles: [], protectedObjectives: [], telemetryTime: 0, lastInput: os.clock(), lastInputEvent: -math.huge,
 				lastActionEvent: -math.huge, active: true, finished: false, cleaned: false, previousReplicationFocus: player.ReplicationFocus,
 			};
+			for (const model of world.protectedCraft) {
+				assert(model.PrimaryPart !== undefined && model.Parent === folder, "Protected craft must belong to its mission");
+				model.SetAttribute("Health", 100);
+				session.protectedObjectives.push({ model, position: model.PrimaryPart.Position, health: 100 });
+			}
 			for (const model of world.groundTargets) {
 				assert(model.Parent === folder && model.PrimaryPart !== undefined, "Ground target must have a stationary aim center in its session");
 				const enemy: Enemy = {
