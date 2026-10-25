@@ -11,7 +11,8 @@
     "build:place": "bun run build && mkdir -p build && rojo build -o build/skybreak.rbxlx",
     "serve": "rojo serve",
     "test": "bun run test:roblox",
-    "test:roblox": "bun tools/test-roblox.ts"
+    "test:roblox": "bun tools/test-roblox.ts",
+    "test:offline": "bun run build && bun tools/test-relay-offline.ts"
   },
   "devDependencies": {
     "@rbxts/compiler-types": "3.0.0-types.0",

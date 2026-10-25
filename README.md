@@ -1,6 +1,6 @@
-# SKYBREAK: Operation Glass Horizon
+# SKYBREAK: Broken Relay
 
-An original mobile-first arcade jet combat campaign for Roblox, written in TypeScript with roblox-ts, React Lua, and Rojo. Choose one of four persistent campaign slots and fly two missions in one Roblox place. Each sortie builds its world on launch and removes it after the result.
+An original mobile-first arcade jet combat campaign for Roblox, written in TypeScript with roblox-ts, React Lua, and Rojo. Choose one of four persistent campaign slots and fly an original 27-mission campaign in one Roblox place. Each sortie builds its world on launch and removes it after the result.
 
 ## Controls and campaign
 
@@ -9,6 +9,9 @@ An original mobile-first arcade jet combat campaign for Roblox, written in TypeS
 - Missiles require a target lock, shown on the target bracket. Incoming-missile and airspace warnings appear only while active.
 - Mission 1 — First Flight: learn pitch/turn, select and destroy a ground radar, then defeat three pursuing bandits.
 - Mission 2 — Iron Coast: defeat three bandits, destroy five Blender-authored warehouses while five optional raiders pursue you, then defeat a faster, tougher ace.
+- Missions 3–27 follow Teal’s recordings through authored canyon, farm, relay, harbor and city compositions. Ordered flight gates, low-altitude scans, signal orbits, convoy escorts and protected-site defense accompany escalating combat.
+- Opening, inter-mission and finale cinematics render three camera/story beats with subtitles, skip, pause and motion/text controls. Browse all 27 sorties, unlock sequentially and replay completed missions.
+- Existing v2 saves safely resume at Mission 3 after completing the original two sorties; all four slots retain their records.
 - Each mission has a server-enforced 600-second deadline. Success unlocks the next mission; failure supports retry. Required kills and completion are server-authoritative.
 - Published experiences save four slots to DataStore; an unpublished local Studio file clearly uses session-only saves.
 
@@ -78,6 +81,8 @@ Kestrel has 3,684 triangles and Vanta has 3,840; each uses seven material meshes
 
 Studio's documented `CreateAssetAsync` upload route currently reports “not available yet” in this installation, so the project does not depend on that upload API. A regenerated FBX is ready for Studio's manual 3D Importer.
 
-## Campaign expansion
+## Broken Relay campaign alternative
 
-Open [the interactive 27-mission architecture guide](docs/campaign-expansion.html) in a browser for the single-place/chapter-place tradeoffs, world lifecycle, skybox design, performance validation, save migration, and mission concepts. It is a design proposal, not implemented campaign content.
+Read [the architecture, all 27 mission definitions, original assets, validation and Studio lease handoff](docs/broken-relay.md). This independent alternative completed all27 missions and28 story chapters in Studio; [the live QA report](docs/broken-relay-qa.md) records exact SHAs,171 engine tests, compact/device checks and remaining limits. Parent independent acceptance QA remains pending. Do not launch Studio, `test:roblox` or a Rojo server without the parent’s exclusive lease.
+
+`bun run test:offline` runs the compiled pure-domain contracts in the standalone Luau CLI (set `LUAU_BIN`). It does not replace Roblox Jest or live gameplay. The original [campaign expansion proposal](docs/campaign-expansion.html) remains background design material.

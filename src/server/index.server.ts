@@ -1,4 +1,5 @@
 import { ReplicatedStorage } from "@rbxts/services";
+import { MissionAssets } from "../shared/MissionAssets";
 import { GameConfig } from "../shared/GameConfig";
 import { Remotes } from "../shared/Types";
 import { CampaignService } from "./CampaignService";
@@ -41,6 +42,13 @@ function initialize(): void {
 	};
 
 	WorldBuilder.Build();
+	const storyModels=new Instance("Folder");storyModels.Name="RelayStoryModels";
+	for (const [name,make] of [
+		["CommsRelay",()=>MissionAssets.CreateCommsRelay("CommsRelay")],
+		["RelayTruck",()=>MissionAssets.CreateRelayTruck("RelayTruck")],
+		["HarborLaunch",()=>MissionAssets.CreateHarborLaunch("HarborLaunch")],
+	] as const) {const model=make();model.Name=name;model.Parent=storyModels;}
+	storyModels.Parent=ReplicatedStorage;
 	const [combatInitialized, combatError] = pcall(() => CombatService.Init(remotes, CampaignService.OnFinished));
 	if (!combatInitialized) {
 		warn(`SKYBREAK CombatService initialization failed; missions are disabled: ${tostring(combatError)}`);

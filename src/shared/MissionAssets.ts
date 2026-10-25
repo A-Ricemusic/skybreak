@@ -1,6 +1,6 @@
 import { AssetService, HttpService, RunService, ServerStorage } from "@rbxts/services";
 
-type MissionAssetKind = "Warehouse" | "Radar";
+type MissionAssetKind = "Warehouse" | "Radar" | "CommsRelay" | "GrainSilo" | "RelayTruck" | "HarborLaunch";
 type MaterialRole = "Concrete" | "Steel" | "DarkMetal" | "Accent" | "Roof" | "Glass" | "Warning";
 
 interface MeshMaterial {
@@ -198,7 +198,7 @@ function getTemplates(kind: MissionAssetKind, data: MeshData): Model | undefined
 	} else {
 		cache.generationFailure = tostring(result);
 		warn(
-			`${kind} Blender mission geometry is unavailable on this platform; using the root-only fallback: ${cache.generationFailure}`,
+			`${kind} Blender mission geometry is unavailable on this platform; using the visible primitive fallback: ${cache.generationFailure}`,
 		);
 	}
 	cache.building = false;
@@ -236,6 +236,8 @@ function create(kind: MissionAssetKind, name: string): Model {
 	const templates = getTemplates(kind, data);
 	if (templates === undefined) {
 		model.SetAttribute("GeometrySource", "Fallback");
+		const body = root.Clone(); body.Name = "Visible fallback"; body.Transparency = 0;
+		body.Size = root.Size.mul(.75); body.Material = Enum.Material.Metal; body.Color = Color3.fromRGB(170,110,55); body.Parent = model;
 		return model;
 	}
 	for (const item of templates.GetChildren()) {
@@ -247,6 +249,10 @@ function create(kind: MissionAssetKind, name: string): Model {
 }
 
 export const MissionAssets = {
+	CreateCommsRelay(name: string): Model { return create("CommsRelay", name); },
+	CreateGrainSilo(name: string): Model { return create("GrainSilo", name); },
+	CreateRelayTruck(name: string): Model { return create("RelayTruck", name); },
+	CreateHarborLaunch(name: string): Model { return create("HarborLaunch", name); },
 	CreateWarehouse(name: string): Model {
 		return create("Warehouse", name);
 	},

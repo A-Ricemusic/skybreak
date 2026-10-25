@@ -1,4 +1,5 @@
 import { ContextActionService, GuiService, Players, RunService, UserInputService, Workspace } from "@rbxts/services";
+import { MissionCatalog } from "../shared/MissionCatalog";
 import { FlightMath } from "../shared/FlightMath";
 import { MissionStarted, Remotes, Telemetry } from "../shared/Types";
 
@@ -119,6 +120,8 @@ export class FlightController {
 						(this.telemetry as unknown as Record<string, unknown>)[key] = message[key];
 					}
 				}
+				this.telemetry.navigation = typeIs(message.navigation,"Vector3") ? message.navigation : undefined;
+				this.telemetry.navigationRadius = message.navigationRadius; this.telemetry.navigationCeiling = message.navigationCeiling; this.telemetry.protectedHealth = message.protectedHealth;
 				this.telemetry.target = isModel(message.target) ? message.target : undefined;
 			} else if (message.kind === "Completed" || message.kind === "Failed") this.Stop();
 		});
@@ -264,7 +267,7 @@ export class FlightController {
 		this.active = true;
 		activeController = this;
 		this.telemetry = { ...DEFAULTS };
-		this.telemetry.missionId = missionData.missionId === 2 ? 2 : 1;
+		this.telemetry.missionId = MissionCatalog.IsValidId(missionData.missionId) ? missionData.missionId : 1;
 		if (this.telemetry.missionId === 2) {
 			this.telemetry.phase = "intercept";
 			this.telemetry.objective = "Intercept the required bandits";

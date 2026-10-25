@@ -37,6 +37,20 @@ function expectSeparate(rectangles: Rectangle[]) {
 }
 
 describe("minimal mission HUD layout", () => {
+	it("fits the measured safe area after the topbar reduces a 320x240 simulator",()=>{
+		for(const [width,height] of [[319,181],[320,182]])for(const mode of ["touch","keyboard","gamepad"] as InputMode[]) {
+			const layout=getHudLayout(width,height,mode),touch=layout.touch;
+			const rectangles=[layout.callout,layout.alert,layout.status];
+			if(layout.hints)rectangles.push(layout.hints);
+			if(touch)rectangles.push(touch.joystick,touch.throttle,touch.missile,touch.target);
+			expectSeparate(rectangles);
+			for(const rectangle of rectangles)expect(rectangleInside(rectangle,width,height,6)).toBe(true);
+			if(touch)for(const control of [touch.joystick,touch.throttle,touch.missile,touch.target]) {
+				expect(control.width).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
+				expect(control.height).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
+			}
+		}
+	});
 	it("lays out touch controls only for touch input", () => {
 		for (const [width, height] of VIEWPORTS) {
 			expect(getHudLayout(width, height, "touch").touch).toBeDefined();
@@ -149,6 +163,14 @@ describe("minimal mission HUD layout", () => {
 });
 
 describe("menu layout", () => {
+	it("uses actual short safe height and keeps a pressable slot and footer",()=>{
+		for(const [width,height] of [[319,181],[320,182]]) {
+			const menu=getMenuLayout(width,height);
+			expect(rectangleInside(menu.panel,width,height,6)).toBe(true);
+			expect(getSlotListHeight(menu.panel.height,true)).toBeGreaterThanOrEqual(44);
+			expect(34+getSlotListHeight(menu.panel.height,true)+12+44).toBeLessThanOrEqual(menu.panel.height);
+		}
+	});
 	it("keeps the panel inside every viewport", () => {
 		for (const [width, height] of VIEWPORTS) {
 			const layout = getMenuLayout(width, height);

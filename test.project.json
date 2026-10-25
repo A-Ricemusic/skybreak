@@ -55,6 +55,18 @@
       },
       "RadarGeometry": {
         "$path": "build/RadarGeometry.txt"
+      },
+      "CommsRelayGeometry": {
+        "$path": "build/CommsRelayGeometry.txt"
+      },
+      "GrainSiloGeometry": {
+        "$path": "build/GrainSiloGeometry.txt"
+      },
+      "RelayTruckGeometry": {
+        "$path": "build/RelayTruckGeometry.txt"
+      },
+      "HarborLaunchGeometry": {
+        "$path": "build/HarborLaunchGeometry.txt"
       }
     }
   }

@@ -1,5 +1,12 @@
 import { GameConfig } from "../shared/GameConfig";
-import { MissionFinished, MissionStats, Persistence, SaveSlot } from "../shared/Types";
+import { MissionCatalog, MISSION_COUNT } from "../shared/MissionCatalog";
+import { MissionFinished, MissionRecord, MissionStats, Persistence, SaveSlot } from "../shared/Types";
+
+export interface StoredMissionRecord {
+	completed?: unknown;
+	bestTime?: unknown;
+	firstCompletedAt?: unknown;
+}
 
 export interface StoredSlot {
 	occupied?: unknown;
@@ -12,6 +19,10 @@ export interface StoredSlot {
 	mission2Completed?: unknown;
 	mission1BestTime?: unknown;
 	mission2BestTime?: unknown;
+	/** v3 per-mission records keyed by stringified mission id. */
+	missions?: Map<string, StoredMissionRecord> | Record<string, StoredMissionRecord>;
+	introSeen?: unknown;
+	cutscenesSeen?: unknown;
 }
 
 export interface StoredProfile {
@@ -46,7 +57,7 @@ export interface MissionResult {
 
 const SLOT_COUNT = GameConfig.Campaign.SlotCount;
 const MISSION_KILLS = GameConfig.Campaign.MaxRecordedKills;
-const MISSION_COUNT = GameConfig.Campaign.MissionCount;
+const SAVE_VERSION = GameConfig.Campaign.SaveVersion;
 
 function isFiniteNumber(value: unknown): value is number {
 	return typeIs(value, "number") && value === value && math.abs(value) < math.huge;
@@ -68,6 +79,9 @@ export function blankSlot(index: number): SaveSlot {
 		currentMission: 1,
 		mission1Completed: false,
 		mission2Completed: false,
+		missions: {},
+		introSeen: false,
+		cutscenesSeen: [],
 	};
 }
 
@@ -79,15 +93,76 @@ export function isValidMission(value: unknown): value is number {
 	return isFiniteNumber(value) && value % 1 === 0 && value >= 1 && value <= MISSION_COUNT;
 }
 
+/** Resume at the lowest-numbered unfinished mission, or 1 for a fresh slot. */
 export function resumeMission(slot: SaveSlot): number {
-	return slot.mission1Completed === true ? 2 : 1;
+	for (let id = 1; id <= MISSION_COUNT; id++) {
+		if (!(slot.missions?.[id]?.completed === true)) return id;
+	}
+	return MISSION_COUNT;
 }
 
-export function resolveMissionRequest(slot: SaveSlot, requested: unknown): LuaTuple<[number | undefined, string | undefined]> {
+export function highestUnlocked(slot: SaveSlot): number {
+	// Mission N is unlocked when mission N-1 is complete, or N === 1.
+	let unlocked = 1;
+	for (let id = 1; id < MISSION_COUNT; id++) {
+		if (slot.missions?.[id]?.completed === true) unlocked = id + 1;
+		else break;
+	}
+	return unlocked;
+}
+
+export function resolveMissionRequest(
+	slot: SaveSlot,
+	requested: unknown,
+): LuaTuple<[number | undefined, string | undefined]> {
 	if (requested === undefined) return $tuple(resumeMission(slot), undefined);
-	if (!isValidMission(requested)) return $tuple(undefined, "Choose a valid mission (1-2).");
-	if (requested === 2 && slot.mission1Completed !== true) return $tuple(undefined, "Mission 02 is locked until Mission 01 is complete.");
+	if (!isValidMission(requested)) return $tuple(undefined, "Choose a valid mission (1-27).");
+	const unlocked = highestUnlocked(slot);
+	if (requested > unlocked) {
+		return $tuple(
+			undefined,
+			`Mission ${string.format("%02d", requested)} is locked until Mission ${string.format("%02d", unlocked)} is complete.`,
+		);
+	}
 	return $tuple(requested, undefined);
+}
+
+function fastest(left?: number, right?: number): number | undefined {
+	if (left !== undefined && right !== undefined) return math.min(left, right);
+	return left ?? right;
+}
+
+function readMissionsMap(raw: unknown): { [missionId: number]: MissionRecord } {
+	const result: { [missionId: number]: MissionRecord } = {};
+	if (!typeIs(raw, "table")) return result;
+	const map = raw as Record<string, unknown> & Map<string, unknown>;
+	for (let id = 1; id <= MISSION_COUNT; id++) {
+		const entry = (map as Record<string, unknown>)[tostring(id)] ?? (map as Record<number, unknown>)[id];
+		if (!typeIs(entry, "table")) continue;
+		const stored = entry as StoredMissionRecord;
+		const record: MissionRecord = { completed: stored.completed === true };
+		const best = positiveTime(stored.bestTime);
+		if (best !== undefined) record.bestTime = best;
+		const first = positiveTime(stored.firstCompletedAt);
+		if (first !== undefined) record.firstCompletedAt = first;
+		if (record.completed || record.bestTime !== undefined) result[id] = record;
+	}
+	return result;
+}
+
+function readCutsceneSet(raw: unknown): number[] {
+	const seen = new Set<number>();
+	if (typeIs(raw, "table")) {
+		for (const [, value] of pairs(raw as unknown as Record<string, unknown>)) {
+			if (isFiniteNumber(value) && value % 1 === 0 && value >= 0 && value <= MISSION_COUNT) {
+				seen.add(value);
+			}
+		}
+	}
+	const list: number[] = [];
+	for (const value of seen) list.push(value);
+	table.sort(list);
+	return list;
 }
 
 export function normalizeSlot(raw: unknown, index: number, legacyV1 = false): SaveSlot {
@@ -97,32 +172,64 @@ export function normalizeSlot(raw: unknown, index: number, legacyV1 = false): Sa
 	const source = raw as StoredSlot;
 	const kills = isFiniteNumber(source.kills) ? math.floor(source.kills) : 0;
 	slot.kills = math.clamp(kills, 0, MISSION_KILLS);
+	const missions = readMissionsMap(source.missions);
+
+	// v1 and v2 legacy fields. v1 `completed` means mission 1 completed only.
 	const legacyMission1 = legacyV1 && source.completed === true;
-	slot.mission1Completed = source.mission1Completed === true || legacyMission1;
-	slot.mission2Completed = source.mission2Completed === true;
-	// Mission 2 cannot exist without its server-validated prerequisite.
-	if (slot.mission2Completed) slot.mission1Completed = true;
-	slot.completed = slot.mission1Completed && slot.mission2Completed;
+	const mission1Flag = source.mission1Completed === true || legacyMission1;
+	const mission2Flag = source.mission2Completed === true;
+	if (mission1Flag && missions[1] === undefined) {
+		missions[1] = { completed: true };
+	}
+	if (mission2Flag && missions[2] === undefined) {
+		missions[2] = { completed: true };
+	}
+	// v2 best times feed into v3 per-mission records when the new record is absent.
 	const legacyBest = legacyV1 ? positiveTime(source.bestTime) : undefined;
-	slot.mission1BestTime = positiveTime(source.mission1BestTime) ?? legacyBest;
-	slot.mission2BestTime = positiveTime(source.mission2BestTime);
-	// Keep the old summary field useful to older presentation code while v2 stores
-	// authoritative per-mission records.
-	slot.bestTime = slot.mission2BestTime ?? slot.mission1BestTime;
+	const mission1Best = positiveTime(source.mission1BestTime) ?? legacyBest;
+	const mission2Best = positiveTime(source.mission2BestTime);
+	if (mission1Best !== undefined) {
+		missions[1] = { completed: missions[1]?.completed === true, bestTime: fastest(missions[1]?.bestTime, mission1Best), firstCompletedAt: missions[1]?.firstCompletedAt };
+	}
+	if (mission2Best !== undefined) {
+		missions[2] = { completed: missions[2]?.completed === true, bestTime: fastest(missions[2]?.bestTime, mission2Best), firstCompletedAt: missions[2]?.firstCompletedAt };
+	}
+	// Preserve M2 prerequisite from v2 semantics.
+	if (missions[2]?.completed) missions[1] = { completed: true, bestTime: missions[1]?.bestTime, firstCompletedAt: missions[1]?.firstCompletedAt };
+
+	slot.missions = missions;
+	slot.mission1Completed = missions[1]?.completed === true;
+	slot.mission2Completed = missions[2]?.completed === true;
+	slot.mission1BestTime = missions[1]?.bestTime;
+	slot.mission2BestTime = missions[2]?.bestTime;
+
+	let allComplete = true;
+	for (let id = 1; id <= MISSION_COUNT; id++) {
+		if (missions[id]?.completed !== true) { allComplete = false; break; }
+	}
+	slot.completed = allComplete;
 	slot.currentMission = resumeMission(slot);
-	slot.occupied = source.occupied === true || slot.mission1Completed || slot.mission2Completed || slot.kills > 0;
-	if (slot.mission1BestTime !== undefined || slot.mission2BestTime !== undefined) slot.occupied = true;
+	// Keep the summary field useful: latest completed mission's best time, or earliest.
+	let latestBest: number | undefined;
+	for (let id = MISSION_COUNT; id >= 1; id--) {
+		if (missions[id]?.bestTime !== undefined) { latestBest = missions[id]!.bestTime; break; }
+	}
+	slot.bestTime = latestBest;
+	slot.occupied = source.occupied === true || slot.kills > 0 || slot.mission1Completed || slot.mission2Completed;
+	for (let id = 1; id <= MISSION_COUNT; id++) if (missions[id] !== undefined) slot.occupied = true;
 	if (isFiniteNumber(source.updatedAt) && source.updatedAt > 0) {
 		slot.updatedAt = math.floor(source.updatedAt);
 		slot.occupied = true;
 	}
+	slot.introSeen = source.introSeen === true;
+	slot.cutscenesSeen = readCutsceneSet(source.cutscenesSeen);
 	return slot;
 }
 
 export function blankProfile(): CampaignProfile {
 	const slots = new Array<SaveSlot>();
 	for (let index = 1; index <= SLOT_COUNT; index++) slots.push(blankSlot(index));
-	return { version: GameConfig.Campaign.SaveVersion, slots };
+	return { version: SAVE_VERSION, slots };
 }
 
 export function normalizeProfile(raw: unknown): CampaignProfile {
@@ -131,14 +238,10 @@ export function normalizeProfile(raw: unknown): CampaignProfile {
 	const stored = raw as StoredProfile;
 	const rawSlots = stored.slots;
 	if (!typeIs(rawSlots, "table")) return profile;
-	const legacyV1 = !isFiniteNumber(stored.version) || stored.version < 2;
+	const storedVersion = isFiniteNumber(stored.version) ? stored.version : 1;
+	const legacyV1 = storedVersion < 2;
 	for (let index = 1; index <= SLOT_COUNT; index++) profile.slots[index - 1] = normalizeSlot(slotAt(rawSlots, index), index, legacyV1);
 	return profile;
-}
-
-function fastest(left?: number, right?: number): number | undefined {
-	if (left !== undefined && right !== undefined) return math.min(left, right);
-	return left ?? right;
 }
 
 export function mergeSlot(storedRaw: unknown, desiredRaw: unknown, index: number): SaveSlot {
@@ -146,16 +249,52 @@ export function mergeSlot(storedRaw: unknown, desiredRaw: unknown, index: number
 	const desired = normalizeSlot(desiredRaw, index);
 	const merged = blankSlot(index);
 	merged.occupied = stored.occupied || desired.occupied;
-	merged.mission1Completed = stored.mission1Completed === true || desired.mission1Completed === true;
-	merged.mission2Completed = stored.mission2Completed === true || desired.mission2Completed === true;
-	if (merged.mission2Completed) merged.mission1Completed = true;
-	merged.completed = merged.mission1Completed && merged.mission2Completed;
+	const missions: { [missionId: number]: MissionRecord } = {};
+	for (let id = 1; id <= MISSION_COUNT; id++) {
+		const a = stored.missions?.[id];
+		const b = desired.missions?.[id];
+		if (a === undefined && b === undefined) continue;
+		const completed = (a?.completed === true) || (b?.completed === true);
+		const best = fastest(a?.bestTime, b?.bestTime);
+		const first = fastest(a?.firstCompletedAt, b?.firstCompletedAt);
+		const record: MissionRecord = { completed };
+		if (best !== undefined) record.bestTime = best;
+		if (first !== undefined) record.firstCompletedAt = first;
+		missions[id] = record;
+	}
+	// Preserve the v2 Mission 2 prerequisite in merged profiles as well.
+	if (missions[2]?.completed) {
+		const existing = missions[1];
+		missions[1] = { completed: true, bestTime: existing?.bestTime, firstCompletedAt: existing?.firstCompletedAt };
+	}
+	merged.missions = missions;
+	merged.mission1Completed = missions[1]?.completed === true;
+	merged.mission2Completed = missions[2]?.completed === true;
+	merged.mission1BestTime = missions[1]?.bestTime;
+	merged.mission2BestTime = missions[2]?.bestTime;
+	let allComplete = true;
+	for (let id = 1; id <= MISSION_COUNT; id++) {
+		if (missions[id]?.completed !== true) { allComplete = false; break; }
+	}
+	merged.completed = allComplete;
 	merged.currentMission = resumeMission(merged);
 	merged.kills = math.max(stored.kills, desired.kills);
-	merged.mission1BestTime = fastest(stored.mission1BestTime, desired.mission1BestTime);
-	merged.mission2BestTime = fastest(stored.mission2BestTime, desired.mission2BestTime);
-	merged.bestTime = merged.mission2BestTime ?? merged.mission1BestTime;
-	if (stored.updatedAt !== undefined || desired.updatedAt !== undefined) merged.updatedAt = math.max(stored.updatedAt ?? 0, desired.updatedAt ?? 0);
+	let latestBest: number | undefined;
+	for (let id = MISSION_COUNT; id >= 1; id--) {
+		if (missions[id]?.bestTime !== undefined) { latestBest = missions[id]!.bestTime; break; }
+	}
+	merged.bestTime = latestBest;
+	if (stored.updatedAt !== undefined || desired.updatedAt !== undefined) {
+		merged.updatedAt = math.max(stored.updatedAt ?? 0, desired.updatedAt ?? 0);
+	}
+	merged.introSeen = (stored.introSeen === true) || (desired.introSeen === true);
+	const seen = new Set<number>();
+	for (const id of stored.cutscenesSeen ?? []) seen.add(id);
+	for (const id of desired.cutscenesSeen ?? []) seen.add(id);
+	const seenList: number[] = [];
+	for (const id of seen) seenList.push(id);
+	table.sort(seenList);
+	merged.cutscenesSeen = seenList;
 	return merged;
 }
 
@@ -171,6 +310,15 @@ export function serializeProfile(profile: CampaignProfile): StoredProfile {
 	const slots = new Map<string, StoredSlot>();
 	for (let index = 1; index <= SLOT_COUNT; index++) {
 		const source = normalizeSlot(profile.slots[index - 1], index);
+		const missions = new Map<string, StoredMissionRecord>();
+		for (let id = 1; id <= MISSION_COUNT; id++) {
+			const record = source.missions?.[id];
+			if (record === undefined) continue;
+			const payload: StoredMissionRecord = { completed: record.completed };
+			if (record.bestTime !== undefined) payload.bestTime = record.bestTime;
+			if (record.firstCompletedAt !== undefined) payload.firstCompletedAt = record.firstCompletedAt;
+			missions.set(tostring(id), payload);
+		}
 		const stored: StoredSlot = {
 			occupied: source.occupied,
 			completed: source.completed,
@@ -178,6 +326,9 @@ export function serializeProfile(profile: CampaignProfile): StoredProfile {
 			currentMission: source.currentMission,
 			mission1Completed: source.mission1Completed,
 			mission2Completed: source.mission2Completed,
+			missions,
+			introSeen: source.introSeen === true,
+			cutscenesSeen: source.cutscenesSeen ?? [],
 		};
 		if (source.bestTime !== undefined) stored.bestTime = source.bestTime;
 		if (source.mission1BestTime !== undefined) stored.mission1BestTime = source.mission1BestTime;
@@ -185,7 +336,7 @@ export function serializeProfile(profile: CampaignProfile): StoredProfile {
 		if (source.updatedAt !== undefined) stored.updatedAt = source.updatedAt;
 		slots.set(tostring(index), stored);
 	}
-	return { version: GameConfig.Campaign.SaveVersion, slots };
+	return { version: SAVE_VERSION, slots };
 }
 
 export function clientSlots(profile: CampaignProfile): SaveSlot[] {
@@ -219,17 +370,28 @@ export function completeMission(
 	) return false;
 	const groundKills = isFiniteNumber(stats.groundKills) ? math.max(0, math.floor(stats.groundKills)) : 0;
 	const elapsed = isFiniteNumber(stats.elapsed) ? stats.elapsed : 0;
-	const requiredAirKills = missionId === 1
-		? GameConfig.Campaign.Missions[1].RequiredAirKills
-		: GameConfig.Campaign.Missions[2].RequiredAirKills;
-	const requiredGroundKills = missionId === 1
-		? GameConfig.Campaign.Missions[1].RequiredGroundKills
-		: GameConfig.Campaign.Missions[2].RequiredGroundKills;
+
+	// Required air/ground kills come from the blueprint, except that the legacy
+	// callbacks for the first two missions preserve their original enforcement.
+	let requiredAirKills: number;
+	let requiredGroundKills: number;
+	if (missionId === 1) {
+		requiredAirKills = GameConfig.Campaign.Missions[1].RequiredAirKills;
+		requiredGroundKills = GameConfig.Campaign.Missions[1].RequiredGroundKills;
+	} else if (missionId === 2) {
+		requiredAirKills = GameConfig.Campaign.Missions[2].RequiredAirKills;
+		requiredGroundKills = GameConfig.Campaign.Missions[2].RequiredGroundKills;
+	} else {
+		const blueprint = MissionCatalog.Get(missionId);
+		requiredAirKills = MissionCatalog.RequiredAirKills(blueprint);
+		requiredGroundKills = MissionCatalog.RequiredGroundKills(blueprint);
+	}
 	// Old combat callbacks did not carry missionId/groundKills. They remain valid
 	// only as Mission 1 results; all new callbacks must prove every objective.
 	const legacyMission1 = stats.missionId === undefined;
 	const objectivesMet = stats.kills >= requiredAirKills && (legacyMission1 || groundKills >= requiredGroundKills);
-	const qualifiedWin = won && objectivesMet && elapsed > 0 && elapsed <= GameConfig.Campaign.MissionTimeLimit;
+	const flightObjectivesMet = missionId <= 2 || stats.completedPhases === MissionCatalog.Get(missionId).phases.size();
+	const qualifiedWin = won && flightObjectivesMet && objectivesMet && elapsed > 0 && elapsed < GameConfig.Campaign.MissionTimeLimit;
 	const result = coordinator.recordMissionResult(activeSlot, missionId, qualifiedWin, stats.kills, elapsed);
 	notify({
 		kind: result.completed ? "Completed" : "Failed",
@@ -278,7 +440,6 @@ export class CampaignCoordinator {
 			this.persistence = "unavailable";
 			return false;
 		}
-		// Merge even on recovery: local unsaved progress is never replaced by a later read.
 		this.profile = mergeProfiles(stored, this.profile);
 		this.cloudLoaded = true;
 		this.persistence = "cloud";
@@ -302,36 +463,75 @@ export class CampaignCoordinator {
 		assert(isValidMission(missionId), "invalid campaign mission");
 		const slot = this.profile.slots[slotIndex - 1];
 		slot.occupied = true;
-		if (missionId === 2 || slot.mission1Completed !== true) slot.currentMission = missionId;
+		slot.currentMission = math.max(slot.currentMission ?? 1, missionId);
 		slot.updatedAt = this.now();
 		this.markDirty();
 	}
 
-	public recordMissionResult(slotIndex: number, missionId: number, won: boolean, killsRaw: unknown, elapsedRaw: unknown): MissionResult {
+	public recordMissionResult(
+		slotIndex: number,
+		missionId: number,
+		won: boolean,
+		killsRaw: unknown,
+		elapsedRaw: unknown,
+	): MissionResult {
 		assert(isValidSlot(slotIndex), "invalid campaign slot");
 		assert(isValidMission(missionId), "invalid campaign mission");
 		const kills = isFiniteNumber(killsRaw) ? math.clamp(math.floor(killsRaw), 0, MISSION_KILLS) : 0;
 		const elapsed = isFiniteNumber(elapsedRaw) && elapsedRaw > 0 ? elapsedRaw : 0;
-		const completed = won && elapsed > 0 && elapsed <= GameConfig.Campaign.MissionTimeLimit;
+		const completed = won && elapsed > 0 && elapsed < GameConfig.Campaign.MissionTimeLimit;
 		const slot = this.profile.slots[slotIndex - 1];
 		slot.occupied = true;
 		slot.kills = math.max(slot.kills, kills);
 		slot.updatedAt = this.now();
 		if (completed) {
-			if (missionId === 1) {
-				slot.mission1Completed = true;
-				slot.mission1BestTime = fastest(slot.mission1BestTime, elapsed);
-			} else {
-				slot.mission2Completed = true;
-				slot.mission2BestTime = fastest(slot.mission2BestTime, elapsed);
-			}
+			const missions = slot.missions ?? {};
+			const existing = missions[missionId];
+			missions[missionId] = {
+				completed: true,
+				bestTime: fastest(existing?.bestTime, elapsed),
+				firstCompletedAt: existing?.firstCompletedAt ?? this.now(),
+			};
+			slot.missions = missions;
 		}
+		// Rebuild derived legacy flags.
+		slot.mission1Completed = slot.missions?.[1]?.completed === true;
+		slot.mission2Completed = slot.missions?.[2]?.completed === true;
 		if (slot.mission2Completed) slot.mission1Completed = true;
-		slot.completed = slot.mission1Completed === true && slot.mission2Completed === true;
+		slot.mission1BestTime = slot.missions?.[1]?.bestTime;
+		slot.mission2BestTime = slot.missions?.[2]?.bestTime;
+		let allComplete = true;
+		for (let id = 1; id <= MISSION_COUNT; id++) {
+			if (slot.missions?.[id]?.completed !== true) { allComplete = false; break; }
+		}
+		slot.completed = allComplete;
 		slot.currentMission = resumeMission(slot);
-		slot.bestTime = slot.mission2BestTime ?? slot.mission1BestTime;
+		let latestBest: number | undefined;
+		for (let id = MISSION_COUNT; id >= 1; id--) {
+			if (slot.missions?.[id]?.bestTime !== undefined) { latestBest = slot.missions![id]!.bestTime; break; }
+		}
+		slot.bestTime = latestBest;
 		this.markDirty();
 		return { completed, missionId, kills, elapsed };
+	}
+
+	public recordCutsceneSeen(slotIndex: number, cutsceneId: number): void {
+		assert(isValidSlot(slotIndex), "invalid campaign slot");
+		assert(isFiniteNumber(cutsceneId) && cutsceneId >= 0 && cutsceneId <= MISSION_COUNT, "invalid cutscene id");
+		const slot = this.profile.slots[slotIndex - 1];
+		const seen = new Set<number>();
+		for (const id of slot.cutscenesSeen ?? []) seen.add(id);
+		const integer = math.floor(cutsceneId);
+		if (seen.has(integer)) return;
+		seen.add(integer);
+		const list: number[] = [];
+		for (const id of seen) list.push(id);
+		table.sort(list);
+		slot.cutscenesSeen = list;
+		if (integer === 0) slot.introSeen = true;
+		slot.updatedAt = this.now();
+		slot.occupied = true;
+		this.markDirty();
 	}
 
 	public getSlots(): SaveSlot[] {
@@ -353,10 +553,6 @@ export class CampaignCoordinator {
 	public flush(timeoutSeconds = 5): boolean {
 		if (!this.store) return true;
 		if (!this.cloudLoaded) return false;
-
-		// Never call drain directly here: an UpdateAsync may already own the key,
-		// and datastore calls can yield. Ensure one worker exists, then wait only
-		// up to the shutdown budget for it to serialize every retained mutation.
 		const deadline = os.clock() + math.max(0, timeoutSeconds);
 		if (this.dirty && !this.writeRunning && !this.writeScheduled) this.queueSave();
 		while (this.hasPendingSave() && os.clock() < deadline) {
@@ -395,8 +591,6 @@ export class CampaignCoordinator {
 				this.persistence = "unavailable";
 				break;
 			}
-			// A mission can finish while update yields. Merge the returned cloud value
-			// into the current profile so that newer local progress remains authoritative.
 			this.profile = mergeProfiles(stored, this.profile);
 			this.persistence = "cloud";
 		}
