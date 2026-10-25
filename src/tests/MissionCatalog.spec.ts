@@ -42,6 +42,14 @@ describe("Embers of Home mission catalog", () => {
 		expect(second.phases[2].spawn?.airWave?.aceHealth).toBe(165);
 	});
 
+	it("keeps every terrain fill within the live-tested Studio extent bound", () => {
+		for (const mission of MissionCatalog.All()) {
+			for (const island of MissionCatalog.Layout(mission.layoutId).islands) {
+				expect(island.radius).toBeLessThanOrEqual(600);
+			}
+		}
+	});
+
 	it("allows every declared objective path to finish through real rule events", () => {
 		for (const mission of MissionCatalog.All()) {
 			const state = MissionRules.NewState(mission.id, 0);

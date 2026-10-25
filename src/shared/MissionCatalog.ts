@@ -225,7 +225,14 @@ export const LAYOUTS: Record<LayoutId, LayoutDef> = {
 			{ kind: "radar", name: "HARBOR WATCH", x: 0, z: -950, yaw: math.pi / 2 },
 		],
 		islands: [
-			{ x: 0, z: -1300, radius: 820, height: 55 },
+			// Keep the drydock as one visual landmass while staying below Roblox
+			// Terrain's per-operation extents limit. Five overlapping fills also
+			// give the harbor a more deliberate cross-shaped shoreline.
+			{ x: 0, z: -1300, radius: 460, height: 55 },
+			{ x: -390, z: -1300, radius: 460, height: 55 },
+			{ x: 390, z: -1300, radius: 460, height: 55 },
+			{ x: 0, z: -940, radius: 460, height: 55 },
+			{ x: 0, z: -1660, radius: 460, height: 55 },
 			{ x: -1600, z: 500, radius: 420, height: 130 },
 			{ x: 1600, z: 500, radius: 420, height: 130 },
 		],
