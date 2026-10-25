@@ -23,7 +23,7 @@ const FLIGHT_KEYS: Enum.KeyCode[] = [
 	Enum.KeyCode.Up, Enum.KeyCode.Down, Enum.KeyCode.Left, Enum.KeyCode.Right,
 	Enum.KeyCode.Q, Enum.KeyCode.E, Enum.KeyCode.LeftShift, Enum.KeyCode.ButtonL1, Enum.KeyCode.ButtonR1,
 	Enum.KeyCode.Space, Enum.KeyCode.F, Enum.KeyCode.Tab, Enum.KeyCode.R, Enum.KeyCode.C,
-	Enum.KeyCode.ButtonR2, Enum.KeyCode.ButtonB, Enum.KeyCode.ButtonY, Enum.KeyCode.ButtonX, Enum.KeyCode.Thumbstick1,
+	Enum.KeyCode.ButtonR2, Enum.KeyCode.ButtonB, Enum.KeyCode.ButtonY, Enum.KeyCode.ButtonX, Enum.KeyCode.Thumbstick1, Enum.KeyCode.Thumbstick2,
 ];
 /** Drone-marked contacts: one glyph per hostile, dimmer than the selected target's cue. */
 const COLOR_MARKED = Color3.fromRGB(255, 193, 98);
@@ -122,6 +122,7 @@ export class FlightController {
 	private touchInput = Vector2.zero;
 	private gamepadInput = Vector2.zero;
 	private throttle = 0.65;
+	private throttleStick = 0;
 	private keys = new Set<Enum.KeyCode>();
 	private connections: RBXScriptConnection[] = [];
 	private hiddenParts = new Map<BasePart | Trail, number | boolean>();
@@ -239,8 +240,11 @@ export class FlightController {
 		this.notify();
 	}
 	private handleBoundInput(state: Enum.UserInputState, keyCode: Enum.KeyCode, position: Vector3): Enum.ContextActionResult {
-		if (!this.active || UserInputService.GetFocusedTextBox()) return Enum.ContextActionResult.Pass;
-		if (keyCode === Enum.KeyCode.Thumbstick1) {
+		if (!this.active) return Enum.ContextActionResult.Pass;
+		if (UserInputService.GetFocusedTextBox() && state !== Enum.UserInputState.End && state !== Enum.UserInputState.Cancel) return Enum.ContextActionResult.Pass;
+		if (keyCode === Enum.KeyCode.Thumbstick2) {
+			this.throttleStick = state === Enum.UserInputState.End || state === Enum.UserInputState.Cancel ? 0 : position.Y;
+		} else if (keyCode === Enum.KeyCode.Thumbstick1) {
 			const value = new Vector2(position.X, position.Y);
 			this.gamepadInput = state !== Enum.UserInputState.End && state !== Enum.UserInputState.Cancel && value.Magnitude >= 0.12 ? value : Vector2.zero;
 		} else {
@@ -258,7 +262,7 @@ export class FlightController {
 	/** Studio QA uses the same handler as ContextActionService, below engine/device routing. */
 	public SimulateGamepadInput(keyCode: Enum.KeyCode, state: Enum.UserInputState, position = Vector3.zero): Enum.ContextActionResult {
 		assert(RunService.IsStudio(), "Controller simulation is Studio-only");
-		assert(FLIGHT_KEYS.includes(keyCode) && (keyCode.Name.sub(1, 6) === "Button" || keyCode === Enum.KeyCode.Thumbstick1), "Unsupported bound gamepad control");
+		assert(FLIGHT_KEYS.includes(keyCode) && (keyCode.Name.sub(1, 6) === "Button" || keyCode === Enum.KeyCode.Thumbstick1 || keyCode === Enum.KeyCode.Thumbstick2), "Unsupported bound gamepad control");
 		assert(FlightMath.IsFinite(position.X) && FlightMath.IsFinite(position.Y) && FlightMath.IsFinite(position.Z), "Input must be finite");
 		return this.handleBoundInput(state, keyCode, new Vector3(math.clamp(position.X, -1, 1), math.clamp(position.Y, -1, 1), math.clamp(position.Z, -1, 1)));
 	}
@@ -288,8 +292,9 @@ export class FlightController {
 		const state = this.predictor?.state;
 		if (!this.active || !state) return false;
 		return math.max(math.abs(state.x), math.abs(state.z)) > FlightMath.SoftBoundary - 100
-			|| state.y < FlightMath.MinAltitude + 35 || state.y > FlightMath.MaxAltitude - 70;
+			|| state.y > FlightMath.MaxAltitude - 70;
 	}
+	public GetThrottle(): number { return this.throttle; }
 	public GetTelemetry(): Telemetry {
 		const result = { ...this.telemetry };
 		const position = this.GetPosition();
@@ -305,6 +310,7 @@ export class FlightController {
 		let x = this.touchInput.X + this.gamepadInput.X;
 		let y = this.touchInput.Y + this.gamepadInput.Y;
 		if (!UserInputService.GetFocusedTextBox()) {
+			this.throttle = FlightMath.AdjustThrottle(this.throttle, this.throttleStick, dt);
 			if (this.keys.has(Enum.KeyCode.A) || this.keys.has(Enum.KeyCode.Left)) x -= 1;
 			if (this.keys.has(Enum.KeyCode.D) || this.keys.has(Enum.KeyCode.Right)) x += 1;
 			if (this.keys.has(Enum.KeyCode.W) || this.keys.has(Enum.KeyCode.Up)) y += 1;
@@ -501,7 +507,7 @@ export class FlightController {
 		}
 		this.keys.clear();
 		this.touchInput = Vector2.zero;
-		this.gamepadInput = Vector2.zero;
+		this.gamepadInput = Vector2.zero; this.throttleStick = 0;
 		this.throttle = 0.65;
 		this.sendTime = INPUT_KEEPALIVE;
 		this.sentThrottle = -1;
@@ -539,9 +545,12 @@ export class FlightController {
 			if (input.UserInputType === Enum.UserInputType.MouseButton2) this.mouseSteer = true;
 		}));
 		this.connections.push(UserInputService.InputEnded.Connect((input) => { if (input.UserInputType === Enum.UserInputType.MouseButton2) this.mouseSteer = false; }));
-		this.connections.push(UserInputService.WindowFocusReleased.Connect(() => {
-			this.keys.clear(); this.mouseSteer = false; this.touchInput = Vector2.zero; this.gamepadInput = Vector2.zero;
-		}));
+		const clearInput = () => {
+			this.keys.clear(); this.mouseSteer = false; this.touchInput = Vector2.zero; this.gamepadInput = Vector2.zero; this.throttleStick = 0;
+		};
+		this.connections.push(UserInputService.TextBoxFocused.Connect(clearInput));
+		this.connections.push(UserInputService.GamepadDisconnected.Connect(clearInput));
+		this.connections.push(UserInputService.WindowFocusReleased.Connect(clearInput));
 		RunService.BindToRenderStep(this.renderName, Enum.RenderPriority.Camera.Value + 1, (dt) => this.render(dt));
 		return true;
 	}
@@ -572,7 +581,7 @@ export class FlightController {
 		this.previousCamera = undefined;
 		this.aircraft = undefined;
 		this.touchInput = Vector2.zero;
-		this.gamepadInput = Vector2.zero;
+		this.gamepadInput = Vector2.zero; this.throttleStick = 0;
 		this.keys.clear();
 		this.mouseSteer = false;
 	}

@@ -15,6 +15,7 @@ export const NavigationPilot = {
 		const desiredYaw=math.atan2(state.x-tx,state.z-tz);
 		const turn=FlightMath.WrapAngle(desiredYaw-state.yaw);
 		const altitude=math.clamp(point.y,210,ceiling ? ceiling-55 : 850);
-		return {x:math.clamp(-turn*2.6,-1,1),y:math.clamp((altitude-state.y)/160,-.65,.65),throttle:orbit || distance<700 ? .05 : .45};
+		// Maintain ~175/240 studs/s with the expanded throttle range; do not stall in an orbit.
+		return {x:math.clamp(-turn*2.6,-1,1),y:math.clamp((altitude-state.y)/160,-.65,.65),throttle:orbit || distance<700 ? .42 : .68};
 	},
 };

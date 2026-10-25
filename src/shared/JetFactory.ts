@@ -33,7 +33,7 @@ function weldToRoot(model: Model, root: BasePart): void {
 		item.Massless = true;
 		item.CanCollide = false;
 		item.CanTouch = false;
-		item.CanQuery = false;
+		item.CanQuery = item.GetAttribute("FlightSolid") === true;
 		const weld = new Instance("WeldConstraint");
 		weld.Name = "RootWeld";
 		weld.Part0 = root;

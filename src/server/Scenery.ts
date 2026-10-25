@@ -5,7 +5,7 @@ import { Workspace } from "@rbxts/services";
 // Shared, cheap scenery generators for the disposable mission worlds.
 //
 // Performance contract (phones): every part is anchored, non-colliding, and
-// never queried or touched, so it costs one draw and nothing in physics. A
+// only solid visible surfaces are queried by authoritative aircraft sweeps. A
 // mission world should stay at or below PART_BUDGET BaseParts; builders call
 // `Scenery.Report` at the end so an over-budget composition warns loudly in
 // the server log instead of silently slowing the phone.
@@ -17,6 +17,8 @@ import { Workspace } from "@rbxts/services";
 export const PART_BUDGET = 600;
 const YIELD_EVERY = 150;
 let sinceYield = 0;
+// Authored paint, lights and water-color overlays have no physical surface.
+const VISUAL_SURFACES = new Set(["Shallows", "Marker light", "Navigation light", "Safety line", "Centreline", "Threshold", "Threshold bar", "Approach bar", "Center stripe", "Lit windows"]);
 
 export interface PartOptions {
 	className?: "Part" | "WedgePart";
@@ -55,7 +57,9 @@ export function Part(parent: Instance, name: string, size: Vector3, at: CFrame |
 	object.Anchored = true;
 	object.CanCollide = false;
 	object.CanTouch = false;
-	object.CanQuery = false;
+	// Overlays are visual only. Query the actual rendered geometry, never a proxy box.
+	object.CanQuery = !VISUAL_SURFACES.has(name) && (options.transparency ?? 0) < 1;
+	object.SetAttribute("FlightSolid", object.CanQuery);
 	// Shadows are a major mobile GPU cost; scenery opts in (airfield buildings near the start only).
 	object.CastShadow = options.castShadow === true;
 	if (options.transparency !== undefined) object.Transparency = options.transparency;

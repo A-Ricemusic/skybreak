@@ -70,7 +70,7 @@ function expectSeparate(rectangles: Rectangle[]) {
 }
 
 function hudRectangles(layout: HudLayout, includeAlert = true): Rectangle[] {
-	const rectangles = [layout.callout, layout.timer, layout.status, layout.navigation];
+	const rectangles = [layout.callout, layout.timer, layout.status, layout.flightStatus, layout.navigation];
 	if (includeAlert) rectangles.push(layout.alert);
 	if (layout.hints) rectangles.push(layout.hints);
 	const touch = layout.touch;
