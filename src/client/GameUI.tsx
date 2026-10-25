@@ -800,17 +800,9 @@ function OutcomeScreen({
 				<frame key="Accent" BackgroundColor3={outcome.won ? C.Accent : C.Danger} BorderSizePixel={0} Size={UDim2.fromOffset(32, 2)} />
 				<Label name="OutcomeEyebrow" text={`MISSION ${string.format("%02d",outcome.missionId)} · ${MissionCatalog.Get(outcome.missionId).name}`} color={C.Orange} textSize={compact ? 10 : 11} font={Enum.Font.GothamBold} position={UDim2.fromOffset(0, 10)} size={new UDim2(1, 0, 0, 16)} />
 				<Label name="OutcomeTitle" text={outcome.won ? "MISSION COMPLETE" : timedOut ? "TIME EXPIRED" : "SORTIE LOST"} color={outcome.won ? C.Ivory : C.Danger} textSize={compact ? 24 : 34} font={Enum.Font.GothamBlack} position={UDim2.fromOffset(0, compact ? 28 : 32)} size={new UDim2(1, 0, 0, compact ? 30 : 44)} />
-				<Label
-					name="OutcomeSummary"
-					text={summary}
-					color={C.Muted}
-					textSize={compact ? 12 : 15}
-					position={UDim2.fromOffset(0, compact ? 64 : 86)}
-					size={new UDim2(1, 0, 0, 0)}
-					automaticSize={Enum.AutomaticSize.Y}
-					textWrapped={true}
-					textYAlignment={Enum.TextYAlignment.Top}
-				/>
+				<scrollingframe key="DebriefText" BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={2} AutomaticCanvasSize={Enum.AutomaticSize.Y} CanvasSize={UDim2.fromOffset(0,0)} Position={UDim2.fromOffset(0,compact ? 64 : 86)} Size={new UDim2(1,0,0,compact ? 44 : 56)}>
+					<Label name="OutcomeSummary" text={summary} color={C.Muted} textSize={compact ? 12 : 15} size={new UDim2(1,-6,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} textYAlignment={Enum.TextYAlignment.Top} />
+				</scrollingframe>
 				<Label name="OutcomeStats" text={`AIR  ${outcome.kills}   GROUND  ${outcome.groundKills}   TIME  ${formatTime(outcome.elapsed)}`} color={C.Accent} textSize={compact ? 12 : 14} font={Enum.Font.RobotoMono} position={UDim2.fromOffset(0, compact ? 112 : 150)} size={new UDim2(1, 0, 0, 20)} />
 				<Label
 					name="SaveStatus"
