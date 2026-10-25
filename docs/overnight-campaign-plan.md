@@ -101,3 +101,15 @@ Last Tide ground-phase fix `80f0e49362e13c83b8e9471baa11a73dd23f8c33` independen
 Aurora final handoff: tested code67dcf26; QA-doc head `e15e96a2f2a8dac86d8bf3690f8abcb4c2c8a62c`. Parent read aurora-line-qa.md: child reports79/79 actual Roblox Jest, genuine sequential27wins, real M2 ten-minute timeout with no credit and successfulRetry, all28scenes seen, stage isolation/skip cleanup/reduced motion verified. Five local screenshots plus further MCP capture IDs; export needed for durable later captures. No true touch/hardware claim and no parent-independent27run. Owned PID8599 stopped/terminated, lease explicitly released. Last Tide now granted exclusive QA; remaining queue Glass → Relay. No alternative merged.
 
 Aurora evidence-export handoff at QA-doc-only `be88e71fccacc682922eadfee0526c03611c8698`:17 original MCP JPEGs recovered plus5 preserved primary PNGs and1 diagnostic (23files total). Parent read actual-content INDEX and inspected TIME EXPIRED screenshot. Index: `/Users/pelicannurse/.t3/worktrees/test app/t3-3ef45378/build/screenshots/aurora-qa/INDEX.md`. No live protected-object damage/defeat or player-hull defeat was performed;600s timeout/Retry is separate coverage. Source/gameplay SHA remains67dcf26. Last Tide lease untouched; final selected-game failure-path tests still owed.
+
+## Provisional mechanics comparison (source evidence, not final ranking)
+
+| Alternative | Distinct objective behavior | Current evidence gap |
+| --- | --- | --- |
+| Embers | Air/ground waves and timed survival; stationary protected craft with hostile missile damage | Child completed27; protected damage/defeat and hull-defeat retry untested live |
+| Aurora | Air/ground waves; convoy visibly moves along a20-second route, but required attacker kills gate escort completion, not route arrival | Child completed27 and real600s timeout/Retry; protected damage/defeat untested live |
+| Last Tide | Ordered flight gates and timed survival under pursuers; maritime target assets | Exclusive engine QA running; M8 newly restored six pursuers need live balance check |
+| Glass Horizon | Spatial recon, proximity-dependent moving escort, timed pursuit, deadline-bound drone interception, firing SAMs | Engine QA queued; intercept timing and mobile escort fairness need real runs |
+| Broken Relay | Ordered routes, altitude-limited recon, signal orbits, proximity escort and threat-suppression defense | Engine QA queued; navigation readability and protected-object failure need real runs |
+
+Aurora source comparison checked `stepProtectedObjective` and hostile missile routing at67dcf26: convoy motion is real, health damage exists, and completion remains combat-gated. Do not describe this as spatial convoy arrival gameplay. Prefer judging demonstrated variety and readable control demands over mission count alone; retain coherent story/save/world architecture when selecting. No winner selected before remaining live runs and visual comparison.
