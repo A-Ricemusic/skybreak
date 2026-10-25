@@ -20,7 +20,7 @@ Worktree root: `/Users/pelicannurse/.t3/worktrees/test app/`.
 Each task ID is `node:delegated-task:command%3Amcp%3A1d20c4c5-6ced-4ff0-adee-a0de5ee732ea%3Adelegate-task%3A` plus request ID.
 Each child thread ID replaces the leading `node:` with `thread:`. Retain those exact IDs for followups; don't spawn duplicates.
 
-Initial status: seven implementation tasks running. No PRs received yet. No new work has been merged. No alternative has yet been playtested.
+HUD PR #1: https://github.com/A-Ricemusic/test-game-coding-from-phone/pull/1, head 9f22d9f515dbaf3d6366c1636b794b31b570029a. Parent independently reviewed; actual Roblox Jest 61/61 passed and iPhone landscape/portrait flight visuals passed, including natural airspace warning placement. Screenshots: build/screenshots/pr1-hud-{landscape,portrait}.png. CodeRabbit review pending; no merge yet. Other six tasks continue. No rebuild alternative has yet been playtested.
 
 ## Studio ownership
 
