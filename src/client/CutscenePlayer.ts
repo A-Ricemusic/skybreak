@@ -1,8 +1,9 @@
-import { GuiService, Players, RunService, UserInputService, Workspace } from "@rbxts/services";
+import { GuiService, Players, RunService, UserInputService } from "@rbxts/services";
 import { Story } from "../shared/Story";
 import { MissionCatalog } from "../shared/MissionCatalog";
 
 let active = false;
+let currentGui: ScreenGui | undefined;
 let readAtOwnPace = false;
 let reduceMotion = false;
 function block(parent: Instance, name: string, size: Vector3, position: Vector3, color: Color3): Part {
@@ -13,7 +14,8 @@ function block(parent: Instance, name: string, size: Vector3, position: Vector3,
 function label(parent: Instance, text: string, position: UDim2, size: UDim2, fontSize: number): TextLabel {
 	const item = new Instance("TextLabel"); item.BackgroundTransparency = 1; item.Text = text;
 	item.Position = position; item.Size = size; item.TextSize = fontSize; item.Font = Enum.Font.GothamMedium;
-	item.TextColor3 = Color3.fromRGB(244,242,227); item.TextWrapped = true; item.Parent = parent; return item;
+	item.TextColor3 = Color3.fromRGB(244,242,227); item.TextWrapped = true; item.TextScaled = true;
+	const textBounds = new Instance("UITextSizeConstraint"); textBounds.MinTextSize = 11; textBounds.MaxTextSize = fontSize; textBounds.Parent = item; item.Parent = parent; return item;
 }
 function button(parent: Instance, text: string, x: number, callback: () => void): TextButton {
 	const item = new Instance("TextButton"); item.Text = text; item.Size = new UDim2(0.3,0,0,48);
@@ -35,10 +37,12 @@ function jet(parent: Instance, name: string, color: Color3): Model {
 // by this bounded call and destroyed on natural completion, skip, or UI teardown.
 export const CutscenePlayer = {
 	IsActive(): boolean { return active; },
+	Stop(): void { currentGui?.Destroy(); },
 	Play(sceneId: number): void {
 		if (active) return;
 		active = true;
 		const gui = new Instance("ScreenGui"); gui.Name = "GlassHorizonCinema";
+		currentGui = gui;
 		gui.DisplayOrder = 60; gui.ResetOnSpawn = false; gui.IgnoreGuiInset = false;
 		gui.ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets;
 		const previousSelection = GuiService.SelectedObject;
@@ -47,7 +51,7 @@ export const CutscenePlayer = {
 			const scene = Story.Get(sceneId);
 			const root = new Instance("Frame"); root.Size = UDim2.fromScale(1,1); root.BackgroundColor3 = Color3.fromRGB(5,13,22); root.Parent = gui;
 			const viewport = new Instance("ViewportFrame"); viewport.BackgroundColor3 = Color3.fromRGB(47,90,118);
-			viewport.Position = UDim2.fromScale(0,0.09); viewport.Size = UDim2.fromScale(1,0.58);
+			viewport.Position = UDim2.fromOffset(0,32); viewport.Size = new UDim2(1,0,1,-180);
 			viewport.Ambient = Color3.fromRGB(170,179,194); viewport.LightColor = Color3.fromRGB(255,226,185);
 			viewport.LightDirection = new Vector3(-1,-1,-0.5); viewport.Parent = root;
 			const world = new Instance("WorldModel"); world.Parent = viewport;
@@ -71,11 +75,11 @@ export const CutscenePlayer = {
 			block(world,"CarrierHull",new Vector3(34,14,150),new Vector3(85,-5,30),Color3.fromRGB(55,67,79));
 			block(world,"FlightDeck",new Vector3(42,2,160),new Vector3(85,3,30),Color3.fromRGB(122,131,133));
 			block(world,"Bridge",new Vector3(12,23,22),new Vector3(102,16,50),Color3.fromRGB(190,196,193));
-			label(root,scene.title,new UDim2(0.04,0,0,0),new UDim2(0.92,0,0.085,0),19);
-			const subtitle = label(root,"",new UDim2(0.045,0,0.68,0),new UDim2(0.91,0,0.14,0),18);
-			const hint = label(root,"",new UDim2(0.04,0,0.82,0),new UDim2(0.92,0,0,20),12);
-			let beatIndex = 0, beatTime = 0, skipped = false, next = false;
-			const advance = () => { next = true; };
+			label(root,scene.title,new UDim2(0.04,0,0,0),new UDim2(0.92,0,0,28),19);
+			const subtitle = label(root,"",new UDim2(0.045,0,1,-144),new UDim2(0.91,0,0,64),18);
+			const hint = label(root,"",new UDim2(0.04,0,1,-80),new UDim2(0.92,0,0,20),12);
+			let beatIndex = 0, beatTime = 0, skipped = false, advanceRequested = false;
+			const advance = () => { advanceRequested = true; };
 			const skip = button(root,"SKIP · B / Esc",0.025,() => { skipped = true; });
 			const pace = button(root,"AUTO · toggle reading pace",0.35,() => { readAtOwnPace = !readAtOwnPace; });
 			const motion = button(root,"MOTION · toggle",0.675,() => { reduceMotion = !reduceMotion; });
@@ -84,11 +88,11 @@ export const CutscenePlayer = {
 			input = UserInputService.InputBegan.Connect((event,processed) => {
 				if (processed || UserInputService.GetFocusedTextBox()) return;
 				if (event.KeyCode === Enum.KeyCode.Escape || event.KeyCode === Enum.KeyCode.ButtonB) skipped = true;
-				if (event.KeyCode === Enum.KeyCode.Space || event.KeyCode === Enum.KeyCode.Return) advance();
+				if (event.KeyCode === Enum.KeyCode.Space || event.KeyCode === Enum.KeyCode.Return || event.KeyCode === Enum.KeyCode.ButtonX) advance();
 			});
 			// A full-size subtitle panel also advances on touch/mouse; always >=44px.
 			const nextButton = new Instance("TextButton"); nextButton.Text = ""; nextButton.BackgroundTransparency = 1;
-			nextButton.Position = new UDim2(0,0,0.68,0); nextButton.Size = new UDim2(1,0,0.14,0);
+			nextButton.Position = new UDim2(0,0,1,-144); nextButton.Size = new UDim2(1,0,0,64);
 			nextButton.Parent = root; nextButton.Activated.Connect(advance);
 			gui.Parent = Players.LocalPlayer.WaitForChild("PlayerGui");
 			while (gui.Parent && !skipped && beatIndex < scene.beats.size()) {
@@ -97,7 +101,7 @@ export const CutscenePlayer = {
 				subtitle.Text = `${beat.speaker}: ${beat.text}`;
 				pace.Text = readAtOwnPace ? "READ AT OWN PACE" : "AUTO ADVANCE";
 				motion.Text = reduceMotion ? "REDUCED MOTION" : "CAMERA MOTION";
-				hint.Text = `${beatIndex+1}/3 · ${readAtOwnPace ? "Tap subtitle / Space to continue" : "Auto advance · tap subtitle / Space to continue"}`;
+				hint.Text = `${beatIndex+1}/3 · ${readAtOwnPace ? "Tap subtitle / Space / X to continue" : "Auto advance · tap subtitle / Space / X to continue"}`;
 				const t = reduceMotion ? 0 : beatTime;
 				playerJet.PivotTo(new CFrame(-35 + math.sin(t*0.25)*10,65,-15-t*2).mul(CFrame.Angles(0,-0.15,0.06)));
 				wingmate.PivotTo(new CFrame(0,72,18-t*2).mul(CFrame.Angles(0,-0.15,-0.05)));
@@ -105,10 +109,10 @@ export const CutscenePlayer = {
 				const focus = beat.focus === "flight" ? new Vector3(-20,65,-10) : beat.focus === "relay" ? new Vector3(0,40,-130) : new Vector3(85,5,30);
 				const eye = focus.add(beat.focus === "flight" ? new Vector3(50,28,90) : new Vector3(140 + math.sin(t*0.12)*12,65,150));
 				camera.CFrame = CFrame.lookAt(eye,focus);
-				if (next || (!readAtOwnPace && beatTime >= 8)) { beatIndex++; beatTime = 0; next = false; }
+				if (advanceRequested || (!readAtOwnPace && beatTime >= 8)) { beatIndex++; beatTime = 0; advanceRequested = false; }
 			}
 		});
-		input?.Disconnect(); gui.Destroy();
+		input?.Disconnect(); gui.Destroy(); currentGui = undefined;
 		if (previousSelection?.Parent) GuiService.SelectedObject = previousSelection;
 		else GuiService.SelectedObject = undefined;
 		active = false;

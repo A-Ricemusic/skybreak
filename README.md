@@ -1,6 +1,6 @@
 # SKYBREAK: Operation Glass Horizon
 
-An original mobile-first arcade jet combat campaign for Roblox, written in TypeScript with roblox-ts, React Lua, and Rojo. Choose one of four persistent campaign slots and fly two missions in one Roblox place. Each sortie builds its world on launch and removes it after the result.
+An original mobile-first arcade jet combat campaign for Roblox, written in TypeScript with roblox-ts, React Lua, and Rojo. Choose one of four persistent campaign slots and fly 27 authored missions in one Roblox place. Each sortie builds its world on launch and removes it after the result.
 
 ## Controls and campaign
 
@@ -9,7 +9,8 @@ An original mobile-first arcade jet combat campaign for Roblox, written in TypeS
 - Missiles require a target lock, shown on the target bracket. Incoming-missile and airspace warnings appear only while active.
 - Mission 1 — First Flight: learn pitch/turn, select and destroy a ground radar, then defeat three pursuing bandits.
 - Mission 2 — Iron Coast: defeat three bandits, destroy five Blender-authored warehouses while five optional raiders pursue you, then defeat a faster, tougher ace.
-- Each mission has a server-enforced 600-second deadline. Success unlocks the next mission; failure supports retry. Required kills and completion are server-authoritative.
+- Missions 3–27 combine recon beacons, moving convoy escorts, protected-fleet drone interception, timed pursuit, SAM suppression, shield-relay target choices and escalating air combat. Every mission has a rendered, skippable story transition; M27 has a finale.
+- Each mission has a server-enforced 600-second deadline. Success unlocks the next mission; failure supports retry. Completed sorties can be replayed from the full selector. Schema v3 migrates v2 two-mission saves to Mission 3 safely. Required kills and completion are server-authoritative.
 - Published experiences save four slots to DataStore; an unpublished local Studio file clearly uses session-only saves.
 
 ## Setup
@@ -61,7 +62,7 @@ The runner defaults to the macOS Studio executable. Set `ROBLOX_STUDIO_PATH` for
 
 A small checked-in Bun patch applies the upstream roblox-ts runtime registration fix needed for Jest's isolated module environments. `bun install --frozen-lockfile` applies it automatically.
 
-For a genuine mission smoke test, launch through the menu in Studio, then run `tools/playtest-campaign.client.luau` as a client LocalScript. It uses the same flight, targeting, and missile controller methods as the touch UI (without an evade shortcut); it never changes health, damage, or kills. Live cloud saves require a published experience; unpublished Studio tests use clearly labeled session-only slots.
+For the full campaign QA pilot, launch through the menu in Studio, then run `tools/playtest-glass-horizon.client.luau` as a normal client LocalScript (only after the parent grants an exclusive Studio lease). It uses the same flight, targeting, and missile controller methods as the touch UI (without an evade shortcut); it never changes health, damage, or kills. Live cloud saves require a published experience; unpublished Studio tests use clearly labeled session-only slots.
 
 Ground-target creation and the no-key Studio mesh workflow are documented in [mission-assets.md](docs/mission-assets.md).
 
@@ -78,6 +79,6 @@ Kestrel has 3,684 triangles and Vanta has 3,840; each uses seven material meshes
 
 Studio's documented `CreateAssetAsync` upload route currently reports “not available yet” in this installation, so the project does not depend on that upload API. A regenerated FBX is ready for Studio's manual 3D Importer.
 
-## Campaign expansion
+## Glass Horizon alternative status
 
-Open [the interactive 27-mission architecture guide](docs/campaign-expansion.html) in a browser for the single-place/chapter-place tradeoffs, world lifecycle, skybox design, performance validation, save migration, and mission concepts. It is a design proposal, not implemented campaign content.
+See [the implementation, 27-mission manifest and QA handoff](docs/glass-horizon-campaign.md). Offline build/place packaging and 117 pure-domain contracts pass (`bun run test:offline`). Roblox Jest, new UI/mesh replication checks and the genuine 27-mission playthrough are pending the parent's exclusive Studio lease. This alternative is not approved for merge. The older [architecture proposal](docs/campaign-expansion.html) and [two-mission playtest report](docs/two-mission-playtesting.md) remain historical baseline context.

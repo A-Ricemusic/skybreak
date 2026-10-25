@@ -649,7 +649,13 @@ def render_asset(spec: AssetSpec) -> None:
     scene.render.resolution_percentage = 100
     scene.render.image_settings.file_format = "PNG"
     scene.render.film_transparent = False
-    scene.world.color = (0.012, 0.018, 0.022)
+    scene.world.color = (0.12, 0.15, 0.18)
+    sun_data = bpy.data.lights.new("Daylight", "SUN")
+    sun_data.energy = 3.0
+    sun_data.angle = math.radians(18)
+    sun = bpy.data.objects.new("Daylight", sun_data)
+    scene.collection.objects.link(sun)
+    sun.rotation_euler = (math.radians(25), math.radians(-30), math.radians(-25))
     scene.view_settings.look = "AgX - Medium High Contrast"
     for name, location, energy, size, color in (
         ("Key", (70, -85, 110), 2300, 18, (0.86, 0.93, 1.0)),
@@ -756,7 +762,22 @@ def main() -> None:
         ),
     )
     stats = [build_asset(spec) for spec in specs]
-    print("GLASS_HORIZON_ASSETS_BUILD_COMPLETE")
+    # Reopen canonical-source exports and import delivery GLBs into clean
+    # scenes. Verify real exported bounds, not merely the in-memory builder.
+    for spec in specs:
+        payload = json.loads((OUT / f"{spec.slug.lower()}.mesh.json").read_text())
+        expected = payload["bounds"]["dimensions"]
+        bpy.ops.wm.open_mainfile(filepath=str(OUT / f"{spec.slug.lower()}.blend"))
+        for kind in ("blend", "glb"):
+            if kind == "glb":
+                reset_scene()
+                bpy.ops.import_scene.gltf(filepath=str(OUT / f"{spec.slug.lower()}.glb"))
+            low, high = world_bounds([obj for obj in bpy.context.scene.objects if obj.type == "MESH"])
+            size = high - low
+            actual = (size.x, size.z, size.y)
+            if any(abs(a-b) > 0.01 for a,b in zip(actual,expected)):
+                raise RuntimeError(f"{spec.slug} {kind} round-trip bounds {actual} != {expected}")
+    print("GLASS_HORIZON_ASSETS_BUILD_COMPLETE · blend reopen + GLB round-trip verified")
     print(json.dumps(stats, indent=2))
 
 

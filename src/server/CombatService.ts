@@ -101,7 +101,7 @@ function sendTelemetry(session: CombatSession): void {
 	const objective = MissionRules.Objective(session.rules);
 	const message: Telemetry = {
 		kind: "Telemetry", missionId: session.rules.missionId, phase: session.rules.phase,
-		objective: objective.objective, objectiveProgress: objective.objectiveProgress,
+		phaseIndex: session.rules.phaseIndex, objective: objective.objective, objectiveProgress: objective.objectiveProgress,
 		objectiveTotal: objective.objectiveTotal, tutorialStep: objective.tutorialStep,
 		navigation: session.navigation ?? session.protectedAsset, assetHealth: session.assetHealth,
 		timeRemaining: MissionRules.TimeRemaining(session.rules), groundKills: session.rules.groundKills,
@@ -220,7 +220,11 @@ function spawnAir(session: CombatSession, count: number, required: boolean, ace 
 		if (!session.active || session.folder.Parent === undefined) { model.Destroy(); return; }
 		const offset = forward.mul((bomber ? 1850 : 850) + index * 100).add(right.mul((index - (count - 1) / 2) * 250));
 		const spawn = positionFor(session.state).add(offset);
-		const position = new Vector3(math.clamp(spawn.X, -2400, 2400), math.clamp(spawn.Y + 80 + index * 25, 230, 900), math.clamp(spawn.Z, -2400, 2400));
+		// Drone ingress is anchored to the protected fleet, so turning at a
+		// phase transition cannot spawn a bomber on top of its destination.
+		const fleet = session.protectedAsset?.GetPivot().Position ?? Vector3.zero;
+		const position = bomber ? fleet.add(new Vector3((index-(count-1)/2)*300,470+index*22,-2300-index*120))
+			: new Vector3(math.clamp(spawn.X, -2400, 2400), math.clamp(spawn.Y + 80 + index * 25, 230, 900), math.clamp(spawn.Z, -2400, 2400));
 		const direction = unitOr(positionFor(session.state).sub(position).add(right.mul(150)), forward.mul(-1));
 		model.Parent = session.folder;
 		model.PivotTo(CFrame.lookAt(position, position.add(direction)));
@@ -255,7 +259,9 @@ function applyPhase(session: CombatSession): void {
 	else if (phase.kind === "recon_route") {
 		const point = phase.route![0]; session.navigation = beacon(session, "SURVEY BEACON · fly within 360 m", new Vector3(point[0],point[1],point[2]));
 	} else if (phase.kind === "escort_convoy" || phase.kind === "intercept_bombers") {
-		session.protectedAsset = MissionAssets.CreateCarrier(phase.kind === "escort_convoy" ? "FRIENDLY CONVOY · stay within 1100 m" : "PROTECTED BROADCAST FLEET");
+		const desert = MissionCatalog.Get(session.rules.missionId).environmentId.find("desert")[0] !== undefined;
+		session.protectedAsset = desert && phase.kind === "escort_convoy" ? MissionAssets.CreateSAM("CAPTURED RELAY CONVOY · stay within 1100 m")
+			: MissionAssets.CreateCarrier(phase.kind === "escort_convoy" ? "FRIENDLY CONVOY · stay within 1100 m" : "PROTECTED BROADCAST FLEET");
 		session.protectedAsset.PivotTo(new CFrame(0, 15, 200)); session.protectedAsset.Parent = session.folder;
 		if (phase.kind === "intercept_bombers") spawnAir(session, phase.count ?? 3, true, false, true);
 		else spawnAir(session, 3, false);
@@ -314,6 +320,7 @@ function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy):
 	let position: Vector3;
 	let direction: Vector3;
 	let target: Enemy | undefined;
+	if (session.projectiles.size() >= 16) return;
 	if (hostile) {
 		if (!ownsEnemy(session, enemy)) return;
 		position = enemy.position.add(enemy.direction.mul(18));

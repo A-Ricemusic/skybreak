@@ -71,3 +71,9 @@ Studio, Rojo server, publishing, and live mission QA are intentionally separate
 engine-level steps. In Studio, verify `GeometrySource` is `Blender`, geometry and
 colors replicate to the client, target pivots align with world placement, and
 missile damage continues to use the combat service rather than MeshPart queries.
+
+## Glass Horizon additional targets
+
+`tools/build-glass-horizon-assets.py` adds a relay dish (1,896 triangles), tracked SAM (2,140), and command carrier (1,908), with committed runtime JSON in this same directory family. `CreateRelay`, `CreateSAM` and `CreateCarrier` use the identical server-only static-content/cache path. The generator reopens its Blender files and imports each GLB into a clean scene to verify bounds. It requires no paid assets or API credentials.
+
+The alternative now uses a visible native silhouette when engine mesh generation fails, marked `GeometrySource="Fallback"` with an explicit warning. New engine tests require `Blender`. See [the full campaign QA handoff](glass-horizon-campaign.md) for pending Studio checks; offline generation does not establish client replication.

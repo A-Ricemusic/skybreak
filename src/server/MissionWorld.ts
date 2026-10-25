@@ -67,22 +67,6 @@ function island(x: number, z: number, radius: number, height: number): void {
 	terrain.FillBall(new Vector3(x, height - radius + 10, z), radius - 8, Enum.Material.Grass);
 }
 
-function apron(parent: Instance, x: number, z: number, width: number, depth: number): void {
-	Workspace.Terrain.FillBlock(new CFrame(x, 300, z), new Vector3(width + 100, 512, depth + 100), Enum.Material.Air);
-	Workspace.Terrain.FillBlock(new CFrame(x, 14, z), new Vector3(width + 80, 60, depth + 80), Enum.Material.Rock);
-	part(parent, "Apron", new Vector3(width, 4, depth), new Vector3(x, 46, z), Color3.fromRGB(103, 111, 117));
-	for (const side of [-1, 1]) {
-		part(parent, "SafetyLine", new Vector3(3, 0.3, depth - 10), new Vector3(x + side * (width / 2 - 7), 48.2, z), Color3.fromRGB(235, 185, 68), Enum.Material.SmoothPlastic);
-	}
-}
-
-function grounded(model: Model, x: number, z: number, yaw = 0): Model {
-	const [bounds, size] = model.GetBoundingBox();
-	const bottom = bounds.Position.Y - size.Y / 2;
-	model.PivotTo(new CFrame(x, 49 - bottom, z).mul(CFrame.Angles(0, yaw, 0)));
-	return model;
-}
-
 export const MissionWorld = {
 	Build(missionId: number, parent: Instance): { groundTargets: Model[] } {
 		Workspace.FindFirstChild("World")?.Destroy();
@@ -113,6 +97,8 @@ export const MissionWorld = {
 			const height = sea ? -14 : mountain ? 340 + (siteIndex % 3) * 105 : desert ? 27 : 49;
 			if (!sea) {
 				island(x, z, mountain ? 350 : 260, height + 8);
+				Workspace.Terrain.FillBlock(new CFrame(x,height+252,z),new Vector3(190,512,190),Enum.Material.Air);
+				Workspace.Terrain.FillBlock(new CFrame(x,height-16,z),new Vector3(170,32,170),Enum.Material.Rock);
 				part(scenery, "TargetApron", new Vector3(170, 6, 170), new Vector3(x, height - 3, z), Color3.fromRGB(100, 111, 116));
 			}
 			const model = kind === "radar" ? MissionAssets.CreateRadar(name) : kind === "relay" ? MissionAssets.CreateRelay(name)

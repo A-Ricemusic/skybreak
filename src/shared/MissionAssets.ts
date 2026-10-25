@@ -198,7 +198,7 @@ function getTemplates(kind: MissionAssetKind, data: MeshData): Model | undefined
 	} else {
 		cache.generationFailure = tostring(result);
 		warn(
-			`${kind} Blender mission geometry is unavailable on this platform; using the root-only fallback: ${cache.generationFailure}`,
+			`${kind} Blender mission geometry is unavailable on this platform; using a native silhouette fallback: ${cache.generationFailure}`,
 		);
 	}
 	cache.building = false;
@@ -236,6 +236,14 @@ function create(kind: MissionAssetKind, name: string): Model {
 	const templates = getTemplates(kind, data);
 	if (templates === undefined) {
 		model.SetAttribute("GeometrySource", "Fallback");
+		// Platform mesh capability failure must remain visible and playable.
+		// The explicit fallback marker still makes failed mesh QA detectable.
+		const body = root.Clone(); body.Name = "NativeFallback"; body.Transparency = 0;
+		body.Color = Color3.fromRGB(100,119,123); body.Material = Enum.Material.Metal;
+		body.Size = vector(data.bounds.dimensions).mul(new Vector3(0.88,0.7,0.88)); body.Parent = model;
+		const accent = root.Clone(); accent.Name = "TargetIdentification"; accent.Transparency = 0;
+		accent.Size = new Vector3(body.Size.X,2,body.Size.Z); accent.Position = new Vector3(0,body.Size.Y/2,0);
+		accent.Color = Color3.fromRGB(241,151,45); accent.Material = Enum.Material.Neon; accent.Parent = model;
 		return model;
 	}
 	for (const item of templates.GetChildren()) {

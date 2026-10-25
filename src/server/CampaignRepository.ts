@@ -1,5 +1,5 @@
 import { MissionCatalog } from "../shared/MissionCatalog";
-import { GameConfig } from "../shared/GameConfig";
+import { CampaignConfig } from "../shared/CampaignConfig";
 import { MissionFinished, MissionStats, Persistence, SaveSlot } from "../shared/Types";
 
 export interface StoredSlot {
@@ -47,9 +47,9 @@ export interface MissionResult {
 	elapsed: number;
 }
 
-const SLOT_COUNT = GameConfig.Campaign.SlotCount;
-const MISSION_KILLS = GameConfig.Campaign.MaxRecordedKills;
-const MISSION_COUNT = GameConfig.Campaign.MissionCount;
+const SLOT_COUNT = CampaignConfig.SlotCount;
+const MISSION_KILLS = CampaignConfig.MaxRecordedKills;
+const MISSION_COUNT = CampaignConfig.MissionCount;
 
 function isFiniteNumber(value: unknown): value is number {
 	return typeIs(value, "number") && value === value && math.abs(value) < math.huge;
@@ -57,7 +57,8 @@ function isFiniteNumber(value: unknown): value is number {
 
 function slotAt(rawSlots: Map<string, StoredSlot> | StoredSlot[], index: number): unknown {
 	if (typeIs(rawSlots, "table")) {
-		return (rawSlots as unknown as Record<number, unknown>)[index] ?? (rawSlots as unknown as Record<string, unknown>)[tostring(index)];
+		const slotTable = rawSlots as unknown as Map<number | string, unknown>;
+		return slotTable.get(index) ?? slotTable.get(tostring(index));
 	}
 	return undefined;
 }
@@ -128,7 +129,7 @@ export function normalizeSlot(raw: unknown, index: number, legacyV1 = false): Sa
 export function blankProfile(): CampaignProfile {
 	const slots = new Array<SaveSlot>();
 	for (let index = 1; index <= SLOT_COUNT; index++) slots.push(blankSlot(index));
-	return { version: GameConfig.Campaign.SaveVersion, slots };
+	return { version: CampaignConfig.SaveVersion, slots };
 }
 
 export function normalizeProfile(raw: unknown): CampaignProfile {
@@ -188,7 +189,7 @@ export function serializeProfile(profile: CampaignProfile): StoredProfile {
 		if (source.updatedAt !== undefined) stored.updatedAt = source.updatedAt;
 		slots.set(tostring(index), stored);
 	}
-	return { version: GameConfig.Campaign.SaveVersion, slots };
+	return { version: CampaignConfig.SaveVersion, slots };
 }
 
 export function clientSlots(profile: CampaignProfile): SaveSlot[] {
@@ -227,7 +228,7 @@ export function completeMission(
 	const objectivesMet = stats.kills >= MissionCatalog.RequiredAirKills(definition)
 		&& (legacyMission1 || groundKills >= MissionCatalog.RequiredGroundKills(definition))
 		&& (missionId <= 2 || stats.objectivesComplete === true);
-	const qualifiedWin = won && objectivesMet && elapsed > 0 && elapsed < GameConfig.Campaign.MissionTimeLimit;
+	const qualifiedWin = won && objectivesMet && elapsed > 0 && elapsed < CampaignConfig.MissionTimeLimit;
 	const result = coordinator.recordMissionResult(activeSlot, missionId, qualifiedWin, stats.kills, elapsed);
 	notify({
 		kind: result.completed ? "Completed" : "Failed",
@@ -236,7 +237,7 @@ export function completeMission(
 		kills: result.kills,
 		groundKills,
 		elapsed: result.elapsed,
-		reason: result.completed ? undefined : stats.reason ?? (elapsed >= GameConfig.Campaign.MissionTimeLimit ? "timeout" : undefined),
+		reason: result.completed ? undefined : stats.reason ?? (elapsed >= CampaignConfig.MissionTimeLimit ? "timeout" : undefined),
 		saved: !coordinator.hasPendingSave(),
 		persistence: coordinator.getPersistence(),
 	});
@@ -310,7 +311,7 @@ export class CampaignCoordinator {
 		assert(isValidMission(missionId), "invalid campaign mission");
 		const kills = isFiniteNumber(killsRaw) ? math.clamp(math.floor(killsRaw), 0, MISSION_KILLS) : 0;
 		const elapsed = isFiniteNumber(elapsedRaw) && elapsedRaw > 0 ? elapsedRaw : 0;
-		const completed = won && elapsed > 0 && elapsed < GameConfig.Campaign.MissionTimeLimit;
+		const completed = won && elapsed > 0 && elapsed < CampaignConfig.MissionTimeLimit;
 		const slot = this.profile.slots[slotIndex - 1];
 		slot.occupied = true;
 		slot.kills = math.max(slot.kills, kills);

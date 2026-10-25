@@ -11,6 +11,7 @@
     "build:place": "bun run build && mkdir -p build && rojo build -o build/skybreak.rbxlx",
     "serve": "rojo serve",
     "test": "bun run test:roblox",
+    "test:offline": "bun tools/test-offline.ts",
     "test:roblox": "bun tools/test-roblox.ts"
   },
   "devDependencies": {

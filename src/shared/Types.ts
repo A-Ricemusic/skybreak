@@ -49,6 +49,7 @@ export interface MissionStarted {
 export interface Telemetry {
 	missionId?: number;
 	phase?: string;
+	phaseIndex?: number;
 	objective?: string;
 	objectiveProgress?: number;
 	objectiveTotal?: number;

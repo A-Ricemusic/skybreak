@@ -1,4 +1,5 @@
 import { ContextActionService, GuiService, Players, RunService, UserInputService, Workspace } from "@rbxts/services";
+import { MissionCatalog } from "../shared/MissionCatalog";
 import { FlightMath } from "../shared/FlightMath";
 import { MissionStarted, Remotes, Telemetry } from "../shared/Types";
 
@@ -8,7 +9,7 @@ const DEFAULTS: Telemetry = {
 	kind: "Telemetry", health: 100, speed: 0, altitude: 250, kills: 0, total: 3, missiles: 8,
 	missileCooldown: 0, evadeCooldown: 0, targetName: "", lockProgress: 0, incoming: false,
 	elapsed: 0, targetDistance: 0, boundaryWarning: false,
-	missionId: 1, phase: "tutorial_move", objective: "Learn the flight controls", objectiveProgress: 0,
+	phaseIndex: 0, assetHealth: 100, missionId: 1, phase: "tutorial_move", objective: "Learn the flight controls", objectiveProgress: 0,
 	objectiveTotal: 1, timeRemaining: 600, tutorialStep: "move", groundKills: 0, targetKind: "air", targetRequired: false,
 };
 const FLIGHT_KEYS: Enum.KeyCode[] = [
@@ -102,6 +103,7 @@ export class FlightController {
 	private bracketStroke?: UIStroke;
 	private caption?: TextLabel;
 	private arrow?: TextLabel;
+	private navigationCue?: TextLabel;
 	private sendTime = 0;
 	public static GetActive(): FlightController | undefined { return activeController; }
 	public constructor(remotes: Remotes | Instance) {
@@ -120,6 +122,8 @@ export class FlightController {
 					}
 				}
 				this.telemetry.target = isModel(message.target) ? message.target : undefined;
+				this.telemetry.navigation = isModel(message.navigation) ? message.navigation : undefined;
+				this.telemetry.assetHealth = message.assetHealth;
 			} else if (message.kind === "Completed" || message.kind === "Failed") this.Stop();
 		});
 		activeController = this;
@@ -191,7 +195,18 @@ export class FlightController {
 		return $tuple(math.clamp(x, -1, 1), math.clamp(y, -1, 1), this.keys.has(Enum.KeyCode.LeftShift) ? 1 : this.throttle);
 	}
 	private updateTargetCue(camera: Camera): void {
-		const target = this.telemetry.target;
+		const navigation = this.telemetry.navigation;
+		const route = this.telemetry.phase === "recon_route" || this.telemetry.phase === "escort_convoy";
+		if (this.navigationCue) {
+			this.navigationCue.Visible = isModel(navigation);
+			if (isModel(navigation)) {
+				const [point] = camera.WorldToViewportPoint(navigation.GetPivot().Position);
+				const size = camera.ViewportSize;
+				this.navigationCue.Position = UDim2.fromOffset(math.clamp(point.X,85,size.X-85), math.clamp(point.Y,90,size.Y-95));
+				this.navigationCue.Text = `◆ NAV ${math.floor(navigation.GetPivot().Position.sub(this.visualFrame.Position).Magnitude)}m`;
+			}
+		}
+		const target = route && this.telemetry.phase === "recon_route" && isModel(navigation) ? navigation : this.telemetry.target;
 		const bracket = this.bracket!;
 		const arrow = this.arrow!;
 		if (!isModel(target)) { bracket.Visible = false; arrow.Visible = false; return; }
@@ -203,7 +218,7 @@ export class FlightController {
 		const inside = visible && screen.X >= safeX && screen.X <= size.X - safeX && screen.Y >= safeY && screen.Y <= size.Y - safeY;
 		bracket.Visible = inside;
 		arrow.Visible = !inside;
-		const locked = this.telemetry.lockProgress >= 0.99;
+		const locked = target !== navigation && this.telemetry.lockProgress >= 0.99;
 		const required = this.telemetry.targetRequired === true;
 		const ground = this.telemetry.targetKind === "ground";
 		const color = locked ? Color3.fromRGB(255, 193, 98) : required ? Color3.fromRGB(103, 235, 248) : Color3.fromRGB(177, 190, 196);
@@ -214,7 +229,7 @@ export class FlightController {
 			const distance = worldPosition.sub(this.visualFrame.Position).Magnitude;
 			const range = string.format('<font transparency="0.35">%d m</font>', math.floor(distance));
 			const lock = this.telemetry.lockProgress;
-			const marker = `${required ? "TGT · " : ""}${ground ? "GND" : "AIR"}`;
+			const marker = target === navigation && navigation ? `NAV · ${navigation.Name}` : `${required ? "TGT · " : ""}${ground ? "GND" : "AIR"}`;
 			this.caption!.Text = locked
 				? `${marker} · LOCKED  ${range}`
 				: lock > 0.01
@@ -264,7 +279,7 @@ export class FlightController {
 		this.active = true;
 		activeController = this;
 		this.telemetry = { ...DEFAULTS };
-		this.telemetry.missionId = missionData.missionId === 2 ? 2 : 1;
+		this.telemetry.missionId = MissionCatalog.IsValidId(missionData.missionId) ? missionData.missionId : 1;
 		if (this.telemetry.missionId === 2) {
 			this.telemetry.phase = "intercept";
 			this.telemetry.objective = "Intercept the required bandits";
@@ -295,6 +310,11 @@ export class FlightController {
 		for (const descendant of this.aircraft.GetDescendants()) hidePart(descendant);
 		this.connections.push(this.aircraft.DescendantAdded.Connect(hidePart));
 		[this.targetGui, this.bracket, this.bracketStroke, this.caption, this.arrow] = createTargetCue(Players.LocalPlayer.WaitForChild("PlayerGui"));
+		this.navigationCue = new Instance("TextLabel"); this.navigationCue.Name = "NavigationCue";
+		this.navigationCue.Size = UDim2.fromOffset(160,26); this.navigationCue.AnchorPoint = new Vector2(0.5,0.5);
+		this.navigationCue.BackgroundTransparency = 0.35; this.navigationCue.BackgroundColor3 = Color3.fromRGB(5,20,24);
+		this.navigationCue.TextColor3 = Color3.fromRGB(105,255,195); this.navigationCue.TextSize = 12;
+		this.navigationCue.Font = Enum.Font.GothamBold; this.navigationCue.Visible = false; this.navigationCue.Parent = this.targetGui;
 		ContextActionService.BindActionAtPriority(this.actionName, (_, state, input) => this.handleBoundInput(state, input.KeyCode, input.Position), false, 3000, ...FLIGHT_KEYS);
 		this.connections.push(UserInputService.InputBegan.Connect((input, processed) => {
 			if (processed || UserInputService.GetFocusedTextBox()) return;
@@ -321,7 +341,7 @@ export class FlightController {
 		}
 		this.hiddenParts.clear();
 		this.visual?.Destroy(); this.visual = undefined;
-		this.targetGui?.Destroy(); this.targetGui = undefined;
+		this.targetGui?.Destroy(); this.targetGui = undefined; this.navigationCue = undefined;
 		const camera = Workspace.CurrentCamera;
 		if (camera && this.previousCamera) {
 			camera.CameraType = this.previousCamera.type;
