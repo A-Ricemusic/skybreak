@@ -68,6 +68,19 @@ For a genuine mission smoke test, launch through the menu in Studio, then run `t
 
 Ground-target creation and the no-key Studio mesh workflow are documented in [mission-assets.md](docs/mission-assets.md).
 
+## Play on your phone (private test)
+
+Every push to `main` builds the place in GitHub Actions and publishes it to a private Roblox experience (`.github/workflows/publish-roblox.yml`). The Roblox app on your phone then plays the latest published version. Publishing uses Roblox Open Cloud through `tools/publish-place.sh`. The workflow skips publishing until the settings below exist, and the build still runs.
+
+One-time setup:
+
+1. In Roblox Studio, open `build/skybreak.rbxlx` and choose **File > Publish to Roblox**. Create a new experience.
+2. In the Creator Dashboard, set that experience's privacy to **Private**, so only you and invited collaborators can join.
+3. Create an Open Cloud API key with universe-places **write** access for that experience.
+4. In GitHub, add the key as the repository secret `ROBLOX_API_KEY`. Add `ROBLOX_UNIVERSE_ID` and `ROBLOX_PLACE_ID` as repository variables. The IDs are shown in the Creator Dashboard URL.
+
+To publish from your Mac instead, run `bun run build:place` and then `ROBLOX_API_KEY=… ROBLOX_UNIVERSE_ID=… ROBLOX_PLACE_ID=… tools/publish-place.sh`.
+
 ## Blender aircraft
 
 The player's Kestrel fighter and the enemy Vanta interceptor are defined by procedural Blender Python generators. Git retains those generators and the exact runtime mesh JSON; local Blender files, FBX/GLB exports, and preview renders can be regenerated for inspection. See [the aircraft asset guide](docs/aircraft-assets.md) for the complete import workflow and engine pitfalls. Regenerate the assets with:
