@@ -14,7 +14,7 @@ await run(["rojo", "build", "test.project.json", "-o", place]);
 const output = resolve(root, "build/jest-output.log");
 const launchLog = resolve(root, "build/jest-studio.log");
 const errorLog = resolve(root, "build/jest-studio-stderr.log");
-await rm(output, { force: true });
+await Promise.all([output, launchLog, errorLog].map((path) => rm(path, { force: true })));
 const executable = process.env.ROBLOX_STUDIO_PATH ?? "/Applications/RobloxStudio.app/Contents/MacOS/RobloxStudio";
 const studio = Bun.spawn([
 	executable, "--task", "RunScript", "--localPlaceFile", place,
@@ -25,8 +25,7 @@ const deadline = Date.now() + 180_000;
 let summary: { success: boolean; passed: number; failed: number; suites: number; total: number } | undefined;
 while (Date.now() < deadline) {
 	const text = await Bun.file(output).text().catch(() => "");
-	const launch = await Bun.file(launchLog).text().catch(() => "");
-	const match = (text + "\n" + launch).match(/SKYBREAK_JEST_RESULT:(\{[^\r\n]+\})/);
+	const match = text.match(/SKYBREAK_JEST_RESULT:(\{[^\r\n]+\})/);
 	if (match) { summary = JSON.parse(match[1]); break; }
 	if (studio.exitCode !== null) break;
 	await Bun.sleep(500);

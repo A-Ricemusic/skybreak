@@ -3,7 +3,7 @@
 -- damage, locks, cooldowns, enemies and campaign results remain authoritative.
 assert(game:GetService("RunService"):IsStudio(), "QA driver is Studio-only")
 local player = game:GetService("Players").LocalPlayer
-local controller = require(player.PlayerScripts.Client.FlightController).GetActive()
+local controller = require(player.PlayerScripts.Client.FlightController).FlightController.GetActive()
 assert(controller and controller.active, "Launch a mission through the menu first")
 local survivalOnly = script:GetAttribute("SurvivalOnly") == true
 local old = player.PlayerGui:FindFirstChild("SkybreakPlaytest")
