@@ -465,6 +465,7 @@ function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
 		targetName: safeString(payload.targetName, previous.targetName),
 		lockProgress: math.clamp(finite(payload.lockProgress, previous.lockProgress), 0, 1),
 		incoming: payload.incoming === true,
+		lockWarning: payload.lockWarning === true,
 		elapsed: math.max(0, finite(payload.elapsed, previous.elapsed)),
 		targetDistance: math.max(0, finite(payload.targetDistance, previous.targetDistance ?? 0)),
 		boundaryWarning: payload.boundaryWarning === undefined ? previous.boundaryWarning : payload.boundaryWarning === true,
@@ -954,7 +955,7 @@ function MissionHud({
 	const touch = layout.touch;
 	const ready = missileReady(telemetry);
 	const locked = telemetry.target !== undefined && telemetry.lockProgress >= 0.99;
-	const alertText = telemetry.incoming ? "MISSILE INBOUND" : telemetry.boundaryWarning ? "AIRSPACE LIMIT · TURN BACK" : "";
+	const alertText = telemetry.incoming ? "MISSILE INBOUND" : telemetry.lockWarning ? "MISSILE LOCK · BREAK" : telemetry.boundaryWarning ? "AIRSPACE LIMIT · TURN BACK" : "";
 	const alertColor = telemetry.incoming ? C.Danger : C.Orange;
 	const evadeHint = telemetry.incoming && telemetry.evadeCooldown <= 0 ? getEvadeHint(inputMode) : undefined;
 	const flightHints = getFlightHints(inputMode, { introduction, locked, missileReady: ready });

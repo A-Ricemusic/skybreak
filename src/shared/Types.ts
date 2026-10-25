@@ -97,6 +97,8 @@ export interface Telemetry {
 	targetName: string;
 	lockProgress: number;
 	incoming: boolean;
+	/** An enemy is winding up a launch; the missile itself is not in the air yet. */
+	lockWarning?: boolean;
 	elapsed: number;
 	targetDistance?: number;
 	boundaryWarning?: boolean;

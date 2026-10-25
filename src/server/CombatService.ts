@@ -66,16 +66,20 @@ const MAX_MISSILES = 8;
 const PLAYER_MISSILE_DAMAGE = 55;
 // Threat tuning indexed by act (1-3). Missions 1-2 use act 1.
 const TUNING = {
-	hostileDamage: [12, 15, 18],
+	hostileDamage: [10, 14, 18],
 	windup: [2.4, 2.0, 1.7],
-	hostileGate: [6, 5, 4],
-	aceGate: [5, 4, 3],
-	banditHealth: [100, 110, 120],
+	// Act I keeps the gate longer than the evade cooldown so a beginner can always answer every shot.
+	hostileGate: [8, 6, 4.5],
+	aceGate: [6, 4.5, 3.5],
+	// Two player missiles still kill a bandit in every act; threat scales through cadence, not sponginess.
+	banditHealth: [100, 110, 110],
 	aceFlares: [2, 3, 4],
+	// Hostile missile steering rate: Act I missiles can be out-turned, Act III ones must be evaded.
+	missileTurn: [1.4, 1.9, 2.2],
 };
 const HOSTILE_MISSILE_SPEED = 520;
 const HOSTILE_MISSILE_LIFETIME = 6;
-const EVADE_COOLDOWN = 7;
+const EVADE_COOLDOWN = 6;
 const EVADE_INVULNERABLE = 1.6;
 const EVADE_RADIUS = 700;
 const FLARE_RADIUS = 260;
@@ -215,10 +219,12 @@ function cycleTarget(session: CombatSession): void {
 function sendTelemetry(session: CombatSession): void {
 	if (session.player.Parent !== Players) return;
 	let incoming = false;
+	let lockWarning = false;
 	for (const missile of session.projectiles) {
 		if (missile.hostile && missile.position.sub(positionFor(session.state)).Magnitude < 1800) { incoming = true; break; }
 	}
-	for (const enemy of session.enemies) if (ownsEnemy(session, enemy) && enemy.windup > 0) incoming = true;
+	// A windup is a lock warning, not a missile: evading now would waste the countermeasure.
+	for (const enemy of session.enemies) if (ownsEnemy(session, enemy) && enemy.windup > 0) { lockWarning = true; break; }
 	const target = ownsEnemy(session, session.target) ? session.target : undefined;
 	let distance = 0;
 	if (target) { const [targetDistance] = targetMetrics(session, target); distance = targetDistance; }
@@ -240,7 +246,7 @@ function sendTelemetry(session: CombatSession): void {
 		missiles: session.missiles, missileCooldown: session.missileCooldown,
 		evadeCooldown: session.evadeCooldown, target: target?.model, targetName: target?.name ?? "",
 		targetKind: target ? (target.kind === "ground" ? "ground" : "air") : "", targetRequired: target?.required ?? false, targetDistance: distance,
-		lockProgress: session.lockProgress, incoming, elapsed: session.elapsed,
+		lockProgress: session.lockProgress, incoming, lockWarning, elapsed: session.elapsed,
 		boundaryWarning: math.max(math.abs(session.state.x), math.abs(session.state.z)) > FlightMath.SoftBoundary,
 		radio: session.radio, radioSerial: session.radioSerial,
 		targetHealth: target ? math.clamp(target.health / math.max(1, target.maxHealth), 0, 1) : undefined,
@@ -656,16 +662,17 @@ function segmentDistance(point: Vector3, startPosition: Vector3, endPosition: Ve
 /** An ace crossing 2/3 or 1/3 health calls a stage: brief invulnerability, a radio line, more speed and its held-back raiders. */
 function aceStage(session: CombatSession, enemy: Enemy, before: number, after: number): void {
 	const threshold = enemy.stage === 0 ? 2 / 3 : enemy.stage === 1 ? 1 / 3 : -1;
-	if (threshold < 0 || !(before >= threshold && after < threshold)) return;
+	if (threshold < 0 || !(before > threshold && after <= threshold)) return;
 	enemy.stage += 1;
 	enemy.invulnerableUntil = session.elapsed + 1.2;
 	enemy.speedBonus += 30;
 	const lines = session.blueprint?.aceStages;
-	radio(session, lines?.[enemy.stage - 1] ?? (enemy.stage === 1 ? `${enemy.name}: Not bad, trainee. Wing, on me.` : `${enemy.name}: Enough. Head on.`));
 	const phase = session.blueprintState ? BlueprintRunner.ActivePhase(session.blueprintState) : undefined;
 	const raiders = phase?.kind === "ace" ? phase.optionalRaiders ?? 0 : 0;
 	const first = math.ceil(raiders / 2);
 	const count = enemy.stage === 1 ? first : raiders - first;
+	const fallback = count > 0 ? `${enemy.name}: Not bad, trainee. Wing, on me.` : enemy.stage === 1 ? `${enemy.name}: Not bad, trainee. Again.` : `${enemy.name}: Enough. Head on.`;
+	radio(session, lines?.[enemy.stage - 1] ?? fallback);
 	if (count > 0) spawnAir(session, count, false, false, 165, true);
 }
 function stepMissiles(session: CombatSession, dt: number): void {
@@ -693,7 +700,7 @@ function stepMissiles(session: CombatSession, dt: number): void {
 			// Hostile missiles steer for their whole flight; ace missiles turn harder.
 			const lead = math.clamp(distance / speed, 0, missile.hostile ? 0.9 : 0.65);
 			const delta = targetPosition.add(velocity.mul(lead)).sub(missile.position);
-			missile.direction = unitOr(missile.direction.Lerp(unitOr(delta, missile.direction), FlightMath.DampAlpha(missile.hostile ? (missile.ace ? 2.8 : 2.2) : 7, dt)), missile.direction);
+			missile.direction = unitOr(missile.direction.Lerp(unitOr(delta, missile.direction), FlightMath.DampAlpha(missile.hostile ? tuned(session, TUNING.missileTurn) + (missile.ace ? 0.6 : 0) : 7, dt)), missile.direction);
 			const nextPosition = missile.position.add(missile.direction.mul(speed * dt));
 			if (segmentDistance(targetPosition, missile.position, nextPosition) < (missile.hostile ? 24 : 32)) {
 				removed = true;
@@ -714,6 +721,9 @@ function stepMissiles(session: CombatSession, dt: number): void {
 						missile.part.Destroy(); session.projectiles.remove(index);
 						destroyEnemy(session, enemy);
 						if (!session.active) return;
+						// A phase change inside destroyEnemy may have withdrawn raiders and spliced
+						// out missiles below this index; clamp so the backward sweep stays valid.
+						index = math.min(index, session.projectiles.size());
 						continue;
 					} else {
 						const before = enemy.health / enemy.maxHealth;
