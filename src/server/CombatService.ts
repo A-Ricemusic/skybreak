@@ -10,6 +10,7 @@ import { FlightPrediction } from "../shared/FlightPrediction";
 import { TelemetryCodec } from "../shared/TelemetryCodec";
 import { LoadingGate, LoadingGateState } from "../shared/LoadingGate";
 import { ActionGateState, FireNotice, WeaponRules } from "../shared/WeaponRules";
+import { SalvoCandidate, SpecialKind, SpecialState, SpecialWeapons } from "../shared/SpecialWeapons";
 import { MissionWorld } from "./MissionWorld";
 
 type EnemyMode = "attack" | "extend" | "orbit" | "run";
@@ -31,8 +32,14 @@ interface Enemy {
 interface Projectile {
 	/** A player missile without `target` is a blind (unguided) shot that relies on its proximity fuse. */
 	part: Part; position: Vector3; direction: Vector3; target?: Enemy; hostile: boolean; age: number;
-	/** Hostile only: fired by an ace (tighter guidance) and the hull damage on impact. */
+	/** Fired by an ace (hostile: tighter guidance), and the damage on impact (hull or enemy health). */
 	ace: boolean; damage: number;
+	/** Guided flight speed. */
+	speed: number;
+	/** Launched by the special slot: never refunded as a standard missile. */
+	special?: boolean;
+	/** Hostile only: this missile has already rolled against the player's flare cloud. */
+	flareChecked?: boolean;
 }
 export interface CombatSession {
 	player: Player; slot: number; folder: Folder; aircraft: Model; state: FlightState; input: FlightInput;
@@ -44,6 +51,8 @@ export interface CombatSession {
 	appliedBlueprintPhaseIndex?: number;
 	health: number; kills: number; elapsed: number; missiles: number; missileCooldown: number;
 	evadeCooldown: number; evadeRemaining: number; regen: number; lockProgress: number;
+	/** Second weapon slot chosen at the briefing; authoritative charges, cooldown and effect timer. */
+	special: SpecialState;
 	enemies: Enemy[]; projectiles: Projectile[]; target?: Enemy; telemetryTime: number;
 	lastInput: number; lastInputEvent: number; active: boolean; finished: boolean; cleaned: boolean;
 	/** Per-action-kind rate limiting for CombatAction events. */
@@ -84,9 +93,8 @@ let flightStateRemote: UnreliableRemoteEvent | undefined;
 let telemetryRemote: UnreliableRemoteEvent | undefined;
 let onFinished: FinishedCallback | undefined;
 const FIXED_STEP = 1 / 30;
-const LOCK_RANGE = WeaponRules.LockRange;
 const MAX_MISSILES = 8;
-const PLAYER_MISSILE_DAMAGE = 55;
+const PLAYER_MISSILE_DAMAGE = SpecialWeapons.StandardDamage;
 // Threat tuning indexed by act (1-3). Missions 1-2 use act 1.
 const TUNING = {
 	hostileDamage: [10, 14, 18],
@@ -271,6 +279,7 @@ function sendTelemetry(session: CombatSession): void {
 		groundKills: sessionGroundKills(session), targetDistance: distance,
 		targetHealth: target ? math.clamp(target.health / math.max(1, target.maxHealth), 0, 1) : undefined,
 		protectedHealth: phase?.kind === "escort" || phase?.kind === "defend" ? session.blueprintState?.protectedHealth : undefined,
+		specialCharges: session.special.charges, specialCooldown: session.special.cooldown, specialActive: session.special.active,
 	}));
 }
 /**
@@ -288,7 +297,7 @@ function sendHud(session: CombatSession, objective: ReturnType<typeof sessionObj
 		&& previous.tutorialStep === objective.tutorialStep && previous.target === target?.model && previous.targetName === (target?.name ?? "")
 		&& previous.targetKind === targetKind && previous.targetRequired === (target?.required ?? false)
 		&& previous.navigationRadius === phase?.radius && previous.navigationCeiling === phase?.ceiling
-		&& previous.radioSerial === session.radioSerial && previous.fireDeniedSerial === session.fireDeniedSerial
+		&& previous.radioSerial === session.radioSerial && previous.fireDeniedSerial === session.fireDeniedSerial && previous.special === session.special.kind
 		// A moving escort point only re-sends after it travels 20 studs (the cue is a screen marker, not a hitbox).
 		&& (nav ? previous.navigation !== undefined && math.abs(previous.navigation.X - nav.x) + math.abs(previous.navigation.Y - nav.y) + math.abs(previous.navigation.Z - nav.z) < 20 : previous.navigation === undefined)) return;
 	const hud: HudState = {
@@ -296,7 +305,7 @@ function sendHud(session: CombatSession, objective: ReturnType<typeof sessionObj
 		target: target?.model, targetName: target?.name ?? "", targetKind, targetRequired: target?.required ?? false,
 		navigation: nav ? new Vector3(nav.x, nav.y, nav.z) : undefined, navigationRadius: phase?.radius, navigationCeiling: phase?.ceiling,
 		radio: session.radio, radioSerial: session.radioSerial, radioSeconds: session.radioSeconds,
-		fireDenied: session.fireDenied, fireDeniedSerial: session.fireDeniedSerial,
+		fireDenied: session.fireDenied, fireDeniedSerial: session.fireDeniedSerial, special: session.special.kind,
 	};
 	session.hud = hud;
 	missionState!.FireClient(session.player, hud);
@@ -548,7 +557,7 @@ function applyBlueprintPhase(session: CombatSession): void {
 		for (let index = session.projectiles.size() - 1; index >= 0; index--) {
 			const missile = session.projectiles[index];
 			if (missile.hostile || missile.target !== enemy) continue;
-			session.missiles = math.min(MAX_MISSILES, session.missiles + 1);
+			if (!missile.special) session.missiles = math.min(MAX_MISSILES, session.missiles + 1);
 			missile.part.Destroy(); session.projectiles.remove(index);
 		}
 	}
@@ -642,6 +651,7 @@ function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy):
 			missiles: session.missiles, missileCooldown: session.missileCooldown,
 			hasTarget: current !== undefined, lockProgress: session.lockProgress, distance, dot, groundTarget: current?.kind === "ground",
 			canDamage: current ? sessionCanDamage(session, current.kind, current.required) : false,
+			lockRange: SpecialWeapons.LockRange(session.special),
 		});
 		if (decision.kind === "denied") { denyFire(session, decision.reason); return; }
 		position = positionFor(session.state).add(directionFor(session.state).mul(16)).sub(new Vector3(0, 2, 0));
@@ -650,10 +660,74 @@ function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy):
 		session.missiles -= 1;
 		session.missilesFired += 1;
 		session.missileCooldown = 1.15;
+		damage = PLAYER_MISSILE_DAMAGE;
 		// Blind launches report on the weapons channel so story radio lines are never overwritten.
 		if (target === undefined) denyFire(session, "blind");
 	}
-	session.projectiles.push({ part: JetFactory.CreateMissile(session.folder, position, direction, hostile), position, direction, target, hostile, age: 0, ace, damage });
+	const speed = hostile ? HOSTILE_MISSILE_SPEED : WeaponRules.MissileSpeed;
+	session.projectiles.push({ part: JetFactory.CreateMissile(session.folder, position, direction, hostile), position, direction, target, hostile, age: 0, ace, damage, speed });
+}
+/** A guided missile from the special slot at `enemy`; `lateral` offsets the launch rail so a salvo fans out. */
+function launchSpecialMissile(session: CombatSession, enemy: Enemy, lateral: number): void {
+	const forward = directionFor(session.state);
+	const right = new Vector3(-forward.Z, 0, forward.X);
+	const position = positionFor(session.state).add(forward.mul(14)).add(right.mul(lateral)).sub(new Vector3(0, 2.5, 0));
+	const direction = unitOr(forward.add(right.mul(lateral * 0.03)), forward);
+	const kind = session.special.kind;
+	session.projectiles.push({
+		part: JetFactory.CreateMissile(session.folder, position, direction, false), position, direction, target: enemy, hostile: false, age: 0,
+		ace: false, damage: SpecialWeapons.MissileDamage(kind), speed: SpecialWeapons.MissileSpeed(kind), special: true,
+	});
+}
+/** Hostile missiles inside the flare cloud take the bait (ace missiles sometimes see through it). */
+function decoyWithFlares(session: CombatSession): void {
+	const position = positionFor(session.state);
+	for (let index = session.projectiles.size() - 1; index >= 0; index--) {
+		const missile = session.projectiles[index];
+		if (!missile.hostile || missile.flareChecked || missile.position.sub(position).Magnitude > SpecialWeapons.FlareDecoyRadius) continue;
+		missile.flareChecked = true;
+		if (!SpecialWeapons.FlareDecoys(math.random(), missile.ace)) continue;
+		JetFactory.Burst(session.folder, missile.position, Color3.fromRGB(255, 220, 142), 3);
+		missile.part.Destroy(); session.projectiles.remove(index);
+	}
+}
+/** SPECIAL press: the server decides, spends the charge and applies the effect, or explains the refusal. */
+function activateSpecial(session: CombatSession): void {
+	const state = session.special;
+	const current = ownsEnemy(session, session.target) ? session.target : undefined;
+	const range = SpecialWeapons.LockRange(state);
+	let targets = 1;
+	let salvo: number[] = [];
+	if (state.kind === "salvo") {
+		const candidates: SalvoCandidate[] = session.enemies.map((enemy) => {
+			const allowed = ownsEnemy(session, enemy) && sessionCanDamage(session, enemy.kind, enemy.required);
+			let distance = math.huge, dot = -1;
+			if (allowed) [distance, dot] = targetMetrics(session, enemy);
+			return { distance, dot, ground: enemy.kind === "ground", required: enemy.required, allowed, current: enemy === current };
+		});
+		salvo = SpecialWeapons.SalvoTargets(candidates, range);
+		targets = salvo.size();
+	} else if (state.kind === "lance") {
+		let locked = false;
+		if (current && sessionCanDamage(session, current.kind, current.required) && session.lockProgress >= WeaponRules.LockedAt) {
+			const [distance, dot] = targetMetrics(session, current);
+			locked = distance <= range && dot >= WeaponRules.LockDotFor(current.kind === "ground");
+		}
+		targets = locked ? 1 : 0;
+	}
+	const decision = SpecialWeapons.Activate(state, targets);
+	if (decision.kind === "denied") { denyFire(session, decision.reason); return; }
+	if (state.kind === "uav") {
+		radio(session, "Recon drone up: all contacts marked", 3);
+	} else if (state.kind === "flares") {
+		JetFactory.Flares(session.folder, positionFor(session.state));
+		decoyWithFlares(session);
+	} else if (state.kind === "salvo") {
+		for (let index = 0; index < salvo.size(); index++) launchSpecialMissile(session, session.enemies[salvo[index]], (index % 2 === 0 ? 1 : -1) * (6 + math.floor(index / 2) * 5));
+	} else if (state.kind === "lance") {
+		launchSpecialMissile(session, current!, 0);
+	}
+	if (session.active && sessions.get(session.player) === session) sendTelemetry(session);
 }
 function evade(session: CombatSession): void {
 	if (session.evadeCooldown > 0) return;
@@ -765,13 +839,14 @@ function strikeEnemy(session: CombatSession, enemy: Enemy, index: number): boole
 	session.missileHits += 1;
 	// Staged ace: the hit bursts harmlessly while it breaks away.
 	if (enemy.invulnerableUntil > session.elapsed) return true;
-	if (enemy.health <= PLAYER_MISSILE_DAMAGE) {
+	const damage = session.projectiles[index].damage > 0 ? session.projectiles[index].damage : PLAYER_MISSILE_DAMAGE;
+	if (enemy.health <= damage) {
 		session.projectiles[index].part.Destroy(); session.projectiles.remove(index);
 		destroyEnemy(session, enemy);
 		return false;
 	}
 	const before = enemy.health / enemy.maxHealth;
-	enemy.health -= PLAYER_MISSILE_DAMAGE;
+	enemy.health -= damage;
 	enemy.model.SetAttribute("Health", enemy.health);
 	if (enemy.kind === "ace") aceStage(session, enemy, before, enemy.health / enemy.maxHealth);
 	return true;
@@ -839,8 +914,17 @@ function stepMissiles(session: CombatSession, dt: number): void {
 		} else if (!removed) {
 			const targetPosition = missile.hostile ? positionFor(session.state) : missile.target!.position;
 			const velocity = missile.hostile ? directionFor(session.state).mul(session.state.speed) : missile.target!.velocity;
-			const speed = missile.hostile ? HOSTILE_MISSILE_SPEED : 750;
+			const speed = missile.speed;
 			const distance = targetPosition.sub(missile.position).Magnitude;
+			// A live flare cloud: each hostile missile that enters it rolls once to be decoyed.
+			if (missile.hostile && !missile.flareChecked && session.special.kind === "flares" && session.special.active > 0 && distance <= SpecialWeapons.FlareDecoyRadius) {
+				missile.flareChecked = true;
+				if (SpecialWeapons.FlareDecoys(math.random(), missile.ace)) {
+					JetFactory.Burst(session.folder, missile.position, Color3.fromRGB(255, 220, 142), 3);
+					missile.part.Destroy(); session.projectiles.remove(index);
+					continue;
+				}
+			}
 			// Ace flares decoy a player missile that gets close while the ace still has countermeasures.
 			if (!missile.hostile) {
 				const target = missile.target!;
@@ -901,6 +985,7 @@ function stepSession(session: CombatSession, dt: number): void {
 	session.missileCooldown = math.max(0, session.missileCooldown - dt);
 	session.evadeCooldown = math.max(0, session.evadeCooldown - dt);
 	session.evadeRemaining = math.max(0, session.evadeRemaining - dt);
+	SpecialWeapons.Tick(session.special, dt);
 	session.regen += dt;
 	if (session.regen >= 2.5) { session.regen -= 2.5; session.missiles = math.min(MAX_MISSILES, session.missiles + 1); }
 	if (os.clock() - session.lastInput > 0.7) { session.input.x = 0; session.input.y = 0; }
@@ -954,8 +1039,8 @@ function stepSession(session: CombatSession, dt: number): void {
 	if (!ownsEnemy(session, session.target)) acquireTarget(session);
 	if (session.target) {
 		const [distance, dot] = targetMetrics(session, session.target);
-		session.lockProgress = distance <= LOCK_RANGE && dot >= WeaponRules.LockDotFor(session.target.kind === "ground")
-			? math.min(1, session.lockProgress + dt / WeaponRules.LockBuildSeconds) : math.max(0, session.lockProgress - dt * WeaponRules.LockDecayPerSecond);
+		session.lockProgress = distance <= SpecialWeapons.LockRange(session.special) && dot >= WeaponRules.LockDotFor(session.target.kind === "ground")
+			? math.min(1, session.lockProgress + dt / SpecialWeapons.LockBuildSeconds(session.special)) : math.max(0, session.lockProgress - dt * WeaponRules.LockDecayPerSecond);
 	}
 	stepMissiles(session, dt);
 	if (!refreshSession(session, os.clock())) return;
@@ -1000,10 +1085,12 @@ export const CombatService = {
 	},
 	GetSession(player: Player): CombatSession | undefined { return sessions.get(player); },
 	IsActive(player: Player): boolean { return sessions.get(player)?.active ?? false; },
-	StartMission(player: Player, slot: number, missionId = 1): LuaTuple<[boolean, string?]> {
+	StartMission(player: Player, slot: number, missionId = 1, special?: unknown): LuaTuple<[boolean, string?]> {
 		if (!missionState || !onFinished) return $tuple(false, "CombatService is not initialized");
 		if (!FlightMath.IsFinite(slot) || slot % 1 !== 0 || slot < 1 || slot > 4) return $tuple(false, "Choose a save slot from 1 to 4");
 		if (!MissionCatalog.IsValidId(missionId)) return $tuple(false, "Choose a valid mission");
+		if (special !== undefined && !SpecialWeapons.IsKind(special)) return $tuple(false, "Choose a valid special weapon");
+		const specialKind: SpecialKind = SpecialWeapons.IsKind(special) ? special : SpecialWeapons.Default;
 		if (!typeIs(player, "Instance") || !player.IsA("Player") || player.Parent !== Players) return $tuple(false, "Player is unavailable");
 		if (completing.has(player)) return $tuple(false, "Your mission result is still being saved");
 		if (sessions.has(player)) return $tuple(false, "A mission is already in progress or its result is being saved");
@@ -1036,6 +1123,7 @@ export const CombatService = {
 				player, slot, folder, aircraft, state, missionId, nextHostileAt: 4, radioSerial: 0, chatterIndex: 0,
 				input: { x: 0, y: 0, throttle: 0.65 }, health: 100, kills: 0, elapsed: 0,
 				missiles: MAX_MISSILES, missileCooldown: 0, evadeCooldown: 0, evadeRemaining: 0, regen: 0, lockProgress: 0,
+				special: SpecialWeapons.New(specialKind),
 				enemies: [], projectiles: [], telemetryTime: 0, lastInput: os.clock(), lastInputEvent: -math.huge,
 				active: true, finished: false, cleaned: false, previousReplicationFocus: player.ReplicationFocus,
 				inputClientTime: 0, inputFresh: false, inputSteps: 0, stateTime: 0, stateSequence: 0, telemetrySequence: 0,
@@ -1149,6 +1237,7 @@ export const CombatService = {
 			if (data.action === "FireMissile") launchMissile(session, false);
 			else if (data.action === "Evade") evade(session);
 			else if (data.action === "CycleTarget") cycleTarget(session);
+			else if (data.action === "Special") activateSpecial(session);
 		}));
 		connections.push(Players.PlayerRemoving.Connect((player) => CombatService.EndMission(player)));
 		let accumulator = 0;

@@ -1,3 +1,4 @@
+import type { FireNotice } from "./WeaponRules";
 export type Persistence = "cloud" | "session" | "unavailable";
 export interface MissionRecord {
 	completed: boolean;
@@ -33,6 +34,8 @@ export interface SaveSlot {
 	cutscenesSeen?: number[];
 	/** Bumped each time the player deletes this slot; a higher generation replaces older data instead of merging. */
 	generation?: number;
+	/** Last special weapon chosen on the briefing screen for this slot (SpecialWeapons kind). */
+	special?: string;
 }
 export interface CampaignResponse {
 	ok: boolean;
@@ -82,8 +85,10 @@ export interface HudState {
 	radio?: string;
 	radioSerial?: number;
 	radioSeconds?: number;
-	fireDenied?: "no_ammo" | "cooldown" | "blind";
+	fireDenied?: FireNotice;
 	fireDeniedSerial?: number;
+	/** Equipped special weapon (SpecialWeapons kind); constant for the sortie. */
+	special?: string;
 }
 export interface MissionStats {
 	missionId?: number;
@@ -157,8 +162,13 @@ export interface Telemetry {
 	targetHealth?: number;
 	/** How long the HUD should hold `radio` (seconds); the HUD default applies when absent. */
 	radioSeconds?: number;
-	/** Why the latest FIRE press was refused; `fireDeniedSerial` increments on every refusal. */
-	fireDenied?: "no_ammo" | "cooldown" | "blind";
+	/** Why the latest FIRE or SPECIAL press was refused; `fireDeniedSerial` increments on every refusal. */
+	fireDenied?: FireNotice;
+	/** Second weapon slot: equipped kind, charges left, seconds until the next use, seconds of effect remaining. */
+	special?: string;
+	specialCharges?: number;
+	specialCooldown?: number;
+	specialActive?: number;
 	/** False while the current phase protects the selected target (no guided shot possible). */
 	targetDamageable?: boolean;
 	fireDeniedSerial?: number;

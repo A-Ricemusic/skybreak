@@ -1,9 +1,12 @@
 // Pure weapon rules shared by the server (authoritative) and the HUD (presentation).
 // Nothing here touches instances; CombatService adapts Vector3 to plain points.
-export type CombatActionKind = "FireMissile" | "Evade" | "CycleTarget";
+export type CombatActionKind = "FireMissile" | "Evade" | "CycleTarget" | "Special";
 export type FireDenied = "no_ammo" | "cooldown";
-/** What the weapons channel reports after a FIRE press: a refusal or a blind launch. */
-export type FireNotice = FireDenied | "blind";
+/** Why a SPECIAL press did nothing (see SpecialWeapons.Activate). */
+export type SpecialDenied = "special_empty" | "special_cooldown" | "special_active" | "special_no_target";
+/** What the weapons channel reports after a FIRE or SPECIAL press: a refusal or a blind launch. */
+export type FireNotice = FireDenied | "blind" | SpecialDenied;
+const FIRE_NOTICES: FireNotice[] = ["no_ammo", "cooldown", "blind", "special_empty", "special_cooldown", "special_active", "special_no_target"];
 export interface Point { x: number; y: number; z: number }
 export interface ActionGateState { last: Map<CombatActionKind, number> }
 export type LaunchDecision = { kind: "denied"; reason: FireDenied } | { kind: "guided" } | { kind: "blind" };
@@ -19,6 +22,8 @@ export interface LaunchInput {
 	groundTarget?: boolean;
 	/** False when the current phase protects the target; a guided shot would burst for nothing. */
 	canDamage?: boolean;
+	/** Lock envelope range; defaults to LockRange (a recon drone extends it). */
+	lockRange?: number;
 }
 export interface FireButtonState {
 	text: string;
@@ -40,7 +45,7 @@ function segmentDistance(point: Point, from: Point, to: Point): number {
 	const cx = from.x + dx * t - point.x, cy = from.y + dy * t - point.y, cz = from.z + dz * t - point.z;
 	return math.sqrt(cx * cx + cy * cy + cz * cz);
 }
-const ACTION_KINDS: CombatActionKind[] = ["FireMissile", "Evade", "CycleTarget"];
+const ACTION_KINDS: CombatActionKind[] = ["FireMissile", "Evade", "CycleTarget", "Special"];
 /** Minimum spacing between accepted events of the same action kind. */
 const ACTION_WINDOW = 0.09;
 const LOCK_RANGE = 2450;
@@ -68,6 +73,9 @@ export const WeaponRules = {
 	IsActionKind(value: unknown): value is CombatActionKind {
 		return ACTION_KINDS.includes(value as CombatActionKind);
 	},
+	IsFireNotice(value: unknown): value is FireNotice {
+		return FIRE_NOTICES.includes(value as FireNotice);
+	},
 	NewActionGate(): ActionGateState { return { last: new Map<CombatActionKind, number>() }; },
 	/**
 	 * Per-kind rate limit. A duplicate of the same kind inside the window is dropped without
@@ -86,7 +94,8 @@ export const WeaponRules = {
 		if (!finite(input.missiles) || input.missiles <= 0) return { kind: "denied", reason: "no_ammo" };
 		if (finite(input.missileCooldown) && input.missileCooldown > 0) return { kind: "denied", reason: "cooldown" };
 		const locked = input.hasTarget && input.canDamage !== false && finite(input.lockProgress) && input.lockProgress >= LOCKED_AT;
-		const inEnvelope = finite(input.distance) && finite(input.dot) && input.distance <= LOCK_RANGE && input.dot >= WeaponRules.LockDotFor(input.groundTarget === true);
+		const range = finite(input.lockRange) && input.lockRange > 0 ? input.lockRange : LOCK_RANGE;
+		const inEnvelope = finite(input.distance) && finite(input.dot) && input.distance <= range && input.dot >= WeaponRules.LockDotFor(input.groundTarget === true);
 		return locked && inEnvelope ? { kind: "guided" } : { kind: "blind" };
 	},
 	SegmentDistance: segmentDistance,

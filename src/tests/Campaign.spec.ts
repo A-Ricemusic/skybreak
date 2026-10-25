@@ -359,4 +359,30 @@ describe("CampaignCoordinator datastore integration", () => {
 		expect(fresh.mission2Completed).toBe(false);
 		expect(fresh.currentMission).toBe(2);
 	});
+
+	it("remembers the slot's last special weapon, drops unknown ones, and keeps the newer choice on merge", () => {
+		const store = new FakeStore();
+		const { coordinator, deferred } = harness(store);
+		coordinator.load();
+		coordinator.recordMissionStarted(2, 1, "flares");
+		coordinator.recordMissionStarted(3, 1, "bombs");
+		deferred.shift()!();
+		const profile = normalizeProfile(store.data);
+		expect(profile.slots[1].special).toBe("flares");
+		expect(profile.slots[2].special).toBeUndefined();
+		expect(profile.slots[0].special).toBeUndefined();
+		expect(coordinator.getSlots()[1].special).toBe("flares");
+		const serialized = serializeProfile(profile);
+		expect(normalizeProfile(serialized).slots[1].special).toBe("flares");
+
+		const older = new Map<string, object>();
+		older.set("1", { occupied: true, special: "uav", updatedAt: 100 });
+		const newer = new Map<string, object>();
+		newer.set("1", { occupied: true, special: "salvo", updatedAt: 200 });
+		expect(mergeProfiles({ version: 3, slots: older }, { version: 3, slots: newer }).slots[0].special).toBe("salvo");
+		expect(mergeProfiles({ version: 3, slots: newer }, { version: 3, slots: older }).slots[0].special).toBe("salvo");
+		const blank = new Map<string, object>();
+		blank.set("1", { occupied: true, updatedAt: 300 });
+		expect(mergeProfiles({ version: 3, slots: older }, { version: 3, slots: blank }).slots[0].special).toBe("uav");
+	});
 });
