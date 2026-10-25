@@ -608,21 +608,44 @@ function SlotButton({
 	slot,
 	busy,
 	compact,
+	confirming,
 	onSlot,
+	onAskDelete,
+	onConfirmDelete,
+	onCancelDelete,
 }: {
 	number: number;
 	slot?: SaveSlot;
 	busy: boolean;
 	compact: boolean;
+	confirming: boolean;
 	onSlot: (slot: number) => void;
+	onAskDelete: (slot: number) => void;
+	onConfirmDelete: (slot: number) => void;
+	onCancelDelete: () => void;
 }) {
-	const enabled = !busy && slot !== undefined;
+	const enabled = !busy && slot !== undefined && !confirming;
+	const deletable = !busy && slot?.occupied === true;
 	const { hot, events, clearHover } = useHighlight(enabled);
 	const status=busy ? "READING FILE..." : !slot ? "LINK UNAVAILABLE" : slot.completed ? "CAMPAIGN COMPLETE · REPLAY" : slot.occupied ? `CONTINUE MISSION ${string.format("%02d",slot.currentMission ?? 1)}` : "NEW CAMPAIGN";
 	let completed=0;
 	if(slot) for(let id=1;id<=MISSION_COUNT;id++) if(slot.missions?.[id]?.completed) completed++;
 	const detail=busy ? "Please stand by" : !slot ? "Return and try again" : `${completed}/27 complete · ${MissionCatalog.Get(slot.currentMission ?? 1).title}`;
 	const rowHeight = compact ? 44 : 58;
+	const buttonHeight = compact ? 32 : 38;
+	if (confirming) {
+		return (
+			<frame key={`Slot${number}Button`} BackgroundColor3={C.Panel} BackgroundTransparency={0.04} BorderSizePixel={0} LayoutOrder={number} Size={new UDim2(1, 0, 0, rowHeight)}>
+				<Corner />
+				<Stroke color={C.Danger} transparency={0.15} thickness={2} />
+				<Label name="SlotNumber" text={string.format("%02d", number)} color={C.Danger} textSize={12} font={Enum.Font.RobotoMono} position={UDim2.fromOffset(14, 0)} size={new UDim2(0, 26, 1, 0)} />
+				<Label name="Status" text="DELETE THIS SAVE?" color={C.Danger} textSize={compact ? 13 : 15} font={Enum.Font.GothamBold} position={UDim2.fromOffset(48, compact ? 5 : 10)} size={new UDim2(1, -240, 0, compact ? 18 : 20)} />
+				<Label name="Detail" text="All progress in this file is lost." color={C.Muted} textSize={compact ? 10 : 12} position={UDim2.fromOffset(48, compact ? 23 : 31)} size={new UDim2(1, -240, 0, compact ? 15 : 17)} />
+				<ActionButton name="KeepButton" text="KEEP" anchorPoint={new Vector2(1, 0.5)} position={new UDim2(1, -98, 0.5, 0)} size={UDim2.fromOffset(78, buttonHeight)} enabled={!busy} textSize={12} onActivated={onCancelDelete} />
+				<ActionButton name="ConfirmDeleteButton" text="DELETE" primary={true} anchorPoint={new Vector2(1, 0.5)} position={new UDim2(1, -10, 0.5, 0)} size={UDim2.fromOffset(82, buttonHeight)} enabled={!busy} textSize={12} onActivated={() => onConfirmDelete(number)} />
+			</frame>
+		);
+	}
 	return (
 		<textbutton
 			key={`Slot${number}Button`}
@@ -647,8 +670,11 @@ function SlotButton({
 			<Stroke color={hot ? C.Accent : C.Ivory} transparency={hot ? 0.15 : 0.9} thickness={hot ? 2 : 1} />
 			<frame key="FocusBar" BackgroundColor3={C.Accent} BorderSizePixel={0} Position={new UDim2(0, 0, 0.5, 0)} AnchorPoint={new Vector2(0, 0.5)} Size={new UDim2(0, 3, 1, -16)} Visible={hot} />
 			<Label name="SlotNumber" text={string.format("%02d", number)} color={hot ? C.Accent : C.Faint} textSize={12} font={Enum.Font.RobotoMono} position={UDim2.fromOffset(14, 0)} size={new UDim2(0, 26, 1, 0)} />
-			<Label name="Status" text={status} color={slot?.completed ? C.Accent : C.Ivory} textSize={compact ? 13 : 15} font={Enum.Font.GothamBold} position={UDim2.fromOffset(48, compact ? 5 : 10)} size={new UDim2(1, -80, 0, compact ? 18 : 20)} />
-			<Label name="Detail" text={detail} color={C.Muted} textSize={compact ? 10 : 12} position={UDim2.fromOffset(48, compact ? 23 : 31)} size={new UDim2(1, -80, 0, compact ? 15 : 17)} />
+			<Label name="Status" text={status} color={slot?.completed ? C.Accent : C.Ivory} textSize={compact ? 13 : 15} font={Enum.Font.GothamBold} position={UDim2.fromOffset(48, compact ? 5 : 10)} size={new UDim2(1, deletable ? -170 : -80, 0, compact ? 18 : 20)} />
+			<Label name="Detail" text={detail} color={C.Muted} textSize={compact ? 10 : 12} position={UDim2.fromOffset(48, compact ? 23 : 31)} size={new UDim2(1, deletable ? -170 : -80, 0, compact ? 15 : 17)} />
+			{deletable && (
+				<ActionButton name="DeleteButton" text="DELETE" anchorPoint={new Vector2(1, 0.5)} position={new UDim2(1, -40, 0.5, 0)} size={UDim2.fromOffset(84, buttonHeight)} textSize={11} onActivated={() => onAskDelete(number)} />
+			)}
 			<Label name="Arrow" text="›" color={hot ? C.Accent : C.Faint} textSize={20} anchorPoint={new Vector2(1, 0.5)} position={new UDim2(1, -14, 0.5, 0)} size={UDim2.fromOffset(16, 28)} textXAlignment={Enum.TextXAlignment.Right} visible={enabled} />
 		</textbutton>
 	);
@@ -662,6 +688,7 @@ function CampaignScreenImpl({
 	persistence,
 	onBack,
 	onSlot,
+	onDeleteSlot,
 }: {
 	visible: boolean;
 	menu: MenuLayout;
@@ -670,8 +697,19 @@ function CampaignScreenImpl({
 	persistence: Persistence;
 	onBack: () => void;
 	onSlot: (slot: number) => void;
+	onDeleteSlot: (slot: number) => void;
 }) {
 	const compact = menu.compact;
+	const [confirmSlot, setConfirmSlot] = useState<number>();
+	// Leaving the screen drops any half-finished delete confirmation.
+	useEffect(() => {
+		if (!visible) setConfirmSlot(undefined);
+	}, [visible]);
+	const cancelDelete = useCallback(() => setConfirmSlot(undefined), []);
+	const confirmDelete = useCallback((slot: number) => {
+		setConfirmSlot(undefined);
+		onDeleteSlot(slot);
+	}, [onDeleteSlot]);
 	const persistenceText = busy
 		? "Connecting to flight records..."
 		: persistence === "cloud"
@@ -698,7 +736,18 @@ function CampaignScreenImpl({
 			<scrollingframe key="SlotGrid" BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={3} ScrollingDirection={Enum.ScrollingDirection.Y} CanvasSize={UDim2.fromOffset(0, rowHeight * 4 + gap * 3)} Position={UDim2.fromOffset(0, compact ? 34 : 66)} Size={new UDim2(1, 0, 0, getSlotListHeight(menu.panel.height, compact))}>
 				<uilistlayout Padding={new UDim(0, gap)} SortOrder={Enum.SortOrder.LayoutOrder} />
 				{SLOT_NUMBERS.map((number) => (
-					<SlotButton key={`Slot${number}Button`} number={number} slot={slots?.[number - 1]} busy={busy} compact={compact} onSlot={onSlot} />
+					<SlotButton
+						key={`Slot${number}Button`}
+						number={number}
+						slot={slots?.[number - 1]}
+						busy={busy}
+						compact={compact}
+						confirming={confirmSlot === number}
+						onSlot={onSlot}
+						onAskDelete={setConfirmSlot}
+						onConfirmDelete={confirmDelete}
+						onCancelDelete={cancelDelete}
+					/>
 				))}
 			</scrollingframe>
 			<ActionButton name="CampaignBackButton" text="‹  BACK" anchorPoint={new Vector2(0, 1)} position={new UDim2(0, 0, 1, 0)} size={UDim2.fromOffset(108, footerHeight)} enabled={!busy} textSize={13} onActivated={onBack} />
@@ -1461,6 +1510,15 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		setSelectedSlot(slot); setSelectedMission(missionId);
 		changeScreen("briefing");
 	}, [changeScreen]);
+	const deleteSlot = useCallback((slot: number) => {
+		beginRequest((requestId) => {
+			const [response, problem] = invoke("DeleteSlot", { slot });
+			if (!mountedRef.current || requestRef.current !== requestId) return;
+			if (!response) showToast(problem ?? "Command rejected the request.", true);
+			else if (!applyResponseSlots(response)) showToast("Flight records returned an invalid response.", true);
+			else showToast(`Save ${string.format("%02d", slot)} deleted.`, false);
+		});
+	}, [applyResponseSlots, beginRequest, invoke, showToast]);
 	const chooseMission = useCallback((missionId: number) => { selectedMissionRef.current = missionId; setSelectedMission(missionId); }, []);
 	// Always send: the server either launches (guided or blind) or answers with `fireDenied`, so a press is never silent.
 	const fireMissile = useCallback(() => controller.FireMissile(), [controller]);
@@ -1739,7 +1797,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				<frame ref={rootFrameRef} key="Root" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Change={rootChange}>
 					{screen === "cinematic" && <RelayCinematic id={cinematicId} viewport={viewport} onFinish={()=>{const continueStory=cinematicNext.current;changeScreen(cinematicId===MISSION_COUNT ? "outcome" : "briefing");continueStory();}} onCancel={()=>changeScreen(cinematicId===MISSION_COUNT ? "outcome" : "briefing")}/>}
 					<TitleScreen visible={screen === "title"} menu={menu} onCampaign={openCampaign} />
-					<CampaignScreen visible={screen === "slots"} menu={menu} slots={slots} busy={busy} persistence={persistence} onBack={goBack} onSlot={chooseSlot} />
+					<CampaignScreen visible={screen === "slots"} menu={menu} slots={slots} busy={busy} persistence={persistence} onBack={goBack} onSlot={chooseSlot} onDeleteSlot={deleteSlot} />
 					<BriefingScreen visible={screen === "briefing"} menu={menu} selectedSlot={selectedSlot} selectedMission={selectedMission} slot={selectedSave} busy={busy} onBack={goBack} onLaunch={startMission} onMission={chooseMission} />
 					<LoadingScreen visible={screen === "loading"} missionId={selectedMission} progress={loadingProgress} viewport={viewport} />
 					<MissionHud
