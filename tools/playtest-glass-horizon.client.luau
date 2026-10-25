@@ -11,7 +11,9 @@ local MissionCatalog = require(game.ReplicatedStorage.Shared.MissionCatalog).Mis
 local remotes = game.ReplicatedStorage.Remotes
 local old = player.PlayerGui:FindFirstChild("GlassHorizonQA")
 if old then old:Destroy() end
-local reports = Instance.new("Folder")
+local reports = Instance.new("ScreenGui")
+reports.ResetOnSpawn = false
+reports.DisplayOrder = -100
 reports.Name = "GlassHorizonQA"
 reports:SetAttribute("CompletedCount", 0)
 reports.Parent = player.PlayerGui

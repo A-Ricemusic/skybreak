@@ -71,4 +71,11 @@ for(const slug of ["relay","sam","carrier"]){
 	for(const face of mesh.faces){check.equal(face.indices.length,3);for(const index of face.indices)check.ok(index>=0&&index<mesh.vertices.length);}
 	contracts++;
 }
+const {getCinematicLayout}=await import("../src/shared/CinematicLayout");
+for(const [width,height] of [[320,182],[320,240],[568,262],[750,323],[374,608],[930,604]]){
+ const layout=getCinematicLayout(width,height);check.ok(layout.scene.height>=40);check.ok(layout.subtitle.y>layout.scene.y+layout.scene.height);
+ check.ok(layout.hint.y>layout.subtitle.y+layout.subtitle.height);
+ for(const [index,action] of layout.actions.entries()){check.ok(action.height>=44&&action.width>=44);check.ok(action.y>layout.hint.y+layout.hint.height);check.ok(action.y+action.height<=height);if(index>0)check.ok(action.x>layout.actions[index-1].x+layout.actions[index-1].width);}
+ contracts++;
+}
 console.log(`PASS: ${contracts} offline data/domain contracts; 27 mission paths, 28 stories, saves and mesh bounds. Roblox engine/Jest/playthrough NOT run.`);

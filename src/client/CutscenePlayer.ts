@@ -1,4 +1,5 @@
 import { GuiService, Players, RunService, UserInputService } from "@rbxts/services";
+import { getCinematicLayout } from "../shared/CinematicLayout";
 import { Story } from "../shared/Story";
 import { MissionCatalog } from "../shared/MissionCatalog";
 
@@ -47,6 +48,7 @@ export const CutscenePlayer = {
 		gui.ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets;
 		const previousSelection = GuiService.SelectedObject;
 		let input: RBXScriptConnection | undefined;
+		let resized: RBXScriptConnection | undefined;
 		const [ok, problem] = pcall(() => {
 			const scene = Story.Get(sceneId);
 			const root = new Instance("Frame"); root.Size = UDim2.fromScale(1,1); root.BackgroundColor3 = Color3.fromRGB(5,13,22); root.Parent = gui;
@@ -75,7 +77,7 @@ export const CutscenePlayer = {
 			block(world,"CarrierHull",new Vector3(34,14,150),new Vector3(85,-5,30),Color3.fromRGB(55,67,79));
 			block(world,"FlightDeck",new Vector3(42,2,160),new Vector3(85,3,30),Color3.fromRGB(122,131,133));
 			block(world,"Bridge",new Vector3(12,23,22),new Vector3(102,16,50),Color3.fromRGB(190,196,193));
-			label(root,scene.title,new UDim2(0.04,0,0,0),new UDim2(0.92,0,0,28),19);
+			const heading = label(root,scene.title,new UDim2(0.04,0,0,0),new UDim2(0.92,0,0,28),19);
 			const subtitle = label(root,"",new UDim2(0.045,0,1,-144),new UDim2(0.91,0,0,64),18);
 			const hint = label(root,"",new UDim2(0.04,0,1,-80),new UDim2(0.92,0,0,20),12);
 			let beatIndex = 0, beatTime = 0, skipped = false, advanceRequested = false;
@@ -95,7 +97,17 @@ export const CutscenePlayer = {
 			const nextButton = new Instance("TextButton"); nextButton.Name = "NextStoryBeatButton"; nextButton.Text = ""; nextButton.BackgroundTransparency = 1;
 			nextButton.Position = new UDim2(0,0,1,-144); nextButton.Size = new UDim2(1,0,0,64);
 			nextButton.Parent = root; nextButton.Activated.Connect(advance);
-			gui.Parent = Players.LocalPlayer.WaitForChild("PlayerGui");
+			const layout = () => {
+				const geometry = getCinematicLayout(root.AbsoluteSize.X,root.AbsoluteSize.Y);
+				const place = (item: GuiObject, rect: {x:number;y:number;width:number;height:number}) => {
+					item.Position = UDim2.fromOffset(rect.x,rect.y); item.Size = UDim2.fromOffset(rect.width,rect.height);
+				};
+				place(heading,geometry.title); place(viewport,geometry.scene); place(subtitle,geometry.subtitle);
+				place(nextButton,geometry.subtitle); place(hint,geometry.hint);
+				[skip,pace,motion].forEach((item,index) => place(item,geometry.actions[index]));
+			};
+			resized = root.GetPropertyChangedSignal("AbsoluteSize").Connect(layout);
+			gui.Parent = Players.LocalPlayer.WaitForChild("PlayerGui"); layout();
 			GuiService.SelectedObject = skip;
 			while (gui.Parent && !skipped && beatIndex < scene.beats.size()) {
 				const [dt] = RunService.RenderStepped.Wait(); beatTime += math.min(dt,0.1);
@@ -114,7 +126,7 @@ export const CutscenePlayer = {
 				if (advanceRequested || (!readAtOwnPace && beatTime >= 8)) { beatIndex++; beatTime = 0; advanceRequested = false; }
 			}
 		});
-		input?.Disconnect(); gui.Destroy(); currentGui = undefined;
+		input?.Disconnect(); resized?.Disconnect(); gui.Destroy(); currentGui = undefined;
 		if (previousSelection?.Parent) GuiService.SelectedObject = previousSelection;
 		else GuiService.SelectedObject = undefined;
 		active = false;
