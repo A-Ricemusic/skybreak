@@ -99,10 +99,8 @@ describe("menu-world geometry has no co-penetrating parts", () => {
 
 	it("parks the display jet clear of every hangar and the control tower", () => {
 		const bad = findPenetratingPairs([MENU_JET_CLEARANCE, ...MENU_OBSTACLES]);
+		for (const [left, right] of bad) print(`menu jet collision: ${left} vs ${right}`);
 		expect(bad).toEqual([]);
-		if (bad.size() > 0) {
-			for (const [left, right] of bad) print(`menu jet collision: ${left} vs ${right}`);
-		}
 		// Sanity: the obstacle boxes really describe the buildings (three hangars, one tower).
 		expect(MENU_OBSTACLES.size()).toBe(4);
 		const hangar = MENU_OBSTACLES[2];

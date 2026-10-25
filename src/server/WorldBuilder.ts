@@ -186,8 +186,11 @@ function buildAirbase(parent: Instance): Model {
 	makePart(airbase, "Runway", new Vector3(88, 2, 872), new CFrame(0, 23, 0), COLORS.runway, Enum.Material.Asphalt);
 	for (let z = -350; z <= 350; z += 50) makePart(airbase, "CenterMark", new Vector3(2.5, 0.25, 22), new CFrame(0, 24.15, z), COLORS.white, Enum.Material.SmoothPlastic, { canCollide: false });
 	for (const endZ of [-405, 405]) for (let stripe = -3; stripe <= 3; stripe++) makePart(airbase, "ThresholdMark", new Vector3(7, 0.25, 30), new CFrame(stripe * 10, 24.15, endZ), COLORS.white, Enum.Material.SmoothPlastic, { canCollide: false });
-	makePart(airbase, "WestTaxiway", new Vector3(135, 2, 28), new CFrame(-105, 22.5, 115), COLORS.runway, Enum.Material.Asphalt);
-	makePart(airbase, "EastTaxiway", new Vector3(135, 2, 28), new CFrame(105, 22.5, -105), COLORS.runway, Enum.Material.Asphalt);
+	// Taxiways run from the runway shoulder (x ±56) to the apron edge (x ±100) and
+	// stop there: a taxiway slab continuing under an apron puts two same-facing
+	// top faces in one plane, which z-fights under the menu camera sway.
+	makePart(airbase, "WestTaxiway", new Vector3(44, 2, 28), new CFrame(-78, 22.5, 115), COLORS.runway, Enum.Material.Asphalt);
+	makePart(airbase, "EastTaxiway", new Vector3(44, 2, 28), new CFrame(78, 22.5, -105), COLORS.runway, Enum.Material.Asphalt);
 	makePart(airbase, "WestApron", new Vector3(170, 2, 190), new CFrame(-185, 22.5, 115), COLORS.concrete, Enum.Material.Concrete);
 	makePart(airbase, "EastApron", new Vector3(170, 2, 190), new CFrame(185, 22.5, -105), COLORS.concrete, Enum.Material.Concrete);
 	for (const placement of HANGAR_PLACEMENTS) buildHangar(airbase, placement.center, placement.facing);
