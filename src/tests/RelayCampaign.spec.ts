@@ -1,4 +1,6 @@
 import {describe,expect,it} from "@rbxts/jest-globals";
+import {NavigationPilot} from "../shared/NavigationPilot";
+import {FlightMath} from "../shared/FlightMath";
 import {BlueprintRunner} from "../shared/BlueprintRunner";
 import {MissionCatalog,MISSIONS,FlightPoint} from "../shared/MissionCatalog";
 import {LEVEL_LAYOUTS} from "../shared/MissionLayouts";
@@ -51,6 +53,21 @@ describe("Broken Relay campaign contracts",()=>{
 		expect(state.outcome).toBe("won");expect(state.phaseIndex).toBe(bp.phases.size());
 		expect(state.requiredGroundKills).toBe(bp.ground.size());
 		expect(state.requiredAirKills+(state.aceKilled ? 1 : 0)).toBe(MissionCatalog.RequiredAirKills(bp));
+	});
+	for(const bp of MISSIONS.filter((b)=>b.id>=3)) it(`flies M${bp.id} navigation volumes with legal stick and throttle`,()=>{
+		for(let index=0;index<bp.phases.size();index++){
+			const phase=bp.phases[index];if(!phase.points)continue;
+			const run=BlueprintRunner.NewState(bp,0);run.phaseIndex=index;
+			const flight=FlightMath.NewState();let clock=0;
+			while(run.phaseIndex===index && run.outcome===undefined && clock<240){
+				const point=BlueprintRunner.NavigationPoint(run)!;
+				const input=NavigationPilot.Controls(flight,point,phase.radius!,phase.kind!=="route",phase.ceiling);
+				expect(math.abs(input.x)<=1 && math.abs(input.y)<=1 && input.throttle>=0 && input.throttle<=1).toBe(true);
+				const from={x:flight.x,y:flight.y,z:flight.z};FlightMath.Step(flight,input,1/30);clock+=1/30;
+				BlueprintRunner.ObserveFlight(run,from,{x:flight.x,y:flight.y,z:flight.z},1/30,clock);
+			}
+			expect(run.phaseIndex).toBe(index+1);
+		}
 	});
 	it("requires final broadcast after defeating the Marshal",()=>{
 		const bp=MissionCatalog.Get(27),state=BlueprintRunner.NewState(bp,0);

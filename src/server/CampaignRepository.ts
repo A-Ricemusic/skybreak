@@ -189,13 +189,13 @@ export function normalizeSlot(raw: unknown, index: number, legacyV1 = false): Sa
 	const mission1Best = positiveTime(source.mission1BestTime) ?? legacyBest;
 	const mission2Best = positiveTime(source.mission2BestTime);
 	if (mission1Best !== undefined) {
-		missions[1] = { completed: missions[1]?.completed === true, bestTime: fastest(missions[1]?.bestTime, mission1Best) };
+		missions[1] = { completed: missions[1]?.completed === true, bestTime: fastest(missions[1]?.bestTime, mission1Best), firstCompletedAt: missions[1]?.firstCompletedAt };
 	}
 	if (mission2Best !== undefined) {
-		missions[2] = { completed: missions[2]?.completed === true, bestTime: fastest(missions[2]?.bestTime, mission2Best) };
+		missions[2] = { completed: missions[2]?.completed === true, bestTime: fastest(missions[2]?.bestTime, mission2Best), firstCompletedAt: missions[2]?.firstCompletedAt };
 	}
 	// Preserve M2 prerequisite from v2 semantics.
-	if (missions[2]?.completed) missions[1] = { completed: true, bestTime: missions[1]?.bestTime };
+	if (missions[2]?.completed) missions[1] = { completed: true, bestTime: missions[1]?.bestTime, firstCompletedAt: missions[1]?.firstCompletedAt };
 
 	slot.missions = missions;
 	slot.mission1Completed = missions[1]?.completed === true;

@@ -8,8 +8,12 @@ function part(parent: Instance, name: string, size: Vector3, pos: Vector3, color
 	p.Anchored=true; p.CanCollide=false; p.CanTouch=false; p.CanQuery=false; p.Parent=parent; return p;
 }
 function road(parent: Instance, a: Vector3, b: Vector3, width=25): void {
-	const p=part(parent,"Road",new Vector3(width,2,a.sub(b).Magnitude),a.add(b).div(2),Color3.fromRGB(54,64,67),Enum.Material.Asphalt);
-	p.CFrame=CFrame.lookAt(p.Position,b);
+	const count=math.ceil(a.sub(b).Magnitude/1800);
+	for(let i=0;i<count;i++){
+		const start=a.Lerp(b,i/count),end=a.Lerp(b,(i+1)/count);
+		const p=part(parent,"Road",new Vector3(width,2,start.sub(end).Magnitude),start.add(end).div(2),Color3.fromRGB(54,64,67),Enum.Material.Asphalt);
+		p.CFrame=CFrame.lookAt(p.Position,end);
+	}
 }
 function light(parent: Instance, pos: Vector3): void { part(parent,"Navigation light",new Vector3(4,3,4),pos,Color3.fromRGB(80,235,211),Enum.Material.Neon); }
 export const RelayWorld = {
@@ -35,11 +39,13 @@ export const RelayWorld = {
 		parent.SetAttribute("MissionId",id); parent.SetAttribute("Composition",layout.name);
 		for (let x=-2;x<=2;x++) for(let z=-2;z<=2;z++) part(scene,"Sea",new Vector3(2000,5,2000),new Vector3(x*2000,-18,z*2000),Color3.fromRGB(27,75,99),Enum.Material.SmoothPlastic).Reflectance=.12;
 		const inland=bp.region==="upland_farm" || bp.region==="plateau_relay" || bp.region==="canyon_pass" || bp.region==="canyon_airfield";
-		if (inland) terrain.FillBlock(new CFrame(0,5,0),new Vector3(4600,76,4600),bp.region==="upland_farm" ? Enum.Material.Grass : Enum.Material.Sandstone);
-		else if (layout.landmark!=="platform") terrain.FillBlock(new CFrame(0,-5,600),new Vector3(4200,90,3000),Enum.Material.Grass);
-		for (const r of layout.ridges) {
-			terrain.FillBlock(new CFrame(r[0],r[4]/2-20,r[1]),new Vector3(r[2],r[4],r[3]),Enum.Material.Rock);
-			terrain.FillBlock(new CFrame(r[0],r[4]-24,r[1]),new Vector3(r[2]-20,10,r[3]-20),bp.region==="upland_farm" ? Enum.Material.Grass : Enum.Material.Sandstone);
+		// Flat terrain uses bounded native slabs. Avoid millions of allocated voxels
+		// per sortie on phones; each disposable world stays below 400 BaseParts.
+		if(inland) for(let x=-1;x<=1;x++)for(let z=-1;z<=1;z++)part(scene,"Plateau floor",new Vector3(1550,50,1550),new Vector3(x*1550,18,z*1550),bp.region==="upland_farm" ? Color3.fromRGB(99,126,73) : Color3.fromRGB(160,116,78),bp.region==="upland_farm" ? Enum.Material.Grass : Enum.Material.Sandstone);
+		else if(layout.landmark!=="platform") for(let x=-1;x<=1;x++)for(let z=0;z<=1;z++)part(scene,"Coastal ground",new Vector3(1400,55,1500),new Vector3(x*1400,12,z*1500-200),Color3.fromRGB(91,119,89),Enum.Material.Grass);
+		for(const r of layout.ridges){
+			part(scene,"Canyon mesa",new Vector3(math.min(2000,r[2]),r[4],math.min(2000,r[3])),new Vector3(r[0],r[4]/2-20,r[1]),Color3.fromRGB(120,95,76),Enum.Material.Rock);
+			part(scene,"Mesa cap",new Vector3(r[2]-20,10,math.min(1990,r[3]-20)),new Vector3(r[0],r[4]-24,r[1]),bp.region==="upland_farm" ? Color3.fromRGB(86,119,73) : Color3.fromRGB(183,136,83),bp.region==="upland_farm" ? Enum.Material.Grass : Enum.Material.Sandstone);
 		}
 		for (let i=1;i<layout.road.size();i++) road(scene,new Vector3(layout.road[i-1][0],45,layout.road[i-1][1]),new Vector3(layout.road[i][0],45,layout.road[i][1]));
 		for (const settlement of layout.settlements) for(let x=0;x<settlement[2];x++) for(let z=0;z<settlement[3];z++) {
@@ -60,7 +66,7 @@ export const RelayWorld = {
 			part(scene,"Runway",new Vector3(100,4,900),new Vector3(fx,48,fz),Color3.fromRGB(36,45,52),Enum.Material.Asphalt);
 			for(let i=-4;i<=4;i++) { part(scene,"Center stripe",new Vector3(4,1,45),new Vector3(fx,50.5,fz+i*95),Color3.fromRGB(239,230,191)); light(scene,new Vector3(fx-47,53,fz+i*95)); light(scene,new Vector3(fx+47,53,fz+i*95)); }
 		} else if(layout.landmark==="bridge") {
-			part(scene,"River",new Vector3(160,3,3600),new Vector3(fx+300,44,-300),Color3.fromRGB(45,124,144),Enum.Material.SmoothPlastic);
+			for(const z of [-1200,600])part(scene,"River",new Vector3(160,3,1800),new Vector3(fx+300,44,z),Color3.fromRGB(45,124,144),Enum.Material.SmoothPlastic);
 			part(scene,"Bridge deck",new Vector3(450,9,45),new Vector3(fx+300,70,fz),Color3.fromRGB(111,115,108));
 			for(const x of [-150,150]) part(scene,"Bridge support",new Vector3(16,50,45),new Vector3(fx+300+x,45,fz),Color3.fromRGB(98,108,112));
 		} else if(layout.landmark==="array") {
@@ -81,8 +87,7 @@ export const RelayWorld = {
 		}
 		const groundTargets: Model[]=[];
 		for (const spec of bp.ground) {
-			// All targets have flattened aprons. Bounds-based grounding keeps meshes honest.
-			terrain.FillBlock(new CFrame(spec.x,300,spec.z),new Vector3(160,512,170),Enum.Material.Air);
+			// All targets have level aprons. Bounds-based grounding keeps meshes honest.
 			part(scene,"Target apron",new Vector3(150,5,160),new Vector3(spec.x,45,spec.z),Color3.fromRGB(90,103,108));
 			const model=spec.asset==="radar" ? MissionAssets.CreateRadar(spec.name) : spec.asset==="warehouse" ? MissionAssets.CreateWarehouse(spec.name) : spec.asset==="comms_relay" ? MissionAssets.CreateCommsRelay(spec.name) : MissionAssets.CreateGrainSilo(spec.name);
 			const [bounds,size]=model.GetBoundingBox();
