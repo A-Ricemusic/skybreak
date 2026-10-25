@@ -5,7 +5,8 @@ import { JetFactory } from "../shared/JetFactory";
 import { MissionPhase, MissionRules, MissionRuleState, TargetKind } from "../shared/MissionRules";
 import { BlueprintRunner, BlueprintState } from "../shared/BlueprintRunner";
 import { MissionBlueprint, MissionCatalog, MissionPhaseBlueprint } from "../shared/MissionCatalog";
-import { FinishedCallback, FlightInput, MissionStats, Remotes, Telemetry } from "../shared/Types";
+import { FinishedCallback, FlightInput, MissionLoading, MissionStats, Remotes, Telemetry } from "../shared/Types";
+import { LoadingGate, LoadingGateState } from "../shared/LoadingGate";
 import { MissionWorld } from "./MissionWorld";
 
 interface Enemy {
@@ -33,6 +34,8 @@ export interface CombatSession {
 	lastInput: number; lastInputEvent: number; lastActionEvent: number; active: boolean; finished: boolean; cleaned: boolean;
 	navigationMarker?: Part; navigationActor?: Model;
 	previousReplicationFocus?: BasePart; characterRoot?: BasePart; wasAnchored?: boolean;
+	/** Present while the client is still receiving the world; nothing simulates until it is released. */
+	loading?: LoadingGateState;
 }
 const sessions = new Map<Player, CombatSession>();
 const completing = new Set<Player>();
@@ -186,6 +189,8 @@ function sendTelemetry(session: CombatSession): void {
 	const objective = sessionObjective(session);
 	const nav = session.blueprintState ? BlueprintRunner.NavigationPoint(session.blueprintState) : undefined;
 	const phase = session.blueprintState ? BlueprintRunner.ActivePhase(session.blueprintState) : undefined;
+	// Protected-actor health is a replicated attribute; 10 Hz here is plenty for the HUD.
+	if (session.blueprintState && session.navigationActor?.Parent) session.navigationActor.SetAttribute("Health", session.blueprintState.protectedHealth);
 	const message: Telemetry = {
 		navigation: nav ? new Vector3(nav.x, nav.y, nav.z) : undefined,
 		navigationRadius: phase?.radius, navigationCeiling: phase?.ceiling,
@@ -261,11 +266,33 @@ function finish(session: CombatSession): void {
 }
 function refreshSession(session: CombatSession, now: number): boolean {
 	if (!session.active) return false;
+	// The mission clock is monotonic; never tick it while the client is still loading.
+	if (session.loading) return true;
 	sessionTick(session, now, session.health);
 	if (session.rules) session.elapsed = session.rules.elapsed;
 	else if (session.blueprintState) session.elapsed = session.blueprintState.elapsed;
 	if (sessionOutcome(session) !== undefined) { finish(session); return false; }
 	return true;
+}
+function countParts(root: Instance): number {
+	let count = 0;
+	for (const item of root.GetDescendants()) if (item.IsA("BasePart")) count++;
+	return count;
+}
+// Leaves the loading gate: the playable clock starts now, and the client gets
+// the same "Started" message it always did.
+function beginPlay(session: CombatSession): void {
+	if (!session.loading || !session.active || session.cleaned) return;
+	session.loading = undefined;
+	const now = os.clock();
+	if (session.rules) { session.rules.startedAt = now; session.rules.elapsed = 0; }
+	if (session.blueprintState) { session.blueprintState.startedAt = now; session.blueprintState.elapsed = 0; }
+	session.elapsed = 0;
+	session.lastInput = now;
+	session.telemetryTime = 0;
+	if (session.player.Parent !== Players) { cleanupSession(session); return; }
+	missionState!.FireClient(session.player, { kind: "Started", slot: session.slot, missionId: session.missionId, aircraft: session.aircraft });
+	if (refreshSession(session, now)) sendTelemetry(session);
 }
 function markTarget(session: CombatSession, enemy: Enemy): void {
 	enemy.model.SetAttribute("SkybreakEnemy", enemy.enabled);
@@ -453,6 +480,10 @@ function stepEnemies(session: CombatSession, dt: number): void {
 	const playerPosition = positionFor(session.state);
 	const playerForward = directionFor(session.state);
 	const playerVelocity = playerForward.mul(session.state.speed);
+	const lateral = new Vector3(-playerForward.Z, 0, playerForward.X);
+	const phase=session.blueprintState ? BlueprintRunner.ActivePhase(session.blueprintState) : undefined;
+	const site=session.blueprintState ? BlueprintRunner.NavigationPoint(session.blueprintState) : undefined;
+	const guarding=site !== undefined && (phase?.kind === "escort" || phase?.kind === "defend");
 	for (let index = 0; index < session.enemies.size(); index++) {
 		const enemy = session.enemies[index];
 		if (!ownsEnemy(session, enemy) || enemy.kind === "ground") continue;
@@ -465,12 +496,9 @@ function stepEnemies(session: CombatSession, dt: number): void {
 			enemy.passDirection = unitOr(enemy.direction.add(playerForward.mul(0.2)), enemy.direction);
 		}
 		const lead = math.clamp(separation / (speed + session.state.speed), 0.35, 1.8);
-		const lateral = new Vector3(-playerForward.Z, 0, playerForward.X);
 		const weave = math.sin(session.elapsed * (ace ? 1.7 : 0.65) + index * 1.8) * (ace ? 125 : 45);
-		const phase=session.blueprintState ? BlueprintRunner.ActivePhase(session.blueprintState) : undefined;
-		const site=session.blueprintState ? BlueprintRunner.NavigationPoint(session.blueprintState) : undefined;
-		const protects=site && !enemy.required && (phase?.kind === "escort" || phase?.kind === "defend");
-		const destination = protects ? new Vector3(site.x + math.sin(session.elapsed*.4+index)*240,230,site.z + math.cos(session.elapsed*.4+index)*240) : playerPosition.add(playerVelocity.mul(lead)).add(lateral.mul(weave)).add(new Vector3(0, ace ? math.sin(session.elapsed * 1.4) * 65 : 25, 0));
+		const protects=guarding && !enemy.required;
+		const destination = protects ? new Vector3(site!.x + math.sin(session.elapsed*.4+index)*240,230,site!.z + math.cos(session.elapsed*.4+index)*240) : playerPosition.add(playerVelocity.mul(lead)).add(lateral.mul(weave)).add(new Vector3(0, ace ? math.sin(session.elapsed * 1.4) * 65 : 25, 0));
 		const desired = enemy.passRemaining > 0 ? enemy.passDirection : unitOr(destination.sub(enemy.position), enemy.direction);
 		const oldDirection = enemy.direction;
 		enemy.direction = unitOr(oldDirection.Lerp(desired, FlightMath.DampAlpha(ace ? 2.8 : 2.1, dt)), oldDirection);
@@ -538,8 +566,10 @@ function stepMissiles(session: CombatSession, dt: number): void {
 			}
 		}
 		if (removed) { missile.part.Destroy(); session.projectiles.remove(index); }
-		if (!refreshSession(session, os.clock())) return;
 	}
+	// One rules tick per step covers hostile hits; destroyEnemy already finishes
+	// the session itself when a kill settles the outcome.
+	refreshSession(session, os.clock());
 }
 function stepSession(session: CombatSession, dt: number): void {
 	if (!refreshSession(session, os.clock())) return;
@@ -574,7 +604,6 @@ function stepSession(session: CombatSession, dt: number): void {
 				const y=phase.kind === "defend" ? 92 : pos.Y;
 				const current=new Vector3(pos.X,y,pos.Z);
 				actor.PivotTo(direction.Magnitude>.01 ? CFrame.lookAt(current,current.add(direction)) : new CFrame(current));
-				actor.SetAttribute("Health",bs.protectedHealth);
 			}
 		}
 	}
@@ -666,18 +695,23 @@ export const CombatService = {
 				markTarget(session, enemy);
 				session.enemies.push(enemy);
 			}
+			// The opening wave is created here (JetFactory may yield on first mesh
+			// generation, which is safe on this RemoteFunction thread) so its parts
+			// replicate under the loading screen. Enemy timers only advance once play
+			// begins, so this is gameplay-equivalent to spawning at launch.
 			applyPhase(session);
-			// Asset generation may yield. The playable 600-second clock starts at launch.
-			if (session.rules) session.rules.startedAt = os.clock();
-			if (session.blueprintState) session.blueprintState.startedAt = os.clock();
+			assert(player.Parent === Players, "Player left during mission setup");
+			// Hold in the loading gate: no clock, stepping or input until the client
+			// confirms replication (CombatAction "Ready") or the timeout elapses.
+			session.loading = LoadingGate.New(os.clock());
 			sessions.set(player, session);
 			player.ReplicationFocus = aircraft.PrimaryPart;
 			const characterRoot = player.Character?.FindFirstChild("HumanoidRootPart");
 			if (characterRoot?.IsA("BasePart")) {
 				session.characterRoot = characterRoot; session.wasAnchored = characterRoot.Anchored; characterRoot.Anchored = true;
 			}
-			missionState!.FireClient(player, { kind: "Started", slot, missionId, aircraft });
-			if (refreshSession(session, os.clock())) sendTelemetry(session);
+			const loading: MissionLoading = { kind: "Loading", slot, missionId, aircraft, expectedParts: countParts(folder) };
+			missionState!.FireClient(player, loading);
 		});
 		buildingMission = false;
 		if (!ok) {
@@ -701,7 +735,7 @@ export const CombatService = {
 		if (!missionRoot) { missionRoot = new Instance("Folder"); missionRoot.Name = "SkybreakCombat"; missionRoot.Parent = Workspace; }
 		connections.push(remote(remotes, "FlightInput").OnServerEvent.Connect((player, payload: unknown) => {
 			const session = sessions.get(player);
-			if (!session?.active || !typeIs(payload, "table")) return;
+			if (!session?.active || session.loading || !typeIs(payload, "table")) return;
 			const now = os.clock();
 			if (!refreshSession(session, now) || now - session.lastInputEvent < 1 / 40) return;
 			session.lastInputEvent = now;
@@ -718,6 +752,11 @@ export const CombatService = {
 			const data = payload as { action?: unknown };
 			if (!typeIs(data.action, "string")) return;
 			const now = os.clock();
+			if (session.loading) {
+				// The client has the aircraft and world locally; release the gate now.
+				if (data.action === "Ready") { LoadingGate.MarkReady(session.loading); if (LoadingGate.Release(session.loading, now)) beginPlay(session); }
+				return;
+			}
 			if (!refreshSession(session, now) || now - session.lastActionEvent < 0.09) return;
 			session.lastActionEvent = now;
 			if (data.action === "FireMissile") launchMissile(session, false);
@@ -728,12 +767,15 @@ export const CombatService = {
 		let accumulator = 0;
 		connections.push(RunService.Heartbeat.Connect((dt) => {
 			const now = os.clock();
-			for (const [, session] of sessions) refreshSession(session, now);
+			for (const [, session] of sessions) {
+				if (session.loading) { if (LoadingGate.Release(session.loading, now)) beginPlay(session); continue; }
+				refreshSession(session, now);
+			}
 			if (!FlightMath.IsFinite(dt) || dt <= 0) return;
 			accumulator = math.min(accumulator + dt, FIXED_STEP * 5);
 			while (accumulator >= FIXED_STEP) {
 				accumulator -= FIXED_STEP;
-				for (const [, session] of sessions) if (session.active) stepSession(session, FIXED_STEP);
+				for (const [, session] of sessions) if (session.active && !session.loading) stepSession(session, FIXED_STEP);
 			}
 		}));
 	},
