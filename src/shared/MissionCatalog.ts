@@ -106,6 +106,8 @@ export interface MissionBlueprint {
 	briefing: string;
 	/** 1 sentence debrief shown after a successful mission. */
 	debrief: string;
+	/** 1 short sentence: the story consequence shown on the debrief when the mission fails. */
+	failure: string;
 	/** Ordered phase sequence. The mission completes when the final phase does. */
 	phases: MissionPhaseBlueprint[];
 	/** Ground targets placed into the mission world. */
@@ -155,6 +157,7 @@ function M(
 		primary,
 		briefing,
 		debrief,
+		failure: "", // filled from FAILURE_OUTCOMES below
 		phases,
 		ground,
 		...extra,
@@ -608,6 +611,39 @@ after(26, fly("signal", "Triangulate the Marshal's last transmission", [[0,600,-
 	{ beat: "TEAL (recorder): ...lane's open. Tell Sera I made the checkout.", chatter: [{ at: 0.5, text: "SERA: Triangulating. He's above the parliament transmitter." }] }));
 after(27, fly("signal", "Broadcast Teal's evidence to the whole coast", [[0,500,-1350]], 30, 0, undefined,
 	{ beat: "SERA: You're on every frequency. Say it your way.", chatter: [{ at: 0.5, text: "HARBOR: Loyalist pilots answering. Every harbor." }] }));
+// Debrief text when a sortie fails, by mission id: what the coup gains if you do not finish.
+const FAILURE_OUTCOMES = [
+	"The bandits reach the field. Varda Rim is grounded and Teal's recordings stay locked away.",
+	"The strike force stages unopposed. The coast keeps fuelling the raid on Varda Rim.",
+	"The scouts close the ridge. Teal's last flight path goes cold.",
+	"The rogue radar keeps watching Varda. The officers behind it stay hidden.",
+	"The convoy is caught on the open road. The orchard families never reach the uplands.",
+	"The fuel grain ships north. The coup's patrols stay supplied.",
+	"The courier reaches the plateau. Tomorrow's coup orders go out on time.",
+	"Varda's tower stays in coup hands, and the rim airfield goes with it.",
+	"Vulture Lead holds the pass. Teal's final transmission stays buried with the witness.",
+	"Node Kiro keeps transmitting. Loyalist traffic stays jammed.",
+	"Lira and Merel keep the farm belt deaf. Teal's packet never reaches the loyalists.",
+	"The transmitter truck is lost. The loyalist cells have no relay net.",
+	"The staging farm keeps feeding the coup's fuel chain.",
+	"The antenna row stays lit. The coup's chain of command stays intact.",
+	"The broadcast is jammed. The garrisons stay with the coup.",
+	"The last staging site survives the storm and the fuel keeps moving.",
+	"The aurora relay stays hot. The Marshal's signature stays hidden.",
+	"Vulture Two holds the plateau. The road to the coast stays shut.",
+	"The harbor reserves survive. The coup keeps its coastal logistics.",
+	"The Marshal's air cover holds together. The evidence never leaves the harbor.",
+	"The broadcast tower keeps talking. The city hears only Rusk.",
+	"The fuel depots survive the fog. The Marshal's convoy sails.",
+	"The ring breaks. Fuel ships slip through to the platform.",
+	"The platform reserves survive. The Marshal can wait out the blockade.",
+	"The landing is pushed back into the sea. The city stays in coup hands.",
+	"The Marshal's wing escapes the city. His last flight stays protected.",
+	"Rusk escapes. The coup survives, and Teal's evidence is never heard.",
+];
+assert(FAILURE_OUTCOMES.size() === MISSIONS.size(), "Every mission needs a failure outcome");
+for (let index = 0; index < MISSIONS.size(); index++) MISSIONS[index].failure = FAILURE_OUTCOMES[index];
+
 // Recompute optional counts after authored flight objectives are installed.
 for (const mission of MISSIONS) {
 	let optional = 0;
@@ -624,6 +660,7 @@ for (let index = 0; index < MISSIONS.size(); index++) {
 	const id = blueprint.id;
 	assert(id === index + 1, `Mission ${index + 1} must have id ${index + 1}`);
 	assert(blueprint.phases.size() >= 1, `Mission ${id} must have at least one phase`);
+	assert(blueprint.failure.size() > 0 && blueprint.failure.size() <= 120, `Mission ${id} needs a short failure outcome`);
 	let requiredAce = 0;
 	let groundCount = 0;
 	for (const phase of blueprint.phases) {

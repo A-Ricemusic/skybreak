@@ -70,6 +70,8 @@ export interface CombatSession {
 	hud?: HudState;
 	/** Pending pivots applied once per Heartbeat, after every fixed sub-step. */
 	aircraftFrame?: CFrame; actorFrame?: CFrame;
+	/** Debrief counters: player missiles launched and connected, hull lost, lowest hull, evades used. */
+	missilesFired: number; missileHits: number; damageTaken: number; lowestHealth: number; evades: number;
 }
 const sessions = new Map<Player, CombatSession>();
 const completing = new Set<Player>();
@@ -336,6 +338,13 @@ function legacyPhaseIndex(missionId: number, phase: MissionPhase): number | unde
 	}
 	return undefined;
 }
+/** Catalog phases finished: the blueprint index, or the legacy phase mapped onto the catalog for missions 1-2. */
+function sessionCompletedPhases(session: CombatSession, won: boolean): number | undefined {
+	if (session.blueprintState) return session.blueprintState.phaseIndex;
+	if (!session.rules) return undefined;
+	if (won) return MissionCatalog.Get(session.missionId).phases.size();
+	return legacyPhaseIndex(session.missionId, session.rules.phase) ?? 0;
+}
 function restoreMenu(): void {
 	if (sessions.size() > 0) return;
 	const [ok, message] = pcall(() => MissionWorld.RestoreMenu());
@@ -366,8 +375,12 @@ function finish(session: CombatSession): void {
 	// Sync elapsed from whichever authoritative runner owns the mission.
 	if (session.rules) session.elapsed = session.rules.elapsed;
 	else if (session.blueprintState) session.elapsed = session.blueprintState.elapsed;
-	sendTelemetry(session);
 	const won = outcome === "won";
+	// The result screen waits up to a few seconds for the save; say the outcome on the HUD right away.
+	session.radio = won ? "MISSION ACCOMPLISHED · RETURN TO BASE" : "MISSION FAILED";
+	session.radioSerial += 1;
+	session.radioSeconds = 6;
+	sendTelemetry(session);
 	const stats: MissionStats = {
 		kills: session.kills,
 		groundKills: sessionGroundKills(session),
@@ -375,7 +388,13 @@ function finish(session: CombatSession): void {
 		elapsed: session.elapsed,
 		slot: session.slot,
 		reason: sessionReason(session),
-		completedPhases: session.blueprintState?.phaseIndex,
+		completedPhases: sessionCompletedPhases(session, won),
+		optionalKills: session.rules?.optionalAirKills ?? session.blueprintState?.optionalAirKills ?? 0,
+		missilesFired: session.missilesFired,
+		missileHits: session.missileHits,
+		damageTaken: session.damageTaken,
+		lowestHealth: session.lowestHealth,
+		evades: session.evades,
 	};
 	const callback = onFinished!;
 	task.defer(() => {
@@ -629,6 +648,7 @@ function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy):
 		direction = directionFor(session.state);
 		target = decision.kind === "guided" ? session.target : undefined;
 		session.missiles -= 1;
+		session.missilesFired += 1;
 		session.missileCooldown = 1.15;
 		// Blind launches report on the weapons channel so story radio lines are never overwritten.
 		if (target === undefined) denyFire(session, "blind");
@@ -639,6 +659,7 @@ function evade(session: CombatSession): void {
 	if (session.evadeCooldown > 0) return;
 	session.evadeCooldown = EVADE_COOLDOWN;
 	session.evadeRemaining = EVADE_INVULNERABLE;
+	session.evades += 1;
 	const position = positionFor(session.state);
 	JetFactory.Flares(session.folder, position);
 	// Only missiles already close are decoyed; windups in progress still launch, so timing matters.
@@ -741,6 +762,7 @@ function segmentDistance(target: Vector3, startPosition: Vector3, endPosition: V
  * that projectile: a kill removed it (and may have spliced the list) or ended the session.
  */
 function strikeEnemy(session: CombatSession, enemy: Enemy, index: number): boolean {
+	session.missileHits += 1;
 	// Staged ace: the hit bursts harmlessly while it breaks away.
 	if (enemy.invulnerableUntil > session.elapsed) return true;
 	if (enemy.health <= PLAYER_MISSILE_DAMAGE) {
@@ -842,7 +864,12 @@ function stepMissiles(session: CombatSession, dt: number): void {
 				removed = true;
 				JetFactory.Burst(session.folder, targetPosition, Color3.fromRGB(255, 179, 102), missile.hostile ? 6 : 8);
 				if (missile.hostile) {
-					if (session.evadeRemaining <= 0) session.health = math.max(0, session.health - missile.damage);
+					if (session.evadeRemaining <= 0) {
+						const lost = math.min(session.health, missile.damage);
+						session.health -= lost;
+						session.damageTaken += lost;
+						session.lowestHealth = math.min(session.lowestHealth, session.health);
+					}
 					if (session.health <= 0) {
 						// A fatal hit settles the sortie before any later kill in this step can count.
 						missile.part.Destroy(); session.projectiles.remove(index);
@@ -1012,6 +1039,7 @@ export const CombatService = {
 				enemies: [], projectiles: [], telemetryTime: 0, lastInput: os.clock(), lastInputEvent: -math.huge,
 				active: true, finished: false, cleaned: false, previousReplicationFocus: player.ReplicationFocus,
 				inputClientTime: 0, inputFresh: false, inputSteps: 0, stateTime: 0, stateSequence: 0, telemetrySequence: 0,
+				missilesFired: 0, missileHits: 0, damageTaken: 0, lowestHealth: 100, evades: 0,
 			};
 			if (legacy) {
 				session.rules = MissionRules.NewState(missionId as 1 | 2, startedAt);

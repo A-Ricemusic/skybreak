@@ -224,7 +224,11 @@ const onFinished: FinishedCallback = (player, won, stats) => {
 		if (player.Parent === Players) remotes!.MissionState.FireClient(player, message);
 	});
 	if (!recorded) {
-		warn("SKYBREAK ignored a mission result that did not match the active server session");
+		warn("SKYBREAK did not record a mission result that did not match the active server session");
+		// Still end the client's flight on a result screen instead of a frozen HUD; nothing was saved.
+		if (player.Parent === Players) remotes!.MissionState.FireClient(player, {
+			kind: won ? "Completed" : "Failed", ...stats, saved: false, persistence: state.coordinator.getPersistence(),
+		});
 		return;
 	}
 	state.activeSlot = undefined;
