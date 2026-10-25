@@ -2,6 +2,7 @@ import { ReplicatedStorage } from "@rbxts/services";
 import { GameConfig } from "../shared/GameConfig";
 import { Remotes } from "../shared/Types";
 import { CampaignService } from "./CampaignService";
+import { CinematicPreviewService } from "./CinematicPreviewService";
 import { CombatService } from "./CombatService";
 import { WorldBuilder } from "./WorldBuilder";
 
@@ -20,6 +21,14 @@ function ensureRemote<T extends "RemoteFunction" | "RemoteEvent">(folder: Folder
 }
 
 function initialize(): void {
+	// Build authored static content before publishing campaign remotes. A client
+	// can therefore only mount a cutscene after the complete preview cache (or
+	// the explicit safe primitive fallback path) has been decided.
+	const [previewsReady, previewError] = pcall(() => CinematicPreviewService.Build());
+	if (!previewsReady) {
+		warn(`SKYBREAK cinematic previews unavailable; cutscenes will use safe primitives: ${tostring(previewError)}`);
+	}
+
 	const existingFolder = ReplicatedStorage.FindFirstChild("Remotes");
 	let remotesFolder: Folder | undefined;
 	if (existingFolder?.IsA("Folder")) {

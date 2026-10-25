@@ -9,6 +9,39 @@ This report separates the package that completed the uninterrupted campaign from
 
 `aefb5b1` differs from the campaign package only in the responsive cinematic layout, six pure layout tests, and the QA recorder's respawn-persistent `ScreenGui`. Server combat, mission worlds, flight, progression, and gameplay UI are unchanged. The full M1–M27 campaign evidence therefore belongs to `2bc1d2c`; final Roblox Jest, compact cinematic validation, skip/accessibility, and a fresh normal-control M1 belong to exact `aefb5b1`.
 
+## Post-QA authored cinematic asset follow-up
+
+After the leased results below were recorded, the branch replaced the cinematic
+aircraft, relay and carrier primitives with clones from a server-generated
+static preview cache using the authored Kestrel, Vanta, Relay and Carrier
+factories. The client helper is clone-only and contains no `AssetService` or
+`EditableMesh` generation. Safe native primitives remain available when the
+server cache is absent, incomplete, or platform generation reports fallback.
+
+This follow-up was deliberately implemented while another branch held the
+exclusive Studio lease. It passed `bun run test:offline`, roblox-ts compilation,
+production place packaging, and `git diff --check`, but **has not run Roblox
+Jest or rendered in Studio**. Nothing below is evidence for the new actor
+framing. The prior `2bc1d2c` campaign and `aefb5b1` compact-layout evidence
+remain unchanged.
+
+Required later live QA:
+
+- run the now 140-test/11-suite Roblox Jest package, including preview cache
+  publication, metadata, clone scaling, `WorldModel` disposal, fallback and
+  malformed-cache regression cases;
+- require all four replicated previews to report `GeometrySource=Blender` for
+  authored-visual acceptance; an explicit visible `Fallback` is safe behavior
+  but not a visual pass;
+- inspect flight-, relay-, fleet- and finale-focused scenes at desktop and the
+  real 320×240 safe root for scale, clipping, lighting and silhouette;
+- leave a manual-read beat open beyond eight seconds to confirm aircraft,
+  camera and relay motion remain bounded, then verify pace/reduced-motion/skip;
+- confirm closing/skipping removes the GUI and its local `WorldModel` actors
+  while the shared replicated cache remains ready for the next scene;
+- complete a fresh normal-control M1 to guard against startup or gameplay
+  lifecycle regressions.
+
 ## Results
 
 - Roblox Jest on final `aefb5b1`: **136/136 passing in 10 suites**.

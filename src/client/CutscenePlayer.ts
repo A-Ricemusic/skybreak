@@ -1,4 +1,5 @@
-import { GuiService, Players, RunService, UserInputService } from "@rbxts/services";
+import { GuiService, Players, ReplicatedStorage, RunService, UserInputService } from "@rbxts/services";
+import { cloneCinematicPreview } from "../shared/CinematicPreview";
 import { getCinematicLayout } from "../shared/CinematicLayout";
 import { Story } from "../shared/Story";
 import { MissionCatalog } from "../shared/MissionCatalog";
@@ -24,13 +25,27 @@ function button(parent: Instance, text: string, x: number, callback: () => void)
 	item.TextColor3 = Color3.fromRGB(225,244,238); item.TextSize = 13; item.TextWrapped = true;
 	item.Font = Enum.Font.GothamBold; item.Parent = parent; item.Activated.Connect(callback); return item;
 }
-function jet(parent: Instance, name: string, color: Color3): Model {
+function fallbackJet(parent: Instance, name: string, color: Color3): Model {
 	const model = new Instance("Model"); model.Name = name;
 	const body = block(model,"Fuselage",new Vector3(4,3,21),Vector3.zero,color);
 	block(model,"Wings",new Vector3(24,1,7),new Vector3(0,0,3),color);
 	block(model,"Canopy",new Vector3(3,2,7),new Vector3(0,2,-3),Color3.fromRGB(31,92,115));
 	block(model,"Tail",new Vector3(1,7,5),new Vector3(0,3,8),color);
 	model.PrimaryPart = body; model.Parent = parent; return model;
+}
+function fallbackRelay(parent: Instance): Model {
+	const model = new Instance("Model"); model.Name = "Network Relay";
+	const mast = block(model,"Mast",new Vector3(6,55,6),Vector3.zero,Color3.fromRGB(70,82,88));
+	block(model,"Dish",new Vector3(35,20,5),new Vector3(0,30,0),Color3.fromRGB(196,201,190));
+	block(model,"Signal",new Vector3(7,7,7),new Vector3(0,44,0),Color3.fromRGB(244,147,55));
+	model.PrimaryPart = mast; model.Parent = parent; return model;
+}
+function fallbackCarrier(parent: Instance): Model {
+	const model = new Instance("Model"); model.Name = "Command Carrier";
+	const hull = block(model,"CarrierHull",new Vector3(34,14,150),Vector3.zero,Color3.fromRGB(55,67,79));
+	block(model,"FlightDeck",new Vector3(42,2,160),new Vector3(0,8,0),Color3.fromRGB(122,131,133));
+	block(model,"Bridge",new Vector3(12,23,22),new Vector3(17,21,20),Color3.fromRGB(190,196,193));
+	model.PrimaryPart = hull; model.Parent = parent; return model;
 }
 
 // Isolated WorldModel + Camera: no second Workspace camera writer, no mission
@@ -67,16 +82,34 @@ export const CutscenePlayer = {
 				const island = block(world,"Island",new Vector3(130,height,150),new Vector3(-300+i*150,-15,-160-(i%2)*170),desert ? Color3.fromRGB(169,123,77) : Color3.fromRGB(96,125,104));
 				island.Orientation = new Vector3(0,i*27,0);
 			}
-			const playerJet = jet(world,"Kestrel",Color3.fromRGB(224,229,216));
-			const wingmate = jet(world,"Vale",sceneId < 10 ? Color3.fromRGB(167,82,58) : Color3.fromRGB(68,182,186));
-			const relay = new Instance("Model"); relay.Name = "Network Relay";
-			const mast = block(relay,"Mast",new Vector3(6,55,6),new Vector3(0,20,-130),Color3.fromRGB(70,82,88));
-			const dish = block(relay,"Dish",new Vector3(35,20,5),new Vector3(0,50,-130),Color3.fromRGB(196,201,190));
-			block(relay,"Signal",new Vector3(7,7,7),new Vector3(0,64,-130),sceneId === 28 ? Color3.fromRGB(53,207,159) : Color3.fromRGB(244,147,55));
-			relay.PrimaryPart = mast; relay.Parent = world;
-			block(world,"CarrierHull",new Vector3(34,14,150),new Vector3(85,-5,30),Color3.fromRGB(55,67,79));
-			block(world,"FlightDeck",new Vector3(42,2,160),new Vector3(85,3,30),Color3.fromRGB(122,131,133));
-			block(world,"Bridge",new Vector3(12,23,22),new Vector3(102,16,50),Color3.fromRGB(190,196,193));
+			// These are clones of server-generated static cached models. The client
+			// never creates EditableMeshes; unavailable/incomplete cache content uses
+			// readable primitives without changing story or cutscene lifecycle.
+			const playerJet = cloneCinematicPreview(
+				ReplicatedStorage,
+				"Kestrel",
+				world,
+				new CFrame(-35,65,-15),
+				1.1,
+			) ?? fallbackJet(world,"Kestrel",Color3.fromRGB(224,229,216));
+			const wingmate = cloneCinematicPreview(
+				ReplicatedStorage,
+				"Vanta",
+				world,
+				new CFrame(0,72,18),
+				1.1,
+			) ?? fallbackJet(world,"Vale",sceneId < 10 ? Color3.fromRGB(167,82,58) : Color3.fromRGB(68,182,186));
+			const relayBase = new CFrame(0,20,-130);
+			const relay = cloneCinematicPreview(ReplicatedStorage,"Relay",world,relayBase,1.6) ?? fallbackRelay(world);
+			relay.PivotTo(relayBase);
+			if (sceneId === 28) {
+				for (const item of relay.GetDescendants()) {
+					if (item.IsA("BasePart") && item.Material === Enum.Material.Neon) item.Color = Color3.fromRGB(53,207,159);
+				}
+			}
+			const carrierBase = new CFrame(85,-5,30);
+			const carrier = cloneCinematicPreview(ReplicatedStorage,"Carrier",world,carrierBase,0.72) ?? fallbackCarrier(world);
+			carrier.PivotTo(carrierBase);
 			const heading = label(root,scene.title,new UDim2(0.04,0,0,0),new UDim2(0.92,0,0,28),19);
 			const subtitle = label(root,"",new UDim2(0.045,0,1,-144),new UDim2(0.91,0,0,64),18);
 			const hint = label(root,"",new UDim2(0.04,0,1,-80),new UDim2(0.92,0,0,20),12);
@@ -119,7 +152,7 @@ export const CutscenePlayer = {
 				const t = reduceMotion ? 0 : math.min(beatTime,8);
 				playerJet.PivotTo(new CFrame(-35 + math.sin(t*0.25)*10,65,-15-t*2).mul(CFrame.Angles(0,-0.15,0.06)));
 				wingmate.PivotTo(new CFrame(0,72,18-t*2).mul(CFrame.Angles(0,-0.15,-0.05)));
-				dish.Orientation = new Vector3(0, reduceMotion ? 0 : t*8,0);
+				relay.PivotTo(relayBase.mul(CFrame.Angles(0, reduceMotion ? 0 : math.rad(t*3), 0)));
 				const focus = beat.focus === "flight" ? new Vector3(-20,65,-10) : beat.focus === "relay" ? new Vector3(0,40,-130) : new Vector3(85,5,30);
 				const eye = focus.add(beat.focus === "flight" ? new Vector3(50,28,90) : new Vector3(140 + math.sin(t*0.12)*12,65,150));
 				camera.CFrame = CFrame.lookAt(eye,focus);
