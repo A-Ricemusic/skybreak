@@ -5,13 +5,13 @@
 assert(game:GetService("RunService"):IsStudio(), "QA pilot is Studio-only")
 local Players=game:GetService("Players")
 local player=Players.LocalPlayer
-local FlightController=require(player.PlayerScripts.Client.FlightController).FlightController
+local FlightController=require(player:WaitForChild("PlayerScripts"):WaitForChild("Client"):WaitForChild("FlightController")).FlightController
 local shared=game.ReplicatedStorage.Shared
 local Pilot=require(shared.NavigationPilot).NavigationPilot
 local Catalog=require(shared.MissionCatalog).MissionCatalog
-local old=player.PlayerGui:FindFirstChild("BrokenRelayQA")
+local old=player.PlayerScripts:FindFirstChild("BrokenRelayQA")
 assert(not old,"A Broken Relay pilot is already installed; destroy its LocalScript and report before replacing")
-local report=Instance.new("Folder");report.Name="BrokenRelayQA";report.Parent=player.PlayerGui
+local report=Instance.new("Folder");report.Name="BrokenRelayQA";report.Parent=player.PlayerScripts
 report:SetAttribute("EvidenceType","Normal controls; real server results")
 local current,phaseSince,activePhase,lastFire,lastCycle,lastEvade,extendUntil=nil,0,"",0,0,0,0
 local attempts={}
@@ -26,10 +26,10 @@ local stateConnection=game.ReplicatedStorage.Remotes.MissionState.OnClientEvent:
     if message.kind=="Started" then stage(message);return end
     if message.kind~="Completed" and message.kind~="Failed" then return end
     if not current then return end
-    local bp=Catalog.Get(message.missionId or 1)
+    local bp=Catalog:Get(message.missionId or 1)
     for _,field in {"kills","groundKills","elapsed","reason","saved","persistence"} do current:SetAttribute(field,message[field]) end
     local valid=message.kind=="Completed" and message.elapsed>0 and message.elapsed<600
-        and message.kills>=Catalog.RequiredAirKills(bp) and message.groundKills==Catalog.RequiredGroundKills(bp)
+        and message.kills>=Catalog:RequiredAirKills(bp) and message.groundKills==Catalog:RequiredGroundKills(bp)
     current:SetAttribute("Outcome",message.kind);current:SetAttribute("ResultValid",valid)
     print("BROKEN_RELAY_REAL_RESULT",current.Name,message.kind,message.elapsed,message.kills,message.groundKills,message.reason)
     current=nil
@@ -40,7 +40,7 @@ local c=FlightController.GetActive()
 if c and c.active then stage(c:GetTelemetry()) end
 local function controlsFor(frame,point,radius,orbit,ceiling)
     local look=frame.LookVector
-    return Pilot.Controls({x=frame.Position.X,y=frame.Position.Y,z=frame.Position.Z,
+    return Pilot:Controls({x=frame.Position.X,y=frame.Position.Y,z=frame.Position.Z,
         yaw=math.atan2(-look.X,-look.Z),pitch=math.asin(look.Y),roll=0,speed=200},
         {x=point.X,y=point.Y,z=point.Z},radius,orbit,ceiling)
 end
@@ -84,12 +84,12 @@ while alive do
                     controller:SetThrottle(delta.Magnitude>1600 and .6 or .05)
                 end
             else controller:SetInput(.3,0);controller:SetThrottle(.2) end
-            if not navigate and now>=extendUntil and telemetry.lockProgress>=.99 and telemetry.missileCooldown<=0 and now-lastFire>1.2 then
+            if script:GetAttribute("HoldFire")~=true and not navigate and now>=extendUntil and telemetry.lockProgress>=.99 and telemetry.missileCooldown<=0 and now-lastFire>1.2 then
                 controller:FireMissile();lastFire=now;current:SetAttribute("MissileCommands",current:GetAttribute("MissileCommands")+1)
             end
             if hasTarget and not flightPhase and telemetry.targetRequired==false and now-lastCycle>.5 then controller:CycleTarget();lastCycle=now end
         end
-        if telemetry.incoming and telemetry.evadeCooldown<=0 and now-lastEvade>2.5 then
+        if script:GetAttribute("NoEvade")~=true and telemetry.incoming and telemetry.evadeCooldown<=0 and now-lastEvade>2.5 then
             controller:Evade();lastEvade=now;current:SetAttribute("EvadeCommands",current:GetAttribute("EvadeCommands")+1)
         end
         current:SetAttribute("LowestHealth",math.min(current:GetAttribute("LowestHealth"),telemetry.health))
