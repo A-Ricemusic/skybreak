@@ -1,6 +1,6 @@
 import { AssetService, HttpService, RunService, ServerStorage } from "@rbxts/services";
 
-type MissionAssetKind = "Warehouse" | "Radar";
+type MissionAssetKind = "Warehouse" | "Radar" | "Corvette" | "Sam";
 type MaterialRole = "Concrete" | "Steel" | "DarkMetal" | "Accent" | "Roof" | "Glass" | "Warning";
 
 interface MeshMaterial {
@@ -70,6 +70,14 @@ function readData(kind: MissionAssetKind): MeshData {
 	if (cache.data !== undefined) return cache.data;
 	const sourceName = `${kind}Geometry`;
 	const source = ServerStorage.FindFirstChild(sourceName);
+	// Corvette and SAM assets are optional; the packaged mesh may not be present
+	// if an operator is testing without regenerating the full Blender suite.
+	// Returning a synthesized fallback MeshData lets MissionAssets fall through
+	// to procedural geometry rather than hard-failing the whole mission build.
+	if (source === undefined && (kind === "Corvette" || kind === "Sam")) {
+		cache.generationFailure = `${sourceName}: not packaged; using procedural fallback`;
+		return undefined as unknown as MeshData;
+	}
 	assert(source?.IsA("StringValue"), `${sourceName}: missing ServerStorage.${sourceName} StringValue; run the asset packager`);
 	const data = HttpService.JSONDecode(source.Value) as MeshData;
 	assert(data.schema === "skybreak.triangulated-mesh.v1", `${sourceName}: unsupported mesh schema`);
@@ -219,12 +227,105 @@ function createRoot(data: MeshData): Part {
 	return root;
 }
 
-function create(kind: MissionAssetKind, name: string): Model {
+function proceduralPart(parent: Instance, name: string, size: Vector3, cframe: CFrame, color: Color3, material: Enum.Material): Part {
+	const p = new Instance("Part");
+	p.Name = name;
+	p.Size = size;
+	p.CFrame = cframe;
+	p.Color = color;
+	p.Material = material;
+	p.Anchored = true;
+	p.CanCollide = false;
+	p.CanTouch = false;
+	p.CanQuery = false;
+	p.CastShadow = true;
+	p.Parent = parent;
+	return p;
+}
+
+/**
+ * Builds a procedural corvette out of basic parts. Dimensions roughly 42x14x12
+ * studs, oriented along -Z. Used as a Blender-import fallback or when the
+ * authored mesh is intentionally omitted (test places, lean distributions).
+ */
+function proceduralCorvette(name: string): Model {
+	const model = new Instance("Model");
+	model.Name = name;
+	model.SetAttribute("GeometryAsset", "Corvette");
+	model.SetAttribute("GeometrySource", "Procedural");
+	const root = new Instance("Part");
+	root.Name = "Root";
+	root.Size = new Vector3(14, 11, 42);
+	root.Transparency = 1;
+	root.Anchored = true;
+	root.CanCollide = false;
+	root.CanTouch = false;
+	root.CanQuery = false;
+	root.CastShadow = false;
+	root.Parent = model;
+	model.PrimaryPart = root;
+	const hullColor = Color3.fromRGB(72, 84, 93);
+	const deckColor = Color3.fromRGB(94, 106, 116);
+	const accentColor = Color3.fromRGB(203, 112, 70);
+	proceduralPart(model, "Hull", new Vector3(13, 5, 38), new CFrame(0, -0.5, 0), hullColor, Enum.Material.Metal);
+	proceduralPart(model, "HullBow", new Vector3(10, 4, 10), new CFrame(0, -0.2, -22), hullColor, Enum.Material.Metal);
+	proceduralPart(model, "Deck", new Vector3(13.5, 1, 32), new CFrame(0, 2.4, 2), deckColor, Enum.Material.Metal);
+	proceduralPart(model, "Bridge", new Vector3(8, 4, 10), new CFrame(0, 5, 4), hullColor, Enum.Material.Metal);
+	proceduralPart(model, "Mast", new Vector3(1.4, 7, 1.4), new CFrame(0, 10, 4), Color3.fromRGB(50, 60, 68), Enum.Material.Metal);
+	proceduralPart(model, "Funnel", new Vector3(3.4, 3.4, 3.4), new CFrame(0, 6, -3), Color3.fromRGB(32, 40, 48), Enum.Material.Metal);
+	proceduralPart(model, "GunMount", new Vector3(3, 2, 5), new CFrame(0, 4, -17), accentColor, Enum.Material.Metal);
+	proceduralPart(model, "WaterLine", new Vector3(14.5, 0.4, 40), new CFrame(0, -3, 0), accentColor, Enum.Material.SmoothPlastic);
+	return model;
+}
+
+/**
+ * Builds a procedural SAM battery: a radar dish on a short tower with four
+ * missile tubes around a central mount. Oriented upward and visually distinct
+ * from the training radar.
+ */
+function proceduralSam(name: string): Model {
+	const model = new Instance("Model");
+	model.Name = name;
+	model.SetAttribute("GeometryAsset", "Sam");
+	model.SetAttribute("GeometrySource", "Procedural");
+	const root = new Instance("Part");
+	root.Name = "Root";
+	root.Size = new Vector3(20, 16, 20);
+	root.Transparency = 1;
+	root.Anchored = true;
+	root.CanCollide = false;
+	root.CanTouch = false;
+	root.CanQuery = false;
+	root.CastShadow = false;
+	root.Parent = model;
+	model.PrimaryPart = root;
+	const concrete = Color3.fromRGB(118, 124, 128);
+	const steel = Color3.fromRGB(72, 82, 90);
+	const warn = Color3.fromRGB(236, 141, 60);
+	proceduralPart(model, "Base", new Vector3(18, 2, 18), new CFrame(0, -7, 0), concrete, Enum.Material.Concrete);
+	proceduralPart(model, "Pedestal", new Vector3(8, 4, 8), new CFrame(0, -4, 0), steel, Enum.Material.Metal);
+	proceduralPart(model, "Mount", new Vector3(10, 1, 10), new CFrame(0, -1.5, 0), steel, Enum.Material.Metal);
+	for (const side of [-1, 1]) {
+		proceduralPart(model, "LauncherFrame", new Vector3(2, 6, 10), new CFrame(side * 3.5, 1.2, 0), steel, Enum.Material.Metal);
+		for (let column = 0; column < 2; column++) {
+			proceduralPart(model, "LauncherTube", new Vector3(1.2, 6, 1.2), new CFrame(side * 3.5, 1.2, (column - 0.5) * 3), warn, Enum.Material.Metal);
+		}
+	}
+	proceduralPart(model, "RadarMast", new Vector3(0.8, 4, 0.8), new CFrame(0, 4, 0), steel, Enum.Material.Metal);
+	proceduralPart(model, "RadarPlate", new Vector3(6, 0.5, 1.5), new CFrame(0, 6, 0), concrete, Enum.Material.Metal);
+	return model;
+}
+
+function create(kind: MissionAssetKind, name: string, procedural?: () => Model): Model {
 	assert(
 		RunService.IsServer() || (RunService.IsStudio() && !RunService.IsRunning()),
 		"MissionAssets geometry must be generated on the server or while Studio is not running",
 	);
 	const data = readData(kind);
+	if (data === undefined) {
+		assert(procedural !== undefined, `${kind}: packaged mesh missing and no procedural fallback supplied`);
+		return procedural();
+	}
 	const model = new Instance("Model");
 	model.Name = name;
 	model.SetAttribute("GeometryAsset", kind);
@@ -235,6 +336,11 @@ function create(kind: MissionAssetKind, name: string): Model {
 	model.PrimaryPart = root;
 	const templates = getTemplates(kind, data);
 	if (templates === undefined) {
+		if (procedural !== undefined) {
+			// Rebuild from procedural so we still get a visible target rather than a bare root.
+			model.Destroy();
+			return procedural();
+		}
 		model.SetAttribute("GeometrySource", "Fallback");
 		return model;
 	}
@@ -252,5 +358,11 @@ export const MissionAssets = {
 	},
 	CreateRadar(name: string): Model {
 		return create("Radar", name);
+	},
+	CreateCorvette(name: string): Model {
+		return create("Corvette", name, () => proceduralCorvette(name));
+	},
+	CreateSam(name: string): Model {
+		return create("Sam", name, () => proceduralSam(name));
 	},
 };
