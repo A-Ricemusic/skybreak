@@ -112,6 +112,9 @@ function ActionButton({
 		>
 			<Corner />
 			<Stroke color={primary ? C.Teal : C.TealDim} transparency={enabled ? 0.35 : 0.82} />
+			{textXAlignment === Enum.TextXAlignment.Left && (
+				<uipadding PaddingLeft={new UDim(0, 20)} PaddingRight={new UDim(0, 16)} />
+			)}
 		</textbutton>
 	);
 }
@@ -490,10 +493,10 @@ function MissionHud({
 			</frame>
 
 			<frame key="ThrottleControls" AnchorPoint={new Vector2(0, 1)} BackgroundColor3={C.Ink} BackgroundTransparency={0.3} BorderSizePixel={0} Position={portrait ? new UDim2(0, 18, 1, -156) : new UDim2(0, compactHeight ? 150 : 166, 1, -18)} Size={horizontalThrottle ? UDim2.fromOffset(124, 54) : UDim2.fromOffset(68, 164)}>
-				<Corner /><Stroke transparency={0.55} /><uipadding PaddingLeft={new UDim(0, 6)} PaddingRight={new UDim(0, 6)} PaddingTop={new UDim(0, 6)} PaddingBottom={new UDim(0, 6)} />
-				<ActionButton name="ThrottleUpButton" text="+" position={UDim2.fromOffset(0, 0)} size={horizontalThrottle ? UDim2.fromOffset(48, 42) : new UDim2(1, 0, 0, 48)} textSize={22} onActivated={() => onThrottle(throttle + 0.1)} />
-				<Label name="ThrottleText" text={`${math.floor(throttle * 100 + 0.5)}%\nTHR`} textSize={11} font={Enum.Font.RobotoMono} position={horizontalThrottle ? UDim2.fromOffset(46, 0) : UDim2.fromOffset(0, 50)} size={horizontalThrottle ? UDim2.fromOffset(32, 42) : new UDim2(1, 0, 0, 52)} textXAlignment={Enum.TextXAlignment.Center} textWrapped={true} />
-				<ActionButton name="ThrottleDownButton" text="−" anchorPoint={horizontalThrottle ? new Vector2(1, 0) : new Vector2(0, 1)} position={horizontalThrottle ? new UDim2(1, 0, 0, 0) : new UDim2(0, 0, 1, 0)} size={horizontalThrottle ? UDim2.fromOffset(48, 42) : new UDim2(1, 0, 0, 48)} textSize={22} onActivated={() => onThrottle(throttle - 0.1)} />
+				<Corner /><Stroke transparency={0.55} /><uipadding PaddingLeft={new UDim(0, horizontalThrottle ? 4 : 6)} PaddingRight={new UDim(0, horizontalThrottle ? 4 : 6)} PaddingTop={new UDim(0, horizontalThrottle ? 4 : 6)} PaddingBottom={new UDim(0, horizontalThrottle ? 4 : 6)} />
+				<ActionButton name="ThrottleUpButton" text="+" position={UDim2.fromOffset(0, 0)} size={horizontalThrottle ? UDim2.fromOffset(44, 46) : new UDim2(1, 0, 0, 48)} textSize={22} onActivated={() => onThrottle(throttle + 0.1)} />
+				<Label name="ThrottleText" text={`${math.floor(throttle * 100 + 0.5)}%\nTHR`} textSize={11} font={Enum.Font.RobotoMono} position={horizontalThrottle ? UDim2.fromOffset(44, 0) : UDim2.fromOffset(0, 50)} size={horizontalThrottle ? UDim2.fromOffset(28, 46) : new UDim2(1, 0, 0, 52)} textXAlignment={Enum.TextXAlignment.Center} textWrapped={true} />
+				<ActionButton name="ThrottleDownButton" text="−" anchorPoint={horizontalThrottle ? new Vector2(1, 0) : new Vector2(0, 1)} position={horizontalThrottle ? new UDim2(1, 0, 0, 0) : new UDim2(0, 0, 1, 0)} size={horizontalThrottle ? UDim2.fromOffset(44, 46) : new UDim2(1, 0, 0, 48)} textSize={22} onActivated={() => onThrottle(throttle - 0.1)} />
 			</frame>
 
 			<frame key="CombatControls" AnchorPoint={new Vector2(1, 1)} BackgroundTransparency={1} Position={new UDim2(1, -18, 1, -18)} Size={actionSize}>
