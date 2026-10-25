@@ -79,3 +79,5 @@ Embers second live checkpoint: continuous slot/session M1–M18 complete, agent 
 Last Tide source review `83b0bc8`: confirmed P2 cinematic compact layout overlaps title/speaker/subtitle and action buttons, with Skip below screen at 750x323. Assigned original agent offline fix and real child-bounds tests via follow-up `tide-parent-review-round1`; queue retained, no Studio granted.
 
 Last Tide follow-up `114824b5159c5914e0ed60fe40f063808bdbe191` independently source-reviewed: viewport-driven panels separate metadata, speaker/subtitle and 44px side-by-side actions; original overlap/out-of-bounds finding resolved. Regression child-bounds tests authored for five phone/minimum viewports. Live font wrapping/rendering and Roblox Jest remain pending lease; queue SHA updated.
+
+Glass parent scoped review at `92dd266`: inspected isolated cutscene player/launch/Next, phase transitions and recon/escort/drone paths; no new confirmed blocking finding in this scope. No whole-PR approval or engine validation. Prioritize live drone timing, escort balance and device rendering during its lease. Embers task remains running; exclusive lease untouched.
