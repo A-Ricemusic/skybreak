@@ -1,0 +1,49 @@
+{
+  "name": "SKYBREAK Jest Tests",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "Shared": {
+        "$path": "out/shared"
+      },
+      "rbxts_include": {
+        "$path": "include",
+        "node_modules": {
+          "$className": "Folder",
+          "@rbxts": {
+            "$path": "node_modules/@rbxts"
+          },
+          "@rbxts-js": {
+            "$path": "node_modules/@rbxts-js"
+          }
+        }
+      }
+    },
+    "ServerScriptService": {
+      "Server": {
+        "$path": "out/server"
+      }
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "Client": {
+          "$path": "out/client"
+        }
+      }
+    },
+    "Workspace": {
+      "$properties": {
+        "FilteringEnabled": true,
+        "FallenPartsDestroyHeight": -500
+      }
+    },
+    "ServerStorage": {
+      "Tests": {
+        "$path": "out/tests"
+      }
+    },
+    "$attributes": {
+      "SkybreakTestMode": true
+    }
+  }
+}

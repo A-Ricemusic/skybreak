@@ -3,3 +3,7 @@ build/
 *.rbxlx.lock
 .DS_Store
 logs/
+node_modules/
+out/
+include/
+*.tsbuildinfo
