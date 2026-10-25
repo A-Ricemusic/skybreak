@@ -795,18 +795,19 @@ function BriefingScreen({
 	onMission: (missionId: number) => void;
 }) {
 	const compact = menu.compact;
+	const tiny = menu.panel.height < 260;
 	const mission = MissionCatalog.Require(selectedMission);
 	const missionCompleted = slot?.missions?.[selectedMission - 1]?.completed === true;
 	const mode = missionCompleted ? "COMPLETED  ·  REPLAY" : slot?.occupied ? "CONTINUE SORTIE" : "NEW SORTIE";
-	const selectorTop = compact ? 102 : 136;
-	const selectorHeight = compact ? 44 : 50;
+	const selectorTop = tiny ? 82 : compact ? 102 : 136;
+	const selectorHeight = tiny ? 38 : compact ? 44 : 50;
 	return (
 		<frame key="BriefingScreen" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={visible}>
 			<frame key="BriefingPanel" BackgroundTransparency={1} {...panelPosition(menu)}>
-				<Label name="BriefingEyebrow" text={string.format("CHAPTER %d  ·  MISSION %02d  ·  %s", mission.chapter, selectedMission, mission.briefingEyebrow)} color={C.Orange} textSize={compact ? 9 : 10} font={Enum.Font.GothamBold} size={new UDim2(1, 0, 0, compact ? 14 : 16)} />
-				<Label name="BriefingTitle" text={mission.codename} textSize={compact ? 21 : 30} font={Enum.Font.GothamBlack} position={UDim2.fromOffset(0, compact ? 15 : 21)} size={new UDim2(1, 0, 0, compact ? 27 : 38)} />
-				<Label name="ObjectiveTag" text="PRIMARY OBJECTIVE" color={C.Accent} textSize={9} font={Enum.Font.GothamBold} position={UDim2.fromOffset(0, compact ? 46 : 64)} size={new UDim2(1, 0, 0, 13)} />
-				<Label name="Objective" text={mission.briefingObjective} textSize={compact ? 13 : 16} font={Enum.Font.GothamBold} position={UDim2.fromOffset(0, compact ? 59 : 78)} size={new UDim2(1, 0, 0, compact ? 36 : 48)} textWrapped={true} textYAlignment={Enum.TextYAlignment.Top} />
+				<Label name="BriefingEyebrow" text={string.format("CHAPTER %d  ·  MISSION %02d  ·  %s", mission.chapter, selectedMission, mission.briefingEyebrow)} color={C.Orange} textSize={tiny ? 8 : compact ? 9 : 10} font={Enum.Font.GothamBold} size={new UDim2(1, 0, 0, tiny ? 12 : compact ? 14 : 16)} />
+				<Label name="BriefingTitle" text={mission.codename} textSize={tiny ? 18 : compact ? 21 : 30} font={Enum.Font.GothamBlack} position={UDim2.fromOffset(0, tiny ? 12 : compact ? 15 : 21)} size={new UDim2(1, 0, 0, tiny ? 24 : compact ? 27 : 38)} />
+				<Label name="ObjectiveTag" text="PRIMARY OBJECTIVE" color={C.Accent} textSize={tiny ? 8 : 9} font={Enum.Font.GothamBold} position={UDim2.fromOffset(0, tiny ? 38 : compact ? 46 : 64)} size={new UDim2(1, 0, 0, 13)} />
+				<Label name="Objective" text={mission.briefingObjective} textSize={tiny ? 11 : compact ? 13 : 16} font={Enum.Font.GothamBold} position={UDim2.fromOffset(0, tiny ? 51 : compact ? 59 : 78)} size={new UDim2(1, 0, 0, tiny ? 28 : compact ? 36 : 48)} textWrapped={true} textYAlignment={Enum.TextYAlignment.Top} />
 				<scrollingframe
 					key="MissionSelector"
 					BackgroundTransparency={1}
@@ -843,6 +844,7 @@ function BriefingScreen({
 					size={new UDim2(1, 0, 0, compact ? 52 : 72)}
 					textWrapped={true}
 					textYAlignment={Enum.TextYAlignment.Top}
+					visible={!tiny}
 				/>
 				<Label
 					name="BriefingSlot"
