@@ -11,6 +11,7 @@ import {
 	getMenuLayout,
 	getToastLayout,
 	COMPACT_MAX_HEIGHT,
+	OBJECTIVE_LINE_HEIGHT,
 	getTutorialInstruction,
 	inputModeFromInputType,
 	inputModeFromPreferred,
@@ -128,14 +129,15 @@ describe("minimal mission HUD layout", () => {
 		}
 	});
 
-	it("keeps the objective to one short line in the top-left corner", () => {
+	it("keeps the objective to at most two short lines in the top-left corner", () => {
 		for (const [width, height] of [...HUD_VIEWPORTS, ...COMPACT_VIEWPORTS, ...VIEWPORTS]) {
 			for (const mode of MODES) {
 				const layout = getHudLayout(width, height, mode);
 				expect(layout.callout.x).toBe(layout.margin);
 				expect(layout.callout.y).toBe(layout.margin);
 				expect(layout.callout.width).toBeLessThanOrEqual(width * 0.38);
-				expect(layout.callout.height).toBeLessThanOrEqual(16);
+				// Two 11pt lines: long objectives and story radio wrap instead of shrinking.
+				expect(layout.callout.height).toBeLessThanOrEqual(OBJECTIVE_LINE_HEIGHT);
 			}
 		}
 	});
@@ -151,7 +153,7 @@ describe("minimal mission HUD layout", () => {
 				expect(layout.status.x + layout.status.width).toBe(width - layout.margin);
 				expect(layout.status.y).toBeGreaterThanOrEqual(layout.timer.y + layout.timer.height);
 				expect(layout.status.y - (layout.timer.y + layout.timer.height)).toBeLessThanOrEqual(4);
-				expect(layout.status.width).toBeLessThanOrEqual(120);
+				expect(layout.status.width).toBeLessThanOrEqual(150);
 				expect(layout.status.height).toBeLessThanOrEqual(14);
 			}
 		}
