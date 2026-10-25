@@ -45,6 +45,8 @@ export interface FlightInput {
 export interface MissionStats {
 	missionId?: number;
 	groundKills?: number;
+	friendlyHealth?: number;
+	friendlyProgress?: number;
 	reason?: string;
 	slot: number;
 	kills: number;
@@ -65,6 +67,8 @@ export interface Telemetry {
 	timeRemaining?: number;
 	tutorialStep?: string;
 	groundKills?: number;
+	friendlyHealth?: number;
+	friendlyProgress?: number;
 	targetKind?: string;
 	targetRequired?: boolean;
 	kind: "Telemetry";

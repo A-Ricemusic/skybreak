@@ -136,6 +136,10 @@ export const MissionRules = {
 		if (state.elapsed >= MissionRules.Duration) finish(state, "failed", "timeout");
 		else if (finite(health) && health <= 0) finish(state, "failed", "destroyed");
 	},
+	Fail(state: MissionRuleState, now: number, reason: MissionReason = "destroyed"): void {
+		MissionRules.Tick(state, now);
+		if (state.outcome === undefined) finish(state, "failed", reason);
+	},
 	ObserveControls(state: MissionRuleState, x: number, y: number, dt: number, now: number): void {
 		MissionRules.Tick(state, now);
 		if (state.outcome !== undefined || state.phase !== "tutorial_move" || !finite(x) || !finite(y) || !finite(dt)) return;

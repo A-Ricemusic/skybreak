@@ -171,6 +171,16 @@ function returnToMenu(state: PlayerState): CampaignResponse {
 	return response(state, true);
 }
 
+function updatePresentation(state: PlayerState, payload: unknown): CampaignResponse {
+	if (!typeIs(payload, "table")) return response(state, false, "Invalid presentation setting.");
+	const data = payload as { slot?: unknown; cutsceneId?: unknown; reducedMotion?: unknown };
+	if (!isValidSlot(data.slot)) return response(state, false, "Choose a valid campaign slot (1-4).");
+	if (!waitForLoad(state)) return response(state, false, "Campaign data is still loading. Please try again.");
+	if (typeIs(data.cutsceneId, "string") && data.cutsceneId.size() <= 64) state.coordinator.recordSeenCutscene(data.slot, data.cutsceneId);
+	if (typeIs(data.reducedMotion, "boolean")) state.coordinator.setReducedMotion(data.slot, data.reducedMotion);
+	return response(state, true);
+}
+
 function handleRequest(player: Player, action: unknown, payload?: unknown): CampaignResponse {
 	if (!typeIs(action, "string")) {
 		const state = getState(player);
@@ -189,6 +199,7 @@ function handleRequest(player: Player, action: unknown, payload?: unknown): Camp
 		if (action === "ListSlots") return listSlots(state);
 		if (action === "StartMission") return startMission(state, payload);
 		if (action === "ReturnToMenu") return returnToMenu(state);
+		if (action === "UpdatePresentation") return updatePresentation(state, payload);
 		return response(state, false, "Unknown campaign action.");
 	}, (errorValue) => debug.traceback(tostring(errorValue)));
 	state.requestBusy = false;

@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "@rbxts/react";
 import ReactRoblox from "@rbxts/react-roblox";
 import { GuiService, RunService, UserInputService, Workspace } from "@rbxts/services";
+import { AuroraLineCutscenes, AuroraLineManifest, Cutscene } from "../shared/AuroraLineManifest";
 
 import type {
 	CampaignResponse,
@@ -47,9 +48,9 @@ const C = {
 const MENU_JET = new Vector3(155, 31, -100);
 const MENU_EYE_OFFSET = new Vector3(-17, 9, 54);
 const SLOT_NUMBERS = [1, 2, 3, 4];
-const MENU_SCREEN_FRAMES = { title: "TitleScreen", slots: "CampaignScreen", briefing: "BriefingScreen", outcome: "OutcomeScreen" };
+const MENU_SCREEN_FRAMES = { title: "TitleScreen", slots: "CampaignScreen", briefing: "BriefingScreen", outcome: "OutcomeScreen", cutscene: "CutsceneScreen" };
 
-type Screen = "title" | "slots" | "briefing" | "mission" | "outcome";
+type Screen = "title" | "slots" | "briefing" | "cutscene" | "mission" | "outcome";
 
 interface ToastState {
 	message: string;
@@ -391,6 +392,17 @@ function normalizeSlots(response: CampaignResponse): SaveSlot[] | undefined {
 		const source = response.slots[offset];
 		if (!typeIs(source, "table")) return undefined;
 		const bestTime = typeIs(source.bestTime, "number") ? finite(source.bestTime, 0) : undefined;
+		const missions = new Array<{ id: number; completed: boolean; bestTime?: number }>();
+		if (typeIs(source.missions, "table")) {
+			for (let id = 1; id <= AuroraLineManifest.MissionCount; id++) {
+				const raw = source.missions[id - 1];
+				missions.push({
+					id,
+					completed: typeIs(raw, "table") && raw.completed === true,
+					bestTime: typeIs(raw, "table") && typeIs(raw.bestTime, "number") ? math.max(0, finite(raw.bestTime, 0)) : undefined,
+				});
+			}
+		}
 		parsed.push({
 			index: offset + 1,
 			occupied: source.occupied === true,
@@ -398,11 +410,15 @@ function normalizeSlots(response: CampaignResponse): SaveSlot[] | undefined {
 			kills: math.clamp(math.floor(finite(source.kills, 0)), 0, 9),
 			bestTime,
 			updatedAt: source.updatedAt,
-			currentMission: source.currentMission === 2 ? 2 : 1,
+			currentMission: typeIs(source.currentMission, "number") ? math.clamp(math.floor(source.currentMission), 1, AuroraLineManifest.MissionCount) : 1,
 			mission1Completed: source.mission1Completed === true,
 			mission2Completed: source.mission2Completed === true,
 			mission1BestTime: typeIs(source.mission1BestTime, "number") ? math.max(0, finite(source.mission1BestTime, 0)) : undefined,
 			mission2BestTime: typeIs(source.mission2BestTime, "number") ? math.max(0, finite(source.mission2BestTime, 0)) : undefined,
+			missions: missions.size() === AuroraLineManifest.MissionCount ? missions : undefined,
+			highestUnlocked: typeIs(source.highestUnlocked, "number") ? math.clamp(math.floor(source.highestUnlocked), 1, AuroraLineManifest.MissionCount) : 1,
+			seenCutscenes: typeIs(source.seenCutscenes, "table") ? (source.seenCutscenes as string[]).filter((entry) => typeIs(entry, "string")) : [],
+			reducedMotion: source.reducedMotion === true,
 		});
 	}
 	return parsed;
@@ -413,7 +429,7 @@ function normalizePersistence(value: unknown): Persistence {
 }
 
 function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
-	const missionId = payload.missionId === 2 ? 2 : payload.missionId === 1 ? 1 : previous.missionId;
+	const missionId = typeIs(payload.missionId, "number") && payload.missionId >= 1 && payload.missionId <= AuroraLineManifest.MissionCount ? math.floor(payload.missionId) : previous.missionId;
 	const targetKind = payload.targetKind === "ground" || payload.targetKind === "air" ? payload.targetKind : previous.targetKind;
 	const tutorialStep = payload.tutorialStep === "move" || payload.tutorialStep === "target" || payload.tutorialStep === "missile" || payload.tutorialStep === ""
 		? payload.tutorialStep
@@ -443,13 +459,21 @@ function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
 		timeRemaining: math.clamp(finite(payload.timeRemaining, previous.timeRemaining ?? 600), 0, 600),
 		tutorialStep,
 		groundKills: math.max(0, math.floor(finite(payload.groundKills, previous.groundKills ?? 0))),
+		friendlyHealth: payload.friendlyHealth === undefined ? previous.friendlyHealth : math.clamp(finite(payload.friendlyHealth, previous.friendlyHealth ?? 100), 0, 100),
+		friendlyProgress: payload.friendlyProgress === undefined ? previous.friendlyProgress : math.clamp(finite(payload.friendlyProgress, previous.friendlyProgress ?? 0), 0, 1),
 		targetKind,
 		targetRequired: payload.targetRequired === undefined ? previous.targetRequired : payload.targetRequired === true,
 	};
 }
 
 function resumeMission(slot?: SaveSlot): number {
-	return slot?.mission1Completed === true ? 2 : 1;
+	if (!slot) return 1;
+	if (typeIs(slot.currentMission, "number")) return math.clamp(math.floor(slot.currentMission), 1, AuroraLineManifest.MissionCount);
+	const records = slot.missions;
+	if (!records) return slot.mission1Completed === true ? 2 : 1;
+	let highest = 0;
+	for (const record of records) if (record.completed) highest = math.max(highest, record.id);
+	return math.min(AuroraLineManifest.MissionCount, highest + 1);
 }
 
 function tutorialInstruction(step: string | undefined, mode: InputMode): string {
@@ -542,10 +566,10 @@ function TitleScreen({ visible, menu, onCampaign }: { visible: boolean; menu: Me
 				>
 					<uitextsizeconstraint MaxTextSize={compact ? 46 : 70} MinTextSize={28} />
 				</textlabel>
-				<Label name="Subtitle" text="OPERATION GLASS HORIZON" color={C.Orange} textSize={compact ? 11 : 13} font={Enum.Font.GothamBold} size={new UDim2(1, 0, 0, 18)} layoutOrder={3} />
+					<Label name="Subtitle" text="OPERATION AURORA LINE" color={C.Orange} textSize={compact ? 11 : 13} font={Enum.Font.GothamBold} size={new UDim2(1, 0, 0, 18)} layoutOrder={3} />
 				<Label
 					name="Blurb"
-					text="Earn your wings, then break the Iron Coast strike force in a two-mission campaign."
+						text="Keep a humanitarian corridor alive across a polar war — then expose the ceasefire built to destroy it."
 					color={C.Muted}
 					textSize={compact ? 13 : 15}
 					size={new UDim2(1, 0, 0, 0)}
@@ -575,24 +599,23 @@ function SlotButton({
 }) {
 	const enabled = !busy && slot !== undefined;
 	const { hot, events, clearHover } = useHighlight(enabled);
+	const current = slot ? resumeMission(slot) : 1;
+	let completedCount = 0;
+	for (const record of slot?.missions ?? []) if (record.completed) completedCount++;
 	const status = busy
 		? "READING FILE..."
 		: !slot
 			? "LINK UNAVAILABLE"
 			: slot.completed
 				? "CAMPAIGN COMPLETE  ·  REPLAY"
-				: slot.mission1Completed
-					? "MISSION 02 UNLOCKED  ·  CONTINUE"
-					: slot.occupied ? "CONTINUE MISSION 01" : "NEW CAMPAIGN";
+				: slot.occupied ? `MISSION ${string.format("%02d", current)}  ·  CONTINUE` : "NEW CAMPAIGN";
 	const detail = busy
 		? "Please stand by"
 		: !slot
 			? "Return and try again"
-			: slot.completed
-				? `01 ${slot.mission1BestTime !== undefined ? formatTime(slot.mission1BestTime) : "--:--"}   ·   02 ${slot.mission2BestTime !== undefined ? formatTime(slot.mission2BestTime) : "--:--"}`
-				: slot.mission1Completed
-					? `FIRST FLIGHT ${slot.mission1BestTime !== undefined ? formatTime(slot.mission1BestTime) : "COMPLETE"}`
-					: slot.occupied ? `FIRST FLIGHT  ·  ${slot.kills} air targets` : "Begin with 01 FIRST FLIGHT";
+				: slot.completed
+					? "27 / 27 SORTIES COMPLETE"
+					: slot.occupied ? `${completedCount} / 27 COMPLETE  ·  ${slot.kills} air targets` : "Begin with 01 FIRST FLIGHT";
 	const rowHeight = compact ? 44 : 58;
 	return (
 		<textbutton
@@ -748,6 +771,7 @@ function BriefingScreen({
 	onBack,
 	onLaunch,
 	onMission,
+	onReducedMotion,
 }: {
 	visible: boolean;
 	menu: MenuLayout;
@@ -758,37 +782,39 @@ function BriefingScreen({
 	onBack: () => void;
 	onLaunch: () => void;
 	onMission: (missionId: number) => void;
+	onReducedMotion: () => void;
 }) {
 	const compact = menu.compact;
-	const mission2 = selectedMission === 2;
-	const mission2Unlocked = slot?.mission1Completed === true;
-	const missionCompleted = mission2 ? slot?.mission2Completed === true : slot?.mission1Completed === true;
+	const plan = AuroraLineManifest.GetPlan(selectedMission);
+	const missionCompleted = slot?.missions?.[selectedMission - 1]?.completed === true;
 	const mode = missionCompleted ? "COMPLETED  ·  REPLAY" : slot?.occupied ? "CONTINUE SORTIE" : "NEW SORTIE";
-	const title = mission2 ? "IRON COAST" : "FIRST FLIGHT";
-	const objective = mission2
-		? "Break the coastal strike force"
-		: "Complete flight training and repel the attack";
-	const story = mission2
-		? "Intercept three required bandits, destroy five coastal warehouses while attackers pursue, then defeat the faster armored ace. Optional attackers may remain in the fight."
-		: "Learn to pitch and turn, cycle to the marked ground target, fire a missile, then destroy the three bandits pursuing the airbase.";
+	const gridHeight = math.max(96, menu.panel.height - (compact ? 250 : 300));
 	return (
 		<frame key="BriefingScreen" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={visible}>
 			<frame key="BriefingPanel" BackgroundTransparency={1} {...panelPosition(menu)}>
-				<Label name="BriefingEyebrow" text={`MISSION 0${selectedMission}`} color={C.Orange} textSize={compact ? 10 : 11} font={Enum.Font.GothamBold} size={new UDim2(1, 0, 0, compact ? 14 : 16)} />
-				<Label name="BriefingTitle" text={title} textSize={compact ? 22 : 32} font={Enum.Font.GothamBlack} position={UDim2.fromOffset(0, compact ? 16 : 22)} size={new UDim2(1, 0, 0, compact ? 28 : 40)} />
+				<Label name="BriefingEyebrow" text={`MISSION ${string.format("%02d", selectedMission)}  ·  ${plan.operation}`} color={C.Orange} textSize={compact ? 9 : 11} font={Enum.Font.GothamBold} size={new UDim2(1, -150, 0, compact ? 14 : 16)} />
+				<Label name="BriefingTitle" text={plan.codename} textSize={compact ? 22 : 32} font={Enum.Font.GothamBlack} position={UDim2.fromOffset(0, compact ? 16 : 22)} size={new UDim2(1, 0, 0, compact ? 28 : 40)} />
+				<ActionButton name="ReducedMotionButton" text={slot?.reducedMotion ? "REDUCED MOTION: ON" : "REDUCED MOTION: OFF"} anchorPoint={new Vector2(1, 0)} position={new UDim2(1, 0, 0, 0)} size={UDim2.fromOffset(145, 28)} textSize={9} enabled={!busy} onActivated={onReducedMotion} />
 				<Label name="ObjectiveTag" text="PRIMARY OBJECTIVE" color={C.Accent} textSize={10} font={Enum.Font.GothamBold} position={UDim2.fromOffset(0, compact ? 54 : 82)} size={new UDim2(1, 0, 0, 14)} />
-				<Label name="Objective" text={objective} textSize={compact ? 15 : 18} font={Enum.Font.GothamBold} position={UDim2.fromOffset(0, compact ? 68 : 100)} size={new UDim2(1, 0, 0, compact ? 20 : 26)} />
+				<Label name="Objective" text={plan.summary} textSize={compact ? 13 : 17} font={Enum.Font.GothamBold} position={UDim2.fromOffset(0, compact ? 68 : 100)} size={new UDim2(1, 0, 0, compact ? 20 : 26)} textWrapped={true} />
 				<Label
 					name="Story"
-					text={story}
+					text={plan.briefing}
 					color={C.Muted}
-					textSize={compact ? 12 : 14}
-					position={UDim2.fromOffset(0, compact ? 96 : 140)}
-					size={new UDim2(1, 0, 0, 0)}
-					automaticSize={Enum.AutomaticSize.Y}
+					textSize={compact ? 10 : 13}
+					position={UDim2.fromOffset(0, compact ? 94 : 136)}
+					size={new UDim2(1, 0, 0, compact ? 46 : 58)}
 					textWrapped={true}
 					textYAlignment={Enum.TextYAlignment.Top}
 				/>
+				<scrollingframe key="MissionGrid" BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={3} ScrollingDirection={Enum.ScrollingDirection.Y} CanvasSize={UDim2.fromOffset(0, 342)} Position={UDim2.fromOffset(0, compact ? 144 : 204)} Size={new UDim2(1, 0, 0, gridHeight)}>
+					<uigridlayout CellPadding={UDim2.fromOffset(4, 4)} CellSize={new UDim2(0.333, -4, 0, 34)} FillDirectionMaxCells={3} SortOrder={Enum.SortOrder.LayoutOrder} />
+					{AuroraLineManifest.Plans.map((mission) => {
+						const unlocked = mission.id === 1 || slot?.missions?.[mission.id - 2]?.completed === true;
+						const complete = slot?.missions?.[mission.id - 1]?.completed === true;
+						return <ActionButton key={`Mission${mission.id}SelectButton`} name={`Mission${string.format("%02d", mission.id)}SelectButton`} text={unlocked ? `${string.format("%02d", mission.id)}  ${complete ? "✓" : mission.codename}` : `${string.format("%02d", mission.id)}  LOCKED`} primary={selectedMission === mission.id} layoutOrder={mission.id} size={new UDim2(1, 0, 1, 0)} textSize={compact ? 8 : 9} enabled={!busy && unlocked} onActivated={() => onMission(mission.id)} />;
+					})}
+				</scrollingframe>
 				<Label
 					name="BriefingSlot"
 					text={string.format("FILE %02d  ·  %s", selectedSlot, mode)}
@@ -796,30 +822,8 @@ function BriefingScreen({
 					textSize={10}
 					font={Enum.Font.GothamBold}
 					anchorPoint={new Vector2(0, 1)}
-					position={new UDim2(0, 0, 1, compact ? -92 : -98)}
+					position={new UDim2(0, 0, 1, compact ? -52 : -58)}
 					size={new UDim2(1, 0, 0, 16)}
-				/>
-				<ActionButton
-					name="Mission01SelectButton"
-					text="01  FIRST FLIGHT"
-					primary={selectedMission === 1}
-					anchorPoint={new Vector2(0, 1)}
-					position={new UDim2(0, 0, 1, compact ? -50 : -54)}
-					size={new UDim2(0.49, 0, 0, compact ? 34 : 38)}
-					textSize={compact ? 10 : 11}
-					enabled={!busy}
-					onActivated={() => onMission(1)}
-				/>
-				<ActionButton
-					name="Mission02SelectButton"
-					text={mission2Unlocked ? "02  IRON COAST" : "02  LOCKED"}
-					primary={selectedMission === 2}
-					anchorPoint={new Vector2(1, 1)}
-					position={new UDim2(1, 0, 1, compact ? -50 : -54)}
-					size={new UDim2(0.49, 0, 0, compact ? 34 : 38)}
-					textSize={compact ? 10 : 11}
-					enabled={!busy && mission2Unlocked}
-					onActivated={() => onMission(2)}
 				/>
 				<FooterButtons
 					compact={compact}
@@ -854,21 +858,20 @@ function OutcomeScreen({
 	onNext: () => void;
 }) {
 	const compact = menu.compact;
-	const retryText = busy ? "RESETTING SORTIE..." : outcome.won ? `REPLAY MISSION 0${outcome.missionId}` : "RETRY SORTIE";
+	const plan = AuroraLineManifest.GetPlan(outcome.missionId);
+	const retryText = busy ? "RESETTING SORTIE..." : outcome.won ? `REPLAY MISSION ${string.format("%02d", outcome.missionId)}` : "RETRY SORTIE";
 	const timedOut = outcome.reason === "timeout";
-	const campaignComplete = outcome.won && outcome.missionId === 2;
+	const campaignComplete = outcome.won && outcome.missionId === AuroraLineManifest.MissionCount;
 	const summary = outcome.won
-		? campaignComplete
-			? "The warehouses are destroyed and the ace is down. The coast is secure."
-			: "Training complete and the pursuing bandits are down. Iron Coast is now unlocked."
+		? plan.debrief.victory
 		: timedOut
 			? "The ten-minute operation window closed before the objective was complete."
-			: "The sortie ended before the required objective was complete.";
+			: plan.debrief.defeat;
 	return (
 		<frame key="OutcomeScreen" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={visible}>
 			<frame key="VictoryPanel" BackgroundTransparency={1} {...panelPosition(menu)}>
 				<frame key="Accent" BackgroundColor3={outcome.won ? C.Accent : C.Danger} BorderSizePixel={0} Size={UDim2.fromOffset(32, 2)} />
-				<Label name="OutcomeEyebrow" text={`MISSION 0${outcome.missionId}  ·  ${outcome.missionId === 2 ? "IRON COAST" : "FIRST FLIGHT"}`} color={C.Orange} textSize={compact ? 10 : 11} font={Enum.Font.GothamBold} position={UDim2.fromOffset(0, 10)} size={new UDim2(1, 0, 0, 16)} />
+					<Label name="OutcomeEyebrow" text={`MISSION ${string.format("%02d", outcome.missionId)}  ·  ${plan.codename}`} color={C.Orange} textSize={compact ? 10 : 11} font={Enum.Font.GothamBold} position={UDim2.fromOffset(0, 10)} size={new UDim2(1, 0, 0, 16)} />
 				<Label name="OutcomeTitle" text={outcome.won ? "MISSION COMPLETE" : timedOut ? "TIME EXPIRED" : "SORTIE LOST"} color={outcome.won ? C.Ivory : C.Danger} textSize={compact ? 24 : 34} font={Enum.Font.GothamBlack} position={UDim2.fromOffset(0, compact ? 28 : 32)} size={new UDim2(1, 0, 0, compact ? 30 : 44)} />
 				<Label
 					name="OutcomeSummary"
@@ -893,14 +896,94 @@ function OutcomeScreen({
 					automaticSize={Enum.AutomaticSize.Y}
 					textWrapped={true}
 				/>
-				{outcome.won ? outcome.missionId === 1 ? (
-					<FooterButtons compact={compact} primaryName="Mission1NextMissionButton" primaryText="NEXT: MISSION 02" secondaryName="ReturnToMenuButton" secondaryText="MAIN MENU" busy={busy} onPrimary={onNext} onSecondary={onReturn} />
-				) : (
+					{outcome.won ? !campaignComplete ? (
+						<FooterButtons compact={compact} primaryName="NextMissionButton" primaryText={`NEXT: MISSION ${string.format("%02d", outcome.missionId + 1)}`} secondaryName="ReturnToMenuButton" secondaryText="MAIN MENU" busy={busy} onPrimary={onNext} onSecondary={onReturn} />
+					) : (
 					<FooterButtons compact={compact} primaryName="ReturnToMenuButton" primaryText="RETURN TO MENU" secondaryName="RetryButton" secondaryText={retryText} busy={busy} onPrimary={onReturn} onSecondary={onRetry} />
 				) : (
 					<FooterButtons compact={compact} primaryName="RetryButton" primaryText={retryText} secondaryName="ReturnToMenuButton" secondaryText="MAIN MENU" busy={busy} onPrimary={onRetry} onSecondary={onReturn} />
 				)}
 			</frame>
+		</frame>
+	);
+}
+
+function CutsceneScreen({ cutscene, reducedMotion, onDone }: { cutscene?: Cutscene; reducedMotion: boolean; onDone: (id: string) => void }) {
+	const [beatIndex, setBeatIndex] = useState(0);
+	const finished = useRef(false);
+	const skipped = useRef(false);
+	useEffect(() => {
+		if (!cutscene) return;
+		finished.current = false;
+		skipped.current = false;
+		setBeatIndex(0);
+		const stage = new Instance("Folder");
+		stage.Name = "AuroraLineCutsceneLocal";
+		stage.Parent = Workspace;
+		const createPart = (name: string, size: Vector3, position: Vector3, color: Color3, material: Enum.Material = Enum.Material.SmoothPlastic) => {
+			const item = new Instance("Part");
+			item.Name = name; item.Size = size; item.Position = position; item.Color = color; item.Material = material;
+			item.Anchored = true; item.CanCollide = false; item.CanQuery = false; item.CanTouch = false; item.Parent = stage;
+			return item;
+		};
+		const env = cutscene.environmentPreview;
+		const groundColor = env.theme === "volcanic_refuge" ? Color3.fromRGB(48, 39, 42) : env.theme === "port" ? Color3.fromRGB(70, 79, 84) : Color3.fromRGB(205, 224, 234);
+		createPart("PolarStage", new Vector3(600, 4, 600), new Vector3(0, -2, 0), groundColor, env.theme === "volcanic_refuge" ? Enum.Material.Basalt : Enum.Material.Snow);
+		createPart("CorridorRoad", new Vector3(34, 1, 500), new Vector3(0, 1, 0), Color3.fromRGB(45, 55, 63), Enum.Material.Asphalt);
+		for (let index = -2; index <= 2; index++) {
+			createPart(`Convoy_${index}_Body`, new Vector3(15, 6, 26), new Vector3(index * 22, 5, index * 58), Color3.fromRGB(201, 128, 56), Enum.Material.Metal);
+			createPart(`Convoy_${index}_Cab`, new Vector3(13, 7, 9), new Vector3(index * 22, 8, index * 58 - 16), Color3.fromRGB(50, 78, 91), Enum.Material.Metal);
+		}
+		for (const x of [-120, 120]) {
+			createPart(`Beacon_${x}`, new Vector3(5, 70, 5), new Vector3(x, 35, -80), Color3.fromRGB(74, 235, 194), Enum.Material.Neon);
+			createPart(`BeaconArm_${x}`, new Vector3(36, 3, 3), new Vector3(x, 68, -80), Color3.fromRGB(235, 198, 96), Enum.Material.Metal);
+		}
+		createPart("CourierWing", new Vector3(80, 3, 18), new Vector3(0, 52, -55), Color3.fromRGB(222, 232, 235), Enum.Material.Metal).CFrame = new CFrame(0, 52, -55).mul(CFrame.Angles(0, math.rad(28), math.rad(-8)));
+		const camera = Workspace.CurrentCamera;
+		let cancelled = false;
+		const finish = () => {
+			if (finished.current) return;
+			finished.current = true;
+			onDone(cutscene.id);
+		};
+		const skipConnection = UserInputService.InputBegan.Connect((input, processed) => {
+			if (!processed && (input.KeyCode === Enum.KeyCode.Space || input.KeyCode === Enum.KeyCode.Escape || input.KeyCode === Enum.KeyCode.ButtonB)) {
+				skipped.current = true;
+				finish();
+			}
+		});
+		task.spawn(() => {
+			for (let index = 0; index < cutscene.beats.size(); index++) {
+				if (cancelled || skipped.current) break;
+				setBeatIndex(index);
+				const beat = cutscene.beats[index];
+				const first = beat.cameraKeyframes[0];
+				const last = beat.cameraKeyframes[beat.cameraKeyframes.size() - 1];
+				const start = os.clock();
+				while (!cancelled && !skipped.current && os.clock() - start < beat.duration) {
+					if (camera) {
+						const alpha = reducedMotion ? 0 : math.clamp((os.clock() - start) / beat.duration, 0, 1);
+						const eye = new Vector3(...first.position).Lerp(new Vector3(...last.position), alpha);
+						const focus = new Vector3(...first.lookAt).Lerp(new Vector3(...last.lookAt), alpha);
+						camera.CameraType = Enum.CameraType.Scriptable;
+						camera.CFrame = CFrame.lookAt(eye, focus);
+						camera.FieldOfView = reducedMotion ? 48 : 50 + math.sin(alpha * math.pi) * 2;
+					}
+					task.wait(0.03);
+				}
+			}
+			if (!cancelled) finish();
+		});
+		return () => { cancelled = true; skipConnection.Disconnect(); stage.Destroy(); };
+	}, [cutscene, onDone, reducedMotion]);
+	const beat = cutscene?.beats[math.clamp(beatIndex, 0, math.max(0, (cutscene?.beats.size() ?? 1) - 1))];
+	return (
+		<frame key="CutsceneScreen" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={cutscene !== undefined}>
+			<frame key="LetterboxTop" BackgroundColor3={new Color3(0, 0, 0)} BorderSizePixel={0} Size={new UDim2(1, 0, 0, 42)} />
+			<frame key="LetterboxBottom" BackgroundColor3={new Color3(0, 0, 0)} BorderSizePixel={0} AnchorPoint={new Vector2(0, 1)} Position={UDim2.fromScale(0, 1)} Size={new UDim2(1, 0, 0, 112)} />
+			<Label name="CutsceneSpeaker" text={beat?.speaker ?? ""} color={C.Accent} textSize={11} font={Enum.Font.GothamBold} anchorPoint={new Vector2(0.5, 1)} position={new UDim2(0.5, 0, 1, -66)} size={new UDim2(0.9, 0, 0, 18)} textXAlignment={Enum.TextXAlignment.Center} />
+			<Label name="CutsceneSubtitle" text={beat?.subtitle ?? ""} color={C.Ivory} textSize={16} font={Enum.Font.GothamMedium} anchorPoint={new Vector2(0.5, 1)} position={new UDim2(0.5, 0, 1, -20)} size={new UDim2(0.9, 0, 0, 44)} textWrapped={true} textXAlignment={Enum.TextXAlignment.Center} />
+			<ActionButton name="SkipCutsceneButton" text="SKIP  ›" anchorPoint={new Vector2(1, 0)} position={new UDim2(1, -16, 0, 8)} size={UDim2.fromOffset(100, 30)} textSize={10} onActivated={() => { skipped.current = true; if (!finished.current && cutscene) { finished.current = true; onDone(cutscene.id); } }} />
 		</frame>
 	);
 }
@@ -1183,6 +1266,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const [hintUntil, setHintUntil] = useState(0);
 	const [killNotice, setKillNotice] = useState<KillNotice | undefined>();
 	const [damageUntil, setDamageUntil] = useState(0);
+	const [cutsceneSpec, setCutsceneSpec] = useState<Cutscene | undefined>();
 
 	const mountedRef = useRef(true);
 	const screenRef = useRef<Screen>("title");
@@ -1198,6 +1282,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const inputModeRef = useRef<InputMode>(inputMode);
 	const outcomeWonRef = useRef(true);
 	const outcomeMissionRef = useRef(1);
+	const cutsceneNextRef = useRef<"launch" | "outcome">("launch");
 	const rootFrameRef = useRef<Frame>();
 	const joystickRef = useRef<Frame>();
 	const knobRef = useRef<Frame>();
@@ -1236,7 +1321,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		if (!root || !mountedRef.current) return;
 		const current = screenRef.current;
 		const selected = GuiService.SelectedObject;
-		if (current === "mission" || inputModeRef.current !== "gamepad") {
+		if (current === "mission" || current === "cutscene" || inputModeRef.current !== "gamepad") {
 			if (selected && selected.IsDescendantOf(root)) GuiService.SelectedObject = undefined;
 			return;
 		}
@@ -1334,7 +1419,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		if (inMissionRef.current) controller.SetThrottle(adjusted);
 	}, [controller]);
 
-	const startMission = useCallback(() => {
+	const requestMissionStart = useCallback(() => {
 		beginRequest((requestId) => {
 			const [response, problem] = invoke("StartMission", { slot: selectedSlot, missionId: selectedMission });
 			if (!mountedRef.current || requestRef.current !== requestId) return;
@@ -1345,6 +1430,48 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			}
 		});
 	}, [applyResponseSlots, beginRequest, invoke, selectedMission, selectedSlot, showToast]);
+
+	const finishCutscene = useCallback((cutsceneId: string) => {
+		const destination = cutsceneNextRef.current;
+		setCutsceneSpec(undefined);
+		if (destination === "outcome") {
+			changeScreen("outcome");
+			task.spawn(() => invoke("UpdatePresentation", { slot: selectedSlotRef.current, cutsceneId }));
+			return;
+		}
+		changeScreen("briefing");
+		beginRequest((requestId) => {
+			invoke("UpdatePresentation", { slot: selectedSlotRef.current, cutsceneId });
+			task.wait(0.14);
+			if (!mountedRef.current || requestRef.current !== requestId) return;
+			const [response, problem] = invoke("StartMission", { slot: selectedSlotRef.current, missionId: selectedMissionRef.current });
+			if (!mountedRef.current || requestRef.current !== requestId) return;
+			if (!response) showToast(problem ?? "Command rejected the request.", true);
+			else if (response.slots) applyResponseSlots(response);
+		});
+	}, [applyResponseSlots, beginRequest, changeScreen, invoke, showToast]);
+
+	const startMission = useCallback(() => {
+		const slot = slots?.[selectedSlot - 1];
+		const scene = selectedMission === 1 ? AuroraLineCutscenes.Opening : AuroraLineCutscenes.ByActOf(selectedMission - 1);
+		if (scene && !slot?.seenCutscenes?.includes(scene.id)) {
+			cutsceneNextRef.current = "launch";
+			setCutsceneSpec(scene);
+			changeScreen("cutscene");
+			return;
+		}
+		requestMissionStart();
+	}, [changeScreen, requestMissionStart, selectedMission, selectedSlot, slots]);
+
+	const toggleReducedMotion = useCallback(() => {
+		const enabled = slots?.[selectedSlot - 1]?.reducedMotion !== true;
+		beginRequest((requestId) => {
+			const [response, problem] = invoke("UpdatePresentation", { slot: selectedSlot, reducedMotion: enabled });
+			if (!mountedRef.current || requestRef.current !== requestId) return;
+			if (!response) showToast(problem ?? "Could not update accessibility settings.", true);
+			else if (response.slots) applyResponseSlots(response);
+		});
+	}, [applyResponseSlots, beginRequest, invoke, selectedSlot, showToast, slots]);
 
 	const returnToMenu = useCallback(() => {
 		cancelRequests();
@@ -1384,7 +1511,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	}, [applyResponseSlots, beginRequest, invoke, selectedSlot, showToast]);
 
 	const retryMission = useCallback(() => restartMission(selectedMissionRef.current), [restartMission]);
-	const nextMission = useCallback(() => restartMission(2), [restartMission]);
+	const nextMission = useCallback(() => restartMission(math.min(AuroraLineManifest.MissionCount, selectedMissionRef.current + 1)), [restartMission]);
 
 	const moveJoystick = useCallback((input: InputObject) => {
 		const joystick = joystickRef.current;
@@ -1479,7 +1606,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			if (payload.kind === "Started") {
 				const started = payload as MissionStarted;
 				const slot = math.clamp(math.floor(finite(started.slot, selectedSlotRef.current)), 1, 4);
-				const missionId = started.missionId === 2 ? 2 : 1;
+				const missionId = typeIs(started.missionId, "number") ? math.clamp(math.floor(started.missionId), 1, AuroraLineManifest.MissionCount) : 1;
 				selectedSlotRef.current = slot;
 				setSelectedSlot(slot);
 				selectedMissionRef.current = missionId;
@@ -1490,10 +1617,11 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				setDamageUntil(0);
 				const resetTelemetry = defaultTelemetry();
 				resetTelemetry.missionId = missionId;
-				if (missionId === 2) {
-					resetTelemetry.phase = "intercept";
-					resetTelemetry.objective = "Intercept the required bandits";
-					resetTelemetry.objectiveTotal = 3;
+				if (missionId > 1) {
+					const first = AuroraLineManifest.GetPlan(missionId).steps[0];
+					resetTelemetry.phase = first.kind;
+					resetTelemetry.objective = first.label;
+					resetTelemetry.objectiveTotal = first.required;
 					resetTelemetry.tutorialStep = "";
 				}
 				telemetryRef.current = resetTelemetry;
@@ -1534,12 +1662,12 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				setMenuCamera();
 				const current = telemetryRef.current;
 				const won = finished.kind === "Completed";
-				const missionId = finished.missionId === 2 ? 2 : current.missionId === 2 ? 2 : 1;
+				const rawMission = finished.missionId ?? current.missionId ?? 1;
+				const missionId = typeIs(rawMission, "number") ? math.clamp(math.floor(rawMission), 1, AuroraLineManifest.MissionCount) : 1;
 				selectedMissionRef.current = missionId;
 				setSelectedMission(missionId);
 				outcomeWonRef.current = won;
 				outcomeMissionRef.current = missionId;
-				changeScreen("outcome");
 				const resultPersistence = normalizePersistence(finished.persistence ?? persistenceRef.current);
 				const saveText = won && finished.saved === true && resultPersistence === "cloud"
 					? "FLIGHT RECORD SAVED TO CLOUD"
@@ -1558,6 +1686,11 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					saveText,
 					saveColor: won && finished.saved === true && resultPersistence === "cloud" ? C.Accent : resultPersistence === "cloud" ? C.Muted : C.Orange,
 				});
+				if (won && missionId === AuroraLineManifest.MissionCount) {
+					cutsceneNextRef.current = "outcome";
+					setCutsceneSpec(AuroraLineCutscenes.Finale);
+					changeScreen("cutscene");
+				} else changeScreen("outcome");
 			}
 		});
 		return () => connection.Disconnect();
@@ -1567,7 +1700,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		let sampleClock = 0;
 		const connection = RunService.RenderStepped.Connect((deltaTime) => {
 			if (!mountedRef.current) return;
-			if (screenRef.current !== "mission") setMenuCamera();
+			if (screenRef.current !== "mission" && screenRef.current !== "cutscene") setMenuCamera();
 			else {
 				sampleClock += deltaTime;
 				if (sampleClock >= 0.1) {
@@ -1614,13 +1747,14 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	return (
 		<InputModeContext.Provider value={inputMode}>
 			<screengui key="SkybreakBackdrop" DisplayOrder={19} IgnoreGuiInset={true} ResetOnSpawn={false} ScreenInsets={Enum.ScreenInsets.None}>
-				<MenuBackdrop visible={screen !== "mission"} mode={menu.mode} />
+				<MenuBackdrop visible={screen !== "mission" && screen !== "cutscene"} mode={menu.mode} />
 			</screengui>
 			<screengui key="SkybreakUI" DisplayOrder={20} IgnoreGuiInset={false} ResetOnSpawn={false} ScreenInsets={Enum.ScreenInsets.CoreUISafeInsets} ZIndexBehavior={Enum.ZIndexBehavior.Sibling}>
 				<frame ref={rootFrameRef} key="Root" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Change={rootChange}>
 					<TitleScreen visible={screen === "title"} menu={menu} onCampaign={() => { if (!busyRef.current) { changeScreen("slots"); loadSlots(); } }} />
 					<CampaignScreen visible={screen === "slots"} menu={menu} slots={slots} busy={busy} persistence={persistence} onBack={goBack} onSlot={(slot) => { if (!busyRef.current && slots?.[slot - 1]) { const missionId = resumeMission(slots[slot - 1]); selectedSlotRef.current = slot; selectedMissionRef.current = missionId; setSelectedSlot(slot); setSelectedMission(missionId); changeScreen("briefing"); } }} />
-					<BriefingScreen visible={screen === "briefing"} menu={menu} selectedSlot={selectedSlot} selectedMission={selectedMission} slot={selectedSave} busy={busy} onBack={goBack} onLaunch={startMission} onMission={(missionId) => { selectedMissionRef.current = missionId; setSelectedMission(missionId); }} />
+					<BriefingScreen visible={screen === "briefing"} menu={menu} selectedSlot={selectedSlot} selectedMission={selectedMission} slot={selectedSave} busy={busy} onBack={goBack} onLaunch={startMission} onReducedMotion={toggleReducedMotion} onMission={(missionId) => { selectedMissionRef.current = missionId; setSelectedMission(missionId); }} />
+					<CutsceneScreen cutscene={screen === "cutscene" ? cutsceneSpec : undefined} reducedMotion={selectedSave?.reducedMotion === true} onDone={finishCutscene} />
 					<MissionHud
 						visible={screen === "mission"}
 						viewport={viewport}
@@ -1643,7 +1777,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 						hints={menuHints}
 						rectangle={menuHintsRectangle}
 						alignment={menu.mode === "side" ? Enum.HorizontalAlignment.Right : Enum.HorizontalAlignment.Left}
-						visible={inputMode === "gamepad" && screen !== "mission"}
+						visible={inputMode === "gamepad" && screen !== "mission" && screen !== "cutscene"}
 					/>
 					{toast !== undefined && (
 						<textlabel

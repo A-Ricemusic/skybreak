@@ -251,7 +251,7 @@ function themeStyle(theme: MissionTheme): ThemeStyle {
 	return { groundMaterial: Enum.Material.Grass, islandPeakHeight: 80, addsIce: false, addsVolcanic: false };
 }
 
-function buildGeneralMission(scenery: Folder, parent: Instance, missionId: number): Model[] {
+function buildGeneralMission(scenery: Folder, parent: Instance, missionId: number): { groundTargets: Model[]; protectedAsset?: Model; protectedRoute?: readonly [Vector3, Vector3] } {
 	const planData = AuroraLineManifest.GetPlan(missionId);
 	const style = themeStyle(planData.environment.theme);
 	// Shared decorator islands around the fight bowl.
@@ -268,7 +268,10 @@ function buildGeneralMission(scenery: Folder, parent: Instance, missionId: numbe
 		volcanicPeak(1600, -2100, 260, 210);
 	}
 	// Ground target compounds.
-	const positions = compoundPositions(planData.groundTargets.count);
+	const hasStrike = planData.steps.some((step) => step.kind === "strike");
+	const hasEscort = planData.steps.some((step) => step.kind === "escort");
+	const hasProtect = planData.steps.some((step) => step.kind === "protect");
+	const positions = compoundPositions(hasStrike ? planData.groundTargets.count : 0);
 	const groundTargets: Model[] = [];
 	for (let i = 0; i < positions.size(); i++) {
 		const p = positions[i];
@@ -308,11 +311,23 @@ function buildGeneralMission(scenery: Folder, parent: Instance, missionId: numbe
 	if (planData.environment.theme === "glacier") {
 		for (let i = 0; i < 4; i++) part(scenery, "GlacierShelf", new Vector3(260, 32, 260), new Vector3(-500 + i * 350, 32, 2200), Color3.fromRGB(220, 232, 240), Enum.Material.Glacier);
 	}
-	return groundTargets;
+	let protectedAsset: Model | undefined;
+	let protectedRoute: readonly [Vector3, Vector3] | undefined;
+	if (hasEscort || hasProtect) {
+		const asset = hasEscort ? "SupplyConvoy" : "AuroraBeacon";
+		protectedAsset = grounded(createGroundAsset(asset, hasEscort ? "AURORA RELIEF CONVOY" : "CIVILIAN REFUGE"), -850, 850, math.pi / 2);
+		protectedAsset.SetAttribute("FriendlyObjective", true);
+		protectedAsset.SetAttribute("Health", 100);
+		protectedAsset.Parent = parent;
+		protectedRoute = [new Vector3(-850, protectedAsset.PrimaryPart!.Position.Y, 850), new Vector3(850, protectedAsset.PrimaryPart!.Position.Y, -350)];
+		// An authored road makes convoy movement legible without adding collision.
+		partCF(scenery, "ReliefRoute", new Vector3(28, 2, 2200), CFrame.lookAt(new Vector3(0, 43, 250), new Vector3(850, 43, -350)), Color3.fromRGB(75, 82, 86), Enum.Material.Asphalt);
+	}
+	return { groundTargets, protectedAsset, protectedRoute };
 }
 
 export const MissionWorld = {
-	Build(missionId: number, parent: Instance): { groundTargets: Model[] } {
+	Build(missionId: number, parent: Instance): { groundTargets: Model[]; protectedAsset?: Model; protectedRoute?: readonly [Vector3, Vector3] } {
 		const planData = AuroraLineManifest.GetPlan(missionId);
 		Workspace.FindFirstChild("World")?.Destroy();
 		Workspace.Terrain.Clear();
@@ -322,14 +337,19 @@ export const MissionWorld = {
 		scenery.Parent = parent;
 		fillOcean(scenery, themeDecor(planData.environment));
 		let groundTargets: Model[];
+		let protectedAsset: Model | undefined;
+		let protectedRoute: readonly [Vector3, Vector3] | undefined;
 		if (missionId === 1) {
 			groundTargets = buildPreservedMission1(scenery, parent);
 		} else if (missionId === 2) {
 			groundTargets = buildPreservedMission2(scenery, parent);
 		} else {
-			groundTargets = buildGeneralMission(scenery, parent, missionId);
+			const general = buildGeneralMission(scenery, parent, missionId);
+			groundTargets = general.groundTargets;
+			protectedAsset = general.protectedAsset;
+			protectedRoute = general.protectedRoute;
 		}
-		return { groundTargets };
+		return { groundTargets, protectedAsset, protectedRoute };
 	},
 	RestoreMenu(): void {
 		Workspace.Terrain.Clear();

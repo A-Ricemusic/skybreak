@@ -349,6 +349,39 @@ def build_radar(collection: bpy.types.Collection, mat: dict[str, bpy.types.Mater
         cylinder(f"Bollard_{x}_{y}", 0.65, 4.5, (x, y, 2.8), collection, mat["Accent"], vertices=10)
 
 
+def build_aurora_beacon(collection: bpy.types.Collection, mat: dict[str, bpy.types.Material]) -> None:
+    """Low-poly navigation/jamming beacon readable against snow and night skies."""
+    box("Beacon_Pad", (54.0, 54.0, 1.4), (0, 0, 0.7), collection, mat["Concrete"], bevel=0.45)
+    cylinder("Beacon_Base", 9.0, 4.0, (0, 0, 3.3), collection, mat["DarkMetal"], vertices=16)
+    cylinder("Beacon_Mast", 2.6, 42.0, (0, 0, 25.5), collection, mat["Steel"], vertices=12)
+    for height, span in ((12.0, 15.0), (25.0, 12.0), (38.0, 9.0)):
+        box(f"Crossarm_{int(height)}", (span * 2, 2.0, 2.0), (0, 0, height), collection, mat["Accent"], bevel=0.2)
+        for side in (-1, 1):
+            cylinder(f"Emitter_{int(height)}_{side}", 1.4, 4.5, (side * span, 0, height), collection, mat["Warning"], vertices=12)
+    cylinder("Aurora_Lantern", 4.4, 7.0, (0, 0, 49.5), collection, mat["Glass"], vertices=16)
+    cylinder("Lantern_Cap", 5.2, 1.0, (0, 0, 53.5), collection, mat["Warning"], vertices=16)
+    for angle in (0, 90, 180, 270):
+        radians = math.radians(angle)
+        x, y = math.cos(radians) * 19.0, math.sin(radians) * 19.0
+        strut = cylinder(f"Guy_Strut_{angle}", 0.48, 38.0, (x / 2, y / 2, 20.0), collection, mat["DarkMetal"], vertices=8)
+        strut.rotation_euler = Vector((x, y, -36.0)).to_track_quat("Z", "Y").to_euler()
+
+
+def build_supply_convoy(collection: bpy.types.Collection, mat: dict[str, bpy.types.Material]) -> None:
+    """Three connected relief vehicles; usable as escort actor or hostile depot convoy."""
+    for truck_index, y in enumerate((-36.0, 0.0, 36.0), start=1):
+        box(f"Truck_{truck_index}_Chassis", (18.0, 30.0, 3.0), (0, y, 5.5), collection, mat["DarkMetal"], bevel=0.35)
+        box(f"Truck_{truck_index}_Cargo", (17.0, 19.0, 13.0), (0, y + 4.5, 13.0), collection, mat["Steel"], bevel=1.0)
+        box(f"Truck_{truck_index}_Cab", (16.0, 9.0, 11.0), (0, y - 10.0, 11.8), collection, mat["Accent"], bevel=1.0)
+        box(f"Truck_{truck_index}_Windshield", (12.0, 0.5, 3.8), (0, y - 14.7, 15.0), collection, mat["Glass"], bevel=0.2)
+        box(f"Truck_{truck_index}_AidMark", (8.0, 0.65, 1.8), (0, y + 14.2, 13.0), collection, mat["Warning"], bevel=0.1)
+        box(f"Truck_{truck_index}_AidMarkV", (1.8, 0.7, 8.0), (0, y + 14.3, 13.0), collection, mat["Warning"], bevel=0.1)
+        for axle_y in (y - 9.0, y + 9.0):
+            for side in (-1, 1):
+                cylinder(f"Truck_{truck_index}_Wheel_{axle_y}_{side}", 3.2, 2.2, (side * 9.1, axle_y, 4.3), collection, mat["DarkMetal"], vertices=12, rotation=(0, math.pi / 2, 0))
+    box("Convoy_Spine", (3.0, 108.0, 1.5), (0, 0, 2.0), collection, mat["Concrete"], bevel=0.2)
+
+
 def apply_and_consolidate(collection: bpy.types.Collection, slug: str) -> list[bpy.types.Object]:
     objects = [obj for obj in collection.objects if obj.type == "MESH"]
     for obj in objects:
@@ -603,6 +636,8 @@ def main() -> None:
     specs = (
         AssetSpec("Warehouse", "SKYBREAK Military Warehouse", build_warehouse, 700, ((64.5, 65.5), (39.0, 42.0), (94.5, 95.5)), (115, -135, 100)),
         AssetSpec("Radar", "SKYBREAK Radar Training Installation", build_radar, 850, ((64.5, 65.5), (44.0, 47.0), (64.5, 65.5)), (90, -105, 78)),
+        AssetSpec("AuroraBeacon", "Aurora Line Navigation Beacon", build_aurora_beacon, 180, ((53.0, 56.0), (52.0, 56.0), (53.0, 56.0)), (86, -100, 70)),
+        AssetSpec("SupplyConvoy", "Aurora Line Relief Convoy", build_supply_convoy, 250, ((19.0, 22.0), (18.0, 22.0), (106.0, 110.0)), (105, -145, 82)),
     )
     stats = [build_asset(spec) for spec in specs]
     print("MISSION_ASSETS_BUILD_COMPLETE")

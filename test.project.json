@@ -55,6 +55,12 @@
       },
       "RadarGeometry": {
         "$path": "build/RadarGeometry.txt"
+      },
+      "AuroraBeaconGeometry": {
+        "$path": "build/AuroraBeaconGeometry.txt"
+      },
+      "SupplyConvoyGeometry": {
+        "$path": "build/SupplyConvoyGeometry.txt"
       }
     }
   }
