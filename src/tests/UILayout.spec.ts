@@ -1,6 +1,7 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 
 import {
+	getSlotListHeight,
 	getEvadeHint,
 	getFlightHints,
 	getHudLayout,
@@ -191,6 +192,16 @@ describe("input mode and contextual hints", () => {
 		}
 		for (const hint of getFlightHints("keyboard", { introduction: true, locked: false, missileReady: false })) {
 			expect(hint.keyCode).toBeUndefined();
+		}
+	});
+});
+
+describe("short campaign screen", () => {
+	it("reserves a touch-sized footer below the scrolling slots", () => {
+		for (const height of [240, 280, 320, 568]) {
+			const menu = getMenuLayout(568, height);
+			const top = menu.compact ? 34 : 66;
+			expect(top + getSlotListHeight(menu.panel.height, menu.compact) + 12).toBeLessThanOrEqual(menu.panel.height - 44);
 		}
 	});
 });

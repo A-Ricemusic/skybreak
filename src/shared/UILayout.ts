@@ -184,7 +184,7 @@ export function getFlightHints(inputMode: InputMode, context: FlightHintContext)
 		const evade = getEvadeHint(inputMode)!;
 		const target: ControlHint = gamepad ? { keyCode: "ButtonY", label: "Y", action: "TARGET" } : { label: "TAB", action: "TARGET" };
 		return gamepad
-			? [{ keyCode: "Thumbstick1", label: "LS", action: "FLY" }, fire, evade, target]
+			? [{ keyCode: "Thumbstick1", label: "LS", action: "FLY" }, { keyCode: "ButtonL1", label: "LB", action: "SLOW" }, { keyCode: "ButtonR1", label: "RB", action: "FAST" }, fire, evade, target]
 			: [
 				{ label: "WASD", action: "FLY" },
 				{ label: "Q / E", action: "THROTTLE" },
@@ -205,4 +205,8 @@ export function rectanglesOverlap(a: Rectangle, b: Rectangle): boolean {
 
 export function rectangleInside(inner: Rectangle, width: number, height: number, inset = 0): boolean {
 	return inner.x >= inset && inner.y >= inset && inner.x + inner.width <= width - inset && inner.y + inner.height <= height - inset;
+}
+
+export function getSlotListHeight(panelHeight: number, compact: boolean): number {
+	return math.min(compact ? 194 : 256, math.max(44, panelHeight - (compact ? 34 : 66) - 44 - 12));
 }

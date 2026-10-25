@@ -12,7 +12,7 @@ const DEFAULTS: Telemetry = {
 const FLIGHT_KEYS = [
 	Enum.KeyCode.W, Enum.KeyCode.S, Enum.KeyCode.A, Enum.KeyCode.D,
 	Enum.KeyCode.Up, Enum.KeyCode.Down, Enum.KeyCode.Left, Enum.KeyCode.Right,
-	Enum.KeyCode.Q, Enum.KeyCode.E, Enum.KeyCode.LeftShift,
+	Enum.KeyCode.Q, Enum.KeyCode.E, Enum.KeyCode.LeftShift, Enum.KeyCode.ButtonL1, Enum.KeyCode.ButtonR1,
 	Enum.KeyCode.Space, Enum.KeyCode.F, Enum.KeyCode.Tab, Enum.KeyCode.R,
 	Enum.KeyCode.ButtonR2, Enum.KeyCode.ButtonB, Enum.KeyCode.ButtonY, Enum.KeyCode.Thumbstick1,
 ];
@@ -146,8 +146,8 @@ export class FlightController {
 			if (this.keys.has(Enum.KeyCode.D) || this.keys.has(Enum.KeyCode.Right)) x += 1;
 			if (this.keys.has(Enum.KeyCode.W) || this.keys.has(Enum.KeyCode.Up)) y += 1;
 			if (this.keys.has(Enum.KeyCode.S) || this.keys.has(Enum.KeyCode.Down)) y -= 1;
-			if (this.keys.has(Enum.KeyCode.Q)) this.SetThrottle(this.throttle - dt * 0.4);
-			if (this.keys.has(Enum.KeyCode.E)) this.SetThrottle(this.throttle + dt * 0.4);
+			if (this.keys.has(Enum.KeyCode.Q) || this.keys.has(Enum.KeyCode.ButtonL1)) this.SetThrottle(this.throttle - dt * 0.4);
+			if (this.keys.has(Enum.KeyCode.E) || this.keys.has(Enum.KeyCode.ButtonR1)) this.SetThrottle(this.throttle + dt * 0.4);
 			if (this.mouseSteer) {
 				const camera = Workspace.CurrentCamera;
 				if (camera) {

@@ -14,6 +14,7 @@ import type {
 } from "../shared/Types";
 import { FlightController } from "./FlightController";
 import {
+	getSlotListHeight,
 	getEvadeHint,
 	getFlightHints,
 	getHudLayout,
@@ -595,7 +596,7 @@ function CampaignScreen({
 				: "Save service offline. Progress may not persist.";
 	const rowHeight = compact ? 44 : 58;
 	const gap = compact ? 6 : 8;
-	const footerHeight = compact ? 40 : 44;
+	const footerHeight = 44;
 	return (
 		<frame key="CampaignScreen" BackgroundTransparency={1} Visible={visible} {...panelPosition(menu)}>
 			<Label name="CampaignHeader" text="CAMPAIGN FILES" textSize={compact ? 19 : 26} font={Enum.Font.GothamBlack} size={new UDim2(1, 0, 0, compact ? 26 : 34)} />
@@ -609,12 +610,12 @@ function CampaignScreen({
 				size={new UDim2(1, 0, 0, 16)}
 				visible={!compact}
 			/>
-			<frame key="SlotGrid" BackgroundTransparency={1} Position={UDim2.fromOffset(0, compact ? 34 : 66)} Size={new UDim2(1, 0, 0, rowHeight * 4 + gap * 3)}>
+			<scrollingframe key="SlotGrid" BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={3} ScrollingDirection={Enum.ScrollingDirection.Y} CanvasSize={UDim2.fromOffset(0, rowHeight * 4 + gap * 3)} Position={UDim2.fromOffset(0, compact ? 34 : 66)} Size={new UDim2(1, 0, 0, getSlotListHeight(menu.panel.height, compact))}>
 				<uilistlayout Padding={new UDim(0, gap)} SortOrder={Enum.SortOrder.LayoutOrder} />
 				{SLOT_NUMBERS.map((number) => (
 					<SlotButton key={`Slot${number}Button`} number={number} slot={slots?.[number - 1]} busy={busy} compact={compact} onSlot={onSlot} />
 				))}
-			</frame>
+			</scrollingframe>
 			<ActionButton name="CampaignBackButton" text="‹  BACK" anchorPoint={new Vector2(0, 1)} position={new UDim2(0, 0, 1, 0)} size={UDim2.fromOffset(108, footerHeight)} enabled={!busy} textSize={13} onActivated={onBack} />
 			<Label
 				name="PersistenceStatus"
@@ -652,7 +653,7 @@ function FooterButtons({
 	onPrimary: () => void;
 	onSecondary: () => void;
 }) {
-	const height = compact ? 42 : 48;
+	const height = compact ? 44 : 48;
 	const leftSize = new UDim2(0.58, -4, 0, height);
 	const rightSize = new UDim2(0.42, -4, 0, height);
 	return (

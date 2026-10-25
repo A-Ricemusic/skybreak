@@ -5,7 +5,7 @@ An original mobile-first arcade jet combat campaign for Roblox, written in TypeS
 ## Controls and campaign
 
 - Mobile: the flight pad, throttle, fire, and target controls appear only while you are using touch.
-- Desktop and console: a short control legend appears at launch; afterwards the HUD shows only actionable hints. Evade is `F` on keyboard and `B` on gamepad. Menus support gamepad selection, with `B` to go back.
+- Desktop and console: a short control legend appears at launch; afterwards the HUD shows only actionable hints. Evade is `F` on keyboard and `B` on gamepad. Hold `LB` / `RB` to decrease / increase throttle. Menus support gamepad selection, with `B` to go back.
 - Missiles require a target lock, shown on the target bracket. Incoming-missile and airspace warnings appear only while active.
 - Victory is server-authoritative and occurs only after all three enemy aircraft are destroyed.
 - Published experiences save four slots to DataStore; an unpublished local Studio file clearly uses session-only saves.
