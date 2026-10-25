@@ -187,7 +187,10 @@ describe("Roblox jet and missile integration", () => {
 			const item = mesh(aircraft, material.name === "White" ? "Fuselage" : material.name);
 			expect(item.GetAttribute("BlenderMaterial")).toBe(material.name);
 			const color = material.baseColorRGBA;
-			closeVector(new Vector3(item.Color.R, item.Color.G, item.Color.B), new Vector3(color[0], color[1], color[2]));
+			// BasePart colors are quantized to 8-bit channels by the engine.
+			expect(math.abs(item.Color.R - color[0])).toBeLessThanOrEqual(1 / 255);
+			expect(math.abs(item.Color.G - color[1])).toBeLessThanOrEqual(1 / 255);
+			expect(math.abs(item.Color.B - color[2])).toBeLessThanOrEqual(1 / 255);
 			expect(item.Transparency).toBeCloseTo(1 - color[3], 3);
 			closeVector(item.CFrame.LookVector, new Vector3(0, 0, -1));
 			closeVector(item.CFrame.UpVector, Vector3.yAxis);
