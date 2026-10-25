@@ -2,6 +2,7 @@ import { describe, expect, it } from "@rbxts/jest-globals";
 
 import {
 	getSlotListHeight,
+	getCinematicLayout,
 	getEvadeHint,
 	getFlightHints,
 	getHudLayout,
@@ -34,6 +35,13 @@ function expectSeparate(rectangles: Rectangle[]) {
 			expect(rectanglesOverlap(rectangles[first], rectangles[second])).toBe(false);
 		}
 	}
+}
+
+function expectInsideParent(inner: Rectangle, outer: Rectangle) {
+	expect(inner.x).toBeGreaterThanOrEqual(outer.x);
+	expect(inner.y).toBeGreaterThanOrEqual(outer.y);
+	expect(inner.x + inner.width).toBeLessThanOrEqual(outer.x + outer.width);
+	expect(inner.y + inner.height).toBeLessThanOrEqual(outer.y + outer.height);
 }
 
 describe("minimal mission HUD layout", () => {
@@ -199,6 +207,52 @@ describe("menu layout", () => {
 			expect(rectanglesOverlap(missionToast, hud.touch!.joystick)).toBe(false);
 			expect(rectanglesOverlap(missionToast, hud.touch!.missile)).toBe(false);
 		}
+	});
+});
+
+describe("cinematic caption and action layout", () => {
+	const cinematicViewports: [number, number][] = [
+		[568, 320],
+		[750, 323],
+		[320, 240],
+		[320, 568],
+		[390, 844],
+	];
+
+	it("keeps every cinematic child within its letterbox and the real viewport", () => {
+		for (const [width, height] of cinematicViewports) {
+			const layout = getCinematicLayout(width, height);
+			expect(rectangleInside(layout.topBar, width, height)).toBe(true);
+			expect(rectangleInside(layout.bottomPanel, width, height)).toBe(true);
+			expect(layout.bottomPanel.y + layout.bottomPanel.height).toBe(height);
+			expect(layout.bottomPanel.y).toBeGreaterThanOrEqual(layout.topBar.y + layout.topBar.height + 12);
+			for (const child of [layout.chapter, layout.title, layout.progress]) expectInsideParent(child, layout.topBar);
+			for (const child of [layout.speaker, layout.subtitle, layout.reducedMotion, layout.skip]) expectInsideParent(child, layout.bottomPanel);
+		}
+	});
+
+	it("keeps title, speaker, subtitle, and both actions mutually separate", () => {
+		for (const [width, height] of cinematicViewports) {
+			const layout = getCinematicLayout(width, height);
+			expectSeparate([layout.chapter, layout.title, layout.progress]);
+			expectSeparate([layout.speaker, layout.subtitle, layout.reducedMotion, layout.skip]);
+			expect(layout.subtitle.height).toBeGreaterThanOrEqual(32);
+		}
+	});
+
+	it("provides two in-bounds 44px actions even at 320x240", () => {
+		for (const [width, height] of cinematicViewports) {
+			const layout = getCinematicLayout(width, height);
+			for (const action of [layout.reducedMotion, layout.skip]) {
+				expect(action.width).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
+				expect(action.height).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
+				expect(rectangleInside(action, width, height)).toBe(true);
+			}
+		}
+		const minimum = getCinematicLayout(320, 240);
+		expect(minimum.reducedMotion.height).toBe(44);
+		expect(minimum.skip.height).toBe(44);
+		expect(minimum.skip.y + minimum.skip.height).toBeLessThanOrEqual(240 - 12);
 	});
 });
 

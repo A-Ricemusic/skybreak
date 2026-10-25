@@ -38,6 +38,19 @@ export interface MenuLayout {
 	panel: Rectangle;
 }
 
+export interface CinematicLayout {
+	compact: boolean;
+	topBar: Rectangle;
+	bottomPanel: Rectangle;
+	chapter: Rectangle;
+	title: Rectangle;
+	progress: Rectangle;
+	speaker: Rectangle;
+	subtitle: Rectangle;
+	reducedMotion: Rectangle;
+	skip: Rectangle;
+}
+
 export interface ControlHint {
 	/** Enum.KeyCode name for gamepad glyph lookup; absent for keyboard and mouse. */
 	keyCode?: string;
@@ -145,6 +158,41 @@ export function getMenuLayout(viewportWidth: number, viewportHeight: number): Me
 		compact: panelHeight < 400,
 		panel: { x: math.floor((width - panelWidth) / 2), y: height - margin - panelHeight, width: panelWidth, height: panelHeight },
 	};
+}
+
+/**
+ * Caption-first cinematic layout. Chapter/title metadata lives in the top
+ * letterbox; dialogue and side-by-side actions live in the bottom panel. All
+ * returned child rectangles use viewport coordinates so tests can verify real
+ * bounds before React converts them to panel-local offsets.
+ */
+export function getCinematicLayout(viewportWidth: number, viewportHeight: number): CinematicLayout {
+	const width = math.max(320, viewportWidth);
+	const height = math.max(240, viewportHeight);
+	const compact = height < 360 || width < 480;
+	const outerPadding = width < 400 ? 12 : 18;
+	const topHeight = math.floor(math.clamp(height * 0.15, 40, 70));
+	const topBar = { x: 0, y: 0, width, height: topHeight };
+	const progressWidth = 54;
+	const chapter = { x: outerPadding, y: 4, width: width - outerPadding * 2 - progressWidth - 8, height: 12 };
+	const progress = { x: width - outerPadding - progressWidth, y: 4, width: progressWidth, height: 12 };
+	const title = { x: outerPadding, y: 19, width: width - outerPadding * 2, height: topHeight - 21 };
+
+	const landscapeShort = height <= 340 && width >= height;
+	const requestedPanelHeight = landscapeShort
+		? math.max(140, math.floor(height * 0.45))
+		: math.floor(math.clamp(height * 0.32, 180, 250));
+	const panelHeight = math.min(requestedPanelHeight, height - topHeight - 12);
+	const bottomPanel = { x: 0, y: height - panelHeight, width, height: panelHeight };
+	const speaker = { x: outerPadding, y: bottomPanel.y + outerPadding - 2, width: width - outerPadding * 2, height: 16 };
+	const actionGap = width < 400 ? 10 : 12;
+	const actionY = height - outerPadding - MIN_TOUCH_TARGET;
+	const actionWidth = math.floor((width - outerPadding * 2 - actionGap) / 2);
+	const reducedMotion = { x: outerPadding, y: actionY, width: actionWidth, height: MIN_TOUCH_TARGET };
+	const skip = { x: outerPadding + actionWidth + actionGap, y: actionY, width: width - outerPadding - (outerPadding + actionWidth + actionGap), height: MIN_TOUCH_TARGET };
+	const subtitleY = speaker.y + speaker.height + 6;
+	const subtitle = { x: outerPadding, y: subtitleY, width: width - outerPadding * 2, height: actionY - 8 - subtitleY };
+	return { compact, topBar, bottomPanel, chapter, title, progress, speaker, subtitle, reducedMotion, skip };
 }
 
 /** Status toasts stay clear of the menu panel, or of the mission alert lane when no menu is shown. */

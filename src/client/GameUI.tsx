@@ -18,6 +18,7 @@ import { GameConfig } from "../shared/GameConfig";
 import { getMission, MISSION_COUNT } from "../shared/MissionCatalog";
 import {
 	getSlotListHeight,
+	getCinematicLayout,
 	getEvadeHint,
 	getFlightHints,
 	getHudLayout,
@@ -552,11 +553,13 @@ function setCinematicCamera(shot: CinematicShot, clock: number, reducedMotion: b
 
 function CinematicScreen({
 	visible,
+	viewport,
 	scene,
 	onFinish,
 	onShot,
 }: {
 	visible: boolean;
+	viewport: Vector2;
 	scene: CinematicScene;
 	onFinish: () => void;
 	onShot: (shot: CinematicShot, reducedMotion: boolean) => void;
@@ -565,6 +568,11 @@ function CinematicScreen({
 	const [reducedMotion, setReducedMotion] = useState(false);
 	const serial = useRef(0);
 	const beat = scene.beats[math.min(beatIndex, scene.beats.size() - 1)];
+	const layout = getCinematicLayout(viewport.X, viewport.Y);
+	const localRect = (rectangle: Rectangle, parent: Rectangle) => ({
+		position: UDim2.fromOffset(rectangle.x - parent.x, rectangle.y - parent.y),
+		size: UDim2.fromOffset(rectangle.width, rectangle.height),
+	});
 	useEffect(() => {
 		serial.current++;
 		setBeatIndex(0);
@@ -582,15 +590,16 @@ function CinematicScreen({
 	}, [beat, beatIndex, onFinish, onShot, reducedMotion, scene, visible]);
 	return (
 		<frame key="CinematicScreen" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={visible}>
-			<frame key="TopLetterbox" BackgroundColor3={C.Ink} BorderSizePixel={0} Size={new UDim2(1, 0, 0.13, 0)} ZIndex={30} />
-			<frame key="BottomLetterbox" AnchorPoint={new Vector2(0, 1)} Position={UDim2.fromScale(0, 1)} BackgroundColor3={C.Ink} BorderSizePixel={0} Size={new UDim2(1, 0, 0.29, 0)} ZIndex={30}>
-				<Label name="CinematicChapter" text={scene.afterMission === 0 ? "OPENING" : scene.afterMission === MISSION_COUNT ? "FINALE" : `AFTER MISSION ${string.format("%02d", scene.afterMission)}`} color={C.Orange} font={Enum.Font.GothamBold} textSize={10} position={new UDim2(0.06, 0, 0.08, 0)} size={new UDim2(0.88, 0, 0, 14)} zIndex={31} />
-				<Label name="CinematicTitle" text={scene.title} color={C.Ivory} font={Enum.Font.GothamBlack} textSize={20} position={new UDim2(0.06, 0, 0.2, 0)} size={new UDim2(0.88, 0, 0, 25)} zIndex={31} />
-				<Label name="CinematicSpeaker" text={`${beat.speaker}  ·  ${scene.location}`} color={C.Accent} font={Enum.Font.GothamBold} textSize={11} position={new UDim2(0.06, 0, 0.42, 0)} size={new UDim2(0.88, 0, 0, 18)} zIndex={31} />
-				<Label name="CinematicSubtitle" text={beat.text} color={C.Ivory} font={Enum.Font.GothamMedium} textSize={15} position={new UDim2(0.06, 0, 0.56, 0)} size={new UDim2(0.7, 0, 0.38, 0)} textWrapped={true} textYAlignment={Enum.TextYAlignment.Top} zIndex={31} />
-				<Label name="CinematicProgress" text={`${beatIndex + 1} / ${scene.beats.size()}`} color={C.Faint} font={Enum.Font.RobotoMono} textSize={10} anchorPoint={new Vector2(1, 0)} position={new UDim2(0.94, 0, 0.14, 0)} size={UDim2.fromOffset(60, 16)} textXAlignment={Enum.TextXAlignment.Right} zIndex={31} />
-				<ActionButton name="ReducedMotionButton" text={reducedMotion ? "STATIC CAMERA: ON" : "STATIC CAMERA"} position={new UDim2(0.78, 0, 0.48, 0)} size={new UDim2(0.16, 0, 0, 34)} textSize={9} zIndex={31} onActivated={() => setReducedMotion(!reducedMotion)} />
-				<ActionButton name="SkipCutsceneButton" text="SKIP  ›" primary={true} position={new UDim2(0.78, 0, 0.72, 0)} size={new UDim2(0.16, 0, 0, 38)} textSize={11} zIndex={31} onActivated={onFinish} />
+			<frame key="TopLetterbox" BackgroundColor3={C.Ink} BorderSizePixel={0} Position={UDim2.fromOffset(layout.topBar.x, layout.topBar.y)} Size={UDim2.fromOffset(layout.topBar.width, layout.topBar.height)} ZIndex={30}>
+				<Label name="CinematicChapter" text={scene.afterMission === 0 ? "OPENING" : scene.afterMission === MISSION_COUNT ? "FINALE" : `AFTER MISSION ${string.format("%02d", scene.afterMission)}`} color={C.Orange} font={Enum.Font.GothamBold} textSize={layout.compact ? 9 : 10} {...localRect(layout.chapter, layout.topBar)} zIndex={31} />
+				<Label name="CinematicTitle" text={scene.title} color={C.Ivory} font={Enum.Font.GothamBlack} textSize={layout.compact ? 17 : 20} {...localRect(layout.title, layout.topBar)} zIndex={31} />
+				<Label name="CinematicProgress" text={`${beatIndex + 1} / ${scene.beats.size()}`} color={C.Faint} font={Enum.Font.RobotoMono} textSize={9} {...localRect(layout.progress, layout.topBar)} textXAlignment={Enum.TextXAlignment.Right} zIndex={31} />
+			</frame>
+			<frame key="BottomLetterbox" Position={UDim2.fromOffset(layout.bottomPanel.x, layout.bottomPanel.y)} BackgroundColor3={C.Ink} BorderSizePixel={0} Size={UDim2.fromOffset(layout.bottomPanel.width, layout.bottomPanel.height)} ZIndex={30}>
+				<Label name="CinematicSpeaker" text={`${beat.speaker}  ·  ${scene.location}`} color={C.Accent} font={Enum.Font.GothamBold} textSize={layout.compact ? 9 : 11} {...localRect(layout.speaker, layout.bottomPanel)} zIndex={31} />
+				<Label name="CinematicSubtitle" text={beat.text} color={C.Ivory} font={Enum.Font.GothamMedium} textSize={layout.compact ? 12 : 15} {...localRect(layout.subtitle, layout.bottomPanel)} textWrapped={true} textYAlignment={Enum.TextYAlignment.Top} zIndex={31} />
+				<ActionButton name="ReducedMotionButton" text={reducedMotion ? "STATIC CAMERA: ON" : "STATIC CAMERA"} position={localRect(layout.reducedMotion, layout.bottomPanel).position} size={localRect(layout.reducedMotion, layout.bottomPanel).size} textSize={layout.compact ? 9 : 10} zIndex={31} onActivated={() => setReducedMotion(!reducedMotion)} />
+				<ActionButton name="SkipCutsceneButton" text="SKIP  ›" primary={true} position={localRect(layout.skip, layout.bottomPanel).position} size={localRect(layout.skip, layout.bottomPanel).size} textSize={11} zIndex={31} onActivated={onFinish} />
 			</frame>
 		</frame>
 	);
@@ -1717,7 +1726,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					<TitleScreen visible={screen === "title"} menu={menu} onCampaign={() => { if (!busyRef.current) { cinematicDestinationRef.current = "slots"; setCinematic(getCutscene(0)); changeScreen("cutscene"); } }} />
 					<CampaignScreen visible={screen === "slots"} menu={menu} slots={slots} busy={busy} persistence={persistence} onBack={goBack} onSlot={(slot) => { if (!busyRef.current && slots?.[slot - 1]) { const missionId = resumeMission(slots[slot - 1]); selectedSlotRef.current = slot; selectedMissionRef.current = missionId; setSelectedSlot(slot); setSelectedMission(missionId); changeScreen("briefing"); } }} />
 					<BriefingScreen visible={screen === "briefing"} menu={menu} selectedSlot={selectedSlot} selectedMission={selectedMission} slot={selectedSave} busy={busy} onBack={goBack} onLaunch={startMission} onMission={(missionId) => { selectedMissionRef.current = missionId; setSelectedMission(missionId); }} />
-					<CinematicScreen visible={screen === "cutscene"} scene={cinematic} onFinish={finishCutscene} onShot={setCinematicShot} />
+					<CinematicScreen visible={screen === "cutscene"} viewport={viewport} scene={cinematic} onFinish={finishCutscene} onShot={setCinematicShot} />
 					<MissionHud
 						visible={screen === "mission"}
 						viewport={viewport}
