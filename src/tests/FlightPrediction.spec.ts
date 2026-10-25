@@ -154,15 +154,65 @@ describe("client flight prediction and reconciliation", () => {
 		expect(FlightPrediction.Reconcile(predictor, server, now, 5)).toBe("none");
 		expect(FlightPrediction.Reconcile(predictor, server, now, 4)).toBe("none");
 	});
-	it("matches the server sample against history one-way latency ago", () => {
+	it("matches the server sample at the echoed stamp + hold, or a full round trip ago without one", () => {
 		const [predictor, now] = flown(1);
 		predictor.rtt = 0.2;
-		// A server state equal to what we predicted 100 ms ago is no error at all,
-		// even though the jet has flown ~25 studs since.
+		// A server state equal to what we predicted 200 ms ago (a full round trip:
+		// input travels up, state travels back) is no error at all, even though the
+		// jet has flown ~50 studs since.
 		const past = { x: 0, y: 0, z: 0, yaw: 0, pitch: 0, roll: 0, speed: 0 };
-		expect(FlightPrediction.Sample(predictor, now - 0.1, past)).toBe(true);
-		expect(math.abs(predictor.state.z - past.z)).toBeGreaterThan(20);
+		expect(FlightPrediction.Sample(predictor, now - 0.2, past)).toBe(true);
+		expect(math.abs(predictor.state.z - past.z)).toBeGreaterThan(40);
 		expect(FlightPrediction.Reconcile(predictor, past, now, 1)).toBe("ignore");
+		// With an echo the packet names the exact predicted time instead.
+		const exact = { x: 0, y: 0, z: 0, yaw: 0, pitch: 0, roll: 0, speed: 0 };
+		expect(FlightPrediction.Sample(predictor, now - 0.3, exact)).toBe(true);
+		expect(FlightPrediction.Reconcile(predictor, exact, now, 2, now - 0.3)).toBe("ignore");
+		expect(FlightPrediction.Reconcile(predictor, exact, now, 3)).never.toBe("ignore");
+	});
+	it("stays in the ignore band through a full-stick turn with upstream and downstream delay", () => {
+		// Lockstep model on the shared 1/30 s grid. Client frame i applies input i
+		// starting at its last step boundary (the stamp) and sends it; the server sees
+		// it UP steps later, flies on it, and its state reaches the client DOWN steps
+		// after that. The server started flying UP + DOWN steps before the client did
+		// (it sends "Started" and its clock runs while that travels), so the first
+		// packets correct that one-time along-track offset; after that, and through
+		// the whole turn, every correction must stay inside the deadzone.
+		for (const [UP, DOWN] of [[2, 3], [4, 1], [6, 6]]) {
+			const dt = 1 / 30;
+			const predictor = FlightPrediction.New(FlightMath.NewState());
+			const server = FlightMath.NewState();
+			const serverInput = { x: 0, y: 0, throttle: 0.65 };
+			let serverStamp = 0, serverSteps = 0, fresh = false, sequence = 0;
+			const inputs: Array<{ x: number; y: number; throttle: number; t: number }> = [];
+			const inFlight: Array<{ arrive: number; state: FlightState; stamp: number; hold: number; sequence: number }> = [];
+			// Server lead: it has already flown UP + DOWN steps when the client starts.
+			for (let lead = 0; lead < UP + DOWN; lead++) FlightMath.Step(server, serverInput, dt);
+			const outcomes: string[] = [];
+			for (let frame = 1; frame <= 150; frame++) {
+				const now = frame * dt;
+				// Straight for 2 s, full right stick with climb for 1.5 s, full left, then straight.
+				const input = frame <= 60 ? { x: 0, y: 0, throttle: 0.65 } : frame <= 105 ? { x: 1, y: 0.6, throttle: 1 } : frame <= 130 ? { x: -1, y: -0.3, throttle: 0.4 } : { x: 0, y: 0, throttle: 0.65 };
+				const stamp = FlightPrediction.InputStamp(predictor, now - dt);
+				FlightPrediction.Step(predictor, input, dt, now);
+				inputs.push({ ...input, t: stamp });
+				// Server step for the same tick: newest input that has arrived (UP steps late).
+				const arrived = inputs[frame - 1 - UP];
+				if (arrived) { serverInput.x = arrived.x; serverInput.y = arrived.y; serverInput.throttle = arrived.throttle; serverStamp = arrived.t; fresh = true; }
+				if (fresh) { fresh = false; serverSteps = 0; }
+				FlightMath.Step(server, serverInput, dt);
+				serverSteps += 1;
+				sequence += 1;
+				inFlight.push({ arrive: frame + DOWN, state: { ...server }, stamp: serverStamp, hold: serverSteps * dt, sequence });
+				for (const packet of inFlight) {
+					if (packet.arrive !== frame || packet.stamp <= 0) continue;
+					const result = FlightPrediction.Reconcile(predictor, packet.state, now, packet.sequence, packet.stamp + packet.hold);
+					if (frame > 45) outcomes.push(result);
+				}
+			}
+			expect(outcomes.size()).toBeGreaterThan(90);
+			for (const result of outcomes) expect(result).toBe("ignore");
+		}
 	});
 	it("estimates round trip from echoed input stamps minus server hold time", () => {
 		const predictor = FlightPrediction.New(FlightMath.NewState());

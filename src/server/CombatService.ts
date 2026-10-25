@@ -62,8 +62,8 @@ export interface CombatSession {
 	chatterIndex: number;
 	/** Blueprint phase index whose mid-phase reinforcement has already spawned. */
 	reinforcedPhase?: number;
-	/** Client clock of the newest FlightInput and when the server received it, echoed for client RTT. */
-	inputClientTime: number; inputReceivedAt: number;
+	/** Client stamp of the newest FlightInput, whether a step has used it yet, and how many fixed steps have. */
+	inputClientTime: number; inputFresh: boolean; inputSteps: number;
 	/** 20 Hz FlightState accumulator and packet sequences for both unreliable streams. */
 	stateTime: number; stateSequence: number; telemetrySequence: number;
 	/** Last HudState sent; a new one goes out (reliably) only when a field differs. */
@@ -303,7 +303,10 @@ function sendHud(session: CombatSession, objective: ReturnType<typeof sessionObj
 function sendFlightState(session: CombatSession): void {
 	if (session.player.Parent !== Players) return;
 	session.stateSequence += 1;
-	const hold = session.inputClientTime > 0 ? os.clock() - session.inputReceivedAt : 0;
+	// Simulated time this state has run on the newest input. The client stamps each
+	// input with the predicted time at which it starts applying it, so the matching
+	// prediction is exactly echoedClientTime + hold, independent of either network leg.
+	const hold = session.inputClientTime > 0 ? session.inputSteps * FIXED_STEP : 0;
 	flightStateRemote!.FireClient(session.player, FlightPrediction.Encode(session.stateSequence, session.state, session.evadeRemaining, session.inputClientTime, hold));
 }
 /** Push a radio line to the HUD immediately (phase beats, chatter, ace stages, flares). */
@@ -879,7 +882,9 @@ function stepSession(session: CombatSession, dt: number): void {
 	if (sessionOutcome(session) !== undefined) { finish(session); return; }
 	applyPhase(session);
 	const from={x:session.state.x,y:session.state.y,z:session.state.z};
+	if (session.inputFresh) { session.inputFresh = false; session.inputSteps = 0; }
 	FlightMath.Step(session.state, session.input, dt);
+	session.inputSteps += 1;
 	if (session.blueprintState) {
 		const bs=session.blueprintState, nav=BlueprintRunner.NavigationPoint(bs);
 		let threats=0;
@@ -1006,7 +1011,7 @@ export const CombatService = {
 				missiles: MAX_MISSILES, missileCooldown: 0, evadeCooldown: 0, evadeRemaining: 0, regen: 0, lockProgress: 0,
 				enemies: [], projectiles: [], telemetryTime: 0, lastInput: os.clock(), lastInputEvent: -math.huge,
 				active: true, finished: false, cleaned: false, previousReplicationFocus: player.ReplicationFocus,
-				inputClientTime: 0, inputReceivedAt: 0, stateTime: 0, stateSequence: 0, telemetrySequence: 0,
+				inputClientTime: 0, inputFresh: false, inputSteps: 0, stateTime: 0, stateSequence: 0, telemetrySequence: 0,
 			};
 			if (legacy) {
 				session.rules = MissionRules.NewState(missionId as 1 | 2, startedAt);
@@ -1079,18 +1084,24 @@ export const CombatService = {
 			const session = sessions.get(player);
 			if (!session?.active || session.loading || !typeIs(payload, "table")) return;
 			const now = os.clock();
-			if (!refreshSession(session, now) || now - session.lastInputEvent < 1 / 40) return;
-			session.lastInputEvent = now;
+			if (!refreshSession(session, now)) return;
 			const data = payload as { x?: unknown; y?: unknown; throttle?: unknown; t?: unknown };
 			if (!FlightMath.IsFinite(data.x) || !FlightMath.IsFinite(data.y) || !FlightMath.IsFinite(data.throttle)) return;
-			// Unreliable packets can arrive out of order; an older client stamp is stale input.
-			const clientTime = FlightMath.IsFinite(data.t) ? data.t : 0;
-			if (clientTime > 0 && clientTime <= session.inputClientTime) return;
+			// Unreliable packets can arrive out of order or bunched together. Staleness is
+			// decided by the client's stamp first, so the newest of two packets that land in
+			// the same few milliseconds always wins (the client already caps its own rate).
+			// Unstamped packets keep the old 1/40 s floor.
+			const clientTime = FlightMath.IsFinite(data.t) && data.t > 0 ? data.t : 0;
+			if (clientTime > 0) {
+				if (clientTime < session.inputClientTime) return;
+			} else if (now - session.lastInputEvent < 1 / 40) return;
+			session.lastInputEvent = now;
 			session.input.x = math.clamp(data.x, -1, 1);
 			session.input.y = math.clamp(data.y, -1, 1);
 			session.input.throttle = math.clamp(data.throttle, 0, 1);
 			session.lastInput = now;
-			if (clientTime > 0) { session.inputClientTime = clientTime; session.inputReceivedAt = now; }
+			// The echo counts fixed steps from the first one that uses this input (see sendFlightState).
+			if (clientTime > 0) { session.inputClientTime = clientTime; session.inputFresh = true; }
 		}));
 		connections.push(remote(remotes, "CombatAction").OnServerEvent.Connect((player, payload: unknown) => {
 			const session = sessions.get(player);

@@ -7,9 +7,13 @@ import { FlightInput } from "./Types";
 // frame (in the server's fixed 1/30 s steps plus a draw-only partial step),
 // with its own input, so the jet responds with zero network delay. The server
 // stays authoritative: about 20 times a second it sends its state, and the
-// predictor compares it with what the client itself predicted *at the moment
-// that server state was taken* (now - one-way latency, from a ring buffer of
-// past predictions). The difference is the real divergence; it is applied to
+// predictor compares it with what the client itself predicted for the same
+// point in the flight. The server applies each input one upstream delay late
+// and its state arrives one downstream delay later, so that point is a full
+// round trip back. It is known exactly: every input is stamped with the
+// predicted time at which the client starts applying it, and the server echoes
+// the newest stamp plus how long (in fixed steps) it has flown on it, so the
+// matching prediction is at stamp + hold in a ring buffer of past predictions. The difference is the real divergence; it is applied to
 // the current state gradually (or ignored when tiny, or snapped when huge).
 //
 // History entries are stored "raw" (state minus every correction applied so
@@ -116,6 +120,15 @@ export const FlightPrediction = {
 		return predictor.display;
 	},
 
+	/**
+	 * Stamp for input sampled this frame: the predicted time of the last fixed-step
+	 * boundary, which is where the next fixed step (the first to use it) begins.
+	 * Call before Step. The server echoes it back with the time flown on it.
+	 */
+	InputStamp(predictor: Predictor, now: number): number {
+		return predictor.count > 0 ? predictor.times[predictor.head] : now;
+	},
+
 	/** Stores the current state (minus corrections so far) at time `now`. */
 	Record(predictor: Predictor, now: number): void {
 		predictor.head = (predictor.head + 1) % HISTORY;
@@ -157,15 +170,17 @@ export const FlightPrediction = {
 
 	/**
 	 * Reconciles against an authoritative server state received at `now`.
+	 * `matchTime` is the predicted time that state corresponds to (echoed stamp + hold).
 	 * Returns which branch ran: "ignore" (< IgnoreDistance and tiny angles),
 	 * "blend" (corrected over the next frames) or "snap" (applied at once).
 	 */
-	Reconcile(predictor: Predictor, server: FlightState, now: number, sequence: number): Predictor["last"] {
+	Reconcile(predictor: Predictor, server: FlightState, now: number, sequence: number, matchTime?: number): Predictor["last"] {
 		if (sequence <= predictor.sequence) return "none"; // stale or duplicate unreliable packet
 		predictor.sequence = sequence;
 		const match = scratchMatch;
-		const latency = (predictor.rtt ?? FlightPrediction.DefaultRtt) / 2;
-		if (!FlightPrediction.Sample(predictor, now - latency, match)) {
+		// Exact when the server echoed an input (stamp + hold); otherwise a full round trip ago.
+		const at = matchTime ?? now - (predictor.rtt ?? FlightPrediction.DefaultRtt);
+		if (!FlightPrediction.Sample(predictor, at, match)) {
 			copyInto(predictor.state, server);
 			for (const key of KEYS) predictor.pending[key] = 0;
 			predictor.last = "snap";

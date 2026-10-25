@@ -26,7 +26,7 @@ export const RelayWorld = {
 		const at=new Instance("Atmosphere"); at.Name="MissionAtmosphere"; at.Density=storm ? .33 : preset==="harbor_fog" ? .31 : .24;
 		at.Haze=storm ? 2.2 : 1.3; at.Color=warm ? Color3.fromRGB(240,199,154) : dawn ? Color3.fromRGB(236,208,186) : night ? Color3.fromRGB(130,165,196) : Color3.fromRGB(190,215,227); at.Parent=Lighting;
 		const grade=new Instance("ColorCorrectionEffect"); grade.Name="MissionGrade"; grade.Contrast=.06; grade.Saturation=storm ? -.15 : .08; grade.Parent=Lighting;
-		const cloud=new Instance("Clouds"); cloud.Name="MissionClouds"; cloud.Cover=storm ? .85 : .32; cloud.Density=.3; // storms keep their cover; density stays <= 0.3 for phones cloud.Parent=terrain;
+		const cloud=new Instance("Clouds"); cloud.Name="MissionClouds"; cloud.Cover=storm ? .85 : .32; cloud.Density=.3; cloud.Parent=terrain; // storms keep their cover; density stays <= 0.3 for phones
 		const scene=new Instance("Folder"); scene.Name=layout.name; scene.Parent=parent;
 		parent.SetAttribute("MissionId",id); parent.SetAttribute("Composition",layout.name);
 		const inland=bp.region==="upland_farm" || bp.region==="plateau_relay" || bp.region==="canyon_pass" || bp.region==="canyon_airfield";

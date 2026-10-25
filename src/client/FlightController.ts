@@ -142,6 +142,8 @@ export class FlightController {
 	private predictor?: Predictor;
 	/** Seconds left of the (locally predicted) evade barrel roll. */
 	private evadeRoll = 0;
+	/** os.clock() when the current/last roll began (local prediction or joined server roll). */
+	private evadeStartedAt = -math.huge;
 	// Last values written to the target cue, so text/colour only change when they differ.
 	private cueColor?: Color3;
 	private cueRange = -1;
@@ -181,10 +183,16 @@ export class FlightController {
 			if (!decoded) return;
 			const now = os.clock();
 			FlightPrediction.ObserveRoundTrip(predictor, now, decoded.echoedClientTime, decoded.hold);
-			if (FlightPrediction.Reconcile(predictor, decoded.state, now, decoded.sequence) === "none") return;
-			// A server-side roll we did not predict (or predicted late): join it where it is now.
-			if (decoded.evadeRemaining > 0.2 && this.evadeRoll <= 0) {
-				this.evadeRoll = math.max(0, decoded.evadeRemaining - (predictor.rtt ?? FlightPrediction.DefaultRtt) / 2);
+			// The packet names the exact predicted time it corresponds to: echoed stamp + hold.
+			const matchTime = decoded.echoedClientTime > 0 ? decoded.echoedClientTime + decoded.hold : undefined;
+			if (FlightPrediction.Reconcile(predictor, decoded.state, now, decoded.sequence, matchTime) === "none") return;
+			// Join a server-side roll only when none was predicted locally. A locally
+			// predicted roll's server echo keeps arriving for up to a round trip after the
+			// local one ends; ignore it until then so the roll never replays.
+			const rtt = predictor.rtt ?? FlightPrediction.DefaultRtt;
+			if (decoded.evadeRemaining > 0.2 && this.evadeRoll <= 0 && now > this.evadeStartedAt + FlightPrediction.EvadeRollSeconds + rtt + 0.25) {
+				this.evadeRoll = math.max(0, decoded.evadeRemaining - rtt / 2);
+				this.evadeStartedAt = now - (FlightPrediction.EvadeRollSeconds - this.evadeRoll);
 			}
 		}));
 		activeController = this;
@@ -255,7 +263,7 @@ export class FlightController {
 	public Evade(): void {
 		if (!this.active) return;
 		// Predict the barrel roll when the HUD says evade is ready; the server confirms or ignores.
-		if (this.telemetry.evadeCooldown <= 0 && this.evadeRoll <= 0) this.evadeRoll = FlightPrediction.EvadeRollSeconds;
+		if (this.telemetry.evadeCooldown <= 0 && this.evadeRoll <= 0) { this.evadeRoll = FlightPrediction.EvadeRollSeconds; this.evadeStartedAt = os.clock(); }
 		this.action("Evade");
 	}
 	public CycleTarget(): void { this.action("CycleTarget"); }
@@ -370,6 +378,8 @@ export class FlightController {
 		this.input(dt);
 		const input = this.frameInput;
 		// Fly the local jet with zero input latency; the server reconciles it at 20 Hz.
+		// The next fixed step (the first to use this frame's input) starts at the last step boundary.
+		const stamp = FlightPrediction.InputStamp(predictor, now);
 		const state = FlightPrediction.Step(predictor, input, dt, now);
 		let frame = frameFor(state);
 		if (this.evadeRoll > 0) {
@@ -400,7 +410,7 @@ export class FlightController {
 		if ((changed && this.sendTime >= INPUT_INTERVAL) || this.sendTime >= INPUT_KEEPALIVE) {
 			this.sendTime = 0;
 			this.sentX = input.x; this.sentY = input.y; this.sentThrottle = input.throttle;
-			const packet: FlightInputPacket = { x: input.x, y: input.y, throttle: input.throttle, t: now };
+			const packet: FlightInputPacket = { x: input.x, y: input.y, throttle: input.throttle, t: stamp };
 			this.remotes.FlightInput.FireServer(packet);
 		}
 	}
@@ -427,6 +437,7 @@ export class FlightController {
 		this.sentThrottle = -1;
 		this.mouseSteer = false;
 		this.evadeRoll = 0;
+		this.evadeStartedAt = -math.huge;
 		this.cueColor = undefined; this.cueRange = -1; this.cueLock = -1; this.cueMarker = ""; this.cueHealth = -1; this.arrowText = "";
 		this.visualFrame = this.aircraft.GetPivot();
 		// The server holds the jet still until "Started", so its pivot is the exact initial state;
