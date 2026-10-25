@@ -18,10 +18,15 @@ trap 'rm -f "$RESPONSE_FILE"' EXIT
 
 URL="https://apis.roblox.com/universes/v1/${ROBLOX_UNIVERSE_ID}/places/${ROBLOX_PLACE_ID}/versions?versionType=Published"
 
-curl --silent --show-error --fail-with-body -X POST "$URL" \
+STATUS="$(curl --silent --show-error -X POST "$URL" \
 	-H "x-api-key: ${ROBLOX_API_KEY}" \
 	-H "Content-Type: application/xml" \
 	--data-binary "@${PLACE_FILE}" \
-	-o "$RESPONSE_FILE"
+	-o "$RESPONSE_FILE" -w "%{http_code}")"
+
+if [ "$STATUS" != "200" ]; then
+	echo "Publish failed with HTTP $STATUS: $(cat "$RESPONSE_FILE")" >&2
+	exit 1
+fi
 
 echo "Published $PLACE_FILE to place ${ROBLOX_PLACE_ID}: $(cat "$RESPONSE_FILE")"
