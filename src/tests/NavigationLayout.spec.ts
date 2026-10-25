@@ -1,8 +1,15 @@
 import {describe,expect,it} from "@rbxts/jest-globals";
-import {placeNavigationCaption} from "../shared/NavigationLayout";
+import {navigationSummary,placeNavigationCaption} from "../shared/NavigationLayout";
 import {getHudLayout,InputMode,rectangleInside,rectanglesOverlap} from "../shared/UILayout";
 
 describe("safe-area navigation caption",()=>{
+	it("retains route/recon/escort guidance when no floating caption fits",()=>{
+		const hud=getHudLayout(320,182,"touch");
+		expect(placeNavigationCaption(160,100,0,0,320,182,hud)).toBeUndefined();
+		expect(navigationSummary(654.9,-1,380)).toBe("‹ 654m · ALT≤380");
+		expect(navigationSummary(180,.1,undefined,78.2)).toBe("◇ 180m · PROTECTED 79%");
+		expect(navigationSummary(900,1)).toBe("› 900m");
+	});
 	it("converts screen coordinates into an offset GUI parent without shifting the marker",()=>{
 		const hud=getHudLayout(737,604,"keyboard");
 		const unshifted=placeNavigationCaption(368,310,0,0,737,604,hud)!;

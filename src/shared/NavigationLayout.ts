@@ -1,5 +1,11 @@
 import { HudLayout, Rectangle, rectangleInside, rectanglesOverlap } from "./UILayout";
 
+/** Always available in the objective row, even when no floating caption fits. */
+export function navigationSummary(distance:number,side:number,ceiling?:number,protectedHealth?:number):string {
+	const arrow=side<-.25 ? "‹" : side>.25 ? "›" : "◇";
+	return `${arrow} ${math.floor(distance)}m${ceiling!==undefined ? ` · ALT≤${ceiling}` : ""}${protectedHealth!==undefined ? ` · PROTECTED ${math.ceil(protectedHealth)}%` : ""}`;
+}
+
 /** Screen projection is relative to the inset screen; labels live in a GUI parent.
  * Keep the full caption in that parent's measured safe bounds and out of HUD lanes. */
 export function placeNavigationCaption(screenX:number,screenY:number,originX:number,originY:number,width:number,height:number,hud:HudLayout): Rectangle | undefined {

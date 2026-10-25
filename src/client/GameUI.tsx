@@ -13,6 +13,7 @@ import type {
 	Telemetry,
 } from "../shared/Types";
 import { MissionCatalog, MISSION_COUNT } from "../shared/MissionCatalog";
+import { navigationSummary } from "../shared/NavigationLayout";
 import { NavigationCue } from "./NavigationCue";
 import { RelayCinematic } from "./RelayCinematic";
 import { FlightController } from "./FlightController";
@@ -937,7 +938,11 @@ function MissionHud({
 		? `  ${telemetry.objectiveProgress ?? 0}/${telemetry.objectiveTotal}`
 		: "";
 	const objectiveText = tutorial !== "" ? tutorial : callout?.title ?? (telemetry.objective ?? "Complete the objective");
-	const objectiveEyebrow = telemetry.protectedHealth!==undefined ? `PROTECTED ${math.ceil(telemetry.protectedHealth)}%` : tutorial !== "" ? "FLIGHT TRAINING" : callout?.eyebrow ?? "CURRENT OBJECTIVE";
+	const navigation=telemetry.navigation,camera=Workspace.CurrentCamera;
+	const aircraft=FlightController.GetActive()?.aircraft;
+	const relative=navigation && camera ? camera.CFrame.PointToObjectSpace(navigation) : undefined;
+	const navigationText=navigation && aircraft ? navigationSummary(navigation.sub(aircraft.GetPivot().Position).Magnitude,relative ? relative.Z>0 ? relative.X>=0 ? 1 : -1 : relative.X/math.max(1,-relative.Z) : 0,telemetry.navigationCeiling,telemetry.protectedHealth) : undefined;
+	const objectiveEyebrow = navigationText ?? (telemetry.protectedHealth!==undefined ? `PROTECTED ${math.ceil(telemetry.protectedHealth)}%` : tutorial !== "" ? "FLIGHT TRAINING" : callout?.eyebrow ?? "CURRENT OBJECTIVE");
 	return (
 		<frame key="MissionHUD" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={visible}>
 			<NavigationCue telemetry={telemetry} visible={visible} inputMode={inputMode}/>
