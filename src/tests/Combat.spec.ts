@@ -1,6 +1,14 @@
 import { afterEach, describe, expect, it } from "@rbxts/jest-globals";
-import { ServerStorage, Workspace } from "@rbxts/services";
+import { HttpService, ServerStorage, Workspace } from "@rbxts/services";
 import { JetFactory } from "../shared/JetFactory";
+
+interface ExportedAircraft {
+	asset: string;
+	vertices: number[][];
+	faces: { indices: number[]; material: string }[];
+	materials: { name: string; baseColorRGBA: number[] }[];
+	attachments: { leftWingtip: number[]; rightWingtip: number[]; exhaust: number[] };
+}
 
 // Engine integration: real instances, pivots, attachments and effects in Roblox.
 // Mission combat is also exercised through the phone controller by the live driver.
@@ -24,6 +32,26 @@ describe("Roblox jet and missile integration", () => {
 		expect(actual.Y).toBeCloseTo(expected.Y, 3);
 		expect(actual.Z).toBeCloseTo(expected.Z, 3);
 	}
+	function exportedAircraft(kind: "Kestrel" | "Vanta"): ExportedAircraft {
+		const source = ServerStorage.FindFirstChild(`${kind}Geometry`);
+		expect(source?.IsA("StringValue")).toBe(true);
+		assert(source?.IsA("StringValue"), `Expected packaged ${kind} geometry`);
+		return HttpService.JSONDecode(source.Value) as ExportedAircraft;
+	}
+	function trailCenters(aircraft: Model): Vector3[] {
+		const centers: Vector3[] = [];
+		for (const item of aircraft.GetDescendants()) {
+			if (!item.IsA("Trail")) continue;
+			const a = item.Attachment0;
+			const b = item.Attachment1;
+			assert(a !== undefined && b !== undefined, "Aircraft trail requires both attachments");
+			expect(a.Parent).toBe(aircraft.PrimaryPart);
+			expect(b.Parent).toBe(aircraft.PrimaryPart);
+			centers.push(a.Position.add(b.Position).div(2));
+		}
+		expect(centers.size()).toBe(3);
+		return centers;
+	}
 	it("creates pivotable safe aircraft with distinct enemy colors and complete trails", () => {
 		const root = folder();
 		const player = JetFactory.Create("Test Kestrel", false);
@@ -32,14 +60,19 @@ describe("Roblox jet and missile integration", () => {
 		if (ServerStorage.FindFirstChild("KestrelGeometry") !== undefined) {
 			// A packaged test asset must never silently pass using fallback geometry.
 			expect(player.GetAttribute("GeometrySource")).toBe("Blender");
+		}
+		if (ServerStorage.FindFirstChild("VantaGeometry") !== undefined) {
 			expect(enemy.GetAttribute("GeometrySource")).toBe("Blender");
 		}
+		expect(player.GetAttribute("GeometryAsset")).toBe("Kestrel");
+		expect(enemy.GetAttribute("GeometryAsset")).toBe("Vanta");
 		expect(player.PrimaryPart?.Name).toBe("Root");
+		expect(enemy.PrimaryPart?.Name).toBe("Root");
 		const destination = new CFrame(123, 400, -600).mul(CFrame.Angles(0, 0.6, 0.1));
 		player.PivotTo(destination);
 		expect(player.GetPivot().Position.sub(destination.Position).Magnitude).toBeCloseTo(0, 4);
 		let trailCount = 0;
-		for (const item of player.GetDescendants()) {
+		for (const item of [...player.GetDescendants(), ...enemy.GetDescendants()]) {
 			if (item.IsA("BasePart")) {
 				expect(item.Anchored).toBe(true);
 				expect(item.CanCollide).toBe(false);
@@ -47,14 +80,16 @@ describe("Roblox jet and missile integration", () => {
 				expect(item.CanQuery).toBe(false);
 			} else if (item.IsA("Trail")) {
 				trailCount += 1;
-				expect(item.Attachment0?.Parent).toBe(player.PrimaryPart);
-				expect(item.Attachment1?.Parent).toBe(player.PrimaryPart);
+				expect(item.Attachment0?.Parent).toBe(item.Parent);
+				expect(item.Attachment1?.Parent).toBe(item.Parent);
 			}
 		}
-		expect(trailCount).toBe(3);
+		expect(trailCount).toBe(6);
 		const playerShell = player.FindFirstChild("Fuselage") as BasePart;
 		const enemyShell = enemy.FindFirstChild("Fuselage") as BasePart;
 		expect(playerShell.Color).never.toEqual(enemyShell.Color);
+		enemy.PivotTo(destination);
+		closeVector(enemy.GetPivot().Position, destination.Position);
 	}, 60000);
 	it("preserves all seven Blender material groups, their bounds, and -Z forward orientation", () => {
 		const root = folder();
@@ -100,50 +135,140 @@ describe("Roblox jet and missile integration", () => {
 		expect(mesh(aircraft, "Canopy").Position.Z).toBeLessThan(0);
 		expect(mesh(aircraft, "Glow").Position.Z).toBeGreaterThan(0);
 		expect(mesh(aircraft, "Glow").Material).toBe(Enum.Material.Neon);
+		const centers = trailCenters(aircraft);
+		for (const tip of [new Vector3(-11.35, -1.58, 2.2), new Vector3(11.35, -1.58, 2.2), new Vector3(0, -1.92, 11.7)]) {
+			expect(centers.some((center) => center.sub(tip).Magnitude < 0.001)).toBe(true);
+		}
 		const target = new CFrame(-50, 150, 200).mul(CFrame.Angles(0.3, -0.7, 0.2));
 		aircraft.PivotTo(target);
 		for (const group of groups) {
 			closeVector(mesh(aircraft, group.name).Position, target.PointToWorldSpace(group.center));
 		}
 	}, 60000);
-	it("reuses static mesh content while keeping cached templates and aircraft clones independent", () => {
+	it("uses authored Vanta geometry, colors, -Z orientation, and trail attachments", () => {
 		const root = folder();
-		const first = JetFactory.Create("First cached Kestrel", false);
-		const enemy = JetFactory.Create("Cached enemy", true);
-		first.Parent = root; enemy.Parent = root;
-		expect(first.GetAttribute("GeometrySource")).toBe("Blender");
-		expect(enemy.GetAttribute("GeometrySource")).toBe("Blender");
-		const firstShell = mesh(first, "Fuselage");
-		const enemyShell = mesh(enemy, "Fuselage");
-		const originalColor = firstShell.Color;
-		const originalSize = firstShell.Size;
-		const originalContent = firstShell.MeshContent;
-		for (const item of first.GetChildren()) {
+		const data = exportedAircraft("Vanta");
+		expect(data.asset).toBe("SKYBREAK Vanta");
+		expect(data.vertices.size()).toBe(1970);
+		expect(data.faces.size()).toBe(3840);
+		const aircraft = JetFactory.Create("Blender Vanta", true);
+		aircraft.Parent = root;
+		expect(aircraft.GetAttribute("GeometrySource")).toBe("Blender");
+		expect(aircraft.GetAttribute("GeometryAsset")).toBe("Vanta");
+		expect(aircraft.GetChildren().filter((item) => item.IsA("MeshPart")).size()).toBe(7);
+		// Independently recorded from the Blender export, before mesh centering.
+		const groups = [
+			{ name: "Fuselage", vertices: 400, triangles: 776, center: new Vector3(0, 0.7882315, 1.1465545), size: new Vector3(16.846856, 4.950247, 19.861109) },
+			{ name: "Navy", vertices: 374, triangles: 736, center: new Vector3(0, -1.684892, 0), size: new Vector3(24.376172, 1.496, 26.4) },
+			{ name: "Cyan", vertices: 248, triangles: 480, center: new Vector3(0, 0.4267015, -1.45846), size: new Vector3(23.091432, 4.227187, 23.363078) },
+			{ name: "Canopy", vertices: 84, triangles: 164, center: new Vector3(0, -0.904392, -6.1499995), size: new Vector3(1.774368, 0.835, 5.899999) },
+			{ name: "Gunmetal", vertices: 320, triangles: 620, center: new Vector3(0, -1.946892, 1.715), size: new Vector3(24.371604, 1.86, 21.03) },
+			{ name: "Exhaust", vertices: 244, triangles: 480, center: new Vector3(0, -1.9468925, 12.19039), size: new Vector3(2.66, 2.632925, 0.69255) },
+			{ name: "Glow", vertices: 300, triangles: 584, center: new Vector3(0, -1.776892, 6.6600005), size: new Vector3(1.44514, 1.8, 11.500001) },
+		];
+		let vertices = 0;
+		let triangles = 0;
+		for (const group of groups) {
+			const item = mesh(aircraft, group.name);
+			expect(item.GetAttribute("BlenderVertexCount")).toBe(group.vertices);
+			expect(item.GetAttribute("BlenderTriangleCount")).toBe(group.triangles);
+			vertices += item.GetAttribute("BlenderVertexCount") as number;
+			triangles += item.GetAttribute("BlenderTriangleCount") as number;
+			closeVector(item.Position, group.center);
+			closeVector(item.Size, group.size);
+			closeVector(item.MeshSize, group.size);
+		}
+		expect(vertices).toBe(1970);
+		expect(triangles).toBe(3840);
+		const [bounds, size] = aircraft.GetBoundingBox();
+		closeVector(bounds.Position, Vector3.zero);
+		closeVector(size, new Vector3(24.376172, 6.52671, 26.4));
+		for (const material of data.materials) {
+			const item = mesh(aircraft, material.name === "White" ? "Fuselage" : material.name);
+			expect(item.GetAttribute("BlenderMaterial")).toBe(material.name);
+			const color = material.baseColorRGBA;
+			closeVector(new Vector3(item.Color.R, item.Color.G, item.Color.B), new Vector3(color[0], color[1], color[2]));
+			expect(item.Transparency).toBeCloseTo(1 - color[3], 3);
+			closeVector(item.CFrame.LookVector, new Vector3(0, 0, -1));
+			closeVector(item.CFrame.UpVector, Vector3.yAxis);
+			expect(item.RenderFidelity).toBe(Enum.RenderFidelity.Automatic);
+			expect(item.MeshContent.Object).toBeUndefined();
+			expect(item.MeshContent.SourceType).never.toBe(Enum.ContentSourceType.None);
+		}
+		expect(mesh(aircraft, "Canopy").Position.Z).toBeLessThan(0);
+		expect(mesh(aircraft, "Exhaust").Position.Z).toBeGreaterThan(0);
+		expect(mesh(aircraft, "Glow").Position.Z).toBeGreaterThan(0);
+		expect(mesh(aircraft, "Glow").Material).toBe(Enum.Material.Neon);
+		const centers = trailCenters(aircraft);
+		const target = new CFrame(70, 240, -330).mul(CFrame.Angles(-0.2, 0.8, 0.3));
+		aircraft.PivotTo(target);
+		const authoredAttachments = {
+			leftWingtip: new Vector3(-12.16, -1.826892, 3.15),
+			rightWingtip: new Vector3(12.16, -1.826892, 3.15),
+			exhaust: new Vector3(0, -1.946892, 12.55),
+		};
+		for (const name of ["leftWingtip", "rightWingtip", "exhaust"] as const) {
+			const xyz = data.attachments[name];
+			const expected = new Vector3(xyz[0], xyz[1], xyz[2]);
+			closeVector(expected, authoredAttachments[name]);
+			closeVector(aircraft.GetAttribute(name) as Vector3, expected);
+			expect(centers.some((center) => center.sub(expected).Magnitude < 0.001)).toBe(true);
+		}
+		for (const group of groups) {
+			closeVector(mesh(aircraft, group.name).Position, target.PointToWorldSpace(group.center));
+		}
+		for (const item of aircraft.GetDescendants()) {
+			if (!item.IsA("Trail")) continue;
+			const a = item.Attachment0!;
+			const b = item.Attachment1!;
+			closeVector(a.WorldPosition.add(b.WorldPosition).div(2), target.PointToWorldSpace(a.Position.add(b.Position).div(2)));
+		}
+	}, 60000);
+	it("shares static content within each aircraft kind and isolates Vanta from Kestrel", () => {
+		const root = folder();
+		const cachedAircraft: Model[] = [];
+		for (const enemy of [false, true]) {
+			const first = JetFactory.Create("First cached aircraft", enemy);
+			const second = JetFactory.Create("Second cached aircraft", enemy);
+			first.Parent = root; second.Parent = root;
+			cachedAircraft.push(second);
+			expect(first.GetAttribute("GeometrySource")).toBe("Blender");
+			expect(second.GetAttribute("GeometrySource")).toBe("Blender");
+			const firstShell = mesh(first, "Fuselage");
+			const secondShell = mesh(second, "Fuselage");
+			const originalColor = firstShell.Color;
+			const originalSize = firstShell.Size;
+			const originalPosition = firstShell.Position;
+			const originalContent = firstShell.MeshContent;
+			for (const item of first.GetChildren()) {
+				if (!item.IsA("MeshPart")) continue;
+				const other = mesh(second, item.Name);
+				expect(other).never.toBe(item);
+				expect(other.MeshContent).toBe(item.MeshContent);
+				expect(other.Color).toEqual(item.Color);
+			}
+			firstShell.Color = Color3.fromRGB(255, 0, 255);
+			firstShell.Size = Vector3.one;
+			first.PivotTo(new CFrame(300, 200, 100));
+			expect(secondShell.Color).toEqual(originalColor);
+			closeVector(secondShell.Size, originalSize);
+			closeVector(secondShell.Position, originalPosition);
+			closeVector(second.GetPivot().Position, Vector3.zero);
+			first.Destroy();
+			const third = JetFactory.Create("Pristine cached aircraft", enemy);
+			third.Parent = root;
+			expect(third.GetAttribute("GeometrySource")).toBe("Blender");
+			const thirdShell = mesh(third, "Fuselage");
+			expect(thirdShell.Color).toEqual(originalColor);
+			expect(thirdShell.MeshContent).toBe(originalContent);
+			closeVector(thirdShell.Size, originalSize);
+			closeVector(thirdShell.Position, originalPosition);
+			closeVector(third.GetPivot().Position, Vector3.zero);
+		}
+		for (const item of cachedAircraft[0].GetChildren()) {
 			if (!item.IsA("MeshPart")) continue;
-			const other = mesh(enemy, item.Name);
-			expect(other).never.toBe(item);
-			expect(other.MeshContent).toBe(item.MeshContent);
+			expect(mesh(cachedAircraft[1], item.Name).MeshContent).never.toBe(item.MeshContent);
 		}
-		expect(enemyShell.Color).never.toEqual(originalColor);
-		for (const name of ["Cyan", "Glow"]) {
-			expect(mesh(enemy, name).Color).toEqual(Color3.fromRGB(255, 95, 79));
-			expect(mesh(first, name).Color).never.toEqual(mesh(enemy, name).Color);
-		}
-		firstShell.Color = Color3.fromRGB(255, 0, 255);
-		firstShell.Size = Vector3.one;
-		first.PivotTo(new CFrame(300, 200, 100));
-		closeVector(enemyShell.Size, originalSize);
-		closeVector(enemy.GetPivot().Position, Vector3.zero);
-		first.Destroy();
-		const third = JetFactory.Create("Pristine cached Kestrel", false);
-		third.Parent = root;
-		expect(third.GetAttribute("GeometrySource")).toBe("Blender");
-		const thirdShell = mesh(third, "Fuselage");
-		expect(thirdShell.Color).toEqual(originalColor);
-		expect(thirdShell.MeshContent).toBe(originalContent);
-		closeVector(thirdShell.Size, originalSize);
-		closeVector(thirdShell.Position, new Vector3(0, 0.043326, 0));
-		closeVector(third.GetPivot().Position, Vector3.zero);
 	}, 60000);
 	it("creates correctly oriented friendly and hostile missiles", () => {
 		const root = folder();

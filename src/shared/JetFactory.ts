@@ -62,11 +62,15 @@ export const JetFactory = {
 				part(model, "Part", "Afterburner", new Vector3(1, 1, 0.6), new CFrame(side * 0.95, -0.1, 9.25), accent, Enum.Material.Neon);
 			}
 		}
-		for (const side of [-1, 1]) {
-			const tip = blender ? new Vector3(side * 11.35, -1.58, 2.2) : new Vector3(side * 10, -0.25, 4);
+		const attachments = blender ? BlenderAircraft.GetAttachments(model) : {
+			leftWingtip: new Vector3(-10, -0.25, 4),
+			rightWingtip: new Vector3(10, -0.25, 4),
+			exhaust: new Vector3(0, -0.1, 9.3),
+		};
+		for (const tip of [attachments.leftWingtip, attachments.rightWingtip]) {
 			trail(root, tip, Color3.fromRGB(224, 246, 255), 0.25, 1.1);
 		}
-		trail(root, blender ? new Vector3(0, -1.92, 11.7) : new Vector3(0, -0.1, 9.3), accent, 1.1, 0.35);
+		trail(root, attachments.exhaust, accent, 1.1, 0.35);
 		return model;
 	},
 	CreateMissile(parent: Instance, position: Vector3, direction: Vector3, hostile: boolean): Part {

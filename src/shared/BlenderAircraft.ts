@@ -1,5 +1,16 @@
 import { AssetService, HttpService, RunService, ServerStorage } from "@rbxts/services";
 
+type AircraftKind = "Kestrel" | "Vanta";
+export interface AircraftAttachments {
+	leftWingtip: Vector3;
+	rightWingtip: Vector3;
+	exhaust: Vector3;
+}
+interface MeshAttachments {
+	leftWingtip: number[];
+	rightWingtip: number[];
+	exhaust: number[];
+}
 type MaterialName = "White" | "Navy" | "Cyan" | "Canopy" | "Gunmetal" | "Exhaust" | "Glow";
 interface MeshMaterial {
 	name: MaterialName;
@@ -15,6 +26,7 @@ interface MeshData {
 	vertices: number[][];
 	faces: MeshFace[];
 	materials: MeshMaterial[];
+	attachments?: MeshAttachments;
 }
 
 // This API is newer than the installed @rbxts/types. Keep the compatibility
@@ -24,58 +36,75 @@ interface StaticContentService {
 }
 const staticContentService = AssetService as unknown as StaticContentService;
 const materialNames: MaterialName[] = ["White", "Navy", "Cyan", "Canopy", "Gunmetal", "Exhaust", "Glow"];
-let templates: Model | undefined;
-let building = false;
-let generationFailure: string | undefined;
+interface TemplateCache {
+	templates?: Model;
+	building: boolean;
+	generationFailure?: string;
+}
+const caches = new Map<AircraftKind, TemplateCache>();
+const attachmentNames = ["leftWingtip", "rightWingtip", "exhaust"] as const;
+// The original Kestrel export predates authored attachment metadata.
+const kestrelAttachments: MeshAttachments = {
+	leftWingtip: [-11.35, -1.58, 2.2],
+	rightWingtip: [11.35, -1.58, 2.2],
+	exhaust: [0, -1.92, 11.7],
+};
 
 function vector(values: number[]): Vector3 {
 	return new Vector3(values[0], values[1], values[2]);
 }
 
-function validateVector(values: number[]): void {
-	assert(typeIs(values, "table") && values.size() === 3, "KestrelGeometry: expected an XYZ vector");
+function validateVector(values: number[], sourceName: string): void {
+	assert(typeIs(values, "table") && values.size() === 3, `${sourceName}: expected an XYZ vector`);
 	for (const value of values) {
-		assert(typeIs(value, "number") && value === value && math.abs(value) < math.huge, "KestrelGeometry: invalid coordinate");
+		assert(typeIs(value, "number") && value === value && math.abs(value) < math.huge, `${sourceName}: invalid coordinate`);
 	}
 }
 
-function readData(): MeshData {
-	const source = ServerStorage.FindFirstChild("KestrelGeometry");
-	assert(source?.IsA("StringValue"), "KestrelGeometry: missing ServerStorage.KestrelGeometry StringValue; run the aircraft packager");
+function readData(kind: AircraftKind): MeshData {
+	const sourceName = `${kind}Geometry`;
+	const source = ServerStorage.FindFirstChild(sourceName);
+	assert(source?.IsA("StringValue"), `${sourceName}: missing ServerStorage.${sourceName} StringValue; run the aircraft packager`);
 	const data = HttpService.JSONDecode(source.Value) as MeshData;
-	assert(data.schema === "skybreak.triangulated-mesh.v1", "KestrelGeometry: unsupported mesh schema");
+	assert(data.schema === "skybreak.triangulated-mesh.v1", `${sourceName}: unsupported mesh schema`);
 	// Leave room for Blender revisions while bounding the whole aircraft's mobile cost.
-	assert(data.vertices.size() > 0 && data.vertices.size() <= 20000 && data.faces.size() > 0 && data.faces.size() <= 20000, "KestrelGeometry: empty mesh or exceeds the 20,000 vertex/triangle mobile budget");
-	assert(data.materials.size() === 7, "KestrelGeometry: expected seven material groups");
+	assert(data.vertices.size() > 0 && data.vertices.size() <= 20000 && data.faces.size() > 0 && data.faces.size() <= 20000, `${sourceName}: empty mesh or exceeds the 20,000 vertex/triangle mobile budget`);
+	assert(data.materials.size() === 7, `${sourceName}: expected seven material groups`);
 	const seen = new Set<MaterialName>();
 	for (const material of data.materials) {
-		assert(materialNames.includes(material.name) && !seen.has(material.name), "KestrelGeometry: invalid material group");
-		assert(material.baseColorRGBA.size() === 4, "KestrelGeometry: invalid material color");
+		assert(materialNames.includes(material.name) && !seen.has(material.name), `${sourceName}: invalid material group`);
+		assert(material.baseColorRGBA.size() === 4, `${sourceName}: invalid material color`);
 		for (const channel of material.baseColorRGBA) {
-			assert(typeIs(channel, "number") && channel >= 0 && channel <= 1, "KestrelGeometry: invalid material color channel");
+			assert(typeIs(channel, "number") && channel >= 0 && channel <= 1, `${sourceName}: invalid material color channel`);
 		}
 		seen.add(material.name);
 	}
-	for (const vertex of data.vertices) validateVector(vertex);
+	for (const vertex of data.vertices) validateVector(vertex, sourceName);
 	const usedMaterials = new Set<MaterialName>();
 	for (const face of data.faces) {
-		assert(seen.has(face.material) && face.indices.size() === 3 && face.normals.size() === 3, "KestrelGeometry: invalid triangle");
+		assert(seen.has(face.material) && face.indices.size() === 3 && face.normals.size() === 3, `${sourceName}: invalid triangle`);
 		usedMaterials.add(face.material);
 		for (const index of face.indices) {
-			assert(typeIs(index, "number") && index % 1 === 0 && index >= 0 && index < data.vertices.size(), "KestrelGeometry: invalid vertex index");
+			assert(typeIs(index, "number") && index % 1 === 0 && index >= 0 && index < data.vertices.size(), `${sourceName}: invalid vertex index`);
 		}
 		for (const normal of face.normals) {
-			validateVector(normal);
-			assert(vector(normal).Magnitude > 0, "KestrelGeometry: zero corner normal");
+			validateVector(normal, sourceName);
+			assert(vector(normal).Magnitude > 0, `${sourceName}: zero corner normal`);
 		}
 	}
-	assert(usedMaterials.size() === 7, "KestrelGeometry: empty material group");
+	assert(usedMaterials.size() === 7, `${sourceName}: empty material group`);
+	assert(kind === "Kestrel" || typeIs(data.attachments, "table"), `${sourceName}: missing authored attachments`);
+	if (data.attachments !== undefined) {
+		for (const name of attachmentNames) validateVector(data.attachments[name], sourceName);
+	}
 	return data;
 }
 
-function buildTemplates(data: MeshData): Model {
+function buildTemplates(data: MeshData, kind: AircraftKind): Model {
 	const model = new Instance("Model");
-	model.Name = "KestrelMeshTemplates";
+	model.Name = `${kind}MeshTemplates`;
+	const attachments = data.attachments ?? kestrelAttachments;
+	for (const name of attachmentNames) model.SetAttribute(name, vector(attachments[name]));
 	let editable: EditableMesh | undefined;
 	const [ok, result] = pcall(() => {
 		for (const material of data.materials) {
@@ -99,7 +128,7 @@ function buildTemplates(data: MeshData): Model {
 				mesh.SetFaceNormals(triangle, face.normals.map((normal) => mesh.AddNormal(vector(normal))));
 				triangles += 1;
 			}
-			assert(triangles > 0, `KestrelGeometry: empty ${material.name} group`);
+			assert(triangles > 0, `${kind}Geometry: empty ${material.name} group`);
 			const center = mesh.GetCenter();
 			const size = mesh.GetSize();
 			// Opaque content preserves its vertex-space origin. Center the mesh
@@ -143,42 +172,52 @@ function buildTemplates(data: MeshData): Model {
 	return model;
 }
 
-function getTemplates(): Model | undefined {
-	// Engine generation yields. Other callers share that attempt, including its
-	// failure, instead of issuing duplicate content-generation requests.
-	while (building) task.wait();
-	if (templates !== undefined) return templates;
-	if (generationFailure !== undefined) return undefined;
-	// Bad packaging is an explicit error, not a platform capability fallback.
-	const data = readData();
-	building = true;
-	const [ok, result] = pcall(() => buildTemplates(data));
-	if (ok) {
-		templates = result;
-	} else {
-		generationFailure = tostring(result);
-		warn(`Kestrel Blender geometry generation failed; using built-in aircraft geometry for this runtime: ${generationFailure}`);
+function getTemplates(kind: AircraftKind): Model | undefined {
+	let cache = caches.get(kind);
+	if (cache === undefined) {
+		cache = { building: false };
+		caches.set(kind, cache);
 	}
-	building = false;
-	return templates;
+	// Engine generation yields. Callers of the same aircraft kind share that
+	// attempt and its failure; a different aircraft has its own content cache.
+	while (cache.building) task.wait();
+	if (cache.templates !== undefined) return cache.templates;
+	if (cache.generationFailure !== undefined) return undefined;
+	// Bad packaging is an explicit error, not a platform capability fallback.
+	const data = readData(kind);
+	cache.building = true;
+	const [ok, result] = pcall(() => buildTemplates(data, kind));
+	if (ok) {
+		cache.templates = result;
+	} else {
+		cache.generationFailure = tostring(result);
+		warn(`${kind} Blender geometry generation failed; using built-in aircraft geometry for this runtime: ${cache.generationFailure}`);
+	}
+	cache.building = false;
+	return cache.templates;
 }
 
 export const BlenderAircraft = {
 	Populate(model: Model, enemy: boolean): boolean {
 		assert(RunService.IsServer() || (RunService.IsStudio() && !RunService.IsRunning()), "BlenderAircraft geometry must be generated on the server or in Studio edit mode");
-		const source = getTemplates();
+		const kind = enemy ? "Vanta" : "Kestrel";
+		model.SetAttribute("GeometryAsset", kind);
+		const source = getTemplates(kind);
 		if (source === undefined) return false;
 		for (const item of source.GetChildren()) {
 			assert(item.IsA("MeshPart"));
 			const clone = item.Clone();
-			if (enemy) {
-				const material = clone.GetAttribute("BlenderMaterial");
-				if (material === "White") clone.Color = Color3.fromRGB(94, 76, 88);
-				if (material === "Cyan" || material === "Glow") clone.Color = Color3.fromRGB(255, 95, 79);
-			}
 			clone.Parent = model;
 		}
+		for (const name of attachmentNames) model.SetAttribute(name, source.GetAttribute(name));
 		model.SetAttribute("GeometrySource", "Blender");
 		return true;
+	},
+	GetAttachments(model: Model): AircraftAttachments {
+		const leftWingtip = model.GetAttribute("leftWingtip");
+		const rightWingtip = model.GetAttribute("rightWingtip");
+		const exhaust = model.GetAttribute("exhaust");
+		assert(typeIs(leftWingtip, "Vector3") && typeIs(rightWingtip, "Vector3") && typeIs(exhaust, "Vector3"), "BlenderAircraft: missing generated attachment positions");
+		return { leftWingtip, rightWingtip, exhaust };
 	},
 };
