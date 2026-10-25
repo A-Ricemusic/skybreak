@@ -11,7 +11,9 @@ export interface LevelLayout {
 export const LEVEL_LAYOUTS: LevelLayout[] = [
 	{name:"Varda training islands",ridges:[],settlements:[],road:[],landmark:"runway",focus:[-650,450]},
 	{name:"Iron Coast five quays",ridges:[],settlements:[],road:[],landmark:"harbor",focus:[0,-1100]},
-	{name:"Fox switchback",ridges:[[-1500,-300,550,1600,310],[550,-1450,500,1200,240],[1550,200,650,1800,330]],settlements:[[-900,600,2,2]],road:[[-1200,500],[-1300,-650],[-700,-1800]],landmark:"bridge",focus:[-850,-900]},
+	// M3: the river (x=-550) runs between the west wall and the east mesa; the
+	// village road climbs the canyon floor to the bridge, which continues east.
+	{name:"Fox switchback",ridges:[[-1500,-300,550,1600,310],[550,-1450,500,1200,240],[1550,200,650,1800,330],[-200,1250,800,450,140]],settlements:[[-900,600,2,2]],road:[[-900,750],[-1150,-200],[-1000,-900],[-660,-900]],landmark:"bridge",focus:[-850,-900]},
 	{name:"Hidden quarters bowl",ridges:[[-1450,-1200,650,650,340],[300,-1800,1100,400,380],[1500,-500,550,1400,230]],settlements:[[-850,-400,3,2]],road:[[-1200,600],[-850,-400],[-400,-600]],landmark:"array",focus:[-400,-600]},
 	{name:"Teklan orchard terraces",ridges:[[-1600,-1800,650,650,210],[1600,-1600,650,950,220]],settlements:[[-1000,600,3,2],[1000,450,2,3]],road:[[-1000,-300],[0,-850],[1200,-300]],landmark:"orchard",focus:[0,-850]},
 	{name:"Grain valley irrigation",ridges:[[-1750,-500,500,1800,260],[1600,-1700,800,600,220]],settlements:[[900,650,3,2]],road:[[500,400],[850,-700],[250,-1550]],landmark:"orchard",focus:[60,-1080]},
