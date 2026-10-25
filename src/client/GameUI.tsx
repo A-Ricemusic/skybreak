@@ -5,6 +5,7 @@ import { GuiService, RunService, TweenService, UserInputService, Workspace } fro
 import type {
 	CampaignResponse,
 	MissionFinished,
+	MissionLoading,
 	MissionMessage,
 	MissionStarted,
 	Persistence,
@@ -17,6 +18,8 @@ import { navigationSummary } from "../shared/NavigationLayout";
 import { NavigationCue } from "./NavigationCue";
 import { RelayCinematic } from "./RelayCinematic";
 import { FlightController } from "./FlightController";
+import { LoadingScreen } from "./LoadingScreen";
+import { preloadMission } from "./MissionPreload";
 import {
 	getSlotListHeight,
 	getEvadeHint,
@@ -53,7 +56,11 @@ const MENU_EYE_OFFSET = new Vector3(-17, 9, 54);
 const SLOT_NUMBERS = [1, 2, 3, 4];
 const MENU_SCREEN_FRAMES = { title: "TitleScreen", slots: "CampaignScreen", briefing: "BriefingScreen", outcome: "OutcomeScreen", cinematic: "CinematicScreen" };
 
-type Screen = "title" | "slots" | "briefing" | "mission" | "outcome" | "cinematic";
+type Screen = "title" | "slots" | "briefing" | "loading" | "mission" | "outcome" | "cinematic";
+// The loading overlay is opaque; the camera simply holds its last frame underneath it.
+const NO_MENU_CAMERA: ReadonlySet<Screen> = new Set<Screen>(["mission", "cinematic", "loading"]);
+// If "Started" never follows "Loading" (server holds for at most ~8 s), fall back to the briefing.
+const LOADING_CLIENT_TIMEOUT = 20;
 
 interface ToastState {
 	message: string;
@@ -532,7 +539,7 @@ function panelPosition(menu: MenuLayout) {
 	return { Position: UDim2.fromOffset(menu.panel.x, menu.panel.y), Size: UDim2.fromOffset(menu.panel.width, menu.panel.height) };
 }
 
-function TitleScreen({ visible, menu, onCampaign }: { visible: boolean; menu: MenuLayout; onCampaign: () => void }) {
+function TitleScreenImpl({ visible, menu, onCampaign }: { visible: boolean; menu: MenuLayout; onCampaign: () => void }) {
 	const compact = menu.compact;
 	return (
 		<frame key="TitleScreen" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={visible}>
@@ -574,6 +581,7 @@ function TitleScreen({ visible, menu, onCampaign }: { visible: boolean; menu: Me
 		</frame>
 	);
 }
+const TitleScreen = React.memo(TitleScreenImpl);
 
 function SlotButton({
 	number,
@@ -626,7 +634,7 @@ function SlotButton({
 	);
 }
 
-function CampaignScreen({
+function CampaignScreenImpl({
 	visible,
 	menu,
 	slots,
@@ -688,6 +696,7 @@ function CampaignScreen({
 		</frame>
 	);
 }
+const CampaignScreen = React.memo(CampaignScreenImpl);
 
 function FooterButtons({
 	compact,
@@ -739,7 +748,7 @@ function FooterButtons({
 	);
 }
 
-function BriefingScreen({visible,menu,selectedSlot,selectedMission,slot,busy,onBack,onLaunch,onMission}: {
+function BriefingScreenImpl({visible,menu,selectedSlot,selectedMission,slot,busy,onBack,onLaunch,onMission}: {
 	visible:boolean;menu:MenuLayout;selectedSlot:number;selectedMission:number;slot?:SaveSlot;busy:boolean;
 	onBack:()=>void;onLaunch:()=>void;onMission:(id:number)=>void;
 }) {
@@ -783,8 +792,9 @@ function BriefingScreen({visible,menu,selectedSlot,selectedMission,slot,busy,onB
 		</frame>
 	</frame>;
 }
+const BriefingScreen = React.memo(BriefingScreenImpl);
 
-function OutcomeScreen({
+function OutcomeScreenImpl({
 	visible,
 	menu,
 	outcome,
@@ -849,6 +859,7 @@ function OutcomeScreen({
 		</frame>
 	);
 }
+const OutcomeScreen = React.memo(OutcomeScreenImpl);
 
 function RoundButton({
 	name,
@@ -1160,6 +1171,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const [hintUntil, setHintUntil] = useState(0);
 	const [killNotice, setKillNotice] = useState<KillNotice | undefined>();
 	const [damageUntil, setDamageUntil] = useState(0);
+	const [loadingProgress, setLoadingProgress] = useState(0);
 
 	const mountedRef = useRef(true);
 	const screenRef = useRef<Screen>("title");
@@ -1179,6 +1191,8 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const joystickRef = useRef<Frame>();
 	const knobRef = useRef<Frame>();
 	const activeJoystickInput = useRef<InputObject>();
+	const loadingSerialRef = useRef(0);
+	const slotsRef = useRef<SaveSlot[] | undefined>();
 
 	const changeScreen = useCallback((destination: Screen) => {
 		screenRef.current = destination;
@@ -1213,7 +1227,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		if (!root || !mountedRef.current) return;
 		const current = screenRef.current;
 		const selected = GuiService.SelectedObject;
-		if (current === "mission" || inputModeRef.current !== "gamepad") {
+		if (current === "mission" || current === "loading" || inputModeRef.current !== "gamepad") {
 			if (selected && selected.IsDescendantOf(root)) GuiService.SelectedObject = undefined;
 			return;
 		}
@@ -1249,6 +1263,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const applyResponseSlots = useCallback((response: CampaignResponse): boolean => {
 		const parsed = normalizeSlots(response);
 		if (!parsed) return false;
+		slotsRef.current = parsed;
 		setSlots(parsed);
 		const responsePersistence = normalizePersistence(response.persistence);
 		persistenceRef.current = responsePersistence;
@@ -1290,6 +1305,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	}, []);
 
 	const loadSlots = useCallback(() => {
+		slotsRef.current = undefined;
 		setSlots(undefined);
 		beginRequest((requestId) => {
 			const [response, problem] = invoke("ListSlots");
@@ -1363,6 +1379,19 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 
 	const retryMission = useCallback(() => restartMission(selectedMissionRef.current), [restartMission]);
 	const nextMission = useCallback(() => restartMission(math.min(MISSION_COUNT,selectedMissionRef.current+1)), [restartMission]);
+	// Stable handlers so the memoised menu screens bail out of mission-time re-renders.
+	const openCampaign = useCallback(() => { if (!busyRef.current) { changeScreen("slots"); loadSlots(); } }, [changeScreen, loadSlots]);
+	const chooseSlot = useCallback((slot: number) => {
+		const current = slotsRef.current;
+		if (busyRef.current || !current?.[slot - 1]) return;
+		const missionId = resumeMission(current[slot - 1]);
+		selectedSlotRef.current = slot; selectedMissionRef.current = missionId;
+		setSelectedSlot(slot); setSelectedMission(missionId);
+		changeScreen("briefing");
+	}, [changeScreen]);
+	const chooseMission = useCallback((missionId: number) => { selectedMissionRef.current = missionId; setSelectedMission(missionId); }, []);
+	const fireMissile = useCallback(() => { if (missileReady(telemetryRef.current)) controller.FireMissile(); }, [controller]);
+	const cycleTarget = useCallback(() => controller.CycleTarget(), [controller]);
 
 	const moveJoystick = useCallback((input: InputObject) => {
 		const joystick = joystickRef.current;
@@ -1454,7 +1483,35 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		const connection = remotes.MissionState.OnClientEvent.Connect((raw: unknown) => {
 			if (!mountedRef.current || !typeIs(raw, "table")) return;
 			const payload = raw as MissionMessage;
-			if (payload.kind === "Started") {
+			if (payload.kind === "Loading") {
+				const loading = payload as MissionLoading;
+				const slot = math.clamp(math.floor(finite(loading.slot, selectedSlotRef.current)), 1, 4);
+				const missionId = MissionCatalog.IsValidId(loading.missionId) ? loading.missionId : 1;
+				selectedSlotRef.current = slot; setSelectedSlot(slot);
+				selectedMissionRef.current = missionId; setSelectedMission(missionId);
+				toastRef.current++; setToast(undefined);
+				setLoadingProgress(0);
+				changeScreen("loading");
+				const serial = ++loadingSerialRef.current;
+				const alive = () => mountedRef.current && loadingSerialRef.current === serial && screenRef.current === "loading";
+				task.spawn(() => {
+					const expected = finite(loading.expectedParts, 0) > 0 ? loading.expectedParts : undefined;
+					const ready = preloadMission(loading.aircraft, expected, alive, (fraction) => { if (alive()) setLoadingProgress(fraction); });
+					if (ready) remotes.CombatAction.FireServer({ action: "Ready" });
+				});
+				task.delay(LOADING_CLIENT_TIMEOUT, () => {
+					if (!alive()) return;
+					loadingSerialRef.current++;
+					changeScreen("briefing");
+					showToast("The aircraft never reported ready. Request another launch.", true);
+					beginRequest((requestId) => {
+						const [response] = invoke("ReturnToMenu");
+						if (!mountedRef.current || requestRef.current !== requestId) return;
+						if (response?.slots) applyResponseSlots(response);
+					});
+				});
+			} else if (payload.kind === "Started") {
+				loadingSerialRef.current++;
 				const started = payload as MissionStarted;
 				const slot = math.clamp(math.floor(finite(started.slot, selectedSlotRef.current)), 1, 4);
 				const missionId = MissionCatalog.IsValidId(started.missionId) ? started.missionId : 1;
@@ -1499,6 +1556,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				if (inMissionRef.current) {
 					const previous = telemetryRef.current;
 					const sanitized = sanitizeTelemetry(payload, previous);
+					// Local pivot is fresher than the server sample and uses the same FlightMath limits.
+					const [ok, sample] = pcall(() => controller.GetTelemetry());
+					if (ok && typeIs(sample, "table")) sanitized.boundaryWarning = (sample as Telemetry).boundaryWarning === true;
 					if (sanitized.kills > previous.kills) setKillNotice({ kills: sanitized.kills, total: sanitized.total, until: os.clock() + 3 });
 					if (sanitized.health < previous.health) setDamageUntil(os.clock() + 0.45);
 					telemetryRef.current = sanitized;
@@ -1547,21 +1607,23 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		let sampleClock = 0;
 		const connection = RunService.RenderStepped.Connect((deltaTime) => {
 			if (!mountedRef.current) return;
-			if (screenRef.current !== "mission" && screenRef.current !== "cinematic") setMenuCamera();
+			if (!NO_MENU_CAMERA.has(screenRef.current)) setMenuCamera();
 			else if (screenRef.current === "mission") {
+				// Server telemetry already refreshes the HUD at 10 Hz. This resample only
+				// exists so the airspace warning reacts between packets, so it re-renders
+				// solely when that flag flips rather than on every sample.
 				sampleClock += deltaTime;
 				if (sampleClock >= 0.1) {
 					sampleClock = 0;
 					const [ok, snapshot] = pcall(() => controller.GetTelemetry());
 					if (ok && typeIs(snapshot, "table")) {
 						const current = telemetryRef.current;
-						const sampled = {
-							...current,
-							targetDistance: math.max(0, finite((snapshot as Telemetry).targetDistance, current.targetDistance ?? 0)),
-							boundaryWarning: (snapshot as Telemetry).boundaryWarning === true,
-						};
-						telemetryRef.current = sampled;
-						setTelemetry(sampled);
+						const warning = (snapshot as Telemetry).boundaryWarning === true;
+						if (warning !== (current.boundaryWarning === true)) {
+							const sampled = { ...current, boundaryWarning: warning };
+							telemetryRef.current = sampled;
+							setTelemetry(sampled);
+						}
 					}
 				}
 			}
@@ -1576,7 +1638,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		});
 	}, []);
 
-	const menu = getMenuLayout(viewport.X, viewport.Y);
+	const menu = useMemo(() => getMenuLayout(viewport.X, viewport.Y), [viewport]);
 	const selectedSave = slots?.[selectedSlot - 1];
 	const rootChange = useMemo(() => ({ AbsoluteSize: (root: Frame) => mountedRef.current && setViewport(root.AbsoluteSize) }), []);
 	const now = os.clock();
@@ -1594,14 +1656,15 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	return (
 		<InputModeContext.Provider value={inputMode}>
 			<screengui key="SkybreakBackdrop" DisplayOrder={19} IgnoreGuiInset={true} ResetOnSpawn={false} ScreenInsets={Enum.ScreenInsets.None}>
-				<MenuBackdrop visible={screen !== "mission" && screen !== "cinematic"} mode={menu.mode} />
+				<MenuBackdrop visible={!NO_MENU_CAMERA.has(screen)} mode={menu.mode} />
 			</screengui>
 			<screengui key="SkybreakUI" DisplayOrder={20} IgnoreGuiInset={false} ResetOnSpawn={false} ScreenInsets={Enum.ScreenInsets.CoreUISafeInsets} ZIndexBehavior={Enum.ZIndexBehavior.Sibling}>
 				<frame ref={rootFrameRef} key="Root" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Change={rootChange}>
 					{screen === "cinematic" && <RelayCinematic id={cinematicId} viewport={viewport} onFinish={()=>{const continueStory=cinematicNext.current;changeScreen(cinematicId===MISSION_COUNT ? "outcome" : "briefing");continueStory();}} onCancel={()=>changeScreen(cinematicId===MISSION_COUNT ? "outcome" : "briefing")}/>}
-					<TitleScreen visible={screen === "title"} menu={menu} onCampaign={() => { if (!busyRef.current) { changeScreen("slots"); loadSlots(); } }} />
-					<CampaignScreen visible={screen === "slots"} menu={menu} slots={slots} busy={busy} persistence={persistence} onBack={goBack} onSlot={(slot) => { if (!busyRef.current && slots?.[slot - 1]) { const missionId = resumeMission(slots[slot - 1]); selectedSlotRef.current = slot; selectedMissionRef.current = missionId; setSelectedSlot(slot); setSelectedMission(missionId); changeScreen("briefing"); } }} />
-					<BriefingScreen visible={screen === "briefing"} menu={menu} selectedSlot={selectedSlot} selectedMission={selectedMission} slot={selectedSave} busy={busy} onBack={goBack} onLaunch={startMission} onMission={(missionId) => { selectedMissionRef.current = missionId; setSelectedMission(missionId); }} />
+					<TitleScreen visible={screen === "title"} menu={menu} onCampaign={openCampaign} />
+					<CampaignScreen visible={screen === "slots"} menu={menu} slots={slots} busy={busy} persistence={persistence} onBack={goBack} onSlot={chooseSlot} />
+					<BriefingScreen visible={screen === "briefing"} menu={menu} selectedSlot={selectedSlot} selectedMission={selectedMission} slot={selectedSave} busy={busy} onBack={goBack} onLaunch={startMission} onMission={chooseMission} />
+					<LoadingScreen visible={screen === "loading"} missionId={selectedMission} progress={loadingProgress} viewport={viewport} />
 					<MissionHud
 						visible={screen === "mission"}
 						viewport={viewport}
@@ -1615,8 +1678,8 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 						knobRef={knobRef}
 						onJoystickBegan={joystickBegan}
 						onThrottle={setThrottle}
-						onMissile={() => missileReady(telemetry) && controller.FireMissile()}
-						onTarget={() => controller.CycleTarget()}
+						onMissile={fireMissile}
+						onTarget={cycleTarget}
 					/>
 					<OutcomeScreen visible={screen === "outcome"} menu={menu} outcome={outcome} busy={busy} onRetry={retryMission} onReturn={returnToMenu} onNext={nextMission} />
 					<HintRow
@@ -1624,7 +1687,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 						hints={menuHints}
 						rectangle={menuHintsRectangle}
 						alignment={menu.mode === "side" ? Enum.HorizontalAlignment.Right : Enum.HorizontalAlignment.Left}
-						visible={inputMode === "gamepad" && screen !== "mission" && screen !== "cinematic"}
+						visible={inputMode === "gamepad" && !NO_MENU_CAMERA.has(screen)}
 					/>
 					{toast !== undefined && (
 						<textlabel

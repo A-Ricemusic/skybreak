@@ -34,7 +34,8 @@
     "Workspace": {
       "$properties": {
         "FilteringEnabled": true,
-        "FallenPartsDestroyHeight": -500
+        "FallenPartsDestroyHeight": -500,
+        "StreamingEnabled": false
       },
       "$attributes": {
         "SkybreakTestMode": true

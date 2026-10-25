@@ -60,6 +60,15 @@ export interface MissionStarted {
 	slot: number;
 	aircraft: Model;
 }
+/** World and aircraft exist on the server; play begins on "Started" once the client is ready or the server times out. */
+export interface MissionLoading {
+	missionId?: number;
+	kind: "Loading";
+	slot: number;
+	aircraft: Model;
+	/** BaseParts in the mission folder when it was sent, for client progress only. */
+	expectedParts?: number;
+}
 export interface Telemetry {
 	missionId?: number;
 	phase?: string;
@@ -97,5 +106,5 @@ export interface MissionFinished extends MissionStats {
 	saved?: boolean;
 	persistence?: Persistence;
 }
-export type MissionMessage = MissionStarted | Telemetry | MissionFinished;
+export type MissionMessage = MissionLoading | MissionStarted | Telemetry | MissionFinished;
 export type FinishedCallback = (player: Player, won: boolean, stats: MissionStats) => void;

@@ -2,6 +2,7 @@ import { ContextActionService, GuiService, Players, RunService, UserInputService
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { FlightMath } from "../shared/FlightMath";
 import { MissionStarted, Remotes, Telemetry } from "../shared/Types";
+import { EnemySmoothing } from "./EnemySmoothing";
 
 let activeController: FlightController | undefined;
 let controllerSerial = 0;
@@ -104,6 +105,8 @@ export class FlightController {
 	private caption?: TextLabel;
 	private arrow?: TextLabel;
 	private sendTime = 0;
+	private lastSent?: { x: number; y: number; throttle: number };
+	private readonly enemies = new EnemySmoothing();
 	public static GetActive(): FlightController | undefined { return activeController; }
 	public constructor(remotes: Remotes | Instance) {
 		controllerSerial += 1;
@@ -164,7 +167,10 @@ export class FlightController {
 		const result = { ...this.telemetry };
 		if (isModel(this.aircraft)) {
 			const position = this.aircraft.GetPivot().Position;
-			result.boundaryWarning = math.max(math.abs(position.X), math.abs(position.Z)) > 2300 || position.Y < 165 || position.Y > 980;
+			// Same limits the server clamps against, so the warning cannot flicker between the two.
+			// Warn a little before the server's limits so the pilot can turn or level off in time.
+			result.boundaryWarning = math.max(math.abs(position.X), math.abs(position.Z)) > FlightMath.SoftBoundary - 100
+				|| position.Y < FlightMath.MinAltitude + 35 || position.Y > FlightMath.MaxAltitude - 70;
 			if (isModel(result.target)) result.targetDistance = result.target.GetPivot().Position.sub(position).Magnitude;
 			else { result.target = undefined; result.targetDistance = 0; }
 		}
@@ -255,10 +261,19 @@ export class FlightController {
 		camera.CFrame = this.cameraFrame;
 		camera.Focus = new CFrame(position.add(forward.mul(90)));
 		camera.FieldOfView += (72 + speedFactor * 9 - camera.FieldOfView) * FlightMath.DampAlpha(3, dt);
+		this.enemies.Step(dt);
 		this.updateTargetCue(camera);
 		this.sendTime += dt;
 		const [x, y, throttle] = this.input(dt);
-		if (this.sendTime >= 1 / 15) { this.sendTime %= 1 / 15; this.remotes.FlightInput.FireServer({ x, y, throttle }); }
+		// Send at most 15 Hz, and only when the stick moved; a 0.25 s keepalive leaves
+		// room for network jitter inside the server's 0.7 s silence timeout.
+		const last = this.lastSent;
+		const changed = !last || math.abs(last.x - x) > 0.01 || math.abs(last.y - y) > 0.01 || math.abs(last.throttle - throttle) > 0.01;
+		if ((changed && this.sendTime >= 1 / 15) || this.sendTime >= 0.25) {
+			this.sendTime = 0;
+			this.lastSent = { x, y, throttle };
+			this.remotes.FlightInput.FireServer({ x, y, throttle });
+		}
 	}
 	public Start(missionData: MissionStarted): boolean {
 		this.Stop();
@@ -279,6 +294,7 @@ export class FlightController {
 		this.gamepadInput = Vector2.zero;
 		this.throttle = 0.65;
 		this.sendTime = 1 / 15;
+		this.lastSent = undefined;
 		this.mouseSteer = false;
 		this.visualFrame = this.aircraft.GetPivot();
 		const camera = Workspace.CurrentCamera;
@@ -297,6 +313,7 @@ export class FlightController {
 		};
 		for (const descendant of this.aircraft.GetDescendants()) hidePart(descendant);
 		this.connections.push(this.aircraft.DescendantAdded.Connect(hidePart));
+		if (this.aircraft.Parent) this.enemies.Start(this.aircraft.Parent);
 		[this.targetGui, this.bracket, this.bracketStroke, this.caption, this.arrow] = createTargetCue(Players.LocalPlayer.WaitForChild("PlayerGui"));
 		ContextActionService.BindActionAtPriority(this.actionName, (_, state, input) => this.handleBoundInput(state, input.KeyCode, input.Position), false, 3000, ...FLIGHT_KEYS);
 		this.connections.push(UserInputService.InputBegan.Connect((input, processed) => {
@@ -323,6 +340,7 @@ export class FlightController {
 			if (part.IsA("Trail")) part.Enabled = previous as boolean;
 		}
 		this.hiddenParts.clear();
+		this.enemies.Stop();
 		this.visual?.Destroy(); this.visual = undefined;
 		this.targetGui?.Destroy(); this.targetGui = undefined;
 		const camera = Workspace.CurrentCamera;
