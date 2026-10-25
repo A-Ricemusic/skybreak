@@ -688,6 +688,9 @@ function CampaignScreenImpl({
 	persistence,
 	onBack,
 	onSlot,
+	confirmSlot,
+	onAskDelete,
+	onCancelDelete,
 	onDeleteSlot,
 }: {
 	visible: boolean;
@@ -697,19 +700,12 @@ function CampaignScreenImpl({
 	persistence: Persistence;
 	onBack: () => void;
 	onSlot: (slot: number) => void;
+	confirmSlot?: number;
+	onAskDelete: (slot: number) => void;
+	onCancelDelete: () => void;
 	onDeleteSlot: (slot: number) => void;
 }) {
 	const compact = menu.compact;
-	const [confirmSlot, setConfirmSlot] = useState<number>();
-	// Leaving the screen drops any half-finished delete confirmation.
-	useEffect(() => {
-		if (!visible) setConfirmSlot(undefined);
-	}, [visible]);
-	const cancelDelete = useCallback(() => setConfirmSlot(undefined), []);
-	const confirmDelete = useCallback((slot: number) => {
-		setConfirmSlot(undefined);
-		onDeleteSlot(slot);
-	}, [onDeleteSlot]);
 	const persistenceText = busy
 		? "Connecting to flight records..."
 		: persistence === "cloud"
@@ -744,9 +740,9 @@ function CampaignScreenImpl({
 						compact={compact}
 						confirming={confirmSlot === number}
 						onSlot={onSlot}
-						onAskDelete={setConfirmSlot}
-						onConfirmDelete={confirmDelete}
-						onCancelDelete={cancelDelete}
+						onAskDelete={onAskDelete}
+						onConfirmDelete={onDeleteSlot}
+						onCancelDelete={onCancelDelete}
 					/>
 				))}
 			</scrollingframe>
@@ -1298,6 +1294,10 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const toastRef = useRef(0);
 	const throttleRef = useRef(0.65);
 	const selectedSlotRef = useRef(1);
+	const [confirmSlot, setConfirmSlot] = useState<number>();
+	const confirmSlotRef = useRef<number>();
+	const slotFocusRef = useRef<number>();
+	const selectDefaultRef = useRef<() => void>(() => undefined);
 	const selectedMissionRef = useRef(1);
 	const persistenceRef = useRef<Persistence>("unavailable");
 	const telemetryRef = useRef(defaultTelemetry());
@@ -1339,6 +1339,16 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		applyInputMode(readInputMode());
 	}, [applyInputMode, releaseJoystick]);
 
+	// Gamepad focus follows the delete confirmation: KEEP while it is open, then back to that slot's row.
+	const setDeleteConfirm = useCallback((slot: number | undefined) => {
+		if (slot !== undefined) slotFocusRef.current = slot;
+		confirmSlotRef.current = slot;
+		setConfirmSlot(slot);
+		task.defer(() => selectDefaultRef.current());
+	}, []);
+	const askDelete = useCallback((slot: number) => setDeleteConfirm(slot), [setDeleteConfirm]);
+	const cancelDelete = useCallback(() => setDeleteConfirm(undefined), [setDeleteConfirm]);
+
 	const selectDefault = useCallback(() => {
 		const root = rootFrameRef.current;
 		if (!root || !mountedRef.current) return;
@@ -1354,17 +1364,19 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		const defaultName = current === "cinematic" ? "CinematicSkipButton" : current === "title"
 			? "CampaignButton"
 			: current === "slots"
-				? `Slot${selectedSlotRef.current}Button`
+				? confirmSlotRef.current !== undefined ? "KeepButton" : `Slot${slotFocusRef.current ?? selectedSlotRef.current}Button`
 				: current === "briefing"
 					? "LaunchButton"
 					: outcomeWonRef.current && outcomeMissionRef.current < MISSION_COUNT ? "Mission1NextMissionButton" : outcomeWonRef.current ? "ReturnToMenuButton" : "RetryButton";
 		const target = screenFrame.FindFirstChild(defaultName, true);
 		if (target && target.IsA("GuiObject")) GuiService.SelectedObject = target;
 	}, []);
+	selectDefaultRef.current = selectDefault;
 
 	const goBack = useCallback(() => {
 		if (busyRef.current) return;
-		if (screenRef.current === "slots") changeScreen("title");
+		if (screenRef.current === "slots" && confirmSlotRef.current !== undefined) setDeleteConfirm(undefined);
+		else if (screenRef.current === "slots") changeScreen("title");
 		else if (screenRef.current === "briefing") changeScreen("slots");
 	}, [changeScreen]);
 
@@ -1511,14 +1523,16 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		changeScreen("briefing");
 	}, [changeScreen]);
 	const deleteSlot = useCallback((slot: number) => {
+		setDeleteConfirm(undefined);
 		beginRequest((requestId) => {
 			const [response, problem] = invoke("DeleteSlot", { slot });
 			if (!mountedRef.current || requestRef.current !== requestId) return;
 			if (!response) showToast(problem ?? "Command rejected the request.", true);
 			else if (!applyResponseSlots(response)) showToast("Flight records returned an invalid response.", true);
+			else if (response.persistence === "unavailable") showToast(`Save ${string.format("%02d", slot)} deleted here, but the cloud save has not confirmed yet.`, true);
 			else showToast(`Save ${string.format("%02d", slot)} deleted.`, false);
 		});
-	}, [applyResponseSlots, beginRequest, invoke, showToast]);
+	}, [applyResponseSlots, beginRequest, invoke, setDeleteConfirm, showToast]);
 	const chooseMission = useCallback((missionId: number) => { selectedMissionRef.current = missionId; setSelectedMission(missionId); }, []);
 	// Always send: the server either launches (guided or blind) or answers with `fireDenied`, so a press is never silent.
 	const fireMissile = useCallback(() => controller.FireMissile(), [controller]);
@@ -1592,6 +1606,12 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	useEffect(() => {
 		task.defer(selectDefault);
 	}, [busy, inputMode, screen, selectDefault]);
+
+	// Leaving the slot list drops any half-finished delete confirmation.
+	useEffect(() => {
+		slotFocusRef.current = undefined;
+		if (screen !== "slots" && confirmSlotRef.current !== undefined) setDeleteConfirm(undefined);
+	}, [screen, setDeleteConfirm]);
 
 	useEffect(() => {
 		const began = UserInputService.InputBegan.Connect((input) => {
@@ -1797,7 +1817,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				<frame ref={rootFrameRef} key="Root" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Change={rootChange}>
 					{screen === "cinematic" && <RelayCinematic id={cinematicId} viewport={viewport} onFinish={()=>{const continueStory=cinematicNext.current;changeScreen(cinematicId===MISSION_COUNT ? "outcome" : "briefing");continueStory();}} onCancel={()=>changeScreen(cinematicId===MISSION_COUNT ? "outcome" : "briefing")}/>}
 					<TitleScreen visible={screen === "title"} menu={menu} onCampaign={openCampaign} />
-					<CampaignScreen visible={screen === "slots"} menu={menu} slots={slots} busy={busy} persistence={persistence} onBack={goBack} onSlot={chooseSlot} onDeleteSlot={deleteSlot} />
+					<CampaignScreen visible={screen === "slots"} menu={menu} slots={slots} busy={busy} persistence={persistence} onBack={goBack} onSlot={chooseSlot} confirmSlot={confirmSlot} onAskDelete={askDelete} onCancelDelete={cancelDelete} onDeleteSlot={deleteSlot} />
 					<BriefingScreen visible={screen === "briefing"} menu={menu} selectedSlot={selectedSlot} selectedMission={selectedMission} slot={selectedSave} busy={busy} onBack={goBack} onLaunch={startMission} onMission={chooseMission} />
 					<LoadingScreen visible={screen === "loading"} missionId={selectedMission} progress={loadingProgress} viewport={viewport} />
 					<MissionHud
