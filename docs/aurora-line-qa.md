@@ -52,6 +52,20 @@ Mission 02 was first flown without firing. The authoritative clock reached
 and `SkybreakCombat` had zero children afterward. Retry launched Mission 02
 without repeating its intermission, then completed normally.
 
+### Protected-object coverage boundary
+
+The successful campaign run exercised real escort/protect phases and displayed
+their friendly-object status; retained M12 and M27 active-gameplay images show
+`FRIENDLY 100%`. No live protected object was observed taking damage, and no
+protected-object `destroyed` defeat was deliberately provoked. These successful
+runs establish that the phases are reachable and completable, not that the live
+protected-damage/failure path was covered.
+
+The M02 timeout and Retry are separate evidence: they validate the authoritative
+600-second deadline, no-credit failure, teardown, and retry/resumption flow.
+They do not substitute for a protected-object defeat or player-hull defeat. No
+player-hull defeat was performed.
+
 ## Presentation and lifecycle checks
 
 - Opening, every 26 inter-mission scenes, and the finale were recorded in the
@@ -75,7 +89,10 @@ without repeating its intermission, then completed normally.
 
 ## Evidence and limitations
 
-Ignored local screenshots are in `build/screenshots/aurora-qa/`:
+Ignored local screenshots and their content-checked mapping are in
+`build/screenshots/aurora-qa/INDEX.md`. Offline recovery from T3's retained
+state restored 17 original 1517×1080 Studio MCP JPEG payloads without launching
+Studio or recapturing. The five pre-existing 2880×1800 macOS PNGs were preserved:
 
 - `00-main-menu.png`
 - `01-slot-menu.png`
@@ -83,11 +100,13 @@ Ignored local screenshots are in `build/screenshots/aurora-qa/`:
 - `03-opening-cutscene.png`
 - `04-m01-debrief.png`
 
-Additional genuine Studio capture IDs include `aurora_m02_timeout`,
-`aurora_transition_m02_m03`, `aurora_m08_aurora_night`,
-`aurora_m12_volcanic_refuge`, `aurora_transition_m26_m27`,
-`aurora_m27_finale_active`, `aurora_finale_cutscene`,
-`aurora_m27_campaign_complete`, and `aurora_reduced_motion_opening`.
+The recovered JPEG filenames preserve all original capture IDs, including
+`aurora_m02_timeout`, `aurora_transition_m02_m03`,
+`aurora_m08_aurora_night`, `aurora_m12_volcanic_refuge`,
+`aurora_transition_m26_m27`, `aurora_m27_finale_active`,
+`aurora_finale_cutscene`, `aurora_m27_campaign_complete`, and
+`aurora_reduced_motion_opening`. The ignored index records misleading IDs by
+actual image content rather than assuming the filename describes the frame.
 
 After the first local screenshots, an unrelated Studio `Initializing plugins…`
 modal prevented further macOS window captures; Studio MCP viewport captures
