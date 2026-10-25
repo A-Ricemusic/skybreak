@@ -104,4 +104,43 @@ Additional CodeRabbit findings were fixed: narrow HUDs use compact stall advice,
 the gameplay harness requires a warning label, and phase-spawned protected actors
 enter the sweep filter with their visible surfaces queryable after welding.
 The resulting Studio suite passes 258 tests across 22 suites. The strengthened
-gameplay-harness assertion has not been rerun in a new gameplay session.
+gameplay-harness assertion was subsequently rerun successfully; see the followup evidence below.
+
+
+## Explicit scenery eligibility followup (2026-10-25)
+
+Scenery collision eligibility now comes from `PartOptions.flightSolid`, never a
+display name. Visible parts default to solid; fully invisible parts remain
+excluded even with `flightSolid: true`. Cylinder and Disc forward the option,
+and Light defaults to decorative with an explicit override available. Existing
+shallows, marker/navigation lights, apron/runway paint and lit windows opt out.
+Beach, sea/river slabs and structural light fixtures keep their previous
+classifications. Water crash reason classification is unchanged.
+
+- Complete Studio engine suite: **259/259 tests, 22/22 suites passing**.
+  The actual M1–M27 builders are audited against their previous surface
+  classifications, then solids are renamed to “Marker light” and decorations
+  renamed before checking the collision allowlist. Primitive sweep regressions
+  also cover a solid initially named “Marker light”, renamed decorations,
+  Cylinder/Disc/Light option propagation and the invisible exclusion.
+- `bun run build:place` succeeded; `git diff --check` passed.
+- Opened the freshly built production place as
+  `/tmp/skybreak-flight-solid-qa.rbxlx` in normal Studio Play (unpublished,
+  session-only persistence). Launched M1 through the normal CampaignRequest
+  StartMission endpoint; normal loading/ready/Started and UI handlers ran.
+  Injected the **unchanged strengthened** crash/stall LocalScript.
+- Harness outcome **Passed**: initial throttle **0.65**, authoritative telemetry
+  speed **288.058533 → 119.769384 → 180.120922** studs/s. The required
+  WarningText label was found and read **STALL · ACCELERATE + NOSE DOWN**.
+  Loss-of-lift, RS deadzone/release/cancel, real TextBox focus/release, recovery
+  and LB/RB assertions passed.
+- The legal LS dive received exactly **one server MissionState result**:
+  **Failed**, **crash_water**, **kills 0**. The ordinary debrief displayed
+  “Your aircraft crashed into the water.” No health, kill, position or mission
+  state overrides were used. Studio Play was stopped afterward.
+
+These are local production-place gameplay results using bound controller
+handlers, not physical controller routing or a published server. Earlier
+device/performance/network and full-campaign gameplay limitations still apply.
+The new run exercises water impact; the earlier recorded terrain-impact run
+was not repeated in this followup.

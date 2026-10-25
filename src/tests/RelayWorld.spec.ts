@@ -2,6 +2,7 @@ import {afterEach,describe,expect,it} from "@rbxts/jest-globals";
 import {Lighting,Workspace} from "@rbxts/services";
 import {MissionWorld} from "../server/MissionWorld";
 import {MissionCatalog} from "../shared/MissionCatalog";
+import {AircraftCollision} from "../server/AircraftCollision";
 import {PART_BUDGET} from "../server/Scenery";
 /** Engine integration only. Included in Roblox Jest; never run by the offline VM. */
 describe("Broken Relay disposable world integration",()=>{
@@ -24,8 +25,21 @@ describe("Broken Relay disposable world integration",()=>{
 		let parts=0;
 		for(const item of fixture.GetDescendants())if(item.IsA("BasePart")){
 			parts++;expect(item.Anchored).toBe(true);expect(item.CanCollide).toBe(false);
-			if(item.Name === "Navigation light") { expect(item.CanQuery).toBe(false);expect(item.GetAttribute("FlightSolid")).toBe(false); }
+			// Audit the actual builders against the pre-followup classifications.
+			// Every tagged visible surface remains solid except authored decoration.
+			if (item.GetAttribute("FlightSolid") !== undefined) {
+				const decoration = ["Shallows", "Marker light", "Navigation light", "Safety line", "Centreline", "Threshold", "Threshold bar", "Approach bar", "Center stripe", "Lit windows"].includes(item.Name);
+				const solid = !decoration && item.Transparency < 1;
+				expect(item.CanQuery).toBe(solid);
+				expect(item.GetAttribute("FlightSolid")).toBe(solid);
+				item.Name = solid ? "Marker light" : "Renamed decoration";
+			}
+
 			expect(item.Size.X<=2048 && item.Size.Y<=2048 && item.Size.Z<=2048).toBe(true);
+		}
+		const filter = AircraftCollision.Parameters(fixture).FilterDescendantsInstances;
+		for (const item of fixture.GetDescendants()) if (item.IsA("BasePart") && item.GetAttribute("FlightSolid") !== undefined) {
+			expect(filter.includes(item)).toBe(item.GetAttribute("FlightSolid") === true);
 		}
 		expect(parts<400).toBe(true);
 		fixture.Destroy();expect(world.groundTargets.every((model)=>model.Parent===undefined)).toBe(true);

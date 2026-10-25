@@ -17,10 +17,9 @@ import { Workspace } from "@rbxts/services";
 export const PART_BUDGET = 600;
 const YIELD_EVERY = 150;
 let sinceYield = 0;
-// Authored paint, lights and water-color overlays have no physical surface.
-const VISUAL_SURFACES = new Set(["Shallows", "Marker light", "Navigation light", "Safety line", "Centreline", "Threshold", "Threshold bar", "Approach bar", "Center stripe", "Lit windows"]);
-
 export interface PartOptions {
+	/** Visible scenery is solid unless explicitly authored as decoration. */
+	flightSolid?: boolean;
 	className?: "Part" | "WedgePart";
 	shape?: Enum.PartType;
 	transparency?: number;
@@ -58,7 +57,7 @@ export function Part(parent: Instance, name: string, size: Vector3, at: CFrame |
 	object.CanCollide = false;
 	object.CanTouch = false;
 	// Overlays are visual only. Query the actual rendered geometry, never a proxy box.
-	object.CanQuery = !VISUAL_SURFACES.has(name) && (options.transparency ?? 0) < 1;
+	object.CanQuery = options.flightSolid !== false && (options.transparency ?? 0) < 1;
 	object.SetAttribute("FlightSolid", object.CanQuery);
 	// Shadows are a major mobile GPU cost; scenery opts in (airfield buildings near the start only).
 	object.CastShadow = options.castShadow === true;
@@ -125,7 +124,7 @@ export function Shoreline(parent: Instance, x: number, z: number, width: number,
 	const cf = new CFrame(x, 0, z).mul(CFrame.Angles(0, yaw, 0));
 	let i = 0;
 	for (const [lx, lz, r] of lobes(width, depth)) {
-		Disc(parent, "Shallows", r * 2 + 220, 0.5, cf.mul(new CFrame(lx, WATERLINE + 0.4 + i * 0.06, lz)).Position, palette.shallow, Enum.Material.SmoothPlastic, { transparency: 0.45, reflectance: 0.08, castShadow: false });
+		Disc(parent, "Shallows", r * 2 + 220, 0.5, cf.mul(new CFrame(lx, WATERLINE + 0.4 + i * 0.06, lz)).Position, palette.shallow, Enum.Material.SmoothPlastic, { flightSolid: false, transparency: 0.45, reflectance: 0.08, castShadow: false });
 		Disc(parent, "Beach", r * 2 + 60, 3, cf.mul(new CFrame(lx, WATERLINE + 1.6 + i * 0.06, lz)).Position, palette.sand, Enum.Material.Sand, { castShadow: false });
 		i += 1;
 	}
@@ -242,8 +241,8 @@ export function Road(parent: Instance, points: Vector3[], width = 24, color = Co
 }
 
 /** Small neon marker light (one part). */
-export function Light(parent: Instance, at: Vector3, color: Color3, size = 2.5): BasePart {
-	return Part(parent, "Marker light", new Vector3(size, size * 0.7, size), at, color, Enum.Material.Neon, { castShadow: false });
+export function Light(parent: Instance, at: Vector3, color: Color3, size = 2.5, options: PartOptions = {}): BasePart {
+	return Part(parent, "Marker light", new Vector3(size, size * 0.7, size), at, color, Enum.Material.Neon, { flightSolid: false, castShadow: false, ...options });
 }
 
 /**
@@ -255,14 +254,14 @@ export function Runway(parent: Instance, cf: CFrame, length: number, width: numb
 	Part(parent, "Runway", new Vector3(width, 2, length), cf.mul(new CFrame(0, -0.5, 0)), palette.asphalt, Enum.Material.Asphalt);
 	const stripe = Color3.fromRGB(236, 234, 214);
 	const dashes = math.floor((length - 260) / 90);
-	for (let i = 0; i < dashes; i++) Part(parent, "Centreline", new Vector3(3, 0.3, 45), cf.mul(new CFrame(0, 0.6, -(dashes - 1) * 45 + i * 90)), stripe, Enum.Material.SmoothPlastic, { castShadow: false });
+	for (let i = 0; i < dashes; i++) Part(parent, "Centreline", new Vector3(3, 0.3, 45), cf.mul(new CFrame(0, 0.6, -(dashes - 1) * 45 + i * 90)), stripe, Enum.Material.SmoothPlastic, { flightSolid: false, castShadow: false });
 	for (const tip of [-1, 1]) {
 		for (let s = -3; s <= 3; s++) {
 			if (s === 0) continue;
-			Part(parent, "Threshold", new Vector3(width / 10, 0.3, 50), cf.mul(new CFrame(s * width / 8, 0.6, tip * (length / 2 - 45))), stripe, Enum.Material.SmoothPlastic, { castShadow: false });
+			Part(parent, "Threshold", new Vector3(width / 10, 0.3, 50), cf.mul(new CFrame(s * width / 8, 0.6, tip * (length / 2 - 45))), stripe, Enum.Material.SmoothPlastic, { flightSolid: false, castShadow: false });
 		}
-		Part(parent, "Threshold bar", new Vector3(width - 6, 0.3, 5), cf.mul(new CFrame(0, 0.6, tip * (length / 2 - 12))), stripe, Enum.Material.SmoothPlastic, { castShadow: false });
-		Part(parent, "Approach bar", new Vector3(width * 0.8, 1.5, 3), cf.mul(new CFrame(0, 1.5, tip * (length / 2 + 60))), Color3.fromRGB(255, 240, 200), Enum.Material.Neon, { castShadow: false });
+		Part(parent, "Threshold bar", new Vector3(width - 6, 0.3, 5), cf.mul(new CFrame(0, 0.6, tip * (length / 2 - 12))), stripe, Enum.Material.SmoothPlastic, { flightSolid: false, castShadow: false });
+		Part(parent, "Approach bar", new Vector3(width * 0.8, 1.5, 3), cf.mul(new CFrame(0, 1.5, tip * (length / 2 + 60))), Color3.fromRGB(255, 240, 200), Enum.Material.Neon, { flightSolid: false, castShadow: false });
 	}
 	const lights = math.floor(length / 120);
 	for (let i = 0; i <= lights; i++) for (const side of [-1, 1]) {
@@ -302,7 +301,7 @@ export function Buildings(parent: Instance, seed: number, x: number, z: number, 
 		const pos = new Vector3(x + c * spacingX + rng.NextNumber(-6, 6), floor + height / 2, z + r * spacingZ + rng.NextNumber(-6, 6));
 		Part(parent, "Building", size, pos, walls[(c + r) % walls.size()], Enum.Material.Concrete);
 		Part(parent, "Roof", new Vector3(size.X + 3, 2, size.Z + 3), pos.add(new Vector3(0, height / 2 + 1, 0)), (c + r) % 3 === 0 ? Color3.fromRGB(128, 72, 58) : Color3.fromRGB(58, 66, 72), Enum.Material.Metal, { castShadow: false });
-		if (night) Part(parent, "Lit windows", new Vector3(size.X * 0.7, 3, 0.6), pos.add(new Vector3(0, height * 0.2, -size.Z / 2 - 0.2)), Color3.fromRGB(232, 204, 132), Enum.Material.Neon, { castShadow: false });
+		if (night) Part(parent, "Lit windows", new Vector3(size.X * 0.7, 3, 0.6), pos.add(new Vector3(0, height * 0.2, -size.Z / 2 - 0.2)), Color3.fromRGB(232, 204, 132), Enum.Material.Neon, { flightSolid: false, castShadow: false });
 	}
 }
 

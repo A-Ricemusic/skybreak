@@ -5,7 +5,7 @@ import { layoutFor } from "../shared/MissionLayouts";
 import { Scenery } from "./Scenery";
 
 const part=Scenery.Part;
-function light(parent: Instance, pos: Vector3): void { part(parent,"Navigation light",new Vector3(4,3,4),pos,Color3.fromRGB(80,235,211),Enum.Material.Neon,{castShadow:false}); }
+function light(parent: Instance, pos: Vector3): void { part(parent,"Navigation light",new Vector3(4,3,4),pos,Color3.fromRGB(80,235,211),Enum.Material.Neon,{flightSolid:false,castShadow:false}); }
 const near=(x: number,z: number,cx: number,cz: number,r: number): boolean=>(x-cx)*(x-cx)+(z-cz)*(z-cz)<r*r;
 export const RelayWorld = {
 	Build(id: number,parent: Instance): {groundTargets: Model[]} {
@@ -42,9 +42,9 @@ export const RelayWorld = {
 			part(scene,"Coastal ground",new Vector3(1400,55,1500),new Vector3(x*1400,12,z*1500-200),Color3.fromRGB(91,119,89),Enum.Material.Grass);
 			// Shoreline sheets tile the slab grid exactly (no coplanar overlaps) and
 			// only grow outward on the seaward edges.
-			for(const [name,ext,y,color,material,transparency] of [["Shallows",220,Scenery.WATERLINE+.4,P.shallow,Enum.Material.SmoothPlastic,.45],["Beach",60,Scenery.WATERLINE+1.6,P.sand,Enum.Material.Sand,0]] as Array<[string,number,number,Color3,Enum.Material,number]>){
+			for(const [name,ext,y,color,material,transparency,flightSolid] of [["Shallows",220,Scenery.WATERLINE+.4,P.shallow,Enum.Material.SmoothPlastic,.45,false],["Beach",60,Scenery.WATERLINE+1.6,P.sand,Enum.Material.Sand,0,true]] as Array<[string,number,number,Color3,Enum.Material,number,boolean]>){
 				const sx=1400+(x===0 ? 0 : ext), cx=x*1400+x*ext/2, sz=1500+ext, cz=z*1500-200+(z===0 ? -ext/2 : ext/2);
-				part(scene,name,new Vector3(sx,name==="Beach" ? 3 : .5,sz),new Vector3(cx,y,cz),color,material,{transparency,castShadow:false});
+				part(scene,name,new Vector3(sx,name==="Beach" ? 3 : .5,sz),new Vector3(cx,y,cz),color,material,{transparency,flightSolid,castShadow:false});
 			}
 		}
 		// Mesas are stacked tiers (base, shoulder, summit, cap) with offset
@@ -76,7 +76,7 @@ export const RelayWorld = {
 			}
 		} else if(layout.landmark==="runway") {
 			part(scene,"Runway",new Vector3(100,4,900),new Vector3(fx,48,fz),Color3.fromRGB(36,45,52),Enum.Material.Asphalt);
-			for(let i=-4;i<=4;i++) { part(scene,"Center stripe",new Vector3(4,1,45),new Vector3(fx,50.5,fz+i*95),Color3.fromRGB(239,230,191)); light(scene,new Vector3(fx-47,53,fz+i*95)); light(scene,new Vector3(fx+47,53,fz+i*95)); }
+			for(let i=-4;i<=4;i++) { part(scene,"Center stripe",new Vector3(4,1,45),new Vector3(fx,50.5,fz+i*95),Color3.fromRGB(239,230,191),Enum.Material.Concrete,{flightSolid:false}); light(scene,new Vector3(fx-47,53,fz+i*95)); light(scene,new Vector3(fx+47,53,fz+i*95)); }
 		} else if(layout.landmark==="bridge") {
 			// A river with sand banks runs the full depth of the map; the bridge
 			// carries the canyon track across it and a dirt road continues east.

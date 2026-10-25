@@ -55,7 +55,7 @@ function environment(missionId: number): void {
 function apron(parent: Instance, x: number, z: number, width: number, depth: number, color: Color3): void {
 	Scenery.Part(parent, "Apron", new Vector3(width, 4, depth), new Vector3(x, APRON_TOP - 2, z), color, Enum.Material.Concrete);
 	for (const side of [-1, 1]) {
-		Scenery.Part(parent, "Safety line", new Vector3(3, 0.3, depth - 10), new Vector3(x + side * (width / 2 - 7), APRON_TOP + 0.2, z), Color3.fromRGB(235, 185, 68), Enum.Material.SmoothPlastic, { castShadow: false });
+		Scenery.Part(parent, "Safety line", new Vector3(3, 0.3, depth - 10), new Vector3(x + side * (width / 2 - 7), APRON_TOP + 0.2, z), Color3.fromRGB(235, 185, 68), Enum.Material.SmoothPlastic, { flightSolid: false, castShadow: false });
 	}
 }
 
@@ -150,8 +150,8 @@ function buildIronCoast(scenery: Folder, parent: Instance): Model[] {
 	for (const [x, z, r, peak] of [[-1300, -2150, 280, 125], [1300, -2200, 300, 125], [0, -2250, 260, 118], [-1700, -1600, 200, 122], [1750, -1500, 220, 124]]) Scenery.TerrainHill(x, z, r, GROUND, peak);
 	for (const [x, z, w, d, yaw, r, peak] of offshore) { Scenery.TerrainIsland(x, z, w, d, GROUND, yaw); Scenery.TerrainHill(x, z, r, GROUND, peak); }
 	for (const [x, z, w, d, yaw] of offshore) Scenery.Shoreline(scenery, x, z, w, d, P, yaw);
-	Scenery.Part(scenery, "Shallows", new Vector3(2000, 0.5, 1900), new Vector3(-900, Scenery.WATERLINE + 0.4, -1450), P.shallow, Enum.Material.SmoothPlastic, { transparency: 0.45, castShadow: false });
-	Scenery.Part(scenery, "Shallows", new Vector3(1800, 0.5, 1900), new Vector3(1000, Scenery.WATERLINE + 0.4, -1450), P.shallow, Enum.Material.SmoothPlastic, { transparency: 0.45, castShadow: false });
+	Scenery.Part(scenery, "Shallows", new Vector3(2000, 0.5, 1900), new Vector3(-900, Scenery.WATERLINE + 0.4, -1450), P.shallow, Enum.Material.SmoothPlastic, { flightSolid: false, transparency: 0.45, castShadow: false });
+	Scenery.Part(scenery, "Shallows", new Vector3(1800, 0.5, 1900), new Vector3(1000, Scenery.WATERLINE + 0.4, -1450), P.shallow, Enum.Material.SmoothPlastic, { flightSolid: false, transparency: 0.45, castShadow: false });
 
 	// Quays: a wall along the whole south coast and around the basin.
 	const quay = Color3.fromRGB(122, 124, 120);
