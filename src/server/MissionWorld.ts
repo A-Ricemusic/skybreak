@@ -79,7 +79,7 @@ function buildVardaRim(scenery: Folder, parent: Instance): Model[] {
 	// Landmasses (terrain). The main island is 1250 x 1850 with its top at GROUND.
 	const islands: Array<[number, number, number, number, number]> = [[-300, -400, 1250, 1850, 0], [-1000, -1500, 700, 560, 0.3], [1250, -1400, 760, 620, -0.2], [-1500, 700, 520, 480, 0.5], [1000, 250, 420, 360, 0.4], [1350, 560, 240, 200, -0.3], [780, 640, 200, 180, 0.9]];
 	for (const [x, z, w, d, yaw] of islands) { Scenery.TerrainIsland(x, z, w, d, GROUND, yaw); Scenery.Shoreline(scenery, x, z, w, d, P, yaw); }
-	for (const [x, z, r, peak] of [[-800, -1000, 170, 175], [-820, -250, 150, 150], [-680, 380, 120, 125], [-1000, -1500, 230, 195], [1250, -1400, 250, 205], [-1500, 700, 160, 150], [1000, 250, 120, 125]]) Scenery.TerrainHill(x, z, r, GROUND, peak);
+	for (const [x, z, r, peak] of [[-800, -1000, 170, 120], [-820, -250, 150, 115], [-680, 380, 120, 110], [-1000, -1500, 230, 125], [1250, -1400, 250, 125], [-1500, 700, 160, 118], [1000, 250, 120, 112]]) Scenery.TerrainHill(x, z, r, GROUND, peak);
 
 	// Airfield. Runway runs north-south at x=-520; the parking apron links to the
 	// radar pad by a taxiway so the whole field reads as one installation.
@@ -93,7 +93,7 @@ function buildVardaRim(scenery: Folder, parent: Instance): Model[] {
 	Scenery.FuelFarm(scenery, 120, -520, GROUND, 3);
 	Scenery.Road(scenery, [new Vector3(0, GROUND + 0.5, -250), new Vector3(240, GROUND + 0.5, -250)]);
 	// Perimeter road around the whole island.
-	const loop = [[-700, -1180], [100, -1180], [240, -1040], [240, 380], [100, 440], [-700, 440], [-840, 300], [-840, -1040], [-700, -1180]];
+	const loop = [[-640, -1120], [40, -1120], [180, -980], [180, 320], [40, 380], [-640, 380], [-780, 240], [-780, -980], [-640, -1120]];
 	Scenery.Road(scenery, loop.map(([x, z]) => new Vector3(x, GROUND + 0.5, z)));
 
 	// Radar pad: the training target on its concrete apron plus a radome and huts.
@@ -138,8 +138,8 @@ function buildIronCoast(scenery: Folder, parent: Instance): Model[] {
 	}
 	Scenery.Part(scenery, "Shallows", new Vector3(2000, 0.5, 1900), new Vector3(-900, Scenery.WATERLINE + 0.4, -1450), P.shallow, Enum.Material.SmoothPlastic, { transparency: 0.45, castShadow: false });
 	Scenery.Part(scenery, "Shallows", new Vector3(1800, 0.5, 1900), new Vector3(1000, Scenery.WATERLINE + 0.4, -1450), P.shallow, Enum.Material.SmoothPlastic, { transparency: 0.45, castShadow: false });
-	for (const [x, z, r, peak] of [[-1300, -2150, 280, 240], [1300, -2200, 300, 260], [0, -2250, 260, 200], [-1700, -1600, 200, 170], [1750, -1500, 220, 180]]) Scenery.TerrainHill(x, z, r, GROUND, peak);
-	for (const [x, z, w, d, yaw, r, peak] of [[-1500, 500, 520, 440, 0.4, 160, 150], [1550, 450, 480, 420, -0.3, 150, 140]]) {
+	for (const [x, z, r, peak] of [[-1300, -2150, 280, 125], [1300, -2200, 300, 125], [0, -2250, 260, 118], [-1700, -1600, 200, 122], [1750, -1500, 220, 124]]) Scenery.TerrainHill(x, z, r, GROUND, peak);
+	for (const [x, z, w, d, yaw, r, peak] of [[-1500, 500, 520, 440, 0.4, 160, 122], [1550, 450, 480, 420, -0.3, 150, 118]]) {
 		Scenery.TerrainIsland(x, z, w, d, GROUND, yaw); Scenery.Shoreline(scenery, x, z, w, d, P, yaw); Scenery.TerrainHill(x, z, r, GROUND, peak);
 	}
 

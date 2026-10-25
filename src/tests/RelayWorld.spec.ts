@@ -26,7 +26,7 @@ describe("Broken Relay disposable world integration",()=>{
 			parts++;expect(item.Anchored).toBe(true);expect(item.CanCollide).toBe(false);
 			expect(item.Size.X<=2048 && item.Size.Y<=2048 && item.Size.Z<=2048).toBe(true);
 		}
-		expect(parts<=PART_BUDGET).toBe(true);
+		expect(parts<400).toBe(true);
 		fixture.Destroy();expect(world.groundTargets.every((model)=>model.Parent===undefined)).toBe(true);
 	});
 	// The hand-composed opening worlds carry the densest scenery (airbase,

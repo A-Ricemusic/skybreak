@@ -152,8 +152,11 @@ export function Mountains(parent: Instance, seed: number, color: Color3, count =
 	const span = sectorEnd - sectorStart;
 	for (let i = 0; i < count; i++) {
 		const angle = sectorStart + span * ((i + 0.5) / count) + rng.NextNumber(-0.08, 0.08);
-		const distance = radius + rng.NextNumber(-80, 120);
 		const width = rng.NextNumber(520, 980), depth = rng.NextNumber(300, 420), height = rng.NextNumber(360, 760);
+		// The playable area is a square (max(|x|,|z|) <= 2800), so the ring follows
+		// a square too: every ridge's inner face stays outside the hard boundary.
+		const square = math.max(math.abs(math.cos(angle)), math.abs(math.sin(angle)));
+		const distance = (math.max(radius, 2800) + depth / 2 + 120 + rng.NextNumber(0, 160)) / square;
 		const x = math.cos(angle) * distance, z = math.sin(angle) * distance;
 		const facing = CFrame.Angles(0, -angle + math.pi / 2 + rng.NextNumber(-0.25, 0.25), 0);
 		const shade = color.Lerp(Color3.fromRGB(150, 170, 190), rng.NextNumber(0.1, 0.35));
