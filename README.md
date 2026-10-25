@@ -63,12 +63,13 @@ For a genuine mission smoke test, launch through the menu in Studio, then run `t
 
 ## Blender aircraft
 
-The original Kestrel fighter lives in `assets/aircraft/kestrel.blend`, with FBX/GLB exports and preview renders alongside it. Regenerate the assets with:
+The player's Kestrel fighter and the enemy Vanta interceptor live in `assets/aircraft/`, with editable Blender files, FBX/GLB exports, and preview renders. See [the aircraft asset guide](docs/aircraft-assets.md) for the complete import workflow and engine pitfalls. Regenerate the assets with:
 
 ```sh
 /Applications/Blender.app/Contents/MacOS/Blender --background --python tools/build-aircraft.py
+/Applications/Blender.app/Contents/MacOS/Blender --background --python tools/build-enemy-aircraft.py
 ```
 
-The export contains 3,684 triangles across seven material meshes. `bun run build` packages its exact vertices, faces, and corner normals as server-only data. Roblox generates reusable static mesh content from that data when the server starts, then replicates the aircraft to players. This path needs no API key or local HTTP server. The normal aircraft remains a fallback if Roblox makes mesh generation unavailable.
+Kestrel has 3,684 triangles and Vanta has 3,840; each uses seven material meshes. `bun run build` packages its exact vertices, faces, and corner normals as server-only data. Roblox generates reusable static mesh content from that data when the server starts, then replicates the aircraft to players. This path needs no API key or local HTTP server. The normal aircraft remains a fallback if Roblox makes mesh generation unavailable.
 
 Studio's documented `CreateAssetAsync` upload route currently reports “not available yet” in this installation, so the project does not depend on that upload API. The FBX is also ready for Studio's manual 3D Importer.

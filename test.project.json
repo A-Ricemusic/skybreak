@@ -46,6 +46,9 @@
       },
       "KestrelGeometry": {
         "$path": "build/KestrelGeometry.txt"
+      },
+      "VantaGeometry": {
+        "$path": "build/VantaGeometry.txt"
       }
     }
   }
