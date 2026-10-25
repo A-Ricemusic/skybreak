@@ -26,3 +26,59 @@ On failure or completion, cleanup independently attempts to release every simula
 `bun run build` and standalone Luau compilation of the built controller and harness passed. In Studio, injecting the harness with no mission produced the expected `ReadinessTimeout` report after 10 seconds, with cleanup successful. Two subsequent menu-launched missions passed every report check with three server-reported kills and health 100: one injected after activation with Xbox simulation, and one injected 1.5 seconds before the launch click to exercise the original readiness race. The latter also ran with Xbox simulation after launch. The runs issued 9 and 7 R2 commands respectively; these count commands, not accepted missiles. Gamepad1 connection and `PreferredInput=Gamepad` were observed. Device simulation was reset and Play stopped afterward.
 
 References: [Controller Emulator](https://create.roblox.com/docs/studio/controller-emulator), [VirtualInput](https://create.roblox.com/docs/reference/engine/classes/VirtualInput), [Device Simulator API](https://create.roblox.com/docs/reference/engine/classes/StudioDeviceSimulatorService).
+
+## Twin-stick touch QA (2026-10-25)
+
+Touch now uses two 96px sticks. Left steers; right up/down adjusts selected
+throttle with the existing RS 18% vertical deadzone and 40 percentage points/sec
+rate. Neutral/release holds the selection and recenters the knob. The percent
+readout and UP / ACCEL, DOWN / SLOW labels replace the tap +/- pill. FIRE/TGT/
+SPECIAL occupy the lane between sticks, with a stacked arrangement in portrait.
+Extremely short safe roots (under 176px) use 44px action buttons while preserving
+both 96px sticks. CoreUISafeInsets still supplies the safe root bounds.
+
+Each stick owns one independent InputObject. Extra fingers cannot take over a
+held stick; ending/cancelling one leaves the other held. Per-touch state signals
+and global end/cancel handling release ownership. Focus loss, text entry, Roblox
+menu opening, mission exit/death, viewport changes and accepted input-mode changes
+clear touch axes and recenter both knobs. Hybrid mode changes wait until both
+owned touches release. The controller updates throttle in its existing render
+step without a new per-frame allocation or React state update; the existing
+10Hz HUD sampler refreshes percent text. Keyboard/gamepad mappings, server
+validation, targeting and flight physics are unchanged.
+
+To reproduce controller checks, launch a mission through the normal menu, then
+inject `tools/playtest-touch-throttle.client.luau` as a normal client LocalScript.
+Inspect `PlayerScripts.SkybreakTwinStickQA` for `Outcome="Passed"`. It checks up,
+down, neutral, deadzone, independent steering and actual TextBox focus cleanup.
+It uses the production touch controller API below GUI dispatch. Run alone, with
+no other input driver. The script makes throttle headroom using legal held-axis
+input when rerun after a full-power drag; it does not teleport, change health,
+award kills or alter server mission state.
+
+Live production Play used normal menu clicks and the iPhone 13 simulator.
+Measured safe roots: landscape 749x330 and portrait 388x704. Normal mouse-driven
+simulated-touch drags moved the right knob to -30px, produced axis 0.9191 and
+increased throttle; down decreased selection from 100% to 81.29%; release gave
+axis 0, centered the knob and held selection. A normal left-stick drag also
+moved its knob, independently of the new throttle UI. The corrected controller
+harness passed at initial 63.26%, final 63.11%, including neutral and focus tests.
+The custom compact device measured 319x161, exposing a shorter safe root than
+the previous 319x181 matrix; layout tests now cover both plus 320x160 and 560x161.
+
+Automated engine tests exercise both touch begin/release orders, extra fingers,
+single-owner cancellation semantics, reset/reacquisition, throttle deadzone/rate
+and viewport separation. These are shared ownership/layout tests, not two real
+fingers dispatched by the engine. Public VirtualInput has no touch injection;
+VirtualInputManager:SendTouchEvent was rejected with "lacking capability
+RobloxScript". No physical phone, simultaneous physical multitouch, published
+server, thumb reach or device performance claim is made. Test phone interaction
+with both sticks held, a third finger on actions, OS interruption and orientation
+changes before accepting physical-device behavior.
+
+Final validation: `bun run test:roblox` passed **260/260 tests, 23/23 suites**
+in the isolated Studio CLI test place (16.708 seconds). An earlier CLI launch
+timed out before execution with several Studio instances open; full-suite runs
+in an existing Edit session also passed before the compact-root expansion.
+`bun run build:place` and `git diff --check` passed. Production mapping excludes
+test modules.

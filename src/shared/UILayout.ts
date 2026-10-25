@@ -13,15 +13,11 @@ export const MIN_TOUCH_TARGET = 44;
 
 export interface TouchLayout {
 	joystick: Rectangle;
-	/** Hit area of the throttle (two 44px buttons plus the readout). */
+	/** Right analog stick, including its up/down and percent labels. */
 	throttle: Rectangle;
-	/** Visible slim pill, vertically centred inside `throttle`. */
-	throttlePill: Rectangle;
-	/** Always false: the throttle is a horizontal "−  65%  +" pill. Kept for callers. */
-	throttleVertical: boolean;
 	missile: Rectangle;
 	target: Rectangle;
-	/** Second weapon slot button: above TGT in the right column, or beside TGT on compact roots. */
+	/** Second weapon slot button: beside FIRE, or beside TGT on narrow roots. */
 	special: Rectangle;
 }
 
@@ -91,8 +87,6 @@ export const JOYSTICK_SIZE = 96;
 export const FIRE_SIZE = 64;
 export const TARGET_SIZE = 48;
 export const SPECIAL_SIZE = 48;
-export const THROTTLE_WIDTH = 112;
-export const THROTTLE_PILL_HEIGHT = 32;
 /** Root heights at or below this use the compact (Studio 320x182) arrangement. */
 export const COMPACT_MAX_HEIGHT = 200;
 
@@ -122,8 +116,7 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 	const width = math.max(1, viewportWidth);
 	const height = math.max(1, viewportHeight);
 	const compact = isCompactHud(width, height);
-	const portrait = height > width;
-	const margin = compact ? 6 : height < 300 ? 10 : height < 500 || width < 700 ? 14 : 22;
+	const margin = compact || width <= 320 ? 6 : height < 300 ? 10 : height < 500 || width < 700 ? 14 : 22;
 	const gap = compact ? 6 : 8;
 	// Touch controls keep a wider gap so a thumb on one cannot brush the next.
 	const controlGap = compact ? 6 : 12;
@@ -139,51 +132,25 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 
 	if (inputMode === "touch") {
 		const joystick = { x: margin, y: height - margin - JOYSTICK_SIZE, width: JOYSTICK_SIZE, height: JOYSTICK_SIZE };
-		// FIRE in the bottom-right corner with TGT centred directly above it, so
-		// the right cluster is one narrow column hugging the screen edge.
-		const missile = { x: width - margin - FIRE_SIZE, y: height - margin - FIRE_SIZE, width: FIRE_SIZE, height: FIRE_SIZE };
-		const target = {
-			x: missile.x + (FIRE_SIZE - TARGET_SIZE) / 2,
-			y: missile.y - controlGap - TARGET_SIZE,
-			width: TARGET_SIZE,
-			height: TARGET_SIZE,
-		};
-		// SPECIAL continues the right column above TGT. The compact root has no room
-		// above TGT (it would reach the clock), so there it sits beside TGT instead.
-		const special = compact
-			? { x: target.x - controlGap - SPECIAL_SIZE, y: target.y, width: SPECIAL_SIZE, height: SPECIAL_SIZE }
-			: { x: target.x, y: target.y - controlGap - SPECIAL_SIZE, width: SPECIAL_SIZE, height: SPECIAL_SIZE };
-		// Landscape stacks the throttle above the stick (a narrow left column,
-		// outside the forward view). Portrait, compact and very narrow roots put
-		// it in the bottom row between the stick and FIRE when it fits there.
-		const laneLeft = joystick.x + joystick.width + gap;
-		const laneRight = missile.x - gap;
-		const columnFits = margin + THROTTLE_WIDTH <= width * 0.25;
-		const throttleInLane = (portrait || compact || !columnFits) && laneRight - laneLeft >= THROTTLE_WIDTH;
-		const throttle = throttleInLane
-			? { x: math.floor(laneLeft + (laneRight - laneLeft - THROTTLE_WIDTH) / 2), y: height - margin - MIN_TOUCH_TARGET, width: THROTTLE_WIDTH, height: MIN_TOUCH_TARGET }
-			: { x: margin, y: joystick.y - controlGap - MIN_TOUCH_TARGET, width: THROTTLE_WIDTH, height: MIN_TOUCH_TARGET };
-		const throttlePill = {
-			x: throttle.x,
-			y: throttle.y + (MIN_TOUCH_TARGET - THROTTLE_PILL_HEIGHT) / 2,
-			width: THROTTLE_WIDTH,
-			height: THROTTLE_PILL_HEIGHT,
-		};
-		let alert: Rectangle;
-		const alertLaneLeft = math.max(laneLeft, throttleInLane ? 0 : throttle.x + throttle.width + gap);
-		if (!throttleInLane && laneRight - alertLaneLeft >= 120) {
-			// Bottom lane between the stick column and FIRE, far below the bracket.
-			const alertWidth = math.min(ALERT_MAX_WIDTH, laneRight - alertLaneLeft);
-			const x = math.clamp(math.floor((width - alertWidth) / 2), alertLaneLeft, laneRight - alertWidth);
-			alert = { x, y: height - margin - ALERT_HEIGHT, width: alertWidth, height: ALERT_HEIGHT };
-		} else {
-			// Just above the throttle, the only control reaching into the lane
-			// between the stick and FIRE.
-			const alertWidth = math.min(ALERT_MAX_WIDTH, laneRight - laneLeft);
-			alert = centered(width, alertWidth, throttle.y - gap - ALERT_HEIGHT, ALERT_HEIGHT);
-			alert.x = math.clamp(alert.x, laneLeft, laneRight - alertWidth);
-		}
-		return { margin, alert, callout, timer, status, flightStatus, navigation, touch: { joystick, throttle, throttlePill, throttleVertical: false, missile, target, special } };
+		const throttle = { ...joystick, x: width - margin - JOYSTICK_SIZE };
+		const laneLeft = joystick.x + JOYSTICK_SIZE + controlGap;
+		const laneRight = throttle.x - controlGap;
+		const stacked = laneRight - laneLeft < FIRE_SIZE + TARGET_SIZE + SPECIAL_SIZE + controlGap * 2;
+		const fireSize = height < 176 ? MIN_TOUCH_TARGET : FIRE_SIZE;
+		const targetSize = height < 176 ? MIN_TOUCH_TARGET : TARGET_SIZE;
+		const missile = centered(width, fireSize, height - margin - fireSize, fireSize);
+		if (!stacked) missile.x = laneRight - targetSize - controlGap - fireSize;
+		const target = stacked
+			? { x: math.floor(width / 2 - controlGap / 2 - targetSize), y: missile.y - controlGap - targetSize, width: targetSize, height: targetSize }
+			: { x: missile.x - controlGap - targetSize, y: missile.y + fireSize - targetSize, width: targetSize, height: targetSize };
+		const special = { ...target, x: stacked ? math.floor(width / 2 + controlGap / 2) : missile.x + fireSize + controlGap };
+		// The tiny Studio root needs its alert between the top texts and actions.
+		// Other roots reserve a full-width text row above the bottom control lane.
+		if (compact) { navigation.width = JOYSTICK_SIZE; navigation.height = math.min(NAVIGATION_CAPTION_HEIGHT, joystick.y - navigation.y - 3); }
+		const alert = compact
+			? centered(width, laneRight - laneLeft, 38, ALERT_HEIGHT)
+			: centered(width, math.min(ALERT_MAX_WIDTH, width - margin * 2), math.min(joystick.y, target.y) - gap - ALERT_HEIGHT, ALERT_HEIGHT);
+		return { margin, alert, callout, timer, status, flightStatus, navigation, touch: { joystick, throttle, missile, target, special } };
 	}
 
 	const hintsHeight = 18;
@@ -234,6 +201,7 @@ export function getToastLayout(viewportWidth: number, viewportHeight: number, me
 	}
 	if (menu) return centered(width, math.min(380, width - 28), 14, toastHeight);
 	const hud = getHudLayout(viewportWidth, viewportHeight, "keyboard");
+	if (isCompactHud(viewportWidth, viewportHeight)) return { x: width - hud.margin - JOYSTICK_SIZE, y: 38, width: JOYSTICK_SIZE, height: ALERT_HEIGHT };
 	// In a mission the toast lives in the top row between the objective and the
 	// clock, so it never enters the forward view. If that span is too narrow
 	// (portrait phones), it drops below the top texts instead.
@@ -243,6 +211,12 @@ export function getToastLayout(viewportWidth: number, viewportHeight: number, me
 	if (right - left >= 140) {
 		const toastWidth = math.min(380, right - left);
 		return { x: left + math.floor((right - left - toastWidth) / 2), y: hud.callout.y, width: toastWidth, height: missionToastHeight };
+	}
+	// Narrow roots use the space beside navigation, keeping transient notices
+	// above the twin-stick warning/action lane.
+	const besideNavigation = hud.navigation.x + hud.navigation.width + 8;
+	if (width - hud.margin - besideNavigation >= 140) {
+		return { x: besideNavigation, y: hud.navigation.y, width: width - hud.margin - besideNavigation, height: missionToastHeight };
 	}
 	const alertStackedOnTop = hud.alert.y + hud.alert.height <= math.max(1, viewportHeight) / 2;
 	const bannerBottom = math.max(
@@ -323,7 +297,7 @@ export function getFlightHints(inputMode: InputMode, context: FlightHintContext)
 
 /** Mission 1 training copy, short enough for the one-line objective (<= TUTORIAL_MAX_CHARS). */
 export function getTutorialInstruction(step: string | undefined, mode: InputMode): string {
-	if (step === "move") return mode === "touch" ? "Stick: turn and pitch" : mode === "gamepad" ? "LS fly · RS up+/down- throttle" : "WASD fly · Q/E throttle";
+	if (step === "move") return mode === "touch" ? "L: fly / R: up-down throttle" : mode === "gamepad" ? "LS fly · RS up+/down- throttle" : "WASD fly · Q/E throttle";
 	if (step === "target") return mode === "touch" ? "Tap TGT to select the radar" : mode === "gamepad" ? "Press Y to select the radar" : "Press Tab to select the radar";
 	if (step === "missile") return mode === "touch" ? "Hold the lock, then tap FIRE" : mode === "gamepad" ? "Hold the lock, then press RT" : "Hold the lock, then press Space";
 	return "";

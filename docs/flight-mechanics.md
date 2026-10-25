@@ -15,7 +15,10 @@ Full throttle and a lowered nose restore speed and authority if altitude remains
 Right-stick forward/up increases selected throttle, back/down reduces it.
 An 18% vertical deadzone is rescaled outside the deadzone; full travel adjusts
 40 percentage points/second. Neutral holds the setting. LB/RB and Q/E still
-adjust throttle, Shift temporarily commands full power, and touch +/- remains.
+adjust throttle and Shift temporarily commands full power. The right touch stick
+uses the same deadzone and rate: up accelerates, down decelerates, and release
+recenters the knob while holding the selected percentage. Left touch steering
+remains independent; a third finger can press FIRE, TGT or SPECIAL.
 The HUD displays actual speed and the selected throttle (Shift is a temporary
 override). Start resets to 65%; stop, focus loss, text entry, gamepad disconnect
 and input cancellation clear held controls without resetting a selected setting.

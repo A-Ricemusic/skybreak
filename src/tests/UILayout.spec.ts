@@ -57,6 +57,9 @@ const HUD_VIEWPORTS: [number, number][] = [
 const COMPACT_VIEWPORTS: [number, number][] = [
 	[320, 182],
 	[319, 181],
+	[319, 161],
+	[320, 160],
+	[560, 161],
 ];
 
 const MODES: InputMode[] = ["touch", "keyboard", "gamepad"];
@@ -111,25 +114,22 @@ describe("minimal mission HUD layout", () => {
 			const touch = getHudLayout(width, height, "touch").touch!;
 			expect(touch.joystick.width).toBe(JOYSTICK_SIZE);
 			expect(touch.joystick.height).toBe(JOYSTICK_SIZE);
-			expect(touch.missile.width).toBe(FIRE_SIZE);
-			expect(touch.target.width).toBe(TARGET_SIZE);
+			expect(touch.missile.width).toBe(height < 176 ? MIN_TOUCH_TARGET : FIRE_SIZE);
+			expect(touch.target.width).toBe(height < 176 ? MIN_TOUCH_TARGET : TARGET_SIZE);
 			expect(JOYSTICK_SIZE).toBe(96);
 			expect(FIRE_SIZE).toBe(64);
 			expect(TARGET_SIZE).toBe(48);
-			expect(touch.special.width).toBe(SPECIAL_SIZE);
-			expect(touch.special.height).toBe(SPECIAL_SIZE);
+			expect(touch.special.width).toBe(height < 176 ? MIN_TOUCH_TARGET : SPECIAL_SIZE);
+			expect(touch.special.height).toBe(height < 176 ? MIN_TOUCH_TARGET : SPECIAL_SIZE);
 			for (const control of [touch.joystick, touch.throttle, touch.missile, touch.target, touch.special]) {
 				expect(control.width).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
 				expect(control.height).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
 			}
-			// A slim 32px pill; its two 44px buttons overhang it vertically.
-			expect(touch.throttleVertical).toBe(false);
-			expect(touch.throttlePill.height).toBe(32);
-			expect(touch.throttlePill.width).toBe(touch.throttle.width);
-			expect(touch.throttle.width).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET * 2 + 24);
-			expect(touch.throttlePill.y).toBeGreaterThanOrEqual(touch.throttle.y);
-			expect(touch.throttlePill.y + touch.throttlePill.height).toBeLessThanOrEqual(touch.throttle.y + touch.throttle.height);
-			expect(touch.missile.width).toBeGreaterThan(touch.target.width);
+			expect(touch.throttle.width).toBe(JOYSTICK_SIZE);
+			expect(touch.throttle.height).toBe(JOYSTICK_SIZE);
+			expect(touch.throttle.x).toBeGreaterThan(width / 2);
+			expect(touch.throttle.y).toBe(touch.joystick.y);
+			expect(touch.missile.width).toBeGreaterThanOrEqual(touch.target.width);
 		}
 	});
 
@@ -168,11 +168,11 @@ describe("minimal mission HUD layout", () => {
 		expect(box).toEqual({ x: 250, y: 100, width: 500, height: 300 });
 	});
 
-	it("leaves the central forward view empty except for the alert text", () => {
+	it("keeps top texts and non-touch HUD out of the forward view; touch actions use the bottom lane", () => {
 		for (const [width, height] of [...HUD_VIEWPORTS, [568, 320], [390, 844], [320, 568], [1024, 768], [1920, 1080]] as [number, number][]) {
 			const centre = getHudCentreBox(width, height);
 			for (const mode of MODES) {
-				for (const rectangle of hudRectangles(getHudLayout(width, height, mode), false)) {
+				for (const rectangle of mode === "touch" ? [getHudLayout(width, height, mode).callout, getHudLayout(width, height, mode).timer, getHudLayout(width, height, mode).status] : hudRectangles(getHudLayout(width, height, mode), false)) {
 					expect(rectanglesOverlap(rectangle, centre)).toBe(false);
 				}
 			}
@@ -181,7 +181,7 @@ describe("minimal mission HUD layout", () => {
 		}
 	});
 
-	it("puts the alert as one line of text at the bottom-centre, below the forward view", () => {
+	it("centres a short warning above the controls or non-touch hint row", () => {
 		for (const [width, height] of [...HUD_VIEWPORTS, [568, 320], [390, 844], [320, 568], [1024, 768], [1920, 1080]] as [number, number][]) {
 			for (const mode of MODES) {
 				const layout = getHudLayout(width, height, mode);
@@ -191,37 +191,22 @@ describe("minimal mission HUD layout", () => {
 				expect(alert.height).toBeLessThanOrEqual(20);
 				const centreX = alert.x + alert.width / 2;
 				expect(math.abs(centreX - width / 2)).toBeLessThanOrEqual(width * 0.1);
-				expect(alert.y).toBeGreaterThanOrEqual(height * 0.8);
+				if (mode !== "touch") expect(alert.y).toBeGreaterThanOrEqual(height * 0.8);
 				// Directly above the hint row on keyboard and gamepad.
 				if (layout.hints) expect(layout.hints.y - (alert.y + alert.height)).toBeLessThanOrEqual(8);
 			}
 		}
 	});
 
-	it("puts the touch alert in the bottom lane between the stick and FIRE on landscape phones", () => {
-		for (const [width, height] of HUD_VIEWPORTS) {
-			if (height > width) continue;
+	it("keeps combat buttons in the lane between independent sticks", () => {
+		for (const [width, height] of [...HUD_VIEWPORTS, ...COMPACT_VIEWPORTS, ...VIEWPORTS]) {
 			const layout = getHudLayout(width, height, "touch");
 			const touch = layout.touch!;
-			expect(layout.alert.y + layout.alert.height).toBe(height - layout.margin);
-			expect(layout.alert.x).toBeGreaterThan(math.max(touch.joystick.x + touch.joystick.width, touch.throttle.x + touch.throttle.width));
-			expect(layout.alert.x + layout.alert.width).toBeLessThan(math.min(touch.missile.x, touch.target.x));
-		}
-	});
-
-	it("stacks the SPECIAL button in the right column above TGT, or beside TGT on compact roots", () => {
-		for (const [width, height] of [...HUD_VIEWPORTS, ...VIEWPORTS]) {
-			const touch = getHudLayout(width, height, "touch").touch!;
-			expect(touch.special.x).toBe(touch.target.x);
-			expect(touch.special.y + touch.special.height).toBeLessThan(touch.target.y);
-		}
-		for (const [width, height] of COMPACT_VIEWPORTS) {
-			const layout = getHudLayout(width, height, "touch");
-			const touch = layout.touch!;
-			expect(touch.special.y).toBe(touch.target.y);
-			expect(touch.special.x + touch.special.width).toBeLessThan(touch.target.x);
-			// Never up against the clock or the status line.
-			expect(touch.special.y).toBeGreaterThan(layout.status.y + layout.status.height);
+			for (const button of [touch.missile, touch.target, touch.special]) {
+				expect(button.x).toBeGreaterThan(touch.joystick.x + touch.joystick.width);
+				expect(button.x + button.width).toBeLessThan(touch.throttle.x);
+			}
+			expectSeparate([layout.alert, touch.joystick, touch.throttle, touch.missile, touch.target, touch.special]);
 		}
 	});
 
@@ -237,12 +222,12 @@ describe("minimal mission HUD layout", () => {
 		}
 	});
 
-	it("keeps the touch controls under 12% of a landscape phone screen", () => {
+	it("keeps the touch controls under 15% of a landscape phone screen", () => {
 		for (const [width, height] of [[706, 267], [750, 332], [844, 390]] as [number, number][]) {
 			const touch = getHudLayout(width, height, "touch").touch!;
-			let area = touch.throttlePill.width * touch.throttlePill.height;
+			let area = touch.throttle.width * touch.throttle.height;
 			for (const control of [touch.joystick, touch.missile, touch.target, touch.special]) area += control.width * control.height;
-			expect(area / (width * height)).toBeLessThan(0.12);
+			expect(area / (width * height)).toBeLessThan(0.15);
 		}
 	});
 
