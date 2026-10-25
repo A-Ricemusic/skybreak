@@ -13,7 +13,11 @@ export const MIN_TOUCH_TARGET = 44;
 
 export interface TouchLayout {
 	joystick: Rectangle;
+	/** Hit area of the throttle (two 44px buttons plus the readout). */
 	throttle: Rectangle;
+	/** Visible slim pill, vertically centred inside `throttle`. */
+	throttlePill: Rectangle;
+	/** Always false: the throttle is a horizontal "−  65%  +" pill. Kept for callers. */
 	throttleVertical: boolean;
 	missile: Rectangle;
 	target: Rectangle;
@@ -21,15 +25,16 @@ export interface TouchLayout {
 
 export interface HudLayout {
 	margin: number;
-	/** Incoming-missile / airspace pill. Bottom-centre between the control clusters
-	 * (or just above them when the lane is too narrow); stacked under the
-	 * objective only on compact landscape viewports. */
+	/** One line of warning text, bottom-centre just above the touch lane or the hint row. */
 	alert: Rectangle;
-	/** Objective panel, anchored to the top-left of the CoreUI-safe area. */
+	/** One objective line, top-left of the CoreUI-safe area. */
 	callout: Rectangle;
-	/** Mission clock chip, top-right of the safe area. */
+	/** Mission clock text, top-right. */
 	timer: Rectangle;
+	/** "HULL 87 · MSL 8" text directly under the clock. */
 	status: Rectangle;
+	/** Fixed slot for the navigation caption when no floating spot fits (under the objective). */
+	navigation: Rectangle;
 	/** Keyboard and gamepad only; touch players read the controls themselves. */
 	hints?: Rectangle;
 	/** Touch only; never laid out for keyboard or gamepad play. */
@@ -64,132 +69,116 @@ const centered = (viewportWidth: number, width: number, y: number, height: numbe
 	height,
 });
 
-/** Widest the objective panel may grow on large screens. */
+/** The objective line never takes more than this share of the root width. */
+export const OBJECTIVE_MAX_SHARE = 0.38;
 export const OBJECTIVE_MAX_WIDTH = 340;
-export const TIMER_CHIP_WIDTH = 60;
-export const TIMER_CHIP_HEIGHT = 22;
+export const OBJECTIVE_LINE_HEIGHT = 16;
+/** Tutorial copy must fit the single objective line. */
+export const TUTORIAL_MAX_CHARS = 34;
+export const TIMER_WIDTH = 48;
+export const TIMER_HEIGHT = 14;
+export const STATUS_WIDTH = 120;
+export const STATUS_HEIGHT = 13;
 export const ALERT_MAX_WIDTH = 220;
-export const ALERT_MIN_WIDTH = 120;
+export const ALERT_HEIGHT = 18;
+export const NAVIGATION_CAPTION_WIDTH = 120;
+export const NAVIGATION_CAPTION_HEIGHT = 28;
+export const JOYSTICK_SIZE = 96;
+export const FIRE_SIZE = 64;
+export const TARGET_SIZE = 48;
+export const THROTTLE_WIDTH = 112;
+export const THROTTLE_PILL_HEIGHT = 32;
+/** Root heights at or below this use the compact (Studio 320x182) arrangement. */
+export const COMPACT_MAX_HEIGHT = 200;
 
 /**
- * Where enemies, the target bracket and the reticle live while flying: the
- * middle 40% of the width between 12% and 55% of the height. Nothing in the
- * mission HUD may be reserved here on regular (non-compact) viewports.
+ * The forward view: the central 50% of the width and 60% of the height. Only
+ * the target bracket, the navigation cue and the alert text may appear here.
  */
 export function getHudCentreBox(viewportWidth: number, viewportHeight: number): Rectangle {
 	const width = math.max(1, viewportWidth);
 	const height = math.max(1, viewportHeight);
-	const x = math.floor(width * 0.3);
-	const y = math.floor(height * 0.12);
-	return { x, y, width: math.ceil(width * 0.7) - x, height: math.ceil(height * 0.55) - y };
+	const x = math.floor(width * 0.25);
+	const y = math.floor(height * 0.2);
+	return { x, y, width: math.ceil(width * 0.75) - x, height: math.ceil(height * 0.8) - y };
 }
 
-/** Landscape viewports too small for the regular touch layout (e.g. the 320x182 safe area). */
-export function isCompactHud(viewportWidth: number, viewportHeight: number): boolean {
-	const width = math.max(1, viewportWidth);
-	const height = math.max(1, viewportHeight);
-	return height <= width && (width < 360 || height < 280);
+/**
+ * Only roots at most 200pt tall (the 320x182 Studio safe area). Real phones in
+ * landscape lose their top inset to CoreUISafeInsets (an iPhone becomes about
+ * 706x267) and must still get the regular layout.
+ */
+export function isCompactHud(_viewportWidth: number, viewportHeight: number): boolean {
+	return math.max(1, viewportHeight) <= COMPACT_MAX_HEIGHT;
 }
 
 /** Pure layout calculation shared by the React HUD and Roblox Jest tests. */
 export function getHudLayout(viewportWidth: number, viewportHeight: number, inputMode: InputMode): HudLayout {
 	const width = math.max(1, viewportWidth);
 	const height = math.max(1, viewportHeight);
-	const shortSafeArea = height < 240;
-	const margin = shortSafeArea ? 6 : width < 700 || height < 420 ? 14 : 22;
-	const gap = shortSafeArea ? 4 : 10;
 	const compact = isCompactHud(width, height);
-	const centre = getHudCentreBox(width, height);
-	// The ScreenGui uses CoreUISafeInsets with the topbar inset applied, so the
-	// origin is already below the Roblox system buttons and clear of any notch.
-	// The clock is a small chip in the top-right corner of that safe area and
-	// the objective is a compact panel in the top-left; neither spans the
-	// forward view where enemies and the target bracket appear.
-	const timer = { x: width - margin - TIMER_CHIP_WIDTH, y: margin, width: TIMER_CHIP_WIDTH, height: TIMER_CHIP_HEIGHT };
-	const besideTimer = timer.x - gap - margin;
-	let calloutWidth: number;
-	let calloutHeight: number;
-	if (compact) {
-		// Every pixel counts at 320x182: use the whole row beside the clock.
-		calloutWidth = besideTimer;
-		calloutHeight = shortSafeArea ? 46 : 50;
-	} else {
-		// Eyebrow + two objective lines need 50px. If that would reach down into
-		// the centre box (every landscape phone), the panel stops at the box's
-		// left edge instead. Portrait has the room above the box to stay wide.
-		const clearsCentre = height > width || margin + 50 <= centre.y;
-		calloutWidth = math.min(OBJECTIVE_MAX_WIDTH, besideTimer, clearsCentre ? besideTimer : math.max(120, centre.x - margin));
-		// Narrow panels (small landscape phones) get a third objective line.
-		calloutHeight = calloutWidth < 200 ? 62 : 50;
-	}
-	const callout = { x: margin, y: margin, width: calloutWidth, height: calloutHeight };
-	// Compact screens have no free bottom lane between the controls, so the
-	// pill stacks under the objective there (as before) at a reduced width.
-	const compactAlertHeight = shortSafeArea ? 24 : 28;
-	const compactAlert = centered(width, math.min(ALERT_MAX_WIDTH, width - margin * 2), callout.y + callout.height + gap, compactAlertHeight);
-	const alertHeight = 28;
+	const portrait = height > width;
+	const margin = compact ? 6 : height < 300 ? 10 : height < 500 || width < 700 ? 14 : 22;
+	const gap = compact ? 6 : 8;
+	// The ScreenGui uses CoreUISafeInsets, so the origin is already below the
+	// Roblox system buttons and clear of any notch. Top row: the objective line
+	// on the left; the clock with hull/missiles under it on the right. Text only.
+	const timer = { x: width - margin - TIMER_WIDTH, y: margin, width: TIMER_WIDTH, height: TIMER_HEIGHT };
+	const status = { x: width - margin - STATUS_WIDTH, y: timer.y + timer.height + 2, width: STATUS_WIDTH, height: STATUS_HEIGHT };
+	const calloutWidth = math.max(0, math.min(OBJECTIVE_MAX_WIDTH, math.floor(width * OBJECTIVE_MAX_SHARE), status.x - gap - margin));
+	const callout = { x: margin, y: margin, width: calloutWidth, height: OBJECTIVE_LINE_HEIGHT };
+	const navigation = { x: margin, y: callout.y + callout.height + 2, width: NAVIGATION_CAPTION_WIDTH, height: NAVIGATION_CAPTION_HEIGHT };
 
 	if (inputMode === "touch") {
-		const portrait = height > width;
-		if (compact) {
-			// At the 320x240 minimum, the usual vertical throttle and stacked status
-			// compete with both the warning lane and the right-side target button.
-			// Use two compact rows instead: throttle/status immediately below the
-			// alert, then the primary controls along the bottom safe edge.
-			const alert = compactAlert;
-			const throttleLength = MIN_TOUCH_TARGET * 2 + 36;
-			const upperRowY = alert.y + alert.height + gap;
-			const throttle = { x: margin, y: upperRowY, width: throttleLength, height: MIN_TOUCH_TARGET };
-			const statusWidth = 128;
-			const statusHeight = 40;
-			const status = { x: width - margin - statusWidth, y: upperRowY, width: statusWidth, height: statusHeight };
-			const joystickSize = shortSafeArea ? MIN_TOUCH_TARGET : 64;
-			const joystick = { x: margin, y: height - margin - joystickSize, width: joystickSize, height: joystickSize };
-			const missileSize = shortSafeArea ? MIN_TOUCH_TARGET : 64;
-			const missile = { x: width - margin - missileSize, y: height - margin - missileSize, width: missileSize, height: missileSize };
-			const targetSize = MIN_TOUCH_TARGET;
-			const target = { x: missile.x - 14 - targetSize, y: height - margin - targetSize, width: targetSize, height: targetSize };
-			return { margin, alert, callout, timer, status, touch: { joystick, throttle, throttleVertical: false, missile, target } };
-		}
-		const joystickSize = portrait ? 120 : height < 420 ? 112 : 132;
-		const joystick = { x: margin, y: height - margin - joystickSize, width: joystickSize, height: joystickSize };
-		const throttleLength = MIN_TOUCH_TARGET * 2 + 36;
-		const throttle = portrait
-			? { x: margin, y: joystick.y - 10 - MIN_TOUCH_TARGET, width: math.max(joystickSize, throttleLength), height: MIN_TOUCH_TARGET }
-			: { x: joystick.x + joystickSize + 10, y: height - margin - throttleLength, width: MIN_TOUCH_TARGET, height: throttleLength };
-		const missileSize = height < 420 ? 72 : 84;
-		const missile = { x: width - margin - missileSize, y: height - margin - missileSize, width: missileSize, height: missileSize };
-		const targetSize = 52;
-		const target = { x: missile.x - 12 - targetSize, y: missile.y - 6, width: targetSize, height: targetSize };
-		const statusWidth = 128;
-		const statusHeight = 40;
-		const status = { x: width - margin - statusWidth, y: target.y - 10 - statusHeight, width: statusWidth, height: statusHeight };
-		// The alert pill prefers the bottom lane between the left (stick/throttle)
-		// and right (fire/target/status) clusters, far below the target bracket.
-		// Portrait phones have no such lane, so it sits just above the controls.
-		const laneLeft = math.max(joystick.x + joystick.width, throttle.x + throttle.width) + gap;
-		const laneRight = math.min(target.x, missile.x, status.x) - gap;
+		const joystick = { x: margin, y: height - margin - JOYSTICK_SIZE, width: JOYSTICK_SIZE, height: JOYSTICK_SIZE };
+		// FIRE in the bottom-right corner with TGT centred directly above it, so
+		// the right cluster is one narrow column hugging the screen edge.
+		const missile = { x: width - margin - FIRE_SIZE, y: height - margin - FIRE_SIZE, width: FIRE_SIZE, height: FIRE_SIZE };
+		const target = {
+			x: missile.x + (FIRE_SIZE - TARGET_SIZE) / 2,
+			y: missile.y - gap - TARGET_SIZE,
+			width: TARGET_SIZE,
+			height: TARGET_SIZE,
+		};
+		// Landscape stacks the throttle above the stick (a narrow left column,
+		// outside the forward view). Portrait, compact and very narrow roots put
+		// it in the bottom row between the stick and FIRE when it fits there.
+		const laneLeft = joystick.x + joystick.width + gap;
+		const laneRight = missile.x - gap;
+		const columnFits = margin + THROTTLE_WIDTH <= width * 0.25;
+		const throttleInLane = (portrait || compact || !columnFits) && laneRight - laneLeft >= THROTTLE_WIDTH;
+		const throttle = throttleInLane
+			? { x: math.floor(laneLeft + (laneRight - laneLeft - THROTTLE_WIDTH) / 2), y: height - margin - MIN_TOUCH_TARGET, width: THROTTLE_WIDTH, height: MIN_TOUCH_TARGET }
+			: { x: margin, y: joystick.y - gap - MIN_TOUCH_TARGET, width: THROTTLE_WIDTH, height: MIN_TOUCH_TARGET };
+		const throttlePill = {
+			x: throttle.x,
+			y: throttle.y + (MIN_TOUCH_TARGET - THROTTLE_PILL_HEIGHT) / 2,
+			width: THROTTLE_WIDTH,
+			height: THROTTLE_PILL_HEIGHT,
+		};
 		let alert: Rectangle;
-		if (laneRight - laneLeft >= ALERT_MIN_WIDTH) {
-			const alertWidth = math.min(ALERT_MAX_WIDTH, laneRight - laneLeft);
-			const x = math.clamp(math.floor((width - alertWidth) / 2), laneLeft, laneRight - alertWidth);
-			alert = { x, y: height - margin - alertHeight, width: alertWidth, height: alertHeight };
+		const alertLaneLeft = math.max(laneLeft, throttleInLane ? 0 : throttle.x + throttle.width + gap);
+		if (!throttleInLane && laneRight - alertLaneLeft >= 120) {
+			// Bottom lane between the stick column and FIRE, far below the bracket.
+			const alertWidth = math.min(ALERT_MAX_WIDTH, laneRight - alertLaneLeft);
+			const x = math.clamp(math.floor((width - alertWidth) / 2), alertLaneLeft, laneRight - alertWidth);
+			alert = { x, y: height - margin - ALERT_HEIGHT, width: alertWidth, height: ALERT_HEIGHT };
 		} else {
-			const controlsTop = math.min(joystick.y, throttle.y, missile.y, target.y, status.y);
-			alert = centered(width, math.min(ALERT_MAX_WIDTH, width - margin * 2), controlsTop - gap - alertHeight, alertHeight);
+			// Just above the throttle, the only control reaching into the lane
+			// between the stick and FIRE.
+			const alertWidth = math.min(ALERT_MAX_WIDTH, laneRight - laneLeft);
+			alert = centered(width, alertWidth, throttle.y - gap - ALERT_HEIGHT, ALERT_HEIGHT);
+			alert.x = math.clamp(alert.x, laneLeft, laneRight - alertWidth);
 		}
-		return { margin, alert, callout, timer, status, touch: { joystick, throttle, throttleVertical: !portrait, missile, target } };
+		return { margin, alert, callout, timer, status, navigation, touch: { joystick, throttle, throttlePill, throttleVertical: false, missile, target } };
 	}
 
-	const status = { x: width - margin - 150, y: height - margin - 40, width: 150, height: 40 };
-	const besideStatus = width - 2 * (margin + status.width + 12);
-	const hints = besideStatus >= 320
-		? centered(width, math.min(720, besideStatus), height - margin - 30, 30)
-		: centered(width, width - margin * 2, status.y - 10 - 30, 30);
-	// Keyboard/gamepad: the pill sits directly above the hint row, which also
+	const hintsHeight = 18;
+	const hints = centered(width, math.min(360, width - margin * 2), height - margin - hintsHeight, hintsHeight);
+	// Keyboard/gamepad: the warning sits directly above the hint row, which also
 	// carries the EVADE prompt while a missile is inbound.
-	const alert = compact ? compactAlert : centered(width, math.min(ALERT_MAX_WIDTH, width - margin * 2), hints.y - 8 - alertHeight, alertHeight);
-	return { margin, alert, callout, timer, status, hints };
+	const alert = centered(width, math.min(ALERT_MAX_WIDTH, width - margin * 2), hints.y - 2 - ALERT_HEIGHT, ALERT_HEIGHT);
+	return { margin, alert, callout, timer, status, navigation, hints };
 }
 
 /**
@@ -232,11 +221,17 @@ export function getToastLayout(viewportWidth: number, viewportHeight: number, me
 	}
 	if (menu) return centered(width, math.min(380, width - 28), 14, toastHeight);
 	const hud = getHudLayout(viewportWidth, viewportHeight, "keyboard");
-	// Below the top-row objective and clock; the alert only counts when it is
+	// Below the objective, navigation slot, clock and status; the alert only counts when it is
 	// stacked up there too (compact screens), not in its bottom lane.
 	const alertStackedOnTop = hud.alert.y + hud.alert.height <= math.max(1, viewportHeight) / 2;
-	const bannerBottom = math.max(hud.callout.y + hud.callout.height, hud.timer.y + hud.timer.height, alertStackedOnTop ? hud.alert.y + hud.alert.height : 0);
-	return centered(width, math.min(380, width - 28), bannerBottom + 8, toastHeight);
+	const bannerBottom = math.max(
+		hud.callout.y + hud.callout.height,
+		hud.status.y + hud.status.height,
+		hud.navigation.y + hud.navigation.height,
+		alertStackedOnTop ? hud.alert.y + hud.alert.height : 0,
+	);
+	// Half the width at most, so it stays clear of the stick column and TGT/FIRE.
+	return centered(width, math.min(380, math.floor(width * 0.5)), bannerBottom + 8, toastHeight);
 }
 
 /** Gamepad select/back hints: bottom-right beside the side panel, or just above the bottom sheet. */
@@ -279,28 +274,32 @@ export function getEvadeHint(inputMode: InputMode): ControlHint | undefined {
 	return undefined;
 }
 
-/** Bottom-of-screen hints: a short legend at launch, otherwise only what is actionable now. */
+/** Most hints shown at once in the bottom-centre row. */
+export const MAX_FLIGHT_HINTS = 2;
+
+/**
+ * Bottom-of-screen hints: a two-item legend at launch, otherwise only what is
+ * actionable now (FIRE while locked with a missile ready). Never more than two.
+ */
 export function getFlightHints(inputMode: InputMode, context: FlightHintContext): ControlHint[] {
 	if (inputMode === "touch") return [];
 	const gamepad = inputMode === "gamepad";
 	const fire: ControlHint = gamepad ? { keyCode: "ButtonR2", label: "RT", action: "FIRE" } : { label: "SPACE", action: "FIRE" };
-	if (context.introduction) {
-		const evade = getEvadeHint(inputMode)!;
-		const target: ControlHint = gamepad ? { keyCode: "ButtonY", label: "Y", action: "TARGET" } : { label: "TAB", action: "TARGET" };
-		return gamepad
-			? [{ keyCode: "Thumbstick1", label: "LS", action: "FLY" }, { keyCode: "ButtonL1", label: "LB", action: "SLOW" }, { keyCode: "ButtonR1", label: "RB", action: "FAST" }, fire, evade, target]
-			: [
-				{ label: "WASD", action: "FLY" },
-				{ label: "Q / E", action: "THROTTLE" },
-				{ label: "SHIFT", action: "BOOST" },
-				{ label: "RMB", action: "STEER" },
-				fire,
-				evade,
-				target,
-			];
-	}
 	if (context.locked && context.missileReady) return [fire];
+	if (context.introduction) {
+		const target: ControlHint = gamepad ? { keyCode: "ButtonY", label: "Y", action: "TARGET" } : { label: "TAB", action: "TARGET" };
+		const fly: ControlHint = gamepad ? { keyCode: "Thumbstick1", label: "LS", action: "FLY" } : { label: "WASD", action: "FLY" };
+		return [fly, target];
+	}
 	return [];
+}
+
+/** Mission 1 training copy, short enough for the one-line objective (<= TUTORIAL_MAX_CHARS). */
+export function getTutorialInstruction(step: string | undefined, mode: InputMode): string {
+	if (step === "move") return mode === "touch" ? "Stick: turn and pitch" : mode === "gamepad" ? "Left stick: turn and pitch" : "A/D turn · W/S pitch";
+	if (step === "target") return mode === "touch" ? "Tap TGT to select the radar" : mode === "gamepad" ? "Press Y to select the radar" : "Press Tab to select the radar";
+	if (step === "missile") return mode === "touch" ? "Hold the lock, then tap FIRE" : mode === "gamepad" ? "Hold the lock, then press RT" : "Hold the lock, then press Space";
+	return "";
 }
 
 export function rectanglesOverlap(a: Rectangle, b: Rectangle): boolean {

@@ -1,9 +1,22 @@
-import { HudLayout, Rectangle, rectangleInside, rectanglesOverlap } from "./UILayout";
+import { HudLayout, NAVIGATION_CAPTION_HEIGHT, NAVIGATION_CAPTION_WIDTH, Rectangle, rectangleInside, rectanglesOverlap } from "./UILayout";
 
-/** Always available in the objective row, even when no floating caption fits. */
+/** One-line summary of the route marker (bearing glyph, distance, constraints). */
 export function navigationSummary(distance:number,side:number,ceiling?:number,protectedHealth?:number):string {
 	const arrow=side<-.25 ? "‹" : side>.25 ? "›" : "◇";
 	return `${arrow} ${math.floor(distance)}m${ceiling!==undefined ? ` · ALT≤${ceiling}` : ""}${protectedHealth!==undefined ? ` · PROTECTED ${math.ceil(protectedHealth)}%` : ""}`;
+}
+
+/**
+ * The floating caption: a glyph and the distance only, plus a tiny second line
+ * when the volume, an altitude ceiling or a protected unit actually applies.
+ */
+export function navigationCaption(distance:number,side:number,inVolume:boolean,ceiling?:number,protectedHealth?:number):[string,string] {
+	const arrow=side<-.25 ? "‹" : side>.25 ? "›" : "◇";
+	const details:string[]=[];
+	if(inVolume)details.push("IN VOLUME");
+	if(ceiling!==undefined)details.push(`ALT≤${ceiling}`);
+	if(protectedHealth!==undefined)details.push(`PROTECTED ${math.ceil(protectedHealth)}%`);
+	return [`${arrow} ${math.floor(distance)}m`,details.join(" · ")];
 }
 
 /** Every HUD rectangle the floating caption must stay out of. Depends only on
@@ -18,7 +31,7 @@ export function navigationObstacles(hud:HudLayout): Rectangle[] {
 /** Screen projection is relative to the inset screen; labels live in a GUI parent.
  * Keep the full caption in that parent's measured safe bounds and out of HUD lanes. */
 export function placeNavigationCaption(screenX:number,screenY:number,originX:number,originY:number,width:number,height:number,hud:HudLayout,obstacles:Rectangle[]=navigationObstacles(hud)): Rectangle | undefined {
-	const w=148,h=48,gap=8;
+	const w=NAVIGATION_CAPTION_WIDTH,h=NAVIGATION_CAPTION_HEIGHT,gap=8;
 	if(width<w+gap*2 || height<h+gap*2)return undefined;
 	const pointX=screenX-originX,pointY=screenY-originY;
 	const wantedX=math.clamp(pointX-w/2,gap,width-gap-w);
@@ -38,4 +51,10 @@ export function placeNavigationCaption(screenX:number,screenY:number,originX:num
 		if(score<bestScore){best=candidate;bestScore=score;}
 	}
 	return best;
+}
+
+/** Guidance is never hidden: when no floating spot fits, the caption takes the
+ * fixed slot under the objective line. */
+export function navigationCaptionRect(screenX:number,screenY:number,originX:number,originY:number,width:number,height:number,hud:HudLayout,obstacles:Rectangle[]=navigationObstacles(hud)): Rectangle {
+	return placeNavigationCaption(screenX,screenY,originX,originY,width,height,hud,obstacles) ?? hud.navigation;
 }

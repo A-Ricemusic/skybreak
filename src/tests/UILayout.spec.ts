@@ -1,6 +1,7 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 
 import {
+	FIRE_SIZE,
 	getSlotListHeight,
 	getEvadeHint,
 	getFlightHints,
@@ -9,13 +10,19 @@ import {
 	getMenuHintsLayout,
 	getMenuLayout,
 	getToastLayout,
+	getTutorialInstruction,
 	inputModeFromInputType,
 	inputModeFromPreferred,
 	isCompactHud,
+	JOYSTICK_SIZE,
+	MAX_FLIGHT_HINTS,
 	MIN_TOUCH_TARGET,
 	rectangleInside,
 	rectanglesOverlap,
 	shouldAcceptInputModeChange,
+	TARGET_SIZE,
+	TUTORIAL_MAX_CHARS,
+	type HudLayout,
 	type InputMode,
 	type Rectangle,
 } from "../shared/UILayout";
@@ -30,15 +37,25 @@ const VIEWPORTS: [number, number][] = [
 	[1920, 1080],
 ];
 
-// Landscape phone safe areas, including the measured iPhone 13 (750x332) root.
-const PHONE_LANDSCAPE: [number, number][] = [
-	[480, 320],
-	[540, 300],
-	[568, 320],
-	[667, 375],
+// Real roots after CoreUISafeInsets: 560x240 (smallest supported), the iPhone
+// landscape that used to trip "compact" (706x267), the measured iPhone 13
+// (750x332), 844x390, portrait 390x705 and a 1280x720 desktop.
+const HUD_VIEWPORTS: [number, number][] = [
+	[560, 240],
+	[706, 267],
 	[750, 332],
 	[844, 390],
+	[390, 705],
+	[1280, 720],
 ];
+
+// The 320x240 Studio simulator after the topbar inset; the only compact roots.
+const COMPACT_VIEWPORTS: [number, number][] = [
+	[320, 182],
+	[319, 181],
+];
+
+const MODES: InputMode[] = ["touch", "keyboard", "gamepad"];
 
 function expectSeparate(rectangles: Rectangle[]) {
 	for (let first = 0; first < rectangles.size(); first++) {
@@ -48,191 +65,174 @@ function expectSeparate(rectangles: Rectangle[]) {
 	}
 }
 
+function hudRectangles(layout: HudLayout, includeAlert = true): Rectangle[] {
+	const rectangles = [layout.callout, layout.timer, layout.status, layout.navigation];
+	if (includeAlert) rectangles.push(layout.alert);
+	if (layout.hints) rectangles.push(layout.hints);
+	const touch = layout.touch;
+	if (touch) rectangles.push(touch.joystick, touch.throttle, touch.missile, touch.target);
+	return rectangles;
+}
+
 describe("minimal mission HUD layout", () => {
-	it("fits the measured safe area after the topbar reduces a 320x240 simulator",()=>{
-		for(const [width,height] of [[319,181],[320,182]])for(const mode of ["touch","keyboard","gamepad"] as InputMode[]) {
-			const layout=getHudLayout(width,height,mode),touch=layout.touch;
-			const rectangles=[layout.callout,layout.timer,layout.alert,layout.status];
-			if(layout.hints)rectangles.push(layout.hints);
-			if(touch)rectangles.push(touch.joystick,touch.throttle,touch.missile,touch.target);
-			expectSeparate(rectangles);
-			for(const rectangle of rectangles)expect(rectangleInside(rectangle,width,height,6)).toBe(true);
-			if(touch)for(const control of [touch.joystick,touch.throttle,touch.missile,touch.target]) {
-				expect(control.width).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
-				expect(control.height).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
+	it("reserves the compact layout for roots at most 200pt tall, never for real phones", () => {
+		for (const [width, height] of [...HUD_VIEWPORTS, ...VIEWPORTS]) expect(isCompactHud(width, height)).toBe(false);
+		for (const [width, height] of COMPACT_VIEWPORTS) expect(isCompactHud(width, height)).toBe(true);
+		expect(isCompactHud(706, 267)).toBe(false);
+		expect(isCompactHud(560, 201)).toBe(false);
+		expect(isCompactHud(560, 200)).toBe(true);
+	});
+
+	it("keeps every HUD element on screen and separate, in every input mode", () => {
+		for (const [width, height] of [...HUD_VIEWPORTS, ...COMPACT_VIEWPORTS, ...VIEWPORTS]) {
+			for (const mode of MODES) {
+				const layout = getHudLayout(width, height, mode);
+				const rectangles = hudRectangles(layout);
+				expectSeparate(rectangles);
+				for (const rectangle of rectangles) expect(rectangleInside(rectangle, width, height, layout.margin)).toBe(true);
 			}
 		}
 	});
+
 	it("lays out touch controls only for touch input", () => {
-		for (const [width, height] of VIEWPORTS) {
+		for (const [width, height] of [...HUD_VIEWPORTS, ...VIEWPORTS]) {
 			expect(getHudLayout(width, height, "touch").touch).toBeDefined();
 			expect(getHudLayout(width, height, "keyboard").touch).toBeUndefined();
 			expect(getHudLayout(width, height, "gamepad").touch).toBeUndefined();
 		}
 	});
 
-	it("keeps every touch control separate, on screen, and large enough to press", () => {
-		for (const [width, height] of VIEWPORTS) {
-			const layout = getHudLayout(width, height, "touch");
-			const touch = layout.touch!;
-			const controls = [touch.joystick, touch.throttle, touch.missile, touch.target];
-			expectSeparate([...controls, layout.status, layout.alert, layout.callout, layout.timer]);
-			for (const rectangle of [...controls, layout.status, layout.alert, layout.callout, layout.timer]) {
-				expect(rectangleInside(rectangle, width, height, 14)).toBe(true);
-			}
-			for (const control of [touch.joystick, touch.missile, touch.target]) {
+	it("uses small touch controls that are still at least 44px to press", () => {
+		for (const [width, height] of [...HUD_VIEWPORTS, ...COMPACT_VIEWPORTS, ...VIEWPORTS]) {
+			const touch = getHudLayout(width, height, "touch").touch!;
+			expect(touch.joystick.width).toBe(JOYSTICK_SIZE);
+			expect(touch.joystick.height).toBe(JOYSTICK_SIZE);
+			expect(touch.missile.width).toBe(FIRE_SIZE);
+			expect(touch.target.width).toBe(TARGET_SIZE);
+			expect(JOYSTICK_SIZE).toBe(96);
+			expect(FIRE_SIZE).toBe(64);
+			expect(TARGET_SIZE).toBe(48);
+			for (const control of [touch.joystick, touch.throttle, touch.missile, touch.target]) {
 				expect(control.width).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
 				expect(control.height).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
 			}
-			const throttleShort = touch.throttleVertical ? touch.throttle.width : touch.throttle.height;
-			const throttleLong = touch.throttleVertical ? touch.throttle.height : touch.throttle.width;
-			expect(throttleShort).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
-			expect(throttleLong).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET * 2 + 32);
+			// A slim 32px pill; its two 44px buttons overhang it vertically.
+			expect(touch.throttleVertical).toBe(false);
+			expect(touch.throttlePill.height).toBe(32);
+			expect(touch.throttlePill.width).toBe(touch.throttle.width);
+			expect(touch.throttle.width).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET * 2 + 24);
+			expect(touch.throttlePill.y).toBeGreaterThanOrEqual(touch.throttle.y);
+			expect(touch.throttlePill.y + touch.throttlePill.height).toBeLessThanOrEqual(touch.throttle.y + touch.throttle.height);
+			expect(touch.missile.width).toBeGreaterThan(touch.target.width);
 		}
 	});
 
-	it("keeps the missile button the most prominent touch action", () => {
-		const touch = getHudLayout(568, 320, "touch").touch!;
-		expect(touch.missile.width).toBeGreaterThan(touch.target.width);
-	});
-
-	it("uses compact rows only when a landscape viewport cannot fit the normal touch layout", () => {
-		const compact = getHudLayout(320, 240, "touch");
-		const compactTouch = compact.touch!;
-		expect(compactTouch.throttleVertical).toBe(false);
-		expect(compactTouch.throttle.y).toBeGreaterThanOrEqual(compact.alert.y + compact.alert.height);
-		expect(compact.status.y).toBe(compactTouch.throttle.y);
-		expect(compactTouch.joystick.width).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
-		expect(compactTouch.target.width).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
-
-		const normalPhone = getHudLayout(568, 320, "touch").touch!;
-		expect(normalPhone.throttleVertical).toBe(true);
-		expect(normalPhone.joystick.width).toBe(112);
-		expect(normalPhone.missile.width).toBe(72);
-		expect(normalPhone.target.width).toBe(52);
-	});
-
-	it("keeps keyboard and gamepad hints clear of the status readout", () => {
-		for (const mode of ["keyboard", "gamepad"] as InputMode[]) {
-			for (const [width, height] of [...VIEWPORTS, [480, 320] as [number, number]]) {
-				const layout = getHudLayout(width, height, mode);
-				expect(layout.hints).toBeDefined();
-				expectSeparate([layout.hints!, layout.status, layout.alert, layout.callout, layout.timer]);
-				expect(rectangleInside(layout.hints!, math.max(320, width), height, 14)).toBe(true);
-				expect(rectangleInside(layout.status, width, height, 14)).toBe(true);
-			}
-		}
-	});
-
-	it("anchors the objective callout at the top safe margin on every viewport and input mode", () => {
-		for (const [width, height] of VIEWPORTS) {
-			for (const mode of ["touch", "keyboard", "gamepad"] as InputMode[]) {
-				const layout = getHudLayout(width, height, mode);
-				expect(layout.callout.y).toBe(layout.margin);
-				// The callout must sit inside the top band of the usable viewport so it
-				// cannot cross the flight view, target bracket, or reticle (observed
-				// across phone landscape, portrait, and tablet simulations).
-				expect(layout.callout.y + layout.callout.height).toBeLessThanOrEqual(
-					math.max(240, height) * 0.28,
-				);
-			}
-		}
-	});
-
-	it("keeps the objective panel compact in the top-left corner", () => {
-		for (const [width, height] of [...VIEWPORTS, ...PHONE_LANDSCAPE]) {
-			for (const mode of ["touch", "keyboard", "gamepad"] as InputMode[]) {
+	it("keeps the objective to one short line in the top-left corner", () => {
+		for (const [width, height] of [...HUD_VIEWPORTS, ...COMPACT_VIEWPORTS, ...VIEWPORTS]) {
+			for (const mode of MODES) {
 				const layout = getHudLayout(width, height, mode);
 				expect(layout.callout.x).toBe(layout.margin);
-				expect(layout.callout.width).toBeLessThanOrEqual(340);
-				expect(layout.callout.height).toBeLessThanOrEqual(62);
-				expect(layout.callout.width).toBeGreaterThanOrEqual(150);
+				expect(layout.callout.y).toBe(layout.margin);
+				expect(layout.callout.width).toBeLessThanOrEqual(width * 0.38);
+				expect(layout.callout.height).toBeLessThanOrEqual(16);
 			}
 		}
 	});
 
-	it("keeps the objective panel under 42% of a landscape phone's width", () => {
-		for (const [width, height] of PHONE_LANDSCAPE) {
-			for (const mode of ["touch", "keyboard", "gamepad"] as InputMode[]) {
-				expect(getHudLayout(width, height, mode).callout.width).toBeLessThanOrEqual(width * 0.42);
-			}
-		}
-	});
-
-	it("shows the mission clock as a small separate chip in the top-right corner", () => {
-		for (const [width, height] of [...VIEWPORTS, ...PHONE_LANDSCAPE, [319, 181] as [number, number]]) {
-			for (const mode of ["touch", "keyboard", "gamepad"] as InputMode[]) {
+	it("shows the clock as text in the top-right with hull and missiles directly below", () => {
+		for (const [width, height] of [...HUD_VIEWPORTS, ...COMPACT_VIEWPORTS, ...VIEWPORTS]) {
+			for (const mode of MODES) {
 				const layout = getHudLayout(width, height, mode);
-				expect(layout.timer.width).toBeLessThanOrEqual(64);
-				expect(layout.timer.height).toBeLessThanOrEqual(24);
+				expect(layout.timer.width).toBeLessThanOrEqual(48);
+				expect(layout.timer.height).toBeLessThanOrEqual(14);
 				expect(layout.timer.x + layout.timer.width).toBe(width - layout.margin);
 				expect(layout.timer.y).toBe(layout.margin);
-				expect(rectanglesOverlap(layout.timer, layout.callout)).toBe(false);
+				expect(layout.status.x + layout.status.width).toBe(width - layout.margin);
+				expect(layout.status.y).toBeGreaterThanOrEqual(layout.timer.y + layout.timer.height);
+				expect(layout.status.y - (layout.timer.y + layout.timer.height)).toBeLessThanOrEqual(4);
+				expect(layout.status.width).toBeLessThanOrEqual(120);
+				expect(layout.status.height).toBeLessThanOrEqual(14);
 			}
 		}
 	});
 
-	it("reserves nothing over the centre of the flight view where enemies and the target bracket appear", () => {
-		for (const [width, height] of [...VIEWPORTS, ...PHONE_LANDSCAPE]) {
-			if (isCompactHud(width, height)) continue;
-			const centre: Rectangle = { x: width * 0.3, y: height * 0.12, width: width * 0.4, height: height * 0.43 };
-			const box = getHudCentreBox(width, height);
-			expect(box.x).toBeLessThanOrEqual(centre.x);
-			expect(box.x + box.width).toBeGreaterThanOrEqual(centre.x + centre.width);
-			for (const mode of ["touch", "keyboard", "gamepad"] as InputMode[]) {
-				const layout = getHudLayout(width, height, mode);
-				const rectangles = [layout.callout, layout.timer, layout.alert, layout.status];
-				if (layout.hints) rectangles.push(layout.hints);
-				if (layout.touch) rectangles.push(layout.touch.joystick, layout.touch.throttle, layout.touch.missile, layout.touch.target);
-				for (const rectangle of rectangles) expect(rectanglesOverlap(rectangle, centre)).toBe(false);
-			}
-		}
+	it("defines the forward view as the central 50% width and 60% height", () => {
+		const box = getHudCentreBox(1000, 500);
+		expect(box).toEqual({ x: 250, y: 100, width: 500, height: 300 });
 	});
 
-	it("keeps the warning a small pill clear of the objective and every touch control", () => {
-		for (const [width, height] of [...VIEWPORTS, ...PHONE_LANDSCAPE, [319, 181] as [number, number]]) {
-			for (const mode of ["touch", "keyboard", "gamepad"] as InputMode[]) {
-				const layout = getHudLayout(width, height, mode);
-				const alert = layout.alert;
-				expect(alert.width).toBeLessThanOrEqual(220);
-				expect(alert.width).toBeGreaterThanOrEqual(math.min(160, width - layout.margin * 2));
-				expect(alert.height).toBeGreaterThanOrEqual(24);
-				expect(alert.height).toBeLessThanOrEqual(30);
-				expect(rectanglesOverlap(alert, layout.callout)).toBe(false);
-				expect(rectanglesOverlap(alert, layout.timer)).toBe(false);
-				const touch = layout.touch;
-				if (touch) for (const control of [touch.joystick, touch.throttle, touch.missile, touch.target]) expect(rectanglesOverlap(alert, control)).toBe(false);
-				if (isCompactHud(width, height)) {
-					// No bottom lane fits at 320x182: stack directly under the objective.
-					expect(alert.y).toBeGreaterThanOrEqual(layout.callout.y + layout.callout.height);
-				} else {
-					// Otherwise it lives below the target-bracket region, by the controls.
-					expect(alert.y).toBeGreaterThanOrEqual(height * 0.55);
+	it("leaves the central forward view empty except for the alert text", () => {
+		for (const [width, height] of [...HUD_VIEWPORTS, [568, 320], [390, 844], [320, 568], [1024, 768], [1920, 1080]] as [number, number][]) {
+			const centre = getHudCentreBox(width, height);
+			for (const mode of MODES) {
+				for (const rectangle of hudRectangles(getHudLayout(width, height, mode), false)) {
+					expect(rectanglesOverlap(rectangle, centre)).toBe(false);
 				}
 			}
 		}
 	});
 
-	it("puts the touch warning in the bottom lane between the control clusters on landscape phones", () => {
-		for (const [width, height] of PHONE_LANDSCAPE) {
-			const layout = getHudLayout(width, height, "touch");
-			const touch = layout.touch!;
-			expect(layout.alert.y + layout.alert.height).toBe(height - layout.margin);
-			const laneLeft = math.max(touch.joystick.x + touch.joystick.width, touch.throttle.x + touch.throttle.width);
-			const laneRight = math.min(touch.target.x, touch.missile.x, layout.status.x);
-			expect(layout.alert.x - laneLeft).toBeGreaterThanOrEqual(8);
-			expect(laneRight - (layout.alert.x + layout.alert.width)).toBeGreaterThanOrEqual(8);
+	it("puts the alert as one line of text at the bottom-centre, below the forward view", () => {
+		for (const [width, height] of [...HUD_VIEWPORTS, [568, 320], [390, 844], [320, 568], [1024, 768], [1920, 1080]] as [number, number][]) {
+			for (const mode of MODES) {
+				const layout = getHudLayout(width, height, mode);
+				const alert = layout.alert;
+				expect(alert.width).toBeLessThanOrEqual(220);
+				expect(alert.width).toBeGreaterThanOrEqual(110);
+				expect(alert.height).toBeLessThanOrEqual(20);
+				const centreX = alert.x + alert.width / 2;
+				expect(math.abs(centreX - width / 2)).toBeLessThanOrEqual(width * 0.1);
+				expect(alert.y).toBeGreaterThanOrEqual(height * 0.8);
+				// Directly above the hint row on keyboard and gamepad.
+				if (layout.hints) expect(layout.hints.y - (alert.y + alert.height)).toBeLessThanOrEqual(8);
+			}
 		}
 	});
 
-	it("keeps the HUD footprint small on a phone", () => {
-		const width = 568;
-		const height = 320;
-		const layout = getHudLayout(width, height, "touch");
-		const touch = layout.touch!;
-		let area = layout.status.width * layout.status.height;
-		for (const control of [touch.joystick, touch.throttle, touch.missile, touch.target]) area += control.width * control.height;
-		expect(area / (width * height)).toBeLessThan(0.22);
+	it("puts the touch alert in the bottom lane between the stick and FIRE on landscape phones", () => {
+		for (const [width, height] of HUD_VIEWPORTS) {
+			if (height > width) continue;
+			const layout = getHudLayout(width, height, "touch");
+			const touch = layout.touch!;
+			expect(layout.alert.y + layout.alert.height).toBe(height - layout.margin);
+			expect(layout.alert.x).toBeGreaterThan(math.max(touch.joystick.x + touch.joystick.width, touch.throttle.x + touch.throttle.width));
+			expect(layout.alert.x + layout.alert.width).toBeLessThan(math.min(touch.missile.x, touch.target.x));
+		}
+	});
+
+	it("keeps keyboard and gamepad hints a short bottom-centre row", () => {
+		for (const mode of ["keyboard", "gamepad"] as InputMode[]) {
+			for (const [width, height] of [...HUD_VIEWPORTS, ...COMPACT_VIEWPORTS, ...VIEWPORTS]) {
+				const hints = getHudLayout(width, height, mode).hints!;
+				expect(hints).toBeDefined();
+				expect(hints.height).toBeLessThanOrEqual(20);
+				expect(hints.width).toBeLessThanOrEqual(360);
+				expect(math.abs(hints.x + hints.width / 2 - width / 2)).toBeLessThanOrEqual(1);
+			}
+		}
+	});
+
+	it("keeps the touch controls under 12% of a landscape phone screen", () => {
+		for (const [width, height] of [[706, 267], [750, 332], [844, 390]] as [number, number][]) {
+			const touch = getHudLayout(width, height, "touch").touch!;
+			let area = touch.throttlePill.width * touch.throttlePill.height;
+			for (const control of [touch.joystick, touch.missile, touch.target]) area += control.width * control.height;
+			expect(area / (width * height)).toBeLessThan(0.12);
+		}
+	});
+
+	it("writes every training instruction as one short line", () => {
+		for (const step of ["move", "target", "missile"]) {
+			for (const mode of MODES) {
+				const text = getTutorialInstruction(step, mode);
+				expect(text.size() > 0).toBe(true);
+				// Byte length: never shorter than the character count.
+				expect(text.size()).toBeLessThanOrEqual(TUTORIAL_MAX_CHARS);
+			}
+		}
+		expect(TUTORIAL_MAX_CHARS).toBe(34);
+		expect(getTutorialInstruction(undefined, "touch")).toBe("");
+		expect(getTutorialInstruction("target", "touch")).toBe("Tap TGT to select the radar");
 	});
 });
 
@@ -291,9 +291,15 @@ describe("menu layout", () => {
 			expect(rectanglesOverlap(menuToast, getMenuHintsLayout(width, height, menu))).toBe(false);
 			const hud = getHudLayout(width, height, "touch");
 			const missionToast = getToastLayout(width, height);
-			expectSeparate([missionToast, hud.alert, hud.callout, hud.timer]);
+			expectSeparate([missionToast, hud.alert, hud.callout, hud.timer, hud.status]);
 			expect(rectanglesOverlap(missionToast, hud.touch!.joystick)).toBe(false);
 			expect(rectanglesOverlap(missionToast, hud.touch!.missile)).toBe(false);
+		}
+		for (const [width, height] of HUD_VIEWPORTS) {
+			const missionToast = getToastLayout(width, height);
+			for (const mode of MODES) {
+				for (const rectangle of hudRectangles(getHudLayout(width, height, mode))) expect(rectanglesOverlap(missionToast, rectangle)).toBe(false);
+			}
 		}
 	});
 });
@@ -326,9 +332,17 @@ describe("input mode and contextual hints", () => {
 		expect(getEvadeHint("touch")).toBeUndefined();
 	});
 
-	it("shows a launch legend, then only actionable hints", () => {
+	it("shows at most two hints: a short launch legend, then only actionable ones", () => {
+		expect(MAX_FLIGHT_HINTS).toBe(2);
 		for (const mode of ["keyboard", "gamepad"] as InputMode[]) {
-			expect(getFlightHints(mode, { introduction: true, locked: false, missileReady: true }).size()).toBeGreaterThan(2);
+			for (const introduction of [true, false]) {
+				for (const locked of [true, false]) {
+					for (const missileReady of [true, false]) {
+						expect(getFlightHints(mode, { introduction, locked, missileReady }).size()).toBeLessThanOrEqual(MAX_FLIGHT_HINTS);
+					}
+				}
+			}
+			expect(getFlightHints(mode, { introduction: true, locked: false, missileReady: true }).size()).toBe(2);
 			expect(getFlightHints(mode, { introduction: false, locked: false, missileReady: true }).size()).toBe(0);
 			expect(getFlightHints(mode, { introduction: false, locked: true, missileReady: false }).size()).toBe(0);
 			const fire = getFlightHints(mode, { introduction: false, locked: true, missileReady: true });
