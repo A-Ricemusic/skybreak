@@ -1,6 +1,6 @@
 import { AssetService, HttpService, RunService, ServerStorage } from "@rbxts/services";
 
-type MissionAssetKind = "Warehouse" | "Radar";
+type MissionAssetKind = "Warehouse" | "Radar" | "Relay" | "SAM" | "Carrier";
 type MaterialRole = "Concrete" | "Steel" | "DarkMetal" | "Accent" | "Roof" | "Glass" | "Warning";
 
 interface MeshMaterial {
@@ -252,5 +252,18 @@ export const MissionAssets = {
 	},
 	CreateRadar(name: string): Model {
 		return create("Radar", name);
+	},
+	CreateRelay(name: string): Model {
+		return create("Relay", name);
+	},
+	CreateSAM(name: string): Model {
+		return create("SAM", name);
+	},
+	CreateCarrier(name: string): Model {
+		return create("Carrier", name);
+	},
+	/** Required-Y offset so a target rests on the Y=offset plane. */
+	BoundsMinY(kind: MissionAssetKind): number {
+		return readData(kind).bounds.min[1];
 	},
 };

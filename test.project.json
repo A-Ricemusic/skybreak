@@ -55,6 +55,15 @@
       },
       "RadarGeometry": {
         "$path": "build/RadarGeometry.txt"
+      },
+      "RelayGeometry": {
+        "$path": "build/RelayGeometry.txt"
+      },
+      "SAMGeometry": {
+        "$path": "build/SAMGeometry.txt"
+      },
+      "CarrierGeometry": {
+        "$path": "build/CarrierGeometry.txt"
       }
     }
   }

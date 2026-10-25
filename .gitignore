@@ -38,6 +38,18 @@ assets/mission/radar.blend
 assets/mission/radar.blend[0-9]*
 assets/mission/radar.glb
 assets/mission/radar-preview.png
+assets/mission/relay.blend
+assets/mission/relay.blend[0-9]*
+assets/mission/relay.glb
+assets/mission/relay-preview.png
+assets/mission/sam.blend
+assets/mission/sam.blend[0-9]*
+assets/mission/sam.glb
+assets/mission/sam-preview.png
+assets/mission/carrier.blend
+assets/mission/carrier.blend[0-9]*
+assets/mission/carrier.glb
+assets/mission/carrier-preview.png
 
 # Operating-system metadata
 .DS_Store
