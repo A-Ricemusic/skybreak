@@ -4,12 +4,14 @@ import {
 	getSlotListHeight,
 	getEvadeHint,
 	getFlightHints,
+	getHudCentreBox,
 	getHudLayout,
 	getMenuHintsLayout,
 	getMenuLayout,
 	getToastLayout,
 	inputModeFromInputType,
 	inputModeFromPreferred,
+	isCompactHud,
 	MIN_TOUCH_TARGET,
 	rectangleInside,
 	rectanglesOverlap,
@@ -28,6 +30,16 @@ const VIEWPORTS: [number, number][] = [
 	[1920, 1080],
 ];
 
+// Landscape phone safe areas, including the measured iPhone 13 (750x332) root.
+const PHONE_LANDSCAPE: [number, number][] = [
+	[480, 320],
+	[540, 300],
+	[568, 320],
+	[667, 375],
+	[750, 332],
+	[844, 390],
+];
+
 function expectSeparate(rectangles: Rectangle[]) {
 	for (let first = 0; first < rectangles.size(); first++) {
 		for (let second = first + 1; second < rectangles.size(); second++) {
@@ -40,7 +52,7 @@ describe("minimal mission HUD layout", () => {
 	it("fits the measured safe area after the topbar reduces a 320x240 simulator",()=>{
 		for(const [width,height] of [[319,181],[320,182]])for(const mode of ["touch","keyboard","gamepad"] as InputMode[]) {
 			const layout=getHudLayout(width,height,mode),touch=layout.touch;
-			const rectangles=[layout.callout,layout.alert,layout.status];
+			const rectangles=[layout.callout,layout.timer,layout.alert,layout.status];
 			if(layout.hints)rectangles.push(layout.hints);
 			if(touch)rectangles.push(touch.joystick,touch.throttle,touch.missile,touch.target);
 			expectSeparate(rectangles);
@@ -64,8 +76,8 @@ describe("minimal mission HUD layout", () => {
 			const layout = getHudLayout(width, height, "touch");
 			const touch = layout.touch!;
 			const controls = [touch.joystick, touch.throttle, touch.missile, touch.target];
-			expectSeparate([...controls, layout.status, layout.alert, layout.callout]);
-			for (const rectangle of [...controls, layout.status, layout.alert, layout.callout]) {
+			expectSeparate([...controls, layout.status, layout.alert, layout.callout, layout.timer]);
+			for (const rectangle of [...controls, layout.status, layout.alert, layout.callout, layout.timer]) {
 				expect(rectangleInside(rectangle, width, height, 14)).toBe(true);
 			}
 			for (const control of [touch.joystick, touch.missile, touch.target]) {
@@ -105,7 +117,7 @@ describe("minimal mission HUD layout", () => {
 			for (const [width, height] of [...VIEWPORTS, [480, 320] as [number, number]]) {
 				const layout = getHudLayout(width, height, mode);
 				expect(layout.hints).toBeDefined();
-				expectSeparate([layout.hints!, layout.status, layout.alert, layout.callout]);
+				expectSeparate([layout.hints!, layout.status, layout.alert, layout.callout, layout.timer]);
 				expect(rectangleInside(layout.hints!, math.max(320, width), height, 14)).toBe(true);
 				expect(rectangleInside(layout.status, width, height, 14)).toBe(true);
 			}
@@ -127,27 +139,89 @@ describe("minimal mission HUD layout", () => {
 		}
 	});
 
-	it("stacks the incoming warning below the objective callout rather than above it", () => {
-		for (const [width, height] of VIEWPORTS) {
+	it("keeps the objective panel compact in the top-left corner", () => {
+		for (const [width, height] of [...VIEWPORTS, ...PHONE_LANDSCAPE]) {
 			for (const mode of ["touch", "keyboard", "gamepad"] as InputMode[]) {
 				const layout = getHudLayout(width, height, mode);
-				// Callout owns the top row; the alert pill only drops in beneath it
-				// when visible so the forward view stays unobstructed otherwise.
-				expect(layout.alert.y).toBeGreaterThanOrEqual(layout.callout.y + layout.callout.height);
-				expect(layout.alert.y + layout.alert.height).toBeLessThanOrEqual(
-					math.max(240, height) * 0.5,
-				);
+				expect(layout.callout.x).toBe(layout.margin);
+				expect(layout.callout.width).toBeLessThanOrEqual(340);
+				expect(layout.callout.height).toBeLessThanOrEqual(62);
+				expect(layout.callout.width).toBeGreaterThanOrEqual(150);
 			}
 		}
 	});
 
-	it("keeps the mission timer within the objective callout, not duplicated outside", () => {
-		for (const [width, height] of VIEWPORTS) {
+	it("keeps the objective panel under 42% of a landscape phone's width", () => {
+		for (const [width, height] of PHONE_LANDSCAPE) {
+			for (const mode of ["touch", "keyboard", "gamepad"] as InputMode[]) {
+				expect(getHudLayout(width, height, mode).callout.width).toBeLessThanOrEqual(width * 0.42);
+			}
+		}
+	});
+
+	it("shows the mission clock as a small separate chip in the top-right corner", () => {
+		for (const [width, height] of [...VIEWPORTS, ...PHONE_LANDSCAPE, [319, 181] as [number, number]]) {
+			for (const mode of ["touch", "keyboard", "gamepad"] as InputMode[]) {
+				const layout = getHudLayout(width, height, mode);
+				expect(layout.timer.width).toBeLessThanOrEqual(64);
+				expect(layout.timer.height).toBeLessThanOrEqual(24);
+				expect(layout.timer.x + layout.timer.width).toBe(width - layout.margin);
+				expect(layout.timer.y).toBe(layout.margin);
+				expect(rectanglesOverlap(layout.timer, layout.callout)).toBe(false);
+			}
+		}
+	});
+
+	it("reserves nothing over the centre of the flight view where enemies and the target bracket appear", () => {
+		for (const [width, height] of [...VIEWPORTS, ...PHONE_LANDSCAPE]) {
+			if (isCompactHud(width, height)) continue;
+			const centre: Rectangle = { x: width * 0.3, y: height * 0.12, width: width * 0.4, height: height * 0.43 };
+			const box = getHudCentreBox(width, height);
+			expect(box.x).toBeLessThanOrEqual(centre.x);
+			expect(box.x + box.width).toBeGreaterThanOrEqual(centre.x + centre.width);
+			for (const mode of ["touch", "keyboard", "gamepad"] as InputMode[]) {
+				const layout = getHudLayout(width, height, mode);
+				const rectangles = [layout.callout, layout.timer, layout.alert, layout.status];
+				if (layout.hints) rectangles.push(layout.hints);
+				if (layout.touch) rectangles.push(layout.touch.joystick, layout.touch.throttle, layout.touch.missile, layout.touch.target);
+				for (const rectangle of rectangles) expect(rectanglesOverlap(rectangle, centre)).toBe(false);
+			}
+		}
+	});
+
+	it("keeps the warning a small pill clear of the objective and every touch control", () => {
+		for (const [width, height] of [...VIEWPORTS, ...PHONE_LANDSCAPE, [319, 181] as [number, number]]) {
+			for (const mode of ["touch", "keyboard", "gamepad"] as InputMode[]) {
+				const layout = getHudLayout(width, height, mode);
+				const alert = layout.alert;
+				expect(alert.width).toBeLessThanOrEqual(220);
+				expect(alert.width).toBeGreaterThanOrEqual(math.min(160, width - layout.margin * 2));
+				expect(alert.height).toBeGreaterThanOrEqual(24);
+				expect(alert.height).toBeLessThanOrEqual(30);
+				expect(rectanglesOverlap(alert, layout.callout)).toBe(false);
+				expect(rectanglesOverlap(alert, layout.timer)).toBe(false);
+				const touch = layout.touch;
+				if (touch) for (const control of [touch.joystick, touch.throttle, touch.missile, touch.target]) expect(rectanglesOverlap(alert, control)).toBe(false);
+				if (isCompactHud(width, height)) {
+					// No bottom lane fits at 320x182: stack directly under the objective.
+					expect(alert.y).toBeGreaterThanOrEqual(layout.callout.y + layout.callout.height);
+				} else {
+					// Otherwise it lives below the target-bracket region, by the controls.
+					expect(alert.y).toBeGreaterThanOrEqual(height * 0.55);
+				}
+			}
+		}
+	});
+
+	it("puts the touch warning in the bottom lane between the control clusters on landscape phones", () => {
+		for (const [width, height] of PHONE_LANDSCAPE) {
 			const layout = getHudLayout(width, height, "touch");
-			// The MissionTimer label is positioned at the right edge of the callout
-			// in GameUI.tsx; the layout must leave at least 58px for its text and 10px
-			// of padding so the timer never overflows into the alert lane below.
-			expect(layout.callout.width).toBeGreaterThanOrEqual(68 + 76);
+			const touch = layout.touch!;
+			expect(layout.alert.y + layout.alert.height).toBe(height - layout.margin);
+			const laneLeft = math.max(touch.joystick.x + touch.joystick.width, touch.throttle.x + touch.throttle.width);
+			const laneRight = math.min(touch.target.x, touch.missile.x, layout.status.x);
+			expect(layout.alert.x - laneLeft).toBeGreaterThanOrEqual(8);
+			expect(laneRight - (layout.alert.x + layout.alert.width)).toBeGreaterThanOrEqual(8);
 		}
 	});
 
@@ -217,7 +291,7 @@ describe("menu layout", () => {
 			expect(rectanglesOverlap(menuToast, getMenuHintsLayout(width, height, menu))).toBe(false);
 			const hud = getHudLayout(width, height, "touch");
 			const missionToast = getToastLayout(width, height);
-			expectSeparate([missionToast, hud.alert, hud.callout]);
+			expectSeparate([missionToast, hud.alert, hud.callout, hud.timer]);
 			expect(rectanglesOverlap(missionToast, hud.touch!.joystick)).toBe(false);
 			expect(rectanglesOverlap(missionToast, hud.touch!.missile)).toBe(false);
 		}

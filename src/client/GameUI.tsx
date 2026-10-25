@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "@rbxts/react";
 import ReactRoblox from "@rbxts/react-roblox";
-import { GuiService, RunService, UserInputService, Workspace } from "@rbxts/services";
+import { GuiService, RunService, TweenService, UserInputService, Workspace } from "@rbxts/services";
 
 import type {
 	CampaignResponse,
@@ -231,6 +231,7 @@ function Label({
 	visible = true,
 	stroke = false,
 	zIndex,
+	minTextSize,
 }: {
 	name: string;
 	text: string;
@@ -249,6 +250,8 @@ function Label({
 	visible?: boolean;
 	stroke?: boolean;
 	zIndex?: number;
+	/** Shrinks text down to this size (never above textSize) when it would not fit. */
+	minTextSize?: number;
 }) {
 	return (
 		<textlabel
@@ -269,10 +272,13 @@ function Label({
 			TextWrapped={textWrapped}
 			TextStrokeColor3={C.Ink}
 			TextStrokeTransparency={stroke ? 0.55 : 1}
+			TextScaled={minTextSize !== undefined}
 			LayoutOrder={layoutOrder}
 			Visible={visible}
 			ZIndex={zIndex}
-		/>
+		>
+			{minTextSize !== undefined && <uitextsizeconstraint MaxTextSize={textSize} MinTextSize={minTextSize} />}
+		</textlabel>
 	);
 }
 
@@ -920,10 +926,26 @@ function MissionHud({
 	const touch = layout.touch;
 	const ready = missileReady(telemetry);
 	const locked = telemetry.target !== undefined && telemetry.lockProgress >= 0.99;
-	const alertText = telemetry.incoming ? "MISSILE INBOUND" : telemetry.boundaryWarning ? "AIRSPACE LIMIT  ·  TURN BACK" : "";
+	const alertText = telemetry.incoming ? "MISSILE INBOUND" : telemetry.boundaryWarning ? "AIRSPACE LIMIT · TURN BACK" : "";
 	const alertColor = telemetry.incoming ? C.Danger : C.Orange;
 	const evadeHint = telemetry.incoming && telemetry.evadeCooldown <= 0 ? getEvadeHint(inputMode) : undefined;
-	const hints = getFlightHints(inputMode, { introduction, locked, missileReady: ready });
+	const flightHints = getFlightHints(inputMode, { introduction, locked, missileReady: ready });
+	// The warning pill is text only; the EVADE prompt joins the hint row right below it.
+	const hints = evadeHint ? [evadeHint, ...flightHints.filter((hint) => hint.action !== evadeHint.action)] : flightHints;
+	const alertActive = visible && alertText !== "";
+	const warningStroke = useRef<UIStroke>();
+	useEffect(() => {
+		const stroke = warningStroke.current;
+		if (!alertActive || !stroke) return;
+		// Pulse the outline instead of growing the box, so the pill never covers more of the view.
+		stroke.Transparency = 0.05;
+		const pulse = TweenService.Create(stroke, new TweenInfo(0.45, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { Transparency: 0.7 });
+		pulse.Play();
+		return () => {
+			pulse.Cancel();
+			stroke.Transparency = 0.25;
+		};
+	}, [alertActive]);
 	const hull = math.floor(telemetry.health + 0.5);
 	const missileText = string.format(
 		'<font size="10" color="#98A8B0">MSL</font>  %d%s',
@@ -953,32 +975,41 @@ function MissionHud({
 			<frame
 				key="ObjectivePanel"
 				BackgroundColor3={C.Ink}
-				BackgroundTransparency={0.3}
+				BackgroundTransparency={0.35}
 				BorderSizePixel={0}
 				Position={UDim2.fromOffset(layout.callout.x, layout.callout.y)}
 				Size={UDim2.fromOffset(layout.callout.width, layout.callout.height)}
 			>
 				<Corner radius={6} />
 				<Stroke color={tutorial !== "" ? C.Orange : C.Accent} transparency={0.65} />
-				<Label name="ObjectiveEyebrow" text={objectiveEyebrow} color={tutorial !== "" ? C.Orange : C.Accent} textSize={9} font={Enum.Font.GothamBold} position={UDim2.fromOffset(10, 4)} size={new UDim2(1, -76, 0, 13)} stroke={true} />
-				<Label name="ObjectiveText" text={`${objectiveText}${progress}`} color={C.Ivory} textSize={11} font={Enum.Font.GothamBold} position={UDim2.fromOffset(10, 17)} size={new UDim2(1, -76, 0, 28)} textWrapped={true} stroke={true} />
-				<Label name="MissionTimer" text={formatTime(telemetry.timeRemaining ?? 600)} color={(telemetry.timeRemaining ?? 600) <= 60 ? C.Danger : C.Ivory} textSize={13} font={Enum.Font.RobotoMono} anchorPoint={new Vector2(1, 0)} position={new UDim2(1, -10, 0, 7)} size={UDim2.fromOffset(58, 20)} textXAlignment={Enum.TextXAlignment.Right} stroke={true} />
+				<Label name="ObjectiveEyebrow" text={objectiveEyebrow} color={tutorial !== "" ? C.Orange : C.Accent} textSize={10} minTextSize={8} font={Enum.Font.GothamBold} position={UDim2.fromOffset(8, 3)} size={new UDim2(1, -16, 0, 13)} stroke={true} />
+				<Label name="ObjectiveText" text={`${objectiveText}${progress}`} color={C.Ivory} textSize={12} minTextSize={10} font={Enum.Font.GothamBold} position={UDim2.fromOffset(8, 17)} size={new UDim2(1, -16, 1, -20)} textWrapped={true} textYAlignment={Enum.TextYAlignment.Top} stroke={true} />
+			</frame>
+
+			<frame
+				key="MissionTimerChip"
+				BackgroundColor3={C.Ink}
+				BackgroundTransparency={0.35}
+				BorderSizePixel={0}
+				Position={UDim2.fromOffset(layout.timer.x, layout.timer.y)}
+				Size={UDim2.fromOffset(layout.timer.width, layout.timer.height)}
+			>
+				<Corner radius={6} />
+				<Label name="MissionTimer" text={formatTime(telemetry.timeRemaining ?? 600)} color={(telemetry.timeRemaining ?? 600) <= 60 ? C.Danger : C.Ivory} textSize={13} font={Enum.Font.RobotoMono} size={UDim2.fromScale(1, 1)} textXAlignment={Enum.TextXAlignment.Center} stroke={true} />
 			</frame>
 
 			<frame
 				key="Warning"
 				BackgroundColor3={C.Ink}
-				BackgroundTransparency={0.25}
+				BackgroundTransparency={0.35}
 				BorderSizePixel={0}
 				Position={UDim2.fromOffset(layout.alert.x, layout.alert.y)}
 				Size={UDim2.fromOffset(layout.alert.width, layout.alert.height)}
 				Visible={alertText !== ""}
 			>
-				<Corner radius={16} />
-				<Stroke color={alertColor} transparency={0.25} thickness={1.5} />
-				<uilistlayout FillDirection={Enum.FillDirection.Horizontal} HorizontalAlignment={Enum.HorizontalAlignment.Center} Padding={new UDim(0, 14)} SortOrder={Enum.SortOrder.LayoutOrder} VerticalAlignment={Enum.VerticalAlignment.Center} />
-				<Label name="WarningText" text={alertText} color={alertColor} textSize={13} font={Enum.Font.GothamBlack} size={UDim2.fromOffset(0, 20)} automaticSize={Enum.AutomaticSize.X} layoutOrder={1} />
-				{evadeHint && <HintChip hint={evadeHint} order={2} />}
+				<Corner scale={0.5} />
+				<uistroke ref={warningStroke} ApplyStrokeMode={Enum.ApplyStrokeMode.Border} Color={alertColor} Thickness={1.5} Transparency={0.25} />
+				<Label name="WarningText" text={alertText} color={alertColor} textSize={12} minTextSize={9} font={Enum.Font.GothamBlack} position={UDim2.fromOffset(10, 0)} size={new UDim2(1, -20, 1, 0)} textXAlignment={Enum.TextXAlignment.Center} />
 			</frame>
 
 			<frame

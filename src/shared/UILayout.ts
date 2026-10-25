@@ -21,8 +21,14 @@ export interface TouchLayout {
 
 export interface HudLayout {
 	margin: number;
+	/** Incoming-missile / airspace pill. Bottom-centre between the control clusters
+	 * (or just above them when the lane is too narrow); stacked under the
+	 * objective only on compact landscape viewports. */
 	alert: Rectangle;
+	/** Objective panel, anchored to the top-left of the CoreUI-safe area. */
 	callout: Rectangle;
+	/** Mission clock chip, top-right of the safe area. */
+	timer: Rectangle;
 	status: Rectangle;
 	/** Keyboard and gamepad only; touch players read the controls themselves. */
 	hints?: Rectangle;
@@ -58,31 +64,81 @@ const centered = (viewportWidth: number, width: number, y: number, height: numbe
 	height,
 });
 
+/** Widest the objective panel may grow on large screens. */
+export const OBJECTIVE_MAX_WIDTH = 340;
+export const TIMER_CHIP_WIDTH = 60;
+export const TIMER_CHIP_HEIGHT = 22;
+export const ALERT_MAX_WIDTH = 220;
+export const ALERT_MIN_WIDTH = 120;
+
+/**
+ * Where enemies, the target bracket and the reticle live while flying: the
+ * middle 40% of the width between 12% and 55% of the height. Nothing in the
+ * mission HUD may be reserved here on regular (non-compact) viewports.
+ */
+export function getHudCentreBox(viewportWidth: number, viewportHeight: number): Rectangle {
+	const width = math.max(1, viewportWidth);
+	const height = math.max(1, viewportHeight);
+	const x = math.floor(width * 0.3);
+	const y = math.floor(height * 0.12);
+	return { x, y, width: math.ceil(width * 0.7) - x, height: math.ceil(height * 0.55) - y };
+}
+
+/** Landscape viewports too small for the regular touch layout (e.g. the 320x182 safe area). */
+export function isCompactHud(viewportWidth: number, viewportHeight: number): boolean {
+	const width = math.max(1, viewportWidth);
+	const height = math.max(1, viewportHeight);
+	return height <= width && (width < 360 || height < 280);
+}
+
 /** Pure layout calculation shared by the React HUD and Roblox Jest tests. */
 export function getHudLayout(viewportWidth: number, viewportHeight: number, inputMode: InputMode): HudLayout {
 	const width = math.max(1, viewportWidth);
 	const height = math.max(1, viewportHeight);
 	const shortSafeArea = height < 240;
 	const margin = shortSafeArea ? 6 : width < 700 || height < 420 ? 14 : 22;
-	// The objective callout sits at the very top of the CoreUI-safe area so it
-	// never crosses the flight view or target bracket. The incoming-warning
-	// alert is a slim pill that stacks below the callout only while active, so
-	// a persistent banner is never reserved across the forward view. Horizontal
-	// centering stays inside the ScreenGui's safe inset, which already excludes
-	// the Roblox topbar on the left and any phone cutout on the right.
-	const callout = centered(width, math.min(420, width - margin * 2), margin, shortSafeArea ? 46 : 50);
-	const alert = centered(width, math.min(380, width - margin * 2), callout.y + callout.height + (shortSafeArea ? 4 : 10), shortSafeArea ? 24 : 32);
+	const gap = shortSafeArea ? 4 : 10;
+	const compact = isCompactHud(width, height);
+	const centre = getHudCentreBox(width, height);
+	// The ScreenGui uses CoreUISafeInsets with the topbar inset applied, so the
+	// origin is already below the Roblox system buttons and clear of any notch.
+	// The clock is a small chip in the top-right corner of that safe area and
+	// the objective is a compact panel in the top-left; neither spans the
+	// forward view where enemies and the target bracket appear.
+	const timer = { x: width - margin - TIMER_CHIP_WIDTH, y: margin, width: TIMER_CHIP_WIDTH, height: TIMER_CHIP_HEIGHT };
+	const besideTimer = timer.x - gap - margin;
+	let calloutWidth: number;
+	let calloutHeight: number;
+	if (compact) {
+		// Every pixel counts at 320x182: use the whole row beside the clock.
+		calloutWidth = besideTimer;
+		calloutHeight = shortSafeArea ? 46 : 50;
+	} else {
+		// Eyebrow + two objective lines need 50px. If that would reach down into
+		// the centre box (every landscape phone), the panel stops at the box's
+		// left edge instead. Portrait has the room above the box to stay wide.
+		const clearsCentre = height > width || margin + 50 <= centre.y;
+		calloutWidth = math.min(OBJECTIVE_MAX_WIDTH, besideTimer, clearsCentre ? besideTimer : math.max(120, centre.x - margin));
+		// Narrow panels (small landscape phones) get a third objective line.
+		calloutHeight = calloutWidth < 200 ? 62 : 50;
+	}
+	const callout = { x: margin, y: margin, width: calloutWidth, height: calloutHeight };
+	// Compact screens have no free bottom lane between the controls, so the
+	// pill stacks under the objective there (as before) at a reduced width.
+	const compactAlertHeight = shortSafeArea ? 24 : 28;
+	const compactAlert = centered(width, math.min(ALERT_MAX_WIDTH, width - margin * 2), callout.y + callout.height + gap, compactAlertHeight);
+	const alertHeight = 28;
 
 	if (inputMode === "touch") {
 		const portrait = height > width;
-		const compactLandscape = !portrait && (width < 360 || height < 280);
-		if (compactLandscape) {
+		if (compact) {
 			// At the 320x240 minimum, the usual vertical throttle and stacked status
 			// compete with both the warning lane and the right-side target button.
 			// Use two compact rows instead: throttle/status immediately below the
 			// alert, then the primary controls along the bottom safe edge.
+			const alert = compactAlert;
 			const throttleLength = MIN_TOUCH_TARGET * 2 + 36;
-			const upperRowY = alert.y + alert.height + (shortSafeArea ? 4 : 10);
+			const upperRowY = alert.y + alert.height + gap;
 			const throttle = { x: margin, y: upperRowY, width: throttleLength, height: MIN_TOUCH_TARGET };
 			const statusWidth = 128;
 			const statusHeight = 40;
@@ -93,7 +149,7 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 			const missile = { x: width - margin - missileSize, y: height - margin - missileSize, width: missileSize, height: missileSize };
 			const targetSize = MIN_TOUCH_TARGET;
 			const target = { x: missile.x - 14 - targetSize, y: height - margin - targetSize, width: targetSize, height: targetSize };
-			return { margin, alert, callout, status, touch: { joystick, throttle, throttleVertical: false, missile, target } };
+			return { margin, alert, callout, timer, status, touch: { joystick, throttle, throttleVertical: false, missile, target } };
 		}
 		const joystickSize = portrait ? 120 : height < 420 ? 112 : 132;
 		const joystick = { x: margin, y: height - margin - joystickSize, width: joystickSize, height: joystickSize };
@@ -108,7 +164,21 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 		const statusWidth = 128;
 		const statusHeight = 40;
 		const status = { x: width - margin - statusWidth, y: target.y - 10 - statusHeight, width: statusWidth, height: statusHeight };
-		return { margin, alert, callout, status, touch: { joystick, throttle, throttleVertical: !portrait, missile, target } };
+		// The alert pill prefers the bottom lane between the left (stick/throttle)
+		// and right (fire/target/status) clusters, far below the target bracket.
+		// Portrait phones have no such lane, so it sits just above the controls.
+		const laneLeft = math.max(joystick.x + joystick.width, throttle.x + throttle.width) + gap;
+		const laneRight = math.min(target.x, missile.x, status.x) - gap;
+		let alert: Rectangle;
+		if (laneRight - laneLeft >= ALERT_MIN_WIDTH) {
+			const alertWidth = math.min(ALERT_MAX_WIDTH, laneRight - laneLeft);
+			const x = math.clamp(math.floor((width - alertWidth) / 2), laneLeft, laneRight - alertWidth);
+			alert = { x, y: height - margin - alertHeight, width: alertWidth, height: alertHeight };
+		} else {
+			const controlsTop = math.min(joystick.y, throttle.y, missile.y, target.y, status.y);
+			alert = centered(width, math.min(ALERT_MAX_WIDTH, width - margin * 2), controlsTop - gap - alertHeight, alertHeight);
+		}
+		return { margin, alert, callout, timer, status, touch: { joystick, throttle, throttleVertical: !portrait, missile, target } };
 	}
 
 	const status = { x: width - margin - 150, y: height - margin - 40, width: 150, height: 40 };
@@ -116,7 +186,10 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 	const hints = besideStatus >= 320
 		? centered(width, math.min(720, besideStatus), height - margin - 30, 30)
 		: centered(width, width - margin * 2, status.y - 10 - 30, 30);
-	return { margin, alert, callout, status, hints };
+	// Keyboard/gamepad: the pill sits directly above the hint row, which also
+	// carries the EVADE prompt while a missile is inbound.
+	const alert = compact ? compactAlert : centered(width, math.min(ALERT_MAX_WIDTH, width - margin * 2), hints.y - 8 - alertHeight, alertHeight);
+	return { margin, alert, callout, timer, status, hints };
 }
 
 /**
@@ -159,7 +232,10 @@ export function getToastLayout(viewportWidth: number, viewportHeight: number, me
 	}
 	if (menu) return centered(width, math.min(380, width - 28), 14, toastHeight);
 	const hud = getHudLayout(viewportWidth, viewportHeight, "keyboard");
-	const bannerBottom = math.max(hud.callout.y + hud.callout.height, hud.alert.y + hud.alert.height);
+	// Below the top-row objective and clock; the alert only counts when it is
+	// stacked up there too (compact screens), not in its bottom lane.
+	const alertStackedOnTop = hud.alert.y + hud.alert.height <= math.max(1, viewportHeight) / 2;
+	const bannerBottom = math.max(hud.callout.y + hud.callout.height, hud.timer.y + hud.timer.height, alertStackedOnTop ? hud.alert.y + hud.alert.height : 0);
 	return centered(width, math.min(380, width - 28), bannerBottom + 8, toastHeight);
 }
 

@@ -6,14 +6,20 @@ export function navigationSummary(distance:number,side:number,ceiling?:number,pr
 	return `${arrow} ${math.floor(distance)}m${ceiling!==undefined ? ` · ALT≤${ceiling}` : ""}${protectedHealth!==undefined ? ` · PROTECTED ${math.ceil(protectedHealth)}%` : ""}`;
 }
 
-/** Screen projection is relative to the inset screen; labels live in a GUI parent.
- * Keep the full caption in that parent's measured safe bounds and out of HUD lanes. */
-export function placeNavigationCaption(screenX:number,screenY:number,originX:number,originY:number,width:number,height:number,hud:HudLayout): Rectangle | undefined {
-	const w=148,h=48,gap=8;
-	if(width<w+gap*2 || height<h+gap*2)return undefined;
-	const obstacles=[hud.callout,hud.alert,hud.status];
+/** Every HUD rectangle the floating caption must stay out of. Depends only on
+ * the layout, so callers can compute it once per viewport and input mode. */
+export function navigationObstacles(hud:HudLayout): Rectangle[] {
+	const obstacles=[hud.callout,hud.timer,hud.alert,hud.status];
 	if(hud.hints)obstacles.push(hud.hints);
 	if(hud.touch)obstacles.push(hud.touch.joystick,hud.touch.throttle,hud.touch.missile,hud.touch.target);
+	return obstacles;
+}
+
+/** Screen projection is relative to the inset screen; labels live in a GUI parent.
+ * Keep the full caption in that parent's measured safe bounds and out of HUD lanes. */
+export function placeNavigationCaption(screenX:number,screenY:number,originX:number,originY:number,width:number,height:number,hud:HudLayout,obstacles:Rectangle[]=navigationObstacles(hud)): Rectangle | undefined {
+	const w=148,h=48,gap=8;
+	if(width<w+gap*2 || height<h+gap*2)return undefined;
 	const pointX=screenX-originX,pointY=screenY-originY;
 	const wantedX=math.clamp(pointX-w/2,gap,width-gap-w);
 	const wantedY=math.clamp(pointY-16-h,gap,height-gap-h);
