@@ -66,6 +66,16 @@ export const BlueprintRunner = {
 	},
 	TimeRemaining(s: BlueprintState): number { return math.max(0,600-s.elapsed); },
 	ActivePhase(s: BlueprintState): MissionPhaseBlueprint | undefined { return s.blueprint.phases[s.phaseIndex]; },
+	/** Phase progress total: kills for combat phases, checkpoints for routes, seconds for timed volumes. */
+	Total(p: MissionPhaseBlueprint): number { return total(p); },
+	/** Active phase progress as a 0-1 fraction (1 when the mission is complete or the phase has no total). */
+	Fraction(s: BlueprintState): number {
+		const p=BlueprintRunner.ActivePhase(s);
+		if (!p) return 1;
+		const t=total(p);
+		if (t<=0) return 1;
+		return math.clamp(s.phaseProgress/t,0,1);
+	},
 	NavigationPoint(s: BlueprintState): FlightPoint | undefined {
 		const p=BlueprintRunner.ActivePhase(s);
 		if (!p?.points) return undefined;

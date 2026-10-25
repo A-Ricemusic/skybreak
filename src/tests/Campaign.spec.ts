@@ -145,10 +145,11 @@ describe("CampaignCoordinator datastore integration", () => {
 		coordinator.recordMissionStarted(1, 1);
 		expect(deferred).toHaveLength(1);
 		let finalKind: string | undefined;
+		// The harness never runs deferred writes, so the save stays pending; skip the flush wait (0) rather than time out.
 		const recorded = completeMission(coordinator, 1, 1, true, { slot: 1, kills: 3, elapsed: 53.33 }, (message) => {
 			finalKind = message.kind;
 			expect(message.saved).toBe(false);
-		});
+		}, 0);
 		expect(recorded).toBe(true);
 		expect(finalKind).toBe("Completed");
 		expect(coordinator.getSlots()[0].mission1Completed).toBe(true);
@@ -162,6 +163,26 @@ describe("CampaignCoordinator datastore integration", () => {
 		expect(stored.slots[0].mission1Completed).toBe(true);
 		expect(stored.slots[0].mission1BestTime).toBe(53.33);
 		expect(coordinator.hasPendingSave()).toBe(false);
+	});
+
+	it("confirms the save when the cloud write completes before the result is sent", () => {
+		const store = new FakeStore();
+		const coordinator = new CampaignCoordinator("player_42", store, {
+			defer: (callback) => callback(),
+			now: () => 100,
+			maxAttempts: 1,
+			retryWait: () => undefined,
+			warn: () => undefined,
+		});
+		expect(coordinator.load()).toBe(true);
+		coordinator.recordMissionStarted(1, 1);
+		let saved: boolean | undefined;
+		expect(completeMission(coordinator, 1, 1, true, { slot: 1, missionId: 1, kills: 4, groundKills: 1, elapsed: 53.33 }, (message) => {
+			saved = message.saved;
+		})).toBe(true);
+		expect(saved).toBe(true);
+		expect(coordinator.hasPendingSave()).toBe(false);
+		expect(normalizeProfile(store.data).slots[0].mission1Completed).toBe(true);
 	});
 
 	it("recovers an initial load failure and merges retained local progress", () => {

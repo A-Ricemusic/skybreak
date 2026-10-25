@@ -97,9 +97,17 @@ export interface Telemetry {
 	targetName: string;
 	lockProgress: number;
 	incoming: boolean;
+	/** An enemy is winding up a launch; the missile itself is not in the air yet. */
+	lockWarning?: boolean;
 	elapsed: number;
 	targetDistance?: number;
 	boundaryWarning?: boolean;
+	/** Latest radio line (phase beat, chatter, ace stage, flares). */
+	radio?: string;
+	/** Increments whenever `radio` changes so repeated lines still show. */
+	radioSerial?: number;
+	/** Current target's health fraction (0-1), when known. */
+	targetHealth?: number;
 }
 export interface MissionFinished extends MissionStats {
 	kind: "Completed" | "Failed";

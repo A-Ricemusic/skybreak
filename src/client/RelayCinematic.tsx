@@ -5,6 +5,8 @@ import { getCinematicLayout } from "../shared/CinematicLayout";
 import { storyFor } from "../shared/RelayStory";
 
 const ORIGIN=new Vector3(0,6000,0);
+/** Seconds a cinematic beat stays on screen: clamp(characters/14, 5, 9). */
+export function beatDuration(text:string): number { return math.clamp(text.size()/14,5,9); }
 function prop(parent:Instance,name:string,size:Vector3,pos:Vector3,color:Color3,material:Enum.Material=Enum.Material.Metal): Part {
 	const p=new Instance("Part"); p.Name=name; p.Size=size; p.Position=ORIGIN.add(pos); p.Color=color; p.Material=material;
 	p.Anchored=true; p.CanCollide=false; p.CanTouch=false; p.CanQuery=false; p.Parent=parent; return p;
@@ -59,11 +61,15 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 		const camera=Workspace.CurrentCamera;if(!camera)return;
 		const oldType=camera.CameraType,oldFov=camera.FieldOfView,oldFrame=camera.CFrame;
 		const scene=sceneFor(id);let elapsed=0,lastBeat=-1;
+		// Longer lines stay on screen longer: 5-9 s per beat, scaled by text length.
+		const durations=chapter.beats.map((b)=>beatDuration(b.text));
+		const total=durations[0]+durations[1]+durations[2];
 		const move=RunService.RenderStepped.Connect((dt)=>{
 			if(!pausedRef.current)elapsed+=math.min(dt,.1);
-			const index=math.min(2,math.floor(elapsed/7));
+			let index=0,start=0;
+			while(index<2 && elapsed>=start+durations[index]){start+=durations[index];index++;}
 			if(index!==lastBeat){lastBeat=index;setBeat(index);}
-			const alpha=stillRef.current ? .5 : (elapsed%7)/7;
+			const alpha=stillRef.current ? .5 : math.clamp((elapsed-start)/durations[index],0,1);
 			const short=viewportRef.current.Y<240;
 			const vehicle=chapter.scene==="farm" || chapter.scene==="harbor";
 			const eye=index===0 ? short ? new Vector3(-8+alpha*2,12,-27) : new Vector3(-10+alpha*4,12,-19)
@@ -71,7 +77,7 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 				: new Vector3(220-alpha*12,160,150-alpha*10) : short ? new Vector3(21-alpha*2,20,-40) : new Vector3(21-alpha*5,20,-25);
 			const focus=index===0 ? new Vector3(0,short ? 5 : 7,0) : index===1 ? short && vehicle ? new Vector3(45,-6,-65) : new Vector3(20,short ? -5 : 0,-85) : new Vector3(4,short ? 4 : 6,-2);
 			camera.CameraType=Enum.CameraType.Scriptable;camera.FieldOfView=55;camera.CFrame=CFrame.lookAt(ORIGIN.add(eye),ORIGIN.add(focus));
-			if(elapsed>=21)finish();
+			if(elapsed>=total)finish();
 		});
 		const input=UserInputService.InputBegan.Connect((key,processed)=>{
 			dispatch(routeCinematicInput({kind:"shortcut",key:key.KeyCode.Name,

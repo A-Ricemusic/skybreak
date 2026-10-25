@@ -1,5 +1,6 @@
 import { DataStoreService, Players, RunService } from "@rbxts/services";
 import { GameConfig } from "../shared/GameConfig";
+import { MISSION_COUNT } from "../shared/MissionCatalog";
 import { CampaignResponse, FinishedCallback, Remotes } from "../shared/Types";
 import {
 	CampaignCoordinator,
@@ -156,6 +157,8 @@ function startMission(state: PlayerState, payload: unknown): CampaignResponse {
 	state.activeSlot = slot;
 	state.activeMission = missionId;
 	state.coordinator.recordMissionStarted(slot, missionId);
+	// The briefing chapter for this mission plays once per slot; retries and replays launch directly.
+	state.coordinator.recordCutsceneSeen(slot, missionId - 1);
 	return response(state, true);
 }
 
@@ -203,6 +206,8 @@ const onFinished: FinishedCallback = (player, won, stats) => {
 	const slotIndex = state.activeSlot;
 	const missionId = state.activeMission;
 	const recorded = completeMission(state.coordinator, slotIndex, missionId, won, stats, (message) => {
+		// Winning the finale unlocks and marks its closing chapter.
+		if (message.kind === "Completed" && message.missionId === MISSION_COUNT && slotIndex !== undefined) state.coordinator.recordCutsceneSeen(slotIndex, MISSION_COUNT);
 		if (player.Parent === Players) remotes!.MissionState.FireClient(player, message);
 	});
 	if (!recorded) {
