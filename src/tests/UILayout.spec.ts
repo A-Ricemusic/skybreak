@@ -10,6 +10,7 @@ import {
 	getMenuHintsLayout,
 	getMenuLayout,
 	getToastLayout,
+	COMPACT_MAX_HEIGHT,
 	getTutorialInstruction,
 	inputModeFromInputType,
 	inputModeFromPreferred,
@@ -169,6 +170,8 @@ describe("minimal mission HUD layout", () => {
 					expect(rectanglesOverlap(rectangle, centre)).toBe(false);
 				}
 			}
+			// Landscape phones also keep the mission toast out of the forward view.
+			if (width > height && height > COMPACT_MAX_HEIGHT) expect(rectanglesOverlap(getToastLayout(width, height), centre)).toBe(false);
 		}
 	});
 

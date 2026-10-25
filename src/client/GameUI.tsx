@@ -936,6 +936,7 @@ function HudText({
 	minTextSize,
 	visible = true,
 	textRef,
+	wrap = false,
 }: {
 	name: string;
 	text: string;
@@ -948,6 +949,8 @@ function HudText({
 	minTextSize?: number;
 	visible?: boolean;
 	textRef?: React.RefObject<TextLabel>;
+	/** Wrap onto the rectangle's extra lines instead of truncating. */
+	wrap?: boolean;
 }) {
 	return (
 		<textlabel
@@ -963,7 +966,8 @@ function HudText({
 			TextSize={textSize}
 			TextScaled={minTextSize !== undefined}
 			TextTruncate={Enum.TextTruncate.AtEnd}
-			TextWrapped={false}
+			TextWrapped={wrap}
+			TextYAlignment={Enum.TextYAlignment.Top}
 			TextXAlignment={alignment}
 			TextStrokeColor3={C.Ink}
 			TextStrokeTransparency={0.35}
@@ -1051,7 +1055,7 @@ function MissionHud({
 				<Stroke color={C.Danger} transparency={0.35} thickness={5} />
 			</frame>
 
-			<HudText name="ObjectiveText" text={objectiveLine} rectangle={layout.callout} color={objectiveColor} textSize={11} minTextSize={8} />
+			<HudText name="ObjectiveText" text={objectiveLine} rectangle={layout.callout} color={objectiveColor} textSize={11} wrap={true} />
 			<HudText
 				name="MissionTimer"
 				text={formatTime(timeRemaining)}
@@ -1126,6 +1130,8 @@ function MissionHud({
 					Text="–"
 					TextColor3={C.Ivory}
 					TextSize={16}
+					TextStrokeColor3={C.Ink}
+					TextStrokeTransparency={0.5}
 					Event={{ Activated: () => onThrottle(throttle - 0.1) }}
 				/>
 				<Label
@@ -1152,6 +1158,8 @@ function MissionHud({
 					Text="+"
 					TextColor3={C.Ivory}
 					TextSize={16}
+					TextStrokeColor3={C.Ink}
+					TextStrokeTransparency={0.5}
 					Event={{ Activated: () => onThrottle(throttle + 0.1) }}
 				/>
 			</frame>
@@ -1692,7 +1700,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	if (radioNotice && now < radioNotice.until) {
 		callout = { text: radioNotice.text, color: C.Accent };
 	} else if (killNotice && now < killNotice.until) {
-		callout = { text: `Hostile down  ${killNotice.kills}/${killNotice.total}`, color: C.AccentHot };
+		// Progress is the phase objective's own count; raw kills include optional fighters and ground.
+		const total = telemetry.objectiveTotal ?? 0;
+		callout = { text: total > 0 ? `Hostile down  ${telemetry.objectiveProgress ?? 0}/${total}` : "Hostile down", color: C.AccentHot };
 	}
 	const toastRectangle = getToastLayout(viewport.X, viewport.Y, screen === "mission" ? undefined : menu);
 	const menuHints: ControlHint[] = [{ keyCode: "ButtonA", label: "A", action: "SELECT" }];

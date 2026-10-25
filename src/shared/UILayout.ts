@@ -72,12 +72,13 @@ const centered = (viewportWidth: number, width: number, y: number, height: numbe
 /** The objective line never takes more than this share of the root width. */
 export const OBJECTIVE_MAX_SHARE = 0.38;
 export const OBJECTIVE_MAX_WIDTH = 340;
-export const OBJECTIVE_LINE_HEIGHT = 16;
+/** Two 11pt lines: long objectives and story radio wrap instead of shrinking below 10pt. */
+export const OBJECTIVE_LINE_HEIGHT = 30;
 /** Tutorial copy must fit the single objective line. */
 export const TUTORIAL_MAX_CHARS = 34;
 export const TIMER_WIDTH = 48;
 export const TIMER_HEIGHT = 14;
-export const STATUS_WIDTH = 120;
+export const STATUS_WIDTH = 150;
 export const STATUS_HEIGHT = 13;
 export const ALERT_MAX_WIDTH = 220;
 export const ALERT_HEIGHT = 18;
@@ -120,6 +121,8 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 	const portrait = height > width;
 	const margin = compact ? 6 : height < 300 ? 10 : height < 500 || width < 700 ? 14 : 22;
 	const gap = compact ? 6 : 8;
+	// Touch controls keep a wider gap so a thumb on one cannot brush the next.
+	const controlGap = compact ? 6 : 12;
 	// The ScreenGui uses CoreUISafeInsets, so the origin is already below the
 	// Roblox system buttons and clear of any notch. Top row: the objective line
 	// on the left; the clock with hull/missiles under it on the right. Text only.
@@ -136,7 +139,7 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 		const missile = { x: width - margin - FIRE_SIZE, y: height - margin - FIRE_SIZE, width: FIRE_SIZE, height: FIRE_SIZE };
 		const target = {
 			x: missile.x + (FIRE_SIZE - TARGET_SIZE) / 2,
-			y: missile.y - gap - TARGET_SIZE,
+			y: missile.y - controlGap - TARGET_SIZE,
 			width: TARGET_SIZE,
 			height: TARGET_SIZE,
 		};
@@ -149,7 +152,7 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 		const throttleInLane = (portrait || compact || !columnFits) && laneRight - laneLeft >= THROTTLE_WIDTH;
 		const throttle = throttleInLane
 			? { x: math.floor(laneLeft + (laneRight - laneLeft - THROTTLE_WIDTH) / 2), y: height - margin - MIN_TOUCH_TARGET, width: THROTTLE_WIDTH, height: MIN_TOUCH_TARGET }
-			: { x: margin, y: joystick.y - gap - MIN_TOUCH_TARGET, width: THROTTLE_WIDTH, height: MIN_TOUCH_TARGET };
+			: { x: margin, y: joystick.y - controlGap - MIN_TOUCH_TARGET, width: THROTTLE_WIDTH, height: MIN_TOUCH_TARGET };
 		const throttlePill = {
 			x: throttle.x,
 			y: throttle.y + (MIN_TOUCH_TARGET - THROTTLE_PILL_HEIGHT) / 2,
@@ -221,8 +224,16 @@ export function getToastLayout(viewportWidth: number, viewportHeight: number, me
 	}
 	if (menu) return centered(width, math.min(380, width - 28), 14, toastHeight);
 	const hud = getHudLayout(viewportWidth, viewportHeight, "keyboard");
-	// Below the objective, navigation slot, clock and status; the alert only counts when it is
-	// stacked up there too (compact screens), not in its bottom lane.
+	// In a mission the toast lives in the top row between the objective and the
+	// clock, so it never enters the forward view. If that span is too narrow
+	// (portrait phones), it drops below the top texts instead.
+	const left = hud.callout.x + hud.callout.width + 8;
+	const right = hud.status.x - 8;
+	const missionToastHeight = 30;
+	if (right - left >= 140) {
+		const toastWidth = math.min(380, right - left);
+		return { x: left + math.floor((right - left - toastWidth) / 2), y: hud.callout.y, width: toastWidth, height: missionToastHeight };
+	}
 	const alertStackedOnTop = hud.alert.y + hud.alert.height <= math.max(1, viewportHeight) / 2;
 	const bannerBottom = math.max(
 		hud.callout.y + hud.callout.height,
@@ -230,8 +241,7 @@ export function getToastLayout(viewportWidth: number, viewportHeight: number, me
 		hud.navigation.y + hud.navigation.height,
 		alertStackedOnTop ? hud.alert.y + hud.alert.height : 0,
 	);
-	// Half the width at most, so it stays clear of the stick column and TGT/FIRE.
-	return centered(width, math.min(380, math.floor(width * 0.5)), bannerBottom + 8, toastHeight);
+	return centered(width, math.min(380, math.floor(width * 0.5)), bannerBottom + 8, missionToastHeight);
 }
 
 /** Gamepad select/back hints: bottom-right beside the side panel, or just above the bottom sheet. */

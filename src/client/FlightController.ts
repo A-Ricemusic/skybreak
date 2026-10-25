@@ -126,6 +126,7 @@ export class FlightController {
 				}
 				this.telemetry.navigation = typeIs(message.navigation,"Vector3") ? message.navigation : undefined;
 				this.telemetry.navigationRadius = message.navigationRadius; this.telemetry.navigationCeiling = message.navigationCeiling; this.telemetry.protectedHealth = message.protectedHealth;
+				this.telemetry.targetHealth = typeIs(message.targetHealth, "number") ? message.targetHealth : undefined;
 				this.telemetry.target = isModel(message.target) ? message.target : undefined;
 			} else if (message.kind === "Completed" || message.kind === "Failed") this.Stop();
 		});
@@ -223,11 +224,14 @@ export class FlightController {
 			bracket.Position = UDim2.fromOffset(screen.X, screen.Y);
 			const distance = math.floor(worldPosition.sub(this.visualFrame.Position).Magnitude);
 			const lock = this.telemetry.lockProgress;
-			this.caption!.Text = locked
+			// Damaged targets (staged aces above all) show remaining health after the lock state.
+			const health = this.telemetry.targetHealth;
+			const healthText = health !== undefined && health < 0.995 ? string.format(" · %d%%", math.floor(health * 100 + 0.5)) : "";
+			this.caption!.Text = (locked
 				? `LOCKED · ${distance}m`
 				: lock > 0.01
 					? string.format("LOCK %d%%", math.floor(lock * 100))
-					: `${required ? "TGT · " : ""}${distance}m`;
+					: `${required ? "TGT · " : ""}${distance}m`) + healthText;
 			const width = locked ? 52 : 64;
 			bracket.Size = UDim2.fromOffset(width, width);
 		} else {

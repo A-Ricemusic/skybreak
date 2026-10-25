@@ -65,7 +65,7 @@ export function NavigationCue({telemetry,visible,inputMode}:{telemetry:Telemetry
 	return (
 		<frame ref={label} key="NavigationCue" Visible={false} BackgroundTransparency={1} Size={UDim2.fromOffset(NAVIGATION_CAPTION_WIDTH,NAVIGATION_CAPTION_HEIGHT)} ZIndex={5}>
 			{text("Distance",primary,0,10,Enum.Font.GothamBold)}
-			{text("Details",secondary,13,8,Enum.Font.GothamBold)}
+			{text("Details",secondary,13,10,Enum.Font.GothamBold)}
 		</frame>
 	);
 }
