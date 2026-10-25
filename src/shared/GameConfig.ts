@@ -1,20 +1,23 @@
+// Last Tide: an original 27-mission arcade flight campaign for Roblox.
+//
+// MissionCount, SaveVersion, and the per-mission required-kill table are the
+// single source of truth. CampaignRepository persists save files under
+// `DataStoreName`; migrating v1 (two-mission) and v2 (two-mission) saves
+// forward to v3 is handled centrally so that each change here propagates.
+
 export const GameConfig = {
-	Name: "Test Game Coding From Phone",
-	DisplayName: "SKYBREAK",
-	Subtitle: "Operation Glass Horizon",
+	Name: "Last Tide",
+	DisplayName: "LAST TIDE",
+	Subtitle: "Reef Watch Chronicles",
 
 	Campaign: {
-		DataStoreName: "SkybreakCampaign_v1",
-		SaveVersion: 2,
+		DataStoreName: "LastTideCampaign_v1",
+		SaveVersion: 3,
 		SlotCount: 4,
-		MissionCount: 2,
-		MissionKills: 3,
-		MaxRecordedKills: 9,
+		MissionCount: 27,
+		/** Legacy ceiling for the Mission 2 air-kill display; new missions use the catalog. */
+		MaxRecordedKills: 32,
 		MissionTimeLimit: 600,
-		Missions: {
-			1: { Name: "FIRST FLIGHT", RequiredAirKills: 3, RequiredGroundKills: 1 },
-			2: { Name: "IRON COAST", RequiredAirKills: 4, RequiredGroundKills: 5 },
-		},
 	},
 
 	World: {

@@ -2,11 +2,20 @@ export type Persistence = "cloud" | "session" | "unavailable";
 export interface SaveSlot {
 	index: number;
 	occupied: boolean;
+	/** True only after every mission in the catalog has been completed at least once. */
 	completed: boolean;
 	kills: number;
 	bestTime?: number;
 	updatedAt?: number;
+	/** Mission the player should resume on; equals highestUnlocked. */
 	currentMission?: number;
+	/** 1..MissionCount; the furthest mission the player can launch. */
+	highestUnlocked?: number;
+	/** Per-mission completion flags. */
+	missionCompleted?: Map<number, boolean>;
+	/** Per-mission best times (seconds). */
+	missionBestTime?: Map<number, number>;
+	// Legacy v2 scalar fields; preserved for UI and rollback compatibility.
 	mission1Completed?: boolean;
 	mission2Completed?: boolean;
 	mission1BestTime?: number;

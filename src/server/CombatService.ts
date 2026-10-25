@@ -1,7 +1,8 @@
 import { Players, RunService, Workspace } from "@rbxts/services";
 import { FlightMath, FlightState } from "../shared/FlightMath";
 import { JetFactory } from "../shared/JetFactory";
-import { MissionPhase, MissionRules, MissionRuleState, TargetKind } from "../shared/MissionRules";
+import { getMission, MISSION_COUNT } from "../shared/MissionCatalog";
+import { MissionPhaseString, MissionRules, MissionRuleState, TargetKind } from "../shared/MissionRules";
 import { FinishedCallback, FlightInput, MissionStats, Remotes, Telemetry } from "../shared/Types";
 import { MissionWorld } from "./MissionWorld";
 
@@ -17,7 +18,7 @@ interface Projectile {
 }
 export interface CombatSession {
 	player: Player; slot: number; folder: Folder; aircraft: Model; state: FlightState; input: FlightInput;
-	rules: MissionRuleState; appliedPhase?: MissionPhase; nextHostileAt: number;
+	rules: MissionRuleState; appliedPhase?: MissionPhaseString; nextHostileAt: number;
 	health: number; kills: number; elapsed: number; missiles: number; missileCooldown: number;
 	evadeCooldown: number; evadeRemaining: number; regen: number; lockProgress: number;
 	enemies: Enemy[]; projectiles: Projectile[]; target?: Enemy; telemetryTime: number;
@@ -97,13 +98,20 @@ function sendTelemetry(session: CombatSession): void {
 	let distance = 0;
 	if (target) { const [targetDistance] = targetMetrics(session, target); distance = targetDistance; }
 	const objective = MissionRules.Objective(session.rules);
+	const mission = session.rules.missionId;
+	const total = mission === 1 ? 3 : mission === 2 ? 9 : (() => {
+		const def = getMission(mission);
+		let sum = 0;
+		for (const phase of def.phases) sum += phase.required;
+		return math.max(1, sum);
+	})();
 	const message: Telemetry = {
 		kind: "Telemetry", missionId: session.rules.missionId, phase: session.rules.phase,
 		objective: objective.objective, objectiveProgress: objective.objectiveProgress,
 		objectiveTotal: objective.objectiveTotal, tutorialStep: objective.tutorialStep,
 		timeRemaining: MissionRules.TimeRemaining(session.rules), groundKills: session.rules.groundKills,
 		health: session.health, speed: session.state.speed, altitude: session.state.y,
-		kills: session.kills, total: session.rules.missionId === 1 ? 3 : 9,
+		kills: session.kills, total,
 		missiles: session.missiles, missileCooldown: session.missileCooldown,
 		evadeCooldown: session.evadeCooldown, target: target?.model, targetName: target?.name ?? "",
 		targetKind: target ? (target.kind === "ground" ? "ground" : "air") : "", targetRequired: target?.required ?? false, targetDistance: distance,
@@ -205,11 +213,11 @@ function attackWarning(model: Model): BillboardGui {
 	label.Parent = warning;
 	return warning;
 }
-function spawnAir(session: CombatSession, count: number, required: boolean, ace = false): void {
+function spawnAir(session: CombatSession, count: number, required: boolean, ace = false, nameOverride?: string, aceHealth?: number): void {
 	const forward = directionFor(session.state);
 	const right = new Vector3(-forward.Z, 0, forward.X);
 	for (let index = 0; index < count; index++) {
-		const name = ace ? "VANTA ACE" : `${required ? "VANTA" : "RAIDER"} 0${index + 1}`;
+		const name = nameOverride ?? (ace ? "VANTA ACE" : `${required ? "VANTA" : "RAIDER"} 0${index + 1}`);
 		const model = JetFactory.Create(name, true);
 		// The first mesh generation may yield; completion/exit can occur meanwhile.
 		if (!session.active || session.folder.Parent === undefined) { model.Destroy(); return; }
@@ -219,8 +227,9 @@ function spawnAir(session: CombatSession, count: number, required: boolean, ace 
 		const direction = unitOr(positionFor(session.state).sub(position).add(right.mul(150)), forward.mul(-1));
 		model.Parent = session.folder;
 		model.PivotTo(CFrame.lookAt(position, position.add(direction)));
+		const health = ace ? (aceHealth ?? 165) : 100;
 		const enemy: Enemy = {
-			id: `air_${session.enemies.size() + 1}`, name, model, health: ace ? 165 : 100,
+			id: `air_${session.enemies.size() + 1}`, name, model, health,
 			position, direction, velocity: direction.mul(300), kind: ace ? "ace" : "air", required, enabled: true,
 			fireTimer: 8 + index * 3, windup: 0, passRemaining: 0, passDirection: direction,
 			hiddenParts: [], warning: attackWarning(model),
@@ -229,15 +238,66 @@ function spawnAir(session: CombatSession, count: number, required: boolean, ace 
 		session.enemies.push(enemy);
 	}
 }
+
+/**
+ * Parses a Mission 3-27 generic phase string ("air_2", "ground_0", "ace_3") into
+ * its kind and phase index. Returns undefined for legacy or unknown phases.
+ */
+function parseGenericPhase(phase: string): LuaTuple<[string | undefined, number]> {
+	const underscore = phase.find("_")[0];
+	if (underscore === undefined) return $tuple(undefined, -1);
+	const kind = phase.sub(1, underscore - 1);
+	const index = tonumber(phase.sub(underscore + 1));
+	if (index === undefined) return $tuple(undefined, -1);
+	return $tuple(kind, math.floor(index));
+}
+
 function applyPhase(session: CombatSession): void {
 	if (session.appliedPhase === session.rules.phase || session.rules.outcome !== undefined) return;
 	session.appliedPhase = session.rules.phase;
 	const phase = session.rules.phase;
+	const missionId = session.rules.missionId;
+	// Legacy mission 1 and 2 preserved.
 	if (phase === "tutorial_target") activateGround(session);
 	else if (phase === "tutorial_bandits" || phase === "intercept") spawnAir(session, 3, true);
 	else if (phase === "warehouses") { activateGround(session); spawnAir(session, 5, false); }
-	else if (phase === "ace") spawnAir(session, 1, true, true);
+	else if (phase === "ace" && missionId === 2) spawnAir(session, 1, true, true);
+	else if (missionId >= 3) {
+		// Missions 3-27 use the catalog phase sequence.
+		const [kind, phaseIndex] = parseGenericPhase(phase);
+		if (kind !== undefined && phaseIndex >= 0) {
+			const mission = getMission(missionId);
+			const phaseDef = mission.phases[phaseIndex];
+			if (phaseDef !== undefined) {
+				if (kind === "ground") activateGroundSubset(session, phaseDef.required);
+				else if (kind === "air") {
+					spawnAir(session, phaseDef.required, true);
+					if ((phaseDef.optional ?? 0) > 0) spawnAir(session, phaseDef.optional!, false);
+				} else if (kind === "ace") {
+					spawnAir(session, 1, true, true, undefined, phaseDef.health);
+				}
+			}
+		}
+	}
 	acquireTarget(session);
+}
+
+/**
+ * Activates up to `count` ground targets that are currently inactive. This lets
+ * multi-step missions reveal ground targets in waves while leaving the rest
+ * invisible until their phase arrives.
+ */
+function activateGroundSubset(session: CombatSession, count: number): void {
+	let activated = 0;
+	for (const enemy of session.enemies) {
+		if (activated >= count) return;
+		if (enemy.kind !== "ground" || enemy.enabled) continue;
+		enemy.enabled = true;
+		for (const hidden of enemy.hiddenParts) hidden.part.Transparency = hidden.transparency;
+		enemy.hiddenParts.clear();
+		markTarget(session, enemy);
+		activated += 1;
+	}
 }
 function destroyEnemy(session: CombatSession, enemy: Enemy): void {
 	if (!ownsEnemy(session, enemy)) return;
@@ -422,7 +482,7 @@ export const CombatService = {
 	StartMission(player: Player, slot: number, missionId = 1): LuaTuple<[boolean, string?]> {
 		if (!missionState || !onFinished) return $tuple(false, "CombatService is not initialized");
 		if (!FlightMath.IsFinite(slot) || slot % 1 !== 0 || slot < 1 || slot > 4) return $tuple(false, "Choose a save slot from 1 to 4");
-		if (missionId !== 1 && missionId !== 2) return $tuple(false, "Choose mission 1 or 2");
+		if (!FlightMath.IsFinite(missionId) || missionId % 1 !== 0 || missionId < 1 || missionId > MISSION_COUNT) return $tuple(false, `Choose a mission from 1 to ${MISSION_COUNT}`);
 		if (!typeIs(player, "Instance") || !player.IsA("Player") || player.Parent !== Players) return $tuple(false, "Player is unavailable");
 		if (completing.has(player)) return $tuple(false, "Your mission result is still being saved");
 		if (sessions.has(player)) return $tuple(false, "A mission is already in progress or its result is being saved");
@@ -436,7 +496,8 @@ export const CombatService = {
 		const [ok, result] = pcall(() => {
 			const world = MissionWorld.Build(missionId, folder);
 			assert(player.Parent === Players, "Player left during world construction");
-			assert(world.groundTargets.size() === (missionId === 1 ? 1 : 5), "Mission world has an incorrect ground target count");
+			const expectedTargets = missionId === 1 ? 1 : missionId === 2 ? 5 : getMission(missionId).targets.size();
+			assert(world.groundTargets.size() === expectedTargets, "Mission world has an incorrect ground target count");
 			const aircraft = JetFactory.Create("SKYBREAK - Kestrel", false);
 			assert(player.Parent === Players, "Player left during aircraft construction");
 			aircraft.SetAttribute("SkybreakOwner", player.UserId);
@@ -453,16 +514,21 @@ export const CombatService = {
 			};
 			for (const model of world.groundTargets) {
 				assert(model.Parent === folder && model.PrimaryPart !== undefined, "Ground target must have a stationary aim center in its session");
+				const kindAttr = model.GetAttribute("LastTideKind");
+				const groundHealth = kindAttr === "corvette" ? 70 : kindAttr === "sam" ? 45 : 55;
 				const enemy: Enemy = {
-					id: `ground_${session.enemies.size() + 1}`, name: model.Name, model, health: 55,
+					id: `ground_${session.enemies.size() + 1}`, name: model.Name, model, health: groundHealth,
 					position: model.PrimaryPart.Position, direction: new Vector3(0, 0, -1), velocity: Vector3.zero,
 					kind: "ground", required: true, enabled: false, fireTimer: 0, windup: 0,
 					passRemaining: 0, passDirection: new Vector3(0, 0, -1), hiddenParts: [],
 				};
+				// Hide ground models until their phase activates; mission 1's tutorial reveals its radar
+				// only after the player cycles target, and 3-27 missions reveal ground models in waves.
+				const hideInitially = missionId === 1 || missionId >= 3;
 				for (const item of model.GetDescendants()) {
 					if (item.IsA("BasePart")) {
 						item.Anchored = true; item.CanCollide = false; item.CanTouch = false; item.CanQuery = false;
-						if (missionId === 1) { enemy.hiddenParts.push({ part: item, transparency: item.Transparency }); item.Transparency = 1; }
+						if (hideInitially) { enemy.hiddenParts.push({ part: item, transparency: item.Transparency }); item.Transparency = 1; }
 					}
 				}
 				markTarget(session, enemy);
