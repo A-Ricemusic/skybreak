@@ -61,7 +61,7 @@ export interface Telemetry {
 	timeRemaining?: number;
 	tutorialStep?: string;
 	groundKills?: number;
-	targetKind?: string;
+	targetKind?: "air" | "ground" | "navigation" | "";
 	targetRequired?: boolean;
 	kind: "Telemetry";
 	health: number;

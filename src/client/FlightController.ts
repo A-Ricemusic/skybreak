@@ -206,7 +206,8 @@ export class FlightController {
 		const locked = this.telemetry.lockProgress >= 0.99;
 		const required = this.telemetry.targetRequired === true;
 		const ground = this.telemetry.targetKind === "ground";
-		const color = locked ? Color3.fromRGB(255, 193, 98) : required ? Color3.fromRGB(103, 235, 248) : Color3.fromRGB(177, 190, 196);
+		const navigation = this.telemetry.targetKind === "navigation";
+		const color = navigation ? Color3.fromRGB(91, 244, 211) : locked ? Color3.fromRGB(255, 193, 98) : required ? Color3.fromRGB(103, 235, 248) : Color3.fromRGB(177, 190, 196);
 		this.bracketStroke!.Color = color;
 		this.caption!.TextColor3 = color;
 		if (inside) {
@@ -214,8 +215,10 @@ export class FlightController {
 			const distance = worldPosition.sub(this.visualFrame.Position).Magnitude;
 			const range = string.format('<font transparency="0.35">%d m</font>', math.floor(distance));
 			const lock = this.telemetry.lockProgress;
-			const marker = `${required ? "TGT · " : ""}${ground ? "GND" : "AIR"}`;
-			this.caption!.Text = locked
+			const marker = navigation ? "NAV" : `${required ? "TGT · " : ""}${ground ? "GND" : "AIR"}`;
+			this.caption!.Text = navigation
+				? `${marker} · ${this.telemetry.targetName}  ${range}`
+				: locked
 				? `${marker} · LOCKED  ${range}`
 				: lock > 0.01
 					? string.format("%s · LOCK %d%%  %s", marker, math.floor(lock * 100), range)
@@ -233,7 +236,7 @@ export class FlightController {
 			const point = size.div(2).add(direction.mul(extent));
 			arrow.Position = UDim2.fromOffset(point.X, point.Y);
 			arrow.Rotation = math.deg(math.atan2(direction.Y, direction.X)) + 90;
-			arrow.Text = ground ? (required ? "◆" : "◇") : required ? "▲" : "△";
+			arrow.Text = navigation ? "◆" : ground ? (required ? "◆" : "◇") : required ? "▲" : "△";
 			arrow.TextColor3 = color;
 		}
 	}
@@ -264,7 +267,7 @@ export class FlightController {
 		this.active = true;
 		activeController = this;
 		this.telemetry = { ...DEFAULTS };
-		this.telemetry.missionId = missionData.missionId === 2 ? 2 : 1;
+		this.telemetry.missionId = typeIs(missionData.missionId, "number") && missionData.missionId >= 1 && missionData.missionId <= 27 ? math.floor(missionData.missionId) : 1;
 		if (this.telemetry.missionId === 2) {
 			this.telemetry.phase = "intercept";
 			this.telemetry.objective = "Intercept the required bandits";

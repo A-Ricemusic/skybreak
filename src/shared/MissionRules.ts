@@ -34,6 +34,8 @@ export interface MissionRuleState {
 	phaseIndex: number;
 	/** Required kills remaining in the current phase (missions 3-27 use this). */
 	phasePending: number;
+	/** Completed navigation gates or elapsed hold seconds in the current phase. */
+	phaseProgress: number;
 	/** Optional kills available alongside the current phase. */
 	phaseOptional: number;
 	startedAt: number;
@@ -67,7 +69,7 @@ function finish(state: MissionRuleState, outcome: "won" | "failed", reason: Miss
 }
 
 /** Classifies a Mission 3-27 phase string ("air_0", "ground_1", "ace_2"). */
-function phasePrefix(state: MissionRuleState): "air" | "ground" | "ace" | undefined {
+function phasePrefix(state: MissionRuleState): MissionPhase["kind"] | undefined {
 	const phase = state.phase;
 	if (phase === "intercept") return "air";
 	if (phase === "warehouses") return "ground";
@@ -75,11 +77,11 @@ function phasePrefix(state: MissionRuleState): "air" | "ground" | "ace" | undefi
 	const underscore = phase.find("_")[0];
 	if (underscore === undefined) return undefined;
 	const kind = phase.sub(1, underscore - 1);
-	if (kind === "air" || kind === "ground" || kind === "ace") return kind;
+	if (kind === "air" || kind === "ground" || kind === "ace" || kind === "nav" || kind === "hold") return kind;
 	return undefined;
 }
 
-function buildPhaseString(kind: "air" | "ground" | "ace", index: number): string {
+function buildPhaseString(kind: Exclude<MissionPhase["kind"], "tutorial">, index: number): string {
 	return `${kind}_${index}`;
 }
 
@@ -91,7 +93,9 @@ function configureGenericPhase(state: MissionRuleState, mission: MissionDefiniti
 	}
 	state.phaseIndex = index;
 	state.phasePending = phase.required;
-	state.phaseOptional = phase.optional ?? 0;
+	state.phaseProgress = 0;
+	// Optional pursuers survive phase transitions until destroyed.
+	state.phaseOptional += phase.optional ?? 0;
 	if (phase.kind === "tutorial") {
 		// A tutorial phase outside Mission 1 would be a catalog authoring error.
 		// Treat it as a no-op auto-advance for safety.
@@ -113,6 +117,7 @@ export const MissionRules = {
 			phase: missionId === 1 ? "tutorial_move" : missionId === 2 ? "intercept" : "",
 			phaseIndex: missionId === 1 ? -1 : 0,
 			phasePending: 0,
+			phaseProgress: 0,
 			phaseOptional: 0,
 			startedAt,
 			elapsed: 0,
@@ -175,9 +180,9 @@ export const MissionRules = {
 			if (kind === "ace") return state.phasePending > 0;
 			return state.phasePending > 0;
 		}
-		// Only air-type phases accept optional kills, mirroring Mission 2's five pursuers rule.
+		// Optional pursuers may accompany combat or timed-defense phases.
 		if (kind !== "air") return false;
-		if (phase.kind === "air" && (phase.optional ?? 0) > 0) return state.phaseOptional > 0;
+		if ((phase.optional ?? 0) > 0) return state.phaseOptional > 0;
 		// Air pursuers from earlier phases survive into later ones:
 		// let the optional pool continue to accept kills until the mission ends.
 		return state.phaseOptional > 0;
@@ -227,6 +232,28 @@ export const MissionRules = {
 		} else {
 			state.optionalAirKills += 1;
 			state.phaseOptional = math.max(0, state.phaseOptional - 1);
+		}
+		return true;
+	},
+
+	/**
+	 * Advances a non-combat objective from server-observed flight state. Clients
+	 * never supply this value. Navigation advances by one reached gate; hold
+	 * phases advance by fixed-step seconds while the aircraft remains alive.
+	 */
+	AdvanceObjective(state: MissionRuleState, kind: "nav" | "hold", amount: number, now: number): boolean {
+		MissionRules.Tick(state, now);
+		if (state.outcome !== undefined || !finite(amount) || amount <= 0 || state.missionId < 3) return false;
+		const mission = getMission(state.missionId);
+		const phase = mission.phases[state.phaseIndex];
+		if (phase === undefined || phase.kind !== kind || phasePrefix(state) !== kind || state.phasePending <= 0) return false;
+		const accepted = math.min(amount, state.phasePending);
+		state.phasePending = math.max(0, state.phasePending - accepted);
+		state.phaseProgress = math.min(phase.required, state.phaseProgress + accepted);
+		if (state.phasePending <= 0.0001) {
+			const nextIndex = state.phaseIndex + 1;
+			if (nextIndex >= mission.phases.size()) finish(state, "won", "complete");
+			else configureGenericPhase(state, mission, nextIndex);
 		}
 		return true;
 	},
@@ -286,10 +313,11 @@ export const MissionRules = {
 				};
 			}
 			const total = current.required;
-			const progress = math.clamp(total - state.phasePending, 0, total);
+			const rawProgress = current.kind === "nav" || current.kind === "hold" ? state.phaseProgress : total - state.phasePending;
+			const progress = math.clamp(rawProgress, 0, total);
 			return {
 				objective: current.label,
-				objectiveProgress: progress,
+				objectiveProgress: current.kind === "hold" ? math.floor(progress) : progress,
 				objectiveTotal: total,
 				tutorialStep: "",
 			};

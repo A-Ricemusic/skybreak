@@ -12,7 +12,7 @@
 // their canonical shape so the save, UI, cutscenes, and world builder treat
 // them like every other mission.
 
-export type MissionPhaseKind = "tutorial" | "air" | "ground" | "ace";
+export type MissionPhaseKind = "tutorial" | "air" | "ground" | "ace" | "nav" | "hold";
 
 /**
  * A single mission phase. For `air` and `ace` the phase spawns enemy aircraft;
@@ -31,6 +31,8 @@ export interface MissionPhase {
 	health?: number;
 	/** Caller-friendly label used in telemetry and the briefing. */
 	label: string;
+	/** Ordered server-owned flight gates for navigation/recon/rescue phases. */
+	route?: [number, number, number][];
 }
 
 /** Environment presets drive sky, atmosphere, cloud, time of day, and water color. */
@@ -218,7 +220,10 @@ export const MISSIONS: MissionDefinition[] = [
 		region: "Yurei Shallows · tide-reef gap",
 		synopsis:
 			"Four Admiralty scouts cross the shallows at low tide. Siaosi and Varo intercept while the reef cities move to shelter.",
-		phases: [{ kind: "air", required: 4, label: "Scout flight" }],
+		phases: [
+			{ kind: "nav", required: 3, label: "Sweep the shallow-water patrol route", route: [[-1100, 260, -900], [0, 210, -1550], [1200, 280, -850]] },
+			{ kind: "air", required: 4, label: "Scout flight" },
+		],
 		environment: "lagoon_noon",
 		islands: [
 			{ x: 0, z: -600, radius: 320, height: 48, apron: true },
@@ -260,7 +265,11 @@ export const MISSIONS: MissionDefinition[] = [
 		region: "Yurei Approach · leading edge of the first monsoon",
 		synopsis:
 			"The monsoon front slides across the Reefwatch. Hold the sky while the fleet repositions through the squall line.",
-		phases: [{ kind: "air", required: 5, label: "Squall-line patrol" }],
+		phases: [
+			{ kind: "nav", required: 4, label: "Thread the monsoon weather buoys", route: [[-1400, 300, -950], [-450, 240, -1750], [650, 330, -1450], [1450, 260, -500]] },
+			{ kind: "hold", required: 25, optional: 3, label: "Cover the fleet through the squall" },
+			{ kind: "air", required: 3, label: "Squall-line rear guard" },
+		],
 		environment: "monsoon_dusk",
 		islands: [
 			{ x: 0, z: -500, radius: 340, height: 55, apron: true },
@@ -349,6 +358,7 @@ export const MISSIONS: MissionDefinition[] = [
 		synopsis:
 			"Mira, a defecting Admiralty navigator, waits in the open reef. Clear her tail — five pursuers and one ace — before she can land at Yurei.",
 		phases: [
+			{ kind: "nav", required: 2, label: "Reach Mira's rendezvous", route: [[-800, 260, -1400], [700, 230, -1550]] },
 			{ kind: "air", required: 5, label: "Pursuer flight" },
 			{ kind: "ace", required: 1, health: 170, label: "Admiralty flight lead" },
 		],
@@ -397,7 +407,8 @@ export const MISSIONS: MissionDefinition[] = [
 		synopsis:
 			"The Admiralty tries to breach four tide barriers. Each one lost drowns a reef city. Protect the array while seven interceptors harry you.",
 		phases: [
-			{ kind: "ground", required: 4, optional: 7, label: "Tide barrier escorts" },
+			{ kind: "hold", required: 35, optional: 5, label: "Defend the flood-wall control span" },
+			{ kind: "ground", required: 4, label: "Break the attack corvettes" },
 		],
 		environment: "flood_twilight",
 		islands: [
@@ -444,7 +455,10 @@ export const MISSIONS: MissionDefinition[] = [
 		region: "Typhoon Eye · calm within chaos",
 		synopsis:
 			"The second monsoon closes over Yurei. Seven Vantas push into the eye; hold while the fleet rides the storm.",
-		phases: [{ kind: "air", required: 7, label: "Eye-of-storm wave" }],
+		phases: [
+			{ kind: "nav", required: 3, label: "Find the calm channel", route: [[-1200, 350, -1300], [0, 480, -1850], [1250, 320, -1200]] },
+			{ kind: "hold", required: 40, optional: 6, label: "Hold inside the typhoon eye" },
+		],
 		environment: "typhoon_eye",
 		islands: [
 			{ x: 0, z: -600, radius: 360, height: 55, apron: true },
@@ -463,6 +477,7 @@ export const MISSIONS: MissionDefinition[] = [
 		synopsis:
 			"Five Admiralty corvettes press between the atolls, three fighters flying cover. Sink the ships and keep the escorts off Mira.",
 		phases: [
+			{ kind: "nav", required: 3, label: "Shadow the convoy through the strait", route: [[-900, 230, -800], [0, 200, -1450], [900, 250, -900]] },
 			{ kind: "ground", required: 5, label: "Reefline convoy" },
 			{ kind: "air", required: 3, label: "Convoy escort" },
 		],
@@ -563,7 +578,8 @@ export const MISSIONS: MissionDefinition[] = [
 		synopsis:
 			"The Admiralty throws the second wave at the Flood Wall: eight ground emplacements and five interceptors. Hold until the civilian ships clear.",
 		phases: [
-			{ kind: "ground", required: 8, optional: 5, label: "Second-tide line" },
+			{ kind: "hold", required: 35, optional: 5, label: "Keep the flood wall firing" },
+			{ kind: "ground", required: 8, label: "Second-tide line" },
 		],
 		environment: "flood_twilight",
 		islands: [
@@ -597,6 +613,7 @@ export const MISSIONS: MissionDefinition[] = [
 		synopsis:
 			"Siaosi, Varo, and Mira hit the Admiralty's outer carrier screen. Five escort ships, four pursuers. The carrier itself is beyond.",
 		phases: [
+			{ kind: "nav", required: 3, label: "Skim the carrier approach lanes", route: [[-1100, 220, -650], [0, 185, -1500], [1100, 220, -650]] },
 			{ kind: "ground", required: 5, label: "Carrier screen" },
 			{ kind: "air", required: 4, label: "Carrier CAP" },
 		],
@@ -641,7 +658,10 @@ export const MISSIONS: MissionDefinition[] = [
 		region: "Open Reef · twin-pronged intercept",
 		synopsis:
 			"The Admiralty throws ten pilots at once. No ground targets; no backup. Survive, or Yurei falls.",
-		phases: [{ kind: "air", required: 10, label: "Twin-horizon rush" }],
+		phases: [
+			{ kind: "nav", required: 4, label: "Relay Mira's decoy signal", route: [[-1500, 300, -300], [-700, 240, -1500], [700, 240, -1500], [1500, 300, -300]] },
+			{ kind: "air", required: 7, label: "Twin-horizon rush" },
+		],
 		environment: "storm_night",
 		islands: [
 			{ x: 0, z: -500, radius: 320, height: 50, apron: true },
@@ -684,7 +704,10 @@ export const MISSIONS: MissionDefinition[] = [
 		region: "Deep Monsoon · wall of weather",
 		synopsis:
 			"Deep in the monsoon: seven Vanta at once, no horizon, Mira flying everyone's instruments.",
-		phases: [{ kind: "air", required: 7, label: "Veil rush" }],
+		phases: [
+			{ kind: "nav", required: 5, label: "Map a path through the monsoon veil", route: [[-1500, 260, -300], [-900, 380, -1200], [0, 220, -1800], [900, 380, -1200], [1500, 260, -300]] },
+			{ kind: "hold", required: 30, optional: 5, label: "Mask the refugee convoy" },
+		],
 		environment: "storm_night",
 		islands: [
 			{ x: 0, z: -500, radius: 320, height: 50, apron: true },
@@ -734,6 +757,7 @@ export const MISSIONS: MissionDefinition[] = [
 		synopsis:
 			"The flagship fills the screen: eight anchor emplacements plus three fighters launched from the deck. Peel it open before the Admiral lifts the launch bar.",
 		phases: [
+			{ kind: "nav", required: 2, label: "Mark the carrier's blind quarter", route: [[-1200, 240, -900], [1200, 240, -900]] },
 			{ kind: "ground", required: 8, label: "Carrier emplacements" },
 			{ kind: "air", required: 3, label: "Launch-deck fighters" },
 		],
@@ -763,7 +787,8 @@ export const MISSIONS: MissionDefinition[] = [
 		synopsis:
 			"The Admiralty regroups one last time: six ground points, six pursuers. Punch the line open so the islanders can walk Admiral Reyne to a tribunal.",
 		phases: [
-			{ kind: "ground", required: 6, optional: 6, label: "Breaking-wave line" },
+			{ kind: "hold", required: 40, optional: 6, label: "Hold the evacuation corridor" },
+			{ kind: "ground", required: 6, label: "Breaking-wave line" },
 		],
 		environment: "flood_twilight",
 		islands: [
@@ -828,6 +853,8 @@ function validate(): void {
 		for (const phase of mission.phases) {
 			assert(phase.required >= 0, `Mission ${mission.id} phase has negative required`);
 			if (phase.optional !== undefined) assert(phase.optional >= 0, `Mission ${mission.id} optional count must be non-negative`);
+			if (phase.kind === "nav") assert(phase.route !== undefined && phase.route.size() === phase.required, `Mission ${mission.id} navigation route must match required gates`);
+			else assert(phase.route === undefined, `Mission ${mission.id} non-navigation phase cannot define a route`);
 		}
 		const required = requiredGround(mission);
 		assert(mission.targets.size() >= required, `Mission ${mission.id} needs at least ${required} ground placements`);

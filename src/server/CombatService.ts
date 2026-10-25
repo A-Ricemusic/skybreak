@@ -1,7 +1,7 @@
 import { Players, RunService, Workspace } from "@rbxts/services";
 import { FlightMath, FlightState } from "../shared/FlightMath";
 import { JetFactory } from "../shared/JetFactory";
-import { getMission, MISSION_COUNT } from "../shared/MissionCatalog";
+import { getMission, MISSION_COUNT, MissionPhase } from "../shared/MissionCatalog";
 import { MissionPhaseString, MissionRules, MissionRuleState, TargetKind } from "../shared/MissionRules";
 import { FinishedCallback, FlightInput, MissionStats, Remotes, Telemetry } from "../shared/Types";
 import { MissionWorld } from "./MissionWorld";
@@ -22,6 +22,7 @@ export interface CombatSession {
 	health: number; kills: number; elapsed: number; missiles: number; missileCooldown: number;
 	evadeCooldown: number; evadeRemaining: number; regen: number; lockProgress: number;
 	enemies: Enemy[]; projectiles: Projectile[]; target?: Enemy; telemetryTime: number;
+	navigationTargets: Model[]; navigationPhase?: number;
 	lastInput: number; lastInputEvent: number; lastActionEvent: number; active: boolean; finished: boolean; cleaned: boolean;
 	previousReplicationFocus?: BasePart; characterRoot?: BasePart; wasAnchored?: boolean;
 }
@@ -95,8 +96,12 @@ function sendTelemetry(session: CombatSession): void {
 	}
 	for (const enemy of session.enemies) if (ownsEnemy(session, enemy) && enemy.windup > 0) incoming = true;
 	const target = ownsEnemy(session, session.target) ? session.target : undefined;
+	const navigation = session.navigationTargets[math.floor(session.rules.phaseProgress)];
+	const navigationActive = session.rules.phase.find("nav_")[0] === 1 && navigation?.Parent === session.folder;
+	const displayTarget = navigationActive ? navigation : target?.model;
 	let distance = 0;
-	if (target) { const [targetDistance] = targetMetrics(session, target); distance = targetDistance; }
+	if (navigationActive) distance = navigation.GetPivot().Position.sub(positionFor(session.state)).Magnitude;
+	else if (target) { const [targetDistance] = targetMetrics(session, target); distance = targetDistance; }
 	const objective = MissionRules.Objective(session.rules);
 	const mission = session.rules.missionId;
 	const total = mission === 1 ? 3 : mission === 2 ? 9 : (() => {
@@ -113,9 +118,9 @@ function sendTelemetry(session: CombatSession): void {
 		health: session.health, speed: session.state.speed, altitude: session.state.y,
 		kills: session.kills, total,
 		missiles: session.missiles, missileCooldown: session.missileCooldown,
-		evadeCooldown: session.evadeCooldown, target: target?.model, targetName: target?.name ?? "",
-		targetKind: target ? (target.kind === "ground" ? "ground" : "air") : "", targetRequired: target?.required ?? false, targetDistance: distance,
-		lockProgress: session.lockProgress, incoming, elapsed: session.elapsed,
+		evadeCooldown: session.evadeCooldown, target: displayTarget, targetName: navigationActive ? `ROUTE GATE ${math.floor(session.rules.phaseProgress) + 1}` : target?.name ?? "",
+		targetKind: navigationActive ? "navigation" : target ? (target.kind === "ground" ? "ground" : "air") : "", targetRequired: navigationActive || (target?.required ?? false), targetDistance: distance,
+		lockProgress: navigationActive ? 0 : session.lockProgress, incoming, elapsed: session.elapsed,
 		boundaryWarning: math.max(math.abs(session.state.x), math.abs(session.state.z)) > FlightMath.SoftBoundary,
 	};
 	missionState!.FireClient(session.player, message);
@@ -138,6 +143,7 @@ function cleanupSession(session: CombatSession, restore = true): void {
 	session.folder.Destroy();
 	session.projectiles.clear();
 	session.enemies.clear();
+	session.navigationTargets.clear();
 	session.target = undefined;
 	if (restore) restoreMenu();
 }
@@ -239,6 +245,47 @@ function spawnAir(session: CombatSession, count: number, required: boolean, ace 
 	}
 }
 
+function navigationMarker(session: CombatSession, position: Vector3, index: number): Model {
+	const model = new Instance("Model");
+	model.Name = `ROUTE GATE ${index + 1}`;
+	model.SetAttribute("LastTideNavigation", true);
+	const root = new Instance("Part");
+	root.Name = "Root"; root.Size = new Vector3(10, 10, 10); root.Transparency = 1; root.Anchored = true;
+	root.CanCollide = false; root.CanTouch = false; root.CanQuery = false; root.CFrame = new CFrame(position); root.Parent = model; model.PrimaryPart = root;
+	for (const offset of [-1, 1]) {
+		const bar = new Instance("Part");
+		bar.Name = "GateArc"; bar.Size = new Vector3(10, 100, 10); bar.Anchored = true; bar.CanCollide = false; bar.CanTouch = false; bar.CanQuery = false;
+		bar.Material = Enum.Material.Neon; bar.Color = Color3.fromRGB(75, 234, 211); bar.Transparency = index === 0 ? 0.12 : 0.68;
+		bar.CFrame = new CFrame(position.add(new Vector3(offset * 54, 0, 0))); bar.Parent = model;
+	}
+	for (const offset of [-1, 1]) {
+		const bar = new Instance("Part");
+		bar.Name = "GateRail"; bar.Size = new Vector3(118, 10, 10); bar.Anchored = true; bar.CanCollide = false; bar.CanTouch = false; bar.CanQuery = false;
+		bar.Material = Enum.Material.Neon; bar.Color = Color3.fromRGB(75, 234, 211); bar.Transparency = index === 0 ? 0.12 : 0.68;
+		bar.CFrame = new CFrame(position.add(new Vector3(0, offset * 44, 0))); bar.Parent = model;
+	}
+	const label = new Instance("BillboardGui"); label.Name = "RouteLabel"; label.Adornee = root; label.Size = UDim2.fromOffset(150, 28); label.StudsOffsetWorldSpace = new Vector3(0, 62, 0); label.AlwaysOnTop = true; label.MaxDistance = 3000; label.Parent = model;
+	const text = new Instance("TextLabel"); text.Size = UDim2.fromScale(1, 1); text.BackgroundTransparency = 1; text.Font = Enum.Font.GothamBold; text.Text = `ROUTE ${index + 1}`; text.TextColor3 = Color3.fromRGB(108, 244, 226); text.TextStrokeTransparency = 0.35; text.TextSize = 15; text.Parent = label;
+	model.Parent = session.folder;
+	return model;
+}
+
+function clearNavigation(session: CombatSession): void {
+	for (const marker of session.navigationTargets) marker.Destroy();
+	session.navigationTargets.clear();
+	session.navigationPhase = undefined;
+}
+
+function beginNavigation(session: CombatSession, phase: MissionPhase, phaseIndex: number): void {
+	clearNavigation(session);
+	assert(phase.route !== undefined && phase.route.size() === phase.required, `Mission ${session.rules.missionId} navigation phase ${phaseIndex} route mismatch`);
+	for (let index = 0; index < phase.route.size(); index++) {
+		const point = phase.route[index];
+		session.navigationTargets.push(navigationMarker(session, new Vector3(point[0], point[1], point[2]), index));
+	}
+	session.navigationPhase = phaseIndex;
+}
+
 /**
  * Parses a Mission 3-27 generic phase string ("air_2", "ground_0", "ace_3") into
  * its kind and phase index. Returns undefined for legacy or unknown phases.
@@ -255,6 +302,7 @@ function parseGenericPhase(phase: string): LuaTuple<[string | undefined, number]
 function applyPhase(session: CombatSession): void {
 	if (session.appliedPhase === session.rules.phase || session.rules.outcome !== undefined) return;
 	session.appliedPhase = session.rules.phase;
+	clearNavigation(session);
 	const phase = session.rules.phase;
 	const missionId = session.rules.missionId;
 	// Legacy mission 1 and 2 preserved.
@@ -275,11 +323,39 @@ function applyPhase(session: CombatSession): void {
 					if ((phaseDef.optional ?? 0) > 0) spawnAir(session, phaseDef.optional!, false);
 				} else if (kind === "ace") {
 					spawnAir(session, 1, true, true, undefined, phaseDef.health);
+				} else if (kind === "nav") {
+					beginNavigation(session, phaseDef, phaseIndex);
+				} else if (kind === "hold") {
+					if ((phaseDef.optional ?? 0) > 0) spawnAir(session, phaseDef.optional!, false);
 				}
 			}
 		}
 	}
 	acquireTarget(session);
+}
+
+function stepMissionObjective(session: CombatSession, dt: number): void {
+	if (session.rules.missionId < 3 || session.rules.outcome !== undefined) return;
+	const mission = getMission(session.rules.missionId);
+	const phase = mission.phases[session.rules.phaseIndex];
+	if (phase?.kind === "nav") {
+		const index = math.floor(session.rules.phaseProgress);
+		const marker = session.navigationTargets[index];
+		if (marker?.Parent === session.folder && marker.GetPivot().Position.sub(positionFor(session.state)).Magnitude <= 145) {
+			marker.Destroy();
+			MissionRules.AdvanceObjective(session.rules, "nav", 1, os.clock());
+			if (session.rules.outcome !== undefined) { finish(session); return; }
+			if (session.rules.phaseIndex !== session.navigationPhase) applyPhase(session);
+			else {
+				const nextMarker = session.navigationTargets[index + 1];
+				if (nextMarker) for (const item of nextMarker.GetDescendants()) if (item.IsA("BasePart") && item.Name !== "Root") item.Transparency = 0.12;
+			}
+		}
+	} else if (phase?.kind === "hold") {
+		MissionRules.AdvanceObjective(session.rules, "hold", dt, os.clock());
+		if (session.rules.outcome !== undefined) { finish(session); return; }
+		if (session.appliedPhase !== session.rules.phase) applyPhase(session);
+	}
 }
 
 /**
@@ -458,6 +534,8 @@ function stepSession(session: CombatSession, dt: number): void {
 	let flightFrame = frameFor(session.state);
 	if (session.evadeRemaining > 0) flightFrame = flightFrame.mul(CFrame.Angles(0, 0, (1 - session.evadeRemaining / 2.1) * math.pi * 2));
 	session.aircraft.PivotTo(flightFrame);
+	stepMissionObjective(session, dt);
+	if (!session.active) return;
 	stepEnemies(session, dt);
 	if (!ownsEnemy(session, session.target)) acquireTarget(session);
 	if (session.target) {
@@ -509,7 +587,7 @@ export const CombatService = {
 				player, slot, folder, aircraft, state, rules: MissionRules.NewState(missionId, startedAt), nextHostileAt: 8,
 				input: { x: 0, y: 0, throttle: 0.65 }, health: 100, kills: 0, elapsed: 0,
 				missiles: MAX_MISSILES, missileCooldown: 0, evadeCooldown: 0, evadeRemaining: 0, regen: 0, lockProgress: 0,
-				enemies: [], projectiles: [], telemetryTime: 0, lastInput: os.clock(), lastInputEvent: -math.huge,
+				enemies: [], projectiles: [], navigationTargets: [], telemetryTime: 0, lastInput: os.clock(), lastInputEvent: -math.huge,
 				lastActionEvent: -math.huge, active: true, finished: false, cleaned: false, previousReplicationFocus: player.ReplicationFocus,
 			};
 			for (const model of world.groundTargets) {
