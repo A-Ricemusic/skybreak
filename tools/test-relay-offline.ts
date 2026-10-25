@@ -4,7 +4,7 @@ import {mkdir} from "node:fs/promises";
 import {resolve} from "node:path";
 const root=resolve(import.meta.dir,".."),dest=resolve(root,"build/offline-relay");
 await mkdir(dest,{recursive:true});
-const files=["shared/CinematicInput","tests/CinematicInput.spec","shared/NavigationPilot","shared/FlightMath","shared/MissionCatalog","shared/BlueprintRunner","shared/MissionLayouts","shared/RelayStory","shared/GameConfig","server/CampaignRepository","tests/RelayCampaign.spec"];
+const files=["shared/CinematicInput","tests/CinematicInput.spec","shared/NavigationPilot","shared/FlightMath","shared/MissionCatalog","shared/BlueprintRunner","shared/MissionLayouts","shared/RelayStory","shared/GameConfig","server/CampaignRepository","tests/RelayCampaign.spec","tests/BlueprintProgress.spec"];
 for(const file of files){
 	let source=await Bun.file(resolve(root,`out/${file}.luau`)).text();
 	source=source.split("\n").filter(line=>!line.startsWith("local TS = require(")).map(line=>{
@@ -31,7 +31,7 @@ return { expect=expect,
  it=function(name,fn) local ok,err=pcall(fn);if ok then passed+=1;print("PASS "..name) else failed+=1;print("FAIL "..name..": "..tostring(err)) end end,
  result=function() print("OFFLINE_LUAU_RESULT passed="..passed.." failed="..failed);assert(failed==0,"Offline domain contracts failed") end }
 `);
-await Bun.write(resolve(dest,"run.luau"),'require("./RelayCampaign.spec")\nrequire("./CinematicInput.spec")\nrequire("./OfflineAssertions").result()\n');
+await Bun.write(resolve(dest,"run.luau"),'require("./RelayCampaign.spec")\nrequire("./BlueprintProgress.spec")\nrequire("./CinematicInput.spec")\nrequire("./OfflineAssertions").result()\n');
 const executable=process.env.LUAU_BIN ?? resolve(root,"build/offline-luau/luau");
 if(!(await Bun.file(executable).exists()))throw new Error("Set LUAU_BIN to the official Luau CLI. See docs/broken-relay.md. No Studio fallback will run.");
 const proc=Bun.spawn([executable,resolve(dest,"run.luau")],{cwd:root,stdout:"pipe",stderr:"pipe"});

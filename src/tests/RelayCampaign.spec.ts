@@ -25,14 +25,41 @@ describe("Broken Relay campaign contracts",()=>{
 				if(p.points){
 					expect(p.points.size()>0).toBe(true);
 					for(const point of p.points){expect(math.abs(point.x)<2300 && math.abs(point.z)<2300 && point.y>=40 && point.y<=900).toBe(true);}
+					expect(p.radius!>0).toBe(true);
+					if(p.kind!=="route")expect(p.seconds!>0).toBe(true);
+					if(p.ceiling!==undefined)expect(p.ceiling>=230).toBe(true);
 				}
+				// Every phase carries a radio beat the HUD can show when it starts.
+				expect(p.beat!==undefined && p.beat.size()>0 && p.beat.size()<=80).toBe(true);
+				for(const line of p.chatter ?? []){expect(line.at>=0 && line.at<=1).toBe(true);expect(line.text.size()>0 && line.text.size()<=80).toBe(true);}
+				if(p.reinforce){
+					expect(p.reinforce.at>0 && p.reinforce.at<1).toBe(true);
+					expect(p.reinforce.count>=1 && p.reinforce.count<=(p.optionalRaiders ?? 0)).toBe(true);
+					expect(p.kind==="escort" || p.kind==="defend").toBe(true);
+				}
+				if(p.kind!=="route" && p.points)expect((p.chatter ?? []).size()>=1).toBe(true);
 			}
 			expect(activeBound<=6).toBe(true);
+			const ace=bp.phases.find((p)=>p.kind==="ace");
+			if(ace && bp.id>=3){
+				expect(bp.aceName!==undefined).toBe(true);expect(bp.aceStages?.size()).toBe(2);
+				expect((bp.aceHealth ?? 0)>=220).toBe(true);expect((ace.optionalRaiders ?? 0)>=2).toBe(true);
+			}
 			if(bp.id>=3)expect(bp.phases.some((p)=>p.points!==undefined)).toBe(true);
 			signatures.add(bp.phases.map((p)=>`${p.kind}:${p.count ?? p.seconds ?? 0}`).join("/"));
 		}
 		expect(compositions.size()).toBe(27);expect(names.size()).toBe(27);expect(signatures.size()>=18).toBe(true);
-		for(let i=0;i<STORY.size();i++){expect(STORY[i].id).toBe(i);expect(STORY[i].beats.size()).toBe(3);for(const beat of STORY[i].beats)expect(beat.text.size()>20).toBe(true);}
+		// Ace tuning and mid-phase reinforcements per the threat pass.
+		expect(MissionCatalog.Get(9).aceHealth).toBe(220);expect(MissionCatalog.Get(18).aceHealth).toBe(260);expect(MissionCatalog.Get(27).aceHealth).toBe(320);
+		for(const [id,kind] of [[5,"escort"],[8,"defend"],[12,"escort"],[20,"escort"],[23,"defend"],[25,"escort"]] as [number,string][]){
+			const phase=MissionCatalog.Get(id).phases.find((p)=>p.kind===kind)!;
+			expect(phase.optionalRaiders).toBe(4);expect(phase.reinforce?.count).toBe(2);
+		}
+		expect(MissionCatalog.MaxOptionalRaiders(MissionCatalog.Get(23))).toBe(4);
+		for(let i=0;i<STORY.size();i++){expect(STORY[i].id).toBe(i);expect(STORY[i].beats.size()).toBe(3);for(const beat of STORY[i].beats)expect(beat.text.size()>20 && beat.text.size()<=100).toBe(true);}
+		expect(STORY[8].title).toBe("Vulture Lead");expect(STORY[17].title).toBe("Vulture Two");
+		for(const id of [4,21,26])expect(STORY[id].beats[2].speaker).toBe("MARSHAL · INTERCEPT");
+		expect(STORY[10].beats[0].speaker).toBe("MARSHAL · INTERCEPT");
 	});
 	for(const bp of MISSIONS.filter((b)=>b.id>=3)) it(`completes every authoritative phase of M${bp.id} in order`,()=>{
 		const state=BlueprintRunner.NewState(bp,100);let now=100,serial=0;

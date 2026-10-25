@@ -89,6 +89,11 @@ interface Callout {
 	title: string;
 }
 
+interface RadioNotice {
+	text: string;
+	until: number;
+}
+
 interface GameUIProps {
 	remotes: Remotes;
 	controller: FlightController;
@@ -396,6 +401,15 @@ function safeString(value: unknown, fallback: string): string {
 	return typeIs(value, "string") && value.size() <= 80 ? value : fallback;
 }
 
+function safeRadio(value: unknown, fallback: string | undefined): string | undefined {
+	return typeIs(value, "string") && value.size() > 0 && value.size() <= 140 ? value : fallback;
+}
+
+/** Bandits and raiders carry numbered call signs; anything else in the air is an ace. */
+function isAceName(name: string): boolean {
+	return name !== "" && name.sub(1, 6) !== "BANDIT" && name.sub(1, 6) !== "RAIDER";
+}
+
 function formatTime(value: number): string {
 	const seconds = math.max(0, math.floor(finite(value, 0)));
 	return string.format("%02d:%02d", math.floor(seconds / 60), seconds % 60);
@@ -466,6 +480,9 @@ function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
 		groundKills: math.max(0, math.floor(finite(payload.groundKills, previous.groundKills ?? 0))),
 		targetKind,
 		targetRequired: payload.targetRequired === undefined ? previous.targetRequired : payload.targetRequired === true,
+		radio: safeRadio(payload.radio, previous.radio),
+		radioSerial: typeIs(payload.radioSerial, "number") ? math.max(0, math.floor(finite(payload.radioSerial, previous.radioSerial ?? 0))) : previous.radioSerial,
+		targetHealth: typeIs(payload.targetHealth, "number") ? math.clamp(finite(payload.targetHealth, 1), 0, 1) : undefined,
 	};
 }
 
@@ -975,7 +992,9 @@ function MissionHud({
 	const aircraft=FlightController.GetActive()?.aircraft;
 	const relative=navigation && camera ? camera.CFrame.PointToObjectSpace(navigation) : undefined;
 	const navigationText=navigation && aircraft ? navigationSummary(navigation.sub(aircraft.GetPivot().Position).Magnitude,relative ? relative.Z>0 ? relative.X>=0 ? 1 : -1 : relative.X/math.max(1,-relative.Z) : 0,telemetry.navigationCeiling,telemetry.protectedHealth) : undefined;
-	const objectiveEyebrow = navigationText ?? (telemetry.protectedHealth!==undefined ? `PROTECTED ${math.ceil(telemetry.protectedHealth)}%` : tutorial !== "" ? "FLIGHT TRAINING" : callout?.eyebrow ?? "CURRENT OBJECTIVE");
+	const aceHealthText = telemetry.targetHealth !== undefined && telemetry.targetKind === "air" && isAceName(telemetry.targetName)
+		? `${telemetry.targetName} ${math.ceil(telemetry.targetHealth * 100)}%` : undefined;
+	const objectiveEyebrow = navigationText ?? (telemetry.protectedHealth!==undefined ? `PROTECTED ${math.ceil(telemetry.protectedHealth)}%` : tutorial !== "" ? "FLIGHT TRAINING" : callout?.eyebrow ?? aceHealthText ?? "CURRENT OBJECTIVE");
 	return (
 		<frame key="MissionHUD" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={visible}>
 			<NavigationCue telemetry={telemetry} visible={visible} inputMode={inputMode}/>
@@ -1170,6 +1189,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const [inputMode, setInputMode] = useState<InputMode>(readInputMode);
 	const [hintUntil, setHintUntil] = useState(0);
 	const [killNotice, setKillNotice] = useState<KillNotice | undefined>();
+	const [radioNotice, setRadioNotice] = useState<RadioNotice | undefined>();
 	const [damageUntil, setDamageUntil] = useState(0);
 	const [loadingProgress, setLoadingProgress] = useState(0);
 
@@ -1341,10 +1361,14 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 
 	const startMission=useCallback(()=>{
 		if(busyRef.current)return;
+		const chapter=selectedMissionRef.current-1;
+		// A chapter already seen on this slot (retry or replay) goes straight to launch.
+		const seen=slots?.[selectedSlotRef.current-1]?.cutscenesSeen;
+		if(seen && seen.includes(chapter)){launchMission();return;}
 		cinematicNext.current=launchMission;
-		setCinematicId(selectedMissionRef.current-1);
+		setCinematicId(chapter);
 		changeScreen("cinematic");
-	},[launchMission,changeScreen]);
+	},[launchMission,changeScreen,slots]);
 
 	const returnToMenu = useCallback(() => {
 		cancelRequests();
@@ -1560,6 +1584,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					const [ok, sample] = pcall(() => controller.GetTelemetry());
 					if (ok && typeIs(sample, "table")) sanitized.boundaryWarning = (sample as Telemetry).boundaryWarning === true;
 					if (sanitized.kills > previous.kills) setKillNotice({ kills: sanitized.kills, total: sanitized.total, until: os.clock() + 3 });
+					if (sanitized.radio !== undefined && sanitized.radioSerial !== undefined && sanitized.radioSerial !== previous.radioSerial) setRadioNotice({ text: sanitized.radio, until: os.clock() + 4.5 });
 					if (sanitized.health < previous.health) setDamageUntil(os.clock() + 0.45);
 					telemetryRef.current = sanitized;
 					setTelemetry(sanitized);
@@ -1643,7 +1668,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const rootChange = useMemo(() => ({ AbsoluteSize: (root: Frame) => mountedRef.current && setViewport(root.AbsoluteSize) }), []);
 	const now = os.clock();
 	let callout: Callout | undefined;
-	if (killNotice && now < killNotice.until) {
+	if (radioNotice && now < radioNotice.until) {
+		callout = { eyebrow: "RADIO", title: radioNotice.text };
+	} else if (killNotice && now < killNotice.until) {
 		callout = { eyebrow: "HOSTILE DOWN", title: telemetry.objective ?? "CONTINUE THE OBJECTIVE" };
 	} else if (telemetry.elapsed < 4.5) {
 		callout = { eyebrow: "OBJECTIVE", title: telemetry.objective ?? "COMPLETE THE MISSION" };
