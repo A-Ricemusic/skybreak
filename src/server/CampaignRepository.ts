@@ -391,7 +391,7 @@ export function completeMission(
 	const legacyMission1 = stats.missionId === undefined;
 	const objectivesMet = stats.kills >= requiredAirKills && (legacyMission1 || groundKills >= requiredGroundKills);
 	const flightObjectivesMet = missionId <= 2 || stats.completedPhases === MissionCatalog.Get(missionId).phases.size();
-	const qualifiedWin = won && flightObjectivesMet && objectivesMet && elapsed > 0 && elapsed <= GameConfig.Campaign.MissionTimeLimit;
+	const qualifiedWin = won && flightObjectivesMet && objectivesMet && elapsed > 0 && elapsed < GameConfig.Campaign.MissionTimeLimit;
 	const result = coordinator.recordMissionResult(activeSlot, missionId, qualifiedWin, stats.kills, elapsed);
 	notify({
 		kind: result.completed ? "Completed" : "Failed",
@@ -479,7 +479,7 @@ export class CampaignCoordinator {
 		assert(isValidMission(missionId), "invalid campaign mission");
 		const kills = isFiniteNumber(killsRaw) ? math.clamp(math.floor(killsRaw), 0, MISSION_KILLS) : 0;
 		const elapsed = isFiniteNumber(elapsedRaw) && elapsedRaw > 0 ? elapsedRaw : 0;
-		const completed = won && elapsed > 0 && elapsed <= GameConfig.Campaign.MissionTimeLimit;
+		const completed = won && elapsed > 0 && elapsed < GameConfig.Campaign.MissionTimeLimit;
 		const slot = this.profile.slots[slotIndex - 1];
 		slot.occupied = true;
 		slot.kills = math.max(slot.kills, kills);
