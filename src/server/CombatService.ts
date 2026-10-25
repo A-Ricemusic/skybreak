@@ -260,9 +260,13 @@ function applyPhase(session: CombatSession): void {
 		const point = phase.route![0]; session.navigation = beacon(session, "SURVEY BEACON · fly within 360 m", new Vector3(point[0],point[1],point[2]));
 	} else if (phase.kind === "escort_convoy" || phase.kind === "intercept_bombers") {
 		const desert = MissionCatalog.Get(session.rules.missionId).environmentId.find("desert")[0] !== undefined;
-		session.protectedAsset = desert && phase.kind === "escort_convoy" ? MissionAssets.CreateSAM("CAPTURED RELAY CONVOY · stay within 1100 m")
+		const protectedAsset = desert && phase.kind === "escort_convoy" ? MissionAssets.CreateSAM("CAPTURED RELAY CONVOY · stay within 1100 m")
 			: MissionAssets.CreateCarrier(phase.kind === "escort_convoy" ? "FRIENDLY CONVOY · stay within 1100 m" : "PROTECTED BROADCAST FLEET");
-		session.protectedAsset.PivotTo(new CFrame(0, 15, 200)); session.protectedAsset.Parent = session.folder;
+		// Static mesh construction can yield. An exit must not resurrect a
+		// protected actor after cleanup locked/destroyed its mission folder.
+		if (!session.active || session.folder.Parent === undefined) { protectedAsset.Destroy(); return; }
+		session.protectedAsset = protectedAsset;
+		protectedAsset.PivotTo(new CFrame(0, 15, 200)); protectedAsset.Parent = session.folder;
 		if (phase.kind === "intercept_bombers") spawnAir(session, phase.count ?? 3, true, false, true);
 		else spawnAir(session, 3, false);
 	}
@@ -565,6 +569,7 @@ export const CombatService = {
 				session.enemies.push(enemy);
 			}
 			applyPhase(session);
+			assert(player.Parent === Players, "Player left during phase construction");
 			session.rules.startedAt = os.clock(); session.rules.elapsed = 0;
 			sessions.set(player, session);
 			player.ReplicationFocus = aircraft.PrimaryPart;

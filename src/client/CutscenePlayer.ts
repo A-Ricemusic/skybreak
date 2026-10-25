@@ -83,18 +83,20 @@ export const CutscenePlayer = {
 			const skip = button(root,"SKIP · B / Esc",0.025,() => { skipped = true; });
 			const pace = button(root,"AUTO · toggle reading pace",0.35,() => { readAtOwnPace = !readAtOwnPace; });
 			const motion = button(root,"MOTION · toggle",0.675,() => { reduceMotion = !reduceMotion; });
+			skip.Name = "SkipCutsceneButton"; pace.Name = "ReadingPaceButton"; motion.Name = "ReducedMotionButton";
+			subtitle.Name = "StorySubtitle"; hint.Name = "StoryHint";
 			skip.Size = new UDim2(0.3,0,0,48);
-			GuiService.SelectedObject = skip;
 			input = UserInputService.InputBegan.Connect((event,processed) => {
 				if (processed || UserInputService.GetFocusedTextBox()) return;
 				if (event.KeyCode === Enum.KeyCode.Escape || event.KeyCode === Enum.KeyCode.ButtonB) skipped = true;
 				if (event.KeyCode === Enum.KeyCode.Space || event.KeyCode === Enum.KeyCode.Return || event.KeyCode === Enum.KeyCode.ButtonX) advance();
 			});
 			// A full-size subtitle panel also advances on touch/mouse; always >=44px.
-			const nextButton = new Instance("TextButton"); nextButton.Text = ""; nextButton.BackgroundTransparency = 1;
+			const nextButton = new Instance("TextButton"); nextButton.Name = "NextStoryBeatButton"; nextButton.Text = ""; nextButton.BackgroundTransparency = 1;
 			nextButton.Position = new UDim2(0,0,1,-144); nextButton.Size = new UDim2(1,0,0,64);
 			nextButton.Parent = root; nextButton.Activated.Connect(advance);
 			gui.Parent = Players.LocalPlayer.WaitForChild("PlayerGui");
+			GuiService.SelectedObject = skip;
 			while (gui.Parent && !skipped && beatIndex < scene.beats.size()) {
 				const [dt] = RunService.RenderStepped.Wait(); beatTime += math.min(dt,0.1);
 				const beat = scene.beats[beatIndex];
