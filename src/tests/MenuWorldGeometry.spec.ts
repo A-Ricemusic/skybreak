@@ -9,10 +9,9 @@ import {
 } from "../shared/MenuWorldGeometry";
 
 // The menu scene is rendered under a continuous sine-wave camera sway
-// (`GameUI.setMenuCamera`). Any two parts that share an interior volume will
-// z-fight on every frame of that sway and produce the visible hangar-shake
-// that this fix removes. Keep this invariant locked in: no two parts in the
-// hangar or control tower may co-penetrate.
+// (`GameUI.setMenuCamera`). Overlapping coplanar faces can z-fight under
+// that motion. Disjoint building volumes are a conservative construction
+// invariant that prevents the specific corner overlaps fixed here.
 
 function describePart(part: MenuPartSpec): string {
 	const half = part.size.div(2);
