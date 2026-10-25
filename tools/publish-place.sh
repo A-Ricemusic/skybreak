@@ -18,11 +18,17 @@ trap 'rm -f "$RESPONSE_FILE"' EXIT
 
 URL="https://apis.roblox.com/universes/v1/${ROBLOX_UNIVERSE_ID}/places/${ROBLOX_PLACE_ID}/versions?versionType=Published"
 
-STATUS="$(curl --silent --show-error -X POST "$URL" \
-	-H "x-api-key: ${ROBLOX_API_KEY}" \
-	-H "Content-Type: application/xml" \
-	--data-binary "@${PLACE_FILE}" \
-	-o "$RESPONSE_FILE" -w "%{http_code}")"
+# Roblox answers 409 "Server is busy" while the place is locked, e.g. by an open Team Create session.
+for ATTEMPT in 1 2 3; do
+	STATUS="$(curl --silent --show-error -X POST "$URL" \
+		-H "x-api-key: ${ROBLOX_API_KEY}" \
+		-H "Content-Type: application/xml" \
+		--data-binary "@${PLACE_FILE}" \
+		-o "$RESPONSE_FILE" -w "%{http_code}")"
+	[ "$STATUS" = "409" ] && [ "$ATTEMPT" -lt 3 ] || break
+	echo "Roblox is busy (attempt $ATTEMPT); retrying in 60 seconds." >&2
+	sleep 60
+done
 
 if [ "$STATUS" != "200" ]; then
 	echo "Publish failed with HTTP $STATUS: $(cat "$RESPONSE_FILE")" >&2
