@@ -108,6 +108,11 @@ export interface Telemetry {
 	radioSerial?: number;
 	/** Current target's health fraction (0-1), when known. */
 	targetHealth?: number;
+	/** How long the HUD should hold `radio` (seconds); the HUD default applies when absent. */
+	radioSeconds?: number;
+	/** Why the latest FIRE press was refused; `fireDeniedSerial` increments on every refusal. */
+	fireDenied?: "no_ammo" | "cooldown";
+	fireDeniedSerial?: number;
 }
 export interface MissionFinished extends MissionStats {
 	kind: "Completed" | "Failed";

@@ -7,6 +7,7 @@ import { BlueprintRunner, BlueprintState } from "../shared/BlueprintRunner";
 import { MissionBlueprint, MissionCatalog, MissionPhaseBlueprint } from "../shared/MissionCatalog";
 import { FinishedCallback, FlightInput, MissionLoading, MissionStats, Remotes, Telemetry } from "../shared/Types";
 import { LoadingGate, LoadingGateState } from "../shared/LoadingGate";
+import { ActionGateState, FireDenied, WeaponRules } from "../shared/WeaponRules";
 import { MissionWorld } from "./MissionWorld";
 
 type EnemyMode = "attack" | "extend" | "orbit" | "run";
@@ -24,6 +25,7 @@ interface Enemy {
 	hiddenParts: { part: BasePart; transparency: number }[];
 }
 interface Projectile {
+	/** A player missile without `target` is a blind (unguided) shot that relies on its proximity fuse. */
 	part: Part; position: Vector3; direction: Vector3; target?: Enemy; hostile: boolean; age: number;
 	/** Hostile only: fired by an ace (tighter guidance) and the hull damage on impact. */
 	ace: boolean; damage: number;
@@ -39,13 +41,19 @@ export interface CombatSession {
 	health: number; kills: number; elapsed: number; missiles: number; missileCooldown: number;
 	evadeCooldown: number; evadeRemaining: number; regen: number; lockProgress: number;
 	enemies: Enemy[]; projectiles: Projectile[]; target?: Enemy; telemetryTime: number;
-	lastInput: number; lastInputEvent: number; lastActionEvent: number; active: boolean; finished: boolean; cleaned: boolean;
+	lastInput: number; lastInputEvent: number; active: boolean; finished: boolean; cleaned: boolean;
+	/** Per-action-kind rate limiting for CombatAction events. */
+	actionGate?: ActionGateState;
 	navigationMarker?: Part; navigationActor?: Model;
 	previousReplicationFocus?: BasePart; characterRoot?: BasePart; wasAnchored?: boolean;
 	/** Present while the client is still receiving the world; nothing simulates until it is released. */
 	loading?: LoadingGateState;
 	/** Latest radio line and a serial so the client can detect repeats. */
-	radio?: string; radioSerial: number;
+	radio?: string; radioSerial: number; radioSeconds?: number;
+	/** Latest refused FIRE and its serial, so the HUD can show the reason once per press. */
+	fireDenied?: FireDenied; fireDeniedSerial?: number;
+	/** Mission 1: elapsed time when the tutorial target step began, and whether its hint has aired. */
+	targetStepSince?: number; targetStepHinted?: boolean;
 	/** Next unfired chatter line of the active phase. */
 	chatterIndex: number;
 	/** Blueprint phase index whose mid-phase reinforcement has already spawned. */
@@ -60,8 +68,8 @@ let missionRoot: Instance | undefined;
 let missionState: RemoteEvent | undefined;
 let onFinished: FinishedCallback | undefined;
 const FIXED_STEP = 1 / 30;
-const LOCK_RANGE = 2450;
-const LOCK_DOT = math.cos(math.rad(62));
+const LOCK_RANGE = WeaponRules.LockRange;
+const LOCK_DOT = WeaponRules.LockDot;
 const MAX_MISSILES = 8;
 const PLAYER_MISSILE_DAMAGE = 55;
 // Threat tuning indexed by act (1-3). Missions 1-2 use act 1.
@@ -248,15 +256,23 @@ function sendTelemetry(session: CombatSession): void {
 		targetKind: target ? (target.kind === "ground" ? "ground" : "air") : "", targetRequired: target?.required ?? false, targetDistance: distance,
 		lockProgress: session.lockProgress, incoming, lockWarning, elapsed: session.elapsed,
 		boundaryWarning: math.max(math.abs(session.state.x), math.abs(session.state.z)) > FlightMath.SoftBoundary,
-		radio: session.radio, radioSerial: session.radioSerial,
+		radio: session.radio, radioSerial: session.radioSerial, radioSeconds: session.radioSeconds,
+		fireDenied: session.fireDenied, fireDeniedSerial: session.fireDeniedSerial,
 		targetHealth: target ? math.clamp(target.health / math.max(1, target.maxHealth), 0, 1) : undefined,
 	};
 	missionState!.FireClient(session.player, message);
 }
 /** Push a radio line to the HUD immediately (phase beats, chatter, ace stages, flares). */
-function radio(session: CombatSession, text: string): void {
+function radio(session: CombatSession, text: string, seconds?: number): void {
 	session.radio = text;
 	session.radioSerial += 1;
+	session.radioSeconds = seconds;
+	if (session.active && sessions.get(session.player) === session) sendTelemetry(session);
+}
+/** Tell the HUD why a FIRE press did nothing; the serial makes every repeated press visible. */
+function denyFire(session: CombatSession, reason: FireDenied): void {
+	session.fireDenied = reason;
+	session.fireDeniedSerial = (session.fireDeniedSerial ?? 0) + 1;
 	if (session.active && sessions.get(session.player) === session) sendTelemetry(session);
 }
 /** Catalog phase index that mirrors a legacy MissionRules phase, so missions 1-2 share the authored beats. */
@@ -545,15 +561,22 @@ function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy):
 		ace = enemy.kind === "ace";
 		damage = tuned(session, TUNING.hostileDamage) + (ace ? 4 : 0);
 	} else {
-		if (session.lockProgress < 0.99 || !ownsEnemy(session, session.target)) return;
-		if (!sessionCanDamage(session, session.target.kind, session.target.required)) return;
-		const [distance, dot] = targetMetrics(session, session.target);
-		if (session.missiles <= 0 || session.missileCooldown > 0 || distance > LOCK_RANGE || dot < LOCK_DOT) return;
+		// A FIRE press always does something: a guided shot with a full lock inside the envelope,
+		// otherwise a blind shot straight ahead (proximity fused), or a stated refusal.
+		const current = ownsEnemy(session, session.target) ? session.target : undefined;
+		let distance = 0, dot = 0;
+		if (current) [distance, dot] = targetMetrics(session, current);
+		const decision = WeaponRules.Launch({
+			missiles: session.missiles, missileCooldown: session.missileCooldown,
+			hasTarget: current !== undefined, lockProgress: session.lockProgress, distance, dot,
+		});
+		if (decision.kind === "denied") { denyFire(session, decision.reason); return; }
 		position = positionFor(session.state).add(directionFor(session.state).mul(16)).sub(new Vector3(0, 2, 0));
 		direction = directionFor(session.state);
-		target = session.target;
+		target = decision.kind === "guided" ? session.target : undefined;
 		session.missiles -= 1;
 		session.missileCooldown = 1.15;
+		if (target === undefined) radio(session, "NO LOCK · FIRING BLIND", 1);
 	}
 	session.projectiles.push({ part: JetFactory.CreateMissile(session.folder, position, direction, hostile), position, direction, target, hostile, age: 0, ace, damage });
 }
@@ -653,11 +676,35 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		}
 	}
 }
-function segmentDistance(point: Vector3, startPosition: Vector3, endPosition: Vector3): number {
-	const segment = endPosition.sub(startPosition);
-	const lengthSquared = segment.Dot(segment);
-	const t = lengthSquared > 0 ? math.clamp(point.sub(startPosition).Dot(segment) / lengthSquared, 0, 1) : 0;
-	return point.sub(startPosition.add(segment.mul(t))).Magnitude;
+function point(vector: Vector3): { x: number; y: number; z: number } { return { x: vector.X, y: vector.Y, z: vector.Z }; }
+function segmentDistance(target: Vector3, startPosition: Vector3, endPosition: Vector3): number {
+	return WeaponRules.SegmentDistance(point(target), point(startPosition), point(endPosition));
+}
+/**
+ * A player missile at `index` hits `enemy`. Returns false when the caller must stop handling
+ * that projectile: a kill removed it (and may have spliced the list) or ended the session.
+ */
+function strikeEnemy(session: CombatSession, enemy: Enemy, index: number): boolean {
+	// Staged ace: the hit bursts harmlessly while it breaks away.
+	if (enemy.invulnerableUntil > session.elapsed) return true;
+	if (enemy.health <= PLAYER_MISSILE_DAMAGE) {
+		session.projectiles[index].part.Destroy(); session.projectiles.remove(index);
+		destroyEnemy(session, enemy);
+		return false;
+	}
+	const before = enemy.health / enemy.maxHealth;
+	enemy.health -= PLAYER_MISSILE_DAMAGE;
+	enemy.model.SetAttribute("Health", enemy.health);
+	if (enemy.kind === "ace") aceStage(session, enemy, before, enemy.health / enemy.maxHealth);
+	return true;
+}
+/** Mission 1 target step: after 8 s without a TGT press, say what the step wants. Auto-selection never skips it. */
+function stepTutorialHint(session: CombatSession): void {
+	if (session.rules?.phase !== "tutorial_target") { session.targetStepSince = undefined; return; }
+	if (session.targetStepSince === undefined) session.targetStepSince = session.elapsed;
+	if (session.targetStepHinted || session.elapsed - session.targetStepSince < 8) return;
+	session.targetStepHinted = true;
+	radio(session, "Tap TGT to mark the radar");
 }
 /** An ace crossing 2/3 or 1/3 health calls a stage: brief invulnerability, a radio line, more speed and its held-back raiders. */
 function aceStage(session: CombatSession, enemy: Enemy, before: number, after: number): void {
@@ -676,11 +723,34 @@ function aceStage(session: CombatSession, enemy: Enemy, before: number, after: n
 	if (count > 0) spawnAir(session, count, false, false, 165, true);
 }
 function stepMissiles(session: CombatSession, dt: number): void {
+	stepTutorialHint(session);
 	for (let index = session.projectiles.size() - 1; index >= 0; index--) {
 		const missile = session.projectiles[index];
 		missile.age += dt;
-		let removed = missile.age > (missile.hostile ? HOSTILE_MISSILE_LIFETIME : 8) || (!missile.hostile && !ownsEnemy(session, missile.target));
-		if (!removed) {
+		const blind = !missile.hostile && missile.target === undefined;
+		let removed = missile.age > (missile.hostile ? HOSTILE_MISSILE_LIFETIME : blind ? WeaponRules.UnguidedLifetime : WeaponRules.GuidedLifetime)
+			|| (!missile.hostile && !blind && !ownsEnemy(session, missile.target));
+		// A blind shot that reaches end of life bursts harmlessly where it is.
+		if (removed && blind) JetFactory.Burst(session.folder, missile.position, Color3.fromRGB(255, 220, 142), 3);
+		if (!removed && blind) {
+			// Unguided: straight flight; the proximity fuse fires on the closest damageable enemy the sweep passes.
+			const nextPosition = missile.position.add(missile.direction.mul(WeaponRules.MissileSpeed * dt));
+			const hit = WeaponRules.Fuse(point(missile.position), point(nextPosition), session.enemies, (enemy) => point(enemy.position),
+				(enemy) => ownsEnemy(session, enemy) && sessionCanDamage(session, enemy.kind, enemy.required));
+			if (hit !== undefined) {
+				const enemy = session.enemies[hit];
+				removed = true;
+				JetFactory.Burst(session.folder, enemy.position, Color3.fromRGB(255, 179, 102), 8);
+				if (!strikeEnemy(session, enemy, index)) {
+					if (!session.active) return;
+					index = math.min(index, session.projectiles.size());
+					continue;
+				}
+			} else {
+				missile.position = nextPosition;
+				missile.part.CFrame = CFrame.lookAt(nextPosition, nextPosition.add(missile.direction));
+			}
+		} else if (!removed) {
 			const targetPosition = missile.hostile ? positionFor(session.state) : missile.target!.position;
 			const velocity = missile.hostile ? directionFor(session.state).mul(session.state.speed) : missile.target!.velocity;
 			const speed = missile.hostile ? HOSTILE_MISSILE_SPEED : 750;
@@ -714,22 +784,12 @@ function stepMissiles(session: CombatSession, dt: number): void {
 						return;
 					}
 				} else if (sessionCanDamage(session, missile.target!.kind, missile.target!.required)) {
-					const enemy = missile.target!;
-					if (enemy.invulnerableUntil > session.elapsed) {
-						// Staged ace: the hit bursts harmlessly while it breaks away.
-					} else if (enemy.health <= PLAYER_MISSILE_DAMAGE) {
-						missile.part.Destroy(); session.projectiles.remove(index);
-						destroyEnemy(session, enemy);
+					if (!strikeEnemy(session, missile.target!, index)) {
 						if (!session.active) return;
 						// A phase change inside destroyEnemy may have withdrawn raiders and spliced
 						// out missiles below this index; clamp so the backward sweep stays valid.
 						index = math.min(index, session.projectiles.size());
 						continue;
-					} else {
-						const before = enemy.health / enemy.maxHealth;
-						enemy.health -= PLAYER_MISSILE_DAMAGE;
-						enemy.model.SetAttribute("Health", enemy.health);
-						if (enemy.kind === "ace") aceStage(session, enemy, before, enemy.health / enemy.maxHealth);
 					}
 				}
 			} else {
@@ -852,7 +912,7 @@ export const CombatService = {
 				input: { x: 0, y: 0, throttle: 0.65 }, health: 100, kills: 0, elapsed: 0,
 				missiles: MAX_MISSILES, missileCooldown: 0, evadeCooldown: 0, evadeRemaining: 0, regen: 0, lockProgress: 0,
 				enemies: [], projectiles: [], telemetryTime: 0, lastInput: os.clock(), lastInputEvent: -math.huge,
-				lastActionEvent: -math.huge, active: true, finished: false, cleaned: false, previousReplicationFocus: player.ReplicationFocus,
+				active: true, finished: false, cleaned: false, previousReplicationFocus: player.ReplicationFocus,
 			};
 			if (legacy) {
 				session.rules = MissionRules.NewState(missionId as 1 | 2, startedAt);
@@ -943,8 +1003,10 @@ export const CombatService = {
 				if (data.action === "Ready") { LoadingGate.MarkReady(session.loading); if (LoadingGate.Release(session.loading, now)) beginPlay(session); }
 				return;
 			}
-			if (!refreshSession(session, now) || now - session.lastActionEvent < 0.09) return;
-			session.lastActionEvent = now;
+			if (!refreshSession(session, now) || !WeaponRules.IsActionKind(data.action)) return;
+			// Rate limited per action kind: a TGT tap followed closely by FIRE still fires.
+			session.actionGate ??= WeaponRules.NewActionGate();
+			if (!WeaponRules.AcceptAction(session.actionGate, data.action, now)) return;
 			if (data.action === "FireMissile") launchMissile(session, false);
 			else if (data.action === "Evade") evade(session);
 			else if (data.action === "CycleTarget") cycleTarget(session);
