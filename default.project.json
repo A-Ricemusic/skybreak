@@ -43,6 +43,12 @@
       },
       "VantaGeometry": {
         "$path": "build/VantaGeometry.txt"
+      },
+      "WarehouseGeometry": {
+        "$path": "build/WarehouseGeometry.txt"
+      },
+      "RadarGeometry": {
+        "$path": "build/RadarGeometry.txt"
       }
     }
   }

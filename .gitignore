@@ -28,5 +28,16 @@ assets/aircraft/vanta.stats.json
 assets/aircraft/vanta-three-quarter.png
 assets/aircraft/vanta-top.png
 
+# Known procedural mission-target inspection exports. The generators and
+# runtime mesh JSON remain tracked canonical inputs.
+assets/mission/warehouse.blend
+assets/mission/warehouse.blend[0-9]*
+assets/mission/warehouse.glb
+assets/mission/warehouse-preview.png
+assets/mission/radar.blend
+assets/mission/radar.blend[0-9]*
+assets/mission/radar.glb
+assets/mission/radar-preview.png
+
 # Operating-system metadata
 .DS_Store
