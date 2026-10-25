@@ -1,8 +1,7 @@
 // Pure geometry definitions for menu-world buildings that stay visible under
 // the menu camera. The menu camera applies a continuous sine-wave sway (see
-// `GameUI.setMenuCamera`); any two parts that share an interior volume or an
-// exactly-coplanar same-facing surface then flicker and appear to "shake" as
-// the depth test alternates between frames. These specs are the single source
+// `GameUI.setMenuCamera`). Overlaps that leave coplanar, same-facing surfaces
+// can flicker as the depth test alternates between them. These specs are the single source
 // of truth for the hangar and control tower, and the Jest `MenuWorldGeometry`
 // test verifies that no pair of parts in a model co-penetrates.
 
@@ -126,7 +125,3 @@ export const CONTROL_TOWER_PARTS: ReadonlyArray<MenuPartSpec> = [
 	{ name: "Antenna", size: TOWER_ANTENNA_SIZE, offset: new Vector3(0, TOWER_ANTENNA_CENTER_Y, 0) },
 	{ name: "Beacon", size: TOWER_BEACON_SIZE, offset: new Vector3(0, TOWER_BEACON_CENTER_Y, 0) },
 ];
-
-/** Local-space Y of the top of the control-tower antenna (beacon attach). */
-export const CONTROL_TOWER_ANTENNA_TOP_Y =
-	TOWER_BASE_SIZE.Y + TOWER_CAB_SIZE.Y + TOWER_ROOF_SIZE.Y + TOWER_ANTENNA_SIZE.Y;
