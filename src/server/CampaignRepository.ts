@@ -249,11 +249,20 @@ export class CampaignCoordinator {
 		return this.dirty || this.writeRunning || this.writeScheduled;
 	}
 
-	public flush(): boolean {
+	public flush(timeoutSeconds = 5): boolean {
 		if (!this.store) return true;
 		if (!this.cloudLoaded) return false;
-		this.drain();
-		return !this.dirty;
+
+		// Never call drain directly here: an UpdateAsync may already own the key,
+		// and datastore calls can yield. Ensure one worker exists, then wait only
+		// up to the shutdown budget for it to serialize every retained mutation.
+		const deadline = os.clock() + math.max(0, timeoutSeconds);
+		if (this.dirty && !this.writeRunning && !this.writeScheduled) this.queueSave();
+		while (this.hasPendingSave() && os.clock() < deadline) {
+			task.wait(0.05);
+			if (this.dirty && !this.writeRunning && !this.writeScheduled) this.queueSave();
+		}
+		return !this.hasPendingSave();
 	}
 
 	private markDirty(): void {

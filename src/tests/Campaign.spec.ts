@@ -17,6 +17,9 @@ class FakeStore implements CampaignStore {
 	public updateFailures = 0;
 	public loads = 0;
 	public updates = 0;
+	public blockNextUpdate = false;
+	public updateEntered = false;
+	public releaseUpdate = false;
 
 	public constructor(initial?: unknown) {
 		this.data = initial;
@@ -33,6 +36,11 @@ class FakeStore implements CampaignStore {
 
 	public update(_key: string, transform: (current: unknown) => StoredProfile): unknown {
 		this.updates++;
+		if (this.blockNextUpdate) {
+			this.blockNextUpdate = false;
+			this.updateEntered = true;
+			while (!this.releaseUpdate) task.wait();
+		}
 		if (this.updateFailures > 0) {
 			this.updateFailures--;
 			error("injected update failure");
@@ -171,5 +179,38 @@ describe("CampaignCoordinator datastore integration", () => {
 		expect(profile.slots[2].occupied).toBe(false);
 		expect(profile.slots[3].occupied).toBe(false);
 		expect(serializeProfile(profile).version).toBe(1);
+	});
+
+	it("waits for an outstanding write and drains a result recorded during shutdown", () => {
+		const store = new FakeStore();
+		store.blockNextUpdate = true;
+		const coordinator = new CampaignCoordinator("player_42", store, {
+			maxAttempts: 1,
+			retryWait: () => undefined,
+			warn: () => undefined,
+		});
+		expect(coordinator.load()).toBe(true);
+		coordinator.recordMissionStarted(4);
+
+		const enteredDeadline = os.clock() + 1;
+		while (!store.updateEntered && os.clock() < enteredDeadline) task.wait();
+		expect(store.updateEntered).toBe(true);
+		coordinator.recordMissionResult(4, true, 3, 48);
+
+		let flushReturned = false;
+		let observedFlushWaiting = false;
+		task.delay(0.05, () => {
+			observedFlushWaiting = !flushReturned;
+			store.releaseUpdate = true;
+		});
+		expect(coordinator.flush(1)).toBe(true);
+		flushReturned = true;
+
+		expect(observedFlushWaiting).toBe(true);
+		expect(store.updates).toBe(2);
+		expect(coordinator.hasPendingSave()).toBe(false);
+		const stored = normalizeProfile(store.data);
+		expect(stored.slots[3].completed).toBe(true);
+		expect(stored.slots[3].bestTime).toBe(48);
 	});
 });
