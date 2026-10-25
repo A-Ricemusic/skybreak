@@ -139,11 +139,11 @@ export class FlightController {
 		return Enum.ContextActionResult.Sink;
 	}
 	/** Studio QA uses the same handler as ContextActionService, below engine/device routing. */
-	public SimulateGamepadInput(keyCode: Enum.KeyCode, state: Enum.UserInputState, position = Vector3.zero): void {
+	public SimulateGamepadInput(keyCode: Enum.KeyCode, state: Enum.UserInputState, position = Vector3.zero): Enum.ContextActionResult {
 		assert(RunService.IsStudio(), "Controller simulation is Studio-only");
 		assert(FLIGHT_KEYS.includes(keyCode) && (keyCode.Name.sub(1, 6) === "Button" || keyCode === Enum.KeyCode.Thumbstick1), "Unsupported bound gamepad control");
 		assert(FlightMath.IsFinite(position.X) && FlightMath.IsFinite(position.Y) && FlightMath.IsFinite(position.Z), "Input must be finite");
-		this.handleBoundInput(state, keyCode, new Vector3(math.clamp(position.X, -1, 1), math.clamp(position.Y, -1, 1), math.clamp(position.Z, -1, 1)));
+		return this.handleBoundInput(state, keyCode, new Vector3(math.clamp(position.X, -1, 1), math.clamp(position.Y, -1, 1), math.clamp(position.Z, -1, 1)));
 	}
 	public GetControlStateForStudio() {
 		assert(RunService.IsStudio(), "Controller diagnostics are Studio-only");
