@@ -1,5 +1,20 @@
 # Controller QA without physical hardware
 
+## Twin-stick review corrections
+
+The independent Astra review found three boundary-size layout defects. The
+navigation widget now applies both the position and dimensions chosen by the
+layout, with two contained text rows. Short roots reserve separate navigation,
+warning and toast lanes, and narrow roots retain enough space between both
+sticks for the action pair. The smaller action sizes remain active until the
+larger targets fit below the warning row.
+
+The corrected Studio suite passes 261 tests across 23 suites, including 176
+width/height combinations around the action, spacing and short-height
+breakpoints. These verify hit areas, navigation, warnings and toasts together.
+The earlier simulated-touch evidence below still applies to input handling;
+the layout corrections have not been retested on a physical phone.
+
 `tools/playtest-gamepad.client.luau` is a Studio-only automated flight test. It drives the **same bound-input handler** as ContextActionService: left stick, LB/RB throttle, Y target selection, B evade, and R2 missiles. Damage, lock, ammunition, enemies, and victory remain server-authoritative. It does not set health or kills.
 
 ## Run

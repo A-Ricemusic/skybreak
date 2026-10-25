@@ -115,11 +115,12 @@ export function isCompactHud(_viewportWidth: number, viewportHeight: number): bo
 export function getHudLayout(viewportWidth: number, viewportHeight: number, inputMode: InputMode): HudLayout {
 	const width = math.max(1, viewportWidth);
 	const height = math.max(1, viewportHeight);
-	const compact = isCompactHud(width, height);
-	const margin = compact || width <= 320 ? 6 : height < 300 ? 10 : height < 500 || width < 700 ? 14 : 22;
+	// Preserve a dedicated top warning lane until the bottom controls have enough height.
+	const compact = height < 240;
+	const margin = compact || width < 360 ? 6 : height < 300 ? 10 : height < 500 || width < 700 ? 14 : 22;
 	const gap = compact ? 6 : 8;
 	// Touch controls keep a wider gap so a thumb on one cannot brush the next.
-	const controlGap = compact ? 6 : 12;
+	const controlGap = compact || width < 360 ? 6 : 12;
 	// The ScreenGui uses CoreUISafeInsets, so the origin is already below the
 	// Roblox system buttons and clear of any notch. Top row: the objective line
 	// on the left; the clock with hull/missiles under it on the right. Text only.
@@ -136,8 +137,8 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 		const laneLeft = joystick.x + JOYSTICK_SIZE + controlGap;
 		const laneRight = throttle.x - controlGap;
 		const stacked = laneRight - laneLeft < FIRE_SIZE + TARGET_SIZE + SPECIAL_SIZE + controlGap * 2;
-		const fireSize = height < 176 ? MIN_TOUCH_TARGET : FIRE_SIZE;
-		const targetSize = height < 176 ? MIN_TOUCH_TARGET : TARGET_SIZE;
+		const fireSize = height < 180 ? MIN_TOUCH_TARGET : FIRE_SIZE;
+		const targetSize = height < 180 ? MIN_TOUCH_TARGET : TARGET_SIZE;
 		const missile = centered(width, fireSize, height - margin - fireSize, fireSize);
 		if (!stacked) missile.x = laneRight - targetSize - controlGap - fireSize;
 		const target = stacked
@@ -146,7 +147,7 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 		const special = { ...target, x: stacked ? math.floor(width / 2 + controlGap / 2) : missile.x + fireSize + controlGap };
 		// The tiny Studio root needs its alert between the top texts and actions.
 		// Other roots reserve a full-width text row above the bottom control lane.
-		if (compact) { navigation.width = JOYSTICK_SIZE; navigation.height = math.min(NAVIGATION_CAPTION_HEIGHT, joystick.y - navigation.y - 3); }
+		if (compact) { navigation.width = JOYSTICK_SIZE; navigation.height = math.min(NAVIGATION_CAPTION_HEIGHT, joystick.y - navigation.y - 2); }
 		const alert = compact
 			? centered(width, laneRight - laneLeft, 38, ALERT_HEIGHT)
 			: centered(width, math.min(ALERT_MAX_WIDTH, width - margin * 2), math.min(joystick.y, target.y) - gap - ALERT_HEIGHT, ALERT_HEIGHT);
@@ -201,7 +202,7 @@ export function getToastLayout(viewportWidth: number, viewportHeight: number, me
 	}
 	if (menu) return centered(width, math.min(380, width - 28), 14, toastHeight);
 	const hud = getHudLayout(viewportWidth, viewportHeight, "keyboard");
-	if (isCompactHud(viewportWidth, viewportHeight)) return { x: width - hud.margin - JOYSTICK_SIZE, y: 38, width: JOYSTICK_SIZE, height: ALERT_HEIGHT };
+	if (viewportHeight < 240) return { x: width - hud.margin - JOYSTICK_SIZE, y: 38, width: JOYSTICK_SIZE, height: ALERT_HEIGHT };
 	// In a mission the toast lives in the top row between the objective and the
 	// clock, so it never enters the forward view. If that span is too narrow
 	// (portrait phones), it drops below the top texts instead.

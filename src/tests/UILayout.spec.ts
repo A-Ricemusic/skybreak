@@ -82,6 +82,13 @@ function hudRectangles(layout: HudLayout, includeAlert = true): Rectangle[] {
 }
 
 describe("minimal mission HUD layout", () => {
+	it("separates touch hit regions, navigation, warnings and toasts around breakpoints", () => {
+		for (const width of [319,320,321,349,350,351,359,360,361,390,560]) for (const height of [160,161,175,176,177,179,180,181,199,200,201,202,239,240,241,568]) {
+			const hud=getHudLayout(width,height,"touch");
+			expectSeparate([...hudRectangles(hud),getToastLayout(width,height)]);
+			for(const rect of hudRectangles(hud)) expect(rectangleInside(rect,width,height,hud.margin)).toBe(true);
+		}
+	});
 	it("reserves the compact layout for roots at most 200pt tall, never for real phones", () => {
 		for (const [width, height] of [...HUD_VIEWPORTS, ...VIEWPORTS]) expect(isCompactHud(width, height)).toBe(false);
 		for (const [width, height] of COMPACT_VIEWPORTS) expect(isCompactHud(width, height)).toBe(true);
