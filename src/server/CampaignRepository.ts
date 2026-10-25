@@ -2,6 +2,7 @@ import { GameConfig } from "../shared/GameConfig";
 import { MissionCatalog, MISSION_COUNT } from "../shared/MissionCatalog";
 import { MissionRank, MissionScore, RANK_ORDER } from "../shared/MissionScore";
 import { MissionFinished, MissionRecord, MissionStats, Persistence, SaveSlot } from "../shared/Types";
+import { SpecialWeapons } from "../shared/SpecialWeapons";
 
 export interface StoredMissionRecord {
 	completed?: unknown;
@@ -27,6 +28,8 @@ export interface StoredSlot {
 	introSeen?: unknown;
 	cutscenesSeen?: unknown;
 	generation?: unknown;
+	/** Last special weapon equipped from this slot's briefing. */
+	special?: unknown;
 }
 
 export interface StoredProfile {
@@ -257,6 +260,7 @@ export function normalizeSlot(raw: unknown, index: number, legacyV1 = false): Sa
 	slot.introSeen = source.introSeen === true;
 	slot.cutscenesSeen = readCutsceneSet(source.cutscenesSeen);
 	slot.generation = isFiniteNumber(source.generation) && source.generation > 0 ? math.floor(source.generation) : 0;
+	if (SpecialWeapons.IsKind(source.special)) slot.special = source.special;
 	return slot;
 }
 
@@ -338,6 +342,10 @@ export function mergeSlot(storedRaw: unknown, desiredRaw: unknown, index: number
 	for (const id of seen) seenList.push(id);
 	table.sort(seenList);
 	merged.cutscenesSeen = seenList;
+	// The loadout is a preference, not progress: the more recently updated side wins.
+	const desiredNewer = (desired.updatedAt ?? 0) >= (stored.updatedAt ?? 0);
+	const special = desiredNewer ? desired.special ?? stored.special : stored.special ?? desired.special;
+	if (special !== undefined) merged.special = special;
 	return merged;
 }
 
@@ -380,6 +388,7 @@ export function serializeProfile(profile: CampaignProfile): StoredProfile {
 		if (source.mission1BestTime !== undefined) stored.mission1BestTime = source.mission1BestTime;
 		if (source.mission2BestTime !== undefined) stored.mission2BestTime = source.mission2BestTime;
 		if (source.updatedAt !== undefined) stored.updatedAt = source.updatedAt;
+		if (source.special !== undefined) stored.special = source.special;
 		slots.set(tostring(index), stored);
 	}
 	return { version: SAVE_VERSION, slots };
@@ -537,11 +546,12 @@ export class CampaignCoordinator {
 		return this.persistence === "cloud" && !this.dirty;
 	}
 
-	public recordMissionStarted(slotIndex: number, missionId = 1): void {
+	public recordMissionStarted(slotIndex: number, missionId = 1, special?: unknown): void {
 		assert(isValidSlot(slotIndex), "invalid campaign slot");
 		assert(isValidMission(missionId), "invalid campaign mission");
 		const slot = this.profile.slots[slotIndex - 1];
 		slot.occupied = true;
+		if (SpecialWeapons.IsKind(special)) slot.special = special;
 		slot.currentMission = math.max(slot.currentMission ?? 1, missionId);
 		slot.updatedAt = this.now();
 		this.markDirty();

@@ -2,6 +2,7 @@ import { DataStoreService, Players, RunService } from "@rbxts/services";
 import { GameConfig } from "../shared/GameConfig";
 import { MISSION_COUNT } from "../shared/MissionCatalog";
 import { CampaignResponse, FinishedCallback, Remotes } from "../shared/Types";
+import { SpecialWeapons } from "../shared/SpecialWeapons";
 import {
 	CampaignCoordinator,
 	CampaignStore,
@@ -13,7 +14,7 @@ import {
 } from "./CampaignRepository";
 
 interface CombatApi {
-	StartMission(player: Player, slot: number, missionId?: number): LuaTuple<[boolean, string?]>;
+	StartMission(player: Player, slot: number, missionId?: number, special?: unknown): LuaTuple<[boolean, string?]>;
 	EndMission(player: Player): void;
 	GetSession(player: Player): unknown;
 }
@@ -130,6 +131,7 @@ function listSlots(state: PlayerState): CampaignResponse {
 function startMission(state: PlayerState, payload: unknown): CampaignResponse {
 	const slot = typeIs(payload, "table") ? (payload as { slot?: unknown }).slot : undefined;
 	const requestedMission = typeIs(payload, "table") ? (payload as { missionId?: unknown }).missionId : undefined;
+	const requestedSpecial = typeIs(payload, "table") ? (payload as { special?: unknown }).special : undefined;
 	if (!isValidSlot(slot)) return response(state, false, "Choose a valid campaign slot (1-4).");
 	if (!waitForLoad(state)) return response(state, false, "Campaign data is still loading. Please try again.");
 	if (state.coordinator.getPersistence() === "unavailable") {
@@ -139,6 +141,9 @@ function startMission(state: PlayerState, payload: unknown): CampaignResponse {
 	const saveSlot = state.coordinator.getSlots()[slot - 1];
 	const [missionId, missionError] = resolveMissionRequest(saveSlot, requestedMission);
 	if (missionId === undefined) return response(state, false, missionError ?? "Choose a valid mission.");
+	if (requestedSpecial !== undefined && !SpecialWeapons.IsKind(requestedSpecial)) return response(state, false, "Choose a valid special weapon.");
+	// No choice sent: the slot's last loadout, then the default.
+	const special = SpecialWeapons.IsKind(requestedSpecial) ? requestedSpecial : SpecialWeapons.IsKind(saveSlot.special) ? saveSlot.special : SpecialWeapons.Default;
 
 	const [sessionOk, existingSession] = pcall(() => combatService!.GetSession(state.player));
 	if (!sessionOk) {
@@ -147,7 +152,7 @@ function startMission(state: PlayerState, payload: unknown): CampaignResponse {
 	}
 	if (existingSession !== undefined || state.activeSlot !== undefined || state.activeMission !== undefined) return response(state, false, "A mission is already in progress.");
 
-	const [startedCallOk, started, startError] = pcall(() => combatService!.StartMission(state.player, slot, missionId));
+	const [startedCallOk, started, startError] = pcall(() => combatService!.StartMission(state.player, slot, missionId, special));
 	if (!startedCallOk) {
 		warn(`SKYBREAK mission start failed: ${tostring(started)}`);
 		return response(state, false, "The mission could not be started.");
@@ -156,7 +161,7 @@ function startMission(state: PlayerState, payload: unknown): CampaignResponse {
 
 	state.activeSlot = slot;
 	state.activeMission = missionId;
-	state.coordinator.recordMissionStarted(slot, missionId);
+	state.coordinator.recordMissionStarted(slot, missionId, special);
 	// The briefing chapter for this mission plays once per slot; retries and replays launch directly.
 	state.coordinator.recordCutsceneSeen(slot, missionId - 1);
 	return response(state, true);

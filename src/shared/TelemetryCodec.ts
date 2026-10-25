@@ -9,11 +9,12 @@ import { Telemetry } from "./Types";
 // Layout: [sequence, health, speed, altitude, kills, total, missiles,
 //          missileCooldown, evadeCooldown, lockProgress, flags, elapsed,
 //          timeRemaining, objectiveProgress, objectiveTotal, groundKills,
-//          targetDistance, targetHealth (-1 none), protectedHealth (-1 none)]
+//          targetDistance, targetHealth (-1 none), protectedHealth (-1 none),
+//          specialCharges, specialCooldown, specialActive]
 // flags: 1 incoming, 2 lockWarning, 4 boundaryWarning, 8 targetDamageable,
 //        16 targetDamageable unknown (no target).
 export type TelemetryPacket = number[];
-export const TELEMETRY_FIELDS = 19;
+export const TELEMETRY_FIELDS = 22;
 
 export interface TelemetryNumbers {
 	health: number; speed: number; altitude: number; kills: number; total: number; missiles: number;
@@ -22,6 +23,7 @@ export interface TelemetryNumbers {
 	elapsed: number; timeRemaining: number; objectiveProgress: number; objectiveTotal: number; groundKills: number;
 	targetDistance: number; targetHealth?: number; protectedHealth?: number;
 	targetDamageable?: boolean;
+	specialCharges?: number; specialCooldown?: number; specialActive?: number;
 }
 
 export const TelemetryCodec = {
@@ -33,6 +35,7 @@ export const TelemetryCodec = {
 			t.missileCooldown, t.evadeCooldown, t.lockProgress, flags, t.elapsed,
 			t.timeRemaining, t.objectiveProgress, t.objectiveTotal, t.groundKills,
 			t.targetDistance, t.targetHealth ?? -1, t.protectedHealth ?? -1,
+			t.specialCharges ?? 0, t.specialCooldown ?? 0, t.specialActive ?? 0,
 		];
 	},
 	/**
@@ -55,6 +58,7 @@ export const TelemetryCodec = {
 		into.targetDistance = n[16];
 		into.targetHealth = n[17] >= 0 ? n[17] : undefined;
 		into.protectedHealth = n[18] >= 0 ? n[18] : undefined;
+		into.specialCharges = math.max(0, n[19]); into.specialCooldown = math.max(0, n[20]); into.specialActive = math.max(0, n[21]);
 		return n[0];
 	},
 };

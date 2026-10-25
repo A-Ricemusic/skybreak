@@ -239,10 +239,14 @@ describe("client flight prediction and reconciliation", () => {
 			health: 80, speed: 255, altitude: 300, kills: 2, total: 4, missiles: 6, missileCooldown: 0.5, evadeCooldown: 0,
 			lockProgress: 0.4, incoming: true, lockWarning: false, boundaryWarning: true, elapsed: 12, timeRemaining: 500,
 			objectiveProgress: 1, objectiveTotal: 3, groundKills: 1, targetDistance: 900, targetHealth: undefined, protectedHealth: 70,
+			specialCharges: 2, specialCooldown: 1.5, specialActive: 12,
 		});
-		expect(packet.size()).toBe(19);
+		expect(packet.size()).toBe(22);
 		expect(TelemetryCodec.Decode(packet, into)).toBe(3);
 		expect(into.health).toBe(80);
+		expect(into.specialCharges).toBe(2);
+		expect(into.specialCooldown).toBe(1.5);
+		expect(into.specialActive).toBe(12);
 		expect(into.incoming).toBe(true);
 		expect(into.lockWarning).toBe(false);
 		expect(into.boundaryWarning).toBe(true);
@@ -259,6 +263,9 @@ describe("client flight prediction and reconciliation", () => {
 			expect(into.targetDamageable).toBe(damageable);
 			expect(into.lockWarning).toBe(true);
 			expect(into.incoming).toBe(false);
+			// Special fields default to zero when the server omits them.
+			expect(into.specialCharges).toBe(0);
+			expect(into.specialActive).toBe(0);
 		}
 		expect(TelemetryCodec.Decode([1, 2], into)).toBeUndefined();
 	});

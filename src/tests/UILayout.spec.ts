@@ -5,6 +5,7 @@ import {
 	getSlotListHeight,
 	getEvadeHint,
 	getFlightHints,
+	getSpecialHint,
 	getHudCentreBox,
 	getHudLayout,
 	getMenuHintsLayout,
@@ -22,6 +23,7 @@ import {
 	rectangleInside,
 	rectanglesOverlap,
 	shouldAcceptInputModeChange,
+	SPECIAL_SIZE,
 	TARGET_SIZE,
 	TUTORIAL_MAX_CHARS,
 	type HudLayout,
@@ -72,7 +74,7 @@ function hudRectangles(layout: HudLayout, includeAlert = true): Rectangle[] {
 	if (includeAlert) rectangles.push(layout.alert);
 	if (layout.hints) rectangles.push(layout.hints);
 	const touch = layout.touch;
-	if (touch) rectangles.push(touch.joystick, touch.throttle, touch.missile, touch.target);
+	if (touch) rectangles.push(touch.joystick, touch.throttle, touch.missile, touch.target, touch.special);
 	return rectangles;
 }
 
@@ -114,7 +116,9 @@ describe("minimal mission HUD layout", () => {
 			expect(JOYSTICK_SIZE).toBe(96);
 			expect(FIRE_SIZE).toBe(64);
 			expect(TARGET_SIZE).toBe(48);
-			for (const control of [touch.joystick, touch.throttle, touch.missile, touch.target]) {
+			expect(touch.special.width).toBe(SPECIAL_SIZE);
+			expect(touch.special.height).toBe(SPECIAL_SIZE);
+			for (const control of [touch.joystick, touch.throttle, touch.missile, touch.target, touch.special]) {
 				expect(control.width).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
 				expect(control.height).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
 			}
@@ -205,6 +209,22 @@ describe("minimal mission HUD layout", () => {
 		}
 	});
 
+	it("stacks the SPECIAL button in the right column above TGT, or beside TGT on compact roots", () => {
+		for (const [width, height] of [...HUD_VIEWPORTS, ...VIEWPORTS]) {
+			const touch = getHudLayout(width, height, "touch").touch!;
+			expect(touch.special.x).toBe(touch.target.x);
+			expect(touch.special.y + touch.special.height).toBeLessThan(touch.target.y);
+		}
+		for (const [width, height] of COMPACT_VIEWPORTS) {
+			const layout = getHudLayout(width, height, "touch");
+			const touch = layout.touch!;
+			expect(touch.special.y).toBe(touch.target.y);
+			expect(touch.special.x + touch.special.width).toBeLessThan(touch.target.x);
+			// Never up against the clock or the status line.
+			expect(touch.special.y).toBeGreaterThan(layout.status.y + layout.status.height);
+		}
+	});
+
 	it("keeps keyboard and gamepad hints a short bottom-centre row", () => {
 		for (const mode of ["keyboard", "gamepad"] as InputMode[]) {
 			for (const [width, height] of [...HUD_VIEWPORTS, ...COMPACT_VIEWPORTS, ...VIEWPORTS]) {
@@ -221,7 +241,7 @@ describe("minimal mission HUD layout", () => {
 		for (const [width, height] of [[706, 267], [750, 332], [844, 390]] as [number, number][]) {
 			const touch = getHudLayout(width, height, "touch").touch!;
 			let area = touch.throttlePill.width * touch.throttlePill.height;
-			for (const control of [touch.joystick, touch.missile, touch.target]) area += control.width * control.height;
+			for (const control of [touch.joystick, touch.missile, touch.target, touch.special]) area += control.width * control.height;
 			expect(area / (width * height)).toBeLessThan(0.12);
 		}
 	});
@@ -335,6 +355,12 @@ describe("input mode and contextual hints", () => {
 	it("never shows button hints to touch players", () => {
 		expect(getFlightHints("touch", { introduction: true, locked: true, missileReady: true }).size()).toBe(0);
 		expect(getEvadeHint("touch")).toBeUndefined();
+		expect(getSpecialHint("touch", "UAV")).toBeUndefined();
+	});
+
+	it("binds the special slot to C on keyboard and X on a gamepad, labelled with the weapon", () => {
+		expect(getSpecialHint("keyboard", "FLR")).toEqual({ label: "C", action: "FLR" });
+		expect(getSpecialHint("gamepad", "4AAM")).toEqual({ keyCode: "ButtonX", label: "X", action: "4AAM" });
 	});
 
 	it("shows at most two hints: a short launch legend, then only actionable ones", () => {

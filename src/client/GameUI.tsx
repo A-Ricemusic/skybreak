@@ -17,6 +17,8 @@ import { MissionCatalog, MISSION_COUNT } from "../shared/MissionCatalog";
 import { MENU_JET_POSITION } from "../shared/MenuWorldGeometry";
 import { MissionScore, type MissionRank } from "../shared/MissionScore";
 import { WeaponRules } from "../shared/WeaponRules";
+import { SpecialKind, SpecialWeapons } from "../shared/SpecialWeapons";
+import { LoadoutPicker } from "./LoadoutPicker";
 import { NavigationCue } from "./NavigationCue";
 import { RelayCinematic } from "./RelayCinematic";
 import { FlightController } from "./FlightController";
@@ -25,6 +27,7 @@ import { preloadMission } from "./MissionPreload";
 import {
 	getSlotListHeight,
 	getEvadeHint,
+	getSpecialHint,
 	getFlightHints,
 	getHudLayout,
 	getMenuHintsLayout,
@@ -117,7 +120,10 @@ interface RadioNotice {
 const RADIO_SECONDS = 4.5;
 /** Seconds a refused FIRE reason stays up. */
 const FIRE_DENIED_SECONDS = 1;
-const FIRE_DENIED_TEXT: { [reason: string]: string } = { no_ammo: "NO MISSILES · RELOADING", cooldown: "LAUNCHER CYCLING", blind: "NO LOCK · FIRING BLIND" };
+const FIRE_DENIED_TEXT: { [reason: string]: string } = {
+	no_ammo: "NO MISSILES · RELOADING", cooldown: "LAUNCHER CYCLING", blind: "NO LOCK · FIRING BLIND",
+	special_empty: "SPECIAL EXPENDED", special_cooldown: "SPECIAL CYCLING", special_active: "DRONE ALREADY UP", special_no_target: "SPECIAL · NO TARGET IN CONE",
+};
 
 interface GameUIProps {
 	remotes: Remotes;
@@ -415,6 +421,10 @@ function defaultTelemetry(): Telemetry {
 		groundKills: 0,
 		targetKind: "air",
 		targetRequired: false,
+		special: SpecialWeapons.Default,
+		specialCharges: 0,
+		specialCooldown: 0,
+		specialActive: 0,
 	};
 }
 
@@ -452,6 +462,7 @@ function normalizeSlots(response: CampaignResponse): SaveSlot[] | undefined {
 			currentMission: math.clamp(math.floor(finite(source.currentMission, 1)), 1, MISSION_COUNT),
 			missions: source.missions,
 			introSeen: source.introSeen, cutscenesSeen: source.cutscenesSeen,
+			special: SpecialWeapons.IsKind(source.special) ? source.special : undefined,
 			mission1Completed: source.mission1Completed === true,
 			mission2Completed: source.mission2Completed === true,
 			mission1BestTime: typeIs(source.mission1BestTime, "number") ? math.max(0, finite(source.mission1BestTime, 0)) : undefined,
@@ -504,7 +515,11 @@ function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
 		radio: safeRadio(payload.radio, previous.radio),
 		radioSerial: typeIs(payload.radioSerial, "number") ? math.max(0, math.floor(finite(payload.radioSerial, previous.radioSerial ?? 0))) : previous.radioSerial,
 		radioSeconds: typeIs(payload.radioSeconds, "number") ? math.clamp(finite(payload.radioSeconds, RADIO_SECONDS), 0.25, 10) : undefined,
-		fireDenied: payload.fireDenied === "no_ammo" || payload.fireDenied === "cooldown" || payload.fireDenied === "blind" ? payload.fireDenied : undefined,
+		fireDenied: WeaponRules.IsFireNotice(payload.fireDenied) ? payload.fireDenied : undefined,
+		special: SpecialWeapons.IsKind(payload.special) ? payload.special : previous.special,
+		specialCharges: math.max(0, math.floor(finite(payload.specialCharges, previous.specialCharges ?? 0))),
+		specialCooldown: math.max(0, finite(payload.specialCooldown, previous.specialCooldown ?? 0)),
+		specialActive: math.max(0, finite(payload.specialActive, previous.specialActive ?? 0)),
 		targetDamageable: payload.targetDamageable === undefined ? undefined : payload.targetDamageable === true,
 		fireDeniedSerial: typeIs(payload.fireDeniedSerial, "number") ? math.max(0, math.floor(finite(payload.fireDeniedSerial, previous.fireDeniedSerial ?? 0))) : previous.fireDeniedSerial,
 		targetHealth: typeIs(payload.targetHealth, "number") ? math.clamp(finite(payload.targetHealth, 1), 0, 1) : undefined,
@@ -828,9 +843,9 @@ function FooterButtons({
 	);
 }
 
-function BriefingScreenImpl({visible,menu,selectedSlot,selectedMission,slot,busy,onBack,onLaunch,onMission}: {
-	visible:boolean;menu:MenuLayout;selectedSlot:number;selectedMission:number;slot?:SaveSlot;busy:boolean;
-	onBack:()=>void;onLaunch:()=>void;onMission:(id:number)=>void;
+function BriefingScreenImpl({visible,menu,selectedSlot,selectedMission,slot,busy,special,onBack,onLaunch,onMission,onSpecial}: {
+	visible:boolean;menu:MenuLayout;selectedSlot:number;selectedMission:number;slot?:SaveSlot;busy:boolean;special:SpecialKind;
+	onBack:()=>void;onLaunch:()=>void;onMission:(id:number)=>void;onSpecial:(kind:SpecialKind)=>void;
 }) {
 	const [browse,setBrowse]=useState(false),[act,setAct]=useState(1);
 	const panelRef=useRef<Frame>();const inputMode=useContext(InputModeContext);
@@ -863,8 +878,9 @@ function BriefingScreenImpl({visible,menu,selectedSlot,selectedMission,slot,busy
 				<scrollingframe key="BriefingDetails" Position={UDim2.fromOffset(0,detailsTop)} Size={new UDim2(1,0,1,-detailsTop-100)} CanvasSize={UDim2.fromOffset(0,0)} AutomaticCanvasSize={Enum.AutomaticSize.Y} BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={4}>
 					<uilistlayout Padding={new UDim(0,12)} SortOrder={Enum.SortOrder.LayoutOrder}/>
 					<Label name="Story" text={mission.briefing} color={C.Ivory} textSize={14} size={new UDim2(1,-12,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={1}/>
-					<Label name="PhasePlan" text={mission.phases.map((phase,index)=>`${index+1}. ${phase.label}`).join("\n")} color={C.Muted} textSize={12} size={new UDim2(1,-12,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={2}/>
-					<Label name="MissionRules" text={`600-second deadline · Retry available\nGreen beacon: fly inside its volume. Scans require the shown altitude.\nEscorts: stay near the vehicle; destroy raiders before they close.\n${completed ? `COMPLETED · BEST ${best !== undefined ? formatTime(best) : "--:--"}` : "Complete this sortie to unlock the next."}`} color={C.Accent} textSize={12} size={new UDim2(1,-12,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={3}/>
+					<LoadoutPicker kind={special} enabled={!busy} layoutOrder={2} compact={small} onChange={onSpecial}/>
+					<Label name="PhasePlan" text={mission.phases.map((phase,index)=>`${index+1}. ${phase.label}`).join("\n")} color={C.Muted} textSize={12} size={new UDim2(1,-12,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={3}/>
+					<Label name="MissionRules" text={`600-second deadline · Retry available\nGreen beacon: fly inside its volume. Scans require the shown altitude.\nEscorts: stay near the vehicle; destroy raiders before they close.\n${completed ? `COMPLETED · BEST ${best !== undefined ? formatTime(best) : "--:--"}` : "Complete this sortie to unlock the next."}`} color={C.Accent} textSize={12} size={new UDim2(1,-12,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={4}/>
 				</scrollingframe>
 				<ActionButton name="BrowseMissionsButton" text={`ALL 27 MISSIONS · ${completed ? "REPLAY" : "SELECT"}`} anchorPoint={new Vector2(0,1)} position={new UDim2(0,0,1,-52)} size={new UDim2(1,0,0,44)} onActivated={()=>{setAct(mission.act);setBrowse(true);}} enabled={!busy}/>
 				<FooterButtons compact={true} primaryName="LaunchButton" primaryText={busy ? "PREPARING..." : "LAUNCH ›"} secondaryName="BriefingBackButton" secondaryText="‹ FILES" busy={busy} onPrimary={onLaunch} onSecondary={onBack}/>
@@ -1162,6 +1178,7 @@ function MissionHud({
 	onThrottle,
 	onMissile,
 	onTarget,
+	onSpecial,
 }: {
 	visible: boolean;
 	viewport: Vector2;
@@ -1177,6 +1194,7 @@ function MissionHud({
 	onThrottle: (value: number) => void;
 	onMissile: () => void;
 	onTarget: () => void;
+	onSpecial: () => void;
 }) {
 	const layout = getHudLayout(viewport.X, viewport.Y, inputMode);
 	const touch = layout.touch;
@@ -1186,8 +1204,16 @@ function MissionHud({
 	const alertColor = telemetry.incoming ? C.Danger : C.Orange;
 	const evadeHint = telemetry.incoming && telemetry.evadeCooldown <= 0 ? getEvadeHint(inputMode) : undefined;
 	const flightHints = getFlightHints(inputMode, { introduction, locked, missileReady: ready });
+	// Second weapon slot: label, button state and a hint when it is both ready and relevant now
+	// (flares with a missile inbound, missiles with a lock, the drone during the opening legend).
+	const specialKind: SpecialKind = SpecialWeapons.IsKind(telemetry.special) ? telemetry.special : SpecialWeapons.Default;
+	const specialDefinition = SpecialWeapons.Get(specialKind);
+	const specialButton = SpecialWeapons.Button(specialKind, telemetry.specialCharges ?? 0, telemetry.specialCooldown ?? 0, telemetry.specialActive ?? 0);
+	const specialReady = (telemetry.specialCharges ?? 0) > 0 && (telemetry.specialCooldown ?? 0) <= 0 && (telemetry.specialActive ?? 0) <= 0;
+	const specialRelevant = specialKind === "flares" ? telemetry.incoming : specialKind === "uav" ? telemetry.target !== undefined && !locked : locked;
+	const specialHint = specialReady && specialRelevant ? getSpecialHint(inputMode, specialDefinition.short) : undefined;
 	// EVADE leads while a missile is inbound; never more than two hints at once.
-	const hints = (evadeHint ? [evadeHint, ...flightHints.filter((hint) => hint.action !== evadeHint.action)] : flightHints).filter(
+	const hints = [...(evadeHint ? [evadeHint] : []), ...flightHints.filter((hint) => hint.action !== evadeHint?.action), ...(specialHint ? [specialHint] : [])].filter(
 		(_hint, index) => index < MAX_FLIGHT_HINTS,
 	);
 	const alertActive = visible && alertText !== "";
@@ -1206,7 +1232,9 @@ function MissionHud({
 	}, [alertActive]);
 	const hull = math.floor(telemetry.health + 0.5);
 	const cooldownText = telemetry.missileCooldown > 0 && !touch ? string.format(" · %.1fs", telemetry.missileCooldown) : "";
-	const statusText = `${hull < 100 ? `HULL ${hull} · ` : ""}MSL ${telemetry.missiles}${cooldownText}`;
+	// The status line names the special even while it cycles ("FLR 1.2s"), where the button alone would just count down.
+	const specialStatus = specialButton.dimmed && (telemetry.specialCharges ?? 0) > 0 ? `${specialDefinition.short} ${string.format("%.1fs", telemetry.specialCooldown ?? 0)}` : specialButton.text;
+	const statusText = `${hull < 100 ? `HULL ${hull} · ` : ""}MSL ${telemetry.missiles}${cooldownText} · ${specialStatus}`;
 	const statusColor = telemetry.missiles <= 0 || hull <= 30 ? C.Danger : hull <= 60 ? C.Orange : C.Ivory;
 	const fireButton = WeaponRules.FireButton(telemetry.missiles, telemetry.missileCooldown, telemetry.target !== undefined && telemetry.targetDamageable !== false, telemetry.lockProgress);
 	const timeRemaining = telemetry.timeRemaining ?? 600;
@@ -1347,6 +1375,18 @@ function MissionHud({
 					/>
 				)}
 				{touch && <RoundButton name="TargetButton" text="TGT" rectangle={touch.target} filled={false} enabled={true} textSize={11} onActivated={onTarget} />}
+				{touch && (
+					<RoundButton
+						name="SpecialButton"
+						text={specialButton.text}
+						rectangle={touch.special}
+						filled={specialButton.filled}
+						enabled={specialButton.enabled}
+						dimmed={specialButton.dimmed}
+						textSize={10}
+						onActivated={onSpecial}
+					/>
+				)}
 			</frame>
 
 			{layout.hints && (
@@ -1380,6 +1420,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const [persistence, setPersistence] = useState<Persistence>("unavailable");
 	const [selectedSlot, setSelectedSlot] = useState(1);
 	const [selectedMission, setSelectedMission] = useState(1);
+	const [selectedSpecial, setSelectedSpecial] = useState<SpecialKind>(SpecialWeapons.Default);
 	const [busy, setBusy] = useState(false);
 	const [toast, setToast] = useState<ToastState | undefined>();
 	const [telemetry, setTelemetry] = useState(defaultTelemetry);
@@ -1410,6 +1451,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const slotFocusRef = useRef<number>();
 	const selectDefaultRef = useRef<() => void>(() => undefined);
 	const selectedMissionRef = useRef(1);
+	const selectedSpecialRef = useRef<SpecialKind>(SpecialWeapons.Default);
 	const persistenceRef = useRef<Persistence>("unavailable");
 	const telemetryRef = useRef(defaultTelemetry());
 	const inputModeRef = useRef<InputMode>(inputMode);
@@ -1569,7 +1611,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 
 	const launchMission = useCallback(() => {
 		beginRequest((requestId) => {
-			const [response, problem] = invoke("StartMission", { slot: selectedSlot, missionId: selectedMission });
+			const [response, problem] = invoke("StartMission", { slot: selectedSlot, missionId: selectedMission, special: selectedSpecialRef.current });
 			if (!mountedRef.current || requestRef.current !== requestId) return;
 			if (!response) showToast(problem ?? "Command rejected the request.", true);
 			else {
@@ -1631,6 +1673,10 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		const missionId = resumeMission(current[slot - 1]);
 		selectedSlotRef.current = slot; selectedMissionRef.current = missionId;
 		setSelectedSlot(slot); setSelectedMission(missionId);
+		// The slot remembers its last loadout; a fresh slot starts on the default special.
+		const remembered = current[slot - 1].special;
+		const special: SpecialKind = SpecialWeapons.IsKind(remembered) ? remembered : SpecialWeapons.Default;
+		selectedSpecialRef.current = special; setSelectedSpecial(special);
 		changeScreen("briefing");
 	}, [changeScreen]);
 	const deleteSlot = useCallback((slot: number) => {
@@ -1645,9 +1691,11 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		});
 	}, [applyResponseSlots, beginRequest, invoke, setDeleteConfirm, showToast]);
 	const chooseMission = useCallback((missionId: number) => { selectedMissionRef.current = missionId; setSelectedMission(missionId); }, []);
+	const chooseSpecial = useCallback((kind: SpecialKind) => { selectedSpecialRef.current = kind; setSelectedSpecial(kind); }, []);
 	// Always send: the server either launches (guided or blind) or answers with `fireDenied`, so a press is never silent.
 	const fireMissile = useCallback(() => controller.FireMissile(), [controller]);
 	const cycleTarget = useCallback(() => controller.CycleTarget(), [controller]);
+	const fireSpecial = useCallback(() => controller.Special(), [controller]);
 
 	const moveJoystick = useCallback((input: InputObject) => {
 		const joystick = joystickRef.current;
@@ -1953,7 +2001,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					{screen === "cinematic" && <RelayCinematic id={cinematicId} viewport={viewport} onFinish={()=>{const continueStory=cinematicNext.current;changeScreen(cinematicId===MISSION_COUNT ? "outcome" : "briefing");continueStory();}} onCancel={()=>changeScreen(cinematicId===MISSION_COUNT ? "outcome" : "briefing")}/>}
 					<TitleScreen visible={screen === "title"} menu={menu} onCampaign={openCampaign} />
 					<CampaignScreen visible={screen === "slots"} menu={menu} slots={slots} busy={busy} persistence={persistence} onBack={goBack} onSlot={chooseSlot} confirmSlot={confirmSlot} onAskDelete={askDelete} onCancelDelete={cancelDelete} onDeleteSlot={deleteSlot} />
-					<BriefingScreen visible={screen === "briefing"} menu={menu} selectedSlot={selectedSlot} selectedMission={selectedMission} slot={selectedSave} busy={busy} onBack={goBack} onLaunch={startMission} onMission={chooseMission} />
+					<BriefingScreen visible={screen === "briefing"} menu={menu} selectedSlot={selectedSlot} selectedMission={selectedMission} slot={selectedSave} busy={busy} special={selectedSpecial} onBack={goBack} onLaunch={startMission} onMission={chooseMission} onSpecial={chooseSpecial} />
 					<LoadingScreen visible={screen === "loading"} missionId={selectedMission} progress={loadingProgress} viewport={viewport} />
 					<MissionHud
 						visible={screen === "mission"}
@@ -1970,6 +2018,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 						onThrottle={setThrottle}
 						onMissile={fireMissile}
 						onTarget={cycleTarget}
+						onSpecial={fireSpecial}
 					/>
 					<OutcomeScreen visible={screen === "outcome"} menu={menu} outcome={outcome} busy={busy} onRetry={retryMission} onReturn={returnToMenu} onNext={nextMission} />
 					<HintRow

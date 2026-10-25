@@ -31,7 +31,11 @@ describe("WeaponRules action gate", () => {
 		expect(WeaponRules.AcceptAction(gate, "Evade", math.huge)).toBe(false);
 		expect(WeaponRules.AcceptAction(gate, "Evade", 1)).toBe(true);
 		expect(WeaponRules.IsActionKind("FireMissile")).toBe(true);
+		expect(WeaponRules.IsActionKind("Special")).toBe(true);
 		expect(WeaponRules.IsActionKind("Ready")).toBe(false);
+		expect(WeaponRules.IsFireNotice("special_no_target")).toBe(true);
+		expect(WeaponRules.IsFireNotice("blind")).toBe(true);
+		expect(WeaponRules.IsFireNotice("Special")).toBe(false);
 		expect(WeaponRules.IsActionKind(5)).toBe(false);
 	});
 });

@@ -21,6 +21,8 @@ export interface TouchLayout {
 	throttleVertical: boolean;
 	missile: Rectangle;
 	target: Rectangle;
+	/** Second weapon slot button: above TGT in the right column, or beside TGT on compact roots. */
+	special: Rectangle;
 }
 
 export interface HudLayout {
@@ -87,6 +89,7 @@ export const NAVIGATION_CAPTION_HEIGHT = 28;
 export const JOYSTICK_SIZE = 96;
 export const FIRE_SIZE = 64;
 export const TARGET_SIZE = 48;
+export const SPECIAL_SIZE = 48;
 export const THROTTLE_WIDTH = 112;
 export const THROTTLE_PILL_HEIGHT = 32;
 /** Root heights at or below this use the compact (Studio 320x182) arrangement. */
@@ -143,6 +146,11 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 			width: TARGET_SIZE,
 			height: TARGET_SIZE,
 		};
+		// SPECIAL continues the right column above TGT. The compact root has no room
+		// above TGT (it would reach the clock), so there it sits beside TGT instead.
+		const special = compact
+			? { x: target.x - controlGap - SPECIAL_SIZE, y: target.y, width: SPECIAL_SIZE, height: SPECIAL_SIZE }
+			: { x: target.x, y: target.y - controlGap - SPECIAL_SIZE, width: SPECIAL_SIZE, height: SPECIAL_SIZE };
 		// Landscape stacks the throttle above the stick (a narrow left column,
 		// outside the forward view). Portrait, compact and very narrow roots put
 		// it in the bottom row between the stick and FIRE when it fits there.
@@ -173,7 +181,7 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 			alert = centered(width, alertWidth, throttle.y - gap - ALERT_HEIGHT, ALERT_HEIGHT);
 			alert.x = math.clamp(alert.x, laneLeft, laneRight - alertWidth);
 		}
-		return { margin, alert, callout, timer, status, navigation, touch: { joystick, throttle, throttlePill, throttleVertical: false, missile, target } };
+		return { margin, alert, callout, timer, status, navigation, touch: { joystick, throttle, throttlePill, throttleVertical: false, missile, target, special } };
 	}
 
 	const hintsHeight = 18;
@@ -281,6 +289,13 @@ export function shouldAcceptInputModeChange(current: InputMode, nextMode: InputM
 export function getEvadeHint(inputMode: InputMode): ControlHint | undefined {
 	if (inputMode === "gamepad") return { keyCode: "ButtonB", label: "B", action: "EVADE" };
 	if (inputMode === "keyboard") return { label: "F", action: "EVADE" };
+	return undefined;
+}
+
+/** The special-weapon key: C on keyboard, X on a gamepad (B evades, Y targets, RT fires). */
+export function getSpecialHint(inputMode: InputMode, action: string): ControlHint | undefined {
+	if (inputMode === "gamepad") return { keyCode: "ButtonX", label: "X", action };
+	if (inputMode === "keyboard") return { label: "C", action };
 	return undefined;
 }
 

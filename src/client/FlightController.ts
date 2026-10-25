@@ -4,6 +4,8 @@ import { FlightMath, FlightState } from "../shared/FlightMath";
 import { FlightPrediction, Predictor } from "../shared/FlightPrediction";
 import { TelemetryCodec } from "../shared/TelemetryCodec";
 import { FlightInputPacket, HudState, MissionStarted, Remotes, Telemetry } from "../shared/Types";
+import { SpecialWeapons } from "../shared/SpecialWeapons";
+import { WeaponRules } from "../shared/WeaponRules";
 import { EnemySmoothing } from "./EnemySmoothing";
 
 let activeController: FlightController | undefined;
@@ -12,6 +14,7 @@ const DEFAULTS: Telemetry = {
 	kind: "Telemetry", health: 100, speed: 0, altitude: 250, kills: 0, total: 3, missiles: 8,
 	missileCooldown: 0, evadeCooldown: 0, targetName: "", lockProgress: 0, incoming: false,
 	elapsed: 0, targetDistance: 0, boundaryWarning: false,
+	special: SpecialWeapons.Default, specialCharges: 0, specialCooldown: 0, specialActive: 0,
 	missionId: 1, phase: "tutorial_move", objective: "Learn the flight controls", objectiveProgress: 0,
 	objectiveTotal: 1, timeRemaining: 600, tutorialStep: "move", groundKills: 0, targetKind: "air", targetRequired: false,
 };
@@ -19,9 +22,12 @@ const FLIGHT_KEYS: Enum.KeyCode[] = [
 	Enum.KeyCode.W, Enum.KeyCode.S, Enum.KeyCode.A, Enum.KeyCode.D,
 	Enum.KeyCode.Up, Enum.KeyCode.Down, Enum.KeyCode.Left, Enum.KeyCode.Right,
 	Enum.KeyCode.Q, Enum.KeyCode.E, Enum.KeyCode.LeftShift, Enum.KeyCode.ButtonL1, Enum.KeyCode.ButtonR1,
-	Enum.KeyCode.Space, Enum.KeyCode.F, Enum.KeyCode.Tab, Enum.KeyCode.R,
-	Enum.KeyCode.ButtonR2, Enum.KeyCode.ButtonB, Enum.KeyCode.ButtonY, Enum.KeyCode.Thumbstick1,
+	Enum.KeyCode.Space, Enum.KeyCode.F, Enum.KeyCode.Tab, Enum.KeyCode.R, Enum.KeyCode.C,
+	Enum.KeyCode.ButtonR2, Enum.KeyCode.ButtonB, Enum.KeyCode.ButtonY, Enum.KeyCode.ButtonX, Enum.KeyCode.Thumbstick1,
 ];
+/** Drone-marked contacts: one glyph per hostile, dimmer than the selected target's cue. */
+const COLOR_MARKED = Color3.fromRGB(255, 193, 98);
+const MARKER_LIMIT = 16;
 // Per-frame constants (no Vector3/Color3 construction inside the render loop).
 const CAMERA_LIFT = new Vector3(0, 20, 0);
 const AIM_LIFT = new Vector3(0, 4, 0);
@@ -133,6 +139,8 @@ export class FlightController {
 	private bracketStroke?: UIStroke;
 	private caption?: TextLabel;
 	private arrow?: TextLabel;
+	/** Pooled glyphs for every hostile while the recon drone is up. */
+	private markers: TextLabel[] = [];
 	private sendTime = 0;
 	private sentX = 0;
 	private sentY = 0;
@@ -225,8 +233,9 @@ export class FlightController {
 		if (typeIs(message.radio, "string")) t.radio = message.radio;
 		if (typeIs(message.radioSerial, "number")) t.radioSerial = message.radioSerial;
 		t.radioSeconds = typeIs(message.radioSeconds, "number") ? message.radioSeconds : undefined;
-		t.fireDenied = message.fireDenied === "no_ammo" || message.fireDenied === "cooldown" || message.fireDenied === "blind" ? message.fireDenied : undefined;
+		t.fireDenied = WeaponRules.IsFireNotice(message.fireDenied) ? message.fireDenied : undefined;
 		if (typeIs(message.fireDeniedSerial, "number")) t.fireDeniedSerial = message.fireDeniedSerial;
+		if (SpecialWeapons.IsKind(message.special)) t.special = message.special;
 		this.notify();
 	}
 	private handleBoundInput(state: Enum.UserInputState, keyCode: Enum.KeyCode, position: Vector3): Enum.ContextActionResult {
@@ -241,6 +250,7 @@ export class FlightController {
 				if (keyCode === Enum.KeyCode.Space || keyCode === Enum.KeyCode.ButtonR2) this.FireMissile();
 				if (keyCode === Enum.KeyCode.F || keyCode === Enum.KeyCode.ButtonB) this.Evade();
 				if (keyCode === Enum.KeyCode.Tab || keyCode === Enum.KeyCode.R || keyCode === Enum.KeyCode.ButtonY) this.CycleTarget();
+				if (keyCode === Enum.KeyCode.C || keyCode === Enum.KeyCode.ButtonX) this.Special();
 			}
 		}
 		return Enum.ContextActionResult.Sink;
@@ -267,6 +277,8 @@ export class FlightController {
 		this.action("Evade");
 	}
 	public CycleTarget(): void { this.action("CycleTarget"); }
+	/** Second weapon slot; the server validates charges, cooldown and targets. */
+	public Special(): void { this.action("Special"); }
 	/** Predicted (rendered) position of the player's jet, or undefined outside a mission. */
 	public GetPosition(): Vector3 | undefined {
 		return this.active && this.predictor ? this.visualFrame.Position : undefined;
@@ -370,6 +382,63 @@ export class FlightController {
 			if (text !== this.arrowText) { this.arrowText = text; arrow.Text = text; }
 		}
 	}
+	/** While the recon drone is up, every live hostile gets a glyph (on screen) or an edge arrow (off screen). */
+	private updateMarkers(camera: Camera): void {
+		const folder = this.aircraft?.Parent;
+		const gui = this.targetGui;
+		let used = 0;
+		if (folder && gui && this.telemetry.special === "uav" && (this.telemetry.specialActive ?? 0) > 0) {
+			const size = camera.ViewportSize;
+			const safeX = math.min(90, size.X * 0.16);
+			const safeY = math.min(150, size.Y * 0.24);
+			const halfX = math.max(1, size.X / 2 - safeX);
+			const halfY = math.max(1, size.Y / 2 - safeY);
+			for (const child of folder.GetChildren()) {
+				if (used >= MARKER_LIMIT) break;
+				if (!child.IsA("Model") || child === this.telemetry.target || child.GetAttribute("SkybreakEnemy") !== true) continue;
+				const ground = child.GetAttribute("TargetKind") === "ground";
+				const worldPosition = ground ? child.GetPivot().Position : this.enemies.GetFrame(child).Position;
+				const [screen, visible] = camera.WorldToViewportPoint(worldPosition);
+				let label = this.markers[used];
+				if (label === undefined) {
+					label = new Instance("TextLabel");
+					label.Name = "DroneMark";
+					label.AnchorPoint = new Vector2(0.5, 0.5);
+					label.Size = UDim2.fromOffset(40, 40);
+					label.BackgroundTransparency = 1;
+					label.Font = Enum.Font.GothamBold;
+					label.TextColor3 = COLOR_MARKED;
+					label.TextStrokeTransparency = 0.35;
+					label.TextTransparency = 0.15;
+					label.Parent = gui;
+					this.markers[used] = label;
+				}
+				used += 1;
+				const inside = visible && screen.X >= safeX && screen.X <= size.X - safeX && screen.Y >= safeY && screen.Y <= size.Y - safeY;
+				const required = child.GetAttribute("RequiredTarget") === true;
+				const text = inside ? (ground ? (required ? "◆" : "◇") : required ? "▲" : "△") : (ground ? "◆" : "▲");
+				if (inside) {
+					label.Position = UDim2.fromOffset(screen.X, screen.Y);
+					label.Rotation = 0;
+					label.TextSize = 16;
+				} else {
+					const localPosition = camera.CFrame.PointToObjectSpace(worldPosition);
+					let dx = localPosition.X, dy = -localPosition.Y;
+					if (dx * dx + dy * dy < 0.0001) { dx = localPosition.Z > 0 ? 1 : 0; dy = localPosition.Z > 0 ? 0 : -1; }
+					const length = math.sqrt(dx * dx + dy * dy);
+					dx /= length; dy /= length;
+					// Slightly inside the selected target's arrow ring so the two never stack.
+					const extent = 0.9 / math.max(math.abs(dx) / halfX, math.abs(dy) / halfY);
+					label.Position = UDim2.fromOffset(size.X / 2 + dx * extent, size.Y / 2 + dy * extent);
+					label.Rotation = math.deg(math.atan2(dy, dx)) + 90;
+					label.TextSize = 18;
+				}
+				if (label.Text !== text) label.Text = text;
+				if (!label.Visible) label.Visible = true;
+			}
+		}
+		for (let index = used; index < this.markers.size(); index++) if (this.markers[index].Visible) this.markers[index].Visible = false;
+	}
 	private render(dt: number): void {
 		const camera = Workspace.CurrentCamera;
 		const predictor = this.predictor;
@@ -403,6 +472,7 @@ export class FlightController {
 		camera.FieldOfView += (72 + speedFactor * 9 - camera.FieldOfView) * FlightMath.DampAlpha(3, dt);
 		this.enemies.Step(dt);
 		this.updateTargetCue(camera);
+		this.updateMarkers(camera);
 		this.sendTime += dt;
 		// Unreliable input: up to 20 Hz while the controls move, 10 Hz keepalive otherwise
 		// (well inside the server's 0.7 s silence timeout even with packet loss).
@@ -491,6 +561,7 @@ export class FlightController {
 		this.visual?.Destroy(); this.visual = undefined; this.visualRoot = undefined;
 		this.predictor = undefined;
 		this.targetGui?.Destroy(); this.targetGui = undefined;
+		this.markers.clear();
 		const camera = Workspace.CurrentCamera;
 		if (camera && this.previousCamera) {
 			camera.CameraType = this.previousCamera.type;
