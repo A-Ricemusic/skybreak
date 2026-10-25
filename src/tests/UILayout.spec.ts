@@ -81,6 +81,45 @@ describe("minimal mission HUD layout", () => {
 		}
 	});
 
+	it("anchors the objective callout at the top safe margin on every viewport and input mode", () => {
+		for (const [width, height] of VIEWPORTS) {
+			for (const mode of ["touch", "keyboard", "gamepad"] as InputMode[]) {
+				const layout = getHudLayout(width, height, mode);
+				expect(layout.callout.y).toBe(layout.margin);
+				// The callout must sit inside the top band of the usable viewport so it
+				// cannot cross the flight view, target bracket, or reticle (observed
+				// across phone landscape, portrait, and tablet simulations).
+				expect(layout.callout.y + layout.callout.height).toBeLessThanOrEqual(
+					math.max(240, height) * 0.28,
+				);
+			}
+		}
+	});
+
+	it("stacks the incoming warning below the objective callout rather than above it", () => {
+		for (const [width, height] of VIEWPORTS) {
+			for (const mode of ["touch", "keyboard", "gamepad"] as InputMode[]) {
+				const layout = getHudLayout(width, height, mode);
+				// Callout owns the top row; the alert pill only drops in beneath it
+				// when visible so the forward view stays unobstructed otherwise.
+				expect(layout.alert.y).toBeGreaterThanOrEqual(layout.callout.y + layout.callout.height);
+				expect(layout.alert.y + layout.alert.height).toBeLessThanOrEqual(
+					math.max(240, height) * 0.5,
+				);
+			}
+		}
+	});
+
+	it("keeps the mission timer within the objective callout, not duplicated outside", () => {
+		for (const [width, height] of VIEWPORTS) {
+			const layout = getHudLayout(width, height, "touch");
+			// The MissionTimer label is positioned at the right edge of the callout
+			// in GameUI.tsx; the layout must leave at least 58px for its text and 10px
+			// of padding so the timer never overflows into the alert lane below.
+			expect(layout.callout.width).toBeGreaterThanOrEqual(68 + 76);
+		}
+	});
+
 	it("keeps the HUD footprint small on a phone", () => {
 		const width = 568;
 		const height = 320;
