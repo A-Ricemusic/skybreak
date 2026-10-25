@@ -14,24 +14,9 @@
       }
     },
     "Workspace": {
-      "$properties": { "FilteringEnabled": true },
-      "Baseplate": {
-        "$className": "Part",
-        "$properties": {
-          "Anchored": true,
-          "Size": [512, 20, 512],
-          "Position": [0, -10, 0],
-          "Color": [0.35, 0.55, 0.35]
-        }
-      },
-      "SpawnLocation": {
-        "$className": "SpawnLocation",
-        "$properties": {
-          "Anchored": true,
-          "Size": [12, 1, 12],
-          "Position": [0, 0.5, 0],
-          "Neutral": true
-        }
+      "$properties": {
+        "FilteringEnabled": true,
+        "FallenPartsDestroyHeight": -500
       }
     }
   }

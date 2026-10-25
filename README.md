@@ -1,6 +1,14 @@
-# Test Game Coding From Phone
+# SKYBREAK: Operation Glass Horizon
 
-A Roblox starter place managed with Rojo. Includes a baseplate, spawn point, and starter Luau scripts.
+An original mobile-first arcade jet combat campaign for Roblox, managed with Rojo. Choose one of four persistent campaign slots, launch from Glass Horizon Airbase, and destroy all three hostile aircraft to complete the operation.
+
+## Controls and campaign
+
+- Mobile: use the on-screen flight pad, throttle, missile, evade, and target controls.
+- Desktop: use the keyboard/mouse controls shown by the in-game HUD.
+- Missiles require a target lock. Incoming-missile warnings and evade cooldowns appear in telemetry.
+- Victory is server-authoritative and occurs only after all three enemy aircraft are destroyed.
+- Published experiences save four slots to DataStore; an unpublished local Studio file clearly uses session-only saves.
 
 ## Setup
 
@@ -14,7 +22,7 @@ rojo build -o build/test-game.rbxlx
 rojo serve
 ```
 
-Open `build/test-game.rbxlx` in Roblox Studio. Open the Rojo plugin in the Plugins toolbar and connect to `localhost:34872`.
+Open `build/test-game.rbxlx` in Roblox Studio. Open the Rojo plugin in the Plugins toolbar and connect to `localhost:34872`. Publishing remains a manual Studio step for the project owner.
 
 ## Source files
 
