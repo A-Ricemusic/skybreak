@@ -4,7 +4,7 @@
 - Worktree/branch: t3-b4a927bc / t3/broken-relay-campaign. PR #7, no merge/watch.
 - Prior offline validation: 70 standalone Luau contracts pass; not engine/gameplay evidence.
 - Starting actual Roblox Jest now. No production Studio instance launched yet. Initial Studio MCP list empty; no unrelated processes will be stopped.
-- Genuine completed missions: none. Story scenes verified: none. All M1–M27 and 28 story scenes remain.
+- Initial state before QA: no missions/scenes verified. Current progress is recorded chronologically below and in build/relay-live-qa/latest-report.json. M1/M2 earlier complete reports are separate files because the QA folder was subsequently moved.
 - Evidence directory: `build/relay-live-qa/` (original screenshots, logs, recordings retained).
 - Resume: inspect this file, root lease ledger, own process log and Studio identity before any engine operation. Preserve session save state and reports.
 
@@ -37,3 +37,27 @@ M06 {"Phases":{"1":"tutorial_move @ 0","2":"route @ 0.00019670836627483368","3":
 Video validation: m05-escort-native.mov is real 19.985s screen capture, inspected original frames at1/10/18seconds. It contains actual orbit/protected89% gameplay (objective39/55) followed by real debrief. m05-escort-gameplay.mp4 is a real-time crop; original retained. M3 recording is debrief-only and is not claimed as flight proof.
 
 M07 {"Phases":{"1":"route @ 0.00043554173316806555","2":"required_air @ 12.871603583334945"},"Phase":"required_air","MissileCommands":8,"elapsed":30.604259958374314,"MissionId":7,"kills":4,"saved":true,"StartedAt":1071.5080923333298,"persistence":"session","Outcome":"Completed","ResultValid":true,"groundKills":0,"EvadeCommands":0,"Elapsed":30.571170791750774,"LowestHealth":100}
+
+M08 {"Phases":{"1":"tutorial_move @ 0","2":"defend @ 0.07067604165058583","3":"required_air @ 52.67234945832752"},"Phase":"required_air","MissileCommands":13,"elapsed":62.56924287509173,"MissionId":8,"kills":6,"saved":true,"StartedAt":1187.7213102083188,"persistence":"session","Outcome":"Completed","ResultValid":true,"groundKills":0,"EvadeCommands":1,"Elapsed":62.46911491674837,"LowestHealth":100}
+
+M09 {"Phases":{"1":"tutorial_move @ 0","2":"route @ 0.05610795831307769","3":"required_air @ 13.054406958282925","4":"ace @ 28.45573083322961"},"Phase":"ace","MissileCommands":9,"elapsed":36.254277416621335,"MissionId":9,"kills":4,"saved":true,"StartedAt":1330.8366337500047,"persistence":"session","Outcome":"Completed","ResultValid":true,"groundKills":0,"EvadeCommands":0,"Elapsed":36.15419379156083,"LowestHealth":100}
+
+M10 {"Phases":{"1":"tutorial_move @ 0","2":"recon @ 0.06826416670810431","3":"required_ground @ 19.960106333368458","4":"required_air @ 27.961103333393112"},"Phase":"required_air","MissileCommands":9,"elapsed":37.72526045830455,"MissionId":10,"kills":4,"saved":true,"StartedAt":1443.6183301666752,"persistence":"session","Outcome":"Completed","ResultValid":true,"groundKills":1,"EvadeCommands":1,"Elapsed":37.65973345830571,"LowestHealth":100}
+
+M11 {"Phases":{"1":"tutorial_move @ 0","2":"required_ground @ 0.04997979162726551","3":"required_air @ 5.551125916652381","4":"signal @ 15.749249874963425"},"Phase":"signal","MissileCommands":12,"elapsed":38.381543916650116,"MissionId":11,"kills":4,"saved":true,"StartedAt":1527.0578853749903,"persistence":"session","Outcome":"Completed","ResultValid":true,"groundKills":2,"EvadeCommands":0,"Elapsed":38.24853508337401,"LowestHealth":100}
+
+M12 {"MissileCommands":8,"elapsed":66.8290763333207,"Phase":"escort","kills":4,"Elapsed":66.76219329168089,"Phases":{"1":"escort @ 0.0649816666264087"},"ProtectedHealth":78.93000000000133,"ResultValid":true,"StartedAt":1610.8706229166128,"persistence":"session","Outcome":"Completed","saved":true,"groundKills":0,"EvadeCommands":1,"MissionId":12,"LowestHealth":100}
+
+M13 {"Phases":{"1":"recon @ 0.00020733335986733437","2":"required_ground @ 21.25405158335343","3":"required_air @ 50.15092691662721"},"Phase":"required_air","MissileCommands":14,"elapsed":60.35253679170273,"MissionId":13,"kills":3,"saved":true,"StartedAt":1720.033630708349,"persistence":"session","Outcome":"Completed","ResultValid":true,"groundKills":5,"EvadeCommands":1,"Elapsed":60.25162049999926,"LowestHealth":100}
+
+M14 {"Phases":{"1":"route @ 0.0002277499297633767","2":"required_ground @ 17.57090575003531","3":"required_air @ 31.169630958349444"},"Phase":"required_air","MissileCommands":9,"elapsed":44.56875949993264,"MissionId":14,"kills":3,"saved":true,"StartedAt":1823.5469136666507,"persistence":"session","Outcome":"Completed","ResultValid":true,"groundKills":3,"EvadeCommands":0,"Elapsed":44.46851733326912,"LowestHealth":100}
+
+M15 {"Phases":{"1":"signal @ 0.00023641670122742653","2":"required_air @ 39.252346791676246"},"Phase":"required_air","MissileCommands":14,"elapsed":52.717251208378,"MissionId":15,"kills":7,"saved":true,"StartedAt":1912.392415874987,"persistence":"session","Outcome":"Completed","ResultValid":true,"groundKills":0,"EvadeCommands":2,"Elapsed":52.6503642500611,"LowestHealth":100}
+
+Presentation changes prepared in source, NOT yet loaded in current play session: wider cinematic camera to frame full mast/truck; compact subtitle/control layout; navigation caption uses GUI-inset projection and smaller label above beacon. All sequential gameplay so far remains original1a48ee6 server/client (QA-only pilot/observer corrected live). Compile/diff checks pass; actual final presentation validation and final Roblox Jest remain after full campaign. No Rojo server. Current runner is observing M16; resume actual menu/driver path from latest report, never seed unlocks.
+
+M16 {"Phases":{"1":"tutorial_move @ 0","2":"route @ 0.00022116675972938538","3":"required_ground @ 11.567052541766316","4":"required_air @ 26.36638812511228"},"Phase":"required_air","MissileCommands":9,"elapsed":36.66778366675135,"MissionId":16,"kills":2,"saved":true,"StartedAt":2049.6712440833217,"persistence":"session","Outcome":"Completed","ResultValid":true,"groundKills":4,"EvadeCommands":0,"Elapsed":36.56761520833243,"LowestHealth":100}
+
+M17 {"Phases":{"1":"tutorial_move @ 0","2":"required_ground @ 0.05661979166325182","3":"required_air @ 3.0579557915916666","4":"signal @ 22.357356624910608"},"Phase":"signal","MissileCommands":14,"elapsed":52.72063129162416,"MissionId":17,"kills":6,"saved":true,"StartedAt":2152.183276333264,"persistence":"session","Outcome":"Completed","ResultValid":true,"groundKills":1,"EvadeCommands":2,"Elapsed":52.65417150000576,"LowestHealth":100}
+
+M18 {"Phases":{"1":"route @ 0.00018662505317479372","2":"required_air @ 12.178955541690812","3":"ace @ 25.47227470832877"},"Phase":"ace","MissileCommands":10,"elapsed":36.805124791688286,"MissionId":18,"kills":4,"saved":true,"StartedAt":2246.5971244999673,"persistence":"session","Outcome":"Completed","ResultValid":true,"groundKills":0,"EvadeCommands":0,"Elapsed":36.77219312498346,"LowestHealth":100}
