@@ -28,7 +28,7 @@ Both bug PRs are merged. Main after merges: `0498e85`.
 
 ## Studio ownership
 
-Exclusive Studio lease: **none**. Parent owns scheduling. Agents may compile/package offline but must request a lease before Studio, Rojo servers, or test:roblox. Never run competing playtests in one instance. Existing Studio ID at baseline: `1991ce85-3e59-4db7-a4db-cbafc56e7dc9`, stopped Edit mode; re-list before using.
+Exclusive Studio lease: **Embers of Home** at clean `0e8cb9e2c045125c1da12584dec7ff819e9c2ece`, granted for Roblox Jest and genuine sequential M1–M27 QA. Runtime ledger: `build/studio-lease.json`. Release must be explicit with Studio stopped; do not interrupt based on elapsed time. Parent owns scheduling. Agents may compile/package offline but must request a lease before Studio, Rojo servers, or test:roblox. Never run competing playtests in one instance. Existing Studio ID at baseline: `1991ce85-3e59-4db7-a4db-cbafc56e7dc9`, stopped Edit mode; re-list before using.
 
 Before granting a lease, record owner, branch, start and expected handoff here (or in a linked ignored runtime ledger). Agent must identify its own build and release Studio stopped with results and logs. Parent must independently play all 27 final missions. Hardware phone/controller testing is not established by emulator/shared-handler tests.
 
@@ -55,3 +55,7 @@ Scheduled coordinator ID: `scheduled-task:command:mcp:1d20c4c5-6ced-4ff0-adee-a0
 Runs every 900000 ms in this thread. First run: 2026-10-25T06:01:32.206Z (October 24, 11:01 PM Pacific). Agent completion notifications also resume work. Disable schedule once final integrated game and all27mission evidence are delivered; do not leave idle recurring work.
 
 Keep commits/pushes scoped. Unrelated `react-agent-testing/` deletions belong another task and must remain untouched. Videos/build outputs stay ignored; preserve final user-facing recordings and remove only known temporary captures. Publishing is still blocked on first authenticated Studio UI publish, so don't invent a public game URL.
+
+## First campaign QA handoff
+
+Embers reports offline build/place packaging complete, 73 Jest cases authored (not yet executed), 27 missions and 54 opening/debrief cinematics, v3 progression and Blender rescue launch. Parent verified clean SHA and Studio Edit state before granting exclusive QA. No live campaign results yet. Other four alternatives remain offline. Parent still owes independent final-campaign playthrough after selection.
