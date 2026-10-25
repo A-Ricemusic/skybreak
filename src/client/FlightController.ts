@@ -40,7 +40,7 @@ function createTargetCue(playerGui: Instance): [ScreenGui, Frame, UIStroke, Text
 	bracket.Visible = false;
 	bracket.Parent = gui;
 	const stroke = new Instance("UIStroke");
-	stroke.Thickness = 2;
+	stroke.Thickness = 1.5;
 	stroke.Color = Color3.fromRGB(102, 237, 250);
 	stroke.Parent = bracket;
 	const corners = new Instance("UICorner");
@@ -51,10 +51,11 @@ function createTargetCue(playerGui: Instance): [ScreenGui, Frame, UIStroke, Text
 	caption.BackgroundTransparency = 1;
 	caption.Position = new UDim2(0.5, 0, 1, 6);
 	caption.AnchorPoint = new Vector2(0.5, 0);
-	caption.Size = UDim2.fromOffset(220, 45);
+	caption.Size = UDim2.fromOffset(160, 18);
 	caption.Font = Enum.Font.GothamBold;
-	caption.TextSize = 12;
-	caption.TextStrokeTransparency = 0.3;
+	caption.TextSize = 11;
+	caption.RichText = true;
+	caption.TextStrokeTransparency = 0.45;
 	caption.TextColor3 = stroke.Color;
 	caption.Parent = bracket;
 	const arrow = new Instance("TextLabel");
@@ -180,7 +181,9 @@ export class FlightController {
 		if (inside) {
 			bracket.Position = UDim2.fromOffset(screen.X, screen.Y);
 			const distance = worldPosition.sub(this.visualFrame.Position).Magnitude;
-			this.caption!.Text = string.format("%s  •  %d m\n%s", this.telemetry.targetName, math.floor(distance), locked ? "LOCKED" : string.format("LOCK %d%%", this.telemetry.lockProgress * 100));
+			const range = string.format('<font transparency="0.35">%d m</font>', math.floor(distance));
+			const lock = this.telemetry.lockProgress;
+			this.caption!.Text = locked ? `LOCKED  ${range}` : lock > 0.01 ? string.format("LOCK %d%%  %s", math.floor(lock * 100), range) : range;
 			const width = locked ? 52 : 64;
 			bracket.Size = UDim2.fromOffset(width, width);
 		} else {
