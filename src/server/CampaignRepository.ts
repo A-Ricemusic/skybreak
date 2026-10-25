@@ -358,6 +358,7 @@ export function completeMission(
 	won: boolean,
 	stats: MissionStats,
 	notify: (message: MissionFinished) => void,
+	flushSeconds = 3,
 ): boolean {
 	const missionId = stats.missionId ?? 1;
 	if (
@@ -393,6 +394,8 @@ export function completeMission(
 	const flightObjectivesMet = missionId <= 2 || stats.completedPhases === MissionCatalog.Get(missionId).phases.size();
 	const qualifiedWin = won && flightObjectivesMet && objectivesMet && elapsed > 0 && elapsed < GameConfig.Campaign.MissionTimeLimit;
 	const result = coordinator.recordMissionResult(activeSlot, missionId, qualifiedWin, stats.kills, elapsed);
+	// Give the cloud write a short window so the result screen can confirm the save.
+	if (flushSeconds > 0) coordinator.flush(flushSeconds);
 	notify({
 		kind: result.completed ? "Completed" : "Failed",
 		missionId,
