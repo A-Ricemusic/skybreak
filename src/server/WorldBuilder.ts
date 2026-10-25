@@ -108,7 +108,7 @@ function buildLighting(): void {
 	clouds.Name = "SkybreakClouds";
 	clouds.Color = Color3.fromRGB(232, 239, 244);
 	clouds.Cover = 0.28;
-	clouds.Density = 0.36;
+	clouds.Density = 0.3;
 	clouds.Parent = Workspace.Terrain;
 }
 

@@ -36,14 +36,48 @@ export interface CampaignResponse {
 }
 export interface Remotes {
 	CampaignRequest: RemoteFunction;
-	FlightInput: RemoteEvent;
+	/** Client -> server stick/throttle at <= 20 Hz. Unreliable: a lost packet is superseded by the next. */
+	FlightInput: UnreliableRemoteEvent;
 	CombatAction: RemoteEvent;
+	/** Reliable lifecycle (Loading/Started/Completed/Failed) plus HUD text/target changes (`HudState`). */
 	MissionState: RemoteEvent;
+	/** Server -> client authoritative flight state at 20 Hz for prediction (FlightStatePacket). */
+	FlightState: UnreliableRemoteEvent;
+	/** Server -> client HUD numbers at 10 Hz (TelemetryPacket). */
+	Telemetry: UnreliableRemoteEvent;
 }
 export interface FlightInput {
 	x: number;
 	y: number;
 	throttle: number;
+}
+/** FlightInput on the wire: `t` is the client's os.clock() at send, echoed back for round-trip timing. */
+export interface FlightInputPacket extends FlightInput {
+	t: number;
+}
+/**
+ * HUD fields that change rarely (text, target reference, navigation). Sent on the
+ * reliable MissionState remote only when one of them changes, so an Instance
+ * reference never races its own replication and a radio line is never lost.
+ */
+export interface HudState {
+	kind: "HudState";
+	missionId?: number;
+	phase?: string;
+	objective?: string;
+	tutorialStep?: string;
+	targetName: string;
+	targetKind?: string;
+	targetRequired?: boolean;
+	target?: Model;
+	navigation?: Vector3;
+	navigationRadius?: number;
+	navigationCeiling?: number;
+	radio?: string;
+	radioSerial?: number;
+	radioSeconds?: number;
+	fireDenied?: "no_ammo" | "cooldown" | "blind";
+	fireDeniedSerial?: number;
 }
 export interface MissionStats {
 	missionId?: number;
@@ -121,5 +155,5 @@ export interface MissionFinished extends MissionStats {
 	saved?: boolean;
 	persistence?: Persistence;
 }
-export type MissionMessage = MissionLoading | MissionStarted | Telemetry | MissionFinished;
+export type MissionMessage = MissionLoading | MissionStarted | HudState | MissionFinished;
 export type FinishedCallback = (player: Player, won: boolean, stats: MissionStats) => void;

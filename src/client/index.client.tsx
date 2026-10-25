@@ -5,6 +5,7 @@ import { Players, ReplicatedStorage, StarterGui, Workspace } from "@rbxts/servic
 import type { Remotes } from "../shared/Types";
 import { FlightController } from "./FlightController";
 import { mountGameUI } from "./GameUI";
+import { applyMobileGraphics } from "./MobileGraphics";
 
 if (Workspace.GetAttribute("SkybreakTestMode") !== true) {
 	const player = Players.LocalPlayer;
@@ -25,17 +26,21 @@ if (Workspace.GetAttribute("SkybreakTestMode") !== true) {
 		}
 	});
 
+	const graphics = applyMobileGraphics();
 	const folder = ReplicatedStorage.WaitForChild("Remotes");
 	const remotes: Remotes = {
 		CampaignRequest: folder.WaitForChild("CampaignRequest") as RemoteFunction,
-		FlightInput: folder.WaitForChild("FlightInput") as RemoteEvent,
+		FlightInput: folder.WaitForChild("FlightInput") as UnreliableRemoteEvent,
 		CombatAction: folder.WaitForChild("CombatAction") as RemoteEvent,
 		MissionState: folder.WaitForChild("MissionState") as RemoteEvent,
+		FlightState: folder.WaitForChild("FlightState") as UnreliableRemoteEvent,
+		Telemetry: folder.WaitForChild("Telemetry") as UnreliableRemoteEvent,
 	};
 	const controller = new FlightController(remotes);
 	const mounted = mountGameUI(player.WaitForChild("PlayerGui"), remotes, controller);
 	const destroying = script.Destroying.Connect(() => {
 		destroying.Disconnect();
+		for (const connection of graphics) connection.Disconnect();
 		mounted.unmount();
 		controller.Destroy();
 	});

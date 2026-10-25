@@ -21,11 +21,12 @@ export const RelayWorld = {
 		Lighting.ClockTime=night ? 1.8 : warm ? 17.7 : dawn ? 6.4 : storm ? 13 : 9.5;
 		Lighting.Brightness=night ? 2 : 2.6; Lighting.ExposureCompensation=night ? .35 : .05;
 		Lighting.Ambient=Color3.fromRGB(100,118,140); Lighting.OutdoorAmbient=Color3.fromRGB(130,145,155);
+		Lighting.GlobalShadows=false; // no sun shadow map in sorties (mobile GPU); the menu restores it
 		const sky=new Instance("Sky"); sky.Name="MissionSky"; sky.StarCount=night ? 1800 : 0; sky.Parent=Lighting;
 		const at=new Instance("Atmosphere"); at.Name="MissionAtmosphere"; at.Density=storm ? .33 : preset==="harbor_fog" ? .31 : .24;
 		at.Haze=storm ? 2.2 : 1.3; at.Color=warm ? Color3.fromRGB(240,199,154) : dawn ? Color3.fromRGB(236,208,186) : night ? Color3.fromRGB(130,165,196) : Color3.fromRGB(190,215,227); at.Parent=Lighting;
 		const grade=new Instance("ColorCorrectionEffect"); grade.Name="MissionGrade"; grade.Contrast=.06; grade.Saturation=storm ? -.15 : .08; grade.Parent=Lighting;
-		const cloud=new Instance("Clouds"); cloud.Name="MissionClouds"; cloud.Cover=storm ? .85 : .32; cloud.Density=storm ? .65 : .3; cloud.Parent=terrain;
+		const cloud=new Instance("Clouds"); cloud.Name="MissionClouds"; cloud.Cover=storm ? .85 : .32; cloud.Density=.3; cloud.Parent=terrain; // storms keep their cover; density stays <= 0.3 for phones
 		const scene=new Instance("Folder"); scene.Name=layout.name; scene.Parent=parent;
 		parent.SetAttribute("MissionId",id); parent.SetAttribute("Composition",layout.name);
 		const inland=bp.region==="upland_farm" || bp.region==="plateau_relay" || bp.region==="canyon_pass" || bp.region==="canyon_airfield";

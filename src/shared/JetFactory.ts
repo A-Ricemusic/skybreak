@@ -17,6 +17,30 @@ function part<T extends "Part" | "WedgePart">(parent: Instance, className: T, na
 	item.Parent = parent;
 	return item;
 }
+// A trail's segment count grows with Lifetime x speed; at 300 studs/s a 1.1 s
+// wingtip ribbon was ~330 studs of segments per tip. 0.7 s keeps the look.
+const TRAIL_MAX_LIFETIME = 0.7;
+/**
+ * One replicated part per aircraft: the Root stays anchored and every other
+ * part is unanchored, massless and welded to it. Moving the Root (CFrame or
+ * PivotTo) moves the whole assembly, so the server replicates a single CFrame
+ * per aircraft per update instead of one per MeshPart.
+ */
+function weldToRoot(model: Model, root: BasePart): void {
+	for (const item of model.GetDescendants()) {
+		if (!item.IsA("BasePart") || item === root) continue;
+		item.Anchored = false;
+		item.Massless = true;
+		item.CanCollide = false;
+		item.CanTouch = false;
+		item.CanQuery = false;
+		const weld = new Instance("WeldConstraint");
+		weld.Name = "RootWeld";
+		weld.Part0 = root;
+		weld.Part1 = item;
+		weld.Parent = item;
+	}
+}
 function trail(parent: BasePart, position: Vector3, color: Color3, width: number, lifetime: number): Trail {
 	const a = new Instance("Attachment");
 	a.Position = position.add(new Vector3(width / 2, 0, 0));
@@ -29,7 +53,7 @@ function trail(parent: BasePart, position: Vector3, color: Color3, width: number
 	effect.Attachment1 = b;
 	effect.Color = new ColorSequence(color);
 	effect.Transparency = new NumberSequence([new NumberSequenceKeypoint(0, 0.18), new NumberSequenceKeypoint(1, 1)]);
-	effect.Lifetime = lifetime;
+	effect.Lifetime = math.min(lifetime, TRAIL_MAX_LIFETIME);
 	effect.LightEmission = 0.75;
 	effect.FaceCamera = true;
 	effect.MinLength = 0.1;
@@ -68,10 +92,22 @@ export const JetFactory = {
 			exhaust: new Vector3(0, -0.1, 9.3),
 		};
 		for (const tip of [attachments.leftWingtip, attachments.rightWingtip]) {
-			trail(root, tip, Color3.fromRGB(224, 246, 255), 0.25, 1.1);
+			trail(root, tip, Color3.fromRGB(224, 246, 255), 0.25, TRAIL_MAX_LIFETIME);
 		}
 		trail(root, attachments.exhaust, accent, 1.1, 0.35);
+		weldToRoot(model, root);
 		return model;
+	},
+	/** Welds a moving multi-part model (e.g. an escorted vehicle) to its PrimaryPart so only that part replicates. */
+	WeldAssembly(model: Model): void {
+		const root = model.PrimaryPart;
+		if (root) weldToRoot(model, root);
+	},
+	/** Turns every aircraft trail on or off (server models stay dark; local visual clones show them). */
+	SetTrails(model: Model, enabled: boolean): void {
+		const root = model.PrimaryPart;
+		if (!root) return;
+		for (const child of root.GetChildren()) if (child.IsA("Trail")) child.Enabled = enabled;
 	},
 	CreateMissile(parent: Instance, position: Vector3, direction: Vector3, hostile: boolean): Part {
 		const color = hostile ? Color3.fromRGB(255, 104, 72) : Color3.fromRGB(93, 247, 255);

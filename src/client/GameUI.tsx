@@ -504,6 +504,8 @@ function missileReady(telemetry: Telemetry): boolean {
 	return telemetry.missileCooldown <= 0 && telemetry.missiles > 0;
 }
 
+let menuCameraViewport: Vector2 | undefined;
+let menuCameraSheet = false;
 function setMenuCamera() {
 	const camera = Workspace.CurrentCamera;
 	if (!camera) return;
@@ -512,7 +514,9 @@ function setMenuCamera() {
 	const sway = new Vector3(math.sin(clock * 0.11) * 2, math.sin(clock * 0.07) * 0.8, 0);
 	let eye = MENU_JET.add(MENU_EYE_OFFSET);
 	let focus: Vector3;
-	if (getMenuLayout(size.X, size.Y).mode === "sheet") {
+	// The layout solver only re-runs when the viewport changes, not every menu frame.
+	if (menuCameraViewport !== size) { menuCameraViewport = size; menuCameraSheet = getMenuLayout(size.X, size.Y).mode === "sheet"; }
+	if (menuCameraSheet) {
 		eye = MENU_JET.add(MENU_EYE_OFFSET.mul(1.8));
 		focus = MENU_JET.sub(new Vector3(0, 20, 0));
 	} else {
@@ -1621,20 +1625,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					telemetryRef.current = sanitized;
 					setTelemetry(sanitized);
 				}
-			} else if (payload.kind === "Telemetry") {
-				if (inMissionRef.current) {
-					const previous = telemetryRef.current;
-					const sanitized = sanitizeTelemetry(payload, previous);
-					// Local pivot is fresher than the server sample and uses the same FlightMath limits.
-					const [ok, sample] = pcall(() => controller.GetTelemetry());
-					if (ok && typeIs(sample, "table")) sanitized.boundaryWarning = (sample as Telemetry).boundaryWarning === true;
-					if (sanitized.kills > previous.kills) setKillNotice({ kills: sanitized.kills, total: sanitized.total, until: os.clock() + 3 });
-					if (sanitized.radio !== undefined && sanitized.radioSerial !== undefined && sanitized.radioSerial !== previous.radioSerial) setRadioNotice({ text: sanitized.radio, until: os.clock() + (sanitized.radioSeconds ?? RADIO_SECONDS) });
-					if (sanitized.fireDenied !== undefined && sanitized.fireDeniedSerial !== undefined && sanitized.fireDeniedSerial !== previous.fireDeniedSerial) setFireNotice({ text: FIRE_DENIED_TEXT[sanitized.fireDenied], until: os.clock() + FIRE_DENIED_SECONDS });
-					if (sanitized.health < previous.health) setDamageUntil(os.clock() + 0.45);
-					telemetryRef.current = sanitized;
-					setTelemetry(sanitized);
-				}
 			} else if (payload.kind === "Completed" || payload.kind === "Failed") {
 				if (!inMissionRef.current) return;
 				const finished = payload as MissionFinished;
@@ -1671,7 +1661,21 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				});
 			}
 		});
-		return () => connection.Disconnect();
+		// HUD numbers (10 Hz, unreliable) and text/target changes (reliable HudState) are
+		// merged by the controller, which already folds in its locally predicted
+		// boundary warning; the HUD re-renders once per merged update.
+		const unsubscribe = controller.OnTelemetry((merged) => {
+			if (!mountedRef.current || !inMissionRef.current) return;
+			const previous = telemetryRef.current;
+			const sanitized = sanitizeTelemetry(merged, previous);
+			if (sanitized.kills > previous.kills) setKillNotice({ kills: sanitized.kills, total: sanitized.total, until: os.clock() + 3 });
+			if (sanitized.radio !== undefined && sanitized.radioSerial !== undefined && sanitized.radioSerial !== previous.radioSerial) setRadioNotice({ text: sanitized.radio, until: os.clock() + (sanitized.radioSeconds ?? RADIO_SECONDS) });
+			if (sanitized.fireDenied !== undefined && sanitized.fireDeniedSerial !== undefined && sanitized.fireDeniedSerial !== previous.fireDeniedSerial) setFireNotice({ text: FIRE_DENIED_TEXT[sanitized.fireDenied], until: os.clock() + FIRE_DENIED_SECONDS });
+			if (sanitized.health < previous.health) setDamageUntil(os.clock() + 0.45);
+			telemetryRef.current = sanitized;
+			setTelemetry(sanitized);
+		});
+		return () => { connection.Disconnect(); unsubscribe(); };
 	}, [applyResponseSlots, beginRequest, cancelRequests, changeScreen, controller, invoke, releaseJoystick, remotes, showToast]);
 
 	useEffect(() => {
@@ -1686,15 +1690,13 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				sampleClock += deltaTime;
 				if (sampleClock >= 0.1) {
 					sampleClock = 0;
-					const [ok, snapshot] = pcall(() => controller.GetTelemetry());
-					if (ok && typeIs(snapshot, "table")) {
-						const current = telemetryRef.current;
-						const warning = (snapshot as Telemetry).boundaryWarning === true;
-						if (warning !== (current.boundaryWarning === true)) {
-							const sampled = { ...current, boundaryWarning: warning };
-							telemetryRef.current = sampled;
-							setTelemetry(sampled);
-						}
+					// A plain boolean read on the predicted state: no table copy, no pcall closure.
+					const warning = controller.GetBoundaryWarning();
+					const current = telemetryRef.current;
+					if (warning !== (current.boundaryWarning === true)) {
+						const sampled = { ...current, boundaryWarning: warning };
+						telemetryRef.current = sampled;
+						setTelemetry(sampled);
 					}
 				}
 			}

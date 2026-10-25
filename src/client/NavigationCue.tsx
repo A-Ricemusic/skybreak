@@ -18,6 +18,7 @@ export function NavigationCue({telemetry,visible,inputMode}:{telemetry:Telemetry
 		// obstacle list depends only on (viewport, inputMode) and is cached.
 		let cachedViewport:Vector2|undefined,hud:HudLayout|undefined,obstacles:Rectangle[]=[];
 		let placedX=0,placedY=0,placed=false,frame=0;
+		let lastMeters=-1,lastSide=2,lastInside=false,lastCeiling:number|undefined,lastHull=-2;
 		const connection=RunService.RenderStepped.Connect(()=>{
 			const gui=label.current,camera=Workspace.CurrentCamera,nav=data.current.navigation;
 			if(!gui || !camera)return;
@@ -47,15 +48,21 @@ export function NavigationCue({telemetry,visible,inputMode}:{telemetry:Telemetry
 				if(primary.current)primary.current.TextXAlignment=alignment;
 				if(secondary.current)secondary.current.TextXAlignment=alignment;
 			}
-			const aircraft=FlightController.GetActive()?.aircraft;
-			const distance=aircraft ? nav.sub(aircraft.GetPivot().Position).Magnitude : nav.sub(camera.CFrame.Position).Magnitude;
+			// Predicted jet position (what the player sees), not the hidden replicated model.
+			const position=FlightController.GetActive()?.GetPosition();
+			const distance=position ? nav.sub(position).Magnitude : nav.sub(camera.CFrame.Position).Magnitude;
 			const radius=data.current.navigationRadius ?? 210;
 			const ceiling=data.current.navigationCeiling;
 			const protectedHull=data.current.protectedHealth;
 			const side=onScreen ? 0 : localPos.X>0 ? 1 : -1;
-			const [distanceText,detailText]=navigationCaption(distance,side,distance<=radius,ceiling,protectedHull);
-			if(primary.current)primary.current.Text=distanceText;
-			if(secondary.current){secondary.current.Text=detailText;secondary.current.Visible=detailText!=="";}
+			const meters=math.floor(distance),inside=distance<=radius,hull=protectedHull!==undefined ? math.ceil(protectedHull) : -1;
+			// Rebuild the text only when a visible value changed (most frames nothing has).
+			if(meters!==lastMeters || side!==lastSide || inside!==lastInside || ceiling!==lastCeiling || hull!==lastHull){
+				lastMeters=meters;lastSide=side;lastInside=inside;lastCeiling=ceiling;lastHull=hull;
+				const [distanceText,detailText]=navigationCaption(distance,side,inside,ceiling,protectedHull);
+				if(primary.current)primary.current.Text=distanceText;
+				if(secondary.current){secondary.current.Text=detailText;secondary.current.Visible=detailText!=="";}
+			}
 		});
 		return ()=>connection.Disconnect();
 	},[visible,inputMode]);
