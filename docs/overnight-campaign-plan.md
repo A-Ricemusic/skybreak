@@ -59,3 +59,5 @@ Keep commits/pushes scoped. Unrelated `react-agent-testing/` deletions belong an
 ## First campaign QA handoff
 
 Embers reports offline build/place packaging complete, 73 Jest cases authored (not yet executed), 27 missions and 54 opening/debrief cinematics, v3 progression and Blender rescue launch. Parent verified clean SHA and Studio Edit state before granting exclusive QA. No live campaign results yet. Other four alternatives remain offline. Parent still owes independent final-campaign playthrough after selection.
+
+Aurora Line is next in the Studio queue, not yet granted: PR #3 https://github.com/A-Ricemusic/test-game-coding-from-phone/pull/3 at `2c536b3af189705394a0a056522150c9db81c44a`. Offline Blender/build/place checks passed; engine tests and all 27 live missions remain pending. Parent registered PR; alternative remains unmerged. Resume original Aurora thread with explicit lease only after Embers releases.
