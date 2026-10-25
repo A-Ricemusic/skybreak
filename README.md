@@ -77,7 +77,7 @@ One-time setup:
 1. In Roblox Studio, open `build/skybreak.rbxlx` and choose **File > Publish to Roblox**. Create a new experience.
 2. In the Creator Dashboard, set that experience's privacy to **Private**, so only you and invited collaborators can join.
 3. Create an Open Cloud API key with universe-places **write** access for that experience.
-4. In GitHub, add the key as the repository secret `ROBLOX_API_KEY`. Add `ROBLOX_UNIVERSE_ID` and `ROBLOX_PLACE_ID` as repository variables. The IDs are shown in the Creator Dashboard URL.
+4. In GitHub, add the key as the repository secret `ROBLOX_API_KEY`. Add `ROBLOX_UNIVERSE_ID` and `ROBLOX_PLACE_ID` as repository variables or secrets. The IDs are shown in the Creator Dashboard URL.
 
 To publish from your Mac instead, run `bun run build:place` and then `ROBLOX_API_KEY=… ROBLOX_UNIVERSE_ID=… ROBLOX_PLACE_ID=… tools/publish-place.sh`.
 
