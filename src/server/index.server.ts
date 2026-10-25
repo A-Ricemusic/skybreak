@@ -3,6 +3,7 @@ import { GameConfig } from "../shared/GameConfig";
 import { Remotes } from "../shared/Types";
 import { CampaignService } from "./CampaignService";
 import { CombatService } from "./CombatService";
+import { CinematicPreviewService } from "./CinematicPreviewService";
 import { WorldBuilder } from "./WorldBuilder";
 
 function ensureRemote<T extends "RemoteFunction" | "RemoteEvent">(folder: Folder, name: string, className: T): CreatableInstances[T] {
@@ -20,6 +21,11 @@ function ensureRemote<T extends "RemoteFunction" | "RemoteEvent">(folder: Folder
 }
 
 function initialize(): void {
+	// Build static Blender content before publishing Remotes. Clients therefore
+	// cannot mount the cinematic UI before its replicated preview cache exists.
+	const [previewsReady, previewError] = pcall(() => CinematicPreviewService.Build());
+	if (!previewsReady) warn(`SKYBREAK cinematic previews unavailable; cutscenes will use safe primitives: ${tostring(previewError)}`);
+
 	const existingFolder = ReplicatedStorage.FindFirstChild("Remotes");
 	let remotesFolder: Folder | undefined;
 	if (existingFolder?.IsA("Folder")) {

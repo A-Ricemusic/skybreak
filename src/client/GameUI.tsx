@@ -1,9 +1,10 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "@rbxts/react";
 import ReactRoblox from "@rbxts/react-roblox";
-import { GuiService, RunService, UserInputService, Workspace } from "@rbxts/services";
+import { GuiService, ReplicatedStorage, RunService, UserInputService, Workspace } from "@rbxts/services";
 import { AuroraLineCutscenes, AuroraLineManifest, Cutscene } from "../shared/AuroraLineManifest";
 import { cutsceneForMissionLaunch, MissionLaunchReason } from "../shared/CampaignPresentation";
 import { CUTSCENE_SKIP_SIZE, CUTSCENE_STAGE_ORIGIN, offsetCutscenePoint } from "../shared/CutscenePresentation";
+import { cloneCinematicPreview } from "../shared/CinematicPreview";
 
 import type {
 	CampaignResponse,
@@ -933,15 +934,46 @@ function CutsceneScreen({ cutscene, reducedMotion, onDone }: { cutscene?: Cutsce
 		const groundColor = env.theme === "volcanic_refuge" ? Color3.fromRGB(48, 39, 42) : env.theme === "port" ? Color3.fromRGB(70, 79, 84) : Color3.fromRGB(205, 224, 234);
 		createPart("PolarStage", new Vector3(600, 4, 600), new Vector3(0, -2, 0), groundColor, env.theme === "volcanic_refuge" ? Enum.Material.Basalt : Enum.Material.Snow);
 		createPart("CorridorRoad", new Vector3(34, 1, 500), new Vector3(0, 1, 0), Color3.fromRGB(45, 55, 63), Enum.Material.Asphalt);
-		for (let index = -2; index <= 2; index++) {
-			createPart(`Convoy_${index}_Body`, new Vector3(15, 6, 26), new Vector3(index * 22, 5, index * 58), Color3.fromRGB(201, 128, 56), Enum.Material.Metal);
-			createPart(`Convoy_${index}_Cab`, new Vector3(13, 7, 9), new Vector3(index * 22, 8, index * 58 - 16), Color3.fromRGB(50, 78, 91), Enum.Material.Metal);
+		const groundActor = (actor: Model, groundY: number) => {
+			const [box, size] = actor.GetBoundingBox();
+			const bottom = box.Position.Y - size.Y / 2;
+			actor.PivotTo(actor.GetPivot().add(new Vector3(0, CUTSCENE_STAGE_ORIGIN.Y + groundY - bottom, 0)));
+		};
+		const convoy = cloneCinematicPreview(
+			ReplicatedStorage,
+			"SupplyConvoy",
+			stage,
+			new CFrame(CUTSCENE_STAGE_ORIGIN.add(new Vector3(0, 0, 20))).mul(CFrame.Angles(0, math.rad(-4), 0)),
+			0.9,
+		);
+		if (convoy) {
+			groundActor(convoy, 1.5);
+		} else {
+			// Unsupported static-content platforms retain a readable fallback.
+			for (let index = -2; index <= 2; index++) {
+				createPart(`Convoy_${index}_Body`, new Vector3(15, 6, 26), new Vector3(index * 22, 5, index * 58), Color3.fromRGB(201, 128, 56), Enum.Material.Metal);
+				createPart(`Convoy_${index}_Cab`, new Vector3(13, 7, 9), new Vector3(index * 22, 8, index * 58 - 16), Color3.fromRGB(50, 78, 91), Enum.Material.Metal);
+			}
 		}
 		for (const x of [-120, 120]) {
-			createPart(`Beacon_${x}`, new Vector3(5, 70, 5), new Vector3(x, 35, -80), Color3.fromRGB(74, 235, 194), Enum.Material.Neon);
-			createPart(`BeaconArm_${x}`, new Vector3(36, 3, 3), new Vector3(x, 68, -80), Color3.fromRGB(235, 198, 96), Enum.Material.Metal);
+			const beacon = cloneCinematicPreview(
+				ReplicatedStorage,
+				"AuroraBeacon",
+				stage,
+				new CFrame(CUTSCENE_STAGE_ORIGIN.add(new Vector3(x, 0, -80))).mul(CFrame.Angles(0, x < 0 ? math.rad(12) : math.rad(-12), 0)),
+				1.05,
+			);
+			if (beacon) {
+				groundActor(beacon, 1.5);
+			} else {
+				createPart(`Beacon_${x}`, new Vector3(5, 70, 5), new Vector3(x, 35, -80), Color3.fromRGB(74, 235, 194), Enum.Material.Neon);
+				createPart(`BeaconArm_${x}`, new Vector3(36, 3, 3), new Vector3(x, 68, -80), Color3.fromRGB(235, 198, 96), Enum.Material.Metal);
+			}
 		}
-		createPart("CourierWing", new Vector3(80, 3, 18), new Vector3(0, 52, -55), Color3.fromRGB(222, 232, 235), Enum.Material.Metal).CFrame = new CFrame(CUTSCENE_STAGE_ORIGIN.add(new Vector3(0, 52, -55))).mul(CFrame.Angles(0, math.rad(28), math.rad(-8)));
+		const courierPivot = new CFrame(CUTSCENE_STAGE_ORIGIN.add(new Vector3(0, 52, -55))).mul(CFrame.Angles(0, math.rad(28), math.rad(-8)));
+		if (!cloneCinematicPreview(ReplicatedStorage, "CourierWing", stage, courierPivot, 2.6)) {
+			createPart("CourierWing", new Vector3(80, 3, 18), new Vector3(0, 52, -55), Color3.fromRGB(222, 232, 235), Enum.Material.Metal).CFrame = courierPivot;
+		}
 		const camera = Workspace.CurrentCamera;
 		let cancelled = false;
 		const finish = () => {
