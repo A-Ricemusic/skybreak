@@ -1,6 +1,7 @@
 import { JetFactory } from "../shared/JetFactory";
 import { Lighting, Workspace } from "@rbxts/services";
 import { GameConfig } from "../shared/GameConfig";
+import { CONTROL_TOWER_PARTS, HANGAR_PARTS, MenuPartSpec } from "../shared/MenuWorldGeometry";
 
 interface PartOptions {
 	className?: "Part" | "WedgePart";
@@ -126,18 +127,40 @@ function buildIsland(parent: Instance, name: string, center: Vector3, scale: Vec
 	return model;
 }
 
-function buildHangar(parent: Instance, center: Vector3, facing: number): Model {
+interface HangarPartStyle {
+	color: Color3;
+	material: Enum.Material;
+}
+
+const HANGAR_STYLES: Record<string, HangarPartStyle> = {
+	Floor: { color: COLORS.concrete, material: Enum.Material.Concrete },
+	LeftWall: { color: COLORS.concrete, material: Enum.Material.Metal },
+	RightWall: { color: COLORS.concrete, material: Enum.Material.Metal },
+	Back: { color: COLORS.navy, material: Enum.Material.Metal },
+	DoorHeader: { color: COLORS.orange, material: Enum.Material.Metal },
+	Roof: { color: COLORS.deepRock, material: Enum.Material.Metal },
+};
+
+function placeMenuBuilding(
+	parent: Instance,
+	modelName: string,
+	pivot: CFrame,
+	specs: ReadonlyArray<MenuPartSpec>,
+	style: (name: string) => HangarPartStyle,
+): Model {
 	const model = new Instance("Model");
-	model.Name = "Hangar";
+	model.Name = modelName;
 	model.Parent = parent;
-	const pivot = new CFrame(center).mul(CFrame.Angles(0, facing, 0));
-	makePart(model, "Floor", new Vector3(72, 2, 52), pivot, COLORS.concrete, Enum.Material.Concrete);
-	makePart(model, "Back", new Vector3(72, 27, 3), pivot.mul(new CFrame(0, 14, 25)), COLORS.navy, Enum.Material.Metal);
-	makePart(model, "LeftWall", new Vector3(3, 27, 52), pivot.mul(new CFrame(-34.5, 14, 0)), COLORS.concrete, Enum.Material.Metal);
-	makePart(model, "RightWall", new Vector3(3, 27, 52), pivot.mul(new CFrame(34.5, 14, 0)), COLORS.concrete, Enum.Material.Metal);
-	makePart(model, "Roof", new Vector3(75, 3, 56), pivot.mul(new CFrame(0, 29, 0)), COLORS.deepRock, Enum.Material.Metal);
-	makePart(model, "DoorHeader", new Vector3(72, 5, 3), pivot.mul(new CFrame(0, 26, -25)), COLORS.orange, Enum.Material.Metal);
+	for (const spec of specs) {
+		const { color, material } = style(spec.name);
+		makePart(model, spec.name, spec.size, pivot.mul(new CFrame(spec.offset)), color, material);
+	}
 	return model;
+}
+
+function buildHangar(parent: Instance, center: Vector3, facing: number): Model {
+	const pivot = new CFrame(center).mul(CFrame.Angles(0, facing, 0));
+	return placeMenuBuilding(parent, "Hangar", pivot, HANGAR_PARTS, (name) => HANGAR_STYLES[name]);
 }
 
 function buildDisplayJet(parent: Instance): Model {
@@ -173,11 +196,33 @@ function buildAirbase(parent: Instance): Model {
 	const tower = new Instance("Model");
 	tower.Name = "ControlTower";
 	tower.Parent = airbase;
-	makePart(tower, "Base", new Vector3(30, 42, 30), new CFrame(190, 44, 40), COLORS.concrete, Enum.Material.Concrete);
-	makePart(tower, "Cab", new Vector3(45, 12, 45), new CFrame(190, 68, 40), Color3.fromRGB(55, 104, 122), Enum.Material.Glass, { transparency: 0.18 });
-	makePart(tower, "Roof", new Vector3(50, 3, 50), new CFrame(190, 76, 40), COLORS.navy, Enum.Material.Metal);
-	makePart(tower, "Antenna", new Vector3(2, 21, 2), new CFrame(190, 88, 40), COLORS.white, Enum.Material.Metal, { canCollide: false });
-	const beacon = makePart(tower, "Beacon", new Vector3(4, 4, 4), new CFrame(190, 99.5, 40), COLORS.orange, Enum.Material.Neon, { shape: Enum.PartType.Ball, canCollide: false });
+	const towerBase = new CFrame(190, 23, 40);
+	const towerStyle: Record<string, { color: Color3; material: Enum.Material; options: PartOptions }> = {
+		Base: { color: COLORS.concrete, material: Enum.Material.Concrete, options: {} },
+		Cab: { color: Color3.fromRGB(55, 104, 122), material: Enum.Material.Glass, options: { transparency: 0.18 } },
+		Roof: { color: COLORS.navy, material: Enum.Material.Metal, options: {} },
+		Antenna: { color: COLORS.white, material: Enum.Material.Metal, options: { canCollide: false } },
+		Beacon: {
+			color: COLORS.orange,
+			material: Enum.Material.Neon,
+			options: { shape: Enum.PartType.Ball, canCollide: false },
+		},
+	};
+	let beacon: BasePart | undefined;
+	for (const spec of CONTROL_TOWER_PARTS) {
+		const style = towerStyle[spec.name];
+		const part = makePart(
+			tower,
+			spec.name,
+			spec.size,
+			towerBase.mul(new CFrame(spec.offset)),
+			style.color,
+			style.material,
+			style.options,
+		);
+		if (spec.name === "Beacon") beacon = part;
+	}
+	assert(beacon !== undefined, "Control tower spec must include a Beacon part");
 	addLight(beacon, COLORS.orange, 2, 35);
 	for (const z of [-470, -440, 440, 470]) for (const x of [-34, 34]) {
 		const approach = makePart(airbase, "ApproachLight", new Vector3(2, 2, 2), new CFrame(x, 23, z), COLORS.cyan, Enum.Material.Neon, { shape: Enum.PartType.Ball, canCollide: false });
