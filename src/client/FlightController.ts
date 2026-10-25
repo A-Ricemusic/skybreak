@@ -9,7 +9,7 @@ const DEFAULTS: Telemetry = {
 	missileCooldown: 0, evadeCooldown: 0, targetName: "", lockProgress: 0, incoming: false,
 	elapsed: 0, targetDistance: 0, boundaryWarning: false,
 };
-const FLIGHT_KEYS = [
+const FLIGHT_KEYS: Enum.KeyCode[] = [
 	Enum.KeyCode.W, Enum.KeyCode.S, Enum.KeyCode.A, Enum.KeyCode.D,
 	Enum.KeyCode.Up, Enum.KeyCode.Down, Enum.KeyCode.Left, Enum.KeyCode.Right,
 	Enum.KeyCode.Q, Enum.KeyCode.E, Enum.KeyCode.LeftShift, Enum.KeyCode.ButtonL1, Enum.KeyCode.ButtonR1,
@@ -121,6 +121,33 @@ export class FlightController {
 			} else if (message.kind === "Completed" || message.kind === "Failed") this.Stop();
 		});
 		activeController = this;
+	}
+	private handleBoundInput(state: Enum.UserInputState, keyCode: Enum.KeyCode, position: Vector3): Enum.ContextActionResult {
+		if (!this.active || UserInputService.GetFocusedTextBox()) return Enum.ContextActionResult.Pass;
+		if (keyCode === Enum.KeyCode.Thumbstick1) {
+			const value = new Vector2(position.X, position.Y);
+			this.gamepadInput = state !== Enum.UserInputState.End && state !== Enum.UserInputState.Cancel && value.Magnitude >= 0.12 ? value : Vector2.zero;
+		} else {
+			if (state === Enum.UserInputState.Begin || state === Enum.UserInputState.Change) this.keys.add(keyCode);
+			else this.keys.delete(keyCode);
+			if (state === Enum.UserInputState.Begin) {
+				if (keyCode === Enum.KeyCode.Space || keyCode === Enum.KeyCode.ButtonR2) this.FireMissile();
+				if (keyCode === Enum.KeyCode.F || keyCode === Enum.KeyCode.ButtonB) this.Evade();
+				if (keyCode === Enum.KeyCode.Tab || keyCode === Enum.KeyCode.R || keyCode === Enum.KeyCode.ButtonY) this.CycleTarget();
+			}
+		}
+		return Enum.ContextActionResult.Sink;
+	}
+	/** Studio QA uses the same handler as ContextActionService, below engine/device routing. */
+	public SimulateGamepadInput(keyCode: Enum.KeyCode, state: Enum.UserInputState, position = Vector3.zero): void {
+		assert(RunService.IsStudio(), "Controller simulation is Studio-only");
+		assert(FLIGHT_KEYS.includes(keyCode) && (keyCode.Name.sub(1, 6) === "Button" || keyCode === Enum.KeyCode.Thumbstick1), "Unsupported bound gamepad control");
+		assert(FlightMath.IsFinite(position.X) && FlightMath.IsFinite(position.Y) && FlightMath.IsFinite(position.Z), "Input must be finite");
+		this.handleBoundInput(state, keyCode, new Vector3(math.clamp(position.X, -1, 1), math.clamp(position.Y, -1, 1), math.clamp(position.Z, -1, 1)));
+	}
+	public GetControlStateForStudio() {
+		assert(RunService.IsStudio(), "Controller diagnostics are Studio-only");
+		return { throttle: this.throttle, stick: this.gamepadInput };
 	}
 	public SetInput(x: number, y: number): void { this.touchInput = new Vector2(FlightMath.ClampInput(x), FlightMath.ClampInput(y)); }
 	public SetThrottle(value: number): void { if (FlightMath.IsFinite(value)) this.throttle = math.clamp(value, 0, 1); }
@@ -251,22 +278,7 @@ export class FlightController {
 		for (const descendant of this.aircraft.GetDescendants()) hidePart(descendant);
 		this.connections.push(this.aircraft.DescendantAdded.Connect(hidePart));
 		[this.targetGui, this.bracket, this.bracketStroke, this.caption, this.arrow] = createTargetCue(Players.LocalPlayer.WaitForChild("PlayerGui"));
-		ContextActionService.BindActionAtPriority(this.actionName, (_, state, input) => {
-			if (!this.active || UserInputService.GetFocusedTextBox()) return Enum.ContextActionResult.Pass;
-			if (input.KeyCode === Enum.KeyCode.Thumbstick1) {
-				const value = new Vector2(input.Position.X, input.Position.Y);
-				this.gamepadInput = value.Magnitude >= 0.12 ? value : Vector2.zero;
-			} else {
-				if (state === Enum.UserInputState.Begin || state === Enum.UserInputState.Change) this.keys.add(input.KeyCode);
-				else this.keys.delete(input.KeyCode);
-				if (state === Enum.UserInputState.Begin) {
-					if (input.KeyCode === Enum.KeyCode.Space || input.KeyCode === Enum.KeyCode.ButtonR2) this.FireMissile();
-					if (input.KeyCode === Enum.KeyCode.F || input.KeyCode === Enum.KeyCode.ButtonB) this.Evade();
-					if (input.KeyCode === Enum.KeyCode.Tab || input.KeyCode === Enum.KeyCode.R || input.KeyCode === Enum.KeyCode.ButtonY) this.CycleTarget();
-				}
-			}
-			return Enum.ContextActionResult.Sink;
-		}, false, 3000, ...FLIGHT_KEYS);
+		ContextActionService.BindActionAtPriority(this.actionName, (_, state, input) => this.handleBoundInput(state, input.KeyCode, input.Position), false, 3000, ...FLIGHT_KEYS);
 		this.connections.push(UserInputService.InputBegan.Connect((input, processed) => {
 			if (processed || UserInputService.GetFocusedTextBox()) return;
 			if (input.UserInputType === Enum.UserInputType.MouseButton1) this.FireMissile();
