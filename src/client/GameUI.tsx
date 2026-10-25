@@ -15,6 +15,7 @@ import type {
 } from "../shared/Types";
 import { MissionCatalog, MISSION_COUNT } from "../shared/MissionCatalog";
 import { MENU_JET_POSITION } from "../shared/MenuWorldGeometry";
+import { WeaponRules } from "../shared/WeaponRules";
 import { NavigationCue } from "./NavigationCue";
 import { RelayCinematic } from "./RelayCinematic";
 import { FlightController } from "./FlightController";
@@ -97,6 +98,11 @@ interface RadioNotice {
 	text: string;
 	until: number;
 }
+/** Seconds a radio line stays up when the server does not specify. */
+const RADIO_SECONDS = 4.5;
+/** Seconds a refused FIRE reason stays up. */
+const FIRE_DENIED_SECONDS = 1;
+const FIRE_DENIED_TEXT: { [reason: string]: string } = { no_ammo: "NO MISSILES · RELOADING", cooldown: "LAUNCHER CYCLING", blind: "NO LOCK · FIRING BLIND" };
 
 interface GameUIProps {
 	remotes: Remotes;
@@ -482,6 +488,10 @@ function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
 		targetRequired: payload.targetRequired === undefined ? previous.targetRequired : payload.targetRequired === true,
 		radio: safeRadio(payload.radio, previous.radio),
 		radioSerial: typeIs(payload.radioSerial, "number") ? math.max(0, math.floor(finite(payload.radioSerial, previous.radioSerial ?? 0))) : previous.radioSerial,
+		radioSeconds: typeIs(payload.radioSeconds, "number") ? math.clamp(finite(payload.radioSeconds, RADIO_SECONDS), 0.25, 10) : undefined,
+		fireDenied: payload.fireDenied === "no_ammo" || payload.fireDenied === "cooldown" || payload.fireDenied === "blind" ? payload.fireDenied : undefined,
+		targetDamageable: payload.targetDamageable === undefined ? undefined : payload.targetDamageable === true,
+		fireDeniedSerial: typeIs(payload.fireDeniedSerial, "number") ? math.max(0, math.floor(finite(payload.fireDeniedSerial, previous.fireDeniedSerial ?? 0))) : previous.fireDeniedSerial,
 		targetHealth: typeIs(payload.targetHealth, "number") ? math.clamp(finite(payload.targetHealth, 1), 0, 1) : undefined,
 	};
 }
@@ -873,6 +883,7 @@ function RoundButton({
 	rectangle,
 	filled,
 	enabled,
+	dimmed = false,
 	textSize,
 	onActivated,
 }: {
@@ -881,6 +892,8 @@ function RoundButton({
 	rectangle: Rectangle;
 	filled: boolean;
 	enabled: boolean;
+	/** Label shown faded while still usable (lock building). */
+	dimmed?: boolean;
 	textSize: number;
 	onActivated: () => void;
 }) {
@@ -901,7 +914,7 @@ function RoundButton({
 			TextSize={textSize}
 			TextStrokeColor3={C.Ink}
 			TextStrokeTransparency={0.5}
-			TextTransparency={enabled ? 0 : 0.5}
+			TextTransparency={!enabled ? 0.5 : dimmed ? 0.35 : 0}
 			Event={{ Activated: () => enabled && onActivated() }}
 		>
 			<Corner scale={0.5} />
@@ -1039,7 +1052,7 @@ function MissionHud({
 	const cooldownText = telemetry.missileCooldown > 0 && !touch ? string.format(" · %.1fs", telemetry.missileCooldown) : "";
 	const statusText = `${hull < 100 ? `HULL ${hull} · ` : ""}MSL ${telemetry.missiles}${cooldownText}`;
 	const statusColor = telemetry.missiles <= 0 || hull <= 30 ? C.Danger : hull <= 60 ? C.Orange : C.Ivory;
-	const missileButtonText = telemetry.missileCooldown > 0 ? string.format("%.1f", telemetry.missileCooldown) : telemetry.missiles <= 0 ? "EMPTY" : "FIRE";
+	const fireButton = WeaponRules.FireButton(telemetry.missiles, telemetry.missileCooldown, telemetry.target !== undefined && telemetry.targetDamageable !== false, telemetry.lockProgress);
 	const timeRemaining = telemetry.timeRemaining ?? 600;
 	const tutorial = getTutorialInstruction(telemetry.tutorialStep, inputMode);
 	const progress = telemetry.objectiveTotal !== undefined && telemetry.objectiveTotal > 0
@@ -1168,10 +1181,11 @@ function MissionHud({
 				{touch && (
 					<RoundButton
 						name="MissileButton"
-						text={missileButtonText}
+						text={fireButton.text}
 						rectangle={touch.missile}
-						filled={ready && locked}
-						enabled={ready}
+						filled={fireButton.filled}
+						enabled={fireButton.enabled}
+						dimmed={fireButton.dimmed}
 						textSize={12}
 						onActivated={onMissile}
 					/>
@@ -1219,6 +1233,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const [hintUntil, setHintUntil] = useState(0);
 	const [killNotice, setKillNotice] = useState<KillNotice | undefined>();
 	const [radioNotice, setRadioNotice] = useState<RadioNotice | undefined>();
+	const [fireNotice, setFireNotice] = useState<RadioNotice | undefined>();
 	const [damageUntil, setDamageUntil] = useState(0);
 	const [loadingProgress, setLoadingProgress] = useState(0);
 
@@ -1443,7 +1458,8 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		changeScreen("briefing");
 	}, [changeScreen]);
 	const chooseMission = useCallback((missionId: number) => { selectedMissionRef.current = missionId; setSelectedMission(missionId); }, []);
-	const fireMissile = useCallback(() => { if (missileReady(telemetryRef.current)) controller.FireMissile(); }, [controller]);
+	// Always send: the server either launches (guided or blind) or answers with `fireDenied`, so a press is never silent.
+	const fireMissile = useCallback(() => controller.FireMissile(), [controller]);
 	const cycleTarget = useCallback(() => controller.CycleTarget(), [controller]);
 
 	const moveJoystick = useCallback((input: InputObject) => {
@@ -1613,7 +1629,8 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					const [ok, sample] = pcall(() => controller.GetTelemetry());
 					if (ok && typeIs(sample, "table")) sanitized.boundaryWarning = (sample as Telemetry).boundaryWarning === true;
 					if (sanitized.kills > previous.kills) setKillNotice({ kills: sanitized.kills, total: sanitized.total, until: os.clock() + 3 });
-					if (sanitized.radio !== undefined && sanitized.radioSerial !== undefined && sanitized.radioSerial !== previous.radioSerial) setRadioNotice({ text: sanitized.radio, until: os.clock() + 4.5 });
+					if (sanitized.radio !== undefined && sanitized.radioSerial !== undefined && sanitized.radioSerial !== previous.radioSerial) setRadioNotice({ text: sanitized.radio, until: os.clock() + (sanitized.radioSeconds ?? RADIO_SECONDS) });
+					if (sanitized.fireDenied !== undefined && sanitized.fireDeniedSerial !== undefined && sanitized.fireDeniedSerial !== previous.fireDeniedSerial) setFireNotice({ text: FIRE_DENIED_TEXT[sanitized.fireDenied], until: os.clock() + FIRE_DENIED_SECONDS });
 					if (sanitized.health < previous.health) setDamageUntil(os.clock() + 0.45);
 					telemetryRef.current = sanitized;
 					setTelemetry(sanitized);
@@ -1697,7 +1714,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const rootChange = useMemo(() => ({ AbsoluteSize: (root: Frame) => mountedRef.current && setViewport(root.AbsoluteSize) }), []);
 	const now = os.clock();
 	let callout: Callout | undefined;
-	if (radioNotice && now < radioNotice.until) {
+	if (fireNotice && now < fireNotice.until) {
+		callout = { text: fireNotice.text, color: C.Orange };
+	} else if (radioNotice && now < radioNotice.until) {
 		callout = { text: radioNotice.text, color: C.Accent };
 	} else if (killNotice && now < killNotice.until) {
 		// Progress is the phase objective's own count; raw kills include optional fighters and ground.
