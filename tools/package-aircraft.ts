@@ -9,6 +9,8 @@ const assets = [
 	{ name: "Vanta", source: "assets/aircraft/vanta.mesh.json", triangleLimit: 20000 },
 	{ name: "Warehouse", source: "assets/mission/warehouse.mesh.json", triangleLimit: 5000 },
 	{ name: "Radar", source: "assets/mission/radar.mesh.json", triangleLimit: 5000 },
+	{ name: "Corvette", source: "assets/mission/corvette.mesh.json", triangleLimit: 5000 },
+	{ name: "Sam", source: "assets/mission/sam.mesh.json", triangleLimit: 5000 },
 ] as const;
 
 for (const asset of assets) {

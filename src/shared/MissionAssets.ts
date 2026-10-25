@@ -70,14 +70,6 @@ function readData(kind: MissionAssetKind): MeshData {
 	if (cache.data !== undefined) return cache.data;
 	const sourceName = `${kind}Geometry`;
 	const source = ServerStorage.FindFirstChild(sourceName);
-	// Corvette and SAM assets are optional; the packaged mesh may not be present
-	// if an operator is testing without regenerating the full Blender suite.
-	// Returning a synthesized fallback MeshData lets MissionAssets fall through
-	// to procedural geometry rather than hard-failing the whole mission build.
-	if (source === undefined && (kind === "Corvette" || kind === "Sam")) {
-		cache.generationFailure = `${sourceName}: not packaged; using procedural fallback`;
-		return undefined as unknown as MeshData;
-	}
 	assert(source?.IsA("StringValue"), `${sourceName}: missing ServerStorage.${sourceName} StringValue; run the asset packager`);
 	const data = HttpService.JSONDecode(source.Value) as MeshData;
 	assert(data.schema === "skybreak.triangulated-mesh.v1", `${sourceName}: unsupported mesh schema`);
@@ -206,7 +198,7 @@ function getTemplates(kind: MissionAssetKind, data: MeshData): Model | undefined
 	} else {
 		cache.generationFailure = tostring(result);
 		warn(
-			`${kind} Blender mission geometry is unavailable on this platform; using the root-only fallback: ${cache.generationFailure}`,
+			`${kind} Blender mission geometry is unavailable on this platform; using its safe fallback: ${cache.generationFailure}`,
 		);
 	}
 	cache.building = false;
@@ -322,10 +314,6 @@ function create(kind: MissionAssetKind, name: string, procedural?: () => Model):
 		"MissionAssets geometry must be generated on the server or while Studio is not running",
 	);
 	const data = readData(kind);
-	if (data === undefined) {
-		assert(procedural !== undefined, `${kind}: packaged mesh missing and no procedural fallback supplied`);
-		return procedural();
-	}
 	const model = new Instance("Model");
 	model.Name = name;
 	model.SetAttribute("GeometryAsset", kind);

@@ -1,6 +1,6 @@
-# SKYBREAK: Operation Glass Horizon
+# Last Tide: Reef Watch Chronicles
 
-An original mobile-first arcade jet combat campaign for Roblox, written in TypeScript with roblox-ts, React Lua, and Rojo. Choose one of four persistent campaign slots and fly two missions in one Roblox place. Each sortie builds its world on launch and removes it after the result.
+An original mobile-first arcade flight campaign for Roblox, written in TypeScript with roblox-ts, React Lua, and Rojo. A small island air wing fights through 27 authored missions to break an Admiralty blockade, while former enemy navigator Mira Sen becomes Captain Siaosi's trusted wingmate. Four persistent slots support sequential unlocks and replay in one Roblox place; each sortie builds its world on launch and removes it after the result.
 
 ## Controls and campaign
 
@@ -8,8 +8,10 @@ An original mobile-first arcade jet combat campaign for Roblox, written in TypeS
 - Desktop and console: a short control legend appears at launch; afterwards the HUD shows only actionable hints. Evade is `F` on keyboard and `B` on gamepad. Hold `LB` / `RB` to decrease / increase throttle. Menus support gamepad selection, with `B` to go back.
 - Missiles require a target lock, shown on the target bracket. Incoming-missile and airspace warnings appear only while active.
 - Mission 1 — First Flight: learn pitch/turn, select and destroy a ground radar, then defeat three pursuing bandits.
-- Mission 2 — Iron Coast: defeat three bandits, destroy five Blender-authored warehouses while five optional raiders pursue you, then defeat a faster, tougher ace.
-- Each mission has a server-enforced 600-second deadline. Success unlocks the next mission; failure supports retry. Required kills and completion are server-authoritative.
+- Mission 2 — Reefbreak Harbor: defeat three bandits, destroy five Blender-authored warehouses while five optional raiders pursue you, then defeat a faster, tougher ace.
+- Missions 3–27 combine air interception, ground/naval strikes, escalating aces, ordered flight routes, and timed cover/defense phases across lagoons, shipyards, flood barriers, monsoons, carrier approaches, and reef cities.
+- Each mission has a server-enforced 600-second deadline. Success unlocks the next mission; failure supports retry. Kills, route gates, defense time, and completion are server-authoritative.
+- A rendered, captioned cinematic plays at the opening, after every mission, and at the finale. Cinematics support touch/gamepad skip and a static-camera accessibility option.
 - Published experiences save four slots to DataStore; an unpublished local Studio file clearly uses session-only saves.
 
 ## Setup
@@ -78,6 +80,6 @@ Kestrel has 3,684 triangles and Vanta has 3,840; each uses seven material meshes
 
 Studio's documented `CreateAssetAsync` upload route currently reports “not available yet” in this installation, so the project does not depend on that upload API. A regenerated FBX is ready for Studio's manual 3D Importer.
 
-## Campaign expansion
+## Last Tide campaign
 
-Open [the interactive 27-mission architecture guide](docs/campaign-expansion.html) in a browser for the single-place/chapter-place tradeoffs, world lifecycle, skybox design, performance validation, save migration, and mission concepts. It is a design proposal, not implemented campaign content.
+[The Last Tide campaign guide](docs/last-tide-campaign.md) contains the architecture and story rationale, complete 27-mission manifest, objective mix, performance bounds, save migration behavior, and genuine playtest checklist. [Mission asset generation](docs/mission-assets.md) covers all four Blender-authored targets.

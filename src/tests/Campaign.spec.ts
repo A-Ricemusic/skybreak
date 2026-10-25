@@ -11,6 +11,7 @@ import {
 	serializeProfile,
 	StoredProfile,
 } from "../server/CampaignRepository";
+import { GameConfig } from "../shared/GameConfig";
 
 class FakeStore implements CampaignStore {
 	public data: unknown;
@@ -85,6 +86,11 @@ function harness(store: FakeStore, now = 100) {
 }
 
 describe("Campaign domain unit tests", () => {
+	it("keeps the published datastore namespace while migrating schema v3", () => {
+		expect(GameConfig.Campaign.DataStoreName).toBe("SkybreakCampaign_v1");
+		expect(GameConfig.Campaign.SaveVersion).toBe(3);
+		expect(GameConfig.Campaign.MissionCount).toBe(27);
+	});
 	it("migrates a completed v1 slot to Mission 1 only and keeps all four slots isolated", () => {
 		const raw = legacyProfileWith(2, 99, true, 51);
 		const profile = normalizeProfile(raw);
@@ -104,10 +110,10 @@ describe("Campaign domain unit tests", () => {
 		const stored = profileWith(1, { mission1Completed: true, mission1BestTime: 53.33 });
 		const desired = profileWith(1, { mission1Completed: true, mission2Completed: true, mission1BestTime: 70, mission2BestTime: 91 });
 		const merged = mergeProfiles(stored, desired);
-		expect(merged.slots[0].completed).toBe(true);
+		expect(merged.slots[0].completed).toBe(false);
 		expect(merged.slots[0].mission1BestTime).toBe(53.33);
 		expect(merged.slots[0].mission2BestTime).toBe(91);
-		expect(merged.slots[0].currentMission).toBe(2);
+		expect(merged.slots[0].currentMission).toBe(3);
 	});
 
 	it("defaults to the unfinished mission, locks Mission 2, and permits Mission 1 replay", () => {
@@ -213,10 +219,10 @@ describe("CampaignCoordinator datastore integration", () => {
 		expect(profile.slots[1].kills).toBe(2);
 		expect(profile.slots[2].occupied).toBe(false);
 		expect(profile.slots[3].occupied).toBe(false);
-		expect(serializeProfile(profile).version).toBe(2);
+		expect(serializeProfile(profile).version).toBe(3);
 	});
 
-	it("records Mission 2 independently and only completes the campaign after both missions", () => {
+	it("records Mission 2 independently and unlocks Mission 3 without completing the campaign", () => {
 		const store = new FakeStore(profileWith(1, { mission1Completed: true, mission1BestTime: 70 }));
 		const { coordinator, deferred } = harness(store);
 		coordinator.load();
@@ -227,9 +233,36 @@ describe("CampaignCoordinator datastore integration", () => {
 		expect(finishedMission).toBe(2);
 		deferred.shift()!();
 		const slot = normalizeProfile(store.data).slots[0];
-		expect(slot.completed).toBe(true);
+		expect(slot.completed).toBe(false);
+		expect(slot.currentMission).toBe(3);
+		expect(slot.highestUnlocked).toBe(3);
 		expect(slot.mission1BestTime).toBe(70);
 		expect(slot.mission2BestTime).toBe(88);
+	});
+
+	it("completing Mission 27 seals all sequential unlocks and the campaign", () => {
+		const coordinator = new CampaignCoordinator("session_player");
+		coordinator.load();
+		coordinator.recordMissionResult(1, 27, true, 12, 240);
+		const slot = coordinator.getSlots()[0];
+		expect(slot.completed).toBe(true);
+		expect(slot.highestUnlocked).toBe(27);
+		expect(slot.currentMission).toBe(27);
+		for (let missionId = 1; missionId <= 27; missionId++) expect(slot.missionCompleted?.get(missionId)).toBe(true);
+		expect(slot.missionBestTime?.get(27)).toBe(240);
+	});
+
+	it("round-trips numeric in-memory mission maps and string datastore maps", () => {
+		const coordinator = new CampaignCoordinator("session_player");
+		coordinator.load();
+		coordinator.recordMissionResult(1, 3, true, 4, 75);
+		const serialized = serializeProfile({ version: 3, slots: coordinator.getSlots() });
+		const restored = normalizeProfile(serialized).slots[0];
+		expect(restored.missionCompleted?.get(1)).toBe(true);
+		expect(restored.missionCompleted?.get(2)).toBe(true);
+		expect(restored.missionCompleted?.get(3)).toBe(true);
+		expect(restored.missionBestTime?.get(3)).toBe(75);
+		expect(restored.currentMission).toBe(4);
 	});
 
 	it("ignores a result whose mission does not match the active server mission", () => {

@@ -1336,6 +1336,10 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			loadSlotsRef.current?.();
 		} else changeScreen("outcome");
 	}, [changeScreen]);
+	const setCinematicShot = useCallback((shot: CinematicShot, reducedMotion: boolean) => {
+		cinematicShotRef.current = shot;
+		cinematicReducedMotionRef.current = reducedMotion;
+	}, []);
 
 	const showToast = useCallback((message: string, isError: boolean) => {
 		if (!mountedRef.current) return;
@@ -1536,6 +1540,10 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	useEffect(() => {
 		const began = UserInputService.InputBegan.Connect((input) => {
 			if (screenRef.current === "mission" || GuiService.MenuIsOpen) return;
+			if (screenRef.current === "cutscene" && (input.KeyCode === Enum.KeyCode.ButtonB || input.KeyCode === Enum.KeyCode.Escape || input.KeyCode === Enum.KeyCode.Return)) {
+				finishCutscene();
+				return;
+			}
 			if (inputModeFromInputType(input.UserInputType.Name) !== "gamepad") return;
 			if (input.KeyCode === Enum.KeyCode.ButtonB) goBack();
 			task.defer(selectDefault);
@@ -1548,7 +1556,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			began.Disconnect();
 			changed.Disconnect();
 		};
-	}, [goBack, selectDefault]);
+	}, [finishCutscene, goBack, selectDefault]);
 
 	useEffect(() => {
 		const connection = remotes.MissionState.OnClientEvent.Connect((raw: unknown) => {
@@ -1693,6 +1701,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const toastRectangle = getToastLayout(viewport.X, viewport.Y, screen === "mission" ? undefined : menu);
 	const menuHints: ControlHint[] = [{ keyCode: "ButtonA", label: "A", action: "SELECT" }];
 	if (screen === "slots" || screen === "briefing") menuHints.push({ keyCode: "ButtonB", label: "B", action: "BACK" });
+	if (screen === "cutscene") menuHints.push({ keyCode: "ButtonB", label: "B", action: "SKIP" });
 	const menuHintsRectangle = getMenuHintsLayout(viewport.X, viewport.Y, menu);
 
 	return (
@@ -1705,7 +1714,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					<TitleScreen visible={screen === "title"} menu={menu} onCampaign={() => { if (!busyRef.current) { cinematicDestinationRef.current = "slots"; setCinematic(getCutscene(0)); changeScreen("cutscene"); } }} />
 					<CampaignScreen visible={screen === "slots"} menu={menu} slots={slots} busy={busy} persistence={persistence} onBack={goBack} onSlot={(slot) => { if (!busyRef.current && slots?.[slot - 1]) { const missionId = resumeMission(slots[slot - 1]); selectedSlotRef.current = slot; selectedMissionRef.current = missionId; setSelectedSlot(slot); setSelectedMission(missionId); changeScreen("briefing"); } }} />
 					<BriefingScreen visible={screen === "briefing"} menu={menu} selectedSlot={selectedSlot} selectedMission={selectedMission} slot={selectedSave} busy={busy} onBack={goBack} onLaunch={startMission} onMission={(missionId) => { selectedMissionRef.current = missionId; setSelectedMission(missionId); }} />
-					<CinematicScreen visible={screen === "cutscene"} scene={cinematic} onFinish={finishCutscene} onShot={(shot, reducedMotion) => { cinematicShotRef.current = shot; cinematicReducedMotionRef.current = reducedMotion; }} />
+					<CinematicScreen visible={screen === "cutscene"} scene={cinematic} onFinish={finishCutscene} onShot={setCinematicShot} />
 					<MissionHud
 						visible={screen === "mission"}
 						viewport={viewport}

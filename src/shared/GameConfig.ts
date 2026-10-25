@@ -11,7 +11,9 @@ export const GameConfig = {
 	Subtitle: "Reef Watch Chronicles",
 
 	Campaign: {
-		DataStoreName: "LastTideCampaign_v1",
+		// Keep the published v1 store name so existing v2 profiles are actually
+		// loaded and migrated in place rather than orphaned in a new namespace.
+		DataStoreName: "SkybreakCampaign_v1",
 		SaveVersion: 3,
 		SlotCount: 4,
 		MissionCount: 27,

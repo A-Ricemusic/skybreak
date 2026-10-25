@@ -74,12 +74,17 @@ function slotAt(rawSlots: Map<string, StoredSlot> | StoredSlot[], index: number)
 
 function readMapValue(container: unknown, key: string): unknown {
 	if (!typeIs(container, "table")) return undefined;
-	const asMap = container as Map<string, unknown>;
+	const asMap = container as Map<string | number, unknown>;
 	if ((asMap as unknown as { get?: (k: string) => unknown }).get !== undefined) {
 		const value = asMap.get(key);
 		if (value !== undefined) return value;
+		const numericKey = tonumber(key);
+		if (numericKey !== undefined) {
+			const numericValue = asMap.get(numericKey);
+			if (numericValue !== undefined) return numericValue;
+		}
 	}
-	return (container as unknown as Record<string, unknown>)[key];
+	return (container as unknown as Record<string | number, unknown>)[key] ?? (container as unknown as Record<number, unknown>)[tonumber(key) ?? -1];
 }
 
 export function blankSlot(index: number): SaveSlot {

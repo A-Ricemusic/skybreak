@@ -49,6 +49,12 @@
       },
       "RadarGeometry": {
         "$path": "build/RadarGeometry.txt"
+      },
+      "CorvetteGeometry": {
+        "$path": "build/CorvetteGeometry.txt"
+      },
+      "SamGeometry": {
+        "$path": "build/SamGeometry.txt"
       }
     }
   }

@@ -46,6 +46,7 @@ export interface MissionRuleState {
 	optionalAirKills: number;
 	groundKills: number;
 	aceKilled: boolean;
+	aceKills: number;
 	killedIds: Set<string>;
 	outcome?: "won" | "failed";
 	reason?: MissionReason;
@@ -127,6 +128,7 @@ export const MissionRules = {
 			optionalAirKills: 0,
 			groundKills: 0,
 			aceKilled: false,
+			aceKills: 0,
 			killedIds: new Set<string>(),
 		};
 		if (missionId === 2) {
@@ -208,6 +210,7 @@ export const MissionRules = {
 				if (state.groundKills === 5) state.phase = "ace";
 			} else if (kind === "ace") {
 				state.aceKilled = true;
+				state.aceKills += 1;
 				finish(state, "won", "complete");
 			} else if (required) {
 				state.requiredAirKills += 1;
@@ -223,7 +226,7 @@ export const MissionRules = {
 			state.phasePending = math.max(0, state.phasePending - 1);
 			if (kind === "air") state.requiredAirKills += 1;
 			else if (kind === "ground") state.groundKills += 1;
-			else if (kind === "ace") state.aceKilled = true;
+			else if (kind === "ace") { state.aceKilled = true; state.aceKills += 1; }
 			if (state.phasePending === 0) {
 				const nextIndex = state.phaseIndex + 1;
 				if (nextIndex >= mission.phases.size()) finish(state, "won", "complete");

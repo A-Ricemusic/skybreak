@@ -11,7 +11,7 @@ function clearWarehouses(state: MissionRuleState): void {
 	for (let index = 0; index < 5; index++) expect(MissionRules.RecordKill(state, `warehouse_${index}`, "ground", true, 20 + index)).toBe(true);
 }
 
-describe("authoritative two-mission rules", () => {
+describe("authoritative campaign rules", () => {
 	it("requires observed turn AND pitch before a real targeting event and practice missile kill", () => {
 		const state = MissionRules.NewState(1, 0);
 		MissionRules.CycleTarget(state, 1);
@@ -158,5 +158,43 @@ describe("authoritative two-mission rules", () => {
 		MissionRules.RecordKill(state, "radar", "ground", true, 113);
 		expect(MissionRules.Objective(state).tutorialStep).toBe("");
 		expect(MissionRules.Objective(state).objectiveTotal).toBe(3);
+	});
+
+	it("requires server-observed route gates before Mission 3 combat", () => {
+		const state = MissionRules.NewState(3, 0);
+		expect(state.phase).toBe("nav_0");
+		expect(MissionRules.Objective(state).objectiveTotal).toBe(3);
+		expect(MissionRules.RecordKill(state, "early", "air", true, 1)).toBe(false);
+		for (let gate = 0; gate < 3; gate++) {
+			expect(MissionRules.AdvanceObjective(state, "nav", 1, 2 + gate)).toBe(true);
+		}
+		expect(state.phase).toBe("air_1");
+		for (let enemy = 0; enemy < 4; enemy++) expect(MissionRules.RecordKill(state, `scout_${enemy}`, "air", true, 10 + enemy)).toBe(true);
+		expect(state.outcome).toBe("won");
+	});
+
+	it("advances timed defense only from the hold phase and keeps optional pursuers killable", () => {
+		const state = MissionRules.NewState(11, 0);
+		expect(state.phase).toBe("hold_0");
+		expect(MissionRules.AdvanceObjective(state, "nav", 10, 1)).toBe(false);
+		expect(MissionRules.RecordKill(state, "pursuer", "air", false, 2)).toBe(true);
+		expect(MissionRules.AdvanceObjective(state, "hold", 34.5, 34.5)).toBe(true);
+		expect(state.phase).toBe("hold_0");
+		expect(MissionRules.Objective(state).objectiveProgress).toBe(34);
+		expect(MissionRules.AdvanceObjective(state, "hold", 0.5, 35)).toBe(true);
+		expect(state.phase).toBe("ground_1");
+		expect(MissionRules.CanDamage(state, "air", false)).toBe(true);
+		for (let target = 0; target < 4; target++) expect(MissionRules.RecordKill(state, `boat_${target}`, "ground", true, 40 + target)).toBe(true);
+		expect(state.outcome).toBe("won");
+	});
+
+	it("counts every sequential ace for multi-ace mission qualification", () => {
+		const state = MissionRules.NewState(17, 0);
+		expect(state.phase).toBe("ace_0");
+		expect(MissionRules.RecordKill(state, "shadow_alpha", "ace", true, 10)).toBe(true);
+		expect(state.phase).toBe("ace_1");
+		expect(MissionRules.RecordKill(state, "shadow_beta", "ace", true, 20)).toBe(true);
+		expect(state.aceKills).toBe(2);
+		expect(state.outcome).toBe("won");
 	});
 });

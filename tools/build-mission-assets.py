@@ -349,6 +349,56 @@ def build_radar(collection: bpy.types.Collection, mat: dict[str, bpy.types.Mater
         cylinder(f"Bollard_{x}_{y}", 0.65, 4.5, (x, y, 2.8), collection, mat["Accent"], vertices=10)
 
 
+def build_corvette(collection: bpy.types.Collection, mat: dict[str, bpy.types.Material]) -> None:
+    """Compact blockade cutter with a faceted bow, bridge, mast and deck gun."""
+    hull_vertices = [
+        (-9, -36, -4), (9, -36, -4), (-9, 24, -4), (9, 24, -4),
+        (-7.5, -34, 3), (7.5, -34, 3), (-7.5, 24, 3), (7.5, 24, 3),
+        (0, 42, -1), (0, 39, 3),
+    ]
+    hull_faces = [
+        (0, 1, 3, 2), (0, 4, 5, 1), (2, 3, 7, 6),
+        (0, 2, 6, 4), (1, 5, 7, 3), (4, 6, 7, 5),
+        (2, 8, 9, 6), (3, 7, 9, 8), (2, 3, 8), (6, 9, 7),
+    ]
+    mesh_object("Cutter_Hull", hull_vertices, hull_faces, collection, mat["Steel"])
+    box("Cutter_Deck", (15.5, 60.0, 1.4), (0, -5, 3.8), collection, mat["Concrete"], bevel=0.35)
+    box("Bridge", (10.5, 15.0, 7.5), (0, -7, 8.0), collection, mat["DarkMetal"], bevel=0.55)
+    box("Bridge_Glass_F", (8.4, 0.5, 2.3), (0, -14.7, 9.5), collection, mat["Glass"], bevel=0.12)
+    for side in (-1, 1):
+        box(f"Bridge_Glass_{side}", (0.5, 8.0, 2.3), (side * 5.3, -8, 9.5), collection, mat["Glass"], bevel=0.12)
+        box(f"Safety_Rail_{side}", (0.35, 52, 2.2), (side * 7.5, -1, 5.2), collection, mat["Warning"])
+    cylinder("Mast", 0.75, 13.0, (0, -4, 18.2), collection, mat["Accent"], vertices=12)
+    box("Radar_Bar", (10, 1.1, 1.2), (0, -4, 24.3), collection, mat["Warning"], bevel=0.18)
+    box("Funnel", (3.8, 5.2, 6.0), (0, 5, 9.5), collection, mat["DarkMetal"], bevel=0.45)
+    cylinder("Deck_Gun_Base", 3.1, 2.0, (0, 23, 5.2), collection, mat["Accent"], vertices=16)
+    gun = cylinder("Deck_Gun_Barrel", 0.62, 12.0, (0, 28, 9.3), collection, mat["DarkMetal"], vertices=12)
+    gun.rotation_euler = (math.radians(62), 0, 0)
+    for y in (-25, -15, 13):
+        box(f"Deck_Hatch_{y}", (5.8, 7.0, 0.7), (0, y, 4.8), collection, mat["Roof"], bevel=0.22)
+    box("Waterline", (18.3, 61.0, 0.8), (0, -5, -2.8), collection, mat["Accent"], bevel=0.2)
+
+
+def build_sam(collection: bpy.types.Collection, mat: dict[str, bpy.types.Material]) -> None:
+    """Island-defense SAM emplacement with four canted tubes and tracking array."""
+    box("SAM_Pad", (34.0, 34.0, 1.2), (0, 0, 0.6), collection, mat["Concrete"], bevel=0.45)
+    cylinder("SAM_Turntable", 8.5, 2.4, (0, 0, 2.4), collection, mat["DarkMetal"], vertices=20)
+    box("SAM_Carriage", (18, 12, 3.2), (0, 0, 4.5), collection, mat["Steel"], bevel=0.55)
+    for side in (-1, 1):
+        for lane in (-1, 1):
+            x = side * 5.2
+            y = lane * 3.0
+            tube = cylinder(f"Launcher_{side}_{lane}", 1.5, 15.5, (x, y + 2.0, 10.2), collection, mat["Accent"], vertices=14)
+            tube.rotation_euler = (math.radians(-24), 0, math.radians(side * 4))
+            cylinder(f"Launcher_Cap_{side}_{lane}", 1.72, 0.8, (x, y - 1.2, 17.2), collection, mat["Warning"], vertices=14, rotation=(math.radians(-24), 0, math.radians(side * 4)))
+    cylinder("SAM_Radar_Mast", 0.7, 11.0, (0, -7.5, 10.2), collection, mat["DarkMetal"], vertices=12)
+    box("SAM_Radar_Array", (12.0, 1.0, 5.2), (0, -7.5, 16.0), collection, mat["Steel"], bevel=0.4)
+    box("SAM_Radar_Face", (10.2, 0.45, 3.5), (0, -8.05, 16.0), collection, mat["Glass"], bevel=0.22)
+    for corner_x in (-13.5, 13.5):
+        for corner_y in (-13.5, 13.5):
+            cylinder(f"SAM_Bollard_{corner_x}_{corner_y}", 0.7, 5.0, (corner_x, corner_y, 3.1), collection, mat["Warning"], vertices=10)
+
+
 def apply_and_consolidate(collection: bpy.types.Collection, slug: str) -> list[bpy.types.Object]:
     objects = [obj for obj in collection.objects if obj.type == "MESH"]
     for obj in objects:
@@ -603,6 +653,8 @@ def main() -> None:
     specs = (
         AssetSpec("Warehouse", "SKYBREAK Military Warehouse", build_warehouse, 700, ((64.5, 65.5), (39.0, 42.0), (94.5, 95.5)), (115, -135, 100)),
         AssetSpec("Radar", "SKYBREAK Radar Training Installation", build_radar, 850, ((64.5, 65.5), (44.0, 47.0), (64.5, 65.5)), (90, -105, 78)),
+        AssetSpec("Corvette", "Last Tide Blockade Corvette", build_corvette, 250, ((17.5, 19.5), (27.0, 31.0), (76.0, 82.0)), (105, -125, 75)),
+        AssetSpec("Sam", "Last Tide Island SAM Battery", build_sam, 250, ((33.5, 34.5), (17.0, 21.0), (33.5, 34.5)), (65, -75, 52)),
     )
     stats = [build_asset(spec) for spec in specs]
     print("MISSION_ASSETS_BUILD_COMPLETE")

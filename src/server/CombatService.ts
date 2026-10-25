@@ -387,7 +387,7 @@ function destroyEnemy(session: CombatSession, enemy: Enemy): void {
 	enemy.model.SetAttribute("RequiredTarget", false);
 	JetFactory.Burst(session.folder, enemy.position, Color3.fromRGB(255, 169, 87), enemy.kind === "ground" ? 26 : 12);
 	enemy.model.Destroy();
-	session.kills = session.rules.requiredAirKills + session.rules.optionalAirKills + (session.rules.aceKilled ? 1 : 0);
+	session.kills = session.rules.requiredAirKills + session.rules.optionalAirKills + session.rules.aceKills;
 	applyPhase(session);
 	if (session.target === enemy || !ownsEnemy(session, session.target)) acquireTarget(session);
 	if (session.rules.outcome !== undefined) finish(session);
