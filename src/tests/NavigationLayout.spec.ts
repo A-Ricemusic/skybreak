@@ -20,7 +20,7 @@ describe("safe-area navigation caption",()=>{
 	it("keeps edge and behind-camera captions out of objective and control lanes",()=>{
 		for(const [width,height] of [[737,604],[844,332],[320,510],[320,182]])for(const mode of ["touch","keyboard","gamepad"] as InputMode[]) {
 			const hud=getHudLayout(width,height,mode);
-			const obstacles=[hud.callout,hud.alert,hud.status];
+			const obstacles=[hud.callout,hud.timer,hud.alert,hud.status];
 			if(hud.hints)obstacles.push(hud.hints);
 			if(hud.touch)obstacles.push(hud.touch.joystick,hud.touch.throttle,hud.touch.missile,hud.touch.target);
 			for(const [x,y] of [[-200,-100],[width/2,height/2],[width+200,height+100]]) {
