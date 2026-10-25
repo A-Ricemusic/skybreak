@@ -894,7 +894,7 @@ function OutcomeScreen({
 					textWrapped={true}
 				/>
 				{outcome.won ? outcome.missionId === 1 ? (
-					<FooterButtons compact={compact} primaryName="Mission1NextMissionButton" primaryText="NEXT: MISSION 02" secondaryName="RetryButton" secondaryText={retryText} busy={busy} onPrimary={onNext} onSecondary={onRetry} />
+					<FooterButtons compact={compact} primaryName="Mission1NextMissionButton" primaryText="NEXT: MISSION 02" secondaryName="ReturnToMenuButton" secondaryText="MAIN MENU" busy={busy} onPrimary={onNext} onSecondary={onReturn} />
 				) : (
 					<FooterButtons compact={compact} primaryName="ReturnToMenuButton" primaryText="RETURN TO MENU" secondaryName="RetryButton" secondaryText={retryText} busy={busy} onPrimary={onReturn} onSecondary={onRetry} />
 				) : (

@@ -283,7 +283,8 @@ describe("CampaignCoordinator datastore integration", () => {
 			observedFlushWaiting = !flushReturned;
 			store.releaseUpdate = true;
 		});
-		expect(coordinator.flush(1)).toBe(true);
+		// Match the production shutdown budget; Studio may throttle background frames.
+		expect(coordinator.flush(5)).toBe(true);
 		flushReturned = true;
 
 		expect(observedFlushWaiting).toBe(true);

@@ -61,6 +61,7 @@ function island(x: number, z: number, radius: number, height: number): void {
 }
 
 function apron(parent: Instance, x: number, z: number, width: number, depth: number): void {
+	Workspace.Terrain.FillBlock(new CFrame(x, 300, z), new Vector3(width + 100, 512, depth + 100), Enum.Material.Air);
 	Workspace.Terrain.FillBlock(new CFrame(x, 14, z), new Vector3(width + 80, 60, depth + 80), Enum.Material.Rock);
 	part(parent, "Apron", new Vector3(width, 4, depth), new Vector3(x, 46, z), Color3.fromRGB(103, 111, 117));
 	for (const side of [-1, 1]) {
@@ -100,14 +101,15 @@ export const MissionWorld = {
 			groundTargets.push(radar);
 			// A runway on a separate small island provides a clear visual origin.
 			island(-650, 450, 510, 48);
+			Workspace.Terrain.FillBlock(new CFrame(-650, 308, 450), new Vector3(140, 512, 760), Enum.Material.Air);
 			part(scenery, "TrainingRunway", new Vector3(100, 4, 720), new Vector3(-650, 50, 450), Color3.fromRGB(39, 48, 57), Enum.Material.Asphalt);
 			for (let i = -3; i <= 3; i++) part(scenery, "RunwayStripe", new Vector3(4, 0.2, 48), new Vector3(-650, 52.2, 450 + i * 90), Color3.fromRGB(236, 235, 211), Enum.Material.SmoothPlastic);
 		} else {
 			// Five separated industrial compounds, not one overlapping target pile.
 			const positions = [new Vector3(-550, 0, -900), new Vector3(0, 0, -1100), new Vector3(550, 0, -900), new Vector3(-350, 0, -1550), new Vector3(350, 0, -1550)];
+			for (const p of positions) island(p.X, p.Z, 390, 62);
 			for (let i = 0; i < positions.size(); i++) {
 				const p = positions[i];
-				island(p.X, p.Z, 390, 62);
 				apron(scenery, p.X, p.Z, 190, 210);
 				const warehouse = grounded(MissionAssets.CreateWarehouse(`WAREHOUSE ${i + 1}`), p.X, p.Z, (i % 2) * math.pi / 2);
 				warehouse.Parent = parent;
