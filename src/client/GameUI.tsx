@@ -17,7 +17,6 @@ import { getHudLayout } from "../shared/UILayout";
 
 const C = {
 	Ink: Color3.fromRGB(5, 14, 25),
-	Navy: Color3.fromRGB(10, 27, 43),
 	Panel: Color3.fromRGB(13, 35, 53),
 	PanelLight: Color3.fromRGB(18, 47, 67),
 	Ivory: Color3.fromRGB(239, 235, 218),
