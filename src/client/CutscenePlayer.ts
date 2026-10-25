@@ -104,7 +104,7 @@ export const CutscenePlayer = {
 				pace.Text = readAtOwnPace ? "READ AT OWN PACE" : "AUTO ADVANCE";
 				motion.Text = reduceMotion ? "REDUCED MOTION" : "CAMERA MOTION";
 				hint.Text = `${beatIndex+1}/3 · ${readAtOwnPace ? "Tap subtitle / Space / X to continue" : "Auto advance · tap subtitle / Space / X to continue"}`;
-				const t = reduceMotion ? 0 : beatTime;
+				const t = reduceMotion ? 0 : math.min(beatTime,8);
 				playerJet.PivotTo(new CFrame(-35 + math.sin(t*0.25)*10,65,-15-t*2).mul(CFrame.Angles(0,-0.15,0.06)));
 				wingmate.PivotTo(new CFrame(0,72,18-t*2).mul(CFrame.Angles(0,-0.15,-0.05)));
 				dish.Orientation = new Vector3(0, reduceMotion ? 0 : t*8,0);

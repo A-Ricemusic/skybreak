@@ -18,6 +18,8 @@ reports.Parent = player.PlayerGui
 local current, runNumber, lastFire, lastCycle, lastEvade = nil, 0, 0, 0, 0
 local phaseKey, phaseStarted, extendUntil, missionStarted = "", 0, 0, 0
 local telemetry = nil
+local lastSample = 0
+local samples = {}
 local function begin(state)
 	runNumber += 1
 	current = Instance.new("Folder")
@@ -29,17 +31,19 @@ local function begin(state)
 	current.Parent = reports
 	phaseKey, phaseStarted, extendUntil, missionStarted = "", os.clock(), 0, os.clock()
 	telemetry = nil
+	samples = {}; lastSample = 0
 end
 local stateConnection = remotes.MissionState.OnClientEvent:Connect(function(state)
 	if state.kind == "Started" then begin(state)
 	elseif state.kind == "Telemetry" then telemetry = state
 	elseif (state.kind == "Completed" or state.kind == "Failed") and current then
 		current:SetAttribute("Outcome", state.kind)
+		current:SetAttribute("Samples",game:GetService("HttpService"):JSONEncode(samples))
 		for _,field in {"kills","groundKills","elapsed","reason","persistence"} do current:SetAttribute(field,state[field]) end
-		local definition = MissionCatalog.Get(state.missionId)
+		local definition = MissionCatalog:Get(state.missionId)
 		local valid = state.kind == "Completed" and state.elapsed > 0 and state.elapsed < 600
-			and state.kills >= MissionCatalog.RequiredAirKills(definition)
-			and state.groundKills == MissionCatalog.RequiredGroundKills(definition)
+			and state.kills >= MissionCatalog:RequiredAirKills(definition)
+			and state.groundKills == MissionCatalog:RequiredGroundKills(definition)
 		current:SetAttribute("ResultValid", valid)
 		if valid then reports:SetAttribute("CompletedCount", reports:GetAttribute("CompletedCount") + 1) end
 		print("GLASS HORIZON QA", state.missionId, state.kind, state.kills, state.groundKills, state.elapsed)
@@ -101,15 +105,21 @@ while reports.Parent do
 			controller:SetInput(0.45,aircraft and math.clamp((420-aircraft:GetPivot().Position.Y)/350,-0.3,0.3) or 0)
 			controller:SetThrottle(0.6)
 		end
-		if not navigation and os.clock()>=extendUntil and state.lockProgress>=0.99 and state.missileCooldown<=0 and os.clock()-lastFire>1.16 then
+		if script:GetAttribute("SurvivalOnly") ~= true and not navigation and os.clock()>=extendUntil and state.lockProgress>=0.99 and state.missileCooldown<=0 and os.clock()-lastFire>1.16 then
 			controller:FireMissile();lastFire=os.clock()
 			current:SetAttribute("MissileCommands",current:GetAttribute("MissileCommands")+1)
 		end
 		if not navigation and state.targetRequired==false and state.target and os.clock()-lastCycle>0.35 then controller:CycleTarget();lastCycle=os.clock() end
-		if state.incoming and state.evadeCooldown<=0 and os.clock()-lastEvade>6 then
+		if script:GetAttribute("NoEvade") ~= true and script:GetAttribute("SurvivalOnly") ~= true and state.incoming and state.evadeCooldown<=0 and os.clock()-lastEvade>6 then
 			controller:Evade();lastEvade=os.clock();current:SetAttribute("EvadeCommands",current:GetAttribute("EvadeCommands")+1)
 		end
 		for _,field in {"health","kills","groundKills","elapsed","assetHealth"} do current:SetAttribute(field,state[field]) end
+		if os.clock() - lastSample >= 1 then
+			lastSample = os.clock()
+			local pos = aircraft and aircraft:GetPivot().Position or Vector3.zero
+			local navPos = nav and nav:GetPivot().Position
+			table.insert(samples,{elapsed=state.elapsed,phase=state.phase,phaseIndex=state.phaseIndex,progress=state.objectiveProgress,total=state.objectiveTotal,health=state.health,assetHealth=state.assetHealth,kills=state.kills,ground=state.groundKills,x=pos.X,y=pos.Y,z=pos.Z,navDistance=navPos and (navPos-pos).Magnitude,lock=state.lockProgress})
+		end
 	end
 	task.wait(0.075)
 end
