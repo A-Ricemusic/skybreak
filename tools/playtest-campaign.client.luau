@@ -1,16 +1,17 @@
--- Studio-only QA driver. Launch a sortie through the real menu first, then run
--- this in the Client DataModel. It drives the same controls as the touch HUD;
--- damage, locks, cooldowns, enemies and campaign results remain authoritative.
+-- Studio-only pilot using the same flight, target, and missile methods as the HUD.
+-- Inject as a normal client LocalScript before launch or during a mission.
+-- No target, health, damage, clock, kill, or result overrides are used.
 assert(game:GetService("RunService"):IsStudio(), "QA driver is Studio-only")
 local player = game:GetService("Players").LocalPlayer
-local controller = require(player.PlayerScripts.Client.FlightController).FlightController.GetActive()
+local FlightController = require(player.PlayerScripts.Client.FlightController).FlightController
+local controller = FlightController.GetActive()
 local readyDeadline = os.clock() + 30
 while (not controller or not controller.active) and os.clock() < readyDeadline do
- task.wait(0.1)
- controller = require(player.PlayerScripts.Client.FlightController).FlightController.GetActive()
+	task.wait(0.1)
+	controller = FlightController.GetActive()
 end
 assert(controller and controller.active, "Mission readiness timeout")
-local survivalOnly = script:GetAttribute("SurvivalOnly") == true -- Allows a genuine deadline/failure run.
+local survivalOnly = script:GetAttribute("SurvivalOnly") == true
 local old = player.PlayerGui:FindFirstChild("SkybreakCampaignQA")
 if old then old:Destroy() end
 local report = Instance.new("Folder")
@@ -20,37 +21,51 @@ report:SetAttribute("MissileCommands", 0)
 report:SetAttribute("EvadeCommands", 0)
 report.Parent = player.PlayerGui
 local finishedConnection = game.ReplicatedStorage.Remotes.MissionState.OnClientEvent:Connect(function(state)
-	if state.kind == "Completed" or state.kind == "Failed" then
-		report:SetAttribute("Outcome", state.kind)
-		report:SetAttribute("Kills", state.kills)
-		report:SetAttribute("Elapsed", state.elapsed)
-		report:SetAttribute("Persistence", state.persistence)
- report:SetAttribute("MissionId", state.missionId)
- report:SetAttribute("GroundKills", state.groundKills)
- report:SetAttribute("Reason", state.reason)
+	if state.kind ~= "Completed" and state.kind ~= "Failed" then return end
+	for _, key in { "Kills", "Elapsed", "Persistence", "MissionId", "GroundKills", "Reason" } do
+		local field = string.lower(string.sub(key, 1, 1)) .. string.sub(key, 2)
+		report:SetAttribute(key, state[field])
+	end
+	report:SetAttribute("Outcome", state.kind)
+	if state.kind == "Completed" then
+		local expectedGround = state.missionId == 2 and 5 or 1
+		local minimumAir = state.missionId == 2 and 4 or 3
+		report:SetAttribute("ResultValid", state.groundKills == expectedGround and state.kills >= minimumAir and state.elapsed < 600)
+	elseif survivalOnly then
+		report:SetAttribute("ResultValid", state.reason == "timeout" and state.elapsed >= 600)
 	end
 end)
+
 task.spawn(function()
 	local started, lastFire, lastCycle = os.clock(), 0, 0
- local phase, phaseStarted = "", os.clock()
+	local phase, phaseStarted = "", os.clock()
+	local extendUntil = 0
 	while controller.active and os.clock() - started < 630 do
 		local telemetry = controller:GetTelemetry()
 		if telemetry.phase ~= phase then
- phase, phaseStarted = telemetry.phase, os.clock()
- report:SetAttribute("Phase", phase)
- print("SKYBREAK campaign phase", phase, telemetry.elapsed)
- end
- local aircraft, target = controller.aircraft, telemetry.target
+			phase, phaseStarted = telemetry.phase, os.clock()
+			report:SetAttribute("Phase", phase)
+			print("SKYBREAK campaign phase", phase, telemetry.elapsed)
+		end
+		local aircraft, target = controller.aircraft, telemetry.target
 		if phase == "tutorial_move" then
- controller:SetThrottle(0.2)
- controller:SetInput(os.clock()-phaseStarted > 3 and 0.35 or 0, os.clock()-phaseStarted > 3 and 0.3 or 0)
- elseif phase == "tutorial_target" then
- controller:SetInput(0,0)
- if os.clock()-phaseStarted > 3 then controller:CycleTarget() end
- elseif aircraft and aircraft.Parent and target and target.Parent then
+			controller:SetThrottle(0.2)
+			controller:SetInput(os.clock() - phaseStarted > 3 and 0.35 or 0, os.clock() - phaseStarted > 3 and 0.3 or 0)
+		elseif phase == "tutorial_target" then
+			controller:SetInput(0, 0)
+			if os.clock() - phaseStarted > 3 then controller:CycleTarget() end
+		elseif aircraft and aircraft.Parent and target and target.Parent then
 			local frame = aircraft:GetPivot()
 			local delta = target:GetPivot().Position - frame.Position
-			if delta.Magnitude > 1 then
+			-- Extend a close ground pass before turning back. Circling inside the
+			-- turn radius can keep the target just outside the launch cone.
+			if telemetry.targetKind == "ground" and delta.Magnitude < 450 and os.clock() >= extendUntil then
+				extendUntil = os.clock() + 4
+			end
+			if os.clock() < extendUntil then
+				controller:SetInput(0, 0.1)
+				controller:SetThrottle(0.65)
+			elseif delta.Magnitude > 1 then
 				local desiredYaw = math.atan2(-delta.X, -delta.Z)
 				local yaw = math.atan2(-frame.LookVector.X, -frame.LookVector.Z)
 				local errorAngle = (desiredYaw - yaw + math.pi) % (2 * math.pi) - math.pi
@@ -59,20 +74,21 @@ task.spawn(function()
 				controller:SetThrottle(delta.Magnitude > 1500 and 0.9 or 0.2)
 			end
 		end
-		if not survivalOnly and phase ~= "tutorial_move" and phase ~= "tutorial_target" and os.clock()-phaseStarted > 3 and telemetry.lockProgress >= 0.99 and telemetry.missileCooldown <= 0 and os.clock() - lastFire > 1.2 then
+		if os.clock() >= extendUntil and not survivalOnly and phase ~= "tutorial_move" and phase ~= "tutorial_target"
+			and os.clock() - phaseStarted > 3 and telemetry.lockProgress >= 0.99
+			and telemetry.missileCooldown <= 0 and os.clock() - lastFire > 1.2 then
 			controller:FireMissile()
 			lastFire = os.clock()
 			report:SetAttribute("MissileCommands", report:GetAttribute("MissileCommands") + 1)
 		end
-        if telemetry.targetRequired == false and telemetry.target and os.clock()-lastCycle > 0.4 then
-            controller:CycleTarget()
-            lastCycle = os.clock()
-        end
-
+		if telemetry.targetRequired == false and telemetry.target and os.clock() - lastCycle > 0.4 then
+			controller:CycleTarget()
+			lastCycle = os.clock()
+		end
 		report:SetAttribute("Kills", telemetry.kills)
 		report:SetAttribute("Health", telemetry.health)
- report:SetAttribute("GroundKills", telemetry.groundKills)
- report:SetAttribute("Elapsed", telemetry.elapsed)
+		report:SetAttribute("GroundKills", telemetry.groundKills)
+		report:SetAttribute("Elapsed", telemetry.elapsed)
 		task.wait(0.1)
 	end
 	controller:SetInput(0, 0)
@@ -83,4 +99,3 @@ task.spawn(function()
 	finishedConnection:Disconnect()
 	print("SKYBREAK playtest:", report:GetAttribute("Outcome"), report:GetAttribute("Kills"))
 end)
-return "Genuine flight-control playtest started"

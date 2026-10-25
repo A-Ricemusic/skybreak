@@ -454,12 +454,12 @@ function resumeMission(slot?: SaveSlot): number {
 
 function tutorialInstruction(step: string | undefined, mode: InputMode): string {
 	if (step === "move") {
-		if (mode === "touch") return "Use the flight stick to pitch and turn";
-		if (mode === "gamepad") return "Use the left stick to pitch and turn";
-		return "Use WASD to pitch and turn";
+		if (mode === "touch") return "Drag stick left/right to turn; up/down to pitch";
+		if (mode === "gamepad") return "Left stick: left/right turns; up/down pitches";
+		return "A/D turns; W/S pitches the nose up or down";
 	}
-	if (step === "target") return mode === "touch" ? "Tap TGT to cycle targets" : mode === "gamepad" ? "Press Y to cycle targets" : "Press Tab to cycle targets";
-	if (step === "missile") return mode === "touch" ? "Lock the ground target, then tap FIRE" : mode === "gamepad" ? "Lock the ground target, then press R2" : "Lock the ground target, then press Space";
+	if (step === "target") return mode === "touch" ? "Tap TGT to select the radar; follow its marker" : mode === "gamepad" ? "Press Y to select the radar; follow its marker" : "Press Tab to select the radar; follow its marker";
+	if (step === "missile") return mode === "touch" ? "Keep target ahead until LOCK 100%, then tap FIRE" : mode === "gamepad" ? "Keep target ahead until LOCK 100%, then press RT/R2" : "Keep target ahead until LOCK 100%, then press Space";
 	return "";
 }
 

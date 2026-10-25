@@ -1,13 +1,15 @@
 # SKYBREAK: Operation Glass Horizon
 
-An original mobile-first arcade jet combat campaign for Roblox, written in TypeScript with roblox-ts, React Lua, and Rojo. Choose one of four persistent campaign slots, launch from Glass Horizon Airbase, and destroy all three hostile aircraft to complete the operation.
+An original mobile-first arcade jet combat campaign for Roblox, written in TypeScript with roblox-ts, React Lua, and Rojo. Choose one of four persistent campaign slots and fly two missions in one Roblox place. Each sortie builds its world on launch and removes it after the result.
 
 ## Controls and campaign
 
 - Mobile: the flight pad, throttle, fire, and target controls appear only while you are using touch.
 - Desktop and console: a short control legend appears at launch; afterwards the HUD shows only actionable hints. Evade is `F` on keyboard and `B` on gamepad. Hold `LB` / `RB` to decrease / increase throttle. Menus support gamepad selection, with `B` to go back.
 - Missiles require a target lock, shown on the target bracket. Incoming-missile and airspace warnings appear only while active.
-- Victory is server-authoritative and occurs only after all three enemy aircraft are destroyed.
+- Mission 1 — First Flight: learn pitch/turn, select and destroy a ground radar, then defeat three pursuing bandits.
+- Mission 2 — Iron Coast: defeat three bandits, destroy five Blender-authored warehouses while five optional raiders pursue you, then defeat a faster, tougher ace.
+- Each mission has a server-enforced 600-second deadline. Success unlocks the next mission; failure supports retry. Required kills and completion are server-authoritative.
 - Published experiences save four slots to DataStore; an unpublished local Studio file clearly uses session-only saves.
 
 ## Setup
@@ -59,7 +61,9 @@ The runner defaults to the macOS Studio executable. Set `ROBLOX_STUDIO_PATH` for
 
 A small checked-in Bun patch applies the upstream roblox-ts runtime registration fix needed for Jest's isolated module environments. `bun install --frozen-lockfile` applies it automatically.
 
-For a genuine mission smoke test, launch through the menu in Studio, then run `tools/playtest-flight.client.luau` as a client LocalScript. It uses the same flight, missile, and evade controller methods as the touch UI; it never changes health, damage, or kills. Live cloud saves require a published experience; unpublished Studio tests use clearly labeled session-only slots.
+For a genuine mission smoke test, launch through the menu in Studio, then run `tools/playtest-campaign.client.luau` as a client LocalScript. It uses the same flight, targeting, and missile controller methods as the touch UI (without an evade shortcut); it never changes health, damage, or kills. Live cloud saves require a published experience; unpublished Studio tests use clearly labeled session-only slots.
+
+Ground-target creation and the no-key Studio mesh workflow are documented in [mission-assets.md](docs/mission-assets.md).
 
 ## Blender aircraft
 
