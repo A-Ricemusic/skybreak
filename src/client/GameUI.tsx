@@ -2,6 +2,8 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import ReactRoblox from "@rbxts/react-roblox";
 import { GuiService, RunService, UserInputService, Workspace } from "@rbxts/services";
 import { AuroraLineCutscenes, AuroraLineManifest, Cutscene } from "../shared/AuroraLineManifest";
+import { cutsceneForMissionLaunch, MissionLaunchReason } from "../shared/CampaignPresentation";
+import { CUTSCENE_SKIP_SIZE, CUTSCENE_STAGE_ORIGIN, offsetCutscenePoint } from "../shared/CutscenePresentation";
 
 import type {
 	CampaignResponse,
@@ -917,12 +919,13 @@ function CutsceneScreen({ cutscene, reducedMotion, onDone }: { cutscene?: Cutsce
 		finished.current = false;
 		skipped.current = false;
 		setBeatIndex(0);
+		Workspace.FindFirstChild("AuroraLineCutsceneLocal")?.Destroy();
 		const stage = new Instance("Folder");
 		stage.Name = "AuroraLineCutsceneLocal";
 		stage.Parent = Workspace;
 		const createPart = (name: string, size: Vector3, position: Vector3, color: Color3, material: Enum.Material = Enum.Material.SmoothPlastic) => {
 			const item = new Instance("Part");
-			item.Name = name; item.Size = size; item.Position = position; item.Color = color; item.Material = material;
+			item.Name = name; item.Size = size; item.Position = position.add(CUTSCENE_STAGE_ORIGIN); item.Color = color; item.Material = material;
 			item.Anchored = true; item.CanCollide = false; item.CanQuery = false; item.CanTouch = false; item.Parent = stage;
 			return item;
 		};
@@ -938,7 +941,7 @@ function CutsceneScreen({ cutscene, reducedMotion, onDone }: { cutscene?: Cutsce
 			createPart(`Beacon_${x}`, new Vector3(5, 70, 5), new Vector3(x, 35, -80), Color3.fromRGB(74, 235, 194), Enum.Material.Neon);
 			createPart(`BeaconArm_${x}`, new Vector3(36, 3, 3), new Vector3(x, 68, -80), Color3.fromRGB(235, 198, 96), Enum.Material.Metal);
 		}
-		createPart("CourierWing", new Vector3(80, 3, 18), new Vector3(0, 52, -55), Color3.fromRGB(222, 232, 235), Enum.Material.Metal).CFrame = new CFrame(0, 52, -55).mul(CFrame.Angles(0, math.rad(28), math.rad(-8)));
+		createPart("CourierWing", new Vector3(80, 3, 18), new Vector3(0, 52, -55), Color3.fromRGB(222, 232, 235), Enum.Material.Metal).CFrame = new CFrame(CUTSCENE_STAGE_ORIGIN.add(new Vector3(0, 52, -55))).mul(CFrame.Angles(0, math.rad(28), math.rad(-8)));
 		const camera = Workspace.CurrentCamera;
 		let cancelled = false;
 		const finish = () => {
@@ -963,8 +966,8 @@ function CutsceneScreen({ cutscene, reducedMotion, onDone }: { cutscene?: Cutsce
 				while (!cancelled && !skipped.current && os.clock() - start < beat.duration) {
 					if (camera) {
 						const alpha = reducedMotion ? 0 : math.clamp((os.clock() - start) / beat.duration, 0, 1);
-						const eye = new Vector3(...first.position).Lerp(new Vector3(...last.position), alpha);
-						const focus = new Vector3(...first.lookAt).Lerp(new Vector3(...last.lookAt), alpha);
+						const eye = offsetCutscenePoint(first.position).Lerp(offsetCutscenePoint(last.position), alpha);
+						const focus = offsetCutscenePoint(first.lookAt).Lerp(offsetCutscenePoint(last.lookAt), alpha);
 						camera.CameraType = Enum.CameraType.Scriptable;
 						camera.CFrame = CFrame.lookAt(eye, focus);
 						camera.FieldOfView = reducedMotion ? 48 : 50 + math.sin(alpha * math.pi) * 2;
@@ -983,7 +986,7 @@ function CutsceneScreen({ cutscene, reducedMotion, onDone }: { cutscene?: Cutsce
 			<frame key="LetterboxBottom" BackgroundColor3={new Color3(0, 0, 0)} BorderSizePixel={0} AnchorPoint={new Vector2(0, 1)} Position={UDim2.fromScale(0, 1)} Size={new UDim2(1, 0, 0, 112)} />
 			<Label name="CutsceneSpeaker" text={beat?.speaker ?? ""} color={C.Accent} textSize={11} font={Enum.Font.GothamBold} anchorPoint={new Vector2(0.5, 1)} position={new UDim2(0.5, 0, 1, -66)} size={new UDim2(0.9, 0, 0, 18)} textXAlignment={Enum.TextXAlignment.Center} />
 			<Label name="CutsceneSubtitle" text={beat?.subtitle ?? ""} color={C.Ivory} textSize={16} font={Enum.Font.GothamMedium} anchorPoint={new Vector2(0.5, 1)} position={new UDim2(0.5, 0, 1, -20)} size={new UDim2(0.9, 0, 0, 44)} textWrapped={true} textXAlignment={Enum.TextXAlignment.Center} />
-			<ActionButton name="SkipCutsceneButton" text="SKIP  ›" anchorPoint={new Vector2(1, 0)} position={new UDim2(1, -16, 0, 8)} size={UDim2.fromOffset(100, 30)} textSize={10} onActivated={() => { skipped.current = true; if (!finished.current && cutscene) { finished.current = true; onDone(cutscene.id); } }} />
+			<ActionButton name="SkipCutsceneButton" text="SKIP  ›" anchorPoint={new Vector2(1, 0)} position={new UDim2(1, -16, 0, 6)} size={UDim2.fromOffset(CUTSCENE_SKIP_SIZE.X, CUTSCENE_SKIP_SIZE.Y)} textSize={11} onActivated={() => { skipped.current = true; if (!finished.current && cutscene) { finished.current = true; onDone(cutscene.id); } }} />
 		</frame>
 	);
 }
@@ -1420,9 +1423,21 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		if (inMissionRef.current) controller.SetThrottle(adjusted);
 	}, [controller]);
 
-	const requestMissionStart = useCallback(() => {
+	const openMissionLaunchGate = useCallback((missionId: number, reason: MissionLaunchReason, slotOverride?: SaveSlot): boolean => {
+		selectedMissionRef.current = missionId;
+		setSelectedMission(missionId);
+		const slot = slotOverride ?? slots?.[selectedSlotRef.current - 1];
+		const scene = cutsceneForMissionLaunch(missionId, slot?.seenCutscenes, reason);
+		if (!scene) return false;
+		cutsceneNextRef.current = "launch";
+		setCutsceneSpec(scene);
+		changeScreen("cutscene");
+		return true;
+	}, [changeScreen, slots]);
+
+	const requestMissionStart = useCallback((missionId: number) => {
 		beginRequest((requestId) => {
-			const [response, problem] = invoke("StartMission", { slot: selectedSlot, missionId: selectedMission });
+			const [response, problem] = invoke("StartMission", { slot: selectedSlotRef.current, missionId });
 			if (!mountedRef.current || requestRef.current !== requestId) return;
 			if (!response) showToast(problem ?? "Command rejected the request.", true);
 			else {
@@ -1430,7 +1445,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				if (screenRef.current !== "mission") showToast("Clearance received. Preparing aircraft...", false);
 			}
 		});
-	}, [applyResponseSlots, beginRequest, invoke, selectedMission, selectedSlot, showToast]);
+	}, [applyResponseSlots, beginRequest, invoke, showToast]);
 
 	const finishCutscene = useCallback((cutsceneId: string) => {
 		const destination = cutsceneNextRef.current;
@@ -1442,7 +1457,10 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		}
 		changeScreen("briefing");
 		beginRequest((requestId) => {
-			invoke("UpdatePresentation", { slot: selectedSlotRef.current, cutsceneId });
+			task.wait(0.14);
+			if (!mountedRef.current || requestRef.current !== requestId) return;
+			const [presentation] = invoke("UpdatePresentation", { slot: selectedSlotRef.current, cutsceneId });
+			if (presentation?.slots) applyResponseSlots(presentation);
 			task.wait(0.14);
 			if (!mountedRef.current || requestRef.current !== requestId) return;
 			const [response, problem] = invoke("StartMission", { slot: selectedSlotRef.current, missionId: selectedMissionRef.current });
@@ -1453,16 +1471,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	}, [applyResponseSlots, beginRequest, changeScreen, invoke, showToast]);
 
 	const startMission = useCallback(() => {
-		const slot = slots?.[selectedSlot - 1];
-		const scene = selectedMission === 1 ? AuroraLineCutscenes.Opening : AuroraLineCutscenes.ByActOf(selectedMission - 1);
-		if (scene && !slot?.seenCutscenes?.includes(scene.id)) {
-			cutsceneNextRef.current = "launch";
-			setCutsceneSpec(scene);
-			changeScreen("cutscene");
-			return;
-		}
-		requestMissionStart();
-	}, [changeScreen, requestMissionStart, selectedMission, selectedSlot, slots]);
+		const missionId = selectedMissionRef.current;
+		if (!openMissionLaunchGate(missionId, "briefing")) requestMissionStart(missionId);
+	}, [openMissionLaunchGate, requestMissionStart]);
 
 	const toggleReducedMotion = useCallback(() => {
 		const enabled = slots?.[selectedSlot - 1]?.reducedMotion !== true;
@@ -1488,7 +1499,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		});
 	}, [applyResponseSlots, beginRequest, cancelRequests, changeScreen, controller, invoke, releaseJoystick, showToast]);
 
-	const restartMission = useCallback((missionId: number) => {
+	const restartMission = useCallback((missionId: number, reason: "next" | "retry") => {
 		beginRequest((requestId) => {
 			const [returned, returnError] = invoke("ReturnToMenu");
 			if (!mountedRef.current || requestRef.current !== requestId) return;
@@ -1496,12 +1507,13 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				showToast(returnError ?? "Command link interrupted. Try again.", true);
 				return;
 			}
+			const returnedSlots = normalizeSlots(returned);
 			if (returned.slots) applyResponseSlots(returned);
+			const slotSnapshot = returnedSlots?.[selectedSlotRef.current - 1];
+			if (openMissionLaunchGate(missionId, reason, slotSnapshot)) return;
 			task.wait(0.16);
 			if (!mountedRef.current || requestRef.current !== requestId) return;
-			selectedMissionRef.current = missionId;
-			setSelectedMission(missionId);
-			const [started, startError] = invoke("StartMission", { slot: selectedSlot, missionId });
+			const [started, startError] = invoke("StartMission", { slot: selectedSlotRef.current, missionId });
 			if (!mountedRef.current || requestRef.current !== requestId) return;
 			if (!started) showToast(startError ?? "Command rejected the request.", true);
 			else {
@@ -1509,10 +1521,10 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				if (screenRef.current !== "mission") showToast("Clearance received. Preparing aircraft...", false);
 			}
 		});
-	}, [applyResponseSlots, beginRequest, invoke, selectedSlot, showToast]);
+	}, [applyResponseSlots, beginRequest, invoke, openMissionLaunchGate, showToast]);
 
-	const retryMission = useCallback(() => restartMission(selectedMissionRef.current), [restartMission]);
-	const nextMission = useCallback(() => restartMission(math.min(AuroraLineManifest.MissionCount, selectedMissionRef.current + 1)), [restartMission]);
+	const retryMission = useCallback(() => restartMission(selectedMissionRef.current, "retry"), [restartMission]);
+	const nextMission = useCallback(() => restartMission(math.min(AuroraLineManifest.MissionCount, selectedMissionRef.current + 1), "next"), [restartMission]);
 
 	const moveJoystick = useCallback((input: InputObject) => {
 		const joystick = joystickRef.current;
