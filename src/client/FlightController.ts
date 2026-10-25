@@ -123,6 +123,7 @@ export class FlightController {
 	private gamepadInput = Vector2.zero;
 	private throttle = 0.65;
 	private throttleStick = 0;
+	private touchThrottleAxis = 0;
 	private keys = new Set<Enum.KeyCode>();
 	private connections: RBXScriptConnection[] = [];
 	private hiddenParts = new Map<BasePart | Trail, number | boolean>();
@@ -268,9 +269,10 @@ export class FlightController {
 	}
 	public GetControlStateForStudio() {
 		assert(RunService.IsStudio(), "Controller diagnostics are Studio-only");
-		return { throttle: this.throttle, stick: this.gamepadInput, prediction: this.predictor?.last, rtt: this.predictor?.rtt };
+		return { throttle: this.throttle, touchThrottleAxis: this.touchThrottleAxis, touchStick: this.touchInput, stick: this.gamepadInput, prediction: this.predictor?.last, rtt: this.predictor?.rtt };
 	}
 	public SetInput(x: number, y: number): void { this.touchInput = new Vector2(FlightMath.ClampInput(x), FlightMath.ClampInput(y)); }
+	public SetTouchThrottleAxis(value: number): void { this.touchThrottleAxis = FlightMath.ClampInput(value); }
 	public SetThrottle(value: number): void { if (FlightMath.IsFinite(value)) this.throttle = math.clamp(value, 0, 1); }
 	private action(action: string): void { if (this.active) this.remotes.CombatAction.FireServer({ action }); }
 	public FireMissile(): void { this.action("FireMissile"); }
@@ -310,7 +312,7 @@ export class FlightController {
 		let x = this.touchInput.X + this.gamepadInput.X;
 		let y = this.touchInput.Y + this.gamepadInput.Y;
 		if (!UserInputService.GetFocusedTextBox()) {
-			this.throttle = FlightMath.AdjustThrottle(this.throttle, this.throttleStick, dt);
+			this.throttle = FlightMath.AdjustThrottle(this.throttle, math.clamp(this.throttleStick + this.touchThrottleAxis, -1, 1), dt);
 			if (this.keys.has(Enum.KeyCode.A) || this.keys.has(Enum.KeyCode.Left)) x -= 1;
 			if (this.keys.has(Enum.KeyCode.D) || this.keys.has(Enum.KeyCode.Right)) x += 1;
 			if (this.keys.has(Enum.KeyCode.W) || this.keys.has(Enum.KeyCode.Up)) y += 1;
@@ -507,7 +509,7 @@ export class FlightController {
 		}
 		this.keys.clear();
 		this.touchInput = Vector2.zero;
-		this.gamepadInput = Vector2.zero; this.throttleStick = 0;
+		this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0;
 		this.throttle = 0.65;
 		this.sendTime = INPUT_KEEPALIVE;
 		this.sentThrottle = -1;
@@ -546,7 +548,7 @@ export class FlightController {
 		}));
 		this.connections.push(UserInputService.InputEnded.Connect((input) => { if (input.UserInputType === Enum.UserInputType.MouseButton2) this.mouseSteer = false; }));
 		const clearInput = () => {
-			this.keys.clear(); this.mouseSteer = false; this.touchInput = Vector2.zero; this.gamepadInput = Vector2.zero; this.throttleStick = 0;
+			this.keys.clear(); this.mouseSteer = false; this.touchInput = Vector2.zero; this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0;
 		};
 		this.connections.push(UserInputService.TextBoxFocused.Connect(clearInput));
 		this.connections.push(UserInputService.GamepadDisconnected.Connect(clearInput));
@@ -581,7 +583,7 @@ export class FlightController {
 		this.previousCamera = undefined;
 		this.aircraft = undefined;
 		this.touchInput = Vector2.zero;
-		this.gamepadInput = Vector2.zero; this.throttleStick = 0;
+		this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0;
 		this.keys.clear();
 		this.mouseSteer = false;
 	}

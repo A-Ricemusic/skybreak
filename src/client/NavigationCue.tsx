@@ -42,6 +42,15 @@ export function NavigationCue({telemetry,visible,inputMode}:{telemetry:Telemetry
 				const placement=navigationCaptionRect(x,y,origin.X,origin.Y,viewport.X,viewport.Y,hud,obstacles);
 				placedX=x;placedY=y;placed=true;
 				gui.Position=UDim2.fromOffset(placement.x,placement.y);
+				gui.Size=UDim2.fromOffset(placement.width,placement.height);
+				const rowHeight=math.floor(placement.height/2);
+				for(let index=0;index<2;index++) {
+					const line=index===0 ? primary.current : secondary.current;
+					if(!line)continue;
+					line.Position=UDim2.fromOffset(0,index*rowHeight);
+					line.Size=new UDim2(1,0,0,rowHeight);
+					line.TextSize=math.min(10,rowHeight-1);
+				}
 				// Floating captions centre over the marker; the fixed slot reads
 				// left-aligned under the objective line.
 				const alignment=placement===hud.navigation ? Enum.TextXAlignment.Left : Enum.TextXAlignment.Center;
@@ -70,7 +79,7 @@ export function NavigationCue({telemetry,visible,inputMode}:{telemetry:Telemetry
 		<textlabel ref={ref} key={name} BackgroundTransparency={1} Position={UDim2.fromOffset(0,y)} Size={new UDim2(1,0,0,size+3)} Font={font} Text="" TextColor3={Color3.fromRGB(100,249,218)} TextSize={size} TextStrokeColor3={Color3.fromRGB(6,13,22)} TextStrokeTransparency={.45} TextXAlignment={Enum.TextXAlignment.Left} TextTruncate={Enum.TextTruncate.AtEnd} ZIndex={5}/>
 	);
 	return (
-		<frame ref={label} key="NavigationCue" Visible={false} BackgroundTransparency={1} Size={UDim2.fromOffset(NAVIGATION_CAPTION_WIDTH,NAVIGATION_CAPTION_HEIGHT)} ZIndex={5}>
+		<frame ref={label} key="NavigationCue" Visible={false} BackgroundTransparency={1} ClipsDescendants={true} Size={UDim2.fromOffset(NAVIGATION_CAPTION_WIDTH,NAVIGATION_CAPTION_HEIGHT)} ZIndex={5}>
 			{text("Distance",primary,0,10,Enum.Font.GothamBold)}
 			{text("Details",secondary,13,10,Enum.Font.GothamBold)}
 		</frame>

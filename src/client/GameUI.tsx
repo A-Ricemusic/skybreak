@@ -1,3 +1,4 @@
+import { TouchSticks } from "../shared/TouchSticks";
 import { FlightMath } from "../shared/FlightMath";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "@rbxts/react";
 import { flightWarning } from "../shared/FlightWarnings";
@@ -1169,7 +1170,9 @@ function MissionHud({
 	joystickRef,
 	knobRef,
 	onJoystickBegan,
-	onThrottle,
+	throttleJoystickRef,
+	throttleKnobRef,
+	onThrottleBegan,
 	onMissile,
 	onTarget,
 	onSpecial,
@@ -1185,7 +1188,9 @@ function MissionHud({
 	joystickRef: React.RefObject<Frame>;
 	knobRef: React.RefObject<Frame>;
 	onJoystickBegan: (input: InputObject) => void;
-	onThrottle: (value: number) => void;
+	throttleJoystickRef: React.RefObject<Frame>;
+	throttleKnobRef: React.RefObject<Frame>;
+	onThrottleBegan: (input: InputObject) => void;
 	onMissile: () => void;
 	onTarget: () => void;
 	onSpecial: () => void;
@@ -1299,62 +1304,20 @@ function MissionHud({
 				</frame>
 			</frame>
 
-			<frame
-				key="ThrottleControls"
-				BackgroundColor3={C.Ink}
-				BackgroundTransparency={0.7}
-				BorderSizePixel={0}
-				Position={touch ? UDim2.fromOffset(touch.throttlePill.x, touch.throttlePill.y) : undefined}
-				Size={touch ? UDim2.fromOffset(touch.throttlePill.width, touch.throttlePill.height) : UDim2.fromOffset(112, 32)}
-				Visible={touch !== undefined}
-			>
-				<Corner scale={0.5} />
-				<Stroke transparency={0.8} />
-				{/* 44x44 hit areas on the pill's ends overhang the 32px visual. */}
-				<textbutton
-					key="ThrottleDownButton"
-					AnchorPoint={new Vector2(0, 0.5)}
-					AutoButtonColor={false}
-					BackgroundTransparency={1}
-					Font={Enum.Font.GothamBold}
-					Position={UDim2.fromScale(0, 0.5)}
-					Selectable={false}
-					Size={UDim2.fromOffset(MIN_TOUCH_TARGET, MIN_TOUCH_TARGET)}
-					Text="–"
-					TextColor3={C.Ivory}
-					TextSize={16}
-					TextStrokeColor3={C.Ink}
-					TextStrokeTransparency={0.5}
-					Event={{ Activated: () => onThrottle(throttle - 0.1) }}
-				/>
-				<Label
-					name="ThrottleText"
-					text={`${math.floor(throttle * 100 + 0.5)}%`}
-					color={C.Ivory}
-					textSize={11}
-					font={Enum.Font.RobotoMono}
-					anchorPoint={new Vector2(0.5, 0.5)}
-					position={UDim2.fromScale(0.5, 0.5)}
-					size={UDim2.fromOffset(32, 16)}
-					textXAlignment={Enum.TextXAlignment.Center}
-					stroke={true}
-				/>
-				<textbutton
-					key="ThrottleUpButton"
-					AnchorPoint={new Vector2(1, 0.5)}
-					AutoButtonColor={false}
-					BackgroundTransparency={1}
-					Font={Enum.Font.GothamBold}
-					Position={UDim2.fromScale(1, 0.5)}
-					Selectable={false}
-					Size={UDim2.fromOffset(MIN_TOUCH_TARGET, MIN_TOUCH_TARGET)}
-					Text="+"
-					TextColor3={C.Ivory}
-					TextSize={16}
-					TextStrokeColor3={C.Ink}
-					TextStrokeTransparency={0.5}
-					Event={{ Activated: () => onThrottle(throttle + 0.1) }}
-				/>
+			<frame ref={throttleJoystickRef} key="ThrottleJoystick" Active={true}
+				BackgroundColor3={C.Ink} BackgroundTransparency={0.75} BorderSizePixel={0}
+				Position={touch ? UDim2.fromOffset(touch.throttle.x, touch.throttle.y) : undefined}
+				Size={UDim2.fromOffset(96, 96)} Visible={touch !== undefined}
+				Event={{ InputBegan: (_rbx, input) => onThrottleBegan(input) }}>
+				<Corner scale={0.5} /><Stroke color={C.Ivory} transparency={0.75} thickness={1} />
+				<Label name="ThrottleUp" text="UP / ACCEL" position={UDim2.fromOffset(8, 3)} size={UDim2.fromOffset(80, 14)} textSize={10} textXAlignment={Enum.TextXAlignment.Center} />
+				<Label name="ThrottleDown" text="DOWN / SLOW" position={UDim2.fromOffset(8, 79)} size={UDim2.fromOffset(80, 14)} textSize={10} textXAlignment={Enum.TextXAlignment.Center} />
+				<frame ref={throttleKnobRef} key="ThrottleKnob" AnchorPoint={new Vector2(0.5, 0.5)}
+					BackgroundColor3={C.Accent} BackgroundTransparency={0.35} BorderSizePixel={0}
+					Position={UDim2.fromScale(0.5, 0.5)} Size={UDim2.fromOffset(40, 36)}>
+					<Corner scale={0.5} />
+					<Label name="ThrottlePercent" text={`${math.floor(throttle * 100 + 0.5)}%`} size={UDim2.fromScale(1, 1)} textSize={11} textXAlignment={Enum.TextXAlignment.Center} />
+				</frame>
 			</frame>
 
 			<frame key="CombatControls" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)}>
@@ -1456,7 +1419,10 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const rootFrameRef = useRef<Frame>();
 	const joystickRef = useRef<Frame>();
 	const knobRef = useRef<Frame>();
-	const activeJoystickInput = useRef<InputObject>();
+	const touches = useMemo(() => new TouchSticks<InputObject>(), []);
+	const touchEndConnections = useMemo(() => new Map<InputObject, RBXScriptConnection>(), []);
+	const throttleJoystickRef = useRef<Frame>();
+	const throttleKnobRef = useRef<Frame>();
 	const loadingSerialRef = useRef(0);
 	const slotsRef = useRef<SaveSlot[] | undefined>();
 
@@ -1467,14 +1433,18 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	}, []);
 
 	const releaseJoystick = useCallback(() => {
-		activeJoystickInput.current = undefined;
+		for (const [, connection] of touchEndConnections) connection.Disconnect();
+		touchEndConnections.clear();
+		touches.Clear();
+		controller.SetTouchThrottleAxis(0);
+		if (throttleKnobRef.current) throttleKnobRef.current.Position = UDim2.fromScale(0.5, 0.5);
 		if (knobRef.current) knobRef.current.Position = UDim2.fromScale(0.5, 0.5);
 		controller.SetInput(0, 0);
 	}, [controller]);
 
 	const applyInputMode = useCallback((nextMode: InputMode) => {
 		const current = inputModeRef.current;
-		if (!shouldAcceptInputModeChange(current, nextMode, activeJoystickInput.current !== undefined)) return;
+		if (!shouldAcceptInputModeChange(current, nextMode, touches.Held())) return;
 		if (current === "touch") releaseJoystick();
 		inputModeRef.current = nextMode;
 		glyphCache.clear();
@@ -1598,13 +1568,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		});
 	}, [applyResponseSlots, beginRequest, invoke, showToast]);
 
-	const setThrottle = useCallback((value: number) => {
-		const adjusted = math.clamp(value, 0, 1);
-		throttleRef.current = adjusted;
-		setThrottleState(adjusted);
-		if (inMissionRef.current) controller.SetThrottle(adjusted);
-	}, [controller]);
-
 	const launchMission = useCallback(() => {
 		beginRequest((requestId) => {
 			const [response, problem] = invoke("StartMission", { slot: selectedSlot, missionId: selectedMission, special: selectedSpecialRef.current });
@@ -1707,12 +1670,48 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		controller.SetInput(vector.X, vector.Y);
 	}, [controller]);
 
+	const releaseTouch = useCallback((input: InputObject) => {
+		if (touches.steering === input) {
+			controller.SetInput(0, 0);
+			if (knobRef.current) knobRef.current.Position = UDim2.fromScale(0.5, 0.5);
+		}
+		if (touches.throttle === input) {
+			controller.SetTouchThrottleAxis(0);
+			if (throttleKnobRef.current) throttleKnobRef.current.Position = UDim2.fromScale(0.5, 0.5);
+		}
+		touchEndConnections.get(input)?.Disconnect();
+		touchEndConnections.delete(input);
+		touches.End(input);
+		applyInputMode(readInputMode());
+	}, [controller, touches, applyInputMode]);
+
+	const trackTouchEnd = useCallback((input: InputObject) => {
+		touchEndConnections.set(input, input.GetPropertyChangedSignal("UserInputState").Connect(() => {
+			if (input.UserInputState === Enum.UserInputState.End || input.UserInputState === Enum.UserInputState.Cancel) releaseTouch(input);
+		}));
+	}, [releaseTouch, touchEndConnections]);
 	const joystickBegan = useCallback((input: InputObject) => {
-		if (!inMissionRef.current || inputModeRef.current !== "touch" || input.UserInputType !== Enum.UserInputType.Touch) return;
-		if (activeJoystickInput.current !== undefined) return;
-		activeJoystickInput.current = input;
+		if (!inMissionRef.current || GuiService.MenuIsOpen || UserInputService.GetFocusedTextBox() || inputModeRef.current !== "touch" || input.UserInputType !== Enum.UserInputType.Touch) return;
+		if (!touches.Begin("steering", input)) return;
+		trackTouchEnd(input);
 		moveJoystick(input);
-	}, [moveJoystick]);
+	}, [moveJoystick, trackTouchEnd]);
+
+	const moveThrottle = useCallback((input: InputObject) => {
+		const stick = throttleJoystickRef.current;
+		const knob = throttleKnobRef.current;
+		if (!stick || !knob || !inMissionRef.current) return;
+		const radius = math.max(1, stick.AbsoluteSize.Y * 0.34);
+		const offset = math.clamp(input.Position.Y - stick.AbsolutePosition.Y - stick.AbsoluteSize.Y / 2, -radius, radius);
+		knob.Position = new UDim2(0.5, 0, 0.5, offset);
+		controller.SetTouchThrottleAxis(-offset / radius);
+	}, [controller]);
+	const throttleBegan = useCallback((input: InputObject) => {
+		if (!inMissionRef.current || GuiService.MenuIsOpen || UserInputService.GetFocusedTextBox() || inputModeRef.current !== "touch" || input.UserInputType !== Enum.UserInputType.Touch) return;
+		if (!touches.Begin("throttle", input)) return;
+		trackTouchEnd(input);
+		moveThrottle(input);
+	}, [moveThrottle, trackTouchEnd]);
 
 	useEffect(() => {
 		mountedRef.current = true;
@@ -1720,7 +1719,10 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			mountedRef.current = false;
 			requestRef.current++;
 			toastRef.current++;
-			activeJoystickInput.current = undefined;
+			for (const [, connection] of touchEndConnections) connection.Disconnect();
+			touchEndConnections.clear();
+			touches.Clear();
+			controller.SetTouchThrottleAxis(0);
 			controller.SetInput(0, 0);
 			controller.Stop();
 		};
@@ -1739,24 +1741,27 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 
 	useEffect(() => {
 		const changed = UserInputService.InputChanged.Connect((input) => {
-			const active = activeJoystickInput.current;
+			const active = touches.steering;
+			if (input.UserInputState === Enum.UserInputState.Cancel || input.UserInputState === Enum.UserInputState.End) { releaseTouch(input); return; }
 			if (active && input === active) moveJoystick(input);
+			if (input === touches.throttle) moveThrottle(input);
 		});
-		const ended = UserInputService.InputEnded.Connect((input) => {
-			const active = activeJoystickInput.current;
-			if (active && input === active) endJoystickTouch();
-		});
+		const ended = UserInputService.InputEnded.Connect(releaseTouch);
 		const focus = UserInputService.WindowFocusReleased.Connect(endJoystickTouch);
+		const menu = GuiService.MenuOpened.Connect(endJoystickTouch);
+		const textFocus = UserInputService.TextBoxFocused.Connect(endJoystickTouch);
 		return () => {
 			changed.Disconnect();
 			ended.Disconnect();
-			focus.Disconnect();
+			focus.Disconnect(); menu.Disconnect(); textFocus.Disconnect();
 		};
-	}, [endJoystickTouch, moveJoystick]);
+	}, [endJoystickTouch, moveJoystick, moveThrottle, releaseTouch]);
 
 	useEffect(() => {
 		if (screen !== "mission") releaseJoystick();
 	}, [releaseJoystick, screen]);
+
+	useEffect(() => releaseJoystick(), [releaseJoystick, viewport]);
 
 	useEffect(() => {
 		task.defer(selectDefault);
@@ -2014,7 +2019,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 						joystickRef={joystickRef}
 						knobRef={knobRef}
 						onJoystickBegan={joystickBegan}
-						onThrottle={setThrottle}
+						throttleJoystickRef={throttleJoystickRef}
+						throttleKnobRef={throttleKnobRef}
+						onThrottleBegan={throttleBegan}
 						onMissile={fireMissile}
 						onTarget={cycleTarget}
 						onSpecial={fireSpecial}

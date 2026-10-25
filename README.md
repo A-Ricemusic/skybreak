@@ -4,9 +4,9 @@ An original mobile-first arcade jet combat campaign for Roblox, written in TypeS
 
 ## Controls and campaign
 
-- Mobile: the flight pad, throttle, fire, and target controls appear only while you are using touch.
+- Mobile: two large thumb sticks appear while using touch. Left steers; right up accelerates and down decelerates. Release recenters the knob and holds the selected throttle percentage. FIRE, TGT and the special weapon sit between the sticks.
 - Desktop and console: a short control legend appears at launch; afterwards the HUD shows only actionable hints. Evade is `F` on keyboard and `B` on gamepad. Hold `LB` / `RB` to decrease / increase throttle. Menus support gamepad selection, with `B` to go back.
-- Missiles require a target lock, shown on the target bracket. Incoming-missile and airspace warnings appear only while active.
+- Targets are selected automatically; TGT cycles contacts. Keep the selected target in range and ahead until the bracket reads LOCKED, then FIRE launches guided missiles. Early FIRE launches unguided. Incoming-missile and airspace warnings appear only while active.
 - Mission 1 — First Flight: learn pitch/turn, select and destroy a ground radar, then defeat three pursuing bandits.
 - Mission 2 — Iron Coast: defeat three bandits, destroy five Blender-authored warehouses while five optional raiders pursue you, then defeat a faster, tougher ace.
 - Missions 3–27 follow Teal’s recordings through authored canyon, farm, relay, harbor and city compositions. Ordered flight gates, low-altitude scans, signal orbits, convoy escorts and protected-site defense accompany escalating combat.

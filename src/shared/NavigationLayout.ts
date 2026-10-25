@@ -24,7 +24,7 @@ export function navigationCaption(distance:number,side:number,inVolume:boolean,c
 export function navigationObstacles(hud:HudLayout): Rectangle[] {
 	const obstacles=[hud.callout,hud.timer,hud.alert,hud.status];
 	if(hud.hints)obstacles.push(hud.hints);
-	if(hud.touch)obstacles.push(hud.touch.joystick,hud.touch.throttle,hud.touch.missile,hud.touch.target);
+	if(hud.touch)obstacles.push(hud.touch.joystick,hud.touch.throttle,hud.touch.missile,hud.touch.target,hud.touch.special);
 	return obstacles;
 }
 
