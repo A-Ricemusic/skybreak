@@ -1,0 +1,35 @@
+{
+  "title": "Todo acceptance checklist",
+  "cases": [
+    {
+      "id": "add-and-persist",
+      "name": "Add a task and keep it after reload",
+      "steps": [
+        "Add a todo called Buy milk.",
+        "Verify that Buy milk appears as an unchecked task.",
+        "Reload the page.",
+        "Verify that Buy milk is still present and unchecked."
+      ]
+    },
+    {
+      "id": "complete-and-filter",
+      "name": "Complete a todo and filter the list",
+      "steps": [
+        "Add a todo called Book dentist.",
+        "Check the checkbox next to Book dentist.",
+        "Verify that its checkbox is checked and the remaining count is zero.",
+        "Switch Show tasks to Active and verify that no tasks are listed.",
+        "Switch Show tasks to Completed and verify that Book dentist is shown."
+      ]
+    },
+    {
+      "id": "reject-blank",
+      "name": "Reject an empty task",
+      "steps": [
+        "Try adding a todo containing only spaces.",
+        "Verify the message Enter a task. is shown.",
+        "Verify that no tasks were created."
+      ]
+    }
+  ]
+}
