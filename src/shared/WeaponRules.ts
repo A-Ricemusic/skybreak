@@ -2,6 +2,8 @@
 // Nothing here touches instances; CombatService adapts Vector3 to plain points.
 export type CombatActionKind = "FireMissile" | "Evade" | "CycleTarget";
 export type FireDenied = "no_ammo" | "cooldown";
+/** What the weapons channel reports after a FIRE press: a refusal or a blind launch. */
+export type FireNotice = FireDenied | "blind";
 export interface Point { x: number; y: number; z: number }
 export interface ActionGateState { last: Map<CombatActionKind, number> }
 export type LaunchDecision = { kind: "denied"; reason: FireDenied } | { kind: "guided" } | { kind: "blind" };
@@ -15,6 +17,8 @@ export interface LaunchInput {
 	dot: number;
 	/** Ground targets lock through a wider cone: you orbit them, you do not chase them. */
 	groundTarget?: boolean;
+	/** False when the current phase protects the target; a guided shot would burst for nothing. */
+	canDamage?: boolean;
 }
 export interface FireButtonState {
 	text: string;
@@ -81,7 +85,7 @@ export const WeaponRules = {
 	Launch(input: LaunchInput): LaunchDecision {
 		if (!finite(input.missiles) || input.missiles <= 0) return { kind: "denied", reason: "no_ammo" };
 		if (finite(input.missileCooldown) && input.missileCooldown > 0) return { kind: "denied", reason: "cooldown" };
-		const locked = input.hasTarget && finite(input.lockProgress) && input.lockProgress >= LOCKED_AT;
+		const locked = input.hasTarget && input.canDamage !== false && finite(input.lockProgress) && input.lockProgress >= LOCKED_AT;
 		const inEnvelope = finite(input.distance) && finite(input.dot) && input.distance <= LOCK_RANGE && input.dot >= WeaponRules.LockDotFor(input.groundTarget === true);
 		return locked && inEnvelope ? { kind: "guided" } : { kind: "blind" };
 	},
@@ -104,8 +108,9 @@ export const WeaponRules = {
 	},
 	/** FIRE button label and state from HUD telemetry. */
 	FireButton(missiles: number, missileCooldown: number, hasTarget: boolean, lockProgress: number): FireButtonState {
-		if (!finite(missiles) || missiles <= 0) return { text: "EMPTY", filled: false, enabled: false, dimmed: false };
-		if (finite(missileCooldown) && missileCooldown > 0) return { text: string.format("%.1f", missileCooldown), filled: false, enabled: false, dimmed: false };
+		// Always enabled: the server answers every press, so a refusal is explained instead of swallowed.
+		if (!finite(missiles) || missiles <= 0) return { text: "EMPTY", filled: false, enabled: true, dimmed: true };
+		if (finite(missileCooldown) && missileCooldown > 0) return { text: string.format("%.1f", missileCooldown), filled: false, enabled: true, dimmed: true };
 		const lock = hasTarget && finite(lockProgress) ? math.clamp(lockProgress, 0, 1) : 0;
 		if (lock >= LOCKED_AT) return { text: "FIRE", filled: true, enabled: true, dimmed: false };
 		if (lock > 0.01) return { text: string.format("LOCK %d%%", math.floor(lock * 100)), filled: false, enabled: true, dimmed: true };

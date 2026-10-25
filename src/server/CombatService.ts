@@ -7,7 +7,7 @@ import { BlueprintRunner, BlueprintState } from "../shared/BlueprintRunner";
 import { MissionBlueprint, MissionCatalog, MissionPhaseBlueprint } from "../shared/MissionCatalog";
 import { FinishedCallback, FlightInput, MissionLoading, MissionStats, Remotes, Telemetry } from "../shared/Types";
 import { LoadingGate, LoadingGateState } from "../shared/LoadingGate";
-import { ActionGateState, FireDenied, WeaponRules } from "../shared/WeaponRules";
+import { ActionGateState, FireNotice, WeaponRules } from "../shared/WeaponRules";
 import { MissionWorld } from "./MissionWorld";
 
 type EnemyMode = "attack" | "extend" | "orbit" | "run";
@@ -51,7 +51,7 @@ export interface CombatSession {
 	/** Latest radio line and a serial so the client can detect repeats. */
 	radio?: string; radioSerial: number; radioSeconds?: number;
 	/** Latest refused FIRE and its serial, so the HUD can show the reason once per press. */
-	fireDenied?: FireDenied; fireDeniedSerial?: number;
+	fireDenied?: FireNotice; fireDeniedSerial?: number;
 	/** Mission 1: elapsed time when the tutorial target step began, and whether its hint has aired. */
 	targetStepSince?: number; targetStepHinted?: boolean;
 	/** Next unfired chatter line of the active phase. */
@@ -253,6 +253,7 @@ function sendTelemetry(session: CombatSession): void {
 		missiles: session.missiles, missileCooldown: session.missileCooldown,
 		evadeCooldown: session.evadeCooldown, target: target?.model, targetName: target?.name ?? "",
 		targetKind: target ? (target.kind === "ground" ? "ground" : "air") : "", targetRequired: target?.required ?? false, targetDistance: distance,
+		targetDamageable: target ? sessionCanDamage(session, target.kind, target.required) : undefined,
 		lockProgress: session.lockProgress, incoming, lockWarning, elapsed: session.elapsed,
 		boundaryWarning: math.max(math.abs(session.state.x), math.abs(session.state.z)) > FlightMath.SoftBoundary,
 		radio: session.radio, radioSerial: session.radioSerial, radioSeconds: session.radioSeconds,
@@ -269,7 +270,7 @@ function radio(session: CombatSession, text: string, seconds?: number): void {
 	if (session.active && sessions.get(session.player) === session) sendTelemetry(session);
 }
 /** Tell the HUD why a FIRE press did nothing; the serial makes every repeated press visible. */
-function denyFire(session: CombatSession, reason: FireDenied): void {
+function denyFire(session: CombatSession, reason: FireNotice): void {
 	session.fireDenied = reason;
 	session.fireDeniedSerial = (session.fireDeniedSerial ?? 0) + 1;
 	if (session.active && sessions.get(session.player) === session) sendTelemetry(session);
@@ -568,6 +569,7 @@ function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy):
 		const decision = WeaponRules.Launch({
 			missiles: session.missiles, missileCooldown: session.missileCooldown,
 			hasTarget: current !== undefined, lockProgress: session.lockProgress, distance, dot, groundTarget: current?.kind === "ground",
+			canDamage: current ? sessionCanDamage(session, current.kind, current.required) : false,
 		});
 		if (decision.kind === "denied") { denyFire(session, decision.reason); return; }
 		position = positionFor(session.state).add(directionFor(session.state).mul(16)).sub(new Vector3(0, 2, 0));
@@ -575,7 +577,8 @@ function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy):
 		target = decision.kind === "guided" ? session.target : undefined;
 		session.missiles -= 1;
 		session.missileCooldown = 1.15;
-		if (target === undefined) radio(session, "NO LOCK · FIRING BLIND", 1);
+		// Blind launches report on the weapons channel so story radio lines are never overwritten.
+		if (target === undefined) denyFire(session, "blind");
 	}
 	session.projectiles.push({ part: JetFactory.CreateMissile(session.folder, position, direction, hostile), position, direction, target, hostile, age: 0, ace, damage });
 }
@@ -703,7 +706,7 @@ function stepTutorialHint(session: CombatSession): void {
 	if (session.targetStepSince === undefined) session.targetStepSince = session.elapsed;
 	if (session.targetStepHinted || session.elapsed - session.targetStepSince < 8) return;
 	session.targetStepHinted = true;
-	radio(session, "Tap TGT to mark the radar");
+	radio(session, "Select the radar: TGT / Tab / Y");
 }
 /** An ace crossing 2/3 or 1/3 health calls a stage: brief invulnerability, a radio line, more speed and its held-back raiders. */
 function aceStage(session: CombatSession, enemy: Enemy, before: number, after: number): void {
@@ -739,11 +742,19 @@ function stepMissiles(session: CombatSession, dt: number): void {
 			if (hit !== undefined) {
 				const enemy = session.enemies[hit];
 				removed = true;
+				// Aces decoy blind shots exactly like guided ones.
+				if (enemy.kind === "ace" && enemy.flares > 0 && enemy.flareTimer <= 0) {
+					enemy.flares -= 1; enemy.flareTimer = 5;
+					JetFactory.Flares(session.folder, enemy.position);
+					JetFactory.Burst(session.folder, missile.position, Color3.fromRGB(255, 220, 142), 4);
+					radio(session, `${enemy.name} deployed flares`);
+				} else {
 				JetFactory.Burst(session.folder, enemy.position, Color3.fromRGB(255, 179, 102), 8);
 				if (!strikeEnemy(session, enemy, index)) {
 					if (!session.active) return;
 					index = math.min(index, session.projectiles.size());
 					continue;
+				}
 				}
 			} else {
 				missile.position = nextPosition;
@@ -769,9 +780,11 @@ function stepMissiles(session: CombatSession, dt: number): void {
 			// Hostile missiles steer for their whole flight; ace missiles turn harder.
 			const lead = math.clamp(distance / speed, 0, missile.hostile ? 0.9 : 0.65);
 			const delta = targetPosition.add(velocity.mul(lead)).sub(missile.position);
-			missile.direction = unitOr(missile.direction.Lerp(unitOr(delta, missile.direction), FlightMath.DampAlpha(missile.hostile ? tuned(session, TUNING.missileTurn) + (missile.ace ? 0.6 : 0) : 7, dt)), missile.direction);
+			// Player missiles turn much harder inside 300 studs so an orbit launch at 80 degrees off the nose still connects.
+			const playerTurn = distance < 300 ? 14 : 7;
+			missile.direction = unitOr(missile.direction.Lerp(unitOr(delta, missile.direction), FlightMath.DampAlpha(missile.hostile ? tuned(session, TUNING.missileTurn) + (missile.ace ? 0.6 : 0) : playerTurn, dt)), missile.direction);
 			const nextPosition = missile.position.add(missile.direction.mul(speed * dt));
-			if (segmentDistance(targetPosition, missile.position, nextPosition) < (missile.hostile ? 24 : 32)) {
+			if (segmentDistance(targetPosition, missile.position, nextPosition) < (missile.hostile ? 24 : WeaponRules.FuseRadius)) {
 				removed = true;
 				JetFactory.Burst(session.folder, targetPosition, Color3.fromRGB(255, 179, 102), missile.hostile ? 6 : 8);
 				if (missile.hostile) {

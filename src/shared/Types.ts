@@ -111,7 +111,9 @@ export interface Telemetry {
 	/** How long the HUD should hold `radio` (seconds); the HUD default applies when absent. */
 	radioSeconds?: number;
 	/** Why the latest FIRE press was refused; `fireDeniedSerial` increments on every refusal. */
-	fireDenied?: "no_ammo" | "cooldown";
+	fireDenied?: "no_ammo" | "cooldown" | "blind";
+	/** False while the current phase protects the selected target (no guided shot possible). */
+	targetDamageable?: boolean;
 	fireDeniedSerial?: number;
 }
 export interface MissionFinished extends MissionStats {

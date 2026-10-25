@@ -102,7 +102,7 @@ interface RadioNotice {
 const RADIO_SECONDS = 4.5;
 /** Seconds a refused FIRE reason stays up. */
 const FIRE_DENIED_SECONDS = 1;
-const FIRE_DENIED_TEXT: { [reason: string]: string } = { no_ammo: "NO MISSILES · RELOADING", cooldown: "LAUNCHER CYCLING" };
+const FIRE_DENIED_TEXT: { [reason: string]: string } = { no_ammo: "NO MISSILES · RELOADING", cooldown: "LAUNCHER CYCLING", blind: "NO LOCK · FIRING BLIND" };
 
 interface GameUIProps {
 	remotes: Remotes;
@@ -489,7 +489,8 @@ function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
 		radio: safeRadio(payload.radio, previous.radio),
 		radioSerial: typeIs(payload.radioSerial, "number") ? math.max(0, math.floor(finite(payload.radioSerial, previous.radioSerial ?? 0))) : previous.radioSerial,
 		radioSeconds: typeIs(payload.radioSeconds, "number") ? math.clamp(finite(payload.radioSeconds, RADIO_SECONDS), 0.25, 10) : undefined,
-		fireDenied: payload.fireDenied === "no_ammo" || payload.fireDenied === "cooldown" ? payload.fireDenied : undefined,
+		fireDenied: payload.fireDenied === "no_ammo" || payload.fireDenied === "cooldown" || payload.fireDenied === "blind" ? payload.fireDenied : undefined,
+		targetDamageable: payload.targetDamageable === undefined ? undefined : payload.targetDamageable === true,
 		fireDeniedSerial: typeIs(payload.fireDeniedSerial, "number") ? math.max(0, math.floor(finite(payload.fireDeniedSerial, previous.fireDeniedSerial ?? 0))) : previous.fireDeniedSerial,
 		targetHealth: typeIs(payload.targetHealth, "number") ? math.clamp(finite(payload.targetHealth, 1), 0, 1) : undefined,
 	};
@@ -1051,7 +1052,7 @@ function MissionHud({
 	const cooldownText = telemetry.missileCooldown > 0 && !touch ? string.format(" · %.1fs", telemetry.missileCooldown) : "";
 	const statusText = `${hull < 100 ? `HULL ${hull} · ` : ""}MSL ${telemetry.missiles}${cooldownText}`;
 	const statusColor = telemetry.missiles <= 0 || hull <= 30 ? C.Danger : hull <= 60 ? C.Orange : C.Ivory;
-	const fireButton = WeaponRules.FireButton(telemetry.missiles, telemetry.missileCooldown, telemetry.target !== undefined, telemetry.lockProgress);
+	const fireButton = WeaponRules.FireButton(telemetry.missiles, telemetry.missileCooldown, telemetry.target !== undefined && telemetry.targetDamageable !== false, telemetry.lockProgress);
 	const timeRemaining = telemetry.timeRemaining ?? 600;
 	const tutorial = getTutorialInstruction(telemetry.tutorialStep, inputMode);
 	const progress = telemetry.objectiveTotal !== undefined && telemetry.objectiveTotal > 0

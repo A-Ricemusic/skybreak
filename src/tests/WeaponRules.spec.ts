@@ -17,12 +17,13 @@ describe("WeaponRules action gate", () => {
 	});
 	it("drops a duplicate of the same kind inside the window without extending it", () => {
 		const gate = WeaponRules.NewActionGate();
+		const w = WeaponRules.ActionWindow;
 		expect(WeaponRules.AcceptAction(gate, "FireMissile", 10)).toBe(true);
 		expect(WeaponRules.AcceptAction(gate, "FireMissile", 10.01)).toBe(false);
-		// 0.09 s after the accepted press, not after the dropped duplicate.
-		expect(WeaponRules.AcceptAction(gate, "FireMissile", 10.09)).toBe(true);
-		expect(WeaponRules.AcceptAction(gate, "FireMissile", 10.17)).toBe(false);
-		expect(WeaponRules.AcceptAction(gate, "FireMissile", 10.18)).toBe(true);
+		// One window after the accepted press (with float margin), not after the dropped duplicate.
+		expect(WeaponRules.AcceptAction(gate, "FireMissile", 10 + w + 0.001)).toBe(true);
+		expect(WeaponRules.AcceptAction(gate, "FireMissile", 10 + w + 0.001 + w * 0.9)).toBe(false);
+		expect(WeaponRules.AcceptAction(gate, "FireMissile", 10 + 2 * (w + 0.001))).toBe(true);
 	});
 	it("rejects a non-finite clock and unknown action names", () => {
 		const gate = WeaponRules.NewActionGate();
@@ -43,6 +44,10 @@ describe("WeaponRules launch decision", () => {
 		expect(WeaponRules.Launch({ ...launchReady, distance: WeaponRules.LockRange + 1 }).kind).toBe("blind");
 		expect(WeaponRules.Launch({ ...launchReady, dot: WeaponRules.LockDot - 0.01 }).kind).toBe("blind");
 		expect(WeaponRules.Launch({ ...launchReady, distance: WeaponRules.LockRange, dot: WeaponRules.LockDot }).kind).toBe("guided");
+		// Ground targets lock through the wider cone; a protected target never gets a guided shot.
+		expect(WeaponRules.Launch({ ...launchReady, dot: WeaponRules.GroundLockDot + 0.01, groundTarget: true }).kind).toBe("guided");
+		expect(WeaponRules.Launch({ ...launchReady, dot: WeaponRules.GroundLockDot + 0.01, groundTarget: false }).kind).toBe("blind");
+		expect(WeaponRules.Launch({ ...launchReady, canDamage: false }).kind).toBe("blind");
 	});
 	it("refuses with a reason only for ammo and cooldown, ammo first", () => {
 		const empty = WeaponRules.Launch({ ...launchReady, missiles: 0 });
@@ -87,8 +92,8 @@ describe("WeaponRules proximity fuse", () => {
 
 describe("WeaponRules FIRE button state", () => {
 	it("reports EMPTY, cooldown seconds, lock progress and a filled FIRE when locked", () => {
-		expect(WeaponRules.FireButton(0, 0, true, 1)).toEqual({ text: "EMPTY", filled: false, enabled: false, dimmed: false });
-		expect(WeaponRules.FireButton(3, 0.84, true, 1)).toEqual({ text: "0.8", filled: false, enabled: false, dimmed: false });
+		expect(WeaponRules.FireButton(0, 0, true, 1)).toEqual({ text: "EMPTY", filled: false, enabled: true, dimmed: true });
+		expect(WeaponRules.FireButton(3, 0.84, true, 1)).toEqual({ text: "0.8", filled: false, enabled: true, dimmed: true });
 		expect(WeaponRules.FireButton(3, 0, true, 0.6)).toEqual({ text: "LOCK 60%", filled: false, enabled: true, dimmed: true });
 		expect(WeaponRules.FireButton(3, 0, true, 0.99)).toEqual({ text: "FIRE", filled: true, enabled: true, dimmed: false });
 	});
