@@ -13,6 +13,8 @@ export interface LaunchInput {
 	/** Distance and nose dot to the current target; ignored without a target. */
 	distance: number;
 	dot: number;
+	/** Ground targets lock through a wider cone: you orbit them, you do not chase them. */
+	groundTarget?: boolean;
 }
 export interface FireButtonState {
 	text: string;
@@ -39,6 +41,10 @@ const ACTION_KINDS: CombatActionKind[] = ["FireMissile", "Evade", "CycleTarget"]
 const ACTION_WINDOW = 0.09;
 const LOCK_RANGE = 2450;
 const LOCK_DOT = math.cos(math.rad(62));
+const GROUND_LOCK_DOT = math.cos(math.rad(80));
+/** Lock builds in 0.8 s and decays at half that rate so a brief slip off the target is forgiven. */
+const LOCK_BUILD_SECONDS = 0.8;
+const LOCK_DECAY_PER_SECOND = 0.8;
 const LOCKED_AT = 0.99;
 /** Unguided missile: detonates when its sweep passes within this many studs of a damageable enemy. */
 const FUSE_RADIUS = 36;
@@ -46,6 +52,10 @@ export const WeaponRules = {
 	ActionWindow: ACTION_WINDOW,
 	LockRange: LOCK_RANGE,
 	LockDot: LOCK_DOT,
+	GroundLockDot: GROUND_LOCK_DOT,
+	LockBuildSeconds: LOCK_BUILD_SECONDS,
+	LockDecayPerSecond: LOCK_DECAY_PER_SECOND,
+	LockDotFor(groundTarget: boolean): number { return groundTarget ? GROUND_LOCK_DOT : LOCK_DOT; },
 	LockedAt: LOCKED_AT,
 	FuseRadius: FUSE_RADIUS,
 	UnguidedLifetime: 5,
@@ -72,7 +82,7 @@ export const WeaponRules = {
 		if (!finite(input.missiles) || input.missiles <= 0) return { kind: "denied", reason: "no_ammo" };
 		if (finite(input.missileCooldown) && input.missileCooldown > 0) return { kind: "denied", reason: "cooldown" };
 		const locked = input.hasTarget && finite(input.lockProgress) && input.lockProgress >= LOCKED_AT;
-		const inEnvelope = finite(input.distance) && finite(input.dot) && input.distance <= LOCK_RANGE && input.dot >= LOCK_DOT;
+		const inEnvelope = finite(input.distance) && finite(input.dot) && input.distance <= LOCK_RANGE && input.dot >= WeaponRules.LockDotFor(input.groundTarget === true);
 		return locked && inEnvelope ? { kind: "guided" } : { kind: "blind" };
 	},
 	SegmentDistance: segmentDistance,

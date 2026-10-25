@@ -69,7 +69,6 @@ let missionState: RemoteEvent | undefined;
 let onFinished: FinishedCallback | undefined;
 const FIXED_STEP = 1 / 30;
 const LOCK_RANGE = WeaponRules.LockRange;
-const LOCK_DOT = WeaponRules.LockDot;
 const MAX_MISSILES = 8;
 const PLAYER_MISSILE_DAMAGE = 55;
 // Threat tuning indexed by act (1-3). Missions 1-2 use act 1.
@@ -568,7 +567,7 @@ function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy):
 		if (current) [distance, dot] = targetMetrics(session, current);
 		const decision = WeaponRules.Launch({
 			missiles: session.missiles, missileCooldown: session.missileCooldown,
-			hasTarget: current !== undefined, lockProgress: session.lockProgress, distance, dot,
+			hasTarget: current !== undefined, lockProgress: session.lockProgress, distance, dot, groundTarget: current?.kind === "ground",
 		});
 		if (decision.kind === "denied") { denyFire(session, decision.reason); return; }
 		position = positionFor(session.state).add(directionFor(session.state).mul(16)).sub(new Vector3(0, 2, 0));
@@ -859,8 +858,8 @@ function stepSession(session: CombatSession, dt: number): void {
 	if (!ownsEnemy(session, session.target)) acquireTarget(session);
 	if (session.target) {
 		const [distance, dot] = targetMetrics(session, session.target);
-		session.lockProgress = distance <= LOCK_RANGE && dot >= LOCK_DOT
-			? math.min(1, session.lockProgress + dt / 0.8) : math.max(0, session.lockProgress - dt * 1.6);
+		session.lockProgress = distance <= LOCK_RANGE && dot >= WeaponRules.LockDotFor(session.target.kind === "ground")
+			? math.min(1, session.lockProgress + dt / WeaponRules.LockBuildSeconds) : math.max(0, session.lockProgress - dt * WeaponRules.LockDecayPerSecond);
 	}
 	stepMissiles(session, dt);
 	if (!refreshSession(session, os.clock())) return;
