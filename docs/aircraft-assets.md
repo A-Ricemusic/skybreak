@@ -69,6 +69,8 @@ Also reopen the `.blend`, round-trip the FBX and GLB, and inspect both render vi
 
 In the actual game, verify the player, all three enemies, and airbase display use the intended model. Check client replication, correct front/up axes, canopy/exhaust placement, enemy identification, and trail attachment points. Complete the mission using the real controller. `tools/playtest-flight.client.luau` can drive a launched mission as a normal client LocalScript without changing health, damage, or kills. Plugin-context `require` can have a different module cache, so run controller QA in the normal LocalScript context.
 
+For close-up visual inspection, isolate the test camera from the normal menu/flight camera owner. Adding another render-step callback alone can leave two camera writers competing and produce misleading empty screenshots. Restore normal startup afterward; an isolated model preview is separate from the genuine mission playtest.
+
 ## Asset upload alternatives and known limitations
 
 The installed Studio build `0.744.0.7441077` returned this exact error on 2026-10-24 when the documented plugin upload API was tested:
