@@ -19,6 +19,7 @@ import { MENU_JET_POSITION } from "../shared/MenuWorldGeometry";
 import { MissionScore, type MissionRank } from "../shared/MissionScore";
 import { WeaponRules } from "../shared/WeaponRules";
 import { SpecialKind, SpecialWeapons } from "../shared/SpecialWeapons";
+import { getBriefingLayout } from "../shared/BriefingLayout";
 import { LoadoutPicker } from "./LoadoutPicker";
 import { NavigationCue } from "./NavigationCue";
 import { RelayCinematic } from "./RelayCinematic";
@@ -834,6 +835,7 @@ function BriefingScreenImpl({visible,menu,selectedSlot,selectedMission,slot,busy
 	onBack:()=>void;onLaunch:()=>void;onMission:(id:number)=>void;onSpecial:(kind:SpecialKind)=>void;
 }) {
 	const [browse,setBrowse]=useState(false),[act,setAct]=useState(1);
+	const [detailsCanvasHeight,setDetailsCanvasHeight]=useState(0);
 	const panelRef=useRef<Frame>();const inputMode=useContext(InputModeContext);
 	useEffect(()=>{if(!visible || inputMode!=="gamepad")return;task.defer(()=>{
 		const panel=panelRef.current;if(!panel)return;
@@ -846,7 +848,7 @@ function BriefingScreenImpl({visible,menu,selectedSlot,selectedMission,slot,busy
 	const completed=slot?.missions?.[selectedMission]?.completed===true;
 	const best=slot?.missions?.[selectedMission]?.bestTime;
 	const small=menu.panel.height<300,ultra=menu.panel.height<220;
-	const detailsTop=ultra ? 42 : small ? 57 : 66;
+	const briefingLayout=getBriefingLayout(menu.panel.height);
 	const choose=(id:number)=>{onMission(id);setBrowse(false);};
 	return <frame key="BriefingScreen" BackgroundTransparency={1} Size={UDim2.fromScale(1,1)} Visible={visible}>
 		<frame ref={panelRef} key="BriefingPanel" BackgroundTransparency={1} {...panelPosition(menu)}>
@@ -859,16 +861,18 @@ function BriefingScreenImpl({visible,menu,selectedSlot,selectedMission,slot,busy
 				</scrollingframe>
 				<ActionButton name="ArchiveBackButton" text="‹ BRIEFING" anchorPoint={new Vector2(0,1)} position={new UDim2(0,0,1,0)} size={new UDim2(1,0,0,44)} onActivated={()=>setBrowse(false)}/>
 			</> : <>
-				<Label name="BriefingEyebrow" text={`FILE ${selectedSlot} · ACT ${mission.act} · MISSION ${string.format("%02d",selectedMission)}/27`} color={C.Accent} textSize={10} font={Enum.Font.GothamBold} size={new UDim2(1,0,0,16)}/>
-				<Label name="BriefingTitle" text={mission.title} textSize={small ? 21 : 29} font={Enum.Font.GothamBlack} position={UDim2.fromOffset(0,ultra ? 14 : 20)} size={new UDim2(1,0,0,ultra ? 24 : 36)}/>
-				<scrollingframe key="BriefingDetails" Position={UDim2.fromOffset(0,detailsTop)} Size={new UDim2(1,0,1,-detailsTop-100)} CanvasSize={UDim2.fromOffset(0,0)} AutomaticCanvasSize={Enum.AutomaticSize.Y} BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={4}>
-					<uilistlayout Padding={new UDim(0,12)} SortOrder={Enum.SortOrder.LayoutOrder}/>
+				{/* Scroll the heading too: short landscape roots need the entire remaining
+				    height for reading, while archive/launch/back stay outside the clip. */}
+				<scrollingframe key="BriefingDetails" Size={new UDim2(1,0,0,briefingLayout.detailsHeight)} CanvasSize={UDim2.fromOffset(0,detailsCanvasHeight)} Active={true} Selectable={true} ClipsDescendants={true} ScrollingDirection={Enum.ScrollingDirection.Y} VerticalScrollBarInset={Enum.ScrollBarInset.Always} BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={4}>
+					<uilistlayout Padding={new UDim(0,12)} SortOrder={Enum.SortOrder.LayoutOrder} Change={{AbsoluteContentSize:(layout)=>setDetailsCanvasHeight(layout.AbsoluteContentSize.Y + 4)}}/>
+					<Label name="BriefingEyebrow" text={`FILE ${selectedSlot} · ACT ${mission.act} · MISSION ${string.format("%02d",selectedMission)}/27`} color={C.Accent} textSize={10} font={Enum.Font.GothamBold} size={new UDim2(1,-12,0,16)} layoutOrder={-2}/>
+					<Label name="BriefingTitle" text={mission.title} textSize={small ? 21 : 29} font={Enum.Font.GothamBlack} size={new UDim2(1,-12,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={-1}/>
 					<Label name="Story" text={mission.briefing} color={C.Ivory} textSize={14} size={new UDim2(1,-12,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={1}/>
 					<LoadoutPicker kind={special} enabled={!busy} layoutOrder={2} compact={small} onChange={onSpecial}/>
 					<Label name="PhasePlan" text={mission.phases.map((phase,index)=>`${index+1}. ${phase.label}`).join("\n")} color={C.Muted} textSize={12} size={new UDim2(1,-12,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={3}/>
 					<Label name="MissionRules" text={`600-second deadline · Retry available\nGreen beacon: fly inside its volume. Scans require the shown altitude.\nEscorts: stay near the vehicle; destroy raiders before they close.\n${completed ? `COMPLETED · BEST ${best !== undefined ? formatTime(best) : "--:--"}` : "Complete this sortie to unlock the next."}`} color={C.Accent} textSize={12} size={new UDim2(1,-12,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={4}/>
 				</scrollingframe>
-				<ActionButton name="BrowseMissionsButton" text={`ALL 27 MISSIONS · ${completed ? "REPLAY" : "SELECT"}`} anchorPoint={new Vector2(0,1)} position={new UDim2(0,0,1,-52)} size={new UDim2(1,0,0,44)} onActivated={()=>{setAct(mission.act);setBrowse(true);}} enabled={!busy}/>
+				<ActionButton name="BrowseMissionsButton" text={`ALL 27 MISSIONS · ${completed ? "REPLAY" : "SELECT"}`} anchorPoint={new Vector2(0,1)} position={UDim2.fromOffset(0,briefingLayout.archiveBottom)} size={new UDim2(1,0,0,briefingLayout.actionHeight)} onActivated={()=>{setAct(mission.act);setBrowse(true);}} enabled={!busy}/>
 				<FooterButtons compact={true} primaryName="LaunchButton" primaryText={busy ? "PREPARING..." : "LAUNCH ›"} secondaryName="BriefingBackButton" secondaryText="‹ FILES" busy={busy} onPrimary={onLaunch} onSecondary={onBack}/>
 			</>}
 		</frame>

@@ -2,7 +2,7 @@ import React, { useState } from "@rbxts/react";
 import { SpecialKind, SpecialWeapons } from "../shared/SpecialWeapons";
 
 // Briefing-screen row for the second weapon slot: tap to cycle through the
-// specials, one line of description underneath. Self-contained so GameUI only
+// specials, a wrapping description underneath. Self-contained so GameUI only
 // has to mount it; the chosen kind travels with the StartMission request.
 const INK = Color3.fromRGB(6, 13, 22);
 const PANEL = Color3.fromRGB(14, 30, 44);
@@ -21,12 +21,15 @@ export function LoadoutPicker({ kind, enabled, layoutOrder, compact, onChange }:
 	const [hot, setHot] = useState(false);
 	const definition = SpecialWeapons.Get(kind);
 	const index = SpecialWeapons.Order.indexOf(kind) + 1;
-	const buttonHeight = compact ? 40 : 44;
+	const buttonHeight = 44;
 	return (
 		<frame key="LoadoutPicker" AutomaticSize={Enum.AutomaticSize.Y} BackgroundTransparency={1} LayoutOrder={layoutOrder} Size={new UDim2(1, -12, 0, 0)}>
+			<uilistlayout Padding={new UDim(0, 4)} SortOrder={Enum.SortOrder.LayoutOrder} />
 			<textbutton
 				key="SpecialWeaponButton"
 				Active={enabled}
+				Selectable={enabled}
+				LayoutOrder={1}
 				AutoButtonColor={false}
 				BackgroundColor3={hot ? PANEL_HOT : PANEL}
 				BackgroundTransparency={enabled ? (hot ? 0.05 : 0.22) : 0.6}
@@ -48,7 +51,7 @@ export function LoadoutPicker({ kind, enabled, layoutOrder, compact, onChange }:
 			>
 				<uicorner CornerRadius={new UDim(0, 6)} />
 				<uistroke ApplyStrokeMode={Enum.ApplyStrokeMode.Border} Color={hot ? IVORY : ACCENT} Thickness={hot ? 2 : 1} Transparency={hot ? 0.1 : 0.5} />
-				<uipadding PaddingLeft={new UDim(0, 14)} PaddingRight={new UDim(0, 14)} PaddingTop={new UDim(0, 12)} PaddingBottom={new UDim(0, 12)} />
+				<uipadding PaddingLeft={new UDim(0, 14)} PaddingRight={new UDim(0, 14)} PaddingTop={new UDim(0, compact ? 8 : 12)} PaddingBottom={new UDim(0, compact ? 8 : 12)} />
 				<uitextsizeconstraint MaxTextSize={13} MinTextSize={8} />
 			</textbutton>
 			<textlabel
@@ -56,7 +59,7 @@ export function LoadoutPicker({ kind, enabled, layoutOrder, compact, onChange }:
 				AutomaticSize={Enum.AutomaticSize.Y}
 				BackgroundTransparency={1}
 				Font={Enum.Font.Gotham}
-				Position={UDim2.fromOffset(0, buttonHeight + 4)}
+				LayoutOrder={2}
 				Size={new UDim2(1, 0, 0, 0)}
 				Text={`${definition.description} ${definition.charges} charge${definition.charges === 1 ? "" : "s"}${definition.rechargeSeconds !== undefined ? ", recharging" : ""}.`}
 				TextColor3={MUTED}
