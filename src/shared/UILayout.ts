@@ -74,6 +74,26 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 
 	if (inputMode === "touch") {
 		const portrait = height > width;
+		const compactLandscape = !portrait && (width < 360 || height < 280);
+		if (compactLandscape) {
+			// At the 320x240 minimum, the usual vertical throttle and stacked status
+			// compete with both the warning lane and the right-side target button.
+			// Use two compact rows instead: throttle/status immediately below the
+			// alert, then the primary controls along the bottom safe edge.
+			const throttleLength = MIN_TOUCH_TARGET * 2 + 36;
+			const upperRowY = alert.y + alert.height + 10;
+			const throttle = { x: margin, y: upperRowY, width: throttleLength, height: MIN_TOUCH_TARGET };
+			const statusWidth = 128;
+			const statusHeight = 40;
+			const status = { x: width - margin - statusWidth, y: upperRowY, width: statusWidth, height: statusHeight };
+			const joystickSize = 64;
+			const joystick = { x: margin, y: height - margin - joystickSize, width: joystickSize, height: joystickSize };
+			const missileSize = 64;
+			const missile = { x: width - margin - missileSize, y: height - margin - missileSize, width: missileSize, height: missileSize };
+			const targetSize = MIN_TOUCH_TARGET;
+			const target = { x: missile.x - 14 - targetSize, y: height - margin - targetSize, width: targetSize, height: targetSize };
+			return { margin, alert, callout, status, touch: { joystick, throttle, throttleVertical: false, missile, target } };
+		}
 		const joystickSize = portrait ? 120 : height < 420 ? 112 : 132;
 		const joystick = { x: margin, y: height - margin - joystickSize, width: joystickSize, height: joystickSize };
 		const throttleLength = MIN_TOUCH_TARGET * 2 + 36;
