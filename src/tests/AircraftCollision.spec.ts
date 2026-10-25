@@ -31,13 +31,36 @@ describe("authoritative aircraft surface sweeps", () => {
 	});
 	it("excludes overlays, invisible markers and untagged aircraft or projectiles", () => {
 		const root = setup();
-		Scenery.Part(root, "Shallows", new Vector3(40, 1, 40), new Vector3(0, 600, 0), new Color3(1, 1, 1), Enum.Material.SmoothPlastic, { transparency: 0.45 });
+		Scenery.Part(root, "Shallows", new Vector3(40, 1, 40), new Vector3(0, 600, 0), new Color3(1, 1, 1), Enum.Material.SmoothPlastic, { flightSolid: false, transparency: 0.45 });
 		for (const name of ["Marker light", "Safety line", "Centreline", "Center stripe"]) {
-			const paint = Scenery.Part(root, name, new Vector3(40, 1, 40), new Vector3(0, 600, 0), new Color3(1, 1, 1));
+			const paint = Scenery.Part(root, name, new Vector3(40, 1, 40), new Vector3(0, 600, 0), new Color3(1, 1, 1), Enum.Material.Concrete, { flightSolid: false });
 			expect(paint.CanQuery).toBe(false);
 		}
 		const marker = new Instance("Part"); marker.Anchored = true; marker.Size = new Vector3(40, 1, 40); marker.Position = new Vector3(0, 600, 0); marker.Parent = root;
 		expect(AircraftCollision.Sweep(new Vector3(0, 620, 0), new Vector3(0, 580, 0), AircraftCollision.Parameters(root))).toBeUndefined();
+	});
+	it("uses explicit eligibility across primitive helpers regardless of display name", () => {
+		const root = setup(), color = new Color3(1, 1, 1), at = new Vector3(0, 600, 0);
+		const solid = Scenery.Part(root, "Marker light", new Vector3(30, 30, 1), at, color);
+		expect(solid.GetAttribute("FlightSolid")).toBe(true);
+		expect(AircraftCollision.Sweep(at.add(new Vector3(0, 0, 20)), at.sub(new Vector3(0, 0, 20)), AircraftCollision.Parameters(root))?.Instance).toBe(solid);
+		solid.Name = "Renamed wall";
+		expect(solid.CanQuery).toBe(true);
+		solid.Destroy();
+		const decorations = [
+			Scenery.Cylinder(root, "Custom decoration", 30, 1, at, color, Enum.Material.Neon, { flightSolid: false }),
+			Scenery.Disc(root, "Custom overlay", 30, 1, at, color, Enum.Material.Neon, { flightSolid: false }),
+			Scenery.Light(root, at, color),
+			Scenery.Part(root, "Invisible solid", new Vector3(30, 1, 30), at, color, Enum.Material.Concrete, { flightSolid: true, transparency: 1 }),
+		];
+		for (const part of decorations) {
+			part.Name = "Renamed decoration";
+			expect(part.CanQuery).toBe(false);
+			expect(part.GetAttribute("FlightSolid")).toBe(false);
+		}
+		expect(AircraftCollision.Sweep(at.add(new Vector3(0, 20, 0)), at.sub(new Vector3(0, 20, 0)), AircraftCollision.Parameters(root))).toBeUndefined();
+		const light = Scenery.Light(root, at, color, 3, { flightSolid: true });
+		expect(light.CanQuery).toBe(true);
 	});
 	it("detects terrain and the rendered ocean with distinct reasons", () => {
 		const root = setup();
