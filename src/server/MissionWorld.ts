@@ -4,7 +4,7 @@ import { WorldBuilder } from "./WorldBuilder";
 
 // A single-player place has one mission world. Terrain and lighting are owned
 // by this lifecycle; combat owns the parent folder and destroys it on exit.
-function part(parent: Instance, name: string, size: Vector3, position: Vector3, color: Color3, material = Enum.Material.Concrete): Part {
+function part(parent: Instance, name: string, size: Vector3, position: Vector3, color: Color3, material: Enum.Material = Enum.Material.Concrete): Part {
 	const p = new Instance("Part");
 	p.Name = name;
 	p.Size = size;
@@ -83,8 +83,10 @@ export const MissionWorld = {
 		const scenery = new Instance("Folder");
 		scenery.Name = missionId === 1 ? "FirstFlightWorld" : "IronCoastWorld";
 		scenery.Parent = parent;
-		const ocean = part(scenery, "Ocean", new Vector3(14000, 4, 14000), new Vector3(0, -18, 0), missionId === 1 ? Color3.fromRGB(35, 115, 145) : Color3.fromRGB(42, 85, 111), Enum.Material.SmoothPlastic);
-		ocean.Reflectance = 0.14;
+		for (let x = -2; x <= 2; x++) for (let z = -2; z <= 2; z++) {
+			const ocean = part(scenery, "Ocean", new Vector3(2000, 4, 2000), new Vector3(x * 2000, -18, z * 2000), missionId === 1 ? Color3.fromRGB(35, 115, 145) : Color3.fromRGB(42, 85, 111), Enum.Material.SmoothPlastic);
+			ocean.Reflectance = 0.14;
+		}
 		const groundTargets: Model[] = [];
 		if (missionId === 1) {
 			island(0, -850, 440, 70);
