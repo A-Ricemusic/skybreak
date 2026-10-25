@@ -31,6 +31,7 @@ if (Workspace.GetAttribute("SkybreakTestMode") !== true) {
 		FlightInput: folder.WaitForChild("FlightInput") as RemoteEvent,
 		CombatAction: folder.WaitForChild("CombatAction") as RemoteEvent,
 		MissionState: folder.WaitForChild("MissionState") as RemoteEvent,
+		Cutscene: folder.WaitForChild("Cutscene") as RemoteEvent,
 	};
 	const controller = new FlightController(remotes);
 	const mounted = mountGameUI(player.WaitForChild("PlayerGui"), remotes, controller);

@@ -1,6 +1,7 @@
 import { Players, RunService, Workspace } from "@rbxts/services";
 import { FlightMath, FlightState } from "../shared/FlightMath";
 import { JetFactory } from "../shared/JetFactory";
+import { MissionCatalog } from "../shared/MissionCatalog";
 import { MissionPhase, MissionRules, MissionRuleState, TargetKind } from "../shared/MissionRules";
 import { FinishedCallback, FlightInput, MissionStats, Remotes, Telemetry } from "../shared/Types";
 import { MissionWorld } from "./MissionWorld";
@@ -17,7 +18,7 @@ interface Projectile {
 }
 export interface CombatSession {
 	player: Player; slot: number; folder: Folder; aircraft: Model; state: FlightState; input: FlightInput;
-	rules: MissionRuleState; appliedPhase?: MissionPhase; nextHostileAt: number;
+	rules: MissionRuleState; appliedPhaseIndex?: number; nextHostileAt: number;
 	health: number; kills: number; elapsed: number; missiles: number; missileCooldown: number;
 	evadeCooldown: number; evadeRemaining: number; regen: number; lockProgress: number;
 	enemies: Enemy[]; projectiles: Projectile[]; target?: Enemy; telemetryTime: number;
@@ -103,7 +104,7 @@ function sendTelemetry(session: CombatSession): void {
 		objectiveTotal: objective.objectiveTotal, tutorialStep: objective.tutorialStep,
 		timeRemaining: MissionRules.TimeRemaining(session.rules), groundKills: session.rules.groundKills,
 		health: session.health, speed: session.state.speed, altitude: session.state.y,
-		kills: session.kills, total: session.rules.missionId === 1 ? 3 : 9,
+		kills: session.kills, total: MissionCatalog.TotalRequiredAirKills(session.rules.missionId),
 		missiles: session.missiles, missileCooldown: session.missileCooldown,
 		evadeCooldown: session.evadeCooldown, target: target?.model, targetName: target?.name ?? "",
 		targetKind: target ? (target.kind === "ground" ? "ground" : "air") : "", targetRequired: target?.required ?? false, targetDistance: distance,
@@ -205,7 +206,7 @@ function attackWarning(model: Model): BillboardGui {
 	label.Parent = warning;
 	return warning;
 }
-function spawnAir(session: CombatSession, count: number, required: boolean, ace = false): void {
+function spawnAir(session: CombatSession, count: number, required: boolean, ace = false, healthOverride?: number): void {
 	const forward = directionFor(session.state);
 	const right = new Vector3(-forward.Z, 0, forward.X);
 	for (let index = 0; index < count; index++) {
@@ -219,8 +220,9 @@ function spawnAir(session: CombatSession, count: number, required: boolean, ace 
 		const direction = unitOr(positionFor(session.state).sub(position).add(right.mul(150)), forward.mul(-1));
 		model.Parent = session.folder;
 		model.PivotTo(CFrame.lookAt(position, position.add(direction)));
+		const chapterHealth = session.rules.missionId <= 9 ? 100 : session.rules.missionId <= 18 ? 110 : 120;
 		const enemy: Enemy = {
-			id: `air_${session.enemies.size() + 1}`, name, model, health: ace ? 165 : 100,
+			id: `air_${session.enemies.size() + 1}`, name, model, health: healthOverride ?? (ace ? 165 : chapterHealth),
 			position, direction, velocity: direction.mul(300), kind: ace ? "ace" : "air", required, enabled: true,
 			fireTimer: 8 + index * 3, windup: 0, passRemaining: 0, passDirection: direction,
 			hiddenParts: [], warning: attackWarning(model),
@@ -230,13 +232,16 @@ function spawnAir(session: CombatSession, count: number, required: boolean, ace 
 	}
 }
 function applyPhase(session: CombatSession): void {
-	if (session.appliedPhase === session.rules.phase || session.rules.outcome !== undefined) return;
-	session.appliedPhase = session.rules.phase;
-	const phase = session.rules.phase;
-	if (phase === "tutorial_target") activateGround(session);
-	else if (phase === "tutorial_bandits" || phase === "intercept") spawnAir(session, 3, true);
-	else if (phase === "warehouses") { activateGround(session); spawnAir(session, 5, false); }
-	else if (phase === "ace") spawnAir(session, 1, true, true);
+	if (session.appliedPhaseIndex === session.rules.phaseIndex || session.rules.outcome !== undefined) return;
+	session.appliedPhaseIndex = session.rules.phaseIndex;
+	const phase = MissionRules.CurrentPhase(session.rules);
+	if (!phase) return;
+	if (phase.spawn?.activateGround === true) activateGround(session);
+	const wave = phase.spawn?.airWave;
+	if (wave) {
+		const ace = phase.requiresAce === true;
+		spawnAir(session, wave.count, wave.required, ace, wave.aceHealth);
+	}
 	acquireTarget(session);
 }
 function destroyEnemy(session: CombatSession, enemy: Enemy): void {
@@ -299,7 +304,8 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		if (!ownsEnemy(session, enemy) || enemy.kind === "ground") continue;
 		const ace = enemy.kind === "ace";
 		const separation = playerPosition.sub(enemy.position).Magnitude;
-		const speed = math.clamp(session.state.speed + (ace ? 48 : 24), ace ? 320 : 285, ace ? 380 : 350);
+		const escalation = math.floor((session.rules.missionId - 1) / 9) * 8;
+		const speed = math.clamp(session.state.speed + (ace ? 48 : 24) + escalation, ace ? 320 : 285, ace ? 390 : 366);
 		enemy.passRemaining = math.max(0, enemy.passRemaining - dt);
 		if (separation < 280 && enemy.passRemaining <= 0) {
 			// Commit to a straight pass, then reacquire; no permanent overlap or orbit.
@@ -422,7 +428,7 @@ export const CombatService = {
 	StartMission(player: Player, slot: number, missionId = 1): LuaTuple<[boolean, string?]> {
 		if (!missionState || !onFinished) return $tuple(false, "CombatService is not initialized");
 		if (!FlightMath.IsFinite(slot) || slot % 1 !== 0 || slot < 1 || slot > 4) return $tuple(false, "Choose a save slot from 1 to 4");
-		if (missionId !== 1 && missionId !== 2) return $tuple(false, "Choose mission 1 or 2");
+		if (MissionCatalog.Get(missionId) === undefined) return $tuple(false, `Choose mission 1-${MissionCatalog.Count()}`);
 		if (!typeIs(player, "Instance") || !player.IsA("Player") || player.Parent !== Players) return $tuple(false, "Player is unavailable");
 		if (completing.has(player)) return $tuple(false, "Your mission result is still being saved");
 		if (sessions.has(player)) return $tuple(false, "A mission is already in progress or its result is being saved");
@@ -436,7 +442,7 @@ export const CombatService = {
 		const [ok, result] = pcall(() => {
 			const world = MissionWorld.Build(missionId, folder);
 			assert(player.Parent === Players, "Player left during world construction");
-			assert(world.groundTargets.size() === (missionId === 1 ? 1 : 5), "Mission world has an incorrect ground target count");
+			assert(world.groundTargets.size() === MissionCatalog.TotalRequiredGroundKills(missionId), "Mission world has an incorrect ground target count");
 			const aircraft = JetFactory.Create("SKYBREAK - Kestrel", false);
 			assert(player.Parent === Players, "Player left during aircraft construction");
 			aircraft.SetAttribute("SkybreakOwner", player.UserId);
@@ -462,7 +468,7 @@ export const CombatService = {
 				for (const item of model.GetDescendants()) {
 					if (item.IsA("BasePart")) {
 						item.Anchored = true; item.CanCollide = false; item.CanTouch = false; item.CanQuery = false;
-						if (missionId === 1) { enemy.hiddenParts.push({ part: item, transparency: item.Transparency }); item.Transparency = 1; }
+						enemy.hiddenParts.push({ part: item, transparency: item.Transparency }); item.Transparency = 1;
 					}
 				}
 				markTarget(session, enemy);

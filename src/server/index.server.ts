@@ -38,6 +38,7 @@ function initialize(): void {
 		FlightInput: ensureRemote(remotesFolder, "FlightInput", "RemoteEvent"),
 		CombatAction: ensureRemote(remotesFolder, "CombatAction", "RemoteEvent"),
 		MissionState: ensureRemote(remotesFolder, "MissionState", "RemoteEvent"),
+		Cutscene: ensureRemote(remotesFolder, "Cutscene", "RemoteEvent"),
 	};
 
 	WorldBuilder.Build();

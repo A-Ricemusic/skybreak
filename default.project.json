@@ -49,6 +49,9 @@
       },
       "RadarGeometry": {
         "$path": "build/RadarGeometry.txt"
+      },
+      "LifeboatGeometry": {
+        "$path": "build/LifeboatGeometry.txt"
       }
     }
   }

@@ -12,6 +12,7 @@ import type {
 	SaveSlot,
 	Telemetry,
 } from "../shared/Types";
+import { CutsceneDef, MissionCatalog } from "../shared/MissionCatalog";
 import { FlightController } from "./FlightController";
 import {
 	getSlotListHeight,
@@ -47,9 +48,10 @@ const C = {
 const MENU_JET = new Vector3(155, 31, -100);
 const MENU_EYE_OFFSET = new Vector3(-17, 9, 54);
 const SLOT_NUMBERS = [1, 2, 3, 4];
-const MENU_SCREEN_FRAMES = { title: "TitleScreen", slots: "CampaignScreen", briefing: "BriefingScreen", outcome: "OutcomeScreen" };
+const MENU_SCREEN_FRAMES = { title: "TitleScreen", slots: "CampaignScreen", briefing: "BriefingScreen", cutscene: "CutsceneScreen", outcome: "OutcomeScreen" };
 
-type Screen = "title" | "slots" | "briefing" | "mission" | "outcome";
+type Screen = "title" | "slots" | "briefing" | "cutscene" | "mission" | "outcome";
+type CutsceneMode = "launch" | "debrief";
 
 interface ToastState {
 	message: string;
@@ -391,18 +393,28 @@ function normalizeSlots(response: CampaignResponse): SaveSlot[] | undefined {
 		const source = response.slots[offset];
 		if (!typeIs(source, "table")) return undefined;
 		const bestTime = typeIs(source.bestTime, "number") ? finite(source.bestTime, 0) : undefined;
+		const missions = new Array<{ completed: boolean; bestTime?: number }>();
+		for (let missionIndex = 0; missionIndex < MissionCatalog.Count(); missionIndex++) {
+			const entry = source.missions?.[missionIndex];
+			missions.push({
+				completed: entry?.completed === true,
+				bestTime: typeIs(entry?.bestTime, "number") ? math.max(0, finite(entry.bestTime, 0)) : undefined,
+			});
+		}
 		parsed.push({
 			index: offset + 1,
 			occupied: source.occupied === true,
 			completed: source.completed === true,
-			kills: math.clamp(math.floor(finite(source.kills, 0)), 0, 9),
+			kills: math.clamp(math.floor(finite(source.kills, 0)), 0, 99),
 			bestTime,
 			updatedAt: source.updatedAt,
-			currentMission: source.currentMission === 2 ? 2 : 1,
+			currentMission: math.clamp(math.floor(finite(source.currentMission, 1)), 1, MissionCatalog.Count()),
 			mission1Completed: source.mission1Completed === true,
 			mission2Completed: source.mission2Completed === true,
 			mission1BestTime: typeIs(source.mission1BestTime, "number") ? math.max(0, finite(source.mission1BestTime, 0)) : undefined,
 			mission2BestTime: typeIs(source.mission2BestTime, "number") ? math.max(0, finite(source.mission2BestTime, 0)) : undefined,
+			missionsCompleted: math.clamp(math.floor(finite(source.missionsCompleted, 0)), 0, MissionCatalog.Count()),
+			missions,
 		});
 	}
 	return parsed;
@@ -413,7 +425,7 @@ function normalizePersistence(value: unknown): Persistence {
 }
 
 function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
-	const missionId = payload.missionId === 2 ? 2 : payload.missionId === 1 ? 1 : previous.missionId;
+	const missionId = typeIs(payload.missionId, "number") && MissionCatalog.Get(payload.missionId) !== undefined ? payload.missionId : previous.missionId;
 	const targetKind = payload.targetKind === "ground" || payload.targetKind === "air" ? payload.targetKind : previous.targetKind;
 	const tutorialStep = payload.tutorialStep === "move" || payload.tutorialStep === "target" || payload.tutorialStep === "missile" || payload.tutorialStep === ""
 		? payload.tutorialStep
@@ -449,7 +461,9 @@ function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
 }
 
 function resumeMission(slot?: SaveSlot): number {
-	return slot?.mission1Completed === true ? 2 : 1;
+	if (!slot) return 1;
+	for (let index = 0; index < MissionCatalog.Count(); index++) if (slot.missions?.[index]?.completed !== true) return index + 1;
+	return MissionCatalog.Count();
 }
 
 function tutorialInstruction(step: string | undefined, mode: InputMode): string {
@@ -486,6 +500,29 @@ function setMenuCamera() {
 	camera.CameraType = Enum.CameraType.Scriptable;
 	camera.CFrame = CFrame.lookAt(eye.add(sway), focus);
 	camera.FieldOfView = 50;
+}
+
+function setCutsceneCamera(shot: string, reducedMotion: boolean) {
+	const camera = Workspace.CurrentCamera;
+	if (!camera) return;
+	const shots = new Map<string, { eye: Vector3; focus: Vector3 }>([
+		["approach", { eye: new Vector3(-80, 52, 135), focus: new Vector3(0, 25, -40) }],
+		["home_wide", { eye: new Vector3(-210, 115, 235), focus: new Vector3(0, 18, -120) }],
+		["home_tight", { eye: new Vector3(95, 50, 90), focus: MENU_JET }],
+		["ocean_low", { eye: new Vector3(-290, 28, -70), focus: new Vector3(80, 12, -180) }],
+		["harbor", { eye: new Vector3(250, 120, 180), focus: new Vector3(0, 25, -150) }],
+		["cold_horizon", { eye: new Vector3(-180, 75, 300), focus: new Vector3(40, 35, -260) }],
+		["storm", { eye: new Vector3(190, 64, 160), focus: new Vector3(-90, 40, -220) }],
+		["ridge", { eye: new Vector3(-260, 145, 40), focus: new Vector3(30, 55, -190) }],
+		["foundry", { eye: new Vector3(285, 110, 120), focus: new Vector3(10, 45, -210) }],
+		["aurora", { eye: new Vector3(-160, 155, 220), focus: new Vector3(0, 70, -200) }],
+		["finale", { eye: new Vector3(0, 185, 310), focus: new Vector3(0, 25, -120) }],
+	]);
+	const selected = shots.get(shot) ?? shots.get("approach")!;
+	const drift = reducedMotion ? Vector3.zero : new Vector3(math.sin(os.clock() * 0.18) * 6, math.sin(os.clock() * 0.11) * 2, math.cos(os.clock() * 0.15) * 4);
+	camera.CameraType = Enum.CameraType.Scriptable;
+	camera.CFrame = CFrame.lookAt(selected.eye.add(drift), selected.focus);
+	camera.FieldOfView = shot === "home_tight" ? 42 : 50;
 }
 
 function MenuBackdrop({ visible, mode }: { visible: boolean; mode: MenuLayout["mode"] }) {
@@ -535,17 +572,17 @@ function TitleScreen({ visible, menu, onCampaign }: { visible: boolean; menu: Me
 					Font={Enum.Font.GothamBlack}
 					LayoutOrder={2}
 					Size={new UDim2(1, 0, 0, compact ? 50 : 76)}
-					Text="SKYBREAK"
+					Text="EMBERS OF HOME"
 					TextColor3={C.Ivory}
 					TextScaled={true}
 					TextXAlignment={Enum.TextXAlignment.Left}
 				>
 					<uitextsizeconstraint MaxTextSize={compact ? 46 : 70} MinTextSize={28} />
 				</textlabel>
-				<Label name="Subtitle" text="OPERATION GLASS HORIZON" color={C.Orange} textSize={compact ? 11 : 13} font={Enum.Font.GothamBold} size={new UDim2(1, 0, 0, 18)} layoutOrder={3} />
+			<Label name="Subtitle" text="A 27-MISSION ARCADE FLIGHT CAMPAIGN" color={C.Orange} textSize={compact ? 10 : 12} font={Enum.Font.GothamBold} size={new UDim2(1, 0, 0, 18)} layoutOrder={3} />
 				<Label
 					name="Blurb"
-					text="Earn your wings, then break the Iron Coast strike force in a two-mission campaign."
+					text="A rescue pilot loses home to war—and decides that protecting people matters more than revenge."
 					color={C.Muted}
 					textSize={compact ? 13 : 15}
 					size={new UDim2(1, 0, 0, 0)}
@@ -581,18 +618,14 @@ function SlotButton({
 			? "LINK UNAVAILABLE"
 			: slot.completed
 				? "CAMPAIGN COMPLETE  ·  REPLAY"
-				: slot.mission1Completed
-					? "MISSION 02 UNLOCKED  ·  CONTINUE"
-					: slot.occupied ? "CONTINUE MISSION 01" : "NEW CAMPAIGN";
+				: slot.occupied ? string.format("MISSION %02d READY  ·  %d/27 COMPLETE", resumeMission(slot), slot.missionsCompleted ?? 0) : "NEW CAMPAIGN";
 	const detail = busy
 		? "Please stand by"
 		: !slot
 			? "Return and try again"
 			: slot.completed
-				? `01 ${slot.mission1BestTime !== undefined ? formatTime(slot.mission1BestTime) : "--:--"}   ·   02 ${slot.mission2BestTime !== undefined ? formatTime(slot.mission2BestTime) : "--:--"}`
-				: slot.mission1Completed
-					? `FIRST FLIGHT ${slot.mission1BestTime !== undefined ? formatTime(slot.mission1BestTime) : "COMPLETE"}`
-					: slot.occupied ? `FIRST FLIGHT  ·  ${slot.kills} air targets` : "Begin with 01 FIRST FLIGHT";
+				? "All chapters complete · every mission replayable"
+				: slot.occupied ? `${MissionCatalog.Require(resumeMission(slot)).title}  ·  ${slot.kills} best sortie kills` : "Begin with 01 LAST SUNRISE";
 	const rowHeight = compact ? 44 : 58;
 	return (
 		<textbutton
@@ -760,32 +793,52 @@ function BriefingScreen({
 	onMission: (missionId: number) => void;
 }) {
 	const compact = menu.compact;
-	const mission2 = selectedMission === 2;
-	const mission2Unlocked = slot?.mission1Completed === true;
-	const missionCompleted = mission2 ? slot?.mission2Completed === true : slot?.mission1Completed === true;
+	const mission = MissionCatalog.Require(selectedMission);
+	const missionCompleted = slot?.missions?.[selectedMission - 1]?.completed === true;
 	const mode = missionCompleted ? "COMPLETED  ·  REPLAY" : slot?.occupied ? "CONTINUE SORTIE" : "NEW SORTIE";
-	const title = mission2 ? "IRON COAST" : "FIRST FLIGHT";
-	const objective = mission2
-		? "Break the coastal strike force"
-		: "Complete flight training and repel the attack";
-	const story = mission2
-		? "Intercept three required bandits, destroy five coastal warehouses while attackers pursue, then defeat the faster armored ace. Optional attackers may remain in the fight."
-		: "Learn to pitch and turn, cycle to the marked ground target, fire a missile, then destroy the three bandits pursuing the airbase.";
+	const selectorTop = compact ? 102 : 136;
+	const selectorHeight = compact ? 44 : 50;
 	return (
 		<frame key="BriefingScreen" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={visible}>
 			<frame key="BriefingPanel" BackgroundTransparency={1} {...panelPosition(menu)}>
-				<Label name="BriefingEyebrow" text={`MISSION 0${selectedMission}`} color={C.Orange} textSize={compact ? 10 : 11} font={Enum.Font.GothamBold} size={new UDim2(1, 0, 0, compact ? 14 : 16)} />
-				<Label name="BriefingTitle" text={title} textSize={compact ? 22 : 32} font={Enum.Font.GothamBlack} position={UDim2.fromOffset(0, compact ? 16 : 22)} size={new UDim2(1, 0, 0, compact ? 28 : 40)} />
-				<Label name="ObjectiveTag" text="PRIMARY OBJECTIVE" color={C.Accent} textSize={10} font={Enum.Font.GothamBold} position={UDim2.fromOffset(0, compact ? 54 : 82)} size={new UDim2(1, 0, 0, 14)} />
-				<Label name="Objective" text={objective} textSize={compact ? 15 : 18} font={Enum.Font.GothamBold} position={UDim2.fromOffset(0, compact ? 68 : 100)} size={new UDim2(1, 0, 0, compact ? 20 : 26)} />
+				<Label name="BriefingEyebrow" text={string.format("CHAPTER %d  ·  MISSION %02d  ·  %s", mission.chapter, selectedMission, mission.briefingEyebrow)} color={C.Orange} textSize={compact ? 9 : 10} font={Enum.Font.GothamBold} size={new UDim2(1, 0, 0, compact ? 14 : 16)} />
+				<Label name="BriefingTitle" text={mission.codename} textSize={compact ? 21 : 30} font={Enum.Font.GothamBlack} position={UDim2.fromOffset(0, compact ? 15 : 21)} size={new UDim2(1, 0, 0, compact ? 27 : 38)} />
+				<Label name="ObjectiveTag" text="PRIMARY OBJECTIVE" color={C.Accent} textSize={9} font={Enum.Font.GothamBold} position={UDim2.fromOffset(0, compact ? 46 : 64)} size={new UDim2(1, 0, 0, 13)} />
+				<Label name="Objective" text={mission.briefingObjective} textSize={compact ? 13 : 16} font={Enum.Font.GothamBold} position={UDim2.fromOffset(0, compact ? 59 : 78)} size={new UDim2(1, 0, 0, compact ? 36 : 48)} textWrapped={true} textYAlignment={Enum.TextYAlignment.Top} />
+				<scrollingframe
+					key="MissionSelector"
+					BackgroundTransparency={1}
+					BorderSizePixel={0}
+					CanvasSize={UDim2.fromOffset(MissionCatalog.Count() * 52, 0)}
+					Position={UDim2.fromOffset(0, selectorTop)}
+					ScrollBarThickness={3}
+					ScrollingDirection={Enum.ScrollingDirection.X}
+					Size={new UDim2(1, 0, 0, selectorHeight)}
+				>
+					{MissionCatalog.All().map((item, index) => {
+						const unlocked = item.id === 1 || slot?.missions?.[item.id - 2]?.completed === true;
+						return (
+							<ActionButton
+								key={`Mission${item.id}SelectButton`}
+								name={`Mission${item.id}SelectButton`}
+								text={unlocked ? string.format("%02d", item.id) : "—"}
+								primary={selectedMission === item.id}
+								position={UDim2.fromOffset(index * 52, 0)}
+								size={UDim2.fromOffset(46, selectorHeight - 6)}
+								textSize={11}
+								enabled={!busy && unlocked}
+								onActivated={() => onMission(item.id)}
+							/>
+						);
+					})}
+				</scrollingframe>
 				<Label
 					name="Story"
-					text={story}
+					text={mission.briefingStory}
 					color={C.Muted}
 					textSize={compact ? 12 : 14}
-					position={UDim2.fromOffset(0, compact ? 96 : 140)}
-					size={new UDim2(1, 0, 0, 0)}
-					automaticSize={Enum.AutomaticSize.Y}
+					position={UDim2.fromOffset(0, selectorTop + selectorHeight + 3)}
+					size={new UDim2(1, 0, 0, compact ? 52 : 72)}
 					textWrapped={true}
 					textYAlignment={Enum.TextYAlignment.Top}
 				/>
@@ -796,30 +849,8 @@ function BriefingScreen({
 					textSize={10}
 					font={Enum.Font.GothamBold}
 					anchorPoint={new Vector2(0, 1)}
-					position={new UDim2(0, 0, 1, compact ? -92 : -98)}
+					position={new UDim2(0, 0, 1, compact ? -52 : -58)}
 					size={new UDim2(1, 0, 0, 16)}
-				/>
-				<ActionButton
-					name="Mission01SelectButton"
-					text="01  FIRST FLIGHT"
-					primary={selectedMission === 1}
-					anchorPoint={new Vector2(0, 1)}
-					position={new UDim2(0, 0, 1, compact ? -50 : -54)}
-					size={new UDim2(0.49, 0, 0, compact ? 34 : 38)}
-					textSize={compact ? 10 : 11}
-					enabled={!busy}
-					onActivated={() => onMission(1)}
-				/>
-				<ActionButton
-					name="Mission02SelectButton"
-					text={mission2Unlocked ? "02  IRON COAST" : "02  LOCKED"}
-					primary={selectedMission === 2}
-					anchorPoint={new Vector2(1, 1)}
-					position={new UDim2(1, 0, 1, compact ? -50 : -54)}
-					size={new UDim2(0.49, 0, 0, compact ? 34 : 38)}
-					textSize={compact ? 10 : 11}
-					enabled={!busy && mission2Unlocked}
-					onActivated={() => onMission(2)}
 				/>
 				<FooterButtons
 					compact={compact}
@@ -832,6 +863,38 @@ function BriefingScreen({
 					onSecondary={onBack}
 				/>
 			</frame>
+		</frame>
+	);
+}
+
+function CutsceneScreen({
+	definition,
+	beatIndex,
+	reducedMotion,
+	onSkip,
+	onToggleMotion,
+}: {
+	definition: CutsceneDef;
+	beatIndex: number;
+	reducedMotion: boolean;
+	onSkip: () => void;
+	onToggleMotion: () => void;
+}) {
+	const beat = definition.beats[math.clamp(beatIndex, 0, definition.beats.size() - 1)];
+	const tone = definition.tone === "warm" || definition.tone === "hope" ? C.Orange : definition.tone === "ash" ? Color3.fromRGB(224, 136, 96) : C.Accent;
+	return (
+		<frame key="CutsceneScreen" BackgroundColor3={C.Ink} BackgroundTransparency={0.68} BorderSizePixel={0} Size={UDim2.fromScale(1, 1)} ZIndex={30}>
+			<frame key="TopBar" BackgroundColor3={Color3.fromRGB(0, 0, 0)} BorderSizePixel={0} Size={new UDim2(1, 0, 0, 52)} ZIndex={31} />
+			<frame key="BottomBar" AnchorPoint={new Vector2(0, 1)} BackgroundColor3={Color3.fromRGB(0, 0, 0)} BorderSizePixel={0} Position={UDim2.fromScale(0, 1)} Size={new UDim2(1, 0, 0, 142)} ZIndex={31} />
+			<Label name="CutsceneTitle" text={definition.title.upper()} color={tone} textSize={11} font={Enum.Font.GothamBold} position={UDim2.fromOffset(20, 15)} size={new UDim2(0.6, 0, 0, 22)} zIndex={32} />
+			<Label name="CutsceneProgress" text={string.format("%02d / %02d", beatIndex + 1, definition.beats.size())} color={C.Faint} textSize={10} font={Enum.Font.RobotoMono} anchorPoint={new Vector2(1, 0)} position={new UDim2(1, -20, 0, 15)} size={UDim2.fromOffset(80, 22)} textXAlignment={Enum.TextXAlignment.Right} zIndex={32} />
+			<frame key="SubtitlePanel" BackgroundColor3={C.Ink} BackgroundTransparency={0.12} BorderSizePixel={0} AnchorPoint={new Vector2(0.5, 1)} Position={new UDim2(0.5, 0, 1, -22)} Size={new UDim2(1, -32, 0, 100)} ZIndex={32}>
+				<Corner radius={8} />
+				<Label name="Speaker" text={beat.speaker === "" ? "EMBERS OF HOME" : beat.speaker} color={tone} textSize={11} font={Enum.Font.GothamBold} position={UDim2.fromOffset(15, 8)} size={new UDim2(1, -30, 0, 18)} zIndex={33} />
+				<Label name="Subtitle" text={beat.text} color={C.Ivory} textSize={15} font={Enum.Font.GothamMedium} position={UDim2.fromOffset(15, 27)} size={new UDim2(1, -30, 0, 58)} textWrapped={true} textYAlignment={Enum.TextYAlignment.Top} zIndex={33} />
+			</frame>
+			<ActionButton name="SkipCutsceneButton" text="SKIP  ››" position={new UDim2(1, -112, 0, 62)} size={UDim2.fromOffset(96, 38)} textSize={11} onActivated={onSkip} />
+			<ActionButton name="MotionToggleButton" text={reducedMotion ? "CAMERA: STILL" : "CAMERA: MOTION"} position={UDim2.fromOffset(16, 62)} size={UDim2.fromOffset(138, 38)} textSize={10} onActivated={onToggleMotion} />
 		</frame>
 	);
 }
@@ -854,13 +917,14 @@ function OutcomeScreen({
 	onNext: () => void;
 }) {
 	const compact = menu.compact;
-	const retryText = busy ? "RESETTING SORTIE..." : outcome.won ? `REPLAY MISSION 0${outcome.missionId}` : "RETRY SORTIE";
+	const mission = MissionCatalog.Require(outcome.missionId);
+	const retryText = busy ? "RESETTING SORTIE..." : outcome.won ? string.format("REPLAY MISSION %02d", outcome.missionId) : "RETRY BRIEFING";
 	const timedOut = outcome.reason === "timeout";
-	const campaignComplete = outcome.won && outcome.missionId === 2;
+	const campaignComplete = outcome.won && outcome.missionId === MissionCatalog.Count();
 	const summary = outcome.won
 		? campaignComplete
-			? "The warehouses are destroyed and the ace is down. The coast is secure."
-			: "Training complete and the pursuing bandits are down. Iron Coast is now unlocked."
+			? "The evacuation ships are safe. Ember chose a future worth returning home to."
+			: `Objective complete. Mission ${string.format("%02d", math.min(MissionCatalog.Count(), outcome.missionId + 1))} is now available.`
 		: timedOut
 			? "The ten-minute operation window closed before the objective was complete."
 			: "The sortie ended before the required objective was complete.";
@@ -868,7 +932,7 @@ function OutcomeScreen({
 		<frame key="OutcomeScreen" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={visible}>
 			<frame key="VictoryPanel" BackgroundTransparency={1} {...panelPosition(menu)}>
 				<frame key="Accent" BackgroundColor3={outcome.won ? C.Accent : C.Danger} BorderSizePixel={0} Size={UDim2.fromOffset(32, 2)} />
-				<Label name="OutcomeEyebrow" text={`MISSION 0${outcome.missionId}  ·  ${outcome.missionId === 2 ? "IRON COAST" : "FIRST FLIGHT"}`} color={C.Orange} textSize={compact ? 10 : 11} font={Enum.Font.GothamBold} position={UDim2.fromOffset(0, 10)} size={new UDim2(1, 0, 0, 16)} />
+				<Label name="OutcomeEyebrow" text={string.format("MISSION %02d  ·  %s", outcome.missionId, mission.codename)} color={C.Orange} textSize={compact ? 10 : 11} font={Enum.Font.GothamBold} position={UDim2.fromOffset(0, 10)} size={new UDim2(1, 0, 0, 16)} />
 				<Label name="OutcomeTitle" text={outcome.won ? "MISSION COMPLETE" : timedOut ? "TIME EXPIRED" : "SORTIE LOST"} color={outcome.won ? C.Ivory : C.Danger} textSize={compact ? 24 : 34} font={Enum.Font.GothamBlack} position={UDim2.fromOffset(0, compact ? 28 : 32)} size={new UDim2(1, 0, 0, compact ? 30 : 44)} />
 				<Label
 					name="OutcomeSummary"
@@ -893,12 +957,10 @@ function OutcomeScreen({
 					automaticSize={Enum.AutomaticSize.Y}
 					textWrapped={true}
 				/>
-				{outcome.won ? outcome.missionId === 1 ? (
-					<FooterButtons compact={compact} primaryName="Mission1NextMissionButton" primaryText="NEXT: MISSION 02" secondaryName="ReturnToMenuButton" secondaryText="MAIN MENU" busy={busy} onPrimary={onNext} onSecondary={onReturn} />
+				{outcome.won && outcome.missionId < MissionCatalog.Count() ? (
+					<FooterButtons compact={compact} primaryName="NextMissionButton" primaryText={string.format("NEXT: MISSION %02d", outcome.missionId + 1)} secondaryName="ReturnToMenuButton" secondaryText="MAIN MENU" busy={busy} onPrimary={onNext} onSecondary={onReturn} />
 				) : (
-					<FooterButtons compact={compact} primaryName="ReturnToMenuButton" primaryText="RETURN TO MENU" secondaryName="RetryButton" secondaryText={retryText} busy={busy} onPrimary={onReturn} onSecondary={onRetry} />
-				) : (
-					<FooterButtons compact={compact} primaryName="RetryButton" primaryText={retryText} secondaryName="ReturnToMenuButton" secondaryText="MAIN MENU" busy={busy} onPrimary={onRetry} onSecondary={onReturn} />
+					<FooterButtons compact={compact} primaryName={outcome.won ? "ReturnToMenuButton" : "RetryButton"} primaryText={outcome.won ? "RETURN TO MENU" : retryText} secondaryName={outcome.won ? "RetryButton" : "ReturnToMenuButton"} secondaryText={outcome.won ? retryText : "MAIN MENU"} busy={busy} onPrimary={outcome.won ? onReturn : onRetry} onSecondary={outcome.won ? onRetry : onReturn} />
 				)}
 			</frame>
 		</frame>
@@ -1183,6 +1245,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const [hintUntil, setHintUntil] = useState(0);
 	const [killNotice, setKillNotice] = useState<KillNotice | undefined>();
 	const [damageUntil, setDamageUntil] = useState(0);
+	const [cutsceneId, setCutsceneId] = useState("intro_opening");
+	const [cutsceneBeat, setCutsceneBeat] = useState(0);
+	const [reducedMotion, setReducedMotion] = useState(false);
 
 	const mountedRef = useRef(true);
 	const screenRef = useRef<Screen>("title");
@@ -1198,6 +1263,8 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const inputModeRef = useRef<InputMode>(inputMode);
 	const outcomeWonRef = useRef(true);
 	const outcomeMissionRef = useRef(1);
+	const cutsceneModeRef = useRef<CutsceneMode>("launch");
+	const cutsceneSerialRef = useRef(0);
 	const rootFrameRef = useRef<Frame>();
 	const joystickRef = useRef<Frame>();
 	const knobRef = useRef<Frame>();
@@ -1249,7 +1316,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				? `Slot${selectedSlotRef.current}Button`
 				: current === "briefing"
 					? "LaunchButton"
-					: outcomeWonRef.current && outcomeMissionRef.current === 1 ? "Mission1NextMissionButton" : outcomeWonRef.current ? "ReturnToMenuButton" : "RetryButton";
+					: current === "cutscene"
+						? "SkipCutsceneButton"
+						: outcomeWonRef.current && outcomeMissionRef.current < MissionCatalog.Count() ? "NextMissionButton" : outcomeWonRef.current ? "ReturnToMenuButton" : "RetryButton";
 		const target = screenFrame.FindFirstChild(defaultName, true);
 		if (target && target.IsA("GuiObject")) GuiService.SelectedObject = target;
 	}, []);
@@ -1334,7 +1403,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		if (inMissionRef.current) controller.SetThrottle(adjusted);
 	}, [controller]);
 
-	const startMission = useCallback(() => {
+	const startMissionNow = useCallback(() => {
 		beginRequest((requestId) => {
 			const [response, problem] = invoke("StartMission", { slot: selectedSlot, missionId: selectedMission });
 			if (!mountedRef.current || requestRef.current !== requestId) return;
@@ -1345,6 +1414,41 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			}
 		});
 	}, [applyResponseSlots, beginRequest, invoke, selectedMission, selectedSlot, showToast]);
+
+	const beginCutscene = useCallback((id: string, mode: CutsceneMode) => {
+		const definition = MissionCatalog.Cutscene(id);
+		if (!definition) {
+			if (mode === "launch") startMissionNow();
+			else changeScreen("outcome");
+			return;
+		}
+		cutsceneModeRef.current = mode;
+		cutsceneSerialRef.current++;
+		setCutsceneId(id);
+		setCutsceneBeat(0);
+		changeScreen("cutscene");
+	}, [changeScreen, startMissionNow]);
+
+	const finishCutscene = useCallback(() => {
+		cutsceneSerialRef.current++;
+		if (cutsceneModeRef.current === "launch") {
+			changeScreen("briefing");
+			startMissionNow();
+		} else {
+			changeScreen("outcome");
+		}
+	}, [changeScreen, startMissionNow]);
+
+	const advanceCutscene = useCallback(() => {
+		const definition = MissionCatalog.Cutscene(cutsceneId);
+		if (!definition || cutsceneBeat + 1 >= definition.beats.size()) finishCutscene();
+		else setCutsceneBeat(cutsceneBeat + 1);
+	}, [cutsceneBeat, cutsceneId, finishCutscene]);
+
+	const launchWithCutscene = useCallback(() => {
+		const mission = MissionCatalog.Require(selectedMissionRef.current);
+		beginCutscene(mission.openingCutsceneId, "launch");
+	}, [beginCutscene]);
 
 	const returnToMenu = useCallback(() => {
 		cancelRequests();
@@ -1360,7 +1464,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		});
 	}, [applyResponseSlots, beginRequest, cancelRequests, changeScreen, controller, invoke, releaseJoystick, showToast]);
 
-	const restartMission = useCallback((missionId: number) => {
+	const openBriefing = useCallback((missionId: number) => {
 		beginRequest((requestId) => {
 			const [returned, returnError] = invoke("ReturnToMenu");
 			if (!mountedRef.current || requestRef.current !== requestId) return;
@@ -1369,22 +1473,14 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				return;
 			}
 			if (returned.slots) applyResponseSlots(returned);
-			task.wait(0.16);
-			if (!mountedRef.current || requestRef.current !== requestId) return;
 			selectedMissionRef.current = missionId;
 			setSelectedMission(missionId);
-			const [started, startError] = invoke("StartMission", { slot: selectedSlot, missionId });
-			if (!mountedRef.current || requestRef.current !== requestId) return;
-			if (!started) showToast(startError ?? "Command rejected the request.", true);
-			else {
-				if (started.slots) applyResponseSlots(started);
-				if (screenRef.current !== "mission") showToast("Clearance received. Preparing aircraft...", false);
-			}
+			changeScreen("briefing");
 		});
-	}, [applyResponseSlots, beginRequest, invoke, selectedSlot, showToast]);
+	}, [applyResponseSlots, beginRequest, changeScreen, invoke, showToast]);
 
-	const retryMission = useCallback(() => restartMission(selectedMissionRef.current), [restartMission]);
-	const nextMission = useCallback(() => restartMission(2), [restartMission]);
+	const retryMission = useCallback(() => openBriefing(selectedMissionRef.current), [openBriefing]);
+	const nextMission = useCallback(() => openBriefing(math.min(MissionCatalog.Count(), selectedMissionRef.current + 1)), [openBriefing]);
 
 	const moveJoystick = useCallback((input: InputObject) => {
 		const joystick = joystickRef.current;
@@ -1452,12 +1548,27 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	}, [releaseJoystick, screen]);
 
 	useEffect(() => {
+		if (screen !== "cutscene") return;
+		const definition = MissionCatalog.Cutscene(cutsceneId);
+		const beat = definition?.beats[cutsceneBeat];
+		if (!beat) return;
+		const serial = ++cutsceneSerialRef.current;
+		task.delay(math.clamp(beat.seconds, 2.2, 7), () => {
+			if (mountedRef.current && screenRef.current === "cutscene" && cutsceneSerialRef.current === serial) advanceCutscene();
+		});
+	}, [advanceCutscene, cutsceneBeat, cutsceneId, screen]);
+
+	useEffect(() => {
 		task.defer(selectDefault);
 	}, [busy, inputMode, screen, selectDefault]);
 
 	useEffect(() => {
 		const began = UserInputService.InputBegan.Connect((input) => {
 			if (screenRef.current === "mission" || GuiService.MenuIsOpen) return;
+			if (screenRef.current === "cutscene" && (input.KeyCode === Enum.KeyCode.ButtonB || input.KeyCode === Enum.KeyCode.Escape)) {
+				finishCutscene();
+				return;
+			}
 			if (inputModeFromInputType(input.UserInputType.Name) !== "gamepad") return;
 			if (input.KeyCode === Enum.KeyCode.ButtonB) goBack();
 			task.defer(selectDefault);
@@ -1470,7 +1581,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			began.Disconnect();
 			changed.Disconnect();
 		};
-	}, [goBack, selectDefault]);
+	}, [finishCutscene, goBack, selectDefault]);
 
 	useEffect(() => {
 		const connection = remotes.MissionState.OnClientEvent.Connect((raw: unknown) => {
@@ -1479,7 +1590,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			if (payload.kind === "Started") {
 				const started = payload as MissionStarted;
 				const slot = math.clamp(math.floor(finite(started.slot, selectedSlotRef.current)), 1, 4);
-				const missionId = started.missionId === 2 ? 2 : 1;
+				const missionId = typeIs(started.missionId, "number") && MissionCatalog.Get(started.missionId) !== undefined ? started.missionId : 1;
 				selectedSlotRef.current = slot;
 				setSelectedSlot(slot);
 				selectedMissionRef.current = missionId;
@@ -1490,12 +1601,11 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				setDamageUntil(0);
 				const resetTelemetry = defaultTelemetry();
 				resetTelemetry.missionId = missionId;
-				if (missionId === 2) {
-					resetTelemetry.phase = "intercept";
-					resetTelemetry.objective = "Intercept the required bandits";
-					resetTelemetry.objectiveTotal = 3;
-					resetTelemetry.tutorialStep = "";
-				}
+				const firstPhase = MissionCatalog.Require(missionId).phases[0];
+				resetTelemetry.phase = firstPhase.kind;
+				resetTelemetry.objective = firstPhase.objective;
+				resetTelemetry.objectiveTotal = firstPhase.requiredAir ?? firstPhase.requiredGround ?? firstPhase.surviveSeconds ?? (firstPhase.requiresAce ? 1 : 0);
+				resetTelemetry.tutorialStep = firstPhase.tutorialStep ?? "";
 				telemetryRef.current = resetTelemetry;
 				setTelemetry(resetTelemetry);
 				if (!controller.Start(started)) {
@@ -1534,12 +1644,12 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				setMenuCamera();
 				const current = telemetryRef.current;
 				const won = finished.kind === "Completed";
-				const missionId = finished.missionId === 2 ? 2 : current.missionId === 2 ? 2 : 1;
+				const rawMissionId = typeIs(finished.missionId, "number") ? finished.missionId : current.missionId;
+				const missionId = MissionCatalog.Get(rawMissionId ?? 1) !== undefined ? (rawMissionId ?? 1) : 1;
 				selectedMissionRef.current = missionId;
 				setSelectedMission(missionId);
 				outcomeWonRef.current = won;
 				outcomeMissionRef.current = missionId;
-				changeScreen("outcome");
 				const resultPersistence = normalizePersistence(finished.persistence ?? persistenceRef.current);
 				const saveText = won && finished.saved === true && resultPersistence === "cloud"
 					? "FLIGHT RECORD SAVED TO CLOUD"
@@ -1558,16 +1668,22 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					saveText,
 					saveColor: won && finished.saved === true && resultPersistence === "cloud" ? C.Accent : resultPersistence === "cloud" ? C.Muted : C.Orange,
 				});
+				if (won) beginCutscene(MissionCatalog.Require(missionId).debriefCutsceneId, "debrief");
+				else changeScreen("outcome");
 			}
 		});
 		return () => connection.Disconnect();
-	}, [applyResponseSlots, beginRequest, cancelRequests, changeScreen, controller, invoke, releaseJoystick, remotes, showToast]);
+	}, [applyResponseSlots, beginCutscene, beginRequest, cancelRequests, changeScreen, controller, invoke, releaseJoystick, remotes, showToast]);
 
 	useEffect(() => {
 		let sampleClock = 0;
 		const connection = RunService.RenderStepped.Connect((deltaTime) => {
 			if (!mountedRef.current) return;
-			if (screenRef.current !== "mission") setMenuCamera();
+			if (screenRef.current === "cutscene") {
+				const definition = MissionCatalog.Cutscene(cutsceneId);
+				const beat = definition?.beats[cutsceneBeat];
+				if (beat) setCutsceneCamera(beat.shot, reducedMotion);
+			} else if (screenRef.current !== "mission") setMenuCamera();
 			else {
 				sampleClock += deltaTime;
 				if (sampleClock >= 0.1) {
@@ -1587,7 +1703,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			}
 		});
 		return () => connection.Disconnect();
-	}, [controller]);
+	}, [controller, cutsceneBeat, cutsceneId, reducedMotion]);
 
 	useEffect(() => {
 		task.defer(() => {
@@ -1598,6 +1714,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 
 	const menu = getMenuLayout(viewport.X, viewport.Y);
 	const selectedSave = slots?.[selectedSlot - 1];
+	const activeCutscene = MissionCatalog.Cutscene(cutsceneId) ?? MissionCatalog.Cutscene("intro_opening")!;
 	const rootChange = useMemo(() => ({ AbsoluteSize: (root: Frame) => mountedRef.current && setViewport(root.AbsoluteSize) }), []);
 	const now = os.clock();
 	let callout: Callout | undefined;
@@ -1609,6 +1726,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const toastRectangle = getToastLayout(viewport.X, viewport.Y, screen === "mission" ? undefined : menu);
 	const menuHints: ControlHint[] = [{ keyCode: "ButtonA", label: "A", action: "SELECT" }];
 	if (screen === "slots" || screen === "briefing") menuHints.push({ keyCode: "ButtonB", label: "B", action: "BACK" });
+	else if (screen === "cutscene") menuHints.push({ keyCode: "ButtonB", label: "B", action: "SKIP" });
 	const menuHintsRectangle = getMenuHintsLayout(viewport.X, viewport.Y, menu);
 
 	return (
@@ -1620,7 +1738,8 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				<frame ref={rootFrameRef} key="Root" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Change={rootChange}>
 					<TitleScreen visible={screen === "title"} menu={menu} onCampaign={() => { if (!busyRef.current) { changeScreen("slots"); loadSlots(); } }} />
 					<CampaignScreen visible={screen === "slots"} menu={menu} slots={slots} busy={busy} persistence={persistence} onBack={goBack} onSlot={(slot) => { if (!busyRef.current && slots?.[slot - 1]) { const missionId = resumeMission(slots[slot - 1]); selectedSlotRef.current = slot; selectedMissionRef.current = missionId; setSelectedSlot(slot); setSelectedMission(missionId); changeScreen("briefing"); } }} />
-					<BriefingScreen visible={screen === "briefing"} menu={menu} selectedSlot={selectedSlot} selectedMission={selectedMission} slot={selectedSave} busy={busy} onBack={goBack} onLaunch={startMission} onMission={(missionId) => { selectedMissionRef.current = missionId; setSelectedMission(missionId); }} />
+					<BriefingScreen visible={screen === "briefing"} menu={menu} selectedSlot={selectedSlot} selectedMission={selectedMission} slot={selectedSave} busy={busy} onBack={goBack} onLaunch={launchWithCutscene} onMission={(missionId) => { selectedMissionRef.current = missionId; setSelectedMission(missionId); }} />
+					{screen === "cutscene" && <CutsceneScreen definition={activeCutscene} beatIndex={cutsceneBeat} reducedMotion={reducedMotion} onSkip={finishCutscene} onToggleMotion={() => setReducedMotion(!reducedMotion)} />}
 					<MissionHud
 						visible={screen === "mission"}
 						viewport={viewport}

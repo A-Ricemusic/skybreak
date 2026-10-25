@@ -90,7 +90,7 @@ describe("Campaign domain unit tests", () => {
 		const profile = normalizeProfile(raw);
 		expect(profile.slots).toHaveLength(4);
 		expect(profile.slots[0].occupied).toBe(false);
-		expect(profile.slots[1].kills).toBe(9);
+		expect(profile.slots[1].kills).toBe(99);
 		expect(profile.slots[1].mission1Completed).toBe(true);
 		expect(profile.slots[1].mission2Completed).toBe(false);
 		expect(profile.slots[1].completed).toBe(false);
@@ -104,10 +104,10 @@ describe("Campaign domain unit tests", () => {
 		const stored = profileWith(1, { mission1Completed: true, mission1BestTime: 53.33 });
 		const desired = profileWith(1, { mission1Completed: true, mission2Completed: true, mission1BestTime: 70, mission2BestTime: 91 });
 		const merged = mergeProfiles(stored, desired);
-		expect(merged.slots[0].completed).toBe(true);
+		expect(merged.slots[0].completed).toBe(false);
 		expect(merged.slots[0].mission1BestTime).toBe(53.33);
 		expect(merged.slots[0].mission2BestTime).toBe(91);
-		expect(merged.slots[0].currentMission).toBe(2);
+		expect(merged.slots[0].currentMission).toBe(3);
 	});
 
 	it("defaults to the unfinished mission, locks Mission 2, and permits Mission 1 replay", () => {
@@ -213,10 +213,10 @@ describe("CampaignCoordinator datastore integration", () => {
 		expect(profile.slots[1].kills).toBe(2);
 		expect(profile.slots[2].occupied).toBe(false);
 		expect(profile.slots[3].occupied).toBe(false);
-		expect(serializeProfile(profile).version).toBe(2);
+		expect(serializeProfile(profile).version).toBe(3);
 	});
 
-	it("records Mission 2 independently and only completes the campaign after both missions", () => {
+	it("records Mission 2 independently and advances into the expanded campaign", () => {
 		const store = new FakeStore(profileWith(1, { mission1Completed: true, mission1BestTime: 70 }));
 		const { coordinator, deferred } = harness(store);
 		coordinator.load();
@@ -227,9 +227,29 @@ describe("CampaignCoordinator datastore integration", () => {
 		expect(finishedMission).toBe(2);
 		deferred.shift()!();
 		const slot = normalizeProfile(store.data).slots[0];
-		expect(slot.completed).toBe(true);
+		expect(slot.completed).toBe(false);
+		expect(slot.currentMission).toBe(3);
 		expect(slot.mission1BestTime).toBe(70);
 		expect(slot.mission2BestTime).toBe(88);
+	});
+
+	it("unlocks all 27 missions monotonically and completes only after the finale", () => {
+		const coordinator = new CampaignCoordinator("session_player");
+		coordinator.load();
+		for (let missionId = 1; missionId <= 26; missionId++) {
+			coordinator.recordMissionResult(1, missionId, true, 20, 120 + missionId);
+		}
+		let slot = coordinator.getSlots()[0];
+		expect(slot.missionsCompleted).toBe(26);
+		expect(slot.completed).toBe(false);
+		expect(slot.currentMission).toBe(27);
+		expect(resolveMissionRequest(slot, 27)[0]).toBe(27);
+		coordinator.recordMissionResult(1, 27, true, 5, 210);
+		slot = coordinator.getSlots()[0];
+		expect(slot.missionsCompleted).toBe(27);
+		expect(slot.completed).toBe(true);
+		expect(slot.currentMission).toBe(27);
+		expect(slot.missions?.[26].bestTime).toBe(210);
 	});
 
 	it("ignores a result whose mission does not match the active server mission", () => {

@@ -349,6 +349,58 @@ def build_radar(collection: bpy.types.Collection, mat: dict[str, bpy.types.Mater
         cylinder(f"Bollard_{x}_{y}", 0.65, 4.5, (x, y, 2.8), collection, mat["Accent"], vertices=10)
 
 
+def build_lifeboat(collection: bpy.types.Collection, mat: dict[str, bpy.types.Material]) -> None:
+    """Civilian rescue launch used as a readable protected objective.
+
+    The broad orange hull, white cabin, rails, antenna and life rings remain
+    legible from flight-camera distance. It is scenery, never a damage target.
+    """
+    # A faceted double-ended displacement hull, authored as one watertight shell.
+    length, beam = 50.0, 18.0
+    stations = (
+        (-25.0, 1.0, 5.0), (-20.0, 6.8, 3.2), (-12.0, 8.8, 2.1),
+        (12.0, 8.8, 2.1), (20.0, 6.8, 3.2), (25.0, 1.0, 5.0),
+    )
+    vertices: list[tuple[float, float, float]] = []
+    for longitudinal, half_beam, keel in stations:
+        vertices.extend([
+            (half_beam, longitudinal, 5.8),
+            (half_beam * 0.72, longitudinal, keel),
+            (0.0, longitudinal, keel - 2.2),
+            (-half_beam * 0.72, longitudinal, keel),
+            (-half_beam, longitudinal, 5.8),
+        ])
+    faces: list[tuple[int, ...]] = []
+    for station in range(len(stations) - 1):
+        a = station * 5
+        b = (station + 1) * 5
+        for edge in range(4):
+            faces.append((a + edge, b + edge, b + edge + 1, a + edge + 1))
+    faces.extend([(0, 1, 2, 3, 4), (29, 28, 27, 26, 25)])
+    mesh_object("Rescue_Hull", vertices, faces, collection, mat["Accent"])
+
+    box("Deck", (16.0, 35.0, 1.0), (0, 0, 6.2), collection, mat["Concrete"], bevel=0.45)
+    box("Cabin", (12.0, 14.0, 7.2), (0, -1.5, 10.1), collection, mat["Steel"], bevel=0.8)
+    box("Cabin_Roof", (13.8, 16.0, 0.8), (0, -1.5, 14.1), collection, mat["Roof"])
+    for side in (-1, 1):
+        box(f"Cabin_Window_{side}", (0.42, 7.8, 3.1), (side * 6.18, -2.0, 11.2), collection, mat["Glass"], bevel=0.18)
+        for longitudinal in (-15.0, -8.0, 7.0, 14.0):
+            cylinder(f"Rail_Post_{side}_{longitudinal}", 0.18, 3.2, (side * 7.3, longitudinal, 8.0), collection, mat["DarkMetal"], vertices=8)
+        box(f"Handrail_{side}", (0.35, 34.0, 0.35), (side * 7.3, 0, 9.55), collection, mat["DarkMetal"], bevel=0.1)
+    cylinder("Antenna_Mast", 0.28, 7.0, (0, -1.5, 17.8), collection, mat["DarkMetal"], vertices=10)
+    cylinder("Rescue_Beacon", 0.75, 1.1, (0, -1.5, 21.8), collection, mat["Warning"], vertices=12)
+    # Life rings are bright, low-cost toruses and sell the civilian-rescue role.
+    for side in (-1, 1):
+        for longitudinal in (-8.0, 7.0):
+            bpy.ops.mesh.primitive_torus_add(
+                major_radius=1.35, minor_radius=0.28, major_segments=12, minor_segments=6,
+                location=(side * 7.65, longitudinal, 10.1), rotation=(0, math.pi / 2, 0),
+            )
+            ring = bpy.context.object
+            ring.name = f"Life_Ring_{side}_{longitudinal}"
+            finish(ring, collection, mat["Warning"], smooth=True)
+
+
 def apply_and_consolidate(collection: bpy.types.Collection, slug: str) -> list[bpy.types.Object]:
     objects = [obj for obj in collection.objects if obj.type == "MESH"]
     for obj in objects:
@@ -603,6 +655,7 @@ def main() -> None:
     specs = (
         AssetSpec("Warehouse", "SKYBREAK Military Warehouse", build_warehouse, 700, ((64.5, 65.5), (39.0, 42.0), (94.5, 95.5)), (115, -135, 100)),
         AssetSpec("Radar", "SKYBREAK Radar Training Installation", build_radar, 850, ((64.5, 65.5), (44.0, 47.0), (64.5, 65.5)), (90, -105, 78)),
+        AssetSpec("Lifeboat", "Embers Civilian Rescue Launch", build_lifeboat, 250, ((17.5, 18.5), (20.0, 23.0), (49.5, 50.5)), (62, -72, 45)),
     )
     stats = [build_asset(spec) for spec in specs]
     print("MISSION_ASSETS_BUILD_COMPLETE")
