@@ -4,6 +4,8 @@
   "private": true,
   "packageManager": "bun@1.3.14",
   "scripts": {
+    "clean": "bun tools/clean-artifacts.ts",
+    "clean:check": "bun tools/clean-artifacts.ts --dry-run",
     "build": "bun tools/package-aircraft.ts && rbxtsc --rojo test.project.json",
     "watch": "bun tools/package-aircraft.ts && rbxtsc --rojo test.project.json -w",
     "build:place": "bun run build && mkdir -p build && rojo build -o build/skybreak.rbxlx",
