@@ -77,3 +77,5 @@ Embers live progress (agent-reported, exact `0e8cb9e`): actual Roblox Jest 73/73
 Embers second live checkpoint: continuous slot/session M1–M18 complete, agent reports validations true, M10–M18 health100, protected minimum100. M18 59.31s, 4air/5ground; briefing/opening/debrief captures reported. M19–M27 continuing. No protected-damage failure validation established by these wins.
 
 Last Tide source review `83b0bc8`: confirmed P2 cinematic compact layout overlaps title/speaker/subtitle and action buttons, with Skip below screen at 750x323. Assigned original agent offline fix and real child-bounds tests via follow-up `tide-parent-review-round1`; queue retained, no Studio granted.
+
+Last Tide follow-up `114824b5159c5914e0ed60fe40f063808bdbe191` independently source-reviewed: viewport-driven panels separate metadata, speaker/subtitle and 44px side-by-side actions; original overlap/out-of-bounds finding resolved. Regression child-bounds tests authored for five phone/minimum viewports. Live font wrapping/rendering and Roblox Jest remain pending lease; queue SHA updated.
