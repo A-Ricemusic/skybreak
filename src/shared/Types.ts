@@ -27,6 +27,8 @@ export interface SaveSlot {
 	introSeen?: boolean;
 	/** Set of mission briefing cinematics viewed on this slot. */
 	cutscenesSeen?: number[];
+	/** Bumped each time the player deletes this slot; a higher generation replaces older data instead of merging. */
+	generation?: number;
 }
 export interface CampaignResponse {
 	ok: boolean;

@@ -162,6 +162,18 @@ function startMission(state: PlayerState, payload: unknown): CampaignResponse {
 	return response(state, true);
 }
 
+function deleteSlot(state: PlayerState, payload: unknown): CampaignResponse {
+	const slot = typeIs(payload, "table") ? (payload as { slot?: unknown }).slot : undefined;
+	if (!isValidSlot(slot)) return response(state, false, "Choose a valid campaign slot (1-4).");
+	if (!waitForLoad(state)) return response(state, false, "Campaign data is still loading. Please try again.");
+	if (state.coordinator.getPersistence() === "unavailable") return response(state, false, "Campaign saves are temporarily unavailable.");
+	if (state.activeSlot !== undefined || state.activeMission !== undefined) return response(state, false, "Finish the current mission before deleting a save.");
+	state.coordinator.deleteSlot(slot);
+	// Wait for the cloud write so the client can tell the player whether the delete actually stuck.
+	state.coordinator.flush();
+	return response(state, true);
+}
+
 function returnToMenu(state: PlayerState): CampaignResponse {
 	state.activeSlot = undefined;
 	state.activeMission = undefined;
@@ -192,6 +204,7 @@ function handleRequest(player: Player, action: unknown, payload?: unknown): Camp
 		if (action === "ListSlots") return listSlots(state);
 		if (action === "StartMission") return startMission(state, payload);
 		if (action === "ReturnToMenu") return returnToMenu(state);
+		if (action === "DeleteSlot") return deleteSlot(state, payload);
 		return response(state, false, "Unknown campaign action.");
 	}, (errorValue) => debug.traceback(tostring(errorValue)));
 	state.requestBusy = false;

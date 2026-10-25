@@ -316,4 +316,47 @@ describe("CampaignCoordinator datastore integration", () => {
 		expect(stored.slots[3].mission1Completed).toBe(true);
 		expect(stored.slots[3].mission1BestTime).toBe(48);
 	});
+
+	it("deletes a slot in the cloud without merging the old progress back in", () => {
+		const store = new FakeStore(profileWith(2, { kills: 4, mission1Completed: true, mission1BestTime: 70 }));
+		const { coordinator, deferred } = harness(store, 300);
+		coordinator.load();
+		coordinator.recordMissionResult(1, 1, true, 3, 90);
+		deferred.shift()!();
+
+		coordinator.deleteSlot(2);
+		expect(coordinator.getSlots()[1].occupied).toBe(false);
+		deferred.shift()!();
+
+		const stored = normalizeProfile(store.data);
+		expect(stored.slots[1].occupied).toBe(false);
+		expect(stored.slots[1].mission1Completed).toBe(false);
+		expect(stored.slots[1].kills).toBe(0);
+		expect(stored.slots[1].generation).toBe(1);
+		expect(stored.slots[0].mission1BestTime).toBe(90);
+		expect(coordinator.getSlots()[1].occupied).toBe(false);
+	});
+
+	it("keeps a deleted slot empty when merged with an older copy, then records fresh progress", () => {
+		const old = profileWith(1, { kills: 5, mission1Completed: true, mission2Completed: true });
+		const store = new FakeStore(old);
+		const { coordinator, deferred } = harness(store, 400);
+		coordinator.load();
+		coordinator.deleteSlot(1);
+		deferred.shift()!();
+
+		const merged = mergeProfiles(old, store.data);
+		expect(merged.slots[0].occupied).toBe(false);
+		expect(merged.slots[0].mission2Completed).toBe(false);
+
+		coordinator.recordMissionStarted(1, 1);
+		coordinator.recordMissionResult(1, 1, true, 3, 120);
+		deferred.shift()!();
+		const fresh = normalizeProfile(store.data).slots[0];
+		expect(fresh.occupied).toBe(true);
+		expect(fresh.generation).toBe(1);
+		expect(fresh.mission1BestTime).toBe(120);
+		expect(fresh.mission2Completed).toBe(false);
+		expect(fresh.currentMission).toBe(2);
+	});
 });

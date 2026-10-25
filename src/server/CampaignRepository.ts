@@ -23,6 +23,7 @@ export interface StoredSlot {
 	missions?: Map<string, StoredMissionRecord> | Record<string, StoredMissionRecord>;
 	introSeen?: unknown;
 	cutscenesSeen?: unknown;
+	generation?: unknown;
 }
 
 export interface StoredProfile {
@@ -82,6 +83,7 @@ export function blankSlot(index: number): SaveSlot {
 		missions: {},
 		introSeen: false,
 		cutscenesSeen: [],
+		generation: 0,
 	};
 }
 
@@ -223,6 +225,7 @@ export function normalizeSlot(raw: unknown, index: number, legacyV1 = false): Sa
 	}
 	slot.introSeen = source.introSeen === true;
 	slot.cutscenesSeen = readCutsceneSet(source.cutscenesSeen);
+	slot.generation = isFiniteNumber(source.generation) && source.generation > 0 ? math.floor(source.generation) : 0;
 	return slot;
 }
 
@@ -247,7 +250,10 @@ export function normalizeProfile(raw: unknown): CampaignProfile {
 export function mergeSlot(storedRaw: unknown, desiredRaw: unknown, index: number): SaveSlot {
 	const stored = normalizeSlot(storedRaw, index);
 	const desired = normalizeSlot(desiredRaw, index);
+	// A deleted slot starts a new generation; never merge progress back in from an older one.
+	if (stored.generation !== desired.generation) return (stored.generation ?? 0) > (desired.generation ?? 0) ? stored : desired;
 	const merged = blankSlot(index);
+	merged.generation = stored.generation;
 	merged.occupied = stored.occupied || desired.occupied;
 	const missions: { [missionId: number]: MissionRecord } = {};
 	for (let id = 1; id <= MISSION_COUNT; id++) {
@@ -329,6 +335,7 @@ export function serializeProfile(profile: CampaignProfile): StoredProfile {
 			missions,
 			introSeen: source.introSeen === true,
 			cutscenesSeen: source.cutscenesSeen ?? [],
+			generation: source.generation ?? 0,
 		};
 		if (source.bestTime !== undefined) stored.bestTime = source.bestTime;
 		if (source.mission1BestTime !== undefined) stored.mission1BestTime = source.mission1BestTime;
@@ -534,6 +541,16 @@ export class CampaignCoordinator {
 		if (integer === 0) slot.introSeen = true;
 		slot.updatedAt = this.now();
 		slot.occupied = true;
+		this.markDirty();
+	}
+
+	/** Wipes a slot back to empty. The bumped generation keeps the old progress from merging back in on save. */
+	public deleteSlot(slotIndex: number): void {
+		assert(isValidSlot(slotIndex), "invalid campaign slot");
+		const generation = (this.profile.slots[slotIndex - 1].generation ?? 0) + 1;
+		const slot = blankSlot(slotIndex);
+		slot.generation = generation;
+		this.profile.slots[slotIndex - 1] = slot;
 		this.markDirty();
 	}
 
