@@ -102,6 +102,11 @@ function buildTemplates(data: MeshData): Model {
 			assert(triangles > 0, `KestrelGeometry: empty ${material.name} group`);
 			const center = mesh.GetCenter();
 			const size = mesh.GetSize();
+			// Opaque content preserves its vertex-space origin. Center the mesh
+			// before placing its MeshPart, or the original offset is applied twice.
+			for (const id of mesh.GetVertices()) {
+				mesh.SetPosition(id, mesh.GetPosition(id).sub(center));
+			}
 			const [status, content] = staticContentService.CreateDataModelContentAsync(Content.fromObject(mesh));
 			assert(tostring(status) === "Enum.CreateContentResult.Success", `CreateDataModelContentAsync: ${tostring(status)}`);
 			// Static opaque content survives the editable object and replicates to clients.
@@ -160,7 +165,7 @@ function getTemplates(): Model | undefined {
 
 export const BlenderAircraft = {
 	Populate(model: Model, enemy: boolean): boolean {
-		assert(!RunService.IsClient(), "BlenderAircraft geometry must be generated on the server");
+		assert(RunService.IsServer() || (RunService.IsStudio() && !RunService.IsRunning()), "BlenderAircraft geometry must be generated on the server or in Studio edit mode");
 		const source = getTemplates();
 		if (source === undefined) return false;
 		for (const item of source.GetChildren()) {

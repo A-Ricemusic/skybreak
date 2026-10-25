@@ -46,7 +46,8 @@ export const JetFactory = {
 		const root = part(model, "Part", "Root", new Vector3(3, 3, 16), new CFrame(), dark);
 		root.Transparency = 1;
 		model.PrimaryPart = root;
-		if (!BlenderAircraft.Populate(model, enemy)) {
+		const blender = BlenderAircraft.Populate(model, enemy);
+		if (!blender) {
 			model.SetAttribute("GeometrySource", "Fallback");
 			part(model, "Part", "Fuselage", new Vector3(3.4, 2.5, 16), new CFrame(), shell);
 			part(model, "WedgePart", "Nose", new Vector3(3.4, 2.5, 8), new CFrame(0, 0, -11).mul(CFrame.Angles(0, math.pi, 0)), shell);
@@ -62,9 +63,10 @@ export const JetFactory = {
 			}
 		}
 		for (const side of [-1, 1]) {
-			trail(root, new Vector3(side * 10, -0.25, 4), Color3.fromRGB(224, 246, 255), 0.25, 1.1);
+			const tip = blender ? new Vector3(side * 11.35, -1.58, 2.2) : new Vector3(side * 10, -0.25, 4);
+			trail(root, tip, Color3.fromRGB(224, 246, 255), 0.25, 1.1);
 		}
-		trail(root, new Vector3(0, -0.1, 9.3), accent, 1.1, 0.35);
+		trail(root, blender ? new Vector3(0, -1.92, 11.7) : new Vector3(0, -0.1, 9.3), accent, 1.1, 0.35);
 		return model;
 	},
 	CreateMissile(parent: Instance, position: Vector3, direction: Vector3, hostile: boolean): Part {
