@@ -4,7 +4,7 @@ User authorized two isolated bug fixes plus five independent, complete 27-missio
 
 ## Seven workstreams
 
-All seven delegated through T3 using provider `cursor`, model `claude-opus-4-7`.
+All seven initially delegated through T3 using Cursor Opus 4.7. Opus quota was exhausted; preserved all work and resumed the same threads/worktrees with Codex: Sol 5.6 high for HUD, Embers, Aurora and Tide; Sol 6.1 high for Glass and Relay. Hangar implementation completed before the quota failure. No billing settings changed.
 
 | Work | Branch | Worktree suffix | Request ID |
 | --- | --- | --- | --- |
@@ -20,7 +20,11 @@ Worktree root: `/Users/pelicannurse/.t3/worktrees/test app/`.
 Each task ID is `node:delegated-task:command%3Amcp%3A1d20c4c5-6ced-4ff0-adee-a0de5ee732ea%3Adelegate-task%3A` plus request ID.
 Each child thread ID replaces the leading `node:` with `thread:`. Retain those exact IDs for followups; don't spawn duplicates.
 
-HUD PR #1: https://github.com/A-Ricemusic/test-game-coding-from-phone/pull/1, head 9f22d9f515dbaf3d6366c1636b794b31b570029a. Parent independently reviewed; actual Roblox Jest 61/61 passed and iPhone landscape/portrait flight visuals passed, including natural airspace warning placement. Screenshots: build/screenshots/pr1-hud-{landscape,portrait}.png. CodeRabbit checks passed but found a confirmed320x240 touch warning/status/throttle overlap. Merge held; original HUD agent tasked via followup to add compact layout and full320x240 regression coverage. Revised commit/testing pending; no merge yet. Other six tasks continue. No rebuild alternative has yet been playtested.
+Both bug PRs are merged. Main after merges: `0498e85`.
+
+- PR #1: https://github.com/A-Ricemusic/test-game-coding-from-phone/pull/1, final head `28c6c39`. Parent reviewed; 62/62 actual Roblox Jest tests pass. Earlier normal iPhone landscape/portrait flight views passed; revised compact 320x240 real React HUD inspected with constrained root and forced warning visibility (UI fixture only, not gameplay). No control overlaps. Earlier screenshots: build/screenshots/pr1-hud-{landscape,portrait}.png.
+- PR #2: https://github.com/A-Ricemusic/test-game-coding-from-phone/pull/2, final head `a2e01f7`. Parent reviewed all geometry changes; 64/64 actual Roblox Jest tests passed before comment/unused-export cleanup, subsequent build passed. Sampled live iPhone menu views at different sway positions show clean faces. Native recording returned black frames and was rejected as evidence; no new continuous recap video claimed. CodeRabbit hit review quota; its green status was not counted as independent review.
+- Both fixes propagated to all five existing campaign threads. Alternatives remain in progress; none has yet supplied a complete 27-mission playthrough. PR watches disabled after merges.
 
 ## Studio ownership
 
