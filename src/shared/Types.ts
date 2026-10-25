@@ -6,6 +6,11 @@ export interface SaveSlot {
 	kills: number;
 	bestTime?: number;
 	updatedAt?: number;
+	currentMission?: number;
+	mission1Completed?: boolean;
+	mission2Completed?: boolean;
+	mission1BestTime?: number;
+	mission2BestTime?: number;
 }
 export interface CampaignResponse {
 	ok: boolean;
@@ -25,16 +30,30 @@ export interface FlightInput {
 	throttle: number;
 }
 export interface MissionStats {
+	missionId?: number;
+	groundKills?: number;
+	reason?: string;
 	slot: number;
 	kills: number;
 	elapsed: number;
 }
 export interface MissionStarted {
+	missionId?: number;
 	kind: "Started";
 	slot: number;
 	aircraft: Model;
 }
 export interface Telemetry {
+	missionId?: number;
+	phase?: string;
+	objective?: string;
+	objectiveProgress?: number;
+	objectiveTotal?: number;
+	timeRemaining?: number;
+	tutorialStep?: string;
+	groundKills?: number;
+	targetKind?: string;
+	targetRequired?: boolean;
 	kind: "Telemetry";
 	health: number;
 	speed: number;
