@@ -3,6 +3,8 @@ import { describe, expect, it } from "@rbxts/jest-globals";
 import {
 	CONTROL_TOWER_PARTS,
 	HANGAR_PARTS,
+	MENU_JET_CLEARANCE,
+	MENU_OBSTACLES,
 	MenuPartSpec,
 	findPenetratingPairs,
 	partsPenetrate,
@@ -93,5 +95,16 @@ describe("menu-world geometry has no co-penetrating parts", () => {
 		for (const part of HANGAR_PARTS) {
 			expect(partsPenetrate(part, opening)).toBe(false);
 		}
+	});
+
+	it("parks the display jet clear of every hangar and the control tower", () => {
+		const bad = findPenetratingPairs([MENU_JET_CLEARANCE, ...MENU_OBSTACLES]);
+		for (const [left, right] of bad) print(`menu jet collision: ${left} vs ${right}`);
+		expect(bad).toEqual([]);
+		// Sanity: the obstacle boxes really describe the buildings (three hangars, one tower).
+		expect(MENU_OBSTACLES.size()).toBe(4);
+		const hangar = MENU_OBSTACLES[2];
+		expect(hangar.offset.X).toBeCloseTo(195, 3);
+		expect(hangar.size.X).toBeCloseTo(55, 1);
 	});
 });

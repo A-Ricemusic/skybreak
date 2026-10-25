@@ -14,6 +14,7 @@ import type {
 	Telemetry,
 } from "../shared/Types";
 import { MissionCatalog, MISSION_COUNT } from "../shared/MissionCatalog";
+import { MENU_JET_POSITION } from "../shared/MenuWorldGeometry";
 import { navigationSummary } from "../shared/NavigationLayout";
 import { NavigationCue } from "./NavigationCue";
 import { RelayCinematic } from "./RelayCinematic";
@@ -51,7 +52,7 @@ const C = {
 };
 
 // Frames the DisplayJet that WorldBuilder parks on the east apron.
-const MENU_JET = new Vector3(155, 31, -100);
+const MENU_JET = MENU_JET_POSITION.add(new Vector3(0, 2, 0));
 const MENU_EYE_OFFSET = new Vector3(-17, 9, 54);
 const SLOT_NUMBERS = [1, 2, 3, 4];
 const MENU_SCREEN_FRAMES = { title: "TitleScreen", slots: "CampaignScreen", briefing: "BriefingScreen", outcome: "OutcomeScreen", cinematic: "CinematicScreen" };
