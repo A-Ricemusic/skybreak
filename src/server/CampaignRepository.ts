@@ -390,7 +390,8 @@ export function completeMission(
 	// only as Mission 1 results; all new callbacks must prove every objective.
 	const legacyMission1 = stats.missionId === undefined;
 	const objectivesMet = stats.kills >= requiredAirKills && (legacyMission1 || groundKills >= requiredGroundKills);
-	const qualifiedWin = won && objectivesMet && elapsed > 0 && elapsed <= GameConfig.Campaign.MissionTimeLimit;
+	const flightObjectivesMet = missionId <= 2 || stats.completedPhases === MissionCatalog.Get(missionId).phases.size();
+	const qualifiedWin = won && flightObjectivesMet && objectivesMet && elapsed > 0 && elapsed <= GameConfig.Campaign.MissionTimeLimit;
 	const result = coordinator.recordMissionResult(activeSlot, missionId, qualifiedWin, stats.kills, elapsed);
 	notify({
 		kind: result.completed ? "Completed" : "Failed",

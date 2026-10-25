@@ -1,5 +1,6 @@
 import { Lighting, Workspace } from "@rbxts/services";
 import { MissionAssets } from "../shared/MissionAssets";
+import { RelayWorld } from "./RelayWorld";
 import { WorldBuilder } from "./WorldBuilder";
 
 // A single-player place has one mission world. Terrain and lighting are owned
@@ -79,6 +80,7 @@ function grounded(model: Model, x: number, z: number, yaw = 0): Model {
 
 export const MissionWorld = {
 	Build(missionId: number, parent: Instance): { groundTargets: Model[] } {
+		if (missionId >= 3) return RelayWorld.Build(missionId, parent);
 		Workspace.FindFirstChild("World")?.Destroy();
 		Workspace.Terrain.Clear();
 		environment(missionId);

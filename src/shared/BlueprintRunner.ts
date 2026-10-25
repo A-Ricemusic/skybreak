@@ -1,33 +1,23 @@
-// Blueprint-driven authoritative runner for missions 3-27. Missions 1 and 2
-// continue to use the legacy MissionRules module so their existing tests and
-// combat-service behavior remain bit-identical.
-//
-// The runner is intentionally pure: callers (CombatService in production,
-// Jest in tests) feed it observed events; it never spawns objects, applies
-// damage, or trusts client-reported results.
+import { FlightPoint, MissionBlueprint, MissionPhaseBlueprint, PhaseKind } from "./MissionCatalog";
 
-import { MissionBlueprint, MissionPhaseBlueprint, PhaseKind } from "./MissionCatalog";
-
-export type BlueprintReason = "complete" | "timeout" | "destroyed";
-
+export type BlueprintReason = "complete" | "timeout" | "destroyed" | "protected_lost";
 export interface BlueprintState {
 	blueprint: MissionBlueprint;
 	startedAt: number;
 	elapsed: number;
-	/** Index into blueprint.phases that is currently active. */
 	phaseIndex: number;
-	/** Required progress of the active phase (ground or air kills). */
 	phaseProgress: number;
-	/** Dedup set of kill IDs recorded by the server. */
+	pointIndex: number;
+	protectedHealth: number;
 	killedIds: Set<string>;
 	requiredAirKills: number;
 	requiredGroundKills: number;
 	optionalAirKills: number;
+	phaseOptionalKills: number;
 	aceKilled: boolean;
 	outcome?: "won" | "failed";
 	reason?: BlueprintReason;
 }
-
 export interface BlueprintObjective {
 	phase: PhaseKind | "complete";
 	objective: string;
@@ -36,143 +26,102 @@ export interface BlueprintObjective {
 	tutorialStep: "";
 	beat?: string;
 }
-
-const DURATION = 600;
-
-function finite(value: number): boolean {
-	return value === value && value > -math.huge && value < math.huge;
+function finite(n: number): boolean { return n === n && math.abs(n) < math.huge; }
+function distance(a: FlightPoint, b: FlightPoint): number {
+	return math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2 + (a.z-b.z)**2);
 }
-
-function activePhase(state: BlueprintState): MissionPhaseBlueprint | undefined {
-	return state.blueprint.phases[state.phaseIndex];
+function sweptDistance(p: FlightPoint, a: FlightPoint, b: FlightPoint): number {
+	const dx=b.x-a.x, dy=b.y-a.y, dz=b.z-a.z;
+	const d=dx*dx+dy*dy+dz*dz;
+	const t=d > 0 ? math.clamp(((p.x-a.x)*dx+(p.y-a.y)*dy+(p.z-a.z)*dz)/d,0,1) : 0;
+	return distance(p,{x:a.x+dx*t,y:a.y+dy*t,z:a.z+dz*t});
 }
-
-function requiredCount(phase: MissionPhaseBlueprint): number {
-	if (phase.kind === "ace") return 1;
-	return phase.count ?? 0;
+function total(p: MissionPhaseBlueprint): number {
+	if (p.kind === "ace") return 1;
+	if (p.kind === "route") return p.points!.size();
+	if (p.kind === "recon") return p.points!.size() * p.seconds!;
+	if (p.kind === "signal" || p.kind === "escort" || p.kind === "defend") return p.seconds!;
+	return p.count ?? 0;
 }
-
-function finish(state: BlueprintState, outcome: "won" | "failed", reason: BlueprintReason): void {
-	if (state.outcome !== undefined) return;
-	state.outcome = outcome;
-	state.reason = reason;
+function finish(s: BlueprintState, outcome: "won" | "failed", reason: BlueprintReason): void {
+	if (s.outcome !== undefined) return;
+	s.outcome=outcome; s.reason=reason;
 }
-
+function advance(s: BlueprintState): void {
+	s.phaseIndex++; s.phaseProgress=0; s.pointIndex=0; s.phaseOptionalKills=0; s.protectedHealth=100;
+	if (s.phaseIndex >= s.blueprint.phases.size()) finish(s,"won","complete");
+}
 export const BlueprintRunner = {
-	Duration: DURATION,
-
+	Duration: 600,
 	NewState(blueprint: MissionBlueprint, startedAt: number): BlueprintState {
-		assert(finite(startedAt), "Mission clock must be finite");
-		assert(blueprint.phases.size() >= 1, "Blueprint must have at least one phase");
-		return {
-			blueprint,
-			startedAt,
-			elapsed: 0,
-			phaseIndex: 0,
-			phaseProgress: 0,
-			killedIds: new Set<string>(),
-			requiredAirKills: 0,
-			requiredGroundKills: 0,
-			optionalAirKills: 0,
-			aceKilled: false,
-		};
+		assert(finite(startedAt) && blueprint.phases.size()>0,"Invalid blueprint/clock");
+		return {blueprint,startedAt,elapsed:0,phaseIndex:0,phaseProgress:0,pointIndex:0,protectedHealth:100,
+			killedIds:new Set<string>(),requiredAirKills:0,requiredGroundKills:0,optionalAirKills:0,phaseOptionalKills:0,aceKilled:false};
 	},
-
-	Tick(state: BlueprintState, now: number, health = 100): void {
-		if (state.outcome !== undefined || !finite(now)) return;
-		state.elapsed = math.max(state.elapsed, now - state.startedAt, 0);
-		if (state.elapsed >= DURATION) finish(state, "failed", "timeout");
-		else if (finite(health) && health <= 0) finish(state, "failed", "destroyed");
+	Tick(s: BlueprintState, now: number, health=100): void {
+		if (s.outcome !== undefined || !finite(now)) return;
+		s.elapsed=math.max(s.elapsed,now-s.startedAt,0);
+		if (s.elapsed>=600) finish(s,"failed","timeout");
+		else if (finite(health) && health<=0) finish(s,"failed","destroyed");
 	},
-
-	TimeRemaining(state: BlueprintState): number {
-		return math.max(0, DURATION - state.elapsed);
+	TimeRemaining(s: BlueprintState): number { return math.max(0,600-s.elapsed); },
+	ActivePhase(s: BlueprintState): MissionPhaseBlueprint | undefined { return s.blueprint.phases[s.phaseIndex]; },
+	NavigationPoint(s: BlueprintState): FlightPoint | undefined {
+		const p=BlueprintRunner.ActivePhase(s);
+		if (!p?.points) return undefined;
+		if (p.kind !== "escort") return p.points[s.pointIndex] ?? p.points[0];
+		const segment=math.clamp(s.phaseProgress/p.seconds!,0,1)*(p.points.size()-1);
+		const i=math.min(math.floor(segment),p.points.size()-2), alpha=segment-i;
+		const a=p.points[i],b=p.points[i+1];
+		return {x:a.x+(b.x-a.x)*alpha,y:a.y+(b.y-a.y)*alpha,z:a.z+(b.z-a.z)*alpha};
 	},
-
-	ActivePhase(state: BlueprintState): MissionPhaseBlueprint | undefined {
-		return activePhase(state);
-	},
-
-	/** Which kinds of damage the active phase allows right now. */
-	CanDamage(state: BlueprintState, kind: "air" | "ground" | "ace", required: boolean): boolean {
-		if (state.outcome !== undefined) return false;
-		const phase = activePhase(state);
-		if (!phase) return false;
-		if (kind === "ace") return required && phase.kind === "ace";
-		if (kind === "ground") return required && phase.kind === "required_ground";
-		if (kind === "air") {
-			if (required) return phase.kind === "required_air";
-			// Optional raiders only count during phases that explicitly permit them.
-			if ((phase.optionalRaiders ?? 0) <= 0) return false;
-			return state.optionalAirKills < BlueprintRunnerPrivate.optionalWindow(state.blueprint);
+	/** Called only with authoritative server simulation. dt is bounded; invalid observations cannot win. */
+	ObserveFlight(s: BlueprintState, from: FlightPoint, to: FlightPoint, dt: number, now: number, threats=0): void {
+		BlueprintRunner.Tick(s,now);
+		if (s.outcome !== undefined || !finite(dt) || dt<=0 || dt>0.1) return;
+		for (const n of [from.x,from.y,from.z,to.x,to.y,to.z,threats]) if (!finite(n)) return;
+		const p=BlueprintRunner.ActivePhase(s)!;
+		const point=BlueprintRunner.NavigationPoint(s);
+		if (!point) return;
+		if (p.kind === "escort" || p.kind === "defend") {
+			s.protectedHealth=math.max(0,s.protectedHealth-math.clamp(threats,0,5)*0.7*dt);
+			if (s.protectedHealth<=0) { finish(s,"failed","protected_lost"); return; }
 		}
-		return false;
+		if (p.ceiling !== undefined && (to.y>p.ceiling || from.y>p.ceiling)) return;
+		if (p.kind === "route") {
+			if (sweptDistance(point,from,to) <= (p.radius ?? 210)) {
+				s.pointIndex++; s.phaseProgress++;
+				if (s.pointIndex>=p.points!.size()) advance(s);
+			}
+			return;
+		}
+		if (distance(point,to) > (p.radius ?? 1000)) return;
+		s.phaseProgress+=dt;
+		if (p.kind === "recon") s.pointIndex=math.min(p.points!.size()-1,math.floor((s.phaseProgress+0.00001)/p.seconds!));
+		if (s.phaseProgress+0.00001>=total(p)) advance(s);
 	},
-
-	RecordKill(
-		state: BlueprintState,
-		id: string,
-		kind: "air" | "ground" | "ace",
-		required: boolean,
-		now: number,
-	): boolean {
-		BlueprintRunner.Tick(state, now);
-		if (id === "" || state.killedIds.has(id)) return false;
-		if (!BlueprintRunner.CanDamage(state, kind, required)) return false;
-		const phase = activePhase(state)!;
-		state.killedIds.add(id);
-		if (kind === "ace") {
-			state.aceKilled = true;
-			state.phaseProgress = 1;
-			finish(state, "won", "complete");
-			return true;
-		}
-		if (required) {
-			if (kind === "air") state.requiredAirKills += 1;
-			else state.requiredGroundKills += 1;
-			state.phaseProgress += 1;
-			if (state.phaseProgress >= requiredCount(phase)) BlueprintRunnerPrivate.advance(state);
-			return true;
-		}
-		state.optionalAirKills += 1;
+	CanDamage(s: BlueprintState, kind: "air" | "ground" | "ace", required: boolean): boolean {
+		if (s.outcome !== undefined) return false;
+		const p=BlueprintRunner.ActivePhase(s);
+		if (!p) return false;
+		if (!required) return kind==="air" && s.phaseOptionalKills<(p.optionalRaiders ?? 0);
+		return (kind==="ace" && p.kind==="ace") || (kind==="ground" && p.kind==="required_ground") || (kind==="air" && p.kind==="required_air");
+	},
+	RecordKill(s: BlueprintState,id: string,kind: "air" | "ground" | "ace",required: boolean,now: number): boolean {
+		BlueprintRunner.Tick(s,now);
+		if (id==="" || s.killedIds.has(id) || !BlueprintRunner.CanDamage(s,kind,required)) return false;
+		s.killedIds.add(id);
+		if (!required) { s.optionalAirKills++; s.phaseOptionalKills++; return true; }
+		if (kind==="ace") s.aceKilled=true;
+		else if (kind==="air") s.requiredAirKills++;
+		else s.requiredGroundKills++;
+		s.phaseProgress++;
+		if (s.phaseProgress>=total(BlueprintRunner.ActivePhase(s)!)) advance(s);
 		return true;
 	},
-
-	Objective(state: BlueprintState): BlueprintObjective {
-		if (state.outcome === "won") {
-			return { phase: "complete", objective: "Objective complete", objectiveProgress: 1, objectiveTotal: 1, tutorialStep: "" };
-		}
-		const phase = activePhase(state);
-		if (!phase) {
-			return { phase: "complete", objective: "Objective complete", objectiveProgress: 1, objectiveTotal: 1, tutorialStep: "" };
-		}
-		const total = requiredCount(phase);
-		return {
-			phase: phase.kind,
-			objective: phase.label,
-			objectiveProgress: math.min(state.phaseProgress, total),
-			objectiveTotal: total,
-			tutorialStep: "",
-			beat: phase.beat,
-		};
-	},
-};
-
-// Advance / optional window helpers kept in a private namespace to avoid
-// exposing mutation to callers while still giving tests one entry point.
-const BlueprintRunnerPrivate = {
-	advance(state: BlueprintState): void {
-		if (state.outcome !== undefined) return;
-		state.phaseIndex += 1;
-		state.phaseProgress = 0;
-		if (state.phaseIndex >= state.blueprint.phases.size()) {
-			finish(state, "won", "complete");
-		}
-	},
-	optionalWindow(blueprint: MissionBlueprint): number {
-		if (blueprint.optionalRaiderMax !== undefined) return blueprint.optionalRaiderMax;
-		let total = 0;
-		for (const phase of blueprint.phases) total += phase.optionalRaiders ?? 0;
-		return total;
+	Objective(s: BlueprintState): BlueprintObjective {
+		if (s.outcome==="won") return {phase:"complete",objective:"Objective complete",objectiveProgress:1,objectiveTotal:1,tutorialStep:""};
+		const p=BlueprintRunner.ActivePhase(s)!;
+		return {phase:p.kind,objective:p.label,objectiveProgress:math.floor(s.phaseProgress),objectiveTotal:total(p),tutorialStep:"",beat:p.beat};
 	},
 };

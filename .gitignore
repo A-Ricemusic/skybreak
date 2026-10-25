@@ -41,3 +41,21 @@ assets/mission/radar-preview.png
 
 # Operating-system metadata
 .DS_Store
+
+# Regenerable Broken Relay inspection exports; mesh JSON and generator are canonical.
+assets/mission/commsrelay.blend
+assets/mission/commsrelay.blend[0-9]*
+assets/mission/commsrelay.glb
+assets/mission/commsrelay-preview.png
+assets/mission/grainsilo.blend
+assets/mission/grainsilo.blend[0-9]*
+assets/mission/grainsilo.glb
+assets/mission/grainsilo-preview.png
+assets/mission/relaytruck.blend
+assets/mission/relaytruck.blend[0-9]*
+assets/mission/relaytruck.glb
+assets/mission/relaytruck-preview.png
+assets/mission/harborlaunch.blend
+assets/mission/harborlaunch.blend[0-9]*
+assets/mission/harborlaunch.glb
+assets/mission/harborlaunch-preview.png

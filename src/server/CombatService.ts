@@ -1,5 +1,6 @@
 import { Players, RunService, Workspace } from "@rbxts/services";
 import { FlightMath, FlightState } from "../shared/FlightMath";
+import { MissionAssets } from "../shared/MissionAssets";
 import { JetFactory } from "../shared/JetFactory";
 import { MissionPhase, MissionRules, MissionRuleState, TargetKind } from "../shared/MissionRules";
 import { BlueprintRunner, BlueprintState } from "../shared/BlueprintRunner";
@@ -12,6 +13,7 @@ interface Enemy {
 	kind: TargetKind; required: boolean; enabled: boolean;
 	direction: Vector3; velocity: Vector3; fireTimer: number; windup: number;
 	passRemaining: number; passDirection: Vector3; warning?: BillboardGui;
+	groundIndex?: number;
 	hiddenParts: { part: BasePart; transparency: number }[];
 }
 interface Projectile {
@@ -29,6 +31,7 @@ export interface CombatSession {
 	evadeCooldown: number; evadeRemaining: number; regen: number; lockProgress: number;
 	enemies: Enemy[]; projectiles: Projectile[]; target?: Enemy; telemetryTime: number;
 	lastInput: number; lastInputEvent: number; lastActionEvent: number; active: boolean; finished: boolean; cleaned: boolean;
+	navigationMarker?: Part; navigationActor?: Model;
 	previousReplicationFocus?: BasePart; characterRoot?: BasePart; wasAnchored?: boolean;
 }
 const sessions = new Map<Player, CombatSession>();
@@ -181,7 +184,12 @@ function sendTelemetry(session: CombatSession): void {
 	let distance = 0;
 	if (target) { const [targetDistance] = targetMetrics(session, target); distance = targetDistance; }
 	const objective = sessionObjective(session);
+	const nav = session.blueprintState ? BlueprintRunner.NavigationPoint(session.blueprintState) : undefined;
+	const phase = session.blueprintState ? BlueprintRunner.ActivePhase(session.blueprintState) : undefined;
 	const message: Telemetry = {
+		navigation: nav ? new Vector3(nav.x, nav.y, nav.z) : undefined,
+		navigationRadius: phase?.radius, navigationCeiling: phase?.ceiling,
+		protectedHealth: phase?.kind === "escort" || phase?.kind === "defend" ? session.blueprintState?.protectedHealth : undefined,
 		kind: "Telemetry", missionId: session.missionId, phase: objective.phase,
 		objective: objective.objective, objectiveProgress: objective.objectiveProgress,
 		objectiveTotal: objective.objectiveTotal, tutorialStep: objective.tutorialStep,
@@ -235,6 +243,7 @@ function finish(session: CombatSession): void {
 		elapsed: session.elapsed,
 		slot: session.slot,
 		reason: sessionReason(session),
+		completedPhases: session.blueprintState?.phaseIndex,
 	};
 	const callback = onFinished!;
 	task.defer(() => {
@@ -265,9 +274,9 @@ function markTarget(session: CombatSession, enemy: Enemy): void {
 	enemy.model.SetAttribute("RequiredTarget", enemy.enabled && enemy.required);
 	enemy.model.SetAttribute("Health", enemy.health);
 }
-function activateGround(session: CombatSession): void {
+function activateGround(session: CombatSession, start=0, count=math.huge): void {
 	for (const enemy of session.enemies) {
-		if (enemy.kind !== "ground" || enemy.enabled) continue;
+		if (enemy.kind !== "ground" || enemy.enabled || enemy.health <= 0 || (enemy.groundIndex ?? 0) < start || (enemy.groundIndex ?? 0) >= start+count) continue;
 		enemy.enabled = true;
 		for (const hidden of enemy.hiddenParts) hidden.part.Transparency = hidden.transparency;
 		enemy.hiddenParts.clear();
@@ -309,7 +318,7 @@ function spawnAir(session: CombatSession, count: number, required: boolean, ace 
 		model.Parent = session.folder;
 		model.PivotTo(CFrame.lookAt(position, position.add(direction)));
 		const enemy: Enemy = {
-			id: `air_${session.enemies.size() + 1}_${missionSerial}`, name, model, health: ace ? aceHealth : 100,
+			id: `air_${session.enemies.size() + 1}_${missionSerial}`, name, model, health: ace ? aceHealth : session.missionId <= 2 ? 100 : 100 + (session.blueprint!.act - 1)*8,
 			position, direction, velocity: direction.mul(300), kind: ace ? "ace" : "air", required, enabled: true,
 			fireTimer: 8 + index * 3, windup: 0, passRemaining: 0, passDirection: direction,
 			hiddenParts: [], warning: attackWarning(model),
@@ -336,20 +345,44 @@ function applyLegacyPhase(session: CombatSession): void {
 // Blueprint-driven phase application for missions 3-27.
 function applyBlueprintPhase(session: CombatSession): void {
 	assert(session.blueprintState && session.blueprint, "blueprint phase application requires blueprint state");
-	const state = session.blueprintState;
-	if (state.outcome !== undefined) return;
-	if (session.appliedBlueprintPhaseIndex === state.phaseIndex) return;
-	session.appliedBlueprintPhaseIndex = state.phaseIndex;
-	const phase: MissionPhaseBlueprint | undefined = state.blueprint.phases[state.phaseIndex];
+	const state=session.blueprintState;
+	if (state.outcome !== undefined || session.appliedBlueprintPhaseIndex === state.phaseIndex) return;
+	session.appliedBlueprintPhaseIndex=state.phaseIndex;
+	// Retire optional pursuers at the end of their authored window. Never let
+	// invisible old waves damage a convoy or count in a later phase.
+	for (const enemy of session.enemies) if (enemy.kind !== "ground" && enemy.health > 0) {
+		enemy.enabled=false; enemy.health=0; enemy.model.Destroy();
+	}
+	session.navigationMarker?.Destroy(); session.navigationMarker=undefined;
+	session.navigationActor?.Destroy(); session.navigationActor=undefined;
+	const phase: MissionPhaseBlueprint | undefined=state.blueprint.phases[state.phaseIndex];
 	if (!phase) return;
 	if (phase.kind === "required_ground") {
-		activateGround(session);
-		if ((phase.optionalRaiders ?? 0) > 0) spawnAir(session, phase.optionalRaiders ?? 0, false);
-	} else if (phase.kind === "required_air") {
-		spawnAir(session, phase.count ?? 0, true);
-		if ((phase.optionalRaiders ?? 0) > 0) spawnAir(session, phase.optionalRaiders ?? 0, false);
-	} else if (phase.kind === "ace") {
-		spawnAir(session, 1, true, true, session.blueprint.aceHealth ?? 165);
+		let start=0;
+		for(let i=0;i<state.phaseIndex;i++) if(state.blueprint.phases[i].kind === "required_ground") start+=state.blueprint.phases[i].count ?? 0;
+		activateGround(session,start,phase.count ?? 0);
+	} else if (phase.kind === "required_air") spawnAir(session,phase.count ?? 0,true);
+	else if (phase.kind === "ace") spawnAir(session,1,true,true,session.blueprint.aceHealth ?? 165);
+	if ((phase.optionalRaiders ?? 0)>0) spawnAir(session,phase.optionalRaiders!,false);
+	const nav=BlueprintRunner.NavigationPoint(state);
+	if (nav) {
+		const marker=new Instance("Part"); marker.Name="Flight objective"; marker.Size=new Vector3(20,20,20); marker.Shape=Enum.PartType.Ball;
+		marker.Anchored=true; marker.CanCollide=false; marker.CanTouch=false; marker.CanQuery=false;
+		marker.Color=Color3.fromRGB(75,238,212); marker.Material=Enum.Material.Neon; marker.Transparency=.3;
+		marker.Position=new Vector3(nav.x,nav.y,nav.z); marker.Parent=session.folder;
+		marker.SetAttribute("ObjectiveRadius",phase.radius); marker.SetAttribute("ObjectiveCeiling",phase.ceiling);
+		session.navigationMarker=marker;
+		const gui=new Instance("BillboardGui"); gui.Size=UDim2.fromOffset(160,38); gui.AlwaysOnTop=true; gui.StudsOffsetWorldSpace=new Vector3(0,30,0); gui.Parent=marker;
+		const label=new Instance("TextLabel"); label.Size=UDim2.fromScale(1,1); label.BackgroundTransparency=.25;
+		label.BackgroundColor3=Color3.fromRGB(7,23,30); label.TextColor3=marker.Color; label.Text=phase.kind === "route" ? "FLIGHT BEACON" : phase.kind === "escort" ? "PROTECT CONVOY" : phase.kind === "defend" ? "PROTECT SITE" : "SIGNAL VOLUME";
+		label.TextSize=13; label.Font=Enum.Font.GothamBold; label.Parent=gui;
+		if (phase.kind === "escort" || phase.kind === "defend") {
+			const coast=session.blueprint.region === "coastal_city" || session.blueprint.region === "ocean_platform";
+			const actor=coast ? MissionAssets.CreateHarborLaunch("LOYALIST LAUNCH") : phase.kind === "defend" ? MissionAssets.CreateCommsRelay("LOYALIST TOWER") : MissionAssets.CreateRelayTruck("LOYALIST TRUCK");
+			if (!session.active || !session.folder.Parent) {actor.Destroy(); return;}
+			actor.SetAttribute("ProtectedObjective",true); actor.Parent=session.folder; session.navigationActor=actor;
+			actor.PivotTo(new CFrame(nav.x,phase.kind === "defend" ? 92 : nav.y,nav.z));
+		}
 	}
 	acquireTarget(session);
 }
@@ -434,7 +467,10 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		const lead = math.clamp(separation / (speed + session.state.speed), 0.35, 1.8);
 		const lateral = new Vector3(-playerForward.Z, 0, playerForward.X);
 		const weave = math.sin(session.elapsed * (ace ? 1.7 : 0.65) + index * 1.8) * (ace ? 125 : 45);
-		const destination = playerPosition.add(playerVelocity.mul(lead)).add(lateral.mul(weave)).add(new Vector3(0, ace ? math.sin(session.elapsed * 1.4) * 65 : 25, 0));
+		const phase=session.blueprintState ? BlueprintRunner.ActivePhase(session.blueprintState) : undefined;
+		const site=session.blueprintState ? BlueprintRunner.NavigationPoint(session.blueprintState) : undefined;
+		const protects=site && !enemy.required && (phase?.kind === "escort" || phase?.kind === "defend");
+		const destination = protects ? new Vector3(site.x + math.sin(session.elapsed*.4+index)*240,230,site.z + math.cos(session.elapsed*.4+index)*240) : playerPosition.add(playerVelocity.mul(lead)).add(lateral.mul(weave)).add(new Vector3(0, ace ? math.sin(session.elapsed * 1.4) * 65 : 25, 0));
 		const desired = enemy.passRemaining > 0 ? enemy.passDirection : unitOr(destination.sub(enemy.position), enemy.direction);
 		const oldDirection = enemy.direction;
 		enemy.direction = unitOr(oldDirection.Lerp(desired, FlightMath.DampAlpha(ace ? 2.8 : 2.1, dt)), oldDirection);
@@ -517,7 +553,31 @@ function stepSession(session: CombatSession, dt: number): void {
 	if (session.rules) MissionRules.ObserveControls(session.rules, session.input.x, session.input.y, dt, os.clock());
 	if (sessionOutcome(session) !== undefined) { finish(session); return; }
 	applyPhase(session);
+	const from={x:session.state.x,y:session.state.y,z:session.state.z};
 	FlightMath.Step(session.state, session.input, dt);
+	if (session.blueprintState) {
+		const bs=session.blueprintState, nav=BlueprintRunner.NavigationPoint(bs);
+		let threats=0;
+		if (nav) for(const enemy of session.enemies) if(ownsEnemy(session,enemy) && enemy.kind !== "ground" && enemy.position.sub(new Vector3(nav.x,230,nav.z)).Magnitude < 650) threats++;
+		BlueprintRunner.ObserveFlight(bs,from,{x:session.state.x,y:session.state.y,z:session.state.z},dt,os.clock(),threats);
+		if (bs.outcome !== undefined) {finish(session); return;}
+		applyPhase(session);
+		const point=BlueprintRunner.NavigationPoint(bs);
+		if (point && session.navigationMarker) {
+			const pos=new Vector3(point.x,point.y,point.z);
+			session.navigationMarker.Position=pos;
+			const actor=session.navigationActor;
+			if(actor) {
+				const phase=BlueprintRunner.ActivePhase(bs)!;
+				const old=actor.GetPivot().Position;
+				const direction=new Vector3(pos.X-old.X,0,pos.Z-old.Z);
+				const y=phase.kind === "defend" ? 92 : pos.Y;
+				const current=new Vector3(pos.X,y,pos.Z);
+				actor.PivotTo(direction.Magnitude>.01 ? CFrame.lookAt(current,current.add(direction)) : new CFrame(current));
+				actor.SetAttribute("Health",bs.protectedHealth);
+			}
+		}
+	}
 	let flightFrame = frameFor(session.state);
 	if (session.evadeRemaining > 0) flightFrame = flightFrame.mul(CFrame.Angles(0, 0, (1 - session.evadeRemaining / 2.1) * math.pi * 2));
 	session.aircraft.PivotTo(flightFrame);
@@ -592,7 +652,7 @@ export const CombatService = {
 				const enemy: Enemy = {
 					id: `ground_${index + 1}_${missionSerial}`, name: model.Name, model, health: 55,
 					position: model.PrimaryPart.Position, direction: new Vector3(0, 0, -1), velocity: Vector3.zero,
-					kind: "ground", required: true, enabled: false, fireTimer: 0, windup: 0,
+					kind: "ground", groundIndex: index, required: true, enabled: false, fireTimer: 0, windup: 0,
 					passRemaining: 0, passDirection: new Vector3(0, 0, -1), hiddenParts: [],
 				};
 				// Legacy Mission 1 hides the training radar until the tutorial activates it.
@@ -607,6 +667,9 @@ export const CombatService = {
 				session.enemies.push(enemy);
 			}
 			applyPhase(session);
+			// Asset generation may yield. The playable 600-second clock starts at launch.
+			if (session.rules) session.rules.startedAt = os.clock();
+			if (session.blueprintState) session.blueprintState.startedAt = os.clock();
 			sessions.set(player, session);
 			player.ReplicationFocus = aircraft.PrimaryPart;
 			const characterRoot = player.Character?.FindFirstChild("HumanoidRootPart");

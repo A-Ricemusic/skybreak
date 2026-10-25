@@ -9,7 +9,11 @@ const assets = [
 	{ name: "Vanta", source: "assets/aircraft/vanta.mesh.json", triangleLimit: 20000 },
 	{ name: "Warehouse", source: "assets/mission/warehouse.mesh.json", triangleLimit: 5000 },
 	{ name: "Radar", source: "assets/mission/radar.mesh.json", triangleLimit: 5000 },
-] as const;
+	{ name: "CommsRelay", source: "assets/mission/commsrelay.mesh.json", triangleLimit: 5000 },
+	{ name: "GrainSilo", source: "assets/mission/grainsilo.mesh.json", triangleLimit: 5000 },
+	{ name: "RelayTruck", source: "assets/mission/relaytruck.mesh.json", triangleLimit: 5000 },
+	{ name: "HarborLaunch", source: "assets/mission/harborlaunch.mesh.json", triangleLimit: 5000 },
+	] as const;
 
 for (const asset of assets) {
 	const geometry = await Bun.file(resolve(root, asset.source)).json();

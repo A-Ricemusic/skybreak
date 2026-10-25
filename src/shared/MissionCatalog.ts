@@ -47,10 +47,20 @@ export type PhaseKind =
 	// Generic:
 	| "required_air"
 	| "required_ground"
-	| "ace";
+	| "ace"
+	| "route"
+	| "recon"
+	| "signal"
+	| "escort"
+	| "defend";
 
 export interface MissionPhaseBlueprint {
 	kind: PhaseKind;
+	/** Authored flight volume centers. Only server-observed aircraft positions count. */
+	points?: FlightPoint[];
+	radius?: number;
+	seconds?: number;
+	ceiling?: number;
 	count?: number;
 	label: string;
 	tutorialStep?: "move" | "target" | "missile" | "";
@@ -59,6 +69,8 @@ export interface MissionPhaseBlueprint {
 	/** Human-readable "beat" shown on the HUD when this phase begins. */
 	beat?: string;
 }
+
+export interface FlightPoint { x: number; y: number; z: number }
 
 export interface GroundTargetSpec {
 	asset: GroundAsset;
@@ -504,6 +516,48 @@ export const MISSIONS: MissionBlueprint[] = [
 		{ aceHealth: 195 },
 	),
 ];
+
+
+// These are flying objectives, not narrative gates: the server checks swept
+// checkpoint crossings, altitude, time on station, and the protected vehicle.
+function fly(kind: "route" | "recon" | "signal" | "escort" | "defend", label: string, points: number[][], seconds = 0, optionalRaiders = 0, ceiling?: number): MissionPhaseBlueprint {
+	return { kind, label, points: points.map((p) => ({ x: p[0], y: p[1], z: p[2] })),
+		radius: kind === "route" ? 210 : kind === "recon" ? 420 : 1000,
+		seconds, optionalRaiders, ceiling };
+}
+function before(id: number, phase: MissionPhaseBlueprint): void { MISSIONS[id - 1].phases.unshift(phase); }
+function after(id: number, phase: MissionPhaseBlueprint): void { MISSIONS[id - 1].phases.push(phase); }
+before(3, fly("route", "Trace Teal's canyon trail through three beacons", [[-280,240,-150],[-850,280,-900],[-400,350,-1700]]));
+before(4, fly("recon", "Scan the hidden quarters below 380 studs", [[-400,260,-600]], 7, 0, 380));
+MISSIONS[4].phases = [fly("escort", "Cover the orchard evacuation trucks", [[-1000,70,-300],[0,70,-850],[1200,70,-300]], 55, 3)];
+before(6, fly("route", "Follow the farm irrigation channel", [[500,230,0],[850,250,-700],[250,240,-1550]]));
+before(7, fly("route", "Fly the courier's dust pass below 400 studs", [[-450,240,-200],[-900,300,-1000],[-200,300,-1850]], 0, 0, 400));
+MISSIONS[7].phases = [fly("defend", "Protect Varda's control tower for 50 seconds", [[-650,240,300]], 50, 4), { kind:"required_air", label:"Clear the retreating pair", count:2 }];
+before(9, fly("route", "Follow the night approach lights", [[500,350,-100],[900,420,-850],[0,450,-1700]]));
+before(10, fly("recon", "Identify Node Kiro without destroying its archive", [[180,300,-1100]], 9, 2, 450));
+after(11, fly("signal", "Orbit the west ridge to relay Teal's packet", [[-820,400,-780]], 18, 2));
+MISSIONS[11].phases = [fly("escort", "Escort the loyalist transmitter truck", [[-1200,65,100],[-500,65,-900],[900,65,-1300]], 65, 4)];
+before(13, fly("recon", "Mark the staging farm from below 420 studs", [[0,300,-1000]], 10, 2, 420));
+before(14, fly("route", "Cross the relay saddle through four beacons", [[-500,320,-100],[-1000,450,-700],[0,550,-1200],[1000,430,-1500]]));
+MISSIONS[14].phases = [fly("signal", "Keep the loyalist broadcast linked for 35 seconds", [[0,420,-900]], 35, 4), {kind:"required_air",label:"Intercept the jamming flight",count:3}];
+before(16, fly("route", "Stay below the storm ceiling: three river gates", [[400,220,0],[800,240,-750],[0,280,-1450]],0,0,400));
+after(17, fly("signal", "Receive the Marshal's orders above the dark relay", [[-100,500,-1400]], 22, 2));
+before(18, fly("route", "Climb into Vulture Two's searchlights", [[-500,350,-250],[0,600,-1100],[600,650,-1550]]));
+before(19, fly("recon", "Identify military quays; spare the city", [[-500,270,-900],[500,270,-900]], 6, 1, 420));
+after(20, fly("escort", "Cover the evidence launch through the harbor", [[-1200,40,-600],[0,40,-1350],[1400,40,-800]], 60, 3));
+before(21, fly("route", "Follow the dark canal through the city", [[-400,250,-100],[-900,300,-700],[0,320,-1500]],0,0,430));
+before(22, fly("recon", "Find the fuel depot through the harbor fog", [[-520,250,-850],[520,250,-850]], 8, 2, 400));
+MISSIONS[22].phases = [fly("defend", "Protect the frigate's ring around the platform", [[0,300,-1100]], 65, 5), {kind:"required_air",label:"Clear the platform command flight",count:3}];
+before(24, fly("route", "Use the low sea approach below 360 studs", [[-700,220,-100],[-1000,240,-750],[0,260,-1700]],0,0,360));
+MISSIONS[24].phases.unshift(fly("escort", "Cover the landing craft to the beach", [[-1200,40,200],[-650,40,-500],[200,40,-900]], 70, 4));
+after(26, fly("signal", "Triangulate the Marshal's last transmission", [[0,600,-1200]], 28, 2));
+after(27, fly("signal", "Broadcast Teal's evidence to the whole coast", [[0,500,-1350]], 30));
+// Recompute optional counts after authored flight objectives are installed.
+for (const mission of MISSIONS) {
+	let optional = 0;
+	for (const phase of mission.phases) optional += phase.optionalRaiders ?? 0;
+	mission.optionalRaiderMax = optional;
+}
 
 export const MISSION_COUNT = MISSIONS.size();
 

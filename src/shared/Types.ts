@@ -49,6 +49,7 @@ export interface MissionStats {
 	missionId?: number;
 	groundKills?: number;
 	reason?: string;
+	completedPhases?: number;
 	slot: number;
 	kills: number;
 	elapsed: number;
@@ -62,6 +63,10 @@ export interface MissionStarted {
 export interface Telemetry {
 	missionId?: number;
 	phase?: string;
+	navigation?: Vector3;
+	navigationRadius?: number;
+	navigationCeiling?: number;
+	protectedHealth?: number;
 	objective?: string;
 	objectiveProgress?: number;
 	objectiveTotal?: number;
