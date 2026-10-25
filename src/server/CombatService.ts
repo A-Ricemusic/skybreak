@@ -5,7 +5,9 @@ import { JetFactory } from "../shared/JetFactory";
 import { MissionPhase, MissionRules, MissionRuleState, TargetKind } from "../shared/MissionRules";
 import { BlueprintRunner, BlueprintState } from "../shared/BlueprintRunner";
 import { MissionBlueprint, MissionCatalog, MissionPhaseBlueprint } from "../shared/MissionCatalog";
-import { FinishedCallback, FlightInput, MissionLoading, MissionStats, Remotes, Telemetry } from "../shared/Types";
+import { FinishedCallback, FlightInput, HudState, MissionLoading, MissionStats, Remotes } from "../shared/Types";
+import { FlightPrediction } from "../shared/FlightPrediction";
+import { TelemetryCodec } from "../shared/TelemetryCodec";
 import { LoadingGate, LoadingGateState } from "../shared/LoadingGate";
 import { ActionGateState, FireNotice, WeaponRules } from "../shared/WeaponRules";
 import { MissionWorld } from "./MissionWorld";
@@ -23,6 +25,8 @@ interface Enemy {
 	warning?: BillboardGui;
 	groundIndex?: number;
 	hiddenParts: { part: BasePart; transparency: number }[];
+	/** Latest pivot from this Heartbeat's sub-steps; applied once by flushPivots. */
+	frame?: CFrame;
 }
 interface Projectile {
 	/** A player missile without `target` is a blind (unguided) shot that relies on its proximity fuse. */
@@ -58,6 +62,14 @@ export interface CombatSession {
 	chatterIndex: number;
 	/** Blueprint phase index whose mid-phase reinforcement has already spawned. */
 	reinforcedPhase?: number;
+	/** Client clock of the newest FlightInput and when the server received it, echoed for client RTT. */
+	inputClientTime: number; inputReceivedAt: number;
+	/** 20 Hz FlightState accumulator and packet sequences for both unreliable streams. */
+	stateTime: number; stateSequence: number; telemetrySequence: number;
+	/** Last HudState sent; a new one goes out (reliably) only when a field differs. */
+	hud?: HudState;
+	/** Pending pivots applied once per Heartbeat, after every fixed sub-step. */
+	aircraftFrame?: CFrame; actorFrame?: CFrame;
 }
 const sessions = new Map<Player, CombatSession>();
 const completing = new Set<Player>();
@@ -66,6 +78,8 @@ let missionSerial = 0;
 let buildingMission = false;
 let missionRoot: Instance | undefined;
 let missionState: RemoteEvent | undefined;
+let flightStateRemote: UnreliableRemoteEvent | undefined;
+let telemetryRemote: UnreliableRemoteEvent | undefined;
 let onFinished: FinishedCallback | undefined;
 const FIXED_STEP = 1 / 30;
 const LOCK_RANGE = WeaponRules.LockRange;
@@ -87,7 +101,9 @@ const TUNING = {
 const HOSTILE_MISSILE_SPEED = 520;
 const HOSTILE_MISSILE_LIFETIME = 6;
 const EVADE_COOLDOWN = 6;
-const EVADE_INVULNERABLE = 1.6;
+const EVADE_INVULNERABLE = FlightPrediction.EvadeRollSeconds; // 1.6 s; the client predicts the same roll
+const STATE_INTERVAL = 1 / 20;
+const TELEMETRY_INTERVAL = 0.1;
 const EVADE_RADIUS = 700;
 const FLARE_RADIUS = 260;
 function sessionAct(session: CombatSession): 1 | 2 | 3 {
@@ -236,31 +252,59 @@ function sendTelemetry(session: CombatSession): void {
 	let distance = 0;
 	if (target) { const [targetDistance] = targetMetrics(session, target); distance = targetDistance; }
 	const objective = sessionObjective(session);
-	const nav = session.blueprintState ? BlueprintRunner.NavigationPoint(session.blueprintState) : undefined;
 	const phase = session.blueprintState ? BlueprintRunner.ActivePhase(session.blueprintState) : undefined;
 	// Protected-actor health is a replicated attribute; 10 Hz here is plenty for the HUD.
 	if (session.blueprintState && session.navigationActor?.Parent) session.navigationActor.SetAttribute("Health", session.blueprintState.protectedHealth);
-	const message: Telemetry = {
-		navigation: nav ? new Vector3(nav.x, nav.y, nav.z) : undefined,
-		navigationRadius: phase?.radius, navigationCeiling: phase?.ceiling,
-		protectedHealth: phase?.kind === "escort" || phase?.kind === "defend" ? session.blueprintState?.protectedHealth : undefined,
-		kind: "Telemetry", missionId: session.missionId, phase: objective.phase,
-		objective: objective.objective, objectiveProgress: objective.objectiveProgress,
-		objectiveTotal: objective.objectiveTotal, tutorialStep: objective.tutorialStep,
-		timeRemaining: sessionTimeRemaining(session), groundKills: sessionGroundKills(session),
+	sendHud(session, objective, target, phase);
+	session.telemetrySequence += 1;
+	telemetryRemote!.FireClient(session.player, TelemetryCodec.Encode(session.telemetrySequence, {
 		health: session.health, speed: session.state.speed, altitude: session.state.y,
 		kills: session.kills, total: sessionTotalRequired(session),
-		missiles: session.missiles, missileCooldown: session.missileCooldown,
-		evadeCooldown: session.evadeCooldown, target: target?.model, targetName: target?.name ?? "",
-		targetKind: target ? (target.kind === "ground" ? "ground" : "air") : "", targetRequired: target?.required ?? false, targetDistance: distance,
-		targetDamageable: target ? sessionCanDamage(session, target.kind, target.required) : undefined,
-		lockProgress: session.lockProgress, incoming, lockWarning, elapsed: session.elapsed,
+		missiles: session.missiles, missileCooldown: session.missileCooldown, evadeCooldown: session.evadeCooldown,
+		lockProgress: session.lockProgress, incoming, lockWarning,
 		boundaryWarning: math.max(math.abs(session.state.x), math.abs(session.state.z)) > FlightMath.SoftBoundary,
+		targetDamageable: target ? sessionCanDamage(session, target.kind, target.required) : undefined,
+		elapsed: session.elapsed, timeRemaining: sessionTimeRemaining(session),
+		objectiveProgress: objective.objectiveProgress, objectiveTotal: objective.objectiveTotal,
+		groundKills: sessionGroundKills(session), targetDistance: distance,
+		targetHealth: target ? math.clamp(target.health / math.max(1, target.maxHealth), 0, 1) : undefined,
+		protectedHealth: phase?.kind === "escort" || phase?.kind === "defend" ? session.blueprintState?.protectedHealth : undefined,
+	}));
+}
+/**
+ * Text, the target Model and navigation go out on the reliable MissionState
+ * remote, and only when one of them changed. That keeps the 10 Hz packet small,
+ * never loses a radio line, and guarantees the target Model has replicated
+ * before the reference to it arrives (reliable events are ordered with
+ * instance replication; unreliable ones are not).
+ */
+function sendHud(session: CombatSession, objective: ReturnType<typeof sessionObjective>, target: Enemy | undefined, phase: MissionPhaseBlueprint | undefined): void {
+	const nav = session.blueprintState ? BlueprintRunner.NavigationPoint(session.blueprintState) : undefined;
+	const previous = session.hud;
+	const targetKind = target ? (target.kind === "ground" ? "ground" : "air") : "";
+	if (previous && previous.missionId === session.missionId && previous.phase === objective.phase && previous.objective === objective.objective
+		&& previous.tutorialStep === objective.tutorialStep && previous.target === target?.model && previous.targetName === (target?.name ?? "")
+		&& previous.targetKind === targetKind && previous.targetRequired === (target?.required ?? false)
+		&& previous.navigationRadius === phase?.radius && previous.navigationCeiling === phase?.ceiling
+		&& previous.radioSerial === session.radioSerial && previous.fireDeniedSerial === session.fireDeniedSerial
+		// A moving escort point only re-sends after it travels 20 studs (the cue is a screen marker, not a hitbox).
+		&& (nav ? previous.navigation !== undefined && math.abs(previous.navigation.X - nav.x) + math.abs(previous.navigation.Y - nav.y) + math.abs(previous.navigation.Z - nav.z) < 20 : previous.navigation === undefined)) return;
+	const hud: HudState = {
+		kind: "HudState", missionId: session.missionId, phase: objective.phase, objective: objective.objective, tutorialStep: objective.tutorialStep,
+		target: target?.model, targetName: target?.name ?? "", targetKind, targetRequired: target?.required ?? false,
+		navigation: nav ? new Vector3(nav.x, nav.y, nav.z) : undefined, navigationRadius: phase?.radius, navigationCeiling: phase?.ceiling,
 		radio: session.radio, radioSerial: session.radioSerial, radioSeconds: session.radioSeconds,
 		fireDenied: session.fireDenied, fireDeniedSerial: session.fireDeniedSerial,
-		targetHealth: target ? math.clamp(target.health / math.max(1, target.maxHealth), 0, 1) : undefined,
 	};
-	missionState!.FireClient(session.player, message);
+	session.hud = hud;
+	missionState!.FireClient(session.player, hud);
+}
+/** 20 Hz authoritative flight state for the client's prediction (unreliable, ~100 bytes). */
+function sendFlightState(session: CombatSession): void {
+	if (session.player.Parent !== Players) return;
+	session.stateSequence += 1;
+	const hold = session.inputClientTime > 0 ? os.clock() - session.inputReceivedAt : 0;
+	flightStateRemote!.FireClient(session.player, FlightPrediction.Encode(session.stateSequence, session.state, session.evadeRemaining, session.inputClientTime, hold));
 }
 /** Push a radio line to the HUD immediately (phase beats, chatter, ace stages, flares). */
 function radio(session: CombatSession, text: string, seconds?: number): void {
@@ -370,9 +414,11 @@ function beginPlay(session: CombatSession): void {
 	session.elapsed = 0;
 	session.lastInput = now;
 	session.telemetryTime = 0;
+	session.stateTime = 0;
+	session.hud = undefined; // the first HUD message after Started is always complete
 	if (session.player.Parent !== Players) { cleanupSession(session); return; }
 	missionState!.FireClient(session.player, { kind: "Started", slot: session.slot, missionId: session.missionId, aircraft: session.aircraft });
-	if (refreshSession(session, now)) sendTelemetry(session);
+	if (refreshSession(session, now)) { sendTelemetry(session); sendFlightState(session); }
 }
 function markTarget(session: CombatSession, enemy: Enemy): void {
 	enemy.model.SetAttribute("SkybreakEnemy", enemy.enabled);
@@ -420,6 +466,8 @@ function spawnAir(session: CombatSession, count: number, required: boolean, ace 
 		const name = ace ? aceName : `${required ? "BANDIT" : "RAIDER"} 0${index + 1}`;
 		const model = JetFactory.Create(name, true);
 		if (!session.active || session.folder.Parent === undefined) { model.Destroy(); return; }
+		// The replicated model is hidden on the client behind a smoothed local clone; only the clone draws trails.
+		JetFactory.SetTrails(model, false);
 		// Bandits arrive 1300-1500 studs out and 60-75 degrees off the nose so the first merge is a turn, not a joust.
 		// Reinforcements (behind) come from the rear quarter.
 		const side = index % 2 === 0 ? 1 : -1;
@@ -512,6 +560,8 @@ function applyBlueprintPhase(session: CombatSession): void {
 			const coast=session.blueprint.region === "coastal_city" || session.blueprint.region === "ocean_platform";
 			const actor=coast ? MissionAssets.CreateHarborLaunch("LOYALIST LAUNCH") : phase.kind === "defend" ? MissionAssets.CreateCommsRelay("LOYALIST TOWER") : MissionAssets.CreateRelayTruck("LOYALIST TRUCK");
 			if (!session.active || !session.folder.Parent) {actor.Destroy(); return;}
+			// The escorted vehicle moves every step: weld it so one part replicates per move.
+			JetFactory.WeldAssembly(actor);
 			actor.SetAttribute("ProtectedObjective",true); actor.Parent=session.folder; session.navigationActor=actor;
 			actor.PivotTo(new CFrame(nav.x,phase.kind === "defend" ? 92 : nav.y,nav.z));
 		}
@@ -658,7 +708,8 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		const moved = enemy.position.add(enemy.velocity.mul(dt));
 		enemy.position = new Vector3(math.clamp(moved.X, -2700, 2700), math.clamp(moved.Y, 170, 1000), math.clamp(moved.Z, -2700, 2700));
 		const bank = math.clamp(-oldDirection.Cross(enemy.direction).Y * 26, -0.65, 0.65);
-		enemy.model.PivotTo(CFrame.lookAt(enemy.position, enemy.position.add(enemy.direction)).mul(CFrame.Angles(0, 0, bank)));
+		// Applied once per Heartbeat by flushPivots: a hitch's catch-up sub-steps replicate one CFrame, not five.
+		enemy.frame = CFrame.lookAt(enemy.position, enemy.position.add(enemy.direction)).mul(CFrame.Angles(0, 0, bank));
 		enemy.fireTimer = math.max(0, enemy.fireTimer - dt);
 		const aimDot = enemy.direction.Dot(unitOr(playerPosition.sub(enemy.position), enemy.direction));
 		const mayFire = enemy.mode === "attack" || enemy.mode === "run";
@@ -860,13 +911,13 @@ function stepSession(session: CombatSession, dt: number): void {
 				const direction=new Vector3(pos.X-old.X,0,pos.Z-old.Z);
 				const y=phase.kind === "defend" ? 92 : pos.Y;
 				const current=new Vector3(pos.X,y,pos.Z);
-				actor.PivotTo(direction.Magnitude>.01 ? CFrame.lookAt(current,current.add(direction)) : new CFrame(current));
+				session.actorFrame = direction.Magnitude>.01 ? CFrame.lookAt(current,current.add(direction)) : new CFrame(current);
 			}
 		}
 	}
 	let flightFrame = frameFor(session.state);
 	if (session.evadeRemaining > 0) flightFrame = flightFrame.mul(CFrame.Angles(0, 0, (1 - session.evadeRemaining / EVADE_INVULNERABLE) * math.pi * 2));
-	session.aircraft.PivotTo(flightFrame);
+	session.aircraftFrame = flightFrame;
 	stepEnemies(session, dt);
 	if (!ownsEnemy(session, session.target)) acquireTarget(session);
 	if (session.target) {
@@ -876,8 +927,37 @@ function stepSession(session: CombatSession, dt: number): void {
 	}
 	stepMissiles(session, dt);
 	if (!refreshSession(session, os.clock())) return;
+	session.stateTime += dt;
+	if (session.stateTime >= STATE_INTERVAL) { session.stateTime = math.min(session.stateTime - STATE_INTERVAL, STATE_INTERVAL); sendFlightState(session); }
 	session.telemetryTime += dt;
-	if (session.telemetryTime >= 0.1) { session.telemetryTime -= 0.1; sendTelemetry(session); }
+	if (session.telemetryTime >= TELEMETRY_INTERVAL) { session.telemetryTime = math.min(session.telemetryTime - TELEMETRY_INTERVAL, TELEMETRY_INTERVAL); sendTelemetry(session); }
+}
+// Pivot scratch arrays reused every Heartbeat.
+const pivotParts: BasePart[] = [];
+const pivotFrames: CFrame[] = [];
+function queue(model: Model | undefined, frame: CFrame | undefined): void {
+	const root = model?.PrimaryPart;
+	if (frame === undefined || root === undefined || model!.Parent === undefined) return;
+	pivotParts.push(root);
+	pivotFrames.push(frame);
+}
+/**
+ * Applies this Heartbeat's final pivots in one BulkMoveTo. Each aircraft and the
+ * escorted vehicle are welded assemblies, so moving the root part moves the
+ * model and only that root's CFrame replicates.
+ */
+function flushPivots(session: CombatSession): void {
+	pivotParts.clear();
+	pivotFrames.clear();
+	queue(session.aircraft, session.aircraftFrame);
+	session.aircraftFrame = undefined;
+	queue(session.navigationActor, session.actorFrame);
+	session.actorFrame = undefined;
+	for (const enemy of session.enemies) {
+		if (enemy.frame !== undefined && enemy.health > 0) queue(enemy.model, enemy.frame);
+		enemy.frame = undefined;
+	}
+	if (pivotParts.size() > 0) Workspace.BulkMoveTo(pivotParts, pivotFrames, Enum.BulkMoveMode.FireCFrameChanged);
 }
 
 // Clients supply validated controls and button events, never damage or results.
@@ -916,6 +996,7 @@ export const CombatService = {
 			assert(player.Parent === Players, "Player left during aircraft construction");
 			aircraft.SetAttribute("SkybreakOwner", player.UserId);
 			aircraft.SetAttribute("SkybreakPlayer", true);
+			JetFactory.SetTrails(aircraft, false); // the client flies a predicted local clone that owns the trails
 			aircraft.Parent = folder;
 			const state = FlightMath.NewState();
 			aircraft.PivotTo(frameFor(state));
@@ -925,6 +1006,7 @@ export const CombatService = {
 				missiles: MAX_MISSILES, missileCooldown: 0, evadeCooldown: 0, evadeRemaining: 0, regen: 0, lockProgress: 0,
 				enemies: [], projectiles: [], telemetryTime: 0, lastInput: os.clock(), lastInputEvent: -math.huge,
 				active: true, finished: false, cleaned: false, previousReplicationFocus: player.ReplicationFocus,
+				inputClientTime: 0, inputReceivedAt: 0, stateTime: 0, stateSequence: 0, telemetrySequence: 0,
 			};
 			if (legacy) {
 				session.rules = MissionRules.NewState(missionId as 1 | 2, startedAt);
@@ -989,6 +1071,8 @@ export const CombatService = {
 		for (const [, session] of sessions) cleanupSession(session, false);
 		onFinished = finishedCallback;
 		missionState = remote(remotes, "MissionState");
+		flightStateRemote = remote(remotes, "FlightState");
+		telemetryRemote = remote(remotes, "Telemetry");
 		missionRoot = Workspace.FindFirstChild("SkybreakCombat");
 		if (!missionRoot) { missionRoot = new Instance("Folder"); missionRoot.Name = "SkybreakCombat"; missionRoot.Parent = Workspace; }
 		connections.push(remote(remotes, "FlightInput").OnServerEvent.Connect((player, payload: unknown) => {
@@ -997,12 +1081,16 @@ export const CombatService = {
 			const now = os.clock();
 			if (!refreshSession(session, now) || now - session.lastInputEvent < 1 / 40) return;
 			session.lastInputEvent = now;
-			const data = payload as { x?: unknown; y?: unknown; throttle?: unknown };
+			const data = payload as { x?: unknown; y?: unknown; throttle?: unknown; t?: unknown };
 			if (!FlightMath.IsFinite(data.x) || !FlightMath.IsFinite(data.y) || !FlightMath.IsFinite(data.throttle)) return;
+			// Unreliable packets can arrive out of order; an older client stamp is stale input.
+			const clientTime = FlightMath.IsFinite(data.t) ? data.t : 0;
+			if (clientTime > 0 && clientTime <= session.inputClientTime) return;
 			session.input.x = math.clamp(data.x, -1, 1);
 			session.input.y = math.clamp(data.y, -1, 1);
 			session.input.throttle = math.clamp(data.throttle, 0, 1);
 			session.lastInput = now;
+			if (clientTime > 0) { session.inputClientTime = clientTime; session.inputReceivedAt = now; }
 		}));
 		connections.push(remote(remotes, "CombatAction").OnServerEvent.Connect((player, payload: unknown) => {
 			const session = sessions.get(player);
@@ -1037,6 +1125,8 @@ export const CombatService = {
 				accumulator -= FIXED_STEP;
 				for (const [, session] of sessions) if (session.active && !session.loading) stepSession(session, FIXED_STEP);
 			}
+			// Only the last sub-step's pivots matter; move every model once per Heartbeat.
+			for (const [, session] of sessions) if (session.active && !session.loading) flushPivots(session);
 		}));
 	},
 };

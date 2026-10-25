@@ -72,9 +72,29 @@ describe("Roblox jet and missile integration", () => {
 		player.PivotTo(destination);
 		expect(player.GetPivot().Position.sub(destination.Position).Magnitude).toBeCloseTo(0, 4);
 		let trailCount = 0;
+		for (const aircraft of [player, enemy]) {
+			// One replicated part per aircraft: only the Root is anchored; every other
+			// part is a massless passenger welded to it, so moving the Root moves the jet.
+			const root = aircraft.PrimaryPart!;
+			expect(root.Anchored).toBe(true);
+			for (const item of aircraft.GetDescendants()) {
+				if (!item.IsA("BasePart") || item === root) continue;
+				expect(item.Anchored).toBe(false);
+				expect(item.Massless).toBe(true);
+				expect(item.CanCollide).toBe(false);
+				const weld = item.FindFirstChildWhichIsA("WeldConstraint");
+				expect(weld?.Part0).toBe(root);
+				expect(weld?.Part1).toBe(item);
+				expect(weld?.Active).toBe(true);
+			}
+		}
+		const fuselage = player.FindFirstChild("Fuselage") as BasePart;
+		const offset = player.PrimaryPart!.CFrame.ToObjectSpace(fuselage.CFrame);
+		player.PrimaryPart!.CFrame = new CFrame(-50, 320, 75);
+		closeVector(fuselage.Position, new CFrame(-50, 320, 75).mul(offset).Position);
+		player.PivotTo(destination);
 		for (const item of [...player.GetDescendants(), ...enemy.GetDescendants()]) {
 			if (item.IsA("BasePart")) {
-				expect(item.Anchored).toBe(true);
 				expect(item.CanCollide).toBe(false);
 				expect(item.CanTouch).toBe(false);
 				expect(item.CanQuery).toBe(false);

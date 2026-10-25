@@ -6,7 +6,7 @@ import { CampaignService } from "./CampaignService";
 import { CombatService } from "./CombatService";
 import { WorldBuilder } from "./WorldBuilder";
 
-function ensureRemote<T extends "RemoteFunction" | "RemoteEvent">(folder: Folder, name: string, className: T): CreatableInstances[T] {
+function ensureRemote<T extends "RemoteFunction" | "RemoteEvent" | "UnreliableRemoteEvent">(folder: Folder, name: string, className: T): CreatableInstances[T] {
 	let existing = folder.FindFirstChild(name);
 	if (existing && !existing.IsA(className)) {
 		existing.Destroy();
@@ -36,9 +36,13 @@ function initialize(): void {
 
 	const remotes: Remotes = {
 		CampaignRequest: ensureRemote(remotesFolder, "CampaignRequest", "RemoteFunction"),
-		FlightInput: ensureRemote(remotesFolder, "FlightInput", "RemoteEvent"),
+		// High-rate streams are unreliable: a late packet is worthless, and a lost
+		// one is replaced by the next instead of stalling everything queued behind it.
+		FlightInput: ensureRemote(remotesFolder, "FlightInput", "UnreliableRemoteEvent"),
 		CombatAction: ensureRemote(remotesFolder, "CombatAction", "RemoteEvent"),
 		MissionState: ensureRemote(remotesFolder, "MissionState", "RemoteEvent"),
+		FlightState: ensureRemote(remotesFolder, "FlightState", "UnreliableRemoteEvent"),
+		Telemetry: ensureRemote(remotesFolder, "Telemetry", "UnreliableRemoteEvent"),
 	};
 
 	WorldBuilder.Build();

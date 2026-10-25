@@ -23,6 +23,9 @@ function environment(missionId: number): void {
 	Lighting.ExposureCompensation = 0.05;
 	Lighting.Ambient = Color3.fromRGB(105, 119, 134);
 	Lighting.OutdoorAmbient = Color3.fromRGB(140, 151, 159);
+	// No sun shadow map in sorties: a fast-moving camera over a large world is the
+	// worst case for shadow cascades on mobile. The menu turns it back on.
+	Lighting.GlobalShadows = false;
 	const sky = new Instance("Sky");
 	sky.Name = "MissionSky";
 	sky.StarCount = 0;
@@ -44,7 +47,7 @@ function environment(missionId: number): void {
 	const clouds = new Instance("Clouds");
 	clouds.Name = "MissionClouds";
 	clouds.Cover = missionId === 1 ? 0.22 : 0.38;
-	clouds.Density = 0.35;
+	clouds.Density = 0.3; // <= 0.3: dense volumetric clouds are a large fill-rate cost on phones
 	clouds.Color = Color3.fromRGB(238, 241, 244);
 	clouds.Parent = Workspace.Terrain;
 }
@@ -78,8 +81,11 @@ function buildVardaRim(scenery: Folder, parent: Instance): Model[] {
 
 	// Landmasses (terrain). The main island is 1250 x 1850 with its top at GROUND.
 	const islands: Array<[number, number, number, number, number]> = [[-300, -400, 1250, 1850, 0], [-1000, -1500, 700, 560, 0.3], [1250, -1400, 760, 620, -0.2], [-1500, 700, 520, 480, 0.5], [1000, 250, 420, 360, 0.4], [1350, 560, 240, 200, -0.3], [780, 640, 200, 180, 0.9]];
-	for (const [x, z, w, d, yaw] of islands) { Scenery.TerrainIsland(x, z, w, d, GROUND, yaw); Scenery.Shoreline(scenery, x, z, w, d, P, yaw); }
+	// All voxel writes run back to back before any part is created (Scenery.Part may
+	// yield), so the terrain replicates as one batch instead of being re-sent per op.
+	for (const [x, z, w, d, yaw] of islands) Scenery.TerrainIsland(x, z, w, d, GROUND, yaw);
 	for (const [x, z, r, peak] of [[-800, -1000, 170, 120], [-820, -250, 150, 115], [-680, 380, 120, 110], [-1000, -1500, 230, 125], [1250, -1400, 250, 125], [-1500, 700, 160, 118], [1000, 250, 120, 112]]) Scenery.TerrainHill(x, z, r, GROUND, peak);
+	for (const [x, z, w, d, yaw] of islands) Scenery.Shoreline(scenery, x, z, w, d, P, yaw);
 
 	// Airfield. Runway runs north-south at x=-520; the parking apron links to the
 	// radar pad by a taxiway so the whole field reads as one installation.
@@ -132,16 +138,20 @@ function buildIronCoast(scenery: Folder, parent: Instance): Model[] {
 	Scenery.Sea(scenery, Color3.fromRGB(44, 82, 108));
 
 	// Mainland: three rock blocks leave a 500-wide basin open between x=-250..250, z=-1000..-700.
+	// Rock runs from the hidden floor under the sea (not 20 studs below it) up to GROUND.
+	const rockDepth = GROUND - Scenery.HIDDEN_FLOOR;
 	for (const [x, z, w, d] of [[-1000, -1500, 1500, 1600], [1000, -1500, 1500, 1600], [0, -1650, 520, 1300]]) {
-		terrain.FillBlock(new CFrame(x, 0, z), new Vector3(w, 88, d), Enum.Material.Rock);
+		terrain.FillBlock(new CFrame(x, GROUND - rockDepth / 2, z), new Vector3(w, rockDepth, d), Enum.Material.Rock);
 		terrain.FillBlock(new CFrame(x, GROUND - 5, z), new Vector3(w - 60, 10, d - 60), Enum.Material.Grass);
 	}
+	// Every voxel write runs back to back before more parts are created (Scenery.Part
+	// may yield), so the terrain replicates as one batch.
+	const offshore: Array<[number, number, number, number, number, number, number]> = [[-1500, 500, 520, 440, 0.4, 160, 122], [1550, 450, 480, 420, -0.3, 150, 118]];
+	for (const [x, z, r, peak] of [[-1300, -2150, 280, 125], [1300, -2200, 300, 125], [0, -2250, 260, 118], [-1700, -1600, 200, 122], [1750, -1500, 220, 124]]) Scenery.TerrainHill(x, z, r, GROUND, peak);
+	for (const [x, z, w, d, yaw, r, peak] of offshore) { Scenery.TerrainIsland(x, z, w, d, GROUND, yaw); Scenery.TerrainHill(x, z, r, GROUND, peak); }
+	for (const [x, z, w, d, yaw] of offshore) Scenery.Shoreline(scenery, x, z, w, d, P, yaw);
 	Scenery.Part(scenery, "Shallows", new Vector3(2000, 0.5, 1900), new Vector3(-900, Scenery.WATERLINE + 0.4, -1450), P.shallow, Enum.Material.SmoothPlastic, { transparency: 0.45, castShadow: false });
 	Scenery.Part(scenery, "Shallows", new Vector3(1800, 0.5, 1900), new Vector3(1000, Scenery.WATERLINE + 0.4, -1450), P.shallow, Enum.Material.SmoothPlastic, { transparency: 0.45, castShadow: false });
-	for (const [x, z, r, peak] of [[-1300, -2150, 280, 125], [1300, -2200, 300, 125], [0, -2250, 260, 118], [-1700, -1600, 200, 122], [1750, -1500, 220, 124]]) Scenery.TerrainHill(x, z, r, GROUND, peak);
-	for (const [x, z, w, d, yaw, r, peak] of [[-1500, 500, 520, 440, 0.4, 160, 122], [1550, 450, 480, 420, -0.3, 150, 118]]) {
-		Scenery.TerrainIsland(x, z, w, d, GROUND, yaw); Scenery.Shoreline(scenery, x, z, w, d, P, yaw); Scenery.TerrainHill(x, z, r, GROUND, peak);
-	}
 
 	// Quays: a wall along the whole south coast and around the basin.
 	const quay = Color3.fromRGB(122, 124, 120);

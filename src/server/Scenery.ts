@@ -56,7 +56,8 @@ export function Part(parent: Instance, name: string, size: Vector3, at: CFrame |
 	object.CanCollide = false;
 	object.CanTouch = false;
 	object.CanQuery = false;
-	if (options.castShadow === false) object.CastShadow = false;
+	// Shadows are a major mobile GPU cost; scenery opts in (airfield buildings near the start only).
+	object.CastShadow = options.castShadow === true;
 	if (options.transparency !== undefined) object.Transparency = options.transparency;
 	if (options.reflectance !== undefined) object.Reflectance = options.reflectance;
 	if (options.shape !== undefined && object.IsA("Part")) object.Shape = options.shape;
@@ -87,6 +88,10 @@ export function Report(root: Instance, label: string, budget = PART_BUDGET): num
 
 const OCEAN_Y = -18;
 export const WATERLINE = OCEAN_Y + 2;
+// The opaque sea slabs (top at OCEAN_Y + 2) hide everything below this, so no
+// terrain is kept there: hidden voxels still replicate to the phone and their
+// undersides are still meshed.
+export const HIDDEN_FLOOR = OCEAN_Y - 6;
 
 /** 5x5 flat sea tiles to the horizon (25 parts). */
 export function Sea(parent: Instance, color: Color3): void {
@@ -99,7 +104,9 @@ export function Sea(parent: Instance, color: Color3): void {
 function lobes(width: number, depth: number): Array<[number, number, number]> {
 	const r = math.min(width, depth) / 2;
 	const span = math.max(width, depth) - 2 * r;
-	if (span < 40) return [[0, 0, r]];
+	// Near-round footprints (aspect within 80 studs) use one averaged lobe: two
+	// voxel ops and two shoreline parts fewer, and the outline is indistinguishable.
+	if (span < 80) return [[0, 0, (width + depth) / 4]];
 	const along = width >= depth;
 	return [[along ? -span / 2 : 0, along ? 0 : -span / 2, r], [along ? span / 2 : 0, along ? 0 : span / 2, r]];
 }
@@ -128,19 +135,23 @@ export function Shoreline(parent: Instance, x: number, z: number, width: number,
 export function TerrainIsland(x: number, z: number, width: number, depth: number, top: number, yaw = 0): void {
 	const terrain = Workspace.Terrain;
 	const base = new CFrame(x, 0, z).mul(CFrame.Angles(0, yaw, 0));
-	const rockHeight = top - 4 + 44;
+	const rockHeight = top - 4 - HIDDEN_FLOOR; // bottom at HIDDEN_FLOOR, not 20 studs further down
 	for (const [lx, lz, r] of lobes(width, depth)) {
 		terrain.FillCylinder(base.mul(new CFrame(lx, (top - 4) - rockHeight / 2, lz)), rockHeight, r, Enum.Material.Rock);
 		terrain.FillCylinder(base.mul(new CFrame(lx, top - 5, lz)), 10, r - 45, Enum.Material.Grass);
 	}
 }
 
-/** A rounded hill: rock dome with a grass crown. Two voxel operations. */
+/** A rounded hill: rock dome with a grass crown, carved flat below the sea. Three voxel operations. */
 export function TerrainHill(x: number, z: number, radius: number, base: number, peak: number): void {
 	const terrain = Workspace.Terrain;
 	terrain.FillBall(new Vector3(x, peak - radius, z), radius, Enum.Material.Rock);
 	terrain.FillBall(new Vector3(x, peak - radius * 0.82 + 2, z), radius * 0.82, Enum.Material.Grass);
 	if (base < peak - radius) terrain.FillBlock(new CFrame(x, (base + peak - radius) / 2, z), new Vector3(radius * 1.5, peak - radius - base + 8, radius * 1.5), Enum.Material.Rock);
+	// The ball reaches peak - 2r (down to ~-400 for big hills); everything under the
+	// sea is invisible, so carve it back to air in the same synchronous batch.
+	const bottom = peak - radius * 2;
+	if (bottom < HIDDEN_FLOOR) terrain.FillBlock(new CFrame(x, (bottom - 4 + HIDDEN_FLOOR) / 2, z), new Vector3(radius * 2 + 8, HIDDEN_FLOOR - bottom + 4, radius * 2 + 8), Enum.Material.Air);
 }
 
 /**
@@ -259,7 +270,7 @@ export function Runway(parent: Instance, cf: CFrame, length: number, width: numb
 export function Hangar(parent: Instance, pivot: CFrame, palette: Palette, accent: Color3): void {
 	for (const spec of HANGAR_PARTS) {
 		const color = spec.name === "DoorHeader" ? accent : spec.name === "Roof" || spec.name === "Back" ? Color3.fromRGB(70, 78, 86) : palette.concrete;
-		Part(parent, `Hangar ${spec.name}`, spec.size, pivot.mul(new CFrame(spec.offset)), color, spec.name === "Floor" ? Enum.Material.Concrete : Enum.Material.Metal);
+		Part(parent, `Hangar ${spec.name}`, spec.size, pivot.mul(new CFrame(spec.offset)), color, spec.name === "Floor" ? Enum.Material.Concrete : Enum.Material.Metal, { castShadow: spec.name !== "Floor" });
 	}
 }
 
@@ -268,7 +279,7 @@ export function ControlTower(parent: Instance, pivot: CFrame, palette: Palette):
 	for (const spec of CONTROL_TOWER_PARTS) {
 		const glass = spec.name === "Cab";
 		Part(parent, `Tower ${spec.name}`, spec.size, pivot.mul(new CFrame(spec.offset)), glass ? Color3.fromRGB(62, 110, 128) : spec.name === "Beacon" ? Color3.fromRGB(255, 150, 70) : spec.name === "Roof" ? Color3.fromRGB(50, 58, 66) : palette.concrete,
-			glass ? Enum.Material.Glass : spec.name === "Beacon" ? Enum.Material.Neon : spec.name === "Base" ? Enum.Material.Concrete : Enum.Material.Metal, { transparency: glass ? 0.2 : undefined, shape: spec.name === "Beacon" ? Enum.PartType.Ball : undefined });
+			glass ? Enum.Material.Glass : spec.name === "Beacon" ? Enum.Material.Neon : spec.name === "Base" ? Enum.Material.Concrete : Enum.Material.Metal, { transparency: glass ? 0.2 : undefined, shape: spec.name === "Beacon" ? Enum.PartType.Ball : undefined, castShadow: spec.name === "Base" || spec.name === "Cab" });
 	}
 }
 
@@ -345,5 +356,5 @@ export function Lighthouse(parent: Instance, x: number, z: number, floor: number
 }
 
 export const Scenery = {
-	PART_BUDGET, WATERLINE, PALETTES, Part, Cylinder, Disc, Report, Sea, Shoreline, TerrainIsland, TerrainHill, Mountains, SeaStacks, Rocks, Trees, Road, Light, Runway, Hangar, ControlTower, FuelFarm, Buildings, ParkedJets, Containers, Crane, Boat, Lighthouse,
+	PART_BUDGET, WATERLINE, HIDDEN_FLOOR, PALETTES, Part, Cylinder, Disc, Report, Sea, Shoreline, TerrainIsland, TerrainHill, Mountains, SeaStacks, Rocks, Trees, Road, Light, Runway, Hangar, ControlTower, FuelFarm, Buildings, ParkedJets, Containers, Crane, Boat, Lighthouse,
 };
