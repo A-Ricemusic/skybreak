@@ -32,7 +32,9 @@ function sceneFor(id:number): Folder {
 	for(let i=0;i<5;i++) prop(scene,"Evidence chain",new Vector3(5,1,5),new Vector3(-10+i*7,.3,-25),Color3.fromRGB(68,218,196),Enum.Material.Neon);
 	return scene;
 }
-export function RelayCinematic({id,onFinish,onCancel}:{id:number;onFinish:()=>void;onCancel:()=>void}) {
+export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewport:Vector2;onFinish:()=>void;onCancel:()=>void}) {
+	const compact=viewport.Y<360;
+	const panelHeight=compact ? 144 : 184;
 	const chapter=storyFor(id),[beat,setBeat]=useState(0),[paused,setPaused]=useState(false),[still,setStill]=useState(false),[large,setLarge]=useState(false);
 	const pausedRef=useRef(false),stillRef=useRef(false),finishRef=useRef(onFinish),cancelRef=useRef(onCancel),done=useRef(false);
 	finishRef.current=onFinish;cancelRef.current=onCancel;
@@ -54,8 +56,8 @@ export function RelayCinematic({id,onFinish,onCancel}:{id:number;onFinish:()=>vo
 			const index=math.min(2,math.floor(elapsed/7));
 			if(index!==lastBeat){lastBeat=index;setBeat(index);}
 			const alpha=stillRef.current ? .5 : (elapsed%7)/7;
-			const eye=index===0 ? new Vector3(-10+alpha*4,12,-19) : index===1 ? new Vector3(110-alpha*30,85,-5-alpha*12) : new Vector3(21-alpha*5,20,-25);
-			const focus=index===0 ? new Vector3(0,7,0) : index===1 ? new Vector3(0,25,-80) : new Vector3(4,6,-2);
+			const eye=index===0 ? new Vector3(-10+alpha*4,12,-19) : index===1 ? new Vector3(160-alpha*12,120,90-alpha*10) : new Vector3(21-alpha*5,20,-25);
+			const focus=index===0 ? new Vector3(0,7,0) : index===1 ? new Vector3(20,30,-85) : new Vector3(4,6,-2);
 			camera.CameraType=Enum.CameraType.Scriptable;camera.FieldOfView=55;camera.CFrame=CFrame.lookAt(ORIGIN.add(eye),ORIGIN.add(focus));
 			if(elapsed>=21)finish();
 		});
@@ -67,10 +69,10 @@ export function RelayCinematic({id,onFinish,onCancel}:{id:number;onFinish:()=>vo
 	},[id]);
 	const button=(name:string,text:string,x:number,control:CinematicControl)=><textbutton key={name} Position={new UDim2(x,0,0,0)} Size={new UDim2(.245,0,1,0)} BackgroundColor3={Color3.fromRGB(18,43,52)} BorderSizePixel={0} Text={text} TextScaled={true} Font={Enum.Font.GothamBold} TextColor3={Color3.fromRGB(230,240,232)} Event={{Activated:()=>dispatch(routeCinematicInput({kind:"activated",control}))}}><uitextsizeconstraint MaxTextSize={13} MinTextSize={9}/></textbutton>;
 	return <frame key="CinematicScreen" Size={UDim2.fromScale(1,1)} BackgroundTransparency={1}>
-		<textlabel Position={new UDim2(0,0,0,0)} Size={new UDim2(1,0,0,46)} BackgroundColor3={Color3.fromRGB(3,12,18)} BackgroundTransparency={.1} Text={`BROKEN RELAY  /  ${chapter.title}`} TextColor3={Color3.fromRGB(93,239,215)} TextSize={15} Font={Enum.Font.GothamBold}/>
-		<frame Position={new UDim2(.025,0,1,-190)} Size={new UDim2(.95,0,0,184)} BackgroundColor3={Color3.fromRGB(3,12,18)} BackgroundTransparency={.08} BorderSizePixel={0}>
-			<textlabel Position={UDim2.fromOffset(12,5)} Size={new UDim2(1,-24,0,21)} BackgroundTransparency={1} Text={`${chapter.beats[beat].speaker}   ${beat+1}/3`} TextXAlignment={Enum.TextXAlignment.Left} TextColor3={Color3.fromRGB(93,239,215)} TextSize={12} Font={Enum.Font.GothamBold}/>
-			<textlabel Position={UDim2.fromOffset(12,30)} Size={new UDim2(1,-24,0,100)} BackgroundTransparency={1} Text={chapter.beats[beat].text} TextWrapped={true} TextScaled={true} TextColor3={Color3.fromRGB(247,244,231)} Font={Enum.Font.GothamMedium}><uitextsizeconstraint MaxTextSize={large ? 28 : 22} MinTextSize={14}/></textlabel>
+		<textlabel Position={new UDim2(0,0,0,0)} Size={new UDim2(1,0,0,compact ? 28 : 46)} BackgroundColor3={Color3.fromRGB(3,12,18)} BackgroundTransparency={.1} Text={`BROKEN RELAY  /  ${chapter.title}`} TextColor3={Color3.fromRGB(93,239,215)} TextScaled={true} Font={Enum.Font.GothamBold}><uitextsizeconstraint MaxTextSize={compact ? 12 : 15} MinTextSize={10}/></textlabel>
+		<frame Position={new UDim2(.025,0,1,-panelHeight-6)} Size={new UDim2(.95,0,0,panelHeight)} BackgroundColor3={Color3.fromRGB(3,12,18)} BackgroundTransparency={.08} BorderSizePixel={0}>
+			<textlabel Position={UDim2.fromOffset(12,5)} Size={new UDim2(1,-24,0,compact ? 16 : 21)} BackgroundTransparency={1} Text={`${chapter.beats[beat].speaker}   ${beat+1}/3`} TextXAlignment={Enum.TextXAlignment.Left} TextColor3={Color3.fromRGB(93,239,215)} TextSize={compact ? 10 : 12} Font={Enum.Font.GothamBold}/>
+			<textlabel Position={UDim2.fromOffset(12,compact ? 23 : 30)} Size={new UDim2(1,-24,0,compact ? 72 : 100)} BackgroundTransparency={1} Text={chapter.beats[beat].text} TextWrapped={true} TextScaled={true} TextColor3={Color3.fromRGB(247,244,231)} Font={Enum.Font.GothamMedium}><uitextsizeconstraint MaxTextSize={compact ? large ? 18 : 16 : large ? 28 : 22} MinTextSize={14}/></textlabel>
 			<frame Position={new UDim2(.02,0,1,-47)} Size={new UDim2(.96,0,0,44)} BackgroundTransparency={1}>
 				{button("CinematicSkipButton","SKIP · A",0,"skip")}
 				{button("CinematicPauseButton",paused ? "RESUME · X" : "PAUSE · X",.25,"pause")}

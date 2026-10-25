@@ -60,17 +60,18 @@ const centered = (viewportWidth: number, width: number, y: number, height: numbe
 
 /** Pure layout calculation shared by the React HUD and Roblox Jest tests. */
 export function getHudLayout(viewportWidth: number, viewportHeight: number, inputMode: InputMode): HudLayout {
-	const width = math.max(320, viewportWidth);
-	const height = math.max(240, viewportHeight);
-	const margin = width < 700 || height < 420 ? 14 : 22;
+	const width = math.max(1, viewportWidth);
+	const height = math.max(1, viewportHeight);
+	const shortSafeArea = height < 240;
+	const margin = shortSafeArea ? 6 : width < 700 || height < 420 ? 14 : 22;
 	// The objective callout sits at the very top of the CoreUI-safe area so it
 	// never crosses the flight view or target bracket. The incoming-warning
 	// alert is a slim pill that stacks below the callout only while active, so
 	// a persistent banner is never reserved across the forward view. Horizontal
 	// centering stays inside the ScreenGui's safe inset, which already excludes
 	// the Roblox topbar on the left and any phone cutout on the right.
-	const callout = centered(width, math.min(420, width - margin * 2), margin, 50);
-	const alert = centered(width, math.min(380, width - margin * 2), callout.y + callout.height + 10, 32);
+	const callout = centered(width, math.min(420, width - margin * 2), margin, shortSafeArea ? 46 : 50);
+	const alert = centered(width, math.min(380, width - margin * 2), callout.y + callout.height + (shortSafeArea ? 4 : 10), shortSafeArea ? 24 : 32);
 
 	if (inputMode === "touch") {
 		const portrait = height > width;
@@ -81,14 +82,14 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 			// Use two compact rows instead: throttle/status immediately below the
 			// alert, then the primary controls along the bottom safe edge.
 			const throttleLength = MIN_TOUCH_TARGET * 2 + 36;
-			const upperRowY = alert.y + alert.height + 10;
+			const upperRowY = alert.y + alert.height + (shortSafeArea ? 4 : 10);
 			const throttle = { x: margin, y: upperRowY, width: throttleLength, height: MIN_TOUCH_TARGET };
 			const statusWidth = 128;
 			const statusHeight = 40;
 			const status = { x: width - margin - statusWidth, y: upperRowY, width: statusWidth, height: statusHeight };
-			const joystickSize = 64;
+			const joystickSize = shortSafeArea ? MIN_TOUCH_TARGET : 64;
 			const joystick = { x: margin, y: height - margin - joystickSize, width: joystickSize, height: joystickSize };
-			const missileSize = 64;
+			const missileSize = shortSafeArea ? MIN_TOUCH_TARGET : 64;
 			const missile = { x: width - margin - missileSize, y: height - margin - missileSize, width: missileSize, height: missileSize };
 			const targetSize = MIN_TOUCH_TARGET;
 			const target = { x: missile.x - 14 - targetSize, y: height - margin - targetSize, width: targetSize, height: targetSize };
@@ -123,12 +124,12 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
  * display aircraft stays visible on the right; portrait uses a bottom sheet.
  */
 export function getMenuLayout(viewportWidth: number, viewportHeight: number): MenuLayout {
-	const width = math.max(320, viewportWidth);
-	const height = math.max(240, viewportHeight);
+	const width = math.max(1, viewportWidth);
+	const height = math.max(1, viewportHeight);
 	if (width >= height * 1.15) {
 		const x = math.floor(math.clamp(width * 0.05, 20, 72));
 		const panelWidth = math.floor(math.clamp(width * 0.36, 280, 440));
-		const vertical = height < 440 ? 14 : math.floor(math.clamp(height * 0.08, 24, 64));
+		const vertical = height < 240 ? 6 : height < 440 ? 14 : math.floor(math.clamp(height * 0.08, 24, 64));
 		const panelHeight = math.min(height - vertical * 2, 460);
 		return {
 			mode: "side",
@@ -149,7 +150,7 @@ export function getMenuLayout(viewportWidth: number, viewportHeight: number): Me
 
 /** Status toasts stay clear of the menu panel, or of the mission alert lane when no menu is shown. */
 export function getToastLayout(viewportWidth: number, viewportHeight: number, menu?: MenuLayout): Rectangle {
-	const width = math.max(320, viewportWidth);
+	const width = math.max(1, viewportWidth);
 	const toastHeight = 44;
 	if (menu?.mode === "side") {
 		const left = menu.panel.x + menu.panel.width + 16;
@@ -165,9 +166,9 @@ export function getToastLayout(viewportWidth: number, viewportHeight: number, me
 /** Gamepad select/back hints: bottom-right beside the side panel, or just above the bottom sheet. */
 export function getMenuHintsLayout(viewportWidth: number, viewportHeight: number, menu: MenuLayout): Rectangle {
 	if (menu.mode === "side") {
-		const width = math.max(320, viewportWidth);
+		const width = math.max(1, viewportWidth);
 		const hintsWidth = math.min(260, width - 16 - (menu.panel.x + menu.panel.width + 16));
-		return { x: width - 16 - hintsWidth, y: math.max(240, viewportHeight) - 16 - 28, width: hintsWidth, height: 28 };
+		return { x: width - 16 - hintsWidth, y: math.max(1, viewportHeight) - 16 - 28, width: hintsWidth, height: 28 };
 	}
 	return { x: menu.panel.x, y: menu.panel.y - 36, width: menu.panel.width, height: 28 };
 }

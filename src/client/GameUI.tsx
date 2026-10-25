@@ -541,7 +541,7 @@ function TitleScreen({ visible, menu, onCampaign }: { visible: boolean; menu: Me
 					BackgroundTransparency={1}
 					Font={Enum.Font.GothamBlack}
 					LayoutOrder={2}
-					Size={new UDim2(1, 0, 0, compact ? 50 : 76)}
+					Size={new UDim2(1, 0, 0, menu.panel.height<220 ? 36 : compact ? 50 : 76)}
 					Text="SKYBREAK"
 					TextColor3={C.Ivory}
 					TextScaled={true}
@@ -552,6 +552,7 @@ function TitleScreen({ visible, menu, onCampaign }: { visible: boolean; menu: Me
 				<Label name="Subtitle" text="BROKEN RELAY" color={C.Orange} textSize={compact ? 11 : 13} font={Enum.Font.GothamBold} size={new UDim2(1, 0, 0, 18)} layoutOrder={3} />
 				<Label
 					name="Blurb"
+					visible={menu.panel.height>=220}
 					text="Follow a missing mentor’s recordings through 27 sorties. Uncover the coup. Bring the coast home."
 					color={C.Muted}
 					textSize={compact ? 13 : 15}
@@ -747,22 +748,23 @@ function BriefingScreen({visible,menu,selectedSlot,selectedMission,slot,busy,onB
 	for(let id=1;id<MISSION_COUNT;id++) {if(slot?.missions?.[id]?.completed)unlocked=id+1;else break;}
 	const completed=slot?.missions?.[selectedMission]?.completed===true;
 	const best=slot?.missions?.[selectedMission]?.bestTime;
-	const small=menu.panel.height<300;
+	const small=menu.panel.height<300,ultra=menu.panel.height<220;
+	const detailsTop=ultra ? 42 : small ? 57 : 66;
 	const choose=(id:number)=>{onMission(id);setBrowse(false);};
 	return <frame key="BriefingScreen" BackgroundTransparency={1} Size={UDim2.fromScale(1,1)} Visible={visible}>
 		<frame ref={panelRef} key="BriefingPanel" BackgroundTransparency={1} {...panelPosition(menu)}>
 			{browse ? <>
-				<Label name="SelectMissionTitle" text="MISSION ARCHIVE" textSize={21} font={Enum.Font.GothamBlack} size={new UDim2(1,0,0,28)}/>
-				{[1,2,3].map((id)=><ActionButton key={`Act${id}`} name={`Act${id}`} text={`ACT ${id}`} primary={act===id} position={new UDim2((id-1)/3,0,0,32)} size={new UDim2(1/3,-4,0,44)} onActivated={()=>setAct(id)}/>)}
-				<scrollingframe key="MissionArchive" Position={UDim2.fromOffset(0,82)} Size={new UDim2(1,0,1,-132)} CanvasSize={UDim2.fromOffset(0,9*50)} BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={4}>
+				<Label name="SelectMissionTitle" text="MISSION ARCHIVE" textSize={21} font={Enum.Font.GothamBlack} size={new UDim2(1,0,0,ultra ? 22 : 28)}/>
+				{[1,2,3].map((id)=><ActionButton key={`Act${id}`} name={`Act${id}`} text={`ACT ${id}`} primary={act===id} position={new UDim2((id-1)/3,0,0,ultra ? 26 : 32)} size={new UDim2(1/3,-4,0,44)} onActivated={()=>setAct(id)}/>)}
+				<scrollingframe key="MissionArchive" Position={UDim2.fromOffset(0,ultra ? 74 : 82)} Size={new UDim2(1,0,1,ultra ? -122 : -132)} CanvasSize={UDim2.fromOffset(0,9*50)} BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={4}>
 					<uilistlayout Padding={new UDim(0,6)} SortOrder={Enum.SortOrder.LayoutOrder}/>
 					{MissionCatalog.All().filter((bp)=>bp.act===act).map((bp)=><ActionButton key={`Mission${bp.id}`} name={`Mission${string.format("%02d",bp.id)}SelectButton`} text={`${string.format("%02d",bp.id)}  ${bp.title}${bp.id>unlocked ? " · LOCKED" : slot?.missions?.[bp.id]?.completed ? " · COMPLETE" : ""}`} primary={selectedMission===bp.id} enabled={!busy && bp.id<=unlocked} layoutOrder={bp.id} size={new UDim2(1,-8,0,44)} textSize={12} onActivated={()=>choose(bp.id)}/>)}
 				</scrollingframe>
 				<ActionButton name="ArchiveBackButton" text="‹ BRIEFING" anchorPoint={new Vector2(0,1)} position={new UDim2(0,0,1,0)} size={new UDim2(1,0,0,44)} onActivated={()=>setBrowse(false)}/>
 			</> : <>
 				<Label name="BriefingEyebrow" text={`FILE ${selectedSlot} · ACT ${mission.act} · MISSION ${string.format("%02d",selectedMission)}/27`} color={C.Accent} textSize={10} font={Enum.Font.GothamBold} size={new UDim2(1,0,0,16)}/>
-				<Label name="BriefingTitle" text={mission.title} textSize={small ? 21 : 29} font={Enum.Font.GothamBlack} position={UDim2.fromOffset(0,20)} size={new UDim2(1,0,0,36)}/>
-				<scrollingframe key="BriefingDetails" Position={UDim2.fromOffset(0,small ? 57 : 66)} Size={new UDim2(1,0,1,small ? -157 : -166)} CanvasSize={UDim2.fromOffset(0,0)} AutomaticCanvasSize={Enum.AutomaticSize.Y} BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={4}>
+				<Label name="BriefingTitle" text={mission.title} textSize={small ? 21 : 29} font={Enum.Font.GothamBlack} position={UDim2.fromOffset(0,ultra ? 14 : 20)} size={new UDim2(1,0,0,ultra ? 24 : 36)}/>
+				<scrollingframe key="BriefingDetails" Position={UDim2.fromOffset(0,detailsTop)} Size={new UDim2(1,0,1,-detailsTop-100)} CanvasSize={UDim2.fromOffset(0,0)} AutomaticCanvasSize={Enum.AutomaticSize.Y} BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={4}>
 					<uilistlayout Padding={new UDim(0,12)} SortOrder={Enum.SortOrder.LayoutOrder}/>
 					<Label name="Story" text={mission.briefing} color={C.Ivory} textSize={14} size={new UDim2(1,-12,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={1}/>
 					<Label name="PhasePlan" text={mission.phases.map((phase,index)=>`${index+1}. ${phase.label}`).join("\n")} color={C.Muted} textSize={12} size={new UDim2(1,-12,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={2}/>
@@ -800,11 +802,13 @@ function OutcomeScreen({
 	return (
 		<frame key="OutcomeScreen" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={visible}>
 			<frame key="VictoryPanel" BackgroundTransparency={1} {...panelPosition(menu)}>
-				<frame key="Accent" BackgroundColor3={outcome.won ? C.Accent : C.Danger} BorderSizePixel={0} Size={UDim2.fromOffset(32, 2)} />
-				<Label name="OutcomeEyebrow" text={`MISSION ${string.format("%02d",outcome.missionId)} · ${MissionCatalog.Get(outcome.missionId).title}`} color={C.Orange} textSize={compact ? 10 : 11} font={Enum.Font.GothamBold} position={UDim2.fromOffset(0, 10)} size={new UDim2(1, 0, 0, 16)} />
-				<Label name="OutcomeTitle" text={outcome.won ? "MISSION COMPLETE" : timedOut ? "TIME EXPIRED" : "SORTIE LOST"} color={outcome.won ? C.Ivory : C.Danger} textSize={compact ? 24 : 34} font={Enum.Font.GothamBlack} position={UDim2.fromOffset(0, compact ? 28 : 32)} size={new UDim2(1, 0, 0, compact ? 30 : 44)} />
+				<scrollingframe key="OutcomeDetails" BackgroundTransparency={1} BorderSizePixel={0} Size={new UDim2(1,0,1,-52)} CanvasSize={UDim2.fromOffset(0,0)} AutomaticCanvasSize={Enum.AutomaticSize.Y} ScrollBarThickness={3} ScrollingDirection={Enum.ScrollingDirection.Y}>
+					<uilistlayout Padding={new UDim(0,compact ? 8 : 12)} SortOrder={Enum.SortOrder.LayoutOrder}/>
+				<frame key="Accent" LayoutOrder={1} BackgroundColor3={outcome.won ? C.Accent : C.Danger} BorderSizePixel={0} Size={UDim2.fromOffset(32, 2)} />
+				<Label name="OutcomeEyebrow" layoutOrder={2} text={`MISSION ${string.format("%02d",outcome.missionId)} · ${MissionCatalog.Get(outcome.missionId).title}`} color={C.Orange} textSize={compact ? 10 : 11} font={Enum.Font.GothamBold} position={UDim2.fromOffset(0, 10)} size={new UDim2(1, 0, 0, 16)} />
+				<Label name="OutcomeTitle" layoutOrder={3} text={outcome.won ? "MISSION COMPLETE" : timedOut ? "TIME EXPIRED" : "SORTIE LOST"} color={outcome.won ? C.Ivory : C.Danger} textSize={compact ? 24 : 34} font={Enum.Font.GothamBlack} position={UDim2.fromOffset(0, compact ? 28 : 32)} size={new UDim2(1, 0, 0, compact ? 30 : 44)} />
 				<Label
-					name="OutcomeSummary"
+					name="OutcomeSummary" layoutOrder={4}
 					text={summary}
 					color={C.Muted}
 					textSize={compact ? 12 : 15}
@@ -814,9 +818,9 @@ function OutcomeScreen({
 					textWrapped={true}
 					textYAlignment={Enum.TextYAlignment.Top}
 				/>
-				<Label name="OutcomeStats" text={`AIR  ${outcome.kills}   GROUND  ${outcome.groundKills}   TIME  ${formatTime(outcome.elapsed)}`} color={C.Accent} textSize={compact ? 12 : 14} font={Enum.Font.RobotoMono} position={UDim2.fromOffset(0, compact ? 112 : 150)} size={new UDim2(1, 0, 0, 20)} />
+				<Label name="OutcomeStats" layoutOrder={5} text={`AIR  ${outcome.kills}   GROUND  ${outcome.groundKills}   TIME  ${formatTime(outcome.elapsed)}`} color={C.Accent} textSize={compact ? 12 : 14} font={Enum.Font.RobotoMono} position={UDim2.fromOffset(0, compact ? 112 : 150)} size={new UDim2(1, 0, 0, 20)} />
 				<Label
-					name="SaveStatus"
+					name="SaveStatus" layoutOrder={6}
 					text={outcome.saveText}
 					color={outcome.saveColor}
 					textSize={compact ? 10 : 11}
@@ -826,6 +830,7 @@ function OutcomeScreen({
 					automaticSize={Enum.AutomaticSize.Y}
 					textWrapped={true}
 				/>
+				</scrollingframe>
 				{outcome.won ? !campaignComplete ? (
 					<FooterButtons compact={compact} primaryName="Mission1NextMissionButton" primaryText={`NEXT: MISSION ${string.format("%02d",outcome.missionId+1)}`} secondaryName="ReturnToMenuButton" secondaryText="MAIN MENU" busy={busy} onPrimary={onNext} onSecondary={onReturn} />
 				) : (
@@ -932,10 +937,10 @@ function MissionHud({
 		? `  ${telemetry.objectiveProgress ?? 0}/${telemetry.objectiveTotal}`
 		: "";
 	const objectiveText = tutorial !== "" ? tutorial : callout?.title ?? (telemetry.objective ?? "Complete the objective");
-	const objectiveEyebrow = tutorial !== "" ? "FLIGHT TRAINING" : callout?.eyebrow ?? "CURRENT OBJECTIVE";
+	const objectiveEyebrow = telemetry.protectedHealth!==undefined ? `PROTECTED ${math.ceil(telemetry.protectedHealth)}%` : tutorial !== "" ? "FLIGHT TRAINING" : callout?.eyebrow ?? "CURRENT OBJECTIVE";
 	return (
 		<frame key="MissionHUD" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={visible}>
-			<NavigationCue telemetry={telemetry} visible={visible}/>
+			<NavigationCue telemetry={telemetry} visible={visible} inputMode={inputMode}/>
 			<frame key="DamageFlash" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={damageFlash}>
 				<Stroke color={C.Danger} transparency={0.35} thickness={5} />
 			</frame>
@@ -1557,7 +1562,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			</screengui>
 			<screengui key="SkybreakUI" DisplayOrder={20} IgnoreGuiInset={false} ResetOnSpawn={false} ScreenInsets={Enum.ScreenInsets.CoreUISafeInsets} ZIndexBehavior={Enum.ZIndexBehavior.Sibling}>
 				<frame ref={rootFrameRef} key="Root" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Change={rootChange}>
-					{screen === "cinematic" && <RelayCinematic id={cinematicId} onFinish={()=>{const continueStory=cinematicNext.current;changeScreen(cinematicId===MISSION_COUNT ? "outcome" : "briefing");continueStory();}} onCancel={()=>changeScreen(cinematicId===MISSION_COUNT ? "outcome" : "briefing")}/>}
+					{screen === "cinematic" && <RelayCinematic id={cinematicId} viewport={viewport} onFinish={()=>{const continueStory=cinematicNext.current;changeScreen(cinematicId===MISSION_COUNT ? "outcome" : "briefing");continueStory();}} onCancel={()=>changeScreen(cinematicId===MISSION_COUNT ? "outcome" : "briefing")}/>}
 					<TitleScreen visible={screen === "title"} menu={menu} onCampaign={() => { if (!busyRef.current) { changeScreen("slots"); loadSlots(); } }} />
 					<CampaignScreen visible={screen === "slots"} menu={menu} slots={slots} busy={busy} persistence={persistence} onBack={goBack} onSlot={(slot) => { if (!busyRef.current && slots?.[slot - 1]) { const missionId = resumeMission(slots[slot - 1]); selectedSlotRef.current = slot; selectedMissionRef.current = missionId; setSelectedSlot(slot); setSelectedMission(missionId); changeScreen("briefing"); } }} />
 					<BriefingScreen visible={screen === "briefing"} menu={menu} selectedSlot={selectedSlot} selectedMission={selectedMission} slot={selectedSave} busy={busy} onBack={goBack} onLaunch={startMission} onMission={(missionId) => { selectedMissionRef.current = missionId; setSelectedMission(missionId); }} />
