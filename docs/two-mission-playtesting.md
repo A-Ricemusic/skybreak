@@ -19,6 +19,8 @@ Run `bun run test:roblox`. Bun builds and launches Roblox Studio; Roblox Jest ru
 
 For gameplay, launch via the real menu and inject `tools/playtest-campaign.client.luau` as a normal client LocalScript under `LocalPlayer.PlayerScripts`. It can also be injected up to 30 seconds before launch. The pilot calls the same controller methods used by the UI, observes authoritative telemetry, and records results in `PlayerGui.SkybreakCampaignQA`. It never changes health, target positions, damage, the clock, or campaign completion. Close ground passes are extended before another approach rather than orbiting inside the aircraft's turn radius.
 
+When automating menus through Studio MCP, verify the visible screen and selected briefing after each action. Device emulation can cause pointer-coordinate mismatches; stopping device simulation for menu clicks and restoring it before flight avoids mistaking a missed tool click for a game failure.
+
 Set the script's `SurvivalOnly` attribute before parenting it to disable firing and exercise the real deadline. A readiness timeout and a pilot timeout are distinct from an authoritative mission failure. This is automated gameplay, not a hardware-controller or physical-phone test.
 
 Observed complete runs in Studio's iPhone 17 Pro landscape simulation:
@@ -26,7 +28,9 @@ Observed complete runs in Studio's iPhone 17 Pro landscape simulation:
 - First Flight: all tutorial gates, radar, then three bandits; recorded win at 33.50 seconds, health 100.
 - Iron Coast: three bandits, five warehouses, then ace; recorded win at 46.63 seconds, health 100. All five optional raiders were observed alive alongside the ace.
 - Successful teardown: zero children in `Workspace.SkybreakCombat`, menu world restored, mission clouds removed.
-- Desktop and simulated Xbox: touch joystick hidden and tutorial instructions adapted to the active device.
+- Desktop and simulated Xbox: touch joystick hidden and tutorial instructions adapted to the active device. Portrait phone HUD also checked.
+- Actual Retry button after timeout: restarted Mission 1, completed at 33.23 seconds with 1 ground/3 air kills, `ResultValid=true`, and zero remaining mission folders.
+- Real-time deadline run: no shots fired; authoritative failure at 600.009 seconds with reason `timeout`, `TIME EXPIRED` recap, hidden flight HUD, zero remaining mission folders, restored menu, and no completion credit in the slot.
 
 A deadline is a maximum duration, not a minimum mission length. The automated pilot completes objectives faster than a new player is likely to.
 
