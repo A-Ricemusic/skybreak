@@ -60,3 +60,15 @@ The runner defaults to the macOS Studio executable. Set `ROBLOX_STUDIO_PATH` for
 A small checked-in Bun patch applies the upstream roblox-ts runtime registration fix needed for Jest's isolated module environments. `bun install --frozen-lockfile` applies it automatically.
 
 For a genuine mission smoke test, launch through the menu in Studio, then run `tools/playtest-flight.client.luau` as a client LocalScript. It uses the same flight, missile, and evade controller methods as the touch UI; it never changes health, damage, or kills. Live cloud saves require a published experience; unpublished Studio tests use clearly labeled session-only slots.
+
+## Blender aircraft
+
+The original Kestrel fighter lives in `assets/aircraft/kestrel.blend`, with FBX/GLB exports and preview renders alongside it. Regenerate the assets with:
+
+```sh
+/Applications/Blender.app/Contents/MacOS/Blender --background --python tools/build-aircraft.py
+```
+
+The export contains 3,684 triangles across seven material meshes. `bun run build` packages its exact vertices, faces, and corner normals as server-only data. Roblox generates reusable static mesh content from that data when the server starts, then replicates the aircraft to players. This path needs no API key or local HTTP server. The normal aircraft remains a fallback if Roblox makes mesh generation unavailable.
+
+Studio's documented `CreateAssetAsync` upload route currently reports “not available yet” in this installation, so the project does not depend on that upload API. The FBX is also ready for Studio's manual 3D Importer.
