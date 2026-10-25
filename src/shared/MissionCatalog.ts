@@ -622,6 +622,7 @@ export const MISSIONS: MissionDefinition[] = [
 			{ x: 0, z: -500, radius: 340, height: 48, apron: true },
 			{ x: -1700, z: 900, radius: 440, height: 95 },
 			{ x: 1700, z: 900, radius: 440, height: 95 },
+			{ x: 0, z: 1650, radius: 380, height: 72 },
 		],
 		targets: [
 			{ kind: "corvette", x: -700, z: -900, name: "ESCORT 1" },

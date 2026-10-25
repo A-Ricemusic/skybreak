@@ -32,13 +32,13 @@ Historical baseline runs observed before the 27-mission rebuild in Studio's iPho
 - Actual Retry button after timeout: restarted Mission 1, completed at 33.23 seconds with 1 ground/3 air kills, `ResultValid=true`, and zero remaining mission folders.
 - Real-time deadline run: no shots fired; authoritative failure at 600.009 seconds with reason `timeout`, `TIME EXPIRED` recap, hidden flight HUD, zero remaining mission folders, restored menu, and no completion credit in the slot.
 
-These results establish the preserved Mission 1/2 mechanics and teardown path;
-they are not evidence for Missions 3–27. A genuine normal-control run of every
-Last Tide mission is still required after the parent grants an exclusive Studio
-lease. The updated QA pilot follows server route markers, survives hold phases,
-uses normal targeting/missile/evade methods, and validates each mission against
-its catalog requirements without modifying targets, health, kills, clock, or
-result state.
+These historical results establish the preserved Mission 1/2 mechanics and
+teardown path; they are not evidence for Missions 3–27. The later exclusive-
+lease run of all 27 Last Tide missions is recorded separately in
+[last-tide-qa.md](last-tide-qa.md). The updated QA pilot follows server route
+markers, survives hold phases, uses normal targeting/missile/evade methods, and
+validates each mission against its catalog requirements without modifying
+targets, health, kills, clock, or result state.
 
 A deadline is a maximum duration, not a minimum mission length. The automated pilot completes objectives faster than a new player is likely to.
 

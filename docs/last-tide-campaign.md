@@ -109,5 +109,5 @@ real warning. It never edits target position, health, kills, damage, time,
 objective progress, or success. For final acceptance, launch each mission from
 the real selector, record completion and teardown, verify the next unlock and
 replay path, inspect its cinematic/skip behavior, and complete one real 600 s
-timeout/retry path. Missions 3–27 have not passed this Studio run until that
-evidence is recorded under an exclusive lease.
+timeout/retry path. The completed exclusive-lease run and its limitations are
+recorded in [last-tide-qa.md](last-tide-qa.md).
