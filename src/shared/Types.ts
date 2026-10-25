@@ -100,6 +100,12 @@ export interface Telemetry {
 	elapsed: number;
 	targetDistance?: number;
 	boundaryWarning?: boolean;
+	/** Latest radio line (phase beat, chatter, ace stage, flares). */
+	radio?: string;
+	/** Increments whenever `radio` changes so repeated lines still show. */
+	radioSerial?: number;
+	/** Current target's health fraction (0-1), when known. */
+	targetHealth?: number;
 }
 export interface MissionFinished extends MissionStats {
 	kind: "Completed" | "Failed";
