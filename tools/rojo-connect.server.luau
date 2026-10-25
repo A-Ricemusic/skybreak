@@ -1,5 +1,5 @@
 -- Starts the official Rojo client for this repository without a manual UI click.
-if not plugin or not game:GetService("RunService"):IsEdit() then
+if not plugin or not game:GetService("RunService"):IsEdit() or workspace:GetAttribute("SkybreakTestMode") == true then
 	return
 end
 

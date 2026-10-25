@@ -6,10 +6,10 @@
   "scripts": {
     "build": "rbxtsc --rojo test.project.json",
     "watch": "rbxtsc --rojo test.project.json -w",
-    "build:place": "bun run build && rojo build -o build/skybreak.rbxlx",
+    "build:place": "bun run build && mkdir -p build && rojo build -o build/skybreak.rbxlx",
     "serve": "rojo serve",
     "test": "bun run test:roblox",
-    "test:roblox": "bun run build && rojo build test.project.json -o build/skybreak-tests.rbxlx"
+    "test:roblox": "bun tools/test-roblox.ts"
   },
   "devDependencies": {
     "@rbxts/compiler-types": "3.0.0-types.0",
@@ -23,5 +23,8 @@
     "@rbxts/react": "17.3.13-ts.1",
     "@rbxts/react-roblox": "17.3.13-ts.1",
     "@rbxts/services": "^1.6.0"
+  },
+  "patchedDependencies": {
+    "roblox-ts@3.0.0": "patches/roblox-ts@3.0.0.patch"
   }
 }

@@ -53,4 +53,4 @@ function initialize(): void {
 
 // Test places map the production server tree too. Unit/integration specs import
 // modules directly and must not create world/remotes or connect live services.
-if (game.GetAttribute("SkybreakTestMode") !== true) initialize();
+if (game.Workspace.GetAttribute("SkybreakTestMode") !== true) initialize();

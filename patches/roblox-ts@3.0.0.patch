@@ -1,0 +1,24 @@
+diff --git a/include/RuntimeLib.lua b/include/RuntimeLib.lua
+index 1236bfaf3c82700d25451b2971dcb75e60c1472a..350eeb74d96bae8306d7031eb09aa98451aa9d52 100644
+--- a/include/RuntimeLib.lua
++++ b/include/RuntimeLib.lua
+@@ -10,6 +10,9 @@ local TS = {}
+ 
+ TS.Promise = Promise
+ 
++-- Upstream roblox-ts 8a21ba6: allow Jest sandbox reloads of the same runtime.
++TS.__runtimeScript = script
++
+ local function isPlugin(context)
+ 	return RunService:IsStudio() and context:FindFirstAncestorWhichIsA("Plugin") ~= nil
+ end
+@@ -86,7 +89,8 @@ function TS.import(context, module, ...)
+ 	end
+ 
+ 	if not registeredLibraries[module] then
+-		if _G[module] then
++		local registeredBy = _G[module]
++		if registeredBy ~= nil and (type(registeredBy) ~= "table" or registeredBy.__runtimeScript ~= script) then
+ 			error(
+ 				OUTPUT_PREFIX
+ 				.. "Invalid module access! Do you have multiple TS runtimes trying to import this? "

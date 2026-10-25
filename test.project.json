@@ -35,15 +35,15 @@
       "$properties": {
         "FilteringEnabled": true,
         "FallenPartsDestroyHeight": -500
+      },
+      "$attributes": {
+        "SkybreakTestMode": true
       }
     },
     "ServerStorage": {
       "Tests": {
         "$path": "out/tests"
       }
-    },
-    "$attributes": {
-      "SkybreakTestMode": true
     }
   }
 }

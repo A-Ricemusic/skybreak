@@ -19,6 +19,9 @@
       },
     },
   },
+  "patchedDependencies": {
+    "roblox-ts@3.0.0": "patches/roblox-ts@3.0.0.patch",
+  },
   "packages": {
     "@rbxts-js/boolean": ["@rbxts-js/boolean@1.2.3-ts.1", "", { "dependencies": { "@rbxts-js/collections": "^1.2.3-ts.1" } }, "sha512-IlYFG9uatXQKXOLR1mdptVeEcxudwBCierO+Vu6VZRRaI+/+JDxUClm+QFZyce/kitwnDTmtNvhqVAUtFvCU0Q=="],
 
