@@ -1,6 +1,6 @@
 # Glass Horizon alternative — implementation and QA handoff
 
-This branch is an independent 27-sortie alternative for comparison. It is not approved for merge. The offline implementation and packaging are complete. Studio Jest, visual QA and the genuine 27-mission normal-control playthrough are **pending an exclusive Studio lease from the parent**. The original two-mission gameplay observations in `two-mission-playtesting.md` are baseline history, not evidence for this alternative.
+This branch is an independent 27-sortie alternative for comparison. It is not approved for merge. Implementation, packaging, leased Studio Jest, a genuine sequential 27-mission normal-control campaign, finale, failure/retry, no-evade replay and compact cinematic validation are complete. See [the exact QA report](glass-horizon-qa.md) for package boundaries and limitations. The original two-mission observations in `two-mission-playtesting.md` remain baseline history, not evidence for this alternative.
 
 ## Story and architecture
 
@@ -89,27 +89,17 @@ Only one mission exists at a time. Authored ground targets are at most eight req
 
 These are implementation bounds, not measured mobile frame-rate claims. Engine mesh generation, peak memory, terrain build times, frame times and client replication still require Studio/device measurement. No physics collision or terrain line-of-sight model was added to the base analytic arcade flight system.
 
-## Offline validation performed
+## Validation performed
 
 - `bun install --frozen-lockfile`: passed.
-- `bun run test:offline`: 117 data/domain contracts passed. It exercises all 27 phase paths, wrong/duplicate kills, out-of-range recon/escort, deadlines, destroyed/retry states, all unlocks/replays, v2 migration, per-mission times, slot isolation, protected asset loss and 28 story entries. It validates new mesh index/budget data too.
+- `bun run test:offline`: 123 data/domain contracts passed. It exercises all 27 phase paths, wrong/duplicate kills, out-of-range recon/escort, deadlines, destroyed/retry states, all unlocks/replays, v2 migration, per-mission times, slot isolation, protected asset loss, 28 story entries and six cinematic layout breakpoints.
 - `bun run build` and `bun run build:place`: passed, including compilation of the Roblox Jest suites.
 - `rojo build test.project.json -o build/glass-horizon-tests.rbxlx`: passed offline packaging; no server started.
 - Blender generation, `.blend` reopen and GLB bounds round-trip: passed for all three assets.
 - `git diff --check`: passed.
 
-The Bun runner supplies only collection/math facades for pure TypeScript contracts. It neither runs Luau nor simulates Roblox instances. Its synthetic unit-test observations are not gameplay evidence. `Campaign27.spec.ts` runs the same pure fixtures in Roblox Jest; `MissionWorld27.spec.ts` additionally checks all real world builds/teardowns and all three new mesh assets in the engine. Existing engine, flight, campaign-recovery and reviewed HUD/geometry tests remain included. **None of those Roblox Jest tests have run on this branch yet.**
-
-## Exact Studio lease resume procedure
-
-1. Parent grants this worktree an exclusive Studio/test runner lease. Until then do not launch Studio, start Rojo, or run `test:roblox`.
-2. Run `bun run test:roblox`; inspect the new `build/jest-results.json` and full log. Repair failures before gameplay. The 27 world integration fixtures have 30-second per-case budgets.
-3. Open the newly built `build/skybreak.rbxlx` in Studio; no Rojo server is needed for the static build. Verify server startup and Blender geometry replication; reject silent fallback as successful asset QA.
-4. Inject `tools/playtest-glass-horizon.client.luau` once as a normal client LocalScript. Launch each mission via the real campaign UI in order, allowing/inspecting each cutscene (use skip where appropriate). The persistent pilot drives normal controls through recon, convoy, pursuit and combat phases. It never launches a mission or changes health, timer, actor positions, kills, unlocks or success.
-5. Record each authoritative `Completed` result, elapsed time, required air/ground counts and teardown folder count from `PlayerGui.GlassHorizonQA`. A driver timeout, stalled objective or `Failed` result is a failure to investigate, not permission to force credit. The pilot is implemented but has not itself been exercised in Studio.
-6. Inspect cutscene skip, manual pace, reduced motion and finale; all 27 mission selection/unlock/replay routes; fresh retry after an actual failure; session/cloud labeling; four-slot isolation; cleanup after result/return. Inspect mobile landscape/portrait and 320×240, desktop and simulated console. The inherited HUD fixes have parent evidence; this branch's new menus/cinematics do not yet.
-7. Capture genuine normal-control playthrough evidence, measure performance, then request independent review through the parent. Do not merge this alternative yourself.
+The Bun runner supplies only collection/math facades for pure TypeScript contracts. It neither runs Luau nor simulates Roblox instances. Its synthetic observations are not gameplay evidence. `Campaign27.spec.ts` runs the same pure fixtures in Roblox Jest; `MissionWorld27.spec.ts` additionally checks all real world builds/teardowns and all three new mesh assets in the engine. Existing engine, flight, campaign-recovery and reviewed HUD/geometry tests remain included. Final Roblox Jest passed **136/136 tests in 10 suites** on `aefb5b1`. The real campaign completed M1–M27, all 28 scenes, a protected-asset failure/Retry and a zero-evade M8 replay. Exact per-mission results and evidence paths are in [glass-horizon-qa.md](glass-horizon-qa.md).
 
 ## Honest remaining work
 
-All 27 genuine playthroughs, Roblox Jest execution, new UI/cutscene rendering checks, asset client replication, practical missile/drone/escort balance, memory/frame-time measurements and published cloud persistence validation remain unverified. The miniature cinematics have no recorded voice/audio; they use original subtitles and native scene animation. The campaign is built and ready to begin leased engine QA, not represented as a verified finished game.
+Published cloud persistence/v2 migration, physical phone/touch, console/gamepad hardware, player-hull destruction failure and independent human balance remain unverified. The full campaign package and final compact-layout package are explicitly distinguished in the QA report. The miniature cinematics have no recorded voice/audio; they use original subtitles and native scene animation. Parent independent review and play remain required before any merge.
