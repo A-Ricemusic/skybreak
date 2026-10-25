@@ -1,4 +1,6 @@
 import { Lighting, Workspace } from "@rbxts/services";
+import { MissionCatalog, GroundArchetype } from "../shared/MissionCatalog";
+import { WorldLayouts } from "../shared/WorldLayouts";
 import { MissionAssets } from "../shared/MissionAssets";
 import { WorldBuilder } from "./WorldBuilder";
 
@@ -23,18 +25,22 @@ function environment(missionId: number): void {
 	for (const name of ["SkybreakAtmosphere", "SkybreakColor", "MissionAtmosphere", "MissionGrade", "MissionSky"]) Lighting.FindFirstChild(name)?.Destroy();
 	Workspace.Terrain.FindFirstChild("MissionClouds")?.Destroy();
 	Workspace.Terrain.FindFirstChild("SkybreakClouds")?.Destroy();
-	Lighting.ClockTime = missionId === 1 ? 10.5 : 17.1;
+	const env = MissionCatalog.Get(missionId).environmentId;
+	const night = env.find("night")[0] !== undefined;
+	const storm = env.find("storm")[0] !== undefined;
+	Lighting.ClockTime = night ? 2 : env.find("dusk")[0] !== undefined ? 17.4 : env.find("dawn")[0] !== undefined ? 7 : 11;
+
 	Lighting.Brightness = 2.3;
 	Lighting.ExposureCompensation = 0.05;
 	Lighting.Ambient = Color3.fromRGB(105, 119, 134);
 	Lighting.OutdoorAmbient = Color3.fromRGB(140, 151, 159);
 	const sky = new Instance("Sky");
 	sky.Name = "MissionSky";
-	sky.StarCount = 0;
+	sky.StarCount = night ? 1200 : 0;
 	sky.Parent = Lighting;
 	const atmosphere = new Instance("Atmosphere");
 	atmosphere.Name = "MissionAtmosphere";
-	atmosphere.Density = 0.23;
+	atmosphere.Density = night ? 0.18 : storm ? 0.32 : 0.23;
 	atmosphere.Offset = 0.1;
 	atmosphere.Color = missionId === 1 ? Color3.fromRGB(183, 220, 235) : Color3.fromRGB(227, 201, 171);
 	atmosphere.Decay = Color3.fromRGB(110, 142, 164);
@@ -48,7 +54,7 @@ function environment(missionId: number): void {
 	grade.Parent = Lighting;
 	const clouds = new Instance("Clouds");
 	clouds.Name = "MissionClouds";
-	clouds.Cover = missionId === 1 ? 0.22 : 0.38;
+	clouds.Cover = storm ? 0.85 : night ? 0.2 : 0.3;
 	clouds.Density = 0.35;
 	clouds.Color = Color3.fromRGB(238, 241, 244);
 	clouds.Parent = Workspace.Terrain;
@@ -89,44 +95,71 @@ export const MissionWorld = {
 			const ocean = part(scenery, "Ocean", new Vector3(2000, 4, 2000), new Vector3(x * 2000, -18, z * 2000), missionId === 1 ? Color3.fromRGB(35, 115, 145) : Color3.fromRGB(42, 85, 111), Enum.Material.SmoothPlastic);
 			ocean.Reflectance = 0.14;
 		}
+		const definition = MissionCatalog.Get(missionId);
+		const layout = WorldLayouts.Get(missionId);
+		scenery.Name = `Level_${missionId}_${definition.environmentId}`;
+		const desert = definition.environmentId.find("desert")[0] !== undefined;
+		const mountain = definition.environmentId.find("mountain")[0] !== undefined;
+		for (const peak of layout.peaks) island(peak[0], peak[1], peak[2], peak[3]);
+		if (desert) Workspace.Terrain.FillBlock(new CFrame(0, -35, -500), new Vector3(4400, 120, 3800), Enum.Material.Sand);
 		const groundTargets: Model[] = [];
-		if (missionId === 1) {
-			island(0, -850, 440, 70);
-			island(-1000, -1450, 460, 125);
-			island(1200, -1350, 510, 135);
-			island(-1450, 650, 350, 95);
-			island(1600, 350, 400, 110);
-			apron(scenery, 0, -850, 210, 240);
-			const radar = grounded(MissionAssets.CreateRadar("TRAINING RADAR"), 0, -850);
-			radar.Parent = parent;
-			groundTargets.push(radar);
-			// A runway on a separate small island provides a clear visual origin.
-			island(-650, 450, 510, 48);
-			Workspace.Terrain.FillBlock(new CFrame(-650, 308, 450), new Vector3(140, 512, 760), Enum.Material.Air);
-			part(scenery, "TrainingRunway", new Vector3(100, 4, 720), new Vector3(-650, 50, 450), Color3.fromRGB(39, 48, 57), Enum.Material.Asphalt);
-			for (let i = -3; i <= 3; i++) part(scenery, "RunwayStripe", new Vector3(4, 0.2, 48), new Vector3(-650, 52.2, 450 + i * 90), Color3.fromRGB(236, 235, 211), Enum.Material.SmoothPlastic);
-		} else {
-			// Five separated industrial compounds, not one overlapping target pile.
-			const positions = [new Vector3(-550, 0, -900), new Vector3(0, 0, -1100), new Vector3(550, 0, -900), new Vector3(-350, 0, -1550), new Vector3(350, 0, -1550)];
-			for (const p of positions) island(p.X, p.Z, 390, 62);
-			for (let i = 0; i < positions.size(); i++) {
-				const p = positions[i];
-				apron(scenery, p.X, p.Z, 190, 210);
-				const warehouse = grounded(MissionAssets.CreateWarehouse(`WAREHOUSE ${i + 1}`), p.X, p.Z, (i % 2) * math.pi / 2);
-				warehouse.Parent = parent;
-				groundTargets.push(warehouse);
-				part(scenery, "AccessRoad", new Vector3(24, 2, 220), new Vector3(p.X, 44, p.Z + 180), Color3.fromRGB(57, 64, 70), Enum.Material.Asphalt);
-				for (let j = 0; j < 3; j++) part(scenery, "ShippingContainer", new Vector3(14, 12, 35), new Vector3(p.X + 115, 50, p.Z - 50 + j * 43), j % 2 === 0 ? Color3.fromRGB(145, 83, 52) : Color3.fromRGB(50, 91, 112), Enum.Material.CorrodedMetal);
+		let siteIndex = 0;
+		const place = (kind: GroundArchetype, name: string, phase: number, required: boolean): Model => {
+			const site = layout.sites[siteIndex % layout.sites.size()];
+			const offset = math.floor(siteIndex / layout.sites.size()) * 190;
+			const x = site[0], z = site[1] + offset;
+			siteIndex++;
+			const sea = kind === "carrier";
+			const height = sea ? -14 : mountain ? 340 + (siteIndex % 3) * 105 : desert ? 27 : 49;
+			if (!sea) {
+				island(x, z, mountain ? 350 : 260, height + 8);
+				part(scenery, "TargetApron", new Vector3(170, 6, 170), new Vector3(x, height - 3, z), Color3.fromRGB(100, 111, 116));
 			}
-			island(-1500, -1500, 570, 180);
-			island(1450, -1600, 600, 185);
-			island(1600, 500, 450, 125);
-			island(-1450, 500, 490, 135);
-			// Low breakwater and cranes frame a harbor without blocking flight lanes.
-			part(scenery, "Breakwater", new Vector3(1500, 30, 45), new Vector3(0, 8, -2050), Color3.fromRGB(80, 86, 89), Enum.Material.Rock);
-			for (const x of [-750, 750]) {
-				part(scenery, "CraneTower", new Vector3(9, 110, 9), new Vector3(x, 64, -1850), Color3.fromRGB(211, 157, 63), Enum.Material.Metal);
-				part(scenery, "CraneBoom", new Vector3(150, 9, 9), new Vector3(x + 45, 115, -1850), Color3.fromRGB(211, 157, 63), Enum.Material.Metal);
+			const model = kind === "radar" ? MissionAssets.CreateRadar(name) : kind === "relay" ? MissionAssets.CreateRelay(name)
+				: kind === "sam" ? MissionAssets.CreateSAM(name) : kind === "carrier" ? MissionAssets.CreateCarrier(name) : MissionAssets.CreateWarehouse(name);
+			const [cf, size] = model.GetBoundingBox();
+			model.PivotTo(new CFrame(x, height - cf.Position.Y + size.Y / 2, z).mul(CFrame.Angles(0, siteIndex % 2 === 0 ? 0.35 : -0.25, 0)));
+			model.SetAttribute("PhaseIndex", phase); model.SetAttribute("GroundArchetype", kind); model.SetAttribute("RequiredTarget", required);
+			model.Parent = parent; groundTargets.push(model);
+			return model;
+		};
+		for (let phaseIndex = 0; phaseIndex < definition.phases.size(); phaseIndex++) {
+			const phase = definition.phases[phaseIndex];
+			if (phase.groundKind === undefined) continue;
+			for (let i = 0; i < (phase.count ?? 1); i++) place(phase.groundKind, missionId === 1 ? "TRAINING RADAR" : `${string.upper(phase.groundKind)} ${i + 1}`, phaseIndex, true);
+		}
+		// Explicit tactical choice: one extra missile removes armor from the
+		// whole strike package; SAMs are optional but continue firing until hit.
+		if (missionId >= 3 && groundTargets.size() > 0) {
+			place("relay", "SHIELD RELAY · OPTIONAL: remove target armor", -1, false);
+			if (missionId >= 8) place("sam", "AIR DEFENSE · OPTIONAL: silence missiles", -1, false);
+		}
+		if (layout.landmark === "runway") {
+			island(-650, 450, 510, 48);
+			part(scenery, "TrainingRunway", new Vector3(100, 4, 720), new Vector3(-650, 50, 450), Color3.fromRGB(39, 48, 57), Enum.Material.Asphalt);
+			for (let i = -3; i <= 3; i++) part(scenery, "RunwayStripe", new Vector3(4, 0.2, 48), new Vector3(-650, 52.2, 450 + i * 90), Color3.fromRGB(236,235,211));
+		} else if (layout.landmark === "fleet") {
+			for (let i = 0; i < 3; i++) {
+				const ship = MissionAssets.CreateCarrier(`Fleet silhouette ${i}`); ship.PivotTo(new CFrame(-1550 + i * 1450, 7, 900 + (i % 2) * 420)); ship.Parent = scenery;
+			}
+		} else if (layout.landmark === "harbor") {
+			part(scenery, "Breakwater", new Vector3(3300, 30, 45), new Vector3(0, 8, -2100), Color3.fromRGB(80,86,89), Enum.Material.Rock);
+			for (const x of [-1400, 0, 1400]) {
+				part(scenery, "Crane", new Vector3(12,120,12), new Vector3(x,60,-1980), Color3.fromRGB(211,157,63), Enum.Material.Metal);
+				part(scenery, "Boom", new Vector3(180,10,10), new Vector3(x+50,120,-1980), Color3.fromRGB(211,157,63), Enum.Material.Metal);
+			}
+		} else {
+			for (let i = 0; i < 12; i++) {
+				const x = -1850 + (i % 6) * 740, z = 200 + math.floor(i / 6) * 850;
+				if (layout.landmark === "solar") {
+					const panel = part(scenery, "SolarArray", new Vector3(90,4,60), new Vector3(x,40,z), Color3.fromRGB(29,65,92), Enum.Material.Metal);
+					panel.Orientation = new Vector3(15, 0, 0);
+				} else if (layout.landmark === "refinery") {
+				part(scenery, "RefineryStack", new Vector3(30,180,30), new Vector3(x,90,z), Color3.fromRGB(110,116,119), Enum.Material.Metal);
+				} else if (layout.landmark === "arches") {
+				part(scenery, "SeaArch", new Vector3(260,30,80), new Vector3(x,160,z), Color3.fromRGB(166,149,114), Enum.Material.Sandstone);
+				for (const side of [-1,1]) part(scenery, "ArchPillar", new Vector3(45,170,80), new Vector3(x + side * 108,60,z), Color3.fromRGB(166,149,114), Enum.Material.Sandstone);
+			} else part(scenery, "RidgeBeacon", new Vector3(12,250,12), new Vector3(x,400,z), Color3.fromRGB(180,196,200), Enum.Material.Metal);
 			}
 		}
 		return { groundTargets };

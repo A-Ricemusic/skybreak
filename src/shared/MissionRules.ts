@@ -1,103 +1,118 @@
-// Pure authoritative mission progression. Callers report observed controls and real kills;
-// this module never creates targets, applies damage, or trusts a client result.
-export type MissionPhase = "tutorial_move" | "tutorial_target" | "tutorial_missile" | "tutorial_bandits" | "intercept" | "warehouses" | "ace";
+import { MissionCatalog, MissionPhase as PhaseDefinition, PhaseKind } from "./MissionCatalog";
+
+// Pure progression. Combat supplies observed controls/position/escort state and
+// real server kills. Each phase has an index, including consecutive same kinds.
+export type MissionPhase = PhaseKind | "tutorial_bandits" | "intercept" | "warehouses" | "ace";
 export type TargetKind = "air" | "ground" | "ace";
-export type MissionReason = "complete" | "timeout" | "destroyed";
+export type MissionReason = "complete" | "timeout" | "destroyed" | "asset_lost";
 export interface MissionRuleState {
-	missionId: number;
-	phase: MissionPhase;
-	startedAt: number;
-	elapsed: number;
-	turnObserved: number;
-	pitchObserved: number;
-	requiredAirKills: number;
-	optionalAirKills: number;
-	groundKills: number;
-	aceKilled: boolean;
-	killedIds: Set<string>;
-	outcome?: "won" | "failed";
-	reason?: MissionReason;
+	missionId: number; phase: MissionPhase; phaseIndex: number; phaseProgress: number; phaseStarted: number;
+	startedAt: number; elapsed: number; turnObserved: number; pitchObserved: number;
+	requiredAirKills: number; optionalAirKills: number; groundKills: number; aceKills: number; aceKilled: boolean;
+	killedIds: Set<string>; outcome?: "won" | "failed"; reason?: MissionReason;
 }
 export interface MissionObjective {
-	objective: string;
-	objectiveProgress: number;
-	objectiveTotal: number;
+	objective: string; objectiveProgress: number; objectiveTotal: number;
 	tutorialStep: "move" | "target" | "missile" | "";
 }
-function finite(value: number): boolean { return value === value && value > -math.huge && value < math.huge; }
+function finite(value: number): boolean { return value === value && math.abs(value) < math.huge; }
 function finish(state: MissionRuleState, outcome: "won" | "failed", reason: MissionReason): void {
 	if (state.outcome !== undefined) return;
-	state.outcome = outcome;
-	state.reason = reason;
+	state.outcome = outcome; state.reason = reason;
+}
+function phaseName(id: number, index: number): MissionPhase {
+	if (id === 1 && index === 3) return "tutorial_bandits";
+	if (id === 2) return index === 0 ? "intercept" : index === 1 ? "warehouses" : "ace";
+	return MissionCatalog.Get(id).phases[index].kind;
+}
+function advance(state: MissionRuleState): void {
+	if (state.phaseIndex + 1 >= MissionCatalog.Get(state.missionId).phases.size()) { finish(state, "won", "complete"); return; }
+	state.phaseIndex += 1; state.phaseProgress = 0; state.phaseStarted = state.elapsed;
+	state.phase = phaseName(state.missionId, state.phaseIndex);
 }
 export const MissionRules = {
 	Duration: 600,
 	MovementDuration: 0.6,
+	Phase(state: MissionRuleState): PhaseDefinition { return MissionCatalog.Get(state.missionId).phases[state.phaseIndex]; },
 	NewState(missionId: number, startedAt: number): MissionRuleState {
-		assert(missionId === 1 || missionId === 2, "Unknown mission");
-		assert(finite(startedAt), "Mission clock must be finite");
-		return {
-			missionId, phase: missionId === 1 ? "tutorial_move" : "intercept", startedAt, elapsed: 0,
-			turnObserved: 0, pitchObserved: 0, requiredAirKills: 0, optionalAirKills: 0,
-			groundKills: 0, aceKilled: false, killedIds: new Set<string>(),
-		};
+		assert(MissionCatalog.IsValidId(missionId), "Unknown mission"); assert(finite(startedAt), "Mission clock must be finite");
+		return { missionId, phase: phaseName(missionId, 0), phaseIndex: 0, phaseProgress: 0, phaseStarted: 0, startedAt, elapsed: 0,
+			turnObserved: 0, pitchObserved: 0, requiredAirKills: 0, optionalAirKills: 0, groundKills: 0,
+			aceKills: 0, aceKilled: false, killedIds: new Set<string>() };
 	},
 	Tick(state: MissionRuleState, now: number, health = 100): void {
 		if (state.outcome !== undefined || !finite(now)) return;
-		// Absolute monotonic time, independent of fixed-step simulation catch-up caps.
 		state.elapsed = math.max(state.elapsed, now - state.startedAt, 0);
 		if (state.elapsed >= MissionRules.Duration) finish(state, "failed", "timeout");
 		else if (finite(health) && health <= 0) finish(state, "failed", "destroyed");
+		else if (MissionRules.Phase(state).kind === "survive_pursuit") {
+			state.phaseProgress = state.elapsed - state.phaseStarted;
+			if (state.phaseProgress >= (MissionRules.Phase(state).duration ?? 45)) advance(state);
+		}
 	},
 	ObserveControls(state: MissionRuleState, x: number, y: number, dt: number, now: number): void {
 		MissionRules.Tick(state, now);
 		if (state.outcome !== undefined || state.phase !== "tutorial_move" || !finite(x) || !finite(y) || !finite(dt)) return;
 		const observed = math.clamp(dt, 0, 0.1);
-		if (math.abs(x) >= 0.2) state.turnObserved = math.min(MissionRules.MovementDuration, state.turnObserved + observed);
-		if (math.abs(y) >= 0.2) state.pitchObserved = math.min(MissionRules.MovementDuration, state.pitchObserved + observed);
-		if (state.turnObserved >= MissionRules.MovementDuration && state.pitchObserved >= MissionRules.MovementDuration) state.phase = "tutorial_target";
+		if (math.abs(x) >= 0.2) state.turnObserved = math.min(0.6, state.turnObserved + observed);
+		if (math.abs(y) >= 0.2) state.pitchObserved = math.min(0.6, state.pitchObserved + observed);
+		if (state.turnObserved >= 0.6 && state.pitchObserved >= 0.6) advance(state);
 	},
 	CycleTarget(state: MissionRuleState, now: number): void {
 		MissionRules.Tick(state, now);
-		if (state.outcome === undefined && state.phase === "tutorial_target") state.phase = "tutorial_missile";
+		if (state.outcome === undefined && state.phase === "tutorial_target") advance(state);
 	},
+	ObservePosition(state: MissionRuleState, x: number, y: number, z: number, now: number): void {
+		MissionRules.Tick(state, now);
+		if (state.outcome !== undefined || !finite(x) || !finite(y) || !finite(z)) return;
+		const phase = MissionRules.Phase(state);
+		if (phase.kind !== "recon_route") return;
+		const point = phase.route?.[state.phaseProgress];
+		if (point && (x - point[0]) ** 2 + (y - point[1]) ** 2 + (z - point[2]) ** 2 <= 360 ** 2) {
+			state.phaseProgress += 1;
+			if (state.phaseProgress >= phase.route!.size()) advance(state);
+		}
+	},
+	ObserveEscort(state: MissionRuleState, near: boolean, health: number, dt: number, now: number): void {
+		MissionRules.Tick(state, now);
+		if (state.outcome !== undefined || MissionRules.Phase(state).kind !== "escort_convoy") return;
+		if (!finite(health) || health <= 0) { finish(state, "failed", "asset_lost"); return; }
+		if (near && finite(dt)) state.phaseProgress += math.clamp(dt, 0, 0.1);
+		if (state.phaseProgress >= (MissionRules.Phase(state).duration ?? 60)) advance(state);
+	},
+	LoseProtectedAsset(state: MissionRuleState): void { finish(state, "failed", "asset_lost"); },
 	CanDamage(state: MissionRuleState, kind: TargetKind, required: boolean): boolean {
 		if (state.outcome !== undefined) return false;
-		if (state.missionId === 1) {
-			return required && ((state.phase === "tutorial_missile" && kind === "ground") || (state.phase === "tutorial_bandits" && kind === "air"));
+		const phase = MissionRules.Phase(state).kind;
+		if (!required) {
+			if (kind === "ground") return state.missionId >= 3;
+			const spec = MissionCatalog.Get(state.missionId).optionalRaiders;
+			return kind === "air" && state.optionalAirKills < (state.missionId === 2 ? spec?.count ?? 5 : 20)
+				&& (state.missionId !== 2 || state.phaseIndex >= 1);
 		}
-		if (kind === "air") return required ? state.phase === "intercept" : state.optionalAirKills < 5 && (state.phase === "warehouses" || state.phase === "ace");
-		if (kind === "ground") return required && state.phase === "warehouses";
-		return required && state.phase === "ace";
+		return kind === "ground" ? phase === "tutorial_missile" || phase === "destroy_ground_required"
+			: kind === "ace" ? phase === "destroy_ace_required" : phase === "destroy_air_required" || phase === "intercept_bombers";
 	},
 	RecordKill(state: MissionRuleState, id: string, kind: TargetKind, required: boolean, now: number): boolean {
 		MissionRules.Tick(state, now);
 		if (id === "" || state.killedIds.has(id) || !MissionRules.CanDamage(state, kind, required)) return false;
 		state.killedIds.add(id);
-		if (kind === "ground") {
-			state.groundKills += 1;
-			if (state.missionId === 1) state.phase = "tutorial_bandits";
-			else if (state.groundKills === 5) state.phase = "ace";
-		} else if (kind === "ace") {
-			state.aceKilled = true;
-			finish(state, "won", "complete");
-		} else if (required) {
-			state.requiredAirKills += 1;
-			if (state.requiredAirKills === 3) {
-				if (state.missionId === 1) finish(state, "won", "complete");
-				else state.phase = "warehouses";
-			}
-		} else state.optionalAirKills += 1;
+		if (kind === "ground") { if (required) state.groundKills += 1; }
+		else if (kind === "ace") { state.aceKills += 1; state.aceKilled = true; }
+		else if (required) state.requiredAirKills += 1;
+		else state.optionalAirKills += 1;
+		if (required) {
+			state.phaseProgress += 1;
+			if (state.phaseProgress >= (MissionRules.Phase(state).count ?? 1)) advance(state);
+		}
 		return true;
 	},
-	TimeRemaining(state: MissionRuleState): number { return math.max(0, MissionRules.Duration - state.elapsed); },
+	TimeRemaining(state: MissionRuleState): number { return math.max(0, 600 - state.elapsed); },
 	Objective(state: MissionRuleState): MissionObjective {
-		const phase = state.phase;
-		if (phase === "tutorial_move") return { objective: "Turn and pitch using the flight controls", objectiveProgress: (state.turnObserved >= MissionRules.MovementDuration ? 1 : 0) + (state.pitchObserved >= MissionRules.MovementDuration ? 1 : 0), objectiveTotal: 2, tutorialStep: "move" };
-		if (phase === "tutorial_target") return { objective: "Cycle target to select the practice target", objectiveProgress: 0, objectiveTotal: 1, tutorialStep: "target" };
-		if (phase === "tutorial_missile") return { objective: "Aim at the practice target, wait for lock, then fire a missile", objectiveProgress: state.groundKills, objectiveTotal: 1, tutorialStep: "missile" };
-		if (phase === "tutorial_bandits" || phase === "intercept") return { objective: "Destroy all three required bandits", objectiveProgress: state.requiredAirKills, objectiveTotal: 3, tutorialStep: "" };
-		if (phase === "warehouses") return { objective: "Destroy all five warehouses; fighters are optional threats", objectiveProgress: state.groundKills, objectiveTotal: 5, tutorialStep: "" };
-		return { objective: "Destroy the ace; surviving fighters remain dangerous", objectiveProgress: state.aceKilled ? 1 : 0, objectiveTotal: 1, tutorialStep: "" };
+		const phase = MissionRules.Phase(state);
+		const tutorialStep = phase.kind === "tutorial_move" ? "move" : phase.kind === "tutorial_target" ? "target" : phase.kind === "tutorial_missile" ? "missile" : "";
+		return { objective: phase.objective, tutorialStep,
+			objectiveProgress: phase.kind === "tutorial_move" ? (state.turnObserved >= 0.6 ? 1 : 0) + (state.pitchObserved >= 0.6 ? 1 : 0) : state.phaseProgress,
+			objectiveTotal: phase.kind === "tutorial_move" ? 2 : phase.count ?? phase.duration ?? 1 };
 	},
 };

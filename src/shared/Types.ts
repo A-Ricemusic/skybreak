@@ -1,6 +1,8 @@
 export type Persistence = "cloud" | "session" | "unavailable";
 export interface SaveSlot {
 	index: number;
+	completedMissions?: number;
+	missionBestTimes?: Map<string, number>;
 	occupied: boolean;
 	completed: boolean;
 	kills: number;
@@ -33,6 +35,7 @@ export interface MissionStats {
 	missionId?: number;
 	groundKills?: number;
 	reason?: string;
+	objectivesComplete?: boolean;
 	slot: number;
 	kills: number;
 	elapsed: number;
@@ -54,6 +57,8 @@ export interface Telemetry {
 	groundKills?: number;
 	targetKind?: string;
 	targetRequired?: boolean;
+	navigation?: Model;
+	assetHealth?: number;
 	kind: "Telemetry";
 	health: number;
 	speed: number;

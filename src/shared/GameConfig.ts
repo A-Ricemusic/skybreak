@@ -5,11 +5,11 @@ export const GameConfig = {
 
 	Campaign: {
 		DataStoreName: "SkybreakCampaign_v1",
-		SaveVersion: 2,
+		SaveVersion: 3,
 		SlotCount: 4,
-		MissionCount: 2,
+		MissionCount: 27,
 		MissionKills: 3,
-		MaxRecordedKills: 9,
+		MaxRecordedKills: 40,
 		MissionTimeLimit: 600,
 		Missions: {
 			1: { Name: "FIRST FLIGHT", RequiredAirKills: 3, RequiredGroundKills: 1 },

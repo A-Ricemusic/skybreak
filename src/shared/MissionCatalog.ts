@@ -18,7 +18,10 @@ export type PhaseKind =
 	| "destroy_air_required"
 	| "destroy_ground_required"
 	| "destroy_ace_required"
-	| "survive_pursuit";
+	| "survive_pursuit"
+	| "recon_route"
+	| "escort_convoy"
+	| "intercept_bombers";
 
 /**
  * Server-authoritative progression unit. All counts are integer and >= 1 so
@@ -33,6 +36,8 @@ export interface MissionPhase {
 	readonly objective: string;
 	readonly enemyKind?: EnemyArchetype;
 	readonly groundKind?: GroundArchetype;
+	readonly route?: ReadonlyArray<readonly [number, number, number]>;
+	readonly shielded?: boolean;
 }
 
 export type EnemyArchetype =
@@ -96,13 +101,16 @@ export interface MissionDefinition {
 }
 
 const PHASE: {
-	move(): MissionPhase;
-	target(): MissionPhase;
-	missile(radarName?: string): MissionPhase;
-	air(count: number, archetype?: EnemyArchetype, objective?: string): MissionPhase;
-	ground(count: number, groundKind: GroundArchetype, objective?: string): MissionPhase;
-	ace(archetype?: EnemyArchetype, objective?: string): MissionPhase;
-	survive(seconds: number, objective: string): MissionPhase;
+	move: () => MissionPhase;
+	target: () => MissionPhase;
+	missile: (radarName?: string) => MissionPhase;
+	air: (count: number, archetype?: EnemyArchetype, objective?: string) => MissionPhase;
+	ground: (count: number, groundKind: GroundArchetype, objective?: string) => MissionPhase;
+	ace: (archetype?: EnemyArchetype, objective?: string) => MissionPhase;
+	survive: (seconds: number, objective: string) => MissionPhase;
+	recon: (route: ReadonlyArray<readonly [number, number, number]>, objective: string) => MissionPhase;
+	escort: (seconds: number, objective: string) => MissionPhase;
+	bombers: (count: number, objective: string) => MissionPhase;
 } = {
 	move: (): MissionPhase => ({ kind: "tutorial_move", objective: "Turn and pitch using the flight controls" }),
 	target: (): MissionPhase => ({ kind: "tutorial_target", objective: "Cycle target to select the practice target" }),
@@ -125,6 +133,9 @@ const PHASE: {
 		objective: objective ?? "Destroy the ace",
 		enemyKind: archetype,
 	}),
+	recon: (route, objective) => ({ kind: "recon_route", route, count: route.size(), objective }),
+	escort: (duration, objective) => ({ kind: "escort_convoy", duration, objective }),
+	bombers: (count, objective) => ({ kind: "intercept_bombers", count, enemyKind: "interceptor", objective }),
 	survive: (duration, objective) => ({
 		kind: "survive_pursuit",
 		duration,
@@ -185,7 +196,7 @@ const MISSION_3: MissionDefinition = {
 	environmentId: "reef_coast",
 	briefing: "Sweep the Thalassa reef for scouts, then crack three fishing-boat relays feeding them targeting data.",
 	story: "An unmarked trawler fleet is pinging friendly aircraft over the reef. Fleet orders are to clear the air first, then silence the relays.",
-	phases: [PHASE.air(4), PHASE.ground(3, "relay")],
+	phases: [PHASE.recon([[-900, 260, -500], [700, 340, -1100], [1200, 250, 400]], "Fly through three reef survey beacons"), PHASE.ground(3, "relay")],
 	targetTime: 220,
 };
 
@@ -197,7 +208,7 @@ const MISSION_4: MissionDefinition = {
 	environmentId: "port_breakwater",
 	briefing: "Destroy four warehouses on the breakwater port while a staggered three-ship CAP tries to peel you off.",
 	story: "The dock cranes you flew past as a cadet are stacking crates onto unmarked barges. Breakwater is the first strike your squadron commander admits he does not understand.",
-	phases: [PHASE.ground(4, "warehouse"), PHASE.air(3, "interceptor")],
+	phases: [PHASE.ground(4, "warehouse"), PHASE.escort(55, "Protect the evidence ship to the breakwater exit")],
 	optionalRaiders: { count: 3, spawnOnPhase: "destroy_ground_required", archetype: "bandit" },
 	targetTime: 260,
 };
@@ -223,7 +234,7 @@ const MISSION_6: MissionDefinition = {
 	environmentId: "scattered_islands",
 	briefing: "Five bandits move in two waves between the Olive Grove islands. Clean up the first wave before the second commits.",
 	story: "Your wingmate wants to know why both sides pretend the trawlers do not exist. The sky over Olive Grove is the first that gives you a straight answer: nobody is pretending anymore.",
-	phases: [PHASE.air(5)],
+	phases: [PHASE.air(2), PHASE.recon([[-1100, 320, -850], [200, 400, -1550], [1400, 270, -400]], "Follow the scouts through the Olive Grove islands"), PHASE.air(3)],
 	targetTime: 240,
 };
 
@@ -258,9 +269,9 @@ const MISSION_9: MissionDefinition = {
 	name: "FIRST DOUBT",
 	callsign: "KESTREL-09",
 	environmentId: "fleet_open_sea",
-	briefing: "A command carrier is docked in open water with a defector aboard. Destroy the carrier, then survive the ace sent to erase the evidence.",
-	story: "You are told the defector will be rescued. You are not told who gives the order to sink the carrier he is standing on. By the time the ace is on your six you know the answer.",
-	phases: [PHASE.ground(1, "carrier", "Destroy the command carrier"), PHASE.air(3, "interceptor"), PHASE.ace()],
+	briefing: "A command carrier is docked in open water with a defector escaping aboard a launch. Cover the launch, disable the unmanned carrier, then defeat the ace.",
+	story: "The defector carries matching orders signed by both coasts. Cover his launch before disabling the empty command carrier; somebody wants those orders erased.",
+	phases: [PHASE.escort(60, "Cover the defector launch until it reaches safe water"), PHASE.ground(1, "carrier", "Disable the unmanned command carrier"), PHASE.ace()],
 	targetTime: 320,
 };
 
@@ -276,7 +287,7 @@ const MISSION_10: MissionDefinition = {
 	environmentId: "radar_mountain",
 	briefing: "Climb the Spear Range and knock four ridge radars off the peaks. Expect three bandits riding the thermals.",
 	story: "The mountains were supposed to be dead ground. The radars that are not supposed to exist say otherwise.",
-	phases: [PHASE.ground(4, "radar"), PHASE.air(3)],
+	phases: [PHASE.recon([[-1100, 700, -700], [0, 850, -1400], [1100, 650, -550]], "Climb through three ridge survey beacons"), PHASE.ground(4, "radar"), PHASE.air(3)],
 	targetTime: 320,
 };
 
@@ -313,7 +324,7 @@ const MISSION_13: MissionDefinition = {
 	environmentId: "fleet_open_sea",
 	briefing: "A lone command carrier is making for international water. Sink it. The CAP of four bandits will try to buy it the horizon.",
 	story: "You cannot find a flag on the carrier even in daylight. The order comes anyway, in the same voice as the training exercises.",
-	phases: [PHASE.ground(1, "carrier", "Sink the command carrier"), PHASE.air(4)],
+	phases: [PHASE.bombers(3, "Intercept the carrier strike drones before they reach the rescue fleet"), PHASE.ground(1, "carrier", "Disable the command carrier")],
 	targetTime: 300,
 };
 
@@ -325,7 +336,7 @@ const MISSION_14: MissionDefinition = {
 	environmentId: "fleet_dawn",
 	briefing: "Intercept six bomber drones before they close on the friendly carrier, then hold the air for 60 seconds while damage control works.",
 	story: "The Lantern Protocol was supposed to be theoretical. The drones overhead did not read the memo.",
-	phases: [PHASE.air(6, "interceptor"), PHASE.survive(60, "Hold the air for 60 seconds while damage control works")],
+	phases: [PHASE.bombers(6, "Stop six drones before they reach the friendly carrier"), PHASE.escort(60, "Stay near the damaged friendly carrier through the channel")],
 	optionalRaiders: { count: 2, spawnOnPhase: "survive_pursuit", archetype: "bandit" },
 	targetTime: 360,
 };
@@ -336,9 +347,9 @@ const MISSION_15: MissionDefinition = {
 	name: "GHOST CONVOY",
 	callsign: "SPEAR-15",
 	environmentId: "desert_dusk",
-	briefing: "Five warehouses and two relays rest beside a convoy track at dusk. Hit everything before the escort of five bandits closes.",
+	briefing: "Protect a captured convoy at dusk, silence two tracking relays, then clear the three interceptors.",
 	story: "The convoy will not exist on any report. You will not exist to your family if you file one.",
-	phases: [PHASE.ground(5, "warehouse"), PHASE.ground(2, "relay"), PHASE.air(5)],
+	phases: [PHASE.escort(65, "Cover the captured relay convoy along the desert road"), PHASE.ground(2, "relay"), PHASE.air(3)],
 	targetTime: 420,
 };
 
@@ -350,7 +361,7 @@ const MISSION_16: MissionDefinition = {
 	environmentId: "radar_mountain",
 	briefing: "Four mountain radars sit above the cloud deck. Collapse them, then clear five bandits and finish the ace waiting in the valley.",
 	story: "The radars face inland. Whoever built them was not watching for the other side at all.",
-	phases: [PHASE.ground(4, "radar"), PHASE.air(5), PHASE.ace("interceptor")],
+	phases: [PHASE.recon([[-1300, 750, -900], [-100, 880, -1400], [1200, 680, -650]], "Map the hidden inland uplink from the ridge beacons"), PHASE.ground(4, "radar"), PHASE.ace("interceptor")],
 	targetTime: 460,
 };
 
@@ -374,7 +385,7 @@ const MISSION_18: MissionDefinition = {
 	environmentId: "fleet_open_sea",
 	briefing: "The Network's regional commander is aboard a flagship. Four bandits intercept, then the ace himself. End it.",
 	story: "The commander wrote the orders that turned your old flight school into Breakwater. You are told to let him finish his sentence.",
-	phases: [PHASE.air(4, "interceptor"), PHASE.ground(1, "carrier", "Sink the command flagship"), PHASE.ace()],
+	phases: [PHASE.bombers(4, "Stop the drones sent to destroy the command ship logs"), PHASE.ground(1, "carrier", "Disable the unmanned command flagship"), PHASE.ace()],
 	targetTime: 380,
 };
 
@@ -390,7 +401,7 @@ const MISSION_19: MissionDefinition = {
 	environmentId: "desert_relay",
 	briefing: "Six relays form the Network's southern Switchboard. Collapse the lot. The four bandits already know you are coming.",
 	story: "The Network treats Switchboard as a nervous reflex. You intend to make it a scar.",
-	phases: [PHASE.ground(6, "relay"), PHASE.air(4, "interceptor"), PHASE.ace()],
+	phases: [PHASE.ground(6, "relay"), PHASE.recon([[-1400, 400, -400], [0, 300, -1500], [1400, 500, -500]], "Collect the three signed command fragments"), PHASE.ace()],
 	targetTime: 440,
 };
 
@@ -415,7 +426,7 @@ const MISSION_21: MissionDefinition = {
 	environmentId: "fleet_dawn",
 	briefing: "Two Network carriers sail with a six-ship CAP. Sink both, clear the escort. Keep moving.",
 	story: "This is the first morning the fleet calls themselves yours.",
-	phases: [PHASE.air(3, "interceptor"), PHASE.ground(2, "carrier", "Sink both Network carriers"), PHASE.air(3)],
+	phases: [PHASE.bombers(3, "Defend the joint fleet from the Network picket"), PHASE.ground(2, "carrier", "Disable both Network carriers"), PHASE.air(3)],
 	targetTime: 460,
 };
 
@@ -427,7 +438,7 @@ const MISSION_22: MissionDefinition = {
 	environmentId: "radar_mountain",
 	briefing: "Five peak radars make up the central Network sensor array. Smash them, then fight five bandits and the ace who built them.",
 	story: "He designed the Spear Range radars for you to fly past; now he intends to use them against you.",
-	phases: [PHASE.ground(5, "radar"), PHASE.air(5, "interceptor"), PHASE.ace()],
+	phases: [PHASE.ground(5, "radar"), PHASE.escort(65, "Cover the joint broadcast relay through the mountain corridor"), PHASE.ace()],
 	targetTime: 500,
 };
 
@@ -452,7 +463,7 @@ const MISSION_24: MissionDefinition = {
 	environmentId: "industrial_coast",
 	briefing: "Six warehouses, six bandits, one ace. Everything the Network stored for the next war is in there. Burn it.",
 	story: "The man on the radio starts calling the Network ``it''. By the ace's second missile pass you understand why.",
-	phases: [PHASE.ground(6, "warehouse"), PHASE.air(6), PHASE.ace()],
+	phases: [PHASE.ground(6, "warehouse"), PHASE.bombers(4, "Stop the retaliatory drones before they reach the coast"), PHASE.ace()],
 	optionalRaiders: { count: 4, spawnOnPhase: "destroy_ground_required", archetype: "bandit" },
 	targetTime: 520,
 };
@@ -477,7 +488,7 @@ const MISSION_26: MissionDefinition = {
 	environmentId: "radar_mountain_dawn",
 	briefing: "Five mountain SAMs cover the Network's inland core. Peel them, then clear five bandits and finish the ace that trained you.",
 	story: "He signed your flight log at graduation. You are told to put him in it one last time.",
-	phases: [PHASE.ground(5, "sam"), PHASE.air(5, "interceptor"), PHASE.ace()],
+	phases: [PHASE.recon([[-1500, 700, -500], [-200, 900, -1500], [1300, 750, -850]], "Fly the safe ridge corridor your instructor left you"), PHASE.ground(5, "sam"), PHASE.air(3, "interceptor"), PHASE.ace()],
 	targetTime: 520,
 };
 
@@ -489,7 +500,7 @@ const MISSION_27: MissionDefinition = {
 	environmentId: "glass_horizon_finale",
 	briefing: "Three Network core radars, six bandits, and two aces defend the autonomous command node. End it. Nobody is listening on the other side anymore.",
 	story: "The autonomous defense network is a glass arc over the Mediterranean. You go through it or you do not come back.",
-	phases: [PHASE.ground(3, "radar", "Destroy the three Network core radars"), PHASE.air(6, "interceptor"), PHASE.ace("ace", "Destroy the inner-ring ace"), PHASE.ace("ace", "Destroy the Network overseer")],
+	phases: [PHASE.ground(3, "radar", "Destroy the three Network core radars"), PHASE.bombers(4, "Protect the broadcast fleet from the final drone salvo"), PHASE.ace("ace", "Destroy the inner-ring ace"), PHASE.ace("ace", "Destroy the Network overseer")],
 	targetTime: 560,
 };
 
@@ -515,7 +526,7 @@ export const MissionCatalog = {
 	RequiredAirKills(definition: MissionDefinition): number {
 		let total = 0;
 		for (const phase of definition.phases) {
-			if (phase.kind === "destroy_air_required" && phase.count !== undefined) total += phase.count;
+			if ((phase.kind === "destroy_air_required" || phase.kind === "intercept_bombers") && phase.count !== undefined) total += phase.count;
 			else if (phase.kind === "destroy_ace_required") total += phase.count ?? 1;
 		}
 		return total;
