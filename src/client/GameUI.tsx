@@ -1082,7 +1082,8 @@ function MissionHud({
 		? `  ${telemetry.objectiveProgress ?? 0}/${telemetry.objectiveTotal}`
 		: "";
 	const objectiveText = tutorial !== "" ? tutorial : callout?.title ?? (telemetry.objective ?? "Complete the objective");
-	const objectiveEyebrow = tutorial !== "" ? "FLIGHT TRAINING" : callout?.eyebrow ?? "CURRENT OBJECTIVE";
+	const friendlyStatus = telemetry.friendlyHealth !== undefined ? `  ·  FRIENDLY ${math.floor(telemetry.friendlyHealth + 0.5)}%` : "";
+	const objectiveEyebrow = `${tutorial !== "" ? "FLIGHT TRAINING" : callout?.eyebrow ?? "CURRENT OBJECTIVE"}${friendlyStatus}`;
 	return (
 		<frame key="MissionHUD" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={visible}>
 			<frame key="DamageFlash" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={damageFlash}>

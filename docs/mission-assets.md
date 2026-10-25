@@ -1,12 +1,12 @@
 # Blender mission-target pipeline
 
-The radar training installation and military warehouse are authored by
-`tools/build-mission-assets.py`. Their canonical runtime geometry is committed as
-`assets/mission/radar.mesh.json` and `assets/mission/warehouse.mesh.json`. The
+The radar training installation, military warehouse, Aurora navigation beacon,
+and three-vehicle relief convoy are authored by `tools/build-mission-assets.py`.
+Their canonical runtime geometry is committed under `assets/mission/*.mesh.json`. The
 generator also creates local `.blend`, `.glb`, and preview PNG files for review;
 those known exports are ignored and are not runtime inputs.
 
-Regenerate both targets with Blender, then compile the project:
+Regenerate all four models with Blender, then compile the project:
 
 ```sh
 /Applications/Blender.app/Contents/MacOS/Blender --background --python tools/build-mission-assets.py
@@ -16,16 +16,17 @@ bun run build
 The generator creates complete scenes procedurally, consolidates disconnected
 objects into one delivery mesh per material role, applies transforms and
 modifiers, triangulates evaluated geometry, and exports Blender corner normals.
-Both assets remain below 5,000 triangles. They use solid material colors only;
+All four assets remain below 5,000 triangles. They use solid material colors only;
 there are no image textures or uploaded Roblox asset IDs.
 
 ## Dimensions and placement
 
-Both meshes are centered on the origin. Their JSON `bounds` are authoritative.
+All meshes are centered on the origin. Their JSON `bounds` are authoritative.
 To rest a target on a ground plane, place its model center above the plane by
 `-bounds.min[1]` studs. The warehouse is approximately 65 studs wide, 95 long,
 and 41 high. The radar installation is approximately 65 by 65 studs with a
-45-stud overall height.
+45-stud overall height. The beacon is 54 studs in each dimension; the convoy is
+approximately 20 wide, 108 long, and 18 high.
 
 Blender uses X right, Z up, and -Y forward. Export maps Blender `(x, y, z)` to
 Roblox `(x, z, y)`, yielding Roblox +Y up and -Z forward. Because that coordinate
@@ -34,10 +35,9 @@ the corresponding transformed corner normals.
 
 ## Runtime import
 
-`tools/package-aircraft.ts` packages all four Blender assets—the two existing
-aircraft and these two ground targets—as server-only JSON text. Both Rojo project
-files map `WarehouseGeometry` and `RadarGeometry` into `ServerStorage`
-`StringValue` instances.
+`tools/package-aircraft.ts` packages all six Blender assets—the two existing
+aircraft and four mission models—as server-only JSON text. Both Rojo project
+files map their geometry values into `ServerStorage` `StringValue` instances.
 
 `src/shared/MissionAssets.ts` validates the packaged geometry and builds one
 `EditableMesh` for each authored material role. It preserves exported corner
@@ -47,7 +47,8 @@ This uses `CreateDataModelContentAsync` followed by `CreateMeshPartAsync`, so it
 requires no API key and produces real replicated Roblox mesh geometry.
 
 The static MeshParts are cached and cloned for each call to
-`MissionAssets.CreateWarehouse(name)` or `MissionAssets.CreateRadar(name)`. Each
+`MissionAssets.CreateWarehouse`, `CreateRadar`, `CreateAuroraBeacon`, or
+`CreateSupplyConvoy`. Each
 returned model has an invisible, anchored `Root` at the origin as `PrimaryPart`.
 The root and every render mesh disable collision, touch, and query participation;
 combat remains analytic. Successful models have `GeometrySource="Blender"`.
@@ -59,12 +60,12 @@ engine mesh-content path produces an explicit warning and a root-only model with
 
 After regeneration:
 
-1. Reopen both `.blend` files in background mode and confirm their stored scene
+1. Reopen all `.blend` files in background mode and confirm their stored scene
    metadata and mesh bounds.
 2. Import each `.glb` into a clean Blender scene and compare dimensions with its
    source JSON bounds.
-3. Inspect both preview PNGs for silhouette, dish readability, doors, corrugated
-   cladding, roof vents, and intended material separation.
+3. Inspect every preview PNG for silhouette, dish and beacon readability, convoy
+   vehicle separation, doors, cladding, and intended material separation.
 4. Run `bun run build` and `git diff --check`.
 
 Studio, Rojo server, publishing, and live mission QA are intentionally separate

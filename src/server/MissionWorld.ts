@@ -184,6 +184,62 @@ function compoundPositions(count: number): Vector3[] {
 	return positions;
 }
 
+function authoredPositions(count: number, missionId: number): Vector3[] {
+	const base = compoundPositions(count);
+	const angle = math.rad((missionId * 47) % 360);
+	const scale = 0.82 + (missionId % 5) * 0.07;
+	const offset = new Vector3(((missionId % 3) - 1) * 120, 0, ((missionId % 4) - 1.5) * 70);
+	return base.map((point) => new Vector3(
+		(point.X * math.cos(angle) - point.Z * math.sin(angle)) * scale,
+		0,
+		(point.X * math.sin(angle) + point.Z * math.cos(angle)) * scale,
+	).add(offset));
+}
+
+type LandmarkKind = "arch" | "ridge" | "towers" | "pier" | "ring";
+interface LandmarkSpec { readonly kind: LandmarkKind; readonly x: number; readonly z: number; readonly scale: number; readonly yaw: number }
+// Explicit composition signatures keep all 25 expansion sorties spatially
+// recognizable even when two operations share the same weather family.
+const AURORA_LANDMARKS: readonly LandmarkSpec[] = [
+	{ kind: "pier", x: -900, z: -1750, scale: 1.0, yaw: 20 }, { kind: "ridge", x: 850, z: -1500, scale: 1.2, yaw: -15 },
+	{ kind: "towers", x: -1150, z: -900, scale: 0.9, yaw: 35 }, { kind: "arch", x: 1000, z: -1350, scale: 1.1, yaw: -30 },
+	{ kind: "ring", x: 0, z: -1850, scale: 1.0, yaw: 0 }, { kind: "pier", x: 1050, z: -1700, scale: 1.2, yaw: 70 },
+	{ kind: "towers", x: -900, z: -1650, scale: 1.15, yaw: 10 }, { kind: "ridge", x: 1050, z: -1000, scale: 0.95, yaw: 45 },
+	{ kind: "arch", x: -1050, z: -1300, scale: 1.25, yaw: 20 }, { kind: "ring", x: 850, z: -1800, scale: 0.9, yaw: 0 },
+	{ kind: "ridge", x: -950, z: -1850, scale: 1.3, yaw: -35 }, { kind: "towers", x: 1100, z: -1550, scale: 1.0, yaw: 25 },
+	{ kind: "pier", x: -1100, z: -1150, scale: 0.9, yaw: -60 }, { kind: "arch", x: 900, z: -1750, scale: 1.2, yaw: 40 },
+	{ kind: "ring", x: -800, z: -1600, scale: 1.1, yaw: 0 }, { kind: "ridge", x: 1150, z: -1250, scale: 1.1, yaw: 12 },
+	{ kind: "towers", x: -1000, z: -1850, scale: 1.2, yaw: -10 }, { kind: "arch", x: 1050, z: -950, scale: 0.95, yaw: 65 },
+	{ kind: "pier", x: -850, z: -1450, scale: 1.25, yaw: 15 }, { kind: "ring", x: 1000, z: -1650, scale: 1.15, yaw: 0 },
+	{ kind: "arch", x: -1150, z: -1750, scale: 1.05, yaw: -25 }, { kind: "pier", x: 900, z: -1200, scale: 1.3, yaw: 80 },
+	{ kind: "ridge", x: -1000, z: -1050, scale: 1.15, yaw: 30 }, { kind: "towers", x: 1100, z: -1850, scale: 1.25, yaw: -20 },
+	{ kind: "ring", x: 0, z: -1950, scale: 1.35, yaw: 0 },
+];
+
+function buildLandmark(parent: Instance, missionId: number): void {
+	const spec = AURORA_LANDMARKS[missionId - 3];
+	if (!spec) return;
+	const center = new Vector3(spec.x, 70, spec.z);
+	const color = Color3.fromRGB(128, 153, 166);
+	const rotation = CFrame.Angles(0, math.rad(spec.yaw), 0);
+	if (spec.kind === "arch") {
+		for (const side of [-1, 1]) partCF(parent, "IceArchPillar", new Vector3(28, 150 * spec.scale, 35), new CFrame(center.add(new Vector3(side * 85 * spec.scale, 0, 0))).mul(rotation), color, Enum.Material.Glacier);
+		partCF(parent, "IceArchSpan", new Vector3(200 * spec.scale, 26, 35), new CFrame(center.add(new Vector3(0, 82 * spec.scale, 0))).mul(rotation), color, Enum.Material.Glacier);
+	} else if (spec.kind === "ridge") {
+		for (let i = -2; i <= 2; i++) partCF(parent, "PolarRidge", new Vector3(150, 45 + (2 - math.abs(i)) * 28, 55), new CFrame(center.add(new Vector3(i * 135, i * 30, 0))).mul(rotation), color, Enum.Material.Rock);
+	} else if (spec.kind === "towers") {
+		for (let i = -1; i <= 1; i++) partCF(parent, "SignalTower", new Vector3(12, (110 + i * 18) * spec.scale, 12), new CFrame(center.add(new Vector3(i * 90, 0, 0))).mul(rotation), Color3.fromRGB(196, 143, 57), Enum.Material.Metal);
+	} else if (spec.kind === "pier") {
+		partCF(parent, "ReliefPier", new Vector3(520 * spec.scale, 10, 54), new CFrame(center).mul(rotation), Color3.fromRGB(96, 87, 78), Enum.Material.WoodPlanks);
+		for (let i = -2; i <= 2; i++) partCF(parent, "PierLamp", new Vector3(5, 45, 5), new CFrame(center.add(new Vector3(i * 90 * spec.scale, 28, 0))).mul(rotation), Color3.fromRGB(104, 228, 211), Enum.Material.Neon);
+	} else {
+		for (let i = 0; i < 12; i++) {
+			const a = (i / 12) * math.pi * 2;
+			part(parent, "BeaconRing", new Vector3(12, 55 * spec.scale, 12), center.add(new Vector3(math.cos(a) * 120 * spec.scale, 0, math.sin(a) * 120 * spec.scale)), Color3.fromRGB(101, 233, 197), Enum.Material.Neon);
+		}
+	}
+}
+
 function buildPreservedMission1(scenery: Folder, parent: Instance): Model[] {
 	island(0, -850, 440, 70);
 	island(-1000, -1450, 460, 125);
@@ -271,7 +327,7 @@ function buildGeneralMission(scenery: Folder, parent: Instance, missionId: numbe
 	const hasStrike = planData.steps.some((step) => step.kind === "strike");
 	const hasEscort = planData.steps.some((step) => step.kind === "escort");
 	const hasProtect = planData.steps.some((step) => step.kind === "protect");
-	const positions = compoundPositions(hasStrike ? planData.groundTargets.count : 0);
+	const positions = authoredPositions(hasStrike ? planData.groundTargets.count : 0, missionId);
 	const groundTargets: Model[] = [];
 	for (let i = 0; i < positions.size(); i++) {
 		const p = positions[i];
@@ -311,6 +367,7 @@ function buildGeneralMission(scenery: Folder, parent: Instance, missionId: numbe
 	if (planData.environment.theme === "glacier") {
 		for (let i = 0; i < 4; i++) part(scenery, "GlacierShelf", new Vector3(260, 32, 260), new Vector3(-500 + i * 350, 32, 2200), Color3.fromRGB(220, 232, 240), Enum.Material.Glacier);
 	}
+	buildLandmark(scenery, missionId);
 	let protectedAsset: Model | undefined;
 	let protectedRoute: readonly [Vector3, Vector3] | undefined;
 	if (hasEscort || hasProtect) {
@@ -334,6 +391,9 @@ export const MissionWorld = {
 		applyEnvironment(planData.environment);
 		const scenery = new Instance("Folder");
 		scenery.Name = `MissionWorld_${string.format("%02d", missionId)}_${planData.environment.theme}`;
+		scenery.SetAttribute("MissionId", missionId);
+		scenery.SetAttribute("Codename", planData.codename);
+		scenery.SetAttribute("LayoutSignature", `${missionId}:${planData.environment.theme}:${planData.groundTargets.asset}`);
 		scenery.Parent = parent;
 		fillOcean(scenery, themeDecor(planData.environment));
 		let groundTargets: Model[];

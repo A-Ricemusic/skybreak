@@ -28,9 +28,10 @@ local finishedConnection = game.ReplicatedStorage.Remotes.MissionState.OnClientE
 	end
 	report:SetAttribute("Outcome", state.kind)
 	if state.kind == "Completed" then
-		local expectedGround = state.missionId == 2 and 5 or 1
-		local minimumAir = state.missionId == 2 and 4 or 3
-		report:SetAttribute("ResultValid", state.groundKills == expectedGround and state.kills >= minimumAir and state.elapsed < 600)
+		local expectedGround = { 1, 5, 2, 3, 0, 0, 4, 3, 0, 0, 2, 3, 0, 3, 4, 0, 4, 0, 4, 0, 5, 3, 0, 0, 3, 4, 3 }
+		local minimumAir = { 3, 4, 5, 3, 5, 7, 4, 4, 6, 4, 5, 3, 5, 5, 4, 6, 4, 7, 3, 5, 3, 5, 5, 8, 5, 5, 9 }
+		local missionId = math.clamp(state.missionId or 1, 1, 27)
+		report:SetAttribute("ResultValid", state.groundKills == expectedGround[missionId] and state.kills >= minimumAir[missionId] and state.elapsed < 600)
 	elseif survivalOnly then
 		report:SetAttribute("ResultValid", state.reason == "timeout" and state.elapsed >= 600)
 	end
@@ -84,6 +85,10 @@ task.spawn(function()
 		if telemetry.targetRequired == false and telemetry.target and os.clock() - lastCycle > 0.4 then
 			controller:CycleTarget()
 			lastCycle = os.clock()
+		end
+		if telemetry.incoming and telemetry.evadeCooldown <= 0 then
+			controller:Evade()
+			report:SetAttribute("EvadeCommands", report:GetAttribute("EvadeCommands") + 1)
 		end
 		report:SetAttribute("Kills", telemetry.kills)
 		report:SetAttribute("Health", telemetry.health)

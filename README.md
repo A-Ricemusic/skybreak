@@ -1,6 +1,6 @@
 # SKYBREAK: Operation Glass Horizon
 
-An original mobile-first arcade jet combat campaign for Roblox, written in TypeScript with roblox-ts, React Lua, and Rojo. Choose one of four persistent campaign slots and fly two missions in one Roblox place. Each sortie builds its world on launch and removes it after the result.
+An original mobile-first arcade jet combat campaign for Roblox, written in TypeScript with roblox-ts, React Lua, and Rojo. Choose one of four persistent campaign slots and fly the 27-mission **Aurora Line** campaign in one Roblox place. Each sortie builds its authored polar world on launch and removes it after the result.
 
 ## Controls and campaign
 
@@ -9,7 +9,9 @@ An original mobile-first arcade jet combat campaign for Roblox, written in TypeS
 - Missiles require a target lock, shown on the target bracket. Incoming-missile and airspace warnings appear only while active.
 - Mission 1 — First Flight: learn pitch/turn, select and destroy a ground radar, then defeat three pursuing bandits.
 - Mission 2 — Iron Coast: defeat three bandits, destroy five Blender-authored warehouses while five optional raiders pursue you, then defeat a faster, tougher ace.
-- Each mission has a server-enforced 600-second deadline. Success unlocks the next mission; failure supports retry. Required kills and completion are server-authoritative.
+- Missions 3–27 follow courier squadron Aurora Line through snow coasts, aurora nights, volcanic refuges, glaciers, and northern ports. Intercepts, strikes, escort convoys, refuge defense, and escalating ace fights expose a false ceasefire.
+- Every first-time launch has a rendered, skippable cinematic story bridge; reduced-motion mode holds its camera. Mission 27 ends with a rendered finale.
+- Each mission has a server-enforced 600-second deadline. Success unlocks the next mission; failure supports retry. Required kills, protected-objective health, and completion are server-authoritative.
 - Published experiences save four slots to DataStore; an unpublished local Studio file clearly uses session-only saves.
 
 ## Setup
@@ -78,6 +80,6 @@ Kestrel has 3,684 triangles and Vanta has 3,840; each uses seven material meshes
 
 Studio's documented `CreateAssetAsync` upload route currently reports “not available yet” in this installation, so the project does not depend on that upload API. A regenerated FBX is ready for Studio's manual 3D Importer.
 
-## Campaign expansion
+## Aurora Line campaign
 
-Open [the interactive 27-mission architecture guide](docs/campaign-expansion.html) in a browser for the single-place/chapter-place tradeoffs, world lifecycle, skybox design, performance validation, save migration, and mission concepts. It is a design proposal, not implemented campaign content.
+See [the Aurora Line campaign guide](docs/aurora-line-campaign.md) for the complete mission manifest, architecture, save migration, asset budgets, and QA readiness checklist. The older [campaign expansion guide](docs/campaign-expansion.html) remains background design material.

@@ -38,6 +38,14 @@ assets/mission/radar.blend
 assets/mission/radar.blend[0-9]*
 assets/mission/radar.glb
 assets/mission/radar-preview.png
+assets/mission/aurorabeacon.blend
+assets/mission/aurorabeacon.blend[0-9]*
+assets/mission/aurorabeacon.glb
+assets/mission/aurorabeacon-preview.png
+assets/mission/supplyconvoy.blend
+assets/mission/supplyconvoy.blend[0-9]*
+assets/mission/supplyconvoy.glb
+assets/mission/supplyconvoy-preview.png
 
 # Operating-system metadata
 .DS_Store
