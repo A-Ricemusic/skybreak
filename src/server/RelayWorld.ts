@@ -10,9 +10,9 @@ function part(parent: Instance, name: string, size: Vector3, pos: Vector3, color
 function road(parent: Instance, a: Vector3, b: Vector3, width=25): void {
 	const count=math.ceil(a.sub(b).Magnitude/1800);
 	for(let i=0;i<count;i++){
-		const start=a.Lerp(b,i/count),end=a.Lerp(b,(i+1)/count);
-		const p=part(parent,"Road",new Vector3(width,2,start.sub(end).Magnitude),start.add(end).div(2),Color3.fromRGB(54,64,67),Enum.Material.Asphalt);
-		p.CFrame=CFrame.lookAt(p.Position,end);
+		const start=a.Lerp(b,i/count),finish=a.Lerp(b,(i+1)/count);
+		const p=part(parent,"Road",new Vector3(width,2,start.sub(finish).Magnitude),start.add(finish).div(2),Color3.fromRGB(54,64,67),Enum.Material.Asphalt);
+		p.CFrame=CFrame.lookAt(p.Position,finish);
 	}
 }
 function light(parent: Instance, pos: Vector3): void { part(parent,"Navigation light",new Vector3(4,3,4),pos,Color3.fromRGB(80,235,211),Enum.Material.Neon); }
