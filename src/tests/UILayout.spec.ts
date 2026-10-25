@@ -32,6 +32,8 @@ const VIEWPORTS: [number, number][] = [
 
 // Landscape phone safe areas, including the measured iPhone 13 (750x332) root.
 const PHONE_LANDSCAPE: [number, number][] = [
+	[480, 320],
+	[540, 300],
 	[568, 320],
 	[667, 375],
 	[750, 332],
@@ -216,8 +218,10 @@ describe("minimal mission HUD layout", () => {
 			const layout = getHudLayout(width, height, "touch");
 			const touch = layout.touch!;
 			expect(layout.alert.y + layout.alert.height).toBe(height - layout.margin);
-			expect(layout.alert.x).toBeGreaterThan(touch.throttle.x + touch.throttle.width);
-			expect(layout.alert.x + layout.alert.width).toBeLessThan(touch.target.x);
+			const laneLeft = math.max(touch.joystick.x + touch.joystick.width, touch.throttle.x + touch.throttle.width);
+			const laneRight = math.min(touch.target.x, touch.missile.x, layout.status.x);
+			expect(layout.alert.x - laneLeft).toBeGreaterThanOrEqual(8);
+			expect(laneRight - (layout.alert.x + layout.alert.width)).toBeGreaterThanOrEqual(8);
 		}
 	});
 

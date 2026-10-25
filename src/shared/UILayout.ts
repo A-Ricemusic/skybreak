@@ -69,7 +69,7 @@ export const OBJECTIVE_MAX_WIDTH = 340;
 export const TIMER_CHIP_WIDTH = 60;
 export const TIMER_CHIP_HEIGHT = 22;
 export const ALERT_MAX_WIDTH = 220;
-export const ALERT_MIN_WIDTH = 160;
+export const ALERT_MIN_WIDTH = 120;
 
 /**
  * Where enemies, the target bracket and the reticle live while flying: the
@@ -118,7 +118,7 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 		// the centre box (every landscape phone), the panel stops at the box's
 		// left edge instead. Portrait has the room above the box to stay wide.
 		const clearsCentre = height > width || margin + 50 <= centre.y;
-		calloutWidth = math.min(OBJECTIVE_MAX_WIDTH, besideTimer, clearsCentre ? besideTimer : math.max(150, centre.x - margin));
+		calloutWidth = math.min(OBJECTIVE_MAX_WIDTH, besideTimer, clearsCentre ? besideTimer : math.max(120, centre.x - margin));
 		// Narrow panels (small landscape phones) get a third objective line.
 		calloutHeight = calloutWidth < 200 ? 62 : 50;
 	}

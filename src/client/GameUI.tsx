@@ -982,8 +982,8 @@ function MissionHud({
 			>
 				<Corner radius={6} />
 				<Stroke color={tutorial !== "" ? C.Orange : C.Accent} transparency={0.65} />
-				<Label name="ObjectiveEyebrow" text={objectiveEyebrow} color={tutorial !== "" ? C.Orange : C.Accent} textSize={9} minTextSize={7} font={Enum.Font.GothamBold} position={UDim2.fromOffset(8, 4)} size={new UDim2(1, -16, 0, 12)} stroke={true} />
-				<Label name="ObjectiveText" text={`${objectiveText}${progress}`} color={C.Ivory} textSize={11} minTextSize={9} font={Enum.Font.GothamBold} position={UDim2.fromOffset(8, 17)} size={new UDim2(1, -16, 1, -20)} textWrapped={true} textYAlignment={Enum.TextYAlignment.Top} stroke={true} />
+				<Label name="ObjectiveEyebrow" text={objectiveEyebrow} color={tutorial !== "" ? C.Orange : C.Accent} textSize={10} minTextSize={8} font={Enum.Font.GothamBold} position={UDim2.fromOffset(8, 3)} size={new UDim2(1, -16, 0, 13)} stroke={true} />
+				<Label name="ObjectiveText" text={`${objectiveText}${progress}`} color={C.Ivory} textSize={12} minTextSize={10} font={Enum.Font.GothamBold} position={UDim2.fromOffset(8, 17)} size={new UDim2(1, -16, 1, -20)} textWrapped={true} textYAlignment={Enum.TextYAlignment.Top} stroke={true} />
 			</frame>
 
 			<frame
