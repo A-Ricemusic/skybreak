@@ -1094,6 +1094,10 @@ function GameUI:_bind()
 	end)
 	self:_connect(self.remotes.MissionState.OnClientEvent, function(payload) self:_missionState(payload) end)
 	self:_connect(RunService.RenderStepped, function(deltaTime)
+		-- Character spawning can reset the default camera after the menu mounts.
+		if not self.inMission then
+			self:_setMenuCamera()
+		end
 		self.telemetrySampleClock += deltaTime
 		if self.inMission and self.telemetrySampleClock >= 0.1 then
 			self.telemetrySampleClock = 0
