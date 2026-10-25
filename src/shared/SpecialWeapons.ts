@@ -148,6 +148,10 @@ export const SpecialWeapons = {
 		if (state.kind === "uav" && state.active > 0) return WeaponRules.LockRange * UAV_RANGE_FACTOR;
 		return WeaponRules.LockRange;
 	},
+	/** The standard missile's envelope: only the active drone extends it; the lance's reach is its own. */
+	StandardLockRange(state: SpecialState): number {
+		return state.kind === "uav" && state.active > 0 ? WeaponRules.LockRange * UAV_RANGE_FACTOR : WeaponRules.LockRange;
+	},
 	LockBuildSeconds(state: SpecialState): number {
 		return state.kind === "uav" && state.active > 0 ? UAV_LOCK_BUILD_SECONDS : WeaponRules.LockBuildSeconds;
 	},

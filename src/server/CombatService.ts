@@ -39,7 +39,8 @@ interface Projectile {
 	/** Launched by the special slot: never refunded as a standard missile. */
 	special?: boolean;
 	/** Hostile only: this missile has already rolled against the player's flare cloud. */
-	flareChecked?: boolean;
+	/** Which flare cloud (session.flareBursts) this missile already rolled against. */
+	flareRolled?: number;
 }
 export interface CombatSession {
 	player: Player; slot: number; folder: Folder; aircraft: Model; state: FlightState; input: FlightInput;
@@ -80,7 +81,7 @@ export interface CombatSession {
 	/** Pending pivots applied once per Heartbeat, after every fixed sub-step. */
 	aircraftFrame?: CFrame; actorFrame?: CFrame;
 	/** Debrief counters: player missiles launched and connected, hull lost, lowest hull, evades used. */
-	missilesFired: number; missileHits: number; damageTaken: number; lowestHealth: number; evades: number;
+	missilesFired: number; missileHits: number; flareBursts: number; damageTaken: number; lowestHealth: number; evades: number;
 }
 const sessions = new Map<Player, CombatSession>();
 const completing = new Set<Player>();
@@ -651,7 +652,7 @@ function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy):
 			missiles: session.missiles, missileCooldown: session.missileCooldown,
 			hasTarget: current !== undefined, lockProgress: session.lockProgress, distance, dot, groundTarget: current?.kind === "ground",
 			canDamage: current ? sessionCanDamage(session, current.kind, current.required) : false,
-			lockRange: SpecialWeapons.LockRange(session.special),
+			lockRange: SpecialWeapons.StandardLockRange(session.special),
 		});
 		if (decision.kind === "denied") { denyFire(session, decision.reason); return; }
 		position = positionFor(session.state).add(directionFor(session.state).mul(16)).sub(new Vector3(0, 2, 0));
@@ -674,6 +675,8 @@ function launchSpecialMissile(session: CombatSession, enemy: Enemy, lateral: num
 	const position = positionFor(session.state).add(forward.mul(14)).add(right.mul(lateral)).sub(new Vector3(0, 2.5, 0));
 	const direction = unitOr(forward.add(right.mul(lateral * 0.03)), forward);
 	const kind = session.special.kind;
+	// Special launches count toward accuracy the same as standard ones; their hits already do.
+	session.missilesFired += 1;
 	session.projectiles.push({
 		part: JetFactory.CreateMissile(session.folder, position, direction, false), position, direction, target: enemy, hostile: false, age: 0,
 		ace: false, damage: SpecialWeapons.MissileDamage(kind), speed: SpecialWeapons.MissileSpeed(kind), special: true,
@@ -684,8 +687,8 @@ function decoyWithFlares(session: CombatSession): void {
 	const position = positionFor(session.state);
 	for (let index = session.projectiles.size() - 1; index >= 0; index--) {
 		const missile = session.projectiles[index];
-		if (!missile.hostile || missile.flareChecked || missile.position.sub(position).Magnitude > SpecialWeapons.FlareDecoyRadius) continue;
-		missile.flareChecked = true;
+		if (!missile.hostile || missile.flareRolled === session.flareBursts || missile.position.sub(position).Magnitude > SpecialWeapons.FlareDecoyRadius) continue;
+		missile.flareRolled = session.flareBursts;
 		if (!SpecialWeapons.FlareDecoys(math.random(), missile.ace)) continue;
 		JetFactory.Burst(session.folder, missile.position, Color3.fromRGB(255, 220, 142), 3);
 		missile.part.Destroy(); session.projectiles.remove(index);
@@ -720,6 +723,8 @@ function activateSpecial(session: CombatSession): void {
 	if (state.kind === "uav") {
 		radio(session, "Recon drone up: all contacts marked", 3);
 	} else if (state.kind === "flares") {
+		// A fresh cloud: every hostile missile, even one that saw through the last, rolls again.
+		session.flareBursts += 1;
 		JetFactory.Flares(session.folder, positionFor(session.state));
 		decoyWithFlares(session);
 	} else if (state.kind === "salvo") {
@@ -839,7 +844,12 @@ function strikeEnemy(session: CombatSession, enemy: Enemy, index: number): boole
 	session.missileHits += 1;
 	// Staged ace: the hit bursts harmlessly while it breaks away.
 	if (enemy.invulnerableUntil > session.elapsed) return true;
-	const damage = session.projectiles[index].damage > 0 ? session.projectiles[index].damage : PLAYER_MISSILE_DAMAGE;
+	let damage = session.projectiles[index].damage > 0 ? session.projectiles[index].damage : PLAYER_MISSILE_DAMAGE;
+	// A heavy hit stops at the ace's next stage line so no stage (radio call, raiders) is skipped.
+	if (enemy.kind === "ace" && enemy.stage < 2) {
+		const stageLine = enemy.maxHealth * (enemy.stage === 0 ? 2 / 3 : 1 / 3);
+		if (enemy.health > stageLine) damage = math.min(damage, enemy.health - stageLine);
+	}
 	if (enemy.health <= damage) {
 		session.projectiles[index].part.Destroy(); session.projectiles.remove(index);
 		destroyEnemy(session, enemy);
@@ -917,8 +927,8 @@ function stepMissiles(session: CombatSession, dt: number): void {
 			const speed = missile.speed;
 			const distance = targetPosition.sub(missile.position).Magnitude;
 			// A live flare cloud: each hostile missile that enters it rolls once to be decoyed.
-			if (missile.hostile && !missile.flareChecked && session.special.kind === "flares" && session.special.active > 0 && distance <= SpecialWeapons.FlareDecoyRadius) {
-				missile.flareChecked = true;
+			if (missile.hostile && missile.flareRolled !== session.flareBursts && session.special.kind === "flares" && session.special.active > 0 && distance <= SpecialWeapons.FlareDecoyRadius) {
+				missile.flareRolled = session.flareBursts;
 				if (SpecialWeapons.FlareDecoys(math.random(), missile.ace)) {
 					JetFactory.Burst(session.folder, missile.position, Color3.fromRGB(255, 220, 142), 3);
 					missile.part.Destroy(); session.projectiles.remove(index);
@@ -1127,7 +1137,7 @@ export const CombatService = {
 				enemies: [], projectiles: [], telemetryTime: 0, lastInput: os.clock(), lastInputEvent: -math.huge,
 				active: true, finished: false, cleaned: false, previousReplicationFocus: player.ReplicationFocus,
 				inputClientTime: 0, inputFresh: false, inputSteps: 0, stateTime: 0, stateSequence: 0, telemetrySequence: 0,
-				missilesFired: 0, missileHits: 0, damageTaken: 0, lowestHealth: 100, evades: 0,
+				missilesFired: 0, missileHits: 0, flareBursts: 0, damageTaken: 0, lowestHealth: 100, evades: 0,
 			};
 			if (legacy) {
 				session.rules = MissionRules.NewState(missionId as 1 | 2, startedAt);

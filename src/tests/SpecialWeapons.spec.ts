@@ -153,6 +153,17 @@ describe("SpecialWeapons salvo targeting", () => {
 	});
 });
 
+describe("SpecialWeapons standard envelope", () => {
+	it("keeps the standard missile's range with the lance equipped; only an active drone extends it", () => {
+		expect(SpecialWeapons.StandardLockRange(SpecialWeapons.New("lance"))).toBe(WeaponRules.LockRange);
+		expect(SpecialWeapons.StandardLockRange(SpecialWeapons.New("salvo"))).toBe(WeaponRules.LockRange);
+		const drone = SpecialWeapons.New("uav");
+		expect(SpecialWeapons.StandardLockRange(drone)).toBe(WeaponRules.LockRange);
+		expect(SpecialWeapons.Activate(drone, 1).kind).toBe("ok");
+		expect(SpecialWeapons.StandardLockRange(drone)).toBeCloseTo(WeaponRules.LockRange * SpecialWeapons.UavRangeFactor, 6);
+	});
+});
+
 describe("SpecialWeapons lance", () => {
 	it("locks far beyond the standard envelope and hits twice as hard", () => {
 		const state = SpecialWeapons.New("lance");
