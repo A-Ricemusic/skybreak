@@ -1,6 +1,6 @@
 import { AssetService, HttpService, RunService, ServerStorage } from "@rbxts/services";
 
-type MissionAssetKind = "Warehouse" | "Radar";
+type MissionAssetKind = "Warehouse" | "Radar" | "AuroraBeacon" | "SupplyConvoy";
 type MaterialRole = "Concrete" | "Steel" | "DarkMetal" | "Accent" | "Roof" | "Glass" | "Warning";
 
 interface MeshMaterial {
@@ -252,5 +252,11 @@ export const MissionAssets = {
 	},
 	CreateRadar(name: string): Model {
 		return create("Radar", name);
+	},
+	CreateAuroraBeacon(name: string): Model {
+		return create("AuroraBeacon", name);
+	},
+	CreateSupplyConvoy(name: string): Model {
+		return create("SupplyConvoy", name);
 	},
 };

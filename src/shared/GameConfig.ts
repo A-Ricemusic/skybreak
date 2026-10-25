@@ -1,20 +1,18 @@
+import { AuroraLineManifest } from "./AuroraLineManifest";
+
 export const GameConfig = {
 	Name: "Test Game Coding From Phone",
 	DisplayName: "SKYBREAK",
-	Subtitle: "Operation Glass Horizon",
+	Subtitle: "Operation Aurora Line",
 
 	Campaign: {
 		DataStoreName: "SkybreakCampaign_v1",
-		SaveVersion: 2,
+		SaveVersion: AuroraLineManifest.SaveVersion,
 		SlotCount: 4,
-		MissionCount: 2,
+		MissionCount: AuroraLineManifest.MissionCount,
 		MissionKills: 3,
-		MaxRecordedKills: 9,
+		MaxRecordedKills: 32,
 		MissionTimeLimit: 600,
-		Missions: {
-			1: { Name: "FIRST FLIGHT", RequiredAirKills: 3, RequiredGroundKills: 1 },
-			2: { Name: "IRON COAST", RequiredAirKills: 4, RequiredGroundKills: 5 },
-		},
 	},
 
 	World: {

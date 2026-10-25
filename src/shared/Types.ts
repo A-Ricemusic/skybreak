@@ -1,4 +1,9 @@
 export type Persistence = "cloud" | "session" | "unavailable";
+export interface MissionRecord {
+	id: number;
+	completed: boolean;
+	bestTime?: number;
+}
 export interface SaveSlot {
 	index: number;
 	occupied: boolean;
@@ -7,10 +12,18 @@ export interface SaveSlot {
 	bestTime?: number;
 	updatedAt?: number;
 	currentMission?: number;
+	// Legacy v2 compatibility accessors preserved so older presentation layers continue to work.
 	mission1Completed?: boolean;
 	mission2Completed?: boolean;
 	mission1BestTime?: number;
 	mission2BestTime?: number;
+	// Aurora Line v3: a dense per-mission completion list for the 27 missions.
+	missions?: MissionRecord[];
+	// Highest mission id ever launched (useful for debriefs); never trusted for unlock.
+	highestUnlocked?: number;
+	// Cutscene ids the player has seen at least once. Used for first-time-only cutscenes.
+	seenCutscenes?: string[];
+	reducedMotion?: boolean;
 }
 export interface CampaignResponse {
 	ok: boolean;
