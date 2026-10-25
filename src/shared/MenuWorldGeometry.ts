@@ -125,3 +125,44 @@ export const CONTROL_TOWER_PARTS: ReadonlyArray<MenuPartSpec> = [
 	{ name: "Antenna", size: TOWER_ANTENNA_SIZE, offset: new Vector3(0, TOWER_ANTENNA_CENTER_Y, 0) },
 	{ name: "Beacon", size: TOWER_BEACON_SIZE, offset: new Vector3(0, TOWER_BEACON_CENTER_Y, 0) },
 ];
+
+// --- Display jet placement ------------------------------------------------
+// The title-screen jet parks on the open east apron, clear of the hangar row
+// and the control tower. The server places it and the client aims the menu
+// camera at it, so both read these constants; the Jest test below proves the
+// jet's parking box never penetrates a building (a wingtip inside a hangar wall
+// z-fights under the camera sway and reads as the whole scene shaking).
+
+export const MENU_JET_POSITION = new Vector3(150, 29, -45);
+export const MENU_JET_YAW = math.rad(202);
+export const MENU_JET_SCALE = 1.4;
+/** Generous square footprint: the fallback airframe spans ~32 studs at 1.4x, at any yaw. */
+export const MENU_JET_CLEARANCE: MenuPartSpec = {
+	name: "DisplayJet",
+	size: new Vector3(48, 16, 48),
+	offset: MENU_JET_POSITION,
+};
+
+/** World-space, axis-aligned boxes of the airbase buildings (yaw is 0 or ±90°, so X/Z swap). */
+function buildingBox(name: string, center: Vector3, specs: ReadonlyArray<MenuPartSpec>, quarterTurn: boolean): MenuPartSpec {
+	let lo = new Vector3(math.huge, math.huge, math.huge), hi = lo.mul(-1);
+	for (const spec of specs) {
+		const offset = quarterTurn ? new Vector3(spec.offset.Z, spec.offset.Y, spec.offset.X) : spec.offset;
+		const size = quarterTurn ? new Vector3(spec.size.Z, spec.size.Y, spec.size.X) : spec.size;
+		lo = new Vector3(math.min(lo.X, offset.X - size.X / 2), math.min(lo.Y, offset.Y - size.Y / 2), math.min(lo.Z, offset.Z - size.Z / 2));
+		hi = new Vector3(math.max(hi.X, offset.X + size.X / 2), math.max(hi.Y, offset.Y + size.Y / 2), math.max(hi.Z, offset.Z + size.Z / 2));
+	}
+	return { name, size: hi.sub(lo), offset: center.add(lo.add(hi).div(2)) };
+}
+
+export const HANGAR_PLACEMENTS: ReadonlyArray<{ center: Vector3; facing: number }> = [
+	{ center: new Vector3(-195, 24, 72), facing: math.rad(90) },
+	{ center: new Vector3(-195, 24, 155), facing: math.rad(90) },
+	{ center: new Vector3(195, 24, -150), facing: math.rad(-90) },
+];
+export const CONTROL_TOWER_BASE = new Vector3(190, 23, 40);
+
+export const MENU_OBSTACLES: ReadonlyArray<MenuPartSpec> = [
+	...HANGAR_PLACEMENTS.map((placement, index) => buildingBox(`Hangar${index + 1}`, placement.center, HANGAR_PARTS, true)),
+	buildingBox("ControlTower", CONTROL_TOWER_BASE, CONTROL_TOWER_PARTS, false),
+];

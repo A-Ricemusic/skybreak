@@ -1,7 +1,7 @@
 import { JetFactory } from "../shared/JetFactory";
 import { Lighting, Workspace } from "@rbxts/services";
 import { GameConfig } from "../shared/GameConfig";
-import { CONTROL_TOWER_PARTS, HANGAR_PARTS, MenuPartSpec } from "../shared/MenuWorldGeometry";
+import { CONTROL_TOWER_BASE, CONTROL_TOWER_PARTS, HANGAR_PARTS, HANGAR_PLACEMENTS, MENU_JET_POSITION, MENU_JET_SCALE, MENU_JET_YAW, MenuPartSpec } from "../shared/MenuWorldGeometry";
 
 interface PartOptions {
 	className?: "Part" | "WedgePart";
@@ -168,8 +168,9 @@ function buildDisplayJet(parent: Instance): Model {
 	for (const item of model.GetDescendants()) {
 		if (item.IsA("Trail")) item.Enabled = false;
 	}
-	model.ScaleTo(1.4);
-	model.PivotTo(new CFrame(155, 29, -100).mul(CFrame.Angles(0, math.rad(202), 0)));
+	model.ScaleTo(MENU_JET_SCALE);
+	// Shared with the client menu camera; the geometry test keeps this clear of every building.
+	model.PivotTo(new CFrame(MENU_JET_POSITION).mul(CFrame.Angles(0, MENU_JET_YAW, 0)));
 	model.Parent = parent;
 	return model;
 }
@@ -189,14 +190,12 @@ function buildAirbase(parent: Instance): Model {
 	makePart(airbase, "EastTaxiway", new Vector3(135, 2, 28), new CFrame(105, 22.5, -105), COLORS.runway, Enum.Material.Asphalt);
 	makePart(airbase, "WestApron", new Vector3(170, 2, 190), new CFrame(-185, 22.5, 115), COLORS.concrete, Enum.Material.Concrete);
 	makePart(airbase, "EastApron", new Vector3(170, 2, 190), new CFrame(185, 22.5, -105), COLORS.concrete, Enum.Material.Concrete);
-	buildHangar(airbase, new Vector3(-195, 24, 72), math.rad(90));
-	buildHangar(airbase, new Vector3(-195, 24, 155), math.rad(90));
-	buildHangar(airbase, new Vector3(195, 24, -150), math.rad(-90));
+	for (const placement of HANGAR_PLACEMENTS) buildHangar(airbase, placement.center, placement.facing);
 
 	const tower = new Instance("Model");
 	tower.Name = "ControlTower";
 	tower.Parent = airbase;
-	const towerBase = new CFrame(190, 23, 40);
+	const towerBase = new CFrame(CONTROL_TOWER_BASE);
 	const towerStyle: Record<string, { color: Color3; material: Enum.Material; options: PartOptions }> = {
 		Base: { color: COLORS.concrete, material: Enum.Material.Concrete, options: {} },
 		Cab: { color: Color3.fromRGB(55, 104, 122), material: Enum.Material.Glass, options: { transparency: 0.18 } },
