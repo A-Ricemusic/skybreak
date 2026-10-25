@@ -1,10 +1,18 @@
 import { DataStoreService, Players, RunService } from "@rbxts/services";
 import { GameConfig } from "../shared/GameConfig";
 import { CampaignResponse, FinishedCallback, Remotes } from "../shared/Types";
-import { CampaignCoordinator, CampaignStore, canAttemptRecovery, completeMission, isValidSlot, StoredProfile } from "./CampaignRepository";
+import {
+	CampaignCoordinator,
+	CampaignStore,
+	canAttemptRecovery,
+	completeMission,
+	isValidSlot,
+	resolveMissionRequest,
+	StoredProfile,
+} from "./CampaignRepository";
 
 interface CombatApi {
-	StartMission(player: Player, slot: number): LuaTuple<[boolean, string?]>;
+	StartMission(player: Player, slot: number, missionId?: number): LuaTuple<[boolean, string?]>;
 	EndMission(player: Player): void;
 	GetSession(player: Player): unknown;
 }
@@ -15,6 +23,7 @@ interface PlayerState {
 	loaded: boolean;
 	loadStarted: boolean;
 	activeSlot?: number;
+	activeMission?: number;
 	requestBusy: boolean;
 	lastRequest: number;
 	lastRecovery: number;
@@ -119,21 +128,25 @@ function listSlots(state: PlayerState): CampaignResponse {
 
 function startMission(state: PlayerState, payload: unknown): CampaignResponse {
 	const slot = typeIs(payload, "table") ? (payload as { slot?: unknown }).slot : undefined;
+	const requestedMission = typeIs(payload, "table") ? (payload as { missionId?: unknown }).missionId : undefined;
 	if (!isValidSlot(slot)) return response(state, false, "Choose a valid campaign slot (1-4).");
 	if (!waitForLoad(state)) return response(state, false, "Campaign data is still loading. Please try again.");
 	if (state.coordinator.getPersistence() === "unavailable") {
 		return response(state, false, "Your cloud save could not be loaded; mission start is blocked to protect it.");
 	}
 	if (!combatService) return response(state, false, "Flight systems are not installed in this build.");
+	const saveSlot = state.coordinator.getSlots()[slot - 1];
+	const [missionId, missionError] = resolveMissionRequest(saveSlot, requestedMission);
+	if (missionId === undefined) return response(state, false, missionError ?? "Choose a valid mission.");
 
 	const [sessionOk, existingSession] = pcall(() => combatService!.GetSession(state.player));
 	if (!sessionOk) {
 		warn(`SKYBREAK could not inspect combat session: ${tostring(existingSession)}`);
 		return response(state, false, "Flight systems are temporarily unavailable.");
 	}
-	if (existingSession !== undefined || state.activeSlot !== undefined) return response(state, false, "A mission is already in progress.");
+	if (existingSession !== undefined || state.activeSlot !== undefined || state.activeMission !== undefined) return response(state, false, "A mission is already in progress.");
 
-	const [startedCallOk, started, startError] = pcall(() => combatService!.StartMission(state.player, slot));
+	const [startedCallOk, started, startError] = pcall(() => combatService!.StartMission(state.player, slot, missionId));
 	if (!startedCallOk) {
 		warn(`SKYBREAK mission start failed: ${tostring(started)}`);
 		return response(state, false, "The mission could not be started.");
@@ -141,12 +154,14 @@ function startMission(state: PlayerState, payload: unknown): CampaignResponse {
 	if (started !== true) return response(state, false, tostring(startError ?? "The mission could not be started."));
 
 	state.activeSlot = slot;
-	state.coordinator.recordMissionStarted(slot);
+	state.activeMission = missionId;
+	state.coordinator.recordMissionStarted(slot, missionId);
 	return response(state, true);
 }
 
 function returnToMenu(state: PlayerState): CampaignResponse {
 	state.activeSlot = undefined;
+	state.activeMission = undefined;
 	if (!combatService) return response(state, true);
 	const [success, errorMessage] = pcall(() => combatService!.EndMission(state.player));
 	if (!success) {
@@ -186,7 +201,8 @@ const onFinished: FinishedCallback = (player, won, stats) => {
 	const state = states.get(player);
 	if (!state || state.closing) return;
 	const slotIndex = state.activeSlot;
-	const recorded = completeMission(state.coordinator, slotIndex, won, stats, (message) => {
+	const missionId = state.activeMission;
+	const recorded = completeMission(state.coordinator, slotIndex, missionId, won, stats, (message) => {
 		if (player.Parent === Players) remotes!.MissionState.FireClient(player, message);
 	});
 	if (!recorded) {
@@ -194,6 +210,7 @@ const onFinished: FinishedCallback = (player, won, stats) => {
 		return;
 	}
 	state.activeSlot = undefined;
+	state.activeMission = undefined;
 };
 
 function shutdownPlayer(player: Player): void {
@@ -201,6 +218,7 @@ function shutdownPlayer(player: Player): void {
 	if (!state || state.closing) return;
 	state.closing = true;
 	state.activeSlot = undefined;
+	state.activeMission = undefined;
 	if (combatService) pcall(() => combatService!.EndMission(player));
 	if (state.loaded) state.coordinator.flush();
 	states.delete(player);

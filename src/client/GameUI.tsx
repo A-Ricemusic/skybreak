@@ -58,8 +58,11 @@ interface ToastState {
 
 interface OutcomeState {
 	won: boolean;
+	missionId: number;
 	kills: number;
+	groundKills: number;
 	elapsed: number;
+	reason?: string;
 	saveText: string;
 	saveColor: Color3;
 }
@@ -355,6 +358,16 @@ function defaultTelemetry(): Telemetry {
 		elapsed: 0,
 		targetDistance: 0,
 		boundaryWarning: false,
+		missionId: 1,
+		phase: "tutorial_move",
+		objective: "Learn the flight controls",
+		objectiveProgress: 0,
+		objectiveTotal: 1,
+		timeRemaining: 600,
+		tutorialStep: "move",
+		groundKills: 0,
+		targetKind: "air",
+		targetRequired: false,
 	};
 }
 
@@ -382,9 +395,14 @@ function normalizeSlots(response: CampaignResponse): SaveSlot[] | undefined {
 			index: offset + 1,
 			occupied: source.occupied === true,
 			completed: source.completed === true,
-			kills: math.clamp(math.floor(finite(source.kills, 0)), 0, 3),
+			kills: math.clamp(math.floor(finite(source.kills, 0)), 0, 9),
 			bestTime,
 			updatedAt: source.updatedAt,
+			currentMission: source.currentMission === 2 ? 2 : 1,
+			mission1Completed: source.mission1Completed === true,
+			mission2Completed: source.mission2Completed === true,
+			mission1BestTime: typeIs(source.mission1BestTime, "number") ? math.max(0, finite(source.mission1BestTime, 0)) : undefined,
+			mission2BestTime: typeIs(source.mission2BestTime, "number") ? math.max(0, finite(source.mission2BestTime, 0)) : undefined,
 		});
 	}
 	return parsed;
@@ -395,13 +413,18 @@ function normalizePersistence(value: unknown): Persistence {
 }
 
 function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
+	const missionId = payload.missionId === 2 ? 2 : payload.missionId === 1 ? 1 : previous.missionId;
+	const targetKind = payload.targetKind === "ground" || payload.targetKind === "air" ? payload.targetKind : previous.targetKind;
+	const tutorialStep = payload.tutorialStep === "move" || payload.tutorialStep === "target" || payload.tutorialStep === "missile" || payload.tutorialStep === ""
+		? payload.tutorialStep
+		: previous.tutorialStep;
 	return {
 		kind: "Telemetry",
 		health: math.clamp(finite(payload.health, previous.health), 0, 100),
 		speed: math.max(0, finite(payload.speed, previous.speed)),
 		altitude: finite(payload.altitude, previous.altitude),
-		kills: math.clamp(math.floor(finite(payload.kills, previous.kills)), 0, 3),
-		total: math.clamp(math.floor(finite(payload.total, 3)), 1, 3),
+		kills: math.clamp(math.floor(finite(payload.kills, previous.kills)), 0, 99),
+		total: math.clamp(math.floor(finite(payload.total, previous.total)), 1, 99),
 		missiles: math.max(0, math.floor(finite(payload.missiles, previous.missiles))),
 		missileCooldown: math.max(0, finite(payload.missileCooldown, previous.missileCooldown)),
 		evadeCooldown: math.max(0, finite(payload.evadeCooldown, previous.evadeCooldown)),
@@ -412,7 +435,32 @@ function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
 		elapsed: math.max(0, finite(payload.elapsed, previous.elapsed)),
 		targetDistance: math.max(0, finite(payload.targetDistance, previous.targetDistance ?? 0)),
 		boundaryWarning: payload.boundaryWarning === undefined ? previous.boundaryWarning : payload.boundaryWarning === true,
+		missionId,
+		phase: safeString(payload.phase, previous.phase ?? ""),
+		objective: safeString(payload.objective, previous.objective ?? "Complete the objective"),
+		objectiveProgress: math.max(0, math.floor(finite(payload.objectiveProgress, previous.objectiveProgress ?? 0))),
+		objectiveTotal: math.max(0, math.floor(finite(payload.objectiveTotal, previous.objectiveTotal ?? 0))),
+		timeRemaining: math.clamp(finite(payload.timeRemaining, previous.timeRemaining ?? 600), 0, 600),
+		tutorialStep,
+		groundKills: math.max(0, math.floor(finite(payload.groundKills, previous.groundKills ?? 0))),
+		targetKind,
+		targetRequired: payload.targetRequired === undefined ? previous.targetRequired : payload.targetRequired === true,
 	};
+}
+
+function resumeMission(slot?: SaveSlot): number {
+	return slot?.mission1Completed === true ? 2 : 1;
+}
+
+function tutorialInstruction(step: string | undefined, mode: InputMode): string {
+	if (step === "move") {
+		if (mode === "touch") return "Use the flight stick to pitch and turn";
+		if (mode === "gamepad") return "Use the left stick to pitch and turn";
+		return "Use WASD to pitch and turn";
+	}
+	if (step === "target") return mode === "touch" ? "Tap TGT to cycle targets" : mode === "gamepad" ? "Press Y to cycle targets" : "Press Tab to cycle targets";
+	if (step === "missile") return mode === "touch" ? "Lock the ground target, then tap FIRE" : mode === "gamepad" ? "Lock the ground target, then press R2" : "Lock the ground target, then press Space";
+	return "";
 }
 
 function missileReady(telemetry: Telemetry): boolean {
@@ -497,7 +545,7 @@ function TitleScreen({ visible, menu, onCampaign }: { visible: boolean; menu: Me
 				<Label name="Subtitle" text="OPERATION GLASS HORIZON" color={C.Orange} textSize={compact ? 11 : 13} font={Enum.Font.GothamBold} size={new UDim2(1, 0, 0, 18)} layoutOrder={3} />
 				<Label
 					name="Blurb"
-					text="Three hostile aircraft have crossed the island defense line. Launch before the horizon closes."
+					text="Earn your wings, then break the Iron Coast strike force in a two-mission campaign."
 					color={C.Muted}
 					textSize={compact ? 13 : 15}
 					size={new UDim2(1, 0, 0, 0)}
@@ -527,16 +575,24 @@ function SlotButton({
 }) {
 	const enabled = !busy && slot !== undefined;
 	const { hot, events, clearHover } = useHighlight(enabled);
-	const status = busy ? "READING FILE..." : !slot ? "LINK UNAVAILABLE" : slot.completed ? "COMPLETED  ·  REPLAY" : slot.occupied ? "CONTINUE SORTIE" : "NEW CAMPAIGN";
+	const status = busy
+		? "READING FILE..."
+		: !slot
+			? "LINK UNAVAILABLE"
+			: slot.completed
+				? "CAMPAIGN COMPLETE  ·  REPLAY"
+				: slot.mission1Completed
+					? "MISSION 02 UNLOCKED  ·  CONTINUE"
+					: slot.occupied ? "CONTINUE MISSION 01" : "NEW CAMPAIGN";
 	const detail = busy
 		? "Please stand by"
 		: !slot
 			? "Return and try again"
 			: slot.completed
-				? `Hostiles 3 / 3   ·   Best ${slot.bestTime !== undefined ? formatTime(slot.bestTime) : "--:--"}`
-				: slot.occupied
-					? `Last result ${slot.kills} / 3 hostiles`
-					: "No flight record";
+				? `01 ${slot.mission1BestTime !== undefined ? formatTime(slot.mission1BestTime) : "--:--"}   ·   02 ${slot.mission2BestTime !== undefined ? formatTime(slot.mission2BestTime) : "--:--"}`
+				: slot.mission1Completed
+					? `FIRST FLIGHT ${slot.mission1BestTime !== undefined ? formatTime(slot.mission1BestTime) : "COMPLETE"}`
+					: slot.occupied ? `FIRST FLIGHT  ·  ${slot.kills} air targets` : "Begin with 01 FIRST FLIGHT";
 	const rowHeight = compact ? 44 : 58;
 	return (
 		<textbutton
@@ -686,31 +742,45 @@ function BriefingScreen({
 	visible,
 	menu,
 	selectedSlot,
+	selectedMission,
 	slot,
 	busy,
 	onBack,
 	onLaunch,
+	onMission,
 }: {
 	visible: boolean;
 	menu: MenuLayout;
 	selectedSlot: number;
+	selectedMission: number;
 	slot?: SaveSlot;
 	busy: boolean;
 	onBack: () => void;
 	onLaunch: () => void;
+	onMission: (missionId: number) => void;
 }) {
 	const compact = menu.compact;
-	const mode = slot?.completed ? "COMPLETED  ·  REPLAY" : slot?.occupied ? "CONTINUE SORTIE" : "NEW SORTIE";
+	const mission2 = selectedMission === 2;
+	const mission2Unlocked = slot?.mission1Completed === true;
+	const missionCompleted = mission2 ? slot?.mission2Completed === true : slot?.mission1Completed === true;
+	const mode = missionCompleted ? "COMPLETED  ·  REPLAY" : slot?.occupied ? "CONTINUE SORTIE" : "NEW SORTIE";
+	const title = mission2 ? "IRON COAST" : "FIRST FLIGHT";
+	const objective = mission2
+		? "Break the coastal strike force"
+		: "Complete flight training and repel the attack";
+	const story = mission2
+		? "Intercept three required bandits, destroy five coastal warehouses while attackers pursue, then defeat the faster armored ace. Optional attackers may remain in the fight."
+		: "Learn to pitch and turn, cycle to the marked ground target, fire a missile, then destroy the three bandits pursuing the airbase.";
 	return (
 		<frame key="BriefingScreen" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={visible}>
 			<frame key="BriefingPanel" BackgroundTransparency={1} {...panelPosition(menu)}>
-				<Label name="BriefingEyebrow" text="MISSION 01" color={C.Orange} textSize={compact ? 10 : 11} font={Enum.Font.GothamBold} size={new UDim2(1, 0, 0, compact ? 14 : 16)} />
-				<Label name="BriefingTitle" text="GLASS HORIZON" textSize={compact ? 22 : 32} font={Enum.Font.GothamBlack} position={UDim2.fromOffset(0, compact ? 16 : 22)} size={new UDim2(1, 0, 0, compact ? 28 : 40)} />
+				<Label name="BriefingEyebrow" text={`MISSION 0${selectedMission}`} color={C.Orange} textSize={compact ? 10 : 11} font={Enum.Font.GothamBold} size={new UDim2(1, 0, 0, compact ? 14 : 16)} />
+				<Label name="BriefingTitle" text={title} textSize={compact ? 22 : 32} font={Enum.Font.GothamBlack} position={UDim2.fromOffset(0, compact ? 16 : 22)} size={new UDim2(1, 0, 0, compact ? 28 : 40)} />
 				<Label name="ObjectiveTag" text="PRIMARY OBJECTIVE" color={C.Accent} textSize={10} font={Enum.Font.GothamBold} position={UDim2.fromOffset(0, compact ? 54 : 82)} size={new UDim2(1, 0, 0, 14)} />
-				<Label name="Objective" text="Destroy the three hostile aircraft" textSize={compact ? 15 : 18} font={Enum.Font.GothamBold} position={UDim2.fromOffset(0, compact ? 68 : 100)} size={new UDim2(1, 0, 0, compact ? 20 : 26)} />
+				<Label name="Objective" text={objective} textSize={compact ? 15 : 18} font={Enum.Font.GothamBold} position={UDim2.fromOffset(0, compact ? 68 : 100)} size={new UDim2(1, 0, 0, compact ? 20 : 26)} />
 				<Label
 					name="Story"
-					text="Unknown contacts have crossed the outer defense line under a fractured storm front. Intercept the hostile flight and clear the sky before they reach the evacuation corridor."
+					text={story}
 					color={C.Muted}
 					textSize={compact ? 12 : 14}
 					position={UDim2.fromOffset(0, compact ? 96 : 140)}
@@ -726,8 +796,30 @@ function BriefingScreen({
 					textSize={10}
 					font={Enum.Font.GothamBold}
 					anchorPoint={new Vector2(0, 1)}
-					position={new UDim2(0, 0, 1, compact ? -50 : -58)}
+					position={new UDim2(0, 0, 1, compact ? -92 : -98)}
 					size={new UDim2(1, 0, 0, 16)}
+				/>
+				<ActionButton
+					name="Mission01SelectButton"
+					text="01  FIRST FLIGHT"
+					primary={selectedMission === 1}
+					anchorPoint={new Vector2(0, 1)}
+					position={new UDim2(0, 0, 1, compact ? -50 : -54)}
+					size={new UDim2(0.49, 0, 0, compact ? 34 : 38)}
+					textSize={compact ? 10 : 11}
+					enabled={!busy}
+					onActivated={() => onMission(1)}
+				/>
+				<ActionButton
+					name="Mission02SelectButton"
+					text={mission2Unlocked ? "02  IRON COAST" : "02  LOCKED"}
+					primary={selectedMission === 2}
+					anchorPoint={new Vector2(1, 1)}
+					position={new UDim2(1, 0, 1, compact ? -50 : -54)}
+					size={new UDim2(0.49, 0, 0, compact ? 34 : 38)}
+					textSize={compact ? 10 : 11}
+					enabled={!busy && mission2Unlocked}
+					onActivated={() => onMission(2)}
 				/>
 				<FooterButtons
 					compact={compact}
@@ -751,6 +843,7 @@ function OutcomeScreen({
 	busy,
 	onRetry,
 	onReturn,
+	onNext,
 }: {
 	visible: boolean;
 	menu: MenuLayout;
@@ -758,18 +851,28 @@ function OutcomeScreen({
 	busy: boolean;
 	onRetry: () => void;
 	onReturn: () => void;
+	onNext: () => void;
 }) {
 	const compact = menu.compact;
-	const retryText = busy ? "RESETTING SORTIE..." : "RETRY SORTIE";
+	const retryText = busy ? "RESETTING SORTIE..." : outcome.won ? `REPLAY MISSION 0${outcome.missionId}` : "RETRY SORTIE";
+	const timedOut = outcome.reason === "timeout";
+	const campaignComplete = outcome.won && outcome.missionId === 2;
+	const summary = outcome.won
+		? campaignComplete
+			? "The warehouses are destroyed and the ace is down. The coast is secure."
+			: "Training complete and the pursuing bandits are down. Iron Coast is now unlocked."
+		: timedOut
+			? "The ten-minute operation window closed before the objective was complete."
+			: "The sortie ended before the required objective was complete.";
 	return (
 		<frame key="OutcomeScreen" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={visible}>
 			<frame key="VictoryPanel" BackgroundTransparency={1} {...panelPosition(menu)}>
 				<frame key="Accent" BackgroundColor3={outcome.won ? C.Accent : C.Danger} BorderSizePixel={0} Size={UDim2.fromOffset(32, 2)} />
-				<Label name="OutcomeEyebrow" text="OPERATION GLASS HORIZON" color={C.Orange} textSize={compact ? 10 : 11} font={Enum.Font.GothamBold} position={UDim2.fromOffset(0, 10)} size={new UDim2(1, 0, 0, 16)} />
-				<Label name="OutcomeTitle" text={outcome.won ? "HORIZON SECURED" : "SORTIE LOST"} color={outcome.won ? C.Ivory : C.Danger} textSize={compact ? 24 : 34} font={Enum.Font.GothamBlack} position={UDim2.fromOffset(0, compact ? 28 : 32)} size={new UDim2(1, 0, 0, compact ? 30 : 44)} />
+				<Label name="OutcomeEyebrow" text={`MISSION 0${outcome.missionId}  ·  ${outcome.missionId === 2 ? "IRON COAST" : "FIRST FLIGHT"}`} color={C.Orange} textSize={compact ? 10 : 11} font={Enum.Font.GothamBold} position={UDim2.fromOffset(0, 10)} size={new UDim2(1, 0, 0, 16)} />
+				<Label name="OutcomeTitle" text={outcome.won ? "MISSION COMPLETE" : timedOut ? "TIME EXPIRED" : "SORTIE LOST"} color={outcome.won ? C.Ivory : C.Danger} textSize={compact ? 24 : 34} font={Enum.Font.GothamBlack} position={UDim2.fromOffset(0, compact ? 28 : 32)} size={new UDim2(1, 0, 0, compact ? 30 : 44)} />
 				<Label
 					name="OutcomeSummary"
-					text={outcome.won ? "All hostile aircraft destroyed. The evacuation corridor is clear." : "The defense line did not hold. Rearm and return to the horizon."}
+					text={summary}
 					color={C.Muted}
 					textSize={compact ? 12 : 15}
 					position={UDim2.fromOffset(0, compact ? 64 : 86)}
@@ -778,7 +881,7 @@ function OutcomeScreen({
 					textWrapped={true}
 					textYAlignment={Enum.TextYAlignment.Top}
 				/>
-				<Label name="OutcomeStats" text={`HOSTILES  ${outcome.kills} / 3      TIME  ${formatTime(outcome.elapsed)}`} color={C.Accent} textSize={compact ? 12 : 14} font={Enum.Font.RobotoMono} position={UDim2.fromOffset(0, compact ? 112 : 150)} size={new UDim2(1, 0, 0, 20)} />
+				<Label name="OutcomeStats" text={`AIR  ${outcome.kills}   GROUND  ${outcome.groundKills}   TIME  ${formatTime(outcome.elapsed)}`} color={C.Accent} textSize={compact ? 12 : 14} font={Enum.Font.RobotoMono} position={UDim2.fromOffset(0, compact ? 112 : 150)} size={new UDim2(1, 0, 0, 20)} />
 				<Label
 					name="SaveStatus"
 					text={outcome.saveText}
@@ -790,7 +893,9 @@ function OutcomeScreen({
 					automaticSize={Enum.AutomaticSize.Y}
 					textWrapped={true}
 				/>
-				{outcome.won ? (
+				{outcome.won ? outcome.missionId === 1 ? (
+					<FooterButtons compact={compact} primaryName="Mission1NextMissionButton" primaryText="NEXT: MISSION 02" secondaryName="RetryButton" secondaryText={retryText} busy={busy} onPrimary={onNext} onSecondary={onRetry} />
+				) : (
 					<FooterButtons compact={compact} primaryName="ReturnToMenuButton" primaryText="RETURN TO MENU" secondaryName="RetryButton" secondaryText={retryText} busy={busy} onPrimary={onReturn} onSecondary={onRetry} />
 				) : (
 					<FooterButtons compact={compact} primaryName="RetryButton" primaryText={retryText} secondaryName="ReturnToMenuButton" secondaryText="MAIN MENU" busy={busy} onPrimary={onRetry} onSecondary={onReturn} />
@@ -889,10 +994,31 @@ function MissionHud({
 	const missileButtonText = telemetry.missileCooldown > 0 ? string.format("%.1f", telemetry.missileCooldown) : telemetry.missiles <= 0 ? "EMPTY" : "FIRE";
 	const throttleVertical = touch?.throttleVertical ?? true;
 	const throttleButtonSize = UDim2.fromOffset(44, 44);
+	const tutorial = tutorialInstruction(telemetry.tutorialStep, inputMode);
+	const progress = telemetry.objectiveTotal !== undefined && telemetry.objectiveTotal > 0
+		? `  ${telemetry.objectiveProgress ?? 0}/${telemetry.objectiveTotal}`
+		: "";
+	const objectiveText = tutorial !== "" ? tutorial : callout?.title ?? (telemetry.objective ?? "Complete the objective");
+	const objectiveEyebrow = tutorial !== "" ? "FLIGHT TRAINING" : callout?.eyebrow ?? "CURRENT OBJECTIVE";
 	return (
 		<frame key="MissionHUD" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={visible}>
 			<frame key="DamageFlash" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={damageFlash}>
 				<Stroke color={C.Danger} transparency={0.35} thickness={5} />
+			</frame>
+
+			<frame
+				key="ObjectivePanel"
+				BackgroundColor3={C.Ink}
+				BackgroundTransparency={0.3}
+				BorderSizePixel={0}
+				Position={UDim2.fromOffset(layout.callout.x, layout.callout.y)}
+				Size={UDim2.fromOffset(layout.callout.width, layout.callout.height)}
+			>
+				<Corner radius={6} />
+				<Stroke color={tutorial !== "" ? C.Orange : C.Accent} transparency={0.65} />
+				<Label name="ObjectiveEyebrow" text={objectiveEyebrow} color={tutorial !== "" ? C.Orange : C.Accent} textSize={9} font={Enum.Font.GothamBold} position={UDim2.fromOffset(10, 4)} size={new UDim2(1, -76, 0, 13)} stroke={true} />
+				<Label name="ObjectiveText" text={`${objectiveText}${progress}`} color={C.Ivory} textSize={11} font={Enum.Font.GothamBold} position={UDim2.fromOffset(10, 17)} size={new UDim2(1, -76, 0, 28)} textWrapped={true} stroke={true} />
+				<Label name="MissionTimer" text={formatTime(telemetry.timeRemaining ?? 600)} color={(telemetry.timeRemaining ?? 600) <= 60 ? C.Danger : C.Ivory} textSize={13} font={Enum.Font.RobotoMono} anchorPoint={new Vector2(1, 0)} position={new UDim2(1, -10, 0, 7)} size={UDim2.fromOffset(58, 20)} textXAlignment={Enum.TextXAlignment.Right} stroke={true} />
 			</frame>
 
 			<frame
@@ -909,17 +1035,6 @@ function MissionHud({
 				<uilistlayout FillDirection={Enum.FillDirection.Horizontal} HorizontalAlignment={Enum.HorizontalAlignment.Center} Padding={new UDim(0, 14)} SortOrder={Enum.SortOrder.LayoutOrder} VerticalAlignment={Enum.VerticalAlignment.Center} />
 				<Label name="WarningText" text={alertText} color={alertColor} textSize={13} font={Enum.Font.GothamBlack} size={UDim2.fromOffset(0, 20)} automaticSize={Enum.AutomaticSize.X} layoutOrder={1} />
 				{evadeHint && <HintChip hint={evadeHint} order={2} />}
-			</frame>
-
-			<frame
-				key="Callout"
-				BackgroundTransparency={1}
-				Position={UDim2.fromOffset(layout.callout.x, layout.callout.y)}
-				Size={UDim2.fromOffset(layout.callout.width, layout.callout.height)}
-				Visible={callout !== undefined}
-			>
-				<Label name="CalloutEyebrow" text={callout?.eyebrow ?? ""} color={C.Accent} textSize={10} font={Enum.Font.GothamBold} size={new UDim2(1, 0, 0, 16)} textXAlignment={Enum.TextXAlignment.Center} stroke={true} />
-				<Label name="CalloutTitle" text={callout?.title ?? ""} textSize={17} font={Enum.Font.GothamBlack} position={UDim2.fromOffset(0, 18)} size={new UDim2(1, 0, 0, 26)} textXAlignment={Enum.TextXAlignment.Center} stroke={true} />
 			</frame>
 
 			<frame
@@ -1058,11 +1173,12 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const [slots, setSlots] = useState<SaveSlot[] | undefined>();
 	const [persistence, setPersistence] = useState<Persistence>("unavailable");
 	const [selectedSlot, setSelectedSlot] = useState(1);
+	const [selectedMission, setSelectedMission] = useState(1);
 	const [busy, setBusy] = useState(false);
 	const [toast, setToast] = useState<ToastState | undefined>();
 	const [telemetry, setTelemetry] = useState(defaultTelemetry);
 	const [throttle, setThrottleState] = useState(0.65);
-	const [outcome, setOutcome] = useState<OutcomeState>({ won: true, kills: 3, elapsed: 0, saveText: "", saveColor: C.Muted });
+	const [outcome, setOutcome] = useState<OutcomeState>({ won: true, missionId: 1, kills: 3, groundKills: 1, elapsed: 0, saveText: "", saveColor: C.Muted });
 	const [inputMode, setInputMode] = useState<InputMode>(readInputMode);
 	const [hintUntil, setHintUntil] = useState(0);
 	const [killNotice, setKillNotice] = useState<KillNotice | undefined>();
@@ -1076,10 +1192,12 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const toastRef = useRef(0);
 	const throttleRef = useRef(0.65);
 	const selectedSlotRef = useRef(1);
+	const selectedMissionRef = useRef(1);
 	const persistenceRef = useRef<Persistence>("unavailable");
 	const telemetryRef = useRef(defaultTelemetry());
 	const inputModeRef = useRef<InputMode>(inputMode);
 	const outcomeWonRef = useRef(true);
+	const outcomeMissionRef = useRef(1);
 	const rootFrameRef = useRef<Frame>();
 	const joystickRef = useRef<Frame>();
 	const knobRef = useRef<Frame>();
@@ -1131,7 +1249,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				? `Slot${selectedSlotRef.current}Button`
 				: current === "briefing"
 					? "LaunchButton"
-					: outcomeWonRef.current ? "ReturnToMenuButton" : "RetryButton";
+					: outcomeWonRef.current && outcomeMissionRef.current === 1 ? "Mission1NextMissionButton" : outcomeWonRef.current ? "ReturnToMenuButton" : "RetryButton";
 		const target = screenFrame.FindFirstChild(defaultName, true);
 		if (target && target.IsA("GuiObject")) GuiService.SelectedObject = target;
 	}, []);
@@ -1218,7 +1336,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 
 	const startMission = useCallback(() => {
 		beginRequest((requestId) => {
-			const [response, problem] = invoke("StartMission", { slot: selectedSlot });
+			const [response, problem] = invoke("StartMission", { slot: selectedSlot, missionId: selectedMission });
 			if (!mountedRef.current || requestRef.current !== requestId) return;
 			if (!response) showToast(problem ?? "Command rejected the request.", true);
 			else {
@@ -1226,7 +1344,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				if (screenRef.current !== "mission") showToast("Clearance received. Preparing aircraft...", false);
 			}
 		});
-	}, [applyResponseSlots, beginRequest, invoke, selectedSlot, showToast]);
+	}, [applyResponseSlots, beginRequest, invoke, selectedMission, selectedSlot, showToast]);
 
 	const returnToMenu = useCallback(() => {
 		cancelRequests();
@@ -1242,7 +1360,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		});
 	}, [applyResponseSlots, beginRequest, cancelRequests, changeScreen, controller, invoke, releaseJoystick, showToast]);
 
-	const retryMission = useCallback(() => {
+	const restartMission = useCallback((missionId: number) => {
 		beginRequest((requestId) => {
 			const [returned, returnError] = invoke("ReturnToMenu");
 			if (!mountedRef.current || requestRef.current !== requestId) return;
@@ -1253,7 +1371,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			if (returned.slots) applyResponseSlots(returned);
 			task.wait(0.16);
 			if (!mountedRef.current || requestRef.current !== requestId) return;
-			const [started, startError] = invoke("StartMission", { slot: selectedSlot });
+			selectedMissionRef.current = missionId;
+			setSelectedMission(missionId);
+			const [started, startError] = invoke("StartMission", { slot: selectedSlot, missionId });
 			if (!mountedRef.current || requestRef.current !== requestId) return;
 			if (!started) showToast(startError ?? "Command rejected the request.", true);
 			else {
@@ -1262,6 +1382,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			}
 		});
 	}, [applyResponseSlots, beginRequest, invoke, selectedSlot, showToast]);
+
+	const retryMission = useCallback(() => restartMission(selectedMissionRef.current), [restartMission]);
+	const nextMission = useCallback(() => restartMission(2), [restartMission]);
 
 	const moveJoystick = useCallback((input: InputObject) => {
 		const joystick = joystickRef.current;
@@ -1356,13 +1479,23 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			if (payload.kind === "Started") {
 				const started = payload as MissionStarted;
 				const slot = math.clamp(math.floor(finite(started.slot, selectedSlotRef.current)), 1, 4);
+				const missionId = started.missionId === 2 ? 2 : 1;
 				selectedSlotRef.current = slot;
 				setSelectedSlot(slot);
+				selectedMissionRef.current = missionId;
+				setSelectedMission(missionId);
 				toastRef.current++;
 				setToast(undefined);
 				setKillNotice(undefined);
 				setDamageUntil(0);
 				const resetTelemetry = defaultTelemetry();
+				resetTelemetry.missionId = missionId;
+				if (missionId === 2) {
+					resetTelemetry.phase = "intercept";
+					resetTelemetry.objective = "Intercept the required bandits";
+					resetTelemetry.objectiveTotal = 3;
+					resetTelemetry.tutorialStep = "";
+				}
 				telemetryRef.current = resetTelemetry;
 				setTelemetry(resetTelemetry);
 				if (!controller.Start(started)) {
@@ -1401,7 +1534,11 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				setMenuCamera();
 				const current = telemetryRef.current;
 				const won = finished.kind === "Completed";
+				const missionId = finished.missionId === 2 ? 2 : current.missionId === 2 ? 2 : 1;
+				selectedMissionRef.current = missionId;
+				setSelectedMission(missionId);
 				outcomeWonRef.current = won;
+				outcomeMissionRef.current = missionId;
 				changeScreen("outcome");
 				const resultPersistence = normalizePersistence(finished.persistence ?? persistenceRef.current);
 				const saveText = won && finished.saved === true && resultPersistence === "cloud"
@@ -1413,8 +1550,11 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 							: won ? "RESULT RECEIVED — SAVE NOT CONFIRMED" : "";
 				setOutcome({
 					won,
-					kills: math.clamp(math.floor(finite(finished.kills, current.kills)), 0, 3),
+					missionId,
+					kills: math.max(0, math.floor(finite(finished.kills, current.kills))),
+					groundKills: math.max(0, math.floor(finite(finished.groundKills, current.groundKills ?? 0))),
 					elapsed: math.max(0, finite(finished.elapsed, current.elapsed)),
+					reason: safeString(finished.reason, ""),
 					saveText,
 					saveColor: won && finished.saved === true && resultPersistence === "cloud" ? C.Accent : resultPersistence === "cloud" ? C.Muted : C.Orange,
 				});
@@ -1462,10 +1602,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const now = os.clock();
 	let callout: Callout | undefined;
 	if (killNotice && now < killNotice.until) {
-		const remaining = math.max(0, killNotice.total - killNotice.kills);
-		callout = { eyebrow: "HOSTILE DOWN", title: remaining > 0 ? `${remaining} HOSTILE${remaining === 1 ? "" : "S"} REMAINING` : "ALL HOSTILES DOWN" };
-	} else if (telemetry.elapsed < 4.5 && telemetry.kills === 0) {
-		callout = { eyebrow: "OBJECTIVE", title: `DESTROY ${telemetry.total} HOSTILE AIRCRAFT` };
+		callout = { eyebrow: "HOSTILE DOWN", title: telemetry.objective ?? "CONTINUE THE OBJECTIVE" };
+	} else if (telemetry.elapsed < 4.5) {
+		callout = { eyebrow: "OBJECTIVE", title: telemetry.objective ?? "COMPLETE THE MISSION" };
 	}
 	const toastRectangle = getToastLayout(viewport.X, viewport.Y, screen === "mission" ? undefined : menu);
 	const menuHints: ControlHint[] = [{ keyCode: "ButtonA", label: "A", action: "SELECT" }];
@@ -1478,8 +1617,8 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				<frame ref={rootFrameRef} key="Root" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Change={rootChange}>
 					<MenuBackdrop visible={screen !== "mission"} mode={menu.mode} />
 					<TitleScreen visible={screen === "title"} menu={menu} onCampaign={() => { if (!busyRef.current) { changeScreen("slots"); loadSlots(); } }} />
-					<CampaignScreen visible={screen === "slots"} menu={menu} slots={slots} busy={busy} persistence={persistence} onBack={goBack} onSlot={(slot) => { if (!busyRef.current && slots?.[slot - 1]) { selectedSlotRef.current = slot; setSelectedSlot(slot); changeScreen("briefing"); } }} />
-					<BriefingScreen visible={screen === "briefing"} menu={menu} selectedSlot={selectedSlot} slot={selectedSave} busy={busy} onBack={goBack} onLaunch={startMission} />
+					<CampaignScreen visible={screen === "slots"} menu={menu} slots={slots} busy={busy} persistence={persistence} onBack={goBack} onSlot={(slot) => { if (!busyRef.current && slots?.[slot - 1]) { const missionId = resumeMission(slots[slot - 1]); selectedSlotRef.current = slot; selectedMissionRef.current = missionId; setSelectedSlot(slot); setSelectedMission(missionId); changeScreen("briefing"); } }} />
+					<BriefingScreen visible={screen === "briefing"} menu={menu} selectedSlot={selectedSlot} selectedMission={selectedMission} slot={selectedSave} busy={busy} onBack={goBack} onLaunch={startMission} onMission={(missionId) => { selectedMissionRef.current = missionId; setSelectedMission(missionId); }} />
 					<MissionHud
 						visible={screen === "mission"}
 						viewport={viewport}
@@ -1496,7 +1635,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 						onMissile={() => missileReady(telemetry) && controller.FireMissile()}
 						onTarget={() => controller.CycleTarget()}
 					/>
-					<OutcomeScreen visible={screen === "outcome"} menu={menu} outcome={outcome} busy={busy} onRetry={retryMission} onReturn={returnToMenu} />
+					<OutcomeScreen visible={screen === "outcome"} menu={menu} outcome={outcome} busy={busy} onRetry={retryMission} onReturn={returnToMenu} onNext={nextMission} />
 					<HintRow
 						name="MenuHints"
 						hints={menuHints}

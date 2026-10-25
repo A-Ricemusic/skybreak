@@ -7,6 +7,7 @@ import {
 	isValidSlot,
 	mergeProfiles,
 	normalizeProfile,
+	resolveMissionRequest,
 	serializeProfile,
 	StoredProfile,
 } from "../server/CampaignRepository";
@@ -50,10 +51,25 @@ class FakeStore implements CampaignStore {
 	}
 }
 
-function profileWith(slot: number, kills: number, completed = false, bestTime?: number): StoredProfile {
+function legacyProfileWith(slot: number, kills: number, completed = false, bestTime?: number): StoredProfile {
 	const slots = new Map<string, object>();
 	slots.set(tostring(slot), { occupied: true, kills, completed, bestTime });
 	return { version: 1, slots };
+}
+
+function profileWith(
+	slot: number,
+	data: {
+		kills?: number;
+		mission1Completed?: boolean;
+		mission2Completed?: boolean;
+		mission1BestTime?: number;
+		mission2BestTime?: number;
+	},
+): StoredProfile {
+	const slots = new Map<string, object>();
+	slots.set(tostring(slot), { occupied: true, ...data });
+	return { version: 2, slots };
 }
 
 function harness(store: FakeStore, now = 100) {
@@ -69,22 +85,39 @@ function harness(store: FakeStore, now = 100) {
 }
 
 describe("Campaign domain unit tests", () => {
-	it("normalizes corrupt values and keeps all four slots isolated", () => {
-		const raw = profileWith(2, 99, true, 51);
+	it("migrates a completed v1 slot to Mission 1 only and keeps all four slots isolated", () => {
+		const raw = legacyProfileWith(2, 99, true, 51);
 		const profile = normalizeProfile(raw);
 		expect(profile.slots).toHaveLength(4);
 		expect(profile.slots[0].occupied).toBe(false);
-		expect(profile.slots[1].kills).toBe(3);
-		expect(profile.slots[1].completed).toBe(true);
-		expect(profile.slots[1].bestTime).toBe(51);
+		expect(profile.slots[1].kills).toBe(9);
+		expect(profile.slots[1].mission1Completed).toBe(true);
+		expect(profile.slots[1].mission2Completed).toBe(false);
+		expect(profile.slots[1].completed).toBe(false);
+		expect(profile.slots[1].currentMission).toBe(2);
+		expect(profile.slots[1].mission1BestTime).toBe(51);
 		expect(profile.slots[2].occupied).toBe(false);
 		expect(profile.slots[3].occupied).toBe(false);
 	});
 
-	it("merges completion monotonically and preserves the fastest time", () => {
-		const merged = mergeProfiles(profileWith(1, 3, true, 53.33), profileWith(1, 3, true, 70));
+	it("merges mission records monotonically and preserves each fastest time", () => {
+		const stored = profileWith(1, { mission1Completed: true, mission1BestTime: 53.33 });
+		const desired = profileWith(1, { mission1Completed: true, mission2Completed: true, mission1BestTime: 70, mission2BestTime: 91 });
+		const merged = mergeProfiles(stored, desired);
 		expect(merged.slots[0].completed).toBe(true);
-		expect(merged.slots[0].bestTime).toBe(53.33);
+		expect(merged.slots[0].mission1BestTime).toBe(53.33);
+		expect(merged.slots[0].mission2BestTime).toBe(91);
+		expect(merged.slots[0].currentMission).toBe(2);
+	});
+
+	it("defaults to the unfinished mission, locks Mission 2, and permits Mission 1 replay", () => {
+		const fresh = normalizeProfile(undefined).slots[0];
+		expect(resolveMissionRequest(fresh, undefined)[0]).toBe(1);
+		expect(resolveMissionRequest(fresh, 2)[0]).toBeUndefined();
+		const progressed = normalizeProfile(profileWith(1, { mission1Completed: true })).slots[0];
+		expect(resolveMissionRequest(progressed, undefined)[0]).toBe(2);
+		expect(resolveMissionRequest(progressed, 1)[0]).toBe(1);
+		expect(resolveMissionRequest(progressed, 2)[0]).toBe(2);
 	});
 
 	it("rejects fractional, out-of-range, and non-number slots", () => {
@@ -109,42 +142,43 @@ describe("CampaignCoordinator datastore integration", () => {
 		const { coordinator, deferred } = harness(store);
 		expect(coordinator.load()).toBe(true);
 
-		coordinator.recordMissionStarted(1);
+		coordinator.recordMissionStarted(1, 1);
 		expect(deferred).toHaveLength(1);
 		let finalKind: string | undefined;
-		const recorded = completeMission(coordinator, 1, true, { slot: 1, kills: 3, elapsed: 53.33 }, (message) => {
+		const recorded = completeMission(coordinator, 1, 1, true, { slot: 1, kills: 3, elapsed: 53.33 }, (message) => {
 			finalKind = message.kind;
 			expect(message.saved).toBe(false);
 		});
 		expect(recorded).toBe(true);
 		expect(finalKind).toBe("Completed");
-		expect(coordinator.getSlots()[0].completed).toBe(true);
+		expect(coordinator.getSlots()[0].mission1Completed).toBe(true);
+		expect(coordinator.getSlots()[0].completed).toBe(false);
 		expect(coordinator.hasPendingSave()).toBe(true);
 		expect(store.updates).toBe(0);
 
 		deferred.shift()!();
 		const stored = normalizeProfile(store.data);
 		expect(store.updates).toBe(1);
-		expect(stored.slots[0].completed).toBe(true);
-		expect(stored.slots[0].bestTime).toBe(53.33);
+		expect(stored.slots[0].mission1Completed).toBe(true);
+		expect(stored.slots[0].mission1BestTime).toBe(53.33);
 		expect(coordinator.hasPendingSave()).toBe(false);
 	});
 
 	it("recovers an initial load failure and merges retained local progress", () => {
-		const store = new FakeStore(profileWith(1, 1));
+		const store = new FakeStore(profileWith(1, { kills: 1 }));
 		store.loadFailures = 1;
 		const { coordinator, deferred } = harness(store);
 		expect(coordinator.load()).toBe(false);
 		expect(coordinator.hasCloudLoaded()).toBe(false);
 		expect(coordinator.getPersistence()).toBe("unavailable");
 
-		coordinator.recordMissionResult(1, true, 3, 64);
+		coordinator.recordMissionResult(1, 1, true, 3, 64);
 		expect(coordinator.recover()).toBe(true);
 		expect(coordinator.hasCloudLoaded()).toBe(true);
-		expect(coordinator.getSlots()[0].completed).toBe(true);
+		expect(coordinator.getSlots()[0].mission1Completed).toBe(true);
 		expect(deferred).toHaveLength(1);
 		deferred.shift()!();
-		expect(normalizeProfile(store.data).slots[0].bestTime).toBe(64);
+		expect(normalizeProfile(store.data).slots[0].mission1BestTime).toBe(64);
 	});
 
 	it("retains a failed result save and writes it on recovery", () => {
@@ -152,33 +186,79 @@ describe("CampaignCoordinator datastore integration", () => {
 		const { coordinator, deferred } = harness(store);
 		expect(coordinator.load()).toBe(true);
 		store.updateFailures = 1;
-		coordinator.recordMissionResult(3, true, 3, 72);
+		coordinator.recordMissionResult(3, 1, true, 3, 72);
 		deferred.shift()!();
 
 		expect(coordinator.getPersistence()).toBe("unavailable");
 		expect(coordinator.hasPendingSave()).toBe(true);
-		expect(coordinator.getSlots()[2].completed).toBe(true);
+		expect(coordinator.getSlots()[2].mission1Completed).toBe(true);
 		expect(coordinator.recover()).toBe(true);
-		expect(normalizeProfile(store.data).slots[2].bestTime).toBe(72);
+		expect(normalizeProfile(store.data).slots[2].mission1BestTime).toBe(72);
 		expect(coordinator.hasPendingSave()).toBe(false);
 	});
 
 	it("preserves completion and best time across replays without touching other slots", () => {
-		const store = new FakeStore(profileWith(2, 2));
+		const store = new FakeStore(profileWith(2, { kills: 2 }));
 		const { coordinator, deferred } = harness(store, 200);
 		coordinator.load();
-		coordinator.recordMissionResult(1, true, 3, 80);
-		coordinator.recordMissionResult(1, true, 3, 95);
-		coordinator.recordMissionResult(1, true, 3, 65);
+		coordinator.recordMissionResult(1, 1, true, 3, 80);
+		coordinator.recordMissionResult(1, 1, true, 3, 95);
+		coordinator.recordMissionResult(1, 1, true, 3, 65);
 		deferred.shift()!();
 
 		const profile = normalizeProfile(store.data);
-		expect(profile.slots[0].completed).toBe(true);
-		expect(profile.slots[0].bestTime).toBe(65);
+		expect(profile.slots[0].mission1Completed).toBe(true);
+		expect(profile.slots[0].completed).toBe(false);
+		expect(profile.slots[0].mission1BestTime).toBe(65);
 		expect(profile.slots[1].kills).toBe(2);
 		expect(profile.slots[2].occupied).toBe(false);
 		expect(profile.slots[3].occupied).toBe(false);
-		expect(serializeProfile(profile).version).toBe(1);
+		expect(serializeProfile(profile).version).toBe(2);
+	});
+
+	it("records Mission 2 independently and only completes the campaign after both missions", () => {
+		const store = new FakeStore(profileWith(1, { mission1Completed: true, mission1BestTime: 70 }));
+		const { coordinator, deferred } = harness(store);
+		coordinator.load();
+		let finishedMission: number | undefined;
+		expect(completeMission(coordinator, 1, 2, true, { slot: 1, missionId: 2, kills: 4, groundKills: 5, elapsed: 88 }, (message) => {
+			finishedMission = message.missionId;
+		})).toBe(true);
+		expect(finishedMission).toBe(2);
+		deferred.shift()!();
+		const slot = normalizeProfile(store.data).slots[0];
+		expect(slot.completed).toBe(true);
+		expect(slot.mission1BestTime).toBe(70);
+		expect(slot.mission2BestTime).toBe(88);
+	});
+
+	it("ignores a result whose mission does not match the active server mission", () => {
+		const { coordinator } = harness(new FakeStore());
+		coordinator.load();
+		let notified = false;
+		expect(completeMission(coordinator, 1, 1, true, { slot: 1, missionId: 2, kills: 4, groundKills: 5, elapsed: 50 }, () => {
+			notified = true;
+		})).toBe(false);
+		expect(notified).toBe(false);
+		expect(coordinator.getSlots()[0].occupied).toBe(false);
+	});
+
+	it("enforces required objectives and the 600-second mission limit", () => {
+		const coordinator = new CampaignCoordinator("session_player");
+		coordinator.load();
+		let firstKind: string | undefined;
+		completeMission(coordinator, 1, 1, true, { slot: 1, missionId: 1, kills: 3, groundKills: 0, elapsed: 40 }, (message) => {
+			firstKind = message.kind;
+		});
+		expect(firstKind).toBe("Failed");
+		expect(coordinator.getSlots()[0].mission1Completed).toBe(false);
+
+		let timeoutReason: string | undefined;
+		completeMission(coordinator, 1, 1, true, { slot: 1, missionId: 1, kills: 3, groundKills: 1, elapsed: 601 }, (message) => {
+			timeoutReason = message.reason;
+		});
+		expect(timeoutReason).toBe("timeout");
+		expect(coordinator.getSlots()[0].mission1Completed).toBe(false);
 	});
 
 	it("waits for an outstanding write and drains a result recorded during shutdown", () => {
@@ -190,12 +270,12 @@ describe("CampaignCoordinator datastore integration", () => {
 			warn: () => undefined,
 		});
 		expect(coordinator.load()).toBe(true);
-		coordinator.recordMissionStarted(4);
+		coordinator.recordMissionStarted(4, 1);
 
 		const enteredDeadline = os.clock() + 1;
 		while (!store.updateEntered && os.clock() < enteredDeadline) task.wait();
 		expect(store.updateEntered).toBe(true);
-		coordinator.recordMissionResult(4, true, 3, 48);
+		coordinator.recordMissionResult(4, 1, true, 3, 48);
 
 		let flushReturned = false;
 		let observedFlushWaiting = false;
@@ -210,7 +290,7 @@ describe("CampaignCoordinator datastore integration", () => {
 		expect(store.updates).toBe(2);
 		expect(coordinator.hasPendingSave()).toBe(false);
 		const stored = normalizeProfile(store.data);
-		expect(stored.slots[3].completed).toBe(true);
-		expect(stored.slots[3].bestTime).toBe(48);
+		expect(stored.slots[3].mission1Completed).toBe(true);
+		expect(stored.slots[3].mission1BestTime).toBe(48);
 	});
 });

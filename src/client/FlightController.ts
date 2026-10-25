@@ -8,6 +8,8 @@ const DEFAULTS: Telemetry = {
 	kind: "Telemetry", health: 100, speed: 0, altitude: 250, kills: 0, total: 3, missiles: 8,
 	missileCooldown: 0, evadeCooldown: 0, targetName: "", lockProgress: 0, incoming: false,
 	elapsed: 0, targetDistance: 0, boundaryWarning: false,
+	missionId: 1, phase: "tutorial_move", objective: "Learn the flight controls", objectiveProgress: 0,
+	objectiveTotal: 1, timeRemaining: 600, tutorialStep: "move", groundKills: 0, targetKind: "air", targetRequired: false,
 };
 const FLIGHT_KEYS: Enum.KeyCode[] = [
 	Enum.KeyCode.W, Enum.KeyCode.S, Enum.KeyCode.A, Enum.KeyCode.D,
@@ -202,7 +204,9 @@ export class FlightController {
 		bracket.Visible = inside;
 		arrow.Visible = !inside;
 		const locked = this.telemetry.lockProgress >= 0.99;
-		const color = locked ? Color3.fromRGB(255, 193, 98) : Color3.fromRGB(103, 235, 248);
+		const required = this.telemetry.targetRequired === true;
+		const ground = this.telemetry.targetKind === "ground";
+		const color = locked ? Color3.fromRGB(255, 193, 98) : required ? Color3.fromRGB(103, 235, 248) : Color3.fromRGB(177, 190, 196);
 		this.bracketStroke!.Color = color;
 		this.caption!.TextColor3 = color;
 		if (inside) {
@@ -210,7 +214,12 @@ export class FlightController {
 			const distance = worldPosition.sub(this.visualFrame.Position).Magnitude;
 			const range = string.format('<font transparency="0.35">%d m</font>', math.floor(distance));
 			const lock = this.telemetry.lockProgress;
-			this.caption!.Text = locked ? `LOCKED  ${range}` : lock > 0.01 ? string.format("LOCK %d%%  %s", math.floor(lock * 100), range) : range;
+			const marker = `${required ? "TGT · " : ""}${ground ? "GND" : "AIR"}`;
+			this.caption!.Text = locked
+				? `${marker} · LOCKED  ${range}`
+				: lock > 0.01
+					? string.format("%s · LOCK %d%%  %s", marker, math.floor(lock * 100), range)
+					: `${marker}  ${range}`;
 			const width = locked ? 52 : 64;
 			bracket.Size = UDim2.fromOffset(width, width);
 		} else {
@@ -224,6 +233,7 @@ export class FlightController {
 			const point = size.div(2).add(direction.mul(extent));
 			arrow.Position = UDim2.fromOffset(point.X, point.Y);
 			arrow.Rotation = math.deg(math.atan2(direction.Y, direction.X)) + 90;
+			arrow.Text = ground ? (required ? "◆" : "◇") : required ? "▲" : "△";
 			arrow.TextColor3 = color;
 		}
 	}
@@ -254,6 +264,13 @@ export class FlightController {
 		this.active = true;
 		activeController = this;
 		this.telemetry = { ...DEFAULTS };
+		this.telemetry.missionId = missionData.missionId === 2 ? 2 : 1;
+		if (this.telemetry.missionId === 2) {
+			this.telemetry.phase = "intercept";
+			this.telemetry.objective = "Intercept the required bandits";
+			this.telemetry.objectiveTotal = 3;
+			this.telemetry.tutorialStep = "";
+		}
 		this.keys.clear();
 		this.touchInput = Vector2.zero;
 		this.gamepadInput = Vector2.zero;
