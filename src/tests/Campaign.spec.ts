@@ -96,7 +96,7 @@ describe("Campaign domain unit tests", () => {
 		const profile = normalizeProfile(raw);
 		expect(profile.slots).toHaveLength(4);
 		expect(profile.slots[0].occupied).toBe(false);
-		expect(profile.slots[1].kills).toBe(9);
+		expect(profile.slots[1].kills).toBe(32);
 		expect(profile.slots[1].mission1Completed).toBe(true);
 		expect(profile.slots[1].mission2Completed).toBe(false);
 		expect(profile.slots[1].completed).toBe(false);

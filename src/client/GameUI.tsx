@@ -163,6 +163,7 @@ interface ActionButtonProps {
 	anchorPoint?: Vector2;
 	layoutOrder?: number;
 	textSize?: number;
+	zIndex?: number;
 	onActivated: () => void;
 }
 
@@ -176,6 +177,7 @@ function ActionButton({
 	anchorPoint,
 	layoutOrder,
 	textSize = 14,
+	zIndex,
 	onActivated,
 }: ActionButtonProps) {
 	const { hot, events, clearHover } = useHighlight(enabled);
@@ -196,6 +198,7 @@ function ActionButton({
 			Text={text}
 			TextColor3={primary ? C.Ink : C.Ivory}
 			TextTransparency={enabled ? 0 : 0.45}
+			ZIndex={zIndex}
 			TextScaled={true}
 			SelectionImageObject={SELECTION_NONE}
 			Event={{
@@ -586,8 +589,8 @@ function CinematicScreen({
 				<Label name="CinematicSpeaker" text={`${beat.speaker}  ·  ${scene.location}`} color={C.Accent} font={Enum.Font.GothamBold} textSize={11} position={new UDim2(0.06, 0, 0.42, 0)} size={new UDim2(0.88, 0, 0, 18)} zIndex={31} />
 				<Label name="CinematicSubtitle" text={beat.text} color={C.Ivory} font={Enum.Font.GothamMedium} textSize={15} position={new UDim2(0.06, 0, 0.56, 0)} size={new UDim2(0.7, 0, 0.38, 0)} textWrapped={true} textYAlignment={Enum.TextYAlignment.Top} zIndex={31} />
 				<Label name="CinematicProgress" text={`${beatIndex + 1} / ${scene.beats.size()}`} color={C.Faint} font={Enum.Font.RobotoMono} textSize={10} anchorPoint={new Vector2(1, 0)} position={new UDim2(0.94, 0, 0.14, 0)} size={UDim2.fromOffset(60, 16)} textXAlignment={Enum.TextXAlignment.Right} zIndex={31} />
-				<ActionButton name="ReducedMotionButton" text={reducedMotion ? "STATIC CAMERA: ON" : "STATIC CAMERA"} position={new UDim2(0.78, 0, 0.48, 0)} size={new UDim2(0.16, 0, 0, 34)} textSize={9} onActivated={() => setReducedMotion(!reducedMotion)} />
-				<ActionButton name="SkipCutsceneButton" text="SKIP  ›" primary={true} position={new UDim2(0.78, 0, 0.72, 0)} size={new UDim2(0.16, 0, 0, 38)} textSize={11} onActivated={onFinish} />
+				<ActionButton name="ReducedMotionButton" text={reducedMotion ? "STATIC CAMERA: ON" : "STATIC CAMERA"} position={new UDim2(0.78, 0, 0.48, 0)} size={new UDim2(0.16, 0, 0, 34)} textSize={9} zIndex={31} onActivated={() => setReducedMotion(!reducedMotion)} />
+				<ActionButton name="SkipCutsceneButton" text="SKIP  ›" primary={true} position={new UDim2(0.78, 0, 0.72, 0)} size={new UDim2(0.16, 0, 0, 38)} textSize={11} zIndex={31} onActivated={onFinish} />
 			</frame>
 		</frame>
 	);

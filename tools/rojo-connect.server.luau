@@ -3,7 +3,7 @@ if not plugin or not game:GetService("RunService"):IsEdit() or workspace:GetAttr
 	return
 end
 
-local PROJECT_NAME = "Test Game Coding From Phone"
+local PROJECT_NAME = "Last Tide"
 local config = game:GetService("ReplicatedStorage"):FindFirstChild("Shared")
 config = config and config:FindFirstChild("GameConfig")
 if not config or not string.find(config.Source, PROJECT_NAME, 1, true) then
