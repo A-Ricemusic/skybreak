@@ -43,6 +43,9 @@
     "ServerStorage": {
       "Tests": {
         "$path": "out/tests"
+      },
+      "KestrelGeometry": {
+        "$path": "build/KestrelGeometry.txt"
       }
     }
   }

@@ -1,3 +1,4 @@
+import { JetFactory } from "../shared/JetFactory";
 import { Lighting, Workspace } from "@rbxts/services";
 import { GameConfig } from "../shared/GameConfig";
 
@@ -140,21 +141,13 @@ function buildHangar(parent: Instance, center: Vector3, facing: number): Model {
 }
 
 function buildDisplayJet(parent: Instance): Model {
-	const model = new Instance("Model");
-	model.Name = "DisplayJet";
+	const model = JetFactory.Create("DisplayJet", false);
+	for (const item of model.GetDescendants()) {
+		if (item.IsA("Trail")) item.Enabled = false;
+	}
+	model.ScaleTo(1.4);
+	model.PivotTo(new CFrame(155, 29, -100).mul(CFrame.Angles(0, math.rad(202), 0)));
 	model.Parent = parent;
-	const pivot = new CFrame(155, 29, -100).mul(CFrame.Angles(0, math.rad(202), 0));
-	const body = makePart(model, "Fuselage", new Vector3(5, 4, 30), pivot, COLORS.navy, Enum.Material.Metal, { canCollide: false, canTouch: false });
-	makePart(model, "Nose", new Vector3(4, 3, 9), pivot.mul(new CFrame(0, -0.2, -19)).mul(CFrame.Angles(math.rad(-90), 0, 0)), COLORS.navy, Enum.Material.Metal, { className: "WedgePart", canCollide: false, canTouch: false });
-	makePart(model, "Canopy", new Vector3(3.8, 2.2, 8), pivot.mul(new CFrame(0, 2.4, -5)), Color3.fromRGB(62, 137, 163), Enum.Material.Glass, { canCollide: false, canTouch: false, transparency: 0.22 });
-	makePart(model, "LeftWing", new Vector3(17, 1, 13), pivot.mul(new CFrame(-9.5, 0, 2)).mul(CFrame.Angles(0, math.rad(10), 0)), COLORS.navy, Enum.Material.Metal, { className: "WedgePart", canCollide: false, canTouch: false });
-	makePart(model, "RightWing", new Vector3(17, 1, 13), pivot.mul(new CFrame(9.5, 0, 2)).mul(CFrame.Angles(0, math.rad(170), 0)), COLORS.navy, Enum.Material.Metal, { className: "WedgePart", canCollide: false, canTouch: false });
-	makePart(model, "LeftTail", new Vector3(7, 1, 7), pivot.mul(new CFrame(-4.8, 0.5, 12)), COLORS.navy, Enum.Material.Metal, { className: "WedgePart", canCollide: false, canTouch: false });
-	makePart(model, "RightTail", new Vector3(7, 1, 7), pivot.mul(new CFrame(4.8, 0.5, 12)).mul(CFrame.Angles(0, math.rad(180), 0)), COLORS.navy, Enum.Material.Metal, { className: "WedgePart", canCollide: false, canTouch: false });
-	makePart(model, "TailFin", new Vector3(1, 7, 8), pivot.mul(new CFrame(0, 4, 11)), COLORS.orange, Enum.Material.Metal, { className: "WedgePart", canCollide: false, canTouch: false });
-	makePart(model, "LeftIntake", new Vector3(2, 2, 9), pivot.mul(new CFrame(-3.3, -1.2, 2)), COLORS.cyan, Enum.Material.Neon, { canCollide: false, canTouch: false });
-	makePart(model, "RightIntake", new Vector3(2, 2, 9), pivot.mul(new CFrame(3.3, -1.2, 2)), COLORS.cyan, Enum.Material.Neon, { canCollide: false, canTouch: false });
-	model.PrimaryPart = body;
 	return model;
 }
 

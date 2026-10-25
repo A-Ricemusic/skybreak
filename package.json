@@ -4,8 +4,8 @@
   "private": true,
   "packageManager": "bun@1.3.14",
   "scripts": {
-    "build": "rbxtsc --rojo test.project.json",
-    "watch": "rbxtsc --rojo test.project.json -w",
+    "build": "bun tools/package-aircraft.ts && rbxtsc --rojo test.project.json",
+    "watch": "bun tools/package-aircraft.ts && rbxtsc --rojo test.project.json -w",
     "build:place": "bun run build && mkdir -p build && rojo build -o build/skybreak.rbxlx",
     "serve": "rojo serve",
     "test": "bun run test:roblox",

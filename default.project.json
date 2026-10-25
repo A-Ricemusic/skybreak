@@ -36,6 +36,11 @@
         "FilteringEnabled": true,
         "FallenPartsDestroyHeight": -500
       }
+    },
+    "ServerStorage": {
+      "KestrelGeometry": {
+        "$path": "build/KestrelGeometry.txt"
+      }
     }
   }
 }
