@@ -1,5 +1,6 @@
 // Export a native Studio window recording as a cropped, real-time MP4.
-// swift tools/export-playtest-video.swift input.mov output.mp4 x y width height
+// swiftc -parse-as-library tools/export-playtest-video.swift -o /tmp/skybreak-export-video
+// /tmp/skybreak-export-video input.mov output.mp4 x y width height
 // Crop coordinates are source-video pixels, measured from the upper-left.
 import Foundation
 import AVFoundation

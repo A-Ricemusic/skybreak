@@ -20,8 +20,9 @@ function part(parent: Instance, name: string, size: Vector3, position: Vector3, 
 }
 
 function environment(missionId: number): void {
-	for (const name of ["SkybreakAtmosphere", "MissionAtmosphere", "MissionGrade", "MissionSky"]) Lighting.FindFirstChild(name)?.Destroy();
+	for (const name of ["SkybreakAtmosphere", "SkybreakColor", "MissionAtmosphere", "MissionGrade", "MissionSky"]) Lighting.FindFirstChild(name)?.Destroy();
 	Workspace.Terrain.FindFirstChild("MissionClouds")?.Destroy();
+	Workspace.Terrain.FindFirstChild("SkybreakClouds")?.Destroy();
 	Lighting.ClockTime = missionId === 1 ? 10.5 : 17.1;
 	Lighting.Brightness = 2.3;
 	Lighting.ExposureCompensation = 0.05;
@@ -55,9 +56,9 @@ function environment(missionId: number): void {
 
 function island(x: number, z: number, radius: number, height: number): void {
 	const terrain = Workspace.Terrain;
-	terrain.FillBall(new Vector3(x, height - radius - 12, z), radius + 28, Enum.Material.Sand);
+	terrain.FillBall(new Vector3(x, height - radius - 36, z), radius + 28, Enum.Material.Sand);
 	terrain.FillBall(new Vector3(x, height - radius, z), radius, Enum.Material.Rock);
-	terrain.FillBall(new Vector3(x, height - radius + 1, z), radius - 8, Enum.Material.Grass);
+	terrain.FillBall(new Vector3(x, height - radius + 10, z), radius - 8, Enum.Material.Grass);
 }
 
 function apron(parent: Instance, x: number, z: number, width: number, depth: number): void {

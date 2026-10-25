@@ -1613,9 +1613,11 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 
 	return (
 		<InputModeContext.Provider value={inputMode}>
-			<screengui key="SkybreakUI" DisplayOrder={20} IgnoreGuiInset={false} ResetOnSpawn={false} ScreenInsets={Enum.ScreenInsets.DeviceSafeInsets} ZIndexBehavior={Enum.ZIndexBehavior.Sibling}>
+			<screengui key="SkybreakBackdrop" DisplayOrder={19} IgnoreGuiInset={true} ResetOnSpawn={false} ScreenInsets={Enum.ScreenInsets.None}>
+				<MenuBackdrop visible={screen !== "mission"} mode={menu.mode} />
+			</screengui>
+			<screengui key="SkybreakUI" DisplayOrder={20} IgnoreGuiInset={false} ResetOnSpawn={false} ScreenInsets={Enum.ScreenInsets.CoreUISafeInsets} ZIndexBehavior={Enum.ZIndexBehavior.Sibling}>
 				<frame ref={rootFrameRef} key="Root" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Change={rootChange}>
-					<MenuBackdrop visible={screen !== "mission"} mode={menu.mode} />
 					<TitleScreen visible={screen === "title"} menu={menu} onCampaign={() => { if (!busyRef.current) { changeScreen("slots"); loadSlots(); } }} />
 					<CampaignScreen visible={screen === "slots"} menu={menu} slots={slots} busy={busy} persistence={persistence} onBack={goBack} onSlot={(slot) => { if (!busyRef.current && slots?.[slot - 1]) { const missionId = resumeMission(slots[slot - 1]); selectedSlotRef.current = slot; selectedMissionRef.current = missionId; setSelectedSlot(slot); setSelectedMission(missionId); changeScreen("briefing"); } }} />
 					<BriefingScreen visible={screen === "briefing"} menu={menu} selectedSlot={selectedSlot} selectedMission={selectedMission} slot={selectedSave} busy={busy} onBack={goBack} onLaunch={startMission} onMission={(missionId) => { selectedMissionRef.current = missionId; setSelectedMission(missionId); }} />
