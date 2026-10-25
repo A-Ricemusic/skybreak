@@ -33,13 +33,13 @@ jobs:
         run: bun run build:place
 
       - name: Publish to Roblox
-        if: ${{ vars.ROBLOX_UNIVERSE_ID != '' && vars.ROBLOX_PLACE_ID != '' && secrets.ROBLOX_API_KEY != '' }}
         env:
           ROBLOX_API_KEY: ${{ secrets.ROBLOX_API_KEY }}
           ROBLOX_UNIVERSE_ID: ${{ vars.ROBLOX_UNIVERSE_ID }}
           ROBLOX_PLACE_ID: ${{ vars.ROBLOX_PLACE_ID }}
-        run: tools/publish-place.sh
-
-      - name: Publish skipped
-        if: ${{ vars.ROBLOX_UNIVERSE_ID == '' || vars.ROBLOX_PLACE_ID == '' || secrets.ROBLOX_API_KEY == '' }}
-        run: echo "::notice::Build passed. Set ROBLOX_API_KEY (secret) and ROBLOX_UNIVERSE_ID / ROBLOX_PLACE_ID (variables) to publish."
+        run: |
+          if [ -z "$ROBLOX_API_KEY" ] || [ -z "$ROBLOX_UNIVERSE_ID" ] || [ -z "$ROBLOX_PLACE_ID" ]; then
+            echo "::notice::Build passed. Set the ROBLOX_API_KEY secret and the ROBLOX_UNIVERSE_ID / ROBLOX_PLACE_ID variables to publish."
+            exit 0
+          fi
+          tools/publish-place.sh
