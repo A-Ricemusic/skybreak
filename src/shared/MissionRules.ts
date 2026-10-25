@@ -6,8 +6,8 @@
 // optional pursuers alive during the warehouse and ace phases. Missions 3-27
 // consume a declarative phase list from MissionCatalog in order: each phase
 // awaits `required` kills of the declared kind before advancing, while any
-// optional count for an air phase persists as a secondary threat during
-// subsequent phases, mirroring Mission 2's famous "five raiders" rule.
+// optional pursuers for air, ground, or hold phases persist as a secondary
+// threat during subsequent phases, mirroring Mission 2's "five raiders" rule.
 //
 // This module never creates targets, applies damage, or trusts a client
 // result. Callers report observed controls and server-validated kills.

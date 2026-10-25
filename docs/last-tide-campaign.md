@@ -30,8 +30,10 @@ plane, giving the campaign a human-scale resolution.
   one disposable folder. Eleven lighting/weather palettes give the acts distinct
   silhouettes without external skybox or texture IDs.
 - `CombatService` observes aircraft position against ordered route gates and
-  advances hold time at the fixed server step. The client only sends bounded
-  stick/throttle samples and named fire/target/evade actions.
+  advances hold time at the fixed server step. Hold/defense objectives are
+  elapsed survival encounters with pursuers; they do not simulate damage to a
+  protected object. The client only sends bounded stick/throttle samples and
+  named fire/target/evade actions.
 - `CampaignRepository` stores numeric mission maps in save schema v3. v1
   completion becomes Mission 1 progress; v2 Mission 1/2 flags and best times
   migrate forward. Four slots unlock sequentially and retain per-mission replay
@@ -55,14 +57,14 @@ plane, giving the campaign a human-scale resolution.
 | 08 | Signal Fire | 4 relays under 6 optional pursuers | The targeting net goes dark for Mira's escape. |
 | 09 | Mira's Deal | 2 rendezvous gates, 5 pursuers, ace | Mira defects and reaches Yurei. |
 | 10 | Dawn Siren | 3 SAM sites, 4 responders | Mira flies second seat and earns operational trust. |
-| 11 | Flood Gate | 35-second wall defense, 4 attack corvettes | Every reef ward stays dry. |
+| 11 | Flood Gate | Survive 35 seconds over the wall, then strike 4 corvettes | Every reef ward stays dry. |
 | 12 | Blackwater Yard | 6 drydocks, 2 sequential yard aces | Blockade ship production stops. |
 | 13 | Storm Eye | 3 calm-channel gates, 40-second typhoon hold | The island fleet rides out the second monsoon. |
 | 14 | Reefline Convoy | 3 shadowing gates, 5 corvettes, 3 escorts | Civilian boats reclaim the strait. |
 | 15 | Night Rains | 6 night fighters and an ace | Runway lights remain visible through the rain. |
 | 16 | Breakwater Siege | 5 mixed defenses, 4 CAP, siege ace | The last outer wall survives. |
 | 17 | Admiral's Shadow | 2 sequential high-health aces | Reyne loses his longest-serving pilots. |
-| 18 | The Second Tide | 35-second wall cover, 8-point strike | The warned attack fails at high water. |
+| 18 | The Second Tide | Survive 35 seconds of wall cover, then make an 8-point strike | The warned attack fails at high water. |
 | 19 | Carrier Deck | 3 approach gates, 5 escorts, 4 CAP | Reefwatch carries the fight west. |
 | 20 | Lone Spire | 6 defenses and a 195-HP ace | The fleet command uplink falls silent. |
 | 21 | Twin Horizon | 4 decoy-signal gates, 7-aircraft rush | Three thousand refugees cross safely. |
@@ -70,7 +72,7 @@ plane, giving the campaign a human-scale resolution.
 | 23 | Monsoon Veil | 5 storm gates, 30-second convoy mask | Mira openly calls Yurei home. |
 | 24 | Last Light | 5 supply points, 2 escort aces | The blockade loses its remaining supply chain. |
 | 25 | Admiral's Carrier | 2 blind-quarter gates, 8 emplacements, 3 fighters | Reyne abandons his wounded flagship. |
-| 26 | Breaking Wave | 40-second evacuation cover, 6-point line | The final civilian ferry clears. |
+| 26 | Breaking Wave | Survive 40 seconds of evacuation cover, then break a 6-point line | The final civilian ferry clears. |
 | 27 | Last Tide | 4 fighters, 4 defenses, 3 escalating aces | Reyne is captured; the blockade ends at a tribunal. |
 
 ## Authored asset and performance bounds

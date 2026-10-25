@@ -1,4 +1,5 @@
 import { Players, RunService, Workspace } from "@rbxts/services";
+import { getCombatPhasePlan, shouldApplyCombatPhase } from "../shared/CombatPhasePlan";
 import { FlightMath, FlightState } from "../shared/FlightMath";
 import { JetFactory } from "../shared/JetFactory";
 import { getMission, MISSION_COUNT, MissionPhase } from "../shared/MissionCatalog";
@@ -286,49 +287,20 @@ function beginNavigation(session: CombatSession, phase: MissionPhase, phaseIndex
 	session.navigationPhase = phaseIndex;
 }
 
-/**
- * Parses a Mission 3-27 generic phase string ("air_2", "ground_0", "ace_3") into
- * its kind and phase index. Returns undefined for legacy or unknown phases.
- */
-function parseGenericPhase(phase: string): LuaTuple<[string | undefined, number]> {
-	const underscore = phase.find("_")[0];
-	if (underscore === undefined) return $tuple(undefined, -1);
-	const kind = phase.sub(1, underscore - 1);
-	const index = tonumber(phase.sub(underscore + 1));
-	if (index === undefined) return $tuple(undefined, -1);
-	return $tuple(kind, math.floor(index));
-}
-
 function applyPhase(session: CombatSession): void {
-	if (session.appliedPhase === session.rules.phase || session.rules.outcome !== undefined) return;
+	if (!shouldApplyCombatPhase(session.appliedPhase, session.rules.phase, session.rules.outcome !== undefined)) return;
 	session.appliedPhase = session.rules.phase;
 	clearNavigation(session);
-	const phase = session.rules.phase;
-	const missionId = session.rules.missionId;
-	// Legacy mission 1 and 2 preserved.
-	if (phase === "tutorial_target") activateGround(session);
-	else if (phase === "tutorial_bandits" || phase === "intercept") spawnAir(session, 3, true);
-	else if (phase === "warehouses") { activateGround(session); spawnAir(session, 5, false); }
-	else if (phase === "ace" && missionId === 2) spawnAir(session, 1, true, true);
-	else if (missionId >= 3) {
-		// Missions 3-27 use the catalog phase sequence.
-		const [kind, phaseIndex] = parseGenericPhase(phase);
-		if (kind !== undefined && phaseIndex >= 0) {
-			const mission = getMission(missionId);
-			const phaseDef = mission.phases[phaseIndex];
-			if (phaseDef !== undefined) {
-				if (kind === "ground") activateGroundSubset(session, phaseDef.required);
-				else if (kind === "air") {
-					spawnAir(session, phaseDef.required, true);
-					if ((phaseDef.optional ?? 0) > 0) spawnAir(session, phaseDef.optional!, false);
-				} else if (kind === "ace") {
-					spawnAir(session, 1, true, true, undefined, phaseDef.health);
-				} else if (kind === "nav") {
-					beginNavigation(session, phaseDef, phaseIndex);
-				} else if (kind === "hold") {
-					if ((phaseDef.optional ?? 0) > 0) spawnAir(session, phaseDef.optional!, false);
-				}
-			}
+	const deployment = getCombatPhasePlan(session.rules.missionId, session.rules.phase);
+	if (deployment !== undefined) {
+		if (deployment.activateAllGround) activateGround(session);
+		else if (deployment.groundCount > 0) activateGroundSubset(session, deployment.groundCount);
+		if (deployment.requiredAir > 0) spawnAir(session, deployment.requiredAir, true);
+		if (deployment.optionalAir > 0) spawnAir(session, deployment.optionalAir, false);
+		if (deployment.aceCount > 0) spawnAir(session, deployment.aceCount, true, true, undefined, deployment.aceHealth);
+		if (deployment.kind === "nav" && deployment.phaseIndex !== undefined) {
+			const phaseDef = getMission(session.rules.missionId).phases[deployment.phaseIndex];
+			beginNavigation(session, phaseDef, deployment.phaseIndex);
 		}
 	}
 	acquireTarget(session);

@@ -19,9 +19,9 @@ export type MissionPhaseKind = "tutorial" | "air" | "ground" | "ace" | "nav" | "
  * for `ground` the phase activates pre-placed ground models; `tutorial` is
  * mission 1 only and uses the preserved tutorial state machine.
  *
- * `required` kills advance the mission; `optional` spawn alongside but do not
- * advance it. `optional` enemies for an `air` phase persist into later phases
- * (as the "five optional pursuers" of Mission 2 famously do).
+ * `required` kills advance the mission; `optional` aircraft spawn alongside
+ * air, ground, or timed-hold phases but do not advance them. Optional pursuers
+ * persist into later phases (as Mission 2's five raiders famously do).
  */
 export interface MissionPhase {
 	kind: MissionPhaseKind;
