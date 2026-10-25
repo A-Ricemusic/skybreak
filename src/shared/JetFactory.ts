@@ -1,6 +1,7 @@
 import { Debris, TweenService } from "@rbxts/services";
+import { BlenderAircraft } from "./BlenderAircraft";
 
-// Original built-in geometry silhouettes, without imported assets.
+// Shared noninteractive parts for the root, effects, and platform fallback.
 function part<T extends "Part" | "WedgePart">(parent: Instance, className: T, name: string, size: Vector3, cf: CFrame, color: Color3, material: Enum.Material = Enum.Material.SmoothPlastic): CreatableInstances[T] {
 	const item = new Instance(className);
 	item.Name = name;
@@ -45,17 +46,22 @@ export const JetFactory = {
 		const root = part(model, "Part", "Root", new Vector3(3, 3, 16), new CFrame(), dark);
 		root.Transparency = 1;
 		model.PrimaryPart = root;
-		part(model, "Part", "Fuselage", new Vector3(3.4, 2.5, 16), new CFrame(), shell);
-		part(model, "WedgePart", "Nose", new Vector3(3.4, 2.5, 8), new CFrame(0, 0, -11).mul(CFrame.Angles(0, math.pi, 0)), shell);
-		const canopy = part(model, "Part", "Canopy", new Vector3(2.1, 1.45, 5.3), new CFrame(0, 1.5, -3.1), Color3.fromRGB(40, 117, 147), Enum.Material.Glass);
-		canopy.Transparency = 0.18;
+		if (!BlenderAircraft.Populate(model, enemy)) {
+			model.SetAttribute("GeometrySource", "Fallback");
+			part(model, "Part", "Fuselage", new Vector3(3.4, 2.5, 16), new CFrame(), shell);
+			part(model, "WedgePart", "Nose", new Vector3(3.4, 2.5, 8), new CFrame(0, 0, -11).mul(CFrame.Angles(0, math.pi, 0)), shell);
+			const canopy = part(model, "Part", "Canopy", new Vector3(2.1, 1.45, 5.3), new CFrame(0, 1.5, -3.1), Color3.fromRGB(40, 117, 147), Enum.Material.Glass);
+			canopy.Transparency = 0.18;
+			for (const side of [-1, 1]) {
+				part(model, "WedgePart", "SweptWing", new Vector3(10, 0.55, 9), new CFrame(side * 6.4, -0.25, 1.7).mul(CFrame.Angles(0, side < 0 ? math.pi : 0, 0)), shell);
+				part(model, "Part", "WingMark", new Vector3(1.2, 0.62, 4), new CFrame(side * 9, -0.2, 3.8), accent);
+				part(model, "WedgePart", "Tailplane", new Vector3(4.5, 0.45, 4), new CFrame(side * 3.5, 0.35, 7.3).mul(CFrame.Angles(0, side < 0 ? math.pi : 0, 0)), dark);
+				part(model, "WedgePart", "TwinFin", new Vector3(0.5, 3.9, 4.8), new CFrame(side * 1.4, 2.1, 6.3), shell);
+				part(model, "Part", "Engine", new Vector3(1.35, 1.35, 3.1), new CFrame(side * 0.95, -0.1, 7.6), dark);
+				part(model, "Part", "Afterburner", new Vector3(1, 1, 0.6), new CFrame(side * 0.95, -0.1, 9.25), accent, Enum.Material.Neon);
+			}
+		}
 		for (const side of [-1, 1]) {
-			part(model, "WedgePart", "SweptWing", new Vector3(10, 0.55, 9), new CFrame(side * 6.4, -0.25, 1.7).mul(CFrame.Angles(0, side < 0 ? math.pi : 0, 0)), shell);
-			part(model, "Part", "WingMark", new Vector3(1.2, 0.62, 4), new CFrame(side * 9, -0.2, 3.8), accent);
-			part(model, "WedgePart", "Tailplane", new Vector3(4.5, 0.45, 4), new CFrame(side * 3.5, 0.35, 7.3).mul(CFrame.Angles(0, side < 0 ? math.pi : 0, 0)), dark);
-			part(model, "WedgePart", "TwinFin", new Vector3(0.5, 3.9, 4.8), new CFrame(side * 1.4, 2.1, 6.3), shell);
-			part(model, "Part", "Engine", new Vector3(1.35, 1.35, 3.1), new CFrame(side * 0.95, -0.1, 7.6), dark);
-			part(model, "Part", "Afterburner", new Vector3(1, 1, 0.6), new CFrame(side * 0.95, -0.1, 9.25), accent, Enum.Material.Neon);
 			trail(root, new Vector3(side * 10, -0.25, 4), Color3.fromRGB(224, 246, 255), 0.25, 1.1);
 		}
 		trail(root, new Vector3(0, -0.1, 9.3), accent, 1.1, 0.35);
