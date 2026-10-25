@@ -1,3 +1,4 @@
+import { AircraftCollision } from "./AircraftCollision";
 import { Players, RunService, Workspace } from "@rbxts/services";
 import { FlightMath, FlightState } from "../shared/FlightMath";
 import { MissionAssets } from "../shared/MissionAssets";
@@ -50,6 +51,8 @@ export interface CombatSession {
 	missionId: number;
 	appliedPhase?: MissionPhase | string; nextHostileAt: number;
 	appliedBlueprintPhaseIndex?: number;
+	crashReason?: string;
+	collisionParams?: RaycastParams;
 	health: number; kills: number; elapsed: number; missiles: number; missileCooldown: number;
 	evadeCooldown: number; evadeRemaining: number; regen: number; lockProgress: number;
 	/** Second weapon slot chosen at the briefing; authoritative charges, cooldown and effect timer. */
@@ -180,11 +183,11 @@ function sessionTick(session: CombatSession, now: number, health: number): void 
 }
 
 function sessionOutcome(session: CombatSession): "won" | "failed" | undefined {
-	return session.rules?.outcome ?? session.blueprintState?.outcome;
+	return session.crashReason !== undefined ? "failed" : session.rules?.outcome ?? session.blueprintState?.outcome;
 }
 
 function sessionReason(session: CombatSession): string | undefined {
-	return session.rules?.reason ?? session.blueprintState?.reason;
+	return session.crashReason ?? session.rules?.reason ?? session.blueprintState?.reason;
 }
 
 function sessionTimeRemaining(session: CombatSession): number {
@@ -463,7 +466,7 @@ function activateGround(session: CombatSession, start=0, count=math.huge): void 
 	for (const enemy of session.enemies) {
 		if (enemy.kind !== "ground" || enemy.enabled || enemy.health <= 0 || (enemy.groundIndex ?? 0) < start || (enemy.groundIndex ?? 0) >= start+count) continue;
 		enemy.enabled = true;
-		for (const hidden of enemy.hiddenParts) hidden.part.Transparency = hidden.transparency;
+		for (const hidden of enemy.hiddenParts) { hidden.part.Transparency = hidden.transparency; hidden.part.CanQuery = hidden.part.GetAttribute("FlightSolid") === true; }
 		enemy.hiddenParts.clear();
 		markTarget(session, enemy);
 	}
@@ -1006,6 +1009,13 @@ function stepSession(session: CombatSession, dt: number): void {
 	const from={x:session.state.x,y:session.state.y,z:session.state.z};
 	if (session.inputFresh) { session.inputFresh = false; session.inputSteps = 0; }
 	FlightMath.Step(session.state, session.input, dt);
+	// Resolve impacts before navigation, phase completion, enemy fire or missile kills.
+	const hit = AircraftCollision.Sweep(new Vector3(from.x, from.y, from.z), new Vector3(session.state.x, session.state.y, session.state.z), session.collisionParams!);
+	if (hit) {
+		session.crashReason = AircraftCollision.Reason(hit);
+		finish(session);
+		return;
+	}
 	session.inputSteps += 1;
 	if (session.blueprintState) {
 		const bs=session.blueprintState, nav=BlueprintRunner.NavigationPoint(bs);
@@ -1159,13 +1169,15 @@ export const CombatService = {
 				const hideUntilActivated = missionId === 1;
 				for (const item of model.GetDescendants()) {
 					if (item.IsA("BasePart")) {
-						item.Anchored = true; item.CanCollide = false; item.CanTouch = false; item.CanQuery = false;
-						if (hideUntilActivated) { enemy.hiddenParts.push({ part: item, transparency: item.Transparency }); item.Transparency = 1; }
+						item.Anchored = true; item.CanCollide = false; item.CanTouch = false; item.CanQuery = item.Transparency < 1;
+						item.SetAttribute("FlightSolid", item.CanQuery);
+						if (hideUntilActivated) { enemy.hiddenParts.push({ part: item, transparency: item.Transparency }); item.Transparency = 1; item.CanQuery = false; }
 					}
 				}
 				markTarget(session, enemy);
 				session.enemies.push(enemy);
 			}
+			session.collisionParams = AircraftCollision.Parameters(folder);
 			// The opening wave is created here (JetFactory may yield on first mesh
 			// generation, which is safe on this RemoteFunction thread) so its parts
 			// replicate under the loading screen. Enemy timers only advance once play

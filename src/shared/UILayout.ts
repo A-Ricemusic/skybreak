@@ -35,6 +35,7 @@ export interface HudLayout {
 	timer: Rectangle;
 	/** "HULL 87 · MSL 8" text directly under the clock. */
 	status: Rectangle;
+	flightStatus: Rectangle;
 	/** Fixed slot for the navigation caption when no floating spot fits (under the objective). */
 	navigation: Rectangle;
 	/** Keyboard and gamepad only; touch players read the controls themselves. */
@@ -131,6 +132,7 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 	// on the left; the clock with hull/missiles under it on the right. Text only.
 	const timer = { x: width - margin - TIMER_WIDTH, y: margin, width: TIMER_WIDTH, height: TIMER_HEIGHT };
 	const status = { x: width - margin - STATUS_WIDTH, y: timer.y + timer.height + 2, width: STATUS_WIDTH, height: STATUS_HEIGHT };
+	const flightStatus = { x: status.x, y: timer.y, width: STATUS_WIDTH - TIMER_WIDTH - gap, height: TIMER_HEIGHT };
 	const calloutWidth = math.max(0, math.min(OBJECTIVE_MAX_WIDTH, math.floor(width * OBJECTIVE_MAX_SHARE), status.x - gap - margin));
 	const callout = { x: margin, y: margin, width: calloutWidth, height: OBJECTIVE_LINE_HEIGHT };
 	const navigation = { x: margin, y: callout.y + callout.height + 2, width: NAVIGATION_CAPTION_WIDTH, height: NAVIGATION_CAPTION_HEIGHT };
@@ -181,7 +183,7 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 			alert = centered(width, alertWidth, throttle.y - gap - ALERT_HEIGHT, ALERT_HEIGHT);
 			alert.x = math.clamp(alert.x, laneLeft, laneRight - alertWidth);
 		}
-		return { margin, alert, callout, timer, status, navigation, touch: { joystick, throttle, throttlePill, throttleVertical: false, missile, target, special } };
+		return { margin, alert, callout, timer, status, flightStatus, navigation, touch: { joystick, throttle, throttlePill, throttleVertical: false, missile, target, special } };
 	}
 
 	const hintsHeight = 18;
@@ -189,7 +191,7 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 	// Keyboard/gamepad: the warning sits directly above the hint row, which also
 	// carries the EVADE prompt while a missile is inbound.
 	const alert = centered(width, math.min(ALERT_MAX_WIDTH, width - margin * 2), hints.y - 2 - ALERT_HEIGHT, ALERT_HEIGHT);
-	return { margin, alert, callout, timer, status, navigation, hints };
+	return { margin, alert, callout, timer, status, flightStatus, navigation, hints };
 }
 
 /**
@@ -321,7 +323,7 @@ export function getFlightHints(inputMode: InputMode, context: FlightHintContext)
 
 /** Mission 1 training copy, short enough for the one-line objective (<= TUTORIAL_MAX_CHARS). */
 export function getTutorialInstruction(step: string | undefined, mode: InputMode): string {
-	if (step === "move") return mode === "touch" ? "Stick: turn and pitch" : mode === "gamepad" ? "Left stick: turn and pitch" : "A/D turn · W/S pitch";
+	if (step === "move") return mode === "touch" ? "Stick: turn and pitch" : mode === "gamepad" ? "LS fly · RS up+/down- throttle" : "WASD fly · Q/E throttle";
 	if (step === "target") return mode === "touch" ? "Tap TGT to select the radar" : mode === "gamepad" ? "Press Y to select the radar" : "Press Tab to select the radar";
 	if (step === "missile") return mode === "touch" ? "Hold the lock, then tap FIRE" : mode === "gamepad" ? "Hold the lock, then press RT" : "Hold the lock, then press Space";
 	return "";

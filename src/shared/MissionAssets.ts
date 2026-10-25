@@ -157,7 +157,7 @@ function buildTemplates(data: MeshData, kind: MissionAssetKind): Model {
 			mesh.Destroy();
 			editable = undefined;
 			const item = AssetService.CreateMeshPartAsync(content, {
-				CollisionFidelity: Enum.CollisionFidelity.Box,
+				CollisionFidelity: Enum.CollisionFidelity.PreciseConvexDecomposition,
 				RenderFidelity: Enum.RenderFidelity.Automatic,
 			});
 			item.Name = material.name;
@@ -173,7 +173,8 @@ function buildTemplates(data: MeshData, kind: MissionAssetKind): Model {
 			item.Anchored = true;
 			item.CanCollide = false;
 			item.CanTouch = false;
-			item.CanQuery = false;
+			item.CanQuery = true;
+			item.SetAttribute("FlightSolid", true);
 			item.CastShadow = true;
 			item.Parent = model;
 		}
@@ -236,7 +237,7 @@ function create(kind: MissionAssetKind, name: string): Model {
 	const templates = getTemplates(kind, data);
 	if (templates === undefined) {
 		model.SetAttribute("GeometrySource", "Fallback");
-		const body = root.Clone(); body.Name = "Visible fallback"; body.Transparency = 0;
+		const body = root.Clone(); body.Name = "Visible fallback"; body.Transparency = 0; body.CanQuery = true; body.SetAttribute("FlightSolid", true);
 		body.Size = root.Size.mul(.75); body.Material = Enum.Material.Metal; body.Color = Color3.fromRGB(170,110,55); body.Parent = model;
 		return model;
 	}

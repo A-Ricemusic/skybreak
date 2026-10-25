@@ -12,11 +12,12 @@ export interface FlightState {
 
 // Pure numeric flight rules shared by authoritative simulation and chase camera.
 export const FlightMath = {
-	MinSpeed: 165,
+	MinSpeed: 70,
 	MaxSpeed: 320,
 	SoftBoundary: 2400,
 	HardBoundary: 2800,
-	MinAltitude: 130,
+	StallSpeed: 140,
+	WarningSpeed: 165,
 	MaxAltitude: 1050,
 	IsFinite(value: unknown): value is number {
 		return typeIs(value, "number") && value === value && value > -math.huge && value < math.huge;
@@ -40,18 +41,31 @@ export const FlightMath = {
 	NewState(): FlightState {
 		return { x: 0, y: 250, z: 500, yaw: 0, pitch: 0, roll: 0, speed: 255 };
 	},
+	StallSeverity(speed: number): number {
+		return math.clamp((FlightMath.StallSpeed - speed) / 70, 0, 1);
+	},
+	ThrottleAxis(value: number): number {
+		const axis = FlightMath.ClampInput(value);
+		return math.abs(axis) <= 0.18 ? 0 : math.sign(axis) * (math.abs(axis) - 0.18) / 0.82;
+	},
+	AdjustThrottle(throttle: number, axis: number, dt: number): number {
+		return math.clamp(throttle + FlightMath.ThrottleAxis(axis) * math.clamp(dt, 0, 0.1) * 0.4, 0, 1);
+	},
 	Step(state: FlightState, input: FlightInput, dt: number): FlightState {
 		dt = math.clamp(dt, 0, 0.1);
 		const x = FlightMath.ClampInput(input.x);
 		const y = FlightMath.ClampInput(input.y);
 		const throttle = FlightMath.IsFinite(input.throttle) ? math.clamp(input.throttle, 0, 1) : 0.65;
 		const targetSpeed = FlightMath.MinSpeed + (FlightMath.MaxSpeed - FlightMath.MinSpeed) * throttle;
-		state.speed += (targetSpeed - state.speed) * FlightMath.DampAlpha(2, dt);
-		state.yaw = FlightMath.WrapAngle(state.yaw - x * 1.12 * dt);
-		let targetPitch = y * 0.62;
-		if (state.y < 190) targetPitch = math.max(targetPitch, (190 - state.y) / 130);
-		else if (state.y > 950) targetPitch = math.min(targetPitch, -(state.y - 950) / 160);
-		state.pitch += (targetPitch - state.pitch) * FlightMath.DampAlpha(3.2, dt);
+		// Engine response takes seconds; climbing bleeds energy and diving restores it.
+		const acceleration = math.clamp((targetSpeed - state.speed) * 0.7 - math.sin(state.pitch) * 35, -32, 26);
+		state.speed = math.clamp(state.speed + acceleration * dt, FlightMath.MinSpeed, FlightMath.MaxSpeed);
+		const stall = FlightMath.StallSeverity(state.speed);
+		const authority = 1 - stall * 0.7;
+		state.yaw = FlightMath.WrapAngle(state.yaw - x * 1.12 * authority * dt);
+		let targetPitch = y * 0.62 * authority - stall * 0.28;
+		if (state.y > 950) targetPitch = math.min(targetPitch, -(state.y - 950) / 160);
+		state.pitch += (targetPitch - state.pitch) * FlightMath.DampAlpha(3.2 * authority, dt);
 		const edge = math.max(math.abs(state.x), math.abs(state.z));
 		if (edge > FlightMath.SoftBoundary) {
 			const recovery = math.clamp((edge - FlightMath.SoftBoundary) / 250, 0, 1);
@@ -60,7 +74,7 @@ export const FlightMath = {
 		state.roll += (-x * 0.85 - state.roll) * FlightMath.DampAlpha(5, dt);
 		const [dx, dy, dz] = FlightMath.Forward(state.yaw, state.pitch);
 		state.x = math.clamp(state.x + dx * state.speed * dt, -FlightMath.HardBoundary, FlightMath.HardBoundary);
-		state.y = math.clamp(state.y + dy * state.speed * dt, FlightMath.MinAltitude, FlightMath.MaxAltitude);
+		state.y = math.min(state.y + (dy * state.speed - stall * 65) * dt, FlightMath.MaxAltitude);
 		state.z = math.clamp(state.z + dz * state.speed * dt, -FlightMath.HardBoundary, FlightMath.HardBoundary);
 		return state;
 	},

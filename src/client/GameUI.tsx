@@ -1,3 +1,4 @@
+import { FlightMath } from "../shared/FlightMath";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "@rbxts/react";
 import { getSaveSlotRowHeight } from "../shared/SaveSlotLayout";
 import ReactRoblox from "@rbxts/react-roblox";
@@ -886,6 +887,8 @@ const DEBRIEF_ROW_STEP = 0.07;
 
 /** Readable failure cause for the debrief. */
 function failureCause(reason?: string): string {
+	if (reason === "crash_water") return "Your aircraft crashed into the water.";
+	if (reason === "crash_terrain") return "Your aircraft crashed into terrain or scenery.";
 	if (reason === "timeout") return "The ten-minute operation window closed.";
 	if (reason === "protected_lost") return "The protected vehicle or site was lost.";
 	if (reason === "destroyed") return "Your aircraft was shot down.";
@@ -1190,7 +1193,7 @@ function MissionHud({
 	const touch = layout.touch;
 	const ready = missileReady(telemetry);
 	const locked = telemetry.target !== undefined && telemetry.lockProgress >= 0.99;
-	const alertText = telemetry.incoming ? "MISSILE INBOUND" : telemetry.lockWarning ? "MISSILE LOCK" : telemetry.boundaryWarning ? "AIRSPACE LIMIT" : "";
+	const alertText = telemetry.speed < FlightMath.StallSpeed ? "STALL · ACCELERATE + NOSE DOWN" : telemetry.speed < FlightMath.WarningSpeed ? "LOW SPEED" : telemetry.altitude < 100 ? "LOW ALTITUDE" : telemetry.incoming ? "MISSILE INBOUND" : telemetry.lockWarning ? "MISSILE LOCK" : telemetry.boundaryWarning ? "AIRSPACE LIMIT" : "";
 	const alertColor = telemetry.incoming ? C.Danger : C.Orange;
 	const evadeHint = telemetry.incoming && telemetry.evadeCooldown <= 0 ? getEvadeHint(inputMode) : undefined;
 	const flightHints = getFlightHints(inputMode, { introduction, locked, missileReady: ready });
@@ -1252,6 +1255,7 @@ function MissionHud({
 				font={Enum.Font.RobotoMono}
 				alignment={Enum.TextXAlignment.Right}
 			/>
+			<HudText name="FlightStatus" text={`SPD${math.floor(telemetry.speed)} ${math.floor(throttle * 100 + 0.5)}%`} rectangle={layout.flightStatus} color={telemetry.speed < FlightMath.WarningSpeed ? C.Orange : C.Ivory} textSize={10} alignment={Enum.TextXAlignment.Right} />
 			<HudText name="WeaponStatus" text={statusText} rectangle={layout.status} color={statusColor} textSize={10} alignment={Enum.TextXAlignment.Right} />
 			<HudText
 				name="WarningText"
@@ -1844,7 +1848,8 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					});
 					return;
 				}
-				controller.SetThrottle(throttleRef.current);
+				throttleRef.current = controller.GetThrottle();
+				setThrottleState(throttleRef.current);
 				changeScreen("mission");
 				const [ok, initial] = pcall(() => controller.GetTelemetry());
 				if (ok && typeIs(initial, "table")) {
@@ -1942,6 +1947,8 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				if (sampleClock >= 0.1) {
 					sampleClock = 0;
 					// A plain boolean read on the predicted state: no table copy, no pcall closure.
+					const actualThrottle = controller.GetThrottle();
+					if (math.abs(actualThrottle - throttleRef.current) > 0.005) { throttleRef.current = actualThrottle; setThrottleState(actualThrottle); }
 					const warning = controller.GetBoundaryWarning();
 					const current = telemetryRef.current;
 					if (warning !== (current.boundaryWarning === true)) {

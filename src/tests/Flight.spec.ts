@@ -77,7 +77,7 @@ describe("numeric arcade flight rules", () => {
 		FlightMath.Step(stationary, input, -1);
 		expect(stationary).toEqual(FlightMath.NewState());
 	});
-	it("recovers at soft boundaries and enforces hard horizontal and altitude bounds", () => {
+	it("recovers at world edges and the ceiling without protecting the ground", () => {
 		const edge = FlightMath.NewState();
 		edge.x = 2700;
 		FlightMath.Step(edge, { x: 0, y: 0, throttle: 1 }, 0.1);
@@ -88,9 +88,47 @@ describe("numeric arcade flight rules", () => {
 			FlightMath.Step(state, { x: sign, y: sign, throttle: 1 }, 0.1);
 			expect(math.abs(state.x)).toBeLessThanOrEqual(FlightMath.HardBoundary);
 			expect(math.abs(state.z)).toBeLessThanOrEqual(FlightMath.HardBoundary);
-			expect(state.y).toBeGreaterThanOrEqual(FlightMath.MinAltitude);
+			if (sign < 0) expect(state.y).toBeLessThan(0);
 			expect(state.y).toBeLessThanOrEqual(FlightMath.MaxAltitude);
-			expect(state.pitch * sign).toBeLessThan(0);
+			if (sign > 0) expect(state.pitch).toBeLessThan(0);
 		}
 	});
+	it("permits a sustained dive through the old floor", () => {
+		const state = FlightMath.NewState();
+		for (let i = 0; i < 120; i++) FlightMath.Step(state, { x: 0, y: -1, throttle: 0.65 }, 1 / 30);
+		expect(state.y).toBeLessThan(0);
+		expect(state.pitch).toBeLessThan(-0.5);
+	});
+	it("decelerates gradually into lost lift and recovers with engine and nose down", () => {
+		const state = FlightMath.NewState(); state.y = 1000;
+		FlightMath.Step(state, { x: 0, y: 0, throttle: 0 }, 1 / 30);
+		expect(state.speed).toBeGreaterThan(250);
+		for (let i = 0; i < 240; i++) FlightMath.Step(state, { x: 0, y: 0, throttle: 0 }, 1 / 30);
+		expect(state.speed).toBeLessThan(140);
+		expect(state.y).toBeLessThan(900);
+		const low = state.speed;
+		for (let i = 0; i < 180; i++) FlightMath.Step(state, { x: 0, y: -0.3, throttle: 1 }, 1 / 30);
+		expect(state.speed).toBeGreaterThan(low + 100);
+		expect(FlightMath.StallSeverity(state.speed)).toBe(0);
+	});
+	it("loses turn authority and lift at low speed even with pull-up input", () => {
+		const fast = FlightMath.NewState(); fast.speed = 240;
+		const slow = FlightMath.NewState(); slow.speed = 95;
+		const input = { x: 1, y: 1, throttle: 0 };
+		FlightMath.Step(fast, input, 0.1); FlightMath.Step(slow, input, 0.1);
+		expect(math.abs(slow.yaw)).toBeLessThan(math.abs(fast.yaw) * 0.75);
+		expect(slow.y).toBeLessThan(250);
+		expect(fast.y).toBeGreaterThan(250);
+	});
+	it("right-stick throttle rejects drift, ramps and persists at neutral", () => {
+		expect(FlightMath.AdjustThrottle(0.6, 0 / 0, 0.1)).toBe(0.6);
+		expect(FlightMath.AdjustThrottle(0.6, 0.17, 0.1)).toBe(0.6);
+		expect(FlightMath.AdjustThrottle(0.6, -0.17, 0.1)).toBe(0.6);
+		expect(FlightMath.AdjustThrottle(0.6, 0, 0.1)).toBe(0.6);
+		expect(FlightMath.AdjustThrottle(0.6, 1, 0.1)).toBeCloseTo(0.64);
+		expect(FlightMath.AdjustThrottle(0.6, -1, 0.1)).toBeCloseTo(0.56);
+		expect(FlightMath.AdjustThrottle(1, 1, 0.1)).toBe(1);
+		expect(FlightMath.AdjustThrottle(0, -1, 0.1)).toBe(0);
+	});
+
 });
