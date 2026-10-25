@@ -18,7 +18,7 @@ export const PART_BUDGET = 600;
 const YIELD_EVERY = 150;
 let sinceYield = 0;
 // Authored paint, lights and water-color overlays have no physical surface.
-const VISUAL_SURFACES = new Set(["Shallows", "Marker light", "Safety line", "Centreline", "Threshold", "Threshold bar", "Approach bar", "Center stripe", "Lit windows"]);
+const VISUAL_SURFACES = new Set(["Shallows", "Marker light", "Navigation light", "Safety line", "Centreline", "Threshold", "Threshold bar", "Approach bar", "Center stripe", "Lit windows"]);
 
 export interface PartOptions {
 	className?: "Part" | "WedgePart";

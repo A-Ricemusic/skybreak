@@ -86,4 +86,14 @@ special weapons passed the engine suite. Existing combat QA pilots that choose
 flight tactics before reusing them for full-campaign acceptance. Phone/console
 performance and mesh-decomposition cost have not been measured. Simultaneous
 last-objective/impact timing was not stress-tested over a real network. No publication
-or merge was performed; independent architecture/code review remains pending.
+or merge was performed during implementation.
+
+## Independent review corrections
+
+Astra reviewed the flight changes and surrounding architecture. Both blocking
+findings were corrected: incoming missile/lock messages lead combined warnings,
+with STALL also retained in the speed readout on every input mode; decorative
+RelayWorld navigation lights are excluded from aircraft collision. Regression
+coverage exercises simultaneous threats and actual campaign-world light parts.
+The corrected engine suite passes 256 tests across 22 suites. The final HUD
+text sizing was also rebuilt after that run. Physical device checks remain as above.

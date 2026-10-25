@@ -1,5 +1,6 @@
 import { FlightMath } from "../shared/FlightMath";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "@rbxts/react";
+import { flightWarning } from "../shared/FlightWarnings";
 import { getSaveSlotRowHeight } from "../shared/SaveSlotLayout";
 import ReactRoblox from "@rbxts/react-roblox";
 import { GuiService, RunService, TweenService, UserInputService, Workspace } from "@rbxts/services";
@@ -1193,7 +1194,7 @@ function MissionHud({
 	const touch = layout.touch;
 	const ready = missileReady(telemetry);
 	const locked = telemetry.target !== undefined && telemetry.lockProgress >= 0.99;
-	const alertText = telemetry.speed < FlightMath.StallSpeed ? "STALL · ACCELERATE + NOSE DOWN" : telemetry.speed < FlightMath.WarningSpeed ? "LOW SPEED" : telemetry.altitude < 100 ? "LOW ALTITUDE" : telemetry.incoming ? "MISSILE INBOUND" : telemetry.lockWarning ? "MISSILE LOCK" : telemetry.boundaryWarning ? "AIRSPACE LIMIT" : "";
+	const alertText = flightWarning(telemetry);
 	const alertColor = telemetry.incoming ? C.Danger : C.Orange;
 	const evadeHint = telemetry.incoming && telemetry.evadeCooldown <= 0 ? getEvadeHint(inputMode) : undefined;
 	const flightHints = getFlightHints(inputMode, { introduction, locked, missileReady: ready });
@@ -1255,13 +1256,14 @@ function MissionHud({
 				font={Enum.Font.RobotoMono}
 				alignment={Enum.TextXAlignment.Right}
 			/>
-			<HudText name="FlightStatus" text={`SPD${math.floor(telemetry.speed)} ${math.floor(throttle * 100 + 0.5)}%`} rectangle={layout.flightStatus} color={telemetry.speed < FlightMath.WarningSpeed ? C.Orange : C.Ivory} textSize={10} alignment={Enum.TextXAlignment.Right} />
+			<HudText name="FlightStatus" text={`${telemetry.speed < FlightMath.StallSpeed ? "STALL " : "SPD"}${math.floor(telemetry.speed)} ${math.floor(throttle * 100 + 0.5)}%`} rectangle={layout.flightStatus} color={telemetry.speed < FlightMath.WarningSpeed ? C.Orange : C.Ivory} textSize={10} minTextSize={8} alignment={Enum.TextXAlignment.Right} />
 			<HudText name="WeaponStatus" text={statusText} rectangle={layout.status} color={statusColor} textSize={10} alignment={Enum.TextXAlignment.Right} />
 			<HudText
 				name="WarningText"
 				textRef={warningText}
 				text={alertText}
 				rectangle={layout.alert}
+				minTextSize={8}
 				color={alertColor}
 				textSize={12}
 				font={Enum.Font.GothamBlack}

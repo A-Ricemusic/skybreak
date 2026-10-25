@@ -24,6 +24,7 @@ describe("Broken Relay disposable world integration",()=>{
 		let parts=0;
 		for(const item of fixture.GetDescendants())if(item.IsA("BasePart")){
 			parts++;expect(item.Anchored).toBe(true);expect(item.CanCollide).toBe(false);
+			if(item.Name === "Navigation light") { expect(item.CanQuery).toBe(false);expect(item.GetAttribute("FlightSolid")).toBe(false); }
 			expect(item.Size.X<=2048 && item.Size.Y<=2048 && item.Size.Z<=2048).toBe(true);
 		}
 		expect(parts<400).toBe(true);
