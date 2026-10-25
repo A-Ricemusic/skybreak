@@ -33,26 +33,32 @@ async function removePath(path: string): Promise<void> {
 await removePath(resolve(root, "out"));
 await removePath(resolve(root, "include"));
 
-// These files are generated entirely by the Blender Python sources. Keep the
+// These exports are generated entirely by the Blender Python sources. Keep the
 // mesh JSON because tools/package-aircraft.ts consumes it during every build.
+// Also preserve .blend and .blend1 files in case someone makes manual edits
+// after generation; those require an explicit human review before deletion.
 for (const aircraft of ["kestrel", "vanta"]) {
-	for (const suffix of [".blend", ".blend1", ".fbx", ".glb", ".stats.json", "-three-quarter.png", "-top.png"]) {
+	for (const suffix of [".fbx", ".glb", ".stats.json", "-three-quarter.png", "-top.png"]) {
 		await removePath(resolve(root, `assets/aircraft/${aircraft}${suffix}`));
 	}
 }
 
 const build = resolve(root, "build");
 try {
-	for (const entry of await readdir(build, { withFileTypes: true })) {
+	const entries = await readdir(build, { withFileTypes: true });
+	const entryNames = new Set(entries.map((entry) => entry.name));
+	for (const entry of entries) {
 		if (entry.name === "screenshots") continue;
-		if (entry.name === "skybreak.rbxlx" || entry.name === "skybreak.rbxlx.lock") continue;
+		if (entry.name === "skybreak.rbxlx" || entry.name.endsWith(".lock")) continue;
+
+		const isPlaceBuild = entry.name === "skybreak-tests.rbxlx" || entry.name === "test-game.rbxlx";
+		if (isPlaceBuild && entryNames.has(`${entry.name}.lock`)) continue;
 
 		const isDisposable =
 			entry.name === "KestrelGeometry.txt" ||
 			entry.name === "VantaGeometry.txt" ||
 			entry.name === "skybreak-tests.rbxlx" ||
 			entry.name === "test-game.rbxlx" ||
-			entry.name === "test-game.rbxlx.lock" ||
 			entry.name.endsWith(".log") ||
 			entry.name.endsWith(".tmp") ||
 			entry.name.endsWith(".temp") ||
@@ -65,9 +71,11 @@ try {
 
 const screenshots = resolve(build, "screenshots");
 try {
+	const legacyQaArtifacts = new Set(["menu.jpg", "slots.jpg", "flight.jpg", "vanta.jpg", "temp.b64"]);
 	for (const entry of await readdir(screenshots, { withFileTypes: true })) {
-		if (entry.isFile() && /^redesign-.*\.jpg$/i.test(entry.name)) continue;
-		await removePath(resolve(screenshots, entry.name));
+		if (entry.isFile() && legacyQaArtifacts.has(entry.name)) {
+			await removePath(resolve(screenshots, entry.name));
+		}
 	}
 } catch (error) {
 	if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
@@ -76,4 +84,4 @@ try {
 const action = dryRun ? "Would remove" : "Removed";
 console.log(`${action} ${removed.length} artifact path(s), ${reclaimedBytes} byte(s).`);
 for (const path of removed) console.log(`- ${path}`);
-console.log("Preserved build/skybreak.rbxlx, its Studio lock, and build/screenshots/redesign-*.jpg.");
+console.log("Preserved all lock files, locked place builds, build/skybreak.rbxlx, and unlisted screenshots.");

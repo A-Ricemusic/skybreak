@@ -1,6 +1,6 @@
 # Blender aircraft pipeline
 
-This project keeps the procedural Blender generators and the exact geometry used by Roblox in Git. Blender project files, interchange exports, validation statistics, and preview renders are reproducible local artifacts and are ignored. Use this guide when changing or adding aircraft. The game uses TypeScript and React Lua; Blender tooling uses Python.
+This project keeps the procedural Blender generators and the exact geometry used by Roblox in Git. Known Kestrel and Vanta Blender projects, interchange exports, validation statistics, and preview renders are ignored local artifacts. Default cleanup preserves Blender project and backup files because they may acquire manual edits after generation. Use this guide when changing or adding aircraft. The game uses TypeScript and React Lua; Blender tooling uses Python.
 
 ## Files and commands
 
@@ -18,13 +18,13 @@ bun run build:place
 
 On other machines, substitute the installed Blender executable. Each generator resets the scene and recreates the complete aircraft from code; it does not read or modify an existing `.blend`. It exports `.blend`, `.fbx`, `.glb`, `.mesh.json`, statistics, and preview PNGs. Only the generator and runtime-required `.mesh.json` are canonical tracked inputs. The other outputs are useful for inspection and manual import but should not be committed.
 
-After inspection, remove generated exports and local build/test artifacts with:
+After regeneration and inspection, explicitly remove disposable interchange exports, statistics, previews, and local build/test artifacts with:
 
 ```sh
 bun run clean
 ```
 
-`bun run clean:check` previews the paths and byte count. Cleanup preserves `build/skybreak.rbxlx`, its active Studio lock, and final `build/screenshots/redesign-*.jpg` images. A subsequent `bun run build:place` recreates compiler output and packaged geometry from the tracked mesh JSON files.
+`bun run clean:check` previews the paths and byte count. Cleanup deliberately preserves `.blend` and `.blend1` files, every lock file, locked place builds, `build/skybreak.rbxlx`, and screenshots other than the explicit legacy QA names. Review Blender files for manual edits and delete them manually only after confirming the Python generator reproduces everything worth keeping. A subsequent `bun run build:place` recreates compiler output and packaged geometry from the tracked mesh JSON files.
 
 `tools/package-aircraft.ts` packages the geometry as text data under `build/`. The production and test Rojo projects map it to server-only `StringValue` instances in `ServerStorage`. Raw geometry is not a client script dependency.
 
@@ -89,6 +89,6 @@ The installed Studio build `0.744.0.7441077` returned this exact error on 2026-1
 
 If a future Studio release enables `CreateAssetAsync`, an authenticated local plugin can upload an EditableMesh as a durable Mesh asset using that documented API. Check availability and return status before changing the pipeline. Do not assume documentation availability means the installed client has enabled the feature.
 
-For manual import, use Studio's 3D Importer with the committed FBX or GLB. Open Cloud asset upload is another option with a properly supplied API key or OAuth authorization. Never extract Studio cookies or use internal `RobloxScriptSecurity` importer methods. Asset import does not create or publish the game itself.
+For manual import, use Studio's 3D Importer with a regenerated FBX or GLB. Open Cloud asset upload is another option with a properly supplied API key or OAuth authorization. Never extract Studio cookies or use internal `RobloxScriptSecurity` importer methods. Asset import does not create or publish the game itself.
 
 Primary references: [AssetService](https://create.roblox.com/docs/reference/engine/classes/AssetService), [EditableMesh](https://create.roblox.com/docs/reference/engine/classes/EditableMesh), [Studio 3D Importer](https://create.roblox.com/docs/studio/importer), [Rojo sync details](https://rojo.space/docs/v7/sync-details/).

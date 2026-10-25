@@ -11,15 +11,22 @@ logs/
 *.rbxl.lock
 *.rbxlx.lock
 
-# Procedurally generated aircraft exports. The Python generators and the
-# runtime-required mesh JSON files remain tracked.
-assets/aircraft/*.blend
-assets/aircraft/*.blend[0-9]*
-assets/aircraft/*.fbx
-assets/aircraft/*.glb
-assets/aircraft/*.stats.json
-assets/aircraft/*-three-quarter.png
-assets/aircraft/*-top.png
+# Known procedural aircraft exports. Keep this list explicit so a future
+# hand-authored aircraft is not silently ignored.
+assets/aircraft/kestrel.blend
+assets/aircraft/kestrel.blend[0-9]*
+assets/aircraft/kestrel.fbx
+assets/aircraft/kestrel.glb
+assets/aircraft/kestrel.stats.json
+assets/aircraft/kestrel-three-quarter.png
+assets/aircraft/kestrel-top.png
+assets/aircraft/vanta.blend
+assets/aircraft/vanta.blend[0-9]*
+assets/aircraft/vanta.fbx
+assets/aircraft/vanta.glb
+assets/aircraft/vanta.stats.json
+assets/aircraft/vanta-three-quarter.png
+assets/aircraft/vanta-top.png
 
 # Operating-system metadata
 .DS_Store
