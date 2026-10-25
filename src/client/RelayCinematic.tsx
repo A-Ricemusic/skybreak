@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "@rbxts/react";
-import { GuiService, ReplicatedStorage, RunService, UserInputService, Workspace } from "@rbxts/services";
+import { GuiService, ReplicatedStorage, RunService, TextService, UserInputService, Workspace } from "@rbxts/services";
 import { CinematicAction, CinematicControl, routeCinematicInput } from "../shared/CinematicInput";
 import { getCinematicLayout } from "../shared/CinematicLayout";
 import { storyFor } from "../shared/RelayStory";
@@ -38,6 +38,11 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 	const viewportRef=useRef(viewport);viewportRef.current=viewport;
 	const subtitleRef=useRef<ScrollingFrame>();
 	const chapter=storyFor(id),[beat,setBeat]=useState(0),[paused,setPaused]=useState(false),[still,setStill]=useState(false),[large,setLarge]=useState(false);
+	const subtitleSize=compact ? large ? 18 : 14 : large ? 28 : 22;
+	// AutomaticSize underreports wrapped text after accessibility-size changes
+	// in Studio (TextFits=false). Measure the actual font and give the scroller
+	// an explicit canvas so the complete sentence stays reachable.
+	const textHeight=TextService.GetTextSize(chapter.beats[beat].text,subtitleSize,Enum.Font.GothamMedium,new Vector2(math.max(1,viewport.X*.95-29),10000)).Y+4;
 	useEffect(()=>{if(subtitleRef.current)subtitleRef.current.CanvasPosition=Vector2.zero;},[beat]);
 	const pausedRef=useRef(false),stillRef=useRef(false),finishRef=useRef(onFinish),cancelRef=useRef(onCancel),done=useRef(false);
 	finishRef.current=onFinish;cancelRef.current=onCancel;
@@ -62,9 +67,9 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 			const short=viewportRef.current.Y<240;
 			const vehicle=chapter.scene==="farm" || chapter.scene==="harbor";
 			const eye=index===0 ? short ? new Vector3(-8+alpha*2,12,-27) : new Vector3(-10+alpha*4,12,-19)
-				: index===1 ? short ? vehicle ? new Vector3(150-alpha*4,70,70) : new Vector3(330-alpha*8,230,280)
+				: index===1 ? short ? vehicle ? new Vector3(230-alpha*4,80,150) : new Vector3(430-alpha*8,300,380)
 				: new Vector3(220-alpha*12,160,150-alpha*10) : short ? new Vector3(21-alpha*2,20,-40) : new Vector3(21-alpha*5,20,-25);
-			const focus=index===0 ? new Vector3(0,short ? 5 : 7,0) : index===1 ? short && vehicle ? new Vector3(45,3,-65) : new Vector3(20,0,-85) : new Vector3(4,short ? 4 : 6,-2);
+			const focus=index===0 ? new Vector3(0,short ? 5 : 7,0) : index===1 ? short && vehicle ? new Vector3(45,-6,-65) : new Vector3(20,short ? -5 : 0,-85) : new Vector3(4,short ? 4 : 6,-2);
 			camera.CameraType=Enum.CameraType.Scriptable;camera.FieldOfView=55;camera.CFrame=CFrame.lookAt(ORIGIN.add(eye),ORIGIN.add(focus));
 			if(elapsed>=21)finish();
 		});
@@ -79,8 +84,8 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 		<textlabel key="CinematicTitle" Position={new UDim2(0,0,0,0)} Size={new UDim2(1,0,0,titleHeight)} BackgroundColor3={Color3.fromRGB(3,12,18)} BackgroundTransparency={.1} Text={`BROKEN RELAY  /  ${chapter.title}`} TextColor3={Color3.fromRGB(93,239,215)} TextScaled={true} Font={Enum.Font.GothamBold}><uitextsizeconstraint MaxTextSize={compact ? 12 : 15} MinTextSize={10}/></textlabel>
 		<frame key="CinematicPanel" Position={new UDim2(.025,0,1,-panelHeight-6)} Size={new UDim2(.95,0,0,panelHeight)} BackgroundColor3={Color3.fromRGB(3,12,18)} BackgroundTransparency={.08} BorderSizePixel={0}>
 			<textlabel Position={UDim2.fromOffset(12,5)} Size={new UDim2(1,-24,0,compact ? 16 : 21)} BackgroundTransparency={1} Text={`${chapter.beats[beat].speaker}   ${beat+1}/3`} TextXAlignment={Enum.TextXAlignment.Left} TextColor3={Color3.fromRGB(93,239,215)} TextSize={compact ? 10 : 12} Font={Enum.Font.GothamBold}/>
-			<scrollingframe ref={subtitleRef} key="CinematicSubtitles" Position={UDim2.fromOffset(12,subtitleY)} Size={new UDim2(1,-24,0,subtitleHeight)} BackgroundTransparency={1} BorderSizePixel={0} CanvasSize={UDim2.fromOffset(0,0)} AutomaticCanvasSize={Enum.AutomaticSize.Y} ScrollBarThickness={3} ScrollingDirection={Enum.ScrollingDirection.Y} Selectable={true}>
-				<textlabel key={`Beat${beat}`} Size={new UDim2(1,-5,0,0)} AutomaticSize={Enum.AutomaticSize.Y} BackgroundTransparency={1} Text={chapter.beats[beat].text} TextWrapped={true} TextSize={compact ? large ? 18 : 14 : large ? 28 : 22} TextYAlignment={Enum.TextYAlignment.Top} TextColor3={Color3.fromRGB(247,244,231)} Font={Enum.Font.GothamMedium}/>
+			<scrollingframe ref={subtitleRef} key="CinematicSubtitles" Position={UDim2.fromOffset(12,subtitleY)} Size={new UDim2(1,-24,0,subtitleHeight)} BackgroundTransparency={1} BorderSizePixel={0} CanvasSize={UDim2.fromOffset(0,textHeight)} ScrollBarThickness={3} ScrollingDirection={Enum.ScrollingDirection.Y} Selectable={true}>
+				<textlabel key={`Beat${beat}`} Size={new UDim2(1,-5,0,textHeight)} BackgroundTransparency={1} Text={chapter.beats[beat].text} TextWrapped={true} TextSize={subtitleSize} TextYAlignment={Enum.TextYAlignment.Top} TextColor3={Color3.fromRGB(247,244,231)} Font={Enum.Font.GothamMedium}/>
 			</scrollingframe>
 			<frame key="CinematicActions" Position={new UDim2(.02,0,1,-47)} Size={new UDim2(.96,0,0,44)} BackgroundTransparency={1}>
 				{button("CinematicSkipButton","SKIP · A",0,"skip")}
