@@ -2,6 +2,10 @@ import { describe, expect, it } from "@rbxts/jest-globals";
 import { flightWarning } from "../shared/FlightWarnings";
 
 describe("flight and combat warnings shared by touch, keyboard and gamepad", () => {
+	it("uses complete compact guidance and prioritizes threats on narrow touch screens", () => {
+		expect(flightWarning({ speed: 100, altitude: 80, incoming: false }, true)).toBe("STALL: POWER↑ NOSE↓");
+		expect(flightWarning({ speed: 100, altitude: 80, incoming: true }, true)).toBe("MISSILE INBOUND");
+	});
 	it("retains incoming and lock threats alongside each flight warning", () => {
 		for (const [speed, altitude, label] of [[230, 80, "LOW ALTITUDE"], [150, 250, "LOW SPEED"], [100, 250, "STALL"]] as Array<[number, number, string]>) {
 			expect(flightWarning({ speed, altitude, incoming: true, lockWarning: true })).toBe(`MISSILE INBOUND · ${label}`);

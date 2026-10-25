@@ -1194,7 +1194,7 @@ function MissionHud({
 	const touch = layout.touch;
 	const ready = missileReady(telemetry);
 	const locked = telemetry.target !== undefined && telemetry.lockProgress >= 0.99;
-	const alertText = flightWarning(telemetry);
+	const alertText = flightWarning(telemetry, layout.alert.width < 200);
 	const alertColor = telemetry.incoming ? C.Danger : C.Orange;
 	const evadeHint = telemetry.incoming && telemetry.evadeCooldown <= 0 ? getEvadeHint(inputMode) : undefined;
 	const flightHints = getFlightHints(inputMode, { introduction, locked, missileReady: ready });

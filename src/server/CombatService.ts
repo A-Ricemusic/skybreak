@@ -601,6 +601,8 @@ function applyBlueprintPhase(session: CombatSession): void {
 			actor.PivotTo(new CFrame(nav.x,phase.kind === "defend" ? 92 : nav.y,nav.z));
 		}
 	}
+	// Refresh only at phase transitions: includes new protected actors and drops destroyed ones.
+	session.collisionParams = AircraftCollision.Parameters(session.folder);
 	acquireTarget(session);
 }
 

@@ -27,7 +27,9 @@ and CanTouch=false; solid surfaces become CanQuery=true. Translucent shallows,
 marker lights, runway paint, invisible aim roots, navigation/mission markers, aircraft (including parked display jets) and
 projectiles are excluded. Ground meshes use PreciseConvexDecomposition rather
 than box fidelity; the hidden tutorial radar cannot collide until revealed.
-The query allowlist is constructed once per sortie and refers to actual parts.
+The query allowlist is constructed at sortie start and refreshed at blueprint
+phase transitions to include newly spawned protected vehicles and remove old
+ones. Welded protected surfaces retain their query flag; invisible roots do not.
 
 An impact ends the authoritative session before navigation observations, enemy
 simulation or missile resolution for that flight step. The existing finish guard
@@ -97,3 +99,9 @@ RelayWorld navigation lights are excluded from aircraft collision. Regression
 coverage exercises simultaneous threats and actual campaign-world light parts.
 The corrected engine suite passes 256 tests across 22 suites. The final HUD
 text sizing was also rebuilt after that run. Physical device checks remain as above.
+
+Additional CodeRabbit findings were fixed: narrow HUDs use compact stall advice,
+the gameplay harness requires a warning label, and phase-spawned protected actors
+enter the sweep filter with their visible surfaces queryable after welding.
+The resulting Studio suite passes 258 tests across 22 suites. The strengthened
+gameplay-harness assertion has not been rerun in a new gameplay session.

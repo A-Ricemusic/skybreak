@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from "@rbxts/jest-globals";
 import { Workspace } from "@rbxts/services";
 import { AircraftCollision } from "../server/AircraftCollision";
 import { Scenery } from "../server/Scenery";
+import { JetFactory } from "../shared/JetFactory";
 
 describe("authoritative aircraft surface sweeps", () => {
 	let fixture: Folder;
@@ -9,6 +10,18 @@ describe("authoritative aircraft surface sweeps", () => {
 	function setup(): Folder {
 		fixture = new Instance("Folder"); fixture.Parent = Workspace; return fixture;
 	}
+	it("includes newly spawned welded protected surfaces when the phase filter refreshes", () => {
+		const root = setup();
+		const before = AircraftCollision.Parameters(root);
+		const actor = new Instance("Model"); actor.Parent = root;
+		const aim = new Instance("Part"); aim.Anchored = true; aim.Transparency = 1; aim.CanQuery = false; aim.Parent = actor; actor.PrimaryPart = aim;
+		const body = Scenery.Part(actor, "Protected vehicle", new Vector3(20, 20, 2), new Vector3(0, 600, 0), new Color3(1, 1, 1));
+		JetFactory.WeldAssembly(actor);
+		expect(body.CanQuery).toBe(true);
+		const from = new Vector3(0, 600, 30), to = new Vector3(0, 600, -30);
+		expect(AircraftCollision.Sweep(from, to, before)).toBeUndefined();
+		expect(AircraftCollision.Sweep(from, to, AircraftCollision.Parameters(root))?.Instance).toBe(body);
+	});
 	it("sweeps through thin solid scenery without endpoint tunnelling", () => {
 		const root = setup();
 		const wall = Scenery.Part(root, "Wall", new Vector3(30, 30, 0.2), new Vector3(0, 600, 0), new Color3(1, 1, 1));

@@ -53,12 +53,15 @@ task.spawn(function()
 			assert(controller:GetControlStateForStudio().throttle < .01, "RS did not reduce throttle")
 			untilCheck(10, function() return controller:GetTelemetry().speed < 120 end, "No stall")
 			report:SetAttribute("StallSpeed", controller:GetTelemetry().speed)
+			local foundWarning = false
 			for _, label in player.PlayerGui:GetDescendants() do
 				if label:IsA("TextLabel") and label.Name == "WarningText" then
+					foundWarning = true
 					report:SetAttribute("StallWarning", label.Text)
 					assert(string.find(label.Text, "STALL"), "HUD did not warn of stall")
 				end
 			end
+			assert(foundWarning, "HUD warning label missing")
 			local altitude = controller:GetTelemetry().altitude
 			task.wait(.6)
 			assert(controller:GetTelemetry().altitude < altitude - 5, "No loss of lift")
