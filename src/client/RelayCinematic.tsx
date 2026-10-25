@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "@rbxts/react";
 import { GuiService, ReplicatedStorage, RunService, UserInputService, Workspace } from "@rbxts/services";
+import { CinematicAction, CinematicControl, routeCinematicInput } from "../shared/CinematicInput";
 import { storyFor } from "../shared/RelayStory";
 
 const ORIGIN=new Vector3(0,6000,0);
@@ -36,6 +37,14 @@ export function RelayCinematic({id,onFinish,onCancel}:{id:number;onFinish:()=>vo
 	const pausedRef=useRef(false),stillRef=useRef(false),finishRef=useRef(onFinish),cancelRef=useRef(onCancel),done=useRef(false);
 	finishRef.current=onFinish;cancelRef.current=onCancel;
 	const finish=()=>{if(done.current)return;done.current=true;finishRef.current();};
+	const dispatch=(action:CinematicAction | undefined)=>{
+		if(done.current)return;
+		if(action==="skip")finish();
+		else if(action==="cancel"){done.current=true;cancelRef.current();}
+		else if(action==="pause"){pausedRef.current=!pausedRef.current;setPaused(pausedRef.current);}
+		else if(action==="motion"){stillRef.current=!stillRef.current;setStill(stillRef.current);}
+		else if(action==="text")setLarge((value)=>!value);
+	};
 	useEffect(()=>{
 		const camera=Workspace.CurrentCamera;if(!camera)return;
 		const oldType=camera.CameraType,oldFov=camera.FieldOfView,oldFrame=camera.CFrame;
@@ -51,24 +60,22 @@ export function RelayCinematic({id,onFinish,onCancel}:{id:number;onFinish:()=>vo
 			if(elapsed>=21)finish();
 		});
 		const input=UserInputService.InputBegan.Connect((key,processed)=>{
-			if(processed && key.UserInputType!==Enum.UserInputType.Gamepad1)return;
-			if(key.KeyCode===Enum.KeyCode.Space || key.KeyCode===Enum.KeyCode.ButtonA)finish();
-			if(key.KeyCode===Enum.KeyCode.P || key.KeyCode===Enum.KeyCode.ButtonX){pausedRef.current=!pausedRef.current;setPaused(pausedRef.current);}
-			if(key.KeyCode===Enum.KeyCode.ButtonB){if(!done.current){done.current=true;cancelRef.current();}}
+			dispatch(routeCinematicInput({kind:"shortcut",key:key.KeyCode.Name,
+				processed:processed || GuiService.MenuIsOpen,guiSelected:GuiService.SelectedObject!==undefined}));
 		});
 		return ()=>{move.Disconnect();input.Disconnect();scene.Destroy();camera.CameraType=oldType;camera.FieldOfView=oldFov;camera.CFrame=oldFrame;const selected=GuiService.SelectedObject;if(selected?.IsDescendantOf(scene))GuiService.SelectedObject=undefined;};
 	},[id]);
-	const button=(name:string,text:string,x:number,action:()=>void)=><textbutton key={name} Position={new UDim2(x,0,0,0)} Size={new UDim2(.245,0,1,0)} BackgroundColor3={Color3.fromRGB(18,43,52)} BorderSizePixel={0} Text={text} TextScaled={true} Font={Enum.Font.GothamBold} TextColor3={Color3.fromRGB(230,240,232)} Event={{Activated:action}}><uitextsizeconstraint MaxTextSize={13} MinTextSize={9}/></textbutton>;
+	const button=(name:string,text:string,x:number,control:CinematicControl)=><textbutton key={name} Position={new UDim2(x,0,0,0)} Size={new UDim2(.245,0,1,0)} BackgroundColor3={Color3.fromRGB(18,43,52)} BorderSizePixel={0} Text={text} TextScaled={true} Font={Enum.Font.GothamBold} TextColor3={Color3.fromRGB(230,240,232)} Event={{Activated:()=>dispatch(routeCinematicInput({kind:"activated",control}))}}><uitextsizeconstraint MaxTextSize={13} MinTextSize={9}/></textbutton>;
 	return <frame key="CinematicScreen" Size={UDim2.fromScale(1,1)} BackgroundTransparency={1}>
 		<textlabel Position={new UDim2(0,0,0,0)} Size={new UDim2(1,0,0,46)} BackgroundColor3={Color3.fromRGB(3,12,18)} BackgroundTransparency={.1} Text={`BROKEN RELAY  /  ${chapter.title}`} TextColor3={Color3.fromRGB(93,239,215)} TextSize={15} Font={Enum.Font.GothamBold}/>
 		<frame Position={new UDim2(.025,0,1,-190)} Size={new UDim2(.95,0,0,184)} BackgroundColor3={Color3.fromRGB(3,12,18)} BackgroundTransparency={.08} BorderSizePixel={0}>
 			<textlabel Position={UDim2.fromOffset(12,5)} Size={new UDim2(1,-24,0,21)} BackgroundTransparency={1} Text={`${chapter.beats[beat].speaker}   ${beat+1}/3`} TextXAlignment={Enum.TextXAlignment.Left} TextColor3={Color3.fromRGB(93,239,215)} TextSize={12} Font={Enum.Font.GothamBold}/>
 			<textlabel Position={UDim2.fromOffset(12,30)} Size={new UDim2(1,-24,0,100)} BackgroundTransparency={1} Text={chapter.beats[beat].text} TextWrapped={true} TextScaled={true} TextColor3={Color3.fromRGB(247,244,231)} Font={Enum.Font.GothamMedium}><uitextsizeconstraint MaxTextSize={large ? 28 : 22} MinTextSize={14}/></textlabel>
 			<frame Position={new UDim2(.02,0,1,-47)} Size={new UDim2(.96,0,0,44)} BackgroundTransparency={1}>
-				{button("CinematicSkipButton","SKIP · A",0,finish)}
-				{button("CinematicPauseButton",paused ? "RESUME · X" : "PAUSE · X",.25,()=>{pausedRef.current=!pausedRef.current;setPaused(pausedRef.current);})}
-				{button("CinematicMotionButton",still ? "MOTION OFF" : "MOTION ON",.5,()=>{stillRef.current=!stillRef.current;setStill(stillRef.current);})}
-				{button("CinematicTextButton",large ? "TEXT: LARGE" : "TEXT SIZE",.75,()=>setLarge(!large))}
+				{button("CinematicSkipButton","SKIP · A",0,"skip")}
+				{button("CinematicPauseButton",paused ? "RESUME · X" : "PAUSE · X",.25,"pause")}
+				{button("CinematicMotionButton",still ? "MOTION OFF" : "MOTION ON",.5,"motion")}
+				{button("CinematicTextButton",large ? "TEXT: LARGE" : "TEXT SIZE",.75,"text")}
 			</frame>
 		</frame>
 	</frame>;

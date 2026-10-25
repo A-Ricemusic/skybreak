@@ -12,7 +12,7 @@ Beyond air combat and staged strikes, the campaign includes ordered swept flight
 
 Each phase enables only its allocated ground targets. Optional pursuers retire when their window ends. Setup and static mesh generation happen before the 600-second gameplay clock starts. Completion, failure, retry and return dispose the mission folder and restore the menu. The single-player guard prevents overlapping worlds.
 
-`RelayStory` authors 28 chapters: opening, 26 bridges and finale. The React cinematic renderer builds a local stage with Teal's receiver, map/evidence, aircraft, replicated Blender prop and region scenery. It cuts between three cameras with timed subtitles. Space/gamepad A or the touch button skips; P/gamepad X pauses; motion and subtitle-size buttons support accessibility. Completion/cancel/unmount disconnects listeners and destroys the stage. Preflight story plays before the server creates the mission, so it uses none of the flight deadline. A reprise plays on replay; skipping does not grant progression. The final chapter plays automatically on M27 success.
+`RelayStory` authors 28 chapters: opening, 26 bridges and finale. The React cinematic renderer builds a local stage with Teal's receiver, map/evidence, aircraft, replicated Blender prop and region scenery. It cuts between three cameras with timed subtitles. Gamepad A activates the selected control, including Skip; touch Skip and unconsumed Space without GUI focus also skip. Consumed inputs are ignored; P/gamepad X pauses and gamepad B cancels; motion and subtitle-size buttons support accessibility. Completion/cancel/unmount disconnects listeners and destroys the stage. Preflight story plays before the server creates the mission, so it uses none of the flight deadline. A reprise plays on replay; skipping does not grant progression. The final chapter plays automatically on M27 success.
 
 The archive has three acts with all 27 mission rows, locked states, per-mission best times and replay. Briefings use scrollable text; debriefs describe the actual mission's consequence. Next and retry return to that mission's briefing, allowing a fresh launch or archive selection.
 
@@ -75,7 +75,7 @@ Completed offline:
 
 - `bun run build` — all TypeScript/React Lua and Roblox Jest specs compile.
 - `bun run build:place` — production Rojo package created without a Rojo server or Studio.
-- `bun run test:offline` — 58 pure compiled-domain contracts pass in the official standalone Luau CLI. This includes all new mission sequences, all flight volumes using legal `FlightMath` stick/throttle, 27-step unlock/replay, four-slot migration, protected loss, deadline/replay failures and the final broadcast. These are unit simulations, not gameplay evidence.
+- `bun run test:offline` — 70 pure compiled-domain contracts pass in the official standalone Luau CLI. This includes all new mission sequences, all flight volumes using legal `FlightMath` stick/throttle, 27-step unlock/replay, four-slot migration, protected loss, deadline/replay failures, the final broadcast and cinematic A/GUI/consumed-input routing. These are unit simulations, not gameplay evidence.
 - Blender generation, preview inspection, `.blend` reopen and GLB bounds round-trip for all four new meshes.
 - `git diff --check`.
 
