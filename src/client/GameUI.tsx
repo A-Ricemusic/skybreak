@@ -883,6 +883,7 @@ function failureCause(reason?: string): string {
 	if (reason === "timeout") return "The ten-minute operation window closed.";
 	if (reason === "protected_lost") return "The protected vehicle or site was lost.";
 	if (reason === "destroyed") return "Your aircraft was shot down.";
+	if (reason === "not_recorded") return "The server could not record this sortie. Fly it again from the campaign menu.";
 	return "The sortie ended before the objective was complete.";
 }
 
@@ -995,6 +996,8 @@ function OutcomeScreenImpl({
 	const story = outcome.won ? mission.debrief : `${failureCause(outcome.reason)} ${mission.failure}`;
 	const headerSize = ultra ? 22 : compact ? 26 : 34;
 	const rankSize = ultra ? 40 : compact ? 48 : 62;
+	// Score sits between the 12px caption and the 14px best line, without overlapping either.
+	const scoreHeight = math.min(rankSize * 0.48, rankSize - 26);
 	return (
 		<frame key="OutcomeScreen" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={visible}>
 			<frame key="VictoryPanel" BackgroundTransparency={1} {...panelPosition(menu)}>
@@ -1006,7 +1009,7 @@ function OutcomeScreenImpl({
 					<frame key="RankBlock" LayoutOrder={4} BackgroundTransparency={1} Size={new UDim2(1, -8, 0, rankSize)}>
 						<textlabel key="RankLetter" BackgroundTransparency={1} Size={UDim2.fromOffset(rankSize, rankSize)} Font={Enum.Font.GothamBlack} Text={outcome.rank} TextColor3={rankColor} TextSize={rankSize} TextXAlignment={Enum.TextXAlignment.Left} />
 						<textlabel key="RankCaption" BackgroundTransparency={1} Position={UDim2.fromOffset(rankSize + 6, 0)} Size={new UDim2(1, -rankSize - 6, 0, 12)} Font={Enum.Font.GothamBold} Text="RANK  ·  SCORE" TextColor3={C.Faint} TextSize={10} TextXAlignment={Enum.TextXAlignment.Left} />
-						<textlabel key="ScoreValue" BackgroundTransparency={1} Position={UDim2.fromOffset(rankSize + 6, 12)} Size={new UDim2(1, -rankSize - 6, 0, rankSize * 0.48)} Font={Enum.Font.GothamBlack} Text={formatScore(outcome.score)} TextColor3={C.Ivory} TextSize={math.floor(rankSize * 0.46)} TextXAlignment={Enum.TextXAlignment.Left} />
+						<textlabel key="ScoreValue" BackgroundTransparency={1} Position={UDim2.fromOffset(rankSize + 6, 12)} Size={new UDim2(1, -rankSize - 6, 0, scoreHeight)} Font={Enum.Font.GothamBlack} Text={formatScore(outcome.score)} TextColor3={C.Ivory} TextSize={math.floor(scoreHeight * 0.96)} TextXAlignment={Enum.TextXAlignment.Left} />
 						<textlabel key="BestLine" BackgroundTransparency={1} AnchorPoint={new Vector2(0, 1)} Position={new UDim2(0, rankSize + 6, 1, 0)} Size={new UDim2(1, -rankSize - 6, 0, 14)} Font={Enum.Font.GothamBold} Text={newBest ? (outcome.newBestRank ? "NEW BEST RANK" : "NEW BEST SCORE") : bestText} TextColor3={newBest ? C.Orange : C.Muted} TextSize={compact ? 10 : 11} TextXAlignment={Enum.TextXAlignment.Left} />
 					</frame>
 					<Label name="OutcomeGoal" layoutOrder={5} text={`OBJECTIVE · ${string.upper(mission.primary)}`} color={C.Faint} textSize={compact ? 10 : 11} font={Enum.Font.GothamBold} size={new UDim2(1, -8, 0, 0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} />

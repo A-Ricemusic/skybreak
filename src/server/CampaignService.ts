@@ -225,9 +225,10 @@ const onFinished: FinishedCallback = (player, won, stats) => {
 	});
 	if (!recorded) {
 		warn("SKYBREAK did not record a mission result that did not match the active server session");
-		// Still end the client's flight on a result screen instead of a frozen HUD; nothing was saved.
+		// Still end the client's flight on a result screen instead of a frozen HUD. Nothing was saved or
+		// unlocked, so it must never read as a win (no rank, NEXT, or finale cinematic).
 		if (player.Parent === Players) remotes!.MissionState.FireClient(player, {
-			kind: won ? "Completed" : "Failed", ...stats, saved: false, persistence: state.coordinator.getPersistence(),
+			kind: "Failed", ...stats, reason: "not_recorded", saved: false, persistence: state.coordinator.getPersistence(),
 		});
 		return;
 	}
