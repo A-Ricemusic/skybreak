@@ -2,6 +2,8 @@ import { Players, RunService, Workspace } from "@rbxts/services";
 import { FlightMath, FlightState } from "../shared/FlightMath";
 import { JetFactory } from "../shared/JetFactory";
 import { MissionPhase, MissionRules, MissionRuleState, TargetKind } from "../shared/MissionRules";
+import { BlueprintRunner, BlueprintState } from "../shared/BlueprintRunner";
+import { MissionBlueprint, MissionCatalog, MissionPhaseBlueprint } from "../shared/MissionCatalog";
 import { FinishedCallback, FlightInput, MissionStats, Remotes, Telemetry } from "../shared/Types";
 import { MissionWorld } from "./MissionWorld";
 
@@ -17,7 +19,12 @@ interface Projectile {
 }
 export interface CombatSession {
 	player: Player; slot: number; folder: Folder; aircraft: Model; state: FlightState; input: FlightInput;
-	rules: MissionRuleState; appliedPhase?: MissionPhase; nextHostileAt: number;
+	rules?: MissionRuleState;
+	blueprintState?: BlueprintState;
+	blueprint?: MissionBlueprint;
+	missionId: number;
+	appliedPhase?: MissionPhase | string; nextHostileAt: number;
+	appliedBlueprintPhaseIndex?: number;
 	health: number; kills: number; elapsed: number; missiles: number; missileCooldown: number;
 	evadeCooldown: number; evadeRemaining: number; regen: number; lockProgress: number;
 	enemies: Enemy[]; projectiles: Projectile[]; target?: Enemy; telemetryTime: number;
@@ -59,6 +66,81 @@ function targetMetrics(session: CombatSession, enemy: Enemy): LuaTuple<[number, 
 	const distance = delta.Magnitude;
 	return $tuple(distance, distance > 0.01 ? directionFor(session.state).Dot(delta.div(distance)) : 1);
 }
+
+function sessionTotalRequired(session: CombatSession): number {
+	if (session.missionId === 1) return 3;
+	if (session.missionId === 2) return 9;
+	// Required air + required ground + ace = all required destructions.
+	const bp = session.blueprint!;
+	return MissionCatalog.RequiredAirKills(bp) + MissionCatalog.RequiredGroundKills(bp);
+}
+
+function sessionGroundKills(session: CombatSession): number {
+	return session.rules?.groundKills ?? session.blueprintState?.requiredGroundKills ?? 0;
+}
+
+function sessionCanDamage(session: CombatSession, kind: TargetKind, required: boolean): boolean {
+	if (session.rules) return MissionRules.CanDamage(session.rules, kind, required);
+	if (session.blueprintState) {
+		const stateKind = kind === "ace" ? "ace" : kind;
+		return BlueprintRunner.CanDamage(session.blueprintState, stateKind, required);
+	}
+	return false;
+}
+
+function sessionRecordKill(session: CombatSession, id: string, kind: TargetKind, required: boolean, now: number): boolean {
+	if (session.rules) return MissionRules.RecordKill(session.rules, id, kind, required, now);
+	if (session.blueprintState) return BlueprintRunner.RecordKill(session.blueprintState, id, kind, required, now);
+	return false;
+}
+
+function sessionTick(session: CombatSession, now: number, health: number): void {
+	if (session.rules) MissionRules.Tick(session.rules, now, health);
+	else if (session.blueprintState) BlueprintRunner.Tick(session.blueprintState, now, health);
+}
+
+function sessionOutcome(session: CombatSession): "won" | "failed" | undefined {
+	return session.rules?.outcome ?? session.blueprintState?.outcome;
+}
+
+function sessionReason(session: CombatSession): string | undefined {
+	return session.rules?.reason ?? session.blueprintState?.reason;
+}
+
+function sessionTimeRemaining(session: CombatSession): number {
+	if (session.rules) return MissionRules.TimeRemaining(session.rules);
+	if (session.blueprintState) return BlueprintRunner.TimeRemaining(session.blueprintState);
+	return 0;
+}
+
+function sessionObjective(session: CombatSession): {
+	phase: string;
+	objective: string;
+	objectiveProgress: number;
+	objectiveTotal: number;
+	tutorialStep: string;
+} {
+	if (session.rules) {
+		const info = MissionRules.Objective(session.rules);
+		return {
+			phase: session.rules.phase,
+			objective: info.objective,
+			objectiveProgress: info.objectiveProgress,
+			objectiveTotal: info.objectiveTotal,
+			tutorialStep: info.tutorialStep,
+		};
+	}
+	assert(session.blueprintState, "session must have rules or blueprintState");
+	const info = BlueprintRunner.Objective(session.blueprintState);
+	return {
+		phase: info.phase,
+		objective: info.objective,
+		objectiveProgress: info.objectiveProgress,
+		objectiveTotal: info.objectiveTotal,
+		tutorialStep: "",
+	};
+}
+
 function acquireTarget(session: CombatSession): void {
 	let best: Enemy | undefined;
 	let score = math.huge;
@@ -79,9 +161,11 @@ function cycleTarget(session: CombatSession): void {
 		const candidate = session.enemies[(current + offset) % session.enemies.size()];
 		if (ownsEnemy(session, candidate)) {
 			session.target = candidate; session.lockProgress = 0;
-			// A real CycleTarget event with an available target is the tutorial gate.
-			MissionRules.CycleTarget(session.rules, os.clock());
-			applyPhase(session);
+			// Only the legacy Mission 1 tutorial watches the CycleTarget event.
+			if (session.rules) {
+				MissionRules.CycleTarget(session.rules, os.clock());
+				applyPhase(session);
+			}
 			return;
 		}
 	}
@@ -96,14 +180,14 @@ function sendTelemetry(session: CombatSession): void {
 	const target = ownsEnemy(session, session.target) ? session.target : undefined;
 	let distance = 0;
 	if (target) { const [targetDistance] = targetMetrics(session, target); distance = targetDistance; }
-	const objective = MissionRules.Objective(session.rules);
+	const objective = sessionObjective(session);
 	const message: Telemetry = {
-		kind: "Telemetry", missionId: session.rules.missionId, phase: session.rules.phase,
+		kind: "Telemetry", missionId: session.missionId, phase: objective.phase,
 		objective: objective.objective, objectiveProgress: objective.objectiveProgress,
 		objectiveTotal: objective.objectiveTotal, tutorialStep: objective.tutorialStep,
-		timeRemaining: MissionRules.TimeRemaining(session.rules), groundKills: session.rules.groundKills,
+		timeRemaining: sessionTimeRemaining(session), groundKills: sessionGroundKills(session),
 		health: session.health, speed: session.state.speed, altitude: session.state.y,
-		kills: session.kills, total: session.rules.missionId === 1 ? 3 : 9,
+		kills: session.kills, total: sessionTotalRequired(session),
 		missiles: session.missiles, missileCooldown: session.missileCooldown,
 		evadeCooldown: session.evadeCooldown, target: target?.model, targetName: target?.name ?? "",
 		targetKind: target ? (target.kind === "ground" ? "ground" : "air") : "", targetRequired: target?.required ?? false, targetDistance: distance,
@@ -121,7 +205,6 @@ function cleanupSession(session: CombatSession, restore = true): void {
 	if (session.cleaned) return;
 	session.cleaned = true;
 	session.active = false;
-	// An old yielding completion must never detach a newly launched aircraft.
 	if (sessions.get(session.player) === session) {
 		sessions.delete(session.player);
 		if (session.characterRoot?.Parent) session.characterRoot.Anchored = session.wasAnchored ?? false;
@@ -134,17 +217,24 @@ function cleanupSession(session: CombatSession, restore = true): void {
 	if (restore) restoreMenu();
 }
 function finish(session: CombatSession): void {
-	if (!session.active || session.finished || session.rules.outcome === undefined) return;
-	// Guard before persistence can yield; the callback owns the normal Finished message.
+	if (!session.active || session.finished) return;
+	const outcome = sessionOutcome(session);
+	if (outcome === undefined) return;
 	session.finished = true;
 	session.active = false;
 	completing.add(session.player);
-	session.elapsed = session.rules.elapsed;
+	// Sync elapsed from whichever authoritative runner owns the mission.
+	if (session.rules) session.elapsed = session.rules.elapsed;
+	else if (session.blueprintState) session.elapsed = session.blueprintState.elapsed;
 	sendTelemetry(session);
-	const won = session.rules.outcome === "won";
+	const won = outcome === "won";
 	const stats: MissionStats = {
-		kills: session.kills, groundKills: session.rules.groundKills, missionId: session.rules.missionId,
-		elapsed: session.elapsed, slot: session.slot, reason: session.rules.reason,
+		kills: session.kills,
+		groundKills: sessionGroundKills(session),
+		missionId: session.missionId,
+		elapsed: session.elapsed,
+		slot: session.slot,
+		reason: sessionReason(session),
 	};
 	const callback = onFinished!;
 	task.defer(() => {
@@ -156,16 +246,16 @@ function finish(session: CombatSession): void {
 				kind: won ? "Completed" : "Failed", ...stats, saved: false,
 			});
 		}
-		// Finished reaches the client first, so outcome UI survives aircraft/world teardown.
 		cleanupSession(session);
 		completing.delete(session.player);
 	});
 }
 function refreshSession(session: CombatSession, now: number): boolean {
 	if (!session.active) return false;
-	MissionRules.Tick(session.rules, now, session.health);
-	session.elapsed = session.rules.elapsed;
-	if (session.rules.outcome !== undefined) { finish(session); return false; }
+	sessionTick(session, now, session.health);
+	if (session.rules) session.elapsed = session.rules.elapsed;
+	else if (session.blueprintState) session.elapsed = session.blueprintState.elapsed;
+	if (sessionOutcome(session) !== undefined) { finish(session); return false; }
 	return true;
 }
 function markTarget(session: CombatSession, enemy: Enemy): void {
@@ -205,13 +295,12 @@ function attackWarning(model: Model): BillboardGui {
 	label.Parent = warning;
 	return warning;
 }
-function spawnAir(session: CombatSession, count: number, required: boolean, ace = false): void {
+function spawnAir(session: CombatSession, count: number, required: boolean, ace = false, aceHealth = 165): void {
 	const forward = directionFor(session.state);
 	const right = new Vector3(-forward.Z, 0, forward.X);
 	for (let index = 0; index < count; index++) {
-		const name = ace ? "VANTA ACE" : `${required ? "VANTA" : "RAIDER"} 0${index + 1}`;
+		const name = ace ? "ACE" : `${required ? "BANDIT" : "RAIDER"} 0${index + 1}`;
 		const model = JetFactory.Create(name, true);
-		// The first mesh generation may yield; completion/exit can occur meanwhile.
 		if (!session.active || session.folder.Parent === undefined) { model.Destroy(); return; }
 		const offset = forward.mul(850 + index * 100).add(right.mul((index - (count - 1) / 2) * 250));
 		const spawn = positionFor(session.state).add(offset);
@@ -220,7 +309,7 @@ function spawnAir(session: CombatSession, count: number, required: boolean, ace 
 		model.Parent = session.folder;
 		model.PivotTo(CFrame.lookAt(position, position.add(direction)));
 		const enemy: Enemy = {
-			id: `air_${session.enemies.size() + 1}`, name, model, health: ace ? 165 : 100,
+			id: `air_${session.enemies.size() + 1}_${missionSerial}`, name, model, health: ace ? aceHealth : 100,
 			position, direction, velocity: direction.mul(300), kind: ace ? "ace" : "air", required, enabled: true,
 			fireTimer: 8 + index * 3, windup: 0, passRemaining: 0, passDirection: direction,
 			hiddenParts: [], warning: attackWarning(model),
@@ -229,7 +318,11 @@ function spawnAir(session: CombatSession, count: number, required: boolean, ace 
 		session.enemies.push(enemy);
 	}
 }
-function applyPhase(session: CombatSession): void {
+
+// Legacy Mission 1/2 phase application: byte-for-byte compatible with the
+// pre-blueprint CombatService behavior that the existing engine tests cover.
+function applyLegacyPhase(session: CombatSession): void {
+	assert(session.rules, "legacy phase application requires MissionRules state");
 	if (session.appliedPhase === session.rules.phase || session.rules.outcome !== undefined) return;
 	session.appliedPhase = session.rules.phase;
 	const phase = session.rules.phase;
@@ -239,11 +332,39 @@ function applyPhase(session: CombatSession): void {
 	else if (phase === "ace") spawnAir(session, 1, true, true);
 	acquireTarget(session);
 }
+
+// Blueprint-driven phase application for missions 3-27.
+function applyBlueprintPhase(session: CombatSession): void {
+	assert(session.blueprintState && session.blueprint, "blueprint phase application requires blueprint state");
+	const state = session.blueprintState;
+	if (state.outcome !== undefined) return;
+	if (session.appliedBlueprintPhaseIndex === state.phaseIndex) return;
+	session.appliedBlueprintPhaseIndex = state.phaseIndex;
+	const phase: MissionPhaseBlueprint | undefined = state.blueprint.phases[state.phaseIndex];
+	if (!phase) return;
+	if (phase.kind === "required_ground") {
+		activateGround(session);
+		if ((phase.optionalRaiders ?? 0) > 0) spawnAir(session, phase.optionalRaiders ?? 0, false);
+	} else if (phase.kind === "required_air") {
+		spawnAir(session, phase.count ?? 0, true);
+		if ((phase.optionalRaiders ?? 0) > 0) spawnAir(session, phase.optionalRaiders ?? 0, false);
+	} else if (phase.kind === "ace") {
+		spawnAir(session, 1, true, true, session.blueprint.aceHealth ?? 165);
+	}
+	acquireTarget(session);
+}
+
+function applyPhase(session: CombatSession): void {
+	if (session.rules) applyLegacyPhase(session);
+	else applyBlueprintPhase(session);
+}
+
 function destroyEnemy(session: CombatSession, enemy: Enemy): void {
 	if (!ownsEnemy(session, enemy)) return;
-	const accepted = MissionRules.RecordKill(session.rules, enemy.id, enemy.kind, enemy.required, os.clock());
-	session.elapsed = session.rules.elapsed;
-	if (!accepted) { if (session.rules.outcome !== undefined) finish(session); return; }
+	const accepted = sessionRecordKill(session, enemy.id, enemy.kind, enemy.required, os.clock());
+	if (session.rules) session.elapsed = session.rules.elapsed;
+	else if (session.blueprintState) session.elapsed = session.blueprintState.elapsed;
+	if (!accepted) { if (sessionOutcome(session) !== undefined) finish(session); return; }
 	enemy.health = 0;
 	enemy.enabled = false;
 	enemy.model.SetAttribute("Health", 0);
@@ -251,10 +372,15 @@ function destroyEnemy(session: CombatSession, enemy: Enemy): void {
 	enemy.model.SetAttribute("RequiredTarget", false);
 	JetFactory.Burst(session.folder, enemy.position, Color3.fromRGB(255, 169, 87), enemy.kind === "ground" ? 26 : 12);
 	enemy.model.Destroy();
-	session.kills = session.rules.requiredAirKills + session.rules.optionalAirKills + (session.rules.aceKilled ? 1 : 0);
+	if (session.rules) {
+		session.kills = session.rules.requiredAirKills + session.rules.optionalAirKills + (session.rules.aceKilled ? 1 : 0);
+	} else if (session.blueprintState) {
+		const bs = session.blueprintState;
+		session.kills = bs.requiredAirKills + bs.optionalAirKills + (bs.aceKilled ? 1 : 0);
+	}
 	applyPhase(session);
 	if (session.target === enemy || !ownsEnemy(session, session.target)) acquireTarget(session);
-	if (session.rules.outcome !== undefined) finish(session);
+	if (sessionOutcome(session) !== undefined) finish(session);
 }
 function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy): void {
 	let position: Vector3;
@@ -266,7 +392,7 @@ function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy):
 		direction = unitOr(positionFor(session.state).sub(position), enemy.direction);
 	} else {
 		if (session.lockProgress < 0.99 || !ownsEnemy(session, session.target)) return;
-		if (!MissionRules.CanDamage(session.rules, session.target.kind, session.target.required)) return;
+		if (!sessionCanDamage(session, session.target.kind, session.target.required)) return;
 		const [distance, dot] = targetMetrics(session, session.target);
 		if (session.missiles <= 0 || session.missileCooldown > 0 || distance > LOCK_RANGE || dot < LOCK_DOT) return;
 		position = positionFor(session.state).add(directionFor(session.state).mul(16)).sub(new Vector3(0, 2, 0));
@@ -302,7 +428,6 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		const speed = math.clamp(session.state.speed + (ace ? 48 : 24), ace ? 320 : 285, ace ? 380 : 350);
 		enemy.passRemaining = math.max(0, enemy.passRemaining - dt);
 		if (separation < 280 && enemy.passRemaining <= 0) {
-			// Commit to a straight pass, then reacquire; no permanent overlap or orbit.
 			enemy.passRemaining = ace ? 2 : 2.6;
 			enemy.passDirection = unitOr(enemy.direction.add(playerForward.mul(0.2)), enemy.direction);
 		}
@@ -328,7 +453,6 @@ function stepEnemies(session: CombatSession, dt: number): void {
 				enemy.fireTimer = ace ? 12 : 17;
 			}
 		} else if (enemy.fireTimer <= 0 && session.elapsed >= session.nextHostileAt && separation > 450 && separation < 1800 && aimDot > 0.65 && session.evadeRemaining <= 0) {
-			// Shared spacing prevents five optional fighters from firing a phone-unfriendly volley.
 			enemy.windup = 2.6;
 			enemy.warning!.Enabled = true;
 			enemy.model.SetAttribute("AttackWarning", true);
@@ -354,7 +478,6 @@ function stepMissiles(session: CombatSession, dt: number): void {
 			const distance = targetPosition.sub(missile.position).Magnitude;
 			const lead = missile.hostile ? 0.08 : math.clamp(distance / speed, 0, 0.65);
 			const delta = targetPosition.add(velocity.mul(lead)).sub(missile.position);
-			// Hostile missiles commit after a short tracking period, so steering alone can evade.
 			if (!missile.hostile || missile.age < 1.1) missile.direction = unitOr(missile.direction.Lerp(unitOr(delta, missile.direction), FlightMath.DampAlpha(missile.hostile ? 0.65 : 7, dt)), missile.direction);
 			const nextPosition = missile.position.add(missile.direction.mul(speed * dt));
 			if (segmentDistance(targetPosition, missile.position, nextPosition) < (missile.hostile ? 18 : 32)) {
@@ -362,10 +485,9 @@ function stepMissiles(session: CombatSession, dt: number): void {
 				JetFactory.Burst(session.folder, targetPosition, Color3.fromRGB(255, 179, 102), missile.hostile ? 6 : 8);
 				if (missile.hostile) {
 					if (session.evadeRemaining <= 0) session.health = math.max(0, session.health - 10);
-				} else if (MissionRules.CanDamage(session.rules, missile.target!.kind, missile.target!.required)) {
+				} else if (sessionCanDamage(session, missile.target!.kind, missile.target!.required)) {
 					const enemy = missile.target!;
 					if (enemy.health <= 55) {
-						// Remove this projectile before a final kill can begin asynchronous cleanup.
 						missile.part.Destroy(); session.projectiles.remove(index);
 						destroyEnemy(session, enemy);
 						if (!session.active) return;
@@ -391,8 +513,9 @@ function stepSession(session: CombatSession, dt: number): void {
 	session.regen += dt;
 	if (session.regen >= 2.5) { session.regen -= 2.5; session.missiles = math.min(MAX_MISSILES, session.missiles + 1); }
 	if (os.clock() - session.lastInput > 0.7) { session.input.x = 0; session.input.y = 0; }
-	MissionRules.ObserveControls(session.rules, session.input.x, session.input.y, dt, os.clock());
-	if (session.rules.outcome !== undefined) { finish(session); return; }
+	// Legacy Mission 1 observes real control usage during its tutorial phases.
+	if (session.rules) MissionRules.ObserveControls(session.rules, session.input.x, session.input.y, dt, os.clock());
+	if (sessionOutcome(session) !== undefined) { finish(session); return; }
 	applyPhase(session);
 	FlightMath.Step(session.state, session.input, dt);
 	let flightFrame = frameFor(session.state);
@@ -422,7 +545,7 @@ export const CombatService = {
 	StartMission(player: Player, slot: number, missionId = 1): LuaTuple<[boolean, string?]> {
 		if (!missionState || !onFinished) return $tuple(false, "CombatService is not initialized");
 		if (!FlightMath.IsFinite(slot) || slot % 1 !== 0 || slot < 1 || slot > 4) return $tuple(false, "Choose a save slot from 1 to 4");
-		if (missionId !== 1 && missionId !== 2) return $tuple(false, "Choose mission 1 or 2");
+		if (!MissionCatalog.IsValidId(missionId)) return $tuple(false, "Choose a valid mission");
 		if (!typeIs(player, "Instance") || !player.IsA("Player") || player.Parent !== Players) return $tuple(false, "Player is unavailable");
 		if (completing.has(player)) return $tuple(false, "Your mission result is still being saved");
 		if (sessions.has(player)) return $tuple(false, "A mission is already in progress or its result is being saved");
@@ -434,9 +557,15 @@ export const CombatService = {
 		folder.Name = `Mission_${player.UserId}_${missionSerial}`;
 		folder.Parent = missionRoot;
 		const [ok, result] = pcall(() => {
+			const legacy = missionId === 1 || missionId === 2;
 			const world = MissionWorld.Build(missionId, folder);
 			assert(player.Parent === Players, "Player left during world construction");
-			assert(world.groundTargets.size() === (missionId === 1 ? 1 : 5), "Mission world has an incorrect ground target count");
+			if (legacy) {
+				assert(world.groundTargets.size() === (missionId === 1 ? 1 : 5), "Mission world has an incorrect ground target count");
+			} else {
+				const blueprint = MissionCatalog.Get(missionId);
+				assert(world.groundTargets.size() === blueprint.ground.size(), `Mission ${missionId} world ground target count mismatch`);
+			}
 			const aircraft = JetFactory.Create("SKYBREAK - Kestrel", false);
 			assert(player.Parent === Players, "Player left during aircraft construction");
 			aircraft.SetAttribute("SkybreakOwner", player.UserId);
@@ -445,24 +574,33 @@ export const CombatService = {
 			const state = FlightMath.NewState();
 			aircraft.PivotTo(frameFor(state));
 			const session: CombatSession = {
-				player, slot, folder, aircraft, state, rules: MissionRules.NewState(missionId, startedAt), nextHostileAt: 8,
+				player, slot, folder, aircraft, state, missionId, nextHostileAt: 8,
 				input: { x: 0, y: 0, throttle: 0.65 }, health: 100, kills: 0, elapsed: 0,
 				missiles: MAX_MISSILES, missileCooldown: 0, evadeCooldown: 0, evadeRemaining: 0, regen: 0, lockProgress: 0,
 				enemies: [], projectiles: [], telemetryTime: 0, lastInput: os.clock(), lastInputEvent: -math.huge,
 				lastActionEvent: -math.huge, active: true, finished: false, cleaned: false, previousReplicationFocus: player.ReplicationFocus,
 			};
-			for (const model of world.groundTargets) {
+			if (legacy) {
+				session.rules = MissionRules.NewState(missionId as 1 | 2, startedAt);
+			} else {
+				session.blueprint = MissionCatalog.Get(missionId);
+				session.blueprintState = BlueprintRunner.NewState(session.blueprint, startedAt);
+			}
+			for (let index = 0; index < world.groundTargets.size(); index++) {
+				const model = world.groundTargets[index];
 				assert(model.Parent === folder && model.PrimaryPart !== undefined, "Ground target must have a stationary aim center in its session");
 				const enemy: Enemy = {
-					id: `ground_${session.enemies.size() + 1}`, name: model.Name, model, health: 55,
+					id: `ground_${index + 1}_${missionSerial}`, name: model.Name, model, health: 55,
 					position: model.PrimaryPart.Position, direction: new Vector3(0, 0, -1), velocity: Vector3.zero,
 					kind: "ground", required: true, enabled: false, fireTimer: 0, windup: 0,
 					passRemaining: 0, passDirection: new Vector3(0, 0, -1), hiddenParts: [],
 				};
+				// Legacy Mission 1 hides the training radar until the tutorial activates it.
+				const hideUntilActivated = missionId === 1;
 				for (const item of model.GetDescendants()) {
 					if (item.IsA("BasePart")) {
 						item.Anchored = true; item.CanCollide = false; item.CanTouch = false; item.CanQuery = false;
-						if (missionId === 1) { enemy.hiddenParts.push({ part: item, transparency: item.Transparency }); item.Transparency = 1; }
+						if (hideUntilActivated) { enemy.hiddenParts.push({ part: item, transparency: item.Transparency }); item.Transparency = 1; }
 					}
 				}
 				markTarget(session, enemy);
@@ -526,7 +664,6 @@ export const CombatService = {
 		connections.push(Players.PlayerRemoving.Connect((player) => CombatService.EndMission(player)));
 		let accumulator = 0;
 		connections.push(RunService.Heartbeat.Connect((dt) => {
-			// Check every heartbeat, including ones too small for a step or too long to catch up.
 			const now = os.clock();
 			for (const [, session] of sessions) refreshSession(session, now);
 			if (!FlightMath.IsFinite(dt) || dt <= 0) return;
