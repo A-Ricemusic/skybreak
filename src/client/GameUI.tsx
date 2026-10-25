@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "@rbxts/react";
+import { getSaveSlotRowHeight } from "../shared/SaveSlotLayout";
 import ReactRoblox from "@rbxts/react-roblox";
 import { GuiService, RunService, TweenService, UserInputService, Workspace } from "@rbxts/services";
 
@@ -633,11 +634,10 @@ function TitleScreenImpl({ visible, menu, onCampaign }: { visible: boolean; menu
 }
 const TitleScreen = React.memo(TitleScreenImpl);
 
-function SlotButton({
+function SaveSlotRow({
 	number,
 	slot,
 	busy,
-	compact,
 	confirming,
 	onSlot,
 	onAskDelete,
@@ -647,7 +647,6 @@ function SlotButton({
 	number: number;
 	slot?: SaveSlot;
 	busy: boolean;
-	compact: boolean;
 	confirming: boolean;
 	onSlot: (slot: number) => void;
 	onAskDelete: (slot: number) => void;
@@ -661,52 +660,40 @@ function SlotButton({
 	let completed=0;
 	if(slot) for(let id=1;id<=MISSION_COUNT;id++) if(slot.missions?.[id]?.completed) completed++;
 	const detail=busy ? "Please stand by" : !slot ? "Return and try again" : `${completed}/27 complete · ${MissionCatalog.Get(slot.currentMission ?? 1).title}`;
-	const rowHeight = compact ? 44 : 58;
-	const buttonHeight = compact ? 32 : 38;
-	if (confirming) {
-		return (
-			<frame key={`Slot${number}Button`} BackgroundColor3={C.Panel} BackgroundTransparency={0.04} BorderSizePixel={0} LayoutOrder={number} Size={new UDim2(1, 0, 0, rowHeight)}>
-				<Corner />
-				<Stroke color={C.Danger} transparency={0.15} thickness={2} />
-				<Label name="SlotNumber" text={string.format("%02d", number)} color={C.Danger} textSize={12} font={Enum.Font.RobotoMono} position={UDim2.fromOffset(14, 0)} size={new UDim2(0, 26, 1, 0)} />
-				<Label name="Status" text="DELETE THIS SAVE?" color={C.Danger} textSize={compact ? 13 : 15} font={Enum.Font.GothamBold} position={UDim2.fromOffset(48, compact ? 5 : 10)} size={new UDim2(1, -240, 0, compact ? 18 : 20)} />
-				<Label name="Detail" text="All progress in this file is lost." color={C.Muted} textSize={compact ? 10 : 12} position={UDim2.fromOffset(48, compact ? 23 : 31)} size={new UDim2(1, -240, 0, compact ? 15 : 17)} />
-				<ActionButton name="KeepButton" text="KEEP" anchorPoint={new Vector2(1, 0.5)} position={new UDim2(1, -98, 0.5, 0)} size={UDim2.fromOffset(78, buttonHeight)} enabled={!busy} textSize={12} onActivated={onCancelDelete} />
-				<ActionButton name="ConfirmDeleteButton" text="DELETE" primary={true} anchorPoint={new Vector2(1, 0.5)} position={new UDim2(1, -10, 0.5, 0)} size={UDim2.fromOffset(82, buttonHeight)} enabled={!busy} textSize={12} onActivated={() => onConfirmDelete(number)} />
-			</frame>
-		);
-	}
+	// Text and destructive actions have separate vertical lanes at every panel width.
+	// Label uses fixed-size text by default: a smaller Size alone does not contain it.
+	const rowHeight = getSaveSlotRowHeight(slot?.occupied === true, confirming);
+	const content = (confirm: boolean) => (
+		<frame key="Copy" BackgroundTransparency={1} ClipsDescendants={true} Position={UDim2.fromOffset(40, 6)} Size={new UDim2(1, -68, 0, 72)}>
+			<Label name="Status" text={confirm ? "DELETE THIS SAVE?" : status} color={confirm ? C.Danger : slot?.completed ? C.Accent : C.Ivory} textSize={13} font={Enum.Font.GothamBold} size={new UDim2(1, 0, 0, 36)} textWrapped={true} />
+			<Label name="Detail" text={confirm ? "All progress in this file is lost." : detail} color={C.Muted} textSize={12} position={UDim2.fromOffset(0, 38)} size={new UDim2(1, 0, 0, 32)} textWrapped={true} />
+		</frame>
+	);
 	return (
-		<textbutton
-			key={`Slot${number}Button`}
-			Active={enabled}
-			AutoButtonColor={false}
-			BackgroundColor3={hot ? C.PanelHot : C.Panel}
-			BackgroundTransparency={hot ? 0.04 : 0.3}
-			BorderSizePixel={0}
-			LayoutOrder={number}
-			SelectionImageObject={SELECTION_NONE}
-			Size={new UDim2(1, 0, 0, rowHeight)}
-			Text=""
-			Event={{
-				...events,
-				Activated: () => {
-					clearHover();
-					if (enabled) onSlot(number);
-				},
-			}}
-		>
+		<frame key={`Slot${number}Row`} BackgroundColor3={hot ? C.PanelHot : C.Panel} BackgroundTransparency={hot ? 0.04 : 0.3} BorderSizePixel={0} LayoutOrder={number} Size={new UDim2(1, 0, 0, rowHeight)}>
 			<Corner />
-			<Stroke color={hot ? C.Accent : C.Ivory} transparency={hot ? 0.15 : 0.9} thickness={hot ? 2 : 1} />
-			<frame key="FocusBar" BackgroundColor3={C.Accent} BorderSizePixel={0} Position={new UDim2(0, 0, 0.5, 0)} AnchorPoint={new Vector2(0, 0.5)} Size={new UDim2(0, 3, 1, -16)} Visible={hot} />
-			<Label name="SlotNumber" text={string.format("%02d", number)} color={hot ? C.Accent : C.Faint} textSize={12} font={Enum.Font.RobotoMono} position={UDim2.fromOffset(14, 0)} size={new UDim2(0, 26, 1, 0)} />
-			<Label name="Status" text={status} color={slot?.completed ? C.Accent : C.Ivory} textSize={compact ? 13 : 15} font={Enum.Font.GothamBold} position={UDim2.fromOffset(48, compact ? 5 : 10)} size={new UDim2(1, deletable ? -170 : -80, 0, compact ? 18 : 20)} />
-			<Label name="Detail" text={detail} color={C.Muted} textSize={compact ? 10 : 12} position={UDim2.fromOffset(48, compact ? 23 : 31)} size={new UDim2(1, deletable ? -170 : -80, 0, compact ? 15 : 17)} />
-			{deletable && (
-				<ActionButton name="DeleteButton" text="DELETE" anchorPoint={new Vector2(1, 0.5)} position={new UDim2(1, -40, 0.5, 0)} size={UDim2.fromOffset(84, buttonHeight)} textSize={11} onActivated={() => onAskDelete(number)} />
+			<Stroke color={confirming ? C.Danger : hot ? C.Accent : C.Ivory} transparency={confirming || hot ? 0.15 : 0.9} thickness={confirming || hot ? 2 : 1} />
+			{confirming ? (
+				<frame key="Confirmation" BackgroundTransparency={1} Size={new UDim2(1, 0, 0, 84)}>
+					<Label name="SlotNumber" text={string.format("%02d", number)} color={C.Danger} textSize={12} font={Enum.Font.RobotoMono} position={UDim2.fromOffset(10, 0)} size={UDim2.fromOffset(26, 84)} />
+					{content(true)}
+				</frame>
+			) : (
+				<textbutton key={`Slot${number}Button`} Active={enabled} Selectable={enabled} AutoButtonColor={false} BackgroundTransparency={1} BorderSizePixel={0} SelectionImageObject={SELECTION_NONE} Size={new UDim2(1, 0, 0, 84)} Text="" Event={{...events, Activated: () => { clearHover(); if (enabled) onSlot(number); }}}>
+					<Label name="SlotNumber" text={string.format("%02d", number)} color={hot ? C.Accent : C.Faint} textSize={12} font={Enum.Font.RobotoMono} position={UDim2.fromOffset(10, 0)} size={UDim2.fromOffset(26, 84)} />
+					{content(false)}
+					<Label name="Arrow" text="›" color={hot ? C.Accent : C.Faint} textSize={20} anchorPoint={new Vector2(1, 0.5)} position={new UDim2(1, -8, 0, 42)} size={UDim2.fromOffset(16, 28)} visible={enabled} />
+				</textbutton>
 			)}
-			<Label name="Arrow" text="›" color={hot ? C.Accent : C.Faint} textSize={20} anchorPoint={new Vector2(1, 0.5)} position={new UDim2(1, -14, 0.5, 0)} size={UDim2.fromOffset(16, 28)} textXAlignment={Enum.TextXAlignment.Right} visible={enabled} />
-		</textbutton>
+			{confirming ? (
+				<frame key="DeleteActions" BackgroundTransparency={1} Position={UDim2.fromOffset(8, 84)} Size={new UDim2(1, -16, 0, MIN_TOUCH_TARGET)}>
+					<ActionButton name="KeepButton" text="KEEP" size={new UDim2(0.5, -4, 1, 0)} enabled={!busy} textSize={12} onActivated={onCancelDelete} />
+					<ActionButton name="ConfirmDeleteButton" text="DELETE" primary={true} position={new UDim2(0.5, 4, 0, 0)} size={new UDim2(0.5, -4, 1, 0)} enabled={!busy} textSize={12} onActivated={() => onConfirmDelete(number)} />
+				</frame>
+			) : deletable && (
+				<ActionButton name="DeleteButton" text="DELETE" anchorPoint={new Vector2(1, 0)} position={new UDim2(1, -8, 0, 84)} size={UDim2.fromOffset(96, MIN_TOUCH_TARGET)} textSize={12} onActivated={() => onAskDelete(number)} />
+			)}
+		</frame>
 	);
 }
 
@@ -743,7 +730,7 @@ function CampaignScreenImpl({
 			: persistence === "session"
 				? "Saves kept for this session only"
 				: "Save service offline. Progress may not persist.";
-	const rowHeight = compact ? 44 : 58;
+	const canvasHeight = SLOT_NUMBERS.reduce((height, number) => height + getSaveSlotRowHeight(slots?.[number - 1]?.occupied === true, confirmSlot === number), 0);
 	const gap = compact ? 6 : 8;
 	const footerHeight = 44;
 	return (
@@ -759,15 +746,14 @@ function CampaignScreenImpl({
 				size={new UDim2(1, 0, 0, 16)}
 				visible={!compact}
 			/>
-			<scrollingframe key="SlotGrid" BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={3} ScrollingDirection={Enum.ScrollingDirection.Y} CanvasSize={UDim2.fromOffset(0, rowHeight * 4 + gap * 3)} Position={UDim2.fromOffset(0, compact ? 34 : 66)} Size={new UDim2(1, 0, 0, getSlotListHeight(menu.panel.height, compact))}>
+			<scrollingframe key="SlotGrid" BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={3} ScrollingDirection={Enum.ScrollingDirection.Y} CanvasSize={UDim2.fromOffset(0, canvasHeight + gap * 3)} Position={UDim2.fromOffset(0, compact ? 34 : 66)} Size={new UDim2(1, 0, 0, getSlotListHeight(menu.panel.height, compact))}>
 				<uilistlayout Padding={new UDim(0, gap)} SortOrder={Enum.SortOrder.LayoutOrder} />
 				{SLOT_NUMBERS.map((number) => (
-					<SlotButton
+					<SaveSlotRow
 						key={`Slot${number}Button`}
 						number={number}
 						slot={slots?.[number - 1]}
 						busy={busy}
-						compact={compact}
 						confirming={confirmSlot === number}
 						onSlot={onSlot}
 						onAskDelete={onAskDelete}
