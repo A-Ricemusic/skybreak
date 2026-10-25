@@ -24,11 +24,9 @@ function preloadable(root: Instance): Instance[] {
 export function preloadMission(aircraft: unknown, expectedParts: number | undefined, alive: () => boolean, onProgress: (fraction: number) => void, timeout = 6): boolean {
 	const deadline = os.clock() + timeout;
 	const remaining = () => deadline - os.clock();
-	let model = isModel(aircraft) ? aircraft : undefined;
-	while (alive() && remaining() > 0 && !(model?.PrimaryPart && model.Parent)) {
-		task.wait(0.1);
-		model = isModel(aircraft) ? aircraft : undefined;
-	}
+	if (!isModel(aircraft)) return false;
+	const model = aircraft;
+	while (alive() && remaining() > 0 && !(model.PrimaryPart && model.Parent)) task.wait(0.1);
 	if (!alive()) return false;
 	const folder = model?.Parent;
 	if (!folder) return false;

@@ -168,8 +168,9 @@ export class FlightController {
 		if (isModel(this.aircraft)) {
 			const position = this.aircraft.GetPivot().Position;
 			// Same limits the server clamps against, so the warning cannot flicker between the two.
-			result.boundaryWarning = math.max(math.abs(position.X), math.abs(position.Z)) > FlightMath.SoftBoundary
-				|| position.Y <= FlightMath.MinAltitude + 0.5 || position.Y >= FlightMath.MaxAltitude - 0.5;
+			// Warn a little before the server's limits so the pilot can turn or level off in time.
+			result.boundaryWarning = math.max(math.abs(position.X), math.abs(position.Z)) > FlightMath.SoftBoundary - 100
+				|| position.Y < FlightMath.MinAltitude + 35 || position.Y > FlightMath.MaxAltitude - 70;
 			if (isModel(result.target)) result.targetDistance = result.target.GetPivot().Position.sub(position).Magnitude;
 			else { result.target = undefined; result.targetDistance = 0; }
 		}
@@ -264,11 +265,11 @@ export class FlightController {
 		this.updateTargetCue(camera);
 		this.sendTime += dt;
 		const [x, y, throttle] = this.input(dt);
-		// Send at most 15 Hz, and only when the stick moved; a 0.5 s keepalive stays
-		// well inside the server's 0.7 s silence timeout that zeroes the controls.
+		// Send at most 15 Hz, and only when the stick moved; a 0.25 s keepalive leaves
+		// room for network jitter inside the server's 0.7 s silence timeout.
 		const last = this.lastSent;
 		const changed = !last || math.abs(last.x - x) > 0.01 || math.abs(last.y - y) > 0.01 || math.abs(last.throttle - throttle) > 0.01;
-		if ((changed && this.sendTime >= 1 / 15) || this.sendTime >= 0.5) {
+		if ((changed && this.sendTime >= 1 / 15) || this.sendTime >= 0.25) {
 			this.sendTime = 0;
 			this.lastSent = { x, y, throttle };
 			this.remotes.FlightInput.FireServer({ x, y, throttle });

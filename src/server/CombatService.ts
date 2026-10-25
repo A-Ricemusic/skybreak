@@ -549,6 +549,12 @@ function stepMissiles(session: CombatSession, dt: number): void {
 				JetFactory.Burst(session.folder, targetPosition, Color3.fromRGB(255, 179, 102), missile.hostile ? 6 : 8);
 				if (missile.hostile) {
 					if (session.evadeRemaining <= 0) session.health = math.max(0, session.health - 10);
+					if (session.health <= 0) {
+						// A fatal hit settles the sortie before any later kill in this step can count.
+						missile.part.Destroy(); session.projectiles.remove(index);
+						refreshSession(session, os.clock());
+						return;
+					}
 				} else if (sessionCanDamage(session, missile.target!.kind, missile.target!.required)) {
 					const enemy = missile.target!;
 					if (enemy.health <= 55) {
