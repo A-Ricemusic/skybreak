@@ -53,12 +53,13 @@ function createTargetCue(playerGui: Instance): [ScreenGui, Frame, UIStroke, Text
 	const caption = new Instance("TextLabel");
 	caption.Name = "TargetCaption";
 	caption.BackgroundTransparency = 1;
-	caption.Position = new UDim2(0.5, 0, 1, 6);
+	caption.Position = new UDim2(0.5, 0, 1, 4);
 	caption.AnchorPoint = new Vector2(0.5, 0);
-	caption.Size = UDim2.fromOffset(160, 18);
+	// One short line under the bracket: "LOCK 60%" / "LOCKED · 820m".
+	caption.Size = UDim2.fromOffset(120, 13);
 	caption.Font = Enum.Font.GothamBold;
-	caption.TextSize = 11;
-	caption.RichText = true;
+	caption.TextSize = 10;
+	caption.TextStrokeColor3 = Color3.fromRGB(6, 13, 22);
 	caption.TextStrokeTransparency = 0.45;
 	caption.TextColor3 = stroke.Color;
 	caption.Parent = bracket;
@@ -125,6 +126,7 @@ export class FlightController {
 				}
 				this.telemetry.navigation = typeIs(message.navigation,"Vector3") ? message.navigation : undefined;
 				this.telemetry.navigationRadius = message.navigationRadius; this.telemetry.navigationCeiling = message.navigationCeiling; this.telemetry.protectedHealth = message.protectedHealth;
+				this.telemetry.targetHealth = typeIs(message.targetHealth, "number") ? message.targetHealth : undefined;
 				this.telemetry.target = isModel(message.target) ? message.target : undefined;
 			} else if (message.kind === "Completed" || message.kind === "Failed") this.Stop();
 		});
@@ -220,15 +222,16 @@ export class FlightController {
 		this.caption!.TextColor3 = color;
 		if (inside) {
 			bracket.Position = UDim2.fromOffset(screen.X, screen.Y);
-			const distance = worldPosition.sub(this.visualFrame.Position).Magnitude;
-			const range = string.format('<font transparency="0.35">%d m</font>', math.floor(distance));
+			const distance = math.floor(worldPosition.sub(this.visualFrame.Position).Magnitude);
 			const lock = this.telemetry.lockProgress;
-			const marker = `${required ? "TGT · " : ""}${ground ? "GND" : "AIR"}`;
-			this.caption!.Text = locked
-				? `${marker} · LOCKED  ${range}`
+			// Damaged targets (staged aces above all) show remaining health after the lock state.
+			const health = this.telemetry.targetHealth;
+			const healthText = health !== undefined && health < 0.995 ? string.format(" · %d%%", math.floor(health * 100 + 0.5)) : "";
+			this.caption!.Text = (locked
+				? `LOCKED · ${distance}m`
 				: lock > 0.01
-					? string.format("%s · LOCK %d%%  %s", marker, math.floor(lock * 100), range)
-					: `${marker}  ${range}`;
+					? string.format("LOCK %d%%", math.floor(lock * 100))
+					: `${required ? "TGT · " : ""}${distance}m`) + healthText;
 			const width = locked ? 52 : 64;
 			bracket.Size = UDim2.fromOffset(width, width);
 		} else {

@@ -1,14 +1,15 @@
 import React, {useEffect,useRef} from "@rbxts/react";
 import {RunService,Workspace} from "@rbxts/services";
-import {navigationObstacles,placeNavigationCaption} from "../shared/NavigationLayout";
-import {getHudLayout,HudLayout,InputMode,Rectangle} from "../shared/UILayout";
+import {navigationCaption,navigationCaptionRect,navigationObstacles} from "../shared/NavigationLayout";
+import {getHudLayout,HudLayout,InputMode,NAVIGATION_CAPTION_HEIGHT,NAVIGATION_CAPTION_WIDTH,Rectangle} from "../shared/UILayout";
 import {Telemetry} from "../shared/Types";
 import {FlightController} from "./FlightController";
 const PLACEMENT_INTERVAL=4,PLACEMENT_MOVE=8;
 /** Independent from combat brackets: route and signal targets remain findable
- * when a raider is selected. Projection clamps above touch control lanes. */
+ * when a raider is selected. Text only: a bearing glyph and the distance, plus a
+ * tiny second line when the volume, ceiling or protected unit applies. */
 export function NavigationCue({telemetry,visible,inputMode}:{telemetry:Telemetry;visible:boolean;inputMode:InputMode}) {
-	const label=useRef<TextLabel>(),data=useRef(telemetry);data.current=telemetry;
+	const label=useRef<Frame>(),primary=useRef<TextLabel>(),secondary=useRef<TextLabel>(),data=useRef(telemetry);data.current=telemetry;
 	useEffect(()=>{
 		if(!visible)return;
 		// placeNavigationCaption scores a few hundred candidate rectangles, so it
@@ -16,7 +17,7 @@ export function NavigationCue({telemetry,visible,inputMode}:{telemetry:Telemetry
 		// moves more than PLACEMENT_MOVE px, or when the viewport changes. The
 		// obstacle list depends only on (viewport, inputMode) and is cached.
 		let cachedViewport:Vector2|undefined,hud:HudLayout|undefined,obstacles:Rectangle[]=[];
-		let placement:Rectangle|undefined,placedX=0,placedY=0,placed=false,frame=0;
+		let placedX=0,placedY=0,placed=false,frame=0;
 		const connection=RunService.RenderStepped.Connect(()=>{
 			const gui=label.current,camera=Workspace.CurrentCamera,nav=data.current.navigation;
 			if(!gui || !camera)return;
@@ -37,21 +38,34 @@ export function NavigationCue({telemetry,visible,inputMode}:{telemetry:Telemetry
 			}
 			frame+=1;
 			if(!placed || frame%PLACEMENT_INTERVAL===0 || (x-placedX)**2+(y-placedY)**2>PLACEMENT_MOVE**2) {
-				placement=placeNavigationCaption(x,y,origin.X,origin.Y,viewport.X,viewport.Y,hud,obstacles);
+				const placement=navigationCaptionRect(x,y,origin.X,origin.Y,viewport.X,viewport.Y,hud,obstacles);
 				placedX=x;placedY=y;placed=true;
-				if(placement)gui.Position=UDim2.fromOffset(placement.x+placement.width/2,placement.y+placement.height);
+				gui.Position=UDim2.fromOffset(placement.x,placement.y);
+				// Floating captions centre over the marker; the fixed slot reads
+				// left-aligned under the objective line.
+				const alignment=placement===hud.navigation ? Enum.TextXAlignment.Left : Enum.TextXAlignment.Center;
+				if(primary.current)primary.current.TextXAlignment=alignment;
+				if(secondary.current)secondary.current.TextXAlignment=alignment;
 			}
-			gui.Visible=placement!==undefined;
-			if(!placement)return;
 			const aircraft=FlightController.GetActive()?.aircraft;
 			const distance=aircraft ? nav.sub(aircraft.GetPivot().Position).Magnitude : nav.sub(camera.CFrame.Position).Magnitude;
 			const radius=data.current.navigationRadius ?? 210;
 			const ceiling=data.current.navigationCeiling;
 			const protectedHull=data.current.protectedHealth;
-			const direction=onScreen ? "◇" : localPos.X>0 ? "›" : "‹";
-			gui.Text=`${direction} ${math.floor(distance)}m · ${distance<=radius ? "IN VOLUME" : "BEACON"}${ceiling ? `\nALT ≤ ${ceiling}` : ""}${protectedHull !== undefined ? `\nPROTECTED ${math.ceil(protectedHull)}%` : ""}`;
+			const side=onScreen ? 0 : localPos.X>0 ? 1 : -1;
+			const [distanceText,detailText]=navigationCaption(distance,side,distance<=radius,ceiling,protectedHull);
+			if(primary.current)primary.current.Text=distanceText;
+			if(secondary.current){secondary.current.Text=detailText;secondary.current.Visible=detailText!=="";}
 		});
 		return ()=>connection.Disconnect();
 	},[visible,inputMode]);
-	return <textlabel ref={label} key="NavigationCue" Visible={false} AnchorPoint={new Vector2(.5,1)} Size={UDim2.fromOffset(148,48)} BackgroundColor3={Color3.fromRGB(5,24,30)} BackgroundTransparency={.45} BorderSizePixel={0} TextColor3={Color3.fromRGB(100,249,218)} Font={Enum.Font.GothamBold} TextSize={11} TextWrapped={true} ZIndex={5}/>;
+	const text=(name:string,ref:React.RefObject<TextLabel>,y:number,size:number,font:Enum.Font)=>(
+		<textlabel ref={ref} key={name} BackgroundTransparency={1} Position={UDim2.fromOffset(0,y)} Size={new UDim2(1,0,0,size+3)} Font={font} Text="" TextColor3={Color3.fromRGB(100,249,218)} TextSize={size} TextStrokeColor3={Color3.fromRGB(6,13,22)} TextStrokeTransparency={.45} TextXAlignment={Enum.TextXAlignment.Left} TextTruncate={Enum.TextTruncate.AtEnd} ZIndex={5}/>
+	);
+	return (
+		<frame ref={label} key="NavigationCue" Visible={false} BackgroundTransparency={1} Size={UDim2.fromOffset(NAVIGATION_CAPTION_WIDTH,NAVIGATION_CAPTION_HEIGHT)} ZIndex={5}>
+			{text("Distance",primary,0,10,Enum.Font.GothamBold)}
+			{text("Details",secondary,13,10,Enum.Font.GothamBold)}
+		</frame>
+	);
 }
