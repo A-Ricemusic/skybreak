@@ -4,6 +4,10 @@ export interface MissionRecord {
 	bestTime?: number;
 	/** Timestamp of first completion (for cutscene gating). */
 	firstCompletedAt?: number;
+	/** Highest debrief score on a completed run (MissionScore). */
+	bestScore?: number;
+	/** Best debrief rank on a completed run: S, A, B, C or D. */
+	bestRank?: string;
 }
 export interface SaveSlot {
 	index: number;
@@ -89,6 +93,13 @@ export interface MissionStats {
 	slot: number;
 	kills: number;
 	elapsed: number;
+	/** Debrief counters tracked by CombatService. */
+	optionalKills?: number;
+	missilesFired?: number;
+	missileHits?: number;
+	damageTaken?: number;
+	lowestHealth?: number;
+	evades?: number;
 }
 export interface MissionStarted {
 	missionId?: number;
@@ -156,6 +167,16 @@ export interface MissionFinished extends MissionStats {
 	kind: "Completed" | "Failed";
 	saved?: boolean;
 	persistence?: Persistence;
+	/** Server-computed debrief score and rank (MissionScore) and the par it was judged against. */
+	score?: number;
+	rank?: string;
+	par?: number;
+	/** A completed run that beat the slot's saved best score or rank for this mission. */
+	newBestScore?: boolean;
+	newBestRank?: boolean;
+	/** Saved bests for this mission after this result. */
+	bestScore?: number;
+	bestRank?: string;
 }
 export type MissionMessage = MissionLoading | MissionStarted | HudState | MissionFinished;
 export type FinishedCallback = (player: Player, won: boolean, stats: MissionStats) => void;
