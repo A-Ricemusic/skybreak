@@ -1,4 +1,4 @@
-import { HudLayout, NAVIGATION_CAPTION_HEIGHT, NAVIGATION_CAPTION_MAX_WIDTH, NAVIGATION_CAPTION_WIDTH, NAVIGATION_ROW_HEIGHT, Rectangle, rectangleInside, rectanglesOverlap } from "./UILayout";
+import { HudLayout, hudObstacles, NAVIGATION_CAPTION_HEIGHT, NAVIGATION_CAPTION_MAX_WIDTH, NAVIGATION_CAPTION_WIDTH, NAVIGATION_ROW_HEIGHT, Rectangle, rectangleInside, rectanglesOverlap } from "./UILayout";
 
 /** One-line summary of the route marker (bearing glyph, distance, constraints). */
 export function navigationSummary(distance:number,side:number,ceiling?:number,protectedHealth?:number):string {
@@ -57,17 +57,7 @@ export function navigationCaptionSize(widths:number[],maxWidth=NAVIGATION_CAPTIO
 /** Every HUD rectangle the floating caption must stay out of. Depends only on
  * the layout, so callers can compute it once per viewport and input mode. */
 export function navigationObstacles(hud:HudLayout): Rectangle[] {
-	const obstacles=[hud.callout,hud.timer,hud.alert,hud.status,hud.health];
-	if(hud.hints)obstacles.push(hud.hints);
-	if(hud.pause)obstacles.push(hud.pause);
-	if(hud.radar)obstacles.push(hud.radar);
-	if(hud.fireCaption)obstacles.push(hud.fireCaption);
-	if(hud.touch) {
-		obstacles.push(hud.touch.joystick,hud.touch.throttle,hud.touch.missile,hud.touch.target,hud.touch.special,hud.touch.evade);
-		if(hud.touch.throttleUpLabel)obstacles.push(hud.touch.throttleUpLabel);
-		if(hud.touch.throttleDownLabel)obstacles.push(hud.touch.throttleDownLabel);
-	}
-	return obstacles;
+	return hudObstacles(hud).filter(rectangle=>rectangle!==hud.navigation);
 }
 
 /** Screen projection is relative to the inset screen; labels live in a GUI parent.

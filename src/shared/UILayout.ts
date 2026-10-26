@@ -31,34 +31,69 @@ export interface TouchLayout {
 
 export type TouchArrangement = "row" | "stacked" | "grid";
 
-/** below: under the hull bar; corner: top-right corner with the clock column moved left of it; bottom: bottom-centre (desktop). */
-export type RadarPlacement = "below" | "corner" | "bottom";
+/** column: bottom of the left column (above the steering stick on touch); corner: top-right fallback on roots too short for the column. */
+export type RadarPlacement = "column" | "corner";
 
 export interface HudOptions {
 	/** Requested touch stick edge in px (clamped to STICK_MIN_SIZE–STICK_MAX_SIZE and to what the root fits). */
 	stickSize?: number;
 }
 
+/** Type scale: Studio's 320x182 root, phones, and roots at least 900x600 (desktop and tablets). */
+export type HudScale = "compact" | "regular" | "large";
+
+export interface HudMetrics {
+	scale: HudScale;
+	/** Values: SPEED/ALT numbers, weapon rows, the clock. */
+	text: number;
+	/** Captions: SPEED, ALT, TIME. */
+	label: number;
+	/** One text row in px. */
+	row: number;
+	/** SPEED/ALT caption row and box heights. */
+	caption: number;
+	box: number;
+}
+
+export interface WeaponPanelLayout {
+	/** The whole panel (what other elements must avoid). */
+	frame: Rectangle;
+	/** MSL, special, EVD, DMG: one row each, top to bottom. */
+	rows: Rectangle[];
+	/** Top view of the player's aircraft under the rows; omitted on the short variant. */
+	silhouette?: Rectangle;
+	/** One missile icon either side of the silhouette (ready rails). */
+	rails?: Rectangle[];
+}
+
 export interface HudLayout {
 	margin: number;
-	/** One line of warning text, bottom-centre just above the touch lane or the hint row. */
-	alert: Rectangle;
-	/** One objective line, top-left of the CoreUI-safe area. */
+	metrics: HudMetrics;
+	/** TIME and objective progress, two lines, top-left right of PAUSE. */
+	clock: Rectangle;
+	/** Objective (two lines), top row right of the clock. Radio replaces it only when there is no subtitle row. */
 	callout: Rectangle;
-	/** Mission clock text, top-right. */
-	timer: Rectangle;
-	/** "MSL 8 · FLR 2" text directly under the clock. */
-	status: Rectangle;
-	/** Hull bar directly under the weapon status, right-aligned. */
-	health: Rectangle;
-	flightStatus: Rectangle;
 	/** Fixed slot for the navigation caption when no floating spot fits (under the objective). */
 	navigation: Rectangle;
 	/** PAUSE button, top-left; omitted on Studio-compact roots (the Roblox menu auto-pauses there). */
 	pause?: Rectangle;
-	/** Heading-up radar disc (square bounds); omitted when no 90 px slot fits. */
+	/** Flight-path reticle at the centre; omitted on compact roots, where the action grid sits there. */
+	reticle?: Rectangle;
+	/** SPEED caption and arrow-tag box, left of the reticle (caption row on top). */
+	speed: Rectangle;
+	/** ALT caption and arrow-tag box, right of the reticle. */
+	altitude: Rectangle;
+	/** Boxed warning (MISSILE, STALL, PULL UP, LOW ALT) under the reticle; the same rectangle as `callout` on the shortest compact roots. */
+	alert: Rectangle;
+	/** Reserved row under the warning for a missile time-to-impact / BREAK cue; the same rectangle as `alert` on compact roots. */
+	breakCue: Rectangle;
+	/** Square radar, bottom of the left column; omitted when no 72 px square fits. */
 	radar?: Rectangle;
 	radarPlacement?: RadarPlacement;
+	/** Weapon list, damage and aircraft silhouette, bottom of the right column. */
+	weapons: WeaponPanelLayout;
+	/** Radio subtitle, bottom-centre above the touch buttons or hint row; omitted when no line fits. */
+	subtitle?: Rectangle;
 	/** Touch row arrangement: one line above FIRE for refusals ("NO LOCK · FIRING BLIND"). Elsewhere refusals use the alert lane. */
 	fireCaption?: Rectangle;
 	/** Keyboard and gamepad only; touch players read the controls themselves. */
@@ -102,17 +137,10 @@ export const OBJECTIVE_MAX_WIDTH = 340;
 export const OBJECTIVE_LINE_HEIGHT = 30;
 /** Tutorial copy must fit the single objective line. */
 export const TUTORIAL_MAX_CHARS = 34;
-export const TIMER_WIDTH = 48;
-export const TIMER_HEIGHT = 14;
-export const STATUS_WIDTH = 150;
-export const STATUS_HEIGHT = 13;
-export const HEALTH_BAR_HEIGHT = 6;
-/** Studio's 320x182 root: thinner and only stick-wide, clear of the compact alert lane and toast. */
-export const COMPACT_HEALTH_BAR_HEIGHT = 4;
 /** Caption rows above and below the throttle disc. */
 export const THROTTLE_LABEL_HEIGHT = 10;
 export const ALERT_MAX_WIDTH = 220;
-export const ALERT_HEIGHT = 18;
+export const ALERT_HEIGHT = 20;
 export const NAVIGATION_CAPTION_WIDTH = 120;
 export const NAVIGATION_CAPTION_HEIGHT = 28;
 /** Widest floating navigation caption; longer detail lines wrap instead of truncating. */
@@ -128,23 +156,72 @@ export const EVADE_SIZE = 56;
 export const PAUSE_SIZE = 44;
 /** Keyboard and gamepad roots use a smaller mouse-sized pause button. */
 export const PAUSE_DESKTOP_SIZE = 32;
-export const RADAR_MIN_SIZE = 90;
+/** Smallest radar square; short phone roots (706x267) get one this size rather than none. */
+export const RADAR_MIN_SIZE = 72;
+/** Largest radar on phones; large roots go up to RADAR_LARGE_SIZE. */
 export const RADAR_MAX_SIZE = 110;
+export const RADAR_LARGE_SIZE = 170;
 export const FIRE_CAPTION_WIDTH = 150;
 export const FIRE_CAPTION_HEIGHT = 12;
-/** A corner radar only displaces the clock column while the objective keeps at least this width. */
-export const MIN_OBJECTIVE_WIDTH = 160;
-/** Top-row lane kept for toasts and the kill callout when a corner radar narrows the row. */
-export const TOP_LANE_RESERVE = 140;
 export const FIRE_SIZE = 64;
 export const TARGET_SIZE = 48;
 export const SPECIAL_SIZE = 48;
 /** Root heights at or below this use the compact (Studio 320x182) arrangement. */
 export const COMPACT_MAX_HEIGHT = 200;
+/** Rows in the weapon panel: MSL, special, EVD, DMG. */
+export const WEAPON_ROWS = 4;
+/** Two radio lines at most; one when that is all the room there is. */
+export const SUBTITLE_LINES = 2;
+
+interface HudSizes {
+	metrics: HudMetrics;
+	clockWidth: number;
+	/** Instrument (SPEED/ALT) width including the arrow tag. */
+	instrument: number;
+	reticle: number;
+	alertHeight: number;
+	alertWidth: number;
+	breakCue: number;
+	panel: number;
+	silhouette: number;
+	radarMax: number;
+	subtitleWidth: number;
+	objectiveWidth: number;
+}
+
+const HUD_SIZES: { [scale in HudScale]: HudSizes } = {
+	compact: {
+		metrics: { scale: "compact", text: 10, label: 8, row: 11, caption: 8, box: 14 },
+		clockWidth: 64, instrument: 44, reticle: 0, alertHeight: 18, alertWidth: 200, breakCue: 14,
+		panel: 84, silhouette: 0, radarMax: RADAR_MAX_SIZE, subtitleWidth: 300, objectiveWidth: OBJECTIVE_MAX_WIDTH,
+	},
+	regular: {
+		metrics: { scale: "regular", text: 12, label: 10, row: 14, caption: 11, box: 20 },
+		clockWidth: 96, instrument: 62, reticle: 24, alertHeight: ALERT_HEIGHT, alertWidth: ALERT_MAX_WIDTH, breakCue: 16,
+		panel: 112, silhouette: 44, radarMax: RADAR_MAX_SIZE, subtitleWidth: 440, objectiveWidth: OBJECTIVE_MAX_WIDTH,
+	},
+	large: {
+		metrics: { scale: "large", text: 16, label: 12, row: 19, caption: 14, box: 28 },
+		clockWidth: 128, instrument: 86, reticle: 32, alertHeight: 26, alertWidth: 300, breakCue: 20,
+		panel: 160, silhouette: 66, radarMax: RADAR_LARGE_SIZE, subtitleWidth: 640, objectiveWidth: 420,
+	},
+};
+
+/**
+ * The type scale for a root: compact below 240pt tall (and for small 4:3 roots
+ * under 400x300, such as Studio's pre-inset 320x240), large from 900x600.
+ */
+export function getHudScale(viewportWidth: number, viewportHeight: number): HudScale {
+	const width = math.max(1, viewportWidth);
+	const height = math.max(1, viewportHeight);
+	if (height < 240 || (width < 400 && height < 300)) return "compact";
+	return width >= 900 && height >= 600 ? "large" : "regular";
+}
 
 /**
  * The forward view: the central 50% of the width and 60% of the height. Only
- * the target bracket, the navigation cue and the alert text may appear here.
+ * the centre instruments (reticle, SPEED, ALT, warning and break cue), the
+ * target bracket, the navigation cue and the radio subtitle may appear here.
  */
 export function getHudCentreBox(viewportWidth: number, viewportHeight: number): Rectangle {
 	const width = math.max(1, viewportWidth);
@@ -163,73 +240,99 @@ export function isCompactHud(_viewportWidth: number, viewportHeight: number): bo
 	return math.max(1, viewportHeight) <= COMPACT_MAX_HEIGHT;
 }
 
+const bottomOf = (rectangle: Rectangle) => rectangle.y + rectangle.height;
+const rightOf = (rectangle: Rectangle) => rectangle.x + rectangle.width;
+
+/** Weapon panel geometry for a frame: rows on top, then the silhouette flanked by two rail icons. */
+export function getWeaponPanelLayout(frame: Rectangle, row: number, silhouette: number): WeaponPanelLayout {
+	const rows: Rectangle[] = [];
+	for (let index = 0; index < WEAPON_ROWS; index++) rows.push({ x: frame.x, y: frame.y + index * row, width: frame.width, height: row });
+	if (silhouette <= 0 || frame.height < WEAPON_ROWS * row + 4 + silhouette) return { frame, rows };
+	// The Kestrel is 22.8 studs span by 26 long: the outline box keeps that aspect.
+	const outlineWidth = math.floor(silhouette * 0.88);
+	const top = frame.y + WEAPON_ROWS * row + 4;
+	const outline = { x: frame.x + math.floor((frame.width - outlineWidth) / 2), y: top, width: outlineWidth, height: silhouette };
+	const railWidth = math.max(4, math.floor(silhouette * 0.14));
+	const railHeight = math.floor(silhouette * 0.62);
+	const railY = top + math.floor((silhouette - railHeight) / 2);
+	const railGap = math.max(6, math.floor(silhouette * 0.2));
+	return {
+		frame,
+		rows,
+		silhouette: outline,
+		rails: [
+			{ x: outline.x - railGap - railWidth, y: railY, width: railWidth, height: railHeight },
+			{ x: rightOf(outline) + railGap, y: railY, width: railWidth, height: railHeight },
+		],
+	};
+}
+
+/**
+ * Widest rectangle centred on `centreX` (at most `maxWidth`) in the row y..y+height
+ * that stays clear of every obstacle; undefined when narrower than `minWidth`.
+ */
+function centredFree(centreX: number, y: number, height: number, maxWidth: number, minWidth: number, obstacles: Rectangle[], viewportWidth: number, margin: number): Rectangle | undefined {
+	let half = math.min(maxWidth / 2, centreX - margin, viewportWidth - margin - centreX);
+	for (const obstacle of obstacles) {
+		if (obstacle.y >= y + height || bottomOf(obstacle) <= y) continue;
+		if (obstacle.x >= centreX) half = math.min(half, obstacle.x - centreX);
+		else if (rightOf(obstacle) <= centreX) half = math.min(half, centreX - rightOf(obstacle));
+		else return undefined;
+	}
+	const width = math.floor(half) * 2;
+	if (width < minWidth) return undefined;
+	return { x: centreX - width / 2, y, width, height };
+}
+
+const clear = (candidate: Rectangle, obstacles: Rectangle[]) => !obstacles.some((obstacle) => rectanglesOverlap(candidate, obstacle));
+
+/** Right end of the free top-row lane that starts at `left`: the first obstacle in the row y..y+height, or `limit`. */
+function topLaneRight(left: number, y: number, height: number, obstacles: Rectangle[], limit: number, gap: number): number {
+	let right = limit;
+	for (const obstacle of obstacles) if (obstacle.x >= left && obstacle.y < y + height && bottomOf(obstacle) > y) right = math.min(right, obstacle.x - gap);
+	return right;
+}
+
 /** Pure layout calculation shared by the React HUD and Roblox Jest tests. */
 export function getHudLayout(viewportWidth: number, viewportHeight: number, inputMode: InputMode, options?: HudOptions): HudLayout {
 	const width = math.max(1, viewportWidth);
 	const height = math.max(1, viewportHeight);
 	const touchMode = inputMode === "touch";
+	const scale = getHudScale(width, height);
+	const sizes = HUD_SIZES[scale];
+	const metrics = sizes.metrics;
 	// Preserve a dedicated top warning lane until the bottom controls have enough height.
-	const compact = height < 240;
+	const compact = scale === "compact";
+	const landscape = width > height;
 	const margin = compact || width < 360 ? 6 : height < 300 ? 10 : height < 500 || width < 700 ? 14 : 22;
 	const gap = compact ? 6 : 8;
 	// Touch controls keep a wider gap so a thumb on one cannot brush the next.
 	const controlGap = compact || width < 360 ? 6 : 12;
-	// The ScreenGui uses CoreUISafeInsets, so the origin is already below the
-	// Roblox system buttons and clear of any notch. Top row: PAUSE, then the
-	// objective line on the left; the clock with hull/missiles under it on the right.
+	const forward = getHudCentreBox(width, height);
+
+	// Top row (CoreUISafeInsets already keeps it below the Roblox buttons and any notch):
+	// PAUSE, then TIME / progress, then the objective.
 	const pauseSize = touchMode ? PAUSE_SIZE : PAUSE_DESKTOP_SIZE;
 	const pause = compact ? undefined : { x: margin, y: margin, width: pauseSize, height: pauseSize };
-	const calloutX = pause ? pause.x + pause.width + gap : margin;
-	const healthWidth = compact ? JOYSTICK_SIZE : STATUS_WIDTH;
-	const healthHeight = compact ? COMPACT_HEALTH_BAR_HEIGHT : HEALTH_BAR_HEIGHT;
-	const healthBottom = margin + TIMER_HEIGHT + 2 + STATUS_HEIGHT + (compact ? 1 : 2) + healthHeight;
-	/** The clock column, right-aligned at `right`. */
-	const column = (right: number) => {
-		const timer = { x: right - TIMER_WIDTH, y: margin, width: TIMER_WIDTH, height: TIMER_HEIGHT };
-		const status = { x: right - STATUS_WIDTH, y: timer.y + timer.height + 2, width: STATUS_WIDTH, height: STATUS_HEIGHT };
-		const health = { x: right - healthWidth, y: status.y + status.height + (compact ? 1 : 2), width: healthWidth, height: healthHeight };
-		const flightStatus = { x: status.x, y: timer.y, width: STATUS_WIDTH - TIMER_WIDTH - gap, height: TIMER_HEIGHT };
-		return { timer, status, health, flightStatus };
+	const clockX = pause ? rightOf(pause) + gap : margin;
+	const clock = { x: clockX, y: margin, width: sizes.clockWidth, height: metrics.row * 2 + 2 };
+	const calloutX = rightOf(clock) + gap;
+	const callout = {
+		x: calloutX,
+		y: margin,
+		width: math.max(0, math.min(sizes.objectiveWidth, math.floor(width * OBJECTIVE_MAX_SHARE), width - margin - calloutX)),
+		height: compact ? 26 : scale === "large" ? metrics.row * 2 + 2 : OBJECTIVE_LINE_HEIGHT,
 	};
-	const objectiveWidth = (statusX: number, reserve: number) =>
-		math.max(0, math.min(OBJECTIVE_MAX_WIDTH, math.floor(width * OBJECTIVE_MAX_SHARE), statusX - gap - reserve - calloutX));
-	let { timer, status, health, flightStatus } = column(width - margin);
-	// Keep a top-row lane for toasts and the kill callout whenever the objective can spare it.
-	const reserved = objectiveWidth(status.x, TOP_LANE_RESERVE + gap);
-	let callout = { x: calloutX, y: margin, width: reserved >= MIN_OBJECTIVE_WIDTH ? reserved : objectiveWidth(status.x, 0), height: OBJECTIVE_LINE_HEIGHT };
-	const navigation = { x: calloutX, y: callout.y + callout.height + 2, width: NAVIGATION_CAPTION_WIDTH, height: NAVIGATION_SLOT_HEIGHT };
-	const navigationBottom = navigation.y + navigation.height;
-	/** Fits the radar in the right column above `limit`: under the hull bar, else in the corner. */
-	const fitRadar = (limit: number): { rectangle: Rectangle; placement: RadarPlacement } | undefined => {
-		// Narrow roots cap the disc so a 90 px kill callout still fits centred beside it.
-		const below = math.min(RADAR_MAX_SIZE, limit - gap - (healthBottom + gap), math.floor(width / 2 - margin - gap - KILL_MARKER_MIN_WIDTH / 2));
-		if (below >= RADAR_MIN_SIZE) return { rectangle: { x: width - margin - below, y: healthBottom + gap, width: below, height: below }, placement: "below" };
-		let size = math.min(RADAR_MAX_SIZE, limit - gap - margin);
-		// The clock column moves left of the disc; the objective keeps MIN_OBJECTIVE_WIDTH, the disc shrinks first.
-		const shortfall = MIN_OBJECTIVE_WIDTH - objectiveWidth(width - margin - size - gap - STATUS_WIDTH, TOP_LANE_RESERVE + gap);
-		if (shortfall > 0) size -= shortfall;
-		if (size < RADAR_MIN_SIZE) return undefined;
-		return { rectangle: { x: width - margin - size, y: margin, width: size, height: size }, placement: "corner" };
-	};
-	let radar: Rectangle | undefined;
-	let radarPlacement: RadarPlacement | undefined;
-	const placeRadar = (limit: number) => {
-		const fitted = fitRadar(limit);
-		if (!fitted) return;
-		radar = fitted.rectangle;
-		radarPlacement = fitted.placement;
-		if (fitted.placement !== "corner") return;
-		({ timer, status, health, flightStatus } = column(fitted.rectangle.x - gap));
-		callout = { ...callout, width: objectiveWidth(status.x, TOP_LANE_RESERVE + gap) };
-	};
-	/** The fixed navigation slot runs from the objective's left edge to the first right-column element at its height. */
-	const finishNavigation = (disc: Rectangle | undefined) => {
-		let right = width - margin;
-		for (const obstacle of [status, health, ...(disc ? [disc] : [])]) {
-			if (obstacle.y < navigation.y + navigation.height && obstacle.y + obstacle.height > navigation.y) right = math.min(right, obstacle.x);
-		}
-		navigation.width = math.min(NAVIGATION_CAPTION_MAX_WIDTH, right - gap - calloutX);
-	};
+	const topBottom = math.max(bottomOf(clock), bottomOf(callout), pause ? bottomOf(pause) : 0);
+	const navigation = { x: calloutX, y: bottomOf(callout) + 2, width: NAVIGATION_CAPTION_WIDTH, height: NAVIGATION_SLOT_HEIGHT };
+
+	let touch: TouchLayout | undefined;
+	let fireCaption: Rectangle | undefined;
+	let hints: Rectangle | undefined;
+	/** Bottom of the left (radar) and right (weapons) columns. */
+	let leftBottom = height - margin;
+	let rightBottom = height - margin;
+	const placed: Rectangle[] = [clock, callout, ...(pause ? [pause] : [])];
 
 	if (touchMode) {
 		// Regular roots lift both sticks so the throttle captions sit outside the
@@ -239,17 +342,16 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 		const evadeSize = compact ? MIN_TOUCH_TARGET : EVADE_SIZE;
 		let fireSize = tiny ? MIN_TOUCH_TARGET : FIRE_SIZE;
 		let targetSize = tiny ? MIN_TOUCH_TARGET : TARGET_SIZE;
-		// Stick size: the request, limited so the action lane, the alert row and a stacked EVADE still fit.
+		// Stick size: the request, limited so the action lane, the top row and a stacked EVADE still fit.
 		const laneMinimum = compact ? MIN_TOUCH_TARGET * 2 + controlGap : targetSize * 2 + controlGap;
 		const fitsWide = math.floor((width - margin * 2 - controlGap * 2 - laneMinimum) / 2);
 		const fitsTall = compact
-			? height - margin - (navigation.y + NAVIGATION_ROW_HEIGHT + 2)
-			: math.min(
-				height - margin - labelLift - (navigationBottom + gap + ALERT_HEIGHT + gap),
-				height - margin - labelLift - controlGap - MIN_TOUCH_TARGET - (healthBottom + gap),
-			);
+			? height - margin - (topBottom + 2 + NAVIGATION_ROW_HEIGHT + 2)
+			: height - margin - labelLift - controlGap - MIN_TOUCH_TARGET - (topBottom + gap);
+		// The weapon rows always keep a slot above the throttle.
+		const fitsPanel = height - margin - labelLift - (margin + WEAPON_ROWS * metrics.row + gap);
 		const requested = math.clamp(math.floor((options?.stickSize ?? JOYSTICK_SIZE) + 0.5), STICK_MIN_SIZE, STICK_MAX_SIZE);
-		const stick = math.max(STICK_MIN_SIZE, math.min(requested, fitsWide, fitsTall));
+		const stick = math.max(STICK_MIN_SIZE, math.min(requested, fitsWide, fitsTall, fitsPanel));
 		const joystick = { x: margin, y: height - margin - labelLift - stick, width: stick, height: stick };
 		const throttle = { ...joystick, x: width - margin - stick };
 		const throttleUpLabel = compact ? undefined : { x: throttle.x, y: throttle.y - labelLift, width: stick, height: THROTTLE_LABEL_HEIGHT };
@@ -258,7 +360,6 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 		const laneRight = throttle.x - controlGap;
 		const arrangement: TouchArrangement = laneRight - laneLeft >= targetSize * 2 + fireSize + evadeSize + controlGap * 3 ? "row" : compact ? "grid" : "stacked";
 		let missile: Rectangle, target: Rectangle, special: Rectangle, evade: Rectangle;
-		let fireCaption: Rectangle | undefined;
 		if (arrangement === "row") {
 			// Right to left from the throttle: EVADE (closest to the right thumb), SPECIAL, FIRE, TGT.
 			const bottom = height - margin;
@@ -286,47 +387,148 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 			// Above the throttle's SPEED UP caption, centred on the disc; 44 px when the column is short.
 			const above = (size: number) => ({ x: throttle.x + math.floor((stick - size) / 2), y: (throttleUpLabel?.y ?? throttle.y) - controlGap - size, width: size, height: size });
 			evade = above(EVADE_SIZE);
-			if (evade.y < healthBottom + gap) evade = above(MIN_TOUCH_TARGET);
+			if (evade.y < topBottom + gap) evade = above(MIN_TOUCH_TARGET);
 		}
-		// The tiny Studio root needs its alert between the top texts and actions.
-		// Other roots reserve a text row above the bottom control lane.
-		if (compact) { navigation.width = stick; navigation.height = math.min(NAVIGATION_SLOT_HEIGHT, joystick.y - navigation.y - 2); }
-		let alert: Rectangle;
-		// Compact: centred in the lane and never wider than the gap to the hull bar (small sticks widen the lane).
-		if (compact) alert = centered(width, math.min(laneRight - laneLeft, 2 * (health.x - gap - math.floor(width / 2))), 38, ALERT_HEIGHT);
-		else {
-			// A stacked EVADE sits in the right column: keep the centred alert narrower than the gap to it.
-			const alertWidth = math.min(ALERT_MAX_WIDTH, width - margin * 2, arrangement === "stacked" ? 2 * (evade.x - gap - math.floor(width / 2)) : math.huge);
-			alert = centered(width, alertWidth, math.min(joystick.y - labelLift, target.y, fireCaption?.y ?? math.huge) - gap - ALERT_HEIGHT, ALERT_HEIGHT);
-		}
-		if (!compact) {
-			// Short stacked roots lift the alert row; the slot keeps at least two caption rows above it.
-			navigation.height = math.min(NAVIGATION_SLOT_HEIGHT, alert.y - 2 - navigation.y);
-			placeRadar(arrangement === "stacked" ? evade.y : throttleUpLabel?.y ?? throttle.y);
-			finishNavigation(radar);
-		}
-		return {
-			margin, alert, callout, timer, status, health, flightStatus, navigation, pause, radar, radarPlacement, fireCaption,
-			touch: { joystick, throttle, throttleUpLabel, throttleDownLabel, missile, target, special, evade, arrangement },
-		};
+		touch = { joystick, throttle, throttleUpLabel, throttleDownLabel, missile, target, special, evade, arrangement };
+		placed.push(joystick, throttle, missile, target, special, evade);
+		for (const optional of [throttleUpLabel, throttleDownLabel, fireCaption]) if (optional) placed.push(optional);
+		leftBottom = joystick.y - gap;
+		rightBottom = (arrangement === "stacked" ? evade.y : throttleUpLabel?.y ?? throttle.y) - gap;
+	} else {
+		const hintsHeight = scale === "large" ? 20 : 18;
+		hints = centered(width, math.min(360, width - margin * 2), height - margin - hintsHeight, hintsHeight);
 	}
 
-	const hintsHeight = 18;
-	const forwardBottom = math.ceil(height * 0.8);
-	// Desktop roots tall enough put the radar bottom-centre under the hint row, below the forward view.
-	const bottomSize = math.min(RADAR_MAX_SIZE, height - margin - hintsHeight - 2 - forwardBottom);
-	if (bottomSize >= RADAR_MIN_SIZE) {
-		radar = centered(width, bottomSize, height - margin - bottomSize, bottomSize);
-		radarPlacement = "bottom";
+	// Right column: the weapon panel, bottom-aligned; the short variant (rows only) where the full one does not fit.
+	const panelRows = WEAPON_ROWS * metrics.row;
+	const panelX = width - margin - sizes.panel;
+	// Landscape roots keep the side panels out of the forward view; portrait and Studio-compact roots have no room beside it.
+	const outsideForward = (candidate: Rectangle) => !landscape || compact || !rectanglesOverlap(candidate, forward);
+	let weapons: WeaponPanelLayout | undefined;
+	for (const panelHeight of sizes.silhouette > 0 ? [panelRows + 4 + sizes.silhouette, panelRows] : [panelRows]) {
+		const frame = { x: panelX, y: rightBottom - panelHeight, width: sizes.panel, height: panelHeight };
+		if (frame.y >= margin && clear(frame, placed) && outsideForward(frame)) {
+			weapons = getWeaponPanelLayout(frame, metrics.row, panelHeight > panelRows ? sizes.silhouette : 0);
+			break;
+		}
 	}
-	const hints = centered(width, math.min(360, width - margin * 2), (radar ? radar.y - 2 : height - margin) - hintsHeight, hintsHeight);
-	// Keyboard/gamepad: the warning sits directly above the hint row, which also
-	// carries the EVADE prompt while a missile is inbound.
-	const alert = centered(width, math.min(ALERT_MAX_WIDTH, width - margin * 2), hints.y - 2 - ALERT_HEIGHT, ALERT_HEIGHT);
-	if (radarPlacement === undefined && !compact) placeRadar(alert.y);
-	if (!compact) finishNavigation(radarPlacement === "bottom" ? undefined : radar);
-	else navigation.width = math.min(NAVIGATION_CAPTION_WIDTH, status.x - gap - calloutX);
-	return { margin, alert, callout, timer, status, health, flightStatus, navigation, hints, pause, radar, radarPlacement };
+	// Nothing fits above the throttle (portrait slivers): the top-right corner, rows only.
+	weapons ??= getWeaponPanelLayout({ x: panelX, y: margin, width: sizes.panel, height: panelRows }, metrics.row, 0);
+	placed.push(weapons.frame);
+
+	// Left column: a square radar under the top row (above the steering stick on touch), as large as fits.
+	let radar: Rectangle | undefined;
+	let radarPlacement: RadarPlacement | undefined;
+	const radarLimit = math.min(sizes.radarMax, math.max(RADAR_MIN_SIZE, math.floor(height * 0.3)));
+	for (let size = math.min(radarLimit, leftBottom - (topBottom + gap)); size >= RADAR_MIN_SIZE; size -= 2) {
+		const candidate = { x: margin, y: leftBottom - size, width: size, height: size };
+		if (clear(candidate, [...placed, ...(hints ? [hints] : [])]) && outsideForward(candidate)) { radar = candidate; radarPlacement = "column"; break; }
+	}
+	if (!radar && !compact) {
+		// Short roots: the top-right corner, when the weapon panel left it free.
+		for (let size = radarLimit; size >= RADAR_MIN_SIZE; size -= 2) {
+			const candidate = { x: width - margin - size, y: margin, width: size, height: size };
+			if (bottomOf(candidate) <= rightBottom && clear(candidate, placed) && outsideForward(candidate)) { radar = candidate; radarPlacement = "corner"; break; }
+		}
+	}
+	if (radar) placed.push(radar);
+
+	// Keyboard and gamepad hints: bottom-centre, narrowed between the radar and the weapon panel.
+	if (hints) {
+		hints = centredFree(math.floor(width / 2), hints.y, hints.height, hints.width, 0, placed, width, margin) ?? { ...hints, width: 0 };
+		if (hints.width > 0) placed.push(hints);
+	}
+
+	// Centre instruments: reticle, SPEED left and ALT right of it, then the warning
+	// box and the break-cue row under it. Moved up (then down) off any obstacle.
+	const centreX = math.floor(width / 2);
+	const reticleSize = sizes.reticle;
+	const offset = math.clamp(math.floor(width * 0.14), math.floor(reticleSize / 2) + 8, 300);
+	const alertWidth = math.min(sizes.alertWidth, width - margin * 2);
+	const cluster = (centreY: number) => {
+		const boxTop = centreY - math.floor(metrics.box / 2);
+		const top = boxTop - metrics.caption;
+		const speed = { x: centreX - offset - sizes.instrument, y: top, width: sizes.instrument, height: metrics.caption + metrics.box };
+		const altitude = { x: centreX + offset, y: top, width: sizes.instrument, height: metrics.caption + metrics.box };
+		const reticle = reticleSize > 0 ? { x: centreX - reticleSize / 2, y: centreY - reticleSize / 2, width: reticleSize, height: reticleSize } : undefined;
+		const below = math.max(boxTop + metrics.box, reticle ? bottomOf(reticle) : 0) + 4;
+		const alert = { x: centreX - math.floor(alertWidth / 2), y: below, width: math.floor(alertWidth / 2) * 2, height: sizes.alertHeight };
+		const breakCue = { ...alert, y: bottomOf(alert) + 2, height: sizes.breakCue };
+		return { speed, altitude, reticle, alert, breakCue };
+	};
+	type Cluster = ReturnType<typeof cluster>;
+	const clusterRects = (candidate: Cluster) => [candidate.speed, candidate.altitude, ...(candidate.alert !== callout ? [candidate.alert] : []), ...(candidate.breakCue !== candidate.alert ? [candidate.breakCue] : []), ...(candidate.reticle ? [candidate.reticle] : [])];
+	const fitsCluster = (candidate: Cluster) => {
+		for (const rectangle of clusterRects(candidate)) if (!rectangleInside(rectangle, width, height, margin) || !clear(rectangle, placed)) return false;
+		return true;
+	};
+	let instruments: Cluster | undefined;
+	if (compact && touch?.arrangement === "grid") {
+		// Studio compact: SPEED and ALT over the 2x2 grid columns, the warning above them.
+		// Short roots drop the caption row (the box reads "S 420"); when the warning has no
+		// row left it shares the objective line (shown in its place while it lasts), and the
+		// break cue always shares the warning row here.
+		const full = metrics.caption + metrics.box;
+		const instrumentHeight = touch.target.y - gap - full >= topBottom + 2 ? full : metrics.box;
+		const top = touch.target.y - gap - instrumentHeight;
+		const speed = { x: touch.target.x, y: top, width: touch.target.width, height: instrumentHeight };
+		const altitude = { ...speed, x: touch.special.x };
+		let alert = { x: touch.target.x, y: top - 2 - sizes.alertHeight, width: rightOf(touch.special) - touch.target.x, height: sizes.alertHeight };
+		if (alert.y < topBottom + 2) alert = callout;
+		instruments = { speed, altitude, reticle: undefined, alert, breakCue: alert };
+	} else {
+		const ideal = math.floor(height / 2);
+		for (let step = 0; step <= height; step += 2) {
+			const up = cluster(ideal - step);
+			if (fitsCluster(up)) { instruments = up; break; }
+			const down = cluster(ideal + step);
+			if (fitsCluster(down)) { instruments = down; break; }
+			if (ideal - step < 0 && ideal + step > height) break;
+		}
+		// No room (tiny portrait slivers): keep the instruments centred and on screen regardless.
+		instruments ??= cluster(ideal);
+	}
+	const { speed, altitude, reticle, alert, breakCue } = instruments;
+	for (const rectangle of clusterRects(instruments)) placed.push(rectangle);
+
+	// Radio subtitle: bottom-centre, between the break cue and the buttons (or hint row).
+	let subtitle: Rectangle | undefined;
+	if (!compact) {
+		let floor = height - margin;
+		for (const rectangle of placed) {
+			// Only what crosses the middle 120 px sets the floor; side columns just narrow the line.
+			if (rectangle.y > bottomOf(breakCue) && rectangle.x < centreX + 60 && rightOf(rectangle) > centreX - 60) floor = math.min(floor, rectangle.y);
+		}
+		const room = floor - 4 - (bottomOf(breakCue) + 4);
+		const lines = math.min(SUBTITLE_LINES, math.floor(room / metrics.row));
+		if (lines >= 1) {
+			const lineHeight = lines * metrics.row;
+			subtitle = centredFree(centreX, floor - 4 - lineHeight, lineHeight, sizes.subtitleWidth, 120, placed, width, margin);
+			if (subtitle) placed.push(subtitle);
+		}
+	}
+
+	// The fixed navigation slot: under the objective, trimmed to the first element right of or below it.
+	if (compact) {
+		navigation.x = margin;
+		navigation.width = touch ? touch.joystick.width : math.min(NAVIGATION_CAPTION_WIDTH, rightOf(callout) - margin);
+	}
+	navigation.y = compact ? topBottom + 2 : navigation.y;
+	let navigationRight = math.min(navigation.x + NAVIGATION_CAPTION_MAX_WIDTH, width - margin);
+	let navigationBottom = navigation.y + NAVIGATION_SLOT_HEIGHT;
+	for (const rectangle of placed) {
+		if (rectangle.y < navigationBottom && bottomOf(rectangle) > navigation.y && rectangle.x >= navigation.x + NAVIGATION_CAPTION_WIDTH / 2) navigationRight = math.min(navigationRight, rectangle.x - gap);
+	}
+	navigation.width = compact ? navigation.width : math.max(0, navigationRight - navigation.x);
+	for (const rectangle of placed) {
+		if (rectangle.x < navigation.x + navigation.width && rightOf(rectangle) > navigation.x && rectangle.y >= navigation.y) navigationBottom = math.min(navigationBottom, rectangle.y - 2);
+	}
+	navigation.height = math.max(0, math.min(NAVIGATION_SLOT_HEIGHT, navigationBottom - navigation.y));
+
+	return {
+		margin, metrics, clock, callout, navigation, pause, reticle, speed, altitude, alert, breakCue,
+		radar, radarPlacement, weapons, subtitle, fireCaption, hints, touch,
+	};
 }
 
 export const KILL_MARKER_MAX_WIDTH = 220;
@@ -334,30 +536,27 @@ export const KILL_MARKER_MIN_WIDTH = 90;
 export const KILL_MARKER_HEIGHT = 22;
 
 /**
- * The brief "SPLASH ONE" callout: top centre, in the lane between the objective
- * and the clock stack, above the forward view. Portrait roots with a narrow lane
- * drop it just under the top texts (still above the forward view). The Studio
- * compact root has room for neither and borrows the alert lane for the moment.
+ * The brief "SPLASH ONE" callout: top row, centred in the lane right of the
+ * objective, above the forward view. Narrow roots drop it under the top row
+ * (still above the forward view). The Studio compact root has room for
+ * neither and borrows the alert lane for the moment.
  */
 export function getKillMarkerLayout(viewportWidth: number, viewportHeight: number, inputMode: InputMode, options?: HudOptions): Rectangle {
 	const width = math.max(1, viewportWidth);
 	const height = math.max(1, viewportHeight);
 	const hud = getHudLayout(width, height, inputMode, options);
 	const gap = 8;
-	const laneLeft = hud.callout.x + hud.callout.width + gap;
-	const laneRight = math.min(hud.status.x, hud.flightStatus.x, hud.timer.x) - gap;
-	const laneWidth = math.min(KILL_MARKER_MAX_WIDTH, laneRight - laneLeft);
-	if (laneWidth >= KILL_MARKER_MIN_WIDTH) {
-		return { x: laneLeft + math.floor((laneRight - laneLeft - laneWidth) / 2), y: hud.margin, width: laneWidth, height: KILL_MARKER_HEIGHT };
-	}
-	const below = math.max(hud.navigation.y + hud.navigation.height, hud.health.y + hud.health.height) + gap;
+	const obstacles = hudObstacles(hud);
 	const forward = getHudCentreBox(width, height);
-	// A radar under the hull bar narrows the centred slot instead of pushing it down.
-	const besideRadar = hud.radar && hud.radarPlacement !== "bottom" ? 2 * (hud.radar.x - gap - math.floor(width / 2)) : math.huge;
-	const belowWidth = math.min(KILL_MARKER_MAX_WIDTH, width - hud.margin * 2, besideRadar);
-	if (below + KILL_MARKER_HEIGHT <= forward.y && belowWidth >= KILL_MARKER_MIN_WIDTH) {
-		return centered(width, belowWidth, below, KILL_MARKER_HEIGHT);
-	}
+	const laneLeft = rightOf(hud.callout) + gap;
+	const laneRight = topLaneRight(laneLeft, hud.margin, KILL_MARKER_HEIGHT, obstacles, width - hud.margin, gap);
+	const fits = (candidate: Rectangle) => candidate.width >= KILL_MARKER_MIN_WIDTH && bottomOf(candidate) <= forward.y && clear(candidate, obstacles);
+	const laneWidth = math.min(KILL_MARKER_MAX_WIDTH, laneRight - laneLeft);
+	const lane = { x: laneLeft + math.floor((laneRight - laneLeft - laneWidth) / 2), y: hud.margin, width: laneWidth, height: KILL_MARKER_HEIGHT };
+	if (fits(lane)) return lane;
+	const below = math.max(bottomOf(hud.callout), bottomOf(hud.clock), hud.pause ? bottomOf(hud.pause) : 0) + gap;
+	const banner = centredFree(math.floor(width / 2), below, KILL_MARKER_HEIGHT, KILL_MARKER_MAX_WIDTH, KILL_MARKER_MIN_WIDTH, obstacles, width, hud.margin);
+	if (banner && fits(banner)) return banner;
 	return hud.alert;
 }
 
@@ -415,54 +614,40 @@ export function getToastLayout(viewportWidth: number, viewportHeight: number, me
 	const obstacles = hudObstacles(hud);
 	const free = (candidate: Rectangle) => candidate.width >= 1 && candidate.height >= 1 && rectangleInside(candidate, width, height, 0)
 		&& !obstacles.some((obstacle) => rectanglesOverlap(candidate, obstacle));
-	const healthBottom = hud.health.y + hud.health.height;
-	if (viewportHeight < 240) {
-		// Compact: the right column between the hull bar and the throttle stick.
-		const y = healthBottom + 2;
-		const column = hud.touch?.throttle.width ?? JOYSTICK_SIZE;
-		const throttleTop = hud.touch?.throttle.y ?? height - hud.margin - JOYSTICK_SIZE;
-		return { x: width - hud.margin - column, y, width: column, height: math.max(1, math.min(ALERT_HEIGHT, throttleTop - 2 - y)) };
-	}
-	const missionToastHeight = 30;
+	const missionToastHeight = hud.metrics.scale === "compact" ? ALERT_HEIGHT : 30;
 	const candidates: Rectangle[] = [];
-	// In a mission the toast lives in the top row between the objective and the
-	// clock, so it never enters the forward view.
+	// In a mission the toast lives in the top row right of the objective, so it never enters the forward view.
 	const left = hud.callout.x + hud.callout.width + 8;
-	const right = math.min(hud.status.x, hud.flightStatus.x, hud.timer.x) - 8;
-	if (right - left >= 140) {
+	const right = topLaneRight(left, hud.callout.y, missionToastHeight, obstacles, width - hud.margin, 8);
+	if (right - left >= (hud.metrics.scale === "compact" ? 96 : 120)) {
 		const toastWidth = math.min(380, right - left);
 		candidates.push({ x: left + math.floor((right - left - toastWidth) / 2), y: hud.callout.y, width: toastWidth, height: missionToastHeight });
 	}
-	// Narrow roots use the space beside navigation, up to the first right-column element at that height.
-	const besideNavigation = hud.navigation.x + hud.navigation.width + 8;
-	const besideTop = math.max(hud.navigation.y, healthBottom + 2);
-	let besideRight = width - hud.margin;
-	for (const obstacle of obstacles) {
-		if (obstacle.x >= besideNavigation && obstacle.y < besideTop + missionToastHeight && obstacle.y + obstacle.height > besideTop) besideRight = math.min(besideRight, obstacle.x - 8);
+	// Otherwise a banner under the top row, then the column under the navigation slot.
+	const topBottom = math.max(hud.callout.y + hud.callout.height, hud.clock.y + hud.clock.height, hud.pause ? hud.pause.y + hud.pause.height : 0);
+	const banner = centredFree(math.floor(width / 2), topBottom + 8, missionToastHeight, math.min(380, math.floor(width * 0.5)), 140, obstacles, width, hud.margin);
+	if (banner) candidates.push(banner);
+	const below = hud.navigation.y + hud.navigation.height + 8;
+	const beside = centredFree(math.floor(width / 2), below, missionToastHeight, math.min(380, width - hud.margin * 2), 140, obstacles, width, hud.margin);
+	if (beside) candidates.push(beside);
+	// Compact: the right column between the weapon rows and the throttle stick.
+	if (hud.touch) {
+		const y = hud.weapons.frame.y + hud.weapons.frame.height + 2;
+		const room = math.min(missionToastHeight, (hud.touch.throttleUpLabel ?? hud.touch.throttle).y - 2 - y);
+		if (room >= 16) candidates.push({ x: hud.touch.throttle.x, y, width: hud.touch.throttle.width, height: room });
 	}
-	if (besideRight - besideNavigation >= 140) candidates.push({ x: besideNavigation, y: besideTop, width: besideRight - besideNavigation, height: missionToastHeight });
-	// Otherwise a banner under everything at the top of the screen, then the left column under navigation.
-	const alertStackedOnTop = hud.alert.y + hud.alert.height <= height / 2;
-	const bannerBottom = math.max(
-		hud.callout.y + hud.callout.height,
-		hud.status.y + hud.status.height,
-		healthBottom,
-		hud.navigation.y + hud.navigation.height,
-		hud.radar && hud.radarPlacement !== "bottom" ? hud.radar.y + hud.radar.height : 0,
-		alertStackedOnTop ? hud.alert.y + hud.alert.height : 0,
-	);
-	candidates.push(centered(width, math.min(380, math.floor(width * 0.5)), bannerBottom + 8, missionToastHeight));
-	const leftRight = hud.radar && hud.radarPlacement !== "bottom" ? hud.radar.x - 8 : width - hud.margin;
-	candidates.push({ x: hud.margin, y: hud.navigation.y + hud.navigation.height + 8, width: math.min(380, leftRight - hud.margin), height: missionToastHeight });
 	for (const candidate of candidates) if (free(candidate)) return candidate;
 	// Nothing free (tiny portrait roots): the transient toast borrows the alert lane.
 	return hud.alert;
 }
 
-/** Every laid-out HUD rectangle: texts, bars, buttons, radar and touch controls. */
+/** Every laid-out HUD rectangle: texts, instruments, panels, buttons, radar and touch controls. */
 export function hudObstacles(hud: HudLayout): Rectangle[] {
-	const rectangles = [hud.callout, hud.timer, hud.status, hud.health, hud.flightStatus, hud.navigation, hud.alert];
-	for (const optional of [hud.hints, hud.pause, hud.radar, hud.fireCaption]) if (optional) rectangles.push(optional);
+	const rectangles = [hud.clock, hud.callout, hud.navigation, hud.speed, hud.altitude, hud.weapons.frame];
+	// Compact roots may share rows: the warning with the objective, the break cue with the warning.
+	if (hud.alert !== hud.callout) rectangles.push(hud.alert);
+	if (hud.breakCue !== hud.alert) rectangles.push(hud.breakCue);
+	for (const optional of [hud.reticle, hud.subtitle, hud.hints, hud.pause, hud.radar, hud.fireCaption]) if (optional && optional.width > 0) rectangles.push(optional);
 	const touch = hud.touch;
 	if (touch) {
 		rectangles.push(touch.joystick, touch.throttle, touch.missile, touch.target, touch.special, touch.evade);
