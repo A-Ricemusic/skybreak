@@ -78,15 +78,15 @@ afterEach(() => {
 });
 
 describe("Uploaded asset loader with procedural fallback", () => {
-	it("ships with every asset ID unset, so the game stays procedural before upload", () => {
-		for (const [, id] of pairs(RobloxAssetIds)) expect(id).toBeUndefined();
-		let calls = 0;
-		UploadedAssets.Configure({ loader: () => { calls += 1; return new Instance("Model"); } });
-		const jet = track(JetFactory.Create("Unuploaded Kestrel", false));
-		expect(jet.GetAttribute("GeometrySource") === "Blender" || jet.GetAttribute("GeometrySource") === "Fallback").toBe(true);
-		expect(UploadedAssets.Template(["Kestrel"])).toBeUndefined();
-		expect(calls).toBe(0);
-	}, 60000);
+	it("ships every asset ID as a moderation-approved Roblox asset number (docs/qa/uploaded-assets.md)", () => {
+		let count = 0;
+		for (const [, id] of pairs(RobloxAssetIds)) {
+			expect(typeIs(id, "number")).toBe(true);
+			expect((id as number) > 0 && (id as number) % 1 === 0).toBe(true);
+			count += 1;
+		}
+		expect(count).toBe(24);
+	});
 
 	it("uses an uploaded aircraft when its ID is set: validated, scaled to the procedural size, cached and welded", () => {
 		const spec = UploadedAssetSpecs.Kestrel;
