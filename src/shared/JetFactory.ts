@@ -274,10 +274,14 @@ export const JetFactory = {
 			const fall = frame.PointToWorldSpace(new Vector3(side * 1.6, 0, 34 + index * 5)).sub(new Vector3(0, 55 + index * 6, 0));
 			const out = TweenService.Create(flare, new TweenInfo(0.35, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Position: kick });
 			out.Completed.Connect(() => {
-				if (flare.Parent) TweenService.Create(flare, new TweenInfo(1.05, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Position: fall, Transparency: 1, Size: new Vector3(0.5, 0.5, 0.5) }).Play();
+				if (!flare.Parent) return;
+				// The glow burns out as the flare drops; smoke stops early so its puffs fade before the part goes.
+				sparkle.Enabled = false;
+				TweenService.Create(flare, new TweenInfo(1.05, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Position: fall, Transparency: 1, Size: new Vector3(0.5, 0.5, 0.5) }).Play();
+				task.delay(0.6, () => { smoke.Enabled = false; });
 			});
 			out.Play();
-			Debris.AddItem(flare, 1.45);
+			Debris.AddItem(flare, 2.4);
 		}
 	},
 };

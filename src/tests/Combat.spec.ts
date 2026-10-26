@@ -345,7 +345,7 @@ describe("Roblox jet and missile integration", () => {
 		const flash = root.FindFirstChild("ImpactFlash") as Part;
 		expect(flash.FindFirstChildWhichIsA("PointLight")).toBeDefined();
 		expect(root.GetChildren().size()).toBe(7);
-		task.wait(1.6);
+		task.wait(2.6);
 		expect(root.GetChildren().size()).toBe(0);
 	});
 });
