@@ -13,8 +13,12 @@ export const MIN_TOUCH_TARGET = 44;
 
 export interface TouchLayout {
 	joystick: Rectangle;
-	/** Right analog stick, including its up/down and percent labels. */
+	/** Right analog stick disc; the same size as the steering stick. */
 	throttle: Rectangle;
+	/** "SPEED UP" caption centred above the throttle disc; omitted on compact roots. */
+	throttleUpLabel?: Rectangle;
+	/** "SLOW DOWN" caption centred below the throttle disc; omitted on compact roots. */
+	throttleDownLabel?: Rectangle;
 	missile: Rectangle;
 	target: Rectangle;
 	/** Second weapon slot button: beside FIRE, or beside TGT on narrow roots. */
@@ -29,8 +33,10 @@ export interface HudLayout {
 	callout: Rectangle;
 	/** Mission clock text, top-right. */
 	timer: Rectangle;
-	/** "HULL 87 · MSL 8" text directly under the clock. */
+	/** "MSL 8 · FLR 2" text directly under the clock. */
 	status: Rectangle;
+	/** Hull bar directly under the weapon status, right-aligned. */
+	health: Rectangle;
 	flightStatus: Rectangle;
 	/** Fixed slot for the navigation caption when no floating spot fits (under the objective). */
 	navigation: Rectangle;
@@ -79,6 +85,11 @@ export const TIMER_WIDTH = 48;
 export const TIMER_HEIGHT = 14;
 export const STATUS_WIDTH = 150;
 export const STATUS_HEIGHT = 13;
+export const HEALTH_BAR_HEIGHT = 6;
+/** Studio's 320x182 root: thinner and only stick-wide, clear of the compact alert lane and toast. */
+export const COMPACT_HEALTH_BAR_HEIGHT = 4;
+/** Caption rows above and below the throttle disc. */
+export const THROTTLE_LABEL_HEIGHT = 10;
 export const ALERT_MAX_WIDTH = 220;
 export const ALERT_HEIGHT = 18;
 export const NAVIGATION_CAPTION_WIDTH = 120;
@@ -126,14 +137,26 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 	// on the left; the clock with hull/missiles under it on the right. Text only.
 	const timer = { x: width - margin - TIMER_WIDTH, y: margin, width: TIMER_WIDTH, height: TIMER_HEIGHT };
 	const status = { x: width - margin - STATUS_WIDTH, y: timer.y + timer.height + 2, width: STATUS_WIDTH, height: STATUS_HEIGHT };
+	const healthWidth = compact ? JOYSTICK_SIZE : STATUS_WIDTH;
+	const health = {
+		x: width - margin - healthWidth,
+		y: status.y + status.height + (compact ? 1 : 2),
+		width: healthWidth,
+		height: compact ? COMPACT_HEALTH_BAR_HEIGHT : HEALTH_BAR_HEIGHT,
+	};
 	const flightStatus = { x: status.x, y: timer.y, width: STATUS_WIDTH - TIMER_WIDTH - gap, height: TIMER_HEIGHT };
 	const calloutWidth = math.max(0, math.min(OBJECTIVE_MAX_WIDTH, math.floor(width * OBJECTIVE_MAX_SHARE), status.x - gap - margin));
 	const callout = { x: margin, y: margin, width: calloutWidth, height: OBJECTIVE_LINE_HEIGHT };
 	const navigation = { x: margin, y: callout.y + callout.height + 2, width: NAVIGATION_CAPTION_WIDTH, height: NAVIGATION_CAPTION_HEIGHT };
 
 	if (inputMode === "touch") {
-		const joystick = { x: margin, y: height - margin - JOYSTICK_SIZE, width: JOYSTICK_SIZE, height: JOYSTICK_SIZE };
+		// Regular roots lift both sticks so the throttle captions sit outside the
+		// disc (above and below) without entering the safe margin.
+		const labelLift = compact ? 0 : THROTTLE_LABEL_HEIGHT + 2;
+		const joystick = { x: margin, y: height - margin - labelLift - JOYSTICK_SIZE, width: JOYSTICK_SIZE, height: JOYSTICK_SIZE };
 		const throttle = { ...joystick, x: width - margin - JOYSTICK_SIZE };
+		const throttleUpLabel = compact ? undefined : { x: throttle.x, y: throttle.y - labelLift, width: JOYSTICK_SIZE, height: THROTTLE_LABEL_HEIGHT };
+		const throttleDownLabel = compact ? undefined : { x: throttle.x, y: throttle.y + JOYSTICK_SIZE + 2, width: JOYSTICK_SIZE, height: THROTTLE_LABEL_HEIGHT };
 		const laneLeft = joystick.x + JOYSTICK_SIZE + controlGap;
 		const laneRight = throttle.x - controlGap;
 		const stacked = laneRight - laneLeft < FIRE_SIZE + TARGET_SIZE + SPECIAL_SIZE + controlGap * 2;
@@ -150,8 +173,8 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 		if (compact) { navigation.width = JOYSTICK_SIZE; navigation.height = math.min(NAVIGATION_CAPTION_HEIGHT, joystick.y - navigation.y - 2); }
 		const alert = compact
 			? centered(width, laneRight - laneLeft, 38, ALERT_HEIGHT)
-			: centered(width, math.min(ALERT_MAX_WIDTH, width - margin * 2), math.min(joystick.y, target.y) - gap - ALERT_HEIGHT, ALERT_HEIGHT);
-		return { margin, alert, callout, timer, status, flightStatus, navigation, touch: { joystick, throttle, missile, target, special } };
+			: centered(width, math.min(ALERT_MAX_WIDTH, width - margin * 2), math.min(joystick.y - labelLift, target.y) - gap - ALERT_HEIGHT, ALERT_HEIGHT);
+		return { margin, alert, callout, timer, status, health, flightStatus, navigation, touch: { joystick, throttle, throttleUpLabel, throttleDownLabel, missile, target, special } };
 	}
 
 	const hintsHeight = 18;
@@ -159,7 +182,7 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 	// Keyboard/gamepad: the warning sits directly above the hint row, which also
 	// carries the EVADE prompt while a missile is inbound.
 	const alert = centered(width, math.min(ALERT_MAX_WIDTH, width - margin * 2), hints.y - 2 - ALERT_HEIGHT, ALERT_HEIGHT);
-	return { margin, alert, callout, timer, status, flightStatus, navigation, hints };
+	return { margin, alert, callout, timer, status, health, flightStatus, navigation, hints };
 }
 
 /**
@@ -202,7 +225,13 @@ export function getToastLayout(viewportWidth: number, viewportHeight: number, me
 	}
 	if (menu) return centered(width, math.min(380, width - 28), 14, toastHeight);
 	const hud = getHudLayout(viewportWidth, viewportHeight, "keyboard");
-	if (viewportHeight < 240) return { x: width - hud.margin - JOYSTICK_SIZE, y: 38, width: JOYSTICK_SIZE, height: ALERT_HEIGHT };
+	const healthBottom = hud.health.y + hud.health.height;
+	if (viewportHeight < 240) {
+		// Compact: the right column between the hull bar and the throttle stick.
+		const y = healthBottom + 2;
+		const throttleTop = math.max(1, viewportHeight) - hud.margin - JOYSTICK_SIZE;
+		return { x: width - hud.margin - JOYSTICK_SIZE, y, width: JOYSTICK_SIZE, height: math.max(1, math.min(ALERT_HEIGHT, throttleTop - 2 - y)) };
+	}
 	// In a mission the toast lives in the top row between the objective and the
 	// clock, so it never enters the forward view. If that span is too narrow
 	// (portrait phones), it drops below the top texts instead.
@@ -217,12 +246,13 @@ export function getToastLayout(viewportWidth: number, viewportHeight: number, me
 	// above the twin-stick warning/action lane.
 	const besideNavigation = hud.navigation.x + hud.navigation.width + 8;
 	if (width - hud.margin - besideNavigation >= 140) {
-		return { x: besideNavigation, y: hud.navigation.y, width: width - hud.margin - besideNavigation, height: missionToastHeight };
+		return { x: besideNavigation, y: math.max(hud.navigation.y, healthBottom + 2), width: width - hud.margin - besideNavigation, height: missionToastHeight };
 	}
 	const alertStackedOnTop = hud.alert.y + hud.alert.height <= math.max(1, viewportHeight) / 2;
 	const bannerBottom = math.max(
 		hud.callout.y + hud.callout.height,
 		hud.status.y + hud.status.height,
+		healthBottom,
 		hud.navigation.y + hud.navigation.height,
 		alertStackedOnTop ? hud.alert.y + hud.alert.height : 0,
 	);

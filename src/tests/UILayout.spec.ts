@@ -73,11 +73,15 @@ function expectSeparate(rectangles: Rectangle[]) {
 }
 
 function hudRectangles(layout: HudLayout, includeAlert = true): Rectangle[] {
-	const rectangles = [layout.callout, layout.timer, layout.status, layout.flightStatus, layout.navigation];
+	const rectangles = [layout.callout, layout.timer, layout.status, layout.health, layout.flightStatus, layout.navigation];
 	if (includeAlert) rectangles.push(layout.alert);
 	if (layout.hints) rectangles.push(layout.hints);
 	const touch = layout.touch;
-	if (touch) rectangles.push(touch.joystick, touch.throttle, touch.missile, touch.target, touch.special);
+	if (touch) {
+		rectangles.push(touch.joystick, touch.throttle, touch.missile, touch.target, touch.special);
+		if (touch.throttleUpLabel) rectangles.push(touch.throttleUpLabel);
+		if (touch.throttleDownLabel) rectangles.push(touch.throttleDownLabel);
+	}
 	return rectangles;
 }
 
@@ -170,6 +174,41 @@ describe("minimal mission HUD layout", () => {
 		}
 	});
 
+	it("draws a compact hull bar directly under the weapon status, inside the margin", () => {
+		for (const [width, height] of [...HUD_VIEWPORTS, ...COMPACT_VIEWPORTS, ...VIEWPORTS]) {
+			for (const mode of MODES) {
+				const layout = getHudLayout(width, height, mode);
+				const health = layout.health;
+				expect(health.x + health.width).toBe(width - layout.margin);
+				expect(health.y).toBeGreaterThanOrEqual(layout.status.y + layout.status.height);
+				expect(health.y - (layout.status.y + layout.status.height)).toBeLessThanOrEqual(2);
+				expect(health.width).toBeLessThanOrEqual(layout.status.width);
+				expect(health.width).toBeGreaterThanOrEqual(JOYSTICK_SIZE);
+				expect(health.height).toBeGreaterThanOrEqual(4);
+				expect(health.height).toBeLessThanOrEqual(8);
+				expect(rectangleInside(health, width, height, layout.margin)).toBe(true);
+				expect(rectanglesOverlap(health, getToastLayout(width, height))).toBe(false);
+			}
+		}
+		const phone = getHudLayout(750, 332, "touch").health;
+		expect(phone).toEqual({ x: 586, y: 45, width: 150, height: 6 });
+	});
+
+	it("puts the throttle captions outside the disc, centred above and below it", () => {
+		for (const [width, height] of [...HUD_VIEWPORTS, ...VIEWPORTS]) {
+			const touch = getHudLayout(width, height, "touch").touch!;
+			const up = touch.throttleUpLabel!;
+			const down = touch.throttleDownLabel!;
+			for (const label of [up, down]) {
+				expect(label.x).toBe(touch.throttle.x);
+				expect(label.width).toBe(touch.throttle.width);
+				expect(rectanglesOverlap(label, touch.throttle)).toBe(false);
+			}
+			expect(up.y + up.height).toBeLessThanOrEqual(touch.throttle.y);
+			expect(down.y).toBeGreaterThanOrEqual(touch.throttle.y + touch.throttle.height);
+		}
+	});
+
 	it("defines the forward view as the central 50% width and 60% height", () => {
 		const box = getHudCentreBox(1000, 500);
 		expect(box).toEqual({ x: 250, y: 100, width: 500, height: 300 });
@@ -179,7 +218,7 @@ describe("minimal mission HUD layout", () => {
 		for (const [width, height] of [...HUD_VIEWPORTS, [568, 320], [390, 844], [320, 568], [1024, 768], [1920, 1080]] as [number, number][]) {
 			const centre = getHudCentreBox(width, height);
 			for (const mode of MODES) {
-				for (const rectangle of mode === "touch" ? [getHudLayout(width, height, mode).callout, getHudLayout(width, height, mode).timer, getHudLayout(width, height, mode).status] : hudRectangles(getHudLayout(width, height, mode), false)) {
+				for (const rectangle of mode === "touch" ? [getHudLayout(width, height, mode).callout, getHudLayout(width, height, mode).timer, getHudLayout(width, height, mode).status, getHudLayout(width, height, mode).health] : hudRectangles(getHudLayout(width, height, mode), false)) {
 					expect(rectanglesOverlap(rectangle, centre)).toBe(false);
 				}
 			}

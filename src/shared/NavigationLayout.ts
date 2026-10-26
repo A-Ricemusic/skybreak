@@ -22,9 +22,13 @@ export function navigationCaption(distance:number,side:number,inVolume:boolean,c
 /** Every HUD rectangle the floating caption must stay out of. Depends only on
  * the layout, so callers can compute it once per viewport and input mode. */
 export function navigationObstacles(hud:HudLayout): Rectangle[] {
-	const obstacles=[hud.callout,hud.timer,hud.alert,hud.status];
+	const obstacles=[hud.callout,hud.timer,hud.alert,hud.status,hud.health];
 	if(hud.hints)obstacles.push(hud.hints);
-	if(hud.touch)obstacles.push(hud.touch.joystick,hud.touch.throttle,hud.touch.missile,hud.touch.target,hud.touch.special);
+	if(hud.touch) {
+		obstacles.push(hud.touch.joystick,hud.touch.throttle,hud.touch.missile,hud.touch.target,hud.touch.special);
+		if(hud.touch.throttleUpLabel)obstacles.push(hud.touch.throttleUpLabel);
+		if(hud.touch.throttleDownLabel)obstacles.push(hud.touch.throttleDownLabel);
+	}
 	return obstacles;
 }
 
