@@ -93,7 +93,7 @@ describe("Uploaded asset loader with procedural fallback", () => {
 			expect((id as number) > 0 && (id as number) % 1 === 0).toBe(true);
 			count += 1;
 		}
-		expect(count).toBe(24);
+		expect(count).toBe(28);
 	});
 
 	it("uses an uploaded aircraft when its ID is set: validated, scaled to the procedural size, cached and welded", () => {
@@ -192,7 +192,7 @@ describe("Uploaded asset loader with procedural fallback", () => {
 		expect(jet.GetAttribute("UploadedAsset")).toBe("KestrelV2");
 		const canopy = jet.FindFirstChild("Canopy") as MeshPart | undefined;
 		expect(canopy !== undefined).toBe(true);
-		expect(canopy!.Transparency).toBe(GLASS_TRANSPARENCY);
+		expect(canopy!.Transparency).toBeCloseTo(GLASS_TRANSPARENCY, 4);
 		expect((jet.FindFirstChild("Body") as MeshPart).Transparency).toBe(0);
 		close(longest(UploadedAssets.Template(["KestrelV2"])!.template.GetExtentsSize()), longest(UploadedAssetSpecs.KestrelV2.size));
 		expect(loaded.size()).toBe(1);

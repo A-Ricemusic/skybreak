@@ -19,12 +19,13 @@ interface ExportedAircraft {
 
 // Engine integration: real instances, pivots, attachments and effects in Roblox.
 // Mission combat is also exercised through the phone controller by the live driver.
+// These suites pin the procedural Blender aircraft (and the first-build yield it causes). With
+// moderation-approved IDs wired in RobloxAssetIds the game now loads uploaded models, so force the
+// procedural path for the whole file (UploadedAssets.spec covers the uploaded path and its fallbacks).
+beforeAll(() => UploadedAssets.Configure({ ids: {} }));
+afterAll(() => UploadedAssets.Configure());
+
 describe("Roblox jet and missile integration", () => {
-	// These cases pin the procedural Blender aircraft. With moderation-approved IDs wired in
-	// RobloxAssetIds the game now loads uploaded models, so force the procedural path here
-	// (UploadedAssets.spec covers the uploaded path and its fallbacks).
-	beforeAll(() => UploadedAssets.Configure({ ids: {} }));
-	afterAll(() => UploadedAssets.Configure());
 	let fixture: Folder | undefined;
 	afterEach(() => { fixture?.Destroy(); fixture = undefined; });
 	function folder(): Folder {
