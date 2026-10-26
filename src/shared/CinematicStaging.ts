@@ -61,7 +61,7 @@ export function shotPose(shot:StoryShot,scene:StoryScene,alpha:number,short:bool
 		// Over the desk toward the jet and the subject; the old pose sat 200 studs out over empty floor.
 		case "wide": return {fov:short ? 60 : 55,eye:v(62-a*8,short ? 34 : 30,58-a*3),focus:v(8,10,-40)};
 		// Looking down at the chart so its document fills the scene lane and stays legible on a phone.
-		case "evidence": return {fov:short ? 44 : 40,eye:v(CHART.x-a*.3,portrait ? 15.5 : 13.6,portrait ? -7.4 : -6.6),focus:v(CHART.x,CHART.y+.1,CHART.z-.2)};
+		case "evidence": return {fov:short ? 44 : portrait ? 40 : 46,eye:v(CHART.x-a*.3,portrait ? 15.5 : 13.6,portrait ? -7.4 : -6.6),focus:v(CHART.x,CHART.y+.1,CHART.z-.2)};
 		// Low and slow toward the empty seat from the camera side of the desk: the parked jet sits behind it on the left, the desk edge on the right. (The old pose, from the far side, put the story subject dead centre behind the chair.)
 		case "chair": return {fov:short ? 58 : 48,eye:v(lerp(-15,-12,a),2.2,short ? 19 : 17),focus:v(CHAIR.x,CHAIR.y+.8,CHAIR.z)};
 		// Close on the recorder, far enough back that the whole box, its lamp and the desk around it read.
@@ -99,18 +99,18 @@ export function typedGraphemes(t:number,duration:number,total:number,calm:boolea
 	return p>=1 ? -1 : math.floor(total*p);
 }
 
-/** Cassettes left in the coffee tin: twelve when it is found (chapter 1), one fewer for every earlier chapter in which Teal spoke; no tin before it is found. */
+/** Cassettes left in the coffee tin: twelve when it is found (chapter 1), one fewer for every two earlier chapters in which Teal spoke, never below the last tape; no tin before it is found. */
 export function tapesInTin(id:number): number | undefined {
 	if(id<1)return undefined;
 	let played=0;
 	for(const chapter of STORY)if(chapter.id>=1 && chapter.id<id && chapter.beats.some((b)=>b.speaker===TEAL))played++;
-	return math.max(0,12-played);
+	return math.max(1,12-math.floor(played/2));
 }
 /** The Teklan orchard burns at noon in chapter 15; farm scenes are charred from then on. */
 export function orchardBurned(id:number): boolean { return id>=15; }
 /** Recovery brings Teal's recorder home in chapter 25: dented, lid open, lamp steady. */
 export function recorderOpen(id:number): boolean { return id===25; }
-/** Sera's board keeps Teal's name strip through chapter 8, loses it for chapter 9 until her last line, and keeps it after. */
+/** Sera's board keeps Teal's name strip through chapter 8, loses it for chapter 9 until the chapter's last beat, and keeps it after. */
 export function boardShowsTeal(id:number,beat:number,lastBeat:number): boolean { return id!==9 || beat>=lastBeat; }
 /** Faint green ribbons high over the crown station; only the night relay chapters have them. */
 export function auroraVisible(scene:StoryScene,mood:StoryMood): boolean { return scene==="relay" && mood==="night"; }

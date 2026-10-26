@@ -168,7 +168,9 @@ function stageLighting(mood:StoryChapter["mood"]): ()=>void {
 	const existing=Workspace.Terrain.FindFirstChildOfClass("Clouds"),clouds=existing ?? new Instance("Clouds");
 	const cloudsBefore={cover:clouds.Cover,density:clouds.Density,color:clouds.Color,enabled:clouds.Enabled};
 	// A night deck hid the stars and the aurora entirely, so night runs with the layer off.
-	clouds.Cover=l.clouds.cover;clouds.Density=l.clouds.density;clouds.Color=col(l.clouds.color);clouds.Enabled=l.clouds.cover>0;
+	// Phones keep the project's cloud budget (MobileGraphics only trims decks added later).
+	const touch=UserInputService.TouchEnabled;
+	clouds.Cover=touch ? math.min(l.clouds.cover,.3) : l.clouds.cover;clouds.Density=touch ? math.min(l.clouds.density,.3) : l.clouds.density;clouds.Color=col(l.clouds.color);clouds.Enabled=l.clouds.cover>0;
 	if(!existing)clouds.Parent=Workspace.Terrain;
 	return ()=>{
 		for(const w of watchers)w.Disconnect();

@@ -73,8 +73,8 @@ describe("cinematic staging tables",()=>{
 		expect(cardVignette("marshal")).toBe(true);expect(cardVignette("teal")).toBe(false);expect(cardVignette("log")).toBe(false);
 	});
 	it("moves the props with the story: tapes, the orchard, the recorder, the board and the aurora",()=>{
-		expect(tapesInTin(0)).toBeUndefined();expect(tapesInTin(1)).toBe(12);expect(tapesInTin(2)).toBe(11);expect(tapesInTin(5)).toBe(8);
-		expect(tapesInTin(13)).toBe(0);expect(tapesInTin(27)).toBe(0);
+		expect(tapesInTin(0)).toBeUndefined();expect(tapesInTin(1)).toBe(12);expect(tapesInTin(2)).toBe(12);expect(tapesInTin(5)).toBe(10);
+		let prev=12;for(let id=1;id<=27;id++){const n=tapesInTin(id)!;expect(n>=1 && n<=prev).toBe(true);prev=n;}expect(tapesInTin(27)).toBe(1);
 		for(const id of [0,4,14])expect(orchardBurned(id)).toBe(false);for(const id of [15,16,27])expect(orchardBurned(id)).toBe(true);
 		expect(recorderOpen(24)).toBe(false);expect(recorderOpen(25)).toBe(true);expect(recorderOpen(26)).toBe(false);
 		expect(recorderLightOn("wide",.7,true)).toBe(true);expect(recorderLightOn("wide",.7,false)).toBe(false);
