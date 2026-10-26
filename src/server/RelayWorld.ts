@@ -24,9 +24,11 @@ const yawFrame = (x: number, y: number, z: number, yaw: number) => new CFrame(x,
 /** Props per batch before yielding, so a 170-prop farm does not hold the heartbeat. */
 const PROP_YIELD = 40;
 
+// Indexing Enum.Material with an unknown name throws, so plan names resolve through a table.
+const MATERIALS = new Map<string, Enum.Material>();
+for (const item of Enum.Material.GetEnumItems()) MATERIALS.set(item.Name, item);
 function material(name: string): Enum.Material {
-	const item = (Enum.Material as unknown as Record<string, Enum.Material | undefined>)[name];
-	return item ?? Enum.Material.Concrete;
+	return MATERIALS.get(name) ?? Enum.Material.Concrete;
 }
 
 /** An additive cosine hill: only air voxels inside the hill's profile are filled. */
