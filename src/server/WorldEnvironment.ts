@@ -7,10 +7,17 @@ import type { EnvironmentPreset } from "../shared/MissionCatalog";
 // trim them locally in client/MobileGraphics and the client adds the weather
 // (rain, lightning, dust, aurora) in client/Weather from the Lighting attribute.
 
-const EFFECTS = ["SkybreakAtmosphere", "SkybreakColor", "MissionAtmosphere", "MissionGrade", "MissionSky", "MissionBloom"];
+const EFFECTS = ["SkybreakAtmosphere", "SkybreakColor", "SkybreakBloom", "MissionAtmosphere", "MissionGrade", "MissionSky", "MissionBloom"];
 const rgb = (c: Rgb) => Color3.fromRGB(c[0], c[1], c[2]);
 
+// Terrain material colours persist across Terrain:Clear(), so each build starts from the
+// engine defaults captured once at server start (the menu and M1/M2 never inherit a mission's palette).
+const TINTED = [Enum.Material.Grass, Enum.Material.LeafyGrass, Enum.Material.Ground, Enum.Material.Mud, Enum.Material.Sand, Enum.Material.Sandstone, Enum.Material.Rock, Enum.Material.Slate, Enum.Material.Basalt, Enum.Material.Snow, Enum.Material.Concrete, Enum.Material.Pavement];
+const DEFAULT_COLORS = new Map<Enum.Material, Color3>();
+for (const m of TINTED) DEFAULT_COLORS.set(m, Workspace.Terrain.GetMaterialColor(m));
+
 function clear(): void {
+	for (const [m, color] of DEFAULT_COLORS) Workspace.Terrain.SetMaterialColor(m, color);
 	for (const name of EFFECTS) Lighting.FindFirstChild(name)?.Destroy();
 	Workspace.Terrain.FindFirstChild("SkybreakClouds")?.Destroy();
 	Workspace.Terrain.FindFirstChild("MissionClouds")?.Destroy();
