@@ -1,7 +1,13 @@
-import { TouchSticks } from "../shared/TouchSticks";
+import { stickVector, TouchSticks } from "../shared/TouchSticks";
 import { FlightMath } from "../shared/FlightMath";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "@rbxts/react";
 import { flightWarning } from "../shared/FlightWarnings";
+import { evadeGauge } from "../shared/EvadeGauge";
+import { RadioQueue } from "../shared/RadioQueue";
+import { effectiveHudScale, type PlayerSettings, type SettingKey } from "../shared/PlayerSettings";
+import { EvadeButton, PauseOverlay, Radar, SettingsSheet } from "./HudControls";
+import { SettingsStore, useSettings } from "./SettingsStore";
+import type { FlightTrend } from "./FlightController";
 import {
 	CAMPAIGN_HEADER_GAP,
 	CAMPAIGN_HEADER_HEIGHT,
@@ -68,7 +74,9 @@ import {
 	getToastLayout,
 	getTutorialInstruction,
 	inputModeFromInputType,
+	JOYSTICK_SIZE,
 	MAX_FLIGHT_HINTS,
+	type HudOptions,
 	MIN_TOUCH_TARGET,
 	inputModeFromPreferred,
 	shouldAcceptInputModeChange,
@@ -142,6 +150,10 @@ interface RadioNotice {
 }
 /** Seconds a radio line stays up when the server does not specify. */
 const RADIO_SECONDS = 4.5;
+/** Rectangle in a scaled HUD frame -> root pixels. */
+function scaleRectangle(rectangle: Rectangle, scale: number): Rectangle {
+	return { x: rectangle.x * scale, y: rectangle.y * scale, width: rectangle.width * scale, height: rectangle.height * scale };
+}
 /** Seconds a refused FIRE reason stays up. */
 const FIRE_DENIED_SECONDS = 1;
 const FIRE_DENIED_TEXT: { [reason: string]: string } = {
@@ -517,6 +529,7 @@ function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
 		missiles: math.max(0, math.floor(finite(payload.missiles, previous.missiles))),
 		missileCooldown: math.max(0, finite(payload.missileCooldown, previous.missileCooldown)),
 		evadeCooldown: math.max(0, finite(payload.evadeCooldown, previous.evadeCooldown)),
+		evadeCharges: typeIs(payload.evadeCharges, "number") && finite(payload.evadeCharges, -1) >= 0 ? math.clamp(math.floor(payload.evadeCharges), 0, 9) : undefined,
 		target: typeIs(payload.target, "Instance") && payload.target.IsA("Model") ? payload.target : undefined,
 		targetName: safeString(payload.targetName, previous.targetName),
 		lockProgress: math.clamp(finite(payload.lockProgress, previous.lockProgress), 0, 1),
@@ -703,7 +716,7 @@ function ScreenHeader({ name, backName, enabled = true, title, subtitle, subtitl
 	);
 }
 
-function TitleScreenImpl({ visible, menu, onCampaign }: { visible: boolean; menu: MenuLayout; onCampaign: () => void }) {
+function TitleScreenImpl({ visible, menu, onCampaign, onSettings }: { visible: boolean; menu: MenuLayout; onCampaign: () => void; onSettings: () => void }) {
 	const compact = menu.compact;
 	const tiny = menu.panel.height < 220;
 	// The hero copy reads best as a short column, even when the panel is wide.
@@ -745,6 +758,7 @@ function TitleScreenImpl({ visible, menu, onCampaign }: { visible: boolean; menu
 				<Label name="TitleMeta" visible={!tiny} text={`3 ACTS  ·  ${MISSION_COUNT} SORTIES  ·  4 FLIGHT RECORDS`} color={C.Faint} textSize={10} font={Enum.Font.GothamBold} size={new UDim2(1, 0, 0, 14)} layoutOrder={5} />
 				<frame key="Spacer" BackgroundTransparency={1} LayoutOrder={6} Size={UDim2.fromOffset(1, tiny ? 2 : compact ? 6 : 14)} />
 				<ActionButton name="CampaignButton" text="CAMPAIGN  ›" primary={true} layoutOrder={7} size={UDim2.fromOffset(math.min(260, contentWidth), tiny ? 44 : compact ? 48 : 52)} textSize={15} onActivated={onCampaign} />
+				<ActionButton name="SettingsButton" text="SETTINGS" layoutOrder={8} size={UDim2.fromOffset(math.min(260, contentWidth), 44)} textSize={12} onActivated={onSettings} />
 			</frame>
 		</frame>
 	);
@@ -1135,7 +1149,9 @@ function BriefingScreenImpl({visible,menu,selectedSlot,selectedMission,slot,busy
 						<SectionHeading name="ObjectiveHeading" text="OBJECTIVE" layoutOrder={1}/>
 						<Label name="Primary" text={mission.primary} textSize={13} font={Enum.Font.GothamMedium} size={new UDim2(1,0,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={2}/>
 						<Label name="PhasePlan" text={mission.phases.map((phase,index)=>`<font color="${HEX.Accent}">${missionNumber(index+1)}</font>   ${phase.label}`).join("\n")} richText={true} color={C.Muted} textSize={12} size={new UDim2(1,0,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={3}/>
-						<Label name="MissionRules" text={missionRules(mission.phases)} color={C.Faint} textSize={11} size={new UDim2(1,0,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={4}/>
+						{/* Par is the time the debrief judges; show it before launch, with the slot's best when there is one. */}
+						<Label name="ParTime" text={`PAR ${formatTime(MissionScore.ParSeconds(mission))}${record?.bestTime!==undefined ? `  ·  YOUR BEST ${formatTime(record.bestTime)}` : ""}`} color={C.Accent} textSize={11} minTextSize={8} font={Enum.Font.GothamBold} size={new UDim2(1,0,0,BRIEFING_LINE_HEIGHT)} layoutOrder={4}/>
+						<Label name="MissionRules" text={missionRules(mission.phases)} color={C.Faint} textSize={11} size={new UDim2(1,0,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={5}/>
 					</frame>
 					<LoadoutPicker kind={special} enabled={!busy} layoutOrder={4} onChange={onSpecial}/>
 					<DifficultyPicker kind={difficulty} enabled={!busy} layoutOrder={5} onChange={onDifficulty}/>
@@ -1443,6 +1459,11 @@ function MissionHud({
 	introduction,
 	damageFlash,
 	killFlash,
+	scale,
+	options,
+	trend,
+	fireNotice,
+	controller,
 	joystickRef,
 	knobRef,
 	onJoystickBegan,
@@ -1452,6 +1473,8 @@ function MissionHud({
 	onMissile,
 	onTarget,
 	onSpecial,
+	onEvade,
+	onPause,
 }: {
 	visible: boolean;
 	viewport: Vector2;
@@ -1462,6 +1485,13 @@ function MissionHud({
 	introduction: boolean;
 	damageFlash: boolean;
 	killFlash?: KillFlash;
+	/** Effective HUD scale: the HUD is laid out for viewport / scale and drawn through a UIScale. */
+	scale: number;
+	options: HudOptions;
+	trend: FlightTrend;
+	/** Latest FIRE / SPECIAL refusal while it lasts (shown above FIRE, or in the alert lane). */
+	fireNotice?: string;
+	controller: FlightController;
 	joystickRef: React.RefObject<Frame>;
 	knobRef: React.RefObject<Frame>;
 	onJoystickBegan: (input: InputObject) => void;
@@ -1471,14 +1501,23 @@ function MissionHud({
 	onMissile: () => void;
 	onTarget: () => void;
 	onSpecial: () => void;
+	onEvade: () => void;
+	onPause: () => void;
 }) {
-	const layout = getHudLayout(viewport.X, viewport.Y, inputMode);
+	const virtualWidth = math.floor(viewport.X / scale);
+	const virtualHeight = math.floor(viewport.Y / scale);
+	const layout = getHudLayout(virtualWidth, virtualHeight, inputMode, options);
 	const touch = layout.touch;
 	const ready = missileReady(telemetry);
 	const locked = telemetry.target !== undefined && telemetry.lockProgress >= 0.99;
-	const alertText = flightWarning(telemetry, layout.alert.width < 200);
+	const narrow = layout.alert.width < 200;
+	const warning = flightWarning({ ...telemetry, acceleration: trend.acceleration, terrainSeconds: trend.terrainSeconds }, narrow);
+	// Refusals ride above FIRE on the touch row; elsewhere they borrow the alert lane while no warning is up.
+	const noticeInAlert = fireNotice !== undefined && layout.fireCaption === undefined && warning === "";
+	const alertText = noticeInAlert ? fireNotice! : warning;
 	const alertColor = telemetry.incoming ? C.Danger : C.Orange;
-	const evadeHint = telemetry.incoming && telemetry.evadeCooldown <= 0 ? getEvadeHint(inputMode) : undefined;
+	const evade = evadeGauge(telemetry);
+	const evadeHint = telemetry.incoming && evade.ready ? getEvadeHint(inputMode) : undefined;
 	const flightHints = getFlightHints(inputMode, { introduction, locked, missileReady: ready });
 	// Second weapon slot: label, button state and a hint when it is both ready and relevant now
 	// (flares with a missile inbound, missiles with a lock, the drone during the opening legend).
@@ -1510,7 +1549,9 @@ function MissionHud({
 	const cooldownText = telemetry.missileCooldown > 0 && !touch ? string.format(" · %.1fs", telemetry.missileCooldown) : "";
 	// The status line names the special even while it cycles ("FLR 1.2s"), where the button alone would just count down.
 	const specialStatus = specialButton.dimmed && (telemetry.specialCharges ?? 0) > 0 ? `${specialDefinition.short} ${string.format("%.1fs", telemetry.specialCooldown ?? 0)}` : specialButton.text;
-	const statusText = `MSL ${telemetry.missiles}${cooldownText} · ${specialStatus}`;
+	// Keyboard and gamepad have no EVADE button, so the status line carries the charges.
+	const evadeStatus = !touch && evade.maxCharges > 1 ? ` · EVD ${evade.charges}` : "";
+	const statusText = `MSL ${telemetry.missiles}${cooldownText} · ${specialStatus}${evadeStatus}`;
 	const statusColor = telemetry.missiles <= 0 ? C.Danger : C.Ivory;
 	const hullColor = hull <= 30 ? C.Danger : hull <= 60 ? C.Orange : C.Accent;
 	const fireButton = WeaponRules.FireButton(telemetry.missiles, telemetry.missileCooldown, telemetry.target !== undefined && telemetry.targetDamageable !== false, telemetry.lockProgress);
@@ -1519,17 +1560,42 @@ function MissionHud({
 	const progress = telemetry.objectiveTotal !== undefined && telemetry.objectiveTotal > 0
 		? `  ${telemetry.objectiveProgress ?? 0}/${telemetry.objectiveTotal}`
 		: "";
-	// Kill and radio callouts replace the objective line while they last.
+	// Kill and radio callouts replace the objective line while they last; FIRE refusals never do.
 	const objectiveLine = callout?.text ?? `${tutorial !== "" ? tutorial : telemetry.objective ?? "Complete the objective"}${progress}`;
 	const objectiveColor = callout?.color ?? (tutorial !== "" ? C.Orange : C.Ivory);
+	const knob = math.floor((touch?.joystick.width ?? JOYSTICK_SIZE) * 0.375 + 0.5);
 	return (
-		<frame key="MissionHUD" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={visible}>
-			<NavigationCue telemetry={telemetry} visible={visible} inputMode={inputMode}/>
+		<frame key="MissionHUD" BackgroundTransparency={1} Size={UDim2.fromScale(1 / scale, 1 / scale)} Visible={visible}>
+			<uiscale Scale={scale} />
+			<NavigationCue telemetry={telemetry} visible={visible} inputMode={inputMode} scale={scale} options={options}/>
 			<frame key="DamageFlash" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={damageFlash}>
 				<Stroke color={C.Danger} transparency={0.35} thickness={5} />
 			</frame>
 
-			<KillMarker flash={killFlash} rectangle={getKillMarkerLayout(viewport.X, viewport.Y, inputMode)} visible={visible} />
+			<KillMarker flash={killFlash} rectangle={getKillMarkerLayout(virtualWidth, virtualHeight, inputMode, options)} visible={visible} />
+
+			{layout.pause && (
+				<textbutton
+					key="PauseButton"
+					Active={true}
+					AutoButtonColor={false}
+					Selectable={false}
+					BackgroundColor3={C.Ink}
+					BackgroundTransparency={0.6}
+					BorderSizePixel={0}
+					Font={Enum.Font.GothamBlack}
+					Position={UDim2.fromOffset(layout.pause.x, layout.pause.y)}
+					Size={UDim2.fromOffset(layout.pause.width, layout.pause.height)}
+					Text="II"
+					TextColor3={C.Ivory}
+					TextSize={layout.pause.width >= 44 ? 15 : 12}
+					Event={{ Activated: onPause }}
+				>
+					<Corner radius={8} />
+					<Stroke color={C.Ivory} transparency={0.7} thickness={1} />
+				</textbutton>
+			)}
+			{layout.radar && <Radar rectangle={layout.radar} controller={controller} visible={visible} />}
 
 			<HudText name="ObjectiveText" text={objectiveLine} rectangle={layout.callout} color={objectiveColor} textSize={11} wrap={true} />
 			<HudText
@@ -1542,7 +1608,7 @@ function MissionHud({
 				alignment={Enum.TextXAlignment.Right}
 			/>
 			<HudText name="FlightStatus" text={`${telemetry.speed < FlightMath.StallSpeed ? "STALL" : "SPD"} ${math.floor(telemetry.speed)}`} rectangle={layout.flightStatus} color={telemetry.speed < FlightMath.WarningSpeed ? C.Orange : C.Ivory} textSize={10} minTextSize={8} alignment={Enum.TextXAlignment.Right} />
-			<HudText name="WeaponStatus" text={statusText} rectangle={layout.status} color={statusColor} textSize={10} alignment={Enum.TextXAlignment.Right} />
+			<HudText name="WeaponStatus" text={statusText} rectangle={layout.status} color={statusColor} textSize={10} minTextSize={8} alignment={Enum.TextXAlignment.Right} />
 			<frame
 				key="HullBar"
 				BackgroundColor3={C.Ink}
@@ -1566,12 +1632,24 @@ function MissionHud({
 				text={alertText}
 				rectangle={layout.alert}
 				minTextSize={8}
-				color={alertColor}
+				color={noticeInAlert ? C.Orange : alertColor}
 				textSize={12}
 				font={Enum.Font.GothamBlack}
 				alignment={Enum.TextXAlignment.Center}
 				visible={alertText !== ""}
 			/>
+			{layout.fireCaption && (
+				<HudText
+					name="FireCaption"
+					text={fireNotice ?? ""}
+					rectangle={layout.fireCaption}
+					minTextSize={7}
+					color={C.Orange}
+					textSize={10}
+					alignment={Enum.TextXAlignment.Center}
+					visible={visible && fireNotice !== undefined}
+				/>
+			)}
 
 			<frame
 				ref={joystickRef}
@@ -1595,7 +1673,7 @@ function MissionHud({
 					BackgroundTransparency={0.6}
 					BorderSizePixel={0}
 					Position={UDim2.fromScale(0.5, 0.5)}
-					Size={UDim2.fromOffset(36, 36)}
+					Size={UDim2.fromOffset(knob, knob)}
 				>
 					<Corner scale={0.5} />
 				</frame>
@@ -1609,7 +1687,7 @@ function MissionHud({
 				<Corner scale={0.5} /><Stroke color={C.Ivory} transparency={0.75} thickness={1} />
 				<frame ref={throttleKnobRef} key="ThrottleKnob" AnchorPoint={new Vector2(0.5, 0.5)}
 					BackgroundColor3={C.Accent} BackgroundTransparency={0.6} BorderSizePixel={0}
-					Position={UDim2.fromScale(0.5, 0.5)} Size={UDim2.fromOffset(36, 36)}>
+					Position={UDim2.fromScale(0.5, 0.5)} Size={UDim2.fromOffset(knob, knob)}>
 					<Corner scale={0.5} />
 				</frame>
 			</frame>
@@ -1646,6 +1724,7 @@ function MissionHud({
 						onActivated={onSpecial}
 					/>
 				)}
+				{touch && <EvadeButton rectangle={touch.evade} telemetry={telemetry} onEvade={onEvade} />}
 			</frame>
 
 			{layout.hints && (
@@ -1693,8 +1772,20 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const [inputMode, setInputMode] = useState<InputMode>(readInputMode);
 	const [hintUntil, setHintUntil] = useState(0);
 	const [killNotice, setKillNotice] = useState<KillNotice | undefined>();
-	const [radioNotice, setRadioNotice] = useState<RadioNotice | undefined>();
+	// Radio lines queue (2.5 s minimum each, 3 waiting) instead of overwriting each other.
+	const radioQueue = useMemo(() => new RadioQueue(), []);
+	const [, setRadioSerial] = useState(0);
 	const [fireNotice, setFireNotice] = useState<RadioNotice | undefined>();
+	const settings = useSettings();
+	const [paused, setPausedState] = useState(false);
+	const pausedRef = useRef(false);
+	const [settingsOpen, setSettingsOpenState] = useState(false);
+	const settingsOpenRef = useRef(false);
+	// Client flight trend (airspeed bleed, time to terrain); only re-renders when the warning it implies changes.
+	const [trend, setTrend] = useState<FlightTrend>({ acceleration: 0 });
+	const trendRef = useRef<FlightTrend>({ acceleration: 0 });
+	const hudScaleRef = useRef(1);
+	const hudOptions = useMemo<HudOptions>(() => ({ stickSize: JOYSTICK_SIZE * settings.stickScale }), [settings.stickScale]);
 	const [damageUntil, setDamageUntil] = useState(0);
 	const [killFlash, setKillFlash] = useState<KillFlash | undefined>();
 	const killSerialRef = useRef(0);
@@ -1735,6 +1826,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const changeScreen = useCallback((destination: Screen) => {
 		screenRef.current = destination;
 		inMissionRef.current = destination === "mission";
+		if (destination !== "mission" && pausedRef.current) { pausedRef.current = false; setPausedState(false); }
 		setScreen(destination);
 	}, []);
 
@@ -1779,6 +1871,15 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		if (!root || !mountedRef.current) return;
 		const current = screenRef.current;
 		const selected = GuiService.SelectedObject;
+		// Overlays (pause card, settings sheet) take gamepad focus over whatever screen is under them.
+		if (inputModeRef.current === "gamepad" && (settingsOpenRef.current || (current === "mission" && pausedRef.current))) {
+			const overlay = root.FindFirstChild(settingsOpenRef.current ? "SettingsSheet" : "PauseOverlay", true);
+			if (!overlay) return;
+			if (selected && selected.IsDescendantOf(overlay)) return;
+			const first = overlay.FindFirstChild(settingsOpenRef.current ? "SettinginvertYToggle" : "PauseResumeButton", true);
+			if (first?.IsA("GuiObject")) GuiService.SelectedObject = first;
+			return;
+		}
 		if (current === "mission" || current === "loading" || inputModeRef.current !== "gamepad") {
 			if (selected && selected.IsDescendantOf(root)) GuiService.SelectedObject = undefined;
 			return;
@@ -1799,6 +1900,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	selectDefaultRef.current = selectDefault;
 
 	const goBack = useCallback(() => {
+		if (settingsOpenRef.current) { settingsOpenRef.current = false; setSettingsOpenState(false); task.defer(() => selectDefaultRef.current()); return; }
 		if (busyRef.current) return;
 		if (screenRef.current === "slots" && confirmSlotRef.current !== undefined) setDeleteConfirm(undefined);
 		else if (screenRef.current === "slots") changeScreen("title");
@@ -1965,19 +2067,55 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const fireMissile = useCallback(() => controller.FireMissile(), [controller]);
 	const cycleTarget = useCallback(() => controller.CycleTarget(), [controller]);
 	const fireSpecial = useCallback(() => controller.Special(), [controller]);
+	const evadeNow = useCallback(() => controller.Evade(), [controller]);
+	const setSettingsOpen = useCallback((open: boolean) => {
+		settingsOpenRef.current = open;
+		setSettingsOpenState(open);
+		task.defer(() => selectDefaultRef.current());
+	}, []);
+	/** Pause: the server stops stepping and holds the clock; resuming always takes an explicit press. */
+	const pauseSortie = useCallback(() => {
+		if (pausedRef.current || screenRef.current !== "mission" || !controller.active) return;
+		pausedRef.current = true;
+		setPausedState(true);
+		releaseJoystick();
+		controller.SetPaused(true);
+		task.defer(() => selectDefaultRef.current());
+	}, [controller, releaseJoystick]);
+	const resumeSortie = useCallback(() => {
+		if (!pausedRef.current) return;
+		pausedRef.current = false;
+		setPausedState(false);
+		setSettingsOpen(false);
+		controller.SetPaused(false);
+	}, [controller, setSettingsOpen]);
+	const changeSetting = useCallback(<K extends SettingKey>(key: K, value: PlayerSettings[K]) => SettingsStore.Set(key, value), []);
+	const openSettings = useCallback(() => { if (!busyRef.current) setSettingsOpen(true); }, [setSettingsOpen]);
+
+	// Settings that live outside React: pitch inversion in the controller (shake is read by CameraShake).
+	useEffect(() => controller.SetInvertY(settings.invertY), [controller, settings.invertY]);
+
+	// Auto-pause when the Roblox menu opens (Esc, the menu button, the gamepad Start menu) or the app loses focus.
+	useEffect(() => {
+		const menuOpened = GuiService.MenuOpened.Connect(pauseSortie);
+		const focusLost = UserInputService.WindowFocusReleased.Connect(pauseSortie);
+		// P pauses and resumes on a keyboard (a deliberate press, like the RESUME button).
+		const key = UserInputService.InputBegan.Connect((input, processed) => {
+			if (processed || input.KeyCode !== Enum.KeyCode.P || screenRef.current !== "mission" || UserInputService.GetFocusedTextBox()) return;
+			if (pausedRef.current) { if (!settingsOpenRef.current) resumeSortie(); } else pauseSortie();
+		});
+		return () => { menuOpened.Disconnect(); focusLost.Disconnect(); key.Disconnect(); };
+	}, [pauseSortie, resumeSortie]);
 
 	const moveJoystick = useCallback((input: InputObject) => {
 		const joystick = joystickRef.current;
 		const knob = knobRef.current;
 		if (!joystick || !knob || !inMissionRef.current) return;
-		const center = joystick.AbsolutePosition.add(joystick.AbsoluteSize.div(2));
-		let offset = new Vector2(input.Position.X, input.Position.Y).sub(center);
-		const radius = math.max(1, joystick.AbsoluteSize.X * 0.34);
-		if (offset.Magnitude > radius) offset = offset.Unit.mul(radius);
-		let vector = new Vector2(offset.X / radius, -offset.Y / radius);
-		if (vector.Magnitude < 0.08) vector = Vector2.zero;
-		knob.Position = new UDim2(0.5, offset.X, 0.5, offset.Y);
-		controller.SetInput(vector.X, vector.Y);
+		const stick = stickVector(input.Position.X, input.Position.Y, joystick.AbsolutePosition.X, joystick.AbsolutePosition.Y, joystick.AbsoluteSize.X);
+		// The knob sits inside the (possibly HUD-scaled) frame: convert screen pixels back to its units.
+		const unit = joystick.AbsoluteSize.X / math.max(1, joystick.Size.X.Offset);
+		knob.Position = new UDim2(0.5, stick.offsetX / unit, 0.5, stick.offsetY / unit);
+		controller.SetInput(stick.x, stick.y);
 	}, [controller]);
 
 	const releaseTouch = useCallback((input: InputObject) => {
@@ -2013,7 +2151,8 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		if (!stick || !knob || !inMissionRef.current) return;
 		const radius = math.max(1, stick.AbsoluteSize.Y * 0.34);
 		const offset = math.clamp(input.Position.Y - stick.AbsolutePosition.Y - stick.AbsoluteSize.Y / 2, -radius, radius);
-		knob.Position = new UDim2(0.5, 0, 0.5, offset);
+		const unit = stick.AbsoluteSize.Y / math.max(1, stick.Size.Y.Offset);
+		knob.Position = new UDim2(0.5, 0, 0.5, offset / unit);
 		controller.SetTouchThrottleAxis(-offset / radius);
 	}, [controller]);
 	const throttleBegan = useCallback((input: InputObject) => {
@@ -2071,11 +2210,11 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		if (screen !== "mission") releaseJoystick();
 	}, [releaseJoystick, screen]);
 
-	useEffect(() => releaseJoystick(), [releaseJoystick, viewport]);
+	useEffect(() => releaseJoystick(), [releaseJoystick, viewport, hudOptions, settings.hudScale]);
 
 	useEffect(() => {
 		task.defer(selectDefault);
-	}, [busy, inputMode, screen, selectDefault]);
+	}, [busy, inputMode, screen, paused, settingsOpen, selectDefault]);
 
 	// Leaving the slot list drops any half-finished delete confirmation.
 	useEffect(() => {
@@ -2144,6 +2283,8 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				setToast(undefined);
 				setKillNotice(undefined);
 				setKillFlash(undefined);
+				radioQueue.Clear();
+				setFireNotice(undefined);
 				priorTargetRef.current = undefined;
 				setDamageUntil(0);
 				const resetTelemetry = defaultTelemetry();
@@ -2252,7 +2393,10 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			const previous = telemetryRef.current;
 			const sanitized = sanitizeTelemetry(merged, previous);
 			if (sanitized.kills > previous.kills) setKillNotice({ kills: sanitized.kills, total: sanitized.total, until: os.clock() + 3 });
-			if (sanitized.radio !== undefined && sanitized.radioSerial !== undefined && sanitized.radioSerial !== previous.radioSerial) setRadioNotice({ text: sanitized.radio, until: os.clock() + (sanitized.radioSeconds ?? RADIO_SECONDS) });
+			if (sanitized.radio !== undefined && sanitized.radioSerial !== undefined && sanitized.radioSerial !== previous.radioSerial) {
+				radioQueue.Push(sanitized.radio, sanitized.radioSeconds ?? RADIO_SECONDS, os.clock());
+				setRadioSerial(sanitized.radioSerial);
+			}
 			if (sanitized.fireDenied !== undefined && sanitized.fireDeniedSerial !== undefined && sanitized.fireDeniedSerial !== previous.fireDeniedSerial) setFireNotice({ text: FIRE_DENIED_TEXT[sanitized.fireDenied], until: os.clock() + FIRE_DENIED_SECONDS });
 			if (sanitized.health < previous.health) {
 				setDamageUntil(os.clock() + 0.45);
@@ -2263,7 +2407,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				killSerialRef.current += 1;
 				const killed = previous.target && previous.target.Parent === undefined ? previous.target : priorTargetRef.current;
 				priorTargetRef.current = undefined;
-				setKillFlash({ serial: killSerialRef.current, kind: kill.kind, text: kill.text, bracket: killedTargetPoint(killed, rootFrameRef.current) });
+				const point = killedTargetPoint(killed, rootFrameRef.current);
+				// The kill marker lives in the HUD-scaled frame.
+				setKillFlash({ serial: killSerialRef.current, kind: kill.kind, text: kill.text, bracket: point ? point.div(hudScaleRef.current) : undefined });
 				if (kill.kind === "ace") CameraShake.HitStop();
 			}
 			if (previous.target !== sanitized.target && previous.target !== undefined) priorTargetRef.current = previous.target;
@@ -2295,6 +2441,14 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 						telemetryRef.current = sampled;
 						setTelemetry(sampled);
 					}
+					// Stall trend and terrain probe: re-render only when the fresh trend changes the warning the HUD shows.
+					const flight = controller.GetFlightTrend();
+					const shown = flightWarning({ ...telemetryRef.current, acceleration: trendRef.current.acceleration, terrainSeconds: trendRef.current.terrainSeconds });
+					const implied = flightWarning({ ...telemetryRef.current, acceleration: flight.acceleration, terrainSeconds: flight.terrainSeconds });
+					if (implied !== shown) {
+						trendRef.current = { acceleration: flight.acceleration, terrainSeconds: flight.terrainSeconds };
+						setTrend(trendRef.current);
+					}
 				}
 			}
 		});
@@ -2313,16 +2467,21 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const rootChange = useMemo(() => ({ AbsoluteSize: (root: Frame) => mountedRef.current && setViewport(root.AbsoluteSize) }), []);
 	const now = os.clock();
 	let callout: Callout | undefined;
-	if (fireNotice && now < fireNotice.until) {
-		callout = { text: fireNotice.text, color: C.Orange };
-	} else if (radioNotice && now < radioNotice.until) {
-		callout = { text: radioNotice.text, color: C.Accent };
+	const radioLine = screen === "mission" ? radioQueue.Current(now) : undefined;
+	if (radioLine) {
+		callout = { text: radioLine.text, color: C.Accent };
 	} else if (killNotice && now < killNotice.until) {
 		// Progress is the phase objective's own count; raw kills include optional fighters and ground.
 		const total = telemetry.objectiveTotal ?? 0;
 		callout = { text: total > 0 ? `Hostile down  ${telemetry.objectiveProgress ?? 0}/${total}` : "Hostile down", color: C.AccentHot };
 	}
-	const toastRectangle = getToastLayout(viewport.X, viewport.Y, screen === "mission" ? undefined : menu);
+	const hudScale = effectiveHudScale(settings.hudScale, inputMode === "touch", viewport.X, viewport.Y);
+	hudScaleRef.current = hudScale;
+	// In a mission the toast follows the HUD's own (scaled) layout for this input mode.
+	const toastRectangle = screen === "mission"
+		? scaleRectangle(getToastLayout(math.floor(viewport.X / hudScale), math.floor(viewport.Y / hudScale), undefined, inputMode, hudOptions), hudScale)
+		: getToastLayout(viewport.X, viewport.Y, menu);
+	const activeFireNotice = fireNotice && now < fireNotice.until ? fireNotice.text : undefined;
 	const menuHints: ControlHint[] = [{ keyCode: "ButtonA", label: "A", action: "SELECT" }];
 	if (screen === "slots" || screen === "briefing") menuHints.push({ keyCode: "ButtonB", label: "B", action: "BACK" });
 	const menuHintsRectangle = getMenuHintsLayout(viewport.X, viewport.Y, menu);
@@ -2335,7 +2494,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			<screengui key="SkybreakUI" DisplayOrder={20} IgnoreGuiInset={false} ResetOnSpawn={false} ScreenInsets={Enum.ScreenInsets.CoreUISafeInsets} ZIndexBehavior={Enum.ZIndexBehavior.Sibling}>
 				<frame ref={rootFrameRef} key="Root" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Change={rootChange}>
 					{screen === "cinematic" && <RelayCinematic id={cinematicId} viewport={viewport} onFinish={()=>{const continueStory=cinematicNext.current;changeScreen(cinematicId===MISSION_COUNT ? "outcome" : "briefing");continueStory();}} onCancel={()=>changeScreen(cinematicId===MISSION_COUNT ? "outcome" : "briefing")}/>}
-					<TitleScreen visible={screen === "title"} menu={menu} onCampaign={openCampaign} />
+					<TitleScreen visible={screen === "title"} menu={menu} onCampaign={openCampaign} onSettings={openSettings} />
 					<CampaignScreen visible={screen === "slots"} menu={menu} slots={slots} busy={busy} persistence={persistence} onBack={goBack} onSlot={chooseSlot} confirmSlot={confirmSlot} onAskDelete={askDelete} onCancelDelete={cancelDelete} onDeleteSlot={deleteSlot} />
 					<BriefingScreen visible={screen === "briefing"} menu={menu} selectedSlot={selectedSlot} selectedMission={selectedMission} slot={selectedSave} busy={busy} special={selectedSpecial} difficulty={selectedDifficulty} onBack={goBack} onLaunch={startMission} onMission={chooseMission} onSpecial={chooseSpecial} onDifficulty={chooseDifficulty} />
 					<LoadingScreen visible={screen === "loading"} missionId={selectedMission} progress={loadingProgress} viewport={viewport} />
@@ -2349,6 +2508,11 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 						introduction={telemetry.elapsed < 10 || now < hintUntil}
 						damageFlash={now < damageUntil}
 						killFlash={killFlash}
+						scale={hudScale}
+						options={hudOptions}
+						trend={trend}
+						fireNotice={activeFireNotice}
+						controller={controller}
 						joystickRef={joystickRef}
 						knobRef={knobRef}
 						onJoystickBegan={joystickBegan}
@@ -2358,7 +2522,13 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 						onMissile={fireMissile}
 						onTarget={cycleTarget}
 						onSpecial={fireSpecial}
+						onEvade={evadeNow}
+						onPause={pauseSortie}
 					/>
+					{screen === "mission" && paused && !settingsOpen && (
+						<PauseOverlay viewport={viewport} onResume={resumeSortie} onSettings={() => setSettingsOpen(true)} onMenu={returnToMenu} />
+					)}
+					{settingsOpen && <SettingsSheet viewport={viewport} settings={settings} onChange={changeSetting} onClose={() => setSettingsOpen(false)} />}
 					<OutcomeScreen visible={screen === "outcome"} menu={menu} outcome={outcome} busy={busy} onRetry={retryMission} onReturn={returnToMenu} onNext={nextMission} />
 					<HintRow
 						name="MenuHints"

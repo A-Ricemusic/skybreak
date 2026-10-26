@@ -20,6 +20,9 @@ import {
 	getMenuHintsLayout,
 	getMenuLayout,
 	getMenuSceneOpening,
+	getPauseLayout,
+	getSettingsLayout,
+	SETTINGS_ROWS,
 	getToastLayout,
 	COMPACT_MAX_HEIGHT,
 	OBJECTIVE_LINE_HEIGHT,
@@ -624,5 +627,36 @@ describe("input mode and contextual hints", () => {
 		for (const hint of getFlightHints("keyboard", { introduction: true, locked: false, missileReady: false })) {
 			expect(hint.keyCode).toBeUndefined();
 		}
+	});
+});
+
+describe("pause card and settings sheet", () => {
+	it("fits the pause card and its three 44 px buttons on every root", () => {
+		for (const [width, height] of [...HUD_VIEWPORTS, ...COMPACT_VIEWPORTS, ...VIEWPORTS, ...KEY_VIEWPORTS]) {
+			const pause = getPauseLayout(width, height);
+			expect(rectangleInside(pause.panel, width, height, 6)).toBe(true);
+			expect(pause.buttons.size()).toBe(3);
+			for (const button of pause.buttons) {
+				expect(button.height).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
+				expect(rectangleInside(button, pause.panel.width, pause.panel.height, 0)).toBe(true);
+			}
+			expectSeparate([pause.title, ...pause.buttons]);
+		}
+	});
+	it("fits the settings sheet, scrolling its rows when the root is short", () => {
+		for (const [width, height] of [...HUD_VIEWPORTS, ...COMPACT_VIEWPORTS, ...VIEWPORTS, ...KEY_VIEWPORTS]) {
+			const sheet = getSettingsLayout(width, height);
+			expect(rectangleInside(sheet.panel, width, height, 6)).toBe(true);
+			expect(sheet.control).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
+			expect(sheet.rowHeight).toBeGreaterThanOrEqual(sheet.control);
+			expect(sheet.done.height).toBeGreaterThanOrEqual(MIN_TOUCH_TARGET);
+			expectSeparate([sheet.header, sheet.list, sheet.done]);
+			for (const part of [sheet.header, sheet.list, sheet.done]) expect(rectangleInside(part, sheet.panel.width, sheet.panel.height, 0)).toBe(true);
+			// Label + − value + fit on one row.
+			expect(sheet.list.width - (sheet.control * 2 + sheet.valueWidth)).toBeGreaterThanOrEqual(100);
+		}
+		// Tall roots show every row without scrolling.
+		const desktop = getSettingsLayout(1920, 854);
+		expect(desktop.list.height).toBeGreaterThanOrEqual(desktop.rowHeight * SETTINGS_ROWS);
 	});
 });
