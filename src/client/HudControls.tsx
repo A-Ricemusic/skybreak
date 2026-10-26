@@ -147,6 +147,8 @@ export function Radar({ rectangle, controller, visible, textSize = 10 }: { recta
 		let clock = RADAR_INTERVAL;
 		let lastRange = -1;
 		const radius = size / 2;
+		// Glyphs grow with the scope (phones 72-110 px, desktop up to 170 px).
+		const glyphScale = math.max(1, size / 110);
 		const connection = RunService.RenderStepped.Connect((dt) => {
 			clock += dt;
 			if (clock < RADAR_INTERVAL) return;
@@ -176,7 +178,7 @@ export function Radar({ rectangle, controller, visible, textSize = 10 }: { recta
 						label = new Instance("TextLabel");
 						label.Name = "RadarBlip";
 						label.AnchorPoint = new Vector2(0.5, 0.5);
-						label.Size = UDim2.fromOffset(16, 16);
+						label.Size = UDim2.fromOffset(24, 24);
 						label.BackgroundTransparency = 1;
 						label.Font = Enum.Font.GothamBold;
 						label.TextStrokeColor3 = HUD.Shadow;
@@ -189,7 +191,7 @@ export function Radar({ rectangle, controller, visible, textSize = 10 }: { recta
 					if (label.Text !== glyph) label.Text = glyph;
 					const missile = contact.kind === "missile";
 					label.TextColor3 = contact.selected ? HUD.Amber : missile && blink ? HUD.White : RADAR_COLORS[contact.kind];
-					label.TextSize = RADAR_TEXT[contact.kind] + (contact.selected ? 3 : 0);
+					label.TextSize = math.floor((RADAR_TEXT[contact.kind] + (contact.selected ? 3 : 0)) * glyphScale);
 					label.ZIndex = 3 + RADAR_LAYER[contact.kind];
 					label.TextTransparency = blip.edge ? 0.45 : missile && blink ? 0.15 : 0;
 					label.Position = UDim2.fromOffset(radius + blip.x, radius + blip.y);

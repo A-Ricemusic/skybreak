@@ -210,7 +210,7 @@ describe("mission HUD layout", () => {
 				expect(layout.callout.x).toBe(clock.x + clock.width + (layout.metrics.scale === "compact" ? 6 : 8));
 				expect(layout.callout.y).toBe(layout.margin);
 				expect(layout.callout.width).toBeLessThanOrEqual(width * 0.38);
-				expect(layout.callout.height).toBeLessThanOrEqual(layout.metrics.scale === "large" ? 40 : OBJECTIVE_LINE_HEIGHT);
+				expect(layout.callout.height).toBeLessThanOrEqual(layout.metrics.scale === "large" ? layout.metrics.row * 2 + 2 : OBJECTIVE_LINE_HEIGHT);
 			}
 		}
 	});
@@ -533,11 +533,11 @@ describe("mission HUD layout", () => {
 		expect(notched.breakCue).toEqual({ x: 290, y: 233, width: 220, height: 16 });
 		const desktop = getHudLayout(1920, 854, "keyboard");
 		expect(desktop.radar).toEqual({ x: 22, y: 662, width: 170, height: 170 });
-		expect(desktop.weapons.frame).toEqual({ x: 1738, y: 686, width: 160, height: 146 });
+		expect(desktop.weapons.frame).toEqual({ x: 1722, y: 660, width: 176, height: 172 });
 		expect(desktop.hints).toEqual({ x: 780, y: 812, width: 360, height: 20 });
-		expect(desktop.subtitle).toEqual({ x: 640, y: 770, width: 640, height: 38 });
+		expect(desktop.subtitle).toEqual({ x: 640, y: 764, width: 640, height: 44 });
 		expect(desktop.pause).toEqual({ x: 22, y: 22, width: 32, height: 32 });
-		expect(desktop.speed).toEqual({ x: 606, y: 399, width: 86, height: 42 });
+		expect(desktop.speed).toEqual({ x: 596, y: 397, width: 96, height: 45 });
 		// The 706x267 iPhone root: a smaller scope still fits under PAUSE.
 		const phone = getHudLayout(706, 267, "touch");
 		expect(phone.radar).toEqual({ x: 10, y: 62, width: 79, height: 79 });

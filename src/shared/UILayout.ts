@@ -201,9 +201,9 @@ const HUD_SIZES: { [scale in HudScale]: HudSizes } = {
 		panel: 112, silhouette: 44, radarMax: RADAR_MAX_SIZE, subtitleWidth: 440, objectiveWidth: OBJECTIVE_MAX_WIDTH,
 	},
 	large: {
-		metrics: { scale: "large", text: 16, label: 12, row: 19, caption: 14, box: 28 },
-		clockWidth: 128, instrument: 86, reticle: 32, alertHeight: 26, alertWidth: 300, breakCue: 20,
-		panel: 160, silhouette: 66, radarMax: RADAR_LARGE_SIZE, subtitleWidth: 640, objectiveWidth: 420,
+		metrics: { scale: "large", text: 18, label: 13, row: 22, caption: 15, box: 30 },
+		clockWidth: 140, instrument: 96, reticle: 34, alertHeight: 28, alertWidth: 300, breakCue: 22,
+		panel: 176, silhouette: 80, radarMax: RADAR_LARGE_SIZE, subtitleWidth: 640, objectiveWidth: 420,
 	},
 };
 

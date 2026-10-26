@@ -1560,7 +1560,7 @@ function MissionHud({
 
 			<HudLabel name="MissionTimer" text={timeLine} rectangle={{ ...layout.clock, height: metrics.row }} textSize={metrics.text} color={timeRemaining <= 60 ? HUD.Red : HUD.Green} />
 			<HudLabel name="ObjectiveProgress" text={progressLine} rectangle={{ ...layout.clock, y: layout.clock.y + metrics.row + 2, height: metrics.row }} textSize={metrics.text} />
-			<HudLabel name="ObjectiveText" text={objectiveLine} rectangle={layout.callout} color={objectiveColor} textSize={metrics.scale === "large" ? 15 : metrics.scale === "compact" ? 10 : 11} wrap={true} verticalAlignment={Enum.TextYAlignment.Top} />
+			<HudLabel name="ObjectiveText" text={objectiveLine} rectangle={layout.callout} color={objectiveColor} textSize={metrics.scale === "large" ? 16 : metrics.scale === "compact" ? 10 : 11} wrap={true} verticalAlignment={Enum.TextYAlignment.Top} />
 
 			{layout.reticle && <Reticle rectangle={layout.reticle} />}
 			<InstrumentBox name="SpeedBox" caption="SPEED" value={instrumentValue(telemetry.speed)} rectangle={layout.speed} metrics={metrics} pointsRight={true} color={stalling ? HUD.Amber : HUD.Green} />
@@ -1576,7 +1576,7 @@ function MissionHud({
 					name="RadioSubtitle"
 					text={radio ?? ""}
 					rectangle={layout.subtitle}
-					textSize={metrics.scale === "large" ? 16 : 12}
+					textSize={metrics.scale === "large" ? metrics.text : 12}
 					color={HUD.White}
 					alignment={Enum.TextXAlignment.Center}
 					verticalAlignment={Enum.TextYAlignment.Bottom}
