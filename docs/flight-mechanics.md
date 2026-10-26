@@ -225,7 +225,7 @@ At Act III missile speed (740) the window means pressing when the missile is ins
 |---|---|---|
 | Hull (Normal) | 220 / 260 / 320 × act scale (220 / 299 / 416) | **300 / 400 / 500** (M2's legacy ace stays 165) |
 | Hits to kill at 55 | 6 / 6 / 9 | 6 / 9 / 12 |
-| Stage line (2/3, 1/3) | 1.2 s invulnerable | **3 s invulnerable, lock reset to 0**, then a retreat beyond 1800 studs (or 10 s), a call for the phase's raiders, a hold off while they fight (until they are down, or 25 s), and a return with an `aceReturns` line |
+| Stage line (2/3, 1/3) | 1.2 s invulnerable | **3 s invulnerable, lock reset to 0**, then a retreat beyond 1800 studs (or 10 s), a call for the phase's raiders, a hold off while they fight (until they are down, or 25 s), and a return with an `aceReturns` line. Hits still land during the retreat and hold, but stop above the next line (short of the kill in the last stage) until the ace has turned back in, so no stage's call or return is skipped |
 | Flares | 2 / 3 / 4, each eats one missile, 5 s apart | 2 / 3 / 4, each **decoys every player missile within 260 studs for 2.5 s**, 6 s apart |
 
 ### Difficulty
@@ -235,6 +235,6 @@ At Act III missile speed (740) the window means pressing when the missile is ins
 | Hostile gate and reloads | ×1.25 (was 1.5) | 1 | ×0.7 |
 | Bandit hull | ×0.75 (was 0.85): Act II bandits become two-missile kills | 1 | ×1 (was 1.15) |
 | Protected-actor drain | ×0.75 | 1 (0.55 per raider per s) | ×1.25 |
-| Behaviour | — | — | every bandit breaks close locks and carries a flare; aces fire two missiles per windup; every raider wave brings one more |
+| Behaviour | — | — | every bandit breaks close locks and carries a flare; aces fire two missiles per windup; every raider wave brings one more, and the live-aircraft budget rises from 7 to 8 to match |
 
 Damage, windup, missile turn, ace hull, break odds and score multipliers are unchanged from the difficulty selector (#33).
