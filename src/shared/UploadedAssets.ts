@@ -132,6 +132,35 @@ export const UploadedAssets = {
 		}
 	},
 	/**
+	 * The cached template for the first usable candidate, without loading or yielding: undefined
+	 * while that candidate's load is pending, never started or failed. World placement uses this
+	 * after Preload, so a load still running past the deadline takes the fallback for that build.
+	 */
+	Cached(candidates: UploadedAssetName[]): { name: UploadedAssetName; template: Model } | undefined {
+		const choice = AssetSelection.Resolve(ids, candidates, failed);
+		const template = choice === undefined ? undefined : cache.get(choice.assetId)?.template;
+		return choice !== undefined && template !== undefined ? { name: choice.name, template } : undefined;
+	},
+	/**
+	 * Starts every named load at once (shared with Template, so nothing loads twice) and waits up
+	 * to `timeout` seconds for them. Returns the names still loading at the deadline; those loads
+	 * keep running and fill the cache for a later build, but never hold this one.
+	 */
+	Preload(names: UploadedAssetName[], timeout: number): UploadedAssetName[] {
+		const deadline = os.clock() + timeout;
+		const loading = (name: UploadedAssetName) => {
+			const choice = AssetSelection.Resolve(ids, [name], failed);
+			return choice !== undefined && cache.get(choice.assetId)?.loading === true;
+		};
+		for (const name of names) {
+			// A load still running from an earlier build is not started again.
+			if (loading(name) || UploadedAssets.Cached([name]) !== undefined) continue;
+			task.spawn(() => pcall(() => UploadedAssets.Template([name])));
+		}
+		while (names.some(loading) && os.clock() < deadline) task.wait();
+		return names.filter(loading);
+	},
+	/**
 	 * True when an uploaded model would still be tried for this name (ID present and
 	 * not failed). It does not load: a first load can still fail, so callers choose
 	 * their fallback from what Template or a placement actually returns.

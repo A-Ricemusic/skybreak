@@ -2,6 +2,7 @@ import { ENVIRONMENTS, lampsOn, type Rgb } from "./EnvironmentPresets";
 import { FlightMath } from "./FlightMath";
 import { MissionCatalog, type EnvironmentPreset, type FlightPoint, type MissionBlueprint, type MissionRegion } from "./MissionCatalog";
 import { layoutFor, type LevelLayout } from "./MissionLayouts";
+import { bumpRegion, fillVoxels, regionCells } from "./TerrainSchedule";
 import { UploadedAssetSpecs } from "./UploadedAssetSpecs";
 
 // Pure world plans for missions 3-27: every terrain voxel operation, primitive
@@ -298,6 +299,8 @@ interface Corridor { points: number[][]; half: number; tag: string }
 interface Ctx {
 	id: number; bp: MissionBlueprint; layout: LevelLayout; theme: Theme; rng: Rng; plan: WorldPlan;
 	zones: Zone[]; corridors: Corridor[]; ridgeRects: Rect[]; moles: Rect[]; roads: number[][][];
+	/** The canal carve, water, bed and beach ops, written again once every land op is down. */
+	canalOps: TerrainOp[];
 }
 const THEMES: Record<MissionRegion, Theme> = {
 	canyon_airfield: "canyon", canyon_pass: "canyon", upland_farm: "farm", plateau_relay: "plateau",
@@ -474,12 +477,17 @@ function canals(ctx: Ctx, cz: number): void {
 			let [bx, bz] = pts[i];
 			const edge = cz - 20;
 			if (az < edge && bz < edge) continue;
-			if (az < edge) { const t = (edge - az) / (bz - az); ax += (bx - ax) * t; az = edge; }
-			if (bz < edge) { const t = (edge - bz) / (az - bz); bx += (ax - bx) * t; bz = edge; }
+			const seaA = az < edge, seaB = bz < edge;
+			if (seaA) { const t = (edge - az) / (bz - az); ax += (bx - ax) * t; az = edge; }
+			if (seaB) { const t = (edge - bz) / (az - bz); bx += (ax - bx) * t; bz = edge; }
 			const len = math.sqrt((bx - ax) * (bx - ax) + (bz - az) * (bz - az));
 			if (len < 1) continue;
 			const mx = (ax + bx) / 2, mz = (az + bz) / 2, yaw = axisYaw(bx - ax, bz - az);
-			push(walls, "block", "Concrete", mx, (SEABED_BOTTOM + GROUND) / 2, mz, len + 2 * (h + 8), GROUND - SEABED_BOTTOM, 2 * (h + 8), yaw);
+			// The banks cap a dead end 8 studs past the carve, but stop with the carve at a sea mouth
+			// (a cap there would stand across the channel in open water).
+			const capA = seaA ? 0 : 8, capB = seaB ? 0 : 8;
+			const ux0 = (bx - ax) / len, uz0 = (bz - az) / len, shift = (capB - capA) / 2;
+			push(walls, "block", "Concrete", mx + ux0 * shift, (SEABED_BOTTOM + GROUND) / 2, mz + uz0 * shift, len + 2 * h + capA + capB, GROUND - SEABED_BOTTOM, 2 * (h + 8), yaw);
 			push(carves, "block", "Air", mx, (SEABED_BOTTOM + GROUND + 12) / 2, mz, len + 2 * h, GROUND + 12 - SEABED_BOTTOM, 2 * h, yaw);
 			push(waters, "block", "Water", mx, (SEABED + WATER_Y) / 2, mz, len + 2 * h, WATER_Y - SEABED, 2 * h, yaw);
 			push(beds, "block", "Mud", mx, (SEABED_BOTTOM + SEABED) / 2, mz, len + 2 * h, SEABED - SEABED_BOTTOM, 2 * h, yaw);
@@ -492,6 +500,14 @@ function canals(ctx: Ctx, cz: number): void {
 		}
 	}
 	for (const list of [walls, carves, waters, beds, beaches]) for (const o of list) ctx.plan.ops.push(o);
+	for (const list of [carves, waters, beds, beaches]) for (const o of list) ctx.canalOps.push(o);
+}
+/**
+ * Writes the canal channels again after every land op (civic pavement, moles, hills), so nothing
+ * built later roofs or fills a boat's channel. The concrete banks stay as first written.
+ */
+function reopenCanals(ctx: Ctx): void {
+	for (const o of ctx.canalOps) ctx.plan.ops.push(o);
 }
 /** Target aprons, shrunk until clear of the boat paths; coastal targets get a concrete mole to the shore. */
 function targets(ctx: Ctx): void {
@@ -830,6 +846,25 @@ export function quayDeck(): number {
 	const q = UploadedAssetSpecs.HarbourQuay;
 	return WATER_Y - q.groundOffset + q.size.Y;
 }
+/** Studs of water kept between a moored frigate's keel and the seabed (two voxel layers). */
+export const KEEL_CLEARANCE = 8;
+/**
+ * A dredged berth under a frigate floating at `waterY`: water from its keel's clearance floor up to
+ * the surface across the hull footprint plus a margin, on a 4-stud mud bed. The shallow sea floor
+ * (SEABED) would otherwise meet the keel. Pure, so the legacy M2 harbour uses it too.
+ */
+export function frigateBerth(x: number, z: number, yaw: number, waterY: number, margin = 12): TerrainOp[] {
+	const f = UploadedAssetSpecs.Frigate;
+	const floor = waterY - f.groundOffset - KEEL_CLEARANCE;
+	const sx = f.size.X + 2 * margin, sz = f.size.Z + 2 * margin;
+	return [
+		{ shape: "block", material: "Mud", x, y: floor - 2, z, sx, sy: 4, sz, yaw },
+		{ shape: "block", material: "Water", x, y: (floor + waterY) / 2, z, sx, sy: waterY - floor, sz, yaw },
+	];
+}
+function berth(ctx: Ctx, p: PropSpec): void {
+	for (const o of frigateBerth(p.x, p.z, p.yaw, WATER_Y)) ctx.plan.ops.push(o);
+}
 /** Masthead height of the uploaded frigate floating at the waterline. */
 function frigateTop(): number {
 	const f = UploadedAssetSpecs.Frigate;
@@ -871,7 +906,7 @@ function harbour(ctx: Ctx, fx: number, cz: number, frigates: number): void {
 		if (math.abs(x) > 2300 || !clearOfWater(ctx, hull, 30) || !rectFree(ctx, hull, 20, ["spawn", "road"])) continue;
 		if (frigateTop() > limit(ctx, x, z, 216)) continue;
 		if (![-200, -100, 0, 100, 200].every((dx) => groundAt(ctx, x + dx, z).water !== undefined)) continue;
-		prop(ctx, "Frigate", x, WATER_Y, z, math.pi / 2, 1, 0);
+		berth(ctx, prop(ctx, "Frigate", x, WATER_Y, z, math.pi / 2, 1, 0));
 		zone(ctx, "ship", x, z, 216, 30);
 		placed += 1;
 	}
@@ -929,7 +964,7 @@ function ocean(ctx: Ctx): void {
 			const shipYaw = math.atan2(math.cos(yaw), math.sin(yaw));
 			const hull: Rect = { x, z, hx: 30, hz: 216, yaw: shipYaw };
 			if (!clearOfWater(ctx, hull, 12) || !rectFree(ctx, hull, 20, ["water"]) || !inMap(x, z, 2400) || frigateTop() > limit(ctx, x, z, 216)) continue;
-			prop(ctx, "Frigate", x, WATER_Y, z, shipYaw, 1, 0, protectedHull ? "ProtectedHull" : undefined);
+			berth(ctx, prop(ctx, "Frigate", x, WATER_Y, z, shipYaw, 1, 0, protectedHull ? "ProtectedHull" : undefined));
 			if (protectedHull) for (const tip of [-1, 1]) {
 				const [ox, oz] = toWorld(0, tip * 180, shipYaw);
 				part(ctx, "Protected beacon", "ball", x + ox, WATER_Y + 32, z + oz, 6, 6, 6, 0, [70, 255, 140], "Neon", false);
@@ -1132,7 +1167,7 @@ function build(id: number): WorldPlan {
 		ops: [], parts: [], props: [], targets: [], waterPaths: [], groundPaths: [], air: airSamples(bp),
 		materialColors: MATERIAL_COLORS[theme],
 	};
-	const ctx: Ctx = { id, bp, layout, theme, rng: new Rng(id * 7919 + 17), plan, zones: [], corridors: [], ridgeRects: [], moles: [], roads: [] };
+	const ctx: Ctx = { id, bp, layout, theme, rng: new Rng(id * 7919 + 17), plan, zones: [], corridors: [], ridgeRects: [], moles: [], roads: [], canalOps: [] };
 	reserve(ctx);
 	const [fx, fz] = layout.focus;
 	for (const s of layout.settlements) {
@@ -1162,6 +1197,7 @@ function build(id: number): WorldPlan {
 	mountainRing(ctx);
 	settlements(ctx);
 	if (theme === "coast") beaches(ctx, plan.coastZ!);
+	if (theme === "coast") reopenCanals(ctx);
 	roads(ctx);
 	const treeTotal = theme === "farm" ? 140 : theme === "coast" ? 90 : theme === "plateau" ? 80 : theme === "canyon" ? 36 : 0;
 	const orchardTrees = plan.props.filter((p) => p.asset === "Broadleaf").size();
@@ -1179,11 +1215,9 @@ const BUILDINGS = new Set<PropAsset>(["Hangar", "ControlTower", "OfficeMidrise",
 export function countPlan(plan: WorldPlan): WorldCounts {
 	let voxels = 0, cells = 0;
 	for (const o of plan.ops) {
-		if (o.shape === "block") voxels += o.sx * o.sy * o.sz / 64;
-		else if (o.shape === "wedge") voxels += o.sx * o.sy * o.sz / 128;
-		else if (o.shape === "ball") voxels += 4 / 3 * math.pi * o.sx * o.sx * o.sx / 64;
-		else if (o.shape === "cylinder") voxels += math.pi * o.sx * o.sx * o.sy / 64;
-		else cells += (math.ceil(o.sx / 2) + 1) * (math.ceil(o.sz / 2) + 1) * (math.ceil(o.sy / 4) + 2);
+		// Bumps count every cell of the grid region the executor reads and writes (TerrainSchedule.bumpRegion).
+		if (o.shape === "bump") cells += regionCells(bumpRegion(o));
+		else voxels += fillVoxels(o);
 	}
 	const unique = new Set<string>();
 	let trees = 0, rocks = 0, buildings = 0, ships = 0;

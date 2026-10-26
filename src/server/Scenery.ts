@@ -1,6 +1,8 @@
 import { CONTROL_TOWER_PARTS, HANGAR_PARTS } from "../shared/MenuWorldGeometry";
 import { JetFactory } from "../shared/JetFactory";
 import { Workspace } from "@rbxts/services";
+import { BOAT_HULL, LEGACY_FLOOR, LEGACY_WATERLINE, legacySeaOps } from "../shared/LegacyWorlds";
+import { TerrainWriter } from "./TerrainWriter";
 import { WorldAssets } from "./WorldAssets";
 
 // Shared, cheap scenery generators for the disposable mission worlds.
@@ -105,12 +107,12 @@ export function Report(root: Instance, label: string, budget = PART_BUDGET, spli
 	return count;
 }
 
-const OCEAN_Y = -18;
-export const WATERLINE = OCEAN_Y + 2;
+const OCEAN_Y = LEGACY_WATERLINE - 2;
+export const WATERLINE = LEGACY_WATERLINE;
 // The opaque sea slabs (top at OCEAN_Y + 2) hide everything below this, so no
 // terrain is kept there: hidden voxels still replicate to the phone and their
-// undersides are still meshed.
-export const HIDDEN_FLOOR = OCEAN_Y - 6;
+// undersides are still meshed. (A dredged berth may go deeper under a ship.)
+export const HIDDEN_FLOOR = LEGACY_FLOOR;
 
 /** 5x5 flat sea tiles to the horizon (25 parts). */
 export function Sea(parent: Instance, color: Color3): void {
@@ -281,11 +283,8 @@ export function Trees(parent: Instance, seed: number, x: number, z: number, widt
  * overwrite the water where land rises.
  */
 export function TerrainSea(parent: Instance, color: Color3, extent = 4000, far = 6000): void {
-	const terrain = Workspace.Terrain;
-	for (let x = -extent; x < extent; x += 2000) for (let z = -extent; z < extent; z += 2000) {
-		terrain.FillBlock(new CFrame(x + 1000, (HIDDEN_FLOOR + WATERLINE) / 2, z + 1000), new Vector3(2000, WATERLINE - HIDDEN_FLOOR, 2000), Enum.Material.Water);
-		terrain.FillBlock(new CFrame(x + 1000, HIDDEN_FLOOR - 2, z + 1000), new Vector3(2000, 4, 2000), Enum.Material.Mud);
-	}
+	// Bounded, budgeted jobs (TerrainWriter): the two slabs are 16M voxels together.
+	TerrainWriter.Write(legacySeaOps(extent));
 	for (let x = -far; x < far; x += 2000) for (let z = -far; z < far; z += 2000) {
 		if (x >= -extent && x + 2000 <= extent && z >= -extent && z + 2000 <= extent) continue;
 		Part(parent, "Sea", new Vector3(2000, 4, 2000), new Vector3(x + 1000, WATERLINE - 2, z + 1000), color, Enum.Material.SmoothPlastic, { reflectance: 0.12, castShadow: false });
@@ -410,7 +409,7 @@ export function Crane(parent: Instance, x: number, z: number, floor: number, yaw
 /** Simple moored boat: hull, deck house, mast (three parts). */
 export function Boat(parent: Instance, x: number, z: number, yaw: number, length: number, hull: Color3): void {
 	const cf = new CFrame(x, WATERLINE, z).mul(CFrame.Angles(0, yaw, 0));
-	Part(parent, "Hull", new Vector3(length * 0.32, 7, length), cf.mul(new CFrame(0, 1.5, 0)), hull, Enum.Material.Metal);
+	Part(parent, "Hull", new Vector3(length * 0.32, BOAT_HULL.height, length), cf.mul(new CFrame(0, BOAT_HULL.lift, 0)), hull, Enum.Material.Metal);
 	Part(parent, "Deck house", new Vector3(length * 0.22, 7, length * 0.28), cf.mul(new CFrame(0, 8, length * 0.12)), Color3.fromRGB(226, 228, 224), Enum.Material.SmoothPlastic);
 	Part(parent, "Mast", new Vector3(1.5, 20, 1.5), cf.mul(new CFrame(0, 18, -length * 0.1)), Color3.fromRGB(60, 62, 64), Enum.Material.Metal, { castShadow: false });
 }

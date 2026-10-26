@@ -1,6 +1,7 @@
 import {afterAll,afterEach,beforeAll,describe,expect,it} from "@rbxts/jest-globals";
 import {Lighting,Workspace} from "@rbxts/services";
 import {MissionWorld} from "../server/MissionWorld";
+import {WorldAssets} from "../server/WorldAssets";
 import {MissionCatalog} from "../shared/MissionCatalog";
 import {AircraftCollision} from "../server/AircraftCollision";
 import {PART_BUDGET} from "../server/Scenery";
@@ -136,6 +137,54 @@ describe("Mission worlds place uploaded models on the ground and keep the air cl
 			const top=Workspace.Raycast(new Vector3(t.x+t.apron*0.45,t.baseY+60,t.z+t.apron*0.45),new Vector3(0,-120,0),scenery);
 			expect(top).toBeDefined();
 			expect(math.abs(top!.Position.Y-t.baseY)<0.1).toBe(true);
+		}
+	});
+});
+
+describe("Mission worlds never wait on a slow or failed upload",()=>{
+	let fixture:Folder | undefined;
+	afterEach(()=>{cleanup(fixture);fixture=undefined;UploadedAssets.Configure();WorldAssets.SetPreloadTimeout();});
+	it("M5: a Pine load that never answers in time takes the fallback, and the build returns within its deadline",()=>{
+		// The Pine request hangs until released; every other upload answers at once.
+		const gate=new Instance("BindableEvent");
+		let released=false;
+		UploadedAssets.Configure({ids:fakeIds(),probe,loader:(id)=>{if(WORLD[id-9000]==="Pine"&&!released)gate.Event.Wait();return fakeUpload(id);}});
+		WorldAssets.SetPreloadTimeout(0.5);
+		fixture=new Instance("Folder");fixture.Name="RelayWorldFixture";fixture.Parent=Workspace;
+		MissionWorld.Build(5,fixture);
+		const plan=WorldPlanner.Build(5),pines=plan.props.filter((p)=>p.asset==="Pine").size();
+		expect(pines).toBeGreaterThan(0);
+		// Returned while the request is still pending: Pine is late, every pine is a stand-in, nothing else is.
+		expect(fixture.GetAttribute("WorldPreloadLate")).toBe(1);
+		expect(fixture.GetAttribute("WorldFallbacks")).toBe(pines);
+		expect(fixture.GetAttribute("WorldUploaded")).toBe(plan.props.size()-pines);
+		// The terrain batch yielded and recorded its timings for engine runs.
+		expect((fixture.GetAttribute("WorldTerrainYields") as number)>0).toBe(true);
+		expect((fixture.GetAttribute("WorldTerrainLongest") as number)>0).toBe(true);
+		released=true;gate.Fire();gate.Destroy();
+	});
+	it("M2: a failed Barn upload still builds every barn (as its block) beside the uploaded farmhouses",()=>{
+		const ids=fakeIds();
+		UploadedAssets.Configure({ids,probe,loader:(id)=>{if(WORLD[id-9000]==="Barn")error("asset not owned by the place owner");return fakeUpload(id);}});
+		fixture=new Instance("Folder");fixture.Name="RelayWorldFixture";fixture.Parent=Workspace;
+		MissionWorld.Build(2,fixture);
+		const houses=(name: string)=>fixture!.FindFirstChild("IronCoastWorld")!.GetChildren().filter((m): m is Model=>m.IsA("Model")&&m.Name===name);
+		expect(houses("Barn").size()).toBe(5);
+		expect(houses("Barn").every((m)=>m.GetAttribute("GeometrySource")==="Fallback")).toBe(true);
+		expect(houses("Farmhouse").size()).toBe(22);
+		expect(houses("Farmhouse").every((m)=>m.GetAttribute("GeometrySource")==="Uploaded")).toBe(true);
+	});
+	it("M2: the frigate floats over its dredged berth with water under the keel",()=>{
+		UploadedAssets.Configure({ids:fakeIds(),probe,loader:fakeUpload});
+		fixture=new Instance("Folder");fixture.Name="RelayWorldFixture";fixture.Parent=Workspace;
+		MissionWorld.Build(2,fixture);
+		const frigate=fixture.FindFirstChild("IronCoastWorld")!.FindFirstChild("Frigate") as Model;
+		expect(frigate.GetAttribute("GeometrySource")).toBe("Uploaded");
+		const [box,size]=frigate.GetBoundingBox(),keel=box.Position.Y-size.Y/2;
+		const params=new RaycastParams();params.FilterType=Enum.RaycastFilterType.Include;params.FilterDescendantsInstances=[Workspace.Terrain];params.IgnoreWater=true;
+		for(const dx of [-200,0,200]){
+			const hit=Workspace.Raycast(new Vector3(box.Position.X+dx,keel+1,box.Position.Z),new Vector3(0,-100,0),params);
+			expect(hit===undefined||hit.Position.Y<keel-2).toBe(true);
 		}
 	});
 });
