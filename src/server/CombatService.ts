@@ -125,6 +125,8 @@ export interface CombatSession {
 	guard: StepGuardState;
 	/** Pause budget and the current pause (PauseRules); nothing steps while paused. */
 	pause: PauseState;
+	/** Highest client Pause/Resume serial handled, echoed in telemetry so the client knows its request landed. */
+	pauseAck: number;
 	/** Result save and teardown once the sortie ends (Settlement), and the hooks finish() chose. */
 	settlement: SettlementState; settleHooks?: SettlementHooks;
 	/** Per-sortie name counters so every bandit and raider has a unique call sign, and a spawn counter for unique kill ids. */
@@ -440,6 +442,7 @@ function sendTelemetry(session: CombatSession): void {
 		specialCharges: session.special.charges, specialCooldown: session.special.cooldown, specialActive: session.special.active,
 		aceKilled: session.rules?.aceKilled ?? session.blueprintState?.aceKilled ?? false,
 		paused: PauseRules.Paused(session.pause),
+		pauseAck: session.pauseAck,
 		evadeCharges: session.evade.charges,
 		optionalKills: session.rules?.optionalAirKills ?? session.blueprintState?.optionalAirKills ?? 0,
 		incomingDistance: incomingDistance < math.huge ? incomingDistance : undefined,
@@ -1650,7 +1653,7 @@ export const CombatService = {
 				active: true, finished: false, cleaned: false, previousReplicationFocus: player.ReplicationFocus,
 				inputClientTime: 0, inputFresh: false, inputSteps: 0, stateTime: 0, stateSequence: 0, telemetrySequence: 0,
 				missilesFired: 0, missileHits: 0, flareBursts: 0, damageTaken: 0, lowestHealth: 100, evades: 0,
-				evade: EvadeRules.New(), guard: StepGuard.New(), pause: PauseRules.New(), settlement: Settlement.New(),
+				evade: EvadeRules.New(), guard: StepGuard.New(), pause: PauseRules.New(), pauseAck: 0, settlement: Settlement.New(),
 				banditSerial: 0, raiderSerial: 0, spawnSerial: 0, reinforceIndex: 0, airQueue: [], stepCount: 0,
 			};
 			if (legacy) {
@@ -1753,7 +1756,7 @@ export const CombatService = {
 		connections.push(remote(remotes, "CombatAction").OnServerEvent.Connect((player, payload: unknown) => {
 			const session = sessions.get(player);
 			if (!session?.active || !typeIs(payload, "table")) return;
-			const data = payload as { action?: unknown };
+			const data = payload as { action?: unknown; serial?: unknown };
 			if (!typeIs(data.action, "string")) return;
 			const now = os.clock();
 			if (session.loading) {
@@ -1769,8 +1772,14 @@ export const CombatService = {
 			// Every action runs under the session's guard: a throw ends the sortie cleanly, and nothing
 			// mutates the session while a step is suspended mid-yield.
 			StepGuard.Run(session.guard, () => {
-				if (action === "Pause") { pauseSession(session, now); return; }
-				if (action === "Resume") { resumeSession(session, now); return; }
+				if (action === "Pause" || action === "Resume") {
+					// Acknowledge the client's request serial (bounded, monotonic) before acting, so the telemetry this sends carries it.
+					const serial = data.serial;
+					if (typeIs(serial, "number") && serial === serial && serial >= 0 && serial < 1e9) session.pauseAck = math.max(session.pauseAck, math.floor(serial));
+					if (action === "Pause") pauseSession(session, now);
+					else { resumeSession(session, now); sendTelemetry(session); }
+					return;
+				}
 				if (PauseRules.Paused(session.pause) || !refreshSession(session, now)) return;
 				if (action === "FireMissile") launchMissile(session, false);
 				else if (action === "Evade") evade(session);

@@ -292,4 +292,20 @@ describe("client flight prediction and reconciliation", () => {
 			expect(into.boundaryWarning).toBe(true);
 		}
 	});
+	it("carries the server's pause state and the acknowledged pause serial", () => {
+		const into = { kind: "Telemetry", health: 0, speed: 0, altitude: 0, kills: 0, total: 0, missiles: 0, missileCooldown: 0, evadeCooldown: 0, targetName: "", lockProgress: 0, incoming: false, elapsed: 0 } as Telemetry;
+		for (const paused of [true, false]) for (const aceKilled of [true, false]) {
+			const packet = TelemetryCodec.Encode(6, {
+				health: 60, speed: 240, altitude: 300, kills: 5, total: 5, missiles: 3, missileCooldown: 0, evadeCooldown: 0,
+				lockProgress: 0, incoming: true, lockWarning: false, boundaryWarning: false, elapsed: 30, timeRemaining: 400,
+				objectiveProgress: 1, objectiveTotal: 1, groundKills: 0, targetDistance: 0, aceKilled, paused, pauseAck: 7,
+			});
+			expect(packet.size()).toBe(TELEMETRY_FIELDS);
+			expect(TelemetryCodec.Decode(packet, into)).toBe(6);
+			expect(into.paused).toBe(paused);
+			expect(into.aceKilled).toBe(aceKilled);
+			expect(into.incoming).toBe(true);
+			expect(into.pauseAck).toBe(7);
+		}
+	});
 });

@@ -200,6 +200,8 @@ export interface Telemetry {
 	aceKilled?: boolean;
 	/** The server is holding the sortie paused (telemetry flag); the client follows it, e.g. when the pause budget runs out. */
 	paused?: boolean;
+	/** Highest Pause/Resume serial the server has handled; the client follows `paused` only once its own request is acknowledged. */
+	pauseAck?: number;
 }
 export interface MissionFinished extends MissionStats {
 	kind: "Completed" | "Failed";
