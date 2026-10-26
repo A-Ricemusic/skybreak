@@ -640,7 +640,7 @@ export const MISSIONS: MissionBlueprint[] = [
 			fly("route", "Follow the dark canal through the city", [[-400,250,-100],[-900,300,-700],[0,320,-1500]], 0, 0, 430,
 				{ beat: "SERA: The dark canal keeps you off his radar. Follow it.", chatter: [{ at: 0.66, text: "SERA: Relay above the apartments. Hit only the dish." }] }),
 			ground("Destroy the broadcast relay", 1, "SERA: Broadcast relay above the city. Dish only.", { optionalRaiders: 2 }),
-			air("Hold off the escort flight", 8, "SERA: Escort flight scrambling. Eight, in two groups.", { groups: 2, stagger: 20, optionalRaiders: 2, reinforce: [{ at: 0.5, count: 2 }] }),
+			air("Hold off the escort flight", 8, "SERA: Escort flight scrambling. Eight, in two groups.", { groups: 2, stagger: 35, optionalRaiders: 2, reinforce: [{ at: 0.5, count: 1 }] }),
 			fly("signal", "Hold over the dark tower: confirm silence", [[0,520,-1300]], 90, 4, undefined,
 				{ beat: "SERA: Hold over the tower. I want to hear nothing from it.", chatter: [{ at: 0.4, text: "SERA: Pair off the dark side of the city. Hold the orbit." }, { at: 0.8, text: "SERA: Still silent. Hold it." }], reinforce: [{ at: 0.4, count: 2 }] }),
 		],
