@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from "@rbxts/jest-globals";
 import { HttpService, ServerStorage, Workspace } from "@rbxts/services";
 import { JetFactory } from "../shared/JetFactory";
+import { ThreatRules } from "../shared/ThreatRules";
 
 interface ExportedAircraft {
 	asset: string;
@@ -347,5 +348,42 @@ describe("Roblox jet and missile integration", () => {
 		expect(root.GetChildren().size()).toBe(7);
 		task.wait(2.6);
 		expect(root.GetChildren().size()).toBe(0);
+	});
+});
+// Threat rules through the Vector3 adaptation CombatService uses (plain points in, plain points out).
+describe("Enemy threat rules with engine vectors", () => {
+	function point(vector: Vector3): { x: number; y: number; z: number } { return { x: vector.X, y: vector.Y, z: vector.Z }; }
+	it("breaks a bandit perpendicular to its heading, toward its bracket side, and nose down", () => {
+		const heading = new Vector3(0.6, 0, 0.8);
+		const lateral = new Vector3(-heading.Z, 0, heading.X);
+		for (const side of [1, -1]) {
+			const pass = ThreatRules.BreakDirection(point(heading), point(lateral), side);
+			const vector = new Vector3(pass.x, pass.y, pass.z);
+			expect(vector.Magnitude).toBeCloseTo(1, 5);
+			expect(vector.Dot(lateral) * side).toBeGreaterThan(0.7);
+			expect(vector.Y).toBeLessThan(-0.3);
+		}
+	});
+	it("spots an inbound missile from the live projectile list and ignores shots at other bandits", () => {
+		const me = { position: new Vector3(0, 300, 0) };
+		const other = { position: new Vector3(900, 300, 0) };
+		const projectiles = [
+			{ target: other, position: new Vector3(850, 300, 0) },
+			{ target: me, position: new Vector3(0, 300, ThreatRules.InboundRange + 50) },
+		];
+		const targetOf = (missile: { target?: typeof me; position: Vector3 }) => missile.target;
+		const distanceTo = (missile: { target?: typeof me; position: Vector3 }) => missile.position.sub(me.position).Magnitude;
+		expect(ThreatRules.Inbound(me, projectiles, targetOf, distanceTo)).toBe(false);
+		projectiles[1].position = new Vector3(0, 300, ThreatRules.InboundRange - 50);
+		expect(ThreatRules.Inbound(me, projectiles, targetOf, distanceTo)).toBe(true);
+	});
+	it("fans an ace salvo so both missiles cannot be dodged by one notch", () => {
+		const forward = new Vector3(0, 0, -1);
+		const right = new Vector3(-forward.Z, 0, forward.X);
+		const second = ThreatRules.SalvoDirection(point(forward), point(right), 1, 2);
+		const vector = new Vector3(second.x, second.y, second.z);
+		expect(vector.Magnitude).toBeCloseTo(1, 5);
+		expect(math.deg(math.acos(vector.Dot(forward)))).toBeGreaterThan(5);
+		expect(math.deg(math.acos(vector.Dot(forward)))).toBeLessThan(10);
 	});
 });
