@@ -26,6 +26,23 @@ export interface BreakInput {
 	roll: number;
 	chance: number;
 }
+export interface LockBreakInput {
+	/** The player's lock progress on this bandit (0-1) and the range between them. */
+	lockProgress: number;
+	distance: number;
+	cooldownRemaining: number;
+	extending: boolean;
+	roll: number;
+	chance: number;
+}
+export interface FlightGateInput {
+	/** Seconds since the flight's last windup started, and the gate it must clear. */
+	sinceLastWindup: number;
+	gate: number;
+	/** Hostile threats already live (windups lit plus hostile missiles in flight) and the cap. */
+	threats: number;
+	cap: number;
+}
 export interface TrackInput {
 	/** The target is mid defensive break. */
 	breaking: boolean;
@@ -44,8 +61,70 @@ const INBOUND_RANGE = 700;
 /** Below this health fraction an ace notches on a shorter cadence. */
 const ACE_DESPERATE_FRACTION = 1 / 3;
 const ACE_DESPERATE_SCALE = 0.6;
+/** No two flight windups start closer together than this, whatever the hostile count. */
+const GLOBAL_SPACING = 1.5;
+/** A bandit breaks out of a lock building past this inside LOCK_BREAK_RANGE studs, once per BREAK_COOLDOWN seconds. */
+const LOCK_BREAK_PROGRESS = 0.8;
+const LOCK_BREAK_RANGE = 900;
+const BREAK_COOLDOWN = 12;
+/** A flare (bandit or ace) decoys every player missile within this radius for FLARE_SECONDS. */
+const FLARE_RADIUS = 260;
+const FLARE_SECONDS = 2.5;
+/** An extending bandit drops to the player's speed minus this, so a hard turn earns a rear shot. */
+const EXTEND_SPEED_DEFICIT = 10;
 export const ThreatRules = {
 	InboundRange: INBOUND_RANGE,
+	GlobalSpacing: GLOBAL_SPACING,
+	LockBreakProgress: LOCK_BREAK_PROGRESS,
+	LockBreakRange: LOCK_BREAK_RANGE,
+	BreakCooldown: BREAK_COOLDOWN,
+	FlareRadius: FLARE_RADIUS,
+	FlareSeconds: FLARE_SECONDS,
+	ExtendSpeedDeficit: EXTEND_SPEED_DEFICIT,
+	/**
+	 * How much faster a flight fires than a single bandit: +50% per extra live hostile, capped
+	 * at `maxDivisor`. One bandit shoots on the base gate; five shoot on base / 3 (if the cap allows).
+	 */
+	FlightDivisor(live: number, maxDivisor: number): number {
+		return math.clamp(1 + 0.5 * (math.max(1, math.floor(live)) - 1), 1, math.max(1, maxDivisor));
+	},
+	/**
+	 * Seconds between windup starts across the flight: the per-act base divided by the live-hostile
+	 * divisor (halved again while a radar directs the flight), never below the global 1.5 s spacing.
+	 */
+	FlightGate(base: number, live: number, maxDivisor: number, directed = false): number {
+		const gate = base / ThreatRules.FlightDivisor(live, maxDivisor) * (directed ? 0.5 : 1);
+		return math.max(GLOBAL_SPACING, gate);
+	},
+	/** Concurrent hostile threats (windups plus missiles in flight) allowed: one per two live hostiles, 1 to `maxCap`. */
+	ThreatCap(live: number, maxCap: number): number {
+		return math.clamp(math.ceil(math.max(1, live) / 2), 1, math.max(1, maxCap));
+	},
+	/** Whether the flight may light a new windup now. Aces never consult this: they keep their own gate. */
+	FlightReady(input: FlightGateInput): boolean {
+		return input.threats < input.cap && input.sinceLastWindup >= math.max(GLOBAL_SPACING, input.gate);
+	},
+	/**
+	 * A bandit with a lock building on it inside 900 studs breaks hard, once per 12 s (the act's
+	 * chance, scaled by difficulty, decides whether this bandit is a breaker at all).
+	 */
+	ShouldLockBreak(input: LockBreakInput): boolean {
+		if (input.extending || input.cooldownRemaining > 0) return false;
+		if (input.lockProgress <= LOCK_BREAK_PROGRESS || input.distance >= LOCK_BREAK_RANGE) return false;
+		return input.roll < input.chance;
+	},
+	/** Speed of a bandit while it extends: the player's speed less 10, so a turn back in closes on it. */
+	ExtendSpeed(playerSpeed: number, floor: number): number {
+		return math.max(floor, playerSpeed - EXTEND_SPEED_DEFICIT);
+	},
+	/** Should an enemy with `flares` left and `cooldown` to go pop one against a missile `distance` studs away? */
+	ShouldFlare(distance: number, flares: number, cooldown: number): boolean {
+		return flares > 0 && cooldown <= 0 && distance < FLARE_RADIUS;
+	},
+	/** Is a player missile `distance` studs from an enemy whose flare burns until `flareUntil` decoyed at `now`? */
+	FlareDecoys(distance: number, flareUntil: number, now: number): boolean {
+		return now < flareUntil && distance < FLARE_RADIUS;
+	},
 	StraightStick: STRAIGHT_STICK,
 	/** Whether the player is holding the aircraft steady (no meaningful stick input). */
 	PlayerStraight(inputX: number, inputY: number): boolean {

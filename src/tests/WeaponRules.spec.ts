@@ -32,6 +32,8 @@ describe("WeaponRules action gate", () => {
 		expect(WeaponRules.AcceptAction(gate, "Evade", 1)).toBe(true);
 		expect(WeaponRules.IsActionKind("FireMissile")).toBe(true);
 		expect(WeaponRules.IsActionKind("Special")).toBe(true);
+		expect(WeaponRules.IsActionKind("Pause")).toBe(true);
+		expect(WeaponRules.IsActionKind("Resume")).toBe(true);
 		expect(WeaponRules.IsActionKind("Ready")).toBe(false);
 		expect(WeaponRules.IsFireNotice("special_no_target")).toBe(true);
 		expect(WeaponRules.IsFireNotice("blind")).toBe(true);
@@ -45,9 +47,17 @@ describe("WeaponRules launch decision", () => {
 		expect(WeaponRules.Launch(launchReady).kind).toBe("guided");
 		expect(WeaponRules.Launch({ ...launchReady, lockProgress: 0.98 }).kind).toBe("blind");
 		expect(WeaponRules.Launch({ ...launchReady, hasTarget: false }).kind).toBe("blind");
-		expect(WeaponRules.Launch({ ...launchReady, distance: WeaponRules.LockRange + 1 }).kind).toBe("blind");
+		// Air targets: 40 degree half-cone out to 1800 studs.
+		expect(WeaponRules.Launch({ ...launchReady, distance: WeaponRules.AirLockRange + 1 }).kind).toBe("blind");
 		expect(WeaponRules.Launch({ ...launchReady, dot: WeaponRules.LockDot - 0.01 }).kind).toBe("blind");
-		expect(WeaponRules.Launch({ ...launchReady, distance: WeaponRules.LockRange, dot: WeaponRules.LockDot }).kind).toBe("guided");
+		expect(WeaponRules.Launch({ ...launchReady, distance: WeaponRules.AirLockRange, dot: WeaponRules.LockDot }).kind).toBe("guided");
+		expect(WeaponRules.LockDot).toBeCloseTo(math.cos(math.rad(40)), 6);
+		expect(WeaponRules.AirLockRange).toBe(1800);
+		// Ground targets keep the wide cone and the long range.
+		expect(WeaponRules.Launch({ ...launchReady, distance: WeaponRules.LockRange, groundTarget: true }).kind).toBe("guided");
+		expect(WeaponRules.Launch({ ...launchReady, distance: WeaponRules.LockRange + 1, groundTarget: true }).kind).toBe("blind");
+		expect(WeaponRules.EnvelopeRange(WeaponRules.LockRange, false)).toBeCloseTo(WeaponRules.AirLockRange, 6);
+		expect(WeaponRules.EnvelopeRange(3000, true)).toBe(3000);
 		// Ground targets lock through the wider cone; a protected target never gets a guided shot.
 		expect(WeaponRules.Launch({ ...launchReady, dot: WeaponRules.GroundLockDot + 0.01, groundTarget: true }).kind).toBe("guided");
 		expect(WeaponRules.Launch({ ...launchReady, dot: WeaponRules.GroundLockDot + 0.01, groundTarget: false }).kind).toBe("blind");

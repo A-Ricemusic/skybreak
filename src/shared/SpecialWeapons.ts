@@ -157,14 +157,14 @@ export const SpecialWeapons = {
 	},
 	/**
 	 * Indices of up to four distinct salvo targets: allowed candidates inside the lock cone
-	 * (`range`, air or ground dot), the current target first, then required ones, then nearest.
+	 * (ground-scale `range`, shortened for air targets; air or ground dot), the current target first, then required ones, then nearest.
 	 */
 	SalvoTargets(candidates: readonly SalvoCandidate[], range: number): number[] {
 		const picked: number[] = [];
 		for (let index = 0; index < candidates.size(); index++) {
 			const candidate = candidates[index];
 			if (!candidate.allowed || !finite(candidate.distance) || !finite(candidate.dot)) continue;
-			if (candidate.distance > range || candidate.dot < WeaponRules.LockDotFor(candidate.ground)) continue;
+			if (candidate.distance > WeaponRules.EnvelopeRange(range, candidate.ground) || candidate.dot < WeaponRules.LockDotFor(candidate.ground)) continue;
 			picked.push(index);
 		}
 		table.sort(picked, (a, b) => {

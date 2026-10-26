@@ -145,9 +145,13 @@ describe("SpecialWeapons salvo targeting", () => {
 		const ground = candidate({ distance: 2000, dot: WeaponRules.GroundLockDot + 0.01, ground: true });
 		const air = candidate({ distance: 2000, dot: WeaponRules.GroundLockDot + 0.01, ground: false });
 		expect(SpecialWeapons.SalvoTargets([ground, air], WeaponRules.LockRange)).toEqual([0]);
-		const far = candidate({ distance: 3000 });
+		const far = candidate({ distance: 3000, ground: true });
 		expect(SpecialWeapons.SalvoTargets([far], WeaponRules.LockRange)).toEqual([]);
 		expect(SpecialWeapons.SalvoTargets([far], 3300)).toEqual([0]);
+		// Air targets use the shorter air envelope of the same (ground-scale) range.
+		const farAir = candidate({ distance: 2000 });
+		expect(SpecialWeapons.SalvoTargets([farAir], WeaponRules.LockRange)).toEqual([]);
+		expect(SpecialWeapons.SalvoTargets([farAir], 3000)).toEqual([0]);
 		expect(SpecialWeapons.SalvoTargets([], WeaponRules.LockRange)).toEqual([]);
 		expect(SpecialWeapons.SalvoTargets([candidate({ distance: 0 / 0 })], WeaponRules.LockRange)).toEqual([]);
 	});

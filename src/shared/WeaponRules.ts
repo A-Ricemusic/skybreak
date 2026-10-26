@@ -1,6 +1,7 @@
 // Pure weapon rules shared by the server (authoritative) and the HUD (presentation).
 // Nothing here touches instances; CombatService adapts Vector3 to plain points.
-export type CombatActionKind = "FireMissile" | "Evade" | "CycleTarget" | "Special";
+/** Pause and Resume freeze the sortie on the server (single-player): no stepping, and the clock is shifted. */
+export type CombatActionKind = "FireMissile" | "Evade" | "CycleTarget" | "Special" | "Pause" | "Resume";
 export type FireDenied = "no_ammo" | "cooldown";
 /** Why a SPECIAL press did nothing (see SpecialWeapons.Activate). */
 export type SpecialDenied = "special_empty" | "special_cooldown" | "special_active" | "special_no_target";
@@ -22,7 +23,7 @@ export interface LaunchInput {
 	groundTarget?: boolean;
 	/** False when the current phase protects the target; a guided shot would burst for nothing. */
 	canDamage?: boolean;
-	/** Lock envelope range; defaults to LockRange (a recon drone extends it). */
+	/** Ground-scale envelope range; defaults to LockRange (a recon drone extends it). Air targets use AirRangeFactor of it. */
 	lockRange?: number;
 }
 export interface FireButtonState {
@@ -45,12 +46,17 @@ function segmentDistance(point: Point, from: Point, to: Point): number {
 	const cx = from.x + dx * t - point.x, cy = from.y + dy * t - point.y, cz = from.z + dz * t - point.z;
 	return math.sqrt(cx * cx + cy * cy + cz * cz);
 }
-const ACTION_KINDS: CombatActionKind[] = ["FireMissile", "Evade", "CycleTarget", "Special"];
+const ACTION_KINDS: CombatActionKind[] = ["FireMissile", "Evade", "CycleTarget", "Special", "Pause", "Resume"];
 /** Minimum spacing between accepted events of the same action kind. */
 const ACTION_WINDOW = 0.09;
+/** Ground envelope: 80 degree half-cone out to 2450 studs (you orbit a target, you do not chase it). */
 const LOCK_RANGE = 2450;
-const LOCK_DOT = math.cos(math.rad(62));
 const GROUND_LOCK_DOT = math.cos(math.rad(80));
+/** Air envelope: 40 degree half-cone out to 1800 studs, so a bandit has to be pointed at and approached. */
+const AIR_LOCK_RANGE = 1800;
+const LOCK_DOT = math.cos(math.rad(40));
+/** Specials that extend the envelope (drone, lance) scale the air range by the same ratio. */
+const AIR_RANGE_FACTOR = AIR_LOCK_RANGE / LOCK_RANGE;
 /** Lock builds in 0.8 s and decays at half that rate so a brief slip off the target is forgiven. */
 const LOCK_BUILD_SECONDS = 0.8;
 const LOCK_DECAY_PER_SECOND = 0.8;
@@ -60,11 +66,15 @@ const FUSE_RADIUS = 36;
 export const WeaponRules = {
 	ActionWindow: ACTION_WINDOW,
 	LockRange: LOCK_RANGE,
+	AirLockRange: AIR_LOCK_RANGE,
+	AirRangeFactor: AIR_RANGE_FACTOR,
 	LockDot: LOCK_DOT,
 	GroundLockDot: GROUND_LOCK_DOT,
 	LockBuildSeconds: LOCK_BUILD_SECONDS,
 	LockDecayPerSecond: LOCK_DECAY_PER_SECOND,
 	LockDotFor(groundTarget: boolean): number { return groundTarget ? GROUND_LOCK_DOT : LOCK_DOT; },
+	/** The envelope range for a target kind, from a ground-scale `range` (LockRange, or a special's extension). */
+	EnvelopeRange(range: number, groundTarget: boolean): number { return groundTarget ? range : range * AIR_RANGE_FACTOR; },
 	LockedAt: LOCKED_AT,
 	FuseRadius: FUSE_RADIUS,
 	UnguidedLifetime: 5,
@@ -94,7 +104,8 @@ export const WeaponRules = {
 		if (!finite(input.missiles) || input.missiles <= 0) return { kind: "denied", reason: "no_ammo" };
 		if (finite(input.missileCooldown) && input.missileCooldown > 0) return { kind: "denied", reason: "cooldown" };
 		const locked = input.hasTarget && input.canDamage !== false && finite(input.lockProgress) && input.lockProgress >= LOCKED_AT;
-		const range = finite(input.lockRange) && input.lockRange > 0 ? input.lockRange : LOCK_RANGE;
+		const base = finite(input.lockRange) && input.lockRange > 0 ? input.lockRange : LOCK_RANGE;
+		const range = WeaponRules.EnvelopeRange(base, input.groundTarget === true);
 		const inEnvelope = finite(input.distance) && finite(input.dot) && input.distance <= range && input.dot >= WeaponRules.LockDotFor(input.groundTarget === true);
 		return locked && inEnvelope ? { kind: "guided" } : { kind: "blind" };
 	},
