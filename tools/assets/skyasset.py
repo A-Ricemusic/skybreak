@@ -80,6 +80,7 @@ class Nodes:
         self.nodes = self.tree.nodes
         self.links = self.tree.links
         self._geo = None
+        self._map = None
 
     def new(self, kind: str, **props):
         node = self.nodes.new(kind)
@@ -117,7 +118,13 @@ class Nodes:
         return self._geo.outputs[output]
 
     def pos(self):
-        return self.geo("Position")
+        """Shading position. It passes through one Mapping node that ``Asset`` can set after
+        delivery so patterns keep using authored coordinates once a model is recentred or
+        rescaled (identity unless ``Asset.target_length`` is used)."""
+        if self._map is None:
+            self._map = self.new("ShaderNodeMapping", vector_type="POINT")
+            self.feed(self._map.inputs["Vector"], self.geo("Position"))
+        return self._map.outputs["Vector"]
 
     def normal(self):
         return self.geo("True Normal")
@@ -388,7 +395,8 @@ def _object(name: str, bm: bmesh.types.BMesh) -> bpy.types.Object:
 
 class Asset:
     def __init__(self, name: str, title: str, *, texture: int = 512, kind: str = "world", tri_limit: int = 2500,
-                 bump_distance: float = 0.05, usage: str = "", seed: int = 1):
+                 bump_distance: float = 0.05, usage: str = "", seed: int = 1, target_length: float | None = None,
+                 weighted_normals: bool = False, glass_parts: tuple = ()):
         self.name = name
         self.title = title
         self.texture = texture
@@ -403,6 +411,13 @@ class Asset:
         self.notes: dict[str, str] = {}
         self.out = UPLOAD / name
         self.out.mkdir(parents=True, exist_ok=True)
+        # target_length: uniformly scale the delivered model so its longest side is exactly
+        # this many studs (patterns, hinges and attachments stay in authored coordinates).
+        self.target_length = target_length
+        self.scale_k = 1.0
+        self.weighted_normals = weighted_normals
+        # Delivery parts rendered see-through in previews (the game sets their Transparency).
+        self.glass_parts = tuple(glass_parts)
         reset()
 
     # Materials -------------------------------------------------------------
@@ -586,8 +601,17 @@ class Asset:
     # Finishing -------------------------------------------------------------
     def finish(self, *, origin: str = "bottom", ground_offset: float = 0.0, liveries=None,
                hinges: dict | None = None, attachments: dict | None = None, extra_notes: dict | None = None,
-               preview_ground: bool = True) -> dict:
+               preview_ground: bool = True, closeup: tuple | None = None) -> dict:
+        """``closeup`` = (authored target point, view direction, distance) adds preview-closeup.png."""
         objects = self._deliver(origin)
+        self.closeup = None
+        if closeup is not None:
+            target, direction, distance = closeup
+            self.closeup = (self.shift(target), Vector(direction).normalized(), distance * self.scale_k)
+        if os.environ.get("SKYASSET_DRAFT"):
+            return self._draft(objects)
+        for zone in self.zones.values():
+            self._authored_space(zone)
         tris = triangles(objects)
         if tris > self.tri_limit:
             raise RuntimeError(f"{self.name}: {tris} triangles exceeds {self.tri_limit}")
@@ -600,7 +624,8 @@ class Asset:
             obj.data.materials.append(final)
         bounds = world_bounds(objects)
         size = bounds[1] - bounds[0]
-        render_previews(objects, self.out, ground=preview_ground and origin == "bottom")
+        render_previews(objects, self.out, ground=preview_ground and origin == "bottom", glass=self.glass_parts,
+                        closeup=self.closeup)
         fbx = self.out / f"{self.name}.fbx"
         export_fbx(objects, fbx)
         hinge_records = {}
@@ -629,27 +654,59 @@ class Asset:
                 apply_transform(obj)
                 triangulate(obj)
             joined = join(objs, self.name if part == "Main" else part)
+            if self.weighted_normals:
+                weighted_normals(joined)
             delivered.append(joined)
         bmin, bmax = world_bounds(delivered)
         center = (bmin + bmax) / 2
         if origin == "bottom":
             center.z = bmin.z
+        if self.target_length:
+            self.scale_k = self.target_length / max(bmax - bmin)
         for obj in delivered:
-            obj.data.transform(Matrix.Translation(-center))
+            obj.data.transform(Matrix.Scale(self.scale_k, 4) @ Matrix.Translation(-center))
             obj.data.update()
         self.offset = center
         # Control surfaces keep their hinge as object origin so FBX pivots are useful.
         for obj in delivered:
             pivot = self.metadata.get("pivots", {}).get(obj.name)
             if pivot is not None:
-                p = Vector(pivot) - center
+                p = self.shift(pivot)
                 obj.data.transform(Matrix.Translation(-p))
                 obj.location = p
         return delivered
 
+    def _draft(self, objects) -> dict:
+        """Geometry-only check (SKYASSET_DRAFT=1): triangle count and Workbench renders in
+        build/draft/<name>/, no bake, no export, nothing written to assets/."""
+        tris = triangles(objects)
+        folder = ROOT / "build" / "draft" / self.name
+        folder.mkdir(parents=True, exist_ok=True)
+        scene = bpy.context.scene
+        for obj in objects:
+            obj.data.materials.clear()
+        render_previews(objects, folder, ground=False, engine="BLENDER_WORKBENCH", closeup=self.closeup)
+        # Extra draft-only views: SKYASSET_VIEWS="name:tx,ty,tz:dx,dy,dz:dist;..." in authored coordinates.
+        for spec in filter(None, os.environ.get("SKYASSET_VIEWS", "").split(";")):
+            view, t, d, dist = spec.split(":")
+            target = self.shift(tuple(float(v) for v in t.split(",")))
+            direction = Vector(tuple(float(v) for v in d.split(","))).normalized()
+            render_previews(objects, folder, ground=False, engine="BLENDER_WORKBENCH",
+                            closeup=(target, direction, float(dist) * self.scale_k), only_closeup=view)
+        print(f"ASSET_DRAFT {self.name} tris={tris} parts={[(o.name, triangles([o])) for o in objects]}")
+        return {}
+
     def shift(self, point) -> Vector:
         """A point authored before finish() expressed in the delivered frame."""
-        return Vector(point) - self.offset
+        return (Vector(point) - self.offset) * self.scale_k
+
+    def _authored_space(self, zone: Zone) -> None:
+        """Map delivered shading positions back to authored coordinates for this zone's patterns."""
+        mapping = getattr(zone, "nodes", None) and zone.nodes._map
+        if mapping is None or (self.scale_k == 1.0 and self.offset.length == 0):
+            return
+        mapping.inputs["Location"].default_value = self.offset
+        mapping.inputs["Scale"].default_value = (1 / self.scale_k,) * 3
 
     def _bake(self, objects, stem: str, folder: Path, channels=("color", "normal", "rough", "metal"),
               reuse: dict | None = None) -> dict:
@@ -720,6 +777,7 @@ class Asset:
             if old is not None:
                 bpy.data.materials.remove(old)
             setup_zone(self.zones[key], self.bump_distance)
+            self._authored_space(self.zones[key])
         for obj in objects:
             for zone_name in obj.get("zones", []):
                 obj.data.materials.append(self.zones[zone_name].material)
@@ -740,7 +798,7 @@ class Asset:
         for obj in objects:
             obj.data.materials.clear()
             obj.data.materials.append(final)
-        render_previews(objects, folder, ground=False)
+        render_previews(objects, folder, ground=False, glass=self.glass_parts, closeup=getattr(self, "closeup", None))
         fbx = folder / f"{name}.fbx"
         export_fbx(objects, fbx)
         checklist = self._checklist(objects, tris, textures, size, ground_offset, hinges, attachments,
@@ -785,7 +843,8 @@ class Asset:
             "fbxMetresPerStud": FBX_METRES_PER_STUD,
             "pivot": "bounds-center" if self.kind == "aircraft" else "bottom-center",
             "groundOffsetStuds": round(ground_offset, 3),
-            "previews": ["preview-front.png", "preview-side.png", "preview-top.png", "preview-3q.png"],
+            "previews": ["preview-front.png", "preview-side.png", "preview-top.png", "preview-3q.png"]
+            + (["preview-closeup.png"] if getattr(self, "closeup", None) else []),
             "checks": checks,
             "allChecksTrue": all(c["value"] for c in checks.values()),
         }
@@ -856,6 +915,17 @@ def join(objs, name: str):
     # Recompute face zones from actual material slots (robust to join ordering).
     target["face_zones"] = [target.data.materials[p.material_index].name.removeprefix("SRC_") for p in target.data.polygons]
     return target
+
+
+def weighted_normals(obj) -> None:
+    """Face-area weighted custom normals (keeps sharp edges): broad panels stay flat-shaded
+    while their rounded edges carry the curvature, so silhouettes read as curved."""
+    mod = obj.modifiers.new("WeightedNormal", "WEIGHTED_NORMAL")
+    mod.mode = "FACE_AREA"
+    mod.weight = 50
+    mod.keep_sharp = True
+    mod.thresh = 0.01
+    apply_modifiers(obj)
 
 
 def triangulate(obj) -> None:
@@ -933,9 +1003,35 @@ def look_at(obj, target: Vector) -> None:
     obj.rotation_euler = (target - obj.location).to_track_quat("-Z", "Y").to_euler()
 
 
-def render_previews(objects, folder: Path, ground: bool = True) -> None:
+def glass_preview(objects, names) -> list:
+    """Swap a see-through copy of the final material onto glass parts; returns restore info.
+    The FBX keeps the opaque material: the game sets those parts' Transparency itself."""
+    restore = []
+    for obj in objects:
+        if obj.name not in names or not obj.data.materials:
+            continue
+        base = obj.data.materials[0]
+        clear = base.copy()
+        clear.name = f"{base.name}_previewglass"
+        bsdf = clear.node_tree.nodes.get("Principled BSDF")
+        bsdf.inputs["Alpha"].default_value = 0.6
+        try:
+            clear.surface_render_method = "BLENDED"
+        except Exception:
+            pass
+        obj.data.materials[0] = clear
+        restore.append((obj, base, clear))
+    return restore
+
+
+def render_previews(objects, folder: Path, ground: bool = True, glass=(), closeup=None, engine="BLENDER_EEVEE",
+                    only_closeup: str | None = None) -> None:
     scene = bpy.context.scene
-    scene.render.engine = "BLENDER_EEVEE"
+    scene.render.engine = engine
+    if engine == "BLENDER_WORKBENCH":
+        scene.display.shading.light = "STUDIO"
+        scene.display.shading.color_type = "SINGLE"
+        scene.display.shading.show_cavity = True
     scene.render.resolution_x = 1024
     scene.render.resolution_y = 1024
     scene.render.resolution_percentage = 100
@@ -965,6 +1061,7 @@ def render_previews(objects, folder: Path, ground: bool = True) -> None:
     extent = hi - lo
     radius = extent.length / 2
     helpers = []
+    restore = glass_preview(objects, glass)
     if ground:
         bpy.ops.mesh.primitive_plane_add(size=max(extent.x, extent.y) * 6, location=(center.x, center.y, lo.z - 0.02))
         plane = bpy.context.object
@@ -986,6 +1083,16 @@ def render_previews(objects, folder: Path, ground: bool = True) -> None:
     scene.collection.objects.link(sun)
     sun.rotation_euler = (math.radians(50), 0, math.radians(-35))
     helpers.append(sun)
+    if closeup is not None:
+        # Assets with a close-up also get a soft fill from the opposite side so shaded
+        # flanks (intakes, cockpit sills) stay readable.
+        fill_data = bpy.data.lights.new("PreviewFill", "SUN")
+        fill_data.energy = 1.2
+        fill_data.angle = math.radians(20)
+        fill = bpy.data.objects.new("PreviewFill", fill_data)
+        scene.collection.objects.link(fill)
+        fill.rotation_euler = (math.radians(65), 0, math.radians(145))
+        helpers.append(fill)
     cam_data = bpy.data.cameras.new("PreviewCam")
     cam = bpy.data.objects.new("PreviewCam", cam_data)
     scene.collection.objects.link(cam)
@@ -999,6 +1106,8 @@ def render_previews(objects, folder: Path, ground: bool = True) -> None:
         "side": (Vector((1, 0, 0)), max(extent.y, extent.z)),
         "top": (Vector((0, 0, 1)), max(extent.x, extent.y)),
     }
+    if only_closeup:
+        views = {}
     for view, (direction, span) in views.items():
         cam_data.type = "ORTHO"
         cam_data.ortho_scale = span * 1.15
@@ -1027,6 +1136,17 @@ def render_previews(objects, folder: Path, ground: bool = True) -> None:
             need = max(need, abs(c.dot(right)) / math.tan(half) + depth, abs(c.dot(upv)) / math.tan(half) + depth)
     cam.location = center + direction * need * 1.08
     scene.render.filepath = str(folder / "preview-3q.png")
-    bpy.ops.render.render(write_still=True)
+    if not only_closeup:
+        bpy.ops.render.render(write_still=True)
+    if closeup is not None:
+        target, view, distance = closeup
+        cam_data.lens = 50
+        cam.location = target + view * distance
+        look_at(cam, target)
+        scene.render.filepath = str(folder / f"preview-{only_closeup or 'closeup'}.png")
+        bpy.ops.render.render(write_still=True)
     for h in helpers:
         bpy.data.objects.remove(h, do_unlink=True)
+    for obj, base, clear in restore:
+        obj.data.materials[0] = base
+        bpy.data.materials.remove(clear)

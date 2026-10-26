@@ -28,5 +28,9 @@ Every row passed the Sol 6.1 visual gate (`review.json` hash-matched) and Roblox
 | farmhouse | 107969774575516 | `4dd8d7590648` |
 | grain-silo | 135732862435178 | `aa87c0992751` |
 | relay-mast | 127629803273844 | `8c9112416850` |
+| kestrel-v2 | 133879661006824 | `68958103fd5c` |
+| vanta-v2 | 93195734008147 | `6db8977193f5` |
+| vanta-v2-vulture | 101186966862069 | `9fd47d50064d` |
+| vanta-v2-rusk | 93509098875902 | `09ed7ee70d14` |
 
 Superseded: container-stack 140388036263796 (512² textures, replaced by the 256² upload above).

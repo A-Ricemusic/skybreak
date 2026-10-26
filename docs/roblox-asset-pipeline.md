@@ -22,7 +22,9 @@ Generators live in `tools/assets/` and are deterministic Blender Python:
 | --- | --- |
 | `skyasset.py` | Shared library: geometry helpers, procedural Cycles materials, PBR bake, previews, FBX export, checklist |
 | `zones.py` | Surface recipes (concrete, painted metal, windows, corrugation, boards, foliage, rock...) |
-| `aircraft.py` | Kestrel, Vanta and the Vanta ace liveries |
+| `aircraft.py` | Kestrel, Vanta and the Vanta ace liveries (v1) |
+| `aircraft_v2.py` | Version 2 Kestrel, Vanta and ace liveries: shaped-section fuselages, intakes, cockpit, missiles (see [aircraft assets](aircraft-assets.md#version-2-aircraft)) |
+| `compare_v1_v2.py` | Optional: renders `assets/roblox-upload/v1-vs-v2.png` from the exported FBX files |
 | `world.py` | Frigate, oil platform, quay, containers, crane, hangar, tower, three city buildings, farmhouse, barn, silo, radar dish, relay mast, two trees, three rocks |
 | `build.py` | Entry point: one asset per fresh Blender process |
 | `build-all.sh` | Every asset, four processes at a time, then `write_manifest.py` |
@@ -78,6 +80,7 @@ regardless (see below), so both kinds work.
 | `<asset>.fbx` | Mesh with the four textures embedded. Upload as a **Model**; this is the only file uploaded. |
 | `<asset>-color.png`, `-normal.png`, `-roughness.png`, `-metalness.png` | The same textures for review (aircraft 1024², large props 512², small props 256²). Not uploaded: the Model import carries them. |
 | `preview-front.png`, `preview-side.png`, `preview-top.png`, `preview-3q.png` | 1024² Eevee renders on a neutral background for review and moderation pre-check. |
+| `preview-closeup.png` | v2 aircraft only: 1024² close-up of the cockpit and an intake (the canopy is rendered see-through as in game). |
 | `checklist.json` | Name, triangle count and limit, objects, texture list and sizes, Roblox size in studs, ground offset, moderation booleans with notes, aircraft hinges and attachments. |
 
 `manifest.json` lists every folder, its Roblox asset types and where the game
@@ -107,7 +110,7 @@ If any check would be false, change the generator until it is true; never
 hand-edit a checklist. `write_manifest.py` fails if any check is not true, a
 budget is exceeded, a texture is over its size limit or a file is missing.
 
-Budgets: aircraft ≤ 10,000 triangles with ≤ 1024² textures; frigate and oil
+Budgets: v1 aircraft ≤ 10,000 triangles and v2 aircraft 10,000-15,000, all with ≤ 1024² textures; frigate and oil
 platform ≤ 6,000; trees ≤ 800; every other world prop ≤ 2,500. World textures:
 large props ≤ 512² (frigate, oil platform, quay, crane, hangar, control tower,
 office, apartments, city tower); small props ≤ 256² (trees, rocks, container
@@ -156,8 +159,9 @@ uploads and no runtime map assignment are needed. Liveries (`vanta-vulture`,
 
 The same pilot found the scale problem described under "FBX unit scale": the
 import arrived 28× too large. Check after import: the aircraft has `Body` plus
-the control surfaces (`Aileron_L/R`, `Elevator_L/R`, `Rudder_L/R` or `Rudder`),
-each with a SurfaceAppearance; the size matches the manifest's
+the control surfaces (`Aileron_L/R`, `Elevator_L/R`, `Rudder_L/R` or `Rudder`)
+and, for v2, `Canopy`, each with a SurfaceAppearance carrying all four maps
+(Color, Normal, Roughness, Metalness); the size matches the manifest's
 `expectedImportSizeStuds`.
 
 ## 6. Moderation poll
@@ -178,8 +182,16 @@ unset IDs.
 - `src/shared/UploadedAssets.ts` loads an ID once on the server with
   `InsertService:LoadAsset` and keeps the BaseParts, dropping scripts and joints.
   It then validates them (`AssetSelection.AppearanceProblem`): every part must
-  be a MeshPart with a SurfaceAppearance whose `ColorMapContent` is set, and an
-  aircraft must have `Body` and every authored control surface. It anchors the
+  be a MeshPart with a SurfaceAppearance whose `ColorMapContent`,
+  `NormalMapContent`, `RoughnessMapContent` and `MetalnessMapContent` are all
+  set (`SURFACE_MAPS`), and an aircraft must have parts named exactly `Body`,
+  every authored control surface and every glass part
+  (`AssetSelection.RequiredAircraftParts`; the v2 `Canopy`). The canopy sits
+  inside the body's bounds, so only the name check catches a lost or renamed
+  one. No part is exempt from the four-map rule: every folder bakes all four
+  maps into one atlas material, and the v2 Canopy uses that same material (its
+  glass is a zone of the atlas). A plain untextured glass material would need
+  an explicit per-part exception. It anchors the
   parts and scales the cached template with `Model:ScaleTo` to the in-game size
   (`AssetSelection.FitScale`: the longest side is matched, and each axis must
   then be within 5% of the expected proportions). Finally it moves the pivot to
@@ -235,7 +247,11 @@ realism workstream wires them in.
   blur close up. A tiling trim-sheet material would be the next step.
 - Trees are solid low-poly crowns (no alpha cards) to stay inside 800
   triangles and avoid transparency sorting on phones.
-- Canopies are opaque tinted glass; there is no cockpit interior.
+- v1 canopies are opaque tinted glass with no cockpit. v2 canopies are a separate
+  `Canopy` MeshPart over a modelled cockpit; the loader sets its Transparency to
+  `GLASS_TRANSPARENCY` (0.45). This has not been checked in Studio yet: if a
+  SurfaceAppearance part ignores Transparency it still reads as dark tinted glass.
+  The previews only approximate it (glass rendered at material alpha 0.60).
 - Legacy folders (aircraft and large props except the frigate) are still 0.28 m
   per stud FBX exports and import 28× too large until they are regenerated and
   re-reviewed. The loader's rescale covers them, and covers any import route
@@ -246,14 +262,19 @@ realism workstream wires them in.
 - `src/tests/AssetSelection.spec.ts`: pure ID, candidate, livery, scale
   (the pilot's 644 × 172 × 754.6 import fitted to 22.19 × 5.93 × 26.0,
   correct-size imports, absurd ratios and wrong proportions) and
-  SurfaceAppearance-validation rules. Runs in Roblox Jest and in
-  `bun run test:offline`.
+  SurfaceAppearance-validation rules (all four maps on every part, including a
+  control surface and the canopy; exact `Body`, control-surface and `Canopy`
+  names). Runs in Roblox Jest and in `bun run test:offline`.
 - `src/tests/UploadedAssets.spec.ts`: Roblox Jest with an injected loader:
   all IDs unset keeps the procedural aircraft and never calls the loader. A set
   ID with textured MeshParts at the pilot's 28× scale is loaded once, scaled
   to the in-game size, cached and welded, and keeps its SurfaceAppearance. Bare
-  MeshParts, a SurfaceAppearance without a ColorMap, plain Parts, a missing
-  control surface and wrong proportions all fall back without retrying. A
+  MeshParts, a SurfaceAppearance without any map, a missing Color or Normal
+  map, a missing Roughness or Metalness map on one control surface, plain
+  Parts, a missing control surface and wrong proportions all fall back without
+  retrying. A v2 import without `Canopy` (omitted or renamed) or missing any
+  of the four maps on the body, a control surface or the canopy falls back to
+  v1 (and to procedural geometry when v1 is unusable too). A
   failed load falls back and is not retried. Also covered: ace livery fallback
   order (including an untextured livery); world placement by ground offset at
   authored size, simple shapes and `undefined`; and a world fallback chosen from

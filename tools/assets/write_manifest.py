@@ -29,6 +29,10 @@ KEYS = {
     "vanta": "Vanta",
     "vanta-vulture": "VantaVulture",
     "vanta-rusk": "VantaRusk",
+    "kestrel-v2": "KestrelV2",
+    "vanta-v2": "VantaV2",
+    "vanta-v2-vulture": "VantaV2Vulture",
+    "vanta-v2-rusk": "VantaV2Rusk",
     "frigate": "Frigate",
     "oil-platform": "OilPlatform",
     "harbour-quay": "HarbourQuay",
@@ -51,7 +55,13 @@ KEYS = {
     "rock-c": "RockC",
 }
 # Procedural aircraft whose length the uploaded aircraft are fitted to.
-PROCEDURAL = {"kestrel": "kestrel", "vanta": "vanta", "vanta-vulture": "vanta", "vanta-rusk": "vanta"}
+PROCEDURAL = {"kestrel": "kestrel", "vanta": "vanta", "vanta-vulture": "vanta", "vanta-rusk": "vanta",
+              "kestrel-v2": "kestrel", "vanta-v2": "vanta", "vanta-v2-vulture": "vanta", "vanta-v2-rusk": "vanta"}
+# Version 2 aircraft must land in the 10k-15k triangle band (detail floor as well as a budget).
+V2_AIRCRAFT = {"kestrel-v2", "vanta-v2", "vanta-v2-vulture", "vanta-v2-rusk"}
+V2_TRIANGLES = (10000, 15000)
+# Delivery parts the game renders see-through (SurfaceAppearance part Transparency).
+GLASS_PARTS = ("Canopy",)
 # Mobile texture budget (max map edge): aircraft 1024, small world props 256, large props 512.
 SMALL_PROPS = {"container-stack", "farmhouse", "barn", "grain-silo", "radar-dish", "relay-mast", "pine", "broadleaf",
                "rock-a", "rock-b", "rock-c"}
@@ -96,13 +106,17 @@ def main() -> None:
                 problems.append(f"{folder}: {check} is not true")
         if c["triangleCount"] > c["triangleLimit"]:
             problems.append(f"{folder}: {c['triangleCount']} triangles over {c['triangleLimit']}")
+        if folder in V2_AIRCRAFT and not V2_TRIANGLES[0] <= c["triangleCount"] <= V2_TRIANGLES[1]:
+            problems.append(f"{folder}: {c['triangleCount']} triangles outside {V2_TRIANGLES[0]}-{V2_TRIANGLES[1]}")
+        if folder in V2_AIRCRAFT and "preview-closeup.png" not in c["previews"]:
+            problems.append(f"{folder}: v2 aircraft need preview-closeup.png")
         limit = texture_limit(folder)
         for t in c["textures"]:
             if t["width"] > limit or t["height"] > limit:
                 problems.append(f"{folder}: texture {t['file']} exceeds {limit}")
             if not (UPLOAD / folder / t["file"]).exists():
                 problems.append(f"{folder}: missing {t['file']}")
-        for p in PREVIEWS:
+        for p in sorted(set(PREVIEWS) | set(c["previews"])):
             if not (UPLOAD / folder / p).exists():
                 problems.append(f"{folder}: missing {p}")
         k = game_scale(folder, c["robloxSizeStuds"])
@@ -125,7 +139,7 @@ def main() -> None:
             "textureLimit": limit,
             "robloxSizeStuds": c["robloxSizeStuds"],
             "allChecksTrue": c["allChecksTrue"],
-            "previews": [f"{folder}/{p}" for p in PREVIEWS],
+            "previews": [f"{folder}/{p}" for p in c["previews"]],
         })
         lines = [f"\t{key}: {{", f"\t\tfolder: \"{folder}\",", f"\t\tkind: \"{'aircraft' if c['pivot'] == 'bounds-center' else 'world'}\",",
                  f"\t\tsize: {ts_vec(scaled(c['robloxSizeStuds'], k))},", f"\t\tauthoredSize: {ts_vec(c['robloxSizeStuds'])},",
@@ -133,6 +147,9 @@ def main() -> None:
         if c.get("attachments"):
             a = c["attachments"]
             lines.append("\t\tattachments: { " + ", ".join(f"{n}: {ts_vec(scaled(a[n], k))}" for n in ("leftWingtip", "rightWingtip", "exhaust")) + " },")
+        glass = [o["name"] for o in c["objects"] if o["name"] in GLASS_PARTS]
+        if glass:
+            lines.append("\t\tglassParts: [" + ", ".join(f'"{g}"' for g in glass) + "],")
         if c.get("controlSurfaces"):
             lines.append("\t\tcontrolSurfaces: {")
             for name, h in c["controlSurfaces"].items():
@@ -165,7 +182,8 @@ def main() -> None:
         "export interface UploadedAssetSpec {\n\tfolder: string;\n\tkind: \"aircraft\" | \"world\";\n\tsize: Vector3;\n"
         "\tauthoredSize: Vector3;\n\tgameScale: number;\n\tgroundOffset: number;\n"
         "\tattachments?: { leftWingtip: Vector3; rightWingtip: Vector3; exhaust: Vector3 };\n"
-        "\tcontrolSurfaces?: Record<string, HingeSpec>;\n}\n\n"
+        "\tcontrolSurfaces?: Record<string, HingeSpec>;\n"
+        "\t/** Parts the loader makes see-through (the v2 canopy over its cockpit). */\n\tglassParts?: string[];\n}\n\n"
         "export const UploadedAssetSpecs: Record<UploadedAssetName, UploadedAssetSpec> = {\n"
         + "\n".join(specs) + "\n};\n"
     )

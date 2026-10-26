@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "@rbxts/jest-globals";
 import { Workspace } from "@rbxts/services";
 import { WorldAssets } from "../server/WorldAssets";
-import { AssetSelection } from "../shared/AssetSelection";
+import { AssetSelection, GLASS_TRANSPARENCY, SURFACE_MAPS, SurfaceMap } from "../shared/AssetSelection";
 import { JetFactory } from "../shared/JetFactory";
 import { RobloxAssetIds } from "../shared/RobloxAssetIds";
 import { UploadedAssets } from "../shared/UploadedAssets";
@@ -15,14 +15,19 @@ function track<T extends Instance>(item: T): T {
 
 /** The pilot Kestrel import arrived 28x its authored size (Roblox reads FBX centimetres as studs). */
 const PILOT_IMPORT_SCALE = 28;
-/** Tests cannot author SurfaceAppearance maps (plugin-only setters), so fakes mark them with an attribute. */
-const probe = (appearance: SurfaceAppearance) => appearance.GetAttribute("FakeColorMap") === true;
+/** Tests cannot author SurfaceAppearance maps (plugin-only setters), so fakes mark each with a Fake<map> attribute. */
+const probe = (appearance: SurfaceAppearance, map: SurfaceMap) => appearance.GetAttribute(`Fake${map}`) === true;
 
 interface FakeOptions {
 	scale?: number;
 	/** "textured" (default), "bare" MeshParts, "unmapped" SurfaceAppearance, or plain "parts". */
 	surface?: "textured" | "bare" | "unmapped" | "parts";
 	omit?: string;
+	/** Imports this part under another name (a renamed Canopy). */
+	rename?: [string, string];
+	/** Drops this map from `mapPart`'s SurfaceAppearance (every part when unset). */
+	missingMap?: SurfaceMap;
+	mapPart?: string;
 	/** Multiplies the X extent (a misshapen or wrong asset). */
 	stretchX?: number;
 }
@@ -30,8 +35,8 @@ interface FakeOptions {
 /**
  * A stand-in for InsertService's container, shaped like the pilot import: a Model
  * inside the container holding one MeshPart per FBX object (Body plus the control
- * surfaces for aircraft, one mesh for world props), each with a SurfaceAppearance,
- * far from the origin at the import scale.
+ * surfaces and any glass part for aircraft, one mesh for world props), each with a
+ * four-map SurfaceAppearance, far from the origin at the import scale.
  */
 function fakeUpload(name: UploadedAssetName, options: FakeOptions = {}): Model {
 	const spec = UploadedAssetSpecs[name];
@@ -41,11 +46,11 @@ function fakeUpload(name: UploadedAssetName, options: FakeOptions = {}): Model {
 	inner.Parent = container;
 	const offset = new Vector3(500, 80, -300);
 	const size = spec.authoredSize.mul(scale).mul(new Vector3(options.stretchX ?? 1, 1, 1));
-	const names = spec.kind === "aircraft" ? ["Body", ...AssetSelection.ControlSurfaceNames(spec.controlSurfaces)] : [spec.folder];
+	const names = spec.kind === "aircraft" ? ["Body", ...AssetSelection.ControlSurfaceNames(spec.controlSurfaces), ...(spec.glassParts ?? [])] : [spec.folder];
 	for (const [index, partName] of pairs(names)) {
 		if (partName === options.omit) continue;
 		const part = new Instance(options.surface === "parts" ? "Part" : "MeshPart");
-		part.Name = partName;
+		part.Name = options.rename !== undefined && options.rename[0] === partName ? options.rename[1] : partName;
 		// The body (or the single world mesh) spans the whole bounds; surfaces sit inside it.
 		part.Size = index === 1 ? size : size.mul(0.1);
 		part.CFrame = new CFrame(offset.add(index === 1 ? Vector3.zero : new Vector3((index % 2 === 0 ? -1 : 1) * size.X * 0.3, 0, size.Z * 0.3)));
@@ -53,7 +58,10 @@ function fakeUpload(name: UploadedAssetName, options: FakeOptions = {}): Model {
 		part.CanCollide = true;
 		if (options.surface !== "bare" && options.surface !== "parts") {
 			const appearance = new Instance("SurfaceAppearance");
-			appearance.SetAttribute("FakeColorMap", options.surface !== "unmapped");
+			for (const map of SURFACE_MAPS) {
+				const dropped = map === options.missingMap && (options.mapPart === undefined || options.mapPart === partName);
+				appearance.SetAttribute(`Fake${map}`, options.surface !== "unmapped" && !dropped);
+			}
 			appearance.Parent = part;
 		}
 		part.Parent = inner;
@@ -85,7 +93,7 @@ describe("Uploaded asset loader with procedural fallback", () => {
 			expect((id as number) > 0 && (id as number) % 1 === 0).toBe(true);
 			count += 1;
 		}
-		expect(count).toBe(24);
+		expect(count).toBe(28);
 	});
 
 	it("uses an uploaded aircraft when its ID is set: validated, scaled to the procedural size, cached and welded", () => {
@@ -106,7 +114,7 @@ describe("Uploaded asset loader with procedural fallback", () => {
 			expect(piece.CanCollide).toBe(false);
 			expect(piece.FindFirstChild("RootWeld") !== undefined).toBe(true);
 			// The imported SurfaceAppearance (and its maps) travels with every clone.
-			expect(piece.FindFirstChildWhichIsA("SurfaceAppearance")?.GetAttribute("FakeColorMap")).toBe(true);
+			for (const map of SURFACE_MAPS) expect(piece.FindFirstChildWhichIsA("SurfaceAppearance")?.GetAttribute(`Fake${map}`)).toBe(true);
 		}
 		const leftTip = first.GetAttribute("leftWingtip") as Vector3;
 		close(leftTip.X, spec.attachments!.leftWingtip.X, 1e-3);
@@ -148,7 +156,11 @@ describe("Uploaded asset loader with procedural fallback", () => {
 	it("falls back when an import lost its textures, parts or shape", () => {
 		const cases: [string, FakeOptions][] = [
 			["bare MeshParts without SurfaceAppearance", { surface: "bare" }],
-			["SurfaceAppearance without a ColorMap", { surface: "unmapped" }],
+			["SurfaceAppearance without any map", { surface: "unmapped" }],
+			["no ColorMap", { missingMap: "ColorMap" }],
+			["no NormalMap", { missingMap: "NormalMap" }],
+			["no RoughnessMap on one aileron", { missingMap: "RoughnessMap", mapPart: "Aileron_L" }],
+			["no MetalnessMap on one rudder", { missingMap: "MetalnessMap", mapPart: "Rudder_R" }],
 			["plain Parts instead of MeshParts", { surface: "parts" }],
 			["a missing control surface", { omit: "Rudder_R" }],
 			["wrong proportions", { stretchX: 3 }],
@@ -168,6 +180,70 @@ describe("Uploaded asset loader with procedural fallback", () => {
 		UploadedAssets.Configure({ ids: { RockA: 77 }, loader: () => fakeUpload("RockA") });
 		expect(UploadedAssets.Template(["RockA"])).toBeUndefined();
 	});
+
+	it("prefers the v2 Kestrel, renders its canopy see-through and falls back to v1 when v2 fails", () => {
+		const loaded: number[] = [];
+		UploadedAssets.Configure({ ids: { Kestrel: 1, KestrelV2: 2 }, probe, loader: (id) => {
+			loaded.push(id);
+			return fakeUpload(id === 2 ? "KestrelV2" : "Kestrel", { scale: 1 });
+		} });
+		const jet = track(JetFactory.Create("Kestrel v2", false));
+		expect(jet.GetAttribute("GeometrySource")).toBe("Uploaded");
+		expect(jet.GetAttribute("UploadedAsset")).toBe("KestrelV2");
+		const canopy = jet.FindFirstChild("Canopy") as MeshPart | undefined;
+		expect(canopy !== undefined).toBe(true);
+		expect(canopy!.Transparency).toBeCloseTo(GLASS_TRANSPARENCY, 4);
+		expect((jet.FindFirstChild("Body") as MeshPart).Transparency).toBe(0);
+		close(longest(UploadedAssets.Template(["KestrelV2"])!.template.GetExtentsSize()), longest(UploadedAssetSpecs.KestrelV2.size));
+		expect(loaded.size()).toBe(1);
+		// A v2 upload that fails validation (untextured) falls back to the v1 model.
+		UploadedAssets.Configure({ ids: { Kestrel: 1, KestrelV2: 2 }, probe, loader: (id) => fakeUpload(id === 2 ? "KestrelV2" : "Kestrel", { surface: id === 2 ? "bare" : "textured" }) });
+		const fallback = track(JetFactory.Create("Kestrel v1", false));
+		expect(fallback.GetAttribute("UploadedAsset")).toBe("Kestrel");
+	}, 60000);
+
+	it("rejects a v2 aircraft without its exact Canopy and falls back to v1", () => {
+		const cases: [string, FakeOptions][] = [
+			["no Canopy", { omit: "Canopy" }],
+			["a renamed Canopy", { rename: ["Canopy", "Canopy.001"] }],
+		];
+		for (const [label, options] of cases) {
+			const loaded: number[] = [];
+			UploadedAssets.Configure({ ids: { Kestrel: 1, KestrelV2: 2 }, probe, loader: (id) => {
+				loaded.push(id);
+				return id === 2 ? fakeUpload("KestrelV2", { ...options, scale: 1 }) : fakeUpload("Kestrel");
+			} });
+			const jet = track(JetFactory.Create(`Kestrel v2 (${label})`, false));
+			expect(jet.GetAttribute("UploadedAsset")).toBe("Kestrel");
+			expect(UploadedAssets.Available("KestrelV2")).toBe(false);
+			expect(loaded.size()).toBe(2);
+			expect(loaded[0]).toBe(2);
+			expect(loaded[1]).toBe(1);
+		}
+		// The same loss on the ace Vanta skips both its v2 livery and plain v2 to the v1 livery.
+		UploadedAssets.Configure({ ids: { VantaV2Rusk: 31, VantaRusk: 30, VantaV2: 21, Vanta: 20 }, probe, loader: (id) => {
+			if (id === 31) return fakeUpload("VantaV2Rusk", { omit: "Canopy", scale: 1 });
+			return fakeUpload(id === 30 ? "VantaRusk" : id === 21 ? "VantaV2" : "Vanta");
+		} });
+		expect(track(JetFactory.Create("AIR MARSHAL RUSK", true, "Rusk")).GetAttribute("UploadedAsset")).toBe("VantaRusk");
+	}, 120000);
+
+	it("rejects a v2 aircraft missing any of the four maps, on the body, a control surface or the canopy", () => {
+		for (const map of SURFACE_MAPS) {
+			for (const mapPart of ["Body", "Elevator_R", "Canopy"]) {
+				UploadedAssets.Configure({ ids: { VantaV2: 21, Vanta: 20 }, probe, loader: (id) => {
+					return id === 21 ? fakeUpload("VantaV2", { missingMap: map, mapPart, scale: 1 }) : fakeUpload("Vanta");
+				} });
+				expect(UploadedAssets.Template(["VantaV2", "Vanta"])?.name).toBe("Vanta");
+				expect(UploadedAssets.Available("VantaV2")).toBe(false);
+			}
+		}
+		// With neither upload usable the enemy keeps procedural geometry.
+		UploadedAssets.Configure({ ids: { VantaV2: 21, Vanta: 20 }, probe, loader: (id) => {
+			return fakeUpload(id === 21 ? "VantaV2" : "Vanta", { missingMap: "NormalMap", scale: id === 21 ? 1 : PILOT_IMPORT_SCALE });
+		} });
+		expect(track(JetFactory.Create("Unmapped Vanta", true)).GetAttribute("GeometrySource") !== "Uploaded").toBe(true);
+	}, 120000);
 
 	it("gives aces their livery model, then the plain uploaded Vanta, then a procedural tint", () => {
 		UploadedAssets.Configure({ ids: { Vanta: 2, VantaRusk: 3, VantaVulture: 4 }, probe, loader: (id) => {
