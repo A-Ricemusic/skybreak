@@ -1,0 +1,200 @@
+{
+  "name": "vanta-v2-vulture",
+  "title": "Vanta ace livery: Vulture flight (v2)",
+  "variantOf": "vanta-v2",
+  "robloxAssetType": "Model",
+  "usage": "Vulture Lead and Vulture Two aces (M11 and M15 ace phases); preferred over v1 when uploaded.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "vanta-v2-vulture.fbx",
+    "bytes": 2778588
+  },
+  "triangleCount": 13196,
+  "triangleLimit": 15000,
+  "objects": [
+    {
+      "name": "Body",
+      "triangles": 11984
+    },
+    {
+      "name": "Canopy",
+      "triangles": 672
+    },
+    {
+      "name": "Aileron_L",
+      "triangles": 80
+    },
+    {
+      "name": "Elevator_L",
+      "triangles": 160
+    },
+    {
+      "name": "Aileron_R",
+      "triangles": 80
+    },
+    {
+      "name": "Elevator_R",
+      "triangles": 160
+    },
+    {
+      "name": "Rudder",
+      "triangles": 60
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "vanta-v2-vulture-color.png",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 682475
+    },
+    {
+      "role": "normal",
+      "file": "vanta-v2-vulture-normal.png",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 399766
+    },
+    {
+      "role": "rough",
+      "file": "vanta-v2-vulture-roughness.png",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 530285
+    },
+    {
+      "role": "metal",
+      "file": "vanta-v2-vulture-metalness.png",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 196657
+    }
+  ],
+  "robloxSizeStuds": [
+    24.578,
+    7.298,
+    26.4
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bounds-center",
+  "groundOffsetStuds": 0.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png",
+    "preview-closeup.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "No letters, numbers, call signs, serials, squadron codes or glyph-like marks in mesh or texture; countershading, camouflage, panel lines, rivets and stains only."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national or unit markings or insignia; airframe is an original design, not a copy of any real aircraft."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or face-like arrangements: the cockpit holds an empty seat and panel only; intake mouths are plain dark rectangles with no central spinner, so the front view does not read as eyes."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "Plain unmarked air-to-air missile shapes on wing pylons as the standard combat loadout of a flight game; no kill marks, damage, blood or gore."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "controlSurfaces": {
+    "Aileron_L": {
+      "from": [
+        -5.8902,
+        -1.9545,
+        8.232
+      ],
+      "to": [
+        -11.4279,
+        -2.1963,
+        9.1291
+      ]
+    },
+    "Elevator_L": {
+      "from": [
+        -1.3089,
+        -1.1052,
+        -5.3968
+      ],
+      "to": [
+        -2.3158,
+        -1.0524,
+        -5.3968
+      ]
+    },
+    "Aileron_R": {
+      "from": [
+        5.8902,
+        -1.9545,
+        8.232
+      ],
+      "to": [
+        11.4279,
+        -2.1963,
+        9.1291
+      ]
+    },
+    "Elevator_R": {
+      "from": [
+        1.3089,
+        -1.1052,
+        -5.3968
+      ],
+      "to": [
+        2.3158,
+        -1.0524,
+        -5.3968
+      ]
+    },
+    "Rudder": {
+      "from": [
+        0.0,
+        -0.2978,
+        9.6847
+      ],
+      "to": [
+        0.0,
+        2.7832,
+        10.8123
+      ]
+    }
+  },
+  "attachments": {
+    "leftWingtip": [
+      -12.1831,
+      -2.2293,
+      9.8471
+    ],
+    "rightWingtip": [
+      12.1831,
+      -2.2293,
+      9.8471
+    ],
+    "exhaust": [
+      0.0,
+      -2.08,
+      13.0792
+    ]
+  }
+}

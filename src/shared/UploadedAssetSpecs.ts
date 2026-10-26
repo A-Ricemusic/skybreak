@@ -4,7 +4,7 @@
 // attachments and hinges are in-game studs: authoredSize x gameScale, where aircraft are
 // fitted to the procedural aircraft's length and world props keep their authored size.
 
-export type UploadedAssetName = "Kestrel" | "Vanta" | "VantaVulture" | "VantaRusk" | "Frigate" | "OilPlatform" | "HarbourQuay" | "ContainerStack" | "GantryCrane" | "Hangar" | "ControlTower" | "OfficeMidrise" | "ApartmentBlock" | "CityTower" | "Farmhouse" | "Barn" | "GrainSilo" | "RadarDish" | "RelayMast" | "Pine" | "Broadleaf" | "RockA" | "RockB" | "RockC";
+export type UploadedAssetName = "Kestrel" | "Vanta" | "VantaVulture" | "VantaRusk" | "KestrelV2" | "VantaV2" | "VantaV2Vulture" | "VantaV2Rusk" | "Frigate" | "OilPlatform" | "HarbourQuay" | "ContainerStack" | "GantryCrane" | "Hangar" | "ControlTower" | "OfficeMidrise" | "ApartmentBlock" | "CityTower" | "Farmhouse" | "Barn" | "GrainSilo" | "RadarDish" | "RelayMast" | "Pine" | "Broadleaf" | "RockA" | "RockB" | "RockC";
 
 export interface HingeSpec {
 	from: Vector3;
@@ -20,6 +20,8 @@ export interface UploadedAssetSpec {
 	groundOffset: number;
 	attachments?: { leftWingtip: Vector3; rightWingtip: Vector3; exhaust: Vector3 };
 	controlSurfaces?: Record<string, HingeSpec>;
+	/** Parts the loader makes see-through (the v2 canopy over its cockpit). */
+	glassParts?: string[];
 }
 
 export const UploadedAssetSpecs: Record<UploadedAssetName, UploadedAssetSpec> = {
@@ -86,6 +88,75 @@ export const UploadedAssetSpecs: Record<UploadedAssetName, UploadedAssetSpec> = 
 			Aileron_R: { from: new Vector3(4.0432, -2.2953, 9.2537), to: new Vector3(10.4173, -2.6294, 10.3198) },
 			Elevator_R: { from: new Vector3(1.2368, -1.4262, -4.9708), to: new Vector3(2.093, -1.3663, -4.9708) },
 			Rudder: { from: new Vector3(0, -0.2569, 9.7657), to: new Vector3(0, 2.9397, 11.2553) },
+		},
+	},
+	KestrelV2: {
+		folder: "kestrel-v2",
+		kind: "aircraft",
+		size: new Vector3(22.211, 5.339, 26),
+		authoredSize: new Vector3(22.211, 5.339, 26),
+		gameScale: 1,
+		groundOffset: 0,
+		attachments: { leftWingtip: new Vector3(-11.0004, -1.5211, 7.8868), rightWingtip: new Vector3(11.0004, -1.5211, 7.8868), exhaust: new Vector3(0, -1.2009, 12.801) },
+		glassParts: ["Canopy"],
+		controlSurfaces: {
+			Aileron_L: { from: new Vector3(-6.4502, -1.3225, 5.7848), to: new Vector3(-10.2504, -1.4884, 6.6353) },
+			Rudder_L: { from: new Vector3(-1.6012, -0.4905, 9.4681), to: new Vector3(-2.4666, 1.6514, 10.3681) },
+			Elevator_L: { from: new Vector3(-2.0001, -1.2257, 9.9509), to: new Vector3(-3.0001, -1.2781, 9.9509) },
+			Aileron_R: { from: new Vector3(6.4502, -1.3225, 5.7848), to: new Vector3(10.2504, -1.4884, 6.6353) },
+			Rudder_R: { from: new Vector3(1.6012, -0.4905, 9.4681), to: new Vector3(2.4666, 1.6514, 10.3681) },
+			Elevator_R: { from: new Vector3(2.0001, -1.2257, 9.9509), to: new Vector3(3.0001, -1.2781, 9.9509) },
+		},
+	},
+	VantaV2: {
+		folder: "vanta-v2",
+		kind: "aircraft",
+		size: new Vector3(24.578, 7.298, 26.4),
+		authoredSize: new Vector3(24.578, 7.298, 26.4),
+		gameScale: 1,
+		groundOffset: 0,
+		attachments: { leftWingtip: new Vector3(-12.1831, -2.2293, 9.8471), rightWingtip: new Vector3(12.1831, -2.2293, 9.8471), exhaust: new Vector3(0, -2.08, 13.0792) },
+		glassParts: ["Canopy"],
+		controlSurfaces: {
+			Aileron_L: { from: new Vector3(-5.8902, -1.9545, 8.232), to: new Vector3(-11.4279, -2.1963, 9.1291) },
+			Elevator_L: { from: new Vector3(-1.3089, -1.1052, -5.3968), to: new Vector3(-2.3158, -1.0524, -5.3968) },
+			Aileron_R: { from: new Vector3(5.8902, -1.9545, 8.232), to: new Vector3(11.4279, -2.1963, 9.1291) },
+			Elevator_R: { from: new Vector3(1.3089, -1.1052, -5.3968), to: new Vector3(2.3158, -1.0524, -5.3968) },
+			Rudder: { from: new Vector3(0, -0.2978, 9.6847), to: new Vector3(0, 2.7832, 10.8123) },
+		},
+	},
+	VantaV2Vulture: {
+		folder: "vanta-v2-vulture",
+		kind: "aircraft",
+		size: new Vector3(24.578, 7.298, 26.4),
+		authoredSize: new Vector3(24.578, 7.298, 26.4),
+		gameScale: 1,
+		groundOffset: 0,
+		attachments: { leftWingtip: new Vector3(-12.1831, -2.2293, 9.8471), rightWingtip: new Vector3(12.1831, -2.2293, 9.8471), exhaust: new Vector3(0, -2.08, 13.0792) },
+		glassParts: ["Canopy"],
+		controlSurfaces: {
+			Aileron_L: { from: new Vector3(-5.8902, -1.9545, 8.232), to: new Vector3(-11.4279, -2.1963, 9.1291) },
+			Elevator_L: { from: new Vector3(-1.3089, -1.1052, -5.3968), to: new Vector3(-2.3158, -1.0524, -5.3968) },
+			Aileron_R: { from: new Vector3(5.8902, -1.9545, 8.232), to: new Vector3(11.4279, -2.1963, 9.1291) },
+			Elevator_R: { from: new Vector3(1.3089, -1.1052, -5.3968), to: new Vector3(2.3158, -1.0524, -5.3968) },
+			Rudder: { from: new Vector3(0, -0.2978, 9.6847), to: new Vector3(0, 2.7832, 10.8123) },
+		},
+	},
+	VantaV2Rusk: {
+		folder: "vanta-v2-rusk",
+		kind: "aircraft",
+		size: new Vector3(24.578, 7.298, 26.4),
+		authoredSize: new Vector3(24.578, 7.298, 26.4),
+		gameScale: 1,
+		groundOffset: 0,
+		attachments: { leftWingtip: new Vector3(-12.1831, -2.2293, 9.8471), rightWingtip: new Vector3(12.1831, -2.2293, 9.8471), exhaust: new Vector3(0, -2.08, 13.0792) },
+		glassParts: ["Canopy"],
+		controlSurfaces: {
+			Aileron_L: { from: new Vector3(-5.8902, -1.9545, 8.232), to: new Vector3(-11.4279, -2.1963, 9.1291) },
+			Elevator_L: { from: new Vector3(-1.3089, -1.1052, -5.3968), to: new Vector3(-2.3158, -1.0524, -5.3968) },
+			Aileron_R: { from: new Vector3(5.8902, -1.9545, 8.232), to: new Vector3(11.4279, -2.1963, 9.1291) },
+			Elevator_R: { from: new Vector3(1.3089, -1.1052, -5.3968), to: new Vector3(2.3158, -1.0524, -5.3968) },
+			Rudder: { from: new Vector3(0, -0.2978, 9.6847), to: new Vector3(0, 2.7832, 10.8123) },
 		},
 	},
 	Frigate: {

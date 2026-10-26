@@ -1,0 +1,217 @@
+{
+  "name": "kestrel-v2",
+  "title": "Kestrel player fighter (v2)",
+  "variantOf": null,
+  "robloxAssetType": "Model",
+  "usage": "Player aircraft (JetFactory.Create, menu display jet, parked jets); preferred over v1 when uploaded.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "kestrel-v2.fbx",
+    "bytes": 2853260
+  },
+  "triangleCount": 12320,
+  "triangleLimit": 15000,
+  "objects": [
+    {
+      "name": "Body",
+      "triangles": 11088
+    },
+    {
+      "name": "Canopy",
+      "triangles": 672
+    },
+    {
+      "name": "Aileron_L",
+      "triangles": 60
+    },
+    {
+      "name": "Rudder_L",
+      "triangles": 60
+    },
+    {
+      "name": "Elevator_L",
+      "triangles": 160
+    },
+    {
+      "name": "Aileron_R",
+      "triangles": 60
+    },
+    {
+      "name": "Rudder_R",
+      "triangles": 60
+    },
+    {
+      "name": "Elevator_R",
+      "triangles": 160
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "kestrel-v2-color.png",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 801215
+    },
+    {
+      "role": "normal",
+      "file": "kestrel-v2-normal.png",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 413325
+    },
+    {
+      "role": "rough",
+      "file": "kestrel-v2-roughness.png",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 541370
+    },
+    {
+      "role": "metal",
+      "file": "kestrel-v2-metalness.png",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 170816
+    }
+  ],
+  "robloxSizeStuds": [
+    22.211,
+    5.339,
+    26.0
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bounds-center",
+  "groundOffsetStuds": 0.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png",
+    "preview-closeup.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "No letters, numbers, call signs, serials, squadron codes or glyph-like marks in mesh or texture; countershading, camouflage, panel lines, rivets and stains only."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national or unit markings or insignia; airframe is an original design, not a copy of any real aircraft."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or face-like arrangements: the cockpit holds an empty seat and panel only; intake mouths are plain dark rectangles with no central spinner, so the front view does not read as eyes."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "Plain unmarked air-to-air missile shapes on wing pylons as the standard combat loadout of a flight game; no kill marks, damage, blood or gore."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "controlSurfaces": {
+    "Aileron_L": {
+      "from": [
+        -6.4502,
+        -1.3225,
+        5.7848
+      ],
+      "to": [
+        -10.2504,
+        -1.4884,
+        6.6353
+      ]
+    },
+    "Rudder_L": {
+      "from": [
+        -1.6012,
+        -0.4905,
+        9.4681
+      ],
+      "to": [
+        -2.4666,
+        1.6514,
+        10.3681
+      ]
+    },
+    "Elevator_L": {
+      "from": [
+        -2.0001,
+        -1.2257,
+        9.9509
+      ],
+      "to": [
+        -3.0001,
+        -1.2781,
+        9.9509
+      ]
+    },
+    "Aileron_R": {
+      "from": [
+        6.4502,
+        -1.3225,
+        5.7848
+      ],
+      "to": [
+        10.2504,
+        -1.4884,
+        6.6353
+      ]
+    },
+    "Rudder_R": {
+      "from": [
+        1.6012,
+        -0.4905,
+        9.4681
+      ],
+      "to": [
+        2.4666,
+        1.6514,
+        10.3681
+      ]
+    },
+    "Elevator_R": {
+      "from": [
+        2.0001,
+        -1.2257,
+        9.9509
+      ],
+      "to": [
+        3.0001,
+        -1.2781,
+        9.9509
+      ]
+    }
+  },
+  "attachments": {
+    "leftWingtip": [
+      -11.0004,
+      -1.5211,
+      7.8868
+    ],
+    "rightWingtip": [
+      11.0004,
+      -1.5211,
+      7.8868
+    ],
+    "exhaust": [
+      0.0,
+      -1.2009,
+      12.801
+    ]
+  },
+  "variants": []
+}
