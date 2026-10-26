@@ -47,7 +47,7 @@ describe("Difficulty multipliers", () => {
 	});
 	it("makes Ace harsher and Easy gentler on every threat knob", () => {
 		// Higher is harsher.
-		for (const knob of ["hostileDamage", "missileTurn", "aceHealth", "banditHealth"] as const) {
+		for (const knob of ["hostileDamage", "missileTurn", "aceHealth", "banditHealth", "breakChance"] as const) {
 			expect(Difficulty.Multiplier("ace", knob) > 1).toBe(true);
 			expect(Difficulty.Multiplier("easy", knob) < 1).toBe(true);
 		}
