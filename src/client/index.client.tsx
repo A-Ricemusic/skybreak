@@ -7,6 +7,7 @@ import { CombatEffects } from "./CombatEffects";
 import { FlightController } from "./FlightController";
 import { mountGameUI } from "./GameUI";
 import { applyMobileGraphics } from "./MobileGraphics";
+import { Weather } from "./Weather";
 
 if (Workspace.GetAttribute("SkybreakTestMode") !== true) {
 	const player = Players.LocalPlayer;
@@ -52,6 +53,7 @@ if (Workspace.GetAttribute("SkybreakTestMode") !== true) {
 		buttons.get(item)?.Disconnect(); buttons.delete(item);
 	});
 	const effects = CombatEffects.Start(remotes);
+	const stopWeather = Weather.Start();
 	const mounted = mountGameUI(playerGui, remotes, controller);
 	const destroying = script.Destroying.Connect(() => {
 		destroying.Disconnect();
@@ -62,5 +64,6 @@ if (Workspace.GetAttribute("SkybreakTestMode") !== true) {
 		mounted.unmount();
 		controller.Destroy();
 		effects();
+		stopWeather();
 	});
 }
