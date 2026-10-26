@@ -148,7 +148,7 @@ Multipliers are relative to each version's Normal, so use the absolute table abo
 |---|---|---|---|
 | Hostile damage | 0.6 → 0.6 | 1 | 1.4 → 1.75 |
 | Flight gate / bandit reload | 1.25 → 1.25 | 1 | 0.7 → 0.85 |
-| Ace reload | 1.25 → 1.25 | 1 | 0.7 → 0.5 |
+| Ace reload | 1.25 → 1.25 (2 since PR #42) | 1 | 0.7 → 0.5 |
 | Maximum flight divisor | 1 → 0.8 | 1 | 1 → 2 |
 | Threat cap | 1 → 1 | 1 | 1 → 2 (M1–M4: 1) |
 | Bandit hull | 0.75 → 0.6 | 1 | 1 → 1.35 Act I, 1.6 Acts II–III |

@@ -223,7 +223,7 @@ At Act III burn speed (620) the window means pressing when the missile is inside
 
 Owner playtest (2026-10-26): flares or EVADE were the only way to survive a missile. Hostile missiles flew 580–740 studs/s for 7–9 s and steered with `direction.Lerp(toTarget, DampAlpha(1.6–2.8))`, which turns in proportion to the angle error with no ceiling (at 90° off it out-turned the jet about 4×). They led the jet by up to 0.9 s, saw it from any angle and through terrain, and fused at 32–48 studs. Every hostile missile now flies `src/shared/MissileRules.ts`, a pure module (plain points, no Vector3) that runs on the server, in Jest and in the offline Luau VM:
 
-1. **Launch on a collision course, and only a fair one.** The shooter fires where a straight-flying jet will be (`LaunchHeading`: `LeadDirection`, at most 0.8 × the seeker cone off the line of sight); the ace salvo fan is added on top. A jet that ignores the missile needs no correction from it and is hit. `ShotClear` refuses a shot that would arrive in under `minLaunch` seconds (Easy 1.6, Normal 1.5, Ace 1.8). It is checked when a windup would start (both jets carried straight on for the windup) and again at launch; a shooter that closed to point-blank during its windup holds fire and may wind up again 1.5 s later.
+1. **Launch on a collision course, and only a fair one.** The shooter fires where a straight-flying jet will be (`LaunchHeading`: `LeadDirection`, at most 0.8 × the seeker cone off the line of sight); the ace salvo fan is added on top. A jet that ignores the missile needs no correction from it and is hit. `ShotClear` refuses a shot that would arrive in under `minLaunch` seconds (Easy 1.6, Normal 1.5, Ace 1.8). It is checked when a windup would start and again at launch; a shooter that closed to point-blank during its windup holds fire and may wind up again 1.5 s later. **No warning without a missile:** the ace, and a bandit whose last windup was held, keep a fair range through the windup (`ThreatRules.KeepsRange`): sat within 60° of the player's tail, they fly for the point `MissileRules.Standoff` studs back on the player's track (the range a tail shot takes `minLaunch` + 0.3 s to cover; Ace + 0.8 s) at the player's speed, falling back while closer. Every other shooter's windup is lit only if the shot is still fair after chasing straight at the player for the whole windup (`ChaseClear`); one that keeps its range is checked on its current line (`ShotClear`).
 2. **Burn, then coast.** Full speed for the burn, then `speed × exp(-0.35 t)`. A coasting missile slower than the jet loses the chase; below 160 studs/s it self-destructs.
 3. **Capped proportional navigation.** Heading rate = 3 × line-of-sight rate (+0.5/s pursuit), clamped to `turnCap` rad/s. `burnSpeed × turnCap` is the missile's sideways acceleration: 157–198 studs/s² on Normal, under a hard-turning jet's ~325 (290 × 1.12 rad/s).
 4. **Seeker cone.** Once the jet is more than `gimbal` off the missile's nose, the lock is gone for good. The missile flies straight on and self-destructs when its life runs out (a small burst). Unlocked missiles never raise MISSILE INBOUND.
@@ -267,29 +267,57 @@ Before (the PR's first version: fixed TTI window, away arrow, no launch gate; re
 | Normal | I / II / III | 96 / 100 / 100% | 49 / 56 / 62% | 55 / 56 / 64% | 74 / 82 / 91% | 42 / 61 / 76% | 81 / 83 / 88% |
 | Ace | I / II / III | 100 / 100 / 100% | 48 / 54 / 61% | 57 / 64 / 94% | 83 / 94 / 100% | 56 / 83 / 97% | 82 / 88 / 90% |
 
-After (reaction 0.3 s):
+After (reaction 0.3 s; recomputed with the windup check below, `ChaseClear`; *run* starts at full speed):
 
 | Level | Act | Shots taken / held | Ignored: hit | BREAK shown | Cue dodges | Away: hit | Beam: hit | Early: hit | Run: hit |
 |---|---|---|---|---|---|---|---|---|---|
-| Easy | I | 42 / 102 | 71% | 100% | 100% | 0% | 10% | 0% | 42% |
-| Easy | II | 42 / 102 | 71% | 100% | 100% | 0% | 29% | 3% | 50% |
-| Easy | III | 46 / 98 | 78% | 100% | 100% | 4% | 48% | 0% | 52% |
-| Normal | I | 52 / 92 | 96% | 100% | 100% | 0% | 42% | 16% | 62% |
-| Normal | II | 54 / 90 | 100% | 93% | 100% | 11% | 63% | 24% | 65% |
-| Normal | III | 60 / 84 | 100% | 93% | 100% | 17% | 73% | 29% | 67% |
-| Ace | I | 40 / 104 | 100% | 95% | 100% | 5% | 68% | 42% | 73% |
-| Ace | II | 46 / 98 | 100% | 91% | 100% | 13% | 91% | 57% | 82% |
-| Ace | III | 54 / 90 | 100% | 78% | 100% | 30% | 100% | 67% | 86% |
+| Easy | I | 30 / 114 | 60% | 100% | 100% | 0% | 13% | 0% | 23% |
+| Easy | II | 36 / 108 | 67% | 100% | 100% | 0% | 33% | 3% | 38% |
+| Easy | III | 44 / 100 | 77% | 100% | 100% | 5% | 45% | 5% | 41% |
+| Normal | I | 44 / 100 | 95% | 100% | 100% | 0% | 45% | 18% | 55% |
+| Normal | II | 50 / 94 | 100% | 92% | 100% | 12% | 64% | 28% | 60% |
+| Normal | III | 56 / 88 | 100% | 93% | 100% | 18% | 75% | 32% | 58% |
+| Ace | I | 38 / 106 | 100% | 95% | 100% | 5% | 68% | 47% | 65% |
+| Ace | II | 44 / 100 | 100% | 91% | 100% | 14% | 91% | 64% | 78% |
+| Ace | III | 52 / 92 | 100% | 77% | 100% | 31% | 100% | 73% | 84% |
 
 With a 0.15 s or 0.45 s reaction, or 0 or 0.6 back pressure, cue dodges stay at 89–100% on every row. On Ace, of the shots where BREAK first shows 0.7 s or more after launch, a break 0.7 s before the cue pilot's is hit every time (28 of 28). The working window of break start times has a median of 1.4–1.8 s on Easy and Normal and 1.2–1.6 s on Ace.
 
-Reading it: on Normal an ignored missile hits (96–100%), BREAK shows for 93–100% of them, and following BREAK dodges every time in the grid. On Easy following BREAK dodges every time and 48–58% of rear shots are outrun at full throttle. On Ace BREAK shows for 78–95% of hits and following it dodges; breaking before it is followed. A beam turn (the nearer perpendicular heading, held) is not a reliable defence in this model; the sustained hard break the cue asks for is. "Held" counts windups the gate refused, mostly bandits starting inside about 1000 studs nose-on, which would otherwise have been free hits; they wind up again when the geometry allows. The coordinator's live test should watch whether that lowers threat pressure too much.
+Reading it: on Normal an ignored missile hits (95–100%), BREAK shows for 92–100% of them, and following BREAK dodges every time in the grid. On Easy following BREAK dodges every time and 59–77% of rear shots are outrun at full throttle. On Ace BREAK shows for 77–95% of hits and following it dodges; breaking before it is followed. A beam turn (the nearer perpendicular heading, held) is not a reliable defence in this model; the sustained hard break the cue asks for is. "Held" counts windups the gate refused, mostly bandits starting inside about 1000 studs nose-on, which would otherwise have been free hits; they wind up again when the geometry allows. With `ChaseClear` nearly all of them are refused before the windup lights, so no warning shows. The coordinator's live test should watch whether that lowers threat pressure too much.
 
 The spec enforces, per act: Normal ignored hits ≥ 85%, BREAK on ≥ 90% of hits, cue dodges ≥ 70%; Easy cue dodges ≥ 85%, ≥ 40% of rear shots outrun, ignored hits ≥ 50%; Ace (BREAK shown × cue dodges) ≥ 50%, ignored hits ≥ 85%, and ≥ 75% of early breaks hit. It also replays the review's head-on case (a jet at 320 meeting a missile launched 1500 studs ahead, Normal Act III, following the first BREAK escapes), checks that BREAK stays dark for a missile that will burn out and for an unlocked one, and checks the launch gate.
 
 `src/tests/MissileRules.spec.ts` keeps the single-engagement contracts: an ignored missile hits from four aspects on every level; a 500-stud break misses on Normal; a too-late break still hits; long tail shots are outrun after the burn; the seeker cone drops a lock for good; a ridge (an injected ray) takes the missile; and the fuse catches a 15-stud pass but lets 30 go. `src/tests/MissileCue.spec.ts` covers the HUD wording, and `AircraftCollision.spec.ts` covers the real raycast set (a ridge detonates the missile, a painted overlay does not).
 
-**Threat pressure with #40's Normal cadence.** A scratch engagement run (the real jet circling at cruise; 1–4 bandits flying `stepEnemies`' pursuit, overshoot and fire gate under `CombatBalance`'s flight gate, divisor and cap; 3 seeds × 240 s each) puts the share of the flight gate's windows that end in a launch at 0.43–0.55 (Act I), 0.54–0.64 (Act II) and 0.56–0.60 (Act III) on Normal with the launch gate, against 0.93–1.00 without it. The gate mostly holds shots at the *end* of a windup (a bandit that closed during it), not at its start, so windups still light at nearly the old rate. Act III's 0.56–0.60 matches the 0.6 firing opportunity `CombatBalance.spec` assumes. With #40's contact windows, Normal Act III loses 77–94 hull for a pilot who ignores every missile (M27: 112), about 5 for one who breaks on every BREAK, and 41–50 for a 50/50 mix (end hull 50–59; M27 41). End hull passes 70 only for a pilot who correctly answers about two thirds or more of the BREAK cues.
+**Engagement cadence** (`src/tests/EngageSim.ts`, enforced by `EngageSim.spec.ts` offline and in Jest). The real jet circles at cruise against 1–4 bandits and/or the ace flying `stepEnemies`' pursuit, overshoot and fire control under `CombatBalance`'s flight gate, divisor and cap, the launch gate and the standoff (3 seeds × 240 s; AceRules stages, notches, defensive breaks, flares and terrain are left out, so a real fight fires less). With the launch gate alone, the ace sat about 600 studs behind the turning jet, closed inside the shortest shot during nearly every windup and held it: MISSILE LOCK with no missile.
+
+Ace launches per minute against the circling pilot (the ace alone; with two bandits up in brackets):
+
+| Level | Before: launch gate only (windups held) | After | Target |
+|---|---|---|---|
+| Easy | 0.08 / 0.17 / 0.25 (89 / 83 / 79 of 91 / 86 / 82) | 1.75 / 1.75 / 1.75 (1.75 / 1.75 / 1.75), 0 held | 1.2–2.0 |
+| Normal | 2.67 / 2.75 / 2.75 (1 / 0 / 2 of ~34) | 2.83 / 2.83 / 2.75 (2.92 / 2.75 / 2.75), 0 held | 2.5–3.5 |
+| Ace | 0.42 / 0.17 / 0.17 (84 / 88 / 88 of ~90) | 5.83 / 5.42 / 5.42 (5.75 / 5.50 / 5.58), 0 held | 5–6 |
+
+Columns are Act I / II / III. The ace now launches nearly every windup, so its reload sets the cadence; Easy's ace reload is ×2 (30 s) so it is not over-corrected. Ordinary bandits (1, 2 and 4 bandits; windups / launches / held, longest run of held windups by one bandit):
+
+| Level | Act | Before | After |
+|---|---|---|---|
+| Easy | I / II / III | 86/55/30 (4) · 99/84/14 (2) · 99/84/15 (3) | 83/61/21 (2) · 99/92/5 (1) · 99/94/4 (1) |
+| Normal | I / II / III | 117/83/34 (3) · 137/99/37 (5) · 137/106/30 (3) | 114/94/19 (2) · 140/108/30 (2) · 136/117/18 (1) |
+| Ace | I / II / III | 163/117/44 (4) · 174/125/48 (2) · 172/138/33 (2) | 158/133/24 (2) · 169/142/25 (1) · 166/151/13 (1) |
+
+The spec enforces the ace bands above in every act (and in Act III with two bandits up), no held ace windup, no bandit holding more than two windups running, ≥ 70% of bandit windups launching, and that every launch (bandit and ace) has at least the level's `minLaunch` to impact.
+
+**Normal Act III hull.** #40's contact windows (`MissionPacing.ContactWindows`) × the measured Normal Act III launch rate for that many live bandits (and the ace's, +2 damage) × the measured hit share (ignore: 97–100%; breaking on every BREAK: 0–14%). Lit warnings stay at the same rate (383 → 382 over the bandit runs), but a held windup was a lost window, so with fewer of them bandits launch about 11% more (280 → 312 launches):
+
+| Pilot | Before (M19–M25 · M26 · M27) | After |
+|---|---|---|
+| Ignores every missile | 92–97 · 108 · 118 | 105–109 · 122 · 128 |
+| Breaks on every BREAK | 3–5 · 4 · 1 | 2–4 · 2 · 9 |
+| 50/50 mix (end hull) | 48–50 (50–52) · 56 (44) · 60 (40) | 54–56 (44–46) · 62 (38) · 68 (32) |
+
+(The PR's first version estimated 50–59 end hull for the 50/50 pilot with a coarser rate model; the "before" column re-measures it with this one.)
 
 PR #37's threat cap and gates are unchanged. A missile that has lost its lock still counts against the cap until it self-destructs (at most its life, 7–9 s), so a dodge buys breathing room rather than an instant next shot.
 
@@ -307,6 +335,7 @@ PR #37's threat cap and gates are unchanged. A missile that has lost its lock st
 | Knob | Easy | Normal | Ace |
 |---|---|---|---|
 | Hostile gate and reloads | ×1.25 (was 1.5) | 1 | ×0.7 |
+| Ace reload (`aceGate`) | ×2 (was 1.25; PR #42: the ace now launches nearly every windup) | 1 (15 s) | ×0.5 |
 | Bandit hull | ×0.75 (was 0.85): Act II bandits become two-missile kills | 1 | ×1 (was 1.15) |
 | Protected-actor drain | ×0.75 | 1 (0.55 per raider per s) | ×1.25 |
 | Behaviour | — | — | every bandit breaks close locks and carries a flare; aces fire two missiles per windup; every raider wave brings one more, and the live-aircraft budget rises from 7 to 8 to match |
