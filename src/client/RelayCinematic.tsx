@@ -356,7 +356,7 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 			{i===beat && <frame ref={progressRef} key="Fill" Size={UDim2.fromScale(0,1)} BackgroundColor3={tone} BackgroundTransparency={.1} BorderSizePixel={0}><uicorner CornerRadius={new UDim(1,0)}/></frame>}
 		</frame>);
 	const cardFont=speaker.tone==="log" ? Enum.Font.RobotoMono : Enum.Font.GothamMedium;
-	// Gradient behind the panel: clear at the feather, ~45 % ink at the speaker row, ~70 % behind the line.
+	// Gradient behind the panel: clear at the feather, ~65 % ink at the speaker row (muted role text stays readable over white scenes), ~76 % behind the line.
 	const backdrop=frame.backdrop,fade=(y:number)=>math.clamp((y-backdrop.y)/math.max(1,backdrop.height),.01,.98);
 	const rowKey=fade(band.y),textKey=math.max(rowKey+.01,fade(frame.text.y));
 	// Layering: scene tap target 1, panel gradient 2, title card 3, caption panel and pause chip 4, settings 5, fade 6.
@@ -379,7 +379,7 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 		</frame>}
 		{/* Soft gradient only where the caption needs contrast; the scene keeps the rest of the screen. */}
 		<frame key="CinematicBackdrop" ZIndex={2} AnchorPoint={new Vector2(0,1)} Position={UDim2.fromScale(0,1)} Size={new UDim2(1,0,0,backdrop.height)} BackgroundColor3={INK} BorderSizePixel={0}>
-			<uigradient Rotation={90} Transparency={new NumberSequence([new NumberSequenceKeypoint(0,1),new NumberSequenceKeypoint(rowKey,.55),new NumberSequenceKeypoint(textKey,.32),new NumberSequenceKeypoint(1,.22)])}/>
+			<uigradient Rotation={90} Transparency={new NumberSequence([new NumberSequenceKeypoint(0,1),new NumberSequenceKeypoint(rowKey,.35),new NumberSequenceKeypoint(textKey,.24),new NumberSequenceKeypoint(1,.18)])}/>
 		</frame>
 		<frame key="CinematicDialogue" ZIndex={4} AnchorPoint={new Vector2(0,1)} Position={UDim2.fromScale(0,1)} Size={new UDim2(1,0,0,band.height)} BackgroundTransparency={1}>
 			<frame key="CinematicSpeaker" Visible={!card} Position={at(frame.speaker).Position} Size={at(frame.speaker).Size} BackgroundTransparency={1}>
