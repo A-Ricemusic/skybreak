@@ -1,6 +1,6 @@
 # SKYBREAK: Broken Relay — independent campaign alternative
 
-Status: **round-3 mission structure implementation**, stacked on PR #37 (`27ca530`). Every M3–M27 sortie has 4–7 alternating objective beats. Normal is retuned for room to follow the story; Ace carries the stronger combat pressure. Build and offline verification are described below; Roblox Jest and live phone balance validation are reserved for the coordinator. Historical engine evidence at `1a48ee6` / `0fc0b3d` remains in [the original QA report](broken-relay-qa.md), and does not validate this pass.
+Status: **round-3 mission structure implementation**, rebased onto main after PR #37, PR #38 and PR #41 (`4f06ef8`). Every M3–M27 sortie has 4–7 alternating objective beats. Normal is retuned for room to follow the story; Ace carries the stronger combat pressure. Build and offline verification are described below; Roblox Jest and live phone balance validation are reserved for the coordinator. Historical engine evidence at `1a48ee6` / `0fc0b3d` remains in [the original QA report](broken-relay-qa.md), and does not validate this pass.
 
 ## Architecture and story
 
@@ -22,7 +22,7 @@ The archive has three acts with all 27 mission rows, locked states, per-mission 
 
 The existing `SkybreakCampaign_v1` DataStore name and player keys are retained. Schema v3 adds per-mission records and derives unlocks from the contiguous chain of completions. Existing v2 M1/M2 flags and fastest times migrate into records 1/2; a completed two-mission slot resumes at M3, with the remaining 25 locked. V1 completion migrates to M1 only. Replays preserve completions and minimum times; profile writes merge monotonically and keep the existing delayed-write/recovery behavior. No client-supplied current-mission field unlocks a sortie. Unpublished Studio uses clearly labeled session saves; live cloud persistence needs a published experience.
 
-**Grandfathered bests.** Saved best times, best scores and best ranks carry no ruleset version, and merges only ever keep the faster time, the higher score and the better rank. Records set before round 2 therefore stay: a best time from the shorter pre-round-2 missions remains the displayed best, and an older S rank stands even though it never had to meet the new 85% accuracy requirement. This is deliberate: nothing erases a player's progress, and a new run replaces an old best only by beating it. A future reset would need a schema version bump and an explicit migration, not a silent rewrite.
+**Mission time revisions.** M3–M27 use time revision 2 for their longer layouts. Loading an older or unversioned time drops only that mission's obsolete best time; its completion, first-completion timestamp, best score, rank and unlocks survive. New times retain their revision through saves and merges, so an older stored record cannot resurrect a short-layout time. M1–M2 times are unchanged. Scores and ranks remain grandfathered.
 
 ## Mission manifest
 
@@ -37,7 +37,8 @@ Round 2 phase fields (all validated at catalog load):
 | `reinforce: [{ at, count }]` | any phase with raiders | Raider waves that arrive when the phase fraction crosses each `at` (kills for strikes, seconds for holds). Their sum fits in `optionalRaiders`; the remainder arrives at phase start (`MissionCatalog.InitialRaiders`). Every multi-target combat phase has one, except the exceptions listed under the aircraft budget below. |
 | `hazard: { at, count, effect, text }` | `signal` (`jam`), `escort`/`defend` (`guns`) | The next `count` ground targets stay hidden until the phase fraction reaches `at`, then light up with a radio call. They are required ground kills. Live jammers freeze the signal timer; live guns drain the protected actor like 1.5 raiders each. The phase cannot finish while any is alive. |
 | `kind: "chase"`, `escape`, `seconds` | courier | One fast (275 studs/s, faster than cruise, slower than full throttle) non-firing 160-hull target runs for `escape`; the sortie fails with reason `escaped` after `seconds`. Its `Fraction` (for chatter) is the escape clock. |
-| `directed` | any combat phase | A radar is directing the flight: the hostile fire gate is halved while the phase lasts. |
+| `directed` | combat or signal phase | A radar is directing the flight: the hostile fire gate is halved while the phase lasts. |
+| `parkedEscort` | `recon`, `signal`, `route` | Keep the stopped truck or launch visible at its last escort position during a scan, radio handoff or route-marking task. |
 | `hidden` | `required_ground` | Its targets stay invisible and unqueryable until the phase begins (M8's spotters, M10's camp radar). |
 | `aceReturns` | mission with an ace | Two radio lines, said when the ace turns back in after each retreat (the two `aceStages` lines are said as it breaks off). |
 
@@ -46,7 +47,7 @@ Ground targets are consumed in phase order by strikes and hazards (`MissionCatal
 Three kinds of time appear below, and they are not interchangeable:
 
 - **Par** is computed by the game (`MissionScore.ParSeconds`) and sets the score's time rating. It is meant as a good human run, about 1.3× the scripted pilot. Against the live runs below that holds in Act III (M26: par 260 s, pilot 188–205 s), but Act I pars sit 2–3× above the pilot, because those sorties still fly short.
-- **Average human (design est.)** is a planning estimate for an average phone pilot, not a measurement: 20 s transit, 15 / 20 / 24 s per required bandit by act plus a 10 s approach per air phase, 10 s per ground target, 12 s per beacon, recon at 1.25× each dwell plus 10 s per point, escort/defend holds ×1.05 and signal holds ×1.25 plus 10 s on station (and 10 s per hazard target), 45 s per chase, 0.36 s per ace hull point, 4 s per phase change, and a phase cut short by a "now" twist counted up to the twist. The tutorial counts 20 / 10 / 20 s for its three teaching steps.
+- **Average human (design est.)** is a planning estimate for an average phone pilot, not a measurement: 20 s transit, 13 / 15 / 16 s per required bandit by act plus a 10 s approach per air phase, 10 s per ground target, 12 s per beacon, recon at 1.25× each dwell plus 10 s per point, escort/defend holds ×1.05 and signal holds ×1.25 plus 10 s on station (and 10 s per hazard target), 45 s per chase, 0.36 s per ace hull point, 4 s per phase change, and a phase cut short by a "now" twist counted up to the twist. The tutorial counts 20 / 10 / 20 s for its three teaching steps.
 - **Live measurements** are the coordinator's scripted-pilot runs in Studio (below). They are the only measured numbers here.
 
 The manifest and the par/estimate tables are generated from the final catalog (`MissionPacing` supplies the average-phone design estimate; `MissionScore` supplies par) by `bun tools/relay-tables.ts` (after `bun run test:offline`; `--check` fails when they are stale). Do not edit them by hand. Each phase lists its staggered groups, timed holds, hazards and raiders: "raiders 1 + 2 at 60%" means one at phase start and two more when the phase is 60% done.
@@ -55,47 +56,47 @@ The manifest and the par/estimate tables are generated from the final catalog (`
 
 | # | Mission / composition | Required phase sequence |
 |---|---|---|
-| 1 | FIRST FLIGHT — Varda training islands | Turn and pitch for three seconds each → Cycle to the training target → Lock and fire a missile at the training radar → Intercept three bandits |
+| 1 | FIRST FLIGHT — Varda training islands | Turn and pitch for three seconds each → Cycle to the training target → Lock and hit the training radar → Intercept three bandits |
 | 2 | IRON COAST — Iron Coast five quays | Intercept the three-bandit screen → Destroy five warehouses (raiders 5) → Destroy the ace (165 hull, 3 stages) |
-| 3 | FOX TRAIL — Fox switchback | Follow Teal's beacons → Locate Teal's receiver below the rim → Clear scout flight alpha (2 in 2 groups; raiders 1 at 50%) → Teal's river run: stay under 320 → Clear scout flight bravo (3 in 2 groups; raiders 1 at 50%) → Guide recovery onto the receiver (30 s) |
-| 4 | STATIC QUARTERS — Hidden quarters bowl | Scan the quarters: stay under 380 → Destroy the hidden rim radar (raiders 1) → Follow the service road out of the quarters → Fend off the response flight (5 in 2 groups; raiders 1 at 50%) → Send the staff list to Varda (45 s) |
+| 3 | FOX TRAIL — Fox switchback | Follow Teal's beacons → Locate Teal's receiver below the rim → Clear scout flight alpha (2 in 2 groups; raiders 1 at 50%) → Teal's river run: stay under 320 → Clear scout flight bravo (3 in 2 groups; raiders 1 at 50%) → Guide recovery onto the receiver (20 s) |
+| 4 | STATIC QUARTERS — Hidden quarters bowl | Scan the quarters: stay under 380 → Destroy the hidden rim radar (raiders 1) → Follow the quarters service road → Fend off the response flight (5 in 2 groups; raiders 1 at 50%) → Send the staff list to Varda (20 s; raiders 1) |
 | 5 | ORCHARD LINE — Teklan orchard terraces | Cover the orchard evacuation trucks (100 s; raiders 2 + 2 at 50%) → Drive off the patrol leads (raiders 1 at 50%) → Check the evacuation road is empty → Pass the families' names to Varda (20 s) → Bring the seed tin toward the rim |
-| 6 | GRAIN SHADOW — Grain valley irrigation | Follow the farm irrigation channel → Mark the silos, spare the roofs: stay under 400 → Destroy three fuel silos (raiders 1 + 1 at 34%) → Clear the orchard patrol (5 in 2 groups; raiders 1 at 50%) → Copy the fuel ledger before leaving (40 s) |
-| 7 | DUST WEATHER — Dust courier narrows | Run the dust pass under 400 → Find the courier's trail in the dust → Strip the courier's escort (5 in 2 groups; raiders 1 at 50%) → Catch the courier before the plateau (escapes after 90 s) → Read the courier packet to Varda (30 s) |
-| 8 | RIM SWITCH — Varda tower siege | Protect Varda's control tower (110 s; raiders 2 + 1 at 35% + 2 at 65%) → Mark the spotters without hitting the apron → Counter-attack the spotter radars (raiders 1 at 50%) → Catch the retreating flight (raiders 1 at 50%) → Send the restored tower code (15 s) |
-| 9 | STATIC HORIZON — Vulture moonlit bowl | Follow the night approach lights → Find Vulture Lead's guard-channel source → Clear the night patrol (3 in 2 groups; raiders 1 at 50%) → Draw Vulture Lead onto the open channel (25 s) → Defeat Vulture Lead (200 hull, 3 stages; raiders 1 + 1 on its calls) → Mark Vulture Lead's recorder for recovery |
-| 10 | PLATEAU COLD — Kiro abandoned mine | Scan Node Kiro (hold fire) ⇢ *twist* Break the camp's intercept (4 in 2 groups; raiders 1 at 50%) → Finish the archive scan (raiders 1 + 1 at 40%) → Cut Node Kiro's transmitter ⇢ *twist* Trace the camp radar's command channel (65 s) → Kill the camp radar (directed; raiders 3) → Intercept the blind response (raiders 1 at 50%) |
-| 11 | SIGNAL HARVEST — Twin ridge relay saddle | Destroy relay Node Lira (raiders 1) → Clear the alert flight (raiders 1 at 50%) → Destroy relay Node Merel ⇢ *twist* Follow the farm road north to Sable → Destroy relay Node Sable → Clear Sable's guard flight (raiders 1 at 50%) → Orbit the west ridge to relay Teal's packet (90 s; raiders 2 + 2 at 50%) |
-| 12 | OPEN FIELD — Open field refugee corridor | Escort the loyalist transmitter truck (90 s; raiders 2 + 2 at 30%) ⇢ *twist* Check the mill road for refugees → Cover the reroute along the mill road (65 s; raiders 2 + 2 at 50%) → Occupy the orchard airspace (6 in 2 groups; raiders 2 at 50%) → Test the truck's new relay link (20 s) → Lead the relief crew to the truck |
-| 13 | STAGING FARM — Staging farm rail yard | Follow the rail spur to the staging farm → Scan the staging farm low (raiders 1 + 1 at 50%) → Destroy four fuel silos (raiders 1 at 50%) ⇢ *twist* Break the plateau reinforcements (4 in 2 groups; raiders 1 at 50%) → Destroy the farm relay → Hold off the raiders (raiders 1 + 1 at 34%) → Send the staging ledger to the cells (25 s) |
-| 14 | ANTENNA ROW — High relay crossing | Cross the relay saddle through four beacons → Destroy three plateau antennas (raiders 1 + 1 at 50%) ⇢ *twist* Locate the replacement mast on the saddle road → Destroy the mobile mast → Clear the perimeter CAP (4 in 2 groups; raiders 1 + 1 at 50%) → Hold the saddle: confirm the row is dark (60 s; raiders 2 + 2 at 40%) |
-| 15 | LOYALIST WINDOW — Loyalist broadcast common | Hold the broadcast link (90 s; 2 jammers freeze it; raiders 2 + 2 at 30%) → Hold the second intruders (7 in 2 groups; raiders 1 at 30% + 2 at 60%) → Follow the garrisons' reply beacons → Confirm the garrisons have stood down |
-| 16 | STORM WALK — Storm river divide | River gates: stay under 400 → Identify the last fuel stores under the rain → Destroy three remaining silos (raiders 1 at 34%) ⇢ *twist* Catch the storm patrol (5 in 2 groups; raiders 1 at 50%) → Destroy the forward relay → Hold over the dead relay: read its last traffic (80 s; raiders 2 at 35% + 2 at 70%) |
+| 6 | GRAIN SHADOW — Grain valley irrigation | Follow the farm irrigation channel → Mark fuel silos below 400 → Destroy three fuel silos (raiders 1 + 1 at 34%) → Clear the orchard patrol (5 in 2 groups; raiders 1 at 50%) → Copy the fuel ledger before leaving (20 s; raiders 1) |
+| 7 | DUST WEATHER — Dust courier narrows | Run the dust pass under 400 → Find the courier's trail in the dust → Strip the courier's escort (5 in 2 groups; raiders 1 at 50%) → Catch the courier before the plateau (escapes after 90 s) → Carry the courier packet toward Varda |
+| 8 | RIM SWITCH — Varda tower siege | Protect Varda's control tower (110 s; raiders 2 + 1 at 35% + 2 at 65%) → Mark the apron spotters → Counter-attack the spotter radars (raiders 1 at 50%) → Catch the retreating flight (raiders 1 at 50%) → Send the restored tower code (15 s) |
+| 9 | STATIC HORIZON — Vulture moonlit bowl | Follow the night approach lights → Find Vulture Lead's guard-channel source → Clear the night patrol (3 in 2 groups; raiders 1 at 50%) → Draw Vulture Lead onto the open channel (20 s; raiders 1) → Defeat Vulture Lead (200 hull, 3 stages; raiders 1 + 1 on its calls) → Mark Vulture Lead's recorder |
+| 10 | PLATEAU COLD — Kiro abandoned mine | Scan Node Kiro (hold fire) ⇢ *twist* Break the camp's intercept (4 in 2 groups; raiders 1 at 50%) → Finish the archive scan (raiders 1 + 1 at 40%) → Cut Node Kiro's transmitter ⇢ *twist* Trace the camp radar's command channel (20 s; directed; raiders 1 + 1 at 50%) → Kill the camp radar (directed; raiders 3) → Intercept the blind response (raiders 1 at 50%) |
+| 11 | SIGNAL HARVEST — Twin ridge relay saddle | Destroy relay Node Lira (raiders 1) → Clear the alert flight (raiders 1 at 50%) → Destroy relay Node Merel ⇢ *twist* Follow the farm road north to Sable → Destroy relay Node Sable → Clear Sable's guard flight (raiders 1 at 50%) → Relay Teal's packet from the west ridge (90 s; raiders 2 + 2 at 50%) |
+| 12 | OPEN FIELD — Open field refugee corridor | Escort the loyalist transmitter truck (90 s; raiders 2 + 2 at 30%) ⇢ *twist* Check the mill road for refugees → Cover the reroute along the mill road (65 s; raiders 2 + 2 at 50%) → Occupy the orchard airspace (6 in 2 groups; raiders 2 at 50%) → Test the truck's new relay link (20 s; raiders 1) → Lead the relief crew to the truck |
+| 13 | STAGING FARM — Staging farm rail yard | Follow the rail spur to the staging farm → Scan the staging farm low (raiders 1 + 1 at 50%) → Destroy four fuel silos (raiders 1 at 50%) ⇢ *twist* Break the plateau reinforcements (4 in 2 groups; raiders 1 at 50%) → Destroy the farm relay → Hold off the raiders (raiders 1 + 1 at 34%) → Send the staging ledger to the cells (20 s; raiders 1) |
+| 14 | ANTENNA ROW — High relay crossing | Cross the four saddle beacons → Destroy three plateau antennas (raiders 1 + 1 at 50%) ⇢ *twist* Find the saddle-road replacement mast → Destroy the mobile mast → Clear the perimeter CAP (4 in 2 groups; raiders 1 + 1 at 50%) → Hold the saddle: confirm the row is dark (60 s; raiders 2 + 2 at 40%) |
+| 15 | LOYALIST WINDOW — Loyalist broadcast common | Hold the broadcast link (90 s; 2 jammers freeze it; raiders 2 + 2 at 30%) → Hold the second intruders (7 in 2 groups; raiders 1 at 30% + 2 at 60%) → Follow the garrisons' reply beacons → Confirm the garrisons have stood down (raiders 1) |
+| 16 | STORM WALK — Storm river divide | River gates: stay under 400 → Identify fuel stores in the rain → Destroy three remaining silos (raiders 1 at 34%) ⇢ *twist* Catch the storm patrol (5 in 2 groups; raiders 1 at 50%) → Destroy the forward relay → Read the dead relay's last traffic (80 s; raiders 2 at 35% + 2 at 70%) |
 | 17 | AURORA RELAY — Aurora crown array | Destroy the plateau relay (raiders 1) → Clear the aurora intercept (4 in 2 groups; raiders 1 at 50%) → Orbit to receive the archive (90 s; raiders 2) ⇢ *twist* Find the jammer under the array → Destroy the aurora jammer → Clear the jammer's escort (raiders 1 at 50%) → Resume the receive orbit (50 s; raiders 1 + 1 at 40%) |
-| 18 | RIDGE ACE — Vulture searchlight ridge | Climb into Vulture Two's searchlights → Mark a safe ridge pickup site → Clear his wingmen (4 in 2 groups; raiders 1 at 50%) → Defeat Vulture Two (260 hull, 3 stages; raiders 1 + 1 on its calls) ⇢ *twist* Protect the marines' pickup on the ridge (45 s; raiders 2 + 2 at 50%) → Pass Vulture Two's testimony to the coast (20 s) |
-| 19 | HARBOR RUN — Military quays and canal | Scan the quays; spare the city (raiders 1) → Destroy three harbor warehouses (raiders 1 + 1 at 34%) ⇢ *twist* Break the early CAP (2 in 2 groups; raiders 1 at 50%) → Trace the workers' escape lane between the quays → Guide harbor workers clear of the burning quays (40 s) → Clear the harbor CAP (4 in 2 groups; raiders 1 at 50%) → Open the harbor rescue frequency (30 s) |
-| 20 | FRACTURE LINE — Eastern wing divided harbor | Shatter the eastern wing (9 in 3 groups) → Check the launch's exit through the cranes → Cover the evidence launch through the harbor (110 s; 2 bank guns; raiders 2 + 2 at 50%) → Lead the launch to the open-water beacons → Confirm the evidence handoff at sea (20 s) |
-| 21 | CITY NIGHT — Black canal city | Follow the dark canal through the city → Mark the dish above the apartments → Destroy the broadcast relay (raiders 2) → Hold off the escort flight (4 in 2 groups; raiders 1 + 1 at 50%) → Hold over the dark tower: confirm silence (60 s; raiders 2 + 2 at 40%) → Cover the repair launch to the dark district (45 s) → Lead the repair crew toward the district lights |
-| 22 | HARBOR FOG — Five fog fuel piers | Find the depots through the fog (raiders 2) → Destroy five fuel depots (raiders 2 at 40%) → Follow the empty fuel piers through the fog → Clear the fog patrol (4 in 2 groups, flanking; raiders 1 at 50%) → Bring the harbor inspection launch through the fog (40 s) → Verify the last two fuel hoses are dry → Report the escape fleet is out of fuel (25 s) |
-| 23 | OCEAN CLEAR — Frigate ring over deep water | Defend the command frigate (90 s; raiders 2 + 2 at 35% + 2 at 70%) → Check the gap between the frigates → Clear the platform command flight (4 in 2 groups, flanking; raiders 1 at 50%) → Fly the blockade's outer beacons → Cover the blockade inspection launch across the gap (50 s) → Pass the closed-ring report to the landing force (30 s) |
-| 24 | PLATFORM FIRE — Storm platform trident | Low sea approach: under 360 → Destroy three platform warehouses (raiders 1 + 1 at 34%) → Clear the storm patrol (5 in 2 groups; raiders 1 at 50%) → Find the tanker in the platform's storm shadow → Stop the fuel tanker running for the coast (escapes after 90 s) → Guide the deck crew's rescue launch clear of the platform (50 s) → Report the platform fuel chain is broken (30 s) |
-| 25 | CITY DAWN — Dawn beachhead | Cover the landing craft to the beach (80 s; raiders 2 + 2 at 50%) → Hold the first intercept (3 in 2 groups; raiders 1 at 50%) → Mark the safe route off the beach → Hold the second intercept (3 in 2 groups, flanking; raiders 1 + 2 at 50%) → Destroy the beach relay → Confirm the landing force holds the beach (30 s) |
-| 26 | FRACTURE LAST — Civic plaza blackout | Break the Marshal's wing (8 in 2 groups, the second at 50% of the phase, flanking; raiders 2 at 60%) → Locate the parliament mast below the skyline → Triangulate the Marshal's last transmission (40 s; raiders 2 + 2 at 40%) → Follow the loyalists' corridor through the city → Protect the parliament quay launch (45 s) → Cover the witness launch to parliament (30 s) |
-| 27 | BROKEN RELAY — Coastal parliament sunrise | Clear the Marshal's wingmen (raiders 1 at 50%) → Destroy the final broadcast relay (raiders 1) ⇢ *twist* Break the Marshal's personal escort (flanking; raiders 1 at 50%) → Mark Rusk's emergency landing strip → Defeat the Air Marshal (320 hull, 3 stages; raiders 2 + 2 on its calls) → Climb to Teal's clear broadcast line → Broadcast Teal's evidence to the whole coast (60 s; raiders 2 at 30%) |
+| 18 | RIDGE ACE — Vulture searchlight ridge | Climb into Vulture Two's searchlights → Mark a safe ridge pickup site → Clear his wingmen (4 in 2 groups; raiders 1 at 50%) → Defeat Vulture Two (260 hull, 3 stages; raiders 1 + 1 on its calls) ⇢ *twist* Protect the marines' pickup on the ridge (45 s; raiders 2 + 2 at 50%) → Relay Vulture Two's testimony (20 s) |
+| 19 | HARBOR RUN — Military quays and canal | Scan the quays; spare the city (raiders 1) → Destroy three harbor warehouses (raiders 1 + 1 at 34%) ⇢ *twist* Break the early CAP (2 in 2 groups; raiders 1 at 50%) → Trace the workers' escape lane (raiders 2) → Escort the harbor workers (40 s; raiders 2) → Clear the harbor CAP (4 in 2 groups; raiders 1 at 50%) → Open the harbor rescue frequency (20 s; raiders 1) |
+| 20 | FRACTURE LINE — Eastern wing divided harbor | Shatter the eastern wing (9 in 3 groups) → Scan the launch's exit (raiders 1) → Cover the evidence launch (110 s; 2 bank guns; raiders 2 + 2 at 50%) → Mark the open-water rendezvous → Confirm the evidence handoff at sea (20 s) |
+| 21 | CITY NIGHT — Black canal city | Follow the dark canal through the city (raiders 1) → Mark the dish above the apartments (raiders 1) → Destroy the broadcast relay (raiders 2) → Hold off the escort flight (4 in 2 groups; raiders 1 + 1 at 50%) → Confirm the dark tower is silent (60 s; raiders 2 + 2 at 40%) → Cover the repair launch (45 s; raiders 2) → Mark the repair crew's district route (raiders 1) |
+| 22 | HARBOR FOG — Five fog fuel piers | Find the depots through the fog (raiders 2) → Destroy five fuel depots (raiders 2 at 40%) → Follow the empty fuel piers (raiders 2) → Clear the fog patrol (4 in 2 groups, flanking; raiders 1 at 50%) → Cover the harbor inspection launch (40 s; raiders 2) → Verify the last two fuel hoses are dry (raiders 2) → Report the escape fleet is out of fuel (20 s; raiders 1) |
+| 23 | OCEAN CLEAR — Frigate ring over deep water | Defend the command frigate (90 s; raiders 2 + 2 at 35% + 2 at 70%) → Check the gap between the frigates (raiders 1) → Clear the platform command flight (4 in 2 groups, flanking; raiders 1 at 50%) → Fly the blockade's outer beacons (raiders 1) → Cover the blockade inspection launch (50 s; raiders 2) → Report the blockade is closed (20 s) |
+| 24 | PLATFORM FIRE — Storm platform trident | Low sea approach: under 360 (raiders 1) → Destroy three platform warehouses (raiders 1 + 1 at 34%) → Clear the storm patrol (5 in 2 groups; raiders 1 at 50%) → Find the tanker in the storm shadow (raiders 1) → Stop the escaping fuel tanker (escapes after 90 s; raiders 2) → Escort the deck crew's rescue launch (50 s; raiders 2) → Report the platform fuel chain is broken (20 s; raiders 1) |
+| 25 | CITY DAWN — Dawn beachhead | Cover the landing craft to the beach (80 s; raiders 2 + 2 at 50%) → Hold the first intercept (3 in 2 groups; raiders 1 at 50%) → Mark the safe route off the beach (raiders 2) → Hold the second intercept (3 in 2 groups, flanking; raiders 1 + 2 at 50%) → Destroy the beach relay → Confirm both beach exits are held (20 s; raiders 1) |
+| 26 | FRACTURE LAST — Civic plaza blackout | Break the Marshal's wing (8 in 2 groups, the second at 50% of the phase, flanking; raiders 2 at 60%) → Scan the signal below the skyline → Triangulate Rusk's transmission (40 s; raiders 2 + 2 at 40%) → Follow the loyalists' city corridor → Protect the parliament quay launch (45 s; raiders 2) → Cover the witness launch to parliament (30 s; raiders 2) |
+| 27 | BROKEN RELAY — Coastal parliament sunrise | Clear the Marshal's wingmen (raiders 1 at 50%) → Destroy the final broadcast relay (raiders 1) ⇢ *twist* Break the Marshal's personal escort (flanking; raiders 1 at 50%) → Mark Rusk's emergency landing strip → Defeat the Air Marshal (320 hull, 3 stages; raiders 2 + 2 on its calls) → Climb to Teal's clear broadcast line → Broadcast Teal's evidence coastwide (60 s; raiders 2 at 30%) |
 
 | # | Par | Average human (design est.) | | # | Par | Average human (design est.) | | # | Par | Average human (design est.) |
 |--:|--:|--:|---|--:|--:|--:|---|--:|--:|--:|
-| 1 | 95 s | 2.2 min | | 10 | 265 s | 5.3 min | | 19 | 305 s | 6.1 min |
+| 1 | 95 s | 2.2 min | | 10 | 210 s | 4.4 min | | 19 | 290 s | 5.9 min |
 | 2 | 180 s | 3.2 min | | 11 | 285 s | 5.6 min | | 20 | 345 s | 6.9 min |
-| 3 | 235 s | 4.8 min | | 12 | 300 s | 5.9 min | | 21 | 315 s | 6.1 min |
-| 4 | 235 s | 4.7 min | | 13 | 255 s | 5.2 min | | 22 | 310 s | 6.1 min |
-| 5 | 265 s | 5.0 min | | 14 | 265 s | 5.1 min | | 23 | 330 s | 6.3 min |
-| 6 | 230 s | 4.6 min | | 15 | 285 s | 5.9 min | | 24 | 315 s | 6.3 min |
-| 7 | 235 s | 4.9 min | | 16 | 300 s | 5.9 min | | 25 | 305 s | 6.0 min |
+| 3 | 220 s | 4.6 min | | 12 | 300 s | 5.9 min | | 21 | 315 s | 6.1 min |
+| 4 | 210 s | 4.2 min | | 13 | 245 s | 5.1 min | | 22 | 305 s | 6.0 min |
+| 5 | 265 s | 5.0 min | | 14 | 265 s | 5.1 min | | 23 | 320 s | 6.0 min |
+| 6 | 210 s | 4.2 min | | 15 | 285 s | 5.9 min | | 24 | 305 s | 6.1 min |
+| 7 | 215 s | 4.5 min | | 16 | 300 s | 5.9 min | | 25 | 295 s | 5.8 min |
 | 8 | 270 s | 5.0 min | | 17 | 275 s | 5.5 min | | 26 | 310 s | 6.4 min |
-| 9 | 255 s | 4.9 min | | 18 | 295 s | 5.9 min | | 27 | 325 s | 6.7 min |
+| 9 | 250 s | 4.8 min | | 18 | 295 s | 5.9 min | | 27 | 325 s | 6.7 min |
 
-Design-estimate campaign total for the average pilot: about 146 minutes of flying.
+Design-estimate campaign total for the average pilot: about 143 minutes of flying.
 
 <!-- relay-tables:end -->
 
@@ -127,37 +128,43 @@ Values are Act I / Act II / Act III. Before is PR #37 Normal at `27ca530`; after
 
 | Rule | PR #37 Normal | New Normal | New Ace |
 |---|---|---|---|
-| Hostile hit damage | 10 / 12 / 13 | 4 / 5 / 5.5 | 9.6 / 12 / 13.2 |
-| Lone-bandit flight gate (s) | 14 / 13 / 15 | 24 / 24 / 27 | 13.2 / 13.2 / 14.85 |
-| Maximum flight divisor | 2 / 2.5 / 3 | 1.25 / 1.5 / 1.5 | 2.5 / 3 / 3 |
-| Full-flight windup spacing (s) | 7 / 5.2 / 5 | 19.2 / 16 / 18 | 5.28 / 4.4 / 4.95 |
-| Flight threat cap | 1 / 2 / 2 | 1 / 1 / 1 | 2 / 2 / 2 |
-| Required bandit hull | 100 / 130 / 160 | 80 / 90 / 100 | 128 / 144 / 160 |
+| Hostile hit damage | 10 / 12 / 13 | 6 / 7 / 7.5 | 10.5 / 12.25 / 13.125 |
+| Lone-bandit flight gate (s) | 14 / 13 / 15 | 22 / 20 / 20 | 18.7 / 17 / 17 |
+| Maximum flight divisor | 2 / 2.5 / 3 | 1.5 / 1.75 / 1.75 | 3 / 3.5 / 3.5 |
+| Full-flight windup spacing (s) | 7 / 5.2 / 5 | 14.67 / 11.43 / 11.43 | 6.23 / 4.86 / 4.86 |
+| Flight threat cap | 1 / 2 / 2 | 1 / 1 / 1 | 2 / 2 / 2 (M1–M4: 1) |
+| Required bandit hull | 100 / 130 / 160 | 80 / 90 / 100 | 108 / 144 / 160 |
 | Ace hull (M9 / M18 / M27) | 300 / 400 / 500 | 200 / 260 / 320 | 320 / 416 / 512 |
-| Ace reload (s) | 9 / 8 / 7 | 16 / 18 / 20 | 6.4 / 7.2 / 8 |
-| Ace missiles per launch | 1 / 1 / 2 | 1 / 1 / 1 | 2 / 2 / 2 |
+| Ace reload (s) | 9 / 8 / 7 | 15 / 15 / 15 | 7.5 / 7.5 / 7.5 |
+| Ace missiles per launch | 1 / 1 / 2 | 1 / 1 / 1 | 1 / 1 / 1 |
 
-M1–M4's gentle gate changes from 14 / 1.5 = 9.33 s to 26 / 1.25 = 20.8 s on Normal (before any directed-radar modifier). Aim, maneuvering, missile guidance, defensive breaks, flares, evade charges, wave admission and ace stages remain active. Normal aces retain a separate single missile outside the flight cap; directed radar still halves the flight gate until destroyed.
+M1–M4 use a gentle flight gate of 22 / 1.25 = 17.6 s on Normal. The opening keeps one flight threat on every difficulty. Aces fire separately from the flight cap and add 2 hull damage per hit. Radar-directed phases halve the flight gate. Missile flight, seeker behavior, evade timing, flares, pause/ack and the radio queue are unchanged by this review revision; PR #42 owns hostile missile flight.
 
 ## Difficulty before and after
 
-Multipliers are relative to each version's Normal, so use the absolute table above for comparison. Easy's new absolute damage is 2.4 / 3 / 3.3 and required-bandit hull is 48 / 54 / 60.
+Multipliers are relative to each version's Normal, so use the absolute table above for comparison. Easy's absolute damage is 3.6 / 4.2 / 4.5 and required-bandit hull is 48 / 54 / 60.
 
 | Scale / behavior | Easy before → after | Normal | Ace before → after |
 |---|---|---|---|
-| Hostile damage | 0.6 → 0.6 | 1 | 1.4 → 2.4 |
-| Flight gate / bandit reload | 1.25 → 1.25 | 1 | 0.7 → 0.55 |
-| Ace reload | 1.25 → 1.25 | 1 | 0.7 → 0.4 |
+| Hostile damage | 0.6 → 0.6 | 1 | 1.4 → 1.75 |
+| Flight gate / bandit reload | 1.25 → 1.25 | 1 | 0.7 → 0.85 |
+| Ace reload | 1.25 → 1.25 | 1 | 0.7 → 0.5 |
 | Maximum flight divisor | 1 → 0.8 | 1 | 1 → 2 |
-| Threat cap | 1 → 1 | 1 | 1 → 2 |
-| Bandit hull | 0.75 → 0.6 | 1 | 1 → 1.6 |
+| Threat cap | 1 → 1 | 1 | 1 → 2 (M1–M4: 1) |
+| Bandit hull | 0.75 → 0.6 | 1 | 1 → 1.35 Act I, 1.6 Acts II–III |
 | Ace hull | 0.8 → 0.8 | 1 | 1.3 → 1.6 |
 | Windup / missile turn / break chance | 1.3 / 0.8 / 0.5 unchanged | 1 | 0.8 / 1.2 / 1.3 unchanged |
 | Protected-objective drain | 0.75 unchanged | 1 | 1.25 unchanged |
-| Bandit breaks and flares / ace pairs / extra raider per wave | Act tuning / no pairs / none, unchanged | Act tuning | Always / pairs / +1, unchanged |
+| Bandit breaks and flares / ace salvo / extra raider per wave | Act tuning / single / none | Act tuning / single / none | Always / pairs → single / +1 |
 | Score | 0.85 unchanged | 1 | 1.2 unchanged |
 
-`CombatBalance.spec` checks a deliberately simple seven-minute contact envelope: seven hostiles always in range, no kills, no evade or regeneration, and 30% of hostile missiles connecting. New Normal loses at most 40.5 hull in that model; Easy loses less than 60% as much. This excludes ace launches and radar-directed phases. It supports the tuning direction; it does **not** establish a population claim that phone players rarely fall below 50 hull. The coordinator must verify that target in live play, especially M19–M27 and their protected actors. Old scripted PR #37 hull readings of 2–30 in Act III are historical evidence, not after measurements.
+`MissionPacing.ContactWindows` builds a per-mission contact model from the same duration estimates as the table above. Required-air contact tapers as kills accrue; optional raiders arrive at their authored progress shares, then clear at the act's per-bandit time after 10 s acquisition. Ace calls are modeled at thirds of the boss fight. The balance spec applies the real flight gate and divisor to each second, 60% firing opportunity (nose/range/threat-cap availability), and 50% connecting missiles for an average phone pilot using some evades/flares; ignoring warnings raises connections to 80%. Ace launches are counted separately at their reload and +2 damage. The model does not simulate seeker flight or collision, and assumes the same objective pace for both pilots.
+
+The **two-sided design target** is 40–70 hull lost in every Act III mission: roughly **30–60 remaining**, enough pressure to matter without a spike. Ignoring missile warnings must cost at least 64 hull on each Act III sortie and be lethal in M27. Current estimates: M19 42.3 lost, M24 40.7, M26 48.3, M27 69.6 (111.3 ignoring warnings). The earlier finales estimate 30.8 lost in M9 and 54.1 in M18. These are design estimates, not measured survival rates or player evidence; live phone validation remains with the coordinator. Historical PR #37 hull readings are not after measurements.
+
+The review revision gives **28 of the 54 new or relocated flight beats** raiders, plus contact on the existing M21/M24 approaches and M24 tanker chase. All seven new Cover/Protect beats begin with two raiders and use the existing actor drain: an abandoned actor can be lost on Easy, Normal or Ace; clearing the raiders preserves it. Quiet signal holds are at most 20 s. M10 traces for 20 s under directed raider fire and receives a second raider at halfway. M7 closes on a homeward route; other closers include fights, scans, routes and the final witness escort. No new objective kinds are introduced.
+
+Catalog assertions limit objective labels to 40 characters and phase radio (beats, chatter, twists, hazards, group calls and ace lines) to 72. The objective counter precedes its label, protecting it from end truncation in PR #38's narrower phone box. Parked truck/launch actors remain visible during the narrated signal and route handoffs; M26's defense and escort share their starting point. M15's garrison scans and M22's pier scans use fresh positions.
 
 ## Original Blender assets and performance bounds
 
@@ -172,14 +179,15 @@ Multipliers are relative to each version's Normal, so use the absolute table abo
 
 The generator and four exact runtime mesh JSON files are committed. Rebuild with Blender in background mode, then `bun run build`. Blender projects, GLB files and lit inspection PNGs remain regenerable local outputs. All four `.blend` files were reopened and GLBs round-tripped against exported bounds within 0.001 studs. The runtime follows the existing server-generated static-content path, preserves corner normals and material centers, and clones cached material meshes. Missing/malformed data fails explicitly. A platform mesh capability failure warns and produces a visible primitive fallback labeled `GeometrySource=Fallback`; that fallback is **not** a successful mesh QA result.
 
-The live-aircraft budget is enforced by the server, not just authored: at most **seven hostile aircraft alive at once on Normal and Easy, eight on Ace** (`WavePlan.Budget`: one more for Ace's extra raider per wave). Missions 3–27 request every bandit group and raider wave through a queue (`WavePlan.Admit`); what does not fit waits, bandits before raiders, until kills free a slot, and the next staggered group is not due while one is still waiting. The ace and a courier spawn directly, and a jet withdrawing at a phase change (disabled, silent, gone within 4 s) is outside the count. Missions 1–2 keep their legacy spawns (at most five raiders). `MissionCatalog.PeakAircraft` computes each phase's true demand without the budget: every group a timer can send with no kills, less the bandits that must be down for later events, plus every raider wave whose trigger has been reached, with raiders never dying. `RelayCampaign.spec` flies every phase second by second under these rules, for an idle pilot and a slow one, on Normal and Ace, and checks that the budget holds and every phase still clears.
+The live-aircraft budget is enforced by the server, not just authored: at most **seven hostile aircraft alive at once on every difficulty** (`WavePlan.Budget`; Ace's extra raiders wait for the same slots). Missions 3–27 request every bandit group and raider wave through a queue (`WavePlan.Admit`); what does not fit waits, bandits before raiders, until kills free a slot, and the next staggered group is not due while one is still waiting. The ace and a courier spawn directly, and a jet withdrawing at a phase change (disabled, silent, gone within 4 s) is outside the count. Missions 1–2 keep their legacy spawns (at most five raiders). `MissionCatalog.PeakAircraft` computes each phase's true demand without the budget: every group a timer can send with no kills, less the bandits that must be down for later events, plus every raider wave whose trigger has been reached, with raiders never dying. `RelayCampaign.spec` flies every phase second by second under these rules, for an idle pilot and a slow one, on Normal and Ace, and checks that the budget holds and every phase still clears.
 
 Phases whose own demand passes the budget, so the server holds the excess back (pinned by the spec):
 
 | Phase | Demand (Normal / Ace) | What the budget does |
 |---|---|---|
+| M8 Protect Varda's control tower (5 raiders in 3 waves) | 5 / 8 | Ace only: the eighth aircraft waits for a slot. |
 | M20 Shatter the eastern wing (9 in 3 groups) | 9 / 9 | With no kills, the third group's last two wait until two bandits are down. |
-| M23 Defend the command frigate (6 raiders in 3 waves) | 6 / 9 | Ace only: the last wave's extra raider waits for a slot. |
+| M23 Defend the command frigate (6 raiders in 3 waves) | 6 / 9 | Ace only: the last two aircraft wait for slots. |
 
 Mid-phase reinforcement rule (catalog contract in `RelayCampaign.spec`): every M3–M27 `required_air` or `required_ground` phase with two or more targets has at least one `reinforce` wave. The exceptions are:
 
@@ -187,7 +195,7 @@ Mid-phase reinforcement rule (catalog contract in `RelayCampaign.spec`): every M
 - **Budget-full phases**: M20's nine-bandit wing. Its bandits alone fill the budget, so a raider wave could only be held back. The contract checks that adding one would pass the budget.
 - **Legacy Missions 1–2**, which keep their original hard-coded flows.
 
-The reinforcement contract is retained: multi-target strikes and required-air phases still bring a mid-phase raider wave, with the same M20 budget exception. M21 now has four required bandits rather than eight, so its demand (5 Normal / 6 Ace) fits the budget and it leaves the overflow exception set. New flight-only recovery and inspection phases bring no extra raiders; the existing contract does not require them. Runtime queue admission and the 7/8 aircraft budgets are unchanged.
+The reinforcement contract is retained: multi-target strikes and required-air phases still bring a mid-phase raider wave, with the same M20 budget exception. M21 now has four required bandits rather than eight, so its demand (5 Normal / 6 Ace) fits the budget and it leaves the overflow exception set. Flight-only recovery and inspection phases add raiders where authored, without changing the combat reinforcement contract. Runtime queue admission now holds every difficulty to seven aircraft.
 
 The other authored bounds: eight player missiles in stock, a flight-wide hostile launch gate and threat cap, at most five required ground targets, and fewer than 400 scenery/target BaseParts. Scene/asset tests assert these bounds when run in Roblox. New flat land uses nine or fewer material slabs instead of filling millions of terrain voxels. Roads split below the engine's 2048-stud part limit. Legacy island worlds remain intact. One render listener exists per active cinematic or navigation cue, and both disconnect on unmount. Static geometry templates persist by asset kind; mission clones and cinematics do not accumulate.
 
@@ -199,7 +207,7 @@ Completed for this pass:
 
 - `bun install --frozen-lockfile`.
 - `bun run build` — all TypeScript/React Lua and Roblox Jest specs compile.
-- `LUAU_BIN="/Users/pelicannurse/.t3/worktrees/test app/t3-b4a927bc/build/offline-luau/luau" bun run test:offline` — **224 / 224** pure compiled-domain contracts pass. These cover every authored mission sequence and flight volume with legal controls, the 4–7 beat and act-duration contracts, difficulty pressure, aircraft budgets, reinforcement exceptions, phase transitions, scoring/par, progression, deadline, protected loss, story and input rules. These are unit simulations, not gameplay evidence.
+- `LUAU_BIN="/Users/pelicannurse/.t3/worktrees/test app/t3-b4a927bc/build/offline-luau/luau" bun run test:offline` — **321 / 321** pure compiled-domain contracts pass. These cover every authored mission sequence and flight volume with legal controls, the 4–7 beat and trimmed design-duration contracts, difficulty pressure, aircraft budgets, reinforcement exceptions, phase transitions, scoring/par, progression, deadline, protected loss, story and input rules. These are unit simulations, not gameplay evidence.
 - `bun run docs:relay-tables`, then `bun run docs:relay-tables --check` with the same `LUAU_BIN` — generated manifest, par and estimates match the catalog.
 - `git diff --check`.
 

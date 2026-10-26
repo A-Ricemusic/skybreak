@@ -109,7 +109,7 @@ describe("Mission debrief results", () => {
 		const saved = normalizeProfile(serializeProfile({ version: 3, slots: c.getSlots() }));
 		expect(saved.slots[0].missions?.[3]?.bestScore).toBe(better.score);
 		expect(saved.slots[0].missions?.[3]?.bestRank).toBe("S");
-		const older = { version: 3, slots: [{ ...saved.slots[0], missions: { 3: { completed: true, bestTime: 50, bestScore: 10, bestRank: "C" } } }] };
+		const older = { version: 3, slots: [{ ...saved.slots[0], missions: { 3: { completed: true, bestTime: 50, timeVersion: MissionCatalog.TimeVersion(3), bestScore: 10, bestRank: "C" } } }] };
 		const merged = mergeProfiles(older, saved);
 		expect(merged.slots[0].missions?.[3]?.bestScore).toBe(better.score);
 		expect(merged.slots[0].missions?.[3]?.bestRank).toBe("S");

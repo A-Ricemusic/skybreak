@@ -4,7 +4,7 @@
 // authored `groupAt` trigger instead waits for that share of the whole phase to be down.
 //
 // Every hostile aircraft (bandit or raider) also goes through the live-aircraft budget:
-// at most AIR_BUDGET up at once on Normal, one more per difficulty-added raider (Ace: 8).
+// at most AIR_BUDGET up at once on every difficulty, including Ace's extra raiders.
 // What does not fit waits in a queue, bandits first, until kills free a slot.
 export interface WaveDue {
 	/** Index of the next group to spawn. */
@@ -67,9 +67,9 @@ export const WavePlan = {
 		const downInLast = input.killed - (spawned - last);
 		return input.sinceLast >= input.stagger || downInLast >= math.ceil(last / 2);
 	},
-	/** Live-aircraft budget for a level that adds `extraRaiders` to every raider wave (Normal 7, Ace 8). */
-	Budget(extraRaiders = 0): number {
-		return AIR_BUDGET + math.max(0, math.floor(extraRaiders));
+	/** Live-aircraft budget; difficulty-added raiders queue within the same seven slots. */
+	Budget(_extraRaiders = 0): number {
+		return AIR_BUDGET;
 	},
 	/**
 	 * Takes what may spawn now from `queue` given `room` free slots: bandits first (the phase needs

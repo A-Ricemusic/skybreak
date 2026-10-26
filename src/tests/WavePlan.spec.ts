@@ -63,10 +63,10 @@ describe("Staggered waves", () => {
 		expect(due(3, 999)).toBe(false);
 		expect(due(4, 0)).toBe(true);
 	});
-	it("budgets seven live hostile aircraft on Normal and eight on Ace", () => {
+	it("budgets seven live hostile aircraft on every difficulty", () => {
 		expect(WavePlan.Budget()).toBe(7);
 		expect(WavePlan.Budget(0)).toBe(7);
-		expect(WavePlan.Budget(1)).toBe(8);
+		expect(WavePlan.Budget(1)).toBe(7);
 	});
 	it("admits bandits before raiders and holds back what does not fit", () => {
 		const queue: AirRequest[] = [

@@ -63,7 +63,7 @@ describe("Difficulty multipliers", () => {
 		}
 	});
 	it("scales values proportionally and passes non-finite input through", () => {
-		expect(Difficulty.Scale("ace", "hostileDamage", 10)).toBe(24);
+		expect(Difficulty.Scale("ace", "hostileDamage", 10)).toBe(17.5);
 		expect(Difficulty.Scale("easy", "hostileDamage", 10)).toBe(6);
 		expect(Difficulty.Scale("easy", "hostileGate", 8)).toBe(10);
 		expect(Difficulty.Scale("ace", "aceHealth", 100)).toBe(160);
@@ -99,11 +99,11 @@ describe("Difficulty and mission score", () => {
 });
 
 describe("Difficulty behaviour", () => {
-	it("adds behaviour on Ace: every bandit breaks and flares, aces fire pairs, one more raider a wave", () => {
+	it("adds behaviour on Ace: every bandit breaks and flares, aces reload faster, one more raider a wave", () => {
 		const ace = Difficulty.Behaviour("ace");
 		expect(ace.banditsAlwaysBreak).toBe(true);
 		expect(ace.banditFlares).toBe(1);
-		expect(ace.aceSalvo).toBe(2);
+		expect(ace.aceSalvo).toBe(1);
 		expect(ace.extraRaiders).toBe(1);
 	});
 	it("leaves Normal and Easy on the act tuning", () => {

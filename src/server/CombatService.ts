@@ -727,7 +727,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		model.Parent = session.folder;
 		model.PivotTo(CFrame.lookAt(position, position.add(direction)));
 		const baseHealth = role === "ace" ? options.aceHealth ?? 165 : role === "bandit" ? TUNING.banditHealth[act - 1] : role === "courier" ? COURIER_HEALTH : RAIDER_HEALTH;
-		const health = math.floor(Difficulty.Scale(session.difficulty, role === "ace" ? "aceHealth" : "banditHealth", baseHealth));
+		const health = math.floor(role === "bandit" ? Difficulty.BanditHealth(session.difficulty, act, baseHealth) : Difficulty.Scale(session.difficulty, role === "ace" ? "aceHealth" : "banditHealth", baseHealth));
 		// Bandits and couriers break close locks; the opening sorties stay gentle unless the level says every bandit breaks.
 		const lockBreakChance = role === "ace" ? 0 : behaviour.banditsAlwaysBreak ? 1 : gentle(session) ? 0 : math.clamp(tuned(session, TUNING.lockBreakChance), 0, 1);
 		const flares = role === "ace" ? TUNING.aceFlares[act - 1] : role === "bandit" ? math.max(TUNING.banditFlares[act - 1], behaviour.banditFlares) : 0;
@@ -1106,7 +1106,7 @@ function stepEnemies(session: CombatSession, dt: number): void {
 	const soft = gentle(session);
 	const gateBase = soft ? Difficulty.Scale(session.difficulty, "hostileGate", GENTLE.flightGate) : tuned(session, TUNING.flightGate);
 	const maxDivisor = soft ? Difficulty.Scale(session.difficulty, "flightDivisor", GENTLE.flightDivisor) : tuned(session, TUNING.flightDivisor);
-	const maxCap = soft ? Difficulty.Scale(session.difficulty, "threatCap", GENTLE.threatCap) : tuned(session, TUNING.threatCap);
+	const maxCap = soft ? GENTLE.threatCap : tuned(session, TUNING.threatCap);
 	let live = 0, threats = 0, raidersAlive = 0;
 	for (const enemy of session.enemies) {
 		if (!ownsEnemy(session, enemy) || enemy.kind !== "air" || enemy.role === "courier") continue;

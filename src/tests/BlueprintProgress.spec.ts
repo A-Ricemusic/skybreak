@@ -109,7 +109,7 @@ describe("Round-2 phase mechanics in the runner",()=>{
 		const caught=BlueprintRunner.NewState(bp,0);caught.phaseIndex=index;
 		expect(BlueprintRunner.CanDamage(caught,"air",true)).toBe(true);
 		expect(BlueprintRunner.RecordKill(caught,"courier","air",true,5)).toBe(true);
-		expect(caught.requiredAirKills).toBe(1);expect(caught.outcome).toBeUndefined();expect(BlueprintRunner.ActivePhase(caught)?.kind).toBe("signal");
+		expect(caught.requiredAirKills).toBe(1);expect(caught.outcome).toBeUndefined();expect(BlueprintRunner.ActivePhase(caught)?.kind).toBe("route");
 	});
 	it("freezes a jammed signal hold until its jammers die, and they count as required ground kills",()=>{
 		const bp=MissionCatalog.Get(15),state=BlueprintRunner.NewState(bp,0);
@@ -176,5 +176,64 @@ describe("Round-2 phase mechanics in the runner",()=>{
 		const m8=MissionCatalog.Get(8);const m8Hidden=MissionCatalog.HiddenGround(m8);
 		expect(m8Hidden.has(0) && m8Hidden.has(1)).toBe(true);expect(m8.ground.size()).toBe(2);
 		for(const bp of MISSIONS)for(const index of MissionCatalog.HiddenGround(bp))expect(index>=0 && index<bp.ground.size()).toBe(true);
+	});
+});
+
+describe("Review regressions: real cover and visible handoffs", () => {
+	it("lets each new protected beat lose its actor when the pilot abandons it, on all difficulties", () => {
+		const labels = [
+			[19, "Escort the harbor workers"], [21, "Cover the repair launch"],
+			[22, "Cover the harbor inspection launch"], [23, "Cover the blockade inspection launch"],
+			[24, "Escort the deck crew's rescue launch"], [26, "Protect the parliament quay launch"],
+			[26, "Cover the witness launch to parliament"],
+		] as [number, string][];
+		for (const [id, label] of labels) for (const scale of [0.75, 1, 1.25]) {
+			const bp = MissionCatalog.Get(id), phases = MissionCatalog.ExpandedPhases(bp);
+			const index = phases.findIndex((p) => p.label === label), phase = phases[index];
+			expect(phase.kind === "escort" || phase.kind === "defend").toBe(true);
+			const initial = MissionCatalog.InitialRaiders(phase);
+			expect(initial).toBe(2);
+			const abandoned = BlueprintRunner.NewState(bp, 0); abandoned.phases = phases; abandoned.phaseIndex = index;
+			// Outside the station volume: no free objective progress while the raiders
+			// stay over the actor. The same server drain used by older escorts applies.
+			const away = { x: -2200, y: 800, z: 2200 };
+			for (let tick = 1; tick <= 1400 && abandoned.outcome === undefined; tick++) {
+				BlueprintRunner.ObserveFlight(abandoned, away, away, 0.1, tick / 10, initial, scale);
+			}
+			expect(abandoned.reason).toBe("protected_lost");
+			const defended = BlueprintRunner.NewState(bp, 0); defended.phases = phases; defended.phaseIndex = index;
+			// Clear the two real optional raiders, then cover the full route/hold.
+			for (let enemy = 0; enemy < initial; enemy++) expect(BlueprintRunner.RecordKill(defended, `r${enemy}`, "air", false, 0)).toBe(true);
+			for (let tick = 1; tick <= 600 && defended.phaseIndex === index; tick++) {
+				const point = BlueprintRunner.NavigationPoint(defended)!;
+				BlueprintRunner.ObserveFlight(defended, point, point, 0.1, tick / 10, 0, scale);
+			}
+			expect(defended.phaseIndex).toBe(index + 1);
+			expect(defended.protectedHealth).toBe(100);
+		}
+	});
+	it("keeps parked truck and launch positions at their preceding escort endpoint", () => {
+		for (const id of [12, 20, 21]) {
+			const phases = MissionCatalog.ExpandedPhases(MissionCatalog.Get(id));
+			let last: { x: number; y: number; z: number } | undefined;
+			for (const phase of phases) {
+				if (phase.kind === "escort") last = phase.points![phase.points!.size() - 1];
+				if (phase.parkedEscort && phase.kind !== "recon") {
+					expect(phase.parkedEscort.x).toBe(last?.x);
+					expect(phase.parkedEscort.z).toBe(last?.z);
+				}
+			}
+		}
+		const phases = MissionCatalog.ExpandedPhases(MissionCatalog.Get(26));
+		const defend = phases.find((p) => p.kind === "defend")!, escort = phases.find((p) => p.kind === "escort")!;
+		expect(defend.points![0]).toEqual(escort.points![0]);
+	});
+	it("makes M10's trace short, directed and reinforced before the radar strike", () => {
+		const phases = MissionCatalog.ExpandedPhases(MissionCatalog.Get(10));
+		const index = phases.findIndex((p) => p.kind === "signal"), trace = phases[index];
+		expect(trace.seconds! <= 20).toBe(true); expect(trace.directed).toBe(true);
+		expect(MissionCatalog.InitialRaiders(trace)).toBe(1);
+		expect(trace.reinforce?.[0].at).toBe(0.5);
+		expect(phases[index + 1].label).toBe("Kill the camp radar");
 	});
 });

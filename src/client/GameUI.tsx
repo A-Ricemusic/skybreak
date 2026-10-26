@@ -1557,10 +1557,10 @@ function MissionHud({
 	const timeRemaining = telemetry.timeRemaining ?? GameConfig.Campaign.MissionTimeLimit;
 	const tutorial = getTutorialInstruction(telemetry.tutorialStep, inputMode);
 	const progress = telemetry.objectiveTotal !== undefined && telemetry.objectiveTotal > 0
-		? `  ${telemetry.objectiveProgress ?? 0}/${telemetry.objectiveTotal}`
+		? `${telemetry.objectiveProgress ?? 0}/${telemetry.objectiveTotal}  `
 		: "";
 	// Kill and radio callouts replace the objective line while they last; FIRE refusals never do.
-	const objectiveLine = callout?.text ?? `${tutorial !== "" ? tutorial : telemetry.objective ?? "Complete the objective"}${progress}`;
+	const objectiveLine = callout?.text ?? `${progress}${tutorial !== "" ? tutorial : telemetry.objective ?? "Complete the objective"}`;
 	const objectiveColor = callout?.color ?? (tutorial !== "" ? C.Orange : C.Ivory);
 	const knob = math.floor((touch?.joystick.width ?? JOYSTICK_SIZE) * 0.375 + 0.5);
 	return (

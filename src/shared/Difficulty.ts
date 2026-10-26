@@ -20,7 +20,7 @@ export type DifficultyKnob =
 
 /**
  * What a level adds beyond multipliers. Ace changes how enemies fight, not just how long
- * they take to die: every bandit breaks locks and carries a flare, aces launch pairs, and
+ * they take to die: every bandit breaks locks and carries a flare, aces reload faster, and
  * every raider wave brings one more.
  */
 export interface DifficultyBehaviour {
@@ -62,9 +62,9 @@ const ORDER: DifficultyKind[] = ["easy", "normal", "ace"];
 
 /** Multipliers indexed by level; Normal is always 1 so the tuned tables stay authoritative. */
 const MULTIPLIERS: { [K in DifficultyKnob]: { [D in DifficultyKind]: number } } = {
-	hostileDamage: { easy: 0.6, normal: 1, ace: 2.4 },
-	hostileGate: { easy: 1.25, normal: 1, ace: 0.55 },
-	aceGate: { easy: 1.25, normal: 1, ace: 0.4 },
+	hostileDamage: { easy: 0.6, normal: 1, ace: 1.75 },
+	hostileGate: { easy: 1.25, normal: 1, ace: 0.85 },
+	aceGate: { easy: 1.25, normal: 1, ace: 0.5 },
 	flightDivisor: { easy: 0.8, normal: 1, ace: 2 },
 	threatCap: { easy: 1, normal: 1, ace: 2 },
 	windup: { easy: 1.3, normal: 1, ace: 0.8 },
@@ -81,7 +81,7 @@ const KNOBS: DifficultyKnob[] = ["hostileDamage", "hostileGate", "aceGate", "fli
 const BEHAVIOURS: { [K in DifficultyKind]: DifficultyBehaviour } = {
 	easy: { banditFlares: 0, banditsAlwaysBreak: false, aceSalvo: 1, extraRaiders: 0 },
 	normal: { banditFlares: 0, banditsAlwaysBreak: false, aceSalvo: 1, extraRaiders: 0 },
-	ace: { banditFlares: 1, banditsAlwaysBreak: true, aceSalvo: 2, extraRaiders: 1 },
+	ace: { banditFlares: 1, banditsAlwaysBreak: true, aceSalvo: 1, extraRaiders: 1 },
 };
 
 function finite(value: unknown): value is number {
@@ -102,6 +102,10 @@ export const Difficulty = {
 	Get(kind: DifficultyKind): DifficultyDefinition { return DEFINITIONS[kind]; },
 	All(): DifficultyDefinition[] { return ORDER.map((kind) => DEFINITIONS[kind]); },
 	Multiplier(kind: DifficultyKind, knob: DifficultyKnob): number { return MULTIPLIERS[knob][kind]; },
+	/** Act I Ace keeps a two-hit hull; later acts retain the armored flight. */
+	BanditHealth(kind: DifficultyKind, act: number, base: number): number {
+		return base * (kind === "ace" && act === 1 ? 1.35 : MULTIPLIERS.banditHealth[kind]);
+	},
 	/** Behaviour switches for this level (see DifficultyBehaviour). */
 	Behaviour(kind: DifficultyKind): DifficultyBehaviour { return BEHAVIOURS[Difficulty.Coerce(kind)]; },
 	/** `value` scaled for this level; a non-finite value passes through untouched. */

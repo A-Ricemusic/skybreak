@@ -1,6 +1,8 @@
 import type { FireNotice } from "./WeaponRules";
 export type Persistence = "cloud" | "session" | "unavailable";
 export interface MissionRecord {
+	/** Layout revision that produced bestTime (absent on old saves). */
+	timeVersion?: number;
 	completed: boolean;
 	bestTime?: number;
 	/** Timestamp of first completion (for cutscene gating). */
