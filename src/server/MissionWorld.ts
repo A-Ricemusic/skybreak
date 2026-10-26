@@ -1,9 +1,11 @@
 import { Workspace } from "@rbxts/services";
+import { IRON_COAST_BOATS, IRON_COAST_FALLBACK_HULL, IRON_COAST_FRIGATE, ironCoastBerthOps, ironCoastMainlandOps } from "../shared/LegacyWorlds";
 import { MissionAssets } from "../shared/MissionAssets";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { RelayWorld } from "./RelayWorld";
 import { Scenery } from "./Scenery";
-import { WorldAssets } from "./WorldAssets";
+import { TerrainWriter } from "./TerrainWriter";
+import { WorldAssets, type WorldAssetName } from "./WorldAssets";
 import { WorldBuilder } from "./WorldBuilder";
 import { WorldEnvironment } from "./WorldEnvironment";
 
@@ -16,6 +18,11 @@ import { WorldEnvironment } from "./WorldEnvironment";
 
 const GROUND = 44; // plateau top of every terrain island (apron slabs sit on it)
 const APRON_TOP = 48;
+/** Uploaded models the hand-composed worlds place (preloaded with WorldAssets' deadline before building). */
+const UPLOADS: Record<1 | 2, WorldAssetName[]> = {
+	1: ["Hangar", "ControlTower", "Pine", "Broadleaf", "RockA", "RockB", "RockC"],
+	2: ["ContainerStack", "GantryCrane", "Farmhouse", "Barn", "Frigate", "Pine", "Broadleaf", "RockA", "RockB", "RockC"],
+};
 
 function apron(parent: Instance, x: number, z: number, width: number, depth: number, color: Color3): void {
 	Scenery.Part(parent, "Apron", new Vector3(width, 4, depth), new Vector3(x, APRON_TOP - 2, z), color, Enum.Material.Concrete);
@@ -61,7 +68,8 @@ function buildVardaRim(scenery: Folder, parent: Instance): Model[] {
 	apron(scenery, -200, -430, 360, 240, P.concrete);
 	Scenery.ParkedJets(scenery, [new Vector3(-330, 0, -500), new Vector3(-250, 0, -500), new Vector3(-170, 0, -500), new Vector3(-90, 0, -500)], APRON_TOP, 0);
 	// The uploaded hangars (128 wide) and tower; the menu-world primitives only if the upload fails.
-	if (WorldAssets.Has("Hangar")) for (const x of [-310, -170]) WorldAssets.PlaceUploaded("Hangar", scenery, new CFrame(x, GROUND, -238));
+	// Place (not PlaceUploaded): a hangar whose clone fails still gets WorldAssets' simple block.
+	if (WorldAssets.Has("Hangar")) for (const x of [-310, -170]) WorldAssets.Place("Hangar", scenery, new CFrame(x, GROUND, -238));
 	else for (const x of [-330, -240, -150]) Scenery.Hangar(scenery, new CFrame(x, GROUND + 1, -275), P, Color3.fromRGB(240, 150, 60));
 	if (WorldAssets.PlaceUploaded("ControlTower", scenery, new CFrame(40, GROUND, -330).mul(CFrame.Angles(0, math.pi / 2, 0))) === undefined) Scenery.ControlTower(scenery, new CFrame(40, GROUND, -330), P);
 	Scenery.FuelFarm(scenery, 120, -520, GROUND, 3);
@@ -107,19 +115,13 @@ function buildVardaRim(scenery: Folder, parent: Instance): Model[] {
  */
 function buildIronCoast(scenery: Folder, parent: Instance): Model[] {
 	const P = Scenery.PALETTES.harbor;
-	const terrain = Workspace.Terrain;
 	// Terrain water first: the mainland and islands overwrite it where land rises.
 	Scenery.TerrainSea(scenery, Color3.fromRGB(44, 82, 108));
 
 	// Mainland: three rock blocks leave a 500-wide basin open between x=-250..250, z=-1000..-700.
-	// Rock runs from the hidden floor under the sea (not 20 studs below it) up to GROUND.
-	const rockDepth = GROUND - Scenery.HIDDEN_FLOOR;
-	for (const [x, z, w, d] of [[-1000, -1500, 1500, 1600], [1000, -1500, 1500, 1600], [0, -1650, 520, 1300]]) {
-		terrain.FillBlock(new CFrame(x, GROUND - rockDepth / 2, z), new Vector3(w, rockDepth, d), Enum.Material.Rock);
-		terrain.FillBlock(new CFrame(x, GROUND - 5, z), new Vector3(w - 60, 10, d - 60), Enum.Material.Grass);
-	}
-	// Every voxel write runs back to back before more parts are created (Scenery.Part
-	// may yield), so the terrain replicates as one batch.
+	// Rock runs from the hidden floor under the sea (not 20 studs below it) up to GROUND. Then the
+	// frigate's dredged berth: the shallow seabed would otherwise cut through its keel.
+	TerrainWriter.Write([...ironCoastMainlandOps(), ...ironCoastBerthOps()]);
 	const offshore: Array<[number, number, number, number, number, number, number]> = [[-1500, 500, 520, 440, 0.4, 160, 122], [1550, 450, 480, 420, -0.3, 150, 118]];
 	for (const [x, z, r, peak] of [[-1300, -2150, 280, 125], [1300, -2200, 300, 125], [0, -2250, 260, 118], [-1700, -1600, 200, 122], [1750, -1500, 220, 124]]) Scenery.TerrainHill(x, z, r, GROUND, peak);
 	for (const [x, z, w, d, yaw, r, peak] of offshore) { Scenery.TerrainIsland(x, z, w, d, GROUND, yaw); Scenery.TerrainHill(x, z, r, GROUND, peak); }
@@ -144,8 +146,8 @@ function buildIronCoast(scenery: Folder, parent: Instance): Model[] {
 	}
 	// Uploaded container stacks and gantry cranes (boom out over the water); primitives only if the upload fails.
 	if (WorldAssets.Has("ContainerStack")) {
-		for (const x of [-550, 550]) for (const dx of [-150, 150]) WorldAssets.PlaceUploaded("ContainerStack", scenery, new CFrame(x + dx, GROUND, -760).mul(CFrame.Angles(0, math.pi / 2, 0)));
-		for (const [x, z] of [[-1220, -940], [-1100, -940], [-980, -940], [-1220, -1040], [-1100, -1040], [1040, -940], [1160, -940], [1100, -1040]]) WorldAssets.PlaceUploaded("ContainerStack", scenery, new CFrame(x, GROUND, z));
+		for (const x of [-550, 550]) for (const dx of [-150, 150]) WorldAssets.Place("ContainerStack", scenery, new CFrame(x + dx, GROUND, -760).mul(CFrame.Angles(0, math.pi / 2, 0)));
+		for (const [x, z] of [[-1220, -940], [-1100, -940], [-980, -940], [-1220, -1040], [-1100, -1040], [1040, -940], [1160, -940], [1100, -1040]]) WorldAssets.Place("ContainerStack", scenery, new CFrame(x, GROUND, z));
 	} else {
 		for (const x of [-550, 550]) Scenery.Containers(scenery, 20 + x, x, -735, GROUND, 1, 6, 2, math.pi / 2);
 		Scenery.Containers(scenery, 21, -1100, -900, GROUND, 5, 2, 2);
@@ -166,10 +168,12 @@ function buildIronCoast(scenery: Folder, parent: Instance): Model[] {
 
 	// Town on the hillside, sunset-lit walls.
 	const walls = [Color3.fromRGB(206, 186, 160), Color3.fromRGB(176, 150, 130), Color3.fromRGB(190, 172, 150), Color3.fromRGB(150, 140, 136)];
-	// Uploaded farmhouses as the town's houses; the primitive blocks only if the upload fails.
-	if (WorldAssets.Has("Farmhouse")) {
+	// Uploaded farmhouses and barns as the town's houses. Each house that cannot be the uploaded
+	// model (one of the two uploads failed) takes WorldAssets' block of the same size; the
+	// primitive town only when neither upload is there.
+	if (WorldAssets.Has("Farmhouse") || WorldAssets.Has("Barn")) {
 		for (const [x0, cols] of [[-1500, 5], [1150, 4]]) for (let c = 0; c < cols; c++) for (let r = 0; r < 3; r++) {
-			WorldAssets.PlaceUploaded(r === 1 && c % 2 === 0 ? "Barn" : "Farmhouse", scenery, new CFrame(x0 + c * 76, GROUND, -1760 + r * 76).mul(CFrame.Angles(0, (r % 2) * math.pi + (c % 3 - 1) * 0.08, 0)));
+			WorldAssets.Place(r === 1 && c % 2 === 0 ? "Barn" : "Farmhouse", scenery, new CFrame(x0 + c * 76, GROUND, -1760 + r * 76).mul(CFrame.Angles(0, (r % 2) * math.pi + (c % 3 - 1) * 0.08, 0)));
 		}
 	} else {
 		Scenery.Buildings(scenery, 23, -1500, -1760, 5, 3, GROUND, 70, 70, walls, false);
@@ -191,9 +195,11 @@ function buildIronCoast(scenery: Folder, parent: Instance): Model[] {
 	Scenery.Lighthouse(scenery, 340, -350, 14);
 	// Moored boats in the basin, along the quays and one at anchor outside.
 	const hulls = [Color3.fromRGB(178, 54, 48), Color3.fromRGB(36, 52, 74), Color3.fromRGB(230, 230, 226), Color3.fromRGB(70, 100, 90)];
-	// A frigate alongside the east quay (waterline placement, bow west); the old hull stays only if the upload fails.
-	const frigate = WorldAssets.PlaceUploaded("Frigate", scenery, new CFrame(950, Scenery.WATERLINE, -652).mul(CFrame.Angles(0, math.pi / 2, 0)));
-	const boats: Array<[number, number, number, number]> = [[-150, -800, 0.1, 60], [120, -880, -0.2, 48], [-700, -640, math.pi / 2, 90], ...(frigate === undefined ? [[900, -650, math.pi / 2 + 0.1, 110] as [number, number, number, number]] : []), [-1300, -640, math.pi / 2, 70], [600, -150, 0.6, 80]];
+	// A frigate alongside the east quay over its dredged berth (waterline placement, bow west); the old hull stays only if the upload fails.
+	const f = IRON_COAST_FRIGATE;
+	const frigate = WorldAssets.PlaceUploaded("Frigate", scenery, new CFrame(f.x, Scenery.WATERLINE, f.z).mul(CFrame.Angles(0, f.yaw, 0)));
+	const boats = [...IRON_COAST_BOATS];
+	if (frigate === undefined) boats.insert(3, IRON_COAST_FALLBACK_HULL);
 	for (let i = 0; i < boats.size(); i++) Scenery.Boat(scenery, boats[i][0], boats[i][1], boats[i][2], boats[i][3], hulls[i % hulls.size()]);
 
 	const land = (x: number, z: number): boolean => z < -500 || near(x, z, -1500, 500, 500) || near(x, z, 1550, 450, 500);
@@ -205,6 +211,9 @@ function buildIronCoast(scenery: Folder, parent: Instance): Model[] {
 export const MissionWorld = {
 	Build(missionId: number, parent: Instance): { groundTargets: Model[] } {
 		if (missionId >= 3) return RelayWorld.Build(missionId, parent);
+		const late = WorldAssets.Preload(UPLOADS[missionId === 1 ? 1 : 2]);
+		if (late.size() > 0) warn(`[MissionWorld] M${missionId}: ${late.join(", ")} still loading after the preload deadline; placing fallbacks`);
+		parent.SetAttribute("WorldPreloadLate", late.size());
 		Workspace.FindFirstChild("World")?.Destroy();
 		Workspace.Terrain.Clear();
 		WorldEnvironment.Apply(MissionCatalog.Get(missionId).environment);

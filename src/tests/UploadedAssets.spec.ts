@@ -83,6 +83,7 @@ afterEach(() => {
 	for (const item of created) item.Destroy();
 	created.clear();
 	UploadedAssets.Configure();
+	WorldAssets.SetPreloadTimeout();
 });
 
 describe("Uploaded asset loader with procedural fallback", () => {
@@ -278,6 +279,9 @@ describe("Uploaded asset loader with procedural fallback", () => {
 
 		const quay = UploadedAssetSpecs.HarbourQuay;
 		UploadedAssets.Configure({ ids: { HarbourQuay: 4444 }, probe, loader: () => fakeUpload("HarbourQuay", { scale: 4 }) });
+		// Placement never loads: before the world's preload the quay is not there yet.
+		expect(WorldAssets.Has("HarbourQuay")).toBe(false);
+		expect(WorldAssets.Preload(["HarbourQuay"]).size()).toBe(0);
 		expect(WorldAssets.Has("HarbourQuay")).toBe(true);
 		const placed = WorldAssets.PlaceQuay(parent, at)!;
 		expect(placed.GetAttribute("GeometrySource")).toBe("Uploaded");
@@ -307,6 +311,7 @@ describe("Uploaded asset loader with procedural fallback", () => {
 		UploadedAssets.Configure({ ids: { Barn: 5555, Pine: 6666 }, probe, loader: () => { calls += 1; return fakeUpload(calls === 1 ? "Barn" : "Pine", { surface: "bare" }); } });
 		// The ID is set, so an uploaded barn would be tried, but its import is untextured.
 		expect(UploadedAssets.Available("Barn")).toBe(true);
+		expect(WorldAssets.Preload(["Barn", "Pine"]).size()).toBe(0);
 		const barn = WorldAssets.PlaceBarn(parent, at);
 		expect(barn?.GetAttribute("GeometrySource")).toBe("Fallback");
 		expect(WorldAssets.Has("Barn")).toBe(false);
@@ -314,5 +319,32 @@ describe("Uploaded asset loader with procedural fallback", () => {
 		expect(WorldAssets.PlaceUploaded("Pine", parent, at)).toBeUndefined();
 		expect(WorldAssets.PlaceTree(parent, at)).toBeUndefined();
 		expect(calls).toBe(2);
+	});
+
+	it("never waits on a load still running past the preload deadline, and keeps the late template for later", () => {
+		const parent = track(new Instance("Folder"));
+		parent.Parent = Workspace;
+		let calls = 0, finished = false;
+		// A cold InsertService request: answers 1.5 s after the world gave up at 0.2 s.
+		UploadedAssets.Configure({ ids: { Farmhouse: 7777 }, probe, loader: () => { calls += 1; task.wait(1.5); finished = true; return fakeUpload("Farmhouse"); } });
+		WorldAssets.SetPreloadTimeout(0.2);
+		const started = os.clock();
+		const late = WorldAssets.Preload(["Farmhouse"]);
+		expect(os.clock() - started < 1).toBe(true);
+		expect(late).toEqual(["Farmhouse"]);
+		// Placement does not join the pending load: it returns at once with the fallback block.
+		const placedAt = os.clock();
+		const house = WorldAssets.PlaceFarmhouse(parent, new CFrame());
+		expect(os.clock() - placedAt < 0.05).toBe(true);
+		expect(house?.GetAttribute("GeometrySource")).toBe("Fallback");
+		expect(WorldAssets.PlaceUploaded("Farmhouse", parent, new CFrame())).toBeUndefined();
+		// A second preload while the first request is still out does not start another one.
+		expect(WorldAssets.Preload(["Farmhouse"])).toEqual(["Farmhouse"]);
+		expect(calls).toBe(1);
+		while (!finished) task.wait();
+		task.wait();
+		// The late load landed in the cache: the next world places the uploaded model.
+		expect(WorldAssets.Has("Farmhouse")).toBe(true);
+		expect(WorldAssets.PlaceFarmhouse(parent, new CFrame())?.GetAttribute("GeometrySource")).toBe("Uploaded");
 	});
 });

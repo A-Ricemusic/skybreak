@@ -15,19 +15,19 @@ local W=require("./WorldPlan")
 local A=require("./WorldAudit")
 local C=require("./MissionCatalog").MissionCatalog
 local rows={}
-table.insert(rows,"| Mission | Theme | Environment | Terrain ops | Voxel writes (M) | Parts | Props | Trees | Rocks | Buildings | Ships | Unique meshes | Instances |")
-table.insert(rows,"|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
+table.insert(rows,"| Mission | Theme | Environment | Terrain ops | Voxel writes (M) | Hill cells (M) | Parts | Props | Trees | Rocks | Buildings | Ships | Unique meshes | Instances |")
+table.insert(rows,"|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
 for id=3,27 do
 	local plan=W.WorldPlanner:Build(id)
 	local c=W.WorldPlanner.Counts(plan)
-	table.insert(rows,string.format("| M%d %s | %s | %s | %d | %.1f | %d | %d | %d | %d | %d | %d | %d | %d |",id,plan.name,plan.theme,plan.environment,c.terrainOps,c.voxelWrites/1e6,c.parts,c.props,c.trees,c.rocks,c.buildings,c.ships,c.uniqueMeshes,c.instances))
+	table.insert(rows,string.format("| M%d %s | %s | %s | %d | %.1f | %.2f | %d | %d | %d | %d | %d | %d | %d | %d |",id,plan.name,plan.theme,plan.environment,c.terrainOps,c.voxelWrites/1e6,c.bumpCells/1e6,c.parts,c.props,c.trees,c.rocks,c.buildings,c.ships,c.uniqueMeshes,c.instances))
 	if ${problems ? "true" : "false"} then
 		for _,p in A.auditPlan(plan).problems do print("M"..id..": "..p) end
 	end
 end
 local b=W.WORLD_BUDGET
 table.insert(rows,"")
-table.insert(rows,string.format("Budget per world: %d parts, %d props, %d unique meshes, %dM voxel writes, %d terrain ops.",b.parts,b.props,b.uniqueMeshes,b.voxelWrites/1e6,b.terrainOps))
+table.insert(rows,string.format("Budget per world: %d parts, %d props, %d unique meshes, %dM voxel writes, %.1fM hill cells, %d terrain ops.",b.parts,b.props,b.uniqueMeshes,b.voxelWrites/1e6,b.bumpCells/1e6,b.terrainOps))
 print("@@BEGIN")
 print(table.concat(rows,"\n"))
 print("@@END")

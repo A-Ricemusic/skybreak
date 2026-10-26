@@ -1,3 +1,4 @@
+import { ActorPlacement } from "./ActorPlacement";
 import { MissionCatalog } from "./MissionCatalog";
 import { UploadedAssetSpecs } from "./UploadedAssetSpecs";
 import {
@@ -8,12 +9,20 @@ import {
 // Offline audit of a world plan (no Studio): every authored flight point and
 // route leg clear of solid geometry, targets on their authored XZ and on the
 // ground, grounded parts and props resting on what is under them (nothing
-// floating), boats on water, and the per-world mobile budget. Each problem is
-// a readable line so a failing spec says exactly what moved.
+// floating), boats on water along every escort leg (not just its vertices) with
+// water under their keels, and the per-world mobile budget. Each problem is a
+// readable line so a failing spec says exactly what moved.
 
 const WATERLINE_ASSETS = new Set<string>(["Frigate", "OilPlatform", "HarbourQuay"]);
 /** Largest gap allowed between a footprint's bottom and the surface under it. */
 const FLOAT_TOLERANCE = 1.5;
+/** Water always left between a hull's keel and the seabed: one voxel layer. */
+export const KEEL_MIN = 4;
+/** The protected HarborLaunch's plan footprint (assets/mission/harborlaunch.mesh.json: 26 wide, 57 long). */
+export const LAUNCH_HALF_WIDTH = 13;
+export const LAUNCH_HALF_LENGTH = 28.5;
+/** Spacing of the launch footprint samples along an escort leg. */
+const PATH_STEP = 10;
 
 function corners(x: number, z: number, hx: number, hz: number, yaw: number): number[][] {
 	const c = math.cos(yaw), s = math.sin(yaw), out: number[][] = [[x, z]];
@@ -33,6 +42,12 @@ function propProblems(plan: WorldPlan, p: PropSpec, out: string[]): void {
 		if (p.asset !== "HarbourQuay" && t.water === undefined) out.push(`${tag}: not on water`);
 		// The hull or legs must reach the water (or the seabed for the quay wall).
 		if (box.bottom > WATER_Y) out.push(`${tag}: bottom ${box.bottom} above the waterline`);
+		// A frigate floats: open water at the surface and the seabed clear of its keel across the hull.
+		if (p.asset === "Frigate") for (const [x, z] of corners(p.x, p.z, box.rect.hx, box.rect.hz, p.yaw)) {
+			const under = terrainTop(plan.ops, x, z);
+			if (under.water === undefined || math.abs(under.water - WATER_Y) > 0.01) { out.push(`${tag}: hull at (${math.floor(x)}, ${math.floor(z)}) not on open water`); break; }
+			if (under.solid > box.bottom - KEEL_MIN) { out.push(`${tag}: keel at ${box.bottom} within ${KEEL_MIN} of the seabed at ${under.solid}`); break; }
+		}
 		return;
 	}
 	// Every other prop rests on terrain or a quay deck. Trees and rocks are checked at their trunk or
@@ -62,6 +77,59 @@ function supportAt(plan: WorldPlan, x: number, z: number, own: PropSpec): number
 		if (math.abs(c * dx - s * dz) <= box.rect.hx && math.abs(s * dx + c * dz) <= box.rect.hz) top = math.max(top ?? -math.huge, box.top);
 	}
 	return top;
+}
+
+/** Why a launch hull point at (x, z) is not afloat in open water, or undefined when it is. */
+function notAfloat(plan: WorldPlan, x: number, z: number): string | undefined {
+	const t = terrainTop(plan.ops, x, z);
+	if (t.water === undefined || math.abs(t.water - WATER_Y) > 0.01) return `no open water (terrain top ${t.solid})`;
+	const keel = WATER_Y - ActorPlacement.Draught;
+	if (t.solid > keel - KEEL_MIN) return `seabed ${t.solid} under the keel at ${keel}`;
+	// The escort is re-grounded by a ray from above: any solid part or prop over the water lifts it.
+	const s = surfaceAt(plan, x, z);
+	if (s.kind !== "water") return `covered by ${s.name} at ${math.floor(s.y)}`;
+	return undefined;
+}
+/** The launch's centre and hull corners at (x, z) heading along (ux, uz). */
+function launchFootprint(x: number, z: number, ux: number, uz: number): number[][] {
+	const out = [[x, z]];
+	for (const [a, b] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) {
+		out.push([x + ux * a * LAUNCH_HALF_LENGTH - uz * b * LAUNCH_HALF_WIDTH, z + uz * a * LAUNCH_HALF_LENGTH + ux * b * LAUNCH_HALF_WIDTH]);
+	}
+	return out;
+}
+/**
+ * Every escort, defend and parked launch position: a moored launch (identity rotation, long axis
+ * along Z) at each authored point, and the moving launch heading along each leg every PATH_STEP
+ * studs. A beach-landing escort is exempt for its last leg's ramp (it is meant to run aground there).
+ */
+function boatPathProblems(plan: WorldPlan, out: string[]): void {
+	plan.waterPaths.forEach((path, n) => {
+		const pts = path.points, last = pts.size() - 1;
+		const beachRun = 90 + LAUNCH_HALF_LENGTH + PATH_STEP;
+		const check = (x: number, z: number, ux: number, uz: number, label: string): boolean => {
+			for (const [px, pz] of launchFootprint(x, z, ux, uz)) {
+				const why = notAfloat(plan, px, pz);
+				if (why !== undefined) { out.push(`boat path ${n + 1} ${label} at (${math.floor(x)}, ${math.floor(z)}): ${why}`); return false; }
+			}
+			return true;
+		};
+		for (let i = 0; i <= last; i++) {
+			if (path.beachEnd && i === last) continue;
+			check(pts[i][0], pts[i][1], 0, 1, `point ${i + 1}`);
+		}
+		for (let i = 1; i <= last; i++) {
+			const [ax, az] = pts[i - 1], [bx, bz] = pts[i];
+			const len = math.sqrt((bx - ax) * (bx - ax) + (bz - az) * (bz - az));
+			if (len < 1) continue;
+			const ux = (bx - ax) / len, uz = (bz - az) / len, n = math.ceil(len / PATH_STEP);
+			for (let k = 0; k <= n; k++) {
+				const d = len * k / n;
+				if (path.beachEnd && i === last && len - d < beachRun) break;
+				if (!check(ax + ux * d, az + uz * d, ux, uz, `leg ${i}`)) break;
+			}
+		}
+	});
 }
 
 export interface AuditResult { problems: string[]; checkedAir: number; checkedProps: number; checkedParts: number }
@@ -102,7 +170,9 @@ export function auditPlan(plan: WorldPlan): AuditResult {
 		}
 	}
 	for (const p of plan.props) propProblems(plan, p, problems);
-	// Boats: every escort, defend and parked point on the coast and ocean sits on open water.
+	// Boats: every escort, defend and parked point on the coast and ocean sits on open water,
+	// and the whole launch hull stays afloat along every escort leg.
+	boatPathProblems(plan, problems);
 	for (const path of plan.waterPaths) for (const pt of path.points) {
 		const t = terrainTop(plan.ops, pt[0], pt[1]);
 		const beached = path.beachEnd && pt === path.points[path.points.size() - 1];
