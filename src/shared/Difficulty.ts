@@ -103,6 +103,13 @@ export const Difficulty = {
 	All(): DifficultyDefinition[] { return ORDER.map((kind) => DEFINITIONS[kind]); },
 	Multiplier(kind: DifficultyKind, knob: DifficultyKnob): number { return MULTIPLIERS[knob][kind]; },
 	/** Act I Ace keeps a two-hit hull; later acts retain the armored flight. */
+	/**
+	 * Hull for optional raiders and couriers: Easy may soften them, but Ace never toughens them
+	 * (Ace's heavier flights are the required bandits only, so raiders stay two hits and couriers three).
+	 */
+	SupportHealth(kind: DifficultyKind, base: number): number {
+		return base * math.min(1, MULTIPLIERS.banditHealth[kind]);
+	},
 	BanditHealth(kind: DifficultyKind, act: number, base: number): number {
 		return base * (kind === "ace" && act === 1 ? 1.35 : MULTIPLIERS.banditHealth[kind]);
 	},

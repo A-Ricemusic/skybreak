@@ -33,6 +33,13 @@ describe("Round-3 difficulty envelope", () => {
 			expect(math.ceil(Difficulty.BanditHealth("ace", act + 1, health) / SpecialWeapons.StandardDamage)).toBe(act === 0 ? 2 : 3);
 		}
 	});
+	it("never toughens optional raiders or couriers on Ace: raiders two hits, couriers three", () => {
+		// RAIDER_HEALTH 100 and COURIER_HEALTH 160 in CombatService.
+		expect(math.ceil(Difficulty.SupportHealth("ace", 100) / SpecialWeapons.StandardDamage)).toBe(2);
+		expect(math.ceil(Difficulty.SupportHealth("ace", 160) / SpecialWeapons.StandardDamage)).toBe(3);
+		expect(Difficulty.SupportHealth("normal", 100)).toBe(100);
+		expect(Difficulty.SupportHealth("easy", 100) < 100).toBe(true);
+	});
 	it("allows one Normal flight threat while Ace restores two outside the gentle opening", () => {
 		for (let act = 0; act < 3; act++) for (const kind of Difficulty.Order) {
 			const cap = Difficulty.Scale(kind, "threatCap", CombatBalance.threatCap[act]);

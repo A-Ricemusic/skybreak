@@ -727,7 +727,9 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		model.Parent = session.folder;
 		model.PivotTo(CFrame.lookAt(position, position.add(direction)));
 		const baseHealth = role === "ace" ? options.aceHealth ?? 165 : role === "bandit" ? TUNING.banditHealth[act - 1] : role === "courier" ? COURIER_HEALTH : RAIDER_HEALTH;
-		const health = math.floor(role === "bandit" ? Difficulty.BanditHealth(session.difficulty, act, baseHealth) : Difficulty.Scale(session.difficulty, role === "ace" ? "aceHealth" : "banditHealth", baseHealth));
+		const health = math.floor(role === "bandit" ? Difficulty.BanditHealth(session.difficulty, act, baseHealth)
+			: role === "ace" ? Difficulty.Scale(session.difficulty, "aceHealth", baseHealth)
+			: Difficulty.SupportHealth(session.difficulty, baseHealth));
 		// Bandits and couriers break close locks; the opening sorties stay gentle unless the level says every bandit breaks.
 		const lockBreakChance = role === "ace" ? 0 : behaviour.banditsAlwaysBreak ? 1 : gentle(session) ? 0 : math.clamp(tuned(session, TUNING.lockBreakChance), 0, 1);
 		const flares = role === "ace" ? TUNING.aceFlares[act - 1] : role === "bandit" ? math.max(TUNING.banditFlares[act - 1], behaviour.banditFlares) : 0;
