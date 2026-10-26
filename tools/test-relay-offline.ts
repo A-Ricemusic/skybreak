@@ -4,7 +4,7 @@ import {mkdir} from "node:fs/promises";
 import {resolve} from "node:path";
 const root=resolve(import.meta.dir,".."),dest=resolve(root,"build/offline-relay");
 await mkdir(dest,{recursive:true});
-const files=["shared/CinematicInput","tests/CinematicInput.spec","shared/NavigationPilot","shared/FlightMath","shared/MissionCatalog","shared/BlueprintRunner","shared/MissionLayouts","shared/RelayStory","shared/GameConfig","server/CampaignRepository","tests/RelayCampaign.spec","tests/BlueprintProgress.spec"];
+const files=["shared/CinematicInput","tests/CinematicInput.spec","shared/NavigationPilot","shared/FlightMath","shared/MissionCatalog","shared/BlueprintRunner","shared/MissionLayouts","shared/MissionScore","shared/SpecialWeapons","shared/WeaponRules","shared/RelayStory","shared/GameConfig","server/CampaignRepository","tests/RelayCampaign.spec","tests/BlueprintProgress.spec"];
 for(const file of files){
 	let source=await Bun.file(resolve(root,`out/${file}.luau`)).text();
 	source=source.split("\n").filter(line=>!line.startsWith("local TS = require(")).map(line=>{

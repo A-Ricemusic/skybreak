@@ -1,53 +1,210 @@
-export type StoryScene = "hangar" | "canyon" | "farm" | "relay" | "harbor" | "city";
-export interface StoryBeat { speaker: string; text: string; shot: "radio" | "wide" | "evidence"; }
-export interface StoryChapter { id: number; title: string; scene: StoryScene; beats: StoryBeat[]; }
+export type StoryScene = "hangar" | "canyon" | "farm" | "relay" | "harbor" | "city" | "sea";
+export type StoryMood = "dawn" | "day" | "dusk" | "night" | "storm";
+export type StoryShot = "radio" | "wide" | "evidence" | "chair" | "recorder" | "sky" | "black";
+export interface StoryBeat { speaker: string; text: string; shot: StoryShot; }
+export interface StoryChapter { id: number; title: string; scene: StoryScene; mood: StoryMood; beats: StoryBeat[]; }
+export const TEAL="TEAL · RECORDED";
+export const SERA="SERA · VARDA CONTROL";
+/** The coup's voice before anyone can put a name to it. */
 export const MARSHAL="MARSHAL · INTERCEPT";
+/** The same voice once the aurora archive names him (chapter 17 on). */
+export const RUSK="RUSK · AIR MARSHAL";
+export const TRAINEE="TRAINEE";
+export const LOG="FLIGHT LOG";
+export const RECORDER="RECORDER 7-T";
+export const VULTURE_TWO="VULTURE TWO";
 /** Colour family for a speaker chip; the client maps tones to palette colours. */
-export type SpeakerTone = "teal" | "control" | "log" | "marshal" | "trainee";
+export type SpeakerTone = "teal" | "control" | "log" | "marshal" | "trainee" | "wing";
 export interface SpeakerStyle { name: string; role?: string; tone: SpeakerTone }
-const SPEAKER_TONES: Record<string, SpeakerTone> = { TEAL: "teal", SERA: "control", "FLIGHT LOG": "log", MARSHAL: "marshal", TRAINEE: "trainee" };
+const SPEAKER_TONES: Record<string, SpeakerTone> = { TEAL: "teal", SERA: "control", "FLIGHT LOG": "log", "RECORDER 7-T": "log", MARSHAL: "marshal", RUSK: "marshal", TRAINEE: "trainee", "VULTURE TWO": "wing" };
 /** Splits "NAME · ROLE" speaker strings into a chip name, optional role and tone. */
 export function speakerStyle(speaker: string): SpeakerStyle {
 	const parts = speaker.split(" · ");
 	const name = parts[0];
 	return { name, role: parts.size() > 1 ? parts[1] : undefined, tone: SPEAKER_TONES[name] ?? "control" };
 }
-/** Optional speaker overrides for the first (a) and third (c) beats, e.g. an intercepted Marshal transmission. */
-interface Speakers { a?: string; c?: string }
-function chapter(id:number,title:string,scene:StoryScene,a:string,b:string,c:string,speakers: Speakers={}): StoryChapter {
-	return {id,title,scene,beats:[{speaker:speakers.a ?? "TEAL · RECORDED",text:a,shot:"radio"},{speaker:"SERA · VARDA CONTROL",text:b,shot:"wide"},{speaker:speakers.c ?? (id===27 ? "TRAINEE" : "FLIGHT LOG"),text:c,shot:"evidence"}]};
-}
-/** One opening, 26 bridges and a finale. Each has three rendered camera beats.
- * Tape fragments establish facts; Sera and the flight log connect their cause
- * to the next sortie. No licensed sound or visual assets are required. */
+/** Shorthand for one beat. */
+function line(speaker:string,shot:StoryShot,text:string): StoryBeat { return {speaker,text,shot}; }
+function chapter(id:number,title:string,scene:StoryScene,mood:StoryMood,...beats:StoryBeat[]): StoryChapter { return {id,title,scene,mood,beats}; }
+/**
+ * One opening, 26 bridges and a finale. Chapter k plays before mission k+1;
+ * chapter 27 plays after the last mission succeeds.
+ *
+ * The story is told only here. Teal's tapes are what he knew; Sera is what it
+ * costs the people left behind; the trainee answers, out loud, a little more
+ * each chapter. Nothing that matters happens off screen: the coup's voice is
+ * heard, the orchard burns, and Teal's last recording plays in full.
+ * Mission briefings carry the instructions, so these lines never do.
+ */
 export const STORY: StoryChapter[] = [
-	chapter(0,"A voice in the static","hangar","If I miss your checkout, fly the pattern anyway. The sky will still be there.","Teal missed three check-ins. You are the only trainee still at Varda Rim.","One Kestrel. One empty instructor's chair. First, earn clearance to leave."),
-	chapter(1,"The sealed case","hangar","Keep these tapes off the command net. If I disappear, take the case to Sera.","The bandits wore our markings. The quartermaster found this under Teal's bunk.","A supply manifest links the attackers to Iron Coast. Training has become a real sortie."),
-	chapter(2,"Fox trail","canyon","I came home through the western switchback. Listen for the broken receiver.","The coast is secure. Recovery teams cannot reach the canyon until you clear its scouts.","Teal left a trail of low-power beacons along his last approach."),
-	chapter(3,"An unlisted station","canyon","They built a second radar inside our own training perimeter. Nobody signed for it.","Recovery found his receiver in the rocks. Its memory points to these quarters.","Scan the hidden compound before destroying its radar. We need proof, not guesses."),
-	chapter(4,"The orchard witnesses","farm","The Teklan farmers let me hide a tape in a seed tin. They never asked my rank.","Command has ordered an evacuation of that orchard. Their patrols are firing on the trucks.","Three officers at Varda are being reassigned tonight. Their names are already off the roster.",{c:MARSHAL}),
-	chapter(5,"Fuel under grain","farm","Three tanks hold aviation fuel under grain permits. The farmers know the difference.","The convoy is safe. Its driver marked the military silos and the irrigation channel.","Strike only the marked tanks. Every unmarked farm belongs to someone we are protecting."),
-	chapter(6,"The dust courier","canyon","One courier carries the frequency book through the dust pass every evening.","We intercepted his escort code. Four fighters are using the front to hide their route.","Follow the low beacons through the pass, then stop the courier's flight."),
-	chapter(7,"Varda switch","hangar","If they call our tower compromised, check who changed the challenge code.","The courier's packet has tomorrow's coup orders. They have brought the attack forward.","Protect Varda's tower while its crew restores the loyalist challenge code."),
-	chapter(8,"Vulture Lead","canyon","Vulture Lead followed me into the pass. He is not chasing a deserter. He is erasing a witness.","Varda's tower is ours again. Lead is searching the night approach for your aircraft.","The beacons will get you above the dark ridge. Then finish Teal's last fight."),
-	chapter(9,"The plateau chain","relay","Kiro talks to Lira, Lira to Merel, Merel to the harbors. Break one link and listen to who screams.","Vulture Lead is down. His recorder confirms that the relays carry forged emergency orders.","At Node Kiro, scan the archive before you cut the transmitter."),
-	chapter(10,"Two ridges","relay","An emergency is a gift. People thank you for taking what you would have had to steal.","Kiro's archive survived the scan. We have the Marshal's key, but need two matching signatures.","Lira and Merel sit on opposite ridges. Take them in order, then relay the packet.",{a:MARSHAL}),
-	chapter(11,"The portable voice","farm","A transmitter on wheels is harder to silence than a voice in a fixed tower.","Your packet reached the farms. A loyalist crew is moving their only mobile transmitter.","Their truck cannot outrun interceptors. Fly close, clear threats, and bring it through."),
-	chapter(12,"The staging farm","farm","They call it a farm because a fuel ledger would expose the number of aircraft.","The transmitter arrived. Its first reply identifies four warehouses feeding the coup.","Scan the staging site, destroy the marked stores, and leave the civilian roofs standing."),
-	chapter(13,"High crossing","relay","There's a saddle where all three arrays can hear you. Go say something true there.","The store raid exposed a command frequency. We need you over the saddle to reach it.","Climb through the four beacons. The relays ahead are the last locked part of the plateau."),
-	chapter(14,"The loyalist window","farm","A clear signal needs time. Do not give them a hero. Give them thirty-five seconds.","We have signatures from three stations. The mobile crew is ready to broadcast the proof.","Stay inside the signal volume while they transmit. Jammers will try to drive you out."),
-	chapter(15,"Walking the storm","farm","Storms ground frightened people. They do not ground orders, fuel, or the people who own them.","Three garrisons heard the proof. The Marshal is moving his last plateau fuel under the weather.","Use the low river gates, burn the marked tanks, and cut the forward relay."),
-	chapter(16,"Aurora archive","relay","At the crown station I left the order that started all of this. It has his real signature.","The plateau fuel is gone. One relay is still talking through the aurora.","Destroy its transmitter, then hold the receive orbit. The archive can speak without the dish."),
-	chapter(17,"Vulture Two","relay","Vulture Two was my instructor. He taught me that an order is not the same as a duty.","The archive is signed Air Marshal Rusk. Vulture Two has challenged your call sign from the ridge.","Climb into his searchlights. His flight is the last barrier between the farms and the coast."),
-	chapter(18,"Military quays","harbor","On the coast, look at what the cranes unload. The uniforms will tell you nothing.","Vulture Two is down. He ejected; marines have him. He asked if you were Teal's. I said yes.","Identify the military quays from low altitude before striking the three warehouses."),
-	chapter(19,"The evidence launch","harbor","I made a paper copy. Radios can be jammed. Ink still travels in a boat.","The harbor stores are destroyed. A courier launch is waiting for an opening in the eastern wing.","Break that wing, then escort the evidence out through the harbor."),
-	chapter(20,"The city in darkness","city","His tower repeats an emergency that he invented. The city hears nothing else.","The launch is clear. Marines have the evidence; the city's loudest transmitter is still his.","Follow the unlit canal. Silence the broadcast relay without striking the apartments."),
-	chapter(21,"Fog fuel","harbor","The reserve fuel has five piers. Each carries a false civilian permit with the same signature.","The city heard silence for the first time in days. The Marshal is fueling an escape under fog.","Trainee. Teal had talent too. Ask the canyon how far it got him.",{c:MARSHAL}),
-	chapter(22,"The frigate ring","harbor","If I cannot fly home, make sure the next pilot can. That is what a wing is for.","His convoy cannot refuel. Loyalist frigates have formed a ring around the offshore platform.","Keep raiders off the command frigate until the blockade closes. Stay near its green beacon."),
-	chapter(23,"The storm platform","harbor","Those stores were never on a defense map. You don't hide fuel at sea for a week. Only for a war.","The frigate held. The Marshal has withdrawn his flag, leaving his reserves on the deck.","Take the low sea approach and destroy the three stores through the storm."),
-	chapter(24,"The dawn landing","city","Do not fly for the people giving orders. Fly for the people who have to live beneath them.","The platform is out of fuel. Loyalist landing craft are approaching the city's beach.","Cover their route, clear the intercepts, and cut the relay directing fire onto the shore."),
-	chapter(25,"The last fracture","city","I knew what following that order would cost. I left these tapes so you could choose freely.","Recovery found Teal's recorder in the pass. He held it open so the orchard trucks could get out.","RECORDER 7-T. Last entry 04:12. Aircraft lost with pilot. Status amended: KILLED, NOT DESERTED."),
-	chapter(26,"Broken relay","city","When you have the truth, send it in your own voice. You do not have to sound like me.","The wing is broken. Your triangulation found the Marshal above the parliament transmitter.","Land, and I'll tell the city you were misled. Fly, and you're the traitor in every history.",{c:MARSHAL}),
-	chapter(27,"A clear frequency","city","The sky will still be there.","Every harbor is answering. You're on every receiver on the coast. Say it your way.","This is Varda trainee, transmitting in the clear. For Teal. For the rim. We are coming home."),
+	chapter(0,"A voice in the static","hangar","dawn",
+		line(TEAL,"recorder","Two taps. That's me. If you're hearing this, I missed a check-in, and you're sitting in my chair because nobody else wanted the paperwork."),
+		line(SERA,"chair","He missed three. He told me once: one check-in is weather, two is trouble, three is worry. I've been worried since Tuesday."),
+		line(TEAL,"radio","Sparrow. You fly the pattern too low and too fast, and I never fixed it, because it's the only thing you do without asking permission."),
+		line(SERA,"wide","Command calls it desertion. They made me say the word on the net. I said it. I'm not saying it again."),
+		line(TEAL,"sky","If I miss your checkout, fly the pattern anyway. The sky will still be there."),
+		line(TRAINEE,"chair","Three bandits on the rim and an empty chair. Fine. I'll fly the pattern.")),
+	chapter(1,"The sealed case","hangar","night",
+		line(SERA,"evidence","The bandits wore our markings. Our paint, our numbers. One of them was a tail I signed off for maintenance in March."),
+		line(SERA,"chair","The quartermaster found a case under Teal's bunk. A coffee tin, twelve tapes, and a note: 'For Sera. Not for the net.'"),
+		line(TEAL,"recorder","Keep these off the command net. Somebody up there is listening and signing things they shouldn't. If I go quiet, the case goes to Sera. Only Sera."),
+		line(TEAL,"radio","There's a manifest in the tin. Aviation fuel, shipped as grain, to five quays on Iron Coast. Nobody ships grain in drums."),
+		line(SERA,"wide","Iron Coast is a hundred miles of our own shoreline. Whoever this is, they're not invading. They're already home."),
+		line(TRAINEE,"sky","Then I'll go and look at the quays myself.")),
+	chapter(2,"Fox trail","canyon","dusk",
+		line(TEAL,"radio","I came home through the western switchback. Not the pretty way. The way you take when you don't want to be seen coming home."),
+		line(TEAL,"recorder","I dropped beacons on the way in. Low power, my own frequency. If anyone ever follows me, I wanted it to be someone who knew the song."),
+		line(SERA,"wide","Recovery wanted to walk the canyon for him. Command said no: there are scouts in the rocks, and recovery teams don't carry missiles."),
+		line(SERA,"chair","He used to tune that canyon on Sundays. Said it was the only place the tower couldn't talk to him."),
+		line(TRAINEE,"sky","Then that's where he went when he had something to say.")),
+	chapter(3,"An unlisted station","canyon","night",
+		line(SERA,"evidence","Recovery got into the lower switchback. They found his receiver in the rocks. Cracked case, memory intact. He put it where it would be found."),
+		line(TEAL,"recorder","There's a radar inside our own training box. Dug into the bowl north of the pass. Nobody signed for it. I checked the ledger three times."),
+		line(TEAL,"radio","Somebody wanted to watch trainees. Not the sky. Trainees. Think about why you'd want to know when the kids fly."),
+		line(SERA,"wide","If it's real, it's been watching every pattern you've flown for a year. Command wants it gone quietly. I want it photographed first."),
+		line(TRAINEE,"chair","If I just blow it up, it's a rumour. If I look at it first, it's a crime.")),
+	chapter(4,"The orchard witnesses","farm","day",
+		line(TEAL,"radio","The Teklan farmers let me hide a tape in a seed tin. The old woman asked my name, not my rank. Nobody at Varda has asked my name in ten years."),
+		line(SERA,"wide","The radar's memory names that orchard. Three days later somebody ordered it evacuated. Now there are patrols firing on the evacuation trucks."),
+		line(SERA,"chair","They're not shooting at farmers. They're shooting at a seed tin. That's how badly someone wants Teal's tape back."),
+		line(MARSHAL,"black","...three officers at Varda are being reassigned tonight. Their names are already off the roster. Nobody will ask. Nobody ever asks."),
+		line(TRAINEE,"sky","Those trucks are carrying somebody who asked his name. They get out.")),
+	chapter(5,"Fuel under grain","farm","dusk",
+		line(SERA,"wide","The convoy made it. The old woman's granddaughter drove the lead truck. She marked three silos on the map with her thumb. 'Those smell wrong.'"),
+		line(TEAL,"recorder","Three tanks under grain permits. Aviation fuel. The farmers know the difference, they just can't prove it. A fuel ledger would prove it."),
+		line(TEAL,"radio","Sparrow. Every unmarked silo in that valley is somebody's winter. Don't be the one who makes them hungry to make a point."),
+		line(SERA,"chair","He wrote that one for you. He never wrote anything for me. I'm choosing not to be hurt by that today."),
+		line(TRAINEE,"evidence","Three thumbprints. Three fires. Nothing else.")),
+	chapter(6,"The dust courier","canyon","storm",
+		line(TEAL,"radio","One courier flies the frequency book through the dust pass every evening. Same time, same whine in the engine. Somebody should fix that bearing."),
+		line(SERA,"evidence","We pulled his escort code out of the silo radios. Four fighters hide in the dust front with him. They'd rather lose him than drop what he carries."),
+		line(SERA,"wide","If the book is real, every relay on the plateau is in it. Every forged voice. Every name."),
+		line(TRAINEE,"sky","Then I'd like to read it.")),
+	chapter(7,"Varda switch","hangar","night",
+		line(SERA,"evidence","The courier's packet opened. It isn't a frequency book. It's tomorrow's orders: Varda tower 'compromised', challenge code changed, my crew 'relieved' at 0400."),
+		line(TEAL,"recorder","If they ever call our tower compromised, check who changed the challenge code. The tower doesn't go bad. The code does."),
+		line(SERA,"chair","They've moved it up. They know we have the packet. Two flights are inbound and my crew is in the tower with a soldering iron and the old code on a napkin."),
+		line(SERA,"radio","I'm staying in the tower. In case you were wondering. I'm not leaving my chair for them."),
+		line(TRAINEE,"sky","Keep the lights on, Sera. I'll keep the sky.")),
+	chapter(8,"Vulture Lead","canyon","night",
+		line(SERA,"wide","The tower is ours again. The old code went out at 0353 and three flights turned around on hearing it. One didn't."),
+		line(TEAL,"recorder","Vulture Lead followed me into the pass. He wasn't chasing a deserter. You don't chase deserters at night with your lights off. He was erasing a witness."),
+		line(TEAL,"radio","He talks on the guard channel when he's hunting. Likes you to know. Don't answer him. Let the canyon answer."),
+		line(SERA,"chair","He's searching the night approach for you now. Same lights off. Same voice. He thinks he's finishing a job."),
+		line(TRAINEE,"sky","He's starting one.")),
+	chapter(9,"The plateau chain","relay","dawn",
+		line(SERA,"evidence","Vulture Lead is down. His recorder survived. He carried relayed 'emergency orders', dozens, every one signed by a governor who's been dead since spring."),
+		line(TEAL,"radio","Kiro talks to Lira. Lira talks to Merel. Merel talks to the harbours. Break one link and listen to who screams."),
+		line(TEAL,"recorder","There's an archive in Node Kiro. Every forged order ever relayed, kept, because forgers are vain. Don't let it burn. It's the only honest thing on the plateau."),
+		line(SERA,"chair","I wiped his name off my board this morning. Then I wrote it back. I'm not ready to decide what he is."),
+		line(TRAINEE,"sky","Then let's go and find out what he saw.")),
+	chapter(10,"Two ridges","relay","day",
+		line(MARSHAL,"black","An emergency is a gift. People thank you for taking what you would have had to steal. Keep them frightened and they hand you the keys."),
+		line(SERA,"evidence","Kiro's archive survived. We have his signing key. But a key alone is a rumour. We need two more stations' logs with the same signature."),
+		line(TEAL,"radio","Lira and Merel sit on opposite ridges and hate each other's weather. Take them in order. The west ridge hears the farms."),
+		line(SERA,"wide","When you have all three, send Teal's packet from the west ridge. Let the farms hear what the plateau heard."),
+		line(TRAINEE,"sky","His own words, in his own voice, on their own relay. He'd have liked that.")),
+	chapter(11,"The portable voice","farm","dusk",
+		line(SERA,"wide","Your packet reached the farms. The old woman heard it in her kitchen. She says Teal sounded tired. She says he always sounded tired."),
+		line(SERA,"evidence","A loyalist crew has one mobile transmitter on a flatbed. It's the only voice on the plateau that isn't his. They're driving it into the refugee corridor."),
+		line(TEAL,"recorder","A transmitter on wheels is harder to silence than a voice in a tower. Harder to protect, too. Somebody will have to fly very close to a very slow truck."),
+		line(TRAINEE,"chair","Slow truck. Fast jet. I've done worse maths.")),
+	chapter(12,"The staging farm","farm","night",
+		line(SERA,"evidence","The transmitter is through. Its first reply named four warehouses on a 'farm' with a rail siding and no animals."),
+		line(TEAL,"radio","They call it a farm because a fuel ledger would show the number of aircraft. Count the roofs with no windows. Those are the ones."),
+		line(SERA,"chair","There are real houses in that yard. Families who work the siding. I need you to come home with the right number of fires."),
+		line(TRAINEE,"sky","Four. I can count to four.")),
+	chapter(13,"High crossing","relay","dawn",
+		line(TEAL,"recorder","There's a saddle where all three arrays can hear you at once. Go and say something true there. Nobody's said anything true on that frequency in a year."),
+		line(SERA,"wide","The staging raid exposed a command frequency. It only reaches the saddle, and the antennas up there are his."),
+		line(SERA,"chair","Teal flew that saddle on his checkride. Vulture Two signed the card. I pulled it last night. The handwriting matches the forged orders."),
+		line(TRAINEE,"sky","Then I'll fly his checkride for him. Properly, this time.")),
+	chapter(14,"The loyalist window","farm","day",
+		line(SERA,"evidence","Three stations, one signature. The mobile crew has it on tape with the real governor's death certificate read over the top. It runs thirty-five seconds."),
+		line(TEAL,"radio","A clear signal needs time. Don't give them a hero. Give them thirty-five seconds and a hero is beside the point."),
+		line(SERA,"chair","He recorded that two weeks before he vanished. Thirty-five seconds. He'd already timed it. He knew exactly what this would take."),
+		line(TRAINEE,"sky","Thirty-five seconds. Nobody jams me for thirty-five seconds.")),
+	chapter(15,"Walking the storm","farm","storm",
+		line(SERA,"wide","Three garrisons heard it. Two stood down. And then the Marshal answered."),
+		line(MARSHAL,"black","Varda Rim has broadcast enemy propaganda. It is a hostile station. The Teklan orchard sheltered the source. There will be no further warnings."),
+		line(SERA,"evidence","The orchard burned at noon. The old woman is alive. Her granddaughter is alive. The seed tin is ash. That's my report, and I hate it."),
+		line(SERA,"chair","I asked you to broadcast. I'd ask again. I need you to know that I'd ask again."),
+		line(TEAL,"recorder","Storms ground frightened people. They don't ground orders, or fuel, or the people who own them. When the weather's bad, that's when they move."),
+		line(TRAINEE,"sky","Then he's moving now, under the weather. And I'm going to be under it with him.")),
+	chapter(16,"Aurora archive","relay","night",
+		line(SERA,"wide","His plateau fuel is gone. One relay still talks: the crown station, under the aurora. It only transmits at night."),
+		line(TEAL,"radio","At the crown station I left the order that started all of this. The first one. With his real signature, before he learned to use dead men's names."),
+		line(TEAL,"recorder","I didn't take it with me. I didn't trust myself to get home. I trusted the dish."),
+		line(SERA,"chair","He knew. Two weeks before. He knew he might not come home, and he hid the evidence where it would outlive him."),
+		line(TRAINEE,"sky","Then I'll go and listen to what he left.")),
+	chapter(17,"Vulture Two","relay","night",
+		line(LOG,"evidence","ARCHIVE RECOVERED. ORDER 0001. 'Declare regional emergency. Suspend parliament. Assume air command.' Signed: RUSK, AIR MARSHAL."),
+		line(SERA,"wide","Rusk. He gave the speech at Teal's wing ceremony. He told us the sky belongs to whoever is willing to be up in it."),
+		line(VULTURE_TWO,"black","Varda trainee, this is Vulture Two. I taught your instructor to fly. I know what he'd try from that ridge. Turn home. Nobody has to watch."),
+		line(TEAL,"recorder","Vulture Two taught me that an order is not the same as a duty. Then he forgot. If you meet him, remind him. Loudly."),
+		line(SERA,"chair","He's challenged your call sign from the ridge. Searchlights. He wants you to climb into them. He wants to see your face."),
+		line(TRAINEE,"sky","Then he'll see it.")),
+	chapter(18,"Military quays","harbor","dawn",
+		line(SERA,"wide","Vulture Two is down. He ejected. Marines pulled him out of the surf. He asked if you were Teal's. I said yes."),
+		line(VULTURE_TWO,"recorder","He was the best I ever signed off. Tell the kid the handwriting was mine. All of it. I'm done lying to pilots."),
+		line(TEAL,"radio","On the coast, look at what the cranes unload. The uniforms tell you nothing. The crates do."),
+		line(SERA,"evidence","Three warehouses on the military quays, two blocks from a fish market. Rusk put his war where he knew we'd hesitate."),
+		line(TRAINEE,"chair","He's right. I'll hesitate. Then I'll aim.")),
+	chapter(19,"The evidence launch","harbor","day",
+		line(TEAL,"recorder","I made a paper copy. Radios get jammed. Ink still travels in a boat. It's in the harbour master's safe, and she doesn't like the Marshal either."),
+		line(SERA,"wide","The harbour stores are gone. The harbour master has the copy on a courier launch. The eastern wing has the harbour mouth sealed."),
+		line(SERA,"chair","Everything we have is on that boat. The archive, the signatures, his tapes. If it sinks, Teal is a deserter forever."),
+		line(TRAINEE,"sky","It doesn't sink.")),
+	chapter(20,"The city in darkness","city","night",
+		line(SERA,"wide","The launch is clear. Marines have the evidence. And the city still hears nothing but him."),
+		line(RUSK,"black","Citizens. Parliament has fled. Rebel aircraft are over the harbour. Stay inside. Trust the lights. Trust my voice."),
+		line(TEAL,"radio","His tower repeats an emergency he invented. The city hears nothing else because he built it so they couldn't."),
+		line(SERA,"evidence","The broadcast relay sits in a block of apartments. He chose that too. The canal is the only dark line through the city."),
+		line(TRAINEE,"chair","Everyone in those apartments has been listening to him for a year. I'd like to give them some quiet.")),
+	chapter(21,"Fog fuel","harbor","storm",
+		line(SERA,"wide","The city heard silence last night. First time in a year. People opened their windows. Then the fog came in and he started fuelling."),
+		line(TEAL,"recorder","The reserve fuel has five piers. Each one has a civilian permit, and every permit has the same signature. He never learned a second name."),
+		line(RUSK,"black","Trainee. I knew Teal. He flew my wing the winter the coast starved while parliament debated. He had talent too. Ask the canyon how far it got him."),
+		line(SERA,"chair","That's the first time he's used his own name. He wants you to know he's a person. Don't let him."),
+		line(TRAINEE,"sky","He flew your wing. Then you hunted him at night with your lights off. I'll remember both.")),
+	chapter(22,"The frigate ring","sea","storm",
+		line(SERA,"evidence","His convoy can't refuel. Three loyalist frigates have ringed the offshore platform. The command frigate carries a green beacon and most of our hope."),
+		line(TEAL,"radio","If I can't fly home, make sure the next pilot can. That's what a wing is for. That's all a wing is for."),
+		line(SERA,"chair","The frigate captain was at his wing ceremony too. Half this coast was. Rusk forgot that we all remember."),
+		line(TRAINEE,"sky","Green beacon. I'll stay close enough to read it.")),
+	chapter(23,"The storm platform","sea","storm",
+		line(SERA,"wide","The frigate held. He pulled his flag off the platform at midnight and left his reserves on the deck. He's running, and he's leaving the fuel behind."),
+		line(TEAL,"recorder","Those stores were never on a defence map. You don't hide fuel at sea for a week. Only for a war."),
+		line(SERA,"evidence","Three stores on a trident of decks, under a storm he didn't order. There's no high approach left. Only the sea."),
+		line(TRAINEE,"chair","He said the canyon got Teal. Let's see what the sea does to him.")),
+	chapter(24,"The dawn landing","city","dawn",
+		line(SERA,"wide","The platform is dry. Loyalist landing craft are off the city beach, waiting for first light. Parliament is coming home by boat."),
+		line(TEAL,"radio","Don't fly for the people giving orders. Fly for the people who have to live beneath them. That's the whole job. Everything else is weather."),
+		line(SERA,"chair","He recorded that one at two in the morning. I can hear the hangar heater behind him. I could find that hangar in the dark by that sound."),
+		line(TRAINEE,"sky","Beneath them. Right. The beach, then.")),
+	chapter(25,"The last fracture","canyon","dawn",
+		line(SERA,"wide","Recovery reached the upper pass this morning. They found his aircraft. They found him. He was in the seat. The recorder was still running."),
+		line(RECORDER,"black","RECORDER 7-T. ENTRY 04:12. PLAYBACK."),
+		line(TEAL,"black","Two taps. Sparrow, it's me. Lead is on my tail and I'm out of altitude, so I'm going to stay in the pass a while. The trucks need ten minutes."),
+		line(TEAL,"black","I knew what following that order would cost. I left the tapes so you could choose freely. I didn't want to pick for you. I'm picking for me now."),
+		line(TEAL,"black","Fly the pattern too low and too fast. Nobody ever fixed it. Good. The sky will..."),
+		line(SERA,"chair","He held the pass so the orchard trucks could get out. The old woman. The granddaughter. The seed tin. He bought them ten minutes with everything he had."),
+		line(SERA,"evidence","I've amended the record myself. 'Aircraft lost with pilot. KILLED, NOT DESERTED.' Command can court-martial the paperwork."),
+		line(TRAINEE,"sky","Ten minutes. He bought ten minutes. I'm going to go and spend them.")),
+	chapter(26,"Broken relay","city","dusk",
+		line(SERA,"evidence","The wing is broken. Your triangulation puts his last transmission above the parliament tower. He's alone up there with one relay and his own voice."),
+		line(RUSK,"black","Trainee. Land, and I'll tell the city you were misled by a dead man. Fly, and you're the traitor in every history I write."),
+		line(TEAL,"recorder","When you have the truth, send it in your own voice. You don't have to sound like me. You never did."),
+		line(SERA,"chair","I've got every harbour on the net. Every loyalist station is listening for one call sign. Not his. Yours."),
+		line(TRAINEE,"sky","Marshal. I heard the tape. He didn't sound misled. He sounded like he was counting trucks."),
+		line(TRAINEE,"radio","Sera. Varda trainee, checking in. One of three. The other two are for after.")),
+	chapter(27,"A clear frequency","city","dawn",
+		line(SERA,"wide","He's down. His relay is dark. Every harbour on the coast is answering. You're on every receiver from the rim to the sea. Say it your way."),
+		line(TRAINEE,"sky","This is Varda trainee, transmitting in the clear. The Air Marshal is down. The emergency is over. It never started."),
+		line(TRAINEE,"radio","The orders were forged. The names were dead men's. An orchard was burned for a seed tin. Teal flew the pass so the trucks could get out."),
+		line(TRAINEE,"evidence","His name was Teal. He was not a deserter. Amend your records. For Teal. For the rim. We are coming home."),
+		line(SERA,"chair","Varda trainee, Varda Control. Check-in received. Two of three. Come home and make the third in person."),
+		line(TEAL,"recorder","...the sky will still be there."),
+		line(LOG,"black","VARDA RIM ROSTER. TEAL: KILLED IN ACTION, NOT DESERTED. INSTRUCTOR'S CHAIR: FILLED.")),
 ];
 export function storyFor(id:number): StoryChapter { assert(id%1===0 && id>=0 && id<STORY.size(),"Invalid story chapter"); return STORY[id]; }
