@@ -62,8 +62,9 @@ const NIGHT_WATER = water([10, 24, 42], 0.24, 0.15, 0.1, 8);
 export const ENVIRONMENTS: Record<EnvironmentPreset, EnvironmentSpec> = {
 	canyon_dawn: spec("Canyon dawn", 6.3, 2.2, 0.1, [110, 108, 130], [150, 140, 150], 0.5, 0.6,
 		atmo(0.3, 0.25, 1.8, 0.25, [236, 196, 170], [150, 110, 120]), cloud(0.35, 0.25, [255, 222, 200]), grade(0.05, 0.06, 0, [255, 240, 228]), SOFT, "day", 0, 24, 14, CLEAR_WATER, "none"),
+	// Desert noon: a warm, dusty haze rather than the clean blue of open ocean.
 	canyon_noon: spec("Canyon noon", 12.2, 2.8, 0, DAY_AMBIENT, DAY_OUTDOOR, 0.5, 0.65,
-		atmo(0.22, 0.05, 1.0, 0.15, [200, 222, 235], [120, 150, 175]), cloud(0.18, 0.25, [246, 248, 250]), grade(0.1, 0.08, 0, [255, 255, 255]), SOFT, "day", 0, 21, 14, CLEAR_WATER, "none"),
+		atmo(0.22, 0.05, 1.0, 0.15, [214, 214, 200], [140, 150, 160]), cloud(0.18, 0.25, [246, 248, 250]), grade(0.1, 0.08, 0, [255, 255, 255]), SOFT, "day", 0, 21, 14, CLEAR_WATER, "none"),
 	// The dust front: a tan atmosphere thick enough to swallow the far mesas.
 	canyon_dusk: spec("Canyon dusk, dust front", 17.4, 2.0, 0.05, [128, 108, 90], [160, 136, 110], 0.45, 0.4,
 		atmo(0.45, 0.35, 3.0, 0.35, [214, 172, 118], [170, 120, 80]), cloud(0.25, 0.2, [230, 190, 150]), grade(-0.05, 0.1, 0, [255, 226, 190]), SOFT, "dusk", 0, 26, 14, WARM_WATER, "dust"),
@@ -87,19 +88,20 @@ export const ENVIRONMENTS: Record<EnvironmentPreset, EnvironmentSpec> = {
 		atmo(0.34, 0.3, 2.4, 0.08, [232, 160, 120], [110, 80, 90]), cloud(0.4, 0.25, [240, 180, 160]), grade(0.1, 0.1, 0, [255, 232, 214]), NO_BLOOM, "dusk", 0, 12, 14, WARM_WATER, "none"),
 	city_night: spec("City night", 23.8, 1.2, 0.4, [54, 54, 76], [62, 64, 90], 0.35, 0.5,
 		atmo(0.36, 0.2, 1.8, 0, [120, 100, 150], [36, 30, 58]), cloud(0.45, 0.25, [60, 54, 78]), grade(0.05, 0.15, 0, [226, 214, 255]), NIGHT_GLOW, "night", 900, 21, 18, water([14, 20, 40], 0.3, 0.15, 0.1, 8), "none"),
-	city_dawn: spec("City sunrise", 6.0, 2.3, 0.12, [118, 108, 124], [160, 140, 146], 0.5, 0.6,
-		atmo(0.34, 0.3, 2.0, 0.3, [255, 206, 170], [140, 110, 130]), cloud(0.3, 0.25, [255, 210, 190]), grade(0.14, 0.06, 0, [255, 240, 226]), SOFT, "day", 0, 26, 14, water([40, 86, 116], 0.3, 0.2, 0.12, 8), "none"),
+	// Later and hazier than the canyon dawn: the sun is up over a city's morning smog.
+	city_dawn: spec("City sunrise", 7.0, 2.3, 0.12, [118, 108, 124], [160, 140, 146], 0.5, 0.6,
+		atmo(0.4, 0.3, 2.0, 0.3, [255, 206, 170], [140, 110, 130]), cloud(0.3, 0.25, [255, 210, 190]), grade(0.14, 0.06, 0, [255, 240, 226]), SOFT, "day", 0, 26, 14, water([40, 86, 116], 0.3, 0.2, 0.12, 8), "none"),
 	// Real fog: density well past the engine's "haze" range, with no sun disc.
 	harbor_fog: spec("Harbor fog", 9.0, 1.6, -0.02, [130, 138, 142], [150, 158, 162], 0.55, 0.25,
 		atmo(0.62, 0.55, 3.0, 0, [196, 204, 208], [160, 168, 172]), cloud(0.9, 0.3, [190, 196, 200]), grade(-0.3, -0.02, 0, [228, 234, 236]), NO_BLOOM, "overcast", 0, 0, 0, water([70, 90, 96], 0.05, 0.1, 0.05, 6), "fog"),
 	harbor_sunset: spec("Harbor sunset", 17.3, 2.3, 0.05, [105, 119, 134], [140, 151, 159], 0.5, 0.65,
 		atmo(0.25, 0.1, 1.4, 0.3, [232, 196, 160], [150, 110, 96]), cloud(0.38, 0.3, [238, 241, 244]), grade(0.08, 0.08, 0, [255, 255, 255]), SOFT, "dusk", 0, 26, 14, WARM_WATER, "none"),
-	ocean_storm: spec("Ocean storm", 14.0, 1.0, -0.15, [78, 88, 100], [98, 108, 120], 0.55, 0.3,
-		atmo(0.5, 0.45, 3.0, 0, [104, 116, 128], [56, 66, 80]), cloud(1.0, 0.3, [60, 66, 76]), grade(-0.35, 0.14, -0.02, [196, 210, 226]), NO_BLOOM, "overcast", 0, 0, 0, water([26, 44, 56], 0.3, 0.1, 0.45, 14), "storm"),
+	ocean_storm: spec("Ocean storm", 15.2, 1.0, -0.15, [78, 88, 100], [98, 108, 120], 0.55, 0.3,
+		atmo(0.5, 0.45, 3.0, 0, [104, 116, 128], [56, 66, 80]), cloud(1.0, 0.3, [60, 66, 76]), grade(-0.35, 0.14, -0.02, [196, 210, 226]), NO_BLOOM, "overcast", 0, 0, 0, water([20, 40, 58], 0.3, 0.1, 0.45, 14), "storm"),
 	ocean_clear: spec("Ocean clear", 13.0, 2.9, 0, [104, 122, 140], [136, 150, 158], 0.5, 0.7,
 		atmo(0.18, 0, 0.6, 0.12, [186, 224, 240], [100, 150, 190]), cloud(0.12, 0.2, [250, 252, 255]), grade(0.2, 0.06, 0, [240, 250, 255]), SOFT, "day", 0, 20, 14, water([16, 96, 140], 0.35, 0.25, 0.15, 10), "none"),
 	ocean_night: spec("Ocean night", 2.0, 1.3, 0.4, [40, 52, 72], [50, 64, 88], 0.35, 0.5,
-		atmo(0.26, 0.08, 1.0, 0, [80, 110, 160], [20, 36, 64]), cloud(0.2, 0.2, [60, 70, 90]), grade(-0.1, 0.12, 0, [200, 216, 255]), NIGHT_GLOW, "night", 3000, 21, 24, water([8, 20, 38], 0.25, 0.15, 0.12, 8), "none"),
+		atmo(0.26, 0.08, 1.0, 0, [80, 110, 160], [20, 36, 64]), cloud(0.05, 0.2, [60, 70, 90]), grade(-0.1, 0.12, 0, [200, 216, 255]), NIGHT_GLOW, "night", 3000, 21, 24, water([8, 20, 38], 0.25, 0.15, 0.12, 8), "none"),
 };
 
 export const ENVIRONMENT_NAMES: EnvironmentPreset[] = [

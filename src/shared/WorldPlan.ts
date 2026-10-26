@@ -69,7 +69,7 @@ export const EXTENT = 4000;
 export const FAR = 6000;
 const TILE = 2000;
 /** Mobile budget per mission world (audited by WorldPlan.spec; counts in docs/world-realism.md). */
-export const WORLD_BUDGET = { parts: 340, props: 280, uniqueMeshes: 20, voxelWrites: 70e6, bumpCells: 2.5e6, terrainOps: 700 };
+export const WORLD_BUDGET = { parts: 340, props: 280, uniqueMeshes: 20, voxelWrites: 100e6, bumpCells: 2.5e6, terrainOps: 700 };
 const BEACH_LANDINGS = new Set<number>([25]);
 const COAST_Z: { [id: number]: number } = { 19: -1260, 20: -1060, 21: -1640, 22: -1000, 25: -1560, 26: -1700, 27: -1700 };
 
@@ -534,7 +534,9 @@ function mesa(ctx: Ctx, x: number, z: number, w: number, d: number, h: number): 
 		const [scale, frac, wobble] = tiers[t];
 		const tw = math.min(2000, w * scale), td = math.min(2000, d * scale), ttop = GROUND + rise * frac;
 		const cx = x + w * wobble * rng.range(-1, 1), cz = z + d * wobble * rng.range(-1, 1), ty = yaw + rng.range(-0.05, 0.05);
-		op(ctx, "block", body, cx, (BASE_BOTTOM + ttop) / 2, cz, tw, ttop - BASE_BOTTOM, td, ty);
+		// Upper tiers start just under the tier below: the overlap is hidden rock and costs voxel writes.
+		const floor = t === 0 ? BASE_BOTTOM : previous - 8;
+		op(ctx, "block", body, cx, (floor + ttop) / 2, cz, tw, ttop - floor, td, ty);
 		// A darker stratum just proud of the face, a third of the way down the tier.
 		op(ctx, "block", band, cx, ttop - (ttop - previous) * 0.35, cz, tw + 2, 6, td + 2, ty);
 		// Rounded buttresses break up the long walls (eroded columns, no overhangs).
@@ -545,7 +547,7 @@ function mesa(ctx: Ctx, x: number, z: number, w: number, d: number, h: number): 
 			const radius = math.clamp(short * rng.range(0.05, 0.09) + 16, 22, 70);
 			const columnTop = ttop - (ttop - previous) * rng.range(0, 0.3);
 			const [ox, oz] = toWorld(long ? along : side * tw / 2, long ? side * td / 2 : along, ty);
-			op(ctx, "cylinder", t === 0 ? body : rng.next() < 0.5 ? body : band, cx + ox, (BASE_BOTTOM + columnTop) / 2, cz + oz, radius, columnTop - BASE_BOTTOM, 0);
+			op(ctx, "cylinder", t === 0 ? body : rng.next() < 0.5 ? body : band, cx + ox, (floor + columnTop) / 2, cz + oz, radius, columnTop - floor, 0);
 		}
 		if (t === 0) {
 			// Talus aprons slope out from the base on all four sides (tall edge against the wall).
@@ -680,7 +682,7 @@ function mountainRing(ctx: Ctx): void {
 		const along = -3200 + (k + 0.5) * 1280 + rng.range(-120, 120), distance = rng.range(3150, 3350);
 		const x = nx !== 0 ? nx * distance : along, z = nz !== 0 ? nz * distance : along;
 		if (cz !== undefined && z < cz + 500) continue;
-		const height = rng.range(lo, hi), depth = height * rng.range(1.6, 2.0), length = 1280 * rng.range(1.0, 1.2);
+		const height = rng.range(lo, hi), depth = height * rng.range(1.25, 1.45), length = 1280 * rng.range(1.0, 1.1);
 		const yaw = (nx !== 0 ? math.pi / 2 : 0) + rng.range(-0.15, 0.15);
 		for (const s of [-1, 1]) {
 			const [ox, oz] = toWorld(0, s * depth / 4, yaw);
@@ -712,17 +714,20 @@ function airfield(ctx: Ctx, cx: number, cz: number): void {
 	}
 	for (let i = 0; i <= 8; i++) for (const side of [-1, 1]) light(ctx, cx + side * 56, top + 1, cz - 500 + i * 125, i === 0 || i === 8 ? [255, 120, 90] : [255, 244, 210]);
 	zone(ctx, "airfield", cx, cz, 70, 560);
-	// Hangars and tower on whichever side is clear, facing the runway.
-	for (const side of [1, -1]) {
-		const hangars: Rect[] = [-150, 0, 150].map((dz) => ({ x: cx + side * 210, z: cz + dz, hx: 70, hz: 66, yaw: 0 }));
-		const tower: Rect = { x: cx + side * 200, z: cz + 330, hx: 34, hz: 26, yaw: 0 };
-		if (![...hangars, tower].every((r) => rectFree(ctx, r, 20, ["spawn"]) && math.abs(r.x) < 2600 && math.abs(r.z) < 2600)) continue;
-		if (GROUND + 127 > limit(ctx, tower.x, tower.z, 40)) continue;
-		part(ctx, "Apron", "block", cx + side * 112, top - 1, cz, 64, 2, 480, 0, CONCRETE, "Concrete", true, true);
+	// Hangars and tower on whichever side (and stretch of the runway) is clear, facing the runway.
+	for (const shift of [0, -220, 220, -400, 400]) for (const side of [1, -1]) {
+		const hz = cz + shift;
+		const hangars: Rect[] = [-150, 0, 150].map((dz) => ({ x: cx + side * 210, z: hz + dz, hx: 70, hz: 66, yaw: 0 }));
+		const tower: Rect = { x: cx + side * 200, z: hz + (shift > 0 ? -330 : 330), hx: 34, hz: 26, yaw: 0 };
+		const all = [...hangars, tower];
+		if (!all.every((r) => rectFree(ctx, r, 20, ["spawn"]) && math.abs(r.x) < 2600 && math.abs(r.z) < 2600 && !ctx.ridgeRects.some((m) => rectsOverlap(m, r, 30)))) continue;
+		if (!all.every((r) => dryFlat(ctx, r.x, r.z, 60, 0.5) === GROUND)) continue;
+		if (GROUND + 127 > limit(ctx, tower.x, tower.z, 40) || hangars.some((r) => GROUND + 40 > limit(ctx, r.x, r.z, 70))) continue;
+		part(ctx, "Apron", "block", cx + side * 112, top - 1, hz, 64, 2, 480, 0, CONCRETE, "Concrete", true, true);
 		for (const r of hangars) prop(ctx, "Hangar", r.x, GROUND, r.z, side > 0 ? math.pi / 2 : -math.pi / 2, 1, 0);
 		prop(ctx, "ControlTower", tower.x, GROUND, tower.z, side > 0 ? math.pi / 2 : -math.pi / 2, 1, 0);
-		zone(ctx, "airfield", cx + side * 190, cz + 90, 90, 330);
-		break;
+		zone(ctx, "airfield", cx + side * 190, (math.min(hz - 216, tower.z - 26) + math.max(hz + 216, tower.z + 26)) / 2, 90, (math.max(hz + 216, tower.z + 26) - math.min(hz - 216, tower.z - 26)) / 2);
+		return;
 	}
 }
 function chooseAirfield(ctx: Ctx): void {
@@ -793,7 +798,8 @@ function findSpot(ctx: Ctx, x: number, z: number, r: number, height: number): nu
 	}
 	return undefined;
 }
-function relayArray(ctx: Ctx, fx: number, fz: number): void {
+function relayArray(ctx: Ctx, fx: number, fz: number): number {
+	let placed = 0;
 	for (const [dx, dz, asset, r, height] of [[-420, 220, "RelayMast", 30, 153], [420, 220, "RelayMast", 30, 153], [-150, 360, "RadarDish", 36, 55], [150, 360, "RadarDish", 36, 55]] as Array<[number, number, PropAsset, number, number]>) {
 		const spot = findSpot(ctx, fx + dx, fz + dz, r, height);
 		if (!spot) continue;
@@ -801,7 +807,9 @@ function relayArray(ctx: Ctx, fx: number, fz: number): void {
 		circle(ctx, "landmark", spot[0], spot[2], r + 10);
 		if (asset === "RelayMast") light(ctx, spot[0], spot[1] + height + 3, spot[2], [255, 70, 60]);
 		else part(ctx, "Equipment hut", "block", spot[0] + 46, spot[1] + 5, spot[2], 20, 10, 14, 0, [96, 104, 108], "Metal", true, true);
+		placed += 1;
 	}
+	return placed;
 }
 function cityCentre(ctx: Ctx, fx: number, fz: number): void {
 	op(ctx, "block", "Pavement", fx, GROUND - 2, fz, 520, 4, 300, 0);
@@ -817,6 +825,16 @@ function cityCentre(ctx: Ctx, fx: number, fz: number): void {
 function clearOfWater(ctx: Ctx, r: Rect, extra: number): boolean {
 	return ctx.plan.waterPaths.every((p) => rectPolyDist(r, p.points) >= waterClear(p) + extra);
 }
+/** Top of the uploaded quay when its waterline sits on the sea surface. */
+export function quayDeck(): number {
+	const q = UploadedAssetSpecs.HarbourQuay;
+	return WATER_Y - q.groundOffset + q.size.Y;
+}
+/** Masthead height of the uploaded frigate floating at the waterline. */
+function frigateTop(): number {
+	const f = UploadedAssetSpecs.Frigate;
+	return WATER_Y - f.groundOffset + f.size.Y;
+}
 function harbour(ctx: Ctx, fx: number, cz: number, frigates: number): void {
 	const { rng } = ctx;
 	const quays: number[] = [];
@@ -827,8 +845,15 @@ function harbour(ctx: Ctx, fx: number, cz: number, frigates: number): void {
 		prop(ctx, "HarbourQuay", qx, WATER_Y, cz - 36, 0, 1, 0);
 		zone(ctx, "quay", qx, cz - 36, 122, 37);
 		quays.push(qx);
-		const crane: Rect = { x: qx, z: cz - 36, hx: 30, hz: 100, yaw: 0 };
-		if (k % 2 === 0 && clearOfWater(ctx, crane, 6) && GROUND + 160 <= limit(ctx, qx, cz - 36, 100)) prop(ctx, "GantryCrane", qx, GROUND, cz - 36, 0, 1, 0);
+		// Every other quay carries a gantry crane on its deck, boom out over the berth (its front, -Z, faces the sea).
+		if (quays.size() % 2 === 0) continue;
+		const deck = quayDeck();
+		for (const ox of [0, -60, 60]) {
+			const crane: Rect = { x: qx + ox, z: cz - 36, hx: 30, hz: 100, yaw: 0 };
+			if (!clearOfWater(ctx, crane, 6) || deck + 160 > limit(ctx, qx + ox, cz - 36, 100)) continue;
+			prop(ctx, "GantryCrane", qx + ox, deck, cz - 36, 0, 1, 0);
+			break;
+		}
 	}
 	for (const qx of quays) for (const [dx, dz] of [[-62, 80], [62, 80], [0, 190]]) {
 		const x = qx + dx + rng.range(-6, 6), z = cz + dz + rng.range(-6, 6), yaw = math.pi / 2 + rng.range(-0.04, 0.04);
@@ -842,7 +867,9 @@ function harbour(ctx: Ctx, fx: number, cz: number, frigates: number): void {
 		if (placed >= frigates) break;
 		const x = fx + off, z = cz - 165;
 		const hull: Rect = { x, z, hx: 216, hz: 30, yaw: 0 };
-		if (math.abs(x) > 2300 || !clearOfWater(ctx, hull, 30) || !rectFree(ctx, hull, 20, ["spawn"])) continue;
+		// Authored road lines that run out over the sea are never built there, so they do not keep ships away.
+		if (math.abs(x) > 2300 || !clearOfWater(ctx, hull, 30) || !rectFree(ctx, hull, 20, ["spawn", "road"])) continue;
+		if (frigateTop() > limit(ctx, x, z, 216)) continue;
 		if (![-200, -100, 0, 100, 200].every((dx) => groundAt(ctx, x + dx, z).water !== undefined)) continue;
 		prop(ctx, "Frigate", x, WATER_Y, z, math.pi / 2, 1, 0);
 		zone(ctx, "ship", x, z, 216, 30);
@@ -890,25 +917,40 @@ function ocean(ctx: Ctx): void {
 	const hub = platformHub(ctx)!;
 	prop(ctx, "OilPlatform", hub[0], WATER_Y, hub[1], 0, 1, 0);
 	zone(ctx, "platform", hub[0], hub[1], 165, 115);
-	// Mission 23's frigate ring: the defended command frigate sits on its authored point, the others share its radius.
+	// Mission 23's frigate ring: three frigates on one circle round the platform, bows along the ring. The command
+	// frigate holds the defended station: its hull lies just outboard of the authored point so the protected launch
+	// (CombatService's actor) floats alongside it, and green bow and stern beacons pick it out from the other two.
 	const defend = MissionCatalog.ExpandedPhases(ctx.bp).find((p) => p.kind === "defend")?.points?.[0];
 	if (ctx.layout.landmark !== "platform" || defend === undefined) return;
 	const dx = defend.x - hub[0], dz = defend.z - hub[1], radius = math.sqrt(dx * dx + dz * dz), base = math.atan2(dz, dx);
-	for (let k = 0; k < 3; k++) {
-		const a = base + k * math.pi * 2 / 3;
-		const x = hub[0] + math.cos(a) * radius, z = hub[1] + math.sin(a) * radius;
-		for (const yaw of [a, a + math.pi / 2, a + math.pi / 4, a - math.pi / 4]) {
-			// Long axis (local Z) along `yaw` measured like the ring angle: world direction (cos a, sin a).
+	const tryHull = (x: number, z: number, yaws: number[], protectedHull: boolean): boolean => {
+		for (const yaw of yaws) {
+			// Long axis (local Z) along world direction (cos yaw, sin yaw).
 			const shipYaw = math.atan2(math.cos(yaw), math.sin(yaw));
 			const hull: Rect = { x, z, hx: 30, hz: 216, yaw: shipYaw };
-			if (!clearOfWater(ctx, hull, 30)) continue;
-			prop(ctx, "Frigate", x, WATER_Y, z, shipYaw, 1, 0, k === 0 ? "ProtectedHull" : undefined);
-			if (k === 0) for (const tip of [-1, 1]) {
+			if (!clearOfWater(ctx, hull, 12) || !rectFree(ctx, hull, 20, ["water"]) || !inMap(x, z, 2400) || frigateTop() > limit(ctx, x, z, 216)) continue;
+			prop(ctx, "Frigate", x, WATER_Y, z, shipYaw, 1, 0, protectedHull ? "ProtectedHull" : undefined);
+			if (protectedHull) for (const tip of [-1, 1]) {
 				const [ox, oz] = toWorld(0, tip * 180, shipYaw);
 				part(ctx, "Protected beacon", "ball", x + ox, WATER_Y + 32, z + oz, 6, 6, 6, 0, [70, 255, 140], "Neon", false);
 			}
 			zone(ctx, "ship", x, z, 30, 216, shipYaw);
-			break;
+			return true;
+		}
+		return false;
+	};
+	// The command frigate: 60 studs off the defended point in whichever direction keeps its hull out of the launch lanes.
+	let placedCommand = false;
+	for (let i = 0; i < 8 && !placedCommand; i++) {
+		const off = base + i * math.pi / 4;
+		const yaws: number[] = [];
+		for (let j = 0; j < 8; j++) yaws.push(base + math.pi / 2 + j * math.pi / 8);
+		placedCommand = tryHull(defend.x + math.cos(off) * 60, defend.z + math.sin(off) * 60, yaws, true);
+	}
+	for (let k = 1; k < 3; k++) {
+		for (const jitter of [0, 0.12, -0.12, 0.24, -0.24]) {
+			const a = base + k * math.pi * 2 / 3 + jitter;
+			if (tryHull(hub[0] + math.cos(a) * radius, hub[1] + math.sin(a) * radius, [a + math.pi / 2, a + math.pi / 4, a - math.pi / 4, a], false)) break;
 		}
 	}
 }
@@ -976,10 +1018,18 @@ function roadLine(ctx: Ctx, points: number[][], width: number, color: Rgb, name 
 			}
 			runStart = undefined;
 		};
+		// A sample is good when the whole cross-section around it (both edges, and the end overhang) is on flat dry ground.
+		const ux = (bx - ax) / len, uz = (bz - az) / len, reach = width * 0.25 + 2;
+		const flatAt = (x: number, z: number) => {
+			const t = groundAt(ctx, x, z);
+			return t.water === undefined && math.abs(t.solid - GROUND) < 0.5;
+		};
 		for (let k = 0; k <= n; k++) {
 			const x = ax + (bx - ax) * k / n, z = az + (bz - az) * k / n;
-			const t = groundAt(ctx, x, z);
-			const ok = t.water === undefined && math.abs(t.solid - GROUND) < 0.5 && ctx.plan.waterPaths.every((p) => polyDist(x, z, p.points) > (p.canal ? p.half + 12 : p.half));
+			let ok = ctx.plan.waterPaths.every((p) => polyDist(x, z, p.points) > (p.canal ? p.half + 12 : p.half));
+			for (const along of [-reach, 0, reach]) for (const side of [-1, 0, 1]) {
+				if (ok && !flatAt(x + ux * along - uz * side * width / 2, z + uz * along + ux * side * width / 2)) ok = false;
+			}
 			if (ok && runStart === undefined) runStart = k;
 			if (!ok) flush(k - 1);
 		}
@@ -1101,6 +1151,10 @@ function build(id: number): WorldPlan {
 	if (layout.landmark === "orchard") orchard(ctx, fx, fz);
 	else if (layout.landmark === "array") relayArray(ctx, fx, fz);
 	else if (layout.landmark === "city") cityCentre(ctx, fx, fz);
+	// Relay missions always show their masts and dishes, even when the landmark is an airstrip.
+	if (bp.region === "plateau_relay" && layout.landmark !== "array") {
+		for (const [x, z] of [[-fx, fz], [0, -600], [-900, -900], [900, -900], [0, 0]]) if (relayArray(ctx, x, z) >= 2) break;
+	}
 	if (theme === "coast") harbour(ctx, fx, plan.coastZ!, layout.landmark === "harbor" ? (id === 20 || id === 25 ? 2 : 1) : 0);
 	if (theme === "ocean") ocean(ctx);
 	corridorWalls(ctx);
