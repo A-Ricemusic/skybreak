@@ -178,7 +178,8 @@ describe("SpecialWeapons lance", () => {
 		expect(SpecialWeapons.MissileSpeed("lance")).toBeGreaterThan(WeaponRules.MissileSpeed);
 		expect(SpecialWeapons.MissileSpeed("salvo")).toBe(WeaponRules.MissileSpeed);
 		// The standard launch decision honours the extended range when it is handed one.
-		const far = { missiles: 8, missileCooldown: 0, hasTarget: true, lockProgress: 1, distance: 3500, dot: 1 };
+		// Air reach scales with the standard air envelope: LanceRange x AirRangeFactor (about 2790 studs).
+		const far = { missiles: 8, missileCooldown: 0, hasTarget: true, lockProgress: 1, distance: 2700, dot: 1 };
 		expect(WeaponRules.Launch(far).kind).toBe("blind");
 		expect(WeaponRules.Launch({ ...far, lockRange: SpecialWeapons.LanceRange }).kind).toBe("guided");
 	});

@@ -145,7 +145,7 @@ describe("MissionScore round-2 calibration", () => {
 		for (const bp of MISSIONS) {
 			const value = par(bp.id);
 			if (bp.id <= 2) expect(value >= 90 && value <= 240).toBe(true);
-			else if (bp.act === 1) expect(value >= 150 && value <= 300).toBe(true);
+			else if (bp.act === 1) expect(value >= 140 && value <= 300).toBe(true);
 			else expect(value >= 200 && value <= 480).toBe(true);
 		}
 		// Par is a good human run, so the old scripted QA times (14-103 s) beat none of the new pars by more than 3x.

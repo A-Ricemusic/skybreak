@@ -11,6 +11,7 @@ import {
 	serializeProfile,
 	StoredProfile,
 } from "../server/CampaignRepository";
+import { GameConfig } from "../shared/GameConfig";
 
 class FakeStore implements CampaignStore {
 	public data: unknown;
@@ -265,7 +266,7 @@ describe("CampaignCoordinator datastore integration", () => {
 		expect(coordinator.getSlots()[0].occupied).toBe(false);
 	});
 
-	it("enforces required objectives and the 600-second mission limit", () => {
+	it("enforces required objectives and the mission time limit", () => {
 		const coordinator = new CampaignCoordinator("session_player");
 		coordinator.load();
 		let firstKind: string | undefined;
@@ -276,7 +277,7 @@ describe("CampaignCoordinator datastore integration", () => {
 		expect(coordinator.getSlots()[0].mission1Completed).toBe(false);
 
 		let timeoutReason: string | undefined;
-		completeMission(coordinator, 1, 1, true, { slot: 1, missionId: 1, kills: 3, groundKills: 1, elapsed: 601 }, (message) => {
+		completeMission(coordinator, 1, 1, true, { slot: 1, missionId: 1, kills: 3, groundKills: 1, elapsed: GameConfig.Campaign.MissionTimeLimit + 1 }, (message) => {
 			timeoutReason = message.reason;
 		});
 		expect(timeoutReason).toBe("timeout");
