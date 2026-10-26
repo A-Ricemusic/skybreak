@@ -125,8 +125,8 @@ export interface CombatSession {
 	guard: StepGuardState;
 	/** Pause budget and the current pause (PauseRules); nothing steps while paused. */
 	pause: PauseState;
-	/** Per-sortie name counters so every bandit and raider has a unique call sign. */
-	banditSerial: number; raiderSerial: number;
+	/** Per-sortie name counters so every bandit and raider has a unique call sign, and a spawn counter for unique kill ids. */
+	banditSerial: number; raiderSerial: number; spawnSerial: number;
 	/** Staggered groups of the active required_air phase (WavePlan). */
 	wave?: { phaseIndex: number; plan: number[]; next: number; lastAt: number };
 	/** Reinforcement waves already spawned in the active phase. */
@@ -695,8 +695,9 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		// Bandits and couriers break close locks; the opening sorties stay gentle unless the level says every bandit breaks.
 		const lockBreakChance = role === "ace" ? 0 : behaviour.banditsAlwaysBreak ? 1 : gentle(session) ? 0 : math.clamp(tuned(session, TUNING.lockBreakChance), 0, 1);
 		const flares = role === "ace" ? TUNING.aceFlares[act - 1] : role === "bandit" ? math.max(TUNING.banditFlares[act - 1], behaviour.banditFlares) : 0;
+		session.spawnSerial += 1;
 		const enemy: Enemy = {
-			id: `air_${session.enemies.size() + 1}_${session.banditSerial + session.raiderSerial}_${missionSerial}`, name, model, health, maxHealth: health,
+			id: `air_${session.spawnSerial}_${missionSerial}`, name, model, health, maxHealth: health,
 			position, direction, velocity: direction.mul(300), kind: role === "ace" ? "ace" : "air", required: role !== "raider", enabled: true,
 			fireTimer: role === "courier" ? math.huge : 4 + index * 1.5, windup: 0, mode: "attack", modeTimer: 0, passDirection: direction, side,
 			flares, flareTimer: 0, flareUntil: 0, speedBonus: 0, lockBreakTimer: TUNING.aceLockBreak[act - 1],
@@ -1592,7 +1593,7 @@ export const CombatService = {
 				inputClientTime: 0, inputFresh: false, inputSteps: 0, stateTime: 0, stateSequence: 0, telemetrySequence: 0,
 				missilesFired: 0, missileHits: 0, flareBursts: 0, damageTaken: 0, lowestHealth: 100, evades: 0,
 				evade: EvadeRules.New(), guard: StepGuard.New(), pause: PauseRules.New(),
-				banditSerial: 0, raiderSerial: 0, reinforceIndex: 0, stepCount: 0,
+				banditSerial: 0, raiderSerial: 0, spawnSerial: 0, reinforceIndex: 0, stepCount: 0,
 			};
 			if (legacy) {
 				session.rules = MissionRules.NewState(missionId as 1 | 2, startedAt);
