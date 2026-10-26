@@ -3,7 +3,9 @@ import { FlightMath } from "../shared/FlightMath";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "@rbxts/react";
 import { flightWarning, LOW_ALTITUDE } from "../shared/FlightWarnings";
 import { evadeGauge } from "../shared/EvadeGauge";
-import { RadioQueue } from "../shared/RadioQueue";
+import { RadioQueue, type RadioLine } from "../shared/RadioQueue";
+import { Voice } from "../shared/VoiceLines";
+import { type VoiceHandle, VoicePlayer } from "./VoicePlayer";
 import { effectiveHudScale, type PlayerSettings, type SettingKey } from "../shared/PlayerSettings";
 import { EvadeButton, PauseOverlay, Radar, SettingsSheet } from "./HudControls";
 import { SettingsStore, useSettings } from "./SettingsStore";
@@ -1720,6 +1722,12 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const [killNotice, setKillNotice] = useState<KillNotice | undefined>();
 	// Radio lines queue (2.5 s minimum each, 3 waiting) instead of overwriting each other.
 	const radioQueue = useMemo(() => new RadioQueue(), []);
+	// The radio runs on its own clock that stops while the sortie is paused, so a line (and its voice) resumes where it was.
+	const radioClockRef = useRef<{ offset: number; pausedAt?: number }>({ offset: 0 });
+	const radioNow = () => (radioClockRef.current.pausedAt ?? os.clock()) - radioClockRef.current.offset;
+	// The voice of the visible radio line (silent until its bank is uploaded).
+	const radioVoiceRef = useRef<VoiceHandle>();
+	const radioVoiceLineRef = useRef<RadioLine>();
 	const [, setRadioSerial] = useState(0);
 	const [fireNotice, setFireNotice] = useState<RadioNotice | undefined>();
 	const settings = useSettings();
@@ -2362,7 +2370,8 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			const sanitized = sanitizeTelemetry(merged, previous);
 			if (sanitized.kills > previous.kills) setKillNotice({ kills: sanitized.kills, total: sanitized.total, until: os.clock() + 3 });
 			if (sanitized.radio !== undefined && sanitized.radioSerial !== undefined && sanitized.radioSerial !== previous.radioSerial) {
-				radioQueue.Push(sanitized.radio, sanitized.radioSeconds ?? RADIO_SECONDS, os.clock());
+				// Voiced lines are matched by exact catalog text (table generated at build time) and hold until the voice ends.
+				radioQueue.Push(sanitized.radio, sanitized.radioSeconds ?? RADIO_SECONDS, radioNow(), Voice.Radio(sanitized.radio)?.seconds);
 				setRadioSerial(sanitized.radioSerial);
 			}
 			if (sanitized.fireDenied !== undefined && sanitized.fireDeniedSerial !== undefined && sanitized.fireDeniedSerial !== previous.fireDeniedSerial) setFireNotice({ text: FIRE_DENIED_TEXT[sanitized.fireDenied], until: os.clock() + FIRE_DENIED_SECONDS });
@@ -2391,6 +2400,23 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		let sampleClock = 0;
 		const connection = RunService.RenderStepped.Connect((deltaTime) => {
 			if (!mountedRef.current) return;
+			// Radio voice: the radio clock and the voice pause with the sortie; a new visible line (or none) replaces the voice.
+			const radioClock = radioClockRef.current;
+			if (pausedRef.current && radioClock.pausedAt === undefined) {
+				radioClock.pausedAt = os.clock();
+				radioVoiceRef.current?.Pause();
+			} else if (!pausedRef.current && radioClock.pausedAt !== undefined) {
+				radioClock.offset += os.clock() - radioClock.pausedAt;
+				radioClock.pausedAt = undefined;
+				radioVoiceRef.current?.Resume();
+			}
+			const shownLine = screenRef.current === "mission" ? radioQueue.Current(radioNow()) : undefined;
+			if (shownLine !== radioVoiceLineRef.current) {
+				radioVoiceLineRef.current = shownLine;
+				radioVoiceRef.current?.Stop(0.15);
+				radioVoiceRef.current = shownLine?.voice !== undefined ? VoicePlayer.Play(Voice.Radio(shownLine.text), "radio") : undefined;
+				if (pausedRef.current) radioVoiceRef.current?.Pause();
+			}
 			if (!NO_MENU_CAMERA.has(screenRef.current)) setMenuCamera();
 			else if (screenRef.current === "mission") {
 				// Server telemetry already refreshes the HUD at 10 Hz. This resample only
@@ -2420,7 +2446,11 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				}
 			}
 		});
-		return () => connection.Disconnect();
+		return () => {
+			connection.Disconnect();
+			radioVoiceRef.current?.Stop();
+			radioVoiceRef.current = undefined;
+		};
 	}, [controller]);
 
 	useEffect(() => {
@@ -2435,7 +2465,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const rootChange = useMemo(() => ({ AbsoluteSize: (root: Frame) => mountedRef.current && setViewport(root.AbsoluteSize) }), []);
 	const now = os.clock();
 	let callout: Callout | undefined;
-	const radioLine = screen === "mission" ? radioQueue.Current(now) : undefined;
+	const radioLine = screen === "mission" ? radioQueue.Current(radioNow()) : undefined;
 	if (killNotice && now < killNotice.until) {
 		// Progress is the phase objective's own count; raw kills include optional fighters and ground.
 		const total = telemetry.objectiveTotal ?? 0;

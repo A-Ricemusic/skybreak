@@ -1,0 +1,958 @@
+{
+ "bank": "voiceBank05",
+ "file": "voiceBank05.ogg",
+ "sha256": "52ffe3d29c0b5d60d4f8bbe8b36d94e4fa85d6a43b0e56b2ff1fa2be90c91157",
+ "seconds": 373.417,
+ "lines": 128,
+ "automated": {
+  "noProfanityOrSlurs": {
+   "pass": true,
+   "hits": []
+  },
+  "noSexualContent": {
+   "pass": true,
+   "hits": []
+  },
+  "noRealNamesOrRealWorldPoliticalMilitaryReferences": {
+   "pass": true,
+   "hits": [],
+   "note": "Fictional setting only: Varda Rim, Iron Coast, Teklan farmers, Air Marshal Rusk; no real places, forces, aircraft or people."
+  },
+  "pg13CombatOnly": {
+   "pass": true,
+   "hits": [],
+   "note": "Aerial combat and sabotage only; no gore, torture or self-harm."
+  },
+  "premadeVoicesWithCommercialLicence": {
+   "pass": true,
+   "voices": {
+    "EXAVITQu4vr4xnSDxMaL": "premade",
+    "IKne3meq5aSn9XLyUdCD": "premade",
+    "JBFqnCBsd6RMkjVDRZzb": "premade",
+    "N2lVS1w4EtoT3dr4eOWO": "premade",
+    "cjVigY5qzO86Huf0OWal": "premade",
+    "iP95p4xoKVk53GoZ742B": "premade",
+    "pFZP5JQG7iQjIQuC4Bku": "premade",
+    "pqHfZKP75CvOlQylNhV4": "premade"
+   },
+   "note": "ElevenLabs premade voices, generated on the paid Starter plan (commercial use permitted). No cloned or designed voices; no imitation of real people or known characters."
+  },
+  "noImitationOfRealPeopleOrKnownCharacters": {
+   "pass": true,
+   "note": "ElevenLabs library premades only; no cloning, no voice design prompts naming people."
+  },
+  "speechToTextMatch": {
+   "pass": true,
+   "meanRate": 0.9922,
+   "minRate": 0.833,
+   "flagged": []
+  },
+  "durationUnderRobloxLimit": {
+   "pass": true
+  }
+ },
+ "transcript": [
+  {
+   "id": "radio.m14.p4.chatter2",
+   "start": 0.25,
+   "end": 1.806,
+   "speaker": "SERA",
+   "text": "SERA: Nothing on the chain. Almost there."
+  },
+  {
+   "id": "radio.m15.p1.beat",
+   "start": 2.056,
+   "end": 3.813,
+   "speaker": "LOYALIST",
+   "text": "LOYALIST: Transmitting. Every second is a garrison."
+  },
+  {
+   "id": "radio.m15.p1.chatter1",
+   "start": 4.063,
+   "end": 6.193,
+   "speaker": "SERA",
+   "text": "SERA: Raiders inbound. Stay inside the volume."
+  },
+  {
+   "id": "radio.m15.p1.chatter2",
+   "start": 6.443,
+   "end": 8.017,
+   "speaker": "LOYALIST",
+   "text": "LOYALIST: Garrisons answering. Keep the volume."
+  },
+  {
+   "id": "radio.m15.p1.hazard",
+   "start": 8.267,
+   "end": 10.725,
+   "speaker": "LOYALIST",
+   "text": "LOYALIST: Link lost! Kill the two jammer trucks on the farm road."
+  },
+  {
+   "id": "radio.m15.p2.beat",
+   "start": 10.975,
+   "end": 14.647,
+   "speaker": "SERA",
+   "text": "SERA: Second wave, riding harder. Seven, in two groups. Raiders in tow."
+  },
+  {
+   "id": "radio.m15.p3.beat",
+   "start": 14.897,
+   "end": 17.402,
+   "speaker": "LOYALIST",
+   "text": "LOYALIST: Two reply beacons lit. Follow them to check the garrisons."
+  },
+  {
+   "id": "radio.m15.p3.chatter1",
+   "start": 17.652,
+   "end": 19.722,
+   "speaker": "LOYALIST",
+   "text": "LOYALIST: West garrison beacon confirmed. East is ahead."
+  },
+  {
+   "id": "radio.m15.p4.beat",
+   "start": 19.972,
+   "end": 23.541,
+   "speaker": "SERA",
+   "text": "SERA: Scan both compounds for parked aircraft. Verify they stood down."
+  },
+  {
+   "id": "radio.m15.p4.chatter1",
+   "start": 23.791,
+   "end": 26.686,
+   "speaker": "SERA",
+   "text": "SERA: Engines cold at the first compound. Check the second."
+  },
+  {
+   "id": "radio.m16.p1.beat",
+   "start": 26.936,
+   "end": 29.331,
+   "speaker": "SERA",
+   "text": "SERA: River gates keep you under the storm. Stay low."
+  },
+  {
+   "id": "radio.m16.p1.chatter1",
+   "start": 29.581,
+   "end": 31.704,
+   "speaker": "SERA",
+   "text": "SERA: Last gate. The marked tanks are just past it."
+  },
+  {
+   "id": "radio.m16.p2.beat",
+   "start": 31.954,
+   "end": 35.223,
+   "speaker": "SERA",
+   "text": "SERA: Rain hides the markings. Scan both ends before you fire."
+  },
+  {
+   "id": "radio.m16.p2.chatter1",
+   "start": 35.473,
+   "end": 38.794,
+   "speaker": "SERA",
+   "text": "SERA: Fuel markings visible. Keep the farm roofs out of the strike."
+  },
+  {
+   "id": "radio.m16.p3.beat",
+   "start": 39.044,
+   "end": 40.948,
+   "speaker": "SERA",
+   "text": "SERA: Three silos under the storm. Burn them."
+  },
+  {
+   "id": "radio.m16.p3.twist",
+   "start": 41.198,
+   "end": 44.194,
+   "speaker": "SERA",
+   "text": "SERA: Five diving through the cloud. Finish the tanks and turn."
+  },
+  {
+   "id": "radio.m16.p3.t1.beat",
+   "start": 44.444,
+   "end": 47.344,
+   "speaker": "SERA",
+   "text": "SERA: Patrol riding the thunder. Five, in two groups."
+  },
+  {
+   "id": "radio.m16.p4.beat",
+   "start": 47.594,
+   "end": 49.675,
+   "speaker": "SERA",
+   "text": "SERA: Forward relay on the staging path. Cut it."
+  },
+  {
+   "id": "radio.m16.p5.beat",
+   "start": 49.925,
+   "end": 52.854,
+   "speaker": "SERA",
+   "text": "SERA: Hold over the relay. Its last traffic is still in the air."
+  },
+  {
+   "id": "radio.m16.p5.chatter1",
+   "start": 53.104,
+   "end": 55.956,
+   "speaker": "SERA",
+   "text": "SERA: Pair off the plateau, using the storm. Hold the orbit."
+  },
+  {
+   "id": "radio.m16.p5.chatter2",
+   "start": 56.206,
+   "end": 57.822,
+   "speaker": "SERA",
+   "text": "SERA: Second pair, coming out of the rain."
+  },
+  {
+   "id": "radio.m17.p1.beat",
+   "start": 58.072,
+   "end": 60.023,
+   "speaker": "SERA",
+   "text": "SERA: One dish under the aurora. Cut it."
+  },
+  {
+   "id": "radio.m17.p2.beat",
+   "start": 60.273,
+   "end": 62.909,
+   "speaker": "SERA",
+   "text": "SERA: Four intercepts lit by the aurora, in pairs."
+  },
+  {
+   "id": "radio.m17.p3.beat",
+   "start": 63.159,
+   "end": 65.488,
+   "speaker": "TEAL",
+   "text": "TEAL (tape): If you hear this up here, read the signature."
+  },
+  {
+   "id": "radio.m17.p3.chatter1",
+   "start": 65.738,
+   "end": 68.303,
+   "speaker": "SERA",
+   "text": "SERA: The archive is speaking. Signature decoding."
+  },
+  {
+   "id": "radio.m17.p3.twist",
+   "start": 68.553,
+   "end": 71.633,
+   "speaker": "SERA",
+   "text": "SERA: Archive lost. Jammer under the array. Find it, low."
+  },
+  {
+   "id": "radio.m17.p3.t1.beat",
+   "start": 71.883,
+   "end": 74.401,
+   "speaker": "SERA",
+   "text": "SERA: Get under the aurora glow. It'll show on the scan."
+  },
+  {
+   "id": "radio.m17.p3.t1.chatter1",
+   "start": 74.651,
+   "end": 76.722,
+   "speaker": "SERA",
+   "text": "SERA: There. A dish truck in the array's shadow."
+  },
+  {
+   "id": "radio.m17.p3.t2.beat",
+   "start": 76.972,
+   "end": 78.153,
+   "speaker": "SERA",
+   "text": "SERA: Jammer marked. Cut it."
+  },
+  {
+   "id": "radio.m17.p3.t3.beat",
+   "start": 78.403,
+   "end": 79.889,
+   "speaker": "SERA",
+   "text": "SERA: Its escort is up. Two."
+  },
+  {
+   "id": "radio.m17.p3.t4.beat",
+   "start": 80.139,
+   "end": 83.027,
+   "speaker": "SERA",
+   "text": "SERA: Archive's back. Hold the orbit. Read the signature."
+  },
+  {
+   "id": "radio.m17.p3.t4.chatter1",
+   "start": 83.277,
+   "end": 86.667,
+   "speaker": "SERA",
+   "text": "SERA: Signature decoding. Hold. It carries a Marshal's seal."
+  },
+  {
+   "id": "radio.m18.p1.beat",
+   "start": 86.917,
+   "end": 88.73,
+   "speaker": "VULTURE TWO",
+   "text": "VULTURE TWO: Climb into my lights, trainee."
+  },
+  {
+   "id": "radio.m18.p1.chatter1",
+   "start": 88.98,
+   "end": 91.779,
+   "speaker": "VULTURE TWO",
+   "text": "VULTURE TWO: Teal climbed faster. Show me more."
+  },
+  {
+   "id": "radio.m18.p2.beat",
+   "start": 92.029,
+   "end": 94.901,
+   "speaker": "MARINE",
+   "text": "MARINE: Mark a clear pickup site. We need his answers alive."
+  },
+  {
+   "id": "radio.m18.p2.chatter1",
+   "start": 95.151,
+   "end": 97.548,
+   "speaker": "MARINE",
+   "text": "MARINE: Ridge landing zone clear. We can bring a helo there."
+  },
+  {
+   "id": "radio.m18.p3.beat",
+   "start": 97.798,
+   "end": 100.165,
+   "speaker": "SERA",
+   "text": "SERA: His wingmen first. Four, in pairs."
+  },
+  {
+   "id": "radio.m18.p4.beat",
+   "start": 100.415,
+   "end": 102.602,
+   "speaker": "SERA",
+   "text": "He flies like Teal. Teal learned it from him."
+  },
+  {
+   "id": "radio.m18.p4.twist",
+   "start": 102.852,
+   "end": 106.242,
+   "speaker": "SERA",
+   "text": "SERA: Chute open. His wing is turning back. Cover the marines' pickup."
+  },
+  {
+   "id": "radio.m18.p4.t1.beat",
+   "start": 106.492,
+   "end": 109.631,
+   "speaker": "MARINE",
+   "text": "MARINE: We have him. Forty-five seconds to get him off the ridge."
+  },
+  {
+   "id": "radio.m18.p4.t1.chatter1",
+   "start": 109.881,
+   "end": 112.457,
+   "speaker": "SERA",
+   "text": "SERA: His second pair is diving on the pickup. Hold them."
+  },
+  {
+   "id": "radio.m18.p4.t1.chatter2",
+   "start": 112.707,
+   "end": 114.428,
+   "speaker": "MARINE",
+   "text": "MARINE: Helo's spinning up. Almost out."
+  },
+  {
+   "id": "radio.m18.p5.beat",
+   "start": 114.678,
+   "end": 117.48,
+   "speaker": "MARINE",
+   "text": "MARINE: He is talking. Coast is recording. Hold the link."
+  },
+  {
+   "id": "radio.m18.p5.chatter1",
+   "start": 117.73,
+   "end": 121.157,
+   "speaker": "MARINE",
+   "text": "MARINE: He admits the handwriting. Coast is recording every word."
+  },
+  {
+   "id": "radio.m18.ace.stage1",
+   "start": 121.407,
+   "end": 125.703,
+   "speaker": "VULTURE TWO",
+   "text": "VULTURE TWO: I taught him that turn. Wing, show the trainee the answer."
+  },
+  {
+   "id": "radio.m18.ace.stage2",
+   "start": 125.953,
+   "end": 128.738,
+   "speaker": "VULTURE TWO",
+   "text": "VULTURE TWO: Last lesson. Wing, keep him busy."
+  },
+  {
+   "id": "radio.m18.ace.return1",
+   "start": 128.988,
+   "end": 131.496,
+   "speaker": "VULTURE TWO",
+   "text": "VULTURE TWO: Now. Again, trainee. From the top."
+  },
+  {
+   "id": "radio.m18.ace.return2",
+   "start": 131.746,
+   "end": 133.961,
+   "speaker": "VULTURE TWO",
+   "text": "VULTURE TWO: Head on. The way Teal never would."
+  },
+  {
+   "id": "radio.m18.ace.call1",
+   "start": 134.211,
+   "end": 137.232,
+   "speaker": "SERA",
+   "text": "SERA: VULTURE TWO pulled back to call his wing. 1 inbound."
+  },
+  {
+   "id": "radio.m18.ace.call2",
+   "start": 137.482,
+   "end": 140.635,
+   "speaker": "SERA",
+   "text": "SERA: VULTURE TWO pulled back to call his wing. 2 inbound."
+  },
+  {
+   "id": "radio.m19.p1.beat",
+   "start": 140.885,
+   "end": 143.364,
+   "speaker": "SERA",
+   "text": "SERA: Watch what the cranes unload. Mark the quays."
+  },
+  {
+   "id": "radio.m19.p1.chatter1",
+   "start": 143.614,
+   "end": 146.083,
+   "speaker": "SERA",
+   "text": "SERA: Those crates are munitions. The quays are military."
+  },
+  {
+   "id": "radio.m19.p2.beat",
+   "start": 146.333,
+   "end": 148.327,
+   "speaker": "SERA",
+   "text": "SERA: Three military quays. Hit the warehouses."
+  },
+  {
+   "id": "radio.m19.p2.twist",
+   "start": 148.577,
+   "end": 151.239,
+   "speaker": "SERA",
+   "text": "SERA: Early CAP pair launching. Finish the quay, then turn in."
+  },
+  {
+   "id": "radio.m19.p2.t1.beat",
+   "start": 151.489,
+   "end": 153.386,
+   "speaker": "SERA",
+   "text": "SERA: Early pair off the apron. Clear them."
+  },
+  {
+   "id": "radio.m19.p3.beat",
+   "start": 153.636,
+   "end": 157.005,
+   "speaker": "HARBOR",
+   "text": "HARBOR: Follow the three quay beacons. Our launch needs a clear way out."
+  },
+  {
+   "id": "radio.m19.p3.chatter1",
+   "start": 157.255,
+   "end": 160.611,
+   "speaker": "HARBOR",
+   "text": "HARBOR: First bend clear. Last beacon marks the open channel."
+  },
+  {
+   "id": "radio.m19.p4.beat",
+   "start": 160.861,
+   "end": 164.069,
+   "speaker": "HARBOR",
+   "text": "HARBOR: Workers aboard. Cover our launch clear of the burning quays."
+  },
+  {
+   "id": "radio.m19.p4.chatter1",
+   "start": 164.319,
+   "end": 167.058,
+   "speaker": "HARBOR",
+   "text": "HARBOR: All workers counted. Past the worst of the smoke."
+  },
+  {
+   "id": "radio.m19.p5.beat",
+   "start": 167.308,
+   "end": 169.997,
+   "speaker": "SERA",
+   "text": "SERA: Main CAP off the apron. Four, in two groups."
+  },
+  {
+   "id": "radio.m19.p6.beat",
+   "start": 170.247,
+   "end": 173.42,
+   "speaker": "HARBOR",
+   "text": "HARBOR: Quays clear. Hold the channel while we count our people."
+  },
+  {
+   "id": "radio.m19.p6.chatter1",
+   "start": 173.67,
+   "end": 176.19,
+   "speaker": "HARBOR",
+   "text": "HARBOR: First crew answering. Still calling the eastern quay."
+  },
+  {
+   "id": "radio.m20.p1.beat",
+   "start": 176.44,
+   "end": 179.258,
+   "speaker": "SERA",
+   "text": "SERA: Full wing on the east line. Nine, in three groups."
+  },
+  {
+   "id": "radio.m20.p2.beat",
+   "start": 179.508,
+   "end": 182.282,
+   "speaker": "MARINE",
+   "text": "MARINE: Paper is aboard. Scan the harbor exit before we move."
+  },
+  {
+   "id": "radio.m20.p2.chatter1",
+   "start": 182.532,
+   "end": 185.391,
+   "speaker": "MARINE",
+   "text": "MARINE: Exit marked. We will move as soon as your scan is clear."
+  },
+  {
+   "id": "radio.m20.p3.beat",
+   "start": 185.641,
+   "end": 187.628,
+   "speaker": "MARINE",
+   "text": "MARINE: Launch moving. Keep the sky quiet."
+  },
+  {
+   "id": "radio.m20.p3.chatter1",
+   "start": 187.878,
+   "end": 190.194,
+   "speaker": "SERA",
+   "text": "SERA: Western wing reacting. Launch is halfway out."
+  },
+  {
+   "id": "radio.m20.p3.hazard",
+   "start": 190.444,
+   "end": 193.304,
+   "speaker": "MARINE",
+   "text": "MARINE: Guns on both banks, firing on the launch! Silence them!"
+  },
+  {
+   "id": "radio.m20.p4.beat",
+   "start": 193.554,
+   "end": 196.707,
+   "speaker": "MARINE",
+   "text": "MARINE: Holding at the exit. Mark the patrol boat's approach beacons."
+  },
+  {
+   "id": "radio.m20.p4.chatter1",
+   "start": 196.957,
+   "end": 199.241,
+   "speaker": "MARINE",
+   "text": "MARINE: Patrol boat sees your mark. One more beacon."
+  },
+  {
+   "id": "radio.m20.p5.beat",
+   "start": 199.491,
+   "end": 202.465,
+   "speaker": "MARINE",
+   "text": "MARINE: Patrol boat alongside. Hold until the paper changes hands."
+  },
+  {
+   "id": "radio.m20.p5.chatter1",
+   "start": 202.715,
+   "end": 204.955,
+   "speaker": "MARINE",
+   "text": "MARINE: Archive case passed. Tapes are next."
+  },
+  {
+   "id": "radio.m21.p1.beat",
+   "start": 205.205,
+   "end": 207.832,
+   "speaker": "SERA",
+   "text": "SERA: The dark canal keeps you off his radar. Follow it."
+  },
+  {
+   "id": "radio.m21.p1.chatter1",
+   "start": 208.082,
+   "end": 210.62,
+   "speaker": "SERA",
+   "text": "SERA: Relay above the apartments. Hit only the dish."
+  },
+  {
+   "id": "radio.m21.p2.beat",
+   "start": 210.87,
+   "end": 213.83,
+   "speaker": "SERA",
+   "text": "SERA: Low scan over the canal. Mark the dish above the roofs."
+  },
+  {
+   "id": "radio.m21.p2.chatter1",
+   "start": 214.08,
+   "end": 216.415,
+   "speaker": "SERA",
+   "text": "SERA: Dish marked. Apartment roofs stay standing."
+  },
+  {
+   "id": "radio.m21.p3.beat",
+   "start": 216.665,
+   "end": 219.095,
+   "speaker": "SERA",
+   "text": "SERA: Broadcast relay above the city. Dish only."
+  },
+  {
+   "id": "radio.m21.p4.beat",
+   "start": 219.345,
+   "end": 221.824,
+   "speaker": "SERA",
+   "text": "SERA: Escort flight scrambling. Four, in two pairs."
+  },
+  {
+   "id": "radio.m21.p5.beat",
+   "start": 222.074,
+   "end": 224.687,
+   "speaker": "SERA",
+   "text": "SERA: Hold over the tower. I want to hear nothing from it."
+  },
+  {
+   "id": "radio.m21.p5.chatter1",
+   "start": 224.937,
+   "end": 227.634,
+   "speaker": "SERA",
+   "text": "SERA: Pair off the dark side of the city. Hold the orbit."
+  },
+  {
+   "id": "radio.m21.p5.chatter2",
+   "start": 227.884,
+   "end": 229.031,
+   "speaker": "SERA",
+   "text": "SERA: Still silent. Hold it."
+  },
+  {
+   "id": "radio.m21.p6.beat",
+   "start": 229.281,
+   "end": 232.077,
+   "speaker": "HARBOR",
+   "text": "HARBOR: Repair crew moving. Cover us to the dark district."
+  },
+  {
+   "id": "radio.m21.p6.chatter1",
+   "start": 232.327,
+   "end": 235.491,
+   "speaker": "HARBOR",
+   "text": "HARBOR: Crew passing the canal bend. Keep the approach clear."
+  },
+  {
+   "id": "radio.m21.p7.beat",
+   "start": 235.741,
+   "end": 239.292,
+   "speaker": "HARBOR",
+   "text": "HARBOR: Launch moored. Follow district lights to guide the shore crew."
+  },
+  {
+   "id": "radio.m21.p7.chatter1",
+   "start": 239.542,
+   "end": 242.432,
+   "speaker": "HARBOR",
+   "text": "HARBOR: Shore crew sees your mark. Moving to the next street."
+  },
+  {
+   "id": "radio.m22.p1.beat",
+   "start": 242.682,
+   "end": 245.261,
+   "speaker": "SERA",
+   "text": "SERA: The fog depots carry his signature. Find them."
+  },
+  {
+   "id": "radio.m22.p1.chatter1",
+   "start": 245.511,
+   "end": 247.968,
+   "speaker": "SERA",
+   "text": "SERA: Permits match. Every depot is fuel."
+  },
+  {
+   "id": "radio.m22.p2.beat",
+   "start": 248.218,
+   "end": 250.142,
+   "speaker": "SERA",
+   "text": "SERA: Five depots in the fog. All marked."
+  },
+  {
+   "id": "radio.m22.p3.beat",
+   "start": 250.392,
+   "end": 253.249,
+   "speaker": "SERA",
+   "text": "SERA: Follow the pier beacons. Check the whole fuel line is cut."
+  },
+  {
+   "id": "radio.m22.p3.chatter1",
+   "start": 253.499,
+   "end": 255.903,
+   "speaker": "SERA",
+   "text": "SERA: West pier empty. Follow the lights to the east."
+  },
+  {
+   "id": "radio.m22.p4.beat",
+   "start": 256.153,
+   "end": 258.472,
+   "speaker": "SERA",
+   "text": "SERA: Patrol riding the fog. Four, in two pairs."
+  },
+  {
+   "id": "radio.m22.p5.beat",
+   "start": 258.722,
+   "end": 261.917,
+   "speaker": "HARBOR",
+   "text": "HARBOR: Cannot see the piers. Cover us while we check the hoses."
+  },
+  {
+   "id": "radio.m22.p5.chatter1",
+   "start": 262.167,
+   "end": 265.402,
+   "speaker": "HARBOR",
+   "text": "HARBOR: Inspectors at the central pier. Fuel line looks dry."
+  },
+  {
+   "id": "radio.m22.p6.beat",
+   "start": 265.652,
+   "end": 268.662,
+   "speaker": "HARBOR",
+   "text": "HARBOR: Scan the last two piers. We need proof every hose is dry."
+  },
+  {
+   "id": "radio.m22.p6.chatter1",
+   "start": 268.912,
+   "end": 271.824,
+   "speaker": "HARBOR",
+   "text": "HARBOR: First hose disconnected. Check the eastern pier too."
+  },
+  {
+   "id": "radio.m22.p7.beat",
+   "start": 272.074,
+   "end": 275.055,
+   "speaker": "HARBOR",
+   "text": "HARBOR: Hoses dry. Hold the link for the frigates to copy."
+  },
+  {
+   "id": "radio.m22.p7.chatter1",
+   "start": 275.305,
+   "end": 278.465,
+   "speaker": "FRIGATE",
+   "text": "FRIGATE: Report copied. The escape fleet cannot refuel."
+  },
+  {
+   "id": "radio.m23.p1.beat",
+   "start": 278.715,
+   "end": 280.759,
+   "speaker": "FRIGATE",
+   "text": "FRIGATE: Ring closing. Raiders on the bow."
+  },
+  {
+   "id": "radio.m23.p1.chatter1",
+   "start": 281.009,
+   "end": 283.439,
+   "speaker": "FRIGATE",
+   "text": "FRIGATE: Second group off the platform. Hold them."
+  },
+  {
+   "id": "radio.m23.p1.chatter2",
+   "start": 283.689,
+   "end": 287.168,
+   "speaker": "FRIGATE",
+   "text": "FRIGATE: Third group, low on the water. Two left in the ring."
+  },
+  {
+   "id": "radio.m23.p2.beat",
+   "start": 287.418,
+   "end": 291.066,
+   "speaker": "FRIGATE",
+   "text": "FRIGATE: One gap open. Scan the water before we close the ring."
+  },
+  {
+   "id": "radio.m23.p2.chatter1",
+   "start": 291.316,
+   "end": 293.479,
+   "speaker": "FRIGATE",
+   "text": "FRIGATE: No wake in the gap. Finish the sweep."
+  },
+  {
+   "id": "radio.m23.p3.beat",
+   "start": 293.729,
+   "end": 298.185,
+   "speaker": "FRIGATE",
+   "text": "FRIGATE: Ring closed. Command flight launching. Four, from both sides."
+  },
+  {
+   "id": "radio.m23.p4.beat",
+   "start": 298.435,
+   "end": 301.825,
+   "speaker": "FRIGATE",
+   "text": "FRIGATE: Follow the outer beacons. Check the whole sea lane is in sight."
+  },
+  {
+   "id": "radio.m23.p4.chatter1",
+   "start": 302.075,
+   "end": 305.37,
+   "speaker": "FRIGATE",
+   "text": "FRIGATE: Western lane visible. Sweep to the eastern beacon."
+  },
+  {
+   "id": "radio.m23.p5.beat",
+   "start": 305.62,
+   "end": 308.995,
+   "speaker": "FRIGATE",
+   "text": "FRIGATE: Inspection launch crossing. Cover it until it docks."
+  },
+  {
+   "id": "radio.m23.p5.chatter1",
+   "start": 309.245,
+   "end": 312.822,
+   "speaker": "FRIGATE",
+   "text": "FRIGATE: Inspection launch halfway across. Gap remains clear."
+  },
+  {
+   "id": "radio.m23.p6.beat",
+   "start": 313.072,
+   "end": 316.56,
+   "speaker": "FRIGATE",
+   "text": "FRIGATE: No ships through. Hold the command link for the landing force."
+  },
+  {
+   "id": "radio.m23.p6.chatter1",
+   "start": 316.81,
+   "end": 319.03,
+   "speaker": "LANDING CRAFT",
+   "text": "LANDING FORCE: Ring report received. Bringing our boats forward."
+  },
+  {
+   "id": "radio.m24.p1.beat",
+   "start": 319.28,
+   "end": 321.808,
+   "speaker": "SERA",
+   "text": "SERA: Under the storm. Three gates to the platform."
+  },
+  {
+   "id": "radio.m24.p1.chatter1",
+   "start": 322.058,
+   "end": 324.142,
+   "speaker": "SERA",
+   "text": "SERA: Last gate. The deck stores are ahead."
+  },
+  {
+   "id": "radio.m24.p2.beat",
+   "start": 324.392,
+   "end": 326.316,
+   "speaker": "SERA",
+   "text": "SERA: Three stores on the deck. Burn them."
+  },
+  {
+   "id": "radio.m24.p3.beat",
+   "start": 326.566,
+   "end": 329.488,
+   "speaker": "SERA",
+   "text": "SERA: Patrol in the storm shadow. Five, in two groups."
+  },
+  {
+   "id": "radio.m24.p4.beat",
+   "start": 329.738,
+   "end": 333.31,
+   "speaker": "SERA",
+   "text": "SERA: Scan below the cloud. The tanker is hiding behind the deck smoke."
+  },
+  {
+   "id": "radio.m24.p4.chatter1",
+   "start": 333.56,
+   "end": 336.426,
+   "speaker": "SERA",
+   "text": "SERA: Engine heat below the cloud. It is running for the coast."
+  },
+  {
+   "id": "radio.m24.p5.beat",
+   "start": 336.676,
+   "end": 339.71,
+   "speaker": "SERA",
+   "text": "SERA: Tanker jet lifting off, running for the coast. Stop it."
+  },
+  {
+   "id": "radio.m24.p5.chatter1",
+   "start": 339.96,
+   "end": 341.838,
+   "speaker": "SERA",
+   "text": "SERA: Tanker's halfway to the coast. Close on it."
+  },
+  {
+   "id": "radio.m24.p5.chatter2",
+   "start": 342.088,
+   "end": 343.827,
+   "speaker": "SERA",
+   "text": "SERA: He's almost over the city. Now!"
+  },
+  {
+   "id": "radio.m24.p6.beat",
+   "start": 344.077,
+   "end": 347.75,
+   "speaker": "FRIGATE",
+   "text": "FRIGATE: Deck crew aboard. Cover them clear of the burning stores."
+  },
+  {
+   "id": "radio.m24.p6.chatter1",
+   "start": 348.0,
+   "end": 351.05,
+   "speaker": "FRIGATE",
+   "text": "FRIGATE: Launch halfway clear. Deck crew accounted for."
+  },
+  {
+   "id": "radio.m24.p7.beat",
+   "start": 351.3,
+   "end": 354.298,
+   "speaker": "FRIGATE",
+   "text": "FRIGATE: Tanker down. Hold while we check for other launches."
+  },
+  {
+   "id": "radio.m24.p7.chatter1",
+   "start": 354.548,
+   "end": 358.403,
+   "speaker": "FRIGATE",
+   "text": "FRIGATE: No second tanker on radar. Checking the last deck returns."
+  },
+  {
+   "id": "radio.m25.p1.beat",
+   "start": 358.653,
+   "end": 360.57,
+   "speaker": "LANDING CRAFT",
+   "text": "LANDING CRAFT: Beach in eighty seconds. Keep them off us."
+  },
+  {
+   "id": "radio.m25.p1.chatter1",
+   "start": 360.82,
+   "end": 363.424,
+   "speaker": "SERA",
+   "text": "SERA: Second intercept launching. Stay on the craft."
+  },
+  {
+   "id": "radio.m25.p1.chatter2",
+   "start": 363.674,
+   "end": 365.055,
+   "speaker": "LANDING CRAFT",
+   "text": "LANDING CRAFT: Surf line. Ramps going down."
+  },
+  {
+   "id": "radio.m25.p2.beat",
+   "start": 365.305,
+   "end": 368.339,
+   "speaker": "SERA",
+   "text": "SERA: First intercept off the apron. Three, in two groups."
+  },
+  {
+   "id": "radio.m25.p3.beat",
+   "start": 368.589,
+   "end": 370.961,
+   "speaker": "LANDING CRAFT",
+   "text": "LANDING CRAFT: Ramps down. Scan both exits so we can leave the sand."
+  },
+  {
+   "id": "radio.m25.p3.chatter1",
+   "start": 371.211,
+   "end": 373.167,
+   "speaker": "LANDING CRAFT",
+   "text": "LANDING CRAFT: West exit clear. Check the eastern street."
+  }
+ ],
+ "humanReview": {
+  "required": true,
+  "approved": false,
+  "reviewer": null,
+  "instructions": "Listen to the whole bank against this transcript; confirm every item above, then record approval in assets/voice/review.json."
+ }
+}

@@ -1,0 +1,210 @@
+{
+ "model": "eleven_turbo_v2_5",
+ "outputFormat": "mp3_44100_128",
+ "license": "ElevenLabs premade voices, generated on the paid Starter plan (commercial use permitted). No cloned or designed voices; no imitation of real people or known characters.",
+ "defaultSettings": {
+  "stability": 0.5,
+  "similarity_boost": 0.75,
+  "style": 0.0,
+  "use_speaker_boost": true,
+  "speed": 1.0
+ },
+ "unprefixedRadio": "SERA",
+ "aliases": {
+  "MARSHAL": "RUSK",
+  "AIR MARSHAL RUSK": "RUSK",
+  "FLIGHT LOG": "LOG",
+  "RECORDER 7-T": "RECORDER",
+  "LANDING FORCE": "LANDING CRAFT"
+ },
+ "speakers": {
+  "SERA": {
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "voiceName": "Sarah",
+   "role": "Varda Control; mature, reassuring"
+  },
+  "TEAL": {
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "voiceName": "George",
+   "role": "The missing instructor, heard only on his tapes",
+   "tape": true,
+   "settings": {
+    "stability": 0.45
+   }
+  },
+  "TRAINEE": {
+   "voice": "SAz9YHcvj6GT2YYXdXww",
+   "voiceName": "River",
+   "role": "The player; cutscenes only, never HUD text"
+  },
+  "RUSK": {
+   "voice": "pNInz6obpgDQGcFmaJgB",
+   "voiceName": "Adam",
+   "role": "The Air Marshal (also the unnamed MARSHAL intercept)",
+   "settings": {
+    "stability": 0.6
+   }
+  },
+  "VULTURE LEAD": {
+   "voice": "SOYHLrjzK2X1ezoPC6cr",
+   "voiceName": "Harry",
+   "role": "Mission 9 enemy ace"
+  },
+  "VULTURE TWO": {
+   "voice": "N2lVS1w4EtoT3dr4eOWO",
+   "voiceName": "Callum",
+   "role": "Mission 18 enemy ace, Teal's old wingman"
+  },
+  "BROADCAST": {
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "voiceName": "Daniel",
+   "role": "The coup's broadcast net",
+   "settings": {
+    "stability": 0.7
+   }
+  },
+  "LOG": {
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "voiceName": "Daniel",
+   "role": "Flight log / roster readout",
+   "settings": {
+    "stability": 0.7
+   }
+  },
+  "RECORDER": {
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "voiceName": "Daniel",
+   "role": "Teal's recorder entry header",
+   "tape": true,
+   "settings": {
+    "stability": 0.7
+   }
+  },
+  "MARINE": {
+   "voice": "IKne3meq5aSn9XLyUdCD",
+   "voiceName": "Charlie",
+   "role": "Loyalist marines on launches and quays"
+  },
+  "HARBOR": {
+   "voice": "pFZP5JQG7iQjIQuC4Bku",
+   "voiceName": "Lily",
+   "role": "Harbour control"
+  },
+  "FRIGATE": {
+   "voice": "pqHfZKP75CvOlQylNhV4",
+   "voiceName": "Bill",
+   "role": "Loyalist frigate captain"
+  },
+  "FARMER": {
+   "voice": "Xb7hH8MSUJpSbSDYk0k2",
+   "voiceName": "Alice",
+   "role": "Teklan orchard farmers"
+  },
+  "TRUCK": {
+   "voice": "cgSgspJ2msm6clMCkdW9",
+   "voiceName": "Jessica",
+   "role": "Convoy lead truck driver"
+  },
+  "LOYALIST": {
+   "voice": "cjVigY5qzO86Huf0OWal",
+   "voiceName": "Eric",
+   "role": "Loyalist ground cell"
+  },
+  "LANDING CRAFT": {
+   "voice": "iP95p4xoKVk53GoZ742B",
+   "voiceName": "Chris",
+   "role": "Loyalist landing force"
+  },
+  "TOWER": {
+   "voice": "hpp4J3VqNfWAUOO0d1Us",
+   "voiceName": "Bella",
+   "role": "Varda tower"
+  },
+  "RECOVERY": {
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "voiceName": "Brian",
+   "role": "Recovery team"
+  }
+ },
+ "spokenReplacements": [
+  [
+   "at 0400.",
+   "at oh-four-hundred."
+  ],
+  [
+   "at 0353 ",
+   "at oh-three-fifty-three "
+  ],
+  [
+   "ARCHIVE RECOVERED. ORDER 0001. 'Declare regional emergency. Suspend parliament. Assume air command.' Signed: RUSK, AIR MARSHAL.",
+   "Archive recovered. Order zero-zero-zero-one. Declare regional emergency. Suspend parliament. Assume air command. Signed: Rusk, Air Marshal."
+  ],
+  [
+   "RECORDER 7-T. ENTRY 04:12. PLAYBACK.",
+   "Recorder seven-T. Entry oh-four-twelve. Playback."
+  ],
+  [
+   "'Aircraft lost with pilot. KILLED, NOT DESERTED.'",
+   "Aircraft lost with pilot. Killed, not deserted."
+  ],
+  [
+   "VARDA RIM ROSTER. TEAL: KILLED IN ACTION, NOT DESERTED. INSTRUCTOR'S CHAIR: FILLED.",
+   "Varda Rim roster. Teal: killed in action, not deserted. Instructor's chair: filled."
+  ],
+  [
+   "Perimeter CAP ",
+   "Perimeter cap "
+  ],
+  [
+   "Early CAP ",
+   "Early cap "
+  ],
+  [
+   "Main CAP ",
+   "Main cap "
+  ],
+  [
+   "VULTURE LEAD pulled",
+   "Vulture Lead pulled"
+  ],
+  [
+   "VULTURE TWO pulled",
+   "Vulture Two pulled"
+  ],
+  [
+   "AIR MARSHAL RUSK pulled",
+   "Rusk pulled"
+  ],
+  [
+   " 1 inbound.",
+   " One inbound."
+  ],
+  [
+   " 2 inbound.",
+   " Two inbound."
+  ],
+  [
+   " 3 inbound.",
+   " Three inbound."
+  ],
+  [
+   " 4 inbound.",
+   " Four inbound."
+  ]
+ ],
+ "retakes": {
+  "radio.m18.ace.return1": 2,
+  "radio.m06.p3.beat": 2
+ },
+ "sttAccepted": {
+  "story.c07.b05": "Homophone: invented name 'Sera' transcribed as 'Sara'; every word spoken.",
+  "story.c25.b01": "Number formatting: spoken 'Recorder seven-T. Entry oh-four-twelve.' transcribed as digits '7T, entry 0412'.",
+  "radio.m11.p3.beat": "Homophone: invented name 'Merel' transcribed as 'Merle'.",
+  "radio.m18.p3.beat": "Homophone: 'wingmen' transcribed as 'wingman'.",
+  "radio.m27.p1.beat": "Homophone: 'wingmen' transcribed as 'wingman'.",
+  "radio.m19.p1.beat": "Homophone: 'quays' (said 'keys') transcribed as 'keys'.",
+  "radio.m19.p1.chatter1": "Homophone: 'quays' (said 'keys') transcribed as 'keys'.",
+  "radio.m19.p2.beat": "Homophone: 'quays' (said 'keys') transcribed as 'keys'.",
+  "radio.m19.p6.chatter1": "Homophone: 'quay' (said 'key') transcribed as 'key'."
+ }
+}

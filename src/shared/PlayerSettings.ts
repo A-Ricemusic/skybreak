@@ -1,7 +1,7 @@
 // Client comfort settings. Pure rules here; the client stores the values as
 // attributes on PlayerGui (they outlive respawns and every React remount, and
 // need no server or DataStore). Audio (workstream D) reads `MusicVolume` and
-// `SfxVolume` straight from PlayerGui, 0–1, default 1.
+// `SfxVolume` straight from PlayerGui, 0–1, default 1; voice-over reads `VoiceVolume`.
 
 export interface PlayerSettings {
 	/** Pushing the stick (or W) up dives instead of climbing. */
@@ -14,6 +14,8 @@ export interface PlayerSettings {
 	stickScale: number;
 	music: number;
 	sfx: number;
+	/** Voice-over (cutscenes and radio), 0–1. */
+	voice: number;
 }
 
 export type SettingKey = keyof PlayerSettings;
@@ -31,9 +33,10 @@ export const SETTING_RANGES: { [key in NumericSettingKey]: SettingRange } = {
 	stickScale: { min: 0.85, max: 1.3, step: 0.15 },
 	music: { min: 0, max: 1, step: 0.1 },
 	sfx: { min: 0, max: 1, step: 0.1 },
+	voice: { min: 0, max: 1, step: 0.1 },
 };
 
-/** PlayerGui attribute names. MusicVolume / SfxVolume are the audio contract. */
+/** PlayerGui attribute names. MusicVolume / SfxVolume / VoiceVolume are the audio contract. */
 export const SETTING_ATTRIBUTES: { [key in SettingKey]: string } = {
 	invertY: "InvertY",
 	shake: "CameraShake",
@@ -41,9 +44,10 @@ export const SETTING_ATTRIBUTES: { [key in SettingKey]: string } = {
 	stickScale: "StickScale",
 	music: "MusicVolume",
 	sfx: "SfxVolume",
+	voice: "VoiceVolume",
 };
 
-export const SETTING_ORDER: SettingKey[] = ["invertY", "shake", "hudScale", "stickScale", "music", "sfx"];
+export const SETTING_ORDER: SettingKey[] = ["invertY", "shake", "hudScale", "stickScale", "music", "sfx", "voice"];
 
 export const SETTING_LABELS: { [key in SettingKey]: string } = {
 	invertY: "INVERT PITCH",
@@ -52,10 +56,11 @@ export const SETTING_LABELS: { [key in SettingKey]: string } = {
 	stickScale: "STICK SIZE",
 	music: "MUSIC VOLUME",
 	sfx: "EFFECTS VOLUME",
+	voice: "VOICE VOLUME",
 };
 
 export function defaultSettings(): PlayerSettings {
-	return { invertY: false, shake: 1, hudScale: 1, stickScale: 1, music: 1, sfx: 1 };
+	return { invertY: false, shake: 1, hudScale: 1, stickScale: 1, music: 1, sfx: 1, voice: 1 };
 }
 
 function finite(value: unknown): value is number {
@@ -80,7 +85,7 @@ export function stepSetting(key: NumericSettingKey, value: number, direction: 1 
 export function readSettings(read: (attribute: string) => unknown): PlayerSettings {
 	const settings = defaultSettings();
 	settings.invertY = read(SETTING_ATTRIBUTES.invertY) === true;
-	for (const key of ["shake", "hudScale", "stickScale", "music", "sfx"] as NumericSettingKey[]) {
+	for (const key of ["shake", "hudScale", "stickScale", "music", "sfx", "voice"] as NumericSettingKey[]) {
 		const raw = read(SETTING_ATTRIBUTES[key]);
 		settings[key] = raw === undefined ? settings[key] : clampSetting(key, raw);
 	}

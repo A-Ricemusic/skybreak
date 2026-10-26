@@ -6,6 +6,8 @@ import { AURORA, BOARD, CHAIR, CHART, RECORDER, Rgb, SUBJECT, TIN, Vec, auroraVi
 import { SpeakerTone, StoryBeat, StoryChapter, speakerStyle, storyFor } from "../shared/RelayStory";
 import { MotionPreference } from "./MotionPreference";
 import { documentFor, documentLine } from "../shared/StoryDocuments";
+import { Voice, cinematicBeatSeconds } from "../shared/VoiceLines";
+import { VoiceHandle, VoicePlayer } from "./VoicePlayer";
 
 const ORIGIN=new Vector3(0,6000,0);
 const vec=(p:Vec)=>new Vector3(p.x,p.y,p.z),col=(c:Rgb)=>Color3.fromRGB(c.r,c.g,c.b),rgb=(c:Color3):Rgb=>({r:c.R*255,g:c.G*255,b:c.B*255});
@@ -221,8 +223,16 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 	const progressRef=useRef<Frame>(),fadeRef=useRef<Frame>(),cardBodyRef=useRef<TextLabel>(),cardNameRef=useRef<TextLabel>();
 	useEffect(()=>{if(subtitleRef.current)subtitleRef.current.CanvasPosition=Vector2.zero;},[beat]);
 	const pausedRef=useRef(false),stillRef=useRef(MotionPreference.reduced),finishRef=useRef(onFinish),cancelRef=useRef(onCancel),done=useRef(false);
-	// Longer lines stay on screen longer: 5-9 s per beat, scaled by text length.
-	const durations=chapter.beats.map((b)=>beatDuration(b.text));
+	// Longer lines stay on screen longer: 5-9 s per beat, scaled by text length, or the voice plus a short tail when that is longer.
+	const durations=chapter.beats.map((b,i)=>cinematicBeatSeconds(beatDuration(b.text),Voice.Story(id,i,b.text)?.seconds));
+	// The beat's voice (silent until its bank is uploaded). Advancing, skipping or closing always stops it.
+	const voiceRef=useRef<VoiceHandle>();
+	const speak=(index:number)=>{
+		voiceRef.current?.Stop(.12);
+		voiceRef.current=VoicePlayer.Play(Voice.Story(id,index,chapter.beats[index].text),"cutscene");
+		if(pausedRef.current)voiceRef.current?.Pause();
+	};
+	const silence=(fade:number)=>{voiceRef.current?.Stop(fade);voiceRef.current=undefined;};
 	// endRef is when the current beat hands over; a manual "next" pulls it in to
 	// start the outro (text fade + dip to black) instead of hard-cutting.
 	const indexRef=useRef(0),beatTimeRef=useRef(0),endRef=useRef(durations[0]);
@@ -234,6 +244,7 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 		// Hide the outgoing line before React swaps text so it can fade or type in cleanly.
 		if(!stillRef.current){setTextAlpha(1);setVisible(0);}
 		indexRef.current=index;beatTimeRef.current=0;endRef.current=durations[index];setBeat(index);
+		speak(index);
 	};
 	const advance=()=>{if(indexRef.current<chapter.beats.size()-1)goTo(indexRef.current+1);else finish();};
 	const requestNext=()=>{
@@ -241,13 +252,17 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 		const t=beatTimeRef.current;
 		if(endRef.current-t<=CUT_DIP)return; // outro already running; ignore repeat taps
 		endRef.current=t+CUT_DIP;
+		silence(CUT_DIP);
 	};
 	const dispatch=(action:CinematicAction | undefined)=>{
 		if(done.current)return;
-		if(action==="skip")finish();
-		else if(action==="cancel"){done.current=true;cancelRef.current();}
-		else if(action==="pause"){pausedRef.current=!pausedRef.current;setPaused(pausedRef.current);}
-		else if(action==="next"){if(pausedRef.current){pausedRef.current=false;setPaused(false);}requestNext();}
+		if(action==="skip"){silence(.2);finish();}
+		else if(action==="cancel"){silence(.2);done.current=true;cancelRef.current();}
+		else if(action==="pause"){
+			pausedRef.current=!pausedRef.current;setPaused(pausedRef.current);
+			if(pausedRef.current)voiceRef.current?.Pause();else voiceRef.current?.Resume();
+		}
+		else if(action==="next"){if(pausedRef.current){pausedRef.current=false;setPaused(false);voiceRef.current?.Resume();}requestNext();}
 		else if(action==="motion"){stillRef.current=!stillRef.current;MotionPreference.reduced=stillRef.current;setStill(stillRef.current);}
 		else if(action==="text"){prefs.large=!prefs.large;setLarge(prefs.large);}
 	};
@@ -258,6 +273,7 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 		const stage=sceneFor(chapter),restoreLighting=stageLighting(chapter.mood);let clock=0,reelAngle=0;
 		const last=chapter.beats.size()-1,steadyLamp=recorderOpen(id);
 		const lengths=chapter.beats.map((b)=>graphemes(b.text));
+		speak(0);
 		const move=RunService.RenderStepped.Connect((dt)=>{
 			if(done.current)return;
 			const step=math.min(dt,.1);
@@ -300,7 +316,7 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 			setHintMode(hintModeFor(kind));
 		});
 		// Unmount (finish, skip or cancel) puts the stage, lighting and camera back exactly as found.
-		return ()=>{move.Disconnect();input.Disconnect();inputType.Disconnect();stage.scene.Destroy();restoreLighting();if(camera && oldType && oldFov!==undefined && oldFrame){camera.CameraType=oldType;camera.FieldOfView=oldFov;camera.CFrame=oldFrame;}};
+		return ()=>{silence(0);move.Disconnect();input.Disconnect();inputType.Disconnect();stage.scene.Destroy();restoreLighting();if(camera && oldType && oldFov!==undefined && oldFrame){camera.CameraType=oldType;camera.FieldOfView=oldFov;camera.CFrame=oldFrame;}};
 	},[id]);
 
 	const activate=(control:CinematicControl)=>()=>dispatch(routeCinematicInput({kind:"activated",control}));
