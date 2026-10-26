@@ -45,6 +45,16 @@ describe("letterboxed cinematic composition",()=>{
 		expect(layout.skipWidth+layout.controlSize*2+layout.margin*2).toBeLessThanOrEqual(320);
 		expect(layout.maxLines).toBeGreaterThanOrEqual(2);
 	});
+	it("drops the next hint and shrinks the dots strip off desktop so neither crowds the speaker chip",()=>{
+		for(const [width,height] of SIZES) {
+			const layout=getCinematicLayout(width,height);
+			expect(layout.showHint).toBe(!layout.phone && !layout.tiny);
+			if(layout.showHint) expect(layout.dotsWidth(8)).toBe(200);
+			else { expect(layout.dotsWidth(8)).toBeLessThanOrEqual(90); expect(layout.dotsWidth(3)).toBeGreaterThanOrEqual(40); }
+			// At least 150 px stays for "SERA  VARDA CONTROL" at phone chip size.
+			expect(layout.textWidth-layout.dotsWidth(8)-4).toBeGreaterThanOrEqual(150);
+		}
+	});
 	it("sizes the band to the measured line, clamped between one line and the cap",()=>{
 		const layout=getCinematicLayout(750,332);
 		const fixed=layout.padTop+layout.chipHeight+layout.chipGap+layout.padBottom;

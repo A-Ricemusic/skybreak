@@ -30,6 +30,10 @@ export interface CinematicLayout {
 	maxBandHeight: number;
 	sceneHeight: number;
 	skipWidth: number;
+	/** Desktop only: the "click for next" hint beside the dots; on phones it crowded the speaker chip. */
+	showHint: boolean;
+	/** Dots strip width for `beats` beats: fixed 200 px on desktop, grown to fit elsewhere. */
+	dotsWidth: (beats: number) => number;
 }
 
 const MIN_SCENE = 44;
@@ -64,6 +68,8 @@ export function getCinematicLayout(width: number, height: number, large = false)
 		maxLines, maxTextHeight, maxBandHeight,
 		sceneHeight: height - barHeight - maxBandHeight,
 		skipWidth: tiny ? 72 : 88,
+		showHint: desktop,
+		dotsWidth: (beats) => desktop ? 200 : math.max(40, beats * 10 + 8),
 	};
 }
 
