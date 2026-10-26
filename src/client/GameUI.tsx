@@ -30,6 +30,7 @@ import { ACT_NAMES, ACT_NUMERALS, ACTS, environmentName, MissionCatalog, MISSION
 import { MENU_JET_POSITION } from "../shared/MenuWorldGeometry";
 import { MissionScore, type MissionRank } from "../shared/MissionScore";
 import { WeaponRules } from "../shared/WeaponRules";
+import { GameConfig } from "../shared/GameConfig";
 import { SpecialKind, SpecialWeapons } from "../shared/SpecialWeapons";
 import {
 	ARCHIVE_GAP,
@@ -439,7 +440,7 @@ function defaultTelemetry(): Telemetry {
 		objective: "Learn the flight controls",
 		objectiveProgress: 0,
 		objectiveTotal: 1,
-		timeRemaining: 600,
+		timeRemaining: GameConfig.Campaign.MissionTimeLimit,
 		tutorialStep: "move",
 		groundKills: 0,
 		targetKind: "air",
@@ -531,7 +532,7 @@ function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
 		objective: safeString(payload.objective, previous.objective ?? "Complete the objective"),
 		objectiveProgress: math.max(0, math.floor(finite(payload.objectiveProgress, previous.objectiveProgress ?? 0))),
 		objectiveTotal: math.max(0, math.floor(finite(payload.objectiveTotal, previous.objectiveTotal ?? 0))),
-		timeRemaining: math.clamp(finite(payload.timeRemaining, previous.timeRemaining ?? 600), 0, 600),
+		timeRemaining: math.clamp(finite(payload.timeRemaining, previous.timeRemaining ?? GameConfig.Campaign.MissionTimeLimit), 0, GameConfig.Campaign.MissionTimeLimit),
 		tutorialStep,
 		groundKills: math.max(0, math.floor(finite(payload.groundKills, previous.groundKills ?? 0))),
 		targetKind,
@@ -548,6 +549,9 @@ function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
 		fireDeniedSerial: typeIs(payload.fireDeniedSerial, "number") ? math.max(0, math.floor(finite(payload.fireDeniedSerial, previous.fireDeniedSerial ?? 0))) : previous.fireDeniedSerial,
 		targetHealth: typeIs(payload.targetHealth, "number") ? math.clamp(finite(payload.targetHealth, 1), 0, 1) : undefined,
 		aceKilled: payload.aceKilled === true,
+		optionalKills: math.max(0, math.floor(finite(payload.optionalKills, previous.optionalKills ?? 0))),
+		evadeCharges: math.max(0, math.floor(finite(payload.evadeCharges, previous.evadeCharges ?? 0))),
+		incomingDistance: typeIs(payload.incomingDistance, "number") ? math.max(0, finite(payload.incomingDistance, 0)) : undefined,
 	};
 }
 
@@ -556,7 +560,8 @@ function resumeMission(slot?: SaveSlot): number {
 }
 
 function killSnapshot(telemetry: Telemetry): KillSnapshot {
-	return { kills: telemetry.kills, groundKills: telemetry.groundKills ?? 0, aceKilled: telemetry.aceKilled === true };
+	// `kills` is required destructions only; raiders still earn a SPLASH callout.
+	return { kills: telemetry.kills + (telemetry.optionalKills ?? 0), groundKills: telemetry.groundKills ?? 0, aceKilled: telemetry.aceKilled === true };
 }
 
 /** Screen point (HUD-root pixels) of the target that just died, if it was the selected one and on screen. */
@@ -1158,7 +1163,9 @@ const DEBRIEF_ROW_STEP = 0.07;
 function failureCause(reason?: string): string {
 	if (reason === "crash_water") return "Your aircraft crashed into the water.";
 	if (reason === "crash_terrain") return "Your aircraft crashed into terrain or scenery.";
-	if (reason === "timeout") return "The ten-minute operation window closed.";
+	if (reason === "timeout") return `The ${math.floor(GameConfig.Campaign.MissionTimeLimit / 60)}-minute operation window closed.`;
+	if (reason === "escaped") return "The courier got away.";
+	if (reason === "internal_error") return "The sortie was stopped by a server error. Fly it again from the campaign menu.";
 	if (reason === "protected_lost") return "The protected vehicle or site was lost.";
 	if (reason === "destroyed") return "Your aircraft was shot down.";
 	if (reason === "not_recorded") return "The server could not record this sortie. Fly it again from the campaign menu.";
@@ -1507,7 +1514,7 @@ function MissionHud({
 	const statusColor = telemetry.missiles <= 0 ? C.Danger : C.Ivory;
 	const hullColor = hull <= 30 ? C.Danger : hull <= 60 ? C.Orange : C.Accent;
 	const fireButton = WeaponRules.FireButton(telemetry.missiles, telemetry.missileCooldown, telemetry.target !== undefined && telemetry.targetDamageable !== false, telemetry.lockProgress);
-	const timeRemaining = telemetry.timeRemaining ?? 600;
+	const timeRemaining = telemetry.timeRemaining ?? GameConfig.Campaign.MissionTimeLimit;
 	const tutorial = getTutorialInstruction(telemetry.tutorialStep, inputMode);
 	const progress = telemetry.objectiveTotal !== undefined && telemetry.objectiveTotal > 0
 		? `  ${telemetry.objectiveProgress ?? 0}/${telemetry.objectiveTotal}`

@@ -1,5 +1,6 @@
 import { ReplicatedStorage } from "@rbxts/services";
 import { MissionAssets } from "../shared/MissionAssets";
+import { JetFactory } from "../shared/JetFactory";
 import { GameConfig } from "../shared/GameConfig";
 import { Remotes } from "../shared/Types";
 import { CampaignService } from "./CampaignService";
@@ -47,6 +48,10 @@ function initialize(): void {
 	};
 
 	WorldBuilder.Build();
+	// Build the enemy (Vanta) mesh templates now. The first bandit of a server lifetime is otherwise
+	// created inside a Heartbeat step, where the mesh build yields mid-simulation.
+	const [warmed, warmError] = pcall(() => JetFactory.Create("Vanta warm-up", true).Destroy());
+	if (!warmed) warn(`SKYBREAK enemy mesh warm-up failed; the first sortie will build it: ${tostring(warmError)}`);
 	const storyModels=new Instance("Folder");storyModels.Name="RelayStoryModels";
 	for (const [name,make] of [
 		["CommsRelay",()=>MissionAssets.CreateCommsRelay("CommsRelay")],

@@ -10,11 +10,12 @@ import { Telemetry } from "./Types";
 //          missileCooldown, evadeCooldown, lockProgress, flags, elapsed,
 //          timeRemaining, objectiveProgress, objectiveTotal, groundKills,
 //          targetDistance, targetHealth (-1 none), protectedHealth (-1 none),
-//          specialCharges, specialCooldown, specialActive]
+//          specialCharges, specialCooldown, specialActive,
+//          evadeCharges, optionalKills, incomingDistance (-1 none)]
 // flags: 1 incoming, 2 lockWarning, 4 boundaryWarning, 8 targetDamageable,
 //        16 targetDamageable unknown (no target), 32 ace killed this sortie.
 export type TelemetryPacket = number[];
-export const TELEMETRY_FIELDS = 22;
+export const TELEMETRY_FIELDS = 25;
 
 export interface TelemetryNumbers {
 	health: number; speed: number; altitude: number; kills: number; total: number; missiles: number;
@@ -26,6 +27,8 @@ export interface TelemetryNumbers {
 	specialCharges?: number; specialCooldown?: number; specialActive?: number;
 	/** The sortie's ace is down (cumulative, so the HUD can tell an ace kill from a dropped packet). */
 	aceKilled?: boolean;
+	/** Evade charges in hand (EvadeRules), optional raider kills, and the nearest hostile missile's range. */
+	evadeCharges?: number; optionalKills?: number; incomingDistance?: number;
 }
 
 export const TelemetryCodec = {
@@ -38,6 +41,7 @@ export const TelemetryCodec = {
 			t.timeRemaining, t.objectiveProgress, t.objectiveTotal, t.groundKills,
 			t.targetDistance, t.targetHealth ?? -1, t.protectedHealth ?? -1,
 			t.specialCharges ?? 0, t.specialCooldown ?? 0, t.specialActive ?? 0,
+			t.evadeCharges ?? 0, t.optionalKills ?? 0, t.incomingDistance ?? -1,
 		];
 	},
 	/**
@@ -62,6 +66,8 @@ export const TelemetryCodec = {
 		into.targetHealth = n[17] >= 0 ? n[17] : undefined;
 		into.protectedHealth = n[18] >= 0 ? n[18] : undefined;
 		into.specialCharges = math.max(0, n[19]); into.specialCooldown = math.max(0, n[20]); into.specialActive = math.max(0, n[21]);
+		into.evadeCharges = math.max(0, n[22]); into.optionalKills = math.max(0, n[23]);
+		into.incomingDistance = n[24] >= 0 ? n[24] : undefined;
 		return n[0];
 	},
 };

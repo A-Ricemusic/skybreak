@@ -1,6 +1,11 @@
-import { FlightPoint, MissionBlueprint, MissionPhaseBlueprint, PhaseKind } from "./MissionCatalog";
+import { FlightPoint, MissionBlueprint, MissionCatalog, MissionPhaseBlueprint, PhaseKind } from "./MissionCatalog";
+import { GameConfig } from "./GameConfig";
 
-export type BlueprintReason = "complete" | "timeout" | "destroyed" | "protected_lost";
+export type BlueprintReason = "complete" | "timeout" | "destroyed" | "protected_lost" | "escaped";
+/** Hull a protected convoy or site loses per second per raider near it (before the difficulty scale). */
+const PROTECT_DRAIN = 0.55;
+/** Each live hazard gun drains the protected actor like this many raiders. */
+const GUN_WEIGHT = 1.5;
 export interface BlueprintState {
 	blueprint: MissionBlueprint;
 	/** This sortie's live phase list: the authored phases plus any twist inserts fired so far. */
@@ -21,6 +26,13 @@ export interface BlueprintState {
 	optionalAirKills: number;
 	phaseOptionalKills: number;
 	aceKilled: boolean;
+	/** Extra raiders every wave brings (Ace difficulty); widens each phase's optional kill cap. */
+	extraRaiders: number;
+	/** Seconds the active phase has been observed (chase timer). */
+	phaseClock: number;
+	/** The active phase's hazard has lit up, and how many of its targets are still alive. */
+	hazardFired: boolean;
+	hazardAlive: number;
 	outcome?: "won" | "failed";
 	reason?: BlueprintReason;
 }
@@ -44,6 +56,7 @@ function sweptDistance(p: FlightPoint, a: FlightPoint, b: FlightPoint): number {
 }
 function total(p: MissionPhaseBlueprint): number {
 	if (p.kind === "ace") return 1;
+	if (p.kind === "chase") return p.count ?? 1;
 	if (p.kind === "route") return p.points!.size();
 	if (p.kind === "recon") return p.points!.size() * p.seconds!;
 	if (p.kind === "signal" || p.kind === "escort" || p.kind === "defend") return p.seconds!;
@@ -55,6 +68,7 @@ function finish(s: BlueprintState, outcome: "won" | "failed", reason: BlueprintR
 }
 function advance(s: BlueprintState): void {
 	s.phaseIndex++; s.phaseProgress=0; s.pointIndex=0; s.phaseOptionalKills=0; s.protectedHealth=100; s.phaseTwisted=false;
+	s.phaseClock=0; s.hazardFired=false; s.hazardAlive=0;
 	if (s.phaseIndex >= s.phases.size()) finish(s,"won","complete");
 }
 /**
@@ -79,22 +93,36 @@ function twist(s: BlueprintState): boolean {
 	advance(s);
 	return true;
 }
+/** The active phase's hazard targets are lit and at least one is still standing. */
+function hazardLive(s: BlueprintState): boolean { return s.hazardFired && s.hazardAlive>0; }
+/** Lights the active phase's hazard once its fraction reaches `at`; its radio call queues like a twist's. */
+function hazard(s: BlueprintState, p: MissionPhaseBlueprint): void {
+	if (!p.hazard || s.hazardFired) return;
+	const span=total(p);
+	if (span>0 && s.phaseProgress+0.00001 < p.hazard.at*span) return;
+	s.hazardFired=true; s.hazardAlive=p.hazard.count;
+	s.radioQueue.push(p.hazard.text);
+}
 export const BlueprintRunner = {
-	Duration: 600,
-	NewState(blueprint: MissionBlueprint, startedAt: number): BlueprintState {
+	/** The sortie deadline in seconds (GameConfig.Campaign.MissionTimeLimit). */
+	Duration: GameConfig.Campaign.MissionTimeLimit,
+	ProtectDrain: PROTECT_DRAIN,
+	GunWeight: GUN_WEIGHT,
+	NewState(blueprint: MissionBlueprint, startedAt: number, extraRaiders=0): BlueprintState {
 		assert(finite(startedAt) && blueprint.phases.size()>0,"Invalid blueprint/clock");
 		const phases: MissionPhaseBlueprint[]=[];
 		for (const phase of blueprint.phases) phases.push(phase);
 		return {blueprint,phases,radioQueue:[],phaseTwisted:false,startedAt,elapsed:0,phaseIndex:0,phaseProgress:0,pointIndex:0,protectedHealth:100,
-			killedIds:new Set<string>(),requiredAirKills:0,requiredGroundKills:0,optionalAirKills:0,phaseOptionalKills:0,aceKilled:false};
+			killedIds:new Set<string>(),requiredAirKills:0,requiredGroundKills:0,optionalAirKills:0,phaseOptionalKills:0,aceKilled:false,
+			extraRaiders:math.max(0,math.floor(finite(extraRaiders) ? extraRaiders : 0)),phaseClock:0,hazardFired:false,hazardAlive:0};
 	},
 	Tick(s: BlueprintState, now: number, health=100): void {
 		if (s.outcome !== undefined || !finite(now)) return;
 		s.elapsed=math.max(s.elapsed,now-s.startedAt,0);
-		if (s.elapsed>=600) finish(s,"failed","timeout");
+		if (s.elapsed>=BlueprintRunner.Duration) finish(s,"failed","timeout");
 		else if (finite(health) && health<=0) finish(s,"failed","destroyed");
 	},
-	TimeRemaining(s: BlueprintState): number { return math.max(0,600-s.elapsed); },
+	TimeRemaining(s: BlueprintState): number { return math.max(0,BlueprintRunner.Duration-s.elapsed); },
 	ActivePhase(s: BlueprintState): MissionPhaseBlueprint | undefined { return s.phases[s.phaseIndex]; },
 	/** The live phase list (authored phases plus twist inserts fired so far). Read-only for callers. */
 	Phases(s: BlueprintState): MissionPhaseBlueprint[] { return s.phases; },
@@ -102,14 +130,17 @@ export const BlueprintRunner = {
 	TakeRadio(s: BlueprintState): string | undefined { return s.radioQueue.size()>0 ? s.radioQueue.shift() : undefined; },
 	/** Phase progress total: kills for combat phases, checkpoints for routes, seconds for timed volumes. */
 	Total(p: MissionPhaseBlueprint): number { return total(p); },
-	/** Active phase progress as a 0-1 fraction (1 when the mission is complete or the phase has no total). */
+	/** Active phase progress as a 0-1 fraction (1 when the mission is complete or the phase has no total). A chase reads its escape clock. */
 	Fraction(s: BlueprintState): number {
 		const p=BlueprintRunner.ActivePhase(s);
 		if (!p) return 1;
+		if (p.kind === "chase") return math.clamp(s.phaseClock/math.max(0.001,p.seconds ?? 1),0,1);
 		const t=total(p);
 		if (t<=0) return 1;
 		return math.clamp(s.phaseProgress/t,0,1);
 	},
+	/** The active phase's hazard targets are lit and alive (they may be struck; the phase cannot finish). */
+	HazardLive(s: BlueprintState): boolean { return hazardLive(s); },
 	NavigationPoint(s: BlueprintState): FlightPoint | undefined {
 		const p=BlueprintRunner.ActivePhase(s);
 		if (!p?.points) return undefined;
@@ -119,18 +150,30 @@ export const BlueprintRunner = {
 		const a=p.points[i],b=p.points[i+1];
 		return {x:a.x+(b.x-a.x)*alpha,y:a.y+(b.y-a.y)*alpha,z:a.z+(b.z-a.z)*alpha};
 	},
-	/** Called only with authoritative server simulation. dt is bounded; invalid observations cannot win. */
-	ObserveFlight(s: BlueprintState, from: FlightPoint, to: FlightPoint, dt: number, now: number, threats=0): void {
+	/**
+	 * Called only with authoritative server simulation. dt is bounded; invalid observations cannot win.
+	 * `threats` counts raiders near a protected convoy or site; `drainScale` is the difficulty's protectDrain.
+	 */
+	ObserveFlight(s: BlueprintState, from: FlightPoint, to: FlightPoint, dt: number, now: number, threats=0, drainScale=1): void {
 		BlueprintRunner.Tick(s,now);
 		if (s.outcome !== undefined || !finite(dt) || dt<=0 || dt>0.1) return;
-		for (const n of [from.x,from.y,from.z,to.x,to.y,to.z,threats]) if (!finite(n)) return;
+		for (const n of [from.x,from.y,from.z,to.x,to.y,to.z,threats,drainScale]) if (!finite(n)) return;
 		const p=BlueprintRunner.ActivePhase(s)!;
+		if (p.kind === "chase") {
+			s.phaseClock+=dt;
+			if (s.phaseClock+0.00001>=(p.seconds ?? 0)) finish(s,"failed","escaped");
+			return;
+		}
 		const point=BlueprintRunner.NavigationPoint(s);
 		if (!point) return;
+		hazard(s,p);
 		if (p.kind === "escort" || p.kind === "defend") {
-			s.protectedHealth=math.max(0,s.protectedHealth-math.clamp(threats,0,5)*0.7*dt);
+			const guns=hazardLive(s) && p.hazard?.effect === "guns" ? s.hazardAlive*GUN_WEIGHT : 0;
+			s.protectedHealth=math.max(0,s.protectedHealth-(math.clamp(threats,0,5)+guns)*PROTECT_DRAIN*math.clamp(drainScale,0,2)*dt);
 			if (s.protectedHealth<=0) { finish(s,"failed","protected_lost"); return; }
 		}
+		// Live jammers freeze a signal hold's timer until they are destroyed.
+		if (hazardLive(s) && p.hazard?.effect === "jam") return;
 		if (p.ceiling !== undefined && (to.y>p.ceiling || from.y>p.ceiling)) return;
 		if (p.kind === "route") {
 			if (sweptDistance(point,from,to) <= (p.radius ?? 210)) {
@@ -141,23 +184,33 @@ export const BlueprintRunner = {
 			return;
 		}
 		if (distance(point,to) > (p.radius ?? 1000)) return;
-		s.phaseProgress+=dt;
+		// A convoy reaching the end of its route waits there until any hazard guns are silenced.
+		s.phaseProgress=math.min(total(p),s.phaseProgress+dt);
 		if (p.kind === "recon") s.pointIndex=math.min(p.points!.size()-1,math.floor((s.phaseProgress+0.00001)/p.seconds!));
+		hazard(s,p);
 		if (twist(s)) return;
-		if (s.phaseProgress+0.00001>=total(p)) advance(s);
+		if (s.phaseProgress+0.00001>=total(p) && !hazardLive(s)) advance(s);
 	},
 	CanDamage(s: BlueprintState, kind: "air" | "ground" | "ace", required: boolean): boolean {
 		if (s.outcome !== undefined) return false;
 		const p=BlueprintRunner.ActivePhase(s);
 		if (!p) return false;
-		if (!required) return kind==="air" && s.phaseOptionalKills<(p.optionalRaiders ?? 0);
-		return (kind==="ace" && p.kind==="ace") || (kind==="ground" && p.kind==="required_ground") || (kind==="air" && p.kind==="required_air");
+		if (!required) return kind==="air" && s.phaseOptionalKills<MissionCatalog.RaiderCap(p,s.extraRaiders);
+		return (kind==="ace" && p.kind==="ace") || (kind==="ground" && (p.kind==="required_ground" || hazardLive(s)))
+			|| (kind==="air" && (p.kind==="required_air" || p.kind==="chase"));
 	},
 	RecordKill(s: BlueprintState,id: string,kind: "air" | "ground" | "ace",required: boolean,now: number): boolean {
 		BlueprintRunner.Tick(s,now);
 		if (id==="" || s.killedIds.has(id) || !BlueprintRunner.CanDamage(s,kind,required)) return false;
 		s.killedIds.add(id);
 		if (!required) { s.optionalAirKills++; s.phaseOptionalKills++; return true; }
+		const p=BlueprintRunner.ActivePhase(s)!;
+		if (kind==="ground" && p.kind!=="required_ground") {
+			// A hazard target: a required ground kill that clears the way, not phase progress.
+			s.requiredGroundKills++; s.hazardAlive=math.max(0,s.hazardAlive-1);
+			if (!hazardLive(s) && s.phaseProgress+0.00001>=total(p)) advance(s);
+			return true;
+		}
 		if (kind==="ace") s.aceKilled=true;
 		else if (kind==="air") s.requiredAirKills++;
 		else s.requiredGroundKills++;
