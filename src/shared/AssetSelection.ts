@@ -1,5 +1,6 @@
 // Pure decisions for the uploaded-asset loaders: which asset ID (if any) to try,
-// which ace livery an enemy gets and how far to rescale an imported model.
+// which ace livery an enemy gets, how far to rescale an imported model and
+// whether its parts kept their textures.
 // No Roblox services here, so the offline Luau runner can execute it.
 
 export type AceLivery = "Vulture" | "Rusk";
@@ -10,6 +11,16 @@ export interface ProceduralTint {
 	White: [number, number, number];
 	Navy: [number, number, number];
 	Cyan: [number, number, number];
+}
+
+/** What the loader saw on one imported BasePart. */
+export interface ImportedPart {
+	name: string;
+	meshPart: boolean;
+	/** Has a SurfaceAppearance child. */
+	appearance: boolean;
+	/** That SurfaceAppearance has a ColorMap. */
+	colorMap: boolean;
 }
 
 const TINTS: Record<AceLivery, ProceduralTint> = {
@@ -52,15 +63,50 @@ export const AssetSelection = {
 		return TINTS[livery];
 	},
 	/**
-	 * Uniform scale that makes an imported model's longest side match the
-	 * authored size. FBX unit handling differs between import routes; anything
-	 * within 2% is left alone and absurd ratios are rejected (returns undefined).
+	 * Uniform scale that makes an imported model's longest side match the in-game
+	 * size. Roblox's Model import reads FBX centimetres as studs, so an export at
+	 * 0.28 m per stud arrives 28x too large and one at 0.01 m per stud arrives at
+	 * size; either is fitted here. Within 2% is left alone. Returns undefined for
+	 * an absurd ratio or when the proportions do not match the authored model
+	 * (each axis within 5% of the longest side after scaling): a wrong asset, lost
+	 * pieces or swapped axes fall back instead of loading misshapen.
 	 */
-	FitScale(actualLongest: number, expectedLongest: number): number | undefined {
-		if (!(actualLongest > 0) || !(expectedLongest > 0)) return undefined;
+	FitScale(actual: readonly number[], expected: readonly number[]): number | undefined {
+		if (actual.size() !== 3 || expected.size() !== 3) return undefined;
+		const actualLongest = math.max(actual[0], actual[1], actual[2]);
+		const expectedLongest = math.max(expected[0], expected[1], expected[2]);
+		if (!(actualLongest > 0) || !(expectedLongest > 0) || actualLongest === math.huge) return undefined;
 		const ratio = expectedLongest / actualLongest;
-		if (ratio > 0.98 && ratio < 1.02) return 1;
 		if (ratio < 0.001 || ratio > 1000) return undefined;
-		return ratio;
+		for (const axis of [0, 1, 2]) {
+			if (math.abs(actual[axis] * ratio - expected[axis]) > expectedLongest * 0.05) return undefined;
+		}
+		return ratio > 0.98 && ratio < 1.02 ? 1 : ratio;
+	},
+	/** Names of the separately pivoted control-surface parts an aircraft spec authors. */
+	ControlSurfaceNames(surfaces: Record<string, unknown> | undefined): string[] {
+		const names: string[] = [];
+		if (surfaces !== undefined) for (const [name] of pairs(surfaces)) names.push(name);
+		table.sort(names);
+		return names;
+	},
+	/**
+	 * Whether an imported model's parts carry the textures the FBX embedded. The
+	 * Model import gives every MeshPart a SurfaceAppearance with the maps; a part
+	 * without one would render as bare grey geometry, so the whole model falls
+	 * back. Returns the first problem, or undefined when the model is usable.
+	 * `required` lists part names that must exist (aircraft body and control surfaces).
+	 */
+	AppearanceProblem(parts: readonly ImportedPart[], required: readonly string[] = []): string | undefined {
+		if (parts.size() === 0) return "contains no parts";
+		for (const part of parts) {
+			if (!part.meshPart) return `${part.name} is not a MeshPart`;
+			if (!part.appearance) return `${part.name} has no SurfaceAppearance`;
+			if (!part.colorMap) return `${part.name} SurfaceAppearance has no ColorMap`;
+		}
+		for (const name of required) {
+			if (parts.find((part) => part.name === name) === undefined) return `missing part ${name}`;
+		}
+		return undefined;
 	},
 };

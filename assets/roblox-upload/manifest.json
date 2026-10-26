@@ -1,6 +1,7 @@
 {
   "schema": "skybreak.roblox-upload-manifest.v1",
   "studMetres": 0.28,
+  "fbxImport": "Roblox reads FBX centimetres as studs. Folders with fbxMetresPerStud 0.01 import at their authored size; legacy 0.28 exports import 28x too large. The game rescales every import to gameSizeStuds.",
   "pipeline": "docs/roblox-asset-pipeline.md",
   "idsTable": "src/shared/RobloxAssetIds.ts",
   "assets": [
@@ -14,31 +15,36 @@
           "file": "kestrel.fbx",
           "robloxAssetType": "Model",
           "from": "FBX (textures embedded)"
-        },
+        }
+      ],
+      "embeddedTextures": [
         {
           "file": "kestrel-color.png",
-          "robloxAssetType": "Image",
-          "role": "color",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "color"
         },
         {
           "file": "kestrel-normal.png",
-          "robloxAssetType": "Image",
-          "role": "normal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "normal"
         },
         {
           "file": "kestrel-roughness.png",
-          "robloxAssetType": "Image",
-          "role": "rough",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "rough"
         },
         {
           "file": "kestrel-metalness.png",
-          "robloxAssetType": "Image",
-          "role": "metal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "metal"
         }
+      ],
+      "fbxMetresPerStud": 0.28,
+      "expectedImportSizeStuds": [
+        644.0,
+        172.004,
+        754.6
+      ],
+      "gameSizeStuds": [
+        22.1892,
+        5.9265,
+        26.0
       ],
       "usage": "Player aircraft (JetFactory.Create, menu display jet, parked jets).",
       "triangleCount": 4208,
@@ -48,6 +54,7 @@
         "kestrel-roughness.png 1024x1024",
         "kestrel-metalness.png 1024x1024"
       ],
+      "textureLimit": 1024,
       "robloxSizeStuds": [
         23.0,
         6.143,
@@ -71,31 +78,36 @@
           "file": "vanta.fbx",
           "robloxAssetType": "Model",
           "from": "FBX (textures embedded)"
-        },
+        }
+      ],
+      "embeddedTextures": [
         {
           "file": "vanta-color.png",
-          "robloxAssetType": "Image",
-          "role": "color",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "color"
         },
         {
           "file": "vanta-normal.png",
-          "robloxAssetType": "Image",
-          "role": "normal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "normal"
         },
         {
           "file": "vanta-roughness.png",
-          "robloxAssetType": "Image",
-          "role": "rough",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "rough"
         },
         {
           "file": "vanta-metalness.png",
-          "robloxAssetType": "Image",
-          "role": "metal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "metal"
         }
+      ],
+      "fbxMetresPerStud": 0.28,
+      "expectedImportSizeStuds": [
+        693.28,
+        224.56,
+        777.0
+      ],
+      "gameSizeStuds": [
+        23.5555,
+        7.6298,
+        26.4
       ],
       "usage": "Enemy bandits and raiders (JetFactory.Create enemy=true).",
       "triangleCount": 3780,
@@ -105,6 +117,7 @@
         "vanta-roughness.png 1024x1024",
         "vanta-metalness.png 1024x1024"
       ],
+      "textureLimit": 1024,
       "robloxSizeStuds": [
         24.76,
         8.02,
@@ -128,31 +141,36 @@
           "file": "vanta-vulture.fbx",
           "robloxAssetType": "Model",
           "from": "FBX (textures embedded)"
-        },
+        }
+      ],
+      "embeddedTextures": [
         {
           "file": "vanta-vulture-color.png",
-          "robloxAssetType": "Image",
-          "role": "color",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "color"
         },
         {
           "file": "vanta-vulture-normal.png",
-          "robloxAssetType": "Image",
-          "role": "normal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "normal"
         },
         {
           "file": "vanta-vulture-roughness.png",
-          "robloxAssetType": "Image",
-          "role": "rough",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "rough"
         },
         {
           "file": "vanta-vulture-metalness.png",
-          "robloxAssetType": "Image",
-          "role": "metal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "metal"
         }
+      ],
+      "fbxMetresPerStud": 0.28,
+      "expectedImportSizeStuds": [
+        693.28,
+        224.56,
+        777.0
+      ],
+      "gameSizeStuds": [
+        23.5555,
+        7.6298,
+        26.4
       ],
       "usage": "Vulture Lead and Vulture Two aces (M11 and M15 ace phases).",
       "triangleCount": 3780,
@@ -162,6 +180,7 @@
         "vanta-vulture-roughness.png 1024x1024",
         "vanta-vulture-metalness.png 1024x1024"
       ],
+      "textureLimit": 1024,
       "robloxSizeStuds": [
         24.76,
         8.02,
@@ -185,31 +204,36 @@
           "file": "vanta-rusk.fbx",
           "robloxAssetType": "Model",
           "from": "FBX (textures embedded)"
-        },
+        }
+      ],
+      "embeddedTextures": [
         {
           "file": "vanta-rusk-color.png",
-          "robloxAssetType": "Image",
-          "role": "color",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "color"
         },
         {
           "file": "vanta-rusk-normal.png",
-          "robloxAssetType": "Image",
-          "role": "normal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "normal"
         },
         {
           "file": "vanta-rusk-roughness.png",
-          "robloxAssetType": "Image",
-          "role": "rough",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "rough"
         },
         {
           "file": "vanta-rusk-metalness.png",
-          "robloxAssetType": "Image",
-          "role": "metal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "metal"
         }
+      ],
+      "fbxMetresPerStud": 0.28,
+      "expectedImportSizeStuds": [
+        693.28,
+        224.56,
+        777.0
+      ],
+      "gameSizeStuds": [
+        23.5555,
+        7.6298,
+        26.4
       ],
       "usage": "Air Marshal Rusk final ace (M27 ace phase).",
       "triangleCount": 3780,
@@ -219,6 +243,7 @@
         "vanta-rusk-roughness.png 1024x1024",
         "vanta-rusk-metalness.png 1024x1024"
       ],
+      "textureLimit": 1024,
       "robloxSizeStuds": [
         24.76,
         8.02,
@@ -242,31 +267,36 @@
           "file": "frigate.fbx",
           "robloxAssetType": "Model",
           "from": "FBX (textures embedded)"
-        },
+        }
+      ],
+      "embeddedTextures": [
         {
           "file": "frigate-color.png",
-          "robloxAssetType": "Image",
-          "role": "color",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "color"
         },
         {
           "file": "frigate-normal.png",
-          "robloxAssetType": "Image",
-          "role": "normal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "normal"
         },
         {
           "file": "frigate-roughness.png",
-          "robloxAssetType": "Image",
-          "role": "rough",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "rough"
         },
         {
           "file": "frigate-metalness.png",
-          "robloxAssetType": "Image",
-          "role": "metal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "metal"
         }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        58.319,
+        155.05,
+        430.0
+      ],
+      "gameSizeStuds": [
+        58.319,
+        155.05,
+        430.0
       ],
       "usage": "M23 frigate ring (three hulls, one protected) and harbour dressing in Act III; WorldAssets.PlaceFrigate.",
       "triangleCount": 3222,
@@ -276,6 +306,7 @@
         "frigate-roughness.png 512x512",
         "frigate-metalness.png 512x512"
       ],
+      "textureLimit": 512,
       "robloxSizeStuds": [
         58.319,
         155.05,
@@ -299,31 +330,36 @@
           "file": "oil-platform.fbx",
           "robloxAssetType": "Model",
           "from": "FBX (textures embedded)"
-        },
+        }
+      ],
+      "embeddedTextures": [
         {
           "file": "oil-platform-color.png",
-          "robloxAssetType": "Image",
-          "role": "color",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "color"
         },
         {
           "file": "oil-platform-normal.png",
-          "robloxAssetType": "Image",
-          "role": "normal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "normal"
         },
         {
           "file": "oil-platform-roughness.png",
-          "robloxAssetType": "Image",
-          "role": "rough",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "rough"
         },
         {
           "file": "oil-platform-metalness.png",
-          "robloxAssetType": "Image",
-          "role": "metal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "metal"
         }
+      ],
+      "fbxMetresPerStud": 0.28,
+      "expectedImportSizeStuds": [
+        8879.164,
+        8585.5,
+        6086.08
+      ],
+      "gameSizeStuds": [
+        317.113,
+        306.625,
+        217.36
       ],
       "usage": "M23/M24 'ocean platform' rig: protected centrepiece and ground-target deck; WorldAssets.PlaceOilPlatform.",
       "triangleCount": 3468,
@@ -333,6 +369,7 @@
         "oil-platform-roughness.png 512x512",
         "oil-platform-metalness.png 512x512"
       ],
+      "textureLimit": 512,
       "robloxSizeStuds": [
         317.113,
         306.625,
@@ -356,31 +393,36 @@
           "file": "harbour-quay.fbx",
           "robloxAssetType": "Model",
           "from": "FBX (textures embedded)"
-        },
+        }
+      ],
+      "embeddedTextures": [
         {
           "file": "harbour-quay-color.png",
-          "robloxAssetType": "Image",
-          "role": "color",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "color"
         },
         {
           "file": "harbour-quay-normal.png",
-          "robloxAssetType": "Image",
-          "role": "normal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "normal"
         },
         {
           "file": "harbour-quay-roughness.png",
-          "robloxAssetType": "Image",
-          "role": "rough",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "rough"
         },
         {
           "file": "harbour-quay-metalness.png",
-          "robloxAssetType": "Image",
-          "role": "metal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "metal"
         }
+      ],
+      "fbxMetresPerStud": 0.28,
+      "expectedImportSizeStuds": [
+        6720.0,
+        1562.4,
+        2024.4
+      ],
+      "gameSizeStuds": [
+        240.0,
+        55.8,
+        72.3
       ],
       "usage": "Open-piled quay segments for harbour missions (M19-M27); tile end to end along a coast. WorldAssets.PlaceQuay.",
       "triangleCount": 1612,
@@ -390,6 +432,7 @@
         "harbour-quay-roughness.png 512x512",
         "harbour-quay-metalness.png 512x512"
       ],
+      "textureLimit": 512,
       "robloxSizeStuds": [
         240.0,
         55.8,
@@ -413,40 +456,46 @@
           "file": "container-stack.fbx",
           "robloxAssetType": "Model",
           "from": "FBX (textures embedded)"
-        },
+        }
+      ],
+      "embeddedTextures": [
         {
           "file": "container-stack-color.png",
-          "robloxAssetType": "Image",
-          "role": "color",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "color"
         },
         {
           "file": "container-stack-normal.png",
-          "robloxAssetType": "Image",
-          "role": "normal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "normal"
         },
         {
           "file": "container-stack-roughness.png",
-          "robloxAssetType": "Image",
-          "role": "rough",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "rough"
         },
         {
           "file": "container-stack-metalness.png",
-          "robloxAssetType": "Image",
-          "role": "metal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "metal"
         }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        36.0,
+        27.75,
+        88.4
+      ],
+      "gameSizeStuds": [
+        36.0,
+        27.75,
+        88.4
       ],
       "usage": "Port yard stacks beside quays and cranes (replaces Scenery.Containers boxes).",
       "triangleCount": 748,
       "textures": [
-        "container-stack-color.png 512x512",
-        "container-stack-normal.png 512x512",
-        "container-stack-roughness.png 512x512",
-        "container-stack-metalness.png 512x512"
+        "container-stack-color.png 256x256",
+        "container-stack-normal.png 256x256",
+        "container-stack-roughness.png 256x256",
+        "container-stack-metalness.png 256x256"
       ],
+      "textureLimit": 256,
       "robloxSizeStuds": [
         36.0,
         27.75,
@@ -470,31 +519,36 @@
           "file": "gantry-crane.fbx",
           "robloxAssetType": "Model",
           "from": "FBX (textures embedded)"
-        },
+        }
+      ],
+      "embeddedTextures": [
         {
           "file": "gantry-crane-color.png",
-          "robloxAssetType": "Image",
-          "role": "color",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "color"
         },
         {
           "file": "gantry-crane-normal.png",
-          "robloxAssetType": "Image",
-          "role": "normal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "normal"
         },
         {
           "file": "gantry-crane-roughness.png",
-          "robloxAssetType": "Image",
-          "role": "rough",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "rough"
         },
         {
           "file": "gantry-crane-metalness.png",
-          "robloxAssetType": "Image",
-          "role": "metal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "metal"
         }
+      ],
+      "fbxMetresPerStud": 0.28,
+      "expectedImportSizeStuds": [
+        1624.0,
+        4480.0,
+        5600.0
+      ],
+      "gameSizeStuds": [
+        58.0,
+        160.0,
+        200.0
       ],
       "usage": "Harbour skyline: line quays in M19-M27 (replaces Scenery.Crane); WorldAssets.PlaceGantryCrane.",
       "triangleCount": 568,
@@ -504,6 +558,7 @@
         "gantry-crane-roughness.png 512x512",
         "gantry-crane-metalness.png 512x512"
       ],
+      "textureLimit": 512,
       "robloxSizeStuds": [
         58.0,
         160.0,
@@ -527,31 +582,36 @@
           "file": "hangar.fbx",
           "robloxAssetType": "Model",
           "from": "FBX (textures embedded)"
-        },
+        }
+      ],
+      "embeddedTextures": [
         {
           "file": "hangar-color.png",
-          "robloxAssetType": "Image",
-          "role": "color",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "color"
         },
         {
           "file": "hangar-normal.png",
-          "robloxAssetType": "Image",
-          "role": "normal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "normal"
         },
         {
           "file": "hangar-roughness.png",
-          "robloxAssetType": "Image",
-          "role": "rough",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "rough"
         },
         {
           "file": "hangar-metalness.png",
-          "robloxAssetType": "Image",
-          "role": "metal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "metal"
         }
+      ],
+      "fbxMetresPerStud": 0.28,
+      "expectedImportSizeStuds": [
+        3584.0,
+        1106.0,
+        3824.8
+      ],
+      "gameSizeStuds": [
+        128.0,
+        39.5,
+        136.6
       ],
       "usage": "Airbase dressing at Varda (M1, M3, M4, M8): fits one Kestrel; WorldAssets.PlaceHangar.",
       "triangleCount": 1064,
@@ -561,6 +621,7 @@
         "hangar-roughness.png 512x512",
         "hangar-metalness.png 512x512"
       ],
+      "textureLimit": 512,
       "robloxSizeStuds": [
         128.0,
         39.5,
@@ -584,31 +645,36 @@
           "file": "control-tower.fbx",
           "robloxAssetType": "Model",
           "from": "FBX (textures embedded)"
-        },
+        }
+      ],
+      "embeddedTextures": [
         {
           "file": "control-tower-color.png",
-          "robloxAssetType": "Image",
-          "role": "color",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "color"
         },
         {
           "file": "control-tower-normal.png",
-          "robloxAssetType": "Image",
-          "role": "normal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "normal"
         },
         {
           "file": "control-tower-roughness.png",
-          "robloxAssetType": "Image",
-          "role": "rough",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "rough"
         },
         {
           "file": "control-tower-metalness.png",
-          "robloxAssetType": "Image",
-          "role": "metal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "metal"
         }
+      ],
+      "fbxMetresPerStud": 0.28,
+      "expectedImportSizeStuds": [
+        1820.0,
+        3544.8,
+        1330.0
+      ],
+      "gameSizeStuds": [
+        65.0,
+        126.6,
+        47.5
       ],
       "usage": "Varda airbase tower (M1, M3, M4, M8), offset from the runway; replaces Scenery.ControlTower.",
       "triangleCount": 472,
@@ -618,6 +684,7 @@
         "control-tower-roughness.png 512x512",
         "control-tower-metalness.png 512x512"
       ],
+      "textureLimit": 512,
       "robloxSizeStuds": [
         65.0,
         126.6,
@@ -641,31 +708,36 @@
           "file": "office-midrise.fbx",
           "robloxAssetType": "Model",
           "from": "FBX (textures embedded)"
-        },
+        }
+      ],
+      "embeddedTextures": [
         {
           "file": "office-midrise-color.png",
-          "robloxAssetType": "Image",
-          "role": "color",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "color"
         },
         {
           "file": "office-midrise-normal.png",
-          "robloxAssetType": "Image",
-          "role": "normal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "normal"
         },
         {
           "file": "office-midrise-roughness.png",
-          "robloxAssetType": "Image",
-          "role": "rough",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "rough"
         },
         {
           "file": "office-midrise-metalness.png",
-          "robloxAssetType": "Image",
-          "role": "metal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "metal"
         }
+      ],
+      "fbxMetresPerStud": 0.28,
+      "expectedImportSizeStuds": [
+        3214.4,
+        3696.0,
+        2251.2
+      ],
+      "gameSizeStuds": [
+        114.8,
+        132.0,
+        80.4
       ],
       "usage": "City and harbour districts (M21, M22, M26, M27): replaces Scenery.Buildings boxes.",
       "triangleCount": 448,
@@ -675,6 +747,7 @@
         "office-midrise-roughness.png 512x512",
         "office-midrise-metalness.png 512x512"
       ],
+      "textureLimit": 512,
       "robloxSizeStuds": [
         114.8,
         132.0,
@@ -698,31 +771,36 @@
           "file": "apartment-block.fbx",
           "robloxAssetType": "Model",
           "from": "FBX (textures embedded)"
-        },
+        }
+      ],
+      "embeddedTextures": [
         {
           "file": "apartment-block-color.png",
-          "robloxAssetType": "Image",
-          "role": "color",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "color"
         },
         {
           "file": "apartment-block-normal.png",
-          "robloxAssetType": "Image",
-          "role": "normal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "normal"
         },
         {
           "file": "apartment-block-roughness.png",
-          "robloxAssetType": "Image",
-          "role": "rough",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "rough"
         },
         {
           "file": "apartment-block-metalness.png",
-          "robloxAssetType": "Image",
-          "role": "metal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "metal"
         }
+      ],
+      "fbxMetresPerStud": 0.28,
+      "expectedImportSizeStuds": [
+        5068.0,
+        3612.0,
+        1554.0
+      ],
+      "gameSizeStuds": [
+        181.0,
+        129.0,
+        55.5
       ],
       "usage": "Residential city edges and harbour town (M19-M27): replaces Scenery.Buildings boxes.",
       "triangleCount": 1368,
@@ -732,6 +810,7 @@
         "apartment-block-roughness.png 512x512",
         "apartment-block-metalness.png 512x512"
       ],
+      "textureLimit": 512,
       "robloxSizeStuds": [
         181.0,
         129.0,
@@ -755,31 +834,36 @@
           "file": "city-tower.fbx",
           "robloxAssetType": "Model",
           "from": "FBX (textures embedded)"
-        },
+        }
+      ],
+      "embeddedTextures": [
         {
           "file": "city-tower-color.png",
-          "robloxAssetType": "Image",
-          "role": "color",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "color"
         },
         {
           "file": "city-tower-normal.png",
-          "robloxAssetType": "Image",
-          "role": "normal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "normal"
         },
         {
           "file": "city-tower-roughness.png",
-          "robloxAssetType": "Image",
-          "role": "rough",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "rough"
         },
         {
           "file": "city-tower-metalness.png",
-          "robloxAssetType": "Image",
-          "role": "metal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "metal"
         }
+      ],
+      "fbxMetresPerStud": 0.28,
+      "expectedImportSizeStuds": [
+        3640.0,
+        12202.4,
+        3920.0
+      ],
+      "gameSizeStuds": [
+        130.0,
+        435.8,
+        140.0
       ],
       "usage": "Coastal city skyline and Air Marshal's capital (M21, M26, M27): landmark high-rise.",
       "triangleCount": 404,
@@ -789,6 +873,7 @@
         "city-tower-roughness.png 512x512",
         "city-tower-metalness.png 512x512"
       ],
+      "textureLimit": 512,
       "robloxSizeStuds": [
         130.0,
         435.8,
@@ -812,40 +897,46 @@
           "file": "farmhouse.fbx",
           "robloxAssetType": "Model",
           "from": "FBX (textures embedded)"
-        },
+        }
+      ],
+      "embeddedTextures": [
         {
           "file": "farmhouse-color.png",
-          "robloxAssetType": "Image",
-          "role": "color",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "color"
         },
         {
           "file": "farmhouse-normal.png",
-          "robloxAssetType": "Image",
-          "role": "normal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "normal"
         },
         {
           "file": "farmhouse-roughness.png",
-          "robloxAssetType": "Image",
-          "role": "rough",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "rough"
         },
         {
           "file": "farmhouse-metalness.png",
-          "robloxAssetType": "Image",
-          "role": "metal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "metal"
         }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        47.0,
+        37.0,
+        55.086
+      ],
+      "gameSizeStuds": [
+        47.0,
+        37.0,
+        55.086
       ],
       "usage": "Teklan farm valleys (M5, M6, M13, M16): homesteads near silos and fields.",
       "triangleCount": 200,
       "textures": [
-        "farmhouse-color.png 512x512",
-        "farmhouse-normal.png 512x512",
-        "farmhouse-roughness.png 512x512",
-        "farmhouse-metalness.png 512x512"
+        "farmhouse-color.png 256x256",
+        "farmhouse-normal.png 256x256",
+        "farmhouse-roughness.png 256x256",
+        "farmhouse-metalness.png 256x256"
       ],
+      "textureLimit": 256,
       "robloxSizeStuds": [
         47.0,
         37.0,
@@ -869,40 +960,46 @@
           "file": "barn.fbx",
           "robloxAssetType": "Model",
           "from": "FBX (textures embedded)"
-        },
+        }
+      ],
+      "embeddedTextures": [
         {
           "file": "barn-color.png",
-          "robloxAssetType": "Image",
-          "role": "color",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "color"
         },
         {
           "file": "barn-normal.png",
-          "robloxAssetType": "Image",
-          "role": "normal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "normal"
         },
         {
           "file": "barn-roughness.png",
-          "robloxAssetType": "Image",
-          "role": "rough",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "rough"
         },
         {
           "file": "barn-metalness.png",
-          "robloxAssetType": "Image",
-          "role": "metal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "metal"
         }
       ],
-      "usage": "Teklan farm valleys (M5, M6, M13, M16) beside the farmhouse and grain silos.",
-      "triangleCount": 296,
-      "textures": [
-        "barn-color.png 512x512",
-        "barn-normal.png 512x512",
-        "barn-roughness.png 512x512",
-        "barn-metalness.png 512x512"
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        61.5,
+        49.0,
+        76.0
       ],
+      "gameSizeStuds": [
+        61.5,
+        49.0,
+        76.0
+      ],
+      "usage": "Teklan farm valleys (M5, M6, M13, M16) beside the farmhouse and grain silos.",
+      "triangleCount": 200,
+      "textures": [
+        "barn-color.png 256x256",
+        "barn-normal.png 256x256",
+        "barn-roughness.png 256x256",
+        "barn-metalness.png 256x256"
+      ],
+      "textureLimit": 256,
       "robloxSizeStuds": [
         61.5,
         49.0,
@@ -926,40 +1023,46 @@
           "file": "grain-silo.fbx",
           "robloxAssetType": "Model",
           "from": "FBX (textures embedded)"
-        },
+        }
+      ],
+      "embeddedTextures": [
         {
           "file": "grain-silo-color.png",
-          "robloxAssetType": "Image",
-          "role": "color",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "color"
         },
         {
           "file": "grain-silo-normal.png",
-          "robloxAssetType": "Image",
-          "role": "normal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "normal"
         },
         {
           "file": "grain-silo-roughness.png",
-          "robloxAssetType": "Image",
-          "role": "rough",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "rough"
         },
         {
           "file": "grain-silo-metalness.png",
-          "robloxAssetType": "Image",
-          "role": "metal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "metal"
         }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        72.0,
+        92.0,
+        45.0
+      ],
+      "gameSizeStuds": [
+        72.0,
+        92.0,
+        45.0
       ],
       "usage": "Farm cooperative dressing (M5, M6, M13); scenery companion to the GrainSilo mission target.",
       "triangleCount": 1116,
       "textures": [
-        "grain-silo-color.png 512x512",
-        "grain-silo-normal.png 512x512",
-        "grain-silo-roughness.png 512x512",
-        "grain-silo-metalness.png 512x512"
+        "grain-silo-color.png 256x256",
+        "grain-silo-normal.png 256x256",
+        "grain-silo-roughness.png 256x256",
+        "grain-silo-metalness.png 256x256"
       ],
+      "textureLimit": 256,
       "robloxSizeStuds": [
         72.0,
         92.0,
@@ -983,44 +1086,50 @@
           "file": "radar-dish.fbx",
           "robloxAssetType": "Model",
           "from": "FBX (textures embedded)"
-        },
+        }
+      ],
+      "embeddedTextures": [
         {
           "file": "radar-dish-color.png",
-          "robloxAssetType": "Image",
-          "role": "color",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "color"
         },
         {
           "file": "radar-dish-normal.png",
-          "robloxAssetType": "Image",
-          "role": "normal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "normal"
         },
         {
           "file": "radar-dish-roughness.png",
-          "robloxAssetType": "Image",
-          "role": "rough",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "rough"
         },
         {
           "file": "radar-dish-metalness.png",
-          "robloxAssetType": "Image",
-          "role": "metal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "metal"
         }
       ],
-      "usage": "Relay and air-defence sites (M3, M10, M11, M14): scenery companion to the Radar target.",
-      "triangleCount": 932,
-      "textures": [
-        "radar-dish-color.png 512x512",
-        "radar-dish-normal.png 512x512",
-        "radar-dish-roughness.png 512x512",
-        "radar-dish-metalness.png 512x512"
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        59.4,
+        54.811,
+        41.129
       ],
+      "gameSizeStuds": [
+        59.4,
+        54.811,
+        41.129
+      ],
+      "usage": "Relay and air-defence sites (M3, M10, M11, M14): scenery companion to the Radar target.",
+      "triangleCount": 1024,
+      "textures": [
+        "radar-dish-color.png 256x256",
+        "radar-dish-normal.png 256x256",
+        "radar-dish-roughness.png 256x256",
+        "radar-dish-metalness.png 256x256"
+      ],
+      "textureLimit": 256,
       "robloxSizeStuds": [
-        59.0,
-        53.861,
-        39.0
+        59.4,
+        54.811,
+        41.129
       ],
       "allChecksTrue": true,
       "previews": [
@@ -1040,40 +1149,46 @@
           "file": "relay-mast.fbx",
           "robloxAssetType": "Model",
           "from": "FBX (textures embedded)"
-        },
+        }
+      ],
+      "embeddedTextures": [
         {
           "file": "relay-mast-color.png",
-          "robloxAssetType": "Image",
-          "role": "color",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "color"
         },
         {
           "file": "relay-mast-normal.png",
-          "robloxAssetType": "Image",
-          "role": "normal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "normal"
         },
         {
           "file": "relay-mast-roughness.png",
-          "robloxAssetType": "Image",
-          "role": "rough",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "rough"
         },
         {
           "file": "relay-mast-metalness.png",
-          "robloxAssetType": "Image",
-          "role": "metal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "metal"
         }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        40.0,
+        152.225,
+        20.123
+      ],
+      "gameSizeStuds": [
+        40.0,
+        152.225,
+        20.123
       ],
       "usage": "Relay stations across the campaign (M3-M27): scenery companion to the CommsRelay target.",
       "triangleCount": 1436,
       "textures": [
-        "relay-mast-color.png 512x512",
-        "relay-mast-normal.png 512x512",
-        "relay-mast-roughness.png 512x512",
-        "relay-mast-metalness.png 512x512"
+        "relay-mast-color.png 256x256",
+        "relay-mast-normal.png 256x256",
+        "relay-mast-roughness.png 256x256",
+        "relay-mast-metalness.png 256x256"
       ],
+      "textureLimit": 256,
       "robloxSizeStuds": [
         40.0,
         152.225,
@@ -1097,40 +1212,46 @@
           "file": "pine.fbx",
           "robloxAssetType": "Model",
           "from": "FBX (textures embedded)"
-        },
+        }
+      ],
+      "embeddedTextures": [
         {
           "file": "pine-color.png",
-          "robloxAssetType": "Image",
-          "role": "color",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "color"
         },
         {
           "file": "pine-normal.png",
-          "robloxAssetType": "Image",
-          "role": "normal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "normal"
         },
         {
           "file": "pine-roughness.png",
-          "robloxAssetType": "Image",
-          "role": "rough",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "rough"
         },
         {
           "file": "pine-metalness.png",
-          "robloxAssetType": "Image",
-          "role": "metal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "metal"
         }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        28.623,
+        63.304,
+        31.475
+      ],
+      "gameSizeStuds": [
+        28.623,
+        63.304,
+        31.475
       ],
       "usage": "Coniferous scatter for farm, relay and canyon rims (Scenery.Trees).",
       "triangleCount": 680,
       "textures": [
-        "pine-color.png 512x512",
-        "pine-normal.png 512x512",
-        "pine-roughness.png 512x512",
-        "pine-metalness.png 512x512"
+        "pine-color.png 256x256",
+        "pine-normal.png 256x256",
+        "pine-roughness.png 256x256",
+        "pine-metalness.png 256x256"
       ],
+      "textureLimit": 256,
       "robloxSizeStuds": [
         28.623,
         63.304,
@@ -1154,40 +1275,46 @@
           "file": "broadleaf.fbx",
           "robloxAssetType": "Model",
           "from": "FBX (textures embedded)"
-        },
+        }
+      ],
+      "embeddedTextures": [
         {
           "file": "broadleaf-color.png",
-          "robloxAssetType": "Image",
-          "role": "color",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "color"
         },
         {
           "file": "broadleaf-normal.png",
-          "robloxAssetType": "Image",
-          "role": "normal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "normal"
         },
         {
           "file": "broadleaf-roughness.png",
-          "robloxAssetType": "Image",
-          "role": "rough",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "rough"
         },
         {
           "file": "broadleaf-metalness.png",
-          "robloxAssetType": "Image",
-          "role": "metal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "metal"
         }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        34.809,
+        47.682,
+        32.187
+      ],
+      "gameSizeStuds": [
+        34.809,
+        47.682,
+        32.187
       ],
       "usage": "Deciduous scatter for farm valleys, orchards and city parks (Scenery.Trees).",
       "triangleCount": 724,
       "textures": [
-        "broadleaf-color.png 512x512",
-        "broadleaf-normal.png 512x512",
-        "broadleaf-roughness.png 512x512",
-        "broadleaf-metalness.png 512x512"
+        "broadleaf-color.png 256x256",
+        "broadleaf-normal.png 256x256",
+        "broadleaf-roughness.png 256x256",
+        "broadleaf-metalness.png 256x256"
       ],
+      "textureLimit": 256,
       "robloxSizeStuds": [
         34.809,
         47.682,
@@ -1211,40 +1338,46 @@
           "file": "rock-a.fbx",
           "robloxAssetType": "Model",
           "from": "FBX (textures embedded)"
-        },
+        }
+      ],
+      "embeddedTextures": [
         {
           "file": "rock-a-color.png",
-          "robloxAssetType": "Image",
-          "role": "color",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "color"
         },
         {
           "file": "rock-a-normal.png",
-          "robloxAssetType": "Image",
-          "role": "normal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "normal"
         },
         {
           "file": "rock-a-roughness.png",
-          "robloxAssetType": "Image",
-          "role": "rough",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "rough"
         },
         {
           "file": "rock-a-metalness.png",
-          "robloxAssetType": "Image",
-          "role": "metal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "metal"
         }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        19.667,
+        11.324,
+        14.747
+      ],
+      "gameSizeStuds": [
+        19.667,
+        11.324,
+        14.747
       ],
       "usage": "Scattered boulders and outcrops in canyon, coastal and farm missions (Scenery.Rocks).",
       "triangleCount": 1280,
       "textures": [
-        "rock-a-color.png 512x512",
-        "rock-a-normal.png 512x512",
-        "rock-a-roughness.png 512x512",
-        "rock-a-metalness.png 512x512"
+        "rock-a-color.png 256x256",
+        "rock-a-normal.png 256x256",
+        "rock-a-roughness.png 256x256",
+        "rock-a-metalness.png 256x256"
       ],
+      "textureLimit": 256,
       "robloxSizeStuds": [
         19.667,
         11.324,
@@ -1268,40 +1401,46 @@
           "file": "rock-b.fbx",
           "robloxAssetType": "Model",
           "from": "FBX (textures embedded)"
-        },
+        }
+      ],
+      "embeddedTextures": [
         {
           "file": "rock-b-color.png",
-          "robloxAssetType": "Image",
-          "role": "color",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "color"
         },
         {
           "file": "rock-b-normal.png",
-          "robloxAssetType": "Image",
-          "role": "normal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "normal"
         },
         {
           "file": "rock-b-roughness.png",
-          "robloxAssetType": "Image",
-          "role": "rough",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "rough"
         },
         {
           "file": "rock-b-metalness.png",
-          "robloxAssetType": "Image",
-          "role": "metal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "metal"
         }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        29.705,
+        13.217,
+        16.38
+      ],
+      "gameSizeStuds": [
+        29.705,
+        13.217,
+        16.38
       ],
       "usage": "Scattered boulders and outcrops in canyon, coastal and farm missions (Scenery.Rocks).",
       "triangleCount": 960,
       "textures": [
-        "rock-b-color.png 512x512",
-        "rock-b-normal.png 512x512",
-        "rock-b-roughness.png 512x512",
-        "rock-b-metalness.png 512x512"
+        "rock-b-color.png 256x256",
+        "rock-b-normal.png 256x256",
+        "rock-b-roughness.png 256x256",
+        "rock-b-metalness.png 256x256"
       ],
+      "textureLimit": 256,
       "robloxSizeStuds": [
         29.705,
         13.217,
@@ -1325,40 +1464,46 @@
           "file": "rock-c.fbx",
           "robloxAssetType": "Model",
           "from": "FBX (textures embedded)"
-        },
+        }
+      ],
+      "embeddedTextures": [
         {
           "file": "rock-c-color.png",
-          "robloxAssetType": "Image",
-          "role": "color",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "color"
         },
         {
           "file": "rock-c-normal.png",
-          "robloxAssetType": "Image",
-          "role": "normal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "normal"
         },
         {
           "file": "rock-c-roughness.png",
-          "robloxAssetType": "Image",
-          "role": "rough",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "rough"
         },
         {
           "file": "rock-c-metalness.png",
-          "robloxAssetType": "Image",
-          "role": "metal",
-          "note": "SurfaceAppearance map; upload only if the FBX import does not carry it"
+          "role": "metal"
         }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        17.122,
+        20.682,
+        13.195
+      ],
+      "gameSizeStuds": [
+        17.122,
+        20.682,
+        13.195
       ],
       "usage": "Scattered boulders and outcrops in canyon, coastal and farm missions (Scenery.Rocks).",
       "triangleCount": 1600,
       "textures": [
-        "rock-c-color.png 512x512",
-        "rock-c-normal.png 512x512",
-        "rock-c-roughness.png 512x512",
-        "rock-c-metalness.png 512x512"
+        "rock-c-color.png 256x256",
+        "rock-c-normal.png 256x256",
+        "rock-c-roughness.png 256x256",
+        "rock-c-metalness.png 256x256"
       ],
+      "textureLimit": 256,
       "robloxSizeStuds": [
         17.122,
         20.682,

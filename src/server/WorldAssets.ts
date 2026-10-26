@@ -11,8 +11,13 @@ import { UploadedAssetName, UploadedAssetSpecs } from "../shared/UploadedAssetSp
  * simple part shape is built for the assets the campaign needs to exist
  * (frigate, platform, quay, buildings) and nothing for dressing (cranes, masts,
  * trees, rocks), returning undefined so the caller keeps its own primitives.
- * Use `WorldAssets.Has(name)` to choose between the uploaded mesh and an
- * existing Scenery primitive before building either.
+ *
+ * Branch on what a placement returns, not on a prior check: a model whose
+ * `GeometrySource` is "Uploaded" means the uploaded mesh is in the world;
+ * "Fallback" or undefined means the caller's own scenery is still needed. A
+ * first load can fail (not owned, moderated, untextured, misshapen), and then
+ * every later placement of that asset takes the fallback for this server.
+ * `PlaceUploaded` places only the uploaded mesh and returns undefined otherwise.
  */
 export type WorldAssetName = Exclude<UploadedAssetName, "Kestrel" | "Vanta" | "VantaVulture" | "VantaRusk">;
 
@@ -72,18 +77,29 @@ function solid(part: BasePart): void {
 	part.CastShadow = false;
 }
 
-function place(name: WorldAssetName, parent: Instance, cframe: CFrame): Model | undefined {
+/** The uploaded model placed at `cframe`, or undefined when it has no ID or failed to load or place. */
+function placeUploaded(name: WorldAssetName, parent: Instance, cframe: CFrame): Model | undefined {
 	const spec = UploadedAssetSpecs[name];
 	const uploaded = UploadedAssets.Template([name]);
-	if (uploaded !== undefined) {
-		const model = uploaded.template.Clone();
+	if (uploaded === undefined) return undefined;
+	const model = uploaded.template.Clone();
+	const [ok, result] = pcall(() => {
 		model.Name = name;
 		for (const item of model.GetDescendants()) if (item.IsA("BasePart")) solid(item);
 		// Template pivot is the model's bottom centre; the ground contact sits groundOffset above it.
 		model.PivotTo(cframe.mul(new CFrame(0, -spec.groundOffset, 0)));
 		model.Parent = parent;
-		return model;
-	}
+	});
+	if (ok) return model;
+	model.Destroy();
+	warn(`Uploaded ${name} could not be placed; using the fallback: ${tostring(result)}`);
+	return undefined;
+}
+
+function place(name: WorldAssetName, parent: Instance, cframe: CFrame): Model | undefined {
+	const spec = UploadedAssetSpecs[name];
+	const uploaded = placeUploaded(name, parent, cframe);
+	if (uploaded !== undefined) return uploaded;
 	const fallback = FALLBACKS[name];
 	if (fallback === undefined) return undefined;
 	const model = new Instance("Model");
@@ -105,15 +121,20 @@ function place(name: WorldAssetName, parent: Instance, cframe: CFrame): Model | 
 }
 
 export const WorldAssets = {
-	/** True when the uploaded model for `name` will be used (ID set and not failed). */
+	/**
+	 * True when the uploaded model for `name` has loaded and passed validation
+	 * (loads it on first call; yields). A hint for planning only: the placement
+	 * result is authoritative, so check what Place/PlaceUploaded return.
+	 */
 	Has(name: WorldAssetName): boolean {
-		return UploadedAssets.Available(name);
+		return UploadedAssets.Template([name]) !== undefined;
 	},
 	/** Authored size in studs (bounding box) and ground/waterline offset above the lowest point. */
 	Spec(name: WorldAssetName) {
 		return UploadedAssetSpecs[name];
 	},
 	Place: place,
+	PlaceUploaded: placeUploaded,
 	PlaceFrigate: (parent: Instance, cframe: CFrame) => place("Frigate", parent, cframe),
 	PlaceOilPlatform: (parent: Instance, cframe: CFrame) => place("OilPlatform", parent, cframe),
 	PlaceQuay: (parent: Instance, cframe: CFrame) => place("HarbourQuay", parent, cframe),
