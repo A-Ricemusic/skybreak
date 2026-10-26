@@ -34,24 +34,52 @@ describe("authoritative two-mission rules", () => {
 		MissionRules.CycleTarget(state, entered + 1);
 		expect(state.phase).toBe("tutorial_target");
 		expect(MissionRules.Objective(state).objectiveProgress).toBe(1);
-		MissionRules.Tick(state, entered + MissionRules.TeachMinimum);
+		const missileAt = entered + MissionRules.TeachMinimum;
+		MissionRules.Tick(state, missileAt);
 		expect(state.phase).toBe("tutorial_missile");
 		expect(MissionRules.CanDamage(state, "ground", true)).toBe(true);
 		const killAt = entered + 4;
 		expect(MissionRules.RecordKill(state, "early_bandit", "air", true, killAt)).toBe(false);
 		expect(MissionRules.RecordKill(state, "radar", "ground", true, killAt)).toBe(true);
+		// The hit is latched, but the missile prompt stays up for its own 2.5 s.
+		expect(state.phase).toBe("tutorial_missile");
+		expect(MissionRules.Objective(state).objectiveProgress).toBe(1);
+		expect(MissionRules.CanDamage(state, "ground", true)).toBe(false);
+		const bandits = missileAt + MissionRules.TeachMinimum;
+		MissionRules.Tick(state, bandits);
 		expect(state.phase).toBe("tutorial_bandits");
 		expect(state.outcome).toBeUndefined();
-		// The bandits launch only after SERA's 4 s beat.
+		// The bandits launch only after SERA's 4 s beat, counted from the step change.
 		expect(MissionRules.BanditsDue(state)).toBe(false);
-		MissionRules.Tick(state, killAt + MissionRules.BanditBeat - 0.1);
+		MissionRules.Tick(state, bandits + MissionRules.BanditBeat - 0.1);
 		expect(MissionRules.BanditsDue(state)).toBe(false);
-		MissionRules.Tick(state, killAt + MissionRules.BanditBeat);
+		MissionRules.Tick(state, bandits + MissionRules.BanditBeat);
 		expect(MissionRules.BanditsDue(state)).toBe(true);
-		expect(MissionRules.RecordKill(state, "second_radar", "ground", true, killAt + 5)).toBe(false);
+		expect(MissionRules.RecordKill(state, "second_radar", "ground", true, bandits + 5)).toBe(false);
 		clearIntercept(state);
 		expect(state.outcome).toBe("won");
 		expect(state.requiredAirKills).toBe(3);
+		expect(state.groundKills).toBe(1);
+	});
+	it("keeps the missile prompt up 2.5 s even when a lock built during the target step fires at once", () => {
+		const state = MissionRules.NewState(1, 0);
+		teachMovement(state);
+		expect(state.phase).toBe("tutorial_target");
+		const entered = state.elapsed;
+		MissionRules.CycleTarget(state, entered + 0.2);
+		const missileAt = entered + MissionRules.TeachMinimum;
+		MissionRules.Tick(state, missileAt);
+		expect(state.phase).toBe("tutorial_missile");
+		// The review's runner probe: the radar dies 0.1 s after the missile prompt appears.
+		expect(MissionRules.RecordKill(state, "radar", "ground", true, missileAt + 0.1)).toBe(true);
+		expect(MissionRules.RecordKill(state, "radar", "ground", true, missileAt + 0.2)).toBe(false);
+		expect(state.groundKills).toBe(1);
+		MissionRules.Tick(state, missileAt + MissionRules.TeachMinimum - 0.05);
+		expect(state.phase).toBe("tutorial_missile");
+		expect(MissionRules.BanditsDue(state)).toBe(false);
+		MissionRules.Tick(state, missileAt + MissionRules.TeachMinimum);
+		expect(state.phase).toBe("tutorial_bandits");
+		expect(state.banditsDueAt).toBe(missileAt + MissionRules.TeachMinimum + MissionRules.BanditBeat);
 		expect(state.groundKills).toBe(1);
 	});
 	it("rejects invalid observation samples and caps a stalled observation step", () => {
@@ -175,6 +203,8 @@ describe("authoritative two-mission rules", () => {
 		MissionRules.CycleTarget(state, 118);
 		expect(MissionRules.Objective(state).tutorialStep).toBe("missile");
 		MissionRules.RecordKill(state, "radar", "ground", true, 119);
+		expect(MissionRules.Objective(state).tutorialStep).toBe("missile");
+		MissionRules.Tick(state, 118 + MissionRules.TeachMinimum);
 		expect(MissionRules.Objective(state).tutorialStep).toBe("");
 		expect(MissionRules.Objective(state).objectiveTotal).toBe(3);
 	});

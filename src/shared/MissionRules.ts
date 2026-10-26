@@ -45,12 +45,20 @@ function enter(state: MissionRuleState, phase: MissionPhase): void {
 	state.stepSince = state.elapsed;
 	state.cycled = false;
 }
-/** Mission 1: a step whose action is done advances once its prompt has been up long enough. */
+/**
+ * Mission 1: a step whose action is done advances once its prompt has been up long enough. The
+ * radar hit is latched (groundKills) the moment it lands, so a lock built during the target step
+ * cannot skip the missile prompt; SERA's beat before the bandits starts when the step really ends.
+ */
 function advanceTutorial(state: MissionRuleState): void {
 	if (state.outcome !== undefined || state.missionId !== 1) return;
 	const dwelt = state.elapsed - state.stepSince >= TEACH_MINIMUM;
 	if (state.phase === "tutorial_move" && dwelt && state.turnObserved >= MissionRules.MovementDuration && state.pitchObserved >= MissionRules.MovementDuration) enter(state, "tutorial_target");
 	else if (state.phase === "tutorial_target" && dwelt && state.cycled) enter(state, "tutorial_missile");
+	else if (state.phase === "tutorial_missile" && dwelt && state.groundKills > 0) {
+		enter(state, "tutorial_bandits");
+		state.banditsDueAt = state.elapsed + BANDIT_BEAT;
+	}
 }
 export const MissionRules = {
 	/** The sortie deadline in seconds (GameConfig.Campaign.MissionTimeLimit). */
@@ -97,7 +105,8 @@ export const MissionRules = {
 	CanDamage(state: MissionRuleState, kind: TargetKind, required: boolean): boolean {
 		if (state.outcome !== undefined) return false;
 		if (state.missionId === 1) {
-			return required && ((state.phase === "tutorial_missile" && kind === "ground") || (state.phase === "tutorial_bandits" && kind === "air"));
+			// One radar: once its hit is latched, nothing more is damageable until the bandits are up.
+			return required && ((state.phase === "tutorial_missile" && kind === "ground" && state.groundKills === 0) || (state.phase === "tutorial_bandits" && kind === "air"));
 		}
 		if (kind === "air") return required ? state.phase === "intercept" : state.optionalAirKills < 5 && (state.phase === "warehouses" || state.phase === "ace");
 		if (kind === "ground") return required && state.phase === "warehouses";
@@ -109,7 +118,7 @@ export const MissionRules = {
 		state.killedIds.add(id);
 		if (kind === "ground") {
 			state.groundKills += 1;
-			if (state.missionId === 1) { enter(state, "tutorial_bandits"); state.banditsDueAt = state.elapsed + BANDIT_BEAT; }
+			if (state.missionId === 1) advanceTutorial(state);
 			else if (state.groundKills === 5) state.phase = "ace";
 		} else if (kind === "ace") {
 			state.aceKilled = true;
