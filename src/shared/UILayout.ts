@@ -185,18 +185,28 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 	return { margin, alert, callout, timer, status, health, flightStatus, navigation, hints };
 }
 
+/** Share of a short (phone) landscape root given to the reading panel. */
+export const MENU_PHONE_PANEL_SHARE = 0.6;
+/** Share of a tall (tablet/desktop) landscape root given to the reading panel. */
+export const MENU_DESKTOP_PANEL_SHARE = 0.44;
+export const MENU_PANEL_MAX_WIDTH = 580;
+export const MENU_PANEL_MAX_HEIGHT = 560;
+
 /**
- * One panel shared by every menu screen. Landscape keeps it to the left so the
- * display aircraft stays visible on the right; portrait uses a bottom sheet.
+ * One panel shared by every menu screen. Landscape keeps it to the left and the
+ * display aircraft in the open strip on the right; portrait uses a bottom sheet.
+ * Phones in landscape give the copy about 60% of the width: mission text, not
+ * the jet, is what the player has to read there.
  */
 export function getMenuLayout(viewportWidth: number, viewportHeight: number): MenuLayout {
 	const width = math.max(1, viewportWidth);
 	const height = math.max(1, viewportHeight);
 	if (width >= height * 1.15) {
-		const x = math.floor(math.clamp(width * 0.05, 20, 72));
-		const panelWidth = math.floor(math.clamp(width * 0.36, 280, 440));
-		const vertical = height < 240 ? 6 : height < 440 ? 14 : math.floor(math.clamp(height * 0.08, 24, 64));
-		const panelHeight = math.min(height - vertical * 2, 460);
+		const x = math.floor(math.clamp(width * 0.03, 12, 64));
+		const share = height < 480 ? MENU_PHONE_PANEL_SHARE : MENU_DESKTOP_PANEL_SHARE;
+		const panelWidth = math.floor(math.clamp(width * share, 280, MENU_PANEL_MAX_WIDTH));
+		const vertical = height < 240 ? 6 : height < 440 ? 12 : math.floor(math.clamp(height * 0.08, 24, 64));
+		const panelHeight = math.min(height - vertical * 2, MENU_PANEL_MAX_HEIGHT);
 		return {
 			mode: "side",
 			compact: panelHeight < 400,
@@ -342,6 +352,10 @@ export function rectangleInside(inner: Rectangle, width: number, height: number,
 	return inner.x >= inset && inner.y >= inset && inner.x + inner.width <= width - inset && inner.y + inner.height <= height - inset;
 }
 
-export function getSlotListHeight(panelHeight: number, compact: boolean): number {
-	return math.min(compact ? 194 : 256, math.max(44, panelHeight - (compact ? 34 : 66) - 44 - 12));
+/**
+ * Horizontal fraction (0-1) where the open scene strip begins, right of a side
+ * panel. Used by the backdrop fade and the menu camera framing.
+ */
+export function getMenuSceneOpening(viewportWidth: number, menu: MenuLayout): number {
+	return math.clamp((menu.panel.x + menu.panel.width) / math.max(1, viewportWidth), 0.3, 0.75);
 }

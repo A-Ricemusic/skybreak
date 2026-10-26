@@ -653,6 +653,28 @@ for (const mission of MISSIONS) {
 
 export const MISSION_COUNT = MISSIONS.size();
 
+/** Display names for the three campaign acts (see the story outline above). */
+export const ACT_NAMES: { readonly [act: number]: string } = { 1: "RIM STATIC", 2: "PLATEAU SIGNAL", 3: "COASTAL FRACTURE" };
+export const ACT_NUMERALS: { readonly [act: number]: string } = { 1: "I", 2: "II", 3: "III" };
+export const ACTS: Act[] = [1, 2, 3];
+
+/** Briefing location line, e.g. "COASTAL CITY". */
+export const REGION_NAMES: { readonly [region: string]: string } = {
+	canyon_airfield: "CANYON AIRFIELD",
+	canyon_pass: "CANYON PASS",
+	upland_farm: "UPLAND FARMS",
+	plateau_relay: "PLATEAU RELAY",
+	coastal_city: "COASTAL CITY",
+	coastal_harbor: "COASTAL HARBOR",
+	ocean_platform: "OCEAN PLATFORM",
+};
+
+/** Time-of-day or weather word of an environment preset: "harbor_sunset" -> "SUNSET". */
+export function environmentName(environment: EnvironmentPreset): string {
+	const parts = environment.split("_");
+	return string.upper(parts[parts.size() - 1]);
+}
+
 // Validate at module load so a bad authoring edit fails the server immediately.
 assert(MISSION_COUNT === 27, "Broken Relay must ship 27 missions");
 for (let index = 0; index < MISSIONS.size(); index++) {

@@ -2,7 +2,16 @@ import { TouchSticks } from "../shared/TouchSticks";
 import { FlightMath } from "../shared/FlightMath";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "@rbxts/react";
 import { flightWarning } from "../shared/FlightWarnings";
-import { getSaveSlotRowHeight } from "../shared/SaveSlotLayout";
+import {
+	CAMPAIGN_HEADER_GAP,
+	CAMPAIGN_HEADER_HEIGHT,
+	getSaveSlotLayout,
+	getSlotListCanvasHeight,
+	getSlotListHeight,
+	SAVE_SLOT_GAP,
+	SAVE_SLOT_SCROLLBAR_LANE,
+	type SaveSlotLayout,
+} from "../shared/SaveSlotLayout";
 import ReactRoblox from "@rbxts/react-roblox";
 import { GuiService, RunService, TweenService, UserInputService, Workspace } from "@rbxts/services";
 
@@ -17,12 +26,24 @@ import type {
 	SaveSlot,
 	Telemetry,
 } from "../shared/Types";
-import { MissionCatalog, MISSION_COUNT } from "../shared/MissionCatalog";
+import { ACT_NAMES, ACT_NUMERALS, ACTS, environmentName, MissionCatalog, MISSION_COUNT, REGION_NAMES } from "../shared/MissionCatalog";
 import { MENU_JET_POSITION } from "../shared/MenuWorldGeometry";
 import { MissionScore, type MissionRank } from "../shared/MissionScore";
 import { WeaponRules } from "../shared/WeaponRules";
 import { SpecialKind, SpecialWeapons } from "../shared/SpecialWeapons";
-import { getBriefingLayout } from "../shared/BriefingLayout";
+import {
+	ARCHIVE_GAP,
+	ARCHIVE_HEADER_HEIGHT,
+	ARCHIVE_TAB_HEIGHT,
+	BRIEFING_GAP,
+	BRIEFING_HEADER_SPACING,
+	BRIEFING_LINE_HEIGHT,
+	BRIEFING_STORY_LINE_HEIGHT,
+	getArchiveCanvasHeight,
+	getArchiveGrid,
+	getBriefingLayout,
+} from "../shared/BriefingLayout";
+import { C, HEX } from "./Theme";
 import { LoadoutPicker } from "./LoadoutPicker";
 import { NavigationCue } from "./NavigationCue";
 import { RelayCinematic } from "./RelayCinematic";
@@ -30,13 +51,13 @@ import { FlightController } from "./FlightController";
 import { LoadingScreen } from "./LoadingScreen";
 import { preloadMission } from "./MissionPreload";
 import {
-	getSlotListHeight,
 	getEvadeHint,
 	getSpecialHint,
 	getFlightHints,
 	getHudLayout,
 	getMenuHintsLayout,
 	getMenuLayout,
+	getMenuSceneOpening,
 	getToastLayout,
 	getTutorialInstruction,
 	inputModeFromInputType,
@@ -50,18 +71,6 @@ import {
 	type Rectangle,
 } from "../shared/UILayout";
 
-const C = {
-	Ink: Color3.fromRGB(6, 13, 22),
-	Panel: Color3.fromRGB(14, 30, 44),
-	PanelHot: Color3.fromRGB(26, 54, 72),
-	Ivory: Color3.fromRGB(242, 238, 226),
-	Muted: Color3.fromRGB(152, 168, 176),
-	Faint: Color3.fromRGB(104, 122, 132),
-	Accent: Color3.fromRGB(64, 224, 206),
-	AccentHot: Color3.fromRGB(128, 242, 228),
-	Orange: Color3.fromRGB(255, 150, 84),
-	Danger: Color3.fromRGB(255, 84, 76),
-};
 
 // Frames the DisplayJet that WorldBuilder parks on the east apron.
 const MENU_JET = MENU_JET_POSITION.add(new Vector3(0, 2, 0));
@@ -539,8 +548,11 @@ function missileReady(telemetry: Telemetry): boolean {
 	return telemetry.missileCooldown <= 0 && telemetry.missiles > 0;
 }
 
+const MENU_FOV = 50;
+const MENU_TAN_HALF_FOV = math.tan(math.rad(MENU_FOV / 2));
 let menuCameraViewport: Vector2 | undefined;
 let menuCameraSheet = false;
+let menuCameraOpening = 0.5;
 function setMenuCamera() {
 	const camera = Workspace.CurrentCamera;
 	if (!camera) return;
@@ -550,39 +562,56 @@ function setMenuCamera() {
 	let eye = MENU_JET.add(MENU_EYE_OFFSET);
 	let focus: Vector3;
 	// The layout solver only re-runs when the viewport changes, not every menu frame.
-	if (menuCameraViewport !== size) { menuCameraViewport = size; menuCameraSheet = getMenuLayout(size.X, size.Y).mode === "sheet"; }
+	if (menuCameraViewport !== size) {
+		menuCameraViewport = size;
+		const layout = getMenuLayout(size.X, size.Y);
+		menuCameraSheet = layout.mode === "sheet";
+		menuCameraOpening = getMenuSceneOpening(size.X, layout);
+	}
 	if (menuCameraSheet) {
 		eye = MENU_JET.add(MENU_EYE_OFFSET.mul(1.8));
 		focus = MENU_JET.sub(new Vector3(0, 20, 0));
 	} else {
+		// Centre the jet in the open strip right of the panel. A narrow strip
+		// (phones) pulls the camera back so the whole aircraft still fits in it.
 		const aspect = size.X / math.max(1, size.Y);
+		const open = 1 - menuCameraOpening;
+		const distance = math.clamp(0.5 / open, 1, 1.45);
+		eye = MENU_JET.add(MENU_EYE_OFFSET.mul(distance));
+		const screenX = (menuCameraOpening + open * 0.5) * 2 - 1;
+		const lateral = screenX * MENU_EYE_OFFSET.Magnitude * distance * MENU_TAN_HALF_FOV * aspect;
 		const cameraLeft = MENU_EYE_OFFSET.Cross(Vector3.yAxis).Unit;
-		focus = MENU_JET.add(cameraLeft.mul(10.5 * aspect));
+		focus = MENU_JET.add(cameraLeft.mul(lateral));
 	}
 	camera.CameraType = Enum.CameraType.Scriptable;
 	camera.CFrame = CFrame.lookAt(eye.add(sway), focus);
-	camera.FieldOfView = 50;
+	camera.FieldOfView = MENU_FOV;
 }
 
-function MenuBackdrop({ visible, mode }: { visible: boolean; mode: MenuLayout["mode"] }) {
-	const side = mode === "side";
+function MenuBackdrop({ visible, menu, viewport }: { visible: boolean; menu: MenuLayout; viewport: Vector2 }) {
+	const side = menu.mode === "side";
+	// Ink sits solidly behind the copy and clears just past the panel edge. The
+	// backdrop ignores the safe-area inset, hence the small allowance.
+	const opening = getMenuSceneOpening(viewport.X, menu) + 0.03;
+	const sheetTop = math.clamp(menu.panel.y / math.max(1, viewport.Y), 0.25, 0.8);
 	return (
 		<frame key="Backdrop" BackgroundColor3={C.Ink} BackgroundTransparency={0} BorderSizePixel={0} Size={UDim2.fromScale(1, 1)} Visible={visible} ZIndex={0}>
 			<uigradient
 				Rotation={side ? 0 : 90}
 				Transparency={side
 					? new NumberSequence([
-						new NumberSequenceKeypoint(0, 0.08),
-						new NumberSequenceKeypoint(0.3, 0.22),
-						new NumberSequenceKeypoint(0.58, 0.82),
-						new NumberSequenceKeypoint(0.75, 1),
+						new NumberSequenceKeypoint(0, 0.06),
+						new NumberSequenceKeypoint(opening * 0.6, 0.12),
+						new NumberSequenceKeypoint(opening - 0.04, 0.24),
+						new NumberSequenceKeypoint(opening + 0.08, 0.82),
+						new NumberSequenceKeypoint(opening + 0.18, 1),
 						new NumberSequenceKeypoint(1, 1),
 					])
 					: new NumberSequence([
 						new NumberSequenceKeypoint(0, 1),
-						new NumberSequenceKeypoint(0.3, 1),
-						new NumberSequenceKeypoint(0.5, 0.45),
-						new NumberSequenceKeypoint(0.66, 0.12),
+						new NumberSequenceKeypoint(sheetTop - 0.2, 1),
+						new NumberSequenceKeypoint(sheetTop - 0.05, 0.45),
+						new NumberSequenceKeypoint(sheetTop + 0.05, 0.12),
 						new NumberSequenceKeypoint(1, 0.04),
 					])}
 			/>
@@ -594,13 +623,63 @@ function panelPosition(menu: MenuLayout) {
 	return { Position: UDim2.fromOffset(menu.panel.x, menu.panel.y), Size: UDim2.fromOffset(menu.panel.width, menu.panel.height) };
 }
 
+function missionNumber(id: number): string {
+	return string.format("%02d", id);
+}
+
+function actLabel(act: number): string {
+	return `ACT ${ACT_NUMERALS[act] ?? tostring(act)} · ${ACT_NAMES[act] ?? ""}`;
+}
+
+function completedCount(slot?: SaveSlot, act?: number): number {
+	let count = 0;
+	for (const blueprint of MissionCatalog.All()) {
+		if ((act === undefined || blueprint.act === act) && slot?.missions?.[blueprint.id]?.completed === true) count++;
+	}
+	return count;
+}
+
+/** Missions unlock in order: the first not-yet-completed mission is the furthest playable one. */
+function unlockedThrough(slot?: SaveSlot): number {
+	let unlocked = 1;
+	for (let id = 1; id < MISSION_COUNT; id++) {
+		if (slot?.missions?.[id]?.completed) unlocked = id + 1;
+		else break;
+	}
+	return unlocked;
+}
+
+/** A 44px header row: square back button, then a title over a one-line status. */
+function ScreenHeader({ name, backName, enabled = true, title, subtitle, subtitleColor = C.Muted, compact, onBack }: {
+	name: string;
+	backName: string;
+	enabled?: boolean;
+	title: string;
+	subtitle: string;
+	subtitleColor?: Color3;
+	compact: boolean;
+	onBack: () => void;
+}) {
+	const textLeft = MIN_TOUCH_TARGET + 12;
+	return (
+		<frame key={name} BackgroundTransparency={1} Size={new UDim2(1, 0, 0, MIN_TOUCH_TARGET)}>
+			<ActionButton name={backName} text="‹" size={UDim2.fromOffset(MIN_TOUCH_TARGET, MIN_TOUCH_TARGET)} enabled={enabled} textSize={22} onActivated={onBack} />
+			<Label name={`${name}Title`} text={title} textSize={compact ? 18 : 22} minTextSize={12} font={Enum.Font.GothamBlack} position={UDim2.fromOffset(textLeft, 1)} size={new UDim2(1, -textLeft, 0, compact ? 22 : 25)} />
+			<Label name={`${name}Status`} text={subtitle} color={subtitleColor} textSize={10} minTextSize={8} font={Enum.Font.GothamBold} anchorPoint={new Vector2(0, 1)} position={new UDim2(0, textLeft, 1, -2)} size={new UDim2(1, -textLeft, 0, 13)} />
+		</frame>
+	);
+}
+
 function TitleScreenImpl({ visible, menu, onCampaign }: { visible: boolean; menu: MenuLayout; onCampaign: () => void }) {
 	const compact = menu.compact;
+	const tiny = menu.panel.height < 220;
+	// The hero copy reads best as a short column, even when the panel is wide.
+	const contentWidth = math.min(menu.panel.width, 420);
 	return (
 		<frame key="TitleScreen" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={visible}>
-			<frame key="TitleContent" BackgroundTransparency={1} {...panelPosition(menu)}>
+			<frame key="TitleContent" BackgroundTransparency={1} Position={UDim2.fromOffset(menu.panel.x, menu.panel.y)} Size={UDim2.fromOffset(contentWidth, menu.panel.height)}>
 				<uilistlayout
-					Padding={new UDim(0, compact ? 6 : 10)}
+					Padding={new UDim(0, tiny ? 4 : 8)}
 					SortOrder={Enum.SortOrder.LayoutOrder}
 					VerticalAlignment={menu.mode === "sheet" ? Enum.VerticalAlignment.Bottom : Enum.VerticalAlignment.Center}
 				/>
@@ -610,19 +689,19 @@ function TitleScreenImpl({ visible, menu, onCampaign }: { visible: boolean; menu
 					BackgroundTransparency={1}
 					Font={Enum.Font.GothamBlack}
 					LayoutOrder={2}
-					Size={new UDim2(1, 0, 0, menu.panel.height<220 ? 36 : compact ? 50 : 76)}
+					Size={new UDim2(1, 0, 0, tiny ? 36 : compact ? 52 : 76)}
 					Text="SKYBREAK"
 					TextColor3={C.Ivory}
 					TextScaled={true}
 					TextXAlignment={Enum.TextXAlignment.Left}
 				>
-					<uitextsizeconstraint MaxTextSize={compact ? 46 : 70} MinTextSize={28} />
+					<uitextsizeconstraint MaxTextSize={compact ? 48 : 70} MinTextSize={28} />
 				</textlabel>
-				<Label name="Subtitle" text="BROKEN RELAY" color={C.Orange} textSize={compact ? 11 : 13} font={Enum.Font.GothamBold} size={new UDim2(1, 0, 0, 18)} layoutOrder={3} />
+				<Label name="Subtitle" text="BROKEN RELAY" color={C.Orange} textSize={compact ? 11 : 13} font={Enum.Font.GothamBold} size={new UDim2(1, 0, 0, 16)} layoutOrder={3} />
 				<Label
 					name="Blurb"
-					visible={menu.panel.height>=220}
-					text="Follow a missing mentor’s recordings through 27 sorties. Uncover the coup. Bring the coast home."
+					visible={!tiny}
+					text={`Follow a missing mentor’s recordings through ${MISSION_COUNT} sorties. Uncover the coup. Bring the coast home.`}
 					color={C.Muted}
 					textSize={compact ? 13 : 15}
 					size={new UDim2(1, 0, 0, 0)}
@@ -630,8 +709,9 @@ function TitleScreenImpl({ visible, menu, onCampaign }: { visible: boolean; menu
 					textWrapped={true}
 					layoutOrder={4}
 				/>
-				<frame key="Spacer" BackgroundTransparency={1} LayoutOrder={5} Size={UDim2.fromOffset(1, compact ? 4 : 14)} />
-				<ActionButton name="CampaignButton" text="CAMPAIGN  ›" primary={true} layoutOrder={6} size={UDim2.fromOffset(math.min(260, menu.panel.width), compact ? 46 : 52)} textSize={15} onActivated={onCampaign} />
+				<Label name="TitleMeta" visible={!tiny} text={`3 ACTS  ·  ${MISSION_COUNT} SORTIES  ·  4 FLIGHT RECORDS`} color={C.Faint} textSize={10} font={Enum.Font.GothamBold} size={new UDim2(1, 0, 0, 14)} layoutOrder={5} />
+				<frame key="Spacer" BackgroundTransparency={1} LayoutOrder={6} Size={UDim2.fromOffset(1, tiny ? 2 : compact ? 6 : 14)} />
+				<ActionButton name="CampaignButton" text="CAMPAIGN  ›" primary={true} layoutOrder={7} size={UDim2.fromOffset(math.min(260, contentWidth), tiny ? 44 : compact ? 48 : 52)} textSize={15} onActivated={onCampaign} />
 			</frame>
 		</frame>
 	);
@@ -643,6 +723,7 @@ function SaveSlotRow({
 	slot,
 	busy,
 	confirming,
+	layout,
 	onSlot,
 	onAskDelete,
 	onConfirmDelete,
@@ -652,6 +733,7 @@ function SaveSlotRow({
 	slot?: SaveSlot;
 	busy: boolean;
 	confirming: boolean;
+	layout: SaveSlotLayout;
 	onSlot: (slot: number) => void;
 	onAskDelete: (slot: number) => void;
 	onConfirmDelete: (slot: number) => void;
@@ -660,42 +742,71 @@ function SaveSlotRow({
 	const enabled = !busy && slot !== undefined && !confirming;
 	const deletable = !busy && slot?.occupied === true;
 	const { hot, events, clearHover } = useHighlight(enabled);
-	const status=busy ? "READING FILE..." : !slot ? "LINK UNAVAILABLE" : slot.completed ? "CAMPAIGN COMPLETE · REPLAY" : slot.occupied ? `CONTINUE MISSION ${string.format("%02d",slot.currentMission ?? 1)}` : "NEW CAMPAIGN";
-	let completed=0;
-	if(slot) for(let id=1;id<=MISSION_COUNT;id++) if(slot.missions?.[id]?.completed) completed++;
-	const detail=busy ? "Please stand by" : !slot ? "Return and try again" : `${completed}/27 complete · ${MissionCatalog.Get(slot.currentMission ?? 1).title}`;
-	// Text and destructive actions have separate vertical lanes at every panel width.
-	// Label uses fixed-size text by default: a smaller Size alone does not contain it.
-	const rowHeight = getSaveSlotRowHeight(slot?.occupied === true, confirming);
-	const content = (confirm: boolean) => (
-		<frame key="Copy" BackgroundTransparency={1} ClipsDescendants={true} Position={UDim2.fromOffset(40, 6)} Size={new UDim2(1, -68, 0, 72)}>
-			<Label name="Status" text={confirm ? "DELETE THIS SAVE?" : status} color={confirm ? C.Danger : slot?.completed ? C.Accent : C.Ivory} textSize={13} font={Enum.Font.GothamBold} size={new UDim2(1, 0, 0, 36)} textWrapped={true} />
-			<Label name="Detail" text={confirm ? "All progress in this file is lost." : detail} color={C.Muted} textSize={12} position={UDim2.fromOffset(0, 38)} size={new UDim2(1, 0, 0, 32)} textWrapped={true} />
+	const deleteHighlight = useHighlight(deletable && !confirming);
+	const completed = completedCount(slot);
+	const status = busy ? "READING FILE..." : !slot ? "LINK UNAVAILABLE" : slot.completed ? "COMPLETE · REPLAY" : slot.occupied ? `CONTINUE MISSION ${missionNumber(slot.currentMission ?? 1)}` : "NEW CAMPAIGN";
+	const detail = busy ? "Please stand by" : !slot ? "Return and try again" : `${completed}/${MISSION_COUNT} complete · ${MissionCatalog.Get(slot.currentMission ?? 1).title}`;
+	const statusColor = confirming ? C.Danger : slot?.completed ? C.Accent : slot && !slot.occupied && !busy ? C.Accent : C.Ivory;
+	const accent = confirming ? C.Danger : hot ? C.Accent : C.Faint;
+	// Label uses fixed-size text: the copy frame clips, and SaveSlotLayout sizes
+	// its lanes from real font metrics (see SaveSlotLayout.spec).
+	const copy = (
+		<frame key="Copy" BackgroundTransparency={1} ClipsDescendants={true} Position={UDim2.fromOffset(layout.copyLeft, 0)} Size={UDim2.fromOffset(layout.copyWidth, layout.rowHeight)}>
+			<Label name="Status" text={confirming ? `DELETE FILE ${missionNumber(number)}?` : status} color={statusColor} textSize={13} font={Enum.Font.GothamBold} position={UDim2.fromOffset(0, layout.statusTop)} size={new UDim2(1, 0, 0, layout.statusHeight)} textWrapped={true} />
+			<Label name="Detail" text={confirming ? "All progress in this file is lost." : detail} color={C.Muted} textSize={12} position={UDim2.fromOffset(0, layout.detailTop)} size={new UDim2(1, 0, 0, layout.detailHeight)} textWrapped={true} />
+			{slot?.occupied === true && !confirming && (
+				<frame key="Progress" BackgroundColor3={C.Ivory} BackgroundTransparency={0.88} BorderSizePixel={0} Position={UDim2.fromOffset(0, layout.progressTop)} Size={new UDim2(1, 0, 0, 3)}>
+					<Corner scale={1} />
+					<frame key="Fill" BackgroundColor3={C.Accent} BorderSizePixel={0} Size={new UDim2(completed / MISSION_COUNT, 0, 1, 0)} Visible={completed > 0}>
+						<Corner scale={1} />
+					</frame>
+				</frame>
+			)}
 		</frame>
 	);
+	const numberLabel = <Label name="SlotNumber" text={missionNumber(number)} color={accent} textSize={13} font={Enum.Font.RobotoMono} position={UDim2.fromOffset(12, 0)} size={UDim2.fromOffset(28, layout.rowHeight)} />;
+	const rightLane = MIN_TOUCH_TARGET + 16;
 	return (
-		<frame key={`Slot${number}Row`} BackgroundColor3={hot ? C.PanelHot : C.Panel} BackgroundTransparency={hot ? 0.04 : 0.3} BorderSizePixel={0} LayoutOrder={number} Size={new UDim2(1, 0, 0, rowHeight)}>
-			<Corner />
-			<Stroke color={confirming ? C.Danger : hot ? C.Accent : C.Ivory} transparency={confirming || hot ? 0.15 : 0.9} thickness={confirming || hot ? 2 : 1} />
+		<frame key={`Slot${number}Row`} BackgroundColor3={hot ? C.PanelHot : C.Panel} BackgroundTransparency={hot ? 0.04 : 0.28} BorderSizePixel={0} LayoutOrder={number} Size={new UDim2(1, -SAVE_SLOT_SCROLLBAR_LANE, 0, confirming ? layout.confirmHeight : layout.rowHeight)}>
+			<Corner radius={8} />
+			<Stroke color={confirming ? C.Danger : hot ? C.Accent : C.Ivory} transparency={confirming || hot ? 0.15 : 0.88} thickness={confirming || hot ? 2 : 1} />
 			{confirming ? (
-				<frame key="Confirmation" BackgroundTransparency={1} Size={new UDim2(1, 0, 0, 84)}>
-					<Label name="SlotNumber" text={string.format("%02d", number)} color={C.Danger} textSize={12} font={Enum.Font.RobotoMono} position={UDim2.fromOffset(10, 0)} size={UDim2.fromOffset(26, 84)} />
-					{content(true)}
+				<frame key="Confirmation" BackgroundTransparency={1} Size={new UDim2(1, 0, 0, layout.rowHeight)}>
+					{numberLabel}
+					{copy}
 				</frame>
 			) : (
-				<textbutton key={`Slot${number}Button`} Active={enabled} Selectable={enabled} AutoButtonColor={false} BackgroundTransparency={1} BorderSizePixel={0} SelectionImageObject={SELECTION_NONE} Size={new UDim2(1, 0, 0, 84)} Text="" Event={{...events, Activated: () => { clearHover(); if (enabled) onSlot(number); }}}>
-					<Label name="SlotNumber" text={string.format("%02d", number)} color={hot ? C.Accent : C.Faint} textSize={12} font={Enum.Font.RobotoMono} position={UDim2.fromOffset(10, 0)} size={UDim2.fromOffset(26, 84)} />
-					{content(false)}
-					<Label name="Arrow" text="›" color={hot ? C.Accent : C.Faint} textSize={20} anchorPoint={new Vector2(1, 0.5)} position={new UDim2(1, -8, 0, 42)} size={UDim2.fromOffset(16, 28)} visible={enabled} />
+				<textbutton key={`Slot${number}Button`} Active={enabled} Selectable={enabled} AutoButtonColor={false} BackgroundTransparency={1} BorderSizePixel={0} SelectionImageObject={SELECTION_NONE} Size={new UDim2(1, deletable ? -rightLane : 0, 0, layout.rowHeight)} Text="" Event={{...events, Activated: () => { clearHover(); if (enabled) onSlot(number); }}}>
+					{numberLabel}
+					{copy}
+					{!deletable && <Label name="Arrow" text="›" color={hot ? C.Accent : C.Faint} textSize={22} anchorPoint={new Vector2(1, 0.5)} position={new UDim2(1, -20, 0, layout.rowHeight / 2)} size={UDim2.fromOffset(16, 28)} textXAlignment={Enum.TextXAlignment.Center} visible={enabled} />}
 				</textbutton>
 			)}
 			{confirming ? (
-				<frame key="DeleteActions" BackgroundTransparency={1} Position={UDim2.fromOffset(8, 84)} Size={new UDim2(1, -16, 0, MIN_TOUCH_TARGET)}>
+				<frame key="DeleteActions" BackgroundTransparency={1} Position={UDim2.fromOffset(8, layout.rowHeight)} Size={new UDim2(1, -16, 0, MIN_TOUCH_TARGET)}>
 					<ActionButton name="KeepButton" text="KEEP" size={new UDim2(0.5, -4, 1, 0)} enabled={!busy} textSize={12} onActivated={onCancelDelete} />
 					<ActionButton name="ConfirmDeleteButton" text="DELETE" primary={true} position={new UDim2(0.5, 4, 0, 0)} size={new UDim2(0.5, -4, 1, 0)} enabled={!busy} textSize={12} onActivated={() => onConfirmDelete(number)} />
 				</frame>
 			) : deletable && (
-				<ActionButton name="DeleteButton" text="DELETE" anchorPoint={new Vector2(1, 0)} position={new UDim2(1, -8, 0, 84)} size={UDim2.fromOffset(96, MIN_TOUCH_TARGET)} textSize={12} onActivated={() => onAskDelete(number)} />
+				<textbutton
+					key="DeleteButton"
+					AnchorPoint={new Vector2(1, 0.5)}
+					AutoButtonColor={false}
+					BackgroundColor3={deleteHighlight.hot ? C.PanelHot : C.Ink}
+					BackgroundTransparency={deleteHighlight.hot ? 0.05 : 0.5}
+					BorderSizePixel={0}
+					Font={Enum.Font.GothamBold}
+					Position={new UDim2(1, -8, 0, layout.rowHeight / 2)}
+					SelectionImageObject={SELECTION_NONE}
+					Size={UDim2.fromOffset(MIN_TOUCH_TARGET, MIN_TOUCH_TARGET)}
+					Text="✕"
+					TextColor3={deleteHighlight.hot ? C.Danger : C.Muted}
+					TextSize={15}
+					Event={{ ...deleteHighlight.events, Activated: () => { deleteHighlight.clearHover(); onAskDelete(number); } }}
+				>
+					<Corner />
+					<Stroke color={deleteHighlight.hot ? C.Danger : C.Ivory} transparency={deleteHighlight.hot ? 0.2 : 0.88} thickness={deleteHighlight.hot ? 2 : 1} />
+				</textbutton>
 			)}
 		</frame>
 	);
@@ -726,39 +837,39 @@ function CampaignScreenImpl({
 	onCancelDelete: () => void;
 	onDeleteSlot: (slot: number) => void;
 }) {
-	const compact = menu.compact;
+	// Narrow panels (under 400px) get short copy so the one-line status never clips.
+	const short = menu.panel.width < 400;
 	const persistenceText = busy
-		? "Connecting to flight records..."
+		? short ? "CONNECTING..." : "CONNECTING TO FLIGHT RECORDS..."
 		: persistence === "cloud"
-			? "Cloud saves online"
+			? short ? "CLOUD SAVES ONLINE" : "CLOUD SAVES ONLINE · SELECT A FLIGHT RECORD"
 			: persistence === "session"
-				? "Saves kept for this session only"
-				: "Save service offline. Progress may not persist.";
-	const canvasHeight = SLOT_NUMBERS.reduce((height, number) => height + getSaveSlotRowHeight(slots?.[number - 1]?.occupied === true, confirmSlot === number), 0);
-	const gap = compact ? 6 : 8;
-	const footerHeight = 44;
+				? short ? "SESSION-ONLY SAVES" : "SAVES KEPT FOR THIS SESSION ONLY"
+				: short ? "OFFLINE · MAY NOT SAVE" : "SAVE SERVICE OFFLINE · PROGRESS MAY NOT PERSIST";
+	const layout = getSaveSlotLayout(menu.panel.width);
+	const canvasHeight = getSlotListCanvasHeight(layout, SLOT_NUMBERS.map((number) => confirmSlot === number));
 	return (
 		<frame key="CampaignScreen" BackgroundTransparency={1} Visible={visible} {...panelPosition(menu)}>
-			<Label name="CampaignHeader" text="CAMPAIGN FILES" textSize={compact ? 19 : 26} font={Enum.Font.GothamBlack} size={new UDim2(1, 0, 0, compact ? 26 : 34)} />
-			<Label
-				name="CampaignSubheader"
-				text="SELECT A FLIGHT RECORD"
-				color={C.Accent}
-				textSize={10}
-				font={Enum.Font.GothamBold}
-				position={UDim2.fromOffset(0, 38)}
-				size={new UDim2(1, 0, 0, 16)}
-				visible={!compact}
+			<ScreenHeader
+				name="CampaignHeader"
+				backName="CampaignBackButton"
+				enabled={!busy}
+				title="CAMPAIGN FILES"
+				subtitle={persistenceText}
+				subtitleColor={persistence === "unavailable" && !busy ? C.Orange : persistence === "cloud" && !busy ? C.Accent : C.Muted}
+				compact={menu.compact}
+				onBack={onBack}
 			/>
-			<scrollingframe key="SlotGrid" BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={3} ScrollingDirection={Enum.ScrollingDirection.Y} CanvasSize={UDim2.fromOffset(0, canvasHeight + gap * 3)} Position={UDim2.fromOffset(0, compact ? 34 : 66)} Size={new UDim2(1, 0, 0, getSlotListHeight(menu.panel.height, compact))}>
-				<uilistlayout Padding={new UDim(0, gap)} SortOrder={Enum.SortOrder.LayoutOrder} />
+			<scrollingframe key="SlotGrid" BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={3} ScrollBarImageColor3={C.Ivory} ScrollBarImageTransparency={0.6} ScrollingDirection={Enum.ScrollingDirection.Y} CanvasSize={UDim2.fromOffset(0, canvasHeight)} Position={UDim2.fromOffset(0, CAMPAIGN_HEADER_HEIGHT + CAMPAIGN_HEADER_GAP)} Size={new UDim2(1, 0, 0, getSlotListHeight(menu.panel.height))}>
+				<uilistlayout Padding={new UDim(0, SAVE_SLOT_GAP)} SortOrder={Enum.SortOrder.LayoutOrder} />
 				{SLOT_NUMBERS.map((number) => (
 					<SaveSlotRow
-						key={`Slot${number}Button`}
+						key={`Slot${number}Row`}
 						number={number}
 						slot={slots?.[number - 1]}
 						busy={busy}
 						confirming={confirmSlot === number}
+						layout={layout}
 						onSlot={onSlot}
 						onAskDelete={onAskDelete}
 						onConfirmDelete={onDeleteSlot}
@@ -766,18 +877,6 @@ function CampaignScreenImpl({
 					/>
 				))}
 			</scrollingframe>
-			<ActionButton name="CampaignBackButton" text="‹  BACK" anchorPoint={new Vector2(0, 1)} position={new UDim2(0, 0, 1, 0)} size={UDim2.fromOffset(108, footerHeight)} enabled={!busy} textSize={13} onActivated={onBack} />
-			<Label
-				name="PersistenceStatus"
-				text={persistenceText}
-				color={persistence === "unavailable" && !busy ? C.Orange : C.Muted}
-				textSize={compact ? 10 : 11}
-				anchorPoint={new Vector2(1, 1)}
-				position={new UDim2(1, 0, 1, 0)}
-				size={new UDim2(1, -120, 0, footerHeight)}
-				textXAlignment={Enum.TextXAlignment.Right}
-				textWrapped={true}
-			/>
 		</frame>
 	);
 }
@@ -833,50 +932,189 @@ function FooterButtons({
 	);
 }
 
+/** Short mission rules, mentioning beacons and escorts only when this sortie has them. */
+function missionRules(phases: { kind: string }[]): string {
+	const lines = ["10-minute window · Retry any time"];
+	if (phases.some((phase) => phase.kind === "route" || phase.kind === "recon" || phase.kind === "signal" || phase.kind === "defend")) {
+		lines.push("Green beacon: fly inside its volume. Scans need the shown altitude.");
+	}
+	if (phases.some((phase) => phase.kind === "escort")) lines.push("Escort: stay near the vehicle; down raiders before they close.");
+	return lines.join("\n");
+}
+
+function SectionHeading({ name, text, layoutOrder }: { name: string; text: string; layoutOrder: number }) {
+	return <Label name={name} text={text} color={C.Orange} textSize={10} font={Enum.Font.GothamBold} size={new UDim2(1, 0, 0, 12)} layoutOrder={layoutOrder} />;
+}
+
+type TileState = "complete" | "next" | "open" | "locked";
+
+function MissionTile({ id, state, selected, enabled, width, height, onChoose }: {
+	id: number;
+	state: TileState;
+	selected: boolean;
+	enabled: boolean;
+	width: number;
+	height: number;
+	onChoose: (id: number) => void;
+}) {
+	const { hot, events, clearHover } = useHighlight(enabled);
+	const blueprint = MissionCatalog.Get(id);
+	const locked = state === "locked";
+	const lit = selected || hot;
+	const name = `Mission${missionNumber(id)}SelectButton`;
+	const stateText = state === "complete" ? "✓ CLEAR" : state === "next" ? "NEXT" : state === "locked" ? "LOCKED" : "";
+	const stateColor = state === "complete" ? C.Accent : state === "next" ? C.Orange : C.Faint;
+	return (
+		<textbutton
+			key={name}
+			Active={enabled}
+			Selectable={enabled}
+			AutoButtonColor={false}
+			BackgroundColor3={lit ? C.PanelHot : C.Panel}
+			BackgroundTransparency={locked ? 0.7 : hot ? 0.04 : selected ? 0.1 : 0.28}
+			BorderSizePixel={0}
+			LayoutOrder={id}
+			SelectionImageObject={SELECTION_NONE}
+			Size={UDim2.fromOffset(width, height)}
+			Text=""
+			Event={{ ...events, Activated: () => { clearHover(); if (enabled) onChoose(id); } }}
+		>
+			<Corner radius={8} />
+			<Stroke color={hot ? C.Ivory : selected ? C.Accent : C.Ivory} transparency={lit ? 0.1 : 0.88} thickness={lit ? 2 : 1} />
+			<uipadding PaddingLeft={new UDim(0, 8)} PaddingRight={new UDim(0, 8)} PaddingTop={new UDim(0, 7)} PaddingBottom={new UDim(0, 7)} />
+			<Label name="Number" text={missionNumber(id)} color={selected ? C.Accent : C.Faint} textSize={12} font={Enum.Font.RobotoMono} size={new UDim2(0.4, 0, 0, 14)} />
+			<Label name="State" text={stateText} color={stateColor} textSize={9} minTextSize={7} font={Enum.Font.GothamBold} anchorPoint={new Vector2(1, 0)} position={UDim2.fromScale(1, 0)} size={new UDim2(0.6, 0, 0, 14)} textXAlignment={Enum.TextXAlignment.Right} />
+			<textlabel key="MissionTitle" BackgroundTransparency={1} Font={Enum.Font.GothamBold} Position={UDim2.fromOffset(0, 17)} Size={new UDim2(1, 0, 0, 16)} Text={blueprint.title} TextColor3={locked ? C.Faint : C.Ivory} TextScaled={true} TextXAlignment={Enum.TextXAlignment.Left}>
+				{/* Long titles shrink to 10pt rather than truncating on phone-width tiles. */}
+				<uitextsizeconstraint MaxTextSize={12} MinTextSize={10} />
+			</textlabel>
+			<textlabel key="MissionMeta" BackgroundTransparency={1} Font={Enum.Font.GothamMedium} Position={UDim2.fromOffset(0, 34)} Size={new UDim2(1, 0, 0, 12)} Text={REGION_NAMES[blueprint.region] ?? ""} TextColor3={C.Faint} TextSize={10} TextTransparency={locked ? 0.4 : 0} TextTruncate={Enum.TextTruncate.AtEnd} TextXAlignment={Enum.TextXAlignment.Left} />
+		</textbutton>
+	);
+}
+
+function ActTab({ act, active, done, total, showName, onSelect }: { act: number; active: boolean; done: number; total: number; showName: boolean; onSelect: (act: number) => void }) {
+	const { hot, events, clearHover } = useHighlight(true);
+	return (
+		<textbutton
+			key={`Act${act}`}
+			AutoButtonColor={false}
+			BackgroundColor3={active ? C.Accent : hot ? C.PanelHot : C.Panel}
+			BackgroundTransparency={active ? 0 : hot ? 0.05 : 0.28}
+			BorderSizePixel={0}
+			LayoutOrder={act}
+			SelectionImageObject={SELECTION_NONE}
+			Size={new UDim2(1 / 3, -4, 1, 0)}
+			Text=""
+			Event={{ ...events, Activated: () => { clearHover(); onSelect(act); } }}
+		>
+			<Corner />
+			<Stroke color={hot ? C.Ivory : active ? C.Accent : C.Ivory} transparency={hot ? 0.1 : active ? 0.4 : 0.88} thickness={hot ? 2 : 1} />
+			<uipadding PaddingLeft={new UDim(0, 8)} PaddingRight={new UDim(0, 8)} PaddingTop={new UDim(0, 6)} PaddingBottom={new UDim(0, 6)} />
+			<Label name="ActNumber" text={`ACT ${ACT_NUMERALS[act]}`} color={active ? C.Ink : C.Ivory} textSize={12} font={Enum.Font.GothamBlack} position={UDim2.fromOffset(0, showName ? 0 : 8)} size={new UDim2(0.6, 0, 0, 16)} />
+			<Label name="ActCount" text={`${done}/${total}`} color={active ? C.Ink : done === total ? C.Accent : C.Muted} textSize={10} font={Enum.Font.RobotoMono} anchorPoint={new Vector2(1, 0)} position={new UDim2(1, 0, 0, showName ? 0 : 8)} size={new UDim2(0.4, 0, 0, 16)} textXAlignment={Enum.TextXAlignment.Right} />
+			<Label name="ActName" visible={showName} text={ACT_NAMES[act] ?? ""} color={active ? C.Ink : C.Faint} textSize={9} minTextSize={8} font={Enum.Font.GothamBold} anchorPoint={new Vector2(0, 1)} position={UDim2.fromScale(0, 1)} size={new UDim2(1, 0, 0, 12)} />
+		</textbutton>
+	);
+}
+
 function BriefingScreenImpl({visible,menu,selectedSlot,selectedMission,slot,busy,special,onBack,onLaunch,onMission,onSpecial}: {
 	visible:boolean;menu:MenuLayout;selectedSlot:number;selectedMission:number;slot?:SaveSlot;busy:boolean;special:SpecialKind;
 	onBack:()=>void;onLaunch:()=>void;onMission:(id:number)=>void;onSpecial:(kind:SpecialKind)=>void;
 }) {
 	const [browse,setBrowse]=useState(false),[act,setAct]=useState(1);
 	const [detailsCanvasHeight,setDetailsCanvasHeight]=useState(0);
+	const [scrolledToEnd,setScrolledToEnd]=useState(false);
 	const panelRef=useRef<Frame>();const inputMode=useContext(InputModeContext);
+	// Whether the reading column is scrolled to its end, from the live canvas
+	// position and the latest content height (the canvas may grow or remount).
+	const detailsCanvasRef=useRef(0);
+	const updateScrolledToEnd=(frame:ScrollingFrame)=>setScrolledToEnd(frame.CanvasPosition.Y>=detailsCanvasRef.current-frame.AbsoluteWindowSize.Y-4);
+	useEffect(()=>setScrolledToEnd(false),[selectedMission,browse]);
 	useEffect(()=>{if(!visible || inputMode!=="gamepad")return;task.defer(()=>{
 		const panel=panelRef.current;if(!panel)return;
-		const selected=panel.FindFirstChild(browse ? "ArchiveBackButton" : "LaunchButton",true);
+		let selected:Instance|undefined;
+		if(browse) {
+			// The archive opens on the selected mission's tile, else the act's first playable tile.
+			const tile=panel.FindFirstChild(`Mission${missionNumber(selectedMission)}SelectButton`,true);
+			if(tile?.IsA("GuiObject") && tile.Selectable) selected=tile;
+			const archive=panel.FindFirstChild("MissionArchive",true);
+			if(!selected && archive) {
+				let first:GuiObject|undefined;
+				for(const child of archive.GetChildren()) {
+					if(child.IsA("GuiObject") && child.Selectable && (first===undefined || child.LayoutOrder<first.LayoutOrder)) first=child;
+				}
+				selected=first;
+			}
+		}
+		if(!selected) selected=panel.FindFirstChild(browse ? "ArchiveBackButton" : "LaunchButton",true);
 		if(selected?.IsA("GuiObject"))GuiService.SelectedObject=selected;
-	});},[browse,act,inputMode,visible]);
+	});},[browse,act,inputMode,visible,selectedMission]);
 	const mission=MissionCatalog.Get(selectedMission);
-	let unlocked=1;
-	for(let id=1;id<MISSION_COUNT;id++) {if(slot?.missions?.[id]?.completed)unlocked=id+1;else break;}
-	const completed=slot?.missions?.[selectedMission]?.completed===true;
-	const best=slot?.missions?.[selectedMission]?.bestTime;
-	const small=menu.panel.height<300,ultra=menu.panel.height<220;
-	const briefingLayout=getBriefingLayout(menu.panel.height);
+	const unlocked=unlockedThrough(slot);
+	const record=slot?.missions?.[selectedMission];
+	const completed=record?.completed===true;
+	const layout=getBriefingLayout(menu.panel.width,menu.panel.height);
+	const grid=getArchiveGrid(menu.panel.width,menu.panel.height);
 	const choose=(id:number)=>{onMission(id);setBrowse(false);};
+	const status=completed
+		? `  <font color="${HEX.Accent}">✓ CLEARED${record?.bestRank!==undefined ? ` · RANK ${record.bestRank}` : ""}${record?.bestTime!==undefined ? ` · ${formatTime(record.bestTime)}` : ""}</font>`
+		: selectedMission===unlocked ? `  <font color="${HEX.Orange}">NEW SORTIE</font>` : "";
+	const overflow=detailsCanvasHeight-layout.detailsHeight;
+	const actMissions=MissionCatalog.All().filter((bp)=>bp.act===act);
 	return <frame key="BriefingScreen" BackgroundTransparency={1} Size={UDim2.fromScale(1,1)} Visible={visible}>
 		<frame ref={panelRef} key="BriefingPanel" BackgroundTransparency={1} {...panelPosition(menu)}>
 			{browse ? <>
-				<Label name="SelectMissionTitle" text="MISSION ARCHIVE" textSize={21} font={Enum.Font.GothamBlack} size={new UDim2(1,0,0,ultra ? 22 : 28)}/>
-				{[1,2,3].map((id)=><ActionButton key={`Act${id}`} name={`Act${id}`} text={`ACT ${id}`} primary={act===id} position={new UDim2((id-1)/3,0,0,ultra ? 26 : 32)} size={new UDim2(1/3,-4,0,44)} onActivated={()=>setAct(id)}/>)}
-				<scrollingframe key="MissionArchive" Position={UDim2.fromOffset(0,ultra ? 74 : 82)} Size={new UDim2(1,0,1,ultra ? -122 : -132)} CanvasSize={UDim2.fromOffset(0,9*50)} BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={4}>
-					<uilistlayout Padding={new UDim(0,6)} SortOrder={Enum.SortOrder.LayoutOrder}/>
-					{MissionCatalog.All().filter((bp)=>bp.act===act).map((bp)=><ActionButton key={`Mission${bp.id}`} name={`Mission${string.format("%02d",bp.id)}SelectButton`} text={`${string.format("%02d",bp.id)}  ${bp.title}${bp.id>unlocked ? " · LOCKED" : slot?.missions?.[bp.id]?.completed ? " · COMPLETE" : ""}`} primary={selectedMission===bp.id} enabled={!busy && bp.id<=unlocked} layoutOrder={bp.id} size={new UDim2(1,-8,0,44)} textSize={12} onActivated={()=>choose(bp.id)}/>)}
+				<ScreenHeader name="ArchiveHeader" backName="ArchiveBackButton" title="MISSION ARCHIVE" subtitle={`FILE ${selectedSlot} · ${completedCount(slot)}/${MISSION_COUNT} COMPLETE`} compact={menu.compact} onBack={()=>setBrowse(false)}/>
+				<frame key="ActTabs" BackgroundTransparency={1} Position={UDim2.fromOffset(0,ARCHIVE_HEADER_HEIGHT+ARCHIVE_GAP)} Size={new UDim2(1,4,0,ARCHIVE_TAB_HEIGHT)}>
+					<uilistlayout FillDirection={Enum.FillDirection.Horizontal} Padding={new UDim(0,4)} SortOrder={Enum.SortOrder.LayoutOrder}/>
+					{ACTS.map((id)=><ActTab key={`Act${id}`} act={id} active={act===id} done={completedCount(slot,id)} total={MissionCatalog.ByAct(id).size()} showName={menu.panel.width>=400} onSelect={setAct}/>)}
+				</frame>
+				<scrollingframe key="MissionArchive" Position={UDim2.fromOffset(0,grid.top)} Size={new UDim2(1,0,0,grid.height)} CanvasSize={UDim2.fromOffset(0,getArchiveCanvasHeight(grid,actMissions.size()))} BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={3} ScrollBarImageColor3={C.Ivory} ScrollBarImageTransparency={0.6} ScrollingDirection={Enum.ScrollingDirection.Y}>
+					<uigridlayout CellPadding={UDim2.fromOffset(grid.gap,grid.gap)} CellSize={UDim2.fromOffset(grid.tileWidth,grid.tileHeight)} FillDirectionMaxCells={grid.columns} SortOrder={Enum.SortOrder.LayoutOrder}/>
+					{actMissions.map((bp)=>{
+						const state:TileState=slot?.missions?.[bp.id]?.completed ? "complete" : bp.id===unlocked ? "next" : bp.id<unlocked ? "open" : "locked";
+						return <MissionTile key={`Mission${missionNumber(bp.id)}SelectButton`} id={bp.id} state={state} selected={selectedMission===bp.id} enabled={!busy && bp.id<=unlocked} width={grid.tileWidth} height={grid.tileHeight} onChoose={choose}/>;
+					})}
 				</scrollingframe>
-				<ActionButton name="ArchiveBackButton" text="‹ BRIEFING" anchorPoint={new Vector2(0,1)} position={new UDim2(0,0,1,0)} size={new UDim2(1,0,0,44)} onActivated={()=>setBrowse(false)}/>
 			</> : <>
-				{/* Scroll the heading too: short landscape roots need the entire remaining
-				    height for reading, while archive/launch/back stay outside the clip. */}
-				<scrollingframe key="BriefingDetails" Size={new UDim2(1,0,0,briefingLayout.detailsHeight)} CanvasSize={UDim2.fromOffset(0,detailsCanvasHeight)} Active={true} Selectable={true} ClipsDescendants={true} ScrollingDirection={Enum.ScrollingDirection.Y} VerticalScrollBarInset={Enum.ScrollBarInset.Always} BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={4}>
-					<uilistlayout Padding={new UDim(0,12)} SortOrder={Enum.SortOrder.LayoutOrder} Change={{AbsoluteContentSize:(layout)=>setDetailsCanvasHeight(layout.AbsoluteContentSize.Y + 4)}}/>
-					<Label name="BriefingEyebrow" text={`FILE ${selectedSlot} · ACT ${mission.act} · MISSION ${string.format("%02d",selectedMission)}/27`} color={C.Accent} textSize={10} font={Enum.Font.GothamBold} size={new UDim2(1,-12,0,16)} layoutOrder={-2}/>
-					<Label name="BriefingTitle" text={mission.title} textSize={small ? 21 : 29} font={Enum.Font.GothamBlack} size={new UDim2(1,-12,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={-1}/>
-					<Label name="Story" text={mission.briefing} color={C.Ivory} textSize={14} size={new UDim2(1,-12,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={1}/>
-					<LoadoutPicker kind={special} enabled={!busy} layoutOrder={2} compact={small} onChange={onSpecial}/>
-					<Label name="PhasePlan" text={mission.phases.map((phase,index)=>`${index+1}. ${phase.label}`).join("\n")} color={C.Muted} textSize={12} size={new UDim2(1,-12,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={3}/>
-					<Label name="MissionRules" text={`600-second deadline · Retry available\nGreen beacon: fly inside its volume. Scans require the shown altitude.\nEscorts: stay near the vehicle; destroy raiders before they close.\n${completed ? `COMPLETED · BEST ${best !== undefined ? formatTime(best) : "--:--"}` : "Complete this sortie to unlock the next."}`} color={C.Accent} textSize={12} size={new UDim2(1,-12,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={4}/>
+				{/* The heading scrolls with the copy: short landscape roots spend the
+				    entire height above the single action dock on reading. */}
+				<scrollingframe key="BriefingDetails" Size={new UDim2(1,0,0,layout.detailsHeight)} CanvasSize={UDim2.fromOffset(0,detailsCanvasHeight)} Active={true} Selectable={true} ClipsDescendants={true} ScrollingDirection={Enum.ScrollingDirection.Y} VerticalScrollBarInset={Enum.ScrollBarInset.Always} BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={4} ScrollBarImageColor3={C.Ivory} ScrollBarImageTransparency={0.55} Change={{CanvasPosition:updateScrolledToEnd}}>
+					<uilistlayout Padding={new UDim(0,BRIEFING_GAP)} SortOrder={Enum.SortOrder.LayoutOrder} Change={{AbsoluteContentSize:(list)=>{
+						detailsCanvasRef.current=list.AbsoluteContentSize.Y + 4;
+						setDetailsCanvasHeight(detailsCanvasRef.current);
+						const frame=list.Parent;
+						if(frame?.IsA("ScrollingFrame"))updateScrolledToEnd(frame);
+					}}}/>
+					<frame key="BriefingHeader" AutomaticSize={Enum.AutomaticSize.Y} BackgroundTransparency={1} LayoutOrder={1} Size={new UDim2(1,-12,0,0)}>
+						<uilistlayout Padding={new UDim(0,BRIEFING_HEADER_SPACING)} SortOrder={Enum.SortOrder.LayoutOrder}/>
+						<Label name="BriefingEyebrow" text={`${actLabel(mission.act)}  ·  MISSION ${missionNumber(selectedMission)}/${MISSION_COUNT}`} color={C.Accent} textSize={11} minTextSize={8} font={Enum.Font.GothamBold} size={new UDim2(1,0,0,BRIEFING_LINE_HEIGHT)} layoutOrder={1}/>
+						<Label name="BriefingTitle" text={mission.title} textSize={layout.titleSize} font={Enum.Font.GothamBlack} size={new UDim2(1,0,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={2}/>
+						<Label name="BriefingMeta" text={`${REGION_NAMES[mission.region] ?? ""} · ${environmentName(mission.environment)}${status}`} richText={true} color={C.Muted} textSize={10} minTextSize={7} font={Enum.Font.GothamBold} size={new UDim2(1,0,0,BRIEFING_LINE_HEIGHT)} layoutOrder={3}/>
+					</frame>
+					<textlabel key="Story" AutomaticSize={Enum.AutomaticSize.Y} BackgroundTransparency={1} Font={Enum.Font.Gotham} LayoutOrder={2} LineHeight={BRIEFING_STORY_LINE_HEIGHT} Size={new UDim2(1,-12,0,0)} Text={mission.briefing} TextColor3={C.Ivory} TextSize={layout.bodySize} TextWrapped={true} TextXAlignment={Enum.TextXAlignment.Left} TextYAlignment={Enum.TextYAlignment.Top}/>
+					<frame key="ObjectiveCard" AutomaticSize={Enum.AutomaticSize.Y} BackgroundColor3={C.Panel} BackgroundTransparency={0.4} BorderSizePixel={0} LayoutOrder={3} Size={new UDim2(1,-12,0,0)}>
+						<Corner radius={8}/>
+						<Stroke transparency={0.9}/>
+						<uipadding PaddingLeft={new UDim(0,12)} PaddingRight={new UDim(0,12)} PaddingTop={new UDim(0,10)} PaddingBottom={new UDim(0,10)}/>
+						<uilistlayout Padding={new UDim(0,4)} SortOrder={Enum.SortOrder.LayoutOrder}/>
+						<SectionHeading name="ObjectiveHeading" text="OBJECTIVE" layoutOrder={1}/>
+						<Label name="Primary" text={mission.primary} textSize={13} font={Enum.Font.GothamMedium} size={new UDim2(1,0,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={2}/>
+						<Label name="PhasePlan" text={mission.phases.map((phase,index)=>`<font color="${HEX.Accent}">${missionNumber(index+1)}</font>   ${phase.label}`).join("\n")} richText={true} color={C.Muted} textSize={12} size={new UDim2(1,0,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={3}/>
+						<Label name="MissionRules" text={missionRules(mission.phases)} color={C.Faint} textSize={11} size={new UDim2(1,0,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={4}/>
+					</frame>
+					<LoadoutPicker kind={special} enabled={!busy} layoutOrder={4} onChange={onSpecial}/>
 				</scrollingframe>
-				<ActionButton name="BrowseMissionsButton" text={`ALL 27 MISSIONS · ${completed ? "REPLAY" : "SELECT"}`} anchorPoint={new Vector2(0,1)} position={UDim2.fromOffset(0,briefingLayout.archiveBottom)} size={new UDim2(1,0,0,briefingLayout.actionHeight)} onActivated={()=>{setAct(mission.act);setBrowse(true);}} enabled={!busy}/>
-				<FooterButtons compact={true} primaryName="LaunchButton" primaryText={busy ? "PREPARING..." : "LAUNCH ›"} secondaryName="BriefingBackButton" secondaryText="‹ FILES" busy={busy} onPrimary={onLaunch} onSecondary={onBack}/>
+				{/* Fades the last visible line while more copy waits below. */}
+				<frame key="MoreFade" Active={false} BackgroundColor3={C.Ink} BorderSizePixel={0} Position={UDim2.fromOffset(0,layout.detailsHeight-22)} Size={new UDim2(1,-6,0,22)} Visible={overflow>2 && !scrolledToEnd} ZIndex={2}>
+					<uigradient Rotation={90} Transparency={new NumberSequence(1,0.15)}/>
+				</frame>
+				<frame key="BriefingDock" BackgroundTransparency={1} Position={UDim2.fromOffset(0,layout.dockTop)} Size={new UDim2(1,0,0,layout.dockHeight)}>
+					<ActionButton name="BriefingBackButton" text={layout.dock.back<80 ? "‹" : "‹ FILES"} size={UDim2.fromOffset(layout.dock.back,layout.dockHeight)} enabled={!busy} textSize={13} onActivated={onBack}/>
+					<ActionButton name="BrowseMissionsButton" text="MISSIONS" position={UDim2.fromOffset(layout.dock.back+layout.dock.gap,0)} size={UDim2.fromOffset(layout.dock.archive,layout.dockHeight)} enabled={!busy} textSize={13} onActivated={()=>{setAct(mission.act);setBrowse(true);}}/>
+					<ActionButton name="LaunchButton" text={busy ? "PREPARING..." : completed ? "REPLAY  ›" : "LAUNCH  ›"} primary={true} position={UDim2.fromOffset(layout.dock.back+layout.dock.archive+layout.dock.gap*2,0)} size={UDim2.fromOffset(layout.dock.launch,layout.dockHeight)} enabled={!busy} textSize={15} onActivated={onLaunch}/>
+				</frame>
 			</>}
 		</frame>
 	</frame>;
@@ -2019,7 +2257,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	return (
 		<InputModeContext.Provider value={inputMode}>
 			<screengui key="SkybreakBackdrop" DisplayOrder={19} IgnoreGuiInset={true} ResetOnSpawn={false} ScreenInsets={Enum.ScreenInsets.None}>
-				<MenuBackdrop visible={!NO_MENU_CAMERA.has(screen)} mode={menu.mode} />
+				<MenuBackdrop visible={!NO_MENU_CAMERA.has(screen)} menu={menu} viewport={viewport} />
 			</screengui>
 			<screengui key="SkybreakUI" DisplayOrder={20} IgnoreGuiInset={false} ResetOnSpawn={false} ScreenInsets={Enum.ScreenInsets.CoreUISafeInsets} ZIndexBehavior={Enum.ZIndexBehavior.Sibling}>
 				<frame ref={rootFrameRef} key="Root" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Change={rootChange}>
