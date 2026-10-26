@@ -46,6 +46,14 @@ normal, roughness, metalness). Panel lines, windows, camouflage, rust, soot
 and ambient occlusion are computed from world position and normals, so they
 line up across separate pieces. Nothing draws glyphs.
 
+Determinism: geometry, triangle counts, baked textures and checklists are
+byte-identical between runs. The FBX differs only in its embedded creation
+timestamp, and Eevee previews differ by GPU sampling noise, so a rebuild
+shows those files as modified even when nothing changed.
+
+`contact_sheet.py` makes `assets/roblox-upload/contact-sheet.png` (every 3/4
+preview on one image) for a quick review pass.
+
 Conventions: one Blender unit is one stud (1 stud ~ 0.28 m), Blender X right,
 Z up, **-Y forward**; the FBX is written in metres at 1 stud = 0.28 m with
 Roblox axes (+Y up, -Z forward). Aircraft are centred on their bounding box;
@@ -158,6 +166,19 @@ unset IDs.
 
 `Scenery.ts` and `RelayWorld.ts` do not call these hooks yet; the world
 realism workstream wires them in.
+
+## Known limits
+
+- World textures are capped at 512², so the largest props (frigate 430
+  studs, oil platform 317 studs, city tower 436 studs) carry roughly one
+  texel per stud: hull seams, windows and grating read at flight distance but
+  blur close up. A tiling trim-sheet material would be the next step.
+- Trees are solid low-poly crowns (no alpha cards) to stay inside 800
+  triangles and avoid transparency sorting on phones.
+- Canopies are opaque tinted glass; there is no cockpit interior.
+- The FBX unit metadata is metres at 0.28 m per stud. Different import
+  routes treat units differently, so the loader always rescales to
+  `robloxSizeStuds`.
 
 ## Tests
 
