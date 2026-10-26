@@ -1,5 +1,7 @@
 // Pure HUD instrument rules (hull bar, ammo line, clock lines), shared by the
 // React HUD and Roblox Jest.
+import { EvadeRules } from "./EvadeRules";
+import { WeaponRules } from "./WeaponRules";
 
 export type HudTone = "normal" | "dim" | "warn" | "danger";
 
@@ -32,6 +34,29 @@ export interface WeaponStatus {
 
 /** Separator between the ammo-line cells. */
 export const STATUS_SEPARATOR = " · ";
+/** Panels too narrow for the spaced line at full size join the cells tightly: "MSL 8·FLR 3·EVD 3". */
+export const STATUS_SEPARATOR_TIGHT = "·";
+/** RobotoMono's advance, 1229/2048 em: every HUD glyph (the "·" too) is this wide. */
+export const HUD_FONT_ADVANCE = 1229 / 2048;
+/** Longest special cell: a four-letter short name (4AAM, XLAA), a space, then "ON" or a one-digit charge count. */
+export const STATUS_SPECIAL_CHARS = 7;
+
+function digits(value: number): number {
+	let count = 1;
+	for (let rest = math.floor(value); rest >= 10; rest = math.floor(rest / 10)) count += 1;
+	return count;
+}
+
+/** Characters (not UTF-8 bytes: "·" is two) in the longest ammo line the game can show with that separator. */
+export function statusMaxChars(tight: boolean): number {
+	const separator = tight ? 1 : 3;
+	return 4 + digits(WeaponRules.MaxMissiles) + separator + STATUS_SPECIAL_CHARS + separator + 4 + digits(EvadeRules.MaxCharges);
+}
+
+/** Width in px of `chars` RobotoMono characters at `textSize`. */
+export function hudTextWidth(chars: number, textSize: number): number {
+	return chars * textSize * HUD_FONT_ADVANCE;
+}
 
 /**
  * The one small line under the hull bar: "MSL 8 · FLR 3 · EVD 3". The special

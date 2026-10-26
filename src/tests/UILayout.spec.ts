@@ -1,6 +1,10 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 
+import { EvadeRules } from "../shared/EvadeRules";
+import { hudTextWidth, STATUS_SEPARATOR, STATUS_SEPARATOR_TIGHT, statusLine } from "../shared/HudInstruments";
 import { effectiveHudScale } from "../shared/PlayerSettings";
+import { SpecialWeapons } from "../shared/SpecialWeapons";
+import { WeaponRules } from "../shared/WeaponRules";
 import {
 	ACTION_BUTTON_SIZE,
 	FIRE_CAPTION_HEIGHT,
@@ -11,6 +15,7 @@ import {
 	RADAR_MIN_SIZE,
 	STATUS_GAP,
 	STATUS_MIN_WIDTH,
+	STATUS_TEXT_PAD,
 	getHudScale,
 	STICK_MAX_SIZE,
 	STICK_MIN_SIZE,
@@ -21,6 +26,8 @@ import {
 	getHudLayout,
 	getKillMarkerLayout,
 	KILL_MARKER_MIN_WIDTH,
+	MIN_PHYSICAL_TEXT,
+	minHudTextSize,
 	getMenuHintsLayout,
 	getMenuLayout,
 	getMenuSceneOpening,
@@ -105,6 +112,36 @@ function sameRectangle(a: Rectangle, b: Rectangle): boolean {
 	return a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
 }
 
+// Roots the text-floor check sweeps: 667x375, 800x390 (844x390 after its notch), 706x267, 568x320, Studio's 320x182 and 1920x854.
+const TEXT_FLOOR_ROOTS: [number, number][] = [
+	[667, 375],
+	[800, 390],
+	[706, 267],
+	[568, 320],
+	[320, 182],
+	[1920, 854],
+];
+
+/** Glyphs, not UTF-8 bytes ("·" is two). */
+function glyphs(text: string): number {
+	const [count] = utf8.len(text);
+	return typeIs(count, "number") ? count : text.size();
+}
+
+/** Every ammo line the game can show: each special, every missile, charge and evade count, idle or running. */
+function ammoLines(separator: string): string[] {
+	const lines: string[] = [];
+	for (const special of SpecialWeapons.All()) {
+		for (let missiles = 0; missiles <= WeaponRules.MaxMissiles; missiles++) for (let charges = 0; charges <= special.charges; charges++) {
+			for (const active of [0, 7.2]) for (let evades = 0; evades <= EvadeRules.MaxCharges; evades++) {
+				const cells = statusLine({ missiles, missileCooldown: 0, special: special.short, specialCharges: charges, specialCooldown: 0, specialActive: active, evadeCharges: evades });
+				lines.push(cells.map((cell) => cell.text).join(separator));
+			}
+		}
+	}
+	return lines;
+}
+
 describe("mission HUD layout", () => {
 	it("separates touch hit regions, navigation, warnings and toasts around breakpoints, at every stick size", () => {
 		for (const width of [319,320,321,349,350,351,359,360,361,390,560]) for (const height of [160,161,175,176,177,179,180,181,199,200,201,202,239,240,241,568]) for (const stickSize of STICK_SIZES) {
@@ -153,11 +190,75 @@ describe("mission HUD layout", () => {
 			for (let requested = 0.8; requested <= 1.3001; requested += 0.1) {
 				const scale = effectiveHudScale(requested, mode === "touch", width, height);
 				const virtualWidth = math.floor(width / scale), virtualHeight = math.floor(height / scale);
-				const layout = getHudLayout(virtualWidth, virtualHeight, mode);
+				const layout = getHudLayout(virtualWidth, virtualHeight, mode, { scale });
 				expectSeparate(hudRectangles(layout));
 				for (const rectangle of hudRectangles(layout)) expect(rectangleInside(rectangle, virtualWidth, virtualHeight, layout.margin)).toBe(true);
 			}
 		}
+	});
+
+	it("draws every HUD label at 8 px or more after the HUD scale, and fits every ammo line on one row", () => {
+		expect(MIN_PHYSICAL_TEXT).toBe(8);
+		expect(minHudTextSize(0.8)).toBe(10);
+		expect(minHudTextSize(0.9)).toBe(9);
+		expect(minHudTextSize(1)).toBe(8);
+		expect(minHudTextSize(1.3)).toBe(7);
+		// The longest line each separator can produce, in glyphs; "MSL 8 · UAV ON · EVD 3" and "MSL 8 · 4AAM 3 · EVD 3" are among them.
+		const longest = new Map<string, number>();
+		for (const separator of [STATUS_SEPARATOR, STATUS_SEPARATOR_TIGHT]) {
+			const lines = ammoLines(separator);
+			expect(lines.includes(`MSL 8${separator}UAV ON${separator}EVD 3`)).toBe(true);
+			expect(lines.includes(`MSL 8${separator}4AAM 3${separator}EVD 3`)).toBe(true);
+			let chars = 0;
+			for (const line of lines) chars = math.max(chars, glyphs(line));
+			longest.set(separator, chars);
+		}
+		let smallest = math.huge;
+		for (const [width, height] of TEXT_FLOOR_ROOTS) for (const mode of MODES) for (const stickSize of mode === "touch" ? STICK_SIZES : [JOYSTICK_SIZE]) {
+			for (let requested = 0.8; requested <= 1.3001; requested += 0.1) {
+				const scale = effectiveHudScale(requested, mode === "touch", width, height);
+				const virtualWidth = math.floor(width / scale), virtualHeight = math.floor(height / scale);
+				const layout = getHudLayout(virtualWidth, virtualHeight, mode, { stickSize, scale });
+				const metrics = layout.metrics;
+				const status = layout.status;
+				// Instrument captions and values, the clock, warnings, radar letters, the shrink-to-fit floor and the ammo line.
+				for (const size of [metrics.text, metrics.label, metrics.instrumentText, metrics.instrumentLabel, metrics.minText, status.text]) {
+					smallest = math.min(smallest, size * scale);
+					expect(size * scale).toBeGreaterThanOrEqual(MIN_PHYSICAL_TEXT - 1e-6);
+				}
+				// Rows hold their text; the SPEED/ALT caption fits beside the arrow tag.
+				expect(metrics.caption).toBeGreaterThanOrEqual(metrics.instrumentLabel);
+				expect(metrics.box).toBeGreaterThanOrEqual(metrics.instrumentText);
+				expect(status.line.height).toBeGreaterThanOrEqual(status.text);
+				for (const instrument of [layout.speed, layout.altitude]) {
+					if (instrument.height < metrics.caption + metrics.box) continue;
+					expect(hudTextWidth(5, metrics.instrumentLabel)).toBeLessThanOrEqual(instrument.width - math.floor(metrics.box / 2));
+				}
+				// RobotoMono advances 1229/2048 em per glyph: the longest line fits the label at the size the layout picked.
+				expect(status.separator === STATUS_SEPARATOR || status.separator === STATUS_SEPARATOR_TIGHT).toBe(true);
+				expect(hudTextWidth(longest.get(status.separator)!, status.text)).toBeLessThanOrEqual(status.line.width - STATUS_TEXT_PAD);
+				// The larger type never costs the separation or safe-margin invariants.
+				expectSeparate(hudRectangles(layout));
+				for (const rectangle of hudRectangles(layout)) expect(rectangleInside(rectangle, virtualWidth, virtualHeight, layout.margin)).toBe(true);
+			}
+		}
+		expect(smallest).toBeGreaterThanOrEqual(MIN_PHYSICAL_TEXT - 1e-6);
+	});
+
+	it("keeps the spaced ammo line where it fits at full size and tightens it on Studio's 320x182", () => {
+		expect(getHudLayout(667, 375, "touch").status.separator).toBe(STATUS_SEPARATOR);
+		expect(getHudLayout(1920, 854, "keyboard").status.separator).toBe(STATUS_SEPARATOR);
+		const studio = getHudLayout(320, 182, "touch").status;
+		expect(studio.separator).toBe(STATUS_SEPARATOR_TIGHT);
+		expect(studio.text).toBe(8);
+		// HUD SCALE 80% on keyboard: 10 px of layout type (8 px drawn) and a wider panel to hold it.
+		const scaled = getHudLayout(400, 227, "keyboard", { scale: 0.8 });
+		expect(scaled.metrics.instrumentLabel).toBe(10);
+		expect(scaled.status.text).toBe(10);
+		expect(scaled.status.line.width).toBeGreaterThanOrEqual(math.ceil(hudTextWidth(19, 10)));
+		const phone = getHudLayout(833, 468, "keyboard", { scale: 0.8 });
+		expect(phone.metrics.instrumentLabel).toBe(10);
+		expect(phone.metrics.caption).toBe(11);
 	});
 
 	it("lays out touch controls only for touch input", () => {
@@ -526,6 +627,7 @@ describe("mission HUD layout", () => {
 			bar: { x: 509, y: 228, width: 144, height: 6 },
 			line: { x: 509, y: 237, width: 144, height: 12 },
 			text: 10,
+			separator: STATUS_SEPARATOR,
 		});
 		expect(se.reticle).toEqual({ x: 321, y: 175, width: 24, height: 24 });
 		expect(se.speed).toEqual({ x: 190, y: 170, width: 50, height: 25 });

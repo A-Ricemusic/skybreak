@@ -1,5 +1,8 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { clockLines, formatClock, hullFraction, hullTone, instrumentValue, STATUS_SEPARATOR, statusLine, type WeaponStatus } from "../shared/HudInstruments";
+import { EvadeRules } from "../shared/EvadeRules";
+import { clockLines, formatClock, HUD_FONT_ADVANCE, hudTextWidth, hullFraction, hullTone, instrumentValue, STATUS_SEPARATOR, STATUS_SEPARATOR_TIGHT, STATUS_SPECIAL_CHARS, statusLine, statusMaxChars, type WeaponStatus } from "../shared/HudInstruments";
+import { SpecialWeapons } from "../shared/SpecialWeapons";
+import { WeaponRules } from "../shared/WeaponRules";
 
 const STATUS: WeaponStatus = { missiles: 8, missileCooldown: 0, special: "FLR", specialCharges: 3, specialCooldown: 0, specialActive: 0, evadeCharges: 3 };
 const line = (status: WeaponStatus) => statusLine(status).map((cell) => cell.text).join(STATUS_SEPARATOR);
@@ -14,6 +17,25 @@ describe("Ace-style HUD instruments", () => {
 		expect(line({ ...STATUS, special: "4AAM", specialCharges: 1 })).toBe("MSL 8 · 4AAM 1 · EVD 3");
 		expect(line({ ...STATUS, missiles: 12, special: "XLAA", specialActive: 7.2 })).toBe("MSL 12 · XLAA ON · EVD 3");
 		expect(line({ ...STATUS, missiles: -2, specialCharges: 2.7, evadeCharges: 1.5 })).toBe("MSL 0 · FLR 2 · EVD 1");
+	});
+
+	it("sizes the longest ammo line from the real rack, specials and evade charges", () => {
+		expect(HUD_FONT_ADVANCE).toBe(1229 / 2048);
+		expect(hudTextWidth(22, 8)).toBeCloseTo(105.62, 2);
+		expect(STATUS_SEPARATOR_TIGHT).toBe("·");
+		const tight = (status: WeaponStatus) => statusLine(status).map((cell) => cell.text).join(STATUS_SEPARATOR_TIGHT);
+		expect(tight({ ...STATUS, special: "UAV", specialActive: 4 })).toBe("MSL 8·UAV ON·EVD 3");
+		// Every special cell is at most STATUS_SPECIAL_CHARS: a four-letter name, a space, then ON or one digit.
+		for (const special of SpecialWeapons.All()) {
+			expect(special.short.size()).toBeLessThanOrEqual(4);
+			expect(special.charges).toBeLessThanOrEqual(9);
+		}
+		expect(STATUS_SPECIAL_CHARS).toBe(7);
+		expect(WeaponRules.MaxMissiles).toBe(8);
+		expect(EvadeRules.MaxCharges).toBe(3);
+		// "MSL 8 · XLAA ON · EVD 3" and "MSL 8·4AAM ON·EVD 3".
+		expect(statusMaxChars(false)).toBe(23);
+		expect(statusMaxChars(true)).toBe(19);
 	});
 
 	it("dims cycling or empty weapons, flags an empty rack and an active special", () => {

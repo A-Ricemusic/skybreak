@@ -1555,7 +1555,7 @@ function MissionHud({
 					<Stroke color={HUD.Green} transparency={0.35} thickness={1} />
 				</textbutton>
 			)}
-			{layout.radar && <Radar rectangle={layout.radar} controller={controller} visible={visible} textSize={metrics.label} />}
+			{layout.radar && <Radar rectangle={layout.radar} controller={controller} visible={visible} textSize={metrics.label} minText={metrics.minText} />}
 
 			<HudLabel name="MissionTimer" text={timeLine} rectangle={{ ...layout.clock, height: metrics.row }} textSize={metrics.text} color={timeRemaining <= 60 ? HUD.Red : HUD.Green} />
 			<HudLabel name="ObjectiveProgress" text={progressLine} rectangle={{ ...layout.clock, y: layout.clock.y + metrics.row + 2, height: metrics.row }} textSize={metrics.text} />
@@ -1734,7 +1734,10 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const [trend, setTrend] = useState<FlightTrend>({ acceleration: 0 });
 	const trendRef = useRef<FlightTrend>({ acceleration: 0 });
 	const hudScaleRef = useRef(1);
-	const hudOptions = useMemo<HudOptions>(() => ({ stickSize: JOYSTICK_SIZE * settings.stickScale }), [settings.stickScale]);
+	const hudScale = effectiveHudScale(settings.hudScale, inputMode === "touch", viewport.X, viewport.Y);
+	hudScaleRef.current = hudScale;
+	// The layout knows its UIScale so it can keep every HUD label at MIN_PHYSICAL_TEXT px or larger.
+	const hudOptions = useMemo<HudOptions>(() => ({ stickSize: JOYSTICK_SIZE * settings.stickScale, scale: hudScale }), [settings.stickScale, hudScale]);
 	const [damageUntil, setDamageUntil] = useState(0);
 	const [killFlash, setKillFlash] = useState<KillFlash | undefined>();
 	const killSerialRef = useRef(0);
@@ -2438,8 +2441,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		const total = telemetry.objectiveTotal ?? 0;
 		callout = { text: total > 0 ? `Hostile down  ${telemetry.objectiveProgress ?? 0}/${total}` : "Hostile down", color: HUD.White };
 	}
-	const hudScale = effectiveHudScale(settings.hudScale, inputMode === "touch", viewport.X, viewport.Y);
-	hudScaleRef.current = hudScale;
 	// In a mission the toast follows the HUD's own (scaled) layout for this input mode.
 	const inMission = screen === "mission";
 	const toastRectangle = useMemo(() => inMission

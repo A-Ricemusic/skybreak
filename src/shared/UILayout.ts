@@ -1,4 +1,6 @@
 // Kept pure and shared so ServerStorage-hosted Roblox Jest tests can import it.
+import { hudTextWidth, STATUS_SEPARATOR, STATUS_SEPARATOR_TIGHT, statusMaxChars } from "./HudInstruments";
+
 export interface Rectangle {
 	x: number;
 	y: number;
@@ -40,6 +42,16 @@ export type RadarPlacement = "column" | "corner";
 export interface HudOptions {
 	/** Requested touch stick edge in px (clamped to STICK_MIN_SIZE–STICK_MAX_SIZE and to what the root fits). */
 	stickSize?: number;
+	/** Effective HUD SCALE: the UIScale the layout is drawn through. Text sizes rise so nothing draws under MIN_PHYSICAL_TEXT px. */
+	scale?: number;
+}
+
+/** Smallest text the HUD draws, in physical px after its UIScale. */
+export const MIN_PHYSICAL_TEXT = 8;
+
+/** Smallest layout text size that draws at MIN_PHYSICAL_TEXT px through a UIScale of `scale`. */
+export function minHudTextSize(scale = 1): number {
+	return math.max(1, math.ceil(MIN_PHYSICAL_TEXT / math.max(scale, 0.01) - 1e-6));
 }
 
 /** Type scale: Studio's 320x182 root, phones, and roots at least 900x600 (desktop and tablets). */
@@ -59,6 +71,8 @@ export interface HudMetrics {
 	/** SPEED/ALT value and caption text sizes. */
 	instrumentText: number;
 	instrumentLabel: number;
+	/** Smallest text size for this HUD scale (MIN_PHYSICAL_TEXT px once drawn): the floor for shrink-to-fit labels. */
+	minText: number;
 }
 
 /** Hull bar with one small ammo line under it (MSL · special · EVD). */
@@ -67,8 +81,10 @@ export interface StatusPanelLayout {
 	frame: Rectangle;
 	bar: Rectangle;
 	line: Rectangle;
-	/** Largest text size of the ammo line (it shrinks to fit a narrow panel). */
+	/** Text size of the ammo line: the longest line the game can show fits `line` at it, never under `minText`. */
 	text: number;
+	/** STATUS_SEPARATOR, or STATUS_SEPARATOR_TIGHT where the spaced line would not fit at full size. */
+	separator: string;
 }
 
 export interface HudLayout {
@@ -182,8 +198,10 @@ export const KILL_MARKER_MIN_WIDTH = 90;
 export const KILL_MARKER_HEIGHT = 22;
 /** Gap between the hull bar and the ammo line under it. */
 export const STATUS_GAP = 3;
-/** Narrowest status panel: the ammo line at 8pt. */
+/** Narrowest status panel at HUD SCALE 100%+ (smaller scales need the room for larger type). */
 export const STATUS_MIN_WIDTH = 96;
+/** Spare px the longest ammo line leaves in its label, beyond RobotoMono's advance arithmetic (stroke, rasterisation). */
+export const STATUS_TEXT_PAD = 2;
 /** Two radio lines at most; one when that is all the room there is. */
 export const SUBTITLE_LINES = 2;
 
@@ -196,7 +214,7 @@ interface HudSizes {
 	alertHeight: number;
 	alertWidth: number;
 	breakCue: number;
-	/** Status panel width (the widest ammo line, "MSL 12 · 4AAM ON · EVD 3", at `statusText`), bar height and line row. */
+	/** Status panel width (the widest ammo line, "MSL 8 · 4AAM ON · EVD 3", at `statusText`), bar height and line row. */
 	status: number;
 	statusBar: number;
 	statusText: number;
@@ -210,17 +228,17 @@ const HUD_SIZES: { [scale in HudScale]: HudSizes } = {
 	// SPEED/ALT (instrument, caption, box and their type) are ~20% under PR #44's 62/11/20 (regular) and 96/15/30 (large);
 	// Studio-compact boxes already sit at the smallest readable type and keep their size.
 	compact: {
-		metrics: { scale: "compact", text: 10, label: 8, row: 11, caption: 8, box: 14, instrumentText: 10, instrumentLabel: 8 },
+		metrics: { scale: "compact", text: 10, label: 8, row: 11, caption: 8, box: 14, instrumentText: 10, instrumentLabel: 8, minText: 8 },
 		clockWidth: 64, instrument: 44, reticle: 0, alertHeight: 18, alertWidth: 200, breakCue: 14,
 		status: 100, statusBar: 5, statusText: 8, statusRow: 10, radarMax: RADAR_MAX_SIZE, subtitleWidth: 300, objectiveWidth: OBJECTIVE_MAX_WIDTH,
 	},
 	regular: {
-		metrics: { scale: "regular", text: 12, label: 10, row: 14, caption: 9, box: 16, instrumentText: 10, instrumentLabel: 8 },
+		metrics: { scale: "regular", text: 12, label: 10, row: 14, caption: 9, box: 16, instrumentText: 10, instrumentLabel: 8, minText: 8 },
 		clockWidth: 96, instrument: 50, reticle: 24, alertHeight: ALERT_HEIGHT, alertWidth: ALERT_MAX_WIDTH, breakCue: 16,
 		status: 144, statusBar: 6, statusText: 10, statusRow: 12, radarMax: RADAR_MAX_SIZE, subtitleWidth: 440, objectiveWidth: OBJECTIVE_MAX_WIDTH,
 	},
 	large: {
-		metrics: { scale: "large", text: 18, label: 13, row: 22, caption: 12, box: 24, instrumentText: 14, instrumentLabel: 10 },
+		metrics: { scale: "large", text: 18, label: 13, row: 22, caption: 12, box: 24, instrumentText: 14, instrumentLabel: 10, minText: 8 },
 		clockWidth: 140, instrument: 76, reticle: 34, alertHeight: 28, alertWidth: 300, breakCue: 22,
 		status: 192, statusBar: 8, statusText: 13, statusRow: 16, radarMax: RADAR_LARGE_SIZE, subtitleWidth: 640, objectiveWidth: 420,
 	},
@@ -263,12 +281,27 @@ const bottomOf = (rectangle: Rectangle) => rectangle.y + rectangle.height;
 const rightOf = (rectangle: Rectangle) => rectangle.x + rectangle.width;
 
 /** Status panel geometry for a frame: the hull bar on top, the ammo line under it. */
-function statusPanel(frame: Rectangle, bar: number, row: number, text: number): StatusPanelLayout {
+function statusPanel(frame: Rectangle, bar: number, row: number, text: number, separator: string): StatusPanelLayout {
 	return {
 		frame,
 		bar: { x: frame.x, y: frame.y, width: frame.width, height: bar },
 		line: { x: frame.x, y: frame.y + bar + STATUS_GAP, width: frame.width, height: row },
 		text,
+		separator,
+	};
+}
+
+/** Every text size raised to the floor for the HUD scale; the rows holding them grow by the same amount. */
+function scaledMetrics(base: HudMetrics, minText: number): HudMetrics {
+	const text = math.max(base.text, minText);
+	const label = math.max(base.label, minText);
+	const instrumentText = math.max(base.instrumentText, minText);
+	const instrumentLabel = math.max(base.instrumentLabel, minText);
+	return {
+		...base, text, label, instrumentText, instrumentLabel, minText,
+		row: base.row + text - base.text,
+		caption: base.caption + instrumentLabel - base.instrumentLabel,
+		box: base.box + instrumentText - base.instrumentText,
 	};
 }
 
@@ -385,7 +418,8 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 	const touchMode = inputMode === "touch";
 	const scale = getHudScale(width, height);
 	const sizes = HUD_SIZES[scale];
-	const metrics = sizes.metrics;
+	const minText = minHudTextSize(options?.scale);
+	const metrics = scaledMetrics(sizes.metrics, minText);
 	// Preserve a dedicated top warning lane until the bottom controls have enough height.
 	const compact = scale === "compact";
 	const landscape = width > height;
@@ -432,10 +466,19 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 	}
 
 	// Right column: the hull bar and ammo line, bottom-aligned (right above the throttle on touch).
-	// Landscape roots narrow it to the strip right of the forward view (the ammo line's type shrinks to fit, never under STATUS_MIN_WIDTH).
+	// Landscape roots narrow it to the strip right of the forward view, never below the longest tight line at the floor size.
+	// The ammo line keeps the spaced separator where its longest line fits at full size; else the tight one, shrunk to fit.
+	const statusFull = math.max(sizes.statusText, minText);
+	const tightChars = statusMaxChars(true);
+	const lineWidth = (chars: number, size: number) => math.ceil(hudTextWidth(chars, size)) + STATUS_TEXT_PAD;
+	const statusMinWidth = math.max(STATUS_MIN_WIDTH, lineWidth(tightChars, minText));
 	const forwardRight = landscape && !compact ? width - margin - rightOf(forward) : sizes.status;
-	const statusWidth = math.min(sizes.status, math.max(STATUS_MIN_WIDTH, forwardRight), width - margin * 2);
-	const statusHeight = sizes.statusBar + STATUS_GAP + sizes.statusRow;
+	const statusPreferred = math.max(sizes.status, lineWidth(tightChars, statusFull));
+	const statusWidth = math.min(statusPreferred, math.max(statusMinWidth, forwardRight), width - margin * 2);
+	const statusSpaced = lineWidth(statusMaxChars(false), statusFull) <= statusWidth;
+	const statusText = statusSpaced ? statusFull : math.clamp(math.floor((statusWidth - STATUS_TEXT_PAD) / hudTextWidth(tightChars, 1)), minText, statusFull);
+	const statusRow = math.max(sizes.statusRow, statusText + 2);
+	const statusHeight = sizes.statusBar + STATUS_GAP + statusRow;
 	const statusX = width - margin - statusWidth;
 	// Landscape roots keep the side panels out of the forward view; portrait and Studio-compact roots have no room beside it.
 	const outsideForward = (candidate: Rectangle) => !landscape || compact || !rectanglesOverlap(candidate, forward);
@@ -455,7 +498,7 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 	}
 	if (!statusFrame && bottomFits) statusFrame = bottomRight;
 	// Nothing fits (portrait slivers): the top-right corner regardless.
-	const status = statusPanel(statusFrame ?? { x: statusX, y: margin, width: statusWidth, height: statusHeight }, sizes.statusBar, sizes.statusRow, sizes.statusText);
+	const status = statusPanel(statusFrame ?? { x: statusX, y: margin, width: statusWidth, height: statusHeight }, sizes.statusBar, statusRow, statusText, statusSpaced ? STATUS_SEPARATOR : STATUS_SEPARATOR_TIGHT);
 	placed.push(status.frame);
 
 	// Left column: a square radar under the top row (above the steering stick on touch), as large as fits.

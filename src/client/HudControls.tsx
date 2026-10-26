@@ -135,7 +135,7 @@ const RADAR_CARDINALS: [string, number, number][] = [["N", 0, -1], ["E", 1, 0], 
  * client's own replicated mission folder and telemetry via
  * FlightController.GetRadarContacts. Missiles in flight blink red.
  */
-export function Radar({ rectangle, controller, visible, textSize = 10 }: { rectangle: Rectangle; controller: FlightController; visible: boolean; textSize?: number }) {
+export function Radar({ rectangle, controller, visible, textSize = 10, minText = 8 }: { rectangle: Rectangle; controller: FlightController; visible: boolean; textSize?: number; minText?: number }) {
 	const scopeRef = useRef<Frame>();
 	const cardinalRefs = [useRef<TextLabel>(), useRef<TextLabel>(), useRef<TextLabel>(), useRef<TextLabel>()];
 	const rangeRef = useRef<TextLabel>();
@@ -226,7 +226,7 @@ export function Radar({ rectangle, controller, visible, textSize = 10 }: { recta
 			{RADAR_CARDINALS.map(([letter], index) => (
 				<textlabel ref={cardinalRefs[index]} key={`Heading${letter}`} AnchorPoint={new Vector2(0.5, 0.5)} BackgroundTransparency={1} Size={UDim2.fromOffset(12, 12)} FontFace={HUD_FONT_BOLD} Text={letter} TextColor3={HUD.Green} TextSize={textSize} TextStrokeColor3={HUD.Shadow} TextStrokeTransparency={0.3} ZIndex={3} />
 			))}
-			<textlabel ref={rangeRef} key="Range" AnchorPoint={new Vector2(1, 1)} BackgroundTransparency={1} Position={new UDim2(1, -3, 1, -1)} Size={UDim2.fromOffset(40, 10)} FontFace={HUD_FONT} Text="" TextColor3={HUD.Dim} TextSize={math.max(8, textSize - 2)} TextXAlignment={Enum.TextXAlignment.Right} ZIndex={3} />
+			<textlabel ref={rangeRef} key="Range" AnchorPoint={new Vector2(1, 1)} BackgroundTransparency={1} Position={new UDim2(1, -3, 1, -1)} Size={UDim2.fromOffset(40, 10)} FontFace={HUD_FONT} Text="" TextColor3={HUD.Dim} TextSize={math.max(minText, textSize - 2)} TextXAlignment={Enum.TextXAlignment.Right} ZIndex={3} />
 		</frame>
 	);
 }

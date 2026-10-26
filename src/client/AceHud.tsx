@@ -1,5 +1,5 @@
 import React, { useMemo } from "@rbxts/react";
-import { hullFraction, hullTone, STATUS_SEPARATOR, type HudTone, type StatusCell } from "../shared/HudInstruments";
+import { hullFraction, hullTone, type HudTone, type StatusCell } from "../shared/HudInstruments";
 import type { HudMetrics, Rectangle, StatusPanelLayout } from "../shared/UILayout";
 import { HUD, HUD_FONT, HUD_FONT_BOLD } from "./Theme";
 
@@ -179,7 +179,7 @@ export function WarningBox({ rectangle, text, color, metrics, textRef }: { recta
 				TextStrokeColor3={HUD.Shadow}
 				TextStrokeTransparency={0.4}
 			>
-				<uitextsizeconstraint MaxTextSize={metrics.text + 2} MinTextSize={8} />
+				<uitextsizeconstraint MaxTextSize={metrics.text + 2} MinTextSize={metrics.minText} />
 				<uipadding PaddingLeft={new UDim(0, 4)} PaddingRight={new UDim(0, 4)} />
 			</textlabel>
 		</frame>
@@ -187,9 +187,9 @@ export function WarningBox({ rectangle, text, color, metrics, textRef }: { recta
 }
 
 /** Ammo line as RichText: each cell in its own tone, joined by dim separators. */
-export function statusText(cells: StatusCell[]): string {
+export function statusText(cells: StatusCell[], separator: string): string {
 	const tint = (text: string, tone: HudTone) => `<font color="#${TONE_COLOR[tone].ToHex()}">${text}</font>`;
-	return cells.map((cell) => tint(cell.text, cell.tone)).join(tint(STATUS_SEPARATOR, "dim"));
+	return cells.map((cell) => tint(cell.text, cell.tone)).join(tint(separator, "dim"));
 }
 
 /** Hull bar (green, amber, then red with damage) with the one-line ammo readout under it. */
@@ -208,17 +208,14 @@ export function StatusPanel({ layout, health, cells }: { layout: StatusPanelLayo
 				BackgroundTransparency={1}
 				FontFace={HUD_FONT}
 				RichText={true}
-				Text={statusText(cells)}
+				Text={statusText(cells, layout.separator)}
 				TextColor3={HUD.Green}
-				TextScaled={true}
+				TextSize={layout.text}
 				TextStrokeColor3={HUD.Shadow}
 				TextStrokeTransparency={0.45}
 				TextXAlignment={Enum.TextXAlignment.Left}
 				{...at(relative(layout.line, frame))}
-			>
-				{/* Full size where the panel has room; narrow panels (small roots at HUD SCALE 130%) shrink the line rather than cut it. */}
-				<uitextsizeconstraint MaxTextSize={layout.text} MinTextSize={7} />
-			</textlabel>
+			/>
 		</frame>
 	);
 }

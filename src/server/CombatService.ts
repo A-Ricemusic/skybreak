@@ -162,7 +162,7 @@ let telemetryRemote: UnreliableRemoteEvent | undefined;
 let combatEffectRemote: RemoteEvent | undefined;
 let onFinished: FinishedCallback | undefined;
 const FIXED_STEP = 1 / 30;
-const MAX_MISSILES = 8;
+const MAX_MISSILES = WeaponRules.MaxMissiles;
 const PLAYER_MISSILE_DAMAGE = SpecialWeapons.StandardDamage;
 // Threat tuning indexed by act (1-3). Missions 1-2 use act 1. Every knob is a plain per-act array so the
 // difficulty selector can multiply it in tuned() without touching the combat code. Missions 1-4 use GENTLE

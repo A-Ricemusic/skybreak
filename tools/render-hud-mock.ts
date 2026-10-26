@@ -8,6 +8,7 @@ import { resolve } from "node:path";
 const luauMath = Object.assign(Object.create(Math), {
 	clamp: (value: number, low: number, high: number) => Math.min(Math.max(value, low), high),
 	huge: Number.POSITIVE_INFINITY,
+	rad: (degrees: number) => (degrees * Math.PI) / 180,
 });
 (globalThis as unknown as { math: unknown }).math = luauMath;
 (Array.prototype as unknown as { size: () => number }).size = function (this: unknown[]) { return this.length; };
@@ -16,7 +17,7 @@ const luauMath = Object.assign(Object.create(Math), {
 	format: (pattern: string, ...values: number[]) => pattern.replace(/%02d/g, () => String(Math.floor(values.shift() ?? 0)).padStart(2, "0")),
 };
 const { getHudLayout, getKillMarkerLayout } = await import("../src/shared/UILayout");
-const { statusLine, hullFraction, hullTone, clockLines, STATUS_SEPARATOR } = await import("../src/shared/HudInstruments");
+const { statusLine, hullFraction, hullTone, clockLines } = await import("../src/shared/HudInstruments");
 type Rect = { x: number; y: number; width: number; height: number };
 
 // The Kestrel's top-view outline (right half, studs from tools/build-aircraft.py) for the backdrop jets only.
@@ -39,7 +40,8 @@ const GREEN = "#6CFFB0", DIM = "#46A876", AMBER = "#FFC454", RED = "#FF5252", WH
 const TONE: Record<string, string> = { normal: GREEN, dim: DIM, warn: AMBER, danger: RED };
 const FONT = `"Roboto Mono", Menlo, monospace`;
 
-interface Shot { file: string; screenWidth: number; screenHeight: number; insetLeft: number; mode: Mode; scale: number }
+/** `scale` is the capture's device-pixel ratio; `hudScale` the HUD SCALE setting (the UIScale the HUD is drawn through, default 1). */
+interface Shot { file: string; screenWidth: number; screenHeight: number; insetLeft: number; mode: Mode; scale: number; hudScale?: number }
 const SHOTS: Shot[] = [
 	{ file: "hud-mock-1920x854-keyboard.png", screenWidth: 1920, screenHeight: 854, insetLeft: 0, mode: "keyboard", scale: 1 },
 	{ file: "hud-mock-844x390-touch.png", screenWidth: 844, screenHeight: 390, insetLeft: 44, mode: "touch", scale: 2 },
@@ -47,6 +49,9 @@ const SHOTS: Shot[] = [
 	{ file: "hud-mock-568x320-touch.png", screenWidth: 568, screenHeight: 320, insetLeft: 0, mode: "touch", scale: 2 },
 	{ file: "hud-mock-706x267-touch.png", screenWidth: 706, screenHeight: 267, insetLeft: 0, mode: "touch", scale: 2 },
 	{ file: "hud-mock-320x182-touch.png", screenWidth: 320, screenHeight: 182, insetLeft: 0, mode: "touch", scale: 3 },
+	// HUD SCALE 80% on keyboard: text sizes rise so they still draw at 8 px or more.
+	{ file: "hud-mock-667x375-keyboard-hud80.png", screenWidth: 667, screenHeight: 375, insetLeft: 0, mode: "keyboard", scale: 2, hudScale: 0.8 },
+	{ file: "hud-mock-320x182-keyboard-hud80.png", screenWidth: 320, screenHeight: 182, insetLeft: 0, mode: "keyboard", scale: 3, hudScale: 0.8 },
 ];
 
 const px = (value: number) => `${Math.round(value * 100) / 100}px`;
@@ -60,9 +65,12 @@ const line = (x1: number, y1: number, x2: number, y2: number, color = GREEN, wid
 	`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${width}" stroke-opacity="${opacity}" stroke-linecap="square"/>`;
 
 function render(shot: Shot): string {
-	const width = shot.screenWidth - shot.insetLeft, height = shot.screenHeight;
-	const hud = getHudLayout(width, height, shot.mode);
-	const kill = getKillMarkerLayout(width, height, shot.mode);
+	// The HUD is laid out for the root divided by its scale (as GameUI does), then drawn scaled.
+	const hudScale = shot.hudScale ?? 1;
+	const width = Math.floor((shot.screenWidth - shot.insetLeft) / hudScale), height = Math.floor(shot.screenHeight / hudScale);
+	const options = { scale: hudScale };
+	const hud = getHudLayout(width, height, shot.mode, options);
+	const kill = getKillMarkerLayout(width, height, shot.mode, options);
 	const m = hud.metrics;
 	const html: string[] = [];
 	const svg: string[] = [];
@@ -107,15 +115,14 @@ function render(shot: Shot): string {
 		blip(-0.25, 0.55, "◆", GREEN, 10); blip(0.1, -0.78, "◎", WHITE, 13); blip(0.22, -0.28, "•", RED, 16); blip(0.3, -0.38, "•", WHITE, 16);
 		html.push(text({ x: r.x + r.width - 43, y: r.y + r.height - 11, width: 40, height: 10 }, "3.2k", Math.max(8, m.label - 2), { color: DIM, align: "right" }));
 	}
-	// Hull bar (88%: green) and the one ammo line under it, shrunk to fit like the TextScaled label in game.
+	// Hull bar (88%: green) and the one ammo line under it, at the layout's size and separator (the longest line fits at it).
 	const status = hud.status, health = 88;
 	const hullColor = TONE[hullTone(health)];
 	svg.push(`<rect x="${status.bar.x}" y="${status.bar.y}" width="${status.bar.width}" height="${status.bar.height}" fill="${SHADOW}" fill-opacity="0.4" stroke="${hullColor}" stroke-opacity="0.75"/>`);
 	svg.push(`<rect x="${status.bar.x}" y="${status.bar.y}" width="${status.bar.width * hullFraction(health)}" height="${status.bar.height}" fill="${hullColor}" fill-opacity="0.9"/>`);
 	const cells = statusLine({ missiles: 8, missileCooldown: 0, special: "FLR", specialCharges: 3, specialCooldown: 0, specialActive: 0, evadeCharges: 3 });
-	const lineText = cells.map((cell) => cell.text).join(STATUS_SEPARATOR);
-	const lineSize = Math.min(status.text, Math.floor(status.line.width / (lineText.length * 0.6)));
-	html.push(`<div class="t" style="${box(status.line)}font-size:${lineSize}px;font-weight:500;justify-content:center;white-space:pre;"><span>${cells.map((cell) => `<span style="color:${TONE[cell.tone]}">${escape(cell.text)}</span>`).join(`<span style="color:${DIM}">${STATUS_SEPARATOR}</span>`)}</span></div>`);
+	const lineSize = status.text;
+	html.push(`<div class="t" style="${box(status.line)}font-size:${lineSize}px;font-weight:500;justify-content:center;white-space:pre;"><span>${cells.map((cell) => `<span style="color:${TONE[cell.tone]}">${escape(cell.text)}</span>`).join(`<span style="color:${DIM}">${status.separator}</span>`)}</span></div>`);
 	// Radio subtitle (or, without a row, it shares the objective line) and the kill callout.
 	if (hud.subtitle) html.push(text(hud.subtitle, "OVERWATCH: Bandits two o'clock high. Break right and keep them off the convoy!", m.scale === "large" ? m.text : 12, { color: WHITE, align: "center", valign: "bottom", wrap: true }));
 	if (kill !== hud.alert) html.push(text(kill, "SPLASH ONE", 16, { color: WHITE, align: "center", bold: true }));
@@ -144,7 +151,7 @@ function render(shot: Shot): string {
 	// Chase view: the outline squashed for perspective, low in the frame.
 	const jetWidth = Math.min(sw * 0.3, sh * 0.75), jetHeight = jetWidth * 0.5, jetX = sw / 2 - jetWidth / 2, jetY = sh * 0.66;
 	const jet = kestrelOutline().map(([x, y]) => `${jetX + x * jetWidth},${jetY + y * jetHeight}`).join(" ");
-	const bandit = { x: shot.insetLeft + width * 0.6, y: sh * 0.33 };
+	const bandit = { x: shot.insetLeft + width * hudScale * 0.6, y: sh * 0.33 };
 	const bracket = Math.max(28, Math.round(sh * 0.11));
 	const backdrop = `
 <svg class="layer" width="${sw}" height="${sh}" viewBox="0 0 ${sw} ${sh}">
@@ -166,7 +173,7 @@ function render(shot: Shot): string {
 	return `<!doctype html><html><head><meta charset="utf-8"><style>
 html,body{margin:0;padding:0;overflow:hidden;width:${sw}px;height:${sh}px;background:#000;}
 .layer{position:absolute;left:0;top:0;}
-.hud{position:absolute;left:${shot.insetLeft}px;top:0;width:${width}px;height:${height}px;filter:drop-shadow(0 0 1px ${SHADOW}) drop-shadow(0 0 1px ${SHADOW});}
+.hud{position:absolute;left:${shot.insetLeft}px;top:0;width:${width}px;height:${height}px;transform:scale(${hudScale});transform-origin:0 0;filter:drop-shadow(0 0 1px ${SHADOW}) drop-shadow(0 0 1px ${SHADOW});}
 .t{position:absolute;display:flex;flex-direction:column;font-family:${FONT};line-height:1.15;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums;}
 .t[data-slot]{opacity:0.55;}
 .inset{position:absolute;left:0;top:0;width:${shot.insetLeft}px;height:${sh}px;background:repeating-linear-gradient(45deg,rgba(0,0,0,.25) 0 6px,rgba(0,0,0,.1) 6px 12px);}
