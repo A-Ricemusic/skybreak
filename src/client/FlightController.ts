@@ -3,7 +3,7 @@ import { MissionCatalog } from "../shared/MissionCatalog";
 import { FlightMath, FlightState } from "../shared/FlightMath";
 import { FlightPrediction, Predictor } from "../shared/FlightPrediction";
 import { TelemetryCodec } from "../shared/TelemetryCodec";
-import { FlightInputPacket, HudState, MissionStarted, Remotes, Telemetry } from "../shared/Types";
+import { FlightInput, FlightInputPacket, HudState, MissionStarted, Remotes, Telemetry } from "../shared/Types";
 import { SpecialWeapons } from "../shared/SpecialWeapons";
 import { WeaponRules } from "../shared/WeaponRules";
 import { EngineFx } from "../shared/EngineFx";
@@ -39,8 +39,11 @@ const FLIGHT_KEYS: Enum.KeyCode[] = [
 const COLOR_MARKED = Color3.fromRGB(255, 193, 98);
 const MARKER_LIMIT = 16;
 // Per-frame constants (no Vector3/Color3 construction inside the render loop).
-const CAMERA_LIFT = new Vector3(0, 20, 0);
-const AIM_LIFT = new Vector3(0, 4, 0);
+/** Chase camera height above the jet and aim point above the nose, along the smoothed camera up. */
+const CAMERA_LIFT_STUDS = 20;
+const AIM_LIFT_STUDS = 4;
+/** How fast (1/s) the chase camera's up vector follows the canopy: about 0.2 s of lag in a loop. */
+const CAMERA_ROLL_RATE = 5;
 // Target box in the HUD palette: green for mission targets, dim green for optional ones, red once locked.
 const COLOR_LOCKED = HUD.Red;
 const COLOR_REQUIRED = HUD.Green;
@@ -60,16 +63,16 @@ function remote<K extends keyof Remotes>(remotes: Remotes | Instance, name: K): 
 function isModel(value: unknown): value is Model {
 	return typeIs(value, "Instance") && value.IsA("Model") && value.Parent !== undefined;
 }
-/** Same transform the server applies: yaw about world Y, then pitch and roll (YXZ). */
+/** Same transform the server applies: the attitude quaternion plus the cosmetic turn lean. */
 function frameFor(state: FlightState): CFrame {
-	return new CFrame(state.x, state.y, state.z).mul(CFrame.fromEulerAnglesYXZ(state.pitch, state.yaw, state.roll));
+	const [qx, qy, qz, qw] = FlightMath.Visual(state);
+	return new CFrame(state.x, state.y, state.z, qx, qy, qz, qw);
 }
 function stateFrom(frame: CFrame): FlightState {
-	const [pitch, yaw, roll] = frame.ToEulerAnglesYXZ();
 	const state = FlightMath.NewState();
 	state.x = frame.X; state.y = frame.Y; state.z = frame.Z;
-	state.yaw = yaw; state.pitch = pitch; state.roll = roll;
-	return state;
+	const [right, up, back] = [frame.RightVector, frame.UpVector, frame.LookVector.mul(-1)];
+	return FlightMath.SetBasis(state, right.X, right.Y, right.Z, up.X, up.Y, up.Z, back.X, back.Y, back.Z);
 }
 function createTargetCue(playerGui: Instance): [ScreenGui, Frame, UIStroke, TextLabel, TextLabel] {
 	const gui = new Instance("ScreenGui");
@@ -187,8 +190,11 @@ export class FlightController {
 	private sentX = 0;
 	private sentY = 0;
 	private sentThrottle = -1;
+	private sentAssist?: boolean;
 	/** Reused input table handed to FlightPrediction.Step every frame. */
-	private readonly frameInput = { x: 0, y: 0, throttle: 0.65 };
+	private readonly frameInput: FlightInput = { x: 0, y: 0, throttle: 0.65, assist: false };
+	/** Smoothed camera up: follows the jet's canopy through loops and inverted flight without snapping. */
+	private cameraUp = Vector3.yAxis;
 	private predictor?: Predictor;
 	/** Seconds left of the (locally predicted) evade barrel roll. */
 	private evadeRoll = 0;
@@ -209,6 +215,8 @@ export class FlightController {
 	private pauseAction: "Pause" | "Resume" | undefined;
 	private pauseSentAt = 0;
 	private invertY = false;
+	/** Settings: opt-in level-out assist (a centred stick eases back to wings-level). Default off: attitude hold. */
+	private levelAssist = false;
 	private probeClock = 0;
 	private probeParams?: RaycastParams;
 	private probeDirty = true;
@@ -384,9 +392,16 @@ export class FlightController {
 	public IsPaused(): boolean { return this.paused; }
 	/** Settings: pushing up dives instead of climbing (every input source). */
 	public SetInvertY(invert: boolean): void { this.invertY = invert; }
+	/** Settings: a centred stick gently levels the jet (pitch to the horizon, rolls upright). */
+	public SetLevelAssist(assist: boolean): void { this.levelAssist = assist; }
 	/** Predicted nose heading (FlightMath yaw), or undefined outside a mission. */
 	public GetHeading(): number | undefined {
 		return this.active ? this.predictor?.state.yaw : undefined;
+	}
+	/** Copy of the predicted flight state (QA pilot and diagnostics), or undefined outside a mission. */
+	public GetFlightState(): FlightState | undefined {
+		const state = this.active ? this.predictor?.state : undefined;
+		return state ? { ...state } : undefined;
 	}
 	/** Airspeed trend and time to terrain from the latest client probe (refreshed every PROBE_INTERVAL). */
 	public GetFlightTrend(): FlightTrend { return this.trend; }
@@ -435,7 +450,7 @@ export class FlightController {
 			this.probeDirty = false;
 			this.probeBuiltAt = now;
 		}
-		const [fx, fy, fz] = FlightMath.Forward(state.yaw, state.pitch);
+		const [fx, fy, fz] = FlightMath.ForwardOf(state);
 		// Same sink the server integrates while stalled.
 		const velocity = new Vector3(fx * speed, fy * speed - FlightMath.StallSeverity(speed) * 65, fz * speed);
 		const pathSpeed = velocity.Magnitude;
@@ -493,6 +508,7 @@ export class FlightController {
 		this.frameInput.x = math.clamp(x, -1, 1);
 		this.frameInput.y = math.clamp(this.invertY ? -y : y, -1, 1);
 		this.frameInput.throttle = this.keys.has(Enum.KeyCode.LeftShift) ? 1 : this.throttle;
+		this.frameInput.assist = this.levelAssist;
 	}
 	private updateTargetCue(camera: Camera): void {
 		const target = this.telemetry.target;
@@ -657,12 +673,19 @@ export class FlightController {
 		const position = frame.Position;
 		this.probeClock += dt;
 		if (this.probeClock >= PROBE_INTERVAL) { this.probeClock = 0; this.probe(state, position, now); }
-		// The chase camera ignores the evade roll so the horizon does not spin with it.
-		const [fx, fy, fz] = FlightMath.Forward(state.yaw, state.pitch);
+		// The chase camera ignores the evade roll and the turn lean so the horizon does not
+		// spin with them, but rolls with the canopy (smoothed) so it rides through loops and
+		// inverted flight instead of flipping at the vertical.
+		const [fx, fy, fz] = FlightMath.ForwardOf(state);
 		const forward = new Vector3(fx, fy, fz);
+		const [ux, uy, uz] = FlightMath.UpOf(state);
+		const up = this.cameraUp.Lerp(new Vector3(ux, uy, uz), FlightMath.DampAlpha(CAMERA_ROLL_RATE, dt));
+		// Keep the smoothed up perpendicular to the nose (never parallel to the look direction).
+		const square = up.sub(forward.mul(up.Dot(forward)));
+		this.cameraUp = square.Magnitude > 0.05 ? square.Unit : new Vector3(ux, uy, uz);
 		const speedFactor = math.clamp((state.speed - 165) / 155, 0, 1);
-		const desiredPosition = position.sub(forward.mul(68 + speedFactor * 13)).add(CAMERA_LIFT);
-		const desired = CFrame.lookAt(desiredPosition, position.add(forward.mul(100)).add(AIM_LIFT), Vector3.yAxis);
+		const desiredPosition = position.sub(forward.mul(68 + speedFactor * 13)).add(this.cameraUp.mul(CAMERA_LIFT_STUDS));
+		const desired = CFrame.lookAt(desiredPosition, position.add(forward.mul(100)).add(this.cameraUp.mul(AIM_LIFT_STUDS)), this.cameraUp);
 		// Impact feel (CameraShake) rides on top of the follow: shake is a camera-space
 		// offset and the ace hit-stop slows the follow and punches the FOV. Visual only.
 		const impact = CameraShake.Step(dt);
@@ -679,11 +702,11 @@ export class FlightController {
 		this.sendTime += dt;
 		// Unreliable input: up to 20 Hz while the controls move, 10 Hz keepalive otherwise
 		// (well inside the server's 0.7 s silence timeout even with packet loss).
-		const changed = math.abs(this.sentX - input.x) > 0.01 || math.abs(this.sentY - input.y) > 0.01 || math.abs(this.sentThrottle - input.throttle) > 0.01;
+		const changed = math.abs(this.sentX - input.x) > 0.01 || math.abs(this.sentY - input.y) > 0.01 || math.abs(this.sentThrottle - input.throttle) > 0.01 || this.sentAssist !== input.assist;
 		if ((changed && this.sendTime >= INPUT_INTERVAL) || this.sendTime >= INPUT_KEEPALIVE) {
 			this.sendTime = 0;
-			this.sentX = input.x; this.sentY = input.y; this.sentThrottle = input.throttle;
-			const packet: FlightInputPacket = { x: input.x, y: input.y, throttle: input.throttle, t: stamp };
+			this.sentX = input.x; this.sentY = input.y; this.sentThrottle = input.throttle; this.sentAssist = input.assist;
+			const packet: FlightInputPacket = { x: input.x, y: input.y, throttle: input.throttle, t: stamp, assist: input.assist === true };
 			this.remotes.FlightInput.FireServer(packet);
 		}
 	}
@@ -724,7 +747,8 @@ export class FlightController {
 		const camera = Workspace.CurrentCamera;
 		if (camera) {
 			this.previousCamera = { type: camera.CameraType, subject: camera.CameraSubject, frame: camera.CFrame, fov: camera.FieldOfView };
-			this.cameraFrame = CFrame.lookAt(this.visualFrame.Position.sub(this.visualFrame.LookVector.mul(75)).add(CAMERA_LIFT), this.visualFrame.Position.add(this.visualFrame.LookVector.mul(100)));
+			this.cameraUp = this.visualFrame.UpVector;
+			this.cameraFrame = CFrame.lookAt(this.visualFrame.Position.sub(this.visualFrame.LookVector.mul(75)).add(this.cameraUp.mul(CAMERA_LIFT_STUDS)), this.visualFrame.Position.add(this.visualFrame.LookVector.mul(100)), this.cameraUp);
 		} else this.cameraFrame = this.visualFrame;
 		// The predicted local visual; the replicated server aircraft stays hidden.
 		this.visual = this.aircraft.Clone();
