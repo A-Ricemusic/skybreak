@@ -208,7 +208,8 @@ function RailIcon({ name, rectangle, ready }: { name: string; rectangle: Rectang
 /** Bottom-right weapon list (caret on the FIRE weapon), damage, silhouette and ready rails. */
 export function WeaponPanel({ layout, rows, metrics, hullColor, rails }: { layout: WeaponPanelLayout; rows: WeaponRow[]; metrics: HudMetrics; hullColor: Color3; rails: [boolean, boolean] }) {
 	const frame = layout.frame;
-	const caretWidth = math.floor(metrics.text * 0.8);
+	const textSize = layout.text ?? metrics.text;
+	const caretWidth = math.floor(textSize * 0.8);
 	return (
 		<frame key="WeaponPanel" BackgroundTransparency={1} {...at(frame)}>
 			{rows.map((row, index) => {
@@ -218,9 +219,9 @@ export function WeaponPanel({ layout, rows, metrics, hullColor, rails }: { layou
 				const color = TONE_COLOR[row.tone];
 				return (
 					<frame key={`Row_${row.key}`} BackgroundTransparency={1} {...at(slotRect)}>
-						<HudLabel name="Caret" text=">" rectangle={{ x: 0, y: 0, width: caretWidth, height: slotRect.height }} textSize={metrics.text} bold={true} visible={row.caret} />
-						<HudLabel name="Label" text={row.label} rectangle={{ x: caretWidth, y: 0, width: slotRect.width - caretWidth, height: slotRect.height }} textSize={metrics.text} color={color} />
-						<HudLabel name="Value" text={row.value} rectangle={{ x: caretWidth, y: 0, width: slotRect.width - caretWidth, height: slotRect.height }} textSize={metrics.text} color={color} bold={true} alignment={Enum.TextXAlignment.Right} />
+						<HudLabel name="Caret" text=">" rectangle={{ x: 0, y: 0, width: caretWidth, height: slotRect.height }} textSize={textSize} bold={true} visible={row.caret} />
+						<HudLabel name="Label" text={row.label} rectangle={{ x: caretWidth, y: 0, width: slotRect.width - caretWidth, height: slotRect.height }} textSize={textSize} color={color} />
+						<HudLabel name="Value" text={row.value} rectangle={{ x: caretWidth, y: 0, width: slotRect.width - caretWidth, height: slotRect.height }} textSize={textSize} color={color} bold={true} alignment={Enum.TextXAlignment.Right} />
 					</frame>
 				);
 			})}

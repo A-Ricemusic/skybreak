@@ -10,6 +10,7 @@ import {
 	RADAR_LARGE_SIZE,
 	RADAR_MAX_SIZE,
 	RADAR_MIN_SIZE,
+	WEAPON_ROW_MIN,
 	WEAPON_ROWS,
 	getHudScale,
 	STICK_MAX_SIZE,
@@ -337,7 +338,14 @@ describe("mission HUD layout", () => {
 			expect(weapons.frame.x + weapons.frame.width).toBe(width - layout.margin);
 			expect(weapons.rows.size()).toBe(WEAPON_ROWS);
 			for (const row of weapons.rows) {
-				expect(row.height).toBe(layout.metrics.row);
+				// Full rows, except where PR #38's touch controls leave less room (320x240's stacked EVADE): tighter rows, 10pt text.
+				if (weapons.text === undefined) expect(row.height).toBe(layout.metrics.row);
+				else {
+					expect(row.height).toBeGreaterThanOrEqual(WEAPON_ROW_MIN);
+					expect(row.height).toBeLessThan(layout.metrics.row);
+					expect(weapons.text).toBeGreaterThanOrEqual(10);
+					expect(weapons.text).toBeLessThanOrEqual(row.height);
+				}
 				expect(rectangleInside(row, width, height, 0)).toBe(true);
 				expect(row.y).toBeGreaterThanOrEqual(weapons.frame.y);
 				expect(row.y + row.height).toBeLessThanOrEqual(weapons.frame.y + weapons.frame.height);

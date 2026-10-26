@@ -97,12 +97,13 @@ function render(shot: Shot): string {
 	}
 	// Bottom-right weapon panel.
 	const rows = weaponRows({ missiles: 8, missileCooldown: 0, special: "FLR", specialCharges: 2, specialCooldown: 0, specialActive: 0, evadeCharges: 3, health: 88 });
-	const caretWidth = Math.floor(m.text * 0.8);
+	const rowText = hud.weapons.text ?? m.text;
+	const caretWidth = Math.floor(rowText * 0.8);
 	rows.forEach((row, index) => {
 		const r = hud.weapons.rows[index];
-		if (row.caret) html.push(text({ ...r, width: caretWidth }, ">", m.text, { bold: true }));
-		html.push(text({ ...r, x: r.x + caretWidth, width: r.width - caretWidth }, row.label, m.text, { color: TONE[row.tone] }));
-		html.push(text({ ...r, x: r.x + caretWidth, width: r.width - caretWidth }, row.value, m.text, { color: TONE[row.tone], align: "right", bold: true }));
+		if (row.caret) html.push(text({ ...r, width: caretWidth }, ">", rowText, { bold: true }));
+		html.push(text({ ...r, x: r.x + caretWidth, width: r.width - caretWidth }, row.label, rowText, { color: TONE[row.tone] }));
+		html.push(text({ ...r, x: r.x + caretWidth, width: r.width - caretWidth }, row.value, rowText, { color: TONE[row.tone], align: "right", bold: true }));
 	});
 	if (hud.weapons.silhouette) {
 		const s = hud.weapons.silhouette;
