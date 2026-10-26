@@ -97,3 +97,70 @@ timed out before execution with several Studio instances open; full-suite runs
 in an existing Edit session also passed before the compact-root expansion.
 `bun run build:place` and `git diff --check` passed. Production mapping excludes
 test modules.
+
+## Round 2: touch EVADE, radar, warnings, pause and settings (2026-10-26)
+
+### What changed for each input mode
+
+- **Touch.** A round EVADE button joins the action lane. Wide roots (every real
+  landscape phone) use one row, right to left from the throttle: EVADE 56 px,
+  SPECIAL 48, FIRE 64, TGT 48, bottom-aligned with 12 px gaps. Narrow
+  (portrait) roots keep FIRE under TGT/SPECIAL and put EVADE above the right
+  stick's SPEED UP caption (56 px, 44 px if the column is short). The Studio
+  compact root (height < 240) uses a 2x2 grid of 44 px buttons:
+  TGT SPECIAL / FIRE EVADE. EVADE fires on touch-down rather than release,
+  because the server only decoys missiles inside 350 studs or in their last
+  1.2 s. It shows up to three charge pips and a ring that fills bottom-up as
+  the next charge returns, and it pulses red while `incoming` is set and a
+  charge is ready. A server without charges (no `evadeCharges` in telemetry)
+  shows one charge gated by `evadeCooldown`.
+- **Keyboard / gamepad.** `F` / `B` still evade, through the same
+  ContextActionService handler. The weapon status line adds `EVD n`. `P`
+  pauses and resumes.
+- **All modes.** There is a PAUSE button at the top-left: 44 px on touch,
+  32 px otherwise, and none on Studio-compact roots, which rely on the Roblox
+  menu. Opening the Roblox menu (`GuiService.MenuOpened`) or losing window
+  focus (`WindowFocusReleased`) also pauses. Every pause sends
+  `CombatAction {action:"Pause"}`. RESUME sends `{action:"Resume"}`, and only
+  an explicit press resumes. While paused, the controller unbinds its
+  ContextActionService keys so the gamepad can navigate the card, freezes the
+  local prediction and camera, and drops every combat action.
+
+### Layout numbers (`getHudLayout`, specs in `UILayout.spec.ts`)
+
+| Root | Touch EVADE | Radar | Pause | Notes |
+| --- | --- | --- | --- | --- |
+| 320x182 (Studio) | 163,132 44x44 (grid) | none | none | FIRE 113,132 44x44 |
+| 667x375 (375x667 landscape) | 489,305 56x56 (row) | 543,59 110 (below hull) | 14,14 44 | FIRE caption 310,283 150x12 |
+| 800x390 (844x390 after the 44 px notch inset) | 622,320 56x56 (row) | 676,59 110 (below hull) | 14,14 44 | stick (58,268) on screen; `stickVector` spec covers the inset |
+| 706x267 (iPhone root) | 532,201 56x56 (row) | 586,10 110 (corner; clock column moves left of it) | 10,10 44 | top lane kept 140 px for toast and kill callout |
+| 1920x854 keyboard | — | 905,722 110 (bottom-centre) | 22,22 32 | hints at y 702, directly above the radar |
+
+The radar needs a 90 px slot. It is omitted on 320x182 and on 560x240, where
+the top-right column has no room.
+
+### Not verified here
+
+Nothing in this round has been run in Studio, on a device simulator or on a
+physical phone. The pure layout, warning, radar, radio-queue, settings and
+stick-vector rules run in Roblox Jest specs and in the offline Luau runner
+(`bun run test:offline`). Before accepting, check in Studio:
+
+1. Touch emulator, iPhone landscape: hold both sticks, then tap EVADE, FIRE,
+   TGT and SPECIAL with a third finger. Each must register while both knobs
+   stay put.
+2. With a missile inbound, EVADE pulses red, a press rolls the jet, and one
+   pip goes dark. The ring then refills over 12 s (needs the workstream A
+   server).
+3. PAUSE, Esc and app backgrounding each show the dim card and freeze the
+   clock (server half from workstream A). RESUME continues with no snap. MAIN
+   MENU ends the sortie.
+4. Fly low toward a mesa at full throttle. `TERRAIN · PULL UP` appears about
+   2 s before impact and clears after the pull-up. Fly at throttle 0.05:
+   LOW SPEED appears before STALL.
+5. Radar: required bandits show cyan, raiders orange, ground targets as
+   diamonds, the beacon as ◎, a protected convoy as ■, and hostile missiles as
+   blinking red dots. The disc rotates so the nose points up.
+6. Settings: each stepper changes the matching `PlayerGui` attribute
+   (`InvertY`, `CameraShake`, `HudScale`, `StickScale`, `MusicVolume`,
+   `SfxVolume`), and the HUD re-lays out at once for HUD scale and stick size.

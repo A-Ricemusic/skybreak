@@ -4,7 +4,11 @@ import {mkdir} from "node:fs/promises";
 import {resolve} from "node:path";
 const root=resolve(import.meta.dir,".."),dest=resolve(root,"build/offline-relay");
 await mkdir(dest,{recursive:true});
-const files=["shared/CinematicInput","tests/CinematicInput.spec","shared/CinematicStaging","tests/CinematicStaging.spec","shared/StoryDocuments","tests/StoryDocuments.spec","shared/NavigationPilot","shared/FlightMath","shared/MissionCatalog","shared/BlueprintRunner","shared/MissionLayouts","shared/RelayStory","shared/GameConfig","shared/Difficulty","shared/MissionScore","tests/Difficulty.spec","shared/WeaponRules","shared/SpecialWeapons","shared/ExplosionFx","tests/ExplosionFx.spec","shared/EngineFx","tests/EngineFx.spec","shared/ImpactFeedback","tests/ImpactFeedback.spec","shared/ThreatRules","tests/ThreatRules.spec","shared/EvadeRules","tests/EvadeRules.spec","shared/AceRules","tests/AceRules.spec","shared/WavePlan","tests/WavePlan.spec","shared/SessionGuard","tests/SessionGuard.spec","shared/ActorPlacement","tests/ActorPlacement.spec","shared/MissionRules","tests/MissionRules.spec","server/CampaignRepository","tests/RelayCampaign.spec","tests/BlueprintProgress.spec"];
+const files=["shared/CinematicInput","tests/CinematicInput.spec","shared/CinematicStaging","tests/CinematicStaging.spec","shared/StoryDocuments","tests/StoryDocuments.spec","shared/NavigationPilot","shared/FlightMath","shared/MissionCatalog","shared/BlueprintRunner","shared/MissionLayouts","shared/RelayStory","shared/GameConfig","shared/Difficulty","shared/MissionScore","tests/Difficulty.spec","shared/WeaponRules","shared/SpecialWeapons","shared/ExplosionFx","tests/ExplosionFx.spec","shared/EngineFx","tests/EngineFx.spec","shared/ImpactFeedback","tests/ImpactFeedback.spec","shared/ThreatRules","tests/ThreatRules.spec","shared/EvadeRules","tests/EvadeRules.spec","shared/AceRules","tests/AceRules.spec","shared/WavePlan","tests/WavePlan.spec","shared/SessionGuard","tests/SessionGuard.spec","shared/ActorPlacement","tests/ActorPlacement.spec","shared/MissionRules","tests/MissionRules.spec","server/CampaignRepository","tests/RelayCampaign.spec","tests/BlueprintProgress.spec",
+	// Round-2 HUD rules (pure layout, warnings, radar, evade, radio, settings).
+	"shared/UILayout","tests/UILayout.spec","shared/NavigationLayout","tests/NavigationLayout.spec","shared/FlightWarnings","tests/FlightWarnings.spec",
+	"shared/RadarMath","tests/RadarMath.spec","shared/EvadeGauge","tests/EvadeGauge.spec","shared/RadioQueue","tests/RadioQueue.spec",
+	"shared/PlayerSettings","tests/PlayerSettings.spec","shared/TouchSticks","tests/TouchSticks.spec"];
 for(const file of files){
 	let source=await Bun.file(resolve(root,`out/${file}.luau`)).text();
 	source=source.split("\n").filter(line=>!line.startsWith("local TS = require(")).map(line=>{
@@ -20,18 +24,42 @@ for(const file of files){
 }
 await Bun.write(resolve(dest,"OfflineAssertions.luau"),`
 local passed,failed=0,0
-local function expect(value)
+local function deepEqual(a,b)
+ if type(a)~="table" or type(b)~="table" then return a==b end
+ for k,v in a do if not deepEqual(v,b[k]) then return false end end
+ for k in b do if a[k]==nil then return false end end
+ return true
+end
+local function show(v)
+ if type(v)~="table" then return tostring(v) end
+ local parts={} for k,x in v do table.insert(parts,tostring(k).."="..show(x)) end
+ return "{"..table.concat(parts,",").."}"
+end
+local function matchers(value,negate)
+ local function check(ok,message) if negate then ok=not ok end assert(ok,(negate and "Not: " or "")..message) end
  return {
-  toBe=function(expected) assert(value==expected, "Expected "..tostring(expected)..", received "..tostring(value)) end,
-  toBeUndefined=function() assert(value==nil,"Expected nil, received "..tostring(value)) end,
+  toBe=function(expected) check(value==expected, "Expected "..show(expected)..", received "..show(value)) end,
+  toEqual=function(expected) check(deepEqual(value,expected), "Expected "..show(expected)..", received "..show(value)) end,
+  toBeUndefined=function() check(value==nil,"Expected nil, received "..show(value)) end,
+  toBeDefined=function() check(value~=nil,"Expected a value, received nil") end,
+  toBeGreaterThan=function(n) check(value>n, "Expected > "..tostring(n)..", received "..tostring(value)) end,
+  toBeGreaterThanOrEqual=function(n) check(value>=n, "Expected >= "..tostring(n)..", received "..tostring(value)) end,
+  toBeLessThan=function(n) check(value<n, "Expected < "..tostring(n)..", received "..tostring(value)) end,
+  toBeLessThanOrEqual=function(n) check(value<=n, "Expected <= "..tostring(n)..", received "..tostring(value)) end,
+  toBeCloseTo=function(n,digits) check(math.abs(value-n)<(10^-(digits or 2))/2, "Expected ~"..tostring(n)..", received "..tostring(value)) end,
  }
+end
+local function expect(value)
+ local m=matchers(value,false)
+ m.never=matchers(value,true)
+ return m
 end
 return { expect=expect,
  describe=function(name,fn) print(name);fn() end,
  it=function(name,fn) local ok,err=pcall(fn);if ok then passed+=1;print("PASS "..name) else failed+=1;print("FAIL "..name..": "..tostring(err)) end end,
  result=function() print("OFFLINE_LUAU_RESULT passed="..passed.." failed="..failed);assert(failed==0,"Offline domain contracts failed") end }
 `);
-await Bun.write(resolve(dest,"run.luau"),'require("./RelayCampaign.spec")\nrequire("./BlueprintProgress.spec")\nrequire("./CinematicInput.spec")\nrequire("./CinematicStaging.spec")\nrequire("./StoryDocuments.spec")\nrequire("./ExplosionFx.spec")\nrequire("./EngineFx.spec")\nrequire("./ImpactFeedback.spec")\nrequire("./Difficulty.spec")\nrequire("./ThreatRules.spec")\nrequire("./EvadeRules.spec")\nrequire("./AceRules.spec")\nrequire("./WavePlan.spec")\nrequire("./SessionGuard.spec")\nrequire("./ActorPlacement.spec")\nrequire("./MissionRules.spec")\nrequire("./OfflineAssertions").result()\n');
+await Bun.write(resolve(dest,"run.luau"),'require("./RelayCampaign.spec")\nrequire("./BlueprintProgress.spec")\nrequire("./CinematicInput.spec")\nrequire("./CinematicStaging.spec")\nrequire("./StoryDocuments.spec")\nrequire("./ExplosionFx.spec")\nrequire("./EngineFx.spec")\nrequire("./ImpactFeedback.spec")\nrequire("./Difficulty.spec")\nrequire("./ThreatRules.spec")\nrequire("./EvadeRules.spec")\nrequire("./AceRules.spec")\nrequire("./WavePlan.spec")\nrequire("./SessionGuard.spec")\nrequire("./ActorPlacement.spec")\nrequire("./MissionRules.spec")\nrequire("./UILayout.spec")\nrequire("./NavigationLayout.spec")\nrequire("./FlightWarnings.spec")\nrequire("./RadarMath.spec")\nrequire("./EvadeGauge.spec")\nrequire("./RadioQueue.spec")\nrequire("./PlayerSettings.spec")\nrequire("./TouchSticks.spec")\nrequire("./OfflineAssertions").result()\n');
 const executable=process.env.LUAU_BIN ?? resolve(root,"build/offline-luau/luau");
 if(!(await Bun.file(executable).exists()))throw new Error("Set LUAU_BIN to the official Luau CLI. See docs/broken-relay.md. No Studio fallback will run.");
 const proc=Bun.spawn([executable,resolve(dest,"run.luau")],{cwd:root,stdout:"pipe",stderr:"pipe"});
