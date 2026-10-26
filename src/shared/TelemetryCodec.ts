@@ -27,6 +27,7 @@ export interface TelemetryNumbers {
 	specialCharges?: number; specialCooldown?: number; specialActive?: number;
 	/** The sortie's ace is down (cumulative, so the HUD can tell an ace kill from a dropped packet). */
 	aceKilled?: boolean;
+	paused?: boolean;
 	/** Evade charges in hand (EvadeRules), optional raider kills, and the nearest hostile missile's range. */
 	evadeCharges?: number; optionalKills?: number; incomingDistance?: number;
 }
@@ -34,7 +35,7 @@ export interface TelemetryNumbers {
 export const TelemetryCodec = {
 	Encode(sequence: number, t: TelemetryNumbers): TelemetryPacket {
 		const flags = (t.incoming ? 1 : 0) + (t.lockWarning ? 2 : 0) + (t.boundaryWarning ? 4 : 0)
-			+ (t.targetDamageable === true ? 8 : 0) + (t.targetDamageable === undefined ? 16 : 0) + (t.aceKilled === true ? 32 : 0);
+			+ (t.targetDamageable === true ? 8 : 0) + (t.targetDamageable === undefined ? 16 : 0) + (t.aceKilled === true ? 32 : 0) + (t.paused === true ? 64 : 0);
 		return [
 			sequence, t.health, t.speed, t.altitude, t.kills, t.total, t.missiles,
 			t.missileCooldown, t.evadeCooldown, t.lockProgress, flags, t.elapsed,
@@ -61,6 +62,7 @@ export const TelemetryCodec = {
 		into.boundaryWarning = flags % 8 >= 4;
 		into.targetDamageable = flags % 32 >= 16 ? undefined : flags % 16 >= 8;
 		into.aceKilled = flags % 64 >= 32;
+		into.paused = flags % 128 >= 64;
 		into.elapsed = n[11]; into.timeRemaining = n[12]; into.objectiveProgress = n[13]; into.objectiveTotal = n[14]; into.groundKills = n[15];
 		into.targetDistance = n[16];
 		into.targetHealth = n[17] >= 0 ? n[17] : undefined;

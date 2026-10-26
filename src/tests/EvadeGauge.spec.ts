@@ -1,29 +1,35 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { EVADE_MAX_CHARGES, EVADE_RECHARGE_SECONDS, evadeGauge } from "../shared/EvadeGauge";
+import { EvadeRules } from "../shared/EvadeRules";
 
 describe("EVADE charges, ring and flash", () => {
-	it("reads the server's charges: ready while any is left, ring shows the recharging one", () => {
+	it("reads the server's charges: ready with a charge in hand and no roll running", () => {
 		expect(EVADE_MAX_CHARGES).toBe(3);
-		expect(EVADE_RECHARGE_SECONDS).toBe(12);
+		expect(EVADE_RECHARGE_SECONDS).toBe(EvadeRules.RechargeSeconds);
 		const full = evadeGauge({ evadeCharges: 3, evadeCooldown: 0, incoming: false });
 		expect(full.ready).toBe(true);
 		expect(full.charges).toBe(3);
 		expect(full.maxCharges).toBe(3);
 		expect(full.recharge).toBe(1);
 		expect(full.label).toBe("EVADE");
-		const two = evadeGauge({ evadeCharges: 2, evadeCooldown: 9, incoming: false });
+		// The server reports cooldown 0 while a charge is in hand (EvadeRules.Cooldown).
+		const two = evadeGauge({ evadeCharges: 2, evadeCooldown: 0, incoming: false });
 		expect(two.ready).toBe(true);
-		expect(two.recharge).toBeCloseTo(0.25, 5);
-		expect(two.cooldown).toBe(9);
+		expect(two.charges).toBe(2);
+		// During a roll the server reports the roll's remaining time and refuses another press.
+		const rolling = evadeGauge({ evadeCharges: 2, evadeCooldown: 1.2, incoming: true });
+		expect(rolling.ready).toBe(false);
+		expect(rolling.flash).toBe(false);
+		// With none in hand the cooldown is the time to the next charge.
 		const empty = evadeGauge({ evadeCharges: 0, evadeCooldown: 3.2, incoming: true });
 		expect(empty.ready).toBe(false);
 		expect(empty.flash).toBe(false);
 		expect(empty.label).toBe("4");
-		expect(empty.recharge).toBeCloseTo(1 - 3.2 / 12, 5);
+		expect(empty.recharge).toBeCloseTo(1 - 3.2 / EvadeRules.RechargeSeconds, 5);
 	});
 	it("flashes only while a missile is inbound and a charge is ready", () => {
-		expect(evadeGauge({ evadeCharges: 1, evadeCooldown: 5, incoming: true }).flash).toBe(true);
-		expect(evadeGauge({ evadeCharges: 1, evadeCooldown: 5, incoming: false }).flash).toBe(false);
+		expect(evadeGauge({ evadeCharges: 1, evadeCooldown: 0, incoming: true }).flash).toBe(true);
+		expect(evadeGauge({ evadeCharges: 1, evadeCooldown: 0, incoming: false }).flash).toBe(false);
 	});
 	it("degrades to one charge gated by the cooldown when the server sends no charges", () => {
 		const ready = evadeGauge({ evadeCooldown: 0, incoming: true });

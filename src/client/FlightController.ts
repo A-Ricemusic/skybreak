@@ -140,6 +140,8 @@ function scenerySurfaces(folder: Instance): RaycastParams {
 // QA and phone UI use this same controller; all combat decisions stay on server.
 // The player's own jet is predicted locally (FlightPrediction) and reconciled
 // against the server's 20 Hz FlightState stream; everything else is server state.
+/** Seconds after a local pause during which a not-paused telemetry packet is treated as in flight, not as a server resume. */
+const PAUSE_SYNC_GRACE = 1;
 export class FlightController {
 	public active = false;
 	public aircraft?: Model;
@@ -200,6 +202,8 @@ export class FlightController {
 	private readonly enemies = new EnemySmoothing();
 	/** Pause overlay is up: the local jet, camera and actions hold until Resume. */
 	private paused = false;
+	/** When the local pause was requested; packets inside PAUSE_SYNC_GRACE may predate the server applying it. */
+	private pauseRequestedAt = 0;
 	private invertY = false;
 	private probeClock = 0;
 	private probeParams?: RaycastParams;
@@ -229,6 +233,8 @@ export class FlightController {
 			const sequence = TelemetryCodec.Decode(packet, this.telemetry);
 			if (sequence === undefined) return;
 			this.telemetrySequence = sequence;
+			// The server owns the pause: when it resumes on its own (budget spent) or refuses a pause, un-freeze locally.
+			if (this.paused && this.telemetry.paused === false && os.clock() - this.pauseRequestedAt > PAUSE_SYNC_GRACE) this.releaseLocalPause();
 			this.notify();
 		}));
 		this.streamConnections.push(this.remotes.FlightState.OnClientEvent.Connect((packet: unknown) => {
@@ -335,8 +341,14 @@ export class FlightController {
 	 */
 	public SetPaused(paused: boolean): void {
 		if (!this.active || paused === this.paused) return;
-		this.paused = paused;
 		this.remotes.CombatAction.FireServer({ action: paused ? "Pause" : "Resume" });
+		this.applyLocalPause(paused);
+	}
+	/** Server resumed without a local Resume (pause budget spent) or refused the pause: follow it, sending nothing. */
+	private releaseLocalPause(): void { if (this.paused) this.applyLocalPause(false); }
+	private applyLocalPause(paused: boolean): void {
+		this.paused = paused;
+		if (paused) this.pauseRequestedAt = os.clock();
 		this.keys.clear(); this.mouseSteer = false; this.touchInput = Vector2.zero; this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0;
 		this.sendTime = INPUT_KEEPALIVE;
 		// Free the gamepad stick and buttons for the pause card's GUI navigation.

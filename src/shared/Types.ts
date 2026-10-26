@@ -198,6 +198,8 @@ export interface Telemetry {
 	fireDeniedSerial?: number;
 	/** The sortie's ace has been destroyed (telemetry flag); drives the ACE DOWN callout. */
 	aceKilled?: boolean;
+	/** The server is holding the sortie paused (telemetry flag); the client follows it, e.g. when the pause budget runs out. */
+	paused?: boolean;
 }
 export interface MissionFinished extends MissionStats {
 	kind: "Completed" | "Failed";

@@ -1780,6 +1780,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const pausedRef = useRef(false);
 	const [settingsOpen, setSettingsOpenState] = useState(false);
 	const settingsOpenRef = useRef(false);
+	/** The app lost focus (and has not regained it) — remembered across loading/cutscene so a sortie that starts behind it pauses. */
+	const focusLostRef = useRef(false);
+	const pauseSortieRef = useRef<() => void>(() => undefined);
 	// Client flight trend (airspeed bleed, time to terrain); only re-renders when the warning it implies changes.
 	const [trend, setTrend] = useState<FlightTrend>({ acceleration: 0 });
 	const trendRef = useRef<FlightTrend>({ acceleration: 0 });
@@ -2081,6 +2084,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		controller.SetPaused(true);
 		task.defer(() => selectDefaultRef.current());
 	}, [controller, releaseJoystick]);
+	pauseSortieRef.current = pauseSortie;
 	const resumeSortie = useCallback(() => {
 		if (!pausedRef.current) return;
 		pausedRef.current = false;
@@ -2100,14 +2104,15 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		// Studio playtests (scripted pilots) lose window focus constantly; there, focus-loss pausing
 		// is opt-in with Workspace attribute SkybreakAutoPause = true. Live clients always pause.
 		const focusLost = UserInputService.WindowFocusReleased.Connect(() => {
-			if (!RunService.IsStudio() || Workspace.GetAttribute("SkybreakAutoPause") === true) pauseSortie();
+			if (!RunService.IsStudio() || Workspace.GetAttribute("SkybreakAutoPause") === true) { focusLostRef.current = true; pauseSortie(); }
 		});
+		const focusGained = UserInputService.WindowFocused.Connect(() => { focusLostRef.current = false; });
 		// P pauses and resumes on a keyboard (a deliberate press, like the RESUME button).
 		const key = UserInputService.InputBegan.Connect((input, processed) => {
 			if (processed || input.KeyCode !== Enum.KeyCode.P || screenRef.current !== "mission" || UserInputService.GetFocusedTextBox()) return;
 			if (pausedRef.current) { if (!settingsOpenRef.current) resumeSortie(); } else pauseSortie();
 		});
-		return () => { menuOpened.Disconnect(); focusLost.Disconnect(); key.Disconnect(); };
+		return () => { menuOpened.Disconnect(); focusLost.Disconnect(); focusGained.Disconnect(); key.Disconnect(); };
 	}, [pauseSortie, resumeSortie]);
 
 	const moveJoystick = useCallback((input: InputObject) => {
@@ -2314,6 +2319,8 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				throttleRef.current = controller.GetThrottle();
 				setThrottleState(throttleRef.current);
 				changeScreen("mission");
+				// A menu opened or focus lost during loading/cutscene fires no new event once flight starts: pause now.
+				task.defer(() => { if (GuiService.MenuIsOpen || focusLostRef.current) pauseSortieRef.current(); });
 				const [ok, initial] = pcall(() => controller.GetTelemetry());
 				if (ok && typeIs(initial, "table")) {
 					const sanitized = sanitizeTelemetry(initial as Telemetry, telemetryRef.current);
@@ -2393,6 +2400,13 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		// boundary warning; the HUD re-renders once per merged update.
 		const unsubscribe = controller.OnTelemetry((merged) => {
 			if (!mountedRef.current || !inMissionRef.current) return;
+			// The server owns the pause (5-minute budget, refused pauses): when the controller un-freezes, drop the PAUSED card too.
+			if (pausedRef.current && !controller.IsPaused()) {
+				pausedRef.current = false;
+				setPausedState(false);
+				settingsOpenRef.current = false;
+				setSettingsOpenState(false);
+			}
 			const previous = telemetryRef.current;
 			const sanitized = sanitizeTelemetry(merged, previous);
 			if (sanitized.kills > previous.kills) setKillNotice({ kills: sanitized.kills, total: sanitized.total, until: os.clock() + 3 });

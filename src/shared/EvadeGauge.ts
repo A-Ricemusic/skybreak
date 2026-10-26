@@ -1,3 +1,5 @@
+import { EvadeRules } from "./EvadeRules";
+
 // Pure state of the EVADE control (touch button, hint and local roll prediction).
 // The server owns the charges; the client only reads telemetry. When a server
 // without charges answers, `evadeCharges` is absent and the gauge falls back to
@@ -5,8 +7,8 @@
 
 /** Charges the server grants per sortie when it reports them. */
 export const EVADE_MAX_CHARGES = 3;
-/** Seconds the server takes to return one charge. */
-export const EVADE_RECHARGE_SECONDS = 12;
+/** Seconds the server takes to return one charge (the server's own constant). */
+export const EVADE_RECHARGE_SECONDS = EvadeRules.RechargeSeconds;
 /** Cooldown of the single-charge (legacy) evade, used to draw its ring. */
 export const EVADE_LEGACY_COOLDOWN = 6;
 
@@ -45,7 +47,8 @@ export function evadeGauge(telemetry: EvadeTelemetry): EvadeGauge {
 	const charges = charged ? math.clamp(math.floor(reported as number), 0, EVADE_MAX_CHARGES) : cooldown <= 0 ? 1 : 0;
 	const period = charged ? EVADE_RECHARGE_SECONDS : EVADE_LEGACY_COOLDOWN;
 	const recharge = charges >= maxCharges || cooldown <= 0 ? 1 : math.clamp(1 - cooldown / period, 0, 1);
-	const ready = charges > 0;
+	// With charges in hand the server reports a positive cooldown only while a roll is still running, and refuses a press then.
+	const ready = charges > 0 && (!charged || cooldown <= 0);
 	return {
 		charges,
 		maxCharges,

@@ -439,6 +439,7 @@ function sendTelemetry(session: CombatSession): void {
 		protectedHealth: phase?.kind === "escort" || phase?.kind === "defend" ? session.blueprintState?.protectedHealth : undefined,
 		specialCharges: session.special.charges, specialCooldown: session.special.cooldown, specialActive: session.special.active,
 		aceKilled: session.rules?.aceKilled ?? session.blueprintState?.aceKilled ?? false,
+		paused: PauseRules.Paused(session.pause),
 		evadeCharges: session.evade.charges,
 		optionalKills: session.rules?.optionalAirKills ?? session.blueprintState?.optionalAirKills ?? 0,
 		incomingDistance: incomingDistance < math.huge ? incomingDistance : undefined,
@@ -1577,7 +1578,8 @@ function abortSession(session: CombatSession, message: string): void {
 /** CombatAction "Pause": single-player, so the whole sortie freezes; the clock is settled first. */
 function pauseSession(session: CombatSession, now: number): void {
 	if (!session.active || session.finished || !refreshSession(session, now)) return;
-	if (!PauseRules.Pause(session.pause, now)) return;
+	// A refused pause (budget spent) still answers, so the client un-freezes instead of waiting.
+	if (!PauseRules.Pause(session.pause, now)) { sendTelemetry(session); return; }
 	session.input.x = 0; session.input.y = 0;
 	sendTelemetry(session);
 }
