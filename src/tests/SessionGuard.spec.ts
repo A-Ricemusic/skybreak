@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { PauseRules, StepGuard } from "../shared/SessionGuard";
+import { PauseRules, Settlement, SettlementHooks, StepGuard } from "../shared/SessionGuard";
 
 // Pure session-loop contracts; also run in the offline Luau VM (toBe/toBeUndefined only).
 describe("Step guard (internal_error isolation)", () => {
@@ -74,5 +74,108 @@ describe("Pause budget", () => {
 		expect(PauseRules.Resume(pause, 450)).toBe(100);
 		expect(pause.used).toBe(PauseRules.Budget);
 		expect(PauseRules.Pause(pause, 0 / 0)).toBe(false);
+	});
+});
+
+/**
+ * A model of one sortie's settlement as CombatService wires it: `blocked` is the `completing` set
+ * StartMission checks, `world` is the session folder, `deferred` the task.defer queue. Any hook
+ * can be made to throw.
+ */
+function sortie(throwing: { [hook: string]: boolean } = {}) {
+	const log = { blocked: true, world: true, saved: 0, unsaved: 0, teardowns: 0, releases: 0, warnings: 0, deferred: [] as (() => void)[] };
+	const fail = (hook: string) => { if (throwing[hook]) error(`${hook} exploded`); };
+	const hooks: SettlementHooks = {
+		announce: () => fail("announce"),
+		schedule: (complete) => { fail("schedule"); log.deferred.push(complete); },
+		save: () => { fail("save"); log.saved += 1; },
+		unsaved: () => { fail("unsaved"); log.unsaved += 1; },
+		teardown: () => { log.teardowns += 1; fail("teardown"); log.world = false; },
+		release: () => { log.releases += 1; log.blocked = false; },
+		warn: () => { log.warnings += 1; },
+	};
+	const runDeferred = () => { const jobs = [...log.deferred]; log.deferred.clear(); for (const job of jobs) job(); };
+	return { log, hooks, runDeferred, state: Settlement.New() };
+}
+describe("Settlement (a finished sortie never blocks the next one)", () => {
+	it("saves, then tears down and releases the player once the deferred task runs", () => {
+		const { log, hooks, runDeferred, state } = sortie();
+		Settlement.Begin(state, hooks);
+		expect(log.blocked).toBe(true);
+		expect(log.deferred.size()).toBe(1);
+		runDeferred();
+		expect(log.saved).toBe(1);
+		expect(log.unsaved).toBe(0);
+		expect(log.world).toBe(false);
+		expect(log.blocked).toBe(false);
+		// A second finish cause (duplicate kill, abort) changes nothing.
+		Settlement.Begin(state, hooks);
+		expect(Settlement.Abandon(state, hooks)).toBe(false);
+		expect(log.teardowns).toBe(1);
+		expect(log.releases).toBe(1);
+	});
+	it("still saves and releases when the result announcement (telemetry) throws", () => {
+		const { log, hooks, runDeferred, state } = sortie({ announce: true });
+		Settlement.Begin(state, hooks);
+		expect(log.warnings).toBe(1);
+		runDeferred();
+		expect(log.saved).toBe(1);
+		expect(log.world).toBe(false);
+		expect(log.blocked).toBe(false);
+	});
+	it("tears down and releases at once when the save cannot be scheduled", () => {
+		const { log, hooks, state } = sortie({ schedule: true });
+		Settlement.Begin(state, hooks);
+		expect(log.deferred.size()).toBe(0);
+		expect(log.unsaved).toBe(1);
+		expect(log.world).toBe(false);
+		expect(log.blocked).toBe(false);
+	});
+	it("reports a failed save, then tears down and releases", () => {
+		const { log, hooks, runDeferred, state } = sortie({ save: true });
+		Settlement.Begin(state, hooks);
+		runDeferred();
+		expect(log.saved).toBe(0);
+		expect(log.unsaved).toBe(1);
+		expect(log.world).toBe(false);
+		expect(log.blocked).toBe(false);
+	});
+	it("releases the player even when teardown and the unsaved report both throw", () => {
+		const { log, hooks, state } = sortie({ schedule: true, unsaved: true, teardown: true });
+		Settlement.Begin(state, hooks);
+		expect(log.teardowns).toBe(1);
+		expect(log.releases).toBe(1);
+		expect(log.blocked).toBe(false);
+	});
+	it("an error during a step whose settlement then throws: the guard's abort still releases", () => {
+		// The review's second path: a step throws, the guard aborts, and settling that abort throws too.
+		const { log, hooks, state } = sortie({ announce: true, schedule: true });
+		const guard = StepGuard.New();
+		StepGuard.Run(guard, () => error("enemy warning was destroyed"), () => {
+			Settlement.Begin(state, hooks);
+			Settlement.Abandon(state, hooks);
+		});
+		expect(guard.failed).toBe(true);
+		expect(log.world).toBe(false);
+		expect(log.blocked).toBe(false);
+		expect(log.teardowns).toBe(1);
+		expect(log.releases).toBe(1);
+	});
+	it("an abort while the save is pending leaves teardown to the completion task", () => {
+		const { log, hooks, runDeferred, state } = sortie();
+		Settlement.Begin(state, hooks);
+		expect(Settlement.Abandon(state, hooks)).toBe(false);
+		expect(log.world).toBe(true);
+		expect(log.blocked).toBe(true);
+		runDeferred();
+		expect(log.saved).toBe(1);
+		expect(log.blocked).toBe(false);
+		expect(log.releases).toBe(1);
+	});
+	it("an abort of a sortie that never settled tears it down without releasing anyone", () => {
+		const { log, hooks, state } = sortie();
+		expect(Settlement.Abandon(state, hooks)).toBe(true);
+		expect(log.world).toBe(false);
+		expect(log.releases).toBe(0);
 	});
 });

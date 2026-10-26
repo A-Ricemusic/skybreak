@@ -64,3 +64,77 @@ export const PauseRules = {
 		return state.pausedAt !== undefined && now - state.pausedAt >= PAUSE_BUDGET - state.used;
 	},
 };
+
+/**
+ * Settling a finished sortie: say the outcome, schedule the save, then tear the world down and let
+ * the player fly again. Each hook is protected on its own. Whatever throws, and wherever, the
+ * world is torn down and the player released exactly once, so StartMission is never left refusing
+ * ("still being saved") for the rest of the server's life.
+ */
+export interface SettlementState {
+	/** Settlement began: the player may not start another sortie until it is released. */
+	entered: boolean;
+	/** A completion task is scheduled; that task (not an error path) saves, tears down and releases. */
+	scheduled: boolean;
+	/** Torn down and released, by the completion task or a fallback. */
+	settled: boolean;
+}
+export interface SettlementHooks {
+	/** Cosmetic: the final explosion and the outcome on the HUD. A throw is warned and ignored. */
+	announce: () => void;
+	/** Builds the result and schedules `complete` (task.defer); a throw means nothing was scheduled. */
+	schedule: (complete: () => void) => void;
+	/** In the completion task: save the result and report it to the player. */
+	save: () => void;
+	/** The result was not saved: tell the player so the result screen does not wait. */
+	unsaved: () => void;
+	/** Destroys the session's world. */
+	teardown: () => void;
+	/** Lets the player start another sortie (and forgets the session). */
+	release: () => void;
+	warn: (message: string) => void;
+}
+function settle(state: SettlementState, hooks: SettlementHooks): void {
+	state.settled = true;
+	const [tornDown, err] = pcall(() => hooks.teardown());
+	if (!tornDown) pcall(() => hooks.warn(`teardown failed: ${tostring(err)}`));
+	// Released even when teardown threw: a stuck release blocks every later sortie.
+	if (state.entered) {
+		const [released, releaseError] = pcall(() => hooks.release());
+		if (!released) pcall(() => hooks.warn(`release failed: ${tostring(releaseError)}`));
+	}
+}
+export const Settlement = {
+	New(): SettlementState { return { entered: false, scheduled: false, settled: false }; },
+	/** The sortie is over: announce, then schedule the save; if scheduling fails, settle now. */
+	Begin(state: SettlementState, hooks: SettlementHooks): void {
+		if (state.entered) return;
+		state.entered = true;
+		const [announced, announceError] = pcall(() => hooks.announce());
+		if (!announced) pcall(() => hooks.warn(`result announcement failed: ${tostring(announceError)}`));
+		const [scheduled, err] = pcall(() => hooks.schedule(() => Settlement.Complete(state, hooks)));
+		if (scheduled) { state.scheduled = true; return; }
+		pcall(() => hooks.warn(`could not schedule the save: ${tostring(err)}`));
+		Settlement.Abandon(state, hooks);
+	},
+	/** The completion task: save (or report it unsaved), then tear down and release. Runs at most once. */
+	Complete(state: SettlementState, hooks: SettlementHooks): void {
+		if (state.settled) return;
+		const [saved, err] = pcall(() => hooks.save());
+		if (!saved) {
+			pcall(() => hooks.warn(`mission completion callback: ${tostring(err)}`));
+			pcall(() => hooks.unsaved());
+		}
+		settle(state, hooks);
+	},
+	/**
+	 * An error path: unless a completion task is still coming, report the result unsaved, tear down
+	 * and release now. Returns whether it settled the session.
+	 */
+	Abandon(state: SettlementState, hooks: SettlementHooks): boolean {
+		if (state.settled || state.scheduled) return false;
+		pcall(() => hooks.unsaved());
+		settle(state, hooks);
+		return true;
+	},
+};

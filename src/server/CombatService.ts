@@ -18,7 +18,7 @@ import { ThreatRules } from "../shared/ThreatRules";
 import { EvadeRules, EvadeState } from "../shared/EvadeRules";
 import { AceRules, AceStageState } from "../shared/AceRules";
 import { WavePlan } from "../shared/WavePlan";
-import { PauseRules, PauseState, StepGuard, StepGuardState } from "../shared/SessionGuard";
+import { PauseRules, PauseState, Settlement, SettlementHooks, SettlementState, StepGuard, StepGuardState } from "../shared/SessionGuard";
 import { MissionWorld } from "./MissionWorld";
 import { ActorFooting, ActorGrounding } from "./ActorGrounding";
 
@@ -125,6 +125,8 @@ export interface CombatSession {
 	guard: StepGuardState;
 	/** Pause budget and the current pause (PauseRules); nothing steps while paused. */
 	pause: PauseState;
+	/** Result save and teardown once the sortie ends (Settlement), and the hooks finish() chose. */
+	settlement: SettlementState; settleHooks?: SettlementHooks;
 	/** Per-sortie name counters so every bandit and raider has a unique call sign, and a spawn counter for unique kill ids. */
 	banditSerial: number; raiderSerial: number; spawnSerial: number;
 	/** Staggered groups of the active required_air phase (WavePlan). */
@@ -537,25 +539,9 @@ function cleanupSession(session: CombatSession, restore = true): void {
 	session.target = undefined;
 	if (restore) restoreMenu();
 }
-function finish(session: CombatSession): void {
-	if (!session.active || session.finished) return;
-	const outcome = sessionOutcome(session);
-	if (outcome === undefined) return;
-	session.finished = true;
-	session.active = false;
-	completing.add(session.player);
-	// Sync elapsed from whichever authoritative runner owns the mission.
-	if (session.rules) session.elapsed = session.rules.elapsed;
-	else if (session.blueprintState) session.elapsed = session.blueprintState.elapsed;
-	const won = outcome === "won";
-	const crashed = session.crashReason !== undefined && session.crashReason !== "internal_error";
-	if (!won && (session.health <= 0 || crashed)) effect(session, "player", positionFor(session.state), { velocity: directionFor(session.state).mul(session.state.speed) });
-	// The result screen waits up to a few seconds for the save; say the outcome on the HUD right away.
-	session.radio = won ? "MISSION ACCOMPLISHED · RETURN TO BASE" : "MISSION FAILED";
-	session.radioSerial += 1;
-	session.radioSeconds = 6;
-	sendTelemetry(session);
-	const stats: MissionStats = {
+/** Debrief counters handed to the completion callback. */
+function missionStats(session: CombatSession, won: boolean): MissionStats {
+	return {
 		kills: session.kills,
 		groundKills: sessionGroundKills(session),
 		missionId: session.missionId,
@@ -571,19 +557,58 @@ function finish(session: CombatSession): void {
 		evades: session.evades,
 		difficulty: session.difficulty,
 	};
-	const callback = onFinished!;
-	task.defer(() => {
-		// The player may have left (session cleaned) in the same frame; the result is still theirs to keep.
-		const [ok, message] = pcall(callback, session.player, won, stats);
-		if (!ok) {
-			warn(`SKYBREAK mission completion callback: ${tostring(message)}`);
-			if (!session.cleaned && session.player.Parent === Players) missionState!.FireClient(session.player, {
-				kind: won ? "Completed" : "Failed", ...stats, saved: false,
-			});
-		}
-		cleanupSession(session);
-		completing.delete(session.player);
-	});
+}
+/** How this session settles (see Settlement): `won` is fixed when the sortie ends. */
+function settlementHooks(session: CombatSession, won: boolean): SettlementHooks {
+	const callback = onFinished;
+	let stats: MissionStats | undefined;
+	return {
+		announce: () => {
+			const crashed = session.crashReason !== undefined && session.crashReason !== "internal_error";
+			if (!won && (session.health <= 0 || crashed)) effect(session, "player", positionFor(session.state), { velocity: directionFor(session.state).mul(session.state.speed) });
+			// The result screen waits up to a few seconds for the save; say the outcome on the HUD right away.
+			session.radio = won ? "MISSION ACCOMPLISHED · RETURN TO BASE" : "MISSION FAILED";
+			session.radioSerial += 1;
+			session.radioSeconds = 6;
+			sendTelemetry(session);
+		},
+		schedule: (complete) => {
+			stats = missionStats(session, won);
+			// The player may leave (session cleaned) in the same frame; the result is still theirs to keep.
+			task.defer(complete);
+		},
+		save: () => {
+			assert(callback && stats, "No completion callback or result");
+			callback(session.player, won, stats);
+		},
+		unsaved: () => {
+			if (session.cleaned || session.player.Parent !== Players) return;
+			missionState!.FireClient(session.player, stats
+				? { kind: won ? "Completed" : "Failed", ...stats, saved: false }
+				: { kind: won ? "Completed" : "Failed", slot: session.slot, missionId: session.missionId, kills: session.kills, elapsed: session.elapsed, reason: sessionReason(session) ?? "internal_error", saved: false });
+		},
+		teardown: () => cleanupSession(session),
+		release: () => {
+			// A teardown that threw part-way must not leave the session registered either.
+			if (sessions.get(session.player) === session) { sessions.delete(session.player); restoreMenu(); }
+			completing.delete(session.player);
+		},
+		warn: (message) => warn(`SKYBREAK mission ${session.missionId} settlement: ${message}`),
+	};
+}
+function finish(session: CombatSession): void {
+	if (!session.active || session.finished) return;
+	const outcome = sessionOutcome(session);
+	if (outcome === undefined) return;
+	session.finished = true;
+	session.active = false;
+	completing.add(session.player);
+	// Sync elapsed from whichever authoritative runner owns the mission.
+	if (session.rules) session.elapsed = session.rules.elapsed;
+	else if (session.blueprintState) session.elapsed = session.blueprintState.elapsed;
+	// Every settlement step is protected: a throw anywhere still tears the world down and releases the player.
+	session.settleHooks = settlementHooks(session, outcome === "won");
+	Settlement.Begin(session.settlement, session.settleHooks);
 }
 function refreshSession(session: CombatSession, now: number): boolean {
 	if (!session.active) return false;
@@ -1511,12 +1536,9 @@ function abortSession(session: CombatSession, message: string): void {
 	warn(`SKYBREAK mission ${session.missionId} stopped after a server error: ${message}`);
 	session.crashReason = "internal_error";
 	const [ok, err] = pcall(() => finish(session));
-	if (ok && (session.finished || session.cleaned)) return;
 	if (!ok) warn(`SKYBREAK mission ${session.missionId} could not settle cleanly: ${tostring(err)}`);
-	if (!session.cleaned && session.player.Parent === Players) pcall(() => missionState!.FireClient(session.player, {
-		kind: "Failed", slot: session.slot, missionId: session.missionId, kills: session.kills, elapsed: session.elapsed, reason: "internal_error", saved: false,
-	}));
-	pcall(() => cleanupSession(session));
+	// Unless a completion task is already coming, report the result unsaved, tear down and release now.
+	Settlement.Abandon(session.settlement, session.settleHooks ?? settlementHooks(session, false));
 }
 /** CombatAction "Pause": single-player, so the whole sortie freezes; the clock is settled first. */
 function pauseSession(session: CombatSession, now: number): void {
@@ -1592,7 +1614,7 @@ export const CombatService = {
 				active: true, finished: false, cleaned: false, previousReplicationFocus: player.ReplicationFocus,
 				inputClientTime: 0, inputFresh: false, inputSteps: 0, stateTime: 0, stateSequence: 0, telemetrySequence: 0,
 				missilesFired: 0, missileHits: 0, flareBursts: 0, damageTaken: 0, lowestHealth: 100, evades: 0,
-				evade: EvadeRules.New(), guard: StepGuard.New(), pause: PauseRules.New(),
+				evade: EvadeRules.New(), guard: StepGuard.New(), pause: PauseRules.New(), settlement: Settlement.New(),
 				banditSerial: 0, raiderSerial: 0, spawnSerial: 0, reinforceIndex: 0, stepCount: 0,
 			};
 			if (legacy) {
