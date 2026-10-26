@@ -182,6 +182,8 @@ export interface Telemetry {
 	/** False while the current phase protects the selected target (no guided shot possible). */
 	targetDamageable?: boolean;
 	fireDeniedSerial?: number;
+	/** The sortie's ace has been destroyed (telemetry flag); drives the ACE DOWN callout. */
+	aceKilled?: boolean;
 }
 export interface MissionFinished extends MissionStats {
 	kind: "Completed" | "Failed";

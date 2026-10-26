@@ -185,6 +185,35 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 	return { margin, alert, callout, timer, status, health, flightStatus, navigation, hints };
 }
 
+export const KILL_MARKER_MAX_WIDTH = 220;
+export const KILL_MARKER_MIN_WIDTH = 90;
+export const KILL_MARKER_HEIGHT = 22;
+
+/**
+ * The brief "SPLASH ONE" callout: top centre, in the lane between the objective
+ * and the clock stack, above the forward view. Portrait roots with a narrow lane
+ * drop it just under the top texts (still above the forward view). The Studio
+ * compact root has room for neither and borrows the alert lane for the moment.
+ */
+export function getKillMarkerLayout(viewportWidth: number, viewportHeight: number, inputMode: InputMode): Rectangle {
+	const width = math.max(1, viewportWidth);
+	const height = math.max(1, viewportHeight);
+	const hud = getHudLayout(width, height, inputMode);
+	const gap = 8;
+	const laneLeft = hud.callout.x + hud.callout.width + gap;
+	const laneRight = math.min(hud.status.x, hud.flightStatus.x, hud.timer.x) - gap;
+	const laneWidth = math.min(KILL_MARKER_MAX_WIDTH, laneRight - laneLeft);
+	if (laneWidth >= KILL_MARKER_MIN_WIDTH) {
+		return { x: laneLeft + math.floor((laneRight - laneLeft - laneWidth) / 2), y: hud.margin, width: laneWidth, height: KILL_MARKER_HEIGHT };
+	}
+	const below = math.max(hud.navigation.y + hud.navigation.height, hud.health.y + hud.health.height) + gap;
+	const forward = getHudCentreBox(width, height);
+	if (below + KILL_MARKER_HEIGHT <= forward.y) {
+		return centered(width, math.min(KILL_MARKER_MAX_WIDTH, width - hud.margin * 2), below, KILL_MARKER_HEIGHT);
+	}
+	return hud.alert;
+}
+
 /** Share of a short (phone) landscape root given to the reading panel. */
 export const MENU_PHONE_PANEL_SHARE = 0.6;
 /** Share of a tall (tablet/desktop) landscape root given to the reading panel. */

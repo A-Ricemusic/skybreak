@@ -269,4 +269,20 @@ describe("client flight prediction and reconciliation", () => {
 		}
 		expect(TelemetryCodec.Decode([1, 2], into)).toBeUndefined();
 	});
+	it("carries the ace-killed flag without disturbing the other flags", () => {
+		const into = { kind: "Telemetry", health: 0, speed: 0, altitude: 0, kills: 0, total: 0, missiles: 0, missileCooldown: 0, evadeCooldown: 0, targetName: "", lockProgress: 0, incoming: false, elapsed: 0 } as Telemetry;
+		for (const aceKilled of [true, false]) for (const damageable of [true, false, undefined]) {
+			const packet = TelemetryCodec.Encode(5, {
+				health: 60, speed: 240, altitude: 300, kills: 5, total: 5, missiles: 3, missileCooldown: 0, evadeCooldown: 0,
+				lockProgress: 0, incoming: true, lockWarning: true, boundaryWarning: true, elapsed: 30, timeRemaining: 400,
+				objectiveProgress: 1, objectiveTotal: 1, groundKills: 0, targetDistance: 0, targetDamageable: damageable, aceKilled,
+			});
+			expect(TelemetryCodec.Decode(packet, into)).toBe(5);
+			expect(into.aceKilled).toBe(aceKilled);
+			expect(into.targetDamageable).toBe(damageable);
+			expect(into.incoming).toBe(true);
+			expect(into.lockWarning).toBe(true);
+			expect(into.boundaryWarning).toBe(true);
+		}
+	});
 });

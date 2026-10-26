@@ -4,6 +4,7 @@ import { CinematicAction, CinematicControl, routeCinematicInput } from "../share
 import { cinematicBandHeight, getCinematicLayout } from "../shared/CinematicLayout";
 import { CHAIR, RECORDER, Rgb, Vec, isCard, moodLighting, recorderLightOn, reelsSpin, sceneTint, shotPose } from "../shared/CinematicStaging";
 import { SpeakerTone, StoryBeat, StoryChapter, speakerStyle, storyFor } from "../shared/RelayStory";
+import { MotionPreference } from "./MotionPreference";
 
 const ORIGIN=new Vector3(0,6000,0);
 const vec=(p:Vec)=>new Vector3(p.x,p.y,p.z),col=(c:Rgb)=>Color3.fromRGB(c.r,c.g,c.b),rgb=(c:Color3):Rgb=>({r:c.R*255,g:c.G*255,b:c.B*255});
@@ -115,8 +116,8 @@ const INK=Color3.fromRGB(4,9,14),IVORY=Color3.fromRGB(242,238,226),MUTED=Color3.
 const ACCENT=Color3.fromRGB(64,224,206),ORANGE=Color3.fromRGB(255,150,84),DANGER=Color3.fromRGB(255,84,76),AMBER=Color3.fromRGB(242,196,78);
 const TONE_COLOR:Record<SpeakerTone,Color3>={teal:ACCENT,control:ORANGE,log:MUTED,marshal:DANGER,trainee:IVORY,wing:AMBER};
 const bodyFont=(beat:StoryBeat)=>speakerStyle(beat.speaker).tone==="log" ? Enum.Font.RobotoMono : Enum.Font.GothamMedium;
-/** Accessibility choices persist for the rest of the session. */
-const prefs={still:false,large:false};
+/** Accessibility choices persist for the rest of the session; camera motion is shared with flight (MotionPreference). */
+const prefs={large:false};
 const TEXT_FADE_IN=.25,TEXT_FADE_OUT=.2,CUT_DIP=.3,CUT_BLACK=.85,ENTER_FADE=.5,EXIT_FADE=.5,SCROLL_GUTTER=6;
 type HintMode="touch" | "keyboard" | "gamepad";
 function hintModeFor(input:Enum.UserInputType): HintMode {
@@ -127,7 +128,7 @@ const HINT:Record<HintMode,string>={touch:"TAP FOR NEXT",keyboard:"CLICK FOR NEX
 
 export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewport:Vector2;onFinish:()=>void;onCancel:()=>void}) {
 	const chapter=storyFor(id);
-	const [beat,setBeat]=useState(0),[paused,setPaused]=useState(false),[still,setStill]=useState(prefs.still),[large,setLarge]=useState(prefs.large);
+	const [beat,setBeat]=useState(0),[paused,setPaused]=useState(false),[still,setStill]=useState(MotionPreference.reduced),[large,setLarge]=useState(prefs.large);
 	const [settingsOpen,setSettingsOpen]=useState(false),[hintMode,setHintMode]=useState<HintMode>(hintModeFor(UserInputService.GetLastInputType()));
 	const layout=getCinematicLayout(viewport.X,viewport.Y,large);
 	const viewportRef=useRef(viewport);viewportRef.current=viewport;
@@ -148,7 +149,7 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 	const subtitleRef=useRef<ScrollingFrame>(),bodyRef=useRef<TextLabel>(),nameRef=useRef<TextLabel>(),roleRef=useRef<TextLabel>();
 	const progressRef=useRef<Frame>(),fadeRef=useRef<Frame>(),eyebrowRef=useRef<TextLabel>(),cardBodyRef=useRef<TextLabel>(),cardNameRef=useRef<TextLabel>();
 	useEffect(()=>{if(subtitleRef.current)subtitleRef.current.CanvasPosition=Vector2.zero;},[beat]);
-	const pausedRef=useRef(false),stillRef=useRef(prefs.still),finishRef=useRef(onFinish),cancelRef=useRef(onCancel),done=useRef(false);
+	const pausedRef=useRef(false),stillRef=useRef(MotionPreference.reduced),finishRef=useRef(onFinish),cancelRef=useRef(onCancel),done=useRef(false);
 	// Longer lines stay on screen longer: 5-9 s per beat, scaled by text length.
 	const durations=chapter.beats.map((b)=>beatDuration(b.text));
 	// endRef is when the current beat hands over; a manual "next" pulls it in to
@@ -175,7 +176,7 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 		else if(action==="cancel"){done.current=true;cancelRef.current();}
 		else if(action==="pause"){pausedRef.current=!pausedRef.current;setPaused(pausedRef.current);}
 		else if(action==="next"){if(pausedRef.current){pausedRef.current=false;setPaused(false);}requestNext();}
-		else if(action==="motion"){stillRef.current=!stillRef.current;prefs.still=stillRef.current;setStill(stillRef.current);}
+		else if(action==="motion"){stillRef.current=!stillRef.current;MotionPreference.reduced=stillRef.current;setStill(stillRef.current);}
 		else if(action==="text"){prefs.large=!prefs.large;setLarge(prefs.large);}
 	};
 	useEffect(()=>{
