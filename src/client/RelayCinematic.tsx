@@ -144,9 +144,10 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 	if(tallest===0)tallest=textHeight;
 	const bandHeight=cinematicBandHeight(layout,tallest);
 	const textAreaHeight=math.min(textHeight,layout.maxTextHeight),overflow=textHeight>layout.maxTextHeight;
-	const textY=bandHeight-layout.padBottom-textAreaHeight,chipY=textY-layout.chipGap-layout.chipHeight;
+	// Band, top to bottom: speaker/controls row, line, footer (title + dots), progress line in the bottom pad.
+	const footerY=bandHeight-layout.padBottom-layout.footerHeight,textY=footerY-layout.chipGap-textAreaHeight,chipY=textY-layout.chipGap-layout.chipHeight;
 	const subtitleRef=useRef<ScrollingFrame>(),bodyRef=useRef<TextLabel>(),nameRef=useRef<TextLabel>(),roleRef=useRef<TextLabel>();
-	const progressRef=useRef<Frame>(),fadeRef=useRef<Frame>(),eyebrowRef=useRef<TextLabel>(),cardBodyRef=useRef<TextLabel>(),cardNameRef=useRef<TextLabel>();
+	const progressRef=useRef<Frame>(),fadeRef=useRef<Frame>(),cardBodyRef=useRef<TextLabel>(),cardNameRef=useRef<TextLabel>();
 	useEffect(()=>{if(subtitleRef.current)subtitleRef.current.CanvasPosition=Vector2.zero;},[beat]);
 	const pausedRef=useRef(false),stillRef=useRef(prefs.still),finishRef=useRef(onFinish),cancelRef=useRef(onCancel),done=useRef(false);
 	// Longer lines stay on screen longer: 5-9 s per beat, scaled by text length.
@@ -194,7 +195,6 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 			// Text: short fade in, and fade out over the outro, unless reduced motion asks for instant swaps.
 			setTextAlpha(calm ? 0 : 1-math.min(math.clamp(t/TEXT_FADE_IN,0,1),index===last ? 1 : math.clamp(left/TEXT_FADE_OUT,0,1)));
 			if(progressRef.current)progressRef.current.Size=new UDim2(math.clamp(t/duration,0,1),0,1,0);
-			if(eyebrowRef.current)eyebrowRef.current.TextColor3=ACCENT.Lerp(MUTED,math.clamp((clock-2.5)/1,0,1));
 			// Black overlay: fade up from black, dip on camera cuts, fade out at the natural end.
 			const enter=1-math.clamp(clock/ENTER_FADE,0,1);
 			// Cut dip: darken over the outgoing beat's last CUT_DIP, then lift on the incoming shot.
@@ -227,12 +227,12 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 	},[id]);
 
 	const activate=(control:CinematicControl)=>()=>dispatch(routeCinematicInput({kind:"activated",control}));
-	const {tiny,barHeight,margin,controlSize,chipHeight,chipTextSize}=layout;
+	const {tiny,controlSize,chipHeight,chipTextSize,footerHeight,footerTextSize}=layout;
 	// Each control keeps a 44 px hit box; the visible pill sits inside it.
 	const pill=(name:string,text:string,width:number,order:number,control:CinematicControl | undefined,highlight:boolean,onClick?:()=>void)=>
 		<textbutton key={name} LayoutOrder={order} Size={UDim2.fromOffset(width,controlSize)} BackgroundTransparency={1} Text="" AutoButtonColor={false}
 			Event={{Activated:onClick ?? (control ? activate(control) : undefined)}}>
-			<frame key="Pill" AnchorPoint={new Vector2(.5,.5)} Position={UDim2.fromScale(.5,.5)} Size={new UDim2(1,-6,0,tiny ? 28 : 32)} BackgroundColor3={highlight ? ACCENT : INK} BackgroundTransparency={highlight ? .82 : .35} BorderSizePixel={0}>
+			<frame key="Pill" AnchorPoint={new Vector2(.5,.5)} Position={UDim2.fromScale(.5,.5)} Size={new UDim2(1,-6,0,chipHeight)} BackgroundColor3={highlight ? ACCENT : INK} BackgroundTransparency={highlight ? .82 : .35} BorderSizePixel={0}>
 				<uicorner CornerRadius={new UDim(1,0)}/>
 				<uistroke Color={highlight ? ACCENT : IVORY} Transparency={highlight ? .25 : .7} Thickness={1}/>
 				<textlabel key="Label" Size={UDim2.fromScale(1,1)} BackgroundTransparency={1} Text={text} TextSize={tiny ? 12 : 13} Font={Enum.Font.GothamBold} TextColor3={highlight ? ACCENT : IVORY}/>
@@ -247,31 +247,31 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 	// Lines mount hidden and RenderStepped fades them in (instant with reduced motion).
 	const hidden=still ? 0 : 1;
 	const controlsWidth=layout.skipWidth+controlSize*2;
-	const eyebrow=tiny ? `${string.format("%02d",id)} — ${chapter.title}` : `BROKEN RELAY  ·  ${string.format("%02d",id)} — ${chapter.title}`;
-	// Dots for 1-8 beats; on tiny roots the strip grows to fit instead of spilling into the chip.
+	const title=`${string.format("%02d",id)} — ${chapter.title}`;
+	// The controls sit on the speaker row, right-aligned to the text column; the pill inset keeps their edge on the column.
+	const rowCentre=viewport.Y-bandHeight+layout.padTop+chipHeight/2;
+	// Dots for 1-8 beats; on tiny roots the strip grows to fit instead of spilling into the title.
 	const dots=chapter.beats.map((_,i)=><frame key={`Dot${i}`} LayoutOrder={i} Size={UDim2.fromOffset(i===beat ? 14 : 6,6)} BackgroundColor3={i<=beat ? tone : FAINT} BackgroundTransparency={i<=beat ? 0 : .3} BorderSizePixel={0}><uicorner CornerRadius={new UDim(1,0)}/></frame>);
 	const dotsWidth=tiny ? math.max(40,chapter.beats.size()*10+8) : 200;
-	// Layering: scene tap target 1, lower third 2, title card 3, top bar and pause chip 4, settings 5, fade 6.
+	// Layering: scene tap target 1, lower third 2, title card 3, controls and pause chip 4, settings 5, fade 6.
 	return <frame key="CinematicScreen" Size={UDim2.fromScale(1,1)} BackgroundTransparency={1}>
 		{/* Tap or click anywhere on the scene for the next line. */}
 		<textbutton key="CinematicAdvanceButton" ZIndex={1} Size={UDim2.fromScale(1,1)} BackgroundTransparency={1} Text="" AutoButtonColor={false} Selectable={false} Event={{Activated:activate("next")}}/>
-		<frame key="CinematicTopBar" ZIndex={4} Size={new UDim2(1,0,0,barHeight)} BackgroundColor3={INK} BorderSizePixel={0}>
-			<textlabel ref={eyebrowRef} key="CinematicTitle" Position={UDim2.fromOffset(margin,0)} Size={new UDim2(1,-margin*2-controlsWidth-8,1,0)} BackgroundTransparency={1} Text={eyebrow} TextXAlignment={Enum.TextXAlignment.Left} TextTruncate={Enum.TextTruncate.AtEnd} TextSize={layout.eyebrowSize} Font={Enum.Font.GothamBold} TextColor3={ACCENT}/>
-			<frame key="CinematicActions" AnchorPoint={new Vector2(1,0)} Position={new UDim2(1,-margin+3,0,(barHeight-controlSize)/2)} Size={UDim2.fromOffset(controlsWidth,controlSize)} BackgroundTransparency={1}>
-				<uilistlayout FillDirection={Enum.FillDirection.Horizontal} HorizontalAlignment={Enum.HorizontalAlignment.Right} SortOrder={Enum.SortOrder.LayoutOrder}/>
-				{pill("CinematicSettingsButton","Aa",controlSize,1,undefined,settingsOpen,()=>setSettingsOpen((open)=>!open))}
-				{pill("CinematicPauseButton",paused ? ">" : "II",controlSize,2,"pause",paused)}
-				{pill("CinematicSkipButton","SKIP  >>",layout.skipWidth,3,"skip",false)}
-			</frame>
+		{/* Controls float over the band's row (and over title cards) instead of living in a top bar. */}
+		<frame key="CinematicActions" ZIndex={4} AnchorPoint={new Vector2(1,.5)} Position={new UDim2(.5,layout.textWidth/2+3,0,rowCentre)} Size={UDim2.fromOffset(controlsWidth,controlSize)} BackgroundTransparency={1}>
+			<uilistlayout FillDirection={Enum.FillDirection.Horizontal} HorizontalAlignment={Enum.HorizontalAlignment.Right} SortOrder={Enum.SortOrder.LayoutOrder}/>
+			{pill("CinematicSettingsButton","Aa",controlSize,1,undefined,settingsOpen,()=>setSettingsOpen((open)=>!open))}
+			{pill("CinematicPauseButton",paused ? ">" : "II",controlSize,2,"pause",paused)}
+			{pill("CinematicSkipButton","SKIP  >>",layout.skipWidth,3,"skip",false)}
 		</frame>
-		{settingsOpen && <frame key="CinematicSettings" ZIndex={5} AnchorPoint={new Vector2(1,0)} Position={new UDim2(1,-margin,0,barHeight+4)} Size={UDim2.fromOffset(tiny ? 200 : 228,controlSize*2+12)} BackgroundColor3={INK} BackgroundTransparency={.15} BorderSizePixel={0}>
+		{settingsOpen && <frame key="CinematicSettings" ZIndex={5} AnchorPoint={new Vector2(1,1)} Position={new UDim2(.5,layout.textWidth/2,0,rowCentre-controlSize/2-4)} Size={UDim2.fromOffset(tiny ? 200 : 228,controlSize*2+12)} BackgroundColor3={INK} BackgroundTransparency={.15} BorderSizePixel={0}>
 			<uicorner CornerRadius={new UDim(0,10)}/>
 			<uipadding PaddingTop={new UDim(0,4)} PaddingBottom={new UDim(0,4)} PaddingLeft={new UDim(0,4)} PaddingRight={new UDim(0,4)}/>
 			<uilistlayout Padding={new UDim(0,4)} SortOrder={Enum.SortOrder.LayoutOrder}/>
 			{toggle("CinematicMotionButton","Camera motion",still ? "OFF" : "ON",1,"motion")}
 			{toggle("CinematicTextButton","Large text",large ? "ON" : "OFF",2,"text")}
 		</frame>}
-		{paused && <frame key="CinematicPaused" ZIndex={4} AnchorPoint={new Vector2(.5,.5)} Position={new UDim2(.5,0,0,barHeight+(viewport.Y-barHeight-bandHeight)/2)} Size={UDim2.fromOffset(tiny ? 96 : 120,tiny ? 26 : 32)} BackgroundColor3={INK} BackgroundTransparency={.25} BorderSizePixel={0}>
+		{paused && <frame key="CinematicPaused" ZIndex={4} AnchorPoint={new Vector2(.5,.5)} Position={new UDim2(.5,0,0,(viewport.Y-bandHeight)/2)} Size={UDim2.fromOffset(tiny ? 96 : 120,tiny ? 26 : 32)} BackgroundColor3={INK} BackgroundTransparency={.25} BorderSizePixel={0}>
 			<uicorner CornerRadius={new UDim(1,0)}/>
 			<textlabel key="Label" Size={UDim2.fromScale(1,1)} BackgroundTransparency={1} Text="PAUSED" TextSize={tiny ? 11 : 13} Font={Enum.Font.GothamBlack} TextColor3={IVORY}/>
 		</frame>}
@@ -282,21 +282,24 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 			</frame>
 			<frame key="Column" AnchorPoint={new Vector2(.5,0)} Position={UDim2.fromScale(.5,0)} Size={new UDim2(0,layout.textWidth,1,0)} BackgroundTransparency={1}>
 				<frame key="CinematicSpeaker" Position={UDim2.fromOffset(0,chipY)} Size={new UDim2(1,0,0,chipHeight)} BackgroundTransparency={1}>
-					<frame key="Who" Size={new UDim2(1,-dotsWidth-4,1,0)} BackgroundTransparency={1}>
+					<frame key="Who" Size={new UDim2(1,-controlsWidth-8,1,0)} BackgroundTransparency={1}>
 						<uilistlayout FillDirection={Enum.FillDirection.Horizontal} VerticalAlignment={Enum.VerticalAlignment.Center} Padding={new UDim(0,6)} SortOrder={Enum.SortOrder.LayoutOrder}/>
 						<frame key="Swatch" LayoutOrder={1} Size={UDim2.fromOffset(3,chipHeight-6)} BackgroundColor3={tone} BorderSizePixel={0}/>
 						<textlabel ref={nameRef} key="SpeakerName" TextTransparency={hidden} LayoutOrder={2} AutomaticSize={Enum.AutomaticSize.X} Size={new UDim2(0,0,1,0)} BackgroundTransparency={1} Text={speaker.name} TextSize={chipTextSize} Font={speaker.tone==="log" ? Enum.Font.RobotoMono : Enum.Font.GothamBlack} TextColor3={tone}/>
 						{speaker.role !== undefined && <textlabel ref={roleRef} key="SpeakerRole" TextTransparency={hidden} LayoutOrder={3} AutomaticSize={Enum.AutomaticSize.X} Size={new UDim2(0,0,1,0)} BackgroundTransparency={1} Text={speaker.role} TextSize={chipTextSize-1} Font={Enum.Font.GothamMedium} TextColor3={MUTED}/>}
 					</frame>
-					<frame key="Progress" AnchorPoint={new Vector2(1,0)} Position={UDim2.fromScale(1,0)} Size={new UDim2(0,dotsWidth,1,0)} BackgroundTransparency={1}>
-						<uilistlayout FillDirection={Enum.FillDirection.Horizontal} HorizontalAlignment={Enum.HorizontalAlignment.Right} VerticalAlignment={Enum.VerticalAlignment.Center} Padding={new UDim(0,4)} SortOrder={Enum.SortOrder.LayoutOrder}/>
-						{!tiny && <textlabel key="Hint" LayoutOrder={0} AutomaticSize={Enum.AutomaticSize.X} Size={new UDim2(0,0,1,0)} BackgroundTransparency={1} Text={`${HINT[hintMode]}   `} TextSize={chipTextSize-2} Font={Enum.Font.GothamMedium} TextColor3={FAINT}/>}
-						{dots}
-					</frame>
 				</frame>
 				<scrollingframe ref={subtitleRef} key="CinematicSubtitles" Position={UDim2.fromOffset(0,textY)} Size={new UDim2(1,0,0,textAreaHeight)} BackgroundTransparency={1} BorderSizePixel={0} CanvasSize={UDim2.fromOffset(0,textHeight)} ScrollBarThickness={overflow ? 3 : 0} ScrollingEnabled={overflow} ScrollingDirection={Enum.ScrollingDirection.Y} Selectable={overflow} Active={overflow}>
 					<textlabel ref={bodyRef} key="CinematicLine" TextTransparency={hidden} Size={new UDim2(0,wrapWidth,0,textHeight)} BackgroundTransparency={1} Text={current.text} TextWrapped={true} TextSize={layout.bodySize} TextXAlignment={Enum.TextXAlignment.Left} TextYAlignment={Enum.TextYAlignment.Top} TextColor3={speaker.tone==="log" ? Color3.fromRGB(214,222,214) : IVORY} Font={bodyFont(current)}/>
 				</scrollingframe>
+				<frame key="CinematicFooter" Position={UDim2.fromOffset(0,footerY)} Size={new UDim2(1,0,0,footerHeight)} BackgroundTransparency={1}>
+					<textlabel key="CinematicTitle" Size={new UDim2(1,-dotsWidth-8,1,0)} BackgroundTransparency={1} Text={title} TextXAlignment={Enum.TextXAlignment.Left} TextTruncate={Enum.TextTruncate.AtEnd} TextSize={footerTextSize} Font={Enum.Font.GothamMedium} TextColor3={FAINT}/>
+					<frame key="Progress" AnchorPoint={new Vector2(1,0)} Position={UDim2.fromScale(1,0)} Size={new UDim2(0,dotsWidth,1,0)} BackgroundTransparency={1}>
+						<uilistlayout FillDirection={Enum.FillDirection.Horizontal} HorizontalAlignment={Enum.HorizontalAlignment.Right} VerticalAlignment={Enum.VerticalAlignment.Center} Padding={new UDim(0,4)} SortOrder={Enum.SortOrder.LayoutOrder}/>
+						{!tiny && <textlabel key="Hint" LayoutOrder={0} AutomaticSize={Enum.AutomaticSize.X} Size={new UDim2(0,0,1,0)} BackgroundTransparency={1} Text={`${HINT[hintMode]}   `} TextSize={footerTextSize} Font={Enum.Font.GothamMedium} TextColor3={FAINT}/>}
+						{dots}
+					</frame>
+				</frame>
 				<frame key="CinematicBeatTimer" AnchorPoint={new Vector2(0,.5)} Position={new UDim2(0,0,1,-layout.padBottom/2)} Size={new UDim2(1,0,0,layout.progressHeight)} BackgroundColor3={IVORY} BackgroundTransparency={.88} BorderSizePixel={0}>
 					<frame ref={progressRef} key="Fill" Size={UDim2.fromScale(0,1)} BackgroundColor3={tone} BackgroundTransparency={.2} BorderSizePixel={0}/>
 				</frame>
@@ -304,7 +307,7 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 		</frame>
 		{/* Title card: the `black` shot keeps the screen black and centres the line in large ivory, chip small above it. */}
 		{card && <frame key="CinematicCard" ZIndex={3} Size={UDim2.fromScale(1,1)} BackgroundColor3={Color3.fromRGB(0,0,0)} BorderSizePixel={0}>
-			<frame key="Column" AnchorPoint={new Vector2(.5,.5)} Position={new UDim2(.5,0,.5,(barHeight-bandHeight)/2)} Size={new UDim2(0,layout.textWidth,0,0)} AutomaticSize={Enum.AutomaticSize.Y} BackgroundTransparency={1}>
+			<frame key="Column" AnchorPoint={new Vector2(.5,.5)} Position={new UDim2(.5,0,.5,-bandHeight/2)} Size={new UDim2(0,layout.textWidth,0,0)} AutomaticSize={Enum.AutomaticSize.Y} BackgroundTransparency={1}>
 				<uilistlayout HorizontalAlignment={Enum.HorizontalAlignment.Center} Padding={new UDim(0,tiny ? 6 : 14)} SortOrder={Enum.SortOrder.LayoutOrder}/>
 				<textlabel ref={cardNameRef} key="CardSpeaker" TextTransparency={hidden} LayoutOrder={1} Size={new UDim2(1,0,0,chipHeight)} BackgroundTransparency={1} Text={speaker.role !== undefined ? `${speaker.name}  ·  ${speaker.role}` : speaker.name} TextSize={chipTextSize} Font={speaker.tone==="log" ? Enum.Font.RobotoMono : Enum.Font.GothamBlack} TextColor3={tone}/>
 				<textlabel ref={cardBodyRef} key="CardLine" TextTransparency={hidden} LayoutOrder={2} Size={new UDim2(1,0,0,0)} AutomaticSize={Enum.AutomaticSize.Y} BackgroundTransparency={1} Text={current.text} TextWrapped={true} TextSize={math.floor(layout.bodySize*(tiny ? 1.2 : 1.5))} TextXAlignment={Enum.TextXAlignment.Center} TextColor3={IVORY} Font={speaker.tone==="log" ? Enum.Font.RobotoMono : Enum.Font.GothamMedium} LineHeight={1.15}/>

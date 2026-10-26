@@ -10,19 +10,23 @@ describe("letterboxed cinematic composition",()=>{
 		for(const [width,height] of SIZES) for(const large of [false,true]) {
 			const layout=getCinematicLayout(width,height,large);
 			expect(layout.sceneHeight).toBeGreaterThanOrEqual(44);
-			expect(layout.barHeight).toBeGreaterThanOrEqual(44);
 			expect(layout.controlSize).toBeGreaterThanOrEqual(44);
 			expect(layout.maxLines).toBeGreaterThanOrEqual(1);
-			expect(layout.barHeight+layout.maxBandHeight+layout.sceneHeight).toBe(height);
+			expect(layout.maxBandHeight+layout.sceneHeight).toBe(height);
+			// The 44 px control hit boxes may overhang the band, but never eat the 44 px scene lane.
+			const overhang=math.max(0,(layout.controlSize-layout.chipHeight)/2-layout.padTop);
+			expect(layout.sceneHeight-overhang).toBeGreaterThanOrEqual(44);
+			// Pills fit inside their hit box.
+			expect(layout.chipHeight).toBeLessThanOrEqual(layout.controlSize);
 			expect(layout.maxTextHeight).toBeGreaterThanOrEqual(layout.maxLines*layout.bodySize);
 		}
 	});
-	it("uses a compact lower third instead of a half-screen panel on landscape phones",()=>{
+	it("uses one compact lower third (no top bar) instead of a half-screen panel on landscape phones",()=>{
 		for(const [width,height] of [[706,267],[750,332],[844,390]]) {
 			const layout=getCinematicLayout(width,height);
 			expect(layout.phone).toBe(true);
-			// Typical two-line beat, and the worst-case capped band.
-			expect(cinematicBandHeight(layout,layout.lineHeight*2+4)).toBeLessThanOrEqual(height*.35);
+			// Typical two-line beat (the band now also carries the controls and title), and the worst-case capped band.
+			expect(cinematicBandHeight(layout,layout.lineHeight*2+4)).toBeLessThanOrEqual(height*.4);
 			expect(layout.sceneHeight).toBeGreaterThanOrEqual(height*.4);
 		}
 	});
@@ -47,7 +51,7 @@ describe("letterboxed cinematic composition",()=>{
 	});
 	it("sizes the band to the measured line, clamped between one line and the cap",()=>{
 		const layout=getCinematicLayout(750,332);
-		const fixed=layout.padTop+layout.chipHeight+layout.chipGap+layout.padBottom;
+		const fixed=layout.padTop+layout.chipHeight+layout.chipGap*2+layout.footerHeight+layout.padBottom;
 		expect(cinematicBandHeight(layout,0)).toBe(fixed+layout.lineHeight+4);
 		expect(cinematicBandHeight(layout,44)).toBe(fixed+44);
 		expect(cinematicBandHeight(layout,10000)).toBe(layout.maxBandHeight);
