@@ -1,0 +1,654 @@
+{
+  "engineCruise": {
+    "provider": "ElevenLabs",
+    "model": "eleven_text_to_sound_v2",
+    "request": {
+      "text": "Steady single fighter jet turbine heard from a chase camera, smooth warm mechanical whine with a soft low exhaust rumble, constant mid throttle. Seamless continuous loop, no startup, no shutdown, no pass by. Sound effect only. No speech, voices, profanity, screams, human injury, gore, music, or copyrighted recordings.",
+      "duration_seconds": 6,
+      "loop": true,
+      "prompt_influence": 0.65,
+      "model_id": "eleven_text_to_sound_v2"
+    },
+    "billedCharacters": "60",
+    "rawSha256": "0337fea32aae4b31d33b1c05032fe049b9dfa1390405428073d6d73c3c0f6981",
+    "subscriptionTierAtGeneration": "starter",
+    "generatedAt": "2026-10-26T21:03:37Z",
+    "prepared": {
+      "duration": 5.92,
+      "peakDb": -7.76,
+      "rmsDb": -20.1,
+      "bytes": 64912,
+      "sha256": "bb6f4e5ca95dff966e124a347cca76ea37177931ce94c7c1583cc0e2a99023fc",
+      "loop": true
+    }
+  },
+  "engineBurn": {
+    "provider": "ElevenLabs",
+    "model": "eleven_text_to_sound_v2",
+    "request": {
+      "text": "Steady powerful fighter jet afterburner exhaust roar, textured broad rushing air with a tight low turbine rumble, constant full thrust. Seamless continuous loop, no startup, no shutdown, no pass by. Sound effect only. No speech, voices, profanity, screams, human injury, gore, music, or copyrighted recordings.",
+      "duration_seconds": 6,
+      "loop": true,
+      "prompt_influence": 0.65,
+      "model_id": "eleven_text_to_sound_v2"
+    },
+    "billedCharacters": "60",
+    "rawSha256": "25d0909176c7b8991145684b3778ae41d0d2c9018670bfc43115a7d3e9eabfbc",
+    "subscriptionTierAtGeneration": "starter",
+    "generatedAt": "2026-10-26T21:03:41Z",
+    "prepared": {
+      "duration": 5.92,
+      "peakDb": -9.38,
+      "rmsDb": -18.58,
+      "bytes": 50085,
+      "sha256": "87ce67438a90bfedb77e649859c52d8445ef3414d5a4c5f8866863f0a2cdaf4f",
+      "loop": true
+    }
+  },
+  "wind": {
+    "provider": "ElevenLabs",
+    "model": "eleven_text_to_sound_v2",
+    "request": {
+      "text": "Smooth high altitude rushing wind over an aircraft canopy, soft broadband airy hiss, steady speed, no whistles or buffeting. Seamless continuous loop. Sound effect only. No speech, voices, profanity, screams, human injury, gore, music, or copyrighted recordings.",
+      "duration_seconds": 6,
+      "loop": true,
+      "prompt_influence": 0.65,
+      "model_id": "eleven_text_to_sound_v2"
+    },
+    "billedCharacters": "60",
+    "rawSha256": "0678a8d12a22b88f092809a9a4dad8861ef569c87705ea405a68dce61119e106",
+    "subscriptionTierAtGeneration": "starter",
+    "generatedAt": "2026-10-26T21:03:45Z",
+    "prepared": {
+      "duration": 5.92,
+      "peakDb": -8.44,
+      "rmsDb": -20.84,
+      "bytes": 63879,
+      "sha256": "93e828cf665e93a875dba36e142705e3050b86899c20f18f1be9e3fd5ccc15b3",
+      "loop": true
+    }
+  },
+  "missileLaunchA": {
+    "provider": "ElevenLabs",
+    "model": "eleven_text_to_sound_v2",
+    "request": {
+      "text": "One fictional air to air missile launches from a wing rack. Immediate sharp mechanical release clack and punchy rocket ignition followed by a short hot exhaust whoosh fading away. Single isolated event, dry and clean. Sound effect only. No speech, voices, profanity, screams, human injury, gore, music, or copyrighted recordings.",
+      "duration_seconds": 1.4,
+      "loop": false,
+      "prompt_influence": 0.65,
+      "model_id": "eleven_text_to_sound_v2"
+    },
+    "billedCharacters": "14",
+    "rawSha256": "6692149615aaa9778769f214866fa5ce78d1e21da2012f14941a216d5104c3a7",
+    "subscriptionTierAtGeneration": "starter",
+    "generatedAt": "2026-10-26T21:03:51Z",
+    "prepared": {
+      "duration": 1.355,
+      "peakDb": -7.8,
+      "rmsDb": -18.97,
+      "bytes": 15331,
+      "sha256": "99ffc351ce062bc65598a75c6a58da590fa6a342726bee66a0ca4bcf65625fe8",
+      "loop": false
+    }
+  },
+  "missileLaunchB": {
+    "provider": "ElevenLabs",
+    "model": "eleven_text_to_sound_v2",
+    "request": {
+      "text": "One compact air combat rocket leaving an aircraft rail. Immediate crisp metallic latch snap, tight low ignition thump then a brief fiery rushing whoosh. Single isolated event, no explosion. Sound effect only. No speech, voices, profanity, screams, human injury, gore, music, or copyrighted recordings.",
+      "duration_seconds": 1.4,
+      "loop": false,
+      "prompt_influence": 0.65,
+      "model_id": "eleven_text_to_sound_v2"
+    },
+    "billedCharacters": "14",
+    "rawSha256": "f0c3b7f4ba1ceb42ae52fa99b3293d1e9f092ae7aa354cc65ff68355e7813406",
+    "subscriptionTierAtGeneration": "starter",
+    "generatedAt": "2026-10-26T21:03:53Z",
+    "prepared": {
+      "duration": 1.3319,
+      "peakDb": -1.71,
+      "rmsDb": -28.71,
+      "bytes": 15262,
+      "sha256": "3141bab06c213381ce2b2ec7c4bbbfa0b767128cb99b60b3ad881c435c81cc06",
+      "loop": false
+    }
+  },
+  "missileMotor": {
+    "provider": "ElevenLabs",
+    "model": "eleven_text_to_sound_v2",
+    "request": {
+      "text": "Small airborne rocket motor continuously burning, focused fizzy hissing exhaust with a low mechanical rushing body, steady pitch and intensity. Seamless loop, no ignition, no impact. Sound effect only. No speech, voices, profanity, screams, human injury, gore, music, or copyrighted recordings.",
+      "duration_seconds": 4,
+      "loop": true,
+      "prompt_influence": 0.65,
+      "model_id": "eleven_text_to_sound_v2"
+    },
+    "billedCharacters": "40",
+    "rawSha256": "3c3bde1dcc29c7f957a9d060b654db0406e94d8562ec40c4f87c0d6fd98da023",
+    "subscriptionTierAtGeneration": "starter",
+    "generatedAt": "2026-10-26T21:05:29Z",
+    "prepared": {
+      "duration": 3.92,
+      "peakDb": -12.71,
+      "rmsDb": -19.02,
+      "bytes": 41426,
+      "sha256": "5ff8885002cfb063f2de65531e5ad6a6683348825a382ecb02897705ed72ded0",
+      "loop": true
+    }
+  },
+  "missileFlyby": {
+    "provider": "ElevenLabs",
+    "model": "eleven_text_to_sound_v2",
+    "request": {
+      "text": "One very fast small rocket whooshes past the listener, sharp airy approach and quick falling pitch doppler zip away. Short isolated clean flyby, no impact or explosion. Sound effect only. No speech, voices, profanity, screams, human injury, gore, music, or copyrighted recordings.",
+      "duration_seconds": 1.2,
+      "loop": false,
+      "prompt_influence": 0.65,
+      "model_id": "eleven_text_to_sound_v2"
+    },
+    "billedCharacters": "12",
+    "rawSha256": "6d19eb3913d9006c11152b605c18deae926e61dc5b4e80adbb69ee2cedcde882",
+    "subscriptionTierAtGeneration": "starter",
+    "generatedAt": "2026-10-26T21:05:32Z",
+    "prepared": {
+      "duration": 1.109,
+      "peakDb": -5.4,
+      "rmsDb": -25.21,
+      "bytes": 13671,
+      "sha256": "b2bdd8ae3f79ca89d05beed0439e1b1448a220e2efa8a233b669a777a91173b8",
+      "loop": false
+    }
+  },
+  "hitMetalA": {
+    "provider": "ElevenLabs",
+    "model": "eleven_text_to_sound_v2",
+    "request": {
+      "text": "One sharp arcade aircraft armor impact, immediate chunky metallic clank with a short rattling aluminum ring and tiny spark crackle. Mechanical material only, short dry isolated hit. Sound effect only. No speech, voices, profanity, screams, human injury, gore, music, or copyrighted recordings.",
+      "duration_seconds": 0.7,
+      "loop": false,
+      "prompt_influence": 0.65,
+      "model_id": "eleven_text_to_sound_v2"
+    },
+    "billedCharacters": "7",
+    "rawSha256": "d68d8552ed7aa5e86e71be02fb4ae7134c1fdf678e43a1a172160d260df30e2e",
+    "subscriptionTierAtGeneration": "starter",
+    "generatedAt": "2026-10-26T21:05:34Z",
+    "prepared": {
+      "duration": 0.6724,
+      "peakDb": -1.47,
+      "rmsDb": -23.67,
+      "bytes": 9754,
+      "sha256": "43e395ea0ed51b3fcce3fc4c82f3bc19374d1b6eea86ed31fa1e14d3087fc47e",
+      "loop": false
+    }
+  },
+  "hitMetalB": {
+    "provider": "ElevenLabs",
+    "model": "eleven_text_to_sound_v2",
+    "request": {
+      "text": "One compact hard strike on a hollow aircraft metal panel, crisp low clunk with a brief scraping rattle and light ringing tail. Mechanical material only, short isolated hit. Sound effect only. No speech, voices, profanity, screams, human injury, gore, music, or copyrighted recordings.",
+      "duration_seconds": 0.7,
+      "loop": false,
+      "prompt_influence": 0.65,
+      "model_id": "eleven_text_to_sound_v2"
+    },
+    "billedCharacters": "7",
+    "rawSha256": "47dfcfcfea2022a189161f27eba27603b43ef855c102a86ba76c99e94b08eaa5",
+    "subscriptionTierAtGeneration": "starter",
+    "generatedAt": "2026-10-26T21:05:37Z",
+    "prepared": {
+      "duration": 0.6724,
+      "peakDb": -2.02,
+      "rmsDb": -20.82,
+      "bytes": 9717,
+      "sha256": "ee27a884cf341bba223ed090d5bc4940aa52c64536382a1e402c30c44e633d61",
+      "loop": false
+    }
+  },
+  "airExplosion": {
+    "provider": "ElevenLabs",
+    "model": "eleven_text_to_sound_v2",
+    "request": {
+      "text": "One cinematic arcade aircraft explosion in open sky, immediate sharp fiery crack and satisfying rounded bass thump, brief metallic debris tinkle and fading airy rumble. Clean isolated mechanical destruction. Sound effect only. No speech, voices, profanity, screams, human injury, gore, music, or copyrighted recordings.",
+      "duration_seconds": 3,
+      "loop": false,
+      "prompt_influence": 0.65,
+      "model_id": "eleven_text_to_sound_v2"
+    },
+    "billedCharacters": "30",
+    "rawSha256": "2cd5d625e0f8aff2d3a631598a3f56184daa115db64a75138c04605509d1a978",
+    "subscriptionTierAtGeneration": "starter",
+    "generatedAt": "2026-10-26T21:05:39Z",
+    "prepared": {
+      "duration": 2.8772,
+      "peakDb": -2.77,
+      "rmsDb": -15.91,
+      "bytes": 27751,
+      "sha256": "d254a9b42567dc661c3582f580311082df53659528f1d0df7521a508d30741b4",
+      "loop": false
+    }
+  },
+  "groundExplosion": {
+    "provider": "ElevenLabs",
+    "model": "eleven_text_to_sound_v2",
+    "request": {
+      "text": "One arcade ground equipment explosion in an open field, immediate punchy low boom, gritty metal fragments and a short rolling dusty rumble tail. Isolated fictional mechanical destruction, no people. Sound effect only. No speech, voices, profanity, screams, human injury, gore, music, or copyrighted recordings.",
+      "duration_seconds": 3.5,
+      "loop": false,
+      "prompt_influence": 0.65,
+      "model_id": "eleven_text_to_sound_v2"
+    },
+    "billedCharacters": "35",
+    "rawSha256": "c4af8c5b236fab7da9c61ec69b29b095372f320b0d1b069cc7a22995e895e19a",
+    "subscriptionTierAtGeneration": "starter",
+    "generatedAt": "2026-10-26T21:05:41Z",
+    "prepared": {
+      "duration": 3.475,
+      "peakDb": -3.76,
+      "rmsDb": -15.64,
+      "bytes": 34211,
+      "sha256": "348c67b2cb93aed11ee26948023db04ef50ada3a40f23677d39071852fbbdb1c",
+      "loop": false
+    }
+  },
+  "heavyExplosion": {
+    "provider": "ElevenLabs",
+    "model": "eleven_text_to_sound_v2",
+    "request": {
+      "text": "One large fictional ace aircraft destruction explosion, immediate deep powerful boom with a bright fiery crack, layered metal breakup and a rolling low rumble fading naturally. Isolated mechanical destruction in open air. Sound effect only. No speech, voices, profanity, screams, human injury, gore, music, or copyrighted recordings.",
+      "duration_seconds": 4,
+      "loop": false,
+      "prompt_influence": 0.65,
+      "model_id": "eleven_text_to_sound_v2"
+    },
+    "billedCharacters": "40",
+    "rawSha256": "bfb118994e34ef31bb399be8f3752fff7d26165aca8948ed2e45733f41b60bbf",
+    "subscriptionTierAtGeneration": "starter",
+    "generatedAt": "2026-10-26T21:05:44Z",
+    "prepared": {
+      "duration": 3.995,
+      "peakDb": -1.63,
+      "rmsDb": -14.65,
+      "bytes": 34132,
+      "sha256": "0cd456ec1bd4af2d517259bda31f349ef080e0cb2ec1754a703c5380f6b16be7",
+      "loop": false
+    }
+  },
+  "flareBurst": {
+    "provider": "ElevenLabs",
+    "model": "eleven_text_to_sound_v2",
+    "request": {
+      "text": "Aircraft defensive countermeasure flares dispensing, four quick soft pneumatic pop snaps followed by a brief bright fizzy flare hiss. Compact clean single burst, no gunfire. Sound effect only. No speech, voices, profanity, screams, human injury, gore, music, or copyrighted recordings.",
+      "duration_seconds": 1.4,
+      "loop": false,
+      "prompt_influence": 0.65,
+      "model_id": "eleven_text_to_sound_v2"
+    },
+    "billedCharacters": "14",
+    "rawSha256": "f16add92020ab41f8c1d36bcf3a5d8c883c14e66e5f24a4287479d5c577564d7",
+    "subscriptionTierAtGeneration": "starter",
+    "generatedAt": "2026-10-26T21:05:46Z",
+    "prepared": {
+      "duration": 1.355,
+      "peakDb": -5.7,
+      "rmsDb": -22.99,
+      "bytes": 16513,
+      "sha256": "0249275569d9a2ba6d7cfa0475429e54b761c09bd92e6ba650acff50416614d7",
+      "loop": false
+    }
+  },
+  "droneDeploy": {
+    "provider": "ElevenLabs",
+    "model": "eleven_text_to_sound_v2",
+    "request": {
+      "text": "Small futuristic reconnaissance drone deployment, crisp mechanical latch release and short smooth servo whirr followed by a soft electronic confirmation chirp. Restrained clean isolated science fiction equipment cue. Sound effect only. No speech, voices, profanity, screams, human injury, gore, music, or copyrighted recordings.",
+      "duration_seconds": 1.2,
+      "loop": false,
+      "prompt_influence": 0.65,
+      "model_id": "eleven_text_to_sound_v2"
+    },
+    "billedCharacters": "12",
+    "rawSha256": "94ab0b4a4c6c5a11a6d955181df464d04a9b2b3e71666fac0088c55e0ec5d886",
+    "subscriptionTierAtGeneration": "starter",
+    "generatedAt": "2026-10-26T21:05:48Z",
+    "prepared": {
+      "duration": 1.195,
+      "peakDb": -6.07,
+      "rmsDb": -23.3,
+      "bytes": 14440,
+      "sha256": "7927b92ecdcb2553c51c4ddfdf4c48d15ef15174c664c3a2b1dba6773c8795f9",
+      "loop": false
+    }
+  },
+  "lockSearch": {
+    "provider": "ElevenLabs",
+    "model": "eleven_text_to_sound_v2",
+    "request": {
+      "text": "Aircraft targeting system quiet electronic searching tone, evenly spaced short soft radar ticks at a steady tempo. Restrained mid frequency clean synthesizer blips, no harsh highs. Seamless repeating loop. Sound effect only. No speech, voices, profanity, screams, human injury, gore, music, or copyrighted recordings.",
+      "duration_seconds": 1.2,
+      "loop": true,
+      "prompt_influence": 0.65,
+      "model_id": "eleven_text_to_sound_v2"
+    },
+    "billedCharacters": "12",
+    "rawSha256": "193c4ad6216ae184cca20a1d574e7ce59f1320bffca5fa289679511a3608ba57",
+    "subscriptionTierAtGeneration": "starter",
+    "generatedAt": "2026-10-26T21:05:51Z",
+    "prepared": {
+      "duration": 1.57,
+      "peakDb": -8.0,
+      "rmsDb": -23.51,
+      "bytes": 23677,
+      "sha256": "bba8d1830c9f118a8e1de64773fac828bb8aa1e98026f79f63956d6d445f9093",
+      "loop": true
+    }
+  },
+  "lockAcquired": {
+    "provider": "ElevenLabs",
+    "model": "eleven_text_to_sound_v2",
+    "request": {
+      "text": "Aircraft targeting system lock acquired notification, two clear short rising electronic chirps ending in a brief steady tone. Clean restrained mid frequency arcade interface, immediate onset. Sound effect only. No speech, voices, profanity, screams, human injury, gore, music, or copyrighted recordings.",
+      "duration_seconds": 0.6,
+      "loop": false,
+      "prompt_influence": 0.65,
+      "model_id": "eleven_text_to_sound_v2"
+    },
+    "billedCharacters": "6",
+    "rawSha256": "dc3a14d3b91b9129552d8ffc97dd5bd4426e4549ceb741c450ded84db6e09192",
+    "subscriptionTierAtGeneration": "starter",
+    "generatedAt": "2026-10-26T21:05:53Z",
+    "prepared": {
+      "duration": 0.5921,
+      "peakDb": -9.8,
+      "rmsDb": -20.7,
+      "bytes": 10385,
+      "sha256": "738d44645caa23ef4586d576841476162ed16e37d8222cd286526ade3bfe4d14",
+      "loop": false
+    }
+  },
+  "incoming": {
+    "provider": "ElevenLabs",
+    "model": "eleven_text_to_sound_v2",
+    "request": {
+      "text": "Aircraft incoming missile warning, urgent but comfortable repeating alternating mid frequency electronic beeps, separated by short silence. Clean readable arcade cockpit alert, no piercing siren. Seamless repeating loop. Sound effect only. No speech, voices, profanity, screams, human injury, gore, music, or copyrighted recordings.",
+      "duration_seconds": 1.4,
+      "loop": true,
+      "prompt_influence": 0.65,
+      "model_id": "eleven_text_to_sound_v2"
+    },
+    "billedCharacters": "14",
+    "rawSha256": "77f8bdc53ec4869f3dfc07942ad918e74a34acec3c5dc6c1101f569328813154",
+    "subscriptionTierAtGeneration": "starter",
+    "generatedAt": "2026-10-26T21:05:56Z",
+    "prepared": {
+      "duration": 1.69,
+      "peakDb": -9.46,
+      "rmsDb": -21.08,
+      "bytes": 21985,
+      "sha256": "10525f7589cd3fb6c81b01e5493a257102266c0dc3b436ee31b3cc3bfb65279f",
+      "loop": true
+    }
+  },
+  "lowHull": {
+    "provider": "ElevenLabs",
+    "model": "eleven_text_to_sound_v2",
+    "request": {
+      "text": "Damaged aircraft low hull warning, two low rounded electronic warning pulses followed by silence. Restrained readable cockpit alert, no siren, no harsh high frequencies. Seamless repeating loop. Sound effect only. No speech, voices, profanity, screams, human injury, gore, music, or copyrighted recordings.",
+      "duration_seconds": 2,
+      "loop": true,
+      "prompt_influence": 0.65,
+      "model_id": "eleven_text_to_sound_v2"
+    },
+    "billedCharacters": "20",
+    "rawSha256": "418f8f3d633b6e438d5efc7403216f19bbf168fe173c24bbda19819942254aef",
+    "subscriptionTierAtGeneration": "starter",
+    "generatedAt": "2026-10-26T21:05:59Z",
+    "prepared": {
+      "duration": 2.17,
+      "peakDb": -16.44,
+      "rmsDb": -19.75,
+      "bytes": 26359,
+      "sha256": "a2cef9769694592343538dfcbbdd7cbb3eea8ee333af63253eb7efaf513fa645",
+      "loop": true
+    }
+  },
+  "boundary": {
+    "provider": "ElevenLabs",
+    "model": "eleven_text_to_sound_v2",
+    "request": {
+      "text": "Aircraft navigation return to airspace warning, one gentle descending pair of clean electronic midrange notes followed by silence. Restrained cockpit alert distinct from urgent missile alarm. Seamless repeating loop. Sound effect only. No speech, voices, profanity, screams, human injury, gore, music, or copyrighted recordings.",
+      "duration_seconds": 2,
+      "loop": true,
+      "prompt_influence": 0.65,
+      "model_id": "eleven_text_to_sound_v2"
+    },
+    "billedCharacters": "20",
+    "rawSha256": "3caf01250f1b2d52d2b37bb349ceebecb7dd8d55a143ce83caf6c49372c638b7",
+    "subscriptionTierAtGeneration": "starter",
+    "generatedAt": "2026-10-26T21:06:02Z",
+    "prepared": {
+      "duration": 2.17,
+      "peakDb": -16.91,
+      "rmsDb": -19.82,
+      "bytes": 25984,
+      "sha256": "6908cf1a2a7163bcb33c59f4a77f480ec1bf0af259e0d2971b93ea52fa922e4f",
+      "loop": true
+    }
+  },
+  "uiConfirm": {
+    "provider": "ElevenLabs",
+    "model": "eleven_text_to_sound_v2",
+    "request": {
+      "text": "Single premium science fiction interface confirm click, soft tactile mechanical tick with a short warm electronic chirp. Clean immediate onset, restrained and unobtrusive. Sound effect only. No speech, voices, profanity, screams, human injury, gore, music, or copyrighted recordings.",
+      "duration_seconds": 0.5,
+      "loop": false,
+      "prompt_influence": 0.65,
+      "model_id": "eleven_text_to_sound_v2"
+    },
+    "billedCharacters": "5",
+    "rawSha256": "ea109957fcdea81192b1c5099936ae6394db2b98684f05d6e61f60356ec1fbf2",
+    "subscriptionTierAtGeneration": "starter",
+    "generatedAt": "2026-10-26T21:06:05Z",
+    "prepared": {
+      "duration": 0.4721,
+      "peakDb": -1.84,
+      "rmsDb": -27.65,
+      "bytes": 10123,
+      "sha256": "6c9642129b81acf512e6bddb3b7041f9c878ecdeb72603bffed5804c5daf35bc",
+      "loop": false
+    }
+  },
+  "uiDenied": {
+    "provider": "ElevenLabs",
+    "model": "eleven_text_to_sound_v2",
+    "request": {
+      "text": "Single science fiction cockpit action unavailable notification, two very short low soft electronic notes descending, restrained dry and clean, immediate onset. Sound effect only. No speech, voices, profanity, screams, human injury, gore, music, or copyrighted recordings.",
+      "duration_seconds": 0.5,
+      "loop": false,
+      "prompt_influence": 0.65,
+      "model_id": "eleven_text_to_sound_v2"
+    },
+    "billedCharacters": "5",
+    "rawSha256": "0912a8f5490c66b55c1a8e66c3fa8dd60e995153d44334aaaf1e1a673e005738",
+    "subscriptionTierAtGeneration": "starter",
+    "generatedAt": "2026-10-26T21:06:07Z",
+    "prepared": {
+      "duration": 0.4721,
+      "peakDb": -2.11,
+      "rmsDb": -19.24,
+      "bytes": 8347,
+      "sha256": "96279df18d96ce14732f4088fb8c8c5cc0c3cd763c4a4ab064c93d505a8f4d31",
+      "loop": false
+    }
+  },
+  "missionSuccess": {
+    "provider": "ElevenLabs",
+    "model": "eleven_text_to_sound_v2",
+    "request": {
+      "text": "Original arcade flight mission accomplished interface stinger, three brief ascending warm synthesized tones and a delicate resolving shimmer. Clean restrained positive equipment notification, no melody from existing works. Sound effect only. No speech, voices, profanity, screams, human injury, gore, music, or copyrighted recordings.",
+      "duration_seconds": 2,
+      "loop": false,
+      "prompt_influence": 0.65,
+      "model_id": "eleven_text_to_sound_v2"
+    },
+    "billedCharacters": "20",
+    "rawSha256": "bf1509436555a99d028178c482a156df880b75f0dd1a1d06c1c36fe9ced2ad74",
+    "subscriptionTierAtGeneration": "starter",
+    "generatedAt": "2026-10-26T21:06:09Z",
+    "prepared": {
+      "duration": 1.995,
+      "peakDb": -9.73,
+      "rmsDb": -20.7,
+      "bytes": 18744,
+      "sha256": "dbcec5092a60df6befaf32fffd24bcbd84715f2ae3091d107280129102dfcd79",
+      "loop": false
+    }
+  },
+  "missionFailure": {
+    "provider": "ElevenLabs",
+    "model": "eleven_text_to_sound_v2",
+    "request": {
+      "text": "Original arcade flight mission failed interface stinger, three brief descending muted synthesized tones with a soft low fading resonance. Restrained thoughtful equipment notification, no melody from existing works. Sound effect only. No speech, voices, profanity, screams, human injury, gore, music, or copyrighted recordings.",
+      "duration_seconds": 2,
+      "loop": false,
+      "prompt_influence": 0.65,
+      "model_id": "eleven_text_to_sound_v2"
+    },
+    "billedCharacters": "20",
+    "rawSha256": "4da60a37c0c2f9400078588abc6a951b4c24daec16804b2534bcb16fd9663d33",
+    "subscriptionTierAtGeneration": "starter",
+    "generatedAt": "2026-10-26T21:06:11Z",
+    "prepared": {
+      "duration": 1.995,
+      "peakDb": -7.91,
+      "rmsDb": -20.38,
+      "bytes": 17642,
+      "sha256": "aa08e434da565ce466d9a359e0a0584b7b80269470a1656ff8ece857fb3ff8e7",
+      "loop": false
+    }
+  },
+  "evadeWhoosh": {
+    "provider": "ElevenLabs",
+    "model": "eleven_text_to_sound_v2",
+    "request": {
+      "text": "One fast fighter jet barrel roll air rush, short smooth rising wind swish with a tight turbine surge that falls back quickly. Clean isolated aerodynamic movement effect. Sound effect only. No speech, voices, profanity, screams, human injury, gore, music, or copyrighted recordings.",
+      "duration_seconds": 1.2,
+      "loop": false,
+      "prompt_influence": 0.65,
+      "model_id": "eleven_text_to_sound_v2"
+    },
+    "billedCharacters": "12",
+    "rawSha256": "76d0dc73fff1c3af52e95ab32e4ed422a4081846782bf3eb636dcf468e7deaab",
+    "subscriptionTierAtGeneration": "starter",
+    "generatedAt": "2026-10-26T21:06:13Z",
+    "prepared": {
+      "duration": 1.195,
+      "peakDb": -4.43,
+      "rmsDb": -21.57,
+      "bytes": 12968,
+      "sha256": "6692a8f03f299b2d203cb84bb9f814b441d53a372a91819f47925d29b82e3498",
+      "loop": false
+    }
+  },
+  "sfxBank01": {
+    "provider": "Local packing of ElevenLabs originals",
+    "subscriptionTierAtGeneration": "starter",
+    "derivedFrom": {
+      "enemyEngine": "071d9e03d021ab264b709008ad555b9d6db49d9a745e7394fa847babbf1b0323",
+      "missileLaunchA": "99ffc351ce062bc65598a75c6a58da590fa6a342726bee66a0ca4bcf65625fe8",
+      "missileLaunchB": "3141bab06c213381ce2b2ec7c4bbbfa0b767128cb99b60b3ad881c435c81cc06",
+      "missileMotor": "5ff8885002cfb063f2de65531e5ad6a6683348825a382ecb02897705ed72ded0",
+      "missileFlyby": "b2bdd8ae3f79ca89d05beed0439e1b1448a220e2efa8a233b669a777a91173b8"
+    },
+    "prepared": {
+      "sha256": "7c7f0a60d570bf9ede84566f20a0eda2100ba9104c8ad5bc00f142b7eeef82a1",
+      "duration": 15.135918367346939,
+      "peak": 0.8187626600265503
+    }
+  },
+  "sfxBank02": {
+    "provider": "Local packing of ElevenLabs originals",
+    "subscriptionTierAtGeneration": "starter",
+    "derivedFrom": {
+      "hitMetalA": "43e395ea0ed51b3fcce3fc4c82f3bc19374d1b6eea86ed31fa1e14d3087fc47e",
+      "hitMetalB": "ee27a884cf341bba223ed090d5bc4940aa52c64536382a1e402c30c44e633d61",
+      "airExplosion": "d254a9b42567dc661c3582f580311082df53659528f1d0df7521a508d30741b4",
+      "groundExplosion": "348c67b2cb93aed11ee26948023db04ef50ada3a40f23677d39071852fbbdb1c",
+      "heavyExplosion": "0cd456ec1bd4af2d517259bda31f349ef080e0cb2ec1754a703c5380f6b16be7"
+    },
+    "prepared": {
+      "sha256": "a4eed52d3ece60194f75fb5fd7d28e0e03068381cea3bf5459f4e19532f8b7b5",
+      "duration": 13.191972789115646,
+      "peak": 0.8303704261779785
+    }
+  },
+  "sfxBank03": {
+    "provider": "Local packing of ElevenLabs originals",
+    "subscriptionTierAtGeneration": "starter",
+    "derivedFrom": {
+      "flareBurst": "0249275569d9a2ba6d7cfa0475429e54b761c09bd92e6ba650acff50416614d7",
+      "droneDeploy": "7927b92ecdcb2553c51c4ddfdf4c48d15ef15174c664c3a2b1dba6773c8795f9",
+      "lockSearch": "bba8d1830c9f118a8e1de64773fac828bb8aa1e98026f79f63956d6d445f9093",
+      "lockAcquired": "738d44645caa23ef4586d576841476162ed16e37d8222cd286526ade3bfe4d14",
+      "incoming": "10525f7589cd3fb6c81b01e5493a257102266c0dc3b436ee31b3cc3bfb65279f"
+    },
+    "prepared": {
+      "sha256": "3c31dbcdc9ccaa5805ec6139fdcd5f4775117c0d37f75444ea643ee695c66caa",
+      "duration": 7.902131519274376,
+      "peak": 0.4840792119503021
+    }
+  },
+  "sfxBank04": {
+    "provider": "Local packing of ElevenLabs originals",
+    "subscriptionTierAtGeneration": "starter",
+    "derivedFrom": {
+      "lowHull": "a2cef9769694592343538dfcbbdd7cbb3eea8ee333af63253eb7efaf513fa645",
+      "boundary": "6908cf1a2a7163bcb33c59f4a77f480ec1bf0af259e0d2971b93ea52fa922e4f",
+      "uiConfirm": "6c9642129b81acf512e6bddb3b7041f9c878ecdeb72603bffed5804c5daf35bc",
+      "uiDenied": "96279df18d96ce14732f4088fb8c8c5cc0c3cd763c4a4ab064c93d505a8f4d31",
+      "missionSuccess": "dbcec5092a60df6befaf32fffd24bcbd84715f2ae3091d107280129102dfcd79"
+    },
+    "prepared": {
+      "sha256": "0bae9d07a641c211d3db3795a7449468bb108791872e218e23124811658699b7",
+      "duration": 8.77922902494331,
+      "peak": 0.8125507831573486
+    }
+  },
+  "sfxBank05": {
+    "provider": "Local packing of ElevenLabs originals",
+    "subscriptionTierAtGeneration": "starter",
+    "derivedFrom": {
+      "missionFailure": "aa08e434da565ce466d9a359e0a0584b7b80269470a1656ff8ece857fb3ff8e7",
+      "evadeWhoosh": "6692a8f03f299b2d203cb84bb9f814b441d53a372a91819f47925d29b82e3498"
+    },
+    "prepared": {
+      "sha256": "f06ef2482bcacbcd4d4ab8bf94df3653fc11887c09156dfcfdf2b0d8707ce436",
+      "duration": 3.9400226757369614,
+      "peak": 0.591663122177124
+    }
+  },
+  "enemyEngine": {
+    "provider": "ElevenLabs",
+    "model": "eleven_text_to_sound_v2",
+    "request": {
+      "text": "Continuous non-tonal jet turbine exhaust noise, smooth broadband mechanical rushing hiss with a deep steady rumble. No vowel-like tones, no howling, no rhythmic pulses. Constant speed. Seamless loop, no startup or shutdown. Sound effect only. No speech, voices, profanity, screams, human injury, gore, music, or copyrighted recordings.",
+      "duration_seconds": 6,
+      "loop": true,
+      "prompt_influence": 0.65,
+      "model_id": "eleven_text_to_sound_v2"
+    },
+    "billedCharacters": "60",
+    "rawSha256": "07f71195b8e0f4ee00749b25d16b07b564eb5ac72f5f8bbb306f0952998a65db",
+    "subscriptionTierAtGeneration": "starter",
+    "generatedAt": "2026-10-26T21:14:10Z",
+    "prepared": {
+      "duration": 5.92,
+      "peakDb": -5.91,
+      "rmsDb": -18.31,
+      "bytes": 46859,
+      "sha256": "071d9e03d021ab264b709008ad555b9d6db49d9a745e7394fa847babbf1b0323",
+      "loop": true
+    }
+  }
+}

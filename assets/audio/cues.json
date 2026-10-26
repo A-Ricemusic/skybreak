@@ -1,0 +1,158 @@
+{
+  "version": 1,
+  "provider": "ElevenLabs",
+  "model": "eleven_text_to_sound_v2",
+  "contentPolicy": "PG-13 aircraft game effects only. No speech, profanity, vocals, human injury, gore, screams, brands, or music.",
+  "cues": [
+    {
+      "id": "engineCruise",
+      "seconds": 6,
+      "loop": true,
+      "prompt": "Steady single fighter jet turbine heard from a chase camera, smooth warm mechanical whine with a soft low exhaust rumble, constant mid throttle. Seamless continuous loop, no startup, no shutdown, no pass by."
+    },
+    {
+      "id": "engineBurn",
+      "seconds": 6,
+      "loop": true,
+      "prompt": "Steady powerful fighter jet afterburner exhaust roar, textured broad rushing air with a tight low turbine rumble, constant full thrust. Seamless continuous loop, no startup, no shutdown, no pass by."
+    },
+    {
+      "id": "wind",
+      "seconds": 6,
+      "loop": true,
+      "prompt": "Smooth high altitude rushing wind over an aircraft canopy, soft broadband airy hiss, steady speed, no whistles or buffeting. Seamless continuous loop."
+    },
+    {
+      "id": "enemyEngine",
+      "seconds": 6,
+      "loop": true,
+      "prompt": "Continuous non-tonal jet turbine exhaust noise, smooth broadband mechanical rushing hiss with a deep steady rumble. No vowel-like tones, no howling, no rhythmic pulses. Constant speed. Seamless loop, no startup or shutdown."
+    },
+    {
+      "id": "missileLaunchA",
+      "seconds": 1.4,
+      "loop": false,
+      "prompt": "One fictional air to air missile launches from a wing rack. Immediate sharp mechanical release clack and punchy rocket ignition followed by a short hot exhaust whoosh fading away. Single isolated event, dry and clean."
+    },
+    {
+      "id": "missileLaunchB",
+      "seconds": 1.4,
+      "loop": false,
+      "prompt": "One compact air combat rocket leaving an aircraft rail. Immediate crisp metallic latch snap, tight low ignition thump then a brief fiery rushing whoosh. Single isolated event, no explosion."
+    },
+    {
+      "id": "missileMotor",
+      "seconds": 4,
+      "loop": true,
+      "prompt": "Small airborne rocket motor continuously burning, focused fizzy hissing exhaust with a low mechanical rushing body, steady pitch and intensity. Seamless loop, no ignition, no impact."
+    },
+    {
+      "id": "missileFlyby",
+      "seconds": 1.2,
+      "loop": false,
+      "prompt": "One very fast small rocket whooshes past the listener, sharp airy approach and quick falling pitch doppler zip away. Short isolated clean flyby, no impact or explosion."
+    },
+    {
+      "id": "hitMetalA",
+      "seconds": 0.7,
+      "loop": false,
+      "prompt": "One sharp arcade aircraft armor impact, immediate chunky metallic clank with a short rattling aluminum ring and tiny spark crackle. Mechanical material only, short dry isolated hit."
+    },
+    {
+      "id": "hitMetalB",
+      "seconds": 0.7,
+      "loop": false,
+      "prompt": "One compact hard strike on a hollow aircraft metal panel, crisp low clunk with a brief scraping rattle and light ringing tail. Mechanical material only, short isolated hit."
+    },
+    {
+      "id": "airExplosion",
+      "seconds": 3,
+      "loop": false,
+      "prompt": "One cinematic arcade aircraft explosion in open sky, immediate sharp fiery crack and satisfying rounded bass thump, brief metallic debris tinkle and fading airy rumble. Clean isolated mechanical destruction."
+    },
+    {
+      "id": "groundExplosion",
+      "seconds": 3.5,
+      "loop": false,
+      "prompt": "One arcade ground equipment explosion in an open field, immediate punchy low boom, gritty metal fragments and a short rolling dusty rumble tail. Isolated fictional mechanical destruction, no people."
+    },
+    {
+      "id": "heavyExplosion",
+      "seconds": 4,
+      "loop": false,
+      "prompt": "One large fictional ace aircraft destruction explosion, immediate deep powerful boom with a bright fiery crack, layered metal breakup and a rolling low rumble fading naturally. Isolated mechanical destruction in open air."
+    },
+    {
+      "id": "flareBurst",
+      "seconds": 1.4,
+      "loop": false,
+      "prompt": "Aircraft defensive countermeasure flares dispensing, four quick soft pneumatic pop snaps followed by a brief bright fizzy flare hiss. Compact clean single burst, no gunfire."
+    },
+    {
+      "id": "droneDeploy",
+      "seconds": 1.2,
+      "loop": false,
+      "prompt": "Small futuristic reconnaissance drone deployment, crisp mechanical latch release and short smooth servo whirr followed by a soft electronic confirmation chirp. Restrained clean isolated science fiction equipment cue."
+    },
+    {
+      "id": "lockSearch",
+      "seconds": 1.2,
+      "loop": true,
+      "prompt": "Aircraft targeting system quiet electronic searching tone, evenly spaced short soft radar ticks at a steady tempo. Restrained mid frequency clean synthesizer blips, no harsh highs. Seamless repeating loop."
+    },
+    {
+      "id": "lockAcquired",
+      "seconds": 0.6,
+      "loop": false,
+      "prompt": "Aircraft targeting system lock acquired notification, two clear short rising electronic chirps ending in a brief steady tone. Clean restrained mid frequency arcade interface, immediate onset."
+    },
+    {
+      "id": "incoming",
+      "seconds": 1.4,
+      "loop": true,
+      "prompt": "Aircraft incoming missile warning, urgent but comfortable repeating alternating mid frequency electronic beeps, separated by short silence. Clean readable arcade cockpit alert, no piercing siren. Seamless repeating loop."
+    },
+    {
+      "id": "lowHull",
+      "seconds": 2,
+      "loop": true,
+      "prompt": "Damaged aircraft low hull warning, two low rounded electronic warning pulses followed by silence. Restrained readable cockpit alert, no siren, no harsh high frequencies. Seamless repeating loop."
+    },
+    {
+      "id": "boundary",
+      "seconds": 2,
+      "loop": true,
+      "prompt": "Aircraft navigation return to airspace warning, one gentle descending pair of clean electronic midrange notes followed by silence. Restrained cockpit alert distinct from urgent missile alarm. Seamless repeating loop."
+    },
+    {
+      "id": "uiConfirm",
+      "seconds": 0.5,
+      "loop": false,
+      "prompt": "Single premium science fiction interface confirm click, soft tactile mechanical tick with a short warm electronic chirp. Clean immediate onset, restrained and unobtrusive."
+    },
+    {
+      "id": "uiDenied",
+      "seconds": 0.5,
+      "loop": false,
+      "prompt": "Single science fiction cockpit action unavailable notification, two very short low soft electronic notes descending, restrained dry and clean, immediate onset."
+    },
+    {
+      "id": "missionSuccess",
+      "seconds": 2,
+      "loop": false,
+      "prompt": "Original arcade flight mission accomplished interface stinger, three brief ascending warm synthesized tones and a delicate resolving shimmer. Clean restrained positive equipment notification, no melody from existing works."
+    },
+    {
+      "id": "missionFailure",
+      "seconds": 2,
+      "loop": false,
+      "prompt": "Original arcade flight mission failed interface stinger, three brief descending muted synthesized tones with a soft low fading resonance. Restrained thoughtful equipment notification, no melody from existing works."
+    },
+    {
+      "id": "evadeWhoosh",
+      "seconds": 1.2,
+      "loop": false,
+      "prompt": "One fast fighter jet barrel roll air rush, short smooth rising wind swish with a tight turbine surge that falls back quickly. Clean isolated aerodynamic movement effect."
+    }
+  ]
+}

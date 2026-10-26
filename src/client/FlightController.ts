@@ -12,6 +12,7 @@ import { CameraShake } from "./CameraShake";
 import { CombatEffects } from "./CombatEffects";
 import { EnemySmoothing } from "./EnemySmoothing";
 import { MissileTrails } from "./MissileTrails";
+import { GameAudio } from "./GameAudio";
 import { evadeGauge } from "../shared/EvadeGauge";
 import { terrainProbeLength, terrainSeconds } from "../shared/FlightWarnings";
 import type { RadarContact, RadarContactKind } from "../shared/RadarMath";
@@ -158,6 +159,7 @@ export class FlightController {
 	private connections: RBXScriptConnection[] = [];
 	private hiddenParts = new Map<BasePart | Trail | ParticleEmitter | Light, number | boolean>();
 	private readonly missiles = new MissileTrails();
+	private readonly audio = new GameAudio();
 	private engine?: EngineRig;
 	private engineSpool = 0;
 	private readonly actionName: string;
@@ -227,6 +229,7 @@ export class FlightController {
 			const message = data as Partial<HudState> & { kind?: string };
 			if (message.kind === "HudState") { if (this.active) this.applyHud(message); }
 			else if (message.kind === "Completed" || message.kind === "Failed") this.Stop();
+			else if (message.kind === "Loading") this.Stop();
 		}));
 		this.streamConnections.push(this.remotes.Telemetry.OnClientEvent.Connect((packet: unknown) => {
 			if (!this.active) return;
@@ -271,6 +274,7 @@ export class FlightController {
 	}
 	private notify(): void {
 		this.telemetry.boundaryWarning = this.GetBoundaryWarning();
+		this.audio.Telemetry(this.telemetry);
 		for (const listener of this.listeners) {
 			const [ok, message] = pcall(listener, this.telemetry);
 			if (!ok) warn(`SKYBREAK telemetry listener: ${tostring(message)}`);
@@ -341,6 +345,8 @@ export class FlightController {
 		this.action("Evade");
 	}
 	public CycleTarget(): void { this.action("CycleTarget"); }
+	public ConfirmAudio(): void { this.audio.Confirm(); }
+	public ResultAudio(won: boolean): void { this.audio.Result(won); }
 	/**
 	 * Pause/Resume: tells the server (which stops stepping the sortie and shifts its
 	 * clock) and freezes the local prediction so the jet does not fly on and snap back.
@@ -365,6 +371,7 @@ export class FlightController {
 	private releaseLocalPause(): void { if (this.paused) this.applyLocalPause(false); }
 	private applyLocalPause(paused: boolean): void {
 		this.paused = paused;
+		this.audio.SetPaused(paused);
 		this.keys.clear(); this.mouseSteer = false; this.touchInput = Vector2.zero; this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0;
 		this.sendTime = INPUT_KEEPALIVE;
 		// Free the gamepad stick and buttons for the pause card's GUI navigation.
@@ -610,6 +617,7 @@ export class FlightController {
 			JetFactory.SetVapor(engine, EngineFx.VaporRate(math.max(math.abs(input.x), math.abs(input.y)), speed));
 		}
 		this.missiles.Step();
+		this.audio.Step(dt, this.frameInput.throttle, speed, this.visualFrame.Position, this.GetBoundaryWarning());
 	}
 	private render(dt: number): void {
 		const camera = Workspace.CurrentCamera;
@@ -737,6 +745,7 @@ export class FlightController {
 			// Phase changes add ground targets and protected actors; rebuild the probe's include list (throttled).
 			this.connections.push(this.aircraft.Parent.DescendantAdded.Connect((item) => { if (item.IsA("BasePart") && item.GetAttribute("FlightSolid") === true) this.probeDirty = true; }));
 		}
+		this.audio.Start(this.aircraft);
 		[this.targetGui, this.bracket, this.bracketStroke, this.caption, this.arrow] = createTargetCue(Players.LocalPlayer.WaitForChild("PlayerGui"));
 		this.bindControls();
 		this.connections.push(UserInputService.InputBegan.Connect((input, processed) => {
@@ -764,6 +773,7 @@ export class FlightController {
 		return true;
 	}
 	public Stop(): void {
+		this.audio.Stop();
 		this.active = false;
 		this.paused = false;
 		// Each sortie's server session counts pause serials from 0.
@@ -805,6 +815,7 @@ export class FlightController {
 	}
 	public Destroy(): void {
 		this.Stop();
+		this.audio.Destroy();
 		for (const connection of this.streamConnections) connection.Disconnect();
 		this.streamConnections.clear();
 		this.listeners.clear();

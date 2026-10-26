@@ -1,0 +1,64 @@
+{
+  "scope": "Non-vocal SKYBREAK gameplay sound effects; local Studio integration, no live place publication",
+  "audio": {
+    "effects": 25,
+    "robloxAssets": 8,
+    "moderation": "All eight explicitly approved",
+    "speechScreen": "All source effects and upload banks passed local Whisper tiny.en with VAD; automated screening, not a human listening review"
+  },
+  "runtimeAssetAudit": {
+    "fetchFailures": 0,
+    "playbackRegionsChecked": 25,
+    "loopBoundaryPassed": true,
+    "oneShotBoundaryPassed": true
+  },
+  "gameplaySmoke": {
+    "engineLoadedAndPlaying": true,
+    "throttleResponse": true,
+    "sfxVolumeMute": true,
+    "pauseResume": true,
+    "motorAttachedToMovingMissile": true
+  },
+  "missionPass": {
+    "missionId": 1,
+    "difficulty": "easy",
+    "outcome": "Completed",
+    "kills": 4,
+    "groundKills": 1,
+    "health": 94,
+    "missileCommands": 7,
+    "evadeCommands": 0,
+    "persistence": "session",
+    "pilot": "tools/playtest-campaign.client.luau; normal controls, no damage/health/result overrides",
+    "soundsObserved": [
+      "airExplosion",
+      "enemyEngine",
+      "engineBurn",
+      "engineCruise",
+      "groundExplosion",
+      "hitMetalA",
+      "hitMetalB",
+      "incoming",
+      "lockAcquired",
+      "lockSearch",
+      "missileFlyby",
+      "missileLaunchA",
+      "missileLaunchB",
+      "missileMotor",
+      "missionSuccess",
+      "wind"
+    ]
+  },
+  "offlineTests": {
+    "passed": 302,
+    "failed": 0
+  },
+  "publication": "Not published: owner limited the Open Cloud key to audio uploads/status, not overwriting the live place.",
+  "robloxEngineTests": {
+    "total": 463,
+    "success": true,
+    "suites": 40,
+    "passed": 463,
+    "failed": 0
+  }
+}
