@@ -43,6 +43,8 @@ interface Enemy {
 	breakTimer: number; breakUntil: number;
 	/** Odds this enemy breaks out of a close lock (act, difficulty and Ace behaviour). */
 	lockBreakChance: number;
+	/** Its last windup ended in a held shot (ShotClear): it keeps its range through the next one (ThreatRules.KeepsRange). */
+	heldShot?: boolean;
 	role?: AirRole;
 	/** Ace only: stage, retreat/hold mode and stage invulnerability (AceRules). */
 	aceState?: AceStageState;
@@ -953,7 +955,7 @@ function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy, 
 	let profile: MissileProfile | undefined;
 	if (hostile) {
 		if (!ownsEnemy(session, enemy) || enemy.kind === "ground") return;
-		position = enemy.position.add(enemy.direction.mul(18));
+		position = enemy.position.add(enemy.direction.mul(MissileRules.LaunchOffset));
 		ace = enemy.kind === "ace";
 		profile = MissileRules.Profile(session.difficulty, sessionAct(session), ace);
 		// Launched on a collision course for the jet's current flight; the salvo fan is applied on top.
@@ -1197,6 +1199,15 @@ function stepEnemies(session: CombatSession, dt: number): void {
 				session.lockProgress *= 0.4;
 			}
 		}
+		// The fair-shot standoff: through a windup the ace (and a bandit whose last shot was held) sat on the
+		// player's tail flies for the point `standoff` studs back on the player's track at matched speed, so
+		// the shot it is warning about is still a fair one (MissileRules.ShotClear) when the windup ends.
+		const keepsRange = enemy.windup > 0 && (enemy.mode === "attack" || enemy.mode === "run") && aceFighting && !courier
+			&& ThreatRules.KeepsRange(ace, enemy.heldShot === true);
+		const standoff = keepsRange
+			? MissileRules.Standoff(MissileRules.Profile(session.difficulty, act, ace), session.state.speed, ThreatRules.StandoffMargin(session.difficulty))
+			: 0;
+		const holding = keepsRange && ThreatRules.HoldsStandoff(playerForward.Dot(unitOr(enemy.position.sub(playerPosition), playerForward)), separation, standoff);
 		let desired: Vector3;
 		if (aceState?.mode === "retreat") {
 			// Run straight away from the player, climbing a little, until out of lock range.
@@ -1219,7 +1230,8 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		} else if (enemy.mode === "orbit") {
 			const orbit = new Vector3(site!.x + math.sin(session.elapsed * .4 + index) * 240, 230, site!.z + math.cos(session.elapsed * .4 + index) * 240);
 			desired = unitOr(orbit.sub(enemy.position), enemy.direction);
-		} else {
+		} else if (holding) desired = unitOr(playerPosition.sub(playerForward.mul(standoff)).sub(enemy.position), enemy.direction);
+		else {
 			const lead = math.clamp(separation / (350 + session.state.speed), 0.35, 1.8);
 			const weave = math.sin(session.elapsed * (ace ? 1.7 : 0.65) + index * 1.8) * (ace ? 125 : 45);
 			let destination = playerPosition.add(playerVelocity.mul(lead)).add(lateral.mul(weave)).add(new Vector3(0, ace ? math.sin(session.elapsed * 1.4) * 65 : 25, 0));
@@ -1239,6 +1251,7 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		// An extending bandit drops below the player's speed: turn back in and there is a rear shot to take.
 		else if (!ace && enemy.mode === "extend") speed = ThreatRules.ExtendSpeed(session.state.speed, 180);
 		if (!aceFighting) speed += 40;
+		if (holding) speed = ThreatRules.StandoffSpeed(separation, standoff, session.state.speed, speed);
 		const oldDirection = enemy.direction;
 		const breaking = enemy.breakUntil > session.elapsed;
 		enemy.direction = unitOr(oldDirection.Lerp(desired, FlightMath.DampAlpha(breaking ? breakTurn : ace ? 2.8 : 2.1, dt)), oldDirection);
@@ -1258,20 +1271,25 @@ function stepEnemies(session: CombatSession, dt: number): void {
 				enemy.warning!.Enabled = false;
 				enemy.model.SetAttribute("AttackWarning", false);
 				// A staged ace that broke off mid-windup holds its shot, and so does a shooter that closed to
-				// point-blank during the windup (no BREAK cue or turn could answer it): it re-arms shortly.
+				// point-blank during the windup (no BREAK cue or turn could answer it): it re-arms shortly and
+				// keeps its range through the next windup.
 				enemy.fireTimer = tuned(session, ace ? TUNING.aceReload : TUNING.banditReload);
 				if (separation < 2300 && aceFighting) {
 					if (shotClear(session, enemy, 0)) {
 						const salvo = ace ? aceSalvo : 1;
 						for (let shot = 0; shot < salvo; shot++) launchMissile(session, true, enemy, shot, salvo);
-					} else enemy.fireTimer = HELD_SHOT_RETRY;
+						enemy.heldShot = false;
+					} else {
+						enemy.fireTimer = HELD_SHOT_RETRY;
+						enemy.heldShot = true;
+					}
 				}
 			}
 		} else if (mayFire && (ace || flightReady) && ThreatRules.MayFire({
 			separation, aimDot, fireTimer: enemy.fireTimer, globalReady: true,
 			evading: session.evadeRemaining > 0, playerStraight, minRange: fireMin, maxRange: ace ? fireMax + 200 : fireMax,
 			aimThreshold, straightRelax,
-		}) && shotClear(session, enemy, windupSeconds)) {
+		}) && shotClear(session, enemy, windupSeconds, !ThreatRules.KeepsRange(ace, enemy.heldShot === true))) {
 			enemy.windup = windupSeconds;
 			enemy.warning!.Enabled = true;
 			enemy.model.SetAttribute("AttackWarning", true);
@@ -1283,10 +1301,17 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		}
 	}
 }
-/** Would `enemy`'s missile, fired `ahead` seconds from now on both jets' current lines, give the player a fair shot (MissileRules.ShotClear)? */
-function shotClear(session: CombatSession, enemy: Enemy, ahead: number): boolean {
+/**
+ * Would `enemy`'s missile, fired `ahead` seconds from now, give the player a fair shot (MissileRules.ShotClear)?
+ * Both jets are carried on their current lines, or with `chase` the enemy flies its windup straight for the
+ * player (MissileRules.ChaseClear): a shooter that will not keep its range is checked where its pursuit takes it.
+ */
+function shotClear(session: CombatSession, enemy: Enemy, ahead: number, chase = false): boolean {
 	const profile = MissileRules.Profile(session.difficulty, sessionAct(session), enemy.kind === "ace");
-	return MissileRules.ShotClear(point(enemy.position.add(enemy.direction.mul(18))), point(enemy.velocity), jetTarget(session), profile, ahead);
+	const from = point(enemy.position.add(enemy.direction.mul(MissileRules.LaunchOffset)));
+	return chase
+		? MissileRules.ChaseClear(from, enemy.velocity.Magnitude, jetTarget(session), profile, ahead)
+		: MissileRules.ShotClear(from, point(enemy.velocity), jetTarget(session), profile, ahead);
 }
 function segmentDistance(target: Vector3, startPosition: Vector3, endPosition: Vector3): number {
 	return WeaponRules.SegmentDistance(point(target), point(startPosition), point(endPosition));

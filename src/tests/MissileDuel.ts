@@ -8,8 +8,8 @@ import { FlightInput } from "../shared/Types";
 // receives it. Test-only (ServerStorage.Tests in Studio, the offline Luau VM otherwise).
 //
 //   1. A bandit sits `range` studs out at `bearing` from the jet's nose, nose on the jet (the fire
-//      gate's separation and aim dot), and starts its windup if MissileRules.ShotClear predicts a
-//      fair shot at the end of it. It chases for the windup the way stepEnemies flies an attacking
+//      gate's separation and aim dot), and starts its windup if MissileRules.ChaseClear predicts a
+//      fair shot at the end of it (a fresh bandit chases through its windup). It chases for the windup the way stepEnemies flies an attacking
 //      bandit (lead pursuit, side bracket beyond 1100 studs), checks ShotClear again, and launches
 //      18 studs ahead of its nose on MissileRules.LaunchHeading.
 //   2. Every 1/30 s the jet steps (FlightMath), then the missile (MissileRules). Every 0.1 s the
@@ -106,7 +106,8 @@ export const MissileDuel = {
 		const banditSpeed = () => math.clamp(jet.speed + 24, 285, 350);
 		const windup = WINDUP[math.clamp(setup.act, 1, 3) - 1] * WINDUP_SCALE[setup.level];
 		const result: DuelResult = { held: true, event: "flying", cued: false, age: 0, launchRange: 0 };
-		if (!MissileRules.ShotClear(bandit, scale(heading, banditSpeed()), target(jet), profile, windup)) return result;
+		const start = { x: bandit.x + heading.x * MissileRules.LaunchOffset, y: bandit.y + heading.y * MissileRules.LaunchOffset, z: bandit.z + heading.z * MissileRules.LaunchOffset };
+		if (!MissileRules.ChaseClear(start, banditSpeed(), target(jet), profile, windup)) return result;
 		for (let time = 0; time < windup; time += STEP) {
 			FlightMath.Step(jet, circle, STEP);
 			const now = target(jet);
@@ -125,7 +126,7 @@ export const MissileDuel = {
 			const speed = banditSpeed();
 			bandit = { x: bandit.x + heading.x * speed * STEP, y: bandit.y + heading.y * speed * STEP, z: bandit.z + heading.z * speed * STEP };
 		}
-		const from = { x: bandit.x + heading.x * 18, y: bandit.y + heading.y * 18, z: bandit.z + heading.z * 18 };
+		const from = { x: bandit.x + heading.x * MissileRules.LaunchOffset, y: bandit.y + heading.y * MissileRules.LaunchOffset, z: bandit.z + heading.z * MissileRules.LaunchOffset };
 		if (!MissileRules.ShotClear(from, scale(heading, banditSpeed()), target(jet), profile)) return result;
 		const missile = MissileRules.Launch(from, MissileRules.LaunchHeading(from, profile, target(jet)), profile);
 		result.held = false;

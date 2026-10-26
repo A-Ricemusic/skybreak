@@ -181,4 +181,18 @@ describe("Bandit lock breaks, flares and extensions", () => {
 		expect(ThreatRules.ExtendSpeed(255, 180)).toBe(245);
 		expect(ThreatRules.ExtendSpeed(150, 180)).toBe(180);
 	});
+	it("keeps a fair range through the windup: the ace always, a bandit after a held shot, only on the tail", () => {
+		expect(ThreatRules.KeepsRange(true, false)).toBe(true);
+		expect(ThreatRules.KeepsRange(false, true)).toBe(true);
+		expect(ThreatRules.KeepsRange(false, false)).toBe(false);
+		expect(ThreatRules.HoldsStandoff(-0.9, 700, 600)).toBe(true);
+		expect(ThreatRules.HoldsStandoff(0.2, 700, 600)).toBe(false);
+		expect(ThreatRules.HoldsStandoff(-0.9, 1100, 600)).toBe(false);
+		// Falls back while inside the range (never slower than 180), closes while beyond it, never above cruise.
+		expect(ThreatRules.StandoffSpeed(500, 600, 255, 330)).toBe(195);
+		expect(ThreatRules.StandoffSpeed(200, 600, 255, 330)).toBe(180);
+		expect(ThreatRules.StandoffSpeed(700, 600, 255, 330)).toBe(315);
+		expect(ThreatRules.StandoffSpeed(900, 600, 255, 330)).toBe(330);
+		expect(ThreatRules.StandoffMargin("ace") > ThreatRules.StandoffMargin("normal")).toBe(true);
+	});
 });

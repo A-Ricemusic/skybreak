@@ -148,5 +148,10 @@ describe("Missile dodging, closed loop", () => {
 		const chase = { x: 0, y: 0, z: -275 };
 		expect(MissileRules.ShotClear({ x: 0, y: 400, z: 450 }, chase, jet, profile)).toBe(false);
 		expect(MissileRules.ShotClear({ x: 0, y: 400, z: 800 }, chase, jet, profile)).toBe(true);
+		// From the standoff the shot is fair now; a chaser at 350 (100 studs/s of closure) for a 1.7 s windup would end inside it.
+		const standoff = MissileRules.Standoff(profile, 250, 0.3);
+		expect(MissileRules.ShotClear({ x: 0, y: 400, z: standoff }, { x: 0, y: 0, z: -250 }, jet, profile, 1.7)).toBe(true);
+		expect(MissileRules.ChaseClear({ x: 0, y: 400, z: standoff }, 350, jet, profile, 1.7)).toBe(false);
+		expect(MissileRules.ChaseClear({ x: 0, y: 400, z: standoff + 300 }, 350, jet, profile, 1.7)).toBe(true);
 	});
 });

@@ -100,6 +100,8 @@ const FUSE = [18, 22, 26];
 const LIFE = [7, 8, 9];
 const ACE_TURN_BONUS = 0.04;
 const ACE_GIMBAL_BONUS = 5;
+/** Shooters launch this many studs ahead of their nose. */
+const LAUNCH_OFFSET = 18;
 /** Launches lead the jet by at most this share of the seeker cone. */
 const LEAD_SHARE = 0.8;
 /** Shortest time to impact a launch may have, by level (ShotClear). */
@@ -146,6 +148,7 @@ export const MissileRules = {
 	CueHorizon: CUE_HORIZON,
 	CoastDrag: COAST_DRAG,
 	MinSpeed: MIN_SPEED,
+	LaunchOffset: LAUNCH_OFFSET,
 	/** The act's missile for this level; `acePilot` for a missile launched by the mission's ace. */
 	Profile(difficulty: DifficultyKind, actIndex: number, acePilot = false): MissileProfile {
 		const index = act(actIndex) - 1;
@@ -283,6 +286,24 @@ export const MissileRules = {
 		const shot = MissileRules.Launch(launch, MissileRules.LaunchHeading(launch, profile, later), profile);
 		const seconds = MissileRules.TimeToImpact(shot, later);
 		return seconds !== undefined && seconds >= profile.minLaunch;
+	},
+	/**
+	 * ShotClear for a shooter that spends the windup chasing: carried at `speed` straight for where the
+	 * jet will be `ahead` seconds from now instead of on its current line, since a pursuit closes on a
+	 * turning jet faster than a straight line does. A windup that would end point-blank is never lit.
+	 */
+	ChaseClear(from: Point, speed: number, target: MissileTarget, profile: MissileProfile, ahead: number): boolean {
+		const later = add(target.position, mul(target.velocity, ahead));
+		return MissileRules.ShotClear(from, mul(unit(sub(later, from), { x: 0, y: 0, z: -1 }), speed), target, profile, ahead);
+	},
+	/**
+	 * Range straight up the tail of a jet flying at `jetSpeed` from which `profile`'s shot arrives in
+	 * `minLaunch + margin` seconds: the closest a shooter sat behind the jet can be and still fire
+	 * (ShotClear). A tail chaser that closes inside it holds its shot, so one keeping its range
+	 * (ThreatRules.KeepsRange) drops back to it through the windup.
+	 */
+	Standoff(profile: MissileProfile, jetSpeed: number, margin = 0): number {
+		return (profile.minLaunch + margin) * math.max(profile.burnSpeed - jetSpeed, 50) + LAUNCH_OFFSET;
 	},
 	/**
 	 * Flies a copy of the missile against a copy of the jet in open sky. The jet keeps `input`; with

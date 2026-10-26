@@ -66,7 +66,8 @@ const ORDER: DifficultyKind[] = ["easy", "normal", "ace"];
 const MULTIPLIERS: { [K in DifficultyKnob]: { [D in DifficultyKind]: number } } = {
 	hostileDamage: { easy: 0.6, normal: 1, ace: 1.75 },
 	hostileGate: { easy: 1.25, normal: 1, ace: 0.85 },
-	aceGate: { easy: 1.25, normal: 1, ace: 0.5 },
+	/** Ace reload. The ace keeps a fair range through every windup, so nearly every windup launches and this sets its cadence. */
+	aceGate: { easy: 2, normal: 1, ace: 0.5 },
 	flightDivisor: { easy: 0.8, normal: 1, ace: 2 },
 	threatCap: { easy: 1, normal: 1, ace: 2 },
 	windup: { easy: 1.3, normal: 1, ace: 0.8 },

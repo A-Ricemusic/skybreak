@@ -2,6 +2,8 @@
 // Nothing here touches instances; CombatService adapts Vector3 to plain points.
 // Every act-dependent number is passed in from CombatService.TUNING so a later
 // difficulty selector only has to scale those arrays.
+import { DifficultyKind } from "./Difficulty";
+
 export interface Point { x: number; y: number; z: number }
 export interface FireGate {
 	separation: number;
@@ -72,6 +74,15 @@ const FLARE_RADIUS = 260;
 const FLARE_SECONDS = 2.5;
 /** An extending bandit drops to the player's speed minus this, so a hard turn earns a rear shot. */
 const EXTEND_SPEED_DEFICIT = 10;
+/** A standoff applies within this aspect of the player's tail (dot of about 60 degrees)... */
+const STANDOFF_ASPECT = -0.5;
+/** ...and within this many studs beyond the standoff range. */
+const STANDOFF_REACH = 400;
+/** Speed change per stud of range error while holding a standoff (1/s), and the slowest it flies. */
+const STANDOFF_GAIN = 0.6;
+const STANDOFF_FLOOR = 180;
+/** Seconds of time to impact a shooter holding its range keeps over the level's shortest shot (MissileRules.Standoff). */
+const STANDOFF_MARGIN: { [D in DifficultyKind]: number } = { easy: 0.3, normal: 0.3, ace: 0.8 };
 export const ThreatRules = {
 	InboundRange: INBOUND_RANGE,
 	GlobalSpacing: GLOBAL_SPACING,
@@ -174,5 +185,32 @@ export const ThreatRules = {
 		const sign = index % 2 === 1 ? 1 : -1;
 		const spread = 0.12 * math.ceil(index / 2) * sign;
 		return normalize({ x: direction.x + right.x * spread, y: direction.y, z: direction.z + right.z * spread }, direction);
+	},
+	/** Seconds of time to impact a shooter holding its range keeps over the level's shortest shot. */
+	StandoffMargin(level: DifficultyKind): number {
+		return STANDOFF_MARGIN[level] ?? STANDOFF_MARGIN.normal;
+	},
+	/**
+	 * Does a shooter fly its fair-shot standoff through this windup? The ace always does (sat on a
+	 * turning jet's tail it would otherwise close inside the shortest shot every time); a bandit does
+	 * once its last windup was held, so closing in costs it one empty lock warning, not a string of them.
+	 */
+	KeepsRange(ace: boolean, heldLast: boolean): boolean {
+		return ace || heldLast;
+	},
+	/**
+	 * Does a shooter `separation` studs from the player, at `aspect` (dot of the player's forward with
+	 * the line from the player to the shooter; -1 is dead on the tail), hold a `range`-stud standoff?
+	 * Only on the player's tail and not far beyond the range: elsewhere the usual pursuit flies it in.
+	 */
+	HoldsStandoff(aspect: number, separation: number, range: number): boolean {
+		return aspect <= STANDOFF_ASPECT && separation < range + STANDOFF_REACH;
+	},
+	/**
+	 * Speed for a shooter holding `range` studs behind the player (it steers for the point that far
+	 * back on the player's track): falls back while closer, closes while farther, never above `cruise`.
+	 */
+	StandoffSpeed(separation: number, range: number, playerSpeed: number, cruise: number): number {
+		return math.clamp(playerSpeed + STANDOFF_GAIN * (separation - range), math.min(STANDOFF_FLOOR, cruise), cruise);
 	},
 };
