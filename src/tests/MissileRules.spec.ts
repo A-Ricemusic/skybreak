@@ -64,14 +64,6 @@ describe("Hostile missile guidance", () => {
 		const quarter = fly({ level: "normal", act: 2, bearing: 135, range: 900, breakAt: 500, turn: -1, throttle: 0.65 });
 		expect(quarter.event === "hit").toBe(false);
 	});
-	it("punishes the same break timed late on Ace, but not one timed right", () => {
-		// Rear quarter at cruise, breaking away from the missile (left).
-		const late = { act: 2, bearing: 135, range: 900, breakAt: 450, turn: -1, throttle: 0.65 };
-		expect(fly({ ...late, level: "normal" }).event === "hit").toBe(false);
-		expect(fly({ ...late, level: "ace" }).event).toBe("hit");
-		expect(fly({ ...late, level: "ace", breakAt: 400 }).event).toBe("hit");
-		expect(fly({ ...late, level: "ace", breakAt: 700 }).event === "hit").toBe(false);
-	});
 	it("still hits a break left far too late on Normal", () => {
 		expect(fly({ level: "normal", act: 2, bearing: 0, range: 1500, breakAt: 250, turn: -1 }).event).toBe("hit");
 	});
@@ -144,9 +136,6 @@ describe("Hostile missile profiles", () => {
 		expect(easy.turnCap < normal.turnCap && normal.turnCap < ace.turnCap).toBe(true);
 		expect(easy.burnSeconds < normal.burnSeconds && normal.burnSeconds < ace.burnSeconds).toBe(true);
 		expect(normal.gimbal).toBe(math.rad(45));
-		// Ace's break window is narrower than Normal's, which is narrower than Easy's.
-		expect(ace.breakEarly - ace.breakLate < normal.breakEarly - normal.breakLate).toBe(true);
-		expect(normal.breakEarly - normal.breakLate < easy.breakEarly - easy.breakLate).toBe(true);
 		// A missile from the mission's ace turns a little harder and sees a little wider.
 		const pilot = MissileRules.Profile("normal", 2, true);
 		expect(pilot.turnCap > normal.turnCap && pilot.gimbal > normal.gimbal).toBe(true);
@@ -186,13 +175,6 @@ describe("Hostile missile readout", () => {
 		expect(math.abs(MissileRules.TimeToImpact(missile, headOn)! - 1200 / (profile.burnSpeed + 300)) < 1e-6).toBe(true);
 		const away = MissileRules.Launch({ x: 0, y: 0, z: -1200 }, { x: 0, y: 0, z: -1 }, profile);
 		expect(MissileRules.TimeToImpact(away, headOn)).toBeUndefined();
-	});
-	it("lights the BREAK window only between its edges", () => {
-		const profile = MissileRules.Profile("normal", 2);
-		expect(MissileRules.InBreakWindow(profile, (profile.breakLate + profile.breakEarly) / 2)).toBe(true);
-		expect(MissileRules.InBreakWindow(profile, profile.breakEarly + 0.1)).toBe(false);
-		expect(MissileRules.InBreakWindow(profile, profile.breakLate - 0.1)).toBe(false);
-		expect(MissileRules.InBreakWindow(profile, undefined)).toBe(false);
 	});
 	it("launches on a collision course, inside the lead limit, or straight at the jet with no intercept", () => {
 		const target = { position: { x: 0, y: 0, z: 0 }, velocity: { x: 300, y: 0, z: 0 } };

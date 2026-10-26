@@ -174,8 +174,9 @@ export interface Telemetry {
 	/** Most urgent locked hostile missile: seconds to impact (absent when not closing) and bearing from the nose (degrees, +right). */
 	incomingSeconds?: number;
 	incomingBearing?: number;
-	/** That missile is inside the level's ideal break window: the HUD shows BREAK. */
+	/** A hard break started now makes that missile miss (MissileRules.BreakCue): the HUD shows BREAK, to the right when breakRight. */
 	breakNow?: boolean;
+	breakRight?: boolean;
 	target?: Model;
 	targetName: string;
 	lockProgress: number;

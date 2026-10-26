@@ -241,7 +241,7 @@ describe("client flight prediction and reconciliation", () => {
 			objectiveProgress: 1, objectiveTotal: 3, groundKills: 1, targetDistance: 900, targetHealth: undefined, protectedHealth: 70,
 			specialCharges: 2, specialCooldown: 1.5, specialActive: 12,
 			evadeCharges: 2, optionalKills: 3, incomingDistance: 420,
-			incomingSeconds: 1.4, incomingBearing: -135, breakNow: true,
+			incomingSeconds: 1.4, incomingBearing: -135, breakNow: true, breakRight: true,
 		});
 		expect(packet.size()).toBe(TELEMETRY_FIELDS);
 		expect(TelemetryCodec.Decode(packet, into)).toBe(3);
@@ -254,6 +254,18 @@ describe("client flight prediction and reconciliation", () => {
 		expect(into.incomingSeconds).toBe(1.4);
 		expect(into.incomingBearing).toBe(-135);
 		expect(into.breakNow).toBe(true);
+		expect(into.breakRight).toBe(true);
+		// A left break clears the direction bit; the pause flag below it is untouched.
+		const left = TelemetryCodec.Encode(4, {
+			health: 80, speed: 255, altitude: 300, kills: 2, total: 4, missiles: 6, missileCooldown: 0, evadeCooldown: 0,
+			lockProgress: 0, incoming: true, lockWarning: false, boundaryWarning: false, elapsed: 12, timeRemaining: 500,
+			objectiveProgress: 1, objectiveTotal: 3, groundKills: 1, targetDistance: 900, paused: true, breakNow: true, breakRight: false,
+		});
+		expect(TelemetryCodec.Decode(left, into)).toBe(4);
+		expect(into.breakNow).toBe(true);
+		expect(into.breakRight).toBe(false);
+		expect(into.paused).toBe(true);
+		expect(TelemetryCodec.Decode(packet, into)).toBe(3);
 		expect(into.specialCharges).toBe(2);
 		expect(into.specialCooldown).toBe(1.5);
 		expect(into.specialActive).toBe(12);
@@ -281,6 +293,7 @@ describe("client flight prediction and reconciliation", () => {
 			expect(into.incomingSeconds).toBeUndefined();
 			expect(into.incomingBearing).toBeUndefined();
 			expect(into.breakNow).toBe(false);
+			expect(into.breakRight).toBe(false);
 		}
 		expect(TelemetryCodec.Decode([1, 2], into)).toBeUndefined();
 	});

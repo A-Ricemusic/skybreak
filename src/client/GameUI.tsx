@@ -572,6 +572,7 @@ function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
 		incomingSeconds: typeIs(payload.incomingSeconds, "number") ? math.max(0, finite(payload.incomingSeconds, 0)) : undefined,
 		incomingBearing: typeIs(payload.incomingBearing, "number") ? math.clamp(finite(payload.incomingBearing, 0), -180, 180) : undefined,
 		breakNow: payload.breakNow === true,
+		breakRight: payload.breakNow === true && payload.breakRight === true,
 	};
 }
 
@@ -1477,7 +1478,7 @@ function MissionHud({
 	const locked = telemetry.target !== undefined && telemetry.lockProgress >= 0.99;
 	const narrow = layout.alert.width < 200;
 	// The missile cue (seconds, direction, BREAK) replaces MISSILE INBOUND in the same slot.
-	const missileCue = { seconds: telemetry.incomingSeconds, bearing: telemetry.incomingBearing, breakNow: telemetry.breakNow, speed: telemetry.speed };
+	const missileCue = { seconds: telemetry.incomingSeconds, bearing: telemetry.incomingBearing, breakNow: telemetry.breakNow, breakRight: telemetry.breakRight, speed: telemetry.speed };
 	const warning = MissileCue.Apply(flightWarning({ ...telemetry, acceleration: trend.acceleration, terrainSeconds: trend.terrainSeconds }, narrow), missileCue, narrow);
 	// Refusals ride above FIRE on the touch row; elsewhere they borrow the alert lane while no warning is up.
 	const noticeInAlert = fireNotice !== undefined && layout.fireCaption === undefined && warning === "";

@@ -1,44 +1,54 @@
 import { Difficulty, DifficultyKind } from "./Difficulty";
+import { FlightMath, FlightState } from "./FlightMath";
+import { FlightInput } from "./Types";
 
 // Pure hostile-missile flight and seeker rules. The server (CombatService) owns every missile and
 // only adapts Vector3 to the plain points here, so the same code runs in Roblox, Jest and the
 // offline Luau VM.
 //
 // The model, in the order a missile lives it:
-//   0. Launch: the shooter fires on a collision course (LeadDirection) for the jet's current
-//      velocity, so a jet that keeps flying straight needs almost no correction and is hit.
+//   0. Launch: the shooter fires on a collision course (LaunchHeading) for the jet's current
+//      velocity, so a jet that keeps flying straight needs almost no correction and is hit. A shot
+//      that would arrive in under `minLaunch` seconds is never taken (ShotClear, checked at windup
+//      start for the end of the windup and again at launch): nothing could answer it.
 //   1. Burn: `burnSeconds` at `burnSpeed`. Guidance is proportional navigation (heading rate =
 //      navGain x line-of-sight rate, plus a small pursuit term) under a HARD turn-rate cap in rad/s.
-//      speed x turnCap is the missile's sideways acceleration; it is kept at or below the jet's
-//      (320 studs/s x 1.12 rad/s = ~358 at full throttle, ~260 at cruise), so a hard break turn
-//      started in time pulls the jet off the missile's path faster than the missile can follow.
+//      speed x turnCap is the missile's sideways acceleration, well under a hard-turning jet's
+//      (~290 studs/s x 1.12 rad/s = ~325), so a break started in time pulls the jet off its path.
 //   2. Coast: after the burn, speed decays by exp(-COAST_DRAG x t). A coasting missile slower than
 //      the jet it chases has lost the chase (seeker off); below MIN_SPEED it self-destructs. A
 //      long tail shot can be outrun at full throttle.
 //   3. Seeker cone: once the jet is more than `gimbal` off the missile's nose the lock is lost for
-//      good; the missile flies straight on and self-destructs when `life` runs out. Out-turning a
-//      missile late in its flight is how a break turn actually wins.
+//      good; the missile flies straight on and self-destructs when `life` runs out.
 //   4. Terrain: a step segment that meets terrain or scenery (the injected ray; AircraftCollision's
 //      query set on the server) detonates the missile there, harmlessly. Ridges protect.
 //   5. Proximity fuse: `fuse` studs from the jet, measured on the path relative to the jet through
 //      the step (no tunnelling at 600+ studs/s), and only if that point comes before any terrain hit.
 //
+// BREAK cue (BreakCue): the server flies the most urgent missile forward against the real flight
+// rules. It lights BREAK, with the way to turn, only when the missile would hit a jet that keeps
+// flying as it is and misses one that breaks hard CUE_REACTION seconds from now. So it never asks
+// for a losing turn, never shows for a missile that will miss anyway, and stays dark both while a
+// break would still be followed (too early) and once it is too late. There is no fixed window: the
+// dodge window comes out of the physics, and the tuning below sets how long it is.
+//
 // Tuning (studs, seconds, rad/s). Rows are Normal by act; Easy/Ace multiply through the Difficulty
 // knobs (missileTurn, missileBurn, missileGimbal); a missile fired by the mission's ace adds the
-// last column on top.
+// last column on top. Checked closed-loop by MissileDuel.spec (table in docs/flight-mechanics.md).
 //
 //   value          Act I   Act II  Act III   Easy     Ace      ace pilot
 //   burnSpeed      560     600     620       x1       x1       -
-//   burnSeconds    2.6     3.0     3.4       x0.6     x1.15    -
-//   turnCap        0.32    0.36    0.40      x0.75    x1.25    +0.04
-//   gimbal (deg)   45      45      45        x1.1     x1.2     +5
+//   burnSeconds    3.0     3.2     3.4       x0.75    x1.4     -
+//   turnCap        0.28    0.30    0.32      x0.75    x1.3     +0.04
+//   gimbal (deg)   45      45      45        x1.1     x1.3     +5
 //   fuse           18      22      26        -        -        -
 //   life           7       8       9         -        -        -
+//   minLaunch      1.5 s                     1.6 s    1.8 s    -
 //   coast drag     0.35/s; MIN_SPEED 160; navGain 3
-//   BREAK cue      seconds-to-impact window: Easy 0.7-2.4, Normal 0.9-1.8, Ace 1.1-1.7
 //
-// Why the Ace window is narrower: a harder turn cap and a wider seeker cone mean the missile
-// follows an early break and still connects on a late one, so only a break in the window works.
+// Why Ace is different: a harder turn cap, longer burn and wider seeker follow a break started
+// before BREAK shows, and its longer minimum launch time means most Ace shots have that early
+// phase; the break that works is the one taken on the cue.
 
 export interface Point { x: number; y: number; z: number }
 
@@ -53,8 +63,8 @@ export interface MissileProfile {
 	gimbal: number;
 	fuse: number;
 	life: number;
-	/** BREAK cue: time-to-impact range (seconds) in which a hard break turn makes the missile overshoot. */
-	breakEarly: number; breakLate: number;
+	/** A shot is only taken when it would arrive at least this many seconds after launch (ShotClear). */
+	minLaunch: number;
 }
 
 export interface GuidedMissile {
@@ -83,15 +93,30 @@ const COAST_DRAG = 0.35;
 const MIN_SPEED = 160;
 
 const BURN_SPEED = [560, 600, 620];
-const BURN_SECONDS = [2.6, 3.0, 3.4];
-const TURN_CAP = [0.32, 0.36, 0.4];
+const BURN_SECONDS = [3.0, 3.2, 3.4];
+const TURN_CAP = [0.28, 0.3, 0.32];
 const GIMBAL_DEGREES = 45;
 const FUSE = [18, 22, 26];
 const LIFE = [7, 8, 9];
 const ACE_TURN_BONUS = 0.04;
 const ACE_GIMBAL_BONUS = 5;
-/** BREAK cue window [latest, earliest] in seconds to impact by level; Ace's is narrower. */
-const BREAK_WINDOW: { [D in DifficultyKind]: [number, number] } = { easy: [0.7, 2.4], normal: [0.9, 1.8], ace: [1.1, 1.7] };
+/** Launches lead the jet by at most this share of the seeker cone. */
+const LEAD_SHARE = 0.8;
+/** Shortest time to impact a launch may have, by level (ShotClear). */
+const MIN_LAUNCH: { [D in DifficultyKind]: number } = { easy: 1.6, normal: 1.5, ace: 1.8 };
+/** The break the BREAK cue predicts: full stick and a little back pressure at full power for BREAK_HOLD seconds, then the pilot's previous input. */
+const BREAK_PULL = 0.25;
+const BREAK_HOLD = 1.5;
+/**
+ * Seconds from the server raising BREAK to the jet's stick moving: up to a 10 Hz telemetry tick,
+ * replication, the pilot's hands and the input upload. The cue predicts a break this late.
+ */
+const CUE_REACTION = 0.3;
+/** Only a missile arriving within this many seconds gets a BREAK prediction (bounds the server's cost). */
+const CUE_HORIZON = 3.5;
+/** How far ahead a prediction flies; a missile still tracking then counts as not dodged. */
+const PREDICT_LIMIT = 4.5;
+const PREDICT_STEP = 1 / 30;
 
 function finite(value: number): boolean { return value === value && math.abs(value) !== math.huge; }
 function add(a: Point, b: Point): Point { return { x: a.x + b.x, y: a.y + b.y, z: a.z + b.z }; }
@@ -101,6 +126,10 @@ function dot(a: Point, b: Point): number { return a.x * b.x + a.y * b.y + a.z * 
 function cross(a: Point, b: Point): Point { return { x: a.y * b.z - a.z * b.y, y: a.z * b.x - a.x * b.z, z: a.x * b.y - a.y * b.x }; }
 function length(a: Point): number { return math.sqrt(dot(a, a)); }
 function unit(a: Point, fallback: Point): Point { const size = length(a); return size > 1e-6 ? mul(a, 1 / size) : fallback; }
+function jetTarget(state: FlightState): MissileTarget {
+	const [x, y, z] = FlightMath.Forward(state.yaw, state.pitch);
+	return { position: { x: state.x, y: state.y, z: state.z }, velocity: { x: x * state.speed, y: y * state.speed, z: z * state.speed } };
+}
 function act(value: number): number { return math.clamp(math.floor(finite(value) ? value : 1), 1, 3); }
 
 /** Distance from the origin to the segment a-b, and where along it (0-1) the closest point is. */
@@ -113,13 +142,14 @@ function closest(a: Point, b: Point): [number, number] {
 
 export const MissileRules = {
 	NavGain: NAV_GAIN,
+	CueReaction: CUE_REACTION,
+	CueHorizon: CUE_HORIZON,
 	CoastDrag: COAST_DRAG,
 	MinSpeed: MIN_SPEED,
 	/** The act's missile for this level; `acePilot` for a missile launched by the mission's ace. */
 	Profile(difficulty: DifficultyKind, actIndex: number, acePilot = false): MissileProfile {
 		const index = act(actIndex) - 1;
 		const level = Difficulty.Coerce(difficulty);
-		const [late, early] = BREAK_WINDOW[level];
 		return {
 			burnSpeed: BURN_SPEED[index],
 			burnSeconds: Difficulty.Scale(level, "missileBurn", BURN_SECONDS[index]),
@@ -128,7 +158,7 @@ export const MissileRules = {
 			gimbal: math.rad(Difficulty.Scale(level, "missileGimbal", GIMBAL_DEGREES) + (acePilot ? ACE_GIMBAL_BONUS : 0)),
 			fuse: FUSE[index],
 			life: LIFE[index],
-			breakEarly: early, breakLate: late,
+			minLaunch: MIN_LAUNCH[level],
 		};
 	},
 	/**
@@ -237,8 +267,64 @@ export const MissileRules = {
 		if (math.abs(ahead) + math.abs(right) < 1e-6) return 0;
 		return math.deg(math.atan2(right, ahead));
 	},
-	/** Inside the profile's ideal break window (the BREAK cue). */
-	InBreakWindow(profile: MissileProfile, timeToImpact: number | undefined): boolean {
-		return timeToImpact !== undefined && timeToImpact >= profile.breakLate && timeToImpact <= profile.breakEarly;
+	/** The launch heading CombatService fires on: the collision course, led by at most LEAD_SHARE of the seeker cone. */
+	LaunchHeading(from: Point, profile: MissileProfile, target: MissileTarget): Point {
+		return MissileRules.LeadDirection(from, profile.burnSpeed, target, profile.gimbal * LEAD_SHARE);
+	},
+	/**
+	 * May a shooter at `from` (moving at `velocity`) fire `ahead` seconds from now? Both aircraft are
+	 * carried on straight lines for `ahead` (a windup), then the shot must take at least
+	 * `profile.minLaunch` seconds to arrive. A point-blank shot is never taken: it would be too late
+	 * for any BREAK cue or turn, so it could only be a free hit.
+	 */
+	ShotClear(from: Point, velocity: Point, target: MissileTarget, profile: MissileProfile, ahead = 0): boolean {
+		const launch = add(from, mul(velocity, ahead));
+		const later = { position: add(target.position, mul(target.velocity, ahead)), velocity: target.velocity };
+		const shot = MissileRules.Launch(launch, MissileRules.LaunchHeading(launch, profile, later), profile);
+		const seconds = MissileRules.TimeToImpact(shot, later);
+		return seconds !== undefined && seconds >= profile.minLaunch;
+	},
+	/**
+	 * Flies a copy of the missile against a copy of the jet in open sky. The jet keeps `input`; with
+	 * a `stick` (-1 left, +1 right) it breaks `delay` seconds from now: full stick, a little back
+	 * pressure and full power for BREAK_HOLD seconds, then back to `input`. True when the missile
+	 * misses: it detonates elsewhere, burns out, or loses the lock and is past the jet.
+	 */
+	Misses(missile: GuidedMissile, profile: MissileProfile, jet: FlightState, input: FlightInput, delay = 0, stick?: number): boolean {
+		// Step replaces position/direction rather than mutating them, so a shallow copy is independent.
+		const copy: GuidedMissile = { position: missile.position, direction: missile.direction, speed: missile.speed, age: missile.age, locked: missile.locked };
+		const state: FlightState = { x: jet.x, y: jet.y, z: jet.z, yaw: jet.yaw, pitch: jet.pitch, roll: jet.roll, speed: jet.speed };
+		const pull: FlightInput = { x: stick ?? 0, y: BREAK_PULL, throttle: 1 };
+		for (let time = 0; time < PREDICT_LIMIT; time += PREDICT_STEP) {
+			FlightMath.Step(state, stick !== undefined && time >= delay && time < delay + BREAK_HOLD ? pull : input, PREDICT_STEP);
+			const target = jetTarget(state);
+			const result = MissileRules.Step(copy, profile, target, PREDICT_STEP);
+			if (result.event === "hit") return false;
+			if (result.event !== "flying") return true;
+			// Blind and already past the jet: it flies on and self-destructs.
+			if (!copy.locked && dot(sub(target.position, copy.position), copy.direction) < 0) return true;
+		}
+		// Out of time: a missile still tracking counts as a hit, a blind one (outrun or out-turned) as a miss.
+		return !copy.locked;
+	},
+	/**
+	 * The BREAK cue: the way to turn (-1 left, +1 right) when the missile would hit a jet that keeps
+	 * flying as it is, but misses one that breaks hard CUE_REACTION seconds from now; else undefined.
+	 * Checked against the real flight and missile rules, so the cue never asks for a losing turn, never
+	 * shows for a missile that is going to miss anyway, and stays dark while a break would still be
+	 * followed (too early) or is already too late. Tries the way the pilot is already turning first
+	 * (no flip-flopping mid-break), then away from the missile, then the other way.
+	 */
+	BreakCue(missile: GuidedMissile, profile: MissileProfile, jet: FlightState, input: FlightInput, reaction = CUE_REACTION): number | undefined {
+		if (!missile.locked) return undefined;
+		const target = jetTarget(jet);
+		const seconds = MissileRules.TimeToImpact(missile, target);
+		if (seconds === undefined || seconds > CUE_HORIZON) return undefined;
+		if (MissileRules.Misses(missile, profile, jet, input)) return undefined;
+		const away = MissileRules.Bearing(target.position, jet.yaw, missile.position) > 0 ? -1 : 1;
+		const first = math.abs(input.x) >= 0.5 ? math.sign(input.x) : away;
+		if (MissileRules.Misses(missile, profile, jet, input, reaction, first)) return first;
+		if (MissileRules.Misses(missile, profile, jet, input, reaction, -first)) return -first;
+		return undefined;
 	},
 };

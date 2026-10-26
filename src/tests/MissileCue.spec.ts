@@ -16,7 +16,7 @@ describe("Missile cue", () => {
 		expect(MissileCue.Clock(-150)).toBe(7);
 		expect(MissileCue.Clock(350)).toBe(12);
 	});
-	it("breaks away from the missile's side", () => {
+	it("breaks away from the missile's side when the server sends no direction", () => {
 		expect(MissileCue.BreakArrow(135)).toBe("←");
 		expect(MissileCue.BreakArrow(-30)).toBe("→");
 		expect(MissileCue.BreakArrow(0)).toBe("←");
@@ -28,9 +28,17 @@ describe("Missile cue", () => {
 		expect(MissileCue.Text({ bearing: 90 })).toBe("MISSILE 3 O'CLOCK →");
 		expect(MissileCue.Text({ seconds: 1.4, bearing: 150, breakNow: true, speed: 320 })).toBe("BREAK ← · MISSILE 1.4s");
 		expect(MissileCue.Text({ seconds: 1.4, bearing: 150, breakNow: true, speed: 240 })).toBe("BREAK ← · MISSILE 1.4s · POWER↑");
-		expect(MissileCue.Text({ seconds: 1.4, bearing: -20, breakNow: true, speed: 240 }, true)).toBe("BREAK →");
+		// A slow jet keeps POWER even on a narrow HUD: the break the server checked is at full power.
+		expect(MissileCue.Text({ seconds: 1.4, bearing: -20, breakNow: true, speed: 240 }, true)).toBe("BREAK → POWER↑");
+		expect(MissileCue.Text({ seconds: 1.4, bearing: -20, breakNow: true, speed: 300 }, true)).toBe("BREAK →");
 		expect(MissileCue.Text({ seconds: 1.4 })).toBeUndefined();
 		expect(MissileCue.Text({ seconds: 1.4, bearing: 0 / 0 })).toBeUndefined();
+	});
+	it("turns the way the server's BREAK check says, even toward the missile's side", () => {
+		expect(MissileCue.Text({ seconds: 1.4, bearing: 150, breakNow: true, breakRight: true, speed: 320 })).toBe("BREAK → · MISSILE 1.4s");
+		expect(MissileCue.Text({ seconds: 1.4, bearing: -150, breakNow: true, breakRight: false, speed: 320 }, true)).toBe("BREAK ←");
+		// No BREAK: the direction flag is ignored and the missile's position shows.
+		expect(MissileCue.Text({ seconds: 2.14, bearing: -150, breakRight: true }, true)).toBe("MISSILE ↓ 2.1s");
 	});
 	it("replaces only MISSILE INBOUND in the shared warning line", () => {
 		const cue = { seconds: 2.14, bearing: 180 };

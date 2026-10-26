@@ -220,6 +220,8 @@ const COURIER_HEALTH = 160;
 /** Faster than cruise (255) but slower than full throttle (320): a chase you win by committing to it. */
 const COURIER_SPEED = 275;
 const ACE_DAMAGE_BONUS = 2;
+/** Seconds before a shooter that held a point-blank shot at the end of its windup may wind up again. */
+const HELD_SHOT_RETRY = 1.5;
 /** Required waves arrive this far out (an approach before the lock); reinforcements from behind come a little closer. */
 const SPAWN_FRONT: [number, number] = [2600, 3200];
 const SPAWN_BEHIND: [number, number] = [2000, 2400];
@@ -426,6 +428,9 @@ function sendTelemetry(session: CombatSession): void {
 			urgent = missile; urgentSeconds = seconds; urgentRange = range;
 		}
 	}
+	// BREAK: a hard break the pilot can still start in time makes the most urgent missile miss (MissileRules
+	// flies it out against the real flight rules), with the way to turn.
+	const breakStick = incoming && urgent?.guided && urgent.profile ? MissileRules.BreakCue(urgent.guided, urgent.profile, session.state, session.input) : undefined;
 	// A windup is a lock warning, not a missile: evading now would waste the countermeasure.
 	for (const enemy of session.enemies) if (ownsEnemy(session, enemy) && enemy.windup > 0) { lockWarning = true; break; }
 	const target = ownsEnemy(session, session.target) ? session.target : undefined;
@@ -459,7 +464,8 @@ function sendTelemetry(session: CombatSession): void {
 		incomingDistance: incomingDistance < math.huge ? incomingDistance : undefined,
 		incomingSeconds: incoming ? urgentSeconds : undefined,
 		incomingBearing: incoming && urgent ? MissileRules.Bearing(jet.position, session.state.yaw, point(urgent.position)) : undefined,
-		breakNow: incoming && urgent?.profile !== undefined && MissileRules.InBreakWindow(urgent.profile, urgentSeconds),
+		breakNow: breakStick !== undefined,
+		breakRight: breakStick === 1,
 	}));
 }
 /**
@@ -951,7 +957,7 @@ function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy, 
 		ace = enemy.kind === "ace";
 		profile = MissileRules.Profile(session.difficulty, sessionAct(session), ace);
 		// Launched on a collision course for the jet's current flight; the salvo fan is applied on top.
-		const lead = MissileRules.LeadDirection(point(position), profile.burnSpeed, jetTarget(session), profile.gimbal * 0.8);
+		const lead = MissileRules.LaunchHeading(point(position), profile, jetTarget(session));
 		direction = unitOr(new Vector3(lead.x, lead.y, lead.z), enemy.direction);
 		const right = unitOr(new Vector3(-enemy.direction.Z, 0, enemy.direction.X), new Vector3(1, 0, 0));
 		const fanned = ThreatRules.SalvoDirection(point(direction), point(right), salvoIndex, salvoCount);
@@ -1251,18 +1257,21 @@ function stepEnemies(session: CombatSession, dt: number): void {
 			if (enemy.windup <= 0) {
 				enemy.warning!.Enabled = false;
 				enemy.model.SetAttribute("AttackWarning", false);
-				// A staged ace that broke off mid-windup holds its shot.
-				if (separation < 2300 && aceFighting) {
-					const salvo = ace ? aceSalvo : 1;
-					for (let shot = 0; shot < salvo; shot++) launchMissile(session, true, enemy, shot, salvo);
-				}
+				// A staged ace that broke off mid-windup holds its shot, and so does a shooter that closed to
+				// point-blank during the windup (no BREAK cue or turn could answer it): it re-arms shortly.
 				enemy.fireTimer = tuned(session, ace ? TUNING.aceReload : TUNING.banditReload);
+				if (separation < 2300 && aceFighting) {
+					if (shotClear(session, enemy, 0)) {
+						const salvo = ace ? aceSalvo : 1;
+						for (let shot = 0; shot < salvo; shot++) launchMissile(session, true, enemy, shot, salvo);
+					} else enemy.fireTimer = HELD_SHOT_RETRY;
+				}
 			}
 		} else if (mayFire && (ace || flightReady) && ThreatRules.MayFire({
 			separation, aimDot, fireTimer: enemy.fireTimer, globalReady: true,
 			evading: session.evadeRemaining > 0, playerStraight, minRange: fireMin, maxRange: ace ? fireMax + 200 : fireMax,
 			aimThreshold, straightRelax,
-		})) {
+		}) && shotClear(session, enemy, windupSeconds)) {
 			enemy.windup = windupSeconds;
 			enemy.warning!.Enabled = true;
 			enemy.model.SetAttribute("AttackWarning", true);
@@ -1273,6 +1282,11 @@ function stepEnemies(session: CombatSession, dt: number): void {
 			}
 		}
 	}
+}
+/** Would `enemy`'s missile, fired `ahead` seconds from now on both jets' current lines, give the player a fair shot (MissileRules.ShotClear)? */
+function shotClear(session: CombatSession, enemy: Enemy, ahead: number): boolean {
+	const profile = MissileRules.Profile(session.difficulty, sessionAct(session), enemy.kind === "ace");
+	return MissileRules.ShotClear(point(enemy.position.add(enemy.direction.mul(18))), point(enemy.velocity), jetTarget(session), profile, ahead);
 }
 function segmentDistance(target: Vector3, startPosition: Vector3, endPosition: Vector3): number {
 	return WeaponRules.SegmentDistance(point(target), point(startPosition), point(endPosition));

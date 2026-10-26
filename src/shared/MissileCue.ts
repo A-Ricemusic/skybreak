@@ -1,21 +1,24 @@
-// Pure HUD wording for the nearest hostile missile (MissileRules on the server sends the numbers).
+// Pure HUD wording for the most urgent hostile missile (MissileRules on the server sends the numbers).
 // It rewrites the "MISSILE INBOUND" part of the shared warning line in the existing warning slot,
 // so every input mode gets the same cue and flight advice keeps its place after it.
 //
 //   wide:   "MISSILE 7 O'CLOCK ↓ 2.1s · LOW SPEED"   ->  "BREAK ← · MISSILE 1.4s · POWER↑"
-//   narrow: "MISSILE ↓ 2.1s"                          ->  "BREAK ←"
+//   narrow: "MISSILE ↓ 2.1s"                          ->  "BREAK ← POWER↑"
 //
 // The arrow next to MISSILE points to where the missile is (↑ ahead, → right wing, ↓ tail, ← left
-// wing). The BREAK arrow is the way to turn: away from the missile's side, which puts it on the tail
-// where the seeker loses a hard-turning jet.
+// wing). The BREAK arrow is the way to turn. The server picks it (MissileRules.BreakCue flies the
+// break out both ways and only lights BREAK for a turn that wins); without that it falls back to
+// away from the missile's side.
 
 export interface MissileCueInput {
-	/** Seconds until the nearest locked missile arrives; undefined when it is not closing. */
+	/** Seconds until the most urgent locked missile arrives; undefined when it is not closing. */
 	seconds?: number;
 	/** Where it is from the nose, degrees: 0 ahead, +90 right wing, -90 left wing, +/-180 tail. */
 	bearing?: number;
-	/** Server: the nearest missile is inside the level's ideal break window. */
+	/** Server: a hard break started now makes that missile miss (MissileRules.BreakCue). */
 	breakNow?: boolean;
+	/** Server: the winning break is to the right (false: left). Absent: away from the missile's side. */
+	breakRight?: boolean;
 	/** Airspeed; under POWER_SPEED a break turn lacks the energy to win, so the cue asks for power. */
 	speed?: number;
 }
@@ -55,9 +58,11 @@ export const MissileCue = {
 		if (!finite(input.bearing)) return undefined;
 		const seconds = finite(input.seconds) ? string.format("%.1fs", math.max(0, input.seconds)) : undefined;
 		if (input.breakNow === true) {
-			if (narrow) return `BREAK ${MissileCue.BreakArrow(input.bearing)}`;
-			const power = finite(input.speed) && input.speed < POWER_SPEED ? " · POWER↑" : "";
-			return `BREAK ${MissileCue.BreakArrow(input.bearing)} · MISSILE${seconds ? ` ${seconds}` : ""}${power}`;
+			const turn = input.breakRight === undefined ? MissileCue.BreakArrow(input.bearing) : input.breakRight ? "→" : "←";
+			// The break the server checked is at full power: a slow jet is told so, even on a narrow HUD.
+			const slow = finite(input.speed) && input.speed < POWER_SPEED;
+			if (narrow) return `BREAK ${turn}${slow ? " POWER↑" : ""}`;
+			return `BREAK ${turn} · MISSILE${seconds ? ` ${seconds}` : ""}${slow ? " · POWER↑" : ""}`;
 		}
 		const arrow = MissileCue.Arrow(input.bearing);
 		if (narrow) return `MISSILE ${arrow}${seconds ? ` ${seconds}` : ""}`;
