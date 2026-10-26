@@ -6,7 +6,10 @@ import { TelemetryCodec } from "../shared/TelemetryCodec";
 import { FlightInputPacket, HudState, MissionStarted, Remotes, Telemetry } from "../shared/Types";
 import { SpecialWeapons } from "../shared/SpecialWeapons";
 import { WeaponRules } from "../shared/WeaponRules";
+import { EngineFx } from "../shared/EngineFx";
+import { EngineRig, JetFactory } from "../shared/JetFactory";
 import { EnemySmoothing } from "./EnemySmoothing";
+import { MissileTrails } from "./MissileTrails";
 
 let activeController: FlightController | undefined;
 let controllerSerial = 0;
@@ -126,7 +129,10 @@ export class FlightController {
 	private touchThrottleAxis = 0;
 	private keys = new Set<Enum.KeyCode>();
 	private connections: RBXScriptConnection[] = [];
-	private hiddenParts = new Map<BasePart | Trail, number | boolean>();
+	private hiddenParts = new Map<BasePart | Trail | ParticleEmitter | Light, number | boolean>();
+	private readonly missiles = new MissileTrails();
+	private engine?: EngineRig;
+	private engineSpool = 0;
 	private readonly actionName: string;
 	private readonly renderName: string;
 	private readonly streamConnections: RBXScriptConnection[] = [];
@@ -447,6 +453,17 @@ export class FlightController {
 		}
 		for (let index = used; index < this.markers.size(); index++) if (this.markers[index].Visible) this.markers[index].Visible = false;
 	}
+	/** Afterburner from the local predicted throttle, wingtip vapor in hard pulls, missile smoke. */
+	private updateEffects(dt: number, speed: number): void {
+		const engine = this.engine;
+		if (engine) {
+			const input = this.frameInput;
+			this.engineSpool = EngineFx.Spool(this.engineSpool, EngineFx.Intensity(input.throttle), dt);
+			JetFactory.SetEngine(engine, this.engineSpool);
+			JetFactory.SetVapor(engine, EngineFx.VaporRate(math.max(math.abs(input.x), math.abs(input.y)), speed));
+		}
+		this.missiles.Step();
+	}
 	private render(dt: number): void {
 		const camera = Workspace.CurrentCamera;
 		const predictor = this.predictor;
@@ -466,6 +483,7 @@ export class FlightController {
 		this.visualFrame = frame;
 		const root = this.visualRoot;
 		if (root && root.Parent) root.CFrame = frame; // welded clone: one CFrame write moves the whole jet
+		this.updateEffects(dt, state.speed);
 		const position = frame.Position;
 		// The chase camera ignores the evade roll so the horizon does not spin with it.
 		const [fx, fy, fz] = FlightMath.Forward(state.yaw, state.pitch);
@@ -529,16 +547,18 @@ export class FlightController {
 		// The predicted local visual; the replicated server aircraft stays hidden.
 		this.visual = this.aircraft.Clone();
 		this.visual.Name = "SkybreakLocalFlightVisual";
-		for (const descendant of this.visual.GetDescendants()) if (descendant.IsA("Trail")) { descendant.Enabled = true; descendant.Clear(); }
+		for (const descendant of this.visual.GetDescendants()) if (JetFactory.IsCosmetic(descendant)) JetFactory.ShowCosmetic(descendant);
 		this.visual.Parent = Workspace;
 		this.visualRoot = this.visual.PrimaryPart;
+		this.engine = JetFactory.FindEngine(this.visual);
+		this.engineSpool = EngineFx.Intensity(this.throttle);
 		const hidePart = (descendant: Instance) => {
 			if (descendant.IsA("BasePart")) { this.hiddenParts.set(descendant, descendant.LocalTransparencyModifier); descendant.LocalTransparencyModifier = 1; }
-			else if (descendant.IsA("Trail")) { this.hiddenParts.set(descendant, descendant.Enabled); descendant.Enabled = false; }
+			else if (JetFactory.IsCosmetic(descendant)) { this.hiddenParts.set(descendant, descendant.Enabled); descendant.Enabled = false; }
 		};
 		for (const descendant of this.aircraft.GetDescendants()) hidePart(descendant);
 		this.connections.push(this.aircraft.DescendantAdded.Connect(hidePart));
-		if (this.aircraft.Parent) this.enemies.Start(this.aircraft.Parent);
+		if (this.aircraft.Parent) { this.enemies.Start(this.aircraft.Parent); this.missiles.Start(this.aircraft.Parent); }
 		[this.targetGui, this.bracket, this.bracketStroke, this.caption, this.arrow] = createTargetCue(Players.LocalPlayer.WaitForChild("PlayerGui"));
 		ContextActionService.BindActionAtPriority(this.actionName, (_, state, input) => this.handleBoundInput(state, input.KeyCode, input.Position), false, 3000, ...FLIGHT_KEYS);
 		this.connections.push(UserInputService.InputBegan.Connect((input, processed) => {
@@ -565,11 +585,12 @@ export class FlightController {
 		for (const [part, previous] of this.hiddenParts) {
 			if (!part.Parent) continue;
 			if (part.IsA("BasePart")) part.LocalTransparencyModifier = previous as number;
-			if (part.IsA("Trail")) part.Enabled = previous as boolean;
+			else part.Enabled = previous as boolean;
 		}
 		this.hiddenParts.clear();
 		this.enemies.Stop();
-		this.visual?.Destroy(); this.visual = undefined; this.visualRoot = undefined;
+		this.missiles.Stop();
+		this.visual?.Destroy(); this.visual = undefined; this.visualRoot = undefined; this.engine = undefined;
 		this.predictor = undefined;
 		this.targetGui?.Destroy(); this.targetGui = undefined;
 		this.markers.clear();

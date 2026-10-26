@@ -310,7 +310,7 @@ export function ParkedJets(parent: Instance, positions: Vector3[], floor: number
 	for (let i = 0; i < positions.size(); i++) {
 		const model = JetFactory.Create(`Parked jet ${i + 1}`, false);
 		for (const item of model.GetDescendants()) {
-			if (item.IsA("Trail")) item.Enabled = false;
+			if (JetFactory.IsCosmetic(item)) item.Enabled = false;
 			if (item.IsA("BasePart")) { item.Anchored = true; item.CanCollide = false; item.CanTouch = false; item.CanQuery = false; }
 		}
 		model.ScaleTo(1.4);

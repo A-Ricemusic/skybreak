@@ -1,5 +1,6 @@
 import { Workspace } from "@rbxts/services";
 import { FlightMath } from "../shared/FlightMath";
+import { JetFactory } from "../shared/JetFactory";
 
 // Enemy jets are pivoted by the server once per Heartbeat (one welded Root
 // CFrame each); replication delivers those as discrete, jittery updates. The
@@ -123,14 +124,14 @@ export class EnemySmoothing {
 		if (this.tracked.has(model) || root === undefined) return;
 		const hide = (item: Instance) => {
 			if (item.IsA("BasePart")) item.LocalTransparencyModifier = 1;
-			else if (item.IsA("Trail")) item.Enabled = false;
+			else if (JetFactory.IsCosmetic(item)) item.Enabled = false;
 		};
 		const visual = model.Clone();
 		visual.Name = `${model.Name}_LocalVisual`;
 		for (const item of visual.GetDescendants()) {
 			if (item.IsA("BillboardGui")) item.Destroy(); // the warning banner stays on the server model
-			// Server models ship with trails off; only this visible clone draws them.
-			else if (item.IsA("Trail")) { item.Enabled = true; item.Clear(); }
+			// Server models ship with trails, emitters and lights off; only this visible clone draws them.
+			else if (JetFactory.IsCosmetic(item)) JetFactory.ShowCosmetic(item);
 		}
 		const visualRoot = visual.PrimaryPart;
 		if (visualRoot === undefined) { visual.Destroy(); return; }

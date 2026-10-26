@@ -166,7 +166,7 @@ function buildHangar(parent: Instance, center: Vector3, facing: number): Model {
 function buildDisplayJet(parent: Instance): Model {
 	const model = JetFactory.Create("DisplayJet", false);
 	for (const item of model.GetDescendants()) {
-		if (item.IsA("Trail")) item.Enabled = false;
+		if (JetFactory.IsCosmetic(item)) item.Enabled = false;
 	}
 	model.ScaleTo(MENU_JET_SCALE);
 	// Shared with the client menu camera; the geometry test keeps this clear of every building.

@@ -147,3 +147,24 @@ handlers, not physical controller routing or a published server. Earlier
 device/performance/network and full-campaign gameplay limitations still apply.
 The new run exercises water impact; the earlier recorded terrain-impact run
 was not repeated in this followup.
+
+## Engine, missile and flare effects
+
+All of these use built-in `rbxasset://textures/particles/*` textures, so no assets need uploading.
+
+- `JetFactory.Create` adds an `ExhaustFx` attachment (afterburner flame, glow and a
+  PointLight) plus a `WingVapor` emitter on each wingtip. `JetFactory.IsCosmetic`
+  covers trails, emitters and lights. `SetTrails` and the client hide/show paths
+  (FlightController, EnemySmoothing) switch them all together: server models stay dark
+  and local visual clones draw them.
+- The player's local visual takes its afterburner from the predicted throttle
+  (`EngineFx.Intensity`, which is zero below 45% throttle and smoothsteps to full at max,
+  then spools). Vapor appears in hard pulls (stick past 70%) above 200 studs/s. Enemy
+  clones hold a constant, modest glow (`EngineFx.EnemyIntensity`).
+- Missile smoke is client-only (`src/client/MissileTrails.ts`). A carrier parented to
+  Terrain follows each replicated missile's tail with a widening smoke ribbon and
+  drifting puffs, so the plume lingers for about 1.6 s after impact. A motor flame and
+  light sit on the missile part, and hostile flames are orange-red. Missiles replicate
+  exactly as before.
+- `JetFactory.Flares` (Flare Pod and EVADE) ejects six magnesium flares relative to the
+  jet's frame. Each one kicks out, then drops in an eased arc on a smoke trail.
