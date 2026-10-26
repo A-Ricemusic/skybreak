@@ -1233,7 +1233,7 @@ function OutcomeScreenImpl({
 	const bestText = outcome.bestScore !== undefined ? `BEST ${outcome.bestRank ?? "-"} · ${formatScore(outcome.bestScore)}` : "";
 
 	// Objective breakdown: phases before `completedPhases` are done; on a failure the next one is where it ended.
-	const objectives: DebriefLine[] = mission.phases.map((phase, index) => {
+	const objectives: DebriefLine[] = MissionCatalog.ExpandedPhases(mission).map((phase, index) => {
 		const done = outcome.won || index < outcome.completedPhases;
 		const failedHere = !done && index === outcome.completedPhases;
 		return {
@@ -2217,7 +2217,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					groundKills,
 					elapsed,
 					par,
-					completedPhases: count(finished.completedPhases, won ? MissionCatalog.Get(missionId).phases.size() : 0),
+					completedPhases: count(finished.completedPhases, won ? MissionCatalog.TotalPhases(MissionCatalog.Get(missionId)) : 0),
 					missilesFired,
 					missileHits,
 					damageTaken,

@@ -591,11 +591,13 @@ function applyBlueprintPhase(session: CombatSession): void {
 	}
 	session.navigationMarker?.Destroy(); session.navigationMarker=undefined;
 	session.navigationActor?.Destroy(); session.navigationActor=undefined;
-	const phase: MissionPhaseBlueprint | undefined=state.blueprint.phases[state.phaseIndex];
+	// The live list, not the catalog: twists splice new objectives in after the phase that fired them.
+	const phases=BlueprintRunner.Phases(state);
+	const phase: MissionPhaseBlueprint | undefined=phases[state.phaseIndex];
 	if (!phase) return;
 	if (phase.kind === "required_ground") {
 		let start=0;
-		for(let i=0;i<state.phaseIndex;i++) if(state.blueprint.phases[i].kind === "required_ground") start+=state.blueprint.phases[i].count ?? 0;
+		for(let i=0;i<state.phaseIndex;i++) if(phases[i].kind === "required_ground") start+=phases[i].count ?? 0;
 		activateGround(session,start,phase.count ?? 0);
 	} else if (phase.kind === "required_air") spawnAir(session,phase.count ?? 0,true);
 	else if (phase.kind === "ace") spawnAir(session,1,true,true,session.blueprint.aceHealth ?? 165);
@@ -1052,6 +1054,8 @@ function stepSession(session: CombatSession, dt: number): void {
 		BlueprintRunner.ObserveFlight(bs,from,{x:session.state.x,y:session.state.y,z:session.state.z},dt,os.clock(),threats);
 		if (bs.outcome !== undefined) {finish(session); return;}
 		applyPhase(session);
+		// Twist radio after the new phase's beat, so the call that changed the objective is what the HUD shows.
+		for (let line=BlueprintRunner.TakeRadio(bs); line !== undefined; line=BlueprintRunner.TakeRadio(bs)) radio(session,line,7);
 		const active=BlueprintRunner.ActivePhase(bs);
 		if (active) {
 			const fraction=BlueprintRunner.Fraction(bs);
