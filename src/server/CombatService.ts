@@ -172,7 +172,12 @@ const TUNING_KNOBS = new Map<number[], DifficultyKnob>([
 	[TUNING.windup, "windup"],
 	[TUNING.hostileGate, "hostileGate"],
 	[TUNING.aceGate, "hostileGate"],
+	[TUNING.banditReload, "hostileGate"],
+	[TUNING.aceReload, "hostileGate"],
 	[TUNING.missileTurn, "missileTurn"],
+	[TUNING.aceMissileTurn, "missileTurn"],
+	[TUNING.missileFuse, "missileTurn"],
+	[TUNING.breakChance, "breakChance"],
 ]);
 /** The act's value from a TUNING table, scaled for the session's difficulty. */
 function tuned(session: CombatSession, values: number[]): number {

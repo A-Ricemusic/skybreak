@@ -11,6 +11,7 @@ export type DifficultyKnob =
 	| "missileTurn"
 	| "aceHealth"
 	| "banditHealth"
+	| "breakChance"
 	| "score";
 
 export interface DifficultyDefinition {
@@ -47,9 +48,10 @@ const MULTIPLIERS: { [K in DifficultyKnob]: { [D in DifficultyKind]: number } } 
 	missileTurn: { easy: 0.8, normal: 1, ace: 1.2 },
 	aceHealth: { easy: 0.8, normal: 1, ace: 1.3 },
 	banditHealth: { easy: 0.85, normal: 1, ace: 1.15 },
+	breakChance: { easy: 0.5, normal: 1, ace: 1.3 },
 	score: { easy: 0.85, normal: 1, ace: 1.2 },
 };
-const KNOBS: DifficultyKnob[] = ["hostileDamage", "hostileGate", "windup", "missileTurn", "aceHealth", "banditHealth", "score"];
+const KNOBS: DifficultyKnob[] = ["hostileDamage", "hostileGate", "windup", "missileTurn", "aceHealth", "banditHealth", "breakChance", "score"];
 
 function finite(value: unknown): value is number {
 	return typeIs(value, "number") && value === value && value !== math.huge && value !== -math.huge;
