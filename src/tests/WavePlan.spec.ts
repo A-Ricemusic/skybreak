@@ -94,4 +94,3 @@ describe("Staggered waves", () => {
 		expect(queue.size()).toBe(0);
 	});
 });
-
