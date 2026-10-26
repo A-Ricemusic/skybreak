@@ -12,6 +12,8 @@ export type DifficultyKnob =
 	| "threatCap"
 	| "windup"
 	| "missileTurn"
+	| "missileBurn"
+	| "missileGimbal"
 	| "aceHealth"
 	| "banditHealth"
 	| "breakChance"
@@ -68,7 +70,12 @@ const MULTIPLIERS: { [K in DifficultyKnob]: { [D in DifficultyKind]: number } } 
 	flightDivisor: { easy: 0.8, normal: 1, ace: 2 },
 	threatCap: { easy: 1, normal: 1, ace: 2 },
 	windup: { easy: 1.3, normal: 1, ace: 0.8 },
-	missileTurn: { easy: 0.8, normal: 1, ace: 1.2 },
+	/** Hostile missile turn cap (MissileRules): Easy missiles are lazy, Ace ones punish a late break. */
+	missileTurn: { easy: 0.75, normal: 1, ace: 1.25 },
+	/** Hostile missile motor time: Easy shots burn out early and can be outrun. */
+	missileBurn: { easy: 0.6, normal: 1, ace: 1.15 },
+	/** Hostile seeker half-angle: Easy is a little wider (it still loses an out-turned jet), Ace keeps Normal's. */
+	missileGimbal: { easy: 1.1, normal: 1, ace: 1.2 },
 	aceHealth: { easy: 0.8, normal: 1, ace: 1.6 },
 	// Normal is two missiles throughout; Easy softens hull further, Ace restores the armored flights.
 	banditHealth: { easy: 0.6, normal: 1, ace: 1.6 },
@@ -77,7 +84,7 @@ const MULTIPLIERS: { [K in DifficultyKnob]: { [D in DifficultyKind]: number } } 
 	protectDrain: { easy: 0.75, normal: 1, ace: 1.25 },
 	score: { easy: 0.85, normal: 1, ace: 1.2 },
 };
-const KNOBS: DifficultyKnob[] = ["hostileDamage", "hostileGate", "aceGate", "flightDivisor", "threatCap", "windup", "missileTurn", "aceHealth", "banditHealth", "breakChance", "protectDrain", "score"];
+const KNOBS: DifficultyKnob[] = ["hostileDamage", "hostileGate", "aceGate", "flightDivisor", "threatCap", "windup", "missileTurn", "missileBurn", "missileGimbal", "aceHealth", "banditHealth", "breakChance", "protectDrain", "score"];
 const BEHAVIOURS: { [K in DifficultyKind]: DifficultyBehaviour } = {
 	easy: { banditFlares: 0, banditsAlwaysBreak: false, aceSalvo: 1, extraRaiders: 0 },
 	normal: { banditFlares: 0, banditsAlwaysBreak: false, aceSalvo: 1, extraRaiders: 0 },

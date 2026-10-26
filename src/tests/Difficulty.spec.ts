@@ -47,7 +47,7 @@ describe("Difficulty multipliers", () => {
 	});
 	it("makes Ace harsher and Easy gentler on every threat knob", () => {
 		// Higher is harsher.
-		for (const knob of ["hostileDamage", "missileTurn", "aceHealth", "breakChance", "protectDrain"] as const) {
+		for (const knob of ["hostileDamage", "missileTurn", "missileBurn", "aceHealth", "breakChance", "protectDrain"] as const) {
 			expect(Difficulty.Multiplier("ace", knob) > 1).toBe(true);
 			expect(Difficulty.Multiplier("easy", knob) < 1).toBe(true);
 		}
@@ -56,6 +56,9 @@ describe("Difficulty multipliers", () => {
 		expect(Difficulty.Multiplier("easy", "banditHealth")).toBe(0.6);
 		expect(Difficulty.Scale("easy", "banditHealth", 130) < 110).toBe(true);
 		expect(Difficulty.Multiplier("easy", "hostileGate")).toBe(1.25);
+		// The seeker cone: a little wider on Easy (Easy missiles are beaten by their short burn and lazy turn) and on Ace.
+		expect(Difficulty.Multiplier("ace", "missileGimbal") > 1).toBe(true);
+		expect(Difficulty.Multiplier("easy", "missileGimbal") > 1).toBe(true);
 		// Longer is gentler: fire gates and windups.
 		for (const knob of ["hostileGate", "windup"] as const) {
 			expect(Difficulty.Multiplier("ace", knob) < 1).toBe(true);
