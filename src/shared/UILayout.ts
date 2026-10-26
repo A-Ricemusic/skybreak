@@ -898,7 +898,7 @@ export interface SettingsLayout {
 	valueWidth: number;
 }
 
-export const SETTINGS_ROWS = 6;
+export const SETTINGS_ROWS = 7;
 
 /** The settings sheet: header, a scrolling list of 48 px rows with 44 px steppers, and DONE. */
 export function getSettingsLayout(viewportWidth: number, viewportHeight: number): SettingsLayout {

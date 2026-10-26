@@ -1,9 +1,11 @@
-import { ContentProvider, Debris, Players, SoundService, Workspace } from "@rbxts/services";
+import { ContentProvider, Debris, Players, SoundService, TweenService, Workspace } from "@rbxts/services";
 import { AudioRules, AudioWarning } from "../shared/AudioRules";
 import { SoundBank } from "../shared/SoundBank";
 import { ExplosionKind } from "../shared/ExplosionFx";
 import type { Telemetry } from "../shared/Types";
 import { CombatEffects } from "./CombatEffects";
+import { duckGain } from "../shared/VoiceLines";
+import { VoicePlayer } from "./VoicePlayer";
 
 interface MovingSound { sound: Sound; last: Vector3; passed: boolean }
 interface TrackedEngine { model: Model; root: BasePart; sound: Sound }
@@ -39,19 +41,28 @@ export class GameAudio {
 	private tailUntil = 0;
 	private paused = false;
 	private settingsConnection?: RBXScriptConnection;
+	private sfxScale = 1;
+	/** Effects and engine sit 6 dB under any speaking voice. */
+	private duck = 1;
+	private stopDucking?: () => void;
 	public constructor() {
 		this.group.Name = "SkybreakSFX";
 		this.group.Volume = 0.8;
 		this.group.Parent = SoundService;
 		const gui = Players.LocalPlayer.FindFirstChildOfClass("PlayerGui");
 		if (gui) {
-			const applyVolume = () => {
+			const readVolume = () => {
 				const value = gui.GetAttribute("SfxVolume");
-				this.group.Volume = 0.8 * (typeIs(value, "number") && value === value ? math.clamp(value, 0, 1) : 1);
+				this.sfxScale = typeIs(value, "number") && value === value ? math.clamp(value, 0, 1) : 1;
+				this.applyVolume(0);
 			};
-			applyVolume();
-			this.settingsConnection = gui.GetAttributeChangedSignal("SfxVolume").Connect(applyVolume);
+			readVolume();
+			this.settingsConnection = gui.GetAttributeChangedSignal("SfxVolume").Connect(readVolume);
 		}
+		this.stopDucking = VoicePlayer.OnSpeaking((speaking) => {
+			this.duck = duckGain(speaking);
+			this.applyVolume(speaking ? 0.12 : 0.5);
+		});
 		const compressor = new Instance("CompressorSoundEffect");
 		compressor.Threshold = -12; compressor.Ratio = 4; compressor.Attack = 0.01; compressor.Release = 0.15;
 		compressor.Parent = this.group;
@@ -73,6 +84,11 @@ export class GameAudio {
 			}));
 			for (const probe of probes) probe.Destroy();
 		});
+	}
+	private applyVolume(fade: number): void {
+		const target = 0.8 * this.sfxScale * this.duck;
+		if (fade <= 0) this.group.Volume = target;
+		else TweenService.Create(this.group, new TweenInfo(fade), { Volume: target }).Play();
 	}
 	private create(id: string, parent: Instance, volume: number, pitch = 1): Sound | undefined {
 		const entry = SoundBank[id];
@@ -250,6 +266,6 @@ export class GameAudio {
 		this.oneShots.clear();
 	}
 	public Destroy(): void {
-		this.Stop(); this.clearShots(); this.stopExplosions?.(); this.settingsConnection?.Disconnect(); this.alive = false; this.world.Destroy(); this.group.Destroy();
+		this.Stop(); this.clearShots(); this.stopExplosions?.(); this.stopDucking?.(); this.settingsConnection?.Disconnect(); this.alive = false; this.world.Destroy(); this.group.Destroy();
 	}
 }

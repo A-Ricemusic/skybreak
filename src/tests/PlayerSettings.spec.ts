@@ -13,12 +13,13 @@ import {
 
 describe("client comfort settings", () => {
 	it("defaults to no inversion, full shake, 100% HUD and sticks, full volume", () => {
-		expect(defaultSettings()).toEqual({ invertY: false, shake: 1, hudScale: 1, stickScale: 1, music: 1, sfx: 1 });
-		expect(SETTING_ORDER.size()).toBe(6);
+		expect(defaultSettings()).toEqual({ invertY: false, shake: 1, hudScale: 1, stickScale: 1, music: 1, sfx: 1, voice: 1 });
+		expect(SETTING_ORDER.size()).toBe(7);
 	});
 	it("uses the audio contract attribute names", () => {
 		expect(SETTING_ATTRIBUTES.music).toBe("MusicVolume");
 		expect(SETTING_ATTRIBUTES.sfx).toBe("SfxVolume");
+		expect(SETTING_ATTRIBUTES.voice).toBe("VoiceVolume");
 	});
 	it("keeps every value in its range and on its step grid", () => {
 		expect(SETTING_RANGES.hudScale.min).toBe(0.8);
@@ -42,9 +43,9 @@ describe("client comfort settings", () => {
 		expect(stepSetting("shake", 1, -1)).toBe(0.75);
 	});
 	it("reads attributes back, defaulting anything missing or invalid", () => {
-		const stored: { [name: string]: unknown } = { InvertY: true, CameraShake: 0.25, HudScale: 5, MusicVolume: 0.4, SfxVolume: "loud" };
+		const stored: { [name: string]: unknown } = { InvertY: true, CameraShake: 0.25, HudScale: 5, MusicVolume: 0.4, SfxVolume: "loud", VoiceVolume: 0.7 };
 		const settings = readSettings((name) => stored[name]);
-		expect(settings).toEqual({ invertY: true, shake: 0.25, hudScale: 1.3, stickScale: 1, music: 0.4, sfx: 1 });
+		expect(settings).toEqual({ invertY: true, shake: 0.25, hudScale: 1.3, stickScale: 1, music: 0.4, sfx: 1, voice: 0.7 });
 		expect(readSettings(() => undefined)).toEqual(defaultSettings());
 	});
 	it("formats values for the sheet", () => {
