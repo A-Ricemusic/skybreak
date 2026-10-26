@@ -15,13 +15,15 @@ export interface MoodLighting {
 	ambient: Rgb; outdoorAmbient: Rgb; fogColor: Rgb; fogStart: number; fogEnd: number;
 	/** Receiver lamp brightness; the night mood leans on it for the desk. */
 	lamp: number;
+	/** Atmosphere density/haze; Roblox ignores the Fog* properties whenever an Atmosphere exists, and both worlds add one. */
+	density: number; haze: number;
 }
 const MOODS: Record<StoryMood,MoodLighting>={
-	dawn:{clockTime:6.3,brightness:2.2,exposure:.1,ambient:rgb(124,98,88),outdoorAmbient:rgb(166,134,120),fogColor:rgb(236,204,172),fogStart:0,fogEnd:3200,lamp:3},
-	day:{clockTime:10,brightness:2.6,exposure:.05,ambient:rgb(100,118,140),outdoorAmbient:rgb(130,145,155),fogColor:rgb(190,215,227),fogStart:0,fogEnd:100000,lamp:3},
-	dusk:{clockTime:17.8,brightness:2.4,exposure:.1,ambient:rgb(132,86,58),outdoorAmbient:rgb(176,112,78),fogColor:rgb(242,160,108),fogStart:0,fogEnd:4000,lamp:3.5},
-	night:{clockTime:1.5,brightness:1.5,exposure:.35,ambient:rgb(26,36,66),outdoorAmbient:rgb(38,54,92),fogColor:rgb(18,28,50),fogStart:0,fogEnd:2600,lamp:7},
-	storm:{clockTime:13,brightness:1.8,exposure:-.1,ambient:rgb(96,100,104),outdoorAmbient:rgb(118,122,126),fogColor:rgb(150,156,160),fogStart:60,fogEnd:900,lamp:4},
+	dawn:{clockTime:6.3,brightness:2.2,exposure:.1,ambient:rgb(124,98,88),outdoorAmbient:rgb(166,134,120),fogColor:rgb(236,204,172),fogStart:0,fogEnd:3200,lamp:3,density:.32,haze:1.6},
+	day:{clockTime:10,brightness:2.6,exposure:.05,ambient:rgb(100,118,140),outdoorAmbient:rgb(130,145,155),fogColor:rgb(190,215,227),fogStart:0,fogEnd:100000,lamp:3,density:.25,haze:.8},
+	dusk:{clockTime:17.8,brightness:2.4,exposure:.1,ambient:rgb(132,86,58),outdoorAmbient:rgb(176,112,78),fogColor:rgb(242,160,108),fogStart:0,fogEnd:4000,lamp:3.5,density:.34,haze:2},
+	night:{clockTime:1.5,brightness:1.5,exposure:.35,ambient:rgb(26,36,66),outdoorAmbient:rgb(38,54,92),fogColor:rgb(18,28,50),fogStart:0,fogEnd:2600,lamp:7,density:.42,haze:1.2},
+	storm:{clockTime:13,brightness:1.8,exposure:-.1,ambient:rgb(96,100,104),outdoorAmbient:rgb(118,122,126),fogColor:rgb(150,156,160),fogStart:60,fogEnd:900,lamp:4,density:.6,haze:3.2},
 };
 /** Lighting service properties for a chapter mood. */
 export function moodLighting(mood:StoryMood): MoodLighting { return MOODS[mood]; }

@@ -11,11 +11,11 @@ describe("cinematic staging tables",()=>{
 	it("gives every mood a legal clock, grey storm fog and a dark blue night",()=>{
 		for(const mood of MOODS){
 			const l=moodLighting(mood);
-			expect(l.clockTime>=0 && l.clockTime<24).toBe(true);expect(l.brightness>0 && l.fogEnd>l.fogStart).toBe(true);
+			expect(l.clockTime>=0 && l.clockTime<24).toBe(true);expect(l.brightness>0 && l.fogEnd>l.fogStart).toBe(true);expect(l.density>0 && l.density<1 && l.haze>=0).toBe(true);
 			for(const c of [l.ambient,l.outdoorAmbient,l.fogColor])expect(c.r>=0 && c.r<=255 && c.g>=0 && c.g<=255 && c.b>=0 && c.b<=255).toBe(true);
 		}
 		expect(math.abs(moodLighting("dawn").clockTime-6.3)<.01).toBe(true);expect(moodLighting("day").clockTime).toBe(10);
-		expect(math.abs(moodLighting("dusk").clockTime-17.8)<.01).toBe(true);expect(moodLighting("night").clockTime).toBe(1.5);expect(moodLighting("storm").clockTime).toBe(13);
+		expect(math.abs(moodLighting("dusk").clockTime-17.8)<.01).toBe(true);expect(moodLighting("night").clockTime).toBe(1.5);expect(moodLighting("storm").clockTime).toBe(13);expect(moodLighting("storm").density>moodLighting("day").density).toBe(true);
 		const storm=moodLighting("storm");expect(storm.fogEnd).toBe(900);expect(math.abs(storm.fogColor.r-storm.fogColor.b)<=12).toBe(true);
 		const night=moodLighting("night");expect(night.ambient.b>night.ambient.r).toBe(true);expect(night.lamp>moodLighting("day").lamp).toBe(true);
 		expect(moodLighting("dusk").ambient.r>moodLighting("dusk").ambient.b).toBe(true);

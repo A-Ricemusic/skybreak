@@ -50,12 +50,12 @@ function sceneFor(chapter:StoryChapter): Stage {
 	cloneModel(models?.FindFirstChild(subject),scene,"Story subject",new CFrame(ORIGIN.add(new Vector3(45,SUBJECT_Y[subject],-65))));
 	const jet=Workspace.FindFirstChild("World")?.FindFirstChild("DisplayJet",true);
 	cloneModel(jet,scene,"Kestrel",new CFrame(ORIGIN.add(new Vector3(-40,7,-60))).mul(CFrame.Angles(0,.7,0)));
+	// The empty instructor's chair beside the desk, worn leather; the `chair` shot pushes in on it in every scene.
+	const leather=Color3.fromRGB(96,60,42),c=vec(CHAIR);
+	prop(scene,"Instructor's chair",new Vector3(4,.6,4),c,leather,Enum.Material.Fabric);
+	prop(scene,"Instructor's chair",new Vector3(4,4.2,.6),c.add(new Vector3(0,2.4,1.9)),leather,Enum.Material.Fabric);
+	for(const [dx,dz] of [[-1.6,-1.6],[1.6,-1.6],[-1.6,1.6],[1.6,1.6]]) prop(scene,"Chair leg",new Vector3(.3,c.Y+2,.3),new Vector3(c.X+dx,(c.Y-2)/2-.3,c.Z+dz),Color3.fromRGB(52,54,58));
 	if(kind==="hangar") {
-		// The empty instructor's chair beside the desk, worn leather; the `chair` shot pushes in on it.
-		const leather=Color3.fromRGB(96,60,42),c=vec(CHAIR);
-		prop(scene,"Instructor's chair",new Vector3(4,.6,4),c,leather,Enum.Material.Fabric);
-		prop(scene,"Instructor's chair",new Vector3(4,4.2,.6),c.add(new Vector3(0,2.4,1.9)),leather,Enum.Material.Fabric);
-		for(const [dx,dz] of [[-1.6,-1.6],[1.6,-1.6],[-1.6,1.6],[1.6,1.6]]) prop(scene,"Chair leg",new Vector3(.3,c.Y+2,.3),new Vector3(c.X+dx,(c.Y-2)/2-.3,c.Z+dz),Color3.fromRGB(52,54,58));
 		// A second parked airframe far back and hangar wall slabs close the room in.
 		cloneModel(jet,scene,"Parked jet",new CFrame(ORIGIN.add(new Vector3(70,7,-150))).mul(CFrame.Angles(0,2.3,0)));
 		const wall=tint(Color3.fromRGB(58,62,68));
@@ -83,14 +83,33 @@ function sceneFor(chapter:StoryChapter): Stage {
 }
 type LightingKeys="ClockTime" | "Brightness" | "Ambient" | "OutdoorAmbient" | "FogColor" | "FogEnd" | "FogStart" | "ExposureCompensation";
 const LIGHTING_KEYS:LightingKeys[]=["ClockTime","Brightness","Ambient","OutdoorAmbient","FogColor","FogEnd","FogStart","ExposureCompensation"];
-/** Applies the mood to Lighting (service properties only; the server owns Sky/Atmosphere) and returns the restore function. */
+/**
+ * Applies the mood to Lighting and returns the restore function. The server
+ * rewrites Lighting whenever it rebuilds a world (the finale cinematic starts
+ * at the same moment the menu world comes back), so each property is watched:
+ * a value we did not set becomes the new restore target and the mood is
+ * re-applied. The Fog* properties are inert while an Atmosphere exists, so the
+ * world's Atmosphere is thickened locally too (client changes do not replicate).
+ */
 function stageLighting(mood:StoryChapter["mood"]): ()=>void {
-	const saved:Partial<Record<LightingKeys,unknown>>={};
-	for(const key of LIGHTING_KEYS)saved[key]=Lighting[key];
+	type Bag=Record<LightingKeys,unknown>;
+	const live=Lighting as unknown as Bag,saved:Partial<Bag>={},mine:Partial<Bag>={};
 	const l=moodLighting(mood);
-	Lighting.ClockTime=l.clockTime;Lighting.Brightness=l.brightness;Lighting.ExposureCompensation=l.exposure;
-	Lighting.Ambient=col(l.ambient);Lighting.OutdoorAmbient=col(l.outdoorAmbient);Lighting.FogColor=col(l.fogColor);Lighting.FogStart=l.fogStart;Lighting.FogEnd=l.fogEnd;
-	return ()=>{for(const key of LIGHTING_KEYS)(Lighting as unknown as Record<LightingKeys,unknown>)[key]=saved[key];};
+	const wanted:Bag={ClockTime:l.clockTime,Brightness:l.brightness,ExposureCompensation:l.exposure,Ambient:col(l.ambient),OutdoorAmbient:col(l.outdoorAmbient),FogColor:col(l.fogColor),FogStart:l.fogStart,FogEnd:l.fogEnd};
+	const apply=(key:LightingKeys)=>{mine[key]=wanted[key];live[key]=wanted[key];};
+	const watchers:RBXScriptConnection[]=[];
+	for(const key of LIGHTING_KEYS) {
+		saved[key]=live[key];apply(key);
+		watchers.push(Lighting.GetPropertyChangedSignal(key).Connect(()=>{if(live[key]!==mine[key]){saved[key]=live[key];apply(key);}}));
+	}
+	const atmosphere=Lighting.FindFirstChildOfClass("Atmosphere");
+	const atmo=atmosphere ? {density:atmosphere.Density,haze:atmosphere.Haze,color:atmosphere.Color} : undefined;
+	if(atmosphere){atmosphere.Density=l.density;atmosphere.Haze=l.haze;atmosphere.Color=col(l.fogColor);}
+	return ()=>{
+		for(const w of watchers)w.Disconnect();
+		for(const key of LIGHTING_KEYS)live[key]=saved[key];
+		if(atmosphere && atmo && atmosphere.Parent){atmosphere.Density=atmo.density;atmosphere.Haze=atmo.haze;atmosphere.Color=atmo.color;}
+	};
 }
 const INK=Color3.fromRGB(4,9,14),IVORY=Color3.fromRGB(242,238,226),MUTED=Color3.fromRGB(152,168,176),FAINT=Color3.fromRGB(104,122,132);
 const ACCENT=Color3.fromRGB(64,224,206),ORANGE=Color3.fromRGB(255,150,84),DANGER=Color3.fromRGB(255,84,76),AMBER=Color3.fromRGB(242,196,78);
@@ -121,7 +140,8 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 	const measure=(b:StoryBeat)=>TextService.GetTextSize(b.text,layout.bodySize,bodyFont(b),new Vector2(wrapWidth,10000)).Y+4;
 	const textHeight=measure(current);
 	let tallest=0;
-	for(const b of chapter.beats)tallest=math.max(tallest,measure(b));
+	for(const b of chapter.beats)if(!isCard(b.shot))tallest=math.max(tallest,measure(b));
+	if(tallest===0)tallest=textHeight;
 	const bandHeight=cinematicBandHeight(layout,tallest);
 	const textAreaHeight=math.min(textHeight,layout.maxTextHeight),overflow=textHeight>layout.maxTextHeight;
 	const textY=bandHeight-layout.padBottom-textAreaHeight,chipY=textY-layout.chipGap-layout.chipHeight;
