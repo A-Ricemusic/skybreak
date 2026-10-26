@@ -78,8 +78,12 @@ function solid(part: BasePart): void {
 	part.CastShadow = false;
 }
 
-/** The uploaded model placed at `cframe`, or undefined when it has no ID or failed to load or place. */
-function placeUploaded(name: WorldAssetName, parent: Instance, cframe: CFrame): Model | undefined {
+/**
+ * The uploaded model placed at `cframe` (scaled about its ground contact by `scale`), or undefined
+ * when it has no ID or failed to load or place. Every clone shares the cached template's mesh and
+ * SurfaceAppearance content, so the engine draws repeated props (trees, rocks) as instanced batches.
+ */
+function placeUploaded(name: WorldAssetName, parent: Instance, cframe: CFrame, scale = 1): Model | undefined {
 	const spec = UploadedAssetSpecs[name];
 	const uploaded = UploadedAssets.Template([name]);
 	if (uploaded === undefined) return undefined;
@@ -87,8 +91,9 @@ function placeUploaded(name: WorldAssetName, parent: Instance, cframe: CFrame): 
 	const [ok, result] = pcall(() => {
 		model.Name = name;
 		for (const item of model.GetDescendants()) if (item.IsA("BasePart")) solid(item);
-		// Template pivot is the model's bottom centre; the ground contact sits groundOffset above it.
-		model.PivotTo(cframe.mul(new CFrame(0, -spec.groundOffset, 0)));
+		// Template pivot is the model's bottom centre (scaling keeps it fixed); the ground contact sits groundOffset above it.
+		if (scale !== 1) model.ScaleTo(model.GetScale() * scale);
+		model.PivotTo(cframe.mul(new CFrame(0, -spec.groundOffset * scale, 0)));
 		model.Parent = parent;
 	});
 	if (ok) return model;
@@ -97,9 +102,9 @@ function placeUploaded(name: WorldAssetName, parent: Instance, cframe: CFrame): 
 	return undefined;
 }
 
-function place(name: WorldAssetName, parent: Instance, cframe: CFrame): Model | undefined {
+function place(name: WorldAssetName, parent: Instance, cframe: CFrame, scale = 1): Model | undefined {
 	const spec = UploadedAssetSpecs[name];
-	const uploaded = placeUploaded(name, parent, cframe);
+	const uploaded = placeUploaded(name, parent, cframe, scale);
 	if (uploaded !== undefined) return uploaded;
 	const fallback = FALLBACKS[name];
 	if (fallback === undefined) return undefined;
@@ -109,8 +114,8 @@ function place(name: WorldAssetName, parent: Instance, cframe: CFrame): Model | 
 	for (const shape of fallback(spec.size)) {
 		const part = new Instance("Part");
 		part.Name = shape.name;
-		part.Size = shape.size;
-		part.CFrame = cframe.mul(new CFrame(shape.offset));
+		part.Size = shape.size.mul(scale);
+		part.CFrame = cframe.mul(new CFrame(shape.offset.mul(scale)));
 		part.Color = shape.color;
 		part.Material = shape.material;
 		solid(part);
