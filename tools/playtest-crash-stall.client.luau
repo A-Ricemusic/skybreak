@@ -40,10 +40,18 @@ task.spawn(function()
 	local ok, message = xpcall(function()
 		if script:GetAttribute("DiveOnly") ~= true then
 			report:SetAttribute("Phase", "Climb")
+			-- LS commands a pitch rate: raise the nose about 20 degrees, let go, and the
+			-- jet must keep that climb by itself (attitude hold) all the way to 850.
 			stick(Enum.KeyCode.Thumbstick2, 1)
-			stick(Enum.KeyCode.Thumbstick1, 1)
+			stick(Enum.KeyCode.Thumbstick1, .6); task.wait(.6); release(Enum.KeyCode.Thumbstick1)
+			local climbPitch = controller:GetFlightState().pitch
+			assert(climbPitch > .2, "LS did not raise the nose")
 			untilCheck(12, function() return controller:GetTelemetry().altitude > 850 end, "Climb failed")
-			release(Enum.KeyCode.Thumbstick1); release(Enum.KeyCode.Thumbstick2)
+			assert(math.abs(controller:GetFlightState().pitch - climbPitch) < .05, "Climb attitude was not held")
+			report:SetAttribute("HeldClimbPitch", climbPitch)
+			-- Level off with the same input the other way.
+			stick(Enum.KeyCode.Thumbstick1, -.6); task.wait(.6); release(Enum.KeyCode.Thumbstick1)
+			release(Enum.KeyCode.Thumbstick2)
 			local initial = controller:GetControlStateForStudio().throttle
 			stick(Enum.KeyCode.Thumbstick2, .1); task.wait(.3); release(Enum.KeyCode.Thumbstick2)
 			assert(math.abs(initial - controller:GetControlStateForStudio().throttle) < .001, "RS drift")
@@ -70,6 +78,9 @@ task.spawn(function()
 			task.wait(2.7); release(Enum.KeyCode.Thumbstick2)
 			untilCheck(8, function() return controller:GetTelemetry().speed > 180 end, "Recovery failed")
 			report:SetAttribute("RecoveredSpeed", controller:GetTelemetry().speed)
+			-- The recovery dive holds too: pull back to level before the remaining checks.
+			stick(Enum.KeyCode.Thumbstick1, .5)
+			untilCheck(5, function() return controller:GetFlightState().pitch >= 0 end, "Pull-out failed")
 			release(Enum.KeyCode.Thumbstick1)
 			local held = controller:GetControlStateForStudio().throttle
 			stick(Enum.KeyCode.Thumbstick2, -1); send(Enum.KeyCode.Thumbstick2, Enum.UserInputState.Cancel)

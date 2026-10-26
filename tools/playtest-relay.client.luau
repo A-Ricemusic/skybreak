@@ -38,11 +38,16 @@ local alive=true
 script.Destroying:Connect(function() alive=false;stateConnection:Disconnect();local c=FlightController.GetActive();if c then c:SetInput(0,0)end end)
 local c=FlightController.GetActive()
 if c and c.active then stage(c:GetTelemetry()) end
-local function controlsFor(frame,point,radius,orbit,ceiling)
+-- The predicted flight state (attitude quaternion and derived yaw/pitch/roll): the stick
+-- commands rates, so the pilot closes the loop on the real nose, not the evade-rolled pivot.
+local function stateFor(controller,frame)
+    local state=controller:GetFlightState()
+    if state then return state end
     local look=frame.LookVector
-    return Pilot:Controls({x=frame.Position.X,y=frame.Position.Y,z=frame.Position.Z,
-        yaw=math.atan2(-look.X,-look.Z),pitch=math.asin(look.Y),roll=0,speed=200},
-        {x=point.X,y=point.Y,z=point.Z},radius,orbit,ceiling)
+    return {x=frame.Position.X,y=frame.Position.Y,z=frame.Position.Z,yaw=math.atan2(-look.X,-look.Z),pitch=math.asin(math.clamp(look.Y,-1,1)),roll=0,speed=200}
+end
+local function controlsFor(controller,frame,point,radius,orbit,ceiling)
+    return Pilot:Controls(stateFor(controller,frame),{x=point.X,y=point.Y,z=point.Z},radius,orbit,ceiling)
 end
 while alive do
     local controller=FlightController.GetActive()
@@ -58,7 +63,8 @@ while alive do
         local flightPhase=nav and (phase=="route" or phase=="recon" or phase=="signal" or phase=="escort" or phase=="defend")
         local target=telemetry.target;local hasTarget=target and target.Parent
         if phase=="tutorial_move" then
-            controller:SetThrottle(.2);controller:SetInput(.3,.3)
+            -- Turn and pitch for the teaching step; the stick is a rate, so alternate nose up/down.
+            controller:SetThrottle(.5);controller:SetInput(.3,math.floor((now-phaseSince)/1.5)%2==0 and .3 or -.3)
         elseif phase=="tutorial_target" then
             controller:SetInput(0,0);if now-phaseSince>1 then controller:CycleTarget() end
         else
@@ -68,20 +74,20 @@ while alive do
             local outside=flightPhase and (nav-frame.Position).Magnitude>(telemetry.navigationRadius or 210)*.85
             local navigate=flightPhase and (phase=="route" or outside or not hasTarget)
             if navigate then
-                local input=controlsFor(frame,nav,telemetry.navigationRadius or 210,phase~="route",telemetry.navigationCeiling)
+                local input=controlsFor(controller,frame,nav,telemetry.navigationRadius or 210,phase~="route",telemetry.navigationCeiling)
                 controller:SetInput(input.x,input.y);controller:SetThrottle(input.throttle)
             elseif aim then
                 local delta=aim-frame.Position
                 if telemetry.targetKind=="ground" and delta.Magnitude<450 and now>=extendUntil then extendUntil=now+4 end
-                if now<extendUntil then controller:SetInput(0,.1);controller:SetThrottle(.55)
+                local state=stateFor(controller,frame)
+                if now<extendUntil then controller:SetInput(Pilot:Steer(state,state.yaw,.1));controller:SetThrottle(.55)
                 elseif delta.Magnitude>1 then
-                    local yaw=math.atan2(-frame.LookVector.X,-frame.LookVector.Z)
                     local desired=math.atan2(-delta.X,-delta.Z)
-                    local turn=(desired-yaw+math.pi)%(2*math.pi)-math.pi
-                    local pitch=math.asin(math.clamp(delta.Unit.Y,-1,1))
+                    local pitch=math.clamp(math.asin(math.clamp(delta.Unit.Y,-1,1)),-.6,.6)
                     if telemetry.navigationCeiling and frame.Position.Y>telemetry.navigationCeiling-50 then pitch=math.min(pitch,-.12) end
-                    controller:SetInput(math.clamp(-turn*2.5,-1,1),math.clamp(pitch/.62,-1,1))
-                    controller:SetThrottle(delta.Magnitude>1600 and .6 or .05)
+                    controller:SetInput(Pilot:Steer(state,desired,pitch))
+                    -- Climbs now trade speed: keep a margin over the 140 stud/s stall in close fights.
+                    controller:SetThrottle(delta.Magnitude>1600 and .6 or .4)
                 end
             else controller:SetInput(.3,0);controller:SetThrottle(.2) end
             if script:GetAttribute("HoldFire")~=true and not navigate and now>=extendUntil and telemetry.lockProgress>=.99 and telemetry.missileCooldown<=0 and now-lastFire>1.2 then
