@@ -1,4 +1,5 @@
-import { afterEach, describe, expect, it } from "@rbxts/jest-globals";
+import { afterAll, afterEach, beforeAll, describe, expect, it } from "@rbxts/jest-globals";
+import { UploadedAssets } from "../shared/UploadedAssets";
 import { HttpService, RunService, ServerStorage, Workspace } from "@rbxts/services";
 import { JetFactory } from "../shared/JetFactory";
 import { ThreatRules } from "../shared/ThreatRules";
@@ -19,6 +20,11 @@ interface ExportedAircraft {
 // Engine integration: real instances, pivots, attachments and effects in Roblox.
 // Mission combat is also exercised through the phone controller by the live driver.
 describe("Roblox jet and missile integration", () => {
+	// These cases pin the procedural Blender aircraft. With moderation-approved IDs wired in
+	// RobloxAssetIds the game now loads uploaded models, so force the procedural path here
+	// (UploadedAssets.spec covers the uploaded path and its fallbacks).
+	beforeAll(() => UploadedAssets.Configure({ ids: {} }));
+	afterAll(() => UploadedAssets.Configure());
 	let fixture: Folder | undefined;
 	afterEach(() => { fixture?.Destroy(); fixture = undefined; });
 	function folder(): Folder {
