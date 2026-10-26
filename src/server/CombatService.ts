@@ -1,3 +1,4 @@
+import { CombatBalance } from "../shared/CombatBalance";
 import { AircraftCollision } from "./AircraftCollision";
 import { Players, RunService, Workspace } from "@rbxts/services";
 import { FlightMath, FlightState } from "../shared/FlightMath";
@@ -176,7 +177,7 @@ const PLAYER_MISSILE_DAMAGE = SpecialWeapons.StandardDamage;
 //   banditReload    one bandit's own reload after it fires; aceReload is the ace's (its whole gate).
 //   fireAimDot      nose dot a shooter needs on the player; straightRelax is subtracted while the stick is centered.
 //   fireRange       [min, max] launch range for bandits.
-//   banditHealth    required bandits: two missiles in Act I, three in Acts II-III. Raiders stay at RAIDER_HEALTH.
+//   banditHealth    required bandits: two missiles on Normal; Ace restores heavier flights. Raiders stay at RAIDER_HEALTH.
 //   banditFlares    flares a required bandit carries (Act III: one).
 //   lockBreakChance odds a bandit breaks out of a lock building inside 900 studs (once per 12 s).
 //   aceFlares       flares an ace carries; each decoys every player missile within 260 studs for 2.5 s.
@@ -188,23 +189,23 @@ const PLAYER_MISSILE_DAMAGE = SpecialWeapons.StandardDamage;
 //   breakChance     odds a bandit breaks against an inbound guided player missile (shares the 12 s break cooldown).
 //   breakSeconds    how long a break lasts; breakTurn the bandit's steering rate while breaking.
 const TUNING = {
-	hostileDamage: [10, 12, 13],
+	hostileDamage: CombatBalance.hostileDamage,
 	windup: [2.4, 2.0, 1.7],
-	flightGate: [14, 13, 15],
-	flightDivisor: [2, 2.5, 3],
-	threatCap: [1, 2, 2],
+	flightGate: CombatBalance.flightGate,
+	flightDivisor: CombatBalance.flightDivisor,
+	threatCap: CombatBalance.threatCap,
 	banditReload: [10, 7.5, 5.5],
-	aceReload: [9, 8, 7],
+	aceReload: CombatBalance.aceReload,
 	fireAimDot: [0.65, 0.55, 0.45],
 	straightRelax: [0.2, 0.25, 0.3],
 	fireRange: [[450, 1700], [400, 1900], [350, 2100]],
-	banditHealth: [100, 130, 160],
+	banditHealth: CombatBalance.banditHealth,
 	banditFlares: [0, 0, 1],
 	lockBreakChance: [0.5, 1, 1],
 	aceFlares: [2, 3, 4],
 	aceLockBreak: [7, 5.5, 4],
 	aceStageSpeed: [30, 40, 55],
-	aceSalvo: [1, 1, 2],
+	aceSalvo: CombatBalance.aceSalvo,
 	missileTurn: [1.6, 2.2, 2.8],
 	aceMissileTurn: [0.6, 0.9, 1.2],
 	missileSpeed: [580, 660, 740],
@@ -215,7 +216,7 @@ const TUNING = {
 	breakTurn: [3.5, 4.5, 5.5],
 };
 /** Missions 1-4 (the rim's first sorties): the slowest gate, a small divisor, one threat at a time and no lock breaks. */
-const GENTLE = { lastMission: 4, flightGate: 14, flightDivisor: 1.5, threatCap: 1 };
+const GENTLE = CombatBalance.gentle;
 const RAIDER_HEALTH = 100;
 const COURIER_HEALTH = 160;
 /** Faster than cruise (255) but slower than full throttle (320): a chase you win by committing to it. */
@@ -243,7 +244,9 @@ const TUNING_KNOBS = new Map<number[], DifficultyKnob>([
 	[TUNING.windup, "windup"],
 	[TUNING.flightGate, "hostileGate"],
 	[TUNING.banditReload, "hostileGate"],
-	[TUNING.aceReload, "hostileGate"],
+	[TUNING.aceReload, "aceGate"],
+	[TUNING.flightDivisor, "flightDivisor"],
+	[TUNING.threatCap, "threatCap"],
 	[TUNING.missileTurn, "missileTurn"],
 	[TUNING.aceMissileTurn, "missileTurn"],
 	[TUNING.missileFuse, "missileTurn"],
@@ -1101,8 +1104,8 @@ function stepEnemies(session: CombatSession, dt: number): void {
 	// gate. Aces keep their own reload and ignore both, so an ace fires while its wingmen wind up.
 	const soft = gentle(session);
 	const gateBase = soft ? Difficulty.Scale(session.difficulty, "hostileGate", GENTLE.flightGate) : tuned(session, TUNING.flightGate);
-	const maxDivisor = soft ? GENTLE.flightDivisor : TUNING.flightDivisor[act - 1];
-	const maxCap = soft ? GENTLE.threatCap : TUNING.threatCap[act - 1];
+	const maxDivisor = soft ? Difficulty.Scale(session.difficulty, "flightDivisor", GENTLE.flightDivisor) : tuned(session, TUNING.flightDivisor);
+	const maxCap = soft ? Difficulty.Scale(session.difficulty, "threatCap", GENTLE.threatCap) : tuned(session, TUNING.threatCap);
 	let live = 0, threats = 0, raidersAlive = 0;
 	for (const enemy of session.enemies) {
 		if (!ownsEnemy(session, enemy) || enemy.kind !== "air" || enemy.role === "courier") continue;

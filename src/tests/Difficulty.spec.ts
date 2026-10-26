@@ -51,9 +51,9 @@ describe("Difficulty multipliers", () => {
 			expect(Difficulty.Multiplier("ace", knob) > 1).toBe(true);
 			expect(Difficulty.Multiplier("easy", knob) < 1).toBe(true);
 		}
-		// Ace adds behaviour instead of bandit hull; Easy makes Act II bandits two-missile kills (130 x 0.75 < 110).
-		expect(Difficulty.Multiplier("ace", "banditHealth")).toBe(1);
-		expect(Difficulty.Multiplier("easy", "banditHealth")).toBe(0.75);
+		// Ace restores armor; Easy reduces the two-missile Normal hull.
+		expect(Difficulty.Multiplier("ace", "banditHealth")).toBe(1.6);
+		expect(Difficulty.Multiplier("easy", "banditHealth")).toBe(0.6);
 		expect(Difficulty.Scale("easy", "banditHealth", 130) < 110).toBe(true);
 		expect(Difficulty.Multiplier("easy", "hostileGate")).toBe(1.25);
 		// Longer is gentler: fire gates and windups.
@@ -63,10 +63,10 @@ describe("Difficulty multipliers", () => {
 		}
 	});
 	it("scales values proportionally and passes non-finite input through", () => {
-		expect(Difficulty.Scale("ace", "hostileDamage", 10)).toBe(14);
+		expect(Difficulty.Scale("ace", "hostileDamage", 10)).toBe(24);
 		expect(Difficulty.Scale("easy", "hostileDamage", 10)).toBe(6);
 		expect(Difficulty.Scale("easy", "hostileGate", 8)).toBe(10);
-		expect(Difficulty.Scale("ace", "aceHealth", 100)).toBe(130);
+		expect(Difficulty.Scale("ace", "aceHealth", 100)).toBe(160);
 		expect(Difficulty.Scale("ace", "hostileDamage", 0)).toBe(0);
 		expect(Difficulty.Scale("ace", "hostileDamage", math.huge)).toBe(math.huge);
 		const nan = Difficulty.Scale("ace", "hostileDamage", 0 / 0);
