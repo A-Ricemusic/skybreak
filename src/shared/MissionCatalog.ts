@@ -5,6 +5,7 @@
 // All 27 missions share the wall-clock deadline in GameConfig.Campaign.MissionTimeLimit
 // and contribute to the four-slot save profile. Missions 3-27 are driven by their
 // blueprint phase sequence in BlueprintRunner.
+import { WavePlan } from "./WavePlan";
 
 export type Act = 1 | 2 | 3;
 
@@ -105,6 +106,13 @@ export interface MissionPhaseBlueprint {
 	stagger?: number;
 	/** `required_air`: groups after the first arrive from behind the player. */
 	flank?: boolean;
+	/**
+	 * `required_air`: authored triggers for groups 1.. as a share (0-1) of the whole phase down. Such a
+	 * group waits for its share, never for `stagger` or the half-of-the-last-group rule.
+	 */
+	groupAt?: number[];
+	/** `required_air`: radio lines for groups 1.., said when the group actually spawns. */
+	groupCalls?: string[];
 	/** Timed phases: ground jammers or guns that light up mid-phase (see PhaseHazard). */
 	hazard?: PhaseHazard;
 	/** `chase`: where the courier runs. */
@@ -220,11 +228,11 @@ function fly(kind: "route" | "recon" | "signal" | "escort" | "defend", label: st
 		radius: kind === "route" ? 210 : kind === "recon" ? 420 : 1000,
 		seconds, optionalRaiders, ceiling, beat: extra.beat, chatter: extra.chatter, reinforce: extra.reinforce, twist: extra.twist, hazard: extra.hazard };
 }
-interface AirExtra { groups?: number; stagger?: number; flank?: boolean; optionalRaiders?: number; reinforce?: PhaseReinforcement[]; chatter?: PhaseChatter[]; twist?: PhaseTwist; directed?: boolean }
+interface AirExtra { groups?: number; stagger?: number; flank?: boolean; groupAt?: number[]; groupCalls?: string[]; optionalRaiders?: number; reinforce?: PhaseReinforcement[]; chatter?: PhaseChatter[]; twist?: PhaseTwist; directed?: boolean }
 /** A required air phase: `count` bandits, optionally in staggered groups, with raiders and reinforcements. */
 function air(label: string, count: number, beat: string, extra: AirExtra = {}): MissionPhaseBlueprint {
 	return { kind: "required_air", label, count, beat, groups: extra.groups, stagger: extra.stagger, flank: extra.flank,
-		optionalRaiders: extra.optionalRaiders, reinforce: extra.reinforce, chatter: extra.chatter, twist: extra.twist, directed: extra.directed };
+		groupAt: extra.groupAt, groupCalls: extra.groupCalls, optionalRaiders: extra.optionalRaiders, reinforce: extra.reinforce, chatter: extra.chatter, twist: extra.twist, directed: extra.directed };
 }
 interface GroundExtra { optionalRaiders?: number; reinforce?: PhaseReinforcement[]; chatter?: PhaseChatter[]; twist?: PhaseTwist; directed?: boolean; hidden?: boolean }
 /** A required ground strike on the next `count` targets of the mission's ground list. */
@@ -719,8 +727,7 @@ export const MISSIONS: MissionBlueprint[] = [
 		"The wing is broken. Only the Marshal's own flight remains.",
 		[
 			air("Break the Marshal's wing", 8, "SERA: His wing splits. First four ahead; the rest will come round behind.",
-				{ groups: 2, stagger: 40, flank: true, optionalRaiders: 2, reinforce: [{ at: 0.6, count: 2 }],
-					chatter: [{ at: 0.5, text: "SERA: Second flight on your six! Turn!" }] }),
+				{ groups: 2, flank: true, groupAt: [0.5], groupCalls: ["SERA: Second flight on your six! Turn!"], optionalRaiders: 2, reinforce: [{ at: 0.6, count: 2 }] }),
 			fly("signal", "Triangulate the Marshal's last transmission", [[0,600,-1200]], 90, 4, undefined,
 				{ beat: "TEAL (tape): He'll be where he can hear himself. The parliament mast.", chatter: [{ at: 0.5, text: "SERA: Triangulating. He's above the parliament transmitter." }, { at: 0.8, text: "SERA: Fix is closing. Stay in the volume." }], reinforce: [{ at: 0.4, count: 2 }] }),
 		],
@@ -879,10 +886,25 @@ for (let index = 0; index < MISSIONS.size(); index++) {
 			assert(phase.count === 1 && (phase.seconds ?? 0) > 0, `${tag} chases one courier for a positive time`);
 			assert(phase.escape !== undefined && inBounds(phase.escape) && phase.points === undefined, `${tag} needs an in-bounds escape point and no flight volume`);
 		}
-		if (phase.groups !== undefined || phase.stagger !== undefined || phase.flank !== undefined) {
-			assert(phase.kind === "required_air", `${tag}: groups, stagger and flank are only for required_air`);
+		if (phase.groups !== undefined || phase.stagger !== undefined || phase.flank !== undefined || phase.groupAt !== undefined || phase.groupCalls !== undefined) {
+			assert(phase.kind === "required_air", `${tag}: groups, stagger, flank, groupAt and groupCalls are only for required_air`);
 			assert((phase.groups ?? 1) >= 1 && (phase.groups ?? 1) <= (phase.count ?? 0), `${tag} groups must be 1..count`);
 			assert(phase.stagger === undefined || phase.stagger > 0, `${tag} stagger must be positive`);
+			const plan = WavePlan.Groups(phase.count ?? 0, phase.groups ?? 1);
+			if (phase.groupAt) {
+				assert(phase.groupAt.size() === plan.size() - 1 && phase.stagger === undefined, `${tag} groupAt needs one share per later group and no stagger`);
+				let previous = 0, spawned = plan[0];
+				for (let index = 0; index < phase.groupAt.size(); index++) {
+					const at: number = phase.groupAt[index];
+					// A share the groups already out cannot reach would strand the phase.
+					assert(at > previous && at < 1 && math.ceil(at * (phase.count ?? 0) - 1e-5) <= spawned, `${tag} groupAt shares must rise and be reachable`);
+					previous = at; spawned += plan[index + 1];
+				}
+			}
+			if (phase.groupCalls) {
+				assert(phase.groupCalls.size() <= plan.size() - 1, `${tag} has more group calls than later groups`);
+				for (const line of phase.groupCalls) assert(line.size() > 0 && line.size() <= 80, `${tag} group calls need a short radio line`);
+			}
 		}
 		if (phase.hazard) {
 			const effect = phase.hazard.effect;
@@ -995,6 +1017,43 @@ export const MissionCatalog = {
 	/** Raiders a phase may lose when every wave brings `extra` more (Ace difficulty). */
 	RaiderCap(phase: MissionPhaseBlueprint, extra = 0): number {
 		return (phase.optionalRaiders ?? 0) + math.max(0, extra) * MissionCatalog.RaiderWaves(phase);
+	},
+	/**
+	 * The most hostile aircraft a phase can have up at once if nothing held them back: every group a
+	 * timer can send (all of them unless authored `groupAt` shares gate them), less the bandits that
+	 * must be down for later events, plus every raider wave whose trigger has been reached, raiders
+	 * never dying, each wave `extra` larger. The ace or courier counts one. The server never lets
+	 * more than WavePlan.Budget(extra) fly (see CombatService requestAir); this is the demand on it.
+	 */
+	PeakAircraft(phase: MissionPhaseBlueprint, extra = 0): number {
+		const wave = (count: number) => (count > 0 ? count + math.max(0, extra) : 0);
+		const raiders = phase.optionalRaiders ?? 0;
+		if (phase.kind === "ace") return 1 + wave(math.ceil(raiders / 2)) + wave(raiders - math.ceil(raiders / 2));
+		const initial = wave(MissionCatalog.InitialRaiders(phase));
+		const reinforce = phase.reinforce ?? [];
+		if (phase.kind !== "required_air" && phase.kind !== "required_ground") {
+			let all = initial;
+			for (const entry of reinforce) all += wave(entry.count);
+			return (phase.kind === "chase" ? 1 : 0) + all;
+		}
+		const count = phase.count ?? 0;
+		const air = phase.kind === "required_air";
+		const plan = air ? WavePlan.Groups(count, phase.groups ?? 1) : [];
+		let peak = 0;
+		// k = required kills so far: kill-fraction events have fired, and k bandits are no longer up.
+		for (let k = 0; k < count; k++) {
+			let spawned = 0;
+			for (let index = 0; index < plan.size(); index++) {
+				const at = index > 0 ? phase.groupAt?.[index - 1] : undefined;
+				if (at !== undefined && k + 1e-5 < at * count) break;
+				spawned += plan[index];
+			}
+			let up = air ? math.max(0, spawned - k) : 0;
+			up += initial;
+			for (const entry of reinforce) if (k + 1e-5 >= entry.at * count) up += wave(entry.count);
+			peak = math.max(peak, up);
+		}
+		return peak;
 	},
 	/** Max optional raider spawns, summed across phases that permit them. */
 	MaxOptionalRaiders(blueprint: MissionBlueprint): number {

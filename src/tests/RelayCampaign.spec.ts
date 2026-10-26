@@ -4,7 +4,7 @@ import {FlightMath} from "../shared/FlightMath";
 import {BlueprintRunner} from "../shared/BlueprintRunner";
 import {MissionCatalog,MISSIONS,FlightPoint,MissionPhaseBlueprint} from "../shared/MissionCatalog";
 import {MissionScore} from "../shared/MissionScore";
-import {WavePlan} from "../shared/WavePlan";
+import {AirRequest,WavePlan} from "../shared/WavePlan";
 import {GameConfig} from "../shared/GameConfig";
 import {LEVEL_LAYOUTS} from "../shared/MissionLayouts";
 import {LOG,MARSHAL,RECORDER,RUSK,SERA,STORY,TEAL,TRAINEE,VULTURE_TWO} from "../shared/RelayStory";
@@ -22,6 +22,38 @@ function clearHazards(state: ReturnType<typeof BlueprintRunner.NewState>,now: nu
 function killKind(kind: string): "air" | "ground" | "ace" | undefined {
 	return kind==="required_air" || kind==="chase" ? "air" : kind==="required_ground" ? "ground" : kind==="ace" ? "ace" : undefined;
 }
+/**
+ * One phase flown second by second under the server's spawn rules (CombatService): staggered or
+ * authored groups (WavePlan.Due, the next held while one still waits), reinforcements by phase
+ * fraction, both ace calls at once, every wave `extra` larger, all through the live-aircraft budget
+ * (WavePlan.Admit). The pilot kills one required target every `killEvery` s (0: never) and never a
+ * raider. Returns the most aircraft up at once, the bandits that flew, and whether the phase cleared.
+ */
+function flyPhase(p: MissionPhaseBlueprint,extra: number,killEvery: number): {peak: number;flown: number;cleared: boolean}{
+	const budget=WavePlan.Budget(extra),queue: AirRequest[]=[],wave=(n: number)=>n>0 ? n+extra : 0;
+	const count=p.count ?? 0,air=p.kind==="required_air",kills=air || p.kind==="required_ground";
+	const plan=air ? WavePlan.Groups(count,p.groups ?? 1) : [];
+	const fixed=p.kind==="ace" || p.kind==="chase" ? 1 : 0;
+	let bandits=0,raiders=0,flown=0,killed=0,group=1,lastAt=0,reinforced=0,peak=fixed;
+	const drain=()=>{
+		for(const batch of WavePlan.Admit(queue,budget-bandits-raiders-fixed)){if(batch.role==="bandit"){bandits+=batch.count;flown+=batch.count;}else raiders+=batch.count;}
+		peak=math.max(peak,bandits+raiders+fixed);
+	};
+	const ask=(role: AirRequest["role"],n: number)=>{if(n>0){queue.push({role,count:n,behind:false});drain();}};
+	if(air)ask("bandit",plan[0]);
+	ask("raider",wave(MissionCatalog.InitialRaiders(p)));
+	if(p.kind==="ace"){const r=p.optionalRaiders ?? 0;ask("raider",wave(math.ceil(r/2)));ask("raider",wave(r-math.ceil(r/2)));}
+	for(let t=1;t<=600;t++){
+		drain();
+		if(kills && killEvery>0 && t%killEvery===0 && (!air || bandits>0)){killed+=1;if(air)bandits-=1;}
+		if(kills && killed>=count)return {peak,flown,cleared:true};
+		const fraction=kills ? killed/count : p.seconds!==undefined && p.seconds>0 ? math.min(1,t/p.seconds) : 1;
+		const waves=p.reinforce ?? [];
+		while(reinforced<waves.size() && fraction>=waves[reinforced].at){ask("raider",wave(waves[reinforced].count));reinforced+=1;}
+		if(air && WavePlan.Queued(queue,"bandit")===0 && WavePlan.Due({next:group,plan,sinceLast:t-lastAt,stagger:p.stagger ?? WavePlan.DefaultStagger,killed,groupAt:p.groupAt})){ask("bandit",plan[group]);group+=1;lastAt=t;}
+	}
+	return {peak,flown,cleared:!kills};
+}
 describe("Broken Relay campaign contracts",()=>{
 	it("authors 27 unique compositions, ordered missions and 28 story chapters",()=>{
 		expect(MISSIONS.size()).toBe(27);expect(LEVEL_LAYOUTS.size()).toBe(27);expect(STORY.size()).toBe(28);
@@ -30,12 +62,8 @@ describe("Broken Relay campaign contracts",()=>{
 			expect(bp.id).toBe(names.size()+1);names.add(bp.title);compositions.add(LEVEL_LAYOUTS[bp.id-1].name);
 			expect(bp.act).toBe(math.ceil(bp.id/9));
 			expect(MissionCatalog.RequiredGroundKills(bp)).toBe(bp.ground.size());
-			// Most hostiles a phase can put up at once: its largest group (or the ace/courier) plus every raider.
-			let activeBound=0;
 			// Twist inserts are real objectives: every authoring rule applies to the expanded list.
 			for(const p of MissionCatalog.ExpandedPhases(bp)){
-				let largest=0;for(const size of WavePlan.Groups(p.count ?? 0,p.groups ?? 1))largest=math.max(largest,size);
-				activeBound=math.max(activeBound,(p.kind==="required_air" ? largest : p.kind==="ace" || p.kind==="chase" ? 1 : 0)+(p.optionalRaiders ?? 0));
 				if(p.points){
 					expect(p.points.size()>0).toBe(true);
 					for(const point of p.points){expect(math.abs(point.x)<2300 && math.abs(point.z)<2300 && point.y>=40 && point.y<=900).toBe(true);}
@@ -71,7 +99,6 @@ describe("Broken Relay campaign contracts",()=>{
 				}
 				if(p.kind!=="route" && p.points)expect((p.chatter ?? []).size()>=1).toBe(true);
 			}
-			expect(activeBound<=7).toBe(true);
 			const ace=bp.phases.find((p)=>p.kind==="ace");
 			if(ace && bp.id>=3){
 				expect(bp.aceName!==undefined).toBe(true);expect(bp.aceStages?.size()).toBe(2);expect(bp.aceReturns?.size()).toBe(2);
@@ -107,6 +134,38 @@ describe("Broken Relay campaign contracts",()=>{
 		// The opening line comes back as the last thing Teal says.
 		expect(STORY[0].beats.some((b)=>b.text.find("The sky will still be there")[0]!==undefined)).toBe(true);
 		expect(STORY[27].beats.some((b)=>b.speaker===TEAL && b.text.find("sky will still be there")[0]!==undefined)).toBe(true);
+	});
+	it("never flies more than seven hostile aircraft at once on Normal (eight on Ace), and every phase still clears",()=>{
+		for(const bp of MISSIONS){
+			if(bp.id<=2)continue; // the legacy missions spawn directly and stay under five
+			for(const p of MissionCatalog.ExpandedPhases(bp)){
+				for(const extra of [0,1]){
+					const budget=WavePlan.Budget(extra);
+					// A pilot who never scores: every timer fires, every group is due, and the budget still holds.
+					const idle=flyPhase(p,extra,0);
+					expect(idle.peak<=budget).toBe(true);
+					// The true demand without the budget is at least what flew.
+					expect(MissionCatalog.PeakAircraft(p,extra)>=idle.peak).toBe(true);
+					// A slow pilot (a kill every 9 s, raiders ignored): nothing deadlocks, every bandit flies.
+					const slow=flyPhase(p,extra,9);
+					expect(slow.peak<=budget).toBe(true);
+					expect(slow.cleared).toBe(true);
+					if(p.kind==="required_air")expect(slow.flown).toBe(p.count);
+				}
+			}
+		}
+		// M20's eastern wing: 3 at entry, 6 at 18 s and, with no kills, 9 at 36 s. The budget holds it to 7.
+		const eastern=MissionCatalog.Get(20).phases[0];
+		expect(MissionCatalog.PeakAircraft(eastern)).toBe(9);
+		expect(flyPhase(eastern,0,0).peak).toBe(7);
+		// M26: the rear flight waits for half the wing, so a pilot who scores nothing faces four.
+		const wing=MissionCatalog.Get(26).phases[0];
+		expect(flyPhase(wing,0,0).flown).toBe(4);
+		expect(WavePlan.Due({next:1,plan:WavePlan.Groups(wing.count!,wing.groups),sinceLast:999,stagger:WavePlan.DefaultStagger,killed:2,groupAt:wing.groupAt})).toBe(false);
+		expect(WavePlan.Due({next:1,plan:WavePlan.Groups(wing.count!,wing.groups),sinceLast:0,stagger:WavePlan.DefaultStagger,killed:4,groupAt:wing.groupAt})).toBe(true);
+		// Its warning is the rear flight's spawn call, not a progress chatter line that could run early or late.
+		expect(wing.groupCalls?.[0]).toBe("SERA: Second flight on your six! Turn!");
+		expect(wing.chatter).toBeUndefined();
 	});
 	it("paces the campaign: a gentle rim, a rising plateau with twists, a long coast and finales that close their acts",()=>{
 		// Par is a good human run (about 1.3x the scripted pilot); an average phone pilot takes ~1.2-1.4x par.

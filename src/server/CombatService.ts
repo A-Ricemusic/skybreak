@@ -17,7 +17,7 @@ import { Difficulty, DifficultyKind, DifficultyKnob } from "../shared/Difficulty
 import { ThreatRules } from "../shared/ThreatRules";
 import { EvadeRules, EvadeState } from "../shared/EvadeRules";
 import { AceRules, AceStageState } from "../shared/AceRules";
-import { WavePlan } from "../shared/WavePlan";
+import { AirRequest, WavePlan } from "../shared/WavePlan";
 import { PauseRules, PauseState, Settlement, SettlementHooks, SettlementState, StepGuard, StepGuardState } from "../shared/SessionGuard";
 import { MissionWorld } from "./MissionWorld";
 import { ActorFooting, ActorGrounding } from "./ActorGrounding";
@@ -133,6 +133,8 @@ export interface CombatSession {
 	wave?: { phaseIndex: number; plan: number[]; next: number; lastAt: number };
 	/** Reinforcement waves already spawned in the active phase. */
 	reinforceIndex: number;
+	/** Bandits and raiders waiting for a slot under the live-aircraft budget (WavePlan.Admit). */
+	airQueue: AirRequest[];
 	/** Phase index whose hazard targets are already lit. */
 	hazardPhase?: number;
 	/** Mission 1: the post-radar bandits have launched. */
@@ -736,6 +738,28 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		session.enemies.push(enemy);
 	}
 }
+/** Hostile aircraft alive and fighting (a withdrawing jet is disabled, silent and gone in 4 s). */
+function liveAircraft(session: CombatSession): number {
+	let live = 0;
+	for (const enemy of session.enemies) if (enemy.kind !== "ground" && ownsEnemy(session, enemy)) live += 1;
+	return live;
+}
+/** Spawns what the live-aircraft budget has room for now; the rest keeps waiting. */
+function drainAir(session: CombatSession): void {
+	if (session.airQueue.size() === 0) return;
+	const room = WavePlan.Budget(extraRaiders(session)) - liveAircraft(session);
+	for (const batch of WavePlan.Admit(session.airQueue, room)) {
+		spawnAir(session, batch.count, batch.role, { behind: batch.behind });
+		// A group's call goes out when it is really in the air, not when it was due.
+		if (batch.call !== undefined) radio(session, batch.call);
+	}
+}
+/** Bandits or raiders for missions 3-27: they spawn as the live-aircraft budget allows (WavePlan). */
+function requestAir(session: CombatSession, count: number, role: AirRequest["role"], behind = false, call?: string): void {
+	if (count <= 0) return;
+	session.airQueue.push({ role, count, behind, call });
+	drainAir(session);
+}
 /**
  * Phase change: every airborne enemy still alive breaks off and runs for the boundary for
  * WITHDRAW_SECONDS (untargetable, silent), and any missile chasing one is refunded. Dead
@@ -797,6 +821,8 @@ function applyBlueprintPhase(session: CombatSession): void {
 	session.wave=undefined;
 	// Retire the old phase's pursuers: they visibly fly out instead of lingering, firing, or draining a convoy.
 	withdrawAirborne(session);
+	// Raiders still waiting belonged to the old phase (its bandits were all out, or it could not have ended).
+	session.airQueue.clear();
 	session.navigationMarker?.Destroy(); session.navigationMarker=undefined;
 	session.navigationActor?.Destroy(); session.navigationActor=undefined; session.actorFooting=undefined;
 	// The live list, not the catalog: twists splice new objectives in after the phase that fired them.
@@ -808,13 +834,13 @@ function applyBlueprintPhase(session: CombatSession): void {
 		// Staggered groups: the first now, the rest by WavePlan.Due (stepSession).
 		const plan=WavePlan.Groups(phase.count ?? 0,phase.groups ?? 1);
 		session.wave={phaseIndex:state.phaseIndex,plan,next:1,lastAt:session.elapsed};
-		spawnAir(session,plan[0] ?? 0,"bandit");
+		requestAir(session,plan[0] ?? 0,"bandit");
 	}
 	else if (phase.kind === "chase") spawnAir(session,phase.count ?? 1,"courier",{escape: phase.escape ? new Vector3(phase.escape.x,phase.escape.y,phase.escape.z) : undefined});
 	else if (phase.kind === "ace") spawnAir(session,1,"ace",{aceHealth: session.blueprint.aceHealth ?? 165});
 	// Ace phases hold their raiders back for the ace's stage calls; reinforced phases keep part of theirs for mid-phase.
 	const initialRaiders=raiderWave(session,MissionCatalog.InitialRaiders(phase));
-	if (initialRaiders>0) spawnAir(session,initialRaiders,"raider");
+	requestAir(session,initialRaiders,"raider");
 	// A twist that changed the objective speaks first: radio() overwrites, so its call goes out now and
 	// the new phase's beat follows a few seconds later (if the sortie is still on this phase). This runs
 	// for both the tick path and the synchronous kill path (destroyEnemy -> advance -> applyPhase).
@@ -1041,7 +1067,8 @@ function aceCall(session: CombatSession, enemy: Enemy): void {
 	const count = raiderWave(session, AceRules.RaidersForStage(total, enemy.aceState?.stage ?? 0));
 	if (count <= 0) return;
 	radio(session, `SERA: ${enemy.name} pulled back to call his wing. ${count} inbound.`);
-	spawnAir(session, count, "raider", { behind: true });
+	if (session.blueprintState) requestAir(session, count, "raider", true);
+	else spawnAir(session, count, "raider", { behind: true });
 	// Hand the lock to the wing; the ace is out of reach until it turns back in.
 	if (session.target === enemy) acquireTarget(session);
 }
@@ -1437,16 +1464,20 @@ function stepSession(session: CombatSession, dt: number): void {
 		const active=BlueprintRunner.ActivePhase(bs);
 		if (active) {
 			const fraction=BlueprintRunner.Fraction(bs);
+			// Anything held back by the live-aircraft budget takes the slots kills have freed.
+			drainAir(session);
 			// Mid-phase raider waves, in authored order (each one larger on Ace).
 			const waves=active.reinforce ?? [];
 			while (session.reinforceIndex < waves.size() && fraction >= waves[session.reinforceIndex].at) {
-				spawnAir(session,raiderWave(session,waves[session.reinforceIndex].count),"raider",{behind:true});
+				requestAir(session,raiderWave(session,waves[session.reinforceIndex].count),"raider",true);
 				session.reinforceIndex += 1;
 			}
-			// Staggered bandit groups: the next comes after `stagger` seconds or once half the last is down.
+			// Staggered bandit groups: the next comes after `stagger` seconds, once half the last is down, or at its
+			// authored share of the phase. A group still waiting for slots holds the next one back.
 			const wave=session.wave;
-			if (wave && wave.phaseIndex === bs.phaseIndex && WavePlan.Due({next:wave.next,plan:wave.plan,sinceLast:session.elapsed-wave.lastAt,stagger:active.stagger ?? WavePlan.DefaultStagger,killed:bs.phaseProgress})) {
-				spawnAir(session,wave.plan[wave.next],"bandit",{behind:active.flank === true});
+			if (wave && wave.phaseIndex === bs.phaseIndex && WavePlan.Queued(session.airQueue,"bandit") === 0
+				&& WavePlan.Due({next:wave.next,plan:wave.plan,sinceLast:session.elapsed-wave.lastAt,stagger:active.stagger ?? WavePlan.DefaultStagger,killed:bs.phaseProgress,groupAt:active.groupAt})) {
+				requestAir(session,wave.plan[wave.next],"bandit",active.flank === true,active.groupCalls?.[wave.next-1]);
 				wave.next += 1; wave.lastAt=session.elapsed;
 			}
 			// A hazard lit by the runner (jammers, bank guns): reveal its ground targets and make them strikeable.
@@ -1618,7 +1649,7 @@ export const CombatService = {
 				inputClientTime: 0, inputFresh: false, inputSteps: 0, stateTime: 0, stateSequence: 0, telemetrySequence: 0,
 				missilesFired: 0, missileHits: 0, flareBursts: 0, damageTaken: 0, lowestHealth: 100, evades: 0,
 				evade: EvadeRules.New(), guard: StepGuard.New(), pause: PauseRules.New(), settlement: Settlement.New(),
-				banditSerial: 0, raiderSerial: 0, spawnSerial: 0, reinforceIndex: 0, stepCount: 0,
+				banditSerial: 0, raiderSerial: 0, spawnSerial: 0, reinforceIndex: 0, airQueue: [], stepCount: 0,
 			};
 			if (legacy) {
 				session.rules = MissionRules.NewState(missionId as 1 | 2, startedAt);
