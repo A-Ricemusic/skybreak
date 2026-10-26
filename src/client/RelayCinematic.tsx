@@ -41,13 +41,13 @@ const TONE_COLOR:Record<SpeakerTone,Color3>={teal:ACCENT,control:ORANGE,log:MUTE
 const bodyFont=(beat:StoryBeat)=>speakerStyle(beat.speaker).tone==="log" ? Enum.Font.RobotoMono : Enum.Font.GothamMedium;
 /** Accessibility choices persist for the rest of the session. */
 const prefs={still:false,large:false};
-const TEXT_FADE_IN=.25,TEXT_FADE_OUT=.2,CUT_DIP=.3,ENTER_FADE=.5,EXIT_FADE=.5;
+const TEXT_FADE_IN=.25,TEXT_FADE_OUT=.2,CUT_DIP=.3,CUT_BLACK=.85,ENTER_FADE=.5,EXIT_FADE=.5,SCROLL_GUTTER=6;
 type HintMode="touch" | "keyboard" | "gamepad";
 function hintModeFor(input:Enum.UserInputType): HintMode {
 	if(input===Enum.UserInputType.Touch)return "touch";
 	return input.Name.sub(1,7)==="Gamepad" ? "gamepad" : "keyboard";
 }
-const HINT:Record<HintMode,string>={touch:"TAP FOR NEXT",keyboard:"CLICK OR → NEXT",gamepad:"R1 NEXT"};
+const HINT:Record<HintMode,string>={touch:"TAP FOR NEXT",keyboard:"CLICK FOR NEXT",gamepad:"R1 NEXT"};
 
 export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewport:Vector2;onFinish:()=>void;onCancel:()=>void}) {
 	const chapter=storyFor(id);
@@ -59,56 +59,73 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 	// AutomaticSize underreports wrapped text after accessibility-size changes
 	// (TextFits=false). Measure the real font so the band fits the chapter's
 	// longest line and the scroller has an explicit canvas for any overflow.
-	const measure=(b:StoryBeat)=>TextService.GetTextSize(b.text,layout.bodySize,bodyFont(b),new Vector2(math.max(1,layout.textWidth),10000)).Y+4;
+	// Measure and render at the same width; it always leaves room for the overflow scroll bar.
+	const wrapWidth=math.max(1,layout.textWidth-SCROLL_GUTTER);
+	const measure=(b:StoryBeat)=>TextService.GetTextSize(b.text,layout.bodySize,bodyFont(b),new Vector2(wrapWidth,10000)).Y+4;
 	const textHeight=measure(current);
-	const bandHeight=cinematicBandHeight(layout,math.max(measure(chapter.beats[0]),measure(chapter.beats[1]),measure(chapter.beats[2])));
+	let tallest=0;
+	for(const b of chapter.beats)tallest=math.max(tallest,measure(b));
+	const bandHeight=cinematicBandHeight(layout,tallest);
 	const textAreaHeight=math.min(textHeight,layout.maxTextHeight),overflow=textHeight>layout.maxTextHeight;
 	const textY=bandHeight-layout.padBottom-textAreaHeight,chipY=textY-layout.chipGap-layout.chipHeight;
 	const subtitleRef=useRef<ScrollingFrame>(),bodyRef=useRef<TextLabel>(),nameRef=useRef<TextLabel>(),roleRef=useRef<TextLabel>();
 	const progressRef=useRef<Frame>(),fadeRef=useRef<Frame>(),eyebrowRef=useRef<TextLabel>();
 	useEffect(()=>{if(subtitleRef.current)subtitleRef.current.CanvasPosition=Vector2.zero;},[beat]);
 	const pausedRef=useRef(false),stillRef=useRef(prefs.still),finishRef=useRef(onFinish),cancelRef=useRef(onCancel),done=useRef(false);
-	const indexRef=useRef(0),beatTimeRef=useRef(0);
+	// Longer lines stay on screen longer: 5-9 s per beat, scaled by text length.
+	const durations=chapter.beats.map((b)=>beatDuration(b.text));
+	// endRef is when the current beat hands over; a manual "next" pulls it in to
+	// start the outro (text fade + dip to black) instead of hard-cutting.
+	const indexRef=useRef(0),beatTimeRef=useRef(0),endRef=useRef(durations[0]);
 	finishRef.current=onFinish;cancelRef.current=onCancel;
 	const finish=()=>{if(done.current)return;done.current=true;finishRef.current();};
 	const setTextAlpha=(alpha:number)=>{for(const label of [bodyRef.current,nameRef.current,roleRef.current])if(label)label.TextTransparency=alpha;};
 	const goTo=(index:number)=>{
 		// Hide the outgoing line before React swaps text so it can fade in cleanly.
 		if(!stillRef.current)setTextAlpha(1);
-		indexRef.current=index;beatTimeRef.current=0;setBeat(index);
+		indexRef.current=index;beatTimeRef.current=0;endRef.current=durations[index];setBeat(index);
 	};
 	const advance=()=>{if(indexRef.current<chapter.beats.size()-1)goTo(indexRef.current+1);else finish();};
+	const requestNext=()=>{
+		if(stillRef.current){advance();return;}
+		const t=beatTimeRef.current;
+		if(endRef.current-t<=CUT_DIP)return; // outro already running; ignore repeat taps
+		endRef.current=t+CUT_DIP;
+	};
 	const dispatch=(action:CinematicAction | undefined)=>{
 		if(done.current)return;
 		if(action==="skip")finish();
 		else if(action==="cancel"){done.current=true;cancelRef.current();}
 		else if(action==="pause"){pausedRef.current=!pausedRef.current;setPaused(pausedRef.current);}
-		else if(action==="next"){if(pausedRef.current){pausedRef.current=false;setPaused(false);}else advance();}
+		else if(action==="next"){if(pausedRef.current){pausedRef.current=false;setPaused(false);}requestNext();}
 		else if(action==="motion"){stillRef.current=!stillRef.current;prefs.still=stillRef.current;setStill(stillRef.current);}
 		else if(action==="text"){prefs.large=!prefs.large;setLarge(prefs.large);}
 	};
 	useEffect(()=>{
-		const camera=Workspace.CurrentCamera;if(!camera)return;
-		const oldType=camera.CameraType,oldFov=camera.FieldOfView,oldFrame=camera.CFrame;
+		// Timeline and overlay run even without a camera so the fade can never stick on black.
+		const camera=Workspace.CurrentCamera;
+		const oldType=camera?.CameraType,oldFov=camera?.FieldOfView,oldFrame=camera?.CFrame;
 		const scene=sceneFor(id);let clock=0;
-		// Longer lines stay on screen longer: 5-9 s per beat, scaled by text length.
-		const durations=chapter.beats.map((b)=>beatDuration(b.text));
 		const last=chapter.beats.size()-1;
 		const move=RunService.RenderStepped.Connect((dt)=>{
 			if(done.current)return;
 			const step=math.min(dt,.1);
 			clock+=step;if(!pausedRef.current)beatTimeRef.current+=step;
-			if(beatTimeRef.current>=durations[indexRef.current]){advance();if(done.current)return;}
+			if(beatTimeRef.current>=endRef.current){advance();if(done.current)return;}
 			const index=indexRef.current,t=beatTimeRef.current,duration=durations[index],calm=stillRef.current;
-			// Text: short fade in/out per beat unless reduced motion asks for instant swaps.
-			setTextAlpha(calm ? 0 : 1-math.min(math.clamp(t/TEXT_FADE_IN,0,1),index===last ? 1 : math.clamp((duration-t)/TEXT_FADE_OUT,0,1)));
+			const left=endRef.current-t;
+			// Text: short fade in, and fade out over the outro, unless reduced motion asks for instant swaps.
+			setTextAlpha(calm ? 0 : 1-math.min(math.clamp(t/TEXT_FADE_IN,0,1),index===last ? 1 : math.clamp(left/TEXT_FADE_OUT,0,1)));
 			if(progressRef.current)progressRef.current.Size=new UDim2(math.clamp(t/duration,0,1),0,1,0);
 			if(eyebrowRef.current)eyebrowRef.current.TextColor3=ACCENT.Lerp(MUTED,math.clamp((clock-2.5)/1,0,1));
 			// Black overlay: fade up from black, dip on camera cuts, fade out at the natural end.
 			const enter=1-math.clamp(clock/ENTER_FADE,0,1);
-			const cut=calm || index===0 ? 0 : (1-math.clamp(t/CUT_DIP,0,1))*.7;
-			const exit=index===last ? math.clamp((t-(duration-EXIT_FADE))/EXIT_FADE,0,1) : 0;
-			if(fadeRef.current)fadeRef.current.BackgroundTransparency=1-math.max(enter,cut,exit);
+			// Cut dip: darken over the outgoing beat's last CUT_DIP, then lift on the incoming shot.
+			const dipOut=calm || index===last ? 0 : (1-math.clamp(left/CUT_DIP,0,1))*CUT_BLACK;
+			const dipIn=calm || index===0 ? 0 : (1-math.clamp(t/CUT_DIP,0,1))*CUT_BLACK;
+			const exitSpan=endRef.current<duration ? CUT_DIP : EXIT_FADE;
+			const exit=index===last ? 1-math.clamp(left/exitSpan,0,1) : 0;
+			if(fadeRef.current)fadeRef.current.BackgroundTransparency=1-math.max(enter,dipOut,dipIn,exit);
 			// Camera framing follows the beat's shot: radio desk, wide establishing, evidence chain.
 			const shot=chapter.beats[index].shot;
 			const alpha=calm ? .5 : math.clamp(t/duration,0,1);
@@ -118,6 +135,7 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 				: shot==="wide" ? short ? vehicle ? new Vector3(230-alpha*4,80,150) : new Vector3(430-alpha*8,300,380)
 				: new Vector3(220-alpha*12,160,150-alpha*10) : short ? new Vector3(21-alpha*2,20,-40) : new Vector3(21-alpha*5,20,-25);
 			const focus=shot==="radio" ? new Vector3(0,short ? 5 : 7,0) : shot==="wide" ? short && vehicle ? new Vector3(45,-6,-65) : new Vector3(20,short ? -5 : 0,-85) : new Vector3(4,short ? 4 : 6,-2);
+			if(!camera)return;
 			camera.CameraType=Enum.CameraType.Scriptable;camera.FieldOfView=55;camera.CFrame=CFrame.lookAt(ORIGIN.add(eye),ORIGIN.add(focus));
 		});
 		const input=UserInputService.InputBegan.Connect((key,processed)=>{
@@ -128,7 +146,7 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 			if(kind===Enum.UserInputType.MouseMovement || kind===Enum.UserInputType.Focus || kind===Enum.UserInputType.TextInput)return;
 			setHintMode(hintModeFor(kind));
 		});
-		return ()=>{move.Disconnect();input.Disconnect();inputType.Disconnect();scene.Destroy();camera.CameraType=oldType;camera.FieldOfView=oldFov;camera.CFrame=oldFrame;};
+		return ()=>{move.Disconnect();input.Disconnect();inputType.Disconnect();scene.Destroy();if(camera && oldType && oldFov!==undefined && oldFrame){camera.CameraType=oldType;camera.FieldOfView=oldFov;camera.CFrame=oldFrame;}};
 	},[id]);
 
 	const activate=(control:CinematicControl)=>()=>dispatch(routeCinematicInput({kind:"activated",control}));
@@ -162,8 +180,8 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 			<frame key="CinematicActions" AnchorPoint={new Vector2(1,0)} Position={new UDim2(1,-margin+3,0,(barHeight-controlSize)/2)} Size={UDim2.fromOffset(controlsWidth,controlSize)} BackgroundTransparency={1}>
 				<uilistlayout FillDirection={Enum.FillDirection.Horizontal} HorizontalAlignment={Enum.HorizontalAlignment.Right} SortOrder={Enum.SortOrder.LayoutOrder}/>
 				{pill("CinematicSettingsButton","Aa",controlSize,1,undefined,settingsOpen,()=>setSettingsOpen((open)=>!open))}
-				{pill("CinematicPauseButton",paused ? "▶" : "II",controlSize,2,"pause",paused)}
-				{pill("CinematicSkipButton","SKIP  ›",layout.skipWidth,3,"skip",false)}
+				{pill("CinematicPauseButton",paused ? ">" : "II",controlSize,2,"pause",paused)}
+				{pill("CinematicSkipButton","SKIP  >>",layout.skipWidth,3,"skip",false)}
 			</frame>
 		</frame>
 		{settingsOpen && <frame key="CinematicSettings" ZIndex={3} AnchorPoint={new Vector2(1,0)} Position={new UDim2(1,-margin,0,barHeight+4)} Size={UDim2.fromOffset(tiny ? 200 : 228,controlSize*2+12)} BackgroundColor3={INK} BackgroundTransparency={.15} BorderSizePixel={0}>
@@ -197,7 +215,7 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 					</frame>
 				</frame>
 				<scrollingframe ref={subtitleRef} key="CinematicSubtitles" Position={UDim2.fromOffset(0,textY)} Size={new UDim2(1,0,0,textAreaHeight)} BackgroundTransparency={1} BorderSizePixel={0} CanvasSize={UDim2.fromOffset(0,textHeight)} ScrollBarThickness={overflow ? 3 : 0} ScrollingEnabled={overflow} ScrollingDirection={Enum.ScrollingDirection.Y} Selectable={overflow} Active={overflow}>
-					<textlabel ref={bodyRef} key="CinematicLine" TextTransparency={hidden} Size={new UDim2(1,overflow ? -6 : 0,0,textHeight)} BackgroundTransparency={1} Text={current.text} TextWrapped={true} TextSize={layout.bodySize} TextXAlignment={Enum.TextXAlignment.Left} TextYAlignment={Enum.TextYAlignment.Top} TextColor3={speaker.tone==="log" ? Color3.fromRGB(214,222,214) : IVORY} Font={bodyFont(current)}/>
+					<textlabel ref={bodyRef} key="CinematicLine" TextTransparency={hidden} Size={new UDim2(0,wrapWidth,0,textHeight)} BackgroundTransparency={1} Text={current.text} TextWrapped={true} TextSize={layout.bodySize} TextXAlignment={Enum.TextXAlignment.Left} TextYAlignment={Enum.TextYAlignment.Top} TextColor3={speaker.tone==="log" ? Color3.fromRGB(214,222,214) : IVORY} Font={bodyFont(current)}/>
 				</scrollingframe>
 				<frame key="CinematicBeatTimer" AnchorPoint={new Vector2(0,.5)} Position={new UDim2(0,0,1,-layout.padBottom/2)} Size={new UDim2(1,0,0,layout.progressHeight)} BackgroundColor3={IVORY} BackgroundTransparency={.88} BorderSizePixel={0}>
 					<frame ref={progressRef} key="Fill" Size={UDim2.fromScale(0,1)} BackgroundColor3={tone} BackgroundTransparency={.2} BorderSizePixel={0}/>
