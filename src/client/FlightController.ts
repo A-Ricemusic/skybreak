@@ -17,6 +17,9 @@ import { HUD, HUD_FONT_BOLD } from "./Theme";
 import { evadeGauge } from "../shared/EvadeGauge";
 import { terrainProbeLength, terrainSeconds } from "../shared/FlightWarnings";
 import type { RadarContact, RadarContactKind } from "../shared/RadarMath";
+import { TargetBoxes } from "../shared/TargetBoxes";
+import type { HudLayout } from "../shared/UILayout";
+import { TargetBoxOverlay } from "./TargetBoxOverlay";
 
 let activeController: FlightController | undefined;
 let controllerSerial = 0;
@@ -44,10 +47,14 @@ const CAMERA_LIFT_STUDS = 20;
 const AIM_LIFT_STUDS = 4;
 /** How fast (1/s) the chase camera's up vector follows the canopy: about 0.2 s of lag in a loop. */
 const CAMERA_ROLL_RATE = 5;
-// Target box in the HUD palette: green for mission targets, dim green for optional ones, red once locked.
+// Target box in the HUD palette: green for mission targets, dim green for optional ones, red once locked,
+// grey for a selection the server will not let you damage yet. The selected box blinks until locked.
 const COLOR_LOCKED = HUD.Red;
 const COLOR_REQUIRED = HUD.Green;
 const COLOR_OPTIONAL = HUD.Dim;
+const COLOR_PROTECTED = Color3.fromRGB(150, 160, 156);
+/** Stroke transparency during the dark half of the selected box's blink. */
+const BLINK_OFF = 0.85;
 /** Seconds between client-only terrain probes and airspeed-trend samples (warnings only; no gameplay effect). */
 const PROBE_INTERVAL = 0.1;
 /** Fuselage-ish radius of the warning sweep, a little wider than the server's 4-stud crash sweep. */
@@ -81,6 +88,8 @@ function createTargetCue(playerGui: Instance): [ScreenGui, Frame, UIStroke, Text
 	gui.ResetOnSpawn = false;
 	gui.DisplayOrder = 8;
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling;
+	// Full viewport, so WorldToViewportPoint positions map 1:1 onto it.
+	gui.ScreenInsets = Enum.ScreenInsets.None;
 	gui.Parent = playerGui;
 	const bracket = new Instance("Frame");
 	bracket.Name = "TargetBracket";
@@ -206,7 +215,17 @@ export class FlightController {
 	private cueLock = -1;
 	private cueMarker = "";
 	private cueHealth = -1;
+	private cueSize = -1;
+	private cueBlink?: boolean;
 	private arrowText = "";
+	/** Boxes on every other valid target in view. */
+	private readonly boxes = new TargetBoxOverlay();
+	/** HUD layout, UIScale and root the touch controls are drawn in; boxes keep clear of them. */
+	private keepoutLayout?: HudLayout;
+	private keepoutScale = 1;
+	private keepoutAnchor?: GuiObject;
+	private keepoutOrigin?: Vector2;
+	private keepoutDirty = true;
 	private readonly enemies = new EnemySmoothing();
 	/** Pause overlay is up: the local jet, camera and actions hold until Resume. */
 	private paused = false;
@@ -472,6 +491,24 @@ export class FlightController {
 			|| state.y > FlightMath.MaxAltitude - 70;
 	}
 	public GetThrottle(): number { return this.throttle; }
+	/** The HUD's touch layout (virtual px), its UIScale and the frame it is drawn in; target boxes never cover those controls. */
+	public SetTargetKeepouts(layout: HudLayout | undefined, scale: number, anchor: GuiObject | undefined): void {
+		this.keepoutLayout = layout; this.keepoutScale = scale; this.keepoutAnchor = anchor; this.keepoutDirty = true;
+	}
+	/** Rebuilds the keep-outs when the layout or the HUD root's on-screen origin moved (cheap compare per frame). */
+	private updateKeepouts(): void {
+		const gui = this.targetGui, anchor = this.keepoutAnchor, layout = this.keepoutLayout;
+		if (!gui) return;
+		if (!anchor || !layout || anchor.Parent === undefined) {
+			if (this.keepoutDirty) { this.keepoutDirty = false; this.boxes.SetKeepouts([]); }
+			return;
+		}
+		// Both GUIs report AbsolutePosition in the same space; the difference is the HUD root's viewport origin.
+		const origin = anchor.AbsolutePosition.sub(gui.AbsolutePosition);
+		if (!this.keepoutDirty && origin === this.keepoutOrigin) return;
+		this.keepoutDirty = false; this.keepoutOrigin = origin;
+		this.boxes.SetKeepouts(TargetBoxes.Keepouts(layout, this.keepoutScale, origin.X, origin.Y));
+	}
 	public GetTelemetry(): Telemetry {
 		const result = { ...this.telemetry };
 		const position = this.GetPosition();
@@ -510,33 +547,43 @@ export class FlightController {
 		this.frameInput.throttle = this.keys.has(Enum.KeyCode.LeftShift) ? 1 : this.throttle;
 		this.frameInput.assist = this.levelAssist;
 	}
+	/** Where the player sees a contact: the smoothed clone for jets, the pivot for ground targets. */
+	private readonly boxPosition = (model: Model, ground: boolean): Vector3 => ground ? model.GetPivot().Position : this.enemies.GetFrame(model).Position;
 	private updateTargetCue(camera: Camera): void {
 		const target = this.telemetry.target;
 		const bracket = this.bracket!;
 		const arrow = this.arrow!;
 		if (target === undefined || target.Parent === undefined) { bracket.Visible = false; arrow.Visible = false; return; }
 		// Track the smoothed clone the player actually sees, not the hidden replicated model.
-		const worldPosition = this.enemies.GetFrame(target).Position;
+		const ground = this.telemetry.targetKind === "ground";
+		const worldPosition = ground ? target.GetPivot().Position : this.enemies.GetFrame(target).Position;
 		const [screen, visible] = camera.WorldToViewportPoint(worldPosition);
 		const size = camera.ViewportSize;
 		const safeX = math.min(90, size.X * 0.16);
 		const safeY = math.min(150, size.Y * 0.24);
-		const inside = visible && screen.X >= safeX && screen.X <= size.X - safeX && screen.Y >= safeY && screen.Y <= size.Y - safeY;
+		const locked = this.telemetry.lockProgress >= 0.99;
+		const range = worldPosition.sub(this.visualFrame.Position).Magnitude;
+		// Same size rule as every other box (a touch tighter once locked), kept readable when far.
+		const boxSize = locked ? math.max(math.floor(TargetBoxes.Size(range, size.Y, true) * 0.85), 26) : TargetBoxes.Size(range, size.Y, true);
+		// Drawn anywhere it fits on screen clear of the touch controls; otherwise the edge arrow points to it.
+		const inside = visible && TargetBoxes.Fits(screen.X, screen.Y, boxSize, size.X, size.Y, this.boxes.GetKeepouts());
 		bracket.Visible = inside;
 		arrow.Visible = !inside;
-		const locked = this.telemetry.lockProgress >= 0.99;
 		const required = this.telemetry.targetRequired === true;
-		const ground = this.telemetry.targetKind === "ground";
-		const color = locked ? COLOR_LOCKED : required ? COLOR_REQUIRED : COLOR_OPTIONAL;
+		const color = locked ? COLOR_LOCKED : this.telemetry.targetDamageable === false ? COLOR_PROTECTED : required ? COLOR_REQUIRED : COLOR_OPTIONAL;
 		if (color !== this.cueColor) {
 			this.cueColor = color;
 			this.bracketStroke!.Color = color;
 			this.caption!.TextColor3 = color;
 			arrow.TextColor3 = color;
 		}
+		// The selected box blinks (stroke only; the caption stays readable); a locked box holds steady red.
+		const blink = locked || TargetBoxes.BlinkOn(os.clock());
+		if (blink !== this.cueBlink) { this.cueBlink = blink; this.bracketStroke!.Transparency = blink ? 0 : BLINK_OFF; }
 		if (inside) {
 			bracket.Position = UDim2.fromOffset(screen.X, screen.Y);
-			const distance = math.floor(worldPosition.sub(this.visualFrame.Position).Magnitude);
+			if (boxSize !== this.cueSize) { this.cueSize = boxSize; bracket.Size = UDim2.fromOffset(boxSize, boxSize); }
+			const distance = math.floor(range);
 			// -1 = locked; otherwise whole lock percent (0 = not locking).
 			const lock = locked ? -1 : this.telemetry.lockProgress > 0.01 ? math.floor(this.telemetry.lockProgress * 100) : 0;
 			// Damaged targets (staged aces above all) show remaining health after the lock state.
@@ -548,8 +595,6 @@ export class FlightController {
 				this.cueRange = distance; this.cueLock = lock; this.cueMarker = marker; this.cueHealth = healthPercent;
 				const healthText = healthPercent >= 0 ? ` · ${healthPercent}%` : "";
 				this.caption!.Text = (lock < 0 ? `LOCKED · ${distance}m` : lock > 0 ? `LOCK ${lock}%` : `${marker}${distance}m`) + healthText;
-				const width = locked ? 52 : 64;
-				bracket.Size = UDim2.fromOffset(width, width);
 			}
 		} else {
 			const localPosition = camera.CFrame.PointToObjectSpace(worldPosition);
@@ -583,6 +628,9 @@ export class FlightController {
 				const ground = child.GetAttribute("TargetKind") === "ground";
 				const worldPosition = ground ? child.GetPivot().Position : this.enemies.GetFrame(child).Position;
 				const [screen, visible] = camera.WorldToViewportPoint(worldPosition);
+				const inside = visible && screen.X >= safeX && screen.X <= size.X - safeX && screen.Y >= safeY && screen.Y <= size.Y - safeY;
+				// A boxed contact already reads as a target; the drone glyph would only stack on it.
+				if (inside && this.boxes.IsBoxed(child)) continue;
 				let label = this.markers[used];
 				if (label === undefined) {
 					label = new Instance("TextLabel");
@@ -598,7 +646,6 @@ export class FlightController {
 					this.markers[used] = label;
 				}
 				used += 1;
-				const inside = visible && screen.X >= safeX && screen.X <= size.X - safeX && screen.Y >= safeY && screen.Y <= size.Y - safeY;
 				const required = child.GetAttribute("RequiredTarget") === true;
 				const text = inside ? (ground ? (required ? "◆" : "◇") : required ? "▲" : "△") : (ground ? "◆" : "▲");
 				if (inside) {
@@ -697,7 +744,10 @@ export class FlightController {
 		this.fovKick = impact.fov;
 		camera.FieldOfView = baseFov + (72 + speedFactor * 9 - baseFov) * FlightMath.DampAlpha(3, dt) + impact.fov;
 		this.enemies.Step(dt);
+		this.updateKeepouts();
 		this.updateTargetCue(camera);
+		const target = this.telemetry.target;
+		this.boxes.Update(camera, position, target !== undefined && target.Parent !== undefined ? target : undefined, this.boxPosition);
 		this.updateMarkers(camera);
 		this.sendTime += dt;
 		// Unreliable input: up to 20 Hz while the controls move, 10 Hz keepalive otherwise
@@ -739,7 +789,7 @@ export class FlightController {
 		this.pauseSerial = 0; this.pauseAction = undefined;
 		this.probeClock = 0; this.probeParams = undefined; this.probeDirty = true; this.probeBuiltAt = -math.huge;
 		this.trendSpeed = undefined; this.trend.acceleration = 0; this.trend.terrainSeconds = undefined;
-		this.cueColor = undefined; this.cueRange = -1; this.cueLock = -1; this.cueMarker = ""; this.cueHealth = -1; this.arrowText = "";
+		this.cueColor = undefined; this.cueRange = -1; this.cueLock = -1; this.cueMarker = ""; this.cueHealth = -1; this.cueSize = -1; this.cueBlink = undefined; this.arrowText = "";
 		this.visualFrame = this.aircraft.GetPivot();
 		// The server holds the jet still until "Started", so its pivot is the exact initial state;
 		// the first FlightState packet corrects speed and anything else within 50 ms.
@@ -771,6 +821,8 @@ export class FlightController {
 		}
 		this.audio.Start(this.aircraft);
 		[this.targetGui, this.bracket, this.bracketStroke, this.caption, this.arrow] = createTargetCue(Players.LocalPlayer.WaitForChild("PlayerGui"));
+		if (this.aircraft.Parent) this.boxes.Start(this.aircraft.Parent, this.targetGui, Players.LocalPlayer.UserId);
+		this.keepoutDirty = true; this.keepoutOrigin = undefined;
 		this.bindControls();
 		this.connections.push(UserInputService.InputBegan.Connect((input, processed) => {
 			if (processed || UserInputService.GetFocusedTextBox()) return;
@@ -820,6 +872,7 @@ export class FlightController {
 		this.missiles.Stop();
 		this.visual?.Destroy(); this.visual = undefined; this.visualRoot = undefined; this.engine = undefined;
 		this.predictor = undefined;
+		this.boxes.Stop();
 		this.targetGui?.Destroy(); this.targetGui = undefined;
 		this.markers.clear();
 		CameraShake.Reset(); this.fovKick = 0;

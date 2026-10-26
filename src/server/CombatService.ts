@@ -56,6 +56,8 @@ interface Enemy {
 	hiddenParts: { part: BasePart; transparency: number }[];
 	/** Latest pivot from this Heartbeat's sub-steps; applied once by flushPivots. */
 	frame?: CFrame;
+	/** Last `Damageable` attribute written (publishDamageable), so it only replicates on change. */
+	damageable?: boolean;
 }
 interface Projectile {
 	/** A player missile without `target` is a blind (unguided) shot that relies on its proximity fuse. */
@@ -417,8 +419,18 @@ function cycleTarget(session: CombatSession): void {
 		}
 	}
 }
+/** Replicates the fire/fuse rule (owned, enabled and damageable this phase) per enemy: the HUD boxes exactly these. */
+function publishDamageable(session: CombatSession): void {
+	for (const enemy of session.enemies) {
+		const damageable = ownsEnemy(session, enemy) && sessionCanDamage(session, enemy.kind, enemy.required);
+		if (enemy.damageable === damageable) continue;
+		enemy.damageable = damageable;
+		enemy.model.SetAttribute("Damageable", damageable);
+	}
+}
 function sendTelemetry(session: CombatSession): void {
 	if (session.player.Parent !== Players) return;
+	publishDamageable(session);
 	let incoming = false;
 	let lockWarning = false;
 	let incomingDistance = math.huge;
@@ -908,6 +920,8 @@ function applyBlueprintPhase(session: CombatSession): void {
 function applyPhase(session: CombatSession): void {
 	if (session.rules) applyLegacyPhase(session);
 	else applyBlueprintPhase(session);
+	// A phase change flips which enemies are damageable; box them now, not at the next telemetry tick.
+	publishDamageable(session);
 }
 
 function destroyEnemy(session: CombatSession, enemy: Enemy): void {
@@ -921,6 +935,8 @@ function destroyEnemy(session: CombatSession, enemy: Enemy): void {
 	enemy.model.SetAttribute("Health", 0);
 	enemy.model.SetAttribute("SkybreakEnemy", false);
 	enemy.model.SetAttribute("RequiredTarget", false);
+	enemy.damageable = false;
+	enemy.model.SetAttribute("Damageable", false);
 	// Fired before Destroy so the model reference still resolves on the client (its visual becomes the wreck).
 	if (enemy.kind === "ground") effect(session, "ground", enemy.position, { scale: math.clamp(enemy.model.GetExtentsSize().Magnitude / 60, 0.7, 2.2) });
 	else effect(session, enemy.kind, enemy.position, { velocity: enemy.velocity, model: enemy.model });
