@@ -114,7 +114,7 @@ describe("Broken Relay campaign contracts",()=>{
 			const phase=MissionCatalog.Get(id).phases.find((p)=>p.kind===kind)!;
 			expect((phase.optionalRaiders ?? 0)>=4).toBe(true);expect((phase.reinforce?.size() ?? 0)>=1).toBe(true);
 		}
-		expect(MissionCatalog.MaxOptionalRaiders(MissionCatalog.Get(23))).toBe(6);
+		expect(MissionCatalog.MaxOptionalRaiders(MissionCatalog.Get(23))).toBe(7);
 		// Missions 1-2 keep their legacy flows untouched.
 		expect(MissionCatalog.Get(1).phases.size()).toBe(4);expect(MissionCatalog.Get(2).phases.size()).toBe(3);
 		expect(MissionCatalog.TotalPhases(MissionCatalog.Get(1))).toBe(4);expect(MissionCatalog.TotalPhases(MissionCatalog.Get(2))).toBe(3);
@@ -166,6 +166,33 @@ describe("Broken Relay campaign contracts",()=>{
 		// Its warning is the rear flight's spawn call, not a progress chatter line that could run early or late.
 		expect(wing.groupCalls?.[0]).toBe("SERA: Second flight on your six! Turn!");
 		expect(wing.chatter).toBeUndefined();
+	});
+	it("reinforces every multi-target combat phase mid-phase, except where the exceptions in docs/broken-relay.md say why not",()=>{
+		// Single targets (count 1) never take one: a kill-fraction wave could only arrive with the completing kill.
+		// These phases fill the live-aircraft budget with bandits alone, so a raider wave would only be held back.
+		const budgetFull=new Set<string>(["20:Shatter the eastern wing"]);
+		// Phases whose own demand (timer overlap with no kills) passes the budget: the server holds the excess back.
+		const overNormal=new Set<string>(["20:Shatter the eastern wing","21:Hold off the escort flight"]);
+		const overAce=new Set<string>(["20:Shatter the eastern wing","21:Hold off the escort flight","23:Defend the command frigate"]);
+		const seen=new Set<string>();
+		for(const bp of MISSIONS){
+			if(bp.id<=2)continue; // the legacy missions keep their original flows
+			for(const p of MissionCatalog.ExpandedPhases(bp)){
+				const key=`${bp.id}:${p.label}`;
+				if(p.kind==="required_air" || p.kind==="required_ground"){
+					if(p.count===1)expect(p.reinforce).toBeUndefined();
+					else if(budgetFull.has(key)){
+						seen.add(key);
+						expect(p.reinforce).toBeUndefined();
+						const reinforced={...p,optionalRaiders:(p.optionalRaiders ?? 0)+1,reinforce:[{at:0.5,count:1}]};
+						expect(MissionCatalog.PeakAircraft(reinforced)>WavePlan.Budget()).toBe(true);
+					}else expect((p.reinforce?.size() ?? 0)>=1).toBe(true);
+				}
+				expect(MissionCatalog.PeakAircraft(p)>WavePlan.Budget()).toBe(overNormal.has(key));
+				expect(MissionCatalog.PeakAircraft(p,1)>WavePlan.Budget(1)).toBe(overAce.has(key));
+			}
+		}
+		expect(seen.size()).toBe(budgetFull.size());
 	});
 	it("paces the campaign: a gentle rim, a rising plateau with twists, a long coast and finales that close their acts",()=>{
 		// Par is a good human run (about 1.3x the scripted pilot); an average phone pilot takes ~1.2-1.4x par.

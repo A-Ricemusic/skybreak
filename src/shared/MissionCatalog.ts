@@ -294,7 +294,7 @@ export const MISSIONS: MissionBlueprint[] = [
 				{ groups: 2, stagger: 16, optionalRaiders: 1, reinforce: [{ at: 0.5, count: 1 }] }),
 			fly("route", "Teal's river run: stay under 320", [[-550,240,-650],[-150,250,-250],[350,260,-800]], 0, 0, 320,
 				{ beat: "TEAL (tape): Under three-twenty along the river. Nobody looks down there.", chatter: [{ at: 0.66, text: "SERA: Bravo flight is hunting the river. Last gate, then turn." }] }),
-			air("Clear scout flight bravo", 4, "SERA: Bravo flight breaking cover. Four, in pairs. Finish it.", { groups: 2, stagger: 16 }),
+			air("Clear scout flight bravo", 4, "SERA: Bravo flight breaking cover. Four, in pairs. Finish it.", { groups: 2, stagger: 16, optionalRaiders: 1, reinforce: [{ at: 0.5, count: 1 }] }),
 		],
 		[],
 	),
@@ -320,7 +320,7 @@ export const MISSIONS: MissionBlueprint[] = [
 		[
 			fly("escort", "Cover the orchard evacuation trucks", [[-1000,70,-300],[0,70,-850],[1200,70,-300]], 110, 4, undefined,
 				{ beat: "FARMER: Trucks rolling. Please stay with us.", chatter: [{ at: 0.5, text: "SERA: Second flight off the ridge. Turn back now." }, { at: 0.85, text: "FARMER: The road's in sight. Don't leave us yet." }], reinforce: [{ at: 0.5, count: 2 }] }),
-			air("Drive off the patrol leads", 3, "SERA: Trucks are clear. Their patrol leads are turning in. Three."),
+			air("Drive off the patrol leads", 3, "SERA: Trucks are clear. Their patrol leads are turning in. Three.", { optionalRaiders: 1, reinforce: [{ at: 0.5, count: 1 }] }),
 		],
 		[],
 	),
@@ -335,7 +335,7 @@ export const MISSIONS: MissionBlueprint[] = [
 			fly("recon", "Mark the silos, spare the roofs: stay under 400", [[-520,260,-720],[540,260,-680]], 6, 0, 400,
 				{ beat: "SERA: Low pass first. Mark the military silos, not the farmhouses.", chatter: [{ at: 0.5, text: "SERA: Fuel-grade grain in all three. The roofs are clean." }] }),
 			ground("Destroy three fuel silos", 3, "SERA: Marked silos only. That grain is fuel.", { optionalRaiders: 2, reinforce: [{ at: 0.34, count: 1 }] }),
-			air("Clear the orchard patrol", 5, "SERA: Five answering the smoke, in two groups. Turn into them.", { groups: 2, stagger: 16 }),
+			air("Clear the orchard patrol", 5, "SERA: Five answering the smoke, in two groups. Turn into them.", { groups: 2, stagger: 16, optionalRaiders: 1, reinforce: [{ at: 0.5, count: 1 }] }),
 		],
 		[
 			{ asset: "grain_silo", name: "SILO ALPHA", x: -520, z: -720 },
@@ -351,7 +351,7 @@ export const MISSIONS: MissionBlueprint[] = [
 		[
 			fly("route", "Run the dust pass under 400", [[-450,240,-200],[-900,300,-1000],[-200,300,-1850],[500,300,-1400]], 0, 0, 400,
 				{ beat: "SERA: The courier runs under the dust. Stay in it.", chatter: [{ at: 0.66, text: "SERA: Five escorts ahead of him. Dust is thinning." }] }),
-			air("Strip the courier's escort", 5, "SERA: Five escorts in the dust, in two groups. Strip them off him.", { groups: 2, stagger: 16 }),
+			air("Strip the courier's escort", 5, "SERA: Five escorts in the dust, in two groups. Strip them off him.", { groups: 2, stagger: 16, optionalRaiders: 1, reinforce: [{ at: 0.5, count: 1 }] }),
 			chase("Catch the courier before the plateau", 90, [-300,320,-2250], "SERA: There's the courier, running north. Ninety seconds. Catch him.",
 				[{ at: 0.5, text: "SERA: He's halfway to the plateau. Close on him." }, { at: 0.8, text: "SERA: Twenty seconds and he's over the edge!" }]),
 		],
@@ -366,8 +366,8 @@ export const MISSIONS: MissionBlueprint[] = [
 			fly("defend", "Protect Varda's control tower", [[-430,240,250]], 120, 5, undefined,
 				{ beat: "SERA: Tower crew resetting the code. Two minutes. Keep them off it.", chatter: [{ at: 0.5, text: "BROADCAST: Varda tower is in rebel hands. Fire on it." }, { at: 0.55, text: "SERA: Ignore that. It's him." }, { at: 0.7, text: "SERA: Second wave's dropping smoke on the apron. Spotters." }],
 					reinforce: [{ at: 0.35, count: 1 }, { at: 0.65, count: 2 }] }),
-			ground("Counter-attack the spotter radars", 2, "SERA: Code is ours. Two spotter radars on the apron. Hit them.", { hidden: true, optionalRaiders: 1 }),
-			air("Catch the retreating flight", 3, "SERA: Spotters down. Their flight is running. Catch three."),
+			ground("Counter-attack the spotter radars", 2, "SERA: Code is ours. Two spotter radars on the apron. Hit them.", { hidden: true, optionalRaiders: 1, reinforce: [{ at: 0.5, count: 1 }] }),
+			air("Catch the retreating flight", 3, "SERA: Spotters down. Their flight is running. Catch three.", { optionalRaiders: 1, reinforce: [{ at: 0.5, count: 1 }] }),
 		],
 		[
 			{ asset: "radar", name: "SPOTTER RADAR 1", x: -1050, z: -250 },
@@ -409,7 +409,7 @@ export const MISSIONS: MissionBlueprint[] = [
 			fly("recon", "Scan Node Kiro (hold fire)", [[180,300,-1100]], 12, 0, 450,
 				{ beat: "SERA: Scan the archive first. The dish can wait.", chatter: [{ at: 0.3, text: "SERA: Signatures copying. Stay low. Hold fire." }],
 					twist: { at: 0.6, mode: "now", text: "SERA: They've seen you. Four climbing off the camp. Scan's on hold.", insert: [
-						air("Break the camp's intercept", 4, "SERA: Four off the camp, in pairs. Clear them, then we finish the scan.", { groups: 2, stagger: 18 }),
+						air("Break the camp's intercept", 4, "SERA: Four off the camp, in pairs. Clear them, then we finish the scan.", { groups: 2, stagger: 18, optionalRaiders: 1, reinforce: [{ at: 0.5, count: 1 }] }),
 						fly("recon", "Finish the archive scan", [[180,300,-1100]], 8, 2, 450,
 							{ beat: "SERA: Back on the archive. Eight seconds of clean copy.", chatter: [{ at: 0.5, text: "SERA: Copy complete in four. Hold your line." }], reinforce: [{ at: 0.4, count: 1 }] }),
 					] } }),
@@ -417,7 +417,7 @@ export const MISSIONS: MissionBlueprint[] = [
 				twist: { at: 1, text: "SERA: Camp radar is vectoring their whole response onto you. Kill it and they fly blind.", insert: [
 					ground("Kill the camp radar", 1, "SERA: Radar on the camp roof. Its raiders fire twice as fast. Kill it.", { hidden: true, directed: true, optionalRaiders: 3 }),
 				] } }),
-			air("Intercept the blind response", 3, "SERA: Radar's dead. The response is flying blind. Three."),
+			air("Intercept the blind response", 3, "SERA: Radar's dead. The response is flying blind. Three.", { optionalRaiders: 1, reinforce: [{ at: 0.5, count: 1 }] }),
 		],
 		[
 			{ asset: "comms_relay", name: "NODE KIRO", x: 180, z: -1100 },
@@ -431,13 +431,13 @@ export const MISSIONS: MissionBlueprint[] = [
 		"Three relays silenced in one sortie. A loyalist cell replies for the first time, offering coordinates for a staging comms farm.",
 		[
 			ground("Destroy relay Node Lira", 1, "SERA: Lira first. West ridge dish.", { optionalRaiders: 1 }),
-			air("Clear the alert flight", 3, "SERA: Alert flight airborne. Three. Clear them."),
+			air("Clear the alert flight", 3, "SERA: Alert flight airborne. Three. Clear them.", { optionalRaiders: 1, reinforce: [{ at: 0.5, count: 1 }] }),
 			ground("Destroy relay Node Merel", 1, "SERA: Merel next. East ridge.", {
 				twist: { at: 1, text: "SERA: Wait. A third dish just lit, north in the belt. Node Sable. It wasn't on the farmer's tin.", insert: [
 					fly("route", "Follow the farm road north to Sable", [[300,280,-1200],[-100,300,-1650]], 0, 0, undefined,
 						{ beat: "SERA: Farm road north. Two beacons to Sable.", chatter: [{ at: 0.5, text: "FARMER: That dish went up last week. Nobody asked us." }] }),
 					ground("Destroy relay Node Sable", 1, "SERA: Sable. Dish only. The barn beside it is ours."),
-					air("Clear Sable's guard flight", 3, "SERA: Guard flight off Sable. Three."),
+					air("Clear Sable's guard flight", 3, "SERA: Guard flight off Sable. Three.", { optionalRaiders: 1, reinforce: [{ at: 0.5, count: 1 }] }),
 				] } }),
 			fly("signal", "Orbit the west ridge to relay Teal's packet", [[-820,400,-780]], 90, 4, undefined,
 				{ beat: "SERA: Relaying Teal's packet. Ninety seconds. Hold the ridge orbit.", chatter: [{ at: 0.5, text: "FARMER: We're hearing it. Keep it coming." }, { at: 0.8, text: "SERA: Last of the packet. Don't drift off the ridge." }], reinforce: [{ at: 0.5, count: 2 }] }),
@@ -460,7 +460,7 @@ export const MISSIONS: MissionBlueprint[] = [
 						fly("escort", "Cover the reroute along the mill road", [[-500,65,-900],[300,65,-1500],[1300,65,-700]], 100, 4, undefined,
 							{ beat: "SERA: Ignore him. North is mined. Truck, swing east on the mill road.", chatter: [{ at: 0.5, text: "TRUCK: Mill road's rough but we're moving. Stay with us." }], reinforce: [{ at: 0.5, count: 2 }] }),
 					] } }),
-			air("Occupy the orchard airspace", 6, "SERA: Truck's clear. Patrol escalating. Six, in two groups.", { groups: 2, stagger: 18, optionalRaiders: 2 }),
+			air("Occupy the orchard airspace", 6, "SERA: Truck's clear. Patrol escalating. Six, in two groups.", { groups: 2, stagger: 18, optionalRaiders: 2, reinforce: [{ at: 0.5, count: 2 }] }),
 		],
 		[],
 	),
@@ -474,12 +474,12 @@ export const MISSIONS: MissionBlueprint[] = [
 				{ beat: "SERA: Rail spur runs straight to their stores. Follow it.", chatter: [{ at: 0.5, text: "SERA: Spur ends at the silos. Low and quiet now." }] }),
 			fly("recon", "Scan the staging farm low", [[0,300,-1000]], 10, 2, 420,
 				{ beat: "SERA: Mark the stores. Civilian roofs stay standing.", chatter: [{ at: 0.5, text: "SERA: Fuel ledger confirmed. Those silos are military." }], reinforce: [{ at: 0.5, count: 1 }] }),
-			ground("Destroy four fuel silos", 4, "SERA: Four silos. Marked only.", {
+			ground("Destroy four fuel silos", 4, "SERA: Four silos. Marked only.", { optionalRaiders: 1, reinforce: [{ at: 0.5, count: 1 }],
 				twist: { at: 0.5, text: "SERA: Four off the plateau, coming for you. Finish the silos, then turn into them.", insert: [
-					air("Break the plateau reinforcements", 4, "SERA: Silos burning. Now the four, in pairs. Turn in.", { groups: 2, stagger: 18 }),
+					air("Break the plateau reinforcements", 4, "SERA: Silos burning. Now the four, in pairs. Turn in.", { groups: 2, stagger: 18, optionalRaiders: 1, reinforce: [{ at: 0.5, count: 1 }] }),
 				] } }),
 			ground("Destroy the farm relay", 1, "SERA: The relay's still calling for help. Cut it."),
-			air("Hold off the raiders", 3, "SERA: Raiders off the plateau. Three more, with hangers-on.", { optionalRaiders: 2 }),
+			air("Hold off the raiders", 3, "SERA: Raiders off the plateau. Three more, with hangers-on.", { optionalRaiders: 2, reinforce: [{ at: 0.34, count: 1 }] }),
 		],
 		[
 			{ asset: "grain_silo", name: "SILO 1", x: -560, z: -900 },
@@ -501,7 +501,7 @@ export const MISSIONS: MissionBlueprint[] = [
 				twist: { at: 0.3, text: "SERA: They're rerouting the chain through a mobile mast on the saddle road. It goes too.", insert: [
 					ground("Destroy the mobile mast", 1, "SERA: Mast truck on the saddle road, below you. Hit the dish."),
 				] } }),
-			air("Clear the perimeter CAP", 4, "SERA: Perimeter CAP turning in. Four, in pairs, with raiders.", { groups: 2, stagger: 18, optionalRaiders: 2 }),
+			air("Clear the perimeter CAP", 4, "SERA: Perimeter CAP turning in. Four, in pairs, with raiders.", { groups: 2, stagger: 18, optionalRaiders: 2, reinforce: [{ at: 0.5, count: 1 }] }),
 			fly("signal", "Hold the saddle: confirm the row is dark", [[0,450,-1200]], 90, 4, undefined,
 				{ beat: "SERA: Hold the saddle. I'm listening for anything left alive.", chatter: [{ at: 0.4, text: "SERA: More off the dark end of the row. Hold the orbit." }, { at: 0.8, text: "SERA: Nothing on the chain. Almost there." }], reinforce: [{ at: 0.4, count: 2 }] }),
 		],
@@ -522,7 +522,7 @@ export const MISSIONS: MissionBlueprint[] = [
 				{ beat: "LOYALIST: Transmitting. Every second is a garrison.", chatter: [{ at: 0.3, text: "SERA: Raiders inbound. Stay inside the volume." }, { at: 0.75, text: "LOYALIST: Garrisons answering. Keep the volume." }], reinforce: [{ at: 0.3, count: 2 }],
 					hazard: { at: 0.4, count: 2, effect: "jam", text: "LOYALIST: We've lost the link! Two jammer trucks on the farm road. Kill them or this is wasted." } }),
 			air("Hold the second intruders", 7, "SERA: Second wave, riding harder. Seven, in two groups. Raiders in tow.",
-				{ groups: 2, stagger: 18, optionalRaiders: 3, reinforce: [{ at: 0.5, count: 2 }] }),
+				{ groups: 2, stagger: 18, optionalRaiders: 3, reinforce: [{ at: 0.3, count: 1 }, { at: 0.6, count: 2 }] }),
 		],
 		[
 			{ asset: "comms_relay", name: "JAMMER TRUCK 1", x: -620, z: -640 },
@@ -537,9 +537,9 @@ export const MISSIONS: MissionBlueprint[] = [
 		[
 			fly("route", "River gates: stay under 400", [[400,220,0],[800,240,-750],[0,280,-1450]], 0, 0, 400,
 				{ beat: "SERA: River gates keep you under the storm. Stay low.", chatter: [{ at: 0.66, text: "SERA: Last gate. The marked tanks are just past it." }] }),
-			ground("Destroy three remaining silos", 3, "SERA: Three silos under the storm. Burn them.", { optionalRaiders: 1,
+			ground("Destroy three remaining silos", 3, "SERA: Three silos under the storm. Burn them.", { optionalRaiders: 1, reinforce: [{ at: 0.34, count: 1 }],
 				twist: { at: 0.66, text: "SERA: Storm patrol diving through the cloud. Five. Finish the tanks and turn.", insert: [
-					air("Catch the storm patrol", 5, "SERA: Patrol riding the thunder. Five, in two groups.", { groups: 2, stagger: 18 }),
+					air("Catch the storm patrol", 5, "SERA: Patrol riding the thunder. Five, in two groups.", { groups: 2, stagger: 18, optionalRaiders: 1, reinforce: [{ at: 0.5, count: 1 }] }),
 				] } }),
 			ground("Destroy the forward relay", 1, "SERA: Forward relay on the staging path. Cut it."),
 			fly("signal", "Hold over the dead relay: read its last traffic", [[0,420,-1600]], 90, 4, undefined,
@@ -559,14 +559,14 @@ export const MISSIONS: MissionBlueprint[] = [
 		"The plateau is dark. The archive is signed: Air Marshal Rusk. Vulture Two is already challenging your call sign.",
 		[
 			ground("Destroy the plateau relay", 1, "SERA: One dish under the aurora. Cut it.", { optionalRaiders: 1 }),
-			air("Clear the aurora intercept", 4, "SERA: Four intercepts lit by the aurora, in pairs.", { groups: 2, stagger: 18 }),
+			air("Clear the aurora intercept", 4, "SERA: Four intercepts lit by the aurora, in pairs.", { groups: 2, stagger: 18, optionalRaiders: 1, reinforce: [{ at: 0.5, count: 1 }] }),
 			fly("signal", "Orbit to receive the archive", [[-100,500,-1400]], 90, 2, undefined,
 				{ beat: "TEAL (tape): If you hear this up here, read the signature.", chatter: [{ at: 0.3, text: "SERA: The archive is speaking. Signature decoding." }],
 					twist: { at: 0.5, mode: "now", text: "SERA: Archive's gone to static. Something under the array is jamming it. Find it, low.", insert: [
 						fly("recon", "Find the jammer under the array", [[500,300,-1150]], 6, 0, 450,
 							{ beat: "SERA: Get under the aurora glow. It'll show on the scan.", chatter: [{ at: 0.5, text: "SERA: There. A dish truck in the array's shadow." }] }),
 						ground("Destroy the aurora jammer", 1, "SERA: Jammer marked. Cut it."),
-						air("Clear the jammer's escort", 2, "SERA: Its escort is up. Two."),
+						air("Clear the jammer's escort", 2, "SERA: Its escort is up. Two.", { optionalRaiders: 1, reinforce: [{ at: 0.5, count: 1 }] }),
 						fly("signal", "Resume the receive orbit", [[-100,500,-1400]], 50, 2, undefined,
 							{ beat: "SERA: Archive's back. Hold the orbit. Read the signature.", chatter: [{ at: 0.5, text: "SERA: Signature decoding. Hold. It carries a Marshal's seal." }], reinforce: [{ at: 0.4, count: 1 }] }),
 					] } }),
@@ -584,7 +584,7 @@ export const MISSIONS: MissionBlueprint[] = [
 		[
 			fly("route", "Climb into Vulture Two's searchlights", [[-500,350,-250],[0,600,-1100],[600,650,-1550]], 0, 0, undefined,
 				{ beat: "VULTURE TWO: Climb into my lights, trainee.", chatter: [{ at: 0.66, text: "VULTURE TWO: Teal climbed faster. Show me more." }] }),
-			air("Clear his wingmen", 4, "SERA: His wingmen first. Four, in pairs.", { groups: 2, stagger: 18 }),
+			air("Clear his wingmen", 4, "SERA: His wingmen first. Four, in pairs.", { groups: 2, stagger: 18, optionalRaiders: 1, reinforce: [{ at: 0.5, count: 1 }] }),
 			{ kind: "ace", label: "Defeat Vulture Two", optionalRaiders: 2, beat: "He flies like Teal. Teal learned it from him.",
 				twist: { at: 1, text: "SERA: Chute's open. Marines moving to him, and his flight is turning back. Cover the pickup.", insert: [
 					fly("defend", "Protect the marines' pickup on the ridge", [[400,320,-1400]], 90, 4, undefined,
@@ -613,9 +613,9 @@ export const MISSIONS: MissionBlueprint[] = [
 				{ beat: "SERA: Watch what the cranes unload. Mark the quays.", chatter: [{ at: 0.5, text: "SERA: Those crates are munitions. The quays are military." }] }),
 			ground("Destroy three harbor warehouses", 3, "SERA: Three military quays. Hit the warehouses.", { optionalRaiders: 2, reinforce: [{ at: 0.34, count: 1 }],
 				twist: { at: 0.66, text: "SERA: Harbor CAP launching early. Four. Finish the quay, then turn into them.", insert: [
-					air("Break the early CAP", 4, "SERA: Early flight off the apron. Four, in pairs.", { groups: 2, stagger: 18 }),
+					air("Break the early CAP", 4, "SERA: Early flight off the apron. Four, in pairs.", { groups: 2, stagger: 18, optionalRaiders: 1, reinforce: [{ at: 0.5, count: 1 }] }),
 				] } }),
-			air("Clear the harbor CAP", 6, "SERA: Main CAP off the apron. Six, in two groups.", { groups: 2, stagger: 20 }),
+			air("Clear the harbor CAP", 6, "SERA: Main CAP off the apron. Six, in two groups.", { groups: 2, stagger: 20, optionalRaiders: 1, reinforce: [{ at: 0.5, count: 1 }] }),
 		],
 		[
 			{ asset: "warehouse", name: "QUAY 1", x: -500, z: -900 },
@@ -663,7 +663,7 @@ export const MISSIONS: MissionBlueprint[] = [
 			fly("recon", "Find the depots through the fog", [[-520,250,-850],[520,250,-850]], 8, 2, 400,
 				{ beat: "SERA: The fog depots carry his signature. Find them.", chatter: [{ at: 0.5, text: "SERA: Permits match. Every depot is fuel." }] }),
 			ground("Destroy five fuel depots", 5, "SERA: Five depots in the fog. All marked.", { optionalRaiders: 2, reinforce: [{ at: 0.4, count: 2 }] }),
-			air("Clear the fog patrol", 6, "SERA: Patrol riding the fog. Six, in three groups.", { groups: 3, stagger: 18, flank: true }),
+			air("Clear the fog patrol", 6, "SERA: Patrol riding the fog. Six, in three groups.", { groups: 3, stagger: 18, flank: true, optionalRaiders: 1, reinforce: [{ at: 0.5, count: 1 }] }),
 		],
 		[
 			{ asset: "grain_silo", name: "FOG DEPOT 1", x: -520, z: -850 },
@@ -682,7 +682,7 @@ export const MISSIONS: MissionBlueprint[] = [
 			// The command frigate holds the ring's south-east station, clear of the platform deck (world: frigate ring).
 			fly("defend", "Defend the command frigate", [[650,300,-1550]], 120, 6, undefined,
 				{ beat: "FRIGATE: Ring closing. Raiders on the bow.", chatter: [{ at: 0.35, text: "FRIGATE: Second group off the platform. Hold them." }, { at: 0.7, text: "FRIGATE: Third group, low on the water. Two left in the ring." }], reinforce: [{ at: 0.35, count: 2 }, { at: 0.7, count: 2 }] }),
-			air("Clear the platform command flight", 6, "FRIGATE: Ring closed. Command flight launching. Six, from both sides.", { groups: 2, stagger: 18, flank: true }),
+			air("Clear the platform command flight", 6, "FRIGATE: Ring closed. Command flight launching. Six, from both sides.", { groups: 2, stagger: 18, flank: true, optionalRaiders: 1, reinforce: [{ at: 0.5, count: 1 }] }),
 		],
 		[],
 	),
@@ -695,7 +695,7 @@ export const MISSIONS: MissionBlueprint[] = [
 			fly("route", "Low sea approach: under 360", [[-700,220,-100],[-1000,240,-750],[0,260,-1700]], 0, 0, 360,
 				{ beat: "SERA: Under the storm. Three gates to the platform.", chatter: [{ at: 0.66, text: "SERA: Last gate. The deck stores are ahead." }] }),
 			ground("Destroy three platform warehouses", 3, "SERA: Three stores on the deck. Burn them.", { optionalRaiders: 2, reinforce: [{ at: 0.34, count: 1 }] }),
-			air("Clear the storm patrol", 6, "SERA: Patrol in the storm shadow. Six, in two groups.", { groups: 2, stagger: 18 }),
+			air("Clear the storm patrol", 6, "SERA: Patrol in the storm shadow. Six, in two groups.", { groups: 2, stagger: 18, optionalRaiders: 1, reinforce: [{ at: 0.5, count: 1 }] }),
 			chase("Stop the fuel tanker running for the coast", 90, [200,350,2100], "SERA: Tanker jet lifting off the platform, running for the coast. Stop it.",
 				[{ at: 0.5, text: "SERA: Tanker's halfway to the coast. Close on it." }, { at: 0.8, text: "SERA: He's almost over the city. Now!" }]),
 		],
@@ -713,7 +713,7 @@ export const MISSIONS: MissionBlueprint[] = [
 		[
 			fly("escort", "Cover the landing craft to the beach", [[-900,40,-1750],[-450,40,-1400],[50,40,-1000]], 110, 4, undefined,
 				{ beat: "LANDING CRAFT: Beach in under two minutes. Keep them off us.", chatter: [{ at: 0.5, text: "SERA: Second intercept launching. Stay on the craft." }, { at: 0.85, text: "LANDING CRAFT: Surf line. Ramps going down." }], reinforce: [{ at: 0.5, count: 2 }] }),
-			air("Hold the first intercept", 5, "SERA: First intercept off the apron. Five, in two groups.", { groups: 2, stagger: 18 }),
+			air("Hold the first intercept", 5, "SERA: First intercept off the apron. Five, in two groups.", { groups: 2, stagger: 18, optionalRaiders: 1, reinforce: [{ at: 0.5, count: 1 }] }),
 			air("Hold the second intercept", 5, "SERA: Second wave with raiders, coming round behind. Hold the beach.",
 				{ groups: 2, stagger: 18, flank: true, optionalRaiders: 3, reinforce: [{ at: 0.5, count: 2 }] }),
 			ground("Destroy the beach relay", 1, "SERA: Beach relay is still directing fire. Cut it."),
@@ -739,10 +739,10 @@ export const MISSIONS: MissionBlueprint[] = [
 		"The Marshal is airborne over the city. Clear his wing, cut his relay, beat him through three stages, then broadcast your own clear signal.",
 		"The coup is broken. Rusk is in custody. Loyalist pilots take the air, and your broadcast closes: 'For Teal. For the rim.'",
 		[
-			air("Clear the Marshal's wingmen", 3, "His wingmen first. Then him."),
+			air("Clear the Marshal's wingmen", 3, "His wingmen first. Then him.", { optionalRaiders: 1, reinforce: [{ at: 0.5, count: 1 }] }),
 			ground("Destroy the final broadcast relay", 1, "SERA: His relay is still broadcasting. Cut it.", { optionalRaiders: 1,
 				twist: { at: 1, text: "RUSK: You cut one relay. Every loyal pilot still hears me. On me, now.", insert: [
-					air("Break the Marshal's personal escort", 3, "SERA: His escort is forming on him. Three. Then him.", { flank: true }),
+					air("Break the Marshal's personal escort", 3, "SERA: His escort is forming on him. Three. Then him.", { flank: true, optionalRaiders: 1, reinforce: [{ at: 0.5, count: 1 }] }),
 				] } }),
 			{ kind: "ace", label: "Defeat the Air Marshal", optionalRaiders: 4, beat: "That's his jet. Teal's voice on his tapes. Bring him down." },
 			fly("signal", "Broadcast Teal's evidence to the whole coast", [[0,500,-1350]], 60, 2, undefined,
