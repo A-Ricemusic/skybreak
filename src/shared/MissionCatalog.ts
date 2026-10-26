@@ -608,7 +608,7 @@ before(24, fly("route", "Low sea approach: under the storm", [[-700,220,-100],[-
 MISSIONS[24].phases.unshift(fly("escort", "Cover the landing craft to the beach", [[-1200,40,200],[-650,40,-500],[200,40,-900]], 70, 4, undefined,
 	{ beat: "LANDING CRAFT: Beach in seventy. Keep them off us.", chatter: [{ at: 0.5, text: "SERA: Second intercept launching. Stay on the craft." }], reinforce: { at: 0.5, count: 2 } }));
 after(26, fly("signal", "Triangulate the Marshal's last transmission", [[0,600,-1200]], 28, 2, undefined,
-	{ beat: "TEAL (recorder): ...lane's open. Tell Sera I made the checkout.", chatter: [{ at: 0.5, text: "SERA: Triangulating. He's above the parliament transmitter." }] }));
+	{ beat: "TEAL (tape): He'll be where he can hear himself. The parliament mast.", chatter: [{ at: 0.5, text: "SERA: Triangulating. He's above the parliament transmitter." }] }));
 after(27, fly("signal", "Broadcast Teal's evidence to the whole coast", [[0,500,-1350]], 30, 0, undefined,
 	{ beat: "SERA: You're on every frequency. Say it your way.", chatter: [{ at: 0.5, text: "HARBOR: Loyalist pilots answering. Every harbor." }] }));
 // Debrief text when a sortie fails, by mission id: what the coup gains if you do not finish.

@@ -60,7 +60,7 @@ describe("letterboxed cinematic composition",()=>{
 		expect(speakerStyle("FLIGHT LOG").role).toBeUndefined();
 		expect(speakerStyle("MARSHAL · INTERCEPT").tone).toBe("marshal");
 		expect(speakerStyle("TRAINEE").tone).toBe("trainee");
-		const known=new Set(["TEAL","SERA","FLIGHT LOG","MARSHAL","TRAINEE"]);
+		const known=new Set(["TEAL","SERA","FLIGHT LOG","RECORDER 7-T","MARSHAL","RUSK","TRAINEE","VULTURE TWO"]);
 		for(const chapter of STORY)for(const beat of chapter.beats)expect(known.has(speakerStyle(beat.speaker).name)).toBe(true);
 	});
 });
