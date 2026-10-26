@@ -1,21 +1,28 @@
 import { Lighting, UserInputService, Workspace } from "@rbxts/services";
+import { ENVIRONMENT_ATTRIBUTE } from "../shared/EnvironmentPresets";
+import type { EnvironmentPreset } from "../shared/MissionCatalog";
+import { phoneClouds } from "../shared/WeatherRules";
 
 // Phone-only render trims, applied locally (Lighting and Terrain changes made on
 // a client do not replicate). The server-built look is unchanged on desktop.
 //  - post effects (bloom, sun rays, depth of field) are full-screen passes;
-//  - volumetric clouds are a large fill-rate cost, so they get lighter.
+//  - volumetric cloud density is a large fill-rate cost, so it is clamped, but
+//    storm, fog and overcast decks keep their cover (cover is cheap, and a storm
+//    under a clear sky does not read as a storm). Rain and lightning stay on at a
+//    lower particle share (client/Weather, shared/WeatherRules).
 // Memory heuristics such as Stats:GetTotalMemoryUsageMb are unreliable across
 // devices, so the rule is simply "touch device".
-const TOUCH_CLOUD_DENSITY = 0.18;
-const TOUCH_CLOUD_COVER = 0.25;
+
+const preset = () => Lighting.GetAttribute(ENVIRONMENT_ATTRIBUTE) as EnvironmentPreset | undefined;
 
 function trimEffect(item: Instance): void {
 	if (item.IsA("BloomEffect") || item.IsA("SunRaysEffect") || item.IsA("DepthOfFieldEffect")) item.Enabled = false;
 }
 function trimClouds(item: Instance): void {
 	if (!item.IsA("Clouds")) return;
-	item.Density = math.min(item.Density, TOUCH_CLOUD_DENSITY);
-	item.Cover = math.min(item.Cover, TOUCH_CLOUD_COVER);
+	const trimmed = phoneClouds(preset(), item.Cover, item.Density);
+	item.Density = trimmed.density;
+	item.Cover = trimmed.cover;
 }
 
 export function applyMobileGraphics(): RBXScriptConnection[] {
@@ -25,5 +32,7 @@ export function applyMobileGraphics(): RBXScriptConnection[] {
 	return [
 		Lighting.ChildAdded.Connect(trimEffect),
 		Workspace.Terrain.ChildAdded.Connect(trimClouds),
+		// The preset can replicate after its clouds: re-trim from the table when it lands.
+		Lighting.GetAttributeChangedSignal(ENVIRONMENT_ATTRIBUTE).Connect(() => { for (const item of Workspace.Terrain.GetChildren()) trimClouds(item); }),
 	];
 }
