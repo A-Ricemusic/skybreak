@@ -857,10 +857,10 @@ function harbour(ctx: Ctx, fx: number, cz: number, frigates: number): void {
 	}
 	for (const qx of quays) for (const [dx, dz] of [[-62, 80], [62, 80], [0, 190]]) {
 		const x = qx + dx + rng.range(-6, 6), z = cz + dz + rng.range(-6, 6), yaw = math.pi / 2 + rng.range(-0.04, 0.04);
-		const rect: Rect = { x, z, hx: 45, hz: 19, yaw };
+		const rect: Rect = { x, z, hx: 19, hz: 45, yaw }; // the 88-stud stack runs along its local Z
 		if (!rectFree(ctx, rect, 8, ["spawn"]) || !onLand(ctx, x - 44, z) || !onLand(ctx, x + 44, z)) continue;
 		prop(ctx, "ContainerStack", x, GROUND, z, yaw, 1, rng.int(0, 2));
-		zone(ctx, "building", x, z, 45, 19, yaw);
+		zone(ctx, "building", x, z, 19, 45, yaw);
 	}
 	let placed = 0;
 	for (const off of [0, -480, 480, -900, 900, -1300, 1300]) {
