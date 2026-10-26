@@ -74,4 +74,54 @@ describe("Ace stages", () => {
 		expect(AceRules.RaidersForStage(1, 2)).toBe(0);
 		expect(AceRules.RaidersForStage(0, 1)).toBe(0);
 	});
+	it("a hit while the ace retreats cannot start the next stage before it has called its wing", () => {
+		// M9: 300 hull, crossed 2/3 into a retreat; a 110-damage lance hit lands 3.1 s later, out of invulnerability.
+		const state = AceRules.New();
+		expect(AceRules.Cross(state, 300, 230, 200, 0, true)).toBe(true);
+		expect(AceRules.Step(state, 3.1, 900, 0)).toBeUndefined();
+		expect(AceRules.Invulnerable(state, 3.1)).toBe(false);
+		let health = 200;
+		const damage = AceRules.CapHit(state, health, 300, 110);
+		expect(damage).toBe(99);
+		health -= damage;
+		expect(AceRules.Cross(state, 300, 200, health, 3.1, true)).toBe(false);
+		// Even a raw crossing is refused mid-sequence: the retreat is never overwritten.
+		expect(AceRules.Cross(state, 300, 101, 50, 3.2, true)).toBe(false);
+		expect(state.stage).toBe(1);
+		expect(state.mode).toBe("retreat");
+		expect(AceRules.CapHit(state, health, 300, 55)).toBe(0);
+		// The stage plays out: it calls the wing, holds and turns back in, and only then can stage two start.
+		expect(AceRules.Step(state, 1, 1900, 0)).toBe("called");
+		expect(AceRules.CapHit(state, health, 300, 55)).toBe(0);
+		expect(AceRules.Step(state, AceRules.HoldMinSeconds, 2000, 0)).toBe("returned");
+		const crossing = AceRules.CapHit(state, health, 300, 55);
+		expect(crossing).toBe(1);
+		expect(AceRules.Cross(state, 300, health, health - crossing, 20, true)).toBe(true);
+		expect(state.stage).toBe(2);
+		expect(state.mode).toBe("retreat");
+	});
+	it("a hit while the ace holds in its last stage cannot kill it before it turns back in", () => {
+		const state = AceRules.New();
+		AceRules.Cross(state, 300, 210, 200, 0, true);
+		AceRules.Step(state, 10, 2000, 0);
+		AceRules.Step(state, AceRules.HoldMaxSeconds, 2000, 2);
+		expect(AceRules.Cross(state, 300, 110, 100, 40, true)).toBe(true);
+		expect(AceRules.Step(state, 1, 1900, 0)).toBe("called");
+		expect(state.mode).toBe("hold");
+		// Last stage: no line left, but the hold still ends in a return before the kill.
+		let health = 100;
+		for (let hit = 0; hit < 4; hit++) health -= AceRules.CapHit(state, health, 300, 55);
+		expect(health).toBe(1);
+		expect(AceRules.Cross(state, 300, 45, 1, 45, true)).toBe(false);
+		expect(AceRules.Step(state, AceRules.HoldMinSeconds, 2000, 0)).toBe("returned");
+		expect(AceRules.CapHit(state, health, 300, 55)).toBe(55);
+	});
+	it("a fighting ace takes the ordinary capped hit", () => {
+		const state = AceRules.New();
+		expect(AceRules.CapHit(state, 220, 300, 55)).toBe(20);
+		expect(AceRules.CapHit(state, 300, 300, 55)).toBe(55);
+		// An ace with no wing to call stays in the fight at the line, so hits keep landing in full.
+		AceRules.Cross(state, 165, 165, 110, 0, false);
+		expect(AceRules.CapHit(state, 110, 165, 55)).toBe(55);
+	});
 });

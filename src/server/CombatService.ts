@@ -1232,8 +1232,9 @@ function strikeEnemy(session: CombatSession, enemy: Enemy, index: number): boole
 	// Staged ace: the hit bursts harmlessly while it breaks away.
 	if (enemy.aceState && AceRules.Invulnerable(enemy.aceState, session.elapsed)) return true;
 	let damage = session.projectiles[index].damage > 0 ? session.projectiles[index].damage : PLAYER_MISSILE_DAMAGE;
-	// A heavy hit stops at the ace's next stage line so no stage (radio call, retreat, raiders) is skipped.
-	if (enemy.aceState) damage = AceRules.CapDamage(enemy.health, enemy.maxHealth, enemy.aceState.stage, damage);
+	// A heavy hit stops at the ace's next stage line, and a hit while it retreats or holds stops above it,
+	// so no stage (radio call, retreat, raiders, return) is skipped or cut short.
+	if (enemy.aceState) damage = AceRules.CapHit(enemy.aceState, enemy.health, enemy.maxHealth, damage);
 	if (enemy.health <= damage) {
 		session.projectiles[index].part.Destroy(); session.projectiles.remove(index);
 		destroyEnemy(session, enemy);
