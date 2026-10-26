@@ -1,7 +1,7 @@
 // Pure post-mission scoring shared by the server (authoritative score, saved bests)
 // and the debrief screen. Nothing here reads instances or the clock.
 import { Difficulty, DifficultyKind } from "./Difficulty";
-import { MissionBlueprint, MissionCatalog, MissionPhaseBlueprint } from "./MissionCatalog";
+import { Act, MissionBlueprint, MissionCatalog, MissionPhaseBlueprint } from "./MissionCatalog";
 
 export type MissionRank = "S" | "A" | "B" | "C" | "D";
 
@@ -43,6 +43,8 @@ const SLOW_LIMIT = 2.5;
 const WEIGHT_TIME = 40;
 const WEIGHT_ACCURACY = 30;
 const WEIGHT_SURVIVAL = 30;
+/** An S also needs this share of launched missiles to connect; otherwise the best rank is A. */
+const S_ACCURACY = 0.85;
 const RANK_CUTS: { rank: MissionRank; rating: number }[] = [
 	{ rank: "S", rating: 90 },
 	{ rank: "A", rating: 75 },
@@ -54,29 +56,53 @@ function finite(value: number, fallback = 0): number {
 	return typeIs(value, "number") && value === value && math.abs(value) !== math.huge ? value : fallback;
 }
 
-/** Seconds a clean, direct run of one phase should take. */
-function phasePar(phase: MissionPhaseBlueprint): number {
+// Par is a good human run: about 1.3x what the scripted QA pilot needs under the round-2
+// threat tuning. Bandits take two missiles in Act I and three in Acts II-III (plus a flare
+// in Act III), spawn 2600-3200 studs out, break close locks and only lock inside 1800 studs
+// and 40 degrees, so seconds per bandit climb by act. Timed holds only count inside their
+// volume, so they carry a drift allowance. Measured scripted times live in docs/broken-relay.md.
+const PAR_PER_BANDIT: { [A in Act]: number } = { 1: 9, 2: 12, 3: 14 };
+const PAR_PER_GROUND = 9;
+const PAR_PER_BEACON = 10;
+/** First contact of a required_air phase: the approach from 2600-3200 studs out. */
+const PAR_AIR_APPROACH = 8;
+/** Ace fight: base plus per hull point (three stages, two retreats with raiders, flares). */
+const PAR_ACE_BASE = 45;
+const PAR_ACE_PER_HEALTH = 0.13;
+
+/** Seconds a good run of one phase should take. */
+function phasePar(phase: MissionPhaseBlueprint, act: Act, aceHealth: number): number {
 	const count = phase.count ?? 0;
 	const points = phase.points?.size() ?? 0;
 	const seconds = phase.seconds ?? 0;
+	const hazards = (phase.hazard?.count ?? 0) * PAR_PER_GROUND;
 	switch (phase.kind) {
 		case "tutorial_move": return 10;
-		case "tutorial_target": return 10;
-		case "tutorial_missile": return 20;
-		case "required_air": return count * 22;
-		case "required_ground": return count * 15;
-		case "ace": return 75;
-		case "route": return points * 15;
-		case "recon": return points * (seconds + 15);
-		default: return seconds + 15; // signal, escort, defend: the hold plus getting on station
+		case "tutorial_target": return 6;
+		case "tutorial_missile": return 15;
+		case "required_air": return PAR_AIR_APPROACH + count * PAR_PER_BANDIT[act];
+		case "required_ground": return 5 + count * PAR_PER_GROUND;
+		case "ace": return PAR_ACE_BASE + aceHealth * PAR_ACE_PER_HEALTH;
+		case "chase": return 35;
+		case "route": return points * PAR_PER_BEACON;
+		case "recon": return points * (seconds * 1.1 + 8);
+		case "escort": case "defend": return seconds * 1.05 + 8 + hazards;
+		default: return seconds * 1.15 + 8 + hazards; // signal: the hold plus drift while fighting and getting on station
 	}
 }
 
 export const MissionScore = {
-	/** Par time for a mission: transit plus each phase's clean-run estimate, rounded up to 5 s. */
+	/** Minimum hit rate for an S. */
+	SAccuracy: S_ACCURACY,
+	/** Par time for a mission: transit plus each phase's good-run estimate, rounded up to 5 s. */
 	ParSeconds(blueprint: MissionBlueprint): number {
 		let total = 20;
-		for (const phase of MissionCatalog.ExpandedPhases(blueprint)) total += phasePar(phase);
+		const phases = MissionCatalog.ExpandedPhases(blueprint);
+		for (const phase of phases) {
+			// A phase a "now" twist cuts short only runs up to the twist.
+			const share = phase.twist?.mode === "now" ? phase.twist.at : 1;
+			total += phasePar(phase, blueprint.act, blueprint.aceHealth ?? 165) * share + 3; // +3 s per phase change
+		}
 		return math.ceil(total / 5) * 5;
 	},
 
@@ -104,6 +130,8 @@ export const MissionScore = {
 		for (const cut of RANK_CUTS) {
 			if (rating >= cut.rating) { rank = cut.rank; break; }
 		}
+		// An S is earned with the missiles too: a high rating carried by speed alone tops out at A.
+		if (rank === "S" && accuracy < S_ACCURACY) rank = "A";
 		return { score: scaled(killPoints + rating * RATING_POINTS), rank, rating, time, accuracy, survival };
 	},
 
