@@ -15,7 +15,7 @@ import { Telemetry } from "./Types";
 //          incomingSeconds (-1 none), incomingBearing (999 none)]
 // flags: 1 incoming, 2 lockWarning, 4 boundaryWarning, 8 targetDamageable,
 //        16 targetDamageable unknown (no target), 32 ace killed this sortie,
-//        64 the nearest missile is inside the break window (MissileRules).
+//        128 the nearest missile is inside the break window (MissileRules; 64 is left for PR #38's pause flag).
 export type TelemetryPacket = number[];
 export const TELEMETRY_FIELDS = 28;
 
