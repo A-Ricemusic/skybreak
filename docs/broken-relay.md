@@ -8,9 +8,9 @@ A lone trainee follows missing mentor Teal's recordings from Varda Rim, through 
 
 One place, one player, one active disposable mission folder. `MissionCatalog` owns ordered phase data; `MissionLayouts` owns 27 authored compositions. The first two missions retain their original tutorial/warehouse/ace rules and geometry. `BlueprintRunner` handles missions 3–27 as a pure server domain model. `CombatService` alone observes the authoritative aircraft, creates targets and projectiles, applies damage, changes phases and issues results. The client sends bounded flight controls and button events only.
 
-Beyond air combat and staged strikes, the campaign includes ordered swept flight gates, altitude-limited reconnaissance, signal orbits, moving convoy escorts and fixed-site defense. Scans and signal time accrue only inside authored volumes. Escort movement advances while the player stays near it; nearby hostile aircraft suppress the protected objective at 0.7 health per second per threat. Losing it fails the sortie. The finale requires a real 30-second broadcast after the Marshal is down. Destruction counts alone cannot complete the newer missions.
+Beyond air combat and staged strikes, the campaign includes ordered swept flight gates, altitude-limited reconnaissance, signal orbits, moving convoy escorts and fixed-site defense. Scans and signal time accrue only inside authored volumes. Escort movement advances while the player stays near it; nearby hostile aircraft suppress the protected objective at 0.55 health per second per raider on Normal (×0.75 Easy, ×1.25 Ace; lit hazard guns count 1.5 each). Escorted and defended actors are grounded from their own bounding box and a raycast against the mission's flight-solid surfaces and terrain: trucks ride the road, towers stand on their pad, launches float at the waterline (or sit on a beach). Losing the protected objective fails the sortie. The finale requires a real 60-second broadcast after the Marshal is down. Destruction counts alone cannot complete the newer missions.
 
-Each phase enables only its allocated ground targets. Optional pursuers retire when their window ends. Setup and static mesh generation happen before the 600-second gameplay clock starts. Completion, failure, retry and return dispose the mission folder and restore the menu. The single-player guard prevents overlapping worlds.
+Each phase enables only its allocated ground targets. Optional pursuers retire when their window ends: they break off and fly for the boundary for 4 s, untargetable and silent, and any missile chasing one is refunded; dead enemies are compacted out at every phase change. Bandits and raiders carry per-sortie call signs (BANDIT 07, RAIDER 03). Setup and static mesh generation happen before the gameplay clock (`GameConfig.Campaign.MissionTimeLimit`, 900 s) starts; the server pre-builds the enemy Vanta mesh at start-up so no Heartbeat step yields on it, and every session step runs under a `StepGuard` (one warning, then the sortie fails with reason `internal_error` instead of throwing every frame; a step suspended in a yield is never re-entered). CombatAction `Pause`/`Resume` freezes the single-player sortie on the server and moves the clock's start by the paused span, capped at 5 minutes per sortie. Completion, failure, retry and return dispose the mission folder and restore the menu. The single-player guard prevents overlapping worlds.
 
 `RelayStory` authors 28 chapters: opening, 26 bridges and finale, each three to eight beats with a shot and mood per beat/chapter. Mission briefings carry the instructions; story lines never do. The React cinematic renderer builds a local stage with Teal's receiver, map/evidence, aircraft, replicated Blender prop and region scenery. It cuts between the shot cameras in `CinematicStaging` with timed subtitles. The story is told without sound, so the stage carries it: the flight chart prints the chapter's document (`StoryDocuments`: the grain manifest, the struck roster, the governor's death certificate, ORDER 0001 signed RUSK, the amended record card) and the `evidence` shot frames it legibly at phone width; the coffee tin loses one cassette for every chapter Teal has spoken in; farm scenes are charred from chapter 15; the recorder comes home dented and open with a steady lamp in chapter 25; night relay chapters hang an aurora over the crown station; Sera's board carries Teal's name strip except during chapter 9 until the chapter's last beat. Teal's tapes, the recorder/log and every black card type out over the first 40 % of their beat (instant with camera motion off); the Marshal's cards carry a faint red vignette. Mood lighting drives Lighting, the Atmosphere and a local Terrain cloud deck (grey for storms, off at night so stars and aurora show).
 
@@ -24,37 +24,67 @@ The existing `SkybreakCampaign_v1` DataStore name and player keys are retained. 
 
 ## Mission manifest
 
-`⇢ *twist*` marks a mid-phase objective change (`MissionPhaseBlueprint.twist`): when the active phase's progress fraction crosses `at`, a radio call plays and the listed phases are spliced in right after it. Mode `now` ends the current phase on the spot (an interrupted scan, a rerouted convoy, a jammed broadcast); the default `after` lets it finish first (reinforcements announced mid-strike, a recovery to cover after the ace falls). Twists always fire before their host phase can complete, so `MissionCatalog.ExpandedPhases` is the authoritative flow for kill totals, par, save-proof phase counts and the debrief. Act II (10–18) is tuned to a 225–260 s par, roughly 2.5–4 minutes for a competent pilot; Act I (3–8) stays under 200 s and the finale (290 s) is the longest sortie.
+`⇢ *twist*` marks a mid-phase objective change (`MissionPhaseBlueprint.twist`): when the active phase's progress fraction crosses `at`, a radio call plays and the listed phases are spliced in right after it. Mode `now` ends the current phase on the spot (an interrupted scan, a rerouted convoy, a jammed archive); the default `after` lets it finish first (reinforcements announced mid-strike, a recovery to cover after the ace falls). Twists always fire before their host phase can complete, so `MissionCatalog.ExpandedPhases` is the authoritative flow for kill totals, par, save-proof phase counts and the debrief.
+
+Round 2 phase fields (all validated at catalog load):
+
+| Field | On | Effect |
+|---|---|---|
+| `groups`, `stagger`, `flank` | `required_air` | `count` splits into `groups` (larger first, `WavePlan.Groups`). The next group arrives `stagger` seconds (default 18) after the last one, or as soon as half the last group is down. With `flank`, later groups come from the rear quarter. |
+| `reinforce: [{ at, count }]` | any phase with raiders | Raider waves that arrive when the phase fraction crosses each `at` (kills for strikes, seconds for holds). Their sum fits in `optionalRaiders`; the remainder arrives at phase start (`MissionCatalog.InitialRaiders`). |
+| `hazard: { at, count, effect, text }` | `signal` (`jam`), `escort`/`defend` (`guns`) | The next `count` ground targets stay hidden until the phase fraction reaches `at`, then light up with a radio call. They are required ground kills. Live jammers freeze the signal timer; live guns drain the protected actor like 1.5 raiders each. The phase cannot finish while any is alive. |
+| `kind: "chase"`, `escape`, `seconds` | courier | One fast (275 studs/s, faster than cruise, slower than full throttle) non-firing 160-hull target runs for `escape`; the sortie fails with reason `escaped` after `seconds`. Its `Fraction` (for chatter) is the escape clock. |
+| `directed` | any combat phase | A radar is directing the flight: the hostile fire gate is halved while the phase lasts. |
+| `hidden` | `required_ground` | Its targets stay invisible and unqueryable until the phase begins (M8's spotters, M10's camp radar). |
+| `aceReturns` | mission with an ace | Two radio lines, said when the ace turns back in after each retreat (the two `aceStages` lines are said as it breaks off). |
+
+Ground targets are consumed in phase order by strikes and hazards (`MissionCatalog.GroundStart`); `HiddenGround` lists the ones that start invisible. Holds (escort and defend) run 90–150 s; signal holds 90 s, except the interrupted M17 orbit (90 s, cut at half, then a 50 s resume) and the M27 closing broadcast (60 s, after a three-stage ace fight).
+
+Times below: par is a good human run (`MissionScore.ParSeconds`, about 1.3× the scripted QA pilot under the new tuning); the average phone pilot estimate uses 15 / 20 / 24 s per required bandit by act, 10 s per ground target, 10–13 s per beacon, holds ×1.05 (escort/defend) or ×1.25 (signal, drift while fighting) plus 10 s on station, 0.36 s per ace hull point and 4 s per phase change. These are design estimates; the coordinator's live runs replace them.
 
 | # | Mission / composition | Required phase sequence |
 |---|---|---|
-| 1 | FIRST FLIGHT — Varda training islands | Observe pitch and turn → Cycle to the training target → Lock and fire a missile at the training radar → Intercept three bandits |
-| 2 | IRON COAST — Iron Coast five quays | Intercept three required bandits → Destroy five warehouses → Destroy the ace |
-| 3 | FOX TRAIL — Fox switchback | Trace Teal's canyon trail through three beacons → Clear scout flight alpha → Clear scout flight bravo |
-| 4 | STATIC QUARTERS — Hidden quarters bowl | Scan the hidden quarters below 380 studs → Destroy the hidden rim radar → Fend off the response flight |
-| 5 | ORCHARD LINE — Teklan orchard terraces | Cover the orchard evacuation trucks |
-| 6 | GRAIN SHADOW — Grain valley irrigation | Follow the farm irrigation channel → Destroy three fuel silos → Clear the orchard patrol |
-| 7 | DUST WEATHER — Dust courier narrows | Fly the courier's dust pass below 400 studs → Catch the four-ship messenger flight |
-| 8 | RIM SWITCH — Varda tower siege | Protect Varda's control tower for 50 seconds → Clear the retreating pair |
-| 9 | STATIC HORIZON — Vulture moonlit bowl | Follow the night approach lights → Clear the night patrol → Defeat Vulture Lead |
-| 10 | PLATEAU COLD — Kiro abandoned mine | Follow the mine road up to Kiro → Scan Node Kiro (hold fire) ⇢ *twist* Break the camp's intercept → Finish the archive scan → Cut Node Kiro's transmitter → Intercept the plateau response |
-| 11 | SIGNAL HARVEST — Twin ridge relay saddle | Destroy relay Node Lira → Clear the alert pair → Destroy relay Node Merel ⇢ *twist* Follow the farm road north to Sable → Destroy relay Node Sable → Clear Sable's guard pair → Orbit the west ridge to relay Teal's packet |
-| 12 | OPEN FIELD — Open field refugee corridor | Escort the loyalist transmitter truck ⇢ *twist* Cover the reroute along the mill road → Occupy the orchard airspace |
-| 13 | STAGING FARM — Staging farm rail yard | Follow the rail spur to the staging farm → Scan the staging farm low → Destroy four fuel silos ⇢ *twist* Break the plateau reinforcements → Destroy the farm relay → Hold off the raiders |
-| 14 | ANTENNA ROW — High relay crossing | Cross the relay saddle through four beacons → Destroy three plateau antennas ⇢ *twist* Destroy the mobile mast → Clear the perimeter CAP → Hold the saddle: confirm the row is dark |
-| 15 | LOYALIST WINDOW — Loyalist broadcast common | Hold the broadcast link ⇢ *twist* Intercept the jamming flight → Reopen the window: hold the link → Hold the second intruders |
-| 16 | STORM WALK — Storm river divide | River gates: stay low → Destroy three remaining silos ⇢ *twist* Catch the storm patrol → Destroy the forward relay → Hold over the dead relay: read its last traffic → Break the plateau's second pair |
-| 17 | AURORA RELAY — Aurora crown array | Destroy the plateau relay → Clear the aurora intercept → Orbit to receive the archive ⇢ *twist* Find the jammer under the array → Destroy the aurora jammer → Clear the jammer's escort → Resume the receive orbit |
-| 18 | RIDGE ACE — Vulture searchlight ridge | Climb into Vulture Two's searchlights → Clear his wingmen → Defeat Vulture Two ⇢ *twist* Protect the marines' pickup on the ridge |
-| 19 | HARBOR RUN — Military quays and canal | Scan the quays; spare the city → Destroy three harbor warehouses ⇢ *twist* Break the early CAP → Clear the harbor CAP |
-| 20 | FRACTURE LINE — Eastern wing divided harbor | Shatter the eastern wing → Cover the evidence launch through the harbor |
-| 21 | CITY NIGHT — Black canal city | Follow the dark canal through the city → Destroy the broadcast relay → Hold off the escort flight → Hold over the dark tower: confirm silence |
-| 22 | HARBOR FOG — Five fog fuel piers | Find the fuel depot through the harbor fog → Destroy five fuel silos → Clear the fog patrol |
-| 23 | OCEAN CLEAR — Frigate ring over deep water | Protect the frigate's ring around the platform → Clear the platform command flight |
-| 24 | PLATFORM FIRE — Storm platform trident | Use the low sea approach below 360 studs → Destroy three platform warehouses → Clear the storm patrol |
-| 25 | CITY DAWN — Dawn beachhead | Cover the landing craft to the beach → Hold the first intercept → Hold the second intercept → Destroy the beach relay |
-| 26 | FRACTURE LAST — Civic plaza blackout | Break the Marshal's first flight → Break the second flight → Triangulate the Marshal's last transmission |
-| 27 | BROKEN RELAY — Coastal parliament sunrise | Clear the Marshal's wingmen → Destroy the final broadcast relay ⇢ *twist* Break the Marshal's personal escort → Defeat the Air Marshal → Broadcast Teal's evidence to the whole coast |
+| 1 | FIRST FLIGHT — Varda training islands | Turn and pitch for three seconds each → Cycle to the training target → Lock and fire a missile at the training radar → Intercept three bandits |
+| 2 | IRON COAST — Iron Coast five quays | Intercept the three-bandit screen → Destroy five warehouses → Destroy the ace (165 hull, 3 stages) |
+| 3 | FOX TRAIL — Fox switchback | Follow Teal's beacons → Clear scout flight alpha (3 in 2 groups) → Teal's river run: stay under 320 → Clear scout flight bravo (4 in 2 groups) |
+| 4 | STATIC QUARTERS — Hidden quarters bowl | Scan the quarters: stay under 380 → Destroy the hidden rim radar → Fend off the response flight (5 in 2 groups) |
+| 5 | ORCHARD LINE — Teklan orchard terraces | Cover the orchard evacuation trucks (110 s) → Drive off the patrol leads |
+| 6 | GRAIN SHADOW — Grain valley irrigation | Follow the farm irrigation channel → Mark the silos, spare the roofs: stay under 400 → Destroy three fuel silos → Clear the orchard patrol (5 in 2 groups) |
+| 7 | DUST WEATHER — Dust courier narrows | Run the dust pass under 400 → Strip the courier's escort (5 in 2 groups) → Catch the courier before the plateau (escapes after 90 s) |
+| 8 | RIM SWITCH — Varda tower siege | Protect Varda's control tower (120 s) → Counter-attack the spotter radars → Catch the retreating flight |
+| 9 | STATIC HORIZON — Vulture moonlit bowl | Follow the night approach lights → Clear the night patrol (4 in 2 groups) → Defeat Vulture Lead (300 hull, 3 stages) |
+| 10 | PLATEAU COLD — Kiro abandoned mine | Follow the mine road up to Kiro → Scan Node Kiro (hold fire) ⇢ *twist* Break the camp's intercept (4 in 2 groups) → Finish the archive scan → Cut Node Kiro's transmitter ⇢ *twist* Kill the camp radar (directed) → Intercept the blind response |
+| 11 | SIGNAL HARVEST — Twin ridge relay saddle | Destroy relay Node Lira → Clear the alert flight → Destroy relay Node Merel ⇢ *twist* Follow the farm road north to Sable → Destroy relay Node Sable → Clear Sable's guard flight → Orbit the west ridge to relay Teal's packet (90 s) |
+| 12 | OPEN FIELD — Open field refugee corridor | Escort the loyalist transmitter truck (90 s) ⇢ *twist* Cover the reroute along the mill road (100 s) → Occupy the orchard airspace (6 in 2 groups) |
+| 13 | STAGING FARM — Staging farm rail yard | Follow the rail spur to the staging farm → Scan the staging farm low → Destroy four fuel silos ⇢ *twist* Break the plateau reinforcements (4 in 2 groups) → Destroy the farm relay → Hold off the raiders |
+| 14 | ANTENNA ROW — High relay crossing | Cross the relay saddle through four beacons → Destroy three plateau antennas ⇢ *twist* Destroy the mobile mast → Clear the perimeter CAP (4 in 2 groups) → Hold the saddle: confirm the row is dark (90 s) |
+| 15 | LOYALIST WINDOW — Loyalist broadcast common | Hold the broadcast link (90 s; 2 jammers freeze it) → Hold the second intruders (7 in 2 groups) |
+| 16 | STORM WALK — Storm river divide | River gates: stay under 400 → Destroy three remaining silos ⇢ *twist* Catch the storm patrol (5 in 2 groups) → Destroy the forward relay → Hold over the dead relay: read its last traffic (90 s) |
+| 17 | AURORA RELAY — Aurora crown array | Destroy the plateau relay → Clear the aurora intercept (4 in 2 groups) → Orbit to receive the archive (90 s) ⇢ *twist* Find the jammer under the array → Destroy the aurora jammer → Clear the jammer's escort → Resume the receive orbit (50 s) |
+| 18 | RIDGE ACE — Vulture searchlight ridge | Climb into Vulture Two's searchlights → Clear his wingmen (4 in 2 groups) → Defeat Vulture Two (400 hull, 3 stages) ⇢ *twist* Protect the marines' pickup on the ridge (90 s) |
+| 19 | HARBOR RUN — Military quays and canal | Scan the quays; spare the city → Destroy three harbor warehouses ⇢ *twist* Break the early CAP (4 in 2 groups) → Clear the harbor CAP (6 in 2 groups) |
+| 20 | FRACTURE LINE — Eastern wing divided harbor | Shatter the eastern wing (9 in 3 groups) → Cover the evidence launch through the harbor (110 s; 2 bank guns) |
+| 21 | CITY NIGHT — Black canal city | Follow the dark canal through the city → Destroy the broadcast relay → Hold off the escort flight (8 in 2 groups) → Hold over the dark tower: confirm silence (90 s) |
+| 22 | HARBOR FOG — Five fog fuel piers | Find the depots through the fog → Destroy five fuel depots → Clear the fog patrol (6 in 3 groups, flanking) |
+| 23 | OCEAN CLEAR — Frigate ring over deep water | Defend the command frigate (120 s) → Clear the platform command flight (6 in 2 groups, flanking) |
+| 24 | PLATFORM FIRE — Storm platform trident | Low sea approach: under 360 → Destroy three platform warehouses → Clear the storm patrol (6 in 2 groups) → Stop the fuel tanker running for the coast (escapes after 90 s) |
+| 25 | CITY DAWN — Dawn beachhead | Cover the landing craft to the beach (110 s) → Hold the first intercept (5 in 2 groups) → Hold the second intercept (5 in 2 groups, flanking) → Destroy the beach relay |
+| 26 | FRACTURE LAST — Civic plaza blackout | Break the Marshal's wing (10 in 2 groups, flanking) → Triangulate the Marshal's last transmission (90 s) |
+| 27 | BROKEN RELAY — Coastal parliament sunrise | Clear the Marshal's wingmen → Destroy the final broadcast relay ⇢ *twist* Break the Marshal's personal escort → Defeat the Air Marshal (500 hull, 3 stages) → Broadcast Teal's evidence to the whole coast (60 s) |
+
+| # | Par | Average human (est.) | | # | Par | Average human (est.) | | # | Par | Average human (est.) |
+|--:|--:|--:|---|--:|--:|--:|---|--:|--:|--:|
+| 1 | 100 s | 2.1 min | | 10 | 230 s | 4.9 min | | 19 | 250 s | 5.9 min |
+| 2 | 185 s | 3.2 min | | 11 | 305 s | 6.1 min | | 20 | 305 s | 6.6 min |
+| 3 | 175 s | 3.7 min | | 12 | 275 s | 5.4 min | | 21 | 310 s | 6.8 min |
+| 4 | 145 s | 3.0 min | | 13 | 235 s | 5.0 min | | 22 | 205 s | 4.6 min |
+| 5 | 185 s | 3.4 min | | 14 | 290 s | 5.6 min | | 23 | 255 s | 5.2 min |
+| 6 | 180 s | 3.6 min | | 15 | 250 s | 5.3 min | | 24 | 225 s | 5.0 min |
+| 7 | 160 s | 3.4 min | | 16 | 295 s | 5.9 min | | 25 | 330 s | 7.1 min |
+| 8 | 225 s | 4.0 min | | 17 | 295 s | 6.0 min | | 26 | 290 s | 6.6 min |
+| 9 | 190 s | 3.9 min | | 18 | 320 s | 6.6 min | | 27 | 340 s | 7.9 min |
+
+Campaign total for the average pilot: about 137 minutes of flying (it was about 41–65 minutes before round 2). Act I opens gently (M1 is the tutorial; M1–M4 fire on the gentle gate), Act II runs 5–6.5 minutes, Act III 4.5–8 minutes with the finale longest.
 
 ## Original Blender assets and performance bounds
 
@@ -69,7 +99,7 @@ The existing `SkybreakCampaign_v1` DataStore name and player keys are retained. 
 
 The generator and four exact runtime mesh JSON files are committed. Rebuild with Blender in background mode, then `bun run build`. Blender projects, GLB files and lit inspection PNGs remain regenerable local outputs. All four `.blend` files were reopened and GLBs round-tripped against exported bounds within 0.001 studs. The runtime follows the existing server-generated static-content path, preserves corner normals and material centers, and clones cached material meshes. Missing/malformed data fails explicitly. A platform mesh capability failure warns and produces a visible primitive fallback labeled `GeometrySource=Fallback`; that fallback is **not** a successful mesh QA result.
 
-The authored mission budget is at most six active hostile aircraft, eight player missiles in stock, a shared hostile launch cadence, at most five required ground targets, and fewer than 400 scenery/target BaseParts. Scene/asset tests assert these bounds when run in Roblox. New flat land uses nine or fewer material slabs instead of filling millions of terrain voxels. Roads split below the engine's 2048-stud part limit. Legacy island worlds remain intact. One render listener exists per active cinematic or navigation cue, and both disconnect on unmount. Static geometry templates persist by asset kind; mission clones and cinematics do not accumulate.
+The authored mission budget is at most seven hostile aircraft up at once (largest staggered group plus every raider; Ace difficulty adds one raider per wave), eight player missiles in stock, a flight-wide hostile launch gate and threat cap, at most five required ground targets, and fewer than 400 scenery/target BaseParts. Scene/asset tests assert these bounds when run in Roblox. New flat land uses nine or fewer material slabs instead of filling millions of terrain voxels. Roads split below the engine's 2048-stud part limit. Legacy island worlds remain intact. One render listener exists per active cinematic or navigation cue, and both disconnect on unmount. Static geometry templates persist by asset kind; mission clones and cinematics do not accumulate.
 
 These are design/definition bounds, not measured device FPS or memory figures. Physical phone/console performance and replication remain live QA items.
 
@@ -93,7 +123,7 @@ To repeat QA under a new parent-granted exclusive Studio lease:
 2. Open `build/skybreak.rbxlx` (one production place). Verify new meshes replicate with `GeometrySource=Blender`. Rebuild/restart any Rojo mapping only under the lease.
 3. Use a fresh session slot. Install `tools/playtest-relay.client.luau` as a normal LocalScript. Launch each mission through the real menu and story. The persistent pilot computes only legal stick/throttle and invokes the normal controller target/missile/evade methods. It never moves an aircraft directly or alters health, timer, kills, objectives, or results. It completed all27 genuine sorties in the recorded run.
 4. Inspect `PlayerScripts.BrokenRelayQA`: every attempt records server outcome, elapsed time, kills, ground kills, minimum health, protected health, phase sequence and input-command counts. Save genuine logs/screenshots. Require 27 actual Completed results and the finale; fix failures rather than changing success conditions for evidence.
-5. Manually verify touch/keyboard/gamepad, 320×240 and phone portrait/landscape, story skip/pause/motion/text controls, failed escort, 600-second timeout, retry, locked remote rejection, completed-mission replay, four-slot isolation, migration fixtures, return cleanup and repeated launch/recap counts. Cloud persistence/rejoin requires a published test experience and cannot be proven with unpublished session slots.
+5. Manually verify touch/keyboard/gamepad, 320×240 and phone portrait/landscape, story skip/pause/motion/text controls, failed escort, 900-second timeout, pause/resume (clock frozen, 5-minute cap), retry, locked remote rejection, completed-mission replay, four-slot isolation, migration fixtures, return cleanup and repeated launch/recap counts. Cloud persistence/rejoin requires a published test experience and cannot be proven with unpublished session slots.
 
 ## Remaining limitations
 
