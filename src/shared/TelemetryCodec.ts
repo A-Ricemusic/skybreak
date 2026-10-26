@@ -15,7 +15,7 @@ import { Telemetry } from "./Types";
 // flags: 1 incoming, 2 lockWarning, 4 boundaryWarning, 8 targetDamageable,
 //        16 targetDamageable unknown (no target), 32 ace killed this sortie.
 export type TelemetryPacket = number[];
-export const TELEMETRY_FIELDS = 25;
+export const TELEMETRY_FIELDS = 26;
 
 export interface TelemetryNumbers {
 	health: number; speed: number; altitude: number; kills: number; total: number; missiles: number;
@@ -27,6 +27,8 @@ export interface TelemetryNumbers {
 	specialCharges?: number; specialCooldown?: number; specialActive?: number;
 	/** The sortie's ace is down (cumulative, so the HUD can tell an ace kill from a dropped packet). */
 	aceKilled?: boolean;
+	paused?: boolean;
+	pauseAck?: number;
 	/** Evade charges in hand (EvadeRules), optional raider kills, and the nearest hostile missile's range. */
 	evadeCharges?: number; optionalKills?: number; incomingDistance?: number;
 }
@@ -34,14 +36,14 @@ export interface TelemetryNumbers {
 export const TelemetryCodec = {
 	Encode(sequence: number, t: TelemetryNumbers): TelemetryPacket {
 		const flags = (t.incoming ? 1 : 0) + (t.lockWarning ? 2 : 0) + (t.boundaryWarning ? 4 : 0)
-			+ (t.targetDamageable === true ? 8 : 0) + (t.targetDamageable === undefined ? 16 : 0) + (t.aceKilled === true ? 32 : 0);
+			+ (t.targetDamageable === true ? 8 : 0) + (t.targetDamageable === undefined ? 16 : 0) + (t.aceKilled === true ? 32 : 0) + (t.paused === true ? 64 : 0);
 		return [
 			sequence, t.health, t.speed, t.altitude, t.kills, t.total, t.missiles,
 			t.missileCooldown, t.evadeCooldown, t.lockProgress, flags, t.elapsed,
 			t.timeRemaining, t.objectiveProgress, t.objectiveTotal, t.groundKills,
 			t.targetDistance, t.targetHealth ?? -1, t.protectedHealth ?? -1,
 			t.specialCharges ?? 0, t.specialCooldown ?? 0, t.specialActive ?? 0,
-			t.evadeCharges ?? 0, t.optionalKills ?? 0, t.incomingDistance ?? -1,
+			t.evadeCharges ?? 0, t.optionalKills ?? 0, t.incomingDistance ?? -1, t.pauseAck ?? 0,
 		];
 	},
 	/**
@@ -61,6 +63,7 @@ export const TelemetryCodec = {
 		into.boundaryWarning = flags % 8 >= 4;
 		into.targetDamageable = flags % 32 >= 16 ? undefined : flags % 16 >= 8;
 		into.aceKilled = flags % 64 >= 32;
+		into.paused = flags % 128 >= 64;
 		into.elapsed = n[11]; into.timeRemaining = n[12]; into.objectiveProgress = n[13]; into.objectiveTotal = n[14]; into.groundKills = n[15];
 		into.targetDistance = n[16];
 		into.targetHealth = n[17] >= 0 ? n[17] : undefined;
@@ -68,6 +71,7 @@ export const TelemetryCodec = {
 		into.specialCharges = math.max(0, n[19]); into.specialCooldown = math.max(0, n[20]); into.specialActive = math.max(0, n[21]);
 		into.evadeCharges = math.max(0, n[22]); into.optionalKills = math.max(0, n[23]);
 		into.incomingDistance = n[24] >= 0 ? n[24] : undefined;
+		into.pauseAck = math.max(0, n[25]);
 		return n[0];
 	},
 };

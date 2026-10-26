@@ -12,6 +12,9 @@ import { CameraShake } from "./CameraShake";
 import { CombatEffects } from "./CombatEffects";
 import { EnemySmoothing } from "./EnemySmoothing";
 import { MissileTrails } from "./MissileTrails";
+import { evadeGauge } from "../shared/EvadeGauge";
+import { terrainProbeLength, terrainSeconds } from "../shared/FlightWarnings";
+import type { RadarContact, RadarContactKind } from "../shared/RadarMath";
 
 let activeController: FlightController | undefined;
 let controllerSerial = 0;
@@ -39,6 +42,10 @@ const AIM_LIFT = new Vector3(0, 4, 0);
 const COLOR_LOCKED = Color3.fromRGB(255, 193, 98);
 const COLOR_REQUIRED = Color3.fromRGB(103, 235, 248);
 const COLOR_OPTIONAL = Color3.fromRGB(177, 190, 196);
+/** Seconds between client-only terrain probes and airspeed-trend samples (warnings only; no gameplay effect). */
+const PROBE_INTERVAL = 0.1;
+/** Fuselage-ish radius of the warning sweep, a little wider than the server's 4-stud crash sweep. */
+const PROBE_RADIUS = 6;
 /** Input goes out at most this often while the stick moves, and as a keepalive otherwise. */
 const INPUT_INTERVAL = 1 / 20;
 const INPUT_KEEPALIVE = 0.1;
@@ -114,9 +121,27 @@ interface PreviousCamera {
 	type: Enum.CameraType; subject?: BasePart | Humanoid; frame: CFrame; fov: number;
 }
 export type TelemetryListener = (telemetry: Telemetry) => void;
+/** Client-side flight trend for the HUD warnings: airspeed change and time to terrain along the flight path. */
+export interface FlightTrend {
+	acceleration: number;
+	terrainSeconds?: number;
+}
+/** Same include list as the server's AircraftCollision.Parameters (Terrain + FlightSolid scenery), built locally. */
+function scenerySurfaces(folder: Instance): RaycastParams {
+	const params = new RaycastParams();
+	params.FilterType = Enum.RaycastFilterType.Include;
+	const surfaces: Instance[] = [Workspace.Terrain];
+	for (const item of folder.GetDescendants()) if (item.IsA("BasePart") && item.GetAttribute("FlightSolid") === true) surfaces.push(item);
+	params.FilterDescendantsInstances = surfaces;
+	params.IgnoreWater = false;
+	params.RespectCanCollide = false;
+	return params;
+}
 // QA and phone UI use this same controller; all combat decisions stay on server.
 // The player's own jet is predicted locally (FlightPrediction) and reconciled
 // against the server's 20 Hz FlightState stream; everything else is server state.
+/** Seconds before an unacknowledged Pause/Resume is sent again (same serial, idempotent on the server). */
+const PAUSE_RESEND_SECONDS = 1;
 export class FlightController {
 	public active = false;
 	public aircraft?: Model;
@@ -175,6 +200,19 @@ export class FlightController {
 	private cueHealth = -1;
 	private arrowText = "";
 	private readonly enemies = new EnemySmoothing();
+	/** Pause overlay is up: the local jet, camera and actions hold until Resume. */
+	private paused = false;
+	/** Serial of the latest local Pause/Resume, the action it carried, and when it was last sent; the server echoes `pauseAck`. */
+	private pauseSerial = 0;
+	private pauseAction: "Pause" | "Resume" | undefined;
+	private pauseSentAt = 0;
+	private invertY = false;
+	private probeClock = 0;
+	private probeParams?: RaycastParams;
+	private probeDirty = true;
+	private probeBuiltAt = -math.huge;
+	private trendSpeed?: number;
+	private readonly trend: FlightTrend = { acceleration: 0 };
 	public static GetActive(): FlightController | undefined { return activeController; }
 	public constructor(remotes: Remotes | Instance) {
 		controllerSerial += 1;
@@ -197,6 +235,12 @@ export class FlightController {
 			const sequence = TelemetryCodec.Decode(packet, this.telemetry);
 			if (sequence === undefined) return;
 			this.telemetrySequence = sequence;
+			// The server owns the pause. Only once it has acknowledged our latest request does its state win:
+			// then a not-paused packet means it resumed on its own (budget spent) or refused, so un-freeze locally.
+			if ((this.telemetry.pauseAck ?? 0) >= this.pauseSerial) {
+				this.pauseAction = undefined;
+				if (this.paused && this.telemetry.paused === false) this.releaseLocalPause();
+			}
 			this.notify();
 		}));
 		this.streamConnections.push(this.remotes.FlightState.OnClientEvent.Connect((packet: unknown) => {
@@ -287,15 +331,111 @@ export class FlightController {
 	public SetInput(x: number, y: number): void { this.touchInput = new Vector2(FlightMath.ClampInput(x), FlightMath.ClampInput(y)); }
 	public SetTouchThrottleAxis(value: number): void { this.touchThrottleAxis = FlightMath.ClampInput(value); }
 	public SetThrottle(value: number): void { if (FlightMath.IsFinite(value)) this.throttle = math.clamp(value, 0, 1); }
-	private action(action: string): void { if (this.active) this.remotes.CombatAction.FireServer({ action }); }
+	private action(action: string): void { if (this.active && !this.paused) this.remotes.CombatAction.FireServer({ action }); }
 	public FireMissile(): void { this.action("FireMissile"); }
 	public Evade(): void {
 		if (!this.active) return;
-		// Predict the barrel roll when the HUD says evade is ready; the server confirms or ignores.
-		if (this.telemetry.evadeCooldown <= 0 && this.evadeRoll <= 0) { this.evadeRoll = FlightPrediction.EvadeRollSeconds; this.evadeStartedAt = os.clock(); }
+		if (this.paused) return;
+		// Predict the barrel roll when the HUD says a charge is ready; the server confirms or ignores.
+		if (evadeGauge(this.telemetry).ready && this.evadeRoll <= 0) { this.evadeRoll = FlightPrediction.EvadeRollSeconds; this.evadeStartedAt = os.clock(); }
 		this.action("Evade");
 	}
 	public CycleTarget(): void { this.action("CycleTarget"); }
+	/**
+	 * Pause/Resume: tells the server (which stops stepping the sortie and shifts its
+	 * clock) and freezes the local prediction so the jet does not fly on and snap back.
+	 */
+	public SetPaused(paused: boolean): void {
+		if (!this.active || paused === this.paused) return;
+		this.pauseSerial += 1;
+		this.pauseAction = paused ? "Pause" : "Resume";
+		this.sendPauseRequest();
+		this.applyLocalPause(paused);
+	}
+	private sendPauseRequest(): void {
+		if (!this.pauseAction) return;
+		this.pauseSentAt = os.clock();
+		this.remotes.CombatAction.FireServer({ action: this.pauseAction, serial: this.pauseSerial });
+	}
+	/** Resend an unacknowledged Pause/Resume (a dropped or rate-limited request must not leave client and server split). */
+	private retryPauseRequest(now: number): void {
+		if (this.pauseAction && now - this.pauseSentAt >= PAUSE_RESEND_SECONDS) this.sendPauseRequest();
+	}
+	/** Server resumed without a local Resume (pause budget spent) or refused the pause: follow it, sending nothing. */
+	private releaseLocalPause(): void { if (this.paused) this.applyLocalPause(false); }
+	private applyLocalPause(paused: boolean): void {
+		this.paused = paused;
+		this.keys.clear(); this.mouseSteer = false; this.touchInput = Vector2.zero; this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0;
+		this.sendTime = INPUT_KEEPALIVE;
+		// Free the gamepad stick and buttons for the pause card's GUI navigation.
+		if (paused) ContextActionService.UnbindAction(this.actionName);
+		else this.bindControls();
+	}
+	private bindControls(): void {
+		ContextActionService.BindActionAtPriority(this.actionName, (_, state, input) => this.handleBoundInput(state, input.KeyCode, input.Position), false, 3000, ...FLIGHT_KEYS);
+	}
+	public IsPaused(): boolean { return this.paused; }
+	/** Settings: pushing up dives instead of climbing (every input source). */
+	public SetInvertY(invert: boolean): void { this.invertY = invert; }
+	/** Predicted nose heading (FlightMath yaw), or undefined outside a mission. */
+	public GetHeading(): number | undefined {
+		return this.active ? this.predictor?.state.yaw : undefined;
+	}
+	/** Airspeed trend and time to terrain from the latest client probe (refreshed every PROBE_INTERVAL). */
+	public GetFlightTrend(): FlightTrend { return this.trend; }
+	/**
+	 * Every contact the radar can show, from what the client already has: the
+	 * replicated mission folder (enemies, protected actor, hostile missiles) and
+	 * the telemetry navigation point. Air contacts use the smoothed visuals.
+	 */
+	public GetRadarContacts(): RadarContact[] {
+		const contacts: RadarContact[] = [];
+		const folder = this.aircraft?.Parent;
+		if (!this.active || !folder) return contacts;
+		const selected = this.telemetry.target;
+		for (const child of folder.GetChildren()) {
+			if (child.IsA("Model")) {
+				if (child.GetAttribute("SkybreakEnemy") === true) {
+					const ground = child.GetAttribute("TargetKind") === "ground";
+					const required = child.GetAttribute("RequiredTarget") === true;
+					const kind: RadarContactKind = ground ? (required ? "ground" : "groundOptional") : required ? "required" : "optional";
+					const position = ground ? child.GetPivot().Position : this.enemies.GetFrame(child).Position;
+					contacts.push({ kind, x: position.X, z: position.Z, selected: child === selected });
+				} else if (child.GetAttribute("ProtectedObjective") === true) {
+					const position = child.GetPivot().Position;
+					contacts.push({ kind: "protected", x: position.X, z: position.Z });
+				}
+			} else if (child.IsA("BasePart") && child.Name === "HostileMissile") {
+				contacts.push({ kind: "missile", x: child.Position.X, z: child.Position.Z });
+			}
+		}
+		const navigation = this.telemetry.navigation;
+		if (navigation) contacts.push({ kind: "objective", x: navigation.X, z: navigation.Z });
+		return contacts;
+	}
+	/** Forward sweep along the predicted flight path against scenery; warnings only, never gameplay. */
+	private probe(state: FlightState, position: Vector3, now: number): void {
+		const speed = state.speed;
+		if (this.trendSpeed !== undefined) {
+			const sample = (speed - this.trendSpeed) / PROBE_INTERVAL;
+			this.trend.acceleration += (sample - this.trend.acceleration) * 0.5;
+		}
+		this.trendSpeed = speed;
+		const folder = this.aircraft?.Parent;
+		if (!folder) { this.trend.terrainSeconds = undefined; return; }
+		if (!this.probeParams || (this.probeDirty && now - this.probeBuiltAt >= 1)) {
+			this.probeParams = scenerySurfaces(folder);
+			this.probeDirty = false;
+			this.probeBuiltAt = now;
+		}
+		const [fx, fy, fz] = FlightMath.Forward(state.yaw, state.pitch);
+		// Same sink the server integrates while stalled.
+		const velocity = new Vector3(fx * speed, fy * speed - FlightMath.StallSeverity(speed) * 65, fz * speed);
+		const pathSpeed = velocity.Magnitude;
+		if (pathSpeed < 1) { this.trend.terrainSeconds = undefined; return; }
+		const hit = Workspace.Spherecast(position, PROBE_RADIUS, velocity.Unit.mul(terrainProbeLength(pathSpeed)), this.probeParams);
+		this.trend.terrainSeconds = terrainSeconds(hit?.Distance, pathSpeed);
+	}
 	/** Second weapon slot; the server validates charges, cooldown and targets. */
 	public Special(): void { this.action("Special"); }
 	/** Predicted (rendered) position of the player's jet, or undefined outside a mission. */
@@ -344,7 +484,7 @@ export class FlightController {
 			}
 		}
 		this.frameInput.x = math.clamp(x, -1, 1);
-		this.frameInput.y = math.clamp(y, -1, 1);
+		this.frameInput.y = math.clamp(this.invertY ? -y : y, -1, 1);
 		this.frameInput.throttle = this.keys.has(Enum.KeyCode.LeftShift) ? 1 : this.throttle;
 	}
 	private updateTargetCue(camera: Camera): void {
@@ -483,6 +623,13 @@ export class FlightController {
 			this.enemies.Step(dt);
 			return;
 		}
+		this.retryPauseRequest(os.clock());
+		if (this.paused) {
+			// Hold the last frame: no prediction, no input, no camera follow.
+			camera.CameraType = Enum.CameraType.Scriptable;
+			camera.CFrame = this.cameraFrame;
+			return;
+		}
 		const now = os.clock();
 		this.input(dt);
 		const input = this.frameInput;
@@ -500,6 +647,8 @@ export class FlightController {
 		if (root && root.Parent) root.CFrame = frame; // welded clone: one CFrame write moves the whole jet
 		this.updateEffects(dt, state.speed);
 		const position = frame.Position;
+		this.probeClock += dt;
+		if (this.probeClock >= PROBE_INTERVAL) { this.probeClock = 0; this.probe(state, position, now); }
 		// The chase camera ignores the evade roll so the horizon does not spin with it.
 		const [fx, fy, fz] = FlightMath.Forward(state.yaw, state.pitch);
 		const forward = new Vector3(fx, fy, fz);
@@ -554,6 +703,11 @@ export class FlightController {
 		this.mouseSteer = false;
 		this.evadeRoll = 0;
 		this.evadeStartedAt = -math.huge;
+		this.paused = false;
+		// Each sortie's server session counts pause serials from 0.
+		this.pauseSerial = 0; this.pauseAction = undefined;
+		this.probeClock = 0; this.probeParams = undefined; this.probeDirty = true; this.probeBuiltAt = -math.huge;
+		this.trendSpeed = undefined; this.trend.acceleration = 0; this.trend.terrainSeconds = undefined;
 		this.cueColor = undefined; this.cueRange = -1; this.cueLock = -1; this.cueMarker = ""; this.cueHealth = -1; this.arrowText = "";
 		this.visualFrame = this.aircraft.GetPivot();
 		// The server holds the jet still until "Started", so its pivot is the exact initial state;
@@ -578,12 +732,16 @@ export class FlightController {
 		};
 		for (const descendant of this.aircraft.GetDescendants()) hidePart(descendant);
 		this.connections.push(this.aircraft.DescendantAdded.Connect(hidePart));
-		if (this.aircraft.Parent) { this.enemies.Start(this.aircraft.Parent); this.missiles.Start(this.aircraft.Parent); }
+		if (this.aircraft.Parent) {
+			this.enemies.Start(this.aircraft.Parent); this.missiles.Start(this.aircraft.Parent);
+			// Phase changes add ground targets and protected actors; rebuild the probe's include list (throttled).
+			this.connections.push(this.aircraft.Parent.DescendantAdded.Connect((item) => { if (item.IsA("BasePart") && item.GetAttribute("FlightSolid") === true) this.probeDirty = true; }));
+		}
 		[this.targetGui, this.bracket, this.bracketStroke, this.caption, this.arrow] = createTargetCue(Players.LocalPlayer.WaitForChild("PlayerGui"));
-		ContextActionService.BindActionAtPriority(this.actionName, (_, state, input) => this.handleBoundInput(state, input.KeyCode, input.Position), false, 3000, ...FLIGHT_KEYS);
+		this.bindControls();
 		this.connections.push(UserInputService.InputBegan.Connect((input, processed) => {
 			if (processed || UserInputService.GetFocusedTextBox()) return;
-			if (input.UserInputType === Enum.UserInputType.MouseButton1) this.FireMissile();
+			if (input.UserInputType === Enum.UserInputType.MouseButton1 && !this.paused) this.FireMissile();
 			if (input.UserInputType === Enum.UserInputType.MouseButton2) this.mouseSteer = true;
 		}));
 		this.connections.push(UserInputService.InputEnded.Connect((input) => { if (input.UserInputType === Enum.UserInputType.MouseButton2) this.mouseSteer = false; }));
@@ -607,6 +765,11 @@ export class FlightController {
 	}
 	public Stop(): void {
 		this.active = false;
+		this.paused = false;
+		// Each sortie's server session counts pause serials from 0.
+		this.pauseSerial = 0; this.pauseAction = undefined;
+		this.probeParams = undefined;
+		this.trend.terrainSeconds = undefined;
 		this.downAt = undefined;
 		this.stopExplosions?.(); this.stopExplosions = undefined;
 		RunService.UnbindFromRenderStep(this.renderName);

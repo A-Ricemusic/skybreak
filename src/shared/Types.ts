@@ -165,7 +165,7 @@ export interface Telemetry {
 	missileCooldown: number;
 	/** Seconds until EVADE can be pressed again (0 with a charge in hand and no roll running). */
 	evadeCooldown: number;
-	/** Evade charges in hand (0-3); each recharges in 12 s. */
+	/** Evade charges in hand (0-3); each recharges in 10 s. Absent from older servers (the HUD then treats evade as one charge). */
 	evadeCharges?: number;
 	/** Studs to the nearest hostile missile, when one is in the air. */
 	incomingDistance?: number;
@@ -198,6 +198,10 @@ export interface Telemetry {
 	fireDeniedSerial?: number;
 	/** The sortie's ace has been destroyed (telemetry flag); drives the ACE DOWN callout. */
 	aceKilled?: boolean;
+	/** The server is holding the sortie paused (telemetry flag); the client follows it, e.g. when the pause budget runs out. */
+	paused?: boolean;
+	/** Highest Pause/Resume serial the server has handled; the client follows `paused` only once its own request is acknowledged. */
+	pauseAck?: number;
 }
 export interface MissionFinished extends MissionStats {
 	kind: "Completed" | "Failed";

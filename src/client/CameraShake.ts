@@ -49,9 +49,9 @@ function pulseFlash(reduced: boolean): void {
 }
 
 export const CameraShake = {
-	/** Adds trauma (0-1). ~0.2 is a tap, ~0.6 a heavy hit. Ignored with reduced camera motion. */
+	/** Adds trauma (0-1). ~0.2 is a tap, ~0.6 a heavy hit. Ignored with reduced camera motion or shake set to 0. */
 	Add(amount: number): void {
-		if (MotionPreference.reduced) return;
+		if (MotionPreference.reduced || MotionPreference.shake <= 0) return;
 		trauma = ImpactFeedback.AddTrauma(trauma, amount);
 	},
 
@@ -89,8 +89,10 @@ export const CameraShake = {
 		if (trauma <= 0 && !stopping) return IDLE;
 		const o = ImpactFeedback.Offset(trauma, clock);
 		const beat = stopping ? ImpactFeedback.HitStop(since) : IDLE;
+		// The settings sheet's shake strength scales the visible offset, not the trauma curve.
+		const k = math.clamp(MotionPreference.shake, 0, 1);
 		return {
-			offset: new CFrame(o.x, o.y, 0).mul(CFrame.Angles(o.pitch, o.yaw, o.roll)),
+			offset: new CFrame(o.x * k, o.y * k, 0).mul(CFrame.Angles(o.pitch * k, o.yaw * k, o.roll * k)),
 			follow: beat.follow,
 			fov: beat.fov,
 		};
