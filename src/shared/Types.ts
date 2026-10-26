@@ -36,6 +36,8 @@ export interface SaveSlot {
 	generation?: number;
 	/** Last special weapon chosen on the briefing screen for this slot (SpecialWeapons kind). */
 	special?: string;
+	/** Last difficulty chosen on the briefing screen for this slot (Difficulty kind). */
+	difficulty?: string;
 }
 export interface CampaignResponse {
 	ok: boolean;
@@ -115,12 +117,16 @@ export interface MissionStats {
 	damageTaken?: number;
 	lowestHealth?: number;
 	evades?: number;
+	/** Level the sortie was flown on (Difficulty kind). */
+	difficulty?: string;
 }
 export interface MissionStarted {
 	missionId?: number;
 	kind: "Started";
 	slot: number;
 	aircraft: Model;
+	/** Level the sortie is flown on (Difficulty kind). */
+	difficulty?: string;
 }
 /** World and aircraft exist on the server; play begins on "Started" once the client is ready or the server times out. */
 export interface MissionLoading {

@@ -385,4 +385,31 @@ describe("CampaignCoordinator datastore integration", () => {
 		blank.set("1", { occupied: true, updatedAt: 300 });
 		expect(mergeProfiles({ version: 3, slots: older }, { version: 3, slots: blank }).slots[0].special).toBe("uav");
 	});
+
+	it("remembers the slot's last difficulty, drops unknown ones, and keeps the newer choice on merge", () => {
+		const store = new FakeStore();
+		const { coordinator, deferred } = harness(store);
+		coordinator.load();
+		coordinator.recordMissionStarted(2, 1, "uav", "ace");
+		coordinator.recordMissionStarted(3, 1, "uav", "brutal");
+		coordinator.recordMissionStarted(4, 1);
+		deferred.shift()!();
+		const profile = normalizeProfile(store.data);
+		expect(profile.slots[1].difficulty).toBe("ace");
+		expect(profile.slots[2].difficulty).toBeUndefined();
+		expect(profile.slots[3].difficulty).toBeUndefined();
+		expect(coordinator.getSlots()[1].difficulty).toBe("ace");
+		const serialized = serializeProfile(profile);
+		expect(normalizeProfile(serialized).slots[1].difficulty).toBe("ace");
+
+		const older = new Map<string, object>();
+		older.set("1", { occupied: true, difficulty: "easy", updatedAt: 100 });
+		const newer = new Map<string, object>();
+		newer.set("1", { occupied: true, difficulty: "ace", updatedAt: 200 });
+		expect(mergeProfiles({ version: 3, slots: older }, { version: 3, slots: newer }).slots[0].difficulty).toBe("ace");
+		expect(mergeProfiles({ version: 3, slots: newer }, { version: 3, slots: older }).slots[0].difficulty).toBe("ace");
+		const blank = new Map<string, object>();
+		blank.set("1", { occupied: true, updatedAt: 300 });
+		expect(mergeProfiles({ version: 3, slots: older }, { version: 3, slots: blank }).slots[0].difficulty).toBe("easy");
+	});
 });

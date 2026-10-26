@@ -45,6 +45,8 @@ import {
 } from "../shared/BriefingLayout";
 import { C, HEX } from "./Theme";
 import { LoadoutPicker } from "./LoadoutPicker";
+import { DifficultyPicker } from "./DifficultyPicker";
+import { Difficulty, DifficultyKind } from "../shared/Difficulty";
 import { NavigationCue } from "./NavigationCue";
 import { RelayCinematic } from "./RelayCinematic";
 import { FlightController } from "./FlightController";
@@ -115,6 +117,8 @@ interface OutcomeState {
 	bestScore?: number;
 	bestRank?: MissionRank;
 	reason?: string;
+	/** Level the sortie was flown on, when the server said. */
+	difficulty?: DifficultyKind;
 	saveText: string;
 	saveColor: Color3;
 }
@@ -482,6 +486,7 @@ function normalizeSlots(response: CampaignResponse): SaveSlot[] | undefined {
 			missions: source.missions,
 			introSeen: source.introSeen, cutscenesSeen: source.cutscenesSeen,
 			special: SpecialWeapons.IsKind(source.special) ? source.special : undefined,
+			difficulty: Difficulty.IsKind(source.difficulty) ? source.difficulty : undefined,
 			mission1Completed: source.mission1Completed === true,
 			mission2Completed: source.mission2Completed === true,
 			mission1BestTime: typeIs(source.mission1BestTime, "number") ? math.max(0, finite(source.mission1BestTime, 0)) : undefined,
@@ -1041,9 +1046,9 @@ function ActTab({ act, active, done, total, showName, onSelect }: { act: number;
 	);
 }
 
-function BriefingScreenImpl({visible,menu,selectedSlot,selectedMission,slot,busy,special,onBack,onLaunch,onMission,onSpecial}: {
-	visible:boolean;menu:MenuLayout;selectedSlot:number;selectedMission:number;slot?:SaveSlot;busy:boolean;special:SpecialKind;
-	onBack:()=>void;onLaunch:()=>void;onMission:(id:number)=>void;onSpecial:(kind:SpecialKind)=>void;
+function BriefingScreenImpl({visible,menu,selectedSlot,selectedMission,slot,busy,special,difficulty,onBack,onLaunch,onMission,onSpecial,onDifficulty}: {
+	visible:boolean;menu:MenuLayout;selectedSlot:number;selectedMission:number;slot?:SaveSlot;busy:boolean;special:SpecialKind;difficulty:DifficultyKind;
+	onBack:()=>void;onLaunch:()=>void;onMission:(id:number)=>void;onSpecial:(kind:SpecialKind)=>void;onDifficulty:(kind:DifficultyKind)=>void;
 }) {
 	const [browse,setBrowse]=useState(false),[act,setAct]=useState(1);
 	const [detailsCanvasHeight,setDetailsCanvasHeight]=useState(0);
@@ -1128,6 +1133,7 @@ function BriefingScreenImpl({visible,menu,selectedSlot,selectedMission,slot,busy
 						<Label name="MissionRules" text={missionRules(mission.phases)} color={C.Faint} textSize={11} size={new UDim2(1,0,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={4}/>
 					</frame>
 					<LoadoutPicker kind={special} enabled={!busy} layoutOrder={4} onChange={onSpecial}/>
+					<DifficultyPicker kind={difficulty} enabled={!busy} layoutOrder={5} onChange={onDifficulty}/>
 				</scrollingframe>
 				{/* Fades the last visible line while more copy waits below. */}
 				<frame key="MoreFade" Active={false} BackgroundColor3={C.Ink} BorderSizePixel={0} Position={UDim2.fromOffset(0,layout.detailsHeight-22)} Size={new UDim2(1,-6,0,22)} Visible={overflow>2 && !scrolledToEnd} ZIndex={2}>
@@ -1245,6 +1251,7 @@ function OutcomeScreenImpl({
 		{ key: "StatAccuracy", label: "HIT ACCURACY", value: accuracy !== undefined ? `${accuracy}%` : "--" },
 		{ key: "StatHull", label: `LOWEST HULL  ·  DAMAGE ${math.floor(outcome.damageTaken)}`, value: `${math.floor(outcome.lowestHealth)}%`, valueColor: outcome.lowestHealth < 35 ? C.Orange : C.Ivory },
 		{ key: "StatEvades", label: "EVADES USED", value: `${outcome.evades}` },
+		...(outcome.difficulty !== undefined ? [{ key: "StatDifficulty", label: "DIFFICULTY", value: Difficulty.Get(outcome.difficulty).name, valueColor: outcome.difficulty === "ace" ? C.Orange : C.Ivory }] : []),
 	];
 	const rows = [...objectives, ...stats];
 
@@ -1666,6 +1673,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const [selectedSlot, setSelectedSlot] = useState(1);
 	const [selectedMission, setSelectedMission] = useState(1);
 	const [selectedSpecial, setSelectedSpecial] = useState<SpecialKind>(SpecialWeapons.Default);
+	const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyKind>(Difficulty.Default);
 	const [busy, setBusy] = useState(false);
 	const [toast, setToast] = useState<ToastState | undefined>();
 	const [telemetry, setTelemetry] = useState(defaultTelemetry);
@@ -1701,6 +1709,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const selectDefaultRef = useRef<() => void>(() => undefined);
 	const selectedMissionRef = useRef(1);
 	const selectedSpecialRef = useRef<SpecialKind>(SpecialWeapons.Default);
+	const selectedDifficultyRef = useRef<DifficultyKind>(Difficulty.Default);
 	const persistenceRef = useRef<Persistence>("unavailable");
 	const telemetryRef = useRef(defaultTelemetry());
 	const inputModeRef = useRef<InputMode>(inputMode);
@@ -1860,7 +1869,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 
 	const launchMission = useCallback(() => {
 		beginRequest((requestId) => {
-			const [response, problem] = invoke("StartMission", { slot: selectedSlot, missionId: selectedMission, special: selectedSpecialRef.current });
+			const [response, problem] = invoke("StartMission", { slot: selectedSlot, missionId: selectedMission, special: selectedSpecialRef.current, difficulty: selectedDifficultyRef.current });
 			if (!mountedRef.current || requestRef.current !== requestId) return;
 			if (!response) showToast(problem ?? "Command rejected the request.", true);
 			else {
@@ -1926,6 +1935,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		const remembered = current[slot - 1].special;
 		const special: SpecialKind = SpecialWeapons.IsKind(remembered) ? remembered : SpecialWeapons.Default;
 		selectedSpecialRef.current = special; setSelectedSpecial(special);
+		const rememberedDifficulty = current[slot - 1].difficulty;
+		const difficulty: DifficultyKind = Difficulty.IsKind(rememberedDifficulty) ? rememberedDifficulty : Difficulty.Default;
+		selectedDifficultyRef.current = difficulty; setSelectedDifficulty(difficulty);
 		changeScreen("briefing");
 	}, [changeScreen]);
 	const deleteSlot = useCallback((slot: number) => {
@@ -1941,6 +1953,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	}, [applyResponseSlots, beginRequest, invoke, setDeleteConfirm, showToast]);
 	const chooseMission = useCallback((missionId: number) => { selectedMissionRef.current = missionId; setSelectedMission(missionId); }, []);
 	const chooseSpecial = useCallback((kind: SpecialKind) => { selectedSpecialRef.current = kind; setSelectedSpecial(kind); }, []);
+	const chooseDifficulty = useCallback((kind: DifficultyKind) => { selectedDifficultyRef.current = kind; setSelectedDifficulty(kind); }, []);
 	// Always send: the server either launches (guided or blind) or answers with `fireDenied`, so a press is never silent.
 	const fireMissile = useCallback(() => controller.FireMissile(), [controller]);
 	const cycleTarget = useCallback(() => controller.CycleTarget(), [controller]);
@@ -2195,7 +2208,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				const missileHits = math.min(missilesFired, count(finished.missileHits));
 				const damageTaken = math.clamp(finite(finished.damageTaken, 100 - current.health), 0, 100);
 				// The server scores the run; an older or fallback message is scored here for display only.
-				const fallback = MissionScore.Compute({ won, airKills: kills - groundKills, groundKills, elapsed, par, missilesFired, missileHits, damageTaken });
+				const fallback = MissionScore.Compute({ won, airKills: kills - groundKills, groundKills, elapsed, par, missilesFired, missileHits, damageTaken, difficulty: finished.difficulty });
 				setOutcome({
 					won,
 					missionId,
@@ -2217,6 +2230,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					bestScore: finite(finished.bestScore, -1) >= 0 ? math.floor(finished.bestScore!) : undefined,
 					bestRank: MissionScore.IsRank(finished.bestRank) ? finished.bestRank : undefined,
 					reason: safeString(finished.reason, ""),
+					difficulty: Difficulty.IsKind(finished.difficulty) ? finished.difficulty : undefined,
 					saveText,
 					saveColor: won && finished.saved === true && resultPersistence === "cloud" ? C.Accent : resultPersistence === "cloud" ? C.Muted : C.Orange,
 				});
@@ -2316,7 +2330,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					{screen === "cinematic" && <RelayCinematic id={cinematicId} viewport={viewport} onFinish={()=>{const continueStory=cinematicNext.current;changeScreen(cinematicId===MISSION_COUNT ? "outcome" : "briefing");continueStory();}} onCancel={()=>changeScreen(cinematicId===MISSION_COUNT ? "outcome" : "briefing")}/>}
 					<TitleScreen visible={screen === "title"} menu={menu} onCampaign={openCampaign} />
 					<CampaignScreen visible={screen === "slots"} menu={menu} slots={slots} busy={busy} persistence={persistence} onBack={goBack} onSlot={chooseSlot} confirmSlot={confirmSlot} onAskDelete={askDelete} onCancelDelete={cancelDelete} onDeleteSlot={deleteSlot} />
-					<BriefingScreen visible={screen === "briefing"} menu={menu} selectedSlot={selectedSlot} selectedMission={selectedMission} slot={selectedSave} busy={busy} special={selectedSpecial} onBack={goBack} onLaunch={startMission} onMission={chooseMission} onSpecial={chooseSpecial} />
+					<BriefingScreen visible={screen === "briefing"} menu={menu} selectedSlot={selectedSlot} selectedMission={selectedMission} slot={selectedSave} busy={busy} special={selectedSpecial} difficulty={selectedDifficulty} onBack={goBack} onLaunch={startMission} onMission={chooseMission} onSpecial={chooseSpecial} onDifficulty={chooseDifficulty} />
 					<LoadingScreen visible={screen === "loading"} missionId={selectedMission} progress={loadingProgress} viewport={viewport} />
 					<MissionHud
 						visible={screen === "mission"}
