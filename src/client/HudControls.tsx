@@ -10,11 +10,11 @@ import {
 	SettingKey,
 	stepSetting,
 } from "../shared/PlayerSettings";
-import { RADAR_GLYPHS, RADAR_LAYER, RADAR_NEAR_RANGE, radarProject, radarRange, type RadarContactKind } from "../shared/RadarMath";
+import { RADAR_GLYPHS, RADAR_LAYER, RADAR_NEAR_RANGE, RADAR_RIM_INSET, radarProject, radarRange, type RadarContactKind } from "../shared/RadarMath";
 import type { Telemetry } from "../shared/Types";
 import { getPauseLayout, getSettingsLayout, type Rectangle } from "../shared/UILayout";
 import type { FlightController } from "./FlightController";
-import { C } from "./Theme";
+import { C, HUD, HUD_FONT, HUD_FONT_BOLD } from "./Theme";
 
 const at = (rectangle: Rectangle) => ({ Position: UDim2.fromOffset(rectangle.x, rectangle.y), Size: UDim2.fromOffset(rectangle.width, rectangle.height) });
 
@@ -54,9 +54,9 @@ export function EvadeButton({ rectangle, telemetry, onEvade }: { rectangle: Rect
 		for (let index = 0; index < gauge.maxCharges; index++) {
 			const lit = index < gauge.charges;
 			pips.push(
-				<frame key={`Pip${index + 1}`} LayoutOrder={index} BackgroundColor3={lit ? C.AccentHot : C.Ink} BackgroundTransparency={lit ? 0.05 : 0.4} BorderSizePixel={0} Size={UDim2.fromOffset(pip, pip)}>
+				<frame key={`Pip${index + 1}`} LayoutOrder={index} BackgroundColor3={lit ? HUD.Green : HUD.Shadow} BackgroundTransparency={lit ? 0.05 : 0.4} BorderSizePixel={0} Size={UDim2.fromOffset(pip, pip)}>
 					<uicorner CornerRadius={new UDim(0.5, 0)} />
-					<uistroke Color={C.Accent} Transparency={lit ? 0.4 : 0.2} Thickness={1} />
+					<uistroke Color={HUD.Green} Transparency={lit ? 0.4 : 0.2} Thickness={1} />
 				</frame>,
 			);
 		}
@@ -67,7 +67,7 @@ export function EvadeButton({ rectangle, telemetry, onEvade }: { rectangle: Rect
 			Active={true}
 			AutoButtonColor={false}
 			Selectable={false}
-			BackgroundColor3={C.Ink}
+			BackgroundColor3={HUD.Shadow}
 			BackgroundTransparency={gauge.ready ? 0.62 : 0.78}
 			BorderSizePixel={0}
 			Text=""
@@ -80,10 +80,10 @@ export function EvadeButton({ rectangle, telemetry, onEvade }: { rectangle: Rect
 			}}
 		>
 			<uicorner CornerRadius={new UDim(0.5, 0)} />
-			<uistroke ApplyStrokeMode={Enum.ApplyStrokeMode.Border} Color={gauge.ready ? C.AccentHot : C.Accent} Thickness={2.5} Transparency={0.05}>
+			<uistroke ApplyStrokeMode={Enum.ApplyStrokeMode.Border} Color={HUD.Green} Thickness={2.5} Transparency={0.05}>
 				<uigradient Rotation={-90} Transparency={ringSequence(gauge.recharge)} />
 			</uistroke>
-			<frame ref={flashRef} key="IncomingFlash" BackgroundColor3={C.Danger} BackgroundTransparency={1} BorderSizePixel={0} Size={UDim2.fromScale(1, 1)} Visible={gauge.flash} ZIndex={0}>
+			<frame ref={flashRef} key="IncomingFlash" BackgroundColor3={HUD.Red} BackgroundTransparency={1} BorderSizePixel={0} Size={UDim2.fromScale(1, 1)} Visible={gauge.flash} ZIndex={0}>
 				<uicorner CornerRadius={new UDim(0.5, 0)} />
 			</frame>
 			<textlabel
@@ -91,11 +91,11 @@ export function EvadeButton({ rectangle, telemetry, onEvade }: { rectangle: Rect
 				BackgroundTransparency={1}
 				Position={UDim2.fromScale(0, gauge.maxCharges > 1 ? 0.2 : 0.3)}
 				Size={UDim2.fromScale(1, 0.4)}
-				Font={Enum.Font.GothamBlack}
+				FontFace={HUD_FONT_BOLD}
 				Text={gauge.label}
-				TextColor3={C.Ivory}
+				TextColor3={HUD.Green}
 				TextSize={size >= 56 ? 11 : 10}
-				TextStrokeColor3={C.Ink}
+				TextStrokeColor3={HUD.Shadow}
 				TextStrokeTransparency={0.4}
 				TextTransparency={gauge.ready ? 0 : 0.35}
 				ZIndex={2}
@@ -110,38 +110,45 @@ export function EvadeButton({ rectangle, telemetry, onEvade }: { rectangle: Rect
 	);
 }
 
+// HUD green for the frame; contacts differ by glyph fill and brightness, threats in red.
 const RADAR_COLORS: { [kind in RadarContactKind]: Color3 } = {
-	required: Color3.fromRGB(103, 235, 248),
-	optional: C.Orange,
-	ground: C.Accent,
-	groundOptional: C.Muted,
-	objective: Color3.fromRGB(75, 238, 212),
-	protected: C.Ivory,
-	missile: C.Danger,
+	required: HUD.Green,
+	optional: HUD.Dim,
+	ground: HUD.Green,
+	groundOptional: HUD.Dim,
+	objective: HUD.White,
+	protected: HUD.White,
+	missile: HUD.Red,
 };
 const RADAR_TEXT: { [kind in RadarContactKind]: number } = {
-	required: 11, optional: 11, ground: 10, groundOptional: 9, objective: 13, protected: 10, missile: 12,
+	required: 11, optional: 11, ground: 10, groundOptional: 9, objective: 13, protected: 10, missile: 14,
 };
-/** Seconds between radar refreshes: smooth enough for a heading-up disc, cheap on phones. */
+/** Seconds between radar refreshes: smooth enough for a heading-up scope, cheap on phones. */
 const RADAR_INTERVAL = 1 / 20;
+/** Heading letters on the rim, from world -Z (north) clockwise. */
+const RADAR_CARDINALS: [string, number, number][] = [["N", 0, -1], ["E", 1, 0], ["S", 0, 1], ["W", -1, 0]];
 
 /**
- * Heading-up radar disc. Blips are pooled TextLabels moved from RenderStepped
- * (no React re-render per frame); every position comes from the client's own
- * replicated mission folder and telemetry via FlightController.GetRadarContacts.
+ * Heading-up square radar scope: range rings, heading letters on the rim and
+ * the player's arrow at the centre. Blips are pooled TextLabels moved from
+ * RenderStepped (no React re-render per frame); every position comes from the
+ * client's own replicated mission folder and telemetry via
+ * FlightController.GetRadarContacts. Missiles in flight blink red.
  */
-export function Radar({ rectangle, controller, visible }: { rectangle: Rectangle; controller: FlightController; visible: boolean }) {
-	const discRef = useRef<Frame>();
-	const northRef = useRef<TextLabel>();
+export function Radar({ rectangle, controller, visible, textSize = 10 }: { rectangle: Rectangle; controller: FlightController; visible: boolean; textSize?: number }) {
+	const scopeRef = useRef<Frame>();
+	const cardinalRefs = [useRef<TextLabel>(), useRef<TextLabel>(), useRef<TextLabel>(), useRef<TextLabel>()];
 	const rangeRef = useRef<TextLabel>();
 	const size = rectangle.width;
 	useEffect(() => {
-		const disc = discRef.current;
-		if (!visible || !disc) return;
+		const scope = scopeRef.current;
+		if (!visible || !scope) return;
 		const pool: TextLabel[] = [];
 		let clock = RADAR_INTERVAL;
 		let lastRange = -1;
 		const radius = size / 2;
+		// Glyphs grow with the scope (phones 72-110 px, desktop up to 170 px).
+		const glyphScale = math.max(1, size / 110);
 		const connection = RunService.RenderStepped.Connect((dt) => {
 			clock += dt;
 			if (clock < RADAR_INTERVAL) return;
@@ -156,9 +163,13 @@ export function Radar({ rectangle, controller, visible }: { rectangle: Rectangle
 					lastRange = range;
 					rangeRef.current.Text = range === RADAR_NEAR_RANGE ? "1.6k" : string.format("%.1fk", range / 1000);
 				}
-				// North marker on the rim: world -Z.
-				const north = radarProject(0, -range * 2, yaw, range, radius);
-				if (northRef.current) northRef.current.Position = UDim2.fromOffset(radius + north.x, radius + north.y);
+				// Heading letters ride the outer ring (pinned to the rim like out-of-range blips).
+				for (let index = 0; index < RADAR_CARDINALS.size(); index++) {
+					const [, east, south] = RADAR_CARDINALS[index];
+					const rim = radarProject(east * range * 2, south * range * 2, yaw, range, radius);
+					const label = cardinalRefs[index].current;
+					if (label) label.Position = UDim2.fromOffset(radius + rim.x, radius + rim.y);
+				}
 				const blink = os.clock() % 0.5 < 0.25;
 				for (const contact of contacts) {
 					const blip = radarProject(contact.x - position.X, contact.z - position.Z, yaw, range, radius);
@@ -167,21 +178,22 @@ export function Radar({ rectangle, controller, visible }: { rectangle: Rectangle
 						label = new Instance("TextLabel");
 						label.Name = "RadarBlip";
 						label.AnchorPoint = new Vector2(0.5, 0.5);
-						label.Size = UDim2.fromOffset(16, 16);
+						label.Size = UDim2.fromOffset(24, 24);
 						label.BackgroundTransparency = 1;
 						label.Font = Enum.Font.GothamBold;
-						label.TextStrokeColor3 = C.Ink;
+						label.TextStrokeColor3 = HUD.Shadow;
 						label.TextStrokeTransparency = 0.3;
-						label.Parent = disc;
+						label.Parent = scope;
 						pool[used] = label;
 					}
 					used += 1;
 					const glyph = RADAR_GLYPHS[contact.kind];
 					if (label.Text !== glyph) label.Text = glyph;
-					label.TextColor3 = contact.selected ? Color3.fromRGB(255, 193, 98) : RADAR_COLORS[contact.kind];
-					label.TextSize = RADAR_TEXT[contact.kind] + (contact.selected ? 3 : 0);
+					const missile = contact.kind === "missile";
+					label.TextColor3 = contact.selected ? HUD.Amber : missile && blink ? HUD.White : RADAR_COLORS[contact.kind];
+					label.TextSize = math.floor((RADAR_TEXT[contact.kind] + (contact.selected ? 3 : 0)) * glyphScale);
 					label.ZIndex = 3 + RADAR_LAYER[contact.kind];
-					label.TextTransparency = blip.edge ? 0.45 : contact.kind === "missile" && blink ? 0.5 : 0;
+					label.TextTransparency = blip.edge ? 0.45 : missile && blink ? 0.15 : 0;
 					label.Position = UDim2.fromOffset(radius + blip.x, radius + blip.y);
 					label.Visible = true;
 				}
@@ -194,21 +206,27 @@ export function Radar({ rectangle, controller, visible }: { rectangle: Rectangle
 		};
 	}, [visible, size, controller]);
 	const line = (name: string, horizontal: boolean) => (
-		<frame key={name} AnchorPoint={new Vector2(0.5, 0.5)} BackgroundColor3={C.Accent} BackgroundTransparency={0.8} BorderSizePixel={0} Position={UDim2.fromScale(0.5, 0.5)} Size={horizontal ? new UDim2(1, -8, 0, 1) : new UDim2(0, 1, 1, -8)} ZIndex={2} />
+		<frame key={name} AnchorPoint={new Vector2(0.5, 0.5)} BackgroundColor3={HUD.Green} BackgroundTransparency={0.7} BorderSizePixel={0} Position={UDim2.fromScale(0.5, 0.5)} Size={horizontal ? new UDim2(1, -4, 0, 1) : new UDim2(0, 1, 1, -4)} ZIndex={2} />
+	);
+	const ring = (name: string, scale: number, transparency: number) => (
+		<frame key={name} AnchorPoint={new Vector2(0.5, 0.5)} BackgroundTransparency={1} Position={UDim2.fromScale(0.5, 0.5)} Size={UDim2.fromScale(scale, scale)} ZIndex={2}>
+			<uicorner CornerRadius={new UDim(0.5, 0)} />
+			<uistroke Color={HUD.Green} Transparency={transparency} Thickness={1} />
+		</frame>
 	);
 	return (
-		<frame ref={discRef} key="Radar" BackgroundColor3={C.Ink} BackgroundTransparency={0.45} BorderSizePixel={0} Visible={visible} {...at(rectangle)}>
-			<uicorner CornerRadius={new UDim(0.5, 0)} />
-			<uistroke Color={C.Accent} Transparency={0.45} Thickness={1.5} />
+		<frame ref={scopeRef} key="Radar" BackgroundColor3={HUD.Shadow} BackgroundTransparency={0.5} BorderSizePixel={0} Visible={visible} {...at(rectangle)}>
+			<uistroke Color={HUD.Green} Transparency={0.15} Thickness={1.5} />
 			{line("Across", true)}
 			{line("Along", false)}
-			<frame key="HalfRing" AnchorPoint={new Vector2(0.5, 0.5)} BackgroundTransparency={1} Position={UDim2.fromScale(0.5, 0.5)} Size={UDim2.fromScale(0.5, 0.5)} ZIndex={2}>
-				<uicorner CornerRadius={new UDim(0.5, 0)} />
-				<uistroke Color={C.Accent} Transparency={0.75} Thickness={1} />
-			</frame>
-			<textlabel key="Player" AnchorPoint={new Vector2(0.5, 0.5)} BackgroundTransparency={1} Position={UDim2.fromScale(0.5, 0.5)} Size={UDim2.fromOffset(14, 14)} Font={Enum.Font.GothamBlack} Text="▲" TextColor3={C.Ivory} TextSize={11} ZIndex={11} />
-			<textlabel ref={northRef} key="North" AnchorPoint={new Vector2(0.5, 0.5)} BackgroundTransparency={1} Size={UDim2.fromOffset(12, 12)} Font={Enum.Font.GothamBold} Text="N" TextColor3={C.Muted} TextSize={9} TextStrokeColor3={C.Ink} TextStrokeTransparency={0.3} ZIndex={3} />
-			<textlabel ref={rangeRef} key="Range" AnchorPoint={new Vector2(0.5, 1)} BackgroundTransparency={1} Position={new UDim2(0.5, 0, 1, -2)} Size={UDim2.fromOffset(40, 10)} Font={Enum.Font.GothamBold} Text="" TextColor3={C.Faint} TextSize={8} ZIndex={3} />
+			{ring("OuterRing", (size - 2 * RADAR_RIM_INSET) / size, 0.35)}
+			{ring("MiddleRing", 0.5, 0.55)}
+			{ring("InnerRing", 0.22, 0.7)}
+			<textlabel key="Player" AnchorPoint={new Vector2(0.5, 0.5)} BackgroundTransparency={1} Position={UDim2.fromScale(0.5, 0.5)} Size={UDim2.fromOffset(14, 14)} Font={Enum.Font.GothamBlack} Text="▲" TextColor3={HUD.Green} TextSize={12} TextStrokeColor3={HUD.Shadow} TextStrokeTransparency={0.3} ZIndex={11} />
+			{RADAR_CARDINALS.map(([letter], index) => (
+				<textlabel ref={cardinalRefs[index]} key={`Heading${letter}`} AnchorPoint={new Vector2(0.5, 0.5)} BackgroundTransparency={1} Size={UDim2.fromOffset(12, 12)} FontFace={HUD_FONT_BOLD} Text={letter} TextColor3={HUD.Green} TextSize={textSize} TextStrokeColor3={HUD.Shadow} TextStrokeTransparency={0.3} ZIndex={3} />
+			))}
+			<textlabel ref={rangeRef} key="Range" AnchorPoint={new Vector2(1, 1)} BackgroundTransparency={1} Position={new UDim2(1, -3, 1, -1)} Size={UDim2.fromOffset(40, 10)} FontFace={HUD_FONT} Text="" TextColor3={HUD.Dim} TextSize={math.max(8, textSize - 2)} TextXAlignment={Enum.TextXAlignment.Right} ZIndex={3} />
 		</frame>
 	);
 }

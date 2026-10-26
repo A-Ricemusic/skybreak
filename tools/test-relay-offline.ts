@@ -8,7 +8,11 @@ const files=["shared/AudioRules","tests/AudioRules.spec","shared/AssetSelection"
 	// Round-2 HUD rules (pure layout, warnings, radar, evade, radio, settings).
 	"shared/UILayout","tests/UILayout.spec","shared/NavigationLayout","tests/NavigationLayout.spec","shared/FlightWarnings","tests/FlightWarnings.spec",
 	"shared/RadarMath","tests/RadarMath.spec","shared/EvadeGauge","tests/EvadeGauge.spec","shared/RadioQueue","tests/RadioQueue.spec",
-	"shared/PlayerSettings","tests/PlayerSettings.spec","shared/TouchSticks","tests/TouchSticks.spec"];
+	"shared/PlayerSettings","tests/PlayerSettings.spec","shared/TouchSticks","tests/TouchSticks.spec",
+	// Ace-style HUD instruments (weapon rows, damage tone, clock, Kestrel outline).
+	"shared/HudInstruments","tests/HudInstruments.spec",
+	// PR #38's touch control rectangles, frozen across HUD scales and stick sizes.
+	"tests/TouchControls.spec"];
 for(const file of files){
 	let source=await Bun.file(resolve(root,`out/${file}.luau`)).text();
 	source=source.split("\n").filter(line=>!line.startsWith("local TS = require(")).map(line=>{
@@ -59,7 +63,7 @@ return { expect=expect,
  it=function(name,fn) local ok,err=pcall(fn);if ok then passed+=1;print("PASS "..name) else failed+=1;print("FAIL "..name..": "..tostring(err)) end end,
  result=function() print("OFFLINE_LUAU_RESULT passed="..passed.." failed="..failed);assert(failed==0,"Offline domain contracts failed") end }
 `);
-await Bun.write(resolve(dest,"run.luau"),'require("./CombatBalance.spec")\nrequire("./MissionScore.spec")\nrequire("./RelayCampaign.spec")\nrequire("./BlueprintProgress.spec")\nrequire("./CinematicInput.spec")\nrequire("./CinematicLayout.spec")\nrequire("./CinematicStaging.spec")\nrequire("./StoryDocuments.spec")\nrequire("./ExplosionFx.spec")\nrequire("./EngineFx.spec")\nrequire("./ImpactFeedback.spec")\nrequire("./Difficulty.spec")\nrequire("./ThreatRules.spec")\nrequire("./EvadeRules.spec")\nrequire("./AceRules.spec")\nrequire("./WavePlan.spec")\nrequire("./SessionGuard.spec")\nrequire("./ActorPlacement.spec")\nrequire("./MissionRules.spec")\nrequire("./UILayout.spec")\nrequire("./NavigationLayout.spec")\nrequire("./FlightWarnings.spec")\nrequire("./RadarMath.spec")\nrequire("./EvadeGauge.spec")\nrequire("./RadioQueue.spec")\nrequire("./PlayerSettings.spec")\nrequire("./TouchSticks.spec")\nrequire("./AssetSelection.spec")\nrequire("./AudioRules.spec")\nrequire("./OfflineAssertions").result()\n');
+await Bun.write(resolve(dest,"run.luau"),'require("./CombatBalance.spec")\nrequire("./MissionScore.spec")\nrequire("./RelayCampaign.spec")\nrequire("./BlueprintProgress.spec")\nrequire("./CinematicInput.spec")\nrequire("./CinematicLayout.spec")\nrequire("./CinematicStaging.spec")\nrequire("./StoryDocuments.spec")\nrequire("./ExplosionFx.spec")\nrequire("./EngineFx.spec")\nrequire("./ImpactFeedback.spec")\nrequire("./Difficulty.spec")\nrequire("./ThreatRules.spec")\nrequire("./EvadeRules.spec")\nrequire("./AceRules.spec")\nrequire("./WavePlan.spec")\nrequire("./SessionGuard.spec")\nrequire("./ActorPlacement.spec")\nrequire("./MissionRules.spec")\nrequire("./UILayout.spec")\nrequire("./NavigationLayout.spec")\nrequire("./FlightWarnings.spec")\nrequire("./RadarMath.spec")\nrequire("./EvadeGauge.spec")\nrequire("./RadioQueue.spec")\nrequire("./PlayerSettings.spec")\nrequire("./TouchSticks.spec")\nrequire("./AssetSelection.spec")\nrequire("./AudioRules.spec")\nrequire("./HudInstruments.spec")\nrequire("./TouchControls.spec")\nrequire("./OfflineAssertions").result()\n');
 const executable=process.env.LUAU_BIN ?? resolve(root,"build/offline-luau/luau");
 if(!(await Bun.file(executable).exists()))throw new Error("Set LUAU_BIN to the official Luau CLI. See docs/broken-relay.md. No Studio fallback will run.");
 const proc=Bun.spawn([executable,resolve(dest,"run.luau")],{cwd:root,stdout:"pipe",stderr:"pipe"});

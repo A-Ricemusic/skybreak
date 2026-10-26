@@ -4,6 +4,7 @@ import {NAVIGATION_CAPTION_PADDING,navigationCaption,navigationCaptionRect,navig
 import {getHudLayout,HudLayout,HudOptions,InputMode,NAVIGATION_CAPTION_HEIGHT,NAVIGATION_CAPTION_MAX_WIDTH,NAVIGATION_CAPTION_WIDTH,NAVIGATION_ROW_HEIGHT,Rectangle} from "../shared/UILayout";
 import {Telemetry} from "../shared/Types";
 import {FlightController} from "./FlightController";
+import {HUD} from "./Theme";
 const PLACEMENT_INTERVAL=4,PLACEMENT_MOVE=8,TEXT_SIZE=10,FONT=Enum.Font.GothamBold;
 const widths=new Map<string,number>();
 /** Real rendered width of a caption row (cached; the strings repeat every frame). */
@@ -106,7 +107,7 @@ export function NavigationCue({telemetry,visible,inputMode,scale=1,options}:{tel
 		return ()=>connection.Disconnect();
 	},[visible,inputMode,scale,options]);
 	const text=(name:string,ref:React.RefObject<TextLabel>,y:number,rows:number)=>(
-		<textlabel ref={ref} key={name} BackgroundTransparency={1} Position={UDim2.fromOffset(0,y)} Size={new UDim2(1,0,0,rows*NAVIGATION_ROW_HEIGHT)} Font={FONT} LineHeight={1} Text="" TextColor3={Color3.fromRGB(100,249,218)} TextSize={TEXT_SIZE} TextStrokeColor3={Color3.fromRGB(6,13,22)} TextStrokeTransparency={.45} TextXAlignment={Enum.TextXAlignment.Left} TextYAlignment={Enum.TextYAlignment.Top} ZIndex={5}/>
+		<textlabel ref={ref} key={name} BackgroundTransparency={1} Position={UDim2.fromOffset(0,y)} Size={new UDim2(1,0,0,rows*NAVIGATION_ROW_HEIGHT)} Font={FONT} LineHeight={1} Text="" TextColor3={HUD.Green} TextSize={TEXT_SIZE} TextStrokeColor3={HUD.Shadow} TextStrokeTransparency={.45} TextXAlignment={Enum.TextXAlignment.Left} TextYAlignment={Enum.TextYAlignment.Top} ZIndex={5}/>
 	);
 	return (
 		<frame ref={label} key="NavigationCue" Visible={false} BackgroundTransparency={1} ClipsDescendants={true} Size={UDim2.fromOffset(NAVIGATION_CAPTION_WIDTH,NAVIGATION_CAPTION_HEIGHT)} ZIndex={5}>

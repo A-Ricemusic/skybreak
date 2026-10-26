@@ -13,6 +13,7 @@ import { CombatEffects } from "./CombatEffects";
 import { EnemySmoothing } from "./EnemySmoothing";
 import { MissileTrails } from "./MissileTrails";
 import { GameAudio } from "./GameAudio";
+import { HUD, HUD_FONT_BOLD } from "./Theme";
 import { evadeGauge } from "../shared/EvadeGauge";
 import { terrainProbeLength, terrainSeconds } from "../shared/FlightWarnings";
 import type { RadarContact, RadarContactKind } from "../shared/RadarMath";
@@ -40,9 +41,10 @@ const MARKER_LIMIT = 16;
 // Per-frame constants (no Vector3/Color3 construction inside the render loop).
 const CAMERA_LIFT = new Vector3(0, 20, 0);
 const AIM_LIFT = new Vector3(0, 4, 0);
-const COLOR_LOCKED = Color3.fromRGB(255, 193, 98);
-const COLOR_REQUIRED = Color3.fromRGB(103, 235, 248);
-const COLOR_OPTIONAL = Color3.fromRGB(177, 190, 196);
+// Target box in the HUD palette: green for mission targets, dim green for optional ones, red once locked.
+const COLOR_LOCKED = HUD.Red;
+const COLOR_REQUIRED = HUD.Green;
+const COLOR_OPTIONAL = HUD.Dim;
 /** Seconds between client-only terrain probes and airspeed-trend samples (warnings only; no gameplay effect). */
 const PROBE_INTERVAL = 0.1;
 /** Fuselage-ish radius of the warning sweep, a little wider than the server's 4-stud crash sweep. */
@@ -84,13 +86,11 @@ function createTargetCue(playerGui: Instance): [ScreenGui, Frame, UIStroke, Text
 	bracket.BackgroundTransparency = 1;
 	bracket.Visible = false;
 	bracket.Parent = gui;
+	// Square box, thin line: the HUD's target designator.
 	const stroke = new Instance("UIStroke");
 	stroke.Thickness = 1.5;
-	stroke.Color = Color3.fromRGB(102, 237, 250);
+	stroke.Color = COLOR_REQUIRED;
 	stroke.Parent = bracket;
-	const corners = new Instance("UICorner");
-	corners.CornerRadius = new UDim(0, 7);
-	corners.Parent = bracket;
 	const caption = new Instance("TextLabel");
 	caption.Name = "TargetCaption";
 	caption.BackgroundTransparency = 1;
@@ -98,7 +98,7 @@ function createTargetCue(playerGui: Instance): [ScreenGui, Frame, UIStroke, Text
 	caption.AnchorPoint = new Vector2(0.5, 0);
 	// One short line under the bracket: "LOCK 60%" / "LOCKED · 820m".
 	caption.Size = UDim2.fromOffset(120, 13);
-	caption.Font = Enum.Font.GothamBold;
+	caption.FontFace = HUD_FONT_BOLD;
 	caption.TextSize = 10;
 	caption.TextStrokeColor3 = Color3.fromRGB(6, 13, 22);
 	caption.TextStrokeTransparency = 0.45;

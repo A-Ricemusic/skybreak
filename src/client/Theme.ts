@@ -19,3 +19,18 @@ export const HEX = {
 	Muted: "#98A8B0",
 	Faint: "#687A84",
 };
+
+/** In-flight HUD: one monochrome green with amber/red for state, drawn over a dark outline for bright sky. */
+export const HUD = {
+	Green: Color3.fromRGB(108, 255, 176),
+	/** Dimmed rows and secondary line work. */
+	Dim: Color3.fromRGB(70, 168, 118),
+	Amber: Color3.fromRGB(255, 196, 84),
+	Red: Color3.fromRGB(255, 82, 82),
+	White: Color3.fromRGB(236, 255, 244),
+	Shadow: Color3.fromRGB(4, 16, 10),
+};
+
+/** Monospaced (tabular) HUD type. */
+export const HUD_FONT = new Font("rbxasset://fonts/families/RobotoMono.json", Enum.FontWeight.Medium);
+export const HUD_FONT_BOLD = new Font("rbxasset://fonts/families/RobotoMono.json", Enum.FontWeight.Bold);

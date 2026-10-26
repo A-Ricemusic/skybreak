@@ -1,7 +1,7 @@
 import { stickVector, TouchSticks } from "../shared/TouchSticks";
 import { FlightMath } from "../shared/FlightMath";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "@rbxts/react";
-import { flightWarning } from "../shared/FlightWarnings";
+import { flightWarning, LOW_ALTITUDE } from "../shared/FlightWarnings";
 import { evadeGauge } from "../shared/EvadeGauge";
 import { RadioQueue } from "../shared/RadioQueue";
 import { effectiveHudScale, type PlayerSettings, type SettingKey } from "../shared/PlayerSettings";
@@ -50,7 +50,9 @@ import {
 	getArchiveGrid,
 	getBriefingLayout,
 } from "../shared/BriefingLayout";
-import { C, HEX } from "./Theme";
+import { C, HEX, HUD, HUD_FONT_BOLD } from "./Theme";
+import { HudLabel, InstrumentBox, Reticle, TONE_COLOR, WarningBox, WeaponPanel } from "./AceHud";
+import { clockLines, hullTone, instrumentValue, railsReady, weaponRows } from "../shared/HudInstruments";
 import { LoadoutPicker } from "./LoadoutPicker";
 import { DifficultyPicker } from "./DifficultyPicker";
 import { Difficulty, DifficultyKind } from "../shared/Difficulty";
@@ -1359,23 +1361,23 @@ function RoundButton({
 			key={name}
 			Active={enabled}
 			AutoButtonColor={false}
-			BackgroundColor3={filled ? C.Accent : C.Ink}
-			BackgroundTransparency={filled ? 0.6 : enabled ? 0.7 : 0.8}
+			BackgroundColor3={filled ? HUD.Green : HUD.Shadow}
+			BackgroundTransparency={filled ? 0.55 : enabled ? 0.65 : 0.8}
 			BorderSizePixel={0}
-			Font={Enum.Font.GothamBold}
+			FontFace={HUD_FONT_BOLD}
 			Position={UDim2.fromOffset(rectangle.x, rectangle.y)}
 			Selectable={false}
 			Size={UDim2.fromOffset(rectangle.width, rectangle.height)}
 			Text={text}
-			TextColor3={C.Ivory}
+			TextColor3={filled ? HUD.White : HUD.Green}
 			TextSize={textSize}
-			TextStrokeColor3={C.Ink}
+			TextStrokeColor3={HUD.Shadow}
 			TextStrokeTransparency={0.5}
 			TextTransparency={!enabled ? 0.5 : dimmed ? 0.35 : 0}
 			Event={{ Activated: () => enabled && onActivated() }}
 		>
 			<Corner scale={0.5} />
-			<Stroke color={filled ? C.AccentHot : C.Accent} transparency={filled ? 0.1 : enabled ? 0.45 : 0.8} thickness={1.5} />
+			<Stroke color={HUD.Green} transparency={filled ? 0 : enabled ? 0.3 : 0.75} thickness={1.5} />
 		</textbutton>
 	);
 }
@@ -1394,60 +1396,6 @@ function FlightHint({ hint, order }: { hint: ControlHint; order: number }) {
 	);
 }
 
-/** HUD text: no background, dark stroke for legibility over sky and sea. */
-function HudText({
-	name,
-	text,
-	rectangle,
-	color = C.Ivory,
-	textSize,
-	font = Enum.Font.GothamBold,
-	alignment = Enum.TextXAlignment.Left,
-	minTextSize,
-	visible = true,
-	textRef,
-	wrap = false,
-}: {
-	name: string;
-	text: string;
-	rectangle: Rectangle;
-	color?: Color3;
-	textSize: number;
-	font?: Enum.Font;
-	alignment?: Enum.TextXAlignment;
-	/** Shrinks long lines down to this size instead of wrapping. */
-	minTextSize?: number;
-	visible?: boolean;
-	textRef?: React.RefObject<TextLabel>;
-	/** Wrap onto the rectangle's extra lines instead of truncating. */
-	wrap?: boolean;
-}) {
-	return (
-		<textlabel
-			ref={textRef}
-			key={name}
-			BackgroundTransparency={1}
-			BorderSizePixel={0}
-			Position={UDim2.fromOffset(rectangle.x, rectangle.y)}
-			Size={UDim2.fromOffset(rectangle.width, rectangle.height)}
-			Font={font}
-			Text={text}
-			TextColor3={color}
-			TextSize={textSize}
-			TextScaled={minTextSize !== undefined}
-			TextTruncate={Enum.TextTruncate.AtEnd}
-			TextWrapped={wrap}
-			TextYAlignment={Enum.TextYAlignment.Top}
-			TextXAlignment={alignment}
-			TextStrokeColor3={C.Ink}
-			TextStrokeTransparency={0.35}
-			Visible={visible}
-		>
-			{minTextSize !== undefined && <uitextsizeconstraint MaxTextSize={textSize} MinTextSize={minTextSize} />}
-		</textlabel>
-	);
-}
-
 function MissionHud({
 	visible,
 	viewport,
@@ -1462,6 +1410,8 @@ function MissionHud({
 	options,
 	trend,
 	fireNotice,
+	radio,
+	breakCue,
 	controller,
 	joystickRef,
 	knobRef,
@@ -1490,6 +1440,10 @@ function MissionHud({
 	trend: FlightTrend;
 	/** Latest FIRE / SPECIAL refusal while it lasts (shown above FIRE, or in the alert lane). */
 	fireNotice?: string;
+	/** Current radio line: the subtitle row, or the objective line on roots without one. */
+	radio?: string;
+	/** Missile time-to-impact / BREAK cue text for the reserved row under the warning (nothing drives it yet). */
+	breakCue?: string;
 	controller: FlightController;
 	joystickRef: React.RefObject<Frame>;
 	knobRef: React.RefObject<Frame>;
@@ -1505,7 +1459,10 @@ function MissionHud({
 }) {
 	const virtualWidth = math.floor(viewport.X / scale);
 	const virtualHeight = math.floor(viewport.Y / scale);
-	const layout = getHudLayout(virtualWidth, virtualHeight, inputMode, options);
+	// Layout math is pure but not free: recompute only when the root, input mode or stick size changes.
+	const layout = useMemo(() => getHudLayout(virtualWidth, virtualHeight, inputMode, options), [virtualWidth, virtualHeight, inputMode, options]);
+	const killRectangle = useMemo(() => getKillMarkerLayout(virtualWidth, virtualHeight, inputMode, options), [virtualWidth, virtualHeight, inputMode, options]);
+	const metrics = layout.metrics;
 	const touch = layout.touch;
 	const ready = missileReady(telemetry);
 	const locked = telemetry.target !== undefined && telemetry.lockProgress >= 0.99;
@@ -1514,7 +1471,9 @@ function MissionHud({
 	// Refusals ride above FIRE on the touch row; elsewhere they borrow the alert lane while no warning is up.
 	const noticeInAlert = fireNotice !== undefined && layout.fireCaption === undefined && warning === "";
 	const alertText = noticeInAlert ? fireNotice! : warning;
-	const alertColor = telemetry.incoming ? C.Danger : C.Orange;
+	const alertColor = noticeInAlert ? HUD.Amber : telemetry.incoming || telemetry.lockWarning ? HUD.Red : HUD.Amber;
+	// Compact roots share the warning with the objective line: the warning shows in its place while it lasts.
+	const alertSharesObjective = layout.alert === layout.callout;
 	const evade = evadeGauge(telemetry);
 	const evadeHint = telemetry.incoming && evade.ready ? getEvadeHint(inputMode) : undefined;
 	const flightHints = getFlightHints(inputMode, { introduction, locked, missileReady: ready });
@@ -1543,25 +1502,29 @@ function MissionHud({
 			pulse.Cancel();
 			label.TextTransparency = 0;
 		};
-	}, [alertActive]);
+	}, [alertActive, alertSharesObjective]);
 	const hull = math.floor(telemetry.health + 0.5);
-	const cooldownText = telemetry.missileCooldown > 0 && !touch ? string.format(" · %.1fs", telemetry.missileCooldown) : "";
-	// The status line names the special even while it cycles ("FLR 1.2s"), where the button alone would just count down.
-	const specialStatus = specialButton.dimmed && (telemetry.specialCharges ?? 0) > 0 ? `${specialDefinition.short} ${string.format("%.1fs", telemetry.specialCooldown ?? 0)}` : specialButton.text;
-	// Keyboard and gamepad have no EVADE button, so the status line carries the charges.
-	const evadeStatus = !touch && evade.maxCharges > 1 ? ` · EVD ${evade.charges}` : "";
-	const statusText = `MSL ${telemetry.missiles}${cooldownText} · ${specialStatus}${evadeStatus}`;
-	const statusColor = telemetry.missiles <= 0 ? C.Danger : C.Ivory;
-	const hullColor = hull <= 30 ? C.Danger : hull <= 60 ? C.Orange : C.Accent;
+	const hullColor = TONE_COLOR[hullTone(hull)];
+	const rows = weaponRows({
+		missiles: telemetry.missiles,
+		missileCooldown: telemetry.missileCooldown,
+		special: specialDefinition.short,
+		specialCharges: telemetry.specialCharges ?? 0,
+		specialCooldown: telemetry.specialCooldown ?? 0,
+		specialActive: telemetry.specialActive ?? 0,
+		evadeCharges: evade.charges,
+		health: telemetry.health,
+	});
+	const rails = railsReady(telemetry.missiles, telemetry.missileCooldown);
 	const fireButton = WeaponRules.FireButton(telemetry.missiles, telemetry.missileCooldown, telemetry.target !== undefined && telemetry.targetDamageable !== false, telemetry.lockProgress);
 	const timeRemaining = telemetry.timeRemaining ?? GameConfig.Campaign.MissionTimeLimit;
+	const [timeLine, progressLine] = clockLines(timeRemaining, telemetry.objectiveProgress, telemetry.objectiveTotal, telemetry.kills, telemetry.total);
 	const tutorial = getTutorialInstruction(telemetry.tutorialStep, inputMode);
-	const progress = telemetry.objectiveTotal !== undefined && telemetry.objectiveTotal > 0
-		? `${telemetry.objectiveProgress ?? 0}/${telemetry.objectiveTotal}  `
-		: "";
-	// Kill and radio callouts replace the objective line while they last; FIRE refusals never do.
-	const objectiveLine = callout?.text ?? `${progress}${tutorial !== "" ? tutorial : telemetry.objective ?? "Complete the objective"}`;
-	const objectiveColor = callout?.color ?? (tutorial !== "" ? C.Orange : C.Ivory);
+	// Radio rides the subtitle row; roots without one show it in the objective line (ahead of kill callouts), as before.
+	const objectiveCallout = radio !== undefined && !layout.subtitle ? { text: radio, color: HUD.White } : callout;
+	const objectiveLine = alertSharesObjective && alertText !== "" ? alertText : objectiveCallout?.text ?? (tutorial !== "" ? tutorial : telemetry.objective ?? "Complete the objective");
+	const objectiveColor = alertSharesObjective && alertText !== "" ? alertColor : objectiveCallout?.color ?? (tutorial !== "" ? HUD.Amber : HUD.Green);
+	const stalling = telemetry.speed < FlightMath.WarningSpeed;
 	const knob = math.floor((touch?.joystick.width ?? JOYSTICK_SIZE) * 0.375 + 0.5);
 	return (
 		<frame key="MissionHUD" BackgroundTransparency={1} Size={UDim2.fromScale(1 / scale, 1 / scale)} Visible={visible}>
@@ -1571,7 +1534,7 @@ function MissionHud({
 				<Stroke color={C.Danger} transparency={0.35} thickness={5} />
 			</frame>
 
-			<KillMarker flash={killFlash} rectangle={getKillMarkerLayout(virtualWidth, virtualHeight, inputMode, options)} visible={visible} />
+			<KillMarker flash={killFlash} rectangle={killRectangle} visible={visible} />
 
 			{layout.pause && (
 				<textbutton
@@ -1579,71 +1542,54 @@ function MissionHud({
 					Active={true}
 					AutoButtonColor={false}
 					Selectable={false}
-					BackgroundColor3={C.Ink}
+					BackgroundColor3={HUD.Shadow}
 					BackgroundTransparency={0.6}
 					BorderSizePixel={0}
-					Font={Enum.Font.GothamBlack}
+					FontFace={HUD_FONT_BOLD}
 					Position={UDim2.fromOffset(layout.pause.x, layout.pause.y)}
 					Size={UDim2.fromOffset(layout.pause.width, layout.pause.height)}
 					Text="II"
-					TextColor3={C.Ivory}
+					TextColor3={HUD.Green}
 					TextSize={layout.pause.width >= 44 ? 15 : 12}
 					Event={{ Activated: onPause }}
 				>
-					<Corner radius={8} />
-					<Stroke color={C.Ivory} transparency={0.7} thickness={1} />
+					<Stroke color={HUD.Green} transparency={0.35} thickness={1} />
 				</textbutton>
 			)}
-			{layout.radar && <Radar rectangle={layout.radar} controller={controller} visible={visible} />}
+			{layout.radar && <Radar rectangle={layout.radar} controller={controller} visible={visible} textSize={metrics.label} />}
 
-			<HudText name="ObjectiveText" text={objectiveLine} rectangle={layout.callout} color={objectiveColor} textSize={11} wrap={true} />
-			<HudText
-				name="MissionTimer"
-				text={formatTime(timeRemaining)}
-				rectangle={layout.timer}
-				color={timeRemaining <= 60 ? C.Danger : C.Ivory}
-				textSize={11}
-				font={Enum.Font.RobotoMono}
-				alignment={Enum.TextXAlignment.Right}
-			/>
-			<HudText name="FlightStatus" text={`${telemetry.speed < FlightMath.StallSpeed ? "STALL" : "SPD"} ${math.floor(telemetry.speed)}`} rectangle={layout.flightStatus} color={telemetry.speed < FlightMath.WarningSpeed ? C.Orange : C.Ivory} textSize={10} minTextSize={8} alignment={Enum.TextXAlignment.Right} />
-			<HudText name="WeaponStatus" text={statusText} rectangle={layout.status} color={statusColor} textSize={10} minTextSize={8} alignment={Enum.TextXAlignment.Right} />
-			<frame
-				key="HullBar"
-				BackgroundColor3={C.Ink}
-				BackgroundTransparency={0.5}
-				BorderSizePixel={0}
-				Position={UDim2.fromOffset(layout.health.x, layout.health.y)}
-				Size={UDim2.fromOffset(layout.health.width, layout.health.height)}
-			>
-				<Stroke color={C.Ivory} transparency={0.6} thickness={1} />
-				<frame
-					key="HullFill"
-					BackgroundColor3={hullColor}
-					BackgroundTransparency={0.1}
-					BorderSizePixel={0}
-					Size={UDim2.fromScale(math.clamp(telemetry.health / 100, 0, 1), 1)}
+			<HudLabel name="MissionTimer" text={timeLine} rectangle={{ ...layout.clock, height: metrics.row }} textSize={metrics.text} color={timeRemaining <= 60 ? HUD.Red : HUD.Green} />
+			<HudLabel name="ObjectiveProgress" text={progressLine} rectangle={{ ...layout.clock, y: layout.clock.y + metrics.row + 2, height: metrics.row }} textSize={metrics.text} />
+			<HudLabel name="ObjectiveText" text={objectiveLine} rectangle={layout.callout} color={objectiveColor} textSize={metrics.scale === "large" ? 16 : metrics.scale === "compact" ? 10 : 11} wrap={true} verticalAlignment={Enum.TextYAlignment.Top} />
+
+			{layout.reticle && <Reticle rectangle={layout.reticle} />}
+			<InstrumentBox name="SpeedBox" caption="SPEED" value={instrumentValue(telemetry.speed)} rectangle={layout.speed} metrics={metrics} pointsRight={true} color={stalling ? HUD.Amber : HUD.Green} />
+			<InstrumentBox name="AltitudeBox" caption="ALT" value={instrumentValue(telemetry.altitude)} rectangle={layout.altitude} metrics={metrics} pointsRight={false} color={telemetry.altitude < LOW_ALTITUDE ? HUD.Amber : HUD.Green} />
+			{!alertSharesObjective && <WarningBox rectangle={layout.alert} text={alertText} color={alertColor} metrics={metrics} textRef={warningText} />}
+			{/* Reserved for a missile time-to-impact / BREAK cue; empty and hidden until something drives it. */}
+			<HudLabel name="BreakCue" text={breakCue ?? ""} rectangle={layout.breakCue} textSize={metrics.text} bold={true} color={HUD.Red} alignment={Enum.TextXAlignment.Center} visible={breakCue !== undefined && breakCue !== ""} />
+
+			<WeaponPanel layout={layout.weapons} rows={rows} metrics={metrics} hullColor={hullColor} rails={rails} />
+
+			{layout.subtitle && (
+				<HudLabel
+					name="RadioSubtitle"
+					text={radio ?? ""}
+					rectangle={layout.subtitle}
+					textSize={metrics.scale === "large" ? metrics.text : 12}
+					color={HUD.White}
+					alignment={Enum.TextXAlignment.Center}
+					verticalAlignment={Enum.TextYAlignment.Bottom}
+					wrap={true}
+					visible={radio !== undefined}
 				/>
-			</frame>
-			<HudText
-				name="WarningText"
-				textRef={warningText}
-				text={alertText}
-				rectangle={layout.alert}
-				minTextSize={8}
-				color={noticeInAlert ? C.Orange : alertColor}
-				textSize={12}
-				font={Enum.Font.GothamBlack}
-				alignment={Enum.TextXAlignment.Center}
-				visible={alertText !== ""}
-			/>
+			)}
 			{layout.fireCaption && (
-				<HudText
+				<HudLabel
 					name="FireCaption"
 					text={fireNotice ?? ""}
 					rectangle={layout.fireCaption}
-					minTextSize={7}
-					color={C.Orange}
+					color={HUD.Amber}
 					textSize={10}
 					alignment={Enum.TextXAlignment.Center}
 					visible={visible && fireNotice !== undefined}
@@ -1654,7 +1600,7 @@ function MissionHud({
 				ref={joystickRef}
 				key="TouchJoystick"
 				Active={true}
-				BackgroundColor3={C.Ink}
+				BackgroundColor3={HUD.Shadow}
 				BackgroundTransparency={0.75}
 				BorderSizePixel={0}
 				Position={touch ? UDim2.fromOffset(touch.joystick.x, touch.joystick.y) : undefined}
@@ -1663,38 +1609,39 @@ function MissionHud({
 				Event={{ InputBegan: (_rbx, input) => onJoystickBegan(input) }}
 			>
 				<Corner scale={0.5} />
-				<Stroke color={C.Ivory} transparency={0.75} thickness={1} />
+				<Stroke color={HUD.Green} transparency={0.6} thickness={1} />
 				<frame
 					ref={knobRef}
 					key="JoystickKnob"
 					AnchorPoint={new Vector2(0.5, 0.5)}
-					BackgroundColor3={C.Accent}
-					BackgroundTransparency={0.6}
+					BackgroundColor3={HUD.Green}
+					BackgroundTransparency={0.7}
 					BorderSizePixel={0}
 					Position={UDim2.fromScale(0.5, 0.5)}
 					Size={UDim2.fromOffset(knob, knob)}
 				>
 					<Corner scale={0.5} />
+					<Stroke color={HUD.Green} transparency={0.3} thickness={1} />
 				</frame>
 			</frame>
 
 			<frame ref={throttleJoystickRef} key="ThrottleJoystick" Active={true}
-				BackgroundColor3={C.Ink} BackgroundTransparency={0.75} BorderSizePixel={0}
+				BackgroundColor3={HUD.Shadow} BackgroundTransparency={0.75} BorderSizePixel={0}
 				Position={touch ? UDim2.fromOffset(touch.throttle.x, touch.throttle.y) : undefined}
 				Size={touch ? UDim2.fromOffset(touch.throttle.width, touch.throttle.height) : UDim2.fromOffset(96, 96)} Visible={touch !== undefined}
 				Event={{ InputBegan: (_rbx, input) => onThrottleBegan(input) }}>
-				<Corner scale={0.5} /><Stroke color={C.Ivory} transparency={0.75} thickness={1} />
+				<Corner scale={0.5} /><Stroke color={HUD.Green} transparency={0.6} thickness={1} />
 				<frame ref={throttleKnobRef} key="ThrottleKnob" AnchorPoint={new Vector2(0.5, 0.5)}
-					BackgroundColor3={C.Accent} BackgroundTransparency={0.6} BorderSizePixel={0}
+					BackgroundColor3={HUD.Green} BackgroundTransparency={0.7} BorderSizePixel={0}
 					Position={UDim2.fromScale(0.5, 0.5)} Size={UDim2.fromOffset(knob, knob)}>
-					<Corner scale={0.5} />
+					<Corner scale={0.5} /><Stroke color={HUD.Green} transparency={0.3} thickness={1} />
 				</frame>
 			</frame>
 			{touch?.throttleUpLabel && (
-				<HudText name="ThrottleUp" text="SPEED UP" rectangle={touch.throttleUpLabel} textSize={10} alignment={Enum.TextXAlignment.Center} />
+				<HudLabel name="ThrottleUp" text="SPEED UP" rectangle={touch.throttleUpLabel} textSize={10} alignment={Enum.TextXAlignment.Center} />
 			)}
 			{touch?.throttleDownLabel && (
-				<HudText name="ThrottleDown" text="SLOW DOWN" rectangle={touch.throttleDownLabel} textSize={10} alignment={Enum.TextXAlignment.Center} />
+				<HudLabel name="ThrottleDown" text="SLOW DOWN" rectangle={touch.throttleDownLabel} textSize={10} alignment={Enum.TextXAlignment.Center} />
 			)}
 
 			<frame key="CombatControls" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)}>
@@ -2486,19 +2433,18 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const now = os.clock();
 	let callout: Callout | undefined;
 	const radioLine = screen === "mission" ? radioQueue.Current(now) : undefined;
-	if (radioLine) {
-		callout = { text: radioLine.text, color: C.Accent };
-	} else if (killNotice && now < killNotice.until) {
+	if (killNotice && now < killNotice.until) {
 		// Progress is the phase objective's own count; raw kills include optional fighters and ground.
 		const total = telemetry.objectiveTotal ?? 0;
-		callout = { text: total > 0 ? `Hostile down  ${telemetry.objectiveProgress ?? 0}/${total}` : "Hostile down", color: C.AccentHot };
+		callout = { text: total > 0 ? `Hostile down  ${telemetry.objectiveProgress ?? 0}/${total}` : "Hostile down", color: HUD.White };
 	}
 	const hudScale = effectiveHudScale(settings.hudScale, inputMode === "touch", viewport.X, viewport.Y);
 	hudScaleRef.current = hudScale;
 	// In a mission the toast follows the HUD's own (scaled) layout for this input mode.
-	const toastRectangle = screen === "mission"
+	const inMission = screen === "mission";
+	const toastRectangle = useMemo(() => inMission
 		? scaleRectangle(getToastLayout(math.floor(viewport.X / hudScale), math.floor(viewport.Y / hudScale), undefined, inputMode, hudOptions), hudScale)
-		: getToastLayout(viewport.X, viewport.Y, menu);
+		: getToastLayout(viewport.X, viewport.Y, menu), [inMission, viewport, hudScale, inputMode, hudOptions, menu]);
 	const activeFireNotice = fireNotice && now < fireNotice.until ? fireNotice.text : undefined;
 	const menuHints: ControlHint[] = [{ keyCode: "ButtonA", label: "A", action: "SELECT" }];
 	if (screen === "slots" || screen === "briefing") menuHints.push({ keyCode: "ButtonB", label: "B", action: "BACK" });
@@ -2530,6 +2476,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 						options={hudOptions}
 						trend={trend}
 						fireNotice={activeFireNotice}
+						radio={radioLine?.text}
 						controller={controller}
 						joystickRef={joystickRef}
 						knobRef={knobRef}
