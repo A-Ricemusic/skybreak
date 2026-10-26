@@ -13,6 +13,11 @@ import { UploadedAssetName, UploadedAssetSpecs } from "../shared/UploadedAssetSp
  * (frigate, platform, quay, buildings) and nothing for dressing (cranes, masts,
  * trees, rocks), returning undefined so the caller keeps its own primitives.
  *
+ * Placement never loads or yields: world builders call `WorldAssets.Preload` with
+ * every asset the world uses first (bounded by PRELOAD_TIMEOUT), and a model still
+ * loading after that deadline takes its fallback for this build. A late load
+ * fills the cache for the next world without changing the one already built.
+ *
  * Branch on what a placement returns, not on a prior check: a model whose
  * `GeometrySource` is "Uploaded" means the uploaded mesh is in the world;
  * "Fallback" or undefined means the caller's own scenery is still needed. A
@@ -21,6 +26,10 @@ import { UploadedAssetName, UploadedAssetSpecs } from "../shared/UploadedAssetSp
  * `PlaceUploaded` places only the uploaded mesh and returns undefined otherwise.
  */
 export type WorldAssetName = Exclude<UploadedAssetName, AircraftAssetName>;
+
+/** Seconds a world build waits for its uploaded templates before placing fallbacks. */
+export const PRELOAD_TIMEOUT = 30;
+let preloadTimeout = PRELOAD_TIMEOUT;
 
 interface FallbackPart {
 	name: string;
@@ -78,17 +87,22 @@ function solid(part: BasePart): void {
 	part.CastShadow = false;
 }
 
-/** The uploaded model placed at `cframe`, or undefined when it has no ID or failed to load or place. */
-function placeUploaded(name: WorldAssetName, parent: Instance, cframe: CFrame): Model | undefined {
+/**
+ * The uploaded model placed at `cframe` (scaled about its ground contact by `scale`), or undefined
+ * when it has no ID or failed to load or place. Every clone shares the cached template's mesh and
+ * SurfaceAppearance content, so the engine draws repeated props (trees, rocks) as instanced batches.
+ */
+function placeUploaded(name: WorldAssetName, parent: Instance, cframe: CFrame, scale = 1): Model | undefined {
 	const spec = UploadedAssetSpecs[name];
-	const uploaded = UploadedAssets.Template([name]);
+	const uploaded = UploadedAssets.Cached([name]);
 	if (uploaded === undefined) return undefined;
 	const model = uploaded.template.Clone();
 	const [ok, result] = pcall(() => {
 		model.Name = name;
 		for (const item of model.GetDescendants()) if (item.IsA("BasePart")) solid(item);
-		// Template pivot is the model's bottom centre; the ground contact sits groundOffset above it.
-		model.PivotTo(cframe.mul(new CFrame(0, -spec.groundOffset, 0)));
+		// Template pivot is the model's bottom centre (scaling keeps it fixed); the ground contact sits groundOffset above it.
+		if (scale !== 1) model.ScaleTo(model.GetScale() * scale);
+		model.PivotTo(cframe.mul(new CFrame(0, -spec.groundOffset * scale, 0)));
 		model.Parent = parent;
 	});
 	if (ok) return model;
@@ -97,9 +111,9 @@ function placeUploaded(name: WorldAssetName, parent: Instance, cframe: CFrame): 
 	return undefined;
 }
 
-function place(name: WorldAssetName, parent: Instance, cframe: CFrame): Model | undefined {
+function place(name: WorldAssetName, parent: Instance, cframe: CFrame, scale = 1): Model | undefined {
 	const spec = UploadedAssetSpecs[name];
-	const uploaded = placeUploaded(name, parent, cframe);
+	const uploaded = placeUploaded(name, parent, cframe, scale);
 	if (uploaded !== undefined) return uploaded;
 	const fallback = FALLBACKS[name];
 	if (fallback === undefined) return undefined;
@@ -109,8 +123,8 @@ function place(name: WorldAssetName, parent: Instance, cframe: CFrame): Model | 
 	for (const shape of fallback(spec.size)) {
 		const part = new Instance("Part");
 		part.Name = shape.name;
-		part.Size = shape.size;
-		part.CFrame = cframe.mul(new CFrame(shape.offset));
+		part.Size = shape.size.mul(scale);
+		part.CFrame = cframe.mul(new CFrame(shape.offset.mul(scale)));
 		part.Color = shape.color;
 		part.Material = shape.material;
 		solid(part);
@@ -123,12 +137,19 @@ function place(name: WorldAssetName, parent: Instance, cframe: CFrame): Model | 
 
 export const WorldAssets = {
 	/**
-	 * True when the uploaded model for `name` has loaded and passed validation
-	 * (loads it on first call; yields). A hint for planning only: the placement
-	 * result is authoritative, so check what Place/PlaceUploaded return.
+	 * True when the uploaded model for `name` is loaded and valid (never loads or yields; call
+	 * Preload first). A hint for planning only: check what Place/PlaceUploaded return.
 	 */
 	Has(name: WorldAssetName): boolean {
-		return UploadedAssets.Template([name]) !== undefined;
+		return UploadedAssets.Cached([name]) !== undefined;
+	},
+	/** Loads every template in parallel, waiting at most the preload timeout; returns the names still loading. */
+	Preload(names: WorldAssetName[]): WorldAssetName[] {
+		return UploadedAssets.Preload(names, preloadTimeout) as WorldAssetName[];
+	},
+	/** Test hook: shorten (or restore, with no argument) the preload deadline. */
+	SetPreloadTimeout(seconds = PRELOAD_TIMEOUT): void {
+		preloadTimeout = seconds;
 	},
 	/** Authored size in studs (bounding box) and ground/waterline offset above the lowest point. */
 	Spec(name: WorldAssetName) {

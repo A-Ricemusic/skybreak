@@ -12,7 +12,9 @@ const files=["shared/AudioRules","tests/AudioRules.spec","shared/AssetSelection"
 	// Ace-style HUD instruments (hull bar, ammo line, clock).
 	"shared/HudInstruments","tests/HudInstruments.spec",
 	// PR #38's touch control rectangles, frozen across HUD scales and stick sizes.
-	"tests/TouchControls.spec"];
+	"tests/TouchControls.spec",
+	// World realism: the pure world plans, their audit and the environment table.
+	"shared/UploadedAssetSpecs","shared/EnvironmentPresets","shared/TerrainSchedule","shared/WorldPlan","shared/WorldAudit","tests/WorldPlan.spec","tests/TerrainSchedule.spec","shared/LegacyWorlds","tests/LegacyWorlds.spec","tests/EnvironmentPresets.spec","shared/WeatherRules","tests/WeatherRules.spec"];
 for(const file of files){
 	let source=await Bun.file(resolve(root,`out/${file}.luau`)).text();
 	source=source.split("\n").filter(line=>!line.startsWith("local TS = require(")).map(line=>{
@@ -23,6 +25,7 @@ for(const file of files){
 	}).join("\n");
 	if(source.includes("TS."))throw new Error(`Unadapted runtime dependency in ${file}`);
 	if(file.endsWith("GameConfig"))source='local Vector3={new=function(...)return {...}end}; local CFrame={lookAt=function(...)return {...}end}\n'+source;
+	if(file.endsWith("UploadedAssetSpecs"))source='local Vector3={new=function(x,y,z)return {X=x,Y=y,Z=z}end}\n'+source;
 	if(file.startsWith("tests/"))source+="\nreturn true\n";
 	await Bun.write(resolve(dest,`${file.split("/").at(-1)}.luau`),source);
 }
@@ -63,7 +66,7 @@ return { expect=expect,
  it=function(name,fn) local ok,err=pcall(fn);if ok then passed+=1;print("PASS "..name) else failed+=1;print("FAIL "..name..": "..tostring(err)) end end,
  result=function() print("OFFLINE_LUAU_RESULT passed="..passed.." failed="..failed);assert(failed==0,"Offline domain contracts failed") end }
 `);
-await Bun.write(resolve(dest,"run.luau"),'require("./CombatBalance.spec")\nrequire("./MissionScore.spec")\nrequire("./RelayCampaign.spec")\nrequire("./BlueprintProgress.spec")\nrequire("./CinematicInput.spec")\nrequire("./CinematicLayout.spec")\nrequire("./CinematicStaging.spec")\nrequire("./StoryDocuments.spec")\nrequire("./ExplosionFx.spec")\nrequire("./EngineFx.spec")\nrequire("./ImpactFeedback.spec")\nrequire("./Difficulty.spec")\nrequire("./ThreatRules.spec")\nrequire("./EvadeRules.spec")\nrequire("./AceRules.spec")\nrequire("./WavePlan.spec")\nrequire("./SessionGuard.spec")\nrequire("./ActorPlacement.spec")\nrequire("./MissionRules.spec")\nrequire("./UILayout.spec")\nrequire("./NavigationLayout.spec")\nrequire("./FlightWarnings.spec")\nrequire("./RadarMath.spec")\nrequire("./EvadeGauge.spec")\nrequire("./RadioQueue.spec")\nrequire("./VoiceLines.spec")\nrequire("./PlayerSettings.spec")\nrequire("./TouchSticks.spec")\nrequire("./AssetSelection.spec")\nrequire("./AudioRules.spec")\nrequire("./HudInstruments.spec")\nrequire("./TouchControls.spec")\nrequire("./OfflineAssertions").result()\n');
+await Bun.write(resolve(dest,"run.luau"),'require("./CombatBalance.spec")\nrequire("./MissionScore.spec")\nrequire("./RelayCampaign.spec")\nrequire("./BlueprintProgress.spec")\nrequire("./CinematicInput.spec")\nrequire("./CinematicLayout.spec")\nrequire("./CinematicStaging.spec")\nrequire("./StoryDocuments.spec")\nrequire("./ExplosionFx.spec")\nrequire("./EngineFx.spec")\nrequire("./ImpactFeedback.spec")\nrequire("./Difficulty.spec")\nrequire("./ThreatRules.spec")\nrequire("./EvadeRules.spec")\nrequire("./AceRules.spec")\nrequire("./WavePlan.spec")\nrequire("./SessionGuard.spec")\nrequire("./ActorPlacement.spec")\nrequire("./MissionRules.spec")\nrequire("./UILayout.spec")\nrequire("./NavigationLayout.spec")\nrequire("./FlightWarnings.spec")\nrequire("./RadarMath.spec")\nrequire("./EvadeGauge.spec")\nrequire("./RadioQueue.spec")\nrequire("./VoiceLines.spec")\nrequire("./PlayerSettings.spec")\nrequire("./TouchSticks.spec")\nrequire("./AssetSelection.spec")\nrequire("./AudioRules.spec")\nrequire("./HudInstruments.spec")\nrequire("./TouchControls.spec")\nrequire("./WorldPlan.spec")\nrequire("./EnvironmentPresets.spec")\nrequire("./WeatherRules.spec")\nrequire("./TerrainSchedule.spec")\nrequire("./LegacyWorlds.spec")\nrequire("./OfflineAssertions").result()\n');
 const executable=process.env.LUAU_BIN ?? resolve(root,"build/offline-luau/luau");
 if(!(await Bun.file(executable).exists()))throw new Error("Set LUAU_BIN to the official Luau CLI. See docs/broken-relay.md. No Studio fallback will run.");
 const proc=Bun.spawn([executable,resolve(dest,"run.luau")],{cwd:root,stdout:"pipe",stderr:"pipe"});

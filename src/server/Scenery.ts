@@ -1,6 +1,9 @@
 import { CONTROL_TOWER_PARTS, HANGAR_PARTS } from "../shared/MenuWorldGeometry";
 import { JetFactory } from "../shared/JetFactory";
 import { Workspace } from "@rbxts/services";
+import { BOAT_HULL, LEGACY_FLOOR, LEGACY_WATERLINE, legacySeaOps } from "../shared/LegacyWorlds";
+import { TerrainWriter } from "./TerrainWriter";
+import { WorldAssets } from "./WorldAssets";
 
 // Shared, cheap scenery generators for the disposable mission worlds.
 //
@@ -80,21 +83,36 @@ export function Disc(parent: Instance, name: string, diameter: number, thickness
 	return Cylinder(parent, name, diameter, thickness, at, color, material, options);
 }
 
-/** Counts BaseParts under a mission folder and warns when over budget. */
-export function Report(root: Instance, label: string, budget = PART_BUDGET): number {
-	let count = 0;
-	for (const item of root.GetDescendants()) if (item.IsA("BasePart")) count += 1;
+/** True when `item` belongs to a clone of an uploaded Blender model (counted apart from primitive parts). */
+function inUploaded(item: Instance): boolean {
+	const model = item.FindFirstAncestorWhichIsA("Model");
+	return model !== undefined && model.GetAttribute("GeometrySource") === "Uploaded";
+}
+
+/**
+ * Counts BaseParts under a mission folder and warns when over budget. With `splitUploaded`, the
+ * MeshParts of uploaded clones are counted separately (`UploadedParts`): they share one cached
+ * template per asset and draw as instanced batches, so they are budgeted by WorldPlan, not here.
+ */
+export function Report(root: Instance, label: string, budget = PART_BUDGET, splitUploaded = false): number {
+	let count = 0, uploaded = 0;
+	for (const item of root.GetDescendants()) {
+		if (!item.IsA("BasePart")) continue;
+		if (splitUploaded && inUploaded(item)) uploaded += 1;
+		else count += 1;
+	}
 	if (count > budget) warn(`[Scenery] ${label} uses ${count} BaseParts, over the ${budget} budget`);
 	root.SetAttribute("PartCount", count);
+	if (splitUploaded) root.SetAttribute("UploadedParts", uploaded);
 	return count;
 }
 
-const OCEAN_Y = -18;
-export const WATERLINE = OCEAN_Y + 2;
+const OCEAN_Y = LEGACY_WATERLINE - 2;
+export const WATERLINE = LEGACY_WATERLINE;
 // The opaque sea slabs (top at OCEAN_Y + 2) hide everything below this, so no
 // terrain is kept there: hidden voxels still replicate to the phone and their
-// undersides are still meshed.
-export const HIDDEN_FLOOR = OCEAN_Y - 6;
+// undersides are still meshed. (A dredged berth may go deeper under a ship.)
+export const HIDDEN_FLOOR = LEGACY_FLOOR;
 
 /** 5x5 flat sea tiles to the horizon (25 parts). */
 export function Sea(parent: Instance, color: Color3): void {
@@ -120,11 +138,12 @@ function lobes(width: number, depth: number): Array<[number, number, number]> {
  * lobe (two to four parts). Lobes are offset by a hair in Y so overlaps never
  * share a coplanar face.
  */
-export function Shoreline(parent: Instance, x: number, z: number, width: number, depth: number, palette: Palette, yaw = 0): void {
+export function Shoreline(parent: Instance, x: number, z: number, width: number, depth: number, palette: Palette, yaw = 0, shallows = true): void {
 	const cf = new CFrame(x, 0, z).mul(CFrame.Angles(0, yaw, 0));
 	let i = 0;
 	for (const [lx, lz, r] of lobes(width, depth)) {
-		Disc(parent, "Shallows", r * 2 + 220, 0.5, cf.mul(new CFrame(lx, WATERLINE + 0.4 + i * 0.06, lz)).Position, palette.shallow, Enum.Material.SmoothPlastic, { flightSolid: false, transparency: 0.45, reflectance: 0.08, castShadow: false });
+		// Over Terrain water the engine's own shallows shading replaces the translucent sheet.
+		if (shallows) Disc(parent, "Shallows", r * 2 + 220, 0.5, cf.mul(new CFrame(lx, WATERLINE + 0.4 + i * 0.06, lz)).Position, palette.shallow, Enum.Material.SmoothPlastic, { flightSolid: false, transparency: 0.45, reflectance: 0.08, castShadow: false });
 		Disc(parent, "Beach", r * 2 + 60, 3, cf.mul(new CFrame(lx, WATERLINE + 1.6 + i * 0.06, lz)).Position, palette.sand, Enum.Material.Sand, { castShadow: false });
 		i += 1;
 	}
@@ -197,33 +216,78 @@ export function SeaStacks(parent: Instance, seed: number, palette: Palette, coun
 	}
 }
 
-/** Random-rotated boulders inside a rectangle; `floor` is the ground Y. */
+/** Terrain surface under (x, z), if it is dry land with a gentle slope and nothing authored on top of it. */
+function groundSpot(parent: Instance, x: number, z: number, floor: number): RaycastResult | undefined {
+	const params = new RaycastParams();
+	params.FilterType = Enum.RaycastFilterType.Include;
+	// The scenery folder too: a hit on a road, apron or building means the spot is taken.
+	params.FilterDescendantsInstances = [Workspace.Terrain, parent];
+	params.IgnoreWater = false;
+	const hit = Workspace.Raycast(new Vector3(x, floor + 600, z), new Vector3(0, -900, 0), params);
+	if (hit === undefined || hit.Instance !== Workspace.Terrain || hit.Material === Enum.Material.Water) return undefined;
+	if (hit.Normal.Y < 0.82 || hit.Position.Y < floor - 30) return undefined;
+	return hit;
+}
+
+/**
+ * Boulders inside a rectangle: clones of the uploaded RockA/B/C models (primitive boulders only when the
+ * upload fails), each resting on the terrain found by a downward ray, never over water or on a road.
+ */
 export function Rocks(parent: Instance, seed: number, palette: Palette, x: number, z: number, width: number, depth: number, floor: number, count: number, avoid: (x: number, z: number) => boolean = () => false): void {
 	const rng = new Random(seed);
 	let placed = 0, attempts = 0;
-	while (placed < count && attempts < count * 6) {
+	while (placed < count && attempts < count * 8) {
 		attempts += 1;
 		const px = x + rng.NextNumber(-width / 2, width / 2), pz = z + rng.NextNumber(-depth / 2, depth / 2);
 		if (avoid(px, pz)) continue;
-		const size = new Vector3(rng.NextNumber(12, 40), rng.NextNumber(8, 26), rng.NextNumber(12, 40));
-		const cf = new CFrame(px, floor + size.Y * 0.3, pz).mul(CFrame.Angles(rng.NextNumber(-0.25, 0.25), rng.NextNumber(0, math.pi), rng.NextNumber(-0.25, 0.25)));
-		Part(parent, "Boulder", size, cf, placed % 4 === 0 ? palette.rockDark : palette.rock, placed % 5 === 0 ? Enum.Material.Slate : Enum.Material.Rock);
+		const hit = groundSpot(parent, px, pz, floor);
+		if (hit === undefined) continue;
+		const variant = rng.NextInteger(0, 2) as 0 | 1 | 2, scale = rng.NextNumber(0.9, 2.4);
+		const at = new CFrame(hit.Position.sub(new Vector3(0, 0.5, 0))).mul(CFrame.Angles(0, rng.NextNumber(0, math.pi * 2), 0));
+		if (WorldAssets.PlaceUploaded((["RockA", "RockB", "RockC"] as const)[variant], parent, at, scale) === undefined) {
+			const size = new Vector3(rng.NextNumber(12, 40), rng.NextNumber(8, 26), rng.NextNumber(12, 40));
+			Part(parent, "Boulder", size, at.mul(new CFrame(0, size.Y * 0.3, 0)).mul(CFrame.Angles(rng.NextNumber(-0.25, 0.25), 0, rng.NextNumber(-0.25, 0.25))), placed % 4 === 0 ? palette.rockDark : palette.rock, placed % 5 === 0 ? Enum.Material.Slate : Enum.Material.Rock);
+		}
 		placed += 1;
 	}
 }
 
-/** Trunk + canopy trees (two parts each) inside a rectangle. */
-export function Trees(parent: Instance, seed: number, x: number, z: number, width: number, depth: number, floor: number, count: number, avoid: (x: number, z: number) => boolean = () => false): void {
+/**
+ * Trees inside a rectangle: clones of the uploaded Pine and Broadleaf models at varied scale and yaw
+ * (trunk + canopy primitives only when the upload fails), each grounded on the terrain under it.
+ * `pineShare` is the fraction of conifers.
+ */
+export function Trees(parent: Instance, seed: number, x: number, z: number, width: number, depth: number, floor: number, count: number, avoid: (x: number, z: number) => boolean = () => false, pineShare = 0.4): void {
 	const rng = new Random(seed);
 	let placed = 0, attempts = 0;
-	while (placed < count && attempts < count * 6) {
+	while (placed < count && attempts < count * 8) {
 		attempts += 1;
 		const px = x + rng.NextNumber(-width / 2, width / 2), pz = z + rng.NextNumber(-depth / 2, depth / 2);
 		if (avoid(px, pz)) continue;
-		const trunk = rng.NextNumber(10, 18), crown = rng.NextNumber(18, 30);
-		Part(parent, "Trunk", new Vector3(3, trunk, 3), new Vector3(px, floor + trunk / 2, pz), Color3.fromRGB(96, 70, 48), Enum.Material.Wood, { castShadow: false });
-		Part(parent, "Canopy", new Vector3(crown, crown * 0.9, crown), new Vector3(px, floor + trunk + crown * 0.35, pz), Color3.fromRGB(58 + placed % 3 * 9, 104 + placed % 2 * 12, 58), Enum.Material.Grass, { shape: Enum.PartType.Ball });
+		const hit = groundSpot(parent, px, pz, floor);
+		if (hit === undefined) continue;
+		const pine = rng.NextNumber() < pineShare, scale = rng.NextNumber(0.75, 1.3);
+		const at = new CFrame(hit.Position.sub(new Vector3(0, 1, 0))).mul(CFrame.Angles(0, rng.NextNumber(0, math.pi * 2), 0));
+		if (WorldAssets.PlaceUploaded(pine ? "Pine" : "Broadleaf", parent, at, scale) === undefined) {
+			const trunk = rng.NextNumber(10, 18), crown = rng.NextNumber(18, 30), base = hit.Position;
+			Part(parent, "Trunk", new Vector3(3, trunk, 3), base.add(new Vector3(0, trunk / 2, 0)), Color3.fromRGB(96, 70, 48), Enum.Material.Wood, { castShadow: false });
+			Part(parent, "Canopy", new Vector3(crown, crown * 0.9, crown), base.add(new Vector3(0, trunk + crown * 0.35, 0)), Color3.fromRGB(58 + placed % 3 * 9, 104 + placed % 2 * 12, 58), Enum.Material.Grass, { shape: Enum.PartType.Ball });
+		}
 		placed += 1;
+	}
+}
+
+/**
+ * Terrain water from the hidden floor up to the waterline over the whole terrain square, on a mud
+ * seabed, with flat sea parts beyond it to the horizon. Call before any island or coast fill: those
+ * overwrite the water where land rises.
+ */
+export function TerrainSea(parent: Instance, color: Color3, extent = 4000, far = 6000): void {
+	// Bounded, budgeted jobs (TerrainWriter): the two slabs are 16M voxels together.
+	TerrainWriter.Write(legacySeaOps(extent));
+	for (let x = -far; x < far; x += 2000) for (let z = -far; z < far; z += 2000) {
+		if (x >= -extent && x + 2000 <= extent && z >= -extent && z + 2000 <= extent) continue;
+		Part(parent, "Sea", new Vector3(2000, 4, 2000), new Vector3(x + 1000, WATERLINE - 2, z + 1000), color, Enum.Material.SmoothPlastic, { reflectance: 0.12, castShadow: false });
 	}
 }
 
@@ -345,7 +409,7 @@ export function Crane(parent: Instance, x: number, z: number, floor: number, yaw
 /** Simple moored boat: hull, deck house, mast (three parts). */
 export function Boat(parent: Instance, x: number, z: number, yaw: number, length: number, hull: Color3): void {
 	const cf = new CFrame(x, WATERLINE, z).mul(CFrame.Angles(0, yaw, 0));
-	Part(parent, "Hull", new Vector3(length * 0.32, 7, length), cf.mul(new CFrame(0, 1.5, 0)), hull, Enum.Material.Metal);
+	Part(parent, "Hull", new Vector3(length * 0.32, BOAT_HULL.height, length), cf.mul(new CFrame(0, BOAT_HULL.lift, 0)), hull, Enum.Material.Metal);
 	Part(parent, "Deck house", new Vector3(length * 0.22, 7, length * 0.28), cf.mul(new CFrame(0, 8, length * 0.12)), Color3.fromRGB(226, 228, 224), Enum.Material.SmoothPlastic);
 	Part(parent, "Mast", new Vector3(1.5, 20, 1.5), cf.mul(new CFrame(0, 18, -length * 0.1)), Color3.fromRGB(60, 62, 64), Enum.Material.Metal, { castShadow: false });
 }
@@ -359,5 +423,5 @@ export function Lighthouse(parent: Instance, x: number, z: number, floor: number
 }
 
 export const Scenery = {
-	PART_BUDGET, WATERLINE, HIDDEN_FLOOR, PALETTES, Part, Cylinder, Disc, Report, Sea, Shoreline, TerrainIsland, TerrainHill, Mountains, SeaStacks, Rocks, Trees, Road, Light, Runway, Hangar, ControlTower, FuelFarm, Buildings, ParkedJets, Containers, Crane, Boat, Lighthouse,
+	PART_BUDGET, WATERLINE, HIDDEN_FLOOR, PALETTES, Part, Cylinder, Disc, Report, Sea, TerrainSea, Shoreline, TerrainIsland, TerrainHill, Mountains, SeaStacks, Rocks, Trees, Road, Light, Runway, Hangar, ControlTower, FuelFarm, Buildings, ParkedJets, Containers, Crane, Boat, Lighthouse,
 };

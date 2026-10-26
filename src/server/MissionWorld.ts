@@ -1,8 +1,13 @@
-import { Lighting, Workspace } from "@rbxts/services";
+import { Workspace } from "@rbxts/services";
+import { IRON_COAST_BOATS, IRON_COAST_FALLBACK_HULL, IRON_COAST_FRIGATE, ironCoastBerthOps, ironCoastMainlandOps } from "../shared/LegacyWorlds";
 import { MissionAssets } from "../shared/MissionAssets";
+import { MissionCatalog } from "../shared/MissionCatalog";
 import { RelayWorld } from "./RelayWorld";
 import { Scenery } from "./Scenery";
+import { TerrainWriter } from "./TerrainWriter";
+import { WorldAssets, type WorldAssetName } from "./WorldAssets";
 import { WorldBuilder } from "./WorldBuilder";
+import { WorldEnvironment } from "./WorldEnvironment";
 
 // A single-player place has one mission world. Terrain and lighting are owned
 // by this lifecycle; combat owns the parent folder and destroys it on exit.
@@ -13,44 +18,11 @@ import { WorldBuilder } from "./WorldBuilder";
 
 const GROUND = 44; // plateau top of every terrain island (apron slabs sit on it)
 const APRON_TOP = 48;
-
-function environment(missionId: number): void {
-	for (const name of ["SkybreakAtmosphere", "SkybreakColor", "MissionAtmosphere", "MissionGrade", "MissionSky"]) Lighting.FindFirstChild(name)?.Destroy();
-	Workspace.Terrain.FindFirstChild("MissionClouds")?.Destroy();
-	Workspace.Terrain.FindFirstChild("SkybreakClouds")?.Destroy();
-	Lighting.ClockTime = missionId === 1 ? 10.5 : 17.3;
-	Lighting.Brightness = 2.3;
-	Lighting.ExposureCompensation = 0.05;
-	Lighting.Ambient = Color3.fromRGB(105, 119, 134);
-	Lighting.OutdoorAmbient = Color3.fromRGB(140, 151, 159);
-	// No sun shadow map in sorties: a fast-moving camera over a large world is the
-	// worst case for shadow cascades on mobile. The menu turns it back on.
-	Lighting.GlobalShadows = false;
-	const sky = new Instance("Sky");
-	sky.Name = "MissionSky";
-	sky.StarCount = 0;
-	sky.Parent = Lighting;
-	const atmosphere = new Instance("Atmosphere");
-	atmosphere.Name = "MissionAtmosphere";
-	atmosphere.Density = 0.25;
-	atmosphere.Offset = 0.1;
-	atmosphere.Color = missionId === 1 ? Color3.fromRGB(183, 220, 235) : Color3.fromRGB(232, 196, 160);
-	atmosphere.Decay = missionId === 1 ? Color3.fromRGB(110, 142, 164) : Color3.fromRGB(150, 110, 96);
-	atmosphere.Haze = 1.4;
-	atmosphere.Glare = missionId === 1 ? 0.12 : 0.3;
-	atmosphere.Parent = Lighting;
-	const grade = new Instance("ColorCorrectionEffect");
-	grade.Name = "MissionGrade";
-	grade.Saturation = 0.08;
-	grade.Contrast = 0.08;
-	grade.Parent = Lighting;
-	const clouds = new Instance("Clouds");
-	clouds.Name = "MissionClouds";
-	clouds.Cover = missionId === 1 ? 0.22 : 0.38;
-	clouds.Density = 0.3; // <= 0.3: dense volumetric clouds are a large fill-rate cost on phones
-	clouds.Color = Color3.fromRGB(238, 241, 244);
-	clouds.Parent = Workspace.Terrain;
-}
+/** Uploaded models the hand-composed worlds place (preloaded with WorldAssets' deadline before building). */
+const UPLOADS: Record<1 | 2, WorldAssetName[]> = {
+	1: ["Hangar", "ControlTower", "Pine", "Broadleaf", "RockA", "RockB", "RockC"],
+	2: ["ContainerStack", "GantryCrane", "Farmhouse", "Barn", "Frigate", "Pine", "Broadleaf", "RockA", "RockB", "RockC"],
+};
 
 function apron(parent: Instance, x: number, z: number, width: number, depth: number, color: Color3): void {
 	Scenery.Part(parent, "Apron", new Vector3(width, 4, depth), new Vector3(x, APRON_TOP - 2, z), color, Enum.Material.Concrete);
@@ -77,7 +49,8 @@ const near = (x: number, z: number, cx: number, cz: number, r: number): boolean 
  */
 function buildVardaRim(scenery: Folder, parent: Instance): Model[] {
 	const P = Scenery.PALETTES.temperate;
-	Scenery.Sea(scenery, Color3.fromRGB(35, 112, 142));
+	// Terrain water first: the islands overwrite it where land rises.
+	Scenery.TerrainSea(scenery, Color3.fromRGB(35, 112, 142));
 
 	// Landmasses (terrain). The main island is 1250 x 1850 with its top at GROUND.
 	const islands: Array<[number, number, number, number, number]> = [[-300, -400, 1250, 1850, 0], [-1000, -1500, 700, 560, 0.3], [1250, -1400, 760, 620, -0.2], [-1500, 700, 520, 480, 0.5], [1000, 250, 420, 360, 0.4], [1350, 560, 240, 200, -0.3], [780, 640, 200, 180, 0.9]];
@@ -85,7 +58,7 @@ function buildVardaRim(scenery: Folder, parent: Instance): Model[] {
 	// yield), so the terrain replicates as one batch instead of being re-sent per op.
 	for (const [x, z, w, d, yaw] of islands) Scenery.TerrainIsland(x, z, w, d, GROUND, yaw);
 	for (const [x, z, r, peak] of [[-800, -1000, 170, 120], [-820, -250, 150, 115], [-680, 380, 120, 110], [-1000, -1500, 230, 125], [1250, -1400, 250, 125], [-1500, 700, 160, 118], [1000, 250, 120, 112]]) Scenery.TerrainHill(x, z, r, GROUND, peak);
-	for (const [x, z, w, d, yaw] of islands) Scenery.Shoreline(scenery, x, z, w, d, P, yaw);
+	for (const [x, z, w, d, yaw] of islands) Scenery.Shoreline(scenery, x, z, w, d, P, yaw, false);
 
 	// Airfield. Runway runs north-south at x=-520; the parking apron links to the
 	// radar pad by a taxiway so the whole field reads as one installation.
@@ -94,8 +67,11 @@ function buildVardaRim(scenery: Folder, parent: Instance): Model[] {
 	Scenery.Part(scenery, "Taxiway", new Vector3(36, 2, 190), new Vector3(-60, GROUND + 1.5, -640), P.asphalt, Enum.Material.Asphalt);
 	apron(scenery, -200, -430, 360, 240, P.concrete);
 	Scenery.ParkedJets(scenery, [new Vector3(-330, 0, -500), new Vector3(-250, 0, -500), new Vector3(-170, 0, -500), new Vector3(-90, 0, -500)], APRON_TOP, 0);
-	for (const x of [-330, -240, -150]) Scenery.Hangar(scenery, new CFrame(x, GROUND + 1, -275), P, Color3.fromRGB(240, 150, 60));
-	Scenery.ControlTower(scenery, new CFrame(40, GROUND, -330), P);
+	// The uploaded hangars (128 wide) and tower; the menu-world primitives only if the upload fails.
+	// Place (not PlaceUploaded): a hangar whose clone fails still gets WorldAssets' simple block.
+	if (WorldAssets.Has("Hangar")) for (const x of [-310, -170]) WorldAssets.Place("Hangar", scenery, new CFrame(x, GROUND, -238));
+	else for (const x of [-330, -240, -150]) Scenery.Hangar(scenery, new CFrame(x, GROUND + 1, -275), P, Color3.fromRGB(240, 150, 60));
+	if (WorldAssets.PlaceUploaded("ControlTower", scenery, new CFrame(40, GROUND, -330).mul(CFrame.Angles(0, math.pi / 2, 0))) === undefined) Scenery.ControlTower(scenery, new CFrame(40, GROUND, -330), P);
 	Scenery.FuelFarm(scenery, 120, -520, GROUND, 3);
 	Scenery.Road(scenery, [new Vector3(0, GROUND + 0.5, -250), new Vector3(240, GROUND + 0.5, -250)]);
 	// Perimeter road around the whole island.
@@ -113,11 +89,16 @@ function buildVardaRim(scenery: Folder, parent: Instance): Model[] {
 
 	// Rim dressing: boulders and trees stay off the airfield footprint.
 	const airfield = (x: number, z: number): boolean => inside(x, z, -200, -650, 900, 1150) || inside(x, z, 0, -850, 400, 400);
-	Scenery.Rocks(scenery, 11, P, -300, -400, 1200, 1800, GROUND, 18, airfield);
-	Scenery.Trees(scenery, 12, -300, 320, 500, 200, GROUND, 12);
-	Scenery.Trees(scenery, 13, -250, -1270, 700, 80, GROUND, 6);
-	Scenery.Trees(scenery, 14, 1000, 250, 300, 240, GROUND, 8, (x, z) => near(x, z, 1000, 250, 90));
-	Scenery.Rocks(scenery, 15, P, 1250, -1400, 600, 500, GROUND, 6, (x, z) => near(x, z, 1250, -1400, 240));
+	// Uploaded trees and rocks, grounded on the terrain by ray: woods on the rim hills and the outer islands.
+	Scenery.Rocks(scenery, 11, P, -300, -400, 1200, 1800, GROUND, 24, airfield);
+	Scenery.Trees(scenery, 12, -300, 320, 500, 200, GROUND, 18, airfield, 0.3);
+	Scenery.Trees(scenery, 13, -250, -1270, 700, 80, GROUND, 10, airfield, 0.3);
+	Scenery.Trees(scenery, 18, -800, -650, 260, 900, GROUND, 22, airfield, 0.5);
+	Scenery.Trees(scenery, 14, 1000, 250, 300, 240, GROUND, 12, (x, z) => near(x, z, 1000, 250, 60), 0.4);
+	Scenery.Trees(scenery, 19, -1000, -1500, 600, 480, GROUND, 18, () => false, 0.6);
+	Scenery.Trees(scenery, 20, 1250, -1400, 640, 520, GROUND, 16, () => false, 0.6);
+	Scenery.Trees(scenery, 21, -1500, 700, 440, 400, GROUND, 12, () => false, 0.4);
+	Scenery.Rocks(scenery, 15, P, 1250, -1400, 600, 500, GROUND, 8, (x, z) => near(x, z, 1250, -1400, 240));
 	Scenery.Lighthouse(scenery, 1350, 560, GROUND);
 
 	// Horizon: sea stacks between the islands and a mountain ring at the boundary.
@@ -134,24 +115,17 @@ function buildVardaRim(scenery: Folder, parent: Instance): Model[] {
  */
 function buildIronCoast(scenery: Folder, parent: Instance): Model[] {
 	const P = Scenery.PALETTES.harbor;
-	const terrain = Workspace.Terrain;
-	Scenery.Sea(scenery, Color3.fromRGB(44, 82, 108));
+	// Terrain water first: the mainland and islands overwrite it where land rises.
+	Scenery.TerrainSea(scenery, Color3.fromRGB(44, 82, 108));
 
 	// Mainland: three rock blocks leave a 500-wide basin open between x=-250..250, z=-1000..-700.
-	// Rock runs from the hidden floor under the sea (not 20 studs below it) up to GROUND.
-	const rockDepth = GROUND - Scenery.HIDDEN_FLOOR;
-	for (const [x, z, w, d] of [[-1000, -1500, 1500, 1600], [1000, -1500, 1500, 1600], [0, -1650, 520, 1300]]) {
-		terrain.FillBlock(new CFrame(x, GROUND - rockDepth / 2, z), new Vector3(w, rockDepth, d), Enum.Material.Rock);
-		terrain.FillBlock(new CFrame(x, GROUND - 5, z), new Vector3(w - 60, 10, d - 60), Enum.Material.Grass);
-	}
-	// Every voxel write runs back to back before more parts are created (Scenery.Part
-	// may yield), so the terrain replicates as one batch.
+	// Rock runs from the hidden floor under the sea (not 20 studs below it) up to GROUND. Then the
+	// frigate's dredged berth: the shallow seabed would otherwise cut through its keel.
+	TerrainWriter.Write([...ironCoastMainlandOps(), ...ironCoastBerthOps()]);
 	const offshore: Array<[number, number, number, number, number, number, number]> = [[-1500, 500, 520, 440, 0.4, 160, 122], [1550, 450, 480, 420, -0.3, 150, 118]];
 	for (const [x, z, r, peak] of [[-1300, -2150, 280, 125], [1300, -2200, 300, 125], [0, -2250, 260, 118], [-1700, -1600, 200, 122], [1750, -1500, 220, 124]]) Scenery.TerrainHill(x, z, r, GROUND, peak);
 	for (const [x, z, w, d, yaw, r, peak] of offshore) { Scenery.TerrainIsland(x, z, w, d, GROUND, yaw); Scenery.TerrainHill(x, z, r, GROUND, peak); }
-	for (const [x, z, w, d, yaw] of offshore) Scenery.Shoreline(scenery, x, z, w, d, P, yaw);
-	Scenery.Part(scenery, "Shallows", new Vector3(2000, 0.5, 1900), new Vector3(-900, Scenery.WATERLINE + 0.4, -1450), P.shallow, Enum.Material.SmoothPlastic, { flightSolid: false, transparency: 0.45, castShadow: false });
-	Scenery.Part(scenery, "Shallows", new Vector3(1800, 0.5, 1900), new Vector3(1000, Scenery.WATERLINE + 0.4, -1450), P.shallow, Enum.Material.SmoothPlastic, { flightSolid: false, transparency: 0.45, castShadow: false });
+	for (const [x, z, w, d, yaw] of offshore) Scenery.Shoreline(scenery, x, z, w, d, P, yaw, false);
 
 	// Quays: a wall along the whole south coast and around the basin.
 	const quay = Color3.fromRGB(122, 124, 120);
@@ -170,10 +144,19 @@ function buildIronCoast(scenery: Folder, parent: Instance): Model[] {
 		warehouse.Parent = parent;
 		targets.push(warehouse);
 	}
-	for (const x of [-550, 550]) Scenery.Containers(scenery, 20 + x, x, -735, GROUND, 1, 6, 2, math.pi / 2);
-	Scenery.Containers(scenery, 21, -1100, -900, GROUND, 5, 2, 2);
-	Scenery.Containers(scenery, 22, 1100, -900, GROUND, 4, 2, 2);
-	for (const x of [-1000, -1250, 1000, 1250]) Scenery.Crane(scenery, x, -740, GROUND, math.pi, 90);
+	// Uploaded container stacks and gantry cranes (boom out over the water); primitives only if the upload fails.
+	if (WorldAssets.Has("ContainerStack")) {
+		for (const x of [-550, 550]) for (const dx of [-150, 150]) WorldAssets.Place("ContainerStack", scenery, new CFrame(x + dx, GROUND, -760).mul(CFrame.Angles(0, math.pi / 2, 0)));
+		for (const [x, z] of [[-1220, -940], [-1100, -940], [-980, -940], [-1220, -1040], [-1100, -1040], [1040, -940], [1160, -940], [1100, -1040]]) WorldAssets.Place("ContainerStack", scenery, new CFrame(x, GROUND, z));
+	} else {
+		for (const x of [-550, 550]) Scenery.Containers(scenery, 20 + x, x, -735, GROUND, 1, 6, 2, math.pi / 2);
+		Scenery.Containers(scenery, 21, -1100, -900, GROUND, 5, 2, 2);
+		Scenery.Containers(scenery, 22, 1100, -900, GROUND, 4, 2, 2);
+	}
+	for (const x of [-1000, -1250, 1000, 1250]) {
+		// The crane's front (-Z) faces the sea (+Z here), so turn it round; its legs stand back from the quay edge.
+		if (WorldAssets.PlaceUploaded("GantryCrane", scenery, new CFrame(x, GROUND, -770).mul(CFrame.Angles(0, math.pi, 0))) === undefined) Scenery.Crane(scenery, x, -740, GROUND, math.pi, 90);
+	}
 	Scenery.FuelFarm(scenery, 900, -1300, GROUND, 4, Color3.fromRGB(214, 214, 206));
 	Scenery.FuelFarm(scenery, -900, -1350, GROUND, 3, Color3.fromRGB(214, 214, 206));
 
@@ -185,11 +168,24 @@ function buildIronCoast(scenery: Folder, parent: Instance): Model[] {
 
 	// Town on the hillside, sunset-lit walls.
 	const walls = [Color3.fromRGB(206, 186, 160), Color3.fromRGB(176, 150, 130), Color3.fromRGB(190, 172, 150), Color3.fromRGB(150, 140, 136)];
-	Scenery.Buildings(scenery, 23, -1500, -1760, 5, 3, GROUND, 70, 70, walls, false);
-	Scenery.Buildings(scenery, 24, 1150, -1760, 4, 3, GROUND, 70, 70, walls, false);
-	Scenery.Trees(scenery, 25, -800, -1900, 600, 260, GROUND, 10);
-	Scenery.Trees(scenery, 26, 800, -1950, 600, 260, GROUND, 10);
-	Scenery.Rocks(scenery, 27, P, 0, -2050, 3200, 300, GROUND, 12, (x, z) => near(x, z, 0, -2250, 300) || near(x, z, -1300, -2150, 320) || near(x, z, 1300, -2200, 340));
+	// Uploaded farmhouses and barns as the town's houses. Each house that cannot be the uploaded
+	// model (one of the two uploads failed) takes WorldAssets' block of the same size; the
+	// primitive town only when neither upload is there.
+	if (WorldAssets.Has("Farmhouse") || WorldAssets.Has("Barn")) {
+		for (const [x0, cols] of [[-1500, 5], [1150, 4]]) for (let c = 0; c < cols; c++) for (let r = 0; r < 3; r++) {
+			WorldAssets.Place(r === 1 && c % 2 === 0 ? "Barn" : "Farmhouse", scenery, new CFrame(x0 + c * 76, GROUND, -1760 + r * 76).mul(CFrame.Angles(0, (r % 2) * math.pi + (c % 3 - 1) * 0.08, 0)));
+		}
+	} else {
+		Scenery.Buildings(scenery, 23, -1500, -1760, 5, 3, GROUND, 70, 70, walls, false);
+		Scenery.Buildings(scenery, 24, 1150, -1760, 4, 3, GROUND, 70, 70, walls, false);
+	}
+	const town = (x: number, z: number): boolean => inside(x, z, -1350, -1690, 420, 300) || inside(x, z, 1265, -1690, 360, 300) || positions.some((p) => near(x, z, p.X, p.Z, 140));
+	Scenery.Trees(scenery, 25, -800, -1900, 600, 260, GROUND, 18, town, 0.3);
+	Scenery.Trees(scenery, 26, 800, -1950, 600, 260, GROUND, 18, town, 0.3);
+	Scenery.Trees(scenery, 30, 0, -2200, 3400, 260, GROUND, 24, town, 0.5);
+	Scenery.Trees(scenery, 31, -1500, 500, 460, 400, GROUND, 8, () => false, 0.4);
+	Scenery.Trees(scenery, 32, 1550, 450, 440, 380, GROUND, 8, () => false, 0.4);
+	Scenery.Rocks(scenery, 27, P, 0, -2050, 3200, 300, GROUND, 14, (x, z) => town(x, z) || near(x, z, 0, -2250, 300) || near(x, z, -1300, -2150, 320) || near(x, z, 1300, -2200, 340));
 
 	// Breakwater arms with a lighthouse on the east head; the harbor entrance sits between them.
 	for (const side of [-1, 1]) {
@@ -199,7 +195,11 @@ function buildIronCoast(scenery: Folder, parent: Instance): Model[] {
 	Scenery.Lighthouse(scenery, 340, -350, 14);
 	// Moored boats in the basin, along the quays and one at anchor outside.
 	const hulls = [Color3.fromRGB(178, 54, 48), Color3.fromRGB(36, 52, 74), Color3.fromRGB(230, 230, 226), Color3.fromRGB(70, 100, 90)];
-	const boats: Array<[number, number, number, number]> = [[-150, -800, 0.1, 60], [120, -880, -0.2, 48], [-700, -640, math.pi / 2, 90], [900, -650, math.pi / 2 + 0.1, 110], [-1300, -640, math.pi / 2, 70], [600, -150, 0.6, 80]];
+	// A frigate alongside the east quay over its dredged berth (waterline placement, bow west); the old hull stays only if the upload fails.
+	const f = IRON_COAST_FRIGATE;
+	const frigate = WorldAssets.PlaceUploaded("Frigate", scenery, new CFrame(f.x, Scenery.WATERLINE, f.z).mul(CFrame.Angles(0, f.yaw, 0)));
+	const boats = [...IRON_COAST_BOATS];
+	if (frigate === undefined) boats.insert(3, IRON_COAST_FALLBACK_HULL);
 	for (let i = 0; i < boats.size(); i++) Scenery.Boat(scenery, boats[i][0], boats[i][1], boats[i][2], boats[i][3], hulls[i % hulls.size()]);
 
 	const land = (x: number, z: number): boolean => z < -500 || near(x, z, -1500, 500, 500) || near(x, z, 1550, 450, 500);
@@ -211,20 +211,22 @@ function buildIronCoast(scenery: Folder, parent: Instance): Model[] {
 export const MissionWorld = {
 	Build(missionId: number, parent: Instance): { groundTargets: Model[] } {
 		if (missionId >= 3) return RelayWorld.Build(missionId, parent);
+		const late = WorldAssets.Preload(UPLOADS[missionId === 1 ? 1 : 2]);
+		if (late.size() > 0) warn(`[MissionWorld] M${missionId}: ${late.join(", ")} still loading after the preload deadline; placing fallbacks`);
+		parent.SetAttribute("WorldPreloadLate", late.size());
 		Workspace.FindFirstChild("World")?.Destroy();
 		Workspace.Terrain.Clear();
-		environment(missionId);
+		WorldEnvironment.Apply(MissionCatalog.Get(missionId).environment);
 		const scenery = new Instance("Folder");
 		scenery.Name = missionId === 1 ? "FirstFlightWorld" : "IronCoastWorld";
 		scenery.Parent = parent;
 		const groundTargets = missionId === 1 ? buildVardaRim(scenery, parent) : buildIronCoast(scenery, parent);
-		Scenery.Report(parent, scenery.Name);
+		Scenery.Report(parent, scenery.Name, Scenery.PART_BUDGET, true);
 		return { groundTargets };
 	},
 	RestoreMenu(): void {
 		Workspace.Terrain.Clear();
-		Workspace.Terrain.FindFirstChild("MissionClouds")?.Destroy();
-		for (const name of ["MissionAtmosphere", "MissionGrade", "MissionSky"]) Lighting.FindFirstChild(name)?.Destroy();
+		WorldEnvironment.Clear();
 		WorldBuilder.Build();
 	},
 };

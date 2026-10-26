@@ -1,127 +1,138 @@
-import { Lighting, Workspace } from "@rbxts/services";
+import { Workspace } from "@rbxts/services";
+import type { Rgb } from "../shared/EnvironmentPresets";
 import { MissionAssets } from "../shared/MissionAssets";
 import { MissionCatalog } from "../shared/MissionCatalog";
-import { layoutFor } from "../shared/MissionLayouts";
+import { WorldPlanner, type PartSpec, type PropAsset, type PropSpec, type WorldPlan } from "../shared/WorldPlan";
 import { Scenery } from "./Scenery";
+import { material, TerrainWriter } from "./TerrainWriter";
+import { WorldAssets } from "./WorldAssets";
+import { WorldEnvironment } from "./WorldEnvironment";
 
-const part=Scenery.Part;
-function light(parent: Instance, pos: Vector3): void { part(parent,"Navigation light",new Vector3(4,3,4),pos,Color3.fromRGB(80,235,211),Enum.Material.Neon,{flightSolid:false,castShadow:false}); }
-const near=(x: number,z: number,cx: number,cz: number,r: number): boolean=>(x-cx)*(x-cx)+(z-cz)*(z-cz)<r*r;
+// Executes the pure WorldPlan for missions 3-27 (shared/WorldPlan): Terrain
+// voxel relief and water, the few primitive parts (runways, aprons, decks,
+// roads), clones of the cached uploaded Blender models, and the ground
+// targets. The plan is audited offline (WorldAudit); this file only turns
+// its numbers into instances, in a fixed order:
+//   1. environment and terrain colours, 2. the voxel ops as bounded jobs on a
+//   per-frame time budget (TerrainWriter), 3. parts (Scenery.Part yields every
+//   150), 4. props (template loads run in parallel first, bounded by
+//   WorldAssets' preload timeout; placement itself never waits), 5. targets.
+// Build timings land on the parent as attributes (WorldBuildSeconds,
+// WorldTerrainLongest, ...) so an engine run can read the worst stall.
+// A prop whose template fails to load takes WorldAssets' simple fallback, or
+// a small primitive stand-in for trees, rocks, masts, dishes and cranes.
+
+const rgb = (c: Rgb) => Color3.fromRGB(c[0], c[1], c[2]);
+const yawFrame = (x: number, y: number, z: number, yaw: number) => new CFrame(x, y, z).mul(CFrame.Angles(0, yaw, 0));
+/** Props per batch before yielding, so a 170-prop farm does not hold the heartbeat. */
+const PROP_YIELD = 40;
+
+function writeTerrain(plan: WorldPlan): ReturnType<typeof TerrainWriter.Write> {
+	const terrain = Workspace.Terrain;
+	for (const [name, color] of plan.materialColors) terrain.SetMaterialColor(material(name), rgb(color));
+	return TerrainWriter.Write(plan.ops);
+}
+
+function buildPart(parent: Instance, p: PartSpec): BasePart {
+	const options = { flightSolid: p.solid, castShadow: false, transparency: p.transparency, reflectance: p.reflectance };
+	const color = rgb(p.color), mat = material(p.material);
+	if (p.shape === "cylinder") return Scenery.Cylinder(parent, p.name, p.sx, p.sy, new Vector3(p.x, p.y, p.z), color, mat, options);
+	if (p.shape === "ball") return Scenery.Part(parent, p.name, new Vector3(p.sx, p.sx, p.sx), new Vector3(p.x, p.y, p.z), color, mat, { ...options, shape: Enum.PartType.Ball });
+	return Scenery.Part(parent, p.name, new Vector3(p.sx, p.sy, p.sz), yawFrame(p.x, p.y, p.z, p.yaw), color, mat, { ...options, className: p.shape === "wedge" ? "WedgePart" : "Part" });
+}
+
+const BARK = Color3.fromRGB(92, 70, 50);
+const LEAVES = [Color3.fromRGB(58, 96, 52), Color3.fromRGB(70, 108, 58), Color3.fromRGB(50, 86, 60)];
+const STONE = [Color3.fromRGB(112, 106, 98), Color3.fromRGB(96, 92, 86), Color3.fromRGB(128, 120, 108)];
+const STEEL = Color3.fromRGB(200, 176, 70);
+/** Primitive stand-ins for the dressing WorldAssets has no fallback for (used only when the upload fails). */
+function standIn(parent: Instance, p: PropSpec): void {
+	const s = p.scale, at = yawFrame(p.x, p.y, p.z, p.yaw);
+	if (p.asset === "Pine" || p.asset === "Broadleaf") {
+		const trunk = (p.asset === "Pine" ? 16 : 14) * s, crown = (p.asset === "Pine" ? 22 : 30) * s;
+		Scenery.Part(parent, "Trunk", new Vector3(3 * s, trunk, 3 * s), at.mul(new CFrame(0, trunk / 2, 0)), BARK, Enum.Material.Wood);
+		if (p.asset === "Pine") Scenery.Part(parent, "Canopy", new Vector3(crown, crown * 1.9, crown), at.mul(new CFrame(0, trunk + crown * 0.8, 0)), LEAVES[p.tint % 3], Enum.Material.Grass, { shape: Enum.PartType.Ball });
+		else Scenery.Part(parent, "Canopy", new Vector3(crown, crown * 0.9, crown), at.mul(new CFrame(0, trunk + crown * 0.35, 0)), LEAVES[p.tint % 3], Enum.Material.Grass, { shape: Enum.PartType.Ball });
+	} else if (p.asset === "RockA" || p.asset === "RockB" || p.asset === "RockC") {
+		const size = WorldAssets.Spec(p.asset).size.mul(s);
+		Scenery.Part(parent, "Boulder", size, at.mul(new CFrame(0, size.Y * 0.35, 0)), STONE[p.tint % 3], Enum.Material.Rock);
+	} else if (p.asset === "RelayMast") {
+		Scenery.Part(parent, "Mast", new Vector3(6, 150, 6), at.mul(new CFrame(0, 75, 0)), Color3.fromRGB(190, 60, 50), Enum.Material.Metal);
+	} else if (p.asset === "RadarDish") {
+		Scenery.Cylinder(parent, "Dish pedestal", 10, 24, at.mul(new CFrame(0, 12, 0)).Position, Color3.fromRGB(150, 154, 156), Enum.Material.Metal);
+		Scenery.Part(parent, "Dish", new Vector3(44, 44, 8), at.mul(new CFrame(0, 36, 0)).mul(CFrame.Angles(-0.5, 0, 0)), Color3.fromRGB(226, 228, 226), Enum.Material.SmoothPlastic);
+	} else if (p.asset === "GantryCrane") {
+		Scenery.Crane(parent, p.x, p.z, p.y, p.yaw, 150, STEEL);
+	}
+}
+
+function placeProp(parent: Instance, p: PropSpec): Model | undefined {
+	const model = WorldAssets.Place(p.asset, parent, yawFrame(p.x, p.y, p.z, p.yaw), p.scale);
+	if (model === undefined) standIn(parent, p);
+	else if (p.tag !== undefined) {
+		model.SetAttribute("WorldTag", p.tag);
+		if (p.tag === "ProtectedHull") model.Name = "Command frigate";
+	}
+	return model;
+}
+
 export const RelayWorld = {
-	Build(id: number,parent: Instance): {groundTargets: Model[]} {
-		const bp=MissionCatalog.Get(id), layout=layoutFor(id), terrain=Workspace.Terrain;
-		Workspace.FindFirstChild("World")?.Destroy(); terrain.Clear();
-		for (const name of ["SkybreakAtmosphere","SkybreakColor","MissionAtmosphere","MissionGrade","MissionSky"]) Lighting.FindFirstChild(name)?.Destroy();
-		terrain.FindFirstChild("SkybreakClouds")?.Destroy(); terrain.FindFirstChild("MissionClouds")?.Destroy();
-		const preset=bp.environment;
-		const night=preset.find("night")[0] !== undefined || preset==="relay_aurora";
-		const storm=preset.find("storm")[0] !== undefined;
-		const warm=preset.find("sunset")[0] !== undefined || preset.find("dusk")[0] !== undefined || preset==="city_evening";
-		const dawn=preset.find("dawn")[0] !== undefined;
-		Lighting.ClockTime=night ? 1.8 : warm ? 17.7 : dawn ? 6.4 : storm ? 13 : 9.5;
-		Lighting.Brightness=night ? 2 : 2.6; Lighting.ExposureCompensation=night ? .35 : .05;
-		Lighting.Ambient=Color3.fromRGB(100,118,140); Lighting.OutdoorAmbient=Color3.fromRGB(130,145,155);
-		Lighting.GlobalShadows=false; // no sun shadow map in sorties (mobile GPU); the menu restores it
-		const sky=new Instance("Sky"); sky.Name="MissionSky"; sky.StarCount=night ? 1800 : 0; sky.Parent=Lighting;
-		const at=new Instance("Atmosphere"); at.Name="MissionAtmosphere"; at.Density=storm ? .33 : preset==="harbor_fog" ? .31 : .24;
-		at.Haze=storm ? 2.2 : 1.3; at.Color=warm ? Color3.fromRGB(240,199,154) : dawn ? Color3.fromRGB(236,208,186) : night ? Color3.fromRGB(130,165,196) : Color3.fromRGB(190,215,227); at.Parent=Lighting;
-		const grade=new Instance("ColorCorrectionEffect"); grade.Name="MissionGrade"; grade.Contrast=.06; grade.Saturation=storm ? -.15 : .08; grade.Parent=Lighting;
-		const cloud=new Instance("Clouds"); cloud.Name="MissionClouds"; cloud.Cover=storm ? .85 : .32; cloud.Density=.3; cloud.Parent=terrain; // storms keep their cover; density stays <= 0.3 for phones
-		const scene=new Instance("Folder"); scene.Name=layout.name; scene.Parent=parent;
-		parent.SetAttribute("MissionId",id); parent.SetAttribute("Composition",layout.name);
-		const inland=bp.region==="upland_farm" || bp.region==="plateau_relay" || bp.region==="canyon_pass" || bp.region==="canyon_airfield";
-		const farm=bp.region==="upland_farm";
-		const P=farm ? Scenery.PALETTES.temperate : inland ? Scenery.PALETTES.canyon : Scenery.PALETTES.harbor;
-		const floor=inland ? 43 : 39.5;
-		Scenery.Sea(scene,inland ? Color3.fromRGB(30,78,102) : night ? Color3.fromRGB(18,40,58) : Color3.fromRGB(27,75,99));
-		// Flat terrain uses bounded native slabs. Avoid millions of allocated voxels
-		// per sortie on phones; each disposable world stays below Scenery.PART_BUDGET
-		// BaseParts (Scenery.Report warns when a composition drifts over).
-		if(inland) for(let x=-1;x<=1;x++)for(let z=-1;z<=1;z++)part(scene,"Plateau floor",new Vector3(1550,50,1550),new Vector3(x*1550,18,z*1550),farm ? Color3.fromRGB(99,126,73) : Color3.fromRGB(160,116,78),farm ? Enum.Material.Grass : Enum.Material.Sandstone);
-		else if(layout.landmark!=="platform") for(let x=-1;x<=1;x++)for(let z=0;z<=1;z++){
-			part(scene,"Coastal ground",new Vector3(1400,55,1500),new Vector3(x*1400,12,z*1500-200),Color3.fromRGB(91,119,89),Enum.Material.Grass);
-			// Shoreline sheets tile the slab grid exactly (no coplanar overlaps) and
-			// only grow outward on the seaward edges.
-			for(const [name,ext,y,color,material,transparency,flightSolid] of [["Shallows",220,Scenery.WATERLINE+.4,P.shallow,Enum.Material.SmoothPlastic,.45,false],["Beach",60,Scenery.WATERLINE+1.6,P.sand,Enum.Material.Sand,0,true]] as Array<[string,number,number,Color3,Enum.Material,number,boolean]>){
-				const sx=1400+(x===0 ? 0 : ext), cx=x*1400+x*ext/2, sz=1500+ext, cz=z*1500-200+(z===0 ? -ext/2 : ext/2);
-				part(scene,name,new Vector3(sx,name==="Beach" ? 3 : .5,sz),new Vector3(cx,y,cz),color,material,{transparency,flightSolid,castShadow:false});
-			}
+	Build(id: number, parent: Instance): { groundTargets: Model[] } {
+		const started = os.clock();
+		const bp = MissionCatalog.Get(id), plan = WorldPlanner.Build(id);
+		Workspace.FindFirstChild("World")?.Destroy();
+		Workspace.Terrain.Clear();
+		WorldEnvironment.Apply(bp.environment);
+		const scene = new Instance("Folder");
+		scene.Name = plan.name;
+		scene.Parent = parent;
+		parent.SetAttribute("MissionId", id);
+		parent.SetAttribute("Composition", plan.name);
+
+		const terrain = writeTerrain(plan);
+		for (const p of plan.parts) buildPart(scene, p);
+
+		const unique = new Set<PropAsset>();
+		for (const p of plan.props) unique.add(p.asset);
+		const assets: PropAsset[] = [];
+		for (const asset of unique) assets.push(asset);
+		const late = WorldAssets.Preload(assets);
+		const props = new Instance("Folder");
+		props.Name = "Props";
+		props.Parent = scene;
+		let uploaded = 0, fallbacks = 0;
+		for (let i = 0; i < plan.props.size(); i++) {
+			const model = placeProp(props, plan.props[i]);
+			if (model?.GetAttribute("GeometrySource") === "Uploaded") uploaded += 1;
+			else fallbacks += 1;
+			if (i % PROP_YIELD === PROP_YIELD - 1) task.wait();
 		}
-		// Mesas are stacked tiers (base, shoulder, summit, cap) with offset
-		// footprints so the walls read as layered rock with stepped ledges.
-		const rng=new Random(id*7919);
-		const tierColors=farm ? [Color3.fromRGB(96,92,84),Color3.fromRGB(118,110,96),Color3.fromRGB(134,124,106)] : inland ? [Color3.fromRGB(118,80,60),Color3.fromRGB(154,106,74),Color3.fromRGB(186,136,92)] : [Color3.fromRGB(88,86,82),Color3.fromRGB(112,108,100),Color3.fromRGB(132,126,114)];
-		for(const r of layout.ridges){
-			const [x,z,w,d,h]=r;
-			const tiers: Array<[number,number,number]>=[[1,.55,0],[.84,.8,.045],[.66,1,.08]];
-			for(let t=0;t<tiers.size();t++){
-				const [scale,frac,wobble]=tiers[t];
-				const tw=math.min(2000,w*scale), td=math.min(2000,d*scale), th=h*frac;
-				const ox=w*wobble*rng.NextNumber(-1,1), oz=d*wobble*rng.NextNumber(-1,1);
-				part(scene,t===0 ? "Mesa base" : t===1 ? "Mesa shoulder" : "Mesa summit",new Vector3(tw,th,td),new Vector3(x+ox,th/2-20,z+oz),tierColors[t],t===2 && !farm ? Enum.Material.Sandstone : Enum.Material.Rock);
-				if(t===2) part(scene,"Mesa cap",new Vector3(math.max(10,tw-24),8,math.max(10,td-24)),new Vector3(x+ox,h-20+4,z+oz),farm ? Color3.fromRGB(86,119,73) : Color3.fromRGB(196,152,102),farm ? Enum.Material.Grass : Enum.Material.Sandstone);
-			}
-			// Talus boulders ring the foot of every mesa.
-			Scenery.Rocks(scene,id*31+x,P,x,z,math.min(2000,w)+180,math.min(2000,d)+180,floor,4,(px,pz)=>math.abs(px-x)<w/2-10 && math.abs(pz-z)<d/2-10);
+
+		const groundTargets: Model[] = [];
+		for (const site of plan.targets) {
+			const spec = bp.ground[site.index];
+			const model = spec.asset === "radar" ? MissionAssets.CreateRadar(spec.name) : spec.asset === "warehouse" ? MissionAssets.CreateWarehouse(spec.name) : spec.asset === "comms_relay" ? MissionAssets.CreateCommsRelay(spec.name) : MissionAssets.CreateGrainSilo(spec.name);
+			const [bounds, size] = model.GetBoundingBox();
+			// Bounds-based grounding: the model's lowest point rests on the apron or deck top.
+			model.PivotTo(new CFrame(spec.x, site.baseY + (model.GetPivot().Position.Y - (bounds.Position.Y - size.Y / 2)), spec.z).mul(CFrame.Angles(0, spec.yaw ?? 0, 0)));
+			model.Parent = parent;
+			groundTargets.push(model);
 		}
-		for (let i=1;i<layout.road.size();i++) Scenery.Road(scene,[new Vector3(layout.road[i-1][0],floor+1,layout.road[i-1][1]),new Vector3(layout.road[i][0],floor+1,layout.road[i][1])],25);
-		const walls=inland && !farm ? [Color3.fromRGB(206,176,140),Color3.fromRGB(184,150,116),Color3.fromRGB(160,138,118)] : [Color3.fromRGB(146,150,152),Color3.fromRGB(127,139,141),Color3.fromRGB(168,160,146)];
-		for (const s of layout.settlements) Scenery.Buildings(scene,id*17+s[0],s[0],s[1],s[2],s[3],floor+1,105,110,walls,night,layout.landmark==="city");
-		const fx=layout.focus[0],fz=layout.focus[1];
-		if(layout.landmark==="orchard") {
-			for(let x=-3;x<=3;x++) for(let z=0;z<5;z++) {
-				part(scene,"Farm strip",new Vector3(85,2,100),new Vector3(x*180,45,600-z*220),Color3.fromRGB(116+z*9,127,60),Enum.Material.Grass);
-				part(scene,"Orchard trunk",new Vector3(6,16,6),new Vector3(x*180,54,600-z*220),Color3.fromRGB(98,72,46),Enum.Material.Wood);
-				part(scene,"Orchard canopy",new Vector3(34,27,34),new Vector3(x*180,74,600-z*220),Color3.fromRGB(65,104+z*5,60),Enum.Material.Grass,{shape:Enum.PartType.Ball});
-			}
-		} else if(layout.landmark==="runway") {
-			part(scene,"Runway",new Vector3(100,4,900),new Vector3(fx,48,fz),Color3.fromRGB(36,45,52),Enum.Material.Asphalt);
-			for(let i=-4;i<=4;i++) { part(scene,"Center stripe",new Vector3(4,1,45),new Vector3(fx,50.5,fz+i*95),Color3.fromRGB(239,230,191),Enum.Material.Concrete,{flightSolid:false}); light(scene,new Vector3(fx-47,53,fz+i*95)); light(scene,new Vector3(fx+47,53,fz+i*95)); }
-		} else if(layout.landmark==="bridge") {
-			// A river with sand banks runs the full depth of the map; the bridge
-			// carries the canyon track across it and a dirt road continues east.
-			const rx=fx+300;
-			for(const z of [-1200,600]) {
-				part(scene,"River",new Vector3(160,3,1800),new Vector3(rx,floor+1,z),Color3.fromRGB(52,128,146),Enum.Material.SmoothPlastic,{reflectance:.18,castShadow:false});
-				for(const side of [-1,1]) part(scene,"River bank",new Vector3(34,2,1800),new Vector3(rx+side*96,floor+1,z),P.sand,Enum.Material.Sand,{castShadow:false});
-			}
-			Scenery.Rocks(scene,id*53,P,rx,-300,120,3400,floor-2,8);
-			part(scene,"Bridge deck",new Vector3(450,9,45),new Vector3(rx,70,fz),Color3.fromRGB(111,115,108));
-			for(const side of [-1,1]) part(scene,"Bridge rail",new Vector3(450,4,2),new Vector3(rx,76.5,fz+side*21.5),Color3.fromRGB(70,74,78),Enum.Material.Metal,{castShadow:false});
-			for(const x of [-150,150]) part(scene,"Bridge support",new Vector3(16,50,45),new Vector3(rx+x,45,fz),Color3.fromRGB(98,108,112));
-			for(const x of [-205,205]) part(scene,"Bridge abutment",new Vector3(40,26,60),new Vector3(rx+x,58,fz),Color3.fromRGB(120,112,100),Enum.Material.Concrete);
-			Scenery.Road(scene,[new Vector3(rx+225,floor+1,fz),new Vector3(rx+560,floor+1,fz+320),new Vector3(rx+900,floor+1,fz+360)],22,Color3.fromRGB(128,104,78));
-		} else if(layout.landmark==="array") {
-			for(const offset of [-420,420]) {
-				const mast=MissionAssets.CreateCommsRelay("Quiet relay mast"); mast.PivotTo(new CFrame(fx+offset,90,fz+220)); mast.Parent=scene;
-			}
-		} else if(layout.landmark==="harbor" || layout.landmark==="platform") {
-			for(let i=-1;i<=1;i++) {
-				part(scene,"Quay",new Vector3(240,25,520),new Vector3(fx+i*600,29,fz),Color3.fromRGB(92,110,113));
-				Scenery.Crane(scene,fx+i*600+60,fz-120,41.5,0,95);
-				Scenery.Containers(scene,id*11+i,fx+i*600-60,fz+60,41.5,3,2,2);
-			}
-		} else if(layout.landmark==="city") {
-			part(scene,"Civic plaza",new Vector3(500,6,280),new Vector3(fx,46,fz),Color3.fromRGB(173,167,144));
-			part(scene,"Parliament",new Vector3(230,66,100),new Vector3(fx,82,fz-140),Color3.fromRGB(199,191,165));
-			for(let i=-4;i<=4;i++) part(scene,"Parliament column",new Vector3(9,70,14),new Vector3(fx+i*24,85,fz-78),Color3.fromRGB(224,216,193));
-		}
-		const groundTargets: Model[]=[];
-		for (const spec of bp.ground) {
-			// All targets have level aprons. Bounds-based grounding keeps meshes honest.
-			part(scene,"Target apron",new Vector3(150,5,160),new Vector3(spec.x,45,spec.z),Color3.fromRGB(90,103,108));
-			const model=spec.asset==="radar" ? MissionAssets.CreateRadar(spec.name) : spec.asset==="warehouse" ? MissionAssets.CreateWarehouse(spec.name) : spec.asset==="comms_relay" ? MissionAssets.CreateCommsRelay(spec.name) : MissionAssets.CreateGrainSilo(spec.name);
-			const [bounds,size]=model.GetBoundingBox();
-			model.PivotTo(new CFrame(spec.x,48-(bounds.Position.Y-size.Y/2),spec.z).mul(CFrame.Angles(0,spec.yaw ?? 0,0)));
-			model.Parent=parent; groundTargets.push(model);
-		}
-		// Ground dressing keeps clear of targets, the landmark focus and the mesas.
-		const keepClear=(x: number,z: number): boolean=>near(x,z,fx,fz,260) || bp.ground.some((g)=>near(x,z,g.x,g.z,200)) || layout.ridges.some((r)=>math.abs(x-r[0])<r[2]/2+60 && math.abs(z-r[1])<r[3]/2+60) || layout.settlements.some((s)=>x>s[0]-80 && x<s[0]+s[2]*105+40 && z>s[1]-80 && z<s[1]+s[3]*110+40);
-		if(layout.landmark!=="platform") Scenery.Rocks(scene,id*97,P,0,-200,3600,3600,floor,inland ? 16 : 8,keepClear);
-		if(farm || bp.region==="coastal_city") Scenery.Trees(scene,id*101,0,-200,3400,3400,floor,farm ? 20 : 12,keepClear);
-		if(!inland) Scenery.SeaStacks(scene,id*131,P,8,1800,2400,(x,z)=>z<700 && math.abs(x)<2300);
-		Scenery.Mountains(scene,id*151,inland && !farm ? Color3.fromRGB(150,110,84) : farm ? Color3.fromRGB(96,118,96) : Color3.fromRGB(92,104,118),layout.landmark==="platform" ? 6 : 14);
-		Scenery.Report(parent,layout.name);
-		return {groundTargets};
+
+		const counts = WorldPlanner.Counts(plan);
+		parent.SetAttribute("WorldProps", plan.props.size());
+		parent.SetAttribute("WorldUploaded", uploaded);
+		parent.SetAttribute("WorldFallbacks", fallbacks);
+		parent.SetAttribute("WorldTerrainOps", counts.terrainOps);
+		parent.SetAttribute("WorldTerrainJobs", terrain.jobs);
+		parent.SetAttribute("WorldTerrainYields", terrain.yields);
+		parent.SetAttribute("WorldTerrainSeconds", terrain.total);
+		parent.SetAttribute("WorldTerrainLongest", terrain.longest);
+		parent.SetAttribute("WorldPreloadLate", late.size());
+		parent.SetAttribute("WorldBuildSeconds", os.clock() - started);
+		if (late.size() > 0) warn(`[RelayWorld] ${plan.name}: ${late.join(", ")} still loading after the preload deadline; placed fallbacks`);
+		if (fallbacks > 0) warn(`[RelayWorld] ${plan.name}: ${fallbacks} of ${plan.props.size()} props used the primitive fallback`);
+		Scenery.Report(parent, plan.name, Scenery.PART_BUDGET, true);
+		return { groundTargets };
 	},
 };
