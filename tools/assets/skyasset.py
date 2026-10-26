@@ -15,8 +15,10 @@ Every generator under ``tools/assets/`` builds one asset from code, then calls
 
 Coordinates: author in Blender with X right, Z up and **-Y forward**, one
 Blender unit = one Roblox stud (1 stud ~ 0.28 m). The FBX export maps this to
-Roblox +Y up / -Z forward. Nothing here draws glyphs: every texture is built
-from noise, grids and masks, which is what lets ``noText`` be asserted.
+Roblox +Y up / -Z forward and writes one FBX centimetre per stud, because Roblox's
+importer reads FBX centimetres as studs (see ``FBX_METRES_PER_STUD``). Nothing here
+draws glyphs: every texture is built from noise, grids and masks, which is what lets
+``noText`` be asserted.
 """
 
 from __future__ import annotations
@@ -36,6 +38,13 @@ from mathutils import Matrix, Vector
 ROOT = Path(__file__).resolve().parents[2]
 UPLOAD = ROOT / "assets" / "roblox-upload"
 STUD_METRES = 0.28
+# Roblox's Model import reads the FBX's centimetre values as studs, ignoring the file's
+# unit scale: the pilot Kestrel upload written at 0.28 m per stud (28 FBX cm per stud)
+# arrived 644 x 172 x 754.6 studs, 28x its 23 x 6.143 x 26.95 authored size. Exporting
+# 0.01 m (one FBX centimetre) per stud makes an import arrive at the authored stud size.
+# Folders exported before this change have no ``fbxMetresPerStud`` and arrive 28x too
+# large; the game's loader rescales either way.
+FBX_METRES_PER_STUD = 0.01
 
 
 def m(metres: float) -> float:
@@ -773,6 +782,7 @@ class Asset:
             ],
             "robloxSizeStuds": [round(v, 3) for v in roblox_vec(size, absolute=True)],
             "studMetres": STUD_METRES,
+            "fbxMetresPerStud": FBX_METRES_PER_STUD,
             "pivot": "bounds-center" if self.kind == "aircraft" else "bottom-center",
             "groundOffsetStuds": round(ground_offset, 3),
             "previews": ["preview-front.png", "preview-side.png", "preview-top.png", "preview-3q.png"],
@@ -909,8 +919,8 @@ def export_fbx(objects, path: Path) -> None:
         bake_anim=False,
         axis_forward="-Z",
         axis_up="Y",
-        # One Blender unit is one stud; write real-world metres (1 stud = 0.28 m).
-        global_scale=STUD_METRES,
+        # One Blender unit is one stud; write one FBX centimetre per stud (Roblox reads cm as studs).
+        global_scale=FBX_METRES_PER_STUD,
         apply_unit_scale=True,
         apply_scale_options="FBX_SCALE_NONE",
         bake_space_transform=True,

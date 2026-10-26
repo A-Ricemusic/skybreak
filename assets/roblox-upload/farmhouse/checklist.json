@@ -7,7 +7,7 @@
   "generator": "tools/assets/build.py",
   "fbx": {
     "file": "farmhouse.fbx",
-    "bytes": 789516
+    "bytes": 250380
   },
   "triangleCount": 200,
   "triangleLimit": 2500,
@@ -21,30 +21,30 @@
     {
       "role": "color",
       "file": "farmhouse-color.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 321936
+      "width": 256,
+      "height": 256,
+      "bytes": 88875
     },
     {
       "role": "normal",
       "file": "farmhouse-normal.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 249889
+      "width": 256,
+      "height": 256,
+      "bytes": 71231
     },
     {
       "role": "rough",
       "file": "farmhouse-roughness.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 181939
+      "width": 256,
+      "height": 256,
+      "bytes": 57125
     },
     {
       "role": "metal",
       "file": "farmhouse-metalness.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 3693
+      "width": 256,
+      "height": 256,
+      "bytes": 1120
     }
   ],
   "robloxSizeStuds": [
@@ -53,6 +53,7 @@
     55.086
   ],
   "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
   "pivot": "bottom-center",
   "groundOffsetStuds": 0.0,
   "previews": [

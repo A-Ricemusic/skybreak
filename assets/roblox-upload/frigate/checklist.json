@@ -7,7 +7,7 @@
   "generator": "tools/assets/build.py",
   "fbx": {
     "file": "frigate.fbx",
-    "bytes": 799532
+    "bytes": 799340
   },
   "triangleCount": 3222,
   "triangleLimit": 6000,
@@ -23,7 +23,7 @@
       "file": "frigate-color.png",
       "width": 512,
       "height": 512,
-      "bytes": 284528
+      "bytes": 284482
     },
     {
       "role": "normal",
@@ -53,6 +53,7 @@
     430.0
   ],
   "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
   "pivot": "bottom-center",
   "groundOffsetStuds": 16.0,
   "previews": [
@@ -64,7 +65,7 @@
   "checks": {
     "noText": {
       "value": true,
-      "note": "Textures are baked from noise, grids and masks only; no letters, numbers, words, call signs or codes in mesh or texture."
+      "note": "No letters, numbers or symbols: the helideck is plain non-skid with only thin pale lines along its own edges (port, starboard, stern, hangar face); no circle, cross or centre line."
     },
     "noLogosOrBrands": {
       "value": true,

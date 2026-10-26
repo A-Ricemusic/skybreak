@@ -7,7 +7,7 @@
   "generator": "tools/assets/build.py",
   "fbx": {
     "file": "relay-mast.fbx",
-    "bytes": 613484
+    "bytes": 283884
   },
   "triangleCount": 1436,
   "triangleLimit": 2500,
@@ -21,30 +21,30 @@
     {
       "role": "color",
       "file": "relay-mast-color.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 281052
+      "width": 256,
+      "height": 256,
+      "bytes": 83731
     },
     {
       "role": "normal",
       "file": "relay-mast-normal.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 37451
+      "width": 256,
+      "height": 256,
+      "bytes": 12587
     },
     {
       "role": "rough",
       "file": "relay-mast-roughness.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 136101
+      "width": 256,
+      "height": 256,
+      "bytes": 43228
     },
     {
       "role": "metal",
       "file": "relay-mast-metalness.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 24493
+      "width": 256,
+      "height": 256,
+      "bytes": 10417
     }
   ],
   "robloxSizeStuds": [
@@ -53,6 +53,7 @@
     20.123
   ],
   "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
   "pivot": "bottom-center",
   "groundOffsetStuds": 0.0,
   "previews": [

@@ -7,7 +7,7 @@
   "generator": "tools/assets/build.py",
   "fbx": {
     "file": "rock-c.fbx",
-    "bytes": 1058780
+    "bytes": 398028
   },
   "triangleCount": 1600,
   "triangleLimit": 2500,
@@ -21,30 +21,30 @@
     {
       "role": "color",
       "file": "rock-c-color.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 337771
+      "width": 256,
+      "height": 256,
+      "bytes": 93576
     },
     {
       "role": "normal",
       "file": "rock-c-normal.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 429512
+      "width": 256,
+      "height": 256,
+      "bytes": 110546
     },
     {
       "role": "rough",
       "file": "rock-c-roughness.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 136121
+      "width": 256,
+      "height": 256,
+      "bytes": 41900
     },
     {
       "role": "metal",
       "file": "rock-c-metalness.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 3693
+      "width": 256,
+      "height": 256,
+      "bytes": 1120
     }
   ],
   "robloxSizeStuds": [
@@ -53,6 +53,7 @@
     13.195
   ],
   "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
   "pivot": "bottom-center",
   "groundOffsetStuds": 2.5,
   "previews": [

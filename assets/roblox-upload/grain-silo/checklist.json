@@ -7,7 +7,7 @@
   "generator": "tools/assets/build.py",
   "fbx": {
     "file": "grain-silo.fbx",
-    "bytes": 683676
+    "bytes": 259852
   },
   "triangleCount": 1116,
   "triangleLimit": 2500,
@@ -21,30 +21,30 @@
     {
       "role": "color",
       "file": "grain-silo-color.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 288120
+      "width": 256,
+      "height": 256,
+      "bytes": 79569
     },
     {
       "role": "normal",
       "file": "grain-silo-normal.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 119927
+      "width": 256,
+      "height": 256,
+      "bytes": 38866
     },
     {
       "role": "rough",
       "file": "grain-silo-roughness.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 169989
+      "width": 256,
+      "height": 256,
+      "bytes": 52336
     },
     {
       "role": "metal",
       "file": "grain-silo-metalness.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 28283
+      "width": 256,
+      "height": 256,
+      "bytes": 11739
     }
   ],
   "robloxSizeStuds": [
@@ -53,6 +53,7 @@
     45.0
   ],
   "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
   "pivot": "bottom-center",
   "groundOffsetStuds": 0.0,
   "previews": [

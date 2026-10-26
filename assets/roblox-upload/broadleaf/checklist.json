@@ -7,7 +7,7 @@
   "generator": "tools/assets/build.py",
   "fbx": {
     "file": "broadleaf.fbx",
-    "bytes": 1078188
+    "bytes": 350444
   },
   "triangleCount": 724,
   "triangleLimit": 800,
@@ -21,30 +21,30 @@
     {
       "role": "color",
       "file": "broadleaf-color.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 327140
+      "width": 256,
+      "height": 256,
+      "bytes": 93074
     },
     {
       "role": "normal",
       "file": "broadleaf-normal.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 547234
+      "width": 256,
+      "height": 256,
+      "bytes": 139894
     },
     {
       "role": "rough",
       "file": "broadleaf-roughness.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 121963
+      "width": 256,
+      "height": 256,
+      "bytes": 38428
     },
     {
       "role": "metal",
       "file": "broadleaf-metalness.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 3693
+      "width": 256,
+      "height": 256,
+      "bytes": 1120
     }
   ],
   "robloxSizeStuds": [
@@ -53,6 +53,7 @@
     32.187
   ],
   "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
   "pivot": "bottom-center",
   "groundOffsetStuds": 0.0,
   "previews": [

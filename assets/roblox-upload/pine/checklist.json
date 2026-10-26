@@ -7,7 +7,7 @@
   "generator": "tools/assets/build.py",
   "fbx": {
     "file": "pine.fbx",
-    "bytes": 951580
+    "bytes": 331500
   },
   "triangleCount": 680,
   "triangleLimit": 800,
@@ -21,30 +21,30 @@
     {
       "role": "color",
       "file": "pine-color.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 276721
+      "width": 256,
+      "height": 256,
+      "bytes": 84484
     },
     {
       "role": "normal",
       "file": "pine-normal.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 456225
+      "width": 256,
+      "height": 256,
+      "bytes": 123355
     },
     {
       "role": "rough",
       "file": "pine-roughness.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 131304
+      "width": 256,
+      "height": 256,
+      "bytes": 39059
     },
     {
       "role": "metal",
       "file": "pine-metalness.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 3693
+      "width": 256,
+      "height": 256,
+      "bytes": 1120
     }
   ],
   "robloxSizeStuds": [
@@ -53,6 +53,7 @@
     31.475
   ],
   "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
   "pivot": "bottom-center",
   "groundOffsetStuds": 0.0,
   "previews": [

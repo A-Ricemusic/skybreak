@@ -16,6 +16,9 @@ import zones as Z
 from skyasset import Asset, m, srgb, standard
 
 BUILDERS: dict = {}
+# Mobile texture budget: props that are small on screen (trees, rocks, containers,
+# farm buildings, mast, radar) bake 256² maps; large props keep 512², aircraft 1024².
+SMALL_TEXTURE = 256
 
 
 def builder(fn):
@@ -45,7 +48,7 @@ def frustum(a: Asset, name, zone, x0, y0, x1, y1, z0, z1, inset=0.0, inset_y=Non
 
 
 def _rock(name: str, title: str, seed: int, blobs, flatten: float):
-    a = Asset(name, title, texture=512, tri_limit=2500, bump_distance=0.12, seed=seed,
+    a = Asset(name, title, texture=SMALL_TEXTURE, tri_limit=2500, bump_distance=0.12, seed=seed,
               usage="Scattered boulders and outcrops in canyon, coastal and farm missions (Scenery.Rocks).")
     stone = a.zone("rock", Z.rock("#83807a" if seed != 3 else "#8f7c66", color2="#5f5b55" if seed != 3 else "#6d5a48"))
     noise.seed_set(seed)
@@ -80,7 +83,7 @@ def rock_c():
 
 @builder
 def pine():
-    a = Asset("pine", "Pine tree", texture=512, tri_limit=800, bump_distance=0.25, seed=11,
+    a = Asset("pine", "Pine tree", texture=SMALL_TEXTURE, tri_limit=800, bump_distance=0.25, seed=11,
               usage="Coniferous scatter for farm, relay and canyon rims (Scenery.Trees).")
     wood = a.zone("bark", Z.bark("#56402f"))
     needles = a.zone("needles", Z.foliage("#1f3a28", tip="#4a6638", clump=0.9, radial_tip=10))
@@ -112,7 +115,7 @@ def pine():
 
 @builder
 def broadleaf():
-    a = Asset("broadleaf", "Broadleaf tree", texture=512, tri_limit=800, bump_distance=0.25, seed=12,
+    a = Asset("broadleaf", "Broadleaf tree", texture=SMALL_TEXTURE, tri_limit=800, bump_distance=0.25, seed=12,
               usage="Deciduous scatter for farm valleys, orchards and city parks (Scenery.Trees).")
     wood = a.zone("bark", Z.bark("#5a4838"))
     leaves = a.zone("leaves", Z.foliage("#2f4a22", tip="#5f7a38", clump=1.1, radial_tip=16))
@@ -139,8 +142,14 @@ def broadleaf():
 # Naval and harbour
 
 
-def hull_paint(top="#8b939a", deck="#4d5357", waterline=16.0, helipad=None, vls=None):
-    """Haze-grey topsides, dark non-skid deck, black boot-top and red antifouling."""
+def hull_paint(top="#8b939a", deck="#4d5357", waterline=16.0, deck_edge=None, vls=None):
+    """Haze-grey topsides, dark non-skid deck, black boot-top and red antifouling.
+
+    ``deck_edge=(y0, y1, deck_z, edge)`` paints thin pale safety lines that only trace
+    the flight deck's own boundary (port and starboard edges, stern edge and the
+    hangar face) between y0 and y1, where ``edge(n, y)`` is the deck half-width. The
+    deck inside stays plain: no circle, cross or other mark that could read as a glyph.
+    """
 
     def pattern(n, col):
         x, y, z = n.xyz(n.pos())
@@ -157,12 +166,13 @@ def hull_paint(top="#8b939a", deck="#4d5357", waterline=16.0, helipad=None, vls=
         seams = n.mul(n.maxf(n.lines(y, 14.0, 0.06), n.lines(z, 5.5, 0.06)), n.sub(1.0, deckm))
         col = n.vscale(col, n.sub(1.0, n.mul(seams, 0.15)))
         h = n.sub(0.5, n.mul(seams, 0.3))
-        if helipad is not None:
-            cy, r = helipad
-            d = n.math("SQRT", n.add(n.mul(x, x), n.mul(n.sub(y, cy), n.sub(y, cy))))
-            ring = n.mul(n.band(d, r - 0.9, r, 0.15), deckm)
-            line = n.mul(n.mul(n.band(x, -0.5, 0.5, 0.1), n.band(y, cy - r * 1.6, cy + r * 1.6, 0.2)), deckm)
-            col = n.vlerp(col, srgb("#c9c6b8"), n.maxf(ring, line))
+        if deck_edge is not None:
+            y0, y1, deck_z, edge = deck_edge
+            on_deck = n.mul(n.mul(deckm, n.band(z, deck_z - 0.6, deck_z + 0.6, 0.1)), n.band(y, y0, y1, 0.1))
+            inset = n.sub(edge(n, y), n.absf(x))
+            sides = n.smooth(inset, 1.9, 1.5)
+            ends = n.maxf(n.smooth(n.sub(y, y0), 1.9, 1.5), n.smooth(n.sub(y1, y), 1.9, 1.5))
+            col = n.vlerp(col, srgb("#b4b2a8"), n.mul(n.mul(n.maxf(sides, ends), on_deck), 0.85))
         if vls is not None:
             y0, y1, w = vls
             cells = n.mul(n.mul(n.band(y, y0, y1, 0.1), n.band(x, -w, w, 0.1)), deckm)
@@ -185,13 +195,19 @@ def frigate():
     def up(z):
         return z + (D - 32.0)
 
-    hull = a.zone("hull", hull_paint(waterline=wl, helipad=(172, 17), vls=(-128, -108, 9)))
+    L, B = 430.0, 27.0
+
+    def deck_half_width(n, y):
+        # The hull loft's deck edge (1.07 x half-beam) aft of the 0.42 station; see the rings below.
+        t = n.math("DIVIDE", n.sub(n.math("DIVIDE", n.add(y, L / 2), L), 0.42), 0.58)
+        return n.mul(n.sub(1.0, n.mul(n.mul(t, t), 0.1)), B * 1.07)
+
+    hull = a.zone("hull", hull_paint(waterline=wl, deck_edge=(128.6, L / 2, D, deck_half_width), vls=(-128, -108, 9)))
     sup = a.zone("super", Z.windows("#8f979e", "#1b2329", bay=4.5, win=3.0, floor=9.0, win_h=2.6, z0=up(55), z1=up(63),
                                       rough=0.6, roof_color="#5a6065", frame="#8f979e", streak=0.3, base_dirt=0.0))
     dark = a.zone("dark", Z.painted_metal("#3c4146", rough=0.6, metal=0.3, rust=0.1, panels=None))
     soot = a.zone("soot", standard("#2a2b2c", 0.8, 0.2, grime=0.3, streak=0.5))
     boat = a.zone("boat", standard("#d9822b", 0.6, 0.0, grime=0.1))
-    L, B = 430.0, 27.0
     stations = 28
     rings = []
     for k in range(stations + 1):
@@ -251,6 +267,7 @@ def frigate():
     a.finish(ground_offset=wl, extra_notes={
         "noGoreOrWeaponsGlorification": "A covered deck gun and point-defence domes as on any warship; nothing aimed, firing or damaged.",
         "noRealMilitaryInsignia": "No pennant numbers, ensigns, flags or class markings; hull form is an original stealth-frigate design.",
+        "noText": "No letters, numbers or symbols: the helideck is plain non-skid with only thin pale lines along its own edges (port, starboard, stern, hangar face); no circle, cross or centre line.",
     })
 
 
@@ -439,7 +456,7 @@ def container_paint(color):
 
 @builder
 def container_stack():
-    a = Asset("container-stack", "Shipping container stack", texture=512, tri_limit=2500, bump_distance=0.08, seed=24,
+    a = Asset("container-stack", "Shipping container stack", texture=SMALL_TEXTURE, tri_limit=2500, bump_distance=0.08, seed=24,
               usage="Port yard stacks beside quays and cranes (replaces Scenery.Containers boxes).")
     colors = ["#8c3a2b", "#2f5b7c", "#3f6b45", "#b9b6ab", "#c46a28", "#5b6064"]
     zones = [a.zone(f"c{i}", container_paint(c)) for i, c in enumerate(colors)]
@@ -674,7 +691,7 @@ def city_tower():
 
 @builder
 def farmhouse():
-    a = Asset("farmhouse", "Farmhouse", texture=512, tri_limit=2500, bump_distance=0.06, seed=51,
+    a = Asset("farmhouse", "Farmhouse", texture=SMALL_TEXTURE, tri_limit=2500, bump_distance=0.06, seed=51,
               usage="Teklan farm valleys (M5, M6, M13, M16): homesteads near silos and fields.")
     walls = a.zone("walls", Z.windows("#e3ded2", "#28323a", bay=11.0, win=4.0, floor=11.0, win_h=6.5, z0=2.5, z1=22,
                                         frame="#f2efe8", roof_color="#4a4b4e", siding=0.7, rough=0.75, base_dirt=0.45,
@@ -707,10 +724,13 @@ def farmhouse():
 
 @builder
 def barn():
-    a = Asset("barn", "Gambrel barn", texture=512, tri_limit=2500, bump_distance=0.07, seed=52,
+    a = Asset("barn", "Gambrel barn", texture=SMALL_TEXTURE, tri_limit=2500, bump_distance=0.07, seed=52,
               usage="Teklan farm valleys (M5, M6, M13, M16) beside the farmhouse and grain silos.")
     walls = a.zone("walls", Z.boards("#8a3b2c", width=1.1, axis="u", rough=0.85, base_dirt=0.5))
-    trim = a.zone("trim", Z.boards("#dcd6c8", width=3.0, axis="u", rough=0.8))
+    # Plain vertical plank doors a shade darker than the walls: no braces, frames or
+    # contrasting trim, so nothing on the gable ends forms a cross or other shape.
+    door = a.zone("door", Z.boards("#6f3226", width=1.5, axis="u", rough=0.85, base_dirt=0.5))
+    track = a.zone("track", Z.painted_metal("#4b4e50", rough=0.6, metal=0.5, rust=0.4, panels=None))
     roof = a.zone("roof", Z.corrugated("#6f7376", period=2.2, axis="y", rough=0.55, metal=0.5, rust=0.45, depth=0.4))
     stone = a.zone("stone", Z.concrete("#85807a", joints=1.4, dirt=0.4, joint_depth=0.45))
     W, L = 44.0, 72.0
@@ -725,23 +745,22 @@ def barn():
         a.box(f"Roof {i}", (length + 0.6, L + 4, 0.9), ((x0 + x1) / 2, 0, (z0 + z1) / 2 + 0.3), roof, rot=(0, -ang, 0))
     for sy in (-1, 1):
         y = sy * (L / 2 + 0.4)
-        a.box(f"Door {sy}", (18, 0.6, 18), (0, y, 9.5), walls)
-        for k, (p0, p1) in enumerate((((-9, 0.5), (9, 18.5)), ((-9, 18.5), (9, 0.5)))):
-            a.beam(f"Door brace {sy} {k}", (p0[0], y + sy * 0.4, p0[1]), (p1[0], y + sy * 0.4, p1[1]), 1.0, trim)
-        a.box(f"Door frame top {sy}", (19.5, 0.9, 1.2), (0, y + sy * 0.3, 19), trim)
-        for sx in (-1, 1):
-            a.box(f"Door frame {sy} {sx}", (1.2, 0.9, 18.5), (sx * 9.6, y + sy * 0.3, 9.6), trim)
-        a.box(f"Loft door {sy}", (8, 0.6, 7), (0, y, 29), trim)
-    a.box("Cupola", (5, 5, 5), (0, 0, 43.5), trim)
+        a.box(f"Door {sy}", (18, 0.6, 18), (0, y, 9.5), door)
+        # Sliding-door track: one dark horizontal rail above the doorway.
+        a.box(f"Door track {sy}", (24, 0.8, 0.8), (0, y + sy * 0.4, 19.1), track)
+        a.box(f"Loft door {sy}", (8, 0.6, 7), (0, y, 29), door)
+    a.box("Cupola", (5, 5, 5), (0, 0, 43.5), walls)
     a.prism("Cupola roof", [(-3.6, 46), (3.6, 46), (0, 49)], -3.6, 3.6, roof, axis="y")
     a.box("Lean-to", (14, 40, 14), (W / 2 + 7, 6, 7), walls)
     a.box("Lean-to roof", (16, 42, 0.8), (W / 2 + 7.6, 6, 14.6), roof, rot=(0, math.radians(-14), 0))
-    a.finish(ground_offset=0.0)
+    a.finish(ground_offset=0.0, extra_notes={
+        "noText": "No letters, numbers or symbols: gable doors are plain vertical planks a shade darker than the walls, with one dark track rail above; no X braces, frames or contrasting trim.",
+    })
 
 
 @builder
 def grain_silo():
-    a = Asset("grain-silo", "Grain silo pair", texture=512, tri_limit=2500, bump_distance=0.08, seed=53,
+    a = Asset("grain-silo", "Grain silo pair", texture=SMALL_TEXTURE, tri_limit=2500, bump_distance=0.08, seed=53,
               usage="Farm cooperative dressing (M5, M6, M13); scenery companion to the GrainSilo mission target.")
     tin = a.zone("tin", Z.corrugated("#b4b6b3", period=1.6, axis="z", rough=0.45, metal=0.65, rust=0.35, depth=0.5))
     roof = a.zone("roof", Z.painted_metal("#9a9d9b", rough=0.45, metal=0.6, rust=0.3, panels=None))
@@ -771,16 +790,19 @@ def grain_silo():
 
 @builder
 def radar_dish():
-    a = Asset("radar-dish", "Ground radar dish", texture=512, tri_limit=2500, bump_distance=0.08, seed=61,
+    a = Asset("radar-dish", "Ground radar dish", texture=SMALL_TEXTURE, tri_limit=2500, bump_distance=0.08, seed=61,
               usage="Relay and air-defence sites (M3, M10, M11, M14): scenery companion to the Radar target.")
     dish = a.zone("dish", Z.painted_metal("#d9dad5", rough=0.45, metal=0.15, rust=0.12, streak=0.35, panels=None))
     steel = a.zone("steel", Z.painted_metal("#7c8285", rough=0.5, metal=0.6, rust=0.3, panels=None))
     conc = a.zone("concrete", Z.concrete("#9b988f", joints=10.0, dirt=0.4))
-    cabin = a.zone("cabin", Z.windows("#c9c5b7", "#26313a", bay=8.0, win=2.6, floor=12.0, win_h=2.6, z0=4, z1=12,
-                                        frame="#c9c5b7", roof_color="#6c6f71"))
+    shelter = a.zone("shelter", Z.painted_metal("#c9c5b7", rough=0.6, metal=0.3, rust=0.2, panels=4.0))
+    # No paired features anywhere (they read as eyes): the dish is fed by one central
+    # cone in the dish's own colour (no strut quadripod and its curved shadows), it sits
+    # on a single elevation housing hidden behind it (no twin yoke arms), and the
+    # equipment shelter is windowless with one door on its side.
     R, f = 21.0, 15.0
-    pivot = Vector((0, 0, 32))
-    rot = Matrix_rotation_x(math.radians(60))
+    pivot = Vector((0, 0, 34))
+    rot = Matrix_rotation_x(math.radians(50))
 
     def place(p):
         return tuple(pivot + rot @ Vector(p))
@@ -795,18 +817,19 @@ def radar_dish():
         r = R * i / nr * (1.0 if i == nr else 0.96)
         back.append([place((r * math.cos(t), r * math.sin(t), r * r / (4 * f) - 1.2 - (0 if i == nr else 1.5))) for t in (k * math.tau / segs for k in range(segs))])
     a.loft("Dish", rings + back, dish, smooth=60)
-    for k in range(4):
-        t = k * math.tau / 4 + math.pi / 4
-        rim = place((R * 0.92 * math.cos(t), R * 0.92 * math.sin(t), (R * 0.92) ** 2 / (4 * f)))
-        a.beam(f"Feed strut {k}", rim, place((0, 0, f)), 0.5, steel)
-    a.cyl("Feed horn", 1.4, 3, place((0, 0, f + 0.5)), steel, segs=10, rot=(math.radians(60), 0, 0))
+    # A short, wide Cassegrain-style feed cone: its silhouette and shadow are a soft
+    # wedge, not a thin line that could read as a clock hand or a letter.
+    a.cyl("Feed cone", 3.0, 6.5, place((0, 0, 3.0)), dish, segs=14, r2=1.3, rot=(math.radians(50), 0, 0), smooth=50)
+    a.beam("Back hub", place((0, 0, -2.0)), place((0, 0, -8.5)), 3.6, steel, segs=12)
     a.box("Plinth", (34, 34, 4), (0, 0, 2), conc, bevel=0.4)
     a.cyl("Pedestal", 4.2, 18, (0, 0, 13), steel, segs=14)
-    a.box("Turntable", (16, 10, 3), (0, 0, 23.5), steel)
-    for sx in (-1, 1):
-        a.box(f"Yoke {sx}", (1.8, 5, 10), (sx * 7, 0, 29), steel)
-    a.box("Equipment cabin", (20, 12, 10), (28, 16, 5), cabin, bevel=0.3)
-    a.finish(ground_offset=0.0)
+    a.cyl("Turntable", 7.0, 3, (0, 2, 23.5), steel, segs=16)
+    a.box("Elevation housing", (11, 9, 8), (0, 7, 29), steel, bevel=0.4)
+    a.box("Equipment shelter", (20, 12, 10), (28, 16, 5), shelter, bevel=0.3)
+    a.box("Shelter door", (0.4, 4.5, 7.5), (38.2, 14, 4.25), steel)
+    a.finish(ground_offset=0.0, extra_notes={
+        "noFaces": "Nothing in pairs that could read as eyes: one short central feed cone in the dish colour (no strut quadripod, boom or strut shadows), one elevation housing hidden behind the dish (no twin yoke arms), and a windowless shelter with one side door; checked front, side, top and 3/4.",
+    })
 
 
 def Matrix_rotation_x(angle):
@@ -816,7 +839,7 @@ def Matrix_rotation_x(angle):
 
 @builder
 def relay_mast():
-    a = Asset("relay-mast", "Comms relay mast", texture=512, tri_limit=2500, bump_distance=0.08, seed=62,
+    a = Asset("relay-mast", "Comms relay mast", texture=SMALL_TEXTURE, tri_limit=2500, bump_distance=0.08, seed=62,
               usage="Relay stations across the campaign (M3-M27): scenery companion to the CommsRelay target.")
     paint = a.zone("paint", Z.stripes("#c24a2f", "#dcdad2", period=20.0))
     steel = a.zone("steel", Z.painted_metal("#8a8f92", rough=0.45, metal=0.6, rust=0.25, panels=None))

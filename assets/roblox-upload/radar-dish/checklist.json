@@ -7,52 +7,53 @@
   "generator": "tools/assets/build.py",
   "fbx": {
     "file": "radar-dish.fbx",
-    "bytes": 662844
+    "bytes": 265084
   },
-  "triangleCount": 932,
+  "triangleCount": 1024,
   "triangleLimit": 2500,
   "objects": [
     {
       "name": "radar-dish",
-      "triangles": 932
+      "triangles": 1024
     }
   ],
   "textures": [
     {
       "role": "color",
       "file": "radar-dish-color.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 292061
+      "width": 256,
+      "height": 256,
+      "bytes": 80608
     },
     {
       "role": "normal",
       "file": "radar-dish-normal.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 116377
+      "width": 256,
+      "height": 256,
+      "bytes": 36973
     },
     {
       "role": "rough",
       "file": "radar-dish-roughness.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 153392
+      "width": 256,
+      "height": 256,
+      "bytes": 48717
     },
     {
       "role": "metal",
       "file": "radar-dish-metalness.png",
-      "width": 512,
-      "height": 512,
-      "bytes": 18350
+      "width": 256,
+      "height": 256,
+      "bytes": 8225
     }
   ],
   "robloxSizeStuds": [
-    59.0,
-    53.861,
-    39.0
+    59.4,
+    54.811,
+    41.129
   ],
   "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
   "pivot": "bottom-center",
   "groundOffsetStuds": 0.0,
   "previews": [
@@ -76,7 +77,7 @@
     },
     "noFaces": {
       "value": true,
-      "note": "No faces, figures or face-like arrangements."
+      "note": "Nothing in pairs that could read as eyes: one short central feed cone in the dish colour (no strut quadripod, boom or strut shadows), one elevation housing hidden behind the dish (no twin yoke arms), and a windowless shelter with one side door; checked front, side, top and 3/4."
     },
     "noSuggestiveShapes": {
       "value": true,
