@@ -1,0 +1,74 @@
+{
+  "engineCruise": {
+    "sha256": "bb6f4e5ca95dff966e124a347cca76ea37177931ce94c7c1583cc0e2a99023fc",
+    "assetType": "Audio",
+    "state": "MODERATION_STATE_APPROVED",
+    "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+    "at": "2026-10-26T21:06:47Z",
+    "operationId": "883c6654-e787-4e18-ad2a-744f642f8474",
+    "assetId": "100845993226613"
+  },
+  "engineBurn": {
+    "sha256": "87ce67438a90bfedb77e649859c52d8445ef3414d5a4c5f8866863f0a2cdaf4f",
+    "assetType": "Audio",
+    "state": "MODERATION_STATE_APPROVED",
+    "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+    "at": "2026-10-26T21:09:04Z",
+    "operationId": "bb4253a0-2b5a-48fe-84dc-e67e5aafd76b",
+    "assetId": "96034533542673"
+  },
+  "wind": {
+    "sha256": "93e828cf665e93a875dba36e142705e3050b86899c20f18f1be9e3fd5ccc15b3",
+    "assetType": "Audio",
+    "state": "MODERATION_STATE_APPROVED",
+    "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+    "at": "2026-10-26T21:11:12Z",
+    "operationId": "409d5709-375f-4599-b2c2-07078f21a76e",
+    "assetId": "129430411346132"
+  },
+  "sfxBank01": {
+    "sha256": "7c7f0a60d570bf9ede84566f20a0eda2100ba9104c8ad5bc00f142b7eeef82a1",
+    "assetType": "Audio",
+    "state": "MODERATION_STATE_APPROVED",
+    "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+    "at": "2026-10-26T21:15:21Z",
+    "operationId": "657638f9-0ff4-41b1-9837-86682925ca1c",
+    "assetId": "140586818884141"
+  },
+  "sfxBank02": {
+    "sha256": "a4eed52d3ece60194f75fb5fd7d28e0e03068381cea3bf5459f4e19532f8b7b5",
+    "assetType": "Audio",
+    "state": "MODERATION_STATE_APPROVED",
+    "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+    "at": "2026-10-26T21:17:40Z",
+    "operationId": "a6302c80-e234-431b-bfcb-a22748a18b96",
+    "assetId": "119891912328421"
+  },
+  "sfxBank03": {
+    "sha256": "3c31dbcdc9ccaa5805ec6139fdcd5f4775117c0d37f75444ea643ee695c66caa",
+    "assetType": "Audio",
+    "state": "MODERATION_STATE_APPROVED",
+    "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+    "at": "2026-10-26T21:19:49Z",
+    "operationId": "8678a33d-357e-46d3-b161-02cf2dbe47ad",
+    "assetId": "103061867054487"
+  },
+  "sfxBank04": {
+    "sha256": "0bae9d07a641c211d3db3795a7449468bb108791872e218e23124811658699b7",
+    "assetType": "Audio",
+    "state": "MODERATION_STATE_APPROVED",
+    "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+    "at": "2026-10-26T21:22:04Z",
+    "operationId": "9d3f7ea0-5c64-4b7e-92c1-71e419aa35ce",
+    "assetId": "78239725791801"
+  },
+  "sfxBank05": {
+    "sha256": "f06ef2482bcacbcd4d4ab8bf94df3653fc11887c09156dfcfdf2b0d8707ce436",
+    "assetType": "Audio",
+    "state": "MODERATION_STATE_APPROVED",
+    "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+    "at": "2026-10-26T21:24:09Z",
+    "operationId": "c1e1a4fd-a92e-43da-8b84-19dca9c2a30b",
+    "assetId": "119485031741286"
+  }
+}

@@ -1,0 +1,170 @@
+{
+  "version": 1,
+  "cues": [
+    {
+      "id": "engineCruise",
+      "members": [
+        {
+          "id": "engineCruise",
+          "start": 0,
+          "end": 5.92
+        }
+      ]
+    },
+    {
+      "id": "engineBurn",
+      "members": [
+        {
+          "id": "engineBurn",
+          "start": 0,
+          "end": 5.92
+        }
+      ]
+    },
+    {
+      "id": "wind",
+      "members": [
+        {
+          "id": "wind",
+          "start": 0,
+          "end": 5.92
+        }
+      ]
+    },
+    {
+      "id": "sfxBank01",
+      "members": [
+        {
+          "id": "enemyEngine",
+          "start": 0.25,
+          "end": 6.17
+        },
+        {
+          "id": "missileLaunchA",
+          "start": 6.42,
+          "end": 7.775011337868481
+        },
+        {
+          "id": "missileLaunchB",
+          "start": 8.02501133786848,
+          "end": 9.356893424036281
+        },
+        {
+          "id": "missileMotor",
+          "start": 9.606893424036281,
+          "end": 13.526893424036281
+        },
+        {
+          "id": "missileFlyby",
+          "start": 13.776893424036281,
+          "end": 14.885918367346939
+        }
+      ]
+    },
+    {
+      "id": "sfxBank02",
+      "members": [
+        {
+          "id": "hitMetalA",
+          "start": 0.25,
+          "end": 0.922358276643991
+        },
+        {
+          "id": "hitMetalB",
+          "start": 1.1723582766439908,
+          "end": 1.844716553287982
+        },
+        {
+          "id": "airExplosion",
+          "start": 2.0947165532879817,
+          "end": 4.971950113378685
+        },
+        {
+          "id": "groundExplosion",
+          "start": 5.221950113378685,
+          "end": 8.696961451247166
+        },
+        {
+          "id": "heavyExplosion",
+          "start": 8.946961451247166,
+          "end": 12.941972789115646
+        }
+      ]
+    },
+    {
+      "id": "sfxBank03",
+      "members": [
+        {
+          "id": "flareBurst",
+          "start": 0.25,
+          "end": 1.6050113378684807
+        },
+        {
+          "id": "droneDeploy",
+          "start": 1.8550113378684807,
+          "end": 3.0500226757369613
+        },
+        {
+          "id": "lockSearch",
+          "start": 3.3000226757369613,
+          "end": 4.870022675736961
+        },
+        {
+          "id": "lockAcquired",
+          "start": 5.120022675736961,
+          "end": 5.712131519274377
+        },
+        {
+          "id": "incoming",
+          "start": 5.962131519274377,
+          "end": 7.652131519274376
+        }
+      ]
+    },
+    {
+      "id": "sfxBank04",
+      "members": [
+        {
+          "id": "lowHull",
+          "start": 0.25,
+          "end": 2.42
+        },
+        {
+          "id": "boundary",
+          "start": 2.67,
+          "end": 4.84
+        },
+        {
+          "id": "uiConfirm",
+          "start": 5.09,
+          "end": 5.562108843537415
+        },
+        {
+          "id": "uiDenied",
+          "start": 5.812108843537415,
+          "end": 6.28421768707483
+        },
+        {
+          "id": "missionSuccess",
+          "start": 6.53421768707483,
+          "end": 8.52922902494331
+        }
+      ]
+    },
+    {
+      "id": "sfxBank05",
+      "members": [
+        {
+          "id": "missionFailure",
+          "start": 0.25,
+          "end": 2.2450113378684806
+        },
+        {
+          "id": "evadeWhoosh",
+          "start": 2.4950113378684806,
+          "end": 3.6900226757369614
+        }
+      ]
+    }
+  ]
+}

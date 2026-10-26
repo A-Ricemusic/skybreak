@@ -1,0 +1,206 @@
+{
+  "commercialUsePermitted": true,
+  "scope": "Non-vocal effects only. Automated screening; no human listening review claimed.",
+  "files": {
+    "engineCruise": {
+      "approved": true,
+      "sha256": "bb6f4e5ca95dff966e124a347cca76ea37177931ce94c7c1583cc0e2a99023fc",
+      "transcript": "",
+      "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+      "method": "Automated speech/VAD screen, paid provenance, PG-13 non-vocal prompt review, decoded peak/silence checks; not human listening.",
+      "segments": []
+    },
+    "engineBurn": {
+      "approved": true,
+      "sha256": "87ce67438a90bfedb77e649859c52d8445ef3414d5a4c5f8866863f0a2cdaf4f",
+      "transcript": "",
+      "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+      "method": "Automated speech/VAD screen, paid provenance, PG-13 non-vocal prompt review, decoded peak/silence checks; not human listening.",
+      "segments": []
+    },
+    "wind": {
+      "approved": true,
+      "sha256": "93e828cf665e93a875dba36e142705e3050b86899c20f18f1be9e3fd5ccc15b3",
+      "transcript": "",
+      "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+      "method": "Automated speech/VAD screen, paid provenance, PG-13 non-vocal prompt review, decoded peak/silence checks; not human listening.",
+      "segments": []
+    },
+    "enemyEngine": {
+      "approved": true,
+      "sha256": "071d9e03d021ab264b709008ad555b9d6db49d9a745e7394fa847babbf1b0323",
+      "transcript": "",
+      "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+      "method": "Automated speech/VAD screen, paid provenance, PG-13 non-vocal prompt review, decoded peak/silence checks; not human listening.",
+      "segments": []
+    },
+    "missileLaunchA": {
+      "approved": true,
+      "sha256": "99ffc351ce062bc65598a75c6a58da590fa6a342726bee66a0ca4bcf65625fe8",
+      "transcript": "",
+      "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+      "method": "Automated speech/VAD screen, paid provenance, PG-13 non-vocal prompt review, decoded peak/silence checks; not human listening.",
+      "segments": []
+    },
+    "missileLaunchB": {
+      "approved": true,
+      "sha256": "3141bab06c213381ce2b2ec7c4bbbfa0b767128cb99b60b3ad881c435c81cc06",
+      "transcript": "",
+      "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+      "method": "Automated speech/VAD screen, paid provenance, PG-13 non-vocal prompt review, decoded peak/silence checks; not human listening.",
+      "segments": []
+    },
+    "missileMotor": {
+      "approved": true,
+      "sha256": "5ff8885002cfb063f2de65531e5ad6a6683348825a382ecb02897705ed72ded0",
+      "transcript": "",
+      "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+      "method": "Automated speech/VAD screen, paid provenance, PG-13 non-vocal prompt review, decoded peak/silence checks; not human listening.",
+      "segments": []
+    },
+    "missileFlyby": {
+      "approved": true,
+      "sha256": "b2bdd8ae3f79ca89d05beed0439e1b1448a220e2efa8a233b669a777a91173b8",
+      "transcript": "",
+      "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+      "method": "Automated speech/VAD screen, paid provenance, PG-13 non-vocal prompt review, decoded peak/silence checks; not human listening.",
+      "segments": []
+    },
+    "hitMetalA": {
+      "approved": true,
+      "sha256": "43e395ea0ed51b3fcce3fc4c82f3bc19374d1b6eea86ed31fa1e14d3087fc47e",
+      "transcript": "",
+      "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+      "method": "Automated speech/VAD screen, paid provenance, PG-13 non-vocal prompt review, decoded peak/silence checks; not human listening.",
+      "segments": []
+    },
+    "hitMetalB": {
+      "approved": true,
+      "sha256": "ee27a884cf341bba223ed090d5bc4940aa52c64536382a1e402c30c44e633d61",
+      "transcript": "",
+      "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+      "method": "Automated speech/VAD screen, paid provenance, PG-13 non-vocal prompt review, decoded peak/silence checks; not human listening.",
+      "segments": []
+    },
+    "airExplosion": {
+      "approved": true,
+      "sha256": "d254a9b42567dc661c3582f580311082df53659528f1d0df7521a508d30741b4",
+      "transcript": "",
+      "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+      "method": "Automated speech/VAD screen, paid provenance, PG-13 non-vocal prompt review, decoded peak/silence checks; not human listening.",
+      "segments": []
+    },
+    "groundExplosion": {
+      "approved": true,
+      "sha256": "348c67b2cb93aed11ee26948023db04ef50ada3a40f23677d39071852fbbdb1c",
+      "transcript": "",
+      "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+      "method": "Automated speech/VAD screen, paid provenance, PG-13 non-vocal prompt review, decoded peak/silence checks; not human listening.",
+      "segments": []
+    },
+    "heavyExplosion": {
+      "approved": true,
+      "sha256": "0cd456ec1bd4af2d517259bda31f349ef080e0cb2ec1754a703c5380f6b16be7",
+      "transcript": "",
+      "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+      "method": "Automated speech/VAD screen, paid provenance, PG-13 non-vocal prompt review, decoded peak/silence checks; not human listening.",
+      "segments": []
+    },
+    "flareBurst": {
+      "approved": true,
+      "sha256": "0249275569d9a2ba6d7cfa0475429e54b761c09bd92e6ba650acff50416614d7",
+      "transcript": "",
+      "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+      "method": "Automated speech/VAD screen, paid provenance, PG-13 non-vocal prompt review, decoded peak/silence checks; not human listening.",
+      "segments": []
+    },
+    "droneDeploy": {
+      "approved": true,
+      "sha256": "7927b92ecdcb2553c51c4ddfdf4c48d15ef15174c664c3a2b1dba6773c8795f9",
+      "transcript": "",
+      "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+      "method": "Automated speech/VAD screen, paid provenance, PG-13 non-vocal prompt review, decoded peak/silence checks; not human listening.",
+      "segments": []
+    },
+    "lockSearch": {
+      "approved": true,
+      "sha256": "bba8d1830c9f118a8e1de64773fac828bb8aa1e98026f79f63956d6d445f9093",
+      "transcript": "",
+      "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+      "method": "Automated speech/VAD screen, paid provenance, PG-13 non-vocal prompt review, decoded peak/silence checks; not human listening.",
+      "segments": []
+    },
+    "lockAcquired": {
+      "approved": true,
+      "sha256": "738d44645caa23ef4586d576841476162ed16e37d8222cd286526ade3bfe4d14",
+      "transcript": "",
+      "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+      "method": "Automated speech/VAD screen, paid provenance, PG-13 non-vocal prompt review, decoded peak/silence checks; not human listening.",
+      "segments": []
+    },
+    "incoming": {
+      "approved": true,
+      "sha256": "10525f7589cd3fb6c81b01e5493a257102266c0dc3b436ee31b3cc3bfb65279f",
+      "transcript": "",
+      "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+      "method": "Automated speech/VAD screen, paid provenance, PG-13 non-vocal prompt review, decoded peak/silence checks; not human listening.",
+      "segments": []
+    },
+    "lowHull": {
+      "approved": true,
+      "sha256": "a2cef9769694592343538dfcbbdd7cbb3eea8ee333af63253eb7efaf513fa645",
+      "transcript": "",
+      "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+      "method": "Automated speech/VAD screen, paid provenance, PG-13 non-vocal prompt review, decoded peak/silence checks; not human listening.",
+      "segments": []
+    },
+    "boundary": {
+      "approved": true,
+      "sha256": "6908cf1a2a7163bcb33c59f4a77f480ec1bf0af259e0d2971b93ea52fa922e4f",
+      "transcript": "",
+      "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+      "method": "Automated speech/VAD screen, paid provenance, PG-13 non-vocal prompt review, decoded peak/silence checks; not human listening.",
+      "segments": []
+    },
+    "uiConfirm": {
+      "approved": true,
+      "sha256": "6c9642129b81acf512e6bddb3b7041f9c878ecdeb72603bffed5804c5daf35bc",
+      "transcript": "",
+      "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+      "method": "Automated speech/VAD screen, paid provenance, PG-13 non-vocal prompt review, decoded peak/silence checks; not human listening.",
+      "segments": []
+    },
+    "uiDenied": {
+      "approved": true,
+      "sha256": "96279df18d96ce14732f4088fb8c8c5cc0c3cd763c4a4ab064c93d505a8f4d31",
+      "transcript": "",
+      "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+      "method": "Automated speech/VAD screen, paid provenance, PG-13 non-vocal prompt review, decoded peak/silence checks; not human listening.",
+      "segments": []
+    },
+    "missionSuccess": {
+      "approved": true,
+      "sha256": "dbcec5092a60df6befaf32fffd24bcbd84715f2ae3091d107280129102dfcd79",
+      "transcript": "",
+      "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+      "method": "Automated speech/VAD screen, paid provenance, PG-13 non-vocal prompt review, decoded peak/silence checks; not human listening.",
+      "segments": []
+    },
+    "missionFailure": {
+      "approved": true,
+      "sha256": "aa08e434da565ce466d9a359e0a0584b7b80269470a1656ff8ece857fb3ff8e7",
+      "transcript": "",
+      "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+      "method": "Automated speech/VAD screen, paid provenance, PG-13 non-vocal prompt review, decoded peak/silence checks; not human listening.",
+      "segments": []
+    },
+    "evadeWhoosh": {
+      "approved": true,
+      "sha256": "6692a8f03f299b2d203cb84bb9f814b441d53a372a91819f47925d29b82e3498",
+      "transcript": "",
+      "reviewer": "local-whisper-tiny.en-vad-and-source-check",
+      "method": "Automated speech/VAD screen, paid provenance, PG-13 non-vocal prompt review, decoded peak/silence checks; not human listening.",
+      "segments": []
+    }
+  }
+}

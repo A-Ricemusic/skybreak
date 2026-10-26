@@ -61,6 +61,23 @@ Launch the place directly if macOS's file association opens the Studio home scre
 
 Keep `rojo serve` running in a separate terminal. The companion's state is available through `CoreGui.PhoneGameRojoStatus` in Studio. To remove the companion, delete `~/Documents/Roblox/Plugins/PhoneGameRojoConnect.rbxm` and restart Studio.
 
+## Gameplay audio
+
+The non-vocal combat library lives in `assets/audio`. `cues.json` defines the 25 effects; `upload-plan.json` maps them into eight Roblox assets to conserve upload slots. `src/shared/SoundBank.ts` contains only approved Roblox IDs and native playback/loop regions. Engines respond to throttle, missile motors follow projectiles, explosions use positional emitters, and cockpit warnings have a single priority order. Transient sounds, missile motors and enemy engines have client-side caps and clean up between sorties.
+
+The production workflow uses Python with FFmpeg, plus `faster-whisper` for local speech screening:
+
+```sh
+python3 tools/build-audio.py --key-file "$ELEVENLABS_KEY_FILE" --ffmpeg "$FFMPEG_BIN"
+python3 tools/pack-audio.py --ffmpeg "$FFMPEG_BIN"
+python3 tools/review-audio.py
+python3 tools/upload-audio.py --key-file "$ROBLOX_KEY_FILE" --dry-run
+python3 tools/upload-audio.py --key-file "$ROBLOX_KEY_FILE"
+bun run build:place
+```
+
+The generation key needs sound-generation and subscription-read access. Final audio requires paid-plan provenance. Generation caches raw takes in ignored `build/audio`; do not regenerate approved or submitted files, since their upload journal hashes must remain stable. The uploader resumes recorded operations, checks the shared account journal and halt file, and only writes approved IDs into the sound bank. It cannot publish a place. Review records explicitly distinguish automated non-vocal screening from human listening. Any future voice recordings require the owner's transcript, identity, licensing and independent listening checks before upload.
+
 ## Roblox Jest tests
 
 Run `bun test:roblox` (or `bun run test:roblox`). Bun compiles the TypeScript, builds an isolated test place, launches authenticated Roblox Studio, and runs Jest in Roblox's Luau VM. This is not Bun's JavaScript test runner. Results are written to `build/jest-results.json`; full output is in `build/jest-output.log`.

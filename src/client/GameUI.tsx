@@ -2341,6 +2341,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				setMenuCamera();
 				const current = telemetryRef.current;
 				const won = finished.kind === "Completed";
+				controller.ResultAudio(won);
 				const missionId = MissionCatalog.IsValidId(finished.missionId) ? finished.missionId : current.missionId ?? 1;
 				selectedMissionRef.current = missionId;
 				setSelectedMission(missionId);
