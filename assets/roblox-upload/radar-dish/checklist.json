@@ -1,0 +1,97 @@
+{
+  "name": "radar-dish",
+  "title": "Ground radar dish",
+  "variantOf": null,
+  "robloxAssetType": "Model",
+  "usage": "Relay and air-defence sites (M3, M10, M11, M14): scenery companion to the Radar target.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "radar-dish.fbx",
+    "bytes": 265084
+  },
+  "triangleCount": 1024,
+  "triangleLimit": 2500,
+  "objects": [
+    {
+      "name": "radar-dish",
+      "triangles": 1024
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "radar-dish-color.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 80608
+    },
+    {
+      "role": "normal",
+      "file": "radar-dish-normal.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 36973
+    },
+    {
+      "role": "rough",
+      "file": "radar-dish-roughness.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 48717
+    },
+    {
+      "role": "metal",
+      "file": "radar-dish-metalness.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 8225
+    }
+  ],
+  "robloxSizeStuds": [
+    59.4,
+    54.811,
+    41.129
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 0.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "Textures are baked from noise, grids and masks only; no letters, numbers, words, call signs or codes in mesh or texture."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national or unit markings; shape is an original design, not a copy of any real vehicle or building."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "Nothing in pairs that could read as eyes: one short central feed cone in the dish colour (no strut quadripod, boom or strut shadows), one elevation housing hidden behind the dish (no twin yoke arms), and a windowless shelter with one side door; checked front, side, top and 3/4."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "No gore, blood or damage imagery; at most empty pylons or a covered deck mount."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": []
+}

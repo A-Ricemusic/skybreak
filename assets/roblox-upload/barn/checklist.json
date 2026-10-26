@@ -1,0 +1,97 @@
+{
+  "name": "barn",
+  "title": "Gambrel barn",
+  "variantOf": null,
+  "robloxAssetType": "Model",
+  "usage": "Teklan farm valleys (M5, M6, M13, M16) beside the farmhouse and grain silos.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "barn.fbx",
+    "bytes": 247420
+  },
+  "triangleCount": 200,
+  "triangleLimit": 2500,
+  "objects": [
+    {
+      "name": "barn",
+      "triangles": 200
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "barn-color.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 86657
+    },
+    {
+      "role": "normal",
+      "file": "barn-normal.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 68988
+    },
+    {
+      "role": "rough",
+      "file": "barn-roughness.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 55374
+    },
+    {
+      "role": "metal",
+      "file": "barn-metalness.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 4240
+    }
+  ],
+  "robloxSizeStuds": [
+    61.5,
+    49.0,
+    76.0
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 0.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "No letters, numbers or symbols: gable doors are plain vertical planks a shade darker than the walls, with one dark track rail above; no X braces, frames or contrasting trim."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national or unit markings; shape is an original design, not a copy of any real vehicle or building."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or face-like arrangements."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "No gore, blood or damage imagery; at most empty pylons or a covered deck mount."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": []
+}

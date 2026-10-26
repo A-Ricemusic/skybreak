@@ -1,4 +1,5 @@
 import { Debris, TweenService } from "@rbxts/services";
+import type { AceLivery } from "./AssetSelection";
 import { BlenderAircraft } from "./BlenderAircraft";
 import { EngineFx } from "./EngineFx";
 
@@ -129,7 +130,8 @@ function engineEffects(root: BasePart, exhaust: Vector3, wingtips: Vector3[], en
 	if (rig) JetFactory.SetEngine(rig, EngineFx.EnemyIntensity);
 }
 export const JetFactory = {
-	Create(name: string, enemy: boolean): Model {
+	/** `livery` paints an enemy ace (Vulture flight or Air Marshal Rusk); omit it for bandits and the player. */
+	Create(name: string, enemy: boolean, livery?: AceLivery): Model {
 		const model = new Instance("Model");
 		model.Name = name;
 		const shell = enemy ? Color3.fromRGB(94, 76, 88) : Color3.fromRGB(218, 229, 236);
@@ -138,7 +140,7 @@ export const JetFactory = {
 		const root = part(model, "Part", "Root", new Vector3(3, 3, 16), new CFrame(), dark);
 		root.Transparency = 1;
 		model.PrimaryPart = root;
-		const blender = BlenderAircraft.Populate(model, enemy);
+		const blender = BlenderAircraft.Populate(model, enemy, livery);
 		if (!blender) {
 			model.SetAttribute("GeometrySource", "Fallback");
 			part(model, "Part", "Fuselage", new Vector3(3.4, 2.5, 16), new CFrame(), shell);

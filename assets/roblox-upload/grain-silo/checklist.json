@@ -1,0 +1,97 @@
+{
+  "name": "grain-silo",
+  "title": "Grain silo pair",
+  "variantOf": null,
+  "robloxAssetType": "Model",
+  "usage": "Farm cooperative dressing (M5, M6, M13); scenery companion to the GrainSilo mission target.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "grain-silo.fbx",
+    "bytes": 259852
+  },
+  "triangleCount": 1116,
+  "triangleLimit": 2500,
+  "objects": [
+    {
+      "name": "grain-silo",
+      "triangles": 1116
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "grain-silo-color.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 79569
+    },
+    {
+      "role": "normal",
+      "file": "grain-silo-normal.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 38866
+    },
+    {
+      "role": "rough",
+      "file": "grain-silo-roughness.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 52336
+    },
+    {
+      "role": "metal",
+      "file": "grain-silo-metalness.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 11739
+    }
+  ],
+  "robloxSizeStuds": [
+    72.0,
+    92.0,
+    45.0
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 0.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "Textures are baked from noise, grids and masks only; no letters, numbers, words, call signs or codes in mesh or texture."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national or unit markings; shape is an original design, not a copy of any real vehicle or building."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or face-like arrangements."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "No gore, blood or damage imagery; at most empty pylons or a covered deck mount."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": []
+}

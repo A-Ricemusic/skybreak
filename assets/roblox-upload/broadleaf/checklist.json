@@ -1,0 +1,97 @@
+{
+  "name": "broadleaf",
+  "title": "Broadleaf tree",
+  "variantOf": null,
+  "robloxAssetType": "Model",
+  "usage": "Deciduous scatter for farm valleys, orchards and city parks (Scenery.Trees).",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "broadleaf.fbx",
+    "bytes": 350444
+  },
+  "triangleCount": 724,
+  "triangleLimit": 800,
+  "objects": [
+    {
+      "name": "broadleaf",
+      "triangles": 724
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "broadleaf-color.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 93074
+    },
+    {
+      "role": "normal",
+      "file": "broadleaf-normal.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 139894
+    },
+    {
+      "role": "rough",
+      "file": "broadleaf-roughness.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 38428
+    },
+    {
+      "role": "metal",
+      "file": "broadleaf-metalness.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 1120
+    }
+  ],
+  "robloxSizeStuds": [
+    34.809,
+    47.682,
+    32.187
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 0.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "Textures are baked from noise, grids and masks only; no letters, numbers, words, call signs or codes in mesh or texture."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national or unit markings; shape is an original design, not a copy of any real vehicle or building."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or face-like arrangements."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "No gore, blood or damage imagery; at most empty pylons or a covered deck mount."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": []
+}

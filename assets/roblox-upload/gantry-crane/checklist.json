@@ -1,0 +1,96 @@
+{
+  "name": "gantry-crane",
+  "title": "Ship-to-shore gantry crane",
+  "variantOf": null,
+  "robloxAssetType": "Model",
+  "usage": "Harbour skyline: line quays in M19-M27 (replaces Scenery.Crane); WorldAssets.PlaceGantryCrane.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "gantry-crane.fbx",
+    "bytes": 586300
+  },
+  "triangleCount": 568,
+  "triangleLimit": 2500,
+  "objects": [
+    {
+      "name": "gantry-crane",
+      "triangles": 568
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "gantry-crane-color.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 315361
+    },
+    {
+      "role": "normal",
+      "file": "gantry-crane-normal.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 4588
+    },
+    {
+      "role": "rough",
+      "file": "gantry-crane-roughness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 197547
+    },
+    {
+      "role": "metal",
+      "file": "gantry-crane-metalness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 18565
+    }
+  ],
+  "robloxSizeStuds": [
+    58.0,
+    160.0,
+    200.0
+  ],
+  "studMetres": 0.28,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 0.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "Textures are baked from noise, grids and masks only; no letters, numbers, words, call signs or codes in mesh or texture."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national or unit markings; shape is an original design, not a copy of any real vehicle or building."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or face-like arrangements."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "No gore, blood or damage imagery; at most empty pylons or a covered deck mount."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": []
+}

@@ -1,0 +1,1521 @@
+{
+  "schema": "skybreak.roblox-upload-manifest.v1",
+  "studMetres": 0.28,
+  "fbxImport": "Roblox reads FBX centimetres as studs. Folders with fbxMetresPerStud 0.01 import at their authored size; legacy 0.28 exports import 28x too large. The game rescales every import to gameSizeStuds.",
+  "pipeline": "docs/roblox-asset-pipeline.md",
+  "idsTable": "src/shared/RobloxAssetIds.ts",
+  "assets": [
+    {
+      "folder": "kestrel",
+      "robloxAssetIdsKey": "Kestrel",
+      "title": "Kestrel player fighter",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "kestrel.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "kestrel-color.png",
+          "role": "color"
+        },
+        {
+          "file": "kestrel-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "kestrel-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "kestrel-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.28,
+      "expectedImportSizeStuds": [
+        644.0,
+        172.004,
+        754.6
+      ],
+      "gameSizeStuds": [
+        22.1892,
+        5.9265,
+        26.0
+      ],
+      "usage": "Player aircraft (JetFactory.Create, menu display jet, parked jets).",
+      "triangleCount": 4208,
+      "textures": [
+        "kestrel-color.png 1024x1024",
+        "kestrel-normal.png 1024x1024",
+        "kestrel-roughness.png 1024x1024",
+        "kestrel-metalness.png 1024x1024"
+      ],
+      "textureLimit": 1024,
+      "robloxSizeStuds": [
+        23.0,
+        6.143,
+        26.95
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "kestrel/preview-front.png",
+        "kestrel/preview-side.png",
+        "kestrel/preview-top.png",
+        "kestrel/preview-3q.png"
+      ]
+    },
+    {
+      "folder": "vanta",
+      "robloxAssetIdsKey": "Vanta",
+      "title": "Vanta enemy interceptor",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "vanta.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "vanta-color.png",
+          "role": "color"
+        },
+        {
+          "file": "vanta-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "vanta-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "vanta-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.28,
+      "expectedImportSizeStuds": [
+        693.28,
+        224.56,
+        777.0
+      ],
+      "gameSizeStuds": [
+        23.5555,
+        7.6298,
+        26.4
+      ],
+      "usage": "Enemy bandits and raiders (JetFactory.Create enemy=true).",
+      "triangleCount": 3780,
+      "textures": [
+        "vanta-color.png 1024x1024",
+        "vanta-normal.png 1024x1024",
+        "vanta-roughness.png 1024x1024",
+        "vanta-metalness.png 1024x1024"
+      ],
+      "textureLimit": 1024,
+      "robloxSizeStuds": [
+        24.76,
+        8.02,
+        27.75
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "vanta/preview-front.png",
+        "vanta/preview-side.png",
+        "vanta/preview-top.png",
+        "vanta/preview-3q.png"
+      ]
+    },
+    {
+      "folder": "vanta-vulture",
+      "robloxAssetIdsKey": "VantaVulture",
+      "title": "Vanta ace livery: Vulture flight",
+      "variantOf": "vanta",
+      "upload": [
+        {
+          "file": "vanta-vulture.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "vanta-vulture-color.png",
+          "role": "color"
+        },
+        {
+          "file": "vanta-vulture-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "vanta-vulture-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "vanta-vulture-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.28,
+      "expectedImportSizeStuds": [
+        693.28,
+        224.56,
+        777.0
+      ],
+      "gameSizeStuds": [
+        23.5555,
+        7.6298,
+        26.4
+      ],
+      "usage": "Vulture Lead and Vulture Two aces (M11 and M15 ace phases).",
+      "triangleCount": 3780,
+      "textures": [
+        "vanta-vulture-color.png 1024x1024",
+        "vanta-vulture-normal.png 1024x1024",
+        "vanta-vulture-roughness.png 1024x1024",
+        "vanta-vulture-metalness.png 1024x1024"
+      ],
+      "textureLimit": 1024,
+      "robloxSizeStuds": [
+        24.76,
+        8.02,
+        27.75
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "vanta-vulture/preview-front.png",
+        "vanta-vulture/preview-side.png",
+        "vanta-vulture/preview-top.png",
+        "vanta-vulture/preview-3q.png"
+      ]
+    },
+    {
+      "folder": "vanta-rusk",
+      "robloxAssetIdsKey": "VantaRusk",
+      "title": "Vanta ace livery: Air Marshal Rusk",
+      "variantOf": "vanta",
+      "upload": [
+        {
+          "file": "vanta-rusk.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "vanta-rusk-color.png",
+          "role": "color"
+        },
+        {
+          "file": "vanta-rusk-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "vanta-rusk-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "vanta-rusk-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.28,
+      "expectedImportSizeStuds": [
+        693.28,
+        224.56,
+        777.0
+      ],
+      "gameSizeStuds": [
+        23.5555,
+        7.6298,
+        26.4
+      ],
+      "usage": "Air Marshal Rusk final ace (M27 ace phase).",
+      "triangleCount": 3780,
+      "textures": [
+        "vanta-rusk-color.png 1024x1024",
+        "vanta-rusk-normal.png 1024x1024",
+        "vanta-rusk-roughness.png 1024x1024",
+        "vanta-rusk-metalness.png 1024x1024"
+      ],
+      "textureLimit": 1024,
+      "robloxSizeStuds": [
+        24.76,
+        8.02,
+        27.75
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "vanta-rusk/preview-front.png",
+        "vanta-rusk/preview-side.png",
+        "vanta-rusk/preview-top.png",
+        "vanta-rusk/preview-3q.png"
+      ]
+    },
+    {
+      "folder": "frigate",
+      "robloxAssetIdsKey": "Frigate",
+      "title": "Navy frigate",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "frigate.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "frigate-color.png",
+          "role": "color"
+        },
+        {
+          "file": "frigate-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "frigate-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "frigate-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        58.319,
+        155.05,
+        430.0
+      ],
+      "gameSizeStuds": [
+        58.319,
+        155.05,
+        430.0
+      ],
+      "usage": "M23 frigate ring (three hulls, one protected) and harbour dressing in Act III; WorldAssets.PlaceFrigate.",
+      "triangleCount": 3222,
+      "textures": [
+        "frigate-color.png 512x512",
+        "frigate-normal.png 512x512",
+        "frigate-roughness.png 512x512",
+        "frigate-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        58.319,
+        155.05,
+        430.0
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "frigate/preview-front.png",
+        "frigate/preview-side.png",
+        "frigate/preview-top.png",
+        "frigate/preview-3q.png"
+      ]
+    },
+    {
+      "folder": "oil-platform",
+      "robloxAssetIdsKey": "OilPlatform",
+      "title": "Offshore oil platform",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "oil-platform.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "oil-platform-color.png",
+          "role": "color"
+        },
+        {
+          "file": "oil-platform-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "oil-platform-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "oil-platform-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.28,
+      "expectedImportSizeStuds": [
+        8879.164,
+        8585.5,
+        6086.08
+      ],
+      "gameSizeStuds": [
+        317.113,
+        306.625,
+        217.36
+      ],
+      "usage": "M23/M24 'ocean platform' rig: protected centrepiece and ground-target deck; WorldAssets.PlaceOilPlatform.",
+      "triangleCount": 3468,
+      "textures": [
+        "oil-platform-color.png 512x512",
+        "oil-platform-normal.png 512x512",
+        "oil-platform-roughness.png 512x512",
+        "oil-platform-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        317.113,
+        306.625,
+        217.36
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "oil-platform/preview-front.png",
+        "oil-platform/preview-side.png",
+        "oil-platform/preview-top.png",
+        "oil-platform/preview-3q.png"
+      ]
+    },
+    {
+      "folder": "harbour-quay",
+      "robloxAssetIdsKey": "HarbourQuay",
+      "title": "Harbour quay segment",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "harbour-quay.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "harbour-quay-color.png",
+          "role": "color"
+        },
+        {
+          "file": "harbour-quay-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "harbour-quay-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "harbour-quay-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.28,
+      "expectedImportSizeStuds": [
+        6720.0,
+        1562.4,
+        2024.4
+      ],
+      "gameSizeStuds": [
+        240.0,
+        55.8,
+        72.3
+      ],
+      "usage": "Open-piled quay segments for harbour missions (M19-M27); tile end to end along a coast. WorldAssets.PlaceQuay.",
+      "triangleCount": 1612,
+      "textures": [
+        "harbour-quay-color.png 512x512",
+        "harbour-quay-normal.png 512x512",
+        "harbour-quay-roughness.png 512x512",
+        "harbour-quay-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        240.0,
+        55.8,
+        72.3
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "harbour-quay/preview-front.png",
+        "harbour-quay/preview-side.png",
+        "harbour-quay/preview-top.png",
+        "harbour-quay/preview-3q.png"
+      ]
+    },
+    {
+      "folder": "container-stack",
+      "robloxAssetIdsKey": "ContainerStack",
+      "title": "Shipping container stack",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "container-stack.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "container-stack-color.png",
+          "role": "color"
+        },
+        {
+          "file": "container-stack-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "container-stack-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "container-stack-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        36.0,
+        27.75,
+        88.4
+      ],
+      "gameSizeStuds": [
+        36.0,
+        27.75,
+        88.4
+      ],
+      "usage": "Port yard stacks beside quays and cranes (replaces Scenery.Containers boxes).",
+      "triangleCount": 748,
+      "textures": [
+        "container-stack-color.png 256x256",
+        "container-stack-normal.png 256x256",
+        "container-stack-roughness.png 256x256",
+        "container-stack-metalness.png 256x256"
+      ],
+      "textureLimit": 256,
+      "robloxSizeStuds": [
+        36.0,
+        27.75,
+        88.4
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "container-stack/preview-front.png",
+        "container-stack/preview-side.png",
+        "container-stack/preview-top.png",
+        "container-stack/preview-3q.png"
+      ]
+    },
+    {
+      "folder": "gantry-crane",
+      "robloxAssetIdsKey": "GantryCrane",
+      "title": "Ship-to-shore gantry crane",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "gantry-crane.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "gantry-crane-color.png",
+          "role": "color"
+        },
+        {
+          "file": "gantry-crane-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "gantry-crane-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "gantry-crane-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.28,
+      "expectedImportSizeStuds": [
+        1624.0,
+        4480.0,
+        5600.0
+      ],
+      "gameSizeStuds": [
+        58.0,
+        160.0,
+        200.0
+      ],
+      "usage": "Harbour skyline: line quays in M19-M27 (replaces Scenery.Crane); WorldAssets.PlaceGantryCrane.",
+      "triangleCount": 568,
+      "textures": [
+        "gantry-crane-color.png 512x512",
+        "gantry-crane-normal.png 512x512",
+        "gantry-crane-roughness.png 512x512",
+        "gantry-crane-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        58.0,
+        160.0,
+        200.0
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "gantry-crane/preview-front.png",
+        "gantry-crane/preview-side.png",
+        "gantry-crane/preview-top.png",
+        "gantry-crane/preview-3q.png"
+      ]
+    },
+    {
+      "folder": "hangar",
+      "robloxAssetIdsKey": "Hangar",
+      "title": "Hardened aircraft shelter",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "hangar.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "hangar-color.png",
+          "role": "color"
+        },
+        {
+          "file": "hangar-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "hangar-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "hangar-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.28,
+      "expectedImportSizeStuds": [
+        3584.0,
+        1106.0,
+        3824.8
+      ],
+      "gameSizeStuds": [
+        128.0,
+        39.5,
+        136.6
+      ],
+      "usage": "Airbase dressing at Varda (M1, M3, M4, M8): fits one Kestrel; WorldAssets.PlaceHangar.",
+      "triangleCount": 1064,
+      "textures": [
+        "hangar-color.png 512x512",
+        "hangar-normal.png 512x512",
+        "hangar-roughness.png 512x512",
+        "hangar-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        128.0,
+        39.5,
+        136.6
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "hangar/preview-front.png",
+        "hangar/preview-side.png",
+        "hangar/preview-top.png",
+        "hangar/preview-3q.png"
+      ]
+    },
+    {
+      "folder": "control-tower",
+      "robloxAssetIdsKey": "ControlTower",
+      "title": "Airfield control tower",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "control-tower.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "control-tower-color.png",
+          "role": "color"
+        },
+        {
+          "file": "control-tower-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "control-tower-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "control-tower-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.28,
+      "expectedImportSizeStuds": [
+        1820.0,
+        3544.8,
+        1330.0
+      ],
+      "gameSizeStuds": [
+        65.0,
+        126.6,
+        47.5
+      ],
+      "usage": "Varda airbase tower (M1, M3, M4, M8), offset from the runway; replaces Scenery.ControlTower.",
+      "triangleCount": 472,
+      "textures": [
+        "control-tower-color.png 512x512",
+        "control-tower-normal.png 512x512",
+        "control-tower-roughness.png 512x512",
+        "control-tower-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        65.0,
+        126.6,
+        47.5
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "control-tower/preview-front.png",
+        "control-tower/preview-side.png",
+        "control-tower/preview-top.png",
+        "control-tower/preview-3q.png"
+      ]
+    },
+    {
+      "folder": "office-midrise",
+      "robloxAssetIdsKey": "OfficeMidrise",
+      "title": "Mid-rise office building",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "office-midrise.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "office-midrise-color.png",
+          "role": "color"
+        },
+        {
+          "file": "office-midrise-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "office-midrise-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "office-midrise-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.28,
+      "expectedImportSizeStuds": [
+        3214.4,
+        3696.0,
+        2251.2
+      ],
+      "gameSizeStuds": [
+        114.8,
+        132.0,
+        80.4
+      ],
+      "usage": "City and harbour districts (M21, M22, M26, M27): replaces Scenery.Buildings boxes.",
+      "triangleCount": 448,
+      "textures": [
+        "office-midrise-color.png 512x512",
+        "office-midrise-normal.png 512x512",
+        "office-midrise-roughness.png 512x512",
+        "office-midrise-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        114.8,
+        132.0,
+        80.4
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "office-midrise/preview-front.png",
+        "office-midrise/preview-side.png",
+        "office-midrise/preview-top.png",
+        "office-midrise/preview-3q.png"
+      ]
+    },
+    {
+      "folder": "apartment-block",
+      "robloxAssetIdsKey": "ApartmentBlock",
+      "title": "Apartment block",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "apartment-block.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "apartment-block-color.png",
+          "role": "color"
+        },
+        {
+          "file": "apartment-block-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "apartment-block-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "apartment-block-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.28,
+      "expectedImportSizeStuds": [
+        5068.0,
+        3612.0,
+        1554.0
+      ],
+      "gameSizeStuds": [
+        181.0,
+        129.0,
+        55.5
+      ],
+      "usage": "Residential city edges and harbour town (M19-M27): replaces Scenery.Buildings boxes.",
+      "triangleCount": 1368,
+      "textures": [
+        "apartment-block-color.png 512x512",
+        "apartment-block-normal.png 512x512",
+        "apartment-block-roughness.png 512x512",
+        "apartment-block-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        181.0,
+        129.0,
+        55.5
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "apartment-block/preview-front.png",
+        "apartment-block/preview-side.png",
+        "apartment-block/preview-top.png",
+        "apartment-block/preview-3q.png"
+      ]
+    },
+    {
+      "folder": "city-tower",
+      "robloxAssetIdsKey": "CityTower",
+      "title": "City office tower",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "city-tower.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "city-tower-color.png",
+          "role": "color"
+        },
+        {
+          "file": "city-tower-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "city-tower-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "city-tower-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.28,
+      "expectedImportSizeStuds": [
+        3640.0,
+        12202.4,
+        3920.0
+      ],
+      "gameSizeStuds": [
+        130.0,
+        435.8,
+        140.0
+      ],
+      "usage": "Coastal city skyline and Air Marshal's capital (M21, M26, M27): landmark high-rise.",
+      "triangleCount": 404,
+      "textures": [
+        "city-tower-color.png 512x512",
+        "city-tower-normal.png 512x512",
+        "city-tower-roughness.png 512x512",
+        "city-tower-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        130.0,
+        435.8,
+        140.0
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "city-tower/preview-front.png",
+        "city-tower/preview-side.png",
+        "city-tower/preview-top.png",
+        "city-tower/preview-3q.png"
+      ]
+    },
+    {
+      "folder": "farmhouse",
+      "robloxAssetIdsKey": "Farmhouse",
+      "title": "Farmhouse",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "farmhouse.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "farmhouse-color.png",
+          "role": "color"
+        },
+        {
+          "file": "farmhouse-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "farmhouse-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "farmhouse-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        47.0,
+        37.0,
+        55.086
+      ],
+      "gameSizeStuds": [
+        47.0,
+        37.0,
+        55.086
+      ],
+      "usage": "Teklan farm valleys (M5, M6, M13, M16): homesteads near silos and fields.",
+      "triangleCount": 200,
+      "textures": [
+        "farmhouse-color.png 256x256",
+        "farmhouse-normal.png 256x256",
+        "farmhouse-roughness.png 256x256",
+        "farmhouse-metalness.png 256x256"
+      ],
+      "textureLimit": 256,
+      "robloxSizeStuds": [
+        47.0,
+        37.0,
+        55.086
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "farmhouse/preview-front.png",
+        "farmhouse/preview-side.png",
+        "farmhouse/preview-top.png",
+        "farmhouse/preview-3q.png"
+      ]
+    },
+    {
+      "folder": "barn",
+      "robloxAssetIdsKey": "Barn",
+      "title": "Gambrel barn",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "barn.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "barn-color.png",
+          "role": "color"
+        },
+        {
+          "file": "barn-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "barn-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "barn-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        61.5,
+        49.0,
+        76.0
+      ],
+      "gameSizeStuds": [
+        61.5,
+        49.0,
+        76.0
+      ],
+      "usage": "Teklan farm valleys (M5, M6, M13, M16) beside the farmhouse and grain silos.",
+      "triangleCount": 200,
+      "textures": [
+        "barn-color.png 256x256",
+        "barn-normal.png 256x256",
+        "barn-roughness.png 256x256",
+        "barn-metalness.png 256x256"
+      ],
+      "textureLimit": 256,
+      "robloxSizeStuds": [
+        61.5,
+        49.0,
+        76.0
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "barn/preview-front.png",
+        "barn/preview-side.png",
+        "barn/preview-top.png",
+        "barn/preview-3q.png"
+      ]
+    },
+    {
+      "folder": "grain-silo",
+      "robloxAssetIdsKey": "GrainSilo",
+      "title": "Grain silo pair",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "grain-silo.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "grain-silo-color.png",
+          "role": "color"
+        },
+        {
+          "file": "grain-silo-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "grain-silo-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "grain-silo-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        72.0,
+        92.0,
+        45.0
+      ],
+      "gameSizeStuds": [
+        72.0,
+        92.0,
+        45.0
+      ],
+      "usage": "Farm cooperative dressing (M5, M6, M13); scenery companion to the GrainSilo mission target.",
+      "triangleCount": 1116,
+      "textures": [
+        "grain-silo-color.png 256x256",
+        "grain-silo-normal.png 256x256",
+        "grain-silo-roughness.png 256x256",
+        "grain-silo-metalness.png 256x256"
+      ],
+      "textureLimit": 256,
+      "robloxSizeStuds": [
+        72.0,
+        92.0,
+        45.0
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "grain-silo/preview-front.png",
+        "grain-silo/preview-side.png",
+        "grain-silo/preview-top.png",
+        "grain-silo/preview-3q.png"
+      ]
+    },
+    {
+      "folder": "radar-dish",
+      "robloxAssetIdsKey": "RadarDish",
+      "title": "Ground radar dish",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "radar-dish.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "radar-dish-color.png",
+          "role": "color"
+        },
+        {
+          "file": "radar-dish-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "radar-dish-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "radar-dish-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        59.4,
+        54.811,
+        41.129
+      ],
+      "gameSizeStuds": [
+        59.4,
+        54.811,
+        41.129
+      ],
+      "usage": "Relay and air-defence sites (M3, M10, M11, M14): scenery companion to the Radar target.",
+      "triangleCount": 1024,
+      "textures": [
+        "radar-dish-color.png 256x256",
+        "radar-dish-normal.png 256x256",
+        "radar-dish-roughness.png 256x256",
+        "radar-dish-metalness.png 256x256"
+      ],
+      "textureLimit": 256,
+      "robloxSizeStuds": [
+        59.4,
+        54.811,
+        41.129
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "radar-dish/preview-front.png",
+        "radar-dish/preview-side.png",
+        "radar-dish/preview-top.png",
+        "radar-dish/preview-3q.png"
+      ]
+    },
+    {
+      "folder": "relay-mast",
+      "robloxAssetIdsKey": "RelayMast",
+      "title": "Comms relay mast",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "relay-mast.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "relay-mast-color.png",
+          "role": "color"
+        },
+        {
+          "file": "relay-mast-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "relay-mast-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "relay-mast-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        40.0,
+        152.225,
+        20.123
+      ],
+      "gameSizeStuds": [
+        40.0,
+        152.225,
+        20.123
+      ],
+      "usage": "Relay stations across the campaign (M3-M27): scenery companion to the CommsRelay target.",
+      "triangleCount": 1436,
+      "textures": [
+        "relay-mast-color.png 256x256",
+        "relay-mast-normal.png 256x256",
+        "relay-mast-roughness.png 256x256",
+        "relay-mast-metalness.png 256x256"
+      ],
+      "textureLimit": 256,
+      "robloxSizeStuds": [
+        40.0,
+        152.225,
+        20.123
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "relay-mast/preview-front.png",
+        "relay-mast/preview-side.png",
+        "relay-mast/preview-top.png",
+        "relay-mast/preview-3q.png"
+      ]
+    },
+    {
+      "folder": "pine",
+      "robloxAssetIdsKey": "Pine",
+      "title": "Pine tree",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "pine.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "pine-color.png",
+          "role": "color"
+        },
+        {
+          "file": "pine-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "pine-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "pine-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        28.623,
+        63.304,
+        31.475
+      ],
+      "gameSizeStuds": [
+        28.623,
+        63.304,
+        31.475
+      ],
+      "usage": "Coniferous scatter for farm, relay and canyon rims (Scenery.Trees).",
+      "triangleCount": 680,
+      "textures": [
+        "pine-color.png 256x256",
+        "pine-normal.png 256x256",
+        "pine-roughness.png 256x256",
+        "pine-metalness.png 256x256"
+      ],
+      "textureLimit": 256,
+      "robloxSizeStuds": [
+        28.623,
+        63.304,
+        31.475
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "pine/preview-front.png",
+        "pine/preview-side.png",
+        "pine/preview-top.png",
+        "pine/preview-3q.png"
+      ]
+    },
+    {
+      "folder": "broadleaf",
+      "robloxAssetIdsKey": "Broadleaf",
+      "title": "Broadleaf tree",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "broadleaf.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "broadleaf-color.png",
+          "role": "color"
+        },
+        {
+          "file": "broadleaf-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "broadleaf-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "broadleaf-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        34.809,
+        47.682,
+        32.187
+      ],
+      "gameSizeStuds": [
+        34.809,
+        47.682,
+        32.187
+      ],
+      "usage": "Deciduous scatter for farm valleys, orchards and city parks (Scenery.Trees).",
+      "triangleCount": 724,
+      "textures": [
+        "broadleaf-color.png 256x256",
+        "broadleaf-normal.png 256x256",
+        "broadleaf-roughness.png 256x256",
+        "broadleaf-metalness.png 256x256"
+      ],
+      "textureLimit": 256,
+      "robloxSizeStuds": [
+        34.809,
+        47.682,
+        32.187
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "broadleaf/preview-front.png",
+        "broadleaf/preview-side.png",
+        "broadleaf/preview-top.png",
+        "broadleaf/preview-3q.png"
+      ]
+    },
+    {
+      "folder": "rock-a",
+      "robloxAssetIdsKey": "RockA",
+      "title": "Rounded granite boulder",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "rock-a.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "rock-a-color.png",
+          "role": "color"
+        },
+        {
+          "file": "rock-a-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "rock-a-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "rock-a-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        19.667,
+        11.324,
+        14.747
+      ],
+      "gameSizeStuds": [
+        19.667,
+        11.324,
+        14.747
+      ],
+      "usage": "Scattered boulders and outcrops in canyon, coastal and farm missions (Scenery.Rocks).",
+      "triangleCount": 1280,
+      "textures": [
+        "rock-a-color.png 256x256",
+        "rock-a-normal.png 256x256",
+        "rock-a-roughness.png 256x256",
+        "rock-a-metalness.png 256x256"
+      ],
+      "textureLimit": 256,
+      "robloxSizeStuds": [
+        19.667,
+        11.324,
+        14.747
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "rock-a/preview-front.png",
+        "rock-a/preview-side.png",
+        "rock-a/preview-top.png",
+        "rock-a/preview-3q.png"
+      ]
+    },
+    {
+      "folder": "rock-b",
+      "robloxAssetIdsKey": "RockB",
+      "title": "Split granite outcrop",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "rock-b.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "rock-b-color.png",
+          "role": "color"
+        },
+        {
+          "file": "rock-b-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "rock-b-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "rock-b-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        29.705,
+        13.217,
+        16.38
+      ],
+      "gameSizeStuds": [
+        29.705,
+        13.217,
+        16.38
+      ],
+      "usage": "Scattered boulders and outcrops in canyon, coastal and farm missions (Scenery.Rocks).",
+      "triangleCount": 960,
+      "textures": [
+        "rock-b-color.png 256x256",
+        "rock-b-normal.png 256x256",
+        "rock-b-roughness.png 256x256",
+        "rock-b-metalness.png 256x256"
+      ],
+      "textureLimit": 256,
+      "robloxSizeStuds": [
+        29.705,
+        13.217,
+        16.38
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "rock-b/preview-front.png",
+        "rock-b/preview-side.png",
+        "rock-b/preview-top.png",
+        "rock-b/preview-3q.png"
+      ]
+    },
+    {
+      "folder": "rock-c",
+      "robloxAssetIdsKey": "RockC",
+      "title": "Weathered sandstone stack",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "rock-c.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "rock-c-color.png",
+          "role": "color"
+        },
+        {
+          "file": "rock-c-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "rock-c-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "rock-c-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        17.122,
+        20.682,
+        13.195
+      ],
+      "gameSizeStuds": [
+        17.122,
+        20.682,
+        13.195
+      ],
+      "usage": "Scattered boulders and outcrops in canyon, coastal and farm missions (Scenery.Rocks).",
+      "triangleCount": 1600,
+      "textures": [
+        "rock-c-color.png 256x256",
+        "rock-c-normal.png 256x256",
+        "rock-c-roughness.png 256x256",
+        "rock-c-metalness.png 256x256"
+      ],
+      "textureLimit": 256,
+      "robloxSizeStuds": [
+        17.122,
+        20.682,
+        13.195
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "rock-c/preview-front.png",
+        "rock-c/preview-side.png",
+        "rock-c/preview-top.png",
+        "rock-c/preview-3q.png"
+      ]
+    }
+  ]
+}

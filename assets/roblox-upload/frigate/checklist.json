@@ -1,0 +1,97 @@
+{
+  "name": "frigate",
+  "title": "Navy frigate",
+  "variantOf": null,
+  "robloxAssetType": "Model",
+  "usage": "M23 frigate ring (three hulls, one protected) and harbour dressing in Act III; WorldAssets.PlaceFrigate.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "frigate.fbx",
+    "bytes": 799340
+  },
+  "triangleCount": 3222,
+  "triangleLimit": 6000,
+  "objects": [
+    {
+      "name": "frigate",
+      "triangles": 3222
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "frigate-color.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 284482
+    },
+    {
+      "role": "normal",
+      "file": "frigate-normal.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 88792
+    },
+    {
+      "role": "rough",
+      "file": "frigate-roughness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 185218
+    },
+    {
+      "role": "metal",
+      "file": "frigate-metalness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 21049
+    }
+  ],
+  "robloxSizeStuds": [
+    58.319,
+    155.05,
+    430.0
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 16.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "No letters, numbers or symbols: the helideck is plain non-skid with only thin pale lines along its own edges (port, starboard, stern, hangar face); no circle, cross or centre line."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No pennant numbers, ensigns, flags or class markings; hull form is an original stealth-frigate design."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or face-like arrangements."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "A covered deck gun and point-defence domes as on any warship; nothing aimed, firing or damaged."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": []
+}

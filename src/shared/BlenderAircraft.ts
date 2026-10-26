@@ -1,4 +1,7 @@
 import { AssetService, HttpService, RunService, ServerStorage } from "@rbxts/services";
+import { AceLivery, AssetSelection } from "./AssetSelection";
+import { UploadedAssets } from "./UploadedAssets";
+import { UploadedAssetSpecs } from "./UploadedAssetSpecs";
 
 type AircraftKind = "Kestrel" | "Vanta";
 export interface AircraftAttachments {
@@ -197,11 +200,47 @@ function getTemplates(kind: AircraftKind): Model | undefined {
 	return cache.templates;
 }
 
+/** Clone an uploaded aircraft's parts into the model; false when no uploaded asset is usable. */
+function populateUploaded(model: Model, enemy: boolean, livery?: AceLivery): boolean {
+	const uploaded = UploadedAssets.Template(AssetSelection.AircraftCandidates(enemy, livery));
+	if (uploaded === undefined) return false;
+	const attachments = UploadedAssetSpecs[uploaded.name].attachments;
+	assert(attachments !== undefined, `${uploaded.name}: missing authored attachments`);
+	for (const item of uploaded.template.GetChildren()) {
+		if (!item.IsA("BasePart")) continue;
+		const clone = item.Clone();
+		clone.CastShadow = true;
+		clone.Parent = model;
+	}
+	for (const name of attachmentNames) model.SetAttribute(name, attachments[name]);
+	model.SetAttribute("GeometrySource", "Uploaded");
+	model.SetAttribute("UploadedAsset", uploaded.name);
+	return true;
+}
+
+/** Recolour the procedural Vanta's paint roles for an ace whose livery has no uploaded model. */
+function tintProcedural(model: Model, livery: AceLivery): void {
+	const tint = AssetSelection.ProceduralTint(livery);
+	for (const item of model.GetChildren()) {
+		if (!item.IsA("MeshPart")) continue;
+		const role = item.GetAttribute("BlenderMaterial");
+		const rgb = role === "White" ? tint.White : role === "Navy" ? tint.Navy : role === "Cyan" ? tint.Cyan : undefined;
+		if (rgb !== undefined) item.Color = Color3.fromRGB(rgb[0], rgb[1], rgb[2]);
+	}
+}
+
 export const BlenderAircraft = {
-	Populate(model: Model, enemy: boolean): boolean {
+	/**
+	 * Fill an aircraft model with geometry: the uploaded Roblox model when its ID
+	 * is set in RobloxAssetIds and loads, otherwise the generated Blender meshes.
+	 * Returns false only when neither is available (JetFactory then builds parts).
+	 */
+	Populate(model: Model, enemy: boolean, livery?: AceLivery): boolean {
 		assert(RunService.IsServer() || (RunService.IsStudio() && !RunService.IsRunning()), "BlenderAircraft geometry must be generated on the server or in Studio edit mode");
 		const kind = enemy ? "Vanta" : "Kestrel";
 		model.SetAttribute("GeometryAsset", kind);
+		if (livery !== undefined) model.SetAttribute("Livery", livery);
+		if (populateUploaded(model, enemy, livery)) return true;
 		const source = getTemplates(kind);
 		if (source === undefined) return false;
 		for (const item of source.GetChildren()) {
@@ -210,6 +249,7 @@ export const BlenderAircraft = {
 			clone.Parent = model;
 		}
 		for (const name of attachmentNames) model.SetAttribute(name, source.GetAttribute(name));
+		if (enemy && livery !== undefined) tintProcedural(model, livery);
 		model.SetAttribute("GeometrySource", "Blender");
 		return true;
 	},
