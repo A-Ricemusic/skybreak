@@ -165,7 +165,7 @@ export interface Telemetry {
 	missileCooldown: number;
 	/** Seconds until EVADE can be pressed again (0 with a charge in hand and no roll running). */
 	evadeCooldown: number;
-	/** Evade charges in hand (0-3); each recharges in 12 s. */
+	/** Evade charges in hand (0-3); each recharges in 10 s. Absent from older servers (the HUD then treats evade as one charge). */
 	evadeCharges?: number;
 	/** Studs to the nearest hostile missile, when one is in the air. */
 	incomingDistance?: number;
