@@ -4,7 +4,7 @@ An original mobile-first arcade jet combat campaign for Roblox, written in TypeS
 
 ## Controls and campaign
 
-- Mobile: two large thumb sticks appear while using touch. Left steers; right up accelerates and down decelerates. Release recenters the knob and holds the selected throttle percentage. FIRE, TGT and the special weapon sit between the sticks.
+- Mobile: two large thumb sticks appear while using touch. Left steers; push the right stick toward SPEED UP to accelerate or SLOW DOWN to decelerate. Release recenters the knob and holds the selected throttle. FIRE, TGT and the special weapon sit between the sticks. The HUD shows airspeed as `SPD 281` and hull integrity as a bar under the weapon status that turns orange, then red, as damage builds.
 - Desktop and console: a short control legend appears at launch; afterwards the HUD shows only actionable hints. Evade is `F` on keyboard and `B` on gamepad. Hold `LB` / `RB` to decrease / increase throttle. Menus support gamepad selection, with `B` to go back.
 - Targets are selected automatically; TGT cycles contacts. Keep the selected target in range and ahead until the bracket reads LOCKED, then FIRE launches guided missiles. Early FIRE launches unguided. Incoming-missile and airspace warnings appear only while active.
 - Mission 1 — First Flight: learn pitch/turn, select and destroy a ground radar, then defeat three pursuing bandits.

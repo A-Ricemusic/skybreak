@@ -1233,8 +1233,9 @@ function MissionHud({
 	const cooldownText = telemetry.missileCooldown > 0 && !touch ? string.format(" · %.1fs", telemetry.missileCooldown) : "";
 	// The status line names the special even while it cycles ("FLR 1.2s"), where the button alone would just count down.
 	const specialStatus = specialButton.dimmed && (telemetry.specialCharges ?? 0) > 0 ? `${specialDefinition.short} ${string.format("%.1fs", telemetry.specialCooldown ?? 0)}` : specialButton.text;
-	const statusText = `${hull < 100 ? `HULL ${hull} · ` : ""}MSL ${telemetry.missiles}${cooldownText} · ${specialStatus}`;
-	const statusColor = telemetry.missiles <= 0 || hull <= 30 ? C.Danger : hull <= 60 ? C.Orange : C.Ivory;
+	const statusText = `MSL ${telemetry.missiles}${cooldownText} · ${specialStatus}`;
+	const statusColor = telemetry.missiles <= 0 ? C.Danger : C.Ivory;
+	const hullColor = hull <= 30 ? C.Danger : hull <= 60 ? C.Orange : C.Accent;
 	const fireButton = WeaponRules.FireButton(telemetry.missiles, telemetry.missileCooldown, telemetry.target !== undefined && telemetry.targetDamageable !== false, telemetry.lockProgress);
 	const timeRemaining = telemetry.timeRemaining ?? 600;
 	const tutorial = getTutorialInstruction(telemetry.tutorialStep, inputMode);
@@ -1261,8 +1262,25 @@ function MissionHud({
 				font={Enum.Font.RobotoMono}
 				alignment={Enum.TextXAlignment.Right}
 			/>
-			<HudText name="FlightStatus" text={`${telemetry.speed < FlightMath.StallSpeed ? "STALL " : "SPD"}${math.floor(telemetry.speed)} ${math.floor(throttle * 100 + 0.5)}%`} rectangle={layout.flightStatus} color={telemetry.speed < FlightMath.WarningSpeed ? C.Orange : C.Ivory} textSize={10} minTextSize={8} alignment={Enum.TextXAlignment.Right} />
+			<HudText name="FlightStatus" text={`${telemetry.speed < FlightMath.StallSpeed ? "STALL" : "SPD"} ${math.floor(telemetry.speed)}`} rectangle={layout.flightStatus} color={telemetry.speed < FlightMath.WarningSpeed ? C.Orange : C.Ivory} textSize={10} minTextSize={8} alignment={Enum.TextXAlignment.Right} />
 			<HudText name="WeaponStatus" text={statusText} rectangle={layout.status} color={statusColor} textSize={10} alignment={Enum.TextXAlignment.Right} />
+			<frame
+				key="HullBar"
+				BackgroundColor3={C.Ink}
+				BackgroundTransparency={0.5}
+				BorderSizePixel={0}
+				Position={UDim2.fromOffset(layout.health.x, layout.health.y)}
+				Size={UDim2.fromOffset(layout.health.width, layout.health.height)}
+			>
+				<Stroke color={C.Ivory} transparency={0.6} thickness={1} />
+				<frame
+					key="HullFill"
+					BackgroundColor3={hullColor}
+					BackgroundTransparency={0.1}
+					BorderSizePixel={0}
+					Size={UDim2.fromScale(math.clamp(telemetry.health / 100, 0, 1), 1)}
+				/>
+			</frame>
 			<HudText
 				name="WarningText"
 				textRef={warningText}
@@ -1307,18 +1325,21 @@ function MissionHud({
 			<frame ref={throttleJoystickRef} key="ThrottleJoystick" Active={true}
 				BackgroundColor3={C.Ink} BackgroundTransparency={0.75} BorderSizePixel={0}
 				Position={touch ? UDim2.fromOffset(touch.throttle.x, touch.throttle.y) : undefined}
-				Size={UDim2.fromOffset(96, 96)} Visible={touch !== undefined}
+				Size={touch ? UDim2.fromOffset(touch.throttle.width, touch.throttle.height) : UDim2.fromOffset(96, 96)} Visible={touch !== undefined}
 				Event={{ InputBegan: (_rbx, input) => onThrottleBegan(input) }}>
 				<Corner scale={0.5} /><Stroke color={C.Ivory} transparency={0.75} thickness={1} />
-				<Label name="ThrottleUp" text="UP / ACCEL" position={UDim2.fromOffset(8, 3)} size={UDim2.fromOffset(80, 14)} textSize={10} textXAlignment={Enum.TextXAlignment.Center} />
-				<Label name="ThrottleDown" text="DOWN / SLOW" position={UDim2.fromOffset(8, 79)} size={UDim2.fromOffset(80, 14)} textSize={10} textXAlignment={Enum.TextXAlignment.Center} />
 				<frame ref={throttleKnobRef} key="ThrottleKnob" AnchorPoint={new Vector2(0.5, 0.5)}
-					BackgroundColor3={C.Accent} BackgroundTransparency={0.35} BorderSizePixel={0}
-					Position={UDim2.fromScale(0.5, 0.5)} Size={UDim2.fromOffset(40, 36)}>
+					BackgroundColor3={C.Accent} BackgroundTransparency={0.6} BorderSizePixel={0}
+					Position={UDim2.fromScale(0.5, 0.5)} Size={UDim2.fromOffset(36, 36)}>
 					<Corner scale={0.5} />
-					<Label name="ThrottlePercent" text={`${math.floor(throttle * 100 + 0.5)}%`} size={UDim2.fromScale(1, 1)} textSize={11} textXAlignment={Enum.TextXAlignment.Center} />
 				</frame>
 			</frame>
+			{touch?.throttleUpLabel && (
+				<HudText name="ThrottleUp" text="SPEED UP" rectangle={touch.throttleUpLabel} textSize={10} alignment={Enum.TextXAlignment.Center} />
+			)}
+			{touch?.throttleDownLabel && (
+				<HudText name="ThrottleDown" text="SLOW DOWN" rectangle={touch.throttleDownLabel} textSize={10} alignment={Enum.TextXAlignment.Center} />
+			)}
 
 			<frame key="CombatControls" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)}>
 				{touch && (
