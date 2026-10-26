@@ -3,6 +3,7 @@ import { Players, ReplicatedStorage, StarterGui, Workspace } from "@rbxts/servic
 // roblox-ts emits index.client.tsx as the conventional init.client.luau script.
 
 import type { Remotes } from "../shared/Types";
+import { CombatEffects } from "./CombatEffects";
 import { FlightController } from "./FlightController";
 import { mountGameUI } from "./GameUI";
 import { applyMobileGraphics } from "./MobileGraphics";
@@ -35,13 +36,16 @@ if (Workspace.GetAttribute("SkybreakTestMode") !== true) {
 		MissionState: folder.WaitForChild("MissionState") as RemoteEvent,
 		FlightState: folder.WaitForChild("FlightState") as UnreliableRemoteEvent,
 		Telemetry: folder.WaitForChild("Telemetry") as UnreliableRemoteEvent,
+		CombatEffect: folder.WaitForChild("CombatEffect") as RemoteEvent,
 	};
 	const controller = new FlightController(remotes);
+	const effects = CombatEffects.Start(remotes);
 	const mounted = mountGameUI(player.WaitForChild("PlayerGui"), remotes, controller);
 	const destroying = script.Destroying.Connect(() => {
 		destroying.Disconnect();
 		for (const connection of graphics) connection.Disconnect();
 		mounted.unmount();
 		controller.Destroy();
+		effects();
 	});
 }

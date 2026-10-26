@@ -6,7 +6,8 @@ import { JetFactory } from "../shared/JetFactory";
 import { MissionPhase, MissionRules, MissionRuleState, TargetKind } from "../shared/MissionRules";
 import { BlueprintRunner, BlueprintState } from "../shared/BlueprintRunner";
 import { MissionBlueprint, MissionCatalog, MissionPhaseBlueprint } from "../shared/MissionCatalog";
-import { FinishedCallback, FlightInput, HudState, MissionLoading, MissionStats, Remotes } from "../shared/Types";
+import { CombatEffectPacket, FinishedCallback, FlightInput, HudState, MissionLoading, MissionStats, Remotes } from "../shared/Types";
+import { ExplosionKind } from "../shared/ExplosionFx";
 import { FlightPrediction } from "../shared/FlightPrediction";
 import { TelemetryCodec } from "../shared/TelemetryCodec";
 import { LoadingGate, LoadingGateState } from "../shared/LoadingGate";
@@ -95,6 +96,7 @@ let missionRoot: Instance | undefined;
 let missionState: RemoteEvent | undefined;
 let flightStateRemote: UnreliableRemoteEvent | undefined;
 let telemetryRemote: UnreliableRemoteEvent | undefined;
+let combatEffectRemote: RemoteEvent | undefined;
 let onFinished: FinishedCallback | undefined;
 const FIXED_STEP = 1 / 30;
 const MAX_MISSILES = 8;
@@ -358,6 +360,11 @@ function sessionCompletedPhases(session: CombatSession, won: boolean): number | 
 	if (won) return MissionCatalog.Get(session.missionId).phases.size();
 	return legacyPhaseIndex(session.missionId, session.rules.phase) ?? 0;
 }
+/** Cosmetic explosion, drawn by the client (src/client/CombatEffects.ts) so no effect parts replicate. */
+function effect(session: CombatSession, kind: ExplosionKind, position: Vector3, extra?: Omit<CombatEffectPacket, "kind" | "position">): void {
+	if (session.cleaned || session.player.Parent !== Players) return;
+	combatEffectRemote?.FireClient(session.player, { kind, position, ...extra });
+}
 function restoreMenu(): void {
 	if (sessions.size() > 0) return;
 	const [ok, message] = pcall(() => MissionWorld.RestoreMenu());
@@ -389,6 +396,7 @@ function finish(session: CombatSession): void {
 	if (session.rules) session.elapsed = session.rules.elapsed;
 	else if (session.blueprintState) session.elapsed = session.blueprintState.elapsed;
 	const won = outcome === "won";
+	if (!won && (session.health <= 0 || session.crashReason !== undefined)) effect(session, "player", positionFor(session.state), { velocity: directionFor(session.state).mul(session.state.speed) });
 	// The result screen waits up to a few seconds for the save; say the outcome on the HUD right away.
 	session.radio = won ? "MISSION ACCOMPLISHED · RETURN TO BASE" : "MISSION FAILED";
 	session.radioSerial += 1;
@@ -622,7 +630,9 @@ function destroyEnemy(session: CombatSession, enemy: Enemy): void {
 	enemy.model.SetAttribute("Health", 0);
 	enemy.model.SetAttribute("SkybreakEnemy", false);
 	enemy.model.SetAttribute("RequiredTarget", false);
-	JetFactory.Burst(session.folder, enemy.position, Color3.fromRGB(255, 169, 87), enemy.kind === "ground" ? 26 : 12);
+	// Fired before Destroy so the model reference still resolves on the client (its visual becomes the wreck).
+	if (enemy.kind === "ground") effect(session, "ground", enemy.position, { scale: math.clamp(enemy.model.GetExtentsSize().Magnitude / 60, 0.7, 2.2) });
+	else effect(session, enemy.kind, enemy.position, { velocity: enemy.velocity, model: enemy.model });
 	enemy.model.Destroy();
 	// Kills count every destruction, air and ground, so the HUD tally matches sessionTotalRequired.
 	if (session.rules) {
@@ -898,8 +908,8 @@ function stepMissiles(session: CombatSession, dt: number): void {
 		const blind = !missile.hostile && missile.target === undefined;
 		let removed = missile.age > (missile.hostile ? HOSTILE_MISSILE_LIFETIME : blind ? WeaponRules.UnguidedLifetime : WeaponRules.GuidedLifetime)
 			|| (!missile.hostile && !blind && !ownsEnemy(session, missile.target));
-		// A blind shot that reaches end of life bursts harmlessly where it is.
-		if (removed && blind) JetFactory.Burst(session.folder, missile.position, Color3.fromRGB(255, 220, 142), 3);
+		// A missile that times out (or loses its target) pops where it is.
+		if (removed) effect(session, "missile", missile.position);
 		if (!removed && blind) {
 			// Unguided: straight flight; the proximity fuse fires on the closest damageable enemy the sweep passes.
 			const nextPosition = missile.position.add(missile.direction.mul(WeaponRules.MissileSpeed * dt));
@@ -915,7 +925,7 @@ function stepMissiles(session: CombatSession, dt: number): void {
 					JetFactory.Burst(session.folder, missile.position, Color3.fromRGB(255, 220, 142), 4);
 					radio(session, `${enemy.name} deployed flares`);
 				} else {
-				JetFactory.Burst(session.folder, enemy.position, Color3.fromRGB(255, 179, 102), 8);
+				effect(session, "hit", enemy.position);
 				if (!strikeEnemy(session, enemy, index)) {
 					if (!session.active) return;
 					index = math.min(index, session.projectiles.size());
@@ -961,7 +971,7 @@ function stepMissiles(session: CombatSession, dt: number): void {
 			const nextPosition = missile.position.add(missile.direction.mul(speed * dt));
 			if (segmentDistance(targetPosition, missile.position, nextPosition) < (missile.hostile ? 24 : WeaponRules.FuseRadius)) {
 				removed = true;
-				JetFactory.Burst(session.folder, targetPosition, Color3.fromRGB(255, 179, 102), missile.hostile ? 6 : 8);
+				effect(session, "hit", targetPosition);
 				if (missile.hostile) {
 					if (session.evadeRemaining <= 0) {
 						const lost = math.min(session.health, missile.damage);
@@ -1218,6 +1228,7 @@ export const CombatService = {
 		missionState = remote(remotes, "MissionState");
 		flightStateRemote = remote(remotes, "FlightState");
 		telemetryRemote = remote(remotes, "Telemetry");
+		combatEffectRemote = remote(remotes, "CombatEffect");
 		missionRoot = Workspace.FindFirstChild("SkybreakCombat");
 		if (!missionRoot) { missionRoot = new Instance("Folder"); missionRoot.Name = "SkybreakCombat"; missionRoot.Parent = Workspace; }
 		connections.push(remote(remotes, "FlightInput").OnServerEvent.Connect((player, payload: unknown) => {
