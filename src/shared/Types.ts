@@ -70,11 +70,15 @@ export interface CombatEffectPacket {
 	model?: Model;
 }
 export interface FlightInput {
+	/** Turn stick, -1 (left) .. 1 (right): heading rate, not a target heading. */
 	x: number;
+	/** Pitch stick, -1 (nose down) .. 1 (nose up): pitch rate; centred holds the attitude. */
 	y: number;
 	throttle: number;
+	/** Opt-in level-out assist (settings): a centred stick eases back to wings-level flight. */
+	assist?: boolean;
 }
-/** FlightInput on the wire: `t` is the client's os.clock() at send, echoed back for round-trip timing. */
+/** FlightInput on the wire: `t` is the client's os.clock() at send, echoed back for round-trip timing; `assist` is the level-out setting. */
 export interface FlightInputPacket extends FlightInput {
 	t: number;
 }
