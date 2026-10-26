@@ -223,9 +223,9 @@ At Act III burn speed (620) the window means pressing when the missile is inside
 
 Owner playtest (2026-10-26): flares or EVADE were the only way to survive a missile. Hostile missiles flew 580–740 studs/s for 7–9 s and steered with `direction.Lerp(toTarget, DampAlpha(1.6–2.8))`, which turns in proportion to the angle error with no ceiling (at 90° off it out-turned the jet about 4×). They led the jet by up to 0.9 s, saw it from any angle and through terrain, and fused at 32–48 studs. Every hostile missile now flies `src/shared/MissileRules.ts`, a pure module (plain points, no Vector3) that runs on the server, in Jest and in the offline Luau VM:
 
-1. **Launch on a collision course.** The shooter fires where a straight-flying jet will be (`LeadDirection`, at most 0.8 × the seeker cone off the line of sight); the ace salvo fan is added on top. A jet that ignores the missile needs no correction from it and is hit.
+1. **Launch on a collision course, and only a fair one.** The shooter fires where a straight-flying jet will be (`LaunchHeading`: `LeadDirection`, at most 0.8 × the seeker cone off the line of sight); the ace salvo fan is added on top. A jet that ignores the missile needs no correction from it and is hit. `ShotClear` refuses a shot that would arrive in under `minLaunch` seconds (Easy 1.6, Normal 1.5, Ace 1.8). It is checked when a windup would start (both jets carried straight on for the windup) and again at launch; a shooter that closed to point-blank during its windup holds fire and may wind up again 1.5 s later.
 2. **Burn, then coast.** Full speed for the burn, then `speed × exp(-0.35 t)`. A coasting missile slower than the jet loses the chase; below 160 studs/s it self-destructs.
-3. **Capped proportional navigation.** Heading rate = 3 × line-of-sight rate (+0.5/s pursuit), clamped to `turnCap` rad/s. `burnSpeed × turnCap` is the missile's sideways acceleration. On Normal it is 180–250 studs/s², below the jet's 358 at full throttle (320 × 1.12 rad/s) and near its 260 at cruise. So a hard break started in time moves the jet off the missile's path faster than the missile can follow.
+3. **Capped proportional navigation.** Heading rate = 3 × line-of-sight rate (+0.5/s pursuit), clamped to `turnCap` rad/s. `burnSpeed × turnCap` is the missile's sideways acceleration: 157–198 studs/s² on Normal, under a hard-turning jet's ~325 (290 × 1.12 rad/s).
 4. **Seeker cone.** Once the jet is more than `gimbal` off the missile's nose, the lock is gone for good. The missile flies straight on and self-destructs when its life runs out (a small burst). Unlocked missiles never raise MISSILE INBOUND.
 5. **Terrain.** Each step's segment is raycast against `AircraftCollision.Parameters` (terrain plus `FlightSolid` scenery, via `AircraftCollision.MissileRay`); a hit detonates the missile there, harmlessly.
 6. **Proximity fuse.** Measured on the path relative to the jet through the step (no tunnelling at 600 studs/s), and only if the closest point comes before any terrain hit.
@@ -233,27 +233,61 @@ Owner playtest (2026-10-26): flares or EVADE were the only way to survive a miss
 | Value | Act I | Act II | Act III | Easy | Ace | fired by the ace |
 |---|---|---|---|---|---|---|
 | Burn speed (studs/s) | 560 | 600 | 620 | — | — | — |
-| Burn (s) | 2.6 | 3.0 | 3.4 | ×0.6 | ×1.15 | — |
-| Turn cap (rad/s) | 0.32 | 0.36 | 0.40 | ×0.75 | ×1.25 | +0.04 |
-| Seeker cone (half-angle) | 45° | 45° | 45° | ×1.1 | ×1.2 | +5° |
+| Burn (s) | 3.0 | 3.2 | 3.4 | ×0.75 | ×1.4 | — |
+| Turn cap (rad/s) | 0.28 | 0.30 | 0.32 | ×0.75 | ×1.3 | +0.04 |
+| Seeker cone (half-angle) | 45° | 45° | 45° | ×1.1 | ×1.3 | +5° |
 | Proximity fuse (studs) | 18 | 22 | 26 | — | — | — |
 | Life (s) | 7 | 8 | 9 | — | — | — |
+| Shortest shot (`minLaunch`, s to impact) | 1.5 | 1.5 | 1.5 | 1.6 | 1.8 | — |
 
-BREAK cue window (seconds to impact): Easy 0.7–2.4, Normal 0.9–1.8, Ace 1.1–1.7.
+Knobs: `Difficulty` `missileTurn` (Easy 0.75 / Ace 1.3), `missileBurn` (0.75 / 1.4) and `missileGimbal` (1.1 / 1.3). Easy's short burn means many tail shots can be outrun. Ace's harder turn, longer burn and wider cone follow a break started before BREAK shows, and its longer shortest shot means most Ace missiles have that early phase.
 
-Knobs: `Difficulty` `missileTurn` (Easy 0.75 / Ace 1.25), `missileBurn` (0.6 / 1.15) and `missileGimbal` (1.1 / 1.2). Ace's harder turn and wider cone mean the missile follows a break started too early and still connects on one started too late: only the window works. Easy's short burn means most long shots can simply be outrun.
+**The BREAK cue is a prediction, not a window.** Live play on the first version of this PR (Studio, Normal, M26 and M20 in Act III) showed BREAK for only 2–3 of 7–8 missiles, and breaking on it changed nothing. The causes, found with the closed-loop duel below:
+
+- Bandits kept closing during the 1.7 s windup (the fire gate checked range only at windup start), so most shots launched from 80–600 studs with 0.1–0.8 s to impact: under the 0.9 s window edge, never cued, and too close for any turn.
+- A break started under about 1.0–1.3 s to impact never worked, so the lower half of the 0.9–1.8 s window asked for a losing turn, and the cue pilot's reaction time pushed most breaks into it.
+- Only one turn direction worked for many geometries, and "away from the missile's side" was the losing one about half the time (for example a 9 o'clock missile at a jet already turning left).
+
+Now `MissileRules.BreakCue` runs on the server at each 10 Hz telemetry tick, for the most urgent locked missile (soonest impact, else nearest) inside 3.5 s. It flies copies of the missile and jet forward with `FlightMath.Step` and `MissileRules.Step` (open sky, up to 4.5 s): once with the pilot's current stick, then with a hard break started 0.3 s from now (full stick, 0.25 back pressure, full throttle for 1.5 s, then the pilot's previous stick again), trying the way the pilot is already turning, then away from the missile, then the other way. BREAK shows, with that turn, only when the missile would hit the jet as flown and misses the break. Telemetry flag 128 is BREAK and flag 256 says the turn is to the right. That costs at most three short predictions per incoming missile per tick, only for one missile per player.
 
 **How a player dodges**, in the order the HUD teaches it:
 
 - The warning line shows the most urgent locked missile: `MISSILE 7 O'CLOCK ↓ 2.1s` (narrow screens: `MISSILE ↓ 2.1s`). The arrow points where the missile is (↑ ahead, → right wing, ↓ tail, ← left wing), and the seconds are range ÷ closing speed.
-- Inside the level's break window it becomes `BREAK ← · MISSILE 1.4s` (narrow: `BREAK ←`). Turn hard the way the arrow points, which is away from the missile's side. That puts the missile on the tail, where the seeker cone loses a hard-turning jet. Below 285 studs/s the cue adds `POWER↑`: a break at cruise works in Acts I–II but needs throttle in Act III and on Ace.
-- Missiles fired from the front quarter are the hardest to beat with a turn. A level turn puts only part of the jet's acceleration across their line of sight, so turn to put them on the nose or the tail first, then use EVADE or flares.
-- A long tail shot is outrun at full throttle once the burn ends. Flying low behind a ridge makes the missile hit the ridge.
+- When a break now would win, it becomes `BREAK ← · MISSILE 1.4s` (narrow: `BREAK ←`). Turn hard the way the arrow points; the server has checked that turn, and it can be toward the missile's side. Below 285 studs/s the cue adds `POWER↑`, on narrow screens too (`BREAK ← POWER↑`), because the checked break is at full throttle.
+- A missile that is going to miss anyway (burnt out, outrun) shows no BREAK. A long tail shot is outrun at full throttle once the burn ends. Flying low behind a ridge makes the missile hit the ridge.
 - EVADE (3 charges, inside 450 studs or the missile's last 1.2 s) and the Flare Pod special are unchanged.
 
-Tuning came from a sweep of the real `FlightMath.Step` jet against the module. Aspects: head-on at 1500, 45° at 1200, beam at 1000, rear quarter at 900, tail at 700/800/1400 studs; breaks started at 1100 down to 150 studs, at full throttle and cruise. Normal Act II, full throttle: breaking away dodges a tail shot from launch down to about 250 studs (0.7–0.9 s to impact), and a head-on shot down to about 500 (0.5 s). On Ace the latest working break comes about 0.1–0.3 s earlier, and at cruise much earlier. Every ignored shot hits at cruise, on every level and act.
+**Closed-loop duel** (`src/tests/MissileDuel.ts`, enforced by `MissileDuel.spec.ts` offline and in Jest). A bandit starts its windup at every 30° around the jet, at six ranges across the act's fire range, nose on; it chases through the windup the way `stepEnemies` flies an attacking bandit, then fires through `ShotClear` and `LaunchHeading`. The jet circles left at 0.35 stick and cruise throttle (the live test's pilot). Pilots: *ignore*; *cue* (on BREAK, after 0.3 s, full stick the arrow's way, 0.25 back, full throttle for 1.6 s, then back to circling: the live "break" script reading the arrow); *away* (the same pull, always away from the missile's side: the old arrow); *beam* (on BREAK, turn onto the nearer heading square to the missile's line of sight and hold it); *early* (the cue pull started at launch); *run* (full throttle straight ahead; rear-hemisphere shots only). Each cell below is the share of launched missiles that **hit**, except "BREAK shown" (share of ignored hits that showed BREAK) and "cue dodges" (share of cue-pilot breaks that dodged). Two telemetry phases, 144 windups per row.
 
-`src/tests/MissileRules.spec.ts` (offline and Jest) flies those engagements: an ignored missile hits from four aspects on every level; a 500-stud break misses on Normal; the same late break (450) hits on Ace while a 700-stud one misses; a too-late break still hits on Normal; long tail shots are outrun after the burn; the seeker cone drops a lock for good; a ridge (an injected ray) takes the missile; and the fuse catches a 15-stud pass but lets 30 go. `src/tests/MissileCue.spec.ts` covers the HUD wording, and `AircraftCollision.spec.ts` covers the real raycast set (a ridge detonates the missile, a painted overlay does not).
+Before (the PR's first version: fixed TTI window, away arrow, no launch gate; reaction 0.25 s):
+
+| Level | Act | Ignored: hit | BREAK shown | Cue pilot: hit | Beam: hit | Early: hit | Run: hit |
+|---|---|---|---|---|---|---|---|
+| Easy | I / II / III | 83 / 86 / 89% | 42 / 48 / 58% | 55 / 54 / 53% | 64 / 71 / 72% | 38 / 43 / 51% | 71 / 75 / 76% |
+| Normal | I / II / III | 96 / 100 / 100% | 49 / 56 / 62% | 55 / 56 / 64% | 74 / 82 / 91% | 42 / 61 / 76% | 81 / 83 / 88% |
+| Ace | I / II / III | 100 / 100 / 100% | 48 / 54 / 61% | 57 / 64 / 94% | 83 / 94 / 100% | 56 / 83 / 97% | 82 / 88 / 90% |
+
+After (reaction 0.3 s):
+
+| Level | Act | Shots taken / held | Ignored: hit | BREAK shown | Cue dodges | Away: hit | Beam: hit | Early: hit | Run: hit |
+|---|---|---|---|---|---|---|---|---|---|
+| Easy | I | 42 / 102 | 71% | 100% | 100% | 0% | 10% | 0% | 42% |
+| Easy | II | 42 / 102 | 71% | 100% | 100% | 0% | 29% | 3% | 50% |
+| Easy | III | 46 / 98 | 78% | 100% | 100% | 4% | 48% | 0% | 52% |
+| Normal | I | 52 / 92 | 96% | 100% | 100% | 0% | 42% | 16% | 62% |
+| Normal | II | 54 / 90 | 100% | 93% | 100% | 11% | 63% | 24% | 65% |
+| Normal | III | 60 / 84 | 100% | 93% | 100% | 17% | 73% | 29% | 67% |
+| Ace | I | 40 / 104 | 100% | 95% | 100% | 5% | 68% | 42% | 73% |
+| Ace | II | 46 / 98 | 100% | 91% | 100% | 13% | 91% | 57% | 82% |
+| Ace | III | 54 / 90 | 100% | 78% | 100% | 30% | 100% | 67% | 86% |
+
+With a 0.15 s or 0.45 s reaction, or 0 or 0.6 back pressure, cue dodges stay at 89–100% on every row. On Ace, of the shots where BREAK first shows 0.7 s or more after launch, a break 0.7 s before the cue pilot's is hit every time (28 of 28). The working window of break start times has a median of 1.4–1.8 s on Easy and Normal and 1.2–1.6 s on Ace.
+
+Reading it: on Normal an ignored missile hits (96–100%), BREAK shows for 93–100% of them, and following BREAK dodges every time in the grid. On Easy following BREAK dodges every time and 48–58% of rear shots are outrun at full throttle. On Ace BREAK shows for 78–95% of hits and following it dodges; breaking before it is followed. A beam turn (the nearer perpendicular heading, held) is not a reliable defence in this model; the sustained hard break the cue asks for is. "Held" counts windups the gate refused, mostly bandits starting inside about 1000 studs nose-on, which would otherwise have been free hits; they wind up again when the geometry allows. The coordinator's live test should watch whether that lowers threat pressure too much.
+
+The spec enforces, per act: Normal ignored hits ≥ 85%, BREAK on ≥ 90% of hits, cue dodges ≥ 70%; Easy cue dodges ≥ 85%, ≥ 40% of rear shots outrun, ignored hits ≥ 50%; Ace (BREAK shown × cue dodges) ≥ 50%, ignored hits ≥ 85%, and ≥ 75% of early breaks hit. It also replays the review's head-on case (a jet at 320 meeting a missile launched 1500 studs ahead, Normal Act III, following the first BREAK escapes), checks that BREAK stays dark for a missile that will burn out and for an unlocked one, and checks the launch gate.
+
+`src/tests/MissileRules.spec.ts` keeps the single-engagement contracts: an ignored missile hits from four aspects on every level; a 500-stud break misses on Normal; a too-late break still hits; long tail shots are outrun after the burn; the seeker cone drops a lock for good; a ridge (an injected ray) takes the missile; and the fuse catches a 15-stud pass but lets 30 go. `src/tests/MissileCue.spec.ts` covers the HUD wording, and `AircraftCollision.spec.ts` covers the real raycast set (a ridge detonates the missile, a painted overlay does not).
 
 PR #37's threat cap and gates are unchanged. A missile that has lost its lock still counts against the cap until it self-destructs (at most its life, 7–9 s), so a dodge buys breathing room rather than an instant next shot.
 
@@ -274,6 +308,6 @@ PR #37's threat cap and gates are unchanged. A missile that has lost its lock st
 | Bandit hull | ×0.75 (was 0.85): Act II bandits become two-missile kills | 1 | ×1 (was 1.15) |
 | Protected-actor drain | ×0.75 | 1 (0.55 per raider per s) | ×1.25 |
 | Behaviour | — | — | every bandit breaks close locks and carries a flare; aces fire two missiles per windup; every raider wave brings one more, and the live-aircraft budget rises from 7 to 8 to match |
-| Hostile missiles | turn cap ×0.75 (was missile turn ×0.8), burn ×0.6, seeker cone ×1.1 | 1 | turn cap ×1.25 (was ×1.2), burn ×1.15, seeker cone ×1.2 |
+| Hostile missiles | turn cap ×0.75 (was missile turn ×0.8), burn ×0.75, seeker cone ×1.1, shortest shot 1.6 s | 1 (shortest shot 1.5 s) | turn cap ×1.3 (was ×1.2), burn ×1.4, seeker cone ×1.3, shortest shot 1.8 s |
 
 Damage, windup, ace hull, break odds and score multipliers are unchanged from the difficulty selector (#33); the missile knobs now drive `MissileRules` (see above).
