@@ -26,12 +26,48 @@ interface Smoothed {
 	speed: number;
 	connections: RBXScriptConnection[];
 }
+/** A smoothed visual handed over as a wreck: where it was and how fast it was going. */
+export interface ClaimedVisual { visual: Model; frame: CFrame; velocity: Vector3 }
+// A killed jet's clone outlives its server model briefly, whichever of the
+// removal or the CombatEffect event reaches this client first.
+const KILLED_GRACE = 1;
+const instances = new Set<EnemySmoothing>();
+const killed = new Map<Model, ClaimedVisual & { at: number }>();
+function claimed(entry: Smoothed): ClaimedVisual {
+	return { visual: entry.visual, frame: entry.frame, velocity: entry.frame.LookVector.mul(entry.speed) };
+}
 export class EnemySmoothing {
+	/** Hands `model`'s smoothed clone to the caller (who must destroy it); falls back to the nearest recent kill. */
+	public static Claim(model: Model | undefined, position: Vector3): ClaimedVisual | undefined {
+		const now = os.clock();
+		let best: Model | undefined;
+		// Without a model, only a clone close to the blast is plausibly the same jet.
+		let bestDistance = model ? 120 : 30;
+		for (const [key, entry] of killed) {
+			if (now - entry.at > KILLED_GRACE || entry.visual.Parent === undefined) { entry.visual.Destroy(); killed.delete(key); continue; }
+			const distance = entry.frame.Position.sub(position).Magnitude;
+			if (key === model) { best = key; break; }
+			if (distance < bestDistance) { best = key; bestDistance = distance; }
+		}
+		if (model) for (const smoothing of instances) {
+			const entry = smoothing.tracked.get(model);
+			if (!entry) continue;
+			smoothing.tracked.delete(model);
+			for (const connection of entry.connections) connection.Disconnect();
+			if (entry.visual.Parent === undefined) { entry.visual.Destroy(); break; }
+			return claimed(entry);
+		}
+		const entry = best && killed.get(best);
+		if (!best || !entry) return undefined;
+		killed.delete(best);
+		return entry;
+	}
 	private readonly tracked = new Map<Model, Smoothed>();
 	private readonly pending = new Map<Model, RBXScriptConnection>();
 	private readonly connections: RBXScriptConnection[] = [];
 	public Start(folder: Instance): void {
 		this.Stop();
+		instances.add(this);
 		for (const child of folder.GetChildren()) this.consider(child);
 		this.connections.push(folder.ChildAdded.Connect((child) => this.consider(child)));
 	}
@@ -41,6 +77,7 @@ export class EnemySmoothing {
 		for (const [, connection] of this.pending) connection.Disconnect();
 		this.pending.clear();
 		for (const [model] of this.tracked) this.release(model);
+		instances.delete(this);
 	}
 	/** Where the player sees `model` this frame (the smoothed clone), or its replicated pivot if untracked. */
 	public GetFrame(model: Model): CFrame {
@@ -111,6 +148,11 @@ export class EnemySmoothing {
 		if (!entry) return;
 		this.tracked.delete(model);
 		for (const connection of entry.connections) connection.Disconnect();
+		if (!model.Parent && model.GetAttribute("Health") === 0 && entry.visual.Parent) {
+			killed.set(model, { ...claimed(entry), at: os.clock() });
+			task.delay(KILLED_GRACE, () => { if (killed.get(model)?.visual === entry.visual) { killed.delete(model); entry.visual.Destroy(); } });
+			return;
+		}
 		entry.visual.Destroy();
 		if (!model.Parent) return;
 		for (const item of model.GetDescendants()) {

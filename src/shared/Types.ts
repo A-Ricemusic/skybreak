@@ -54,6 +54,16 @@ export interface Remotes {
 	FlightState: UnreliableRemoteEvent;
 	/** Server -> client HUD numbers at 10 Hz (TelemetryPacket). */
 	Telemetry: UnreliableRemoteEvent;
+	/** Server -> client cosmetic kill/impact explosions (CombatEffectPacket); drawn locally. */
+	CombatEffect: RemoteEvent;
+}
+/** `model` (air kills) lets the client turn its smoothed visual into a falling wreck. */
+export interface CombatEffectPacket {
+	kind: string;
+	position: Vector3;
+	velocity?: Vector3;
+	scale?: number;
+	model?: Model;
 }
 export interface FlightInput {
 	x: number;

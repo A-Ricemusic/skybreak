@@ -43,6 +43,7 @@ function initialize(): void {
 		MissionState: ensureRemote(remotesFolder, "MissionState", "RemoteEvent"),
 		FlightState: ensureRemote(remotesFolder, "FlightState", "UnreliableRemoteEvent"),
 		Telemetry: ensureRemote(remotesFolder, "Telemetry", "UnreliableRemoteEvent"),
+		CombatEffect: ensureRemote(remotesFolder, "CombatEffect", "RemoteEvent"),
 	};
 
 	WorldBuilder.Build();
