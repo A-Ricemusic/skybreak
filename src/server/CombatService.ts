@@ -49,6 +49,8 @@ interface Projectile {
 	flareRolled?: number;
 	/** Player guided only: range to the target last step, to detect an overshoot of a breaking bandit. */
 	lastDistance?: number;
+	/** Player guided shot that overshot a breaking bandit: now unguided but keeps its guided lifetime and speed. */
+	lostTrack?: boolean;
 }
 export interface CombatSession {
 	player: Player; slot: number; folder: Folder; aircraft: Model; state: FlightState; input: FlightInput;
@@ -113,8 +115,9 @@ const PLAYER_MISSILE_DAMAGE = SpecialWeapons.StandardDamage;
 // difficulty selector can multiply them in tuned() without touching the combat code.
 //   hostileDamage   hull lost per hostile missile hit (aces add 4).
 //   windup          seconds a shooter shows MISSILE WARNING before launch.
-//   hostileGate     flight-wide spacing between windups: no two enemies start a shot closer than this.
-//   aceGate         the same spacing after an ace starts a shot.
+//   hostileGate     flight-wide spacing after a launch: no enemy starts a new windup until this has elapsed, so the
+//                   effective worst-case cadence is windup + gate. Kept >= windup so MISSILE WARNING is never lit permanently.
+//   aceGate         the same spacing after an ace launch.
 //   banditReload    one bandit's own reload after it fires; aceReload is the ace's.
 //   fireAimDot      nose dot a shooter needs on the player; straightRelax is subtracted while the stick is centered.
 //   fireRange       [min, max] launch range for bandits.
@@ -129,10 +132,10 @@ const PLAYER_MISSILE_DAMAGE = SpecialWeapons.StandardDamage;
 //   breakChance     odds a bandit breaks against an inbound player missile; breakCooldown seconds before it may roll again.
 //   breakSeconds    how long the break lasts; breakTurn the bandit's steering rate while breaking.
 const TUNING = {
-	hostileDamage: [10, 14, 18],
+	hostileDamage: [10, 12, 14],
 	windup: [2.4, 2.0, 1.7],
-	hostileGate: [4.5, 2.5, 1.5],
-	aceGate: [4, 3, 2],
+	hostileGate: [4.5, 3.5, 3],
+	aceGate: [5, 4.5, 4],
 	banditReload: [10, 7.5, 5.5],
 	aceReload: [7, 5, 3.5],
 	fireAimDot: [0.65, 0.55, 0.45],
@@ -724,7 +727,7 @@ function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy, 
 		if (!ownsEnemy(session, enemy) || enemy.kind === "ground") return;
 		position = enemy.position.add(enemy.direction.mul(18));
 		direction = unitOr(positionFor(session.state).sub(position), enemy.direction);
-		const right = new Vector3(-enemy.direction.Z, 0, enemy.direction.X);
+		const right = unitOr(new Vector3(-enemy.direction.Z, 0, enemy.direction.X), new Vector3(1, 0, 0));
 		const fanned = ThreatRules.SalvoDirection(point(direction), point(right), salvoIndex, salvoCount);
 		direction = new Vector3(fanned.x, fanned.y, fanned.z);
 		ace = enemy.kind === "ace";
@@ -857,6 +860,9 @@ function stepEnemies(session: CombatSession, dt: number): void {
 	const breakSeconds = tuned(session, TUNING.breakSeconds);
 	const breakTurn = tuned(session, TUNING.breakTurn);
 	const aceLockBreak = tuned(session, TUNING.aceLockBreak);
+	// One windup at a time across the flight: the gate starts at launch, so the warning itself must hold the others.
+	let windingUp = false;
+	for (const enemy of session.enemies) if (enemy.windup > 0 && ownsEnemy(session, enemy)) windingUp = true;
 	for (let index = 0; index < session.enemies.size(); index++) {
 		const enemy = session.enemies[index];
 		if (!ownsEnemy(session, enemy) || enemy.kind === "ground") continue;
@@ -934,16 +940,17 @@ function stepEnemies(session: CombatSession, dt: number): void {
 					for (let shot = 0; shot < salvo; shot++) launchMissile(session, true, enemy, shot, salvo);
 				}
 				enemy.fireTimer = tuned(session, ace ? TUNING.aceReload : TUNING.banditReload);
+				// The flight-wide gate runs from the launch, so the warning light and the lull never overlap.
+				session.nextHostileAt = session.elapsed + (ace ? aceGate : hostileGate);
 			}
 		} else if (mayFire && ThreatRules.MayFire({
-			separation, aimDot, fireTimer: enemy.fireTimer, globalReady: session.elapsed >= session.nextHostileAt,
+			separation, aimDot, fireTimer: enemy.fireTimer, globalReady: !windingUp && session.elapsed >= session.nextHostileAt,
 			evading: session.evadeRemaining > 0, playerStraight, minRange: fireMin, maxRange: ace ? fireMax + 200 : fireMax,
 			aimThreshold, straightRelax,
 		})) {
-			enemy.windup = windupSeconds;
+			enemy.windup = windupSeconds; windingUp = true;
 			enemy.warning!.Enabled = true;
 			enemy.model.SetAttribute("AttackWarning", true);
-			session.nextHostileAt = session.elapsed + (ace ? aceGate : hostileGate);
 		}
 	}
 }
@@ -1005,13 +1012,13 @@ function stepMissiles(session: CombatSession, dt: number): void {
 		const missile = session.projectiles[index];
 		missile.age += dt;
 		const blind = !missile.hostile && missile.target === undefined;
-		let removed = missile.age > (missile.hostile ? tuned(session, TUNING.missileLife) : blind ? WeaponRules.UnguidedLifetime : WeaponRules.GuidedLifetime)
+		let removed = missile.age > (missile.hostile ? tuned(session, TUNING.missileLife) : blind && !missile.lostTrack ? WeaponRules.UnguidedLifetime : WeaponRules.GuidedLifetime)
 			|| (!missile.hostile && !blind && !ownsEnemy(session, missile.target));
 		// A blind shot that reaches end of life bursts harmlessly where it is.
 		if (removed && blind) effect(session, "missile", missile.position);
 		if (!removed && blind) {
 			// Unguided: straight flight; the proximity fuse fires on the closest damageable enemy the sweep passes.
-			const nextPosition = missile.position.add(missile.direction.mul(WeaponRules.MissileSpeed * dt));
+			const nextPosition = missile.position.add(missile.direction.mul(missile.speed * dt));
 			const hit = WeaponRules.Fuse(point(missile.position), point(nextPosition), session.enemies, (enemy) => point(enemy.position),
 				(enemy) => ownsEnemy(session, enemy) && sessionCanDamage(session, enemy.kind, enemy.required));
 			if (hit !== undefined) {
@@ -1054,7 +1061,7 @@ function stepMissiles(session: CombatSession, dt: number): void {
 				const target = missile.target!;
 				// A bandit mid defensive break that the missile has started to overshoot slips the seeker: the shot flies on blind.
 				if (ThreatRules.LosesTrack({ breaking: target.breakUntil > session.elapsed, distance, previousDistance: missile.lastDistance ?? distance, fuseRadius: WeaponRules.FuseRadius })) {
-					missile.target = undefined;
+					missile.target = undefined; missile.lostTrack = true;
 					missile.position = missile.position.add(missile.direction.mul(speed * dt));
 					missile.part.CFrame = CFrame.lookAt(missile.position, missile.position.add(missile.direction));
 					continue;
