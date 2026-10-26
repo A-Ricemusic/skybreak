@@ -3,6 +3,7 @@ import { Workspace } from "@rbxts/services";
 import { AircraftCollision } from "../server/AircraftCollision";
 import { Scenery } from "../server/Scenery";
 import { JetFactory } from "../shared/JetFactory";
+import { MissileRules } from "../shared/MissileRules";
 
 describe("authoritative aircraft surface sweeps", () => {
 	let fixture: Folder;
@@ -21,6 +22,21 @@ describe("authoritative aircraft surface sweeps", () => {
 		const from = new Vector3(0, 600, 30), to = new Vector3(0, 600, -30);
 		expect(AircraftCollision.Sweep(from, to, before)).toBeUndefined();
 		expect(AircraftCollision.Sweep(from, to, AircraftCollision.Parameters(root))?.Instance).toBe(body);
+	});
+	it("detonates a hostile missile on solid scenery between it and the jet, but not on overlays", () => {
+		const root = setup();
+		const profile = MissileRules.Profile("normal", 2);
+		const jet = { position: { x: 0, y: 600, z: 0 }, velocity: { x: 0, y: 0, z: 0 } };
+		const shot = () => MissileRules.Launch({ x: 0, y: 600, z: 300 }, { x: 0, y: 0, z: -1 }, profile);
+		// A painted overlay in the path is not a surface: the missile reaches the jet.
+		Scenery.Part(root, "Shallows", new Vector3(60, 60, 1), new Vector3(0, 600, 100), new Color3(1, 1, 1), Enum.Material.SmoothPlastic, { flightSolid: false, transparency: 0.45 });
+		expect(MissileRules.Step(shot(), profile, jet, 1, AircraftCollision.MissileRay(AircraftCollision.Parameters(root))).event).toBe("hit");
+		// A ridge (solid scenery) in the path takes the missile instead.
+		Scenery.Part(root, "Ridge", new Vector3(60, 60, 4), new Vector3(0, 600, 100), new Color3(1, 1, 1));
+		const missile = shot();
+		const result = MissileRules.Step(missile, profile, jet, 1, AircraftCollision.MissileRay(AircraftCollision.Parameters(root)));
+		expect(result.event).toBe("terrain");
+		expect(missile.position.z).toBeCloseTo(102, 3);
 	});
 	it("sweeps through thin solid scenery without endpoint tunnelling", () => {
 		const root = setup();

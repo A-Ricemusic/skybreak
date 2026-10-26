@@ -1,4 +1,5 @@
 import { Workspace } from "@rbxts/services";
+import { MissileRay } from "../shared/MissileRules";
 
 /** Allowlist contains only authored scenery and visible ground-target surfaces.
  * No aircraft, projectiles, navigation rings, UI markers or invisible aim roots.
@@ -23,6 +24,13 @@ export const AircraftCollision = {
 	Sweep(from: Vector3, to: Vector3, params: RaycastParams): RaycastResult | undefined {
 		const delta = to.sub(from);
 		return delta.Magnitude > 0.00001 ? Workspace.Spherecast(from, 4, delta, params) : undefined;
+	},
+	/** The same surfaces as a plain-point ray for MissileRules: a hostile missile that meets them detonates there. */
+	MissileRay(params: RaycastParams): MissileRay {
+		return (from, to) => {
+			const hit = Workspace.Raycast(new Vector3(from.x, from.y, from.z), new Vector3(to.x - from.x, to.y - from.y, to.z - from.z), params);
+			return hit ? { x: hit.Position.X, y: hit.Position.Y, z: hit.Position.Z } : undefined;
+		};
 	},
 	Reason(hit: RaycastResult): string {
 		return hit.Material === Enum.Material.Water || (hit.Instance.Name === "Sea" || hit.Instance.Name === "River") ? "crash_water" : "crash_terrain";

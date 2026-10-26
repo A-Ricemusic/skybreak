@@ -241,6 +241,7 @@ describe("client flight prediction and reconciliation", () => {
 			objectiveProgress: 1, objectiveTotal: 3, groundKills: 1, targetDistance: 900, targetHealth: undefined, protectedHealth: 70,
 			specialCharges: 2, specialCooldown: 1.5, specialActive: 12,
 			evadeCharges: 2, optionalKills: 3, incomingDistance: 420,
+			incomingSeconds: 1.4, incomingBearing: -135, breakNow: true,
 		});
 		expect(packet.size()).toBe(TELEMETRY_FIELDS);
 		expect(TelemetryCodec.Decode(packet, into)).toBe(3);
@@ -249,6 +250,10 @@ describe("client flight prediction and reconciliation", () => {
 		expect(into.evadeCharges).toBe(2);
 		expect(into.optionalKills).toBe(3);
 		expect(into.incomingDistance).toBe(420);
+		// Missile cue: the most urgent missile's time to impact, bearing and the BREAK flag.
+		expect(into.incomingSeconds).toBe(1.4);
+		expect(into.incomingBearing).toBe(-135);
+		expect(into.breakNow).toBe(true);
 		expect(into.specialCharges).toBe(2);
 		expect(into.specialCooldown).toBe(1.5);
 		expect(into.specialActive).toBe(12);
@@ -273,6 +278,9 @@ describe("client flight prediction and reconciliation", () => {
 			expect(into.specialActive).toBe(0);
 			expect(into.evadeCharges).toBe(0);
 			expect(into.incomingDistance).toBeUndefined();
+			expect(into.incomingSeconds).toBeUndefined();
+			expect(into.incomingBearing).toBeUndefined();
+			expect(into.breakNow).toBe(false);
 		}
 		expect(TelemetryCodec.Decode([1, 2], into)).toBeUndefined();
 	});

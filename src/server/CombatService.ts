@@ -18,6 +18,7 @@ import { SalvoCandidate, SpecialKind, SpecialState, SpecialWeapons } from "../sh
 import { Difficulty, DifficultyKind, DifficultyKnob } from "../shared/Difficulty";
 import { ThreatRules } from "../shared/ThreatRules";
 import { EvadeRules, EvadeState } from "../shared/EvadeRules";
+import { GuidedMissile, MissileProfile, MissileRules, Point } from "../shared/MissileRules";
 import { AceRules, AceStageState } from "../shared/AceRules";
 import { AirRequest, WavePlan } from "../shared/WavePlan";
 import { PauseRules, PauseState, Settlement, SettlementHooks, SettlementState, StepGuard, StepGuardState } from "../shared/SessionGuard";
@@ -66,6 +67,8 @@ interface Projectile {
 	speed: number;
 	/** Hostile only: flight time at launch, so an evade can spot a missile in its last 1.2 s. */
 	life?: number;
+	/** Hostile only: seeker, burn and position state (MissileRules), and the profile it was launched with. */
+	guided?: GuidedMissile; profile?: MissileProfile;
 	/** Launched by the special slot: never refunded as a standard missile. */
 	special?: boolean;
 	/** Hostile only: this missile has already rolled against the player's flare cloud. */
@@ -185,8 +188,7 @@ const PLAYER_MISSILE_DAMAGE = SpecialWeapons.StandardDamage;
 //   aceLockBreak    seconds between ace lock-break notches (x0.6 below a third of health).
 //   aceStageSpeed   speed bonus an ace gains at each stage line.
 //   aceSalvo        hostile missiles per ace launch.
-//   missileTurn     hostile missile steering rate (aces add aceMissileTurn): Act I can be out-turned, Act III must be evaded.
-//   missileSpeed    hostile missile speed; missileLife its flight time; missileFuse its proximity radius on the player.
+//   Hostile missile flight (speed, burn, turn cap, seeker cone, fuse, life) lives in MissileRules with its own table.
 //   breakChance     odds a bandit breaks against an inbound guided player missile (shares the 12 s break cooldown).
 //   breakSeconds    how long a break lasts; breakTurn the bandit's steering rate while breaking.
 const TUNING = {
@@ -207,11 +209,6 @@ const TUNING = {
 	aceLockBreak: [7, 5.5, 4],
 	aceStageSpeed: [30, 40, 55],
 	aceSalvo: CombatBalance.aceSalvo,
-	missileTurn: [1.6, 2.2, 2.8],
-	aceMissileTurn: [0.6, 0.9, 1.2],
-	missileSpeed: [580, 660, 740],
-	missileLife: [7, 8, 9],
-	missileFuse: [32, 40, 48],
 	breakChance: [0.15, 0.4, 0.6],
 	breakSeconds: [1.4, 1.6, 1.8],
 	breakTurn: [3.5, 4.5, 5.5],
@@ -248,9 +245,6 @@ const TUNING_KNOBS = new Map<number[], DifficultyKnob>([
 	[TUNING.aceReload, "aceGate"],
 	[TUNING.flightDivisor, "flightDivisor"],
 	[TUNING.threatCap, "threatCap"],
-	[TUNING.missileTurn, "missileTurn"],
-	[TUNING.aceMissileTurn, "missileTurn"],
-	[TUNING.missileFuse, "missileTurn"],
 	[TUNING.breakChance, "breakChance"],
 	[TUNING.lockBreakChance, "breakChance"],
 ]);
@@ -283,6 +277,10 @@ function directionFor(state: FlightState): Vector3 {
 }
 function unitOr(vector: Vector3, fallback: Vector3): Vector3 { return vector.Magnitude > 0.01 ? vector.Unit : fallback; }
 function point(vector: Vector3): { x: number; y: number; z: number } { return { x: vector.X, y: vector.Y, z: vector.Z }; }
+/** The player's jet as a hostile missile sees it (MissileRules). */
+function jetTarget(session: CombatSession): { position: Point; velocity: Point } {
+	return { position: point(positionFor(session.state)), velocity: point(directionFor(session.state).mul(session.state.speed)) };
+}
 function ownsEnemy(session: CombatSession, enemy: Enemy | undefined): enemy is Enemy {
 	return enemy !== undefined && enemy.enabled && enemy.health > 0 && enemy.model.Parent === session.folder
 		&& enemy.model.GetAttribute("SkybreakOwner") === session.player.UserId;
@@ -413,11 +411,20 @@ function sendTelemetry(session: CombatSession): void {
 	let incoming = false;
 	let lockWarning = false;
 	let incomingDistance = math.huge;
+	// The most urgent missile still tracking the jet (soonest impact, else nearest) drives the HUD cue.
+	// A missile that lost its lock is no longer a threat, so MISSILE INBOUND drops the moment a break works.
+	const jet = jetTarget(session);
+	let urgent: Projectile | undefined, urgentSeconds: number | undefined, urgentRange = math.huge;
 	for (const missile of session.projectiles) {
-		if (!missile.hostile) continue;
+		if (!missile.hostile || !missile.guided?.locked) continue;
 		const range = missile.position.sub(positionFor(session.state)).Magnitude;
 		incomingDistance = math.min(incomingDistance, range);
 		if (range < 1800) incoming = true;
+		const seconds = MissileRules.TimeToImpact(missile.guided, jet);
+		const sooner = seconds !== undefined && (urgentSeconds === undefined || seconds < urgentSeconds);
+		if (sooner || (urgentSeconds === undefined && seconds === undefined && range < urgentRange)) {
+			urgent = missile; urgentSeconds = seconds; urgentRange = range;
+		}
 	}
 	// A windup is a lock warning, not a missile: evading now would waste the countermeasure.
 	for (const enemy of session.enemies) if (ownsEnemy(session, enemy) && enemy.windup > 0) { lockWarning = true; break; }
@@ -450,6 +457,9 @@ function sendTelemetry(session: CombatSession): void {
 		evadeCharges: session.evade.charges,
 		optionalKills: session.rules?.optionalAirKills ?? session.blueprintState?.optionalAirKills ?? 0,
 		incomingDistance: incomingDistance < math.huge ? incomingDistance : undefined,
+		incomingSeconds: incoming ? urgentSeconds : undefined,
+		incomingBearing: incoming && urgent ? MissileRules.Bearing(jet.position, session.state.yaw, point(urgent.position)) : undefined,
+		breakNow: incoming && urgent?.profile !== undefined && MissileRules.InBreakWindow(urgent.profile, urgentSeconds),
 	}));
 }
 /**
@@ -934,14 +944,18 @@ function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy, 
 	let target: Enemy | undefined;
 	let ace = false;
 	let damage = 0;
+	let profile: MissileProfile | undefined;
 	if (hostile) {
 		if (!ownsEnemy(session, enemy) || enemy.kind === "ground") return;
 		position = enemy.position.add(enemy.direction.mul(18));
-		direction = unitOr(positionFor(session.state).sub(position), enemy.direction);
+		ace = enemy.kind === "ace";
+		profile = MissileRules.Profile(session.difficulty, sessionAct(session), ace);
+		// Launched on a collision course for the jet's current flight; the salvo fan is applied on top.
+		const lead = MissileRules.LeadDirection(point(position), profile.burnSpeed, jetTarget(session), profile.gimbal * 0.8);
+		direction = unitOr(new Vector3(lead.x, lead.y, lead.z), enemy.direction);
 		const right = unitOr(new Vector3(-enemy.direction.Z, 0, enemy.direction.X), new Vector3(1, 0, 0));
 		const fanned = ThreatRules.SalvoDirection(point(direction), point(right), salvoIndex, salvoCount);
 		direction = new Vector3(fanned.x, fanned.y, fanned.z);
-		ace = enemy.kind === "ace";
 		damage = tuned(session, TUNING.hostileDamage) + (ace ? ACE_DAMAGE_BONUS : 0);
 	} else {
 		// A FIRE press always does something: a guided shot with a full lock inside the envelope,
@@ -966,9 +980,9 @@ function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy, 
 		// Blind launches report on the weapons channel so story radio lines are never overwritten.
 		if (target === undefined) denyFire(session, "blind");
 	}
-	const speed = hostile ? tuned(session, TUNING.missileSpeed) : WeaponRules.MissileSpeed;
+	const speed = profile ? profile.burnSpeed : WeaponRules.MissileSpeed;
 	session.projectiles.push({ part: JetFactory.CreateMissile(session.folder, position, direction, hostile), position, direction, target, hostile, age: 0, ace, damage, speed,
-		life: hostile ? tuned(session, TUNING.missileLife) : undefined });
+		life: profile?.life, profile, guided: profile ? MissileRules.Launch(point(position), point(direction), profile) : undefined });
 }
 /** A guided missile from the special slot at `enemy`; `lateral` offsets the launch rail so a salvo fans out. */
 function launchSpecialMissile(session: CombatSession, enemy: Enemy, lateral: number): void {
@@ -1327,14 +1341,63 @@ function aceStage(session: CombatSession, enemy: Enemy, before: number, after: n
 	const fallback = retreats ? `${enemy.name}: Not bad, trainee. Wing, on me.` : aceState.stage === 1 ? `${enemy.name}: Not bad, trainee. Again.` : `${enemy.name}: Enough. Head on.`;
 	radio(session, lines?.[aceState.stage - 1] ?? fallback);
 }
+/**
+ * One hostile missile step: the flare cloud roll, then MissileRules (capped-rate guidance, seeker
+ * cone, burn and coast, terrain, proximity fuse). Returns "flying", "gone" (decoyed, burnt out,
+ * into terrain, or a hit the jet survived: the caller removes it) or "fatal" (the hit ended the
+ * sortie; the missile is already removed).
+ */
+function stepHostileMissile(session: CombatSession, index: number, dt: number): "flying" | "gone" | "fatal" {
+	const missile = session.projectiles[index];
+	const guided = missile.guided!;
+	// A live flare cloud: each hostile missile that enters it rolls once to be decoyed.
+	if (missile.flareRolled !== session.flareBursts && session.special.kind === "flares" && session.special.active > 0
+		&& missile.position.sub(positionFor(session.state)).Magnitude <= SpecialWeapons.FlareDecoyRadius) {
+		missile.flareRolled = session.flareBursts;
+		if (SpecialWeapons.FlareDecoys(math.random(), missile.ace)) {
+			JetFactory.Burst(session.folder, missile.position, Color3.fromRGB(255, 220, 142), 3);
+			return "gone";
+		}
+	}
+	const result = MissileRules.Step(guided, missile.profile!, jetTarget(session), dt, session.collisionParams ? AircraftCollision.MissileRay(session.collisionParams) : undefined);
+	missile.age = guided.age;
+	missile.speed = guided.speed;
+	missile.position = new Vector3(guided.position.x, guided.position.y, guided.position.z);
+	missile.direction = new Vector3(guided.direction.x, guided.direction.y, guided.direction.z);
+	if (result.event === "flying") {
+		missile.part.CFrame = CFrame.lookAt(missile.position, missile.position.add(missile.direction));
+		return "flying";
+	}
+	// Burnt out (lost lock or the chase) or into a ridge: a harmless burst where it is.
+	if (result.event !== "hit") { effect(session, "missile", missile.position); return "gone"; }
+	effect(session, "hit", positionFor(session.state));
+	// The evade roll is no shield: only a well-timed press (decoyEvade) saves the hull.
+	const lost = math.min(session.health, missile.damage);
+	session.health -= lost;
+	session.damageTaken += lost;
+	session.lowestHealth = math.min(session.lowestHealth, session.health);
+	if (session.health <= 0) {
+		// A fatal hit settles the sortie before any later kill in this step can count.
+		missile.part.Destroy(); session.projectiles.remove(index);
+		refreshSession(session, os.clock());
+		return "fatal";
+	}
+	return "gone";
+}
 function stepMissiles(session: CombatSession, dt: number): void {
 	stepTutorialHint(session);
 	for (let index = session.projectiles.size() - 1; index >= 0; index--) {
 		const missile = session.projectiles[index];
+		if (missile.hostile) {
+			const outcome = stepHostileMissile(session, index, dt);
+			if (outcome === "fatal") return;
+			if (outcome === "gone") { missile.part.Destroy(); session.projectiles.remove(index); }
+			continue;
+		}
 		missile.age += dt;
-		const blind = !missile.hostile && missile.target === undefined;
-		let removed = missile.age > (missile.hostile ? missile.life ?? tuned(session, TUNING.missileLife) : blind && !missile.lostTrack ? WeaponRules.UnguidedLifetime : WeaponRules.GuidedLifetime)
-			|| (!missile.hostile && !blind && !ownsEnemy(session, missile.target));
+		const blind = missile.target === undefined;
+		let removed = missile.age > (blind && !missile.lostTrack ? WeaponRules.UnguidedLifetime : WeaponRules.GuidedLifetime)
+			|| (!blind && !ownsEnemy(session, missile.target));
 		// A blind shot that reaches end of life bursts harmlessly where it is.
 		if (removed && blind) effect(session, "missile", missile.position);
 		if (!removed && blind) {
@@ -1361,59 +1424,34 @@ function stepMissiles(session: CombatSession, dt: number): void {
 				missile.part.CFrame = CFrame.lookAt(nextPosition, nextPosition.add(missile.direction));
 			}
 		} else if (!removed) {
-			const targetPosition = missile.hostile ? positionFor(session.state) : missile.target!.position;
-			const velocity = missile.hostile ? directionFor(session.state).mul(session.state.speed) : missile.target!.velocity;
+			const target = missile.target!;
+			const targetPosition = target.position;
 			const speed = missile.speed;
 			const distance = targetPosition.sub(missile.position).Magnitude;
-			// A live flare cloud: each hostile missile that enters it rolls once to be decoyed.
-			if (missile.hostile && missile.flareRolled !== session.flareBursts && session.special.kind === "flares" && session.special.active > 0 && distance <= SpecialWeapons.FlareDecoyRadius) {
-				missile.flareRolled = session.flareBursts;
-				if (SpecialWeapons.FlareDecoys(math.random(), missile.ace)) {
-					JetFactory.Burst(session.folder, missile.position, Color3.fromRGB(255, 220, 142), 3);
-					missile.part.Destroy(); session.projectiles.remove(index);
-					continue;
-				}
+			// A bandit mid defensive break that the missile has started to overshoot slips the seeker: the shot flies on blind.
+			if (ThreatRules.LosesTrack({ breaking: target.breakUntil > session.elapsed, distance, previousDistance: missile.lastDistance ?? distance, fuseRadius: WeaponRules.FuseRadius })) {
+				missile.target = undefined; missile.lostTrack = true;
+				missile.position = missile.position.add(missile.direction.mul(speed * dt));
+				missile.part.CFrame = CFrame.lookAt(missile.position, missile.position.add(missile.direction));
+				continue;
 			}
-			if (!missile.hostile) {
-				const target = missile.target!;
-				// A bandit mid defensive break that the missile has started to overshoot slips the seeker: the shot flies on blind.
-				if (ThreatRules.LosesTrack({ breaking: target.breakUntil > session.elapsed, distance, previousDistance: missile.lastDistance ?? distance, fuseRadius: WeaponRules.FuseRadius })) {
-					missile.target = undefined; missile.lostTrack = true;
-					missile.position = missile.position.add(missile.direction.mul(speed * dt));
-					missile.part.CFrame = CFrame.lookAt(missile.position, missile.position.add(missile.direction));
-					continue;
-				}
-				missile.lastDistance = distance;
-				// Bandit and ace flares: one pops when a missile closes, then eats every missile inside 260 studs for 2.5 s.
-				if (flareDecoys(session, target, distance, missile.position)) {
-					missile.part.Destroy(); session.projectiles.remove(index);
-					continue;
-				}
+			missile.lastDistance = distance;
+			// Bandit and ace flares: one pops when a missile closes, then eats every missile inside 260 studs for 2.5 s.
+			if (flareDecoys(session, target, distance, missile.position)) {
+				missile.part.Destroy(); session.projectiles.remove(index);
+				continue;
 			}
-			// Hostile missiles steer for their whole flight; ace missiles turn harder.
-			const lead = math.clamp(distance / speed, 0, missile.hostile ? 0.9 : 0.65);
-			const delta = targetPosition.add(velocity.mul(lead)).sub(missile.position);
+			const lead = math.clamp(distance / speed, 0, 0.65);
+			const delta = targetPosition.add(target.velocity.mul(lead)).sub(missile.position);
 			// Player missiles turn much harder inside 300 studs so an orbit launch at 80 degrees off the nose still connects.
 			const playerTurn = distance < 300 ? 14 : 7;
-			missile.direction = unitOr(missile.direction.Lerp(unitOr(delta, missile.direction), FlightMath.DampAlpha(missile.hostile ? tuned(session, TUNING.missileTurn) + (missile.ace ? tuned(session, TUNING.aceMissileTurn) : 0) : playerTurn, dt)), missile.direction);
+			missile.direction = unitOr(missile.direction.Lerp(unitOr(delta, missile.direction), FlightMath.DampAlpha(playerTurn, dt)), missile.direction);
 			const nextPosition = missile.position.add(missile.direction.mul(speed * dt));
-			if (segmentDistance(targetPosition, missile.position, nextPosition) < (missile.hostile ? tuned(session, TUNING.missileFuse) : WeaponRules.FuseRadius)) {
+			if (segmentDistance(targetPosition, missile.position, nextPosition) < WeaponRules.FuseRadius) {
 				removed = true;
 				effect(session, "hit", targetPosition);
-				if (missile.hostile) {
-					// The evade roll is no shield: only a well-timed press (decoyEvade) saves the hull.
-					const lost = math.min(session.health, missile.damage);
-					session.health -= lost;
-					session.damageTaken += lost;
-					session.lowestHealth = math.min(session.lowestHealth, session.health);
-					if (session.health <= 0) {
-						// A fatal hit settles the sortie before any later kill in this step can count.
-						missile.part.Destroy(); session.projectiles.remove(index);
-						refreshSession(session, os.clock());
-						return;
-					}
-				} else if (sessionCanDamage(session, missile.target!.kind, missile.target!.required)) {
-					if (!strikeEnemy(session, missile.target!, index)) {
+				if (sessionCanDamage(session, target.kind, target.required)) {
+					if (!strikeEnemy(session, target, index)) {
 						if (!session.active) return;
 						// A phase change inside destroyEnemy may have withdrawn raiders and spliced
 						// out missiles below this index; clamp so the backward sweep stays valid.

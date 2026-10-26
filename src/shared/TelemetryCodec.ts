@@ -11,11 +11,13 @@ import { Telemetry } from "./Types";
 //          timeRemaining, objectiveProgress, objectiveTotal, groundKills,
 //          targetDistance, targetHealth (-1 none), protectedHealth (-1 none),
 //          specialCharges, specialCooldown, specialActive,
-//          evadeCharges, optionalKills, incomingDistance (-1 none)]
+//          evadeCharges, optionalKills, incomingDistance (-1 none),
+//          incomingSeconds (-1 none), incomingBearing (999 none)]
 // flags: 1 incoming, 2 lockWarning, 4 boundaryWarning, 8 targetDamageable,
-//        16 targetDamageable unknown (no target), 32 ace killed this sortie.
+//        16 targetDamageable unknown (no target), 32 ace killed this sortie,
+//        64 the nearest missile is inside the break window (MissileRules).
 export type TelemetryPacket = number[];
-export const TELEMETRY_FIELDS = 26;
+export const TELEMETRY_FIELDS = 28;
 
 export interface TelemetryNumbers {
 	health: number; speed: number; altitude: number; kills: number; total: number; missiles: number;
@@ -31,12 +33,14 @@ export interface TelemetryNumbers {
 	pauseAck?: number;
 	/** Evade charges in hand (EvadeRules), optional raider kills, and the nearest hostile missile's range. */
 	evadeCharges?: number; optionalKills?: number; incomingDistance?: number;
+	/** The most urgent locked hostile missile: seconds to impact (absent when not closing), bearing from the nose in degrees, and the BREAK cue. */
+	incomingSeconds?: number; incomingBearing?: number; breakNow?: boolean;
 }
 
 export const TelemetryCodec = {
 	Encode(sequence: number, t: TelemetryNumbers): TelemetryPacket {
 		const flags = (t.incoming ? 1 : 0) + (t.lockWarning ? 2 : 0) + (t.boundaryWarning ? 4 : 0)
-			+ (t.targetDamageable === true ? 8 : 0) + (t.targetDamageable === undefined ? 16 : 0) + (t.aceKilled === true ? 32 : 0) + (t.paused === true ? 64 : 0);
+			+ (t.targetDamageable === true ? 8 : 0) + (t.targetDamageable === undefined ? 16 : 0) + (t.aceKilled === true ? 32 : 0) + (t.paused === true ? 64 : 0) + (t.breakNow === true ? 128 : 0);
 		return [
 			sequence, t.health, t.speed, t.altitude, t.kills, t.total, t.missiles,
 			t.missileCooldown, t.evadeCooldown, t.lockProgress, flags, t.elapsed,
@@ -44,6 +48,7 @@ export const TelemetryCodec = {
 			t.targetDistance, t.targetHealth ?? -1, t.protectedHealth ?? -1,
 			t.specialCharges ?? 0, t.specialCooldown ?? 0, t.specialActive ?? 0,
 			t.evadeCharges ?? 0, t.optionalKills ?? 0, t.incomingDistance ?? -1, t.pauseAck ?? 0,
+			t.incomingSeconds ?? -1, t.incomingBearing ?? 999,
 		];
 	},
 	/**
@@ -64,6 +69,7 @@ export const TelemetryCodec = {
 		into.targetDamageable = flags % 32 >= 16 ? undefined : flags % 16 >= 8;
 		into.aceKilled = flags % 64 >= 32;
 		into.paused = flags % 128 >= 64;
+		into.breakNow = flags % 256 >= 128;
 		into.elapsed = n[11]; into.timeRemaining = n[12]; into.objectiveProgress = n[13]; into.objectiveTotal = n[14]; into.groundKills = n[15];
 		into.targetDistance = n[16];
 		into.targetHealth = n[17] >= 0 ? n[17] : undefined;
@@ -72,6 +78,8 @@ export const TelemetryCodec = {
 		into.evadeCharges = math.max(0, n[22]); into.optionalKills = math.max(0, n[23]);
 		into.incomingDistance = n[24] >= 0 ? n[24] : undefined;
 		into.pauseAck = math.max(0, n[25]);
+		into.incomingSeconds = n[26] >= 0 ? n[26] : undefined;
+		into.incomingBearing = math.abs(n[27]) <= 180 ? n[27] : undefined;
 		return n[0];
 	},
 };

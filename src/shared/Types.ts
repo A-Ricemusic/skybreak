@@ -171,6 +171,11 @@ export interface Telemetry {
 	evadeCharges?: number;
 	/** Studs to the nearest hostile missile, when one is in the air. */
 	incomingDistance?: number;
+	/** Most urgent locked hostile missile: seconds to impact (absent when not closing) and bearing from the nose (degrees, +right). */
+	incomingSeconds?: number;
+	incomingBearing?: number;
+	/** That missile is inside the level's ideal break window: the HUD shows BREAK. */
+	breakNow?: boolean;
 	target?: Model;
 	targetName: string;
 	lockProgress: number;
