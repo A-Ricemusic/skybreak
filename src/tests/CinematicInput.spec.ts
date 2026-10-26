@@ -3,7 +3,7 @@ import {CinematicAction,CinematicControl,routeCinematicInput} from "../shared/Ci
 
 // Shared production routing, not physical controller/engine GUI evidence.
 describe("Cinematic GUI activation and shortcuts",()=>{
-	for(const control of ["skip","motion","text","pause"] as CinematicControl[]) {
+	for(const control of ["skip","motion","text","pause","next"] as CinematicControl[]) {
 		for(const processed of [false,true]) it(`A activates only selected ${control}, processed=${processed}`,()=>{
 			// Roblox emits InputBegan and the selected GuiButton's Activated.
 			// Neither event order may skip/toggle twice or steal accessibility A.
@@ -23,7 +23,7 @@ describe("Cinematic GUI activation and shortcuts",()=>{
 		expect(routeCinematicInput({kind:"shortcut",key:"ButtonA",processed:false,guiSelected:false})).toBeUndefined();
 	});
 	it("ignores every consumed shortcut, including gamepad X/B and keyboard Space/P",()=>{
-		for(const key of ["ButtonA","ButtonX","ButtonB","Space","P"]){
+		for(const key of ["ButtonA","ButtonX","ButtonB","Space","P","Right","ButtonR1"]){
 			for(const guiSelected of [false,true])expect(routeCinematicInput({kind:"shortcut",key,processed:true,guiSelected})).toBeUndefined();
 		}
 	});
@@ -33,9 +33,13 @@ describe("Cinematic GUI activation and shortcuts",()=>{
 			for(const key of ["ButtonX","P"])expect(routeCinematicInput({kind:"shortcut",key,processed:false,guiSelected})).toBe("pause");
 		}
 	});
+	it("routes unconsumed Right/R1 to the next line regardless of selection",()=>{
+		for(const guiSelected of [false,true])for(const key of ["Right","ButtonR1"])
+			expect(routeCinematicInput({kind:"shortcut",key,processed:false,guiSelected})).toBe("next");
+	});
 	it("reserves focused Space for GUI activation and allows background Space skip",()=>{
 		expect(routeCinematicInput({kind:"shortcut",key:"Space",processed:false,guiSelected:false})).toBe("skip");
-		for(const control of ["skip","motion","text","pause"] as CinematicControl[]){
+		for(const control of ["skip","motion","text","pause","next"] as CinematicControl[]){
 			expect(routeCinematicInput({kind:"shortcut",key:"Space",processed:false,guiSelected:true})).toBeUndefined();
 			expect(routeCinematicInput({kind:"activated",control})).toBe(control);
 		}

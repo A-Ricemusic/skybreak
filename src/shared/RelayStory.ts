@@ -2,6 +2,16 @@ export type StoryScene = "hangar" | "canyon" | "farm" | "relay" | "harbor" | "ci
 export interface StoryBeat { speaker: string; text: string; shot: "radio" | "wide" | "evidence"; }
 export interface StoryChapter { id: number; title: string; scene: StoryScene; beats: StoryBeat[]; }
 export const MARSHAL="MARSHAL · INTERCEPT";
+/** Colour family for a speaker chip; the client maps tones to palette colours. */
+export type SpeakerTone = "teal" | "control" | "log" | "marshal" | "trainee";
+export interface SpeakerStyle { name: string; role?: string; tone: SpeakerTone }
+const SPEAKER_TONES: Record<string, SpeakerTone> = { TEAL: "teal", SERA: "control", "FLIGHT LOG": "log", MARSHAL: "marshal", TRAINEE: "trainee" };
+/** Splits "NAME · ROLE" speaker strings into a chip name, optional role and tone. */
+export function speakerStyle(speaker: string): SpeakerStyle {
+	const parts = speaker.split(" · ");
+	const name = parts[0];
+	return { name, role: parts.size() > 1 ? parts[1] : undefined, tone: SPEAKER_TONES[name] ?? "control" };
+}
 /** Optional speaker overrides for the first (a) and third (c) beats, e.g. an intercepted Marshal transmission. */
 interface Speakers { a?: string; c?: string }
 function chapter(id:number,title:string,scene:StoryScene,a:string,b:string,c:string,speakers: Speakers={}): StoryChapter {

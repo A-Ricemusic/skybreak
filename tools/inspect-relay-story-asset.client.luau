@@ -5,7 +5,8 @@ assert(game:GetService("RunService"):IsStudio(),"Exclusive Studio lease required
 local player=game.Players.LocalPlayer
 local scene=assert(workspace:FindFirstChild("BrokenRelayCinematic"),"Pause a vehicle cinematic first")
 local pause=player.PlayerGui:FindFirstChild("CinematicPauseButton",true)
-assert(pause and pause.Text=="RESUME · X","Pause before inspecting an asset")
+assert(pause,"Open a vehicle cinematic first")
+assert(player.PlayerGui:FindFirstChild("CinematicPaused",true),"Pause before inspecting an asset")
 local name=script:GetAttribute("Asset") or "HarborLaunch"
 assert(name=="HarborLaunch" or name=="RelayTruck","Only the shared vehicle-camera assets belong in this fixture")
 local original=assert(scene:FindFirstChild("Story subject"))
