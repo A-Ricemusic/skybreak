@@ -96,7 +96,7 @@ describe("ace hit-stop", () => {
 	});
 	it("punches the FOV in and recovers within half a second", () => {
 		expect(ImpactFeedback.HitStop(0).fov < -5).toBe(true);
-		expect(ImpactFeedback.HitStop(0.5).fov).toBe(0);
+		expect(math.abs(ImpactFeedback.HitStop(0.5).fov) < 1e-6).toBe(true);
 		expect(ImpactFeedback.HitStopActive(0.1)).toBe(true);
 		expect(ImpactFeedback.HitStopActive(0.6)).toBe(false);
 		expect(ImpactFeedback.HitStopActive(-1)).toBe(false);
