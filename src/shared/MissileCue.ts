@@ -1,9 +1,12 @@
 // Pure HUD wording for the most urgent hostile missile (MissileRules on the server sends the numbers).
-// It rewrites the "MISSILE INBOUND" part of the shared warning line in the existing warning slot,
-// so every input mode gets the same cue and flight advice keeps its place after it.
+// The warning box keeps MISSILE INBOUND; the cue goes in the HUD's reserved break-cue row under it.
+// Where that row is the warning row itself (compact roots, and the shortest ones where both are the
+// objective line), the cue replaces MISSILE INBOUND in the one shared text instead, so two labels
+// never draw over each other.
 //
-//   wide:   "MISSILE 7 O'CLOCK ↓ 2.1s · LOW SPEED"   ->  "BREAK ← · MISSILE 1.4s · POWER↑"
-//   narrow: "MISSILE ↓ 2.1s"                          ->  "BREAK ← POWER↑"
+//   cue row: "MISSILE 7 O'CLOCK ↓ 2.1s"   ->  "BREAK ← · MISSILE 1.4s · POWER↑"
+//   narrow:  "MISSILE ↓ 2.1s"              ->  "BREAK ← POWER↑"
+//   shared:  "MISSILE 7 O'CLOCK ↓ 2.1s · LOW SPEED"  (flight advice keeps its place after it)
 //
 // The arrow next to MISSILE points to where the missile is (↑ ahead, → right wing, ↓ tail, ← left
 // wing). The BREAK arrow is the way to turn. The server picks it (MissileRules.BreakCue flies the
@@ -24,6 +27,20 @@ export interface MissileCueInput {
 }
 
 const COMBAT_TEXT = "MISSILE INBOUND";
+/** Rows narrower than this get the short wording (matches the HUD's narrow warning). */
+const NARROW_WIDTH = 200;
+/** HUD text is RobotoMono: every glyph advances about 0.6 em. */
+const MONO_ADVANCE = 0.6;
+
+export interface MissileCueRows {
+	/** Width of the warning row and of the break-cue row the text will be drawn in. */
+	alertWidth: number;
+	cueWidth: number;
+	/** Text size of the break-cue row: the long wording is used only when it fits the row without truncating. */
+	cueTextSize: number;
+	/** The break-cue row is the warning row (same rectangle): one text source only. */
+	shared: boolean;
+}
 /** Below this airspeed the BREAK cue adds POWER↑ (cruise is ~255, full throttle 320). */
 const POWER_SPEED = 285;
 
@@ -37,6 +54,7 @@ function wrap(bearing: number): number {
 
 export const MissileCue = {
 	PowerSpeed: POWER_SPEED,
+	NarrowWidth: NARROW_WIDTH,
 	/** Arrow toward the missile: ↑ ahead, → right, ↓ behind, ← left (45-degree sectors either side). */
 	Arrow(bearing: number): string {
 		const b = wrap(bearing);
@@ -75,5 +93,20 @@ export const MissileCue = {
 		const [start, finish] = string.find(warning, COMBAT_TEXT, 1, true);
 		if (start === undefined || finish === undefined) return warning;
 		return `${string.sub(warning, 1, start - 1)}${cue}${string.sub(warning, finish + 1)}`;
+	},
+	/**
+	 * Splits `warning` (built for the warning row's width) and the cue between the warning row and the
+	 * reserved break-cue row. A shared row gets one text with the cue inlined; a separate row keeps the
+	 * warning as is and gets the cue, in the long wording only when that fits its own width (else the
+	 * narrow one, so POWER↑ is never truncated away). The cue only shows with MISSILE INBOUND.
+	 */
+	Route(warning: string, input: MissileCueInput, rows: MissileCueRows): { alert: string; cue?: string } {
+		if (rows.shared) return { alert: MissileCue.Apply(warning, input, rows.alertWidth < NARROW_WIDTH) };
+		if (string.find(warning, COMBAT_TEXT, 1, true)[0] === undefined) return { alert: warning };
+		const wide = MissileCue.Text(input, false);
+		if (wide === undefined) return { alert: warning };
+		const [glyphs] = utf8.len(wide);
+		const fits = (glyphs === false ? wide.size() : glyphs) * rows.cueTextSize * MONO_ADVANCE <= rows.cueWidth;
+		return { alert: warning, cue: fits ? wide : MissileCue.Text(input, true) };
 	},
 };

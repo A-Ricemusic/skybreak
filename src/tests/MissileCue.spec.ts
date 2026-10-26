@@ -49,4 +49,29 @@ describe("Missile cue", () => {
 		expect(MissileCue.Apply("", cue)).toBe("");
 		expect(MissileCue.Apply("MISSILE INBOUND", {})).toBe("MISSILE INBOUND");
 	});
+	it("routes the cue to the reserved row, or inlines it once where that row is the warning row", () => {
+		const cue = { seconds: 2.14, bearing: 180 };
+		const row = { alertWidth: 220, cueWidth: 220, cueTextSize: 12, shared: false };
+		// Separate row: the warning keeps MISSILE INBOUND and its flight advice; the row gets the cue.
+		const split = MissileCue.Route("MISSILE INBOUND · LOW SPEED", cue, row);
+		expect(split.alert).toBe("MISSILE INBOUND · LOW SPEED");
+		expect(split.cue).toBe("MISSILE 6 O'CLOCK ↓ 2.1s");
+		// Shared row (compact roots): one text source, the cue inlined, nothing for the second label.
+		const shared = MissileCue.Route("MISSILE INBOUND", cue, { ...row, alertWidth: 180, cueWidth: 180, shared: true });
+		expect(shared.alert).toBe("MISSILE ↓ 2.1s");
+		expect(shared.cue).toBeUndefined();
+		// No inbound missile (a lock, flight advice, nothing): no cue.
+		expect(MissileCue.Route("MISSILE LOCK", cue, row).cue).toBeUndefined();
+		expect(MissileCue.Route("", cue, row).cue).toBeUndefined();
+		expect(MissileCue.Route("MISSILE INBOUND", {}, row).cue).toBeUndefined();
+	});
+	it("words the reserved row for its own width so POWER is never truncated", () => {
+		const slowBreak = { seconds: 1.4, bearing: 150, breakNow: true, speed: 240 };
+		const row = { alertWidth: 240, cueWidth: 240, cueTextSize: 12, shared: false };
+		// 31 RobotoMono glyphs at 12 pt is ~223 px.
+		expect(MissileCue.Route("MISSILE INBOUND", slowBreak, row).cue).toBe("BREAK ← · MISSILE 1.4s · POWER↑");
+		expect(MissileCue.Route("MISSILE INBOUND", slowBreak, { ...row, cueWidth: 220 }).cue).toBe("BREAK ← POWER↑");
+		expect(MissileCue.Route("MISSILE INBOUND", { ...slowBreak, speed: 320 }, { ...row, cueWidth: 220 }).cue).toBe("BREAK ← · MISSILE 1.4s");
+		expect(MissileCue.Route("MISSILE INBOUND", { seconds: 2.14, bearing: -150 }, { ...row, cueWidth: 120, cueTextSize: 10 }).cue).toBe("MISSILE ↓ 2.1s");
+	});
 });

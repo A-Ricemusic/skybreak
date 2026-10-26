@@ -1421,7 +1421,6 @@ function MissionHud({
 	trend,
 	fireNotice,
 	radio,
-	breakCue,
 	controller,
 	joystickRef,
 	knobRef,
@@ -1452,8 +1451,6 @@ function MissionHud({
 	fireNotice?: string;
 	/** Current radio line: the subtitle row, or the objective line on roots without one. */
 	radio?: string;
-	/** Missile time-to-impact / BREAK cue text for the reserved row under the warning (nothing drives it yet). */
-	breakCue?: string;
 	controller: FlightController;
 	joystickRef: React.RefObject<Frame>;
 	knobRef: React.RefObject<Frame>;
@@ -1476,10 +1473,18 @@ function MissionHud({
 	const touch = layout.touch;
 	const ready = missileReady(telemetry);
 	const locked = telemetry.target !== undefined && telemetry.lockProgress >= 0.99;
-	const narrow = layout.alert.width < 200;
-	// The missile cue (seconds, direction, BREAK) replaces MISSILE INBOUND in the same slot.
+	const narrow = layout.alert.width < MissileCue.NarrowWidth;
+	// The missile cue (seconds, direction, BREAK) fills the reserved row under the warning; where that row
+	// is the warning row itself it replaces MISSILE INBOUND in the one shared text instead.
 	const missileCue = { seconds: telemetry.incomingSeconds, bearing: telemetry.incomingBearing, breakNow: telemetry.breakNow, breakRight: telemetry.breakRight, speed: telemetry.speed };
-	const warning = MissileCue.Apply(flightWarning({ ...telemetry, acceleration: trend.acceleration, terrainSeconds: trend.terrainSeconds }, narrow), missileCue, narrow);
+	const routed = MissileCue.Route(flightWarning({ ...telemetry, acceleration: trend.acceleration, terrainSeconds: trend.terrainSeconds }, narrow), missileCue, {
+		alertWidth: layout.alert.width,
+		cueWidth: layout.breakCue.width,
+		cueTextSize: metrics.text,
+		shared: layout.breakCue === layout.alert,
+	});
+	const warning = routed.alert;
+	const breakCue = visible ? routed.cue : undefined;
 	// Refusals ride above FIRE on the touch row; elsewhere they borrow the alert lane while no warning is up.
 	const noticeInAlert = fireNotice !== undefined && layout.fireCaption === undefined && warning === "";
 	const alertText = noticeInAlert ? fireNotice! : warning;
@@ -1574,7 +1579,7 @@ function MissionHud({
 			<InstrumentBox name="SpeedBox" caption="SPEED" value={instrumentValue(telemetry.speed)} rectangle={layout.speed} metrics={metrics} pointsRight={true} color={stalling ? HUD.Amber : HUD.Green} />
 			<InstrumentBox name="AltitudeBox" caption="ALT" value={instrumentValue(telemetry.altitude)} rectangle={layout.altitude} metrics={metrics} pointsRight={false} color={telemetry.altitude < LOW_ALTITUDE ? HUD.Amber : HUD.Green} />
 			{!alertSharesObjective && <WarningBox rectangle={layout.alert} text={alertText} color={alertColor} metrics={metrics} textRef={warningText} />}
-			{/* Reserved for a missile time-to-impact / BREAK cue; empty and hidden until something drives it. */}
+			{/* Missile time-to-impact / BREAK cue; hidden when it shares the warning row (the warning carries it then). */}
 			<HudLabel name="BreakCue" text={breakCue ?? ""} rectangle={layout.breakCue} textSize={metrics.text} bold={true} color={HUD.Red} alignment={Enum.TextXAlignment.Center} visible={breakCue !== undefined && breakCue !== ""} />
 
 			<StatusPanel layout={layout.status} health={telemetry.health} cells={ammo} />
