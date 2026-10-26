@@ -2,9 +2,10 @@ import React, { useEffect, useRef, useState } from "@rbxts/react";
 import { GuiService, Lighting, ReplicatedStorage, RunService, TextService, UserInputService, Workspace } from "@rbxts/services";
 import { CinematicAction, CinematicControl, routeCinematicInput } from "../shared/CinematicInput";
 import { cinematicBandHeight, getCinematicLayout } from "../shared/CinematicLayout";
-import { CHAIR, RECORDER, Rgb, Vec, isCard, moodLighting, recorderLightOn, reelsSpin, sceneTint, shotPose } from "../shared/CinematicStaging";
+import { AURORA, BOARD, CHAIR, CHART, RECORDER, Rgb, SUBJECT, TIN, Vec, auroraVisible, boardShowsTeal, cardVignette, isCard, isTyped, moodLighting, orchardBurned, recorderLightOn, recorderOpen, reelsSpin, sceneTint, shotPose, stageSubject, tapesInTin, typedGraphemes } from "../shared/CinematicStaging";
 import { SpeakerTone, StoryBeat, StoryChapter, speakerStyle, storyFor } from "../shared/RelayStory";
 import { MotionPreference } from "./MotionPreference";
+import { documentFor, documentLine } from "../shared/StoryDocuments";
 
 const ORIGIN=new Vector3(0,6000,0);
 const vec=(p:Vec)=>new Vector3(p.x,p.y,p.z),col=(c:Rgb)=>Color3.fromRGB(c.r,c.g,c.b),rgb=(c:Color3):Rgb=>({r:c.R*255,g:c.G*255,b:c.B*255});
@@ -14,20 +15,42 @@ function prop(parent:Instance,name:string,size:Vector3,pos:Vector3,color:Color3,
 	const p=new Instance("Part"); p.Name=name; p.Size=size; p.Position=ORIGIN.add(pos); p.Color=color; p.Material=material;
 	p.Anchored=true; p.CanCollide=false; p.CanTouch=false; p.CanQuery=false; p.Parent=parent; return p;
 }
-interface Stage { scene:Folder; reels:{part:Part;base:CFrame}[]; recorderLight:Part; }
+interface Stage { scene:Folder; reels:{part:Part;base:CFrame}[]; recorderLight:Part; tealStrip:Part; }
 const SUBJECT_Y:Record<string,number>={RelayTruck:18,HarborLaunch:19,CommsRelay:45};
 function cloneModel(template:Instance | undefined,parent:Instance,name:string,cf:CFrame): void {
 	if(!template?.IsA("Model"))return;
 	const model=template.Clone();model.Name=name;model.PivotTo(cf);model.Parent=parent;
 }
-/** One stage per chapter: the radio desk is always there; the surroundings follow `scene`, props tint to `mood`. */
+const PAPER=Color3.fromRGB(226,218,192),INK_BROWN=Color3.fromRGB(46,38,30),STAMP=Color3.fromRGB(172,42,36);
+/** The chapter's document on the chart's top face: monospace ink on paper, lit flat so the lamp cannot blow it out. */
+function dressChart(chart:Part,id:number): void {
+	const lines=documentFor(id);
+	if(!lines)return;
+	const gui=new Instance("SurfaceGui");gui.Name="Document";gui.Face=Enum.NormalId.Top;gui.SizingMode=Enum.SurfaceGuiSizingMode.FixedSize;gui.CanvasSize=new Vector2(380,520);gui.LightInfluence=0;gui.Brightness=1;
+	const paper=new Instance("Frame");paper.Name="Paper";paper.Size=UDim2.fromScale(1,1);paper.BackgroundColor3=PAPER;paper.BorderSizePixel=0;paper.Parent=gui;
+	const pad=new Instance("UIPadding");pad.PaddingTop=new UDim(0,34);pad.PaddingLeft=new UDim(0,22);pad.PaddingRight=new UDim(0,22);pad.Parent=paper;
+	const list=new Instance("UIListLayout");list.Padding=new UDim(0,10);list.SortOrder=Enum.SortOrder.LayoutOrder;list.Parent=paper;
+	lines.forEach((raw,i)=>{
+		const line=documentLine(raw);
+		const label=new Instance("TextLabel");label.Name=`Line${i+1}`;label.LayoutOrder=i;label.Size=new UDim2(1,0,0,62);label.BackgroundTransparency=1;label.Font=Enum.Font.RobotoMono;label.TextSize=i===0 ? 24 : 22;
+		label.TextXAlignment=Enum.TextXAlignment.Left;label.TextColor3=line.stamp ? STAMP : line.struck ? Color3.fromRGB(128,116,98) : INK_BROWN;label.RichText=line.struck;
+		label.Text=line.struck ? `<s>${line.text}</s>` : line.text;label.Parent=paper;
+		if(line.stamp){const box=new Instance("UIStroke");box.Color=STAMP;box.Thickness=2.5;box.Transparency=.15;box.ApplyStrokeMode=Enum.ApplyStrokeMode.Border;box.Parent=label;label.Rotation=-3;label.BackgroundTransparency=.92;label.BackgroundColor3=STAMP;label.TextXAlignment=Enum.TextXAlignment.Center;}
+	});
+	// A Top-face GUI reads with "up" along the part's +X; a quarter turn points that at the far edge of the desk (checked in-engine: 0 and pi both read sideways, -pi/2 upside down).
+	chart.CFrame=chart.CFrame.mul(CFrame.Angles(0,math.pi/2,0));
+	gui.Parent=chart;
+}
+/** One stage per chapter: the radio desk is always there; the surroundings follow `scene`, props tint to `mood`, and a few props follow the story. */
 function sceneFor(chapter:StoryChapter): Stage {
-	const {scene:kind,mood}=chapter,scene=new Instance("Folder"); scene.Name="BrokenRelayCinematic"; scene.Parent=Workspace;
+	const {scene:kind,mood,id}=chapter,scene=new Instance("Folder"); scene.Name="BrokenRelayCinematic"; scene.Parent=Workspace;
 	const tint=(c:Color3)=>col(sceneTint(rgb(c),mood));
 	const sea=kind==="sea";
 	if(sea) prop(scene,"Stage",new Vector3(700,4,700),new Vector3(0,-4,0),tint(Color3.fromRGB(16,38,70)),Enum.Material.Glass).Reflectance=.25;
 	else prop(scene,"Stage",new Vector3(700,4,700),new Vector3(0,-4,0),tint(Color3.fromRGB(40,57,64)),Enum.Material.Slate);
 	prop(scene,"Radio desk",new Vector3(16,2,9),new Vector3(0,4,0),Color3.fromRGB(93,63,47),Enum.Material.Wood);
+	// The desk floated five studs off the floor in the low chair shot; four legs reach the stage.
+	for(const [dx,dz] of [[-7.4,-4],[7.4,-4],[-7.4,4],[7.4,4]]) prop(scene,"Desk leg",new Vector3(.6,5,.6),new Vector3(dx,.5,dz),Color3.fromRGB(70,48,36),Enum.Material.Wood);
 	const radio=prop(scene,"Teal's receiver",new Vector3(7,4,3),new Vector3(0,7,0),Color3.fromRGB(44,68,75));
 	prop(scene,"Frequency window",new Vector3(4.5,.7,.2),new Vector3(0,7.6,-1.6),Color3.fromRGB(76,234,208),Enum.Material.Neon);
 	// Reels are cylinders (axis along X, turned to face the camera) with a spoke so the spin reads.
@@ -38,17 +61,40 @@ function sceneFor(chapter:StoryChapter): Stage {
 		const spoke=prop(scene,"Tape reel",new Vector3(.5,.18,1.4),Vector3.zero,Color3.fromRGB(70,58,40));spoke.CFrame=base;
 		reels.push({part:reel,base},{part:spoke,base});
 	}
-	prop(scene,"Flight chart",new Vector3(5,.15,5),new Vector3(6,5.2,0),Color3.fromRGB(213,207,176),Enum.Material.SmoothPlastic);
-	// Teal's handheld recorder: a dented grey box with a red tally lamp that blinks in recorder shots.
-	const rec=prop(scene,"Recorder",new Vector3(2,1,3),vec(RECORDER),Color3.fromRGB(96,99,102),Enum.Material.DiamondPlate);
-	rec.CFrame=rec.CFrame.mul(CFrame.Angles(0,-.35,.04));
-	prop(scene,"Recorder dent",new Vector3(.7,.3,.9),vec(RECORDER).add(new Vector3(.5,.4,-.8)),Color3.fromRGB(70,72,74),Enum.Material.Metal);
-	const recorderLight=prop(scene,"Recorder light",new Vector3(.3,.2,.3),vec(RECORDER).add(new Vector3(-.6,.55,1.1)),Color3.fromRGB(255,40,40),Enum.Material.Neon);
+	// The flight chart is a sheet of paper; the chapter's document is printed on it for the evidence shot.
+	dressChart(prop(scene,"Flight chart",new Vector3(5.2,.15,3.8),vec(CHART),Color3.fromRGB(196,188,160),Enum.Material.SmoothPlastic),id);
+	// The coffee tin of tapes, found under Teal's bunk in chapter 1; one cassette leaves it for every chapter he has spoken in since.
+	const tapes=tapesInTin(id);
+	if(tapes!==undefined) {
+		const tin=prop(scene,"Coffee tin",new Vector3(1.7,1.8,1.8),vec(TIN),Color3.fromRGB(118,46,34));tin.Shape=Enum.PartType.Cylinder;tin.CFrame=tin.CFrame.mul(CFrame.Angles(0,0,math.pi/2));
+		for(let i=0;i<tapes;i++) prop(scene,"Tape cassette",new Vector3(.2,1,.7),vec(TIN).add(new Vector3(-.42+(i%4)*.28,.55,-.36+math.floor(i/4)*.36)),i%3===0 ? Color3.fromRGB(58,54,50) : Color3.fromRGB(40,38,36),Enum.Material.SmoothPlastic);
+	}
+	// Teal's handheld recorder: a dented grey box with a grille, a tape window and a red tally lamp that blinks in recorder shots.
+	const open=recorderOpen(id),r=vec(RECORDER),tilt=CFrame.Angles(0,-.35,.04);
+	const rec=prop(scene,"Recorder",new Vector3(2,1,3),r,Color3.fromRGB(96,99,102),Enum.Material.DiamondPlate);rec.CFrame=rec.CFrame.mul(tilt);
+	const detail=(name:string,size:Vector3,offset:Vector3,color:Color3,material:Enum.Material)=>{const p=prop(scene,name,size,Vector3.zero,color,material);p.CFrame=rec.CFrame.mul(new CFrame(offset));return p;};
+	detail("Recorder grille",new Vector3(.9,.06,.6),new Vector3(.3,.53,-.9),Color3.fromRGB(40,42,44),Enum.Material.Metal);
+	detail("Recorder window",new Vector3(1.2,.06,.7),new Vector3(0,.53,.2),Color3.fromRGB(150,160,150),Enum.Material.Glass).Transparency=.3;
+	detail("Recorder key",new Vector3(.22,.16,.22),new Vector3(-.6,.56,-1.1),Color3.fromRGB(200,200,196),Enum.Material.SmoothPlastic);
+	detail("Recorder dent",new Vector3(.7,.3,.9),new Vector3(.5,.4,-.8),Color3.fromRGB(70,72,74),Enum.Material.Metal);
+	if(open) {
+		// Recovered from the seat: a second dent in the side, and the lid up on its hinge.
+		detail("Recorder dent",new Vector3(.5,.6,.8),new Vector3(-1,-.1,.4),Color3.fromRGB(64,66,68),Enum.Material.Metal);
+		const lid=prop(scene,"Recorder lid",new Vector3(2,.1,1.5),Vector3.zero,Color3.fromRGB(88,91,94),Enum.Material.DiamondPlate);
+		lid.CFrame=rec.CFrame.mul(new CFrame(0,.5,-.55)).mul(CFrame.Angles(-1.2,0,0)).mul(new CFrame(0,0,-.75));
+	}
+	const recorderLight=detail("Recorder light",new Vector3(.3,.2,.3),new Vector3(-.6,.55,1.1),Color3.fromRGB(255,40,40),Enum.Material.Neon);
+	// Sera's board by the desk: dark slate on a post, three name strips; Teal's is the bright one, and chapter 9 wipes it for a while.
+	const b=vec(BOARD);
+	prop(scene,"Board post",new Vector3(.3,8,.3),new Vector3(b.X,2,b.Z),Color3.fromRGB(52,54,58));
+	prop(scene,"Sera's board",new Vector3(5,3.2,.25),b,Color3.fromRGB(30,50,46),Enum.Material.Slate);
+	for(const [dy,name] of [[.9,"Teal strip smear"],[.2,"Name strip"],[-.5,"Name strip"]] as [number,string][]) prop(scene,name,new Vector3(3.4,.3,.05),b.add(new Vector3(0,dy,-.15)),name==="Name strip" ? Color3.fromRGB(200,196,180) : Color3.fromRGB(44,66,62),Enum.Material.SmoothPlastic);
+	const tealStrip=prop(scene,"Teal strip",new Vector3(3.4,.3,.05),b.add(new Vector3(0,.9,-.17)),Color3.fromRGB(76,234,208),Enum.Material.Neon);
 	const lighting=moodLighting(mood);
 	const lamp=new Instance("PointLight");lamp.Brightness=lighting.lamp;lamp.Range=mood==="night" ? 80 : 60;lamp.Color=Color3.fromRGB(255,218,171);lamp.Parent=radio;
 	const models=ReplicatedStorage.FindFirstChild("RelayStoryModels");
-	const subject=kind==="farm" ? "RelayTruck" : kind==="harbor" || sea ? "HarborLaunch" : "CommsRelay";
-	cloneModel(models?.FindFirstChild(subject),scene,"Story subject",new CFrame(ORIGIN.add(new Vector3(45,SUBJECT_Y[subject],-65))));
+	const subject=stageSubject(kind);
+	if(subject) cloneModel(models?.FindFirstChild(subject),scene,"Story subject",new CFrame(ORIGIN.add(new Vector3(SUBJECT.x,SUBJECT_Y[subject],SUBJECT.z))));
 	const jet=Workspace.FindFirstChild("World")?.FindFirstChild("DisplayJet",true);
 	cloneModel(jet,scene,"Kestrel",new CFrame(ORIGIN.add(new Vector3(-40,7,-60))).mul(CFrame.Angles(0,.7,0)));
 	// The empty instructor's chair beside the desk, worn leather; the `chair` shot pushes in on it in every scene.
@@ -63,24 +109,36 @@ function sceneFor(chapter:StoryChapter): Stage {
 		prop(scene,"Hangar wall",new Vector3(520,120,6),new Vector3(0,58,-230),wall,Enum.Material.Concrete);
 		for(const x of [-260,260]) prop(scene,"Hangar wall",new Vector3(6,120,460),new Vector3(x,58,0),wall,Enum.Material.Concrete);
 		prop(scene,"Hangar beam",new Vector3(520,4,4),new Vector3(0,118,-120),Color3.fromRGB(40,42,46));
+		// Two work lights on the beam so the night hangar is a room, not a lamp pool in a void.
+		for(const x of [-110,110]) {
+			const lampStrip=prop(scene,"Hangar lamp",new Vector3(14,.6,1.2),new Vector3(x,115.6,-120),Color3.fromRGB(255,236,200),Enum.Material.Neon);
+			const light=new Instance("PointLight");light.Brightness=1.2;light.Range=170;light.Color=Color3.fromRGB(255,228,190);light.Parent=lampStrip;
+		}
 	}
-	if(sea) prop(scene,"Sea platform",new Vector3(70,12,70),new Vector3(45,4,-65),tint(Color3.fromRGB(70,76,82)),Enum.Material.Concrete);
+	if(sea) prop(scene,"Sea platform",new Vector3(70,12,70),new Vector3(SUBJECT.x,4,SUBJECT.z),tint(Color3.fromRGB(70,76,82)),Enum.Material.Concrete);
+	// Mast 2 of the ring stood between the wide camera and the jet, so the ring has five.
 	if(kind==="relay") for(let i=0;i<6;i++) {
+		if(i===2)continue;
 		const ang=i/6*math.pi*2,r=75;
-		prop(scene,"Antenna mast",new Vector3(2,40+(i%2)*14,2),new Vector3(45+math.cos(ang)*r,20+(i%2)*7,-65+math.sin(ang)*r),tint(Color3.fromRGB(150,156,160)));
+		prop(scene,"Antenna mast",new Vector3(2,40+(i%2)*14,2),new Vector3(SUBJECT.x+math.cos(ang)*r,20+(i%2)*7,SUBJECT.z+math.sin(ang)*r),tint(Color3.fromRGB(150,156,160)));
+	}
+	if(auroraVisible(kind,mood)) for(const ribbon of AURORA) {
+		const p=prop(scene,"Aurora",vec(ribbon.size),vec(ribbon.pos),col(ribbon.color),Enum.Material.Neon);
+		p.CFrame=p.CFrame.mul(CFrame.Angles(0,ribbon.yaw,.06));p.Transparency=ribbon.transparency;p.CastShadow=false;
 	}
 	if(!sea && kind!=="hangar") {
-		const color=tint(kind==="farm" ? Color3.fromRGB(82,113,63) : kind==="canyon" ? Color3.fromRGB(152,102,67) : kind==="city" ? Color3.fromRGB(44,52,66) : Color3.fromRGB(90,115,129));
+		const burned=kind==="farm" && orchardBurned(id);
+		const color=tint(burned ? Color3.fromRGB(30,26,24) : kind==="farm" ? Color3.fromRGB(82,113,63) : kind==="canyon" ? Color3.fromRGB(152,102,67) : kind==="city" ? Color3.fromRGB(44,52,66) : Color3.fromRGB(90,115,129));
 		for(let i=0;i<7;i++) {
 			const h=kind==="city" ? 110+(i%3)*40 : kind==="canyon" ? 100+(i%3)*28 : 20+(i%3)*8,x=-180+i*60,z=-180-(i%2)*60;
-			prop(scene,kind,new Vector3(50,h,65),new Vector3(x,h/2,z),color,kind==="farm" ? Enum.Material.Grass : Enum.Material.Concrete);
+			prop(scene,kind,new Vector3(50,h,65),new Vector3(x,h/2,z),color,burned ? Enum.Material.Slate : kind==="farm" ? Enum.Material.Grass : Enum.Material.Concrete);
+			// Charred orchard: a couple of ember flecks per block, no smoke particles (phones).
+			if(burned) for(let e=0;e<2;e++) prop(scene,"Ember",new Vector3(1.2,.4,1.2),new Vector3(x-12+e*24,h+.2,z+(e===0 ? 10 : -14)),Color3.fromRGB(255,110,40),Enum.Material.Neon);
 			// A few lit window strips so the city reads as inhabited at any mood.
 			if(kind==="city") for(let w=0;w<3;w++) prop(scene,"Window strip",new Vector3(30,1.2,.4),new Vector3(x,h*(.35+w*.22),z+32.7),(i+w)%3===0 ? Color3.fromRGB(255,120,200) : Color3.fromRGB(120,230,255),Enum.Material.Neon);
 		}
 	}
-	// Evidence path illuminates as the camera advances through this chapter.
-	for(let i=0;i<5;i++) prop(scene,"Evidence chain",new Vector3(5,1,5),new Vector3(-10+i*7,.3,-25),Color3.fromRGB(68,218,196),Enum.Material.Neon);
-	return {scene,reels,recorderLight};
+	return {scene,reels,recorderLight,tealStrip};
 }
 type LightingKeys="ClockTime" | "Brightness" | "Ambient" | "OutdoorAmbient" | "FogColor" | "FogEnd" | "FogStart" | "ExposureCompensation";
 const LIGHTING_KEYS:LightingKeys[]=["ClockTime","Brightness","Ambient","OutdoorAmbient","FogColor","FogEnd","FogStart","ExposureCompensation"];
@@ -90,7 +148,8 @@ const LIGHTING_KEYS:LightingKeys[]=["ClockTime","Brightness","Ambient","OutdoorA
  * at the same moment the menu world comes back), so each property is watched:
  * a value we did not set becomes the new restore target and the mood is
  * re-applied. The Fog* properties are inert while an Atmosphere exists, so the
- * world's Atmosphere is thickened locally too (client changes do not replicate).
+ * world's Atmosphere is thickened locally too, and a local cloud deck gives the
+ * storm its grey sky (client changes do not replicate).
  */
 function stageLighting(mood:StoryChapter["mood"]): ()=>void {
 	type Bag=Record<LightingKeys,unknown>;
@@ -106,10 +165,17 @@ function stageLighting(mood:StoryChapter["mood"]): ()=>void {
 	const atmosphere=Lighting.FindFirstChildOfClass("Atmosphere");
 	const atmo=atmosphere ? {density:atmosphere.Density,haze:atmosphere.Haze,color:atmosphere.Color} : undefined;
 	if(atmosphere){atmosphere.Density=l.density;atmosphere.Haze=l.haze;atmosphere.Color=col(l.fogColor);}
+	const existing=Workspace.Terrain.FindFirstChildOfClass("Clouds"),clouds=existing ?? new Instance("Clouds");
+	const cloudsBefore={cover:clouds.Cover,density:clouds.Density,color:clouds.Color,enabled:clouds.Enabled};
+	// A night deck hid the stars and the aurora entirely, so night runs with the layer off.
+	clouds.Cover=l.clouds.cover;clouds.Density=l.clouds.density;clouds.Color=col(l.clouds.color);clouds.Enabled=l.clouds.cover>0;
+	if(!existing)clouds.Parent=Workspace.Terrain;
 	return ()=>{
 		for(const w of watchers)w.Disconnect();
 		for(const key of LIGHTING_KEYS)live[key]=saved[key];
 		if(atmosphere && atmo && atmosphere.Parent){atmosphere.Density=atmo.density;atmosphere.Haze=atmo.haze;atmosphere.Color=atmo.color;}
+		if(existing){clouds.Cover=cloudsBefore.cover;clouds.Density=cloudsBefore.density;clouds.Color=cloudsBefore.color;clouds.Enabled=cloudsBefore.enabled;}
+		else clouds.Destroy();
 	};
 }
 const INK=Color3.fromRGB(4,9,14),IVORY=Color3.fromRGB(242,238,226),MUTED=Color3.fromRGB(152,168,176),FAINT=Color3.fromRGB(104,122,132);
@@ -125,6 +191,7 @@ function hintModeFor(input:Enum.UserInputType): HintMode {
 	return input.Name.sub(1,7)==="Gamepad" ? "gamepad" : "keyboard";
 }
 const HINT:Record<HintMode,string>={touch:"TAP FOR NEXT",keyboard:"CLICK FOR NEXT",gamepad:"R1 NEXT"};
+const graphemes=(text:string)=>{const [count]=utf8.len(text);return typeIs(count,"number") ? count : text.size();};
 
 export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewport:Vector2;onFinish:()=>void;onCancel:()=>void}) {
 	const chapter=storyFor(id);
@@ -146,6 +213,8 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 	const bandHeight=cinematicBandHeight(layout,tallest);
 	const textAreaHeight=math.min(textHeight,layout.maxTextHeight),overflow=textHeight>layout.maxTextHeight;
 	const textY=bandHeight-layout.padBottom-textAreaHeight,chipY=textY-layout.chipGap-layout.chipHeight;
+	// The safe root starts below the Roblox top bar; letterbox, cards and fades reach up through that inset so no sky shows above a black card.
+	const inset=math.max(0,GuiService.GetGuiInset()[0].Y);
 	const subtitleRef=useRef<ScrollingFrame>(),bodyRef=useRef<TextLabel>(),nameRef=useRef<TextLabel>(),roleRef=useRef<TextLabel>();
 	const progressRef=useRef<Frame>(),fadeRef=useRef<Frame>(),eyebrowRef=useRef<TextLabel>(),cardBodyRef=useRef<TextLabel>(),cardNameRef=useRef<TextLabel>();
 	useEffect(()=>{if(subtitleRef.current)subtitleRef.current.CanvasPosition=Vector2.zero;},[beat]);
@@ -158,9 +227,10 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 	finishRef.current=onFinish;cancelRef.current=onCancel;
 	const finish=()=>{if(done.current)return;done.current=true;finishRef.current();};
 	const setTextAlpha=(alpha:number)=>{for(const label of [bodyRef.current,nameRef.current,roleRef.current,cardBodyRef.current,cardNameRef.current])if(label)label.TextTransparency=alpha;};
+	const setVisible=(count:number)=>{for(const label of [bodyRef.current,cardBodyRef.current])if(label)label.MaxVisibleGraphemes=count;};
 	const goTo=(index:number)=>{
-		// Hide the outgoing line before React swaps text so it can fade in cleanly.
-		if(!stillRef.current)setTextAlpha(1);
+		// Hide the outgoing line before React swaps text so it can fade or type in cleanly.
+		if(!stillRef.current){setTextAlpha(1);setVisible(0);}
 		indexRef.current=index;beatTimeRef.current=0;endRef.current=durations[index];setBeat(index);
 	};
 	const advance=()=>{if(indexRef.current<chapter.beats.size()-1)goTo(indexRef.current+1);else finish();};
@@ -184,7 +254,8 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 		const camera=Workspace.CurrentCamera;
 		const oldType=camera?.CameraType,oldFov=camera?.FieldOfView,oldFrame=camera?.CFrame;
 		const stage=sceneFor(chapter),restoreLighting=stageLighting(chapter.mood);let clock=0,reelAngle=0;
-		const last=chapter.beats.size()-1;
+		const last=chapter.beats.size()-1,steadyLamp=recorderOpen(id);
+		const lengths=chapter.beats.map((b)=>graphemes(b.text));
 		const move=RunService.RenderStepped.Connect((dt)=>{
 			if(done.current)return;
 			const step=math.min(dt,.1);
@@ -192,8 +263,12 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 			if(beatTimeRef.current>=endRef.current){advance();if(done.current)return;}
 			const index=indexRef.current,t=beatTimeRef.current,duration=durations[index],calm=stillRef.current;
 			const left=endRef.current-t;
-			// Text: short fade in, and fade out over the outro, unless reduced motion asks for instant swaps.
-			setTextAlpha(calm ? 0 : 1-math.min(math.clamp(t/TEXT_FADE_IN,0,1),index===last ? 1 : math.clamp(left/TEXT_FADE_OUT,0,1)));
+			const {shot,speaker:who}=chapter.beats[index],toneNow=speakerStyle(who).tone;
+			// Text: tapes, the log and title cards type out over the first 40 % of the beat; everyone else fades in. All fade out over the outro unless reduced motion asks for instant swaps.
+			const typed=isTyped(toneNow,shot);
+			const fadeOut=index===last ? 1 : math.clamp(left/TEXT_FADE_OUT,0,1);
+			setTextAlpha(calm ? 0 : 1-math.min(typed ? 1 : math.clamp(t/TEXT_FADE_IN,0,1),fadeOut));
+			setVisible(typed ? typedGraphemes(t,duration,lengths[index],calm) : -1);
 			if(progressRef.current)progressRef.current.Size=new UDim2(math.clamp(t/duration,0,1),0,1,0);
 			if(eyebrowRef.current)eyebrowRef.current.TextColor3=ACCENT.Lerp(MUTED,math.clamp((clock-2.5)/1,0,1));
 			// Black overlay: fade up from black, dip on camera cuts, fade out at the natural end.
@@ -204,14 +279,14 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 			const exitSpan=endRef.current<duration ? CUT_DIP : EXIT_FADE;
 			const exit=index===last ? 1-math.clamp(left/exitSpan,0,1) : 0;
 			if(fadeRef.current)fadeRef.current.BackgroundTransparency=1-math.max(enter,dipOut,dipIn,exit);
-			// Stage life: reels turn while a tape or the log speaks; the recorder lamp blinks in its close-up.
-			const {shot,speaker:who}=chapter.beats[index];
-			if(!pausedRef.current && reelsSpin(speakerStyle(who).tone))reelAngle+=step*2.4;
+			// Stage life: reels turn while a tape or the log speaks; the recorder lamp blinks in its close-up; Sera's board follows chapter 9.
+			if(!pausedRef.current && reelsSpin(toneNow))reelAngle+=step*2.4;
 			for(const {part,base} of stage.reels)part.CFrame=base.mul(CFrame.Angles(reelAngle,0,0));
-			stage.recorderLight.Transparency=recorderLightOn(shot,clock) ? 0 : shot==="recorder" ? .85 : .55;
+			stage.recorderLight.Transparency=recorderLightOn(shot,clock,steadyLamp) ? 0 : shot==="recorder" ? .85 : .55;
+			stage.tealStrip.Transparency=boardShowsTeal(id,index,last) ? 0 : 1;
 			// Camera framing follows the beat's shot; camera motion OFF holds each shot's mid pose.
 			const alpha=calm ? .5 : math.clamp(t/duration,0,1);
-			const pose=shotPose(shot,chapter.scene,alpha,viewportRef.current.Y<240);
+			const size=viewportRef.current,pose=shotPose(shot,chapter.scene,alpha,size.Y<240,size.Y>size.X);
 			if(!camera)return;
 			camera.CameraType=Enum.CameraType.Scriptable;camera.FieldOfView=pose.fov;camera.CFrame=CFrame.lookAt(ORIGIN.add(vec(pose.eye)),ORIGIN.add(vec(pose.focus)));
 		});
@@ -245,20 +320,21 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 			<textlabel key="Label" Position={UDim2.fromOffset(12,0)} Size={new UDim2(1,-70,1,0)} BackgroundTransparency={1} Text={label} TextXAlignment={Enum.TextXAlignment.Left} TextSize={13} Font={Enum.Font.GothamMedium} TextColor3={IVORY}/>
 			<textlabel key="Value" AnchorPoint={new Vector2(1,0)} Position={new UDim2(1,-12,0,0)} Size={new UDim2(0,56,1,0)} BackgroundTransparency={1} Text={value} TextXAlignment={Enum.TextXAlignment.Right} TextSize={13} Font={Enum.Font.GothamBold} TextColor3={ACCENT}/>
 		</textbutton>;
-	// Lines mount hidden and RenderStepped fades them in (instant with reduced motion).
-	const hidden=still ? 0 : 1;
+	// Lines mount hidden and RenderStepped fades or types them in (instant with reduced motion).
+	const hidden=still ? 0 : 1,typedLine=isTyped(speaker.tone,current.shot),startVisible=still || !typedLine ? -1 : 0;
 	const controlsWidth=layout.skipWidth+controlSize*2;
 	const eyebrow=tiny ? `${string.format("%02d",id)} — ${chapter.title}` : `BROKEN RELAY  ·  ${string.format("%02d",id)} — ${chapter.title}`;
-	// Dots for 1-8 beats; on tiny roots the strip grows to fit instead of spilling into the chip.
+	// Dots for 1-8 beats; off desktop the strip grows to fit and the hint goes, so neither spills into the chip.
 	const dots=chapter.beats.map((_,i)=><frame key={`Dot${i}`} LayoutOrder={i} Size={UDim2.fromOffset(i===beat ? 14 : 6,6)} BackgroundColor3={i<=beat ? tone : FAINT} BackgroundTransparency={i<=beat ? 0 : .3} BorderSizePixel={0}><uicorner CornerRadius={new UDim(1,0)}/></frame>);
-	const dotsWidth=tiny ? math.max(40,chapter.beats.size()*10+8) : 200;
+	const dotsWidth=layout.dotsWidth(chapter.beats.size());
+	const cardFont=speaker.tone==="log" ? Enum.Font.RobotoMono : Enum.Font.GothamMedium;
 	// Layering: scene tap target 1, lower third 2, title card 3, top bar and pause chip 4, settings 5, fade 6.
 	return <frame key="CinematicScreen" Size={UDim2.fromScale(1,1)} BackgroundTransparency={1}>
 		{/* Tap or click anywhere on the scene for the next line. */}
 		<textbutton key="CinematicAdvanceButton" ZIndex={1} Size={UDim2.fromScale(1,1)} BackgroundTransparency={1} Text="" AutoButtonColor={false} Selectable={false} Event={{Activated:activate("next")}}/>
-		<frame key="CinematicTopBar" ZIndex={4} Size={new UDim2(1,0,0,barHeight)} BackgroundColor3={INK} BorderSizePixel={0}>
-			<textlabel ref={eyebrowRef} key="CinematicTitle" Position={UDim2.fromOffset(margin,0)} Size={new UDim2(1,-margin*2-controlsWidth-8,1,0)} BackgroundTransparency={1} Text={eyebrow} TextXAlignment={Enum.TextXAlignment.Left} TextTruncate={Enum.TextTruncate.AtEnd} TextSize={layout.eyebrowSize} Font={Enum.Font.GothamBold} TextColor3={ACCENT}/>
-			<frame key="CinematicActions" AnchorPoint={new Vector2(1,0)} Position={new UDim2(1,-margin+3,0,(barHeight-controlSize)/2)} Size={UDim2.fromOffset(controlsWidth,controlSize)} BackgroundTransparency={1}>
+		<frame key="CinematicTopBar" ZIndex={4} Position={UDim2.fromOffset(0,-inset)} Size={new UDim2(1,0,0,barHeight+inset)} BackgroundColor3={INK} BorderSizePixel={0}>
+			<textlabel ref={eyebrowRef} key="CinematicTitle" Position={UDim2.fromOffset(margin,inset)} Size={new UDim2(1,-margin*2-controlsWidth-8,0,barHeight)} BackgroundTransparency={1} Text={eyebrow} TextXAlignment={Enum.TextXAlignment.Left} TextTruncate={Enum.TextTruncate.AtEnd} TextSize={layout.eyebrowSize} Font={Enum.Font.GothamBold} TextColor3={ACCENT}/>
+			<frame key="CinematicActions" AnchorPoint={new Vector2(1,0)} Position={new UDim2(1,-margin+3,0,inset+(barHeight-controlSize)/2)} Size={UDim2.fromOffset(controlsWidth,controlSize)} BackgroundTransparency={1}>
 				<uilistlayout FillDirection={Enum.FillDirection.Horizontal} HorizontalAlignment={Enum.HorizontalAlignment.Right} SortOrder={Enum.SortOrder.LayoutOrder}/>
 				{pill("CinematicSettingsButton","Aa",controlSize,1,undefined,settingsOpen,()=>setSettingsOpen((open)=>!open))}
 				{pill("CinematicPauseButton",paused ? ">" : "II",controlSize,2,"pause",paused)}
@@ -287,30 +363,37 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 						<uilistlayout FillDirection={Enum.FillDirection.Horizontal} VerticalAlignment={Enum.VerticalAlignment.Center} Padding={new UDim(0,6)} SortOrder={Enum.SortOrder.LayoutOrder}/>
 						<frame key="Swatch" LayoutOrder={1} Size={UDim2.fromOffset(3,chipHeight-6)} BackgroundColor3={tone} BorderSizePixel={0}/>
 						<textlabel ref={nameRef} key="SpeakerName" TextTransparency={hidden} LayoutOrder={2} AutomaticSize={Enum.AutomaticSize.X} Size={new UDim2(0,0,1,0)} BackgroundTransparency={1} Text={speaker.name} TextSize={chipTextSize} Font={speaker.tone==="log" ? Enum.Font.RobotoMono : Enum.Font.GothamBlack} TextColor3={tone}/>
-						{speaker.role !== undefined && <textlabel ref={roleRef} key="SpeakerRole" TextTransparency={hidden} LayoutOrder={3} AutomaticSize={Enum.AutomaticSize.X} Size={new UDim2(0,0,1,0)} BackgroundTransparency={1} Text={speaker.role} TextSize={chipTextSize-1} Font={Enum.Font.GothamMedium} TextColor3={MUTED}/>}
+						{speaker.role !== undefined && <textlabel ref={roleRef} key="SpeakerRole" TextTransparency={hidden} LayoutOrder={3} AutomaticSize={Enum.AutomaticSize.X} Size={new UDim2(0,0,1,0)} BackgroundTransparency={1} Text={speaker.role} TextSize={chipTextSize-1} Font={Enum.Font.GothamMedium} TextColor3={MUTED} TextTruncate={Enum.TextTruncate.AtEnd}/>}
 					</frame>
 					<frame key="Progress" AnchorPoint={new Vector2(1,0)} Position={UDim2.fromScale(1,0)} Size={new UDim2(0,dotsWidth,1,0)} BackgroundTransparency={1}>
 						<uilistlayout FillDirection={Enum.FillDirection.Horizontal} HorizontalAlignment={Enum.HorizontalAlignment.Right} VerticalAlignment={Enum.VerticalAlignment.Center} Padding={new UDim(0,4)} SortOrder={Enum.SortOrder.LayoutOrder}/>
-						{!tiny && <textlabel key="Hint" LayoutOrder={0} AutomaticSize={Enum.AutomaticSize.X} Size={new UDim2(0,0,1,0)} BackgroundTransparency={1} Text={`${HINT[hintMode]}   `} TextSize={chipTextSize-2} Font={Enum.Font.GothamMedium} TextColor3={FAINT}/>}
+						{layout.showHint && <textlabel key="Hint" LayoutOrder={0} AutomaticSize={Enum.AutomaticSize.X} Size={new UDim2(0,0,1,0)} BackgroundTransparency={1} Text={`${HINT[hintMode]}   `} TextSize={chipTextSize-2} Font={Enum.Font.GothamMedium} TextColor3={FAINT}/>}
 						{dots}
 					</frame>
 				</frame>
 				<scrollingframe ref={subtitleRef} key="CinematicSubtitles" Position={UDim2.fromOffset(0,textY)} Size={new UDim2(1,0,0,textAreaHeight)} BackgroundTransparency={1} BorderSizePixel={0} CanvasSize={UDim2.fromOffset(0,textHeight)} ScrollBarThickness={overflow ? 3 : 0} ScrollingEnabled={overflow} ScrollingDirection={Enum.ScrollingDirection.Y} Selectable={overflow} Active={overflow}>
-					<textlabel ref={bodyRef} key="CinematicLine" TextTransparency={hidden} Size={new UDim2(0,wrapWidth,0,textHeight)} BackgroundTransparency={1} Text={current.text} TextWrapped={true} TextSize={layout.bodySize} TextXAlignment={Enum.TextXAlignment.Left} TextYAlignment={Enum.TextYAlignment.Top} TextColor3={speaker.tone==="log" ? Color3.fromRGB(214,222,214) : IVORY} Font={bodyFont(current)}/>
+					<textlabel ref={bodyRef} key="CinematicLine" TextTransparency={hidden} MaxVisibleGraphemes={startVisible} Size={new UDim2(0,wrapWidth,0,textHeight)} BackgroundTransparency={1} Text={current.text} TextWrapped={true} TextSize={layout.bodySize} TextXAlignment={Enum.TextXAlignment.Left} TextYAlignment={Enum.TextYAlignment.Top} TextColor3={speaker.tone==="log" ? Color3.fromRGB(214,222,214) : IVORY} Font={bodyFont(current)}/>
 				</scrollingframe>
 				<frame key="CinematicBeatTimer" AnchorPoint={new Vector2(0,.5)} Position={new UDim2(0,0,1,-layout.padBottom/2)} Size={new UDim2(1,0,0,layout.progressHeight)} BackgroundColor3={IVORY} BackgroundTransparency={.88} BorderSizePixel={0}>
 					<frame ref={progressRef} key="Fill" Size={UDim2.fromScale(0,1)} BackgroundColor3={tone} BackgroundTransparency={.2} BorderSizePixel={0}/>
 				</frame>
 			</frame>
 		</frame>
-		{/* Title card: the `black` shot keeps the screen black and centres the line in large ivory, chip small above it. */}
-		{card && <frame key="CinematicCard" ZIndex={3} Size={UDim2.fromScale(1,1)} BackgroundColor3={Color3.fromRGB(0,0,0)} BorderSizePixel={0}>
-			<frame key="Column" AnchorPoint={new Vector2(.5,.5)} Position={new UDim2(.5,0,.5,(barHeight-bandHeight)/2)} Size={new UDim2(0,layout.textWidth,0,0)} AutomaticSize={Enum.AutomaticSize.Y} BackgroundTransparency={1}>
+		{/* Title card: the `black` shot keeps the screen black (top inset included) and centres the line in large ivory, chip small above it. */}
+		{card && <frame key="CinematicCard" ZIndex={3} Position={UDim2.fromOffset(0,-inset)} Size={new UDim2(1,0,1,inset)} BackgroundColor3={Color3.fromRGB(0,0,0)} BorderSizePixel={0}>
+			{/* The coup's voice: a faint red vignette closing in from every edge. */}
+			{cardVignette(speaker.tone) && <frame key="Vignette" Size={UDim2.fromScale(1,1)} BackgroundColor3={DANGER} BorderSizePixel={0}>
+				<uigradient Rotation={90} Transparency={new NumberSequence([new NumberSequenceKeypoint(0,.72),new NumberSequenceKeypoint(.3,1),new NumberSequenceKeypoint(.7,1),new NumberSequenceKeypoint(1,.72)])}/>
+			</frame>}
+			{cardVignette(speaker.tone) && <frame key="VignetteSides" Size={UDim2.fromScale(1,1)} BackgroundColor3={DANGER} BorderSizePixel={0}>
+				<uigradient Rotation={0} Transparency={new NumberSequence([new NumberSequenceKeypoint(0,.78),new NumberSequenceKeypoint(.25,1),new NumberSequenceKeypoint(.75,1),new NumberSequenceKeypoint(1,.78)])}/>
+			</frame>}
+			<frame key="Column" AnchorPoint={new Vector2(.5,.5)} Position={new UDim2(.5,0,.5,(barHeight+inset-bandHeight)/2)} Size={new UDim2(0,layout.textWidth,0,0)} AutomaticSize={Enum.AutomaticSize.Y} BackgroundTransparency={1}>
 				<uilistlayout HorizontalAlignment={Enum.HorizontalAlignment.Center} Padding={new UDim(0,tiny ? 6 : 14)} SortOrder={Enum.SortOrder.LayoutOrder}/>
 				<textlabel ref={cardNameRef} key="CardSpeaker" TextTransparency={hidden} LayoutOrder={1} Size={new UDim2(1,0,0,chipHeight)} BackgroundTransparency={1} Text={speaker.role !== undefined ? `${speaker.name}  ·  ${speaker.role}` : speaker.name} TextSize={chipTextSize} Font={speaker.tone==="log" ? Enum.Font.RobotoMono : Enum.Font.GothamBlack} TextColor3={tone}/>
-				<textlabel ref={cardBodyRef} key="CardLine" TextTransparency={hidden} LayoutOrder={2} Size={new UDim2(1,0,0,0)} AutomaticSize={Enum.AutomaticSize.Y} BackgroundTransparency={1} Text={current.text} TextWrapped={true} TextSize={math.floor(layout.bodySize*(tiny ? 1.2 : 1.5))} TextXAlignment={Enum.TextXAlignment.Center} TextColor3={IVORY} Font={speaker.tone==="log" ? Enum.Font.RobotoMono : Enum.Font.GothamMedium} LineHeight={1.15}/>
+				<textlabel ref={cardBodyRef} key="CardLine" TextTransparency={hidden} MaxVisibleGraphemes={startVisible} LayoutOrder={2} Size={new UDim2(1,0,0,0)} AutomaticSize={Enum.AutomaticSize.Y} BackgroundTransparency={1} Text={current.text} TextWrapped={true} TextSize={math.floor(layout.bodySize*(tiny ? 1.2 : 1.5))} TextXAlignment={Enum.TextXAlignment.Center} TextColor3={IVORY} Font={cardFont} LineHeight={1.15}/>
 			</frame>
 		</frame>}
-		<frame ref={fadeRef} key="CinematicFade" ZIndex={6} Size={UDim2.fromScale(1,1)} BackgroundColor3={Color3.fromRGB(0,0,0)} BackgroundTransparency={0} BorderSizePixel={0}/>
+		<frame ref={fadeRef} key="CinematicFade" ZIndex={6} Position={UDim2.fromOffset(0,-inset)} Size={new UDim2(1,0,1,inset)} BackgroundColor3={Color3.fromRGB(0,0,0)} BackgroundTransparency={0} BorderSizePixel={0}/>
 	</frame>;
 }
