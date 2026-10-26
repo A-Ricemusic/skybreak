@@ -778,6 +778,12 @@ for (let index = 0; index < MISSIONS.size(); index++) {
 		assert(phase.twist.insert.size() >= 1, `${tag} must insert at least one phase`);
 		for (const inserted of phase.twist.insert) assert(inserted.twist === undefined, `${tag} may not nest twists`);
 		assert(phase.kind !== "route" || phase.twist.mode !== "now", `${tag} cannot cut a route short`);
+		if (phase.twist.mode === "now" && (phase.kind === "required_air" || phase.kind === "required_ground" || phase.kind === "ace")) {
+			// Kill phases progress in whole increments: the first kill that reaches `at` must leave work undone,
+			// otherwise the twist would only fire on the completing kill and silently be a no-op.
+			const span = phase.kind === "ace" ? 1 : phase.count ?? 0;
+			assert(math.ceil(phase.twist.at * span - 1e-5) < span, `${tag} with mode "now" would only fire on the completing kill`);
+		}
 	}
 	for (const phase of expandPhases(blueprint.phases)) {
 		const tag = `Mission ${id} phase ${phase.kind}`;

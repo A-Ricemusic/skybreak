@@ -47,6 +47,11 @@ describe("Broken Relay campaign contracts",()=>{
 					for(const inserted of p.twist.insert)expect(inserted.twist).toBeUndefined();
 					// A "now" twist that fires as the phase completes would be a no-op surprise; cut phases must have room left.
 					if(p.twist.mode==="now")expect(p.twist.at<1).toBe(true);
+					// Kill phases step in whole increments: a "now" twist must leave at least one kill undone when it fires.
+					if(p.twist.mode==="now" && (p.kind==="required_air" || p.kind==="required_ground" || p.kind==="ace")){
+						const span=p.kind==="ace" ? 1 : p.count ?? 0;
+						expect(math.ceil(p.twist.at*span-1e-5)<span).toBe(true);
+					}
 				}
 				if(p.kind!=="route" && p.points)expect((p.chatter ?? []).size()>=1).toBe(true);
 			}
@@ -119,6 +124,9 @@ describe("Broken Relay campaign contracts",()=>{
 		expect(math.abs(clock-scan.seconds!*scan.twist!.at)<.2).toBe(true);
 		expect(BlueprintRunner.Phases(recon).size()).toBe(authored+scan.twist!.insert.size());
 		expect(BlueprintRunner.ActivePhase(recon)!.label).toBe("Break the camp's intercept");
+		// Radio ordering: the twist line is already queued at the instant the phase changes, so the server's
+		// phase application (which drains TakeRadio before it radios the new beat) speaks the call first.
+		expect(recon.radioQueue.size()).toBe(1);
 		expect(BlueprintRunner.Objective(recon).objective).toBe("Break the camp's intercept");
 		expect(BlueprintRunner.TakeRadio(recon)).toBe(scan.twist!.text);expect(BlueprintRunner.TakeRadio(recon)).toBeUndefined();
 		// The catalog itself is untouched: another sortie starts from the authored list.
