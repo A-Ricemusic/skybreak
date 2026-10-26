@@ -8,6 +8,7 @@ import { resolve } from "node:path";
 const luauMath = Object.assign(Object.create(Math), {
 	clamp: (value: number, low: number, high: number) => Math.min(Math.max(value, low), high),
 	huge: Number.POSITIVE_INFINITY,
+	rad: (degrees: number) => (degrees * Math.PI) / 180,
 });
 (globalThis as unknown as { math: unknown }).math = luauMath;
 (Array.prototype as unknown as { size: () => number }).size = function (this: unknown[]) { return this.length; };
@@ -16,8 +17,18 @@ const luauMath = Object.assign(Object.create(Math), {
 	format: (pattern: string, ...values: number[]) => pattern.replace(/%02d/g, () => String(Math.floor(values.shift() ?? 0)).padStart(2, "0")),
 };
 const { getHudLayout, getKillMarkerLayout } = await import("../src/shared/UILayout");
-const { kestrelOutline, weaponRows, railsReady, clockLines } = await import("../src/shared/HudInstruments");
+const { statusLine, hullFraction, hullTone, clockLines } = await import("../src/shared/HudInstruments");
 type Rect = { x: number; y: number; width: number; height: number };
+
+// The Kestrel's top-view outline (right half, studs from tools/build-aircraft.py) for the backdrop jets only.
+const KESTREL_RIGHT_HALF: [number, number][] = [
+	[0, -13], [0.82, -11.1], [1.3, -9.2], [1.72, -6.8], [1.88, -3.5], [4.55, -2.2], [11.4, 2.1], [11.05, 3.65], [4.1, 3.15],
+	[2.95, 4.2], [2.95, 7.6], [5.25, 9.25], [5.0, 10.15], [2.95, 9.85], [2.75, 11.5], [1.55, 11.5], [0.6, 12.4], [0, 12.4],
+];
+function kestrelOutline(): [number, number][] {
+	const unit = ([x, y]: [number, number]): [number, number] => [(x + 11.4) / 22.8, (y + 13) / 26];
+	return [...KESTREL_RIGHT_HALF.map(unit), ...KESTREL_RIGHT_HALF.slice(1, -1).reverse().map(([x, y]) => unit([-x, y]))];
+}
 type Mode = "touch" | "keyboard" | "gamepad";
 
 const root = resolve(import.meta.dir, "..");
@@ -29,12 +40,18 @@ const GREEN = "#6CFFB0", DIM = "#46A876", AMBER = "#FFC454", RED = "#FF5252", WH
 const TONE: Record<string, string> = { normal: GREEN, dim: DIM, warn: AMBER, danger: RED };
 const FONT = `"Roboto Mono", Menlo, monospace`;
 
-interface Shot { file: string; screenWidth: number; screenHeight: number; insetLeft: number; mode: Mode; scale: number }
+/** `scale` is the capture's device-pixel ratio; `hudScale` the HUD SCALE setting (the UIScale the HUD is drawn through, default 1). */
+interface Shot { file: string; screenWidth: number; screenHeight: number; insetLeft: number; mode: Mode; scale: number; hudScale?: number }
 const SHOTS: Shot[] = [
 	{ file: "hud-mock-1920x854-keyboard.png", screenWidth: 1920, screenHeight: 854, insetLeft: 0, mode: "keyboard", scale: 1 },
 	{ file: "hud-mock-844x390-touch.png", screenWidth: 844, screenHeight: 390, insetLeft: 44, mode: "touch", scale: 2 },
 	{ file: "hud-mock-667x375-touch.png", screenWidth: 667, screenHeight: 375, insetLeft: 0, mode: "touch", scale: 2 },
+	{ file: "hud-mock-568x320-touch.png", screenWidth: 568, screenHeight: 320, insetLeft: 0, mode: "touch", scale: 2 },
+	{ file: "hud-mock-706x267-touch.png", screenWidth: 706, screenHeight: 267, insetLeft: 0, mode: "touch", scale: 2 },
 	{ file: "hud-mock-320x182-touch.png", screenWidth: 320, screenHeight: 182, insetLeft: 0, mode: "touch", scale: 3 },
+	// HUD SCALE 80% on keyboard: text sizes rise so they still draw at 8 px or more.
+	{ file: "hud-mock-667x375-keyboard-hud80.png", screenWidth: 667, screenHeight: 375, insetLeft: 0, mode: "keyboard", scale: 2, hudScale: 0.8 },
+	{ file: "hud-mock-320x182-keyboard-hud80.png", screenWidth: 320, screenHeight: 182, insetLeft: 0, mode: "keyboard", scale: 3, hudScale: 0.8 },
 ];
 
 const px = (value: number) => `${Math.round(value * 100) / 100}px`;
@@ -48,9 +65,12 @@ const line = (x1: number, y1: number, x2: number, y2: number, color = GREEN, wid
 	`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${color}" stroke-width="${width}" stroke-opacity="${opacity}" stroke-linecap="square"/>`;
 
 function render(shot: Shot): string {
-	const width = shot.screenWidth - shot.insetLeft, height = shot.screenHeight;
-	const hud = getHudLayout(width, height, shot.mode);
-	const kill = getKillMarkerLayout(width, height, shot.mode);
+	// The HUD is laid out for the root divided by its scale (as GameUI does), then drawn scaled.
+	const hudScale = shot.hudScale ?? 1;
+	const width = Math.floor((shot.screenWidth - shot.insetLeft) / hudScale), height = Math.floor(shot.screenHeight / hudScale);
+	const options = { scale: hudScale };
+	const hud = getHudLayout(width, height, shot.mode, options);
+	const kill = getKillMarkerLayout(width, height, shot.mode, options);
 	const m = hud.metrics;
 	const html: string[] = [];
 	const svg: string[] = [];
@@ -70,8 +90,8 @@ function render(shot: Shot): string {
 		const captioned = r.height >= m.caption + m.box, top = captioned ? m.caption : 0, b = r.height - top, tip = Math.floor(b / 2);
 		const y0 = r.y + top, y1 = y0 + b, outer = right ? r.x : r.x + r.width, inner = right ? r.x + r.width - tip : r.x + tip, point = right ? r.x + r.width : r.x;
 		svg.push(`<polygon points="${outer},${y0} ${inner},${y0} ${point},${y0 + b / 2} ${inner},${y1} ${outer},${y1}" fill="${SHADOW}" fill-opacity="0.2" stroke="${GREEN}" stroke-width="1.5"/>`);
-		if (captioned) html.push(text({ x: right ? r.x : r.x + tip, y: r.y, width: r.width - tip, height: top }, caption, m.label));
-		html.push(text({ x: right ? r.x + 2 : r.x + tip + 2, y: y0, width: r.width - tip - 4, height: b }, captioned ? value : `${caption[0]} ${value}`, m.text, { align: "center", bold: true }));
+		if (captioned) html.push(text({ x: right ? r.x : r.x + tip, y: r.y, width: r.width - tip, height: top }, caption, m.instrumentLabel));
+		html.push(text({ x: right ? r.x + 2 : r.x + tip + 2, y: y0, width: r.width - tip - 4, height: b }, captioned ? value : `${caption[0]} ${value}`, m.instrumentText, { align: "center", bold: true }));
 	}
 	if (hud.alert !== hud.callout) {
 		svg.push(`<rect x="${hud.alert.x}" y="${hud.alert.y}" width="${hud.alert.width}" height="${hud.alert.height}" fill="${SHADOW}" fill-opacity="0.25" stroke="${RED}" stroke-width="1.5"/>`);
@@ -95,27 +115,14 @@ function render(shot: Shot): string {
 		blip(-0.25, 0.55, "◆", GREEN, 10); blip(0.1, -0.78, "◎", WHITE, 13); blip(0.22, -0.28, "•", RED, 16); blip(0.3, -0.38, "•", WHITE, 16);
 		html.push(text({ x: r.x + r.width - 43, y: r.y + r.height - 11, width: 40, height: 10 }, "3.2k", Math.max(8, m.label - 2), { color: DIM, align: "right" }));
 	}
-	// Bottom-right weapon panel.
-	const rows = weaponRows({ missiles: 8, missileCooldown: 0, special: "FLR", specialCharges: 2, specialCooldown: 0, specialActive: 0, evadeCharges: 3, health: 88 });
-	const rowText = hud.weapons.text ?? m.text;
-	const caretWidth = Math.floor(rowText * 0.8);
-	rows.forEach((row, index) => {
-		const r = hud.weapons.rows[index];
-		if (row.caret) html.push(text({ ...r, width: caretWidth }, ">", rowText, { bold: true }));
-		html.push(text({ ...r, x: r.x + caretWidth, width: r.width - caretWidth }, row.label, rowText, { color: TONE[row.tone] }));
-		html.push(text({ ...r, x: r.x + caretWidth, width: r.width - caretWidth }, row.value, rowText, { color: TONE[row.tone], align: "right", bold: true }));
-	});
-	if (hud.weapons.silhouette) {
-		const s = hud.weapons.silhouette;
-		svg.push(`<polygon points="${kestrelOutline().map(([x, y]) => `${s.x + x * s.width},${s.y + y * s.height}`).join(" ")}" fill="none" stroke="${GREEN}" stroke-width="1.5" stroke-linejoin="round"/>`);
-		svg.push(line(s.x + s.width / 2, s.y + s.height * 0.12, s.x + s.width / 2, s.y + s.height * 0.4, GREEN, 1, 0.5));
-		const ready = railsReady(8, 0);
-		hud.weapons.rails!.forEach((rail, index) => {
-			const nose = Math.floor(rail.width * 1.4), fill = ready[index] ? GREEN : "none";
-			svg.push(`<rect x="${rail.x}" y="${rail.y + nose / 2}" width="${rail.width}" height="${rail.height - nose / 2}" fill="${fill}" stroke="${ready[index] ? SHADOW : DIM}" stroke-opacity="0.5"/>`);
-			svg.push(`<polygon points="${rail.x + rail.width / 2},${rail.y} ${rail.x + rail.width},${rail.y + nose / 2} ${rail.x},${rail.y + nose / 2}" fill="${fill}"/>`);
-		});
-	}
+	// Hull bar (88%: green) and the one ammo line under it, at the layout's size and separator (the longest line fits at it).
+	const status = hud.status, health = 88;
+	const hullColor = TONE[hullTone(health)];
+	svg.push(`<rect x="${status.bar.x}" y="${status.bar.y}" width="${status.bar.width}" height="${status.bar.height}" fill="${SHADOW}" fill-opacity="0.4" stroke="${hullColor}" stroke-opacity="0.75"/>`);
+	svg.push(`<rect x="${status.bar.x}" y="${status.bar.y}" width="${status.bar.width * hullFraction(health)}" height="${status.bar.height}" fill="${hullColor}" fill-opacity="0.9"/>`);
+	const cells = statusLine({ missiles: 8, missileCooldown: 0, special: "FLR", specialCharges: 3, specialCooldown: 0, specialActive: 0, evadeCharges: 3 });
+	const lineSize = status.text;
+	html.push(`<div class="t" style="${box(status.line)}font-size:${lineSize}px;font-weight:500;justify-content:center;white-space:pre;"><span>${cells.map((cell) => `<span style="color:${TONE[cell.tone]}">${escape(cell.text)}</span>`).join(`<span style="color:${DIM}">${status.separator}</span>`)}</span></div>`);
 	// Radio subtitle (or, without a row, it shares the objective line) and the kill callout.
 	if (hud.subtitle) html.push(text(hud.subtitle, "OVERWATCH: Bandits two o'clock high. Break right and keep them off the convoy!", m.scale === "large" ? m.text : 12, { color: WHITE, align: "center", valign: "bottom", wrap: true }));
 	if (kill !== hud.alert) html.push(text(kill, "SPLASH ONE", 16, { color: WHITE, align: "center", bold: true }));
@@ -129,11 +136,12 @@ function render(shot: Shot): string {
 		}
 		if (touch.throttleUpLabel) html.push(text(touch.throttleUpLabel, "SPEED UP", 10, { align: "center" }));
 		if (touch.throttleDownLabel) html.push(text(touch.throttleDownLabel, "SLOW DOWN", 10, { align: "center" }));
-		for (const [r, label, filled, size] of [[touch.target, "TGT", false, 11], [touch.missile, "FIRE", true, 12], [touch.special, "FLR 2", false, 10], [touch.evade, "EVADE", false, 11]] as [Rect, string, boolean, number][]) {
+		// FIRE (no lock yet) is primary by its green tint and heavier ring, not by size.
+		for (const [r, label, primary, size] of [[touch.target, "TGT", false, 11], [touch.missile, "FIRE", true, 12], [touch.special, "FLR 3", false, 10], [touch.evade, "EVADE", false, 11]] as [Rect, string, boolean, number][]) {
 			const R = r.width / 2;
-			svg.push(`<circle cx="${r.x + R}" cy="${r.y + R}" r="${R - 0.75}" fill="${filled ? GREEN : SHADOW}" fill-opacity="${filled ? 0.45 : 0.35}" stroke="${GREEN}" stroke-width="${label === "EVADE" ? 2.5 : 1.5}" stroke-opacity="${filled ? 1 : 0.7}"/>`);
-			html.push(text({ ...r, height: label === "EVADE" ? r.height * 0.75 : r.height }, label, size, { color: filled ? WHITE : GREEN, align: "center", bold: true }));
-			if (label === "EVADE") for (let pip = 0; pip < 3; pip++) svg.push(`<circle cx="${r.x + R + (pip - 1) * 9}" cy="${r.y + r.height * 0.66}" r="3" fill="${GREEN}"/>`);
+			svg.push(`<circle cx="${r.x + R}" cy="${r.y + R}" r="${R - 1.25}" fill="${primary ? GREEN : SHADOW}" fill-opacity="${primary ? 0.2 : 0.35}" stroke="${GREEN}" stroke-width="${primary || label === "EVADE" ? 2.5 : 1.5}" stroke-opacity="${primary || label === "EVADE" ? 1 : 0.7}"/>`);
+			html.push(text({ ...r, y: r.y + (label === "EVADE" ? r.height * 0.2 : 0), height: label === "EVADE" ? r.height * 0.4 : r.height }, label, size, { color: GREEN, align: "center", bold: true }));
+			if (label === "EVADE") for (let pip = 0; pip < 3; pip++) svg.push(`<circle cx="${r.x + R + (pip - 1) * 9}" cy="${r.y + r.height * 0.62 + 3}" r="3" fill="${GREEN}"/>`);
 		}
 	}
 	if (hud.hints && hud.hints.width > 0) html.push(text(hud.hints, "SPACE FIRE    TAB TARGET", 10, { align: "center", bold: true, color: WHITE }));
@@ -143,7 +151,7 @@ function render(shot: Shot): string {
 	// Chase view: the outline squashed for perspective, low in the frame.
 	const jetWidth = Math.min(sw * 0.3, sh * 0.75), jetHeight = jetWidth * 0.5, jetX = sw / 2 - jetWidth / 2, jetY = sh * 0.66;
 	const jet = kestrelOutline().map(([x, y]) => `${jetX + x * jetWidth},${jetY + y * jetHeight}`).join(" ");
-	const bandit = { x: shot.insetLeft + width * 0.6, y: sh * 0.33 };
+	const bandit = { x: shot.insetLeft + width * hudScale * 0.6, y: sh * 0.33 };
 	const bracket = Math.max(28, Math.round(sh * 0.11));
 	const backdrop = `
 <svg class="layer" width="${sw}" height="${sh}" viewBox="0 0 ${sw} ${sh}">
@@ -165,7 +173,7 @@ function render(shot: Shot): string {
 	return `<!doctype html><html><head><meta charset="utf-8"><style>
 html,body{margin:0;padding:0;overflow:hidden;width:${sw}px;height:${sh}px;background:#000;}
 .layer{position:absolute;left:0;top:0;}
-.hud{position:absolute;left:${shot.insetLeft}px;top:0;width:${width}px;height:${height}px;filter:drop-shadow(0 0 1px ${SHADOW}) drop-shadow(0 0 1px ${SHADOW});}
+.hud{position:absolute;left:${shot.insetLeft}px;top:0;width:${width}px;height:${height}px;transform:scale(${hudScale});transform-origin:0 0;filter:drop-shadow(0 0 1px ${SHADOW}) drop-shadow(0 0 1px ${SHADOW});}
 .t{position:absolute;display:flex;flex-direction:column;font-family:${FONT};line-height:1.15;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums;}
 .t[data-slot]{opacity:0.55;}
 .inset{position:absolute;left:0;top:0;width:${shot.insetLeft}px;height:${sh}px;background:repeating-linear-gradient(45deg,rgba(0,0,0,.25) 0 6px,rgba(0,0,0,.1) 6px 12px);}

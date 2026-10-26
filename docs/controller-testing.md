@@ -44,13 +44,14 @@ References: [Controller Emulator](https://create.roblox.com/docs/studio/controll
 
 ## Twin-stick touch QA (2026-10-25)
 
-Touch now uses two 96px sticks. Left steers; right up/down adjusts selected
+Touch now uses two sticks (96px at the time; 80px by default since the slimmed
+HUD). Left steers; right up/down adjusts selected
 throttle with the existing RS 18% vertical deadzone and 40 percentage points/sec
 rate. Neutral/release holds the selection and recenters the knob. The percent
-readout and UP / ACCEL, DOWN / SLOW labels replace the tap +/- pill. FIRE/TGT/
-SPECIAL occupy the lane between sticks, with a stacked arrangement in portrait.
-Extremely short safe roots (under 176px) use 44px action buttons while preserving
-both 96px sticks. CoreUISafeInsets still supplies the safe root bounds.
+readout and UP / ACCEL, DOWN / SLOW labels replace the tap +/- pill. TGT/FIRE/
+SPECIAL/EVADE are now four same-size 54px buttons on one baseline between the
+sticks (a 2x2 grid on Studio-sized and narrow portrait roots, 44px on Studio).
+CoreUISafeInsets still supplies the safe root bounds.
 
 Each stick owns one independent InputObject. Extra fingers cannot take over a
 held stick; ending/cancelling one leaves the other held. Per-touch state signals

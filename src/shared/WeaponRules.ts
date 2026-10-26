@@ -63,7 +63,11 @@ const LOCK_DECAY_PER_SECOND = 0.8;
 const LOCKED_AT = 0.99;
 /** Unguided missile: detonates when its sweep passes within this many studs of a damageable enemy. */
 const FUSE_RADIUS = 36;
+/** Missile rack size: a sortie starts full and regenerates up to it. */
+const MAX_MISSILES = 8;
+
 export const WeaponRules = {
+	MaxMissiles: MAX_MISSILES,
 	ActionWindow: ACTION_WINDOW,
 	LockRange: LOCK_RANGE,
 	AirLockRange: AIR_LOCK_RANGE,

@@ -9,7 +9,7 @@ const files=["shared/AudioRules","tests/AudioRules.spec","shared/AssetSelection"
 	"shared/UILayout","tests/UILayout.spec","shared/NavigationLayout","tests/NavigationLayout.spec","shared/FlightWarnings","tests/FlightWarnings.spec",
 	"shared/RadarMath","tests/RadarMath.spec","shared/EvadeGauge","tests/EvadeGauge.spec","shared/RadioQueue","tests/RadioQueue.spec",
 	"shared/PlayerSettings","tests/PlayerSettings.spec","shared/TouchSticks","tests/TouchSticks.spec",
-	// Ace-style HUD instruments (weapon rows, damage tone, clock, Kestrel outline).
+	// Ace-style HUD instruments (hull bar, ammo line, clock).
 	"shared/HudInstruments","tests/HudInstruments.spec",
 	// PR #38's touch control rectangles, frozen across HUD scales and stick sizes.
 	"tests/TouchControls.spec"];

@@ -1,6 +1,6 @@
 import React, { useMemo } from "@rbxts/react";
-import { kestrelOutline, outlineSegments, type HudTone, type LineSegment, type WeaponRow } from "../shared/HudInstruments";
-import type { HudMetrics, Rectangle, WeaponPanelLayout } from "../shared/UILayout";
+import { hullFraction, hullTone, type HudTone, type StatusCell } from "../shared/HudInstruments";
+import type { HudMetrics, Rectangle, StatusPanelLayout } from "../shared/UILayout";
 import { HUD, HUD_FONT, HUD_FONT_BOLD } from "./Theme";
 
 // Ace-style flight HUD pieces: thin green line work and tabular type with a dark
@@ -12,6 +12,14 @@ const OUTLINE = 0.55;
 
 const at = (rectangle: Rectangle) => ({ Position: UDim2.fromOffset(rectangle.x, rectangle.y), Size: UDim2.fromOffset(rectangle.width, rectangle.height) });
 const relative = (rectangle: Rectangle, origin: Rectangle): Rectangle => ({ ...rectangle, x: rectangle.x - origin.x, y: rectangle.y - origin.y });
+
+/** One straight stroke of line art: centre, length and rotation (degrees), in pixels of its parent. */
+interface LineSegment {
+	x: number;
+	y: number;
+	length: number;
+	rotation: number;
+}
 
 function between(x1: number, y1: number, x2: number, y2: number): LineSegment {
 	return { x: (x1 + x2) / 2, y: (y1 + y2) / 2, length: math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2), rotation: math.deg(math.atan2(y2 - y1, x2 - x1)) };
@@ -136,7 +144,7 @@ export function InstrumentBox({ name, caption, value, rectangle, metrics, points
 	const valueRect = { x: pointsRight ? 2 : tip + 2, y: 0, width: width - tip - 4, height: box };
 	return (
 		<frame key={name} BackgroundTransparency={1} {...at(rectangle)}>
-			{captioned && <HudLabel name="Caption" text={caption} rectangle={{ x: pointsRight ? 0 : tip, y: 0, width: width - tip, height: top }} textSize={metrics.label} color={color} />}
+			{captioned && <HudLabel name="Caption" text={caption} rectangle={{ x: pointsRight ? 0 : tip, y: 0, width: width - tip, height: top }} textSize={metrics.instrumentLabel} color={color} />}
 			<frame key="Box" BackgroundColor3={HUD.Shadow} BackgroundTransparency={0.8} BorderSizePixel={0} Position={UDim2.fromOffset(pointsRight ? 0 : tip, top)} Size={UDim2.fromOffset(width - tip, box)} />
 			<frame key="Edges" BackgroundTransparency={1} Position={UDim2.fromOffset(0, top)} Size={UDim2.fromOffset(width, box)}>
 				{edges.map((segment, index) => <Line key={`Edge${index}`} name={`Edge${index}`} segment={segment} color={color} />)}
@@ -145,7 +153,7 @@ export function InstrumentBox({ name, caption, value, rectangle, metrics, points
 				name="Value"
 				text={captioned ? value : `${caption.sub(1, 1)} ${value}`}
 				rectangle={{ ...valueRect, y: top }}
-				textSize={metrics.text}
+				textSize={metrics.instrumentText}
 				bold={true}
 				color={color}
 				alignment={Enum.TextXAlignment.Center}
@@ -171,62 +179,43 @@ export function WarningBox({ rectangle, text, color, metrics, textRef }: { recta
 				TextStrokeColor3={HUD.Shadow}
 				TextStrokeTransparency={0.4}
 			>
-				<uitextsizeconstraint MaxTextSize={metrics.text + 2} MinTextSize={8} />
+				<uitextsizeconstraint MaxTextSize={metrics.text + 2} MinTextSize={metrics.minText} />
 				<uipadding PaddingLeft={new UDim(0, 4)} PaddingRight={new UDim(0, 4)} />
 			</textlabel>
 		</frame>
 	);
 }
 
-/** The Kestrel's top-view outline in line art, tinted by hull damage. */
-function SilhouetteImpl({ rectangle, color }: { rectangle: Rectangle; color: Color3 }) {
-	const segments = useMemo(() => outlineSegments(kestrelOutline(), rectangle.width, rectangle.height), [rectangle.width, rectangle.height]);
-	return (
-		<frame key="Silhouette" BackgroundTransparency={1} {...at(rectangle)}>
-			{segments.map((segment, index) => <Line key={`Outline${index}`} name={`Outline${index}`} segment={segment} color={color} />)}
-			<Line name="Spine" segment={between(rectangle.width / 2, rectangle.height * 0.12, rectangle.width / 2, rectangle.height * 0.4)} color={color} transparency={0.5} thickness={1} />
-		</frame>
-	);
-}
-const Silhouette = React.memo(SilhouetteImpl);
-
-/** A missile on a rail beside the silhouette: solid when ready, outline when not. */
-function RailIcon({ name, rectangle, ready }: { name: string; rectangle: Rectangle; ready: boolean }) {
-	const nose = math.floor(rectangle.width * 1.4);
-	return (
-		<frame key={name} BackgroundTransparency={1} {...at(rectangle)}>
-			<frame key="Body" BackgroundColor3={HUD.Green} BackgroundTransparency={ready ? 0.05 : 1} BorderSizePixel={0} Position={UDim2.fromOffset(0, nose / 2)} Size={new UDim2(1, 0, 1, -nose / 2)}>
-				<uistroke Color={ready ? HUD.Shadow : HUD.Dim} Transparency={ready ? OUTLINE : 0} Thickness={1} />
-			</frame>
-			<frame key="Nose" AnchorPoint={new Vector2(0.5, 0.5)} BackgroundColor3={HUD.Green} BackgroundTransparency={ready ? 0.05 : 1} BorderSizePixel={0} Position={new UDim2(0.5, 0, 0, nose / 2)} Rotation={45} Size={UDim2.fromOffset(rectangle.width * 0.72, rectangle.width * 0.72)}>
-				<uistroke Color={ready ? HUD.Shadow : HUD.Dim} Transparency={ready ? OUTLINE : 0} Thickness={1} />
-			</frame>
-		</frame>
-	);
+/** Ammo line as RichText: each cell in its own tone, joined by dim separators. */
+export function statusText(cells: StatusCell[], separator: string): string {
+	const tint = (text: string, tone: HudTone) => `<font color="#${TONE_COLOR[tone].ToHex()}">${text}</font>`;
+	return cells.map((cell) => tint(cell.text, cell.tone)).join(tint(separator, "dim"));
 }
 
-/** Bottom-right weapon list (caret on the FIRE weapon), damage, silhouette and ready rails. */
-export function WeaponPanel({ layout, rows, metrics, hullColor, rails }: { layout: WeaponPanelLayout; rows: WeaponRow[]; metrics: HudMetrics; hullColor: Color3; rails: [boolean, boolean] }) {
+/** Hull bar (green, amber, then red with damage) with the one-line ammo readout under it. */
+export function StatusPanel({ layout, health, cells }: { layout: StatusPanelLayout; health: number; cells: StatusCell[] }) {
 	const frame = layout.frame;
-	const textSize = layout.text ?? metrics.text;
-	const caretWidth = math.floor(textSize * 0.8);
+	const bar = relative(layout.bar, frame);
+	const color = TONE_COLOR[hullTone(math.floor(health + 0.5))];
 	return (
-		<frame key="WeaponPanel" BackgroundTransparency={1} {...at(frame)}>
-			{rows.map((row, index) => {
-				const slot = layout.rows[index];
-				if (!slot) return undefined;
-				const slotRect = relative(slot, frame);
-				const color = TONE_COLOR[row.tone];
-				return (
-					<frame key={`Row_${row.key}`} BackgroundTransparency={1} {...at(slotRect)}>
-						<HudLabel name="Caret" text=">" rectangle={{ x: 0, y: 0, width: caretWidth, height: slotRect.height }} textSize={textSize} bold={true} visible={row.caret} />
-						<HudLabel name="Label" text={row.label} rectangle={{ x: caretWidth, y: 0, width: slotRect.width - caretWidth, height: slotRect.height }} textSize={textSize} color={color} />
-						<HudLabel name="Value" text={row.value} rectangle={{ x: caretWidth, y: 0, width: slotRect.width - caretWidth, height: slotRect.height }} textSize={textSize} color={color} bold={true} alignment={Enum.TextXAlignment.Right} />
-					</frame>
-				);
-			})}
-			{layout.silhouette && <Silhouette rectangle={relative(layout.silhouette, frame)} color={hullColor} />}
-			{layout.rails?.map((rail, index) => <RailIcon key={`Rail${index + 1}`} name={`Rail${index + 1}`} rectangle={relative(rail, frame)} ready={rails[index]} />)}
+		<frame key="StatusPanel" BackgroundTransparency={1} {...at(frame)}>
+			<frame key="HullBar" BackgroundColor3={HUD.Shadow} BackgroundTransparency={0.6} BorderSizePixel={0} {...at(bar)}>
+				<uistroke ApplyStrokeMode={Enum.ApplyStrokeMode.Border} Color={color} Thickness={1} Transparency={0.25} />
+				<frame key="Fill" BackgroundColor3={color} BackgroundTransparency={0.1} BorderSizePixel={0} Size={UDim2.fromScale(hullFraction(health), 1)} />
+			</frame>
+			<textlabel
+				key="AmmoLine"
+				BackgroundTransparency={1}
+				FontFace={HUD_FONT}
+				RichText={true}
+				Text={statusText(cells, layout.separator)}
+				TextColor3={HUD.Green}
+				TextSize={layout.text}
+				TextStrokeColor3={HUD.Shadow}
+				TextStrokeTransparency={0.45}
+				TextXAlignment={Enum.TextXAlignment.Left}
+				{...at(relative(layout.line, frame))}
+			/>
 		</frame>
 	);
 }
