@@ -59,3 +59,6 @@ assets/mission/harborlaunch.blend
 assets/mission/harborlaunch.blend[0-9]*
 assets/mission/harborlaunch.glb
 assets/mission/harborlaunch-preview.png
+
+# Python bytecode from the Blender asset generators
+__pycache__/
