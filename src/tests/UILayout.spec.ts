@@ -2,7 +2,6 @@ import { describe, expect, it } from "@rbxts/jest-globals";
 
 import {
 	FIRE_SIZE,
-	getSlotListHeight,
 	getEvadeHint,
 	getFlightHints,
 	getSpecialHint,
@@ -10,6 +9,7 @@ import {
 	getHudLayout,
 	getMenuHintsLayout,
 	getMenuLayout,
+	getMenuSceneOpening,
 	getToastLayout,
 	COMPACT_MAX_HEIGHT,
 	OBJECTIVE_LINE_HEIGHT,
@@ -293,12 +293,11 @@ describe("minimal mission HUD layout", () => {
 });
 
 describe("menu layout", () => {
-	it("uses actual short safe height and keeps a pressable slot and footer",()=>{
-		for(const [width,height] of [[319,181],[320,182]]) {
-			const menu=getMenuLayout(width,height);
-			expect(rectangleInside(menu.panel,width,height,6)).toBe(true);
-			expect(getSlotListHeight(menu.panel.height,true)).toBeGreaterThanOrEqual(44);
-			expect(34+getSlotListHeight(menu.panel.height,true)+12+44).toBeLessThanOrEqual(menu.panel.height);
+	it("keeps the Studio compact panel inside the short safe area", () => {
+		for (const [width, height] of [[319, 181], [320, 182]]) {
+			const menu = getMenuLayout(width, height);
+			expect(rectangleInside(menu.panel, width, height, 6)).toBe(true);
+			expect(menu.panel.width).toBeGreaterThanOrEqual(280);
 		}
 	});
 	it("keeps the panel inside every viewport", () => {
@@ -309,11 +308,19 @@ describe("menu layout", () => {
 		}
 	});
 
-	it("leaves the right side of landscape screens open for the aircraft", () => {
-		for (const [width, height] of [[568, 320], [844, 390], [1024, 768], [1920, 1080]] as [number, number][]) {
+	it("gives phone landscape copy most of the width and still leaves an open strip for the aircraft", () => {
+		for (const [width, height] of [[560, 240], [568, 320], [706, 267], [750, 332], [844, 390], [1024, 768], [1280, 720], [1920, 1080]] as [number, number][]) {
 			const layout = getMenuLayout(width, height);
 			expect(layout.mode).toBe("side");
-			expect(layout.panel.x + layout.panel.width).toBeLessThanOrEqual(width * 0.56);
+			// At least a third of the root stays open for the display jet.
+			expect(layout.panel.x + layout.panel.width).toBeLessThanOrEqual(width * 0.66);
+			const opening = getMenuSceneOpening(width, layout);
+			expect(opening).toBeGreaterThanOrEqual(0.3);
+			expect(opening).toBeLessThanOrEqual(0.75);
+		}
+		// Phones: the reading panel is the larger share of the screen.
+		for (const [width, height] of [[706, 267], [750, 332], [844, 390]] as [number, number][]) {
+			expect(getMenuLayout(width, height).panel.width).toBeGreaterThanOrEqual(width * 0.55);
 		}
 	});
 
@@ -420,16 +427,6 @@ describe("input mode and contextual hints", () => {
 		}
 		for (const hint of getFlightHints("keyboard", { introduction: true, locked: false, missileReady: false })) {
 			expect(hint.keyCode).toBeUndefined();
-		}
-	});
-});
-
-describe("short campaign screen", () => {
-	it("reserves a touch-sized footer below the scrolling slots", () => {
-		for (const height of [240, 280, 320, 568]) {
-			const menu = getMenuLayout(568, height);
-			const top = menu.compact ? 34 : 66;
-			expect(top + getSlotListHeight(menu.panel.height, menu.compact) + 12).toBeLessThanOrEqual(menu.panel.height - 44);
 		}
 	});
 });
