@@ -41,7 +41,8 @@ export class EnemySmoothing {
 	public static Claim(model: Model | undefined, position: Vector3): ClaimedVisual | undefined {
 		const now = os.clock();
 		let best: Model | undefined;
-		let bestDistance = 120;
+		// Without a model, only a clone close to the blast is plausibly the same jet.
+		let bestDistance = model ? 120 : 30;
 		for (const [key, entry] of killed) {
 			if (now - entry.at > KILLED_GRACE || entry.visual.Parent === undefined) { entry.visual.Destroy(); killed.delete(key); continue; }
 			const distance = entry.frame.Position.sub(position).Magnitude;
@@ -53,6 +54,7 @@ export class EnemySmoothing {
 			if (!entry) continue;
 			smoothing.tracked.delete(model);
 			for (const connection of entry.connections) connection.Disconnect();
+			if (entry.visual.Parent === undefined) { entry.visual.Destroy(); break; }
 			return claimed(entry);
 		}
 		const entry = best && killed.get(best);

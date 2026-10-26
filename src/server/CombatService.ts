@@ -908,8 +908,8 @@ function stepMissiles(session: CombatSession, dt: number): void {
 		const blind = !missile.hostile && missile.target === undefined;
 		let removed = missile.age > (missile.hostile ? HOSTILE_MISSILE_LIFETIME : blind ? WeaponRules.UnguidedLifetime : WeaponRules.GuidedLifetime)
 			|| (!missile.hostile && !blind && !ownsEnemy(session, missile.target));
-		// A missile that times out (or loses its target) pops where it is.
-		if (removed) effect(session, "missile", missile.position);
+		// A blind shot that reaches end of life bursts harmlessly where it is.
+		if (removed && blind) effect(session, "missile", missile.position);
 		if (!removed && blind) {
 			// Unguided: straight flight; the proximity fuse fires on the closest damageable enemy the sweep passes.
 			const nextPosition = missile.position.add(missile.direction.mul(WeaponRules.MissileSpeed * dt));

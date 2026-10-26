@@ -121,10 +121,11 @@ function endWreck(wreck: Wreck): void {
 	for (const item of wreck.root.GetDescendants()) if (item.IsA("ParticleEmitter")) item.Enabled = false;
 	Debris.AddItem(wreck.visual, 2.5);
 }
+const wreckParams = new RaycastParams();
+wreckParams.FilterType = Enum.RaycastFilterType.Exclude;
 function stepWrecks(dt: number): void {
 	if (wrecks.size() === 0) return;
-	const params = new RaycastParams();
-	params.FilterType = Enum.RaycastFilterType.Exclude;
+	const params = wreckParams;
 	const exclude: Instance[] = [root()];
 	const character = Players.LocalPlayer?.Character;
 	if (character) exclude.push(character);
