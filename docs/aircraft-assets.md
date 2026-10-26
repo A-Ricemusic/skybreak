@@ -126,6 +126,64 @@ aircraft. `GeometrySource` is `Uploaded`, `Blender` or `Fallback`;
 `UploadedAsset` and `Livery` record which model and paint were used.
 `CombatService` asks for an ace livery from the mission's `aceName`.
 
+## Version 2 aircraft
+
+`tools/assets/aircraft_v2.py` (`tools/assets/build-all.sh kestrel-v2 vanta-v2`)
+builds `kestrel-v2`, `vanta-v2`, `vanta-v2-vulture` and `vanta-v2-rusk`. They
+replace v1's lofted superellipse tubes with real-aircraft anatomy and are
+preferred over v1 when their IDs are set (`AssetSelection.AircraftCandidates`:
+Kestrel v2, Kestrel; an ace's livery v2, livery v1, then plain Vanta v2, Vanta;
+then procedural).
+
+| Asset | Triangles | Roblox size (studs) | Delivery meshes |
+| --- | --- | --- | --- |
+| Kestrel v2 | see `assets/roblox-upload/kestrel-v2/checklist.json` | 22.2 x 5.3 x 26.0 | `Body`, `Canopy`, `Aileron_L/R`, `Elevator_L/R` (stabilators), `Rudder_L/R` |
+| Vanta v2 (and liveries) | see `assets/roblox-upload/vanta-v2/checklist.json` | 24.6 x 7.3 x 26.4 | `Body`, `Canopy`, `Aileron_L/R` (elevons), `Elevator_L/R` (canards), `Rudder` |
+
+- **Fuselage.** `Body` lofts half cross-sections of seven control points (top,
+  shoulder, upper chine, a creased chine, lower side, engine bottom, keel)
+  interpolated along the length with monotone cubics. The chine grows into the
+  leading-edge root extension and blends into the wing root; the aft sections
+  have two engine bulges with a tunnel between them. The cockpit is a tub
+  between the canopy sills.
+- **Intakes.** Kestrel: raked caret mouths under the chines with splitter plates
+  and diverter struts. Vanta: ventral boxes under the extensions with horizontal
+  splitter plates. Both have lip thickness, a duct painted light grey that
+  darkens inward and a compressor face with baked blades. There is deliberately
+  no spinner so the front view never reads as a pair of eyes.
+- **Nozzles.** Kestrel: 2D nozzles in a boat-tail with serrated flaps; Vanta:
+  round petal nozzles and a tail boom. Liners, flame holders, heat tint.
+- **Canopy and cockpit.** A bubble canopy (separate `Canopy` part,
+  see-through in game) with a windscreen bow, rear bow and sill rails over an
+  empty ejection seat with headrest, instrument-panel shroud, HUD frame,
+  consoles and stick.
+- **Details.** Pitot, angle-of-attack vanes, a sensor ball (Vanta), blade
+  antennas, a refuelling door (Kestrel) or probe (Vanta), flush gear doors,
+  formation light strips, ventral fins/strakes, a dogtooth and fence (Vanta),
+  wingtip rails, and wing pylons with a twin-rail launcher carrying two
+  unmarked missiles each (Kestrel 2 pylons, Vanta 4).
+- **Shading.** Smooth shading with face-area weighted normals on every
+  delivery mesh (`Asset(weighted_normals=True)`).
+- **Paint.** Kestrel: two-tone grey air-superiority scheme with a darker radome
+  and anti-glare panel. Vanta: dark splinter camouflage with dark red fin and
+  canard tips. Vulture: near-black splinter with a muted bone trailing-edge
+  band with a soft wavy edge. Rusk: oxblood splinter with a gold fuselage
+  pinstripe and fin tip. All have explicit panel lines, access panels, rivet
+  rows, intake grime, exhaust soot, flow streaks and belly stains. There is no
+  text, number, insignia or glyph-like mark.
+- **Scale.** Authored at the in-game length (`Asset(target_length=...)`
+  rescales the delivered model; patterns, hinges and attachments stay in
+  authored coordinates via the shading Mapping node), so `gameScale` is 1 and
+  the 0.01 m-per-stud FBX imports at its game size.
+- **Draft loop.** `SKYASSET_DRAFT=1` makes `finish()` stop after delivery and
+  write Workbench renders to `build/draft/<name>/` (about 5 s, no bake, nothing
+  in `assets/`). `SKYASSET_VIEWS="name:tx,ty,tz:dx,dy,dz:dist;..."` adds extra
+  draft close-ups in authored coordinates.
+
+`assets/roblox-upload/v1-vs-v2.png` compares v1 (left) and v2 (right), Kestrel
+on top and Vanta below, all with the same camera at in-game scale
+(`compare_v1_v2.py`).
+
 ## Asset upload alternatives and known limitations
 
 The installed Studio build `0.744.0.7441077` returned this exact error on 2026-10-24 when the documented plugin upload API was tested:

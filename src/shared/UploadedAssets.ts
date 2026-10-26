@@ -45,7 +45,7 @@ function components(size: Vector3): number[] {
  * Turn whatever LoadAsset returned into one cached Model: every part must be a
  * textured MeshPart (the Model import puts the FBX's embedded maps on a
  * SurfaceAppearance under each one; aircraft must keep Body and every control
- * surface), anchored, non-colliding, scaled with Model:ScaleTo to the in-game
+ * surface), anchored, non-colliding, glass parts (the v2 canopy) see-through, scaled with Model:ScaleTo to the in-game
  * size and moved so the pivot is the authored origin (bounds centre for
  * aircraft, bottom centre for world props). Throws on anything else so the
  * caller falls back to the procedural asset.
@@ -67,6 +67,8 @@ function normalise(container: Instance, name: UploadedAssetName, assetId: number
 			part.CanCollide = false;
 			part.CanTouch = false;
 			part.CanQuery = false;
+			const transparency = AssetSelection.PartTransparency(part.Name, spec.glassParts);
+			if (transparency !== undefined) part.Transparency = transparency;
 			part.Parent = model;
 			seen.push(describe(part));
 		}

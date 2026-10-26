@@ -22,7 +22,9 @@ Generators live in `tools/assets/` and are deterministic Blender Python:
 | --- | --- |
 | `skyasset.py` | Shared library: geometry helpers, procedural Cycles materials, PBR bake, previews, FBX export, checklist |
 | `zones.py` | Surface recipes (concrete, painted metal, windows, corrugation, boards, foliage, rock...) |
-| `aircraft.py` | Kestrel, Vanta and the Vanta ace liveries |
+| `aircraft.py` | Kestrel, Vanta and the Vanta ace liveries (v1) |
+| `aircraft_v2.py` | Version 2 Kestrel, Vanta and ace liveries: shaped-section fuselages, intakes, cockpit, missiles (see [aircraft assets](aircraft-assets.md#version-2-aircraft)) |
+| `compare_v1_v2.py` | Optional: renders `assets/roblox-upload/v1-vs-v2.png` from the exported FBX files |
 | `world.py` | Frigate, oil platform, quay, containers, crane, hangar, tower, three city buildings, farmhouse, barn, silo, radar dish, relay mast, two trees, three rocks |
 | `build.py` | Entry point: one asset per fresh Blender process |
 | `build-all.sh` | Every asset, four processes at a time, then `write_manifest.py` |
@@ -78,6 +80,7 @@ regardless (see below), so both kinds work.
 | `<asset>.fbx` | Mesh with the four textures embedded. Upload as a **Model**; this is the only file uploaded. |
 | `<asset>-color.png`, `-normal.png`, `-roughness.png`, `-metalness.png` | The same textures for review (aircraft 1024², large props 512², small props 256²). Not uploaded: the Model import carries them. |
 | `preview-front.png`, `preview-side.png`, `preview-top.png`, `preview-3q.png` | 1024² Eevee renders on a neutral background for review and moderation pre-check. |
+| `preview-closeup.png` | v2 aircraft only: 1024² close-up of the cockpit and an intake (the canopy is rendered see-through as in game). |
 | `checklist.json` | Name, triangle count and limit, objects, texture list and sizes, Roblox size in studs, ground offset, moderation booleans with notes, aircraft hinges and attachments. |
 
 `manifest.json` lists every folder, its Roblox asset types and where the game
@@ -107,7 +110,7 @@ If any check would be false, change the generator until it is true; never
 hand-edit a checklist. `write_manifest.py` fails if any check is not true, a
 budget is exceeded, a texture is over its size limit or a file is missing.
 
-Budgets: aircraft ≤ 10,000 triangles with ≤ 1024² textures; frigate and oil
+Budgets: v1 aircraft ≤ 10,000 triangles and v2 aircraft 10,000-15,000, all with ≤ 1024² textures; frigate and oil
 platform ≤ 6,000; trees ≤ 800; every other world prop ≤ 2,500. World textures:
 large props ≤ 512² (frigate, oil platform, quay, crane, hangar, control tower,
 office, apartments, city tower); small props ≤ 256² (trees, rocks, container
@@ -235,7 +238,10 @@ realism workstream wires them in.
   blur close up. A tiling trim-sheet material would be the next step.
 - Trees are solid low-poly crowns (no alpha cards) to stay inside 800
   triangles and avoid transparency sorting on phones.
-- Canopies are opaque tinted glass; there is no cockpit interior.
+- v1 canopies are opaque tinted glass with no cockpit. v2 canopies are a separate
+  `Canopy` MeshPart over a modelled cockpit; the loader sets its Transparency to
+  `GLASS_TRANSPARENCY` (0.45). This has not been checked in Studio yet: if a
+  SurfaceAppearance part ignores Transparency it still reads as dark tinted glass.
 - Legacy folders (aircraft and large props except the frigate) are still 0.28 m
   per stud FBX exports and import 28× too large until they are regenerated and
   re-reviewed. The loader's rescale covers them, and covers any import route

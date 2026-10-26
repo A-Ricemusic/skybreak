@@ -17,6 +17,11 @@ export const RobloxAssetIds: Record<UploadedAssetName, number | undefined> = {
 	Vanta: 138996120906774,
 	VantaVulture: 104517441099825,
 	VantaRusk: 105331320955130,
+	// Version 2 aircraft (assets/roblox-upload/*-v2*): preferred over v1 when set.
+	KestrelV2: undefined,
+	VantaV2: undefined,
+	VantaV2Vulture: undefined,
+	VantaV2Rusk: undefined,
 	Frigate: 83984523694725,
 	OilPlatform: 76182723177049,
 	HarbourQuay: 133121801627949,

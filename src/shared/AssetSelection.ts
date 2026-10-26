@@ -4,7 +4,13 @@
 // No Roblox services here, so the offline Luau runner can execute it.
 
 export type AceLivery = "Vulture" | "Rusk";
-export type AircraftAssetName = "Kestrel" | "Vanta" | "VantaVulture" | "VantaRusk";
+export type AircraftAssetName = "Kestrel" | "Vanta" | "VantaVulture" | "VantaRusk" | "KestrelV2" | "VantaV2" | "VantaV2Vulture" | "VantaV2Rusk";
+
+/**
+ * Part Transparency for glass parts (the v2 Canopy) so the cockpit shows through.
+ * Matches the previews: tools/assets/aircraft_v2.py GLASS_ALPHA = 0.55 opaque.
+ */
+export const GLASS_TRANSPARENCY = 0.45;
 
 /** RGB 0-255 replacements for procedural Vanta material roles when an ace livery has no uploaded model. */
 export interface ProceduralTint {
@@ -44,12 +50,22 @@ export const AssetSelection = {
 		}
 		return undefined;
 	},
-	/** Ace liveries fall back to the plain uploaded Vanta, then to procedural geometry. */
+	/**
+	 * Uploaded models to try in order; undefined IDs are skipped and an empty result
+	 * means procedural geometry. Version 2 is preferred over v1. An ace keeps its
+	 * livery first (v2 then v1, so the ace stays recognisable), then the plain Vanta
+	 * (v2 then v1), then the procedural Vanta with a livery tint.
+	 */
 	AircraftCandidates(enemy: boolean, livery?: AceLivery): AircraftAssetName[] {
-		if (!enemy) return ["Kestrel"];
-		if (livery === "Vulture") return ["VantaVulture", "Vanta"];
-		if (livery === "Rusk") return ["VantaRusk", "Vanta"];
-		return ["Vanta"];
+		if (!enemy) return ["KestrelV2", "Kestrel"];
+		if (livery === "Vulture") return ["VantaV2Vulture", "VantaVulture", "VantaV2", "Vanta"];
+		if (livery === "Rusk") return ["VantaV2Rusk", "VantaRusk", "VantaV2", "Vanta"];
+		return ["VantaV2", "Vanta"];
+	},
+	/** Transparency for an imported part: glass parts are see-through, everything else keeps its own. */
+	PartTransparency(partName: string, glassParts: readonly string[] | undefined): number | undefined {
+		if (glassParts === undefined) return undefined;
+		return glassParts.includes(partName) ? GLASS_TRANSPARENCY : undefined;
 	},
 	/** Campaign ace names map to a livery: Vulture flight or Air Marshal Rusk. */
 	LiveryForAce(aceName: string | undefined): AceLivery | undefined {

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "@rbxts/jest-globals";
 import { Workspace } from "@rbxts/services";
 import { WorldAssets } from "../server/WorldAssets";
-import { AssetSelection } from "../shared/AssetSelection";
+import { AssetSelection, GLASS_TRANSPARENCY } from "../shared/AssetSelection";
 import { JetFactory } from "../shared/JetFactory";
 import { RobloxAssetIds } from "../shared/RobloxAssetIds";
 import { UploadedAssets } from "../shared/UploadedAssets";
@@ -41,7 +41,7 @@ function fakeUpload(name: UploadedAssetName, options: FakeOptions = {}): Model {
 	inner.Parent = container;
 	const offset = new Vector3(500, 80, -300);
 	const size = spec.authoredSize.mul(scale).mul(new Vector3(options.stretchX ?? 1, 1, 1));
-	const names = spec.kind === "aircraft" ? ["Body", ...AssetSelection.ControlSurfaceNames(spec.controlSurfaces)] : [spec.folder];
+	const names = spec.kind === "aircraft" ? ["Body", ...AssetSelection.ControlSurfaceNames(spec.controlSurfaces), ...(spec.glassParts ?? [])] : [spec.folder];
 	for (const [index, partName] of pairs(names)) {
 		if (partName === options.omit) continue;
 		const part = new Instance(options.surface === "parts" ? "Part" : "MeshPart");
@@ -168,6 +168,27 @@ describe("Uploaded asset loader with procedural fallback", () => {
 		UploadedAssets.Configure({ ids: { RockA: 77 }, loader: () => fakeUpload("RockA") });
 		expect(UploadedAssets.Template(["RockA"])).toBeUndefined();
 	});
+
+	it("prefers the v2 Kestrel, renders its canopy see-through and falls back to v1 when v2 fails", () => {
+		const loaded: number[] = [];
+		UploadedAssets.Configure({ ids: { Kestrel: 1, KestrelV2: 2 }, probe, loader: (id) => {
+			loaded.push(id);
+			return fakeUpload(id === 2 ? "KestrelV2" : "Kestrel", { scale: 1 });
+		} });
+		const jet = track(JetFactory.Create("Kestrel v2", false));
+		expect(jet.GetAttribute("GeometrySource")).toBe("Uploaded");
+		expect(jet.GetAttribute("UploadedAsset")).toBe("KestrelV2");
+		const canopy = jet.FindFirstChild("Canopy") as MeshPart | undefined;
+		expect(canopy !== undefined).toBe(true);
+		expect(canopy!.Transparency).toBe(GLASS_TRANSPARENCY);
+		expect((jet.FindFirstChild("Body") as MeshPart).Transparency).toBe(0);
+		close(longest(UploadedAssets.Template(["KestrelV2"])!.template.GetExtentsSize()), longest(UploadedAssetSpecs.KestrelV2.size));
+		expect(loaded.size()).toBe(1);
+		// A v2 upload that fails validation (untextured) falls back to the v1 model.
+		UploadedAssets.Configure({ ids: { Kestrel: 1, KestrelV2: 2 }, probe, loader: (id) => fakeUpload(id === 2 ? "KestrelV2" : "Kestrel", { surface: id === 2 ? "bare" : "textured" }) });
+		const fallback = track(JetFactory.Create("Kestrel v1", false));
+		expect(fallback.GetAttribute("UploadedAsset")).toBe("Kestrel");
+	}, 60000);
 
 	it("gives aces their livery model, then the plain uploaded Vanta, then a procedural tint", () => {
 		UploadedAssets.Configure({ ids: { Vanta: 2, VantaRusk: 3, VantaVulture: 4 }, probe, loader: (id) => {

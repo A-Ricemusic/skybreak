@@ -1,3 +1,4 @@
+import type { AircraftAssetName } from "../shared/AssetSelection";
 import { UploadedAssets } from "../shared/UploadedAssets";
 import { UploadedAssetName, UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
 
@@ -19,7 +20,7 @@ import { UploadedAssetName, UploadedAssetSpecs } from "../shared/UploadedAssetSp
  * every later placement of that asset takes the fallback for this server.
  * `PlaceUploaded` places only the uploaded mesh and returns undefined otherwise.
  */
-export type WorldAssetName = Exclude<UploadedAssetName, "Kestrel" | "Vanta" | "VantaVulture" | "VantaRusk">;
+export type WorldAssetName = Exclude<UploadedAssetName, AircraftAssetName>;
 
 interface FallbackPart {
 	name: string;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { AssetSelection } from "../shared/AssetSelection";
+import { AssetSelection, GLASS_TRANSPARENCY } from "../shared/AssetSelection";
 
 // Pure rules shared by the Roblox Jest run and the offline Luau runner (toBe / toBeUndefined only).
 describe("AssetSelection uploaded-asset decisions", () => {
@@ -32,12 +32,41 @@ describe("AssetSelection uploaded-asset decisions", () => {
 		expect(AssetSelection.LiveryForAce("ACE")).toBeUndefined();
 		expect(AssetSelection.LiveryForAce(undefined)).toBeUndefined();
 		const rusk = AssetSelection.AircraftCandidates(true, "Rusk");
-		expect(rusk.size()).toBe(2);
-		expect(rusk[0]).toBe("VantaRusk");
-		expect(rusk[1]).toBe("Vanta");
-		expect(AssetSelection.AircraftCandidates(true, "Vulture")[0]).toBe("VantaVulture");
-		expect(AssetSelection.AircraftCandidates(true)[0]).toBe("Vanta");
-		expect(AssetSelection.AircraftCandidates(false, "Rusk")[0]).toBe("Kestrel");
+		expect(rusk.size()).toBe(4);
+		expect(rusk[0]).toBe("VantaV2Rusk");
+		expect(rusk[1]).toBe("VantaRusk");
+		expect(rusk[2]).toBe("VantaV2");
+		expect(rusk[3]).toBe("Vanta");
+		const vulture = AssetSelection.AircraftCandidates(true, "Vulture");
+		expect(vulture[0]).toBe("VantaV2Vulture");
+		expect(vulture[1]).toBe("VantaVulture");
+		expect(vulture[2]).toBe("VantaV2");
+		expect(AssetSelection.AircraftCandidates(true)[0]).toBe("VantaV2");
+		expect(AssetSelection.AircraftCandidates(true)[1]).toBe("Vanta");
+		expect(AssetSelection.AircraftCandidates(false, "Rusk")[0]).toBe("KestrelV2");
+		expect(AssetSelection.AircraftCandidates(false)[1]).toBe("Kestrel");
+	});
+	it("prefers a v2 aircraft ID, falls back to v1, then to procedural geometry", () => {
+		const kestrel = AssetSelection.AircraftCandidates(false);
+		expect(AssetSelection.Resolve({ Kestrel: 10, KestrelV2: 11 }, kestrel, new Set())?.name).toBe("KestrelV2");
+		expect(AssetSelection.Resolve({ Kestrel: 10, KestrelV2: undefined }, kestrel, new Set())?.name).toBe("Kestrel");
+		// A v2 upload that failed to load (moderated, untextured, misshapen) falls back to v1.
+		expect(AssetSelection.Resolve({ Kestrel: 10, KestrelV2: 11 }, kestrel, new Set([11]))?.assetId).toBe(10);
+		expect(AssetSelection.Resolve({ Kestrel: undefined, KestrelV2: undefined }, kestrel, new Set())).toBeUndefined();
+		const enemy = AssetSelection.AircraftCandidates(true);
+		expect(AssetSelection.Resolve({ Vanta: 20, VantaV2: 21 }, enemy, new Set())?.name).toBe("VantaV2");
+		expect(AssetSelection.Resolve({ Vanta: 20 }, enemy, new Set())?.name).toBe("Vanta");
+		// An ace keeps a livery (v1) before switching to the plain v2 Vanta.
+		const rusk = AssetSelection.AircraftCandidates(true, "Rusk");
+		expect(AssetSelection.Resolve({ VantaRusk: 30, VantaV2: 21, Vanta: 20 }, rusk, new Set())?.name).toBe("VantaRusk");
+		expect(AssetSelection.Resolve({ VantaV2Rusk: 31, VantaRusk: 30 }, rusk, new Set())?.name).toBe("VantaV2Rusk");
+		expect(AssetSelection.Resolve({ VantaV2: 21, Vanta: 20 }, rusk, new Set())?.name).toBe("VantaV2");
+	});
+	it("makes only the authored glass parts see-through", () => {
+		expect(AssetSelection.PartTransparency("Canopy", ["Canopy"])).toBe(GLASS_TRANSPARENCY);
+		expect(GLASS_TRANSPARENCY > 0 && GLASS_TRANSPARENCY < 1).toBe(true);
+		expect(AssetSelection.PartTransparency("Body", ["Canopy"])).toBeUndefined();
+		expect(AssetSelection.PartTransparency("Canopy", undefined)).toBeUndefined();
 	});
 	it("fits the pilot Kestrel import (28x too large) to the procedural Kestrel's in-game size", () => {
 		// Live Model import of kestrel.fbx exported at 0.28 m per stud: Roblox read FBX centimetres as studs.
