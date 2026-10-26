@@ -1,9 +1,18 @@
-import { HudLayout, NAVIGATION_CAPTION_HEIGHT, NAVIGATION_CAPTION_WIDTH, Rectangle, rectangleInside, rectanglesOverlap } from "./UILayout";
+import { HudLayout, NAVIGATION_CAPTION_HEIGHT, NAVIGATION_CAPTION_MAX_WIDTH, NAVIGATION_CAPTION_WIDTH, NAVIGATION_ROW_HEIGHT, Rectangle, rectangleInside, rectanglesOverlap } from "./UILayout";
 
 /** One-line summary of the route marker (bearing glyph, distance, constraints). */
 export function navigationSummary(distance:number,side:number,ceiling?:number,protectedHealth?:number):string {
 	const arrow=side<-.25 ? "‹" : side>.25 ? "›" : "◇";
 	return `${arrow} ${math.floor(distance)}m${ceiling!==undefined ? ` · ALT≤${ceiling}` : ""}${protectedHealth!==undefined ? ` · PROTECTED ${math.ceil(protectedHealth)}%` : ""}`;
+}
+
+/** The caption's detail parts, in reading order: volume, altitude ceiling, protected unit. */
+export function navigationDetails(inVolume:boolean,ceiling?:number,protectedHealth?:number):string[] {
+	const details:string[]=[];
+	if(inVolume)details.push("IN VOLUME");
+	if(ceiling!==undefined)details.push(`ALT≤${ceiling}`);
+	if(protectedHealth!==undefined)details.push(`PROTECTED ${math.ceil(protectedHealth)}%`);
+	return details;
 }
 
 /**
@@ -12,11 +21,37 @@ export function navigationSummary(distance:number,side:number,ceiling?:number,pr
  */
 export function navigationCaption(distance:number,side:number,inVolume:boolean,ceiling?:number,protectedHealth?:number):[string,string] {
 	const arrow=side<-.25 ? "‹" : side>.25 ? "›" : "◇";
-	const details:string[]=[];
-	if(inVolume)details.push("IN VOLUME");
-	if(ceiling!==undefined)details.push(`ALT≤${ceiling}`);
-	if(protectedHealth!==undefined)details.push(`PROTECTED ${math.ceil(protectedHealth)}%`);
-	return [`${arrow} ${math.floor(distance)}m`,details.join(" · ")];
+	return [`${arrow} ${math.floor(distance)}m`,navigationDetails(inVolume,ceiling,protectedHealth).join(" · ")];
+}
+
+/** Horizontal padding inside the caption frame. */
+export const NAVIGATION_CAPTION_PADDING=4;
+
+/**
+ * Greedy wrap of the detail parts into lines no wider than `maxWidth` (as
+ * measured by `measure`, e.g. TextService), breaking only between parts, so a
+ * caption never truncates. A single part wider than the line gets its own line.
+ */
+export function wrapNavigationDetails(parts:string[],maxWidth:number,measure:(text:string)=>number):string[] {
+	const lines:string[]=[];
+	let line="";
+	for(const part of parts) {
+		const joined=line==="" ? part : `${line} · ${part}`;
+		if(line!=="" && measure(joined)>maxWidth){lines.push(line);line=part;}
+		else line=joined;
+	}
+	if(line!=="")lines.push(line);
+	return lines;
+}
+
+/** Frame size for a caption whose rows measure `widths` (distance row first). */
+export function navigationCaptionSize(widths:number[],maxWidth=NAVIGATION_CAPTION_MAX_WIDTH):{width:number;height:number} {
+	let widest=0;
+	for(const value of widths)widest=math.max(widest,value);
+	return {
+		width:math.clamp(math.ceil(widest)+NAVIGATION_CAPTION_PADDING,NAVIGATION_CAPTION_WIDTH,math.max(NAVIGATION_CAPTION_WIDTH,maxWidth)),
+		height:math.max(NAVIGATION_CAPTION_HEIGHT,widths.size()*NAVIGATION_ROW_HEIGHT+2),
+	};
 }
 
 /** Every HUD rectangle the floating caption must stay out of. Depends only on
@@ -24,8 +59,11 @@ export function navigationCaption(distance:number,side:number,inVolume:boolean,c
 export function navigationObstacles(hud:HudLayout): Rectangle[] {
 	const obstacles=[hud.callout,hud.timer,hud.alert,hud.status,hud.health];
 	if(hud.hints)obstacles.push(hud.hints);
+	if(hud.pause)obstacles.push(hud.pause);
+	if(hud.radar)obstacles.push(hud.radar);
+	if(hud.fireCaption)obstacles.push(hud.fireCaption);
 	if(hud.touch) {
-		obstacles.push(hud.touch.joystick,hud.touch.throttle,hud.touch.missile,hud.touch.target,hud.touch.special);
+		obstacles.push(hud.touch.joystick,hud.touch.throttle,hud.touch.missile,hud.touch.target,hud.touch.special,hud.touch.evade);
 		if(hud.touch.throttleUpLabel)obstacles.push(hud.touch.throttleUpLabel);
 		if(hud.touch.throttleDownLabel)obstacles.push(hud.touch.throttleDownLabel);
 	}
@@ -34,8 +72,8 @@ export function navigationObstacles(hud:HudLayout): Rectangle[] {
 
 /** Screen projection is relative to the inset screen; labels live in a GUI parent.
  * Keep the full caption in that parent's measured safe bounds and out of HUD lanes. */
-export function placeNavigationCaption(screenX:number,screenY:number,originX:number,originY:number,width:number,height:number,hud:HudLayout,obstacles:Rectangle[]=navigationObstacles(hud)): Rectangle | undefined {
-	const w=NAVIGATION_CAPTION_WIDTH,h=NAVIGATION_CAPTION_HEIGHT,gap=8;
+export function placeNavigationCaption(screenX:number,screenY:number,originX:number,originY:number,width:number,height:number,hud:HudLayout,obstacles:Rectangle[]=navigationObstacles(hud),size?:{width:number;height:number}): Rectangle | undefined {
+	const w=size?.width ?? NAVIGATION_CAPTION_WIDTH,h=size?.height ?? NAVIGATION_CAPTION_HEIGHT,gap=8;
 	if(width<w+gap*2 || height<h+gap*2)return undefined;
 	const pointX=screenX-originX,pointY=screenY-originY;
 	const wantedX=math.clamp(pointX-w/2,gap,width-gap-w);
@@ -59,6 +97,6 @@ export function placeNavigationCaption(screenX:number,screenY:number,originX:num
 
 /** Guidance is never hidden: when no floating spot fits, the caption takes the
  * fixed slot under the objective line. */
-export function navigationCaptionRect(screenX:number,screenY:number,originX:number,originY:number,width:number,height:number,hud:HudLayout,obstacles:Rectangle[]=navigationObstacles(hud)): Rectangle {
-	return placeNavigationCaption(screenX,screenY,originX,originY,width,height,hud,obstacles) ?? hud.navigation;
+export function navigationCaptionRect(screenX:number,screenY:number,originX:number,originY:number,width:number,height:number,hud:HudLayout,obstacles:Rectangle[]=navigationObstacles(hud),size?:{width:number;height:number}): Rectangle {
+	return placeNavigationCaption(screenX,screenY,originX,originY,width,height,hud,obstacles,size) ?? hud.navigation;
 }

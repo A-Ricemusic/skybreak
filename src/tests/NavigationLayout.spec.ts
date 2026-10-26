@@ -1,8 +1,10 @@
 import {describe,expect,it} from "@rbxts/jest-globals";
-import {navigationCaption,navigationCaptionRect,navigationObstacles,navigationSummary,placeNavigationCaption} from "../shared/NavigationLayout";
-import {getHudLayout,InputMode,NAVIGATION_CAPTION_HEIGHT,NAVIGATION_CAPTION_WIDTH,rectangleInside,rectanglesOverlap} from "../shared/UILayout";
+import {navigationCaption,navigationCaptionRect,navigationCaptionSize,navigationDetails,navigationObstacles,navigationSummary,placeNavigationCaption,wrapNavigationDetails} from "../shared/NavigationLayout";
+import {getHudLayout,InputMode,NAVIGATION_CAPTION_HEIGHT,NAVIGATION_CAPTION_MAX_WIDTH,NAVIGATION_CAPTION_WIDTH,NAVIGATION_ROW_HEIGHT,NAVIGATION_SLOT_HEIGHT,rectangleInside,rectanglesOverlap} from "../shared/UILayout";
 
 const MODES:InputMode[]=["touch","keyboard","gamepad"];
+// GothamBold 10pt is about 6.2 px per character; tests only need a monotonic measure.
+const measure=(text:string)=>text.size()*6.2;
 
 describe("safe-area navigation caption",()=>{
 	it("is a glyph and a distance, with details only when they apply",()=>{
@@ -53,6 +55,48 @@ describe("safe-area navigation caption",()=>{
 				expect(rectangleInside(caption,width,height,8)).toBe(true);
 				for(const obstacle of obstacles)expect(rectanglesOverlap(caption,obstacle)).toBe(false);
 			}
+		}
+	});
+	it("wraps long detail lines between parts instead of truncating them",()=>{
+		const parts=navigationDetails(true,380,78.2);
+		expect(parts).toEqual(["IN VOLUME","ALT≤380","PROTECTED 79%"]);
+		// "IN VOLUME · ALT≤380 · PROTECTED 79%" is wider than the caption: two lines, split at a separator.
+		const lines=wrapNavigationDetails(parts,NAVIGATION_CAPTION_MAX_WIDTH-4,measure);
+		expect(lines.size()).toBe(2);
+		expect(lines[1]).toBe("PROTECTED 79%");
+		for(const line of lines)expect(measure(line)).toBeLessThanOrEqual(NAVIGATION_CAPTION_MAX_WIDTH-4);
+		// Short details stay on one line; nothing to wrap gives no lines.
+		expect(wrapNavigationDetails(["ALT≤380"],196,measure)).toEqual(["ALT≤380"]);
+		expect(wrapNavigationDetails([],196,measure).size()).toBe(0);
+		// A narrow fixed slot puts every part on its own line.
+		expect(wrapNavigationDetails(parts,60,measure).size()).toBe(3);
+	});
+	it("sizes the caption frame to its widest row, between the default and the maximum width",()=>{
+		expect(navigationCaptionSize([40])).toEqual({width:NAVIGATION_CAPTION_WIDTH,height:NAVIGATION_CAPTION_HEIGHT});
+		expect(navigationCaptionSize([40,150])).toEqual({width:154,height:NAVIGATION_CAPTION_HEIGHT});
+		expect(navigationCaptionSize([40,180,90])).toEqual({width:184,height:NAVIGATION_ROW_HEIGHT*3+2});
+		expect(navigationCaptionSize([40,400]).width).toBe(NAVIGATION_CAPTION_MAX_WIDTH);
+		expect(NAVIGATION_SLOT_HEIGHT).toBe(NAVIGATION_ROW_HEIGHT*3+2);
+	});
+	it("places a measured three-row caption fully on screen at 1920x854 (the truncated bottom-right case)",()=>{
+		const size=navigationCaptionSize([40,180,90]);
+		for(const mode of MODES) {
+			const hud=getHudLayout(1920,854,mode);
+			for(const [x,y] of [[1900,840],[1910,500],[960,427],[-50,-50]]) {
+				const caption=placeNavigationCaption(x,y,0,0,1920,854,hud,navigationObstacles(hud),size)!;
+				expect(caption.width).toBe(size.width);
+				expect(caption.height).toBe(size.height);
+				expect(rectangleInside(caption,1920,854,8)).toBe(true);
+				for(const obstacle of navigationObstacles(hud))expect(rectanglesOverlap(caption,obstacle)).toBe(false);
+			}
+		}
+	});
+	it("keeps the fixed slot clear of PAUSE, the radar, EVADE and the FIRE caption",()=>{
+		for(const [width,height] of [[667,375],[800,390],[706,267],[1920,854],[390,705]])for(const mode of MODES) {
+			const hud=getHudLayout(width,height,mode);
+			for(const obstacle of navigationObstacles(hud))expect(rectanglesOverlap(hud.navigation,obstacle)).toBe(false);
+			expect(hud.navigation.width).toBeLessThanOrEqual(NAVIGATION_CAPTION_MAX_WIDTH);
+			expect(hud.navigation.height).toBeGreaterThanOrEqual(NAVIGATION_ROW_HEIGHT*2+2);
 		}
 	});
 });
