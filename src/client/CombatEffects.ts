@@ -9,7 +9,7 @@ import { ClaimedVisual, EnemySmoothing } from "./EnemySmoothing";
 const FIRE = "rbxasset://textures/particles/fire_main.dds";
 const SMOKE = "rbxasset://textures/particles/smoke_main.dds";
 const SPARK = "rbxasset://textures/particles/sparkles_main.dds";
-type Listener = (position: Vector3, scale: number) => void;
+type Listener = (position: Vector3, scale: number, kind: ExplosionKind) => void;
 interface Wreck { visual: Model; root: BasePart; frame: CFrame; velocity: Vector3; spin: Vector3; age: number }
 interface Timed { item: Instance; until: number }
 const listeners = new Set<Listener>();
@@ -91,7 +91,7 @@ function explode(kind: ExplosionKind, position: Vector3, scale = 1): void {
 	light.Parent = item;
 	TweenService.Create(light, new TweenInfo(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { Brightness: 0 }).Play();
 	track(explosions, ExplosionFx.MaxExplosions, item, profile.smokeLife + 0.3);
-	for (const listener of listeners) task.spawn(listener, position, size);
+	for (const listener of listeners) task.spawn(listener, position, size, kind);
 }
 function startWreck(claim: ClaimedVisual): void {
 	for (let index = ExplosionFx.Overflow(wrecks.size(), ExplosionFx.MaxWrecks); index > 0; index--) endWreck(wrecks.shift()!);

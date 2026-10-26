@@ -7,6 +7,8 @@ import {
 	getSpecialHint,
 	getHudCentreBox,
 	getHudLayout,
+	getKillMarkerLayout,
+	KILL_MARKER_MIN_WIDTH,
 	getMenuHintsLayout,
 	getMenuLayout,
 	getMenuSceneOpening,
@@ -224,6 +226,35 @@ describe("minimal mission HUD layout", () => {
 			}
 			// Landscape phones also keep the mission toast out of the forward view.
 			if (width > height && height > COMPACT_MAX_HEIGHT) expect(rectanglesOverlap(getToastLayout(width, height), centre)).toBe(false);
+		}
+	});
+
+	it("puts the kill callout at the top centre, clear of every HUD text and the forward view", () => {
+		// 320x240 is the pre-inset Studio simulator: too narrow and short for a top slot (see below).
+		for (const [width, height] of [...HUD_VIEWPORTS, ...VIEWPORTS].filter(([w, h]) => w >= 360 || h > 240)) {
+			const centre = getHudCentreBox(width, height);
+			for (const mode of MODES) {
+				const layout = getHudLayout(width, height, mode);
+				const marker = getKillMarkerLayout(width, height, mode);
+				expect(rectangleInside(marker, width, height, layout.margin)).toBe(true);
+				expect(marker.width).toBeGreaterThanOrEqual(KILL_MARKER_MIN_WIDTH);
+				expect(rectanglesOverlap(marker, centre)).toBe(false);
+				for (const rectangle of hudRectangles(layout)) expect(rectanglesOverlap(marker, rectangle)).toBe(false);
+				// Upper fifth of the screen, and in the middle half horizontally.
+				expect(marker.y + marker.height).toBeLessThanOrEqual(height * 0.2);
+				expect(marker.x + marker.width / 2).toBeGreaterThanOrEqual(width * 0.25);
+				expect(marker.x + marker.width / 2).toBeLessThanOrEqual(width * 0.75);
+			}
+		}
+	});
+
+	it("keeps the kill callout on screen on Studio-sized roots, borrowing the alert lane when no slot fits", () => {
+		for (const [width, height] of [...COMPACT_VIEWPORTS, [320, 240]] as [number, number][]) for (const mode of MODES) {
+			const layout = getHudLayout(width, height, mode);
+			const marker = getKillMarkerLayout(width, height, mode);
+			expect(rectangleInside(marker, width, height, layout.margin)).toBe(true);
+			for (const rectangle of hudRectangles(layout, false)) expect(rectanglesOverlap(marker, rectangle)).toBe(false);
+			if (width <= 320) expect(marker).toEqual(layout.alert);
 		}
 	});
 

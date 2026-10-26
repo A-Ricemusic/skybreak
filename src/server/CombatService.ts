@@ -286,6 +286,7 @@ function sendTelemetry(session: CombatSession): void {
 		targetHealth: target ? math.clamp(target.health / math.max(1, target.maxHealth), 0, 1) : undefined,
 		protectedHealth: phase?.kind === "escort" || phase?.kind === "defend" ? session.blueprintState?.protectedHealth : undefined,
 		specialCharges: session.special.charges, specialCooldown: session.special.cooldown, specialActive: session.special.active,
+		aceKilled: session.rules?.aceKilled ?? session.blueprintState?.aceKilled ?? false,
 	}));
 }
 /**

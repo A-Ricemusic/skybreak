@@ -10,6 +10,7 @@ An original mobile-first arcade jet combat campaign for Roblox, written in TypeS
 - Mission 1 — First Flight: learn pitch/turn, select and destroy a ground radar, then defeat three pursuing bandits.
 - Mission 2 — Iron Coast: defeat three bandits, destroy five Blender-authored warehouses while five optional raiders pursue you, then defeat a faster, tougher ace.
 - Missions 3–27 follow Teal’s recordings through authored canyon, farm, relay, harbor and city compositions. Ordered flight gates, low-altitude scans, signal orbits, convoy escorts and protected-site defense accompany escalating combat.
+- Impact feedback is client-only: hull hits shake the chase camera (firmer on heavy hits), confirmed kills pop a short top-centre callout (`SPLASH ONE`, `SPLASH TWO`…, `TARGET DESTROYED`, `ACE DOWN`) and flash the destroyed target's bracket, and an ace kill adds a brief camera hit-stop, FOV punch and white flash. Turning cinematic Camera motion OFF also disables shake and the hit-stop camera moves for the session.
 - Opening, inter-mission and finale cinematics render three to eight staged story beats with subtitles, skip, pause and motion/text controls. Browse all 27 sorties, unlock sequentially and replay completed missions.
 - Existing v2 saves safely resume at Mission 3 after completing the original two sorties; all four slots retain their records.
 - Each mission has a server-enforced 600-second deadline. Success unlocks the next mission; failure supports retry. Required kills and completion are server-authoritative.

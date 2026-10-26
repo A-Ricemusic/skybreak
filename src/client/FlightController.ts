@@ -8,6 +8,8 @@ import { SpecialWeapons } from "../shared/SpecialWeapons";
 import { WeaponRules } from "../shared/WeaponRules";
 import { EngineFx } from "../shared/EngineFx";
 import { EngineRig, JetFactory } from "../shared/JetFactory";
+import { CameraShake } from "./CameraShake";
+import { CombatEffects } from "./CombatEffects";
 import { EnemySmoothing } from "./EnemySmoothing";
 import { MissileTrails } from "./MissileTrails";
 
@@ -139,6 +141,11 @@ export class FlightController {
 	private mouseSteer = false;
 	private visualFrame = new CFrame();
 	private cameraFrame = new CFrame();
+	/** Hit-stop FOV punch included in the camera's current FieldOfView. */
+	private fovKick = 0;
+	/** Set when the player's jet explodes: the camera holds on the blast until the debrief takes over. */
+	private downAt?: Vector3;
+	private stopExplosions?: () => void;
 	private visual?: Model;
 	private visualRoot?: BasePart;
 	private previousCamera?: PreviousCamera;
@@ -468,6 +475,14 @@ export class FlightController {
 		const camera = Workspace.CurrentCamera;
 		const predictor = this.predictor;
 		if (!this.active || !camera || !predictor) return;
+		const downAt = this.downAt;
+		if (downAt) {
+			const impact = CameraShake.Step(dt);
+			this.cameraFrame = this.cameraFrame.Lerp(CFrame.lookAt(this.cameraFrame.Position, downAt), FlightMath.DampAlpha(6, dt));
+			camera.CFrame = this.cameraFrame.mul(impact.offset);
+			this.enemies.Step(dt);
+			return;
+		}
 		const now = os.clock();
 		this.input(dt);
 		const input = this.frameInput;
@@ -491,11 +506,16 @@ export class FlightController {
 		const speedFactor = math.clamp((state.speed - 165) / 155, 0, 1);
 		const desiredPosition = position.sub(forward.mul(68 + speedFactor * 13)).add(CAMERA_LIFT);
 		const desired = CFrame.lookAt(desiredPosition, position.add(forward.mul(100)).add(AIM_LIFT), Vector3.yAxis);
-		this.cameraFrame = this.cameraFrame.Lerp(desired, FlightMath.DampAlpha(8, dt));
+		// Impact feel (CameraShake) rides on top of the follow: shake is a camera-space
+		// offset and the ace hit-stop slows the follow and punches the FOV. Visual only.
+		const impact = CameraShake.Step(dt);
+		this.cameraFrame = this.cameraFrame.Lerp(desired, FlightMath.DampAlpha(8 * impact.follow, dt));
 		camera.CameraType = Enum.CameraType.Scriptable;
-		camera.CFrame = this.cameraFrame;
+		camera.CFrame = this.cameraFrame.mul(impact.offset);
 		camera.Focus = new CFrame(position.add(forward.mul(90)));
-		camera.FieldOfView += (72 + speedFactor * 9 - camera.FieldOfView) * FlightMath.DampAlpha(3, dt);
+		const baseFov = camera.FieldOfView - this.fovKick;
+		this.fovKick = impact.fov;
+		camera.FieldOfView = baseFov + (72 + speedFactor * 9 - baseFov) * FlightMath.DampAlpha(3, dt) + impact.fov;
 		this.enemies.Step(dt);
 		this.updateTargetCue(camera);
 		this.updateMarkers(camera);
@@ -574,10 +594,21 @@ export class FlightController {
 		this.connections.push(UserInputService.GamepadDisconnected.Connect(clearInput));
 		this.connections.push(UserInputService.WindowFocusReleased.Connect(clearInput));
 		RunService.BindToRenderStep(this.renderName, Enum.RenderPriority.Camera.Value + 1, (dt) => this.render(dt));
+		// Fireball diameter in studs -> shake scale (an air kill's 26-stud fireball is 1).
+		this.stopExplosions = CombatEffects.OnExplosion((position, size, kind) => {
+			if (!this.active) return;
+			if (kind === "player") {
+				this.downAt = position;
+				this.visual?.Destroy(); this.visual = undefined; this.visualRoot = undefined; this.engine = undefined;
+				CameraShake.Add(0.8);
+			} else CameraShake.Explosion(position, size / 26);
+		});
 		return true;
 	}
 	public Stop(): void {
 		this.active = false;
+		this.downAt = undefined;
+		this.stopExplosions?.(); this.stopExplosions = undefined;
 		RunService.UnbindFromRenderStep(this.renderName);
 		ContextActionService.UnbindAction(this.actionName);
 		for (const connection of this.connections) connection.Disconnect();
@@ -594,6 +625,7 @@ export class FlightController {
 		this.predictor = undefined;
 		this.targetGui?.Destroy(); this.targetGui = undefined;
 		this.markers.clear();
+		CameraShake.Reset(); this.fovKick = 0;
 		const camera = Workspace.CurrentCamera;
 		if (camera && this.previousCamera) {
 			camera.CameraType = this.previousCamera.type;

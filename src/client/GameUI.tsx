@@ -48,6 +48,9 @@ import { LoadoutPicker } from "./LoadoutPicker";
 import { NavigationCue } from "./NavigationCue";
 import { RelayCinematic } from "./RelayCinematic";
 import { FlightController } from "./FlightController";
+import { CameraShake } from "./CameraShake";
+import { KillFlash, KillMarker } from "./KillMarker";
+import { ImpactFeedback, KillSnapshot } from "../shared/ImpactFeedback";
 import { LoadingScreen } from "./LoadingScreen";
 import { preloadMission } from "./MissionPreload";
 import {
@@ -55,6 +58,7 @@ import {
 	getSpecialHint,
 	getFlightHints,
 	getHudLayout,
+	getKillMarkerLayout,
 	getMenuHintsLayout,
 	getMenuLayout,
 	getMenuSceneOpening,
@@ -83,6 +87,7 @@ type Screen = "title" | "slots" | "briefing" | "loading" | "mission" | "outcome"
 const NO_MENU_CAMERA: ReadonlySet<Screen> = new Set<Screen>(["mission", "cinematic", "loading"]);
 // If "Started" never follows "Loading" (server holds for at most ~8 s), fall back to the briefing.
 const LOADING_CLIENT_TIMEOUT = 20;
+const MISSION_END_HOLD = 1.2;
 
 interface ToastState {
 	message: string;
@@ -537,11 +542,29 @@ function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
 		targetDamageable: payload.targetDamageable === undefined ? undefined : payload.targetDamageable === true,
 		fireDeniedSerial: typeIs(payload.fireDeniedSerial, "number") ? math.max(0, math.floor(finite(payload.fireDeniedSerial, previous.fireDeniedSerial ?? 0))) : previous.fireDeniedSerial,
 		targetHealth: typeIs(payload.targetHealth, "number") ? math.clamp(finite(payload.targetHealth, 1), 0, 1) : undefined,
+		aceKilled: payload.aceKilled === true,
 	};
 }
 
 function resumeMission(slot?: SaveSlot): number {
 	return slot?.currentMission ?? 1;
+}
+
+function killSnapshot(telemetry: Telemetry): KillSnapshot {
+	return { kills: telemetry.kills, groundKills: telemetry.groundKills ?? 0, aceKilled: telemetry.aceKilled === true };
+}
+
+/** Screen point (HUD-root pixels) of the target that just died, if it was the selected one and on screen. */
+function killedTargetPoint(target: Model | undefined, root: Frame | undefined): Vector2 | undefined {
+	const camera = Workspace.CurrentCamera;
+	// The server destroys a killed target, so a still-parented selection was someone else.
+	if (!target || target.Parent !== undefined || !camera || !root) return undefined;
+	const [ok, pivot] = pcall(() => target.GetPivot());
+	if (!ok) return undefined;
+	const [screen, visible] = camera.WorldToViewportPoint(pivot.Position);
+	if (!visible) return undefined;
+	const point = new Vector2(screen.X, screen.Y).sub(root.AbsolutePosition);
+	return point.X >= 0 && point.Y >= 0 && point.X <= root.AbsoluteSize.X && point.Y <= root.AbsoluteSize.Y ? point : undefined;
 }
 
 function missileReady(telemetry: Telemetry): boolean {
@@ -1405,6 +1428,7 @@ function MissionHud({
 	callout,
 	introduction,
 	damageFlash,
+	killFlash,
 	joystickRef,
 	knobRef,
 	onJoystickBegan,
@@ -1423,6 +1447,7 @@ function MissionHud({
 	callout?: Callout;
 	introduction: boolean;
 	damageFlash: boolean;
+	killFlash?: KillFlash;
 	joystickRef: React.RefObject<Frame>;
 	knobRef: React.RefObject<Frame>;
 	onJoystickBegan: (input: InputObject) => void;
@@ -1489,6 +1514,8 @@ function MissionHud({
 			<frame key="DamageFlash" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={damageFlash}>
 				<Stroke color={C.Danger} transparency={0.35} thickness={5} />
 			</frame>
+
+			<KillMarker flash={killFlash} rectangle={getKillMarkerLayout(viewport.X, viewport.Y, inputMode)} visible={visible} />
 
 			<HudText name="ObjectiveText" text={objectiveLine} rectangle={layout.callout} color={objectiveColor} textSize={11} wrap={true} />
 			<HudText
@@ -1654,6 +1681,10 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const [radioNotice, setRadioNotice] = useState<RadioNotice | undefined>();
 	const [fireNotice, setFireNotice] = useState<RadioNotice | undefined>();
 	const [damageUntil, setDamageUntil] = useState(0);
+	const [killFlash, setKillFlash] = useState<KillFlash | undefined>();
+	const killSerialRef = useRef(0);
+	/** The selection before the latest target change: a kill's HudState can retarget before its telemetry lands. */
+	const priorTargetRef = useRef<Model>();
 	const [loadingProgress, setLoadingProgress] = useState(0);
 
 	const mountedRef = useRef(true);
@@ -2050,7 +2081,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	}, [goBack, selectDefault]);
 
 	useEffect(() => {
-		const connection = remotes.MissionState.OnClientEvent.Connect((raw: unknown) => {
+		const onMissionState = (raw: unknown, held = false): void => {
 			if (!mountedRef.current || !typeIs(raw, "table")) return;
 			const payload = raw as MissionMessage;
 			if (payload.kind === "Loading") {
@@ -2092,6 +2123,8 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				toastRef.current++;
 				setToast(undefined);
 				setKillNotice(undefined);
+				setKillFlash(undefined);
+				priorTargetRef.current = undefined;
 				setDamageUntil(0);
 				const resetTelemetry = defaultTelemetry();
 				resetTelemetry.missionId = missionId;
@@ -2125,6 +2158,12 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				}
 			} else if (payload.kind === "Completed" || payload.kind === "Failed") {
 				if (!inMissionRef.current) return;
+				if (!held) {
+					// Hold the flight view so the last kill callout, the ace hit-stop or the player's own explosion plays out first.
+					const serial = loadingSerialRef.current;
+					task.delay(MISSION_END_HOLD, () => { if (loadingSerialRef.current === serial) onMissionState(raw, true); });
+					return;
+				}
 				const finished = payload as MissionFinished;
 				releaseJoystick();
 				controller.Stop();
@@ -2182,7 +2221,8 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					saveColor: won && finished.saved === true && resultPersistence === "cloud" ? C.Accent : resultPersistence === "cloud" ? C.Muted : C.Orange,
 				});
 			}
-		});
+		};
+		const connection = remotes.MissionState.OnClientEvent.Connect((raw: unknown) => onMissionState(raw));
 		// HUD numbers (10 Hz, unreliable) and text/target changes (reliable HudState) are
 		// merged by the controller, which already folds in its locally predicted
 		// boundary warning; the HUD re-renders once per merged update.
@@ -2193,7 +2233,19 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			if (sanitized.kills > previous.kills) setKillNotice({ kills: sanitized.kills, total: sanitized.total, until: os.clock() + 3 });
 			if (sanitized.radio !== undefined && sanitized.radioSerial !== undefined && sanitized.radioSerial !== previous.radioSerial) setRadioNotice({ text: sanitized.radio, until: os.clock() + (sanitized.radioSeconds ?? RADIO_SECONDS) });
 			if (sanitized.fireDenied !== undefined && sanitized.fireDeniedSerial !== undefined && sanitized.fireDeniedSerial !== previous.fireDeniedSerial) setFireNotice({ text: FIRE_DENIED_TEXT[sanitized.fireDenied], until: os.clock() + FIRE_DENIED_SECONDS });
-			if (sanitized.health < previous.health) setDamageUntil(os.clock() + 0.45);
+			if (sanitized.health < previous.health) {
+				setDamageUntil(os.clock() + 0.45);
+				CameraShake.Damage(previous.health - sanitized.health);
+			}
+			const kill = ImpactFeedback.DetectKill(killSnapshot(previous), killSnapshot(sanitized));
+			if (kill) {
+				killSerialRef.current += 1;
+				const killed = previous.target && previous.target.Parent === undefined ? previous.target : priorTargetRef.current;
+				priorTargetRef.current = undefined;
+				setKillFlash({ serial: killSerialRef.current, kind: kill.kind, text: kill.text, bracket: killedTargetPoint(killed, rootFrameRef.current) });
+				if (kill.kind === "ace") CameraShake.HitStop();
+			}
+			if (previous.target !== sanitized.target && previous.target !== undefined) priorTargetRef.current = previous.target;
 			telemetryRef.current = sanitized;
 			setTelemetry(sanitized);
 		});
@@ -2275,6 +2327,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 						callout={callout}
 						introduction={telemetry.elapsed < 10 || now < hintUntil}
 						damageFlash={now < damageUntil}
+						killFlash={killFlash}
 						joystickRef={joystickRef}
 						knobRef={knobRef}
 						onJoystickBegan={joystickBegan}
