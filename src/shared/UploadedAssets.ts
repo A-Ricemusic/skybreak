@@ -1,12 +1,12 @@
 import { InsertService, RunService } from "@rbxts/services";
-import { AssetSelection, ImportedPart } from "./AssetSelection";
+import { AssetSelection, ImportedPart, SURFACE_MAPS, SurfaceMap } from "./AssetSelection";
 import { RobloxAssetIds } from "./RobloxAssetIds";
 import { UploadedAssetName, UploadedAssetSpecs } from "./UploadedAssetSpecs";
 
 /** Loads one uploaded asset; returns InsertService's container (or any Instance holding the parts). */
 export type AssetLoader = (assetId: number) => Instance;
-/** True when a SurfaceAppearance carries a colour map. */
-export type AppearanceProbe = (appearance: SurfaceAppearance) => boolean;
+/** True when a SurfaceAppearance carries the given map. */
+export type AppearanceProbe = (appearance: SurfaceAppearance, map: SurfaceMap) => boolean;
 
 interface CacheEntry {
 	template?: Model;
@@ -15,26 +15,29 @@ interface CacheEntry {
 
 const defaultLoader: AssetLoader = (assetId) => InsertService.LoadAsset(assetId);
 // The *Map setters are plugin-only, but game scripts can read the Content values.
-const defaultProbe: AppearanceProbe = (appearance) => appearance.ColorMapContent.SourceType !== Enum.ContentSourceType.None;
+const MAP_CONTENT: Record<SurfaceMap, (appearance: SurfaceAppearance) => Content> = {
+	ColorMap: (appearance) => appearance.ColorMapContent,
+	NormalMap: (appearance) => appearance.NormalMapContent,
+	RoughnessMap: (appearance) => appearance.RoughnessMapContent,
+	MetalnessMap: (appearance) => appearance.MetalnessMapContent,
+};
+const defaultProbe: AppearanceProbe = (appearance, map) => MAP_CONTENT[map](appearance).SourceType !== Enum.ContentSourceType.None;
 let loader: AssetLoader = defaultLoader;
 let probe: AppearanceProbe = defaultProbe;
 let ids: Partial<Record<UploadedAssetName, number | undefined>> = RobloxAssetIds;
 const cache = new Map<number, CacheEntry>();
 const failed = new Set<number>();
 
-function hasColorMap(appearance: SurfaceAppearance): boolean {
-	const [ok, result] = pcall(probe, appearance);
+function hasMap(appearance: SurfaceAppearance, map: SurfaceMap): boolean {
+	const [ok, result] = pcall(probe, appearance, map);
 	return ok && result === true;
 }
 
 function describe(part: BasePart): ImportedPart {
 	const appearance = part.FindFirstChildWhichIsA("SurfaceAppearance");
-	return {
-		name: part.Name,
-		meshPart: part.IsA("MeshPart"),
-		appearance: appearance !== undefined,
-		colorMap: appearance !== undefined && hasColorMap(appearance),
-	};
+	const maps: Partial<Record<SurfaceMap, boolean>> = {};
+	if (appearance !== undefined) for (const map of SURFACE_MAPS) maps[map] = hasMap(appearance, map);
+	return { name: part.Name, meshPart: part.IsA("MeshPart"), appearance: appearance !== undefined, maps };
 }
 
 function components(size: Vector3): number[] {
@@ -43,11 +46,11 @@ function components(size: Vector3): number[] {
 
 /**
  * Turn whatever LoadAsset returned into one cached Model: every part must be a
- * textured MeshPart (the Model import puts the FBX's embedded maps on a
- * SurfaceAppearance under each one; aircraft must keep Body and every control
- * surface), anchored, non-colliding, glass parts (the v2 canopy) see-through, scaled with Model:ScaleTo to the in-game
- * size and moved so the pivot is the authored origin (bounds centre for
- * aircraft, bottom centre for world props). Throws on anything else so the
+ * MeshPart whose SurfaceAppearance kept all four of the FBX's embedded maps
+ * (aircraft must keep Body, every control surface and every glass part by exact
+ * name), anchored, non-colliding, glass parts (the v2 canopy) see-through,
+ * scaled with Model:ScaleTo to the in-game size and moved so the pivot is the
+ * authored origin (bounds centre for aircraft, bottom centre for world props). Throws on anything else so the
  * caller falls back to the procedural asset.
  */
 function normalise(container: Instance, name: UploadedAssetName, assetId: number): Model {
@@ -72,7 +75,7 @@ function normalise(container: Instance, name: UploadedAssetName, assetId: number
 			part.Parent = model;
 			seen.push(describe(part));
 		}
-		const required = spec.kind === "aircraft" ? ["Body", ...AssetSelection.ControlSurfaceNames(spec.controlSurfaces)] : [];
+		const required = spec.kind === "aircraft" ? AssetSelection.RequiredAircraftParts(spec.controlSurfaces, spec.glassParts) : [];
 		const problem = AssetSelection.AppearanceProblem(seen, required);
 		assert(problem === undefined, problem);
 		const [, size] = model.GetBoundingBox();
@@ -137,7 +140,7 @@ export const UploadedAssets = {
 		return AssetSelection.Resolve(ids, [name], failed) !== undefined;
 	},
 	/**
-	 * Test hook: swap the ID table, loader and colour-map probe (tests cannot author
+	 * Test hook: swap the ID table, loader and map probe (tests cannot author
 	 * SurfaceAppearance maps), and clear every cache and failure.
 	 */
 	Configure(options: { ids?: Partial<Record<UploadedAssetName, number | undefined>>; loader?: AssetLoader; probe?: AppearanceProbe } = {}): void {

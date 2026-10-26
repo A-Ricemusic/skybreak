@@ -44,7 +44,9 @@ BUILDERS: dict = {}
 # In-game lengths (studs) of the procedural aircraft the uploaded models replace.
 KESTREL_LENGTH = 26.0
 VANTA_LENGTH = 26.4
-# Canopy glass opacity in previews; the game sets the Canopy part's Transparency to 1 - this.
+# Nominal canopy glass opacity (documentation only: previews render glass at alpha 0.60 in
+# skyasset.glass_preview, the FBX material stays opaque and the game sets the Canopy part's
+# Transparency to AssetSelection GLASS_TRANSPARENCY = 0.45).
 GLASS_ALPHA = 0.55
 
 

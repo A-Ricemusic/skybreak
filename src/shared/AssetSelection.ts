@@ -8,7 +8,8 @@ export type AircraftAssetName = "Kestrel" | "Vanta" | "VantaVulture" | "VantaRus
 
 /**
  * Part Transparency for glass parts (the v2 Canopy) so the cockpit shows through.
- * Matches the previews: tools/assets/aircraft_v2.py GLASS_ALPHA = 0.55 opaque.
+ * The previews only approximate it: tools/assets/skyasset.py glass_preview renders
+ * glass at material alpha 0.60 (0.40 transparent); the FBX material stays opaque.
  */
 export const GLASS_TRANSPARENCY = 0.45;
 
@@ -19,14 +20,23 @@ export interface ProceduralTint {
 	Cyan: [number, number, number];
 }
 
+/**
+ * The SurfaceAppearance maps every uploaded MeshPart must keep. Every folder in
+ * assets/roblox-upload bakes all four into one atlas material, and the v2
+ * Canopy uses that same material (its glass is a zone of the atlas; the loader
+ * adds the see-through Transparency), so no part is exempt.
+ */
+export const SURFACE_MAPS = ["ColorMap", "NormalMap", "RoughnessMap", "MetalnessMap"] as const;
+export type SurfaceMap = (typeof SURFACE_MAPS)[number];
+
 /** What the loader saw on one imported BasePart. */
 export interface ImportedPart {
 	name: string;
 	meshPart: boolean;
 	/** Has a SurfaceAppearance child. */
 	appearance: boolean;
-	/** That SurfaceAppearance has a ColorMap. */
-	colorMap: boolean;
+	/** The maps that SurfaceAppearance carries (absent means none). */
+	maps: Partial<Record<SurfaceMap, boolean>>;
 }
 
 const TINTS: Record<AceLivery, ProceduralTint> = {
@@ -107,18 +117,29 @@ export const AssetSelection = {
 		return names;
 	},
 	/**
+	 * Part names an uploaded aircraft must contain, exactly: Body, every authored
+	 * control surface and every glass part (the v2 Canopy). The bounds check cannot
+	 * catch a lost canopy (it sits inside the body's bounds), so names are checked.
+	 */
+	RequiredAircraftParts(surfaces: Record<string, unknown> | undefined, glassParts: readonly string[] | undefined): string[] {
+		return ["Body", ...AssetSelection.ControlSurfaceNames(surfaces), ...(glassParts ?? [])];
+	},
+	/**
 	 * Whether an imported model's parts carry the textures the FBX embedded. The
-	 * Model import gives every MeshPart a SurfaceAppearance with the maps; a part
-	 * without one would render as bare grey geometry, so the whole model falls
+	 * Model import gives every MeshPart a SurfaceAppearance with all four maps
+	 * (SURFACE_MAPS); a part without one renders as bare grey geometry and one
+	 * missing a map loses its relief, gloss or metal, so the whole model falls
 	 * back. Returns the first problem, or undefined when the model is usable.
-	 * `required` lists part names that must exist (aircraft body and control surfaces).
+	 * `required` lists part names that must exist (RequiredAircraftParts).
 	 */
 	AppearanceProblem(parts: readonly ImportedPart[], required: readonly string[] = []): string | undefined {
 		if (parts.size() === 0) return "contains no parts";
 		for (const part of parts) {
 			if (!part.meshPart) return `${part.name} is not a MeshPart`;
 			if (!part.appearance) return `${part.name} has no SurfaceAppearance`;
-			if (!part.colorMap) return `${part.name} SurfaceAppearance has no ColorMap`;
+			for (const map of SURFACE_MAPS) {
+				if (part.maps[map] !== true) return `${part.name} SurfaceAppearance has no ${map}`;
+			}
 		}
 		for (const name of required) {
 			if (parts.find((part) => part.name === name) === undefined) return `missing part ${name}`;

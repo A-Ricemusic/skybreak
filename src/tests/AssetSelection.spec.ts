@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { AssetSelection, GLASS_TRANSPARENCY } from "../shared/AssetSelection";
+import { AssetSelection, GLASS_TRANSPARENCY, SURFACE_MAPS, SurfaceMap } from "../shared/AssetSelection";
 
 // Pure rules shared by the Roblox Jest run and the offline Luau runner (toBe / toBeUndefined only).
 describe("AssetSelection uploaded-asset decisions", () => {
@@ -98,7 +98,8 @@ describe("AssetSelection uploaded-asset decisions", () => {
 		expect(AssetSelection.FitScale([120, 172, 754.6], [22.1892, 5.9265, 26])).toBeUndefined();
 	});
 	it("accepts an import only when every part is a MeshPart with a textured SurfaceAppearance", () => {
-		const part = (name: string, meshPart = true, appearance = true, colorMap = true) => ({ name, meshPart, appearance, colorMap });
+		const all = { ColorMap: true, NormalMap: true, RoughnessMap: true, MetalnessMap: true };
+		const part = (name: string, meshPart = true, appearance = true, colorMap = true) => ({ name, meshPart, appearance, maps: { ...all, ColorMap: colorMap } });
 		const kestrel = ["Aileron_L", "Aileron_R", "Elevator_L", "Elevator_R", "Rudder_L", "Rudder_R"];
 		const required = ["Body", ...kestrel];
 		const pilot = [part("Body"), ...kestrel.map((name) => part(name))];
@@ -109,6 +110,48 @@ describe("AssetSelection uploaded-asset decisions", () => {
 		expect(AssetSelection.AppearanceProblem([part("Body", true, true, false)])).toBe("Body SurfaceAppearance has no ColorMap");
 		expect(AssetSelection.AppearanceProblem([part("Hull", false)])).toBe("Hull is not a MeshPart");
 		expect(AssetSelection.AppearanceProblem(pilot.filter((p) => p.name !== "Rudder_R"), required)).toBe("missing part Rudder_R");
+	});
+	it("requires all four SurfaceAppearance maps on every part, including control surfaces and the canopy", () => {
+		const all = { ColorMap: true, NormalMap: true, RoughnessMap: true, MetalnessMap: true };
+		const part = (name: string, maps: Partial<Record<SurfaceMap, boolean>> = all) => ({ name, meshPart: true, appearance: true, maps });
+		expect(SURFACE_MAPS.size()).toBe(4);
+		const names = AssetSelection.RequiredAircraftParts({ Rudder: 1, Aileron_L: 1 }, ["Canopy"]);
+		expect(AssetSelection.AppearanceProblem(names.map((name) => part(name)), names)).toBeUndefined();
+		for (const map of SURFACE_MAPS) {
+			for (const lossy of ["Body", "Aileron_L", "Canopy"]) {
+				const parts = names.map((name) => part(name, name === lossy ? { ...all, [map]: false } : all));
+				expect(AssetSelection.AppearanceProblem(parts, names)).toBe(`${lossy} SurfaceAppearance has no ${map}`);
+				// An unprobed (absent) map is missing too.
+				const absent = names.map((name) => {
+					if (name !== lossy) return part(name);
+					const maps: Partial<Record<SurfaceMap, boolean>> = { ...all };
+					maps[map] = undefined;
+					return part(name, maps);
+				});
+				expect(AssetSelection.AppearanceProblem(absent, names)).toBe(`${lossy} SurfaceAppearance has no ${map}`);
+			}
+		}
+		// Only ColorMap, as the pre-v2 rule checked, is no longer enough.
+		expect(AssetSelection.AppearanceProblem([part("barn", { ColorMap: true })])).toBe("barn SurfaceAppearance has no NormalMap");
+	});
+	it("requires the v2 Canopy by exact name alongside Body and the control surfaces", () => {
+		const all = { ColorMap: true, NormalMap: true, RoughnessMap: true, MetalnessMap: true };
+		const part = (name: string) => ({ name, meshPart: true, appearance: true, maps: all });
+		const surfaces = { Rudder: 1, Elevator_R: 1, Elevator_L: 1, Aileron_R: 1, Aileron_L: 1 };
+		const required = AssetSelection.RequiredAircraftParts(surfaces, ["Canopy"]);
+		expect(required.size()).toBe(7);
+		expect(required[0]).toBe("Body");
+		expect(required[1]).toBe("Aileron_L");
+		expect(required[6]).toBe("Canopy");
+		// v1 aircraft author no glass part, so only Body and the surfaces are required.
+		expect(AssetSelection.RequiredAircraftParts(surfaces, undefined).size()).toBe(6);
+		const complete = required.map(part);
+		expect(AssetSelection.AppearanceProblem(complete, required)).toBeUndefined();
+		const withoutCanopy = complete.filter((p) => p.name !== "Canopy");
+		expect(AssetSelection.AppearanceProblem(withoutCanopy, required)).toBe("missing part Canopy");
+		expect(AssetSelection.AppearanceProblem([...withoutCanopy, part("Canopy.001")], required)).toBe("missing part Canopy");
+		expect(AssetSelection.AppearanceProblem([...withoutCanopy, part("canopy")], required)).toBe("missing part Canopy");
+		expect(AssetSelection.AppearanceProblem(complete.filter((p) => p.name !== "Body"), required)).toBe("missing part Body");
 	});
 	it("lists an aircraft's control surfaces in a stable order", () => {
 		const names = AssetSelection.ControlSurfaceNames({ Rudder: 1, Aileron_R: 1, Aileron_L: 1 });
