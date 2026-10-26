@@ -837,13 +837,15 @@ function CampaignScreenImpl({
 	onCancelDelete: () => void;
 	onDeleteSlot: (slot: number) => void;
 }) {
+	// Narrow panels (under 400px) get short copy so the one-line status never clips.
+	const short = menu.panel.width < 400;
 	const persistenceText = busy
-		? "CONNECTING TO FLIGHT RECORDS..."
+		? short ? "CONNECTING..." : "CONNECTING TO FLIGHT RECORDS..."
 		: persistence === "cloud"
-			? "CLOUD SAVES ONLINE · SELECT A FLIGHT RECORD"
+			? short ? "CLOUD SAVES ONLINE" : "CLOUD SAVES ONLINE · SELECT A FLIGHT RECORD"
 			: persistence === "session"
-				? "SAVES KEPT FOR THIS SESSION ONLY"
-				: "SAVE SERVICE OFFLINE · PROGRESS MAY NOT PERSIST";
+				? short ? "SESSION-ONLY SAVES" : "SAVES KEPT FOR THIS SESSION ONLY"
+				: short ? "OFFLINE · MAY NOT SAVE" : "SAVE SERVICE OFFLINE · PROGRESS MAY NOT PERSIST";
 	const layout = getSaveSlotLayout(menu.panel.width);
 	const canvasHeight = getSlotListCanvasHeight(layout, SLOT_NUMBERS.map((number) => confirmSlot === number));
 	return (
@@ -979,16 +981,19 @@ function MissionTile({ id, state, selected, enabled, width, height, onChoose }: 
 		>
 			<Corner radius={8} />
 			<Stroke color={hot ? C.Ivory : selected ? C.Accent : C.Ivory} transparency={lit ? 0.1 : 0.88} thickness={lit ? 2 : 1} />
-			<uipadding PaddingLeft={new UDim(0, 10)} PaddingRight={new UDim(0, 10)} PaddingTop={new UDim(0, 7)} PaddingBottom={new UDim(0, 7)} />
+			<uipadding PaddingLeft={new UDim(0, 8)} PaddingRight={new UDim(0, 8)} PaddingTop={new UDim(0, 7)} PaddingBottom={new UDim(0, 7)} />
 			<Label name="Number" text={missionNumber(id)} color={selected ? C.Accent : C.Faint} textSize={12} font={Enum.Font.RobotoMono} size={new UDim2(0.4, 0, 0, 14)} />
 			<Label name="State" text={stateText} color={stateColor} textSize={9} minTextSize={7} font={Enum.Font.GothamBold} anchorPoint={new Vector2(1, 0)} position={UDim2.fromScale(1, 0)} size={new UDim2(0.6, 0, 0, 14)} textXAlignment={Enum.TextXAlignment.Right} />
-			<textlabel key="MissionTitle" BackgroundTransparency={1} Font={Enum.Font.GothamBold} Position={UDim2.fromOffset(0, 17)} Size={new UDim2(1, 0, 0, 16)} Text={blueprint.title} TextColor3={locked ? C.Faint : C.Ivory} TextSize={12} TextTruncate={Enum.TextTruncate.AtEnd} TextXAlignment={Enum.TextXAlignment.Left} />
+			<textlabel key="MissionTitle" BackgroundTransparency={1} Font={Enum.Font.GothamBold} Position={UDim2.fromOffset(0, 17)} Size={new UDim2(1, 0, 0, 16)} Text={blueprint.title} TextColor3={locked ? C.Faint : C.Ivory} TextScaled={true} TextXAlignment={Enum.TextXAlignment.Left}>
+				{/* Long titles shrink to 10pt rather than truncating on phone-width tiles. */}
+				<uitextsizeconstraint MaxTextSize={12} MinTextSize={10} />
+			</textlabel>
 			<textlabel key="MissionMeta" BackgroundTransparency={1} Font={Enum.Font.GothamMedium} Position={UDim2.fromOffset(0, 34)} Size={new UDim2(1, 0, 0, 12)} Text={REGION_NAMES[blueprint.region] ?? ""} TextColor3={C.Faint} TextSize={10} TextTransparency={locked ? 0.4 : 0} TextTruncate={Enum.TextTruncate.AtEnd} TextXAlignment={Enum.TextXAlignment.Left} />
 		</textbutton>
 	);
 }
 
-function ActTab({ act, active, done, total, onSelect }: { act: number; active: boolean; done: number; total: number; onSelect: (act: number) => void }) {
+function ActTab({ act, active, done, total, showName, onSelect }: { act: number; active: boolean; done: number; total: number; showName: boolean; onSelect: (act: number) => void }) {
 	const { hot, events, clearHover } = useHighlight(true);
 	return (
 		<textbutton
@@ -1006,9 +1011,9 @@ function ActTab({ act, active, done, total, onSelect }: { act: number; active: b
 			<Corner />
 			<Stroke color={hot ? C.Ivory : active ? C.Accent : C.Ivory} transparency={hot ? 0.1 : active ? 0.4 : 0.88} thickness={hot ? 2 : 1} />
 			<uipadding PaddingLeft={new UDim(0, 8)} PaddingRight={new UDim(0, 8)} PaddingTop={new UDim(0, 6)} PaddingBottom={new UDim(0, 6)} />
-			<Label name="ActNumber" text={`ACT ${ACT_NUMERALS[act]}`} color={active ? C.Ink : C.Ivory} textSize={12} font={Enum.Font.GothamBlack} size={new UDim2(0.6, 0, 0, 16)} />
-			<Label name="ActCount" text={`${done}/${total}`} color={active ? C.Ink : done === total ? C.Accent : C.Muted} textSize={10} font={Enum.Font.RobotoMono} anchorPoint={new Vector2(1, 0)} position={UDim2.fromScale(1, 0)} size={new UDim2(0.4, 0, 0, 16)} textXAlignment={Enum.TextXAlignment.Right} />
-			<Label name="ActName" text={ACT_NAMES[act] ?? ""} color={active ? C.Ink : C.Faint} textSize={9} minTextSize={6} font={Enum.Font.GothamBold} anchorPoint={new Vector2(0, 1)} position={UDim2.fromScale(0, 1)} size={new UDim2(1, 0, 0, 12)} />
+			<Label name="ActNumber" text={`ACT ${ACT_NUMERALS[act]}`} color={active ? C.Ink : C.Ivory} textSize={12} font={Enum.Font.GothamBlack} position={UDim2.fromOffset(0, showName ? 0 : 8)} size={new UDim2(0.6, 0, 0, 16)} />
+			<Label name="ActCount" text={`${done}/${total}`} color={active ? C.Ink : done === total ? C.Accent : C.Muted} textSize={10} font={Enum.Font.RobotoMono} anchorPoint={new Vector2(1, 0)} position={new UDim2(1, 0, 0, showName ? 0 : 8)} size={new UDim2(0.4, 0, 0, 16)} textXAlignment={Enum.TextXAlignment.Right} />
+			<Label name="ActName" visible={showName} text={ACT_NAMES[act] ?? ""} color={active ? C.Ink : C.Faint} textSize={9} minTextSize={8} font={Enum.Font.GothamBold} anchorPoint={new Vector2(0, 1)} position={UDim2.fromScale(0, 1)} size={new UDim2(1, 0, 0, 12)} />
 		</textbutton>
 	);
 }
@@ -1021,13 +1026,30 @@ function BriefingScreenImpl({visible,menu,selectedSlot,selectedMission,slot,busy
 	const [detailsCanvasHeight,setDetailsCanvasHeight]=useState(0);
 	const [scrolledToEnd,setScrolledToEnd]=useState(false);
 	const panelRef=useRef<Frame>();const inputMode=useContext(InputModeContext);
+	// Whether the reading column is scrolled to its end, from the live canvas
+	// position and the latest content height (the canvas may grow or remount).
+	const detailsCanvasRef=useRef(0);
+	const updateScrolledToEnd=(frame:ScrollingFrame)=>setScrolledToEnd(frame.CanvasPosition.Y>=detailsCanvasRef.current-frame.AbsoluteWindowSize.Y-4);
+	useEffect(()=>setScrolledToEnd(false),[selectedMission,browse]);
 	useEffect(()=>{if(!visible || inputMode!=="gamepad")return;task.defer(()=>{
 		const panel=panelRef.current;if(!panel)return;
-		// The archive opens on the selected mission's tile when it is on the open act tab.
-		const tile=browse ? panel.FindFirstChild(`Mission${missionNumber(selectedMission)}SelectButton`,true) : undefined;
-		const selected=tile?.IsA("GuiObject") && tile.Selectable ? tile : panel.FindFirstChild(browse ? "ArchiveBackButton" : "LaunchButton",true);
+		let selected:Instance|undefined;
+		if(browse) {
+			// The archive opens on the selected mission's tile, else the act's first playable tile.
+			const tile=panel.FindFirstChild(`Mission${missionNumber(selectedMission)}SelectButton`,true);
+			if(tile?.IsA("GuiObject") && tile.Selectable) selected=tile;
+			const archive=panel.FindFirstChild("MissionArchive",true);
+			if(!selected && archive) {
+				let first:GuiObject|undefined;
+				for(const child of archive.GetChildren()) {
+					if(child.IsA("GuiObject") && child.Selectable && (first===undefined || child.LayoutOrder<first.LayoutOrder)) first=child;
+				}
+				selected=first;
+			}
+		}
+		if(!selected) selected=panel.FindFirstChild(browse ? "ArchiveBackButton" : "LaunchButton",true);
 		if(selected?.IsA("GuiObject"))GuiService.SelectedObject=selected;
-	});},[browse,act,inputMode,visible]);
+	});},[browse,act,inputMode,visible,selectedMission]);
 	const mission=MissionCatalog.Get(selectedMission);
 	const unlocked=unlockedThrough(slot);
 	const record=slot?.missions?.[selectedMission];
@@ -1046,7 +1068,7 @@ function BriefingScreenImpl({visible,menu,selectedSlot,selectedMission,slot,busy
 				<ScreenHeader name="ArchiveHeader" backName="ArchiveBackButton" title="MISSION ARCHIVE" subtitle={`FILE ${selectedSlot} · ${completedCount(slot)}/${MISSION_COUNT} COMPLETE`} compact={menu.compact} onBack={()=>setBrowse(false)}/>
 				<frame key="ActTabs" BackgroundTransparency={1} Position={UDim2.fromOffset(0,ARCHIVE_HEADER_HEIGHT+ARCHIVE_GAP)} Size={new UDim2(1,4,0,ARCHIVE_TAB_HEIGHT)}>
 					<uilistlayout FillDirection={Enum.FillDirection.Horizontal} Padding={new UDim(0,4)} SortOrder={Enum.SortOrder.LayoutOrder}/>
-					{ACTS.map((id)=><ActTab key={`Act${id}`} act={id} active={act===id} done={completedCount(slot,id)} total={MissionCatalog.ByAct(id).size()} onSelect={setAct}/>)}
+					{ACTS.map((id)=><ActTab key={`Act${id}`} act={id} active={act===id} done={completedCount(slot,id)} total={MissionCatalog.ByAct(id).size()} showName={menu.panel.width>=400} onSelect={setAct}/>)}
 				</frame>
 				<scrollingframe key="MissionArchive" Position={UDim2.fromOffset(0,grid.top)} Size={new UDim2(1,0,0,grid.height)} CanvasSize={UDim2.fromOffset(0,getArchiveCanvasHeight(grid,actMissions.size()))} BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={3} ScrollBarImageColor3={C.Ivory} ScrollBarImageTransparency={0.6} ScrollingDirection={Enum.ScrollingDirection.Y}>
 					<uigridlayout CellPadding={UDim2.fromOffset(grid.gap,grid.gap)} CellSize={UDim2.fromOffset(grid.tileWidth,grid.tileHeight)} FillDirectionMaxCells={grid.columns} SortOrder={Enum.SortOrder.LayoutOrder}/>
@@ -1058,8 +1080,13 @@ function BriefingScreenImpl({visible,menu,selectedSlot,selectedMission,slot,busy
 			</> : <>
 				{/* The heading scrolls with the copy: short landscape roots spend the
 				    entire height above the single action dock on reading. */}
-				<scrollingframe key="BriefingDetails" Size={new UDim2(1,0,0,layout.detailsHeight)} CanvasSize={UDim2.fromOffset(0,detailsCanvasHeight)} Active={true} Selectable={true} ClipsDescendants={true} ScrollingDirection={Enum.ScrollingDirection.Y} VerticalScrollBarInset={Enum.ScrollBarInset.Always} BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={4} ScrollBarImageColor3={C.Ivory} ScrollBarImageTransparency={0.55} Change={{CanvasPosition:(frame)=>setScrolledToEnd(frame.CanvasPosition.Y>=frame.AbsoluteCanvasSize.Y-frame.AbsoluteWindowSize.Y-4)}}>
-					<uilistlayout Padding={new UDim(0,BRIEFING_GAP)} SortOrder={Enum.SortOrder.LayoutOrder} Change={{AbsoluteContentSize:(list)=>setDetailsCanvasHeight(list.AbsoluteContentSize.Y + 4)}}/>
+				<scrollingframe key="BriefingDetails" Size={new UDim2(1,0,0,layout.detailsHeight)} CanvasSize={UDim2.fromOffset(0,detailsCanvasHeight)} Active={true} Selectable={true} ClipsDescendants={true} ScrollingDirection={Enum.ScrollingDirection.Y} VerticalScrollBarInset={Enum.ScrollBarInset.Always} BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={4} ScrollBarImageColor3={C.Ivory} ScrollBarImageTransparency={0.55} Change={{CanvasPosition:updateScrolledToEnd}}>
+					<uilistlayout Padding={new UDim(0,BRIEFING_GAP)} SortOrder={Enum.SortOrder.LayoutOrder} Change={{AbsoluteContentSize:(list)=>{
+						detailsCanvasRef.current=list.AbsoluteContentSize.Y + 4;
+						setDetailsCanvasHeight(detailsCanvasRef.current);
+						const frame=list.Parent;
+						if(frame?.IsA("ScrollingFrame"))updateScrolledToEnd(frame);
+					}}}/>
 					<frame key="BriefingHeader" AutomaticSize={Enum.AutomaticSize.Y} BackgroundTransparency={1} LayoutOrder={1} Size={new UDim2(1,-12,0,0)}>
 						<uilistlayout Padding={new UDim(0,BRIEFING_HEADER_SPACING)} SortOrder={Enum.SortOrder.LayoutOrder}/>
 						<Label name="BriefingEyebrow" text={`${actLabel(mission.act)}  ·  MISSION ${missionNumber(selectedMission)}/${MISSION_COUNT}`} color={C.Accent} textSize={11} minTextSize={8} font={Enum.Font.GothamBold} size={new UDim2(1,0,0,BRIEFING_LINE_HEIGHT)} layoutOrder={1}/>
