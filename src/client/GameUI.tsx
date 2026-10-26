@@ -563,7 +563,6 @@ function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
 		targetHealth: typeIs(payload.targetHealth, "number") ? math.clamp(finite(payload.targetHealth, 1), 0, 1) : undefined,
 		aceKilled: payload.aceKilled === true,
 		optionalKills: math.max(0, math.floor(finite(payload.optionalKills, previous.optionalKills ?? 0))),
-		evadeCharges: math.max(0, math.floor(finite(payload.evadeCharges, previous.evadeCharges ?? 0))),
 		incomingDistance: typeIs(payload.incomingDistance, "number") ? math.max(0, finite(payload.incomingDistance, 0)) : undefined,
 	};
 }
