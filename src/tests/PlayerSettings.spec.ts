@@ -13,8 +13,8 @@ import {
 
 describe("client comfort settings", () => {
 	it("defaults to no inversion, full shake, 100% HUD and sticks, full volume", () => {
-		expect(defaultSettings()).toEqual({ invertY: false, shake: 1, hudScale: 1, stickScale: 1, music: 1, sfx: 1, voice: 1 });
-		expect(SETTING_ORDER.size()).toBe(7);
+		expect(defaultSettings()).toEqual({ invertY: false, levelAssist: false, shake: 1, hudScale: 1, stickScale: 1, music: 1, sfx: 1, voice: 1 });
+		expect(SETTING_ORDER.size()).toBe(8);
 	});
 	it("uses the audio contract attribute names", () => {
 		expect(SETTING_ATTRIBUTES.music).toBe("MusicVolume");
@@ -45,12 +45,16 @@ describe("client comfort settings", () => {
 	it("reads attributes back, defaulting anything missing or invalid", () => {
 		const stored: { [name: string]: unknown } = { InvertY: true, CameraShake: 0.25, HudScale: 5, MusicVolume: 0.4, SfxVolume: "loud", VoiceVolume: 0.7 };
 		const settings = readSettings((name) => stored[name]);
-		expect(settings).toEqual({ invertY: true, shake: 0.25, hudScale: 1.3, stickScale: 1, music: 0.4, sfx: 1, voice: 0.7 });
+		expect(settings).toEqual({ invertY: true, levelAssist: false, shake: 0.25, hudScale: 1.3, stickScale: 1, music: 0.4, sfx: 1, voice: 0.7 });
 		expect(readSettings(() => undefined)).toEqual(defaultSettings());
 	});
 	it("formats values for the sheet", () => {
 		const settings = defaultSettings();
 		expect(formatSetting("invertY", settings)).toBe("OFF");
+		// The level-out assist is opt-in: the jet holds its attitude by default.
+		expect(formatSetting("levelAssist", settings)).toBe("OFF");
+		expect(formatSetting("levelAssist", { ...settings, levelAssist: true })).toBe("ON");
+		expect(readSettings((name) => (name === "LevelAssist" ? true : undefined)).levelAssist).toBe(true);
 		expect(formatSetting("hudScale", settings)).toBe("100%");
 		settings.shake = 0;
 		expect(formatSetting("shake", settings)).toBe("OFF");
