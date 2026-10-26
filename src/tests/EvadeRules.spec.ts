@@ -22,14 +22,14 @@ describe("Evade charges", () => {
 		expect(EvadeRules.Cooldown(state, 0)).toBe(EvadeRules.RechargeSeconds);
 		expect(EvadeRules.Cooldown(state, 1.2)).toBe(1.2);
 	});
-	it("recharges one charge every 12 s, never past three", () => {
+	it("recharges one charge every 10 s, never past three", () => {
 		const state = EvadeRules.New();
 		EvadeRules.Use(state, false); EvadeRules.Use(state, false); EvadeRules.Use(state, false);
-		for (let index = 0; index < 119; index++) EvadeRules.Tick(state, 0.1);
+		for (let index = 0; index < 99; index++) EvadeRules.Tick(state, 0.1);
 		expect(state.charges).toBe(0);
 		EvadeRules.Tick(state, 0.11);
 		expect(state.charges).toBe(1);
-		EvadeRules.Tick(state, 12);
+		EvadeRules.Tick(state, 10);
 		expect(state.charges).toBe(2);
 		EvadeRules.Tick(state, 100);
 		expect(state.charges).toBe(3);
@@ -45,9 +45,9 @@ describe("Evade charges", () => {
 		EvadeRules.Tick(state, 0.11);
 		expect(EvadeRules.Open(state)).toBe(false);
 	});
-	it("decoys only missiles inside 350 studs or in their last 1.2 s of flight", () => {
-		expect(EvadeRules.Decoys(350, 5)).toBe(true);
-		expect(EvadeRules.Decoys(351, 5)).toBe(false);
+	it("decoys only missiles inside 450 studs or in their last 1.2 s of flight", () => {
+		expect(EvadeRules.Decoys(450, 5)).toBe(true);
+		expect(EvadeRules.Decoys(451, 5)).toBe(false);
 		expect(EvadeRules.Decoys(1500, 1.2)).toBe(true);
 		expect(EvadeRules.Decoys(1500, 1.3)).toBe(false);
 		expect(EvadeRules.Decoys(0 / 0, 5)).toBe(false);
@@ -68,7 +68,7 @@ describe("Evade charges", () => {
 			return decoyed;
 		};
 		expect(outcome(0.2)).toBe(false); // 1850 studs out: window closes long before it arrives
-		expect(outcome(1.9)).toBe(true); // ~600 studs out: it enters 350 inside the window
+		expect(outcome(1.9)).toBe(true); // ~600 studs out: it enters 450 inside the window
 		expect(outcome(2.4)).toBe(true); // ~225 studs out: decoyed on the press
 	});
 });

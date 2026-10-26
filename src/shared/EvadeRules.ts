@@ -3,9 +3,9 @@
 // CombatAction "Evade"; only timing decides whether it works.
 //
 // Evade is a timed skill with three charges. A press spends a charge and opens a short
-// decoy window; any hostile missile that is within 350 studs, or in the last 1.2 s of its
+// decoy window; any hostile missile that is within 450 studs, or in the last 1.2 s of its
 // flight, while the window is open is decoyed. Pressing early only wastes the charge.
-// Charges come back one at a time, 12 s each.
+// Charges come back one at a time, 10 s each.
 export interface EvadeState {
 	charges: number;
 	/** Seconds banked toward the next charge (only while below MaxCharges). */
@@ -14,8 +14,8 @@ export interface EvadeState {
 	window: number;
 }
 const MAX_CHARGES = 3;
-const RECHARGE_SECONDS = 12;
-const DECOY_RADIUS = 350;
+const RECHARGE_SECONDS = 10;
+const DECOY_RADIUS = 450;
 const TAIL_SECONDS = 1.2;
 /** The press is honoured for this long so a phone's round trip does not eat the timing. */
 const WINDOW_SECONDS = 0.6;

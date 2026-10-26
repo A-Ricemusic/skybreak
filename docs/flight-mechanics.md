@@ -190,7 +190,9 @@ Each bandit keeps its own reload. The flight shares one gate between windup star
 | M1–M4 (gentle) | 14 s | 1.5 | 9.3 s | 1 | 10 s | 10 | one windup per 6.9 s |
 | I (M5–M9) | 14 s | 2 | 7 s | 1 | 10 s | 10 | one windup per 6.9 s |
 | II | 13 s | 2.5 | 5.2 s | 2 | 7.5 s | 12 | one per 5.5 s |
-| III | 12 s | 3 | 4 s | 3 | 5.5 s | 14 | one per 4.7 s |
+| III | 15 s | 3 | 5 s | 2 | 5.5 s | 13 | one per 4.7 s |
+
+Act III was softened after live playtests (2026-10-26): the scripted pilot, timing every evade, was shot down in Mission 26 on eight straight attempts at gate 12 s / cap 3 / 14 damage / 350-stud decoy / 12 s recharge and a 10-bandit wing. With the values above and an 8-bandit wing it completed M26 in 205 s and 188 s (35 hull) and M27 in 193 s (87 hull).
 
 Ace: reload 9 / 8 / 7 s, +2 damage per missile, salvo 1 / 1 / 2 (2 in every act on Ace difficulty).
 
@@ -211,8 +213,8 @@ Input-agnostic: keyboard F, gamepad B and the touch EVADE button all send `Comba
 
 | | Before | After |
 |---|---|---|
-| Uses | unlimited, 6 s cooldown | **3 charges**, each recharging in 12 s (one at a time) |
-| What it decoys | every hostile missile within 700 studs, plus 1.6 s of immunity | only missiles **within 350 studs or in their last 1.2 s**, during a 0.6 s window after the press; no immunity |
+| Uses | unlimited, 6 s cooldown | **3 charges**, each recharging in 10 s (one at a time) |
+| What it decoys | every hostile missile within 700 studs, plus 1.6 s of immunity | only missiles **within 450 studs or in their last 1.2 s**, during a 0.6 s window after the press; no immunity |
 | Telemetry | `evadeCooldown` | `evadeCooldown` (roll, else 0 with a charge, else time to the next charge), `evadeCharges`, `incomingDistance` |
 
 At Act III missile speed (740) the window means pressing when the missile is inside about 800 studs; a press at 1800 wastes the charge.

@@ -718,7 +718,7 @@ export const MISSIONS: MissionBlueprint[] = [
 		"The Marshal's wing is over the civic plaza. Break its first flight while the second swings in behind you, then triangulate his last transmission.",
 		"The wing is broken. Only the Marshal's own flight remains.",
 		[
-			air("Break the Marshal's wing", 10, "SERA: His wing splits. First five ahead; the rest will come round behind.",
+			air("Break the Marshal's wing", 8, "SERA: His wing splits. First four ahead; the rest will come round behind.",
 				{ groups: 2, stagger: 40, flank: true, optionalRaiders: 2, reinforce: [{ at: 0.6, count: 2 }],
 					chatter: [{ at: 0.5, text: "SERA: Second flight on your six! Turn!" }] }),
 			fly("signal", "Triangulate the Marshal's last transmission", [[0,600,-1200]], 90, 4, undefined,

@@ -182,11 +182,11 @@ const PLAYER_MISSILE_DAMAGE = SpecialWeapons.StandardDamage;
 //   breakChance     odds a bandit breaks against an inbound guided player missile (shares the 12 s break cooldown).
 //   breakSeconds    how long a break lasts; breakTurn the bandit's steering rate while breaking.
 const TUNING = {
-	hostileDamage: [10, 12, 14],
+	hostileDamage: [10, 12, 13],
 	windup: [2.4, 2.0, 1.7],
-	flightGate: [14, 13, 12],
+	flightGate: [14, 13, 15],
 	flightDivisor: [2, 2.5, 3],
-	threatCap: [1, 2, 3],
+	threatCap: [1, 2, 2],
 	banditReload: [10, 7.5, 5.5],
 	aceReload: [9, 8, 7],
 	fireAimDot: [0.65, 0.55, 0.45],
