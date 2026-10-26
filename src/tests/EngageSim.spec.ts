@@ -55,6 +55,18 @@ describe("Engagement cadence, closed loop", () => {
 			expect(launches / windups >= 0.7).toBe(true);
 		}
 	});
+	it("never lets a missile hit a pilot who flew its BREAK exactly as cued", () => {
+		for (const level of Difficulty.Order) for (const act of [1, 2, 3]) {
+			let followed = 0;
+			for (const seed of SEEDS) {
+				const result = EngageSim.Run({ level, act, bandits: 2, ace: true, pilot: "cue", seconds: SECONDS, seed });
+				expect(result.bandits.followedHits).toBe(0);
+				expect(result.ace.followedHits).toBe(0);
+				followed += result.bandits.followed + result.ace.followed;
+			}
+			expect(followed > 0).toBe(true);
+		}
+	});
 	it("keeps the dodge guarantee: every launch gives at least the level's shortest shot", () => {
 		for (const level of Difficulty.Order) for (const act of [1, 3]) {
 			for (const result of fly({ level, act, bandits: 2, ace: true })) {

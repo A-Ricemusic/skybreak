@@ -27,10 +27,18 @@ import { FlightInput } from "./Types";
 //
 // BREAK cue (BreakCue): the server flies the most urgent missile forward against the real flight
 // rules. It lights BREAK, with the way to turn, only when the missile would hit a jet that keeps
-// flying as it is and misses one that breaks hard CUE_REACTION seconds from now. So it never asks
+// flying as it is and misses one that breaks hard CUE_REACTION seconds from now, whether the pilot
+// lets go after BREAK_HOLD seconds or keeps pulling. So it never asks
 // for a losing turn, never shows for a missile that will miss anyway, and stays dark both while a
 // break would still be followed (too early) and once it is too late. There is no fixed window: the
 // dodge window comes out of the physics, and the tuning below sets how long it is.
+//
+// "Misses" means the missile can no longer hit: the prediction flies it, through the same Advance
+// the server's stepHostileMissile uses (so the live fuse still fires after the seeker lets go),
+// until it hits, self-destructs (life, or coasting below MIN_SPEED), or is blind and provably stays
+// more than fuse + CLEAR_MARGIN ahead of the jet for the rest of its life (BlindPast). Losing the
+// lock, or passing the jet, is not enough on its own: a blind missile flies straight on, and the
+// jet can turn back across its path.
 //
 // Tuning (studs, seconds, rad/s). Rows are Normal by act; Easy/Ace multiply through the Difficulty
 // knobs (missileTurn, missileBurn, missileGimbal); a missile fired by the mission's ace adds the
@@ -116,9 +124,12 @@ const BREAK_HOLD = 1.5;
 const CUE_REACTION = 0.3;
 /** Only a missile arriving within this many seconds gets a BREAK prediction (bounds the server's cost). */
 const CUE_HORIZON = 3.5;
-/** How far ahead a prediction flies; a missile still tracking then counts as not dodged. */
-const PREDICT_LIMIT = 4.5;
-const PREDICT_STEP = 1 / 30;
+/** CombatService's fixed server step; predictions step at the same rate. */
+const STEP_SECONDS = 1 / 30;
+/** Studs beyond the fuse a blind missile must stay ahead of the jet for BlindPast. */
+const CLEAR_MARGIN = 30;
+/** The furthest a jet moves in a second: top speed plus the stall sink (FlightMath.Step). */
+const JET_REACH = FlightMath.MaxSpeed + 65;
 
 function finite(value: number): boolean { return value === value && math.abs(value) !== math.huge; }
 function add(a: Point, b: Point): Point { return { x: a.x + b.x, y: a.y + b.y, z: a.z + b.z }; }
@@ -128,10 +139,6 @@ function dot(a: Point, b: Point): number { return a.x * b.x + a.y * b.y + a.z * 
 function cross(a: Point, b: Point): Point { return { x: a.y * b.z - a.z * b.y, y: a.z * b.x - a.x * b.z, z: a.x * b.y - a.y * b.x }; }
 function length(a: Point): number { return math.sqrt(dot(a, a)); }
 function unit(a: Point, fallback: Point): Point { const size = length(a); return size > 1e-6 ? mul(a, 1 / size) : fallback; }
-function jetTarget(state: FlightState): MissileTarget {
-	const [x, y, z] = FlightMath.Forward(state.yaw, state.pitch);
-	return { position: { x: state.x, y: state.y, z: state.z }, velocity: { x: x * state.speed, y: y * state.speed, z: z * state.speed } };
-}
 function act(value: number): number { return math.clamp(math.floor(finite(value) ? value : 1), 1, 3); }
 
 /** Distance from the origin to the segment a-b, and where along it (0-1) the closest point is. */
@@ -146,6 +153,8 @@ export const MissileRules = {
 	NavGain: NAV_GAIN,
 	CueReaction: CUE_REACTION,
 	CueHorizon: CUE_HORIZON,
+	BreakHold: BREAK_HOLD,
+	StepSeconds: STEP_SECONDS,
 	CoastDrag: COAST_DRAG,
 	MinSpeed: MIN_SPEED,
 	LaunchOffset: LAUNCH_OFFSET,
@@ -250,6 +259,48 @@ export const MissileRules = {
 		missile.position = to;
 		return { event: "flying" };
 	},
+	/** The jet as a hostile missile sees it: its position and velocity. */
+	JetTarget(state: FlightState): MissileTarget {
+		const [x, y, z] = FlightMath.Forward(state.yaw, state.pitch);
+		return { position: { x: state.x, y: state.y, z: state.z }, velocity: { x: x * state.speed, y: y * state.speed, z: z * state.speed } };
+	},
+	/**
+	 * One step of a hostile missile against the jet's flight state (already stepped to the end of the
+	 * tick). The one stepping path: CombatService's stepHostileMissile and the BREAK prediction (Misses)
+	 * both fly missiles through it, so the cue's physics cannot drift from the server's.
+	 */
+	Advance(missile: GuidedMissile, profile: MissileProfile, jet: FlightState, dt: number, ray?: MissileRay): MissileStep {
+		return MissileRules.Step(missile, profile, MissileRules.JetTarget(jet), dt, ray);
+	},
+	/** Seconds until the missile self-destructs at `age`: out of life, or coasting below MIN_SPEED. */
+	Remaining(profile: MissileProfile, age: number): number {
+		const slow = profile.burnSeconds + math.max(0, math.log(profile.burnSpeed / MIN_SPEED) / COAST_DRAG);
+		return math.max(0, math.min(profile.life, slow) - age);
+	},
+	/** Studs a missile of `age` flies over the next `seconds` (full burn, then drag). */
+	Travel(profile: MissileProfile, age: number, seconds: number): number {
+		const finish = age + math.max(seconds, 0);
+		const burn = math.max(0, math.min(finish, profile.burnSeconds) - age);
+		const from = math.max(age, profile.burnSeconds) - profile.burnSeconds, to = finish - profile.burnSeconds;
+		const coast = to > from ? profile.burnSpeed / COAST_DRAG * (math.exp(-COAST_DRAG * from) - math.exp(-COAST_DRAG * to)) : 0;
+		return profile.burnSpeed * burn + coast;
+	},
+	/**
+	 * A blind missile that can never reach the jet again. It flies straight at a known, falling speed,
+	 * so its lead past the jet along its heading can shrink by at most JET_REACH per second less the
+	 * missile's own speed. That lead, less what the jet can make up, is concave in time (the missile
+	 * only slows), so it is smallest now or at self-destruct: true when both stay beyond fuse +
+	 * CLEAR_MARGIN. Conservative for 30 Hz steps (each moves at its end-of-step speed, one step of jet
+	 * reach for the fuse's start point, the horizon padded by two steps).
+	 */
+	BlindPast(missile: GuidedMissile, profile: MissileProfile, jet: FlightState): boolean {
+		if (missile.locked) return false;
+		const lead = dot(sub(missile.position, { x: jet.x, y: jet.y, z: jet.z }), missile.direction) - JET_REACH * STEP_SECONDS;
+		const gap = profile.fuse + CLEAR_MARGIN;
+		if (!(lead > gap)) return false;
+		const seconds = MissileRules.Remaining(profile, missile.age) + 2 * STEP_SECONDS;
+		return lead + MissileRules.Travel(profile, missile.age + STEP_SECONDS, seconds) - JET_REACH * seconds > gap;
+	},
 	/** Seconds until the missile reaches the jet at the current closing speed, or undefined when it is not closing. */
 	TimeToImpact(missile: GuidedMissile, target: MissileTarget): number | undefined {
 		const line = sub(target.position, missile.position);
@@ -306,31 +357,38 @@ export const MissileRules = {
 		return (profile.minLaunch + margin) * math.max(profile.burnSpeed - jetSpeed, 50) + LAUNCH_OFFSET;
 	},
 	/**
-	 * Flies a copy of the missile against a copy of the jet in open sky. The jet keeps `input`; with
-	 * a `stick` (-1 left, +1 right) it breaks `delay` seconds from now: full stick, a little back
-	 * pressure and full power for BREAK_HOLD seconds, then back to `input`. True when the missile
-	 * misses: it detonates elsewhere, burns out, or loses the lock and is past the jet.
+	 * Flies a copy of the missile against a copy of the jet in open sky, one server step at a time
+	 * (Advance). The jet keeps `input`; with a `stick` (-1 left, +1 right) it breaks `delay` seconds
+	 * from now: full stick, a little back pressure and full power for `hold` seconds (BREAK_HOLD;
+	 * math.huge keeps pulling), then back to `input`. Both are counted in whole steps, so a pilot
+	 * replaying the break (MissileDuel, EngageSim) flies exactly it. True only when the missile can no
+	 * longer hit: it self-destructs or detonates elsewhere, or it is blind and BlindPast proves it
+	 * cannot reach the jet again. Bounded by the missile's remaining life (at most `life` x 30 steps).
 	 */
-	Misses(missile: GuidedMissile, profile: MissileProfile, jet: FlightState, input: FlightInput, delay = 0, stick?: number): boolean {
+	Misses(missile: GuidedMissile, profile: MissileProfile, jet: FlightState, input: FlightInput, delay = 0, stick?: number, hold = BREAK_HOLD): boolean {
 		// Step replaces position/direction rather than mutating them, so a shallow copy is independent.
 		const copy: GuidedMissile = { position: missile.position, direction: missile.direction, speed: missile.speed, age: missile.age, locked: missile.locked };
 		const state: FlightState = { x: jet.x, y: jet.y, z: jet.z, yaw: jet.yaw, pitch: jet.pitch, roll: jet.roll, speed: jet.speed };
 		const pull: FlightInput = { x: stick ?? 0, y: BREAK_PULL, throttle: 1 };
-		for (let time = 0; time < PREDICT_LIMIT; time += PREDICT_STEP) {
-			FlightMath.Step(state, stick !== undefined && time >= delay && time < delay + BREAK_HOLD ? pull : input, PREDICT_STEP);
-			const target = jetTarget(state);
-			const result = MissileRules.Step(copy, profile, target, PREDICT_STEP);
+		const start = math.floor(delay / STEP_SECONDS + 0.5), stop = start + math.floor(hold / STEP_SECONDS + 0.5);
+		const remaining = MissileRules.Remaining(profile, missile.age);
+		// Two steps past self-destruct, so Step itself reports it; a non-finite age proves nothing.
+		const steps = finite(remaining) ? math.ceil(remaining / STEP_SECONDS) + 2 : 0;
+		for (let step = 0; step < steps; step++) {
+			FlightMath.Step(state, stick !== undefined && step >= start && step < stop ? pull : input, STEP_SECONDS);
+			const result = MissileRules.Advance(copy, profile, state, STEP_SECONDS);
 			if (result.event === "hit") return false;
 			if (result.event !== "flying") return true;
-			// Blind and already past the jet: it flies on and self-destructs.
-			if (!copy.locked && dot(sub(target.position, copy.position), copy.direction) < 0) return true;
+			if (MissileRules.BlindPast(copy, profile, state)) return true;
 		}
-		// Out of time: a missile still tracking counts as a hit, a blind one (outrun or out-turned) as a miss.
-		return !copy.locked;
+		// Not proven safe.
+		return false;
 	},
 	/**
 	 * The BREAK cue: the way to turn (-1 left, +1 right) when the missile would hit a jet that keeps
-	 * flying as it is, but misses one that breaks hard CUE_REACTION seconds from now; else undefined.
+	 * flying as it is, but misses one that breaks hard CUE_REACTION seconds from now, both when the
+	 * pilot lets go after BREAK_HOLD and when they keep pulling; else undefined. At most five
+	 * predictions, each bounded by the missile's remaining life (Misses).
 	 * Checked against the real flight and missile rules, so the cue never asks for a losing turn, never
 	 * shows for a missile that is going to miss anyway, and stays dark while a break would still be
 	 * followed (too early) or is already too late. Tries the way the pilot is already turning first
@@ -338,14 +396,16 @@ export const MissileRules = {
 	 */
 	BreakCue(missile: GuidedMissile, profile: MissileProfile, jet: FlightState, input: FlightInput, reaction = CUE_REACTION): number | undefined {
 		if (!missile.locked) return undefined;
-		const target = jetTarget(jet);
+		const target = MissileRules.JetTarget(jet);
 		const seconds = MissileRules.TimeToImpact(missile, target);
 		if (seconds === undefined || seconds > CUE_HORIZON) return undefined;
 		if (MissileRules.Misses(missile, profile, jet, input)) return undefined;
 		const away = MissileRules.Bearing(target.position, jet.yaw, missile.position) > 0 ? -1 : 1;
 		const first = math.abs(input.x) >= 0.5 ? math.sign(input.x) : away;
-		if (MissileRules.Misses(missile, profile, jet, input, reaction, first)) return first;
-		if (MissileRules.Misses(missile, profile, jet, input, reaction, -first)) return -first;
+		const wins = (stick: number) => MissileRules.Misses(missile, profile, jet, input, reaction, stick)
+			&& MissileRules.Misses(missile, profile, jet, input, reaction, stick, math.huge);
+		if (wins(first)) return first;
+		if (wins(-first)) return -first;
 		return undefined;
 	},
 };

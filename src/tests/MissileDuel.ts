@@ -17,8 +17,10 @@ import { FlightInput } from "../shared/Types";
 //
 // Pilots (all circle left at 0.35 stick and cruise throttle until they act):
 //   ignore   never reacts (the live test's "straight" pilot).
-//   cue      on BREAK, pulls full stick the way the cue's arrow points, 0.25 back, full throttle,
-//            for 1.6 s; again on a later cue (the live test's "break" pilot, reading the arrow).
+//   cue      on BREAK, flies exactly the break the cue checked: `reaction` later (whole steps), full
+//            stick the way the arrow points, 0.25 back, full throttle for MissileRules.BreakHold, then
+//            back to circling; again on a later cue (the live test's "break" pilot, reading the arrow).
+//            `hold` lengthens the pull (a pilot who keeps pulling past the checked break).
 //   away     the same pull, but always away from the missile's side (the old HUD's arrow).
 //   beam     a competent pilot: on BREAK, turns hard onto the nearer heading square to the missile's
 //            line of sight and holds it at full throttle.
@@ -42,6 +44,8 @@ export interface DuelSetup {
 	/** "timed": missile age at which the pull starts, and its stick (default away from the missile). */
 	breakAge?: number;
 	breakX?: number;
+	/** Seconds the pull is held (default MissileRules.BreakHold, the break the cue checks). */
+	hold?: number;
 	/** Back pressure during the pull (default 0.25). */
 	pull?: number;
 	/** Sample the BREAK cue (default true); a pilot that ignores it may skip the prediction cost. */
@@ -65,10 +69,9 @@ export interface DuelResult {
 	launchRange: number;
 }
 
-const STEP = 1 / 30;
+const STEP = MissileRules.StepSeconds;
 const TELEMETRY = 0.1;
 const CIRCLE: FlightInput = { x: -0.35, y: 0, throttle: 0.65 };
-const PULL_SECONDS = 1.6;
 /** CombatService's Act I-III bandit windups (Difficulty "windup": Easy x1.3, Ace x0.8). */
 const WINDUP = [2.4, 2.0, 1.7];
 const WINDUP_SCALE: { [D in DifficultyKind]: number } = { easy: 1.3, normal: 1, ace: 0.8 };
@@ -135,19 +138,22 @@ export const MissileDuel = {
 		const pilot = setup.pilot;
 		const pull = setup.pull ?? 0.25;
 		let telemetry = setup.phase ?? 0;
-		let pendingAt: number | undefined, pendingX = 0;
+		// Steps are counted, not timed, so the cue pilot's break starts and ends on the very steps the cue checked.
+		const reactionSteps = math.floor(reaction / STEP + 0.5);
+		const pullSteps = math.floor((setup.hold ?? MissileRules.BreakHold) / STEP + 0.5);
+		let pendingStep: number | undefined, pendingX = 0;
 		let pullUntil = -1, pullX = 0;
 		let beam: number | undefined;
 		if (pilot === "timed") {
-			pendingAt = setup.breakAge ?? 0;
+			pendingStep = math.ceil((setup.breakAge ?? 0) / STEP - 1e-6);
 			pendingX = setup.breakX ?? (MissileRules.Bearing(target(jet).position, jet.yaw, missile.position) > 0 ? -1 : 1);
 		}
 		let input: FlightInput = circle;
 		for (let step = 0; step < 15 * 30; step++) {
 			const age = missile.age;
-			if (pendingAt !== undefined && age >= pendingAt - 1e-6) {
+			if (pendingStep !== undefined && step >= pendingStep) {
 				if (pilot === "beam") beam = beamHeading(jet, missile.position);
-				pullUntil = age + PULL_SECONDS; pullX = pendingX; pendingAt = undefined;
+				pullUntil = step + pullSteps; pullX = pendingX; pendingStep = undefined;
 				if (result.breakAge === undefined) result.breakAge = age;
 			}
 			input = circle;
@@ -155,7 +161,7 @@ export const MissileDuel = {
 			else if (beam !== undefined) {
 				const turn = FlightMath.WrapAngle(beam - jet.yaw);
 				input = { x: math.clamp(-turn / (1.12 * STEP * 3), -1, 1), y: 0.1, throttle: 1 };
-			} else if (age < pullUntil) input = { x: pullX, y: pull, throttle: 1 };
+			} else if (step < pullUntil) input = { x: pullX, y: pull, throttle: 1 };
 			FlightMath.Step(jet, input, STEP);
 			const outcome = MissileRules.Step(missile, profile, target(jet), STEP);
 			result.age = missile.age;
@@ -168,9 +174,10 @@ export const MissileDuel = {
 			const stick = MissileRules.BreakCue(missile, profile, jet, input);
 			if (stick === undefined) continue;
 			if (!result.cued) { result.cued = true; result.cueAge = missile.age; result.cueStick = stick; }
-			const busy = pendingAt !== undefined || missile.age < pullUntil || beam !== undefined;
+			const busy = pendingStep !== undefined || step + 1 < pullUntil || beam !== undefined;
 			if (busy || (pilot !== "cue" && pilot !== "away" && pilot !== "beam")) continue;
-			pendingAt = missile.age + reaction;
+			// The prediction's first step is the next loop step.
+			pendingStep = step + 1 + reactionSteps;
 			pendingX = pilot === "away" ? (MissileRules.Bearing(target(jet).position, jet.yaw, missile.position) > 0 ? -1 : 1) : stick;
 		}
 		return result;

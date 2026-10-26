@@ -166,7 +166,8 @@ let flightStateRemote: UnreliableRemoteEvent | undefined;
 let telemetryRemote: UnreliableRemoteEvent | undefined;
 let combatEffectRemote: RemoteEvent | undefined;
 let onFinished: FinishedCallback | undefined;
-const FIXED_STEP = 1 / 30;
+/** MissileRules.StepSeconds: the BREAK cue predicts at the server's own step. */
+const FIXED_STEP = MissileRules.StepSeconds;
 const MAX_MISSILES = WeaponRules.MaxMissiles;
 const PLAYER_MISSILE_DAMAGE = SpecialWeapons.StandardDamage;
 // Threat tuning indexed by act (1-3). Missions 1-2 use act 1. Every knob is a plain per-act array so the
@@ -281,9 +282,9 @@ function directionFor(state: FlightState): Vector3 {
 }
 function unitOr(vector: Vector3, fallback: Vector3): Vector3 { return vector.Magnitude > 0.01 ? vector.Unit : fallback; }
 function point(vector: Vector3): { x: number; y: number; z: number } { return { x: vector.X, y: vector.Y, z: vector.Z }; }
-/** The player's jet as a hostile missile sees it (MissileRules). */
+/** The player's jet as a hostile missile sees it (MissileRules, the same target its BREAK prediction uses). */
 function jetTarget(session: CombatSession): { position: Point; velocity: Point } {
-	return { position: point(positionFor(session.state)), velocity: point(directionFor(session.state).mul(session.state.speed)) };
+	return MissileRules.JetTarget(session.state);
 }
 function ownsEnemy(session: CombatSession, enemy: Enemy | undefined): enemy is Enemy {
 	return enemy !== undefined && enemy.enabled && enemy.health > 0 && enemy.model.Parent === session.folder
@@ -1398,7 +1399,8 @@ function stepHostileMissile(session: CombatSession, index: number, dt: number): 
 			return "gone";
 		}
 	}
-	const result = MissileRules.Step(guided, missile.profile!, jetTarget(session), dt, session.collisionParams ? AircraftCollision.MissileRay(session.collisionParams) : undefined);
+	// The same Advance the BREAK prediction flies, plus the terrain ray.
+	const result = MissileRules.Advance(guided, missile.profile!, session.state, dt, session.collisionParams ? AircraftCollision.MissileRay(session.collisionParams) : undefined);
 	missile.age = guided.age;
 	missile.speed = guided.speed;
 	missile.position = new Vector3(guided.position.x, guided.position.y, guided.position.z);
