@@ -11,11 +11,11 @@ import { Telemetry } from "./Types";
 //          timeRemaining, objectiveProgress, objectiveTotal, groundKills,
 //          targetDistance, targetHealth (-1 none), protectedHealth (-1 none),
 //          specialCharges, specialCooldown, specialActive,
-//          evadeCharges, optionalKills, incomingDistance (-1 none),
+//          evadeCharges, optionalKills, incomingDistance (-1 none), pauseAck,
 //          incomingSeconds (-1 none), incomingBearing (999 none)]
 // flags: 1 incoming, 2 lockWarning, 4 boundaryWarning, 8 targetDamageable,
 //        16 targetDamageable unknown (no target), 32 ace killed this sortie,
-//        128 the nearest missile is inside the break window (MissileRules; 64 is left for PR #38's pause flag).
+//        64 the server holds the sortie paused, 128 the nearest missile is inside the break window (MissileRules).
 export type TelemetryPacket = number[];
 export const TELEMETRY_FIELDS = 28;
 
