@@ -1,0 +1,128 @@
+[
+ {
+  "speaker": "SERA",
+  "voice": "Sarah",
+  "id": "story.c15.b00",
+  "start": 0.5,
+  "text": "Three garrisons heard it. Two stood down. And then the Marshal answered."
+ },
+ {
+  "speaker": "TEAL",
+  "voice": "George",
+  "id": "story.c00.b04",
+  "start": 5.77,
+  "text": "If I miss your checkout, fly the pattern anyway. The sky will still be there."
+ },
+ {
+  "speaker": "TRAINEE",
+  "voice": "River",
+  "id": "story.c00.b05",
+  "start": 10.62,
+  "text": "Three bandits on the rim and an empty chair. Fine. I'll fly the pattern."
+ },
+ {
+  "speaker": "RUSK",
+  "voice": "Adam",
+  "id": "radio.m27.p2.twist",
+  "start": 14.87,
+  "text": "RUSK: You cut one relay. Every loyal pilot still hears me. On me, now."
+ },
+ {
+  "speaker": "VULTURE LEAD",
+  "voice": "Harry",
+  "id": "radio.m09.ace.stage1",
+  "start": 19.03,
+  "text": "VULTURE LEAD: You fly like him. He died anyway. Wing, cut him off."
+ },
+ {
+  "speaker": "VULTURE TWO",
+  "voice": "Callum",
+  "id": "radio.m18.ace.stage1",
+  "start": 23.12,
+  "text": "VULTURE TWO: I taught him that turn. Wing, show the trainee the answer."
+ },
+ {
+  "speaker": "BROADCAST",
+  "voice": "Daniel",
+  "id": "radio.m12.p1.twist",
+  "start": 27.92,
+  "text": "BROADCAST: Convoy, the north corridor is clear. Proceed north at speed."
+ },
+ {
+  "speaker": "LOG",
+  "voice": "Daniel",
+  "id": "story.c27.b06",
+  "start": 32.52,
+  "text": "VARDA RIM ROSTER. TEAL: KILLED IN ACTION, NOT DESERTED. INSTRUCTOR'S CHAIR: FILLED."
+ },
+ {
+  "speaker": "RECORDER",
+  "voice": "Daniel",
+  "id": "story.c25.b01",
+  "start": 40.05,
+  "text": "RECORDER 7-T. ENTRY 04:12. PLAYBACK."
+ },
+ {
+  "speaker": "MARINE",
+  "voice": "Charlie",
+  "id": "radio.m26.p6.beat",
+  "start": 44.13,
+  "text": "MARINE: Witnesses aboard. Keep us covered until parliament is in sight."
+ },
+ {
+  "speaker": "HARBOR",
+  "voice": "Lily",
+  "id": "radio.m19.p3.beat",
+  "start": 47.62,
+  "text": "HARBOR: Follow the three quay beacons. Our launch needs a clear way out."
+ },
+ {
+  "speaker": "FRIGATE",
+  "voice": "Bill",
+  "id": "radio.m23.p4.beat",
+  "start": 51.49,
+  "text": "FRIGATE: Follow the outer beacons. Check the whole sea lane is in sight."
+ },
+ {
+  "speaker": "FARMER",
+  "voice": "Alice",
+  "id": "radio.m05.p3.beat",
+  "start": 55.38,
+  "text": "FARMER: One truck lost its radio. Check both bends for stragglers."
+ },
+ {
+  "speaker": "TRUCK",
+  "voice": "Jessica",
+  "id": "radio.m12.p1.beat",
+  "start": 59.24,
+  "text": "TRUCK: Transmitter rolling. The corridor is full of refugees."
+ },
+ {
+  "speaker": "LOYALIST",
+  "voice": "Eric",
+  "id": "radio.m15.p3.beat",
+  "start": 62.73,
+  "text": "LOYALIST: Two reply beacons lit. Follow them to check the garrisons."
+ },
+ {
+  "speaker": "LANDING CRAFT",
+  "voice": "Chris",
+  "id": "radio.m25.p3.beat",
+  "start": 65.74,
+  "text": "LANDING CRAFT: Ramps down. Scan both exits so we can leave the sand."
+ },
+ {
+  "speaker": "TOWER",
+  "voice": "Bella",
+  "id": "radio.m08.p5.beat",
+  "start": 68.61,
+  "text": "TOWER: Code restored. Stay on the link until every loyal flight answers."
+ },
+ {
+  "speaker": "RECOVERY",
+  "voice": "Brian",
+  "id": "radio.m09.p6.beat",
+  "start": 73.4,
+  "text": "RECOVERY: Recorder still transmitting. Mark it before the signal dies."
+ }
+]
