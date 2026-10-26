@@ -217,7 +217,45 @@ Input-agnostic: keyboard F, gamepad B and the touch EVADE button all send `Comba
 | What it decoys | every hostile missile within 700 studs, plus 1.6 s of immunity | only missiles **within 450 studs or in their last 1.2 s**, during a 0.6 s window after the press; no immunity |
 | Telemetry | `evadeCooldown` | `evadeCooldown` (roll, else 0 with a charge, else time to the next charge), `evadeCharges`, `incomingDistance` |
 
-At Act III missile speed (740) the window means pressing when the missile is inside about 800 studs; a press at 1800 wastes the charge.
+At Act III burn speed (620) the window means pressing when the missile is inside about 700 studs; a press at 1800 wastes the charge.
+
+### Hostile missiles and dodging (`MissileRules`)
+
+Owner playtest (2026-10-26): flares or EVADE were the only way to survive a missile. Hostile missiles flew 580–740 studs/s for 7–9 s and steered with `direction.Lerp(toTarget, DampAlpha(1.6–2.8))`, which turns in proportion to the angle error with no ceiling (at 90° off it out-turned the jet about 4×). They led the jet by up to 0.9 s, saw it from any angle and through terrain, and fused at 32–48 studs. Every hostile missile now flies `src/shared/MissileRules.ts`, a pure module (plain points, no Vector3) that runs on the server, in Jest and in the offline Luau VM:
+
+1. **Launch on a collision course.** The shooter fires where a straight-flying jet will be (`LeadDirection`, at most 0.8 × the seeker cone off the line of sight); the ace salvo fan is added on top. A jet that ignores the missile needs no correction from it and is hit.
+2. **Burn, then coast.** Full speed for the burn, then `speed × exp(-0.35 t)`. A coasting missile slower than the jet loses the chase; below 160 studs/s it self-destructs.
+3. **Capped proportional navigation.** Heading rate = 3 × line-of-sight rate (+0.5/s pursuit), clamped to `turnCap` rad/s. `burnSpeed × turnCap` is the missile's sideways acceleration. On Normal it is 180–250 studs/s², below the jet's 358 at full throttle (320 × 1.12 rad/s) and near its 260 at cruise. So a hard break started in time moves the jet off the missile's path faster than the missile can follow.
+4. **Seeker cone.** Once the jet is more than `gimbal` off the missile's nose, the lock is gone for good. The missile flies straight on and self-destructs when its life runs out (a small burst). Unlocked missiles never raise MISSILE INBOUND.
+5. **Terrain.** Each step's segment is raycast against `AircraftCollision.Parameters` (terrain plus `FlightSolid` scenery, via `AircraftCollision.MissileRay`); a hit detonates the missile there, harmlessly.
+6. **Proximity fuse.** Measured on the path relative to the jet through the step (no tunnelling at 600 studs/s), and only if the closest point comes before any terrain hit.
+
+| Value | Act I | Act II | Act III | Easy | Ace | fired by the ace |
+|---|---|---|---|---|---|---|
+| Burn speed (studs/s) | 560 | 600 | 620 | — | — | — |
+| Burn (s) | 2.6 | 3.0 | 3.4 | ×0.6 | ×1.15 | — |
+| Turn cap (rad/s) | 0.32 | 0.36 | 0.40 | ×0.75 | ×1.25 | +0.04 |
+| Seeker cone (half-angle) | 45° | 45° | 45° | ×1.1 | ×1.2 | +5° |
+| Proximity fuse (studs) | 18 | 22 | 26 | — | — | — |
+| Life (s) | 7 | 8 | 9 | — | — | — |
+
+BREAK cue window (seconds to impact): Easy 0.7–2.4, Normal 0.9–1.8, Ace 1.1–1.7.
+
+Knobs: `Difficulty` `missileTurn` (Easy 0.75 / Ace 1.25), `missileBurn` (0.6 / 1.15) and `missileGimbal` (1.1 / 1.2). Ace's harder turn and wider cone mean the missile follows a break started too early and still connects on one started too late: only the window works. Easy's short burn means most long shots can simply be outrun.
+
+**How a player dodges**, in the order the HUD teaches it:
+
+- The warning line shows the most urgent locked missile: `MISSILE 7 O'CLOCK ↓ 2.1s` (narrow screens: `MISSILE ↓ 2.1s`). The arrow points where the missile is (↑ ahead, → right wing, ↓ tail, ← left wing), and the seconds are range ÷ closing speed.
+- Inside the level's break window it becomes `BREAK ← · MISSILE 1.4s` (narrow: `BREAK ←`). Turn hard the way the arrow points, which is away from the missile's side. That puts the missile on the tail, where the seeker cone loses a hard-turning jet. Below 285 studs/s the cue adds `POWER↑`: a break at cruise works in Acts I–II but needs throttle in Act III and on Ace.
+- Missiles fired from the front quarter are the hardest to beat with a turn. A level turn puts only part of the jet's acceleration across their line of sight, so turn to put them on the nose or the tail first, then use EVADE or flares.
+- A long tail shot is outrun at full throttle once the burn ends. Flying low behind a ridge makes the missile hit the ridge.
+- EVADE (3 charges, inside 450 studs or the missile's last 1.2 s) and the Flare Pod special are unchanged.
+
+Tuning came from a sweep of the real `FlightMath.Step` jet against the module. Aspects: head-on at 1500, 45° at 1200, beam at 1000, rear quarter at 900, tail at 700/800/1400 studs; breaks started at 1100 down to 150 studs, at full throttle and cruise. Normal Act II, full throttle: breaking away dodges a tail shot from launch down to about 250 studs (0.7–0.9 s to impact), and a head-on shot down to about 500 (0.5 s). On Ace the latest working break comes about 0.1–0.3 s earlier, and at cruise much earlier. Every ignored shot hits at cruise, on every level and act.
+
+`src/tests/MissileRules.spec.ts` (offline and Jest) flies those engagements: an ignored missile hits from four aspects on every level; a 500-stud break misses on Normal; the same late break (450) hits on Ace while a 700-stud one misses; a too-late break still hits on Normal; long tail shots are outrun after the burn; the seeker cone drops a lock for good; a ridge (an injected ray) takes the missile; and the fuse catches a 15-stud pass but lets 30 go. `src/tests/MissileCue.spec.ts` covers the HUD wording, and `AircraftCollision.spec.ts` covers the real raycast set (a ridge detonates the missile, a painted overlay does not).
+
+PR #37's threat cap and gates are unchanged. A missile that has lost its lock still counts against the cap until it self-destructs (at most its life, 7–9 s), so a dodge buys breathing room rather than an instant next shot.
 
 ### Aces (`AceRules`)
 
@@ -236,5 +274,6 @@ At Act III missile speed (740) the window means pressing when the missile is ins
 | Bandit hull | ×0.75 (was 0.85): Act II bandits become two-missile kills | 1 | ×1 (was 1.15) |
 | Protected-actor drain | ×0.75 | 1 (0.55 per raider per s) | ×1.25 |
 | Behaviour | — | — | every bandit breaks close locks and carries a flare; aces fire two missiles per windup; every raider wave brings one more, and the live-aircraft budget rises from 7 to 8 to match |
+| Hostile missiles | turn cap ×0.75 (was missile turn ×0.8), burn ×0.6, seeker cone ×1.1 | 1 | turn cap ×1.25 (was ×1.2), burn ×1.15, seeker cone ×1.2 |
 
-Damage, windup, missile turn, ace hull, break odds and score multipliers are unchanged from the difficulty selector (#33).
+Damage, windup, ace hull, break odds and score multipliers are unchanged from the difficulty selector (#33); the missile knobs now drive `MissileRules` (see above).
