@@ -120,7 +120,9 @@ test modules.
 - **All modes.** There is a PAUSE button at the top-left: 44 px on touch,
   32 px otherwise, and none on Studio-compact roots, which rely on the Roblox
   menu. Opening the Roblox menu (`GuiService.MenuOpened`) or losing window
-  focus (`WindowFocusReleased`) also pauses. Every pause sends
+  focus (`WindowFocusReleased`) also pauses. In Studio, focus-loss pausing
+  is off unless `Workspace:SetAttribute("SkybreakAutoPause", true)`, so
+  scripted pilots keep flying when the Studio window loses focus. Every pause sends
   `CombatAction {action:"Pause"}`. RESUME sends `{action:"Resume"}`, and only
   an explicit press resumes. While paused, the controller unbinds its
   ContextActionService keys so the gamepad can navigate the card, freezes the
@@ -152,7 +154,7 @@ stick-vector rules run in Roblox Jest specs and in the offline Luau runner
 2. With a missile inbound, EVADE pulses red, a press rolls the jet, and one
    pip goes dark. The ring then refills over 12 s (needs the workstream A
    server).
-3. PAUSE, Esc and app backgrounding each show the dim card and freeze the
+3. PAUSE, Esc and (with `SkybreakAutoPause` set in Studio) window focus loss each show the dim card and freeze the
    clock (server half from workstream A). RESUME continues with no snap. MAIN
    MENU ends the sortie.
 4. Fly low toward a mesa at full throttle. `TERRAIN · PULL UP` appears about

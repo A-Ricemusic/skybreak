@@ -2098,7 +2098,11 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	// Auto-pause when the Roblox menu opens (Esc, the menu button, the gamepad Start menu) or the app loses focus.
 	useEffect(() => {
 		const menuOpened = GuiService.MenuOpened.Connect(pauseSortie);
-		const focusLost = UserInputService.WindowFocusReleased.Connect(pauseSortie);
+		// Studio playtests (scripted pilots) lose window focus constantly; there, focus-loss pausing
+		// is opt-in with Workspace attribute SkybreakAutoPause = true. Live clients always pause.
+		const focusLost = UserInputService.WindowFocusReleased.Connect(() => {
+			if (!RunService.IsStudio() || Workspace.GetAttribute("SkybreakAutoPause") === true) pauseSortie();
+		});
 		// P pauses and resumes on a keyboard (a deliberate press, like the RESUME button).
 		const key = UserInputService.InputBegan.Connect((input, processed) => {
 			if (processed || input.KeyCode !== Enum.KeyCode.P || screenRef.current !== "mission" || UserInputService.GetFocusedTextBox()) return;
