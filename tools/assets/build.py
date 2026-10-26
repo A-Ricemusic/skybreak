@@ -15,8 +15,9 @@ import skyasset  # noqa: E402
 import aircraft  # noqa: E402
 import aircraft_v2  # noqa: E402
 import world  # noqa: E402
+import infrastructure  # noqa: E402
 
-BUILDERS = {**aircraft.BUILDERS, **aircraft_v2.BUILDERS, **world.BUILDERS}
+BUILDERS = {**aircraft.BUILDERS, **aircraft_v2.BUILDERS, **world.BUILDERS, **infrastructure.BUILDERS}
 
 
 def main() -> None:

@@ -418,6 +418,8 @@ class Asset:
         self.weighted_normals = weighted_normals
         # Delivery parts rendered see-through in previews (the game sets their Transparency).
         self.glass_parts = tuple(glass_parts)
+        # Extra checklist fields (e.g. a backdrop ridge's measured crest height), merged into checklist.json.
+        self.extra: dict = {}
         reset()
 
     # Materials -------------------------------------------------------------
@@ -848,6 +850,7 @@ class Asset:
             "checks": checks,
             "allChecksTrue": all(c["value"] for c in checks.values()),
         }
+        record.update(self.extra)
         if hinges:
             record["controlSurfaces"] = hinges
         if attachments:
