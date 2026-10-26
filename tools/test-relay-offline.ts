@@ -4,7 +4,7 @@ import {mkdir} from "node:fs/promises";
 import {resolve} from "node:path";
 const root=resolve(import.meta.dir,".."),dest=resolve(root,"build/offline-relay");
 await mkdir(dest,{recursive:true});
-const files=["shared/CinematicInput","tests/CinematicInput.spec","shared/CinematicStaging","tests/CinematicStaging.spec","shared/NavigationPilot","shared/FlightMath","shared/MissionCatalog","shared/BlueprintRunner","shared/MissionLayouts","shared/RelayStory","shared/GameConfig","shared/MissionScore","shared/WeaponRules","shared/SpecialWeapons","shared/ExplosionFx","tests/ExplosionFx.spec","shared/EngineFx","tests/EngineFx.spec","shared/ImpactFeedback","tests/ImpactFeedback.spec","server/CampaignRepository","tests/RelayCampaign.spec","tests/BlueprintProgress.spec"];
+const files=["shared/CinematicInput","tests/CinematicInput.spec","shared/CinematicStaging","tests/CinematicStaging.spec","shared/NavigationPilot","shared/FlightMath","shared/MissionCatalog","shared/BlueprintRunner","shared/MissionLayouts","shared/RelayStory","shared/GameConfig","shared/Difficulty","shared/MissionScore","tests/Difficulty.spec","shared/WeaponRules","shared/SpecialWeapons","shared/ExplosionFx","tests/ExplosionFx.spec","shared/EngineFx","tests/EngineFx.spec","shared/ImpactFeedback","tests/ImpactFeedback.spec","server/CampaignRepository","tests/RelayCampaign.spec","tests/BlueprintProgress.spec"];
 for(const file of files){
 	let source=await Bun.file(resolve(root,`out/${file}.luau`)).text();
 	source=source.split("\n").filter(line=>!line.startsWith("local TS = require(")).map(line=>{
@@ -31,7 +31,7 @@ return { expect=expect,
  it=function(name,fn) local ok,err=pcall(fn);if ok then passed+=1;print("PASS "..name) else failed+=1;print("FAIL "..name..": "..tostring(err)) end end,
  result=function() print("OFFLINE_LUAU_RESULT passed="..passed.." failed="..failed);assert(failed==0,"Offline domain contracts failed") end }
 `);
-await Bun.write(resolve(dest,"run.luau"),'require("./RelayCampaign.spec")\nrequire("./BlueprintProgress.spec")\nrequire("./CinematicInput.spec")\nrequire("./CinematicStaging.spec")\nrequire("./ExplosionFx.spec")\nrequire("./EngineFx.spec")\nrequire("./ImpactFeedback.spec")\nrequire("./OfflineAssertions").result()\n');
+await Bun.write(resolve(dest,"run.luau"),'require("./RelayCampaign.spec")\nrequire("./BlueprintProgress.spec")\nrequire("./CinematicInput.spec")\nrequire("./CinematicStaging.spec")\nrequire("./ExplosionFx.spec")\nrequire("./EngineFx.spec")\nrequire("./ImpactFeedback.spec")\nrequire("./Difficulty.spec")\nrequire("./OfflineAssertions").result()\n');
 const executable=process.env.LUAU_BIN ?? resolve(root,"build/offline-luau/luau");
 if(!(await Bun.file(executable).exists()))throw new Error("Set LUAU_BIN to the official Luau CLI. See docs/broken-relay.md. No Studio fallback will run.");
 const proc=Bun.spawn([executable,resolve(dest,"run.luau")],{cwd:root,stdout:"pipe",stderr:"pipe"});

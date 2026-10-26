@@ -3,6 +3,7 @@ import { MissionCatalog, MISSION_COUNT } from "../shared/MissionCatalog";
 import { MissionRank, MissionScore, RANK_ORDER } from "../shared/MissionScore";
 import { MissionFinished, MissionRecord, MissionStats, Persistence, SaveSlot } from "../shared/Types";
 import { SpecialWeapons } from "../shared/SpecialWeapons";
+import { Difficulty } from "../shared/Difficulty";
 
 export interface StoredMissionRecord {
 	completed?: unknown;
@@ -30,6 +31,8 @@ export interface StoredSlot {
 	generation?: unknown;
 	/** Last special weapon equipped from this slot's briefing. */
 	special?: unknown;
+	/** Last difficulty chosen from this slot's briefing. */
+	difficulty?: unknown;
 }
 
 export interface StoredProfile {
@@ -261,6 +264,7 @@ export function normalizeSlot(raw: unknown, index: number, legacyV1 = false): Sa
 	slot.cutscenesSeen = readCutsceneSet(source.cutscenesSeen);
 	slot.generation = isFiniteNumber(source.generation) && source.generation > 0 ? math.floor(source.generation) : 0;
 	if (SpecialWeapons.IsKind(source.special)) slot.special = source.special;
+	if (Difficulty.IsKind(source.difficulty)) slot.difficulty = source.difficulty;
 	return slot;
 }
 
@@ -346,6 +350,8 @@ export function mergeSlot(storedRaw: unknown, desiredRaw: unknown, index: number
 	const desiredNewer = (desired.updatedAt ?? 0) >= (stored.updatedAt ?? 0);
 	const special = desiredNewer ? desired.special ?? stored.special : stored.special ?? desired.special;
 	if (special !== undefined) merged.special = special;
+	const difficulty = desiredNewer ? desired.difficulty ?? stored.difficulty : stored.difficulty ?? desired.difficulty;
+	if (difficulty !== undefined) merged.difficulty = difficulty;
 	return merged;
 }
 
@@ -389,6 +395,7 @@ export function serializeProfile(profile: CampaignProfile): StoredProfile {
 		if (source.mission2BestTime !== undefined) stored.mission2BestTime = source.mission2BestTime;
 		if (source.updatedAt !== undefined) stored.updatedAt = source.updatedAt;
 		if (source.special !== undefined) stored.special = source.special;
+		if (source.difficulty !== undefined) stored.difficulty = source.difficulty;
 		slots.set(tostring(index), stored);
 	}
 	return { version: SAVE_VERSION, slots };
@@ -459,6 +466,7 @@ export function completeMission(
 		missilesFired: counter(stats.missilesFired),
 		missileHits: counter(stats.missileHits),
 		damageTaken: counter(stats.damageTaken),
+		difficulty: Difficulty.Coerce(stats.difficulty),
 	});
 	const result = coordinator.recordMissionResult(activeSlot, missionId, qualifiedWin, stats.kills, elapsed, { score: scored.score, rank: scored.rank });
 	// Give the cloud write a short window so the result screen can confirm the save.
@@ -487,6 +495,7 @@ export function completeMission(
 		newBestRank: result.newBestRank,
 		bestScore: result.bestScore,
 		bestRank: result.bestRank,
+		difficulty: Difficulty.Coerce(stats.difficulty),
 	});
 	return true;
 }
@@ -546,12 +555,13 @@ export class CampaignCoordinator {
 		return this.persistence === "cloud" && !this.dirty;
 	}
 
-	public recordMissionStarted(slotIndex: number, missionId = 1, special?: unknown): void {
+	public recordMissionStarted(slotIndex: number, missionId = 1, special?: unknown, difficulty?: unknown): void {
 		assert(isValidSlot(slotIndex), "invalid campaign slot");
 		assert(isValidMission(missionId), "invalid campaign mission");
 		const slot = this.profile.slots[slotIndex - 1];
 		slot.occupied = true;
 		if (SpecialWeapons.IsKind(special)) slot.special = special;
+		if (Difficulty.IsKind(difficulty)) slot.difficulty = difficulty;
 		slot.currentMission = math.max(slot.currentMission ?? 1, missionId);
 		slot.updatedAt = this.now();
 		this.markDirty();

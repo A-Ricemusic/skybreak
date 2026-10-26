@@ -3,6 +3,7 @@ import { GameConfig } from "../shared/GameConfig";
 import { MISSION_COUNT } from "../shared/MissionCatalog";
 import { CampaignResponse, FinishedCallback, Remotes } from "../shared/Types";
 import { SpecialWeapons } from "../shared/SpecialWeapons";
+import { Difficulty } from "../shared/Difficulty";
 import {
 	CampaignCoordinator,
 	CampaignStore,
@@ -14,7 +15,7 @@ import {
 } from "./CampaignRepository";
 
 interface CombatApi {
-	StartMission(player: Player, slot: number, missionId?: number, special?: unknown): LuaTuple<[boolean, string?]>;
+	StartMission(player: Player, slot: number, missionId?: number, special?: unknown, difficulty?: unknown): LuaTuple<[boolean, string?]>;
 	EndMission(player: Player): void;
 	GetSession(player: Player): unknown;
 }
@@ -132,6 +133,7 @@ function startMission(state: PlayerState, payload: unknown): CampaignResponse {
 	const slot = typeIs(payload, "table") ? (payload as { slot?: unknown }).slot : undefined;
 	const requestedMission = typeIs(payload, "table") ? (payload as { missionId?: unknown }).missionId : undefined;
 	const requestedSpecial = typeIs(payload, "table") ? (payload as { special?: unknown }).special : undefined;
+	const requestedDifficulty = typeIs(payload, "table") ? (payload as { difficulty?: unknown }).difficulty : undefined;
 	if (!isValidSlot(slot)) return response(state, false, "Choose a valid campaign slot (1-4).");
 	if (!waitForLoad(state)) return response(state, false, "Campaign data is still loading. Please try again.");
 	if (state.coordinator.getPersistence() === "unavailable") {
@@ -144,6 +146,8 @@ function startMission(state: PlayerState, payload: unknown): CampaignResponse {
 	if (requestedSpecial !== undefined && !SpecialWeapons.IsKind(requestedSpecial)) return response(state, false, "Choose a valid special weapon.");
 	// No choice sent: the slot's last loadout, then the default.
 	const special = SpecialWeapons.IsKind(requestedSpecial) ? requestedSpecial : SpecialWeapons.IsKind(saveSlot.special) ? saveSlot.special : SpecialWeapons.Default;
+	if (requestedDifficulty !== undefined && !Difficulty.IsKind(requestedDifficulty)) return response(state, false, "Choose a valid difficulty.");
+	const difficulty = Difficulty.IsKind(requestedDifficulty) ? requestedDifficulty : Difficulty.IsKind(saveSlot.difficulty) ? saveSlot.difficulty : Difficulty.Default;
 
 	const [sessionOk, existingSession] = pcall(() => combatService!.GetSession(state.player));
 	if (!sessionOk) {
@@ -152,7 +156,7 @@ function startMission(state: PlayerState, payload: unknown): CampaignResponse {
 	}
 	if (existingSession !== undefined || state.activeSlot !== undefined || state.activeMission !== undefined) return response(state, false, "A mission is already in progress.");
 
-	const [startedCallOk, started, startError] = pcall(() => combatService!.StartMission(state.player, slot, missionId, special));
+	const [startedCallOk, started, startError] = pcall(() => combatService!.StartMission(state.player, slot, missionId, special, difficulty));
 	if (!startedCallOk) {
 		warn(`SKYBREAK mission start failed: ${tostring(started)}`);
 		return response(state, false, "The mission could not be started.");
@@ -161,7 +165,7 @@ function startMission(state: PlayerState, payload: unknown): CampaignResponse {
 
 	state.activeSlot = slot;
 	state.activeMission = missionId;
-	state.coordinator.recordMissionStarted(slot, missionId, special);
+	state.coordinator.recordMissionStarted(slot, missionId, special, difficulty);
 	// The briefing chapter for this mission plays once per slot; retries and replays launch directly.
 	state.coordinator.recordCutsceneSeen(slot, missionId - 1);
 	return response(state, true);

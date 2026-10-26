@@ -13,6 +13,7 @@ import { TelemetryCodec } from "../shared/TelemetryCodec";
 import { LoadingGate, LoadingGateState } from "../shared/LoadingGate";
 import { ActionGateState, FireNotice, WeaponRules } from "../shared/WeaponRules";
 import { SalvoCandidate, SpecialKind, SpecialState, SpecialWeapons } from "../shared/SpecialWeapons";
+import { Difficulty, DifficultyKind, DifficultyKnob } from "../shared/Difficulty";
 import { MissionWorld } from "./MissionWorld";
 
 type EnemyMode = "attack" | "extend" | "orbit" | "run";
@@ -58,6 +59,8 @@ export interface CombatSession {
 	evadeCooldown: number; evadeRemaining: number; regen: number; lockProgress: number;
 	/** Second weapon slot chosen at the briefing; authoritative charges, cooldown and effect timer. */
 	special: SpecialState;
+	/** Level chosen at the briefing; scales the act tuning through `tuned()` and enemy health. */
+	difficulty: DifficultyKind;
 	enemies: Enemy[]; projectiles: Projectile[]; target?: Enemy; telemetryTime: number;
 	lastInput: number; lastInputEvent: number; active: boolean; finished: boolean; cleaned: boolean;
 	/** Per-action-kind rate limiting for CombatAction events. */
@@ -125,8 +128,19 @@ const FLARE_RADIUS = 260;
 function sessionAct(session: CombatSession): 1 | 2 | 3 {
 	return session.missionId <= 2 ? 1 : session.blueprint!.act;
 }
+// Which difficulty knob scales each act-indexed TUNING table; tables absent here are not scaled.
+const TUNING_KNOBS = new Map<number[], DifficultyKnob>([
+	[TUNING.hostileDamage, "hostileDamage"],
+	[TUNING.windup, "windup"],
+	[TUNING.hostileGate, "hostileGate"],
+	[TUNING.aceGate, "hostileGate"],
+	[TUNING.missileTurn, "missileTurn"],
+]);
+/** The act's value from a TUNING table, scaled for the session's difficulty. */
 function tuned(session: CombatSession, values: number[]): number {
-	return values[sessionAct(session) - 1];
+	const value = values[sessionAct(session) - 1];
+	const knob = TUNING_KNOBS.get(values);
+	return knob === undefined ? value : Difficulty.Scale(session.difficulty, knob, value);
 }
 function remote<K extends keyof Remotes>(remotes: Remotes | Instance, name: K): Remotes[K] {
 	if (typeIs(remotes, "Instance")) return remotes.WaitForChild(name) as Remotes[K];
@@ -417,6 +431,7 @@ function finish(session: CombatSession): void {
 		damageTaken: session.damageTaken,
 		lowestHealth: session.lowestHealth,
 		evades: session.evades,
+		difficulty: session.difficulty,
 	};
 	const callback = onFinished!;
 	task.defer(() => {
@@ -461,7 +476,7 @@ function beginPlay(session: CombatSession): void {
 	session.stateTime = 0;
 	session.hud = undefined; // the first HUD message after Started is always complete
 	if (session.player.Parent !== Players) { cleanupSession(session); return; }
-	missionState!.FireClient(session.player, { kind: "Started", slot: session.slot, missionId: session.missionId, aircraft: session.aircraft });
+	missionState!.FireClient(session.player, { kind: "Started", slot: session.slot, missionId: session.missionId, aircraft: session.aircraft, difficulty: session.difficulty });
 	if (refreshSession(session, now)) { sendTelemetry(session); sendFlightState(session); }
 }
 function markTarget(session: CombatSession, enemy: Enemy): void {
@@ -523,7 +538,7 @@ function spawnAir(session: CombatSession, count: number, required: boolean, ace 
 		const direction = unitOr(positionFor(session.state).sub(position), forward.mul(-1));
 		model.Parent = session.folder;
 		model.PivotTo(CFrame.lookAt(position, position.add(direction)));
-		const health = ace ? aceHealth : required ? TUNING.banditHealth[act - 1] : 100;
+		const health = math.floor(ace ? Difficulty.Scale(session.difficulty, "aceHealth", aceHealth) : Difficulty.Scale(session.difficulty, "banditHealth", required ? TUNING.banditHealth[act - 1] : 100));
 		const enemy: Enemy = {
 			id: `air_${session.enemies.size() + 1}_${missionSerial}`, name, model, health, maxHealth: health,
 			position, direction, velocity: direction.mul(300), kind: ace ? "ace" : "air", required, enabled: true,
@@ -1118,12 +1133,14 @@ export const CombatService = {
 	},
 	GetSession(player: Player): CombatSession | undefined { return sessions.get(player); },
 	IsActive(player: Player): boolean { return sessions.get(player)?.active ?? false; },
-	StartMission(player: Player, slot: number, missionId = 1, special?: unknown): LuaTuple<[boolean, string?]> {
+	StartMission(player: Player, slot: number, missionId = 1, special?: unknown, difficulty?: unknown): LuaTuple<[boolean, string?]> {
 		if (!missionState || !onFinished) return $tuple(false, "CombatService is not initialized");
 		if (!FlightMath.IsFinite(slot) || slot % 1 !== 0 || slot < 1 || slot > 4) return $tuple(false, "Choose a save slot from 1 to 4");
 		if (!MissionCatalog.IsValidId(missionId)) return $tuple(false, "Choose a valid mission");
 		if (special !== undefined && !SpecialWeapons.IsKind(special)) return $tuple(false, "Choose a valid special weapon");
 		const specialKind: SpecialKind = SpecialWeapons.IsKind(special) ? special : SpecialWeapons.Default;
+		if (difficulty !== undefined && !Difficulty.IsKind(difficulty)) return $tuple(false, "Choose a valid difficulty");
+		const difficultyKind: DifficultyKind = Difficulty.Coerce(difficulty);
 		if (!typeIs(player, "Instance") || !player.IsA("Player") || player.Parent !== Players) return $tuple(false, "Player is unavailable");
 		if (completing.has(player)) return $tuple(false, "Your mission result is still being saved");
 		if (sessions.has(player)) return $tuple(false, "A mission is already in progress or its result is being saved");
@@ -1157,6 +1174,7 @@ export const CombatService = {
 				input: { x: 0, y: 0, throttle: 0.65 }, health: 100, kills: 0, elapsed: 0,
 				missiles: MAX_MISSILES, missileCooldown: 0, evadeCooldown: 0, evadeRemaining: 0, regen: 0, lockProgress: 0,
 				special: SpecialWeapons.New(specialKind),
+				difficulty: difficultyKind,
 				enemies: [], projectiles: [], telemetryTime: 0, lastInput: os.clock(), lastInputEvent: -math.huge,
 				active: true, finished: false, cleaned: false, previousReplicationFocus: player.ReplicationFocus,
 				inputClientTime: 0, inputFresh: false, inputSteps: 0, stateTime: 0, stateSequence: 0, telemetrySequence: 0,

@@ -1,5 +1,6 @@
 // Pure post-mission scoring shared by the server (authoritative score, saved bests)
 // and the debrief screen. Nothing here reads instances or the clock.
+import { Difficulty, DifficultyKind } from "./Difficulty";
 import { MissionBlueprint, MissionPhaseBlueprint } from "./MissionCatalog";
 
 export type MissionRank = "S" | "A" | "B" | "C" | "D";
@@ -18,6 +19,8 @@ export interface ScoreInput {
 	missileHits: number;
 	/** Hull points lost (the hull starts at 100). */
 	damageTaken: number;
+	/** Level the sortie was flown on; scales the score (not the rank). Absent or unknown means Normal. */
+	difficulty?: DifficultyKind | string;
 }
 
 export interface ScoreResult {
@@ -91,14 +94,17 @@ export const MissionScore = {
 		const accuracy = fired > 0 ? hits / fired : 1;
 		const survival = 1 - damage / 100;
 		const killPoints = airKills * AIR_POINTS + groundKills * GROUND_POINTS;
-		if (!input.won) return { score: killPoints, rank: "D", rating: 0, time, accuracy, survival };
+		// Ace earns a modest bonus and Easy a small penalty on points only; the rank still reads the flying.
+		const difficulty = Difficulty.Coerce(input.difficulty);
+		const scaled = (points: number) => math.floor(Difficulty.Scale(difficulty, "score", points) + 1e-6);
+		if (!input.won) return { score: scaled(killPoints), rank: "D", rating: 0, time, accuracy, survival };
 
 		const rating = math.floor(WEIGHT_TIME * time + WEIGHT_ACCURACY * accuracy + WEIGHT_SURVIVAL * survival + 1e-6);
 		let rank: MissionRank = "D";
 		for (const cut of RANK_CUTS) {
 			if (rating >= cut.rating) { rank = cut.rank; break; }
 		}
-		return { score: killPoints + rating * RATING_POINTS, rank, rating, time, accuracy, survival };
+		return { score: scaled(killPoints + rating * RATING_POINTS), rank, rating, time, accuracy, survival };
 	},
 
 	IsRank(value: unknown): value is MissionRank {
