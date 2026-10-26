@@ -87,6 +87,7 @@ type Screen = "title" | "slots" | "briefing" | "loading" | "mission" | "outcome"
 const NO_MENU_CAMERA: ReadonlySet<Screen> = new Set<Screen>(["mission", "cinematic", "loading"]);
 // If "Started" never follows "Loading" (server holds for at most ~8 s), fall back to the briefing.
 const LOADING_CLIENT_TIMEOUT = 20;
+const MISSION_END_HOLD = 1.2;
 
 interface ToastState {
 	message: string;
@@ -2080,7 +2081,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	}, [goBack, selectDefault]);
 
 	useEffect(() => {
-		const connection = remotes.MissionState.OnClientEvent.Connect((raw: unknown) => {
+		const onMissionState = (raw: unknown, held = false): void => {
 			if (!mountedRef.current || !typeIs(raw, "table")) return;
 			const payload = raw as MissionMessage;
 			if (payload.kind === "Loading") {
@@ -2157,6 +2158,12 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				}
 			} else if (payload.kind === "Completed" || payload.kind === "Failed") {
 				if (!inMissionRef.current) return;
+				if (!held) {
+					// Hold the flight view so the last kill callout, the ace hit-stop or the player's own explosion plays out first.
+					const serial = loadingSerialRef.current;
+					task.delay(MISSION_END_HOLD, () => { if (loadingSerialRef.current === serial) onMissionState(raw, true); });
+					return;
+				}
 				const finished = payload as MissionFinished;
 				releaseJoystick();
 				controller.Stop();
@@ -2214,7 +2221,8 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					saveColor: won && finished.saved === true && resultPersistence === "cloud" ? C.Accent : resultPersistence === "cloud" ? C.Muted : C.Orange,
 				});
 			}
-		});
+		};
+		const connection = remotes.MissionState.OnClientEvent.Connect((raw: unknown) => onMissionState(raw));
 		// HUD numbers (10 Hz, unreliable) and text/target changes (reliable HudState) are
 		// merged by the controller, which already folds in its locally predicted
 		// boundary warning; the HUD re-renders once per merged update.

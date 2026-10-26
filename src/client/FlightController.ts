@@ -9,6 +9,7 @@ import { WeaponRules } from "../shared/WeaponRules";
 import { EngineFx } from "../shared/EngineFx";
 import { EngineRig, JetFactory } from "../shared/JetFactory";
 import { CameraShake } from "./CameraShake";
+import { CombatEffects } from "./CombatEffects";
 import { EnemySmoothing } from "./EnemySmoothing";
 import { MissileTrails } from "./MissileTrails";
 
@@ -142,6 +143,9 @@ export class FlightController {
 	private cameraFrame = new CFrame();
 	/** Hit-stop FOV punch included in the camera's current FieldOfView. */
 	private fovKick = 0;
+	/** Set when the player's jet explodes: the camera holds on the blast until the debrief takes over. */
+	private downAt?: Vector3;
+	private stopExplosions?: () => void;
 	private visual?: Model;
 	private visualRoot?: BasePart;
 	private previousCamera?: PreviousCamera;
@@ -471,6 +475,14 @@ export class FlightController {
 		const camera = Workspace.CurrentCamera;
 		const predictor = this.predictor;
 		if (!this.active || !camera || !predictor) return;
+		const downAt = this.downAt;
+		if (downAt) {
+			const impact = CameraShake.Step(dt);
+			this.cameraFrame = this.cameraFrame.Lerp(CFrame.lookAt(this.cameraFrame.Position, downAt), FlightMath.DampAlpha(6, dt));
+			camera.CFrame = this.cameraFrame.mul(impact.offset);
+			this.enemies.Step(dt);
+			return;
+		}
 		const now = os.clock();
 		this.input(dt);
 		const input = this.frameInput;
@@ -582,10 +594,21 @@ export class FlightController {
 		this.connections.push(UserInputService.GamepadDisconnected.Connect(clearInput));
 		this.connections.push(UserInputService.WindowFocusReleased.Connect(clearInput));
 		RunService.BindToRenderStep(this.renderName, Enum.RenderPriority.Camera.Value + 1, (dt) => this.render(dt));
+		// Fireball diameter in studs -> shake scale (an air kill's 26-stud fireball is 1).
+		this.stopExplosions = CombatEffects.OnExplosion((position, size, kind) => {
+			if (!this.active) return;
+			if (kind === "player") {
+				this.downAt = position;
+				this.visual?.Destroy(); this.visual = undefined; this.visualRoot = undefined; this.engine = undefined;
+				CameraShake.Add(0.8);
+			} else CameraShake.Explosion(position, size / 26);
+		});
 		return true;
 	}
 	public Stop(): void {
 		this.active = false;
+		this.downAt = undefined;
+		this.stopExplosions?.(); this.stopExplosions = undefined;
 		RunService.UnbindFromRenderStep(this.renderName);
 		ContextActionService.UnbindAction(this.actionName);
 		for (const connection of this.connections) connection.Disconnect();
