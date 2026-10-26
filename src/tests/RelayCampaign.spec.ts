@@ -3,6 +3,7 @@ import {NavigationPilot} from "../shared/NavigationPilot";
 import {FlightMath} from "../shared/FlightMath";
 import {BlueprintRunner} from "../shared/BlueprintRunner";
 import {MissionCatalog,MISSIONS,FlightPoint,MissionPhaseBlueprint} from "../shared/MissionCatalog";
+import {MissionPacing} from "../shared/MissionPacing";
 import {MissionScore} from "../shared/MissionScore";
 import {AirRequest,WavePlan} from "../shared/WavePlan";
 import {GameConfig} from "../shared/GameConfig";
@@ -72,6 +73,7 @@ describe("Broken Relay campaign contracts",()=>{
 					if(p.ceiling!==undefined)expect(p.ceiling>=230).toBe(true);
 				}
 				// Every phase carries a radio beat the HUD can show when it starts.
+				if(p.parkedEscort){expect(p.kind).toBe("recon");expect(p.parkedEscort.y>=40).toBe(true);}
 				expect(p.beat!==undefined && p.beat.size()>0 && p.beat.size()<=80).toBe(true);
 				for(const line of p.chatter ?? []){expect(line.at>=0 && line.at<=1).toBe(true);expect(line.text.size()>0 && line.text.size()<=80).toBe(true);}
 				if(p.reinforce){
@@ -80,8 +82,8 @@ describe("Broken Relay campaign contracts",()=>{
 					for(const wave of p.reinforce){expect(wave.at>previous && wave.at<1).toBe(true);expect(wave.count>=1).toBe(true);previous=wave.at;sum+=wave.count;}
 					expect(sum<=(p.optionalRaiders ?? 0)).toBe(true);
 				}
-				// Holds are the sortie's long objectives: escorts and defends run 90-150 s.
-				if(p.kind==="escort" || p.kind==="defend")expect(p.seconds!>=90 && p.seconds!<=150).toBe(true);
+				// Short handoffs complement the longer opening holds; none exceeds two minutes.
+				if(p.kind==="escort" || p.kind==="defend")expect(p.seconds!>=30 && p.seconds!<=120).toBe(true);
 				if(p.groups!==undefined){expect(p.kind).toBe("required_air");expect(p.groups>=1 && p.groups<=(p.count ?? 0)).toBe(true);}
 				if(p.hazard){expect(p.hazard.at>=0 && p.hazard.at<1).toBe(true);expect(p.hazard.text.size()<=100).toBe(true);expect(p.twist?.mode==="now").toBe(false);}
 				if(p.twist){
@@ -102,14 +104,14 @@ describe("Broken Relay campaign contracts",()=>{
 			const ace=bp.phases.find((p)=>p.kind==="ace");
 			if(ace && bp.id>=3){
 				expect(bp.aceName!==undefined).toBe(true);expect(bp.aceStages?.size()).toBe(2);expect(bp.aceReturns?.size()).toBe(2);
-				expect((bp.aceHealth ?? 0)>=220).toBe(true);expect((ace.optionalRaiders ?? 0)>=2).toBe(true);
+				expect((bp.aceHealth ?? 0)>=200).toBe(true);expect((ace.optionalRaiders ?? 0)>=2).toBe(true);
 			}
 			if(bp.id>=3)expect(bp.phases.some((p)=>p.points!==undefined)).toBe(true);
 			signatures.add(bp.phases.map((p)=>`${p.kind}:${p.count ?? p.seconds ?? 0}`).join("/"));
 		}
 		expect(compositions.size()).toBe(27);expect(names.size()).toBe(27);expect(signatures.size()>=18).toBe(true);
 		// Ace tuning (round 2: three-stage fights) and mid-phase reinforcements on every hold.
-		expect(MissionCatalog.Get(9).aceHealth).toBe(300);expect(MissionCatalog.Get(18).aceHealth).toBe(400);expect(MissionCatalog.Get(27).aceHealth).toBe(500);
+		expect(MissionCatalog.Get(9).aceHealth).toBe(200);expect(MissionCatalog.Get(18).aceHealth).toBe(260);expect(MissionCatalog.Get(27).aceHealth).toBe(320);
 		for(const [id,kind] of [[5,"escort"],[8,"defend"],[12,"escort"],[20,"escort"],[23,"defend"],[25,"escort"]] as [number,string][]){
 			const phase=MissionCatalog.Get(id).phases.find((p)=>p.kind===kind)!;
 			expect((phase.optionalRaiders ?? 0)>=4).toBe(true);expect((phase.reinforce?.size() ?? 0)>=1).toBe(true);
@@ -172,8 +174,8 @@ describe("Broken Relay campaign contracts",()=>{
 		// These phases fill the live-aircraft budget with bandits alone, so a raider wave would only be held back.
 		const budgetFull=new Set<string>(["20:Shatter the eastern wing"]);
 		// Phases whose own demand (timer overlap with no kills) passes the budget: the server holds the excess back.
-		const overNormal=new Set<string>(["20:Shatter the eastern wing","21:Hold off the escort flight"]);
-		const overAce=new Set<string>(["20:Shatter the eastern wing","21:Hold off the escort flight","23:Defend the command frigate"]);
+		const overNormal=new Set<string>(["20:Shatter the eastern wing"]);
+		const overAce=new Set<string>(["20:Shatter the eastern wing","23:Defend the command frigate"]);
 		const seen=new Set<string>();
 		for(const bp of MISSIONS){
 			if(bp.id<=2)continue; // the legacy missions keep their original flows
@@ -194,16 +196,25 @@ describe("Broken Relay campaign contracts",()=>{
 		}
 		expect(seen.size()).toBe(budgetFull.size());
 	});
-	it("paces the campaign: a gentle rim, a rising plateau with twists, a long coast and finales that close their acts",()=>{
-		// Par is a good human run (about 1.3x the scripted pilot); an average phone pilot takes ~1.2-1.4x par.
+	it("authors 4-7 alternating beats in the act time bands, with finales that close their acts",()=>{
+		// Par rewards a good run; the average-phone estimate also accounts for acquisition and drift.
 		const par=(id: number)=>MissionScore.ParSeconds(MissionCatalog.Get(id));
 		const average=(act: 1 | 2 | 3)=>{let sum=0,n=0;for(const bp of MissionCatalog.ByAct(act))if(bp.id>=3){sum+=par(bp.id);n+=1;}return sum/n;};
 		let twists=0;const twistTexts=new Set<string>();
 		for(const bp of MissionCatalog.All()){
 			const value=par(bp.id);
 			if(bp.id<=2)continue;
-			if(bp.act===1)expect(value>=120 && value<=260).toBe(true);
-			else expect(value>=200 && value<=380).toBe(true);
+			expect(value >= 180 && value <= 450).toBe(true);
+			const estimate=MissionPacing.EstimateSeconds(bp);
+			expect(estimate >= (bp.act+3)*60 && estimate <= (bp.act+4)*60).toBe(true);
+			const flow=MissionCatalog.ExpandedPhases(bp);
+			expect(flow.size()>=4 && flow.size()<=7).toBe(true);
+			const kinds=new Set<string>(),labels=new Set<string>();
+			for(let beat=0;beat<flow.size();beat++){
+				kinds.add(flow[beat].kind);labels.add(flow[beat].label);
+				if(beat>0)expect(flow[beat].kind!==flow[beat-1].kind).toBe(true);
+			}
+			expect(kinds.size()>=4).toBe(true);expect(labels.size()).toBe(flow.size());
 			if(bp.act===2){
 				for(const p of bp.phases)if(p.twist){twists+=1;twistTexts.add(p.twist.text);}
 				// Every plateau sortie springs a surprise: a twist, a hazard or a mid-phase reinforcement wave.
@@ -216,23 +227,23 @@ describe("Broken Relay campaign contracts",()=>{
 		// The curve rises act over act, and each act finale runs longer than its act's average sortie.
 		expect(average(2)>average(1)).toBe(true);expect(average(3)>=average(2)-15).toBe(true);
 		expect(par(9)>=average(1)).toBe(true);expect(par(18)>=average(2)).toBe(true);expect(par(27)>=average(3)).toBe(true);
-		// Required air grows by act: Act III asks for far more bandits than Act I.
+		// Later sorties add work without doubling the combat target count.
 		let actOne=0,actThree=0;
 		for(const bp of MissionCatalog.ByAct(1))if(bp.id>=3)actOne+=MissionCatalog.RequiredAirKills(bp);
 		for(const bp of MissionCatalog.ByAct(3))actThree+=MissionCatalog.RequiredAirKills(bp);
-		expect(actThree>=actOne*2).toBe(true);
+		expect(actThree < actOne*2).toBe(true);
 		// Twists change the objective in distinct ways across the act; M15's jammers are now ground targets that freeze the link.
-		expect(MissionCatalog.Get(10).phases[1].twist?.mode).toBe("now");expect(MissionCatalog.Get(10).phases[1].twist?.insert[0].kind).toBe("required_air");
-		expect(MissionCatalog.Get(12).phases[0].twist?.insert[0].kind).toBe("escort");
+		expect(MissionCatalog.Get(10).phases[0].twist?.mode).toBe("now");expect(MissionCatalog.Get(10).phases[0].twist?.insert[0].kind).toBe("required_air");
+		expect(MissionCatalog.Get(12).phases[0].twist?.insert[0].kind).toBe("recon");
 		expect(MissionCatalog.Get(15).phases[0].hazard?.effect).toBe("jam");
-		expect(MissionCatalog.Get(18).phases[2].twist?.insert[0].kind).toBe("defend");
+		expect(MissionCatalog.Get(18).phases.find((p)=>p.kind==="ace")!.twist?.insert[0].kind).toBe("defend");
 		// Second objectives on the formerly single-phase sorties (round-2 backlog item 9).
 		expect(MissionCatalog.Get(3).phases.filter((p)=>p.kind==="route").size()).toBe(2);
-		expect(MissionCatalog.Get(3).phases[2].ceiling).toBe(320);
+		expect(MissionCatalog.Get(3).phases.find((p)=>p.kind==="route" && p.ceiling!==undefined)!.ceiling).toBe(320);
 		expect(MissionCatalog.ExpandedPhases(MissionCatalog.Get(7)).some((p)=>p.kind==="chase" && p.seconds===90)).toBe(true);
-		expect(MissionCatalog.Get(8).phases[1].kind).toBe("required_ground");expect(MissionCatalog.Get(8).phases[1].count).toBe(2);
+		expect(MissionCatalog.Get(8).phases[2].kind).toBe("required_ground");expect(MissionCatalog.Get(8).phases[2].count).toBe(2);
 		expect(MissionCatalog.ExpandedPhases(MissionCatalog.Get(10)).some((p)=>p.directed===true && p.kind==="required_ground")).toBe(true);
-		expect(MissionCatalog.Get(20).phases[1].hazard?.effect).toBe("guns");expect(MissionCatalog.Get(20).phases[1].hazard?.count).toBe(2);
+		expect(MissionCatalog.Get(20).phases.find((p)=>p.kind==="escort")!.hazard?.effect).toBe("guns");expect(MissionCatalog.Get(20).phases.find((p)=>p.kind==="escort")!.hazard?.count).toBe(2);
 		expect(MissionCatalog.Get(23).phases[0].kind).toBe("defend");
 		expect(MissionCatalog.Get(26).phases[0].flank).toBe(true);expect(MissionCatalog.Get(26).phases[0].groups).toBe(2);
 	});
@@ -240,10 +251,10 @@ describe("Broken Relay campaign contracts",()=>{
 		// M10: the recon is cut short the moment the camp spots you (mode "now").
 		const recon=BlueprintRunner.NewState(MissionCatalog.Get(10),0);
 		const authored=MissionCatalog.Get(10).phases.size();
-		recon.phaseIndex=1;const scan=BlueprintRunner.ActivePhase(recon)!;expect(scan.kind).toBe("recon");
+		recon.phaseIndex=0;const scan=BlueprintRunner.ActivePhase(recon)!;expect(scan.kind).toBe("recon");
 		const point=BlueprintRunner.NavigationPoint(recon)!;let clock=0;
-		while(recon.phaseIndex===1 && clock<60){clock+=.1;BlueprintRunner.ObserveFlight(recon,point,point,.1,clock);}
-		expect(recon.phaseIndex).toBe(2);
+		while(recon.phaseIndex===0 && clock<60){clock+=.1;BlueprintRunner.ObserveFlight(recon,point,point,.1,clock);}
+		expect(recon.phaseIndex).toBe(1);
 		expect(math.abs(clock-scan.seconds!*scan.twist!.at)<.2).toBe(true);
 		expect(BlueprintRunner.Phases(recon).size()).toBe(authored+scan.twist!.insert.size());
 		expect(BlueprintRunner.ActivePhase(recon)!.label).toBe("Break the camp's intercept");
@@ -350,14 +361,28 @@ describe("Broken Relay campaign contracts",()=>{
 			expect(run.phaseIndex).toBe(index+1);
 		}
 	});
-	it("requires final broadcast after defeating the Marshal",()=>{
+	it("requires the landing scan, ace fight, climb and final broadcast in that order",()=>{
 		const bp=MissionCatalog.Get(27),state=BlueprintRunner.NewState(bp,0);
-		for(let i=0;i<3;i++)BlueprintRunner.RecordKill(state,`wing${i}`,"air",true,1+i);
+		for(let i=0;i<2;i++)BlueprintRunner.RecordKill(state,`wing${i}`,"air",true,1+i);
 		BlueprintRunner.RecordKill(state,"relay","ground",true,5);
 		expect(BlueprintRunner.RecordKill(state,"marshal","ace",true,6)).toBe(false);
-		for(let i=0;i<3;i++)BlueprintRunner.RecordKill(state,`escort${i}`,"air",true,7+i);
-		BlueprintRunner.RecordKill(state,"marshal","ace",true,10);
-		expect(state.outcome).toBeUndefined();expect(BlueprintRunner.ActivePhase(state)?.kind).toBe("signal");
+		for(let i=0;i<2;i++)BlueprintRunner.RecordKill(state,`escort${i}`,"air",true,7+i);
+		expect(BlueprintRunner.ActivePhase(state)?.kind).toBe("recon");
+		expect(BlueprintRunner.RecordKill(state,"marshal","ace",true,10)).toBe(false);
+		let now=10;
+		while(BlueprintRunner.ActivePhase(state)?.kind==="recon"){
+			const point=BlueprintRunner.NavigationPoint(state)!;now+=.1;
+			BlueprintRunner.ObserveFlight(state,point,point,.1,now);
+		}
+		expect(BlueprintRunner.RecordKill(state,"marshal","ace",true,now)).toBe(true);
+		expect(state.outcome).toBeUndefined();expect(BlueprintRunner.ActivePhase(state)?.kind).toBe("route");
+		while(BlueprintRunner.ActivePhase(state)?.kind==="route"){
+			const point=BlueprintRunner.NavigationPoint(state)!;now+=.1;
+			BlueprintRunner.ObserveFlight(state,point,point,.1,now);
+		}
+		expect(BlueprintRunner.ActivePhase(state)?.kind).toBe("signal");
+		expect(BlueprintRunner.ActivePhase(state)?.seconds).toBe(60);
+		expect(state.outcome).toBeUndefined();
 	});
 	it("ignores out-of-volume, above-ceiling and invalid observations, but detects swept gate crossing",()=>{
 		const scan=BlueprintRunner.NewState(MissionCatalog.Get(4),0);

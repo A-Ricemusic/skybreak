@@ -872,7 +872,8 @@ function applyBlueprintPhase(session: CombatSession): void {
 		const label=new Instance("TextLabel"); label.Size=UDim2.fromScale(1,1); label.BackgroundTransparency=.25;
 		label.BackgroundColor3=Color3.fromRGB(7,23,30); label.TextColor3=marker.Color; label.Text=phase.kind === "route" ? "FLIGHT BEACON" : phase.kind === "escort" ? "PROTECT CONVOY" : phase.kind === "defend" ? "PROTECT SITE" : "SIGNAL VOLUME";
 		label.TextSize=13; label.Font=Enum.Font.GothamBold; label.Parent=gui;
-		if (phase.kind === "escort" || phase.kind === "defend") {
+		if (phase.kind === "escort" || phase.kind === "defend" || phase.parkedEscort !== undefined) {
+			const actorPoint=phase.parkedEscort ?? nav;
 			const coast=session.blueprint.region === "coastal_city" || session.blueprint.region === "coastal_harbor" || session.blueprint.region === "ocean_platform";
 			const name=actorName(session,phase.kind === "defend",coast);
 			const actor=coast ? MissionAssets.CreateHarborLaunch(name) : phase.kind === "defend" ? MissionAssets.CreateCommsRelay(name) : MissionAssets.CreateRelayTruck(name);
@@ -882,9 +883,9 @@ function applyBlueprintPhase(session: CombatSession): void {
 			// Grounded from its own bounds and the surface under it: wheels on the road, a hull at the waterline.
 			const footing=ActorGrounding.Footing(actor,coast);
 			session.actorFooting=footing;
-			const y=session.groundParams ? ActorGrounding.PivotY(footing,nav.x,nav.z,session.groundParams,nav.y) : nav.y;
+			const y=session.groundParams ? ActorGrounding.PivotY(footing,actorPoint.x,actorPoint.z,session.groundParams,actorPoint.y) : actorPoint.y;
 			actor.SetAttribute("ProtectedObjective",true); actor.Parent=session.folder; session.navigationActor=actor;
-			actor.PivotTo(new CFrame(nav.x,y,nav.z));
+			actor.PivotTo(new CFrame(actorPoint.x,y,actorPoint.z));
 		}
 	}
 	// Refresh only at phase transitions: includes new protected actors and drops destroyed ones.

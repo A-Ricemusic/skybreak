@@ -140,7 +140,7 @@ describe("MissionScore round-2 calibration", () => {
 		// A sortie with no shots fired is not held to the accuracy bar.
 		expect(MissionScore.Compute({ ...perfect, missilesFired: 0, missileHits: 0 }).rank).toBe("S");
 	});
-	it("sets par from realistic human pace: 2.5-5 minutes in Act I, longer in Acts II and III", () => {
+	it("sets par below the average-phone estimates while allowing objective handoffs", () => {
 		const par = (id: number) => MissionScore.ParSeconds(MissionCatalog.Get(id));
 		for (const bp of MISSIONS) {
 			const value = par(bp.id);
@@ -148,7 +148,7 @@ describe("MissionScore round-2 calibration", () => {
 			else if (bp.act === 1) expect(value >= 140 && value <= 300).toBe(true);
 			else expect(value >= 200 && value <= 480).toBe(true);
 		}
-		// Par is a good human run, so the old scripted QA times (14-103 s) beat none of the new pars by more than 3x.
+		// Historical scripted times predate the added objective work and remain shorter than the new good-run pars.
 		const qaSeconds = [14.5, 36.3, 28.5, 33.1, 56.4, 37.1, 32.9, 61.8, 53.5, 34.5, 37, 66.6, 47, 38.6, 50.9, 34, 46.9, 55.5, 49, 86.8, 33.6, 70.9, 78.5, 42.4, 102.8, 64.3, 99.6];
 		let longer = 0;
 		for (let index = 0; index < qaSeconds.size(); index++) if (par(index + 1) > qaSeconds[index] * 2) longer += 1;

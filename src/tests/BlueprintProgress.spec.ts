@@ -51,15 +51,15 @@ describe("BlueprintRunner phase progress fractions",()=>{
 	});
 	it("fires a twist exactly once at its fraction and never before",()=>{
 		// M16: the storm patrol dives after the second of three silos (at 0.67).
-		const state=BlueprintRunner.NewState(MissionCatalog.Get(16),0);state.phaseIndex=1;
+		const state=BlueprintRunner.NewState(MissionCatalog.Get(16),0);state.phaseIndex=2;
 		const silos=BlueprintRunner.ActivePhase(state)!;expect(silos.twist?.at).toBe(0.66);
 		BlueprintRunner.RecordKill(state,"s1","ground",true,1);
 		expect(BlueprintRunner.Fraction(state)).toBe(1/3);expect(state.phaseTwisted).toBe(false);expect(BlueprintRunner.TakeRadio(state)).toBeUndefined();
 		BlueprintRunner.RecordKill(state,"s2","ground",true,2);
-		expect(state.phaseTwisted).toBe(true);expect(BlueprintRunner.Phases(state)[2].label).toBe("Catch the storm patrol");
+		expect(state.phaseTwisted).toBe(true);expect(BlueprintRunner.Phases(state)[3].label).toBe("Catch the storm patrol");
 		expect(BlueprintRunner.TakeRadio(state)).toBe(silos.twist!.text);
 		BlueprintRunner.RecordKill(state,"s3","ground",true,3);
-		expect(state.phaseIndex).toBe(2);expect(state.phaseTwisted).toBe(false);
+		expect(state.phaseIndex).toBe(3);expect(state.phaseTwisted).toBe(false);
 		expect(BlueprintRunner.Phases(state).size()).toBe(MissionCatalog.TotalPhases(MissionCatalog.Get(16)));
 		// Finishing the inserted phase moves on to the authored relay phase; no second insert happens.
 		for(let i=0;i<BlueprintRunner.Total(BlueprintRunner.ActivePhase(state)!);i++)BlueprintRunner.RecordKill(state,`p${i}`,"air",true,4+i);
@@ -73,6 +73,12 @@ describe("BlueprintRunner phase progress fractions",()=>{
 		let clock=0;
 		while(state.phaseIndex===0 && clock<120){clock+=.1;const p=BlueprintRunner.NavigationPoint(state)!;const o={...p,y:250};BlueprintRunner.ObserveFlight(state,o,o,.1,clock,2);}
 		expect(state.phaseIndex).toBe(1);expect(state.protectedHealth).toBe(100);
+		const scout=BlueprintRunner.ActivePhase(state)!;expect(scout.kind).toBe("recon");
+		expect(scout.parkedEscort?.x).toBe(leg.points![1].x);expect(scout.parkedEscort?.z).toBe(leg.points![1].z);
+		// The truck waits at the fork until the mill road is checked.
+		expect(BlueprintRunner.RecordKill(state,"skip-scout","air",true,clock)).toBe(false);
+		while(state.phaseIndex===1){clock+=.1;const p=BlueprintRunner.NavigationPoint(state)!;BlueprintRunner.ObserveFlight(state,p,p,.1,clock);}
+		expect(state.phaseIndex).toBe(2);
 		const reroute=BlueprintRunner.ActivePhase(state)!;expect(reroute.kind).toBe("escort");expect(reroute.label).toBe("Cover the reroute along the mill road");
 		const handoff=leg.points![1],start=BlueprintRunner.NavigationPoint(state)!;
 		expect(start.x).toBe(handoff.x);expect(start.z).toBe(handoff.z);
@@ -103,7 +109,7 @@ describe("Round-2 phase mechanics in the runner",()=>{
 		const caught=BlueprintRunner.NewState(bp,0);caught.phaseIndex=index;
 		expect(BlueprintRunner.CanDamage(caught,"air",true)).toBe(true);
 		expect(BlueprintRunner.RecordKill(caught,"courier","air",true,5)).toBe(true);
-		expect(caught.requiredAirKills).toBe(1);expect(caught.outcome).toBe("won");
+		expect(caught.requiredAirKills).toBe(1);expect(caught.outcome).toBeUndefined();expect(BlueprintRunner.ActivePhase(caught)?.kind).toBe("signal");
 	});
 	it("freezes a jammed signal hold until its jammers die, and they count as required ground kills",()=>{
 		const bp=MissionCatalog.Get(15),state=BlueprintRunner.NewState(bp,0);
@@ -144,7 +150,7 @@ describe("Round-2 phase mechanics in the runner",()=>{
 		for(let i=0;i<20;i++)step();
 		expect(state.phaseIndex).toBe(index);expect(BlueprintRunner.HazardLive(state)).toBe(true);expect(state.outcome).toBeUndefined();
 		BlueprintRunner.RecordKill(state,"gunE","ground",true,clock);
-		expect(state.outcome).toBe("won");
+		expect(state.outcome).toBeUndefined();expect(BlueprintRunner.ActivePhase(state)?.kind).toBe("route");
 	});
 	it("widens the optional kill cap by one per raider wave when every wave brings an extra raider",()=>{
 		const bp=MissionCatalog.Get(5),phase=bp.phases[0];expect(phase.kind).toBe("escort");

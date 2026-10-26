@@ -56,12 +56,10 @@ function finite(value: number, fallback = 0): number {
 	return typeIs(value, "number") && value === value && math.abs(value) !== math.huge ? value : fallback;
 }
 
-// Par is a good human run: about 1.3x what the scripted QA pilot needs under the round-2
-// threat tuning. Bandits take two missiles in Act I and three in Acts II-III (plus a flare
-// in Act III), spawn 2600-3200 studs out, break close locks and only lock inside 1800 studs
-// and 40 degrees, so seconds per bandit climb by act. Timed holds only count inside their
-// volume, so they carry a drift allowance. Measured scripted times live in docs/broken-relay.md.
-const PAR_PER_BANDIT: { [A in Act]: number } = { 1: 9, 2: 12, 3: 14 };
+// A good Normal run: two-missile bandits in every act, with time earned by
+// navigation, evidence handling and protected objectives. Average phone-pilot
+// design estimates (slower acquisition and drift) live in tools/relay-tables.ts.
+const PAR_PER_BANDIT: { [A in Act]: number } = { 1: 8, 2: 9, 3: 10 };
 const PAR_PER_GROUND = 9;
 const PAR_PER_BEACON = 10;
 /** First contact of a required_air phase: the approach from 2600-3200 studs out. */
