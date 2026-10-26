@@ -740,7 +740,7 @@ function activateSpecial(session: CombatSession): void {
 	} else if (state.kind === "flares") {
 		// A fresh cloud: every hostile missile, even one that saw through the last, rolls again.
 		session.flareBursts += 1;
-		JetFactory.Flares(session.folder, positionFor(session.state));
+		JetFactory.Flares(session.folder, positionFor(session.state), frameFor(session.state));
 		decoyWithFlares(session);
 	} else if (state.kind === "salvo") {
 		for (let index = 0; index < salvo.size(); index++) launchSpecialMissile(session, session.enemies[salvo[index]], (index % 2 === 0 ? 1 : -1) * (6 + math.floor(index / 2) * 5));
@@ -755,7 +755,7 @@ function evade(session: CombatSession): void {
 	session.evadeRemaining = EVADE_INVULNERABLE;
 	session.evades += 1;
 	const position = positionFor(session.state);
-	JetFactory.Flares(session.folder, position);
+	JetFactory.Flares(session.folder, position, frameFor(session.state));
 	// Only missiles already close are decoyed; windups in progress still launch, so timing matters.
 	for (let index = session.projectiles.size() - 1; index >= 0; index--) {
 		const missile = session.projectiles[index];

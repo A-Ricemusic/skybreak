@@ -105,6 +105,34 @@ describe("Roblox jet and missile integration", () => {
 			}
 		}
 		expect(trailCount).toBe(6);
+		for (const aircraft of [player, enemy]) {
+			// Afterburner flame, glow, light and two wingtip vapor emitters ride the Root.
+			const rig = JetFactory.FindEngine(aircraft);
+			assert(rig !== undefined, "Aircraft requires an engine rig");
+			expect(rig.vapor.size()).toBe(2);
+			expect(rig.trail?.Name).toBe("ExhaustTrail");
+			expect(rig.flame.Texture.find("rbxasset://")[0]).toBe(1);
+			for (const vapor of rig.vapor) expect(vapor.Rate).toBe(0);
+			const cruise = rig.flame.Rate;
+			JetFactory.SetEngine(rig, 1);
+			expect(rig.flame.Rate > cruise).toBe(true);
+			expect(rig.light.Range > 10).toBe(true);
+			JetFactory.SetEngine(rig, 0);
+			expect(rig.flame.Rate < cruise).toBe(true);
+			JetFactory.SetVapor(rig, 30);
+			for (const vapor of rig.vapor) expect(vapor.Rate).toBe(30);
+			// SetTrails is the one switch for every cosmetic: server models stay dark.
+			JetFactory.SetTrails(aircraft, false);
+			let cosmetics = 0;
+			for (const item of aircraft.GetDescendants()) {
+				if (!JetFactory.IsCosmetic(item)) continue;
+				cosmetics += 1;
+				expect(item.Enabled).toBe(false);
+			}
+			expect(cosmetics).toBe(3 + 2 + 1 + 2);
+			JetFactory.SetTrails(aircraft, true);
+			for (const item of aircraft.GetDescendants()) if (JetFactory.IsCosmetic(item)) expect(item.Enabled).toBe(true);
+		}
 		const playerShell = player.FindFirstChild("Fuselage") as BasePart;
 		const enemyShell = enemy.FindFirstChild("Fuselage") as BasePart;
 		expect(playerShell.Color).never.toEqual(enemyShell.Color);
@@ -310,11 +338,14 @@ describe("Roblox jet and missile integration", () => {
 		const root = folder();
 		const position = new Vector3(0, 300, 0);
 		JetFactory.Burst(root, position, Color3.fromRGB(255, 179, 102), 8);
-		JetFactory.Flares(root, position);
+		JetFactory.Flares(root, position, CFrame.lookAt(position, position.add(new Vector3(1, 0, 0))));
+		const flare = root.FindFirstChild("Countermeasure") as Part;
+		expect(flare.FindFirstChild("FlareSmoke")?.IsA("ParticleEmitter")).toBe(true);
+		expect(flare.FindFirstChildWhichIsA("Trail")).toBeDefined();
 		const flash = root.FindFirstChild("ImpactFlash") as Part;
 		expect(flash.FindFirstChildWhichIsA("PointLight")).toBeDefined();
 		expect(root.GetChildren().size()).toBe(7);
-		task.wait(1.6);
+		task.wait(2.6);
 		expect(root.GetChildren().size()).toBe(0);
 	});
 });
