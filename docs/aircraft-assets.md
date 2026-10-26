@@ -1,5 +1,11 @@
 # Blender aircraft pipeline
 
+There are two aircraft paths. The **uploaded** path (realistic textured
+Kestrel and Vanta, with ace liveries) is used when an asset ID is set in
+`src/shared/RobloxAssetIds.ts`; see [the Roblox asset pipeline](roblox-asset-pipeline.md)
+and the section below. Otherwise the game uses the **procedural** path this
+guide describes from here: generated EditableMesh geometry from committed JSON.
+
 This project keeps the procedural Blender generators and the exact geometry used by Roblox in Git. Known Kestrel and Vanta Blender projects, interchange exports, validation statistics, and preview renders are ignored local artifacts. Default cleanup preserves Blender project and backup files because they may acquire manual edits after generation. Use this guide when changing or adding aircraft. The game uses TypeScript and React Lua; Blender tooling uses Python.
 
 ## Files and commands
@@ -78,6 +84,47 @@ Also reopen the generated `.blend`, round-trip the FBX and GLB, and inspect both
 In the actual game, verify the player, all three enemies, and airbase display use the intended model. Check client replication, correct front/up axes, canopy/exhaust placement, enemy identification, and trail attachment points. Complete the mission using the real controller. `tools/playtest-flight.client.luau` can drive a launched mission as a normal client LocalScript without changing health, damage, or kills. Plugin-context `require` can have a different module cache, so run controller QA in the normal LocalScript context.
 
 For close-up visual inspection, isolate the test camera from the normal menu/flight camera owner. Adding another render-step callback alone can leave two camera writers competing and produce misleading empty screenshots. Restore normal startup afterward; an isolated model preview is separate from the genuine mission playtest.
+
+## Uploaded realistic aircraft
+
+`tools/assets/aircraft.py` builds new Kestrel and Vanta models for upload as
+Roblox Model assets (run `tools/assets/build-all.sh kestrel vanta`). They are
+original designs at the existing in-game size and stay within 10,000
+triangles with 1024² PBR textures:
+
+| Asset | Triangles | Roblox size (studs) | Delivery meshes |
+| --- | --- | --- | --- |
+| Kestrel | see `assets/roblox-upload/kestrel/checklist.json` | 23.0 x 6.1 x 27.0 | `Body`, `Aileron_L/R`, `Elevator_L/R` (all-moving stabilators), `Rudder_L/R` |
+| Vanta | see `assets/roblox-upload/vanta/checklist.json` | 24.8 x 8.0 x 27.8 | `Body`, `Aileron_L/R` (delta elevons), `Elevator_L/R` (canards), `Rudder` |
+| Vanta Vulture / Rusk | same mesh as Vanta | same | colour and roughness maps only |
+
+- Kestrel: blended twin-engine fighter with chined nose, one-piece bubble
+  canopy with windscreen and rear bows and sills, raked side intakes under
+  leading-edge extensions, 38° trapezoidal wing, canted twin fins, ventral
+  fins, petal nozzles, flush nose and main gear-up doors, tip rails and one
+  empty pylon per wing. Two-tone grey countershading with a soft disruptive
+  pattern, darker radome and anti-glare panel, thin cyan fin-tip bands.
+- Vanta: canard cranked-delta interceptor with a single large fin, chin
+  intake, framed canopy, ventral strakes and twin nozzles; dark grey splinter
+  camouflage with rust-red bands. Ace liveries: Vulture flight (near-black
+  with bone feather chevrons) and Air Marshal Rusk (oxblood with gold
+  pinstripes). No text, numbers, serials, squadron codes or insignia.
+- Panel lines, fasteners, access panels, flow streaks, belly stains, engine
+  soot and ambient occlusion are baked into base colour, normal and roughness.
+
+Control surfaces are separate FBX objects whose origin is on the hinge line.
+Their hinge end points in model space (bounds-centred, +Y up, -Z forward) are
+in `UploadedAssetSpecs.<aircraft>.controlSurfaces`, generated from the
+checklist; wingtip and exhaust trail attachments are in `.attachments`. The
+game welds them rigidly today; an animation pass can rotate each surface
+about its hinge without re-exporting.
+
+Loader order (`BlenderAircraft.Populate`): uploaded model for the requested
+livery, then the plain uploaded Vanta for aces, then the procedural Blender
+meshes below (recoloured for an ace livery), then `JetFactory`'s part
+aircraft. `GeometrySource` is `Uploaded`, `Blender` or `Fallback`;
+`UploadedAsset` and `Livery` record which model and paint were used.
+`CombatService` asks for an ace livery from the mission's `aceName`.
 
 ## Asset upload alternatives and known limitations
 
