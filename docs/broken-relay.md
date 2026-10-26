@@ -79,7 +79,7 @@ Completed offline:
 
 - `bun run build` — all TypeScript/React Lua and Roblox Jest specs compile.
 - `bun run build:place` — production Rojo package created without a Rojo server or Studio.
-- `bun run test:offline` — 90 pure compiled-domain contracts pass in the official standalone Luau CLI. This includes all new mission sequences, all flight volumes using legal `FlightMath` stick/throttle, 27-step unlock/replay, four-slot migration, protected loss, deadline/replay failures, the final broadcast, cinematic A/GUI/consumed-input routing, the staging tables (moods, poses, typed lines, story-driven props) and the evidence documents. These are unit simulations, not gameplay evidence.
+- `bun run test:offline` — 126 pure compiled-domain contracts pass in the official standalone Luau CLI. This includes all new mission sequences, all flight volumes using legal `FlightMath` stick/throttle, 27-step unlock/replay, four-slot migration, protected loss, deadline/replay failures, the final broadcast, cinematic A/GUI/consumed-input routing, the staging tables (moods, poses, typed lines, story-driven props) and the evidence documents. These are unit simulations, not gameplay evidence.
 - Blender generation, preview inspection, `.blend` reopen and GLB bounds round-trip for all four new meshes.
 - `git diff --check`.
 
