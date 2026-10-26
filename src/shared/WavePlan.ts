@@ -24,6 +24,15 @@ export const WavePlan = {
 		for (let index = 0; index < n; index++) plan.push(base + (index < extra ? 1 : 0));
 		return plan;
 	},
+	/**
+	 * Bracket sides (+1 or -1) for `count` aircraft spawned together, the first being the sortie's
+	 * `firstSerial`-th air spawn: neighbours alternate, within a group and across groups.
+	 */
+	BracketSides(firstSerial: number, count: number): number[] {
+		const sides: number[] = [];
+		for (let index = 0; index < count; index++) sides.push((firstSerial + index) % 2 === 0 ? 1 : -1);
+		return sides;
+	},
 	/** Whether group `next` should spawn now. */
 	Due(input: WaveDue): boolean {
 		if (input.next <= 0 || input.next >= input.plan.size()) return false;

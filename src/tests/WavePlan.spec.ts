@@ -44,4 +44,15 @@ describe("Staggered waves", () => {
 		expect(peak <= 8).toBe(true);
 		expect(nextGroup).toBe(2);
 	});
+	it("alternates bracket sides inside a group and across groups", () => {
+		const join = (sides: number[]) => sides.map((n) => tostring(n)).join(",");
+		// A four-ship group used to come in all on one side (the list grew while the index did).
+		expect(join(WavePlan.BracketSides(0, 4))).toBe("1,-1,1,-1");
+		expect(join(WavePlan.BracketSides(7, 4))).toBe("-1,1,-1,1");
+		// A three-ship group then the next pair: the pair continues the alternation.
+		expect(join(WavePlan.BracketSides(0, 3))).toBe("1,-1,1");
+		expect(join(WavePlan.BracketSides(3, 2))).toBe("-1,1");
+		expect(WavePlan.BracketSides(5, 0).size()).toBe(0);
+	});
 });
+

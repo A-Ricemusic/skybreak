@@ -691,6 +691,8 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 	const right = new Vector3(-forward.Z, 0, forward.X);
 	const act = sessionAct(session);
 	const behaviour = Difficulty.Behaviour(session.difficulty);
+	// Taken before the loop: the enemy list grows as each one spawns, which would give a group one side.
+	const sides = WavePlan.BracketSides(session.spawnSerial, count);
 	for (let index = 0; index < count; index++) {
 		let name: string;
 		if (role === "ace") name = session.blueprint?.aceName ?? "ACE";
@@ -703,7 +705,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		JetFactory.SetTrails(model, false);
 		// Required waves arrive 2600-3200 studs out and 60-75 degrees off the nose: an approach, then a turn
 		// into the merge, and nothing is lockable on the first frame. Reinforcements come from the rear quarter.
-		const side = (session.enemies.size() + index) % 2 === 0 ? 1 : -1;
+		const side = sides[index];
 		const [near, far] = options.behind ? SPAWN_BEHIND : SPAWN_FRONT;
 		const angle = math.rad(options.behind ? 150 + math.random() * 20 : 60 + math.random() * 15);
 		const distance = near + math.random() * (far - near);
