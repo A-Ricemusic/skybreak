@@ -51,8 +51,8 @@ import {
 	getBriefingLayout,
 } from "../shared/BriefingLayout";
 import { C, HEX, HUD, HUD_FONT_BOLD } from "./Theme";
-import { HudLabel, InstrumentBox, Reticle, TONE_COLOR, WarningBox, WeaponPanel } from "./AceHud";
-import { clockLines, hullTone, instrumentValue, railsReady, weaponRows } from "../shared/HudInstruments";
+import { HudLabel, InstrumentBox, Reticle, StatusPanel, WarningBox } from "./AceHud";
+import { clockLines, instrumentValue, statusLine } from "../shared/HudInstruments";
 import { LoadoutPicker } from "./LoadoutPicker";
 import { DifficultyPicker } from "./DifficultyPicker";
 import { Difficulty, DifficultyKind } from "../shared/Difficulty";
@@ -1343,6 +1343,7 @@ function RoundButton({
 	filled,
 	enabled,
 	dimmed = false,
+	primary = false,
 	textSize,
 	onActivated,
 }: {
@@ -1353,6 +1354,8 @@ function RoundButton({
 	enabled: boolean;
 	/** Label shown faded while still usable (lock building). */
 	dimmed?: boolean;
+	/** FIRE: same size as the others, set apart by a green tint and a heavier ring even before a lock. */
+	primary?: boolean;
 	textSize: number;
 	onActivated: () => void;
 }) {
@@ -1361,8 +1364,8 @@ function RoundButton({
 			key={name}
 			Active={enabled}
 			AutoButtonColor={false}
-			BackgroundColor3={filled ? HUD.Green : HUD.Shadow}
-			BackgroundTransparency={filled ? 0.55 : enabled ? 0.65 : 0.8}
+			BackgroundColor3={filled || primary ? HUD.Green : HUD.Shadow}
+			BackgroundTransparency={filled ? 0.55 : primary ? 0.8 : enabled ? 0.65 : 0.8}
 			BorderSizePixel={0}
 			FontFace={HUD_FONT_BOLD}
 			Position={UDim2.fromOffset(rectangle.x, rectangle.y)}
@@ -1377,7 +1380,7 @@ function RoundButton({
 			Event={{ Activated: () => enabled && onActivated() }}
 		>
 			<Corner scale={0.5} />
-			<Stroke color={HUD.Green} transparency={filled ? 0 : enabled ? 0.3 : 0.75} thickness={1.5} />
+			<Stroke color={HUD.Green} transparency={filled || primary ? 0 : enabled ? 0.3 : 0.75} thickness={primary ? 2.5 : 1.5} />
 		</textbutton>
 	);
 }
@@ -1503,9 +1506,7 @@ function MissionHud({
 			label.TextTransparency = 0;
 		};
 	}, [alertActive, alertSharesObjective]);
-	const hull = math.floor(telemetry.health + 0.5);
-	const hullColor = TONE_COLOR[hullTone(hull)];
-	const rows = weaponRows({
+	const ammo = statusLine({
 		missiles: telemetry.missiles,
 		missileCooldown: telemetry.missileCooldown,
 		special: specialDefinition.short,
@@ -1513,9 +1514,7 @@ function MissionHud({
 		specialCooldown: telemetry.specialCooldown ?? 0,
 		specialActive: telemetry.specialActive ?? 0,
 		evadeCharges: evade.charges,
-		health: telemetry.health,
 	});
-	const rails = railsReady(telemetry.missiles, telemetry.missileCooldown);
 	const fireButton = WeaponRules.FireButton(telemetry.missiles, telemetry.missileCooldown, telemetry.target !== undefined && telemetry.targetDamageable !== false, telemetry.lockProgress);
 	const timeRemaining = telemetry.timeRemaining ?? GameConfig.Campaign.MissionTimeLimit;
 	const [timeLine, progressLine] = clockLines(timeRemaining, telemetry.objectiveProgress, telemetry.objectiveTotal, telemetry.kills, telemetry.total);
@@ -1569,7 +1568,7 @@ function MissionHud({
 			{/* Reserved for a missile time-to-impact / BREAK cue; empty and hidden until something drives it. */}
 			<HudLabel name="BreakCue" text={breakCue ?? ""} rectangle={layout.breakCue} textSize={metrics.text} bold={true} color={HUD.Red} alignment={Enum.TextXAlignment.Center} visible={breakCue !== undefined && breakCue !== ""} />
 
-			<WeaponPanel layout={layout.weapons} rows={rows} metrics={metrics} hullColor={hullColor} rails={rails} />
+			<StatusPanel layout={layout.status} health={telemetry.health} cells={ammo} />
 
 			{layout.subtitle && (
 				<HudLabel
@@ -1653,7 +1652,8 @@ function MissionHud({
 						filled={fireButton.filled}
 						enabled={fireButton.enabled}
 						dimmed={fireButton.dimmed}
-						textSize={12}
+						primary={true}
+						textSize={fireButton.text.size() > 5 ? 10 : 12}
 						onActivated={onMissile}
 					/>
 				)}

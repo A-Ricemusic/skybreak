@@ -10,7 +10,7 @@ export interface PlayerSettings {
 	shake: number;
 	/** Whole-HUD scale, 0.8 – 1.3 (touch never shrinks below 1 so buttons stay ≥ 44 px). */
 	hudScale: number;
-	/** Touch stick scale against the 96 px default, 0.85 – 1.3. */
+	/** Touch stick scale against the 80 px default, 0.85 – 1.3. */
 	stickScale: number;
 	music: number;
 	sfx: number;

@@ -48,7 +48,7 @@ export function EvadeButton({ rectangle, telemetry, onEvade }: { rectangle: Rect
 		return () => pulse.Cancel();
 	}, [gauge.flash]);
 	const size = rectangle.width;
-	const pip = size >= 56 ? 6 : 5;
+	const pip = size >= 54 ? 6 : 5;
 	const pips: React.ReactElement[] = [];
 	if (gauge.maxCharges > 1) {
 		for (let index = 0; index < gauge.maxCharges; index++) {
@@ -94,7 +94,7 @@ export function EvadeButton({ rectangle, telemetry, onEvade }: { rectangle: Rect
 				FontFace={HUD_FONT_BOLD}
 				Text={gauge.label}
 				TextColor3={HUD.Green}
-				TextSize={size >= 56 ? 11 : 10}
+				TextSize={size >= 54 ? 11 : 10}
 				TextStrokeColor3={HUD.Shadow}
 				TextStrokeTransparency={0.4}
 				TextTransparency={gauge.ready ? 0 : 0.35}
