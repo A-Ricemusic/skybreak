@@ -1,0 +1,96 @@
+{
+  "name": "harbour-quay",
+  "title": "Harbour quay segment",
+  "variantOf": null,
+  "robloxAssetType": "Model",
+  "usage": "Open-piled quay segments for harbour missions (M19-M27); tile end to end along a coast. WorldAssets.PlaceQuay.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "harbour-quay.fbx",
+    "bytes": 922684
+  },
+  "triangleCount": 1612,
+  "triangleLimit": 2500,
+  "objects": [
+    {
+      "name": "harbour-quay",
+      "triangles": 1612
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "harbour-quay-color.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 304403
+    },
+    {
+      "role": "normal",
+      "file": "harbour-quay-normal.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 309973
+    },
+    {
+      "role": "rough",
+      "file": "harbour-quay-roughness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 191735
+    },
+    {
+      "role": "metal",
+      "file": "harbour-quay-metalness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 13460
+    }
+  ],
+  "robloxSizeStuds": [
+    240.0,
+    55.8,
+    72.3
+  ],
+  "studMetres": 0.28,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 40.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "Textures are baked from noise, grids and masks only; no letters, numbers, words, call signs or codes in mesh or texture."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national or unit markings; shape is an original design, not a copy of any real vehicle or building."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or face-like arrangements."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "No gore, blood or damage imagery; at most empty pylons or a covered deck mount."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": []
+}

@@ -1,0 +1,96 @@
+{
+  "name": "container-stack",
+  "title": "Shipping container stack",
+  "variantOf": null,
+  "robloxAssetType": "Model",
+  "usage": "Port yard stacks beside quays and cranes (replaces Scenery.Containers boxes).",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "container-stack.fbx",
+    "bytes": 775708
+  },
+  "triangleCount": 748,
+  "triangleLimit": 2500,
+  "objects": [
+    {
+      "name": "container-stack",
+      "triangles": 748
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "container-stack-color.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 330775
+    },
+    {
+      "role": "normal",
+      "file": "container-stack-normal.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 196193
+    },
+    {
+      "role": "rough",
+      "file": "container-stack-roughness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 186024
+    },
+    {
+      "role": "metal",
+      "file": "container-stack-metalness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 8369
+    }
+  ],
+  "robloxSizeStuds": [
+    36.0,
+    27.75,
+    88.4
+  ],
+  "studMetres": 0.28,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 0.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "Textures are baked from noise, grids and masks only; no letters, numbers, words, call signs or codes in mesh or texture."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national or unit markings; shape is an original design, not a copy of any real vehicle or building."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or face-like arrangements."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "No gore, blood or damage imagery; at most empty pylons or a covered deck mount."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": []
+}

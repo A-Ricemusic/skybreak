@@ -1,0 +1,96 @@
+{
+  "name": "office-midrise",
+  "title": "Mid-rise office building",
+  "variantOf": null,
+  "robloxAssetType": "Model",
+  "usage": "City and harbour districts (M21, M22, M26, M27): replaces Scenery.Buildings boxes.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "office-midrise.fbx",
+    "bytes": 723356
+  },
+  "triangleCount": 448,
+  "triangleLimit": 2500,
+  "objects": [
+    {
+      "name": "office-midrise",
+      "triangles": 448
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "office-midrise-color.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 299905
+    },
+    {
+      "role": "normal",
+      "file": "office-midrise-normal.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 174424
+    },
+    {
+      "role": "rough",
+      "file": "office-midrise-roughness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 203687
+    },
+    {
+      "role": "metal",
+      "file": "office-midrise-metalness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 6359
+    }
+  ],
+  "robloxSizeStuds": [
+    114.8,
+    132.0,
+    80.4
+  ],
+  "studMetres": 0.28,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 0.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "Textures are baked from noise, grids and masks only; no letters, numbers, words, call signs or codes in mesh or texture."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national or unit markings; shape is an original design, not a copy of any real vehicle or building."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or face-like arrangements."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "No gore, blood or damage imagery; at most empty pylons or a covered deck mount."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": []
+}

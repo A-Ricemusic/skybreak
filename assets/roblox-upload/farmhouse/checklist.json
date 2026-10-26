@@ -1,0 +1,96 @@
+{
+  "name": "farmhouse",
+  "title": "Farmhouse",
+  "variantOf": null,
+  "robloxAssetType": "Model",
+  "usage": "Teklan farm valleys (M5, M6, M13, M16): homesteads near silos and fields.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "farmhouse.fbx",
+    "bytes": 789516
+  },
+  "triangleCount": 200,
+  "triangleLimit": 2500,
+  "objects": [
+    {
+      "name": "farmhouse",
+      "triangles": 200
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "farmhouse-color.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 321936
+    },
+    {
+      "role": "normal",
+      "file": "farmhouse-normal.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 249889
+    },
+    {
+      "role": "rough",
+      "file": "farmhouse-roughness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 181939
+    },
+    {
+      "role": "metal",
+      "file": "farmhouse-metalness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 3693
+    }
+  ],
+  "robloxSizeStuds": [
+    47.0,
+    37.0,
+    55.086
+  ],
+  "studMetres": 0.28,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 0.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "Textures are baked from noise, grids and masks only; no letters, numbers, words, call signs or codes in mesh or texture."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national or unit markings; shape is an original design, not a copy of any real vehicle or building."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or face-like arrangements."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "No gore, blood or damage imagery; at most empty pylons or a covered deck mount."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": []
+}

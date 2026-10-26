@@ -1,0 +1,96 @@
+{
+  "name": "rock-c",
+  "title": "Weathered sandstone stack",
+  "variantOf": null,
+  "robloxAssetType": "Model",
+  "usage": "Scattered boulders and outcrops in canyon, coastal and farm missions (Scenery.Rocks).",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "rock-c.fbx",
+    "bytes": 1058780
+  },
+  "triangleCount": 1600,
+  "triangleLimit": 2500,
+  "objects": [
+    {
+      "name": "rock-c",
+      "triangles": 1600
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "rock-c-color.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 337771
+    },
+    {
+      "role": "normal",
+      "file": "rock-c-normal.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 429512
+    },
+    {
+      "role": "rough",
+      "file": "rock-c-roughness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 136121
+    },
+    {
+      "role": "metal",
+      "file": "rock-c-metalness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 3693
+    }
+  ],
+  "robloxSizeStuds": [
+    17.122,
+    20.682,
+    13.195
+  ],
+  "studMetres": 0.28,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 2.5,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "Textures are baked from noise, grids and masks only; no letters, numbers, words, call signs or codes in mesh or texture."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national or unit markings; shape is an original design, not a copy of any real vehicle or building."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or face-like arrangements."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "No gore, blood or damage imagery; at most empty pylons or a covered deck mount."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": []
+}

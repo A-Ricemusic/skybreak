@@ -1,0 +1,96 @@
+{
+  "name": "hangar",
+  "title": "Hardened aircraft shelter",
+  "variantOf": null,
+  "robloxAssetType": "Model",
+  "usage": "Airbase dressing at Varda (M1, M3, M4, M8): fits one Kestrel; WorldAssets.PlaceHangar.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "hangar.fbx",
+    "bytes": 861404
+  },
+  "triangleCount": 1064,
+  "triangleLimit": 2500,
+  "objects": [
+    {
+      "name": "hangar",
+      "triangles": 1064
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "hangar-color.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 311700
+    },
+    {
+      "role": "normal",
+      "file": "hangar-normal.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 268854
+    },
+    {
+      "role": "rough",
+      "file": "hangar-roughness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 187124
+    },
+    {
+      "role": "metal",
+      "file": "hangar-metalness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 12166
+    }
+  ],
+  "robloxSizeStuds": [
+    128.0,
+    39.5,
+    136.6
+  ],
+  "studMetres": 0.28,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 0.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "Textures are baked from noise, grids and masks only; no letters, numbers, words, call signs or codes in mesh or texture."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national or unit markings; shape is an original design, not a copy of any real vehicle or building."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or face-like arrangements."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "No gore, blood or damage imagery; at most empty pylons or a covered deck mount."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": []
+}

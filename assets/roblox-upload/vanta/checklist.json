@@ -1,0 +1,198 @@
+{
+  "name": "vanta",
+  "title": "Vanta enemy interceptor",
+  "variantOf": null,
+  "robloxAssetType": "Model",
+  "usage": "Enemy bandits and raiders (JetFactory.Create enemy=true).",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "vanta.fbx",
+    "bytes": 2504540
+  },
+  "triangleCount": 3780,
+  "triangleLimit": 10000,
+  "objects": [
+    {
+      "name": "Body",
+      "triangles": 3236
+    },
+    {
+      "name": "Aileron_L",
+      "triangles": 128
+    },
+    {
+      "name": "Elevator_L",
+      "triangles": 96
+    },
+    {
+      "name": "Aileron_R",
+      "triangles": 128
+    },
+    {
+      "name": "Elevator_R",
+      "triangles": 96
+    },
+    {
+      "name": "Rudder",
+      "triangles": 96
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "vanta-color.png",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 904351
+    },
+    {
+      "role": "normal",
+      "file": "vanta-normal.png",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 503360
+    },
+    {
+      "role": "rough",
+      "file": "vanta-roughness.png",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 673149
+    },
+    {
+      "role": "metal",
+      "file": "vanta-metalness.png",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 121218
+    }
+  ],
+  "robloxSizeStuds": [
+    24.76,
+    8.02,
+    27.75
+  ],
+  "studMetres": 0.28,
+  "pivot": "bounds-center",
+  "groundOffsetStuds": 0.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "No letters, numbers, call signs, serials or squadron codes in mesh or texture; panel lines and camouflage only."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national or unit markings, serials or squadron codes; airframe is an original design, not a copy of any real aircraft."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or face-like arrangements."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "Empty pylons and launch rails only; no missiles, bombs, kill marks, damage or gore."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "controlSurfaces": {
+    "Aileron_L": {
+      "from": [
+        -4.25,
+        -2.4127,
+        9.7269
+      ],
+      "to": [
+        -10.95,
+        -2.7639,
+        10.8475
+      ]
+    },
+    "Elevator_L": {
+      "from": [
+        -1.3,
+        -1.4991,
+        -5.225
+      ],
+      "to": [
+        -2.2,
+        -1.4362,
+        -5.225
+      ]
+    },
+    "Aileron_R": {
+      "from": [
+        4.25,
+        -2.4127,
+        9.7269
+      ],
+      "to": [
+        10.95,
+        -2.7639,
+        10.8475
+      ]
+    },
+    "Elevator_R": {
+      "from": [
+        1.3,
+        -1.4991,
+        -5.225
+      ],
+      "to": [
+        2.2,
+        -1.4362,
+        -5.225
+      ]
+    },
+    "Rudder": {
+      "from": [
+        0.0,
+        -0.27,
+        10.2651
+      ],
+      "to": [
+        0.0,
+        3.09,
+        11.8309
+      ]
+    }
+  },
+  "attachments": {
+    "leftWingtip": [
+      -12.3,
+      -2.8346,
+      11.328
+    ],
+    "rightWingtip": [
+      12.3,
+      -2.8346,
+      11.328
+    ],
+    "exhaust": [
+      0.0,
+      -1.99,
+      13.875
+    ]
+  },
+  "variants": [
+    "vanta-vulture",
+    "vanta-rusk"
+  ]
+}
