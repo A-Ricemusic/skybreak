@@ -6,6 +6,7 @@ import { SpecialWeapons } from "../shared/SpecialWeapons";
 import { Difficulty } from "../shared/Difficulty";
 
 export interface StoredMissionRecord {
+	timeVersion?: unknown;
 	completed?: unknown;
 	bestTime?: unknown;
 	firstCompletedAt?: unknown;
@@ -179,7 +180,9 @@ function readMissionsMap(raw: unknown): { [missionId: number]: MissionRecord } {
 		if (!typeIs(entry, "table")) continue;
 		const stored = entry as StoredMissionRecord;
 		const record: MissionRecord = { completed: stored.completed === true };
-		const best = positiveTime(stored.bestTime);
+		const timeVersion = MissionCatalog.TimeVersion(id);
+		const best = id <= 2 || stored.timeVersion === timeVersion ? positiveTime(stored.bestTime) : undefined;
+		record.timeVersion = timeVersion;
 		if (best !== undefined) record.bestTime = best;
 		const first = positiveTime(stored.firstCompletedAt);
 		if (first !== undefined) record.firstCompletedAt = first;
@@ -306,7 +309,7 @@ export function mergeSlot(storedRaw: unknown, desiredRaw: unknown, index: number
 		const completed = (a?.completed === true) || (b?.completed === true);
 		const best = fastest(a?.bestTime, b?.bestTime);
 		const first = fastest(a?.firstCompletedAt, b?.firstCompletedAt);
-		const record: MissionRecord = { completed };
+		const record: MissionRecord = { completed, timeVersion: MissionCatalog.TimeVersion(id) };
 		if (best !== undefined) record.bestTime = best;
 		if (first !== undefined) record.firstCompletedAt = first;
 		// Score bests only ever rise, like bestTime only ever falls.
@@ -371,7 +374,7 @@ export function serializeProfile(profile: CampaignProfile): StoredProfile {
 		for (let id = 1; id <= MISSION_COUNT; id++) {
 			const record = source.missions?.[id];
 			if (record === undefined) continue;
-			const payload: StoredMissionRecord = { completed: record.completed };
+			const payload: StoredMissionRecord = { completed: record.completed, timeVersion: record.timeVersion };
 			if (record.bestTime !== undefined) payload.bestTime = record.bestTime;
 			if (record.firstCompletedAt !== undefined) payload.firstCompletedAt = record.firstCompletedAt;
 			if (record.bestScore !== undefined) payload.bestScore = record.bestScore;
@@ -591,6 +594,7 @@ export class CampaignCoordinator {
 			const record: MissionRecord = {
 				completed: true,
 				bestTime: fastest(existing?.bestTime, elapsed),
+				timeVersion: MissionCatalog.TimeVersion(missionId),
 				firstCompletedAt: existing?.firstCompletedAt ?? this.now(),
 			};
 			const score = debrief && isFiniteNumber(debrief.score) ? math.max(0, math.floor(debrief.score)) : undefined;

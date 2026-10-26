@@ -15,23 +15,9 @@ local C=require("./MissionCatalog")
 local L=require("./MissionLayouts")
 local S=require("./MissionScore")
 local Catalog=C.MissionCatalog
-local PER_BANDIT={15,20,24}
+local P=require("./MissionPacing")
 -- Non-ASCII glyphs as code points: Bun escapes them inside a raw template.
 local ARROW,TWIST,DASH=utf8.char(0x2192),utf8.char(0x21E2),utf8.char(0x2014)
-local function estimate(p,act,aceHealth)
-	local k,count,points,seconds=p.kind,p.count or 0,p.points and #p.points or 0,p.seconds or 0
-	local hazards=(p.hazard and p.hazard.count or 0)*10
-	if k=="tutorial_move" then return 20 elseif k=="tutorial_target" then return 10 elseif k=="tutorial_missile" then return 20
-	elseif k=="required_air" then return 10+count*PER_BANDIT[act]
-	elseif k=="required_ground" then return count*10
-	elseif k=="route" then return points*12
-	elseif k=="recon" then return points*(seconds*1.25+10)
-	elseif k=="escort" or k=="defend" then return seconds*1.05+10+hazards
-	elseif k=="signal" then return seconds*1.25+10+hazards
-	elseif k=="chase" then return 45
-	elseif k=="ace" then return aceHealth*0.36 end
-	return 0
-end
 local function pct(x) return string.format("%d%%",math.floor(x*100+0.5)) end
 local function note(p,bp)
 	local parts={}
@@ -73,11 +59,7 @@ end
 print("")
 local rows,total={},0
 for _,bp in C.MISSIONS do
-	local seconds=20
-	for _,p in Catalog:ExpandedPhases(bp) do
-		local share=(p.twist and p.twist.mode=="now") and p.twist.at or 1
-		seconds+=estimate(p,bp.act,bp.aceHealth or 165)*share+4
-	end
+	local seconds=P.MissionPacing:EstimateSeconds(bp)
 	total+=seconds
 	rows[bp.id]=string.format("| %d | %d s | %.1f min |",bp.id,S.MissionScore:ParSeconds(bp),seconds/60)
 end
