@@ -4,7 +4,7 @@ import {FlightMath} from "../shared/FlightMath";
 import {BlueprintRunner} from "../shared/BlueprintRunner";
 import {MissionCatalog,MISSIONS,FlightPoint} from "../shared/MissionCatalog";
 import {LEVEL_LAYOUTS} from "../shared/MissionLayouts";
-import {STORY} from "../shared/RelayStory";
+import {LOG,MARSHAL,RECORDER,RUSK,SERA,STORY,TEAL,TRAINEE,VULTURE_TWO} from "../shared/RelayStory";
 import {CampaignCoordinator,completeMission,highestUnlocked,normalizeProfile,mergeProfiles,resolveMissionRequest,serializeProfile} from "../server/CampaignRepository";
 
 function coordinator(): CampaignCoordinator {
@@ -12,7 +12,7 @@ function coordinator(): CampaignCoordinator {
 }
 const origin={x:0,y:250,z:500};
 describe("Broken Relay campaign contracts",()=>{
-	it("authors 27 unique compositions, ordered missions and 28 three-shot story chapters",()=>{
+	it("authors 27 unique compositions, ordered missions and 28 story chapters",()=>{
 		expect(MISSIONS.size()).toBe(27);expect(LEVEL_LAYOUTS.size()).toBe(27);expect(STORY.size()).toBe(28);
 		const compositions=new Set<string>(),names=new Set<string>(),signatures=new Set<string>();
 		for(const bp of MISSIONS){
@@ -56,10 +56,22 @@ describe("Broken Relay campaign contracts",()=>{
 			expect(phase.optionalRaiders).toBe(4);expect(phase.reinforce?.count).toBe(2);
 		}
 		expect(MissionCatalog.MaxOptionalRaiders(MissionCatalog.Get(23))).toBe(4);
-		for(let i=0;i<STORY.size();i++){expect(STORY[i].id).toBe(i);expect(STORY[i].beats.size()).toBe(3);for(const beat of STORY[i].beats)expect(beat.text.size()>20 && beat.text.size()<=100).toBe(true);}
+		const speakers=new Set<string>([TEAL,SERA,MARSHAL,RUSK,TRAINEE,LOG,RECORDER,VULTURE_TWO]);
+		for(let i=0;i<STORY.size();i++){
+			const c=STORY[i];expect(c.id).toBe(i);expect(c.beats.size()>=3 && c.beats.size()<=8).toBe(true);
+			for(const beat of c.beats){expect(beat.text.size()>=12 && beat.text.size()<=160).toBe(true);expect(speakers.has(beat.speaker)).toBe(true);}
+			// Every bridge ends with the trainee answering in their own voice; the finale ends on the roster card.
+			expect(c.beats[c.beats.size()-1].speaker).toBe(i===27 ? LOG : TRAINEE);
+		}
 		expect(STORY[8].title).toBe("Vulture Lead");expect(STORY[17].title).toBe("Vulture Two");
-		for(const id of [4,21,26])expect(STORY[id].beats[2].speaker).toBe("MARSHAL · INTERCEPT");
-		expect(STORY[10].beats[0].speaker).toBe("MARSHAL · INTERCEPT");
+		// The coup's voice is anonymous until the aurora archive names Rusk in chapter 17.
+		for(const c of STORY)for(const beat of c.beats){if(beat.speaker===RUSK)expect(c.id>=17).toBe(true);if(beat.speaker===MARSHAL)expect(c.id<17).toBe(true);}
+		// Teal's death is shown, not reported: his last recording plays in chapter 25 and the record is amended on screen.
+		expect(STORY[25].beats.filter((b)=>b.speaker===TEAL && b.shot==="black").size()).toBe(3);
+		expect(STORY[25].beats.some((b)=>b.text.find("KILLED, NOT DESERTED")[0]!==undefined)).toBe(true);
+		// The opening line comes back as the last thing Teal says.
+		expect(STORY[0].beats.some((b)=>b.text.find("The sky will still be there")[0]!==undefined)).toBe(true);
+		expect(STORY[27].beats.some((b)=>b.speaker===TEAL && b.text.find("sky will still be there")[0]!==undefined)).toBe(true);
 	});
 	for(const bp of MISSIONS.filter((b)=>b.id>=3)) it(`completes every authoritative phase of M${bp.id} in order`,()=>{
 		const state=BlueprintRunner.NewState(bp,100);let now=100,serial=0;
