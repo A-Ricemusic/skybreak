@@ -24,6 +24,8 @@ The existing `SkybreakCampaign_v1` DataStore name and player keys are retained. 
 
 ## Mission manifest
 
+`⇢ *twist*` marks a mid-phase objective change (`MissionPhaseBlueprint.twist`): when the active phase's progress fraction crosses `at`, a radio call plays and the listed phases are spliced in right after it. Mode `now` ends the current phase on the spot (an interrupted scan, a rerouted convoy, a jammed broadcast); the default `after` lets it finish first (reinforcements announced mid-strike, a recovery to cover after the ace falls). Twists always fire before their host phase can complete, so `MissionCatalog.ExpandedPhases` is the authoritative flow for kill totals, par, save-proof phase counts and the debrief. Act II (10–18) is tuned to a 225–260 s par, roughly 2.5–4 minutes for a competent pilot; Act I (3–8) stays under 200 s and the finale (290 s) is the longest sortie.
+
 | # | Mission / composition | Required phase sequence |
 |---|---|---|
 | 1 | FIRST FLIGHT — Varda training islands | Observe pitch and turn → Cycle to the training target → Lock and fire a missile at the training radar → Intercept three bandits |
@@ -35,24 +37,24 @@ The existing `SkybreakCampaign_v1` DataStore name and player keys are retained. 
 | 7 | DUST WEATHER — Dust courier narrows | Fly the courier's dust pass below 400 studs → Catch the four-ship messenger flight |
 | 8 | RIM SWITCH — Varda tower siege | Protect Varda's control tower for 50 seconds → Clear the retreating pair |
 | 9 | STATIC HORIZON — Vulture moonlit bowl | Follow the night approach lights → Clear the night patrol → Defeat Vulture Lead |
-| 10 | PLATEAU COLD — Kiro abandoned mine | Identify Node Kiro without destroying its archive → Destroy relay Node Kiro → Intercept the plateau response |
-| 11 | SIGNAL HARVEST — Twin ridge relay saddle | Destroy relay Node Lira → Destroy relay Node Merel → Clear the alert pair → Orbit the west ridge to relay Teal's packet |
-| 12 | OPEN FIELD — Open field refugee corridor | Escort the loyalist transmitter truck |
-| 13 | STAGING FARM — Staging farm rail yard | Mark the staging farm from below 420 studs → Destroy four fuel silos and the relay → Hold off two raiders |
-| 14 | ANTENNA ROW — High relay crossing | Cross the relay saddle through four beacons → Destroy three plateau antennas → Clear the perimeter CAP |
-| 15 | LOYALIST WINDOW — Loyalist broadcast common | Keep the loyalist broadcast linked for 35 seconds → Intercept the jamming flight |
-| 16 | STORM WALK — Storm river divide | Stay below the storm ceiling: three river gates → Destroy three remaining silos → Destroy the forward relay → Catch the storm patrol |
-| 17 | AURORA RELAY — Aurora crown array | Destroy the plateau relay → Clear the aurora intercept → Receive the Marshal's orders above the dark relay |
-| 18 | RIDGE ACE — Vulture searchlight ridge | Climb into Vulture Two's searchlights → Clear his wingmen → Defeat Vulture Two |
-| 19 | HARBOR RUN — Military quays and canal | Identify military quays; spare the city → Destroy three harbor warehouses → Clear the harbor CAP |
+| 10 | PLATEAU COLD — Kiro abandoned mine | Follow the mine road up to Kiro → Scan Node Kiro (hold fire) ⇢ *twist* Break the camp's intercept → Finish the archive scan → Cut Node Kiro's transmitter → Intercept the plateau response |
+| 11 | SIGNAL HARVEST — Twin ridge relay saddle | Destroy relay Node Lira → Clear the alert pair → Destroy relay Node Merel ⇢ *twist* Follow the farm road north to Sable → Destroy relay Node Sable → Clear Sable's guard pair → Orbit the west ridge to relay Teal's packet |
+| 12 | OPEN FIELD — Open field refugee corridor | Escort the loyalist transmitter truck ⇢ *twist* Cover the reroute along the mill road → Occupy the orchard airspace |
+| 13 | STAGING FARM — Staging farm rail yard | Follow the rail spur to the staging farm → Scan the staging farm low → Destroy four fuel silos ⇢ *twist* Break the plateau reinforcements → Destroy the farm relay → Hold off the raiders |
+| 14 | ANTENNA ROW — High relay crossing | Cross the relay saddle through four beacons → Destroy three plateau antennas ⇢ *twist* Destroy the mobile mast → Clear the perimeter CAP → Hold the saddle: confirm the row is dark |
+| 15 | LOYALIST WINDOW — Loyalist broadcast common | Hold the broadcast link ⇢ *twist* Intercept the jamming flight → Reopen the window: hold the link → Hold the second intruders |
+| 16 | STORM WALK — Storm river divide | River gates: stay low → Destroy three remaining silos ⇢ *twist* Catch the storm patrol → Destroy the forward relay → Hold over the dead relay: read its last traffic → Break the plateau's second pair |
+| 17 | AURORA RELAY — Aurora crown array | Destroy the plateau relay → Clear the aurora intercept → Orbit to receive the archive ⇢ *twist* Find the jammer under the array → Destroy the aurora jammer → Clear the jammer's escort → Resume the receive orbit |
+| 18 | RIDGE ACE — Vulture searchlight ridge | Climb into Vulture Two's searchlights → Clear his wingmen → Defeat Vulture Two ⇢ *twist* Protect the marines' pickup on the ridge |
+| 19 | HARBOR RUN — Military quays and canal | Scan the quays; spare the city → Destroy three harbor warehouses ⇢ *twist* Break the early CAP → Clear the harbor CAP |
 | 20 | FRACTURE LINE — Eastern wing divided harbor | Shatter the eastern wing → Cover the evidence launch through the harbor |
-| 21 | CITY NIGHT — Black canal city | Follow the dark canal through the city → Destroy the broadcast relay → Hold off the escort flight |
+| 21 | CITY NIGHT — Black canal city | Follow the dark canal through the city → Destroy the broadcast relay → Hold off the escort flight → Hold over the dark tower: confirm silence |
 | 22 | HARBOR FOG — Five fog fuel piers | Find the fuel depot through the harbor fog → Destroy five fuel silos → Clear the fog patrol |
 | 23 | OCEAN CLEAR — Frigate ring over deep water | Protect the frigate's ring around the platform → Clear the platform command flight |
 | 24 | PLATFORM FIRE — Storm platform trident | Use the low sea approach below 360 studs → Destroy three platform warehouses → Clear the storm patrol |
 | 25 | CITY DAWN — Dawn beachhead | Cover the landing craft to the beach → Hold the first intercept → Hold the second intercept → Destroy the beach relay |
 | 26 | FRACTURE LAST — Civic plaza blackout | Break the Marshal's first flight → Break the second flight → Triangulate the Marshal's last transmission |
-| 27 | BROKEN RELAY — Coastal parliament sunrise | Clear the Marshal's wingmen → Destroy the final broadcast relay → Defeat the Air Marshal → Broadcast Teal's evidence to the whole coast |
+| 27 | BROKEN RELAY — Coastal parliament sunrise | Clear the Marshal's wingmen → Destroy the final broadcast relay ⇢ *twist* Break the Marshal's personal escort → Defeat the Air Marshal → Broadcast Teal's evidence to the whole coast |
 
 ## Original Blender assets and performance bounds
 
@@ -77,7 +79,7 @@ Completed offline:
 
 - `bun run build` — all TypeScript/React Lua and Roblox Jest specs compile.
 - `bun run build:place` — production Rojo package created without a Rojo server or Studio.
-- `bun run test:offline` — 90 pure compiled-domain contracts pass in the official standalone Luau CLI. This includes all new mission sequences, all flight volumes using legal `FlightMath` stick/throttle, 27-step unlock/replay, four-slot migration, protected loss, deadline/replay failures, the final broadcast, cinematic A/GUI/consumed-input routing, the staging tables (moods, poses, typed lines, story-driven props) and the evidence documents. These are unit simulations, not gameplay evidence.
+- `bun run test:offline` — 126 pure compiled-domain contracts pass in the official standalone Luau CLI. This includes all new mission sequences, all flight volumes using legal `FlightMath` stick/throttle, 27-step unlock/replay, four-slot migration, protected loss, deadline/replay failures, the final broadcast, cinematic A/GUI/consumed-input routing, the staging tables (moods, poses, typed lines, story-driven props) and the evidence documents. These are unit simulations, not gameplay evidence.
 - Blender generation, preview inspection, `.blend` reopen and GLB bounds round-trip for all four new meshes.
 - `git diff --check`.
 

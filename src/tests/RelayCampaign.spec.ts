@@ -2,7 +2,8 @@ import {describe,expect,it} from "@rbxts/jest-globals";
 import {NavigationPilot} from "../shared/NavigationPilot";
 import {FlightMath} from "../shared/FlightMath";
 import {BlueprintRunner} from "../shared/BlueprintRunner";
-import {MissionCatalog,MISSIONS,FlightPoint} from "../shared/MissionCatalog";
+import {MissionCatalog,MISSIONS,FlightPoint,MissionPhaseBlueprint} from "../shared/MissionCatalog";
+import {MissionScore} from "../shared/MissionScore";
 import {LEVEL_LAYOUTS} from "../shared/MissionLayouts";
 import {LOG,MARSHAL,RECORDER,RUSK,SERA,STORY,TEAL,TRAINEE,VULTURE_TWO} from "../shared/RelayStory";
 import {CampaignCoordinator,completeMission,highestUnlocked,normalizeProfile,mergeProfiles,resolveMissionRequest,serializeProfile} from "../server/CampaignRepository";
@@ -20,7 +21,8 @@ describe("Broken Relay campaign contracts",()=>{
 			expect(bp.act).toBe(math.ceil(bp.id/9));
 			expect(MissionCatalog.RequiredGroundKills(bp)).toBe(bp.ground.size());
 			let activeBound=0;
-			for(const p of bp.phases){
+			// Twist inserts are real objectives: every authoring rule applies to the expanded list.
+			for(const p of MissionCatalog.ExpandedPhases(bp)){
 				activeBound=math.max(activeBound,(p.kind==="required_air" ? p.count ?? 0 : p.kind==="ace" ? 1 : 0)+(p.optionalRaiders ?? 0));
 				if(p.points){
 					expect(p.points.size()>0).toBe(true);
@@ -35,7 +37,21 @@ describe("Broken Relay campaign contracts",()=>{
 				if(p.reinforce){
 					expect(p.reinforce.at>0 && p.reinforce.at<1).toBe(true);
 					expect(p.reinforce.count>=1 && p.reinforce.count<=(p.optionalRaiders ?? 0)).toBe(true);
-					expect(p.kind==="escort" || p.kind==="defend").toBe(true);
+					// Reinforcements arrive mid-hold, so only timed volumes carry them.
+					expect(p.kind==="escort" || p.kind==="defend" || p.kind==="signal" || p.kind==="recon").toBe(true);
+				}
+				if(p.twist){
+					expect(p.twist.at>0 && p.twist.at<=1).toBe(true);
+					expect(p.twist.text.size()>0 && p.twist.text.size()<=100).toBe(true);
+					expect(p.twist.insert.size()>=1).toBe(true);
+					for(const inserted of p.twist.insert)expect(inserted.twist).toBeUndefined();
+					// A "now" twist that fires as the phase completes would be a no-op surprise; cut phases must have room left.
+					if(p.twist.mode==="now")expect(p.twist.at<1).toBe(true);
+					// Kill phases step in whole increments: a "now" twist must leave at least one kill undone when it fires.
+					if(p.twist.mode==="now" && (p.kind==="required_air" || p.kind==="required_ground" || p.kind==="ace")){
+						const span=p.kind==="ace" ? 1 : p.count ?? 0;
+						expect(math.ceil(p.twist.at*span-1e-5)<span).toBe(true);
+					}
 				}
 				if(p.kind!=="route" && p.points)expect((p.chatter ?? []).size()>=1).toBe(true);
 			}
@@ -56,6 +72,9 @@ describe("Broken Relay campaign contracts",()=>{
 			expect(phase.optionalRaiders).toBe(4);expect(phase.reinforce?.count).toBe(2);
 		}
 		expect(MissionCatalog.MaxOptionalRaiders(MissionCatalog.Get(23))).toBe(4);
+		// Missions 1-2 keep their legacy flows untouched.
+		expect(MissionCatalog.Get(1).phases.size()).toBe(4);expect(MissionCatalog.Get(2).phases.size()).toBe(3);
+		expect(MissionCatalog.TotalPhases(MissionCatalog.Get(1))).toBe(4);expect(MissionCatalog.TotalPhases(MissionCatalog.Get(2))).toBe(3);
 		const speakers=new Set<string>([TEAL,SERA,MARSHAL,RUSK,TRAINEE,LOG,RECORDER,VULTURE_TWO]);
 		for(let i=0;i<STORY.size();i++){
 			const c=STORY[i];expect(c.id).toBe(i);expect(c.beats.size()>=3 && c.beats.size()<=8).toBe(true);
@@ -73,11 +92,102 @@ describe("Broken Relay campaign contracts",()=>{
 		expect(STORY[0].beats.some((b)=>b.text.find("The sky will still be there")[0]!==undefined)).toBe(true);
 		expect(STORY[27].beats.some((b)=>b.speaker===TEAL && b.text.find("sky will still be there")[0]!==undefined)).toBe(true);
 	});
+	it("paces the campaign: a short rim, a rising plateau with twists, and a finale no shorter than the middle",()=>{
+		const par=(id: number)=>MissionScore.ParSeconds(MissionCatalog.Get(id));
+		let plateauMax=0,twists=0;const twistTexts=new Set<string>();
+		for(const bp of MissionCatalog.ByAct(2)){
+			// 2.5-4 minutes for a competent pilot: par is the clean-run estimate, so 200-300 s brackets that band.
+			expect(par(bp.id)>=200 && par(bp.id)<=300).toBe(true);
+			plateauMax=math.max(plateauMax,par(bp.id));
+			for(const p of bp.phases)if(p.twist){twists+=1;twistTexts.add(p.twist.text);}
+			// Every plateau sortie springs a surprise: a twist or a mid-phase reinforcement wave.
+			expect(bp.phases.some((p)=>p.twist!==undefined) || MissionCatalog.ExpandedPhases(bp).some((p)=>p.reinforce!==undefined)).toBe(true);
+		}
+		expect(twists>=4).toBe(true);expect(twistTexts.size()).toBe(twists);
+		// Act I stays short (legacy M1-2 and the Vulture Lead ace are untouched by this pass).
+		for(const bp of MissionCatalog.ByAct(1))if(bp.id>=3 && bp.id<=8)expect(par(bp.id)<200).toBe(true);
+		expect(par(27)>=plateauMax).toBe(true);
+		// Twists change the objective in four distinct ways across the act.
+		expect(MissionCatalog.Get(10).phases[1].twist?.mode).toBe("now");expect(MissionCatalog.Get(10).phases[1].twist?.insert[0].kind).toBe("required_air");
+		expect(MissionCatalog.Get(12).phases[0].twist?.insert[0].kind).toBe("escort");
+		expect(MissionCatalog.Get(15).phases[0].twist?.insert[1].kind).toBe("signal");
+		expect(MissionCatalog.Get(18).phases[2].twist?.insert[0].kind).toBe("defend");
+	});
+	it("inserts a twist's phases, queues its radio call and keeps the objective totals honest",()=>{
+		// M10: the recon is cut short the moment the camp spots you (mode "now").
+		const recon=BlueprintRunner.NewState(MissionCatalog.Get(10),0);
+		const authored=MissionCatalog.Get(10).phases.size();
+		recon.phaseIndex=1;const scan=BlueprintRunner.ActivePhase(recon)!;expect(scan.kind).toBe("recon");
+		const point=BlueprintRunner.NavigationPoint(recon)!;let clock=0;
+		while(recon.phaseIndex===1 && clock<60){clock+=.1;BlueprintRunner.ObserveFlight(recon,point,point,.1,clock);}
+		expect(recon.phaseIndex).toBe(2);
+		expect(math.abs(clock-scan.seconds!*scan.twist!.at)<.2).toBe(true);
+		expect(BlueprintRunner.Phases(recon).size()).toBe(authored+scan.twist!.insert.size());
+		expect(BlueprintRunner.ActivePhase(recon)!.label).toBe("Break the camp's intercept");
+		// Radio ordering: the twist line is already queued at the instant the phase changes, so the server's
+		// phase application (which drains TakeRadio before it radios the new beat) speaks the call first.
+		expect(recon.radioQueue.size()).toBe(1);
+		expect(BlueprintRunner.Objective(recon).objective).toBe("Break the camp's intercept");
+		expect(BlueprintRunner.TakeRadio(recon)).toBe(scan.twist!.text);expect(BlueprintRunner.TakeRadio(recon)).toBeUndefined();
+		// The catalog itself is untouched: another sortie starts from the authored list.
+		expect(MissionCatalog.Get(10).phases.size()).toBe(authored);
+		expect(BlueprintRunner.Phases(BlueprintRunner.NewState(MissionCatalog.Get(10),0)).size()).toBe(authored);
+		// M13: the silo strike continues after the call (mode "after"); the intercept follows it, and only once.
+		const strike=BlueprintRunner.NewState(MissionCatalog.Get(13),0);strike.phaseIndex=2;
+		const silos=BlueprintRunner.ActivePhase(strike)!;expect(silos.kind).toBe("required_ground");expect(silos.count).toBe(4);
+		BlueprintRunner.RecordKill(strike,"silo1","ground",true,1);expect(BlueprintRunner.TakeRadio(strike)).toBeUndefined();
+		BlueprintRunner.RecordKill(strike,"silo2","ground",true,2);
+		expect(strike.phaseIndex).toBe(2);expect(BlueprintRunner.TakeRadio(strike)).toBe(silos.twist!.text);
+		expect(BlueprintRunner.Phases(strike)[3].label).toBe("Break the plateau reinforcements");
+		BlueprintRunner.RecordKill(strike,"silo3","ground",true,3);BlueprintRunner.RecordKill(strike,"silo4","ground",true,4);
+		expect(strike.phaseIndex).toBe(3);expect(BlueprintRunner.ActivePhase(strike)!.kind).toBe("required_air");
+		expect(BlueprintRunner.TakeRadio(strike)).toBeUndefined();
+		expect(BlueprintRunner.Phases(strike).size()).toBe(MissionCatalog.TotalPhases(MissionCatalog.Get(13)));
+		// Totals the server and save layer use include the inserted objectives.
+		expect(MissionCatalog.RequiredAirKills(MissionCatalog.Get(13))).toBe(3+2);
+		expect(MissionCatalog.RequiredAirKills(MissionCatalog.Get(10))).toBe(3+2);
+		expect(MissionCatalog.RequiredGroundKills(MissionCatalog.Get(17))).toBe(2);
+		expect(MissionCatalog.RequiredGroundKills(MissionCatalog.Get(17))).toBe(MissionCatalog.Get(17).ground.size());
+		expect(MissionCatalog.MaxOptionalRaiders(MissionCatalog.Get(12))).toBe(4+4+2);
+		// A twist that fires on completion (at: 1) hands over to the inserted phase, never to the one after it.
+		const finale=BlueprintRunner.NewState(MissionCatalog.Get(27),0);finale.phaseIndex=1;
+		BlueprintRunner.RecordKill(finale,"relay","ground",true,1);
+		expect(BlueprintRunner.ActivePhase(finale)!.label).toBe("Break the Marshal's personal escort");
+		expect(BlueprintRunner.TakeRadio(finale)).toBe(MissionCatalog.Get(27).phases[1].twist!.text);
+	});
+	it("ends every mission on a terminal phase whose completion wins the sortie",()=>{
+		for(const bp of MISSIONS){
+			const expanded=MissionCatalog.ExpandedPhases(bp);
+			expect(expanded.size()).toBe(MissionCatalog.TotalPhases(bp));
+			expect(expanded.size()>=bp.phases.size()).toBe(true);
+			const last=expanded[expanded.size()-1];
+			expect(last!==undefined).toBe(true);
+			// Nothing after the last authored phase can be inserted: the mission has a definite end.
+			expect(last.twist).toBeUndefined();
+			if(bp.id>=3){
+				const state=BlueprintRunner.NewState(bp,0);state.phaseIndex=expanded.size()-1;state.phases=expanded;
+				if(last.kind==="required_air" || last.kind==="required_ground" || last.kind==="ace"){
+					const kind=last.kind==="required_air" ? "air" : last.kind==="required_ground" ? "ground" : "ace";
+					for(let i=0;i<(BlueprintRunner.Total(last));i++)BlueprintRunner.RecordKill(state,`t${i}`,kind,true,1+i);
+				}else{
+					for(let i=0;i<4000 && state.outcome===undefined;i++){
+						const point=BlueprintRunner.NavigationPoint(state)!;const observed={...point,y:math.max(250,point.y)};
+						BlueprintRunner.ObserveFlight(state,observed,observed,.1,1+i*.1);
+					}
+				}
+				expect(state.outcome).toBe("won");expect(state.phaseIndex).toBe(expanded.size());
+			}
+		}
+	});
 	for(const bp of MISSIONS.filter((b)=>b.id>=3)) it(`completes every authoritative phase of M${bp.id} in order`,()=>{
 		const state=BlueprintRunner.NewState(bp,100);let now=100,serial=0;
+		const expanded=MissionCatalog.ExpandedPhases(bp);let radios=0;
 		while(state.outcome===undefined && now<690){
 			const phase=BlueprintRunner.ActivePhase(state)!;
 			const previous=state.phaseIndex;
+			// Whatever the sortie does, the live list never deviates from the expanded catalog flow.
+			expect(phase).toBe(expanded[state.phaseIndex]);
+			while(BlueprintRunner.TakeRadio(state)!==undefined)radios+=1;
 			if(phase.kind==="required_air" || phase.kind==="required_ground" || phase.kind==="ace"){
 				const kind=phase.kind==="required_air" ? "air" : phase.kind==="required_ground" ? "ground" : "ace";
 				const id=`target_${serial++}`;expect(BlueprintRunner.RecordKill(state,id,kind,true,++now)).toBe(true);
@@ -89,14 +199,18 @@ describe("Broken Relay campaign contracts",()=>{
 			}
 			if(state.phaseIndex!==previous)expect(state.phaseIndex).toBe(previous+1);
 		}
-		expect(state.outcome).toBe("won");expect(state.phaseIndex).toBe(bp.phases.size());
+		while(BlueprintRunner.TakeRadio(state)!==undefined)radios+=1;
+		expect(radios).toBe(bp.phases.filter((p)=>p.twist!==undefined).size());
+		expect(state.outcome).toBe("won");expect(state.phaseIndex).toBe(MissionCatalog.TotalPhases(bp));
+		expect(BlueprintRunner.Phases(state).size()).toBe(MissionCatalog.TotalPhases(bp));
 		expect(state.requiredGroundKills).toBe(bp.ground.size());
 		expect(state.requiredAirKills+(state.aceKilled ? 1 : 0)).toBe(MissionCatalog.RequiredAirKills(bp));
 	});
 	for(const bp of MISSIONS.filter((b)=>b.id>=3)) it(`flies M${bp.id} navigation volumes with legal stick and throttle`,()=>{
-		for(let index=0;index<bp.phases.size();index++){
-			const phase=bp.phases[index];if(!phase.points)continue;
-			const run=BlueprintRunner.NewState(bp,0);run.phaseIndex=index;
+		const expanded: MissionPhaseBlueprint[]=MissionCatalog.ExpandedPhases(bp);
+		for(let index=0;index<expanded.size();index++){
+			const phase=expanded[index];if(!phase.points)continue;
+			const run=BlueprintRunner.NewState(bp,0);run.phases=expanded;run.phaseIndex=index;
 			const flight=FlightMath.NewState();let clock=0;
 			while(run.phaseIndex===index && run.outcome===undefined && clock<240){
 				const point=BlueprintRunner.NavigationPoint(run)!;
@@ -112,7 +226,9 @@ describe("Broken Relay campaign contracts",()=>{
 		const bp=MissionCatalog.Get(27),state=BlueprintRunner.NewState(bp,0);
 		for(let i=0;i<3;i++)BlueprintRunner.RecordKill(state,`wing${i}`,"air",true,1+i);
 		BlueprintRunner.RecordKill(state,"relay","ground",true,5);
-		BlueprintRunner.RecordKill(state,"marshal","ace",true,6);
+		expect(BlueprintRunner.RecordKill(state,"marshal","ace",true,6)).toBe(false);
+		for(let i=0;i<3;i++)BlueprintRunner.RecordKill(state,`escort${i}`,"air",true,7+i);
+		BlueprintRunner.RecordKill(state,"marshal","ace",true,10);
 		expect(state.outcome).toBeUndefined();expect(BlueprintRunner.ActivePhase(state)?.kind).toBe("signal");
 	});
 	it("ignores out-of-volume, above-ceiling and invalid observations, but detects swept gate crossing",()=>{
@@ -156,7 +272,7 @@ describe("Broken Relay campaign contracts",()=>{
 			const slot=c.getSlots()[0];expect(highestUnlocked(slot)).toBe(id);expect(resolveMissionRequest(slot,undefined)[0]).toBe(id);
 			if(id<27)expect(resolveMissionRequest(slot,id+1)[0]).toBeUndefined();
 			const bp=MissionCatalog.Get(id);let kind="";
-			completeMission(c,1,id,true,{slot:1,missionId:id,kills:MissionCatalog.RequiredAirKills(bp),groundKills:MissionCatalog.RequiredGroundKills(bp),completedPhases:bp.phases.size(),elapsed:100},(m)=>kind=m.kind);
+			completeMission(c,1,id,true,{slot:1,missionId:id,kills:MissionCatalog.RequiredAirKills(bp),groundKills:MissionCatalog.RequiredGroundKills(bp),completedPhases:MissionCatalog.TotalPhases(bp),elapsed:100},(m)=>kind=m.kind);
 			expect(kind).toBe("Completed");expect(c.getSlots()[0].completed).toBe(id===27);
 		}
 		c.recordMissionResult(1,5,false,0,80);c.recordMissionResult(1,5,true,3,110);c.recordMissionResult(1,5,true,3,90);
@@ -172,6 +288,10 @@ describe("Broken Relay campaign contracts",()=>{
 		completeMission(c,1,3,true,stats,(m)=>result=m.kind);expect(result).toBe("Failed");
 		expect(completeMission(c,1,4,true,stats,()=>undefined)).toBe(false);
 		completeMission(c,1,3,true,{...stats,completedPhases:bp.phases.size(),elapsed:600},(m)=>result=m.kind);
+		expect(result).toBe("Failed");
+		// Proof must cover the twist-inserted phases too: the authored count alone is not a win.
+		const twisted=MissionCatalog.Get(13);
+		completeMission(c,1,13,true,{slot:1,missionId:13,kills:MissionCatalog.RequiredAirKills(twisted),groundKills:MissionCatalog.RequiredGroundKills(twisted),completedPhases:twisted.phases.size(),elapsed:200},(m)=>result=m.kind);
 		expect(result).toBe("Failed");
 		for(const id of [0,28,1.5,math.huge])expect(resolveMissionRequest(c.getSlots()[0],id)[0]).toBeUndefined();
 	});

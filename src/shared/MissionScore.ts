@@ -1,7 +1,7 @@
 // Pure post-mission scoring shared by the server (authoritative score, saved bests)
 // and the debrief screen. Nothing here reads instances or the clock.
 import { Difficulty, DifficultyKind } from "./Difficulty";
-import { MissionBlueprint, MissionPhaseBlueprint } from "./MissionCatalog";
+import { MissionBlueprint, MissionCatalog, MissionPhaseBlueprint } from "./MissionCatalog";
 
 export type MissionRank = "S" | "A" | "B" | "C" | "D";
 
@@ -76,7 +76,7 @@ export const MissionScore = {
 	/** Par time for a mission: transit plus each phase's clean-run estimate, rounded up to 5 s. */
 	ParSeconds(blueprint: MissionBlueprint): number {
 		let total = 20;
-		for (const phase of blueprint.phases) total += phasePar(phase);
+		for (const phase of MissionCatalog.ExpandedPhases(blueprint)) total += phasePar(phase);
 		return math.ceil(total / 5) * 5;
 	},
 

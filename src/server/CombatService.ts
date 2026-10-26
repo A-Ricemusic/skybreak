@@ -591,18 +591,31 @@ function applyBlueprintPhase(session: CombatSession): void {
 	}
 	session.navigationMarker?.Destroy(); session.navigationMarker=undefined;
 	session.navigationActor?.Destroy(); session.navigationActor=undefined;
-	const phase: MissionPhaseBlueprint | undefined=state.blueprint.phases[state.phaseIndex];
+	// The live list, not the catalog: twists splice new objectives in after the phase that fired them.
+	const phases=BlueprintRunner.Phases(state);
+	const phase: MissionPhaseBlueprint | undefined=phases[state.phaseIndex];
 	if (!phase) return;
 	if (phase.kind === "required_ground") {
 		let start=0;
-		for(let i=0;i<state.phaseIndex;i++) if(state.blueprint.phases[i].kind === "required_ground") start+=state.blueprint.phases[i].count ?? 0;
+		for(let i=0;i<state.phaseIndex;i++) if(phases[i].kind === "required_ground") start+=phases[i].count ?? 0;
 		activateGround(session,start,phase.count ?? 0);
 	} else if (phase.kind === "required_air") spawnAir(session,phase.count ?? 0,true);
 	else if (phase.kind === "ace") spawnAir(session,1,true,true,session.blueprint.aceHealth ?? 165);
 	// Ace phases hold their raiders back for the ace's stage calls; reinforced phases keep part of theirs for mid-phase.
 	const initialRaiders = phase.kind === "ace" ? 0 : (phase.optionalRaiders ?? 0) - (phase.reinforce?.count ?? 0);
 	if (initialRaiders>0) spawnAir(session,initialRaiders,false);
-	if (phase.beat !== undefined) radio(session, phase.beat);
+	// A twist that changed the objective speaks first: radio() overwrites, so its call goes out now and
+	// the new phase's beat follows a few seconds later (if the sortie is still on this phase). This runs
+	// for both the tick path and the synchronous kill path (destroyEnemy -> advance -> applyPhase).
+	let twisted=false;
+	for (let line=BlueprintRunner.TakeRadio(state); line !== undefined; line=BlueprintRunner.TakeRadio(state)) { radio(session,line,7); twisted=true; }
+	if (phase.beat !== undefined) {
+		if (!twisted) radio(session, phase.beat);
+		else {
+			const beat=phase.beat, index=state.phaseIndex;
+			task.delay(4, () => { if (session.active && sessions.get(session.player) === session && state.phaseIndex === index && state.outcome === undefined) radio(session, beat); });
+		}
+	}
 	const nav=BlueprintRunner.NavigationPoint(state);
 	if (nav) {
 		const marker=new Instance("Part"); marker.Name="Flight objective"; marker.Size=new Vector3(20,20,20); marker.Shape=Enum.PartType.Ball;
@@ -1052,6 +1065,8 @@ function stepSession(session: CombatSession, dt: number): void {
 		BlueprintRunner.ObserveFlight(bs,from,{x:session.state.x,y:session.state.y,z:session.state.z},dt,os.clock(),threats);
 		if (bs.outcome !== undefined) {finish(session); return;}
 		applyPhase(session);
+		// Mid-phase "after" twists do not change phase, so applyBlueprintPhase never sees their radio: drain it here.
+		for (let line=BlueprintRunner.TakeRadio(bs); line !== undefined; line=BlueprintRunner.TakeRadio(bs)) radio(session,line,7);
 		const active=BlueprintRunner.ActivePhase(bs);
 		if (active) {
 			const fraction=BlueprintRunner.Fraction(bs);

@@ -453,7 +453,7 @@ export function completeMission(
 	// only as Mission 1 results; all new callbacks must prove every objective.
 	const legacyMission1 = stats.missionId === undefined;
 	const objectivesMet = stats.kills >= requiredAirKills && (legacyMission1 || groundKills >= requiredGroundKills);
-	const flightObjectivesMet = missionId <= 2 || stats.completedPhases === MissionCatalog.Get(missionId).phases.size();
+	const flightObjectivesMet = missionId <= 2 || stats.completedPhases === MissionCatalog.TotalPhases(MissionCatalog.Get(missionId));
 	const qualifiedWin = won && flightObjectivesMet && objectivesMet && elapsed > 0 && elapsed < GameConfig.Campaign.MissionTimeLimit;
 	const kills = isFiniteNumber(stats.kills) ? math.max(0, math.floor(stats.kills)) : 0;
 	const par = MissionScore.ParSeconds(MissionCatalog.Get(missionId));

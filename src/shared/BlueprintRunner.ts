@@ -3,6 +3,12 @@ import { FlightPoint, MissionBlueprint, MissionPhaseBlueprint, PhaseKind } from 
 export type BlueprintReason = "complete" | "timeout" | "destroyed" | "protected_lost";
 export interface BlueprintState {
 	blueprint: MissionBlueprint;
+	/** This sortie's live phase list: the authored phases plus any twist inserts fired so far. */
+	phases: MissionPhaseBlueprint[];
+	/** Radio lines raised by twists, drained by the server in order. */
+	radioQueue: string[];
+	/** True once the active phase's twist has fired (reset on every advance). */
+	phaseTwisted: boolean;
 	startedAt: number;
 	elapsed: number;
 	phaseIndex: number;
@@ -48,14 +54,38 @@ function finish(s: BlueprintState, outcome: "won" | "failed", reason: BlueprintR
 	s.outcome=outcome; s.reason=reason;
 }
 function advance(s: BlueprintState): void {
-	s.phaseIndex++; s.phaseProgress=0; s.pointIndex=0; s.phaseOptionalKills=0; s.protectedHealth=100;
-	if (s.phaseIndex >= s.blueprint.phases.size()) finish(s,"won","complete");
+	s.phaseIndex++; s.phaseProgress=0; s.pointIndex=0; s.phaseOptionalKills=0; s.protectedHealth=100; s.phaseTwisted=false;
+	if (s.phaseIndex >= s.phases.size()) finish(s,"won","complete");
+}
+/**
+ * Fires the active phase's twist once its progress fraction reaches `at`: queues the radio
+ * line and splices the inserted phases right after the active one. Returns true when the
+ * twist ended the active phase itself (mode "now"), so callers skip their own advance.
+ */
+function twist(s: BlueprintState): boolean {
+	const p=s.phases[s.phaseIndex];
+	const t=p?.twist;
+	if (!t || s.phaseTwisted) return false;
+	const span=total(p);
+	if (span<=0 || s.phaseProgress+0.00001 < t.at*span) return false;
+	s.phaseTwisted=true;
+	s.radioQueue.push(t.text);
+	const spliced: MissionPhaseBlueprint[]=[];
+	for (let i=0;i<=s.phaseIndex;i++) spliced.push(s.phases[i]);
+	for (const inserted of t.insert) spliced.push(inserted);
+	for (let i=s.phaseIndex+1;i<s.phases.size();i++) spliced.push(s.phases[i]);
+	s.phases=spliced;
+	if (t.mode !== "now") return false;
+	advance(s);
+	return true;
 }
 export const BlueprintRunner = {
 	Duration: 600,
 	NewState(blueprint: MissionBlueprint, startedAt: number): BlueprintState {
 		assert(finite(startedAt) && blueprint.phases.size()>0,"Invalid blueprint/clock");
-		return {blueprint,startedAt,elapsed:0,phaseIndex:0,phaseProgress:0,pointIndex:0,protectedHealth:100,
+		const phases: MissionPhaseBlueprint[]=[];
+		for (const phase of blueprint.phases) phases.push(phase);
+		return {blueprint,phases,radioQueue:[],phaseTwisted:false,startedAt,elapsed:0,phaseIndex:0,phaseProgress:0,pointIndex:0,protectedHealth:100,
 			killedIds:new Set<string>(),requiredAirKills:0,requiredGroundKills:0,optionalAirKills:0,phaseOptionalKills:0,aceKilled:false};
 	},
 	Tick(s: BlueprintState, now: number, health=100): void {
@@ -65,7 +95,11 @@ export const BlueprintRunner = {
 		else if (finite(health) && health<=0) finish(s,"failed","destroyed");
 	},
 	TimeRemaining(s: BlueprintState): number { return math.max(0,600-s.elapsed); },
-	ActivePhase(s: BlueprintState): MissionPhaseBlueprint | undefined { return s.blueprint.phases[s.phaseIndex]; },
+	ActivePhase(s: BlueprintState): MissionPhaseBlueprint | undefined { return s.phases[s.phaseIndex]; },
+	/** The live phase list (authored phases plus twist inserts fired so far). Read-only for callers. */
+	Phases(s: BlueprintState): MissionPhaseBlueprint[] { return s.phases; },
+	/** Next twist radio line, or undefined. The server drains this after every observation. */
+	TakeRadio(s: BlueprintState): string | undefined { return s.radioQueue.size()>0 ? s.radioQueue.shift() : undefined; },
 	/** Phase progress total: kills for combat phases, checkpoints for routes, seconds for timed volumes. */
 	Total(p: MissionPhaseBlueprint): number { return total(p); },
 	/** Active phase progress as a 0-1 fraction (1 when the mission is complete or the phase has no total). */
@@ -101,6 +135,7 @@ export const BlueprintRunner = {
 		if (p.kind === "route") {
 			if (sweptDistance(point,from,to) <= (p.radius ?? 210)) {
 				s.pointIndex++; s.phaseProgress++;
+				twist(s);
 				if (s.pointIndex>=p.points!.size()) advance(s);
 			}
 			return;
@@ -108,6 +143,7 @@ export const BlueprintRunner = {
 		if (distance(point,to) > (p.radius ?? 1000)) return;
 		s.phaseProgress+=dt;
 		if (p.kind === "recon") s.pointIndex=math.min(p.points!.size()-1,math.floor((s.phaseProgress+0.00001)/p.seconds!));
+		if (twist(s)) return;
 		if (s.phaseProgress+0.00001>=total(p)) advance(s);
 	},
 	CanDamage(s: BlueprintState, kind: "air" | "ground" | "ace", required: boolean): boolean {
@@ -126,6 +162,7 @@ export const BlueprintRunner = {
 		else if (kind==="air") s.requiredAirKills++;
 		else s.requiredGroundKills++;
 		s.phaseProgress++;
+		if (twist(s)) return true;
 		if (s.phaseProgress>=total(BlueprintRunner.ActivePhase(s)!)) advance(s);
 		return true;
 	},
