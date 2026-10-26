@@ -168,3 +168,73 @@ All of these use built-in `rbxasset://textures/particles/*` textures, so no asse
   exactly as before.
 - `JetFactory.Flares` (Flare Pod and EVADE) ejects six magnesium flares relative to the
   jet's frame. Each one kicks out, then drops in an eased arc on a smoke trail.
+
+## Combat threat, evade and aces (round 2)
+
+All numbers live in `CombatService.TUNING` (per act) and the pure rule modules (`ThreatRules`, `EvadeRules`, `AceRules`, `WavePlan`); `Difficulty` multiplies them on top of the Normal values below. Missions 1–4 use the gentle gate.
+
+### Lock envelope (`WeaponRules`)
+
+| | Before | After |
+|---|---|---|
+| Air targets | 62° half-cone, 2450 studs | **40° half-cone, 1800 studs** |
+| Ground targets | 80°, 2450 | 80°, 2450 (unchanged) |
+| Drone / lance | range × 1.35 / 3800 | same, air range scaled by 1800/2450 |
+
+### Hostile fire control
+
+Each bandit keeps its own reload. The flight shares one gate between windup starts, divided by the number of live hostiles (`ThreatRules.FlightGate`: +50% per extra hostile, capped), never closer than 1.5 s, and a cap on concurrent threats (lit windups plus missiles in flight, one per two live hostiles). Aces sit outside both: they fire on their own reload while their wingmen wind up. A radar-directed phase (`directed`) halves the gate.
+
+| Act | Gate, one bandit | Max divisor | Gate, five bandits | Threat cap | Bandit reload | Damage | Before (any count) |
+|---|---|---|---|---|---|---|---|
+| M1–M4 (gentle) | 14 s | 1.5 | 9.3 s | 1 | 10 s | 10 | one windup per 6.9 s |
+| I (M5–M9) | 14 s | 2 | 7 s | 1 | 10 s | 10 | one windup per 6.9 s |
+| II | 13 s | 2.5 | 5.2 s | 2 | 7.5 s | 12 | one per 5.5 s |
+| III | 15 s | 3 | 5 s | 2 | 5.5 s | 13 | one per 4.7 s |
+
+Act III was softened after live playtests (2026-10-26): the scripted pilot, timing every evade, was shot down in Mission 26 on eight straight attempts at gate 12 s / cap 3 / 14 damage / 350-stud decoy / 12 s recharge and a 10-bandit wing. With the values above and an 8-bandit wing it completed M26 in 205 s and 188 s (35 hull) and M27 in 193 s (87 hull).
+
+Ace: reload 9 / 8 / 7 s, +2 damage per missile, salvo 1 / 1 / 2 (2 in every act on Ace difficulty).
+
+### Bandits
+
+| | Before | After |
+|---|---|---|
+| Hull (required bandits) | 100 / 110 / 110 (two missiles everywhere) | **100 / 130 / 160** (two / three / three missiles); raiders 100 |
+| Spawn | 1300–1500 studs, lockable on frame one | **2600–3200 studs** (reinforcements from behind 2000–2400) |
+| Defensive break | roll every step while a guided missile is inside 700 (effectively always) | **once per 12 s**: a lock building past 80% inside 900 studs (odds 0 gentle / 0.5 Act I / 1 Acts II–III, ×difficulty), or a guided missile inbound (0.15 / 0.4 / 0.6); a failed roll waits 3 s |
+| Flares | none | **Act III bandits carry one**: it pops when a player missile is inside 260 studs and decoys every player missile inside 260 for 2.5 s |
+| Speed while extending | player + 24 | **player − 10** (floor 180), so turning back in earns a rear shot |
+| Terrain | clamped to 170–1000 only | plus a 200-stud forward ray every third step; a hit pulls the jet up for 0.8 s |
+
+### Evade (`EvadeRules`)
+
+Input-agnostic: keyboard F, gamepad B and the touch EVADE button all send `CombatAction "Evade"`.
+
+| | Before | After |
+|---|---|---|
+| Uses | unlimited, 6 s cooldown | **3 charges**, each recharging in 10 s (one at a time) |
+| What it decoys | every hostile missile within 700 studs, plus 1.6 s of immunity | only missiles **within 450 studs or in their last 1.2 s**, during a 0.6 s window after the press; no immunity |
+| Telemetry | `evadeCooldown` | `evadeCooldown` (roll, else 0 with a charge, else time to the next charge), `evadeCharges`, `incomingDistance` |
+
+At Act III missile speed (740) the window means pressing when the missile is inside about 800 studs; a press at 1800 wastes the charge.
+
+### Aces (`AceRules`)
+
+| | Before | After |
+|---|---|---|
+| Hull (Normal) | 220 / 260 / 320 × act scale (220 / 299 / 416) | **300 / 400 / 500** (M2's legacy ace stays 165) |
+| Hits to kill at 55 | 6 / 6 / 9 | 6 / 9 / 12 |
+| Stage line (2/3, 1/3) | 1.2 s invulnerable | **3 s invulnerable, lock reset to 0**, then a retreat beyond 1800 studs (or 10 s), a call for the phase's raiders, a hold off while they fight (until they are down, or 25 s), and a return with an `aceReturns` line. Hits still land during the retreat and hold, but stop above the next line (short of the kill in the last stage) until the ace has turned back in, so no stage's call or return is skipped |
+| Flares | 2 / 3 / 4, each eats one missile, 5 s apart | 2 / 3 / 4, each **decoys every player missile within 260 studs for 2.5 s**, 6 s apart |
+
+### Difficulty
+
+| Knob | Easy | Normal | Ace |
+|---|---|---|---|
+| Hostile gate and reloads | ×1.25 (was 1.5) | 1 | ×0.7 |
+| Bandit hull | ×0.75 (was 0.85): Act II bandits become two-missile kills | 1 | ×1 (was 1.15) |
+| Protected-actor drain | ×0.75 | 1 (0.55 per raider per s) | ×1.25 |
+| Behaviour | — | — | every bandit breaks close locks and carries a flare; aces fire two missiles per windup; every raider wave brings one more, and the live-aircraft budget rises from 7 to 8 to match |
+
+Damage, windup, missile turn, ace hull, break odds and score multipliers are unchanged from the difficulty selector (#33).

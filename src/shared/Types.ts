@@ -156,11 +156,19 @@ export interface Telemetry {
 	health: number;
 	speed: number;
 	altitude: number;
+	/** Required destructions so far (bandits, ace, ground targets); never exceeds `total`. */
 	kills: number;
 	total: number;
+	/** Optional raiders downed this sortie (separate, so the required tally cannot read 7/4). */
+	optionalKills?: number;
 	missiles: number;
 	missileCooldown: number;
+	/** Seconds until EVADE can be pressed again (0 with a charge in hand and no roll running). */
 	evadeCooldown: number;
+	/** Evade charges in hand (0-3); each recharges in 12 s. */
+	evadeCharges?: number;
+	/** Studs to the nearest hostile missile, when one is in the air. */
+	incomingDistance?: number;
 	target?: Model;
 	targetName: string;
 	lockProgress: number;

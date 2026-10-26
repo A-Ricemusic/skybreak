@@ -96,3 +96,89 @@ describe("Ace pressure", () => {
 		expect(math.abs(math.sqrt(second.x * second.x + second.y * second.y + second.z * second.z) - 1) < 1e-6).toBe(true);
 	});
 });
+// Round 2: flight-wide fire control that scales with the number of live hostiles.
+interface Cadence { launches: number; peakThreats: number; minSpacing: number }
+/** Pure model of CombatService's bandit fire control: every bandit always in the envelope and aimed. */
+function simulate(bandits: number, gateBase: number, maxDivisor: number, maxCap: number, reload: number, windup: number, flight: number, seconds = 60): Cadence {
+	const dt = 1 / 30;
+	const fire: number[] = [], lit: number[] = [];
+	for (let index = 0; index < bandits; index++) { fire.push(4 + index * 1.5); lit.push(0); }
+	const missiles: number[] = [];
+	let lastWindup = -math.huge, launches = 0, peak = 0, minSpacing = math.huge;
+	for (let t = 0; t < seconds; t += dt) {
+		for (let index = missiles.size() - 1; index >= 0; index--) { missiles[index] -= dt; if (missiles[index] <= 0) missiles.remove(index); }
+		let threats = missiles.size();
+		for (const value of lit) if (value > 0) threats += 1;
+		const gate = ThreatRules.FlightGate(gateBase, bandits, maxDivisor);
+		const cap = ThreatRules.ThreatCap(bandits, maxCap);
+		let ready = ThreatRules.FlightReady({ sinceLastWindup: t - lastWindup, gate, threats, cap });
+		for (let index = 0; index < bandits; index++) {
+			fire[index] = math.max(0, fire[index] - dt);
+			if (lit[index] > 0) {
+				lit[index] -= dt;
+				if (lit[index] <= 0) { missiles.push(flight); launches += 1; fire[index] = reload; }
+			} else if (ready && ThreatRules.MayFire({ separation: 1000, aimDot: 1, fireTimer: fire[index], globalReady: true, evading: false, playerStraight: false, minRange: 350, maxRange: 2100, aimThreshold: 0.45, straightRelax: 0.3 })) {
+				lit[index] = windup;
+				minSpacing = math.min(minSpacing, t - lastWindup);
+				lastWindup = t; threats += 1; ready = false;
+			}
+		}
+		peak = math.max(peak, threats);
+	}
+	return { launches, peakThreats: peak, minSpacing };
+}
+describe("Flight fire control scales with live hostiles", () => {
+	it("divides the gate by +50% per extra hostile, capped, and never below 1.5 s", () => {
+		expect(ThreatRules.FlightDivisor(1, 3)).toBe(1);
+		expect(ThreatRules.FlightDivisor(3, 3)).toBe(2);
+		expect(ThreatRules.FlightDivisor(5, 3)).toBe(3);
+		expect(ThreatRules.FlightDivisor(9, 3)).toBe(3);
+		expect(ThreatRules.FlightDivisor(0, 3)).toBe(1);
+		expect(ThreatRules.FlightGate(12, 5, 3)).toBe(4);
+		expect(ThreatRules.FlightGate(12, 5, 3, true)).toBe(2);
+		expect(ThreatRules.FlightGate(2, 5, 3, true)).toBe(ThreatRules.GlobalSpacing);
+		expect(ThreatRules.ThreatCap(1, 3)).toBe(1);
+		expect(ThreatRules.ThreatCap(5, 3)).toBe(3);
+		expect(ThreatRules.ThreatCap(5, 1)).toBe(1);
+	});
+	it("Act III: five bandits launch close to three times as often as one, never closer than 1.5 s", () => {
+		const one = simulate(1, 12, 3, 3, 5.5, 1.7, 2.5);
+		const five = simulate(5, 12, 3, 3, 5.5, 1.7, 2.5);
+		expect(one.launches >= 4 && one.launches <= 6).toBe(true);
+		expect(five.launches >= one.launches * 2.5).toBe(true);
+		expect(five.launches <= 60 / ThreatRules.GlobalSpacing).toBe(true);
+		expect(five.minSpacing >= ThreatRules.GlobalSpacing - 1e-6).toBe(true);
+		expect(five.peakThreats <= 3).toBe(true);
+	});
+	it("keeps the opening sorties gentle: one threat in the air at a time, whatever the count", () => {
+		const gentle = simulate(3, 14, 1.5, 1, 10, 2.4, 3);
+		expect(gentle.peakThreats).toBe(1);
+		expect(gentle.launches <= 7).toBe(true);
+	});
+});
+describe("Bandit lock breaks, flares and extensions", () => {
+	const close = { lockProgress: 0.85, distance: 800, cooldownRemaining: 0, extending: false, roll: 0.2, chance: 1 };
+	it("breaks a lock building past 80% inside 900 studs", () => {
+		expect(ThreatRules.ShouldLockBreak(close)).toBe(true);
+		expect(ThreatRules.ShouldLockBreak({ ...close, lockProgress: 0.8 })).toBe(false);
+		expect(ThreatRules.ShouldLockBreak({ ...close, distance: 900 })).toBe(false);
+		expect(ThreatRules.ShouldLockBreak({ ...close, cooldownRemaining: 1 })).toBe(false);
+		expect(ThreatRules.ShouldLockBreak({ ...close, extending: true })).toBe(false);
+		expect(ThreatRules.ShouldLockBreak({ ...close, chance: 0 })).toBe(false);
+		expect(ThreatRules.BreakCooldown).toBe(12);
+	});
+	it("pops a flare against a missile inside 260 studs, then decoys everything near it for 2.5 s", () => {
+		expect(ThreatRules.ShouldFlare(250, 1, 0)).toBe(true);
+		expect(ThreatRules.ShouldFlare(270, 1, 0)).toBe(false);
+		expect(ThreatRules.ShouldFlare(250, 0, 0)).toBe(false);
+		expect(ThreatRules.ShouldFlare(250, 2, 1)).toBe(false);
+		expect(ThreatRules.FlareDecoys(200, 12.5, 10)).toBe(true);
+		expect(ThreatRules.FlareDecoys(200, 12.5, 12.5)).toBe(false);
+		expect(ThreatRules.FlareDecoys(300, 12.5, 10)).toBe(false);
+		expect(ThreatRules.FlareSeconds).toBe(2.5);
+	});
+	it("slows an extending bandit below the player so a turn back in gets a rear shot", () => {
+		expect(ThreatRules.ExtendSpeed(255, 180)).toBe(245);
+		expect(ThreatRules.ExtendSpeed(150, 180)).toBe(180);
+	});
+});

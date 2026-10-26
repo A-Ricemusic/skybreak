@@ -145,9 +145,13 @@ describe("SpecialWeapons salvo targeting", () => {
 		const ground = candidate({ distance: 2000, dot: WeaponRules.GroundLockDot + 0.01, ground: true });
 		const air = candidate({ distance: 2000, dot: WeaponRules.GroundLockDot + 0.01, ground: false });
 		expect(SpecialWeapons.SalvoTargets([ground, air], WeaponRules.LockRange)).toEqual([0]);
-		const far = candidate({ distance: 3000 });
+		const far = candidate({ distance: 3000, ground: true });
 		expect(SpecialWeapons.SalvoTargets([far], WeaponRules.LockRange)).toEqual([]);
 		expect(SpecialWeapons.SalvoTargets([far], 3300)).toEqual([0]);
+		// Air targets use the shorter air envelope of the same (ground-scale) range.
+		const farAir = candidate({ distance: 2000 });
+		expect(SpecialWeapons.SalvoTargets([farAir], WeaponRules.LockRange)).toEqual([]);
+		expect(SpecialWeapons.SalvoTargets([farAir], 3000)).toEqual([0]);
 		expect(SpecialWeapons.SalvoTargets([], WeaponRules.LockRange)).toEqual([]);
 		expect(SpecialWeapons.SalvoTargets([candidate({ distance: 0 / 0 })], WeaponRules.LockRange)).toEqual([]);
 	});
@@ -174,7 +178,8 @@ describe("SpecialWeapons lance", () => {
 		expect(SpecialWeapons.MissileSpeed("lance")).toBeGreaterThan(WeaponRules.MissileSpeed);
 		expect(SpecialWeapons.MissileSpeed("salvo")).toBe(WeaponRules.MissileSpeed);
 		// The standard launch decision honours the extended range when it is handed one.
-		const far = { missiles: 8, missileCooldown: 0, hasTarget: true, lockProgress: 1, distance: 3500, dot: 1 };
+		// Air reach scales with the standard air envelope: LanceRange x AirRangeFactor (about 2790 studs).
+		const far = { missiles: 8, missileCooldown: 0, hasTarget: true, lockProgress: 1, distance: 2700, dot: 1 };
 		expect(WeaponRules.Launch(far).kind).toBe("blind");
 		expect(WeaponRules.Launch({ ...far, lockRange: SpecialWeapons.LanceRange }).kind).toBe("guided");
 	});

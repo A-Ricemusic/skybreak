@@ -45,7 +45,7 @@ describe("BlueprintRunner phase progress fractions",()=>{
 		for(let i=0;i<150;i++){clock+=.1;BlueprintRunner.ObserveFlight(state,point,point,.1,clock);}
 		expect(state.outcome).toBeUndefined();
 		expect(math.abs(BlueprintRunner.Fraction(state)-15/phase.seconds!)<1e-3).toBe(true);
-		for(let i=0;i<160;i++){clock+=.1;BlueprintRunner.ObserveFlight(state,point,point,.1,clock);}
+		for(let i=0;i<phase.seconds!*10;i++){clock+=.1;BlueprintRunner.ObserveFlight(state,point,point,.1,clock);}
 		expect(state.outcome).toBe("won");
 		expect(BlueprintRunner.Fraction(state)).toBe(1);
 	});
@@ -62,7 +62,7 @@ describe("BlueprintRunner phase progress fractions",()=>{
 		expect(state.phaseIndex).toBe(2);expect(state.phaseTwisted).toBe(false);
 		expect(BlueprintRunner.Phases(state).size()).toBe(MissionCatalog.TotalPhases(MissionCatalog.Get(16)));
 		// Finishing the inserted phase moves on to the authored relay phase; no second insert happens.
-		BlueprintRunner.RecordKill(state,"p1","air",true,4);BlueprintRunner.RecordKill(state,"p2","air",true,5);
+		for(let i=0;i<BlueprintRunner.Total(BlueprintRunner.ActivePhase(state)!);i++)BlueprintRunner.RecordKill(state,`p${i}`,"air",true,4+i);
 		expect(BlueprintRunner.ActivePhase(state)!.label).toBe("Destroy the forward relay");
 		expect(BlueprintRunner.Phases(state).size()).toBe(MissionCatalog.TotalPhases(MissionCatalog.Get(16)));
 	});
@@ -80,10 +80,95 @@ describe("BlueprintRunner phase progress fractions",()=>{
 	});
 	it("counts kills toward combat phase fractions so chatter and reinforcements can trigger",()=>{
 		const bp=MissionCatalog.Get(20),state=BlueprintRunner.NewState(bp,0);
-		const phase=BlueprintRunner.ActivePhase(state)!;expect(phase.kind).toBe("required_air");expect(phase.count).toBe(5);
+		const phase=BlueprintRunner.ActivePhase(state)!;expect(phase.kind).toBe("required_air");expect(phase.count).toBe(9);expect(phase.groups).toBe(3);
 		BlueprintRunner.RecordKill(state,"a","air",true,1);BlueprintRunner.RecordKill(state,"b","air",true,2);
-		expect(BlueprintRunner.Fraction(state)).toBe(2/5);
+		expect(BlueprintRunner.Fraction(state)).toBe(2/9);
+		// Raider kills never count toward the required tally (M20's wing phase allows none, so this one is refused too).
 		BlueprintRunner.RecordKill(state,"raider","air",false,3);
-		expect(BlueprintRunner.Fraction(state)).toBe(2/5);
+		expect(BlueprintRunner.Fraction(state)).toBe(2/9);
+	});
+});
+describe("Round-2 phase mechanics in the runner",()=>{
+	it("lets a courier escape when its clock runs out and counts its kill as a required air kill",()=>{
+		const bp=MissionCatalog.Get(7),phases=MissionCatalog.ExpandedPhases(bp);
+		const index=phases.findIndex((p)=>p.kind==="chase");expect(index>=0).toBe(true);
+		const chase=phases[index];expect(chase.seconds).toBe(90);expect(chase.count).toBe(1);
+		const escaped=BlueprintRunner.NewState(bp,0);escaped.phaseIndex=index;
+		const p={x:0,y:300,z:0};let clock=0;
+		for(let i=0;i<899;i++){clock+=.1;BlueprintRunner.ObserveFlight(escaped,p,p,.1,clock);}
+		expect(escaped.outcome).toBeUndefined();
+		expect(math.abs(BlueprintRunner.Fraction(escaped)-0.999)<0.01).toBe(true);
+		clock+=.1;BlueprintRunner.ObserveFlight(escaped,p,p,.1,clock);
+		expect(escaped.outcome).toBe("failed");expect(escaped.reason).toBe("escaped");
+		const caught=BlueprintRunner.NewState(bp,0);caught.phaseIndex=index;
+		expect(BlueprintRunner.CanDamage(caught,"air",true)).toBe(true);
+		expect(BlueprintRunner.RecordKill(caught,"courier","air",true,5)).toBe(true);
+		expect(caught.requiredAirKills).toBe(1);expect(caught.outcome).toBe("won");
+	});
+	it("freezes a jammed signal hold until its jammers die, and they count as required ground kills",()=>{
+		const bp=MissionCatalog.Get(15),state=BlueprintRunner.NewState(bp,0);
+		const hold=BlueprintRunner.ActivePhase(state)!;expect(hold.kind).toBe("signal");expect(hold.hazard?.effect).toBe("jam");
+		const point=BlueprintRunner.NavigationPoint(state)!;let clock=0;
+		expect(BlueprintRunner.CanDamage(state,"ground",true)).toBe(false);
+		while(!state.hazardFired && clock<200){clock+=.1;BlueprintRunner.ObserveFlight(state,point,point,.1,clock);}
+		expect(math.abs(state.phaseProgress-hold.seconds!*hold.hazard!.at)<0.2).toBe(true);
+		expect(BlueprintRunner.TakeRadio(state)).toBe(hold.hazard!.text);
+		const frozen=state.phaseProgress;
+		for(let i=0;i<100;i++){clock+=.1;BlueprintRunner.ObserveFlight(state,point,point,.1,clock);}
+		expect(state.phaseProgress).toBe(frozen);
+		expect(BlueprintRunner.CanDamage(state,"ground",true)).toBe(true);
+		expect(BlueprintRunner.RecordKill(state,"jammer1","ground",true,clock)).toBe(true);
+		expect(BlueprintRunner.HazardLive(state)).toBe(true);
+		expect(BlueprintRunner.RecordKill(state,"jammer2","ground",true,clock)).toBe(true);
+		expect(BlueprintRunner.HazardLive(state)).toBe(false);expect(state.requiredGroundKills).toBe(2);
+		expect(BlueprintRunner.CanDamage(state,"ground",true)).toBe(false);
+		clock+=.1;BlueprintRunner.ObserveFlight(state,point,point,.1,clock);
+		expect(state.phaseProgress>frozen).toBe(true);
+		expect(MissionCatalog.RequiredGroundKills(bp)).toBe(bp.ground.size());
+	});
+	it("holds an escort at its end while bank guns live and lets them drain the convoy",()=>{
+		const bp=MissionCatalog.Get(20),phases=MissionCatalog.ExpandedPhases(bp);
+		const index=phases.findIndex((p)=>p.kind==="escort");const escort=phases[index];
+		expect(escort.hazard?.effect).toBe("guns");
+		const state=BlueprintRunner.NewState(bp,0);state.phaseIndex=index;let clock=0;
+		const step=()=>{clock+=.1;const p=BlueprintRunner.NavigationPoint(state)!;BlueprintRunner.ObserveFlight(state,{...p,y:250},{...p,y:250},.1,clock);};
+		while(!state.hazardFired && clock<200)step();
+		expect(state.protectedHealth).toBe(100);
+		// Two live guns drain like three raiders on an otherwise empty sky.
+		for(let i=0;i<50;i++)step();
+		const drained=100-state.protectedHealth;
+		expect(math.abs(drained-5*2*BlueprintRunner.GunWeight*BlueprintRunner.ProtectDrain)<0.5).toBe(true);
+		BlueprintRunner.RecordKill(state,"gunW","ground",true,clock);
+		while(state.phaseProgress<escort.seconds! && clock<400)step();
+		// The launch reached the end of its route but waits under the last gun.
+		for(let i=0;i<20;i++)step();
+		expect(state.phaseIndex).toBe(index);expect(BlueprintRunner.HazardLive(state)).toBe(true);expect(state.outcome).toBeUndefined();
+		BlueprintRunner.RecordKill(state,"gunE","ground",true,clock);
+		expect(state.outcome).toBe("won");
+	});
+	it("widens the optional kill cap by one per raider wave when every wave brings an extra raider",()=>{
+		const bp=MissionCatalog.Get(5),phase=bp.phases[0];expect(phase.kind).toBe("escort");
+		expect(MissionCatalog.RaiderWaves(phase)).toBe(2);
+		expect(MissionCatalog.RaiderCap(phase,0)).toBe(phase.optionalRaiders!);
+		expect(MissionCatalog.RaiderCap(phase,1)).toBe(phase.optionalRaiders!+2);
+		for(const extra of [0,1]){
+			const state=BlueprintRunner.NewState(bp,0,extra);let kills=0;
+			while(BlueprintRunner.RecordKill(state,`raider${kills}`,"air",false,1))kills+=1;
+			expect(kills).toBe(MissionCatalog.RaiderCap(phase,extra));
+		}
+		// An ace phase's raiders arrive in its two retreat calls.
+		const ace=MissionCatalog.Get(27).phases.find((p)=>p.kind==="ace")!;
+		expect(MissionCatalog.RaiderWaves(ace)).toBe(2);expect(MissionCatalog.InitialRaiders(ace)).toBe(0);
+	});
+	it("allocates ground targets to strikes and hazards in phase order, hiding hazards and hidden strikes",()=>{
+		const m10=MissionCatalog.Get(10),phases=MissionCatalog.ExpandedPhases(m10);
+		const kiro=phases.findIndex((p)=>p.label==="Cut Node Kiro's transmitter"),radar=phases.findIndex((p)=>p.label==="Kill the camp radar");
+		expect(MissionCatalog.GroundStart(phases,kiro)).toBe(0);expect(MissionCatalog.GroundStart(phases,radar)).toBe(1);
+		expect(m10.ground[1].name).toBe("CAMP RADAR");expect(phases[radar].directed).toBe(true);
+		const hidden=MissionCatalog.HiddenGround(m10);expect(hidden.has(1)).toBe(true);expect(hidden.has(0)).toBe(false);
+		const m15=MissionCatalog.HiddenGround(MissionCatalog.Get(15));expect(m15.has(0) && m15.has(1)).toBe(true);
+		const m8=MissionCatalog.Get(8);const m8Hidden=MissionCatalog.HiddenGround(m8);
+		expect(m8Hidden.has(0) && m8Hidden.has(1)).toBe(true);expect(m8.ground.size()).toBe(2);
+		for(const bp of MISSIONS)for(const index of MissionCatalog.HiddenGround(bp))expect(index>=0 && index<bp.ground.size()).toBe(true);
 	});
 });

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { FlightMath, FlightState } from "../shared/FlightMath";
 import { FlightPrediction } from "../shared/FlightPrediction";
-import { TelemetryCodec } from "../shared/TelemetryCodec";
+import { TELEMETRY_FIELDS, TelemetryCodec } from "../shared/TelemetryCodec";
 import { Telemetry } from "../shared/Types";
 
 const CRUISE = { x: 0, y: 0, throttle: 0.65 };
@@ -240,10 +240,15 @@ describe("client flight prediction and reconciliation", () => {
 			lockProgress: 0.4, incoming: true, lockWarning: false, boundaryWarning: true, elapsed: 12, timeRemaining: 500,
 			objectiveProgress: 1, objectiveTotal: 3, groundKills: 1, targetDistance: 900, targetHealth: undefined, protectedHealth: 70,
 			specialCharges: 2, specialCooldown: 1.5, specialActive: 12,
+			evadeCharges: 2, optionalKills: 3, incomingDistance: 420,
 		});
-		expect(packet.size()).toBe(22);
+		expect(packet.size()).toBe(TELEMETRY_FIELDS);
 		expect(TelemetryCodec.Decode(packet, into)).toBe(3);
 		expect(into.health).toBe(80);
+		// Round 2: evade charges, raider kills kept apart from the required tally, nearest missile range.
+		expect(into.evadeCharges).toBe(2);
+		expect(into.optionalKills).toBe(3);
+		expect(into.incomingDistance).toBe(420);
 		expect(into.specialCharges).toBe(2);
 		expect(into.specialCooldown).toBe(1.5);
 		expect(into.specialActive).toBe(12);
@@ -263,9 +268,11 @@ describe("client flight prediction and reconciliation", () => {
 			expect(into.targetDamageable).toBe(damageable);
 			expect(into.lockWarning).toBe(true);
 			expect(into.incoming).toBe(false);
-			// Special fields default to zero when the server omits them.
+			// Special fields default to zero when the server omits them; no missile in the air reads as undefined.
 			expect(into.specialCharges).toBe(0);
 			expect(into.specialActive).toBe(0);
+			expect(into.evadeCharges).toBe(0);
+			expect(into.incomingDistance).toBeUndefined();
 		}
 		expect(TelemetryCodec.Decode([1, 2], into)).toBeUndefined();
 	});

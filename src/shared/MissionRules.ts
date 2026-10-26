@@ -1,5 +1,6 @@
 // Pure authoritative mission progression. Callers report observed controls and real kills;
 // this module never creates targets, applies damage, or trusts a client result.
+import { GameConfig } from "./GameConfig";
 export type MissionPhase = "tutorial_move" | "tutorial_target" | "tutorial_missile" | "tutorial_bandits" | "intercept" | "warehouses" | "ace";
 export type TargetKind = "air" | "ground" | "ace";
 export type MissionReason = "complete" | "timeout" | "destroyed";
@@ -10,6 +11,11 @@ export interface MissionRuleState {
 	elapsed: number;
 	turnObserved: number;
 	pitchObserved: number;
+	/** Mission 1: elapsed time the current teaching step began, and whether TGT was pressed during it. */
+	stepSince: number;
+	cycled: boolean;
+	/** Mission 1: elapsed time the bandits may launch, a radio beat after the radar dies. */
+	banditsDueAt?: number;
 	requiredAirKills: number;
 	optionalAirKills: number;
 	groundKills: number;
@@ -30,15 +36,43 @@ function finish(state: MissionRuleState, outcome: "won" | "failed", reason: Miss
 	state.outcome = outcome;
 	state.reason = reason;
 }
+/** Every teaching step stays up at least this long so its prompt can be read. */
+const TEACH_MINIMUM = 2.5;
+/** Seconds between the radar kill (and SERA's call) and the bandits' arrival. */
+const BANDIT_BEAT = 4;
+function enter(state: MissionRuleState, phase: MissionPhase): void {
+	state.phase = phase;
+	state.stepSince = state.elapsed;
+	state.cycled = false;
+}
+/**
+ * Mission 1: a step whose action is done advances once its prompt has been up long enough. The
+ * radar hit is latched (groundKills) the moment it lands, so a lock built during the target step
+ * cannot skip the missile prompt; SERA's beat before the bandits starts when the step really ends.
+ */
+function advanceTutorial(state: MissionRuleState): void {
+	if (state.outcome !== undefined || state.missionId !== 1) return;
+	const dwelt = state.elapsed - state.stepSince >= TEACH_MINIMUM;
+	if (state.phase === "tutorial_move" && dwelt && state.turnObserved >= MissionRules.MovementDuration && state.pitchObserved >= MissionRules.MovementDuration) enter(state, "tutorial_target");
+	else if (state.phase === "tutorial_target" && dwelt && state.cycled) enter(state, "tutorial_missile");
+	else if (state.phase === "tutorial_missile" && dwelt && state.groundKills > 0) {
+		enter(state, "tutorial_bandits");
+		state.banditsDueAt = state.elapsed + BANDIT_BEAT;
+	}
+}
 export const MissionRules = {
-	Duration: 600,
-	MovementDuration: 0.6,
+	/** The sortie deadline in seconds (GameConfig.Campaign.MissionTimeLimit). */
+	Duration: GameConfig.Campaign.MissionTimeLimit,
+	/** Seconds of real turning and of real pitching the first teaching step needs. */
+	MovementDuration: 3,
+	TeachMinimum: TEACH_MINIMUM,
+	BanditBeat: BANDIT_BEAT,
 	NewState(missionId: number, startedAt: number): MissionRuleState {
 		assert(missionId === 1 || missionId === 2, "Unknown mission");
 		assert(finite(startedAt), "Mission clock must be finite");
 		return {
 			missionId, phase: missionId === 1 ? "tutorial_move" : "intercept", startedAt, elapsed: 0,
-			turnObserved: 0, pitchObserved: 0, requiredAirKills: 0, optionalAirKills: 0,
+			turnObserved: 0, pitchObserved: 0, stepSince: 0, cycled: false, requiredAirKills: 0, optionalAirKills: 0,
 			groundKills: 0, aceKilled: false, killedIds: new Set<string>(),
 		};
 	},
@@ -48,6 +82,7 @@ export const MissionRules = {
 		state.elapsed = math.max(state.elapsed, now - state.startedAt, 0);
 		if (state.elapsed >= MissionRules.Duration) finish(state, "failed", "timeout");
 		else if (finite(health) && health <= 0) finish(state, "failed", "destroyed");
+		advanceTutorial(state);
 	},
 	ObserveControls(state: MissionRuleState, x: number, y: number, dt: number, now: number): void {
 		MissionRules.Tick(state, now);
@@ -55,16 +90,23 @@ export const MissionRules = {
 		const observed = math.clamp(dt, 0, 0.1);
 		if (math.abs(x) >= 0.2) state.turnObserved = math.min(MissionRules.MovementDuration, state.turnObserved + observed);
 		if (math.abs(y) >= 0.2) state.pitchObserved = math.min(MissionRules.MovementDuration, state.pitchObserved + observed);
-		if (state.turnObserved >= MissionRules.MovementDuration && state.pitchObserved >= MissionRules.MovementDuration) state.phase = "tutorial_target";
+		advanceTutorial(state);
 	},
+	/** A real TGT press during the target step; the step advances once its prompt has been up 2.5 s. */
 	CycleTarget(state: MissionRuleState, now: number): void {
 		MissionRules.Tick(state, now);
-		if (state.outcome === undefined && state.phase === "tutorial_target") state.phase = "tutorial_missile";
+		if (state.outcome === undefined && state.phase === "tutorial_target") { state.cycled = true; advanceTutorial(state); }
+	},
+	/** Mission 1: the radar is down and SERA's beat has played; the server may launch the bandits now. */
+	BanditsDue(state: MissionRuleState): boolean {
+		return state.missionId === 1 && state.outcome === undefined && state.phase === "tutorial_bandits"
+			&& state.banditsDueAt !== undefined && state.elapsed >= state.banditsDueAt;
 	},
 	CanDamage(state: MissionRuleState, kind: TargetKind, required: boolean): boolean {
 		if (state.outcome !== undefined) return false;
 		if (state.missionId === 1) {
-			return required && ((state.phase === "tutorial_missile" && kind === "ground") || (state.phase === "tutorial_bandits" && kind === "air"));
+			// One radar: once its hit is latched, nothing more is damageable until the bandits are up.
+			return required && ((state.phase === "tutorial_missile" && kind === "ground" && state.groundKills === 0) || (state.phase === "tutorial_bandits" && kind === "air"));
 		}
 		if (kind === "air") return required ? state.phase === "intercept" : state.optionalAirKills < 5 && (state.phase === "warehouses" || state.phase === "ace");
 		if (kind === "ground") return required && state.phase === "warehouses";
@@ -76,7 +118,7 @@ export const MissionRules = {
 		state.killedIds.add(id);
 		if (kind === "ground") {
 			state.groundKills += 1;
-			if (state.missionId === 1) state.phase = "tutorial_bandits";
+			if (state.missionId === 1) advanceTutorial(state);
 			else if (state.groundKills === 5) state.phase = "ace";
 		} else if (kind === "ace") {
 			state.aceKilled = true;
@@ -93,11 +135,11 @@ export const MissionRules = {
 	TimeRemaining(state: MissionRuleState): number { return math.max(0, MissionRules.Duration - state.elapsed); },
 	Objective(state: MissionRuleState): MissionObjective {
 		const phase = state.phase;
-		if (phase === "tutorial_move") return { objective: "Turn and pitch using the flight controls", objectiveProgress: (state.turnObserved >= MissionRules.MovementDuration ? 1 : 0) + (state.pitchObserved >= MissionRules.MovementDuration ? 1 : 0), objectiveTotal: 2, tutorialStep: "move" };
-		if (phase === "tutorial_target") return { objective: "Cycle target to select the practice target", objectiveProgress: 0, objectiveTotal: 1, tutorialStep: "target" };
+		if (phase === "tutorial_move") return { objective: "Turn for three seconds, then pitch for three seconds", objectiveProgress: math.floor(state.turnObserved + 1e-6) + math.floor(state.pitchObserved + 1e-6), objectiveTotal: MissionRules.MovementDuration * 2, tutorialStep: "move" };
+		if (phase === "tutorial_target") return { objective: "Press TGT to select the practice target", objectiveProgress: state.cycled ? 1 : 0, objectiveTotal: 1, tutorialStep: "target" };
 		if (phase === "tutorial_missile") return { objective: "Aim at the practice target, wait for lock, then fire a missile", objectiveProgress: state.groundKills, objectiveTotal: 1, tutorialStep: "missile" };
-		if (phase === "tutorial_bandits" || phase === "intercept") return { objective: "Destroy all three required bandits", objectiveProgress: state.requiredAirKills, objectiveTotal: 3, tutorialStep: "" };
-		if (phase === "warehouses") return { objective: "Destroy all five warehouses; fighters are optional threats", objectiveProgress: state.groundKills, objectiveTotal: 5, tutorialStep: "" };
-		return { objective: "Destroy the ace; surviving fighters remain dangerous", objectiveProgress: state.aceKilled ? 1 : 0, objectiveTotal: 1, tutorialStep: "" };
+		if (phase === "tutorial_bandits" || phase === "intercept") return { objective: "Shoot down all three bandits", objectiveProgress: state.requiredAirKills, objectiveTotal: 3, tutorialStep: "" };
+		if (phase === "warehouses") return { objective: "Destroy all five warehouses; raiders may chase you", objectiveProgress: state.groundKills, objectiveTotal: 5, tutorialStep: "" };
+		return { objective: "Destroy the ace; his raiders are still dangerous", objectiveProgress: state.aceKilled ? 1 : 0, objectiveTotal: 1, tutorialStep: "" };
 	},
 };

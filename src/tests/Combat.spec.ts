@@ -1,7 +1,12 @@
 import { afterEach, describe, expect, it } from "@rbxts/jest-globals";
-import { HttpService, ServerStorage, Workspace } from "@rbxts/services";
+import { HttpService, RunService, ServerStorage, Workspace } from "@rbxts/services";
 import { JetFactory } from "../shared/JetFactory";
 import { ThreatRules } from "../shared/ThreatRules";
+import { MissionAssets } from "../shared/MissionAssets";
+import { ActorPlacement } from "../shared/ActorPlacement";
+import { StepGuard } from "../shared/SessionGuard";
+import { ActorGrounding } from "../server/ActorGrounding";
+import { AircraftCollision } from "../server/AircraftCollision";
 
 interface ExportedAircraft {
 	asset: string;
@@ -385,5 +390,115 @@ describe("Enemy threat rules with engine vectors", () => {
 		expect(vector.Magnitude).toBeCloseTo(1, 5);
 		expect(math.deg(math.acos(vector.Dot(forward)))).toBeGreaterThan(5);
 		expect(math.deg(math.acos(vector.Dot(forward)))).toBeLessThan(10);
+	});
+});
+// Round 2: protected actors are grounded from their bounds and the surface under them.
+describe("Protected actor grounding", () => {
+	let fixture: Folder | undefined;
+	afterEach(() => { fixture?.Destroy(); fixture = undefined; });
+	function surface(parent: Instance, name: string, top: number, center: Vector3, size: Vector3): Part {
+		const part = new Instance("Part");
+		part.Name = name; part.Anchored = true; part.CanCollide = false;
+		part.Size = size; part.Position = new Vector3(center.X, top - size.Y / 2, center.Z);
+		part.SetAttribute("FlightSolid", true);
+		part.Parent = parent;
+		return part;
+	}
+	function bottomOf(model: Model): number {
+		const [bounds, size] = model.GetBoundingBox();
+		return bounds.Position.Y - size.Y / 2;
+	}
+	function world(): Folder {
+		fixture = new Instance("Folder");
+		fixture.Name = "SkybreakGroundingFixture";
+		fixture.Parent = Workspace;
+		// Land at y 44 to the north, a quay deck at 41.5, open sea (top -18) to the south.
+		surface(fixture, "Coastal ground", 44, new Vector3(0, 0, 500), new Vector3(1200, 50, 800));
+		surface(fixture, "Quay", 41.5, new Vector3(600, 0, -400), new Vector3(240, 25, 400));
+		surface(fixture, "Sea", -18, new Vector3(0, 0, -900), new Vector3(2400, 4, 1200));
+		return fixture;
+	}
+	it("stands a truck's wheels on the road whatever height the catalog point says", () => {
+		const root = world();
+		const params = AircraftCollision.Parameters(root);
+		const truck = MissionAssets.CreateRelayTruck("TEST TRUCK");
+		const footing = ActorGrounding.Footing(truck, false);
+		truck.Parent = root;
+		// The old code pivoted trucks at the catalog's y 70 and floated them ~10 studs.
+		truck.PivotTo(new CFrame(100, ActorGrounding.PivotY(footing, 100, 400, params, 70), 400));
+		expect(bottomOf(truck)).toBeCloseTo(44, 1);
+	});
+	it("stands a defended tower on its quay instead of 32 studs above it", () => {
+		const root = world();
+		const params = AircraftCollision.Parameters(root);
+		const tower = MissionAssets.CreateCommsRelay("TEST TOWER");
+		const footing = ActorGrounding.Footing(tower, false);
+		tower.Parent = root;
+		tower.PivotTo(new CFrame(600, ActorGrounding.PivotY(footing, 600, -400, params, 92), -400));
+		expect(bottomOf(tower)).toBeCloseTo(41.5, 1);
+	});
+	it("floats a launch at the waterline at sea and beaches it on land", () => {
+		const root = world();
+		const params = AircraftCollision.Parameters(root);
+		const launch = MissionAssets.CreateHarborLaunch("TEST LAUNCH");
+		const footing = ActorGrounding.Footing(launch, true);
+		launch.Parent = root;
+		launch.PivotTo(new CFrame(-300, ActorGrounding.PivotY(footing, -300, -900, params, 40), -900));
+		expect(bottomOf(launch)).toBeCloseTo(-18 - ActorPlacement.Draught, 1);
+		launch.PivotTo(new CFrame(-300, ActorGrounding.PivotY(footing, -300, 500, params, 40), 500));
+		expect(bottomOf(launch)).toBeCloseTo(44, 1);
+		// Over nothing at all, the authored height stands.
+		expect(ActorGrounding.PivotY(footing, 2000, 2000, params, 40)).toBe(40);
+	});
+});
+// Round 2: every session step runs under a StepGuard (error isolation + re-entrancy).
+describe("Guarded Heartbeat stepping", () => {
+	let fixture: Folder | undefined;
+	afterEach(() => { fixture?.Destroy(); fixture = undefined; });
+	it("never re-enters a step that yields, even when the first enemy jet of the server is built inside it", () => {
+		fixture = new Instance("Folder");
+		fixture.Name = "SkybreakGuardFixture";
+		fixture.Parent = Workspace;
+		const guard = StepGuard.New();
+		let inside = 0, overlaps = 0, steps = 0, refused = 0;
+		let jet: Model | undefined;
+		const connection = RunService.Heartbeat.Connect(() => {
+			const ran = StepGuard.Run(guard, () => {
+				inside += 1;
+				if (inside > 1) overlaps += 1;
+				steps += 1;
+				if (jet === undefined) {
+					// May yield while mesh templates build; a forced wait makes the yield certain.
+					jet = JetFactory.Create("Heartbeat Vanta", true);
+					jet.Parent = fixture;
+					task.wait(0.15);
+				}
+				inside -= 1;
+			}, () => undefined);
+			if (!ran) refused += 1;
+		});
+		task.wait(0.6);
+		connection.Disconnect();
+		expect(jet).toBeDefined();
+		expect(overlaps).toBe(0);
+		expect(refused).toBeGreaterThan(0);
+		expect(steps).toBeGreaterThan(1);
+		expect(guard.failed).toBe(false);
+	}, 60000);
+	it("isolates a throwing step: one internal_error report, no error every frame", () => {
+		const guard = StepGuard.New();
+		let reports = 0, attempts = 0;
+		let reason = "";
+		const connection = RunService.Heartbeat.Connect(() => {
+			StepGuard.Run(guard, () => {
+				attempts += 1;
+				error("MissileWarning was destroyed mid-windup");
+			}, (message) => { reports += 1; reason = message; });
+		});
+		task.wait(0.3);
+		connection.Disconnect();
+		expect(attempts).toBe(1);
+		expect(reports).toBe(1);
+		expect(reason.find("MissileWarning")[0]).toBeDefined();
 	});
 });

@@ -47,10 +47,15 @@ describe("Difficulty multipliers", () => {
 	});
 	it("makes Ace harsher and Easy gentler on every threat knob", () => {
 		// Higher is harsher.
-		for (const knob of ["hostileDamage", "missileTurn", "aceHealth", "banditHealth", "breakChance"] as const) {
+		for (const knob of ["hostileDamage", "missileTurn", "aceHealth", "breakChance", "protectDrain"] as const) {
 			expect(Difficulty.Multiplier("ace", knob) > 1).toBe(true);
 			expect(Difficulty.Multiplier("easy", knob) < 1).toBe(true);
 		}
+		// Ace adds behaviour instead of bandit hull; Easy makes Act II bandits two-missile kills (130 x 0.75 < 110).
+		expect(Difficulty.Multiplier("ace", "banditHealth")).toBe(1);
+		expect(Difficulty.Multiplier("easy", "banditHealth")).toBe(0.75);
+		expect(Difficulty.Scale("easy", "banditHealth", 130) < 110).toBe(true);
+		expect(Difficulty.Multiplier("easy", "hostileGate")).toBe(1.25);
 		// Longer is gentler: fire gates and windups.
 		for (const knob of ["hostileGate", "windup"] as const) {
 			expect(Difficulty.Multiplier("ace", knob) < 1).toBe(true);
@@ -60,7 +65,7 @@ describe("Difficulty multipliers", () => {
 	it("scales values proportionally and passes non-finite input through", () => {
 		expect(Difficulty.Scale("ace", "hostileDamage", 10)).toBe(14);
 		expect(Difficulty.Scale("easy", "hostileDamage", 10)).toBe(6);
-		expect(Difficulty.Scale("easy", "hostileGate", 8)).toBe(12);
+		expect(Difficulty.Scale("easy", "hostileGate", 8)).toBe(10);
 		expect(Difficulty.Scale("ace", "aceHealth", 100)).toBe(130);
 		expect(Difficulty.Scale("ace", "hostileDamage", 0)).toBe(0);
 		expect(Difficulty.Scale("ace", "hostileDamage", math.huge)).toBe(math.huge);
@@ -90,5 +95,25 @@ describe("Difficulty and mission score", () => {
 		expect(MissionScore.Compute({ ...perfect, won: false }).score).toBe(550);
 		expect(MissionScore.Compute({ ...perfect, won: false, difficulty: "ace" }).score).toBe(660);
 		expect(MissionScore.Compute({ ...perfect, won: false, difficulty: "easy" }).score).toBe(467);
+	});
+});
+
+describe("Difficulty behaviour", () => {
+	it("adds behaviour on Ace: every bandit breaks and flares, aces fire pairs, one more raider a wave", () => {
+		const ace = Difficulty.Behaviour("ace");
+		expect(ace.banditsAlwaysBreak).toBe(true);
+		expect(ace.banditFlares).toBe(1);
+		expect(ace.aceSalvo).toBe(2);
+		expect(ace.extraRaiders).toBe(1);
+	});
+	it("leaves Normal and Easy on the act tuning", () => {
+		for (const kind of ["normal", "easy"] as const) {
+			const behaviour = Difficulty.Behaviour(kind);
+			expect(behaviour.banditsAlwaysBreak).toBe(false);
+			expect(behaviour.banditFlares).toBe(0);
+			expect(behaviour.aceSalvo).toBe(1);
+			expect(behaviour.extraRaiders).toBe(0);
+		}
+		expect(Difficulty.Behaviour("bogus" as never).extraRaiders).toBe(0);
 	});
 });
