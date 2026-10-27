@@ -146,6 +146,7 @@ export interface CombatSession {
 	hazardPhase?: number;
 	/** Mission 1: the post-radar bandits have launched. */
 	tutorialBanditsSpawned?: boolean;
+	practiceHintAt?: number;
 	/** Surfaces protected actors stand on (scenery and terrain only, captured before any actor exists). */
 	groundParams?: RaycastParams;
 	/** The protected actor's footing, for re-grounding it as it moves. */
@@ -1357,6 +1358,10 @@ function flareDecoys(session: CombatSession, enemy: Enemy, distance: number, mis
 }
 /** Mission 1 target step: after 8 s without a TGT press, say what the step wants. Auto-selection never skips it. */
 function stepTutorialHint(session: CombatSession): void {
+	if (session.rules?.phase === "tutorial_move" && session.elapsed >= (session.practiceHintAt ?? 6)) {
+		session.practiceHintAt = session.elapsed + 10;
+		radio(session, "Release holds the nose. Tap opposite pitch to level; avoid long holds.");
+	}
 	if (session.rules?.phase !== "tutorial_target") { session.targetStepSince = undefined; return; }
 	if (session.targetStepSince === undefined) session.targetStepSince = session.elapsed;
 	if (session.targetStepHinted || session.elapsed - session.targetStepSince < 8) return;
@@ -1514,9 +1519,14 @@ function stepSession(session: CombatSession, dt: number): void {
 	// Resolve impacts before navigation, phase completion, enemy fire or missile kills.
 	const hit = AircraftCollision.Sweep(new Vector3(from.x, from.y, from.z), new Vector3(session.state.x, session.state.y, session.state.z), session.collisionParams!);
 	if (hit) {
-		session.crashReason = AircraftCollision.Reason(hit);
-		finish(session);
-		return;
+		if (session.rules && MissionRules.RecoverPractice(session.rules, session.state)) {
+			session.lockProgress = 0;
+			radio(session, "Practice reset; progress saved. Release holds; opposite pitch levels.");
+		} else {
+			session.crashReason = AircraftCollision.Reason(hit);
+			finish(session);
+			return;
+		}
 	}
 	session.inputSteps += 1;
 	if (session.blueprintState) {

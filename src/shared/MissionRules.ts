@@ -1,5 +1,6 @@
 // Pure authoritative mission progression. Callers report observed controls and real kills;
 // this module never creates targets, applies damage, or trusts a client result.
+import { FlightMath, FlightState } from "./FlightMath";
 import { GameConfig } from "./GameConfig";
 export type MissionPhase = "tutorial_move" | "tutorial_target" | "tutorial_missile" | "tutorial_bandits" | "intercept" | "warehouses" | "ace";
 export type TargetKind = "air" | "ground" | "ace";
@@ -97,6 +98,15 @@ export const MissionRules = {
 		MissionRules.Tick(state, now);
 		if (state.outcome === undefined && state.phase === "tutorial_target") { state.cycled = true; advanceTutorial(state); }
 	},
+	/** Practice impacts restart the approach without erasing progress or changing selected speed.
+	 * Protection ends at the live-fight warning, before bandits launch. */
+	RecoverPractice(state: MissionRuleState, flight: FlightState): boolean {
+		if (state.missionId !== 1 || state.outcome !== undefined
+			|| (state.phase !== "tutorial_move" && state.phase !== "tutorial_target" && state.phase !== "tutorial_missile")) return false;
+		flight.x = 0; flight.y = 800; flight.z = 500; flight.lean = 0;
+		FlightMath.SetAttitude(flight, 0, 0);
+		return true;
+	},
 	/** Mission 1: the radar is down and SERA's beat has played; the server may launch the bandits now. */
 	BanditsDue(state: MissionRuleState): boolean {
 		return state.missionId === 1 && state.outcome === undefined && state.phase === "tutorial_bandits"
@@ -135,10 +145,11 @@ export const MissionRules = {
 	TimeRemaining(state: MissionRuleState): number { return math.max(0, MissionRules.Duration - state.elapsed); },
 	Objective(state: MissionRuleState): MissionObjective {
 		const phase = state.phase;
-		if (phase === "tutorial_move") return { objective: "Turn for three seconds, then pitch up and down for three seconds", objectiveProgress: math.floor(state.turnObserved + 1e-6) + math.floor(state.pitchObserved + 1e-6), objectiveTotal: MissionRules.MovementDuration * 2, tutorialStep: "move" };
+		if (phase === "tutorial_move") return { objective: "Tap turn and pitch; release to hold, opposite input to level", objectiveProgress: math.floor(state.turnObserved + 1e-6) + math.floor(state.pitchObserved + 1e-6), objectiveTotal: MissionRules.MovementDuration * 2, tutorialStep: "move" };
 		if (phase === "tutorial_target") return { objective: "Press TGT to select the practice target", objectiveProgress: state.cycled ? 1 : 0, objectiveTotal: 1, tutorialStep: "target" };
 		if (phase === "tutorial_missile") return { objective: "Aim at the practice target, wait for lock, then fire a missile", objectiveProgress: state.groundKills, objectiveTotal: 1, tutorialStep: "missile" };
-		if (phase === "tutorial_bandits" || phase === "intercept") return { objective: "Shoot down all three bandits", objectiveProgress: state.requiredAirKills, objectiveTotal: 3, tutorialStep: "" };
+		if (phase === "tutorial_bandits") return { objective: "Live flight: select a bandit, aim for LOCK, fire; EVADE incoming missiles", objectiveProgress: state.requiredAirKills, objectiveTotal: 3, tutorialStep: "" };
+		if (phase === "intercept") return { objective: "Shoot down all three bandits", objectiveProgress: state.requiredAirKills, objectiveTotal: 3, tutorialStep: "" };
 		if (phase === "warehouses") return { objective: "Destroy all five warehouses; raiders may chase you", objectiveProgress: state.groundKills, objectiveTotal: 5, tutorialStep: "" };
 		return { objective: "Destroy the ace; his raiders are still dangerous", objectiveProgress: state.aceKilled ? 1 : 0, objectiveTotal: 1, tutorialStep: "" };
 	},
