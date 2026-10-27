@@ -57,8 +57,8 @@ const AIR_LOCK_RANGE = 1800;
 const LOCK_DOT = math.cos(math.rad(40));
 /** Specials that extend the envelope (drone, lance) scale the air range by the same ratio. */
 const AIR_RANGE_FACTOR = AIR_LOCK_RANGE / LOCK_RANGE;
-/** Lock builds in 0.8 s and decays at half that rate so a brief slip off the target is forgiven. */
-const LOCK_BUILD_SECONDS = 0.8;
+/** Lock builds in 0.45 s and decays more slowly so a brief slip off the target is forgiven. */
+const LOCK_BUILD_SECONDS = 0.45;
 const LOCK_DECAY_PER_SECOND = 0.8;
 const LOCKED_AT = 0.99;
 /** Unguided missile: detonates when its sweep passes within this many studs of a damageable enemy. */

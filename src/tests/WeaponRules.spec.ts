@@ -118,3 +118,8 @@ describe("WeaponRules FIRE button state", () => {
 		expect(WeaponRules.FireButton(0 / 0, 0, true, 1).text).toBe("EMPTY");
 	});
 });
+
+ describe("responsive acquisition tuning", () => { it("acquires within half a second without weakening the damage gate", () => {
+ expect(WeaponRules.LockBuildSeconds).toBe(0.45);
+ expect(WeaponRules.Launch({missiles: 3, missileCooldown: 0, hasTarget: true, lockProgress: 1, distance: 200, dot: 1, canDamage: false}).kind).toBe("blind");
+ }); });

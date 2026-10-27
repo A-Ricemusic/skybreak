@@ -41,14 +41,14 @@ export interface RankedContact {
 /** Boxes drawn at most, the selected target included. */
 export const TARGET_BOX_LIMIT = 12;
 /** Box edge, px, at the far end of the scale (and for anything farther). */
-export const TARGET_BOX_MIN = 18;
+export const TARGET_BOX_MIN = 14;
 /** Box edge, px, up close. */
-export const TARGET_BOX_MAX = 60;
+export const TARGET_BOX_MAX = 40;
 /** The selected box never shrinks below this, so its blink and caption stay readable. */
-export const TARGET_BOX_SELECTED_MIN = 30;
+export const TARGET_BOX_SELECTED_MIN = 24;
 /** Studs at which a box is TARGET_BOX_REFERENCE_SHARE of the screen height. */
 export const TARGET_BOX_REFERENCE_DISTANCE = 300;
-export const TARGET_BOX_REFERENCE_SHARE = 0.13;
+export const TARGET_BOX_REFERENCE_SHARE = 0.08;
 /** Selected-box blink, Hz (a square wave, on half the time). */
 export const TARGET_BOX_BLINK_HZ = 3.5;
 /** Pixels a box keeps from the screen edge. */

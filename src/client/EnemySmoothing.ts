@@ -1,3 +1,4 @@
+import { moveRenderedTarget } from "../shared/RenderedTarget";
 import { Workspace } from "@rbxts/services";
 import { FlightMath } from "../shared/FlightMath";
 import { JetFactory } from "../shared/JetFactory";
@@ -104,7 +105,9 @@ export class EnemySmoothing {
 			const ahead = math.min(now - entry.arrived, EXTRAPOLATE) * entry.speed;
 			const target = replicated.add(replicated.LookVector.mul(ahead));
 			entry.frame = entry.frame.Lerp(target, alpha);
-			entry.visualRoot.CFrame = entry.frame; // welded clone: one write moves every part
+			// PivotTo moves the visible assembly immediately in this render callback;
+			// a root-only write waits for the weld solver and leaves the HUD a frame ahead.
+			moveRenderedTarget(entry.visual, entry.frame);
 		}
 	}
 	private consider(child: Instance): void {
