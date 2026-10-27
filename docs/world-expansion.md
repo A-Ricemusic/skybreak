@@ -163,7 +163,7 @@ room, not minutes of cruise travel or a finished landing simulation.
 
 ## Validation and acceptance
 
-- `bun run test:offline`: 487 compiled-domain contracts passed in official Luau. This includes
+- Original head: `bun run test:offline` reported 487 compiled-domain contracts in official Luau. This includes
   all 25 plan audits (air corridors/ceilings, targets, support, convoys, full escort hull paths,
   budgets), radar/navigation tests, parameterized flight boundaries, new road-junction checks,
   exact kit bounds, airspace containment and a 25-stud sweep of the runway/approaches.
@@ -202,3 +202,64 @@ Remaining authored work: selective district rollout to the other 22 planned miss
 expansions, organic district edges and more varied cliff assets, long-distance mission/navigation
 redesign, runway/taxiway kit conversion of the original airfields, richer surface textures and
 an actual measured mobile LOD/streaming policy. Existing core roads/runways remain as before.
+
+## Integration review (2026-10-26)
+
+Reviewed world head `1809aa2023398af982f6ebc50b7883a7a7e83f85` against current main
+`2635618` (targeting #51) and exact flight head
+`69614a12780e4579792f9fd1fa83b91301c4ff4c`. Main is merged into this PR;
+flight is **not** included in its ancestry. Main's `WeaponRules.spec` runner entry
+and the world module entries are both retained after the test-list conflict.
+The merged Flight test retains `SoftBoundary + 100`.
+
+The local-only combined commit is `da69034e5832c2246974af916614d76efa2af76d`
+(ref `t3/world55-flight54-audit`). Its recipe was world `0bf10e8` (which includes
+main), merge exact flight head, resolve the sole FlightMath conflict by taking
+flight Min/Max/Stall/Warning speeds and world Soft/Hard boundary references, then
+restore the weapon-spec bundle entry. That entry is also applied to world-only
+`62ce56a`. No other conflict resolution or flight tuning was necessary.
+To reproduce from this PR's final head, merge the same exact flight SHA in a
+review checkout and use that same FlightMath resolution; do not push this merge
+back into the world branch. Either PR can land first, but acceptance of the
+combined speed/world behavior depends on both plus the boundary resolution.
+
+Combined commit: **503 passed, 0 failed** official offline contracts;
+`bun run build:place` and `bun tools/world-report.ts --check` pass.
+World-only code commit `62ce56a`: **499 passed, 0 failed** offline contracts.
+Both use the official Luau executable through `LUAU_BIN`; these are compiled pure
+contracts, not Roblox Jest or gameplay results. JSON geometry was independently
+checked for finite coordinates, matching bounds/counts and nondegenerate triangles:
+76/68/150 triangles and 50/50/77 vertices. Inspection of all three committed PNGs
+shows simple matte pavement/paint and faceted stepped cliffs; district-level
+appearance, tile joins and engine collision were not visually verified.
+
+Mission compatibility: original objective/escort paths, starts and clocks are
+unchanged, and all 25 plan audits pass. PR54's QA pilot retains explicit
+195/240-stud/s selections. Default cruise falls to 160 studs/s, so passing pure
+contracts does not prove tutorial/deadline/courier pacing. Enemy speed clamps
+remain roughly 285–380 studs/s plus bonuses; a 600-stud/s player can extend away,
+and Easy hostile missiles (580 studs/s) may be outrun. Required/reinforcement
+arrival distances remain 2600–3200/2000–2400 studs; increased clamp radius does
+not guarantee player separation near the rim. These are combat/pacing acceptance
+risks, not grounds to arbitrarily rescale every mission or enemy in this PR.
+
+Server collision uses a continuous radius-4 spherecast over each entire fixed
+1/30-second movement: 20 studs at 600 studs/s. This avoids endpoint-only tests;
+it does not prove starting-overlap handling or convex cliff recess accuracy.
+Kit MeshParts are queryable FlightSolid surfaces with CanCollide false; custom
+flight sweeps own collision. Templates cache once per kind, failed generation
+uses conspicuous full-bounds fallback geometry, and fallback telemetry is present.
+Missing/malformed packaged JSON is an assertion rather than this API fallback;
+both Rojo maps package the required geometry. Client loading counts actual
+BaseParts and preloads MeshParts, including kits, but has a six-second watchdog;
+the server releases at Ready or eight seconds. Neither handshake proves all
+content loaded successfully, especially on a slow device with streaming off.
+
+Studio acceptance, once the PR54 tester releases the session: test M3/M5/M19
+runway/roads/cliff seams and convex recesses, 800/3000-mph low passes and rim
+recovery, waves beside cliffs and at the rim, and courier/escort/deadline pacing.
+Require zero WorldKitFallbacks and check actual client geometry before Ready;
+record loading duration/timeouts, terrain longest job/build time, replicated
+parts, device peak memory and frame time on low-end mobile. Include M1/M2 and
+representative non-expanded ocean/plateau worlds for newly reachable hazards.
+No Studio use, publish, merge, flight-branch push or PR watch was performed.
