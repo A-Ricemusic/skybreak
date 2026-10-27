@@ -134,6 +134,35 @@ describe("Uploaded asset loader with procedural fallback", () => {
 		expect(second.GetAttribute("GeometrySource")).toBe("Uploaded");
 	}, 60000);
 
+	it("flattens nested imported parts once and anchors every retained part", () => {
+		UploadedAssets.Configure({ ids: { Kestrel: 1 }, probe, loader: () => {
+			const container = fakeUpload("Kestrel");
+			const body = container.FindFirstChild("Body", true)!;
+			const elevator = container.FindFirstChild("Elevator_L", true)!;
+			const rudder = container.FindFirstChild("Rudder_L", true)!;
+			elevator.Parent = body;
+			rudder.Parent = elevator;
+			return container;
+		} });
+		const template = UploadedAssets.Template(["Kestrel"])!.template;
+		const parts = template.GetDescendants().filter((item) => item.IsA("BasePart")) as BasePart[];
+		expect(parts.size()).toBe(7);
+		for (const part of parts) {
+			expect(part.Parent).toBe(template);
+			expect(part.Anchored).toBe(true);
+			expect(part.CanCollide).toBe(false);
+			expect(part.CanTouch).toBe(false);
+			expect(part.CanQuery).toBe(false);
+			for (const map of SURFACE_MAPS) expect(part.FindFirstChildWhichIsA("SurfaceAppearance")?.GetAttribute(`Fake${map}`)).toBe(true);
+		}
+		expect(parts.filter((part) => part.Name === "Elevator_L").size()).toBe(1);
+		expect(parts.filter((part) => part.Name === "Rudder_L").size()).toBe(1);
+		const [, size] = template.GetBoundingBox();
+		close(size.X, UploadedAssetSpecs.Kestrel.size.X);
+		close(size.Y, UploadedAssetSpecs.Kestrel.size.Y);
+		close(size.Z, UploadedAssetSpecs.Kestrel.size.Z);
+	});
+
 	it("accepts an import that already arrives at the authored size (0.01 m-per-stud FBX)", () => {
 		const spec = UploadedAssetSpecs.Vanta;
 		UploadedAssets.Configure({ ids: { Vanta: 2 }, probe, loader: () => fakeUpload("Vanta", { scale: 1 }) });

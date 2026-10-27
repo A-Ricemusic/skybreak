@@ -93,15 +93,18 @@ export const AssetSelection = {
 	 * size. Roblox's Model import reads FBX centimetres as studs, so an export at
 	 * 0.28 m per stud arrives 28x too large and one at 0.01 m per stud arrives at
 	 * size; either is fitted here. Within 2% is left alone. Returns undefined for
-	 * an absurd ratio or when the proportions do not match the authored model
+	 * non-positive or non-finite dimensions, an absurd ratio or when the
+	 * proportions do not match the authored model
 	 * (each axis within 5% of the longest side after scaling): a wrong asset, lost
 	 * pieces or swapped axes fall back instead of loading misshapen.
 	 */
 	FitScale(actual: readonly number[], expected: readonly number[]): number | undefined {
 		if (actual.size() !== 3 || expected.size() !== 3) return undefined;
+		for (const dimensions of [actual, expected]) {
+			for (const value of dimensions) if (!(value > 0 && value < math.huge)) return undefined;
+		}
 		const actualLongest = math.max(actual[0], actual[1], actual[2]);
 		const expectedLongest = math.max(expected[0], expected[1], expected[2]);
-		if (!(actualLongest > 0) || !(expectedLongest > 0) || actualLongest === math.huge) return undefined;
 		const ratio = expectedLongest / actualLongest;
 		if (ratio < 0.001 || ratio > 1000) return undefined;
 		for (const axis of [0, 1, 2]) {

@@ -62,9 +62,10 @@ function normalise(container: Instance, name: UploadedAssetName, assetId: number
 		for (const item of container.GetDescendants()) {
 			if (!item.IsA("BasePart")) continue;
 			const part = item.Clone();
-			// Keep SurfaceAppearance and other children; drop scripts and joints from the asset.
+			// Nested parts are cloned separately by the outer loop; retain only one
+			// normalised copy. Keep appearances, but drop scripts and joints too.
 			for (const child of part.GetDescendants()) {
-				if (child.IsA("LuaSourceContainer") || child.IsA("JointInstance") || child.IsA("Constraint")) child.Destroy();
+				if (child.IsA("BasePart") || child.IsA("LuaSourceContainer") || child.IsA("JointInstance") || child.IsA("Constraint")) child.Destroy();
 			}
 			part.Anchored = true;
 			part.CanCollide = false;

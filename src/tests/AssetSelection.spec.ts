@@ -97,6 +97,29 @@ describe("AssetSelection uploaded-asset decisions", () => {
 		expect(AssetSelection.FitScale([754.6, 172, 644], [22.1892, 5.9265, 26])).toBeUndefined();
 		expect(AssetSelection.FitScale([120, 172, 754.6], [22.1892, 5.9265, 26])).toBeUndefined();
 	});
+	it("rejects non-finite dimensions on every actual and expected axis", () => {
+		for (const invalid of [0 / 0, math.huge, -math.huge]) {
+			for (const axis of [0, 1, 2]) {
+				const dimensions = [23, 6, 27];
+				dimensions[axis] = invalid;
+				expect(AssetSelection.FitScale(dimensions, [23, 6, 27])).toBeUndefined();
+				expect(AssetSelection.FitScale([23, 6, 27], dimensions)).toBeUndefined();
+			}
+		}
+	});
+	it("rejects non-positive dimensions even within the proportion tolerance", () => {
+		for (const invalid of [0, -0.01]) {
+			for (const axis of [0, 1, 2]) {
+				const valid = [27, 27, 27];
+				valid[axis] = 0.01;
+				const dimensions = [...valid];
+				dimensions[axis] = invalid;
+				expect(AssetSelection.FitScale(dimensions, valid)).toBeUndefined();
+				expect(AssetSelection.FitScale(valid, dimensions)).toBeUndefined();
+				expect(AssetSelection.FitScale(valid, valid)).toBe(1);
+			}
+		}
+	});
 	it("accepts an import only when every part is a MeshPart with a textured SurfaceAppearance", () => {
 		const all = { ColorMap: true, NormalMap: true, RoughnessMap: true, MetalnessMap: true };
 		const part = (name: string, meshPart = true, appearance = true, colorMap = true) => ({ name, meshPart, appearance, maps: { ...all, ColorMap: colorMap } });
