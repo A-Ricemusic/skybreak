@@ -1,5 +1,6 @@
 import { ContextActionService, GuiService, Players, RunService, UserInputService, Workspace } from "@rbxts/services";
 import { MissionCatalog } from "../shared/MissionCatalog";
+import { initialTelemetry } from "../shared/InitialTelemetry";
 import { FlightMath, FlightState } from "../shared/FlightMath";
 import { FlightPrediction, Predictor } from "../shared/FlightPrediction";
 import { TelemetryCodec } from "../shared/TelemetryCodec";
@@ -25,14 +26,6 @@ import { TargetBoxOverlay } from "./TargetBoxOverlay";
 
 let activeController: FlightController | undefined;
 let controllerSerial = 0;
-const DEFAULTS: Telemetry = {
-	kind: "Telemetry", health: 100, speed: 0, altitude: 250, kills: 0, total: 3, missiles: 8,
-	missileCooldown: 0, evadeCooldown: 0, targetName: "", lockProgress: 0, incoming: false,
-	elapsed: 0, targetDistance: 0, boundaryWarning: false,
-	special: SpecialWeapons.Default, specialCharges: 0, specialCooldown: 0, specialActive: 0,
-	missionId: 1, phase: "tutorial_move", objective: "Learn the flight controls", objectiveProgress: 0,
-	objectiveTotal: 1, timeRemaining: 600, tutorialStep: "move", groundKills: 0, targetKind: "air", targetRequired: false,
-};
 const FLIGHT_KEYS: Enum.KeyCode[] = [
 	Enum.KeyCode.W, Enum.KeyCode.S, Enum.KeyCode.A, Enum.KeyCode.D,
 	Enum.KeyCode.Up, Enum.KeyCode.Down, Enum.KeyCode.Left, Enum.KeyCode.Right,
@@ -43,6 +36,32 @@ const FLIGHT_KEYS: Enum.KeyCode[] = [
 /** Drone-marked contacts: one glyph per hostile, dimmer than the selected target's cue. */
 const COLOR_MARKED = Color3.fromRGB(255, 193, 98);
 const MARKER_LIMIT = 16;
+/** Edge arrows and drone glyphs stay this far in from the screen edge (pixel cap, viewport share). */
+const SAFE_EDGE_X = 90;
+const SAFE_EDGE_X_SHARE = 0.16;
+const SAFE_EDGE_Y = 150;
+const SAFE_EDGE_Y_SHARE = 0.24;
+/** Off-screen drone markers sit slightly inside the selected target's arrow ring so the two never stack. */
+const TARGET_ARROW_INSET = 1;
+const MARKER_ARROW_INSET = 0.9;
+function safeInsets(size: Vector2): [number, number] {
+	return [math.min(SAFE_EDGE_X, size.X * SAFE_EDGE_X_SHARE), math.min(SAFE_EDGE_Y, size.Y * SAFE_EDGE_Y_SHARE)];
+}
+/** Viewport point and rotation (degrees) of an edge arrow pointing at `worldPosition`, on the safe ellipse scaled by `inset`. */
+function edgePoint(camera: Camera, worldPosition: Vector3, halfX: number, halfY: number, inset: number): [number, number, number] {
+	const size = camera.ViewportSize;
+	const localPosition = camera.CFrame.PointToObjectSpace(worldPosition);
+	let dx = localPosition.X, dy = -localPosition.Y;
+	if (dx * dx + dy * dy < 0.0001) { dx = localPosition.Z > 0 ? 1 : 0; dy = localPosition.Z > 0 ? 0 : -1; }
+	const length = math.sqrt(dx * dx + dy * dy);
+	dx /= length; dy /= length;
+	const extent = inset / math.max(math.abs(dx) / halfX, math.abs(dy) / halfY);
+	return [size.X / 2 + dx * extent, size.Y / 2 + dy * extent, math.deg(math.atan2(dy, dx)) + 90];
+}
+/** Filled glyphs mark required contacts, hollow ones optional; diamonds are ground, triangles air. */
+function contactGlyph(ground: boolean, required: boolean): string {
+	return ground ? (required ? "◆" : "◇") : required ? "▲" : "△";
+}
 // Per-frame constants (no Vector3/Color3 construction inside the render loop).
 /** Chase camera height above the jet and aim point above the nose, along the smoothed camera up. */
 const CAMERA_LIFT_STUDS = 20;
@@ -165,7 +184,7 @@ export class FlightController {
 	public active = false;
 	public aircraft?: Model;
 	private readonly remotes: Pick<Remotes, "FlightInput" | "CombatAction" | "MissionState" | "FlightState" | "Telemetry">;
-	private telemetry: Telemetry = { ...DEFAULTS };
+	private telemetry: Telemetry = initialTelemetry(1);
 	private telemetrySequence = -1;
 	private readonly listeners = new Set<TelemetryListener>();
 	private touchInput = Vector2.zero;
@@ -589,8 +608,6 @@ export class FlightController {
 		const worldPosition = ground ? target.GetPivot().Position : this.enemies.GetFrame(target).Position;
 		const [screen, visible] = camera.WorldToViewportPoint(worldPosition);
 		const size = camera.ViewportSize;
-		const safeX = math.min(90, size.X * 0.16);
-		const safeY = math.min(150, size.Y * 0.24);
 		const required = this.telemetry.targetRequired === true;
 		const lockProgress = this.telemetry.lockProgress;
 		// Protected (no damage now) wins over a completed lock: grey, blinking, TRACK, never red or LOCKED.
@@ -640,17 +657,11 @@ export class FlightController {
 				caption.Text = TargetBoxes.CaptionText(style, lockProgress, distance, required, healthPercent);
 			}
 		} else {
-			const localPosition = camera.CFrame.PointToObjectSpace(worldPosition);
-			let dx = localPosition.X, dy = -localPosition.Y;
-			if (dx * dx + dy * dy < 0.0001) { dx = localPosition.Z > 0 ? 1 : 0; dy = localPosition.Z > 0 ? 0 : -1; }
-			const length = math.sqrt(dx * dx + dy * dy);
-			dx /= length; dy /= length;
-			const halfX = math.max(1, size.X / 2 - safeX);
-			const halfY = math.max(1, size.Y / 2 - safeY);
-			const extent = 1 / math.max(math.abs(dx) / halfX, math.abs(dy) / halfY);
-			arrow.Position = viewportPosition(this.targetGui!, size.X / 2 + dx * extent, size.Y / 2 + dy * extent);
-			arrow.Rotation = math.deg(math.atan2(dy, dx)) + 90;
-			const text = ground ? (required ? "◆" : "◇") : required ? "▲" : "△";
+			const [safeX, safeY] = safeInsets(size);
+			const [x, y, rotation] = edgePoint(camera, worldPosition, math.max(1, size.X / 2 - safeX), math.max(1, size.Y / 2 - safeY), TARGET_ARROW_INSET);
+			arrow.Position = viewportPosition(this.targetGui!, x, y);
+			arrow.Rotation = rotation;
+			const text = contactGlyph(ground, required);
 			if (text !== this.arrowText) { this.arrowText = text; arrow.Text = text; }
 		}
 	}
@@ -661,8 +672,7 @@ export class FlightController {
 		let used = 0;
 		if (folder && gui && this.telemetry.special === "uav" && (this.telemetry.specialActive ?? 0) > 0) {
 			const size = camera.ViewportSize;
-			const safeX = math.min(90, size.X * 0.16);
-			const safeY = math.min(150, size.Y * 0.24);
+			const [safeX, safeY] = safeInsets(size);
 			const halfX = math.max(1, size.X / 2 - safeX);
 			const halfY = math.max(1, size.Y / 2 - safeY);
 			for (const child of folder.GetChildren()) {
@@ -690,21 +700,15 @@ export class FlightController {
 				}
 				used += 1;
 				const required = child.GetAttribute("RequiredTarget") === true;
-				const text = inside ? (ground ? (required ? "◆" : "◇") : required ? "▲" : "△") : (ground ? "◆" : "▲");
+				const text = inside ? contactGlyph(ground, required) : (ground ? "◆" : "▲");
 				if (inside) {
 					label.Position = viewportPosition(gui, screen.X, screen.Y);
 					label.Rotation = 0;
 					label.TextSize = 16;
 				} else {
-					const localPosition = camera.CFrame.PointToObjectSpace(worldPosition);
-					let dx = localPosition.X, dy = -localPosition.Y;
-					if (dx * dx + dy * dy < 0.0001) { dx = localPosition.Z > 0 ? 1 : 0; dy = localPosition.Z > 0 ? 0 : -1; }
-					const length = math.sqrt(dx * dx + dy * dy);
-					dx /= length; dy /= length;
-					// Slightly inside the selected target's arrow ring so the two never stack.
-					const extent = 0.9 / math.max(math.abs(dx) / halfX, math.abs(dy) / halfY);
-					label.Position = viewportPosition(gui, size.X / 2 + dx * extent, size.Y / 2 + dy * extent);
-					label.Rotation = math.deg(math.atan2(dy, dx)) + 90;
+					const [x, y, rotation] = edgePoint(camera, worldPosition, halfX, halfY, MARKER_ARROW_INSET);
+					label.Position = viewportPosition(gui, x, y);
+					label.Rotation = rotation;
 					label.TextSize = 18;
 				}
 				if (label.Text !== text) label.Text = text;
@@ -809,15 +813,8 @@ export class FlightController {
 		this.aircraft = missionData.aircraft;
 		this.active = true;
 		activeController = this;
-		this.telemetry = { ...DEFAULTS };
+		this.telemetry = initialTelemetry(missionData.missionId);
 		this.telemetrySequence = -1;
-		this.telemetry.missionId = MissionCatalog.IsValidId(missionData.missionId) ? missionData.missionId : 1;
-		if (this.telemetry.missionId === 2) {
-			this.telemetry.phase = "intercept";
-			this.telemetry.objective = "Intercept the required bandits";
-			this.telemetry.objectiveTotal = 3;
-			this.telemetry.tutorialStep = "";
-		}
 		this.keys.clear();
 		this.touchInput = Vector2.zero;
 		this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0;

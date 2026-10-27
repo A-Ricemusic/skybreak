@@ -2,6 +2,7 @@ import { DeletionObservation } from "../shared/DeletionObservation";
 import { highestUnlocked } from "../shared/CampaignProgress";
 import { stickVector, TouchSticks } from "../shared/TouchSticks";
 import { FlightMath } from "../shared/FlightMath";
+import { initialTelemetry } from "../shared/InitialTelemetry";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "@rbxts/react";
 import { flightWarning, LOW_ALTITUDE } from "../shared/FlightWarnings";
 import { evadeGauge } from "../shared/EvadeGauge";
@@ -436,40 +437,6 @@ function HintRow({
 			{hints.map((hint, index) => <HintChip key={`${hint.action}Hint`} hint={hint} order={index + 1} />)}
 		</frame>
 	);
-}
-
-function defaultTelemetry(): Telemetry {
-	return {
-		kind: "Telemetry",
-		health: 100,
-		speed: 0,
-		altitude: 250,
-		kills: 0,
-		total: 3,
-		missiles: 8,
-		missileCooldown: 0,
-		evadeCooldown: 0,
-		targetName: "",
-		lockProgress: 0,
-		incoming: false,
-		elapsed: 0,
-		targetDistance: 0,
-		boundaryWarning: false,
-		missionId: 1,
-		phase: "tutorial_move",
-		objective: "Learn the flight controls",
-		objectiveProgress: 0,
-		objectiveTotal: 1,
-		timeRemaining: GameConfig.Campaign.MissionTimeLimit,
-		tutorialStep: "move",
-		groundKills: 0,
-		targetKind: "air",
-		targetRequired: false,
-		special: SpecialWeapons.Default,
-		specialCharges: 0,
-		specialCooldown: 0,
-		specialActive: 0,
-	};
 }
 
 function finite(value: unknown, fallback: number): number {
@@ -1415,7 +1382,6 @@ function MissionHud({
 	trend,
 	fireNotice,
 	radio,
-	breakCue,
 	controller,
 	joystickRef,
 	knobRef,
@@ -1446,8 +1412,6 @@ function MissionHud({
 	fireNotice?: string;
 	/** Current radio line: the subtitle row, or the objective line on roots without one. */
 	radio?: string;
-	/** Missile time-to-impact / BREAK cue text for the reserved row under the warning (nothing drives it yet). */
-	breakCue?: string;
 	controller: FlightController;
 	joystickRef: React.RefObject<Frame>;
 	knobRef: React.RefObject<Frame>;
@@ -1582,7 +1546,6 @@ function MissionHud({
 			<InstrumentBox name="AltitudeBox" caption="ALT" value={instrumentValue(telemetry.altitude)} rectangle={layout.altitude} metrics={metrics} pointsRight={false} color={telemetry.altitude < LOW_ALTITUDE ? HUD.Amber : HUD.Green} />
 			{!alertSharesObjective && <WarningBox rectangle={layout.alert} text={alertText} color={alertColor} metrics={metrics} textRef={warningText} />}
 			{/* Reserved for a missile time-to-impact / BREAK cue; empty and hidden until something drives it. */}
-			<HudLabel name="BreakCue" text={breakCue ?? ""} rectangle={layout.breakCue} textSize={metrics.text} bold={true} color={HUD.Red} alignment={Enum.TextXAlignment.Center} visible={breakCue !== undefined && breakCue !== ""} />
 
 			<StatusPanel layout={layout.status} health={telemetry.health} cells={ammo} />
 
@@ -1724,7 +1687,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyKind>(Difficulty.Default);
 	const [busy, setBusy] = useState(false);
 	const [toast, setToast] = useState<ToastState | undefined>();
-	const [telemetry, setTelemetry] = useState(defaultTelemetry);
+	const [telemetry, setTelemetry] = useState(() => initialTelemetry(1));
 	const [throttle, setThrottleState] = useState(0.65);
 	const [outcome, setOutcome] = useState<OutcomeState>(() => ({
 		won: true, missionId: 1, airKills: 0, optionalKills: 0, groundKills: 0, elapsed: 0, par: MissionScore.ParSeconds(MissionCatalog.Get(1)),
@@ -1783,7 +1746,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const selectedSpecialRef = useRef<SpecialKind>(SpecialWeapons.Default);
 	const selectedDifficultyRef = useRef<DifficultyKind>(Difficulty.Default);
 	const persistenceRef = useRef<Persistence>("unavailable");
-	const telemetryRef = useRef(defaultTelemetry());
+	const telemetryRef = useRef(initialTelemetry(1));
 	const inputModeRef = useRef<InputMode>(inputMode);
 	const outcomeWonRef = useRef(true);
 	const outcomeMissionRef = useRef(1);
@@ -2300,14 +2263,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				setFireNotice(undefined);
 				priorTargetRef.current = undefined;
 				setDamageUntil(0);
-				const resetTelemetry = defaultTelemetry();
-				resetTelemetry.missionId = missionId;
-				if (missionId >= 2) {
-					resetTelemetry.phase = "intercept";
-					resetTelemetry.objective = MissionCatalog.Get(missionId).phases[0].label;
-					resetTelemetry.objectiveTotal = 3;
-					resetTelemetry.tutorialStep = "";
-				}
+				const resetTelemetry = initialTelemetry(missionId);
 				telemetryRef.current = resetTelemetry;
 				setTelemetry(resetTelemetry);
 				if (!controller.Start(started)) {
