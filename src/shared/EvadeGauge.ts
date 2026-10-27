@@ -16,6 +16,8 @@ export interface EvadeTelemetry {
 	evadeCooldown: number;
 	evadeCharges?: number;
 	incoming: boolean;
+	/** Server says at least one missile can be decoyed now. Absent on older servers. */
+	evadeThreat?: boolean;
 }
 
 export interface EvadeGauge {
@@ -29,7 +31,7 @@ export interface EvadeGauge {
 	recharge: number;
 	/** Seconds until the next charge returns (0 when full). */
 	cooldown: number;
-	/** Missile inbound and a charge ready: the button pulses. */
+	/** Decoyable missile and a charge ready: the button pulses. */
 	flash: boolean;
 	/** Button caption. */
 	label: string;
@@ -55,7 +57,7 @@ export function evadeGauge(telemetry: EvadeTelemetry): EvadeGauge {
 		ready,
 		recharge,
 		cooldown: charges >= maxCharges ? 0 : cooldown,
-		flash: ready && telemetry.incoming === true,
+		flash: ready && telemetry.evadeThreat === true,
 		label: ready ? "EVADE" : string.format("%d", math.max(1, math.ceil(cooldown))),
 	};
 }

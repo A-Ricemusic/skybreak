@@ -1,0 +1,28 @@
+--- MissileDuel.luau
++++ MissileDuel.luau
+@@ -257,6 +257,7 @@
+ 		end
+ 		local track = MissileRules:NewTrack()
+ 		local input = circle
++		local selected = circle.throttle
+ 		for step = 0, 15 * 30 - 1 do
+ 			local age = missile.age
+ 			if pendingStep ~= nil and step >= pendingStep then
+@@ -306,6 +307,8 @@
+ 					throttle = 1,
+ 				}
+ 			end
++			if step < pullUntil or released then selected = FlightMath:AdjustThrottle(selected, 1, STEP) end
++			input = {x=input.x,y=input.y,throttle=selected}
+ 			FlightMath:Step(jet, input, STEP)
+ 			local outcome = MissileRules:Step(missile, profile, target(jet), STEP)
+ 			result.age = missile.age
+@@ -323,7 +326,7 @@
+ 				missile = missile,
+ 				profile = profile,
+ 			} else nil
+-			local cue = MissileRules:CueTick(track, (step + 1) * STEP, jet, input, urgent, true, reaction)
++			local cue = MissileRules:CueTick(track, (step + 1) * STEP, jet, input, urgent, true)
+ 			if cue == nil then
+ 				continue
+ 			end

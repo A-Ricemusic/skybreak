@@ -440,6 +440,7 @@ function sendTelemetry(session: CombatSession): void {
 	if (session.player.Parent !== Players) return;
 	publishDamageable(session);
 	let incoming = false;
+	let evadeThreat = false;
 	let lockWarning = false;
 	let incomingDistance = math.huge;
 	for (const missile of session.projectiles) {
@@ -447,6 +448,7 @@ function sendTelemetry(session: CombatSession): void {
 		const range = missile.position.sub(positionFor(session.state)).Magnitude;
 		incomingDistance = math.min(incomingDistance, range);
 		if (range < 1800) incoming = true;
+		if (EvadeRules.Decoys(range, (missile.life ?? 0) - missile.age)) evadeThreat = true;
 	}
 	// A windup is a lock warning, not a missile: evading now would waste the countermeasure.
 	for (const enemy of session.enemies) if (ownsEnemy(session, enemy) && enemy.windup > 0) { lockWarning = true; break; }
@@ -464,7 +466,7 @@ function sendTelemetry(session: CombatSession): void {
 		// The HUD tally counts required destructions only; raiders travel separately so it never reads 7/4.
 		kills: sessionRequiredKills(session), total: sessionTotalRequired(session),
 		missiles: session.missiles, missileCooldown: session.missileCooldown, evadeCooldown: EvadeRules.Cooldown(session.evade, session.evadeRemaining),
-		lockProgress: session.lockProgress, incoming, lockWarning,
+		lockProgress: session.lockProgress, incoming, lockWarning, evadeThreat,
 		boundaryWarning: math.max(math.abs(session.state.x), math.abs(session.state.z)) > FlightMath.SoftBoundary,
 		targetDamageable: target ? canHurt(session, target) : undefined,
 		elapsed: session.elapsed, timeRemaining: sessionTimeRemaining(session),
@@ -1103,7 +1105,7 @@ function evade(session: CombatSession): void {
 	JetFactory.Flares(session.folder, positionFor(session.state), frameFor(session.state));
 	decoyEvade(session);
 }
-/** While the evade window is open, every hostile missile inside 350 studs or in its last 1.2 s takes the flares. */
+/** While the evade window is open, every hostile missile inside 450 studs or in its last 1.2 s takes the flares. */
 function decoyEvade(session: CombatSession): void {
 	const position = positionFor(session.state);
 	for (let index = session.projectiles.size() - 1; index >= 0; index--) {

@@ -14,13 +14,15 @@ import { Telemetry } from "./Types";
 //          evadeCharges, optionalKills, incomingDistance (-1 none), pauseAck, pauseRemaining (-1 unknown),
 //          turnObserved (-1 unknown), pitchObserved (-1 unknown)]
 // flags: 1 incoming, 2 lockWarning, 4 boundaryWarning, 8 targetDamageable,
-//        16 targetDamageable unknown (no target), 32 ace killed this sortie.
+//        16 targetDamageable unknown (no target), 32 ace killed this sortie, 64 paused.
+//        2048 evadeThreat (a missile is decoyable now); 128–1024 reserved for PR42 cues.
 export type TelemetryPacket = number[];
 export const TELEMETRY_FIELDS = 29;
 
 export interface TelemetryNumbers {
 	health: number; speed: number; altitude: number; kills: number; total: number; missiles: number;
 	missileCooldown: number; evadeCooldown: number; lockProgress: number;
+	evadeThreat?: boolean;
 	incoming: boolean; lockWarning: boolean; boundaryWarning: boolean;
 	elapsed: number; timeRemaining: number; objectiveProgress: number; objectiveTotal: number; groundKills: number;
 	targetDistance: number; targetHealth?: number; protectedHealth?: number;
@@ -42,7 +44,7 @@ export interface TelemetryNumbers {
 export const TelemetryCodec = {
 	Encode(sequence: number, t: TelemetryNumbers): TelemetryPacket {
 		const flags = (t.incoming ? 1 : 0) + (t.lockWarning ? 2 : 0) + (t.boundaryWarning ? 4 : 0)
-			+ (t.targetDamageable === true ? 8 : 0) + (t.targetDamageable === undefined ? 16 : 0) + (t.aceKilled === true ? 32 : 0) + (t.paused === true ? 64 : 0);
+			+ (t.targetDamageable === true ? 8 : 0) + (t.targetDamageable === undefined ? 16 : 0) + (t.aceKilled === true ? 32 : 0) + (t.paused === true ? 64 : 0) + (t.evadeThreat === true ? 2048 : 0);
 		return [
 			sequence, t.health, t.speed, t.altitude, t.kills, t.total, t.missiles,
 			t.missileCooldown, t.evadeCooldown, t.lockProgress, flags, t.elapsed,
@@ -68,6 +70,7 @@ export const TelemetryCodec = {
 		into.missileCooldown = n[7]; into.evadeCooldown = n[8]; into.lockProgress = n[9];
 		const flags = n[10];
 		into.incoming = flags % 2 >= 1;
+		into.evadeThreat = flags % 4096 >= 2048;
 		into.lockWarning = flags % 4 >= 2;
 		into.boundaryWarning = flags % 8 >= 4;
 		into.targetDamageable = flags % 32 >= 16 ? undefined : flags % 16 >= 8;

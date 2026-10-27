@@ -185,6 +185,8 @@ export interface Telemetry {
 	evadeCharges?: number;
 	/** Studs to the nearest hostile missile, when one is in the air. */
 	incomingDistance?: number;
+	/** A hostile missile currently satisfies the server decoy timing rule. */
+	evadeThreat?: boolean;
 	target?: Model;
 	targetName: string;
 	lockProgress: number;
