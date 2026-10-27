@@ -51,7 +51,7 @@ assert(radioQueue:Current(now).text=='Protection OFF')
 now=4.2
 c:applyHud({radio='ordinary',radioSerial=3})
 assert(c.telemetry.radioPriority==false and radioQueue:Current(now).text=='Protection OFF' and radioQueue:Waiting()==1)
-print('RADIO_DELIVERY passed=4 failed=0 (priority, repeated serial, expiry, ordinary reset)')
+print('RADIO_DELIVERY passed=4 failed=0')
 `;
 const dest = resolve(root, "build/radio-delivery");
 await mkdir(dest, { recursive: true });

@@ -136,3 +136,24 @@ These tools are run by hand and are not part of any test script:
 - `Blender --background --factory-startup --python tools/assets/verify_fbx.py` round-trips every exported FBX in `assets/roblox-upload/` through Blender's importer and compares it with its checklist.
 
 `tools/upload-audio.py` and `tools/upload-voice.py` share the account upload journal, HALT gate and polling in `tools/roblox_upload.py` (unit-tested by `python3 -m unittest discover -s tools/tests`).
+
+`bun run validate:offline` is the shared PR and publish gate. Install Bun 1.3.14,
+Aftman 0.3.0 with the Rojo version in `aftman.toml`, Python 3.12,
+ffprobe (FFmpeg), and the official
+[Luau CLI 0.744](https://github.com/luau-lang/luau/releases/tag/0.744), then run
+`bun install --frozen-lockfile`. Set `LUAU_BIN` to the absolute CLI path or put it
+at `build/offline-luau/luau`. CI pins the Linux Luau archive by SHA-256.
+The gate builds the production place once (including its eight-script voice
+artifact check), runs the existing compiled domain, audio lifecycle, voice
+consumer and radio delivery suites, all `tools/tests/test_*.py` tests, and both generated-document
+consistency checks. Failed commands, missing summaries, or counts below the
+538/10/8 contract baselines or a missing exact four-test radio summary fail validation. It never launches Studio.
+
+PRs targeting `main` run this gate without secrets. Main pushes and manual
+publishes run the same action before publishing, in the same job and checkout;
+failure prevents the publish step. Both workflows ignore Markdown-only and
+`docs/**`-only changes, including reports. Tests, tooling, dependencies and CI
+changes trigger validation (and retain the existing main publish behavior).
+Branch protection is managed separately. Offline validation does not establish
+runtime/device acceptance, audible playback, or live Roblox asset permission;
+Roblox Jest and human playtesting remain separate checks.
