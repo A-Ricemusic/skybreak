@@ -1,6 +1,6 @@
 import { Difficulty, DifficultyKind } from "./Difficulty";
 import { FlightMath, FlightState } from "./FlightMath";
-import { FlightInput } from "./Types";
+import { BreakCueState, FlightInput } from "./Types";
 
 // Pure hostile-missile flight and seeker rules. The server (CombatService) owns every missile and
 // only adapts Vector3 to the plain points here, so the same code runs in Roblox, Jest and the
@@ -25,20 +25,28 @@ import { FlightInput } from "./Types";
 //   5. Proximity fuse: `fuse` studs from the jet, measured on the path relative to the jet through
 //      the step (no tunnelling at 600+ studs/s), and only if that point comes before any terrain hit.
 //
-// BREAK cue (BreakCue): the server flies the most urgent missile forward against the real flight
-// rules. It lights BREAK, with the way to turn, only when the missile would hit a jet that keeps
-// flying as it is and misses one that breaks hard CUE_REACTION seconds from now, whether the pilot
-// lets go after BREAK_HOLD seconds or keeps pulling. So it never asks
-// for a losing turn, never shows for a missile that will miss anyway, and stays dark both while a
-// break would still be followed (too early) and once it is too late. There is no fixed window: the
-// dodge window comes out of the physics, and the tuning below sets how long it is.
+// The break cue (BreakCue, then CueTick) tells the pilot when to start AND when to stop a break:
+//   BREAK <- / ->  the server flies the most urgent missile forward against the real flight rules and
+//                  lights BREAK, with the way to turn, only when the missile would hit a jet that
+//                  keeps flying as it is and misses one that breaks hard CUE_REACTION seconds from now
+//                  and keeps pulling. So it never asks for a losing turn, never shows for a missile
+//                  that will miss anyway, and stays dark both while a break would still be followed
+//                  (too early) and once it is too late. There is no fixed window: the dodge window
+//                  comes out of the physics, and the tuning below sets how long it is.
+//   HOLD <- / ->   while the pilot pulls the cued way against that missile: letting go is not yet safe.
+//   CLEAR          the missile can no longer reach the jet whatever the pilot does from now on
+//                  (Unreachable: it is gone, or provably out of reach for the rest of its life), so
+//                  letting go at any moment from here is safe. Shown CLEAR_SECONDS, then the row clears.
+// A break pulled through HOLD is the break BREAK checked, so it wins; letting go during HOLD may not.
+// The release moment is a proof about every future, not one predicted release time: a pilot who
+// pulls a little longer after CLEAR, or lets go to any stick, is covered by the same proof.
 //
 // "Misses" means the missile can no longer hit: the prediction flies it, through the same Advance
 // the server's stepHostileMissile uses (so the live fuse still fires after the seeker lets go),
-// until it hits, self-destructs (life, or coasting below MIN_SPEED), or is blind and provably stays
-// more than fuse + CLEAR_MARGIN ahead of the jet for the rest of its life (BlindPast). Losing the
-// lock, or passing the jet, is not enough on its own: a blind missile flies straight on, and the
-// jet can turn back across its path.
+// until it hits, self-destructs (life, or coasting below MIN_SPEED), or is Unreachable (blind and
+// provably staying more than fuse + CLEAR_MARGIN ahead of the jet, BlindPast, or out of reach for
+// the rest of its life). Losing the lock, or passing the jet, is not enough on its own: a blind
+// missile flies straight on, and the jet can turn back across its path.
 //
 // Tuning (studs, seconds, rad/s). Rows are Normal by act; Easy/Ace multiply through the Difficulty
 // knobs (missileTurn, missileBurn, missileGimbal); a missile fired by the mission's ace adds the
@@ -93,6 +101,19 @@ export type MissileRay = (from: Point, to: Point) => Point | undefined;
 export type MissileEvent = "flying" | "hit" | "terrain" | "expired";
 export interface MissileStep { event: MissileEvent; at?: Point }
 
+export interface BreakCueShot { missile: GuidedMissile; profile: MissileProfile }
+export interface BreakCueOut { state: BreakCueState; stick: number }
+/** The server's memory of one break between telemetry ticks (MissileRules.CueTick). */
+export interface BreakTrack {
+	/** The missile BREAK was raised for, while the cue follows it. */
+	shot?: BreakCueShot;
+	/** The cued way, -1 left or +1 right. */
+	stick: number;
+	state?: BreakCueState;
+	/** When BREAK was last raised, or CLEAR went up. */
+	since: number;
+}
+
 const NAV_GAIN = 3;
 /** Small pure-pursuit bias (1/s) so a missile launched off the line of sight still swings onto it. */
 const PURSUIT = 0.5;
@@ -114,9 +135,14 @@ const LAUNCH_OFFSET = 18;
 const LEAD_SHARE = 0.8;
 /** Shortest time to impact a launch may have, by level (ShotClear). */
 const MIN_LAUNCH: { [D in DifficultyKind]: number } = { easy: 1.6, normal: 1.5, ace: 1.8 };
-/** The break the BREAK cue predicts: full stick and a little back pressure at full power for BREAK_HOLD seconds, then the pilot's previous input. */
+/** The break the BREAK cue predicts: full stick and a little back pressure at full power, held until CLEAR. */
 const BREAK_PULL = 0.25;
-const BREAK_HOLD = 1.5;
+/** A stick at least this far the cued way is the pilot breaking (HOLD tracks it; else they let go). */
+const BREAKING_STICK = 0.5;
+/** Seconds CLEAR stays on the HUD before the row clears. */
+const CLEAR_SECONDS = 1;
+/** Seconds the cue keeps following a BREAK's missile while the pilot's stick comes over (reaction, plus a tick). */
+const BREAK_GRACE = 0.5;
 /**
  * Seconds from the server raising BREAK to the jet's stick moving: up to a 10 Hz telemetry tick,
  * replication, the pilot's hands and the input upload. The cue predicts a break this late.
@@ -153,7 +179,9 @@ export const MissileRules = {
 	NavGain: NAV_GAIN,
 	CueReaction: CUE_REACTION,
 	CueHorizon: CUE_HORIZON,
-	BreakHold: BREAK_HOLD,
+	BreakPull: BREAK_PULL,
+	BreakingStick: BREAKING_STICK,
+	ClearSeconds: CLEAR_SECONDS,
 	StepSeconds: STEP_SECONDS,
 	CoastDrag: COAST_DRAG,
 	MinSpeed: MIN_SPEED,
@@ -357,15 +385,28 @@ export const MissileRules = {
 		return (profile.minLaunch + margin) * math.max(profile.burnSpeed - jetSpeed, 50) + LAUNCH_OFFSET;
 	},
 	/**
+	 * The missile can no longer reach the jet, whatever the jet does from now on: it is blind and
+	 * BlindPast, or it is further away than it and the jet could close together in the rest of its
+	 * life (its remaining Travel plus JET_REACH, both padded by two steps, beyond fuse + CLEAR_MARGIN;
+	 * a 30 Hz step moves at its end-of-step speed, which only falls, so Travel bounds it). Closed form:
+	 * CLEAR is this, and every prediction stops early on it.
+	 */
+	Unreachable(missile: GuidedMissile, profile: MissileProfile, jet: FlightState): boolean {
+		if (MissileRules.BlindPast(missile, profile, jet)) return true;
+		const seconds = MissileRules.Remaining(profile, missile.age) + 2 * STEP_SECONDS;
+		const range = length(sub(missile.position, { x: jet.x, y: jet.y, z: jet.z }));
+		return range - MissileRules.Travel(profile, missile.age, seconds) - JET_REACH * (seconds + STEP_SECONDS) > profile.fuse + CLEAR_MARGIN;
+	},
+	/**
 	 * Flies a copy of the missile against a copy of the jet in open sky, one server step at a time
 	 * (Advance). The jet keeps `input`; with a `stick` (-1 left, +1 right) it breaks `delay` seconds
-	 * from now: full stick, a little back pressure and full power for `hold` seconds (BREAK_HOLD;
-	 * math.huge keeps pulling), then back to `input`. Both are counted in whole steps, so a pilot
-	 * replaying the break (MissileDuel, EngageSim) flies exactly it. True only when the missile can no
-	 * longer hit: it self-destructs or detonates elsewhere, or it is blind and BlindPast proves it
-	 * cannot reach the jet again. Bounded by the missile's remaining life (at most `life` x 30 steps).
+	 * from now: full stick, a little back pressure and full power for `hold` seconds (default: pulling
+	 * to the end), then back to `input`. Both are counted in whole steps, so a pilot replaying the
+	 * break (MissileDuel, EngageSim) flies exactly it. True only when the missile can no longer hit: it
+	 * self-destructs or detonates elsewhere, or Unreachable proves it cannot reach the jet again.
+	 * Bounded by the missile's remaining life (at most `life` x 30 steps).
 	 */
-	Misses(missile: GuidedMissile, profile: MissileProfile, jet: FlightState, input: FlightInput, delay = 0, stick?: number, hold = BREAK_HOLD): boolean {
+	Misses(missile: GuidedMissile, profile: MissileProfile, jet: FlightState, input: FlightInput, delay = 0, stick?: number, hold = math.huge): boolean {
 		// Step replaces position/direction rather than mutating them, so a shallow copy is independent.
 		const copy: GuidedMissile = { position: missile.position, direction: missile.direction, speed: missile.speed, age: missile.age, locked: missile.locked };
 		const state: FlightState = { x: jet.x, y: jet.y, z: jet.z, yaw: jet.yaw, pitch: jet.pitch, roll: jet.roll, speed: jet.speed };
@@ -379,20 +420,20 @@ export const MissileRules = {
 			const result = MissileRules.Advance(copy, profile, state, STEP_SECONDS);
 			if (result.event === "hit") return false;
 			if (result.event !== "flying") return true;
-			if (MissileRules.BlindPast(copy, profile, state)) return true;
+			if (MissileRules.Unreachable(copy, profile, state)) return true;
 		}
 		// Not proven safe.
 		return false;
 	},
 	/**
-	 * The BREAK cue: the way to turn (-1 left, +1 right) when the missile would hit a jet that keeps
-	 * flying as it is, but misses one that breaks hard CUE_REACTION seconds from now, both when the
-	 * pilot lets go after BREAK_HOLD and when they keep pulling; else undefined. At most five
-	 * predictions, each bounded by the missile's remaining life (Misses).
+	 * Where BREAK points (-1 left, +1 right): the missile would hit a jet that keeps flying as it is,
+	 * but misses one that breaks hard CUE_REACTION seconds from now and keeps pulling; else undefined.
+	 * At most three predictions, each bounded by the missile's remaining life (Misses).
 	 * Checked against the real flight and missile rules, so the cue never asks for a losing turn, never
 	 * shows for a missile that is going to miss anyway, and stays dark while a break would still be
 	 * followed (too early) or is already too late. Tries the way the pilot is already turning first
-	 * (no flip-flopping mid-break), then away from the missile, then the other way.
+	 * (no flip-flopping mid-break), then away from the missile, then the other way. When to let go is
+	 * CueTick's HOLD / CLEAR, not a fixed pull time.
 	 */
 	BreakCue(missile: GuidedMissile, profile: MissileProfile, jet: FlightState, input: FlightInput, reaction = CUE_REACTION): number | undefined {
 		if (!missile.locked) return undefined;
@@ -401,11 +442,53 @@ export const MissileRules = {
 		if (seconds === undefined || seconds > CUE_HORIZON) return undefined;
 		if (MissileRules.Misses(missile, profile, jet, input)) return undefined;
 		const away = MissileRules.Bearing(target.position, jet.yaw, missile.position) > 0 ? -1 : 1;
-		const first = math.abs(input.x) >= 0.5 ? math.sign(input.x) : away;
-		const wins = (stick: number) => MissileRules.Misses(missile, profile, jet, input, reaction, stick)
-			&& MissileRules.Misses(missile, profile, jet, input, reaction, stick, math.huge);
-		if (wins(first)) return first;
-		if (wins(-first)) return -first;
+		const first = math.abs(input.x) >= BREAKING_STICK ? math.sign(input.x) : away;
+		if (MissileRules.Misses(missile, profile, jet, input, reaction, first)) return first;
+		if (MissileRules.Misses(missile, profile, jet, input, reaction, -first)) return -first;
 		return undefined;
+	},
+	/** A fresh BreakTrack: following no break. */
+	NewTrack(): BreakTrack {
+		return { stick: 0, since: 0 };
+	},
+	/** Stop following the tracked missile (it hit the jet, or the sortie ended). */
+	Forget(track: BreakTrack): void {
+		track.shot = undefined; track.state = undefined; track.stick = 0;
+	},
+	/**
+	 * One telemetry tick of the break cue, at time `now` (seconds). `urgent` is the most urgent locked
+	 * missile in range (the only one BREAK is predicted for); `trackedAlive` says whether the missile
+	 * the track follows is still flying. Returns the cue to show, or undefined for none:
+	 *   - Following a BREAK's missile and the pilot pulls the cued way: CLEAR once the missile is gone
+	 *     or Unreachable (closed form, no prediction), else HOLD. No missile is predicted while HOLD shows.
+	 *   - Otherwise BreakCue for `urgent` (BREAK). A pilot who lets go during HOLD drops the track; one
+	 *     who has not reacted to BREAK yet keeps it for BREAK_GRACE.
+	 *   - Else CLEAR while it is up (CLEAR_SECONDS), then nothing. A new BREAK replaces CLEAR.
+	 * Cost: at most BreakCue's three predictions, and none while HOLD shows.
+	 */
+	CueTick(track: BreakTrack, now: number, jet: FlightState, input: FlightInput, urgent: BreakCueShot | undefined, trackedAlive: boolean, reaction = CUE_REACTION): BreakCueOut | undefined {
+		const shot = track.shot;
+		if (shot && track.state !== "clear") {
+			const breaking = math.sign(input.x) === track.stick && math.abs(input.x) >= BREAKING_STICK;
+			if (breaking) {
+				if (!trackedAlive || MissileRules.Unreachable(shot.missile, shot.profile, jet)) {
+					track.state = "clear"; track.since = now; track.shot = undefined;
+					return { state: "clear", stick: track.stick };
+				}
+				track.state = "hold";
+				return { state: "hold", stick: track.stick };
+			}
+			if (track.state === "hold" || !trackedAlive || now - track.since > BREAK_GRACE + 1e-6) MissileRules.Forget(track);
+		}
+		// A new BREAK (another missile) takes over from CLEAR.
+		const stick = urgent ? MissileRules.BreakCue(urgent.missile, urgent.profile, jet, input, reaction) : undefined;
+		if (stick === undefined || !urgent) {
+			if (track.state !== "clear") return undefined;
+			if (now - track.since < CLEAR_SECONDS - 1e-6) return { state: "clear", stick: track.stick };
+			MissileRules.Forget(track);
+			return undefined;
+		}
+		track.shot = urgent; track.stick = stick; track.state = "break"; track.since = now;
+		return { state: "break", stick };
 	},
 };

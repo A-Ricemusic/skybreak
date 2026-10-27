@@ -14,6 +14,8 @@ import { EngageResult, EngageSetup, EngageSim } from "./EngageSim";
 
 const SECONDS = 240;
 const SEEDS = [11, 23];
+/** Print each run's cue-pilot tallies (docs/flight-mechanics.md). */
+const PRINT_ENGAGE = false;
 /** Ace launches per minute against the circling pilot, alone, by level. */
 const ACE_RATE: { [D in DifficultyKind]: [number, number] } = { easy: [1.2, 2.0], normal: [2.5, 3.5], ace: [5, 6] };
 
@@ -55,16 +57,22 @@ describe("Engagement cadence, closed loop", () => {
 			expect(launches / windups >= 0.7).toBe(true);
 		}
 	});
-	it("never lets a missile hit a pilot who flew its BREAK exactly as cued", () => {
+	it("never lets a missile hit a pilot who broke on BREAK, held through HOLD and let go after CLEAR", () => {
+		// Each followed break lets go a different delay after CLEAR (0, 0.1, ... 2 s, rotating; the second seed starts half way round).
+		const delays: number[] = [];
+		for (let tick = 0; tick <= 20; tick++) delays.push(tick / 10);
 		for (const level of Difficulty.Order) for (const act of [1, 2, 3]) {
-			let followed = 0;
-			for (const seed of SEEDS) {
-				const result = EngageSim.Run({ level, act, bandits: 2, ace: true, pilot: "cue", seconds: SECONDS, seed });
+			let followed = 0, cleared = 0;
+			SEEDS.forEach((seed, index) => {
+				const result = EngageSim.Run({ level, act, bandits: 2, ace: true, pilot: "cue", seconds: SECONDS, seed, releaseDelays: delays, releaseOffset: index * 10 });
 				expect(result.bandits.followedHits).toBe(0);
 				expect(result.ace.followedHits).toBe(0);
 				followed += result.bandits.followed + result.ace.followed;
-			}
+				cleared += result.bandits.cleared + result.ace.cleared;
+				if (PRINT_ENGAGE) print(`[engage] ${level}${act} seed ${seed}: launches ${result.bandits.launches}+${result.ace.launches} hits ${result.bandits.hits}+${result.ace.hits} followed ${result.bandits.followed}+${result.ace.followed} cleared ${result.bandits.cleared}+${result.ace.cleared}`);
+			});
 			expect(followed > 0).toBe(true);
+			expect(cleared > 0).toBe(true);
 		}
 	});
 	it("keeps the dodge guarantee: every launch gives at least the level's shortest shot", () => {

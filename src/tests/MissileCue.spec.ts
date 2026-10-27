@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { MissileCue } from "../shared/MissileCue";
+import { MissileCue, MissileCueInput } from "../shared/MissileCue";
 
 // Pure HUD wording for the missile cue; also runs in the offline Luau VM (toBe/toBeUndefined only).
 describe("Missile cue", () => {
@@ -26,19 +26,45 @@ describe("Missile cue", () => {
 		expect(MissileCue.Text({ seconds: 2.14, bearing: -150 }, true)).toBe("MISSILE ↓ 2.1s");
 		// Not closing: direction only.
 		expect(MissileCue.Text({ bearing: 90 })).toBe("MISSILE 3 O'CLOCK →");
-		expect(MissileCue.Text({ seconds: 1.4, bearing: 150, breakNow: true, speed: 320 })).toBe("BREAK ← · MISSILE 1.4s");
-		expect(MissileCue.Text({ seconds: 1.4, bearing: 150, breakNow: true, speed: 240 })).toBe("BREAK ← · MISSILE 1.4s · POWER↑");
+		expect(MissileCue.Text({ seconds: 1.4, bearing: 150, breakCue: "break", speed: 320 })).toBe("BREAK ← · MISSILE 1.4s");
+		expect(MissileCue.Text({ seconds: 1.4, bearing: 150, breakCue: "break", speed: 240 })).toBe("BREAK ← · MISSILE 1.4s · POWER↑");
 		// A slow jet keeps POWER even on a narrow HUD: the break the server checked is at full power.
-		expect(MissileCue.Text({ seconds: 1.4, bearing: -20, breakNow: true, speed: 240 }, true)).toBe("BREAK → POWER↑");
-		expect(MissileCue.Text({ seconds: 1.4, bearing: -20, breakNow: true, speed: 300 }, true)).toBe("BREAK →");
+		expect(MissileCue.Text({ seconds: 1.4, bearing: -20, breakCue: "break", speed: 240 }, true)).toBe("BREAK → POWER↑");
+		expect(MissileCue.Text({ seconds: 1.4, bearing: -20, breakCue: "break", speed: 300 }, true)).toBe("BREAK →");
 		expect(MissileCue.Text({ seconds: 1.4 })).toBeUndefined();
 		expect(MissileCue.Text({ seconds: 1.4, bearing: 0 / 0 })).toBeUndefined();
 	});
 	it("turns the way the server's BREAK check says, even toward the missile's side", () => {
-		expect(MissileCue.Text({ seconds: 1.4, bearing: 150, breakNow: true, breakRight: true, speed: 320 })).toBe("BREAK → · MISSILE 1.4s");
-		expect(MissileCue.Text({ seconds: 1.4, bearing: -150, breakNow: true, breakRight: false, speed: 320 }, true)).toBe("BREAK ←");
+		expect(MissileCue.Text({ seconds: 1.4, bearing: 150, breakCue: "break", breakRight: true, speed: 320 })).toBe("BREAK → · MISSILE 1.4s");
+		expect(MissileCue.Text({ seconds: 1.4, bearing: -150, breakCue: "break", breakRight: false, speed: 320 }, true)).toBe("BREAK ←");
 		// No BREAK: the direction flag is ignored and the missile's position shows.
 		expect(MissileCue.Text({ seconds: 2.14, bearing: -150, breakRight: true }, true)).toBe("MISSILE ↓ 2.1s");
+	});
+	it("says when to let go: HOLD on the same arrow while pulling, then CLEAR", () => {
+		expect(MissileCue.Text({ seconds: 1.2, bearing: 150, breakCue: "hold", breakRight: true, speed: 300 })).toBe("HOLD → · MISSILE 1.2s");
+		expect(MissileCue.Text({ seconds: 1.2, bearing: 150, breakCue: "hold", breakRight: false, speed: 240 })).toBe("HOLD ← · MISSILE 1.2s · POWER↑");
+		expect(MissileCue.Text({ seconds: 1.2, bearing: 150, breakCue: "hold", breakRight: true, speed: 300 }, true)).toBe("HOLD →");
+		expect(MissileCue.Text({ seconds: 1.2, bearing: 150, breakCue: "hold", breakRight: true, speed: 240 }, true)).toBe("HOLD → POWER↑");
+		// A blind missile it follows is no longer closing or reported as incoming: no countdown, no bearing, still HOLD.
+		expect(MissileCue.Text({ breakCue: "hold", breakRight: false, speed: 300 })).toBe("HOLD ←");
+		expect(MissileCue.Text({ breakCue: "clear", speed: 240 })).toBe("CLEAR");
+		expect(MissileCue.Text({ seconds: 1.2, bearing: 40, breakCue: "clear" }, true)).toBe("CLEAR");
+	});
+	it("shows HOLD and CLEAR after MISSILE INBOUND has gone, in green for CLEAR", () => {
+		const row = { alertWidth: 220, cueWidth: 220, cueTextSize: 12, shared: false };
+		const hold = MissileCue.Route("LOW SPEED", { breakCue: "hold", breakRight: true, speed: 300 }, row);
+		expect(hold.alert).toBe("LOW SPEED");
+		expect(hold.cue).toBe("HOLD →");
+		expect(hold.clear).toBe(false);
+		const clear = MissileCue.Route("", { breakCue: "clear" }, row);
+		expect(clear.cue).toBe("CLEAR");
+		expect(clear.clear).toBe(true);
+		// Shared row: inlined ahead of any flight advice, or on its own.
+		expect(MissileCue.Route("", { breakCue: "clear" }, { ...row, shared: true }).alert).toBe("CLEAR");
+		expect(MissileCue.Route("STALL", { breakCue: "hold", breakRight: false, speed: 300 }, { ...row, alertWidth: 180, shared: true }).alert).toBe("HOLD ← · STALL");
+		expect(MissileCue.Route("MISSILE INBOUND · STALL", { seconds: 1.2, bearing: 10, breakCue: "hold", breakRight: false, speed: 300 }, { ...row, alertWidth: 180, shared: true }).alert).toBe("HOLD ← · STALL");
+		// BREAK still needs MISSILE INBOUND.
+		expect(MissileCue.Route("", { seconds: 1.4, bearing: 150, breakCue: "break", speed: 320 }, row).cue).toBeUndefined();
 	});
 	it("replaces only MISSILE INBOUND in the shared warning line", () => {
 		const cue = { seconds: 2.14, bearing: 180 };
@@ -66,7 +92,7 @@ describe("Missile cue", () => {
 		expect(MissileCue.Route("MISSILE INBOUND", {}, row).cue).toBeUndefined();
 	});
 	it("words the reserved row for its own width so POWER is never truncated", () => {
-		const slowBreak = { seconds: 1.4, bearing: 150, breakNow: true, speed: 240 };
+		const slowBreak: MissileCueInput = { seconds: 1.4, bearing: 150, breakCue: "break", speed: 240 };
 		const row = { alertWidth: 240, cueWidth: 240, cueTextSize: 12, shared: false };
 		// 31 RobotoMono glyphs at 12 pt is ~223 px.
 		expect(MissileCue.Route("MISSILE INBOUND", slowBreak, row).cue).toBe("BREAK ← · MISSILE 1.4s · POWER↑");

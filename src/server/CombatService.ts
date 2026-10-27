@@ -18,7 +18,7 @@ import { SalvoCandidate, SpecialKind, SpecialState, SpecialWeapons } from "../sh
 import { Difficulty, DifficultyKind, DifficultyKnob } from "../shared/Difficulty";
 import { ThreatRules } from "../shared/ThreatRules";
 import { EvadeRules, EvadeState } from "../shared/EvadeRules";
-import { GuidedMissile, MissileProfile, MissileRules, Point } from "../shared/MissileRules";
+import { BreakTrack, GuidedMissile, MissileProfile, MissileRules, Point } from "../shared/MissileRules";
 import { AceRules, AceStageState } from "../shared/AceRules";
 import { AirRequest, WavePlan } from "../shared/WavePlan";
 import { PauseRules, PauseState, Settlement, SettlementHooks, SettlementState, StepGuard, StepGuardState } from "../shared/SessionGuard";
@@ -128,6 +128,8 @@ export interface CombatSession {
 	missilesFired: number; missileHits: number; flareBursts: number; damageTaken: number; lowestHealth: number; evades: number;
 	/** Evade charges and the decoy window (EvadeRules). */
 	evade: EvadeState;
+	/** The break the HUD cue is following between telemetry ticks (MissileRules.CueTick: BREAK, HOLD, CLEAR). */
+	breakTrack: BreakTrack;
 	/** Error isolation and re-entrancy for this session's steps (StepGuard). */
 	guard: StepGuardState;
 	/** Pause budget and the current pause (PauseRules); nothing steps while paused. */
@@ -431,9 +433,18 @@ function sendTelemetry(session: CombatSession): void {
 			urgent = missile; urgentSeconds = seconds; urgentRange = range;
 		}
 	}
-	// BREAK: a hard break the pilot can still start in time makes the most urgent missile miss (MissileRules
-	// flies it out against the real flight rules), with the way to turn.
-	const breakStick = incoming && urgent?.guided && urgent.profile ? MissileRules.BreakCue(urgent.guided, urgent.profile, session.state, session.input) : undefined;
+	// The break cue (MissileRules.CueTick): BREAK when a hard break the pilot can still start in time, and
+	// hold, makes the most urgent missile miss (flown out against the real flight rules), with the way to
+	// turn; HOLD while the pilot pulls that way and the missile could still reach the jet; CLEAR once it
+	// cannot, whatever the pilot does. Only BREAK predicts (at most three flights of one missile); HOLD
+	// and CLEAR are a closed-form check of the one missile being followed.
+	const track = session.breakTrack;
+	let tracked: Projectile | undefined;
+	if (track.shot) for (const missile of session.projectiles) if (missile.guided === track.shot.missile) { tracked = missile; break; }
+	const cue = MissileRules.CueTick(track, session.elapsed, session.state, session.input,
+		incoming && urgent?.guided && urgent.profile ? { missile: urgent.guided, profile: urgent.profile } : undefined, tracked !== undefined);
+	// HOLD counts down to the missile it follows, which may have lost its lock (no longer "incoming").
+	const cueSeconds = cue?.state === "hold" && tracked?.guided ? MissileRules.TimeToImpact(tracked.guided, jet) : incoming ? urgentSeconds : undefined;
 	// A windup is a lock warning, not a missile: evading now would waste the countermeasure.
 	for (const enemy of session.enemies) if (ownsEnemy(session, enemy) && enemy.windup > 0) { lockWarning = true; break; }
 	const target = ownsEnemy(session, session.target) ? session.target : undefined;
@@ -465,10 +476,10 @@ function sendTelemetry(session: CombatSession): void {
 		evadeCharges: session.evade.charges,
 		optionalKills: session.rules?.optionalAirKills ?? session.blueprintState?.optionalAirKills ?? 0,
 		incomingDistance: incomingDistance < math.huge ? incomingDistance : undefined,
-		incomingSeconds: incoming ? urgentSeconds : undefined,
+		incomingSeconds: cueSeconds,
 		incomingBearing: incoming && urgent ? MissileRules.Bearing(jet.position, session.state.yaw, point(urgent.position)) : undefined,
-		breakNow: breakStick !== undefined,
-		breakRight: breakStick === 1,
+		breakCue: cue?.state,
+		breakRight: cue !== undefined && cue.stick === 1,
 	}));
 }
 /**
@@ -1412,6 +1423,8 @@ function stepHostileMissile(session: CombatSession, index: number, dt: number): 
 	// Burnt out (lost lock or the chase) or into a ridge: a harmless burst where it is.
 	if (result.event !== "hit") { effect(session, "missile", missile.position); return "gone"; }
 	effect(session, "hit", positionFor(session.state));
+	// A hit ends that missile's cue (no CLEAR for it).
+	if (session.breakTrack.shot?.missile === guided) MissileRules.Forget(session.breakTrack);
 	// The evade roll is no shield: only a well-timed press (decoyEvade) saves the hull.
 	const lost = math.min(session.health, missile.damage);
 	session.health -= lost;
@@ -1739,7 +1752,7 @@ export const CombatService = {
 				active: true, finished: false, cleaned: false, previousReplicationFocus: player.ReplicationFocus,
 				inputClientTime: 0, inputFresh: false, inputSteps: 0, stateTime: 0, stateSequence: 0, telemetrySequence: 0,
 				missilesFired: 0, missileHits: 0, flareBursts: 0, damageTaken: 0, lowestHealth: 100, evades: 0,
-				evade: EvadeRules.New(), guard: StepGuard.New(), pause: PauseRules.New(), pauseAck: 0, settlement: Settlement.New(),
+				evade: EvadeRules.New(), breakTrack: MissileRules.NewTrack(), guard: StepGuard.New(), pause: PauseRules.New(), pauseAck: 0, settlement: Settlement.New(),
 				banditSerial: 0, raiderSerial: 0, spawnSerial: 0, reinforceIndex: 0, airQueue: [], stepCount: 0,
 			};
 			if (legacy) {

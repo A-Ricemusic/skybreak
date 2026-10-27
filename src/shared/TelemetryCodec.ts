@@ -1,5 +1,5 @@
 import { FlightMath } from "./FlightMath";
-import { Telemetry } from "./Types";
+import { BreakCueState, Telemetry } from "./Types";
 
 // The 10 Hz HUD numbers travel as a flat number array on an UnreliableRemoteEvent:
 // ~20 doubles is ~190 bytes, against ~600+ for the same fields as a keyed table
@@ -15,8 +15,11 @@ import { Telemetry } from "./Types";
 //          incomingSeconds (-1 none), incomingBearing (999 none)]
 // flags: 1 incoming, 2 lockWarning, 4 boundaryWarning, 8 targetDamageable,
 //        16 targetDamageable unknown (no target), 32 ace killed this sortie,
-//        64 the server holds the sortie paused, 128 BREAK: a hard break now makes the most urgent missile miss
-//        (MissileRules.BreakCue), 256 that break is to the right (else left).
+//        64 the server holds the sortie paused (pauseAck is field 25),
+//        128 / 512 / 1024 the break cue (MissileRules.CueTick; at most one is set): 128 BREAK, a hard
+//        break now makes the most urgent missile miss; 512 HOLD, keep pulling, letting go is not yet
+//        safe; 1024 CLEAR, the missile can no longer reach the jet. 256 the BREAK / HOLD turn is to
+//        the right (else left).
 export type TelemetryPacket = number[];
 export const TELEMETRY_FIELDS = 28;
 
@@ -34,15 +37,16 @@ export interface TelemetryNumbers {
 	pauseAck?: number;
 	/** Evade charges in hand (EvadeRules), optional raider kills, and the nearest hostile missile's range. */
 	evadeCharges?: number; optionalKills?: number; incomingDistance?: number;
-	/** The most urgent locked hostile missile: seconds to impact (absent when not closing), bearing from the nose in degrees, and the BREAK cue. */
-	incomingSeconds?: number; incomingBearing?: number; breakNow?: boolean; breakRight?: boolean;
+	/** The most urgent locked hostile missile: seconds to impact (absent when not closing), bearing from the nose in degrees, and the break cue. */
+	incomingSeconds?: number; incomingBearing?: number; breakCue?: BreakCueState; breakRight?: boolean;
 }
 
 export const TelemetryCodec = {
 	Encode(sequence: number, t: TelemetryNumbers): TelemetryPacket {
 		const flags = (t.incoming ? 1 : 0) + (t.lockWarning ? 2 : 0) + (t.boundaryWarning ? 4 : 0)
-			+ (t.targetDamageable === true ? 8 : 0) + (t.targetDamageable === undefined ? 16 : 0) + (t.aceKilled === true ? 32 : 0) + (t.paused === true ? 64 : 0) + (t.breakNow === true ? 128 : 0)
-			+ (t.breakNow === true && t.breakRight === true ? 256 : 0);
+			+ (t.targetDamageable === true ? 8 : 0) + (t.targetDamageable === undefined ? 16 : 0) + (t.aceKilled === true ? 32 : 0) + (t.paused === true ? 64 : 0)
+			+ (t.breakCue === "break" ? 128 : t.breakCue === "hold" ? 512 : t.breakCue === "clear" ? 1024 : 0)
+			+ ((t.breakCue === "break" || t.breakCue === "hold") && t.breakRight === true ? 256 : 0);
 		return [
 			sequence, t.health, t.speed, t.altitude, t.kills, t.total, t.missiles,
 			t.missileCooldown, t.evadeCooldown, t.lockProgress, flags, t.elapsed,
@@ -71,8 +75,8 @@ export const TelemetryCodec = {
 		into.targetDamageable = flags % 32 >= 16 ? undefined : flags % 16 >= 8;
 		into.aceKilled = flags % 64 >= 32;
 		into.paused = flags % 128 >= 64;
-		into.breakNow = flags % 256 >= 128;
-		into.breakRight = into.breakNow && flags % 512 >= 256;
+		into.breakCue = flags % 256 >= 128 ? "break" : flags % 1024 >= 512 ? "hold" : flags % 2048 >= 1024 ? "clear" : undefined;
+		into.breakRight = (into.breakCue === "break" || into.breakCue === "hold") && flags % 512 >= 256;
 		into.elapsed = n[11]; into.timeRemaining = n[12]; into.objectiveProgress = n[13]; into.objectiveTotal = n[14]; into.groundKills = n[15];
 		into.targetDistance = n[16];
 		into.targetHealth = n[17] >= 0 ? n[17] : undefined;

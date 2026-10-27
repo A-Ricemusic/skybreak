@@ -1,4 +1,6 @@
 import type { FireNotice } from "./WeaponRules";
+/** What the HUD's break-cue row tells the pilot (MissileRules.CueTick): start a break, keep pulling, or let go. */
+export type BreakCueState = "break" | "hold" | "clear";
 export type Persistence = "cloud" | "session" | "unavailable";
 export interface MissionRecord {
 	/** Layout revision that produced bestTime (absent on old saves). */
@@ -174,8 +176,12 @@ export interface Telemetry {
 	/** Most urgent locked hostile missile: seconds to impact (absent when not closing) and bearing from the nose (degrees, +right). */
 	incomingSeconds?: number;
 	incomingBearing?: number;
-	/** A hard break started now makes that missile miss (MissileRules.BreakCue): the HUD shows BREAK, to the right when breakRight. */
-	breakNow?: boolean;
+	/**
+	 * The break cue (MissileRules.CueTick): "break" a hard break started now makes that missile miss,
+	 * "hold" keep pulling (letting go is not yet safe), "clear" the missile can no longer reach the jet.
+	 * BREAK and HOLD turn right when breakRight.
+	 */
+	breakCue?: BreakCueState;
 	breakRight?: boolean;
 	target?: Model;
 	targetName: string;

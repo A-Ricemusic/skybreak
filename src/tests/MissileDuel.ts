@@ -13,18 +13,22 @@ import { FlightInput } from "../shared/Types";
 //      bandit (lead pursuit, side bracket beyond 1100 studs), checks ShotClear again, and launches
 //      18 studs ahead of its nose on MissileRules.LaunchHeading.
 //   2. Every 1/30 s the jet steps (FlightMath), then the missile (MissileRules). Every 0.1 s the
-//      server's telemetry samples MissileRules.BreakCue; the pilot moves the stick `reaction` later.
+//      server's telemetry runs MissileRules.CueTick (BREAK / HOLD / CLEAR); the pilot moves the
+//      stick `reaction` later.
 //
 // Pilots (all circle left at 0.35 stick and cruise throttle until they act):
 //   ignore   never reacts (the live test's "straight" pilot).
-//   cue      on BREAK, flies exactly the break the cue checked: `reaction` later (whole steps), full
-//            stick the way the arrow points, 0.25 back, full throttle for MissileRules.BreakHold, then
-//            back to circling; again on a later cue (the live test's "break" pilot, reading the arrow).
-//            `hold` lengthens the pull (a pilot who keeps pulling past the checked break).
-//   away     the same pull, but always away from the missile's side (the old HUD's arrow).
+//   cue      reads the cue row: on BREAK, `reaction` later (whole steps), full stick the way the
+//            arrow points, 0.25 back, full throttle; keeps pulling while HOLD shows; lets go
+//            `reaction` + `releaseDelay` after CLEAR shows (to `release`, default neutral stick at
+//            full power); again on a later BREAK. `hold` instead lets go after a fixed pull
+//            (math.huge: never), back to circling; `releaseAtHold` lets go after the n-th HOLD.
+//   away     the cue pull for FIXED_HOLD, but always away from the missile's side (the old arrow).
 //   beam     a competent pilot: on BREAK, turns hard onto the nearer heading square to the missile's
 //            line of sight and holds it at full throttle.
-//   timed    the cue pilot's pull at missile age `breakAge`, stick `breakX` (an early or late break).
+//   timed    the cue pilot's pull at missile age `breakAge` (or loop step `breakStep`), stick
+//            `breakX`, for `hold` (default FIXED_HOLD) or until loop step `releaseStep`, then
+//            `release` (default circling): an early break, or a replay of a cue pilot's.
 //   run      full throttle straight ahead from launch (outrunning a tail shot).
 
 export type DuelPilot = "ignore" | "cue" | "away" | "beam" | "timed" | "run";
@@ -44,8 +48,17 @@ export interface DuelSetup {
 	/** "timed": missile age at which the pull starts, and its stick (default away from the missile). */
 	breakAge?: number;
 	breakX?: number;
-	/** Seconds the pull is held (default MissileRules.BreakHold, the break the cue checks). */
+	/** "timed" by loop step (the cue pilot's breakStep), and the loop step it lets go at. */
+	breakStep?: number;
+	releaseStep?: number;
+	/** A fixed pull, in seconds; math.huge never lets go. Default: the cue pilot lets go on CLEAR, the others after FIXED_HOLD. */
 	hold?: number;
+	/** The cue pilot lets go this many seconds after CLEAR (plus `reaction`). Default 0. */
+	releaseDelay?: number;
+	/** The cue pilot lets go `reaction` after the n-th HOLD sample instead (letting go early), then flies on without the cue. */
+	releaseAtHold?: number;
+	/** What the jet flies after letting go (cue pilot default: neutral stick at full power; others: circling). */
+	release?: FlightInput;
 	/** Back pressure during the pull (default 0.25). */
 	pull?: number;
 	/** Sample the BREAK cue (default true); a pilot that ignores it may skip the prediction cost. */
@@ -61,8 +74,15 @@ export interface DuelResult {
 	cued: boolean;
 	cueAge?: number;
 	cueStick?: number;
-	/** Missile age when the jet's first pull started. */
+	/** Missile age when the jet's first pull started, and that loop step. */
 	breakAge?: number;
+	breakStep?: number;
+	/** Loop steps of the HOLD samples, and of the first CLEAR (missile age clearAge). */
+	holdSteps: number[];
+	clearStep?: number;
+	clearAge?: number;
+	/** Loop step the pull ended (the jet let go). */
+	releaseStep?: number;
 	/** Missile age at the end; time to impact and range at launch. */
 	age: number;
 	launchSeconds?: number;
@@ -72,6 +92,9 @@ export interface DuelResult {
 const STEP = MissileRules.StepSeconds;
 const TELEMETRY = 0.1;
 const CIRCLE: FlightInput = { x: -0.35, y: 0, throttle: 0.65 };
+const NEUTRAL: FlightInput = { x: 0, y: 0, throttle: 1 };
+/** The old fixed pull (seconds) for the pilots that do not read HOLD / CLEAR. */
+const FIXED_HOLD = 1.5;
 /** CombatService's Act I-III bandit windups (Difficulty "windup": Easy x1.3, Ace x0.8). */
 const WINDUP = [2.4, 2.0, 1.7];
 const WINDUP_SCALE: { [D in DifficultyKind]: number } = { easy: 1.3, normal: 1, ace: 0.8 };
@@ -108,7 +131,7 @@ export const MissileDuel = {
 		const side = math.sin(angle) >= 0 ? 1 : -1;
 		const banditSpeed = () => math.clamp(jet.speed + 24, 285, 350);
 		const windup = WINDUP[math.clamp(setup.act, 1, 3) - 1] * WINDUP_SCALE[setup.level];
-		const result: DuelResult = { held: true, event: "flying", cued: false, age: 0, launchRange: 0 };
+		const result: DuelResult = { held: true, event: "flying", cued: false, age: 0, launchRange: 0, holdSteps: [] };
 		const start = { x: bandit.x + heading.x * MissileRules.LaunchOffset, y: bandit.y + heading.y * MissileRules.LaunchOffset, z: bandit.z + heading.z * MissileRules.LaunchOffset };
 		if (!MissileRules.ChaseClear(start, banditSpeed(), target(jet), profile, windup)) return result;
 		for (let time = 0; time < windup; time += STEP) {
@@ -138,25 +161,32 @@ export const MissileDuel = {
 		const pilot = setup.pilot;
 		const pull = setup.pull ?? 0.25;
 		let telemetry = setup.phase ?? 0;
-		// Steps are counted, not timed, so the cue pilot's break starts and ends on the very steps the cue checked.
+		// Steps are counted, not timed, so the cue pilot's break starts on the very step the cue checked.
 		const reactionSteps = math.floor(reaction / STEP + 0.5);
-		const pullSteps = math.floor((setup.hold ?? MissileRules.BreakHold) / STEP + 0.5);
+		const fixedHold = setup.hold ?? (pilot === "cue" ? undefined : FIXED_HOLD);
+		const pullSteps = fixedHold !== undefined ? math.floor(fixedHold / STEP + 0.5) : math.huge;
+		const releaseSteps = reactionSteps + math.floor((setup.releaseDelay ?? 0) / STEP + 0.5);
+		const letGo = setup.release ?? (pilot === "cue" && fixedHold === undefined ? NEUTRAL : circle);
 		let pendingStep: number | undefined, pendingX = 0;
-		let pullUntil = -1, pullX = 0;
+		let pullUntil = -1, pullX = 0, released = false, listening = setup.cue !== false;
+		let releaseAt = setup.releaseStep;
 		let beam: number | undefined;
 		if (pilot === "timed") {
-			pendingStep = math.ceil((setup.breakAge ?? 0) / STEP - 1e-6);
+			pendingStep = setup.breakStep ?? math.ceil((setup.breakAge ?? 0) / STEP - 1e-6);
 			pendingX = setup.breakX ?? (MissileRules.Bearing(target(jet).position, jet.yaw, missile.position) > 0 ? -1 : 1);
 		}
+		const track = MissileRules.NewTrack();
 		let input: FlightInput = circle;
 		for (let step = 0; step < 15 * 30; step++) {
 			const age = missile.age;
 			if (pendingStep !== undefined && step >= pendingStep) {
 				if (pilot === "beam") beam = beamHeading(jet, missile.position);
-				pullUntil = step + pullSteps; pullX = pendingX; pendingStep = undefined;
-				if (result.breakAge === undefined) result.breakAge = age;
+				pullUntil = releaseAt ?? step + pullSteps; pullX = pendingX; pendingStep = undefined; released = false;
+				if (result.breakAge === undefined) { result.breakAge = age; result.breakStep = step; }
 			}
-			input = circle;
+			if (releaseAt !== undefined && step >= releaseAt && step < pullUntil) pullUntil = step;
+			if (step === pullUntil) { released = true; result.releaseStep ??= step; }
+			input = released ? letGo : circle;
 			if (pilot === "run") input = { x: 0, y: 0, throttle: 1 };
 			else if (beam !== undefined) {
 				const turn = FlightMath.WrapAngle(beam - jet.yaw);
@@ -167,18 +197,31 @@ export const MissileDuel = {
 			result.age = missile.age;
 			if (outcome.event !== "flying") { result.event = outcome.event; return result; }
 			telemetry += STEP;
-			if (telemetry < TELEMETRY - 1e-9 || setup.cue === false) continue;
+			if (telemetry < TELEMETRY - 1e-9 || !listening) continue;
 			telemetry -= TELEMETRY;
-			// sendTelemetry: only a locked missile inside 1800 studs is incoming and can carry BREAK.
-			if (!missile.locked || distance(missile.position, target(jet).position) >= 1800) continue;
-			const stick = MissileRules.BreakCue(missile, profile, jet, input);
-			if (stick === undefined) continue;
-			if (!result.cued) { result.cued = true; result.cueAge = missile.age; result.cueStick = stick; }
-			const busy = pendingStep !== undefined || step + 1 < pullUntil || beam !== undefined;
+			// sendTelemetry: only a locked missile inside 1800 studs is incoming and can raise BREAK.
+			const urgent = missile.locked && distance(missile.position, target(jet).position) < 1800 ? { missile, profile } : undefined;
+			const cue = MissileRules.CueTick(track, (step + 1) * STEP, jet, input, urgent, true, reaction);
+			if (cue === undefined) continue;
+			const pulling = step + 1 < pullUntil;
+			if (cue.state === "hold") {
+				result.holdSteps.push(step);
+				if (pilot === "cue" && pulling && setup.releaseAtHold === result.holdSteps.size() && releaseAt === undefined) {
+					releaseAt = step + 1 + reactionSteps; listening = false;
+				}
+				continue;
+			}
+			if (cue.state === "clear") {
+				if (result.clearStep === undefined) { result.clearStep = step; result.clearAge = missile.age; }
+				if (pilot === "cue" && pulling && fixedHold === undefined && releaseAt === undefined) releaseAt = step + 1 + releaseSteps;
+				continue;
+			}
+			if (!result.cued) { result.cued = true; result.cueAge = missile.age; result.cueStick = cue.stick; }
+			const busy = pendingStep !== undefined || pulling || beam !== undefined;
 			if (busy || (pilot !== "cue" && pilot !== "away" && pilot !== "beam")) continue;
 			// The prediction's first step is the next loop step.
-			pendingStep = step + 1 + reactionSteps;
-			pendingX = pilot === "away" ? (MissileRules.Bearing(target(jet).position, jet.yaw, missile.position) > 0 ? -1 : 1) : stick;
+			pendingStep = step + 1 + reactionSteps; releaseAt = undefined;
+			pendingX = pilot === "away" ? (MissileRules.Bearing(target(jet).position, jet.yaw, missile.position) > 0 ? -1 : 1) : cue.stick;
 		}
 		return result;
 	},

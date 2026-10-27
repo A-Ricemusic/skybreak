@@ -15,9 +15,8 @@ import { FlightInput } from "../shared/Types";
 // notches, defensive breaks against player missiles, flares, terrain and ground avoidance.
 
 const STEP = MissileRules.StepSeconds;
-/** The cue pilot's reaction and pull, in steps, exactly as MissileRules.BreakCue checks them. */
+/** The cue pilot's reaction, in steps, exactly as MissileRules.BreakCue checks it. */
 const REACTION_STEPS = math.floor(MissileRules.CueReaction / STEP + 0.5);
-const PULL_STEPS = math.floor(MissileRules.BreakHold / STEP + 0.5);
 const CIRCLE: FlightInput = { x: -0.35, y: 0, throttle: 0.65 };
 /** CombatService.TUNING by act. */
 const WINDUP = [2.4, 2.0, 1.7];
@@ -35,8 +34,15 @@ export interface EngageSetup {
 	/** Ordinary bandits, alive for the whole run; plus the mission's ace when `ace`. */
 	bandits: number;
 	ace: boolean;
-	/** "ignore" circles through every missile; "cue" flies each BREAK exactly as cued, the way MissileDuel's cue pilot does. */
+	/**
+	 * "ignore" circles through every missile; "cue" reads the cue row the way MissileDuel's cue pilot
+	 * does: on BREAK the cued pull a reaction later, held while HOLD shows, let go back to circling a
+	 * reaction plus a release delay after CLEAR. The n-th followed break lets go
+	 * `releaseDelays[(n + releaseOffset) % size]` seconds late (default 0), so one run samples them all.
+	 */
 	pilot: EngagePilot;
+	releaseDelays?: number[];
+	releaseOffset?: number;
 	seconds: number;
 	seed: number;
 	/** false: the launch gate alone (no standoff, windups checked on straight lines), for before/after tables. */
@@ -55,8 +61,9 @@ export interface ShooterTally {
 	 * break followed since: the cue's promise broken. Must stay 0.
 	 */
 	followedHits: number;
-	/** Missiles of this kind whose BREAK the cue pilot followed. */
+	/** Missiles of this kind whose BREAK the cue pilot followed, and of those how many it let go of after CLEAR. */
 	followed: number;
+	cleared: number;
 	/** Shortest time to impact at launch (MissileRules.TimeToImpact), or undefined before the first launch. */
 	shortest?: number;
 }
@@ -79,7 +86,7 @@ function target(s: FlightState): MissileTarget {
 	const [x, y, z] = FlightMath.Forward(s.yaw, s.pitch);
 	return { position: v(s.x, s.y, s.z), velocity: v(x * s.speed, y * s.speed, z * s.speed) };
 }
-function tally(): ShooterTally { return { windups: 0, launches: 0, held: 0, heldRun: 0, hits: 0, followedHits: 0, followed: 0 }; }
+function tally(): ShooterTally { return { windups: 0, launches: 0, held: 0, heldRun: 0, hits: 0, followedHits: 0, followed: 0, cleared: 0 }; }
 
 export const EngageSim = {
 	Run(setup: EngageSetup): EngageResult {
@@ -112,9 +119,12 @@ export const EngageSim = {
 		const shots: Shot[] = [];
 		const result: EngageResult = { seconds, bandits: tally(), ace: tally() };
 		let lastWindupAt = -100, pullUntil = -1, pullX = 0, pendingStep: number | undefined, pendingX = 0, telemetry = 0, step = -1;
+		const track = MissileRules.NewTrack();
+		const delays = setup.releaseDelays ?? [0];
+		let breaksFollowed = setup.releaseOffset ?? 0, pulledFor: Shot | undefined;
 		for (let t = 0; t < seconds; t += STEP) {
 			step += 1;
-			if (pendingStep !== undefined && step >= pendingStep) { pullUntil = step + PULL_STEPS; pullX = pendingX; pendingStep = undefined; }
+			if (pendingStep !== undefined && step >= pendingStep) { pullUntil = math.huge; pullX = pendingX; pendingStep = undefined; }
 			const input: FlightInput = step < pullUntil ? { x: pullX, y: 0.25, throttle: 1 } : CIRCLE;
 			FlightMath.Step(jet, input, STEP);
 			const tgt = target(jet);
@@ -198,25 +208,37 @@ export const EngageSim = {
 					const record = s.ace ? result.ace : result.bandits;
 					record.hits += 1;
 					if (s.followed) record.followedHits += 1;
+					if (track.shot?.missile === s.m) MissileRules.Forget(track);
 				}
 				shots.remove(i);
 			}
-			// The cue pilot: telemetry at 10 Hz, BREAK on the most urgent locked missile, the stick CueReaction later.
+			// The cue pilot: telemetry at 10 Hz, the cue on the most urgent locked missile (CueTick), the stick CueReaction later.
 			telemetry += STEP;
 			if (telemetry < 0.1 - 1e-9) continue;
 			telemetry -= 0.1;
-			if (pilot !== "cue" || pendingStep !== undefined || step + 1 < pullUntil) continue;
+			if (pilot !== "cue") continue;
 			let urgent: Shot | undefined, urgentSeconds: number | undefined;
+			let trackedAlive = false;
 			for (const s of shots) {
+				if (track.shot?.missile === s.m) trackedAlive = true;
 				if (!s.m.locked || len(sub(s.m.position, tgt.position)) >= 1800) continue;
 				const sec = MissileRules.TimeToImpact(s.m, tgt);
 				if (sec !== undefined && (urgentSeconds === undefined || sec < urgentSeconds)) { urgent = s; urgentSeconds = sec; }
 			}
-			if (!urgent) continue;
-			const stick = MissileRules.BreakCue(urgent.m, urgent.profile, jet, input);
-			if (stick === undefined) continue;
+			const cue = MissileRules.CueTick(track, (step + 1) * STEP, jet, input, urgent ? { missile: urgent.m, profile: urgent.profile } : undefined, trackedAlive);
+			if (cue === undefined || cue.state === "hold") continue;
+			const pulling = step + 1 < pullUntil;
+			if (cue.state === "clear") {
+				// Let go a reaction (plus this break's release delay) after CLEAR, back to circling.
+				if (pulling && pullUntil === math.huge) {
+					pullUntil = step + 1 + REACTION_STEPS + math.floor(delays[breaksFollowed % delays.size()] / STEP + 0.5);
+					if (pulledFor) (pulledFor.ace ? result.ace : result.bandits).cleared += 1;
+				}
+				continue;
+			}
+			if (!urgent || pendingStep !== undefined || pulling) continue;
 			// The prediction's first step is the next loop step. Following this break voids any other missile's.
-			pendingStep = step + 1 + REACTION_STEPS; pendingX = stick;
+			pendingStep = step + 1 + REACTION_STEPS; pendingX = cue.stick; breaksFollowed += 1; pulledFor = urgent;
 			if (!urgent.followed) (urgent.ace ? result.ace : result.bandits).followed += 1;
 			for (const s of shots) s.followed = s === urgent;
 		}

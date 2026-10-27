@@ -571,8 +571,8 @@ function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
 		incomingDistance: typeIs(payload.incomingDistance, "number") ? math.max(0, finite(payload.incomingDistance, 0)) : undefined,
 		incomingSeconds: typeIs(payload.incomingSeconds, "number") ? math.max(0, finite(payload.incomingSeconds, 0)) : undefined,
 		incomingBearing: typeIs(payload.incomingBearing, "number") ? math.clamp(finite(payload.incomingBearing, 0), -180, 180) : undefined,
-		breakNow: payload.breakNow === true,
-		breakRight: payload.breakNow === true && payload.breakRight === true,
+		breakCue: payload.breakCue === "break" || payload.breakCue === "hold" || payload.breakCue === "clear" ? payload.breakCue : undefined,
+		breakRight: (payload.breakCue === "break" || payload.breakCue === "hold") && payload.breakRight === true,
 	};
 }
 
@@ -1476,7 +1476,7 @@ function MissionHud({
 	const narrow = layout.alert.width < MissileCue.NarrowWidth;
 	// The missile cue (seconds, direction, BREAK) fills the reserved row under the warning; where that row
 	// is the warning row itself it replaces MISSILE INBOUND in the one shared text instead.
-	const missileCue = { seconds: telemetry.incomingSeconds, bearing: telemetry.incomingBearing, breakNow: telemetry.breakNow, breakRight: telemetry.breakRight, speed: telemetry.speed };
+	const missileCue = { seconds: telemetry.incomingSeconds, bearing: telemetry.incomingBearing, breakCue: telemetry.breakCue, breakRight: telemetry.breakRight, speed: telemetry.speed };
 	const routed = MissileCue.Route(flightWarning({ ...telemetry, acceleration: trend.acceleration, terrainSeconds: trend.terrainSeconds }, narrow), missileCue, {
 		alertWidth: layout.alert.width,
 		cueWidth: layout.breakCue.width,
@@ -1488,7 +1488,8 @@ function MissionHud({
 	// Refusals ride above FIRE on the touch row; elsewhere they borrow the alert lane while no warning is up.
 	const noticeInAlert = fireNotice !== undefined && layout.fireCaption === undefined && warning === "";
 	const alertText = noticeInAlert ? fireNotice! : warning;
-	const alertColor = noticeInAlert ? HUD.Amber : telemetry.incoming || telemetry.lockWarning ? HUD.Red : HUD.Amber;
+	// CLEAR reads green; inlined in a shared row, only when it is the whole line.
+	const alertColor = noticeInAlert ? HUD.Amber : routed.clear && warning === "CLEAR" ? HUD.Green : telemetry.incoming || telemetry.lockWarning || telemetry.breakCue === "hold" ? HUD.Red : HUD.Amber;
 	// Compact roots share the warning with the objective line: the warning shows in its place while it lasts.
 	const alertSharesObjective = layout.alert === layout.callout;
 	const evade = evadeGauge(telemetry);
@@ -1580,7 +1581,7 @@ function MissionHud({
 			<InstrumentBox name="AltitudeBox" caption="ALT" value={instrumentValue(telemetry.altitude)} rectangle={layout.altitude} metrics={metrics} pointsRight={false} color={telemetry.altitude < LOW_ALTITUDE ? HUD.Amber : HUD.Green} />
 			{!alertSharesObjective && <WarningBox rectangle={layout.alert} text={alertText} color={alertColor} metrics={metrics} textRef={warningText} />}
 			{/* Missile time-to-impact / BREAK cue; hidden when it shares the warning row (the warning carries it then). */}
-			<HudLabel name="BreakCue" text={breakCue ?? ""} rectangle={layout.breakCue} textSize={metrics.text} bold={true} color={HUD.Red} alignment={Enum.TextXAlignment.Center} visible={breakCue !== undefined && breakCue !== ""} />
+			<HudLabel name="BreakCue" text={breakCue ?? ""} rectangle={layout.breakCue} textSize={metrics.text} bold={true} color={routed.clear ? HUD.Green : HUD.Red} alignment={Enum.TextXAlignment.Center} visible={breakCue !== undefined && breakCue !== ""} />
 
 			<StatusPanel layout={layout.status} health={telemetry.health} cells={ammo} />
 
