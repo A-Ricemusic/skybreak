@@ -18,6 +18,8 @@ import time
 import urllib.error
 import urllib.request
 
+import _http
+
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets/audio"
 WORK = ROOT / "build/audio"
@@ -41,7 +43,7 @@ def main():
     args = parser.parse_args()
     key = Path(args.key_file).read_text().strip()
     account_request = urllib.request.Request("https://api.elevenlabs.io/v1/user/subscription", headers={"xi-api-key": key})
-    with urllib.request.urlopen(account_request, timeout=30) as response:
+    with _http.open(account_request, timeout=30) as response:
         subscription = json.load(response)
     tier = subscription.get("tier")
     if not tier or tier == "free":
@@ -68,7 +70,7 @@ def main():
                                          data=json.dumps(request).encode(),
                                          headers={"xi-api-key": key, "Content-Type": "application/json"})
             try:
-                with urllib.request.urlopen(req, timeout=180) as response:
+                with _http.open(req, timeout=180) as response:
                     content = response.read()
                     billed = response.headers.get("character-cost")
             except urllib.error.HTTPError as error:

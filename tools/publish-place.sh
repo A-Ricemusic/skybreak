@@ -26,8 +26,9 @@ URL="https://apis.roblox.com/universes/v1/${ROBLOX_UNIVERSE_ID}/places/${ROBLOX_
 
 # Roblox answers 409 "Server is busy" while the place is locked, e.g. by an open Team Create session.
 for ATTEMPT in 1 2 3; do
-	STATUS="$(curl --silent --show-error -X POST "$URL" \
-		-H "x-api-key: ${ROBLOX_API_KEY}" \
+	# Header via stdin keeps the key out of curl's argv (visible in ps); fresh stdin per attempt.
+	STATUS="$(printf 'x-api-key: %s\n' "$ROBLOX_API_KEY" | curl --silent --show-error -X POST "$URL" \
+		-H @- \
 		-H "Content-Type: application/xml" \
 		--data-binary "@${PLACE_FILE}" \
 		-o "$RESPONSE_FILE" -w "%{http_code}")"

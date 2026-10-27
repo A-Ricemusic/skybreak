@@ -4,11 +4,13 @@ import io
 import json
 import os
 import re
+import sys
 from pathlib import Path
 import unittest
 from unittest.mock import Mock, patch
 import urllib.error
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # scripts import tools/_http.py
 spec = importlib.util.spec_from_file_location("repair", Path(__file__).resolve().parents[1] / "repair-roblox-audio-permissions.py")
 repair = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(repair)

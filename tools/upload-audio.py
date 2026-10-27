@@ -23,6 +23,8 @@ import urllib.error
 import urllib.request
 import uuid
 
+import _http
+
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets/audio"
 STATE = Path.home() / ".skybreak-roblox-uploads"
@@ -68,7 +70,7 @@ def http(method, url, key, body=None, content_type=None):
     headers = {"x-api-key": key}
     if content_type: headers["Content-Type"] = content_type
     request = urllib.request.Request(url, data=body, method=method, headers=headers)
-    with urllib.request.urlopen(request, timeout=90) as response:
+    with _http.open(request, timeout=90) as response:
         return json.load(response)
 
 
