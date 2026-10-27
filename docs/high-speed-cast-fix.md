@@ -31,10 +31,12 @@ frame; nonfinite/nonpositive dt is ignored. Surviving steps are <3.2 s and stay
 well below 15000. Wreck filters exclude client effects and the character.
 No other production Spherecast/Blockcast/Shapecast calls exist.
 
-Validation: build passes; pure compiled-domain contracts pass (490). Three
+Validation: build passes; pure compiled-domain contracts pass (490). Four
 Roblox Jest engine tests passed in existing Edit instance
 `d62254c5-b073-4f9a-b016-43ce10e84ce2` using the actual compiled SphereSweep module
-and temporary fixture modules, removed afterwards. Covers below/at/above 1024,
+and temporary fixture modules, removed afterwards. The final run used compiled
+FlightMath, FlightWarnings, WorldAirspace and AircraftCollision from the combined
+build in the isolated fixture, including authoritative filtering. Covers below/at/above 1024,
 600 studs/s, long 3600-stud correction/high-dt equivalent, diagonals, earliest
 hit, total distance, reverse travel, invalid radius, zero/nonfinite geometry.
 Engine hit at 1143.5 studs gives 1.90583 seconds, beyond the first segment.
