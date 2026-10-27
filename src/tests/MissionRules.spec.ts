@@ -209,3 +209,25 @@ describe("authoritative two-mission rules", () => {
 		expect(MissionRules.Objective(state).objectiveTotal).toBe(3);
 	});
 });
+
+
+describe("M1 independent movement progress", () => {
+	it("keeps a completed axis while the other is untouched, waits for dwell, and resets on retry", () => {
+		for (const turnFirst of [true, false]) {
+			const state = MissionRules.NewState(1, 0);
+			for (let i = 0; i < 31; i++) MissionRules.ObserveControls(state, turnFirst ? 0.2 : 0, turnFirst ? 0 : -0.2, 0.1, 1);
+			expect(state.turnObserved).toBe(turnFirst ? 3 : 0);
+			expect(state.pitchObserved).toBe(turnFirst ? 0 : 3);
+			expect(state.phase).toBe("tutorial_move");
+			for (let i = 0; i < 31; i++) MissionRules.ObserveControls(state, turnFirst ? 0 : -0.2, turnFirst ? 0.2 : 0, 0.1, 1);
+			expect(state.turnObserved).toBe(3);
+			expect(state.pitchObserved).toBe(3);
+			expect(state.phase).toBe("tutorial_move");
+			MissionRules.Tick(state, MissionRules.TeachMinimum);
+			expect(state.phase).toBe("tutorial_target");
+			const retry = MissionRules.NewState(1, 10);
+			expect(retry.turnObserved).toBe(0);
+			expect(retry.pitchObserved).toBe(0);
+		}
+	});
+});

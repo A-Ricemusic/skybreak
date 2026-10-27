@@ -78,6 +78,8 @@ import {
 	getMenuSceneOpening,
 	getToastLayout,
 	getTutorialInstruction,
+	getMovementIndicators,
+	getMovementIndicatorLayout,
 	inputModeFromInputType,
 	JOYSTICK_SIZE,
 	MAX_FLIGHT_HINTS,
@@ -552,6 +554,8 @@ function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
 		objectiveTotal: math.max(0, math.floor(finite(payload.objectiveTotal, previous.objectiveTotal ?? 0))),
 		timeRemaining: math.clamp(finite(payload.timeRemaining, previous.timeRemaining ?? GameConfig.Campaign.MissionTimeLimit), 0, GameConfig.Campaign.MissionTimeLimit),
 		pauseRemaining: typeIs(payload.pauseRemaining, "number") ? math.clamp(finite(payload.pauseRemaining, 0), 0, 300) : undefined,
+		turnObserved: payload.turnObserved,
+		pitchObserved: payload.pitchObserved,
 		tutorialStep,
 		groundKills: math.max(0, math.floor(finite(payload.groundKills, previous.groundKills ?? 0))),
 		targetKind,
@@ -1533,6 +1537,10 @@ function MissionHud({
 	const objectiveCallout = radio !== undefined && !layout.subtitle ? { text: radio, color: HUD.White } : callout;
 	const objectiveLine = alertSharesObjective && alertText !== "" ? alertText : objectiveCallout?.text ?? (tutorial !== "" ? tutorial : telemetry.objective ?? "Complete the objective");
 	const objectiveColor = alertSharesObjective && alertText !== "" ? alertColor : objectiveCallout?.color ?? (tutorial !== "" ? HUD.Amber : HUD.Green);
+	const movement = telemetry.tutorialStep === "move" && objectiveLine === tutorial
+		? getMovementIndicators(inputMode, telemetry.turnObserved, telemetry.pitchObserved) : undefined;
+	const movementTextSize = metrics.scale === "large" ? 16 : metrics.scale === "compact" ? 10 : 11;
+	const movementCells = getMovementIndicatorLayout(layout.callout, movementTextSize);
 	const stalling = telemetry.speed < FlightMath.WarningSpeed;
 	const knob = math.floor((touch?.joystick.width ?? JOYSTICK_SIZE) * 0.375 + 0.5);
 	return (
@@ -1569,7 +1577,12 @@ function MissionHud({
 
 			<HudLabel name="MissionTimer" text={timeLine} rectangle={{ ...layout.clock, height: metrics.row }} textSize={metrics.text} color={timeRemaining <= 60 ? HUD.Red : HUD.Green} />
 			<HudLabel name="ObjectiveProgress" text={progressLine} rectangle={{ ...layout.clock, y: layout.clock.y + metrics.row + 2, height: metrics.row }} textSize={metrics.text} />
-			<HudLabel name="ObjectiveText" text={objectiveLine} rectangle={layout.callout} color={objectiveColor} textSize={metrics.scale === "large" ? 16 : metrics.scale === "compact" ? 10 : 11} wrap={true} verticalAlignment={Enum.TextYAlignment.Top} />
+			{movement ? movement.map((cell, index) => (
+				<HudLabel key={`Movement${index}`} name={`Movement${index}`} text={cell.text}
+					rectangle={movementCells[index]}
+					color={cell.done ? HUD.Green : HUD.Amber} bold={!cell.done} textSize={movementTextSize}
+					verticalAlignment={Enum.TextYAlignment.Top} />
+			)) : <HudLabel name="ObjectiveText" text={objectiveLine} rectangle={layout.callout} color={objectiveColor} textSize={metrics.scale === "large" ? 16 : metrics.scale === "compact" ? 10 : 11} wrap={true} verticalAlignment={Enum.TextYAlignment.Top} />}
 
 			{layout.reticle && <Reticle rectangle={layout.reticle} />}
 			<InstrumentBox name="SpeedBox" caption="MPH" value={instrumentValue(FlightMath.ToMph(telemetry.speed))} rectangle={layout.speed} metrics={metrics} pointsRight={true} color={stalling ? HUD.Amber : HUD.Green} />

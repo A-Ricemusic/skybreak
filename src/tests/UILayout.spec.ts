@@ -38,6 +38,8 @@ import {
 	COMPACT_MAX_HEIGHT,
 	OBJECTIVE_LINE_HEIGHT,
 	getTutorialInstruction,
+	getMovementIndicators,
+	getMovementIndicatorLayout,
 	inputModeFromInputType,
 	inputModeFromPreferred,
 	isCompactHud,
@@ -880,5 +882,41 @@ describe("pause card and settings sheet", () => {
 		// Tall roots show every row without scrolling.
 		const desktop = getSettingsLayout(1920, 854);
 		expect(desktop.list.height).toBeGreaterThanOrEqual(desktop.rowHeight * SETTINGS_ROWS);
+	});
+});
+
+
+describe("movement lesson indicators", () => {
+	it("distinguishes either unfinished axis, both complete, and unknown/default progress", () => {
+		for (const mode of MODES) {
+			expect(getMovementIndicators(mode, 3, 0).map(cell => cell.done)).toEqual([true, false]);
+			expect(getMovementIndicators(mode, 0, 3).map(cell => cell.done)).toEqual([false, true]);
+			expect(getMovementIndicators(mode, 3, 3).map(cell => cell.done)).toEqual([true, true]);
+			expect(getMovementIndicators(mode, 0, 0).map(cell => cell.done)).toEqual([false, false]);
+			expect(getMovementIndicators(mode)[0].text.find("–/3s")[0]).toBeDefined();
+			expect(getMovementIndicators(mode, 2.99, 3)[0].done).toBe(false);
+		}
+		expect(getMovementIndicators("keyboard", 0, 0)[0].text.find("A/D")[0]).toBeDefined();
+		expect(getMovementIndicators("keyboard", 0, 0)[1].text.find("W/S ↑↓")[0]).toBeDefined();
+		expect(getMovementIndicators("touch", 0, 0)[1].text.find("L ↑↓")[0]).toBeDefined();
+		expect(getMovementIndicators("gamepad", 0, 0)[1].text.find("LS ↑↓")[0]).toBeDefined();
+	});
+	it("fits both cells in the existing objective row on phone and compact roots at every HUD scale", () => {
+		for (const [width, height] of [[319,181],[390,705],[750,332],[800,390],[844,390]]) for (const scale of [0.8,1,1.3]) for (const mode of MODES) {
+			const layout = getHudLayout(width / scale, height / scale, mode, { scale });
+			const size = layout.metrics.scale === "large" ? 16 : layout.metrics.scale === "compact" ? 10 : 11;
+			const cells = getMovementIndicatorLayout(layout.callout, size);
+			expect(rectanglesOverlap(cells[0], cells[1])).toBe(false);
+			const indicators = getMovementIndicators(mode, 0, 0);
+			for (let index = 0; index < indicators.size(); index++) {
+				const cell = indicators[index];
+				let chars = 0;
+				for (const _ of utf8.codes(cell.text)) chars += 1;
+				expect(hudTextWidth(chars, size)).toBeLessThanOrEqual(cells[index].width);
+				expect(cells[index].height).toBeGreaterThanOrEqual(size);
+				expect(cells[index].x + cells[index].width).toBeLessThanOrEqual(layout.callout.x + layout.callout.width);
+				expect(cells[index].y + cells[index].height).toBeLessThanOrEqual(layout.callout.y + layout.callout.height);
+			}
+		}
 	});
 });

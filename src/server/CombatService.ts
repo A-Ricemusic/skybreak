@@ -476,6 +476,8 @@ function sendTelemetry(session: CombatSession): void {
 		paused: PauseRules.Paused(session.pause),
 		pauseAck: session.pauseAck,
 		pauseRemaining: PauseRules.Remaining(session.pause, os.clock()),
+		turnObserved: session.rules?.phase === "tutorial_move" ? session.rules.turnObserved : undefined,
+		pitchObserved: session.rules?.phase === "tutorial_move" ? session.rules.pitchObserved : undefined,
 		evadeCharges: session.evade.charges,
 		optionalKills: session.rules?.optionalAirKills ?? session.blueprintState?.optionalAirKills ?? 0,
 		incomingDistance: incomingDistance < math.huge ? incomingDistance : undefined,

@@ -826,6 +826,28 @@ export function getFlightHints(inputMode: InputMode, context: FlightHintContext)
 	return [];
 }
 
+/** Small roots stack the two cells inside the same existing objective rectangle. */
+export function getMovementIndicatorLayout(area: Rectangle, textSize: number): Rectangle[] {
+	const stack = area.width < hudTextWidth(26, textSize);
+	return [0, 1].map(index => ({
+		x: area.x + (stack ? 0 : index * area.width / 2),
+		y: area.y + (stack ? index * area.height / 2 : 0),
+		width: stack ? area.width : area.width / 2,
+		height: stack ? area.height / 2 : area.height,
+	}));
+}
+
+/** Two cells share the existing objective row; unfinished controls keep the amber teaching emphasis. */
+export function getMovementIndicators(mode: InputMode, turn?: number, pitch?: number): { text: string; done: boolean }[] {
+	const labels = mode === "keyboard" ? ["A/D", "W/S ↑↓"] : mode === "touch" ? ["L ↔", "L ↑↓"] : ["LS ↔", "LS ↑↓"];
+	return [turn ?? -1, pitch ?? -1].map((value, index) => {
+		const known = value >= 0 && value === value && math.abs(value) !== math.huge;
+		const seconds = known ? math.clamp(value, 0, 3) : 0;
+		const done = known && seconds >= 3;
+		return { text: `${done ? "✓" : "○"} ${labels[index]} ${known ? math.floor(seconds) : "–"}/3s`, done };
+	});
+}
+
 /** Mission 1 training copy, short enough for the one-line objective (<= TUTORIAL_MAX_CHARS). */
 export function getTutorialInstruction(step: string | undefined, mode: InputMode): string {
 	if (step === "move") return mode === "touch" ? "L: turn 3s; pitch up/down 3s" : mode === "gamepad" ? "LS: turn 3s; pitch up/down 3s" : "A/D 3s; W/S up/down 3s";
