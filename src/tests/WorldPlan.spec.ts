@@ -48,17 +48,23 @@ describe("Mission world plans", () => {
 	it("keeps representative route exits clear for one second at maximum flight speed", () => {
 		// Numeric geometry check, not a pilot simulation: hold the last leg's
 		// heading and altitude for 600 studs (3.75 s at 800 mph, 1 s at 3000).
-		for (const id of [3, 7, 11, 12, 19, 21, 25]) {
+		// M25 has no route phase; its escort is not a route-exit clearance test.
+		for (const id of [3, 7, 11, 12, 19, 21]) {
+			let auditedExits = 0;
 			const plan = WorldPlanner.Build(id);
 			for (const phase of MissionCatalog.ExpandedPhases(MissionCatalog.Get(id))) {
 				const pts = phase.points ?? [];
 				if (phase.kind !== "route" || pts.size() < 2) continue;
+				auditedExits += 1;
 				const a = pts[pts.size() - 2], b = pts[pts.size() - 1];
 				const dx = b.x - a.x, dz = b.z - a.z, len = math.sqrt(dx * dx + dz * dz);
+				expect(len).toBeGreaterThan(0);
 				for (let d = 0; d <= FlightMath.MaxSpeed; d += 20) {
 					expect(solidTopWithin(plan, b.x + dx / len * d, b.z + dz / len * d, 80)).toBeLessThan(b.y - 40);
 				}
 			}
+			// Fail if any listed mission silently stops exercising the exit sweep.
+			expect(auditedExits).toBeGreaterThan(0);
 		}
 	});
 
