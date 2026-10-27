@@ -15,7 +15,7 @@
         "@rbxts/compiler-types": "3.0.0-types.0",
         "@rbxts/types": "^1.0.959",
         "roblox-ts": "3.0.0",
-        "typescript": "5.5.3",
+        "typescript": "5.9.3",
       },
     },
   },
@@ -249,7 +249,7 @@
 
     "to-regex-range": ["to-regex-range@5.0.1", "", { "dependencies": { "is-number": "^7.0.0" } }, "sha512-65P7iz6X5yEr1cwcgvQxbbIw7Uk3gOy5dIdtZ4rDveLqhrdJP+Li/Hx6tyK0NEb+2GCyneCMJiGqrADCSNk8sQ=="],
 
-    "typescript": ["typescript@5.5.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-/hreyEujaB0w76zKo6717l3L0o/qEUtRgdvUBvlkhoWeOVMjMuHNHk0BRBzikzuGDqNmPQbg5ifMEqsHLiIUcQ=="],
+    "typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
 
     "universalify": ["universalify@2.0.1", "", {}, "sha512-gptHNQghINnc/vTGIk0SOFGFNXw7JVrlRUtConJRlvaw6DuX0wO5Jeko9sWrMBhh+PsYAZ7oXAiOnf/UKogyiw=="],
 
@@ -266,5 +266,7 @@
     "@rbxts-js/react-is/@rbxts-js/safe-flags": ["@rbxts-js/safe-flags@17.3.7-ts.1", "", {}, "sha512-aQ/5aQ/wQO5npifAbTEpR3jQRMeyGsVc91AQEyhBW461lPv6ZEg+Ad2HJFSzg4eeK2mb8Z9WyIMBrb01Jt+GnQ=="],
 
     "@rbxts-js/react-is/@rbxts-js/shared": ["@rbxts-js/shared@17.3.7-ts.1", "", { "dependencies": { "@rbxts-js/luau-polyfill": "^1.2.3-ts.1", "@rbxts-js/react-globals": "^17.3.7-ts.1", "@rbxts-js/safe-flags": "^17.3.7-ts.1" } }, "sha512-B/OCkRmbR6ho1yuf0M0hQIb78coDY//2XdmNBaX2XCN5pKa7dquiX6ufk4dizJ/OMBoy9br/cnxqcI0PLvla3w=="],
+
+    "roblox-ts/typescript": ["typescript@5.5.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-/hreyEujaB0w76zKo6717l3L0o/qEUtRgdvUBvlkhoWeOVMjMuHNHk0BRBzikzuGDqNmPQbg5ifMEqsHLiIUcQ=="],
   }
 }
