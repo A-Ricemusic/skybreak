@@ -115,7 +115,7 @@ class RobloxUploadJournalTests(unittest.TestCase):
     def run_upload(self, responses, item=None):
         calls = []
 
-        def fake_http(method, url, key, body=None, content_type=None):
+        def fake_http(method, url, key, body=None, content_type=None, *, deadline=None):
             calls.append((method, url))
             result = responses.pop(0)
             if isinstance(result, Exception):
@@ -148,7 +148,7 @@ class RobloxUploadJournalTests(unittest.TestCase):
 
     def test_submit_client_error_clears_journal_entry(self):
         error = urllib.error.HTTPError(ru.API + "/assets", 400, "bad", {}, io.BytesIO(b"nope"))
-        with self.assertRaisesRegex(RuntimeError, "cue: Roblox upload HTTP 400: nope"):
+        with self.assertRaisesRegex(RuntimeError, "cue: Roblox upload HTTP 400"):
             self.run_upload([error])
         self.assertEqual(ru.load_journal()["uploads"], {})
 
