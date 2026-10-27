@@ -196,8 +196,10 @@ export class GameAudio {
 		this.observed = t;
 		const changed = this.target !== t.target;
 		if (changed) { this.locked = false; this.target = t.target; }
-		if (t.lockProgress >= 0.99 && !this.locked && t.target !== undefined) this.shot("lockAcquired", 0.3);
-		this.locked = t.lockProgress >= 0.99;
+		// No lock tone on a contact the server will not damage now (grey box, TRACK): it is not a shot.
+		const locked = t.lockProgress >= 0.99 && t.targetDamageable !== false;
+		if (locked && !this.locked && t.target !== undefined) this.shot("lockAcquired", 0.3);
+		this.locked = locked;
 		if ((t.fireDeniedSerial ?? 0) > this.deniedSerial) {
 			this.deniedSerial = t.fireDeniedSerial ?? 0;
 			if (t.fireDenied !== "blind") this.shot("uiDenied", 0.28);

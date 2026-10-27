@@ -56,6 +56,8 @@ interface Enemy {
 	hiddenParts: { part: BasePart; transparency: number }[];
 	/** Latest pivot from this Heartbeat's sub-steps; applied once by flushPivots. */
 	frame?: CFrame;
+	/** Last `Damageable` attribute written (publishDamageable), so it only replicates on change. */
+	damageable?: boolean;
 }
 interface Projectile {
 	/** A player missile without `target` is a blind (unguided) shot that relies on its proximity fuse. */
@@ -417,8 +419,24 @@ function cycleTarget(session: CombatSession): void {
 		}
 	}
 }
+/** Would a missile hurt `enemy` right now: owned, damageable this phase and, for an ace, not immune or held at a stage floor (strikeEnemy). */
+function canHurt(session: CombatSession, enemy: Enemy | undefined): boolean {
+	return ownsEnemy(session, enemy) && sessionCanDamage(session, enemy.kind, enemy.required)
+		&& (enemy.aceState === undefined || AceRules.CanHurt(enemy.aceState, enemy.health, enemy.maxHealth, session.elapsed));
+}
+/** Replicates canHurt as `Damageable`, only on change: the HUD boxes exactly these. */
+function publishEnemyDamageable(session: CombatSession, enemy: Enemy): void {
+	const damageable = canHurt(session, enemy);
+	if (enemy.damageable === damageable) return;
+	enemy.damageable = damageable;
+	enemy.model.SetAttribute("Damageable", damageable);
+}
+function publishDamageable(session: CombatSession): void {
+	for (const enemy of session.enemies) publishEnemyDamageable(session, enemy);
+}
 function sendTelemetry(session: CombatSession): void {
 	if (session.player.Parent !== Players) return;
+	publishDamageable(session);
 	let incoming = false;
 	let lockWarning = false;
 	let incomingDistance = math.huge;
@@ -446,7 +464,7 @@ function sendTelemetry(session: CombatSession): void {
 		missiles: session.missiles, missileCooldown: session.missileCooldown, evadeCooldown: EvadeRules.Cooldown(session.evade, session.evadeRemaining),
 		lockProgress: session.lockProgress, incoming, lockWarning,
 		boundaryWarning: math.max(math.abs(session.state.x), math.abs(session.state.z)) > FlightMath.SoftBoundary,
-		targetDamageable: target ? sessionCanDamage(session, target.kind, target.required) : undefined,
+		targetDamageable: target ? canHurt(session, target) : undefined,
 		elapsed: session.elapsed, timeRemaining: sessionTimeRemaining(session),
 		objectiveProgress: objective.objectiveProgress, objectiveTotal: objective.objectiveTotal,
 		groundKills: sessionGroundKills(session), targetDistance: distance,
@@ -755,6 +773,8 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		};
 		markTarget(session, enemy);
 		session.enemies.push(enemy);
+		// Boxed from its first frame when it arrives mid-phase (queued waves, ace calls), not at the next telemetry tick.
+		publishEnemyDamageable(session, enemy);
 	}
 }
 /** Hostile aircraft alive and fighting (a withdrawing jet is disabled, silent and gone in 4 s). */
@@ -906,8 +926,11 @@ function applyBlueprintPhase(session: CombatSession): void {
 }
 
 function applyPhase(session: CombatSession): void {
+	const before = session.rules ? session.appliedPhase : session.appliedBlueprintPhaseIndex;
 	if (session.rules) applyLegacyPhase(session);
 	else applyBlueprintPhase(session);
+	// A phase change flips which enemies are damageable; box them now, not at the next telemetry tick.
+	if ((session.rules ? session.appliedPhase : session.appliedBlueprintPhaseIndex) !== before) publishDamageable(session);
 }
 
 function destroyEnemy(session: CombatSession, enemy: Enemy): void {
@@ -921,6 +944,8 @@ function destroyEnemy(session: CombatSession, enemy: Enemy): void {
 	enemy.model.SetAttribute("Health", 0);
 	enemy.model.SetAttribute("SkybreakEnemy", false);
 	enemy.model.SetAttribute("RequiredTarget", false);
+	enemy.damageable = false;
+	enemy.model.SetAttribute("Damageable", false);
 	// Fired before Destroy so the model reference still resolves on the client (its visual becomes the wreck).
 	if (enemy.kind === "ground") effect(session, "ground", enemy.position, { scale: math.clamp(enemy.model.GetExtentsSize().Magnitude / 60, 0.7, 2.2) });
 	else effect(session, enemy.kind, enemy.position, { velocity: enemy.velocity, model: enemy.model });
@@ -933,6 +958,8 @@ function destroyEnemy(session: CombatSession, enemy: Enemy): void {
 		session.kills = bs.requiredAirKills + bs.optionalAirKills + (bs.aceKilled ? 1 : 0) + bs.requiredGroundKills;
 	}
 	applyPhase(session);
+	// A kill can fill a raider cap or clear a hazard without a phase change.
+	publishDamageable(session);
 	if (session.target === enemy || !ownsEnemy(session, session.target)) acquireTarget(session);
 	if (sessionOutcome(session) !== undefined) finish(session);
 }
@@ -1147,6 +1174,8 @@ function stepEnemies(session: CombatSession, dt: number): void {
 			const event = AceRules.Step(aceState, dt, separation, raidersAlive);
 			if (event === "called") aceCall(session, enemy);
 			else if (event === "returned") radio(session, session.blueprint?.aceReturns?.[aceState.stage - 1] ?? `SERA: ${enemy.name} is turning back in.`);
+			// Immunity running out and the turn back in both make it hittable again (cached: no write unless it changed).
+			publishEnemyDamageable(session, enemy);
 		}
 		const aceFighting = aceState === undefined || AceRules.Fights(aceState);
 		// Defensive break, at most once per 12 s: a lock building past 80% inside 900 studs (this bandit's odds,
@@ -1292,7 +1321,7 @@ function strikeEnemy(session: CombatSession, enemy: Enemy, index: number): boole
 	const before = enemy.health;
 	enemy.health -= damage;
 	enemy.model.SetAttribute("Health", enemy.health);
-	if (enemy.aceState) aceStage(session, enemy, before, enemy.health);
+	if (enemy.aceState) { aceStage(session, enemy, before, enemy.health); publishEnemyDamageable(session, enemy); }
 	return true;
 }
 /**
@@ -1506,6 +1535,7 @@ function stepSession(session: CombatSession, dt: number): void {
 			if (active.hazard && bs.hazardFired && session.hazardPhase !== bs.phaseIndex) {
 				session.hazardPhase=bs.phaseIndex;
 				activateGround(session,MissionCatalog.GroundStart(BlueprintRunner.Phases(bs),bs.phaseIndex),active.hazard.count);
+				publishDamageable(session);
 				acquireTarget(session);
 			}
 			const chatter=active.chatter;

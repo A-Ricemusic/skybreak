@@ -81,6 +81,13 @@ export const AceRules = {
 	/** Only a fighting ace launches missiles or notches locks; a retreating or holding one is running. */
 	Fights(state: AceStageState): boolean { return state.mode === "fight"; },
 	Invulnerable(state: AceStageState, now: number): boolean { return now < state.invulnerableUntil; },
+	/**
+	 * Would a hit hurt the ace right now? Not during stage immunity, and not while a retreat or hold
+	 * keeps it at its stage floor (CapHit would take nothing). Above that floor it still takes damage.
+	 */
+	CanHurt(state: AceStageState, health: number, maxHealth: number, now: number): boolean {
+		return !AceRules.Invulnerable(state, now) && AceRules.CapHit(state, health, maxHealth, math.huge) > 0;
+	},
 	/** Raiders an ace calls at `stage` (1 or 2) out of the phase's `total`: the larger half first. */
 	RaidersForStage(total: number, stage: number): number {
 		const first = math.ceil(math.max(0, total) / 2);

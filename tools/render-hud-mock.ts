@@ -1,7 +1,8 @@
 // Renders static PNG mocks of the flight HUD into docs/design/ from the real
 // getHudLayout() numbers (run under Bun with a Luau `math` shim), drawn as
 // HTML/SVG and captured with headless Chrome. Not part of the game build.
-//   bun tools/render-hud-mock.ts
+//   bun tools/render-hud-mock.ts            (every shot)
+//   bun tools/render-hud-mock.ts target-boxes  (only shots whose file name contains the filter)
 import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 
@@ -18,6 +19,7 @@ const luauMath = Object.assign(Object.create(Math), {
 };
 const { getHudLayout, getKillMarkerLayout } = await import("../src/shared/UILayout");
 const { statusLine, hullFraction, hullTone, clockLines } = await import("../src/shared/HudInstruments");
+const { TargetBoxes, TARGET_BOX_LIMIT } = await import("../src/shared/TargetBoxes");
 type Rect = { x: number; y: number; width: number; height: number };
 
 // The Kestrel's top-view outline (right half, studs from tools/build-aircraft.py) for the backdrop jets only.
@@ -41,7 +43,7 @@ const TONE: Record<string, string> = { normal: GREEN, dim: DIM, warn: AMBER, dan
 const FONT = `"Roboto Mono", Menlo, monospace`;
 
 /** `scale` is the capture's device-pixel ratio; `hudScale` the HUD SCALE setting (the UIScale the HUD is drawn through, default 1). */
-interface Shot { file: string; screenWidth: number; screenHeight: number; insetLeft: number; mode: Mode; scale: number; hudScale?: number }
+interface Shot { file: string; screenWidth: number; screenHeight: number; insetLeft: number; mode: Mode; scale: number; hudScale?: number; boxes?: "on" | "off" | "locked" | "protected" }
 const SHOTS: Shot[] = [
 	{ file: "hud-mock-1920x854-keyboard.png", screenWidth: 1920, screenHeight: 854, insetLeft: 0, mode: "keyboard", scale: 1 },
 	{ file: "hud-mock-844x390-touch.png", screenWidth: 844, screenHeight: 390, insetLeft: 44, mode: "touch", scale: 2 },
@@ -52,7 +54,72 @@ const SHOTS: Shot[] = [
 	// HUD SCALE 80% on keyboard: text sizes rise so they still draw at 8 px or more.
 	{ file: "hud-mock-667x375-keyboard-hud80.png", screenWidth: 667, screenHeight: 375, insetLeft: 0, mode: "keyboard", scale: 2, hudScale: 0.8 },
 	{ file: "hud-mock-320x182-keyboard-hud80.png", screenWidth: 320, screenHeight: 182, insetLeft: 0, mode: "keyboard", scale: 3, hudScale: 0.8 },
+	// Target boxes on every valid target: the selected box's blink in both phases, then locked.
+	{ file: "target-boxes-844x390-touch-blink-on.png", screenWidth: 844, screenHeight: 390, insetLeft: 44, mode: "touch", scale: 2, boxes: "on" },
+	{ file: "target-boxes-844x390-touch-blink-off.png", screenWidth: 844, screenHeight: 390, insetLeft: 44, mode: "touch", scale: 2, boxes: "off" },
+	{ file: "target-boxes-667x375-touch-locked.png", screenWidth: 667, screenHeight: 375, insetLeft: 0, mode: "touch", scale: 2, boxes: "locked" },
+	// A completed lock on a selection the server will not damage now (immune ace, tutorial radar): grey TRACK, never red LOCKED.
+	{ file: "target-boxes-667x375-touch-protected-track.png", screenWidth: 667, screenHeight: 375, insetLeft: 0, mode: "touch", scale: 2, boxes: "protected" },
+	{ file: "target-boxes-1920x854-keyboard-blink-on.png", screenWidth: 1920, screenHeight: 854, insetLeft: 0, mode: "keyboard", scale: 1, boxes: "on" },
 ];
+
+/** A contact for the target-box mocks: screen point as a viewport fraction, studs away, and what the server says it is. */
+interface MockContact { fx: number; fy: number; distance: number; required: boolean; damageable: boolean; ground?: boolean; selected?: boolean; ace?: boolean }
+const MOCK_CONTACTS: MockContact[] = [
+	{ fx: 0.6, fy: 0.3, distance: 820, required: true, damageable: true, selected: true },
+	{ fx: 0.42, fy: 0.22, distance: 380, required: true, damageable: true },
+	{ fx: 0.78, fy: 0.4, distance: 1500, required: true, damageable: true },
+	{ fx: 0.27, fy: 0.42, distance: 2400, required: true, damageable: true, ground: true },
+	{ fx: 0.7, fy: 0.16, distance: 650, required: false, damageable: true },
+	{ fx: 0.18, fy: 0.27, distance: 1100, required: false, damageable: true },
+	// The ace before its phase: the server will not let it be damaged, so it gets no box.
+	{ fx: 0.86, fy: 0.24, distance: 900, required: true, damageable: false, ace: true },
+	// Valid, but behind the FIRE button on touch: no box over the control.
+	{ fx: 0.6, fy: 0.84, distance: 1300, required: true, damageable: true },
+];
+
+/** The target boxes, drawn with the game's own rules (TargetBoxes.Tone/Selected/Size/Fits/PlaceCaption/PlaceTag/Keepouts) in viewport px. */
+function targetBoxes(shot: Shot, hud: ReturnType<typeof getHudLayout>, hudScale: number): string {
+	const sw = shot.screenWidth, sh = shot.screenHeight, phase = shot.boxes!;
+	const keepouts = TargetBoxes.Keepouts(hud, hudScale, shot.insetLeft, 0);
+	const bounds = TargetBoxes.Bounds(sw, sh, { x: shot.insetLeft, y: 0, width: sw - shot.insetLeft, height: sh });
+	const out: string[] = [];
+	let drawn = 0;
+	for (const contact of MOCK_CONTACTS) {
+		const x = contact.fx * sw, y = contact.fy * sh;
+		const silhouette = contact.ground
+			? `<rect x="${x - 7}" y="${y - 4}" width="14" height="8" fill="#4a4f45"/>`
+			: `<polygon points="${kestrelOutline().map(([u, v]) => `${x - 7 + u * 14},${y - 8 + v * 16}`).join(" ")}" fill="${contact.ace ? "#5a2a2a" : "#3a4148"}"/>`;
+		out.push(silhouette);
+		const flags = { enemy: true, owner: 1, damageable: contact.damageable, required: contact.required };
+		const lockProgress = phase === "locked" || phase === "protected" ? 1 : 0.6;
+		const style = contact.selected ? TargetBoxes.Selected(phase === "protected" ? false : contact.damageable, contact.required, lockProgress) : undefined;
+		const tone = style ? style.tone : TargetBoxes.Tone(flags, 1);
+		if (tone === undefined || drawn >= TARGET_BOX_LIMIT) continue;
+		const locked = style?.locked === true;
+		const base = TargetBoxes.Size(contact.distance, sh, contact.selected === true);
+		const size = locked ? Math.max(Math.floor(base * 0.85), 26) : base;
+		if (!TargetBoxes.Fits(x, y, size, bounds, keepouts)) continue;
+		drawn += 1;
+		const color = tone === "locked" ? RED : tone === "required" ? GREEN : tone === "protected" ? "#969c9c" : DIM;
+		const opacity = contact.selected ? (phase === "off" && !locked ? 0.15 : 1) : tone === "required" ? 0.95 : 0.7;
+		out.push(`<rect x="${x - size / 2}" y="${y - size / 2}" width="${size}" height="${size}" fill="none" stroke="${color}" stroke-width="1.5" stroke-opacity="${opacity}"/>`);
+		if (style) {
+			const spot = { above: false, dx: 0 };
+			if (!TargetBoxes.PlaceCaption(x, y, size, bounds, keepouts, spot)) continue;
+			const r = TargetBoxes.CaptionRect(x, y, size, spot);
+			const caption = TargetBoxes.CaptionText(style, lockProgress, contact.distance, contact.required, -1);
+			out.push(`<text x="${r.x + r.width / 2}" y="${r.y + r.height - 2}" fill="${color}" font-size="10" font-weight="700" text-anchor="middle">${caption}</text>`);
+		} else if (tone === "required") {
+			const side = TargetBoxes.PlaceTag(x, y, size, bounds, keepouts);
+			if (side === undefined) continue;
+			const r = TargetBoxes.TagRect(x, y, size, side);
+			out.push(`<text x="${side === "right" ? r.x : r.x + r.width}" y="${r.y + r.height - 1}" fill="${color}" font-size="9" font-weight="700" text-anchor="${side === "right" ? "start" : "end"}">TGT</text>`);
+		}
+	}
+	return `<svg class="layer boxes" width="${sw}" height="${sh}" >${out.join("")}</svg>`;
+}
+
 
 const px = (value: number) => `${Math.round(value * 100) / 100}px`;
 const box = (r: Rect) => `left:${px(r.x)};top:${px(r.y)};width:${px(r.width)};height:${px(r.height)};`;
@@ -166,13 +233,15 @@ function render(shot: Shot): string {
   <ellipse cx="${sw * 0.4}" cy="${sh * 0.3}" rx="${sw * 0.25}" ry="${sh * 0.02}" fill-opacity="0.35"/>
  </g>
  <polygon points="${jet}" fill="#56616c" stroke="#2a3138" stroke-width="2"/>
- <polygon points="${kestrelOutline().map(([x, y]) => `${bandit.x - 9 + x * 18},${bandit.y - 10 + y * 20}`).join(" ")}" fill="#3a4148"/>
- <rect x="${bandit.x - bracket / 2}" y="${bandit.y - bracket / 2}" width="${bracket}" height="${bracket}" fill="none" stroke="${RED}" stroke-width="1.5"/>
+ ${shot.boxes ? "" : `<polygon points="${kestrelOutline().map(([x, y]) => `${bandit.x - 9 + x * 18},${bandit.y - 10 + y * 20}`).join(" ")}" fill="#3a4148"/>
+ <rect x="${bandit.x - bracket / 2}" y="${bandit.y - bracket / 2}" width="${bracket}" height="${bracket}" fill="none" stroke="${RED}" stroke-width="1.5"/>`}
 </svg>
-<div class="t" style="left:${px(bandit.x - 60)};top:${px(bandit.y + bracket / 2 + 4)};width:120px;height:13px;font-size:10px;color:${RED};text-align:center;font-weight:700;justify-content:center;">LOCKED · 820m</div>`;
+${shot.boxes ? targetBoxes(shot, hud, hudScale) : `<div class="t" style="left:${px(bandit.x - 60)};top:${px(bandit.y + bracket / 2 + 4)};width:120px;height:13px;font-size:10px;color:${RED};text-align:center;font-weight:700;justify-content:center;">LOCKED · 820m</div>`}`;
 	return `<!doctype html><html><head><meta charset="utf-8"><style>
 html,body{margin:0;padding:0;overflow:hidden;width:${sw}px;height:${sh}px;background:#000;}
 .layer{position:absolute;left:0;top:0;}
+.boxes{filter:drop-shadow(0 0 1px ${SHADOW});}
+.boxes text{font-family:${FONT};}
 .hud{position:absolute;left:${shot.insetLeft}px;top:0;width:${width}px;height:${height}px;transform:scale(${hudScale});transform-origin:0 0;filter:drop-shadow(0 0 1px ${SHADOW}) drop-shadow(0 0 1px ${SHADOW});}
 .t{position:absolute;display:flex;flex-direction:column;font-family:${FONT};line-height:1.15;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums;}
 .t[data-slot]{opacity:0.55;}
@@ -184,7 +253,9 @@ ${shot.insetLeft > 0 ? `<div class="inset"></div>` : ""}
 </body></html>`;
 }
 
+const filter = process.argv[2];
 for (const shot of SHOTS) {
+	if (filter && !shot.file.includes(filter)) continue;
 	const page = resolve(work, shot.file.replace(".png", ".html"));
 	await Bun.write(page, render(shot));
 	const out = resolve(root, "docs/design", shot.file);

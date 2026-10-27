@@ -1467,6 +1467,12 @@ function MissionHud({
 	// Layout math is pure but not free: recompute only when the root, input mode or stick size changes.
 	const layout = useMemo(() => getHudLayout(virtualWidth, virtualHeight, inputMode, options), [virtualWidth, virtualHeight, inputMode, options]);
 	const killRectangle = useMemo(() => getKillMarkerLayout(virtualWidth, virtualHeight, inputMode, options), [virtualWidth, virtualHeight, inputMode, options]);
+	// Target boxes (FlightController) keep clear of the touch controls this layout draws and inside this safe-area root.
+	const hudFrameRef = useRef<Frame>();
+	useEffect(() => {
+		controller.SetTargetKeepouts(visible ? layout : undefined, scale, hudFrameRef.current, viewport);
+		return () => controller.SetTargetKeepouts(undefined, 1, undefined);
+	}, [controller, layout, scale, visible, viewport]);
 	const metrics = layout.metrics;
 	const touch = layout.touch;
 	const ready = missileReady(telemetry);
@@ -1528,7 +1534,7 @@ function MissionHud({
 	const stalling = telemetry.speed < FlightMath.WarningSpeed;
 	const knob = math.floor((touch?.joystick.width ?? JOYSTICK_SIZE) * 0.375 + 0.5);
 	return (
-		<frame key="MissionHUD" BackgroundTransparency={1} Size={UDim2.fromScale(1 / scale, 1 / scale)} Visible={visible}>
+		<frame ref={hudFrameRef} key="MissionHUD" BackgroundTransparency={1} Size={UDim2.fromScale(1 / scale, 1 / scale)} Visible={visible}>
 			<uiscale Scale={scale} />
 			<NavigationCue telemetry={telemetry} visible={visible} inputMode={inputMode} scale={scale} options={options}/>
 			<frame key="DamageFlash" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={damageFlash}>
