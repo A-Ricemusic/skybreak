@@ -59,6 +59,8 @@ local services={
 local react={
  useRef=function(value) return {current=value} end,
  useState=function(value) return value,function() end end,
+ -- Each fixture mounts once; evaluate memoized production values on mount.
+ useMemo=function(factory) return factory() end,
  useEffect=function(fn) table.insert(effects,fn) end,
  createElement=function(kind,props,...)
   if props and props.ref then props.ref.current=table.clone(props);if props.key then elements[props.key]=props.ref.current end end
