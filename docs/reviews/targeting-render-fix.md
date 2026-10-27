@@ -12,7 +12,8 @@ Tuning: min/max 18/60 -> 14/40 px; selected min 30 -> 24 px; reference height
 share .13 -> .08; lock .8 -> .45 seconds. UAV remains .4 seconds. Existing
 server ownership, phase, health and Damageable checks stay authoritative.
 
-Validation: build and offline domain suite. EnemySmoothing.spec is an engine
+Validation: build passes; offline Luau domain suite 492 passed, zero failures,
+including WeaponRules acquisition/damageability assertions and target layout. EnemySmoothing.spec is an engine
 geometry regression (translation, rotation and nonzero pivot offset); it compiles
 but was not run here because another agent owns Studio.
 
