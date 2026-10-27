@@ -22,6 +22,8 @@ jobs:
     timeout-minutes: 3
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Test permission safeguards offline
         run: python3 -m unittest discover -s tools/tests -p 'test_roblox*.py'
       - name: Validate official target and plan or apply 14 grants
