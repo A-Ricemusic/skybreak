@@ -179,7 +179,8 @@ function deleteSlot(state: PlayerState, payload: unknown): CampaignResponse {
 	if (state.coordinator.getPersistence() === "unavailable") return response(state, false, "Campaign saves are temporarily unavailable.");
 	if (state.activeSlot !== undefined || state.activeMission !== undefined) return response(state, false, "Finish the current mission before deleting a save.");
 	state.coordinator.deleteSlot(slot);
-	// Wait for the cloud write so the client can tell the player whether the delete actually stuck.
+	// Bound the wait; response.deletions reports actual confirmation even if this times out.
+	// ok means local acceptance, never durable cloud success.
 	state.coordinator.flush();
 	return response(state, true);
 }

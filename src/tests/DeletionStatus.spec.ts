@@ -8,8 +8,8 @@ function fixture(fail = false) {
 	let duringWrite: (() => void) | undefined;
 	let clock = 0;
 	const store: CampaignStore = {
-		load: () => stored,
-		update: (_key, transform) => {
+		load() { return stored; },
+		update(_key, transform) {
 			duringWrite?.();
 			if (fail) error("synthetic write failure");
 			stored = transform(stored);
@@ -25,6 +25,7 @@ function fixture(fail = false) {
 	return {
 		coordinator,
 		run: () => { const callback = queued; queued = undefined; callback?.(); },
+		setFail: (value: boolean) => { fail = value; },
 		setDuringWrite: (callback: () => void) => { duringWrite = callback; },
 		stored: () => normalizeProfile(stored),
 	};
@@ -58,7 +59,7 @@ describe("deletion durability receipts", () => {
 		expect(f.coordinator.getDeletions()[0].status).toBe("confirmed");
 	});
 	it("does not claim cloud confirmation in a session-only coordinator", () => {
-		const c = new CampaignCoordinator("synthetic-session-only"); c.load(); c.deleteSlot(2);
+		const c = new CampaignCoordinator("synthetic-session-only", undefined, { defer: () => undefined, warn: () => undefined }); c.load(); c.deleteSlot(2);
 		expect(c.flush()).toBe(true);
 		expect(c.getDeletions()[0].status).toBe("session-only");
 	});
@@ -77,6 +78,31 @@ describe("deletion durability receipts", () => {
 		expect(f.stored().slots[0].generation).toBe(1);
 		f.coordinator.getDeletions(); f.coordinator.recover();
 		expect(f.stored().slots[0].occupied).toBe(true);
+	});
+	it("confirms a failed deletion after a successful recovery write", () => {
+		const f = fixture(true); f.coordinator.deleteSlot(1); f.run();
+		expect(f.coordinator.getDeletions()[0].status).toBe("failed");
+		f.setFail(false);
+		expect(f.coordinator.recover()).toBe(true);
+		expect(f.coordinator.getDeletions()[0].status).toBe("confirmed");
+	});
+	it("reports late failure after an inflight timeout", () => {
+		const f = fixture(true); f.coordinator.deleteSlot(1);
+		f.setDuringWrite(() => {
+			expect(f.coordinator.flush(1)).toBe(false);
+			expect(f.coordinator.getDeletions()[0].status).toBe("pending");
+		});
+		f.run(); expect(f.coordinator.getDeletions()[0].status).toBe("failed");
+	});
+	it("recovery retries current progress without deleting a recreated slot", () => {
+		const f = fixture(true); f.coordinator.deleteSlot(1); f.run();
+		expect(f.coordinator.getDeletions()[0].status).toBe("failed");
+		f.coordinator.recordMissionStarted(1);
+		f.setFail(false); f.run();
+		expect(f.stored().slots[0].occupied).toBe(true);
+		expect(f.stored().slots[0].generation).toBe(1);
+		// The blank tombstone was never acknowledged, so do not claim it was.
+		expect(f.coordinator.getDeletions()[0].status).toBe("failed");
 	});
 	it("a queued write is still pending when its flush deadline expires", () => {
 		const f = fixture(); f.coordinator.deleteSlot(1);

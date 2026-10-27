@@ -2028,7 +2028,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					const name = `Save ${string.format("%02d", slot)}`;
 					if (status === "confirmed") showToast(`${name} deletion confirmed in cloud.`, false);
 					else if (status === "session-only") showToast(`${name} deleted for this session only. Cloud saves are disabled.`, true);
-					else if (status === "failed") showToast(`${name} deleted here; cloud write failed. It may return next session.`, true);
+					else if (status === "failed") showToast(`${name} deleted here; cloud deletion is unconfirmed after saving. It may return next session.`, true);
 					else showToast(`${name} deleted here; cloud confirmation pending. It may return next session.`, true);
 				};
 				report(deletion?.status);
