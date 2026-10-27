@@ -90,35 +90,36 @@ far ridge ring, whose interior compresses to almost nothing. *Hill cells* are ev
 grid-aligned regions the hills read and write (the executor's own regions, not the ellipse areas).
 
 <!-- world-counts:begin (bun tools/world-report.ts) -->
-| Mission | Theme | Environment | Terrain ops | Voxel writes (M) | Hill cells (M) | Parts | Props | Trees | Rocks | Buildings | Ships | Unique meshes | Instances |
-|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| M3 Fox switchback | canyon | canyon_dawn | 318 | 61.6 | 0.40 | 75 | 86 | 36 | 44 | 6 | 0 | 9 | 247 |
-| M4 Hidden quarters bowl | canyon | canyon_noon | 255 | 52.7 | 0.49 | 70 | 91 | 36 | 44 | 11 | 0 | 10 | 252 |
-| M5 Teklan orchard terraces | farm | farm_morning | 232 | 69.6 | 2.20 | 24 | 174 | 140 | 22 | 12 | 0 | 8 | 372 |
-| M6 Grain valley irrigation | farm | farm_overcast | 254 | 76.7 | 2.36 | 25 | 168 | 140 | 22 | 6 | 0 | 8 | 361 |
-| M7 Dust courier narrows | canyon | canyon_dusk | 289 | 67.3 | 0.49 | 39 | 82 | 36 | 44 | 2 | 0 | 7 | 203 |
-| M8 Varda tower siege | canyon | canyon_dusk | 240 | 57.7 | 0.42 | 67 | 90 | 36 | 44 | 10 | 0 | 9 | 247 |
-| M9 Vulture moonlit bowl | canyon | canyon_night | 302 | 63.0 | 0.33 | 26 | 88 | 36 | 44 | 8 | 0 | 9 | 202 |
-| M10 Kiro abandoned mine | plateau | farm_overcast | 251 | 80.5 | 1.57 | 28 | 123 | 80 | 36 | 7 | 0 | 8 | 274 |
-| M11 Twin ridge relay saddle | farm | farm_sunset | 257 | 89.6 | 2.16 | 36 | 168 | 140 | 22 | 6 | 0 | 8 | 372 |
-| M12 Open field refugee corridor | farm | farm_morning | 248 | 55.7 | 2.24 | 26 | 174 | 140 | 22 | 12 | 0 | 8 | 374 |
-| M13 Staging farm rail yard | farm | farm_overcast | 250 | 68.6 | 2.37 | 41 | 168 | 140 | 22 | 6 | 0 | 8 | 377 |
-| M14 High relay crossing | plateau | relay_night | 257 | 75.3 | 1.58 | 31 | 122 | 80 | 36 | 6 | 0 | 9 | 275 |
-| M15 Loyalist broadcast common | farm | farm_morning | 251 | 74.6 | 2.33 | 30 | 179 | 140 | 22 | 17 | 0 | 10 | 388 |
-| M16 Storm river divide | farm | farm_storm | 235 | 85.6 | 2.11 | 39 | 165 | 140 | 22 | 3 | 0 | 8 | 369 |
-| M17 Aurora crown array | plateau | relay_aurora | 263 | 75.5 | 1.56 | 28 | 124 | 80 | 36 | 8 | 0 | 9 | 276 |
-| M18 Vulture searchlight ridge | plateau | relay_night | 271 | 83.7 | 1.76 | 69 | 128 | 80 | 36 | 12 | 0 | 11 | 325 |
-| M19 Military quays and canal | coast | harbor_fog | 124 | 37.3 | 1.41 | 70 | 143 | 90 | 14 | 38 | 1 | 12 | 356 |
-| M20 Eastern wing divided harbor | coast | city_evening | 120 | 34.9 | 1.20 | 68 | 155 | 90 | 14 | 50 | 1 | 12 | 378 |
-| M21 Black canal city | coast | city_night | 143 | 32.2 | 1.25 | 94 | 147 | 90 | 14 | 43 | 0 | 11 | 388 |
-| M22 Five fog fuel piers | coast | harbor_fog | 119 | 46.9 | 1.37 | 61 | 129 | 90 | 14 | 24 | 1 | 12 | 319 |
-| M23 Frigate ring over deep water | ocean | ocean_clear | 108 | 34.9 | 0.00 | 22 | 4 | 0 | 0 | 1 | 3 | 2 | 30 |
-| M24 Storm platform trident | ocean | ocean_storm | 91 | 31.7 | 0.00 | 44 | 1 | 0 | 0 | 1 | 0 | 1 | 46 |
-| M25 Dawn beachhead | coast | city_dawn | 136 | 41.6 | 1.17 | 45 | 159 | 90 | 14 | 53 | 2 | 12 | 363 |
-| M26 Civic plaza blackout | coast | city_night | 137 | 37.0 | 1.59 | 96 | 167 | 90 | 14 | 63 | 0 | 11 | 430 |
-| M27 Coastal parliament sunrise | coast | city_dawn | 121 | 35.2 | 1.62 | 61 | 165 | 90 | 14 | 61 | 0 | 11 | 391 |
+| Mission | Theme | Environment | Terrain ops | Voxel writes (M) | Hill cells (M) | Parts | Props | Core props | Ring props | Backdrop | Trees | Rocks | Buildings | Infra pieces | Unique meshes | Instances | Est. build (s) |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| M3 Fox switchback | canyon | canyon_dawn | 410 | 60.5 | 0.43 | 24 | 295 | 152 | 107 | 36 | 52 | 68 | 10 | 85 | 16 | 614 | 2.7 |
+| M4 Hidden quarters bowl | canyon | canyon_noon | 337 | 54.7 | 0.39 | 26 | 259 | 134 | 89 | 36 | 52 | 68 | 15 | 44 | 19 | 544 | 2.4 |
+| M5 Teklan orchard terraces | farm | farm_morning | 253 | 62.8 | 2.19 | 4 | 439 | 252 | 151 | 36 | 200 | 30 | 20 | 153 | 13 | 934 | 3.6 |
+| M6 Grain valley irrigation | farm | farm_overcast | 283 | 67.4 | 2.26 | 4 | 401 | 226 | 139 | 36 | 200 | 30 | 10 | 125 | 13 | 858 | 3.8 |
+| M7 Dust courier narrows | canyon | canyon_dusk | 377 | 60.2 | 0.53 | 4 | 271 | 137 | 98 | 36 | 52 | 68 | 5 | 66 | 11 | 546 | 2.7 |
+| M8 Varda tower siege | canyon | canyon_dusk | 296 | 48.5 | 0.42 | 24 | 298 | 157 | 105 | 36 | 52 | 68 | 14 | 84 | 16 | 620 | 2.2 |
+| M9 Vulture moonlit bowl | canyon | canyon_night | 387 | 65.6 | 0.38 | 6 | 269 | 145 | 88 | 36 | 52 | 68 | 12 | 57 | 13 | 544 | 2.9 |
+| M10 Kiro abandoned mine | plateau | farm_overcast | 386 | 71.3 | 1.71 | 6 | 341 | 184 | 121 | 36 | 120 | 54 | 11 | 76 | 16 | 718 | 3.7 |
+| M11 Twin ridge relay saddle | farm | farm_sunset | 287 | 78.3 | 2.32 | 4 | 420 | 231 | 153 | 36 | 200 | 30 | 14 | 140 | 14 | 896 | 4.3 |
+| M12 Open field refugee corridor | farm | farm_morning | 279 | 54.0 | 2.34 | 4 | 450 | 262 | 152 | 36 | 200 | 30 | 20 | 164 | 13 | 954 | 3.3 |
+| M13 Staging farm rail yard | farm | farm_overcast | 294 | 64.2 | 1.95 | 4 | 418 | 225 | 157 | 36 | 200 | 30 | 14 | 138 | 14 | 894 | 3.5 |
+| M14 High relay crossing | plateau | relay_night | 331 | 50.3 | 1.44 | 6 | 382 | 197 | 149 | 36 | 120 | 54 | 12 | 116 | 16 | 824 | 2.7 |
+| M15 Loyalist broadcast common | farm | farm_morning | 262 | 63.3 | 2.32 | 6 | 440 | 252 | 152 | 36 | 200 | 30 | 27 | 147 | 16 | 938 | 3.7 |
+| M16 Storm river divide | farm | farm_storm | 276 | 81.0 | 2.37 | 4 | 369 | 217 | 116 | 36 | 200 | 30 | 7 | 96 | 14 | 774 | 4.4 |
+| M17 Aurora crown array | plateau | relay_aurora | 369 | 68.0 | 1.57 | 6 | 286 | 170 | 80 | 36 | 120 | 54 | 9 | 23 | 15 | 578 | 3.5 |
+| M18 Vulture searchlight ridge | plateau | relay_night | 329 | 55.0 | 1.70 | 26 | 397 | 206 | 155 | 36 | 120 | 54 | 18 | 125 | 20 | 878 | 3.1 |
+| M19 Military quays and canal | coast | harbor_fog | 276 | 39.5 | 1.25 | 30 | 385 | 250 | 110 | 25 | 130 | 20 | 42 | 167 | 16 | 848 | 2.2 |
+| M20 Eastern wing divided harbor | coast | city_evening | 291 | 40.7 | 0.85 | 30 | 385 | 252 | 110 | 23 | 130 | 20 | 54 | 157 | 16 | 848 | 2.1 |
+| M21 Black canal city | coast | city_night | 264 | 42.0 | 1.12 | 41 | 388 | 276 | 87 | 25 | 130 | 20 | 46 | 167 | 16 | 849 | 2.3 |
+| M22 Five fog fuel piers | coast | harbor_fog | 291 | 53.7 | 1.25 | 21 | 347 | 214 | 110 | 23 | 130 | 20 | 28 | 145 | 16 | 763 | 2.8 |
+| M23 Frigate ring over deep water | ocean | ocean_clear | 262 | 56.1 | 0.00 | 6 | 11 | 4 | 0 | 7 | 0 | 0 | 1 | 0 | 3 | 28 | 2.2 |
+| M24 Storm platform trident | ocean | ocean_storm | 238 | 51.7 | 0.00 | 4 | 20 | 13 | 0 | 7 | 0 | 0 | 1 | 12 | 4 | 44 | 2.1 |
+| M25 Dawn beachhead | coast | city_dawn | 303 | 44.9 | 1.81 | 6 | 364 | 260 | 79 | 25 | 130 | 20 | 55 | 132 | 16 | 758 | 2.7 |
+| M26 Civic plaza blackout | coast | city_night | 276 | 40.4 | 1.28 | 42 | 371 | 300 | 46 | 25 | 130 | 20 | 64 | 132 | 14 | 784 | 2.3 |
+| M27 Coastal parliament sunrise | coast | city_dawn | 294 | 45.8 | 1.01 | 6 | 370 | 299 | 46 | 25 | 130 | 20 | 62 | 133 | 15 | 746 | 2.4 |
 
-Budget per world: 340 parts, 280 props, 20 unique meshes, 100M voxel writes, 2.5M hill cells, 700 terrain ops.
+Budget per world: 200 parts, 520 props, 26 unique meshes, 1200 instances, 100M voxel writes, 2.5M hill cells, 900 terrain ops.
+Map: flyable +-6000 (soft boundary +-5400), full-detail core +-3000, voxel terrain +-6800, backdrop ridges centred 7600 out, far skirts to +-24000.
 <!-- world-counts:end -->
 
 Missions 1–2 are hand-composed. Their counts come from the engine (`PartCount`, `UploadedParts`

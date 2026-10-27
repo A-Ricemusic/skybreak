@@ -11,6 +11,12 @@ import { UploadedAssetSpecs } from "./UploadedAssetSpecs";
 // same plan offline (no Studio): flight points clear of terrain, targets on
 // ground, escort boats on water, nothing floating, and the mobile budget.
 //
+// Detail falls off with distance: the authored mission (every flight point,
+// target and boat path, inside ±2400) sits in a full-detail CORE; from there to
+// the flyable edge (FlightMath.HardBoundary) is explorable terrain with larger,
+// cheaper features and sparser props; a ring of uploaded mountain ridges stands
+// just past the edge, and stretched skirt parts carry the ground or sea to FAR.
+//
 // Conventions: studs, Y up. Terrain ops are written in list order and overwrite
 // what is there (as Roblox Fill* does), except `bump`, which only adds. Yaw is a
 // rotation about +Y (CFrame.Angles(0, yaw, 0)). Props are placed by their ground
@@ -38,9 +44,13 @@ export interface PartSpec {
 	/** Must rest on terrain (audited); elevated decks and bridges are not. */
 	grounded: boolean;
 	transparency?: number; reflectance?: number;
+	/** Rendered size = (sx, sy, sz) x stretch (a Brick SpecialMesh): far skirts wider than the 2048-stud part limit. */
+	stretch?: [number, number, number];
 }
 
-export type PropAsset = "Frigate" | "OilPlatform" | "HarbourQuay" | "ContainerStack" | "GantryCrane" | "Hangar" | "ControlTower" | "OfficeMidrise" | "ApartmentBlock" | "CityTower" | "Farmhouse" | "Barn" | "GrainSilo" | "RadarDish" | "RelayMast" | "Pine" | "Broadleaf" | "RockA" | "RockB" | "RockC";
+export type PropAsset = "Frigate" | "OilPlatform" | "HarbourQuay" | "ContainerStack" | "GantryCrane" | "Hangar" | "ControlTower" | "OfficeMidrise" | "ApartmentBlock" | "CityTower" | "Farmhouse" | "Barn" | "GrainSilo" | "RadarDish" | "RelayMast" | "Pine" | "Broadleaf" | "RockA" | "RockB" | "RockC"
+	| "RunwaySegment" | "RunwayThreshold" | "ApronSlab" | "RoadSegment" | "DirtTrack" | "RoadBridge" | "TargetPad" | "StoreDeck" | "Gangway" | "EquipmentHut" | "CivicHall"
+	| "CliffSandstone" | "CliffGranite" | "RidgeAlpine" | "RidgeDesert" | "FenceSpan" | "PowerLineSpan";
 export interface PropSpec { asset: PropAsset; x: number; y: number; z: number; yaw: number; scale: number; tint: number; tag?: string }
 /** Ground-target site: the model is grounded with its bounds' bottom at baseY. */
 export interface TargetSite { index: number; x: number; z: number; baseY: number; apron: number; deck: boolean }
@@ -65,12 +75,25 @@ export const WATER_Y = 32;
 export const SEABED = 16;
 export const SEABED_BOTTOM = 12;
 export const RIVER_WATER = 40;
-/** Terrain half-extent; far tiles (parts) continue the ground or sea to FAR. */
-export const EXTENT = 4000;
-export const FAR = 6000;
+/** Full-detail core (two voxel layers, dense props); the authored mission lies inside ±2400. */
+export const CORE = 3000;
+/** Voxel terrain half-extent: one 4-stud layer from CORE out, 800 studs past the flyable edge. */
+export const EXTENT = 6800;
+/** Far skirts (stretched parts) carry the ground or sea from EXTENT out to FAR. */
+export const FAR = 24000;
+/** Centre line of the backdrop ridge ring: the ridges' inner foot stays 400+ studs past the hard boundary. */
+export const BACKDROP = 7600;
+/** The explorable ring's single voxel layer, and its shallower sea (two water layers on a mud layer). */
+const OUTER_BOTTOM = 40, OUTER_SEABED = 24, OUTER_SEA_BOTTOM = 20;
+/** Highest terrain top allowed in the explorable ring (audited): the airspace over it stays open. */
+export const OUTER_CEILING = 560;
 const TILE = 2000;
-/** Mobile budget per mission world (audited by WorldPlan.spec; counts in docs/world-realism.md). */
-export const WORLD_BUDGET = { parts: 340, props: 280, uniqueMeshes: 20, voxelWrites: 100e6, bumpCells: 2.5e6, terrainOps: 700 };
+/**
+ * Mobile budget per mission world (audited by WorldPlan.spec; counts in docs/world-realism.md). Props cover
+ * the explorable ring and the modular runway, road, fence and power-line pieces that replaced primitive parts;
+ * every prop is a clone of one cached template, so repeated pieces draw as instanced meshes.
+ */
+export const WORLD_BUDGET = { parts: 200, props: 520, uniqueMeshes: 26, voxelWrites: 100e6, bumpCells: 2.5e6, terrainOps: 900, instances: 1200 };
 const BEACH_LANDINGS = new Set<number>([25]);
 const COAST_Z: { [id: number]: number } = { 19: -1260, 20: -1060, 21: -1640, 22: -1000, 25: -1560, 26: -1700, 27: -1700 };
 
@@ -299,8 +322,12 @@ interface Corridor { points: number[][]; half: number; tag: string }
 interface Ctx {
 	id: number; bp: MissionBlueprint; layout: LevelLayout; theme: Theme; rng: Rng; plan: WorldPlan;
 	zones: Zone[]; corridors: Corridor[]; ridgeRects: Rect[]; moles: Rect[]; roads: number[][][];
+	/** Roads from the authored road's ends out to the map edge, through the explorable ring. */
+	highways: number[][][];
 	/** The canal carve, water, bed and beach ops, written again once every land op is down. */
 	canalOps: TerrainOp[];
+	/** Cliff panels placed so far (capped per world) and road calls (each lifts its pieces a little, so crossings never z-fight). */
+	cliffs: number; roadCalls: number;
 }
 const THEMES: Record<MissionRegion, Theme> = {
 	canyon_airfield: "canyon", canyon_pass: "canyon", upland_farm: "farm", plateau_relay: "plateau",
@@ -325,7 +352,7 @@ function slab(ctx: Ctx, material: TerrainMaterial, x0: number, x1: number, z0: n
 		op(ctx, "block", material, x + w / 2, (y0 + y1) / 2, z + d / 2, w, y1 - y0, d);
 	}
 }
-function part(ctx: Ctx, name: string, shape: PartShape, x: number, y: number, z: number, sx: number, sy: number, sz: number, yaw: number, color: Rgb, material: string, solid = true, grounded = false, extra: { transparency?: number; reflectance?: number } = {}): PartSpec {
+function part(ctx: Ctx, name: string, shape: PartShape, x: number, y: number, z: number, sx: number, sy: number, sz: number, yaw: number, color: Rgb, material: string, solid = true, grounded = false, extra: { transparency?: number; reflectance?: number; stretch?: [number, number, number] } = {}): PartSpec {
 	const spec: PartSpec = { name, shape, x, y, z, sx, sy, sz, yaw, color, material, solid, grounded, ...extra };
 	ctx.plan.parts.push(spec);
 	return spec;
@@ -382,6 +409,16 @@ function onLand(ctx: Ctx, x: number, z: number): boolean {
 	return t.water === undefined && t.solid >= GROUND - 1;
 }
 function inMap(x: number, z: number, edge = 2650): boolean { return math.abs(x) <= edge && math.abs(z) <= edge; }
+/** Chebyshev radius: the map is square, so the detail tiers are too. */
+export function ring(x: number, z: number): number { return math.max(math.abs(x), math.abs(z)); }
+/** A random point in the square ring between `inner` and `outer`. */
+function ringPoint(rng: Rng, inner: number, outer: number): [number, number] {
+	for (let i = 0; i < 40; i++) {
+		const x = rng.range(-outer, outer), z = rng.range(-outer, outer);
+		if (ring(x, z) >= inner) return [x, z];
+	}
+	return [outer, rng.range(-outer, outer)];
+}
 
 // --- reservations -----------------------------------------------------------
 function waterClear(path: WaterPath): number { return path.canal ? path.half + 10 : 14; }
@@ -428,9 +465,37 @@ function addWaterPath(ctx: Ctx, points: number[][], beachEnd: boolean): void {
 }
 
 // --- base terrain -----------------------------------------------------------
+/** The square ring [-outer, outer]^2 minus [-inner, inner]^2 as four slabs, clipped to z in [z0, z1]. */
+function ringSlab(ctx: Ctx, material: TerrainMaterial, y0: number, y1: number, inner: number, outer: number, z0 = -outer, z1 = outer): void {
+	for (const [ax, bx, az, bz] of [[-outer, outer, -outer, -inner], [-outer, outer, inner, outer], [-outer, -inner, -inner, inner], [inner, outer, -inner, inner]]) {
+		const lo = math.max(az, z0), hi = math.min(bz, z1);
+		if (hi - lo > 0.5) slab(ctx, material, ax, bx, lo, hi, y0, y1);
+	}
+}
+/** Ground: two voxel layers in the core, one in the explorable ring (detail falls off with distance). */
+function ground(ctx: Ctx, material: TerrainMaterial, z0 = -EXTENT): void {
+	slab(ctx, material, -CORE, CORE, math.max(-CORE, z0), CORE, BASE_BOTTOM, GROUND);
+	ringSlab(ctx, material, OUTER_BOTTOM, GROUND, CORE, EXTENT, z0, EXTENT);
+}
+/** Sea: deep water in the core (boats, berths), two water layers further out. */
+function sea(ctx: Ctx, z1 = EXTENT): void {
+	slab(ctx, "Water", -CORE, CORE, -CORE, math.min(CORE, z1), SEABED, WATER_Y);
+	slab(ctx, "Mud", -CORE, CORE, -CORE, math.min(CORE, z1), SEABED_BOTTOM, SEABED);
+	ringSlab(ctx, "Water", OUTER_SEABED, WATER_Y, CORE, EXTENT, -EXTENT, z1);
+	ringSlab(ctx, "Mud", OUTER_SEA_BOTTOM, OUTER_SEABED, CORE, EXTENT, -EXTENT, z1);
+}
+/** Large material patches across the explorable ring: fields, washes and rock flats at a coarser grain. */
+function outerPatches(ctx: Ctx, mats: TerrainMaterial[], count: number, z0 = -EXTENT): void {
+	const { rng } = ctx;
+	for (let i = 0; i < count; i++) {
+		const [x, z] = ringPoint(rng, CORE + 150, EXTENT - 350);
+		if (z < z0 + 400) continue;
+		op(ctx, "block", mats[i % mats.size()], x, GROUND - 2, z, rng.range(520, 940), 4, rng.range(480, 980), rng.range(0, math.pi));
+	}
+}
 function inlandBase(ctx: Ctx): void {
 	const { rng, theme } = ctx;
-	slab(ctx, BASE_MATERIAL[theme], -EXTENT, EXTENT, -EXTENT, EXTENT, BASE_BOTTOM, GROUND);
+	ground(ctx, BASE_MATERIAL[theme]);
 	// Material patches in the top voxel layer: fields, dry washes, rock flats.
 	if (theme === "farm") {
 		const mats: TerrainMaterial[] = ["LeafyGrass", "Ground", "Grass", "LeafyGrass", "Mud", "Ground"];
@@ -438,6 +503,7 @@ function inlandBase(ctx: Ctx): void {
 			if (rng.next() < 0.3) continue;
 			op(ctx, "block", mats[rng.int(0, mats.size() - 1)], gx + rng.range(-20, 20), GROUND - 2, gz + rng.range(-20, 20), rng.range(230, 310), 4, rng.range(300, 380), rng.range(-0.05, 0.05));
 		}
+		outerPatches(ctx, mats, 26);
 	} else {
 		const mats: TerrainMaterial[] = theme === "canyon" ? ["Sand", "Sandstone", "Sand", "Rock", "Grass"] : ["Rock", "Ground", "Slate", "Ground", "Sand"];
 		for (let i = 0; i < 26; i++) {
@@ -445,23 +511,23 @@ function inlandBase(ctx: Ctx): void {
 			const long = m === "Sand" ? rng.range(500, 900) : rng.range(180, 380);
 			op(ctx, "block", m, rng.range(-2600, 2600), GROUND - 2, rng.range(-2600, 2600), m === "Sand" ? rng.range(70, 130) : rng.range(160, 340), 4, long, rng.range(0, math.pi));
 		}
+		outerPatches(ctx, mats, 20);
 	}
 }
 function coastBase(ctx: Ctx, cz: number): void {
 	const { rng } = ctx;
-	slab(ctx, "Water", -EXTENT, EXTENT, -EXTENT, cz, SEABED, WATER_Y);
-	slab(ctx, "Mud", -EXTENT, EXTENT, -EXTENT, cz, SEABED_BOTTOM, SEABED);
-	slab(ctx, "Grass", -EXTENT, EXTENT, cz, EXTENT, BASE_BOTTOM, GROUND);
+	sea(ctx, cz);
+	ground(ctx, "Grass", cz);
 	// The land edge is a rock wall down to the seabed so no slab floats over the water.
-	slab(ctx, "Rock", -EXTENT, EXTENT, cz, cz + 48, SEABED_BOTTOM, BASE_BOTTOM);
+	slab(ctx, "Rock", -EXTENT, EXTENT, cz, cz + 48, SEABED_BOTTOM, OUTER_BOTTOM);
 	for (let i = 0; i < 14; i++) {
 		const x = rng.range(-2600, 2600), z = rng.range(cz + 200, 2600);
 		op(ctx, "block", i % 3 === 0 ? "Ground" : "LeafyGrass", x, GROUND - 2, z, rng.range(160, 320), 4, rng.range(160, 320), rng.range(0, math.pi));
 	}
+	outerPatches(ctx, ["LeafyGrass", "Ground", "LeafyGrass", "Grass"], 16, cz + 200);
 }
 function oceanBase(ctx: Ctx): void {
-	slab(ctx, "Water", -EXTENT, EXTENT, -EXTENT, EXTENT, SEABED, WATER_Y);
-	slab(ctx, "Mud", -EXTENT, EXTENT, -EXTENT, EXTENT, SEABED_BOTTOM, SEABED);
+	sea(ctx);
 }
 
 // --- canals, piers and beaches (coast) -------------------------------------
@@ -509,7 +575,18 @@ function canals(ctx: Ctx, cz: number): void {
 function reopenCanals(ctx: Ctx): void {
 	for (const o of ctx.canalOps) ctx.plan.ops.push(o);
 }
-/** Target aprons, shrunk until clear of the boat paths; coastal targets get a concrete mole to the shore. */
+/**
+ * The uploaded concrete hardstand, `size` studs square (uniformly scaled from its 150-stud model), its top at
+ * APRON_TOP whatever the scale: the slab is 8 thick and sinks into the ground, so any scale from 0.6 rests on it.
+ */
+export function hardstandY(size: number): number {
+	const pad = UploadedAssetSpecs.TargetPad, s = size / pad.size.X;
+	return APRON_TOP - (pad.size.Y - pad.groundOffset) * s;
+}
+function hardstand(ctx: Ctx, x: number, z: number, size: number): void {
+	prop(ctx, "TargetPad", x, hardstandY(size), z, 0, size / UploadedAssetSpecs.TargetPad.size.X);
+}
+/** Target hardstands, shrunk until clear of the boat paths; coastal targets get a concrete mole to the shore. */
 function targets(ctx: Ctx): void {
 	const { bp, plan } = ctx;
 	const cz = plan.coastZ;
@@ -531,7 +608,7 @@ function targets(ctx: Ctx): void {
 			ctx.moles.push({ x: g.x, z: (north + south) / 2, hx: half, hz: (north - south) / 2, yaw: 0 });
 			zone(ctx, "mole", g.x, (north + south) / 2, half, (north - south) / 2);
 		}
-		part(ctx, "Target apron", "block", g.x, APRON_TOP - 2, g.z, size, 4, size, 0, [90, 103, 108], "Concrete", true, true);
+		hardstand(ctx, g.x, g.z, size);
 		plan.targets.push({ index, x: g.x, z: g.z, baseY: APRON_TOP, apron: size, deck: false });
 	}
 }
@@ -572,9 +649,42 @@ function mesa(ctx: Ctx, x: number, z: number, w: number, d: number, h: number): 
 				const [ox, oz] = toWorld(lx, lz, ty);
 				op(ctx, "wedge", canyon ? "Ground" : "Rock", cx + ox, GROUND - 2 + talus / 2, cz + oz, length, talus, depth, ty + turn);
 			}
+			cliffFaces(ctx, cx, cz, tw, td, ty, ttop, 8);
 		}
 		if (t === tiers.size() - 1 && !canyon) op(ctx, "block", "Grass", cx, ttop - 2, cz, tw - 24, 4, td - 24, ty);
 		previous = ttop;
+	}
+}
+/** Studs a cliff panel's back sinks into the wall it is set against (at scale 1). */
+const CLIFF_EMBED = 15;
+/** Most cliff panels in one world (they are the largest repeated rock meshes). */
+const CLIFF_CAP = 44;
+/**
+ * Uploaded rock-face panels set into the four walls of a mesa tier (centre, size, yaw, top): sandstone in
+ * canyons, granite elsewhere. Each panel's back sinks CLIFF_EMBED into the wall, its top stays under the
+ * tier top (so under every flight limit the tier already respects) and its foot rests on the ground.
+ */
+function cliffFaces(ctx: Ctx, cx: number, cz: number, tw: number, td: number, yaw: number, top: number, perMesa: number): void {
+	const asset: PropAsset = ctx.theme === "canyon" ? "CliffSandstone" : "CliffGranite";
+	const spec = UploadedAssetSpecs[asset];
+	const s = math.min(1.5, (top - GROUND) / (spec.size.Y - spec.groundOffset));
+	if (s < 0.5) return;
+	const panel = spec.size.X * s, half = spec.size.Z * s / 2;
+	let placed = 0;
+	for (const [nx, nz, length, dist] of [[0, -1, tw, td / 2], [0, 1, tw, td / 2], [-1, 0, td, tw / 2], [1, 0, td, tw / 2]]) {
+		const n = math.min(math.floor(length * 0.85 / (panel * 1.3)), 3);
+		for (let k = 0; k < n && placed < perMesa && ctx.cliffs < CLIFF_CAP; k++) {
+			const along = (-0.5 + (k + 0.5) / n) * length * 0.85 + ctx.rng.range(-0.1, 0.1) * panel;
+			const out = dist + half - CLIFF_EMBED * s;
+			const [ox, oz] = toWorld(nx === 0 ? along : nx * out, nx === 0 ? nz * out : along, yaw);
+			const [wnx, wnz] = toWorld(nx, nz, yaw);
+			const x = cx + ox, z = cz + oz, faceYawValue = faceYaw(wnx, wnz);
+			if (!onLand(ctx, x + wnx * half, z + wnz * half)) continue;
+			prop(ctx, asset, x, GROUND, z, faceYawValue, s);
+			zone(ctx, "rock", x, z, panel / 2, half, faceYawValue);
+			placed += 1;
+			ctx.cliffs += 1;
+		}
 	}
 }
 function rollingRidge(ctx: Ctx, x: number, z: number, w: number, d: number, h: number, carve: boolean): void {
@@ -664,7 +774,7 @@ function hills(ctx: Ctx): void {
 	const cz = ctx.plan.coastZ;
 	const count = theme === "farm" ? 10 : theme === "plateau" ? 8 : theme === "coast" ? 6 : theme === "canyon" ? 5 : 0;
 	const material: TerrainMaterial = theme === "canyon" ? "Sand" : "Grass";
-	let placed = 0, attempts = 0;
+	let placed = 0, attempts = 0, cells = 0;
 	while (placed < count && attempts < count * 12) {
 		attempts += 1;
 		const rx = theme === "canyon" ? rng.range(150, 260) : rng.range(200, 320), rz = rx * rng.range(0.7, 1.3), yaw = rng.range(0, math.pi);
@@ -675,59 +785,135 @@ function hills(ctx: Ctx): void {
 		if (!free(ctx, x, z, reach + 30, [])) continue;
 		if (ctx.ridgeRects.some((r) => rectPointDist(r, x, z) < reach)) continue;
 		if (GROUND + height > limit(ctx, x, z, reach)) continue;
+		// The hills' Luau voxel loop is the slowest terrain work: keep the whole world's cells inside the budget.
+		const hill: TerrainOp = { shape: "bump", material: "Grass", x, y: GROUND, z, sx: rx, sy: height, sz: rz, yaw };
+		if (cells + regionCells(bumpRegion(hill)) > WORLD_BUDGET.bumpCells * 0.95) continue;
+		cells += regionCells(bumpRegion(hill));
 		op(ctx, "bump", rng.next() < 0.3 && theme !== "canyon" ? "LeafyGrass" : material, x, GROUND, z, rx, height, rz, yaw);
 		circle(ctx, "hill", x, z, reach);
 		placed += 1;
 	}
 }
-/** A ring of mountain ridges outside the flyable square (land sides only on the coast). */
-function mountainRing(ctx: Ctx): void {
+/** A long soft ridge (a wedge pair on the single outer layer): cheap relief for the explorable ring. */
+function softRidge(ctx: Ctx, x: number, z: number, length: number, height: number, yaw: number, body: TerrainMaterial): void {
+	const depth = math.max(height * 3.2, 320);
+	for (const s of [-1, 1]) {
+		const [ox, oz] = toWorld(0, s * depth / 4, yaw);
+		op(ctx, "wedge", body, x + ox, OUTER_BOTTOM + (height + GROUND - OUTER_BOTTOM) / 2, z + oz, length, height + GROUND - OUTER_BOTTOM, depth / 2, s < 0 ? yaw : yaw + math.pi);
+	}
+}
+/** A single-tier mesa with a strata band, talus and cliff panels: the explorable ring's larger, coarser relief. */
+function outerMesa(ctx: Ctx, x: number, z: number, w: number, d: number, top: number, yaw: number): void {
+	const canyon = ctx.theme === "canyon";
+	const body: TerrainMaterial = canyon ? "Sandstone" : "Rock", band: TerrainMaterial = canyon ? "Rock" : "Slate";
+	op(ctx, "block", body, x, (OUTER_BOTTOM + top) / 2, z, w, top - OUTER_BOTTOM, d, yaw);
+	op(ctx, "block", band, x, top - (top - GROUND) * 0.35, z, w + 2, 6, d + 2, yaw);
+	const talus = math.min(50, (top - GROUND) * 0.3), depth = talus * 1.8;
+	for (const [lx, lz, length, turn] of [[0, -(d / 2 + depth / 2), w * 0.9, 0], [0, d / 2 + depth / 2, w * 0.9, math.pi], [w / 2 + depth / 2, 0, d * 0.9, -math.pi / 2], [-(w / 2 + depth / 2), 0, d * 0.9, math.pi / 2]]) {
+		const [ox, oz] = toWorld(lx, lz, yaw);
+		op(ctx, "wedge", canyon ? "Ground" : "Rock", x + ox, GROUND - 2 + talus / 2, z + oz, length, talus, depth, yaw + turn);
+	}
+	if (!canyon) op(ctx, "block", "Grass", x, top - 2, z, w - 24, 4, d - 24, yaw);
+	cliffFaces(ctx, x, z, w, d, yaw, top, 4);
+}
+/**
+ * The explorable ring between the core and the flyable edge: one feature per jittered 1500-stud cell at most
+ * (mesas and soft ridges on land, islets at sea), lower and coarser than the core's relief, clear of the
+ * highways, rivers and anything reserved.
+ */
+function outerRelief(ctx: Ctx): void {
 	const { rng, theme } = ctx;
 	const cz = ctx.plan.coastZ;
-	if (theme === "ocean") {
-		for (let i = 0; i < 6; i++) {
-			const a = (i + rng.range(0.2, 0.8)) / 6 * math.pi * 2, distance = rng.range(3050, 3400);
-			const x = math.cos(a) * distance, z = math.sin(a) * distance;
-			island(ctx, x, z, rng.range(260, 520), rng.range(220, 420), rng.range(90, 170));
+	const body: TerrainMaterial = theme === "canyon" ? "Sandstone" : theme === "plateau" ? "Rock" : "Grass";
+	for (let gx = -5250; gx <= 5250; gx += 1500) for (let gz = -5250; gz <= 5250; gz += 1500) {
+		if (ring(gx, gz) < 3500) continue;
+		if (rng.next() < (theme === "ocean" ? 0.7 : 0.45)) continue;
+		const x = gx + rng.range(-300, 300), z = gz + rng.range(-300, 300);
+		const w = rng.range(520, 980), d = rng.range(420, 760), yaw = rng.range(-0.35, 0.35);
+		if (theme === "ocean" || (cz !== undefined && z + d / 2 < cz - 300)) {
+			const rect: Rect = { x, z, hx: w * 0.3 + 60, hz: d * 0.3 + 60, yaw: 0 };
+			if (rectFree(ctx, rect, 60, [])) island(ctx, x, z, w * 0.45, d * 0.45, WATER_Y + rng.range(80, 170));
+			continue;
 		}
-		return;
+		const rect: Rect = { x, z, hx: w / 2 + 80, hz: d / 2 + 80, yaw };
+		if (!rectFree(ctx, rect, 40, []) || ring(x, z) + math.max(w, d) / 2 > EXTENT - 300) continue;
+		if (cz !== undefined && z - math.max(w, d) / 2 - 350 < cz) continue;
+		const mesa = (theme === "canyon" || theme === "plateau") && rng.next() < 0.6;
+		const top = GROUND + (mesa ? rng.range(150, 330) : rng.range(110, 230));
+		if (mesa) outerMesa(ctx, x, z, w, d, top, yaw);
+		else softRidge(ctx, x, z, math.max(w, d), top - GROUND, yaw + (w >= d ? 0 : math.pi / 2), body);
+		ctx.ridgeRects.push({ x, z, hx: w / 2, hz: d / 2, yaw });
+		zone(ctx, "relief", x, z, w / 2 + 30, d / 2 + 30, yaw);
 	}
-	const [lo, hi] = theme === "canyon" ? [260, 460] : theme === "farm" ? [200, 380] : theme === "plateau" ? [320, 520] : [220, 420];
-	const body: TerrainMaterial = theme === "canyon" ? "Sandstone" : theme === "farm" ? "Grass" : "Rock";
-	for (const [nx, nz] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) for (let k = 0; k < 5; k++) {
-		const along = -3200 + (k + 0.5) * 1280 + rng.range(-120, 120), distance = rng.range(3150, 3350);
-		const x = nx !== 0 ? nx * distance : along, z = nz !== 0 ? nz * distance : along;
-		if (cz !== undefined && z < cz + 500) continue;
-		const height = rng.range(lo, hi), depth = height * rng.range(1.25, 1.45), length = 1280 * rng.range(1.0, 1.1);
-		const yaw = (nx !== 0 ? math.pi / 2 : 0) + rng.range(-0.15, 0.15);
-		for (const s of [-1, 1]) {
-			const [ox, oz] = toWorld(0, s * depth / 4, yaw);
-			op(ctx, "wedge", body, x + ox, BASE_BOTTOM + height / 2, z + oz, length, height, depth / 2, s < 0 ? yaw : yaw + math.pi);
+}
+/**
+ * The horizon: uploaded mountain ridges on every land side, centred BACKDROP out with their fronts to the
+ * play area and overlapping end to end. Every crest clears the altitude ceiling, so from anywhere a player
+ * can fly nothing past the voxel edge shows (WorldAudit checks the rays). Sea sides get distant islands
+ * instead and the sea skirt runs on into the haze.
+ */
+function backdrop(ctx: Ctx): void {
+	const { rng, theme } = ctx;
+	const cz = ctx.plan.coastZ;
+	const asset: PropAsset = theme === "canyon" ? "RidgeDesert" : "RidgeAlpine";
+	const half = UploadedAssetSpecs[asset].size.X / 2;
+	if (theme !== "ocean") {
+		for (const [nx, nz] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) {
+			// On the coast the sea side has no ridges and the side rings start at the shore (their sea end 350 inland).
+			if (cz !== undefined && nz < 0) continue;
+			const alongs: number[] = [];
+			if (cz !== undefined && nx !== 0) for (let a = cz + 350 + half; a < BACKDROP + half; a += 1700) alongs.push(a);
+			else for (let k = -4; k <= 4; k++) alongs.push(k * 1700);
+			for (const a of alongs) {
+				const along = a + rng.range(-80, 80), s = rng.range(1.0, 1.1), dist = BACKDROP + rng.range(0, 160);
+				const x = nx !== 0 ? nx * dist : along, z = nz !== 0 ? nz * dist : along;
+				prop(ctx, asset, x, GROUND, z, faceYaw(-nx, -nz) + rng.range(-0.04, 0.04), s, 0, "backdrop");
+			}
 		}
-		for (const t of [-0.22, 0.18]) {
-			const radius = height * rng.range(0.28, 0.36);
-			const [ox, oz] = toWorld(length * t, 0, yaw);
-			const snow = theme === "plateau" && height > 430;
-			op(ctx, "ball", snow ? "Snow" : theme === "canyon" ? "Sandstone" : "Rock", x + ox, BASE_BOTTOM + height - radius * 0.6, z + oz, radius, 0, 0);
+	}
+	const islands = theme === "ocean" ? 7 : cz !== undefined ? 4 : 0;
+	for (let i = 0; i < islands; i++) {
+		let x: number, z: number;
+		if (theme === "ocean") {
+			const a = (i + rng.range(0.2, 0.8)) / islands * math.pi * 2, d = rng.range(8600, 12500);
+			const square = math.max(math.abs(math.cos(a)), math.abs(math.sin(a)));
+			x = math.cos(a) * d / square; z = math.sin(a) * d / square;
+		} else {
+			x = rng.range(-7000, 7000); z = rng.range(-13000, -8800);
 		}
+		prop(ctx, "RidgeAlpine", x, WATER_Y, z, rng.range(0, math.pi * 2), rng.range(0.28, 0.5), 0, "island");
 	}
 }
 
 // --- landmarks --------------------------------------------------------------
-const WHITE: Rgb = [236, 234, 214], ASPHALT: Rgb = [44, 49, 54], CONCRETE: Rgb = [128, 134, 137];
 function light(ctx: Ctx, x: number, y: number, z: number, color: Rgb): void {
 	part(ctx, "Navigation light", "block", x, y, z, 3, 2, 3, 0, color, "Neon", false);
+}
+/** One uploaded piece of a modular run (runway, apron, road, fence, power line): centre, yaw and uniform scale. */
+export interface Piece { asset: PropAsset; x: number; z: number; yaw: number; scale: number }
+/**
+ * A runway of two threshold ends and `middles` 270-stud segments laid end to end along local Z of `yaw`,
+ * centred on (cx, cz): 1000 studs with the default two. Each end piece's front (its threshold) faces outward.
+ */
+export function runwayPieces(cx: number, cz: number, yaw = 0, middles = 2): Piece[] {
+	const tip = UploadedAssetSpecs.RunwayThreshold.size.Z, mid = UploadedAssetSpecs.RunwaySegment.size.Z;
+	const [ux, uz] = toWorld(0, 1, yaw);
+	const out: Piece[] = [];
+	let t = -(2 * tip + middles * mid) / 2;
+	const at = (asset: PropAsset, length: number, turn: number) => {
+		out.push({ asset, x: cx + ux * (t + length / 2), z: cz + uz * (t + length / 2), yaw: yaw + turn, scale: 1 });
+		t += length;
+	};
+	at("RunwayThreshold", tip, 0);
+	for (let k = 0; k < middles; k++) at("RunwaySegment", mid, 0);
+	at("RunwayThreshold", tip, math.pi);
+	return out;
 }
 /** Runway, apron, hangars and tower: the Varda airfield block. Runway along local Z. */
 function airfield(ctx: Ctx, cx: number, cz: number): void {
 	const top = GROUND + 1;
-	part(ctx, "Runway shoulder", "block", cx, top - 1.5, cz, 130, 1, 1040, 0, CONCRETE, "Concrete", true, true);
-	part(ctx, "Runway", "block", cx, top - 0.5, cz, 100, 1, 1000, 0, ASPHALT, "Asphalt", true, true);
-	for (let i = 0; i < 8; i++) part(ctx, "Centreline", "block", cx, top + 0.15, cz - 315 + i * 90, 3, 0.3, 45, 0, WHITE, "SmoothPlastic", false);
-	for (const tip of [-1, 1]) {
-		for (const s of [-3, -2, -1, 1, 2, 3]) part(ctx, "Threshold", "block", cx + s * 12.5, top + 0.15, cz + tip * 455, 10, 0.3, 50, 0, WHITE, "SmoothPlastic", false);
-		part(ctx, "Approach bar", "block", cx, top + 1.5, cz + tip * 560, 80, 1.5, 3, 0, [255, 240, 200], "Neon", false);
-	}
+	for (const p of runwayPieces(cx, cz)) prop(ctx, p.asset, p.x, GROUND, p.z, p.yaw, p.scale);
+	for (const tip of [-1, 1]) part(ctx, "Approach bar", "block", cx, top + 1.5, cz + tip * 560, 80, 1.5, 3, 0, [255, 240, 200], "Neon", false);
 	for (let i = 0; i <= 8; i++) for (const side of [-1, 1]) light(ctx, cx + side * 56, top + 1, cz - 500 + i * 125, i === 0 || i === 8 ? [255, 120, 90] : [255, 244, 210]);
 	zone(ctx, "airfield", cx, cz, 70, 560);
 	// Hangars and tower on whichever side (and stretch of the runway) is clear, facing the runway.
@@ -739,7 +925,7 @@ function airfield(ctx: Ctx, cx: number, cz: number): void {
 		if (!all.every((r) => rectFree(ctx, r, 20, ["spawn"]) && math.abs(r.x) < 2600 && math.abs(r.z) < 2600 && !ctx.ridgeRects.some((m) => rectsOverlap(m, r, 30)))) continue;
 		if (!all.every((r) => dryFlat(ctx, r.x, r.z, 60, 0.5) === GROUND)) continue;
 		if (GROUND + 127 > limit(ctx, tower.x, tower.z, 40) || hangars.some((r) => GROUND + 40 > limit(ctx, r.x, r.z, 70))) continue;
-		part(ctx, "Apron", "block", cx + side * 112, top - 1, hz, 64, 2, 480, 0, CONCRETE, "Concrete", true, true);
+		for (const dz of [-120, 120]) prop(ctx, "ApronSlab", cx + side * 112, GROUND, hz + dz, 0, 1);
 		for (const r of hangars) prop(ctx, "Hangar", r.x, GROUND, r.z, side > 0 ? math.pi / 2 : -math.pi / 2, 1, 0);
 		prop(ctx, "ControlTower", tower.x, GROUND, tower.z, side > 0 ? math.pi / 2 : -math.pi / 2, 1, 0);
 		zone(ctx, "airfield", cx + side * 190, (math.min(hz - 216, tower.z - 26) + math.max(hz + 216, tower.z + 26)) / 2, 90, (math.max(hz + 216, tower.z + 26) - math.min(hz - 216, tower.z - 26)) / 2);
@@ -760,37 +946,36 @@ function chooseRiverX(ctx: Ctx, fx: number): number | undefined {
 		const rx = fx + 300 + (step % 2 === 0 ? 1 : -1) * math.floor((step + 1) / 2) * 20;
 		if (math.abs(rx) > 2300) continue;
 		const corridor: Rect = { x: rx, z: 0, hx: 95, hz: EXTENT, yaw: 0 };
-		if (!rectFree(ctx, corridor, 40, ["spawn", "road", "convoy"])) continue;
+		if (!rectFree(ctx, corridor, 40, ["spawn", "road", "convoy", "highway"])) continue;
 		return rx;
 	}
 	return undefined;
 }
+/** The uploaded river bridge's yaw: its length runs across the north-south river, along X. */
+const BRIDGE_YAW = faceYaw(1, 0);
 function river(ctx: Ctx, fx: number, fz: number): void {
 	const rx = chooseRiverX(ctx, fx);
 	if (rx === undefined) return;
-	for (let z = -EXTENT; z < EXTENT; z += TILE) {
-		const mz = z + TILE / 2;
-		op(ctx, "block", "Ground", rx, (28 + BASE_BOTTOM) / 2, mz, 176, BASE_BOTTOM - 28, TILE);
-		op(ctx, "block", "Air", rx, (32 + GROUND + 8) / 2, mz, 160, GROUND + 8 - 32, TILE);
-		op(ctx, "block", "Water", rx, (32 + RIVER_WATER) / 2, mz, 160, RIVER_WATER - 32, TILE);
-		for (const side of [-1, 1]) op(ctx, "block", "Sand", rx + side * 94, GROUND - 2, mz, 28, 4, TILE);
+	for (let z = -EXTENT; z < EXTENT - 0.5; z += TILE) {
+		const length = math.min(TILE, EXTENT - z), mz = z + length / 2;
+		// The bed block reaches the outer ring's single ground layer too, so the channel has walls all the way.
+		op(ctx, "block", "Ground", rx, (28 + OUTER_BOTTOM) / 2, mz, 176, OUTER_BOTTOM - 28, length);
+		op(ctx, "block", "Air", rx, (32 + GROUND + 8) / 2, mz, 160, GROUND + 8 - 32, length);
+		op(ctx, "block", "Water", rx, (32 + RIVER_WATER) / 2, mz, 160, RIVER_WATER - 32, length);
+		for (const side of [-1, 1]) op(ctx, "block", "Sand", rx + side * 94, GROUND - 2, mz, 28, 4, length);
 	}
 	zone(ctx, "river", rx, 0, 110, EXTENT);
-	// The bridge carries the track across; abutments on the banks, piers in the river bed.
-	const deckY = 70;
-	part(ctx, "Bridge deck", "block", rx, deckY, fz, 450, 9, 45, 0, [111, 115, 108], "Concrete", true, false);
-	for (const side of [-1, 1]) part(ctx, "Bridge rail", "block", rx, deckY + 6.5, fz + side * 21.5, 450, 4, 2, 0, [70, 74, 78], "Metal", true, false);
-	for (const x of [-150, -50, 50, 150]) part(ctx, "Bridge pier", "block", rx + x, (28 + deckY - 4.5) / 2, fz, 14, deckY - 4.5 - 28, 40, 0, [98, 108, 112], "Concrete", true, math.abs(x) > 80);
-	for (const x of [-205, 205]) part(ctx, "Bridge abutment", "block", rx + x, (GROUND + deckY - 4.5) / 2, fz, 40, deckY - 4.5 - GROUND, 60, 0, [120, 112, 100], "Concrete", true, true);
-	zone(ctx, "bridge", rx, fz, 240, 50);
-	// Other roads cross on low road bridges.
-	for (const road of ctx.roads) for (let i = 1; i < road.size(); i++) {
+	// The uploaded bridge carries the track across: ramps and abutments on the banks, piers in the river bed.
+	prop(ctx, "RoadBridge", rx, GROUND, fz, BRIDGE_YAW, 1);
+	zone(ctx, "bridge", rx, fz, 160, 30);
+	// Other roads (and the highways) cross on the same bridge, square to the river.
+	for (const road of [...ctx.roads, ...ctx.highways]) for (let i = 1; i < road.size(); i++) {
 		const [ax, az] = road[i - 1], [bx, bz] = road[i];
 		if ((ax - rx) * (bx - rx) >= 0) continue;
 		const t = (rx - ax) / (bx - ax), z = az + (bz - az) * t;
-		if (math.abs(z - fz) < 80) continue;
-		part(ctx, "Road bridge", "block", rx, GROUND + 2, z, 200, 3, 30, axisYaw(bx - ax, bz - az), [104, 106, 104], "Concrete", true, false);
-		for (const s of [-1, 1]) part(ctx, "Bridge pier", "block", rx + s * 45, (32 + GROUND) / 2, z, 10, GROUND - 32, 24, 0, [98, 108, 112], "Concrete", true, false);
+		if (math.abs(z - fz) < 80 || math.abs(z) > EXTENT - 250) continue;
+		prop(ctx, "RoadBridge", rx, GROUND, z, BRIDGE_YAW, 1);
+		zone(ctx, "bridge", rx, z, 160, 30);
 	}
 }
 function orchard(ctx: Ctx, fx: number, fz: number): void {
@@ -822,18 +1007,19 @@ function relayArray(ctx: Ctx, fx: number, fz: number): number {
 		prop(ctx, asset, spot[0], spot[1], spot[2], faceYaw(fx - spot[0], fz - spot[2]), 1, 0);
 		circle(ctx, "landmark", spot[0], spot[2], r + 10);
 		if (asset === "RelayMast") light(ctx, spot[0], spot[1] + height + 3, spot[2], [255, 70, 60]);
-		else part(ctx, "Equipment hut", "block", spot[0] + 46, spot[1] + 5, spot[2], 20, 10, 14, 0, [96, 104, 108], "Metal", true, true);
+		else {
+			const hut = dryFlat(ctx, spot[0] + 46, spot[2], 10, 1);
+			if (hut !== undefined) prop(ctx, "EquipmentHut", spot[0] + 46, hut, spot[2], 0, 1);
+		}
 		placed += 1;
 	}
 	return placed;
 }
 function cityCentre(ctx: Ctx, fx: number, fz: number): void {
 	op(ctx, "block", "Pavement", fx, GROUND - 2, fz, 520, 4, 300, 0);
-	const stone: Rgb = [199, 191, 165];
-	part(ctx, "Parliament", "block", fx, GROUND + 33, fz - 210, 230, 66, 100, 0, stone, "Concrete", true, true);
-	part(ctx, "Parliament steps", "block", fx, GROUND + 3, fz - 150, 200, 6, 20, 0, [214, 206, 182], "Concrete", true, true);
-	for (let i = -4; i <= 4; i++) part(ctx, "Parliament column", "cylinder", fx + i * 24, GROUND + 35, fz - 152, 9, 70, 9, 0, [224, 216, 193], "Marble", true, true);
-	part(ctx, "Parliament roof", "wedge", fx, GROUND + 72, fz - 180, 240, 12, 70, 0, [120, 116, 106], "Slate", true, false);
+	// The uploaded civic hall: its back on the plaza's far edge (fz - 260), its portico and steps facing the plaza.
+	const hall = UploadedAssetSpecs.CivicHall;
+	prop(ctx, "CivicHall", fx, GROUND, fz - 260 + hall.size.Z / 2, math.pi, 1);
 	zone(ctx, "plaza", fx, fz - 60, 270, 210);
 }
 
@@ -930,19 +1116,15 @@ function platformHub(ctx: Ctx): number[] | undefined {
 	return [sx / g.size(), sz / g.size() + 120];
 }
 const DECK_TOP = WATER_Y + 64;
-const STEEL: Rgb = [201, 178, 60], DECK: Rgb = [93, 98, 102];
+/** The uploaded store deck (legs on the seabed, deck top at DECK_TOP) and its gangways to the platform hub. */
 function storeDeck(ctx: Ctx, index: number, x: number, z: number, hub: number[] | undefined): void {
-	part(ctx, "Store deck", "block", x, DECK_TOP - 3, z, 150, 6, 150, 0, DECK, "DiamondPlate", true, false);
-	for (const [lx, lz] of [[-60, -60], [60, -60], [60, 60], [-60, 60]]) {
-		part(ctx, "Deck leg", "cylinder", x + lx, (SEABED_BOTTOM + DECK_TOP - 6) / 2, z + lz, 7, DECK_TOP - 6 - SEABED_BOTTOM, 7, 0, STEEL, "Metal", true, true);
-	}
-	for (const side of [-1, 1]) part(ctx, "Deck brace", "block", x, WATER_Y + 16, z + side * 60, 124, 3, 3, 0, STEEL, "Metal", true, false);
+	prop(ctx, "StoreDeck", x, WATER_Y, z, 0, 1);
 	if (hub) {
 		const dx = hub[0] - x, dz = hub[1] - z, len = math.sqrt(dx * dx + dz * dz);
 		const gap = len - 75 - 140;
 		if (gap > 10) {
-			const mid = 75 + gap / 2;
-			part(ctx, "Walkway", "block", x + dx / len * mid, DECK_TOP - 2, z + dz / len * mid, gap, 3, 10, axisYaw(dx, dz), [150, 150, 146], "Metal", true, false);
+			const ux = dx / len, uz = dz / len;
+			for (const p of tilePieces("Gangway", x + ux * 75, z + uz * 75, x + ux * (75 + gap), z + uz * (75 + gap), 1)) prop(ctx, p.asset, p.x, DECK_TOP, p.z, p.yaw, p.scale);
 		}
 	}
 	zone(ctx, "deck", x, z, 80, 80);
@@ -1029,13 +1211,40 @@ function settlements(ctx: Ctx): void {
 		if (coast) {
 			// Street grid between the blocks.
 			const x0 = sx - spX / 2, x1 = sx + (cols - 0.5) * spX, z0 = sz - spZ / 2, z1 = sz + (rows - 0.5) * spZ;
-			for (let r = 0; r <= rows; r++) roadLine(ctx, [[x0, z0 + r * spZ], [x1, z0 + r * spZ]], 22, [58, 62, 66], "Street");
-			for (let c = 0; c <= cols; c++) roadLine(ctx, [[x0 + c * spX, z0], [x0 + c * spX, z1]], 22, [58, 62, 66], "Street");
+			for (let r = 0; r <= rows; r++) roadLine(ctx, [[x0, z0 + r * spZ], [x1, z0 + r * spZ]], "street", false, 0);
+			for (let c = 0; c <= cols; c++) roadLine(ctx, [[x0 + c * spX, z0], [x0 + c * spX, z1]], "street", false, 0.3);
 		}
 	}
 }
-/** A flat road polyline at ground level, cut where it would leave dry flat land or cross a boat path. */
-function roadLine(ctx: Ctx, points: number[][], width: number, color: Rgb, name = "Road"): void {
+/**
+ * Uploaded pieces laid end to end from A to B: `asset` is a tileable piece whose length runs along its local Z,
+ * scaled uniformly so a whole number of pieces fills the run exactly (no overlap, so no z-fighting), at a
+ * scale within 25% of `target`. Runs too short for one piece at 75% of the target scale stay empty.
+ */
+export function tilePieces(asset: PropAsset, ax: number, az: number, bx: number, bz: number, target: number): Piece[] {
+	const length = UploadedAssetSpecs[asset].size.Z;
+	const len = math.sqrt((bx - ax) * (bx - ax) + (bz - az) * (bz - az));
+	if (len < length * target * 0.75) return [];
+	const n = math.max(1, math.floor(len / (length * target) + 0.5)), s = len / (n * length);
+	const ux = (bx - ax) / len, uz = (bz - az) / len, yaw = faceYaw(ux, uz);
+	const out: Piece[] = [];
+	for (let k = 0; k < n; k++) out.push({ asset, x: ax + ux * len * (k + 0.5) / n, z: az + uz * len * (k + 0.5) / n, yaw, scale: s });
+	return out;
+}
+type RoadKind = "road" | "street" | "track";
+const ROAD_ASSET: Record<RoadKind, PropAsset> = { road: "RoadSegment", street: "RoadSegment", track: "DirtTrack" };
+const ROAD_SCALE: Record<RoadKind, number> = { road: 1, street: 0.88, track: 1 };
+/**
+ * A road polyline of uploaded segments at ground level, cut where it would leave dry flat land or cross a
+ * boat path (and, for `avoid`, a reserved zone). Each call lifts its pieces a little above the last, so
+ * crossing roads lie one over the other instead of sharing a plane.
+ */
+function roadLine(ctx: Ctx, points: number[][], kind: RoadKind, avoid = false, fixedLift?: number): void {
+	const asset = ROAD_ASSET[kind], spec = UploadedAssetSpecs[asset];
+	const width = spec.size.X * ROAD_SCALE[kind] * 1.25;
+	// City streets: rows at 0, columns at 0.3; every other road a further 0.2 up per call (at most 1.1).
+	const lift = fixedLift ?? 0.5 + (ctx.roadCalls % 4) * 0.2;
+	ctx.roadCalls += 1;
 	for (let i = 1; i < points.size(); i++) {
 		const [ax, az] = points[i - 1], [bx, bz] = points[i];
 		const len = math.sqrt((bx - ax) * (bx - ax) + (bz - az) * (bz - az));
@@ -1044,12 +1253,8 @@ function roadLine(ctx: Ctx, points: number[][], width: number, color: Rgb, name 
 		const flush = (endK: number) => {
 			if (runStart === undefined) return;
 			const t0 = runStart / n, t1 = endK / n;
-			const sx0 = ax + (bx - ax) * t0, sz0 = az + (bz - az) * t0, sx1 = ax + (bx - ax) * t1, sz1 = az + (bz - az) * t1;
-			const l = math.sqrt((sx1 - sx0) * (sx1 - sx0) + (sz1 - sz0) * (sz1 - sz0));
-			if (l > 10) for (let piece = 0; piece < math.ceil(l / 1800); piece++) {
-				const pieces = math.ceil(l / 1800), u0 = piece / pieces, u1 = (piece + 1) / pieces;
-				const px = sx0 + (sx1 - sx0) * (u0 + u1) / 2, pz = sz0 + (sz1 - sz0) * (u0 + u1) / 2;
-				part(ctx, name, "block", px, GROUND + 0.5, pz, l / pieces + width * 0.5, 1, width, axisYaw(bx - ax, bz - az), color, "Asphalt", true, true);
+			for (const p of tilePieces(asset, ax + (bx - ax) * t0, az + (bz - az) * t0, ax + (bx - ax) * t1, az + (bz - az) * t1, ROAD_SCALE[kind])) {
+				prop(ctx, p.asset, p.x, GROUND + lift, p.z, p.yaw, p.scale);
 			}
 			runStart = undefined;
 		};
@@ -1062,6 +1267,7 @@ function roadLine(ctx: Ctx, points: number[][], width: number, color: Rgb, name 
 		for (let k = 0; k <= n; k++) {
 			const x = ax + (bx - ax) * k / n, z = az + (bz - az) * k / n;
 			let ok = ctx.plan.waterPaths.every((p) => polyDist(x, z, p.points) > (p.canal ? p.half + 12 : p.half));
+			if (ok && avoid && !free(ctx, x, z, width / 2 + 4, ["highway", "road", "spawn", "hill", "river", "bridge"])) ok = false;
 			for (const along of [-reach, 0, reach]) for (const side of [-1, 0, 1]) {
 				if (ok && !flatAt(x + ux * along - uz * side * width / 2, z + uz * along + ux * side * width / 2)) ok = false;
 			}
@@ -1072,17 +1278,146 @@ function roadLine(ctx: Ctx, points: number[][], width: number, color: Rgb, name 
 	}
 }
 function roads(ctx: Ctx): void {
-	const dirt: Rgb = [128, 104, 78];
-	for (const road of ctx.roads) roadLine(ctx, road, 25, ctx.theme === "canyon" ? dirt : [54, 58, 62]);
-	for (const path of ctx.plan.groundPaths) roadLine(ctx, path, 20, dirt, "Track");
+	for (const road of ctx.roads) roadLine(ctx, road, ctx.theme === "canyon" ? "track" : "road");
+	for (const path of ctx.plan.groundPaths) roadLine(ctx, path, "track");
+	for (const road of ctx.highways) roadLine(ctx, road, ctx.theme === "canyon" ? "track" : "road", true);
 }
-function scatterTrees(ctx: Ctx, total: number, pineShare: number): void {
+/**
+ * Roads from the authored road's two ends out towards the map edge through the explorable ring, turned
+ * up to 30 degrees off the radial line until clear of targets, actors, boat paths, settlements and the
+ * layout's relief. Reserved before anything else is built, so later placements keep off them.
+ */
+function highways(ctx: Ctx): void {
+	const road = ctx.layout.road, cz = ctx.plan.coastZ;
+	if (ctx.theme === "ocean" || road.size() < 2) return;
+	for (const head of [road[0], road[road.size() - 1]]) {
+		const r = math.sqrt(head[0] * head[0] + head[1] * head[1]);
+		const base = r > 1 ? math.atan2(head[1], head[0]) : math.pi / 2;
+		for (const turn of [0, 0.26, -0.26, 0.52, -0.52]) {
+			const a = base + turn, dx = math.cos(a), dz = math.sin(a);
+			const reach = (EXTENT - 150 - ring(head[0], head[1])) / math.max(math.abs(dx), math.abs(dz));
+			if (reach < 1500) continue;
+			const far = [head[0] + dx * reach, head[1] + dz * reach];
+			let ok = true;
+			for (let d = 160; d <= reach && ok; d += 60) {
+				const x = head[0] + dx * d, z = head[1] + dz * d;
+				if (cz !== undefined && z < cz + 160) ok = false;
+				else if (!free(ctx, x, z, 40, ["road", "highway"])) ok = false;
+				else if (ctx.ridgeRects.some((rr) => rectPointDist(rr, x, z) < 70)) ok = false;
+			}
+			if (!ok) continue;
+			const pts = [head, far];
+			ctx.highways.push(pts);
+			ctx.corridors.push({ points: pts, half: 34, tag: "highway" });
+			break;
+		}
+	}
+}
+/** Uploaded fence spans along a line, cut where the ground is not flat and dry or something is in the way. */
+function fenceLine(ctx: Ctx, ax: number, az: number, bx: number, bz: number, ignore: string[]): number {
+	const len = math.sqrt((bx - ax) * (bx - ax) + (bz - az) * (bz - az));
+	const n = math.max(1, math.ceil(len / 15));
+	let placed = 0, runStart: number | undefined;
+	const flush = (endK: number) => {
+		if (runStart === undefined) return;
+		for (const p of tilePieces("FenceSpan", ax + (bx - ax) * runStart / n, az + (bz - az) * runStart / n, ax + (bx - ax) * endK / n, az + (bz - az) * endK / n, 1)) {
+			prop(ctx, p.asset, p.x, GROUND, p.z, p.yaw, p.scale);
+			placed += 1;
+		}
+		runStart = undefined;
+	};
+	for (let k = 0; k <= n; k++) {
+		const x = ax + (bx - ax) * k / n, z = az + (bz - az) * k / n;
+		const t = groundAt(ctx, x, z);
+		const ok = t.water === undefined && math.abs(t.solid - GROUND) < 0.5 && free(ctx, x, z, 6, ignore) && inMap(x, z, EXTENT - 300);
+		if (ok && runStart === undefined) runStart = k;
+		if (!ok) flush(k - 1);
+	}
+	flush(n);
+	return placed;
+}
+/** Fences along the front and back of each farm settlement (farm and plateau maps). */
+function fences(ctx: Ctx, blocks: number[][]): void {
+	let total = 0;
+	for (const [x0, z0, x1, z1] of blocks) {
+		if (total > 48) break;
+		for (const z of [z0, z1]) total += fenceLine(ctx, x0, z, x1, z, ["settlement", "spawn", "hill", "orchard"]);
+	}
+}
+/** Lattice power lines beside the highways: spans of the uploaded pylon and its conductors, built outer end inward. */
+function powerLines(ctx: Ctx): void {
+	if (ctx.theme === "canyon" || ctx.theme === "ocean") return;
+	const spec = UploadedAssetSpecs.PowerLineSpan, span = 300;
+	for (const [start, finish] of ctx.highways) {
+		const len = math.sqrt((finish[0] - start[0]) * (finish[0] - start[0]) + (finish[1] - start[1]) * (finish[1] - start[1]));
+		const ux = (start[0] - finish[0]) / len, uz = (start[1] - finish[1]) / len;
+		const ox = -uz * 48, oz = ux * 48;
+		// From the edge inward: pylon k stands span*k in from the outer end; its conductors run back to pylon k-1.
+		for (let k = 1; k * span < len - 400; k++) {
+			const px = finish[0] + ox + ux * span * k, pz = finish[1] + oz + uz * span * k;
+			if (ring(px, pz) < CORE - 200) break;
+			const y = dryFlat(ctx, px, pz, 7, 1.5);
+			if (y === undefined || y + spec.size.Y > limit(ctx, px, pz, span / 2) || !free(ctx, px, pz, 12, ["highway", "road"])) break;
+			const back = spec.size.Z / 2 - span;
+			prop(ctx, "PowerLineSpan", px + ux * back, y, pz + uz * back, faceYaw(ux, uz), 1);
+		}
+	}
+}
+/** Small farmsteads (or a hamlet on the coast) beside the highways in the explorable ring, fenced on farm maps. */
+function outerSettlements(ctx: Ctx): void {
+	const { rng, theme } = ctx;
+	const coast = theme === "coast";
+	const choices: PropAsset[][] = coast ? [["ApartmentBlock"], ["OfficeMidrise"], ["ApartmentBlock"], ["Farmhouse"]] : theme === "farm" ? [["Farmhouse"], ["Barn"], ["GrainSilo"], ["Farmhouse"]] : [["Farmhouse"], ["Barn"]];
+	const fenceBlocks: number[][] = [];
+	for (const [start, finish] of ctx.highways) {
+		const len = math.sqrt((finish[0] - start[0]) * (finish[0] - start[0]) + (finish[1] - start[1]) * (finish[1] - start[1]));
+		const ux = (finish[0] - start[0]) / len, uz = (finish[1] - start[1]) / len;
+		for (const along of [0.55, 0.8]) {
+			const side = rng.next() < 0.5 ? -1 : 1;
+			const cx = start[0] + ux * len * along - uz * side * 170, cz = start[1] + uz * len * along + ux * side * 170;
+			if (ring(cx, cz) < CORE + 200 || ring(cx, cz) > FlightMath.SoftBoundary - 200) continue;
+			let placed = 0;
+			for (let k = 0; k < choices.size(); k++) {
+				const asset = choices[k][0], size = UploadedAssetSpecs[asset].size;
+				const x = cx + ux * (k % 2) * 90 - uz * side * math.floor(k / 2) * 90, z = cz + uz * (k % 2) * 90 + ux * side * math.floor(k / 2) * 90;
+				const yaw = faceYaw(uz * side, -ux * side) + rng.range(-0.05, 0.05);
+				const rect: Rect = { x, z, hx: size.X / 2, hz: size.Z / 2, yaw };
+				if (!rectFree(ctx, rect, 14, [])) continue;
+				let ok = true;
+				for (const [sx, sz] of [[-1, -1], [1, -1], [1, 1], [-1, 1], [0, 0]]) {
+					const [ox, oz] = toWorld(sx * rect.hx, sz * rect.hz, yaw);
+					const t = groundAt(ctx, x + ox, z + oz);
+					if (t.water !== undefined || math.abs(t.solid - GROUND) > 0.5) ok = false;
+				}
+				if (!ok || GROUND + size.Y > limit(ctx, x, z, math.max(size.X, size.Z) / 2)) continue;
+				prop(ctx, asset, x, GROUND, z, yaw, 1, rng.int(0, 2));
+				zone(ctx, "building", x, z, rect.hx, rect.hz, yaw);
+				placed += 1;
+			}
+			if (placed > 0 && theme === "farm") {
+				const x0 = math.min(cx, cx + ux * 90 - uz * side * 90) - 70, x1 = math.max(cx, cx + ux * 90 - uz * side * 90) + 70;
+				const z0 = math.min(cz, cz + uz * 90 + ux * side * 90) - 70, z1 = math.max(cz, cz + uz * 90 + ux * side * 90) + 70;
+				fenceBlocks.push([x0, z0, x1, z1]);
+			}
+		}
+	}
+	if (fenceBlocks.size() > 0) fences(ctx, fenceBlocks);
+}
+/** Where a tier scatters: the core square, or the explorable ring out to just inside the soft boundary. */
+type Tier = "core" | "outer";
+function inTier(tier: Tier, x: number, z: number): boolean {
+	return tier === "core" ? inMap(x, z, 2700) : ring(x, z) >= CORE - 300 && ring(x, z) <= FlightMath.SoftBoundary - 150;
+}
+function tierPoint(ctx: Ctx, tier: Tier): [number, number] {
+	return tier === "core" ? [ctx.rng.range(-2600, 2600), ctx.rng.range(-2600, 2600)] : ringPoint(ctx.rng, CORE, FlightMath.SoftBoundary - 250);
+}
+function scatterTrees(ctx: Ctx, total: number, pineShare: number, tier: Tier = "core"): void {
 	const { rng } = ctx;
 	const spots: number[][] = [];
 	for (const p of ctx.plan.props) if (p.asset === "Pine" || p.asset === "Broadleaf") spots.push([p.x, p.z]);
 	let count = 0;
 	const tryTree = (x: number, z: number): boolean => {
-		if (count >= total || !inMap(x, z, 2700) || !free(ctx, x, z, 16, TREE_IGNORE)) return false;
+		if (count >= total || !inTier(tier, x, z) || !free(ctx, x, z, 16, TREE_IGNORE)) return false;
 		for (const s of spots) if ((s[0] - x) * (s[0] - x) + (s[1] - z) * (s[1] - z) < 22 * 22) return false;
 		const y = dryFlat(ctx, x, z, 9, 6);
 		if (y === undefined) return false;
@@ -1094,30 +1429,33 @@ function scatterTrees(ctx: Ctx, total: number, pineShare: number): void {
 		count += 1;
 		return true;
 	};
-	// Woods: clusters of 6-14 trees.
+	// Woods: clusters of 6-14 trees (larger, sparser woods in the explorable ring).
 	for (let attempt = 0; attempt < 300 && count < total * 0.75; attempt++) {
-		const cx = rng.range(-2500, 2500), cz = rng.range(-2500, 2500);
+		const [cx, cz] = tierPoint(ctx, tier);
 		if (!free(ctx, cx, cz, 50, TREE_IGNORE)) continue;
-		const n = rng.int(6, 14), radius = rng.range(50, 130);
+		const n = rng.int(6, 14), radius = tier === "core" ? rng.range(50, 130) : rng.range(110, 220);
 		for (let j = 0; j < n * 3; j++) {
 			const a = rng.range(0, math.pi * 2), d = radius * math.sqrt(rng.next());
 			tryTree(cx + math.cos(a) * d, cz + math.sin(a) * d);
 		}
 	}
 	// Roadside rows, then singles.
-	for (const road of ctx.roads) for (let i = 1; i < road.size(); i++) {
+	for (const road of tier === "core" ? ctx.roads : ctx.highways) for (let i = 1; i < road.size(); i++) {
 		const [ax, az] = road[i - 1], [bx, bz] = road[i];
 		const len = math.sqrt((bx - ax) * (bx - ax) + (bz - az) * (bz - az));
 		for (let t = 60; t < len; t += 110) for (const side of [-1, 1]) tryTree(ax + (bx - ax) * t / len - (bz - az) / len * side * 44, az + (bz - az) * t / len + (bx - ax) / len * side * 44);
 	}
-	for (let attempt = 0; attempt < 400 && count < total; attempt++) tryTree(rng.range(-2600, 2600), rng.range(-2600, 2600));
+	for (let attempt = 0; attempt < 400 && count < total; attempt++) {
+		const [x, z] = tierPoint(ctx, tier);
+		tryTree(x, z);
+	}
 }
-function scatterRocks(ctx: Ctx, total: number): void {
+function scatterRocks(ctx: Ctx, total: number, tier: Tier = "core"): void {
 	const { rng } = ctx;
 	const variants: PropAsset[] = ["RockA", "RockB", "RockC"];
 	let count = 0;
 	const tryRock = (x: number, z: number, big: number) => {
-		if (count >= total || !inMap(x, z, 2700) || !free(ctx, x, z, 12, ["spawn", "hill", "settlement"])) return;
+		if (count >= total || !inTier(tier, x, z) || !free(ctx, x, z, 12, ["spawn", "hill", "settlement"])) return;
 		const t = groundAt(ctx, x, z);
 		if (t.water !== undefined || t.solid < GROUND - 1) return;
 		const asset = variants[rng.int(0, 2)], scale = rng.range(0.9, big);
@@ -1137,21 +1475,29 @@ function scatterRocks(ctx: Ctx, total: number): void {
 		const [ox, oz] = toWorld(lx, lz, r.yaw);
 		tryRock(r.x + ox, r.z + oz, ctx.theme === "canyon" ? 3.5 : 3);
 	}
-	for (let attempt = 0; attempt < total * 8 && count < total; attempt++) tryRock(rng.range(-2600, 2600), rng.range(-2600, 2600), 2.4);
+	for (let attempt = 0; attempt < total * 8 && count < total; attempt++) {
+		const [x, z] = tierPoint(ctx, tier);
+		tryRock(x, z, tier === "core" ? 2.4 : 3.2);
+	}
 }
-/** Ground or sea tiles from the terrain edge to FAR (parts: cheap, never meshed as voxels). */
-function farTiles(ctx: Ctx, waterColor: Rgb): void {
+/** Physical edge of a skirt part (the engine's part-size limit is 2048); the rest of its size is mesh stretch. */
+const SKIRT_PART = 2000;
+/**
+ * Far skirts: four stretched parts (split at the coast line) carry the ground or sea from the voxel edge out to
+ * FAR, where the haze has long since swallowed them. Decoration only: nothing flies past the hard boundary.
+ */
+function skirts(ctx: Ctx, waterColor: Rgb): void {
 	const groundColor: Rgb = ctx.theme === "canyon" ? [166, 122, 84] : ctx.theme === "plateau" ? [104, 118, 82] : [96, 128, 70];
 	const cz = ctx.plan.coastZ;
-	const sea: Rgb = [math.floor(waterColor[0] * 0.85), math.floor(waterColor[1] * 0.85), math.floor(waterColor[2] * 0.85)];
-	for (let tx = -FAR; tx < FAR; tx += TILE) for (let tz = -FAR; tz < FAR; tz += TILE) {
-		if (tx >= -EXTENT && tx + TILE <= EXTENT && tz >= -EXTENT && tz + TILE <= EXTENT) continue;
-		const cuts: number[][] = cz !== undefined && tz < cz && tz + TILE > cz ? [[tz, cz], [cz, tz + TILE]] : [[tz, tz + TILE]];
-		for (const [z0, z1] of cuts) {
-			const wet = ctx.theme === "ocean" || (cz !== undefined && z1 <= cz);
-			const midX = tx + TILE / 2, midZ = (z0 + z1) / 2;
-			if (wet) part(ctx, "Sea", "block", midX, WATER_Y - 2, midZ, TILE, 4, z1 - z0, 0, sea, "SmoothPlastic", true, false, { reflectance: 0.12 });
-			else part(ctx, "Far ground", "block", midX, GROUND - 4, midZ, TILE, 8, z1 - z0, 0, groundColor, ctx.theme === "canyon" ? "Sand" : "Grass", true, false);
+	const seaColor: Rgb = [math.floor(waterColor[0] * 0.85), math.floor(waterColor[1] * 0.85), math.floor(waterColor[2] * 0.85)];
+	for (const [x0, x1, z0, z1] of [[-FAR, FAR, -FAR, -EXTENT], [-FAR, FAR, EXTENT, FAR], [-FAR, -EXTENT, -EXTENT, EXTENT], [EXTENT, FAR, -EXTENT, EXTENT]]) {
+		const cuts: number[][] = cz !== undefined && z0 < cz && z1 > cz ? [[z0, cz], [cz, z1]] : [[z0, z1]];
+		for (const [a, b] of cuts) {
+			const wet = ctx.theme === "ocean" || (cz !== undefined && b <= cz);
+			const w = x1 - x0, d = b - a, px = math.min(w, SKIRT_PART), pz = math.min(d, SKIRT_PART);
+			const stretch: [number, number, number] = [w / px, 1, d / pz];
+			if (wet) part(ctx, "Sea", "block", (x0 + x1) / 2, WATER_Y - 2, (a + b) / 2, px, 4, pz, 0, seaColor, "SmoothPlastic", false, false, { reflectance: 0.12, stretch });
+			else part(ctx, "Far ground", "block", (x0 + x1) / 2, GROUND - 4, (a + b) / 2, px, 8, pz, 0, groundColor, ctx.theme === "canyon" ? "Sand" : "Grass", false, false, { stretch });
 		}
 	}
 }
@@ -1167,13 +1513,16 @@ function build(id: number): WorldPlan {
 		ops: [], parts: [], props: [], targets: [], waterPaths: [], groundPaths: [], air: airSamples(bp),
 		materialColors: MATERIAL_COLORS[theme],
 	};
-	const ctx: Ctx = { id, bp, layout, theme, rng: new Rng(id * 7919 + 17), plan, zones: [], corridors: [], ridgeRects: [], moles: [], roads: [], canalOps: [] };
+	const ctx: Ctx = { id, bp, layout, theme, rng: new Rng(id * 7919 + 17), plan, zones: [], corridors: [], ridgeRects: [], moles: [], roads: [], highways: [], canalOps: [], cliffs: 0, roadCalls: 0 };
 	reserve(ctx);
 	const [fx, fz] = layout.focus;
+	const farmBlocks: number[][] = [];
 	for (const s of layout.settlements) {
 		const spX = theme === "coast" ? 230 : theme === "farm" ? 170 : 150, spZ = theme === "coast" ? 190 : theme === "farm" ? 170 : 140;
 		zone(ctx, "settlement", s[0] + (s[2] - 1) * spX / 2, s[1] + (s[3] - 1) * spZ / 2, s[2] * spX / 2 + 20, s[3] * spZ / 2 + 20);
+		farmBlocks.push([s[0] - spX / 2 - 30, s[1] - spZ / 2 - 30, s[0] + (s[2] - 0.5) * spX + 30, s[1] + (s[3] - 0.5) * spZ + 30]);
 	}
+	highways(ctx);
 	if (theme === "coast") coastBase(ctx, plan.coastZ!);
 	else if (theme === "ocean") oceanBase(ctx);
 	else inlandBase(ctx);
@@ -1194,24 +1543,44 @@ function build(id: number): WorldPlan {
 	if (theme === "ocean") ocean(ctx);
 	corridorWalls(ctx);
 	hills(ctx);
-	mountainRing(ctx);
+	outerRelief(ctx);
+	backdrop(ctx);
 	settlements(ctx);
+	outerSettlements(ctx);
 	if (theme === "coast") beaches(ctx, plan.coastZ!);
 	if (theme === "coast") reopenCanals(ctx);
 	roads(ctx);
+	powerLines(ctx);
+	if (theme === "farm" || theme === "plateau") fences(ctx, farmBlocks);
 	const treeTotal = theme === "farm" ? 140 : theme === "coast" ? 90 : theme === "plateau" ? 80 : theme === "canyon" ? 36 : 0;
 	const orchardTrees = plan.props.filter((p) => p.asset === "Broadleaf").size();
-	scatterTrees(ctx, math.max(treeTotal - orchardTrees, theme === "farm" ? 40 : 0), theme === "farm" ? 0.3 : theme === "coast" ? 0.4 : theme === "plateau" ? 0.85 : 0.6);
+	const pineShare = theme === "farm" ? 0.3 : theme === "coast" ? 0.4 : theme === "plateau" ? 0.85 : 0.6;
+	scatterTrees(ctx, math.max(treeTotal - orchardTrees, theme === "farm" ? 40 : 0), pineShare);
 	scatterRocks(ctx, theme === "canyon" ? 44 : theme === "plateau" ? 36 : theme === "farm" ? 22 : theme === "coast" ? 14 : 0);
-	farTiles(ctx, env.water.color);
+	// The explorable ring: about a third of the core's trees and rocks over five times the area.
+	scatterTrees(ctx, theme === "farm" ? 60 : theme === "coast" ? 40 : theme === "plateau" ? 40 : theme === "canyon" ? 16 : 0, pineShare, "outer");
+	scatterRocks(ctx, theme === "canyon" ? 24 : theme === "plateau" ? 18 : theme === "farm" ? 8 : theme === "coast" ? 6 : 0, "outer");
+	skirts(ctx, env.water.color);
 	return plan;
 }
 
 export interface WorldCounts {
 	terrainOps: number; voxelWrites: number; bumpCells: number; parts: number; props: number; uniqueMeshes: number;
 	trees: number; rocks: number; buildings: number; ships: number; instances: number;
+	/** Props in the core, in the explorable ring (backdrop excluded) and in the backdrop ring and islands. */
+	coreProps: number; outerProps: number; backdrop: number;
+	/** Modular runway, apron, road, track, bridge, hardstand, deck, gangway, fence and power-line pieces. */
+	infrastructure: number;
+	/**
+	 * Rough server build time in seconds, from assumed engine rates (calibrate against WorldBuildSeconds):
+	 * Fill* at 25M voxels/s, the hills' Luau voxel loop at 2M cells/s, 0.05 ms a part, 0.2 ms a prop clone.
+	 * Excludes the template preload, which runs in parallel and is cached after the first sortie.
+	 */
+	estimatedSeconds: number;
 }
-const BUILDINGS = new Set<PropAsset>(["Hangar", "ControlTower", "OfficeMidrise", "ApartmentBlock", "CityTower", "Farmhouse", "Barn", "GrainSilo", "ContainerStack", "HarbourQuay", "GantryCrane", "RadarDish", "RelayMast", "OilPlatform"]);
+const BUILDINGS = new Set<PropAsset>(["Hangar", "ControlTower", "OfficeMidrise", "ApartmentBlock", "CityTower", "Farmhouse", "Barn", "GrainSilo", "ContainerStack", "HarbourQuay", "GantryCrane", "RadarDish", "RelayMast", "OilPlatform", "EquipmentHut", "CivicHall"]);
+export const INFRASTRUCTURE = new Set<PropAsset>(["RunwaySegment", "RunwayThreshold", "ApronSlab", "RoadSegment", "DirtTrack", "RoadBridge", "TargetPad", "StoreDeck", "Gangway", "FenceSpan", "PowerLineSpan"]);
+export const BACKDROP_ASSETS = new Set<PropAsset>(["RidgeAlpine", "RidgeDesert"]);
 export function countPlan(plan: WorldPlan): WorldCounts {
 	let voxels = 0, cells = 0;
 	for (const o of plan.ops) {
@@ -1220,18 +1589,24 @@ export function countPlan(plan: WorldPlan): WorldCounts {
 		else voxels += fillVoxels(o);
 	}
 	const unique = new Set<string>();
-	let trees = 0, rocks = 0, buildings = 0, ships = 0;
+	let trees = 0, rocks = 0, buildings = 0, ships = 0, coreProps = 0, outerProps = 0, backdropProps = 0, infrastructure = 0;
 	for (const p of plan.props) {
 		unique.add(p.asset);
 		if (p.asset === "Pine" || p.asset === "Broadleaf") trees += 1;
 		else if (p.asset === "RockA" || p.asset === "RockB" || p.asset === "RockC") rocks += 1;
 		else if (p.asset === "Frigate") ships += 1;
 		else if (BUILDINGS.has(p.asset)) buildings += 1;
+		if (INFRASTRUCTURE.has(p.asset)) infrastructure += 1;
+		if (BACKDROP_ASSETS.has(p.asset)) backdropProps += 1;
+		else if (ring(p.x, p.z) <= CORE) coreProps += 1;
+		else outerProps += 1;
 	}
+	const estimatedSeconds = voxels / 25e6 + cells / 2e6 + plan.parts.size() * 0.00005 + plan.props.size() * 0.0002;
 	return {
 		terrainOps: plan.ops.size(), voxelWrites: math.floor(voxels + cells), bumpCells: cells, parts: plan.parts.size(), props: plan.props.size(), uniqueMeshes: unique.size(),
-		// Each placed mesh is a MeshPart plus its SurfaceAppearance.
-		trees, rocks, buildings, ships, instances: plan.parts.size() + plan.props.size() * 2,
+		// Each placed mesh is a MeshPart plus its SurfaceAppearance (the power line is two MeshParts).
+		trees, rocks, buildings, ships, instances: plan.parts.size() + plan.props.size() * 2 + plan.props.filter((p) => p.asset === "PowerLineSpan").size() * 2,
+		coreProps, outerProps, backdrop: backdropProps, infrastructure, estimatedSeconds,
 	};
 }
 

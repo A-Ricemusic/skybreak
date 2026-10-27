@@ -42,4 +42,23 @@ export const RobloxAssetIds: Record<UploadedAssetName, number | undefined> = {
 	RockA: 116039802470338,
 	RockB: 132942349903345,
 	RockC: 124683188002264,
+	// Bigger-worlds set (assets/roblox-upload/<folder>): undefined until reviewed, uploaded and approved.
+	// Until then WorldAssets places each one's primitive fallback.
+	RunwaySegment: undefined,
+	RunwayThreshold: undefined,
+	ApronSlab: undefined,
+	RoadSegment: undefined,
+	DirtTrack: undefined,
+	RoadBridge: undefined,
+	TargetPad: undefined,
+	StoreDeck: undefined,
+	Gangway: undefined,
+	EquipmentHut: undefined,
+	CivicHall: undefined,
+	CliffSandstone: undefined,
+	CliffGranite: undefined,
+	RidgeAlpine: undefined,
+	RidgeDesert: undefined,
+	FenceSpan: undefined,
+	PowerLineSpan: undefined,
 };

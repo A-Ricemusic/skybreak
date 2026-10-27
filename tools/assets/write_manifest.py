@@ -53,7 +53,31 @@ KEYS = {
     "rock-a": "RockA",
     "rock-b": "RockB",
     "rock-c": "RockC",
+    # Bigger-worlds set: modular infrastructure, rock faces and the distant ridges.
+    "runway-segment": "RunwaySegment",
+    "runway-threshold": "RunwayThreshold",
+    "apron-slab": "ApronSlab",
+    "road-segment": "RoadSegment",
+    "dirt-track": "DirtTrack",
+    "road-bridge": "RoadBridge",
+    "target-pad": "TargetPad",
+    "store-deck": "StoreDeck",
+    "gangway": "Gangway",
+    "equipment-hut": "EquipmentHut",
+    "civic-hall": "CivicHall",
+    "cliff-sandstone": "CliffSandstone",
+    "cliff-granite": "CliffGranite",
+    "ridge-alpine": "RidgeAlpine",
+    "ridge-desert": "RidgeDesert",
+    "fence-span": "FenceSpan",
+    "power-line-span": "PowerLineSpan",
 }
+# Folders that must ship the fifth preview (a close-up of markings or detail) for review.
+CLOSEUP_REQUIRED = {"runway-segment", "runway-threshold", "apron-slab", "road-segment", "dirt-track", "road-bridge",
+                    "target-pad", "store-deck", "gangway", "equipment-hut", "civic-hall", "cliff-sandstone",
+                    "cliff-granite", "ridge-alpine", "ridge-desert", "fence-span", "power-line-span"}
+# Delivery parts the game never treats as flight-solid (thin conductors: their collision hull would fill the span).
+DECOR_PARTS = ("Wires",)
 # Procedural aircraft whose length the uploaded aircraft are fitted to.
 PROCEDURAL = {"kestrel": "kestrel", "vanta": "vanta", "vanta-vulture": "vanta", "vanta-rusk": "vanta",
               "kestrel-v2": "kestrel", "vanta-v2": "vanta", "vanta-v2-vulture": "vanta", "vanta-v2-rusk": "vanta"}
@@ -64,7 +88,7 @@ V2_TRIANGLES = (10000, 15000)
 GLASS_PARTS = ("Canopy",)
 # Mobile texture budget (max map edge): aircraft 1024, small world props 256, large props 512.
 SMALL_PROPS = {"container-stack", "farmhouse", "barn", "grain-silo", "radar-dish", "relay-mast", "pine", "broadleaf",
-               "rock-a", "rock-b", "rock-c"}
+               "rock-a", "rock-b", "rock-c", "gangway", "equipment-hut", "fence-span"}
 LEGACY_FBX_METRES_PER_STUD = 0.28
 REQUIRED_CHECKS = ("noText", "noLogosOrBrands", "noRealMilitaryInsignia", "noFaces", "noSuggestiveShapes",
                    "noGoreOrWeaponsGlorification", "originalDesign")
@@ -110,6 +134,8 @@ def main() -> None:
             problems.append(f"{folder}: {c['triangleCount']} triangles outside {V2_TRIANGLES[0]}-{V2_TRIANGLES[1]}")
         if folder in V2_AIRCRAFT and "preview-closeup.png" not in c["previews"]:
             problems.append(f"{folder}: v2 aircraft need preview-closeup.png")
+        if folder in CLOSEUP_REQUIRED and "preview-closeup.png" not in c["previews"]:
+            problems.append(f"{folder}: needs preview-closeup.png (five previews)")
         limit = texture_limit(folder)
         for t in c["textures"]:
             if t["width"] > limit or t["height"] > limit:
@@ -147,6 +173,11 @@ def main() -> None:
         if c.get("attachments"):
             a = c["attachments"]
             lines.append("\t\tattachments: { " + ", ".join(f"{n}: {ts_vec(scaled(a[n], k))}" for n in ("leftWingtip", "rightWingtip", "exhaust")) + " },")
+        if c.get("crestMinStuds") is not None:
+            lines.append(f"\t\tcrest: {round(c['crestMinStuds'] * k, 2):g},")
+        decor = [o["name"] for o in c["objects"] if o["name"] in DECOR_PARTS]
+        if decor:
+            lines.append("\t\tdecorParts: [" + ", ".join(f'"{d}"' for d in decor) + "],")
         glass = [o["name"] for o in c["objects"] if o["name"] in GLASS_PARTS]
         if glass:
             lines.append("\t\tglassParts: [" + ", ".join(f'"{g}"' for g in glass) + "],")
@@ -183,7 +214,9 @@ def main() -> None:
         "\tauthoredSize: Vector3;\n\tgameScale: number;\n\tgroundOffset: number;\n"
         "\tattachments?: { leftWingtip: Vector3; rightWingtip: Vector3; exhaust: Vector3 };\n"
         "\tcontrolSurfaces?: Record<string, HingeSpec>;\n"
-        "\t/** Parts the loader makes see-through (the v2 canopy over its cockpit). */\n\tglassParts?: string[];\n}\n\n"
+        "\t/** Parts the loader makes see-through (the v2 canopy over its cockpit). */\n\tglassParts?: string[];\n"
+        "\t/** Parts placed without flight collision (power-line conductors). */\n\tdecorParts?: string[];\n"
+        "\t/** Backdrop ridges: the lowest crest above the model's bottom, in studs. */\n\tcrest?: number;\n}\n\n"
         "export const UploadedAssetSpecs: Record<UploadedAssetName, UploadedAssetSpec> = {\n"
         + "\n".join(specs) + "\n};\n"
     )

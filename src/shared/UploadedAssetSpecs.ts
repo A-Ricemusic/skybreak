@@ -4,7 +4,7 @@
 // attachments and hinges are in-game studs: authoredSize x gameScale, where aircraft are
 // fitted to the procedural aircraft's length and world props keep their authored size.
 
-export type UploadedAssetName = "Kestrel" | "Vanta" | "VantaVulture" | "VantaRusk" | "KestrelV2" | "VantaV2" | "VantaV2Vulture" | "VantaV2Rusk" | "Frigate" | "OilPlatform" | "HarbourQuay" | "ContainerStack" | "GantryCrane" | "Hangar" | "ControlTower" | "OfficeMidrise" | "ApartmentBlock" | "CityTower" | "Farmhouse" | "Barn" | "GrainSilo" | "RadarDish" | "RelayMast" | "Pine" | "Broadleaf" | "RockA" | "RockB" | "RockC";
+export type UploadedAssetName = "Kestrel" | "Vanta" | "VantaVulture" | "VantaRusk" | "KestrelV2" | "VantaV2" | "VantaV2Vulture" | "VantaV2Rusk" | "Frigate" | "OilPlatform" | "HarbourQuay" | "ContainerStack" | "GantryCrane" | "Hangar" | "ControlTower" | "OfficeMidrise" | "ApartmentBlock" | "CityTower" | "Farmhouse" | "Barn" | "GrainSilo" | "RadarDish" | "RelayMast" | "Pine" | "Broadleaf" | "RockA" | "RockB" | "RockC" | "RunwaySegment" | "RunwayThreshold" | "ApronSlab" | "RoadSegment" | "DirtTrack" | "RoadBridge" | "TargetPad" | "StoreDeck" | "Gangway" | "EquipmentHut" | "CivicHall" | "CliffSandstone" | "CliffGranite" | "RidgeAlpine" | "RidgeDesert" | "FenceSpan" | "PowerLineSpan";
 
 export interface HingeSpec {
 	from: Vector3;
@@ -22,6 +22,10 @@ export interface UploadedAssetSpec {
 	controlSurfaces?: Record<string, HingeSpec>;
 	/** Parts the loader makes see-through (the v2 canopy over its cockpit). */
 	glassParts?: string[];
+	/** Parts placed without flight collision (power-line conductors). */
+	decorParts?: string[];
+	/** Backdrop ridges: the lowest crest above the model's bottom, in studs. */
+	crest?: number;
 }
 
 export const UploadedAssetSpecs: Record<UploadedAssetName, UploadedAssetSpec> = {
@@ -318,5 +322,144 @@ export const UploadedAssetSpecs: Record<UploadedAssetName, UploadedAssetSpec> = 
 		authoredSize: new Vector3(17.122, 20.682, 13.195),
 		gameScale: 1,
 		groundOffset: 2.5,
+	},
+	RunwaySegment: {
+		folder: "runway-segment",
+		kind: "world",
+		size: new Vector3(130, 2.1, 270),
+		authoredSize: new Vector3(130, 2.1, 270),
+		gameScale: 1,
+		groundOffset: 1,
+	},
+	RunwayThreshold: {
+		folder: "runway-threshold",
+		kind: "world",
+		size: new Vector3(130, 2.1, 230),
+		authoredSize: new Vector3(130, 2.1, 230),
+		gameScale: 1,
+		groundOffset: 1,
+	},
+	ApronSlab: {
+		folder: "apron-slab",
+		kind: "world",
+		size: new Vector3(64, 2, 240),
+		authoredSize: new Vector3(64, 2, 240),
+		gameScale: 1,
+		groundOffset: 1,
+	},
+	RoadSegment: {
+		folder: "road-segment",
+		kind: "world",
+		size: new Vector3(25, 1, 200),
+		authoredSize: new Vector3(25, 1, 200),
+		gameScale: 1,
+		groundOffset: 0.3,
+	},
+	DirtTrack: {
+		folder: "dirt-track",
+		kind: "world",
+		size: new Vector3(20, 0.73, 200),
+		authoredSize: new Vector3(20, 0.73, 200),
+		gameScale: 1,
+		groundOffset: 0.3,
+	},
+	RoadBridge: {
+		folder: "road-bridge",
+		kind: "world",
+		size: new Vector3(40, 29.3, 300),
+		authoredSize: new Vector3(40, 29.3, 300),
+		gameScale: 1,
+		groundOffset: 12,
+	},
+	TargetPad: {
+		folder: "target-pad",
+		kind: "world",
+		size: new Vector3(150, 8, 150),
+		authoredSize: new Vector3(150, 8, 150),
+		gameScale: 1,
+		groundOffset: 4,
+	},
+	StoreDeck: {
+		folder: "store-deck",
+		kind: "world",
+		size: new Vector3(150, 84, 150),
+		authoredSize: new Vector3(150, 84, 150),
+		gameScale: 1,
+		groundOffset: 20,
+	},
+	Gangway: {
+		folder: "gangway",
+		kind: "world",
+		size: new Vector3(10, 10.125, 60.5),
+		authoredSize: new Vector3(10, 10.125, 60.5),
+		gameScale: 1,
+		groundOffset: 6,
+	},
+	EquipmentHut: {
+		folder: "equipment-hut",
+		kind: "world",
+		size: new Vector3(21, 9.6, 17.6),
+		authoredSize: new Vector3(21, 9.6, 17.6),
+		gameScale: 1,
+		groundOffset: 0,
+	},
+	CivicHall: {
+		folder: "civic-hall",
+		kind: "world",
+		size: new Vector3(234, 92, 152),
+		authoredSize: new Vector3(234, 92, 152),
+		gameScale: 1,
+		groundOffset: 0,
+	},
+	CliffSandstone: {
+		folder: "cliff-sandstone",
+		kind: "world",
+		size: new Vector3(240, 160, 56.688),
+		authoredSize: new Vector3(240, 160, 56.688),
+		gameScale: 1,
+		groundOffset: 2,
+	},
+	CliffGranite: {
+		folder: "cliff-granite",
+		kind: "world",
+		size: new Vector3(240, 160, 56.022),
+		authoredSize: new Vector3(240, 160, 56.022),
+		gameScale: 1,
+		groundOffset: 2,
+	},
+	RidgeAlpine: {
+		folder: "ridge-alpine",
+		kind: "world",
+		size: new Vector3(2000, 1490, 2000),
+		authoredSize: new Vector3(2000, 1490, 2000),
+		gameScale: 1,
+		groundOffset: 30,
+		crest: 1184.97,
+	},
+	RidgeDesert: {
+		folder: "ridge-desert",
+		kind: "world",
+		size: new Vector3(2000, 1490, 2000),
+		authoredSize: new Vector3(2000, 1490, 2000),
+		gameScale: 1,
+		groundOffset: 30,
+		crest: 1202.46,
+	},
+	FenceSpan: {
+		folder: "fence-span",
+		kind: "world",
+		size: new Vector3(1.201, 5.538, 60.944),
+		authoredSize: new Vector3(1.201, 5.538, 60.944),
+		gameScale: 1,
+		groundOffset: 0.5,
+	},
+	PowerLineSpan: {
+		folder: "power-line-span",
+		kind: "world",
+		size: new Vector3(26.866, 70.208, 307.113),
+		authoredSize: new Vector3(26.866, 70.208, 307.113),
+		gameScale: 1,
+		groundOffset: 0.5,
+		decorParts: ["Wires"],
 	},
 };

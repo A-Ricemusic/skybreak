@@ -1,0 +1,98 @@
+{
+  "name": "runway-threshold",
+  "title": "Runway threshold end (tileable)",
+  "variantOf": null,
+  "robloxAssetType": "Model",
+  "usage": "Runway end piece with plain threshold stripes; one at each end of every runway (M1, M3, M4, M8, M18).",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "runway-threshold.fbx",
+    "bytes": 517964
+  },
+  "triangleCount": 148,
+  "triangleLimit": 2500,
+  "objects": [
+    {
+      "name": "runway-threshold",
+      "triangles": 148
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "runway-threshold-color.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 162598
+    },
+    {
+      "role": "normal",
+      "file": "runway-threshold-normal.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 180343
+    },
+    {
+      "role": "rough",
+      "file": "runway-threshold-roughness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 140709
+    },
+    {
+      "role": "metal",
+      "file": "runway-threshold-metalness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 4732
+    }
+  ],
+  "robloxSizeStuds": [
+    130.0,
+    2.1,
+    230.0
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 1.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png",
+    "preview-closeup.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "Markings are plain painted stripes only (dashed centreline, solid edge lines, threshold bars); no numbers, letters, arrows, symbols or codes in mesh or texture."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national or unit markings; shape is an original design, not a copy of any real vehicle or building."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or face-like arrangements."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "No gore, blood or damage imagery; at most empty pylons or a covered deck mount."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": []
+}

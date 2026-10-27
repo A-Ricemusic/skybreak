@@ -3,7 +3,7 @@ import { MissionCatalog } from "../shared/MissionCatalog";
 import { layoutFor } from "../shared/MissionLayouts";
 import { KEEL_MIN, auditPlan } from "../shared/WorldAudit";
 import { UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
-import { WATER_Y, WORLD_BUDGET, WorldPlanner, propBox, surfaceAt, terrainTop } from "../shared/WorldPlan";
+import { CORE, WATER_Y, WORLD_BUDGET, WorldPlanner, propBox, ring, surfaceAt, terrainTop } from "../shared/WorldPlan";
 
 // Pure world-plan contracts for missions 3-27; also run in the offline Luau VM.
 // The engine half (the plan executed into Terrain, parts and uploaded clones)
@@ -25,8 +25,11 @@ describe("Mission world plans", () => {
 			const plan = WorldPlanner.Build(id), bp = MissionCatalog.Get(id), c = WorldPlanner.Counts(plan);
 			const has = (asset: string) => plan.props.filter((p) => p.asset === asset).size();
 			if (plan.theme === "farm" || plan.theme === "coast") {
-				expect(c.trees).toBeGreaterThanOrEqual(60);
-				expect(c.trees).toBeLessThanOrEqual(150);
+				// Dense woods in the core, sparser ones across the explorable ring.
+				const core = plan.props.filter((p) => (p.asset === "Pine" || p.asset === "Broadleaf") && ring(p.x, p.z) <= CORE).size();
+				expect(core).toBeGreaterThanOrEqual(60);
+				expect(core).toBeLessThanOrEqual(150);
+				expect(c.trees - core).toBeGreaterThanOrEqual(15);
 			}
 			if (plan.theme === "farm") expect(has("Farmhouse") + has("Barn") + has("GrainSilo")).toBeGreaterThanOrEqual(3);
 			if (bp.region === "coastal_city") expect(has("OfficeMidrise") > 0 && has("ApartmentBlock") > 0 && has("CityTower") > 0).toBe(true);

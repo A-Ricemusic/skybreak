@@ -14,8 +14,10 @@ export interface FlightState {
 export const FlightMath = {
 	MinSpeed: 70,
 	MaxSpeed: 320,
-	SoftBoundary: 2400,
-	HardBoundary: 2800,
+	// The flyable square (was 2400 / 2800): the authored missions stay inside ±2400 and the
+	// explorable ring around them runs out to the hard edge (shared/WorldPlan's detail tiers).
+	SoftBoundary: 5400,
+	HardBoundary: 6000,
 	StallSpeed: 140,
 	WarningSpeed: 165,
 	MaxAltitude: 1050,

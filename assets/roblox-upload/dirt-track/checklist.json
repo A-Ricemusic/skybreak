@@ -1,0 +1,98 @@
+{
+  "name": "dirt-track",
+  "title": "Gravel farm track (tileable)",
+  "variantOf": null,
+  "robloxAssetType": "Model",
+  "usage": "Tileable 20 x 200 unmarked gravel track: canyon roads, convoy tracks and farm lanes.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "dirt-track.fbx",
+    "bytes": 843388
+  },
+  "triangleCount": 448,
+  "triangleLimit": 2500,
+  "objects": [
+    {
+      "name": "dirt-track",
+      "triangles": 448
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "dirt-track-color.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 270548
+    },
+    {
+      "role": "normal",
+      "file": "dirt-track-normal.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 411513
+    },
+    {
+      "role": "rough",
+      "file": "dirt-track-roughness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 109384
+    },
+    {
+      "role": "metal",
+      "file": "dirt-track-metalness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 3693
+    }
+  ],
+  "robloxSizeStuds": [
+    20.0,
+    0.73,
+    200.0
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 0.3,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png",
+    "preview-closeup.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "Textures are baked from noise, grids and masks only; no letters, numbers, words, call signs or codes in mesh or texture."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national or unit markings; shape is an original design, not a copy of any real vehicle or building."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or face-like arrangements."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "No gore, blood or damage imagery; at most empty pylons or a covered deck mount."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": []
+}

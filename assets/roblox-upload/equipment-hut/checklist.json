@@ -1,0 +1,98 @@
+{
+  "name": "equipment-hut",
+  "title": "Prefab equipment shelter",
+  "variantOf": null,
+  "robloxAssetType": "Model",
+  "usage": "Relay sites (M4, M9, M10, M14, M15, M17): the shelter beside each radar dish.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "equipment-hut.fbx",
+    "bytes": 186940
+  },
+  "triangleCount": 244,
+  "triangleLimit": 2500,
+  "objects": [
+    {
+      "name": "equipment-hut",
+      "triangles": 244
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "equipment-hut-color.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 74615
+    },
+    {
+      "role": "normal",
+      "file": "equipment-hut-normal.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 33128
+    },
+    {
+      "role": "rough",
+      "file": "equipment-hut-roughness.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 39735
+    },
+    {
+      "role": "metal",
+      "file": "equipment-hut-metalness.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 4300
+    }
+  ],
+  "robloxSizeStuds": [
+    21.0,
+    9.6,
+    17.6
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 0.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png",
+    "preview-closeup.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "Textures are baked from noise, grids and masks only; no letters, numbers, words, call signs or codes in mesh or texture."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national or unit markings; shape is an original design, not a copy of any real vehicle or building."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or face-like arrangements."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "No gore, blood or damage imagery; at most empty pylons or a covered deck mount."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": []
+}

@@ -1,0 +1,98 @@
+{
+  "name": "fence-span",
+  "title": "Timber post-and-rail fence (tileable)",
+  "variantOf": null,
+  "robloxAssetType": "Model",
+  "usage": "Tileable 60-stud farm fence along fields and farmsteads (farm and plateau maps).",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "fence-span.fbx",
+    "bytes": 77148
+  },
+  "triangleCount": 108,
+  "triangleLimit": 2500,
+  "objects": [
+    {
+      "name": "fence-span",
+      "triangles": 108
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "fence-span-color.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 18921
+    },
+    {
+      "role": "normal",
+      "file": "fence-span-normal.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 14762
+    },
+    {
+      "role": "rough",
+      "file": "fence-span-roughness.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 11137
+    },
+    {
+      "role": "metal",
+      "file": "fence-span-metalness.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 1120
+    }
+  ],
+  "robloxSizeStuds": [
+    1.201,
+    5.538,
+    60.944
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 0.5,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png",
+    "preview-closeup.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "Textures are baked from noise, grids and masks only; no letters, numbers, words, call signs or codes in mesh or texture."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national or unit markings; shape is an original design, not a copy of any real vehicle or building."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or face-like arrangements."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "No gore, blood or damage imagery; at most empty pylons or a covered deck mount."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": []
+}

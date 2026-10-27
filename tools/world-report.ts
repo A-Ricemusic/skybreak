@@ -14,20 +14,22 @@ const generator=String.raw`
 local W=require("./WorldPlan")
 local A=require("./WorldAudit")
 local C=require("./MissionCatalog").MissionCatalog
+local F=require("./FlightMath").FlightMath
 local rows={}
-table.insert(rows,"| Mission | Theme | Environment | Terrain ops | Voxel writes (M) | Hill cells (M) | Parts | Props | Trees | Rocks | Buildings | Ships | Unique meshes | Instances |")
-table.insert(rows,"|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
+table.insert(rows,"| Mission | Theme | Environment | Terrain ops | Voxel writes (M) | Hill cells (M) | Parts | Props | Core props | Ring props | Backdrop | Trees | Rocks | Buildings | Infra pieces | Unique meshes | Instances | Est. build (s) |")
+table.insert(rows,"|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
 for id=3,27 do
 	local plan=W.WorldPlanner:Build(id)
 	local c=W.WorldPlanner.Counts(plan)
-	table.insert(rows,string.format("| M%d %s | %s | %s | %d | %.1f | %.2f | %d | %d | %d | %d | %d | %d | %d | %d |",id,plan.name,plan.theme,plan.environment,c.terrainOps,c.voxelWrites/1e6,c.bumpCells/1e6,c.parts,c.props,c.trees,c.rocks,c.buildings,c.ships,c.uniqueMeshes,c.instances))
+	table.insert(rows,string.format("| M%d %s | %s | %s | %d | %.1f | %.2f | %d | %d | %d | %d | %d | %d | %d | %d | %d | %d | %d | %.1f |",id,plan.name,plan.theme,plan.environment,c.terrainOps,c.voxelWrites/1e6,c.bumpCells/1e6,c.parts,c.props,c.coreProps,c.outerProps,c.backdrop,c.trees,c.rocks,c.buildings,c.infrastructure,c.uniqueMeshes,c.instances,c.estimatedSeconds))
 	if ${problems ? "true" : "false"} then
 		for _,p in A.auditPlan(plan).problems do print("M"..id..": "..p) end
 	end
 end
 local b=W.WORLD_BUDGET
 table.insert(rows,"")
-table.insert(rows,string.format("Budget per world: %d parts, %d props, %d unique meshes, %dM voxel writes, %.1fM hill cells, %d terrain ops.",b.parts,b.props,b.uniqueMeshes,b.voxelWrites/1e6,b.bumpCells/1e6,b.terrainOps))
+table.insert(rows,string.format("Budget per world: %d parts, %d props, %d unique meshes, %d instances, %dM voxel writes, %.1fM hill cells, %d terrain ops.",b.parts,b.props,b.uniqueMeshes,b.instances,b.voxelWrites/1e6,b.bumpCells/1e6,b.terrainOps))
+table.insert(rows,string.format("Map: flyable +-%d (soft boundary +-%d), full-detail core +-%d, voxel terrain +-%d, backdrop ridges centred %d out, far skirts to +-%d.",F.HardBoundary,F.SoftBoundary,W.CORE,W.EXTENT,W.BACKDROP,W.FAR))
 print("@@BEGIN")
 print(table.concat(rows,"\n"))
 print("@@END")

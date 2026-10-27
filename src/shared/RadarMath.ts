@@ -22,7 +22,10 @@ export interface RadarBlip {
 	edge: boolean;
 }
 
-/** Studs from the centre to the rim. The arena is ±2800 studs and bandits spawn 2600–3200 out. */
+/**
+ * Studs from the centre to the rim. Bandits spawn 2600–3200 from the player; anything farther (the mission's
+ * objectives seen from the far side of the ±6000 flyable square) is pinned to the rim in its direction.
+ */
 export const RADAR_RANGE = 3200;
 /** Close-in range used while every required contact is inside it (dogfights read better zoomed). */
 export const RADAR_NEAR_RANGE = 1600;

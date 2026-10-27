@@ -38,10 +38,33 @@ interface FallbackPart {
 	offset: Vector3;
 	color: Color3;
 	material: Enum.Material;
+	/** A WedgePart (full height at its local +Z) instead of a block. */
+	wedge?: boolean;
+	/** Turn about Y, radians, after the offset. */
+	yaw?: number;
+	/** Not flight-solid (thin conductors). */
+	decor?: boolean;
 }
 
 const grey = Color3.fromRGB(139, 147, 154);
 const concrete = Color3.fromRGB(160, 158, 150);
+const asphalt = Color3.fromRGB(54, 58, 62);
+const yellow = Color3.fromRGB(201, 178, 60);
+/** A flat box `size` whose centre sits `lift` above the ground contact. */
+const slab = (name: string, size: Vector3, lift: number, color: Color3, material: Enum.Material): FallbackPart => ({ name, size, offset: new Vector3(0, lift, 0), color, material });
+/** Runway pieces: concrete shoulders under a 100-wide asphalt strip, both sunk a stud like the uploaded slab. */
+const runwayFallback = (size: Vector3): FallbackPart[] => [
+	slab("Shoulder", new Vector3(130, 1.6, size.Z), -0.2, concrete, Enum.Material.Concrete),
+	slab("Runway", new Vector3(100, 2, size.Z), 0, asphalt, Enum.Material.Asphalt),
+];
+/** A backdrop ridge as two wedges meeting at a crest along local X (the uploaded ridge's lowest crest height). */
+const ridgeFallback = (size: Vector3, color: Color3): FallbackPart[] => {
+	const height = 1270, depth = size.Z / 2;
+	return [
+		{ name: "Ridge", size: new Vector3(size.X, height, depth), offset: new Vector3(0, height / 2 - 30, -depth / 2), color, material: Enum.Material.Rock, wedge: true },
+		{ name: "Ridge", size: new Vector3(size.X, height, depth), offset: new Vector3(0, height / 2 - 30, depth / 2), color: color.Lerp(Color3.fromRGB(40, 50, 60), 0.15), material: Enum.Material.Rock, wedge: true, yaw: math.pi },
+	];
+};
 const block = (name: string, color: Color3, material: Enum.Material = Enum.Material.Concrete) => (spec: Vector3): FallbackPart[] => [
 	{ name, size: spec, offset: new Vector3(0, spec.Y / 2, 0), color, material },
 ];
@@ -75,15 +98,68 @@ const FALLBACKS: Partial<Record<WorldAssetName, (size: Vector3) => FallbackPart[
 	Farmhouse: block("Farmhouse", Color3.fromRGB(227, 222, 210), Enum.Material.WoodPlanks),
 	Barn: block("Barn", Color3.fromRGB(138, 59, 44), Enum.Material.WoodPlanks),
 	GrainSilo: block("Silo", Color3.fromRGB(180, 182, 179), Enum.Material.Metal),
+	// Bigger-worlds set: plain slabs and shapes in the asset's footprint until the upload is approved.
+	RunwaySegment: (size) => runwayFallback(size),
+	RunwayThreshold: (size) => runwayFallback(size),
+	ApronSlab: (size) => [slab("Apron", new Vector3(64, 2, size.Z), 0, concrete, Enum.Material.Concrete)],
+	RoadSegment: (size) => [slab("Road", new Vector3(22, 1, size.Z), 0.2, asphalt, Enum.Material.Asphalt)],
+	DirtTrack: (size) => [slab("Track", new Vector3(20, 0.8, size.Z), 0.1, Color3.fromRGB(128, 104, 78), Enum.Material.Ground)],
+	RoadBridge: () => {
+		const parts = [slab("Deck", new Vector3(36, 2.7, 230), 2.85, concrete, Enum.Material.Concrete)];
+		for (const z of [-132.5, 132.5]) parts.push({ ...slab("Ramp", new Vector3(36, 4, 35), 1.5, concrete, Enum.Material.Concrete), offset: new Vector3(0, 1.5, z) });
+		for (const z of [-40, 40]) parts.push({ ...slab("Pier", new Vector3(30, 11, 5), -6.5, concrete, Enum.Material.Concrete), offset: new Vector3(0, -6.5, z) });
+		for (const x of [-17.5, 17.5]) parts.push({ ...slab("Parapet", new Vector3(1, 3, 300), 5.5, concrete, Enum.Material.Concrete), offset: new Vector3(x, 5.5, 0) });
+		return parts;
+	},
+	TargetPad: (size) => [slab("Hardstand", size, 0, Color3.fromRGB(90, 103, 108), Enum.Material.Concrete)],
+	StoreDeck: () => {
+		const parts = [slab("Store deck", new Vector3(150, 4, 150), 62, Color3.fromRGB(93, 98, 102), Enum.Material.DiamondPlate)];
+		for (const x of [-60, 60]) for (const z of [-60, 60]) parts.push({ name: "Deck leg", size: new Vector3(7, 80, 7), offset: new Vector3(x, 20, z), color: yellow, material: Enum.Material.Metal });
+		return parts;
+	},
+	Gangway: () => [
+		slab("Walkway", new Vector3(10, 0.6, 60), -0.3, Color3.fromRGB(150, 150, 146), Enum.Material.Metal),
+		{ name: "Rail", size: new Vector3(0.4, 0.4, 60), offset: new Vector3(-4.8, 4, 0), color: yellow, material: Enum.Material.Metal },
+		{ name: "Rail", size: new Vector3(0.4, 0.4, 60), offset: new Vector3(4.8, 4, 0), color: yellow, material: Enum.Material.Metal },
+	],
+	EquipmentHut: block("Shelter", Color3.fromRGB(96, 104, 108), Enum.Material.Metal),
+	CivicHall: () => [
+		{ name: "Hall", size: new Vector3(230, 66, 100), offset: new Vector3(0, 33, 24), color: Color3.fromRGB(199, 191, 165), material: Enum.Material.Concrete },
+		{ name: "Portico", size: new Vector3(210, 60, 32), offset: new Vector3(0, 30, -42), color: Color3.fromRGB(224, 216, 193), material: Enum.Material.Marble },
+		{ name: "Steps", size: new Vector3(200, 3, 18), offset: new Vector3(0, 1.5, -67), color: Color3.fromRGB(214, 206, 182), material: Enum.Material.Concrete },
+	],
+	CliffSandstone: () => [{ name: "Rock face", size: new Vector3(240, 160, 53), offset: new Vector3(0, 78, 1.8), color: Color3.fromRGB(192, 132, 88), material: Enum.Material.Sandstone }],
+	CliffGranite: () => [{ name: "Rock face", size: new Vector3(240, 160, 53), offset: new Vector3(0, 78, 1.8), color: Color3.fromRGB(116, 112, 104), material: Enum.Material.Rock }],
+	RidgeAlpine: (size) => ridgeFallback(size, Color3.fromRGB(104, 110, 102)),
+	RidgeDesert: (size) => ridgeFallback(size, Color3.fromRGB(176, 122, 84)),
+	FenceSpan: () => {
+		const wood = Color3.fromRGB(139, 122, 99);
+		return [
+			{ name: "Rail", size: new Vector3(0.35, 0.6, 60), offset: new Vector3(0.55, 1.7, 0), color: wood, material: Enum.Material.Wood },
+			{ name: "Rail", size: new Vector3(0.35, 0.6, 60), offset: new Vector3(0.55, 3.7, 0), color: wood, material: Enum.Material.Wood },
+			{ name: "Post", size: new Vector3(0.8, 5.5, 0.8), offset: new Vector3(0, 2.25, -30), color: wood, material: Enum.Material.Wood },
+			{ name: "Post", size: new Vector3(0.8, 5.5, 0.8), offset: new Vector3(0, 2.25, 30), color: wood, material: Enum.Material.Wood },
+		];
+	},
+	PowerLineSpan: (size) => {
+		const pylon = -(size.Z / 2 - 7), steel = Color3.fromRGB(143, 148, 150), wire = Color3.fromRGB(58, 60, 62);
+		const parts: FallbackPart[] = [{ name: "Pylon", size: new Vector3(4, 70, 4), offset: new Vector3(0, 34.5, pylon), color: steel, material: Enum.Material.Metal }];
+		for (const [x, y] of [[-13, 47.5], [13, 47.5], [-8, 57.5], [8, 57.5], [0, 69.5]]) {
+			parts.push({ name: "Wires", size: new Vector3(0.3, 0.3, 300), offset: new Vector3(x, y, pylon + 150), color: wire, material: Enum.Material.Metal, decor: true });
+		}
+		return parts;
+	},
 };
+/** Assets placed without flight collision: the backdrop ring stands wholly past the hard boundary. */
+const DECOR_ASSETS = new Set<WorldAssetName>(["RidgeAlpine", "RidgeDesert"]);
 
-/** Scenery parts are flight-solid: the collision query hits the rendered geometry. */
-function solid(part: BasePart): void {
+/** Scenery parts are flight-solid: the collision query hits the rendered geometry. Decor parts are not queried at all. */
+function solid(part: BasePart, flight = true): void {
 	part.Anchored = true;
 	part.CanCollide = false;
 	part.CanTouch = false;
-	part.CanQuery = true;
-	part.SetAttribute("FlightSolid", true);
+	part.CanQuery = flight;
+	part.SetAttribute("FlightSolid", flight);
 	part.CastShadow = false;
 }
 
@@ -99,7 +175,8 @@ function placeUploaded(name: WorldAssetName, parent: Instance, cframe: CFrame, s
 	const model = uploaded.template.Clone();
 	const [ok, result] = pcall(() => {
 		model.Name = name;
-		for (const item of model.GetDescendants()) if (item.IsA("BasePart")) solid(item);
+		const decor = DECOR_ASSETS.has(name);
+		for (const item of model.GetDescendants()) if (item.IsA("BasePart")) solid(item, !decor && !(spec.decorParts ?? []).includes(item.Name));
 		// Template pivot is the model's bottom centre (scaling keeps it fixed); the ground contact sits groundOffset above it.
 		if (scale !== 1) model.ScaleTo(model.GetScale() * scale);
 		model.PivotTo(cframe.mul(new CFrame(0, -spec.groundOffset * scale, 0)));
@@ -121,13 +198,13 @@ function place(name: WorldAssetName, parent: Instance, cframe: CFrame, scale = 1
 	model.Name = name;
 	model.SetAttribute("GeometrySource", "Fallback");
 	for (const shape of fallback(spec.size)) {
-		const part = new Instance("Part");
+		const part = shape.wedge ? new Instance("WedgePart") : new Instance("Part");
 		part.Name = shape.name;
 		part.Size = shape.size.mul(scale);
-		part.CFrame = cframe.mul(new CFrame(shape.offset.mul(scale)));
+		part.CFrame = cframe.mul(new CFrame(shape.offset.mul(scale))).mul(CFrame.Angles(0, shape.yaw ?? 0, 0));
 		part.Color = shape.color;
 		part.Material = shape.material;
-		solid(part);
+		solid(part, shape.decor !== true && !DECOR_ASSETS.has(name));
 		part.Parent = model;
 	}
 	model.WorldPivot = cframe;
@@ -174,4 +251,11 @@ export const WorldAssets = {
 	PlaceRelayMast: (parent: Instance, cframe: CFrame) => place("RelayMast", parent, cframe),
 	PlaceTree: (parent: Instance, cframe: CFrame, broadleaf = false) => place(broadleaf ? "Broadleaf" : "Pine", parent, cframe),
 	PlaceRock: (parent: Instance, cframe: CFrame, variant: 0 | 1 | 2 = 0) => place((["RockA", "RockB", "RockC"] as const)[variant], parent, cframe),
+	// Bigger-worlds set. Modular pieces (runway, apron, road, track, fence, power line, gangway) take a uniform
+	// scale so a whole number of them fills a run (WorldPlan.tilePieces); the fallback scales with them.
+	PlacePiece: (name: WorldAssetName, parent: Instance, cframe: CFrame, scale = 1) => place(name, parent, cframe, scale),
+	PlaceTargetPad: (parent: Instance, cframe: CFrame, scale = 1) => place("TargetPad", parent, cframe, scale),
+	PlaceRoadBridge: (parent: Instance, cframe: CFrame) => place("RoadBridge", parent, cframe),
+	PlaceCliffFace: (parent: Instance, cframe: CFrame, sandstone: boolean, scale = 1) => place(sandstone ? "CliffSandstone" : "CliffGranite", parent, cframe, scale),
+	PlaceBackdropRidge: (parent: Instance, cframe: CFrame, desert: boolean, scale = 1) => place(desert ? "RidgeDesert" : "RidgeAlpine", parent, cframe, scale),
 };

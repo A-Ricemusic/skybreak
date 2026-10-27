@@ -1772,6 +1772,1094 @@
         "rock-c/preview-top.png",
         "rock-c/preview-3q.png"
       ]
+    },
+    {
+      "folder": "runway-segment",
+      "robloxAssetIdsKey": "RunwaySegment",
+      "title": "Runway segment (tileable)",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "runway-segment.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "runway-segment-color.png",
+          "role": "color"
+        },
+        {
+          "file": "runway-segment-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "runway-segment-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "runway-segment-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        130.0,
+        2.1,
+        270.0
+      ],
+      "gameSizeStuds": [
+        130.0,
+        2.1,
+        270.0
+      ],
+      "usage": "Tileable 270-stud runway piece (centreline dashes, edge lines): Varda airfields in M3, M4, M8, M18 and M1.",
+      "triangleCount": 152,
+      "textures": [
+        "runway-segment-color.png 512x512",
+        "runway-segment-normal.png 512x512",
+        "runway-segment-roughness.png 512x512",
+        "runway-segment-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        130.0,
+        2.1,
+        270.0
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "runway-segment/preview-front.png",
+        "runway-segment/preview-side.png",
+        "runway-segment/preview-top.png",
+        "runway-segment/preview-3q.png",
+        "runway-segment/preview-closeup.png"
+      ]
+    },
+    {
+      "folder": "runway-threshold",
+      "robloxAssetIdsKey": "RunwayThreshold",
+      "title": "Runway threshold end (tileable)",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "runway-threshold.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "runway-threshold-color.png",
+          "role": "color"
+        },
+        {
+          "file": "runway-threshold-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "runway-threshold-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "runway-threshold-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        130.0,
+        2.1,
+        230.0
+      ],
+      "gameSizeStuds": [
+        130.0,
+        2.1,
+        230.0
+      ],
+      "usage": "Runway end piece with plain threshold stripes; one at each end of every runway (M1, M3, M4, M8, M18).",
+      "triangleCount": 148,
+      "textures": [
+        "runway-threshold-color.png 512x512",
+        "runway-threshold-normal.png 512x512",
+        "runway-threshold-roughness.png 512x512",
+        "runway-threshold-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        130.0,
+        2.1,
+        230.0
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "runway-threshold/preview-front.png",
+        "runway-threshold/preview-side.png",
+        "runway-threshold/preview-top.png",
+        "runway-threshold/preview-3q.png",
+        "runway-threshold/preview-closeup.png"
+      ]
+    },
+    {
+      "folder": "apron-slab",
+      "robloxAssetIdsKey": "ApronSlab",
+      "title": "Concrete apron slab (tileable)",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "apron-slab.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "apron-slab-color.png",
+          "role": "color"
+        },
+        {
+          "file": "apron-slab-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "apron-slab-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "apron-slab-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        64.0,
+        2.0,
+        240.0
+      ],
+      "gameSizeStuds": [
+        64.0,
+        2.0,
+        240.0
+      ],
+      "usage": "Tileable 64 x 240 parking apron and taxiway piece with one plain taxi line (airfields, M1 taxiways).",
+      "triangleCount": 40,
+      "textures": [
+        "apron-slab-color.png 512x512",
+        "apron-slab-normal.png 512x512",
+        "apron-slab-roughness.png 512x512",
+        "apron-slab-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        64.0,
+        2.0,
+        240.0
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "apron-slab/preview-front.png",
+        "apron-slab/preview-side.png",
+        "apron-slab/preview-top.png",
+        "apron-slab/preview-3q.png",
+        "apron-slab/preview-closeup.png"
+      ]
+    },
+    {
+      "folder": "road-segment",
+      "robloxAssetIdsKey": "RoadSegment",
+      "title": "Asphalt road segment (tileable)",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "road-segment.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "road-segment-color.png",
+          "role": "color"
+        },
+        {
+          "file": "road-segment-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "road-segment-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "road-segment-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        25.0,
+        1.0,
+        200.0
+      ],
+      "gameSizeStuds": [
+        25.0,
+        1.0,
+        200.0
+      ],
+      "usage": "Tileable two-lane road piece, 25 x 200 (dashed centreline, edge lines): every road and city street.",
+      "triangleCount": 36,
+      "textures": [
+        "road-segment-color.png 512x512",
+        "road-segment-normal.png 512x512",
+        "road-segment-roughness.png 512x512",
+        "road-segment-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        25.0,
+        1.0,
+        200.0
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "road-segment/preview-front.png",
+        "road-segment/preview-side.png",
+        "road-segment/preview-top.png",
+        "road-segment/preview-3q.png",
+        "road-segment/preview-closeup.png"
+      ]
+    },
+    {
+      "folder": "dirt-track",
+      "robloxAssetIdsKey": "DirtTrack",
+      "title": "Gravel farm track (tileable)",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "dirt-track.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "dirt-track-color.png",
+          "role": "color"
+        },
+        {
+          "file": "dirt-track-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "dirt-track-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "dirt-track-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        20.0,
+        0.73,
+        200.0
+      ],
+      "gameSizeStuds": [
+        20.0,
+        0.73,
+        200.0
+      ],
+      "usage": "Tileable 20 x 200 unmarked gravel track: canyon roads, convoy tracks and farm lanes.",
+      "triangleCount": 448,
+      "textures": [
+        "dirt-track-color.png 512x512",
+        "dirt-track-normal.png 512x512",
+        "dirt-track-roughness.png 512x512",
+        "dirt-track-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        20.0,
+        0.73,
+        200.0
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "dirt-track/preview-front.png",
+        "dirt-track/preview-side.png",
+        "dirt-track/preview-top.png",
+        "dirt-track/preview-3q.png",
+        "dirt-track/preview-closeup.png"
+      ]
+    },
+    {
+      "folder": "road-bridge",
+      "robloxAssetIdsKey": "RoadBridge",
+      "title": "Concrete river bridge",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "road-bridge.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "road-bridge-color.png",
+          "role": "color"
+        },
+        {
+          "file": "road-bridge-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "road-bridge-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "road-bridge-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        40.0,
+        29.3,
+        300.0
+      ],
+      "gameSizeStuds": [
+        40.0,
+        29.3,
+        300.0
+      ],
+      "usage": "River crossings (M3, M7, M11, M13, M16): the track bridge and every road over the river; piers stand in the river bed.",
+      "triangleCount": 712,
+      "textures": [
+        "road-bridge-color.png 512x512",
+        "road-bridge-normal.png 512x512",
+        "road-bridge-roughness.png 512x512",
+        "road-bridge-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        40.0,
+        29.3,
+        300.0
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "road-bridge/preview-front.png",
+        "road-bridge/preview-side.png",
+        "road-bridge/preview-top.png",
+        "road-bridge/preview-3q.png",
+        "road-bridge/preview-closeup.png"
+      ]
+    },
+    {
+      "folder": "target-pad",
+      "robloxAssetIdsKey": "TargetPad",
+      "title": "Concrete hardstand",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "target-pad.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "target-pad-color.png",
+          "role": "color"
+        },
+        {
+          "file": "target-pad-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "target-pad-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "target-pad-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        150.0,
+        8.0,
+        150.0
+      ],
+      "gameSizeStuds": [
+        150.0,
+        8.0,
+        150.0
+      ],
+      "usage": "Every ground target's level hardstand (150 x 150, scaled down where a boat channel passes); replaces the apron Part.",
+      "triangleCount": 80,
+      "textures": [
+        "target-pad-color.png 512x512",
+        "target-pad-normal.png 512x512",
+        "target-pad-roughness.png 512x512",
+        "target-pad-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        150.0,
+        8.0,
+        150.0
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "target-pad/preview-front.png",
+        "target-pad/preview-side.png",
+        "target-pad/preview-top.png",
+        "target-pad/preview-3q.png",
+        "target-pad/preview-closeup.png"
+      ]
+    },
+    {
+      "folder": "store-deck",
+      "robloxAssetIdsKey": "StoreDeck",
+      "title": "Offshore store deck",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "store-deck.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "store-deck-color.png",
+          "role": "color"
+        },
+        {
+          "file": "store-deck-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "store-deck-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "store-deck-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        150.0,
+        84.0,
+        150.0
+      ],
+      "gameSizeStuds": [
+        150.0,
+        84.0,
+        150.0
+      ],
+      "usage": "M23/M24 ocean target decks: a steel jacket from the seabed to a 150 x 150 deck at 84 studs; the target stands on the deck.",
+      "triangleCount": 598,
+      "textures": [
+        "store-deck-color.png 512x512",
+        "store-deck-normal.png 512x512",
+        "store-deck-roughness.png 512x512",
+        "store-deck-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        150.0,
+        84.0,
+        150.0
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "store-deck/preview-front.png",
+        "store-deck/preview-side.png",
+        "store-deck/preview-top.png",
+        "store-deck/preview-3q.png",
+        "store-deck/preview-closeup.png"
+      ]
+    },
+    {
+      "folder": "gangway",
+      "robloxAssetIdsKey": "Gangway",
+      "title": "Steel truss gangway (tileable)",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "gangway.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "gangway-color.png",
+          "role": "color"
+        },
+        {
+          "file": "gangway-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "gangway-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "gangway-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        10.0,
+        10.125,
+        60.5
+      ],
+      "gameSizeStuds": [
+        10.0,
+        10.125,
+        60.5
+      ],
+      "usage": "Tileable 10 x 60 walkway from each M23/M24 store deck to the oil platform; the deck top is the contact.",
+      "triangleCount": 588,
+      "textures": [
+        "gangway-color.png 256x256",
+        "gangway-normal.png 256x256",
+        "gangway-roughness.png 256x256",
+        "gangway-metalness.png 256x256"
+      ],
+      "textureLimit": 256,
+      "robloxSizeStuds": [
+        10.0,
+        10.125,
+        60.5
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "gangway/preview-front.png",
+        "gangway/preview-side.png",
+        "gangway/preview-top.png",
+        "gangway/preview-3q.png",
+        "gangway/preview-closeup.png"
+      ]
+    },
+    {
+      "folder": "equipment-hut",
+      "robloxAssetIdsKey": "EquipmentHut",
+      "title": "Prefab equipment shelter",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "equipment-hut.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "equipment-hut-color.png",
+          "role": "color"
+        },
+        {
+          "file": "equipment-hut-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "equipment-hut-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "equipment-hut-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        21.0,
+        9.6,
+        17.6
+      ],
+      "gameSizeStuds": [
+        21.0,
+        9.6,
+        17.6
+      ],
+      "usage": "Relay sites (M4, M9, M10, M14, M15, M17): the shelter beside each radar dish.",
+      "triangleCount": 244,
+      "textures": [
+        "equipment-hut-color.png 256x256",
+        "equipment-hut-normal.png 256x256",
+        "equipment-hut-roughness.png 256x256",
+        "equipment-hut-metalness.png 256x256"
+      ],
+      "textureLimit": 256,
+      "robloxSizeStuds": [
+        21.0,
+        9.6,
+        17.6
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "equipment-hut/preview-front.png",
+        "equipment-hut/preview-side.png",
+        "equipment-hut/preview-top.png",
+        "equipment-hut/preview-3q.png",
+        "equipment-hut/preview-closeup.png"
+      ]
+    },
+    {
+      "folder": "civic-hall",
+      "robloxAssetIdsKey": "CivicHall",
+      "title": "Civic hall with portico",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "civic-hall.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "civic-hall-color.png",
+          "role": "color"
+        },
+        {
+          "file": "civic-hall-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "civic-hall-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "civic-hall-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        234.0,
+        92.0,
+        152.0
+      ],
+      "gameSizeStuds": [
+        234.0,
+        92.0,
+        152.0
+      ],
+      "usage": "The parliament on the M21, M26 and M27 civic plazas (front faces the plaza); replaces the Parliament Parts.",
+      "triangleCount": 884,
+      "textures": [
+        "civic-hall-color.png 512x512",
+        "civic-hall-normal.png 512x512",
+        "civic-hall-roughness.png 512x512",
+        "civic-hall-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        234.0,
+        92.0,
+        152.0
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "civic-hall/preview-front.png",
+        "civic-hall/preview-side.png",
+        "civic-hall/preview-top.png",
+        "civic-hall/preview-3q.png",
+        "civic-hall/preview-closeup.png"
+      ]
+    },
+    {
+      "folder": "cliff-sandstone",
+      "robloxAssetIdsKey": "CliffSandstone",
+      "title": "Sandstone cliff face panel",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "cliff-sandstone.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "cliff-sandstone-color.png",
+          "role": "color"
+        },
+        {
+          "file": "cliff-sandstone-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "cliff-sandstone-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "cliff-sandstone-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        240.0,
+        160.0,
+        56.688
+      ],
+      "gameSizeStuds": [
+        240.0,
+        160.0,
+        56.688
+      ],
+      "usage": "Rock-face panels set into canyon mesa walls (M3, M4, M7, M8, M9): strata ledges and desert varnish.",
+      "triangleCount": 2186,
+      "textures": [
+        "cliff-sandstone-color.png 512x512",
+        "cliff-sandstone-normal.png 512x512",
+        "cliff-sandstone-roughness.png 512x512",
+        "cliff-sandstone-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        240.0,
+        160.0,
+        56.688
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "cliff-sandstone/preview-front.png",
+        "cliff-sandstone/preview-side.png",
+        "cliff-sandstone/preview-top.png",
+        "cliff-sandstone/preview-3q.png",
+        "cliff-sandstone/preview-closeup.png"
+      ]
+    },
+    {
+      "folder": "cliff-granite",
+      "robloxAssetIdsKey": "CliffGranite",
+      "title": "Granite cliff face panel",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "cliff-granite.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "cliff-granite-color.png",
+          "role": "color"
+        },
+        {
+          "file": "cliff-granite-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "cliff-granite-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "cliff-granite-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        240.0,
+        160.0,
+        56.022
+      ],
+      "gameSizeStuds": [
+        240.0,
+        160.0,
+        56.022
+      ],
+      "usage": "Rock-face panels set into plateau mesa walls (M10, M14, M17, M18): jointed granite with lichen.",
+      "triangleCount": 2186,
+      "textures": [
+        "cliff-granite-color.png 512x512",
+        "cliff-granite-normal.png 512x512",
+        "cliff-granite-roughness.png 512x512",
+        "cliff-granite-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        240.0,
+        160.0,
+        56.022
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "cliff-granite/preview-front.png",
+        "cliff-granite/preview-side.png",
+        "cliff-granite/preview-top.png",
+        "cliff-granite/preview-3q.png",
+        "cliff-granite/preview-closeup.png"
+      ]
+    },
+    {
+      "folder": "ridge-alpine",
+      "robloxAssetIdsKey": "RidgeAlpine",
+      "title": "Distant mountain ridge (alpine)",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "ridge-alpine.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "ridge-alpine-color.png",
+          "role": "color"
+        },
+        {
+          "file": "ridge-alpine-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "ridge-alpine-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "ridge-alpine-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        2000.0,
+        1490.0,
+        2000.0
+      ],
+      "gameSizeStuds": [
+        2000.0,
+        1490.0,
+        2000.0
+      ],
+      "usage": "Backdrop ring past the flyable edge on farm, plateau, coast and M1/M2 maps (crest above the altitude ceiling); also far islands.",
+      "triangleCount": 2400,
+      "textures": [
+        "ridge-alpine-color.png 512x512",
+        "ridge-alpine-normal.png 512x512",
+        "ridge-alpine-roughness.png 512x512",
+        "ridge-alpine-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        2000.0,
+        1490.0,
+        2000.0
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "ridge-alpine/preview-front.png",
+        "ridge-alpine/preview-side.png",
+        "ridge-alpine/preview-top.png",
+        "ridge-alpine/preview-3q.png",
+        "ridge-alpine/preview-closeup.png"
+      ]
+    },
+    {
+      "folder": "ridge-desert",
+      "robloxAssetIdsKey": "RidgeDesert",
+      "title": "Distant mountain ridge (desert)",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "ridge-desert.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "ridge-desert-color.png",
+          "role": "color"
+        },
+        {
+          "file": "ridge-desert-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "ridge-desert-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "ridge-desert-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        2000.0,
+        1490.0,
+        2000.0
+      ],
+      "gameSizeStuds": [
+        2000.0,
+        1490.0,
+        2000.0
+      ],
+      "usage": "Backdrop ring past the flyable edge on canyon maps (M3, M4, M7, M8, M9): banded sandstone.",
+      "triangleCount": 2400,
+      "textures": [
+        "ridge-desert-color.png 512x512",
+        "ridge-desert-normal.png 512x512",
+        "ridge-desert-roughness.png 512x512",
+        "ridge-desert-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        2000.0,
+        1490.0,
+        2000.0
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "ridge-desert/preview-front.png",
+        "ridge-desert/preview-side.png",
+        "ridge-desert/preview-top.png",
+        "ridge-desert/preview-3q.png",
+        "ridge-desert/preview-closeup.png"
+      ]
+    },
+    {
+      "folder": "fence-span",
+      "robloxAssetIdsKey": "FenceSpan",
+      "title": "Timber post-and-rail fence (tileable)",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "fence-span.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "fence-span-color.png",
+          "role": "color"
+        },
+        {
+          "file": "fence-span-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "fence-span-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "fence-span-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        1.201,
+        5.538,
+        60.944
+      ],
+      "gameSizeStuds": [
+        1.201,
+        5.538,
+        60.944
+      ],
+      "usage": "Tileable 60-stud farm fence along fields and farmsteads (farm and plateau maps).",
+      "triangleCount": 108,
+      "textures": [
+        "fence-span-color.png 256x256",
+        "fence-span-normal.png 256x256",
+        "fence-span-roughness.png 256x256",
+        "fence-span-metalness.png 256x256"
+      ],
+      "textureLimit": 256,
+      "robloxSizeStuds": [
+        1.201,
+        5.538,
+        60.944
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "fence-span/preview-front.png",
+        "fence-span/preview-side.png",
+        "fence-span/preview-top.png",
+        "fence-span/preview-3q.png",
+        "fence-span/preview-closeup.png"
+      ]
+    },
+    {
+      "folder": "power-line-span",
+      "robloxAssetIdsKey": "PowerLineSpan",
+      "title": "Lattice pylon with line span (tileable)",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "power-line-span.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "power-line-span-color.png",
+          "role": "color"
+        },
+        {
+          "file": "power-line-span-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "power-line-span-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "power-line-span-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        26.866,
+        70.208,
+        307.113
+      ],
+      "gameSizeStuds": [
+        26.866,
+        70.208,
+        307.113
+      ],
+      "usage": "Tileable 300-stud power line: one lattice pylon (front end) and its conductors back to the previous pylon; outer roads.",
+      "triangleCount": 1532,
+      "textures": [
+        "power-line-span-color.png 512x512",
+        "power-line-span-normal.png 512x512",
+        "power-line-span-roughness.png 512x512",
+        "power-line-span-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        26.866,
+        70.208,
+        307.113
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "power-line-span/preview-front.png",
+        "power-line-span/preview-side.png",
+        "power-line-span/preview-top.png",
+        "power-line-span/preview-3q.png",
+        "power-line-span/preview-closeup.png"
+      ]
     }
   ]
 }

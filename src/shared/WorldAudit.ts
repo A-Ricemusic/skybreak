@@ -1,8 +1,9 @@
 import { ActorPlacement } from "./ActorPlacement";
+import { FlightMath } from "./FlightMath";
 import { MissionCatalog } from "./MissionCatalog";
 import { UploadedAssetSpecs } from "./UploadedAssetSpecs";
 import {
-	APRON_TOP, GROUND, SEABED, WATER_Y, WORLD_BUDGET, countPlan, polyDist, propBox, solidTopWithin, surfaceAt, terrainTop,
+	APRON_TOP, CORE, EXTENT, FAR, GROUND, OUTER_CEILING, SEABED, WATER_Y, WORLD_BUDGET, countPlan, polyDist, propBox, ring, solidTopWithin, surfaceAt, terrainTop,
 	type PropSpec, type WorldPlan,
 } from "./WorldPlan";
 
@@ -13,7 +14,13 @@ import {
 // water under their keels, and the per-world mobile budget. Each problem is a
 // readable line so a failing spec says exactly what moved.
 
-const WATERLINE_ASSETS = new Set<string>(["Frigate", "OilPlatform", "HarbourQuay"]);
+const WATERLINE_ASSETS = new Set<string>(["Frigate", "OilPlatform", "HarbourQuay", "StoreDeck"]);
+/** Flat modular pieces sunk a stud or so into the ground (or, for hardstands, half their thickness): no burial check. */
+const FLAT_ASSETS = new Set<string>(["RunwaySegment", "RunwayThreshold", "ApronSlab", "RoadSegment", "DirtTrack", "TargetPad"]);
+/** Eye height every backdrop crest must clear: the altitude ceiling plus a chase camera's lift. */
+export const HORIZON_EYE = FlightMath.MaxAltitude + 60;
+/** Studs every backdrop ridge's footprint keeps outside the hard boundary. */
+const BACKDROP_CLEAR = 200;
 /** Largest gap allowed between a footprint's bottom and the surface under it. */
 const FLOAT_TOLERANCE = 1.5;
 /** Water always left between a hull's keel and the seabed: one voxel layer. */
@@ -33,9 +40,68 @@ function corners(x: number, z: number, hx: number, hz: number, yaw: number): num
 	return out;
 }
 
+/** (x, z) of a point given in a prop's local frame (scaled studs). */
+function atLocal(p: PropSpec, lx: number, lz: number): [number, number] {
+	const c = math.cos(p.yaw), s = math.sin(p.yaw);
+	return [p.x + c * lx + s * lz, p.z - s * lx + c * lz];
+}
+/** Special rules for the bigger-world pieces; true when the prop is fully handled. */
+function specialProblems(plan: WorldPlan, p: PropSpec, tag: string, out: string[]): boolean {
+	const spec = UploadedAssetSpecs[p.asset], box = propBox(p);
+	const hx = spec.size.X * p.scale / 2, hz = spec.size.Z * p.scale / 2;
+	if (p.tag === "backdrop") {
+		// The ring stands wholly past the flyable edge; its crest clears the eye height (horizonProblems checks coverage).
+		for (const [x, z] of corners(p.x, p.z, hx / 0.9, hz / 0.9, p.yaw)) {
+			if (ring(x, z) < FlightMath.HardBoundary + BACKDROP_CLEAR) { out.push(`${tag}: backdrop ridge reaches (${math.floor(x)}, ${math.floor(z)}) inside the flyable edge`); break; }
+		}
+		if (box.bottom + (spec.crest ?? 0) * p.scale < HORIZON_EYE) out.push(`${tag}: crest under the eye height ${HORIZON_EYE}`);
+		return true;
+	}
+	if (p.tag === "island") {
+		if (ring(p.x, p.z) < EXTENT + 1000) out.push(`${tag}: far island inside the voxel edge`);
+		return true;
+	}
+	if (p.asset === "Gangway") return true; // elevated: spans from a store deck to the platform over open water
+	if (p.asset === "RoadBridge") {
+		// Ramp ends on the banks at the contact height; piers on the river bed.
+		for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+			const [x, z] = atLocal(p, sx * hx * 0.6, sz * (hz - 3));
+			const t = terrainTop(plan.ops, x, z);
+			if (t.water !== undefined || math.abs(t.solid - p.y) > FLOAT_TOLERANCE) { out.push(`${tag}: ramp end at (${math.floor(x)}, ${math.floor(z)}) not on the bank (ground ${t.solid})`); return true; }
+		}
+		for (const sz of [-1, 1]) {
+			const [x, z] = atLocal(p, 0, sz * 40 * p.scale);
+			const t = terrainTop(plan.ops, x, z);
+			if (math.abs(t.solid - box.bottom) > FLOAT_TOLERANCE) out.push(`${tag}: pier at (${math.floor(x)}, ${math.floor(z)}) meets the bed at ${t.solid}, footing at ${box.bottom}`);
+		}
+		return true;
+	}
+	let points: number[][] | undefined;
+	if (p.asset === "CliffSandstone" || p.asset === "CliffGranite") {
+		// The panel's back is set into a mesa wall; its front foot rests on the ground or the talus.
+		points = [atLocal(p, -hx * 0.4, -hz * 0.6), atLocal(p, 0, -hz * 0.6), atLocal(p, hx * 0.4, -hz * 0.6)];
+	} else if (p.asset === "PowerLineSpan") {
+		// The pylon stands at the front end; the conductors overhang the ground back to the previous pylon.
+		const [x, z] = atLocal(p, 0, -(hz - 7 * p.scale));
+		points = corners(x, z, 6 * p.scale, 6 * p.scale, p.yaw);
+	} else if (p.asset === "FenceSpan") {
+		points = [atLocal(p, 0, -hz * 0.9), atLocal(p, 0, 0), atLocal(p, 0, hz * 0.9)];
+	}
+	if (points === undefined) return false;
+	let lowest = math.huge;
+	for (const [x, z] of points) {
+		const t = supportAt(plan, x, z, p);
+		if (t === undefined) { out.push(`${tag}: footprint over the void or water`); return true; }
+		lowest = math.min(lowest, t);
+	}
+	if (box.bottom > lowest + FLOAT_TOLERANCE) out.push(`${tag}: floats ${math.floor((box.bottom - lowest) * 10) / 10} studs over the ground`);
+	return true;
+}
+
 function propProblems(plan: WorldPlan, p: PropSpec, out: string[]): void {
 	const box = propBox(p);
 	const tag = `${p.asset} at (${math.floor(p.x)}, ${math.floor(p.z)})`;
+	if (specialProblems(plan, p, tag, out)) return;
 	if (WATERLINE_ASSETS.has(p.asset)) {
 		if (math.abs(p.y - WATER_Y) > 0.01) out.push(`${tag}: waterline asset not at the water surface`);
 		const t = terrainTop(plan.ops, p.x, p.z);
@@ -63,7 +129,7 @@ function propProblems(plan: WorldPlan, p: PropSpec, out: string[]): void {
 		lowest = math.min(lowest, t);
 	}
 	if (box.bottom > lowest + FLOAT_TOLERANCE) out.push(`${tag}: floats ${math.floor((box.bottom - lowest) * 10) / 10} studs over the ground`);
-	if (!small && box.bottom < highest - UploadedAssetSpecs[p.asset].size.Y * p.scale * 0.25) out.push(`${tag}: buried more than a quarter of its height`);
+	if (!small && !FLAT_ASSETS.has(p.asset) && box.bottom < highest - UploadedAssetSpecs[p.asset].size.Y * p.scale * 0.25) out.push(`${tag}: buried more than a quarter of its height`);
 }
 
 /** Dry support under (x, z): terrain top, or a quay deck the prop stands on. */
@@ -132,6 +198,55 @@ function boatPathProblems(plan: WorldPlan, out: string[]): void {
 	});
 }
 
+/**
+ * The edge is never visible: from every point of the flyable edge, rays out across the land (up to 60 degrees
+ * off the outward normal) cross some backdrop ridge's crest above HORIZON_EYE, so a pilot anywhere under the
+ * altitude ceiling sees mountains where the voxel terrain ends. Sea-facing rays run out over the sea skirt.
+ */
+function crestOver(p: PropSpec, px: number, pz: number, dx: number, dz: number, reach: number): number | undefined {
+	const spec = UploadedAssetSpecs[p.asset];
+	const c = math.cos(p.yaw), s = math.sin(p.yaw), ox = px - p.x, oz = pz - p.z;
+	const lx = c * ox - s * oz, lz = s * ox + c * oz, ldx = c * dx - s * dz, ldz = s * dx + c * dz;
+	if (math.abs(ldz) < 1e-6) return undefined;
+	const t = -lz / ldz;
+	if (t <= 0 || t > reach || math.abs(lx + ldx * t) > spec.size.X * p.scale / 2 * 0.98) return undefined;
+	return propBox(p).bottom + (spec.crest ?? 0) * p.scale;
+}
+function horizonProblems(plan: WorldPlan, out: string[]): void {
+	if (plan.theme === "ocean") return;
+	const ridges = plan.props.filter((p) => p.tag === "backdrop");
+	const edge = FlightMath.HardBoundary, cz = plan.coastZ;
+	for (const [nx, nz] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) for (let t = -edge; t <= edge; t += 400) {
+		const px = nx !== 0 ? nx * edge : t, pz = nz !== 0 ? nz * edge : t;
+		if (cz !== undefined && (nz < 0 || pz < cz + 1500)) continue;
+		for (const turn of [-1.05, -0.6, -0.3, 0, 0.3, 0.6, 1.05]) {
+			const a = math.atan2(nz, nx) + turn, dx = math.cos(a), dz = math.sin(a);
+			// A ray that reaches the shore within its reach ends over the sea skirt (the sea horizon), not at an edge.
+			if (cz !== undefined && pz + dz * 4500 < cz + 350) continue;
+			if (!ridges.some((r) => (crestOver(r, px, pz, dx, dz, 4500) ?? -math.huge) >= HORIZON_EYE)) {
+				out.push(`horizon: edge visible from (${px}, ${pz}) looking ${math.floor(math.deg(a))} degrees`);
+				return;
+			}
+		}
+	}
+}
+/** The flyable square has terrain or water everywhere, the ring's relief stays under OUTER_CEILING and the skirts reach FAR. */
+function extentProblems(plan: WorldPlan, out: string[]): void {
+	const edge = FlightMath.HardBoundary;
+	for (let x = -edge; x <= edge; x += 750) for (let z = -edge; z <= edge; z += 750) {
+		const t = terrainTop(plan.ops, x, z);
+		if (t.water === undefined && t.solid === -math.huge) { out.push(`extent: no terrain at (${x}, ${z}) inside the flyable square`); return; }
+		if (ring(x, z) > CORE && t.solid > OUTER_CEILING) out.push(`extent: explorable relief at (${x}, ${z}) rises to ${math.floor(t.solid)}`);
+	}
+	const skirts = plan.parts.filter((p) => p.stretch !== undefined);
+	for (const d of [EXTENT + 60, (EXTENT + FAR) / 2, FAR - 60]) for (let k = 0; k < 32; k++) {
+		const a = k / 32 * math.pi * 2, sq = math.max(math.abs(math.cos(a)), math.abs(math.sin(a)));
+		const x = math.cos(a) * d / sq, z = math.sin(a) * d / sq;
+		const covered = skirts.some((p) => math.abs(x - p.x) <= p.sx * p.stretch![0] / 2 && math.abs(z - p.z) <= p.sz * p.stretch![2] / 2);
+		if (!covered) { out.push(`extent: no far skirt at (${math.floor(x)}, ${math.floor(z)})`); return; }
+	}
+}
+
 export interface AuditResult { problems: string[]; checkedAir: number; checkedProps: number; checkedParts: number }
 
 export function auditPlan(plan: WorldPlan): AuditResult {
@@ -148,7 +263,7 @@ export function auditPlan(plan: WorldPlan): AuditResult {
 		const g = bp.ground[t.index];
 		if (g === undefined || math.abs(g.x - t.x) > 0.01 || math.abs(g.z - t.z) > 0.01) { problems.push(`target ${t.index + 1}: moved off its authored XZ`); continue; }
 		const s = surfaceAt(plan, t.x, t.z);
-		if (s.kind !== "part" || math.abs(s.y - t.baseY) > 0.01) problems.push(`target ${t.index + 1}: base surface ${s.kind} ${s.name} at ${s.y}, expected ${t.baseY}`);
+		if ((s.kind !== "part" && s.kind !== "prop") || math.abs(s.y - t.baseY) > 0.01) problems.push(`target ${t.index + 1}: base surface ${s.kind} ${s.name} at ${s.y}, expected ${t.baseY}`);
 		if (!t.deck) {
 			if (t.baseY !== APRON_TOP) problems.push(`target ${t.index + 1}: apron top ${t.baseY}`);
 			for (const [x, z] of corners(t.x, t.z, t.apron / 2, t.apron / 2, 0)) {
@@ -188,7 +303,13 @@ export function auditPlan(plan: WorldPlan): AuditResult {
 		const t = terrainTop(plan.ops, pt[0], pt[1]);
 		if (t.water !== undefined || math.abs(t.solid - GROUND) > 0.01) problems.push(`convoy point (${pt[0]}, ${pt[1]}): ground at ${t.solid}${t.water !== undefined ? " (water)" : ""}`);
 	}
+	horizonProblems(plan, problems);
+	extentProblems(plan, problems);
 	const c = countPlan(plan);
+	// Detail falls off with distance: the explorable ring carries at most half the core's prop density.
+	const coreArea = 4 * CORE * CORE, outerArea = 4 * FlightMath.HardBoundary * FlightMath.HardBoundary - coreArea;
+	if (c.outerProps / outerArea > 0.5 * math.max(c.coreProps, 1) / coreArea) problems.push(`detail: ${c.outerProps} outer props is denser than half the core's ${c.coreProps}`);
+	if (c.instances > WORLD_BUDGET.instances) problems.push(`budget: ${c.instances} instances > ${WORLD_BUDGET.instances}`);
 	if (c.parts > WORLD_BUDGET.parts) problems.push(`budget: ${c.parts} parts > ${WORLD_BUDGET.parts}`);
 	if (c.props > WORLD_BUDGET.props) problems.push(`budget: ${c.props} props > ${WORLD_BUDGET.props}`);
 	if (c.uniqueMeshes > WORLD_BUDGET.uniqueMeshes) problems.push(`budget: ${c.uniqueMeshes} unique meshes > ${WORLD_BUDGET.uniqueMeshes}`);

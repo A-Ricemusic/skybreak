@@ -73,6 +73,14 @@ export function Part(parent: Instance, name: string, size: Vector3, at: CFrame |
 	return object;
 }
 
+/** Renders a block part `scale` times its size (a Brick SpecialMesh): far skirts wider than the 2048-stud part limit. */
+export function Stretch(part: BasePart, scale: Vector3): void {
+	const mesh = new Instance("SpecialMesh");
+	mesh.MeshType = Enum.MeshType.Brick;
+	mesh.Scale = scale;
+	mesh.Parent = part;
+}
+
 /** Upright cylinder (Roblox cylinders lie along X by default). */
 export function Cylinder(parent: Instance, name: string, diameter: number, height: number, at: Vector3, color: Color3, material: Enum.Material, options: PartOptions = {}): BasePart {
 	return Part(parent, name, new Vector3(height, diameter, diameter), new CFrame(at).mul(CFrame.Angles(0, 0, math.pi / 2)), color, material, { ...options, shape: Enum.PartType.Cylinder });
@@ -423,5 +431,5 @@ export function Lighthouse(parent: Instance, x: number, z: number, floor: number
 }
 
 export const Scenery = {
-	PART_BUDGET, WATERLINE, HIDDEN_FLOOR, PALETTES, Part, Cylinder, Disc, Report, Sea, TerrainSea, Shoreline, TerrainIsland, TerrainHill, Mountains, SeaStacks, Rocks, Trees, Road, Light, Runway, Hangar, ControlTower, FuelFarm, Buildings, ParkedJets, Containers, Crane, Boat, Lighthouse,
+	PART_BUDGET, WATERLINE, HIDDEN_FLOOR, PALETTES, Part, Stretch, Cylinder, Disc, Report, Sea, TerrainSea, Shoreline, TerrainIsland, TerrainHill, Mountains, SeaStacks, Rocks, Trees, Road, Light, Runway, Hangar, ControlTower, FuelFarm, Buildings, ParkedJets, Containers, Crane, Boat, Lighthouse,
 };

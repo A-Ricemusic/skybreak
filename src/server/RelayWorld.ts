@@ -38,7 +38,9 @@ function buildPart(parent: Instance, p: PartSpec): BasePart {
 	const color = rgb(p.color), mat = material(p.material);
 	if (p.shape === "cylinder") return Scenery.Cylinder(parent, p.name, p.sx, p.sy, new Vector3(p.x, p.y, p.z), color, mat, options);
 	if (p.shape === "ball") return Scenery.Part(parent, p.name, new Vector3(p.sx, p.sx, p.sx), new Vector3(p.x, p.y, p.z), color, mat, { ...options, shape: Enum.PartType.Ball });
-	return Scenery.Part(parent, p.name, new Vector3(p.sx, p.sy, p.sz), yawFrame(p.x, p.y, p.z, p.yaw), color, mat, { ...options, className: p.shape === "wedge" ? "WedgePart" : "Part" });
+	const part = Scenery.Part(parent, p.name, new Vector3(p.sx, p.sy, p.sz), yawFrame(p.x, p.y, p.z, p.yaw), color, mat, { ...options, className: p.shape === "wedge" ? "WedgePart" : "Part" });
+	if (p.stretch !== undefined) Scenery.Stretch(part, new Vector3(p.stretch[0], p.stretch[1], p.stretch[2]));
+	return part;
 }
 
 const BARK = Color3.fromRGB(92, 70, 50);

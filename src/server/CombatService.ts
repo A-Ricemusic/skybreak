@@ -226,7 +226,8 @@ const ACE_DAMAGE_BONUS = 2;
 /** Required waves arrive this far out (an approach before the lock); reinforcements from behind come a little closer. */
 const SPAWN_FRONT: [number, number] = [2600, 3200];
 const SPAWN_BEHIND: [number, number] = [2000, 2400];
-const SPAWN_LIMIT = 2500;
+/** Waves arrive relative to the player anywhere in the flyable square, a little inside the soft boundary. */
+const SPAWN_LIMIT = FlightMath.SoftBoundary - 400;
 /** A retired raider flies for the boundary this long before it is removed. */
 const WITHDRAW_SECONDS = 4;
 /** Ground-avoidance look-ahead for enemy jets, and how often each jet casts it. */
