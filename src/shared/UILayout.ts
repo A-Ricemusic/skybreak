@@ -828,7 +828,8 @@ export function getFlightHints(inputMode: InputMode, context: FlightHintContext)
 
 /** Small roots stack the two cells inside the same existing objective rectangle. */
 export function getMovementIndicatorLayout(area: Rectangle, textSize: number): Rectangle[] {
-	const stack = area.width < hudTextWidth(28, textSize);
+	// Each half must fit the longest cell: "Tap W/S ↑↓ 0/3s" (15 characters).
+	const stack = area.width < hudTextWidth(30, textSize);
 	return [0, 1].map(index => ({
 		x: area.x + (stack ? 0 : index * area.width / 2),
 		y: area.y + (stack ? index * area.height / 2 : 0),
@@ -844,7 +845,7 @@ export function getMovementIndicators(mode: InputMode, turn?: number, pitch?: nu
 		const known = value >= 0 && value === value && math.abs(value) !== math.huge;
 		const seconds = known ? math.clamp(value, 0, 3) : 0;
 		const done = known && seconds >= 3;
-		return { text: `${done ? "✓" : "Tap"} ${labels[index]}${known ? math.floor(seconds) : "–"}/3s`, done };
+		return { text: `${done ? "✓" : "Tap"} ${labels[index]} ${known ? math.floor(seconds) : "–"}/3s`, done };
 	});
 }
 
