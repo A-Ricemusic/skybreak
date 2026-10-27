@@ -42,10 +42,14 @@ const inUploaded=(item: Instance)=>item.FindFirstAncestorWhichIsA("Model")?.GetA
 
 describe("Broken Relay disposable world integration",()=>{
 	let fixture:Folder | undefined;
+	// Fake uploads: real InsertService loads can outlast the preload deadline and the Jest timeout.
+	beforeAll(()=>UploadedAssets.Configure({ids:fakeIds(),probe,loader:fakeUpload}));
+	afterAll(()=>UploadedAssets.Configure());
 	afterEach(()=>{cleanup(fixture);fixture=undefined;});
 	for(const bp of MissionCatalog.All())it(`builds and disposes M${bp.id} with exact authored targets and bounded scenery`,()=>{
 		fixture=new Instance("Folder");fixture.Name="RelayWorldFixture";fixture.Parent=Workspace;
 		const world=MissionWorld.Build(bp.id,fixture);
+		expect(fixture.GetAttribute("WorldPreloadLate")).toBe(0);
 		expect(Lighting.GetAttribute(ENVIRONMENT_ATTRIBUTE)).toBe(bp.environment);
 		expect(world.groundTargets.size()).toBe(bp.ground.size());
 		for(let i=0;i<world.groundTargets.size();i++){

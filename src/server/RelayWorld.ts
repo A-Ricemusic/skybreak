@@ -15,7 +15,7 @@ import { WorldEnvironment } from "./WorldEnvironment";
 // its numbers into instances, in a fixed order:
 //   1. environment and terrain colours, 2. the voxel ops as bounded jobs on a
 //   per-frame time budget (TerrainWriter), 3. parts (Scenery.Part yields every
-//   150), 4. props (template loads run in parallel first, bounded by
+//   150), 4. props (template loads start before step 1 and are awaited here, bounded by
 //   WorldAssets' preload timeout; placement itself never waits), 5. targets.
 // Build timings land on the parent as attributes (WorldBuildSeconds,
 // WorldTerrainLongest, ...) so an engine run can read the worst stall.
@@ -87,6 +87,12 @@ export const RelayWorld = {
 	Build(id: number, parent: Instance): { groundTargets: Model[] } {
 		const started = os.clock();
 		const bp = MissionCatalog.Get(id), plan = WorldPlanner.Build(id);
+		// Start the uploaded-prop downloads now so they overlap terrain and part building.
+		const unique = new Set<PropAsset>();
+		for (const p of plan.props) unique.add(p.asset);
+		const assets: PropAsset[] = [];
+		for (const asset of unique) assets.push(asset);
+		WorldAssets.Start(assets);
 		Workspace.FindFirstChild("World")?.Destroy();
 		Workspace.Terrain.Clear();
 		WorldEnvironment.Apply(bp.environment);
@@ -104,10 +110,6 @@ export const RelayWorld = {
 		parent.SetAttribute("WorldKitFallbacks", kitFallbacks);
 		if (kitFallbacks > 0) warn(`[RelayWorld] ${plan.name}: ${kitFallbacks} infrastructure modules used the visible fallback`);
 
-		const unique = new Set<PropAsset>();
-		for (const p of plan.props) unique.add(p.asset);
-		const assets: PropAsset[] = [];
-		for (const asset of unique) assets.push(asset);
 		const late = WorldAssets.Preload(assets);
 		const props = new Instance("Folder");
 		props.Name = "Props";

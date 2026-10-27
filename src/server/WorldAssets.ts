@@ -147,6 +147,10 @@ export const WorldAssets = {
 	Preload(names: WorldAssetName[]): WorldAssetName[] {
 		return UploadedAssets.Preload(names, preloadTimeout) as WorldAssetName[];
 	},
+	/** Starts every template load without waiting (shared with Preload, so nothing loads twice). */
+	Start(names: WorldAssetName[]): void {
+		UploadedAssets.Preload(names, 0);
+	},
 	/** Test hook: shorten (or restore, with no argument) the preload deadline. */
 	SetPreloadTimeout(seconds = PRELOAD_TIMEOUT): void {
 		preloadTimeout = seconds;
