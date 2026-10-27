@@ -1,0 +1,82 @@
+M1 movement-to-target handoff regression evidence
+
+Before: on 7085216 (PR70), the standalone Luau fixture completed both movement
+credits from an inverted descending pose, entered tutorial_target, and then
+integrated the unchanged flight model below 12 studs. Baseline run: 539 passed,
+0 failed (includes the reproduction). This is an offline simulation, not the
+reported real-input playtest and not a Roblox collision/runtime pass.
+
+The final regression also runs full cumulative scripted numeric-input onboarding from the real
+spawn/default speed (three seconds turn, three seconds pitch; not physical keyboard/device input), reproducing the
+inverted descent without recovery and a safe once-only handoff with recovery.
+
+After: TutorialHandoff.spec.ts exercises the server order (observe controls,
+apply one handoff decision, filter raw input, integrate FlightMath), including
+inverted, steep up/down, low level and insufficient descent headroom. Safe
+250-stud gentle flight matches an unrecovered flight path exactly. Six seconds
+of held pitch/turn cannot reapply the dive; all axes must center below 0.15.
+Tests also cover once-only recovery, progress/clock/throttle preservation,
+phase boundaries, client prediction history/correction reset, stale packets,
+repeated recovery epochs and loss of the first recovery packet.
+
+Bounds: one decision only when M1 enters tutorial_target. Preserve gentle flight
+within 20 degrees pitch / 45 degrees bank, inside +/-3000 horizontal studs and
+above 225 studs plus two seconds of downward travel. Unsafe flight uses the
+existing practice recovery pose (0,800,500), upright and heading toward the
+radar. The server checks the destination surface height and two seconds of
+level travel at maximum speed using actual session collision filters, trying
+800..2000 altitude in 200-stud increments, then failing closed if none is clear.
+The 225-stud floor clears authored 125-stud rim hills with 100 studs of margin;
+the initial 800-stud recovery gives space to read the priority radio notice.
+
+The player sees a deliberate safety reposition only for unsafe completion and
+"Safety recovery: upright; progress/speed saved. Release ALL turn/pitch holds
+or center sticks, then TGT." A release latch, rather than a timed input zero,
+blocks existing steering holds until neutral. It is confined to target/missile
+practice and always disappears before the bandit beat. It never resets mission
+time, changes throttle or airspeed at recovery, restores hull, repeats recovery,
+or changes existing collision practice resets / live combat protection. It
+is not an ongoing level assist: stall/flight physics and fresh input still apply.
+
+Validation: bun run build and the official standalone Luau offline domain suite
+passed, 549 tests / 0 failures. git diff --check passed. No Studio, Rojo server,
+full engine, publish/upload, real keyboard, controller or touch testing was run.
+Engine corridor/overlap checks, camera feel, notice readability and real held
+input acceptance remain for the parent's dedicated engine acceptance pass.
+
+Historical result correction: the prior M1 playtest result was 4 TOTAL kills
+(including 1 ground), 94 hull; it was not 4 air kills plus a ground target.
+
+PR77 blocker follow-up (2026-10-27)
+
+Based on reviewed f16d759ba26e86b5f9f5bb4eeaeba438266acff0, merged main
+0648d4a (PR73; earlier PR70/71/72 already present), preserving its telemetry work.
+The production HUD handler now uses FlightPrediction.ObservePhase: a delayed
+movement HUD cannot release the recovery latch. Recovery is applied once;
+release requires server marker 2, not a local neutral sample that may be lost
+upstream. Repeated 1 cannot re-arm an acknowledged release. Phase exit is
+terminal for the sortie and clears the latch even if all release packets were
+lost. Ordering regressions call the production ObservePhase/Reconcile/Step
+helpers, including stale HUD, packet reordering, repeated 1/2, local neutral
+before server acknowledgement, missing first marker and delayed post-exit HUD.
+
+AircraftCollision.DestinationClear checks the 4-stud starting volume with the
+same authored part allowlist/collision group/query rules as the sweep. Part
+bounds are conservative; occupied 4-stud terrain voxels in the enclosing volume
+also reject terrain/water overlaps. False-positive rejection near geometry is
+intentional. Every candidate altitude still requires the full forward sweep;
+no valid candidate fails closed. SphereSweep.spec adds engine fixtures for
+off-centre noncollidable FlightSolid overlap at ALL 800..2000 candidate heights,
+ignored untagged geometry, off-centre rock and water voxel occupancy. These
+engine tests are compiled for the external reviewer, NOT executed here.
+
+No Studio process or session was accessed, no Rojo command, publish or merge of
+the PR. Offline numeric simulations are not real keyboard, controller, touch,
+network transport or collision-engine acceptance. Parent/external workstream
+owns fresh independent review and engine/device playtest.
+
+Follow-up validation: bun install --frozen-lockfile; production rbxtsc build
+passed; LUAU_BIN=/tmp/luau-rev11/bin/luau bun run test:offline passed 551 tests,
+0 failures (includes the new production-helper ordering regressions).
+git diff --check passed. The two new overlap engine tests compile with the
+production test project but were not run; no engine/runtime acceptance claimed.

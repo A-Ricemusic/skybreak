@@ -35,12 +35,17 @@ const KEYS = ["x", "y", "z", "qw", "qx", "qy", "qz", "lean", "speed"] as const;
 const QUATERNION = ["qw", "qx", "qy", "qz"] as const;
 /** Every field, including the derived angles, for plain copies. */
 const ALL = ["x", "y", "z", "qw", "qx", "qy", "qz", "lean", "yaw", "pitch", "roll", "speed"] as const;
-/** Length of FlightStatePacket. */
+/** Required legacy packet fields (the M1 recovery epoch is optional). */
 const PACKET_FIELDS = 13;
 
 export interface Predictor {
 	/** Simulated state at the last fixed step (what history and reconciliation use). */
 	state: FlightState;
+	/** One M1 recovery epoch per sortie; discard pre-recovery predicted motion. */
+	recoverySeen?: boolean;
+	blocked?: boolean;
+	/** Terminal within this sortie: delayed practice packets cannot re-arm combat. */
+	recoveryExited?: boolean;
 	/** `state` advanced by the leftover partial step; what the client draws. */
 	display: FlightState;
 	/** Unsimulated time carried to the next frame (< FIXED_STEP). */
@@ -91,6 +96,13 @@ export const FlightPrediction = {
 	/** Round trip assumed until the first echoed input arrives. */
 	DefaultRtt: 0.15,
 
+	/** Shared by the production HUD handler and ordering regressions. Movement HUD may
+	 * predate the unreliable recovery packet; only leaving all lessons is terminal. */
+	ObservePhase(predictor: Predictor, phase: string): void {
+		if (phase === "tutorial_move" || phase === "tutorial_target" || phase === "tutorial_missile") return;
+		predictor.recoveryExited = true; predictor.blocked = false;
+	},
+
 	New(initial: FlightState): Predictor {
 		const raw: FlightState[] = [];
 		const times: number[] = [];
@@ -114,6 +126,11 @@ export const FlightPrediction = {
 	 * leftover fraction of a step, so there is no added visual latency.
 	 */
 	Step(predictor: Predictor, input: FlightInput, dt: number, now: number): FlightState {
+		if (predictor.blocked) {
+			// Neutral still travels upstream. Wait for marker 2 before predicting fresh
+			// steering: the neutral packet may be lost or not yet reach the server.
+			input = { ...input, x: 0, y: 0 };
+		}
 		dt = math.max(0, dt);
 		const pending = predictor.pending;
 		const alpha = FlightMath.DampAlpha(FlightPrediction.BlendRate, dt);
@@ -191,9 +208,19 @@ export const FlightPrediction = {
 	 * Returns which branch ran: "ignore" (< IgnoreDistance and tiny angles),
 	 * "blend" (corrected over the next frames) or "snap" (applied at once).
 	 */
-	Reconcile(predictor: Predictor, server: FlightState, now: number, sequence: number, matchTime?: number): Predictor["last"] {
+	Reconcile(predictor: Predictor, server: FlightState, now: number, sequence: number, matchTime?: number, recovery = 0): Predictor["last"] {
 		if (sequence <= predictor.sequence) return "none"; // stale or duplicate unreliable packet
 		predictor.sequence = sequence;
+		if (predictor.recoveryExited) recovery = 0;
+		if (recovery > 0 && !predictor.recoverySeen) {
+			predictor.recoverySeen = true; predictor.blocked = recovery === 1;
+			copyInto(predictor.state, server); copyInto(predictor.display, server);
+			for (const key of KEYS) { predictor.pending[key] = 0; predictor.applied[key] = 0; }
+			predictor.count = 0; predictor.head = 0; predictor.accumulator = 0;
+			predictor.last = "snap";
+			return "snap";
+		}
+		if (recovery === 2) predictor.blocked = false;
 		const match = scratchMatch;
 		// Exact when the server echoed an input (stamp + hold); otherwise a full round trip ago.
 		const at = matchTime ?? now - (predictor.rtt ?? FlightPrediction.DefaultRtt);
@@ -236,8 +263,10 @@ export const FlightPrediction = {
 	},
 
 	/** Server packet layout shared by both ends of the FlightState remote. */
-	Encode(sequence: number, state: FlightState, evadeRemaining: number, echoedClientTime: number, hold: number): FlightStatePacket {
-		return [sequence, state.x, state.y, state.z, state.qw, state.qx, state.qy, state.qz, state.lean, state.speed, evadeRemaining, echoedClientTime, hold];
+	Encode(sequence: number, state: FlightState, evadeRemaining: number, echoedClientTime: number, hold: number, recovery = 0): FlightStatePacket {
+		const packet: FlightStatePacket = [sequence, state.x, state.y, state.z, state.qw, state.qx, state.qy, state.qz, state.lean, state.speed, evadeRemaining, echoedClientTime, hold];
+		if (recovery > 0) packet[13] = recovery;
+		return packet;
 	},
 	/** Validates a received packet; returns undefined for anything malformed. */
 	Decode(packet: unknown): DecodedFlightState | undefined {
@@ -245,16 +274,18 @@ export const FlightPrediction = {
 		const values = packet as unknown[];
 		for (let index = 0; index < PACKET_FIELDS; index++) if (!FlightMath.IsFinite(values[index])) return undefined;
 		const n = values as number[];
+		if (n[13] !== undefined && n[13] !== 1 && n[13] !== 2) return undefined;
 		// A zero-length quaternion is not an attitude.
 		if (n[4] * n[4] + n[5] * n[5] + n[6] * n[6] + n[7] * n[7] < 0.5) return undefined;
 		const state = FlightMath.Sync({ x: n[1], y: n[2], z: n[3], qw: n[4], qx: n[5], qy: n[6], qz: n[7], lean: n[8], yaw: 0, pitch: 0, roll: 0, speed: n[9] });
-		return { sequence: n[0], state, evadeRemaining: n[10], echoedClientTime: n[11], hold: n[12] };
+		return { sequence: n[0], state, evadeRemaining: n[10], echoedClientTime: n[11], hold: n[12], recovery: n[13] ?? 0 };
 	},
 };
 
-/** [sequence, x, y, z, qw, qx, qy, qz, lean, speed, evadeRemaining, echoedClientTime, hold] — ~120 bytes. */
-export type FlightStatePacket = [number, number, number, number, number, number, number, number, number, number, number, number, number];
+/** [sequence, x, y, z, qw, qx, qy, qz, lean, speed, evadeRemaining, echoedClientTime, hold, recovery?] — ~120 bytes; recovery 1 = release latch, 2 = released. */
+export type FlightStatePacket = [number, number, number, number, number, number, number, number, number, number, number, number, number, number?];
 export interface DecodedFlightState {
+	recovery: number;
 	sequence: number;
 	state: FlightState;
 	evadeRemaining: number;

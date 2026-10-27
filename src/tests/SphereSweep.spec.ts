@@ -43,6 +43,35 @@ describe("segmented engine sphere sweeps", () => {
 		expect(result?.Instance).never.toBe(aircraft);
 		expect(AircraftCollision.Sweep(origin, origin, AircraftCollision.Parameters(fixture))).toBeUndefined();
 	});
+
+	it("rejects off-centre initial overlaps at every recovery candidate using production filters", () => {
+		setup();
+		for (let altitude = 800; altitude <= 2000; altitude += 200) {
+			const start = new Vector3(0, altitude, 500);
+			const obstacle = new Instance("Part"); obstacle.Anchored = true;
+			obstacle.Size = new Vector3(2, 2, 2); obstacle.Position = start.add(new Vector3(3, 0, 0));
+			obstacle.CanCollide = false; obstacle.SetAttribute("FlightSolid", true); obstacle.Parent = fixture;
+			const params = AircraftCollision.Parameters(fixture);
+			expect(AircraftCollision.DestinationClear(start, params)).toBe(false);
+			obstacle.Destroy();
+			const ignored = new Instance("Part"); ignored.Anchored = true;
+			ignored.Position = start; ignored.Parent = fixture; // aircraft/decor, not FlightSolid
+			expect(AircraftCollision.DestinationClear(start, AircraftCollision.Parameters(fixture))).toBe(true);
+			ignored.Destroy();
+		}
+	});
+	it("rejects terrain and water inside the recovery volume, including off-centre voxels", () => {
+		setup();
+		// Isolated high-altitude fixture: never clears authored production terrain.
+		const start = new Vector3(10000, 10000, 10000);
+		const cell = new CFrame(start.add(new Vector3(4, 0, 0)));
+		for (const material of [Enum.Material.Rock, Enum.Material.Water]) {
+			Workspace.Terrain.FillBlock(cell, new Vector3(4, 4, 4), material);
+			const clear = AircraftCollision.DestinationClear(start, AircraftCollision.Parameters(fixture));
+			Workspace.Terrain.FillBlock(cell, new Vector3(4, 4, 4), Enum.Material.Air);
+			expect(clear).toBe(false);
+		}
+	});
 	it("rejects invalid geometry and handles zero and reverse travel without an engine error", () => {
 		const params = setup();
 		for (const value of [0, -1, 257, math.huge, 0 / 0]) expect(sphereSweep(origin, value, new Vector3(1200, 0, 0), params)).toBeUndefined();

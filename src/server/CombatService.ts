@@ -1,3 +1,4 @@
+import { TutorialHandoff, HandoffState } from "../shared/TutorialHandoff";
 import { WorldAirspace } from "../shared/WorldAirspace";
 import { CombatBalance } from "../shared/CombatBalance";
 import { AircraftCollision } from "./AircraftCollision";
@@ -150,6 +151,7 @@ export interface CombatSession {
 	/** Mission 1: the post-radar bandits have launched. */
 	tutorialBanditsSpawned?: boolean;
 	practiceHintAt?: number;
+	movementHandoff?: HandoffState;
 	/** Surfaces protected actors stand on (scenery and terrain only, captured before any actor exists). */
 	groundParams?: RaycastParams;
 	/** The protected actor's footing, for re-grounding it as it moves. */
@@ -543,7 +545,7 @@ function sendFlightState(session: CombatSession): void {
 	// input with the predicted time at which it starts applying it, so the matching
 	// prediction is exactly echoedClientTime + hold, independent of either network leg.
 	const hold = session.inputClientTime > 0 ? session.inputSteps * FIXED_STEP : 0;
-	flightStateRemote!.FireClient(session.player, FlightPrediction.Encode(session.stateSequence, session.state, session.evadeRemaining, session.inputClientTime, hold));
+	flightStateRemote!.FireClient(session.player, FlightPrediction.Encode(session.stateSequence, session.state, session.evadeRemaining, session.inputClientTime, hold, session.movementHandoff?.recovered && session.rules && TutorialHandoff.Practice(session.rules) ? (session.movementHandoff.blocked ? 1 : 2) : 0));
 }
 /** Push a radio line to the HUD immediately (phase beats, chatter, ace stages, flares). */
 function radio(session: CombatSession, text: string, seconds?: number, priority = false): void {
@@ -873,7 +875,27 @@ function applyLegacyPhase(session: CombatSession): void {
 	if (session.appliedPhase === session.rules.phase || session.rules.outcome !== undefined) return;
 	session.appliedPhase = session.rules.phase;
 	const phase = session.rules.phase;
-	if (phase === "tutorial_target") activateGround(session);
+	if (phase === "tutorial_target") {
+		const handoff = session.movementHandoff ?? TutorialHandoff.New();
+		session.movementHandoff = handoff;
+		if (TutorialHandoff.Begin(handoff, session.rules, session.state)) {
+			// Verify the destination AND two seconds of level flight against this session's
+			// actual terrain/uploaded scenery. Never sweep the teleport from the old pose.
+			let clear = false;
+			// Validate the full initial volume as well as the forward corridor.
+			const surface = Workspace.Raycast(new Vector3(0, FlightMath.MaxAltitude, 500), new Vector3(0, -FlightMath.MaxAltitude - 100, 0), session.collisionParams!);
+			for (let altitude = 800; altitude <= 2000; altitude += 200) {
+				if (surface && surface.Position.Y + 8 >= altitude) continue;
+				const start = new Vector3(0, altitude, 500);
+				if (AircraftCollision.DestinationClear(start, session.collisionParams!) && !AircraftCollision.Sweep(start, start.add(new Vector3(0, 0, -FlightMath.MaxSpeed * 2)), session.collisionParams!)) {
+					session.state.y = altitude; clear = true; break;
+				}
+			}
+			assert(clear, "No clear tutorial handoff corridor");
+			session.lockProgress = 0;
+		}
+		activateGround(session);
+	}
 	// Mission 1's bandits launch MissionRules.BanditBeat seconds after SERA's call (see stepSession).
 	else if (phase === "intercept") spawnAir(session, 3, "bandit");
 	else if (phase === "warehouses") { activateGround(session); spawnAir(session, 5, "raider"); }
@@ -882,6 +904,7 @@ function applyLegacyPhase(session: CombatSession): void {
 	const catalogIndex = legacyPhaseIndex(session.missionId, phase);
 	const beat = catalogIndex !== undefined ? MissionCatalog.Get(session.missionId).phases[catalogIndex]?.beat : undefined;
 	if (beat !== undefined) radio(session, beat, phase === "tutorial_bandits" ? MissionRules.BanditBeat : undefined, phase === "tutorial_bandits");
+	if (phase === "tutorial_target" && session.movementHandoff?.recovered) radio(session, TutorialHandoff.Notice, 10, true);
 }
 
 // Blueprint-driven phase application for missions 3-27.
@@ -1528,7 +1551,10 @@ function stepSession(session: CombatSession, dt: number): void {
 	}
 	const from={x:session.state.x,y:session.state.y,z:session.state.z};
 	if (session.inputFresh) { session.inputFresh = false; session.inputSteps = 0; }
-	FlightMath.Step(session.state, session.input, dt);
+	const handoff = session.movementHandoff;
+	if (handoff && session.rules && !TutorialHandoff.Practice(session.rules)) handoff.blocked = false;
+	const flightInput = handoff ? TutorialHandoff.Filter(handoff, session.input) : session.input;
+	FlightMath.Step(session.state, flightInput, dt);
 	// Resolve impacts before navigation, phase completion, enemy fire or missile kills.
 	const hit = AircraftCollision.Sweep(new Vector3(from.x, from.y, from.z), new Vector3(session.state.x, session.state.y, session.state.z), session.collisionParams!);
 	if (hit) {
