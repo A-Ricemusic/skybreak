@@ -136,7 +136,7 @@ const RADAR_CARDINALS: [string, number, number][] = [["N", 0, -1], ["E", 1, 0], 
  * client's own replicated mission folder and telemetry via
  * FlightController.GetRadarContacts. Missiles in flight blink red.
  */
-export function Radar({ rectangle, controller, visible, textSize = 10, minText = 8 }: { rectangle: Rectangle; controller: FlightController; visible: boolean; textSize?: number; minText?: number }) {
+function RadarImpl({ rectangle, controller, visible, textSize = 10, minText = 8 }: { rectangle: Rectangle; controller: FlightController; visible: boolean; textSize?: number; minText?: number }) {
 	const scopeRef = useRef<Frame>();
 	const cardinalRefs = [useRef<TextLabel>(), useRef<TextLabel>(), useRef<TextLabel>(), useRef<TextLabel>()];
 	const rangeRef = useRef<TextLabel>();
@@ -231,6 +231,8 @@ export function Radar({ rectangle, controller, visible, textSize = 10, minText =
 		</frame>
 	);
 }
+
+export const Radar = React.memo(RadarImpl);
 
 /** Overlay button: 44+ px, gamepad-selectable, accent when primary. */
 function OverlayButton({ name, text, rectangle, primary = false, textSize = 13, onActivated }: { name: string; text: string; rectangle: Rectangle; primary?: boolean; textSize?: number; onActivated: () => void }) {

@@ -25,7 +25,7 @@ const BRACKET_SIZE = 60;
  * fades. The destroyed target's bracket flashes once and expands away. Text only,
  * outside the forward view; nothing stays on screen after ImpactFeedback.CalloutSeconds.
  */
-export function KillMarker({ flash, rectangle, visible }: { flash?: KillFlash; rectangle: Rectangle; visible: boolean }) {
+function KillMarkerImpl({ flash, rectangle, visible }: { flash?: KillFlash; rectangle: Rectangle; visible: boolean }) {
 	const labelRef = useRef<TextLabel>();
 	const scaleRef = useRef<UIScale>();
 	const bracketRef = useRef<Frame>();
@@ -102,3 +102,5 @@ export function KillMarker({ flash, rectangle, visible }: { flash?: KillFlash; r
 		</frame>
 	);
 }
+
+export const KillMarker = React.memo(KillMarkerImpl);
