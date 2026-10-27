@@ -51,14 +51,16 @@
   ],
   "branchesDeleted": false,
   "evidenceScope": "Historical automated baseline at gameplayCommit; not certification of currentMainCommit",
-  "currentMainCommit": "839765445983ea11bf0b4157ee3aaed9de7efcaa",
+  "currentMainCommit": "d344d26a6e9b5de26bb5995c8fcc60958046a32e",
   "currentMainIntegratedPRs": [
     70,
     71,
     72,
     73,
     76,
-    75
+    75,
+    74,
+    69
   ],
   "pr76": {
     "state": "MERGED",
@@ -70,21 +72,34 @@
     "freshEngineRun": false
   },
   "pendingPRs": {
-    "69": {
-      "state": "OPEN",
-      "head": "906cf6363ab74024d140af692c4a7f6be5bcfc8b",
-      "gate": "code approved; separator/threshold 30; 538 tests; no fresh render; wait for integrated validation gate"
-    },
-    "74": {
-      "state": "OPEN",
-      "head": "e923c6530fd3e55d00a57894b662877ddf2cb3c1",
-      "gate": "independent recheck pending; combined validation with #76 required",
-      "reportedChecks": "538 offline / 10 audio / 8 voice / 20 Python; Linux run 40569063153 success"
-    },
     "77": {
       "state": "OPEN",
-      "head": "76f217e32cc8e9148e2e397c9ea0d930545b0a6f",
-      "gate": "new head requires independent review; 551 offline/build reported; engine regressions compiled but unexecuted; no fresh manual keyboard/touch/gamepad"
+      "head": "3523968de513663ed9e3600ce175f73c8646582d",
+      "gate": "Independent 5.6 runtime verification ACTIVE; no manual acceptance or merge claimed",
+      "previousHead": "76f217e32cc8e9148e2e397c9ea0d930545b0a6f",
+      "previousIndependentEngine": {
+        "passed": 690,
+        "total": 691,
+        "failure": "Terrain iteration included Vector3 Size metadata; ReadVoxels tuple was correct"
+      },
+      "fix": "numeric occupancy.Size bounds",
+      "workerReportedEngine": {
+        "passed": 691,
+        "total": 691,
+        "suites": 58,
+        "durationSeconds": 247.921
+      },
+      "workerReportedValidation": {
+        "sharedDomain": 551,
+        "audioLifecycle": 10,
+        "voiceConsumer": 8,
+        "radio": 4,
+        "python": 38,
+        "build": "passed",
+        "generatedDocs": "matched"
+      },
+      "githubValidationRun": 40571356937,
+      "githubValidation": "success"
     }
   },
   "cycle1Playtest": {
@@ -112,15 +127,12 @@
     "limits": "Story props are a graybox presentation candidate; no broad release acceptance"
   },
   "publish": {
-    "latestVerifiedSuccessRun": 40569759963,
-    "revision": "b99959d604d4f2b66246bcf064cc13c9075d06bd",
-    "returnedVersion": 57,
-    "timestamp": "2026-10-27T19:31:10.2241155Z",
-    "previousVerifiedRun": 40568936985,
-    "previousRevision": "0648d4a508b411c700dc4a4f0ede2ee354865812",
+    "latestVerifiedSuccessRun": 40571320499,
+    "revision": "d344d26a6e9b5de26bb5995c8fcc60958046a32e",
+    "returnedVersion": 59,
+    "timestamp": "2026-10-27T19:42:17.3744392Z",
     "servedPlayerProven": false,
-    "newRun": 40569884635,
-    "newRunStatus": "in_progress at inspection"
+    "validation": "538 domain / 4 radio explicitly logged; gated publish"
   },
   "audioPermissions": {
     "banks": 14,
@@ -136,6 +148,44 @@
     "head": "49ed55370769d628b64e9719ce42beddcff35380",
     "mergeCommit": "839765445983ea11bf0b4157ee3aaed9de7efcaa",
     "mergedAt": "2026-10-27T19:31:27Z",
-    "scope": "Merged concurrently by another actor; this task did not merge or independently certify it"
+    "scope": "Independent 5.6 source approval at exact 49ed553; external workstream reported engine 676/676 at that exact head; separate evidence, not this documentation task run"
+  },
+  "pr74": {
+    "state": "MERGED",
+    "approvedHead": "83169d6ef61310b9e64efcf2f9b672f17e54cfb0",
+    "mergeCommit": "06a40026a4aa9d82ad2e1c8768f0cf9381d46caa",
+    "validationRun": 40570309250,
+    "validation": "success; combined gate 538 domain / 10 audio / 8 voice / 4 radio / 38 Python / build / docs; local and Linux",
+    "publishRun": 40570718020,
+    "returnedVersion": 58
+  },
+  "pr69": {
+    "state": "MERGED",
+    "approvedHead": "59e5ec3d65073829c59e795667a504c7b62c909c",
+    "mergeCommit": "d344d26a6e9b5de26bb5995c8fcc60958046a32e",
+    "validationRun": 40570917150,
+    "validation": "success",
+    "feature": "HUD separator and threshold 30"
+  },
+  "nextShowcases": {
+    "sourceReviewOnly": true,
+    "difficulty": "Normal",
+    "missions": [
+      {
+        "number": 20,
+        "title": "Fracture Line",
+        "focus": "harbor escort / terrain"
+      },
+      {
+        "number": 27,
+        "title": "Broken Relay",
+        "focus": "final ace"
+      }
+    ],
+    "harness": "tools/playtest-relay.client.luau supports all mission navigation and normal controls; M1/M2 playtest-campaign does not",
+    "staticQALimits": [
+      "relay pilot may record phantom attempt after result during UI end hold",
+      "midmission throttle not restored; harness QA issue, not established game defect"
+    ]
   }
 }
