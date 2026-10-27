@@ -17,8 +17,8 @@ concurrency:
 
 jobs:
   publish:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -28,16 +28,8 @@ jobs:
           ROBLOX_PLACE_ID: ${{ vars.ROBLOX_PLACE_ID || secrets.ROBLOX_PLACE_ID }}
         run: python3 tools/verify-roblox-target.py
 
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
-        with:
-          bun-version: 1.3.14
-
-      - uses: ok-nick/setup-aftman@e226f24209f47677da7b215bab44f6351a2c043b # v0.4.2
-
-      - run: bun install --frozen-lockfile
-
-      - name: Build place
-        run: bun run build:place
+      # Same checkout and job: any validation failure prevents publication.
+      - uses: ./.github/actions/validate
 
       - name: Publish to Roblox
         env:
