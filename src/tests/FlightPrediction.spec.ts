@@ -17,6 +17,26 @@ function flown(seconds: number, input = CRUISE) {
 }
 
 describe("client flight prediction and reconciliation", () => {
+	it("ignores non-finite frame deltas without corrupting pending corrections or history", () => {
+		const [predictor, now] = flown(0.5);
+		const server = copy(predictor.state);
+		server.x += 30;
+		FlightPrediction.Reconcile(predictor, server, now, 1);
+		const state = copy(predictor.state), pending = copy(predictor.pending), applied = copy(predictor.applied);
+		const accumulator = predictor.accumulator, count = predictor.count, head = predictor.head;
+		for (const dt of [0 / 0, math.huge, -math.huge]) {
+			FlightPrediction.Step(predictor, CRUISE, dt, now);
+			expect(predictor.state).toEqual(state);
+			expect(predictor.pending).toEqual(pending);
+			expect(predictor.applied).toEqual(applied);
+			expect(predictor.accumulator).toBe(accumulator);
+			expect(predictor.count).toBe(count);
+			expect(predictor.head).toBe(head);
+		}
+		FlightPrediction.Step(predictor, CRUISE, 1 / 30, now + 1 / 30);
+		expect(predictor.state.x > state.x && predictor.state.x < server.x).toBe(true);
+		expect(predictor.count).toBe(count + 1);
+	});
 	it("is deterministic: the predictor and the server step are the same pure function", () => {
 		const server = FlightMath.NewState();
 		const predictor = FlightPrediction.New(FlightMath.NewState());
@@ -262,6 +282,16 @@ describe("client flight prediction and reconciliation", () => {
 		FlightPrediction.ObserveRoundTrip(predictor, 11, 12, 0); // impossible negative sample
 		expect(predictor.rtt).toBeCloseTo(0.15, 6);
 	});
+	it("ignores non-finite clock readings before and after learning a round trip", () => {
+		const predictor = FlightPrediction.New(FlightMath.NewState());
+		for (const now of [0 / 0, math.huge, -math.huge]) FlightPrediction.ObserveRoundTrip(predictor, now, 10, 0.05);
+		expect(predictor.rtt).toBeUndefined();
+		FlightPrediction.ObserveRoundTrip(predictor, 10.2, 10, 0.05);
+		for (const now of [0 / 0, math.huge, -math.huge]) FlightPrediction.ObserveRoundTrip(predictor, now, 10, 0.05);
+		expect(predictor.rtt).toBeCloseTo(0.15, 6);
+		FlightPrediction.ObserveRoundTrip(predictor, 11.3, 11, 0.05);
+		expect(predictor.rtt).toBeCloseTo(0.16, 6);
+	});
 	it("round-trips the flight state packet and rejects malformed ones", () => {
 		// Upright, inverted at the top of a loop, and leaning into a turn.
 		for (const state of [FlightMath.FromPose(0, 1000, 0, 0, 0, FlightMath.MinSpeed), FlightMath.FromPose(0, 1000, 0, 0, 0, FlightMath.MaxSpeed), FlightMath.SetAttitude(FlightMath.NewState(), 1.25, 0), FlightMath.FromPose(30, 640, -90, math.pi, 0, 190, math.pi), FlightMath.FromPose(0, 300, 0, -0.6, 0.3, 250)]) {
@@ -271,7 +301,12 @@ describe("client flight prediction and reconciliation", () => {
 			expect(packet.size()).toBe(13);
 			const decoded = FlightPrediction.Decode(packet);
 			expect(decoded?.sequence).toBe(7);
-			expect(decoded?.state).toEqual(state);
+			expect(decoded).toBeDefined();
+			if (decoded) {
+				for (const key of ["x", "y", "z", "qw", "qx", "qy", "qz", "lean", "yaw", "pitch", "roll", "speed"] as const) {
+					expect(decoded.state[key]).toBeCloseTo(state[key], 10);
+				}
+			}
 			expect(decoded?.evadeRemaining).toBe(0.4);
 			expect(decoded?.echoedClientTime).toBe(12.5);
 			expect(decoded?.hold).toBe(0.02);
@@ -281,6 +316,30 @@ describe("client flight prediction and reconciliation", () => {
 		// A zero quaternion is not an attitude.
 		expect(FlightPrediction.Decode([1, 0, 0, 0, 0, 0, 0, 0, 0, 200, 0, 0, 0])).toBeUndefined();
 		expect(FlightPrediction.Decode("state")).toBeUndefined();
+	});
+	it("normalizes packet attitudes before deriving unit flight vectors", () => {
+		const state = FlightMath.FromPose(30, 640, -90, -0.6, 0.3, 250);
+		state.lean = -0.4;
+		FlightMath.Sync(state);
+		for (const scale of [0.8, 2, -2]) {
+			const scaled = copy(state);
+			scaled.qw *= scale; scaled.qx *= scale; scaled.qy *= scale; scaled.qz *= scale;
+			const decoded = FlightPrediction.Decode(FlightPrediction.Encode(7, scaled, 0.4, 12.5, 0.02));
+			expect(decoded).toBeDefined();
+			if (!decoded) continue;
+			const [fx, fy, fz] = FlightMath.ForwardOf(decoded.state);
+			expect(fx * fx + fy * fy + fz * fz).toBeCloseTo(1, 10);
+			expect(decoded.state.yaw).toBeCloseTo(state.yaw, 10);
+			expect(decoded.state.pitch).toBeCloseTo(state.pitch, 10);
+			expect(decoded.state.roll).toBeCloseTo(state.roll, 10);
+		}
+	});
+	it("rejects packet attitudes whose finite components overflow their squared length", () => {
+		for (const component of [1e200, -1e200]) {
+			const state = FlightMath.NewState();
+			state.qw = component; state.qx = component;
+			expect(FlightPrediction.Decode(FlightPrediction.Encode(1, state, 0, 1, 0))).toBeUndefined();
+		}
 	});
 	it("packs HUD numbers into a compact array and decodes them in place", () => {
 		const into = { kind: "Telemetry", health: 0, speed: 0, altitude: 0, kills: 0, total: 0, missiles: 0, missileCooldown: 0, evadeCooldown: 0, targetName: "", lockProgress: 0, incoming: false, elapsed: 0 } as Telemetry;
