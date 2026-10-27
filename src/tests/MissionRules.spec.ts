@@ -284,7 +284,7 @@ describe("M1 practice safety with current flight parameters (numeric simulation)
 			const flight = FlightMath.FromPose(300, 0, -900, 2, -1, 600, 2);
 			expect(MissionRules.RecoverPractice(rules, flight)).toBe(true);
 			expect([flight.x, flight.y, flight.z, flight.speed]).toEqual([0, 800, 500, 600]);
-			expect(flight.pitch).toBe(0);
+			expect(math.abs(flight.pitch)).toBe(0);
 			expect(rules.turnObserved).toBe(2);
 		}
 		const flight = FlightMath.NewState();
