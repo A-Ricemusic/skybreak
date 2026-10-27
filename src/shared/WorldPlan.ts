@@ -245,12 +245,20 @@ export function surfaceAt(plan: WorldPlan, x: number, z: number): Surface {
 	}
 	return best;
 }
-/** Highest solid top (terrain, parts, props) at (x, z) and on two rings around it. */
+/** Terrain samples plus conservative, rotated collider bounds for every solid
+ * part and uploaded prop intersecting the clearance disc. Thin masts and rails
+ * must not disappear between the terrain probes. Mesh bounds overestimate the
+ * rendered collider; engine terrain voxelization still needs a live check. */
 export function solidTopWithin(plan: WorldPlan, x: number, z: number, rad: number): number {
 	let top = -math.huge;
-	const probe = (px: number, pz: number) => { const s = surfaceAt(plan, px, pz); if (s.kind !== "water") top = math.max(top, s.y); };
+	const probe = (px: number, pz: number) => { const s = terrainTop(plan.ops, px, pz); top = math.max(top, s.solid, s.water ?? -math.huge); };
 	probe(x, z);
 	for (const r of [rad / 2, rad]) for (let k = 0; k < 8; k++) probe(x + math.cos(k * math.pi / 4) * r, z + math.sin(k * math.pi / 4) * r);
+	for (const p of plan.parts) if (p.solid && rectPointDist(partRect(p), x, z) <= rad) top = math.max(top, p.y + p.sy / 2);
+	for (const p of plan.props) {
+		const box = propBox(p);
+		if (rectPointDist(box.rect, x, z) <= rad) top = math.max(top, box.top);
+	}
 	return top;
 }
 
@@ -408,7 +416,7 @@ function reserve(ctx: Ctx): void {
 	}
 	const start = FlightMath.NewState();
 	circle(ctx, "spawn", start.x, start.z, 120);
-	for (const road of layout.road.size() >= 2 ? [layout.road] : []) { ctx.roads.push(road); ctx.corridors.push({ points: road, half: 26, tag: "road" }); }
+	for (const road of [layout.road, ...(layout.roadSpurs ?? [])].filter((r) => r.size() >= 2)) { ctx.roads.push(road); ctx.corridors.push({ points: road, half: 26, tag: "road" }); }
 	for (const r of layout.ridges) ctx.ridgeRects.push({ x: r[0], z: r[1], hx: r[2] / 2, hz: r[3] / 2, yaw: 0 });
 }
 function addWaterPath(ctx: Ctx, points: number[][], beachEnd: boolean): void {
