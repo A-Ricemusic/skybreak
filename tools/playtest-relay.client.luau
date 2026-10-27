@@ -9,6 +9,7 @@ local FlightController=require(player:WaitForChild("PlayerScripts"):WaitForChild
 local shared=game.ReplicatedStorage.Shared
 local Pilot=require(shared.NavigationPilot).NavigationPilot
 local Catalog=require(shared.MissionCatalog).MissionCatalog
+local missionTimeLimit=require(shared.GameConfig).GameConfig.Campaign.MissionTimeLimit
 local old=player.PlayerScripts:FindFirstChild("BrokenRelayQA")
 assert(not old,"A Broken Relay pilot is already installed; destroy its LocalScript and report before replacing")
 local report=Instance.new("Folder");report.Name="BrokenRelayQA";report.Parent=player.PlayerScripts
@@ -28,7 +29,7 @@ local stateConnection=game.ReplicatedStorage.Remotes.MissionState.OnClientEvent:
     if not current then return end
     local bp=Catalog:Get(message.missionId or 1)
     for _,field in {"kills","groundKills","elapsed","reason","saved","persistence"} do current:SetAttribute(field,message[field]) end
-    local valid=message.kind=="Completed" and message.elapsed>0 and message.elapsed<600
+    local valid=message.kind=="Completed" and message.elapsed>0 and message.elapsed<missionTimeLimit
         and message.kills>=Catalog:RequiredAirKills(bp) and message.groundKills==Catalog:RequiredGroundKills(bp)
     current:SetAttribute("Outcome",message.kind);current:SetAttribute("ResultValid",valid)
     print("BROKEN_RELAY_REAL_RESULT",current.Name,message.kind,message.elapsed,message.kills,message.groundKills,message.reason)

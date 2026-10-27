@@ -23,6 +23,7 @@ while (not controller or not controller.active) and os.clock() < readyDeadline d
 	controller = FlightController.GetActive()
 end
 assert(controller and controller.active, "Mission readiness timeout")
+local missionTimeLimit = require(game.ReplicatedStorage.Shared.GameConfig).GameConfig.Campaign.MissionTimeLimit
 local survivalOnly = script:GetAttribute("SurvivalOnly") == true
 local old = player.PlayerGui:FindFirstChild("SkybreakCampaignQA")
 if old then old:Destroy() end
@@ -42,9 +43,9 @@ local finishedConnection = game.ReplicatedStorage.Remotes.MissionState.OnClientE
 	if state.kind == "Completed" then
 		local expectedGround = state.missionId == 2 and 5 or 1
 		local minimumAir = state.missionId == 2 and 4 or 3
-		report:SetAttribute("ResultValid", state.groundKills == expectedGround and state.kills >= minimumAir and state.elapsed < 600)
+		report:SetAttribute("ResultValid", state.groundKills == expectedGround and state.kills >= minimumAir and state.elapsed < missionTimeLimit)
 	elseif survivalOnly then
-		report:SetAttribute("ResultValid", state.reason == "timeout" and state.elapsed >= 600)
+		report:SetAttribute("ResultValid", state.reason == "timeout" and state.elapsed >= missionTimeLimit)
 	end
 end)
 
@@ -52,7 +53,7 @@ task.spawn(function()
 	local started, lastFire, lastCycle = os.clock(), 0, 0
 	local phase, phaseStarted = "", os.clock()
 	local extendUntil = 0
-	while controller.active and os.clock() - started < 630 do
+	while controller.active and os.clock() - started < missionTimeLimit + 30 do
 		local telemetry = controller:GetTelemetry()
 		if telemetry.phase ~= phase then
 			phase, phaseStarted = telemetry.phase, os.clock()

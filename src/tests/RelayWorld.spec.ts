@@ -37,7 +37,7 @@ function cleanup(fixture: Folder | undefined): void {
 	Workspace.Terrain.FindFirstChild("MissionClouds")?.Destroy();
 	for(const name of ["MissionAtmosphere","MissionGrade","MissionSky","MissionBloom"])Lighting.FindFirstChild(name)?.Destroy();
 }
-const DECORATION=["Shallows","Marker light","Navigation light","Safety line","Centreline","Threshold","Threshold bar","Approach bar","Center stripe","Lit windows","Protected beacon"];
+const DECORATION=["Shallows","Marker light","Navigation light","Safety line","Centreline","Threshold","Outer runway threshold","Threshold bar","Approach bar","Center stripe","Lit windows","Protected beacon"];
 const inUploaded=(item: Instance)=>item.FindFirstAncestorWhichIsA("Model")?.GetAttribute("GeometrySource")==="Uploaded";
 
 describe("Broken Relay disposable world integration",()=>{

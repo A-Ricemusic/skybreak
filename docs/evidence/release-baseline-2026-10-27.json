@@ -1,0 +1,236 @@
+{
+  "gameplaySha": "e69613bd2ec4e6bd3e4eef28cd08ddf5f8bb862b",
+  "studioVersion": "0.745.0.7451137",
+  "placeId": 0,
+  "gameId": 0,
+  "inputRoute": "CampaignRequest StartMission on legitimate sequential slot; checked-in LocalScript pilots use production controllers; not physical input or UI click testing",
+  "overrides": "No health, position, damage, kill, unlock, timer or result overrides",
+  "m1": {
+    "result": {
+      "kills": 4,
+      "groundKills": 1,
+      "kind": "Completed",
+      "elapsed": 43.86804370826576
+    },
+    "lowestSampledHull": 100,
+    "sampleCount": 82
+  },
+  "relay": {
+    "slots": {
+      "ok": true,
+      "deletions": [],
+      "slots": {
+        "1": {
+          "mission1Completed": true,
+          "mission1BestTime": 43.86804370826576,
+          "index": 1,
+          "missions": {
+            "1": {
+              "completed": true,
+              "firstCompletedAt": 1793117965,
+              "bestScore": 5250,
+              "bestTime": 43.86804370826576,
+              "bestRank": "S"
+            },
+            "3": {
+              "completed": true,
+              "timeVersion": 2,
+              "bestScore": 5500,
+              "firstCompletedAt": 1793118137,
+              "bestTime": 83.59726362500805,
+              "bestRank": "S"
+            },
+            "2": {
+              "completed": true,
+              "firstCompletedAt": 1793118041,
+              "bestScore": 5600,
+              "bestTime": 43.86732691677753,
+              "bestRank": "A"
+            }
+          },
+          "special": "flares",
+          "mission2BestTime": 43.86732691677753,
+          "mission2Completed": true,
+          "kills": 9,
+          "updatedAt": 1793118137,
+          "bestTime": 83.59726362500805,
+          "currentMission": 4,
+          "occupied": true,
+          "difficulty": "normal",
+          "generation": 0,
+          "introSeen": true,
+          "completed": false,
+          "cutscenesSeen": {
+            "1": 0,
+            "3": 2,
+            "2": 1
+          }
+        },
+        "4": {
+          "mission1Completed": false,
+          "cutscenesSeen": [],
+          "index": 4,
+          "missions": [],
+          "occupied": false,
+          "mission2Completed": false,
+          "completed": false,
+          "kills": 0,
+          "generation": 0,
+          "introSeen": false,
+          "currentMission": 1
+        },
+        "3": {
+          "mission1Completed": false,
+          "cutscenesSeen": [],
+          "index": 3,
+          "missions": [],
+          "occupied": false,
+          "mission2Completed": false,
+          "completed": false,
+          "kills": 0,
+          "generation": 0,
+          "introSeen": false,
+          "currentMission": 1
+        },
+        "2": {
+          "mission1Completed": false,
+          "cutscenesSeen": [],
+          "index": 2,
+          "missions": [],
+          "occupied": false,
+          "mission2Completed": false,
+          "completed": false,
+          "kills": 0,
+          "generation": 0,
+          "introSeen": false,
+          "currentMission": 1
+        }
+      },
+      "persistence": "session"
+    },
+    "runs": {
+      "1": {
+        "MissileCommands": 23,
+        "Phase": "ace",
+        "elapsed": 43.86732691677753,
+        "MissionId": 2,
+        "kills": 9,
+        "StartedAt": 106.37721112498548,
+        "saved": true,
+        "persistence": "session",
+        "Outcome": "Completed",
+        "ResultValid": true,
+        "groundKills": 5,
+        "EvadeCommands": 3,
+        "Elapsed": 43.800420875079,
+        "LowestHealth": 100
+      },
+      "2": {
+        "MissileCommands": 10,
+        "Phase": "signal",
+        "elapsed": 83.59726362500805,
+        "MissionId": 3,
+        "kills": 5,
+        "StartedAt": 162.36107062501833,
+        "saved": true,
+        "persistence": "session",
+        "Outcome": "Completed",
+        "ResultValid": true,
+        "groundKills": 0,
+        "EvadeCommands": 0,
+        "Elapsed": 83.53214766667224,
+        "LowestHealth": 100
+      }
+    }
+  },
+  "audioSample": {
+    "1": {
+      "id": "rbxassetid://140586818884141",
+      "loaded": true,
+      "name": "SFX_missileLaunchB",
+      "playing": true
+    },
+    "3": {
+      "id": "rbxassetid://140586818884141",
+      "loaded": true,
+      "name": "SFX_enemyEngine",
+      "playing": true
+    },
+    "2": {
+      "id": "rbxassetid://140586818884141",
+      "loaded": true,
+      "name": "SFX_enemyEngine",
+      "playing": true
+    },
+    "5": {
+      "id": "rbxassetid://140586818884141",
+      "loaded": true,
+      "name": "SFX_enemyEngine",
+      "playing": true
+    },
+    "4": {
+      "id": "rbxassetid://140586818884141",
+      "loaded": true,
+      "name": "SFX_enemyEngine",
+      "playing": true
+    },
+    "7": {
+      "id": "rbxassetid://140586818884141",
+      "loaded": true,
+      "name": "SFX_enemyEngine",
+      "playing": true
+    },
+    "6": {
+      "id": "rbxassetid://140586818884141",
+      "loaded": true,
+      "name": "SFX_enemyEngine",
+      "playing": true
+    },
+    "9": {
+      "id": "rbxassetid://96034533542673",
+      "loaded": true,
+      "name": "SFX_engineBurn",
+      "playing": true
+    },
+    "8": {
+      "id": "rbxassetid://100845993226613",
+      "loaded": true,
+      "name": "SFX_engineCruise",
+      "playing": true
+    },
+    "10": {
+      "id": "rbxassetid://129430411346132",
+      "loaded": true,
+      "name": "SFX_wind",
+      "playing": true
+    }
+  },
+  "teardown": {
+    "remainingGameSounds": [],
+    "activeController": false,
+    "cinematic": false
+  },
+  "limitations": [
+    "No human phone/gamepad tests",
+    "No published permissions or cloud/rejoin validation",
+    "No current mid/late actual-control mission runs",
+    "No listening or performance acceptance",
+    "Full Jest status is recorded separately in the baseline report"
+  ],
+  "baselineJest": {
+    "passed": 663,
+    "failed": 1,
+    "total": 664,
+    "suites": 57,
+    "seconds": 213.466,
+    "failure": "RelayWorld M3 CanQuery decoration expectation",
+    "status": "baseline failure; test correction validated separately"
+  },
+  "targetedM3Regression": {
+    "passed": 1,
+    "failed": 0,
+    "skipped": 41,
+    "seconds": 7.552,
+    "fullSuiteRerunAfterCorrection": false
+  }
+}

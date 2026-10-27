@@ -3,11 +3,17 @@ import { mkdir, rm } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const root = resolve(import.meta.dir, "..");
+const timeoutMs = Number(process.env.ROBLOX_TEST_TIMEOUT_MS ?? 600_000);
+if (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0) {
+	throw new Error("ROBLOX_TEST_TIMEOUT_MS must be a positive integer in milliseconds");
+}
 const run = async (command: string[]) => {
 	const process = Bun.spawn(command, { cwd: root, stdout: "inherit", stderr: "inherit" });
 	if ((await process.exited) !== 0) throw new Error(`Command failed: ${command.join(" ")}`);
 };
 await mkdir(resolve(root, "build"), { recursive: true });
+// A failed build or Studio launch must not leave a previous run's green summary.
+await rm(resolve(root, "build/jest-results.json"), { force: true });
 await run(["bun", "run", "build"]);
 const place = resolve(root, "build/skybreak-tests.rbxlx");
 await run(["rojo", "build", "test.project.json", "-o", place]);
@@ -21,7 +27,7 @@ const studio = Bun.spawn([
 	"--runScriptFile", resolve(root, "tools/run-jest.luau"),
 	"--outputFile", output, "--quitAfterExecution",
 ], { cwd: root, stdout: Bun.file(launchLog), stderr: Bun.file(errorLog) });
-const deadline = Date.now() + 180_000;
+const deadline = Date.now() + timeoutMs;
 let summary: { success: boolean; passed: number; failed: number; suites: number; total: number } | undefined;
 while (Date.now() < deadline) {
 	const text = await Bun.file(output).text().catch(() => "");

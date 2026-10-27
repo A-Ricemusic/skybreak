@@ -18,7 +18,7 @@ An original mobile-first arcade jet combat campaign for Roblox, written in TypeS
 - Impact feedback is client-only: hull hits shake the chase camera (firmer on heavy hits), confirmed kills pop a short top-centre callout (`SPLASH ONE`, `SPLASH TWO`…, `TARGET DESTROYED`, `ACE DOWN`) and flash the destroyed target's bracket, and an ace kill adds a brief camera hit-stop, FOV punch and white flash. Turning cinematic Camera motion OFF also disables shake and the hit-stop camera moves for the session.
 - Opening, inter-mission and finale cinematics render three to eight staged story beats with subtitles, skip, pause and motion/text controls. Browse all 27 sorties, unlock sequentially and replay completed missions.
 - Existing v2 saves safely resume at Mission 3 after completing the original two sorties; all four slots retain their records.
-- Each mission has a server-enforced 600-second deadline. Success unlocks the next mission; failure supports retry. Required kills and completion are server-authoritative.
+- Each mission has a server-enforced 900-second deadline. Success unlocks the next mission; failure supports retry. Required kills and completion are server-authoritative.
 - Published experiences save four slots to DataStore; an unpublished local Studio file clearly uses session-only saves.
 
 ## Setup
@@ -83,7 +83,7 @@ The generation key needs sound-generation and subscription-read access. Final au
 
 Run `bun test:roblox` (or `bun run test:roblox`). Bun compiles the TypeScript, builds an isolated test place, launches authenticated Roblox Studio, and runs Jest in Roblox's Luau VM. This is not Bun's JavaScript test runner. Results are written to `build/jest-results.json`; full output is in `build/jest-output.log`.
 
-The runner defaults to the macOS Studio executable. Set `ROBLOX_STUDIO_PATH` for another installation. Tests cover flight math, real engine instances/effects, save-slot isolation, delayed writes, and recovery from load/save errors. Test places disable normal game startup and automatic Rojo connection. Production places exclude `src/tests`.
+The runner defaults to the macOS Studio executable. Set `ROBLOX_STUDIO_PATH` for another installation. The runner defaults to a 600-second Studio deadline; set `ROBLOX_TEST_TIMEOUT_MS` to a positive integer in milliseconds for a longer world-integration run. Tests cover flight math, real engine instances/effects, save-slot isolation, delayed writes, and recovery from load/save errors. Test places disable normal game startup and automatic Rojo connection. Production places exclude `src/tests`.
 
 A small checked-in Bun patch applies the upstream roblox-ts runtime registration fix needed for Jest's isolated module environments. `bun install --frozen-lockfile` applies it automatically.
 
@@ -119,8 +119,8 @@ A realistic textured set for upload as Roblox Model assets (Kestrel, Vanta, two 
 
 Studio's documented `CreateAssetAsync` upload route currently reports “not available yet” in this installation, so the project does not depend on that upload API. A regenerated FBX is ready for Studio's manual 3D Importer.
 
-## Broken Relay campaign alternative
+## Broken Relay campaign validation
 
-Read [the architecture, all 27 mission definitions, original assets, validation and Studio lease handoff](docs/broken-relay.md). This independent alternative completed all27 missions and28 story chapters in Studio; [the live QA report](docs/broken-relay-qa.md) records exact SHAs,171 engine tests, compact/device checks and remaining limits. Parent independent acceptance QA remains pending. Do not launch Studio, `test:roblox` or a Rojo server without the parent’s exclusive lease.
+Read [the architecture and all 27 mission definitions](docs/broken-relay.md). The [original branch QA](docs/broken-relay-qa.md) and [parent integrated acceptance](docs/integrated-campaign-acceptance.md) record historical all-27-mission runs and their exact revisions; they predate the current flight, combat, terrain and audio changes. The [2026-10-27 baseline and release matrix](docs/release-baseline-2026-10-27.md) separates current checks from outstanding integration acceptance. Do not launch Studio, `test:roblox` or a Rojo server without the parent’s exclusive lease.
 
 `bun run test:offline` runs the compiled pure-domain contracts in the standalone Luau CLI (set `LUAU_BIN`). It does not replace Roblox Jest or live gameplay. The original [campaign expansion proposal](docs/campaign-expansion.html) remains background design material.
