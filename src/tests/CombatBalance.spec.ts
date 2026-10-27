@@ -1,4 +1,5 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
+import { FlightMath } from "../shared/FlightMath";
 import { CombatBalance } from "../shared/CombatBalance";
 import { Difficulty } from "../shared/Difficulty";
 import { MissionCatalog } from "../shared/MissionCatalog";
@@ -84,6 +85,46 @@ describe("Round-3 difficulty envelope", () => {
 			const hull = Difficulty.Scale("ace", "aceHealth", normalHull[act]);
 			expect(hull >= oldHull[act] && hull <= oldHull[act] * 1.1).toBe(true);
 			expect(Difficulty.Scale("ace", "aceGate", CombatBalance.aceReload[act])).toBe(7.5);
+		}
+	});
+});
+
+
+// Deterministic aligned rear-shot probes, not a combat bot or human playtest.
+// Start 900 studs behind an extending bandit. Integrate the real jet at a held
+// airspeed, and compare the old uncapped extension with the server's new rule.
+describe("High-speed bandit extension", () => {
+	it("never gives an ordinary enemy a speed boost when it breaks", () => {
+		for (const speed of [15, 160, 255, 320, 360, 450, 600]) {
+			const pursuit = math.clamp(speed + 24, 285, CombatBalance.banditSpeedCap);
+			expect(ThreatRules.ExtendSpeed(speed, 180) <= pursuit).toBe(true);
+		}
+	});
+	it("preserves the existing low-speed envelope", () => {
+		for (const speed of [15, 160, 255, 320, 360]) {
+			expect(ThreatRules.ExtendSpeed(speed, 180)).toBe(math.max(180, speed - 10));
+		}
+	});
+	it("recovers a rear-shot opportunity in early, middle and late high-speed breaks", () => {
+		for (const seconds of [1.4, 1.6, 1.8, 3]) for (const speed of [450, 600]) {
+			for (const dt of [1 / 30, 1 / 60]) {
+				const jet = FlightMath.NewState();
+				jet.speed = speed;
+				const start = jet.z;
+				let oldTravel = 0, newTravel = 0;
+				for (let tick = 0; tick < math.round(seconds / dt); tick++) {
+					FlightMath.Step(jet, { x: 0, y: 0, throttle: FlightMath.ThrottleForSpeed(speed) }, dt);
+					oldTravel += math.max(180, jet.speed - 10) * dt;
+					newTravel += ThreatRules.ExtendSpeed(jet.speed, 180) * dt;
+				}
+				const playerTravel = start - jet.z;
+				const oldGap = 900 + oldTravel - playerTravel;
+				const newGap = 900 + newTravel - playerTravel;
+				expect(oldGap > 860).toBe(true);
+				expect(newGap <= 900 - (speed - CombatBalance.banditSpeedCap) * seconds + 0.01).toBe(true);
+				expect(newGap > 0).toBe(true); // no forced pass in this starting geometry
+				print(`[extension probe] speed=${speed} seconds=${seconds} hz=${1 / dt} oldGap=${oldGap} newGap=${newGap}`);
+			}
 		}
 	});
 });
