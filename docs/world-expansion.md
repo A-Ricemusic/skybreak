@@ -105,6 +105,26 @@ still go through bounded TerrainWriter jobs, and no per-frame scenery loop was a
 streaming was enabled. The extra models replicate under the existing loading gate; device memory,
 frame time, mesh API latency and replication duration have not been measured for this branch.
 
+The 100M cap is a cumulative analytic write-work estimate, including repeated writes
+and Air clears; it is neither 100M resident voxels nor a peak-memory measurement.
+The district clear alone counts 26.25M writes (1000 × 600 × 2800 / 64), followed
+by 0.35M for its floor and 0.027M for M5's three material swaths. M5 has about
+3.76M writes (3.76%) of margin. Clearing the old ridge before restoring its floor
+is intentional: removing either overlapping operation changes the pass/support.
+This review leaves those operations intact; narrowing the clear safely needs an
+engine terrain/visual comparison, unavailable while the flight tester owns Studio.
+Fill jobs are capped at 262,144 estimated cells, bump read/write slices at 32,768;
+un-split balls/wedges have a separate 4,194,304 cap. The 12ms scheduler budget yields
+between jobs and cannot bound an individual engine call. These limits constrain
+work chunks, not mesh memory, retained terrain, replication cost or frame time.
+
+The 2.8M-stud² district belt is roughly 10.6% of the 26.4M-stud² newly accessible
+area (and its x=2700..2800 strip was already accessible). Most added airspace is
+existing terrain/horizon relief, not new populated districts. This is a useful
+representative expansion, with repeated low-poly infrastructure and sparse props;
+it is not evidence of dense coverage across the enlarged square. Other mission
+compositions have deliberately not been expanded.
+
 ## Flight-agent coordination and travel time
 
 Only the `FlightMath` import and two horizontal-boundary initializer lines change. Acceleration,
@@ -114,18 +134,26 @@ that import and use `WorldAirspace.soft/hard` if its patch edits the same initia
 flight-test edits by preserving the parameterized boundary case. Spawn and radar edits are
 world-owned integration changes in CombatService/RadarMath, separate from speed tuning.
 
-The repo currently integrates speed in studs/second; it has no authoritative mph conversion.
-Use `seconds = distanceStuds / speedStudsPerSecond`. Below is an explicit **reference assumption
-of 1 stud = 1 meter**, so mph × 0.44704 = studs/s. This does not change runtime speed or declare
-the flight agent's conversion. Roblox's conventional 0.28 m/stud would make every time below
-0.28 times as long. The parent and flight agent must reconcile that choice before acceptance.
+PR54 head `69614a12780e4579792f9fd1fa83b91301c4ff4c` defines an explicit arcade
+mapping: `FlightMath.StudsPerMph = 0.2`, or **5 displayed mph per stud/s**.
+This is a gameplay/display conversion, not a literal physical stud length. Use
+`seconds = distanceStuds / speedStudsPerSecond`; 800 mph is 160 studs/s and
+3000 mph is 600 studs/s. The earlier 1 stud = 1 meter reference table was incorrect
+for this integration and must not be used for mission pacing.
 
-| Straight leg | Distance | At current 300 studs/s | At 800 mph reference (357.632 studs/s) | At 3000 mph reference (1341.12 studs/s) |
-|---|---:|---:|---:|---:|
-| Old full hard-boundary width | 5600 | 18.67 s | 15.66 s | 4.18 s |
-| New full hard-boundary width | 7600 | 25.33 s | 21.25 s | 5.67 s |
-| Spawn (0,500) to district center (3200,0), XZ | 3238.83 | 10.80 s | 9.06 s | 2.41 s |
-| New M3 runway | 1400 | 4.67 s | 3.91 s | 1.04 s |
+| Straight leg | Distance (studs) | At 800 displayed mph (160 studs/s) | At 3000 displayed mph (600 studs/s) |
+|---|---:|---:|---:|
+| Old full hard-boundary width | 5600 | 35.00 s | 9.33 s |
+| New full hard-boundary width | 7600 | 47.50 s | 12.67 s |
+| Spawn (0,500) to district center (3200,0), XZ | 3238.83 | 20.24 s | 5.40 s |
+| New M3 runway | 1400 | 8.75 s | 2.33 s |
+
+These are constant-speed straight-line times, excluding acceleration and turns.
+The terrain extends 200 studs beyond each hard edge; that is geometric coverage,
+not a guaranteed collision-free recovery buffer. Spawn centers at ±3500 plus
+80-stud lateral probes stay inside ±3580; the 200-stud approach probe stays inside
+±3700, within both the hard limit and terrain square. The six discrete vertical
+samples do not cover the gaps between them or prove future route clearance.
 
 This footprint is still small for sustained 3000 mph travel. A much larger world needs separated
 mission regions and a streaming/replication strategy, not simply bigger ground slabs. Landing,
@@ -166,11 +194,11 @@ When the parent can use Studio without displacing the targeting acceptance sessi
 5. Measure low-end mobile memory, GPU/frame time, preload/content API time and network loading;
    existing Automatic mesh fidelity is not a distance-culling or streaming system. Streaming
    remains off, and would need separate acceptance for targets, collision queries and readiness.
-6. Merge the flight change in the parent's review workspace, confirm the actual mph conversion,
+6. Integrate the exact flight head in the parent's review workspace, retain its arcade mapping,
    then repeat low passes, boundaries and objectives at 800/3000 mph. Do not claim combined
    acceptance from the standalone world tests.
 
-Remaining authored work: district rollout to the other 24 missions, purpose-built coast/ocean
+Remaining authored work: selective district rollout to the other 22 planned missions, purpose-built coast/ocean
 expansions, organic district edges and more varied cliff assets, long-distance mission/navigation
 redesign, runway/taxiway kit conversion of the original airfields, richer surface textures and
 an actual measured mobile LOD/streaming policy. Existing core roads/runways remain as before.
