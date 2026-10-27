@@ -11,11 +11,12 @@ import { Telemetry } from "./Types";
 //          timeRemaining, objectiveProgress, objectiveTotal, groundKills,
 //          targetDistance, targetHealth (-1 none), protectedHealth (-1 none),
 //          specialCharges, specialCooldown, specialActive,
-//          evadeCharges, optionalKills, incomingDistance (-1 none), pauseAck, pauseRemaining (-1 unknown)]
+//          evadeCharges, optionalKills, incomingDistance (-1 none), pauseAck, pauseRemaining (-1 unknown),
+//          turnObserved (-1 unknown), pitchObserved (-1 unknown)]
 // flags: 1 incoming, 2 lockWarning, 4 boundaryWarning, 8 targetDamageable,
 //        16 targetDamageable unknown (no target), 32 ace killed this sortie.
 export type TelemetryPacket = number[];
-export const TELEMETRY_FIELDS = 27;
+export const TELEMETRY_FIELDS = 29;
 
 export interface TelemetryNumbers {
 	health: number; speed: number; altitude: number; kills: number; total: number; missiles: number;
@@ -31,6 +32,9 @@ export interface TelemetryNumbers {
 	pauseAck?: number;
 	/** Server-measured seconds left in this sortie’s shared pause budget; absent on older packets. */
 	pauseRemaining?: number;
+	/** Authoritative M1 movement seconds; absent outside the movement lesson/older packets. */
+	turnObserved?: number;
+	pitchObserved?: number;
 	/** Evade charges in hand (EvadeRules), optional raider kills, and the nearest hostile missile's range. */
 	evadeCharges?: number; optionalKills?: number; incomingDistance?: number;
 }
@@ -45,7 +49,9 @@ export const TelemetryCodec = {
 			t.timeRemaining, t.objectiveProgress, t.objectiveTotal, t.groundKills,
 			t.targetDistance, t.targetHealth ?? -1, t.protectedHealth ?? -1,
 			t.specialCharges ?? 0, t.specialCooldown ?? 0, t.specialActive ?? 0,
-			t.evadeCharges ?? 0, t.optionalKills ?? 0, t.incomingDistance ?? -1, t.pauseAck ?? 0, t.pauseRemaining ?? -1,
+			t.evadeCharges ?? 0, t.optionalKills ?? 0, t.incomingDistance ?? -1, t.pauseAck ?? 0,
+			t.pauseRemaining ?? -1,
+			t.turnObserved ?? -1, t.pitchObserved ?? -1,
 		];
 	},
 	/**
@@ -55,7 +61,7 @@ export const TelemetryCodec = {
 	Decode(packet: unknown, into: Telemetry): number | undefined {
 		if (!typeIs(packet, "table")) return undefined;
 		const values = packet as unknown[];
-		// Keep the original 26-field packet valid; appended fields are optional.
+		// Original 26-field packets remain valid; absent optional fields clear stale values.
 		for (let index = 0; index < 26; index++) if (!FlightMath.IsFinite(values[index])) return undefined;
 		const n = values as number[];
 		into.health = n[1]; into.speed = n[2]; into.altitude = n[3]; into.kills = n[4]; into.total = n[5]; into.missiles = n[6];
@@ -76,6 +82,8 @@ export const TelemetryCodec = {
 		into.incomingDistance = n[24] >= 0 ? n[24] : undefined;
 		into.pauseAck = math.max(0, n[25]);
 		into.pauseRemaining = FlightMath.IsFinite(n[26]) && n[26] >= 0 ? math.clamp(n[26], 0, 300) : undefined;
+		into.turnObserved = FlightMath.IsFinite(n[27]) && n[27] >= 0 ? math.clamp(n[27], 0, 3) : undefined;
+		into.pitchObserved = FlightMath.IsFinite(n[28]) && n[28] >= 0 ? math.clamp(n[28], 0, 3) : undefined;
 		return n[0];
 	},
 };

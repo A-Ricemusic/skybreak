@@ -219,6 +219,9 @@ export interface Telemetry {
 	pauseAck?: number;
 	/** Server-measured seconds left in this sortie’s shared pause budget; absent on older packets. */
 	pauseRemaining?: number;
+	/** Authoritative M1 movement seconds; absent outside the movement lesson/older packets. */
+	turnObserved?: number;
+	pitchObserved?: number;
 }
 export interface MissionFinished extends MissionStats {
 	kind: "Completed" | "Failed";

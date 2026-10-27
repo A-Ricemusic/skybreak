@@ -288,7 +288,7 @@ describe("client flight prediction and reconciliation", () => {
 			lockProgress: 0.4, incoming: true, lockWarning: false, boundaryWarning: true, elapsed: 12, timeRemaining: 500,
 			objectiveProgress: 1, objectiveTotal: 3, groundKills: 1, targetDistance: 900, targetHealth: undefined, protectedHealth: 70,
 			specialCharges: 2, specialCooldown: 1.5, specialActive: 12,
-			evadeCharges: 2, optionalKills: 3, incomingDistance: 420,
+			evadeCharges: 2, optionalKills: 3, incomingDistance: 420, turnObserved: 3, pitchObserved: 1.25,
 		});
 		expect(packet.size()).toBe(TELEMETRY_FIELDS);
 		packet[26] = 9.5;
@@ -297,10 +297,17 @@ describe("client flight prediction and reconciliation", () => {
 		packet[26] = -1;
 		expect(TelemetryCodec.Decode(packet, into)).toBeDefined();
 		expect(into.pauseRemaining).toBeUndefined();
-		packet.remove(26);
-		expect(TelemetryCodec.Decode(packet, into)).toBeDefined();
-		expect(into.pauseRemaining).toBeUndefined();
 		expect(TelemetryCodec.Decode(packet, into)).toBe(3);
+		expect(into.turnObserved).toBe(3);
+		expect(into.pitchObserved).toBe(1.25);
+		packet[27] = 0 / 0; packet[28] = -1;
+		expect(TelemetryCodec.Decode(packet, into)).toBe(3);
+		expect(into.turnObserved).toBeUndefined();
+		expect(into.pitchObserved).toBeUndefined();
+		packet.remove(28); packet.remove(27); packet.remove(26);
+		expect(TelemetryCodec.Decode(packet, into)).toBe(3);
+		expect(into.turnObserved).toBeUndefined();
+		expect(into.pitchObserved).toBeUndefined();
 		expect(into.health).toBe(80);
 		// Round 2: evade charges, raider kills kept apart from the required tally, nearest missile range.
 		expect(into.evadeCharges).toBe(2);
