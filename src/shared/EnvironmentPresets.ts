@@ -113,7 +113,6 @@ export const ENVIRONMENT_NAMES: EnvironmentPreset[] = [
 export const ENVIRONMENT_ATTRIBUTE = "MissionEnvironment";
 
 export function environmentFor(preset: EnvironmentPreset): EnvironmentSpec { return ENVIRONMENTS[preset]; }
-export function isNight(preset: EnvironmentPreset): boolean { return ENVIRONMENTS[preset].sky === "night"; }
 /** Lit windows and street lamps show from dusk onward and under storm or fog decks. */
 export function lampsOn(preset: EnvironmentPreset): boolean {
 	const e = ENVIRONMENTS[preset];
