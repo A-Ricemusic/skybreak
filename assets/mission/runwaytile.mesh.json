@@ -30,58 +30,40 @@
     {
       "name": "Concrete",
       "baseColorRGBA": [
-        0.29,
-        0.32,
-        0.31,
+        0.58,
+        0.56,
+        0.51,
         1.0
       ],
-      "metallic": 0.02,
-      "roughness": 0.86
+      "metallic": 0.0,
+      "roughness": 0.94
     },
     {
       "name": "DarkMetal",
       "baseColorRGBA": [
-        0.075,
-        0.095,
-        0.1,
-        1.0
-      ],
-      "metallic": 0.72,
-      "roughness": 0.35
-    },
-    {
-      "name": "Warning",
-      "baseColorRGBA": [
-        0.96,
-        0.57,
         0.055,
+        0.065,
+        0.075,
         1.0
       ],
-      "metallic": 0.2,
-      "roughness": 0.38
+      "metallic": 0.0,
+      "roughness": 0.96
     }
   ],
   "parts": [
     {
       "name": "RunwayTile_Concrete",
       "vertexStart": 0,
-      "vertexCount": 24,
+      "vertexCount": 40,
       "faceStart": 0,
-      "faceCount": 36
+      "faceCount": 60
     },
     {
       "name": "RunwayTile_DarkMetal",
-      "vertexStart": 24,
+      "vertexStart": 40,
       "vertexCount": 10,
-      "faceStart": 36,
+      "faceStart": 60,
       "faceCount": 16
-    },
-    {
-      "name": "RunwayTile_Warning",
-      "vertexStart": 34,
-      "vertexCount": 16,
-      "faceStart": 52,
-      "faceCount": 24
     }
   ],
   "vertices": [
@@ -126,6 +108,46 @@
       50.0
     ],
     [
+      -46.5,
+      0.315,
+      -50.0
+    ],
+    [
+      -46.5,
+      0.375,
+      -50.0
+    ],
+    [
+      -46.5,
+      0.315,
+      50.0
+    ],
+    [
+      -46.5,
+      0.375,
+      50.0
+    ],
+    [
+      -45.5,
+      0.315,
+      -50.0
+    ],
+    [
+      -45.5,
+      0.375,
+      -50.0
+    ],
+    [
+      -45.5,
+      0.315,
+      50.0
+    ],
+    [
+      -45.5,
+      0.375,
+      50.0
+    ],
+    [
       50.0,
       -0.225,
       -50.0
@@ -163,6 +185,46 @@
     [
       60.0,
       0.175,
+      50.0
+    ],
+    [
+      45.5,
+      0.315,
+      -50.0
+    ],
+    [
+      45.5,
+      0.375,
+      -50.0
+    ],
+    [
+      45.5,
+      0.315,
+      50.0
+    ],
+    [
+      45.5,
+      0.375,
+      50.0
+    ],
+    [
+      46.5,
+      0.315,
+      -50.0
+    ],
+    [
+      46.5,
+      0.375,
+      -50.0
+    ],
+    [
+      46.5,
+      0.315,
+      50.0
+    ],
+    [
+      46.5,
+      0.375,
       50.0
     ],
     [
@@ -253,86 +315,6 @@
     [
       50.0,
       -0.725,
-      50.0
-    ],
-    [
-      -46.5,
-      0.315,
-      -50.0
-    ],
-    [
-      -46.5,
-      0.375,
-      -50.0
-    ],
-    [
-      -46.5,
-      0.315,
-      50.0
-    ],
-    [
-      -46.5,
-      0.375,
-      50.0
-    ],
-    [
-      -45.5,
-      0.315,
-      -50.0
-    ],
-    [
-      -45.5,
-      0.375,
-      -50.0
-    ],
-    [
-      -45.5,
-      0.315,
-      50.0
-    ],
-    [
-      -45.5,
-      0.375,
-      50.0
-    ],
-    [
-      45.5,
-      0.315,
-      -50.0
-    ],
-    [
-      45.5,
-      0.375,
-      -50.0
-    ],
-    [
-      45.5,
-      0.315,
-      50.0
-    ],
-    [
-      45.5,
-      0.375,
-      50.0
-    ],
-    [
-      46.5,
-      0.315,
-      -50.0
-    ],
-    [
-      46.5,
-      0.375,
-      -50.0
-    ],
-    [
-      46.5,
-      0.315,
-      50.0
-    ],
-    [
-      46.5,
-      0.375,
       50.0
     ]
   ],
@@ -784,6 +766,318 @@
         23,
         21,
         19
+      ],
+      "normals": [
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ]
+      ],
+      "material": "Concrete",
+      "part": "RunwayTile_Concrete"
+    },
+    {
+      "indices": [
+        24,
+        26,
+        25
+      ],
+      "normals": [
+        [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        [
+          -1.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "material": "Concrete",
+      "part": "RunwayTile_Concrete"
+    },
+    {
+      "indices": [
+        26,
+        30,
+        27
+      ],
+      "normals": [
+        [
+          0.0,
+          0.0,
+          1.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "material": "Concrete",
+      "part": "RunwayTile_Concrete"
+    },
+    {
+      "indices": [
+        30,
+        28,
+        31
+      ],
+      "normals": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "material": "Concrete",
+      "part": "RunwayTile_Concrete"
+    },
+    {
+      "indices": [
+        28,
+        24,
+        29
+      ],
+      "normals": [
+        [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        [
+          0.0,
+          0.0,
+          -1.0
+        ]
+      ],
+      "material": "Concrete",
+      "part": "RunwayTile_Concrete"
+    },
+    {
+      "indices": [
+        26,
+        24,
+        30
+      ],
+      "normals": [
+        [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0
+        ]
+      ],
+      "material": "Concrete",
+      "part": "RunwayTile_Concrete"
+    },
+    {
+      "indices": [
+        31,
+        29,
+        27
+      ],
+      "normals": [
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ]
+      ],
+      "material": "Concrete",
+      "part": "RunwayTile_Concrete"
+    },
+    {
+      "indices": [
+        32,
+        34,
+        33
+      ],
+      "normals": [
+        [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        [
+          -1.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "material": "Concrete",
+      "part": "RunwayTile_Concrete"
+    },
+    {
+      "indices": [
+        34,
+        38,
+        35
+      ],
+      "normals": [
+        [
+          0.0,
+          0.0,
+          1.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "material": "Concrete",
+      "part": "RunwayTile_Concrete"
+    },
+    {
+      "indices": [
+        38,
+        36,
+        39
+      ],
+      "normals": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "material": "Concrete",
+      "part": "RunwayTile_Concrete"
+    },
+    {
+      "indices": [
+        36,
+        32,
+        37
+      ],
+      "normals": [
+        [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        [
+          0.0,
+          0.0,
+          -1.0
+        ]
+      ],
+      "material": "Concrete",
+      "part": "RunwayTile_Concrete"
+    },
+    {
+      "indices": [
+        34,
+        32,
+        38
+      ],
+      "normals": [
+        [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0
+        ]
+      ],
+      "material": "Concrete",
+      "part": "RunwayTile_Concrete"
+    },
+    {
+      "indices": [
+        39,
+        37,
+        35
       ],
       "normals": [
         [
@@ -1275,403 +1569,143 @@
     },
     {
       "indices": [
-        24,
-        25,
-        27
-      ],
-      "normals": [
-        [
-          0.007,
-          -0.999976,
-          0.0
-        ],
-        [
-          0.007,
-          -0.999976,
-          0.0
-        ],
-        [
-          0.007,
-          -0.999976,
-          0.0
-        ]
-      ],
-      "material": "DarkMetal",
-      "part": "RunwayTile_DarkMetal"
-    },
-    {
-      "indices": [
-        25,
         26,
-        28
-      ],
-      "normals": [
-        [
-          -0.007,
-          -0.999976,
-          0.0
-        ],
-        [
-          -0.007,
-          -0.999976,
-          0.0
-        ],
-        [
-          -0.007,
-          -0.999976,
-          0.0
-        ]
-      ],
-      "material": "DarkMetal",
-      "part": "RunwayTile_DarkMetal"
-    },
-    {
-      "indices": [
-        30,
-        24,
-        32
-      ],
-      "normals": [
-        [
-          1.0,
-          0.0,
-          0.0
-        ],
-        [
-          1.0,
-          0.0,
-          0.0
-        ],
-        [
-          1.0,
-          0.0,
-          0.0
-        ]
-      ],
-      "material": "DarkMetal",
-      "part": "RunwayTile_DarkMetal"
-    },
-    {
-      "indices": [
-        26,
-        31,
-        29
-      ],
-      "normals": [
-        [
-          -1.0,
-          0.0,
-          0.0
-        ],
-        [
-          -1.0,
-          0.0,
-          0.0
-        ],
-        [
-          -1.0,
-          0.0,
-          0.0
-        ]
-      ],
-      "material": "DarkMetal",
-      "part": "RunwayTile_DarkMetal"
-    },
-    {
-      "indices": [
-        31,
-        26,
+        27,
         25
       ],
       "normals": [
         [
+          -1.0,
           0.0,
-          0.0,
-          1.0
+          0.0
         ],
         [
+          -1.0,
           0.0,
-          0.0,
-          1.0
+          0.0
         ],
         [
+          -1.0,
           0.0,
-          0.0,
-          1.0
+          0.0
         ]
       ],
-      "material": "DarkMetal",
-      "part": "RunwayTile_DarkMetal"
-    },
-    {
-      "indices": [
-        28,
-        29,
-        33
-      ],
-      "normals": [
-        [
-          0.0,
-          0.0,
-          -1.0
-        ],
-        [
-          0.0,
-          0.0,
-          -1.0
-        ],
-        [
-          0.0,
-          0.0,
-          -1.0
-        ]
-      ],
-      "material": "DarkMetal",
-      "part": "RunwayTile_DarkMetal"
+      "material": "Concrete",
+      "part": "RunwayTile_Concrete"
     },
     {
       "indices": [
         30,
-        32,
-        31
-      ],
-      "normals": [
-        [
-          0.0,
-          1.0,
-          0.0
-        ],
-        [
-          0.0,
-          1.0,
-          0.0
-        ],
-        [
-          0.0,
-          1.0,
-          0.0
-        ]
-      ],
-      "material": "DarkMetal",
-      "part": "RunwayTile_DarkMetal"
-    },
-    {
-      "indices": [
-        25,
-        28,
+        31,
         27
       ],
       "normals": [
         [
-          0.007,
-          -0.999976,
-          0.0
+          0.0,
+          0.0,
+          1.0
         ],
         [
-          0.007,
-          -0.999976,
-          0.0
+          0.0,
+          0.0,
+          1.0
         ],
         [
-          0.007,
-          -0.999976,
-          0.0
+          0.0,
+          0.0,
+          1.0
         ]
       ],
-      "material": "DarkMetal",
-      "part": "RunwayTile_DarkMetal"
+      "material": "Concrete",
+      "part": "RunwayTile_Concrete"
     },
     {
       "indices": [
-        26,
+        28,
         29,
-        28
-      ],
-      "normals": [
-        [
-          -0.007,
-          -0.999976,
-          0.0
-        ],
-        [
-          -0.007,
-          -0.999976,
-          0.0
-        ],
-        [
-          -0.007,
-          -0.999976,
-          0.0
-        ]
-      ],
-      "material": "DarkMetal",
-      "part": "RunwayTile_DarkMetal"
-    },
-    {
-      "indices": [
-        24,
-        27,
-        32
-      ],
-      "normals": [
-        [
-          1.0,
-          0.0,
-          0.0
-        ],
-        [
-          1.0,
-          0.0,
-          0.0
-        ],
-        [
-          1.0,
-          0.0,
-          0.0
-        ]
-      ],
-      "material": "DarkMetal",
-      "part": "RunwayTile_DarkMetal"
-    },
-    {
-      "indices": [
-        31,
-        33,
-        29
-      ],
-      "normals": [
-        [
-          -1.0,
-          0.0,
-          0.0
-        ],
-        [
-          -1.0,
-          0.0,
-          0.0
-        ],
-        [
-          -1.0,
-          0.0,
-          0.0
-        ]
-      ],
-      "material": "DarkMetal",
-      "part": "RunwayTile_DarkMetal"
-    },
-    {
-      "indices": [
-        25,
-        30,
         31
       ],
       "normals": [
         [
+          1.0,
           0.0,
-          0.0,
-          1.0
+          0.0
         ],
         [
+          1.0,
           0.0,
-          0.0,
-          1.0
+          0.0
         ],
         [
+          1.0,
           0.0,
-          0.0,
-          1.0
+          0.0
         ]
       ],
-      "material": "DarkMetal",
-      "part": "RunwayTile_DarkMetal"
+      "material": "Concrete",
+      "part": "RunwayTile_Concrete"
     },
     {
       "indices": [
-        25,
         24,
+        25,
+        29
+      ],
+      "normals": [
+        [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        [
+          0.0,
+          0.0,
+          -1.0
+        ]
+      ],
+      "material": "Concrete",
+      "part": "RunwayTile_Concrete"
+    },
+    {
+      "indices": [
+        24,
+        28,
         30
       ],
       "normals": [
         [
           0.0,
-          0.0,
-          1.0
+          -1.0,
+          0.0
         ],
         [
           0.0,
-          0.0,
-          1.0
+          -1.0,
+          0.0
         ],
         [
           0.0,
-          0.0,
-          1.0
+          -1.0,
+          0.0
         ]
       ],
-      "material": "DarkMetal",
-      "part": "RunwayTile_DarkMetal"
+      "material": "Concrete",
+      "part": "RunwayTile_Concrete"
     },
     {
       "indices": [
-        28,
-        32,
+        29,
+        25,
         27
       ],
       "normals": [
         [
           0.0,
-          0.0,
-          -1.0
-        ],
-        [
-          0.0,
-          0.0,
-          -1.0
-        ],
-        [
-          0.0,
-          0.0,
-          -1.0
-        ]
-      ],
-      "material": "DarkMetal",
-      "part": "RunwayTile_DarkMetal"
-    },
-    {
-      "indices": [
-        28,
-        33,
-        32
-      ],
-      "normals": [
-        [
-          0.0,
-          0.0,
-          -1.0
-        ],
-        [
-          0.0,
-          0.0,
-          -1.0
-        ],
-        [
-          0.0,
-          0.0,
-          -1.0
-        ]
-      ],
-      "material": "DarkMetal",
-      "part": "RunwayTile_DarkMetal"
-    },
-    {
-      "indices": [
-        32,
-        33,
-        31
-      ],
-      "normals": [
-        [
-          0.0,
           1.0,
           0.0
         ],
@@ -1686,43 +1720,43 @@
           0.0
         ]
       ],
-      "material": "DarkMetal",
-      "part": "RunwayTile_DarkMetal"
+      "material": "Concrete",
+      "part": "RunwayTile_Concrete"
     },
     {
       "indices": [
         34,
-        36,
+        35,
+        33
+      ],
+      "normals": [
+        [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        [
+          -1.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "material": "Concrete",
+      "part": "RunwayTile_Concrete"
+    },
+    {
+      "indices": [
+        38,
+        39,
         35
       ],
       "normals": [
         [
-          -1.0,
-          0.0,
-          0.0
-        ],
-        [
-          -1.0,
-          0.0,
-          0.0
-        ],
-        [
-          -1.0,
-          0.0,
-          0.0
-        ]
-      ],
-      "material": "Warning",
-      "part": "RunwayTile_Warning"
-    },
-    {
-      "indices": [
-        36,
-        40,
-        37
-      ],
-      "normals": [
-        [
           0.0,
           0.0,
           1.0
@@ -1738,513 +1772,461 @@
           1.0
         ]
       ],
-      "material": "Warning",
-      "part": "RunwayTile_Warning"
-    },
-    {
-      "indices": [
-        40,
-        38,
-        41
-      ],
-      "normals": [
-        [
-          1.0,
-          0.0,
-          0.0
-        ],
-        [
-          1.0,
-          0.0,
-          0.0
-        ],
-        [
-          1.0,
-          0.0,
-          0.0
-        ]
-      ],
-      "material": "Warning",
-      "part": "RunwayTile_Warning"
-    },
-    {
-      "indices": [
-        38,
-        34,
-        39
-      ],
-      "normals": [
-        [
-          0.0,
-          0.0,
-          -1.0
-        ],
-        [
-          0.0,
-          0.0,
-          -1.0
-        ],
-        [
-          0.0,
-          0.0,
-          -1.0
-        ]
-      ],
-      "material": "Warning",
-      "part": "RunwayTile_Warning"
-    },
-    {
-      "indices": [
-        36,
-        34,
-        40
-      ],
-      "normals": [
-        [
-          0.0,
-          -1.0,
-          0.0
-        ],
-        [
-          0.0,
-          -1.0,
-          0.0
-        ],
-        [
-          0.0,
-          -1.0,
-          0.0
-        ]
-      ],
-      "material": "Warning",
-      "part": "RunwayTile_Warning"
-    },
-    {
-      "indices": [
-        41,
-        39,
-        37
-      ],
-      "normals": [
-        [
-          0.0,
-          1.0,
-          0.0
-        ],
-        [
-          0.0,
-          1.0,
-          0.0
-        ],
-        [
-          0.0,
-          1.0,
-          0.0
-        ]
-      ],
-      "material": "Warning",
-      "part": "RunwayTile_Warning"
-    },
-    {
-      "indices": [
-        42,
-        44,
-        43
-      ],
-      "normals": [
-        [
-          -1.0,
-          0.0,
-          0.0
-        ],
-        [
-          -1.0,
-          0.0,
-          0.0
-        ],
-        [
-          -1.0,
-          0.0,
-          0.0
-        ]
-      ],
-      "material": "Warning",
-      "part": "RunwayTile_Warning"
-    },
-    {
-      "indices": [
-        44,
-        48,
-        45
-      ],
-      "normals": [
-        [
-          0.0,
-          0.0,
-          1.0
-        ],
-        [
-          0.0,
-          0.0,
-          1.0
-        ],
-        [
-          0.0,
-          0.0,
-          1.0
-        ]
-      ],
-      "material": "Warning",
-      "part": "RunwayTile_Warning"
-    },
-    {
-      "indices": [
-        48,
-        46,
-        49
-      ],
-      "normals": [
-        [
-          1.0,
-          0.0,
-          0.0
-        ],
-        [
-          1.0,
-          0.0,
-          0.0
-        ],
-        [
-          1.0,
-          0.0,
-          0.0
-        ]
-      ],
-      "material": "Warning",
-      "part": "RunwayTile_Warning"
-    },
-    {
-      "indices": [
-        46,
-        42,
-        47
-      ],
-      "normals": [
-        [
-          0.0,
-          0.0,
-          -1.0
-        ],
-        [
-          0.0,
-          0.0,
-          -1.0
-        ],
-        [
-          0.0,
-          0.0,
-          -1.0
-        ]
-      ],
-      "material": "Warning",
-      "part": "RunwayTile_Warning"
-    },
-    {
-      "indices": [
-        44,
-        42,
-        48
-      ],
-      "normals": [
-        [
-          0.0,
-          -1.0,
-          0.0
-        ],
-        [
-          0.0,
-          -1.0,
-          0.0
-        ],
-        [
-          0.0,
-          -1.0,
-          0.0
-        ]
-      ],
-      "material": "Warning",
-      "part": "RunwayTile_Warning"
-    },
-    {
-      "indices": [
-        49,
-        47,
-        45
-      ],
-      "normals": [
-        [
-          0.0,
-          1.0,
-          0.0
-        ],
-        [
-          0.0,
-          1.0,
-          0.0
-        ],
-        [
-          0.0,
-          1.0,
-          0.0
-        ]
-      ],
-      "material": "Warning",
-      "part": "RunwayTile_Warning"
+      "material": "Concrete",
+      "part": "RunwayTile_Concrete"
     },
     {
       "indices": [
         36,
         37,
-        35
+        39
       ],
       "normals": [
         [
-          -1.0,
+          1.0,
           0.0,
           0.0
         ],
         [
-          -1.0,
+          1.0,
           0.0,
           0.0
         ],
         [
-          -1.0,
+          1.0,
           0.0,
           0.0
         ]
       ],
-      "material": "Warning",
-      "part": "RunwayTile_Warning"
+      "material": "Concrete",
+      "part": "RunwayTile_Concrete"
+    },
+    {
+      "indices": [
+        32,
+        33,
+        37
+      ],
+      "normals": [
+        [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        [
+          0.0,
+          0.0,
+          -1.0
+        ]
+      ],
+      "material": "Concrete",
+      "part": "RunwayTile_Concrete"
+    },
+    {
+      "indices": [
+        32,
+        36,
+        38
+      ],
+      "normals": [
+        [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0
+        ],
+        [
+          0.0,
+          -1.0,
+          0.0
+        ]
+      ],
+      "material": "Concrete",
+      "part": "RunwayTile_Concrete"
+    },
+    {
+      "indices": [
+        37,
+        33,
+        35
+      ],
+      "normals": [
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ]
+      ],
+      "material": "Concrete",
+      "part": "RunwayTile_Concrete"
     },
     {
       "indices": [
         40,
         41,
-        37
+        43
       ],
       "normals": [
         [
-          0.0,
-          0.0,
-          1.0
+          0.007,
+          -0.999976,
+          0.0
         ],
         [
-          0.0,
-          0.0,
-          1.0
+          0.007,
+          -0.999976,
+          0.0
         ],
         [
-          0.0,
-          0.0,
-          1.0
+          0.007,
+          -0.999976,
+          0.0
         ]
       ],
-      "material": "Warning",
-      "part": "RunwayTile_Warning"
+      "material": "DarkMetal",
+      "part": "RunwayTile_DarkMetal"
     },
     {
       "indices": [
-        38,
-        39,
+        41,
+        42,
+        44
+      ],
+      "normals": [
+        [
+          -0.007,
+          -0.999976,
+          0.0
+        ],
+        [
+          -0.007,
+          -0.999976,
+          0.0
+        ],
+        [
+          -0.007,
+          -0.999976,
+          0.0
+        ]
+      ],
+      "material": "DarkMetal",
+      "part": "RunwayTile_DarkMetal"
+    },
+    {
+      "indices": [
+        46,
+        40,
+        48
+      ],
+      "normals": [
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0
+        ],
+        [
+          1.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "material": "DarkMetal",
+      "part": "RunwayTile_DarkMetal"
+    },
+    {
+      "indices": [
+        42,
+        47,
+        45
+      ],
+      "normals": [
+        [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        [
+          -1.0,
+          0.0,
+          0.0
+        ],
+        [
+          -1.0,
+          0.0,
+          0.0
+        ]
+      ],
+      "material": "DarkMetal",
+      "part": "RunwayTile_DarkMetal"
+    },
+    {
+      "indices": [
+        47,
+        42,
         41
       ],
       "normals": [
         [
-          1.0,
           0.0,
-          0.0
+          0.0,
+          1.0
         ],
         [
-          1.0,
           0.0,
-          0.0
+          0.0,
+          1.0
         ],
         [
-          1.0,
           0.0,
-          0.0
+          0.0,
+          1.0
         ]
       ],
-      "material": "Warning",
-      "part": "RunwayTile_Warning"
-    },
-    {
-      "indices": [
-        34,
-        35,
-        39
-      ],
-      "normals": [
-        [
-          0.0,
-          0.0,
-          -1.0
-        ],
-        [
-          0.0,
-          0.0,
-          -1.0
-        ],
-        [
-          0.0,
-          0.0,
-          -1.0
-        ]
-      ],
-      "material": "Warning",
-      "part": "RunwayTile_Warning"
-    },
-    {
-      "indices": [
-        34,
-        38,
-        40
-      ],
-      "normals": [
-        [
-          0.0,
-          -1.0,
-          0.0
-        ],
-        [
-          0.0,
-          -1.0,
-          0.0
-        ],
-        [
-          0.0,
-          -1.0,
-          0.0
-        ]
-      ],
-      "material": "Warning",
-      "part": "RunwayTile_Warning"
-    },
-    {
-      "indices": [
-        39,
-        35,
-        37
-      ],
-      "normals": [
-        [
-          0.0,
-          1.0,
-          0.0
-        ],
-        [
-          0.0,
-          1.0,
-          0.0
-        ],
-        [
-          0.0,
-          1.0,
-          0.0
-        ]
-      ],
-      "material": "Warning",
-      "part": "RunwayTile_Warning"
+      "material": "DarkMetal",
+      "part": "RunwayTile_DarkMetal"
     },
     {
       "indices": [
         44,
         45,
+        49
+      ],
+      "normals": [
+        [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        [
+          0.0,
+          0.0,
+          -1.0
+        ],
+        [
+          0.0,
+          0.0,
+          -1.0
+        ]
+      ],
+      "material": "DarkMetal",
+      "part": "RunwayTile_DarkMetal"
+    },
+    {
+      "indices": [
+        46,
+        48,
+        47
+      ],
+      "normals": [
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ],
+        [
+          0.0,
+          1.0,
+          0.0
+        ]
+      ],
+      "material": "DarkMetal",
+      "part": "RunwayTile_DarkMetal"
+    },
+    {
+      "indices": [
+        41,
+        44,
         43
       ],
       "normals": [
         [
-          -1.0,
+          0.007,
+          -0.999976,
+          0.0
+        ],
+        [
+          0.007,
+          -0.999976,
+          0.0
+        ],
+        [
+          0.007,
+          -0.999976,
+          0.0
+        ]
+      ],
+      "material": "DarkMetal",
+      "part": "RunwayTile_DarkMetal"
+    },
+    {
+      "indices": [
+        42,
+        45,
+        44
+      ],
+      "normals": [
+        [
+          -0.007,
+          -0.999976,
+          0.0
+        ],
+        [
+          -0.007,
+          -0.999976,
+          0.0
+        ],
+        [
+          -0.007,
+          -0.999976,
+          0.0
+        ]
+      ],
+      "material": "DarkMetal",
+      "part": "RunwayTile_DarkMetal"
+    },
+    {
+      "indices": [
+        40,
+        43,
+        48
+      ],
+      "normals": [
+        [
+          1.0,
           0.0,
           0.0
         ],
         [
-          -1.0,
+          1.0,
           0.0,
           0.0
         ],
         [
-          -1.0,
+          1.0,
           0.0,
           0.0
         ]
       ],
-      "material": "Warning",
-      "part": "RunwayTile_Warning"
+      "material": "DarkMetal",
+      "part": "RunwayTile_DarkMetal"
     },
     {
       "indices": [
-        48,
+        47,
         49,
         45
       ],
       "normals": [
         [
+          -1.0,
           0.0,
-          0.0,
-          1.0
+          0.0
         ],
         [
+          -1.0,
           0.0,
-          0.0,
-          1.0
+          0.0
         ],
         [
+          -1.0,
           0.0,
-          0.0,
-          1.0
+          0.0
         ]
       ],
-      "material": "Warning",
-      "part": "RunwayTile_Warning"
+      "material": "DarkMetal",
+      "part": "RunwayTile_DarkMetal"
     },
     {
       "indices": [
+        41,
         46,
-        47,
-        49
-      ],
-      "normals": [
-        [
-          1.0,
-          0.0,
-          0.0
-        ],
-        [
-          1.0,
-          0.0,
-          0.0
-        ],
-        [
-          1.0,
-          0.0,
-          0.0
-        ]
-      ],
-      "material": "Warning",
-      "part": "RunwayTile_Warning"
-    },
-    {
-      "indices": [
-        42,
-        43,
         47
       ],
       "normals": [
         [
           0.0,
           0.0,
+          1.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "material": "DarkMetal",
+      "part": "RunwayTile_DarkMetal"
+    },
+    {
+      "indices": [
+        41,
+        40,
+        46
+      ],
+      "normals": [
+        [
+          0.0,
+          0.0,
+          1.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ],
+        [
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "material": "DarkMetal",
+      "part": "RunwayTile_DarkMetal"
+    },
+    {
+      "indices": [
+        44,
+        48,
+        43
+      ],
+      "normals": [
+        [
+          0.0,
+          0.0,
           -1.0
         ],
         [
@@ -2258,40 +2240,40 @@
           -1.0
         ]
       ],
-      "material": "Warning",
-      "part": "RunwayTile_Warning"
+      "material": "DarkMetal",
+      "part": "RunwayTile_DarkMetal"
     },
     {
       "indices": [
-        42,
-        46,
+        44,
+        49,
         48
       ],
       "normals": [
         [
           0.0,
-          -1.0,
-          0.0
+          0.0,
+          -1.0
         ],
         [
           0.0,
-          -1.0,
-          0.0
+          0.0,
+          -1.0
         ],
         [
           0.0,
-          -1.0,
-          0.0
+          0.0,
+          -1.0
         ]
       ],
-      "material": "Warning",
-      "part": "RunwayTile_Warning"
+      "material": "DarkMetal",
+      "part": "RunwayTile_DarkMetal"
     },
     {
       "indices": [
-        47,
-        43,
-        45
+        48,
+        49,
+        47
       ],
       "normals": [
         [
@@ -2310,8 +2292,8 @@
           0.0
         ]
       ],
-      "material": "Warning",
-      "part": "RunwayTile_Warning"
+      "material": "DarkMetal",
+      "part": "RunwayTile_DarkMetal"
     }
   ]
 }

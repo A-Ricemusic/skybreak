@@ -1,3 +1,4 @@
+import { WorldAirspace } from "../shared/WorldAirspace";
 import { CombatBalance } from "../shared/CombatBalance";
 import { AircraftCollision } from "./AircraftCollision";
 import { Players, RunService, Workspace } from "@rbxts/services";
@@ -228,7 +229,7 @@ const ACE_DAMAGE_BONUS = 2;
 /** Required waves arrive this far out (an approach before the lock); reinforcements from behind come a little closer. */
 const SPAWN_FRONT: [number, number] = [2600, 3200];
 const SPAWN_BEHIND: [number, number] = [2000, 2400];
-const SPAWN_LIMIT = 2500;
+const SPAWN_LIMIT = WorldAirspace.spawnLimit;
 /** A retired raider flies for the boundary this long before it is removed. */
 const WITHDRAW_SECONDS = 4;
 /** Ground-avoidance look-ahead for enemy jets, and how often each jet casts it. */
@@ -748,7 +749,19 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		const distance = near + math.random() * (far - near);
 		const offset = forward.mul(math.cos(angle) * distance).add(right.mul(math.sin(angle) * side * distance));
 		const spawn = positionFor(session.state).add(offset);
-		const position = new Vector3(math.clamp(spawn.X, -SPAWN_LIMIT, SPAWN_LIMIT), math.clamp(spawn.Y + 60 + math.random() * 60, 230, 900), math.clamp(spawn.Z, -SPAWN_LIMIT, SPAWN_LIMIT));
+		const px = math.clamp(spawn.X, -SPAWN_LIMIT, SPAWN_LIMIT), pz = math.clamp(spawn.Z, -SPAWN_LIMIT, SPAWN_LIMIT);
+		let py = math.clamp(spawn.Y + 60 + math.random() * 60, 230, 900);
+		// The former horizon is now flyable: clamping XZ alone could put an
+		// arriving wave inside its ridges. Probe scenery + terrain, not actors,
+		// around the hull and along the initial approach before exposing it.
+		if (session.groundParams !== undefined) {
+			const toward = unitOr(positionFor(session.state).sub(new Vector3(px, py, pz)), forward.mul(-1));
+			for (const [dx, dz] of [[0, 0], [-80, 0], [80, 0], [0, -80], [0, 80], [toward.X * 200, toward.Z * 200]]) {
+				const surface = ActorGrounding.Sample(px + dx, pz + dz, session.groundParams);
+				if (surface !== undefined) py = math.max(py, surface.y + 120);
+			}
+		}
+		const position = new Vector3(px, py, pz);
 		const direction = role === "courier" && options.escape
 			? unitOr(options.escape.sub(position), forward)
 			: unitOr(positionFor(session.state).sub(position), forward.mul(-1));

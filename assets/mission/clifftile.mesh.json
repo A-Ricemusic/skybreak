@@ -30,13 +30,13 @@
     {
       "name": "Concrete",
       "baseColorRGBA": [
-        0.29,
-        0.32,
-        0.31,
+        0.58,
+        0.56,
+        0.51,
         1.0
       ],
-      "metallic": 0.02,
-      "roughness": 0.86
+      "metallic": 0.0,
+      "roughness": 0.94
     }
   ],
   "parts": [

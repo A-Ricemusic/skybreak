@@ -30,35 +30,35 @@
     {
       "name": "Concrete",
       "baseColorRGBA": [
-        0.29,
-        0.32,
-        0.31,
+        0.58,
+        0.56,
+        0.51,
         1.0
       ],
-      "metallic": 0.02,
-      "roughness": 0.86
+      "metallic": 0.0,
+      "roughness": 0.94
     },
     {
       "name": "DarkMetal",
       "baseColorRGBA": [
+        0.055,
+        0.065,
         0.075,
-        0.095,
-        0.1,
         1.0
       ],
-      "metallic": 0.72,
-      "roughness": 0.35
+      "metallic": 0.0,
+      "roughness": 0.96
     },
     {
       "name": "Warning",
       "baseColorRGBA": [
-        0.96,
-        0.57,
-        0.055,
+        0.8,
+        0.62,
+        0.18,
         1.0
       ],
-      "metallic": 0.2,
-      "roughness": 0.38
+      "metallic": 0.0,
+      "roughness": 0.9
     }
   ],
   "parts": [

@@ -1,4 +1,6 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
+import { WorldAirspace } from "../shared/WorldAirspace";
+import { KIT_BOUNDS } from "../shared/WorldDistricts";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { layoutFor } from "../shared/MissionLayouts";
 import { KEEL_MIN, auditPlan } from "../shared/WorldAudit";
@@ -12,6 +14,27 @@ const ids: number[] = [];
 for (let id = 3; id <= 27; id++) ids.push(id);
 
 describe("Mission world plans", () => {
+	it("connects outer roads and keeps the airstrip clear in expanded airspace", () => {
+		expect(WorldAirspace.soft).toBeLessThan(WorldAirspace.hard);
+		expect(WorldAirspace.hard).toBeLessThan(4000);
+		for (const id of [3, 5, 19]) {
+			const plan = WorldPlanner.Build(id);
+			expect(plan.props.filter((p) => p.tag === "OuterDistrict").size()).toBeGreaterThan(15);
+			// At each junction the full surface is paved; the access spur connects
+			// to the longitudinal road instead of stopping short of it.
+			for (const [x, z] of [[3400, 1100], [3400, -600], [3400, 600], [3300, 1100]]) expect(surfaceAt(plan, x, z).kind).toBe("part");
+			for (const p of plan.parts) if (p.mesh !== undefined) {
+				expect([p.sx, p.sy, p.sz]).toEqual(KIT_BOUNDS[p.mesh]);
+				expect(math.max(math.abs(p.x) + p.sx / 2, math.abs(p.z) + p.sz / 2)).toBeLessThan(WorldAirspace.hard);
+			}
+		}
+		const m3 = WorldPlanner.Build(3);
+		// Sweep the runway and both approaches: no prop/terrain buried in pavement.
+		for (let z = -850; z <= 850; z += 25) {
+			for (const x of [2910, 2950, 2990]) expect(surfaceAt(m3, x, z).y).toBeLessThan(46);
+		}
+		expect(WorldPlanner.Build(5).parts.some((p) => p.mesh === "RunwayTile")).toBe(false);
+	});
 	for (const id of ids) {
 		it(`M${id} keeps flight points clear, targets grounded, nothing floating and the budget`, () => {
 			const result = auditPlan(WorldPlanner.Build(id));

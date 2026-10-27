@@ -79,7 +79,7 @@ describe("numeric arcade flight rules", () => {
 	});
 	it("recovers at world edges and the ceiling without protecting the ground", () => {
 		const edge = FlightMath.NewState();
-		edge.x = 2700;
+		edge.x = FlightMath.SoftBoundary + 100;
 		FlightMath.Step(edge, { x: 0, y: 0, throttle: 1 }, 0.1);
 		expect(edge.yaw).toBeGreaterThan(0);
 		for (const sign of [-1, 1]) {

@@ -1201,9 +1201,9 @@ function build(id: number): WorldPlan {
 	if (theme === "coast") beaches(ctx, plan.coastZ!);
 	if (theme === "coast") reopenCanals(ctx);
 	roads(ctx);
-	const treeTotal = theme === "farm" ? 140 : theme === "coast" ? 90 : theme === "plateau" ? 80 : theme === "canyon" ? 36 : 0;
+	const treeTotal = theme === "farm" ? (id === 5 ? 97 : 140) : theme === "coast" ? 90 : theme === "plateau" ? 80 : theme === "canyon" ? 36 : 0;
 	const orchardTrees = plan.props.filter((p) => p.asset === "Broadleaf").size();
-	scatterTrees(ctx, math.max(treeTotal - orchardTrees, theme === "farm" ? 40 : 0), theme === "farm" ? 0.3 : theme === "coast" ? 0.4 : theme === "plateau" ? 0.85 : 0.6);
+	scatterTrees(ctx, math.max(treeTotal - orchardTrees, theme === "farm" && id !== 5 ? 40 : 0), theme === "farm" ? 0.3 : theme === "coast" ? 0.4 : theme === "plateau" ? 0.85 : 0.6);
 	scatterRocks(ctx, theme === "canyon" ? 44 : theme === "plateau" ? 36 : theme === "farm" ? 22 : theme === "coast" ? 14 : 0);
 	farTiles(ctx, env.water.color);
 	expandDistrict(plan);
@@ -1235,7 +1235,7 @@ export function countPlan(plan: WorldPlan): WorldCounts {
 	}
 	return {
 		terrainOps: plan.ops.size(), voxelWrites: math.floor(voxels + cells), bumpCells: cells, parts: plan.parts.size(), props: plan.props.size(), uniqueMeshes: unique.size(),
-		// Each placed mesh is a MeshPart plus its SurfaceAppearance.
+		// Uploaded props estimate MeshPart + SurfaceAppearance; kits add model/root/material overhead.
 		trees, rocks, buildings, ships, instances: plan.parts.size() + plan.props.size() * 2 + kitInstances,
 	};
 }

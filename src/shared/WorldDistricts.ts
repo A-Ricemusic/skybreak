@@ -1,4 +1,4 @@
-import type { PartSpec, PropAsset, WorldPlan } from "./WorldPlan";
+import type { PropAsset, WorldPlan } from "./WorldPlan";
 
 export type WorldKit = "RunwayTile" | "RoadTile" | "CliffTile";
 export const KIT_BOUNDS: Record<WorldKit, number[]> = {
@@ -25,9 +25,9 @@ export function expandDistrict(plan: WorldPlan): void {
 	// 4-stud grid alignment keeps analytic and voxel support surfaces equal.
 	plan.ops.push({ shape: "block", material: "Air", x: 3200, y: 344, z: 0, sx: 1000, sy: 600, sz: 2800, yaw: 0 });
 	plan.ops.push({ shape: "block", material: plan.id === 3 ? "Ground" : "Grass", x: 3200, y: 40, z: 0, sx: 1000, sy: 8, sz: 2800, yaw: 0 });
-	// A repeated, bounded road network: 2.4 km in game units including a
+	// A repeated, bounded road network: 3500 studs including a
 	// west access spur, a north/south spine and two short facility turnoffs.
-	for (let z = -950; z <= 950; z += 100) kit("RoadTile", 3400, z);
+	for (let z = -1150; z <= 1150; z += 100) kit("RoadTile", 3400, z);
 	for (let x = 2750; x <= 3350; x += 100) kit("RoadTile", x, 1100, math.pi / 2);
 	for (const z of [-600, 600]) for (const x of [3250, 3350]) kit("RoadTile", x, z, math.pi / 2);
 	// Cliff buttresses border the eastern escarpment; varied strata are real

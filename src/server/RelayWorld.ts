@@ -98,6 +98,11 @@ export const RelayWorld = {
 
 		const terrain = writeTerrain(plan);
 		for (const p of plan.parts) buildPart(scene, p);
+		const kitModels = scene.GetChildren().filter((item) => item.IsA("Model") && item.GetAttribute("GeometryAsset") !== undefined);
+		const kitFallbacks = kitModels.filter((item) => item.GetAttribute("GeometrySource") === "Fallback").size();
+		parent.SetAttribute("WorldKitModels", kitModels.size());
+		parent.SetAttribute("WorldKitFallbacks", kitFallbacks);
+		if (kitFallbacks > 0) warn(`[RelayWorld] ${plan.name}: ${kitFallbacks} infrastructure modules used the visible fallback`);
 
 		const unique = new Set<PropAsset>();
 		for (const p of plan.props) unique.add(p.asset);
