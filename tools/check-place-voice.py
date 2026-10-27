@@ -34,6 +34,8 @@ def check(place: Path, output: Path = ROOT / "out") -> None:
         if item is None or item.get("class") != kind:
             raise ValueError(f"Missing {kind}: {path}")
         source = item.findtext("Properties/ProtectedString[@name='Source']")
+        if source is None:
+            source = item.findtext("Properties/string[@name='Source']")
         compiled = (output / relative).read_text()
         if source is None or source.replace("\r\n", "\n") != compiled.replace("\r\n", "\n"):
             raise ValueError(f"Stale packaged source: {path}; rebuild with bun run build:place")

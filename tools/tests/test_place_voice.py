@@ -42,6 +42,13 @@ class VoiceArtifactTests(unittest.TestCase):
     def test_current_scripts_pass(self):
         self.check()
 
+    def test_rojo_string_sources_pass(self):
+        for item in self.items.values():
+            source = item.find("Properties/ProtectedString[@name='Source']")
+            if source is not None:
+                source.tag = "string"
+        self.check()
+
     def test_missing_voice_player_fails(self):
         parent = self.items[gate.CLIENT]
         parent.remove(self.items[f"{gate.CLIENT}/VoicePlayer"])
