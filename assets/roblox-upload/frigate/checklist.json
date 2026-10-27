@@ -3,7 +3,7 @@
   "title": "Navy frigate",
   "variantOf": null,
   "robloxAssetType": "Model",
-  "usage": "M23 frigate ring (three hulls, one protected) and harbour dressing in Act III; WorldAssets.PlaceFrigate.",
+  "usage": "M23 frigate ring (three hulls, one protected) and harbour dressing in Act III; WorldAssets.Place(\"Frigate\", ...).",
   "generator": "tools/assets/build.py",
   "fbx": {
     "file": "frigate.fbx",

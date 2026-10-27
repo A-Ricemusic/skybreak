@@ -554,7 +554,7 @@
         155.05,
         430.0
       ],
-      "usage": "M23 frigate ring (three hulls, one protected) and harbour dressing in Act III; WorldAssets.PlaceFrigate.",
+      "usage": "M23 frigate ring (three hulls, one protected) and harbour dressing in Act III; WorldAssets.Place(\"Frigate\", ...).",
       "triangleCount": 3222,
       "textures": [
         "frigate-color.png 512x512",
@@ -617,7 +617,7 @@
         306.625,
         217.36
       ],
-      "usage": "M23/M24 'ocean platform' rig: protected centrepiece and ground-target deck; WorldAssets.PlaceOilPlatform.",
+      "usage": "M23/M24 'ocean platform' rig: protected centrepiece and ground-target deck; WorldAssets.Place(\"OilPlatform\", ...).",
       "triangleCount": 3468,
       "textures": [
         "oil-platform-color.png 512x512",
@@ -680,7 +680,7 @@
         55.8,
         72.3
       ],
-      "usage": "Open-piled quay segments for harbour missions (M19-M27); tile end to end along a coast. WorldAssets.PlaceQuay.",
+      "usage": "Open-piled quay segments for harbour missions (M19-M27); tile end to end along a coast. WorldAssets.Place(\"HarbourQuay\", ...).",
       "triangleCount": 1612,
       "textures": [
         "harbour-quay-color.png 512x512",
@@ -806,7 +806,7 @@
         160.0,
         200.0
       ],
-      "usage": "Harbour skyline: line quays in M19-M27 (replaces Scenery.Crane); WorldAssets.PlaceGantryCrane.",
+      "usage": "Harbour skyline: line quays in M19-M27 (replaces Scenery.Crane); WorldAssets.Place(\"GantryCrane\", ...).",
       "triangleCount": 568,
       "textures": [
         "gantry-crane-color.png 512x512",
@@ -869,7 +869,7 @@
         39.5,
         136.6
       ],
-      "usage": "Airbase dressing at Varda (M1, M3, M4, M8): fits one Kestrel; WorldAssets.PlaceHangar.",
+      "usage": "Airbase dressing at Varda (M1, M3, M4, M8): fits one Kestrel; WorldAssets.Place(\"Hangar\", ...).",
       "triangleCount": 1064,
       "textures": [
         "hangar-color.png 512x512",

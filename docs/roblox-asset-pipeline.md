@@ -218,11 +218,7 @@ unset IDs.
   `UploadedAssetSpecs.<aircraft>.controlSurfaces` for future animation; the
   surfaces are welded rigidly today.
 - World: `src/server/WorldAssets.ts` exposes `Place(name, parent, cframe)` and
-  helpers (`PlaceFrigate`, `PlaceOilPlatform`, `PlaceQuay`,
-  `PlaceContainerStack`, `PlaceGantryCrane`, `PlaceHangar`,
-  `PlaceControlTower`, `PlaceOffice`, `PlaceApartmentBlock`, `PlaceCityTower`,
-  `PlaceFarmhouse`, `PlaceBarn`, `PlaceGrainSilo`, `PlaceRadarDish`,
-  `PlaceRelayMast`, `PlaceTree`, `PlaceRock`). `cframe` is the ground contact
+  `PlaceUploaded(name, parent, cframe)`. `cframe` is the ground contact
   point (the waterline for the frigate, platform and quay) with -Z as the
   asset's front. Without an uploaded model, the frigate, platform, quay and
   buildings get a simple flight-solid part shape and the dressing props

@@ -3,7 +3,7 @@
   "title": "Offshore oil platform",
   "variantOf": null,
   "robloxAssetType": "Model",
-  "usage": "M23/M24 'ocean platform' rig: protected centrepiece and ground-target deck; WorldAssets.PlaceOilPlatform.",
+  "usage": "M23/M24 'ocean platform' rig: protected centrepiece and ground-target deck; WorldAssets.Place(\"OilPlatform\", ...).",
   "generator": "tools/assets/build.py",
   "fbx": {
     "file": "oil-platform.fbx",

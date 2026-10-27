@@ -271,10 +271,10 @@ describe("Uploaded asset loader with procedural fallback", () => {
 		parent.Parent = Workspace;
 		const at = new CFrame(100, 20, -50);
 		UploadedAssets.Configure({ ids: {} });
-		const frigate = WorldAssets.PlaceFrigate(parent, at);
+		const frigate = WorldAssets.Place("Frigate", parent, at);
 		expect(frigate?.GetAttribute("GeometrySource")).toBe("Fallback");
 		expect(frigate?.FindFirstChild("Hull")?.GetAttribute("FlightSolid")).toBe(true);
-		expect(WorldAssets.PlaceGantryCrane(parent, at)).toBeUndefined();
+		expect(WorldAssets.Place("GantryCrane", parent, at)).toBeUndefined();
 		expect(WorldAssets.Has("Frigate")).toBe(false);
 
 		const quay = UploadedAssetSpecs.HarbourQuay;
@@ -283,7 +283,7 @@ describe("Uploaded asset loader with procedural fallback", () => {
 		expect(WorldAssets.Has("HarbourQuay")).toBe(false);
 		expect(WorldAssets.Preload(["HarbourQuay"]).size()).toBe(0);
 		expect(WorldAssets.Has("HarbourQuay")).toBe(true);
-		const placed = WorldAssets.PlaceQuay(parent, at)!;
+		const placed = WorldAssets.Place("HarbourQuay", parent, at)!;
 		expect(placed.GetAttribute("GeometrySource")).toBe("Uploaded");
 		const [box, size] = placed.GetBoundingBox();
 		// Authored real-world size (gameScale 1), with the waterline on the requested CFrame. (A 28x
@@ -312,12 +312,12 @@ describe("Uploaded asset loader with procedural fallback", () => {
 		// The ID is set, so an uploaded barn would be tried, but its import is untextured.
 		expect(UploadedAssets.Available("Barn")).toBe(true);
 		expect(WorldAssets.Preload(["Barn", "Pine"]).size()).toBe(0);
-		const barn = WorldAssets.PlaceBarn(parent, at);
+		const barn = WorldAssets.Place("Barn", parent, at);
 		expect(barn?.GetAttribute("GeometrySource")).toBe("Fallback");
 		expect(WorldAssets.Has("Barn")).toBe(false);
 		// Dressing without a fallback shape returns undefined so the caller keeps its own primitive.
 		expect(WorldAssets.PlaceUploaded("Pine", parent, at)).toBeUndefined();
-		expect(WorldAssets.PlaceTree(parent, at)).toBeUndefined();
+		expect(WorldAssets.Place("Pine", parent, at)).toBeUndefined();
 		expect(calls).toBe(2);
 	});
 
@@ -334,7 +334,7 @@ describe("Uploaded asset loader with procedural fallback", () => {
 		expect(late).toEqual(["Farmhouse"]);
 		// Placement does not join the pending load: it returns at once with the fallback block.
 		const placedAt = os.clock();
-		const house = WorldAssets.PlaceFarmhouse(parent, new CFrame());
+		const house = WorldAssets.Place("Farmhouse", parent, new CFrame());
 		expect(os.clock() - placedAt < 0.05).toBe(true);
 		expect(house?.GetAttribute("GeometrySource")).toBe("Fallback");
 		expect(WorldAssets.PlaceUploaded("Farmhouse", parent, new CFrame())).toBeUndefined();
@@ -345,6 +345,6 @@ describe("Uploaded asset loader with procedural fallback", () => {
 		task.wait();
 		// The late load landed in the cache: the next world places the uploaded model.
 		expect(WorldAssets.Has("Farmhouse")).toBe(true);
-		expect(WorldAssets.PlaceFarmhouse(parent, new CFrame())?.GetAttribute("GeometrySource")).toBe("Uploaded");
+		expect(WorldAssets.Place("Farmhouse", parent, new CFrame())?.GetAttribute("GeometrySource")).toBe("Uploaded");
 	});
 });

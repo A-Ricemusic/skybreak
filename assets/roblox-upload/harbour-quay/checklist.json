@@ -3,7 +3,7 @@
   "title": "Harbour quay segment",
   "variantOf": null,
   "robloxAssetType": "Model",
-  "usage": "Open-piled quay segments for harbour missions (M19-M27); tile end to end along a coast. WorldAssets.PlaceQuay.",
+  "usage": "Open-piled quay segments for harbour missions (M19-M27); tile end to end along a coast. WorldAssets.Place(\"HarbourQuay\", ...).",
   "generator": "tools/assets/build.py",
   "fbx": {
     "file": "harbour-quay.fbx",

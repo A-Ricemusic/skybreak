@@ -3,7 +3,7 @@
   "title": "Hardened aircraft shelter",
   "variantOf": null,
   "robloxAssetType": "Model",
-  "usage": "Airbase dressing at Varda (M1, M3, M4, M8): fits one Kestrel; WorldAssets.PlaceHangar.",
+  "usage": "Airbase dressing at Varda (M1, M3, M4, M8): fits one Kestrel; WorldAssets.Place(\"Hangar\", ...).",
   "generator": "tools/assets/build.py",
   "fbx": {
     "file": "hangar.fbx",
