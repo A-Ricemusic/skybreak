@@ -1,5 +1,6 @@
 import { ContentProvider, Debris, Players, SoundService, TweenService, Workspace } from "@rbxts/services";
 import { AudioRules, AudioWarning } from "../shared/AudioRules";
+import { HOSTILE_MISSILE, PLAYER_MISSILE } from "../shared/JetFactory";
 import { SoundBank } from "../shared/SoundBank";
 import { ExplosionKind } from "../shared/ExplosionFx";
 import type { Telemetry } from "../shared/Types";
@@ -195,7 +196,7 @@ export class GameAudio {
 			this.shot("flareBurst", 0.4, child.Position);
 			return;
 		}
-		if (!child.IsA("BasePart") || (child.Name !== "SkyLance" && child.Name !== "HostileMissile") || this.motors.has(child)) return;
+		if (!child.IsA("BasePart") || (child.Name !== PLAYER_MISSILE && child.Name !== HOSTILE_MISSILE) || this.motors.has(child)) return;
 		if (fresh && os.clock() >= this.nextLaunch) {
 			this.nextLaunch = os.clock() + 0.07; // A four-missile salvo stays punchy without four stacked blasts.
 			this.shot(math.random() < 0.5 ? "missileLaunchA" : "missileLaunchB", 0.6, child.Position, 0.96 + math.random() * 0.08);
@@ -246,7 +247,7 @@ export class GameAudio {
 			const delta = part.Position.sub(entry.last);
 			const square = delta.Dot(delta);
 			const closest = entry.last.add(delta.mul(square > 0 ? math.clamp(position.sub(entry.last).Dot(delta) / square, 0, 1) : 0));
-			if (!entry.passed && closest.sub(position).Magnitude < 110 && part.Name === "HostileMissile") {
+			if (!entry.passed && closest.sub(position).Magnitude < 110 && part.Name === HOSTILE_MISSILE) {
 				entry.passed = true; this.shot("missileFlyby", 0.45, closest);
 			}
 			entry.last = part.Position;
@@ -257,11 +258,10 @@ export class GameAudio {
 			}
 		}
 		// Reconcile missiles skipped during pause or while the voice budget was full.
-		if (this.folder && this.motors.size() < AudioRules.MaxMotors) {
-			for (const child of this.folder.GetChildren()) this.track(child, false);
-		}
-		if (this.folder && this.engines.size() < AudioRules.MaxEngines) for (const child of this.folder.GetChildren()) {
-			if (this.engines.size() >= AudioRules.MaxEngines) break;
+		// One folder pass serves both budgets; a full engine budget must not stop missile tracking.
+		if (this.folder && (this.motors.size() < AudioRules.MaxMotors || this.engines.size() < AudioRules.MaxEngines)) for (const child of this.folder.GetChildren()) {
+			if (this.motors.size() < AudioRules.MaxMotors) this.track(child, false);
+			if (this.engines.size() >= AudioRules.MaxEngines) continue;
 			if (!child.IsA("Model") || child === this.aircraft || this.engines.has(child) || child.GetAttribute("SkybreakEnemy") !== true || child.GetAttribute("TargetKind") !== "air") continue;
 			const root = child.PrimaryPart;
 			if (!root || root.Position.sub(position).Magnitude > 2200) continue;

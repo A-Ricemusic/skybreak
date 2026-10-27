@@ -72,6 +72,11 @@ export class EnemySmoothing {
 		instances.add(this);
 		for (const child of folder.GetChildren()) this.consider(child);
 		this.connections.push(folder.ChildAdded.Connect((child) => this.consider(child)));
+		this.connections.push(folder.ChildRemoved.Connect((child) => {
+			if (!child.IsA("Model")) return;
+			this.pending.get(child)?.Disconnect();
+			this.pending.delete(child);
+		}));
 	}
 	public Stop(): void {
 		for (const connection of this.connections) connection.Disconnect();
@@ -113,12 +118,15 @@ export class EnemySmoothing {
 	private consider(child: Instance): void {
 		if (!child.IsA("Model") || this.tracked.has(child) || this.pending.has(child)) return;
 		if (child.GetAttribute("TargetKind") === "air") { this.track(child); return; }
-		// Attributes can land a frame after the instance when replication batches split.
+		// Attributes can land a frame after the instance when replication batches split;
+		// a model that already has a non-air TargetKind never needs the wait.
+		if (child.GetAttribute("TargetKind") !== undefined) return;
 		const connection = child.AttributeChanged.Connect(() => {
-			if (child.GetAttribute("TargetKind") !== "air") return;
+			const kind = child.GetAttribute("TargetKind");
+			if (kind === undefined) return;
 			connection.Disconnect();
 			this.pending.delete(child);
-			if (child.IsDescendantOf(Workspace)) this.track(child);
+			if (kind === "air" && child.IsDescendantOf(Workspace)) this.track(child);
 		});
 		this.pending.set(child, connection);
 	}

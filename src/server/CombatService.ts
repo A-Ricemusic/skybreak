@@ -14,6 +14,7 @@ import { ExplosionKind } from "../shared/ExplosionFx";
 import { FlightPrediction } from "../shared/FlightPrediction";
 import { TelemetryCodec } from "../shared/TelemetryCodec";
 import { LoadingGate, LoadingGateState } from "../shared/LoadingGate";
+import { countParts } from "../shared/MissionParts";
 import { ActionGateState, FireNotice, WeaponRules } from "../shared/WeaponRules";
 import { SalvoCandidate, SpecialKind, SpecialState, SpecialWeapons } from "../shared/SpecialWeapons";
 import { Difficulty, DifficultyKind, DifficultyKnob } from "../shared/Difficulty";
@@ -665,11 +666,6 @@ function refreshSession(session: CombatSession, now: number): boolean {
 	else if (session.blueprintState) session.elapsed = session.blueprintState.elapsed;
 	if (sessionOutcome(session) !== undefined) { finish(session); return false; }
 	return true;
-}
-function countParts(root: Instance): number {
-	let count = 0;
-	for (const item of root.GetDescendants()) if (item.IsA("BasePart")) count++;
-	return count;
 }
 // Leaves the loading gate: the playable clock starts now, and the client gets
 // the same "Started" message it always did.
