@@ -291,6 +291,15 @@ describe("client flight prediction and reconciliation", () => {
 			evadeCharges: 2, optionalKills: 3, incomingDistance: 420,
 		});
 		expect(packet.size()).toBe(TELEMETRY_FIELDS);
+		packet[26] = 9.5;
+		expect(TelemetryCodec.Decode(packet, into)).toBeDefined();
+		expect(into.pauseRemaining).toBe(9.5);
+		packet[26] = -1;
+		expect(TelemetryCodec.Decode(packet, into)).toBeDefined();
+		expect(into.pauseRemaining).toBeUndefined();
+		packet.remove(26);
+		expect(TelemetryCodec.Decode(packet, into)).toBeDefined();
+		expect(into.pauseRemaining).toBeUndefined();
 		expect(TelemetryCodec.Decode(packet, into)).toBe(3);
 		expect(into.health).toBe(80);
 		// Round 2: evade charges, raider kills kept apart from the required tally, nearest missile range.

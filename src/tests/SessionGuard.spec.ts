@@ -47,6 +47,20 @@ describe("Step guard (internal_error isolation)", () => {
 	});
 });
 describe("Pause budget", () => {
+	it("reports a nonnegative countdown across pauses, warning boundary, and exhaustion", () => {
+		const pause = PauseRules.New();
+		expect(PauseRules.Remaining(pause, 0)).toBe(300);
+		PauseRules.Pause(pause, 10);
+		expect(PauseRules.Remaining(pause, 110)).toBe(200);
+		PauseRules.Resume(pause, 110);
+		expect(PauseRules.Remaining(pause, 900)).toBe(200);
+		PauseRules.Pause(pause, 900);
+		expect(PauseRules.Remaining(pause, 1090)).toBe(10);
+		expect(PauseRules.Remaining(pause, 1101)).toBe(0);
+		PauseRules.Resume(pause, 1101);
+		expect(PauseRules.Remaining(pause, 1200)).toBe(0);
+		expect(PauseRules.Pause(pause, 1200)).toBe(false);
+	});
 	it("shifts the mission clock by the paused span", () => {
 		const pause = PauseRules.New();
 		expect(PauseRules.Pause(pause, 100)).toBe(true);

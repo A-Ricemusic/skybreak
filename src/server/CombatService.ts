@@ -475,6 +475,7 @@ function sendTelemetry(session: CombatSession): void {
 		aceKilled: session.rules?.aceKilled ?? session.blueprintState?.aceKilled ?? false,
 		paused: PauseRules.Paused(session.pause),
 		pauseAck: session.pauseAck,
+		pauseRemaining: PauseRules.Remaining(session.pause, os.clock()),
 		evadeCharges: session.evade.charges,
 		optionalKills: session.rules?.optionalAirKills ?? session.blueprintState?.optionalAirKills ?? 0,
 		incomingDistance: incomingDistance < math.huge ? incomingDistance : undefined,
@@ -1859,7 +1860,11 @@ export const CombatService = {
 			for (const [, session] of sessions) {
 				StepGuard.Run(session.guard, () => {
 					if (session.loading) { if (LoadingGate.Release(session.loading, now)) beginPlay(session); return; }
-					if (PauseRules.Paused(session.pause)) { if (PauseRules.Expired(session.pause, now)) resumeSession(session, now); return; }
+					if (PauseRules.Paused(session.pause)) {
+						if (PauseRules.Expired(session.pause, now)) resumeSession(session, now);
+						else if (math.ceil(PauseRules.Remaining(session.pause, now)) !== math.ceil(PauseRules.Remaining(session.pause, now - dt))) sendTelemetry(session);
+						return;
+					}
 					refreshSession(session, now);
 				}, (message) => abortSession(session, message));
 			}

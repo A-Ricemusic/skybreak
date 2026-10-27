@@ -551,6 +551,7 @@ function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
 		objectiveProgress: math.max(0, math.floor(finite(payload.objectiveProgress, previous.objectiveProgress ?? 0))),
 		objectiveTotal: math.max(0, math.floor(finite(payload.objectiveTotal, previous.objectiveTotal ?? 0))),
 		timeRemaining: math.clamp(finite(payload.timeRemaining, previous.timeRemaining ?? GameConfig.Campaign.MissionTimeLimit), 0, GameConfig.Campaign.MissionTimeLimit),
+		pauseRemaining: typeIs(payload.pauseRemaining, "number") ? math.clamp(finite(payload.pauseRemaining, 0), 0, 300) : undefined,
 		tutorialStep,
 		groundKills: math.max(0, math.floor(finite(payload.groundKills, previous.groundKills ?? 0))),
 		targetKind,
@@ -2068,9 +2069,13 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		setSettingsOpenState(open);
 		task.defer(() => selectDefaultRef.current());
 	}, []);
-	/** Pause: the server stops stepping and holds the clock; resuming always takes an explicit press. */
+	/** Pause: the server stops stepping and holds the clock; the server resumes when the pause budget expires. */
 	const pauseSortie = useCallback(() => {
 		if (pausedRef.current || screenRef.current !== "mission" || !controller.active) return;
+		if (telemetryRef.current.pauseRemaining === 0) {
+			setFireNotice({ text: "PAUSE SPENT · FLIGHT CONTINUES", until: os.clock() + 5 });
+			return;
+		}
 		pausedRef.current = true;
 		setPausedState(true);
 		releaseJoystick();
@@ -2404,6 +2409,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			}
 			const previous = telemetryRef.current;
 			const sanitized = sanitizeTelemetry(merged, previous);
+			if (sanitized.pauseRemaining === 0 && previous.pauseRemaining !== 0) setFireNotice({ text: "PAUSE SPENT · FLIGHT CONTINUES", until: os.clock() + 5 });
 			if (sanitized.kills > previous.kills) setKillNotice({ kills: sanitized.kills, total: sanitized.total, until: os.clock() + 3 });
 			if (sanitized.radio !== undefined && sanitized.radioSerial !== undefined && sanitized.radioSerial !== previous.radioSerial) {
 				// Voiced lines are matched by exact catalog text (table generated at build time) and hold until the voice ends.
@@ -2558,7 +2564,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 						onPause={pauseSortie}
 					/>
 					{screen === "mission" && paused && !settingsOpen && (
-						<PauseOverlay viewport={viewport} onResume={resumeSortie} onSettings={() => setSettingsOpen(true)} onMenu={returnToMenu} />
+						<PauseOverlay remaining={telemetry.pauseRemaining} viewport={viewport} onResume={resumeSortie} onSettings={() => setSettingsOpen(true)} onMenu={returnToMenu} />
 					)}
 					{settingsOpen && <SettingsSheet viewport={viewport} settings={settings} onChange={changeSetting} onClose={() => setSettingsOpen(false)} />}
 					<OutcomeScreen visible={screen === "outcome"} menu={menu} outcome={outcome} busy={busy} onRetry={retryMission} onReturn={returnToMenu} onNext={nextMission} />

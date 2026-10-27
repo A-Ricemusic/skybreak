@@ -40,6 +40,10 @@ const PAUSE_BUDGET = 300;
 function finite(value: number): boolean { return value === value && math.abs(value) !== math.huge; }
 export const PauseRules = {
 	Budget: PAUSE_BUDGET,
+	Remaining(state: PauseState, now: number): number {
+		const elapsed = state.pausedAt !== undefined && finite(now) ? math.max(0, now - state.pausedAt) : 0;
+		return math.clamp(PAUSE_BUDGET - state.used - elapsed, 0, PAUSE_BUDGET);
+	},
 	New(): PauseState { return { used: 0 }; },
 	Paused(state: PauseState): boolean { return state.pausedAt !== undefined; },
 	/** Start a pause; refused when already paused or the budget is spent. */
