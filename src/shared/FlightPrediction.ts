@@ -112,9 +112,10 @@ export const FlightPrediction = {
 	 * FlightMath steps as the frame covers (exactly the server's integration, so
 	 * frame rate never becomes divergence), then draws a copy advanced by the
 	 * leftover fraction of a step, so there is no added visual latency.
+	 * Non-finite frame deltas are treated as zero so they cannot poison corrections or history.
 	 */
 	Step(predictor: Predictor, input: FlightInput, dt: number, now: number): FlightState {
-		dt = math.max(0, dt);
+		dt = FlightMath.IsFinite(dt) ? math.max(0, dt) : 0;
 		const pending = predictor.pending;
 		const alpha = FlightMath.DampAlpha(FlightPrediction.BlendRate, dt);
 		let corrected = false;
@@ -179,7 +180,7 @@ export const FlightPrediction = {
 
 	/** Folds an echoed input time into the round-trip estimate. `hold` is how long the server sat on that input. */
 	ObserveRoundTrip(predictor: Predictor, now: number, echoedClientTime: number, hold: number): void {
-		if (!FlightMath.IsFinite(echoedClientTime) || !FlightMath.IsFinite(hold) || echoedClientTime <= 0) return;
+		if (!FlightMath.IsFinite(now) || !FlightMath.IsFinite(echoedClientTime) || !FlightMath.IsFinite(hold) || echoedClientTime <= 0) return;
 		const sample = now - echoedClientTime - math.max(0, hold);
 		if (sample < 0 || sample > 1.5) return;
 		predictor.rtt = predictor.rtt === undefined ? sample : predictor.rtt + (sample - predictor.rtt) * 0.1;
@@ -239,15 +240,16 @@ export const FlightPrediction = {
 	Encode(sequence: number, state: FlightState, evadeRemaining: number, echoedClientTime: number, hold: number): FlightStatePacket {
 		return [sequence, state.x, state.y, state.z, state.qw, state.qx, state.qy, state.qz, state.lean, state.speed, evadeRemaining, echoedClientTime, hold];
 	},
-	/** Validates a received packet; returns undefined for anything malformed. */
+	/** Validates a received packet and normalizes its attitude; returns undefined for anything malformed. */
 	Decode(packet: unknown): DecodedFlightState | undefined {
 		if (!typeIs(packet, "table")) return undefined;
 		const values = packet as unknown[];
 		for (let index = 0; index < PACKET_FIELDS; index++) if (!FlightMath.IsFinite(values[index])) return undefined;
 		const n = values as number[];
-		// A zero-length quaternion is not an attitude.
-		if (n[4] * n[4] + n[5] * n[5] + n[6] * n[6] + n[7] * n[7] < 0.5) return undefined;
-		const state = FlightMath.Sync({ x: n[1], y: n[2], z: n[3], qw: n[4], qx: n[5], qy: n[6], qz: n[7], lean: n[8], yaw: 0, pitch: 0, roll: 0, speed: n[9] });
+		// Reject degenerate attitudes and overflow even when every component is finite.
+		const lengthSquared = n[4] * n[4] + n[5] * n[5] + n[6] * n[6] + n[7] * n[7];
+		if (!FlightMath.IsFinite(lengthSquared) || lengthSquared < 0.5) return undefined;
+		const state = FlightMath.Normalize({ x: n[1], y: n[2], z: n[3], qw: n[4], qx: n[5], qy: n[6], qz: n[7], lean: n[8], yaw: 0, pitch: 0, roll: 0, speed: n[9] });
 		return { sequence: n[0], state, evadeRemaining: n[10], echoedClientTime: n[11], hold: n[12] };
 	},
 };
