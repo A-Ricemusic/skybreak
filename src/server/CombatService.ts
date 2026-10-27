@@ -864,13 +864,12 @@ function applyLegacyPhase(session: CombatSession): void {
 			// Verify the destination AND two seconds of level flight against this session's
 			// actual terrain/uploaded scenery. Never sweep the teleport from the old pose.
 			let clear = false;
-			// Spherecasts omit initial overlaps. A downward ray finds the highest surface
-			// in the destination column before checking the horizontal corridor.
+			// Validate the full initial volume as well as the forward corridor.
 			const surface = Workspace.Raycast(new Vector3(0, FlightMath.MaxAltitude, 500), new Vector3(0, -FlightMath.MaxAltitude - 100, 0), session.collisionParams!);
 			for (let altitude = 800; altitude <= 2000; altitude += 200) {
 				if (surface && surface.Position.Y + 8 >= altitude) continue;
 				const start = new Vector3(0, altitude, 500);
-				if (!AircraftCollision.Sweep(start, start.add(new Vector3(0, 0, -FlightMath.MaxSpeed * 2)), session.collisionParams!)) {
+				if (AircraftCollision.DestinationClear(start, session.collisionParams!) && !AircraftCollision.Sweep(start, start.add(new Vector3(0, 0, -FlightMath.MaxSpeed * 2)), session.collisionParams!)) {
 					session.state.y = altitude; clear = true; break;
 				}
 			}

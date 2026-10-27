@@ -120,9 +120,11 @@ describe("protected movement -> targeting integration", () => {
 		// Stale pre-recovery packet can't undo the reset.
 		expect(FlightPrediction.Reconcile(predictor, truth, 3, 9)).toBe("none");
 		FlightPrediction.Step(predictor, { x: 0, y: 0, throttle: 0.8 }, 1 / 30, 3);
-		expect(predictor.blocked).toBe(false);
+		expect(predictor.blocked).toBe(true);
 		FlightPrediction.Reconcile(predictor, { ...predictor.state }, 3, 11, 3, 1);
-		expect(predictor.blocked).toBe(false); // another blocked packet doesn't re-arm
+		expect(predictor.blocked).toBe(true); // local neutral is not a server acknowledgement
+		FlightPrediction.Reconcile(predictor, { ...predictor.state }, 3, 12, 3, 2);
+		expect(predictor.blocked).toBe(false);
 		FlightPrediction.Step(predictor, raw, 1 / 30, 3.04);
 		expect(predictor.state.pitch).toBeLessThan(-0.01);
 	});
@@ -132,5 +134,47 @@ describe("protected movement -> targeting integration", () => {
 		expect(FlightPrediction.Reconcile(predictor, truth, 1, 10, undefined, 2)).toBe("snap");
 		expect(predictor.blocked).toBe(false); expect(predictor.state).toEqual(truth);
 		expect(FlightPrediction.Decode([...FlightPrediction.Encode(1, truth, 0, 0, 0), 7])).toBeUndefined();
+	});
+});
+
+// These are the same helpers called by FlightController's HUD and packet handlers.
+describe("production recovery handler ordering", () => {
+	it("keeps a stale movement HUD from releasing held steering, waits for server neutral acknowledgement", () => {
+		const p = FlightPrediction.New(FlightMath.NewState());
+		const truth = FlightMath.FromPose(0, 800, 500, 0, 0, 160);
+		const held = { x: 1, y: 1, throttle: 0.65 };
+		FlightPrediction.Reconcile(p, truth, 1, 10, undefined, 1);
+		FlightPrediction.ObservePhase(p, "tutorial_move"); // delayed reliable HUD
+		FlightPrediction.Step(p, held, 1 / 30, 1.1);
+		expect(p.blocked).toBe(true); expect(p.state.pitch).toBeCloseTo(0, 6);
+		FlightPrediction.ObservePhase(p, "tutorial_target");
+		FlightPrediction.Step(p, { ...held, x: 0, y: 0 }, 1 / 30, 1.2);
+		// Neutral upstream is lost / late; newer marker 1 still says server is blocked.
+		const current = { ...p.state };
+		FlightPrediction.Reconcile(p, current, 1.2, 11, 1.2, 1);
+		expect(p.state).toEqual(current); // no replay of the recovery teleport
+		FlightPrediction.Step(p, held, 1 / 30, 1.3);
+		expect(p.blocked).toBe(true); expect(p.state.pitch).toBeCloseTo(0, 6);
+		FlightPrediction.Reconcile(p, { ...p.state }, 1.3, 13, 1.3, 2);
+		expect(FlightPrediction.Reconcile(p, truth, 1.3, 12, undefined, 1)).toBe("none");
+		FlightPrediction.Reconcile(p, { ...p.state }, 1.3, 14, 1.3, 1);
+		FlightPrediction.Reconcile(p, { ...p.state }, 1.3, 15, 1.3, 2);
+		expect(p.blocked).toBe(false);
+		FlightPrediction.Step(p, held, 1 / 30, 1.4);
+		expect(math.abs(p.state.pitch)).toBeGreaterThan(0.01);
+	});
+	it("makes phase exit terminal even when release packets are lost and old lesson HUD arrives later", () => {
+		for (const first of [0, 1, 2]) {
+			const p = FlightPrediction.New(FlightMath.NewState());
+			const truth = FlightMath.FromPose(0, 800, 500, 0, 0, 160);
+			if (first > 0) FlightPrediction.Reconcile(p, truth, 1, 1, undefined, first);
+			FlightPrediction.ObservePhase(p, "tutorial_bandits");
+			FlightPrediction.ObservePhase(p, "tutorial_move");
+			FlightPrediction.ObservePhase(p, "tutorial_missile");
+			FlightPrediction.Reconcile(p, { ...p.state }, 2, 2, undefined, 1);
+			expect(p.blocked).toBe(false);
+			FlightPrediction.Step(p, { x: 0, y: 1, throttle: 0.65 }, 1 / 30, 2.1);
+			expect(math.abs(p.state.pitch)).toBeGreaterThan(0.01);
+		}
 	});
 });

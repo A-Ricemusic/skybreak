@@ -1,4 +1,3 @@
-import { TutorialHandoff } from "./TutorialHandoff";
 import { FlightMath, FlightState } from "./FlightMath";
 import { FlightInput } from "./Types";
 
@@ -45,6 +44,8 @@ export interface Predictor {
 	/** One M1 recovery epoch per sortie; discard pre-recovery predicted motion. */
 	recoverySeen?: boolean;
 	blocked?: boolean;
+	/** Terminal within this sortie: delayed practice packets cannot re-arm combat. */
+	recoveryExited?: boolean;
 	/** `state` advanced by the leftover partial step; what the client draws. */
 	display: FlightState;
 	/** Unsimulated time carried to the next frame (< FIXED_STEP). */
@@ -95,6 +96,13 @@ export const FlightPrediction = {
 	/** Round trip assumed until the first echoed input arrives. */
 	DefaultRtt: 0.15,
 
+	/** Shared by the production HUD handler and ordering regressions. Movement HUD may
+	 * predate the unreliable recovery packet; only leaving all lessons is terminal. */
+	ObservePhase(predictor: Predictor, phase: string): void {
+		if (phase === "tutorial_move" || phase === "tutorial_target" || phase === "tutorial_missile") return;
+		predictor.recoveryExited = true; predictor.blocked = false;
+	},
+
 	New(initial: FlightState): Predictor {
 		const raw: FlightState[] = [];
 		const times: number[] = [];
@@ -119,9 +127,9 @@ export const FlightPrediction = {
 	 */
 	Step(predictor: Predictor, input: FlightInput, dt: number, now: number): FlightState {
 		if (predictor.blocked) {
-			const gate = { blocked: true };
-			input = TutorialHandoff.Filter(gate, input);
-			predictor.blocked = gate.blocked;
+			// Neutral still travels upstream. Wait for marker 2 before predicting fresh
+			// steering: the neutral packet may be lost or not yet reach the server.
+			input = { ...input, x: 0, y: 0 };
 		}
 		dt = math.max(0, dt);
 		const pending = predictor.pending;
@@ -203,6 +211,7 @@ export const FlightPrediction = {
 	Reconcile(predictor: Predictor, server: FlightState, now: number, sequence: number, matchTime?: number, recovery = 0): Predictor["last"] {
 		if (sequence <= predictor.sequence) return "none"; // stale or duplicate unreliable packet
 		predictor.sequence = sequence;
+		if (predictor.recoveryExited) recovery = 0;
 		if (recovery > 0 && !predictor.recoverySeen) {
 			predictor.recoverySeen = true; predictor.blocked = recovery === 1;
 			copyInto(predictor.state, server); copyInto(predictor.display, server);

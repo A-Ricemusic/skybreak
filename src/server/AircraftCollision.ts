@@ -18,6 +18,21 @@ export const AircraftCollision = {
 		params.RespectCanCollide = false;
 		return params;
 	},
+	/** Conservative destination volume check. Bounds queries include off-centre
+	 * initial part overlaps (Spherecast does not); voxel occupancy also covers
+	 * terrain and water, which part overlap queries omit. Same authored allowlist. */
+	DestinationClear(origin: Vector3, params: RaycastParams): boolean {
+		const overlap = new OverlapParams();
+		overlap.FilterType = params.FilterType;
+		overlap.FilterDescendantsInstances = params.FilterDescendantsInstances;
+		overlap.CollisionGroup = params.CollisionGroup;
+		overlap.RespectCanCollide = params.RespectCanCollide;
+		if (Workspace.GetPartBoundsInRadius(origin, 4, overlap).size() > 0) return false;
+		const region = new Region3(origin.sub(new Vector3(4, 4, 4)), origin.add(new Vector3(4, 4, 4))).ExpandToGrid(4);
+		const [, occupancy] = Workspace.Terrain.ReadVoxels(region, 4);
+		for (const plane of occupancy) for (const row of plane) for (const cell of row) if (cell > 0) return false;
+		return true;
+	},
 	/** Sweep a compact 4-stud fuselage radius, not the visual wings' enclosing box.
 	 * At the 600 studs/s cap this sweeps all 20 studs of a 1/30 s step.
 	 */

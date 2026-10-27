@@ -313,8 +313,7 @@ export class FlightController {
 			FlightPrediction.ObserveRoundTrip(predictor, now, decoded.echoedClientTime, decoded.hold);
 			// The packet names the exact predicted time it corresponds to: echoed stamp + hold.
 			const matchTime = decoded.echoedClientTime > 0 ? decoded.echoedClientTime + decoded.hold : undefined;
-			const practice = this.telemetry.phase === "tutorial_move" || this.telemetry.phase === "tutorial_target" || this.telemetry.phase === "tutorial_missile";
-			if (FlightPrediction.Reconcile(predictor, decoded.state, now, decoded.sequence, matchTime, practice ? decoded.recovery : 0) === "none") return;
+			if (FlightPrediction.Reconcile(predictor, decoded.state, now, decoded.sequence, matchTime, decoded.recovery) === "none") return;
 			// Join a server-side roll only when none was predicted locally. A locally
 			// predicted roll's server echo keeps arriving for up to a round trip after the
 			// local one ends; ignore it until then so the roll never replays.
@@ -344,7 +343,7 @@ export class FlightController {
 		if (MissionCatalog.IsValidId(message.missionId)) t.missionId = message.missionId;
 		if (typeIs(message.phase, "string")) {
 			t.phase = message.phase;
-			if (this.predictor && message.phase !== "tutorial_target" && message.phase !== "tutorial_missile") this.predictor.blocked = false;
+			if (this.predictor) FlightPrediction.ObservePhase(this.predictor, message.phase);
 		}
 		if (typeIs(message.objective, "string")) t.objective = message.objective;
 		if (typeIs(message.tutorialStep, "string")) t.tutorialStep = message.tutorialStep;
