@@ -5,6 +5,8 @@ import { resolve } from "node:path";
 const root = resolve(import.meta.dir, "..");
 await mkdir(resolve(root, "build"), { recursive: true });
 const assets = [
+	{ name: "CinematicChair", source: "assets/mission/cinematicchair.mesh.json", triangleLimit: 5000 },
+	{ name: "CinematicDesk", source: "assets/mission/cinematicdesk.mesh.json", triangleLimit: 5000 },
 	{ name: "Kestrel", source: "assets/aircraft/kestrel.mesh.json", triangleLimit: 20000 },
 	{ name: "Vanta", source: "assets/aircraft/vanta.mesh.json", triangleLimit: 20000 },
 	{ name: "Warehouse", source: "assets/mission/warehouse.mesh.json", triangleLimit: 5000 },

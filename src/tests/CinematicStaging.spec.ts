@@ -1,5 +1,5 @@
 import {describe,expect,it} from "@rbxts/jest-globals";
-import {AURORA,CHAIR,CHART,RECORDER,SUBJECT,auroraVisible,boardShowsTeal,cardVignette,isCard,isTyped,moodLighting,orchardBurned,recorderLightOn,recorderOpen,reelsSpin,sceneTint,shotPose,stageSubject,tapesInTin,typedGraphemes} from "../shared/CinematicStaging";
+import {CINEMATIC_JET,CINEMATIC_PARKED_JET,CINEMATIC_HANGAR,Vec,AURORA,CHAIR,CHART,RECORDER,SUBJECT,auroraVisible,boardShowsTeal,cardVignette,isCard,isTyped,moodLighting,orchardBurned,recorderLightOn,recorderOpen,reelsSpin,sceneTint,shotPose,stageSubject,tapesInTin,typedGraphemes} from "../shared/CinematicStaging";
 import {SpeakerTone,StoryMood,StoryScene,StoryShot,speakerStyle} from "../shared/RelayStory";
 
 const MOODS:StoryMood[]=["dawn","day","dusk","night","storm"];
@@ -40,7 +40,7 @@ describe("cinematic staging tables",()=>{
 	});
 	it("pushes in on the chair, barely drifts on the recorder and tilts up for the sky",()=>{
 		const c0=shotPose("chair","hangar",0,false),c1=shotPose("chair","hangar",1,false);
-		expect(dist(c1.eye,CHAIR)<dist(c0.eye,CHAIR)).toBe(true);expect(c0.eye.y<CHAIR.y).toBe(true);
+		expect(dist(c1.eye,CHAIR)<dist(c0.eye,CHAIR)).toBe(true);expect(c0.eye.y>CHAIR.y+2).toBe(true);
 		const r0=shotPose("recorder","hangar",0,false),r1=shotPose("recorder","hangar",1,false);
 		expect(dist(r0.eye,RECORDER)<10 && dist(r0.eye,RECORDER)>6).toBe(true);expect(dist(r0.eye,r1.eye)<1).toBe(true);expect(r0.fov<shotPose("radio","hangar",0,false).fov).toBe(true);
 		const s0=shotPose("sky","hangar",0,false),s1=shotPose("sky","hangar",1,false);
@@ -96,4 +96,29 @@ describe("cinematic staging tables",()=>{
 		expect(speakerStyle("VULTURE TWO · RIDGE").tone).toBe("wing");expect(speakerStyle("RUSK").tone).toBe("marshal");
 		expect(speakerStyle("RECORDER 7-T").tone).toBe("log");expect(speakerStyle("UNKNOWN").tone).toBe("control");
 	});
+});
+
+// Perspective checks use authored stage anchors, independent of Roblox projection.
+function sub(a:Vec,b:Vec):Vec { return {x:a.x-b.x,y:a.y-b.y,z:a.z-b.z}; }
+function dot(a:Vec,b:Vec):number { return a.x*b.x+a.y*b.y+a.z*b.z; }
+function unit(a:Vec):Vec { const n=math.sqrt(dot(a,a));return {x:a.x/n,y:a.y/n,z:a.z/n}; }
+function cross(a:Vec,b:Vec):Vec { return {x:a.y*b.z-a.z*b.y,y:a.z*b.x-a.x*b.z,z:a.x*b.y-a.y*b.x}; }
+describe("cinematic hangar framing",()=>{
+ it("keeps the primary airframe inside landscape and portrait wide shots",()=>{
+  for(const short of [false,true])for(const alpha of [0,.5,1]) {
+   const pose=shotPose("wide","hangar",alpha,short),forward=unit(sub(pose.focus,pose.eye));
+   const right=unit(cross(forward,{x:0,y:1,z:0})),up=cross(right,forward);
+   for(const aspect of [16/9,9/16]) {
+    const delta=sub(CINEMATIC_JET,pose.eye),depth=dot(delta,forward),extent=math.tan(math.rad(pose.fov/2));
+    expect(depth>0).toBe(true);
+    expect(math.abs(dot(delta,right)/depth)<extent*aspect).toBe(true);
+    expect(math.abs(dot(delta,up)/depth)<extent).toBe(true);
+   }
+   // Camera and both jets sit within the approved hangar footprint (128 x 136.6).
+   for(const point of [pose.eye,CINEMATIC_JET,CINEMATIC_PARKED_JET]) {
+    expect(math.abs(point.x-CINEMATIC_HANGAR.x)<64).toBe(true);
+    expect(math.abs(point.z-CINEMATIC_HANGAR.z)<68.3).toBe(true);
+   }
+  }
+ });
 });

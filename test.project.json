@@ -68,6 +68,12 @@
       },
       "HarborLaunchGeometry": {
         "$path": "build/HarborLaunchGeometry.txt"
+      },
+      "CinematicChairGeometry": {
+        "$path": "build/CinematicChairGeometry.txt"
+      },
+      "CinematicDeskGeometry": {
+        "$path": "build/CinematicDeskGeometry.txt"
       }
     }
   }

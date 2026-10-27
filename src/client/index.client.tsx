@@ -1,3 +1,4 @@
+import { VoicePlayer } from "./VoicePlayer";
 import { Players, ReplicatedStorage, StarterGui, Workspace } from "@rbxts/services";
 
 // roblox-ts emits index.client.tsx as the conventional init.client.luau script.
@@ -10,6 +11,7 @@ import { applyMobileGraphics } from "./MobileGraphics";
 import { Weather } from "./Weather";
 
 if (Workspace.GetAttribute("SkybreakTestMode") !== true) {
+	VoicePlayer.Preload();
 	const player = Players.LocalPlayer;
 	const playerModule = player.WaitForChild("PlayerScripts").WaitForChild("PlayerModule", 10);
 	if (playerModule?.IsA("ModuleScript")) {

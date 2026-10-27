@@ -1,8 +1,9 @@
+import { cinematicClockStep } from "../shared/VoiceReadiness";
 import React, { useEffect, useRef, useState } from "@rbxts/react";
 import { GuiService, Lighting, ReplicatedStorage, RunService, TextService, UserInputService, Workspace } from "@rbxts/services";
 import { CinematicAction, CinematicControl, routeCinematicInput } from "../shared/CinematicInput";
 import { Rect, getCinematicFrame, getCinematicLayout, progressSegments } from "../shared/CinematicLayout";
-import { AURORA, BOARD, CHAIR, CHART, RECORDER, Rgb, SUBJECT, TIN, Vec, auroraVisible, boardShowsTeal, cardVignette, isCard, isTyped, moodLighting, orchardBurned, recorderLightOn, recorderOpen, reelsSpin, sceneTint, shotPose, stageSubject, tapesInTin, typedGraphemes } from "../shared/CinematicStaging";
+import { AURORA, CINEMATIC_JET, CINEMATIC_PARKED_JET, CINEMATIC_HANGAR, BOARD, CHAIR, CHART, RECORDER, Rgb, SUBJECT, TIN, Vec, auroraVisible, boardShowsTeal, cardVignette, isCard, isTyped, moodLighting, orchardBurned, recorderLightOn, recorderOpen, reelsSpin, sceneTint, shotPose, stageSubject, tapesInTin, typedGraphemes } from "../shared/CinematicStaging";
 import { SpeakerTone, StoryBeat, StoryChapter, speakerStyle, storyFor } from "../shared/RelayStory";
 import { MotionPreference } from "./MotionPreference";
 import { documentFor, documentLine } from "../shared/StoryDocuments";
@@ -19,9 +20,25 @@ function prop(parent:Instance,name:string,size:Vector3,pos:Vector3,color:Color3,
 }
 interface Stage { scene:Folder; reels:{part:Part;base:CFrame}[]; recorderLight:Part; tealStrip:Part; }
 const SUBJECT_Y:Record<string,number>={RelayTruck:18,HarborLaunch:19,CommsRelay:45};
-function cloneModel(template:Instance | undefined,parent:Instance,name:string,cf:CFrame): void {
-	if(!template?.IsA("Model"))return;
-	const model=template.Clone();model.Name=name;model.PivotTo(cf);model.Parent=parent;
+function cloneModel(template:Instance | undefined,parent:Instance,name:string,cf:CFrame): boolean {
+	if(!template?.IsA("Model")) { warn(`SKYBREAK cinematic ${name}: template missing; using stage fallback where available`); return false; }
+	const model=template.Clone();model.Name=name;
+	for(const item of model.GetDescendants()) {
+		if(item.IsA("BasePart")) { item.Anchored=true; item.CanCollide=false; item.CanTouch=false; item.CanQuery=false; }
+		else if(item.IsA("Trail") || item.IsA("ParticleEmitter") || item.IsA("Light")) item.Enabled=false;
+	}
+	model.PivotTo(cf);model.Parent=parent;
+	const source=model.GetAttribute("GeometrySource");
+	if(source==="Fallback") warn(`SKYBREAK cinematic ${name}: procedural fallback geometry active`);
+	return true;
+}
+function cloneFurniture(models:Instance | undefined,scene:Folder,name:string,position:Vector3,yaw=0): boolean {
+	const template=models?.FindFirstChild(name);
+	if(!template?.IsA("Model") || template.GetAttribute("GeometrySource")!=="Blender") {
+		warn(`SKYBREAK cinematic ${name}: Blender mesh unavailable; retaining legacy prop`); return false;
+	}
+	const [,size]=template.GetBoundingBox();
+	return cloneModel(template,scene,name,new CFrame(ORIGIN.add(position).add(new Vector3(0,size.Y/2,0))).mul(CFrame.Angles(0,yaw,0)));
 }
 const PAPER=Color3.fromRGB(226,218,192),INK_BROWN=Color3.fromRGB(46,38,30),STAMP=Color3.fromRGB(172,42,36);
 /** The chapter's document on the chart's top face: monospace ink on paper, lit flat so the lamp cannot blow it out. */
@@ -46,13 +63,16 @@ function dressChart(chart:Part,id:number): void {
 /** One stage per chapter: the radio desk is always there; the surroundings follow `scene`, props tint to `mood`, and a few props follow the story. */
 function sceneFor(chapter:StoryChapter): Stage {
 	const {scene:kind,mood,id}=chapter,scene=new Instance("Folder"); scene.Name="BrokenRelayCinematic"; scene.Parent=Workspace;
+	const models=ReplicatedStorage.FindFirstChild("RelayStoryModels");
 	const tint=(c:Color3)=>col(sceneTint(rgb(c),mood));
 	const sea=kind==="sea";
-	if(sea) prop(scene,"Stage",new Vector3(700,4,700),new Vector3(0,-4,0),tint(Color3.fromRGB(16,38,70)),Enum.Material.Glass).Reflectance=.25;
-	else prop(scene,"Stage",new Vector3(700,4,700),new Vector3(0,-4,0),tint(Color3.fromRGB(40,57,64)),Enum.Material.Slate);
-	prop(scene,"Radio desk",new Vector3(16,2,9),new Vector3(0,4,0),Color3.fromRGB(93,63,47),Enum.Material.Wood);
-	// The desk floated five studs off the floor in the low chair shot; four legs reach the stage.
-	for(const [dx,dz] of [[-7.4,-4],[7.4,-4],[-7.4,4],[7.4,4]]) prop(scene,"Desk leg",new Vector3(.6,5,.6),new Vector3(dx,.5,dz),Color3.fromRGB(70,48,36),Enum.Material.Wood);
+	if(sea) prop(scene,"Stage",new Vector3(700,4,700),new Vector3(0,-2,0),tint(Color3.fromRGB(16,38,70)),Enum.Material.Glass).Reflectance=.25;
+	else prop(scene,"Stage",new Vector3(700,4,700),new Vector3(0,-2,0),tint(Color3.fromRGB(40,57,64)),Enum.Material.Slate);
+	if(!cloneFurniture(models,scene,"CinematicDesk",new Vector3(0,0,0))) {
+		prop(scene,"Radio desk",new Vector3(16,2,9),new Vector3(0,4,0),Color3.fromRGB(93,63,47),Enum.Material.Wood);
+		// The desk floated five studs off the floor in the low chair shot; four legs reach the stage.
+		for(const [dx,dz] of [[-7.4,-4],[7.4,-4],[-7.4,4],[7.4,4]]) prop(scene,"Desk leg",new Vector3(.6,5,.6),new Vector3(dx,.5,dz),Color3.fromRGB(70,48,36),Enum.Material.Wood);
+	}
 	const radio=prop(scene,"Teal's receiver",new Vector3(7,4,3),new Vector3(0,7,0),Color3.fromRGB(44,68,75));
 	prop(scene,"Frequency window",new Vector3(4.5,.7,.2),new Vector3(0,7.6,-1.6),Color3.fromRGB(76,234,208),Enum.Material.Neon);
 	// Reels are cylinders (axis along X, turned to face the camera) with a spoke so the spin reads.
@@ -94,27 +114,30 @@ function sceneFor(chapter:StoryChapter): Stage {
 	const tealStrip=prop(scene,"Teal strip",new Vector3(3.4,.3,.05),b.add(new Vector3(0,.9,-.17)),Color3.fromRGB(76,234,208),Enum.Material.Neon);
 	const lighting=moodLighting(mood);
 	const lamp=new Instance("PointLight");lamp.Brightness=lighting.lamp;lamp.Range=mood==="night" ? 80 : 60;lamp.Color=Color3.fromRGB(255,218,171);lamp.Parent=radio;
-	const models=ReplicatedStorage.FindFirstChild("RelayStoryModels");
 	const subject=stageSubject(kind);
 	if(subject) cloneModel(models?.FindFirstChild(subject),scene,"Story subject",new CFrame(ORIGIN.add(new Vector3(SUBJECT.x,SUBJECT_Y[subject],SUBJECT.z))));
-	const jet=Workspace.FindFirstChild("World")?.FindFirstChild("DisplayJet",true);
-	cloneModel(jet,scene,"Kestrel",new CFrame(ORIGIN.add(new Vector3(-40,7,-60))).mul(CFrame.Angles(0,.7,0)));
+	const jet=models?.FindFirstChild("CinematicKestrel");
+	cloneModel(jet,scene,"Kestrel",new CFrame(ORIGIN.add(vec(CINEMATIC_JET))).mul(CFrame.Angles(0,.7,0)));
 	// The empty instructor's chair beside the desk, worn leather; the `chair` shot pushes in on it in every scene.
 	const leather=Color3.fromRGB(96,60,42),c=vec(CHAIR);
-	prop(scene,"Instructor's chair",new Vector3(4,.6,4),c,leather,Enum.Material.Fabric);
-	prop(scene,"Instructor's chair",new Vector3(4,4.2,.6),c.add(new Vector3(0,2.4,1.9)),leather,Enum.Material.Fabric);
-	for(const [dx,dz] of [[-1.6,-1.6],[1.6,-1.6],[-1.6,1.6],[1.6,1.6]]) prop(scene,"Chair leg",new Vector3(.3,c.Y+2,.3),new Vector3(c.X+dx,(c.Y-2)/2-.3,c.Z+dz),Color3.fromRGB(52,54,58));
+	if(!cloneFurniture(models,scene,"CinematicChair",new Vector3(CHAIR.x,0,CHAIR.z),math.pi)) {
+		prop(scene,"Instructor's chair",new Vector3(4,.6,4),c,leather,Enum.Material.Fabric);
+		prop(scene,"Instructor's chair",new Vector3(4,4.2,.6),c.add(new Vector3(0,2.4,-1.9)),leather,Enum.Material.Fabric);
+		for(const [dx,dz] of [[-1.6,-1.6],[1.6,-1.6],[-1.6,1.6],[1.6,1.6]]) prop(scene,"Chair leg",new Vector3(.3,c.Y+2,.3),new Vector3(c.X+dx,(c.Y-2)/2-.3,c.Z+dz),Color3.fromRGB(52,54,58));
+	}
 	if(kind==="hangar") {
-		// A second parked airframe far back and hangar wall slabs close the room in.
-		cloneModel(jet,scene,"Parked jet",new CFrame(ORIGIN.add(new Vector3(70,7,-150))).mul(CFrame.Angles(0,2.3,0)));
-		const wall=tint(Color3.fromRGB(58,62,68));
-		prop(scene,"Hangar wall",new Vector3(520,120,6),new Vector3(0,58,-230),wall,Enum.Material.Concrete);
-		for(const x of [-260,260]) prop(scene,"Hangar wall",new Vector3(6,120,460),new Vector3(x,58,0),wall,Enum.Material.Concrete);
-		prop(scene,"Hangar beam",new Vector3(520,4,4),new Vector3(0,118,-120),Color3.fromRGB(40,42,46));
-		// Two work lights on the beam so the night hangar is a room, not a lamp pool in a void.
-		for(const x of [-110,110]) {
-			const lampStrip=prop(scene,"Hangar lamp",new Vector3(14,.6,1.2),new Vector3(x,115.6,-120),Color3.fromRGB(255,236,200),Enum.Material.Neon);
-			const light=new Instance("PointLight");light.Brightness=1.2;light.Range=170;light.Color=Color3.fromRGB(255,228,190);light.Parent=lampStrip;
+		// Full-size airframes share the approved hangar; the old shell is an observable fallback.
+		cloneModel(jet,scene,"Parked jet",new CFrame(ORIGIN.add(vec(CINEMATIC_PARKED_JET))).mul(CFrame.Angles(0,2.3,0)));
+		if(!cloneModel(models?.FindFirstChild("CinematicHangar"),scene,"Uploaded hangar",new CFrame(ORIGIN.add(vec(CINEMATIC_HANGAR))).mul(CFrame.Angles(0,math.pi,0)))) {
+			const wall=tint(Color3.fromRGB(58,62,68));
+			prop(scene,"Hangar wall",new Vector3(520,120,6),new Vector3(0,58,-230),wall,Enum.Material.Concrete);
+			for(const x of [-260,260]) prop(scene,"Hangar wall",new Vector3(6,120,460),new Vector3(x,58,0),wall,Enum.Material.Concrete);
+			prop(scene,"Hangar beam",new Vector3(520,4,4),new Vector3(0,118,-120),Color3.fromRGB(40,42,46));
+			// Two work lights on the beam so the night hangar is a room, not a lamp pool in a void.
+			for(const x of [-110,110]) {
+				const lampStrip=prop(scene,"Hangar lamp",new Vector3(14,.6,1.2),new Vector3(x,115.6,-120),Color3.fromRGB(255,236,200),Enum.Material.Neon);
+				const light=new Instance("PointLight");light.Brightness=1.2;light.Range=170;light.Color=Color3.fromRGB(255,228,190);light.Parent=lampStrip;
+			}
 		}
 	}
 	if(sea) prop(scene,"Sea platform",new Vector3(70,12,70),new Vector3(SUBJECT.x,4,SUBJECT.z),tint(Color3.fromRGB(70,76,82)),Enum.Material.Concrete);
@@ -220,6 +243,7 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 	// The safe root starts below the Roblox top bar; cards and fades reach up through that inset so no sky shows above a black card.
 	const inset=math.max(0,GuiService.GetGuiInset()[0].Y);
 	const subtitleRef=useRef<ScrollingFrame>(),bodyRef=useRef<TextLabel>(),nameRef=useRef<TextLabel>(),roleRef=useRef<TextLabel>();
+	const audioStatusRef=useRef<TextLabel>();
 	const progressRef=useRef<Frame>(),fadeRef=useRef<Frame>(),cardBodyRef=useRef<TextLabel>(),cardNameRef=useRef<TextLabel>();
 	useEffect(()=>{if(subtitleRef.current)subtitleRef.current.CanvasPosition=Vector2.zero;},[beat]);
 	const pausedRef=useRef(false),stillRef=useRef(MotionPreference.reduced),finishRef=useRef(onFinish),cancelRef=useRef(onCancel),done=useRef(false);
@@ -235,6 +259,7 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 	const silence=(fade:number)=>{voiceRef.current?.Stop(fade);voiceRef.current=undefined;};
 	// endRef is when the current beat hands over; a manual "next" pulls it in to
 	// start the outro (text fade + dip to black) instead of hard-cutting.
+	const presentationTimeRef=useRef(0);
 	const indexRef=useRef(0),beatTimeRef=useRef(0),endRef=useRef(durations[0]);
 	finishRef.current=onFinish;cancelRef.current=onCancel;
 	const finish=()=>{if(done.current)return;done.current=true;finishRef.current();};
@@ -243,7 +268,7 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 	const goTo=(index:number)=>{
 		// Hide the outgoing line before React swaps text so it can fade or type in cleanly.
 		if(!stillRef.current){setTextAlpha(1);setVisible(0);}
-		indexRef.current=index;beatTimeRef.current=0;endRef.current=durations[index];setBeat(index);
+		indexRef.current=index;beatTimeRef.current=0;presentationTimeRef.current=0;endRef.current=durations[index];setBeat(index);
 		speak(index);
 	};
 	const advance=()=>{if(indexRef.current<chapter.beats.size()-1)goTo(indexRef.current+1);else finish();};
@@ -277,22 +302,25 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 		const move=RunService.RenderStepped.Connect((dt)=>{
 			if(done.current)return;
 			const step=math.min(dt,.1);
-			clock+=step;if(!pausedRef.current)beatTimeRef.current+=step;
+			clock+=step;if(!pausedRef.current)presentationTimeRef.current+=step;
+			beatTimeRef.current+=cinematicClockStep(step,pausedRef.current,voiceRef.current?.IsLoading()===true);
 			if(beatTimeRef.current>=endRef.current){advance();if(done.current)return;}
 			const index=indexRef.current,t=beatTimeRef.current,duration=durations[index],calm=stillRef.current;
+			const loading=voiceRef.current?.IsLoading()===true,presentationT=presentationTimeRef.current;
+			if(audioStatusRef.current)audioStatusRef.current.Visible=loading;
 			const left=endRef.current-t;
 			const {shot,speaker:who}=chapter.beats[index],toneNow=speakerStyle(who).tone;
 			// Text: tapes, the log and title cards type out over the first 40 % of the beat; everyone else fades in. All fade out over the outro unless reduced motion asks for instant swaps.
 			const typed=isTyped(toneNow,shot);
 			const fadeOut=index===last ? 1 : math.clamp(left/TEXT_FADE_OUT,0,1);
-			setTextAlpha(calm ? 0 : 1-math.min(typed ? 1 : math.clamp(t/TEXT_FADE_IN,0,1),fadeOut));
-			setVisible(typed ? typedGraphemes(t,duration,lengths[index],calm) : -1);
+			setTextAlpha(calm || loading ? 0 : 1-math.min(typed ? 1 : math.clamp(presentationT/TEXT_FADE_IN,0,1),fadeOut));
+			setVisible(typed ? typedGraphemes(presentationT,duration,lengths[index],calm) : -1);
 			if(progressRef.current)progressRef.current.Size=new UDim2(math.clamp(t/duration,0,1),0,1,0);
 			// Black overlay: fade up from black, dip on camera cuts, fade out at the natural end.
 			const enter=1-math.clamp(clock/ENTER_FADE,0,1);
 			// Cut dip: darken over the outgoing beat's last CUT_DIP, then lift on the incoming shot.
 			const dipOut=calm || index===last ? 0 : (1-math.clamp(left/CUT_DIP,0,1))*CUT_BLACK;
-			const dipIn=calm || index===0 ? 0 : (1-math.clamp(t/CUT_DIP,0,1))*CUT_BLACK;
+			const dipIn=calm || index===0 ? 0 : (1-math.clamp(presentationT/CUT_DIP,0,1))*CUT_BLACK;
 			const exitSpan=endRef.current<duration ? CUT_DIP : EXIT_FADE;
 			const exit=index===last ? 1-math.clamp(left/exitSpan,0,1) : 0;
 			if(fadeRef.current)fadeRef.current.BackgroundTransparency=1-math.max(enter,dipOut,dipIn,exit);
@@ -378,6 +406,7 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 	// Layering: scene tap target 1, panel gradient 2, title card 3, caption panel and pause chip 4, settings 5, fade 6.
 	// The panel sits above black cards so skip/pause/Aa stay reachable; the card shows its own speaker and line.
 	return <frame key="CinematicScreen" Size={UDim2.fromScale(1,1)} BackgroundTransparency={1}>
+		<textlabel ref={audioStatusRef} key="CinematicAudioStatus" ZIndex={4} AnchorPoint={new Vector2(.5,0)} Position={new UDim2(.5,0,0,12)} Size={UDim2.fromOffset(180,24)} BackgroundColor3={INK} BackgroundTransparency={.25} BorderSizePixel={0} Text="Loading dialogue…" TextSize={12} Font={Enum.Font.GothamMedium} TextColor3={IVORY} Visible={false}/>
 		{/* Tap or click anywhere on the scene for the next line. */}
 		<textbutton key="CinematicAdvanceButton" ZIndex={1} Size={UDim2.fromScale(1,1)} BackgroundTransparency={1} Text="" AutoButtonColor={false} Selectable={false} Event={{Activated:activate("next")}}/>
 		{settingsOpen && <frame key="CinematicSettings" ZIndex={5} Position={UDim2.fromOffset(panel.x,panel.y)} Size={UDim2.fromOffset(panel.width,panel.height)} BackgroundColor3={INK} BackgroundTransparency={.15} BorderSizePixel={0}>

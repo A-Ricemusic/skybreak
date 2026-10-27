@@ -6,7 +6,7 @@ import { STORY, TEAL } from "./RelayStory";
  * poses per shot and the small per-frame rules (reel spin, recorder blink,
  * typed-out lines, props that change with the story). Plain numbers only, no
  * engine types, so the offline Luau runner can check them; the client converts
- * to Vector3/Color3 at the edge. Every pose here was checked in-engine at
+ * to Vector3/Color3 at the edge. The original poses were checked in-engine at
  * desktop and phone aspect (see docs/broken-relay.md, "Cutscene visual pass").
  */
 export interface Vec { x: number; y: number; z: number; }
@@ -47,7 +47,8 @@ export function sceneTint(base:Rgb,mood:StoryMood): Rgb {
 /** Desk-relative prop anchors shared by the dressing and the camera so close-ups land. */
 export const CHAIR=v(-12,3,1),RECORDER=v(-5.5,5.5,1.6),CHART=v(6,5.2,0),TIN=v(-5.2,5.85,-2.6),BOARD=v(12.5,7.6,2.5);
 /** The parked Kestrel's nose, and where the chapter's story subject (truck, launch or relay) stands: behind the desk, clear of the chair shot. */
-export const JET_NOSE=v(-52,8,-74),SUBJECT=v(70,0,-110);
+export const CINEMATIC_JET=v(-24,5,-28),CINEMATIC_PARKED_JET=v(28,5,-44),CINEMATIC_HANGAR=v(0,0,-22);
+export const JET_NOSE=v(-30,5,-40),SUBJECT=v(70,0,-110);
 export interface ShotPose { eye: Vec; focus: Vec; fov: number; }
 const lerp=(a:number,b:number,t:number)=>a+(b-a)*t;
 /**
@@ -59,15 +60,15 @@ export function shotPose(shot:StoryShot,scene:StoryScene,alpha:number,short:bool
 	const a=math.clamp(alpha,0,1);
 	switch(shot) {
 		// Over the desk toward the jet and the subject; the old pose sat 200 studs out over empty floor.
-		case "wide": return {fov:short ? 60 : 55,eye:v(62-a*8,short ? 34 : 30,58-a*3),focus:v(8,10,-40)};
+		case "wide": return {fov:short ? 60 : 55,eye:v(38-a*5,short ? 23 : 19,36-a*3),focus:v(-6,7,-20)};
 		// Looking down at the chart so its document fills the scene lane and stays legible on a phone.
 		case "evidence": return {fov:short ? 44 : portrait ? 40 : 46,eye:v(CHART.x-a*.3,portrait ? 15.5 : 13.6,portrait ? -7.4 : -6.6),focus:v(CHART.x,CHART.y+.1,CHART.z-.2)};
-		// Low and slow toward the empty seat from the camera side of the desk: the parked jet sits behind it on the left, the desk edge on the right. (The old pose, from the far side, put the story subject dead centre behind the chair.)
-		case "chair": return {fov:short ? 58 : 48,eye:v(lerp(-15,-12,a),2.2,short ? 19 : 17),focus:v(CHAIR.x,CHAIR.y+.8,CHAIR.z)};
+		// Seated eye level over the empty chair toward the full-size jet, avoiding the old floor-level furniture silhouette.
+		case "chair": return {fov:short ? 58 : 48,eye:v(lerp(-15,-12,a),5.8,short ? 19 : 17),focus:v(CHAIR.x,CHAIR.y+.8,CHAIR.z)};
 		// Close on the recorder, far enough back that the whole box, its lamp and the desk around it read.
 		case "recorder": return {fov:short ? 38 : 34,eye:v(RECORDER.x-4.3+a*.3,RECORDER.y+3.4,RECORDER.z+6.6-a*.3),focus:v(RECORDER.x+.2,RECORDER.y+.1,RECORDER.z-.2)};
 		// Behind the parked jet at floor level, tilting up past its tail into whatever the mood painted.
-		case "sky": return {fov:short ? 75 : 66,eye:v(-14,4,-34),focus:v(JET_NOSE.x,lerp(JET_NOSE.y,JET_NOSE.y+88,a),JET_NOSE.z)};
+		case "sky": return {fov:short ? 75 : 66,eye:v(-8,3,-6),focus:v(JET_NOSE.x,lerp(JET_NOSE.y,JET_NOSE.y+88,a),JET_NOSE.z)};
 		// radio, and black (unseen behind the card) share the desk pose.
 		default: return {fov:55,eye:short ? v(-8+a*2,12,-27) : v(-10+a*4,12,-19),focus:v(0,short ? 5 : 7,0)};
 	}

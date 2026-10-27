@@ -1,4 +1,5 @@
 import { ContentProvider, Players, RunService, SoundService, TweenService } from "@rbxts/services";
+import { voiceLoadAction } from "../shared/VoiceReadiness";
 import { VOICE_BANK_ASSETS } from "../shared/VoiceBanks";
 import type { VoiceClip } from "../shared/VoiceLines";
 
@@ -10,6 +11,8 @@ export interface VoiceHandle {
 	Pause(): void;
 	Resume(): void;
 	IsPlaying(): boolean;
+	/** True until playback starts or loading definitively fails. */
+	IsLoading(): boolean;
 }
 
 export type VoiceChannel = "cutscene" | "radio";
@@ -24,6 +27,7 @@ const active = new Set<VoiceHandle>();
 const listeners = new Set<SpeakingListener>();
 let speaking = false;
 let preloaded = false;
+const unavailableUntil = new Map<string, number>();
 
 function voiceVolume(gui: Instance | undefined): number {
 	const value = gui?.GetAttribute("VoiceVolume");
@@ -94,22 +98,28 @@ function refreshSpeaking(): void {
 }
 
 export const VoicePlayer = {
+	/** Warm banks during client boot, before the first cinematic requests a line. */
+	Preload(): void { if (RunService.IsClient()) preload(); },
 	/** Plays one line on a channel. Returns undefined (silently) when the clip has no asset yet. */
 	Play(clip: VoiceClip | undefined, channel: VoiceChannel): VoiceHandle | undefined {
 		if (!clip || clip.assetId === "" || !RunService.IsClient()) return undefined;
+		// A denied bank must not impose a fresh twelve-second wait on every line.
+		if (os.clock() < (unavailableUntil.get(clip.assetId) ?? 0)) return undefined;
 		setup();
 		preload();
 		const sound = new Instance("Sound");
 		sound.Name = `Voice_${clip.id}`;
 		sound.SoundId = clip.assetId;
 		sound.Volume = 1;
+		sound.SetAttribute("VoiceState", "Loading");
 		sound.PlaybackRegionsEnabled = true;
 		sound.PlaybackRegion = new NumberRange(clip.start, clip.finish);
-		sound.TimePosition = clip.start;
 		sound.SoundGroup = channels.get(channel);
 		sound.Parent = channels.get(channel);
 		let alive = true;
 		let paused = false;
+		let started = false;
+		let retried = false;
 		// Our own clock, so a region end that never fires Ended (engine quirk) still releases the line.
 		let remaining = clip.seconds + 0.25;
 		let fading: Tween | undefined;
@@ -136,8 +146,9 @@ export const VoicePlayer = {
 			Resume() {
 				if (!alive || !paused) return;
 				paused = false;
-				sound.Resume();
+				if (started) sound.Resume();
 			},
+			IsLoading() { return alive && !started; },
 			IsPlaying() {
 				return alive;
 			},
@@ -149,7 +160,30 @@ export const VoicePlayer = {
 			// The clock runs from when audio is really available; a bank that never loads releases the line (and the duck).
 			if (!sound.IsLoaded) {
 				loading += dt;
-				if (loading > 4) handle.Stop();
+				const action = voiceLoadAction(loading, retried);
+				if (action === "retry") {
+					retried = true;
+					warn(`SKYBREAK voice ${clip.id}: bank ${clip.assetId} still loading; retrying preload`);
+					task.spawn(() => {
+						const [ok, problem] = pcall(() => ContentProvider.PreloadAsync([clip.assetId], (id, status) => {
+							if (status !== Enum.AssetFetchStatus.Success) warn(`SKYBREAK voice fetch ${id}: ${status.Name}`);
+						}));
+						if (!ok) warn(`SKYBREAK voice preload ${clip.id}: ${tostring(problem)}`);
+					});
+				}
+				if (action === "fail") {
+					unavailableUntil.set(clip.assetId, os.clock() + 60);
+					warn(`SKYBREAK voice ${clip.id} unavailable after 12s (${clip.assetId}); continuing with subtitles. Check Output fetch errors and experience asset permissions.`);
+					handle.Stop();
+				}
+				return;
+			}
+			if (!started) {
+				started = true;
+				sound.SetAttribute("VoiceState", "Playing");
+				// Seek only after load: some clients discard a seek on an unloaded bank.
+				sound.TimePosition = clip.start;
+				sound.Play();
 				return;
 			}
 			remaining -= dt;
@@ -157,7 +191,6 @@ export const VoicePlayer = {
 		}));
 		active.add(handle);
 		refreshSpeaking();
-		sound.Play();
 		return handle;
 	},
 	/** Stops every playing line (screen changes, teardown). */
