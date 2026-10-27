@@ -5,6 +5,10 @@ import { resolve } from "node:path";
 const root = resolve(import.meta.dir, "..");
 await mkdir(resolve(root, "build"), { recursive: true });
 const assets = [
+	{ name: "RunwayTile", source: "assets/mission/runwaytile.mesh.json", triangleLimit: 5000 },
+	{ name: "RoadTile", source: "assets/mission/roadtile.mesh.json", triangleLimit: 5000 },
+	{ name: "CliffTile", source: "assets/mission/clifftile.mesh.json", triangleLimit: 5000 },
+
 	{ name: "CinematicChair", source: "assets/mission/cinematicchair.mesh.json", triangleLimit: 5000 },
 	{ name: "CinematicDesk", source: "assets/mission/cinematicdesk.mesh.json", triangleLimit: 5000 },
 	{ name: "Kestrel", source: "assets/aircraft/kestrel.mesh.json", triangleLimit: 20000 },

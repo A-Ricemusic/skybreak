@@ -1,6 +1,6 @@
 import { AssetService, HttpService, RunService, ServerStorage } from "@rbxts/services";
 
-type MissionAssetKind = "CinematicChair" | "CinematicDesk" | "Warehouse" | "Radar" | "CommsRelay" | "GrainSilo" | "RelayTruck" | "HarborLaunch";
+type MissionAssetKind = "RunwayTile" | "RoadTile" | "CliffTile" | "CinematicChair" | "CinematicDesk" | "Warehouse" | "Radar" | "CommsRelay" | "GrainSilo" | "RelayTruck" | "HarborLaunch";
 type MaterialRole = "Concrete" | "Steel" | "DarkMetal" | "Accent" | "Roof" | "Glass" | "Warning";
 
 interface MeshMaterial {
@@ -168,7 +168,9 @@ function buildTemplates(data: MeshData, kind: MissionAssetKind): Model {
 			item.Size = size;
 			const color = material.baseColorRGBA;
 			item.Color = new Color3(color[0], color[1], color[2]);
-			item.Material = robloxMaterial(material.name);
+			const pavement = kind === "RoadTile" || kind === "RunwayTile";
+			item.Material = pavement && material.name === "DarkMetal" ? Enum.Material.Asphalt
+				: pavement && material.name === "Warning" ? Enum.Material.SmoothPlastic : robloxMaterial(material.name);
 			item.Transparency = 1 - color[3];
 			item.Anchored = true;
 			item.CanCollide = false;
@@ -238,7 +240,7 @@ function create(kind: MissionAssetKind, name: string): Model {
 	if (templates === undefined) {
 		model.SetAttribute("GeometrySource", "Fallback");
 		const body = root.Clone(); body.Name = "Visible fallback"; body.Transparency = 0; body.CanQuery = true; body.SetAttribute("FlightSolid", true);
-		body.Size = root.Size.mul(.75); body.Material = Enum.Material.Metal; body.Color = Color3.fromRGB(170,110,55); body.Parent = model;
+		body.Size = kind === "RunwayTile" || kind === "RoadTile" || kind === "CliffTile" ? root.Size : root.Size.mul(.75); body.Material = Enum.Material.Metal; body.Color = Color3.fromRGB(170,110,55); body.Parent = model;
 		return model;
 	}
 	for (const item of templates.GetChildren()) {
@@ -250,6 +252,7 @@ function create(kind: MissionAssetKind, name: string): Model {
 }
 
 export const MissionAssets = {
+	CreateWorldKit(kind: "RunwayTile" | "RoadTile" | "CliffTile"): Model { return create(kind, kind); },
 	CreateCinematicChair(): Model { return create("CinematicChair", "CinematicChair"); },
 	CreateCinematicDesk(): Model { return create("CinematicDesk", "CinematicDesk"); },
 	CreateCommsRelay(name: string): Model { return create("CommsRelay", name); },

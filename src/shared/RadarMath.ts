@@ -1,3 +1,4 @@
+import { WorldAirspace } from "./WorldAirspace";
 import { FlightMath } from "./FlightMath";
 
 // Pure heading-up radar projection shared by the HUD radar and Roblox Jest.
@@ -22,8 +23,8 @@ export interface RadarBlip {
 	edge: boolean;
 }
 
-/** Studs from the centre to the rim. The arena is ±2800 studs and bandits spawn 2600–3200 out. */
-export const RADAR_RANGE = 3200;
+/** Wide tactical range covers an outer district and the central objectives; distant contacts pin to the rim. */
+export const RADAR_RANGE = WorldAirspace.radarRange;
 /** Close-in range used while every required contact is inside it (dogfights read better zoomed). */
 export const RADAR_NEAR_RANGE = 1600;
 /** Pixels kept free between a pinned rim blip and the disc edge. */

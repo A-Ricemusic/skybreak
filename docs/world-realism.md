@@ -1,5 +1,10 @@
 # Mission world realism
 
+The outer-district expansion adds three original runtime Blender infrastructure designs and
+opens the existing terrain belt to flight. See [coverage, travel metrics, mesh budgets and pending
+Studio acceptance](world-expansion.md). M3/M5/M19 have authored outer districts; the other mission
+compositions retain their existing detail.
+
 Mission worlds are built from Terrain voxels and the 20 moderation-approved Blender world models
 (`src/shared/RobloxAssetIds.ts`, [uploaded assets](qa/uploaded-assets.md)), not from primitive
 Parts. Primitive trees, boulders and buildings appear only when an uploaded model fails to load.
@@ -18,7 +23,7 @@ Parts. Primitive trees, boulders and buildings appear only when an uploaded mode
 **Terrain.** Inland maps are an 8-stud ground slab with material patches (fields, washes, rock
 flats), smooth cosine hills (`bump`, written with `WriteVoxels` so they only add), layered mesas
 with strata bands, buttresses and talus aprons, canyon walls along the authored track, and a ring of
-ridges past the flyable square. Coastal maps have Terrain water from the coast line out, a rock edge
+ridges in the outer flyable belt. Coastal maps have Terrain water from the coast line out, a rock edge
 down to the seabed, sand beaches, canals with concrete walls joining inland boat paths to the sea
 (the channels are written again after every land op, so civic pavement or a mole never roofs one),
 concrete moles under coastal targets, and a dredged berth under every frigate (water 8 studs below
@@ -84,17 +89,19 @@ Phones (`MobileGraphics`) disable bloom, sun rays and depth of field. They clamp
 at 220/s and drift at 14/s.
 
 Per-mission counts below are generated from the plans (`bun tools/world-report.ts` after
-`bun run test:offline`; `--check` fails when stale). *Instances* counts each prop as a MeshPart plus
-its SurfaceAppearance, plus the primitive parts. Voxel writes are 4-stud voxels written, mostly the
+`bun run test:offline`; `--check` fails when stale). *Instances* estimates each uploaded prop as a MeshPart plus
+its SurfaceAppearance, plus primitive parts and conservative model/root/material overhead for
+the new runtime infrastructure kits. Plan part entries count each kit placement once; see the
+expansion document for actual module/material counts. Voxel writes are 4-stud voxels written, mostly the
 far ridge ring, whose interior compresses to almost nothing. *Hill cells* are every cell of the
 grid-aligned regions the hills read and write (the executor's own regions, not the ellipse areas).
 
 <!-- world-counts:begin (bun tools/world-report.ts) -->
 | Mission | Theme | Environment | Terrain ops | Voxel writes (M) | Hill cells (M) | Parts | Props | Trees | Rocks | Buildings | Ships | Unique meshes | Instances |
 |---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| M3 Fox switchback | canyon | canyon_dawn | 318 | 61.6 | 0.40 | 75 | 86 | 36 | 44 | 6 | 0 | 9 | 247 |
+| M3 Fox switchback | canyon | canyon_dawn | 320 | 88.2 | 0.40 | 144 | 106 | 36 | 60 | 10 | 0 | 13 | 576 |
 | M4 Hidden quarters bowl | canyon | canyon_noon | 255 | 52.7 | 0.49 | 70 | 91 | 36 | 44 | 11 | 0 | 10 | 252 |
-| M5 Teklan orchard terraces | farm | farm_morning | 232 | 69.6 | 2.20 | 24 | 174 | 140 | 22 | 12 | 0 | 8 | 372 |
+| M5 Teklan orchard terraces | farm | farm_morning | 237 | 96.2 | 2.20 | 71 | 183 | 140 | 22 | 21 | 0 | 10 | 601 |
 | M6 Grain valley irrigation | farm | farm_overcast | 254 | 76.7 | 2.36 | 25 | 168 | 140 | 22 | 6 | 0 | 8 | 361 |
 | M7 Dust courier narrows | canyon | canyon_dusk | 289 | 67.3 | 0.49 | 39 | 82 | 36 | 44 | 2 | 0 | 7 | 203 |
 | M8 Varda tower siege | canyon | canyon_dusk | 240 | 57.7 | 0.42 | 67 | 90 | 36 | 44 | 10 | 0 | 9 | 247 |
@@ -108,7 +115,7 @@ grid-aligned regions the hills read and write (the executor's own regions, not t
 | M16 Storm river divide | farm | farm_storm | 235 | 85.6 | 2.11 | 39 | 165 | 140 | 22 | 3 | 0 | 8 | 369 |
 | M17 Aurora crown array | plateau | relay_aurora | 263 | 75.5 | 1.56 | 28 | 124 | 80 | 36 | 8 | 0 | 9 | 276 |
 | M18 Vulture searchlight ridge | plateau | relay_night | 271 | 83.7 | 1.76 | 69 | 128 | 80 | 36 | 12 | 0 | 11 | 325 |
-| M19 Military quays and canal | coast | harbor_fog | 124 | 37.3 | 1.41 | 70 | 143 | 90 | 14 | 38 | 1 | 12 | 356 |
+| M19 Military quays and canal | coast | harbor_fog | 126 | 63.9 | 1.41 | 117 | 168 | 106 | 14 | 47 | 1 | 14 | 617 |
 | M20 Eastern wing divided harbor | coast | city_evening | 120 | 34.9 | 1.20 | 68 | 155 | 90 | 14 | 50 | 1 | 12 | 378 |
 | M21 Black canal city | coast | city_night | 143 | 32.2 | 1.25 | 94 | 147 | 90 | 14 | 43 | 0 | 11 | 388 |
 | M22 Five fog fuel piers | coast | harbor_fog | 119 | 46.9 | 1.37 | 61 | 129 | 90 | 14 | 24 | 1 | 12 | 319 |
