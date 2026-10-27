@@ -1,3 +1,4 @@
+import { CampaignRequestBudget } from "./CampaignRequestBudget";
 import { DataStoreService, Players, RunService } from "@rbxts/services";
 import { GameConfig } from "../shared/GameConfig";
 import { MISSION_COUNT } from "../shared/MissionCatalog";
@@ -28,13 +29,12 @@ interface PlayerState {
 	activeSlot?: number;
 	activeMission?: number;
 	requestBusy: boolean;
-	lastRequest: number;
+	budget: CampaignRequestBudget;
 	lastRecovery: number;
 	closing: boolean;
 }
 
 const LOAD_TIMEOUT = 20;
-const REQUEST_INTERVAL = 0.12;
 const RECOVERY_INTERVAL = 3;
 
 let profileStore: DataStore | undefined;
@@ -75,7 +75,7 @@ function newState(player: Player): PlayerState {
 		loaded: false,
 		loadStarted: false,
 		requestBusy: false,
-		lastRequest: 0,
+		budget: new CampaignRequestBudget(),
 		lastRecovery: -math.huge,
 		closing: false,
 	};
@@ -206,13 +206,16 @@ function handleRequest(player: Player, action: unknown, payload?: unknown): Camp
 	if (state.closing) return response(state, false, "Campaign session is closing.");
 
 	const now = os.clock();
-	if (now - state.lastRequest < REQUEST_INTERVAL) return response(state, false, "Please wait a moment before trying again.");
-	state.lastRequest = now;
+	if (!state.budget.accept(now, action === "DeletionStatus")) return response(state, false, "Please wait a moment before trying again.");
+	// No yielding load/recovery, queue ownership or foreground timestamp changes for observations.
+	if (action === "DeletionStatus") {
+		if (!state.loaded) return response(state, false, "Campaign data is still loading. Please try again.");
+		return response(state, true);
+	}
 	if (state.requestBusy) return response(state, false, "Another campaign request is already in progress.");
 	state.requestBusy = true;
 
 	const [success, result] = xpcall(() => {
-		if (action === "DeletionStatus") return response(state, true);
 		if (action === "ListSlots") return listSlots(state);
 		if (action === "StartMission") return startMission(state, payload);
 		if (action === "ReturnToMenu") return returnToMenu(state);

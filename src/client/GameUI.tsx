@@ -1,3 +1,4 @@
+import { DeletionObservation } from "../shared/DeletionObservation";
 import { stickVector, TouchSticks } from "../shared/TouchSticks";
 import { FlightMath } from "../shared/FlightMath";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "@rbxts/react";
@@ -1789,7 +1790,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const loadingSerialRef = useRef(0);
 	const slotsRef = useRef<SaveSlot[] | undefined>();
 
+	const deletionObservation = useMemo(() => new DeletionObservation(), []);
 	const changeScreen = useCallback((destination: Screen) => {
+		deletionObservation.cancel();
 		screenRef.current = destination;
 		inMissionRef.current = destination === "mission";
 		if (destination !== "mission" && pausedRef.current) { pausedRef.current = false; setPausedState(false); }
@@ -2016,10 +2019,12 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		changeScreen("briefing");
 	}, [changeScreen]);
 	const deleteSlot = useCallback((slot: number) => {
+		deletionObservation.cancel();
+		const observationToken = deletionObservation.capture();
 		setDeleteConfirm(undefined);
 		beginRequest((requestId) => {
 			const [response, problem] = invoke("DeleteSlot", { slot });
-			if (!mountedRef.current || requestRef.current !== requestId) return;
+			if (!mountedRef.current || requestRef.current !== requestId || !deletionObservation.current(observationToken)) return;
 			if (!response) showToast(problem ?? "Command rejected the request.", true);
 			else if (!applyResponseSlots(response)) showToast("Flight records returned an invalid response.", true);
 			else {
@@ -2036,11 +2041,15 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					// Observe the original generation. Never resend a destructive command.
 					for (let attempt = 0; attempt < 10; attempt++) {
 						task.wait(3);
-						if (!mountedRef.current || requestRef.current !== requestId) return;
-						const [latest] = invoke("DeletionStatus");
-						if (!mountedRef.current || requestRef.current !== requestId) return;
-						const current = latest?.deletions?.find((entry) => entry.slot === slot && entry.generation === deletion.generation);
-						if (current && current.status !== "pending") { report(current.status); return; }
+						if (!mountedRef.current || requestRef.current !== requestId || !deletionObservation.current(observationToken)) return;
+						let finished = false;
+						deletionObservation.read(observationToken,
+							() => mountedRef.current && requestRef.current === requestId,
+							() => { const [latest] = invoke("DeletionStatus"); return { latest }; }, ({ latest }) => {
+								const current = latest?.deletions?.find((entry) => entry.slot === slot && entry.generation === deletion.generation);
+								if (current && current.status !== "pending") { report(current.status); finished = true; }
+							});
+						if (finished) return;
 					}
 				});
 			}

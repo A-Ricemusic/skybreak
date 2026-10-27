@@ -32,6 +32,34 @@ function fixture(fail = false) {
 }
 
 describe("deletion durability receipts", () => {
+	it("keeps overlapping slot deletes and repeated generations distinct", () => {
+		const f = fixture();
+		f.coordinator.deleteSlot(1); f.coordinator.deleteSlot(2); f.coordinator.deleteSlot(1);
+		expect(f.coordinator.getDeletions().size()).toBe(2);
+		f.run();
+		for (const receipt of f.coordinator.getDeletions()) {
+			expect(receipt.status).toBe("confirmed");
+			expect(f.stored().slots[receipt.slot - 1].generation).toBe(receipt.generation);
+		}
+	});
+	it("does not confirm a conflicting returned generation or occupied slot", () => {
+		for (const occupied of [true, false]) {
+			const stored = blankProfile();
+			let queued: (() => void) | undefined;
+			const c = new CampaignCoordinator("synthetic-conflicting-receipt", {
+				load() { return serializeProfile(stored); },
+				update(_key, transform) {
+					const returned = normalizeProfile(transform(serializeProfile(stored)));
+					returned.slots[0].occupied = occupied;
+					if (!occupied) returned.slots[0].generation = (returned.slots[0].generation ?? 0) + 1;
+					return serializeProfile(returned);
+				},
+			}, { defer: (callback) => { queued = callback; }, maxAttempts: 1, warn: () => undefined });
+			c.load(); c.deleteSlot(1); queued?.();
+			expect(c.getDeletions()[0].status).toBe("failed");
+		}
+	});
+
 	it("confirms only after a successful tombstone write", () => {
 		const f = fixture();
 		f.coordinator.deleteSlot(1);
