@@ -8,14 +8,15 @@
     "clean:check": "bun tools/clean-artifacts.ts --dry-run",
     "build": "bun tools/package-aircraft.ts && rbxtsc --rojo test.project.json",
     "watch": "bun tools/package-aircraft.ts && rbxtsc --rojo test.project.json -w",
-    "build:place": "bun run build && mkdir -p build && rojo build -o build/skybreak.rbxlx",
+    "build:place": "bun run build && mkdir -p build && rojo build -o build/skybreak.rbxlx && python3 tools/check-place-voice.py build/skybreak.rbxlx",
     "serve": "rojo serve",
     "test": "bun run test:roblox",
     "test:roblox": "bun tools/test-roblox.ts",
     "test:audio:offline": "bun run build && bun tools/test-audio-offline.ts",
     "test:offline": "bun run build && bun tools/test-relay-offline.ts",
     "docs:relay-tables": "bun tools/relay-tables.ts",
-    "docs:world-counts": "bun tools/world-report.ts"
+    "docs:world-counts": "bun tools/world-report.ts",
+    "test:voice:offline": "bun run build && bun tools/test-voice-offline.ts && python3 -m unittest discover -s tools/tests -p test_place_voice.py"
   },
   "devDependencies": {
     "@rbxts/compiler-types": "3.0.0-types.0",

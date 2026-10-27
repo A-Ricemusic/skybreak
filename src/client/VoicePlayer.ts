@@ -13,6 +13,8 @@ export interface VoiceHandle {
 	IsPlaying(): boolean;
 	/** True until playback starts or loading definitively fails. */
 	IsLoading(): boolean;
+	/** A bounded load failure, distinct from normal completion or an explicit stop. */
+	HasFailed(): boolean;
 }
 
 export type VoiceChannel = "cutscene" | "radio";
@@ -80,9 +82,10 @@ function preload(): void {
 	}
 	if (probes.size() === 0) return;
 	task.spawn(() => {
-		pcall(() => ContentProvider.PreloadAsync(probes, (id, status) => {
-			if (status === Enum.AssetFetchStatus.Failure) warn(`SKYBREAK voice could not load ${id}; check experience permissions/moderation`);
+		const [ok, problem] = pcall(() => ContentProvider.PreloadAsync(probes, (id, status) => {
+			if (status !== Enum.AssetFetchStatus.Success) warn(`SKYBREAK voice fetch ${id}: ${status.Name}; universe=${game.GameId} place=${game.PlaceId} version=${game.PlaceVersion}`);
 		}));
+		if (!ok) warn(`SKYBREAK voice preload failed: ${tostring(problem)}; universe=${game.GameId} place=${game.PlaceId} version=${game.PlaceVersion}`);
 		for (const probe of probes) probe.Destroy();
 	});
 }
@@ -117,6 +120,7 @@ export const VoicePlayer = {
 		sound.SoundGroup = channels.get(channel);
 		sound.Parent = channels.get(channel);
 		let alive = true;
+		let failed = false;
 		let paused = false;
 		let started = false;
 		let retried = false;
@@ -149,6 +153,7 @@ export const VoicePlayer = {
 				if (started) sound.Resume();
 			},
 			IsLoading() { return alive && !started; },
+			HasFailed() { return failed; },
 			IsPlaying() {
 				return alive;
 			},
@@ -172,8 +177,9 @@ export const VoicePlayer = {
 					});
 				}
 				if (action === "fail") {
+					failed = true;
 					unavailableUntil.set(clip.assetId, os.clock() + 60);
-					warn(`SKYBREAK voice ${clip.id} unavailable after 12s (${clip.assetId}); continuing with subtitles. Check Output fetch errors and experience asset permissions.`);
+					warn(`SKYBREAK voice ${clip.id} unavailable after 12s (${clip.assetId}); continuing with subtitles. universe=${game.GameId} place=${game.PlaceId} version=${game.PlaceVersion}. Check Output fetch errors and experience asset permissions.`);
 					handle.Stop();
 				}
 				return;
