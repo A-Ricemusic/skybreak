@@ -3,6 +3,9 @@
 # Needs ROBLOX_API_KEY, ROBLOX_UNIVERSE_ID, and ROBLOX_PLACE_ID. Run `bun run build:place` first.
 set -euo pipefail
 
+# Fail closed before any POST, including direct invocations outside CI.
+python3 "$(dirname "$0")/verify-roblox-target.py"
+
 : "${ROBLOX_API_KEY:?Set ROBLOX_API_KEY to an Open Cloud key with universe-places write access}"
 : "${ROBLOX_UNIVERSE_ID:?Set ROBLOX_UNIVERSE_ID to the experience's universe ID}"
 : "${ROBLOX_PLACE_ID:?Set ROBLOX_PLACE_ID to the start place's place ID}"
