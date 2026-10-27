@@ -10,6 +10,7 @@ let reclaimedBytes = 0;
 const index = Bun.spawnSync(["git", "-C", root, "ls-files", "--cached", "-z"]);
 if (index.exitCode !== 0) throw new Error("Cannot read tracked files; refusing cleanup.");
 const tracked = index.stdout.toString().split("\0").filter(Boolean).map((path) => resolve(root, path));
+const trackedFolded = tracked.map((path) => path.toLowerCase());
 
 function contains(parent: string, child: string): boolean {
 	const path = relative(parent, child);
@@ -48,7 +49,10 @@ async function sizeOf(path: string): Promise<number> {
 
 async function removePath(path: string): Promise<void> {
 	if (!(await safePath(path))) return;
-	if (tracked.some((file) => contains(path, file) || contains(file, path))) {
+	// Compare case-insensitively: macOS/Windows volumes usually are, and
+	// over-preserving is the safe failure mode for this guard.
+	const folded = path.toLowerCase();
+	if (trackedFolded.some((file) => contains(folded, file) || contains(file, folded))) {
 		console.warn(`Preserved path containing tracked files: ${relative(root, path)}`);
 		return;
 	}

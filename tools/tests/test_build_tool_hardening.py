@@ -221,6 +221,13 @@ class CleanupTests(unittest.TestCase):
         self.assertTrue(all((self.root / name).exists() for name in tracked))
         self.assertFalse(disposable.exists())
 
+    def test_tracked_files_differing_only_in_case_are_preserved(self):
+        # On case-insensitive volumes (default macOS), OUT/ and out/ are one directory.
+        self.write("OUT/source.ts")
+        self.git("add", "--", "OUT/source.ts")
+        self.clean()
+        self.assertTrue((self.root / "OUT/source.ts").exists())
+
     def test_symlinked_ancestors_and_candidates_never_touch_external_files(self):
         for name, child in (("build", "external.log"), ("build/screenshots", "menu.jpg"),
                             ("assets", "aircraft/kestrel.fbx"), ("assets/aircraft", "kestrel.fbx"),
