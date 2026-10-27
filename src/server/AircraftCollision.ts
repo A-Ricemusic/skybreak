@@ -30,7 +30,14 @@ export const AircraftCollision = {
 		if (Workspace.GetPartBoundsInRadius(origin, 4, overlap).size() > 0) return false;
 		const region = new Region3(origin.sub(new Vector3(4, 4, 4)), origin.add(new Vector3(4, 4, 4))).ExpandToGrid(4);
 		const [, occupancy] = Workspace.Terrain.ReadVoxels(region, 4);
-		for (const plane of occupancy) for (const row of plane) for (const cell of row) if (cell > 0) return false;
+		// ReadVoxels tables include a Size Vector3; generalized iteration visits
+		// that metadata too. Index only the numeric voxel dimensions.
+		const size = occupancy.Size;
+		for (let x = 0; x < size.X; x++) {
+			for (let y = 0; y < size.Y; y++) {
+				for (let z = 0; z < size.Z; z++) if (occupancy[x][y][z] > 0) return false;
+			}
+		}
 		return true;
 	},
 	/** Sweep a compact 4-stud fuselage radius, not the visual wings' enclosing box.

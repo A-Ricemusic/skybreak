@@ -65,11 +65,13 @@ describe("segmented engine sphere sweeps", () => {
 		// Isolated high-altitude fixture: never clears authored production terrain.
 		const start = new Vector3(10000, 10000, 10000);
 		const cell = new CFrame(start.add(new Vector3(4, 0, 0)));
+		expect(AircraftCollision.DestinationClear(start, AircraftCollision.Parameters(fixture))).toBe(true);
 		for (const material of [Enum.Material.Rock, Enum.Material.Water]) {
 			Workspace.Terrain.FillBlock(cell, new Vector3(4, 4, 4), material);
 			const clear = AircraftCollision.DestinationClear(start, AircraftCollision.Parameters(fixture));
 			Workspace.Terrain.FillBlock(cell, new Vector3(4, 4, 4), Enum.Material.Air);
 			expect(clear).toBe(false);
+			expect(AircraftCollision.DestinationClear(start, AircraftCollision.Parameters(fixture))).toBe(true);
 		}
 	});
 	it("rejects invalid geometry and handles zero and reverse travel without an engine error", () => {
