@@ -1,4 +1,5 @@
 import { Workspace } from "@rbxts/services";
+import { sphereSweep } from "../shared/SphereSweep";
 
 /** Allowlist contains only authored scenery and visible ground-target surfaces.
  * No aircraft, projectiles, navigation rings, UI markers or invisible aim roots.
@@ -21,8 +22,7 @@ export const AircraftCollision = {
 	 * At the 600 studs/s cap this sweeps all 20 studs of a 1/30 s step.
 	 */
 	Sweep(from: Vector3, to: Vector3, params: RaycastParams): RaycastResult | undefined {
-		const delta = to.sub(from);
-		return delta.Magnitude > 0.00001 ? Workspace.Spherecast(from, 4, delta, params) : undefined;
+		return sphereSweep(from, 4, to.sub(from), params)?.hit;
 	},
 	Reason(hit: RaycastResult): string {
 		return hit.Material === Enum.Material.Water || (hit.Instance.Name === "Sea" || hit.Instance.Name === "River") ? "crash_water" : "crash_terrain";

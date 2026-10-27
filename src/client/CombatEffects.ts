@@ -1,4 +1,5 @@
 import { Debris, Players, RunService, TweenService, Workspace } from "@rbxts/services";
+import { FlightMath } from "../shared/FlightMath";
 import { ExplosionFx, ExplosionKind } from "../shared/ExplosionFx";
 import { CombatEffectPacket, Remotes } from "../shared/Types";
 import { ClaimedVisual, EnemySmoothing } from "./EnemySmoothing";
@@ -124,7 +125,7 @@ function endWreck(wreck: Wreck): void {
 const wreckParams = new RaycastParams();
 wreckParams.FilterType = Enum.RaycastFilterType.Exclude;
 function stepWrecks(dt: number): void {
-	if (wrecks.size() === 0) return;
+	if (wrecks.size() === 0 || !FlightMath.IsFinite(dt) || dt <= 0) return;
 	const params = wreckParams;
 	const exclude: Instance[] = [root()];
 	const character = Players.LocalPlayer?.Character;
@@ -133,6 +134,9 @@ function stepWrecks(dt: number): void {
 	for (let index = wrecks.size() - 1; index >= 0; index--) {
 		const wreck = wrecks[index];
 		wreck.age += dt;
+		// Expire before casting after a suspended frame. Live wrecks are <3.2 s
+		// old, keeping speed-scaled rays far below the 15000-stud ray limit.
+		if (wreck.age >= ExplosionFx.WreckSeconds) { wrecks.remove(index); endWreck(wreck); continue; }
 		wreck.velocity = wreck.velocity.mul(1 - math.min(1, 0.35 * dt)).add(new Vector3(0, -ExplosionFx.WreckGravity * dt, 0));
 		const from = wreck.frame.Position;
 		const delta = wreck.velocity.mul(dt);

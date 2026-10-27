@@ -15,6 +15,7 @@ import { MissileTrails } from "./MissileTrails";
 import { GameAudio } from "./GameAudio";
 import { HUD, HUD_FONT_BOLD } from "./Theme";
 import { evadeGauge } from "../shared/EvadeGauge";
+import { sphereSweep } from "../shared/SphereSweep";
 import { terrainProbeLength, terrainSeconds } from "../shared/FlightWarnings";
 import type { RadarContact, RadarContactKind } from "../shared/RadarMath";
 import { TARGET_BOX_SELECTED_MIN, TARGET_CAPTION_GAP, TARGET_CAPTION_HEIGHT, TARGET_CAPTION_WIDTH, TargetBoxes, type CaptionSpot, type SelectedStyle } from "../shared/TargetBoxes";
@@ -487,9 +488,9 @@ export class FlightController {
 		// Same sink the server integrates while stalled.
 		const velocity = new Vector3(fx * speed, fy * speed - FlightMath.StallSeverity(speed) * 65, fz * speed);
 		const pathSpeed = velocity.Magnitude;
-		if (pathSpeed < 1) { this.trend.terrainSeconds = undefined; return; }
-		const hit = Workspace.Spherecast(position, PROBE_RADIUS, velocity.Unit.mul(terrainProbeLength(pathSpeed)), this.probeParams);
-		this.trend.terrainSeconds = terrainSeconds(hit?.Distance, pathSpeed);
+		if (!FlightMath.IsFinite(pathSpeed) || pathSpeed < 1) { this.trend.terrainSeconds = undefined; return; }
+		const hit = sphereSweep(position, PROBE_RADIUS, velocity.Unit.mul(terrainProbeLength(pathSpeed)), this.probeParams);
+		this.trend.terrainSeconds = terrainSeconds(hit?.distance, pathSpeed);
 	}
 	/** Second weapon slot; the server validates charges, cooldown and targets. */
 	public Special(): void { this.action("Special"); }

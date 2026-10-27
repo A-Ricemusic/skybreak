@@ -54,6 +54,10 @@ describe("flight and combat warnings shared by touch, keyboard and gamepad", () 
 		expect(terrainProbeLength(300)).toBe(600);
 		expect(terrainProbeLength(40)).toBe(TERRAIN_MIN_PROBE);
 		expect(terrainProbeLength(0 / 0)).toBe(TERRAIN_MIN_PROBE);
+		for (const speed of [-600, 0, -math.huge, math.huge]) expect(terrainProbeLength(speed)).toBe(TERRAIN_MIN_PROBE);
+		for (const speed of [511.99, 512, 512.01, 600]) expect(terrainProbeLength(speed)).toBe(speed * 2);
+		expect(terrainSeconds(math.huge, 600)).toBeUndefined();
+		expect(terrainSeconds(100, 0 / 0)).toBeUndefined();
 		expect(terrainSeconds(undefined, 300)).toBeUndefined();
 		expect(terrainSeconds(300, 300)).toBe(1);
 		expect(terrainSeconds(590, 300)).toBeLessThanOrEqual(2);
