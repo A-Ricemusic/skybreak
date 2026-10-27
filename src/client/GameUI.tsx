@@ -405,7 +405,7 @@ function HintChip({ hint, order, color = C.Ivory }: { hint: ControlHint; order: 
 	);
 }
 
-function HintRow({
+function HintRowImpl({
 	name,
 	hints,
 	rectangle,
@@ -438,6 +438,8 @@ function HintRow({
 		</frame>
 	);
 }
+
+const HintRow = React.memo(HintRowImpl);
 
 function finite(value: unknown, fallback: number): number {
 	return typeIs(value, "number") && value === value && math.abs(value) !== math.huge ? value : fallback;
@@ -516,7 +518,9 @@ function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
 		boundaryWarning: payload.boundaryWarning === undefined ? previous.boundaryWarning : payload.boundaryWarning === true,
 		missionId,
 		navigation: typeIs(payload.navigation, "Vector3") ? payload.navigation : undefined,
-		navigationRadius: payload.navigationRadius, navigationCeiling: payload.navigationCeiling, protectedHealth: payload.protectedHealth,
+		navigationRadius: typeIs(payload.navigationRadius, "number") && finite(payload.navigationRadius, -1) >= 0 ? payload.navigationRadius : undefined,
+		navigationCeiling: typeIs(payload.navigationCeiling, "number") && finite(payload.navigationCeiling, -1) >= 0 ? payload.navigationCeiling : undefined,
+		protectedHealth: payload.protectedHealth,
 		phase: safeString(payload.phase, previous.phase ?? ""),
 		objective: safeString(payload.objective, previous.objective ?? "Complete the objective"),
 		objectiveProgress: math.max(0, math.floor(finite(payload.objectiveProgress, previous.objectiveProgress ?? 0))),
@@ -529,7 +533,7 @@ function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
 		groundKills: math.max(0, math.floor(finite(payload.groundKills, previous.groundKills ?? 0))),
 		targetKind,
 		targetRequired: payload.targetRequired === undefined ? previous.targetRequired : payload.targetRequired === true,
-		radio: safeRadio(payload.radio, previous.radio),
+		radio: safeRadio(payload.radio, undefined),
 		radioSerial: typeIs(payload.radioSerial, "number") ? math.max(0, math.floor(finite(payload.radioSerial, previous.radioSerial ?? 0))) : previous.radioSerial,
 		radioPriority: payload.radioPriority === true,
 		radioSeconds: typeIs(payload.radioSeconds, "number") ? math.clamp(finite(payload.radioSeconds, RADIO_SECONDS), 0.25, 10) : undefined,
@@ -613,7 +617,7 @@ function setMenuCamera() {
 	camera.FieldOfView = MENU_FOV;
 }
 
-function MenuBackdrop({ visible, menu, viewport }: { visible: boolean; menu: MenuLayout; viewport: Vector2 }) {
+function MenuBackdropImpl({ visible, menu, viewport }: { visible: boolean; menu: MenuLayout; viewport: Vector2 }) {
 	const side = menu.mode === "side";
 	// Ink sits solidly behind the copy and clears just past the panel edge. The
 	// backdrop ignores the safe-area inset, hence the small allowance.
@@ -643,6 +647,8 @@ function MenuBackdrop({ visible, menu, viewport }: { visible: boolean; menu: Men
 		</frame>
 	);
 }
+
+const MenuBackdrop = React.memo(MenuBackdropImpl);
 
 function panelPosition(menu: MenuLayout) {
 	return { Position: UDim2.fromOffset(menu.panel.x, menu.panel.y), Size: UDim2.fromOffset(menu.panel.width, menu.panel.height) };
@@ -1372,7 +1378,6 @@ function MissionHud({
 	viewport,
 	inputMode,
 	telemetry,
-	throttle,
 	callout,
 	introduction,
 	damageFlash,
@@ -1399,7 +1404,6 @@ function MissionHud({
 	viewport: Vector2;
 	inputMode: InputMode;
 	telemetry: Telemetry;
-	throttle: number;
 	callout?: Callout;
 	introduction: boolean;
 	damageFlash: boolean;
@@ -1688,7 +1692,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const [busy, setBusy] = useState(false);
 	const [toast, setToast] = useState<ToastState | undefined>();
 	const [telemetry, setTelemetry] = useState(() => initialTelemetry(1));
-	const [throttle, setThrottleState] = useState(0.65);
 	const [outcome, setOutcome] = useState<OutcomeState>(() => ({
 		won: true, missionId: 1, airKills: 0, optionalKills: 0, groundKills: 0, elapsed: 0, par: MissionScore.ParSeconds(MissionCatalog.Get(1)),
 		completedPhases: 0, missilesFired: 0, missileHits: 0, damageTaken: 0, lowestHealth: 100, evades: 0,
@@ -1736,7 +1739,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const requestRef = useRef(0);
 	const busyRef = useRef(false);
 	const toastRef = useRef(0);
-	const throttleRef = useRef(0.65);
 	const selectedSlotRef = useRef(1);
 	const [confirmSlot, setConfirmSlot] = useState<number>();
 	const confirmSlotRef = useRef<number>();
@@ -1967,7 +1969,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			setSelectedMission(missionId);
 			changeScreen("briefing");
 		});
-	}, [applyResponseSlots, beginRequest, changeScreen, invoke, selectedSlot, showToast]);
+	}, [applyResponseSlots, beginRequest, changeScreen, invoke, showToast]);
 
 	const retryMission = useCallback(() => restartMission(selectedMissionRef.current), [restartMission]);
 	const nextMission = useCallback(() => restartMission(math.min(MISSION_COUNT,selectedMissionRef.current+1)), [restartMission]);
@@ -2277,8 +2279,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					});
 					return;
 				}
-				throttleRef.current = controller.GetThrottle();
-				setThrottleState(throttleRef.current);
 				changeScreen("mission");
 				// A menu opened or focus lost during loading/cutscene fires no new event once flight starts: pause now.
 				task.defer(() => { if (GuiService.MenuIsOpen || focusLostRef.current) pauseSortieRef.current(); });
@@ -2432,8 +2432,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				if (sampleClock >= 0.1) {
 					sampleClock = 0;
 					// A plain boolean read on the predicted state: no table copy, no pcall closure.
-					const actualThrottle = controller.GetThrottle();
-					if (math.abs(actualThrottle - throttleRef.current) > 0.005) { throttleRef.current = actualThrottle; setThrottleState(actualThrottle); }
 					const warning = controller.GetBoundaryWarning();
 					const current = telemetryRef.current;
 					if (warning !== (current.boundaryWarning === true)) {
@@ -2483,9 +2481,14 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		? scaleRectangle(getToastLayout(math.floor(viewport.X / hudScale), math.floor(viewport.Y / hudScale), undefined, inputMode, hudOptions), hudScale)
 		: getToastLayout(viewport.X, viewport.Y, menu), [inMission, viewport, hudScale, inputMode, hudOptions, menu]);
 	const activeFireNotice = fireNotice && now < fireNotice.until ? fireNotice.text : undefined;
-	const menuHints: ControlHint[] = [{ keyCode: "ButtonA", label: "A", action: "SELECT" }];
-	if (screen === "slots" || screen === "briefing") menuHints.push({ keyCode: "ButtonB", label: "B", action: "BACK" });
-	const menuHintsRectangle = getMenuHintsLayout(viewport.X, viewport.Y, menu);
+	const menuHints = useMemo(() => {
+		const hints: ControlHint[] = [{ keyCode: "ButtonA", label: "A", action: "SELECT" }];
+		if (screen === "slots" || screen === "briefing") hints.push({ keyCode: "ButtonB", label: "B", action: "BACK" });
+		return hints;
+	}, [screen]);
+	const menuHintsRectangle = useMemo(() => getMenuHintsLayout(viewport.X, viewport.Y, menu), [viewport, menu]);
+	const openPauseSettings = useCallback(() => setSettingsOpen(true), [setSettingsOpen]);
+	const closeSettings = useCallback(() => setSettingsOpen(false), [setSettingsOpen]);
 
 	return (
 		<InputModeContext.Provider value={inputMode}>
@@ -2504,7 +2507,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 						viewport={viewport}
 						inputMode={inputMode}
 						telemetry={telemetry}
-						throttle={throttle}
 						callout={callout}
 						introduction={telemetry.elapsed < 10 || now < hintUntil}
 						damageFlash={now < damageUntil}
@@ -2528,9 +2530,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 						onPause={pauseSortie}
 					/>
 					{screen === "mission" && paused && !settingsOpen && (
-						<PauseOverlay remaining={telemetry.pauseRemaining} viewport={viewport} onResume={resumeSortie} onSettings={() => setSettingsOpen(true)} onMenu={returnToMenu} />
+						<PauseOverlay remaining={telemetry.pauseRemaining} viewport={viewport} onResume={resumeSortie} onSettings={openPauseSettings} onMenu={returnToMenu} />
 					)}
-					{settingsOpen && <SettingsSheet viewport={viewport} settings={settings} onChange={changeSetting} onClose={() => setSettingsOpen(false)} />}
+					{settingsOpen && <SettingsSheet viewport={viewport} settings={settings} onChange={changeSetting} onClose={closeSettings} />}
 					<OutcomeScreen visible={screen === "outcome"} menu={menu} outcome={outcome} busy={busy} onRetry={retryMission} onReturn={returnToMenu} onNext={nextMission} />
 					<HintRow
 						name="MenuHints"
