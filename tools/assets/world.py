@@ -188,7 +188,7 @@ def hull_paint(top="#8b939a", deck="#4d5357", waterline=16.0, deck_edge=None, vl
 @builder
 def frigate():
     a = Asset("frigate", "Navy frigate", texture=512, tri_limit=6000, bump_distance=0.15, seed=21,
-              usage="M23 frigate ring (three hulls, one protected) and harbour dressing in Act III; WorldAssets.PlaceFrigate.")
+              usage="M23 frigate ring (three hulls, one protected) and harbour dressing in Act III; WorldAssets.Place(\"Frigate\", ...).")
     wl = 16.0
     D = 42.0  # main deck amidships: ~7 m freeboard over a 4.5 m draught
 
@@ -274,7 +274,7 @@ def frigate():
 @builder
 def oil_platform():
     a = Asset("oil-platform", "Offshore oil platform", texture=512, tri_limit=6000, bump_distance=0.15, seed=22,
-              usage="M23/M24 'ocean platform' rig: protected centrepiece and ground-target deck; WorldAssets.PlaceOilPlatform.")
+              usage="M23/M24 'ocean platform' rig: protected centrepiece and ground-target deck; WorldAssets.Place(\"OilPlatform\", ...).")
     wl = 60.0
     steel = a.zone("steel", Z.painted_metal("#c9b23c", rough=0.55, metal=0.3, rust=0.45, streak=0.4, panels=None))
     grey = a.zone("grey", Z.painted_metal("#8a8f92", rough=0.6, metal=0.4, rust=0.35, panels=8.0))
@@ -393,7 +393,7 @@ def oil_platform():
 @builder
 def harbour_quay():
     a = Asset("harbour-quay", "Harbour quay segment", texture=512, tri_limit=2500, bump_distance=0.12, seed=23,
-              usage="Open-piled quay segments for harbour missions (M19-M27); tile end to end along a coast. WorldAssets.PlaceQuay.")
+              usage="Open-piled quay segments for harbour missions (M19-M27); tile end to end along a coast. WorldAssets.Place(\"HarbourQuay\", ...).")
     wl = 40.0
 
     def quay_top(n, col):
@@ -477,7 +477,7 @@ def container_stack():
 @builder
 def gantry_crane():
     a = Asset("gantry-crane", "Ship-to-shore gantry crane", texture=512, tri_limit=2500, bump_distance=0.12, seed=25,
-              usage="Harbour skyline: line quays in M19-M27 (replaces Scenery.Crane); WorldAssets.PlaceGantryCrane.")
+              usage="Harbour skyline: line quays in M19-M27 (replaces Scenery.Crane); WorldAssets.Place(\"GantryCrane\", ...).")
     paint = a.zone("paint", Z.painted_metal("#b8452d", rough=0.55, metal=0.3, rust=0.35, panels=None))
     white = a.zone("white", Z.windows("#d4d4ce", "#22303a", bay=4.0, win=2.6, floor=12.0, win_h=3.0, z0=1e5, frame="#d4d4ce"))
     cab = a.zone("cab", Z.glass("#22303a", rough=0.15, metal=0.4))
@@ -538,7 +538,7 @@ def arch_band(a: Asset, name, zone, w, h, y0, y1, thick, segs=18):
 @builder
 def hangar():
     a = Asset("hangar", "Hardened aircraft shelter", texture=512, tri_limit=2500, bump_distance=0.12, seed=31,
-              usage="Airbase dressing at Varda (M1, M3, M4, M8): fits one Kestrel; WorldAssets.PlaceHangar.")
+              usage="Airbase dressing at Varda (M1, M3, M4, M8): fits one Kestrel; WorldAssets.Place(\"Hangar\", ...).")
     conc = a.zone("concrete", Z.concrete("#a29f97", joints=8.0, streak=0.45, dirt=0.45))
     door = a.zone("door", Z.corrugated("#5d6559", period=2.4, axis="u", rough=0.6, metal=0.5, rust=0.3, depth=0.6))
     dark = a.zone("dark", Z.painted_metal("#2b2e30", rough=0.7, metal=0.4, rust=0.3, panels=None))

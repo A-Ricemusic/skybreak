@@ -5,7 +5,7 @@ import { UploadedAssetName, UploadedAssetSpecs } from "../shared/UploadedAssetSp
 /**
  * Placement hooks for the uploaded world set (docs/roblox-asset-pipeline.md).
  *
- * World builders call e.g. `WorldAssets.PlaceFrigate(scene, cframe)` where
+ * World builders call e.g. `WorldAssets.Place("Frigate", scene, cframe)` where
  * `cframe` is the ground contact point (the waterline for the frigate, oil
  * platform and quay) with -Z as the asset's front. When the asset's ID is set
  * in RobloxAssetIds and loads, the uploaded model is cloned there. Otherwise a
@@ -157,21 +157,4 @@ export const WorldAssets = {
 	},
 	Place: place,
 	PlaceUploaded: placeUploaded,
-	PlaceFrigate: (parent: Instance, cframe: CFrame) => place("Frigate", parent, cframe),
-	PlaceOilPlatform: (parent: Instance, cframe: CFrame) => place("OilPlatform", parent, cframe),
-	PlaceQuay: (parent: Instance, cframe: CFrame) => place("HarbourQuay", parent, cframe),
-	PlaceContainerStack: (parent: Instance, cframe: CFrame) => place("ContainerStack", parent, cframe),
-	PlaceGantryCrane: (parent: Instance, cframe: CFrame) => place("GantryCrane", parent, cframe),
-	PlaceHangar: (parent: Instance, cframe: CFrame) => place("Hangar", parent, cframe),
-	PlaceControlTower: (parent: Instance, cframe: CFrame) => place("ControlTower", parent, cframe),
-	PlaceOffice: (parent: Instance, cframe: CFrame) => place("OfficeMidrise", parent, cframe),
-	PlaceApartmentBlock: (parent: Instance, cframe: CFrame) => place("ApartmentBlock", parent, cframe),
-	PlaceCityTower: (parent: Instance, cframe: CFrame) => place("CityTower", parent, cframe),
-	PlaceFarmhouse: (parent: Instance, cframe: CFrame) => place("Farmhouse", parent, cframe),
-	PlaceBarn: (parent: Instance, cframe: CFrame) => place("Barn", parent, cframe),
-	PlaceGrainSilo: (parent: Instance, cframe: CFrame) => place("GrainSilo", parent, cframe),
-	PlaceRadarDish: (parent: Instance, cframe: CFrame) => place("RadarDish", parent, cframe),
-	PlaceRelayMast: (parent: Instance, cframe: CFrame) => place("RelayMast", parent, cframe),
-	PlaceTree: (parent: Instance, cframe: CFrame, broadleaf = false) => place(broadleaf ? "Broadleaf" : "Pine", parent, cframe),
-	PlaceRock: (parent: Instance, cframe: CFrame, variant: 0 | 1 | 2 = 0) => place((["RockA", "RockB", "RockC"] as const)[variant], parent, cframe),
 };

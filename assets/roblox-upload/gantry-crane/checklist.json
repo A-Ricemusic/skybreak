@@ -3,7 +3,7 @@
   "title": "Ship-to-shore gantry crane",
   "variantOf": null,
   "robloxAssetType": "Model",
-  "usage": "Harbour skyline: line quays in M19-M27 (replaces Scenery.Crane); WorldAssets.PlaceGantryCrane.",
+  "usage": "Harbour skyline: line quays in M19-M27 (replaces Scenery.Crane); WorldAssets.Place(\"GantryCrane\", ...).",
   "generator": "tools/assets/build.py",
   "fbx": {
     "file": "gantry-crane.fbx",

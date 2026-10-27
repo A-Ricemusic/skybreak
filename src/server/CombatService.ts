@@ -117,6 +117,8 @@ export interface CombatSession {
 	chatterIndex: number;
 	/** Client stamp of the newest FlightInput, whether a step has used it yet, and how many fixed steps have. */
 	inputClientTime: number; inputFresh: boolean; inputSteps: number;
+	/** FlightInput token bucket: tokens left and when it was last refilled. */
+	inputTokens: number; inputTokensAt: number;
 	/** 20 Hz FlightState accumulator and packet sequences for both unreliable streams. */
 	stateTime: number; stateSequence: number; telemetrySequence: number;
 	/** Last HudState sent; a new one goes out (reliably) only when a field differs. */
@@ -241,6 +243,9 @@ const AVOID_EVERY = 3;
 const EVADE_ROLL = FlightPrediction.EvadeRollSeconds;
 const STATE_INTERVAL = 1 / 20;
 const TELEMETRY_INTERVAL = 0.1;
+/** FlightInput token bucket: the client sends at most 20 Hz; anything far above that is dropped. */
+const INPUT_RATE = 60;
+const INPUT_BURST = 10;
 function sessionAct(session: CombatSession): 1 | 2 | 3 {
 	return session.missionId <= 2 ? 1 : session.blueprint!.act;
 }
@@ -298,8 +303,7 @@ function lateralFor(state: FlightState, forward: Vector3): Vector3 {
 function unitOr(vector: Vector3, fallback: Vector3): Vector3 { return vector.Magnitude > 0.01 ? vector.Unit : fallback; }
 function point(vector: Vector3): { x: number; y: number; z: number } { return { x: vector.X, y: vector.Y, z: vector.Z }; }
 function ownsEnemy(session: CombatSession, enemy: Enemy | undefined): enemy is Enemy {
-	return enemy !== undefined && enemy.enabled && enemy.health > 0 && enemy.model.Parent === session.folder
-		&& enemy.model.GetAttribute("SkybreakOwner") === session.player.UserId;
+	return enemy !== undefined && enemy.enabled && enemy.health > 0 && enemy.model.Parent === session.folder;
 }
 function targetMetrics(session: CombatSession, enemy: Enemy): LuaTuple<[number, number]> {
 	const delta = enemy.position.sub(positionFor(session.state));
@@ -321,6 +325,16 @@ function sessionRequiredKills(session: CombatSession): number {
 	if (!state) return 0;
 	const ground = session.rules ? session.rules.groundKills : session.blueprintState!.requiredGroundKills;
 	return state.requiredAirKills + (state.aceKilled ? 1 : 0) + ground;
+}
+
+/** Every destruction, air and ground, required or optional. */
+function sessionAllKills(session: CombatSession): number {
+	return sessionRequiredKills(session) + (session.rules?.optionalAirKills ?? session.blueprintState?.optionalAirKills ?? 0);
+}
+/** Sync elapsed from whichever authoritative runner owns the mission. */
+function syncElapsed(session: CombatSession): void {
+	if (session.rules) session.elapsed = session.rules.elapsed;
+	else if (session.blueprintState) session.elapsed = session.blueprintState.elapsed;
 }
 
 function sessionGroundKills(session: CombatSession): number {
@@ -515,6 +529,12 @@ function sendHud(session: CombatSession, objective: ReturnType<typeof sessionObj
 	session.hud = hud;
 	missionState!.FireClient(session.player, hud);
 }
+/** Only the reliable HudState (radio, FIRE refusals, target, objective), sent at once if anything in it changed. */
+function sendHudNow(session: CombatSession): void {
+	if (session.player.Parent !== Players) return;
+	const target = ownsEnemy(session, session.target) ? session.target : undefined;
+	sendHud(session, sessionObjective(session), target, session.blueprintState ? BlueprintRunner.ActivePhase(session.blueprintState) : undefined);
+}
 /** 20 Hz authoritative flight state for the client's prediction (unreliable, ~100 bytes). */
 function sendFlightState(session: CombatSession): void {
 	if (session.player.Parent !== Players) return;
@@ -531,13 +551,14 @@ function radio(session: CombatSession, text: string, seconds?: number, priority 
 	session.radioSerial += 1;
 	session.radioSeconds = seconds;
 	session.radioPriority = priority;
-	if (session.active && sessions.get(session.player) === session) sendTelemetry(session);
+	// The line travels on HudState alone: the server keeps one radio slot, so it must go out now, but the 10 Hz numbers need not.
+	if (session.active && sessions.get(session.player) === session) sendHudNow(session);
 }
 /** Tell the HUD why a FIRE press did nothing; the serial makes every repeated press visible. */
 function denyFire(session: CombatSession, reason: FireNotice): void {
 	session.fireDenied = reason;
 	session.fireDeniedSerial = (session.fireDeniedSerial ?? 0) + 1;
-	if (session.active && sessions.get(session.player) === session) sendTelemetry(session);
+	if (session.active && sessions.get(session.player) === session) sendHudNow(session);
 }
 /** Catalog phase index that mirrors a legacy MissionRules phase, so missions 1-2 share the authored beats. */
 function legacyPhaseIndex(missionId: number, phase: MissionPhase): number | undefined {
@@ -650,9 +671,7 @@ function finish(session: CombatSession): void {
 	session.finished = true;
 	session.active = false;
 	completing.add(session.player);
-	// Sync elapsed from whichever authoritative runner owns the mission.
-	if (session.rules) session.elapsed = session.rules.elapsed;
-	else if (session.blueprintState) session.elapsed = session.blueprintState.elapsed;
+	syncElapsed(session);
 	// Every settlement step is protected: a throw anywhere still tears the world down and releases the player.
 	session.settleHooks = settlementHooks(session, outcome === "won");
 	Settlement.Begin(session.settlement, session.settleHooks);
@@ -662,8 +681,7 @@ function refreshSession(session: CombatSession, now: number): boolean {
 	// The mission clock is monotonic; never tick it while the client is still loading or the sortie is paused.
 	if (session.loading || PauseRules.Paused(session.pause)) return true;
 	sessionTick(session, now, session.health);
-	if (session.rules) session.elapsed = session.rules.elapsed;
-	else if (session.blueprintState) session.elapsed = session.blueprintState.elapsed;
+	syncElapsed(session);
 	if (sessionOutcome(session) !== undefined) { finish(session); return false; }
 	return true;
 }
@@ -953,8 +971,7 @@ function applyPhase(session: CombatSession): void {
 function destroyEnemy(session: CombatSession, enemy: Enemy): void {
 	if (!ownsEnemy(session, enemy)) return;
 	const accepted = sessionRecordKill(session, enemy.id, enemy.kind, enemy.required, os.clock());
-	if (session.rules) session.elapsed = session.rules.elapsed;
-	else if (session.blueprintState) session.elapsed = session.blueprintState.elapsed;
+	syncElapsed(session);
 	if (!accepted) { if (sessionOutcome(session) !== undefined) finish(session); return; }
 	enemy.health = 0;
 	enemy.enabled = false;
@@ -968,12 +985,7 @@ function destroyEnemy(session: CombatSession, enemy: Enemy): void {
 	else effect(session, enemy.kind, enemy.position, { velocity: enemy.velocity, model: enemy.model });
 	enemy.model.Destroy();
 	// Kills count every destruction, air and ground, so the HUD tally matches sessionTotalRequired.
-	if (session.rules) {
-		session.kills = session.rules.requiredAirKills + session.rules.optionalAirKills + (session.rules.aceKilled ? 1 : 0) + session.rules.groundKills;
-	} else if (session.blueprintState) {
-		const bs = session.blueprintState;
-		session.kills = bs.requiredAirKills + bs.optionalAirKills + (bs.aceKilled ? 1 : 0) + bs.requiredGroundKills;
-	}
+	if (session.rules || session.blueprintState) session.kills = sessionAllKills(session);
 	applyPhase(session);
 	// A kill can fill a raider cap or clear a hazard without a phase change.
 	publishDamageable(session);
@@ -1534,7 +1546,7 @@ function stepSession(session: CombatSession, dt: number): void {
 	if (session.blueprintState) {
 		const bs=session.blueprintState, nav=BlueprintRunner.NavigationPoint(bs);
 		let threats=0;
-		if (nav) for(const enemy of session.enemies) if(ownsEnemy(session,enemy) && enemy.kind !== "ground" && enemy.position.sub(new Vector3(nav.x,230,nav.z)).Magnitude < 650) threats++;
+		if (nav) { const navPoint=new Vector3(nav.x,230,nav.z); for(const enemy of session.enemies) if(ownsEnemy(session,enemy) && enemy.kind !== "ground" && enemy.position.sub(navPoint).Magnitude < 650) threats++; }
 		BlueprintRunner.ObserveFlight(bs,from,{x:session.state.x,y:session.state.y,z:session.state.z},dt,os.clock(),threats,Difficulty.Multiplier(session.difficulty,"protectDrain"));
 		if (bs.outcome !== undefined) {finish(session); return;}
 		applyPhase(session);
@@ -1664,15 +1676,17 @@ function pauseSession(session: CombatSession, now: number): void {
 }
 /**
  * CombatAction "Resume" (or the 5-minute budget running out): the mission clock moves its start
- * forward by the paused span, so no sortie time passed while paused.
+ * forward by the paused span, so no sortie time passed while paused. Returns whether it sent telemetry.
  */
-function resumeSession(session: CombatSession, now: number): void {
-	if (!PauseRules.Paused(session.pause)) return;
+function resumeSession(session: CombatSession, now: number): boolean {
+	if (!PauseRules.Paused(session.pause)) return false;
 	const shift = PauseRules.Resume(session.pause, now);
 	if (session.rules) session.rules.startedAt += shift;
 	if (session.blueprintState) session.blueprintState.startedAt += shift;
 	session.lastInput = now;
-	if (refreshSession(session, now)) { sendTelemetry(session); sendFlightState(session); }
+	if (!refreshSession(session, now)) return false;
+	sendTelemetry(session); sendFlightState(session);
+	return true;
 }
 
 // Clients supply validated controls and button events, never damage or results.
@@ -1682,7 +1696,6 @@ export const CombatService = {
 		if (session) cleanupSession(session);
 	},
 	GetSession(player: Player): CombatSession | undefined { return sessions.get(player); },
-	IsActive(player: Player): boolean { return sessions.get(player)?.active ?? false; },
 	StartMission(player: Player, slot: number, missionId = 1, special?: unknown, difficulty?: unknown): LuaTuple<[boolean, string?]> {
 		if (!missionState || !onFinished) return $tuple(false, "CombatService is not initialized");
 		if (!FlightMath.IsFinite(slot) || slot % 1 !== 0 || slot < 1 || slot > 4) return $tuple(false, "Choose a save slot from 1 to 4");
@@ -1727,7 +1740,7 @@ export const CombatService = {
 				difficulty: difficultyKind,
 				enemies: [], projectiles: [], telemetryTime: 0, lastInput: os.clock(), lastInputEvent: -math.huge,
 				active: true, finished: false, cleaned: false, previousReplicationFocus: player.ReplicationFocus,
-				inputClientTime: 0, inputFresh: false, inputSteps: 0, stateTime: 0, stateSequence: 0, telemetrySequence: 0,
+				inputClientTime: 0, inputFresh: false, inputSteps: 0, inputTokens: INPUT_BURST, inputTokensAt: os.clock(), stateTime: 0, stateSequence: 0, telemetrySequence: 0,
 				missilesFired: 0, missileHits: 0, flareBursts: 0, damageTaken: 0, lowestHealth: 100, evades: 0,
 				evade: EvadeRules.New(), guard: StepGuard.New(), pause: PauseRules.New(), pauseAck: 0, settlement: Settlement.New(),
 				banditSerial: 0, raiderSerial: 0, spawnSerial: 0, reinforceIndex: 0, airQueue: [], stepCount: 0,
@@ -1810,12 +1823,19 @@ export const CombatService = {
 			const session = sessions.get(player);
 			if (!session?.active || session.loading || session.guard.running || PauseRules.Paused(session.pause) || !typeIs(payload, "table")) return;
 			const now = os.clock();
-			if (!refreshSession(session, now)) return;
+			// Heartbeat runs refreshSession every frame, so this unguarded handler only takes input.
+			// A token bucket caps the packet rate whatever the stamps claim.
+			session.inputTokens = math.min(INPUT_BURST, session.inputTokens + (now - session.inputTokensAt) * INPUT_RATE);
+			session.inputTokensAt = now;
+			if (session.inputTokens < 1) return;
+			session.inputTokens -= 1;
 			const data = payload as { x?: unknown; y?: unknown; throttle?: unknown; t?: unknown; assist?: unknown };
 			if (!FlightMath.IsFinite(data.x) || !FlightMath.IsFinite(data.y) || !FlightMath.IsFinite(data.throttle)) return;
 			// Unreliable packets can arrive out of order or bunched together. Staleness is
 			// decided by the client's stamp first, so the newest of two packets that land in
-			// the same few milliseconds always wins (the client already caps its own rate).
+			// the same few milliseconds always wins. A repeated stamp is legitimate: stamps are
+			// fixed-step boundaries, so the first send after a resume reuses the frozen one.
+			// The per-session token bucket, not this check, limits floods.
 			// Unstamped packets keep the old 1/40 s floor.
 			const clientTime = FlightMath.IsFinite(data.t) && data.t > 0 ? data.t : 0;
 			if (clientTime > 0) {
@@ -1854,7 +1874,8 @@ export const CombatService = {
 					const serial = data.serial;
 					if (typeIs(serial, "number") && serial === serial && serial >= 0 && serial < 1e9) session.pauseAck = math.max(session.pauseAck, math.floor(serial));
 					if (action === "Pause") pauseSession(session, now);
-					else { resumeSession(session, now); sendTelemetry(session); }
+					// A resume that changed nothing still answers, so the telemetry carries pauseAck.
+					else if (!resumeSession(session, now)) sendTelemetry(session);
 					return;
 				}
 				if (PauseRules.Paused(session.pause) || !refreshSession(session, now)) return;
