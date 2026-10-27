@@ -943,7 +943,7 @@ function inBounds(point: FlightPoint): boolean {
 }
 function reinforceTotal(phase: MissionPhaseBlueprint): number {
 	let total = 0;
-	for (const wave of phase.reinforce ?? []) total += wave.count;
+	if (phase.reinforce) for (const wave of phase.reinforce) total += wave.count;
 	return total;
 }
 assert(MISSION_COUNT === 27, "Broken Relay must ship 27 missions");
