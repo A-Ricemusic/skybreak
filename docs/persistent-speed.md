@@ -76,9 +76,10 @@ the measured trend projects a stall. Terrain warning continues to take priority.
   still need engine-level acceptance. Ground/water remain fatal.
 - Loops/bounds: quaternion attitude and full pitch rates are retained. No
   950-stud forced nose-down exists. Upward translation eases between 3000 and
-  3600 studs without rotating attitude. Horizontal recovery remains at
-  2400/2800 studs. At cap the level turn radius is ~522 studs and a vertical
-  loop spans ~960 studs; the current small airspace makes high-speed boundary
+  3600 studs without rotating attitude. After rebasing on merged PR #55,
+  horizontal recovery uses the world-owned 3600/3800-stud soft/hard limits.
+  At cap the level turn radius is ~522 studs and a vertical
+  loop spans ~960 studs; the finite airspace makes high-speed boundary
   encounters frequent. World expansion must account for these dimensions.
 - Camera/FX/audio: FOV/chase-distance speed effect now spans cruise to cap;
   wind reaches full mix at 600 studs/s; vapor ramps from 120 to 320 studs/s.
@@ -146,3 +147,8 @@ flight acceptance (5.6), use real keyboard, physical gamepad and touch:
    courier and ace missions at default and high selection on all difficulties.
 
 Parent review and actual flight acceptance are required before merge.
+
+## PR54 tutorial and boundary followup
+
+See [tutorial-flight-recheck.md](tutorial-flight-recheck.md) for the current-main
+rebase, loaded-code reconciliation, live speed matrix, M1 evidence and limitations.

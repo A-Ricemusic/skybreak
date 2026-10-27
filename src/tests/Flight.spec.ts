@@ -126,13 +126,38 @@ describe("numeric arcade flight rules", () => {
 		expect(fast.y).toBeGreaterThan(250);
 	});
 	it("holds selection on release, deadzone, invalid input and interruption", () => {
-		for (const mph of [75, 150, 800, 1250, 2200, 3000]) {
+		for (const mph of [75, 150, 800, 980, 1900, 2200, 3000]) {
 			const chosen = FlightMath.ThrottleForSpeed(FlightMath.FromMph(mph));
 			for (const axis of [0, .17, -.17, 0 / 0]) expect(FlightMath.AdjustThrottle(chosen, axis, .1)).toBe(chosen);
 			const state = FlightMath.FromPose(0, 1500, 0, 0, 0, FlightMath.SpeedForThrottle(chosen));
 			for (let i = 0; i < 90; i++) FlightMath.Step(state, {x: 0, y: 0, throttle: chosen}, 1 / 30);
 			if (mph >= 150) expect(FlightMath.ToMph(state.speed)).toBeCloseTo(mph, 5);
 			else expect(state.speed).toBeGreaterThanOrEqual(FlightMath.MinSpeed);
+		}
+	});
+	it("travels 640 studs in four seconds at the 800 mph selection", () => {
+		const state = FlightMath.NewState();
+		for (let i = 0; i < 120; i++) FlightMath.Step(state, {x: 0, y: 0, throttle: FlightMath.CruiseThrottle}, 1 / 30);
+		expect(state.z).toBeCloseTo(500 - 640, 5);
+		expect(state.speed).toBe(160);
+	});
+	it("retains level altitude and selected speed through repeated world-edge recovery", () => {
+		for (const mph of [800, 980, 1900, 3000]) for (const dt of [1 / 60, 1 / 30, .1]) {
+			const speed = FlightMath.FromMph(mph);
+			for (const sign of [-1, 1]) {
+				const state = FlightMath.FromPose(0, 1500, sign * (FlightMath.SoftBoundary - 100), sign > 0 ? math.pi : 0, 0, speed);
+				const throttle = FlightMath.ThrottleForSpeed(speed);
+				let returned = false;
+				for (let i = 0; i < math.round(30 / dt); i++) {
+					FlightMath.Step(state, {x: 0, y: 0, throttle}, dt);
+					expect(state.y).toBeCloseTo(1500, 5);
+					expect(state.speed).toBeCloseTo(speed, 5);
+					expect(math.abs(state.x)).toBeLessThanOrEqual(FlightMath.HardBoundary);
+					expect(math.abs(state.z)).toBeLessThanOrEqual(FlightMath.HardBoundary);
+					if (sign * state.z < FlightMath.SoftBoundary - 200) returned = true;
+				}
+				expect(returned).toBe(true);
+			}
 		}
 	});
 	it("integrates held acceleration and braking consistently across frame rates and caps", () => {
