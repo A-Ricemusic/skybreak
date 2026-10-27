@@ -17,8 +17,9 @@ import { HUD, HUD_FONT_BOLD } from "./Theme";
 import { evadeGauge } from "../shared/EvadeGauge";
 import { terrainProbeLength, terrainSeconds } from "../shared/FlightWarnings";
 import type { RadarContact, RadarContactKind } from "../shared/RadarMath";
-import { TARGET_CAPTION_GAP, TARGET_CAPTION_HEIGHT, TARGET_CAPTION_WIDTH, TargetBoxes, type CaptionSpot, type SelectedStyle } from "../shared/TargetBoxes";
+import { TARGET_BOX_SELECTED_MIN, TARGET_CAPTION_GAP, TARGET_CAPTION_HEIGHT, TARGET_CAPTION_WIDTH, TargetBoxes, type CaptionSpot, type SelectedStyle } from "../shared/TargetBoxes";
 import type { HudLayout } from "../shared/UILayout";
+import { viewportOrigin, viewportPosition } from "./ViewportGui";
 import { TargetBoxOverlay } from "./TargetBoxOverlay";
 
 let activeController: FlightController | undefined;
@@ -83,14 +84,14 @@ function stateFrom(frame: CFrame): FlightState {
 	const [right, up, back] = [frame.RightVector, frame.UpVector, frame.LookVector.mul(-1)];
 	return FlightMath.SetBasis(state, right.X, right.Y, right.Z, up.X, up.Y, up.Z, back.X, back.Y, back.Z);
 }
-function createTargetCue(playerGui: Instance): [ScreenGui, Frame, UIStroke, TextLabel, TextLabel] {
+export function createTargetCue(playerGui: Instance): [ScreenGui, Frame, UIStroke, TextLabel, TextLabel] {
 	const gui = new Instance("ScreenGui");
 	gui.Name = "SkybreakFlightTargeting";
 	gui.IgnoreGuiInset = true;
 	gui.ResetOnSpawn = false;
 	gui.DisplayOrder = 8;
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling;
-	// Full viewport, so WorldToViewportPoint positions map 1:1 onto it.
+	// Full viewport; ViewportGui maps camera pixels to the measured GUI space.
 	gui.ScreenInsets = Enum.ScreenInsets.None;
 	gui.Parent = playerGui;
 	const bracket = new Instance("Frame");
@@ -524,8 +525,8 @@ export class FlightController {
 			this.boxes.SetPlacement([], TargetBoxes.Bounds(viewport.X, viewport.Y));
 			return;
 		}
-		// Both GUIs report AbsolutePosition in the same space; the difference is the HUD root's viewport origin.
-		const origin = anchor.AbsolutePosition.sub(gui.AbsolutePosition);
+		// Keep-outs stay in viewport pixels, independently of the targeting GUI origin.
+		const origin = viewportOrigin(anchor);
 		if (!this.keepoutDirty && origin === this.keepoutOrigin && viewport === this.keepoutViewport) return;
 		this.keepoutDirty = false; this.keepoutOrigin = origin; this.keepoutViewport = viewport;
 		const root = this.keepoutRoot;
@@ -593,7 +594,7 @@ export class FlightController {
 		const locked = style.locked;
 		const range = worldPosition.sub(this.visualFrame.Position).Magnitude;
 		// Same size rule as every other box (a touch tighter once locked), kept readable when far.
-		const boxSize = locked ? math.max(math.floor(TargetBoxes.Size(range, size.Y, true) * 0.85), 26) : TargetBoxes.Size(range, size.Y, true);
+		const boxSize = locked ? math.max(math.floor(TargetBoxes.Size(range, size.Y, true) * 0.85), TARGET_BOX_SELECTED_MIN) : TargetBoxes.Size(range, size.Y, true);
 		// Drawn anywhere it fits in the safe area clear of the touch controls; otherwise the edge arrow points to it.
 		const bounds = this.boxes.GetBounds(), keepouts = this.boxes.GetKeepouts();
 		const inside = visible && bounds !== undefined && TargetBoxes.Fits(screen.X, screen.Y, boxSize, bounds, keepouts);
@@ -610,7 +611,7 @@ export class FlightController {
 		const blink = locked || TargetBoxes.BlinkOn(os.clock());
 		if (blink !== this.cueBlink) { this.cueBlink = blink; this.bracketStroke!.Transparency = blink ? 0 : BLINK_OFF; }
 		if (inside) {
-			bracket.Position = UDim2.fromOffset(screen.X, screen.Y);
+			bracket.Position = viewportPosition(this.targetGui!, screen.X, screen.Y);
 			if (boxSize !== this.cueSize) { this.cueSize = boxSize; bracket.Size = UDim2.fromOffset(boxSize, boxSize); }
 			// The caption goes under the box, over it, or slides in from an edge; where none of those clears the
 			// safe area and the touch controls it is dropped (the box colour still tells the lock state).
@@ -643,7 +644,7 @@ export class FlightController {
 			const halfX = math.max(1, size.X / 2 - safeX);
 			const halfY = math.max(1, size.Y / 2 - safeY);
 			const extent = 1 / math.max(math.abs(dx) / halfX, math.abs(dy) / halfY);
-			arrow.Position = UDim2.fromOffset(size.X / 2 + dx * extent, size.Y / 2 + dy * extent);
+			arrow.Position = viewportPosition(this.targetGui!, size.X / 2 + dx * extent, size.Y / 2 + dy * extent);
 			arrow.Rotation = math.deg(math.atan2(dy, dx)) + 90;
 			const text = ground ? (required ? "◆" : "◇") : required ? "▲" : "△";
 			if (text !== this.arrowText) { this.arrowText = text; arrow.Text = text; }
@@ -687,7 +688,7 @@ export class FlightController {
 				const required = child.GetAttribute("RequiredTarget") === true;
 				const text = inside ? (ground ? (required ? "◆" : "◇") : required ? "▲" : "△") : (ground ? "◆" : "▲");
 				if (inside) {
-					label.Position = UDim2.fromOffset(screen.X, screen.Y);
+					label.Position = viewportPosition(gui, screen.X, screen.Y);
 					label.Rotation = 0;
 					label.TextSize = 16;
 				} else {
@@ -698,7 +699,7 @@ export class FlightController {
 					dx /= length; dy /= length;
 					// Slightly inside the selected target's arrow ring so the two never stack.
 					const extent = 0.9 / math.max(math.abs(dx) / halfX, math.abs(dy) / halfY);
-					label.Position = UDim2.fromOffset(size.X / 2 + dx * extent, size.Y / 2 + dy * extent);
+					label.Position = viewportPosition(gui, size.X / 2 + dx * extent, size.Y / 2 + dy * extent);
 					label.Rotation = math.deg(math.atan2(dy, dx)) + 90;
 					label.TextSize = 18;
 				}

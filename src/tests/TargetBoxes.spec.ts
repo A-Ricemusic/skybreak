@@ -63,6 +63,10 @@ describe("target box validity", () => {
 });
 
 describe("target box size", () => {
+	it("caps close contacts at 40px and preserves a compact selected marker", () => {
+		expect(TargetBoxes.Size(100, 1080)).toBe(40);
+		expect(TargetBoxes.Size(10000, 1080, true)).toBe(24);
+	});
 	it("shrinks with distance between the min and max", () => {
 		const near = TargetBoxes.Size(150, 390);
 		const mid = TargetBoxes.Size(400, 390);
