@@ -13,6 +13,8 @@ from pathlib import Path
 import urllib.error
 import urllib.request
 
+from _http import NoRedirect
+
 spec = importlib.util.spec_from_file_location("target", Path(__file__).with_name("verify-roblox-target.py"))
 target = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(target)
@@ -23,11 +25,6 @@ ASSET_IDS = (96143096268975, 72249736253176, 70686186147484,
              119891912328421, 103061867054487, 78239725791801, 119485031741286)
 ENDPOINT = "https://apis.roblox.com/asset-permissions-api/v1/assets/permissions"
 MAX_RESPONSE_BYTES = 65536
-
-
-class NoRedirect(urllib.request.HTTPRedirectHandler):
-    def redirect_request(self, req, fp, code, msg, headers, newurl):
-        return None
 
 
 def grant_request(key):

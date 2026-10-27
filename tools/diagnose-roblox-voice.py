@@ -17,6 +17,8 @@ from pathlib import Path
 import urllib.error
 import urllib.request
 
+from _http import NoRedirect
+
 spec = importlib.util.spec_from_file_location("target", Path(__file__).with_name("verify-roblox-target.py"))
 target = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(target)
@@ -25,11 +27,6 @@ VOICE_IDS = (
     "96143096268975", "72249736253176", "70686186147484",
     "112591774159889", "119322000491190", "115928309099950",
 )
-
-
-class NoRedirect(urllib.request.HTTPRedirectHandler):
-    def redirect_request(self, req, fp, code, msg, headers, newurl):
-        return None  # Never forward the API key to another URL.
 
 
 def probe(asset_id, key, opener):
