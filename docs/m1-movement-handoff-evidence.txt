@@ -1,0 +1,44 @@
+M1 movement-to-target handoff regression evidence
+
+Before: on 7085216 (PR70), the standalone Luau fixture completed both movement
+credits from an inverted descending pose, entered tutorial_target, and then
+integrated the unchanged flight model below 12 studs. Baseline run: 539 passed,
+0 failed (includes the reproduction). This is an offline simulation, not the
+reported real-input playtest and not a Roblox collision/runtime pass.
+
+After: TutorialHandoff.spec.ts exercises the server order (observe controls,
+apply one handoff decision, filter raw input, integrate FlightMath), including
+inverted, steep up/down, low level and insufficient descent headroom. Safe
+250-stud gentle flight matches an unrecovered flight path exactly. Six seconds
+of held pitch/turn cannot reapply the dive; all axes must center below 0.15.
+Tests also cover once-only recovery, progress/clock/throttle preservation,
+phase boundaries, client prediction history/correction reset, stale packets,
+repeated recovery epochs and loss of the first recovery packet.
+
+Bounds: one decision only when M1 enters tutorial_target. Preserve gentle flight
+within 20 degrees pitch / 45 degrees bank, inside +/-3000 horizontal studs and
+above 225 studs plus two seconds of downward travel. Unsafe flight uses the
+existing practice recovery pose (0,800,500), upright and heading toward the
+radar. The server checks the destination surface height and two seconds of
+level travel at maximum speed using actual session collision filters, trying
+800..2000 altitude in 200-stud increments, then failing closed if none is clear.
+The 225-stud floor clears authored 125-stud rim hills with 100 studs of margin;
+the initial 800-stud recovery gives space to read the priority radio notice.
+
+The player sees a deliberate safety reposition only for unsafe completion and
+"Safety recovery: upright; progress/speed saved. Release ALL turn/pitch holds
+or center sticks, then TGT." A release latch, rather than a timed input zero,
+blocks existing steering holds until neutral. It is confined to target/missile
+practice and always disappears before the bandit beat. It never resets mission
+time, changes throttle or airspeed at recovery, restores hull, repeats recovery,
+or changes existing collision practice resets / live combat protection. It
+is not an ongoing level assist: stall/flight physics and fresh input still apply.
+
+Validation: bun run build and the official standalone Luau offline domain suite
+passed, 548 tests / 0 failures. git diff --check passed. No Studio, Rojo server,
+full engine, publish/upload, real keyboard, controller or touch testing was run.
+Engine corridor/overlap checks, camera feel, notice readability and real held
+input acceptance remain for the parent's dedicated engine acceptance pass.
+
+Historical result correction: the prior M1 playtest result was 4 TOTAL kills
+(including 1 ground), 94 hull; it was not 4 air kills plus a ground target.
