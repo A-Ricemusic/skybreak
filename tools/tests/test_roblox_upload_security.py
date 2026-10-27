@@ -9,6 +9,7 @@ import io
 import json
 import os
 from pathlib import Path
+import ssl
 import sys
 import tempfile
 import traceback
@@ -56,7 +57,10 @@ class HttpSecurityTests(NoNetworkTests):
 
     def test_default_opener_keeps_verified_https_handler(self):
         https = next(handler for handler in _http.OPENER.handlers if isinstance(handler, urllib.request.HTTPSHandler))
-        self.assertIsNone(https._context)  # urllib's default verified context.
+        context = https._context  # None (older Python) means urllib's default verified context.
+        if context is not None:
+            self.assertEqual(context.verify_mode, ssl.CERT_REQUIRED)
+            self.assertTrue(context.check_hostname)
         self.assertTrue(any(isinstance(handler, _http.NoRedirect) for handler in _http.OPENER.handlers))
 
     def test_safe_get_retries_429_and_503_with_backoff(self):
