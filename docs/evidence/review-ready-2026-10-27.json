@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-27",
+  "gameplayCommit": "8d666690ebb4b4fa520219dc48969a370ddb8fc9",
+  "buildPlace": "passed; eight-script voice artifact gate passed",
+  "offlineDomain": {
+    "passed": 538,
+    "failed": 0
+  },
+  "audioLifecycleSimulation": {
+    "passed": 10,
+    "failed": 0
+  },
+  "voiceConsumerSimulation": {
+    "passed": 8,
+    "failed": 0
+  },
+  "pythonToolTests": {
+    "passed": 20,
+    "failed": 0
+  },
+  "engine": {
+    "total": 676,
+    "success": true,
+    "suites": 57,
+    "passed": 676,
+    "failed": 0,
+    "durationSeconds": 190.83,
+    "filtered": false
+  },
+  "generatedDocs": {
+    "relayTables": "matched",
+    "worldCounts": "matched"
+  },
+  "notValidated": [
+    "human gameplay",
+    "physical phone/controller input",
+    "cloud save/rejoin",
+    "published audible playback",
+    "sustained device performance",
+    "fresh full campaign runtime playthrough"
+  ],
+  "prClosures": [
+    3,
+    4,
+    5,
+    6,
+    29,
+    42
+  ],
+  "branchesDeleted": false
+}
