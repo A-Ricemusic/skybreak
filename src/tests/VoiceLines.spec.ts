@@ -1,5 +1,6 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { MISSIONS, MissionCatalog, MissionPhaseBlueprint } from "../shared/MissionCatalog";
+import { MissionRules } from "../shared/MissionRules";
 import { STORY, speakerStyle } from "../shared/RelayStory";
 import { VOICE_BANK_ASSETS } from "../shared/VoiceBanks";
 import { VOICE_CUES, VoiceCue } from "../shared/VoiceCues";
@@ -79,6 +80,7 @@ describe("shipped voice table", () => {
 		// long-hold instructions over the new subtitles. Asset generation is a separate task.
 		const subtitleOnly = new Set(MissionCatalog.Get(1).phases.map(phase => phase.beat!));
 		expect(subtitleOnly.size()).toBe(4);
+		for (const text of [MissionRules.LiveWarning, MissionRules.PracticeReset]) expect(Voice.Radio(text)).toBeUndefined();
 		for (const text of texts) {
 			if (subtitleOnly.has(text)) expect(Voice.Radio(text)).toBeUndefined();
 			else expect(Voice.RadioId(text) !== undefined ? text : `UNMAPPED ${text}`).toBe(text);

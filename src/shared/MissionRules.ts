@@ -68,6 +68,8 @@ export const MissionRules = {
 	MovementDuration: 3,
 	TeachMinimum: TEACH_MINIMUM,
 	BanditBeat: BANDIT_BEAT,
+	LiveWarning: "Protection OFF now: impacts fatal. LOCK, fire; EVADE / F / B missiles.",
+	PracticeReset: "Practice reset; progress saved. Release holds; opposite pitch levels.",
 	NewState(missionId: number, startedAt: number): MissionRuleState {
 		assert(missionId === 1 || missionId === 2, "Unknown mission");
 		assert(finite(startedAt), "Mission clock must be finite");
@@ -99,10 +101,11 @@ export const MissionRules = {
 		if (state.outcome === undefined && state.phase === "tutorial_target") { state.cycled = true; advanceTutorial(state); }
 	},
 	/** Practice impacts restart the approach without erasing progress or changing selected speed.
-	 * Protection ends at the live-fight warning, before bandits launch. */
+	 * Protection includes the pre-bandit grace and ends exactly when bandits are due. */
 	RecoverPractice(state: MissionRuleState, flight: FlightState): boolean {
 		if (state.missionId !== 1 || state.outcome !== undefined
-			|| (state.phase !== "tutorial_move" && state.phase !== "tutorial_target" && state.phase !== "tutorial_missile")) return false;
+			|| (state.phase !== "tutorial_move" && state.phase !== "tutorial_target" && state.phase !== "tutorial_missile"
+				&& !(state.phase === "tutorial_bandits" && state.banditsDueAt !== undefined && state.elapsed < state.banditsDueAt))) return false;
 		flight.x = 0; flight.y = 800; flight.z = 500; flight.lean = 0;
 		FlightMath.SetAttitude(flight, 0, 0);
 		return true;
@@ -148,6 +151,7 @@ export const MissionRules = {
 		if (phase === "tutorial_move") return { objective: "Tap turn and pitch; release to hold, opposite input to level", objectiveProgress: math.floor(state.turnObserved + 1e-6) + math.floor(state.pitchObserved + 1e-6), objectiveTotal: MissionRules.MovementDuration * 2, tutorialStep: "move" };
 		if (phase === "tutorial_target") return { objective: "Press TGT to select the practice target", objectiveProgress: state.cycled ? 1 : 0, objectiveTotal: 1, tutorialStep: "target" };
 		if (phase === "tutorial_missile") return { objective: "Aim at the practice target, wait for lock, then fire a missile", objectiveProgress: state.groundKills, objectiveTotal: 1, tutorialStep: "missile" };
+		if (phase === "tutorial_bandits" && !MissionRules.BanditsDue(state)) return { objective: "Protection ends when bandits arrive; prepare to fight", objectiveProgress: 0, objectiveTotal: 3, tutorialStep: "" };
 		if (phase === "tutorial_bandits") return { objective: "Live flight: select a bandit, aim for LOCK, fire; EVADE incoming missiles", objectiveProgress: state.requiredAirKills, objectiveTotal: 3, tutorialStep: "" };
 		if (phase === "intercept") return { objective: "Shoot down all three bandits", objectiveProgress: state.requiredAirKills, objectiveTotal: 3, tutorialStep: "" };
 		if (phase === "warehouses") return { objective: "Destroy all five warehouses; raiders may chase you", objectiveProgress: state.groundKills, objectiveTotal: 5, tutorialStep: "" };

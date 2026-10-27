@@ -331,3 +331,9 @@ At Act III missile speed (740) the window means pressing when the missile is ins
 | Behaviour | — | — | every bandit breaks close locks and carries a flare; aces fire two missiles per windup; every raider wave brings one more, and the live-aircraft budget rises from 7 to 8 to match |
 
 Damage, windup, missile turn, ace hull, break odds and score multipliers are unchanged from the difficulty selector (#33).
+
+### Mission 1 safety transition
+
+Practice impacts preserve speed and lesson progress through the four-second pre-bandit grace. The grace notice interrupts queued subtitles and stops any playing or loading radio voice immediately. It states that protection ends on bandit arrival. Resets during grace do not emit reset chatter. At the authoritative arrival deadline, the server sends a priority “Protection OFF now” notice before spawning bandits and checking collisions; the first impact at or after that deadline is fatal. Priority notices clear stale backlog and keep their full display duration. These revised instructions are subtitle-only until matching recordings exist.
+
+Offline regression executes lesson progression, the 2.40-second reset / 2.41-second radar kill / 2.50-second transition, real RadioQueue behavior with subtitle and long voiced backlog, grace recovery, and the exact expiry collision decision. Remaining live validation: normal-menu M1 with an impact during grace and at arrival, checking remote delivery, subtitle redraw, cancellation of playing/loading audio, and collision sweep behavior. Network delivery latency is not measured offline.

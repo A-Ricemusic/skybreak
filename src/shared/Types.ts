@@ -112,6 +112,7 @@ export interface HudState {
 	radio?: string;
 	radioSerial?: number;
 	radioSeconds?: number;
+	radioPriority?: boolean;
 	fireDenied?: FireNotice;
 	fireDeniedSerial?: number;
 	/** Equipped special weapon (SpecialWeapons kind); constant for the sortie. */
@@ -201,6 +202,7 @@ export interface Telemetry {
 	targetHealth?: number;
 	/** How long the HUD should hold `radio` (seconds); the HUD default applies when absent. */
 	radioSeconds?: number;
+	radioPriority?: boolean;
 	/** Why the latest FIRE or SPECIAL press was refused; `fireDeniedSerial` increments on every refusal. */
 	fireDenied?: FireNotice;
 	/** Second weapon slot: equipped kind, charges left, seconds until the next use, seconds of effect remaining. */

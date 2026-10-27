@@ -260,7 +260,7 @@ export const MISSIONS: MissionBlueprint[] = [
 			{ kind: "tutorial_move", label: "Practice short turn and pitch taps", tutorialStep: "move", beat: "Tap turn and pitch briefly. Three seconds TOTAL each; impacts reset you." },
 			{ kind: "tutorial_target", label: "Cycle to the training target", tutorialStep: "target", beat: "Select radar: TGT / Tab / Y. Follow marker; turn back if you pass it." },
 			{ kind: "tutorial_missile", label: "Lock and hit the training radar", tutorialStep: "missile", count: 1, beat: "Aim for LOCK, then FIRE / Space / RT. Pull up after firing." },
-			{ kind: "required_air", label: "Intercept three bandits", count: 3, beat: "Live flight: impacts fatal. Select, LOCK, fire. EVADE / F / B missiles." },
+			{ kind: "required_air", label: "Intercept three bandits", count: 3, beat: "Bandits in 4s. Protection ends on arrival; impacts then fatal." },
 		],
 		[{ asset: "radar", name: "TRAINING RADAR", x: 0, z: -850 }],
 		{ legacy: 1 },

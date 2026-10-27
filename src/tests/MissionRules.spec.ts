@@ -1,4 +1,6 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
+import { RadioQueue } from "../shared/RadioQueue";
+import { MissionCatalog } from "../shared/MissionCatalog";
 import { FlightMath } from "../shared/FlightMath";
 import { MissionRules, MissionRuleState } from "../shared/MissionRules";
 
@@ -294,5 +296,46 @@ describe("M1 practice safety with current flight parameters (numeric simulation)
 		rules.phase = "tutorial_move"; rules.outcome = "failed";
 		expect(MissionRules.RecoverPractice(rules, flight)).toBe(false);
 		expect(MissionRules.RecoverPractice(MissionRules.NewState(2, 0), flight)).toBe(false);
+	});
+});
+
+
+describe("tutorial safety delivery through the HUD radio queue", () => {
+	for (const voice of [undefined, 12]) it(`interrupts reset and backlog with voice=${voice}, protecting until arrival`, () => {
+		const rules = MissionRules.NewState(1, 0), queue = new RadioQueue();
+		teachMovement(rules);
+		MissionRules.CycleTarget(rules, rules.elapsed);
+		MissionRules.Tick(rules, rules.elapsed + MissionRules.TeachMinimum);
+		expect(rules.phase).toBe("tutorial_missile");
+		const start = rules.elapsed;
+		const flight = FlightMath.FromPose(300, 0, -900, 2, -1, 600, 2);
+		MissionRules.Tick(rules, start + 2.40);
+		expect(MissionRules.RecoverPractice(rules, flight)).toBe(true);
+		queue.Push(MissionRules.PracticeReset, 4.5, rules.elapsed, voice);
+		queue.Push("old chatter", 6, rules.elapsed, 15);
+		expect(MissionRules.RecordKill(rules, "radar", "ground", true, start + 2.41)).toBe(true);
+		MissionRules.Tick(rules, start + 2.50);
+		expect(rules.phase).toBe("tutorial_bandits");
+		const warning = MissionCatalog.Get(1).phases[3].beat!;
+		queue.Push(warning, MissionRules.BanditBeat, rules.elapsed, undefined, true);
+		expect(queue.Current(rules.elapsed)?.text).toBe(warning);
+		expect(queue.Waiting()).toBe(0);
+		// Normal chatter cannot displace a safety notice after the usual 2.5 s minimum.
+		queue.Push("ordinary chatter", 4.5, rules.elapsed + 0.1);
+		MissionRules.Tick(rules, start + 6.49);
+		expect(MissionRules.RecoverPractice(rules, flight)).toBe(true);
+		expect(queue.Current(rules.elapsed)?.text).toBe(warning);
+		expect(MissionRules.BanditsDue(rules)).toBe(false);
+		expect(flight.speed).toBe(600);
+		expect(rules.groundKills).toBe(1);
+		MissionRules.Tick(rules, start + 6.50);
+		expect(MissionRules.BanditsDue(rules)).toBe(true);
+		queue.Push(MissionRules.LiveWarning, 6, rules.elapsed, undefined, true);
+		expect(queue.Current(rules.elapsed)?.text).toBe(MissionRules.LiveWarning);
+		expect(queue.Waiting()).toBe(0);
+		// This is the collision branch used by stepSession: the first live hit must fail.
+		expect(MissionRules.RecoverPractice(rules, flight)).toBe(false);
+		MissionRules.Tick(rules, rules.elapsed, 0);
+		expect(rules.reason).toBe("destroyed");
 	});
 });
