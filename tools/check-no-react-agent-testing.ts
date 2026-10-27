@@ -2,14 +2,44 @@
 // (formerly react-agent-testing/) was intentionally removed. Fail if it, or a web
 // React/DOM browser-test stack, is re-added to any tracked path. Roblox UI/tests
 // use @rbxts/react, @rbxts/react-roblox and @rbxts/jest*, which are allowed.
+// Runs in validate:offline and in the always-on no-react-agent-testing workflow;
+// needs only git and bun (no bun install).
 import { resolve } from "node:path";
 
 const root = resolve(import.meta.dir, "..");
 const FORBIDDEN_DIR = "react-agent-testing";
-const FORBIDDEN_DEPS = new Set(["react", "react-dom", "@vitejs/plugin-react", "playwright", "@playwright/test", "vite"]);
+const FORBIDDEN_DEPS = new Set([
+	"react",
+	"react-dom",
+	"@types/react",
+	"@types/react-dom",
+	"@vitejs/plugin-react",
+	"vite",
+	"vitest",
+	"playwright",
+	"playwright-core",
+	"@playwright/test",
+	"@playwright/experimental-ct-react",
+	"@testing-library/react",
+	"@testing-library/dom",
+	"react-scripts",
+	"next",
+	"@modelcontextprotocol/sdk",
+]);
 const DEP_FIELDS = ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"] as const;
 const REMOVED =
 	"The React agent testing harness (react-agent-testing/, React + Codex/Playwright browser tests) was intentionally removed and must not be re-added. Roblox tests use @rbxts/jest via `bun run test:roblox`.";
+
+/** Returns the forbidden package a dependency resolves to, following `npm:` aliases; @rbxts/* is never flagged. */
+function forbiddenTarget(name: string, spec: unknown): string | undefined {
+	const candidates = [name.toLowerCase()];
+	if (typeof spec === "string" && spec.toLowerCase().startsWith("npm:")) {
+		const target = spec.slice(4).trim().toLowerCase();
+		const at = target.lastIndexOf("@");
+		candidates.push(at > 0 ? target.slice(0, at) : target);
+	}
+	return candidates.find((pkg) => !pkg.startsWith("@rbxts/") && FORBIDDEN_DEPS.has(pkg));
+}
 
 const proc = Bun.spawnSync(["git", "ls-files", "-z", "--cached"], { cwd: root });
 if (proc.exitCode !== 0) throw new Error(`git ls-files failed: ${proc.stderr.toString()}`);
@@ -20,18 +50,26 @@ const tracked = proc.stdout
 
 const errors: string[] = [];
 for (const path of tracked) {
-	const segments = path.split("/");
+	const segments = path.toLowerCase().split("/");
 	if (segments.includes("node_modules")) continue;
 	if (segments.includes(FORBIDDEN_DIR)) errors.push(`tracked path ${path}`);
 	if (segments[segments.length - 1] !== "package.json") continue;
 	const file = Bun.file(resolve(root, path));
 	if (!(await file.exists())) continue; // deleted in the working tree
-	const manifest = (await file.json()) as Record<string, unknown>;
+	let manifest: Record<string, unknown>;
+	try {
+		manifest = (await file.json()) as Record<string, unknown>;
+	} catch {
+		errors.push(`${path} is not valid JSON (cannot verify dependencies)`);
+		continue;
+	}
 	for (const field of DEP_FIELDS) {
 		const deps = manifest[field];
 		if (typeof deps !== "object" || deps === null) continue;
-		for (const name of Object.keys(deps)) {
-			if (FORBIDDEN_DEPS.has(name)) errors.push(`${path} ${field} -> ${name}`);
+		for (const [name, spec] of Object.entries(deps)) {
+			const target = forbiddenTarget(name, spec);
+			if (target === undefined) continue;
+			errors.push(`${path} ${field} -> ${name}${target === name.toLowerCase() ? "" : ` (alias of ${target})`}`);
 		}
 	}
 }
