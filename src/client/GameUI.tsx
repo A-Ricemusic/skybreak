@@ -1,3 +1,4 @@
+import { DeletionObservation } from "../shared/DeletionObservation";
 import { stickVector, TouchSticks } from "../shared/TouchSticks";
 import { FlightMath } from "../shared/FlightMath";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "@rbxts/react";
@@ -1789,7 +1790,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const loadingSerialRef = useRef(0);
 	const slotsRef = useRef<SaveSlot[] | undefined>();
 
+	const deletionObservation = useMemo(() => new DeletionObservation(), []);
 	const changeScreen = useCallback((destination: Screen) => {
+		deletionObservation.cancel();
 		screenRef.current = destination;
 		inMissionRef.current = destination === "mission";
 		if (destination !== "mission" && pausedRef.current) { pausedRef.current = false; setPausedState(false); }
@@ -2016,14 +2019,40 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		changeScreen("briefing");
 	}, [changeScreen]);
 	const deleteSlot = useCallback((slot: number) => {
+		deletionObservation.cancel();
+		const observationToken = deletionObservation.capture();
 		setDeleteConfirm(undefined);
 		beginRequest((requestId) => {
 			const [response, problem] = invoke("DeleteSlot", { slot });
-			if (!mountedRef.current || requestRef.current !== requestId) return;
+			if (!mountedRef.current || requestRef.current !== requestId || !deletionObservation.current(observationToken)) return;
 			if (!response) showToast(problem ?? "Command rejected the request.", true);
 			else if (!applyResponseSlots(response)) showToast("Flight records returned an invalid response.", true);
-			else if (response.persistence === "unavailable") showToast(`Save ${string.format("%02d", slot)} deleted here, but the cloud save has not confirmed yet.`, true);
-			else showToast(`Save ${string.format("%02d", slot)} deleted.`, false);
+			else {
+				const deletion = response.deletions?.find((entry) => entry.slot === slot);
+				const report = (status?: string) => {
+					const name = `Save ${string.format("%02d", slot)}`;
+					if (status === "confirmed") showToast(`${name} deletion confirmed in cloud.`, false);
+					else if (status === "session-only") showToast(`${name} deleted for this session only. Cloud saves are disabled.`, true);
+					else if (status === "failed") showToast(`${name} deleted here; cloud deletion is unconfirmed after saving. It may return next session.`, true);
+					else showToast(`${name} deleted here; cloud confirmation pending. It may return next session.`, true);
+				};
+				report(deletion?.status);
+				if (deletion?.status === "pending") task.spawn(() => {
+					// Observe the original generation. Never resend a destructive command.
+					for (let attempt = 0; attempt < 10; attempt++) {
+						task.wait(3);
+						if (!mountedRef.current || requestRef.current !== requestId || !deletionObservation.current(observationToken)) return;
+						let finished = false;
+						deletionObservation.read(observationToken,
+							() => mountedRef.current && requestRef.current === requestId,
+							() => { const [latest] = invoke("DeletionStatus"); return { latest }; }, ({ latest }) => {
+								const current = latest?.deletions?.find((entry) => entry.slot === slot && entry.generation === deletion.generation);
+								if (current && current.status !== "pending") { report(current.status); finished = true; }
+							});
+						if (finished) return;
+					}
+				});
+			}
 		});
 	}, [applyResponseSlots, beginRequest, invoke, setDeleteConfirm, showToast]);
 	const chooseMission = useCallback((missionId: number) => { selectedMissionRef.current = missionId; setSelectedMission(missionId); }, []);
