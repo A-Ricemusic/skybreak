@@ -1268,9 +1268,9 @@ function stepEnemies(session: CombatSession, dt: number): void {
 			if (Workspace.Raycast(enemy.position, enemy.direction.mul(AVOID_RANGE), session.collisionParams)) enemy.pullUpUntil = session.elapsed + 0.8;
 		}
 		if ((enemy.pullUpUntil ?? 0) > session.elapsed) desired = unitOr(new Vector3(desired.X * 0.5, math.max(0.8, desired.Y + 1), desired.Z * 0.5), desired);
-		let speed = math.clamp(session.state.speed + (ace ? 48 : 24), ace ? 320 : 285, ace ? 380 : 350) + enemy.speedBonus;
+		let speed = math.clamp(session.state.speed + (ace ? 48 : 24), ace ? 320 : 285, ace ? 380 : CombatBalance.banditSpeedCap) + enemy.speedBonus;
 		if (courier) speed = COURIER_SPEED;
-		// An extending bandit drops below the player's speed: turn back in and there is a rear shot to take.
+		// A break stays below the ordinary bandit speed cap, even when the player flies at 600.
 		else if (!ace && enemy.mode === "extend") speed = ThreatRules.ExtendSpeed(session.state.speed, 180);
 		if (!aceFighting) speed += 40;
 		const oldDirection = enemy.direction;

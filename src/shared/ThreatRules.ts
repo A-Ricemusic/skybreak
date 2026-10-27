@@ -1,3 +1,5 @@
+import { CombatBalance } from "./CombatBalance";
+
 // Pure enemy-threat rules shared by the server (authoritative) and tests.
 // Nothing here touches instances; CombatService adapts Vector3 to plain points.
 // Every act-dependent number is passed in from CombatService.TUNING so a later
@@ -113,9 +115,9 @@ export const ThreatRules = {
 		if (input.lockProgress <= LOCK_BREAK_PROGRESS || input.distance >= LOCK_BREAK_RANGE) return false;
 		return input.roll < input.chance;
 	},
-	/** Speed of a bandit while it extends: the player's speed less 10, so a turn back in closes on it. */
+	/** A break offers a rear shot; it must never accelerate a bandit past its ordinary pursuit cap. */
 	ExtendSpeed(playerSpeed: number, floor: number): number {
-		return math.max(floor, playerSpeed - EXTEND_SPEED_DEFICIT);
+		return math.min(CombatBalance.banditSpeedCap, math.max(floor, playerSpeed - EXTEND_SPEED_DEFICIT));
 	},
 	/** Should an enemy with `flares` left and `cooldown` to go pop one against a missile `distance` studs away? */
 	ShouldFlare(distance: number, flares: number, cooldown: number): boolean {
