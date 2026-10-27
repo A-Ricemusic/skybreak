@@ -1,3 +1,4 @@
+import { evadeGauge } from "../shared/EvadeGauge";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { FlightMath, FlightState } from "../shared/FlightMath";
 import { FlightPrediction } from "../shared/FlightPrediction";
@@ -288,12 +289,22 @@ describe("client flight prediction and reconciliation", () => {
 			lockProgress: 0.4, incoming: true, lockWarning: false, boundaryWarning: true, elapsed: 12, timeRemaining: 500,
 			objectiveProgress: 1, objectiveTotal: 3, groundKills: 1, targetDistance: 900, targetHealth: undefined, protectedHealth: 70,
 			specialCharges: 2, specialCooldown: 1.5, specialActive: 12,
-			evadeCharges: 2, optionalKills: 3, incomingDistance: 420, turnObserved: 3, pitchObserved: 1.25,
+			evadeCharges: 2, optionalKills: 3, incomingDistance: 420, turnObserved: 3, pitchObserved: 1.25, evadeThreat: true, paused: true, pauseAck: 7,
 		});
 		expect(packet.size()).toBe(TELEMETRY_FIELDS);
+		expect(packet.size()).toBe(29);
 		packet[26] = 9.5;
 		expect(TelemetryCodec.Decode(packet, into)).toBeDefined();
 		expect(into.pauseRemaining).toBe(9.5);
+		expect(into.paused).toBe(true);
+		expect(into.pauseAck).toBe(7);
+		expect(into.evadeThreat).toBe(true);
+		expect(evadeGauge(into).flash).toBe(true);
+		// Clearing the timing bit must clear prior advice, including on legacy packets.
+		packet[10] -= 2048;
+		expect(TelemetryCodec.Decode(packet, into)).toBe(3);
+		expect(into.evadeThreat).toBe(false);
+		expect(evadeGauge(into).flash).toBe(false);
 		packet[26] = -1;
 		expect(TelemetryCodec.Decode(packet, into)).toBeDefined();
 		expect(into.pauseRemaining).toBeUndefined();

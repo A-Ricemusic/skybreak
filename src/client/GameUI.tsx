@@ -541,6 +541,7 @@ function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
 		targetName: safeString(payload.targetName, previous.targetName),
 		lockProgress: math.clamp(finite(payload.lockProgress, previous.lockProgress), 0, 1),
 		incoming: payload.incoming === true,
+		evadeThreat: payload.evadeThreat === true,
 		lockWarning: payload.lockWarning === true,
 		elapsed: math.max(0, finite(payload.elapsed, previous.elapsed)),
 		targetDistance: math.max(0, finite(payload.targetDistance, previous.targetDistance ?? 0)),
@@ -1492,7 +1493,7 @@ function MissionHud({
 	// Compact roots share the warning with the objective line: the warning shows in its place while it lasts.
 	const alertSharesObjective = layout.alert === layout.callout;
 	const evade = evadeGauge(telemetry);
-	const evadeHint = telemetry.incoming && evade.ready ? getEvadeHint(inputMode) : undefined;
+	const evadeHint = evade.flash ? getEvadeHint(inputMode) : undefined;
 	const flightHints = getFlightHints(inputMode, { introduction, locked, missileReady: ready });
 	// Second weapon slot: label, button state and a hint when it is both ready and relevant now
 	// (flares with a missile inbound, missiles with a lock, the drone during the opening legend).
@@ -1502,7 +1503,7 @@ function MissionHud({
 	const specialReady = (telemetry.specialCharges ?? 0) > 0 && (telemetry.specialCooldown ?? 0) <= 0 && (telemetry.specialActive ?? 0) <= 0;
 	const specialRelevant = specialKind === "flares" ? telemetry.incoming : specialKind === "uav" ? telemetry.target !== undefined && !locked : locked;
 	const specialHint = specialReady && specialRelevant ? getSpecialHint(inputMode, specialDefinition.short) : undefined;
-	// EVADE leads while a missile is inbound; never more than two hints at once.
+	// EVADE leads only while a missile is decoyable; never more than two hints at once.
 	const hints = [...(evadeHint ? [evadeHint] : []), ...flightHints.filter((hint) => hint.action !== evadeHint?.action), ...(specialHint ? [specialHint] : [])].filter(
 		(_hint, index) => index < MAX_FLIGHT_HINTS,
 	);

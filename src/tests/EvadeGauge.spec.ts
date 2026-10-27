@@ -27,8 +27,8 @@ describe("EVADE charges, ring and flash", () => {
 		expect(empty.label).toBe("4");
 		expect(empty.recharge).toBeCloseTo(1 - 3.2 / EvadeRules.RechargeSeconds, 5);
 	});
-	it("flashes only while a missile is inbound and a charge is ready", () => {
-		expect(evadeGauge({ evadeCharges: 1, evadeCooldown: 0, incoming: true }).flash).toBe(true);
+	it("flashes only for authoritative decoy timing with a charge ready", () => {
+		expect(evadeGauge({ evadeCharges: 1, evadeCooldown: 0, incoming: true, evadeThreat: true }).flash).toBe(true);
 		expect(evadeGauge({ evadeCharges: 1, evadeCooldown: 0, incoming: false }).flash).toBe(false);
 	});
 	it("degrades to one charge gated by the cooldown when the server sends no charges", () => {
@@ -36,7 +36,7 @@ describe("EVADE charges, ring and flash", () => {
 		expect(ready.maxCharges).toBe(1);
 		expect(ready.charges).toBe(1);
 		expect(ready.ready).toBe(true);
-		expect(ready.flash).toBe(true);
+		expect(ready.flash).toBe(false);
 		const cooling = evadeGauge({ evadeCooldown: 3, incoming: true });
 		expect(cooling.ready).toBe(false);
 		expect(cooling.charges).toBe(0);
@@ -50,5 +50,24 @@ describe("EVADE charges, ring and flash", () => {
 		const nan = evadeGauge({ evadeCharges: 0 / 0, evadeCooldown: 0 / 0, incoming: false });
 		expect(nan.maxCharges).toBe(1);
 		expect(nan.ready).toBe(true);
+	});
+});
+
+describe("EVADE timing advice", () => {
+	it("does not promote a distant inbound missile, but does promote both decoy paths", () => {
+		const gauge = (distance: number, life: number) => evadeGauge({
+			evadeCooldown: 0, evadeCharges: 3, incoming: distance < 1800,
+			evadeThreat: EvadeRules.Decoys(distance, life),
+		});
+		expect(gauge(1799, 6).flash).toBe(false);
+		expect(gauge(451, 1.21).flash).toBe(false);
+		expect(gauge(450, 6).flash).toBe(true);
+		expect(gauge(1801, 1.2).flash).toBe(true);
+		// Older telemetry supplies no timing evidence: keep the control usable without urging a press.
+		const legacy = evadeGauge({ evadeCooldown: 0, incoming: true });
+		expect(legacy.ready).toBe(true);
+		expect(legacy.flash).toBe(false);
+		expect(evadeGauge({ evadeCooldown: 0, evadeCharges: 0, incoming: true, evadeThreat: true }).flash).toBe(false);
+		expect(evadeGauge({ evadeCooldown: 1, evadeCharges: 2, incoming: true, evadeThreat: true }).flash).toBe(false);
 	});
 });
