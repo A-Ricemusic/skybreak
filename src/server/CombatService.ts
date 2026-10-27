@@ -1481,7 +1481,7 @@ function stepSession(session: CombatSession, dt: number): void {
 	if (session.regen >= 2.5) { session.regen -= 2.5; session.missiles = math.min(MAX_MISSILES, session.missiles + 1); }
 	// Input silence (a suspended phone app, a dropped connection): centre the stick and ease the
 	// jet level, since a centred stick alone would now hold whatever dive it was in.
-	if (os.clock() - session.lastInput > 0.7) { session.input.x = 0; session.input.y = 0; session.input.assist = true; }
+	if (os.clock() - session.lastInput > 0.7) { session.input.x = 0; session.input.y = 0; session.input.throttle = FlightMath.CruiseThrottle; session.input.assist = true; }
 	// Legacy Mission 1 observes real control usage during its tutorial phases.
 	if (session.rules) MissionRules.ObserveControls(session.rules, session.input.x, session.input.y, dt, os.clock());
 	if (sessionOutcome(session) !== undefined) { finish(session); return; }
@@ -1631,7 +1631,7 @@ function pauseSession(session: CombatSession, now: number): void {
 	if (!session.active || session.finished || !refreshSession(session, now)) return;
 	// A refused pause (budget spent) still answers, so the client un-freezes instead of waiting.
 	if (!PauseRules.Pause(session.pause, now)) { sendTelemetry(session); return; }
-	session.input.x = 0; session.input.y = 0;
+	session.input.x = 0; session.input.y = 0; session.input.throttle = FlightMath.CruiseThrottle;
 	sendTelemetry(session);
 }
 /**
@@ -1693,7 +1693,7 @@ export const CombatService = {
 			aircraft.PivotTo(frameFor(state));
 			const session: CombatSession = {
 				player, slot, folder, aircraft, state, missionId, lastWindupAt: -math.huge, radioSerial: 0, chatterIndex: 0,
-				input: { x: 0, y: 0, throttle: 0.65 }, health: 100, kills: 0, elapsed: 0,
+				input: { x: 0, y: 0, throttle: FlightMath.CruiseThrottle }, health: 100, kills: 0, elapsed: 0,
 				missiles: MAX_MISSILES, missileCooldown: 0, evadeRemaining: 0, regen: 0, lockProgress: 0,
 				special: SpecialWeapons.New(specialKind),
 				difficulty: difficultyKind,

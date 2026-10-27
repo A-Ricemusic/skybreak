@@ -17,7 +17,7 @@ describe("numeric arcade flight rules", () => {
 	it("starts independent states in safe forward flight", () => {
 		const first = FlightMath.NewState();
 		const second = FlightMath.NewState();
-		FlightMath.Step(first, { x: 0, y: 0, throttle: 0.65 }, 1 / 30);
+		FlightMath.Step(first, { x: 0, y: 0, throttle: FlightMath.CruiseThrottle }, 1 / 30);
 		expect(first.z).toBeLessThan(500);
 		expect(first.x).toBeCloseTo(0);
 		expect(first.y).toBeCloseTo(250);
@@ -32,7 +32,7 @@ describe("numeric arcade flight rules", () => {
 	});
 	it("turns right and banks on positive horizontal input", () => {
 		const state = FlightMath.NewState();
-		FlightMath.Step(state, { x: 1, y: 1, throttle: 0.65 }, 0.1);
+		FlightMath.Step(state, { x: 1, y: 1, throttle: FlightMath.CruiseThrottle }, 0.1);
 		expect(state.yaw).toBeLessThan(0);
 		expect(state.roll).toBeLessThan(0);
 		expect(state.x).toBeGreaterThan(0);
@@ -51,7 +51,7 @@ describe("numeric arcade flight rules", () => {
 		const state = FlightMath.NewState();
 		const expected = FlightMath.NewState();
 		FlightMath.Step(state, { x: 0 / 0, y: math.huge, throttle: -math.huge }, 0.1);
-		FlightMath.Step(expected, { x: 0, y: 0, throttle: 0.65 }, 0.1);
+		FlightMath.Step(expected, { x: 0, y: 0, throttle: FlightMath.CruiseThrottle }, 0.1);
 		expect(state).toEqual(expected);
 	});
 	it("uses time based damping with no reverse-time interpolation", () => {
@@ -90,21 +90,21 @@ describe("numeric arcade flight rules", () => {
 			expect(math.abs(state.z)).toBeLessThanOrEqual(FlightMath.HardBoundary);
 			if (sign < 0) expect(state.y).toBeLessThan(0);
 			expect(state.y).toBeLessThanOrEqual(FlightMath.MaxAltitude);
-			if (sign > 0) expect(state.pitch).toBeLessThan(0);
+			if (sign > 0) expect(state.pitch).toBeGreaterThan(0);
 		}
 	});
 	it("permits a sustained dive through the old floor", () => {
 		const state = FlightMath.NewState();
 		// Push for half a second, then let go: the dive angle holds all the way down.
-		for (let i = 0; i < 15; i++) FlightMath.Step(state, { x: 0, y: -1, throttle: 0.65 }, 1 / 30);
-		for (let i = 0; i < 150; i++) FlightMath.Step(state, { x: 0, y: 0, throttle: 0.65 }, 1 / 30);
+		for (let i = 0; i < 15; i++) FlightMath.Step(state, { x: 0, y: -1, throttle: FlightMath.CruiseThrottle }, 1 / 30);
+		for (let i = 0; i < 150; i++) FlightMath.Step(state, { x: 0, y: 0, throttle: FlightMath.CruiseThrottle }, 1 / 30);
 		expect(state.y).toBeLessThan(0);
 		expect(state.pitch).toBeLessThan(-0.5);
 	});
 	it("decelerates gradually into lost lift and recovers with engine and nose down", () => {
 		const state = FlightMath.NewState(); state.y = 1000;
 		FlightMath.Step(state, { x: 0, y: 0, throttle: 0 }, 1 / 30);
-		expect(state.speed).toBeGreaterThan(250);
+		expect(state.speed).toBeGreaterThan(290);
 		for (let i = 0; i < 150; i++) FlightMath.Step(state, { x: 0, y: 0, throttle: 0 }, 1 / 30);
 		expect(state.speed).toBeLessThan(140);
 		expect(state.y).toBeLessThan(950);
@@ -125,20 +125,24 @@ describe("numeric arcade flight rules", () => {
 		expect(slow.y).toBeLessThan(250);
 		expect(fast.y).toBeGreaterThan(250);
 	});
-	it("right-stick throttle rejects drift, ramps and persists at neutral", () => {
-		expect(FlightMath.AdjustThrottle(0.6, 0 / 0, 0.1)).toBe(0.6);
-		expect(FlightMath.AdjustThrottle(0.6, 0.17, 0.1)).toBe(0.6);
-		expect(FlightMath.AdjustThrottle(0.6, -0.17, 0.1)).toBe(0.6);
-		expect(FlightMath.AdjustThrottle(0.6, 0, 0.1)).toBe(0.6);
-		expect(FlightMath.AdjustThrottle(0.6, 1, 0.1)).toBeCloseTo(0.64);
-		expect(FlightMath.AdjustThrottle(0.6, -1, 0.1)).toBeCloseTo(0.56);
-		expect(FlightMath.AdjustThrottle(1, 1, 0.1)).toBe(1);
-		expect(FlightMath.AdjustThrottle(0, -1, 0.1)).toBe(0);
+	it("commands cruise on release, drift and invalid axes regardless of previous braking", () => {
+		for (const axis of [0, 0.17, -0.17, 0 / 0]) expect(FlightMath.CommandThrottle(axis)).toBe(FlightMath.CruiseThrottle);
+		expect(FlightMath.CommandThrottle(1)).toBe(1);
+		expect(FlightMath.CommandThrottle(-1)).toBe(0);
+	});
+	it("recovers from brake or boost to cruise within three seconds after release", () => {
+		for (const axis of [-1, 1]) {
+			const state = FlightMath.NewState();
+			for (let i = 0; i < 180; i++) FlightMath.Step(state, {x: 0, y: 0, throttle: FlightMath.CommandThrottle(axis)}, 1 / 30);
+			if (axis < 0) expect(state.speed).toBeLessThan(FlightMath.WarningSpeed);
+			for (let i = 0; i < 90; i++) FlightMath.Step(state, {x: 0, y: 0, throttle: FlightMath.CommandThrottle(0)}, 1 / 30);
+			expect(math.abs(state.speed - 300)).toBeLessThan(5);
+		}
 	});
 });
 
 const STEP = 1 / 30;
-const CRUISE = { x: 0, y: 0, throttle: 0.65 };
+const CRUISE = { x: 0, y: 0, throttle: FlightMath.CruiseThrottle };
 function up(state: FlightState): number { const [, y] = FlightMath.UpOf(state); return y; }
 
 describe("rate-commanded attitude with attitude hold", () => {
@@ -149,7 +153,7 @@ describe("rate-commanded attitude with attitude hold", () => {
 		let topY = -math.huge, topUp = 1, slowest = math.huge, steps = 0, wasDiving = false;
 		// Hold full back stick until the nose comes back up through the horizon after the dive.
 		while (steps < 300) {
-			FlightMath.Step(state, { x: 0, y: 1, throttle: 0.65 }, STEP);
+			FlightMath.Step(state, { x: 0, y: 1, throttle: FlightMath.CruiseThrottle }, STEP);
 			steps += 1;
 			slowest = math.min(slowest, state.speed);
 			if (state.y > topY) { topY = state.y; topUp = up(state); }
@@ -177,7 +181,7 @@ describe("rate-commanded attitude with attitude hold", () => {
 		for (let i = 0; i < 90; i++) {
 			const [ax, ay, az] = FlightMath.ForwardOf(state);
 			const [bx, by, bz] = FlightMath.UpOf(state);
-			FlightMath.Step(state, { x: 0.4, y: 1, throttle: 0.65 }, STEP);
+			FlightMath.Step(state, { x: 0.4, y: 1, throttle: FlightMath.CruiseThrottle }, STEP);
 			const [cx, cy, cz] = FlightMath.ForwardOf(state);
 			const [dx, dy, dz] = FlightMath.UpOf(state);
 			worst = math.max(worst, math.acos(math.clamp(ax * cx + ay * cy + az * cz, -1, 1)), math.acos(math.clamp(bx * dx + by * dy + bz * dz, -1, 1)));
@@ -218,16 +222,12 @@ describe("rate-commanded attitude with attitude hold", () => {
 		expect(state.pitch).toBeCloseTo(math.rad(30), 5);
 		expect(state.speed).toBeGreaterThan(FlightMath.WarningSpeed);
 	});
-	it("trades speed gently in a climb, gains it in a dive and recovers it with throttle", () => {
-		const climb = FlightMath.FromPose(0, 200, 0, 0, math.rad(30), 233);
-		const dive = FlightMath.FromPose(0, 900, 0, 0, math.rad(-30), 233);
-		for (let i = 0; i < 60; i++) { FlightMath.Step(climb, CRUISE, STEP); FlightMath.Step(dive, CRUISE, STEP); }
-		expect(climb.speed).toBeLessThan(233);
-		expect(climb.speed).toBeGreaterThan(200);
-		expect(dive.speed).toBeGreaterThan(250);
-		const slow = climb.speed;
-		for (let i = 0; i < 90; i++) FlightMath.Step(climb, { x: 0, y: 0, throttle: 1 }, STEP);
-		expect(climb.speed).toBeGreaterThan(slow + 20);
+	it("holds cruise during ten seconds of vertical climb and turning without braking", () => {
+		const state = FlightMath.FromPose(0, 950, 0, 0, math.pi / 2, 300);
+		for (let i = 0; i < 300; i++) {
+			FlightMath.Step(state, {x: 0.5, y: 0, throttle: FlightMath.CruiseThrottle}, STEP);
+			expect(state.speed).toBeCloseTo(300, 5);
+		}
 	});
 	it("flies inverted, stable and level, and turns toward the pilot's own right", () => {
 		const state = FlightMath.FromPose(0, 500, 0, 0, 0, 240, math.pi);
@@ -240,13 +240,13 @@ describe("rate-commanded attitude with attitude hold", () => {
 		const [rx] = FlightMath.RightOf(state);
 		expect(rx).toBeLessThan(-0.99);
 		const x0 = state.x;
-		for (let i = 0; i < 30; i++) FlightMath.Step(state, { x: 1, y: 0, throttle: 0.65 }, STEP);
+		for (let i = 0; i < 30; i++) FlightMath.Step(state, { x: 1, y: 0, throttle: FlightMath.CruiseThrottle }, STEP);
 		expect(state.x).toBeLessThan(x0 - 20);
 		expect(up(state)).toBeLessThan(-0.95);
 	});
 	it("turns upright with right stick to the right and leans into the turn", () => {
 		const state = FlightMath.FromPose(0, 500, 0, 0, 0, 240);
-		for (let i = 0; i < 30; i++) FlightMath.Step(state, { x: 1, y: 0, throttle: 0.65 }, STEP);
+		for (let i = 0; i < 30; i++) FlightMath.Step(state, { x: 1, y: 0, throttle: FlightMath.CruiseThrottle }, STEP);
 		expect(state.x).toBeGreaterThan(20);
 		expect(state.roll).toBeLessThan(-0.5);
 		expect(math.abs(state.y - 500)).toBeLessThan(1);
@@ -256,13 +256,13 @@ describe("rate-commanded attitude with attitude hold", () => {
 	});
 	it("stalls only at genuinely low speed and the nose falls through to recover", () => {
 		const cruise = FlightMath.NewState();
-		for (let i = 0; i < 300; i++) FlightMath.Step(cruise, { x: 0.3, y: 0, throttle: 0.65 }, STEP);
+		for (let i = 0; i < 300; i++) FlightMath.Step(cruise, { x: 0.3, y: 0, throttle: FlightMath.CruiseThrottle }, STEP);
 		expect(FlightMath.StallSeverity(cruise.speed)).toBe(0);
 		// Hanging straight up at idle runs out of energy; the nose then drops by itself.
 		const vertical = FlightMath.FromPose(0, 300, 0, 0, math.rad(85), 230);
 		let stalled = false;
 		for (let i = 0; i < 360; i++) {
-			FlightMath.Step(vertical, { x: 0, y: 0, throttle: 0.3 }, STEP);
+			FlightMath.Step(vertical, { x: 0, y: 0, throttle: 0 }, STEP);
 			if (vertical.speed < FlightMath.StallSpeed) stalled = true;
 		}
 		expect(stalled).toBe(true);
@@ -274,7 +274,7 @@ describe("rate-commanded attitude with attitude hold", () => {
 			const assisted = FlightMath.FromPose(0, 300, 0, 0.4, math.rad(25), 240, roll);
 			for (let i = 0; i < 180; i++) {
 				FlightMath.Step(held, CRUISE, STEP);
-				FlightMath.Step(assisted, { x: 0, y: 0, throttle: 0.65, assist: true }, STEP);
+				FlightMath.Step(assisted, { x: 0, y: 0, throttle: FlightMath.CruiseThrottle, assist: true }, STEP);
 			}
 			expect(math.abs(held.pitch - math.rad(25))).toBeLessThan(1e-6);
 			expect(math.abs(assisted.pitch)).toBeLessThan(0.05);
@@ -282,7 +282,7 @@ describe("rate-commanded attitude with attitude hold", () => {
 			if (roll !== 0) expect(up(held)).toBeLessThan(-0.9);
 			// Any stick input switches the assist off at once.
 			const pitched = FlightMath.FromPose(0, 300, 0, 0, 0, 240);
-			for (let i = 0; i < 30; i++) FlightMath.Step(pitched, { x: 0, y: 0.5, throttle: 0.65, assist: true }, STEP);
+			for (let i = 0; i < 30; i++) FlightMath.Step(pitched, { x: 0, y: 0.5, throttle: FlightMath.CruiseThrottle, assist: true }, STEP);
 			expect(pitched.pitch).toBeGreaterThan(0.2);
 		}
 	});
@@ -307,12 +307,31 @@ describe("rate-commanded attitude with attitude hold", () => {
 		const [vx, vy, vz, vw] = FlightMath.Visual(state);
 		expect(vx * vx + vy * vy + vz * vz + vw * vw).toBeCloseTo(1, 9);
 	});
-	it("keeps the ceiling: a pull-up near the top is pushed back over", () => {
-		const state = FlightMath.FromPose(0, 1000, 0, 0, math.rad(40), 260);
-		for (let i = 0; i < 120; i++) {
-			FlightMath.Step(state, { x: 0, y: 0, throttle: 1 }, STEP);
-			expect(state.y).toBeLessThanOrEqual(FlightMath.MaxAltitude);
+	it("flies three continuous loops at safe altitude and across the former ceiling", () => {
+		for (const altitude of [500, 950]) {
+			const state = FlightMath.FromPose(0, altitude, 0, 0, 0, 300);
+			const steps = math.ceil(6 * math.pi / FlightMath.PitchRate / STEP);
+			const dt = 6 * math.pi / FlightMath.PitchRate / steps;
+			for (let i = 0; i < steps; i++) {
+				const previous = {...state};
+				FlightMath.Step(state, {x: 0, y: 1, throttle: FlightMath.CruiseThrottle}, dt);
+				const dot = math.abs(previous.qw * state.qw + previous.qx * state.qx + previous.qy * state.qy + previous.qz * state.qz);
+				expect(dot).toBeGreaterThan(0.999);
+				expect(state.speed).toBeGreaterThan(165);
+			}
+			expect(up(state)).toBeGreaterThan(0.999);
+			expect(math.abs(state.y - altitude)).toBeLessThan(1);
 		}
-		expect(state.pitch).toBeLessThan(0);
+	});
+	it("eases upward travel at the high world limit without changing attitude, then allows a dive", () => {
+		const state = FlightMath.FromPose(0, 3200, 0, 0, math.pi / 2, 300);
+		for (let i = 0; i < 600; i++) FlightMath.Step(state, CRUISE, STEP);
+		expect(state.y).toBeLessThanOrEqual(FlightMath.MaxAltitude);
+		expect(state.y).toBeGreaterThan(3500);
+		expect(state.pitch).toBeCloseTo(math.pi / 2);
+		FlightMath.SetAttitude(state, 0, -math.pi / 2);
+		const top = state.y;
+		for (let i = 0; i < 30; i++) FlightMath.Step(state, CRUISE, STEP);
+		expect(state.y).toBeLessThan(top - 290);
 	});
 });

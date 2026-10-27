@@ -22,7 +22,7 @@ heading, pitch and upright/inverted attitude (no auto-level):
 |---|---|
 | Stick up / down (touch left stick, gamepad LS, W/S, mouse steer) | Pitch rate about the wings, full stick 1.25 rad/s (72°/s). Held, the jet flies a full vertical loop: inverted over the top, upright at the bottom. INVERT PITCH flips it. |
 | Stick left / right (touch left stick, LS, A/D) | Heading rate about world up, full stick 1.15 rad/s, with a cosmetic bank into the turn (up to 0.85 rad) that eases out when the stick centres. Inverted, the sign flips so the nose still moves toward the pilot's own left/right on screen. Within ~17° of straight up or down, heading authority fades to zero (pitch out of the vertical first). |
-| Centred stick | Attitude hold. Only a stall, the ceiling, the airspace edge or the opt-in level assist move the nose. |
+| Centred stick | Attitude hold. Only a stall, the airspace edge or the opt-in level assist move the nose. |
 | Settings → LEVEL ASSIST (default **OFF**) | With a centred stick, eases the nose to the horizon (≤ 0.5 rad/s) and rolls an inverted jet upright (1.2 rad/s). Any stick input overrides it at once. |
 
 Stick shaping is `v·(0.5 + 0.5|v|)`: half stick gives 37.5% rate for fine aim,
@@ -43,32 +43,55 @@ quaternion state supports adding it later for gamepad/keyboard.
 
 ## Energy
 
-Throttle selects an engine target between 70 and 320 studs/s. Engine acceleration
-toward it is `0.7 × (target − speed)`, capped at +28/−32 studs/s². Climbing costs
-`38 × sin(climb angle)` studs/s² and diving returns the same. The default 65%
-setting settles near 233 in level flight. Measured with `FlightMath` (offline):
+Throttle is a held speed command, not a persistent lever. Right stick/touch up,
+E/R1 or Shift boost; right stick/touch down or Q/L1 brake. Releasing commands
+300 studs/s. The normalized wire/FX/audio value stays 0..1: 0 targets 70,
+0.65 targets 300, and 1 targets 320, with linear interpolation on each side.
+The 0.18 axis deadzone rejects drift. Engine response is 2.5 × speed error,
+capped at +120/−100 studs/s². Airspeed changes continuously; even release from
+minimum speed returns within 5 studs/s of cruise in three seconds. Climbing,
+diving and turning do not change the speed target or subtract engine power.
+Only a held brake can sustain slowing into LOW SPEED (<165) or STALL (<140).
+Stalls still reduce lift/authority and drop the nose; neutral restores engine
+power without requiring a dive or another control input.
 
-| Manoeuvre at 65% throttle | Result |
-|---|---|
-| Full-stick loop from cruise | 5.0 s, ~340 studs tall, slowest point 200 studs/s, ends level and upright within ~45 studs of the entry altitude |
-| Full-stick loop at 50% / 40% | slowest 163 / 138 studs/s (40% just touches the stall at the top) |
-| Held 15° / 30° / 45° / 60° climb | settles near 218 / 205 / 195 / 183 studs/s and keeps climbing |
-| Held vertical climb | still 170 studs/s after 800 studs; idle throttle eventually stalls and the nose falls through |
+Release, Cancel, focus/text entry, disconnect and pause clear held controls.
+Server input silence after 0.7 s commands cruise, centres steering and enables
+level assist. Pause also resets the server speed command. The client predictor
+uses exactly the same speed curve and fixed-step integrator as the server.
 
-Below 165 the HUD warns of low speed; below 140 it warns STALL and asks for
-acceleration plus nose down. Lift falls progressively (up to 65 studs/s of
-sink), steering authority drops to 30%, and the nose sags toward the ground (up
-to 0.6 rad/s, about the horizontal axis that gets there the short way, so an
-inverted jet at the top of a slow loop is pulled through rather than flipped).
-This is an arcade energy stall, not an angle-of-attack model. Full throttle and
-a lowered nose restore speed and authority if altitude remains.
+The former 950-stud forced push-over is removed. Full-rate loops at 300 span
+480 studs and take about five seconds, including above altitude 950. From
+altitude 3000 to 3600 upward translation eases proportionally to remaining
+headroom, approaching the upper boundary without a position snap. Attitude and
+airspeed remain pilot controlled, and downward travel immediately works at full
+speed. This intentionally makes velocity differ from nose × airspeed at the
+outer ceiling; it is an arcade world boundary. Horizontal recovery is unchanged.
+The existing mission spawn (250, level) has space for an upward loop; terrain
+and deliberate downward loops still require pilot clearance.
 
-Above 950 studs the ceiling swings the nose down (as before, toward
-`−(altitude − 950)/160` rad) and the altitude is clamped at 1050. Past the soft
-boundary the heading turns back toward the centre about world up. On 0.7 s of
-input silence (a suspended phone app, a dropped connection) the server centres
-the stick and engages the level assist, so a held dive does not continue into
-the ground while nobody is flying.
+## Studio acceptance route (manual gameplay still required)
+
+Build with `bun run build:place`, open `build/skybreak.rbxlx` in a separate Studio
+window and Play. Start a sortie with LEVEL ASSIST off. Use keyboard first, then
+physical gamepad and phone/touch emulation; physical touch needs device testing.
+
+1. Leave throttle centred: verify 300±5. Hold boost, release, verify 300±5 within
+   3 s. Brake to LOW SPEED, release, verify recovery above 165 and then 300
+   without another input (within 3 s even from minimum speed).
+2. Climb and turn for 10 s without braking; verify no LOW SPEED. Fly three full
+   vertical loops from altitude 500, then around 950. Verify upright completion,
+   speed above 165 and continuous attitude through vertical/inverted transitions.
+3. Repeat braking/release with Q/E, RS, touch. Repeat Cancel, pause/menu,
+   focus/text entry and gamepad disconnect while braking; resume with cruise.
+   For Studio focus auto-pause set Workspace.SkybreakAutoPause=true.
+4. Inspect `FlightController.GetActive():GetControlStateForStudio()` from the
+   client: raw RS/touch axes, normalized command, predicted position/speed,
+   quaternion, reconciliation outcome/RTT and pending correction are returned
+   on demand, with no production logging. Sample alongside authoritative
+   FlightState packets/telemetry to check drift or repeated snaps. The existing
+   Studio gamepad simulation method can exercise End/Cancel through the real
+   bound-input handler; it does not prove physical device routing.
 
 ## Prediction, packets and camera
 
@@ -82,16 +105,9 @@ The chase camera ignores the turn lean and the evade roll but rolls with the
 jet's canopy, smoothed at 5/s (about 0.2 s behind in a full-stick loop), so it
 rides through loops and inverted flight instead of flipping at the vertical.
 
-Right-stick forward/up increases selected throttle, back/down reduces it.
-An 18% vertical deadzone is rescaled outside the deadzone; full travel adjusts
-40 percentage points/second. Neutral holds the setting. LB/RB and Q/E still
-adjust throttle and Shift temporarily commands full power. The right touch stick
-uses the same deadzone and rate: up accelerates, down decelerates, and release
-recenters the knob while holding the selected percentage. Left touch steering
-remains independent; a third finger can press FIRE, TGT or SPECIAL.
-The HUD displays actual speed and the selected throttle (Shift is a temporary
-override). Start resets to 65%; stop, focus loss, text entry, gamepad disconnect
-and input cancellation clear held controls without resetting a selected setting.
+Right-stick and right touch stick share the held command/deadzone described
+above. Left touch steering remains independent; a third finger can press FIRE,
+TGT or SPECIAL. The HUD displays actual speed and normalized throttle.
 
 The server spherecasts the full movement segment each flight step, with a
 4-stud fuselage radius. It includes Terrain and explicitly tagged visible solid
@@ -116,7 +132,18 @@ initial overlaps; normal mission launch positions are above the ground, and
 there is no gameplay teleport. No extra invisible collision volumes were added.
 Low-altitude warning is absolute altitude, not a terrain-clearance prediction.
 
-## Validation
+## Validation of neutral-cruise fixes
+
+The implementation passed the compiler, 482 offline Luau contracts, and 55
+Studio Jest tests across Flight, FlightPrediction, FlightWarnings and TouchSticks.
+No genuine sortie, physical gamepad, physical touch, or client/server correction
+inspection was performed for this revision. Use the acceptance route above.
+
+## Historical validation before neutral-cruise fixes
+
+The evidence below describes previous revisions and does not verify the new
+speed curve, recovery timings or ceiling. References to climb energy and the
+old ceiling are superseded by the rules above.
 
 The flight-model rework (rate-commanded attitude) is covered by `Flight.spec`
 and `FlightPrediction.spec`, which now also run in the offline Luau runner
