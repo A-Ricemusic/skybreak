@@ -1833,11 +1833,13 @@ export const CombatService = {
 			if (!FlightMath.IsFinite(data.x) || !FlightMath.IsFinite(data.y) || !FlightMath.IsFinite(data.throttle)) return;
 			// Unreliable packets can arrive out of order or bunched together. Staleness is
 			// decided by the client's stamp first, so the newest of two packets that land in
-			// the same few milliseconds always wins (the client stamps each packet uniquely, so a repeated stamp is a replay).
+			// the same few milliseconds always wins. A repeated stamp is legitimate: stamps are
+			// fixed-step boundaries, so the first send after a resume reuses the frozen one.
+			// The per-session token bucket, not this check, limits floods.
 			// Unstamped packets keep the old 1/40 s floor.
 			const clientTime = FlightMath.IsFinite(data.t) && data.t > 0 ? data.t : 0;
 			if (clientTime > 0) {
-				if (clientTime <= session.inputClientTime) return;
+				if (clientTime < session.inputClientTime) return;
 			} else if (now - session.lastInputEvent < 1 / 40) return;
 			session.lastInputEvent = now;
 			session.input.x = math.clamp(data.x, -1, 1);
