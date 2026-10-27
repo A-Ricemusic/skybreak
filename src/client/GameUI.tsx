@@ -1571,7 +1571,7 @@ function MissionHud({
 			<HudLabel name="ObjectiveText" text={objectiveLine} rectangle={layout.callout} color={objectiveColor} textSize={metrics.scale === "large" ? 16 : metrics.scale === "compact" ? 10 : 11} wrap={true} verticalAlignment={Enum.TextYAlignment.Top} />
 
 			{layout.reticle && <Reticle rectangle={layout.reticle} />}
-			<InstrumentBox name="SpeedBox" caption="SPEED" value={instrumentValue(telemetry.speed)} rectangle={layout.speed} metrics={metrics} pointsRight={true} color={stalling ? HUD.Amber : HUD.Green} />
+			<InstrumentBox name="SpeedBox" caption="MPH" value={instrumentValue(FlightMath.ToMph(telemetry.speed))} rectangle={layout.speed} metrics={metrics} pointsRight={true} color={stalling ? HUD.Amber : HUD.Green} />
 			<InstrumentBox name="AltitudeBox" caption="ALT" value={instrumentValue(telemetry.altitude)} rectangle={layout.altitude} metrics={metrics} pointsRight={false} color={telemetry.altitude < LOW_ALTITUDE ? HUD.Amber : HUD.Green} />
 			{!alertSharesObjective && <WarningBox rectangle={layout.alert} text={alertText} color={alertColor} metrics={metrics} textRef={warningText} />}
 			{/* Reserved for a missile time-to-impact / BREAK cue; empty and hidden until something drives it. */}

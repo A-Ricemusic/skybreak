@@ -151,9 +151,9 @@ export function InstrumentBox({ name, caption, value, rectangle, metrics, points
 			</frame>
 			<HudLabel
 				name="Value"
-				text={captioned ? value : `${caption.sub(1, 1)} ${value}`}
+				text={captioned ? value : caption === "MPH" ? `${value} MPH` : `${caption.sub(1, 1)} ${value}`}
 				rectangle={{ ...valueRect, y: top }}
-				textSize={metrics.instrumentText}
+				textSize={!captioned && caption === "MPH" ? math.min(metrics.instrumentText, valueRect.width / 5.6) : metrics.instrumentText}
 				bold={true}
 				color={color}
 				alignment={Enum.TextXAlignment.Center}

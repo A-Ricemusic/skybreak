@@ -18,7 +18,7 @@ export const AircraftCollision = {
 		return params;
 	},
 	/** Sweep a compact 4-stud fuselage radius, not the visual wings' enclosing box.
-	 * At 320 studs/s this still covers the entire fixed-step path (no tunnelling).
+	 * At the 600 studs/s cap this sweeps all 20 studs of a 1/30 s step.
 	 */
 	Sweep(from: Vector3, to: Vector3, params: RaycastParams): RaycastResult | undefined {
 		const delta = to.sub(from);

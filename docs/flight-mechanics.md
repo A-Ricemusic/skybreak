@@ -43,25 +43,16 @@ quaternion state supports adding it later for gamepad/keyboard.
 
 ## Energy
 
-Throttle is a held speed command, not a persistent lever. Right stick/touch up,
-E/R1 or Shift boost; right stick/touch down or Q/L1 brake. Releasing commands
-300 studs/s. The normalized wire/FX/audio value stays 0..1: 0 targets 70,
-0.65 targets 300, and 1 targets 320, with linear interpolation on each side.
-The 0.18 axis deadzone rejects drift. Engine response is 2.5 × speed error,
-capped at +120/−100 studs/s². Airspeed changes continuously; even release from
-minimum speed returns within 5 studs/s of cruise in three seconds. Climbing,
-diving and turning do not change the speed target or subtract engine power.
-Only a held brake can sustain slowing into LOW SPEED (<165) or STALL (<140).
-Stalls still reduce lift/authority and drop the nose; neutral restores engine
-power without requiring a dive or another control input.
+The current persistent speed specification and tuning are in [persistent-speed.md](persistent-speed.md).
+Spawn/default is **800 mph**. Held acceleration raises the selection to **3000 mph**;
+held brake lowers it to **75 mph**. Release, Cancel, focus/text entry, disconnect,
+pause and server input timeout retain the chosen speed. There is no return to
+cruise. Actual airspeed responds smoothly and gently loses/gains speed in climbs/dives.
+Simulation and telemetry use studs/s; only the HUD converts with **0.2 studs/s per mph**.
+The normalized absolute wire selection remains 0..1, with 800 mph at 0.65.
 
-Release, Cancel, focus/text entry, disconnect and pause clear held controls.
-Server input silence after 0.7 s commands cruise, centres steering and enables
-level assist. Pause also resets the server speed command. The client predictor
-uses exactly the same speed curve and fixed-step integrator as the server.
-
-The former 950-stud forced push-over is removed. Full-rate loops at 300 span
-480 studs and take about five seconds, including above altitude 950. From
+The former 950-stud forced push-over is removed. Full-rate loops at 800 mph (160 studs/s) span
+about 256 studs and take about five seconds, including above altitude 950. From
 altitude 3000 to 3600 upward translation eases proportionally to remaining
 headroom, approaching the upper boundary without a position snap. Attitude and
 airspeed remain pilot controlled, and downward travel immediately works at full
@@ -76,22 +67,10 @@ Build with `bun run build:place`, open `build/skybreak.rbxlx` in a separate Stud
 window and Play. Start a sortie with LEVEL ASSIST off. Use keyboard first, then
 physical gamepad and phone/touch emulation; physical touch needs device testing.
 
-1. Leave throttle centred: verify 300±5. Hold boost, release, verify 300±5 within
-   3 s. Brake to LOW SPEED, release, verify recovery above 165 and then 300
-   without another input (within 3 s even from minimum speed).
-2. Climb and turn for 10 s without braking; verify no LOW SPEED. Fly three full
-   vertical loops from altitude 500, then around 950. Verify upright completion,
-   speed above 165 and continuous attitude through vertical/inverted transitions.
-3. Repeat braking/release with Q/E, RS, touch. Repeat Cancel, pause/menu,
-   focus/text entry and gamepad disconnect while braking; resume with cruise.
-   For Studio focus auto-pause set Workspace.SkybreakAutoPause=true.
-4. Inspect `FlightController.GetActive():GetControlStateForStudio()` from the
-   client: raw RS/touch axes, normalized command, predicted position/speed,
-   quaternion, reconciliation outcome/RTT and pending correction are returned
-   on demand, with no production logging. Sample alongside authoritative
-   FlightState packets/telemetry to check drift or repeated snaps. The existing
-   Studio gamepad simulation method can exercise End/Cancel through the real
-   bound-input handler; it does not prove physical device routing.
+See the full acceptance matrix in [persistent-speed.md](persistent-speed.md).
+The earlier return-to-cruise acceptance and recorded Studio results below are
+historical and do not validate the current specification. Do not run Studio
+while the separate targeting acceptance owns it.
 
 ## Prediction, packets and camera
 

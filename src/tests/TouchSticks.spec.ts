@@ -26,17 +26,21 @@ describe("twin touch ownership", () => {
 			expect(touches.Begin(second, 5)).toBe(true);
 		}
 	});
-	it("returns to cruise on release or cancellation after a held brake", () => {
+	it("retains the selected speed after touch End, Cancel and focus/menu clearing", () => {
 		const touches = new TouchSticks<number>();
-		touches.Begin("throttle", 1);
-		expect(FlightMath.CommandThrottle(-1)).toBe(0);
-		touches.End(1);
-		for (const axis of [0, 0.17, -0.18]) expect(FlightMath.CommandThrottle(axis)).toBe(FlightMath.CruiseThrottle);
-		expect(touches.throttle).toBeUndefined();
-		touches.Begin("throttle", 2);
-		touches.Clear();
-		expect(FlightMath.CommandThrottle(touches.throttle === undefined ? 0 : -1)).toBe(FlightMath.CruiseThrottle);
+		for (const direction of [-1, 1]) {
+			touches.Begin("throttle", 1);
+			let chosen = FlightMath.CruiseThrottle;
+			for (let i = 0; i < 30; i++) chosen = FlightMath.AdjustThrottle(chosen, direction, 1 / 30);
+			expect(chosen === FlightMath.CruiseThrottle).toBe(false);
+			touches.End(1);
+			for (const axis of [0, .17, -.18]) expect(FlightMath.AdjustThrottle(chosen, axis, .1)).toBe(chosen);
+			touches.Begin("throttle", 2);
+			touches.Clear();
+			expect(FlightMath.AdjustThrottle(chosen, touches.throttle === undefined ? 0 : direction, .1)).toBe(chosen);
+		}
 	});
+
 	it("maps a touch to stick axes in the same inset screen space as the disc", () => {
 		// 844x390 notched phone: CoreUISafeInsets shifts the root 44 px right, so the
 		// 96 px steering disc sits at AbsolutePosition (58, 268) and a touch on its centre reads zero.

@@ -1494,7 +1494,7 @@ function stepSession(session: CombatSession, dt: number): void {
 	if (session.regen >= 2.5) { session.regen -= 2.5; session.missiles = math.min(MAX_MISSILES, session.missiles + 1); }
 	// Input silence (a suspended phone app, a dropped connection): centre the stick and ease the
 	// jet level, since a centred stick alone would now hold whatever dive it was in.
-	if (os.clock() - session.lastInput > 0.7) { session.input.x = 0; session.input.y = 0; session.input.throttle = FlightMath.CruiseThrottle; session.input.assist = true; }
+	if (os.clock() - session.lastInput > 0.7) { session.input.x = 0; session.input.y = 0; session.input.assist = true; }
 	// Legacy Mission 1 observes real control usage during its tutorial phases.
 	if (session.rules) MissionRules.ObserveControls(session.rules, session.input.x, session.input.y, dt, os.clock());
 	if (sessionOutcome(session) !== undefined) { finish(session); return; }
@@ -1644,7 +1644,7 @@ function pauseSession(session: CombatSession, now: number): void {
 	if (!session.active || session.finished || !refreshSession(session, now)) return;
 	// A refused pause (budget spent) still answers, so the client un-freezes instead of waiting.
 	if (!PauseRules.Pause(session.pause, now)) { sendTelemetry(session); return; }
-	session.input.x = 0; session.input.y = 0; session.input.throttle = FlightMath.CruiseThrottle;
+	session.input.x = 0; session.input.y = 0;
 	sendTelemetry(session);
 }
 /**

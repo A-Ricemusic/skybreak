@@ -14,7 +14,7 @@ export const AudioRules = {
 	EngineMix(throttle: number, speed: number, dt: number): { cruise: number; burn: number; wind: number; pitch: number; alpha: number } {
 		const power = math.clamp(throttle, 0, 1);
 		const burn = math.clamp((power - 0.65) / 0.35, 0, 1);
-		return { cruise: 0.24 + power * 0.12 - burn * 0.1, burn: burn * 0.32, wind: math.clamp(speed / 320, 0, 1) * 0.12,
+		return { cruise: 0.24 + power * 0.12 - burn * 0.1, burn: burn * 0.32, wind: math.clamp(speed / 600, 0, 1) * 0.12,
 			pitch: 0.8 + power * 0.28, alpha: 1 - math.exp(-3 * math.clamp(dt, 0, 0.1)) };
 	},
 };

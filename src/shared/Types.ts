@@ -82,7 +82,7 @@ export interface FlightInput {
 	x: number;
 	/** Pitch stick, -1 (nose down) .. 1 (nose up): pitch rate; centred holds the attitude. */
 	y: number;
-	/** Normalized speed command: 0 brakes to 70, 0.65 cruises at 300, 1 boosts to 320. */
+	/** Absolute chosen speed: 0 = 75 mph, 0.65 = 800 mph, 1 = 3000 mph; retained on release. */
 	throttle: number;
 	/** Opt-in level-out assist (settings): a centred stick eases back to wings-level flight. */
 	assist?: boolean;

@@ -29,6 +29,20 @@ describe("client flight prediction and reconciliation", () => {
 		}
 		expect(predictor.state).toEqual(server);
 	});
+	it("predicts selected speeds throughout the full range after accelerator release", () => {
+		for (const mph of [75, 800, 1700, 3000]) {
+			const initial = FlightMath.FromPose(0, 1500, 0, 0, 0, FlightMath.FromMph(mph));
+			const server = copy(initial), predictor = FlightPrediction.New(initial);
+			const input = {x: 0, y: 0, throttle: FlightMath.ThrottleForSpeed(initial.speed)};
+			let now = 0;
+			for (let i = 0; i < 60; i++) {
+				FlightMath.Step(server, input, 1 / 30);
+				for (let j = 0; j < 2; j++) { now += 1 / 60; FlightPrediction.Step(predictor, input, 1 / 60, now); }
+			}
+			expect(predictor.state).toEqual(server);
+			expect(FlightPrediction.Decode(FlightPrediction.Encode(1, server, 0, now, 0))?.state.speed).toBe(server.speed);
+		}
+	});
 	it("stays inside the ignore deadzone when a 60 fps client tracks the 30 Hz server", () => {
 		const server = FlightMath.NewState();
 		const predictor = FlightPrediction.New(FlightMath.NewState());
@@ -187,7 +201,7 @@ describe("client flight prediction and reconciliation", () => {
 		// jet has flown ~50 studs since.
 		const past = FlightMath.NewState();
 		expect(FlightPrediction.Sample(predictor, now - 0.2, past)).toBe(true);
-		expect(math.abs(predictor.state.z - past.z)).toBeGreaterThan(40);
+		expect(math.abs(predictor.state.z - past.z)).toBeCloseTo(FlightMath.CruiseSpeed * .2, 5);
 		expect(FlightPrediction.Reconcile(predictor, past, now, 1)).toBe("ignore");
 		// With an echo the packet names the exact predicted time instead.
 		const exact = FlightMath.NewState();
@@ -249,7 +263,7 @@ describe("client flight prediction and reconciliation", () => {
 	});
 	it("round-trips the flight state packet and rejects malformed ones", () => {
 		// Upright, inverted at the top of a loop, and leaning into a turn.
-		for (const state of [FlightMath.SetAttitude(FlightMath.NewState(), 1.25, 0), FlightMath.FromPose(30, 640, -90, math.pi, 0, 190, math.pi), FlightMath.FromPose(0, 300, 0, -0.6, 0.3, 250)]) {
+		for (const state of [FlightMath.FromPose(0, 1000, 0, 0, 0, FlightMath.MinSpeed), FlightMath.FromPose(0, 1000, 0, 0, 0, FlightMath.MaxSpeed), FlightMath.SetAttitude(FlightMath.NewState(), 1.25, 0), FlightMath.FromPose(30, 640, -90, math.pi, 0, 190, math.pi), FlightMath.FromPose(0, 300, 0, -0.6, 0.3, 250)]) {
 			state.lean = -0.4;
 			FlightMath.Sync(state);
 			const packet = FlightPrediction.Encode(7, state, 0.4, 12.5, 0.02);
