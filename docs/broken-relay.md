@@ -56,7 +56,7 @@ The manifest and the par/estimate tables are generated from the final catalog (`
 
 | # | Mission / composition | Required phase sequence |
 |---|---|---|
-| 1 | FIRST FLIGHT — Varda training islands | Turn and pitch for three seconds each → Cycle to the training target → Lock and hit the training radar → Intercept three bandits |
+| 1 | FIRST FLIGHT — Varda training islands | Practice short turn and pitch taps → Cycle to the training target → Lock and hit the training radar → Intercept three bandits |
 | 2 | IRON COAST — Iron Coast five quays | Intercept the three-bandit screen → Destroy five warehouses (raiders 5) → Destroy the ace (165 hull, 3 stages) |
 | 3 | FOX TRAIL — Fox switchback | Follow Teal's beacons → Locate Teal's receiver below the rim → Clear scout flight alpha (2 in 2 groups; raiders 1 at 50%) → Teal's river run: stay under 320 → Clear scout flight bravo (3 in 2 groups; raiders 1 at 50%) → Guide recovery onto the receiver (20 s) |
 | 4 | STATIC QUARTERS — Hidden quarters bowl | Scan the quarters: stay under 380 → Destroy the hidden rim radar (raiders 1) → Follow the quarters service road → Fend off the response flight (5 in 2 groups; raiders 1 at 50%) → Send the staff list to Varda (20 s; raiders 1) |
