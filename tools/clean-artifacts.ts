@@ -1,13 +1,43 @@
-import { lstat, readdir, rm } from "node:fs/promises";
-import { relative, resolve } from "node:path";
+import { lstat, readdir, realpath, rm } from "node:fs/promises";
+import { isAbsolute, relative, resolve, sep } from "node:path";
 
-const root = resolve(import.meta.dir, "..");
+const root = await realpath(resolve(import.meta.dir, ".."));
 const dryRun = process.argv.includes("--dry-run");
 const removed: string[] = [];
 let reclaimedBytes = 0;
 
+// Read the index before deleting anything, and fail closed outside a Git repo.
+const index = Bun.spawnSync(["git", "-C", root, "ls-files", "--cached", "-z"]);
+if (index.exitCode !== 0) throw new Error("Cannot read tracked files; refusing cleanup.");
+const tracked = index.stdout.toString().split("\0").filter(Boolean).map((path) => resolve(root, path));
+const trackedFolded = tracked.map((path) => path.toLowerCase());
+
+function contains(parent: string, child: string): boolean {
+	const path = relative(parent, child);
+	return path === "" || (!isAbsolute(path) && path !== ".." && !path.startsWith(`..${sep}`));
+}
+
+async function safePath(path: string): Promise<boolean> {
+	if (path === root || !contains(root, path)) throw new Error(`Refusing cleanup outside repository: ${path}`);
+	let current = root;
+	for (const part of relative(root, path).split(sep)) {
+		current = resolve(current, part);
+		try {
+			if ((await lstat(current)).isSymbolicLink()) {
+				console.warn(`Preserved symlink path: ${relative(root, path)}`);
+				return false;
+			}
+		} catch (error) {
+			if ((error as NodeJS.ErrnoException).code === "ENOENT") return false;
+			throw error;
+		}
+	}
+	return true;
+}
+
 async function sizeOf(path: string): Promise<number> {
 	const stat = await lstat(path);
+	// rm does not traverse directory symlinks; count just the link itself too.
 	if (!stat.isDirectory()) return stat.size;
 
 	let total = 0;
@@ -18,6 +48,14 @@ async function sizeOf(path: string): Promise<number> {
 }
 
 async function removePath(path: string): Promise<void> {
+	if (!(await safePath(path))) return;
+	// Compare case-insensitively: macOS/Windows volumes usually are, and
+	// over-preserving is the safe failure mode for this guard.
+	const folded = path.toLowerCase();
+	if (trackedFolded.some((file) => contains(folded, file) || contains(file, folded))) {
+		console.warn(`Preserved path containing tracked files: ${relative(root, path)}`);
+		return;
+	}
 	try {
 		reclaimedBytes += await sizeOf(path);
 	} catch (error) {
@@ -45,7 +83,7 @@ for (const aircraft of ["kestrel", "vanta"]) {
 
 const build = resolve(root, "build");
 try {
-	const entries = await readdir(build, { withFileTypes: true });
+	const entries = (await safePath(build)) ? await readdir(build, { withFileTypes: true }) : [];
 	const entryNames = new Set(entries.map((entry) => entry.name));
 	for (const entry of entries) {
 		if (entry.name === "screenshots") continue;
@@ -72,7 +110,8 @@ try {
 const screenshots = resolve(build, "screenshots");
 try {
 	const legacyQaArtifacts = new Set(["menu.jpg", "slots.jpg", "flight.jpg", "vanta.jpg", "temp.b64"]);
-	for (const entry of await readdir(screenshots, { withFileTypes: true })) {
+	const entries = (await safePath(screenshots)) ? await readdir(screenshots, { withFileTypes: true }) : [];
+	for (const entry of entries) {
 		if (entry.isFile() && legacyQaArtifacts.has(entry.name)) {
 			await removePath(resolve(screenshots, entry.name));
 		}
