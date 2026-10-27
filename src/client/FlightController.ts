@@ -335,6 +335,7 @@ export class FlightController {
 		if (typeIs(message.radio, "string")) t.radio = message.radio;
 		if (typeIs(message.radioSerial, "number")) t.radioSerial = message.radioSerial;
 		t.radioSeconds = typeIs(message.radioSeconds, "number") ? message.radioSeconds : undefined;
+		t.radioPriority = message.radioPriority === true;
 		t.fireDenied = WeaponRules.IsFireNotice(message.fireDenied) ? message.fireDenied : undefined;
 		if (typeIs(message.fireDeniedSerial, "number")) t.fireDeniedSerial = message.fireDeniedSerial;
 		if (SpecialWeapons.IsKind(message.special)) t.special = message.special;
