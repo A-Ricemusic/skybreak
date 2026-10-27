@@ -16,7 +16,9 @@ infer a timing window from INBOUND. GameUI sanitation retains the new boolean;
 both its promoted hint and HudControls' button use `evadeGauge.flash`.
 
 This is independent of PR59 (head `8ae7619e0db845c9ddb290942510f5c901a34038`).
-It neither incorporates nor changes that pursuit cap. Integrate PR59 separately.
+It neither incorporates nor changes that pursuit cap. A temporary local merge
+with that exact PR59 head built successfully and passed **531/531** offline tests;
+the merge was then aborted. Integrate PR59 separately.
 The dirty project root was not edited. No Studio, Rojo, Roblox Jest, publishing,
 asset uploads, paid generation or live-player validation was performed.
 
