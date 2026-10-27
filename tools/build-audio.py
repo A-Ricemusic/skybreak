@@ -19,16 +19,11 @@ import urllib.error
 import urllib.request
 
 import _http
+from roblox_upload import save
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets/audio"
 WORK = ROOT / "build/audio"
-
-
-def save(path, value):
-    temp = path.with_suffix(path.suffix + ".tmp")
-    temp.write_text(json.dumps(value, indent=2) + "\n")
-    temp.replace(path)
 
 
 def run(args):

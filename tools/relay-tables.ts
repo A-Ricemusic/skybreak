@@ -4,11 +4,11 @@
 //   bun tools/relay-tables.ts          rewrite the generated block
 //   bun tools/relay-tables.ts --check  fail when the block is stale
 import {resolve} from "node:path";
+import {requireLuauBin} from "./luau-bin";
 const root=resolve(import.meta.dir,".."),dir=resolve(root,"build/offline-relay"),doc=resolve(root,"docs/broken-relay.md");
 const BEGIN="<!-- relay-tables:begin (bun tools/relay-tables.ts) -->",END="<!-- relay-tables:end -->";
 if(!(await Bun.file(resolve(dir,"MissionCatalog.luau")).exists()))throw new Error("Run `bun run test:offline` first: build/offline-relay is missing.");
-const executable=process.env.LUAU_BIN ?? resolve(root,"build/offline-luau/luau");
-if(!(await Bun.file(executable).exists()))throw new Error("Set LUAU_BIN to the official Luau CLI.");
+const executable=requireLuauBin();
 // Design estimate for an average phone pilot (seconds), kept here because it is documentation, not game rules.
 const generator=String.raw`
 local C=require("./MissionCatalog")

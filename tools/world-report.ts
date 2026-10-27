@@ -4,11 +4,11 @@
 //   bun tools/world-report.ts --check     fail when the block is stale
 //   bun tools/world-report.ts --problems  print every audit problem (debugging)
 import {resolve} from "node:path";
+import {requireLuauBin} from "./luau-bin";
 const root=resolve(import.meta.dir,".."),dir=resolve(root,"build/offline-relay"),doc=resolve(root,"docs/world-realism.md");
 const BEGIN="<!-- world-counts:begin (bun tools/world-report.ts) -->",END="<!-- world-counts:end -->";
 if(!(await Bun.file(resolve(dir,"WorldPlan.luau")).exists()))throw new Error("Run `bun run test:offline` first: build/offline-relay is missing.");
-const executable=process.env.LUAU_BIN ?? resolve(root,"build/offline-luau/luau");
-if(!(await Bun.file(executable).exists()))throw new Error("Set LUAU_BIN to the official Luau CLI.");
+const executable=requireLuauBin();
 const problems=process.argv.includes("--problems");
 const generator=String.raw`
 local W=require("./WorldPlan")

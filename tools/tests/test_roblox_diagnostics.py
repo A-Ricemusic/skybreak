@@ -16,9 +16,16 @@ sys.path.insert(0, str(TOOLS))  # scripts import tools/_http.py
 spec = importlib.util.spec_from_file_location("diagnostic", TOOLS / "diagnose-roblox-voice.py")
 diagnostic = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(diagnostic)
+repair_spec = importlib.util.spec_from_file_location("repair", TOOLS / "repair-roblox-audio-permissions.py")
+repair = importlib.util.module_from_spec(repair_spec)
+repair_spec.loader.exec_module(repair)
 
 
 class DiagnosticsTests(unittest.TestCase):
+    def test_voice_ids_match_repair_allowlist(self):
+        # Both lists are hard-coded on purpose; the 6 voice banks lead the repair list.
+        self.assertEqual(diagnostic.VOICE_IDS, tuple(str(i) for i in repair.ASSET_IDS[:6]))
+
     def test_target_combinations_and_no_secret_output(self):
         for place in ("", "private-wrong-place", diagnostic.target.OFFICIAL_PLACE):
             for universe in ("", "private-wrong-universe", diagnostic.target.OFFICIAL_UNIVERSE):

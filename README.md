@@ -124,3 +124,15 @@ Studio's documented `CreateAssetAsync` upload route currently reports “not ava
 Read [the architecture and all 27 mission definitions](docs/broken-relay.md). The [original branch QA](docs/broken-relay-qa.md) and [parent integrated acceptance](docs/integrated-campaign-acceptance.md) record historical all-27-mission runs and their exact revisions; they predate the current flight, combat, terrain and audio changes. The [2026-10-27 baseline and release matrix](docs/release-baseline-2026-10-27.md) separates current checks from outstanding integration acceptance. Do not launch Studio, `test:roblox` or a Rojo server without the parent’s exclusive lease.
 
 `bun run test:offline` runs the compiled pure-domain contracts in the standalone Luau CLI (set `LUAU_BIN`). It does not replace Roblox Jest or live gameplay. The original [campaign expansion proposal](docs/campaign-expansion.html) remains background design material.
+
+### Offline and manual tools
+
+Every offline Luau tool finds the CLI through `tools/luau-bin.ts`: `LUAU_BIN` if set, otherwise `build/offline-luau/luau`. `bun run test:audio:offline`, `bun run test:voice:offline` and `bun run test:radio:offline` (compiled FlightController → GameUI radio delivery against the real queue) run the same way as `test:offline`.
+
+These tools are run by hand and are not part of any test script:
+
+- `bun tools/render-hud-mock.ts [filter]` renders static HUD PNG mocks into `docs/design/` with headless Chrome (`CHROME_BIN` overrides the default macOS Chrome path).
+- `bun tools/cutscene-mock.ts` renders cinematic caption mocks into `build/cutscene-mock/` from the compiled layout; run `bun run test:offline` first.
+- `Blender --background --factory-startup --python tools/assets/verify_fbx.py` round-trips every exported FBX in `assets/roblox-upload/` through Blender's importer and compares it with its checklist.
+
+`tools/upload-audio.py` and `tools/upload-voice.py` share the account upload journal, HALT gate and polling in `tools/roblox_upload.py` (unit-tested by `python3 -m unittest discover -s tools/tests`).

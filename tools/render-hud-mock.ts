@@ -36,7 +36,7 @@ type Mode = "touch" | "keyboard" | "gamepad";
 const root = resolve(import.meta.dir, "..");
 const work = resolve(root, "build/hud-mock");
 await mkdir(work, { recursive: true });
-const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+const CHROME = process.env.CHROME_BIN ?? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 
 const GREEN = "#6CFFB0", DIM = "#46A876", AMBER = "#FFC454", RED = "#FF5252", WHITE = "#ECFFF4", SHADOW = "#04100A";
 const TONE: Record<string, string> = { normal: GREEN, dim: DIM, warn: AMBER, danger: RED };
@@ -260,6 +260,6 @@ for (const shot of SHOTS) {
 	await Bun.write(page, render(shot));
 	const out = resolve(root, "docs/design", shot.file);
 	const chrome = Bun.spawn([CHROME, "--headless=new", "--disable-gpu", "--hide-scrollbars", `--force-device-scale-factor=${shot.scale}`, `--window-size=${shot.screenWidth},${shot.screenHeight}`, `--screenshot=${out}`, `file://${page}`], { stdout: "ignore", stderr: "ignore" });
-	await chrome.exited;
+	if ((await chrome.exited) !== 0) throw new Error(`Chrome exited with code ${chrome.exitCode} rendering ${shot.file}`);
 	console.log(`${shot.file}: ${(await Bun.file(out).exists()) ? "written" : "FAILED"}`);
 }

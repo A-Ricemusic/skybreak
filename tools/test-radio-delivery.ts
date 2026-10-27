@@ -1,6 +1,7 @@
 // Runs compiled controller -> UI radio delivery against the real queue; no Roblox playback claim.
 import { resolve } from "node:path";
 import { mkdir } from "node:fs/promises";
+import { requireLuauBin } from "./luau-bin";
 const root = resolve(import.meta.dir, "..");
 const read = (path: string) => Bun.file(resolve(root, path)).text();
 const controller = await read("out/client/FlightController.luau");
@@ -56,5 +57,5 @@ const dest = resolve(root, "build/radio-delivery");
 await mkdir(dest, { recursive: true });
 const path = resolve(dest, "run.luau");
 await Bun.write(path, harness);
-const proc = Bun.spawn([process.env.LUAU_BIN ?? resolve(root, "build/offline-luau/luau"), path], { stdout: "inherit", stderr: "inherit" });
+const proc = Bun.spawn([requireLuauBin(), path], { stdout: "inherit", stderr: "inherit" });
 if (await proc.exited !== 0) process.exitCode = 1;

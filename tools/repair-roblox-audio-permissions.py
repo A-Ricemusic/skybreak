@@ -29,7 +29,7 @@ MAX_RESPONSE_BYTES = 65536
 
 def grant_request(key):
     # No caller-supplied asset, subject, action, or dependency parameters.
-    body = {"subjectType": "Universe", "subjectId": "10772984313", "action": "Use",
+    body = {"subjectType": "Universe", "subjectId": target.OFFICIAL_UNIVERSE, "action": "Use",
             "requests": [{"assetId": asset_id, "grantToDependencies": False}
                          for asset_id in ASSET_IDS]}
     return urllib.request.Request(ENDPOINT, data=json.dumps(body).encode(),
@@ -63,7 +63,7 @@ def main(argv=None):
         print("Target mismatch or missing configuration; no API requests made.")
         return 1
     if not args.execute:
-        print("dry_run=true subject_type=Universe subject_id=10772984313 action=Use grant_to_dependencies=false")
+        print(f"dry_run=true subject_type=Universe subject_id={target.OFFICIAL_UNIVERSE} action=Use grant_to_dependencies=false")
         for asset_id in ASSET_IDS:
             print(f"asset_id={asset_id} outcome=planned")
         return 0
