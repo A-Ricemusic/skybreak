@@ -124,13 +124,19 @@ function endWreck(wreck: Wreck): void {
 }
 const wreckParams = new RaycastParams();
 wreckParams.FilterType = Enum.RaycastFilterType.Exclude;
+const wreckExclude: Instance[] = [];
 function stepWrecks(dt: number): void {
 	if (wrecks.size() === 0 || !FlightMath.IsFinite(dt) || dt <= 0) return;
 	const params = wreckParams;
-	const exclude: Instance[] = [root()];
+	const effects = root();
 	const character = Players.LocalPlayer?.Character;
-	if (character) exclude.push(character);
-	params.FilterDescendantsInstances = exclude;
+	// Rebuild only when an excluded owner changes, rather than every Heartbeat.
+	if (wreckExclude[0] !== effects || wreckExclude[1] !== character) {
+		wreckExclude.clear();
+		wreckExclude.push(effects);
+		if (character) wreckExclude.push(character);
+		params.FilterDescendantsInstances = wreckExclude;
+	}
 	for (let index = wrecks.size() - 1; index >= 0; index--) {
 		const wreck = wrecks[index];
 		wreck.age += dt;
@@ -205,6 +211,8 @@ export const CombatEffects = {
 	Clear(): void {
 		clearSerial += 1;
 		wrecks.clear(); explosions.clear(); scorches.clear();
+		wreckExclude.clear();
+		wreckParams.FilterDescendantsInstances = wreckExclude;
 		folder?.Destroy(); folder = undefined;
 	},
 };
