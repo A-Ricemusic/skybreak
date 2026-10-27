@@ -107,7 +107,7 @@ grid-aligned regions the hills read and write (the executor's own regions, not t
 | M8 Varda tower siege | canyon | canyon_dusk | 240 | 57.7 | 0.42 | 67 | 90 | 36 | 44 | 10 | 0 | 9 | 247 |
 | M9 Vulture moonlit bowl | canyon | canyon_night | 302 | 63.0 | 0.33 | 26 | 88 | 36 | 44 | 8 | 0 | 9 | 202 |
 | M10 Kiro abandoned mine | plateau | farm_overcast | 251 | 80.5 | 1.57 | 28 | 123 | 80 | 36 | 7 | 0 | 8 | 274 |
-| M11 Twin ridge relay saddle | farm | farm_sunset | 257 | 89.6 | 2.16 | 36 | 168 | 140 | 22 | 6 | 0 | 8 | 372 |
+| M11 Twin ridge relay saddle | farm | farm_sunset | 257 | 89.6 | 2.16 | 39 | 168 | 140 | 22 | 6 | 0 | 8 | 375 |
 | M12 Open field refugee corridor | farm | farm_morning | 248 | 55.7 | 2.24 | 26 | 174 | 140 | 22 | 12 | 0 | 8 | 374 |
 | M13 Staging farm rail yard | farm | farm_overcast | 250 | 68.6 | 2.37 | 41 | 168 | 140 | 22 | 6 | 0 | 8 | 377 |
 | M14 High relay crossing | plateau | relay_night | 257 | 75.3 | 1.58 | 31 | 122 | 80 | 36 | 6 | 0 | 9 | 275 |

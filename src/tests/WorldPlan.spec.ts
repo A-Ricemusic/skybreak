@@ -1,11 +1,12 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
+import { FlightMath } from "../shared/FlightMath";
 import { WorldAirspace } from "../shared/WorldAirspace";
 import { KIT_BOUNDS } from "../shared/WorldDistricts";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { layoutFor } from "../shared/MissionLayouts";
 import { KEEL_MIN, auditPlan } from "../shared/WorldAudit";
 import { UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
-import { WATER_Y, WORLD_BUDGET, WorldPlanner, propBox, surfaceAt, terrainTop } from "../shared/WorldPlan";
+import { WATER_Y, WORLD_BUDGET, WorldPlanner, propBox, solidTopWithin, surfaceAt, terrainTop, type WorldPlan } from "../shared/WorldPlan";
 
 // Pure world-plan contracts for missions 3-27; also run in the offline Luau VM.
 // The engine half (the plan executed into Terrain, parts and uploaded clones)
@@ -14,6 +15,53 @@ const ids: number[] = [];
 for (let id = 3; id <= 27; id++) ids.push(id);
 
 describe("Mission world plans", () => {
+	it("catches thin rotated colliders between probes, excludes decoration, and includes water", () => {
+		const plan: WorldPlan = { ...WorldPlanner.Build(11), ops: [], parts: [], props: [] };
+		// Neither the centre nor either eight-point ring touches this narrow rail.
+		plan.parts.push({ name: "rail", shape: "block", x: 23, y: 150, z: 17,
+			sx: 2, sy: 300, sz: 20, yaw: 0.4, color: [0, 0, 0], material: "Metal", solid: true, grounded: false });
+		expect(solidTopWithin(plan, 0, 0, 80)).toBe(300);
+		plan.parts[0].solid = false;
+		expect(solidTopWithin(plan, 0, 0, 80)).toBe(-math.huge);
+		plan.props.push({ asset: "RelayMast", x: 23, y: 44, z: 17, yaw: 0.4, scale: 0.1, tint: 0 });
+		expect(solidTopWithin(plan, 0, 0, 80)).toBe(propBox(plan.props[0]).top);
+		// Outside the clearance disc, so it must not trigger a false obstruction.
+		plan.props[0].x = 200;
+		expect(solidTopWithin(plan, 0, 0, 80)).toBe(-math.huge);
+		plan.ops.push({ shape: "block", material: "Water", x: 0, y: 16, z: 0, sx: 400, sy: 32, sz: 400, yaw: 0 });
+		expect(solidTopWithin(plan, 0, 0, 80)).toBe(32);
+	});
+	it("connects M11's farm road beneath both Sable beacons and to the target apron", () => {
+		const plan = WorldPlanner.Build(11);
+		const route = MissionCatalog.ExpandedPhases(MissionCatalog.Get(11)).find((p) => p.kind === "route")!;
+		const points = [{ x: 820, z: -780 }, ...route.points!, { x: 0, z: -1650 }];
+		for (let i = 1; i < points.size(); i++) {
+			const a = points[i - 1], b = points[i];
+			const n = math.ceil(math.sqrt((b.x - a.x) ** 2 + (b.z - a.z) ** 2) / 10);
+			for (let k = 0; k <= n; k++) {
+				const s = surfaceAt(plan, a.x + (b.x - a.x) * k / n, a.z + (b.z - a.z) * k / n);
+				expect(s.kind).toBe("part");
+				expect(s.name === "Road" || s.name === "Target apron").toBe(true);
+			}
+		}
+	});
+	it("keeps representative route exits clear for one second at maximum flight speed", () => {
+		// Numeric geometry check, not a pilot simulation: hold the last leg's
+		// heading and altitude for 600 studs (3.75 s at 800 mph, 1 s at 3000).
+		for (const id of [3, 7, 11, 12, 19, 21, 25]) {
+			const plan = WorldPlanner.Build(id);
+			for (const phase of MissionCatalog.ExpandedPhases(MissionCatalog.Get(id))) {
+				const pts = phase.points ?? [];
+				if (phase.kind !== "route" || pts.size() < 2) continue;
+				const a = pts[pts.size() - 2], b = pts[pts.size() - 1];
+				const dx = b.x - a.x, dz = b.z - a.z, len = math.sqrt(dx * dx + dz * dz);
+				for (let d = 0; d <= FlightMath.MaxSpeed; d += 20) {
+					expect(solidTopWithin(plan, b.x + dx / len * d, b.z + dz / len * d, 80)).toBeLessThan(b.y - 40);
+				}
+			}
+		}
+	});
+
 	it("connects outer roads and keeps the airstrip clear in expanded airspace", () => {
 		expect(WorldAirspace.soft).toBeLessThan(WorldAirspace.hard);
 		expect(WorldAirspace.hard).toBeLessThan(4000);

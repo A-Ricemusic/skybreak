@@ -5,6 +5,8 @@ export interface LevelLayout {
 	ridges: number[][];
 	settlements: number[][];
 	road: number[][];
+	/** Connected branches, reserved before terrain and dressing are placed. */
+	roadSpurs?: number[][][];
 	landmark: "runway" | "bridge" | "orchard" | "array" | "harbor" | "platform" | "city";
 	focus: number[];
 }
@@ -21,7 +23,7 @@ export const LEVEL_LAYOUTS: LevelLayout[] = [
 	{name:"Varda tower siege",ridges:[[1400,300,500,1100,260],[-1650,-1500,700,950,310],[800,-1800,800,450,260]],settlements:[[-1150,600,3,2]],road:[[-650,1000],[-650,300],[-650,-800]],landmark:"runway",focus:[-650,300]},
 	{name:"Vulture moonlit bowl",ridges:[[-1450,-900,650,1500,400],[1700,-400,500,1700,380],[0,-2100,1600,400,320]],settlements:[[-1000,900,2,2]],road:[[700,700],[1000,-850],[0,-1750]],landmark:"array",focus:[900,-850]},
 	{name:"Kiro abandoned mine",ridges:[[-1400,-1200,650,1000,370],[1600,-1100,650,1200,410],[300,1000,1300,350,260]],settlements:[[-900,300,3,2]],road:[[-950,700],[-450,-300],[180,-1100]],landmark:"array",focus:[180,-1100]},
-	{name:"Twin ridge relay saddle",ridges:[[-1750,-700,550,1800,390],[1800,-750,500,1800,420],[0,-2100,1300,350,270]],settlements:[[0,750,3,2]],road:[[-820,300],[-820,-780],[820,-780],[820,300]],landmark:"bridge",focus:[0,-780]},
+	{name:"Twin ridge relay saddle",ridges:[[-1750,-700,550,1800,390],[1800,-750,500,1800,420],[0,-2100,1300,350,270]],settlements:[[0,750,3,2]],road:[[-820,300],[-820,-780],[820,-780],[820,300]],roadSpurs:[[[820,-780],[300,-1200],[-100,-1650],[0,-1650]]],landmark:"bridge",focus:[0,-780]},
 	{name:"Open field refugee corridor",ridges:[[-1800,-1200,450,1500,250],[1700,-1800,600,500,310]],settlements:[[-1200,650,2,3],[900,600,3,2]],road:[[-1200,100],[-500,-900],[900,-1300]],landmark:"orchard",focus:[-500,-900]},
 	{name:"Staging farm rail yard",ridges:[[1750,-650,500,1700,300],[-1650,-1700,650,700,320]],settlements:[[-1000,650,3,2]],road:[[-1100,400],[0,-500],[0,-1550],[1100,-1900]],landmark:"bridge",focus:[0,-1000]},
 	{name:"High relay crossing",ridges:[[-1750,-600,550,1800,430],[1550,-1500,450,950,420],[0,1000,1500,400,260]],settlements:[[-1000,800,2,1]],road:[[-1000,200],[-1000,-700],[0,-1200],[1000,-1500]],landmark:"array",focus:[0,-1200]},
