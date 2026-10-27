@@ -42,6 +42,8 @@ export class GameAudio {
 	private paused = false;
 	private settingsConnection?: RBXScriptConnection;
 	private sfxScale = 1;
+	private volumeTween?: Tween;
+	private readonly preloadProbes: Sound[] = [];
 	/** Effects and engine sit 6 dB under any speaking voice. */
 	private duck = 1;
 	private stopDucking?: () => void;
@@ -71,7 +73,8 @@ export class GameAudio {
 		this.stopExplosions = CombatEffects.OnExplosion((position, _, kind) => this.explosion(position, kind));
 		// Preload in the background; moderation or a network delay must never block flight.
 		task.spawn(() => {
-			const probes: Sound[] = [];
+			if (!this.alive) return;
+			const probes = this.preloadProbes;
 			const seen = new Set<string>();
 			for (const [, entry] of pairs(SoundBank)) if (entry.assetId !== "" && !seen.has(entry.assetId)) {
 				const probe = new Instance("Sound"); probe.SoundId = entry.assetId; probes.push(probe); seen.add(entry.assetId);
@@ -83,12 +86,20 @@ export class GameAudio {
 				if (status === Enum.AssetFetchStatus.Failure && this.alive) warn(`SKYBREAK audio could not load ${id}; check experience permissions/moderation`);
 			}));
 			for (const probe of probes) probe.Destroy();
+			probes.clear();
 		});
 	}
 	private applyVolume(fade: number): void {
+		if (!this.alive) return;
+		this.volumeTween?.Cancel();
+		this.volumeTween?.Destroy();
+		this.volumeTween = undefined;
 		const target = 0.8 * this.sfxScale * this.duck;
 		if (fade <= 0) this.group.Volume = target;
-		else TweenService.Create(this.group, new TweenInfo(fade), { Volume: target }).Play();
+		else {
+			this.volumeTween = TweenService.Create(this.group, new TweenInfo(fade), { Volume: target });
+			this.volumeTween.Play();
+		}
 	}
 	private create(id: string, parent: Instance, volume: number, pitch = 1): Sound | undefined {
 		const entry = SoundBank[id];
@@ -109,7 +120,7 @@ export class GameAudio {
 	}
 	/** Bounded transient voices; world anchors survive missile/aircraft destruction. */
 	private shot(id: string, volume: number, position?: Vector3, pitch = 1): void {
-		if (!SoundBank[id] || SoundBank[id].assetId === "") return;
+		if (!this.alive || !SoundBank[id] || SoundBank[id].assetId === "") return;
 		for (let i = this.oneShots.size() - 1; i >= 0; i--) if (!this.oneShots[i].Parent) this.oneShots.remove(i);
 		while (this.oneShots.size() >= AudioRules.MaxOneShots) {
 			const old = this.oneShots.shift()!;
@@ -146,6 +157,7 @@ export class GameAudio {
 		for (const sound of loops) { if (paused) sound.Pause(); else if (!this.dead) sound.Resume(); }
 	}
 	public Start(aircraft: Model): void {
+		if (!this.alive) return;
 		this.Stop();
 		this.clearShots();
 		this.nextLaunch = 0; this.nextHit = 0; this.nextFlare = 0;
@@ -159,11 +171,14 @@ export class GameAudio {
 		}
 	}
 	private explosion(position: Vector3, kind: ExplosionKind): void {
-		if (!this.aircraft && os.clock() > this.tailUntil) return;
+		if (!this.alive || (!this.aircraft && os.clock() > this.tailUntil)) return;
 		if (kind === "player") {
+			const paused = this.paused;
+			this.Stop();
+			this.paused = paused;
 			this.dead = true;
-			this.cruise?.Stop(); this.burn?.Stop(); this.wind?.Stop(); this.warning?.Stop();
 		}
+		if (this.paused) return;
 		if (kind === "hit") {
 			if (os.clock() < this.nextHit) return;
 			this.nextHit = os.clock() + 0.08;
@@ -174,6 +189,7 @@ export class GameAudio {
 		this.shot(id, kind === "hit" ? 0.5 : kind === "missile" ? 0.4 : 0.85, position, 0.96 + math.random() * 0.08);
 	}
 	private track(child: Instance, fresh: boolean): void {
+		if (!this.alive || !this.aircraft || this.dead || this.paused) return;
 		if (fresh && child.IsA("BasePart") && child.Name === "Countermeasure" && os.clock() >= this.nextFlare) {
 			this.nextFlare = os.clock() + 0.2;
 			this.shot("flareBurst", 0.4, child.Position);
@@ -192,7 +208,7 @@ export class GameAudio {
 		}
 	}
 	public Telemetry(t: Telemetry): void {
-		if (!this.aircraft || this.dead) return;
+		if (!this.aircraft || this.dead || this.paused) return;
 		this.observed = t;
 		const changed = this.target !== t.target;
 		if (changed) { this.locked = false; this.target = t.target; }
@@ -211,7 +227,7 @@ export class GameAudio {
 	}
 	/** 10 Hz warnings and enemy scans; positional missile sounds follow their Parts. */
 	public Step(dt: number, throttle: number, speed: number, position: Vector3, boundary: boolean): void {
-		if (!this.aircraft || this.dead) return;
+		if (!this.aircraft || this.dead || this.paused) return;
 		const mix = AudioRules.EngineMix(throttle, speed, dt);
 		for (const [sound, volume] of [[this.cruise, mix.cruise], [this.burn, mix.burn], [this.wind, mix.wind]] as [Sound | undefined, number][]) {
 			if (sound) { sound.Volume += (volume - sound.Volume) * mix.alpha; sound.PlaybackSpeed += (mix.pitch - sound.PlaybackSpeed) * mix.alpha; }
@@ -220,7 +236,7 @@ export class GameAudio {
 		if (this.scanTime < 0.1) return;
 		this.scanTime = 0;
 		const t = this.observed;
-		const warning = t && AudioRules.Warning(t.incoming, t.health, boundary, t.lockProgress, t.target !== undefined);
+		const warning = t && AudioRules.Warning(t.incoming, t.health, boundary, t.lockProgress, t.target !== undefined && t.targetDamageable !== false);
 		if (warning !== this.warningKind) {
 			this.warning?.Destroy(); this.warning = undefined; this.warningKind = warning;
 			if (warning) this.warning = this.create(warning, this.group, warning === "lockSearch" ? 0.14 : 0.3);
@@ -236,9 +252,13 @@ export class GameAudio {
 			entry.last = part.Position;
 		}
 		for (const [model, entry] of this.engines) {
-			if (model.Parent !== this.folder || model.GetAttribute("SkybreakEnemy") !== true || entry.root.Position.sub(position).Magnitude > 2400) {
+			if (!entry.root.Parent || model.PrimaryPart !== entry.root || model.Parent !== this.folder || model.GetAttribute("SkybreakEnemy") !== true || entry.root.Position.sub(position).Magnitude > 2400) {
 				entry.sound.Destroy(); this.engines.delete(model);
 			}
+		}
+		// Reconcile missiles skipped during pause or while the voice budget was full.
+		if (this.folder && this.motors.size() < AudioRules.MaxMotors) {
+			for (const child of this.folder.GetChildren()) this.track(child, false);
 		}
 		if (this.folder && this.engines.size() < AudioRules.MaxEngines) for (const child of this.folder.GetChildren()) {
 			if (this.engines.size() >= AudioRules.MaxEngines) break;
@@ -268,6 +288,11 @@ export class GameAudio {
 		this.oneShots.clear();
 	}
 	public Destroy(): void {
-		this.Stop(); this.clearShots(); this.stopExplosions?.(); this.stopDucking?.(); this.settingsConnection?.Disconnect(); this.alive = false; this.world.Destroy(); this.group.Destroy();
+		if (!this.alive) return;
+		this.alive = false;
+		this.volumeTween?.Cancel(); this.volumeTween?.Destroy(); this.volumeTween = undefined;
+		for (const probe of this.preloadProbes) probe.Destroy();
+		this.preloadProbes.clear();
+		this.Stop(); this.clearShots(); this.stopExplosions?.(); this.stopDucking?.(); this.settingsConnection?.Disconnect(); this.world.Destroy(); this.group.Destroy();
 	}
 }

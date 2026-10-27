@@ -12,6 +12,7 @@
     "serve": "rojo serve",
     "test": "bun run test:roblox",
     "test:roblox": "bun tools/test-roblox.ts",
+    "test:audio:offline": "bun run build && bun tools/test-audio-offline.ts",
     "test:offline": "bun run build && bun tools/test-relay-offline.ts",
     "docs:relay-tables": "bun tools/relay-tables.ts",
     "docs:world-counts": "bun tools/world-report.ts"
