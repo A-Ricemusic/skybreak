@@ -68,6 +68,15 @@
       },
       "CinematicDeskGeometry": {
         "$path": "build/CinematicDeskGeometry.txt"
+      },
+      "RunwayTileGeometry": {
+        "$path": "build/RunwayTileGeometry.txt"
+      },
+      "RoadTileGeometry": {
+        "$path": "build/RoadTileGeometry.txt"
+      },
+      "CliffTileGeometry": {
+        "$path": "build/CliffTileGeometry.txt"
       }
     }
   }

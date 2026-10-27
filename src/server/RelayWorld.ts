@@ -33,12 +33,19 @@ function writeTerrain(plan: WorldPlan): ReturnType<typeof TerrainWriter.Write> {
 	return TerrainWriter.Write(plan.ops);
 }
 
-function buildPart(parent: Instance, p: PartSpec): BasePart {
+function buildPart(parent: Instance, p: PartSpec): void {
+	if (p.mesh !== undefined) {
+		const model = MissionAssets.CreateWorldKit(p.mesh);
+		model.PivotTo(yawFrame(p.x, p.y, p.z, p.yaw));
+		for (const item of model.GetDescendants()) if (item.IsA("BasePart")) item.CastShadow = false;
+		model.Parent = parent;
+		return;
+	}
 	const options = { flightSolid: p.solid, castShadow: false, transparency: p.transparency, reflectance: p.reflectance };
 	const color = rgb(p.color), mat = material(p.material);
-	if (p.shape === "cylinder") return Scenery.Cylinder(parent, p.name, p.sx, p.sy, new Vector3(p.x, p.y, p.z), color, mat, options);
-	if (p.shape === "ball") return Scenery.Part(parent, p.name, new Vector3(p.sx, p.sx, p.sx), new Vector3(p.x, p.y, p.z), color, mat, { ...options, shape: Enum.PartType.Ball });
-	return Scenery.Part(parent, p.name, new Vector3(p.sx, p.sy, p.sz), yawFrame(p.x, p.y, p.z, p.yaw), color, mat, { ...options, className: p.shape === "wedge" ? "WedgePart" : "Part" });
+	if (p.shape === "cylinder") return void Scenery.Cylinder(parent, p.name, p.sx, p.sy, new Vector3(p.x, p.y, p.z), color, mat, options);
+	if (p.shape === "ball") return void Scenery.Part(parent, p.name, new Vector3(p.sx, p.sx, p.sx), new Vector3(p.x, p.y, p.z), color, mat, { ...options, shape: Enum.PartType.Ball });
+	return void Scenery.Part(parent, p.name, new Vector3(p.sx, p.sy, p.sz), yawFrame(p.x, p.y, p.z, p.yaw), color, mat, { ...options, className: p.shape === "wedge" ? "WedgePart" : "Part" });
 }
 
 const BARK = Color3.fromRGB(92, 70, 50);

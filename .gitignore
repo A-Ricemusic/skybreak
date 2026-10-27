@@ -66,3 +66,11 @@ __pycache__/
 # Regenerable cinematic prop inspection renders.
 assets/mission/cinematicchair-preview.png
 assets/mission/cinematicdesk-preview.png
+
+# Regenerable original world infrastructure source and inspection exports.
+assets/mission/runwaytile.blend
+assets/mission/runwaytile.glb
+assets/mission/roadtile.blend
+assets/mission/roadtile.glb
+assets/mission/clifftile.blend
+assets/mission/clifftile.glb

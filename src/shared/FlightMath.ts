@@ -1,3 +1,4 @@
+import { WorldAirspace } from "./WorldAirspace";
 import { FlightInput } from "./Types";
 
 /**
@@ -88,8 +89,8 @@ function pitchTowardGround(state: FlightState, sign: number, angle: number): voi
 export const FlightMath = {
 	MinSpeed: 70,
 	MaxSpeed: 320,
-	SoftBoundary: 2400,
-	HardBoundary: 2800,
+	SoftBoundary: WorldAirspace.soft,
+	HardBoundary: WorldAirspace.hard,
 	StallSpeed: 140,
 	WarningSpeed: 165,
 	MaxAltitude: 3600,

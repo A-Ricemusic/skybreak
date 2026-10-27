@@ -1,3 +1,4 @@
+import { expandDistrict, type WorldKit } from "./WorldDistricts";
 import { ENVIRONMENTS, lampsOn, type Rgb } from "./EnvironmentPresets";
 import { FlightMath } from "./FlightMath";
 import { MissionCatalog, type EnvironmentPreset, type FlightPoint, type MissionBlueprint, type MissionRegion } from "./MissionCatalog";
@@ -31,6 +32,7 @@ export interface TerrainOp { shape: TerrainShape; material: TerrainMaterial; x: 
 export type PartShape = "block" | "wedge" | "cylinder" | "ball";
 /** A primitive part. Cylinders are upright with diameter sx and height sy. */
 export interface PartSpec {
+	mesh?: WorldKit;
 	name: string; shape: PartShape; x: number; y: number; z: number; sx: number; sy: number; sz: number; yaw: number;
 	color: Rgb; material: string;
 	/** Flight-solid (queried by aircraft sweeps). Decoration is not. */
@@ -1204,6 +1206,7 @@ function build(id: number): WorldPlan {
 	scatterTrees(ctx, math.max(treeTotal - orchardTrees, theme === "farm" ? 40 : 0), theme === "farm" ? 0.3 : theme === "coast" ? 0.4 : theme === "plateau" ? 0.85 : 0.6);
 	scatterRocks(ctx, theme === "canyon" ? 44 : theme === "plateau" ? 36 : theme === "farm" ? 22 : theme === "coast" ? 14 : 0);
 	farTiles(ctx, env.water.color);
+	expandDistrict(plan);
 	return plan;
 }
 
@@ -1220,6 +1223,8 @@ export function countPlan(plan: WorldPlan): WorldCounts {
 		else voxels += fillVoxels(o);
 	}
 	const unique = new Set<string>();
+	let kitInstances = 0;
+	for (const p of plan.parts) if (p.mesh !== undefined) { unique.add(p.mesh); kitInstances += p.mesh === "CliffTile" ? 2 : 4; }
 	let trees = 0, rocks = 0, buildings = 0, ships = 0;
 	for (const p of plan.props) {
 		unique.add(p.asset);
@@ -1231,7 +1236,7 @@ export function countPlan(plan: WorldPlan): WorldCounts {
 	return {
 		terrainOps: plan.ops.size(), voxelWrites: math.floor(voxels + cells), bumpCells: cells, parts: plan.parts.size(), props: plan.props.size(), uniqueMeshes: unique.size(),
 		// Each placed mesh is a MeshPart plus its SurfaceAppearance.
-		trees, rocks, buildings, ships, instances: plan.parts.size() + plan.props.size() * 2,
+		trees, rocks, buildings, ships, instances: plan.parts.size() + plan.props.size() * 2 + kitInstances,
 	};
 }
 
