@@ -7,7 +7,7 @@ import { AURORA, CINEMATIC_JET, CINEMATIC_PARKED_JET, CINEMATIC_HANGAR, BOARD, C
 import { SpeakerTone, StoryBeat, StoryChapter, speakerStyle, storyFor } from "../shared/RelayStory";
 import { MotionPreference } from "./MotionPreference";
 import { documentFor, documentLine } from "../shared/StoryDocuments";
-import { Voice, cinematicBeatSeconds } from "../shared/VoiceLines";
+import { Voice, cinematicBeatSeconds, storyLineId } from "../shared/VoiceLines";
 import { VoiceHandle, VoicePlayer } from "./VoicePlayer";
 
 const ORIGIN=new Vector3(0,6000,0);
@@ -249,11 +249,13 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 	const pausedRef=useRef(false),stillRef=useRef(MotionPreference.reduced),finishRef=useRef(onFinish),cancelRef=useRef(onCancel),done=useRef(false);
 	// Longer lines stay on screen longer: 5-9 s per beat, scaled by text length, or the voice plus a short tail when that is longer.
 	const durations=chapter.beats.map((b,i)=>cinematicBeatSeconds(beatDuration(b.text),Voice.Story(id,i,b.text)?.seconds));
-	// The beat's voice (silent until its bank is uploaded). Advancing, skipping or closing always stops it.
-	const voiceRef=useRef<VoiceHandle>();
+	// Advancing, skipping or closing stops the voice; unavailable dialogue stays visible as a failure.
+	const voiceRef=useRef<VoiceHandle>(),audioUnavailableRef=useRef(false);
 	const speak=(index:number)=>{
 		voiceRef.current?.Stop(.12);
 		voiceRef.current=VoicePlayer.Play(Voice.Story(id,index,chapter.beats[index].text),"cutscene");
+		audioUnavailableRef.current=voiceRef.current===undefined;
+		if(audioUnavailableRef.current)warn(`SKYBREAK cinematic ${storyLineId(id,index)}: dialogue unavailable (missing/mismatched cue or unavailable bank); universe=${game.GameId} place=${game.PlaceId} version=${game.PlaceVersion}`);
 		if(pausedRef.current)voiceRef.current?.Pause();
 	};
 	const silence=(fade:number)=>{voiceRef.current?.Stop(fade);voiceRef.current=undefined;};
@@ -307,7 +309,11 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 			if(beatTimeRef.current>=endRef.current){advance();if(done.current)return;}
 			const index=indexRef.current,t=beatTimeRef.current,duration=durations[index],calm=stillRef.current;
 			const loading=voiceRef.current?.IsLoading()===true,presentationT=presentationTimeRef.current;
-			if(audioStatusRef.current)audioStatusRef.current.Visible=loading;
+			if(audioStatusRef.current){
+				const unavailable=audioUnavailableRef.current || voiceRef.current?.HasFailed()===true;
+				audioStatusRef.current.Visible=loading || unavailable;
+				audioStatusRef.current.Text=unavailable ? "Dialogue unavailable · subtitles only" : "Loading dialogue…";
+			}
 			const left=endRef.current-t;
 			const {shot,speaker:who}=chapter.beats[index],toneNow=speakerStyle(who).tone;
 			// Text: tapes, the log and title cards type out over the first 40 % of the beat; everyone else fades in. All fade out over the outro unless reduced motion asks for instant swaps.
@@ -406,7 +412,7 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 	// Layering: scene tap target 1, panel gradient 2, title card 3, caption panel and pause chip 4, settings 5, fade 6.
 	// The panel sits above black cards so skip/pause/Aa stay reachable; the card shows its own speaker and line.
 	return <frame key="CinematicScreen" Size={UDim2.fromScale(1,1)} BackgroundTransparency={1}>
-		<textlabel ref={audioStatusRef} key="CinematicAudioStatus" ZIndex={4} AnchorPoint={new Vector2(.5,0)} Position={new UDim2(.5,0,0,12)} Size={UDim2.fromOffset(180,24)} BackgroundColor3={INK} BackgroundTransparency={.25} BorderSizePixel={0} Text="Loading dialogue…" TextSize={12} Font={Enum.Font.GothamMedium} TextColor3={IVORY} Visible={false}/>
+		<textlabel ref={audioStatusRef} key="CinematicAudioStatus" ZIndex={4} AnchorPoint={new Vector2(.5,0)} Position={new UDim2(.5,0,0,12)} Size={UDim2.fromOffset(280,24)} BackgroundColor3={INK} BackgroundTransparency={.25} BorderSizePixel={0} Text="Loading dialogue…" TextSize={12} Font={Enum.Font.GothamMedium} TextColor3={IVORY} Visible={false}/>
 		{/* Tap or click anywhere on the scene for the next line. */}
 		<textbutton key="CinematicAdvanceButton" ZIndex={1} Size={UDim2.fromScale(1,1)} BackgroundTransparency={1} Text="" AutoButtonColor={false} Selectable={false} Event={{Activated:activate("next")}}/>
 		{settingsOpen && <frame key="CinematicSettings" ZIndex={5} Position={UDim2.fromOffset(panel.x,panel.y)} Size={UDim2.fromOffset(panel.width,panel.height)} BackgroundColor3={INK} BackgroundTransparency={.15} BorderSizePixel={0}>

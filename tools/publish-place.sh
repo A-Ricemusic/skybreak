@@ -13,6 +13,9 @@ if [ ! -f "$PLACE_FILE" ]; then
 	exit 1
 fi
 
+# Reject stale local artifacts before any upload request. This is not a live audio test.
+python3 tools/check-place-voice.py "$PLACE_FILE"
+
 RESPONSE_FILE="$(mktemp)"
 trap 'rm -f "$RESPONSE_FILE"' EXIT
 
