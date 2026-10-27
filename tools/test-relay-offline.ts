@@ -16,7 +16,7 @@ const files=["shared/AudioRules","tests/AudioRules.spec","shared/AssetSelection"
 	// World realism: the pure world plans, their audit and the environment table.
 	"shared/UploadedAssetSpecs","shared/EnvironmentPresets","shared/TerrainSchedule","shared/WorldPlan","shared/WorldAudit","tests/WorldPlan.spec","tests/TerrainSchedule.spec","shared/LegacyWorlds","tests/LegacyWorlds.spec","tests/EnvironmentPresets.spec","shared/WeatherRules","tests/WeatherRules.spec",
 	// Flight model: rate-commanded attitude, loops, attitude hold, prediction and the state packet.
-	"tests/Flight.spec","shared/FlightPrediction","shared/TelemetryCodec","tests/FlightPrediction.spec"];
+	"tests/Flight.spec","shared/FlightPrediction","shared/TelemetryCodec","tests/FlightPrediction.spec",
 	// Ace Combat-style target boxes: validity, size, blink, ranking and touch keep-outs.
 	"shared/TargetBoxes","tests/TargetBoxes.spec"];
 for(const file of files){
