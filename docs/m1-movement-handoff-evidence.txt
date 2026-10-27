@@ -6,6 +6,10 @@ integrated the unchanged flight model below 12 studs. Baseline run: 539 passed,
 0 failed (includes the reproduction). This is an offline simulation, not the
 reported real-input playtest and not a Roblox collision/runtime pass.
 
+The final regression also runs full cumulative keyboard onboarding from the real
+spawn/default speed (three seconds turn, three seconds pitch), reproducing the
+inverted descent without recovery and a safe once-only handoff with recovery.
+
 After: TutorialHandoff.spec.ts exercises the server order (observe controls,
 apply one handoff decision, filter raw input, integrate FlightMath), including
 inverted, steep up/down, low level and insufficient descent headroom. Safe
@@ -35,7 +39,7 @@ or changes existing collision practice resets / live combat protection. It
 is not an ongoing level assist: stall/flight physics and fresh input still apply.
 
 Validation: bun run build and the official standalone Luau offline domain suite
-passed, 548 tests / 0 failures. git diff --check passed. No Studio, Rojo server,
+passed, 549 tests / 0 failures. git diff --check passed. No Studio, Rojo server,
 full engine, publish/upload, real keyboard, controller or touch testing was run.
 Engine corridor/overlap checks, camera feel, notice readability and real held
 input acceptance remain for the parent's dedicated engine acceptance pass.

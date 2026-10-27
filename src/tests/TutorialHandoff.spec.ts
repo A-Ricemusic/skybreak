@@ -6,19 +6,39 @@ import { MissionRules } from "../shared/MissionRules";
 
 describe("M1 movement handoff simulation", () => {
 	it("reproduces the old transition flying an inverted descent into the ground", () => {
-		const rules = MissionRules.NewState(1, 0);
-		const flight = FlightMath.FromPose(0, 180, 500, 0, -0.6, 230, math.pi);
-		rules.turnObserved = 2.99; rules.pitchObserved = 2.99;
-		MissionRules.ObserveControls(rules, 1, 1, 1 / 30, 6);
+		const rules = MissionRules.NewState(1, 0), flight = FlightMath.NewState();
+		// Full cumulative keyboard onboarding from the real spawn and default speed:
+		// three seconds of turn, then three of pitch. Observe before stepping, as on server.
+		for (let step = 1; step <= 182; step++) {
+			const input = { x: step <= 91 ? 1 : 0, y: step > 91 ? 1 : 0, throttle: 0.65 };
+			MissionRules.ObserveControls(rules, input.x, input.y, 1 / 30, step / 30);
+			FlightMath.Step(flight, input, 1 / 30);
+		}
 		expect(rules.phase).toBe("tutorial_target");
-		// Old stepSession order: observe, apply phase, integrate the held input.
-		for (let step = 0; step < 90 && flight.y > 12; step++) FlightMath.Step(flight, { x: 0, y: 0, throttle: 0.65 }, 1 / 30);
+		expect(math.abs(flight.roll)).toBeGreaterThan(2);
+		expect(flight.pitch).toBeLessThan(-0.5);
+		// Releasing holds preserves the inverted dive in the old flight path.
+		for (let step = 0; step < 300 && flight.y > 12; step++) FlightMath.Step(flight, { x: 0, y: 0, throttle: 0.65 }, 1 / 30);
 		expect(flight.y).toBeLessThan(12);
 	});
 });
 
 
 describe("protected movement -> targeting integration", () => {
+	it("completes cumulative keyboard onboarding from spawn with one protected handoff", () => {
+		const rules = MissionRules.NewState(1, 0), flight = FlightMath.NewState(), gate = TutorialHandoff.New();
+		let recoveries = 0;
+		for (let step = 1; step <= 242; step++) {
+			const input = { x: step <= 91 ? 1 : 0, y: step > 91 ? 1 : 0, throttle: 0.65 };
+			MissionRules.ObserveControls(rules, input.x, input.y, 1 / 30, step / 30);
+			if (TutorialHandoff.Begin(gate, rules, flight)) recoveries++;
+			FlightMath.Step(flight, TutorialHandoff.Filter(gate, input), 1 / 30);
+		}
+		expect(recoveries).toBe(1); expect(rules.phase).toBe("tutorial_target");
+		expect(rules.turnObserved).toBe(3); expect(rules.pitchObserved).toBe(3);
+		expect(flight.y).toBeCloseTo(800, 5); expect(flight.pitch).toBeCloseTo(0, 5);
+		expect(gate.blocked).toBe(true); expect(rules.elapsed).toBeCloseTo(242 / 30, 5);
+	});
 	for (const [name, altitude, pitch, bank] of [
 		["inverted", 180, -0.6, math.pi], ["steep climb", 650, 1.2, 0],
 		["steep dive", 650, -1.2, 0], ["low level", 80, 0, 0],
