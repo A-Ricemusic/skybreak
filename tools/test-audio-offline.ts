@@ -26,6 +26,15 @@ for (const bank of plan.cues) {
 if (checked !== cues.cues.length || checked !== (bankText.match(/assetId: "rbxassetid:/g) ?? []).length) throw new Error("Cue coverage mismatch");
 console.log(`Asset manifest audit: ${checked} cues / ${plan.cues.length} recorded-approved banks; local hashes match. No live permission check.`);
 let harness = await Bun.file(resolve(root, "tools/tests/audio-lifecycle.luau")).text();
+// GameAudio imports these production names; retain their compiled values without
+// loading JetFactory's Roblox instance construction into the standalone harness.
+const jetFactory = await Bun.file(resolve(root, "out/shared/JetFactory.luau")).text();
+const missileNames = ["HOSTILE_MISSILE", "PLAYER_MISSILE"].map(name => {
+  const declaration = jetFactory.match(new RegExp(`^local ${name} = ("[^"\\n]+")$`, "m"));
+  if (!declaration) throw new Error(`Missing compiled missile name: ${name}`);
+  return `${name} = ${declaration[1]}`;
+});
+harness = `local _JetFactory = { ${missileNames.join(", ")} }\n${harness}`;
 for (const name of ["AudioRules", "SoundBank", "GameAudio"]) {
   let source = await Bun.file(resolve(root, `out/${name === "GameAudio" ? "client" : "shared"}/${name}.luau`)).text();
   source = source.split("\n").filter(line => !line.startsWith("local TS = require(") && !line.includes("TS.import(")).join("\n");
