@@ -2022,8 +2022,28 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			if (!mountedRef.current || requestRef.current !== requestId) return;
 			if (!response) showToast(problem ?? "Command rejected the request.", true);
 			else if (!applyResponseSlots(response)) showToast("Flight records returned an invalid response.", true);
-			else if (response.persistence === "unavailable") showToast(`Save ${string.format("%02d", slot)} deleted here, but the cloud save has not confirmed yet.`, true);
-			else showToast(`Save ${string.format("%02d", slot)} deleted.`, false);
+			else {
+				const deletion = response.deletions?.find((entry) => entry.slot === slot);
+				const report = (status?: string) => {
+					const name = `Save ${string.format("%02d", slot)}`;
+					if (status === "confirmed") showToast(`${name} deletion confirmed in cloud.`, false);
+					else if (status === "session-only") showToast(`${name} deleted for this session only. Cloud saves are disabled.`, true);
+					else if (status === "failed") showToast(`${name} deleted here; cloud write failed. It may return next session.`, true);
+					else showToast(`${name} deleted here; cloud confirmation pending. It may return next session.`, true);
+				};
+				report(deletion?.status);
+				if (deletion?.status === "pending") task.spawn(() => {
+					// Observe the original generation. Never resend a destructive command.
+					for (let attempt = 0; attempt < 10; attempt++) {
+						task.wait(3);
+						if (!mountedRef.current || requestRef.current !== requestId) return;
+						const [latest] = invoke("DeletionStatus");
+						if (!mountedRef.current || requestRef.current !== requestId) return;
+						const current = latest?.deletions?.find((entry) => entry.slot === slot && entry.generation === deletion.generation);
+						if (current && current.status !== "pending") { report(current.status); return; }
+					}
+				});
+			}
 		});
 	}, [applyResponseSlots, beginRequest, invoke, setDeleteConfirm, showToast]);
 	const chooseMission = useCallback((missionId: number) => { selectedMissionRef.current = missionId; setSelectedMission(missionId); }, []);

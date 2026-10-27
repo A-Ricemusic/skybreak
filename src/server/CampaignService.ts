@@ -109,6 +109,7 @@ function waitForLoad(state: PlayerState): boolean {
 function response(state: PlayerState, ok: boolean, errorMessage?: string): CampaignResponse {
 	const result: CampaignResponse = {
 		ok,
+		deletions: state.coordinator.getDeletions(),
 		slots: state.coordinator.getSlots(),
 		persistence: state.coordinator.getPersistence(),
 	};
@@ -210,6 +211,7 @@ function handleRequest(player: Player, action: unknown, payload?: unknown): Camp
 	state.requestBusy = true;
 
 	const [success, result] = xpcall(() => {
+		if (action === "DeletionStatus") return response(state, true);
 		if (action === "ListSlots") return listSlots(state);
 		if (action === "StartMission") return startMission(state, payload);
 		if (action === "ReturnToMenu") return returnToMenu(state);
