@@ -62,3 +62,7 @@ assets/mission/harborlaunch-preview.png
 
 # Python bytecode from the Blender asset generators
 __pycache__/
+
+# Regenerable cinematic prop inspection renders.
+assets/mission/cinematicchair-preview.png
+assets/mission/cinematicdesk-preview.png

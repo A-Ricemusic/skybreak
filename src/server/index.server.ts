@@ -5,6 +5,7 @@ import { GameConfig } from "../shared/GameConfig";
 import { Remotes } from "../shared/Types";
 import { CampaignService } from "./CampaignService";
 import { CombatService } from "./CombatService";
+import { WorldAssets } from "./WorldAssets";
 import { WorldBuilder } from "./WorldBuilder";
 
 function ensureRemote<T extends "RemoteFunction" | "RemoteEvent" | "UnreliableRemoteEvent">(folder: Folder, name: string, className: T): CreatableInstances[T] {
@@ -54,10 +55,18 @@ function initialize(): void {
 	if (!warmed) warn(`SKYBREAK enemy mesh warm-up failed; the first sortie will build it: ${tostring(warmError)}`);
 	const storyModels=new Instance("Folder");storyModels.Name="RelayStoryModels";
 	for (const [name,make] of [
+		["CinematicKestrel",()=>JetFactory.Create("CinematicKestrel", false)],
+		["CinematicChair",()=>MissionAssets.CreateCinematicChair()],
+		["CinematicDesk",()=>MissionAssets.CreateCinematicDesk()],
 		["CommsRelay",()=>MissionAssets.CreateCommsRelay("CommsRelay")],
 		["RelayTruck",()=>MissionAssets.CreateRelayTruck("RelayTruck")],
 		["HarborLaunch",()=>MissionAssets.CreateHarborLaunch("HarborLaunch")],
 	] as const) {const model=make();model.Name=name;model.Parent=storyModels;}
+	// Reuse the approved uploaded hangar; never substitute third-party assets.
+	WorldAssets.Preload(["Hangar"]);
+	const hangar = WorldAssets.PlaceUploaded("Hangar", storyModels, new CFrame());
+	if (hangar) hangar.Name = "CinematicHangar";
+	else warn("SKYBREAK cinematic hangar unavailable; stage will use its explicit fallback");
 	storyModels.Parent=ReplicatedStorage;
 	const [combatInitialized, combatError] = pcall(() => CombatService.Init(remotes, CampaignService.OnFinished));
 	if (!combatInitialized) {

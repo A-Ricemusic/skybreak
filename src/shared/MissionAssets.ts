@@ -1,6 +1,6 @@
 import { AssetService, HttpService, RunService, ServerStorage } from "@rbxts/services";
 
-type MissionAssetKind = "Warehouse" | "Radar" | "CommsRelay" | "GrainSilo" | "RelayTruck" | "HarborLaunch";
+type MissionAssetKind = "CinematicChair" | "CinematicDesk" | "Warehouse" | "Radar" | "CommsRelay" | "GrainSilo" | "RelayTruck" | "HarborLaunch";
 type MaterialRole = "Concrete" | "Steel" | "DarkMetal" | "Accent" | "Roof" | "Glass" | "Warning";
 
 interface MeshMaterial {
@@ -250,6 +250,8 @@ function create(kind: MissionAssetKind, name: string): Model {
 }
 
 export const MissionAssets = {
+	CreateCinematicChair(): Model { return create("CinematicChair", "CinematicChair"); },
+	CreateCinematicDesk(): Model { return create("CinematicDesk", "CinematicDesk"); },
 	CreateCommsRelay(name: string): Model { return create("CommsRelay", name); },
 	CreateGrainSilo(name: string): Model { return create("GrainSilo", name); },
 	CreateRelayTruck(name: string): Model { return create("RelayTruck", name); },
