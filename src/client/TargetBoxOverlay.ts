@@ -1,4 +1,4 @@
-import { viewportPosition } from "./ViewportGui";
+import { viewportOrigin } from "./ViewportGui";
 import { TARGET_BOX_LIMIT, TARGET_TAG_GAP, TARGET_TAG_HEIGHT, TARGET_TAG_RISE, TARGET_TAG_WIDTH, TargetBoxes, TargetBoxFlags, TargetBoxTone, TargetTagSide } from "../shared/TargetBoxes";
 import type { Rectangle } from "../shared/UILayout";
 import { HUD, HUD_FONT_BOLD } from "./Theme";
@@ -60,7 +60,8 @@ export class TargetBoxOverlay {
 		for (const [, contact] of this.contacts) contact.connection.Disconnect();
 		this.contacts.clear();
 		this.ranked.clear();
-		// The frames die with the targeting ScreenGui.
+		// Stop/Start can reuse a live ScreenGui; the overlay owns these frames.
+		for (const slot of this.slots) slot.frame.Destroy();
 		this.slots.clear();
 		this.gui = undefined;
 	}
@@ -97,12 +98,16 @@ export class TargetBoxOverlay {
 		}
 		// One slot always stays the selected bracket's, so at most TARGET_BOX_LIMIT box frames ever exist.
 		const count = TargetBoxes.Rank(ranked, TARGET_BOX_LIMIT, 1);
+		// All slots share the same inset and rendered parent geometry this frame.
+		const guiOrigin = count > 0 ? viewportOrigin(gui) : Vector2.zero;
+		const guiSize = gui.AbsoluteSize;
+		const width = math.max(1, guiSize.X), height = math.max(1, guiSize.Y);
 		for (let index = 0; index < count; index++) {
 			const contact = ranked[index];
 			contact.boxed = true;
 			const slot = this.slots[index] ?? this.createSlot(gui, index);
 			// Re-evaluate even for a stationary target: topbar/safe-area geometry can change.
-			slot.frame.Position = viewportPosition(gui, contact.x, contact.y);
+			slot.frame.Position = UDim2.fromScale((contact.x - guiOrigin.X) / width, (contact.y - guiOrigin.Y) / height);
 			if (contact.size !== slot.size) { slot.size = contact.size; slot.frame.Size = UDim2.fromOffset(contact.size, contact.size); }
 			if (contact.tone !== slot.tone) {
 				slot.tone = contact.tone;

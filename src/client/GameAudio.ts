@@ -230,9 +230,10 @@ export class GameAudio {
 	public Step(dt: number, throttle: number, speed: number, position: Vector3, boundary: boolean): void {
 		if (!this.aircraft || this.dead || this.paused) return;
 		const mix = AudioRules.EngineMix(throttle, speed, dt);
-		for (const [sound, volume] of [[this.cruise, mix.cruise], [this.burn, mix.burn], [this.wind, mix.wind]] as [Sound | undefined, number][]) {
-			if (sound) { sound.Volume += (volume - sound.Volume) * mix.alpha; sound.PlaybackSpeed += (mix.pitch - sound.PlaybackSpeed) * mix.alpha; }
-		}
+		// Keep the per-frame mix free of temporary arrays of sound/volume pairs.
+		this.mixLoop(this.cruise, mix.cruise, mix.pitch, mix.alpha);
+		this.mixLoop(this.burn, mix.burn, mix.pitch, mix.alpha);
+		this.mixLoop(this.wind, mix.wind, mix.pitch, mix.alpha);
 		this.scanTime += dt;
 		if (this.scanTime < 0.1) return;
 		this.scanTime = 0;
@@ -268,6 +269,11 @@ export class GameAudio {
 			const sound = this.create("enemyEngine", root, 0.24, 0.95 + math.random() * 0.1);
 			if (sound) this.engines.set(child, { model: child, root, sound });
 		}
+	}
+	private mixLoop(sound: Sound | undefined, volume: number, pitch: number, alpha: number): void {
+		if (!sound) return;
+		sound.Volume += (volume - sound.Volume) * alpha;
+		sound.PlaybackSpeed += (pitch - sound.PlaybackSpeed) * alpha;
 	}
 	public Stop(): void {
 		if (this.aircraft) this.tailUntil = os.clock() + 4;
