@@ -92,18 +92,19 @@ export const FlightMath = {
 	HardBoundary: 2800,
 	StallSpeed: 140,
 	WarningSpeed: 165,
-	MaxAltitude: 1050,
+	MaxAltitude: 3600,
+	SoftAltitude: 3000,
+	CruiseSpeed: 300,
+	CruiseThrottle: 0.65,
 	/** Full-stick pitch rate (rad/s): a full loop at cruise takes about 5 s and spans about 400 studs. */
 	PitchRate: 1.25,
 	/** Full-stick heading rate (rad/s) when upright or inverted. */
 	TurnRate: 1.15,
 	/** Cosmetic bank (rad) at full turn stick. */
 	LeanMax: 0.85,
-	/** studs/s² of airspeed traded per unit of nose-up (sin of the climb angle). */
-	ClimbDrag: 38,
 	/** Engine acceleration limits (studs/s²) toward the throttle's target speed. */
-	EngineAccel: 28,
-	EngineBrake: 32,
+	EngineAccel: 120,
+	EngineBrake: 100,
 	/** Nose-drop rate (rad/s) at full stall. */
 	StallNoseDrop: 0.6,
 	/** Optional level-out assist: pitch and roll rates (rad/s) back to wings-level flight. */
@@ -194,7 +195,7 @@ export const FlightMath = {
 		return FlightMath.Sync(state);
 	},
 	NewState(): FlightState {
-		return FlightMath.Sync({ x: 0, y: 250, z: 500, qw: 1, qx: 0, qy: 0, qz: 0, lean: 0, yaw: 0, pitch: 0, roll: 0, speed: 255 });
+		return FlightMath.Sync({ x: 0, y: 250, z: 500, qw: 1, qx: 0, qy: 0, qz: 0, lean: 0, yaw: 0, pitch: 0, roll: 0, speed: 300 });
 	},
 	/** A state at a position flying a heading and climb angle at `speed` (simulations and tests). */
 	FromPose(x: number, y: number, z: number, yaw: number, pitch: number, speed: number, roll = 0): FlightState {
@@ -214,8 +215,10 @@ export const FlightMath = {
 		const axis = FlightMath.ClampInput(value);
 		return math.abs(axis) <= 0.18 ? 0 : math.sign(axis) * (math.abs(axis) - 0.18) / 0.82;
 	},
-	AdjustThrottle(throttle: number, axis: number, dt: number): number {
-		return math.clamp(throttle + FlightMath.ThrottleAxis(axis) * math.clamp(dt, 0, 0.1) * 0.4, 0, 1);
+	/** Released controls command cruise immediately; airspeed supplies the smooth response. */
+	CommandThrottle(axis: number): number {
+		const command = FlightMath.ThrottleAxis(axis);
+		return math.clamp(FlightMath.CruiseThrottle + command * (command < 0 ? FlightMath.CruiseThrottle : 1 - FlightMath.CruiseThrottle), 0, 1);
 	},
 	/**
 	 * How much of the turn stick becomes heading change, signed so the nose
@@ -232,19 +235,20 @@ export const FlightMath = {
 	 * wings (through the vertical, over the top and inverted: a loop); stick X
 	 * turns the heading about world up (screen-consistent when inverted) and
 	 * leans the jet into the turn. A centred stick holds heading, pitch and
-	 * upright/inverted attitude; only a stall, the ceiling, the airspace edge or
+	 * upright/inverted attitude; only a stall, the airspace edge or
 	 * the opt-in level assist (`input.assist`) move the nose by themselves.
 	 */
 	Step(state: FlightState, input: FlightInput, dt: number): FlightState {
 		dt = math.clamp(dt, 0, 0.1);
 		const x = FlightMath.ClampInput(input.x);
 		const y = FlightMath.ClampInput(input.y);
-		const throttle = FlightMath.IsFinite(input.throttle) ? math.clamp(input.throttle, 0, 1) : 0.65;
-		const targetSpeed = FlightMath.MinSpeed + (FlightMath.MaxSpeed - FlightMath.MinSpeed) * throttle;
-		// Engine response takes seconds; the climb angle trades speed and a dive restores it.
-		const [, noseUp] = FlightMath.ForwardOf(state);
-		const engine = math.clamp((targetSpeed - state.speed) * 0.7, -FlightMath.EngineBrake, FlightMath.EngineAccel);
-		state.speed = math.clamp(state.speed + (engine - noseUp * FlightMath.ClimbDrag) * dt, FlightMath.MinSpeed, FlightMath.MaxSpeed);
+		const throttle = FlightMath.IsFinite(input.throttle) ? math.clamp(input.throttle, 0, 1) : FlightMath.CruiseThrottle;
+		const targetSpeed = throttle <= FlightMath.CruiseThrottle
+			? FlightMath.MinSpeed + (FlightMath.CruiseSpeed - FlightMath.MinSpeed) * throttle / FlightMath.CruiseThrottle
+			: FlightMath.CruiseSpeed + (FlightMath.MaxSpeed - FlightMath.CruiseSpeed) * (throttle - FlightMath.CruiseThrottle) / (1 - FlightMath.CruiseThrottle);
+		// Arcade speed command: climb and turn alone cannot cause a stall.
+		const engine = math.clamp((targetSpeed - state.speed) * 2.5, -FlightMath.EngineBrake, FlightMath.EngineAccel);
+		state.speed = math.clamp(state.speed + engine * dt, FlightMath.MinSpeed, FlightMath.MaxSpeed);
 		const stall = FlightMath.StallSeverity(state.speed);
 		const authority = 1 - stall * 0.7;
 		const turnFactor = FlightMath.TurnFactor(state);
@@ -262,11 +266,6 @@ export const FlightMath = {
 				rotateBody(state, 0, 0, -1, math.clamp(bank, -FlightMath.AssistRoll * dt, FlightMath.AssistRoll * dt));
 			}
 		}
-		if (state.y > 950) {
-			const [, fy] = FlightMath.ForwardOf(state);
-			const excess = math.asin(math.clamp(fy, -1, 1)) + (state.y - 950) / 160;
-			if (excess > 0) pitchTowardGround(state, 1, math.min(excess * 3.2, 2.5) * dt);
-		}
 		const edge = math.max(math.abs(state.x), math.abs(state.z));
 		if (edge > FlightMath.SoftBoundary) {
 			const [fx, , fz] = FlightMath.ForwardOf(state);
@@ -280,7 +279,10 @@ export const FlightMath = {
 		state.lean += (-x * FlightMath.LeanMax * math.abs(turnFactor) - state.lean) * FlightMath.DampAlpha(5, dt);
 		const [dx, dy, dz] = FlightMath.ForwardOf(state);
 		state.x = math.clamp(state.x + dx * state.speed * dt, -FlightMath.HardBoundary, FlightMath.HardBoundary);
-		state.y = math.min(state.y + (dy * state.speed - stall * 65) * dt, FlightMath.MaxAltitude);
+		// Ease outward vertical travel to zero over 600 studs. Never rotate the pilot's
+		// attitude; a loop or dive immediately travels back into the airspace.
+		const ceilingScale = dy > 0 ? math.clamp((FlightMath.MaxAltitude - state.y) / (FlightMath.MaxAltitude - FlightMath.SoftAltitude), 0, 1) : 1;
+		state.y += (dy * state.speed * ceilingScale - stall * 65) * dt;
 		state.z = math.clamp(state.z + dz * state.speed * dt, -FlightMath.HardBoundary, FlightMath.HardBoundary);
 		return FlightMath.Sync(state);
 	},

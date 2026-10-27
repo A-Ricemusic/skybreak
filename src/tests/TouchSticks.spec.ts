@@ -26,15 +26,16 @@ describe("twin touch ownership", () => {
 			expect(touches.Begin(second, 5)).toBe(true);
 		}
 	});
-	it("holds selection at neutral/deadzone and uses the same time-based RS ramp", () => {
-		for (const axis of [0, 0.17, -0.18]) expect(FlightMath.AdjustThrottle(0.65, axis, 0.1)).toBe(0.65);
-		let fast = 0.3, slow = 0.3;
-		for (let i = 0; i < 60; i++) fast = FlightMath.AdjustThrottle(fast, 1, 1 / 60);
-		for (let i = 0; i < 20; i++) slow = FlightMath.AdjustThrottle(slow, 1, 1 / 20);
-		expect(math.abs(fast - 0.7)).toBeLessThan(0.00001);
-		expect(math.abs(fast - slow)).toBeLessThan(0.00001);
-		expect(FlightMath.AdjustThrottle(0.02, -1, 0.1)).toBe(0);
-		expect(FlightMath.AdjustThrottle(0.99, 1, 0.1)).toBe(1);
+	it("returns to cruise on release or cancellation after a held brake", () => {
+		const touches = new TouchSticks<number>();
+		touches.Begin("throttle", 1);
+		expect(FlightMath.CommandThrottle(-1)).toBe(0);
+		touches.End(1);
+		for (const axis of [0, 0.17, -0.18]) expect(FlightMath.CommandThrottle(axis)).toBe(FlightMath.CruiseThrottle);
+		expect(touches.throttle).toBeUndefined();
+		touches.Begin("throttle", 2);
+		touches.Clear();
+		expect(FlightMath.CommandThrottle(touches.throttle === undefined ? 0 : -1)).toBe(FlightMath.CruiseThrottle);
 	});
 	it("maps a touch to stick axes in the same inset screen space as the disc", () => {
 		// 844x390 notched phone: CoreUISafeInsets shifts the root 44 px right, so the

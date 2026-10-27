@@ -168,7 +168,7 @@ export class FlightController {
 	private readonly listeners = new Set<TelemetryListener>();
 	private touchInput = Vector2.zero;
 	private gamepadInput = Vector2.zero;
-	private throttle = 0.65;
+	private throttle = FlightMath.CruiseThrottle;
 	private throttleStick = 0;
 	private touchThrottleAxis = 0;
 	private keys = new Set<Enum.KeyCode>();
@@ -205,7 +205,7 @@ export class FlightController {
 	private sentThrottle = -1;
 	private sentAssist?: boolean;
 	/** Reused input table handed to FlightPrediction.Step every frame. */
-	private readonly frameInput: FlightInput = { x: 0, y: 0, throttle: 0.65, assist: false };
+	private readonly frameInput: FlightInput = { x: 0, y: 0, throttle: FlightMath.CruiseThrottle, assist: false };
 	/** Smoothed camera up: follows the jet's canopy through loops and inverted flight without snapping. */
 	private cameraUp = Vector3.yAxis;
 	private predictor?: Predictor;
@@ -367,11 +367,17 @@ export class FlightController {
 	}
 	public GetControlStateForStudio() {
 		assert(RunService.IsStudio(), "Controller diagnostics are Studio-only");
-		return { throttle: this.throttle, touchThrottleAxis: this.touchThrottleAxis, touchStick: this.touchInput, stick: this.gamepadInput, prediction: this.predictor?.last, rtt: this.predictor?.rtt };
+		return { command: {...this.frameInput}, state: this.GetFlightState(), correction: this.predictor ? {...this.predictor.pending} : undefined, throttleStick: this.throttleStick, throttle: this.throttle, touchThrottleAxis: this.touchThrottleAxis, touchStick: this.touchInput, stick: this.gamepadInput, prediction: this.predictor?.last, rtt: this.predictor?.rtt };
 	}
 	public SetInput(x: number, y: number): void { this.touchInput = new Vector2(FlightMath.ClampInput(x), FlightMath.ClampInput(y)); }
 	public SetTouchThrottleAxis(value: number): void { this.touchThrottleAxis = FlightMath.ClampInput(value); }
-	public SetThrottle(value: number): void { if (FlightMath.IsFinite(value)) this.throttle = math.clamp(value, 0, 1); }
+	/** QA/autopilot normalized command, represented as a held synthetic touch axis until released. */
+	public SetThrottle(value: number): void {
+		if (!FlightMath.IsFinite(value)) return;
+		const delta = math.clamp(value, 0, 1) - FlightMath.CruiseThrottle;
+		const axis = delta / (delta < 0 ? FlightMath.CruiseThrottle : 1 - FlightMath.CruiseThrottle);
+		this.touchThrottleAxis = axis === 0 ? 0 : math.sign(axis) * (0.18 + math.abs(axis) * 0.82);
+	}
 	private action(action: string): void { if (this.active && !this.paused) this.remotes.CombatAction.FireServer({ action }); }
 	public FireMissile(): void { this.action("FireMissile"); }
 	public Evade(): void {
@@ -409,7 +415,7 @@ export class FlightController {
 	private applyLocalPause(paused: boolean): void {
 		this.paused = paused;
 		this.audio.SetPaused(paused);
-		this.keys.clear(); this.mouseSteer = false; this.touchInput = Vector2.zero; this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0;
+		this.keys.clear(); this.mouseSteer = false; this.touchInput = Vector2.zero; this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0; this.throttle = FlightMath.CruiseThrottle;
 		this.sendTime = INPUT_KEEPALIVE;
 		// Free the gamepad stick and buttons for the pause card's GUI navigation.
 		if (paused) ContextActionService.UnbindAction(this.actionName);
@@ -537,17 +543,18 @@ export class FlightController {
 		return result;
 	}
 	/** Writes this frame's stick and throttle into `frameInput` (no allocation). */
-	private input(dt: number): void {
+	private input(): void {
 		let x = this.touchInput.X + this.gamepadInput.X;
 		let y = this.touchInput.Y + this.gamepadInput.Y;
+		let throttleAxis = 0;
 		if (!UserInputService.GetFocusedTextBox()) {
-			this.throttle = FlightMath.AdjustThrottle(this.throttle, math.clamp(this.throttleStick + this.touchThrottleAxis, -1, 1), dt);
+			throttleAxis = this.throttleStick + this.touchThrottleAxis;
 			if (this.keys.has(Enum.KeyCode.A) || this.keys.has(Enum.KeyCode.Left)) x -= 1;
 			if (this.keys.has(Enum.KeyCode.D) || this.keys.has(Enum.KeyCode.Right)) x += 1;
 			if (this.keys.has(Enum.KeyCode.W) || this.keys.has(Enum.KeyCode.Up)) y += 1;
 			if (this.keys.has(Enum.KeyCode.S) || this.keys.has(Enum.KeyCode.Down)) y -= 1;
-			if (this.keys.has(Enum.KeyCode.Q) || this.keys.has(Enum.KeyCode.ButtonL1)) this.SetThrottle(this.throttle - dt * 0.4);
-			if (this.keys.has(Enum.KeyCode.E) || this.keys.has(Enum.KeyCode.ButtonR1)) this.SetThrottle(this.throttle + dt * 0.4);
+			if (this.keys.has(Enum.KeyCode.Q) || this.keys.has(Enum.KeyCode.ButtonL1)) throttleAxis -= 1;
+			if (this.keys.has(Enum.KeyCode.E) || this.keys.has(Enum.KeyCode.ButtonR1)) throttleAxis += 1;
 			if (this.mouseSteer) {
 				const camera = Workspace.CurrentCamera;
 				if (camera) {
@@ -561,7 +568,8 @@ export class FlightController {
 		}
 		this.frameInput.x = math.clamp(x, -1, 1);
 		this.frameInput.y = math.clamp(this.invertY ? -y : y, -1, 1);
-		this.frameInput.throttle = this.keys.has(Enum.KeyCode.LeftShift) ? 1 : this.throttle;
+		this.throttle = FlightMath.CommandThrottle(throttleAxis);
+		this.frameInput.throttle = !UserInputService.GetFocusedTextBox() && this.keys.has(Enum.KeyCode.LeftShift) ? 1 : this.throttle;
 		this.frameInput.assist = this.levelAssist;
 	}
 	/** Where the player sees a contact: the smoothed clone for jets, the pivot for ground targets. */
@@ -732,7 +740,7 @@ export class FlightController {
 			return;
 		}
 		const now = os.clock();
-		this.input(dt);
+		this.input();
 		const input = this.frameInput;
 		// Fly the local jet with zero input latency; the server reconciles it at 20 Hz.
 		// The next fixed step (the first to use this frame's input) starts at the last step boundary.
@@ -807,8 +815,7 @@ export class FlightController {
 		}
 		this.keys.clear();
 		this.touchInput = Vector2.zero;
-		this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0;
-		this.throttle = 0.65;
+		this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0; this.throttle = FlightMath.CruiseThrottle;
 		this.sendTime = INPUT_KEEPALIVE;
 		this.sentThrottle = -1;
 		this.mouseSteer = false;
@@ -861,7 +868,7 @@ export class FlightController {
 		}));
 		this.connections.push(UserInputService.InputEnded.Connect((input) => { if (input.UserInputType === Enum.UserInputType.MouseButton2) this.mouseSteer = false; }));
 		const clearInput = () => {
-			this.keys.clear(); this.mouseSteer = false; this.touchInput = Vector2.zero; this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0;
+			this.keys.clear(); this.mouseSteer = false; this.touchInput = Vector2.zero; this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0; this.throttle = FlightMath.CruiseThrottle;
 		};
 		this.connections.push(UserInputService.TextBoxFocused.Connect(clearInput));
 		this.connections.push(UserInputService.GamepadDisconnected.Connect(clearInput));
@@ -916,7 +923,7 @@ export class FlightController {
 		this.previousCamera = undefined;
 		this.aircraft = undefined;
 		this.touchInput = Vector2.zero;
-		this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0;
+		this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0; this.throttle = FlightMath.CruiseThrottle;
 		this.keys.clear();
 		this.mouseSteer = false;
 	}
