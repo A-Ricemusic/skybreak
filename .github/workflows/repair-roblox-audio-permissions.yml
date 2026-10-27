@@ -1,0 +1,38 @@
+name: Repair Roblox audio experience permissions
+
+on:
+  workflow_dispatch:
+    inputs:
+      execute:
+        description: Apply Universe Use grants to the 14 existing voice and SFX banks
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: repair-roblox-audio-permissions
+  cancel-in-progress: false
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: Test permission safeguards offline
+        run: python3 -m unittest discover -s tools/tests -p 'test_roblox*.py'
+      - name: Validate official target and plan or apply 14 grants
+        env:
+          ROBLOX_API_KEY: ${{ inputs.execute && secrets.ROBLOX_API_KEY || '' }}
+          ROBLOX_UNIVERSE_ID: ${{ vars.ROBLOX_UNIVERSE_ID || secrets.ROBLOX_UNIVERSE_ID }}
+          ROBLOX_PLACE_ID: ${{ vars.ROBLOX_PLACE_ID || secrets.ROBLOX_PLACE_ID }}
+          EXECUTE: ${{ inputs.execute }}
+        run: |
+          if [ "$EXECUTE" = "true" ]; then
+            python3 tools/repair-roblox-audio-permissions.py --execute
+          else
+            python3 tools/repair-roblox-audio-permissions.py
+          fi
