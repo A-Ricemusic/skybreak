@@ -1,16 +1,86 @@
-# Ground impacts, throttle and stalls
+# Flight model, ground impacts, throttle and stalls
 
-FlightMath is the single numeric integrator for the authoritative 30 Hz server
-and the fixed-step client predictor. There is no minimum altitude or automatic
-pull-up. The existing horizontal world recovery, hard edge and ceiling remain.
+FlightMath is the single numeric integrator for the authoritative 30 Hz server,
+the fixed-step client predictor, the QA pilot and the offline simulations. There
+is no minimum altitude or automatic pull-up. The horizontal world recovery, hard
+edge and ceiling remain.
+
+## Attitude: rate-commanded, attitude hold, full loops
+
+The jet's orientation is a unit quaternion (`qw, qx, qy, qz` in `FlightState`,
+Roblox CFrame axes: right +X, up +Y, nose -Z). It is the only attitude that is
+integrated, so there is no gimbal lock: the nose can go straight up, over the
+top inverted and down the back of a loop. `yaw`, `pitch` and `roll` are derived
+from it after every step (`FlightMath.Sync`) for the HUD, radar, AI and
+telemetry; nothing steers by writing them. Use `FlightMath.ForwardOf/UpOf/RightOf`
+for the jet's axes and `FlightMath.Visual` for the drawn CFrame quaternion.
+
+The stick commands **rates**, not angles. Let go and the jet **holds** its
+heading, pitch and upright/inverted attitude (no auto-level):
+
+| Input | Effect |
+|---|---|
+| Stick up / down (touch left stick, gamepad LS, W/S, mouse steer) | Pitch rate about the wings, full stick 1.25 rad/s (72°/s). Held, the jet flies a full vertical loop: inverted over the top, upright at the bottom. INVERT PITCH flips it. |
+| Stick left / right (touch left stick, LS, A/D) | Heading rate about world up, full stick 1.15 rad/s, with a cosmetic bank into the turn (up to 0.85 rad) that eases out when the stick centres. Inverted, the sign flips so the nose still moves toward the pilot's own left/right on screen. Within ~17° of straight up or down, heading authority fades to zero (pitch out of the vertical first). |
+| Centred stick | Attitude hold. Only a stall, the ceiling, the airspace edge or the opt-in level assist move the nose. |
+| Settings → LEVEL ASSIST (default **OFF**) | With a centred stick, eases the nose to the horizon (≤ 0.5 rad/s) and rolls an inverted jet upright (1.2 rad/s). Any stick input overrides it at once. |
+
+Stick shaping is `v·(0.5 + 0.5|v|)`: half stick gives 37.5% rate for fine aim,
+full stick full rate. Stall authority (below) scales both rates.
+
+**Why bank-to-turn was not chosen for phones.** A phone has one steering stick
+(two axes) for three rotations. Ace Combat's "Normal" mode solves that by making
+roll automatic and auto-levelling it, which is what the owner asked to remove;
+a roll-on-X ("Expert") scheme makes a held stick barrel-roll and needs a pull to
+turn, and with attitude hold a banked jet would keep turning after release
+(heading not held). So the left stick moves the nose where the thumb pushes it
+on screen: up/down pitches, left/right turns, and the jet banks visually while
+turning. The base attitude stays wings-level or inverted (heading turns about
+world up and pitch about the wings never introduce a bank), so the horizon on a
+phone is always readable, and loops, Immelmann-style half loops and inverted
+flight all fall out of pitch alone. True roll control is not exposed; the
+quaternion state supports adding it later for gamepad/keyboard.
+
+## Energy
 
 Throttle selects an engine target between 70 and 320 studs/s. Engine acceleration
-is capped at +26/-32 studs/s²; pitch adds an energy cost/gain. The default 65%
-setting settles near 233 in level flight. Below 165 the HUD warns of low speed;
-below 140 it warns STALL and asks for acceleration plus nose down. Lift falls
-progressively (up to 65 studs/s of sink), steering authority drops to 30%, and
-the nose sags. This is an arcade energy stall, not an angle-of-attack model.
-Full throttle and a lowered nose restore speed and authority if altitude remains.
+toward it is `0.7 × (target − speed)`, capped at +28/−32 studs/s². Climbing costs
+`38 × sin(climb angle)` studs/s² and diving returns the same. The default 65%
+setting settles near 233 in level flight. Measured with `FlightMath` (offline):
+
+| Manoeuvre at 65% throttle | Result |
+|---|---|
+| Full-stick loop from cruise | 5.0 s, ~340 studs tall, slowest point 200 studs/s, ends level and upright within ~45 studs of the entry altitude |
+| Full-stick loop at 50% / 40% | slowest 163 / 138 studs/s (40% just touches the stall at the top) |
+| Held 15° / 30° / 45° / 60° climb | settles near 218 / 205 / 195 / 183 studs/s and keeps climbing |
+| Held vertical climb | still 170 studs/s after 800 studs; idle throttle eventually stalls and the nose falls through |
+
+Below 165 the HUD warns of low speed; below 140 it warns STALL and asks for
+acceleration plus nose down. Lift falls progressively (up to 65 studs/s of
+sink), steering authority drops to 30%, and the nose sags toward the ground (up
+to 0.6 rad/s, about the horizontal axis that gets there the short way, so an
+inverted jet at the top of a slow loop is pulled through rather than flipped).
+This is an arcade energy stall, not an angle-of-attack model. Full throttle and
+a lowered nose restore speed and authority if altitude remains.
+
+Above 950 studs the ceiling swings the nose down (as before, toward
+`−(altitude − 950)/160` rad) and the altitude is clamped at 1050. Past the soft
+boundary the heading turns back toward the centre about world up. On 0.7 s of
+input silence (a suspended phone app, a dropped connection) the server centres
+the stick and engages the level assist, so a held dive does not continue into
+the ground while nobody is flying.
+
+## Prediction, packets and camera
+
+The client predictor reconciles position, the attitude quaternion (compared as
+an angle; `q` and `−q` are the same attitude), the lean and speed, never the
+derived angles, which jump by π passing the vertical. The 20 Hz state packet is
+`[sequence, x, y, z, qw, qx, qy, qz, lean, speed, evadeRemaining,
+echoedClientTime, hold]` (13 numbers). The input packet adds `assist`.
+
+The chase camera ignores the turn lean and the evade roll but rolls with the
+jet's canopy, smoothed at 5/s (about 0.2 s behind in a full-stick loop), so it
+rides through loops and inverted flight instead of flipping at the vertical.
 
 Right-stick forward/up increases selected throttle, back/down reduces it.
 An 18% vertical deadzone is rescaled outside the deadzone; full travel adjusts
@@ -48,13 +118,30 @@ Low-altitude warning is absolute altitude, not a terrain-clearance prediction.
 
 ## Validation
 
+The flight-model rework (rate-commanded attitude) is covered by `Flight.spec`
+and `FlightPrediction.spec`, which now also run in the offline Luau runner
+(`bun run test:offline`): a full loop at 65% (inverted at the top, upright and
+level at the end, never below 165 studs/s), no gimbal flip through the vertical,
+attitude held for 3 s after release, a held 30° climb gaining altitude every
+second for 6 s, climb/dive/throttle energy, stable inverted flight with
+screen-relative turns, opt-in level assist, the ceiling, quaternion
+reconciliation through a loop and the 13-number state packet round-trip. The
+M3–M27 navigation-volume contracts fly the updated `NavigationPilot`. It has
+not yet been played in Studio or on a device.
+
+The crash/stall gameplay harness below was updated for rate control: it raises
+the nose about 20° with LS, releases and asserts the climb attitude holds to
+850 studs, levels off, then runs the stall checks and pulls out of the recovery
+dive before the remaining checks. Its earlier recorded results predate the
+rework.
+
 The implementation was validated in Studio on 2026-10-25. Tests run in
 Roblox Studio through `bun run test:roblox`, not Bun's JavaScript VM.
 `bun run build:place` builds the production place without test modules.
 
 For gameplay, start a fresh mission in normal Studio Play, then inject
 `tools/playtest-crash-stall.client.luau` as a normal client LocalScript. The harness
-climbs with LS, adjusts throttle through RS, checks neutral/deadzone/cancellation,
+climbs with LS (a short input, then attitude hold), adjusts throttle through RS, checks neutral/deadzone/cancellation,
 observes server speed and lost altitude in a stall, recovers with throttle and
 nose down, then dives and waits for a real server Failed result with crash reason.
 It never sets health, kills, aircraft position or mission state. Its Folder

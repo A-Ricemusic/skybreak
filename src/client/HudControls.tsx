@@ -3,6 +3,7 @@ import { RunService, TweenService } from "@rbxts/services";
 import { evadeGauge } from "../shared/EvadeGauge";
 import {
 	formatSetting,
+	isToggleSetting,
 	NumericSettingKey,
 	PlayerSettings,
 	SETTING_LABELS,
@@ -282,7 +283,7 @@ function SettingRow({ settingKey, settings, order, rowHeight, control, valueWidt
 	const controlsWidth = control * 2 + valueWidth;
 	const value = formatSetting(settingKey, settings);
 	const stepper = (direction: 1 | -1) => {
-		if (settingKey === "invertY") return;
+		if (isToggleSetting(settingKey)) return;
 		const key = settingKey as NumericSettingKey;
 		onChange(key, stepSetting(key, settings[key], direction));
 	};
@@ -295,8 +296,8 @@ function SettingRow({ settingKey, settings, order, rowHeight, control, valueWidt
 		<frame key={`Setting_${settingKey}`} BackgroundTransparency={1} LayoutOrder={order} Size={new UDim2(1, -6, 0, rowHeight)} ZIndex={43}>
 			<textlabel key="Label" BackgroundTransparency={1} Font={Enum.Font.GothamBold} Size={new UDim2(1, -controlsWidth - 8, 1, 0)} Text={SETTING_LABELS[settingKey]} TextColor3={C.Ivory} TextSize={12} TextTruncate={Enum.TextTruncate.AtEnd} TextXAlignment={Enum.TextXAlignment.Left} ZIndex={44} />
 			<frame key="Controls" AnchorPoint={new Vector2(1, 0)} BackgroundTransparency={1} Position={UDim2.fromScale(1, 0)} Size={new UDim2(0, controlsWidth, 1, 0)} ZIndex={43}>
-				{settingKey === "invertY" ? (
-					<textbutton key={`Setting${settingKey}Toggle`} Active={true} AutoButtonColor={true} Selectable={true} BackgroundColor3={settings.invertY ? C.Accent : C.PanelHot} BackgroundTransparency={0.05} BorderSizePixel={0} Font={Enum.Font.GothamBold} Position={UDim2.fromOffset(0, (rowHeight - control) / 2)} Size={UDim2.fromOffset(controlsWidth, control)} Text={value} TextColor3={settings.invertY ? C.Ink : C.Ivory} TextSize={13} ZIndex={44} Event={{ Activated: () => onChange("invertY", !settings.invertY) }}>
+				{isToggleSetting(settingKey) ? (
+					<textbutton key={`Setting${settingKey}Toggle`} Active={true} AutoButtonColor={true} Selectable={true} BackgroundColor3={settings[settingKey] ? C.Accent : C.PanelHot} BackgroundTransparency={0.05} BorderSizePixel={0} Font={Enum.Font.GothamBold} Position={UDim2.fromOffset(0, (rowHeight - control) / 2)} Size={UDim2.fromOffset(controlsWidth, control)} Text={value} TextColor3={settings[settingKey] ? C.Ink : C.Ivory} TextSize={13} ZIndex={44} Event={{ Activated: () => onChange(settingKey, !settings[settingKey]) }}>
 						<uicorner CornerRadius={new UDim(0, 6)} />
 					</textbutton>
 				) : (

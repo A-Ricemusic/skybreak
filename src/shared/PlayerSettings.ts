@@ -6,6 +6,8 @@
 export interface PlayerSettings {
 	/** Pushing the stick (or W) up dives instead of climbing. */
 	invertY: boolean;
+	/** Centred stick gently levels the jet (pitch to the horizon, rolls upright). Off: the jet holds its attitude. */
+	levelAssist: boolean;
 	/** Camera shake strength, 0 (off) – 1 (full). */
 	shake: number;
 	/** Whole-HUD scale, 0.8 – 1.3 (touch never shrinks below 1 so buttons stay ≥ 44 px). */
@@ -19,7 +21,12 @@ export interface PlayerSettings {
 }
 
 export type SettingKey = keyof PlayerSettings;
-export type NumericSettingKey = Exclude<SettingKey, "invertY">;
+export type ToggleSettingKey = "invertY" | "levelAssist";
+export type NumericSettingKey = Exclude<SettingKey, ToggleSettingKey>;
+export const TOGGLE_SETTINGS: ToggleSettingKey[] = ["invertY", "levelAssist"];
+export function isToggleSetting(key: SettingKey): key is ToggleSettingKey {
+	return key === "invertY" || key === "levelAssist";
+}
 
 export interface SettingRange {
 	min: number;
@@ -39,6 +46,7 @@ export const SETTING_RANGES: { [key in NumericSettingKey]: SettingRange } = {
 /** PlayerGui attribute names. MusicVolume / SfxVolume / VoiceVolume are the audio contract. */
 export const SETTING_ATTRIBUTES: { [key in SettingKey]: string } = {
 	invertY: "InvertY",
+	levelAssist: "LevelAssist",
 	shake: "CameraShake",
 	hudScale: "HudScale",
 	stickScale: "StickScale",
@@ -47,10 +55,11 @@ export const SETTING_ATTRIBUTES: { [key in SettingKey]: string } = {
 	voice: "VoiceVolume",
 };
 
-export const SETTING_ORDER: SettingKey[] = ["invertY", "shake", "hudScale", "stickScale", "music", "sfx", "voice"];
+export const SETTING_ORDER: SettingKey[] = ["invertY", "levelAssist", "shake", "hudScale", "stickScale", "music", "sfx", "voice"];
 
 export const SETTING_LABELS: { [key in SettingKey]: string } = {
 	invertY: "INVERT PITCH",
+	levelAssist: "LEVEL ASSIST",
 	shake: "CAMERA SHAKE",
 	hudScale: "HUD SCALE",
 	stickScale: "STICK SIZE",
@@ -60,7 +69,7 @@ export const SETTING_LABELS: { [key in SettingKey]: string } = {
 };
 
 export function defaultSettings(): PlayerSettings {
-	return { invertY: false, shake: 1, hudScale: 1, stickScale: 1, music: 1, sfx: 1, voice: 1 };
+	return { invertY: false, levelAssist: false, shake: 1, hudScale: 1, stickScale: 1, music: 1, sfx: 1, voice: 1 };
 }
 
 function finite(value: unknown): value is number {
@@ -84,7 +93,7 @@ export function stepSetting(key: NumericSettingKey, value: number, direction: 1 
 /** Builds a complete, valid settings table from raw attribute values (anything missing or bad → default). */
 export function readSettings(read: (attribute: string) => unknown): PlayerSettings {
 	const settings = defaultSettings();
-	settings.invertY = read(SETTING_ATTRIBUTES.invertY) === true;
+	for (const key of TOGGLE_SETTINGS) settings[key] = read(SETTING_ATTRIBUTES[key]) === true;
 	for (const key of ["shake", "hudScale", "stickScale", "music", "sfx", "voice"] as NumericSettingKey[]) {
 		const raw = read(SETTING_ATTRIBUTES[key]);
 		settings[key] = raw === undefined ? settings[key] : clampSetting(key, raw);
@@ -94,7 +103,7 @@ export function readSettings(read: (attribute: string) => unknown): PlayerSettin
 
 /** Display text for a setting value. */
 export function formatSetting(key: SettingKey, settings: PlayerSettings): string {
-	if (key === "invertY") return settings.invertY ? "ON" : "OFF";
+	if (isToggleSetting(key)) return settings[key] ? "ON" : "OFF";
 	const value = settings[key];
 	if (key === "shake" && value <= 0) return "OFF";
 	return `${math.floor(value * 100 + 0.5)}%`;

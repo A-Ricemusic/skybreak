@@ -129,22 +129,47 @@ describe("client flight prediction and reconciliation", () => {
 		// Only what is still missing is pending, not another full 30 studs.
 		expect(predictor.pending.x).toBeCloseTo(30 - applied, 3);
 	});
-	it("blends yaw across the ±pi seam the short way", () => {
+	it("blends attitude across the heading seam the short way, on the quaternion", () => {
 		expect(FlightPrediction.BlendAngle(math.pi - 0.1, -math.pi + 0.1, 0.5)).toBeCloseTo(-math.pi, 5);
 		expect(math.abs(FlightPrediction.BlendAngle(math.pi - 0.05, -math.pi + 0.05, 0.5))).toBeCloseTo(math.pi, 5);
-		const start = FlightMath.NewState();
-		start.yaw = math.pi - 0.02;
+		const start = FlightMath.SetAttitude(FlightMath.NewState(), math.pi - 0.02, 0);
 		const predictor = FlightPrediction.New(start);
 		predictor.rtt = 0;
 		FlightPrediction.Record(predictor, 0);
-		const server = copy(start);
-		server.yaw = -math.pi + 0.02; // 0.04 rad away across the seam, not 6.24 rad
+		// 0.04 rad away across the seam, not 6.24 rad.
+		const server = FlightMath.SetAttitude(copy(start), -math.pi + 0.02, 0);
 		expect(FlightPrediction.Reconcile(predictor, server, 0, 1)).toBe("blend");
-		expect(predictor.pending.yaw).toBeCloseTo(0.04, 6);
 		for (let frame = 1; frame <= 120; frame++) FlightPrediction.Step(predictor, { x: 0, y: 0, throttle: 0.65 }, 1 / 60, frame / 60);
 		expect(math.abs(FlightMath.WrapAngle(predictor.state.yaw - server.yaw))).toBeLessThan(0.002);
 		expect(predictor.state.yaw).toBeGreaterThanOrEqual(-math.pi);
 		expect(predictor.state.yaw).toBeLessThan(math.pi);
+	});
+	it("treats q and -q as the same attitude and ignores the yaw flip at the top of a loop", () => {
+		const [predictor, now] = flown(0.5);
+		const server = copy(predictor.state);
+		server.qw = -server.qw; server.qx = -server.qx; server.qy = -server.qy; server.qz = -server.qz;
+		expect(FlightPrediction.Reconcile(predictor, server, now, 1)).toBe("ignore");
+		// Straight up, a hair either side of the vertical, the derived yaw differs by pi but the jet does not.
+		const before = FlightMath.FromPose(0, 400, 0, 0, math.pi / 2 - 1e-4, 230);
+		const after = FlightMath.FromPose(0, 400, 0, math.pi, math.pi / 2 - 1e-4, 230, math.pi);
+		expect(math.abs(FlightMath.WrapAngle(before.yaw - after.yaw))).toBeCloseTo(math.pi, 3);
+		const looping = FlightPrediction.New(before);
+		looping.rtt = 0;
+		FlightPrediction.Record(looping, 0);
+		expect(FlightPrediction.Reconcile(looping, after, 0, 1)).toBe("ignore");
+	});
+	it("predicts a full loop with the same attitude the server flies", () => {
+		const server = FlightMath.NewState();
+		server.y = 400;
+		const predictor = FlightPrediction.New(server);
+		predictor.rtt = 0;
+		const input = { x: 0.2, y: 1, throttle: 0.65 };
+		let now = 0;
+		for (let step = 1; step <= 180; step++) {
+			FlightMath.Step(server, input, 1 / 30);
+			for (let half = 0; half < 2; half++) { now += 1 / 60; FlightPrediction.Step(predictor, input, 1 / 60, now); }
+			if (step % 3 === 0) expect(FlightPrediction.Reconcile(predictor, server, now, step)).toBe("ignore");
+		}
 	});
 	it("drops stale or duplicate unreliable packets", () => {
 		const [predictor, now] = flown(0.25);
@@ -160,12 +185,12 @@ describe("client flight prediction and reconciliation", () => {
 		// A server state equal to what we predicted 200 ms ago (a full round trip:
 		// input travels up, state travels back) is no error at all, even though the
 		// jet has flown ~50 studs since.
-		const past = { x: 0, y: 0, z: 0, yaw: 0, pitch: 0, roll: 0, speed: 0 };
+		const past = FlightMath.NewState();
 		expect(FlightPrediction.Sample(predictor, now - 0.2, past)).toBe(true);
 		expect(math.abs(predictor.state.z - past.z)).toBeGreaterThan(40);
 		expect(FlightPrediction.Reconcile(predictor, past, now, 1)).toBe("ignore");
 		// With an echo the packet names the exact predicted time instead.
-		const exact = { x: 0, y: 0, z: 0, yaw: 0, pitch: 0, roll: 0, speed: 0 };
+		const exact = FlightMath.NewState();
 		expect(FlightPrediction.Sample(predictor, now - 0.3, exact)).toBe(true);
 		expect(FlightPrediction.Reconcile(predictor, exact, now, 2, now - 0.3)).toBe("ignore");
 		expect(FlightPrediction.Reconcile(predictor, exact, now, 3)).never.toBe("ignore");
@@ -223,14 +248,23 @@ describe("client flight prediction and reconciliation", () => {
 		expect(predictor.rtt).toBeCloseTo(0.15, 6);
 	});
 	it("round-trips the flight state packet and rejects malformed ones", () => {
-		const state = FlightMath.NewState();
-		state.yaw = 1.25;
-		const decoded = FlightPrediction.Decode(FlightPrediction.Encode(7, state, 0.4, 12.5, 0.02));
-		expect(decoded?.sequence).toBe(7);
-		expect(decoded?.state).toEqual(state);
-		expect(decoded?.evadeRemaining).toBe(0.4);
+		// Upright, inverted at the top of a loop, and leaning into a turn.
+		for (const state of [FlightMath.SetAttitude(FlightMath.NewState(), 1.25, 0), FlightMath.FromPose(30, 640, -90, math.pi, 0, 190, math.pi), FlightMath.FromPose(0, 300, 0, -0.6, 0.3, 250)]) {
+			state.lean = -0.4;
+			FlightMath.Sync(state);
+			const packet = FlightPrediction.Encode(7, state, 0.4, 12.5, 0.02);
+			expect(packet.size()).toBe(13);
+			const decoded = FlightPrediction.Decode(packet);
+			expect(decoded?.sequence).toBe(7);
+			expect(decoded?.state).toEqual(state);
+			expect(decoded?.evadeRemaining).toBe(0.4);
+			expect(decoded?.echoedClientTime).toBe(12.5);
+			expect(decoded?.hold).toBe(0.02);
+		}
 		expect(FlightPrediction.Decode([1, 2, 3])).toBeUndefined();
-		expect(FlightPrediction.Decode([1, 0 / 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])).toBeUndefined();
+		expect(FlightPrediction.Decode([1, 0 / 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])).toBeUndefined();
+		// A zero quaternion is not an attitude.
+		expect(FlightPrediction.Decode([1, 0, 0, 0, 0, 0, 0, 0, 0, 200, 0, 0, 0])).toBeUndefined();
 		expect(FlightPrediction.Decode("state")).toBeUndefined();
 	});
 	it("packs HUD numbers into a compact array and decodes them in place", () => {

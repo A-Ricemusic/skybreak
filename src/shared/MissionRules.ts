@@ -135,7 +135,7 @@ export const MissionRules = {
 	TimeRemaining(state: MissionRuleState): number { return math.max(0, MissionRules.Duration - state.elapsed); },
 	Objective(state: MissionRuleState): MissionObjective {
 		const phase = state.phase;
-		if (phase === "tutorial_move") return { objective: "Turn for three seconds, then pitch for three seconds", objectiveProgress: math.floor(state.turnObserved + 1e-6) + math.floor(state.pitchObserved + 1e-6), objectiveTotal: MissionRules.MovementDuration * 2, tutorialStep: "move" };
+		if (phase === "tutorial_move") return { objective: "Turn for three seconds, then pitch up and down for three seconds", objectiveProgress: math.floor(state.turnObserved + 1e-6) + math.floor(state.pitchObserved + 1e-6), objectiveTotal: MissionRules.MovementDuration * 2, tutorialStep: "move" };
 		if (phase === "tutorial_target") return { objective: "Press TGT to select the practice target", objectiveProgress: state.cycled ? 1 : 0, objectiveTotal: 1, tutorialStep: "target" };
 		if (phase === "tutorial_missile") return { objective: "Aim at the practice target, wait for lock, then fire a missile", objectiveProgress: state.groundKills, objectiveTotal: 1, tutorialStep: "missile" };
 		if (phase === "tutorial_bandits" || phase === "intercept") return { objective: "Shoot down all three bandits", objectiveProgress: state.requiredAirKills, objectiveTotal: 3, tutorialStep: "" };

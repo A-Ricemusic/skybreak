@@ -273,13 +273,22 @@ function remote<K extends keyof Remotes>(remotes: Remotes | Instance, name: K): 
 	assert(remotes[name], `Missing combat remote: ${name}`);
 	return remotes[name];
 }
+/** The drawn jet: the attitude quaternion plus the cosmetic turn lean (same as the client's frameFor). */
 function frameFor(state: FlightState): CFrame {
-	return new CFrame(state.x, state.y, state.z).mul(CFrame.Angles(0, state.yaw, 0)).mul(CFrame.Angles(state.pitch, 0, state.roll));
+	const [qx, qy, qz, qw] = FlightMath.Visual(state);
+	return new CFrame(state.x, state.y, state.z, qx, qy, qz, qw);
 }
 function positionFor(state: FlightState): Vector3 { return new Vector3(state.x, state.y, state.z); }
 function directionFor(state: FlightState): Vector3 {
-	const [x, y, z] = FlightMath.Forward(state.yaw, state.pitch);
+	const [x, y, z] = FlightMath.ForwardOf(state);
 	return new Vector3(x, y, z);
+}
+/** Horizontal side axis of the player's jet: the nose's right-hand perpendicular, or the wings when the nose is vertical. */
+function lateralFor(state: FlightState, forward: Vector3): Vector3 {
+	const side = new Vector3(-forward.Z, 0, forward.X);
+	if (side.Magnitude > 0.05) return side;
+	const [x, , z] = FlightMath.RightOf(state);
+	return new Vector3(x, 0, z).mul(0.05 / math.max(math.sqrt(x * x + z * z), 1e-3));
 }
 function unitOr(vector: Vector3, fallback: Vector3): Vector3 { return vector.Magnitude > 0.01 ? vector.Unit : fallback; }
 function point(vector: Vector3): { x: number; y: number; z: number } { return { x: vector.X, y: vector.Y, z: vector.Z }; }
@@ -973,7 +982,7 @@ function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy, 
 /** A guided missile from the special slot at `enemy`; `lateral` offsets the launch rail so a salvo fans out. */
 function launchSpecialMissile(session: CombatSession, enemy: Enemy, lateral: number): void {
 	const forward = directionFor(session.state);
-	const right = new Vector3(-forward.Z, 0, forward.X);
+	const right = lateralFor(session.state, forward);
 	const position = positionFor(session.state).add(forward.mul(14)).add(right.mul(lateral)).sub(new Vector3(0, 2.5, 0));
 	const direction = unitOr(forward.add(right.mul(lateral * 0.03)), forward);
 	const kind = session.special.kind;
@@ -1087,7 +1096,7 @@ function stepEnemies(session: CombatSession, dt: number): void {
 	const playerPosition = positionFor(session.state);
 	const playerForward = directionFor(session.state);
 	const playerVelocity = playerForward.mul(session.state.speed);
-	const lateral = new Vector3(-playerForward.Z, 0, playerForward.X);
+	const lateral = lateralFor(session.state, playerForward);
 	const phase = session.blueprintState ? BlueprintRunner.ActivePhase(session.blueprintState) : undefined;
 	const site = session.blueprintState ? BlueprintRunner.NavigationPoint(session.blueprintState) : undefined;
 	const protectPhase = site !== undefined && (phase?.kind === "escort" || phase?.kind === "defend");
@@ -1441,7 +1450,9 @@ function stepSession(session: CombatSession, dt: number): void {
 	SpecialWeapons.Tick(session.special, dt);
 	session.regen += dt;
 	if (session.regen >= 2.5) { session.regen -= 2.5; session.missiles = math.min(MAX_MISSILES, session.missiles + 1); }
-	if (os.clock() - session.lastInput > 0.7) { session.input.x = 0; session.input.y = 0; }
+	// Input silence (a suspended phone app, a dropped connection): centre the stick and ease the
+	// jet level, since a centred stick alone would now hold whatever dive it was in.
+	if (os.clock() - session.lastInput > 0.7) { session.input.x = 0; session.input.y = 0; session.input.assist = true; }
 	// Legacy Mission 1 observes real control usage during its tutorial phases.
 	if (session.rules) MissionRules.ObserveControls(session.rules, session.input.x, session.input.y, dt, os.clock());
 	if (sessionOutcome(session) !== undefined) { finish(session); return; }
@@ -1742,7 +1753,7 @@ export const CombatService = {
 			if (!session?.active || session.loading || session.guard.running || PauseRules.Paused(session.pause) || !typeIs(payload, "table")) return;
 			const now = os.clock();
 			if (!refreshSession(session, now)) return;
-			const data = payload as { x?: unknown; y?: unknown; throttle?: unknown; t?: unknown };
+			const data = payload as { x?: unknown; y?: unknown; throttle?: unknown; t?: unknown; assist?: unknown };
 			if (!FlightMath.IsFinite(data.x) || !FlightMath.IsFinite(data.y) || !FlightMath.IsFinite(data.throttle)) return;
 			// Unreliable packets can arrive out of order or bunched together. Staleness is
 			// decided by the client's stamp first, so the newest of two packets that land in
@@ -1756,6 +1767,7 @@ export const CombatService = {
 			session.input.x = math.clamp(data.x, -1, 1);
 			session.input.y = math.clamp(data.y, -1, 1);
 			session.input.throttle = math.clamp(data.throttle, 0, 1);
+			session.input.assist = data.assist === true;
 			session.lastInput = now;
 			// The echo counts fixed steps from the first one that uses this input (see sendFlightState).
 			if (clientTime > 0) { session.inputClientTime = clientTime; session.inputFresh = true; }

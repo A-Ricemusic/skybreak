@@ -146,13 +146,14 @@ task.spawn(function()
 				local frame = aircraft:GetPivot()
 				local delta = enemy:GetPivot().Position - frame.Position
 				if delta.Magnitude > 1 then
-					local desiredYaw = math.atan2(-delta.X, -delta.Z)
-					local yaw = math.atan2(-frame.LookVector.X, -frame.LookVector.Z)
-					local angle = (desiredYaw - yaw + math.pi) % (2 * math.pi) - math.pi
-					local pitch = math.asin(math.clamp(delta.Unit.Y, -1, 1))
-					send(Enum.KeyCode.Thumbstick1, Enum.UserInputState.Change, Vector3.new(math.clamp(-angle * 2, -1, 1), math.clamp(pitch / 0.62, -1, 1), 0))
+					-- LS commands pitch/turn rates: close the loop on the predicted nose via the shared pilot.
+					local Pilot = require(game:GetService("ReplicatedStorage").Shared.NavigationPilot).NavigationPilot
+					local look = frame.LookVector
+					local state = controller:GetFlightState() or { yaw = math.atan2(-look.X, -look.Z), pitch = math.asin(math.clamp(look.Y, -1, 1)), roll = 0 }
+					local stickX, stickY = Pilot:Steer(state, math.atan2(-delta.X, -delta.Z), math.clamp(math.asin(math.clamp(delta.Unit.Y, -1, 1)), -0.6, 0.6))
+					send(Enum.KeyCode.Thumbstick1, Enum.UserInputState.Change, Vector3.new(stickX, stickY, 0))
 					local throttle = controller:GetControlStateForStudio().throttle
-					local desired = delta.Magnitude > 1500 and 0.9 or 0.2
+					local desired = delta.Magnitude > 1500 and 0.9 or 0.45
 					send(Enum.KeyCode.ButtonL1, throttle > desired + 0.03 and Enum.UserInputState.Begin or Enum.UserInputState.End)
 					send(Enum.KeyCode.ButtonR1, throttle < desired - 0.03 and Enum.UserInputState.Begin or Enum.UserInputState.End)
 				end

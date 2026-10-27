@@ -4,6 +4,18 @@
 assert(game:GetService("RunService"):IsStudio(), "QA driver is Studio-only")
 local player = game:GetService("Players").LocalPlayer
 local controller = require(player.PlayerScripts.Client.FlightController).FlightController.GetActive()
+-- The stick commands pitch and turn RATES (the jet holds its attitude when centred),
+-- so aim by closing the loop on the predicted nose through the shared pilot.
+local Pilot = require(game:GetService("ReplicatedStorage").Shared.NavigationPilot).NavigationPilot
+local function steerToward(controller, frame, delta, maxPitch)
+	local state = controller:GetFlightState()
+	if not state then
+		local look = frame.LookVector
+		state = { yaw = math.atan2(-look.X, -look.Z), pitch = math.asin(math.clamp(look.Y, -1, 1)), roll = 0 }
+	end
+	local limit = maxPitch or 0.6
+	return Pilot:Steer(state, math.atan2(-delta.X, -delta.Z), math.clamp(math.asin(math.clamp(delta.Unit.Y, -1, 1)), -limit, limit))
+end
 assert(controller and controller.active, "Launch a mission through the menu first")
 local survivalOnly = script:GetAttribute("SurvivalOnly") == true
 local old = player.PlayerGui:FindFirstChild("SkybreakPlaytest")
@@ -31,12 +43,8 @@ task.spawn(function()
 			local frame = aircraft:GetPivot()
 			local delta = target:GetPivot().Position - frame.Position
 			if delta.Magnitude > 1 then
-				local desiredYaw = math.atan2(-delta.X, -delta.Z)
-				local yaw = math.atan2(-frame.LookVector.X, -frame.LookVector.Z)
-				local errorAngle = (desiredYaw - yaw + math.pi) % (2 * math.pi) - math.pi
-				local pitch = math.asin(math.clamp(delta.Unit.Y, -1, 1))
-				controller:SetInput(math.clamp(-errorAngle * 2, -1, 1), math.clamp(pitch / 0.62, -1, 1))
-				controller:SetThrottle(delta.Magnitude > 1500 and 0.9 or 0.2)
+				controller:SetInput(steerToward(controller, frame, delta))
+				controller:SetThrottle(delta.Magnitude > 1500 and 0.9 or 0.45)
 			end
 		end
 		if not survivalOnly and telemetry.lockProgress >= 0.99 and telemetry.missileCooldown <= 0 and os.clock() - lastFire > 1.2 then

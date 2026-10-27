@@ -2053,8 +2053,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const changeSetting = useCallback(<K extends SettingKey>(key: K, value: PlayerSettings[K]) => SettingsStore.Set(key, value), []);
 	const openSettings = useCallback(() => { if (!busyRef.current) setSettingsOpen(true); }, [setSettingsOpen]);
 
-	// Settings that live outside React: pitch inversion in the controller (shake is read by CameraShake).
+	// Settings that live outside React: pitch inversion and level assist in the controller (shake is read by CameraShake).
 	useEffect(() => controller.SetInvertY(settings.invertY), [controller, settings.invertY]);
+	useEffect(() => controller.SetLevelAssist(settings.levelAssist), [controller, settings.levelAssist]);
 
 	// Auto-pause when the Roblox menu opens (Esc, the menu button, the gamepad Start menu) or the app loses focus.
 	useEffect(() => {

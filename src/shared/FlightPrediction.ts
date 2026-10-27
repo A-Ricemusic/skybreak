@@ -20,14 +20,23 @@ import { FlightInput } from "./Types";
 // far) and sampled back by adding the running correction total, which is the
 // same as shifting the whole history by each correction without touching it.
 // That way a correction already applied is never counted twice.
+//
+// Attitude is reconciled on the orientation quaternion (componentwise, on the
+// same hemisphere, renormalized), never on yaw/pitch/roll: those are derived and
+// jump by pi when a loop passes the vertical, which is not a real error.
 
 /** Same fixed step as CombatService, so client and server integrate identically. */
 const FIXED_STEP = 1 / 30;
 /** After a long hitch, simulate at most this much at once (reconciliation covers the rest). */
 const MAX_CATCH_UP = 0.25;
 const HISTORY = 96; // 3.2 s of fixed steps; longer than any latency we reconcile against
-const KEYS = ["x", "y", "z", "yaw", "pitch", "roll", "speed"] as const;
-const ANGLES = ["yaw", "pitch", "roll"] as const;
+/** Integrated fields: the only ones corrected, recorded and sent. */
+const KEYS = ["x", "y", "z", "qw", "qx", "qy", "qz", "lean", "speed"] as const;
+const QUATERNION = ["qw", "qx", "qy", "qz"] as const;
+/** Every field, including the derived angles, for plain copies. */
+const ALL = ["x", "y", "z", "qw", "qx", "qy", "qz", "lean", "yaw", "pitch", "roll", "speed"] as const;
+/** Length of FlightStatePacket. */
+const PACKET_FIELDS = 13;
 
 export interface Predictor {
 	/** Simulated state at the last fixed step (what history and reconciliation use). */
@@ -52,12 +61,20 @@ export interface Predictor {
 	last: "none" | "ignore" | "blend" | "snap";
 }
 
-function zero(): FlightState { return { x: 0, y: 0, z: 0, yaw: 0, pitch: 0, roll: 0, speed: 0 }; }
+function zero(): FlightState { return { x: 0, y: 0, z: 0, qw: 0, qx: 0, qy: 0, qz: 0, lean: 0, yaw: 0, pitch: 0, roll: 0, speed: 0 }; }
 // Scratch tables reused by Reconcile so a server packet allocates nothing.
 const scratchMatch = zero();
 const scratchError = zero();
 function copyInto(target: FlightState, source: FlightState): void {
-	for (const key of KEYS) target[key] = source[key];
+	for (const key of ALL) target[key] = source[key];
+}
+/** Angle (radians) between two orientations, from their quaternions (either sign). */
+function attitudeError(a: FlightState, b: FlightState): number {
+	const dot = a.qw * b.qw + a.qx * b.qx + a.qy * b.qy + a.qz * b.qz;
+	const la = math.sqrt(a.qw * a.qw + a.qx * a.qx + a.qy * a.qy + a.qz * a.qz);
+	const lb = math.sqrt(b.qw * b.qw + b.qx * b.qx + b.qy * b.qy + b.qz * b.qz);
+	if (la < 1e-9 || lb < 1e-9) return math.pi;
+	return 2 * math.acos(math.min(1, math.abs(dot) / (la * lb)));
 }
 
 export const FlightPrediction = {
@@ -80,10 +97,11 @@ export const FlightPrediction = {
 		for (let index = 0; index < HISTORY; index++) { raw.push(zero()); times.push(0); }
 		const state = zero();
 		copyInto(state, initial);
+		FlightMath.Sync(state);
 		return { state, display: zero(), accumulator: 0, pending: zero(), applied: zero(), times, raw, head: 0, count: 0, sequence: -1, last: "none" };
 	},
 
-	/** Blend `from` toward `to` by `alpha`, always across the short side of the ±pi seam. */
+	/** Blend `from` toward `to` by `alpha`, always across the short side of the ±pi seam (HUD angles). */
 	BlendAngle(from: number, to: number, alpha: number): number {
 		return FlightMath.WrapAngle(from + FlightMath.WrapAngle(to - from) * alpha);
 	},
@@ -108,7 +126,7 @@ export const FlightPrediction = {
 			pending[key] -= delta;
 			corrected = true;
 		}
-		if (corrected) predictor.state.yaw = FlightMath.WrapAngle(predictor.state.yaw);
+		if (corrected) FlightMath.Normalize(predictor.state);
 		predictor.accumulator = math.min(predictor.accumulator + dt, MAX_CATCH_UP);
 		while (predictor.accumulator >= FIXED_STEP - 1e-9) {
 			FlightMath.Step(predictor.state, input, FIXED_STEP);
@@ -153,10 +171,9 @@ export const FlightPrediction = {
 		const a = predictor.raw[older], b = predictor.raw[newer];
 		const ta = predictor.times[older], tb = predictor.times[newer];
 		const f = tb > ta ? math.clamp((t - ta) / (tb - ta), 0, 1) : 0;
-		for (const key of KEYS) {
-			const value = key === "yaw" ? a.yaw + FlightMath.WrapAngle(b.yaw - a.yaw) * f : a[key] + (b[key] - a[key]) * f;
-			out[key] = value + predictor.applied[key];
-		}
+		// The two neighbours are 1/30 s apart, so their quaternions share a hemisphere.
+		for (const key of KEYS) out[key] = a[key] + (b[key] - a[key]) * f + predictor.applied[key];
+		FlightMath.Sync(out);
 		return true;
 	},
 
@@ -182,13 +199,16 @@ export const FlightPrediction = {
 		const at = matchTime ?? now - (predictor.rtt ?? FlightPrediction.DefaultRtt);
 		if (!FlightPrediction.Sample(predictor, at, match)) {
 			copyInto(predictor.state, server);
+			FlightMath.Sync(predictor.state);
 			for (const key of KEYS) predictor.pending[key] = 0;
 			predictor.last = "snap";
 			return "snap";
 		}
 		const diff = scratchError;
+		// q and -q are the same attitude: correct toward whichever is nearer.
+		const hemisphere = server.qw * match.qw + server.qx * match.qx + server.qy * match.qy + server.qz * match.qz < 0 ? -1 : 1;
 		for (const key of KEYS) diff[key] = server[key] - match[key];
-		diff.yaw = FlightMath.WrapAngle(server.yaw - match.yaw);
+		for (const key of QUATERNION) diff[key] = server[key] * hemisphere - match[key];
 		const distance = math.sqrt(diff.x * diff.x + diff.y * diff.y + diff.z * diff.z);
 		if (distance >= FlightPrediction.SnapDistance) {
 			// Shift by the whole error: keeps the motion predicted since the server sample.
@@ -197,19 +217,18 @@ export const FlightPrediction = {
 				predictor.applied[key] += diff[key];
 				predictor.pending[key] = 0;
 			}
-			predictor.state.yaw = FlightMath.WrapAngle(predictor.state.yaw);
+			FlightMath.Normalize(predictor.state);
 			predictor.last = "snap";
 			return "snap";
 		}
 		const ignorePosition = distance < FlightPrediction.IgnoreDistance;
-		let angles = 0;
-		for (const key of ANGLES) angles = math.max(angles, math.abs(diff[key]));
+		const angles = math.max(attitudeError(server, match), math.abs(diff.lean));
 		const ignoreAngles = angles < FlightPrediction.IgnoreAngle;
 		// Replace (not add to) the pending correction: the newest measurement already
 		// includes everything applied since, because samples carry `applied`.
 		for (const key of KEYS) {
 			const position = key === "x" || key === "y" || key === "z";
-			const angle = key === "yaw" || key === "pitch" || key === "roll";
+			const angle = !position && key !== "speed";
 			predictor.pending[key] = (position && ignorePosition) || (angle && ignoreAngles) ? 0 : diff[key];
 		}
 		predictor.last = ignorePosition && ignoreAngles ? "ignore" : "blend";
@@ -218,24 +237,23 @@ export const FlightPrediction = {
 
 	/** Server packet layout shared by both ends of the FlightState remote. */
 	Encode(sequence: number, state: FlightState, evadeRemaining: number, echoedClientTime: number, hold: number): FlightStatePacket {
-		return [sequence, state.x, state.y, state.z, state.yaw, state.pitch, state.roll, state.speed, evadeRemaining, echoedClientTime, hold];
+		return [sequence, state.x, state.y, state.z, state.qw, state.qx, state.qy, state.qz, state.lean, state.speed, evadeRemaining, echoedClientTime, hold];
 	},
 	/** Validates a received packet; returns undefined for anything malformed. */
 	Decode(packet: unknown): DecodedFlightState | undefined {
 		if (!typeIs(packet, "table")) return undefined;
 		const values = packet as unknown[];
-		for (let index = 0; index < 11; index++) if (!FlightMath.IsFinite(values[index])) return undefined;
+		for (let index = 0; index < PACKET_FIELDS; index++) if (!FlightMath.IsFinite(values[index])) return undefined;
 		const n = values as number[];
-		return {
-			sequence: n[0],
-			state: { x: n[1], y: n[2], z: n[3], yaw: n[4], pitch: n[5], roll: n[6], speed: n[7] },
-			evadeRemaining: n[8], echoedClientTime: n[9], hold: n[10],
-		};
+		// A zero-length quaternion is not an attitude.
+		if (n[4] * n[4] + n[5] * n[5] + n[6] * n[6] + n[7] * n[7] < 0.5) return undefined;
+		const state = FlightMath.Sync({ x: n[1], y: n[2], z: n[3], qw: n[4], qx: n[5], qy: n[6], qz: n[7], lean: n[8], yaw: 0, pitch: 0, roll: 0, speed: n[9] });
+		return { sequence: n[0], state, evadeRemaining: n[10], echoedClientTime: n[11], hold: n[12] };
 	},
 };
 
-/** [sequence, x, y, z, yaw, pitch, roll, speed, evadeRemaining, echoedClientTime, hold] — ~100 bytes. */
-export type FlightStatePacket = [number, number, number, number, number, number, number, number, number, number, number];
+/** [sequence, x, y, z, qw, qx, qy, qz, lean, speed, evadeRemaining, echoedClientTime, hold] — ~120 bytes. */
+export type FlightStatePacket = [number, number, number, number, number, number, number, number, number, number, number, number, number];
 export interface DecodedFlightState {
 	sequence: number;
 	state: FlightState;
