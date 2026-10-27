@@ -173,7 +173,9 @@ export class GameAudio {
 	private explosion(position: Vector3, kind: ExplosionKind): void {
 		if (!this.alive || (!this.aircraft && os.clock() > this.tailUntil)) return;
 		if (kind === "player") {
+			const paused = this.paused;
 			this.Stop();
+			this.paused = paused;
 			this.dead = true;
 		}
 		if (this.paused) return;
