@@ -1,0 +1,202 @@
+{
+  "date": "2026-10-26",
+  "baseMain": "d31ed1d",
+  "type": "Studio engine fixtures, not gameplay acceptance",
+  "renderRuns": [
+    {
+      "viewport": "1012x536",
+      "device": "desktop",
+      "checks": 207,
+      "maxRenderedError": 3.0517578125e-05
+    },
+    {
+      "viewport": "750x381",
+      "device": "iPhone 17 Pro landscape emulation",
+      "checks": 207,
+      "maxRenderedError": 0.5
+    },
+    {
+      "viewport": "401x778",
+      "device": "iPhone 17 Pro portrait emulation (forced; game is LandscapeSensor)",
+      "checks": 207,
+      "maxRenderedError": 0.5
+    }
+  ],
+  "matrix": {
+    "insets": [
+      "None",
+      "DeviceSafeInsets",
+      "CoreUISafeInsets"
+    ],
+    "hudScales": [
+      0.8,
+      1,
+      1.3
+    ]
+  },
+  "serverLock": {
+    "Completed": true,
+    "WallSeconds": 0.4489511667052284,
+    "Lock": 1,
+    "Steps": 14,
+    "Samples": [
+      {
+        "steps": 1,
+        "wall": 0.017291083349846303,
+        "lock": 0.07407407407407407
+      },
+      {
+        "steps": 1,
+        "wall": 0.03295054170303047,
+        "lock": 0.07407407407407407
+      },
+      {
+        "steps": 2,
+        "wall": 0.0499376249499619,
+        "lock": 0.14814814814814814
+      },
+      {
+        "steps": 2,
+        "wall": 0.06633345829322934,
+        "lock": 0.14814814814814814
+      },
+      {
+        "steps": 3,
+        "wall": 0.08237666671629995,
+        "lock": 0.2222222222222222
+      },
+      {
+        "steps": 3,
+        "wall": 0.10006708337459713,
+        "lock": 0.2222222222222222
+      },
+      {
+        "steps": 4,
+        "wall": 0.115964625030756,
+        "lock": 0.2962962962962963
+      },
+      {
+        "steps": 4,
+        "wall": 0.13364916667342186,
+        "lock": 0.2962962962962963
+      },
+      {
+        "steps": 5,
+        "wall": 0.14967733330558985,
+        "lock": 0.37037037037037035
+      },
+      {
+        "steps": 5,
+        "wall": 0.16652679163962603,
+        "lock": 0.37037037037037035
+      },
+      {
+        "steps": 6,
+        "wall": 0.18300225003622472,
+        "lock": 0.4444444444444444
+      },
+      {
+        "steps": 6,
+        "wall": 0.19936183327808976,
+        "lock": 0.4444444444444444
+      },
+      {
+        "steps": 7,
+        "wall": 0.2170633333735168,
+        "lock": 0.5185185185185185
+      },
+      {
+        "steps": 7,
+        "wall": 0.2323957916814834,
+        "lock": 0.5185185185185185
+      },
+      {
+        "steps": 8,
+        "wall": 0.2504419583128765,
+        "lock": 0.5925925925925926
+      },
+      {
+        "steps": 8,
+        "wall": 0.2659319583326578,
+        "lock": 0.5925925925925926
+      },
+      {
+        "steps": 9,
+        "wall": 0.2836210833629593,
+        "lock": 0.6666666666666666
+      },
+      {
+        "steps": 9,
+        "wall": 0.2992868333822116,
+        "lock": 0.6666666666666666
+      },
+      {
+        "steps": 10,
+        "wall": 0.3175800000317395,
+        "lock": 0.7407407407407407
+      },
+      {
+        "steps": 10,
+        "wall": 0.33307783328928053,
+        "lock": 0.7407407407407407
+      },
+      {
+        "steps": 11,
+        "wall": 0.34985754161607474,
+        "lock": 0.8148148148148148
+      },
+      {
+        "steps": 11,
+        "wall": 0.36560241668485105,
+        "lock": 0.8148148148148148
+      },
+      {
+        "steps": 12,
+        "wall": 0.38257020828314126,
+        "lock": 0.8888888888888888
+      },
+      {
+        "steps": 12,
+        "wall": 0.4001050000078976,
+        "lock": 0.8888888888888888
+      },
+      {
+        "steps": 13,
+        "wall": 0.4160150416428223,
+        "lock": 0.9629629629629629
+      },
+      {
+        "steps": 13,
+        "wall": 0.433509208378382,
+        "lock": 0.9629629629629629
+      },
+      {
+        "steps": 14,
+        "wall": 0.4489245000295341,
+        "lock": 1
+      }
+    ],
+    "Damageable": true,
+    "LockBuildSeconds": 0.45
+  },
+  "desktopIdentityProbe": {
+    "viewportPoint": [
+      506,
+      268
+    ],
+    "worldToScreenPoint": [
+      506,
+      210
+    ],
+    "guiAbsolutePosition": [
+      0,
+      -58
+    ],
+    "guiAbsoluteCenter": [
+      506,
+      210
+    ],
+    "screenshot": "targeting-desktop-coordinate-probe.png",
+    "note": "Raw viewport offset is visually centered despite a 58px difference in inset-relative AbsolutePosition. Adding 58 would introduce an error."
+  }
+}
