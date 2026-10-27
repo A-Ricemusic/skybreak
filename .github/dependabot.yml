@@ -1,6 +1,42 @@
 version: 2
 updates:
-  - package-ecosystem: github-actions
-    directory: /
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
-      interval: weekly
+      interval: "weekly"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "chore(deps)"
+
+  - package-ecosystem: "bun"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 3
+    groups:
+      minor-and-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      # patchedDependencies pins patches/roblox-ts@3.0.0.patch to this version.
+      - dependency-name: "roblox-ts"
+      - dependency-name: "@rbxts/compiler-types"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@rbxts/react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@rbxts/react-roblox"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@rbxts/jest"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@rbxts/jest-globals"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
+    commit-message:
+      prefix: "chore(deps)"
