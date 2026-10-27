@@ -32,12 +32,14 @@
     "worldCounts": "matched"
   },
   "notValidated": [
-    "human gameplay",
     "physical phone/controller input",
     "cloud save/rejoin",
     "published audible playback",
     "sustained device performance",
-    "fresh full campaign runtime playthrough"
+    "fresh full campaign runtime playthrough",
+    "fresh current-main engine certification",
+    "fresh manual acceptance of PR77",
+    "representative later-mission acceptance"
   ],
   "prClosures": [
     3,
@@ -47,5 +49,93 @@
     29,
     42
   ],
-  "branchesDeleted": false
+  "branchesDeleted": false,
+  "evidenceScope": "Historical automated baseline at gameplayCommit; not certification of currentMainCommit",
+  "currentMainCommit": "839765445983ea11bf0b4157ee3aaed9de7efcaa",
+  "currentMainIntegratedPRs": [
+    70,
+    71,
+    72,
+    73,
+    76,
+    75
+  ],
+  "pr76": {
+    "state": "MERGED",
+    "approvedHead": "60a0661d23690bbaf4bbaca673768d083f08f3b8",
+    "mergeCommit": "b99959d604d4f2b66246bcf064cc13c9075d06bd",
+    "mergedAt": "2026-10-27T19:30:38Z",
+    "freshPythonTests": 38,
+    "reviewEvidence": "Owner-supplied independent 5.6 review: no blockers; mock failure paths; no-redirect _http.open; journal/HALT/ambiguity/locking preserved",
+    "freshEngineRun": false
+  },
+  "pendingPRs": {
+    "69": {
+      "state": "OPEN",
+      "head": "906cf6363ab74024d140af692c4a7f6be5bcfc8b",
+      "gate": "code approved; separator/threshold 30; 538 tests; no fresh render; wait for integrated validation gate"
+    },
+    "74": {
+      "state": "OPEN",
+      "head": "e923c6530fd3e55d00a57894b662877ddf2cb3c1",
+      "gate": "independent recheck pending; combined validation with #76 required",
+      "reportedChecks": "538 offline / 10 audio / 8 voice / 20 Python; Linux run 40569063153 success"
+    },
+    "77": {
+      "state": "OPEN",
+      "head": "76f217e32cc8e9148e2e397c9ea0d930545b0a6f",
+      "gate": "new head requires independent review; 551 offline/build reported; engine regressions compiled but unexecuted; no fresh manual keyboard/touch/gamepad"
+    }
+  },
+  "cycle1Playtest": {
+    "checkout": "3419b6f",
+    "gameplay": "8d66669",
+    "method": "manual onboarding followed by repository automation",
+    "m1": {
+      "totalKills": 4,
+      "groundKills": 1,
+      "hull": 94
+    },
+    "m2": {
+      "requiredAirKills": 4,
+      "includesAce": true,
+      "groundKills": 5
+    },
+    "observed": [
+      "pause/settings",
+      "recovery",
+      "results/next flow",
+      "warnings",
+      "teardown Combat folder count 0",
+      "unsafe M1 movement-to-target handoff while inverted led to crash; #77 under review"
+    ],
+    "limits": "Story props are a graybox presentation candidate; no broad release acceptance"
+  },
+  "publish": {
+    "latestVerifiedSuccessRun": 40569759963,
+    "revision": "b99959d604d4f2b66246bcf064cc13c9075d06bd",
+    "returnedVersion": 57,
+    "timestamp": "2026-10-27T19:31:10.2241155Z",
+    "previousVerifiedRun": 40568936985,
+    "previousRevision": "0648d4a508b411c700dc4a4f0ede2ee354865812",
+    "servedPlayerProven": false,
+    "newRun": 40569884635,
+    "newRunStatus": "in_progress at inspection"
+  },
+  "audioPermissions": {
+    "banks": 14,
+    "grantsVerified": false,
+    "executeRun": 40558606600,
+    "result": "HTTP 403; all unconfirmed",
+    "dryRun": 40558529362,
+    "metadataRun": 40557623782,
+    "audibleOfficialPlayerCapture": false
+  },
+  "concurrentPR75": {
+    "state": "MERGED",
+    "head": "49ed55370769d628b64e9719ce42beddcff35380",
+    "mergeCommit": "839765445983ea11bf0b4157ee3aaed9de7efcaa",
+    "mergedAt": "2026-10-27T19:31:27Z",
+    "scope": "Merged concurrently by another actor; this task did not merge or independently certify it"
+  }
 }
