@@ -38,7 +38,8 @@ function Segment({ kind, selected, enabled, onChange }: {
 			}}
 		>
 			<uicorner CornerRadius={new UDim(0, 8)} />
-			<uistroke ApplyStrokeMode={Enum.ApplyStrokeMode.Border} Color={selected ? accent : hot ? C.Ivory : C.Accent} Thickness={selected || hot ? 2 : 1} Transparency={selected ? 0 : hot ? 0.1 : 0.55} />
+			{/* Focus wins the stroke so the chosen segment still shows gamepad focus; the fill keeps the choice. */}
+			<uistroke ApplyStrokeMode={Enum.ApplyStrokeMode.Border} Color={hot ? C.Ivory : selected ? accent : C.Accent} Thickness={hot ? 3 : selected ? 2 : 1} Transparency={hot || selected ? 0 : 0.55} />
 			<textlabel
 				key="Name"
 				BackgroundTransparency={1}
