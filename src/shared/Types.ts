@@ -217,6 +217,8 @@ export interface Telemetry {
 	paused?: boolean;
 	/** Highest Pause/Resume serial the server has handled; the client follows `paused` only once its own request is acknowledged. */
 	pauseAck?: number;
+	/** Server-measured seconds left in this sortie’s shared pause budget; absent on older packets. */
+	pauseRemaining?: number;
 }
 export interface MissionFinished extends MissionStats {
 	kind: "Completed" | "Failed";

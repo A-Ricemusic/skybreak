@@ -257,8 +257,8 @@ function OverlayButton({ name, text, rectangle, primary = false, textSize = 13, 
 	);
 }
 
-/** Dim overlay while the sortie is paused. Resuming always takes an explicit press. */
-export function PauseOverlay({ viewport, onResume, onSettings, onMenu }: { viewport: Vector2; onResume: () => void; onSettings: () => void; onMenu: () => void }) {
+/** Dim overlay while the sortie is paused. The server resumes when the shared budget expires. */
+export function PauseOverlay({ viewport, remaining, onResume, onSettings, onMenu }: { remaining?: number; viewport: Vector2; onResume: () => void; onSettings: () => void; onMenu: () => void }) {
 	const layout = getPauseLayout(viewport.X, viewport.Y);
 	const row = layout.buttons[0].y === layout.buttons[1].y;
 	return (
@@ -266,8 +266,8 @@ export function PauseOverlay({ viewport, onResume, onSettings, onMenu }: { viewp
 			<frame key="PauseCard" BackgroundColor3={C.Panel} BackgroundTransparency={0.08} BorderSizePixel={0} ZIndex={41} {...at(layout.panel)}>
 				<uicorner CornerRadius={new UDim(0, 10)} />
 				<uistroke Color={C.Accent} Transparency={0.6} />
-				<textlabel key="PauseTitle" BackgroundTransparency={1} Font={Enum.Font.GothamBlack} Text="PAUSED" TextColor3={C.Ivory} TextSize={layout.title.height >= 28 ? 20 : 15} TextXAlignment={Enum.TextXAlignment.Left} ZIndex={42} {...at(layout.title)} />
-				<textlabel key="PauseNote" BackgroundTransparency={1} Font={Enum.Font.GothamBold} Text="CLOCK HELD · UP TO 5 MIN" TextColor3={C.Muted} TextSize={9} TextXAlignment={Enum.TextXAlignment.Right} ZIndex={42} {...at(layout.title)} />
+				<textlabel key="PauseTitle" BackgroundTransparency={1} Font={Enum.Font.GothamBlack} Text={remaining !== undefined && remaining <= 10 ? "RESUMING SOON" : "PAUSED"} TextColor3={C.Ivory} TextSize={layout.title.height >= 28 ? 13 : 10} TextXAlignment={Enum.TextXAlignment.Left} ZIndex={42} {...at({ ...layout.title, height: layout.title.height / 2 })} />
+				<textlabel key="PauseNote" BackgroundTransparency={1} Font={Enum.Font.GothamBold} Text={remaining === undefined ? "CONFIRMING PAUSE…" : `AUTO-RESUME ${math.ceil(remaining)}s`} TextColor3={remaining !== undefined && remaining <= 10 ? C.Orange : C.Muted} TextSize={9} TextXAlignment={Enum.TextXAlignment.Right} ZIndex={42} {...at({ ...layout.title, y: layout.title.y + layout.title.height / 2, height: layout.title.height / 2 })} />
 				<OverlayButton name="PauseResumeButton" text={row ? "RESUME" : "RESUME  ›"} rectangle={layout.buttons[0]} primary={true} textSize={row ? 12 : 15} onActivated={onResume} />
 				<OverlayButton name="PauseSettingsButton" text="SETTINGS" rectangle={layout.buttons[1]} textSize={row ? 11 : 13} onActivated={onSettings} />
 				<OverlayButton name="PauseMenuButton" text="MAIN MENU" rectangle={layout.buttons[2]} textSize={row ? 11 : 13} onActivated={onMenu} />
