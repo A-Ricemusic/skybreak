@@ -7,7 +7,7 @@ import { FlightInput, FlightInputPacket, HudState, MissionStarted, Remotes, Tele
 import { SpecialWeapons } from "../shared/SpecialWeapons";
 import { WeaponRules } from "../shared/WeaponRules";
 import { EngineFx } from "../shared/EngineFx";
-import { EngineRig, JetFactory } from "../shared/JetFactory";
+import { EngineRig, HOSTILE_MISSILE, JetFactory } from "../shared/JetFactory";
 import { CameraShake } from "./CameraShake";
 import { CombatEffects } from "./CombatEffects";
 import { EnemySmoothing } from "./EnemySmoothing";
@@ -462,7 +462,7 @@ export class FlightController {
 					const position = child.GetPivot().Position;
 					contacts.push({ kind: "protected", x: position.X, z: position.Z });
 				}
-			} else if (child.IsA("BasePart") && child.Name === "HostileMissile") {
+			} else if (child.IsA("BasePart") && child.Name === HOSTILE_MISSILE) {
 				contacts.push({ kind: "missile", x: child.Position.X, z: child.Position.Z });
 			}
 		}

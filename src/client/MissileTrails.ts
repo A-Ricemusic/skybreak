@@ -1,4 +1,5 @@
 import { Debris, Workspace } from "@rbxts/services";
+import { HOSTILE_MISSILE, PLAYER_MISSILE } from "../shared/JetFactory";
 
 // Missiles are plain replicated server Parts; their smoke and motor flame are
 // built here, locally, so nothing extra replicates. The smoke hangs off a
@@ -47,8 +48,8 @@ export class MissileTrails {
 	}
 	private track(child: Instance): void {
 		if (!child.IsA("BasePart") || this.plumes.has(child)) return;
-		const hostile = child.Name === "HostileMissile";
-		if (!hostile && child.Name !== "SkyLance") return;
+		const hostile = child.Name === HOSTILE_MISSILE;
+		if (!hostile && child.Name !== PLAYER_MISSILE) return;
 		const terrain = Workspace.Terrain;
 		const [a, b, c] = [new Instance("Attachment"), new Instance("Attachment"), new Instance("Attachment")];
 		const puffs = new Instance("ParticleEmitter");

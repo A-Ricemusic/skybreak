@@ -3,6 +3,10 @@ import type { AceLivery } from "./AssetSelection";
 import { BlenderAircraft } from "./BlenderAircraft";
 import { EngineFx } from "./EngineFx";
 
+/** Model names the client keys missile audio, trails and warnings on. */
+export const HOSTILE_MISSILE = "HostileMissile";
+export const PLAYER_MISSILE = "SkyLance";
+
 // Shared noninteractive parts for the root, effects, and platform fallback.
 function part<T extends "Part" | "WedgePart">(parent: Instance, className: T, name: string, size: Vector3, cf: CFrame, color: Color3, material: Enum.Material = Enum.Material.SmoothPlastic): CreatableInstances[T] {
 	const item = new Instance(className);
@@ -226,7 +230,7 @@ export const JetFactory = {
 	},
 	CreateMissile(parent: Instance, position: Vector3, direction: Vector3, hostile: boolean): Part {
 		const color = hostile ? Color3.fromRGB(255, 104, 72) : Color3.fromRGB(93, 247, 255);
-		const missile = part(parent, "Part", hostile ? "HostileMissile" : "SkyLance", new Vector3(0.75, 0.75, 4.3), CFrame.lookAt(position, position.add(direction)), color, Enum.Material.Neon);
+		const missile = part(parent, "Part", hostile ? HOSTILE_MISSILE : PLAYER_MISSILE, new Vector3(0.75, 0.75, 4.3), CFrame.lookAt(position, position.add(direction)), color, Enum.Material.Neon);
 		missile.CastShadow = false;
 		trail(missile, new Vector3(0, 0, 2), color, 0.8, 0.5);
 		return missile;

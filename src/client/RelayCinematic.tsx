@@ -1,5 +1,5 @@
 import { cinematicClockStep } from "../shared/VoiceReadiness";
-import React, { useEffect, useRef, useState } from "@rbxts/react";
+import React, { useEffect, useMemo, useRef, useState } from "@rbxts/react";
 import { GuiService, Lighting, ReplicatedStorage, RunService, TextService, UserInputService, Workspace } from "@rbxts/services";
 import { CinematicAction, CinematicControl, routeCinematicInput } from "../shared/CinematicInput";
 import { Rect, getCinematicFrame, getCinematicLayout, progressSegments } from "../shared/CinematicLayout";
@@ -234,9 +234,9 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 	const wrapWidth=math.max(1,layout.textWidth-SCROLL_GUTTER);
 	const measure=(b:StoryBeat)=>TextService.GetTextSize(b.text,layout.bodySize,bodyFont(b),new Vector2(wrapWidth,10000)).Y+4;
 	const textHeight=measure(current);
-	let tallest=0;
-	for(const b of chapter.beats)if(!isCard(b.shot))tallest=math.max(tallest,measure(b));
-	if(tallest===0)tallest=textHeight;
+	// GetTextSize per beat is costly; the chapter's tallest line only changes with the chapter, text size or wrap width.
+	const tallestLine=useMemo(()=>{let max=0;for(const b of chapter.beats)if(!isCard(b.shot))max=math.max(max,measure(b));return max;},[id,layout.bodySize,wrapWidth]);
+	const tallest=tallestLine===0 ? textHeight : tallestLine;
 	// Every rectangle comes from the pure layout: no top bar, one caption panel at the bottom with the controls on the speaker row.
 	const frame=getCinematicFrame(layout,viewport.X,viewport.Y,tallest),band=frame.band;
 	const overflow=textHeight>frame.text.height;
@@ -248,7 +248,7 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 	useEffect(()=>{if(subtitleRef.current)subtitleRef.current.CanvasPosition=Vector2.zero;},[beat]);
 	const pausedRef=useRef(false),stillRef=useRef(MotionPreference.reduced),finishRef=useRef(onFinish),cancelRef=useRef(onCancel),done=useRef(false);
 	// Longer lines stay on screen longer: 5-9 s per beat, scaled by text length, or the voice plus a short tail when that is longer.
-	const durations=chapter.beats.map((b,i)=>cinematicBeatSeconds(beatDuration(b.text),Voice.Story(id,i,b.text)?.seconds));
+	const durations=useMemo(()=>chapter.beats.map((b,i)=>cinematicBeatSeconds(beatDuration(b.text),Voice.Story(id,i,b.text)?.seconds)),[id]);
 	// Advancing, skipping or closing stops the voice; unavailable dialogue stays visible as a failure.
 	const voiceRef=useRef<VoiceHandle>(),audioUnavailableRef=useRef(false);
 	const speak=(index:number)=>{
@@ -265,8 +265,13 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 	const indexRef=useRef(0),beatTimeRef=useRef(0),endRef=useRef(durations[0]);
 	finishRef.current=onFinish;cancelRef.current=onCancel;
 	const finish=()=>{if(done.current)return;done.current=true;finishRef.current();};
-	const setTextAlpha=(alpha:number)=>{for(const label of [bodyRef.current,nameRef.current,roleRef.current,cardBodyRef.current,cardNameRef.current])if(label)label.TextTransparency=alpha;};
-	const setVisible=(count:number)=>{for(const label of [bodyRef.current,cardBodyRef.current])if(label)label.MaxVisibleGraphemes=count;};
+	// Runs every frame: read each ref fresh (cards and the role line mount and unmount) without allocating a label array.
+	const setTextAlpha=(alpha:number)=>{
+		const body=bodyRef.current,name=nameRef.current,role=roleRef.current,cardBody=cardBodyRef.current,cardName=cardNameRef.current;
+		if(body)body.TextTransparency=alpha;if(name)name.TextTransparency=alpha;if(role)role.TextTransparency=alpha;
+		if(cardBody)cardBody.TextTransparency=alpha;if(cardName)cardName.TextTransparency=alpha;
+	};
+	const setVisible=(count:number)=>{const body=bodyRef.current,cardBody=cardBodyRef.current;if(body)body.MaxVisibleGraphemes=count;if(cardBody)cardBody.MaxVisibleGraphemes=count;};
 	const goTo=(index:number)=>{
 		// Hide the outgoing line before React swaps text so it can fade or type in cleanly.
 		if(!stillRef.current){setTextAlpha(1);setVisible(0);}

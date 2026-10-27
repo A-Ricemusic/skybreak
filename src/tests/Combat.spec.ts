@@ -1,7 +1,7 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "@rbxts/jest-globals";
 import { UploadedAssets } from "../shared/UploadedAssets";
 import { HttpService, RunService, ServerStorage, Workspace } from "@rbxts/services";
-import { JetFactory } from "../shared/JetFactory";
+import { HOSTILE_MISSILE, JetFactory, PLAYER_MISSILE } from "../shared/JetFactory";
 import { ThreatRules } from "../shared/ThreatRules";
 import { MissionAssets } from "../shared/MissionAssets";
 import { ActorPlacement } from "../shared/ActorPlacement";
@@ -340,7 +340,7 @@ describe("Roblox jet and missile integration", () => {
 		const direction = new Vector3(0.3, 0.2, -1).Unit;
 		for (const hostile of [false, true]) {
 			const missile = JetFactory.CreateMissile(root, position, direction, hostile);
-			expect(missile.Name).toBe(hostile ? "HostileMissile" : "SkyLance");
+			expect(missile.Name).toBe(hostile ? HOSTILE_MISSILE : PLAYER_MISSILE);
 			expect(missile.Position).toEqual(position);
 			expect(missile.CFrame.LookVector.Dot(direction)).toBeCloseTo(1, 5);
 			expect(missile.FindFirstChildWhichIsA("Trail")).toBeDefined();

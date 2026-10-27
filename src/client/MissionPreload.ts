@@ -1,13 +1,9 @@
 import { ContentProvider } from "@rbxts/services";
 import { LoadingGate } from "../shared/LoadingGate";
+import { countParts } from "../shared/MissionParts";
 
 function isModel(value: unknown): value is Model {
 	return typeIs(value, "Instance") && value.IsA("Model");
-}
-function countParts(root: Instance): number {
-	let count = 0;
-	for (const item of root.GetDescendants()) if (item.IsA("BasePart")) count++;
-	return count;
 }
 function preloadable(root: Instance): Instance[] {
 	const items: Instance[] = [];
