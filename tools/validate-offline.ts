@@ -18,6 +18,7 @@ async function run(command: string[], summary?: RegExp, minimum = 0) {
   }
 }
 
+await run(["bun", "tools/check-no-react-agent-testing.ts"], /^NO_REACT_AGENT_TESTING passed tracked=(\d+)$/gm, 1);
 await run(["bun", "run", "build:place"]);
 await run(["bun", "tools/test-relay-offline.ts"], /^OFFLINE_LUAU_RESULT passed=(\d+) failed=0$/gm, 538);
 await run(["bun", "tools/test-playtest-relay.ts"], /^PLAYTEST_RELAY_REGRESSION passed=(\d+) failed=0$/gm, 3);
