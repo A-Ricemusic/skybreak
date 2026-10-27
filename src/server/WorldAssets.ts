@@ -132,22 +132,14 @@ const FALLBACKS: Partial<Record<WorldAssetName, (size: Vector3) => FallbackPart[
 	CliffGranite: () => [{ name: "Rock face", size: new Vector3(240, 160, 53), offset: new Vector3(0, 78, 1.8), color: Color3.fromRGB(116, 112, 104), material: Enum.Material.Rock }],
 	RidgeAlpine: (size) => ridgeFallback(size, Color3.fromRGB(104, 110, 102)),
 	RidgeDesert: (size) => ridgeFallback(size, Color3.fromRGB(176, 122, 84)),
-	FenceSpan: () => {
-		const wood = Color3.fromRGB(139, 122, 99);
-		return [
-			{ name: "Rail", size: new Vector3(0.35, 0.6, 60), offset: new Vector3(0.55, 1.7, 0), color: wood, material: Enum.Material.Wood },
-			{ name: "Rail", size: new Vector3(0.35, 0.6, 60), offset: new Vector3(0.55, 3.7, 0), color: wood, material: Enum.Material.Wood },
-			{ name: "Post", size: new Vector3(0.8, 5.5, 0.8), offset: new Vector3(0, 2.25, -30), color: wood, material: Enum.Material.Wood },
-			{ name: "Post", size: new Vector3(0.8, 5.5, 0.8), offset: new Vector3(0, 2.25, 30), color: wood, material: Enum.Material.Wood },
-		];
-	},
+	// Thin dressing keeps its fallback to a few parts: a world full of fence and power-line runs stays in budget.
+	FenceSpan: () => [{ name: "Rail", size: new Vector3(0.5, 0.6, 60), offset: new Vector3(0.3, 3.2, 0), color: Color3.fromRGB(139, 122, 99), material: Enum.Material.Wood }],
 	PowerLineSpan: (size) => {
-		const pylon = -(size.Z / 2 - 7), steel = Color3.fromRGB(143, 148, 150), wire = Color3.fromRGB(58, 60, 62);
-		const parts: FallbackPart[] = [{ name: "Pylon", size: new Vector3(4, 70, 4), offset: new Vector3(0, 34.5, pylon), color: steel, material: Enum.Material.Metal }];
-		for (const [x, y] of [[-13, 47.5], [13, 47.5], [-8, 57.5], [8, 57.5], [0, 69.5]]) {
-			parts.push({ name: "Wires", size: new Vector3(0.3, 0.3, 300), offset: new Vector3(x, y, pylon + 150), color: wire, material: Enum.Material.Metal, decor: true });
-		}
-		return parts;
+		const pylon = -(size.Z / 2 - 7);
+		return [
+			{ name: "Pylon", size: new Vector3(4, 70, 4), offset: new Vector3(0, 34.5, pylon), color: Color3.fromRGB(143, 148, 150), material: Enum.Material.Metal },
+			{ name: "Wires", size: new Vector3(0.4, 0.4, 300), offset: new Vector3(0, 52.5, pylon + 150), color: Color3.fromRGB(58, 60, 62), material: Enum.Material.Metal, decor: true },
+		];
 	},
 };
 /** Assets placed without flight collision: the backdrop ring stands wholly past the hard boundary. */

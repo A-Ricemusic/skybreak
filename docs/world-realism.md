@@ -1,93 +1,136 @@
 # Mission world realism
 
-Mission worlds are built from Terrain voxels and the 20 moderation-approved Blender world models
+Mission worlds are built from Terrain voxels and moderation-approved Blender models
 (`src/shared/RobloxAssetIds.ts`, [uploaded assets](qa/uploaded-assets.md)), not from primitive
-Parts. Primitive trees, boulders and buildings appear only when an uploaded model fails to load.
+Parts. Primitive shapes appear only when an uploaded model has no ID yet or fails to load.
+
+## Map size and detail tiers
+
+| | Before | Now |
+|---|---|---|
+| Flyable square (hard boundary) | ±2800 | **±6000** (2.14× linear, 4.6× area) |
+| Soft boundary (airspace warning and turn-back) | ±2400 | ±5400 |
+| Voxel terrain | ±4000 | ±6800 |
+| Horizon | primitive/voxel ridge ring at ~3200 (inside today's flyable area) | uploaded mountain ridges centred 7600 out, every crest above the altitude ceiling |
+| Far ground / sea | 20 tile Parts to ±6000 | 4–6 stretched skirts to ±24000 |
+
+The authored missions did **not** move: every flight point, route, ceiling, target, escort path and
+chase escape still sits inside ±2400, so the PR #47 audits, the mission pacing and the relay
+tables are unchanged. The world grows around them instead, in tiers (`shared/WorldPlan.ts`):
+
+- **Core (±3000): full detail.** Everything from PR #47: two voxel layers, dense field patches,
+  layered mesas, hills, settlements, woods, harbours, the authored road.
+- **Explorable ring (to the ±6000 edge): coarser and sparser.** One voxel layer and a two-layer sea,
+  large material patches, one feature per jittered 1500-stud cell at most (single-tier mesas with cliff
+  panels, long soft ridges, islets at sea), highways from the authored road's ends to the edge with
+  power lines, farmsteads or hamlets beside them, and about a third of the core's trees over five
+  times the area. The audit caps its relief at 560 and its prop density at half the core's.
+- **Backdrop (past the edge).** Uploaded `RidgeAlpine`/`RidgeDesert` meshes (2000 × 2000, crest ≥ 1185
+  studs) overlap end to end on every land side, fronts to the play area, inner foot ≥ 400 studs past
+  the hard boundary. From anywhere under the 1050-stud altitude ceiling, every ray out over land meets
+  a crest, so the voxel edge is never in view. Sea sides get distant islands and the sea skirt runs
+  into the haze.
+
+Missions 1–2 follow the same scheme by hand: the sea runs to ±6800, M1 gains six wooded outer
+islands and sea stacks out to 5200, M2 gains a hinterland (the coast continues east and west of the
+harbour and the land runs back to the edge, with hills, woods and the coast road), and both get the
+uploaded ridge ring.
+
+**Gameplay changes.** `FlightMath.SoftBoundary`/`HardBoundary` drive the airspace warning, the
+turn-back and the clamp, so they follow automatically. Enemy waves still arrive 2600–3200 studs from
+the player, now clamped to ±5000 instead of ±2500 (`CombatService.SPAWN_LIMIT`), so a wave reaches a
+player exploring the ring from the same angles as in the core. The radar keeps its 3200/1600 ranges:
+objectives farther away are pinned to the rim in their direction.
 
 ## How a world is built
 
 | Step | Missions 3–27 | Missions 1–2 |
 |---|---|---|
 | Plan | `shared/WorldPlan.ts`: every voxel op, part, prop and target site as plain numbers, deterministic per mission | hand-composed in `server/MissionWorld.ts` |
-| Audit | `shared/WorldAudit.ts` in the offline VM (`WorldPlan.spec`) | sea, mainland, berth and hulls in the offline VM (`LegacyWorlds.spec`); the rest in Roblox Jest (`RelayWorld.spec`) |
+| Audit | `shared/WorldAudit.ts` in the offline VM (`WorldPlan.spec`) | sea, mainland, hinterland, berth and hulls in the offline VM (`LegacyWorlds.spec`); the rest in Roblox Jest (`RelayWorld.spec`) |
 | Environment | `shared/EnvironmentPresets.ts` → `server/WorldEnvironment.ts` | same table |
-| Terrain | bounded jobs on a per-frame time budget (`server/TerrainWriter.ts`, `shared/TerrainSchedule.ts`) | `Scenery.TerrainSea`, the mainland and the frigate berth through the same writer; islands and hills as before |
-| Props | `WorldAssets.Preload` (parallel, 30 s deadline), then `WorldAssets.Place` clones of the cached templates | the same preload, then `Scenery.Trees/Rocks` + `WorldAssets.Place/PlaceUploaded`, grounded by ray |
+| Terrain | bounded jobs on a per-frame time budget (`server/TerrainWriter.ts`, `shared/TerrainSchedule.ts`) | the same writer |
+| Props | `WorldAssets.Preload` (parallel, 30 s deadline), then `WorldAssets.Place` clones of the cached templates | the same preload, then `Scenery` + `WorldAssets.Place/PlaceUploaded`, grounded by ray |
 | Weather | `client/Weather.ts` from `shared/WeatherRules.ts` | same |
 
-**Terrain.** Inland maps are an 8-stud ground slab with material patches (fields, washes, rock
-flats), smooth cosine hills (`bump`, written with `WriteVoxels` so they only add), layered mesas
-with strata bands, buttresses and talus aprons, canyon walls along the authored track, and a ring of
-ridges past the flyable square. Coastal maps have Terrain water from the coast line out, a rock edge
-down to the seabed, sand beaches, canals with concrete walls joining inland boat paths to the sea
-(the channels are written again after every land op, so civic pavement or a mole never roofs one),
-concrete moles under coastal targets, and a dredged berth under every frigate (water 8 studs below
-its keel; the open seabed would otherwise meet it). The ocean maps are all water over a mud seabed with rocky
-islets. Everything past ±4000 studs is flat ground or sea parts out to ±6000.
+**Terrain.** Inland maps are a ground slab with material patches, smooth cosine hills (`bump`),
+layered mesas with strata bands, buttresses, talus aprons and uploaded cliff panels, canyon walls along
+the authored track, and the explorable ring's coarser relief. Coastal maps have Terrain water from the
+coast line out, a rock edge down to the seabed, sand beaches, canals with concrete walls joining inland
+boat paths to the sea (rewritten after every land op so nothing roofs a channel), concrete moles under
+coastal targets, and a dredged berth under every frigate. The ocean maps are all water with islets.
 
-**Assets everywhere they fit.**
+**Modular Blender pieces replace the last primitives** (`tools/assets/infrastructure.py`):
 
-- Trees and rocks: Pine, Broadleaf and RockA/B/C clones at varied scale and yaw, woods in clusters,
-  roadside rows and talus belts round the relief. 60–150 trees on farm and coastal maps.
-- Farms: farmhouses, barns and grain silos; orchards of Broadleaf rows on strips.
-- Cities: OfficeMidrise, ApartmentBlock and CityTower on a street grid, lit windows from dusk.
-- Harbours: HarbourQuay along the shore with a GantryCrane on every other deck, ContainerStack yards
-  behind, and moored frigates.
-- Airfields (canyon_airfield missions, M1): runway, apron, three Hangars and a ControlTower placed
-  along whichever stretch of the runway is clear and flat. M1 has two uploaded hangars and the tower.
-- Relay missions: two RelayMasts with red beacons and two RadarDishes with equipment huts.
-- M23/M24: the OilPlatform on the hub. M23 has a ring of three Frigates. The command frigate lies
-  60 studs outboard of the defended point, so the protected launch floats beside it, and it carries
-  green bow and stern beacons (`WorldTag = "ProtectedHull"`).
+| Asset | Replaces | Placement |
+|---|---|---|
+| `RunwaySegment`, `RunwayThreshold` | runway, shoulder, centreline and threshold Parts | two ends + two 270-stud segments per 1000-stud runway (`runwayPieces`) |
+| `ApronSlab` | airfield apron, M1 taxiways | 64 × 240 tiles |
+| `RoadSegment`, `DirtTrack` | road, street and track Parts | `tilePieces`: a whole number of pieces fills each run exactly, scaled ±25% around the nominal width, so pieces never overlap; each road call sits a little higher than the last so crossings never share a plane |
+| `RoadBridge` | bridge deck, rails, piers, abutments, low road bridges | ramps on both banks, piers on the river bed; every road or highway crossing |
+| `TargetPad` | target apron Parts | scaled to the apron size, top always at 48 |
+| `StoreDeck`, `Gangway` | ocean store deck, legs, braces and walkway | deck top at 96 (the target), gangways tiled to the platform |
+| `EquipmentHut` | relay equipment hut box | beside each radar dish |
+| `CivicHall` | parliament block, steps, columns and roof | back on the plaza edge, portico to the plaza |
+| `CliffSandstone`, `CliffGranite` | (new) | set into mesa walls, top under the tier top |
+| `RidgeAlpine`, `RidgeDesert` | primitive and voxel mountain rings | the backdrop and far islands |
+| `FenceSpan`, `PowerLineSpan` | (new) | fences round farm settlements; pylon lines beside highways |
 
-**What the audit guarantees** (`WorldPlan.spec`, offline, every mission 3–27):
+Every one has a primitive fallback in `WorldAssets` (one or a few Parts in its footprint) until its
+ID is filled in. Small neon lights (runway edge lights, approach bars, beacons, lit windows) stay
+Parts: they are light sources, not geometry.
 
-- Every authored flight point, route leg, spawn leg, recon or signal ceiling and chase escape
-  has terrain, solid parts and prop bounding boxes at least 40–60 studs below it, checked across
-  its radius.
-- Every target is on its authored XZ, on a level apron at y 48 resting on the ground, or on a
-  platform store deck.
-- Grounded parts and every prop rest on what is under them (≤1.5 studs gap). Buildings check 90% of
-  their footprint, trees and rocks their trunk or contact point, cranes the quay deck.
-- Waterline assets sit at the water surface over water, and every frigate's hull has water down to
-  at least 4 studs below its keel. The protected launch's whole hull (26 × 57, 3-stud draught) is
-  afloat in open water, with nothing solid over it, at every escort, defend and parked point and
-  every 10 studs along every escort leg, not just at the authored vertices (M25's terminal beach
-  ramp excepted). Convoy points are on dry ground.
-- The budget below holds.
+**What the audit guarantees** (`WorldPlan.spec`, offline, every mission 3–27), in addition to PR #47's
+flight clearance, grounded targets, nothing floating, boats afloat and convoys on dry ground:
+
+- **Horizon:** from every point of the flyable edge every 400 studs, rays up to 60° off the outward
+  normal cross a backdrop crest above 1110 (the altitude ceiling plus a chase camera), except rays
+  that reach the sea; every ring ridge stands wholly 200+ studs past the edge.
+- **Extent:** terrain or water everywhere in the flyable square (750-stud grid), explorable relief
+  under 560, far skirts covering every point from the voxel edge to ±24000.
+- **Detail fall-off:** the ring's props per km² are at most half the core's.
+- **New pieces:** bridges' ramp ends on the banks and piers on the river bed, cliff panels' feet on
+  the ground or talus, pylons on the ground, fences and road pieces resting on flat ground,
+  hardstands' tops at the target base. Gangways are elevated and exempt.
+- **Budget** (below), now including instances.
 
 ## Mobile budget
 
 The world is built once per sortie, before the server sends `Loading` (the client's 20 s watchdog and
-the server's 8 s ready gate start after it). Building never holds the heartbeat for long:
+the server's 8 s ready gate start after it):
 
-- Terrain runs as bounded jobs, in plan order, yielding a frame whenever one resumption has spent
-  12 ms (`TERRAIN_BUDGET`). Axis-aligned slabs tile into ≤262k-voxel Fill calls, and yawed blocks and
-  upright cylinders into horizontal layers. Every cut lies on a 4-stud voxel plane, so the result is
-  the same as the unsplit op. Hills' `ReadVoxels`/`WriteVoxels` regions split into ≤32k-cell slices.
-  Wedges and balls stay whole: the largest is a ≈3.0M-voxel ridge ball in M5, under the engine's
-  4M-voxel region cap (`TerrainSchedule.spec` bounds every job).
-- Uploaded templates preload in parallel with a 30 s deadline. Placement only reads the cache and
-  never waits: a model still loading at the deadline gets its fallback for this sortie. When the
-  load finishes, the next world uses the uploaded model.
-- Each mission folder records `WorldBuildSeconds`, `WorldTerrainSeconds`, `WorldTerrainLongest`
-  (the longest single terrain job), `WorldTerrainJobs`, `WorldTerrainYields` and `WorldPreloadLate`,
-  so an engine run can read the worst stall directly.
+- Terrain runs as bounded jobs, yielding a frame whenever one resumption has spent 12 ms
+  (`TERRAIN_BUDGET`). The bigger maps write *fewer* voxels than before (largest 81M, was 89.6M):
+  the explorable ring is one layer, its relief is wedge pairs and single tiers, and the voxel ridge ring
+  became uploaded meshes. Hill cells are capped at 95% of the 2.5M budget as they are placed.
+- Uploaded templates preload in parallel with a 30 s deadline (unchanged). A world now uses at most
+  20 unique meshes (budget 26).
+- Each mission folder records `WorldBuildSeconds`, `WorldTerrainSeconds`, `WorldTerrainLongest`,
+  `WorldTerrainJobs`, `WorldTerrainYields` and `WorldPreloadLate`.
+- **Est. build** below is a rough estimate from assumed engine rates (Fill* at 25M voxels/s, the hills'
+  Luau loop at 2M cells/s, 0.05 ms a part, 0.2 ms a prop clone), excluding the template preload. No
+  engine run has measured it; calibrate it against `WorldBuildSeconds`.
 
-No per-frame work is added: rain and
-drift ride on a volume welded to the local jet visual, lightning is a timer, and the aurora is static
-beams. Repeated props are clones of one cached template per asset, so the engine instances their
-meshes and SurfaceAppearances. `StreamingEnabled` stays off (see the PR's objections).
+Repeated props are clones of one cached template per asset, so the engine instances their meshes and
+SurfaceAppearances; the road, fence and power-line runs are many clones of three meshes. The backdrop
+ridges are 2400 triangles each (about 36 per land map) and are not flight-solid, so they add nothing
+to the collision query; MeshPart LOD lowers their cost at that distance.
 
-Phones (`MobileGraphics`) disable bloom, sun rays and depth of field. They clamp cloud density to
-0.18 but keep storm, fog and overcast cover. Weather runs at 45% of the particles, with rain capped
-at 220/s and drift at 14/s.
+**`StreamingEnabled` stays off.** The flyable area is 4.6× larger, but the instance count stays
+bounded (≤ 954 per world) and the far field is a handful of stretched parts. Streaming would make
+the backdrop and far terrain pop in and out at a phone's small streaming radius (exactly what hides
+the edge), would change when ground targets, protected actors and the flight-probe include list exist
+on the client, and would need Persistent models for every gameplay object. Revisit it only if an engine
+run shows phone memory pressure; then make the backdrop and targets Persistent first.
+
+Phones (`MobileGraphics`) disable bloom, sun rays and depth of field, clamp cloud density to 0.18 and
+run weather at 45% of the particles.
 
 Per-mission counts below are generated from the plans (`bun tools/world-report.ts` after
 `bun run test:offline`; `--check` fails when stale). *Instances* counts each prop as a MeshPart plus
-its SurfaceAppearance, plus the primitive parts. Voxel writes are 4-stud voxels written, mostly the
-far ridge ring, whose interior compresses to almost nothing. *Hill cells* are every cell of the
-grid-aligned regions the hills read and write (the executor's own regions, not the ellipse areas).
+its SurfaceAppearance (the power line has two MeshParts), plus the primitive parts. *Core / Ring /
+Backdrop* split the props by tier. *Infra pieces* are the modular runway, apron, road, track, bridge,
+hardstand, deck, gangway, fence and power-line pieces.
 
 <!-- world-counts:begin (bun tools/world-report.ts) -->
 | Mission | Theme | Environment | Terrain ops | Voxel writes (M) | Hill cells (M) | Parts | Props | Core props | Ring props | Backdrop | Trees | Rocks | Buildings | Infra pieces | Unique meshes | Instances | Est. build (s) |
@@ -123,20 +166,20 @@ Map: flyable +-6000 (soft boundary +-5400), full-detail core +-3000, voxel terra
 <!-- world-counts:end -->
 
 Missions 1–2 are hand-composed. Their counts come from the engine (`PartCount`, `UploadedParts`
-attributes on the mission folder). M1 places up to 108 trees and 32 rocks over seven islands (fewer
-where the ray finds water, a road or a steep slope), plus two hangars and a tower. M2 places up to 76
-trees, 14 rocks, 27 farmhouses and barns, 12 container stacks, 4 gantry cranes and a frigate.
+attributes on the mission folder). M1 places up to 168 trees and 50 rocks over thirteen islands, the
+runway and taxiway pieces, two hangars and a tower; M2 places up to 134 trees, 26 rocks, 27 farmhouses
+and barns, 12 container stacks, 4 gantry cranes and a frigate. Both carry 36 backdrop ridges.
 
 ## What a playtester should look at
 
-- Fly low over a farm (M5, M12) and a canyon (M3, M7). Check that trees and rocks sit on the ground
-  on slopes, hills read as rolling terrain, and mesas show strata, buttresses and talus.
-- Harbour cities (M19–M22, M25–M27): quays meet the water, cranes stand on the quay deck with the
-  boom over the berth, container yards sit behind, and frigates are alongside.
-- M23: three frigates round the platform. The green-beaconed one sits next to the PROTECT marker.
-- Weather: M16 (farm storm) and M24 (ocean storm), with rain streaks crossing the chase camera and
-  lightning every 5–15 s, on a phone too. Also M19 and M22 (harbour fog, real fog with no sun disc),
-  M7 and M8 (canyon dusk dust front), M17 (aurora beams over the northern horizon), and M20 (city
-  evening: the low sun must not white out the frame).
-- Watch the server log for `[RelayWorld] ... used the primitive fallback`. Each mission folder
-  carries `WorldUploaded` and `WorldFallbacks` attributes.
+- Fly to the edge of any land map (M5, M3, M14): the warning starts at 5400, mountains fill the view
+  past the edge at every altitude, and nothing ends abruptly. On the coast (M19–M27) the sea side runs
+  into haze with far islands.
+- The explorable ring: highways with power lines and farmsteads (M5, M12, M15), outer mesas with cliff
+  panels (M3, M10), islets (M23).
+- Airfields (M3, M8, M18, M1): the runway pieces join with continuous dashes, threshold stripes at both ends.
+- River bridges (M3, M11, M16): ramps on both banks, piers in the water.
+- Harbour cities (M19–M22, M25–M27): quays, cranes, frigates as before; the civic hall on M21/M26/M27.
+- Weather: M16 and M24 storms, M19 and M22 fog, M7 and M8 dust, M17 aurora, M20 evening sun.
+- Watch the server log for `[RelayWorld] ... used the primitive fallback`: until the new IDs are filled,
+  every new piece is its fallback (expected).

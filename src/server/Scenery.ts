@@ -2,6 +2,7 @@ import { CONTROL_TOWER_PARTS, HANGAR_PARTS } from "../shared/MenuWorldGeometry";
 import { JetFactory } from "../shared/JetFactory";
 import { Workspace } from "@rbxts/services";
 import { BOAT_HULL, LEGACY_FLOOR, LEGACY_WATERLINE, legacySeaOps } from "../shared/LegacyWorlds";
+import { BACKDROP, EXTENT, FAR, faceYaw, runwayPieces, tilePieces } from "../shared/WorldPlan";
 import { TerrainWriter } from "./TerrainWriter";
 import { WorldAssets } from "./WorldAssets";
 
@@ -17,7 +18,9 @@ import { WorldAssets } from "./WorldAssets";
 // yields with task.wait() every YIELD_EVERY parts so large scatters do not
 // block the heartbeat (a loading screen covers the wait on the client).
 
-export const PART_BUDGET = 600;
+// Bounds the all-fallback worst case (no uploaded model loads): the bigger worlds' modular runs
+// (roads, fences, power lines, backdrop ridges) each fall back to one or two parts.
+export const PART_BUDGET = 900;
 const YIELD_EVERY = 150;
 let sinceYield = 0;
 export interface PartOptions {
@@ -185,30 +188,24 @@ export function TerrainHill(x: number, z: number, radius: number, base: number, 
 }
 
 /**
- * Distant mountain range ring near the soft boundary. Each peak is a pair of
- * wedges forming a ridge so the horizon reads as terrain instead of sea.
+ * The horizon ring past the flyable edge: uploaded mountain ridges (WorldAssets' wedge pair if the upload
+ * fails) on all four sides, fronts to the play area and overlapping end to end, rising from `base`. Their
+ * crests clear the altitude ceiling, like the generated worlds' ring (WorldPlan.backdrop).
  */
-export function Mountains(parent: Instance, seed: number, color: Color3, count = 14, radius = 2850, sectorStart = 0, sectorEnd = math.pi * 2): void {
+export function Backdrop(parent: Instance, seed: number, base: number): void {
 	const rng = new Random(seed);
-	const span = sectorEnd - sectorStart;
-	for (let i = 0; i < count; i++) {
-		const angle = sectorStart + span * ((i + 0.5) / count) + rng.NextNumber(-0.08, 0.08);
-		const width = rng.NextNumber(520, 980), depth = rng.NextNumber(300, 420), height = rng.NextNumber(360, 760);
-		// The playable area is a square (max(|x|,|z|) <= 2800), so the ring follows
-		// a square too: every ridge's inner face stays outside the hard boundary.
-		const square = math.max(math.abs(math.cos(angle)), math.abs(math.sin(angle)));
-		const distance = (math.max(radius, 2800) + depth / 2 + 120 + rng.NextNumber(0, 160)) / square;
-		const x = math.cos(angle) * distance, z = math.sin(angle) * distance;
-		const facing = CFrame.Angles(0, -angle + math.pi / 2 + rng.NextNumber(-0.25, 0.25), 0);
-		const shade = color.Lerp(Color3.fromRGB(150, 170, 190), rng.NextNumber(0.1, 0.35));
-		for (const side of [-1, 1]) {
-			const cf = new CFrame(x, WATERLINE + height / 2 - 20, z).mul(facing).mul(new CFrame(0, 0, side * depth / 2)).mul(CFrame.Angles(0, side < 0 ? 0 : math.pi, 0));
-			Part(parent, "Mountain", new Vector3(width, height, depth), cf, side < 0 ? shade : shade.Lerp(Color3.fromRGB(40, 50, 60), 0.18), Enum.Material.Rock, { className: "WedgePart", castShadow: false });
-		}
+	for (const [nx, nz] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) for (let k = -4; k <= 4; k++) {
+		const along = k * 1700 + rng.NextNumber(-80, 80), dist = BACKDROP + rng.NextNumber(0, 160);
+		const x = nx !== 0 ? nx * dist : along, z = nz !== 0 ? nz * dist : along;
+		const yaw = faceYaw(-nx, -nz) + rng.NextNumber(-0.04, 0.04);
+		WorldAssets.Place("RidgeAlpine", parent, new CFrame(x, base, z).mul(CFrame.Angles(0, yaw, 0)), rng.NextNumber(1.05, 1.12));
 	}
 }
 
-/** Low rock pillars rising from the sea between the islands and the horizon. */
+/**
+ * Rock stacks rising from the sea between the islands and the horizon: the uploaded sandstone stack and split
+ * outcrop scaled up (a primitive pillar only when the upload fails).
+ */
 export function SeaStacks(parent: Instance, seed: number, palette: Palette, count: number, inner: number, outer: number, avoid: (x: number, z: number) => boolean = () => false): void {
 	const rng = new Random(seed);
 	let placed = 0, attempts = 0;
@@ -218,8 +215,13 @@ export function SeaStacks(parent: Instance, seed: number, palette: Palette, coun
 		const x = math.cos(angle) * distance, z = math.sin(angle) * distance;
 		if (avoid(x, z)) continue;
 		const height = rng.NextNumber(34, 92), size = rng.NextNumber(18, 44);
-		const cf = new CFrame(x, WATERLINE + height / 2 - 12, z).mul(CFrame.Angles(rng.NextNumber(-0.08, 0.08), rng.NextNumber(0, math.pi), rng.NextNumber(-0.1, 0.1)));
-		Part(parent, "Sea stack", new Vector3(size, height, size * rng.NextNumber(0.6, 1.3)), cf, placed % 3 === 0 ? palette.rockDark : palette.rock, Enum.Material.Rock);
+		const asset = placed % 3 === 0 ? "RockB" : "RockC";
+		const scale = (height + 12) / WorldAssets.Spec(asset).size.Y;
+		const at = new CFrame(x, WATERLINE - 12 + WorldAssets.Spec(asset).groundOffset * scale, z).mul(CFrame.Angles(0, rng.NextNumber(0, math.pi * 2), 0));
+		if (WorldAssets.PlaceUploaded(asset, parent, at, scale) === undefined) {
+			const cf = new CFrame(x, WATERLINE + height / 2 - 12, z).mul(CFrame.Angles(rng.NextNumber(-0.08, 0.08), rng.NextNumber(0, math.pi), rng.NextNumber(-0.1, 0.1)));
+			Part(parent, "Sea stack", new Vector3(size, height, size * rng.NextNumber(0.6, 1.3)), cf, placed % 3 === 0 ? palette.rockDark : palette.rock, Enum.Material.Rock);
+		}
 		placed += 1;
 	}
 }
@@ -290,25 +292,29 @@ export function Trees(parent: Instance, seed: number, x: number, z: number, widt
  * seabed, with flat sea parts beyond it to the horizon. Call before any island or coast fill: those
  * overwrite the water where land rises.
  */
-export function TerrainSea(parent: Instance, color: Color3, extent = 4000, far = 6000): void {
-	// Bounded, budgeted jobs (TerrainWriter): the two slabs are 16M voxels together.
+export function TerrainSea(parent: Instance, color: Color3, extent = EXTENT, far = FAR): void {
+	// Bounded, budgeted jobs (TerrainWriter): water and its mud bed out to the voxel edge.
 	TerrainWriter.Write(legacySeaOps(extent));
-	for (let x = -far; x < far; x += 2000) for (let z = -far; z < far; z += 2000) {
-		if (x >= -extent && x + 2000 <= extent && z >= -extent && z + 2000 <= extent) continue;
-		Part(parent, "Sea", new Vector3(2000, 4, 2000), new Vector3(x + 1000, WATERLINE - 2, z + 1000), color, Enum.Material.SmoothPlastic, { reflectance: 0.12, castShadow: false });
+	// Four stretched sea skirts carry the sea on to `far`, past where the haze swallows it.
+	for (const [x0, x1, z0, z1] of [[-far, far, -far, -extent], [-far, far, extent, far], [-far, -extent, -extent, extent], [extent, far, -extent, extent]]) {
+		const w = x1 - x0, d = z1 - z0, px = math.min(w, 2000), pz = math.min(d, 2000);
+		const sea = Part(parent, "Sea", new Vector3(px, 4, pz), new Vector3((x0 + x1) / 2, WATERLINE - 2, (z0 + z1) / 2), color, Enum.Material.SmoothPlastic, { reflectance: 0.12, castShadow: false, flightSolid: false });
+		Stretch(sea, new Vector3(w / px, 1, d / pz));
 	}
 }
 
-/** Polyline road; segments are split so no part exceeds 2000 studs. */
-export function Road(parent: Instance, points: Vector3[], width = 24, color = Color3.fromRGB(54, 58, 62)): void {
+/**
+ * Polyline road of uploaded segments (WorldAssets' asphalt slab if the upload fails) with its ground contact at
+ * each point's Y. Pieces fill each leg exactly at a scale near width / 25; a leg too short for that takes one
+ * piece scaled to its length. `lift` raises a road laid across another so the two never share a plane.
+ */
+export function Road(parent: Instance, points: Vector3[], width = 24, lift = 0): void {
 	for (let i = 1; i < points.size(); i++) {
 		const a = points[i - 1], b = points[i];
-		const pieces = math.ceil(a.sub(b).Magnitude / 1800);
-		for (let k = 0; k < pieces; k++) {
-			const start = a.Lerp(b, k / pieces), finish = a.Lerp(b, (k + 1) / pieces);
-			const length = start.sub(finish).Magnitude;
-			Part(parent, "Road", new Vector3(width, 1, length + width * 0.6), CFrame.lookAt(start.add(finish).div(2), finish), color, Enum.Material.Asphalt, { castShadow: false });
-		}
+		let pieces = tilePieces("RoadSegment", a.X, a.Z, b.X, b.Z, width / 25);
+		const length = a.sub(b).Magnitude;
+		if (pieces.size() === 0 && length > 40) pieces = [{ asset: "RoadSegment", x: (a.X + b.X) / 2, z: (a.Z + b.Z) / 2, yaw: faceYaw(b.X - a.X, b.Z - a.Z), scale: length / 200 }];
+		for (const p of pieces) WorldAssets.Place("RoadSegment", parent, new CFrame(p.x, a.Y + lift, p.z).mul(CFrame.Angles(0, p.yaw, 0)), p.scale);
 	}
 }
 
@@ -321,20 +327,14 @@ export function Light(parent: Instance, at: Vector3, color: Color3, size = 2.5, 
  * Runway slab with shoulders, threshold bars, centreline dashes and edge
  * lights. `cf` is the runway centre at its top surface; length along local Z.
  */
-export function Runway(parent: Instance, cf: CFrame, length: number, width: number, palette: Palette): void {
-	Part(parent, "Runway shoulder", new Vector3(width + 30, 2, length + 40), cf.mul(new CFrame(0, -2, 0)), palette.concrete, Enum.Material.Concrete);
-	Part(parent, "Runway", new Vector3(width, 2, length), cf.mul(new CFrame(0, -0.5, 0)), palette.asphalt, Enum.Material.Asphalt);
-	const stripe = Color3.fromRGB(236, 234, 214);
-	const dashes = math.floor((length - 260) / 90);
-	for (let i = 0; i < dashes; i++) Part(parent, "Centreline", new Vector3(3, 0.3, 45), cf.mul(new CFrame(0, 0.6, -(dashes - 1) * 45 + i * 90)), stripe, Enum.Material.SmoothPlastic, { flightSolid: false, castShadow: false });
-	for (const tip of [-1, 1]) {
-		for (let s = -3; s <= 3; s++) {
-			if (s === 0) continue;
-			Part(parent, "Threshold", new Vector3(width / 10, 0.3, 50), cf.mul(new CFrame(s * width / 8, 0.6, tip * (length / 2 - 45))), stripe, Enum.Material.SmoothPlastic, { flightSolid: false, castShadow: false });
-		}
-		Part(parent, "Threshold bar", new Vector3(width - 6, 0.3, 5), cf.mul(new CFrame(0, 0.6, tip * (length / 2 - 12))), stripe, Enum.Material.SmoothPlastic, { flightSolid: false, castShadow: false });
-		Part(parent, "Approach bar", new Vector3(width * 0.8, 1.5, 3), cf.mul(new CFrame(0, 1.5, tip * (length / 2 + 60))), Color3.fromRGB(255, 240, 200), Enum.Material.Neon, { flightSolid: false, castShadow: false });
-	}
+/**
+ * A 1000-stud runway of uploaded pieces (two threshold ends and two segments, each WorldAssets' slab if its
+ * upload fails) along local Z of `yaw`, its ground contact at `ground`, with edge lights and approach bars.
+ */
+export function Runway(parent: Instance, x: number, z: number, ground: number, yaw = 0): void {
+	for (const p of runwayPieces(x, z, yaw)) WorldAssets.Place(p.asset, parent, new CFrame(p.x, ground, p.z).mul(CFrame.Angles(0, p.yaw, 0)), p.scale);
+	const cf = new CFrame(x, ground + 1, z).mul(CFrame.Angles(0, yaw, 0)), length = 1000, width = 100;
+	for (const tip of [-1, 1]) Part(parent, "Approach bar", new Vector3(width * 0.8, 1.5, 3), cf.mul(new CFrame(0, 1.5, tip * (length / 2 + 60))), Color3.fromRGB(255, 240, 200), Enum.Material.Neon, { flightSolid: false, castShadow: false });
 	const lights = math.floor(length / 120);
 	for (let i = 0; i <= lights; i++) for (const side of [-1, 1]) {
 		Light(parent, cf.mul(new CFrame(side * (width / 2 + 6), 1.2, -length / 2 + i * (length / lights))).Position, i === 0 || i === lights ? Color3.fromRGB(255, 120, 90) : Color3.fromRGB(255, 244, 210));
@@ -431,5 +431,5 @@ export function Lighthouse(parent: Instance, x: number, z: number, floor: number
 }
 
 export const Scenery = {
-	PART_BUDGET, WATERLINE, HIDDEN_FLOOR, PALETTES, Part, Stretch, Cylinder, Disc, Report, Sea, TerrainSea, Shoreline, TerrainIsland, TerrainHill, Mountains, SeaStacks, Rocks, Trees, Road, Light, Runway, Hangar, ControlTower, FuelFarm, Buildings, ParkedJets, Containers, Crane, Boat, Lighthouse,
+	PART_BUDGET, WATERLINE, HIDDEN_FLOOR, PALETTES, Part, Stretch, Cylinder, Disc, Report, Sea, TerrainSea, Shoreline, TerrainIsland, TerrainHill, Backdrop, SeaStacks, Rocks, Trees, Road, Light, Runway, Hangar, ControlTower, FuelFarm, Buildings, ParkedJets, Containers, Crane, Boat, Lighthouse,
 };

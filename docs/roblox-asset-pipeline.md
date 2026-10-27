@@ -1,7 +1,7 @@
 # Roblox asset upload pipeline
 
-SKYBREAK's realistic asset set (two fighters, two ace liveries and twenty world
-props) is generated in Blender, checked locally, reviewed by an independent
+SKYBREAK's realistic asset set (two fighters, two ace liveries, twenty world
+props and the seventeen bigger-worlds pieces) is generated in Blender, checked locally, reviewed by an independent
 reviewer, uploaded to Roblox as Model assets and only then switched on in the
 game. Until an asset's ID is filled in, the game keeps using its procedural
 path, so every step below can stop without breaking a build.
@@ -26,6 +26,7 @@ Generators live in `tools/assets/` and are deterministic Blender Python:
 | `aircraft_v2.py` | Version 2 Kestrel, Vanta and ace liveries: shaped-section fuselages, intakes, cockpit, missiles (see [aircraft assets](aircraft-assets.md#version-2-aircraft)) |
 | `compare_v1_v2.py` | Optional: renders `assets/roblox-upload/v1-vs-v2.png` from the exported FBX files |
 | `world.py` | Frigate, oil platform, quay, containers, crane, hangar, tower, three city buildings, farmhouse, barn, silo, radar dish, relay mast, two trees, three rocks |
+| `infrastructure.py` | Bigger worlds: runway segment and threshold, apron slab, road segment, dirt track, river bridge, target hardstand, store deck, gangway, equipment hut, civic hall, sandstone and granite cliff panels, alpine and desert backdrop ridges, fence span, power-line span |
 | `build.py` | Entry point: one asset per fresh Blender process |
 | `build-all.sh` | Every asset, four processes at a time, then `write_manifest.py` |
 | `write_manifest.py` | Validates every checklist, writes `assets/roblox-upload/manifest.json` and `src/shared/UploadedAssetSpecs.ts` |
@@ -80,7 +81,7 @@ regardless (see below), so both kinds work.
 | `<asset>.fbx` | Mesh with the four textures embedded. Upload as a **Model**; this is the only file uploaded. |
 | `<asset>-color.png`, `-normal.png`, `-roughness.png`, `-metalness.png` | The same textures for review (aircraft 1024², large props 512², small props 256²). Not uploaded: the Model import carries them. |
 | `preview-front.png`, `preview-side.png`, `preview-top.png`, `preview-3q.png` | 1024² Eevee renders on a neutral background for review and moderation pre-check. |
-| `preview-closeup.png` | v2 aircraft only: 1024² close-up of the cockpit and an intake (the canopy is rendered see-through as in game). |
+| `preview-closeup.png` | v2 aircraft: 1024² close-up of the cockpit and an intake (the canopy is rendered see-through as in game). Every `infrastructure.py` asset: a close-up of its markings or surface detail (the fifth preview). |
 | `checklist.json` | Name, triangle count and limit, objects, texture list and sizes, Roblox size in studs, ground offset, moderation booleans with notes, aircraft hinges and attachments. |
 
 `manifest.json` lists every folder, its Roblox asset types and where the game
@@ -110,11 +111,36 @@ If any check would be false, change the generator until it is true; never
 hand-edit a checklist. `write_manifest.py` fails if any check is not true, a
 budget is exceeded, a texture is over its size limit or a file is missing.
 
+### Bigger-worlds pieces
+
+`infrastructure.py` builds modular pieces that WorldPlan tiles (long axis along Roblox Z, pivot bottom
+centre, front at one end), so a few uploads cover every map:
+
+- Runway pieces are 130 wide (100 asphalt + shoulders): `runway-segment` 270 long with 45-stud dashes
+  every 90 (so pieces continue the pattern), `runway-threshold` 230 long with an end bar and a field of
+  equal threshold stripes. `apron-slab` is 64 × 240 with one taxi line. `road-segment` (25 × 200, dashes
+  every 40, edge lines) and `dirt-track` (20 × 200, unmarked). **Markings are plain stripes only: no
+  numbers, letters, arrows, chevrons or symbols** (checklist `noText` note says so).
+- `road-bridge` (300 long; ground contact at the bank, footing on the river bed), `target-pad`
+  (150 × 8 × 150 hardstand), `store-deck` (seabed to a deck at 84, nothing above it), `gangway`
+  (60-stud tile, contact at the walkway), `equipment-hut`, `civic-hall` (no inscriptions).
+- `cliff-sandstone`, `cliff-granite`: 240 × 160 rock-face panels whose back sinks into a mesa wall.
+- `ridge-alpine`, `ridge-desert`: 2000 × 2000 backdrop ridges (the MeshPart size limit is 2048). The
+  checklist records `crestMinStuds` (the lowest crest along the ridge, measured on the mesh), which
+  `write_manifest.py` writes into the spec as `crest`; WorldAudit uses it for the horizon check.
+- `fence-span` (60 long) and `power-line-span` (one pylon and its five conductors back 300 studs to
+  the previous pylon). The conductors are a separate `Wires` MeshPart, listed in the spec's
+  `decorParts`, which WorldAssets never makes flight-solid (their collision hull would fill the span).
+
+Each has a primitive fallback in `WorldAssets.FALLBACKS`, so the game works with any mix of set and
+unset IDs. `write_manifest.py` requires the close-up preview for these folders.
+
 Budgets: v1 aircraft ≤ 10,000 triangles and v2 aircraft 10,000-15,000, all with ≤ 1024² textures; frigate and oil
 platform ≤ 6,000; trees ≤ 800; every other world prop ≤ 2,500. World textures:
 large props ≤ 512² (frigate, oil platform, quay, crane, hangar, control tower,
 office, apartments, city tower); small props ≤ 256² (trees, rocks, container
-stack, farmhouse, barn, grain silo, relay mast, radar dish). `write_manifest.py`
+stack, farmhouse, barn, grain silo, relay mast, radar dish, gangway, equipment hut, fence span). Every
+other bigger-worlds piece is ≤ 512². `write_manifest.py`
 enforces these per folder.
 
 ### Mobile texture budget
@@ -234,8 +260,13 @@ unset IDs.
   and validates before answering, but it is only a planning hint. Placed parts
   are flight-solid (`CanQuery` with `FlightSolid=true`) like Scenery parts.
 
-`Scenery.ts` and `RelayWorld.ts` do not call these hooks yet; the world
-realism workstream wires them in.
+  The bigger-worlds pieces add `PlacePiece(name, parent, cframe, scale)` (modular runs at the
+  scale `WorldPlan.tilePieces` chose), `PlaceTargetPad`, `PlaceRoadBridge`, `PlaceCliffFace` and
+  `PlaceBackdropRidge`, all with primitive fallbacks. The backdrop ridges and every `decorParts` part
+  (power-line conductors) are placed with `CanQuery` off and `FlightSolid=false`.
+
+`RelayWorld.ts` places every planned prop through `WorldAssets.Place`; `Scenery.ts` (missions 1–2)
+uses `Place`/`PlaceUploaded` for trees, rocks, runway, roads, aprons, sea stacks and the ridge ring.
 
 ## Known limits
 

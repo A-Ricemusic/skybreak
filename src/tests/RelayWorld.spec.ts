@@ -15,7 +15,8 @@ import {WorldPlanner,type PropAsset} from "../shared/WorldPlan";
 
 // Deterministic uploads: one textured MeshPart per world asset at its authored size, so the
 // placement and grounding checks below exercise the uploaded-clone path without InsertService.
-const WORLD: PropAsset[]=["Frigate","OilPlatform","HarbourQuay","ContainerStack","GantryCrane","Hangar","ControlTower","OfficeMidrise","ApartmentBlock","CityTower","Farmhouse","Barn","GrainSilo","RadarDish","RelayMast","Pine","Broadleaf","RockA","RockB","RockC"];
+const WORLD: PropAsset[]=["Frigate","OilPlatform","HarbourQuay","ContainerStack","GantryCrane","Hangar","ControlTower","OfficeMidrise","ApartmentBlock","CityTower","Farmhouse","Barn","GrainSilo","RadarDish","RelayMast","Pine","Broadleaf","RockA","RockB","RockC",
+	"RunwaySegment","RunwayThreshold","ApronSlab","RoadSegment","DirtTrack","RoadBridge","TargetPad","StoreDeck","Gangway","EquipmentHut","CivicHall","CliffSandstone","CliffGranite","RidgeAlpine","RidgeDesert","FenceSpan","PowerLineSpan"];
 const probe=(appearance: SurfaceAppearance,map: SurfaceMap)=>appearance.GetAttribute(`Fake${map}`)===true;
 function fakeIds(): Partial<Record<UploadedAssetName,number>> {
 	const ids: Partial<Record<UploadedAssetName,number>>={};
@@ -37,7 +38,8 @@ function cleanup(fixture: Folder | undefined): void {
 	Workspace.Terrain.FindFirstChild("MissionClouds")?.Destroy();
 	for(const name of ["MissionAtmosphere","MissionGrade","MissionSky","MissionBloom"])Lighting.FindFirstChild(name)?.Destroy();
 }
-const DECORATION=["Shallows","Marker light","Navigation light","Safety line","Centreline","Threshold","Threshold bar","Approach bar","Center stripe","Lit windows","Protected beacon"];
+// Far skirts, the backdrop ridges (fallback wedges or uploaded) and power-line conductors are never flight-solid.
+const DECORATION=["Shallows","Marker light","Navigation light","Safety line","Centreline","Threshold","Threshold bar","Approach bar","Center stripe","Lit windows","Protected beacon","Sea","Far ground","Ridge","Wires","ridge-alpine","ridge-desert"];
 const inUploaded=(item: Instance)=>item.FindFirstAncestorWhichIsA("Model")?.GetAttribute("GeometrySource")==="Uploaded";
 
 describe("Broken Relay disposable world integration",()=>{
@@ -113,7 +115,9 @@ describe("Mission worlds place uploaded models on the ground and keep the air cl
 			const hit=Workspace.Raycast(new Vector3(p.x,bottom+spec.size.Y*p.scale+400,p.z),new Vector3(0,-1200,0),params);
 			expect(hit).toBeDefined();
 			if(p.asset==="Frigate"||p.asset==="OilPlatform"){expect(hit!.Material).toBe(Enum.Material.Water);expect(math.abs(hit!.Position.Y-p.y)<2.5).toBe(true);continue;}
-			if(p.asset==="HarbourQuay"||p.asset==="GantryCrane")continue;
+			if(p.asset==="StoreDeck"){expect(hit!.Material).toBe(Enum.Material.Water);continue;}
+			// Elevated, embedded or past-the-edge pieces: WorldAudit checks their own contact rules offline.
+			if(p.asset==="HarbourQuay"||p.asset==="GantryCrane"||p.asset==="Gangway"||p.asset==="RoadBridge"||p.asset==="CliffSandstone"||p.asset==="CliffGranite"||p.asset==="PowerLineSpan"||p.asset==="RidgeAlpine"||p.asset==="RidgeDesert")continue;
 			// Real voxels under trees, rocks and buildings: no gap wider than one voxel step.
 			expect(hit!.Material===Enum.Material.Water).toBe(false);
 			expect(bottom-hit!.Position.Y<2.5).toBe(true);

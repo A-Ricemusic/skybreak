@@ -7,7 +7,7 @@
   "generator": "tools/assets/build.py",
   "fbx": {
     "file": "cliff-sandstone.fbx",
-    "bytes": 1078444
+    "bytes": 1087052
   },
   "triangleCount": 2186,
   "triangleLimit": 2500,
@@ -23,21 +23,21 @@
       "file": "cliff-sandstone-color.png",
       "width": 512,
       "height": 512,
-      "bytes": 338081
+      "bytes": 342707
     },
     {
       "role": "normal",
       "file": "cliff-sandstone-normal.png",
       "width": 512,
       "height": 512,
-      "bytes": 370831
+      "bytes": 372548
     },
     {
       "role": "rough",
       "file": "cliff-sandstone-roughness.png",
       "width": 512,
       "height": 512,
-      "bytes": 179985
+      "bytes": 181225
     },
     {
       "role": "metal",
@@ -50,7 +50,7 @@
   "robloxSizeStuds": [
     240.0,
     160.0,
-    56.688
+    57.118
   ],
   "studMetres": 0.28,
   "fbxMetresPerStud": 0.01,

@@ -1,4 +1,4 @@
-import { frigateBerth, type TerrainOp } from "./WorldPlan";
+import { EXTENT, frigateBerth, type TerrainOp } from "./WorldPlan";
 
 // The numbers of the hand-composed mission 1 and 2 seas (server/MissionWorld,
 // server/Scenery) as plain data, so the offline specs can check hulls against
@@ -15,11 +15,33 @@ export const LEGACY_GROUND = 44;
 export const BOAT_HULL = { height: 7, lift: 1.5 };
 
 /** Terrain water from the floor to the waterline over the square, on a 4-stud mud bed. */
-export function legacySeaOps(extent = 4000): TerrainOp[] {
+export function legacySeaOps(extent = EXTENT): TerrainOp[] {
 	return [
 		{ shape: "block", material: "Water", x: 0, y: (LEGACY_FLOOR + LEGACY_WATERLINE) / 2, z: 0, sx: 2 * extent, sy: LEGACY_WATERLINE - LEGACY_FLOOR, sz: 2 * extent, yaw: 0 },
 		{ shape: "block", material: "Mud", x: 0, y: LEGACY_FLOOR - 2, z: 0, sx: 2 * extent, sy: 4, sz: 2 * extent, yaw: 0 },
 	];
+}
+
+/**
+ * M2's hinterland, the explorable ring behind the harbour: the coast runs on east and west of the harbour
+ * blocks (a rock wall down to the seabed along z = -700), and the land continues back to the voxel edge. Two
+ * thin layers (rock under grass) over the hidden sea, like the generated worlds' outer ring.
+ */
+export function ironCoastHinterlandOps(): TerrainOp[] {
+	const ops: TerrainOp[] = [];
+	const block = (x0: number, x1: number, z0: number, z1: number, y0: number, y1: number, material: TerrainOp["material"]) => {
+		ops.push({ shape: "block", material, x: (x0 + x1) / 2, y: (y0 + y1) / 2, z: (z0 + z1) / 2, sx: x1 - x0, sy: y1 - y0, sz: z1 - z0, yaw: 0 });
+	};
+	const land = (x0: number, x1: number, z0: number, z1: number) => {
+		block(x0, x1, z0, z1, LEGACY_GROUND - 8, LEGACY_GROUND - 4, "Rock");
+		block(x0, x1, z0, z1, LEGACY_GROUND - 4, LEGACY_GROUND, "Grass");
+	};
+	land(-EXTENT, EXTENT, -EXTENT, -2250);
+	for (const [x0, x1] of [[-EXTENT, -1750], [1750, EXTENT]]) {
+		land(x0, x1, -2300, -700);
+		block(x0, x1, -760, -700, LEGACY_FLOOR - 4, LEGACY_GROUND - 8, "Rock");
+	}
+	return ops;
 }
 
 /** M2 Iron Coast mainland rock blocks [x, z, width, depth]: a 500-wide basin opens between x=-250 and 250. */

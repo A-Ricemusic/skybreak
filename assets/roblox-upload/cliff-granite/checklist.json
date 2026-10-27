@@ -7,7 +7,7 @@
   "generator": "tools/assets/build.py",
   "fbx": {
     "file": "cliff-granite.fbx",
-    "bytes": 1136940
+    "bytes": 1247932
   },
   "triangleCount": 2186,
   "triangleLimit": 2500,
@@ -23,21 +23,21 @@
       "file": "cliff-granite-color.png",
       "width": 512,
       "height": 512,
-      "bytes": 327157
+      "bytes": 362695
     },
     {
       "role": "normal",
       "file": "cliff-granite-normal.png",
       "width": 512,
       "height": 512,
-      "bytes": 436488
+      "bytes": 494010
     },
     {
       "role": "rough",
       "file": "cliff-granite-roughness.png",
       "width": 512,
       "height": 512,
-      "bytes": 183911
+      "bytes": 202150
     },
     {
       "role": "metal",
@@ -50,7 +50,7 @@
   "robloxSizeStuds": [
     240.0,
     160.0,
-    56.022
+    55.482
   ],
   "studMetres": 0.28,
   "fbxMetresPerStud": 0.01,

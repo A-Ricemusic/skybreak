@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import {
-	BOAT_HULL, IRON_COAST_BOATS, IRON_COAST_FALLBACK_HULL, IRON_COAST_FRIGATE, LEGACY_WATERLINE, ironCoastBerthOps, ironCoastMainlandOps, legacySeaOps,
+	BOAT_HULL, IRON_COAST_BOATS, IRON_COAST_FALLBACK_HULL, IRON_COAST_FRIGATE, LEGACY_GROUND, LEGACY_WATERLINE, ironCoastBerthOps, ironCoastHinterlandOps, ironCoastMainlandOps, legacySeaOps,
 } from "../shared/LegacyWorlds";
 import { UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
 import { KEEL_MIN } from "../shared/WorldAudit";
@@ -9,7 +9,7 @@ import { terrainTop } from "../shared/WorldPlan";
 // The hand-composed M2 harbour's hulls against the terrain the server writes
 // (TerrainSea, the mainland blocks and the frigate's berth), in the same order.
 // Pure; also run in the offline Luau VM.
-const ops = [...legacySeaOps(), ...ironCoastMainlandOps(), ...ironCoastBerthOps()];
+const ops = [...legacySeaOps(), ...ironCoastMainlandOps(), ...ironCoastHinterlandOps(), ...ironCoastBerthOps()];
 
 function afloat(x: number, z: number, keel: number): string {
 	const t = terrainTop(ops, x, z);
@@ -30,6 +30,11 @@ describe("M2 Iron Coast hulls", () => {
 		// Without the berth the legacy seabed (top at -24) cuts 8 studs into the hull.
 		const shallow = terrainTop([...legacySeaOps(), ...ironCoastMainlandOps()], f.x, f.z);
 		expect(shallow.solid > keel).toBe(true);
+	});
+	it("continues the land behind and beside the harbour out to the voxel edge", () => {
+		for (const [x, z] of [[-4000, -1500], [4000, -1500], [0, -5000], [-6000, -6000], [6000, -3000]]) expect(terrainTop(ops, x, z).solid).toBe(LEGACY_GROUND);
+		// The new coast keeps the sea in front of it open.
+		for (const [x, z] of [[-4000, -600], [4000, -600], [0, 3000]]) expect(terrainTop(ops, x, z).water).toBe(LEGACY_WATERLINE);
 	});
 	it("floats every moored boat, and the frigate's stand-in hull, above the seabed", () => {
 		const keel = LEGACY_WATERLINE + BOAT_HULL.lift - BOAT_HULL.height / 2;

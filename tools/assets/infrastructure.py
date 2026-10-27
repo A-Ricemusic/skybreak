@@ -485,8 +485,14 @@ def _cliff(name: str, title: str, zone_builder, seed: int, ledges: float, usage:
         t = z / 18.0 - band
         # Jointed columns: each block between two vertical joints stands proud by its own amount.
         u = (x + 9.0 * fbm(z * 0.01, band, seed + 2.0)) / 24.0
-        block = 6.0 * noise.noise(Vector((math.floor(u) * 1.7, band * 0.9, seed + 11.0)))
-        ledge = ledges * (t ** 4) * (0.7 + 0.3 * fbm(x * 0.01, band, seed))
+        cell, f = math.floor(u), u - math.floor(u)
+        # Joints are eased over a fifth of a block, so neighbouring blocks never leave sharp V notches.
+        w = min(1.0, max(0.0, (f - 0.8) / 0.2))
+        w = w * w * (3 - 2 * w)
+        a0 = noise.noise(Vector((cell * 1.7, band * 0.9, seed + 11.0)))
+        a1 = noise.noise(Vector(((cell + 1) * 1.7, band * 0.9, seed + 11.0)))
+        block = 6.0 * (a0 + (a1 - a0) * w)
+        ledge = ledges * (t ** 3) * (0.7 + 0.3 * fbm(x * 0.01, band, seed)) * min(1.0, (1.0 - t) * 8.0)
         erosion = 3.0 * fbm(x * 0.02, z * 0.02, seed + 3.0, 4)
         y = -D / 2 - ledge - erosion - block
         return D / 2 + (y - D / 2) * e
