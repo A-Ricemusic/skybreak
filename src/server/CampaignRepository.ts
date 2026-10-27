@@ -4,6 +4,7 @@ import { MissionRank, MissionScore, RANK_ORDER } from "../shared/MissionScore";
 import { MissionFinished, MissionRecord, MissionStats, Persistence, SaveSlot, SlotDeletion } from "../shared/Types";
 import { SpecialWeapons } from "../shared/SpecialWeapons";
 import { Difficulty } from "../shared/Difficulty";
+import { highestUnlocked } from "../shared/CampaignProgress";
 
 export interface StoredMissionRecord {
 	timeVersion?: unknown;
@@ -126,15 +127,7 @@ export function resumeMission(slot: SaveSlot): number {
 	return MISSION_COUNT;
 }
 
-export function highestUnlocked(slot: SaveSlot): number {
-	// Mission N is unlocked when mission N-1 is complete, or N === 1.
-	let unlocked = 1;
-	for (let id = 1; id < MISSION_COUNT; id++) {
-		if (slot.missions?.[id]?.completed === true) unlocked = id + 1;
-		else break;
-	}
-	return unlocked;
-}
+export { highestUnlocked };
 
 export function resolveMissionRequest(
 	slot: SaveSlot,
@@ -209,6 +202,33 @@ function readCutsceneSet(raw: unknown): number[] {
 	return list;
 }
 
+/** Rebuilds every field derived from `slot.missions`. Idempotent. */
+function refreshDerived(slot: SaveSlot): void {
+	const missions = slot.missions ?? {};
+	// Preserve the v2 Mission 2 prerequisite: a completed Mission 2 implies a completed Mission 1 record.
+	if (missions[2]?.completed) {
+		const existing = missions[1];
+		missions[1] = copyBests({ completed: true, bestTime: existing?.bestTime, firstCompletedAt: existing?.firstCompletedAt }, existing?.bestScore, existing?.bestRank);
+	}
+	slot.missions = missions;
+	slot.mission1Completed = missions[1]?.completed === true;
+	slot.mission2Completed = missions[2]?.completed === true;
+	slot.mission1BestTime = missions[1]?.bestTime;
+	slot.mission2BestTime = missions[2]?.bestTime;
+	let allComplete = true;
+	for (let id = 1; id <= MISSION_COUNT; id++) {
+		if (missions[id]?.completed !== true) { allComplete = false; break; }
+	}
+	slot.completed = allComplete;
+	slot.currentMission = resumeMission(slot);
+	// Keep the summary field useful: latest completed mission's best time, or earliest.
+	let latestBest: number | undefined;
+	for (let id = MISSION_COUNT; id >= 1; id--) {
+		if (missions[id]?.bestTime !== undefined) { latestBest = missions[id]!.bestTime; break; }
+	}
+	slot.bestTime = latestBest;
+}
+
 export function normalizeSlot(raw: unknown, index: number, legacyV1 = false): SaveSlot {
 	const slot = blankSlot(index);
 	if (!typeIs(raw, "table")) return slot;
@@ -238,28 +258,10 @@ export function normalizeSlot(raw: unknown, index: number, legacyV1 = false): Sa
 	if (mission2Best !== undefined) {
 		missions[2] = copyBests({ completed: missions[2]?.completed === true, bestTime: fastest(missions[2]?.bestTime, mission2Best), firstCompletedAt: missions[2]?.firstCompletedAt }, missions[2]?.bestScore, missions[2]?.bestRank);
 	}
-	// Preserve M2 prerequisite from v2 semantics.
-	if (missions[2]?.completed) missions[1] = copyBests({ completed: true, bestTime: missions[1]?.bestTime, firstCompletedAt: missions[1]?.firstCompletedAt }, missions[1]?.bestScore, missions[1]?.bestRank);
 
 	slot.missions = missions;
-	slot.mission1Completed = missions[1]?.completed === true;
-	slot.mission2Completed = missions[2]?.completed === true;
-	slot.mission1BestTime = missions[1]?.bestTime;
-	slot.mission2BestTime = missions[2]?.bestTime;
-
-	let allComplete = true;
-	for (let id = 1; id <= MISSION_COUNT; id++) {
-		if (missions[id]?.completed !== true) { allComplete = false; break; }
-	}
-	slot.completed = allComplete;
-	slot.currentMission = resumeMission(slot);
-	// Keep the summary field useful: latest completed mission's best time, or earliest.
-	let latestBest: number | undefined;
-	for (let id = MISSION_COUNT; id >= 1; id--) {
-		if (missions[id]?.bestTime !== undefined) { latestBest = missions[id]!.bestTime; break; }
-	}
-	slot.bestTime = latestBest;
-	slot.occupied = source.occupied === true || slot.kills > 0 || slot.mission1Completed || slot.mission2Completed;
+	refreshDerived(slot);
+	slot.occupied = source.occupied === true || slot.kills > 0 || slot.mission1Completed === true || slot.mission2Completed === true;
 	for (let id = 1; id <= MISSION_COUNT; id++) if (missions[id] !== undefined) slot.occupied = true;
 	if (isFiniteNumber(source.updatedAt) && source.updatedAt > 0) {
 		slot.updatedAt = math.floor(source.updatedAt);
@@ -318,28 +320,9 @@ export function mergeSlot(storedRaw: unknown, desiredRaw: unknown, index: number
 		copyBests(record, highest(a?.bestScore, b?.bestScore), MissionScore.BetterRank(rankOf(a?.bestRank), rankOf(b?.bestRank)));
 		missions[id] = record;
 	}
-	// Preserve the v2 Mission 2 prerequisite in merged profiles as well.
-	if (missions[2]?.completed) {
-		const existing = missions[1];
-		missions[1] = copyBests({ completed: true, bestTime: existing?.bestTime, firstCompletedAt: existing?.firstCompletedAt }, existing?.bestScore, existing?.bestRank);
-	}
 	merged.missions = missions;
-	merged.mission1Completed = missions[1]?.completed === true;
-	merged.mission2Completed = missions[2]?.completed === true;
-	merged.mission1BestTime = missions[1]?.bestTime;
-	merged.mission2BestTime = missions[2]?.bestTime;
-	let allComplete = true;
-	for (let id = 1; id <= MISSION_COUNT; id++) {
-		if (missions[id]?.completed !== true) { allComplete = false; break; }
-	}
-	merged.completed = allComplete;
-	merged.currentMission = resumeMission(merged);
+	refreshDerived(merged);
 	merged.kills = math.max(stored.kills, desired.kills);
-	let latestBest: number | undefined;
-	for (let id = MISSION_COUNT; id >= 1; id--) {
-		if (missions[id]?.bestTime !== undefined) { latestBest = missions[id]!.bestTime; break; }
-	}
-	merged.bestTime = latestBest;
 	if (stored.updatedAt !== undefined || desired.updatedAt !== undefined) {
 		merged.updatedAt = math.max(stored.updatedAt ?? 0, desired.updatedAt ?? 0);
 	}
@@ -615,23 +598,7 @@ export class CampaignCoordinator {
 		}
 		result.bestScore = slot.missions?.[missionId]?.bestScore;
 		result.bestRank = rankOf(slot.missions?.[missionId]?.bestRank);
-		// Rebuild derived legacy flags.
-		slot.mission1Completed = slot.missions?.[1]?.completed === true;
-		slot.mission2Completed = slot.missions?.[2]?.completed === true;
-		if (slot.mission2Completed) slot.mission1Completed = true;
-		slot.mission1BestTime = slot.missions?.[1]?.bestTime;
-		slot.mission2BestTime = slot.missions?.[2]?.bestTime;
-		let allComplete = true;
-		for (let id = 1; id <= MISSION_COUNT; id++) {
-			if (slot.missions?.[id]?.completed !== true) { allComplete = false; break; }
-		}
-		slot.completed = allComplete;
-		slot.currentMission = resumeMission(slot);
-		let latestBest: number | undefined;
-		for (let id = MISSION_COUNT; id >= 1; id--) {
-			if (slot.missions?.[id]?.bestTime !== undefined) { latestBest = slot.missions![id]!.bestTime; break; }
-		}
-		slot.bestTime = latestBest;
+		refreshDerived(slot);
 		this.markDirty();
 		return result;
 	}

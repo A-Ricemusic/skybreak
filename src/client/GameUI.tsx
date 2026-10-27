@@ -1,4 +1,5 @@
 import { DeletionObservation } from "../shared/DeletionObservation";
+import { highestUnlocked } from "../shared/CampaignProgress";
 import { stickVector, TouchSticks } from "../shared/TouchSticks";
 import { FlightMath } from "../shared/FlightMath";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "@rbxts/react";
@@ -696,16 +697,6 @@ function completedCount(slot?: SaveSlot, act?: number): number {
 	return count;
 }
 
-/** Missions unlock in order: the first not-yet-completed mission is the furthest playable one. */
-function unlockedThrough(slot?: SaveSlot): number {
-	let unlocked = 1;
-	for (let id = 1; id < MISSION_COUNT; id++) {
-		if (slot?.missions?.[id]?.completed) unlocked = id + 1;
-		else break;
-	}
-	return unlocked;
-}
-
 /** A 44px header row: square back button, then a title over a one-line status. */
 function ScreenHeader({ name, backName, enabled = true, title, subtitle, subtitleColor = C.Muted, compact, onBack }: {
 	name: string;
@@ -1109,7 +1100,7 @@ function BriefingScreenImpl({visible,menu,selectedSlot,selectedMission,slot,busy
 		if(selected?.IsA("GuiObject"))GuiService.SelectedObject=selected;
 	});},[browse,act,inputMode,visible,selectedMission]);
 	const mission=MissionCatalog.Get(selectedMission);
-	const unlocked=unlockedThrough(slot);
+	const unlocked=highestUnlocked(slot);
 	const record=slot?.missions?.[selectedMission];
 	const completed=record?.completed===true;
 	const layout=getBriefingLayout(menu.panel.width,menu.panel.height);
