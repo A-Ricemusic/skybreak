@@ -5,10 +5,11 @@
 // Usage: LUAU_BIN=... bun run test:offline && bun tools/cutscene-mock.ts
 import {mkdir} from "node:fs/promises";
 import {resolve} from "node:path";
+import {requireLuauBin} from "./luau-bin";
 
 const root=resolve(import.meta.dir,".."),relay=resolve(root,"build/offline-relay"),dest=resolve(root,"build/cutscene-mock");
 await mkdir(dest,{recursive:true});
-const luau=process.env.LUAU_BIN ?? resolve(root,"build/offline-luau/luau");
+const luau=requireLuauBin();
 const chrome=process.env.CHROME_BIN ?? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 
 interface Rect {x:number;y:number;width:number;height:number}
@@ -39,7 +40,8 @@ local function enc(v)
 end
 print(enc(out))`);
 const proc=Bun.spawn([luau,resolve(relay,"mockdump.luau")],{stdout:"pipe",stderr:"pipe"});
-const [stdout,stderr]=await Promise.all([new Response(proc.stdout).text(),new Response(proc.stderr).text(),proc.exited]);
+const [stdout,stderr,code]=await Promise.all([new Response(proc.stdout).text(),new Response(proc.stderr).text(),proc.exited]);
+if(code!==0)throw new Error(`Luau exited ${code}: ${stderr}`);
 if(stderr)throw new Error(stderr);
 const data=JSON.parse(stdout) as {layout:Record<string,number>;frame:Record<string,Rect> & {horizontalSettings:boolean};segments:Rect[]}[];
 

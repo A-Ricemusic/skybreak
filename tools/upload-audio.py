@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Upload final, reviewed SKYBREAK Ogg effects; never publishes the place.
 
-Uses the same account journal/halt file as roblox-asset-upload.py. Every new
+Uses the same account journal/halt file as tools/upload-voice.py. Every new
 asset must pass review, operation completion AND explicit moderation approval.
 Re-running resumes recorded operations rather than consuming another upload.
 Credentials are read privately from --key-file and never stored in the game.
@@ -16,68 +16,12 @@ import argparse
 import fcntl
 import hashlib
 import json
-import os
 from pathlib import Path
-import time
-import urllib.error
-import urllib.request
-import uuid
 
-import _http
+from roblox_upload import APPROVED, HALT, STATE, gate, load_journal, save, submit_and_moderate
 
 ROOT = Path(__file__).resolve().parent.parent
 ASSETS = ROOT / "assets/audio"
-STATE = Path.home() / ".skybreak-roblox-uploads"
-JOURNAL = STATE / "journal-3407487520.json"
-HALT = STATE / "HALT-3407487520"
-API = "https://apis.roblox.com/assets/v1"
-APPROVED = "MODERATION_STATE_APPROVED"
-REJECTED = "MODERATION_STATE_REJECTED"
-
-
-def save(path, value):
-    temp = path.with_suffix(path.suffix + ".tmp")
-    temp.write_text(json.dumps(value, indent=2) + "\n")
-    temp.replace(path)
-
-
-def load_journal():
-    return json.loads(JOURNAL.read_text()) if JOURNAL.exists() else {"uploads": {}}
-
-
-def gate(own=None):
-    if HALT.exists():
-        raise RuntimeError("Account halted by Roblox moderation; no uploads are permitted")
-    for name, item in load_journal()["uploads"].items():
-        if name != own and item.get("state") != APPROVED:
-            raise RuntimeError(f"Unresolved account upload {name}: {item.get('state')}")
-
-
-def record(name, value):
-    # Merge the newest journal instead of overwriting entries from other tools.
-    state = load_journal()
-    if value is None:
-        state["uploads"].pop(name, None)
-    else:
-        state["uploads"][name] = value
-    save(JOURNAL, state)
-
-
-def http(method, url, key, body=None, content_type=None):
-    # No arbitrary endpoints: this credential can never reach place publishing.
-    if not url.startswith(API + "/assets") and not url.startswith(API + "/operations/"):
-        raise RuntimeError("Endpoint outside audio asset upload/status allowlist")
-    headers = {"x-api-key": key}
-    if content_type: headers["Content-Type"] = content_type
-    request = urllib.request.Request(url, data=body, method=method, headers=headers)
-    with _http.open(request, timeout=90) as response:
-        return json.load(response)
-
-
-def moderation(key, asset):
-    data = http("GET", f"{API}/assets/{asset}?readMask=moderationResult", key)
-    state = data.get("moderationResult", {}).get("moderationState")
-    return {"Approved": APPROVED, "Rejected": REJECTED}.get(state, state)
 
 
 def upload(cue, review, key):
@@ -97,54 +41,9 @@ def upload(cue, review, key):
     item = load_journal()["uploads"].get(journal_key)
     if item and item.get("sha256") != digest:
         raise RuntimeError(f"{name}: audio changed since upload; use a new versioned filename")
-    if not item:
-        meta = {"assetType": "Audio", "displayName": f"SKYBREAK {name}",
-                "description": "Original non-vocal aircraft game sound effect. No speech or music.",
-                "creationContext": {"creator": {"userId": "3407487520"}}}
-        boundary = uuid.uuid4().hex
-        body = (f'--{boundary}\r\nContent-Disposition: form-data; name="request"\r\n\r\n{json.dumps(meta)}\r\n'
-                f'--{boundary}\r\nContent-Disposition: form-data; name="fileContent"; filename="{filename}"\r\n'
-                'Content-Type: audio/ogg\r\n\r\n').encode() + content + f"\r\n--{boundary}--\r\n".encode()
-        item = {"sha256": digest, "assetType": "Audio", "state": "SUBMITTING", "reviewer": checked["reviewer"],
-                "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
-        record(journal_key, item)
-        try:
-            operation = http("POST", API + "/assets", key, body, "multipart/form-data; boundary=" + boundary)
-        except urllib.error.HTTPError as error:
-            # A definite client rejection didn't create an asset. Transport/5xx
-            # failures remain journaled as ambiguous; never blindly resubmit.
-            if 400 <= error.code < 500: record(journal_key, None)
-            raise RuntimeError(f"{name}: Roblox upload HTTP {error.code}: {error.read().decode()[:400]}") from None
-        operation_id = operation.get("operationId") or operation.get("path", "").split("/")[-1]
-        item.update({"operationId": operation_id, "state": "UPLOADING"})
-        record(journal_key, item)
-    if not item.get("assetId"):
-        operation_id = item.get("operationId")
-        if not operation_id:
-            raise RuntimeError(f"{name}: earlier submission is ambiguous; recover it from Roblox before retrying")
-        for _ in range(60):
-            result = http("GET", API + "/operations/" + operation_id, key)
-            if result.get("done"):
-                if result.get("error"):
-                    raise RuntimeError(f"{name}: asset operation failed: {result['error']}")
-                response = result.get("response", {})
-                item["assetId"] = response.get("assetId") or response.get("path", "").split("/")[-1]
-                record(journal_key, item)
-                break
-            time.sleep(3)
-        if not item.get("assetId"): raise RuntimeError(f"{name}: upload unfinished; re-run to resume")
-    for _ in range(60):
-        state = moderation(key, item["assetId"])
-        item["state"] = state or "UNKNOWN"
-        record(journal_key, item)
-        if state == REJECTED:
-            HALT.write_text(f"{journal_key} asset {item['assetId']} rejected by moderation\n")
-            raise RuntimeError("Roblox rejected audio; account uploads are now halted")
-        if state == APPROVED:
-            print(f"{name}: approved asset {item['assetId']}", flush=True)
-            return item
-        time.sleep(5)
-    raise RuntimeError(f"{name}: moderation pending; re-run later to resume (no duplicate upload)")
+    return submit_and_moderate(name, journal_key, item, content, digest, filename,
+                               "Original non-vocal aircraft game sound effect. No speech or music.",
+                               checked.get("reviewer"), key, "Roblox rejected audio; account uploads are now halted")
 
 
 def write_bank(spec, uploaded):

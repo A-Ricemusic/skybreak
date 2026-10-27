@@ -7,6 +7,7 @@ import { STORY } from "../src/shared/RelayStory";
 import { VOICE_CUES } from "../src/shared/VoiceCues";
 import { VOICE_BANK_ASSETS } from "../src/shared/VoiceBanks";
 import { writeAudioUseAllowlist } from "./audio-use-allowlist";
+import { requireLuauBin } from "./luau-bin";
 const root = resolve(import.meta.dir, ".."), dest = resolve(root, "build/voice-offline");
 await mkdir(dest, { recursive: true });
 await writeAudioUseAllowlist();
@@ -60,7 +61,7 @@ for (const file of files) {
 }
 harness = harness.replace("-- INSERT MODULES", modules);
 await Bun.write(resolve(dest, "run.luau"), harness);
-const executable = process.env.LUAU_BIN ?? resolve(root, "build/offline-luau/luau");
+const executable = requireLuauBin();
 const proc = Bun.spawn([executable, resolve(dest, "run.luau")], { stdout: "pipe", stderr: "pipe" });
 const [stdout, stderr, code] = await Promise.all([new Response(proc.stdout).text(), new Response(proc.stderr).text(), proc.exited]);
 console.log(stdout); if (stderr) console.error(stderr);

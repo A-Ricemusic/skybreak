@@ -2,6 +2,7 @@
 import { resolve } from "node:path";
 import { mkdir } from "node:fs/promises";
 import { createHash } from "node:crypto";
+import { requireLuauBin } from "./luau-bin";
 const root = resolve(import.meta.dir, "..");
 const dest = resolve(root, "build/audio-offline");
 await mkdir(dest, { recursive: true });
@@ -33,6 +34,6 @@ for (const name of ["AudioRules", "SoundBank", "GameAudio"]) {
   harness = harness.replace(`-- INSERT ${name}`, source);
 }
 await Bun.write(resolve(dest, "run.luau"), harness);
-const executable = process.env.LUAU_BIN ?? resolve(root, "build/offline-luau/luau");
+const executable = requireLuauBin();
 const proc = Bun.spawn([executable, resolve(dest, "run.luau")], { stdout: "inherit", stderr: "inherit" });
 if (await proc.exited !== 0) process.exitCode = 1;
