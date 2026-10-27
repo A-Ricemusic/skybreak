@@ -124,4 +124,30 @@ describe("Ace stages", () => {
 		AceRules.Cross(state, 165, 165, 110, 0, false);
 		expect(AceRules.CapHit(state, 110, 165, 55)).toBe(55);
 	});
+	it("is hurtable only when a hit would take health: not while immune or held at a stage floor", () => {
+		const state = AceRules.New();
+		expect(AceRules.CanHurt(state, 165, 165, 0)).toBe(true);
+		// Crossing 110 at elapsed 10: immune for three seconds, hittable again after.
+		AceRules.Cross(state, 165, 120, 110, 10, true);
+		expect(AceRules.CanHurt(state, 110, 165, 11)).toBe(false);
+		expect(AceRules.CapHit(state, 110, 165, 40)).toBeGreaterThan(0);
+		expect(AceRules.CanHurt(state, 110, 165, 13)).toBe(true);
+		// Retreating above the floor (55 + 1) it still takes damage; at the floor it takes none.
+		expect(AceRules.CanHurt(state, 75, 165, 20)).toBe(true);
+		expect(AceRules.CapHit(state, 75, 165, 40)).toBe(19);
+		expect(AceRules.CanHurt(state, 56, 165, 20)).toBe(false);
+		expect(AceRules.CapHit(state, 56, 165, 40)).toBe(0);
+		AceRules.Step(state, 11, 0, 3);
+		expect(state.mode).toBe("hold");
+		expect(AceRules.CanHurt(state, 56, 165, 31)).toBe(false);
+		// Turning back in, the same health is hittable again.
+		AceRules.Step(state, 25, 0, 0);
+		expect(state.mode).toBe("fight");
+		expect(AceRules.CanHurt(state, 56, 165, 56)).toBe(true);
+		// Last stage, held: its final point is protected until it returns.
+		const last = { stage: 2, mode: "hold" as const, modeTime: 0, invulnerableUntil: 0 };
+		expect(AceRules.CanHurt(last, 1, 165, 100)).toBe(false);
+		expect(AceRules.CanHurt(last, 2, 165, 100)).toBe(true);
+		expect(AceRules.CanHurt({ ...last, mode: "fight" }, 1, 165, 100)).toBe(true);
+	});
 });

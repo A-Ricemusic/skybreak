@@ -1,11 +1,12 @@
-import { TARGET_BOX_LIMIT, TargetBoxes, TargetBoxFlags, TargetBoxTone } from "../shared/TargetBoxes";
+import { TARGET_BOX_LIMIT, TARGET_TAG_GAP, TARGET_TAG_HEIGHT, TARGET_TAG_RISE, TARGET_TAG_WIDTH, TargetBoxes, TargetBoxFlags, TargetBoxTone, TargetTagSide } from "../shared/TargetBoxes";
 import type { Rectangle } from "../shared/UILayout";
 import { HUD, HUD_FONT_BOLD } from "./Theme";
 
 // Ace Combat-style boxes on every valid target in view (the selected one is the
 // FlightController's flashing bracket). Validity is the server's: it publishes
 // `Damageable` per enemy from the same rule its missiles use. Pooled frames,
-// attributes cached from AttributeChanged, one pass per RenderStep.
+// attributes cached from AttributeChanged, one pass per RenderStep. Boxes and
+// their TGT tags stay inside the safe area and off the touch controls.
 const COLOR = { required: HUD.Green, optional: HUD.Dim, protected: HUD.Dim } as const;
 const OUTLINE = Color3.fromRGB(6, 13, 22);
 const WATCHED = new Set(["SkybreakEnemy", "SkybreakOwner", "Damageable", "RequiredTarget", "TargetKind"]);
@@ -27,11 +28,13 @@ interface Contact {
 interface Slot {
 	frame: Frame;
 	stroke: UIStroke;
-	tag: TextLabel;
+	tagLabel: TextLabel;
 	x: number;
 	y: number;
 	size: number;
 	tone?: TargetBoxTone;
+	/** Where the TGT tag sits; undefined hides it. */
+	tag?: TargetTagSide;
 }
 
 export class TargetBoxOverlay {
@@ -40,6 +43,7 @@ export class TargetBoxOverlay {
 	private readonly slots: Slot[] = [];
 	private readonly connections: RBXScriptConnection[] = [];
 	private keepouts: readonly Rectangle[] = [];
+	private bounds?: Rectangle;
 	private gui?: ScreenGui;
 	private userId = 0;
 
@@ -61,9 +65,10 @@ export class TargetBoxOverlay {
 		this.slots.clear();
 		this.gui = undefined;
 	}
-	/** Touch controls in viewport px; boxes never overlap them. */
-	public SetKeepouts(keepouts: readonly Rectangle[]): void { this.keepouts = keepouts; }
+	/** Touch controls in viewport px and the safe area (TargetBoxes.Bounds): boxes and their text keep inside it and off them. */
+	public SetPlacement(keepouts: readonly Rectangle[], bounds: Rectangle): void { this.keepouts = keepouts; this.bounds = bounds; }
 	public GetKeepouts(): readonly Rectangle[] { return this.keepouts; }
+	public GetBounds(): Rectangle | undefined { return this.bounds; }
 	/** Whether `model` has a box this frame. */
 	public IsBoxed(model: Model): boolean { return this.contacts.get(model)?.boxed === true; }
 
@@ -72,8 +77,8 @@ export class TargetBoxOverlay {
 	 * `positionOf` gives the world point the player sees for a contact (smoothed clone for jets).
 	 */
 	public Update(camera: Camera, origin: Vector3, selected: Model | undefined, positionOf: (model: Model, ground: boolean) => Vector3): void {
-		const gui = this.gui;
-		if (!gui) return;
+		const gui = this.gui, bounds = this.bounds, keepouts = this.keepouts;
+		if (!gui || !bounds) return;
 		const viewport = camera.ViewportSize;
 		const ranked = this.ranked;
 		ranked.clear();
@@ -86,11 +91,13 @@ export class TargetBoxOverlay {
 			if (!onScreen) continue;
 			const distance = world.sub(origin).Magnitude;
 			const size = TargetBoxes.Size(distance, viewport.Y);
-			if (!TargetBoxes.Fits(screen.X, screen.Y, size, viewport.X, viewport.Y, this.keepouts)) continue;
-			contact.distance = distance; contact.x = math.floor(screen.X + 0.5); contact.y = math.floor(screen.Y + 0.5); contact.size = size;
+			const x = math.floor(screen.X + 0.5), y = math.floor(screen.Y + 0.5);
+			if (!TargetBoxes.Fits(x, y, size, bounds, keepouts)) continue;
+			contact.distance = distance; contact.x = x; contact.y = y; contact.size = size;
 			ranked.push(contact);
 		}
-		const count = TargetBoxes.Rank(ranked, TARGET_BOX_LIMIT, selected ? 1 : 0);
+		// One slot always stays the selected bracket's, so at most TARGET_BOX_LIMIT box frames ever exist.
+		const count = TargetBoxes.Rank(ranked, TARGET_BOX_LIMIT, 1);
 		for (let index = 0; index < count; index++) {
 			const contact = ranked[index];
 			contact.boxed = true;
@@ -100,10 +107,22 @@ export class TargetBoxOverlay {
 			if (contact.tone !== slot.tone) {
 				slot.tone = contact.tone;
 				const color = COLOR[contact.tone!];
-				slot.stroke.Color = color; slot.tag.TextColor3 = color;
+				slot.stroke.Color = color; slot.tagLabel.TextColor3 = color;
 				// Raiders read a step quieter than mission targets; only mission targets carry TGT.
 				slot.stroke.Transparency = contact.tone === "required" ? 0.05 : 0.3;
-				slot.tag.Visible = contact.tone === "required";
+			}
+			// The TGT tag goes right of the box, else left, else not at all: it never covers a control or leaves the safe area.
+			const tag = contact.tone === "required" ? TargetBoxes.PlaceTag(contact.x, contact.y, contact.size, bounds, keepouts) : undefined;
+			if (tag !== slot.tag) {
+				slot.tag = tag;
+				slot.tagLabel.Visible = tag !== undefined;
+				if (tag === "right") {
+					slot.tagLabel.AnchorPoint = new Vector2(0, 0); slot.tagLabel.Position = new UDim2(1, TARGET_TAG_GAP, 0, -TARGET_TAG_RISE);
+					slot.tagLabel.TextXAlignment = Enum.TextXAlignment.Left;
+				} else if (tag === "left") {
+					slot.tagLabel.AnchorPoint = new Vector2(1, 0); slot.tagLabel.Position = new UDim2(0, -TARGET_TAG_GAP, 0, -TARGET_TAG_RISE);
+					slot.tagLabel.TextXAlignment = Enum.TextXAlignment.Right;
+				}
 			}
 			if (!slot.frame.Visible) slot.frame.Visible = true;
 		}
@@ -122,9 +141,7 @@ export class TargetBoxOverlay {
 		const tag = new Instance("TextLabel");
 		tag.Name = "Tgt";
 		tag.BackgroundTransparency = 1;
-		tag.AnchorPoint = new Vector2(0, 1);
-		tag.Position = new UDim2(1, 2, 0, 1);
-		tag.Size = UDim2.fromOffset(24, 10);
+		tag.Size = UDim2.fromOffset(TARGET_TAG_WIDTH, TARGET_TAG_HEIGHT);
 		tag.FontFace = HUD_FONT_BOLD;
 		tag.TextSize = 9;
 		tag.TextXAlignment = Enum.TextXAlignment.Left;
@@ -134,7 +151,7 @@ export class TargetBoxOverlay {
 		tag.Visible = false;
 		tag.Parent = frame;
 		frame.Parent = gui;
-		const slot: Slot = { frame, stroke, tag, x: -1, y: -1, size: -1 };
+		const slot: Slot = { frame, stroke, tagLabel: tag, x: -1, y: -1, size: -1 };
 		this.slots[index] = slot;
 		return slot;
 	}

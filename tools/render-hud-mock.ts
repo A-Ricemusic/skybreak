@@ -43,7 +43,7 @@ const TONE: Record<string, string> = { normal: GREEN, dim: DIM, warn: AMBER, dan
 const FONT = `"Roboto Mono", Menlo, monospace`;
 
 /** `scale` is the capture's device-pixel ratio; `hudScale` the HUD SCALE setting (the UIScale the HUD is drawn through, default 1). */
-interface Shot { file: string; screenWidth: number; screenHeight: number; insetLeft: number; mode: Mode; scale: number; hudScale?: number; boxes?: "on" | "off" | "locked" }
+interface Shot { file: string; screenWidth: number; screenHeight: number; insetLeft: number; mode: Mode; scale: number; hudScale?: number; boxes?: "on" | "off" | "locked" | "protected" }
 const SHOTS: Shot[] = [
 	{ file: "hud-mock-1920x854-keyboard.png", screenWidth: 1920, screenHeight: 854, insetLeft: 0, mode: "keyboard", scale: 1 },
 	{ file: "hud-mock-844x390-touch.png", screenWidth: 844, screenHeight: 390, insetLeft: 44, mode: "touch", scale: 2 },
@@ -58,6 +58,8 @@ const SHOTS: Shot[] = [
 	{ file: "target-boxes-844x390-touch-blink-on.png", screenWidth: 844, screenHeight: 390, insetLeft: 44, mode: "touch", scale: 2, boxes: "on" },
 	{ file: "target-boxes-844x390-touch-blink-off.png", screenWidth: 844, screenHeight: 390, insetLeft: 44, mode: "touch", scale: 2, boxes: "off" },
 	{ file: "target-boxes-667x375-touch-locked.png", screenWidth: 667, screenHeight: 375, insetLeft: 0, mode: "touch", scale: 2, boxes: "locked" },
+	// A completed lock on a selection the server will not damage now (immune ace, tutorial radar): grey TRACK, never red LOCKED.
+	{ file: "target-boxes-667x375-touch-protected-track.png", screenWidth: 667, screenHeight: 375, insetLeft: 0, mode: "touch", scale: 2, boxes: "protected" },
 	{ file: "target-boxes-1920x854-keyboard-blink-on.png", screenWidth: 1920, screenHeight: 854, insetLeft: 0, mode: "keyboard", scale: 1, boxes: "on" },
 ];
 
@@ -76,10 +78,11 @@ const MOCK_CONTACTS: MockContact[] = [
 	{ fx: 0.6, fy: 0.84, distance: 1300, required: true, damageable: true },
 ];
 
-/** The target boxes, drawn with the game's own rules (TargetBoxes.Tone/Size/Fits/Keepouts) in viewport px. */
+/** The target boxes, drawn with the game's own rules (TargetBoxes.Tone/Selected/Size/Fits/PlaceCaption/PlaceTag/Keepouts) in viewport px. */
 function targetBoxes(shot: Shot, hud: ReturnType<typeof getHudLayout>, hudScale: number): string {
 	const sw = shot.screenWidth, sh = shot.screenHeight, phase = shot.boxes!;
 	const keepouts = TargetBoxes.Keepouts(hud, hudScale, shot.insetLeft, 0);
+	const bounds = TargetBoxes.Bounds(sw, sh, { x: shot.insetLeft, y: 0, width: sw - shot.insetLeft, height: sh });
 	const out: string[] = [];
 	let drawn = 0;
 	for (const contact of MOCK_CONTACTS) {
@@ -89,20 +92,30 @@ function targetBoxes(shot: Shot, hud: ReturnType<typeof getHudLayout>, hudScale:
 			: `<polygon points="${kestrelOutline().map(([u, v]) => `${x - 7 + u * 14},${y - 8 + v * 16}`).join(" ")}" fill="${contact.ace ? "#5a2a2a" : "#3a4148"}"/>`;
 		out.push(silhouette);
 		const flags = { enemy: true, owner: 1, damageable: contact.damageable, required: contact.required };
-		const tone = contact.selected ? TargetBoxes.SelectedTone(flags, 1) : TargetBoxes.Tone(flags, 1);
+		const lockProgress = phase === "locked" || phase === "protected" ? 1 : 0.6;
+		const style = contact.selected ? TargetBoxes.Selected(phase === "protected" ? false : contact.damageable, contact.required, lockProgress) : undefined;
+		const tone = style ? style.tone : TargetBoxes.Tone(flags, 1);
 		if (tone === undefined || drawn >= TARGET_BOX_LIMIT) continue;
-		const locked = contact.selected && phase === "locked";
+		const locked = style?.locked === true;
 		const base = TargetBoxes.Size(contact.distance, sh, contact.selected === true);
 		const size = locked ? Math.max(Math.floor(base * 0.85), 26) : base;
-		if (!TargetBoxes.Fits(x, y, size, sw, sh, keepouts)) continue;
+		if (!TargetBoxes.Fits(x, y, size, bounds, keepouts)) continue;
 		drawn += 1;
-		const color = locked ? RED : tone === "required" ? GREEN : DIM;
-		const opacity = contact.selected ? (phase === "off" ? 0.15 : 1) : tone === "required" ? 0.95 : 0.7;
+		const color = tone === "locked" ? RED : tone === "required" ? GREEN : tone === "protected" ? "#969c9c" : DIM;
+		const opacity = contact.selected ? (phase === "off" && !locked ? 0.15 : 1) : tone === "required" ? 0.95 : 0.7;
 		out.push(`<rect x="${x - size / 2}" y="${y - size / 2}" width="${size}" height="${size}" fill="none" stroke="${color}" stroke-width="1.5" stroke-opacity="${opacity}"/>`);
-		if (contact.selected) {
-			const caption = locked ? `LOCKED · ${contact.distance}m` : phase === "on" || phase === "off" ? "LOCK 60%" : `TGT · ${contact.distance}m`;
-			out.push(`<text x="${x}" y="${y + size / 2 + 13}" fill="${color}" font-size="10" font-weight="700" text-anchor="middle">${caption}</text>`);
-		} else if (tone === "required") out.push(`<text x="${x + size / 2 + 2}" y="${y - size / 2 + 8}" fill="${color}" font-size="9" font-weight="700">TGT</text>`);
+		if (style) {
+			const spot = { above: false, dx: 0 };
+			if (!TargetBoxes.PlaceCaption(x, y, size, bounds, keepouts, spot)) continue;
+			const r = TargetBoxes.CaptionRect(x, y, size, spot);
+			const caption = TargetBoxes.CaptionText(style, lockProgress, contact.distance, contact.required, -1);
+			out.push(`<text x="${r.x + r.width / 2}" y="${r.y + r.height - 2}" fill="${color}" font-size="10" font-weight="700" text-anchor="middle">${caption}</text>`);
+		} else if (tone === "required") {
+			const side = TargetBoxes.PlaceTag(x, y, size, bounds, keepouts);
+			if (side === undefined) continue;
+			const r = TargetBoxes.TagRect(x, y, size, side);
+			out.push(`<text x="${side === "right" ? r.x : r.x + r.width}" y="${r.y + r.height - 1}" fill="${color}" font-size="9" font-weight="700" text-anchor="${side === "right" ? "start" : "end"}">TGT</text>`);
+		}
 	}
 	return `<svg class="layer boxes" width="${sw}" height="${sh}" >${out.join("")}</svg>`;
 }

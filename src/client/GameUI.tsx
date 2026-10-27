@@ -1467,12 +1467,12 @@ function MissionHud({
 	// Layout math is pure but not free: recompute only when the root, input mode or stick size changes.
 	const layout = useMemo(() => getHudLayout(virtualWidth, virtualHeight, inputMode, options), [virtualWidth, virtualHeight, inputMode, options]);
 	const killRectangle = useMemo(() => getKillMarkerLayout(virtualWidth, virtualHeight, inputMode, options), [virtualWidth, virtualHeight, inputMode, options]);
-	// Target boxes (FlightController) keep clear of the touch controls this layout draws.
+	// Target boxes (FlightController) keep clear of the touch controls this layout draws and inside this safe-area root.
 	const hudFrameRef = useRef<Frame>();
 	useEffect(() => {
-		controller.SetTargetKeepouts(visible ? layout : undefined, scale, hudFrameRef.current);
+		controller.SetTargetKeepouts(visible ? layout : undefined, scale, hudFrameRef.current, viewport);
 		return () => controller.SetTargetKeepouts(undefined, 1, undefined);
-	}, [controller, layout, scale, visible]);
+	}, [controller, layout, scale, visible, viewport]);
 	const metrics = layout.metrics;
 	const touch = layout.touch;
 	const ready = missileReady(telemetry);
