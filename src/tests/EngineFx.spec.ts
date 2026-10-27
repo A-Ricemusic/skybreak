@@ -37,9 +37,9 @@ describe("EngineFx afterburner and vapor curves", () => {
 	});
 	it("only shows vapor in hard pulls at fighting speed", () => {
 		expect(EngineFx.VaporRate(0.5, 320)).toBe(0);
-		expect(EngineFx.VaporRate(1, 150)).toBe(0);
-		expect(EngineFx.VaporRate(1, 300)).toBe(36);
-		expect(EngineFx.VaporRate(-1, 300)).toBe(36);
+		expect(EngineFx.VaporRate(1, 100)).toBe(0);
+		expect(EngineFx.VaporRate(1, 600)).toBe(36);
+		expect(EngineFx.VaporRate(-1, 600)).toBe(36);
 		expect(EngineFx.VaporRate(0.85, 300) > 0).toBe(true);
 	});
 	it("quantizes to twentieths", () => {

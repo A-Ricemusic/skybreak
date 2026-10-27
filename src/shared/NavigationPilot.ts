@@ -30,7 +30,7 @@ export const NavigationPilot = {
 		const desiredYaw=math.atan2(state.x-tx,state.z-tz);
 		const altitude=math.clamp(point.y,210,ceiling ? ceiling-55 : 850);
 		const [x,y]=NavigationPilot.Steer(state,desiredYaw,math.clamp((altitude-state.y)/400,-.4,.4));
-		// Maintain ~195/240 studs/s using the normalized command curve.
-		return {x,y,throttle:orbit || distance<700 ? .3533 : .4804};
+		// Preserve the pilot’s established 195/240 studs/s route and orbit timing.
+		return {x,y,throttle:FlightMath.ThrottleForSpeed(orbit || distance<700 ? 195 : 240)};
 	},
 };

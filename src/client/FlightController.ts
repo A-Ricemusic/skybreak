@@ -15,6 +15,7 @@ import { MissileTrails } from "./MissileTrails";
 import { GameAudio } from "./GameAudio";
 import { HUD, HUD_FONT_BOLD } from "./Theme";
 import { evadeGauge } from "../shared/EvadeGauge";
+import { sphereSweep } from "../shared/SphereSweep";
 import { terrainProbeLength, terrainSeconds } from "../shared/FlightWarnings";
 import type { RadarContact, RadarContactKind } from "../shared/RadarMath";
 import { TARGET_BOX_SELECTED_MIN, TARGET_CAPTION_GAP, TARGET_CAPTION_HEIGHT, TARGET_CAPTION_WIDTH, TargetBoxes, type CaptionSpot, type SelectedStyle } from "../shared/TargetBoxes";
@@ -368,16 +369,13 @@ export class FlightController {
 	}
 	public GetControlStateForStudio() {
 		assert(RunService.IsStudio(), "Controller diagnostics are Studio-only");
-		return { command: {...this.frameInput}, state: this.GetFlightState(), correction: this.predictor ? {...this.predictor.pending} : undefined, throttleStick: this.throttleStick, throttle: this.throttle, touchThrottleAxis: this.touchThrottleAxis, touchStick: this.touchInput, stick: this.gamepadInput, prediction: this.predictor?.last, rtt: this.predictor?.rtt };
+		return { selectedMph: FlightMath.ToMph(FlightMath.SpeedForThrottle(this.throttle)), actualMph: this.predictor ? FlightMath.ToMph(this.predictor.state.speed) : undefined, command: {...this.frameInput}, state: this.GetFlightState(), correction: this.predictor ? {...this.predictor.pending} : undefined, throttleStick: this.throttleStick, throttle: this.throttle, touchThrottleAxis: this.touchThrottleAxis, touchStick: this.touchInput, stick: this.gamepadInput, prediction: this.predictor?.last, rtt: this.predictor?.rtt };
 	}
 	public SetInput(x: number, y: number): void { this.touchInput = new Vector2(FlightMath.ClampInput(x), FlightMath.ClampInput(y)); }
 	public SetTouchThrottleAxis(value: number): void { this.touchThrottleAxis = FlightMath.ClampInput(value); }
-	/** QA/autopilot normalized command, represented as a held synthetic touch axis until released. */
+	/** QA/autopilot selects an absolute speed; held touch input is a separate API. */
 	public SetThrottle(value: number): void {
-		if (!FlightMath.IsFinite(value)) return;
-		const delta = math.clamp(value, 0, 1) - FlightMath.CruiseThrottle;
-		const axis = delta / (delta < 0 ? FlightMath.CruiseThrottle : 1 - FlightMath.CruiseThrottle);
-		this.touchThrottleAxis = axis === 0 ? 0 : math.sign(axis) * (0.18 + math.abs(axis) * 0.82);
+		if (FlightMath.IsFinite(value)) this.throttle = math.clamp(value, 0, 1);
 	}
 	private action(action: string): void { if (this.active && !this.paused) this.remotes.CombatAction.FireServer({ action }); }
 	public FireMissile(): void { this.action("FireMissile"); }
@@ -416,7 +414,7 @@ export class FlightController {
 	private applyLocalPause(paused: boolean): void {
 		this.paused = paused;
 		this.audio.SetPaused(paused);
-		this.keys.clear(); this.mouseSteer = false; this.touchInput = Vector2.zero; this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0; this.throttle = FlightMath.CruiseThrottle;
+		this.keys.clear(); this.mouseSteer = false; this.touchInput = Vector2.zero; this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0;
 		this.sendTime = INPUT_KEEPALIVE;
 		// Free the gamepad stick and buttons for the pause card's GUI navigation.
 		if (paused) ContextActionService.UnbindAction(this.actionName);
@@ -490,9 +488,9 @@ export class FlightController {
 		// Same sink the server integrates while stalled.
 		const velocity = new Vector3(fx * speed, fy * speed - FlightMath.StallSeverity(speed) * 65, fz * speed);
 		const pathSpeed = velocity.Magnitude;
-		if (pathSpeed < 1) { this.trend.terrainSeconds = undefined; return; }
-		const hit = Workspace.Spherecast(position, PROBE_RADIUS, velocity.Unit.mul(terrainProbeLength(pathSpeed)), this.probeParams);
-		this.trend.terrainSeconds = terrainSeconds(hit?.Distance, pathSpeed);
+		if (!FlightMath.IsFinite(pathSpeed) || pathSpeed < 1) { this.trend.terrainSeconds = undefined; return; }
+		const hit = sphereSweep(position, PROBE_RADIUS, velocity.Unit.mul(terrainProbeLength(pathSpeed)), this.probeParams);
+		this.trend.terrainSeconds = terrainSeconds(hit?.distance, pathSpeed);
 	}
 	/** Second weapon slot; the server validates charges, cooldown and targets. */
 	public Special(): void { this.action("Special"); }
@@ -544,7 +542,7 @@ export class FlightController {
 		return result;
 	}
 	/** Writes this frame's stick and throttle into `frameInput` (no allocation). */
-	private input(): void {
+	private input(dt: number): void {
 		let x = this.touchInput.X + this.gamepadInput.X;
 		let y = this.touchInput.Y + this.gamepadInput.Y;
 		let throttleAxis = 0;
@@ -569,8 +567,9 @@ export class FlightController {
 		}
 		this.frameInput.x = math.clamp(x, -1, 1);
 		this.frameInput.y = math.clamp(this.invertY ? -y : y, -1, 1);
-		this.throttle = FlightMath.CommandThrottle(throttleAxis);
-		this.frameInput.throttle = !UserInputService.GetFocusedTextBox() && this.keys.has(Enum.KeyCode.LeftShift) ? 1 : this.throttle;
+		if (!UserInputService.GetFocusedTextBox() && this.keys.has(Enum.KeyCode.LeftShift)) throttleAxis += 1;
+		this.throttle = FlightMath.AdjustThrottle(this.throttle, throttleAxis, dt);
+		this.frameInput.throttle = this.throttle;
 		this.frameInput.assist = this.levelAssist;
 	}
 	/** Where the player sees a contact: the smoothed clone for jets, the pivot for ground targets. */
@@ -741,7 +740,7 @@ export class FlightController {
 			return;
 		}
 		const now = os.clock();
-		this.input();
+		this.input(dt);
 		const input = this.frameInput;
 		// Fly the local jet with zero input latency; the server reconciles it at 20 Hz.
 		// The next fixed step (the first to use this frame's input) starts at the last step boundary.
@@ -769,7 +768,7 @@ export class FlightController {
 		// Keep the smoothed up perpendicular to the nose (never parallel to the look direction).
 		const square = up.sub(forward.mul(up.Dot(forward)));
 		this.cameraUp = square.Magnitude > 0.05 ? square.Unit : new Vector3(ux, uy, uz);
-		const speedFactor = math.clamp((state.speed - 165) / 155, 0, 1);
+		const speedFactor = math.clamp((state.speed - FlightMath.CruiseSpeed) / (FlightMath.MaxSpeed - FlightMath.CruiseSpeed), 0, 1);
 		const desiredPosition = position.sub(forward.mul(68 + speedFactor * 13)).add(this.cameraUp.mul(CAMERA_LIFT_STUDS));
 		const desired = CFrame.lookAt(desiredPosition, position.add(forward.mul(100)).add(this.cameraUp.mul(AIM_LIFT_STUDS)), this.cameraUp);
 		// Impact feel (CameraShake) rides on top of the follow: shake is a camera-space
@@ -791,7 +790,7 @@ export class FlightController {
 		this.sendTime += dt;
 		// Unreliable input: up to 20 Hz while the controls move, 10 Hz keepalive otherwise
 		// (well inside the server's 0.7 s silence timeout even with packet loss).
-		const changed = math.abs(this.sentX - input.x) > 0.01 || math.abs(this.sentY - input.y) > 0.01 || math.abs(this.sentThrottle - input.throttle) > 0.01 || this.sentAssist !== input.assist;
+		const changed = math.abs(this.sentX - input.x) > 0.01 || math.abs(this.sentY - input.y) > 0.01 || math.abs(this.sentThrottle - input.throttle) > 0.0001 || this.sentAssist !== input.assist;
 		if ((changed && this.sendTime >= INPUT_INTERVAL) || this.sendTime >= INPUT_KEEPALIVE) {
 			this.sendTime = 0;
 			this.sentX = input.x; this.sentY = input.y; this.sentThrottle = input.throttle; this.sentAssist = input.assist;
@@ -816,7 +815,7 @@ export class FlightController {
 		}
 		this.keys.clear();
 		this.touchInput = Vector2.zero;
-		this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0; this.throttle = FlightMath.CruiseThrottle;
+		this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0;
 		this.sendTime = INPUT_KEEPALIVE;
 		this.sentThrottle = -1;
 		this.mouseSteer = false;
@@ -845,6 +844,7 @@ export class FlightController {
 		this.visual.Parent = Workspace;
 		this.visualRoot = this.visual.PrimaryPart;
 		this.engine = JetFactory.FindEngine(this.visual);
+		this.throttle = FlightMath.CruiseThrottle;
 		this.engineSpool = EngineFx.Intensity(this.throttle);
 		const hidePart = (descendant: Instance) => {
 			if (descendant.IsA("BasePart")) { this.hiddenParts.set(descendant, descendant.LocalTransparencyModifier); descendant.LocalTransparencyModifier = 1; }
@@ -869,7 +869,7 @@ export class FlightController {
 		}));
 		this.connections.push(UserInputService.InputEnded.Connect((input) => { if (input.UserInputType === Enum.UserInputType.MouseButton2) this.mouseSteer = false; }));
 		const clearInput = () => {
-			this.keys.clear(); this.mouseSteer = false; this.touchInput = Vector2.zero; this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0; this.throttle = FlightMath.CruiseThrottle;
+			this.keys.clear(); this.mouseSteer = false; this.touchInput = Vector2.zero; this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0;
 		};
 		this.connections.push(UserInputService.TextBoxFocused.Connect(clearInput));
 		this.connections.push(UserInputService.GamepadDisconnected.Connect(clearInput));
@@ -924,7 +924,7 @@ export class FlightController {
 		this.previousCamera = undefined;
 		this.aircraft = undefined;
 		this.touchInput = Vector2.zero;
-		this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0; this.throttle = FlightMath.CruiseThrottle;
+		this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0;
 		this.keys.clear();
 		this.mouseSteer = false;
 	}

@@ -42,7 +42,7 @@ export const EngineFx = {
 	},
 	/** Wingtip vapor particles/s: only hard pulls (stick past 70%) at fighting speed (200+). */
 	VaporRate(pull: number, speed: number): number {
-		const g = math.clamp((math.abs(pull) - 0.7) / 0.3, 0, 1) * math.clamp((speed - 200) / 80, 0, 1);
+		const g = math.clamp((math.abs(pull) - 0.7) / 0.3, 0, 1) * math.clamp((speed - 120) / 200, 0, 1);
 		return g > 0 ? math.floor(10 + 26 * g) : 0;
 	},
 	/** 1/20 steps, so effect properties are only rewritten on a visible change. */

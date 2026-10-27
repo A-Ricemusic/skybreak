@@ -1,7 +1,7 @@
 import { FlightMath } from "./FlightMath";
 
 /** LOW SPEED shows while the airspeed is within this many studs/s above the stall speed. */
-export const STALL_MARGIN = 30;
+export const STALL_MARGIN = 5;
 /** Seconds of airspeed trend projected ahead: a fast bleed toward the stall warns early. */
 export const STALL_TREND_SECONDS = 2;
 /** The client's forward terrain probe looks this many seconds ahead along the flight path. */
@@ -47,7 +47,7 @@ export function lowSpeed(speed: number, acceleration = 0): boolean {
 /** The single most urgent flight warning: terrain first, then the stall band, low altitude and the airspace edge. */
 export function flightAdvice(state: FlightWarningState): FlightAdvice {
 	if (state.terrainSeconds !== undefined && state.terrainSeconds <= TERRAIN_LOOKAHEAD) return "PULL UP";
-	if (state.speed < FlightMath.StallSpeed) return "STALL";
+	if (state.speed <= FlightMath.StallSpeed + 0.01) return "STALL";
 	if (lowSpeed(state.speed, state.acceleration)) return "LOW SPEED";
 	if (state.altitude < LOW_ALTITUDE) return "LOW ALTITUDE";
 	if (state.boundaryWarning) return "AIRSPACE LIMIT";

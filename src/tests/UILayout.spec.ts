@@ -704,6 +704,13 @@ describe("mission HUD layout", () => {
 		expect(getTutorialInstruction(undefined, "touch")).toBe("");
 		expect(getTutorialInstruction("target", "touch")).toBe("Tap TGT to select the radar");
 	});
+	it("shows the movement durations in the HUD hint that replaces the objective", () => {
+		for (const mode of MODES) {
+			const text = getTutorialInstruction("move", mode);
+			expect(text.split("3s").size()).toBe(3);
+			expect(text.find("up/down")[0]).toBeDefined();
+		}
+	});
 });
 
 describe("menu layout", () => {

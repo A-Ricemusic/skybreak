@@ -828,7 +828,7 @@ export function getFlightHints(inputMode: InputMode, context: FlightHintContext)
 
 /** Mission 1 training copy, short enough for the one-line objective (<= TUTORIAL_MAX_CHARS). */
 export function getTutorialInstruction(step: string | undefined, mode: InputMode): string {
-	if (step === "move") return mode === "touch" ? "L: fly / R: up-down throttle" : mode === "gamepad" ? "LS fly · RS up+/down- throttle" : "WASD fly · Q/E throttle";
+	if (step === "move") return mode === "touch" ? "L: turn 3s; pitch up/down 3s" : mode === "gamepad" ? "LS: turn 3s; pitch up/down 3s" : "A/D 3s; W/S up/down 3s";
 	if (step === "target") return mode === "touch" ? "Tap TGT to select the radar" : mode === "gamepad" ? "Press Y to select the radar" : "Press Tab to select the radar";
 	if (step === "missile") return mode === "touch" ? "Hold the lock, then tap FIRE" : mode === "gamepad" ? "Hold the lock, then press RT" : "Hold the lock, then press Space";
 	return "";
