@@ -31,6 +31,8 @@ import urllib.error
 import urllib.request
 import uuid
 
+import _http
+
 ROOT = Path(__file__).resolve().parent.parent
 VOICE = ROOT / "assets/voice"
 CACHE = Path(os.environ.get("SKYBREAK_VOICE_CACHE", Path.home() / ".skybreak-voice-cache"))
@@ -105,7 +107,7 @@ def record_index(key, entry):
 def api(method, path, key, body=None, headers=None, timeout=120, raw=False):
     request = urllib.request.Request(API + path, data=body, method=method,
                                      headers={"xi-api-key": key, **(headers or {})})
-    with urllib.request.urlopen(request, timeout=timeout) as response:
+    with _http.open(request, timeout=timeout) as response:
         data = response.read()
         return (data, dict(response.headers)) if raw else json.loads(data)
 

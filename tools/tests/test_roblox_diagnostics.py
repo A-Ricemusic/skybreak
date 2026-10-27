@@ -5,12 +5,14 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
 import tempfile
 import unittest
 from unittest.mock import Mock, patch
 import urllib.error
 
 TOOLS = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(TOOLS))  # scripts import tools/_http.py
 spec = importlib.util.spec_from_file_location("diagnostic", TOOLS / "diagnose-roblox-voice.py")
 diagnostic = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(diagnostic)
