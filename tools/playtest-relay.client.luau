@@ -16,7 +16,12 @@ local report=Instance.new("Folder");report.Name="BrokenRelayQA";report.Parent=pl
 report:SetAttribute("EvidenceType","Normal controls; real server results")
 local current,phaseSince,activePhase,lastFire,lastCycle,lastEvade,extendUntil=nil,0,"",0,0,0,0
 local attempts={}
+local seenAircraft={}
+local controlled,manualThrottle=nil,nil
 local function stage(mission)
+    local aircraft=mission.aircraft
+    if aircraft and seenAircraft[aircraft] then return end
+    if aircraft then seenAircraft[aircraft]=true end
     local id=mission.missionId or 1;attempts[id]=(attempts[id] or 0)+1
     local entry=Instance.new("Folder");entry.Name=string.format("M%02d_Attempt%d",id,attempts[id]);entry.Parent=report
     entry:SetAttribute("MissionId",id);entry:SetAttribute("Outcome","Running");entry:SetAttribute("StartedAt",os.clock())
@@ -26,19 +31,31 @@ end
 local stateConnection=game.ReplicatedStorage.Remotes.MissionState.OnClientEvent:Connect(function(message)
     if message.kind=="Started" then stage(message);return end
     if message.kind~="Completed" and message.kind~="Failed" then return end
-    if not current then return end
-    local bp=Catalog:Get(message.missionId or 1)
-    for _,field in {"kills","groundKills","elapsed","reason","saved","persistence"} do current:SetAttribute(field,message[field]) end
-    local valid=message.kind=="Completed" and message.elapsed>0 and message.elapsed<missionTimeLimit
-        and message.kills>=Catalog:RequiredAirKills(bp) and message.groundKills==Catalog:RequiredGroundKills(bp)
+    if not current or current:GetAttribute("Outcome")~="Running" then return end
+    if message.missionId and message.missionId~=current:GetAttribute("MissionId") then return end
+    local bp=Catalog:Get(current:GetAttribute("MissionId"))
+    -- MissionFinished.kills is TOTAL; optionalKills counts optional AIR kills.
+    -- Older/fallback results may omit counters: preserve that absence, never infer success.
+    for _,field in {"kills","groundKills","optionalKills","completedPhases","elapsed","reason","saved","persistence"} do current:SetAttribute(field,message[field]) end
+    local function count(value)
+        return type(value)=="number" and value==value and value>=0 and value<math.huge and value%1==0
+    end
+    local air=count(message.kills) and count(message.groundKills) and message.kills>=message.groundKills and message.kills-message.groundKills or nil
+    local requiredAir=air and count(message.optionalKills) and message.optionalKills<=air and air-message.optionalKills or nil
+    current:SetAttribute("AirKills",air);current:SetAttribute("RequiredAirKillsObserved",requiredAir)
+    local valid=message.kind=="Completed" and type(message.elapsed)=="number" and message.elapsed>0 and message.elapsed<missionTimeLimit
+        and requiredAir~=nil and requiredAir>=Catalog:RequiredAirKills(bp)
+        and message.groundKills==Catalog:RequiredGroundKills(bp)
+        and count(message.completedPhases) and message.completedPhases==Catalog:TotalPhases(bp)
     current:SetAttribute("Outcome",message.kind);current:SetAttribute("ResultValid",valid)
     print("BROKEN_RELAY_REAL_RESULT",current.Name,message.kind,message.elapsed,message.kills,message.groundKills,message.reason)
-    current=nil
+    -- Keep the terminal entry latched until a distinct real Started event.
+    controlled=nil;manualThrottle=nil
 end)
 local alive=true
-script.Destroying:Connect(function() alive=false;stateConnection:Disconnect();local c=FlightController.GetActive();if c then c:SetInput(0,0)end end)
+script.Destroying:Connect(function() alive=false;stateConnection:Disconnect();local c=FlightController.GetActive();if c and c.active and c==controlled and current and current:GetAttribute("Outcome")=="Running" then c:SetInput(0,0);c:SetThrottle(manualThrottle) end end)
 local c=FlightController.GetActive()
-if c and c.active then stage(c:GetTelemetry()) end
+if c and c.active then stage({missionId=c:GetTelemetry().missionId,aircraft=c.aircraft}) end
 -- The predicted flight state (attitude quaternion and derived yaw/pitch/roll): the stick
 -- commands rates, so the pilot closes the loop on the real nose, not the evade-rolled pivot.
 local function stateFor(controller,frame)
@@ -52,9 +69,9 @@ local function controlsFor(controller,frame,point,radius,orbit,ceiling)
 end
 while alive do
     local controller=FlightController.GetActive()
-    if controller and controller.active and controller.aircraft and controller.aircraft.Parent then
+    if controller and controller.active and controller.aircraft and controller.aircraft.Parent and current and current:GetAttribute("Outcome")=="Running" then
         local telemetry=controller:GetTelemetry();local now=os.clock();local phase=telemetry.phase or ""
-        if not current then stage(telemetry) end
+        if controlled~=controller then controlled=controller;manualThrottle=controller:GetThrottle() end
         if phase~=activePhase then
             activePhase=phase;phaseSince=now;extendUntil=0
             current:SetAttribute("Phase",phase)
