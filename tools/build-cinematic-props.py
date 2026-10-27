@@ -3,6 +3,7 @@
 Run Blender --background --python tools/build-cinematic-props.py.
 Uses the existing validated corner-normal mesh exporter, <=5000 triangles/prop.
 """
+import json
 import sys
 import runpy
 import math
@@ -49,6 +50,8 @@ for slug, build in [('CinematicChair', chair), ('CinematicDesk', desk)]:
     spec = p['AssetSpec'](slug, slug, build, 100, ((.1, 30), (.1, 30), (.1, 30)), ((25, -32, 20) if slug == 'CinematicDesk' else (11, -14, 9)))
     payload = p['export_json'](spec, objects, m)
     print(p['validate'](spec, payload))
+    # Compact canonical data; generator and inspection renders are the review surface.
+    (p['OUT'] / f'{slug.lower()}.mesh.json').write_text(json.dumps(payload, separators=(',', ':')) + '\n')
 
     if '--render' in sys.argv:
         data = bpy.data.lights.new('InspectionSun', 'SUN'); data.energy = 3
