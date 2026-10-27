@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "@rbxts/jest-globals";
 import { Workspace } from "@rbxts/services";
+import { AircraftCollision } from "../server/AircraftCollision";
 import { sphereSweep } from "../shared/SphereSweep";
 import { terrainProbeLength, terrainSeconds } from "../shared/FlightWarnings";
 
@@ -32,6 +33,15 @@ describe("segmented engine sphere sweeps", () => {
 			target.Destroy();
 			expect(sphereSweep(origin, 6, new Vector3(1, 1, 1).Unit.mul(length), params)).toBeUndefined();
 		}
+	});
+	it("routes long authoritative collision sweeps through the same engine implementation and excludes aircraft", () => {
+		setup();
+		const target = wall(2500); target.SetAttribute("FlightSolid", true);
+		const aircraft = wall(20); // Queryable aircraft-like geometry, deliberately untagged.
+		const result = AircraftCollision.Sweep(origin, origin.add(new Vector3(3600, 0, 0)), AircraftCollision.Parameters(fixture));
+		expect(result?.Instance).toBe(target);
+		expect(result?.Instance).never.toBe(aircraft);
+		expect(AircraftCollision.Sweep(origin, origin, AircraftCollision.Parameters(fixture))).toBeUndefined();
 	});
 	it("rejects invalid geometry and handles zero and reverse travel without an engine error", () => {
 		const params = setup();
