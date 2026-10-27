@@ -1,5 +1,6 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { MISSIONS, MissionPhaseBlueprint } from "../shared/MissionCatalog";
+import { MISSIONS, MissionCatalog, MissionPhaseBlueprint } from "../shared/MissionCatalog";
+import { MissionRules } from "../shared/MissionRules";
 import { STORY, speakerStyle } from "../shared/RelayStory";
 import { VOICE_BANK_ASSETS } from "../shared/VoiceBanks";
 import { VOICE_CUES, VoiceCue } from "../shared/VoiceCues";
@@ -72,10 +73,18 @@ describe("shipped voice table", () => {
 		}
 		expect(count).toBeGreaterThan(150);
 	});
-	it("maps every catalog radio line, including twists, hazards, group calls and ace lines", () => {
+	it("maps catalog radio except explicitly subtitle-only M1 safety instructions", () => {
 		const texts = radioTexts();
 		expect(texts.size()).toBeGreaterThan(250);
-		for (const text of texts) expect(Voice.RadioId(text) !== undefined ? text : `UNMAPPED ${text}`).toBe(text);
+		// Revised M1 safety instructions intentionally have no recording: never play the old
+		// long-hold instructions over the new subtitles. Asset generation is a separate task.
+		const subtitleOnly = new Set(MissionCatalog.Get(1).phases.map(phase => phase.beat!));
+		expect(subtitleOnly.size()).toBe(4);
+		for (const text of [MissionRules.LiveWarning, MissionRules.PracticeReset]) expect(Voice.Radio(text)).toBeUndefined();
+		for (const text of texts) {
+			if (subtitleOnly.has(text)) expect(Voice.Radio(text)).toBeUndefined();
+			else expect(Voice.RadioId(text) !== undefined ? text : `UNMAPPED ${text}`).toBe(text);
+		}
 	});
 	it("voices the server's ace wing calls for every difficulty's raider count", () => {
 		expect(Voice.RadioId("SERA: VULTURE LEAD pulled back to call his wing. 1 inbound.")).toBeDefined();

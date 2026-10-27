@@ -562,6 +562,7 @@ function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
 		targetRequired: payload.targetRequired === undefined ? previous.targetRequired : payload.targetRequired === true,
 		radio: safeRadio(payload.radio, previous.radio),
 		radioSerial: typeIs(payload.radioSerial, "number") ? math.max(0, math.floor(finite(payload.radioSerial, previous.radioSerial ?? 0))) : previous.radioSerial,
+		radioPriority: payload.radioPriority === true,
 		radioSeconds: typeIs(payload.radioSeconds, "number") ? math.clamp(finite(payload.radioSeconds, RADIO_SECONDS), 0.25, 10) : undefined,
 		fireDenied: WeaponRules.IsFireNotice(payload.fireDenied) ? payload.fireDenied : undefined,
 		special: SpecialWeapons.IsKind(payload.special) ? payload.special : previous.special,
@@ -2426,7 +2427,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			if (sanitized.kills > previous.kills) setKillNotice({ kills: sanitized.kills, total: sanitized.total, until: os.clock() + 3 });
 			if (sanitized.radio !== undefined && sanitized.radioSerial !== undefined && sanitized.radioSerial !== previous.radioSerial) {
 				// Voiced lines are matched by exact catalog text (table generated at build time) and hold until the voice ends.
-				radioQueue.Push(sanitized.radio, sanitized.radioSeconds ?? RADIO_SECONDS, radioNow(), Voice.Radio(sanitized.radio)?.seconds);
+				radioQueue.Push(sanitized.radio, sanitized.radioSeconds ?? RADIO_SECONDS, radioNow(), Voice.Radio(sanitized.radio)?.seconds, sanitized.radioPriority);
+				// Cut even a loading voice immediately; Stop disconnects its pending playback heartbeat.
+				if (sanitized.radioPriority) { radioVoiceRef.current?.Stop(); radioVoiceRef.current = undefined; }
 				setRadioSerial(sanitized.radioSerial);
 			}
 			if (sanitized.fireDenied !== undefined && sanitized.fireDeniedSerial !== undefined && sanitized.fireDeniedSerial !== previous.fireDeniedSerial) setFireNotice({ text: FIRE_DENIED_TEXT[sanitized.fireDenied], until: os.clock() + FIRE_DENIED_SECONDS });

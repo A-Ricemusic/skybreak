@@ -107,7 +107,7 @@ export interface CombatSession {
 	/** Present while the client is still receiving the world; nothing simulates until it is released. */
 	loading?: LoadingGateState;
 	/** Latest radio line and a serial so the client can detect repeats. */
-	radio?: string; radioSerial: number; radioSeconds?: number;
+	radio?: string; radioSerial: number; radioSeconds?: number; radioPriority?: boolean;
 	/** Latest refused FIRE and its serial, so the HUD can show the reason once per press. */
 	fireDenied?: FireNotice; fireDeniedSerial?: number;
 	/** Mission 1: elapsed time when the tutorial target step began, and whether its hint has aired. */
@@ -146,6 +146,7 @@ export interface CombatSession {
 	hazardPhase?: number;
 	/** Mission 1: the post-radar bandits have launched. */
 	tutorialBanditsSpawned?: boolean;
+	practiceHintAt?: number;
 	/** Surfaces protected actors stand on (scenery and terrain only, captured before any actor exists). */
 	groundParams?: RaycastParams;
 	/** The protected actor's footing, for re-grounding it as it moves. */
@@ -505,7 +506,7 @@ function sendHud(session: CombatSession, objective: ReturnType<typeof sessionObj
 		kind: "HudState", missionId: session.missionId, phase: objective.phase, objective: objective.objective, tutorialStep: objective.tutorialStep,
 		target: target?.model, targetName: target?.name ?? "", targetKind, targetRequired: target?.required ?? false,
 		navigation: nav ? new Vector3(nav.x, nav.y, nav.z) : undefined, navigationRadius: phase?.radius, navigationCeiling: phase?.ceiling,
-		radio: session.radio, radioSerial: session.radioSerial, radioSeconds: session.radioSeconds,
+		radio: session.radio, radioSerial: session.radioSerial, radioSeconds: session.radioSeconds, radioPriority: session.radioPriority,
 		fireDenied: session.fireDenied, fireDeniedSerial: session.fireDeniedSerial, special: session.special.kind,
 	};
 	session.hud = hud;
@@ -522,10 +523,11 @@ function sendFlightState(session: CombatSession): void {
 	flightStateRemote!.FireClient(session.player, FlightPrediction.Encode(session.stateSequence, session.state, session.evadeRemaining, session.inputClientTime, hold));
 }
 /** Push a radio line to the HUD immediately (phase beats, chatter, ace stages, flares). */
-function radio(session: CombatSession, text: string, seconds?: number): void {
+function radio(session: CombatSession, text: string, seconds?: number, priority = false): void {
 	session.radio = text;
 	session.radioSerial += 1;
 	session.radioSeconds = seconds;
+	session.radioPriority = priority;
 	if (session.active && sessions.get(session.player) === session) sendTelemetry(session);
 }
 /** Tell the HUD why a FIRE press did nothing; the serial makes every repeated press visible. */
@@ -611,6 +613,7 @@ function settlementHooks(session: CombatSession, won: boolean): SettlementHooks 
 			session.radio = won ? "MISSION ACCOMPLISHED · RETURN TO BASE" : "MISSION FAILED";
 			session.radioSerial += 1;
 			session.radioSeconds = 6;
+			session.radioPriority = true;
 			sendTelemetry(session);
 		},
 		schedule: (complete) => {
@@ -862,7 +865,7 @@ function applyLegacyPhase(session: CombatSession): void {
 	acquireTarget(session);
 	const catalogIndex = legacyPhaseIndex(session.missionId, phase);
 	const beat = catalogIndex !== undefined ? MissionCatalog.Get(session.missionId).phases[catalogIndex]?.beat : undefined;
-	if (beat !== undefined) radio(session, beat);
+	if (beat !== undefined) radio(session, beat, phase === "tutorial_bandits" ? MissionRules.BanditBeat : undefined, phase === "tutorial_bandits");
 }
 
 // Blueprint-driven phase application for missions 3-27.
@@ -1357,6 +1360,10 @@ function flareDecoys(session: CombatSession, enemy: Enemy, distance: number, mis
 }
 /** Mission 1 target step: after 8 s without a TGT press, say what the step wants. Auto-selection never skips it. */
 function stepTutorialHint(session: CombatSession): void {
+	if (session.rules?.phase === "tutorial_move" && session.elapsed >= (session.practiceHintAt ?? 6)) {
+		session.practiceHintAt = session.elapsed + 10;
+		radio(session, "Release holds the nose. Tap opposite pitch to level; avoid long holds.");
+	}
 	if (session.rules?.phase !== "tutorial_target") { session.targetStepSince = undefined; return; }
 	if (session.targetStepSince === undefined) session.targetStepSince = session.elapsed;
 	if (session.targetStepHinted || session.elapsed - session.targetStepSince < 8) return;
@@ -1505,6 +1512,7 @@ function stepSession(session: CombatSession, dt: number): void {
 	// Mission 1: the bandits launch a radio beat after the training radar dies.
 	if (session.rules && !session.tutorialBanditsSpawned && MissionRules.BanditsDue(session.rules)) {
 		session.tutorialBanditsSpawned = true;
+		radio(session, MissionRules.LiveWarning, 6, true);
 		spawnAir(session, 3, "bandit");
 		acquireTarget(session);
 	}
@@ -1514,9 +1522,15 @@ function stepSession(session: CombatSession, dt: number): void {
 	// Resolve impacts before navigation, phase completion, enemy fire or missile kills.
 	const hit = AircraftCollision.Sweep(new Vector3(from.x, from.y, from.z), new Vector3(session.state.x, session.state.y, session.state.z), session.collisionParams!);
 	if (hit) {
-		session.crashReason = AircraftCollision.Reason(hit);
-		finish(session);
-		return;
+		if (session.rules && MissionRules.RecoverPractice(session.rules, session.state)) {
+			session.lockProgress = 0;
+			// During grace the safety warning must remain visible, even after another reset.
+			if (session.rules.phase !== "tutorial_bandits") radio(session, MissionRules.PracticeReset);
+		} else {
+			session.crashReason = AircraftCollision.Reason(hit);
+			finish(session);
+			return;
+		}
 	}
 	session.inputSteps += 1;
 	if (session.blueprintState) {

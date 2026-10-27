@@ -1,4 +1,7 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
+import { RadioQueue } from "../shared/RadioQueue";
+import { MissionCatalog } from "../shared/MissionCatalog";
+import { FlightMath } from "../shared/FlightMath";
 import { MissionRules, MissionRuleState } from "../shared/MissionRules";
 
 /** Three-plus seconds of real turning and pitching, with the clock running so the prompt has been up long enough. */
@@ -229,5 +232,110 @@ describe("M1 independent movement progress", () => {
 			expect(retry.turnObserved).toBe(0);
 			expect(retry.pitchObserved).toBe(0);
 		}
+	});
+});
+
+
+describe("M1 practice safety with current flight parameters (numeric simulation)", () => {
+	it("reproduces the unsafe three-second downward hold at the real default 800 mph", () => {
+		const flight = FlightMath.NewState();
+		expect(FlightMath.ToMph(flight.speed)).toBe(800);
+		let lowest = flight.y;
+		for (let i = 0; i < 180; i++) {
+			FlightMath.Step(flight, { x: 0, y: -1, throttle: FlightMath.CruiseThrottle }, 1 / 60);
+			lowest = math.min(lowest, flight.y);
+		}
+		expect(lowest).toBeLessThan(0);
+	});
+	it("completes turn/pitch with short opposite taps at 800 and 3000 mph, then completes the gated sortie", () => {
+		for (const speed of [FlightMath.CruiseSpeed, FlightMath.MaxSpeed]) {
+			const flight = FlightMath.NewState(), rules = MissionRules.NewState(1, 0);
+			flight.speed = speed;
+			let now = 0, lowest = flight.y;
+			for (const axis of ["turn", "pitch"]) for (let pair = 0; pair < 11; pair++) {
+				for (const direction of [1, -1]) for (let frame = 0; frame < 5; frame++) {
+					const input = { x: axis === "turn" && frame < 3 ? direction : 0, y: axis === "pitch" && frame < 3 ? direction : 0, throttle: FlightMath.ThrottleForSpeed(speed) };
+					now += 0.05;
+					FlightMath.Step(flight, input, 0.05);
+					MissionRules.ObserveControls(rules, input.x, input.y, 0.05, now);
+					lowest = math.min(lowest, flight.y);
+				}
+			}
+			expect(lowest).toBeGreaterThan(240);
+			expect(math.abs(flight.pitch)).toBeLessThan(0.001);
+			expect(rules.phase).toBe("tutorial_target");
+			MissionRules.CycleTarget(rules, now);
+			now += MissionRules.TeachMinimum;
+			MissionRules.Tick(rules, now);
+			expect(rules.phase).toBe("tutorial_missile");
+			expect(MissionRules.RecordKill(rules, "radar", "ground", true, now)).toBe(true);
+			now += MissionRules.TeachMinimum + MissionRules.BanditBeat;
+			MissionRules.Tick(rules, now);
+			MissionRules.Tick(rules, now + MissionRules.BanditBeat);
+			expect(MissionRules.BanditsDue(rules)).toBe(true);
+			for (let i = 0; i < 3; i++) MissionRules.RecordKill(rules, `bandit${i}`, "air", true, now + MissionRules.BanditBeat + i);
+			expect(rules.outcome).toBe("won");
+		}
+	});
+	it("recovers only practice impacts, retaining progress and speed without protecting the live fight", () => {
+		const rules = MissionRules.NewState(1, 0);
+		for (const phase of ["tutorial_move", "tutorial_target", "tutorial_missile"] as const) {
+			rules.phase = phase; rules.turnObserved = 2;
+			const flight = FlightMath.FromPose(300, 0, -900, 2, -1, 600, 2);
+			expect(MissionRules.RecoverPractice(rules, flight)).toBe(true);
+			expect([flight.x, flight.y, flight.z, flight.speed]).toEqual([0, 800, 500, 600]);
+			expect(math.abs(flight.pitch)).toBe(0);
+			expect(rules.turnObserved).toBe(2);
+		}
+		const flight = FlightMath.NewState();
+		// A hit latched during the minimum prompt dwell remains practice until the warning.
+		rules.groundKills = 1;
+		expect(MissionRules.RecoverPractice(rules, flight)).toBe(true);
+		rules.groundKills = 0; rules.phase = "tutorial_bandits";
+		expect(MissionRules.RecoverPractice(rules, flight)).toBe(false);
+		rules.phase = "tutorial_move"; rules.outcome = "failed";
+		expect(MissionRules.RecoverPractice(rules, flight)).toBe(false);
+		expect(MissionRules.RecoverPractice(MissionRules.NewState(2, 0), flight)).toBe(false);
+	});
+});
+
+
+describe("tutorial safety delivery through the HUD radio queue", () => {
+	for (const voice of [undefined, 12]) it(`interrupts reset and backlog with voice=${voice}, protecting until arrival`, () => {
+		const rules = MissionRules.NewState(1, 0), queue = new RadioQueue();
+		teachMovement(rules);
+		MissionRules.CycleTarget(rules, rules.elapsed);
+		MissionRules.Tick(rules, rules.elapsed + MissionRules.TeachMinimum);
+		expect(rules.phase).toBe("tutorial_missile");
+		const start = rules.elapsed;
+		const flight = FlightMath.FromPose(300, 0, -900, 2, -1, 600, 2);
+		MissionRules.Tick(rules, start + 2.40);
+		expect(MissionRules.RecoverPractice(rules, flight)).toBe(true);
+		queue.Push(MissionRules.PracticeReset, 4.5, rules.elapsed, voice);
+		queue.Push("old chatter", 6, rules.elapsed, 15);
+		expect(MissionRules.RecordKill(rules, "radar", "ground", true, start + 2.41)).toBe(true);
+		MissionRules.Tick(rules, start + 2.50);
+		expect(rules.phase).toBe("tutorial_bandits");
+		const warning = MissionCatalog.Get(1).phases[3].beat!;
+		queue.Push(warning, MissionRules.BanditBeat, rules.elapsed, undefined, true);
+		expect(queue.Current(rules.elapsed)?.text).toBe(warning);
+		expect(queue.Waiting()).toBe(0);
+		// Normal chatter cannot displace a safety notice after the usual 2.5 s minimum.
+		queue.Push("ordinary chatter", 4.5, rules.elapsed + 0.1);
+		MissionRules.Tick(rules, start + 6.49);
+		expect(MissionRules.RecoverPractice(rules, flight)).toBe(true);
+		expect(queue.Current(rules.elapsed)?.text).toBe(warning);
+		expect(MissionRules.BanditsDue(rules)).toBe(false);
+		expect(flight.speed).toBe(600);
+		expect(rules.groundKills).toBe(1);
+		MissionRules.Tick(rules, start + 6.50);
+		expect(MissionRules.BanditsDue(rules)).toBe(true);
+		queue.Push(MissionRules.LiveWarning, 6, rules.elapsed, undefined, true);
+		expect(queue.Current(rules.elapsed)?.text).toBe(MissionRules.LiveWarning);
+		expect(queue.Waiting()).toBe(0);
+		// This is the collision branch used by stepSession: the first live hit must fail.
+		expect(MissionRules.RecoverPractice(rules, flight)).toBe(false);
+		MissionRules.Tick(rules, rules.elapsed, 0);
+		expect(rules.reason).toBe("destroyed");
 	});
 });

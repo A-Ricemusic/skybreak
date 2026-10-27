@@ -17,6 +17,8 @@ export const RADIO_DEFAULT_SECONDS = 4.5;
 
 export interface RadioLine {
 	text: string;
+	/** Safety notices interrupt and hold for their full duration. */
+	priority?: boolean;
 	/** Seconds the server asked the line to stay up. */
 	seconds: number;
 	/** When the line became visible (undefined while waiting). */
@@ -32,9 +34,15 @@ export class RadioQueue {
 	private readonly waiting: RadioLine[] = [];
 
 	/** Adds a line (with its voice length when it is voiced); it shows at once if the current one has had its minimum time. */
-	public Push(text: string, seconds: number | undefined, now: number, voice?: number): void {
+	public Push(text: string, seconds: number | undefined, now: number, voice?: number, priority = false): void {
 		const hold = typeIs(seconds, "number") && seconds === seconds ? math.clamp(seconds, RADIO_MIN_SECONDS, 10) : RADIO_DEFAULT_SECONDS;
 		const voiced = typeIs(voice, "number") && voice > 0 && voice < 60 ? voice : undefined;
+		if (priority) {
+			this.Clear();
+			this.current = { text, seconds: hold, voice: voiced, queuedAt: now, priority: true };
+			show(this.current, now, now);
+			return;
+		}
 		this.waiting.push({ text, seconds: hold, voice: voiced, queuedAt: now });
 		while (this.waiting.size() > RADIO_MAX_QUEUED) this.waiting.shift();
 		this.advance(now);
@@ -92,6 +100,7 @@ export class RadioQueue {
 
 /** Shortest time a line stays up while others wait: a voiced line keeps its voice and tail. */
 function minimum(line: RadioLine): number {
+	if (line.priority) return line.seconds;
 	return line.voice !== undefined ? math.max(RADIO_MIN_SECONDS, line.voice + VOICE_TAIL) : RADIO_MIN_SECONDS;
 }
 

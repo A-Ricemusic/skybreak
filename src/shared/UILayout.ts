@@ -828,7 +828,7 @@ export function getFlightHints(inputMode: InputMode, context: FlightHintContext)
 
 /** Small roots stack the two cells inside the same existing objective rectangle. */
 export function getMovementIndicatorLayout(area: Rectangle, textSize: number): Rectangle[] {
-	const stack = area.width < hudTextWidth(26, textSize);
+	const stack = area.width < hudTextWidth(28, textSize);
 	return [0, 1].map(index => ({
 		x: area.x + (stack ? 0 : index * area.width / 2),
 		y: area.y + (stack ? index * area.height / 2 : 0),
@@ -844,13 +844,13 @@ export function getMovementIndicators(mode: InputMode, turn?: number, pitch?: nu
 		const known = value >= 0 && value === value && math.abs(value) !== math.huge;
 		const seconds = known ? math.clamp(value, 0, 3) : 0;
 		const done = known && seconds >= 3;
-		return { text: `${done ? "✓" : "○"} ${labels[index]} ${known ? math.floor(seconds) : "–"}/3s`, done };
+		return { text: `${done ? "✓" : "Tap"} ${labels[index]}${known ? math.floor(seconds) : "–"}/3s`, done };
 	});
 }
 
 /** Mission 1 training copy, short enough for the one-line objective (<= TUTORIAL_MAX_CHARS). */
 export function getTutorialInstruction(step: string | undefined, mode: InputMode): string {
-	if (step === "move") return mode === "touch" ? "L: turn 3s; pitch up/down 3s" : mode === "gamepad" ? "LS: turn 3s; pitch up/down 3s" : "A/D 3s; W/S up/down 3s";
+	if (step === "move") return mode === "touch" ? "Tap L turn/pitch; 3s total each" : mode === "gamepad" ? "Tap LS turn/pitch; 3s total each" : "Tap A/D, W/S; 3s total each";
 	if (step === "target") return mode === "touch" ? "Tap TGT to select the radar" : mode === "gamepad" ? "Press Y to select the radar" : "Press Tab to select the radar";
 	if (step === "missile") return mode === "touch" ? "Hold the lock, then tap FIRE" : mode === "gamepad" ? "Hold the lock, then press RT" : "Hold the lock, then press Space";
 	return "";
