@@ -1,3 +1,4 @@
+import { viewportPosition } from "./ViewportGui";
 import { TARGET_BOX_LIMIT, TARGET_TAG_GAP, TARGET_TAG_HEIGHT, TARGET_TAG_RISE, TARGET_TAG_WIDTH, TargetBoxes, TargetBoxFlags, TargetBoxTone, TargetTagSide } from "../shared/TargetBoxes";
 import type { Rectangle } from "../shared/UILayout";
 import { HUD, HUD_FONT_BOLD } from "./Theme";
@@ -29,8 +30,6 @@ interface Slot {
 	frame: Frame;
 	stroke: UIStroke;
 	tagLabel: TextLabel;
-	x: number;
-	y: number;
 	size: number;
 	tone?: TargetBoxTone;
 	/** Where the TGT tag sits; undefined hides it. */
@@ -102,7 +101,8 @@ export class TargetBoxOverlay {
 			const contact = ranked[index];
 			contact.boxed = true;
 			const slot = this.slots[index] ?? this.createSlot(gui, index);
-			if (contact.x !== slot.x || contact.y !== slot.y) { slot.x = contact.x; slot.y = contact.y; slot.frame.Position = UDim2.fromOffset(contact.x, contact.y); }
+			// Re-evaluate even for a stationary target: topbar/safe-area geometry can change.
+			slot.frame.Position = viewportPosition(gui, contact.x, contact.y);
 			if (contact.size !== slot.size) { slot.size = contact.size; slot.frame.Size = UDim2.fromOffset(contact.size, contact.size); }
 			if (contact.tone !== slot.tone) {
 				slot.tone = contact.tone;
@@ -151,7 +151,7 @@ export class TargetBoxOverlay {
 		tag.Visible = false;
 		tag.Parent = frame;
 		frame.Parent = gui;
-		const slot: Slot = { frame, stroke, tagLabel: tag, x: -1, y: -1, size: -1 };
+		const slot: Slot = { frame, stroke, tagLabel: tag, size: -1 };
 		this.slots[index] = slot;
 		return slot;
 	}
