@@ -41,7 +41,15 @@ export interface SaveSlot {
 	/** Last difficulty chosen on the briefing screen for this slot (Difficulty kind). */
 	difficulty?: string;
 }
+export type DeletionStatus = "confirmed" | "pending" | "failed" | "session-only";
+export interface SlotDeletion {
+	slot: number;
+	generation: number;
+	status: DeletionStatus;
+}
 export interface CampaignResponse {
+	/** Local acceptance is distinct from durable deletion confirmation. */
+	deletions?: SlotDeletion[];
 	ok: boolean;
 	error?: string;
 	slots?: SaveSlot[];

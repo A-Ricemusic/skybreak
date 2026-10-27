@@ -1,3 +1,4 @@
+import { CampaignRequestBudget } from "./CampaignRequestBudget";
 import { DataStoreService, Players, RunService } from "@rbxts/services";
 import { GameConfig } from "../shared/GameConfig";
 import { MISSION_COUNT } from "../shared/MissionCatalog";
@@ -28,13 +29,12 @@ interface PlayerState {
 	activeSlot?: number;
 	activeMission?: number;
 	requestBusy: boolean;
-	lastRequest: number;
+	budget: CampaignRequestBudget;
 	lastRecovery: number;
 	closing: boolean;
 }
 
 const LOAD_TIMEOUT = 20;
-const REQUEST_INTERVAL = 0.12;
 const RECOVERY_INTERVAL = 3;
 
 let profileStore: DataStore | undefined;
@@ -75,7 +75,7 @@ function newState(player: Player): PlayerState {
 		loaded: false,
 		loadStarted: false,
 		requestBusy: false,
-		lastRequest: 0,
+		budget: new CampaignRequestBudget(),
 		lastRecovery: -math.huge,
 		closing: false,
 	};
@@ -109,6 +109,7 @@ function waitForLoad(state: PlayerState): boolean {
 function response(state: PlayerState, ok: boolean, errorMessage?: string): CampaignResponse {
 	const result: CampaignResponse = {
 		ok,
+		deletions: state.coordinator.getDeletions(),
 		slots: state.coordinator.getSlots(),
 		persistence: state.coordinator.getPersistence(),
 	};
@@ -178,7 +179,8 @@ function deleteSlot(state: PlayerState, payload: unknown): CampaignResponse {
 	if (state.coordinator.getPersistence() === "unavailable") return response(state, false, "Campaign saves are temporarily unavailable.");
 	if (state.activeSlot !== undefined || state.activeMission !== undefined) return response(state, false, "Finish the current mission before deleting a save.");
 	state.coordinator.deleteSlot(slot);
-	// Wait for the cloud write so the client can tell the player whether the delete actually stuck.
+	// Bound the wait; response.deletions reports actual confirmation even if this times out.
+	// ok means local acceptance, never durable cloud success.
 	state.coordinator.flush();
 	return response(state, true);
 }
@@ -204,8 +206,12 @@ function handleRequest(player: Player, action: unknown, payload?: unknown): Camp
 	if (state.closing) return response(state, false, "Campaign session is closing.");
 
 	const now = os.clock();
-	if (now - state.lastRequest < REQUEST_INTERVAL) return response(state, false, "Please wait a moment before trying again.");
-	state.lastRequest = now;
+	if (!state.budget.accept(now, action === "DeletionStatus")) return response(state, false, "Please wait a moment before trying again.");
+	// No yielding load/recovery, queue ownership or foreground timestamp changes for observations.
+	if (action === "DeletionStatus") {
+		if (!state.loaded) return response(state, false, "Campaign data is still loading. Please try again.");
+		return response(state, true);
+	}
 	if (state.requestBusy) return response(state, false, "Another campaign request is already in progress.");
 	state.requestBusy = true;
 

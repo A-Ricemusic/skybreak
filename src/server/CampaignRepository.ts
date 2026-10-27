@@ -1,7 +1,7 @@
 import { GameConfig } from "../shared/GameConfig";
 import { MissionCatalog, MISSION_COUNT } from "../shared/MissionCatalog";
 import { MissionRank, MissionScore, RANK_ORDER } from "../shared/MissionScore";
-import { MissionFinished, MissionRecord, MissionStats, Persistence, SaveSlot } from "../shared/Types";
+import { MissionFinished, MissionRecord, MissionStats, Persistence, SaveSlot, SlotDeletion } from "../shared/Types";
 import { SpecialWeapons } from "../shared/SpecialWeapons";
 import { Difficulty } from "../shared/Difficulty";
 
@@ -52,6 +52,8 @@ export interface CampaignStore {
 }
 
 export interface CoordinatorOptions {
+	clock?: () => number;
+	wait?: () => void;
 	defer?: (callback: () => void) => void;
 	now?: () => number;
 	maxAttempts?: number;
@@ -510,6 +512,9 @@ function counter(value: unknown): number {
 /** Owns one player's locally authoritative profile and its serialized cloud writes. */
 export class CampaignCoordinator {
 	private profile = blankProfile();
+	private readonly deletions = new Map<number, SlotDeletion>();
+	private readonly clock: () => number;
+	private readonly wait: () => void;
 	private persistence: Persistence;
 	private cloudLoaded = false;
 	private dirty = false;
@@ -522,6 +527,8 @@ export class CampaignCoordinator {
 	private readonly logWarning: (message: string) => void;
 
 	public constructor(private readonly key: string, private readonly store?: CampaignStore, options: CoordinatorOptions = {}) {
+		this.clock = options.clock ?? os.clock;
+		this.wait = options.wait ?? (() => { task.wait(0.05); });
 		this.persistence = store ? "unavailable" : "session";
 		this.defer = options.defer ?? task.defer;
 		this.now = options.now ?? os.time;
@@ -655,7 +662,20 @@ export class CampaignCoordinator {
 		const slot = blankSlot(slotIndex);
 		slot.generation = generation;
 		this.profile.slots[slotIndex - 1] = slot;
+		this.deletions.set(slotIndex, { slot: slotIndex, generation, status: this.store ? "pending" : "session-only" });
 		this.markDirty();
+	}
+
+	public getDeletions(): SlotDeletion[] {
+		const result: SlotDeletion[] = [];
+		for (const [, deletion] of this.deletions) {
+			let status = deletion.status;
+			if (status !== "confirmed" && status !== "session-only") {
+				status = this.writeRunning || this.writeScheduled ? "pending" : "failed";
+			}
+			result.push({ ...deletion, status });
+		}
+		return result;
 	}
 
 	public getSlots(): SaveSlot[] {
@@ -677,10 +697,10 @@ export class CampaignCoordinator {
 	public flush(timeoutSeconds = 5): boolean {
 		if (!this.store) return true;
 		if (!this.cloudLoaded) return false;
-		const deadline = os.clock() + math.max(0, timeoutSeconds);
+		const deadline = this.clock() + math.max(0, timeoutSeconds);
 		if (this.dirty && !this.writeRunning && !this.writeScheduled) this.queueSave();
-		while (this.hasPendingSave() && os.clock() < deadline) {
-			task.wait(0.05);
+		while (this.hasPendingSave() && this.clock() < deadline) {
+			this.wait();
 			if (this.dirty && !this.writeRunning && !this.writeScheduled) this.queueSave();
 		}
 		return !this.hasPendingSave();
@@ -714,6 +734,15 @@ export class CampaignCoordinator {
 				this.dirty = true;
 				this.persistence = "unavailable";
 				break;
+			}
+			// Only a successful write carrying this tombstone confirms the deletion.
+			// Later progress can reuse its generation; never replay deleteSlot on retry.
+			const persisted = normalizeProfile(stored);
+			for (const [, deletion] of this.deletions) {
+				const sent = desired.slots[deletion.slot - 1];
+				const saved = persisted.slots[deletion.slot - 1];
+				if (sent.generation === deletion.generation && !sent.occupied &&
+					saved.generation === deletion.generation && !saved.occupied) deletion.status = "confirmed";
 			}
 			this.profile = mergeProfiles(stored, this.profile);
 			this.persistence = "cloud";
