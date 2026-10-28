@@ -30,16 +30,16 @@
   },
   "documents": {
     "docs/human/status.html": {
-      "sha256": "1da6dce2e31c78f2623e8405da7136822449e69ea876de7d3699c6cb9b229a57"
+      "sha256": "45db9f3f7188ec63f576d996302e851c29fb2c55321f482fc87ead5f91b45fd0"
     },
     "docs/human/playtest.html": {
-      "sha256": "b616e471c5116d5da5c50ae6c7c1ce6b78dc7137e0e9e6a26c03c5de12ca9485"
+      "sha256": "85b8daa0b71efecb739f7b09dfd883bf4a0a4c9e156fa2508d9bb18c6564f064"
     },
     "docs/human/plan.html": {
-      "sha256": "9f26bae835abe95ce22105421abcbf21f8db16b5cdcb5ae74e442ae8612ffaab"
+      "sha256": "04421c1e50f973c3eab1df6a2171fe8e592e94541cbb19f2dd9d4e5a56f79f9c"
     },
     "docs/human/taste.html": {
-      "sha256": "b445a27270e8bb2afbe468fd13add6c2a7fc4129546c8ecf9cdb26f2bdca1fca"
+      "sha256": "710dda3abed77932c892c0904da60cf864ae08afb1590c3a5ae45a15f1a5fdd6"
     }
   },
   "agentInstructionsUpdated": true,
@@ -65,5 +65,6 @@
     "nativeReview": "ac04-initial-release-native-61.json",
     "limits": "Owner Player verification; old receipt63 retained; source review is bounded; native endpoint simulation not gameplay"
   },
-  "currentState": "Owner rollback; AC04 withdrawn; development stopped"
+  "currentState": "Owner rollback; AC04 withdrawn; development stopped",
+  "skillDocumentationUpdate": "video-reference-analysis added at owner request; game development remains stopped"
 }

@@ -60,3 +60,8 @@
 # Testing
 
 - Do not add React agent testing (the former `react-agent-testing/` React+Codex/Playwright browser test harness) or any web React/DOM test harness back to this repo; Roblox tests use @rbxts/jest via `bun run test:roblox`. `bun run validate:offline` enforces this via `tools/check-no-react-agent-testing.ts`.
+
+# Video reference analysis skill
+
+- For timestamped video inspection, reference-grounded specifications or implementation comparisons, read [video-reference-analysis](skills/video-reference-analysis/SKILL.md). It documents segment sizing, actual frame inspection, source timestamps, audio limits, coverage gaps and comparison against the accepted baseline.
+- Creating and saving this skill is a documentation-only owner request. It does not resume game development, authorize a redesign, or permit PR merges.
