@@ -35,6 +35,7 @@ describe("Mission policy schema", () => {
 			});
 			expect(MissionCatalog.Scoring(blueprint.id)).toEqual({
 				points: { bandit: 100, raider: 100, courier: 100, ace: 100, ground: 150 },
+				basis: "rating",
 				rank: { S: 90, A: 75, B: 55, C: 35 },
 			});
 			expect(MissionCatalog.WorldKey(blueprint.id)).toBe(blueprint.region);
@@ -45,7 +46,7 @@ describe("Mission policy schema", () => {
 	it("rejects nonfinite, nonpositive, inconsistent and out-of-bounds policy values", () => {
 		const airspace = { softHalfWidth: 1000, hardHalfWidth: 1200, spawnLimit: 900, radarRange: 1500 };
 		const start = { kind: "airborne" as const, x: 0, y: 250, z: 0, headingDegrees: 0 };
-		const scoring = { points: { bomber: 100 }, rank: { S: 600, A: 500, B: 400, C: 300 } };
+		const scoring = { points: { bomber: 100 }, basis: "points" as const, rank: { S: 600, A: 500, B: 400, C: 300 } };
 		const cases: Partial<MissionBlueprint>[] = [
 			{ countdownSeconds: 0 },
 			{ countdownSeconds: 0 / 0 },
@@ -61,6 +62,8 @@ describe("Mission policy schema", () => {
 			{ scoring: { ...scoring, points: { bomber: -1 } } },
 			{ scoring: { ...scoring, rank: { S: 500, A: 500, B: 400, C: 300 } } },
 			{ scoring: { ...scoring, rank: { S: 600, A: 500, B: 400, C: -1 } } },
+			{ scoring: { ...scoring, basis: "rating" as const } },
+			{ scoring: { ...scoring, basis: "score" as unknown as "points" } },
 			{ worldKey: "" },
 			{ available: 1 as unknown as boolean },
 		];
@@ -72,7 +75,7 @@ describe("Mission policy schema", () => {
 			countdownSeconds: 600,
 			airspace: { softHalfWidth: 15000, hardHalfWidth: 17500, spawnLimit: 14500, radarRange: 20000 },
 			start: { kind: "carrier_flyoff", x: 100, y: 590, z: -6000, headingDegrees: 0, speed: 160 },
-			scoring: { points: { bomber: 100, escort: 60, ace: 240 }, rank: { S: 1000, A: 800, B: 600, C: 400 } },
+			scoring: { points: { bomber: 100, escort: 60, ace: 240 }, basis: "points", rank: { S: 1000, A: 800, B: 600, C: 400 } },
 			worldKey: "m01_sea_island",
 			available: false,
 		});

@@ -27,7 +27,13 @@ export interface MissionScoringPolicy {
 	 * new mission profiles may add documented roles such as bomber and escort.
 	 */
 	points: { [role: string]: number };
-	/** Score thresholds, best rank first. A score below C receives D. */
+	/**
+	 * What the rank thresholds are measured against. "points": the mission's total score
+	 * (reference-matched missions, e.g. S at 800 points). "rating": today's 0-100 performance
+	 * rating from MissionScore (time, accuracy, survival), which every current mission uses.
+	 */
+	basis: "points" | "rating";
+	/** Thresholds on `basis`, best rank first. A value below C receives D. */
 	rank: { S: number; A: number; B: number; C: number };
 }
 
@@ -62,6 +68,7 @@ export const LEGACY_MISSION_START: MissionStartPolicy = {
 /** Legacy target points and performance-rating cuts used by MissionScore today. */
 export const LEGACY_MISSION_SCORING: MissionScoringPolicy = {
 	points: { bandit: 100, raider: 100, courier: 100, ace: 100, ground: 150 },
+	basis: "rating",
 	rank: { S: 90, A: 75, B: 55, C: 35 },
 };
 
@@ -105,7 +112,10 @@ export function validateMissionPolicy(policy: MissionPolicy, missionId: number):
 			assert(finite(points) && points >= 0, `${tag} scoring.points.${role} must be finite and >= 0`);
 		}
 		assert(roles > 0, `${tag} scoring.points must define at least one role`);
+		const basis = policy.scoring.basis;
+		assert(basis === "points" || basis === "rating", `${tag} scoring.basis must be "points" or "rating"`);
 		const rank = policy.scoring.rank;
+		if (basis === "rating") assert(rank.S <= 100, `${tag} scoring.rank thresholds on the rating basis must be <= 100`);
 		for (const [name, value] of pairs(rank)) assert(finite(value), `${tag} scoring.rank.${name} must be finite`);
 		assert(rank.S > rank.A && rank.A > rank.B && rank.B > rank.C && rank.C >= 0,
 			`${tag} scoring rank thresholds must satisfy S > A > B > C >= 0`);
