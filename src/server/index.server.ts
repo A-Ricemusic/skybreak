@@ -48,26 +48,15 @@ function initialize(): void {
 		CombatEffect: ensureRemote(remotesFolder, "CombatEffect", "RemoteEvent"),
 	};
 
-	WorldBuilder.Build();
-	// Build the enemy (Vanta) mesh templates now. The first bandit of a server lifetime is otherwise
-	// created inside a Heartbeat step, where the mesh build yields mid-simulation.
-	const [warmed, warmError] = pcall(() => JetFactory.Create("Vanta warm-up", true).Destroy());
-	if (!warmed) warn(`SKYBREAK enemy mesh warm-up failed; the first sortie will build it: ${tostring(warmError)}`);
-	const storyModels=new Instance("Folder");storyModels.Name="RelayStoryModels";
-	for (const [name,make] of [
-		["CinematicKestrel",()=>JetFactory.Create("CinematicKestrel", false)],
-		["CinematicChair",()=>MissionAssets.CreateCinematicChair()],
-		["CinematicDesk",()=>MissionAssets.CreateCinematicDesk()],
-		["CommsRelay",()=>MissionAssets.CreateCommsRelay("CommsRelay")],
-		["RelayTruck",()=>MissionAssets.CreateRelayTruck("RelayTruck")],
-		["HarborLaunch",()=>MissionAssets.CreateHarborLaunch("HarborLaunch")],
-	] as const) {const model=make();model.Name=name;model.Parent=storyModels;}
-	// Reuse the approved uploaded hangar; never substitute third-party assets.
-	WorldAssets.Preload(["Hangar"]);
-	const hangar = WorldAssets.PlaceUploaded("Hangar", storyModels, new CFrame());
-	if (hangar) hangar.Name = "CinematicHangar";
-	else warn("SKYBREAK cinematic hangar unavailable; stage will use its explicit fallback");
-	storyModels.Parent=ReplicatedStorage;
+	// Published empty and synchronously: the client cinematic looks the folder up without waiting
+	// and falls back per missing model, so the models can land later.
+	const storyModels = new Instance("Folder");
+	storyModels.Name = "RelayStoryModels";
+	storyModels.Parent = ReplicatedStorage;
+
+	// Handlers first. Neither Init reads anything built below (CombatService makes its own
+	// SkybreakCombat folder; CampaignService only loads player data), and everything below can
+	// yield on asset loads — pcall catches errors, not stalls.
 	const [combatInitialized, combatError] = pcall(() => CombatService.Init(remotes, CampaignService.OnFinished));
 	if (!combatInitialized) {
 		warn(`SKYBREAK CombatService initialization failed; missions are disabled: ${tostring(combatError)}`);
@@ -75,6 +64,34 @@ function initialize(): void {
 	} else {
 		CampaignService.Init(remotes, CombatService);
 	}
+
+	task.spawn(() => {
+		const [built, buildError] = pcall(() => WorldBuilder.Build());
+		if (!built) warn(`SKYBREAK lobby world build failed; continuing without it: ${tostring(buildError)}`);
+		// Build the enemy (Vanta) mesh templates now. The first bandit of a server lifetime is otherwise
+		// created inside a Heartbeat step, where the mesh build yields mid-simulation.
+		const [warmed, warmError] = pcall(() => JetFactory.Create("Vanta warm-up", true).Destroy());
+		if (!warmed) warn(`SKYBREAK enemy mesh warm-up failed; the first sortie will build it: ${tostring(warmError)}`);
+		const [storyBuilt, storyError] = pcall(() => {
+			for (const [name,make] of [
+				["CinematicKestrel",()=>JetFactory.Create("CinematicKestrel", false)],
+				["CinematicChair",()=>MissionAssets.CreateCinematicChair()],
+				["CinematicDesk",()=>MissionAssets.CreateCinematicDesk()],
+				["CommsRelay",()=>MissionAssets.CreateCommsRelay("CommsRelay")],
+				["RelayTruck",()=>MissionAssets.CreateRelayTruck("RelayTruck")],
+				["HarborLaunch",()=>MissionAssets.CreateHarborLaunch("HarborLaunch")],
+			] as const) {const model=make();model.Name=name;model.Parent=storyModels;}
+		});
+		if (!storyBuilt) warn(`SKYBREAK cinematic story models failed to build; the cinematic will use its fallbacks: ${tostring(storyError)}`);
+		const [hangarPlaced, hangarError] = pcall(() => {
+			// Reuse the approved uploaded hangar; never substitute third-party assets.
+			WorldAssets.Preload(["Hangar"]);
+			const hangar = WorldAssets.PlaceUploaded("Hangar", storyModels, new CFrame());
+			if (hangar) hangar.Name = "CinematicHangar";
+			else warn("SKYBREAK cinematic hangar unavailable; stage will use its explicit fallback");
+		});
+		if (!hangarPlaced) warn(`SKYBREAK cinematic hangar preload failed; stage will use its explicit fallback: ${tostring(hangarError)}`);
+	});
 	print(`${GameConfig.DisplayName}: ${GameConfig.Subtitle} server started`);
 }
 
