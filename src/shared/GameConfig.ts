@@ -12,7 +12,7 @@ export const GameConfig = {
 		MissionCount: 27,
 		// Legacy legacy total-air-kills counter kept clamped for display safety.
 		MaxRecordedKills: 99,
-		// Sortie deadline in seconds, read by both mission runners, the save layer and the HUD.
+		// Sortie deadline in seconds, read by the mission runner, the save layer and the HUD.
 		// Sorties are authored for 3-7 minutes (the finale ~8); 15 minutes leaves a slow pilot room.
 		MissionTimeLimit: 900,
 		// Legacy per-mission required counts (used for v1/v2 compatibility and tests).
