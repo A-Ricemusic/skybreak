@@ -7,7 +7,11 @@ export type FireDenied = "no_ammo" | "cooldown";
 export type SpecialDenied = "special_empty" | "special_cooldown" | "special_active" | "special_no_target";
 /** What the weapons channel reports after a FIRE or SPECIAL press: a refusal or a blind launch. */
 export type FireNotice = FireDenied | "blind" | SpecialDenied;
-const FIRE_NOTICES: FireNotice[] = ["no_ammo", "cooldown", "blind", "special_empty", "special_cooldown", "special_active", "special_no_target"];
+/** Keyed by every FireNotice, so a new reason that is not listed here fails to compile. */
+const FIRE_NOTICES: Record<FireNotice, true> = {
+	no_ammo: true, cooldown: true, blind: true,
+	special_empty: true, special_cooldown: true, special_active: true, special_no_target: true,
+};
 export interface Point { x: number; y: number; z: number }
 export interface ActionGateState { last: Map<CombatActionKind, number> }
 export type LaunchDecision = { kind: "denied"; reason: FireDenied } | { kind: "guided" } | { kind: "blind" };
@@ -88,7 +92,7 @@ export const WeaponRules = {
 		return ACTION_KINDS.includes(value as CombatActionKind);
 	},
 	IsFireNotice(value: unknown): value is FireNotice {
-		return FIRE_NOTICES.includes(value as FireNotice);
+		return typeIs(value, "string") && FIRE_NOTICES[value as FireNotice] === true;
 	},
 	NewActionGate(): ActionGateState { return { last: new Map<CombatActionKind, number>() }; },
 	/**

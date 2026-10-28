@@ -1,4 +1,5 @@
 import { WorldAirspace } from "../shared/WorldAirspace";
+import { GameConfig } from "../shared/GameConfig";
 import { CombatBalance } from "../shared/CombatBalance";
 import { AircraftCollision } from "./AircraftCollision";
 import { Players, RunService, Workspace } from "@rbxts/services";
@@ -312,8 +313,10 @@ function targetMetrics(session: CombatSession, enemy: Enemy): LuaTuple<[number, 
 }
 
 function sessionTotalRequired(session: CombatSession): number {
-	if (session.missionId === 1) return 4;
-	if (session.missionId === 2) return 9;
+	if (session.missionId === 1 || session.missionId === 2) {
+		const counts = GameConfig.Campaign.Missions[session.missionId];
+		return counts.RequiredAirKills + counts.RequiredGroundKills;
+	}
 	// Required air + required ground + ace = all required destructions.
 	const bp = session.blueprint!;
 	return MissionCatalog.RequiredAirKills(bp) + MissionCatalog.RequiredGroundKills(bp);
@@ -1558,8 +1561,8 @@ function stepSession(session: CombatSession, dt: number): void {
 			// Anything held back by the live-aircraft budget takes the slots kills have freed.
 			drainAir(session);
 			// Mid-phase raider waves, in authored order (each one larger on Ace).
-			const waves=active.reinforce ?? [];
-			while (session.reinforceIndex < waves.size() && fraction >= waves[session.reinforceIndex].at) {
+			const waves=active.reinforce;
+			while (waves && session.reinforceIndex < waves.size() && fraction >= waves[session.reinforceIndex].at) {
 				requestAir(session,raiderWave(session,waves[session.reinforceIndex].count),"raider",true);
 				session.reinforceIndex += 1;
 			}

@@ -37,6 +37,10 @@ function finish(state: MissionRuleState, outcome: "won" | "failed", reason: Miss
 	state.outcome = outcome;
 	state.reason = reason;
 }
+/** Required bandits before the mission moves on; Mission 2's ace is tracked separately (aceKilled) yet counts as one air kill. */
+function requiredAirTarget(missionId: number): number {
+	return missionId === 1 ? GameConfig.Campaign.Missions[1].RequiredAirKills : GameConfig.Campaign.Missions[2].RequiredAirKills - 1;
+}
 /** Every teaching step stays up at least this long so its prompt can be read. */
 const TEACH_MINIMUM = 2.5;
 /** Seconds between the radar kill (and SERA's call) and the bandits' arrival. */
@@ -132,13 +136,13 @@ export const MissionRules = {
 		if (kind === "ground") {
 			state.groundKills += 1;
 			if (state.missionId === 1) advanceTutorial(state);
-			else if (state.groundKills === 5) state.phase = "ace";
+			else if (state.groundKills === GameConfig.Campaign.Missions[2].RequiredGroundKills) state.phase = "ace";
 		} else if (kind === "ace") {
 			state.aceKilled = true;
 			finish(state, "won", "complete");
 		} else if (required) {
 			state.requiredAirKills += 1;
-			if (state.requiredAirKills === 3) {
+			if (state.requiredAirKills === requiredAirTarget(state.missionId)) {
 				if (state.missionId === 1) finish(state, "won", "complete");
 				else state.phase = "warehouses";
 			}

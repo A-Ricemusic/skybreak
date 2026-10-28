@@ -1,9 +1,10 @@
 // Pure rules for the second weapon slot: the special chosen on the briefing screen.
 // The server owns the state and every gameplay effect; the HUD only renders it.
 import { WeaponRules } from "./WeaponRules";
+import type { SpecialDenied } from "./WeaponRules";
 
 export type SpecialKind = "uav" | "flares" | "salvo" | "lance";
-export type SpecialDenied = "special_empty" | "special_cooldown" | "special_active" | "special_no_target";
+export type { SpecialDenied };
 export type SpecialDecision = { kind: "denied"; reason: SpecialDenied } | { kind: "ok" };
 
 export interface SpecialDefinition {
@@ -65,17 +66,20 @@ const FLARE_CHANCE_ACE = 0.65;
 const STANDARD_DAMAGE = 55;
 const LANCE_DAMAGE = 110;
 const LANCE_SPEED = 950;
+const UAV_DURATION = 20;
+const FLARE_DURATION = 2.5;
+const FLARE_RECHARGE = 15;
 
 const DEFINITIONS: { [K in SpecialKind]: SpecialDefinition } = {
 	uav: {
 		kind: "uav", name: "RECON DRONE", short: "UAV",
-		description: "Marks every hostile for 20 s. Locks build twice as fast and 35% farther.",
-		charges: 2, cooldown: 25, duration: 20,
+		description: `Marks every hostile for ${UAV_DURATION} s. Locks build faster and reach ${math.round((UAV_RANGE_FACTOR - 1) * 100)}% farther.`,
+		charges: 2, cooldown: 25, duration: UAV_DURATION,
 	},
 	flares: {
 		kind: "flares", name: "FLARE POD", short: "FLR",
-		description: "2.5 s decoy cloud: inbound missiles within 1200 m chase it. One charge back every 15 s.",
-		charges: 3, rechargeSeconds: 15, cooldown: 1.5, duration: 2.5,
+		description: `${FLARE_DURATION} s decoy cloud: inbound missiles within ${FLARE_DECOY_RADIUS} m chase it. One charge back every ${FLARE_RECHARGE} s.`,
+		charges: 3, rechargeSeconds: FLARE_RECHARGE, cooldown: 1.5, duration: FLARE_DURATION,
 	},
 	salvo: {
 		kind: "salvo", name: "4AAM SALVO", short: "4AAM",
@@ -84,7 +88,7 @@ const DEFINITIONS: { [K in SpecialKind]: SpecialDefinition } = {
 	},
 	lance: {
 		kind: "lance", name: "XLAA LANCE", short: "XLAA",
-		description: "Heavy long-range missile: locks out to 3800 m and downs a bandit in one hit.",
+		description: `Heavy missile: locks bandits to ${math.round(WeaponRules.EnvelopeRange(LANCE_RANGE, false) / 10) * 10} m, ground to ${LANCE_RANGE} m; one hit downs a bandit.`,
 		charges: 4, cooldown: 4,
 	},
 };
