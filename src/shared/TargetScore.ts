@@ -47,3 +47,29 @@ export class TargetScore {
 		return { total: this.total, kills, points };
 	}
 }
+
+/** Rating sorties omit the field entirely to preserve legacy result packets. */
+export function targetScoreStats(ledger: TargetScore, policy: MissionScoringPolicy): { targetScore?: TargetScoreSnapshot } {
+	return policy.basis === "points" ? { targetScore: ledger.Snapshot() } : {};
+}
+
+/** Defensive copy for optional persisted breakdowns. Invalid/old fields are ignored. */
+export function readTargetScore(value: unknown, expectedTotal?: number): TargetScoreSnapshot | undefined {
+	if (!typeIs(value, "table")) return undefined;
+	const raw = value as Partial<TargetScoreSnapshot>;
+	if (!finiteNonnegative(raw.total) || (expectedTotal !== undefined && raw.total !== expectedTotal)
+		|| !typeIs(raw.kills, "table") || !typeIs(raw.points, "table")) return undefined;
+	const kills: { [role: string]: number } = {};
+	const points: { [role: string]: number } = {};
+	let total = 0;
+	for (const [role, count] of pairs(raw.kills)) {
+		if (!typeIs(role, "string") || role.size() === 0 || role.size() > 32 || !finiteNonnegative(count) || count % 1 !== 0) return undefined;
+		const awarded = raw.points[role];
+		if (!finiteNonnegative(awarded)) return undefined;
+		kills[role] = count;
+		points[role] = awarded;
+		total += awarded;
+	}
+	for (const [role] of pairs(raw.points)) if (kills[role] === undefined) return undefined;
+	return total === raw.total ? { total, kills, points } : undefined;
+}
