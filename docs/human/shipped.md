@@ -2,12 +2,16 @@
 
 Last updated: 2026-10-28, against `main` at `93dc512153b9098cdb7d486f3857e16794fc6ff0`.
 
-[Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). Broken Relay is the live 27-mission campaign. The latest merged gameplay-code revision is `93dc512` (#98). Gameplay merges are live through automatic CI/CD under the owner's convention; documentation-only changes add no game content.
+[Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). Broken Relay is the live 27-mission campaign. The latest merged gameplay-code revision is `d44b865` (#105). Gameplay merges are live through automatic CI/CD under the owner's convention; documentation-only changes add no game content.
 
 ## Merged 2026-10-28, newest first
 
 | PR | Commit | Title | Kind | What you will see |
 |---|---|---|---|---|
+| #105 | `d44b865` | feat(enemies): add unwired bomber routes and visual factory | Gameplay code, unused | Nothing yet. Bomber flight paths, formation and a stand-in model, ready for mission 1. |
+| #104 | `7958d04` | feat(scoring): add target-point ledger and ranks | Gameplay code, unused | Nothing yet. Points per target counted once per kill, and ranks by points. Today's scoring is unchanged. |
+| #103 | `2da939d` | feat(missions): optional per-mission policy fields (no behaviour change) | Gameplay code, unused | Nothing. Per-mission settings for countdown, world size, start and scoring; no mission uses them yet. |
+| #102 | `bd0e925` | docs: record mission 1 decisions and refresh the human docs | Docs | No game change. |
 | #101 | `76f7f9e` | docs(specs): mission 1 mission and world specs from reference footage | Docs | No game change. The approved spec for mission 1: six bombers, four escorts with an ace, a 10:00 countdown, points per target, and the island world. |
 | #100 | `4e46fb4` | docs(specs): map engine readiness for AC04 campaign | Docs | No game change. What the engine can and can't do for the redesign, and the build sequence. |
 | #99 | `48c2520` | docs: commit the footage ledger and record the owner's redesign answers | Docs | No game change. |
@@ -23,6 +27,7 @@ Last updated: 2026-10-28, against `main` at `93dc512153b9098cdb7d486f3857e16794f
 ## What was verified, and what was not
 
 - **#97 and #98:** before merging, the Studio test suite ran on main with both combined: 684 of 684 tests passed across 57 suites. The merged main is file-for-file identical to that tested tree.
+- **#103, #104, #105:** the orchestrator audited #103 and #104 line by line and reviewed #105; each passed the offline validator and CI (564 offline contracts after #105). The Studio suite has not run on them yet, because the large-world measurement holds the Studio lease; it runs before the scoring wiring merges.
 - **All PRs:** the offline validator passed (545 compiled contracts, audio, radio and voice simulations, 90 Python tests).
 - **Not done:** no agent has played any of this in Roblox Player. No place version or upload receipt was checked. Your playtest is the real check.
 
