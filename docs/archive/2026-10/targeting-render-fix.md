@@ -18,7 +18,7 @@ Studio reproduces `ScreenGui.AbsolutePosition=(0,-58)` with
 IgnoreGuiInset=true and ScreenInsets=None. AbsolutePosition is inset-relative,
 like Camera.WorldToScreenPoint; WorldToViewportPoint is not. A separate magenta
 mesh and green outline, using the original raw viewport offset, visibly align
-in [the native Studio capture](targeting-desktop-coordinate-probe.png).
+in [the native Studio capture](../../reviews/targeting-desktop-coordinate-probe.png).
 Measured viewport point `(506,268)`, screen point `(506,210)`, and GUI absolute
 center `(506,210)` describe the same rendered center. Blindly adding 58 would
 introduce an offset. This explains the supplied `(622.1,279.3)` versus
@@ -52,7 +52,7 @@ Ownership, dead-target, immunity and server authority rules are retained.
   cleanup was compiled again with `bun run build`.
 - Official standalone Luau domain suite: **498 passed, zero failures**. This is
   not Roblox Jest and contains no GUI emulation.
-- [Client engine regression](../../tools/validate-targeting.luau): **207 checks
+- [Client engine regression](../../../tools/validate-targeting.luau): **207 checks
   each** on desktop 1012×536, emulated iPhone 17 Pro landscape 750×381 and
   emulated portrait 401×778. Each run crosses ScreenInsets None,
   DeviceSafeInsets and CoreUISafeInsets with HUD scales .8, 1 and 1.3.
@@ -66,14 +66,14 @@ Ownership, dead-target, immunity and server authority rules are retained.
   keep-outs against a separately rendered scaled control. A deliberately
   displaced marker must fail the same center oracle. No helper inverse is
   used to manufacture an expected center.
-- [Server fixture](../../tools/validate-targeting-lock.server.luau): a normal
+- [Server fixture](../../../tools/validate-targeting-lock.server.luau): a normal
   server Script used the initialized CombatService, actual sortie fixed
   stepping and an enabled damageable ground contact held in the envelope.
   No lock progress was injected after its initial reset. The .45s rule gained
   .074074 per 1/30s tick: .962963 after 13 ticks, 1 after 14 ticks. Wall time
   was .448951s (start occurred between ticks); simulation quantization is
   14/30=.466667s. This is server integration evidence, not normal-play evidence.
-- [Raw results and lock samples](targeting-runtime-evidence.json).
+- [Raw results and lock samples](../../reviews/targeting-runtime-evidence.json).
 
 The render tests first used fresh clones of compiled targeting modules to
 avoid require-cache contamination. Final 207-check runs used the compiled

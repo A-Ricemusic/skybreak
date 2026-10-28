@@ -150,5 +150,5 @@ Parent review and actual flight acceptance are required before merge.
 
 ## PR54 tutorial and boundary followup
 
-See [tutorial-flight-recheck.md](tutorial-flight-recheck.md) for the current-main
+See [the archived tutorial-flight-recheck.md](archive/2026-10/tutorial-flight-recheck.md) for the current-main
 rebase, loaded-code reconciliation, live speed matrix, M1 evidence and limitations.

@@ -1,6 +1,6 @@
 # SKYBREAK: Broken Relay — independent campaign alternative
 
-Status: **round-3 mission structure implementation**, rebased onto main after PR #37, PR #38 and PR #41 (`4f06ef8`). Every M3–M27 sortie has 4–7 alternating objective beats. Normal is retuned for room to follow the story; Ace carries the stronger combat pressure. Build and offline verification are described below; Roblox Jest and live phone balance validation are reserved for the coordinator. Historical engine evidence at `1a48ee6` / `0fc0b3d` remains in [the original QA report](broken-relay-qa.md), and does not validate this pass.
+Status: **round-3 mission structure implementation**, rebased onto main after PR #37, PR #38 and PR #41 (`4f06ef8`). Every M3–M27 sortie has 4–7 alternating objective beats. Normal is retuned for room to follow the story; Ace carries the stronger combat pressure. Build and offline verification are described below; Roblox Jest and live phone balance validation are reserved for the coordinator. Historical engine evidence at `1a48ee6` / `0fc0b3d` remains in [the original QA report](archive/2026-10/broken-relay-qa.md), and does not validate this pass.
 
 ## Architecture and story
 
@@ -215,7 +215,7 @@ Completed for this pass:
 No Studio, Roblox Jest, Rojo server, or live playtest was launched for this implementation. Historical place packaging and Blender/GLB checks belong to the earlier asset pass.
 The offline runner adapts compiled module imports to filesystem `require`, provides only minimal assertion functions, and constructs inert vector/camera values for the unused menu configuration. It does not emulate the engine, run Roblox Jest, or fake a mission result. Use the official [Luau releases](https://github.com/luau-lang/luau/releases) executable and set `LUAU_BIN=/absolute/path/to/luau`, or place it at `build/offline-luau/luau`. No binary is committed. The compiler must run before the offline runner; `test:offline` does that.
 
-**Historical live evidence (before this pass):** actual engine Jest, sequential M1–M27, all28 rendered three-beat scenes/finale, protected-objective loss and visible Retry, successful no-evade escort replay, slot isolation/unlock/replay/teardown, and final compact/notched/portrait presentation checks. See [exact SHAs and scope](broken-relay-qa.md). A Rojo server was not used. Published cloud/rejoin and physical device/gamepad behavior remain unverified.
+**Historical live evidence (before this pass):** actual engine Jest, sequential M1–M27, all28 rendered three-beat scenes/finale, protected-objective loss and visible Retry, successful no-evade escort replay, slot isolation/unlock/replay/teardown, and final compact/notched/portrait presentation checks. See [exact SHAs and scope](archive/2026-10/broken-relay-qa.md). A Rojo server was not used. Published cloud/rejoin and physical device/gamepad behavior remain unverified.
 
 To repeat QA under a new parent-granted exclusive Studio lease:
 

@@ -49,4 +49,4 @@ swiftc -parse-as-library tools/export-playtest-video.swift -o /tmp/skybreak-expo
 
 Crop coordinates are source pixels from the upper-left. Measure them again if the Studio window or emulator layout changes. The exporter validates bounds and duration, preserves real-time playback, and refuses to overwrite an existing destination. Inspect beginning, objective transitions, and recap frames before sharing.
 
-Keep final review videos under ignored `build/videos/`. Do not commit video captures or reproducible Blender exports. Keep canonical Blender generators and runtime mesh JSON in Git; see [mission-assets.md](mission-assets.md) for the import workflow.
+Keep final review videos under ignored `build/videos/`. Do not commit video captures or reproducible Blender exports. Keep canonical Blender generators and runtime mesh JSON in Git; see [mission-assets.md](../../mission-assets.md) for the import workflow.

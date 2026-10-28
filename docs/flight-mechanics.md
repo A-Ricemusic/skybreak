@@ -146,7 +146,8 @@ Roblox Studio through `bun run test:roblox`, not Bun's JavaScript VM.
 `bun run build:place` builds the production place without test modules.
 
 For gameplay, start a fresh mission in normal Studio Play, then inject
-`tools/playtest-crash-stall.client.luau` as a normal client LocalScript. The harness
+the crash/stall harness (the former `tools/playtest-crash-stall.client.luau`, removed in the
+2026-10-28 tidy; recover it from git history at commit b0b1cb4) as a normal client LocalScript. The harness
 climbs with LS (a short input, then attitude hold), adjusts throttle through RS, checks neutral/deadzone/cancellation,
 observes server speed and lost altitude in a stall, recovers with throttle and
 nose down, then dives and waits for a real server Failed result with crash reason.

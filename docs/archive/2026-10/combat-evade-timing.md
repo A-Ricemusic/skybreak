@@ -59,10 +59,10 @@ not people, phones, measured RTT, terrain or complete engagements.
 
 Raw TSV columns: difficulty, act, initial speed, reaction, launches, all hits,
 shots with BREAK, hits after a break began. Each row covers 36 scenarios.
-Artifacts: [idealized](evidence/combat-timing/pr42-idealized.tsv),
-[current controls](evidence/combat-timing/pr42-current-controls.tsv),
-[grid driver](evidence/combat-timing/envelope.luau),
-[exact compiled control experiment](evidence/combat-timing/current-controls.patch).
+Artifacts: [idealized](../../evidence/combat-timing/pr42-idealized.tsv),
+[current controls](../../evidence/combat-timing/pr42-current-controls.tsv),
+[grid driver](../../evidence/combat-timing/envelope.luau),
+[exact compiled control experiment](../../evidence/combat-timing/current-controls.patch).
 The control experiment retains the predicted 0.25 back pressure and full lateral
 stick; it changes only speed selection and predictor reaction knowledge.
 
