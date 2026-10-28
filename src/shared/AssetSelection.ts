@@ -45,6 +45,16 @@ const TINTS: Record<AceLivery, ProceduralTint> = {
 };
 
 export const AssetSelection = {
+	/** Future approved heavy bomber export contract: aircraft kind and folder heavy-bomber.
+	 * No invented spec/ID; use the normal loader when the generated manifest gains it. */
+	BomberCandidates<K extends string>(specs: Record<K, { kind: string; folder: string }>): K[] {
+		const names: K[] = [];
+		for (const [name, spec] of pairs(specs as Record<string, { kind: string; folder: string }>)) {
+			if (spec.kind === "aircraft" && spec.folder === "heavy-bomber") names.push(name as K);
+		}
+		table.sort(names);
+		return names;
+	},
 	/** A usable Roblox asset ID: a positive whole number. */
 	IsAssetId(value: unknown): value is number {
 		return typeIs(value, "number") && value > 0 && value % 1 === 0 && value < math.huge;
