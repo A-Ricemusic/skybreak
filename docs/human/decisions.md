@@ -1,6 +1,6 @@
 # Decisions
 
-Last updated: 2026-10-28. Existing IDs are retained. Carry-forward audit dates do not invent an original decision date. Owner instructions here supersede conflicting proposals in the unchanged source plan.
+Last updated: 2026-10-28.
 
 | ID | Date | Decision | Alternatives considered | Why | Decided by | Status |
 |---|---|---|---|---|---|---|
@@ -18,6 +18,14 @@ Last updated: 2026-10-28. Existing IDs are retained. Carry-forward audit dates d
 | D-008 | 2026-10-28 | Text-only story and radio with existing sound effects; no new voice recording. | Generate original music/voices; commission new recordings. | Reduce production and provenance scope while specs establish story functions. | Phase 0 agent (requested default) | Provisional, owner may override |
 | D-009 | 2026-10-28 | Mobile touch stays a first-class layout. | Desktop/gamepad first; defer mobile. | Preserve SKYBREAK’s existing mobile-first controls and usability. | Phase 0 agent (requested default) | Provisional, owner may override |
 | D-010 | 2026-10-28 | Store a 480p proxy plus per-mission 1080p clips because of disk space. | Store full-resolution campaign; use only low-resolution frames. | About 14 GB free prevents full-resolution retention; clips preserve detail when needed. | Phase 0 agent (requested default) | Provisional, owner may override |
+| D-011 | 2026-10-28 | Keep the Broken Relay story. Missions are bent to fit it; the AC04 story is not adapted. | Write an original AC04-shaped story (the plan's phase 2C). | AC04's story can't be copied; the owner is happy with the existing one. Removes the original-story writing phase. | Owner | Adopted |
+| D-012 | 2026-10-28 | Missions and worlds match AC04 as closely as possible: objectives, mission length, scoring, and the world itself (terrain, environment, landmarks), built procedurally like today's world builder. | Loose inspiration; hand-placed worlds. | The owner wants AC04's mission design and worlds; procedural building fits the current engine. Within D-001's copyright line. | Owner | Adopted |
+| D-013 | 2026-10-28 | 18 missions, with the Broken Relay story condensed to 18 chapters. Each chapter is paired with the mission whose setting fits best; the mapping goes to the owner before mission 1 ships. | 27 missions (18 reference plus 9 original); 18 missions leaving unused chapters out. | Matches AC04's structure without inventing missions the footage can't inform. | Owner (accepted recommendation, 2026-10-28) | Adopted |
+| D-014 | 2026-10-28 | Scoring follows the reference: points per target destroyed, with a rank threshold per mission, calibrated from the debrief screens in the footage. Unreadable values are flagged, not guessed. | Keep the current S–D formula and tune it toward reference scores. | The owner asked for matching scores; several reference missions are won by reaching a score inside a time limit. | Owner (accepted recommendation, 2026-10-28) | Adopted |
+| D-015 | 2026-10-28 | Mission length: use the reference's countdown wherever it shows one; tune Normal so a typical run takes about as long as the footage player took. | Match the footage player's clear times exactly. | The footage player is skilled; exact matching would feel tight for typical play. | Owner (accepted recommendation, 2026-10-28) | Adopted |
+| D-016 | 2026-10-28 | World scale: scale each world so crossing it takes the same time as in the reference, not the same distance. | Match real distances. | Our jets fly at different speeds; matching travel time keeps the pacing. | Owner (accepted recommendation, 2026-10-28) | Adopted |
+| D-017 | 2026-10-28 | Ledger conventions: the recording is treated as one clean pass (no retries seen; possible edits noted, not assumed); mission time includes mid-mission landings and short in-game intros; post-victory scenes without a HUD count as cutscenes; weapon select is grouped with aircraft select; title cards with the briefing; black gaps folded into neighbours. | Count only combat time; split every screen separately. | Consistent mission lengths for D-015; matches how a player experiences each sortie. | Footage analyst (Opus 5.5) | Adopted (reviewable) |
+| D-018 | 2026-10-28 | The main session agent is the owner's first mate and head of operations: the owner discusses decisions with it, and it runs and reviews all subagents. | Owner talks to individual agents. | One accountable point of contact. | Owner | Adopted |
 
 ## D-001 — Copyright line
 
