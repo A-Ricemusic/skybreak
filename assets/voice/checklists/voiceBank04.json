@@ -1,0 +1,959 @@
+{
+ "bank": "voiceBank04",
+ "file": "voiceBank04.ogg",
+ "sha256": "92eda8ce157ca07cf9d83853ffe34471c11b10fa6e3884d736d0029fbb5192c0",
+ "seconds": 373.801,
+ "lines": 128,
+ "automated": {
+  "noProfanityOrSlurs": {
+   "pass": true,
+   "hits": []
+  },
+  "noSexualContent": {
+   "pass": true,
+   "hits": []
+  },
+  "noRealNamesOrRealWorldPoliticalMilitaryReferences": {
+   "pass": true,
+   "hits": [],
+   "note": "Fictional setting only: Varda Rim, Iron Coast, Teklan farmers, Air Marshal Rusk; no real places, forces, aircraft or people."
+  },
+  "pg13CombatOnly": {
+   "pass": true,
+   "hits": [],
+   "note": "Aerial combat and sabotage only; no gore, torture or self-harm."
+  },
+  "premadeVoicesWithCommercialLicence": {
+   "pass": true,
+   "voices": {
+    "EXAVITQu4vr4xnSDxMaL": "premade",
+    "JBFqnCBsd6RMkjVDRZzb": "premade",
+    "SOYHLrjzK2X1ezoPC6cr": "premade",
+    "Xb7hH8MSUJpSbSDYk0k2": "premade",
+    "cgSgspJ2msm6clMCkdW9": "premade",
+    "cjVigY5qzO86Huf0OWal": "premade",
+    "hpp4J3VqNfWAUOO0d1Us": "premade",
+    "nPczCjzI2devNBz1zQrb": "premade",
+    "onwK4e9ZLuTAKqWW03F9": "premade"
+   },
+   "note": "ElevenLabs premade voices, generated on the paid Starter plan (commercial use permitted). No cloned or designed voices; no imitation of real people or known characters."
+  },
+  "noImitationOfRealPeopleOrKnownCharacters": {
+   "pass": true,
+   "note": "ElevenLabs library premades only; no cloning, no voice design prompts naming people."
+  },
+  "speechToTextMatch": {
+   "pass": true,
+   "meanRate": 0.9973,
+   "minRate": 0.75,
+   "flagged": []
+  },
+  "durationUnderRobloxLimit": {
+   "pass": true
+  }
+ },
+ "transcript": [
+  {
+   "id": "radio.m03.p1.chatter1",
+   "start": 0.25,
+   "end": 2.268,
+   "speaker": "TEAL",
+   "text": "TEAL (tape): Third beacon's the one I nearly missed."
+  },
+  {
+   "id": "radio.m03.p2.beat",
+   "start": 2.518,
+   "end": 5.687,
+   "speaker": "SERA",
+   "text": "SERA: Scan below the beacons. Recovery needs the receiver marked."
+  },
+  {
+   "id": "radio.m03.p2.chatter1",
+   "start": 5.937,
+   "end": 8.644,
+   "speaker": "SERA",
+   "text": "SERA: Receiver echo below the second beacon. Keep scanning."
+  },
+  {
+   "id": "radio.m03.p3.beat",
+   "start": 8.894,
+   "end": 11.244,
+   "speaker": "SERA",
+   "text": "SERA: Two scouts shadowing the rim. Clear the pair."
+  },
+  {
+   "id": "radio.m03.p4.beat",
+   "start": 11.494,
+   "end": 14.905,
+   "speaker": "TEAL",
+   "text": "TEAL (tape): Under three-twenty along the river. Stay out of sight."
+  },
+  {
+   "id": "radio.m03.p4.chatter1",
+   "start": 15.155,
+   "end": 18.424,
+   "speaker": "SERA",
+   "text": "SERA: Bravo flight is hunting the river. Last gate, then turn."
+  },
+  {
+   "id": "radio.m03.p5.beat",
+   "start": 18.674,
+   "end": 21.822,
+   "speaker": "SERA",
+   "text": "SERA: Bravo flight breaking cover. Three, in two groups. Clear them."
+  },
+  {
+   "id": "radio.m03.p6.beat",
+   "start": 22.072,
+   "end": 24.997,
+   "speaker": "RECOVERY",
+   "text": "RECOVERY: We have your mark. Keep the link open while we reach it."
+  },
+  {
+   "id": "radio.m03.p6.chatter1",
+   "start": 25.247,
+   "end": 27.426,
+   "speaker": "RECOVERY",
+   "text": "RECOVERY: Receiver in sight. We are climbing down now."
+  },
+  {
+   "id": "radio.m04.p1.beat",
+   "start": 27.676,
+   "end": 31.537,
+   "speaker": "BROADCAST",
+   "text": "BROADCAST: All Varda units stand down. Authority: Air Marshal."
+  },
+  {
+   "id": "radio.m04.p1.chatter1",
+   "start": 31.787,
+   "end": 33.879,
+   "speaker": "SERA",
+   "text": "SERA: Stand down? Nobody at Varda issued that."
+  },
+  {
+   "id": "radio.m04.p2.beat",
+   "start": 34.129,
+   "end": 36.012,
+   "speaker": "SERA",
+   "text": "SERA: Proof's recorded. Now kill the radar."
+  },
+  {
+   "id": "radio.m04.p3.beat",
+   "start": 36.262,
+   "end": 38.785,
+   "speaker": "SERA",
+   "text": "SERA: Evidence copied. Follow the service road clear."
+  },
+  {
+   "id": "radio.m04.p3.chatter1",
+   "start": 39.035,
+   "end": 41.109,
+   "speaker": "SERA",
+   "text": "SERA: Road is clear ahead. Keep to the beacon line."
+  },
+  {
+   "id": "radio.m04.p4.beat",
+   "start": 41.359,
+   "end": 45.031,
+   "speaker": "SERA",
+   "text": "SERA: They scrambled a flight. Five, in two groups. Hold the line."
+  },
+  {
+   "id": "radio.m04.p5.beat",
+   "start": 45.281,
+   "end": 47.617,
+   "speaker": "SERA",
+   "text": "SERA: Varda is copying the names. Hold the link."
+  },
+  {
+   "id": "radio.m04.p5.chatter1",
+   "start": 47.867,
+   "end": 50.425,
+   "speaker": "TOWER",
+   "text": "TOWER: First two names copied. Send the third."
+  },
+  {
+   "id": "radio.m05.p1.beat",
+   "start": 50.675,
+   "end": 52.657,
+   "speaker": "FARMER",
+   "text": "FARMER: Trucks rolling. Please stay with us."
+  },
+  {
+   "id": "radio.m05.p1.chatter1",
+   "start": 52.907,
+   "end": 54.899,
+   "speaker": "SERA",
+   "text": "SERA: Second flight off the ridge. Turn back now."
+  },
+  {
+   "id": "radio.m05.p1.chatter2",
+   "start": 55.149,
+   "end": 57.133,
+   "speaker": "FARMER",
+   "text": "FARMER: The road's in sight. Don't leave us yet."
+  },
+  {
+   "id": "radio.m05.p2.beat",
+   "start": 57.383,
+   "end": 60.534,
+   "speaker": "SERA",
+   "text": "SERA: Trucks are clear. Their patrol leads are turning in. Three."
+  },
+  {
+   "id": "radio.m05.p3.beat",
+   "start": 60.784,
+   "end": 64.139,
+   "speaker": "FARMER",
+   "text": "FARMER: One truck lost its radio. Check both bends for stragglers."
+  },
+  {
+   "id": "radio.m05.p3.chatter1",
+   "start": 64.389,
+   "end": 67.083,
+   "speaker": "FARMER",
+   "text": "FARMER: One bend clear. Check behind the orchard wall too."
+  },
+  {
+   "id": "radio.m05.p4.beat",
+   "start": 67.333,
+   "end": 70.379,
+   "speaker": "SERA",
+   "text": "SERA: All trucks counted. Hold the link for the families' names."
+  },
+  {
+   "id": "radio.m05.p4.chatter1",
+   "start": 70.629,
+   "end": 73.889,
+   "speaker": "TOWER",
+   "text": "TOWER: Names copied. Finding beds for the children now."
+  },
+  {
+   "id": "radio.m05.p5.beat",
+   "start": 74.139,
+   "end": 77.391,
+   "speaker": "FARMER",
+   "text": "FARMER: Seed tin is aboard. Follow our homeward beacons."
+  },
+  {
+   "id": "radio.m05.p5.chatter1",
+   "start": 77.641,
+   "end": 79.738,
+   "speaker": "FARMER",
+   "text": "FARMER: The lead truck sees your lights. Keep leading."
+  },
+  {
+   "id": "radio.m06.p1.beat",
+   "start": 79.988,
+   "end": 82.555,
+   "speaker": "SERA",
+   "text": "SERA: Follow the channel. The marked tanks sit at its end."
+  },
+  {
+   "id": "radio.m06.p1.chatter1",
+   "start": 82.805,
+   "end": 84.95,
+   "speaker": "FARMER",
+   "text": "FARMER: The unmarked roofs are ours. Please."
+  },
+  {
+   "id": "radio.m06.p2.beat",
+   "start": 85.2,
+   "end": 88.682,
+   "speaker": "SERA",
+   "text": "SERA: Low pass first. Mark the military silos, not the farmhouses."
+  },
+  {
+   "id": "radio.m06.p2.chatter1",
+   "start": 88.932,
+   "end": 91.81,
+   "speaker": "SERA",
+   "text": "SERA: Fuel-grade grain in all three. The roofs are clean."
+  },
+  {
+   "id": "radio.m06.p3.beat",
+   "start": 92.06,
+   "end": 94.291,
+   "speaker": "SERA",
+   "text": "SERA: Marked silos only. That grain is fuel."
+  },
+  {
+   "id": "radio.m06.p4.beat",
+   "start": 94.541,
+   "end": 97.849,
+   "speaker": "SERA",
+   "text": "SERA: Five answering the smoke, in two groups. Turn into them."
+  },
+  {
+   "id": "radio.m06.p5.beat",
+   "start": 98.099,
+   "end": 101.14,
+   "speaker": "SERA",
+   "text": "SERA: The farm crew found the ledger. Hold the link while they read it."
+  },
+  {
+   "id": "radio.m06.p5.chatter1",
+   "start": 101.39,
+   "end": 104.7,
+   "speaker": "FARMER",
+   "text": "FARMER: Three fuel shipments. All signed by the same officer."
+  },
+  {
+   "id": "radio.m07.p1.beat",
+   "start": 104.95,
+   "end": 107.433,
+   "speaker": "SERA",
+   "text": "SERA: The courier runs under the dust. Stay in it."
+  },
+  {
+   "id": "radio.m07.p1.chatter1",
+   "start": 107.683,
+   "end": 109.985,
+   "speaker": "SERA",
+   "text": "SERA: Five escorts ahead of him. Dust is thinning."
+  },
+  {
+   "id": "radio.m07.p2.beat",
+   "start": 110.235,
+   "end": 112.259,
+   "speaker": "SERA",
+   "text": "SERA: Scan both clearings for his engine trail."
+  },
+  {
+   "id": "radio.m07.p2.chatter1",
+   "start": 112.509,
+   "end": 114.698,
+   "speaker": "SERA",
+   "text": "SERA: Engine trail at the second clearing. Keep low."
+  },
+  {
+   "id": "radio.m07.p3.beat",
+   "start": 114.948,
+   "end": 118.331,
+   "speaker": "SERA",
+   "text": "SERA: Five escorts in the dust, in two groups. Strip them off him."
+  },
+  {
+   "id": "radio.m07.p4.beat",
+   "start": 118.581,
+   "end": 121.71,
+   "speaker": "SERA",
+   "text": "SERA: There's the courier, running north. Ninety seconds. Catch him."
+  },
+  {
+   "id": "radio.m07.p4.chatter1",
+   "start": 121.96,
+   "end": 124.024,
+   "speaker": "SERA",
+   "text": "SERA: He's halfway to the plateau. Close on him."
+  },
+  {
+   "id": "radio.m07.p4.chatter2",
+   "start": 124.274,
+   "end": 126.027,
+   "speaker": "SERA",
+   "text": "SERA: Twenty seconds and he's over the edge!"
+  },
+  {
+   "id": "radio.m07.p5.beat",
+   "start": 126.277,
+   "end": 129.243,
+   "speaker": "SERA",
+   "text": "SERA: Packet recovered. Head for Varda while I read the orders."
+  },
+  {
+   "id": "radio.m07.p5.chatter1",
+   "start": 129.493,
+   "end": 132.606,
+   "speaker": "SERA",
+   "text": "SERA: Tomorrow's orders copied. Reading the signatures next."
+  },
+  {
+   "id": "radio.m08.p1.beat",
+   "start": 132.856,
+   "end": 135.97,
+   "speaker": "SERA",
+   "text": "SERA: Tower crew resetting the code. Keep the raiders off them."
+  },
+  {
+   "id": "radio.m08.p1.chatter1",
+   "start": 136.22,
+   "end": 139.061,
+   "speaker": "BROADCAST",
+   "text": "BROADCAST: Varda tower is in rebel hands. Fire on it."
+  },
+  {
+   "id": "radio.m08.p1.chatter2",
+   "start": 139.311,
+   "end": 140.484,
+   "speaker": "SERA",
+   "text": "SERA: Ignore that. It's him."
+  },
+  {
+   "id": "radio.m08.p1.chatter3",
+   "start": 140.734,
+   "end": 143.479,
+   "speaker": "SERA",
+   "text": "SERA: Second wave's dropping smoke on the apron. Spotters."
+  },
+  {
+   "id": "radio.m08.p2.beat",
+   "start": 143.729,
+   "end": 147.034,
+   "speaker": "SERA",
+   "text": "SERA: Smoke on the apron. Scan for the two spotter dishes first."
+  },
+  {
+   "id": "radio.m08.p2.chatter1",
+   "start": 147.284,
+   "end": 150.195,
+   "speaker": "SERA",
+   "text": "SERA: Two dishes in the smoke. Keep the parked trainers clear."
+  },
+  {
+   "id": "radio.m08.p3.beat",
+   "start": 150.445,
+   "end": 153.789,
+   "speaker": "SERA",
+   "text": "SERA: Code is ours. Two spotter radars on the apron. Hit them."
+  },
+  {
+   "id": "radio.m08.p4.beat",
+   "start": 154.039,
+   "end": 156.977,
+   "speaker": "SERA",
+   "text": "SERA: Spotters down. Their flight is running. Catch three."
+  },
+  {
+   "id": "radio.m08.p5.beat",
+   "start": 157.227,
+   "end": 161.514,
+   "speaker": "TOWER",
+   "text": "TOWER: Code restored. Stay on the link until every loyal flight answers."
+  },
+  {
+   "id": "radio.m08.p5.chatter1",
+   "start": 161.764,
+   "end": 164.48,
+   "speaker": "TOWER",
+   "text": "TOWER: Loyal flight answering. Waiting on the last one."
+  },
+  {
+   "id": "radio.m09.p1.beat",
+   "start": 164.73,
+   "end": 166.912,
+   "speaker": "SERA",
+   "text": "SERA: The approach lights are his bait. Fly them anyway."
+  },
+  {
+   "id": "radio.m09.p1.chatter1",
+   "start": 167.162,
+   "end": 169.528,
+   "speaker": "VULTURE LEAD",
+   "text": "VULTURE LEAD: Teal flew this line too. Keep coming."
+  },
+  {
+   "id": "radio.m09.p2.beat",
+   "start": 169.778,
+   "end": 173.134,
+   "speaker": "SERA",
+   "text": "SERA: His voice is bouncing off the pass. Scan low to mark the source."
+  },
+  {
+   "id": "radio.m09.p2.chatter1",
+   "start": 173.384,
+   "end": 175.958,
+   "speaker": "SERA",
+   "text": "SERA: Guard-channel source above the pass. That is him."
+  },
+  {
+   "id": "radio.m09.p3.beat",
+   "start": 176.208,
+   "end": 179.427,
+   "speaker": "SERA",
+   "text": "SERA: Three on night vision, in two groups. Watch your horizon."
+  },
+  {
+   "id": "radio.m09.p4.beat",
+   "start": 179.677,
+   "end": 182.623,
+   "speaker": "SERA",
+   "text": "SERA: Patrol is gone. Hold the channel open. He will come to answer."
+  },
+  {
+   "id": "radio.m09.p4.chatter1",
+   "start": 182.873,
+   "end": 185.227,
+   "speaker": "VULTURE LEAD",
+   "text": "VULTURE LEAD: You have my attention, trainee. Stay there."
+  },
+  {
+   "id": "radio.m09.p5.beat",
+   "start": 185.477,
+   "end": 188.647,
+   "speaker": "SERA",
+   "text": "Vulture Lead. He erased the witness. Not you."
+  },
+  {
+   "id": "radio.m09.p6.beat",
+   "start": 188.897,
+   "end": 192.24,
+   "speaker": "RECOVERY",
+   "text": "RECOVERY: Recorder still transmitting. Mark it before the signal dies."
+  },
+  {
+   "id": "radio.m09.p6.chatter1",
+   "start": 192.49,
+   "end": 195.128,
+   "speaker": "RECOVERY",
+   "text": "RECOVERY: Recorder ping steady. Mark the second slope."
+  },
+  {
+   "id": "radio.m09.ace.stage1",
+   "start": 195.378,
+   "end": 198.964,
+   "speaker": "VULTURE LEAD",
+   "text": "VULTURE LEAD: You fly like him. He died anyway. Wing, cut him off."
+  },
+  {
+   "id": "radio.m09.ace.stage2",
+   "start": 199.214,
+   "end": 200.587,
+   "speaker": "VULTURE LEAD",
+   "text": "VULTURE LEAD: Enough. Wing, on me!"
+  },
+  {
+   "id": "radio.m09.ace.return1",
+   "start": 200.837,
+   "end": 203.148,
+   "speaker": "SERA",
+   "text": "SERA: Vulture Lead's turning back in. Nose on him."
+  },
+  {
+   "id": "radio.m09.ace.return2",
+   "start": 203.398,
+   "end": 205.237,
+   "speaker": "VULTURE LEAD",
+   "text": "VULTURE LEAD: Head on, trainee. Like he did."
+  },
+  {
+   "id": "radio.m09.ace.call1",
+   "start": 205.487,
+   "end": 208.322,
+   "speaker": "SERA",
+   "text": "SERA: VULTURE LEAD pulled back to call his wing. 1 inbound."
+  },
+  {
+   "id": "radio.m09.ace.call2",
+   "start": 208.572,
+   "end": 211.835,
+   "speaker": "SERA",
+   "text": "SERA: VULTURE LEAD pulled back to call his wing. 2 inbound."
+  },
+  {
+   "id": "radio.m10.p1.beat",
+   "start": 212.085,
+   "end": 214.206,
+   "speaker": "SERA",
+   "text": "SERA: Scan the archive first. The dish can wait."
+  },
+  {
+   "id": "radio.m10.p1.chatter1",
+   "start": 214.456,
+   "end": 216.863,
+   "speaker": "SERA",
+   "text": "SERA: Signatures copying. Stay low. Hold fire."
+  },
+  {
+   "id": "radio.m10.p1.twist",
+   "start": 217.113,
+   "end": 220.267,
+   "speaker": "SERA",
+   "text": "SERA: They've seen you. Four climbing off the camp. Scan's on hold."
+  },
+  {
+   "id": "radio.m10.p1.t1.beat",
+   "start": 220.517,
+   "end": 223.986,
+   "speaker": "SERA",
+   "text": "SERA: Four off the camp, in pairs. Clear them, then we finish the scan."
+  },
+  {
+   "id": "radio.m10.p1.t2.beat",
+   "start": 224.236,
+   "end": 226.897,
+   "speaker": "SERA",
+   "text": "SERA: Back on the archive. Eight seconds of clean copy."
+  },
+  {
+   "id": "radio.m10.p1.t2.chatter1",
+   "start": 227.147,
+   "end": 229.214,
+   "speaker": "SERA",
+   "text": "SERA: Copy complete in four. Hold your line."
+  },
+  {
+   "id": "radio.m10.p2.beat",
+   "start": 229.464,
+   "end": 231.478,
+   "speaker": "SERA",
+   "text": "SERA: Archive copied. Cut the transmitter."
+  },
+  {
+   "id": "radio.m10.p2.twist",
+   "start": 231.728,
+   "end": 234.434,
+   "speaker": "SERA",
+   "text": "SERA: Radar is directing them. Hold the channel; we will trace it."
+  },
+  {
+   "id": "radio.m10.p2.t1.beat",
+   "start": 234.684,
+   "end": 236.815,
+   "speaker": "SERA",
+   "text": "SERA: Hold the channel while we trace the camp radar."
+  },
+  {
+   "id": "radio.m10.p2.t1.chatter1",
+   "start": 237.065,
+   "end": 239.646,
+   "speaker": "SERA",
+   "text": "SERA: The radar is still directing them. Trace is closing."
+  },
+  {
+   "id": "radio.m10.p2.t2.beat",
+   "start": 239.896,
+   "end": 243.847,
+   "speaker": "SERA",
+   "text": "SERA: Radar on the camp roof. Its raiders fire twice as fast. Kill it."
+  },
+  {
+   "id": "radio.m10.p3.beat",
+   "start": 244.097,
+   "end": 247.228,
+   "speaker": "SERA",
+   "text": "SERA: Radar's dead. The response is flying blind. Three."
+  },
+  {
+   "id": "radio.m11.p1.beat",
+   "start": 247.478,
+   "end": 249.108,
+   "speaker": "SERA",
+   "text": "SERA: Lira first. West ridge dish."
+  },
+  {
+   "id": "radio.m11.p2.beat",
+   "start": 249.358,
+   "end": 251.504,
+   "speaker": "SERA",
+   "text": "SERA: Alert flight airborne. Three. Clear them."
+  },
+  {
+   "id": "radio.m11.p3.beat",
+   "start": 251.754,
+   "end": 253.266,
+   "speaker": "SERA",
+   "text": "SERA: Merel next. East ridge."
+  },
+  {
+   "id": "radio.m11.p3.twist",
+   "start": 253.516,
+   "end": 256.697,
+   "speaker": "SERA",
+   "text": "SERA: Third dish lit north of the belt. Node Sable. Not on the tin."
+  },
+  {
+   "id": "radio.m11.p3.t1.beat",
+   "start": 256.947,
+   "end": 259.199,
+   "speaker": "SERA",
+   "text": "SERA: Farm road north. Two beacons to Sable."
+  },
+  {
+   "id": "radio.m11.p3.t1.chatter1",
+   "start": 259.449,
+   "end": 261.835,
+   "speaker": "FARMER",
+   "text": "FARMER: That dish went up last week. Nobody asked us."
+  },
+  {
+   "id": "radio.m11.p3.t2.beat",
+   "start": 262.085,
+   "end": 265.015,
+   "speaker": "SERA",
+   "text": "SERA: Sable. Dish only. The barn beside it is ours."
+  },
+  {
+   "id": "radio.m11.p3.t3.beat",
+   "start": 265.265,
+   "end": 266.857,
+   "speaker": "SERA",
+   "text": "SERA: Guard flight off Sable. Three."
+  },
+  {
+   "id": "radio.m11.p4.beat",
+   "start": 267.107,
+   "end": 270.143,
+   "speaker": "SERA",
+   "text": "SERA: Relaying Teal's packet. Ninety seconds. Hold the ridge orbit."
+  },
+  {
+   "id": "radio.m11.p4.chatter1",
+   "start": 270.393,
+   "end": 272.086,
+   "speaker": "FARMER",
+   "text": "FARMER: We're hearing it. Keep it coming."
+  },
+  {
+   "id": "radio.m11.p4.chatter2",
+   "start": 272.336,
+   "end": 274.634,
+   "speaker": "SERA",
+   "text": "SERA: Last of the packet. Don't drift off the ridge."
+  },
+  {
+   "id": "radio.m12.p1.beat",
+   "start": 274.884,
+   "end": 277.883,
+   "speaker": "TRUCK",
+   "text": "TRUCK: Transmitter rolling. The corridor is full of refugees."
+  },
+  {
+   "id": "radio.m12.p1.chatter1",
+   "start": 278.133,
+   "end": 279.687,
+   "speaker": "SERA",
+   "text": "SERA: Second flight coming for the truck."
+  },
+  {
+   "id": "radio.m12.p1.twist",
+   "start": 279.937,
+   "end": 284.042,
+   "speaker": "BROADCAST",
+   "text": "BROADCAST: Convoy, the north corridor is clear. Proceed north at speed."
+  },
+  {
+   "id": "radio.m12.p1.t1.beat",
+   "start": 284.292,
+   "end": 287.364,
+   "speaker": "SERA",
+   "text": "SERA: Ignore him. North is mined. Truck, stop. Scan the mill road."
+  },
+  {
+   "id": "radio.m12.p1.t1.chatter1",
+   "start": 287.614,
+   "end": 290.401,
+   "speaker": "SERA",
+   "text": "SERA: Refugees clear of the bend. One more look at the road."
+  },
+  {
+   "id": "radio.m12.p1.t2.beat",
+   "start": 290.651,
+   "end": 293.624,
+   "speaker": "SERA",
+   "text": "SERA: Mill road is clear. Truck, swing east. We will cover you."
+  },
+  {
+   "id": "radio.m12.p1.t2.chatter1",
+   "start": 293.874,
+   "end": 296.201,
+   "speaker": "TRUCK",
+   "text": "TRUCK: Mill road's rough but we're moving. Stay with us."
+  },
+  {
+   "id": "radio.m12.p2.beat",
+   "start": 296.451,
+   "end": 299.455,
+   "speaker": "SERA",
+   "text": "SERA: Truck's clear. Patrol escalating. Six, in two groups."
+  },
+  {
+   "id": "radio.m12.p3.beat",
+   "start": 299.705,
+   "end": 303.153,
+   "speaker": "TRUCK",
+   "text": "TRUCK: Parked and transmitting. Hold for our first reply."
+  },
+  {
+   "id": "radio.m12.p3.chatter1",
+   "start": 303.403,
+   "end": 305.992,
+   "speaker": "TRUCK",
+   "text": "TRUCK: First loyalist cell answering. Holding for the second."
+  },
+  {
+   "id": "radio.m12.p4.beat",
+   "start": 306.242,
+   "end": 309.089,
+   "speaker": "SERA",
+   "text": "SERA: Relief crew following your beacons. Bring them to the truck."
+  },
+  {
+   "id": "radio.m12.p4.chatter1",
+   "start": 309.339,
+   "end": 312.13,
+   "speaker": "SERA",
+   "text": "SERA: Relief crew sees the transmitter. Last beacon ahead."
+  },
+  {
+   "id": "radio.m13.p1.beat",
+   "start": 312.38,
+   "end": 315.069,
+   "speaker": "SERA",
+   "text": "SERA: Rail spur runs straight to their stores. Follow it."
+  },
+  {
+   "id": "radio.m13.p1.chatter1",
+   "start": 315.319,
+   "end": 317.857,
+   "speaker": "SERA",
+   "text": "SERA: Spur ends at the silos. Low and quiet now."
+  },
+  {
+   "id": "radio.m13.p2.beat",
+   "start": 318.107,
+   "end": 320.597,
+   "speaker": "SERA",
+   "text": "SERA: Mark the stores. Civilian roofs stay standing."
+  },
+  {
+   "id": "radio.m13.p2.chatter1",
+   "start": 320.847,
+   "end": 323.567,
+   "speaker": "SERA",
+   "text": "SERA: Fuel ledger confirmed. Those silos are military."
+  },
+  {
+   "id": "radio.m13.p3.beat",
+   "start": 323.817,
+   "end": 325.583,
+   "speaker": "SERA",
+   "text": "SERA: Four silos. Marked only."
+  },
+  {
+   "id": "radio.m13.p3.twist",
+   "start": 325.833,
+   "end": 328.82,
+   "speaker": "SERA",
+   "text": "SERA: Four off the plateau. Finish the silos, then turn into them."
+  },
+  {
+   "id": "radio.m13.p3.t1.beat",
+   "start": 329.07,
+   "end": 332.135,
+   "speaker": "SERA",
+   "text": "SERA: Silos burning. Now the four, in pairs. Turn in."
+  },
+  {
+   "id": "radio.m13.p4.beat",
+   "start": 332.385,
+   "end": 334.222,
+   "speaker": "SERA",
+   "text": "SERA: The relay's still calling for help. Cut it."
+  },
+  {
+   "id": "radio.m13.p5.beat",
+   "start": 334.472,
+   "end": 337.446,
+   "speaker": "SERA",
+   "text": "SERA: Raiders off the plateau. Three more, with hangers-on."
+  },
+  {
+   "id": "radio.m13.p6.beat",
+   "start": 337.696,
+   "end": 340.623,
+   "speaker": "SERA",
+   "text": "SERA: Rail crew has the ledger. Hold the link to the cells."
+  },
+  {
+   "id": "radio.m13.p6.chatter1",
+   "start": 340.873,
+   "end": 343.708,
+   "speaker": "LOYALIST",
+   "text": "LOYALIST: Rail ledger copied. Matching it against Kiro's orders."
+  },
+  {
+   "id": "radio.m14.p1.beat",
+   "start": 343.958,
+   "end": 345.965,
+   "speaker": "SERA",
+   "text": "SERA: Saddle beacons lead to the arrays. Climb."
+  },
+  {
+   "id": "radio.m14.p1.chatter1",
+   "start": 346.215,
+   "end": 347.898,
+   "speaker": "SERA",
+   "text": "SERA: All three arrays can hear you now."
+  },
+  {
+   "id": "radio.m14.p1.chatter2",
+   "start": 348.148,
+   "end": 350.996,
+   "speaker": "BROADCAST",
+   "text": "BROADCAST: Unknown aircraft on the saddle. Intercept."
+  },
+  {
+   "id": "radio.m14.p2.beat",
+   "start": 351.246,
+   "end": 353.051,
+   "speaker": "SERA",
+   "text": "SERA: Three dishes on the ridge. Blind them."
+  },
+  {
+   "id": "radio.m14.p2.twist",
+   "start": 353.301,
+   "end": 356.088,
+   "speaker": "SERA",
+   "text": "SERA: Replacement mast on the saddle road. Cut that one too."
+  },
+  {
+   "id": "radio.m14.p2.t1.beat",
+   "start": 356.338,
+   "end": 359.156,
+   "speaker": "SERA",
+   "text": "SERA: Scan the saddle road. They have raised a replacement dish."
+  },
+  {
+   "id": "radio.m14.p2.t1.chatter1",
+   "start": 359.406,
+   "end": 362.388,
+   "speaker": "SERA",
+   "text": "SERA: Dish truck on the saddle road. Civilian vans are clear."
+  },
+  {
+   "id": "radio.m14.p2.t2.beat",
+   "start": 362.638,
+   "end": 364.863,
+   "speaker": "SERA",
+   "text": "SERA: Mast located on the saddle road. Hit the dish."
+  },
+  {
+   "id": "radio.m14.p3.beat",
+   "start": 365.113,
+   "end": 367.972,
+   "speaker": "SERA",
+   "text": "SERA: Perimeter CAP turning in. Four, in pairs, with raiders."
+  },
+  {
+   "id": "radio.m14.p4.beat",
+   "start": 368.222,
+   "end": 370.968,
+   "speaker": "SERA",
+   "text": "SERA: Hold the saddle. I'm listening for anything left alive."
+  },
+  {
+   "id": "radio.m14.p4.chatter1",
+   "start": 371.218,
+   "end": 373.551,
+   "speaker": "SERA",
+   "text": "SERA: More off the dark end of the row. Hold the orbit."
+  }
+ ],
+ "humanReview": {
+  "required": true,
+  "approved": false,
+  "reviewer": null,
+  "instructions": "Listen to the whole bank against this transcript; confirm every item above, then record approval in assets/voice/review.json."
+ }
+}

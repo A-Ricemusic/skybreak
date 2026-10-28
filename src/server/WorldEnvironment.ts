@@ -1,6 +1,6 @@
 import { Lighting, Workspace } from "@rbxts/services";
 import { ENVIRONMENT_ATTRIBUTE, environmentFor, type Rgb } from "../shared/EnvironmentPresets";
-import type { EnvironmentPreset } from "../shared/WorldTypes";
+import type { EnvironmentPreset } from "../shared/MissionCatalog";
 
 // Applies one EnvironmentPresets entry to Lighting, the sky, clouds, post
 // effects and terrain water. The server owns these (they replicate); phones

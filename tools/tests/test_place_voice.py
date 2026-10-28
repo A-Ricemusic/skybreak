@@ -29,7 +29,7 @@ class VoiceArtifactTests(unittest.TestCase):
                     ET.SubElement(properties, "string", {"name": "Name"}).text = segment
                     self.items[prefix] = item
                 parent = self.items[prefix]
-            source = 'AC04Voice:Clip(0, 0, "line"); VoicePlayer:Play(clip); VoicePlayer:Preload()\n'
+            source = 'Voice:Story(0, 0, "line"); VoicePlayer:Play(clip); VoicePlayer:Preload()\n'
             ET.SubElement(parent.find("Properties"), "ProtectedString", {"name": "Source"}).text = source
             compiled = self.output / relative
             compiled.parent.mkdir(parents=True, exist_ok=True)
@@ -56,18 +56,18 @@ class VoiceArtifactTests(unittest.TestCase):
             self.check()
 
     def test_stale_cinematic_fails(self):
-        self.items[f"{gate.CLIENT}/ac04/AC04Cinematic"].find("Properties/ProtectedString").text = "return {}"
-        with self.assertRaisesRegex(ValueError, "Stale packaged source.*AC04Cinematic"):
+        self.items[f"{gate.CLIENT}/RelayCinematic"].find("Properties/ProtectedString").text = "return {}"
+        with self.assertRaisesRegex(ValueError, "Stale packaged source.*RelayCinematic"):
             self.check()
 
     def test_both_compiled_and_packaged_consumer_missing_fails(self):
-        self.items[f"{gate.CLIENT}/ac04/AC04Cinematic"].find("Properties/ProtectedString").text = "return {}"
-        (self.output / "client/ac04/AC04Cinematic.luau").write_text("return {}")
+        self.items[f"{gate.CLIENT}/RelayCinematic"].find("Properties/ProtectedString").text = "return {}"
+        (self.output / "client/RelayCinematic.luau").write_text("return {}")
         with self.assertRaisesRegex(ValueError, "no recorded-dialogue consumer"):
             self.check()
 
     def test_wrong_instance_class_fails(self):
-        self.items[f"{gate.SHARED}/ac04/AC04VoiceBanks"].set("class", "Folder")
+        self.items[f"{gate.SHARED}/VoiceBanks"].set("class", "Folder")
         with self.assertRaisesRegex(ValueError, "Missing ModuleScript.*VoiceBanks"):
             self.check()
 

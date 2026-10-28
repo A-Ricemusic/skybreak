@@ -9,11 +9,10 @@ CLIENT = "StarterPlayer/StarterPlayerScripts/Client"
 SHARED = "ReplicatedStorage/Shared"
 REQUIRED = {
     f"{CLIENT}": ("LocalScript", "client/init.client.luau"),
-    f"{CLIENT}/ac04/AC04Cinematic": ("ModuleScript", "client/ac04/AC04Cinematic.luau"),
+    f"{CLIENT}/RelayCinematic": ("ModuleScript", "client/RelayCinematic.luau"),
     f"{CLIENT}/VoicePlayer": ("ModuleScript", "client/VoicePlayer.luau"),
     **{f"{SHARED}/{name}": ("ModuleScript", f"shared/{name}.luau") for name in
-       ("VoiceLines", "VoiceCues", "VoiceReadiness")},
-    **{f"{SHARED}/ac04/{name}": ("ModuleScript", f"shared/ac04/{name}.luau") for name in ("AC04Story", "AC04Voice", "AC04VoiceCues", "AC04VoiceBanks")},
+       ("RelayStory", "VoiceLines", "VoiceCues", "VoiceBanks", "VoiceReadiness")},
 }
 
 
@@ -40,9 +39,9 @@ def check(place: Path, output: Path = ROOT / "out") -> None:
         compiled = (output / relative).read_text()
         if source is None or source.replace("\r\n", "\n") != compiled.replace("\r\n", "\n"):
             raise ValueError(f"Stale packaged source: {path}; rebuild with bun run build:place")
-    cinematic = (output / "client/ac04/AC04Cinematic.luau").read_text()
-    if "AC04Voice:Clip(" not in cinematic or "VoicePlayer:Play(" not in cinematic:
-        raise ValueError("Compiled AC04Cinematic has no recorded-dialogue consumer")
+    cinematic = (output / "client/RelayCinematic.luau").read_text()
+    if "Voice:Story(" not in cinematic or "VoicePlayer:Play(" not in cinematic:
+        raise ValueError("Compiled RelayCinematic has no recorded-dialogue consumer")
     boot = (output / "client/init.client.luau").read_text()
     if "VoicePlayer:Preload()" not in boot:
         raise ValueError("Compiled client has no voice preload")
@@ -56,4 +55,4 @@ if __name__ == "__main__":
         check(args.place)
     except (ValueError, OSError, ET.ParseError) as error:
         parser.exit(1, f"Voice artifact check failed: {error}\n")
-    print("Voice artifact check passed: current AC04 packaged scripts match compiled output; audible playback and experience permissions NOT tested")
+    print("Voice artifact check passed: 8 packaged scripts match compiled output; audible playback and experience permissions NOT tested")

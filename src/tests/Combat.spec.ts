@@ -3,8 +3,7 @@ import { UploadedAssets } from "../shared/UploadedAssets";
 import { HttpService, RunService, ServerStorage, Workspace } from "@rbxts/services";
 import { HOSTILE_MISSILE, JetFactory, PLAYER_MISSILE } from "../shared/JetFactory";
 import { ThreatRules } from "../shared/ThreatRules";
-// Neutral geometry fixture exercises grounding independently of campaign assets.
-function groundingActor(name: string): Model { const model=new Instance("Model"); model.Name=name; const part=new Instance("Part"); part.Size=new Vector3(12,8,20); part.Anchored=true; part.CanQuery=false; part.Parent=model; model.PrimaryPart=part; return model; }
+import { MissionAssets } from "../shared/MissionAssets";
 import { ActorPlacement } from "../shared/ActorPlacement";
 import { StepGuard } from "../shared/SessionGuard";
 import { ActorGrounding } from "../server/ActorGrounding";
@@ -429,7 +428,7 @@ describe("Protected actor grounding", () => {
 	it("stands a truck's wheels on the road whatever height the catalog point says", () => {
 		const root = world();
 		const params = AircraftCollision.Parameters(root);
-		const truck = groundingActor("TEST TRUCK");
+		const truck = MissionAssets.CreateRelayTruck("TEST TRUCK");
 		const footing = ActorGrounding.Footing(truck, false);
 		truck.Parent = root;
 		// The old code pivoted trucks at the catalog's y 70 and floated them ~10 studs.
@@ -439,7 +438,7 @@ describe("Protected actor grounding", () => {
 	it("stands a defended tower on its quay instead of 32 studs above it", () => {
 		const root = world();
 		const params = AircraftCollision.Parameters(root);
-		const tower = groundingActor("TEST TOWER");
+		const tower = MissionAssets.CreateCommsRelay("TEST TOWER");
 		const footing = ActorGrounding.Footing(tower, false);
 		tower.Parent = root;
 		tower.PivotTo(new CFrame(600, ActorGrounding.PivotY(footing, 600, -400, params, 92), -400));
@@ -448,7 +447,7 @@ describe("Protected actor grounding", () => {
 	it("floats a launch at the waterline at sea and beaches it on land", () => {
 		const root = world();
 		const params = AircraftCollision.Parameters(root);
-		const launch = groundingActor("TEST LAUNCH");
+		const launch = MissionAssets.CreateHarborLaunch("TEST LAUNCH");
 		const footing = ActorGrounding.Footing(launch, true);
 		launch.Parent = root;
 		launch.PivotTo(new CFrame(-300, ActorGrounding.PivotY(footing, -300, -900, params, 40), -900));

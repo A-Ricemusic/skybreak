@@ -23,7 +23,10 @@ spec = importlib.util.spec_from_file_location("target", Path(__file__).with_name
 target = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(target)
 
-VOICE_IDS = ('100845993226613', '96034533542673', '129430411346132', '140586818884141', '119891912328421', '103061867054487', '78239725791801', '119485031741286')
+VOICE_IDS = (
+    "96143096268975", "72249736253176", "70686186147484",
+    "112591774159889", "119322000491190", "115928309099950",
+)
 
 
 def probe(asset_id, key, opener):

@@ -1,0 +1,305 @@
+{
+ "bank": "voiceBank06",
+ "file": "voiceBank06.ogg",
+ "sha256": "b03ef98a1be34044880e8ae33d1a8e759fb93ed52799f8c73db6dce95b958ddf",
+ "seconds": 106.847,
+ "lines": 35,
+ "automated": {
+  "noProfanityOrSlurs": {
+   "pass": true,
+   "hits": []
+  },
+  "noSexualContent": {
+   "pass": true,
+   "hits": []
+  },
+  "noRealNamesOrRealWorldPoliticalMilitaryReferences": {
+   "pass": true,
+   "hits": [],
+   "note": "Fictional setting only: Varda Rim, Iron Coast, Teklan farmers, Air Marshal Rusk; no real places, forces, aircraft or people."
+  },
+  "pg13CombatOnly": {
+   "pass": true,
+   "hits": [],
+   "note": "Aerial combat and sabotage only; no gore, torture or self-harm."
+  },
+  "premadeVoicesWithCommercialLicence": {
+   "pass": true,
+   "voices": {
+    "EXAVITQu4vr4xnSDxMaL": "premade",
+    "IKne3meq5aSn9XLyUdCD": "premade",
+    "JBFqnCBsd6RMkjVDRZzb": "premade",
+    "iP95p4xoKVk53GoZ742B": "premade",
+    "pFZP5JQG7iQjIQuC4Bku": "premade",
+    "pNInz6obpgDQGcFmaJgB": "premade"
+   },
+   "note": "ElevenLabs premade voices, generated on the paid Starter plan (commercial use permitted). No cloned or designed voices; no imitation of real people or known characters."
+  },
+  "noImitationOfRealPeopleOrKnownCharacters": {
+   "pass": true,
+   "note": "ElevenLabs library premades only; no cloning, no voice design prompts naming people."
+  },
+  "speechToTextMatch": {
+   "pass": true,
+   "meanRate": 0.9914,
+   "minRate": 0.8,
+   "flagged": []
+  },
+  "durationUnderRobloxLimit": {
+   "pass": true
+  }
+ },
+ "transcript": [
+  {
+   "id": "radio.m25.p4.beat",
+   "start": 0.25,
+   "end": 3.172,
+   "speaker": "SERA",
+   "text": "SERA: Second wave with raiders, coming round behind. Hold the beach."
+  },
+  {
+   "id": "radio.m25.p5.beat",
+   "start": 3.422,
+   "end": 5.553,
+   "speaker": "SERA",
+   "text": "SERA: Beach relay is still directing fire. Cut it."
+  },
+  {
+   "id": "radio.m25.p6.beat",
+   "start": 5.803,
+   "end": 8.888,
+   "speaker": "LANDING CRAFT",
+   "text": "LANDING CRAFT: Streets reached. Hold for both beach exits to answer."
+  },
+  {
+   "id": "radio.m25.p6.chatter1",
+   "start": 9.138,
+   "end": 11.492,
+   "speaker": "LANDING CRAFT",
+   "text": "LANDING CRAFT: West exit answering. Waiting for the eastern squad."
+  },
+  {
+   "id": "radio.m26.p1.beat",
+   "start": 11.742,
+   "end": 14.635,
+   "speaker": "SERA",
+   "text": "SERA: Wing splits. Four ahead; the rest will come round behind."
+  },
+  {
+   "id": "radio.m26.p1.group1",
+   "start": 14.885,
+   "end": 16.617,
+   "speaker": "SERA",
+   "text": "SERA: Second flight on your six! Turn!"
+  },
+  {
+   "id": "radio.m26.p2.beat",
+   "start": 16.867,
+   "end": 20.397,
+   "speaker": "SERA",
+   "text": "SERA: Signal bouncing between roofs. Scan low to narrow it down."
+  },
+  {
+   "id": "radio.m26.p2.chatter1",
+   "start": 20.647,
+   "end": 23.725,
+   "speaker": "SERA",
+   "text": "SERA: Rooftop echoes mapped. We still need the name of the mast."
+  },
+  {
+   "id": "radio.m26.p3.beat",
+   "start": 23.975,
+   "end": 27.201,
+   "speaker": "TEAL",
+   "text": "TEAL (tape): He'll be where he can hear himself. The parliament mast."
+  },
+  {
+   "id": "radio.m26.p3.chatter1",
+   "start": 27.451,
+   "end": 30.036,
+   "speaker": "SERA",
+   "text": "SERA: Triangulating. He's above the parliament transmitter."
+  },
+  {
+   "id": "radio.m26.p3.chatter2",
+   "start": 30.286,
+   "end": 32.17,
+   "speaker": "SERA",
+   "text": "SERA: Fix is closing. Stay in the volume."
+  },
+  {
+   "id": "radio.m26.p4.beat",
+   "start": 32.42,
+   "end": 35.86,
+   "speaker": "SERA",
+   "text": "SERA: Loyalists marked a corridor. Follow two lights into the city."
+  },
+  {
+   "id": "radio.m26.p4.chatter1",
+   "start": 36.11,
+   "end": 39.276,
+   "speaker": "SERA",
+   "text": "SERA: Loyalists see your lights. Follow the last city beacon."
+  },
+  {
+   "id": "radio.m26.p5.beat",
+   "start": 39.526,
+   "end": 42.405,
+   "speaker": "MARINE",
+   "text": "MARINE: Secure the quay while witnesses board. Cover the marked site."
+  },
+  {
+   "id": "radio.m26.p5.chatter1",
+   "start": 42.655,
+   "end": 47.257,
+   "speaker": "MARINE",
+   "text": "MARINE: Witnesses boarding. Quay remains secure."
+  },
+  {
+   "id": "radio.m26.p6.beat",
+   "start": 47.507,
+   "end": 50.492,
+   "speaker": "MARINE",
+   "text": "MARINE: Witnesses aboard. Keep us covered until parliament is in sight."
+  },
+  {
+   "id": "radio.m26.p6.chatter1",
+   "start": 50.742,
+   "end": 52.877,
+   "speaker": "MARINE",
+   "text": "MARINE: Parliament in sight. Witnesses still aboard."
+  },
+  {
+   "id": "radio.m27.p1.beat",
+   "start": 53.127,
+   "end": 54.694,
+   "speaker": "SERA",
+   "text": "His wingmen first. Then him."
+  },
+  {
+   "id": "radio.m27.p2.beat",
+   "start": 54.944,
+   "end": 56.922,
+   "speaker": "SERA",
+   "text": "SERA: His relay is still broadcasting. Cut it."
+  },
+  {
+   "id": "radio.m27.p2.twist",
+   "start": 57.172,
+   "end": 60.833,
+   "speaker": "RUSK",
+   "text": "RUSK: You cut one relay. Every loyal pilot still hears me. On me, now."
+  },
+  {
+   "id": "radio.m27.p2.t1.beat",
+   "start": 61.083,
+   "end": 63.979,
+   "speaker": "SERA",
+   "text": "SERA: His last escort pair is forming on him. Clear them."
+  },
+  {
+   "id": "radio.m27.p3.beat",
+   "start": 64.229,
+   "end": 67.603,
+   "speaker": "MARINE",
+   "text": "MARINE: Mark the clear road below him. We need Rusk alive to answer."
+  },
+  {
+   "id": "radio.m27.p3.chatter1",
+   "start": 67.853,
+   "end": 70.79,
+   "speaker": "MARINE",
+   "text": "MARINE: Clear road marked. We are ready to take him into custody."
+  },
+  {
+   "id": "radio.m27.p4.beat",
+   "start": 71.04,
+   "end": 74.275,
+   "speaker": "SERA",
+   "text": "That's his jet. Teal's voice on his tapes. Bring him down."
+  },
+  {
+   "id": "radio.m27.p5.beat",
+   "start": 74.525,
+   "end": 77.61,
+   "speaker": "SERA",
+   "text": "SERA: Rusk is down. Follow three lights to Teal's broadcast line."
+  },
+  {
+   "id": "radio.m27.p5.chatter1",
+   "start": 77.86,
+   "end": 80.892,
+   "speaker": "SERA",
+   "text": "SERA: One more light. Above it, the whole coast can hear you."
+  },
+  {
+   "id": "radio.m27.p6.beat",
+   "start": 81.142,
+   "end": 83.148,
+   "speaker": "SERA",
+   "text": "SERA: You're on every frequency. Say it your way."
+  },
+  {
+   "id": "radio.m27.p6.chatter1",
+   "start": 83.398,
+   "end": 85.652,
+   "speaker": "SERA",
+   "text": "SERA: Last of his diehards. Keep them off the signal."
+  },
+  {
+   "id": "radio.m27.p6.chatter2",
+   "start": 85.902,
+   "end": 88.582,
+   "speaker": "HARBOR",
+   "text": "HARBOR: Loyalist pilots answering. Every harbor."
+  },
+  {
+   "id": "radio.m27.ace.stage1",
+   "start": 88.832,
+   "end": 93.154,
+   "speaker": "RUSK",
+   "text": "RUSK: Every relay says I am the law. Yours is a child's radio. Wing!"
+  },
+  {
+   "id": "radio.m27.ace.stage2",
+   "start": 93.404,
+   "end": 96.881,
+   "speaker": "RUSK",
+   "text": "RUSK: Teal obeyed until the one order that mattered. Wing, finish him."
+  },
+  {
+   "id": "radio.m27.ace.return1",
+   "start": 97.131,
+   "end": 98.968,
+   "speaker": "SERA",
+   "text": "SERA: Rusk is turning back in. Here he comes."
+  },
+  {
+   "id": "radio.m27.ace.return2",
+   "start": 99.218,
+   "end": 100.908,
+   "speaker": "RUSK",
+   "text": "RUSK: Then hear it from me. Head on."
+  },
+  {
+   "id": "radio.m27.ace.call2",
+   "start": 101.158,
+   "end": 103.656,
+   "speaker": "SERA",
+   "text": "SERA: AIR MARSHAL RUSK pulled back to call his wing. 2 inbound."
+  },
+  {
+   "id": "radio.m27.ace.call3",
+   "start": 103.906,
+   "end": 106.597,
+   "speaker": "SERA",
+   "text": "SERA: AIR MARSHAL RUSK pulled back to call his wing. 3 inbound."
+  }
+ ],
+ "humanReview": {
+  "required": true,
+  "approved": false,
+  "reviewer": null,
+  "instructions": "Listen to the whole bank against this transcript; confirm every item above, then record approval in assets/voice/review.json."
+ }
+}

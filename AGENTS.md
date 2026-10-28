@@ -1,3 +1,10 @@
+# Owner rollback and audit pause — latest instruction
+
+- The owner rejected the AC04 M1–M5 release and explicitly ordered full rollback of PR #92 to pre-release commit efc712084cdb8b790c2042d094522dbd09cdc3f7.
+- Stop all AC04 implementation, autonomous mission work and rewrite work pending the owner’s audit and explicit new direction. The owner explicitly forbids merging any PR. Only the rollback commit to main and truthful documentation updates are authorized; stop afterward.
+- This supersedes earlier AC04-only removal and fresh-save requirements for the restored game. Preserve the previous UI, models, gameplay and campaign exactly as the rollback target. Do not wipe any cloud records.
+- Prior tests/reviews are evidence of their limited checks, not owner acceptance of visuals or gameplay feel. Retain them for audit.
+
 # SKYBREAK project reference
 
 - Official Roblox play link, supplied by the project owner: https://www.roblox.com/games/112911685457826

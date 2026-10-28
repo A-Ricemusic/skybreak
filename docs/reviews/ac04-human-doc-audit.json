@@ -26,22 +26,20 @@
     "exactlyFourHumanFiles": true,
     "htmlNestingAndUniqueIds": true,
     "localLinksAndAnchors": true,
-    "all18ExpandedMissionCards": true,
-    "gameplayAndUIAfterMissionReports": true,
-    "targetedStaleClaimScan": true
+    "priorMissionCardsArchivedForAudit": true
   },
   "documents": {
+    "docs/human/status.html": {
+      "sha256": "1da6dce2e31c78f2623e8405da7136822449e69ea876de7d3699c6cb9b229a57"
+    },
     "docs/human/playtest.html": {
-      "sha256": "a44b07f1592d994ee244227f1983dad015345fc331cedac6a44cc9fb3d2c1152"
+      "sha256": "b616e471c5116d5da5c50ae6c7c1ce6b78dc7137e0e9e6a26c03c5de12ca9485"
     },
     "docs/human/plan.html": {
-      "sha256": "761a1a6fe57a2bbc3c0babf3df50b227ed1684b445729ce782092764326cc0f5"
-    },
-    "docs/human/status.html": {
-      "sha256": "9c6d6b78d2851d2cdf907085a6e2cae12a3403c629c687e63095bf24913e64d5"
+      "sha256": "9f26bae835abe95ce22105421abcbf21f8db16b5cdcb5ae74e442ae8612ffaab"
     },
     "docs/human/taste.html": {
-      "sha256": "cd71d42b8323aeaa8e318f0d8093e6bea0456f3c690099bc018334afdb82beeb"
+      "sha256": "b445a27270e8bb2afbe468fd13add6c2a7fc4129546c8ecf9cdb26f2bdca1fca"
     }
   },
   "agentInstructionsUpdated": true,
@@ -66,5 +64,6 @@
     ],
     "nativeReview": "ac04-initial-release-native-61.json",
     "limits": "Owner Player verification; old receipt63 retained; source review is bounded; native endpoint simulation not gameplay"
-  }
+  },
+  "currentState": "Owner rollback; AC04 withdrawn; development stopped"
 }

@@ -13,8 +13,8 @@ local minAltitude,maxEdge=math.huge,0
 local c;local alive=true;local phase='climb';local phaseStart=os.clock();local began=phaseStart
 local function save() script:SetAttribute('Records',H:JSONEncode(records));script:SetAttribute('Samples',H:JSONEncode(samples)) end
 R.MissionState.OnClientEvent:Connect(function(m) if m.kind=='Failed' then script:SetAttribute('Outcome','Failed:'..tostring(m.reason));alive=false;save() end end)
-R.AC04Request:InvokeServer('ReturnToMenu');task.wait(.5)
-assert(R.AC04Request:InvokeServer('StartMission',{slot=1,missionId=1,difficulty='normal',special='flares'}).ok)
+R.CampaignRequest:InvokeServer('ReturnToMenu');task.wait(.5)
+assert(R.CampaignRequest:InvokeServer('StartMission',{slot=1,missionId=1,difficulty='normal',special='flares'}).ok)
 repeat task.wait(.1);c=C.GetActive() until c and c.active
 script:SetAttribute('Outcome','Running')
 local spawn=c:GetControlStateForStudio();table.insert(records,{phase='spawn',selected=spawn.selectedMph,actual=spawn.actualMph})
@@ -63,8 +63,8 @@ if phase=='done' then
   for _,r in records do if r.phase=='hold' then assert(math.abs(r.selected-r.requested)<.01 and math.abs(r.server-r.requested)<2,'Selection/airspeed drift') end end
   local last=records[#records];assert(last.selected==3000 and math.abs(last.server-3000)<2,'Held acceleration/release cap')
  end
- R.AC04Request:InvokeServer('ReturnToMenu');task.wait(.5)
- assert(R.AC04Request:InvokeServer('StartMission',{slot=1,missionId=1,difficulty='normal',special='flares'}).ok)
+ R.CampaignRequest:InvokeServer('ReturnToMenu');task.wait(.5)
+ assert(R.CampaignRequest:InvokeServer('StartMission',{slot=1,missionId=1,difficulty='normal',special='flares'}).ok)
  repeat task.wait(.1);c=C.GetActive() until c and c.active
  local d=c:GetControlStateForStudio();assert(d.selectedMph==800 and d.actualMph==800,'New mission reset');table.insert(records,{phase='new-sortie',selected=d.selectedMph,actual=d.actualMph});c:SetPaused(true);script:SetAttribute('Outcome','Passed');save()
 end

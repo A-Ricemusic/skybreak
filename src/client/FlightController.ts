@@ -1,6 +1,5 @@
 import { ContextActionService, GuiService, Players, RunService, UserInputService, Workspace } from "@rbxts/services";
-import { AC04MissionData } from "../shared/AC04MissionData";
-import { ac04ValidMission } from "../shared/AC04Progress";
+import { MissionCatalog } from "../shared/MissionCatalog";
 import { initialTelemetry } from "../shared/InitialTelemetry";
 import { FlightMath, FlightState } from "../shared/FlightMath";
 import { FlightPrediction, Predictor } from "../shared/FlightPrediction";
@@ -21,8 +20,7 @@ import { sphereSweep } from "../shared/SphereSweep";
 import { terrainProbeLength, terrainSeconds } from "../shared/FlightWarnings";
 import type { RadarContact, RadarContactKind } from "../shared/RadarMath";
 import { TARGET_BOX_SELECTED_MIN, TARGET_CAPTION_GAP, TARGET_CAPTION_HEIGHT, TARGET_CAPTION_WIDTH, TargetBoxes, type CaptionSpot, type SelectedStyle } from "../shared/TargetBoxes";
-import { ac04ViewportPlacement, ac04FreeArrow, AC04PlacementRevision } from "../shared/ac04/ui/AC04TargetPlacement";
-import type { Rectangle, HudLayout } from "../shared/UILayout";
+import type { HudLayout } from "../shared/UILayout";
 import { viewportOrigin, viewportPosition } from "./ViewportGui";
 import { TargetBoxOverlay } from "./TargetBoxOverlay";
 
@@ -32,8 +30,8 @@ const FLIGHT_KEYS: Enum.KeyCode[] = [
 	Enum.KeyCode.W, Enum.KeyCode.S, Enum.KeyCode.A, Enum.KeyCode.D,
 	Enum.KeyCode.Up, Enum.KeyCode.Down, Enum.KeyCode.Left, Enum.KeyCode.Right,
 	Enum.KeyCode.Q, Enum.KeyCode.E, Enum.KeyCode.LeftShift, Enum.KeyCode.ButtonL1, Enum.KeyCode.ButtonR1,
-	Enum.KeyCode.G, Enum.KeyCode.L, Enum.KeyCode.Space, Enum.KeyCode.F, Enum.KeyCode.Tab, Enum.KeyCode.R, Enum.KeyCode.C,
-	Enum.KeyCode.ButtonL2, Enum.KeyCode.ButtonR2, Enum.KeyCode.ButtonB, Enum.KeyCode.ButtonY, Enum.KeyCode.ButtonX, Enum.KeyCode.Thumbstick1, Enum.KeyCode.Thumbstick2,
+	Enum.KeyCode.Space, Enum.KeyCode.F, Enum.KeyCode.Tab, Enum.KeyCode.R, Enum.KeyCode.C,
+	Enum.KeyCode.ButtonR2, Enum.KeyCode.ButtonB, Enum.KeyCode.ButtonY, Enum.KeyCode.ButtonX, Enum.KeyCode.Thumbstick1, Enum.KeyCode.Thumbstick2,
 ];
 /** Drone-marked contacts: one glyph per hostile, dimmer than the selected target's cue. */
 const COLOR_MARKED = Color3.fromRGB(255, 193, 98);
@@ -111,7 +109,7 @@ export function createTargetCue(playerGui: Instance): [ScreenGui, Frame, UIStrok
 	gui.Name = "SkybreakFlightTargeting";
 	gui.IgnoreGuiInset = true;
 	gui.ResetOnSpawn = false;
-	gui.DisplayOrder = 5;
+	gui.DisplayOrder = 8;
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling;
 	// Full viewport; ViewportGui maps camera pixels to the measured GUI space.
 	gui.ScreenInsets = Enum.ScreenInsets.None;
@@ -253,8 +251,6 @@ export class FlightController {
 	private readonly boxes = new TargetBoxOverlay();
 	/** HUD layout, UIScale and root the touch controls are drawn in; boxes keep clear of them. */
 	private keepoutLayout?: HudLayout;
-	private keepoutRects?: readonly Rectangle[];
-	private readonly placementRevision = new AC04PlacementRevision();
 	private keepoutScale = 1;
 	private keepoutAnchor?: GuiObject;
 	private keepoutRoot?: Vector2;
@@ -272,7 +268,6 @@ export class FlightController {
 	/** Settings: opt-in level-out assist (a centred stick eases back to wings-level). Default off: attitude hold. */
 	private levelAssist = false;
 	private probeClock = 0;
-	private gunClock = 0;
 	private probeParams?: RaycastParams;
 	private probeDirty = true;
 	private probeBuiltAt = -math.huge;
@@ -345,7 +340,7 @@ export class FlightController {
 	}
 	private applyHud(message: Partial<HudState>): void {
 		const t = this.telemetry;
-		if (ac04ValidMission(message.missionId)) t.missionId = message.missionId;
+		if (MissionCatalog.IsValidId(message.missionId)) t.missionId = message.missionId;
 		if (typeIs(message.phase, "string")) t.phase = message.phase;
 		if (typeIs(message.objective, "string")) t.objective = message.objective;
 		if (typeIs(message.tutorialStep, "string")) t.tutorialStep = message.tutorialStep;
@@ -377,8 +372,6 @@ export class FlightController {
 			if (state === Enum.UserInputState.Begin || state === Enum.UserInputState.Change) this.keys.add(keyCode);
 			else this.keys.delete(keyCode);
 			if (state === Enum.UserInputState.Begin) {
-				if (keyCode === Enum.KeyCode.G || keyCode === Enum.KeyCode.ButtonL2) this.FireGun();
-				if (keyCode === Enum.KeyCode.L) this.Rearm();
 				if (keyCode === Enum.KeyCode.Space || keyCode === Enum.KeyCode.ButtonR2) this.FireMissile();
 				if (keyCode === Enum.KeyCode.F || keyCode === Enum.KeyCode.ButtonB) this.Evade();
 				if (keyCode === Enum.KeyCode.Tab || keyCode === Enum.KeyCode.R || keyCode === Enum.KeyCode.ButtonY) this.CycleTarget();
@@ -406,8 +399,6 @@ export class FlightController {
 	}
 	private action(action: string): void { if (this.active && !this.paused) this.remotes.CombatAction.FireServer({ action }); }
 	public FireMissile(): void { this.action("FireMissile"); }
-	public FireGun(): void { this.action("FireGun"); }
-	public Rearm(): void { this.action("Rearm"); }
 	public Evade(): void {
 		if (!this.active) return;
 		if (this.paused) return;
@@ -442,7 +433,6 @@ export class FlightController {
 	private releaseLocalPause(): void { if (this.paused) this.applyLocalPause(false); }
 	private applyLocalPause(paused: boolean): void {
 		this.paused = paused;
-		if (this.targetGui) this.targetGui.Enabled = !paused;
 		this.audio.SetPaused(paused);
 		this.keys.clear(); this.mouseSteer = false; this.touchInput = Vector2.zero; this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0;
 		this.sendTime = INPUT_KEEPALIVE;
@@ -541,21 +531,13 @@ export class FlightController {
 	 * safe area): target boxes and their text never cover those controls or leave that area.
 	 */
 	public SetTargetKeepouts(layout: HudLayout | undefined, scale: number, anchor: GuiObject | undefined, root?: Vector2): void {
-		this.keepoutRects = undefined; this.placementRevision.Clear();
 		this.keepoutLayout = layout; this.keepoutScale = scale; this.keepoutAnchor = anchor; this.keepoutRoot = root; this.keepoutDirty = true;
-	}
-	/** Distinct unscaled root-local API. Each setter replaces the other mode. */
-	public SetTargetRectKeepouts(rectangles: readonly Rectangle[] | undefined, anchor?: GuiObject, root?: Vector2): void {
-		this.keepoutLayout = undefined;
-		this.keepoutRects = rectangles?.map((r) => ({ ...r }));
-		this.keepoutAnchor = anchor; this.keepoutRoot = root;
-		this.keepoutDirty = true; this.placementRevision.Clear();
 	}
 	/** Rebuilds the keep-outs and bounds when the layout, viewport or HUD root's on-screen origin moved (cheap compare per frame). */
 	private updateKeepouts(viewport: Vector2): void {
 		const gui = this.targetGui, anchor = this.keepoutAnchor, layout = this.keepoutLayout;
 		if (!gui) return;
-		if (!anchor || (!layout && !this.keepoutRects) || anchor.Parent === undefined) {
+		if (!anchor || !layout || anchor.Parent === undefined) {
 			if (!this.keepoutDirty && this.keepoutOrigin === undefined && viewport === this.keepoutViewport) return;
 			this.keepoutDirty = false; this.keepoutOrigin = undefined; this.keepoutViewport = viewport;
 			this.boxes.SetPlacement([], TargetBoxes.Bounds(viewport.X, viewport.Y));
@@ -563,16 +545,11 @@ export class FlightController {
 		}
 		// Keep-outs stay in viewport pixels, independently of the targeting GUI origin.
 		const origin = viewportOrigin(anchor);
-		const measured = anchor.AbsoluteSize;
-		const changed = this.placementRevision.Changed(origin.X, origin.Y, measured.X, measured.Y, viewport.X, viewport.Y);
-		if (!this.keepoutDirty && !changed) return;
+		if (!this.keepoutDirty && origin === this.keepoutOrigin && viewport === this.keepoutViewport) return;
 		this.keepoutDirty = false; this.keepoutOrigin = origin; this.keepoutViewport = viewport;
-		const root = this.keepoutRects ? measured : this.keepoutRoot;
+		const root = this.keepoutRoot;
 		const safe = root ? { x: origin.X, y: origin.Y, width: root.X, height: root.Y } : undefined;
-		if (this.keepoutRects) {
-			const placement = ac04ViewportPlacement(this.keepoutRects, origin.X, origin.Y, root!.X, root!.Y, viewport.X, viewport.Y);
-			this.boxes.SetPlacement(placement.keepouts, placement.bounds);
-		} else this.boxes.SetPlacement(TargetBoxes.Keepouts(layout!, this.keepoutScale, origin.X, origin.Y), TargetBoxes.Bounds(viewport.X, viewport.Y, safe));
+		this.boxes.SetPlacement(TargetBoxes.Keepouts(layout, this.keepoutScale, origin.X, origin.Y), TargetBoxes.Bounds(viewport.X, viewport.Y, safe));
 	}
 	public GetTelemetry(): Telemetry {
 		const result = { ...this.telemetry };
@@ -678,9 +655,7 @@ export class FlightController {
 		} else {
 			const [safeX, safeY] = safeInsets(size);
 			const [x, y, rotation] = edgePoint(camera, worldPosition, math.max(1, size.X / 2 - safeX), math.max(1, size.Y / 2 - safeY), TARGET_ARROW_INSET);
-			const free = bounds ? ac04FreeArrow(x, y, bounds, keepouts) : undefined;
-			arrow.Visible = free !== undefined;
-			if (free) arrow.Position = viewportPosition(this.targetGui!, free[0], free[1]);
+			arrow.Position = viewportPosition(this.targetGui!, x, y);
 			arrow.Rotation = rotation;
 			const text = contactGlyph(ground, required);
 			if (text !== this.arrowText) { this.arrowText = text; arrow.Text = text; }
@@ -763,8 +738,6 @@ export class FlightController {
 			return;
 		}
 		this.retryPauseRequest(os.clock());
-		this.gunClock += dt;
-		if (!this.paused && (this.keys.has(Enum.KeyCode.G) || this.keys.has(Enum.KeyCode.ButtonL2)) && this.gunClock >= .12) { this.gunClock = 0; this.FireGun(); }
 		if (this.paused) {
 			// Hold the last frame: no prediction, no input, no camera follow.
 			camera.CameraType = Enum.CameraType.Scriptable;
@@ -831,11 +804,7 @@ export class FlightController {
 		}
 	}
 	public Start(missionData: MissionStarted): boolean {
-		// Preserve a pre-start UI effect, while public Stop always clears stale placement.
-		const layout = this.keepoutLayout, rects = this.keepoutRects, anchor = this.keepoutAnchor, root = this.keepoutRoot, scale = this.keepoutScale;
 		this.Stop();
-		if (rects) this.SetTargetRectKeepouts(rects, anchor, root);
-		else if (layout) this.SetTargetKeepouts(layout, scale, anchor, root);
 		if (!typeIs(missionData, "table") || !isModel(missionData.aircraft)) { warn("SKYBREAK flight start is missing its replicated aircraft"); return false; }
 		this.aircraft = missionData.aircraft;
 		this.active = true;
@@ -916,7 +885,6 @@ export class FlightController {
 		return true;
 	}
 	public Stop(): void {
-		this.SetTargetRectKeepouts(undefined);
 		this.audio.Stop();
 		this.active = false;
 		this.paused = false;

@@ -1,0 +1,274 @@
+{
+  "commercialUsePermitted": true,
+  "reviewer": "Sol 6.1 (gpt-6.1-sol)",
+  "pullRequest": "https://github.com/A-Ricemusic/skybreak/pull/48",
+  "head": "f1eb6ba6f76e9fe1ff40cd121a0ce6af0fc0c261",
+  "base": "271e5f07878424673bfbb1547a682216b8814d39",
+  "audioListened": false,
+  "humanListened": false,
+  "note": "No human listened. Approval is limited to transcript + STT + casting evidence; it does not certify actual acoustic delivery, absence of every possible mis-synthesis, or a Roblox moderation outcome. Existing checklist humanReview.approved remains false.",
+  "banks": {
+    "voiceBank01": {
+      "sha256": "9ac91ce80cd367d85963be0fc42a5ab3ad375082935d757210577bff8eea1e84",
+      "approved": true,
+      "reviewer": "Sol 6.1 (gpt-6.1-sol)",
+      "method": "Independent manual review of all 464 exact and spoken transcript lines and all STT heard strings for moderation, with exhaustive cue-table, casting, provenance, bank membership, SHA-256 and checklist checks; ElevenLabs scribe_v1 per-line scores independently recomputed, raw timestamp STT reconstructed, and every sub-90% explanation reviewed. All 16 distinct voices verified premade in cached provider category evidence; all 464 recorded generation requests/cache hashes agree with casting and paid Starter provenance. Text + STT + casting evidence review only: no human listened to any bank or sampler.",
+      "humanListened": false,
+      "note": "No human listened. Approval is limited to transcript + STT + casting evidence; it does not certify actual acoustic delivery, absence of every possible mis-synthesis, or a Roblox moderation outcome. Existing checklist humanReview.approved remains false.",
+      "transcriptMatch": {
+        "engine": "ElevenLabs scribe_v1; independently recomputed LCS word recall and reconstructed cached word timestamps",
+        "lines": 56,
+        "meanRate": 0.9926,
+        "minRate": 0.889,
+        "flagged": [],
+        "acceptedUnder90": [
+          {
+            "id": "story.c07.b05",
+            "rate": 0.889,
+            "reason": "Homophone: invented name 'Sera' transcribed as 'Sara'; every word spoken."
+          }
+        ],
+        "note": "minRate is the true unadjusted score; accepted naming/number/plural recognition differences are not silently changed to 90% or 100%. LCS recall does not penalize inserted/repeated words."
+      },
+      "contextualFlags": [
+        {
+          "bank": "voiceBank01",
+          "lineIds": [
+            "story.c03.b02"
+          ],
+          "reason": "Trainees called kids in a surveillance/threat context; no sexualization or exploitative detail. Fictional aviation training; contextual flag, nonblocking."
+        },
+        {
+          "bank": "voiceBank01",
+          "lineIds": [
+            "story.c04.b00"
+          ],
+          "reason": "Invented Teklan is recognized as Techland in STT, a possible incidental brand-name sound-alike. The line describes fictional farmers, not a company, product or endorsement; nonblocking."
+        },
+        {
+          "bank": "voiceBank01",
+          "lineIds": [
+            "story.c04.b01",
+            "story.c04.b02",
+            "story.c04.b03",
+            "story.c08.b01",
+            "story.c09.b01"
+          ],
+          "reason": "Attacks on evacuation trucks, implied disappearances, witness killing and metaphorical screaming. No gore, torture detail or endorsement of civilian attacks. Fictional antagonist wrongdoing; nonblocking PG-13 context."
+        }
+      ]
+    },
+    "voiceBank02": {
+      "sha256": "9fee21d4544d11c01a7cea849ad381ecda29bcae0be2d045dc4a192713a33a14",
+      "approved": true,
+      "reviewer": "Sol 6.1 (gpt-6.1-sol)",
+      "method": "Independent manual review of all 464 exact and spoken transcript lines and all STT heard strings for moderation, with exhaustive cue-table, casting, provenance, bank membership, SHA-256 and checklist checks; ElevenLabs scribe_v1 per-line scores independently recomputed, raw timestamp STT reconstructed, and every sub-90% explanation reviewed. All 16 distinct voices verified premade in cached provider category evidence; all 464 recorded generation requests/cache hashes agree with casting and paid Starter provenance. Text + STT + casting evidence review only: no human listened to any bank or sampler.",
+      "humanListened": false,
+      "note": "No human listened. Approval is limited to transcript + STT + casting evidence; it does not certify actual acoustic delivery, absence of every possible mis-synthesis, or a Roblox moderation outcome. Existing checklist humanReview.approved remains false.",
+      "transcriptMatch": {
+        "engine": "ElevenLabs scribe_v1; independently recomputed LCS word recall and reconstructed cached word timestamps",
+        "lines": 55,
+        "meanRate": 0.9919,
+        "minRate": 0.9,
+        "flagged": [],
+        "acceptedUnder90": [],
+        "note": "minRate is the true unadjusted score; accepted naming/number/plural recognition differences are not silently changed to 90% or 100%. LCS recall does not penalize inserted/repeated words."
+      },
+      "contextualFlags": [
+        {
+          "bank": "voiceBank02",
+          "lineIds": [
+            "story.c10.b00",
+            "story.c15.b01",
+            "story.c15.b02",
+            "story.c17.b00"
+          ],
+          "reason": "Fictional emergency rule, propaganda, orchard retaliation and suspension of parliament. No identifiable real government, nation, political movement or conflict; nonblocking."
+        }
+      ]
+    },
+    "voiceBank03": {
+      "sha256": "f5a1bc2b2be9b0a4261404e853ddd00200c64191b0335213c01f1ef7fb5aec18",
+      "approved": true,
+      "reviewer": "Sol 6.1 (gpt-6.1-sol)",
+      "method": "Independent manual review of all 464 exact and spoken transcript lines and all STT heard strings for moderation, with exhaustive cue-table, casting, provenance, bank membership, SHA-256 and checklist checks; ElevenLabs scribe_v1 per-line scores independently recomputed, raw timestamp STT reconstructed, and every sub-90% explanation reviewed. All 16 distinct voices verified premade in cached provider category evidence; all 464 recorded generation requests/cache hashes agree with casting and paid Starter provenance. Text + STT + casting evidence review only: no human listened to any bank or sampler.",
+      "humanListened": false,
+      "note": "No human listened. Approval is limited to transcript + STT + casting evidence; it does not certify actual acoustic delivery, absence of every possible mis-synthesis, or a Roblox moderation outcome. Existing checklist humanReview.approved remains false.",
+      "transcriptMatch": {
+        "engine": "ElevenLabs scribe_v1; independently recomputed LCS word recall and reconstructed cached word timestamps",
+        "lines": 62,
+        "meanRate": 0.9883,
+        "minRate": 0.429,
+        "flagged": [],
+        "acceptedUnder90": [
+          {
+            "id": "story.c25.b01",
+            "rate": 0.429,
+            "reason": "Number formatting: spoken 'Recorder seven-T. Entry oh-four-twelve.' transcribed as digits '7T, entry 0412'."
+          }
+        ],
+        "note": "minRate is the true unadjusted score; accepted naming/number/plural recognition differences are not silently changed to 90% or 100%. LCS recall does not penalize inserted/repeated words."
+      },
+      "contextualFlags": [
+        {
+          "bank": "voiceBank03",
+          "lineIds": [
+            "story.c20.b01",
+            "story.c20.b03",
+            "story.c21.b02",
+            "story.c23.b04"
+          ],
+          "reason": "Fictional authoritarian broadcast, military relay amid apartments, starvation reference and revenge language. Civilian protection is explicit elsewhere; no graphic detail. Nonblocking."
+        },
+        {
+          "bank": "voiceBank03",
+          "lineIds": [
+            "story.c21.b03"
+          ],
+          "reason": "He wants you to know he is a person / do not let him is dehumanizing antagonist-directed rhetoric. Borderline wording, but no protected group, real person or atrocity advocacy; nonblocking in this fictional duel."
+        },
+        {
+          "bank": "voiceBank03",
+          "lineIds": [
+            "story.c25.b00",
+            "story.c25.b02",
+            "story.c25.b03",
+            "story.c25.b04",
+            "story.c25.b05",
+            "story.c25.b06",
+            "story.c27.b06"
+          ],
+          "reason": "Offscreen pilot death and knowingly dangerous combat self-sacrifice to protect evacuation trucks. No suicide instruction, deliberate self-injury, gore or explicit crash description. Nonblocking PG-13 wartime loss; cannot assess emotional delivery without listening."
+        },
+        {
+          "bank": "voiceBank03",
+          "lineIds": [
+            "radio.m02.p2.beat"
+          ],
+          "reason": "Burn them all refers explicitly to five enemy supply warehouses, not people. Nonblocking military-target destruction."
+        }
+      ]
+    },
+    "voiceBank04": {
+      "sha256": "92eda8ce157ca07cf9d83853ffe34471c11b10fa6e3884d736d0029fbb5192c0",
+      "approved": true,
+      "reviewer": "Sol 6.1 (gpt-6.1-sol)",
+      "method": "Independent manual review of all 464 exact and spoken transcript lines and all STT heard strings for moderation, with exhaustive cue-table, casting, provenance, bank membership, SHA-256 and checklist checks; ElevenLabs scribe_v1 per-line scores independently recomputed, raw timestamp STT reconstructed, and every sub-90% explanation reviewed. All 16 distinct voices verified premade in cached provider category evidence; all 464 recorded generation requests/cache hashes agree with casting and paid Starter provenance. Text + STT + casting evidence review only: no human listened to any bank or sampler.",
+      "humanListened": false,
+      "note": "No human listened. Approval is limited to transcript + STT + casting evidence; it does not certify actual acoustic delivery, absence of every possible mis-synthesis, or a Roblox moderation outcome. Existing checklist humanReview.approved remains false.",
+      "transcriptMatch": {
+        "engine": "ElevenLabs scribe_v1; independently recomputed LCS word recall and reconstructed cached word timestamps",
+        "lines": 128,
+        "meanRate": 0.9973,
+        "minRate": 0.75,
+        "flagged": [],
+        "acceptedUnder90": [
+          {
+            "id": "radio.m11.p3.beat",
+            "rate": 0.75,
+            "reason": "Homophone: invented name 'Merel' transcribed as 'Merle'."
+          }
+        ],
+        "note": "minRate is the true unadjusted score; accepted naming/number/plural recognition differences are not silently changed to 90% or 100%. LCS recall does not penalize inserted/repeated words."
+      },
+      "contextualFlags": [
+        {
+          "bank": "voiceBank04",
+          "lineIds": [
+            "radio.m08.p1.chatter1",
+            "radio.m09.ace.stage1",
+            "radio.m12.p1.twist",
+            "radio.m12.p1.t1.beat",
+            "radio.m14.p4.beat"
+          ],
+          "reason": "Enemy tower attack order, pilot-death taunt, false directions toward a mined road, and anything left alive as a communications metaphor. Context shows fictional hostile acts and rescue/protection, with no real units or gore; nonblocking."
+        }
+      ]
+    },
+    "voiceBank05": {
+      "sha256": "52ffe3d29c0b5d60d4f8bbe8b36d94e4fa85d6a43b0e56b2ff1fa2be90c91157",
+      "approved": true,
+      "reviewer": "Sol 6.1 (gpt-6.1-sol)",
+      "method": "Independent manual review of all 464 exact and spoken transcript lines and all STT heard strings for moderation, with exhaustive cue-table, casting, provenance, bank membership, SHA-256 and checklist checks; ElevenLabs scribe_v1 per-line scores independently recomputed, raw timestamp STT reconstructed, and every sub-90% explanation reviewed. All 16 distinct voices verified premade in cached provider category evidence; all 464 recorded generation requests/cache hashes agree with casting and paid Starter provenance. Text + STT + casting evidence review only: no human listened to any bank or sampler.",
+      "humanListened": false,
+      "note": "No human listened. Approval is limited to transcript + STT + casting evidence; it does not certify actual acoustic delivery, absence of every possible mis-synthesis, or a Roblox moderation outcome. Existing checklist humanReview.approved remains false.",
+      "transcriptMatch": {
+        "engine": "ElevenLabs scribe_v1; independently recomputed LCS word recall and reconstructed cached word timestamps",
+        "lines": 128,
+        "meanRate": 0.9922,
+        "minRate": 0.833,
+        "flagged": [],
+        "acceptedUnder90": [
+          {
+            "id": "radio.m18.p3.beat",
+            "rate": 0.833,
+            "reason": "Homophone: 'wingmen' transcribed as 'wingman'."
+          },
+          {
+            "id": "radio.m19.p1.beat",
+            "rate": 0.875,
+            "reason": "Homophone: 'quays' (said 'keys') transcribed as 'keys'."
+          },
+          {
+            "id": "radio.m19.p1.chatter1",
+            "rate": 0.875,
+            "reason": "Homophone: 'quays' (said 'keys') transcribed as 'keys'."
+          },
+          {
+            "id": "radio.m19.p2.beat",
+            "rate": 0.833,
+            "reason": "Homophone: 'quays' (said 'keys') transcribed as 'keys'."
+          },
+          {
+            "id": "radio.m19.p6.chatter1",
+            "rate": 0.875,
+            "reason": "Homophone: 'quay' (said 'key') transcribed as 'key'."
+          }
+        ],
+        "note": "minRate is the true unadjusted score; accepted naming/number/plural recognition differences are not silently changed to 90% or 100%. LCS recall does not penalize inserted/repeated words."
+      },
+      "contextualFlags": [
+        {
+          "bank": "voiceBank05",
+          "lineIds": [
+            "radio.m15.p1.hazard"
+          ],
+          "reason": "Kill the two jammer trucks is destruction of marked military equipment; not a threat to a real person or group. Nonblocking combat usage."
+        }
+      ]
+    },
+    "voiceBank06": {
+      "sha256": "b03ef98a1be34044880e8ae33d1a8e759fb93ed52799f8c73db6dce95b958ddf",
+      "approved": true,
+      "reviewer": "Sol 6.1 (gpt-6.1-sol)",
+      "method": "Independent manual review of all 464 exact and spoken transcript lines and all STT heard strings for moderation, with exhaustive cue-table, casting, provenance, bank membership, SHA-256 and checklist checks; ElevenLabs scribe_v1 per-line scores independently recomputed, raw timestamp STT reconstructed, and every sub-90% explanation reviewed. All 16 distinct voices verified premade in cached provider category evidence; all 464 recorded generation requests/cache hashes agree with casting and paid Starter provenance. Text + STT + casting evidence review only: no human listened to any bank or sampler.",
+      "humanListened": false,
+      "note": "No human listened. Approval is limited to transcript + STT + casting evidence; it does not certify actual acoustic delivery, absence of every possible mis-synthesis, or a Roblox moderation outcome. Existing checklist humanReview.approved remains false.",
+      "transcriptMatch": {
+        "engine": "ElevenLabs scribe_v1; independently recomputed LCS word recall and reconstructed cached word timestamps",
+        "lines": 35,
+        "meanRate": 0.9914,
+        "minRate": 0.8,
+        "flagged": [],
+        "acceptedUnder90": [
+          {
+            "id": "radio.m27.p1.beat",
+            "rate": 0.8,
+            "reason": "Homophone: 'wingmen' transcribed as 'wingman'."
+          }
+        ],
+        "note": "minRate is the true unadjusted score; accepted naming/number/plural recognition differences are not silently changed to 90% or 100%. LCS recall does not penalize inserted/repeated words."
+      },
+      "contextualFlags": [
+        {
+          "bank": "voiceBank06",
+          "lineIds": [
+            "radio.m27.p1.beat",
+            "radio.m27.ace.stage2"
+          ],
+          "reason": "His wingmen first / finish him are fictional aerial-combat orders. Same mission explicitly calls for Rusk alive and custody; no graphic violence. Nonblocking."
+        }
+      ]
+    }
+  }
+}

@@ -1,6 +1,6 @@
 import { Lighting, TweenService, UserInputService, Workspace } from "@rbxts/services";
 import { ENVIRONMENT_ATTRIBUTE } from "../shared/EnvironmentPresets";
-import type { EnvironmentPreset } from "../shared/WorldTypes";
+import type { EnvironmentPreset } from "../shared/MissionCatalog";
 import { WEATHER_VOLUME, lightningGap, weatherPlan, type DriftSpec, type RainSpec, type WeatherPlan } from "../shared/WeatherRules";
 import { MotionPreference } from "./MotionPreference";
 

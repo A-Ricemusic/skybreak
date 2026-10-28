@@ -1,5 +1,5 @@
 import { ENVIRONMENTS, type Rgb } from "./EnvironmentPresets";
-import type { EnvironmentPreset } from "./WorldTypes";
+import type { EnvironmentPreset } from "./MissionCatalog";
 
 // Pure weather and phone-trim rules (client/Weather and client/MobileGraphics
 // apply them; WeatherRules.spec runs them offline). Every effect is event or

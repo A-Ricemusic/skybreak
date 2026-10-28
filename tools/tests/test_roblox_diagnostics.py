@@ -23,8 +23,8 @@ repair_spec.loader.exec_module(repair)
 
 class DiagnosticsTests(unittest.TestCase):
     def test_voice_ids_match_repair_allowlist(self):
-        # Both lists are hard-coded on purpose; current SFX banks match the repair list.
-        self.assertEqual(diagnostic.VOICE_IDS, tuple(str(i) for i in repair.ASSET_IDS))
+        # Both lists are hard-coded on purpose; the 6 voice banks lead the repair list.
+        self.assertEqual(diagnostic.VOICE_IDS, tuple(str(i) for i in repair.ASSET_IDS[:6]))
 
     def test_target_combinations_and_no_secret_output(self):
         for place in ("", "private-wrong-place", diagnostic.target.OFFICIAL_PLACE):
@@ -49,7 +49,7 @@ class DiagnosticsTests(unittest.TestCase):
         result = diagnostic.probe(diagnostic.VOICE_IDS[0], "private-key", opener)
         request = opener.open.call_args.args[0]
         self.assertEqual(request.get_method(), "GET")
-        self.assertEqual(request.full_url, "https://apis.roblox.com/assets/v1/assets/100845993226613")
+        self.assertEqual(request.full_url, "https://apis.roblox.com/assets/v1/assets/96143096268975")
         self.assertTrue(result["metadata_identity_matches"])
         self.assertTrue(result["audio_type_matches"])
         self.assertEqual(result["experience_use_permission"], "unverified")

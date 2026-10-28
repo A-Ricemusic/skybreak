@@ -11,10 +11,10 @@ const APPROVED_IDS = [
 ];
 export async function writeAudioUseAllowlist() {
   const assets: { kind: string; bank: string; assetId: string; sha256: string }[] = [];
-  for (const kind of ["audio"]) {
+  for (const kind of ["voice", "audio"]) {
     const uploaded = await Bun.file(resolve(root, `assets/${kind}/uploaded.json`)).json();
     const used = new Set((kind === "voice" ? Object.values(VOICE_BANK_ASSETS) : Object.values(SoundBank).map(cue => cue.assetId)).map(id => id.replace("rbxassetid://", "")));
-    if (used.size !== (8) || Object.keys(uploaded).length !== used.size) throw Error(`Unexpected ${kind} bank inventory`);
+    if (used.size !== (kind === "voice" ? 6 : 8) || Object.keys(uploaded).length !== used.size) throw Error(`Unexpected ${kind} bank inventory`);
     for (const [bank, record] of Object.entries(uploaded) as [string, { assetId: string; sha256: string; state: string; assetType: string }][]) {
       if (!used.delete(record.assetId) || !APPROVED_IDS.includes(record.assetId) || record.state !== "MODERATION_STATE_APPROVED" || record.assetType !== "Audio") throw Error(`Bank outside approved Use scope: ${kind}/${bank}`);
       const bytes = await Bun.file(resolve(root, `assets/${kind}/${bank}.ogg`)).arrayBuffer();
@@ -23,12 +23,12 @@ export async function writeAudioUseAllowlist() {
     }
     if (used.size) throw Error(`Unverified runtime ${kind} bank`);
   }
-  if (new Set(assets.map(asset => asset.assetId)).size !== 8 || assets.length !== 8) throw Error("Expected exactly 8 distinct banks");
+  if (new Set(assets.map(asset => asset.assetId)).size !== 14 || assets.length !== 14) throw Error("Expected exactly 14 distinct banks");
   const report = { status: "planned-not-applied", universeId: "10772984313", placeId: "112911685457826", permission: "Use", includeDependencies: false, public: false, assets };
   const dest = resolve(root, "build/voice-offline");
   await mkdir(dest, { recursive: true });
   await Bun.write(resolve(dest, "audio-use-allowlist.json"), JSON.stringify(report, null, 2) + "\n");
-  console.log("AUDIO_USE_ALLOWLIST 8 verified current SFX banks; universe=10772984313 Use only; no grants queried/applied");
+  console.log("AUDIO_USE_ALLOWLIST 14 verified current banks; universe=10772984313 Use only; no grants queried/applied");
   return report;
 }
 if (import.meta.main) await writeAudioUseAllowlist();

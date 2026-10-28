@@ -1,9 +1,12 @@
-import { AC04CampaignService } from "./AC04CampaignService";
 import { ReplicatedStorage } from "@rbxts/services";
+import { MissionAssets } from "../shared/MissionAssets";
 import { JetFactory } from "../shared/JetFactory";
 import { GameConfig } from "../shared/GameConfig";
 import { Remotes } from "../shared/Types";
+import { CampaignService } from "./CampaignService";
 import { CombatService } from "./CombatService";
+import { WorldAssets } from "./WorldAssets";
+import { WorldBuilder } from "./WorldBuilder";
 
 function ensureRemote<T extends "RemoteFunction" | "RemoteEvent" | "UnreliableRemoteEvent">(folder: Folder, name: string, className: T): CreatableInstances[T] {
 	let existing = folder.FindFirstChild(name);
@@ -34,6 +37,7 @@ function initialize(): void {
 	}
 
 	const remotes: Remotes = {
+		CampaignRequest: ensureRemote(remotesFolder, "CampaignRequest", "RemoteFunction"),
 		// High-rate streams are unreliable: a late packet is worthless, and a lost
 		// one is replaced by the next instead of stalling everything queued behind it.
 		FlightInput: ensureRemote(remotesFolder, "FlightInput", "UnreliableRemoteEvent"),
@@ -44,12 +48,33 @@ function initialize(): void {
 		CombatEffect: ensureRemote(remotesFolder, "CombatEffect", "RemoteEvent"),
 	};
 
+	WorldBuilder.Build();
 	// Build the enemy (Vanta) mesh templates now. The first bandit of a server lifetime is otherwise
 	// created inside a Heartbeat step, where the mesh build yields mid-simulation.
 	const [warmed, warmError] = pcall(() => JetFactory.Create("Vanta warm-up", true).Destroy());
 	if (!warmed) warn(`SKYBREAK enemy mesh warm-up failed; the first sortie will build it: ${tostring(warmError)}`);
-	CombatService.Init(remotes, (player,won,stats)=>AC04CampaignService.OnFinished(player,won,stats));
-	AC04CampaignService.Init(remotes, CombatService);
+	const storyModels=new Instance("Folder");storyModels.Name="RelayStoryModels";
+	for (const [name,make] of [
+		["CinematicKestrel",()=>JetFactory.Create("CinematicKestrel", false)],
+		["CinematicChair",()=>MissionAssets.CreateCinematicChair()],
+		["CinematicDesk",()=>MissionAssets.CreateCinematicDesk()],
+		["CommsRelay",()=>MissionAssets.CreateCommsRelay("CommsRelay")],
+		["RelayTruck",()=>MissionAssets.CreateRelayTruck("RelayTruck")],
+		["HarborLaunch",()=>MissionAssets.CreateHarborLaunch("HarborLaunch")],
+	] as const) {const model=make();model.Name=name;model.Parent=storyModels;}
+	// Reuse the approved uploaded hangar; never substitute third-party assets.
+	WorldAssets.Preload(["Hangar"]);
+	const hangar = WorldAssets.PlaceUploaded("Hangar", storyModels, new CFrame());
+	if (hangar) hangar.Name = "CinematicHangar";
+	else warn("SKYBREAK cinematic hangar unavailable; stage will use its explicit fallback");
+	storyModels.Parent=ReplicatedStorage;
+	const [combatInitialized, combatError] = pcall(() => CombatService.Init(remotes, CampaignService.OnFinished));
+	if (!combatInitialized) {
+		warn(`SKYBREAK CombatService initialization failed; missions are disabled: ${tostring(combatError)}`);
+		CampaignService.Init(remotes, undefined);
+	} else {
+		CampaignService.Init(remotes, CombatService);
+	}
 	print(`${GameConfig.DisplayName}: ${GameConfig.Subtitle} server started`);
 }
 

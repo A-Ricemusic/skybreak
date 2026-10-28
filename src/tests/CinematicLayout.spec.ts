@@ -1,5 +1,6 @@
 import {describe,expect,it} from "@rbxts/jest-globals";
 import {Rect,cinematicBandHeight,getCinematicFrame,getCinematicLayout,progressSegments,rectInside,rectsOverlap} from "../shared/CinematicLayout";
+import {STORY,speakerStyle} from "../shared/RelayStory";
 
 // Safe roots after CoreUISafeInsets (58 px Roblox top bar, plus the notch where stated):
 // 667x375 -> 667x317; 844x390 with a 44 px left inset -> 800x332; 1920x854 -> 1920x796;
@@ -125,5 +126,16 @@ describe("cinematic caption panel without a top letterbox",()=>{
 				if(i>0)expect(segments[i].x).toBeGreaterThanOrEqual(segments[i-1].x+segments[i-1].width+2);
 			}
 		}
+	});
+	it("gives every story speaker a known chip name, role split and colour tone",()=>{
+		expect(speakerStyle("TEAL · RECORDED").tone).toBe("teal");
+		expect(speakerStyle("TEAL · RECORDED").role).toBe("RECORDED");
+		expect(speakerStyle("SERA · VARDA CONTROL").tone).toBe("control");
+		expect(speakerStyle("FLIGHT LOG").tone).toBe("log");
+		expect(speakerStyle("FLIGHT LOG").role).toBeUndefined();
+		expect(speakerStyle("MARSHAL · INTERCEPT").tone).toBe("marshal");
+		expect(speakerStyle("TRAINEE").tone).toBe("trainee");
+		const known=new Set(["TEAL","SERA","FLIGHT LOG","RECORDER 7-T","MARSHAL","RUSK","TRAINEE","VULTURE TWO"]);
+		for(const chapter of STORY)for(const beat of chapter.beats)expect(known.has(speakerStyle(beat.speaker).name)).toBe(true);
 	});
 });

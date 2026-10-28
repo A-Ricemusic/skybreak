@@ -1,9 +1,9 @@
 {
   "checkedAt": "2026-10-27T20:58:17.962647-07:00",
   "officialPlaceId": 112911685457826,
-  "publishedRevision": "76318c7b80af746b928d1433e4026e7716e2c726",
+  "publishedRevision": "efc712084cdb8b790c2042d094522dbd09cdc3f7",
   "latestConfirmedVersion": 63,
-  "evidenceType": "Gameplay PR92 merged; live by owner CI/CD convention. Receipt63 remains historical supporting metadata. No fresh Player observation.",
+  "evidenceType": "Rollback source equals pre-PR92 release; release metadata describes target; direct main push triggers publication. No fresh Player session.",
   "runs": [
     {
       "conclusion": "success",
@@ -164,14 +164,13 @@
     "freshPlayerObservation": false
   },
   "currentAC04MissionAvailability": {
-    "live": [
+    "live": [],
+    "withdrawn": [
       1,
       2,
       3,
       4,
-      5
-    ],
-    "inPreparation": [
+      5,
       6,
       7,
       8,
@@ -220,6 +219,50 @@
     }
   },
   "publishedSource": {
+    "campaign": "Broken Relay",
+    "missionCount": 27,
+    "AC04ModulesPresent": false,
+    "treeURL": "https://github.com/A-Ricemusic/skybreak/tree/efc712084cdb8b790c2042d094522dbd09cdc3f7",
+    "inspectedFiles": {
+      "src/shared/GameConfig.ts": {
+        "sha256": "6ef721f6a69245a1b88d996fbe3bcd031450fc7571c6e9c501a5c22b08f1dd85",
+        "url": "https://github.com/A-Ricemusic/skybreak/blob/efc712084cdb8b790c2042d094522dbd09cdc3f7/src/shared/GameConfig.ts"
+      },
+      "src/shared/MissionCatalog.ts": {
+        "sha256": "a65fbd002fad2e259ef32bb24f8756f8d0bf75a6e7dbd36425f1cd9555826648",
+        "url": "https://github.com/A-Ricemusic/skybreak/blob/efc712084cdb8b790c2042d094522dbd09cdc3f7/src/shared/MissionCatalog.ts"
+      },
+      "src/client/GameUI.tsx": {
+        "sha256": "ba301aa1a6662b1705a0a08966c6d4652bed50afc7b28eb466141ba03e834880",
+        "url": "https://github.com/A-Ricemusic/skybreak/blob/efc712084cdb8b790c2042d094522dbd09cdc3f7/src/client/GameUI.tsx"
+      },
+      "src/client/FlightController.ts": {
+        "sha256": "01309e248cbc2c4873dc03a5792c4215fef0d35442958856c051befe4b1b6ee6",
+        "url": "https://github.com/A-Ricemusic/skybreak/blob/efc712084cdb8b790c2042d094522dbd09cdc3f7/src/client/FlightController.ts"
+      },
+      ".github/workflows/publish-roblox.yml": {
+        "sha256": "5df1670686f149b4e30a7d8e82a03d6e539e1370e91a874b521e6422bbeb69a4",
+        "url": "https://github.com/A-Ricemusic/skybreak/blob/efc712084cdb8b790c2042d094522dbd09cdc3f7/.github/workflows/publish-roblox.yml"
+      },
+      "tools/publish-place.sh": {
+        "sha256": "5f4f4d8d02e5a8c89557d64644692ec0be0b11b42891dd647f2cfda23d1a9c97",
+        "url": "https://github.com/A-Ricemusic/skybreak/blob/efc712084cdb8b790c2042d094522dbd09cdc3f7/tools/publish-place.sh"
+      }
+    }
+  },
+  "historicalLocalAC04": {
+    "published": false,
+    "independentlyReviewedArtifactSHA256": "91927612ddb4049cc2010a5cfa2a8e0cfaa166eef7a51d5eeaf8d48dc3cf5659",
+    "sourceIntegrationReport": "docs/reviews/ac04-campaign-integration-response.json",
+    "currentSourceNativeAcceptance": false
+  },
+  "rollback": {
+    "target": "efc712084cdb8b790c2042d094522dbd09cdc3f7",
+    "revertedCommit": "76318c7b80af746b928d1433e4026e7716e2c726",
+    "reason": "Owner rejected UI/models/visuals/gameplay; full rollback and stop",
+    "state": "rollback source prepared for direct main commit"
+  },
+  "priorAC04Release": {
     "campaign": "AC04",
     "missionDefinitions": 18,
     "launchableMissions": [
@@ -247,11 +290,5 @@
     "AC04ModulesPresent": true,
     "treeURL": "https://github.com/A-Ricemusic/skybreak/tree/76318c7b80af746b928d1433e4026e7716e2c726",
     "basis": "Merged PR92 with reviewed head31971c6; independent native report ac04-initial-release-native-61.json"
-  },
-  "historicalLocalAC04": {
-    "published": false,
-    "independentlyReviewedArtifactSHA256": "91927612ddb4049cc2010a5cfa2a8e0cfaa166eef7a51d5eeaf8d48dc3cf5659",
-    "sourceIntegrationReport": "docs/reviews/ac04-campaign-integration-response.json",
-    "currentSourceNativeAcceptance": false
   }
 }
