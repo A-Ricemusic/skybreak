@@ -1,11 +1,17 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { MissionCatalog, MISSIONS } from "../shared/MissionCatalog";
-import { MissionScore, ScoreInput } from "../shared/MissionScore";
+import { MissionScore, ScoreInput, ScoreResult } from "../shared/MissionScore";
 import { CampaignCoordinator, completeMission, mergeProfiles, normalizeProfile, serializeProfile } from "../server/CampaignRepository";
 import { MissionFinished } from "../shared/Types";
 import { GameConfig } from "../shared/GameConfig";
+import { LEGACY_MISSION_SCORING, MissionScoringPolicy } from "../shared/MissionPolicy";
 
 const perfect: ScoreInput = { won: true, airKills: 4, groundKills: 1, elapsed: 60, par: 120, missilesFired: 8, missileHits: 8, damageTaken: 0 };
+const pointsPolicy: MissionScoringPolicy = {
+	points: { bomber: 100, escort: 60, ace: 240 },
+	basis: "points",
+	rank: { S: 800, A: 700, B: 600, C: 500 },
+};
 
 function coordinator(): CampaignCoordinator {
 	const c = new CampaignCoordinator("offline-score", undefined, { now: () => 1000, defer: () => undefined });
@@ -23,6 +29,28 @@ function finishMission3(c: CampaignCoordinator, extra: { elapsed: number; missil
 }
 
 describe("MissionScore", () => {
+	it("preserves representative legacy rating outputs captured before the points path", () => {
+		const cases: { input: ScoreInput; expected: ScoreResult }[] = [
+			{ input: perfect, expected: { score: 5550, rank: "S", rating: 100, time: 1, accuracy: 1, survival: 1 } },
+			{
+				input: { ...perfect, elapsed: 210, missileHits: 4, damageTaken: 50 },
+				expected: { score: 3050, rank: "C", rating: 50, time: 0.5, accuracy: 0.5, survival: 0.5 },
+			},
+			{
+				input: { ...perfect, missilesFired: 10, missileHits: 8, difficulty: "ace" },
+				expected: { score: 6300, rank: "A", rating: 94, time: 1, accuracy: 0.8, survival: 1 },
+			},
+			{
+				input: { ...perfect, won: false, difficulty: "easy" },
+				expected: { score: 467, rank: "D", rating: 0, time: 1, accuracy: 1, survival: 1 },
+			},
+		];
+		for (const { input, expected } of cases) {
+			expect(MissionScore.Compute(input)).toEqual(expected);
+			expect(MissionScore.Compute(input, LEGACY_MISSION_SCORING)).toEqual(expected);
+		}
+	});
+
 	it("ranks a fast, accurate, undamaged win S with kill and rating points", () => {
 		const result = MissionScore.Compute(perfect);
 		expect(result.rank).toBe("S");
@@ -78,6 +106,35 @@ describe("MissionScore", () => {
 		expect(MissionScore.BetterRank("A", "C")).toBe("A");
 		expect(MissionScore.BetterRank(undefined, "D")).toBe("D");
 		expect(MissionScore.BetterRank(undefined, undefined)).toBeUndefined();
+	});
+
+	it("cuts points-basis ranks at every boundary and one point below", () => {
+		for (const [total, rank] of [
+			[800, "S"], [799, "A"], [700, "A"], [699, "B"],
+			[600, "B"], [599, "C"], [500, "C"], [499, "D"],
+		] as [number, "S" | "A" | "B" | "C" | "D"][]) {
+			expect(MissionScore.RankPoints(total, true, pointsPolicy)).toBe(rank);
+		}
+	});
+
+	it("uses raw target points without difficulty scaling and ranks failures D", () => {
+		for (const difficulty of ["easy", "normal", "ace"] as const) {
+			const result = MissionScore.Compute({ ...perfect, targetPoints: 960, difficulty }, pointsPolicy);
+			expect(result.score).toBe(960);
+			expect(result.rank).toBe("S");
+		}
+		const failed = MissionScore.Compute({ ...perfect, won: false, targetPoints: 960, difficulty: "ace" }, pointsPolicy);
+		expect(failed.score).toBe(960);
+		expect(failed.rank).toBe("D");
+		expect(MissionScore.RankPoints(960, false, pointsPolicy)).toBe("D");
+	});
+
+	it("sanitises non-finite point totals", () => {
+		for (const targetPoints of [0 / 0, math.huge, -math.huge]) {
+			const result = MissionScore.Compute({ ...perfect, targetPoints }, pointsPolicy);
+			expect(result.score).toBe(0);
+			expect(result.rank).toBe("D");
+		}
 	});
 });
 
