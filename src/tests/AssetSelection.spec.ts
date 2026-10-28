@@ -185,3 +185,16 @@ describe("AssetSelection uploaded-asset decisions", () => {
 		expect(AssetSelection.ControlSurfaceNames(undefined).size()).toBe(0);
 	});
 });
+
+// Future asset handoff is selected by manifest metadata, without changing fighter candidates.
+describe("Bomber asset selection", () => {
+	it("falls back without a bomber spec and discovers only the heavy-bomber aircraft folder", () => {
+		expect(AssetSelection.BomberCandidates({ Kestrel: { kind: "aircraft", folder: "kestrel" } })).toEqual([]);
+		const specs = { HeavyBomber: { kind: "aircraft", folder: "heavy-bomber" }, Prop: { kind: "world", folder: "heavy-bomber" } };
+		const candidates = AssetSelection.BomberCandidates(specs);
+		expect(candidates).toEqual(["HeavyBomber"]);
+		expect(AssetSelection.Resolve({}, candidates, new Set())).toBeUndefined();
+		expect(AssetSelection.Resolve({ HeavyBomber: 123 }, candidates, new Set())?.name).toBe("HeavyBomber");
+		expect(AssetSelection.Resolve({ HeavyBomber: 123 }, candidates, new Set([123]))).toBeUndefined();
+	});
+});
