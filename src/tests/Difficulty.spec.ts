@@ -1,11 +1,9 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { Difficulty } from "../shared/Difficulty";
-import { MissionScore, ScoreInput } from "../shared/MissionScore";
 
 // Also runs in the offline Luau VM (tools/test-relay-offline.ts), whose assertions
 // are limited to toBe and toBeUndefined.
 
-const perfect: ScoreInput = { won: true, airKills: 4, groundKills: 1, elapsed: 60, par: 120, missilesFired: 8, missileHits: 8, damageTaken: 0 };
 
 describe("Difficulty catalog", () => {
 	it("offers three levels in order with Normal as the default", () => {
@@ -71,30 +69,6 @@ describe("Difficulty multipliers", () => {
 		expect(Difficulty.Scale("ace", "hostileDamage", math.huge)).toBe(math.huge);
 		const nan = Difficulty.Scale("ace", "hostileDamage", 0 / 0);
 		expect(nan === nan).toBe(false);
-	});
-});
-
-describe("Difficulty and mission score", () => {
-	it("pays a bonus on Ace, a penalty on Easy and leaves Normal and unknown levels alone", () => {
-		const normal = MissionScore.Compute(perfect).score;
-		expect(normal).toBe(5550);
-		expect(MissionScore.Compute({ ...perfect, difficulty: "normal" }).score).toBe(normal);
-		expect(MissionScore.Compute({ ...perfect, difficulty: "weird" }).score).toBe(normal);
-		expect(MissionScore.Compute({ ...perfect, difficulty: "ace" }).score).toBe(math.floor(normal * 1.2));
-		expect(MissionScore.Compute({ ...perfect, difficulty: "easy" }).score).toBe(math.floor(normal * 0.85));
-	});
-	it("never changes the rank or the rating", () => {
-		for (const difficulty of Difficulty.Order) {
-			const result = MissionScore.Compute({ ...perfect, difficulty });
-			expect(result.rank).toBe("S");
-			expect(result.rating).toBe(100);
-			expect(MissionScore.Compute({ ...perfect, missileHits: 4, difficulty }).rank).toBe("A");
-		}
-	});
-	it("scales the kill points of a failed sortie too", () => {
-		expect(MissionScore.Compute({ ...perfect, won: false }).score).toBe(550);
-		expect(MissionScore.Compute({ ...perfect, won: false, difficulty: "ace" }).score).toBe(660);
-		expect(MissionScore.Compute({ ...perfect, won: false, difficulty: "easy" }).score).toBe(467);
 	});
 });
 

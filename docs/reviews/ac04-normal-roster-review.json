@@ -1,0 +1,443 @@
+{
+  "schemaVersion": 1,
+  "reviewDate": "2026-10-27",
+  "scope": "Read-only source audit of unresolved Ace Combat 04 Normal-difficulty rosters; no game execution or playtesting.",
+  "baseline": "Normal difficulty, first campaign playthrough; named post-campaign aces excluded.",
+  "priorityOrder": [
+    9,
+    6,
+    10,
+    13
+  ],
+  "findings": [
+    {
+      "missionId": 9,
+      "mission": "Operation Bunker Shot",
+      "currentValue": {
+        "initialGroundCount": 60,
+        "initialGroundPoints": 2700,
+        "allPhaseMaximumPoints": 4290,
+        "update": {
+          "A-10": 6,
+          "F-15CProvisional": 4
+        },
+        "sRank": 4400,
+        "initialAllDomainPoints": 3450
+      },
+      "proposedValue": {
+        "initialGroundCount": 83,
+        "sRank": 4400,
+        "initialPerTypeCounts": "unresolved; do not manufacture the missing 23 units",
+        "beachDistribution": "three source-backed sectors (Halle, Crowne, Caranda); exact per-type split unresolved",
+        "update": {
+          "A-10": 6,
+          "A-10PointsEach": 100,
+          "escortTypesAndCounts": "unresolved"
+        }
+      },
+      "evidence": [
+        {
+          "url": "https://gamefaqs.gamespot.com/ps2/452838-ace-combat-04-shattered-skies/faqs/48109",
+          "section": "MISSION 09 [MS09], lines 751-804",
+          "sourceDifficulty": "Guide presents its campaign walkthrough as the normal first-play route; header gives 83 ground and 13 air. Lines 790-804 give Normal S-rank logic.",
+          "supports": "83 initial ground targets; 2200 initial threshold; 7-minute update; six A-10s totaling 600; ground targets disappear; radar and battery objects are 80 points; 4400 S threshold. The guide says finite update escorts contribute about 900 points in total but does not enumerate their types/counts."
+        },
+        {
+          "url": "https://acecombat.wiki.gg/wiki/Operation_Bunker_Shot_%28AC04%29",
+          "section": "Objectives, Enemy Lists (stub), S Rank",
+          "sourceDifficulty": "Explicit Easy-or-lower versus Normal-or-higher thresholds; roster table is explicitly a stub.",
+          "supports": "Three named beaches; 2200 Normal initial threshold; six A-10s with fighter escort; 4400 Normal-or-higher S threshold; no exact standard-unit roster."
+        },
+        {
+          "url": "https://www.asahi-net.or.jp/~ms3m-tks/game/ac04/mission/09.htm",
+          "section": "\u767b\u5834\u6575\u6a5f table",
+          "sourceDifficulty": "Unit-table difficulty is not identified. The page also prints separate rank thresholds, which does not make its 99-object ground table Normal evidence.",
+          "supports": "Candidate taxonomy and scores only: battery 10x80, radar 6x80, launcher 5x70, howitzer 3x60, pillbox 26x60, tank 29x50, SAM 6 with mixed values, AA gun 14 with mixed values; update candidate six A-10 plus two F-15C and two MiG-29."
+        }
+      ],
+      "confidence": {
+        "initialGroundCount83": "high",
+        "sRank4400": "high",
+        "sixA10At100": "high",
+        "exactPerTypeCounts": "low/unresolved",
+        "exactBeachDistribution": "low/unresolved",
+        "escortTwoF15CTwoMiG29": "low; Japanese table difficulty unknown"
+      },
+      "contradictionAnalysis": "Shotgunnova's header and detailed S-rank paragraph support 83 and 4400, but line 796 later says the rank ladder ends at 4000. That sentence conflicts with the explicit 4400 statement and the dedicated wiki's guidebook-cited 4400, so it must not replace 4400. The Japanese roster totals 99 ground objects, not 83, and therefore cannot be copied into Normal without an independent difficulty mapping. Asahi batteries are10x80; mixed values concern SAM/AA, not batteries.",
+      "gameplayImpact": "The current authored maximum is 110 points below S rank. Correcting only the aggregate to 83 restores the source scale but is not implementable faithfully until the missing type/score and beach splits are established. Preserve 4400 and mark rank fidelity blocked rather than inserting 23 guessed targets.",
+      "remainingUnknowns": [
+        "Normal per-type counts and point bands for all 83 ground objects",
+        "Per-type distribution among Halle, Crowne and Caranda beaches",
+        "Normal update escort types/counts and whether the approximately 900 points includes all initial and update aircraft"
+      ],
+      "originalFindingRetained": {
+        "currentValue": {
+          "initialGroundCount": 60,
+          "initialGroundPoints": 3450,
+          "allPhaseMaximumPoints": 4290,
+          "update": {
+            "A-10": 6,
+            "F-15CProvisional": 4
+          },
+          "sRank": 4400
+        },
+        "incorrectMixedBatteryClaim": "Original report incorrectly described mixed battery values; Asahi lists10x80. Mixed values concern SAM/AA."
+      }
+    },
+    {
+      "missionId": 6,
+      "mission": "Invincible Fleet",
+      "currentValue": {
+        "airCount": 29,
+        "navalHullCount": 24,
+        "groundCount": 51,
+        "separatelyTargetableShipWeapons": 0,
+        "missingGroundTypes": [
+          "FUEL TANK",
+          "GAS TANK",
+          "BRIDGE"
+        ]
+      },
+      "proposedValue": {
+        "aggregateReference": {
+          "air": 11,
+          "ground": 40,
+          "naval": 36,
+          "status": "Shotgunnova Normal walkthrough header; reconcile counting semantics before implementation"
+        },
+        "requiredTaxonomy": [
+          "AA GUN",
+          "SAM",
+          "CONTAINERS",
+          "CRANE",
+          "FUEL TANK",
+          "GAS TANK",
+          "STORAGE"
+        ],
+        "requiredNamedHulls": [
+          "AEGIS RAVEN",
+          "CARRIER GEOFON",
+          "BATTLESHIP TANAGER",
+          "CRUISER BELUGA",
+          "CRUISER FENRIS",
+          "CRUISER KOLGA",
+          "CRUISER LAZULI",
+          "DESTROYER HERNE",
+          "DESTROYER TAISCH",
+          "DESTROYER THIASSI",
+          "SUBMARINE BEOWULF-NU",
+          "SUBMARINE BEOWULF-PI"
+        ],
+        "requiredShipComponents": {
+          "RAVEN_SAM": 2,
+          "TANAGER_GUN": 3,
+          "namedCruiserSAM": 4,
+          "namedCruiserAAGun": 4,
+          "HERNE_TAISCH_AAGun": 2
+        },
+        "harborLayout": "four clusters around the harbor: fleet/southern approach, shipyard/east, upriver harbor, and new harbor/west; bridge marks the harbor mouth between inner clusters",
+        "exactGenericHullAndGroundCounts": "unresolved"
+      },
+      "evidence": [
+        {
+          "url": "https://acecombat.wiki.gg/wiki/Invincible_Fleet",
+          "section": "Objectives; Enemy Lists / Standard Units; footnotes 1-2; S Rank",
+          "sourceDifficulty": "Threshold and S rank explicitly distinguish Easy-or-lower from Normal-or-higher; standard-unit table does not label counts by difficulty and leaves generic/ground counts blank.",
+          "supports": "Exact named hulls, points and separately targetable weapon counts; ground taxonomy including fuel and gas tanks; two container ships, two landing ships, two missile boats, five generic submarines and one supply ship; ship hull destruction does not immediately destroy weapons."
+        },
+        {
+          "url": "https://gamefaqs.gamespot.com/ps2/452838-ace-combat-04-shattered-skies/faqs/48109",
+          "section": "MISSION 06 [MS06], lines 532-600",
+          "sourceDifficulty": "Normal campaign walkthrough context.",
+          "supports": "Header 11 air/40 ground/36 naval; four clusters; approximate cluster scores 1180/1450/1670/1330; bridge at harbor mouth; shipyard static cranes and sheltered submarines; upriver SAMs, submarines, cranes and gas tanks; 5000 S rank."
+        }
+      ],
+      "confidence": {
+        "namedHullsAndComponents": "high",
+        "groundTaxonomy": "high",
+        "fourClusterTopology": "high",
+        "aggregate11_40_36": "medium-high but category semantics need capture verification",
+        "exactGenericCounts": "low/unresolved"
+      },
+      "contradictionAnalysis": "The current manifest models 29 aircraft because it copies the wiki's listed fighter counts, while Shotgunnova reports 11 air; this likely reflects spawn/respawn or counting-method differences and must not be silently normalized. The wiki provides exact counts for named ships and their weapons but leaves several generic hull and all ordinary ground counts blank. Shotgunnova's 36 naval may count separately targetable ship weapons or spawned objects differently from hull-only accounting. The bridge is topology evidence, not proven as a scored target.",
+      "gameplayImpact": "Add ship weapons as independently targetable components and restore fuel/gas categories in a later implementation, but do not claim an exact 40/36 roster until category semantics and generic counts are resolved. Current aggregate props omit the fleet's defining layered ship attacks.",
+      "remainingUnknowns": [
+        "Exact Normal counts for ordinary AA, SAM, containers, cranes, fuel tanks, gas tanks and storage",
+        "Counts for blank generic cruiser/destroyer rows and 120-point cruiser row",
+        "Whether 36 naval includes ship-mounted components",
+        "Whether the harbor bridge is destructible/scored and its point value",
+        "Exact berth-by-berth assignment inside each cluster"
+      ]
+    },
+    {
+      "missionId": 10,
+      "mission": "Tango Line",
+      "currentValue": {
+        "ground": 86,
+        "naval": 6,
+        "subStoreShoreStandIns": 14,
+        "sRank": 5400
+      },
+      "proposedValue": {
+        "doNotAdoptYet": "No exact Normal aggregate is sufficiently reconciled.",
+        "removeAsClaimedFidelity": "Fourteen STORAGE shore stand-ins must remain explicitly provisional and must not be used to assert a 72-ground/20-naval match.",
+        "candidateNavalTaxonomy": {
+          "CONT.SHIP": 4,
+          "SUBMARINE": 2,
+          "HOVERCRAFT": 3,
+          "GUNBOAT": 15,
+          "total": 24,
+          "difficulty": "unknown"
+        },
+        "candidateGroundTaxonomy": {
+          "SUB_BASE": 2,
+          "CRANE": 2,
+          "FUEL_TANK": 4,
+          "ANTENNA": 12,
+          "BARRACKS": 6,
+          "FLAK_GUN": 4,
+          "CONTAINERS": 5,
+          "WATCH_TOWER": 30,
+          "SAM": 11,
+          "AA_GUN": 5,
+          "total": 81,
+          "difficulty": "unknown"
+        }
+      },
+      "evidence": [
+        {
+          "url": "https://gamefaqs.gamespot.com/ps2/452838-ace-combat-04-shattered-skies/faqs/48109",
+          "section": "MISSION 10 [MS10], lines 807-852",
+          "sourceDifficulty": "Normal campaign walkthrough context.",
+          "supports": "Header 100 ground/24 naval; four widely separated clusters; western riverside defenses, southern airport, eastern helicopter outposts, northern submarine dock with gunboats and watchtowers."
+        },
+        {
+          "url": "https://www.asahi-net.or.jp/~ms3m-tks/game/ac04/mission/10.htm",
+          "section": "\u767b\u5834\u6575\u6a5f and rank tables",
+          "sourceDifficulty": "Unit-table difficulty is unstated; separate Normal rank threshold does not establish that the roster is Normal.",
+          "supports": "Detailed candidate taxonomy totaling 81 ground and 24 naval, and 5400 Normal S threshold."
+        },
+        {
+          "url": "https://acecombat.wiki.gg/wiki/Tango_Line",
+          "section": "Previously captured project source claim",
+          "sourceDifficulty": "Project register describes 72 ground/20 naval as verified, but the accessible evidence in this audit did not reproduce a difficulty-tagged component table.",
+          "supports": "Candidate aggregate only; requires recapture before implementation."
+        }
+      ],
+      "confidence": {
+        "sRank5400": "high",
+        "fourSectorRoles": "high",
+        "normal72_20": "low-medium pending recapture",
+        "shotgunnova100_24": "medium as walkthrough header, unexplained counting semantics",
+        "asahi81_24PerType": "medium as a complete table, low as Normal"
+      },
+      "contradictionAnalysis": "Three incompatible totals are in circulation: 72/20, Shotgunnova 100/24, and the Japanese table's arithmetic 81/24. The current 86/6 is neither and converts 14 missing naval objects into shore STORAGE, changing both domain and encounter behavior. The discrepancy may involve dormant aircraft, target components, respawns, or difficulty, but available sources do not prove which.",
+      "gameplayImpact": "Replacing shore stand-ins with guessed vessels would improve domain shape but would still fabricate a Normal roster. Preserve provisional status, use source-backed sector roles, and defer exact counts until a Normal capture or guidebook table reconciles the aggregates.",
+      "remainingUnknowns": [
+        "Authoritative Normal aggregate",
+        "Normal per-component counts",
+        "Whether SUB BASE objects are ground targets separate from submarines",
+        "Respawn/dormant-unit counting rules"
+      ]
+    },
+    {
+      "missionId": 13,
+      "mission": "Safe Return",
+      "currentValue": {
+        "balloons": 100,
+        "provisional": true
+      },
+      "proposedValue": {
+        "balloons": 100,
+        "status": "retain as provisional implementation value, not verified Normal count"
+      },
+      "evidence": [
+        {
+          "url": "https://gamefaqs.gamespot.com/ps2/452838-ace-combat-04-shattered-skies/faqs/48109",
+          "section": "MISSION 13 [MS13], lines 949-996",
+          "sourceDifficulty": "Normal campaign walkthrough context.",
+          "supports": "Thirteen balloons required to advance, each worth 100 points; 26 balloons plus 240 update points are sufficient for 2800 S. It does not state total balloon population."
+        },
+        {
+          "url": "https://acecombat.wiki.gg/wiki/Safe_Return",
+          "section": "Current enemy list as recorded in docs/ac04-source-register.json",
+          "sourceDifficulty": "Current page count is not shown as a difficulty-specific Normal count in the captured project evidence.",
+          "supports": "100 candidate total."
+        },
+        {
+          "url": "https://acecombat.fandom.com/wiki/Safe_Return",
+          "section": "Former wiki enemy list as recorded in docs/ac04-source-register.json",
+          "sourceDifficulty": "Not established.",
+          "supports": "115 conflicting candidate total."
+        },
+        {
+          "url": "https://mitoro.sakura.ne.jp/ac04/data/m13.htm",
+          "section": "Ace map/count",
+          "sourceDifficulty": "Ace",
+          "supports": "157 is explicitly unsuitable as Normal evidence."
+        }
+      ],
+      "confidence": {
+        "requiredKills13": "high",
+        "pointsEach100": "high",
+        "total100": "low-medium",
+        "total115": "low",
+        "ace157NotNormal": "high"
+      },
+      "contradictionAnalysis": "No source found in the bounded audit identifies 100 or 115 specifically as the Normal population. Shotgunnova establishes only the completion and scoring minima. The 157-object Ace map proves difficulty variance is plausible but does not choose between 100 and 115.",
+      "gameplayImpact": "The mission can preserve its 13-kill objective and rank economy without representing the total population as settled. Do not expand to 115 or 157 absent difficulty-specific proof.",
+      "remainingUnknowns": [
+        "Normal total balloon population",
+        "Whether balloons respawn or become untargetable only at update",
+        "Origin and difficulty of the former 115 count"
+      ]
+    }
+  ],
+  "reconciliation": [
+    {
+      "missionId": 9,
+      "source": "current manifest",
+      "ground": 60,
+      "naval": 0,
+      "air": 23,
+      "scoreKnown": 4470,
+      "difficulty": "adapted Normal"
+    },
+    {
+      "missionId": 9,
+      "source": "Shotgunnova header",
+      "ground": 83,
+      "naval": 0,
+      "air": 13,
+      "scoreKnown": "4400 S; six A-10 = 600",
+      "difficulty": "Normal walkthrough"
+    },
+    {
+      "missionId": 9,
+      "source": "Asahi unit table",
+      "ground": 99,
+      "naval": 0,
+      "air": "25 initial + 10 update",
+      "scoreKnown": "per-type values listed",
+      "difficulty": "unknown; likely higher than Normal, not adopted"
+    },
+    {
+      "missionId": 6,
+      "source": "current manifest",
+      "ground": 51,
+      "naval": 24,
+      "air": 29,
+      "scoreKnown": 6390,
+      "difficulty": "adapted Normal"
+    },
+    {
+      "missionId": 6,
+      "source": "Shotgunnova header",
+      "ground": 40,
+      "naval": 36,
+      "air": 11,
+      "scoreKnown": "four clusters approximately 5630 combined",
+      "difficulty": "Normal walkthrough"
+    },
+    {
+      "missionId": 10,
+      "source": "current manifest",
+      "ground": 86,
+      "naval": 6,
+      "air": 53,
+      "scoreKnown": 7120,
+      "difficulty": "adapted Normal"
+    },
+    {
+      "missionId": 10,
+      "source": "project-captured wiki aggregate",
+      "ground": 72,
+      "naval": 20,
+      "air": null,
+      "scoreKnown": null,
+      "difficulty": "claimed Normal; not reproduced in this audit"
+    },
+    {
+      "missionId": 10,
+      "source": "Shotgunnova header",
+      "ground": 100,
+      "naval": 24,
+      "air": 26,
+      "scoreKnown": "5400 S",
+      "difficulty": "Normal walkthrough"
+    },
+    {
+      "missionId": 10,
+      "source": "Asahi component table arithmetic",
+      "ground": 81,
+      "naval": 24,
+      "air": "60+",
+      "scoreKnown": "5400 Normal S",
+      "difficulty": "unit-table difficulty unknown"
+    },
+    {
+      "missionId": 13,
+      "source": "current wiki/project value",
+      "ground": 100,
+      "naval": 1,
+      "air": 5,
+      "scoreKnown": "100 per balloon",
+      "difficulty": "100 not proven Normal"
+    },
+    {
+      "missionId": 13,
+      "source": "former wiki",
+      "ground": 115,
+      "naval": null,
+      "air": null,
+      "scoreKnown": null,
+      "difficulty": "unknown"
+    },
+    {
+      "missionId": 13,
+      "source": "Mitoro",
+      "ground": 157,
+      "naval": null,
+      "air": null,
+      "scoreKnown": null,
+      "difficulty": "Ace; excluded from Normal roster"
+    }
+  ],
+  "implementationGate": {
+    "safeHighConfidenceChanges": [
+      "M9 preserve 4400 S, 83-ground aggregate requirement, six A-10s at 100 each, and three named beach sectors; do not fabricate the per-type expansion.",
+      "M6 model the exact named ship weapon components and restore fuel/gas target categories, while leaving unspecified counts provisional.",
+      "M6 preserve four harbor clusters and the harbor-mouth bridge as layout evidence, without claiming a scored bridge target."
+    ],
+    "blockedPendingBetterEvidence": [
+      "M9 exact 83-unit per-type and per-beach manifest and update escort roster",
+      "M6 exact 40-ground/36-naval component reconciliation",
+      "M10 exact Normal roster/domain totals",
+      "M13 choosing 100 versus 115 as verified Normal"
+    ]
+  },
+  "parentResponse": {
+    "date": "2026-10-27",
+    "attribution": "Parent checked current manifest and identified the verified battery point correction; do not credit the reviewer with finding that fix. Original findings retained above.",
+    "implemented": "Only M9 batteries60\u219280; count9 remains provisional.",
+    "arithmetic": {
+      "before": {
+        "initialGroundPoints": 2700,
+        "initialAllDomainPoints": 3450,
+        "allPhasePoints": 4290
+      },
+      "after": {
+        "initialGroundPoints": 2880,
+        "initialAllDomainPoints": 3630,
+        "allPhasePoints": 4470
+      },
+      "air": {
+        "initial": 13,
+        "A10": 6,
+        "escort": 4,
+        "total": 23
+      }
+    },
+    "limits": "4400 S is arithmetically reachable, not gameplay verified. Exact60/83 ground roster unresolved. M6 named ship components/ground taxonomy supported; M10 72/20 confidence downgraded against100/24 and81/24; M13 remains100 provisional."
+  }
+}

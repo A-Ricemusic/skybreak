@@ -840,7 +840,7 @@ def Matrix_rotation_x(angle):
 @builder
 def relay_mast():
     a = Asset("relay-mast", "Comms relay mast", texture=SMALL_TEXTURE, tri_limit=2500, bump_distance=0.08, seed=62,
-              usage="Relay stations across the campaign (M3-M27): scenery companion to the CommsRelay target.")
+              usage="Generic communications station scenery.")
     paint = a.zone("paint", Z.stripes("#c24a2f", "#dcdad2", period=20.0))
     steel = a.zone("steel", Z.painted_metal("#8a8f92", rough=0.45, metal=0.6, rust=0.25, panels=None))
     drum = a.zone("drum", standard("#d8d7d0", 0.5, 0.1, grime=0.15, streak=0.3))

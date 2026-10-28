@@ -1,5 +1,6 @@
 import React from "@rbxts/react";
-import { MissionCatalog } from "../shared/MissionCatalog";
+import { AC04MissionData } from "../shared/AC04MissionData";
+import { ac04ValidMission } from "../shared/AC04Progress";
 
 const INK = Color3.fromRGB(6, 13, 22);
 const IVORY = Color3.fromRGB(242, 238, 226);
@@ -20,7 +21,7 @@ export interface LoadingScreenProps {
 // column so it survives 320x240 compact phones and notch insets (44 px safe).
 function LoadingScreenComponent({ visible, missionId, progress, viewport }: LoadingScreenProps) {
 	const compact = viewport.Y < 300;
-	const title = MissionCatalog.IsValidId(missionId) ? MissionCatalog.Get(missionId).title : "SORTIE";
+	const title = ac04ValidMission(missionId) ? AC04MissionData.Get(missionId).title : "SORTIE";
 	const columnWidth = math.min(360, math.max(200, viewport.X - 88));
 	const barWidth = math.min(240, columnWidth);
 	const percent = math.clamp(math.floor(progress * 100 + 0.5), 0, 100);

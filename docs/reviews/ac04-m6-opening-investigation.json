@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "ac04-m6-opening-investigation",
+  "date": "2026-10-27",
+  "role": "read-only research sub-agent; no subagents",
+  "scope": "Investigate the candidate 70b6a6ec Mission 6 opening loss at 00:19.53 using frozen reports, captures/telemetry summaries, current source, and registered external references. No Studio/build lease, tests, source edits, uploads, publication, cloud mutation, commit, or push.",
+  "verdict": "CHANGES_SUPPORTED_BUT_NOT_APPLIED: one automated loss does not prove M6 impossible and does not justify a global combat nerf. Current source nevertheless creates a concrete M6-only opening-pressure defect: eight independently firing fleet defenses are already inside their 1,800-stud firing radius at spawn, all have fireTimer=0, and ground/naval fire bypasses the airborne one-threat cap. The observed health losses are multiples of Normal's six-damage hostile hit and are compatible with repeated fleet-defense volleys, but shooter identity was not captured, so attribution remains a strong source-based inference rather than direct observation.",
+  "candidateBoundary": {
+    "candidateSha256": "70b6a6ecf221ebbda4e1f22b2d16e244702c22051fcad76cc5a815115bf05772",
+    "availability": "Local, unmerged, and not live in Roblox Player. This investigation changes no release state.",
+    "observedAttempt": {
+      "result": "FAILED at 00:19.53; 0 points; 0 targets; 4 evades; phase ac04_primary",
+      "contacts": "F-14 groups 1/2, F/A-18 groups 1/2, Ka-25, TND-IDS groups 1/2",
+      "targeting": "Automation locked F-14 1.",
+      "healthSamples": [
+        { "seconds": 9, "health": 100 },
+        { "seconds": 12, "health": 70 },
+        { "seconds": 15, "health": 58 },
+        { "seconds": 18, "health": 40 },
+        { "seconds": 19.53, "health": 0, "note": "Failure time; exact final-hit sequence was not logged." }
+      ],
+      "evidenceLimit": "The response JSON preserves a digest, not per-projectile telemetry. It does not identify shooters, launch times, warning state, evade timestamps, aircraft pose/heading, or individual hits. No gameplay capture of the M6 sortie was found; the available final M6 capture is the briefing. Ship fire was therefore not directly observed."
+    }
+  },
+  "sourceHashes": {
+    "src/shared/ac04/rebuild/MiddleCampaign.ts": "d21f068f234d63eae85ccc33375eb92bc95b2c2eadb3e23eee795e5e53758d9a",
+    "src/shared/ac04/rebuild/MiddleWorld.ts": "9063d204797a67c3bf3c0e50a817948cac0cb335172049221fd6bde6c72cf1e7",
+    "src/shared/AC04MissionData.ts": "319d36560539ddcfb638cb6f1001028ffa761bd4015b468fe422d7129d7b6b36",
+    "src/shared/AC04WorldData.ts": "9131c05270a2b850449afb6bd45933d262833692ceb86fa333236991a5f74e65",
+    "src/server/CombatService.ts": "8e8171df23965a1c9a448c07e6e9b7eb677f3f8506ea8740e6d101414a1417cd",
+    "src/shared/CombatBalance.ts": "f7bebb3e8a03c3484b3a61acbe3794f8a6ef59fe5db71d5d3628b2b821c05520",
+    "src/shared/ThreatRules.ts": "6e3c4e024e29a02e4e1d617c4612dd2a32452e0c18d31df424c3af469d3ca078",
+    "docs/reviews/ac04-ui-integration-response.json": "07ef551680648b8c77b3e0afa0cb465c9cf4792db43c07972c8ebb1daa3fc9b9",
+    "docs/ac04-source-register.json": "f2a82268133b79cea78ea17f6c01e8c25609aa37d052e30846a8773c46275cd4"
+  },
+  "openingRosterTrace": {
+    "authoredIntent": "10 fighters plus one Ka-25 are initially due, matching the registered Shotgunnova Normal header's 11-aircraft figure. Later aircraft use local-kill and approximately 360-second gates adapted from Mitoro's Ace guide.",
+    "initialAircraft": [
+      { "group": "f14-fleet", "type": "F-14", "count": 2, "positions": [[-30, 1000, 2200], [190, 1090, 2200]], "spawnDistancesStuds": [1289.0, 1421.9] },
+      { "group": "f18-fleet", "type": "F/A-18", "count": 2, "positions": [[410, 1180, 2200], [630, 1000, 2200]], "spawnDistancesStuds": [1579.6, 1726.7] },
+      { "group": "f18-harbor", "type": "F/A-18", "count": 2, "positions": [[-2230, 1000, 790], [-2010, 1090, 790]], "spawnDistancesStuds": [2940.0, 2834.7] },
+      { "group": "f14-shipyard", "type": "F-14", "count": 2, "positions": [[1190, 1000, -500], [1410, 1090, -500]], "spawnDistancesStuds": [4244.4, 4348.8] },
+      { "group": "tornado-north", "type": "TND-IDS", "count": 2, "positions": [[20, 1050, -1610], [240, 1140, -1610]], "spawnDistancesStuds": [4963.5, 5002.8] },
+      { "group": "ka25", "type": "Ka-25", "count": 1, "positions": [[200, 180, 2680]], "spawnDistancesStuds": [1336.9], "behavior": "No authored speed/path, so it enters ordinary fighter AI rather than transport behavior." }
+    ],
+    "playerSpawn": [-700, 950, 3300],
+    "initialHeading": "FlightMath.NewState heading; the exact numeric initial forward vector was not separately captured in the attempt digest.",
+    "placementNote": "Coordinates above apply MiddleWorld's exact site/spread rules. Delayed groups sharing a site affect spread totals even while not yet active."
+  },
+  "combatTrace": {
+    "normalActI": {
+      "airFire": "Ordinary aircraft require 450 < range < 1700, sufficient nose alignment, no active evade, their own fireTimer<=0, and the flight-wide gate. Initial aircraft fireTimer is 7+0.4*index seconds. Windup is 2.4 seconds. With 11 live aircraft, Normal flightGate is 22/1.5 = 14.67 seconds and threatCap is 1, so ordinary aircraft cannot create eleven simultaneous missile threats.",
+      "missiles": "Hostile speed 580 studs/s, life 7 seconds, fuse 32 studs, steering 1.6, damage 6 per hit on Normal. A non-ace aircraft reloads after 10 seconds.",
+      "groundNavalFire": "Every enabled SAM, AA GUN, FLAK, GUN, or component-less naval hull independently decrements fireTimer and launches inside 1,800 studs when timer<=0, then reloads at 8 seconds. This path has no windup, aim test, evade suppression, or shared threat cap. Ground/naval enemies are constructed with fireTimer=0 and all phase-zero groups enable together.",
+      "targeting": "M6 has no protected actor. ac04ProtectedTarget returns undefined, so every hostile missile targets the player aircraft. Protected-target combat does not explain this loss.",
+      "damageConsistency": "100->70 is five six-damage hits; 70->58 is two; 58->40 is three. These exact multiples match Normal hostile missile damage. The final 40->0 digest omits intermediate samples and cannot establish the number or origin of fatal hits."
+    },
+    "fleetDefensesInsideRangeAtSpawn": [
+      { "shooter": "Tanager GUN 3", "position": [100, 64, 3045], "distanceStuds": 1220.7, "straightLineTimeAt580Seconds": 2.10 },
+      { "shooter": "Tanager GUN 2", "position": [100, 64, 2948], "distanceStuds": 1244.5, "straightLineTimeAt580Seconds": 2.15 },
+      { "shooter": "Tanager GUN 1", "position": [100, 64, 2910], "distanceStuds": 1255.8, "straightLineTimeAt580Seconds": 2.17 },
+      { "shooter": "Missile boat 2 hull", "position": [30, 32, 2620], "distanceStuds": 1355.7, "straightLineTimeAt580Seconds": 2.34 },
+      { "shooter": "Carrier Geofon hull", "position": [200, 32, 2680], "distanceStuds": 1427.3, "straightLineTimeAt580Seconds": 2.46, "discrepancy": "The wiki lists no Geofon weapon, but the generic component-less naval-hull rule makes it a defense shooter." },
+      { "shooter": "Raven SAM 2", "position": [180, 64, 2390], "distanceStuds": 1545.2, "straightLineTimeAt580Seconds": 2.66 },
+      { "shooter": "Raven SAM 1", "position": [180, 64, 2275], "distanceStuds": 1615.6, "straightLineTimeAt580Seconds": 2.79 },
+      { "shooter": "Missile boat 1 hull", "position": [40, 32, 2050], "distanceStuds": 1718.4, "straightLineTimeAt580Seconds": 2.96 }
+    ],
+    "timingInference": "All eight listed defenses can launch at the first combat step, then again near 8 and 16 seconds if still in range. Four disclosed evades could plausibly clear part of the initial volley; later volleys plus the first aircraft windup/launch can plausibly produce the 12/15/18-second loss samples. Straight-line times ignore missile steering and aircraft movement and are inference only.",
+    "shipFireScope": "Tanager own-barrel regression and double-hull/deck-fire fixes remain source-fixed/native-fixture-passed. This investigation does not claim actual Tanager fire was observed. The source still exposes a different issue: each deck component fires independently, missile-boat hulls fire abstract missiles, and Geofon fires solely because it lacks mapped components."
+  },
+  "referenceResearch": {
+    "difficultyBoundary": "The official mission wiki supplies cross-difficulty objectives and unit totals. Mitoro explicitly says its normal-mission data is Ace difficulty and is used only for topology/qualitative arrivals. Frozensky and H2O are strategy walkthroughs, not authoritative spawn/fire-timing data. No consulted source proves exact Normal launch cadence or initial positions.",
+    "sources": [
+      {
+        "url": "https://acecombat.wiki.gg/wiki/Invincible_Fleet",
+        "supports": "15-minute score attack; 3,000 points on Normal or higher; mission is mainly air-to-ground; F/A-18 10, F-14 13, TND-IDS 5, Ka-25 1; named ship components; Geofon has no listed weapon; hull destruction does not destroy separately targetable weapons.",
+        "limits": "No opening formation coordinates, heading, AI cadence, or exact Normal ground counts."
+      },
+      {
+        "url": "https://mitoro.sakura.ne.jp/ac04/data/m06.htm",
+        "supports": "Four-sector topology and qualitative cluster/reinforcement behavior used by the existing rebuild.",
+        "limits": "Mitoro states ordinary mission data is Ace difficulty; it cannot establish Normal counts or damage pressure."
+      },
+      {
+        "url": "https://gamefaqs.gamespot.com/ps2/452838-ace-combat-04-shattered-skies/faqs/48109",
+        "supports": "Registered Normal header 11 air / 40 ground / 36 naval and four clusters, as preserved in the existing source review.",
+        "limits": "Direct page access remained restricted in the prior rebuild; no exact opening behavior was recovered here."
+      },
+      {
+        "url": "https://gamefaqs.gamespot.com/ps2/452838-ace-combat-04-shattered-skies/faqs/15604",
+        "supports": "A practical strategy turns east at full throttle toward the ships, climbs to about 10,000 feet, ignores fighters initially, prioritizes ships/SAM awareness, uses fast passes, resupplies, and does not turn back for missed fighters.",
+        "limits": "Walkthrough difficulty is not explicitly stated for the mission narrative and it does not give launch timings or immunity claims."
+      },
+      {
+        "url": "https://www.h2o-feeling.com/game/AceCombat04/load.html",
+        "supports": "S-rank route says to head to the left/Comberth target group and ignore aircraft encountered en route; ground targets alone readily support S rank.",
+        "limits": "5,000-point S route, not an authoritative Normal AI specification."
+      }
+    ],
+    "supportedDiscrepancies": [
+      "Geofon becomes an abstract missile shooter although the original unit table lists no Geofon weapon.",
+      "Eight fleet defenses begin in immediate firing radius with synchronized zero timers; no consulted reference supports this opening synchronized volley.",
+      "The implemented 11-aircraft opening count is supported only by a Normal aggregate header, not by evidence that all 11 should be simultaneously active or aggressively engage at time zero.",
+      "The original-reference strategies emphasize fast ground/naval attack and ignoring initial fighters; the automation instead locked F-14 1 and scored zero targets before death. That is a strategy mismatch, not proof that aircraft balance itself is defective."
+    ]
+  },
+  "causalAssessment": {
+    "legitimateDifficulty": "M6 is a long, hazardous air-to-ground score attack with many fighters and SAM-equipped ships. References explicitly warn about SAMs and recommend speed, altitude, passes, and resupply. Some pressure is legitimate.",
+    "automationPolicyWeakness": "The only observed attempt selected an F-14, produced zero target kills, and used four evades without logged threat timing. Reference strategy says to ignore opening fighters, run full throttle toward surface objectives, climb, and respond to missile direction. A generic dogfight-oriented pilot is not a valid playability oracle for M6.",
+    "spawnTargetingDefect": "Independently of pilot quality, immediate synchronized fire from eight nearby fleet defenses is source-verifiable and unsupported by references. Geofon's abstract fire is a concrete weapon-host mapping defect. These are narrower than a global difficulty problem.",
+    "confidence": "High for source mechanics and geometry; medium-high that fleet defenses materially caused the loss; low for exact shooter/hit attribution because per-projectile telemetry and sortie capture are absent."
+  },
+  "recommendation": {
+    "smallestCorrection": "First remove abstract fire from M6 naval hulls and allow only explicitly authored weapon components/ground defenses to shoot. This removes Geofon and both missile-boat hull attacks while preserving Raven SAMs, Tanager guns, cruiser/destroyer components, terrain cover, the own-barrel fix, all aircraft behavior, damage, ranges, and global difficulty. Then stagger the initial M6 component-defense timers so five nearby deck weapons do not launch on the same first step. Do not change global hostile damage, fighter count, lock range, or threat cap from this single run.",
+    "exactProposedDiffNotApplied": "diff --git a/src/server/CombatService.ts b/src/server/CombatService.ts\n--- a/src/server/CombatService.ts\n+++ b/src/server/CombatService.ts\n@@\n-\t\tconst defense = group.type.find(\"SAM\")[0] !== undefined || group.type.find(\"AA GUN\")[0] !== undefined || group.type.find(\"FLAK\")[0] !== undefined || group.type === \"GUN\" || (group.domain === \"naval\" && !middleHullHasComponents(session.ac04!.mission, group.id));\n+\t\tconst defense = group.type.find(\"SAM\")[0] !== undefined || group.type.find(\"AA GUN\")[0] !== undefined || group.type.find(\"FLAK\")[0] !== undefined || group.type === \"GUN\"\n+\t\t\t|| (group.domain === \"naval\" && session.missionId !== 6 && !middleHullHasComponents(session.ac04!.mission, group.id));\n@@\n-\t\t\t\t\tenabled: false, fireTimer: 0, windup: 0,\n+\t\t\t\t\tenabled: false, fireTimer: missionId === 6 && group !== undefined && (group.type === \"SAM\" || group.type === \"AA GUN\" || group.type === \"GUN\") ? 4 + (index % 5) * 1.2 : 0, windup: 0,",
+    "diffCaveat": "The second hunk uses the existing ground-target index for deterministic staggering and is intentionally M6-only. Before adoption, the implementer should prefer a named helper and a per-defense ordinal if readability is worth the extra diff. Exact balance values 4 and 1.2 seconds are proposed starting points, not AC04-sourced timings.",
+    "noPatchAlternative": "Before changing source, retry with an M6-specific pilot: immediately full throttle, turn toward the chosen surface cluster, climb, avoid extended dogfighting, prioritize explicit SAM/GUN components during passes, and trigger evade from actual warning/projectile state rather than a fixed cadence. If that survives and scores, retain source but still separately decide whether unsourced Geofon/missile-boat abstract fire is acceptable."
+  },
+  "verificationPlan": [
+    "Freeze the exact candidate/source hashes and run no other source changes in the comparison.",
+    "Instrument read-only telemetry for every hostile launch/hit: elapsed time, shooter group/instance, domain, launch position, player distance, fireTimer, projectile ID, damage, obstruction, evade/flare outcome, and health before/after. Capture player pose, heading, throttle, target, warning state, and input at 10 Hz.",
+    "Baseline A: replay the disclosed generic automation once only to reproduce mechanics, not to estimate probability. Confirm whether the 0/8/16-second fleet-defense volleys exist and identify actual hit sources.",
+    "Baseline B: fly the legitimate M6 surface-attack policy for at least three fresh attempts with no pose/health/ammo/score/clock writes. Report each attempt separately; do not average away failures. Verify first target time, score at 60/180 seconds, damage sources, rearm viability, and whether 3,000 is reachable without requiring fighter kills.",
+    "Patch candidate: apply only the M6 naval-hull suppression and deterministic opening stagger. Native contracts must assert Geofon and both missile-boat hulls never launch; Raven/Tanager/cruiser/destroyer weapon components still launch; host hulls remain independently scoreable; terrain/host/other-target obstruction remains active; no own-barrel regression.",
+    "Re-run the same generic and M6-specific policies against the patched candidate. A passing criterion is not invulnerability: at least one legitimate warning-response window before the first possible hit, no synchronized first-step fleet volley, and repeatable ability to begin scoring surface targets. Preserve individual outcomes and damage ledgers.",
+    "Continue long enough to directly observe actual Tanager/Raven/component fire and a hull remaining after component destruction and vice versa. This is the still-missing ship-fire acceptance; fixture/native results alone do not satisfy it.",
+    "Only after that evidence decide whether any further spawn move, timer adjustment, or automation change is warranted. Do not globally lower damage/ranges/counts from this incident."
+  ],
+  "preservedEvidenceScope": {
+    "tanagerOwnBarrel": "Source-fixed; native assembled-geometry fixture passed on the earlier reviewed candidate. No new regression claim.",
+    "doubleHullDeckFire": "Source-fixed through explicit host mapping for hulls with components; this investigation found component-less M6 naval hulls still receive generic abstract fire.",
+    "actualShipFire": "Unobserved. This report traces executable source and geometry only; it does not upgrade ship-fire acceptance."
+  },
+  "contradictionsFlagged": [
+    "docs/human/status.html mission-at-a-glance still says M6 was not launched on 87d17771, which is historically true but incomplete as current-state wording unless paired with the later 70b6a6ec failed attempt already stated elsewhere.",
+    "The docs correctly say ship fire was untested/unobserved; do not replace that with this inferred source attribution.",
+    "The current docs frame the loss as opening air defense. Source inspection shows nearby fleet defenses can fire immediately, so 'opening hostile defense' is safer until shooter telemetry exists.",
+    "The source comment describes explicit host mapping as disabling equipped hull abstract attacks, but component-less M6 Geofon and missile boats still fire through the generic naval fallback."
+  ],
+  "allFourDocumentPayloads": {
+    "taste.html": {
+      "action": "replace current M6 decision/current-candidate language where it attributes the loss to air defense; retain AC04-IND61-M6 own-barrel decision unchanged",
+      "payload": "M6 opening investigation · candidate70b6a6ec: one automated loss at19.53s does not prove impossible difficulty or justify a global nerf. Source tracing finds eight fleet defenses inside1,800studs at spawn with synchronized zero fire timers and no shared ground/naval threat cap; Geofon and both missile-boat hulls also receive unsourced abstract fire. The observed six-damage multiples are compatible with fleet fire, but shooter telemetry is absent, so actual ship fire remains unobserved. Preferred decision: test an M6-specific surface-attack pilot and, if patching, suppress M6 abstract hull fire plus stagger only M6 opening component timers while preserving explicit weapon components, cover and the Tanager own-barrel fix."
+    },
+    "plan.html": {
+      "action": "replace the generic M6 diagnosis item with the following forward-looking item",
+      "payload": "Verify M6 opening pressure with per-projectile shooter/hit telemetry and two disclosed policies: the prior generic automation and an M6-specific full-throttle surface-attack route that ignores opening fighters, climbs and evades from actual warnings. Test the smallest candidate only if baseline confirms the source defect: disable abstract M6 naval-hull attacks and deterministically stagger initial explicit ship-weapon timers; preserve Raven/Tanager/cruiser/destroyer component fire, cover and the own-barrel regression. Require direct ship-fire observation and separate attempt ledgers before any broader balance change or M7 progression."
+    },
+    "status.html": {
+      "action": "replace 'opening air defense' with evidence-scoped wording and add the source finding without claiming a fix",
+      "payload": "Candidate70b6a6ec M6 failed at19.53s with0 targets,4 evades and health samples100@9,70@12,58@15,40@18. Read-only investigation finds eight fleet defenses already within1,800studs at spawn; all begin at fireTimer0 and ground/naval fire bypasses the airborne one-threat cap. Geofon and both missile-boat hulls can fire abstract missiles despite no registered Geofon weapon. Damage samples are multiples of six and are compatible with this pressure, but no projectile/shooter ledger or sortie capture exists. Actual ship fire remains unobserved; no patch, test, merge or Player change occurred."
+    },
+    "playtest.html": {
+      "action": "update only the local M6 construction/actual-evidence/next-iteration text; preserve official link, version63/PR90 metadata, all18 Player-unavailable rows, and merged/live state",
+      "payload": "Local unmerged M6 investigation: the sole 70b6a6ec automated attempt failed at19.53s before scoring. Source inspection—not Player observation—finds eight nearby fleet defenses able to launch immediately and every8s outside the airborne threat cap; registered references instead support a fast surface-attack route that initially ignores fighters. Shooter identity and actual ship fire were not captured, so quality remains unknown. Next local verification is per-projectile telemetry, an M6-specific legitimate flight strategy, and only then a narrowly scoped hull-fire/timer candidate if confirmed. Nothing here is merged or live; Player availability is unchanged."
+    }
+  }
+}

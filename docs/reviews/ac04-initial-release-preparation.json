@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "state": "DRAFT_RELEASE_PREPARED_NATIVE_RERUN_REQUIRED",
+  "base": {
+    "remote": "origin/main",
+    "sha": "efc712084cdb8b790c2042d094522dbd09cdc3f7",
+    "sourcePR": 90
+  },
+  "sourceProvenance": {
+    "dirtySourceCheckout": "/Users/pelicannurse/Projects/test app",
+    "originalBase": "c27bac6",
+    "frozenCandidate": "70b6a6ecf221ebbda4e1f22b2d16e244702c22051fcad76cc5a815115bf05772",
+    "association": "docs/reviews/ac04-ui-integration-response.json and its recovery-frozen.json record 209 unchanged frozen entries plus three named UI changes",
+    "transplant": "Tracked AC04 replacement was applied as an original-base diff onto current main. New AC04 source, tests, selected review evidence, voice metadata and all four human documents were added explicitly. Current-main workflow/tooling was inspected before commit.",
+    "saveEpoch": "SkybreakAC04Fresh_20261027_v1"
+  },
+  "initialRelease": {
+    "availableMissions": [1, 2, 3, 4, 5],
+    "archiveOnlyMissions": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+    "serverAdmission": "M6-M18 StartMission requests are rejected before CombatService admission.",
+    "ending": "After the M5 debrief and chapter 4, the client returns to the hub with an initial-preview-complete message instead of opening M6 briefing.",
+    "replay": "M1-M5 remain selectable and replayable.",
+    "futureUnlock": "The 18-mission v1 persistence schema, normalizer and monotonic merge retain valid later records. Raising AC04_RELEASE_MISSION_CEILING later does not reset the save epoch."
+  },
+  "validation": {
+    "build": "PASS",
+    "offlineLuau": { "passed": 454, "failed": 0 },
+    "offlineGate": "PASS: no-React guard, AC04-only gate, place build/voice artifact check, 454 Luau contracts, 10 audio simulations, 92 Python tests and 146-line generated voice check",
+    "nativeInherited": "Candidate 70b6a6ec passed 598/598 across 62 suites before the release ceiling change.",
+    "nativeCurrent": "NOT RUN: this checkout had no Studio/build-engine lease. The new ceiling contracts compile and pass standalone but still require bun run test:roblox under parent coordination."
+  },
+  "assets": {
+    "newPlaceEmbeddedBlenderAssets": [],
+    "newImages": [],
+    "storyImagePilot": "EXCLUDED: proposals/ac04-story-integration has null image IDs and no verified failed-load fallback.",
+    "nativeStory": "The existing 48 native procedural story scenes remain active.",
+    "ac04WorldGeometry": "src/server/AC04World.ts labels generated mission models NativeProcedural; no new Blender export is embedded by this change.",
+    "existingMainAssets": "The existing assets/roblox-upload manifest, checklists, UploadedAssetSpecs and AssetSelection are unchanged from efc7120. This report does not grant a new exact-export approval or moderation guarantee.",
+    "removedLegacyAssets": "Four retired mission mesh JSON files and the old Broken Relay voice bundle are removed from the repository. No cloud records or Roblox assets were deleted."
+  },
+  "excluded": [
+    "build/**, out/** and candidate rbxlx/log/capture artifacts",
+    "proposals/** including all story pilot PNGs, manifests, overlays and patches",
+    "docs/evidence/ac04-story-reference-review/** and docs/evidence/ac04-ui-reference/** reference-image collections",
+    "unrelated parent AGENTS.md change",
+    "credentials, upload keys and cloud operations"
+  ],
+  "publication": {
+    "workflow": ".github/workflows/publish-roblox.yml",
+    "trigger": "non-doc push to main",
+    "targetGuard": "tools/verify-roblox-target.py runs before validation and publication",
+    "officialPlaceId": "112911685457826",
+    "draftPRPublishes": false,
+    "mergeConvention": "Owner treats merge as live through automatic CI/CD; last-known version 63 metadata remains unchanged until a newer receipt is known."
+  },
+  "knownFidelityAndTestLimits": [
+    "Early owner test, not beta or perfect AC04 recreation approval.",
+    "Native story fidelity remains independently rejected despite UI/chrome improvements.",
+    "No human flight-feel acceptance; prior M1-M5 completion used native UI and public flight-input automation.",
+    "Actual device sizes, touch scroll, save-fault recovery, live target cues, audio and current-branch native tests remain open.",
+    "M6 failed its sole prior automated attempt at 19.53 seconds; M6-M18 are intentionally unavailable in this release."
+  ]
+}

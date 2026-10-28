@@ -1,6 +1,6 @@
 import {FlightInput} from "./Types";
 import {FlightMath,FlightState} from "./FlightMath";
-import {FlightPoint} from "./MissionCatalog";
+import {FlightPoint} from "./WorldTypes";
 /** The attitude fields Steer reads (a FlightState, or one rebuilt from a CFrame). */
 export interface PilotAttitude { yaw:number; pitch:number; roll:number }
 /** Pure normal-control guidance reused by the Studio pilot and offline tests.

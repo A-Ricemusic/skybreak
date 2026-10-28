@@ -1,7 +1,7 @@
 // Pure weapon rules shared by the server (authoritative) and the HUD (presentation).
 // Nothing here touches instances; CombatService adapts Vector3 to plain points.
 /** Pause and Resume freeze the sortie on the server (single-player): no stepping, and the clock is shifted. */
-export type CombatActionKind = "FireMissile" | "Evade" | "CycleTarget" | "Special" | "Pause" | "Resume";
+export type CombatActionKind = "FireMissile" | "Evade" | "CycleTarget" | "Special" | "Pause" | "Resume" | "FireGun" | "Rearm";
 export type FireDenied = "no_ammo" | "cooldown";
 /** Why a SPECIAL press did nothing (see SpecialWeapons.Activate). */
 export type SpecialDenied = "special_empty" | "special_cooldown" | "special_active" | "special_no_target";
@@ -46,7 +46,7 @@ function segmentDistance(point: Point, from: Point, to: Point): number {
 	const cx = from.x + dx * t - point.x, cy = from.y + dy * t - point.y, cz = from.z + dz * t - point.z;
 	return math.sqrt(cx * cx + cy * cy + cz * cz);
 }
-const ACTION_KINDS: CombatActionKind[] = ["FireMissile", "Evade", "CycleTarget", "Special", "Pause", "Resume"];
+const ACTION_KINDS: CombatActionKind[] = ["FireMissile", "Evade", "CycleTarget", "Special", "Pause", "Resume", "FireGun", "Rearm"];
 /** Minimum spacing between accepted events of the same action kind. */
 const ACTION_WINDOW = 0.09;
 /** Ground envelope: 80 degree half-cone out to 2450 studs (you orbit a target, you do not chase it). */

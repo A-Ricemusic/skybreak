@@ -1,0 +1,1500 @@
+{
+  "version": 1,
+  "updated": "2026-10-27",
+  "baseline": "Normal, first campaign playthrough",
+  "purpose": "Provenance and unresolved fidelity items for executable AC04 content; not a completion certificate.",
+  "missionFacts": {
+    "module": "src/shared/AC04MissionData.ts",
+    "primary": "Dedicated mission pages at https://acecombat.wiki.gg/wiki/; retrieved through search-indexed text when direct requests returned403.",
+    "uncertainValues": "Per-group provisional=true and per-mission gaps remain visible in source. Health, speeds and geometry scale are authoring adaptations rather than verified AC04 numerical values."
+  },
+  "maps": {
+    "requestedCollection": "https://gamefaqs.gamespot.com/ps2/452838-ace-combat-04-shattered-skies/faqs",
+    "collectionStatus": "Index and direct mission14 HTML retrieved; linked raw image returns403. Exact Masamune2-0 images remain unavailable.",
+    "accessibleAlternative": "https://mitoro.sakura.ne.jp/ac04/data/",
+    "difficulty": "Ace",
+    "acceptedUse": "Relative target sectors, coastline silhouettes and route topology. Never treated as a Normal unit count table.",
+    "visuallyInspected": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18
+    ],
+    "imagePattern": "https://mitoro.sakura.ne.jp/ac04/data/ac04_mNNd1.gif",
+    "exceptions": {
+      "15": "https://mitoro.sakura.ne.jp/ac04/data/img/m15_01.png",
+      "17detail": "https://mitoro.sakura.ne.jp/ac04/data/ac04_m17d2.gif"
+    },
+    "limitations": "Most diagrams show target dots, not terrain. M06 shows a coastline silhouette; M07 shows ravine topology. Current terrain relief, dimensions and individual placements are adapted prototypes, not pixel-exact map traces."
+  },
+  "corroboration": [
+    {
+      "mission": 3,
+      "field": "extractionTimer",
+      "valueSeconds": 900,
+      "url": "https://www.neoseeker.com/acecombat4/faqs/53489-ace-combat-4-jgreen.html",
+      "status": "Secondary walkthrough explicitly lists15minutes for each objective; other guide figures conflict and are not adopted wholesale."
+    },
+    {
+      "mission": 5,
+      "field": "phaseTransition",
+      "url": "https://gamefaqs.gamespot.com/ps2/452838-ace-combat-04-shattered-skies/faqs/48109",
+      "status": "Indexed walkthrough confirms10-minute expiry and4-minute retreat, with player relocation to rigs and prior-enemy removal; runtime adapter authored, engine/playtest parity pending."
+    },
+    {
+      "mission": 15,
+      "field": "bomberApproach",
+      "value": "west",
+      "url": "https://mitoro.sakura.ne.jp/ac04/data/img/m15_01.png",
+      "status": "Map visually inspected; scenario data corrected from generic north spawn to west."
+    },
+    {
+      "mission": 4,
+      "field": "jammerTopology",
+      "url": "https://mitoro.sakura.ne.jp/ac04/data/ac04_m04d1.gif",
+      "status": "Three transports spread west/center/east under two overlapping fields; coordinates and1600-stud radius adapted to Roblox bounds."
+    },
+    {
+      "mission": 9,
+      "field": "updateEscorts",
+      "url": "https://mitoro.sakura.ne.jp/ac04/data/m09.htm",
+      "status": "Wiki confirms fighter escorts; Ace guide describes4 extra fighters.4 F15Cs provisional adaptation; Normal number/type not verified."
+    },
+    {
+      "mission": 18,
+      "field": "missilePorts",
+      "url": "https://mitoro.sakura.ne.jp/ac04/usefuldata.htm",
+      "status": "Six zero-point ports lie on two southern arms. Authored placement corrected from tunnel lanes to southern decks; dimensions remain adapted."
+    },
+    {
+      "mission": 9,
+      "field": "A10PointsNormal",
+      "value": 100,
+      "count": 6,
+      "url": "https://gamefaqs.gamespot.com/ps2/452838-ace-combat-04-shattered-skies/faqs/48109",
+      "status": "Normal walkthrough lines792-795 gives600 total for6 A10s; point uncertainty removed. Groundtargets disappear at update."
+    },
+    {
+      "mission": 10,
+      "field": "stonehengeTiming",
+      "url": "https://acecombat.wiki.gg/wiki/Tango_Line",
+      "status": "Three10-second waves near elapsed300/705/1125 seconds, warning about30 seconds earlier. Radio chatter can delay timing; fixed timestamps remain approximation."
+    },
+    {
+      "mission": 13,
+      "field": "balloonCountConflict",
+      "urls": [
+        "https://acecombat.wiki.gg/wiki/Safe_Return",
+        "https://acecombat.fandom.com/wiki/Safe_Return",
+        "https://mitoro.sakura.ne.jp/ac04/data/m13.htm"
+      ],
+      "status": "100 currentwiki versus115 formerwiki;157 is explicitlyAce. No independent Normal manifest resolved conflict. Keep100 provisional."
+    }
+  ],
+  "openFidelityItems": [
+    "M02 S rank2120 dedicated page versus2040 mission index",
+    "M05 minimum fighter counts and unknown respawn conditions",
+    "M06 exact Normal ground/naval component roster and respawn sequencing",
+    "M08 complete fighter count and spawn schedule",
+    "M09 authored60 versus disputed Normal83 remains unresolved. Current source has per-beach provisional RADAR/LAUNCHER substitutions,3030 ground /3780 phase0 reachable /4620 full idealized score; initially active3360. 4400 S is arithmetic only, not fidelity or playability approval.",
+    "M10 individual ground/naval counts and respawn timing",
+    "M13 balloons100 current wiki versus115 former wiki; Ace157 is not Normal evidence",
+    "M14 second missile-wave kill trigger and XB70 points120 table versus200 prose",
+    "M15 ground and helicopter counts, fighter respawns",
+    "M17 complete ground/ship split and reinforcement trigger chains",
+    "All missions: exact terrain elevations, target positions, per-aircraft physics and final visual treatment",
+    "Native greybox geometry and automated engine tests cannot establish perfect recreation",
+    "M06 now has separately targetable ship weapons, FUEL/GAS categories and a scenery harbor-mouth bridge. New40 non-deck ground aggregate and per-type splits remain provisional author choices;15 deck components separately scored. No verified Normal roster claim.",
+    "M07 integrated source raises outside-ravine plateau to560 over the400-stud barrage ceiling. Ravine raster/width and hollow cap+wall construction are adaptations; native traversal and visual acceptance pending.",
+    "M10 modeled86 ground/6 naval differs from disputed72 ground/20 naval aggregate (confidence downgraded; conflicts with100/24 and81/24); missing naval-component breakdown is not resolved by shore-storage stand-ins.",
+    "M18 integrated source replaces the old cross with two high arms over a low duct, a gated central tube, closed-until-core-death roof hatch and bounded continuous shaft ascent. Native collision/LOS/traversal acceptance pending; dimensions adapted.",
+    "M08 integrated41 fighters,18 initially active, plus kill-count chain are provisional Ace-diagram adaptations, not verified Normal counts.",
+    "M13 phase-scaling request does not match current runner: RecordKill adds group.points and advancePhase does not rescale. Audit uses actual runner; no invented scaling. Original-game frigate final-score exclusion is still a documented divergence; resolve with parent before fidelity acceptance."
+  ],
+  "geometryAdaptations": [
+    "M13 integrated ravine net caps ridge heights90 below transcribed/decimated jammer positions and160 below U-2 route; still inferred relief and provisional100 jammers, not exact Normal tracing.",
+    "M2 bomber apron and M7 panel field separated from other targets to prevent overlapping geometry.",
+    "Native terrain wedges bounded in X; individual target pads clear overlying inferred relief."
+  ],
+  "readOnlyReachabilityAudit": {
+    "date": "2026-10-27",
+    "method": "Executed pure authored TypeScript manifests with JavaScript shims, without Roblox engine, build, Studio, or source mutations. Checks arithmetic and authored centers only; not full physical reachability or gameplay proof.",
+    "all18": "All phase required IDs and predecessor IDs exist; no required group protected/invulnerable; requiredKills within roster capacity. Authored spawn positions within3800 horizontal bounds and3600 altitude ceiling. No remaining same-phase ground/naval center pairs within55studs; no planned staticpart exceeds2048studs. M17 occlusions found and corrected before third candidate, pending engine retest.",
+    "scorePhases": [
+      {
+        "mission": 5,
+        "initialEligiblePoints": 6130,
+        "threshold": 2000,
+        "margin": 4130,
+        "withDelayedPoints": 6130
+      },
+      {
+        "mission": 6,
+        "initialEligiblePoints": 6390,
+        "threshold": 3000,
+        "margin": 3390,
+        "withDelayedPoints": 6390
+      },
+      {
+        "mission": 8,
+        "initialEligiblePoints": 3370,
+        "threshold": 800,
+        "margin": 2570,
+        "withDelayedPoints": 3370
+      },
+      {
+        "mission": 9,
+        "initialEligiblePoints": 3630,
+        "threshold": 2200,
+        "margin": 1430,
+        "withDelayedPoints": 3630
+      },
+      {
+        "mission": 10,
+        "initialEligiblePoints": 7000,
+        "threshold": 3000,
+        "margin": 4000,
+        "withDelayedPoints": 7120
+      },
+      {
+        "mission": 13,
+        "initialEligiblePoints": 10100,
+        "threshold": 1300,
+        "margin": 8800,
+        "withDelayedPoints": 10100
+      },
+      {
+        "mission": 15,
+        "initialEligiblePoints": 5120,
+        "threshold": 2000,
+        "margin": 3120,
+        "withDelayedPoints": 5120
+      },
+      {
+        "mission": 16,
+        "initialEligiblePoints": 8600,
+        "threshold": 3500,
+        "margin": 5100,
+        "withDelayedPoints": 8600
+      },
+      {
+        "mission": 17,
+        "initialEligiblePoints": 4035,
+        "threshold": 2100,
+        "margin": 1935,
+        "withDelayedPoints": 4235
+      }
+    ],
+    "exclusions": "Protected, invulnerable and future-phase groups excluded. Initial totals exclude triggerAt/afterGroup groups. M15 excludes fifthYellow because it retreats after four kills.",
+    "rankFailure": {
+      "mission": 9,
+      "maximumAuthoredPoints": 4470,
+      "requiredS": 4400,
+      "shortfall": 0,
+      "authoredInitialGroundCount": 60,
+      "normalWalkthroughInitialGroundCount": 83,
+      "status": "Superseded failure: verified BATTERY80 gives4470 maximum against4400 S; arithmetic reachable, exact roster and gameplay unverified.",
+      "margin": 70
+    },
+    "recommendedM9Correction": "Retain source4400 S threshold. Reconstruct missing initial ground units to match Normal83 aggregate, including omitted radar/launcher categories documented by walkthroughs, after verifying type/point breakdown. Do not distribute23 guessed objects and call them source-verified. Until resolved, rank fidelity remains open."
+  },
+  "parentRosterCorrection": {
+    "review": "docs/reviews/ac04-normal-roster-review.json",
+    "batteryPoints": 80,
+    "batteryCountProvisional": 9,
+    "initialGroundPoints": 2880,
+    "initialAllDomainPoints": 3630,
+    "maximum": 4470,
+    "sRank": 4400,
+    "totalAir": 23,
+    "sources": [
+      "https://gamefaqs.gamespot.com/ps2/452838-ace-combat-04-shattered-skies/faqs/48109",
+      "https://www.asahi-net.or.jp/~ms3m-tks/game/ac04/mission/09.htm"
+    ],
+    "attribution": "Parent identified the verified points fix after the5.6 Sol source audit; no new review or gameplay signoff."
+  },
+  "m05ArrivalStaging": {
+    "decisionId": "AC04-M5-STAGE-001",
+    "date": "2026-10-27",
+    "status": "compiled/native-pass; implemented trigger and first replacement observed in one successful local sequential Normal flight; independent retest pending",
+    "sources": [
+      {
+        "url": "https://mitoro.sakura.ne.jp/ac04/data/m05.htm",
+        "difficulty": "Ace",
+        "supports": "Later aircraft, variable arrival positions and refinery-destruction-triggered MiG-29s; NOT Normal counts or exact thresholds."
+      },
+      {
+        "url": "https://acecombat.wiki.gg/wiki/Lifeline",
+        "access": "search-indexed text; direct historically403",
+        "supports": "Normal2000 points/10minutes;7+/13+/7+ fighter minimums; spawn/respawn conditions explicitly unknown."
+      },
+      {
+        "url": "https://gamefaqs.gamespot.com/ps2/452838-ace-combat-04-shattered-skies/faqs/48109",
+        "access": "Direct restricted; indexed MISSION05 text retrieved this task",
+        "supports": "2000 points/10minutes, ground-first/refill strategy, approximate2000 industrial points; 10air/88ground header differs from minimum manifest. No exact arrival trigger verified."
+      },
+      {
+        "url": "https://www.asahi-net.or.jp/~MS3M-TKS/game/ac04/mission/05.htm",
+        "supports": "10minute score phase, Normal2000,4minute withdrawal and5 unshootable Yellows."
+      }
+    ],
+    "assumptions": {
+      "initial": "2F16+2Mirage+3Ka50",
+      "replacement": "F16 and Mirage each2/2/3 with30seconds after preceding group clearance",
+      "offshoreMiG": "2 after initial Mirage clearance+15seconds",
+      "refineryMiG": "3 after8 kills across refinery-site fuel/gas/pumps/refineries/stacks;4 then4 after prior clearance+30seconds",
+      "routes": "Fixed authored southern/offshore/western patrol origin sectors; existing combat pursuit afterward. No claim of exact source positions or routes."
+    },
+    "alternatives": [
+      "Full simultaneous minimum roster rejected by concrete arrival mismatch",
+      "Fixed timer-only waves would force refinery reinforcements even without local destruction",
+      "Exact replica deferred until Normal footage or authoritative trigger data exists"
+    ],
+    "unchanged": "2000/600seconds,240second withdrawal, existing offshore relocation/return crossing and invulnerable Yellow rules; no generic combat nerfs.",
+    "implementationEvidence": {
+      "candidateSha256": "91927612ddb4049cc2010a5cfa2a8e0cfaa166eef7a51d5eeaf8d48dc3cf5659",
+      "refineryTrigger": "7 refinery destructions/0MiGs at165.446;8/3 at176.444",
+      "replacement": "Initial F16 pair absent at463.317;still absent492.317;two replacements at493.417 (~30.1s after clearance)",
+      "outcome": "M5 2140points/44targets/10:15, real600second score expiry and southbound withdrawal; M6 briefing unlocked, not launched",
+      "limits": "This validates authored assumptions, not exact original Normal conditions or independent acceptance."
+    }
+  },
+  "historicalAuditScope": {
+    "status": "Historical pre-M6\u2013M18-integration arithmetic; retained without rewriting its numerical results. Not current source evidence.",
+    "payloadSha256CanonicalJSON": "1aac160f39f2020c3a2a4e527e3d21cc72ed8b96a888bd6c039ba9c55563f37e",
+    "sourceHashScope": "Exact original source hashes were not recorded in this audit. Do not infer current hashes or borrow later report baselines. Historical candidate/review associations are context only.",
+    "context": "Prior simultaneous-roster and parent BATTERY80 correction; superseded by integratedSourceReachabilityAudit.",
+    "parentRosterCorrectionPayloadSha256CanonicalJSON": "2da47b22e001afd85f8128acc5a5cb818002d9594577021f1f9bed460861557e"
+  },
+  "historicalSupersededFidelityItems": [
+    {
+      "index": 4,
+      "text": "M09 initial Normal roster60 authored versus83 in requested Normal walkthrough; optional update escort type/count provisional. Parent-verified BATTERY80 correction raises current maximum to4470;4400 S is arithmetically reachable. Exact60/83 ground roster remains unresolved."
+    },
+    {
+      "index": 12,
+      "text": "M06 missing separately targetable ship weapons, fuel/gas categories and harbor-mouth bridge; cluster topology supported, exact Normal ground counts remain blank in wiki."
+    },
+    {
+      "index": 13,
+      "text": "M07 outside-canyon terrain remains below adapted Stonehenge ceiling, allowing bypass of intended ravine escape; source plateau relief still required."
+    },
+    {
+      "index": 15,
+      "text": "M18 source tunnels differ in height and routing; current cross-shaped fortress is playable adapted geometry, not exact map tracing."
+    }
+  ],
+  "integratedSourceReachabilityAudit": {
+    "date": "2026-10-27",
+    "status": "Integrated local source only; no Roblox transform, engine, Player or publication evidence.",
+    "sourceSha256": {
+      "src/shared/AC04MissionData.ts": "319d36560539ddcfb638cb6f1001028ffa761bd4015b468fe422d7129d7b6b36",
+      "src/shared/AC04Runner.ts": "315a5d3c019647c369991a1f55f8605317408ecf405ab0e76f6d010088085eb5",
+      "src/shared/AC04WorldData.ts": "b494f648d0ad24af1032e6b8d87eb200debb178b869f0b07afac879bf8ca3fe9",
+      "src/shared/WorldPlan.ts": "2b4b89a553f0b21b9cc0cc69ee403e2f089d9c7d6c47995246bf6823706aca99",
+      "src/server/CombatService.ts": "f47daf8764324934cbd90dfc2e82de24e51bc7436fb7d15dfd50aeed0367c19d",
+      "src/shared/ac04/rebuild/LatePlacement.ts": "29c5a5428981180047c0dadf17fc4070585bc995859215ccd6e20f6191024bda",
+      "src/shared/ac04/rebuild/MiddleCampaign.ts": "d21f068f234d63eae85ccc33375eb92bc95b2c2eadb3e23eee795e5e53758d9a",
+      "src/shared/ac04/rebuild/MiddleWorld.ts": "b9f961274e685a5c2bc140bbcf30c6058f22f759ae78396fc1944159743a8b27",
+      "src/shared/ac04/rebuild/LateGeometry.ts": "298207976787a154777830998c58fcb27fe4127973f397598f80eba85e62628b",
+      "src/shared/ac04/rebuild/LateSources.ts": "3e839e896f0cbe438065739b35ca07ad6efbb82fc5da547bc1b358060eefcfab",
+      "src/shared/ac04/rebuild/LateCampaign.ts": "da82efc24b410093e8adfde75731c53fd7dc90f953acbbc0fadf3681a1d4b3f4",
+      "src/shared/ac04/rebuild/MiddleGeography.ts": "562fc088d8c134c8e9ae0a8dc4d85ca682ed1522e4ab16f6aef6f66a406ed926",
+      "src/shared/ac04/rebuild/LateMegalith.ts": "fc41dc91e5545ab5a3b0291fb05487a492401b2917549c5bdfb56beae00bb204",
+      "src/shared/ac04/rebuild/LateRuntime.ts": "91a52ea8737a71072acb2bfed2304eea3230162bcd3590600feab46bd744e86a",
+      "src/shared/ac04/rebuild/LateWorld.ts": "48c01335e5cd4fa63584d2ec71113fb674dbf89ed1486e88e3e472da2a0ec0b4",
+      "src/shared/ac04/rebuild/LateWorldBuild.ts": "d1c4b00d5193e5cdd1635c7a8fad5d2ce457741e1ad65feade4c85f2b9dd63ae"
+    },
+    "method": "Node TypeScript transpileModule loader in /tmp; Lua API stand-ins. Invoked actual AC04Runner.New/GroupDue/RecordKill/Tick/Retired/CrossReturn/Escape. Idealized one-second kill scheduler, all optional units before final required kill, wait for delayed optional groups, M15 Yellow cap4 and real phase retirement. No movement, gun accuracy, damage, fog, route duration or engine simulation. One constructive idealized schedule, not an optimization or human-playability proof.",
+    "harnessSha256": "4087fb73c430003f8f5624109253e3992958bb7e569a50d130f95ac6f85bf159",
+    "confidence": "Source contract arithmetic and dependency references only, shim semantics unverified in Luau; native acceptance pending.",
+    "phaseScaling": "No M13 score scaling exists in the inspected actual runner (RecordKill adds group.points; phase advance only changes clocks/index). Current-source total10340 includes frigate100. Do not claim an imagined scaled result. Parent requested phase-scaling consideration; discrepancy remains an explicit objection, not silently resolved.",
+    "scorePhases": [
+      {
+        "mission": 5,
+        "initialEligiblePoints": 4750,
+        "reachablePhaseZeroPoints": 6130,
+        "idealizedFullMissionScore": 6130,
+        "threshold": 2000,
+        "initialGroups": [
+          "f16",
+          "mirage",
+          "ka50",
+          "cranes",
+          "controls",
+          "towers",
+          "fuel-small",
+          "fuel-medium",
+          "fuel-large",
+          "gas",
+          "pumps",
+          "refinery",
+          "stacks",
+          "aa",
+          "sam",
+          "tankers"
+        ],
+        "delayedGroups": [
+          "f16-return-1",
+          "f16-return-2",
+          "mirage-return-1",
+          "mirage-return-2",
+          "mig-offshore",
+          "mig",
+          "mig-return-1",
+          "mig-return-2"
+        ]
+      },
+      {
+        "mission": 6,
+        "initialEligiblePoints": 5290,
+        "reachablePhaseZeroPoints": 6370,
+        "idealizedFullMissionScore": 6370,
+        "threshold": 3000,
+        "initialGroups": [
+          "f14-fleet",
+          "f18-fleet",
+          "f18-harbor",
+          "f14-shipyard",
+          "tornado-north",
+          "ka25",
+          "raven",
+          "geofon",
+          "tanager",
+          "missile-boats",
+          "raven-sam",
+          "tanager-gun",
+          "cruiser-beluga",
+          "cruiser-fenris",
+          "cruiser-kolga",
+          "cruiser-lazuli",
+          "beowulf-nu",
+          "beowulf-pi",
+          "cruiser-sam",
+          "cruiser-aa",
+          "comberth-containers",
+          "comberth-cranes",
+          "comberth-storage",
+          "comberth-aa",
+          "comberth-sam",
+          "container-ships",
+          "supply",
+          "newcomberth-containers",
+          "newcomberth-storage",
+          "newcomberth-fuel",
+          "newcomberth-aa",
+          "newcomberth-sam",
+          "destroyer-herne",
+          "destroyer-taisch",
+          "destroyer-thiassi",
+          "landing-ships",
+          "submarines-shipyard",
+          "destroyer-aa",
+          "shipyard-cranes",
+          "shipyard-storage",
+          "shipyard-aa",
+          "shipyard-sam",
+          "submarines-east",
+          "east-gas",
+          "east-fuel",
+          "east-cranes",
+          "east-aa",
+          "east-sam"
+        ],
+        "delayedGroups": [
+          "f14-fleet-2",
+          "f18-fleet-2",
+          "f14-harbor-last",
+          "f14-shipyard-last",
+          "f18-new-harbor",
+          "tornado-new-harbor-last",
+          "f14-fleet-return",
+          "f18-fleet-return",
+          "f14-harbor-return",
+          "f18-harbor-return",
+          "f14-shipyard-return",
+          "tornado-shipyard-return",
+          "tornado-new-harbor-return"
+        ]
+      },
+      {
+        "mission": 8,
+        "initialEligiblePoints": 1570,
+        "reachablePhaseZeroPoints": 2950,
+        "idealizedFullMissionScore": 3850,
+        "threshold": 800,
+        "initialGroups": [
+          "mig-headon",
+          "f15-island-west",
+          "f14-awacs-escort",
+          "f18-island",
+          "mig-island",
+          "sr71",
+          "e767",
+          "kc10"
+        ],
+        "delayedGroups": [
+          "wave-west-1",
+          "wave-north-2",
+          "wave-southwest-3",
+          "wave-west-4",
+          "wave-converge-5a",
+          "wave-converge-5b"
+        ]
+      },
+      {
+        "mission": 9,
+        "initialEligiblePoints": 3360,
+        "reachablePhaseZeroPoints": 3780,
+        "idealizedFullMissionScore": 4620,
+        "threshold": 2200,
+        "initialGroups": [
+          "west-pillbox",
+          "west-batteries",
+          "west-aa",
+          "west-sam",
+          "west-radar",
+          "west-tanks",
+          "west-launchers",
+          "center-pillbox",
+          "center-batteries",
+          "center-aa",
+          "center-sam",
+          "center-radar",
+          "center-tanks",
+          "east-pillbox",
+          "east-batteries",
+          "east-aa",
+          "east-sam",
+          "east-radar",
+          "east-tanks",
+          "east-launchers",
+          "mig-caranda",
+          "tornado-caranda",
+          "hind"
+        ],
+        "delayedGroups": [
+          "mig-crowne",
+          "tornado-crowne",
+          "f15-halle"
+        ]
+      },
+      {
+        "mission": 10,
+        "initialEligiblePoints": 7000,
+        "reachablePhaseZeroPoints": 7120,
+        "idealizedFullMissionScore": 7120,
+        "threshold": 3000,
+        "initialGroups": [
+          "rafale",
+          "hind",
+          "f14",
+          "harrier",
+          "chinook",
+          "c130",
+          "ef2000",
+          "f18",
+          "bunkers",
+          "hangars",
+          "aa",
+          "sam",
+          "fuel",
+          "subs",
+          "sub-stores"
+        ],
+        "delayedGroups": [
+          "surfacing-sub"
+        ]
+      },
+      {
+        "mission": 13,
+        "initialEligiblePoints": 10100,
+        "reachablePhaseZeroPoints": 10100,
+        "idealizedFullMissionScore": 10340,
+        "threshold": 1300,
+        "initialGroups": [
+          "balloons",
+          "frigate"
+        ],
+        "delayedGroups": []
+      },
+      {
+        "mission": 15,
+        "initialEligiblePoints": 4220,
+        "reachablePhaseZeroPoints": 5120,
+        "idealizedFullMissionScore": 6080,
+        "threshold": 2000,
+        "initialGroups": [
+          "ef-gov",
+          "ef-airport",
+          "su35-airport",
+          "su35-old",
+          "a10-old",
+          "yellow",
+          "c17",
+          "ka50",
+          "tanks",
+          "infantry",
+          "launchers",
+          "aa",
+          "sam"
+        ],
+        "delayedGroups": [
+          "ef-gov-r1",
+          "ef-gov-r2",
+          "ef-airport-r1",
+          "ef-airport-r2",
+          "su35-airport-r1",
+          "a10-old-r1"
+        ]
+      },
+      {
+        "mission": 16,
+        "initialEligiblePoints": 7580,
+        "reachablePhaseZeroPoints": 8600,
+        "idealizedFullMissionScore": 8600,
+        "threshold": 3500,
+        "initialGroups": [
+          "tanks-west",
+          "tanks-center",
+          "tanks-anchor",
+          "tanks-north",
+          "howitzers",
+          "pillboxes",
+          "launchers",
+          "tents",
+          "hq",
+          "flak",
+          "sam-heavy",
+          "sam",
+          "aa-heavy",
+          "aa",
+          "sr71",
+          "f117",
+          "f22",
+          "a10",
+          "f2",
+          "rafale",
+          "tornado",
+          "tornado-east",
+          "apache"
+        ],
+        "delayedGroups": [
+          "tanks-west-r",
+          "tanks-center-r",
+          "tanks-anchor-r",
+          "tornado-r"
+        ]
+      },
+      {
+        "mission": 17,
+        "initialEligiblePoints": 3190,
+        "reachablePhaseZeroPoints": 4185,
+        "idealizedFullMissionScore": 4935,
+        "threshold": 2100,
+        "initialGroups": [
+          "apache",
+          "f22",
+          "ef2000",
+          "ef2000-west",
+          "armor",
+          "aa",
+          "sam",
+          "battleship",
+          "destroyer",
+          "subs",
+          "bridge"
+        ],
+        "delayedGroups": [
+          "f22-r1",
+          "f22-r2",
+          "ef2000-r1",
+          "ef2000-r2",
+          "active",
+          "osprey",
+          "armor-reinforce"
+        ]
+      }
+    ],
+    "allMissions": [
+      {
+        "mission": 1,
+        "initialEligiblePoints": 840,
+        "initialEligibleUnits": 10,
+        "initialGroups": [
+          "bombers",
+          "escorts-f5",
+          "escorts-mig"
+        ],
+        "delayedGroups": [],
+        "phaseEnd": [
+          {
+            "phase": 0,
+            "score": 840,
+            "elapsed": 0
+          }
+        ],
+        "maximumScheduledScore": 840,
+        "outcome": "won",
+        "unscoredGroups": [],
+        "errors": [],
+        "wet": []
+      },
+      {
+        "mission": 2,
+        "initialEligiblePoints": 2370,
+        "initialEligibleUnits": 31,
+        "initialGroups": [
+          "parked-bombers",
+          "aa",
+          "hangars",
+          "substation",
+          "tower",
+          "f4",
+          "f5",
+          "mig"
+        ],
+        "delayedGroups": [],
+        "phaseEnd": [
+          {
+            "phase": 0,
+            "score": 2370,
+            "elapsed": 0
+          }
+        ],
+        "maximumScheduledScore": 2370,
+        "outcome": "won",
+        "unscoredGroups": [],
+        "errors": [],
+        "wet": []
+      },
+      {
+        "mission": 3,
+        "initialEligiblePoints": 1400,
+        "initialEligibleUnits": 21,
+        "initialGroups": [
+          "radar-east",
+          "radar-west",
+          "aa",
+          "ch47",
+          "f4",
+          "f5",
+          "f16"
+        ],
+        "delayedGroups": [
+          "f16-reinforcement"
+        ],
+        "phaseEnd": [
+          {
+            "phase": 0,
+            "score": 1520,
+            "elapsed": 1
+          }
+        ],
+        "maximumScheduledScore": 1520,
+        "outcome": "won",
+        "unscoredGroups": [],
+        "errors": [],
+        "wet": []
+      },
+      {
+        "mission": 4,
+        "initialEligiblePoints": 1480,
+        "initialEligibleUnits": 17,
+        "initialGroups": [
+          "transports",
+          "jammers",
+          "f16",
+          "mirage",
+          "mig"
+        ],
+        "delayedGroups": [],
+        "phaseEnd": [
+          {
+            "phase": 0,
+            "score": 1480,
+            "elapsed": 0
+          }
+        ],
+        "maximumScheduledScore": 1480,
+        "outcome": "won",
+        "unscoredGroups": [],
+        "errors": [],
+        "wet": []
+      },
+      {
+        "mission": 5,
+        "initialEligiblePoints": 4750,
+        "initialEligibleUnits": 93,
+        "initialGroups": [
+          "f16",
+          "mirage",
+          "ka50",
+          "cranes",
+          "controls",
+          "towers",
+          "fuel-small",
+          "fuel-medium",
+          "fuel-large",
+          "gas",
+          "pumps",
+          "refinery",
+          "stacks",
+          "aa",
+          "sam",
+          "tankers"
+        ],
+        "delayedGroups": [
+          "f16-return-1",
+          "f16-return-2",
+          "mirage-return-1",
+          "mirage-return-2",
+          "mig-offshore",
+          "mig",
+          "mig-return-1",
+          "mig-return-2"
+        ],
+        "phaseEnd": [
+          {
+            "phase": 0,
+            "score": 6130,
+            "elapsed": 600
+          },
+          {
+            "phase": 1,
+            "score": 6130,
+            "elapsed": 600
+          }
+        ],
+        "maximumScheduledScore": 6130,
+        "outcome": "won",
+        "unscoredGroups": [],
+        "errors": [],
+        "wet": []
+      },
+      {
+        "mission": 6,
+        "initialEligiblePoints": 5290,
+        "initialEligibleUnits": 90,
+        "initialGroups": [
+          "f14-fleet",
+          "f18-fleet",
+          "f18-harbor",
+          "f14-shipyard",
+          "tornado-north",
+          "ka25",
+          "raven",
+          "geofon",
+          "tanager",
+          "missile-boats",
+          "raven-sam",
+          "tanager-gun",
+          "cruiser-beluga",
+          "cruiser-fenris",
+          "cruiser-kolga",
+          "cruiser-lazuli",
+          "beowulf-nu",
+          "beowulf-pi",
+          "cruiser-sam",
+          "cruiser-aa",
+          "comberth-containers",
+          "comberth-cranes",
+          "comberth-storage",
+          "comberth-aa",
+          "comberth-sam",
+          "container-ships",
+          "supply",
+          "newcomberth-containers",
+          "newcomberth-storage",
+          "newcomberth-fuel",
+          "newcomberth-aa",
+          "newcomberth-sam",
+          "destroyer-herne",
+          "destroyer-taisch",
+          "destroyer-thiassi",
+          "landing-ships",
+          "submarines-shipyard",
+          "destroyer-aa",
+          "shipyard-cranes",
+          "shipyard-storage",
+          "shipyard-aa",
+          "shipyard-sam",
+          "submarines-east",
+          "east-gas",
+          "east-fuel",
+          "east-cranes",
+          "east-aa",
+          "east-sam"
+        ],
+        "delayedGroups": [
+          "f14-fleet-2",
+          "f18-fleet-2",
+          "f14-harbor-last",
+          "f14-shipyard-last",
+          "f18-new-harbor",
+          "tornado-new-harbor-last",
+          "f14-fleet-return",
+          "f18-fleet-return",
+          "f14-harbor-return",
+          "f18-harbor-return",
+          "f14-shipyard-return",
+          "tornado-shipyard-return",
+          "tornado-new-harbor-return"
+        ],
+        "phaseEnd": [
+          {
+            "phase": 0,
+            "score": 6370,
+            "elapsed": 900
+          }
+        ],
+        "maximumScheduledScore": 6370,
+        "outcome": "won",
+        "unscoredGroups": [],
+        "errors": [],
+        "wet": []
+      },
+      {
+        "mission": 7,
+        "initialEligiblePoints": 2455,
+        "initialEligibleUnits": 72,
+        "initialGroups": [
+          "solar-tower",
+          "control",
+          "radar",
+          "panels",
+          "pillbox",
+          "flak",
+          "sam",
+          "aa",
+          "tornado",
+          "f16",
+          "f15"
+        ],
+        "delayedGroups": [],
+        "phaseEnd": [
+          {
+            "phase": 0,
+            "score": 2455,
+            "elapsed": 1
+          },
+          {
+            "phase": 1,
+            "score": 2955,
+            "elapsed": 1
+          }
+        ],
+        "maximumScheduledScore": 2955,
+        "outcome": "won",
+        "unscoredGroups": [],
+        "errors": [],
+        "wet": []
+      },
+      {
+        "mission": 8,
+        "initialEligiblePoints": 1570,
+        "initialEligibleUnits": 21,
+        "initialGroups": [
+          "mig-headon",
+          "f15-island-west",
+          "f14-awacs-escort",
+          "f18-island",
+          "mig-island",
+          "sr71",
+          "e767",
+          "kc10"
+        ],
+        "delayedGroups": [
+          "wave-west-1",
+          "wave-north-2",
+          "wave-southwest-3",
+          "wave-west-4",
+          "wave-converge-5a",
+          "wave-converge-5b"
+        ],
+        "phaseEnd": [
+          {
+            "phase": 0,
+            "score": 2950,
+            "elapsed": 420
+          },
+          {
+            "phase": 1,
+            "score": 3850,
+            "elapsed": 780
+          }
+        ],
+        "maximumScheduledScore": 3850,
+        "outcome": "won",
+        "unscoredGroups": [],
+        "errors": [],
+        "wet": []
+      },
+      {
+        "mission": 9,
+        "initialEligiblePoints": 3360,
+        "initialEligibleUnits": 66,
+        "initialGroups": [
+          "west-pillbox",
+          "west-batteries",
+          "west-aa",
+          "west-sam",
+          "west-radar",
+          "west-tanks",
+          "west-launchers",
+          "center-pillbox",
+          "center-batteries",
+          "center-aa",
+          "center-sam",
+          "center-radar",
+          "center-tanks",
+          "east-pillbox",
+          "east-batteries",
+          "east-aa",
+          "east-sam",
+          "east-radar",
+          "east-tanks",
+          "east-launchers",
+          "mig-caranda",
+          "tornado-caranda",
+          "hind"
+        ],
+        "delayedGroups": [
+          "mig-crowne",
+          "tornado-crowne",
+          "f15-halle"
+        ],
+        "phaseEnd": [
+          {
+            "phase": 0,
+            "score": 3780,
+            "elapsed": 600
+          },
+          {
+            "phase": 1,
+            "score": 4620,
+            "elapsed": 600
+          }
+        ],
+        "maximumScheduledScore": 4620,
+        "outcome": "won",
+        "unscoredGroups": [],
+        "errors": [],
+        "wet": []
+      },
+      {
+        "mission": 10,
+        "initialEligiblePoints": 7000,
+        "initialEligibleUnits": 144,
+        "initialGroups": [
+          "rafale",
+          "hind",
+          "f14",
+          "harrier",
+          "chinook",
+          "c130",
+          "ef2000",
+          "f18",
+          "bunkers",
+          "hangars",
+          "aa",
+          "sam",
+          "fuel",
+          "subs",
+          "sub-stores"
+        ],
+        "delayedGroups": [
+          "surfacing-sub"
+        ],
+        "phaseEnd": [
+          {
+            "phase": 0,
+            "score": 7120,
+            "elapsed": 1200
+          }
+        ],
+        "maximumScheduledScore": 7120,
+        "outcome": "won",
+        "unscoredGroups": [],
+        "errors": [],
+        "wet": [
+          {
+            "unit": "subs_1",
+            "at": {
+              "x": -1200,
+              "y": 32,
+              "z": -2100
+            },
+            "samples": [
+              {
+                "dz": -65,
+                "solid": -40,
+                "water": 32
+              },
+              {
+                "dz": 0,
+                "solid": -40,
+                "water": 32
+              },
+              {
+                "dz": 65,
+                "solid": -40,
+                "water": 32
+              }
+            ]
+          },
+          {
+            "unit": "subs_2",
+            "at": {
+              "x": -950,
+              "y": 32,
+              "z": -2100
+            },
+            "samples": [
+              {
+                "dz": -65,
+                "solid": -40,
+                "water": 32
+              },
+              {
+                "dz": 0,
+                "solid": -40,
+                "water": 32
+              },
+              {
+                "dz": 65,
+                "solid": -40,
+                "water": 32
+              }
+            ]
+          },
+          {
+            "unit": "subs_3",
+            "at": {
+              "x": -700,
+              "y": 32,
+              "z": -2100
+            },
+            "samples": [
+              {
+                "dz": -65,
+                "solid": -40,
+                "water": 32
+              },
+              {
+                "dz": 0,
+                "solid": -40,
+                "water": 32
+              },
+              {
+                "dz": 65,
+                "solid": -40,
+                "water": 32
+              }
+            ]
+          },
+          {
+            "unit": "subs_4",
+            "at": {
+              "x": -450,
+              "y": 32,
+              "z": -2100
+            },
+            "samples": [
+              {
+                "dz": -65,
+                "solid": -40,
+                "water": 32
+              },
+              {
+                "dz": 0,
+                "solid": -40,
+                "water": 32
+              },
+              {
+                "dz": 65,
+                "solid": -40,
+                "water": 32
+              }
+            ]
+          },
+          {
+            "unit": "subs_5",
+            "at": {
+              "x": -1200,
+              "y": 32,
+              "z": -1650
+            },
+            "samples": [
+              {
+                "dz": -65,
+                "solid": -40,
+                "water": 32
+              },
+              {
+                "dz": 0,
+                "solid": -40,
+                "water": 32
+              },
+              {
+                "dz": 65,
+                "solid": -40,
+                "water": 32
+              }
+            ]
+          },
+          {
+            "unit": "surfacing-sub_1",
+            "at": {
+              "x": -700,
+              "y": 32,
+              "z": -1600
+            },
+            "samples": [
+              {
+                "dz": -65,
+                "solid": -40,
+                "water": 32
+              },
+              {
+                "dz": 0,
+                "solid": -40,
+                "water": 32
+              },
+              {
+                "dz": 65,
+                "solid": -40,
+                "water": 32
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "mission": 11,
+        "initialEligiblePoints": 60,
+        "initialEligibleUnits": 1,
+        "initialGroups": [
+          "wave-1"
+        ],
+        "delayedGroups": [
+          "wave-2",
+          "wave-3",
+          "wave-4",
+          "wave-4-mig"
+        ],
+        "phaseEnd": [
+          {
+            "phase": 0,
+            "score": 600,
+            "elapsed": 3
+          }
+        ],
+        "maximumScheduledScore": 600,
+        "outcome": "won",
+        "unscoredGroups": [],
+        "errors": [],
+        "wet": []
+      },
+      {
+        "mission": 12,
+        "initialEligiblePoints": 2870,
+        "initialEligibleUnits": 33,
+        "initialGroups": [
+          "jammer",
+          "stonehenge",
+          "aa",
+          "sam",
+          "rafale",
+          "f15c",
+          "su35",
+          "f15e",
+          "f2"
+        ],
+        "delayedGroups": [],
+        "phaseEnd": [
+          {
+            "phase": 0,
+            "score": 2870,
+            "elapsed": 1
+          },
+          {
+            "phase": 1,
+            "score": 3020,
+            "elapsed": 1
+          }
+        ],
+        "maximumScheduledScore": 3020,
+        "outcome": "won",
+        "unscoredGroups": [
+          "yellow"
+        ],
+        "errors": [],
+        "wet": []
+      },
+      {
+        "mission": 13,
+        "initialEligiblePoints": 10100,
+        "initialEligibleUnits": 101,
+        "initialGroups": [
+          "balloons",
+          "frigate"
+        ],
+        "delayedGroups": [],
+        "phaseEnd": [
+          {
+            "phase": 0,
+            "score": 10100,
+            "elapsed": 420
+          },
+          {
+            "phase": 1,
+            "score": 10340,
+            "elapsed": 420
+          }
+        ],
+        "maximumScheduledScore": 10340,
+        "outcome": "won",
+        "unscoredGroups": [],
+        "errors": [],
+        "wet": []
+      },
+      {
+        "mission": 14,
+        "initialEligiblePoints": 700,
+        "initialEligibleUnits": 6,
+        "initialGroups": [
+          "missile-1",
+          "xb70"
+        ],
+        "delayedGroups": [
+          "missile-2",
+          "missile-final",
+          "f22"
+        ],
+        "phaseEnd": [
+          {
+            "phase": 0,
+            "score": 2020,
+            "elapsed": 21
+          }
+        ],
+        "maximumScheduledScore": 2020,
+        "outcome": "won",
+        "unscoredGroups": [],
+        "errors": [],
+        "wet": []
+      },
+      {
+        "mission": 15,
+        "initialEligiblePoints": 4220,
+        "initialEligibleUnits": 79,
+        "initialGroups": [
+          "ef-gov",
+          "ef-airport",
+          "su35-airport",
+          "su35-old",
+          "a10-old",
+          "yellow",
+          "c17",
+          "ka50",
+          "tanks",
+          "infantry",
+          "launchers",
+          "aa",
+          "sam"
+        ],
+        "delayedGroups": [
+          "ef-gov-r1",
+          "ef-gov-r2",
+          "ef-airport-r1",
+          "ef-airport-r2",
+          "su35-airport-r1",
+          "a10-old-r1"
+        ],
+        "phaseEnd": [
+          {
+            "phase": 0,
+            "score": 5120,
+            "elapsed": 600
+          },
+          {
+            "phase": 1,
+            "score": 6080,
+            "elapsed": 600
+          }
+        ],
+        "maximumScheduledScore": 6080,
+        "outcome": "won",
+        "unscoredGroups": [],
+        "errors": [],
+        "wet": []
+      },
+      {
+        "mission": 16,
+        "initialEligiblePoints": 7580,
+        "initialEligibleUnits": 146,
+        "initialGroups": [
+          "tanks-west",
+          "tanks-center",
+          "tanks-anchor",
+          "tanks-north",
+          "howitzers",
+          "pillboxes",
+          "launchers",
+          "tents",
+          "hq",
+          "flak",
+          "sam-heavy",
+          "sam",
+          "aa-heavy",
+          "aa",
+          "sr71",
+          "f117",
+          "f22",
+          "a10",
+          "f2",
+          "rafale",
+          "tornado",
+          "tornado-east",
+          "apache"
+        ],
+        "delayedGroups": [
+          "tanks-west-r",
+          "tanks-center-r",
+          "tanks-anchor-r",
+          "tornado-r"
+        ],
+        "phaseEnd": [
+          {
+            "phase": 0,
+            "score": 8600,
+            "elapsed": 1200
+          }
+        ],
+        "maximumScheduledScore": 8600,
+        "outcome": "won",
+        "unscoredGroups": [],
+        "errors": [],
+        "wet": []
+      },
+      {
+        "mission": 17,
+        "initialEligiblePoints": 3190,
+        "initialEligibleUnits": 63,
+        "initialGroups": [
+          "apache",
+          "f22",
+          "ef2000",
+          "ef2000-west",
+          "armor",
+          "aa",
+          "sam",
+          "battleship",
+          "destroyer",
+          "subs",
+          "bridge"
+        ],
+        "delayedGroups": [
+          "f22-r1",
+          "f22-r2",
+          "ef2000-r1",
+          "ef2000-r2",
+          "active",
+          "osprey",
+          "armor-reinforce"
+        ],
+        "phaseEnd": [
+          {
+            "phase": 0,
+            "score": 4185,
+            "elapsed": 720
+          },
+          {
+            "phase": 1,
+            "score": 4935,
+            "elapsed": 720
+          }
+        ],
+        "maximumScheduledScore": 4935,
+        "outcome": "won",
+        "unscoredGroups": [],
+        "errors": [],
+        "wet": []
+      },
+      {
+        "mission": 18,
+        "initialEligiblePoints": 2850,
+        "initialEligibleUnits": 24,
+        "initialGroups": [
+          "yellow",
+          "generator-west",
+          "generator-east",
+          "generator-north",
+          "ports"
+        ],
+        "delayedGroups": [],
+        "phaseEnd": [
+          {
+            "phase": 0,
+            "score": 2850,
+            "elapsed": 1
+          },
+          {
+            "phase": 1,
+            "score": 5040,
+            "elapsed": 1
+          }
+        ],
+        "maximumScheduledScore": 5040,
+        "outcome": "won",
+        "unscoredGroups": [],
+        "errors": [],
+        "wet": []
+      }
+    ],
+    "m10WaterVerdict": "Final composed planner has water and solid top<32 at all6 submarine centers and +/-65-stud bow/stern samples. Late warning referred to old baseline; no current source water bug reproduced. Native terrain rays still required.",
+    "m9CurrentProvisionalRoster": {
+      "nonDeckGroundCount": 60,
+      "groundPoints": 3030,
+      "phase0AllDomainReachablePoints": 3780,
+      "initiallyActivePoints": 3360,
+      "fullMissionIdealizedPoints": 4620,
+      "sRank": 4400,
+      "confidence": "Points/taxonomy changed by provisional per-type substitution; not verified Normal83 roster."
+    },
+    "runtimeDependencyAudit": {
+      "modules": 12,
+      "cycles": [],
+      "missingOfflineManifestEntries": [],
+      "method": "transpileModule JS require edges from common mission/world entries; type-only backedges erased; no Roblox transform"
+    }
+  },
+  "m13IndependentScoringReview": {
+    "report": "docs/reviews/ac04-campaign-integration-independent-61.json",
+    "checkedAt": "2026-10-28T00:27:22.027042+00:00",
+    "balloonPoints": 100,
+    "scoreGate": 1300,
+    "seconds": 420,
+    "verdict": "Direct scoring supported; no scaling fix justified.",
+    "open": [
+      "Normal100 vs older115 balloon census",
+      "Current wiki S2740 vs Normal walkthrough2800+",
+      "Ace frigate final-score exclusion not proven Normal"
+    ]
+  }
+}

@@ -18,6 +18,19 @@ export const AircraftCollision = {
 		params.RespectCanCollide = false;
 		return params;
 	},
+	/** Outgoing fire ignores only its launcher. Keep terrain, the host hull and
+	 * other target/scenery surfaces as cover; never mutate the flight allowlist.
+	 */
+	WithoutShooter(params: RaycastParams, shooter: Model): RaycastParams {
+		assert(params.FilterType === Enum.RaycastFilterType.Include, "Expected authored surface allowlist");
+		const outgoing = new RaycastParams();
+		outgoing.FilterType = Enum.RaycastFilterType.Include;
+		outgoing.FilterDescendantsInstances = params.FilterDescendantsInstances.filter((surface) => surface !== shooter && !surface.IsDescendantOf(shooter));
+		outgoing.IgnoreWater = params.IgnoreWater;
+		outgoing.RespectCanCollide = params.RespectCanCollide;
+		outgoing.CollisionGroup = params.CollisionGroup;
+		return outgoing;
+	},
 	/** Sweep a compact 4-stud fuselage radius, not the visual wings' enclosing box.
 	 * At the 600 studs/s cap this sweeps all 20 studs of a 1/30 s step.
 	 */

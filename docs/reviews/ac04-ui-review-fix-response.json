@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "respondsTo": "AC04-UI-INDEPENDENT-61-20261027",
+  "checkedAt": "2026-10-28T01:26:02.013873+00:00",
+  "verdict": "Three findings addressed in staged source; not independently accepted or integrated",
+  "changes": [
+    {
+      "path": "proposals/ac04-ui/src/client/ac04/AC04GameUI.tsx",
+      "before": "5f05a7fc1caf643fbb3a1819f7668deb37d06c91b45b310a99e57b2e66caaccb",
+      "after": "b67a587b2817dc5b850c5269473045604975218d99a06d315570ca3c9de4ed05"
+    },
+    {
+      "path": "proposals/ac04-ui/src/client/ac04/ui/AC04FlightHud.tsx",
+      "before": "89ed355febfa2ae468d7130ac26d21adbfda2b7afb358f8a23a6eca25a9775f8",
+      "after": "a40e538f67707ef85db8f6336d3bc1d7a395270b94c42abdce4688dcfc7acffc"
+    },
+    {
+      "path": "proposals/ac04-ui/src/client/ac04/ui/AC04Primitives.tsx",
+      "before": "ffcbabf71dc3395f56c3e58cbdea3abc487bb9664495ca50ea9cebb9a9a6b4b3",
+      "after": "455191cb09cac96fcff9b706f9393705bb3ff8cf1c3c7f783df2383c54b9a9d1"
+    },
+    {
+      "path": "proposals/ac04-ui/src/client/ac04/ui/AC04TitleScreens.tsx",
+      "before": "85553c34bdb10ea958428eeb97ae33c8c5abba3387bf1f77d175c113bc79ea95",
+      "after": "df1a099a74cc450fb0ae091ac5fdb1a3104a6072e84bffd74f05ba0dde496c78"
+    }
+  ],
+  "behavior": {
+    "AC04-UI-61-01": "Native ScrollingFrame instantiates all commands; pointer scrolling and focus reveal; existing enabled activation gates retained. Remembered focus restores its row on return; exact manual scroll offset without focus change is not separately persisted.",
+    "AC04-UI-61-02": "All Flight Records entry callbacks call openRecords => go(records) + paced operate(ListSlots). Always-present Refresh / Retry Save command permits another attempt even after ready-state failures. Success updates current Completed result saved/persistence from server response; failed requests retain prior slots and expose error. Server ListSlots saves dirty cloud records before ok:true.",
+    "AC04-UI-61-03": "Speed and altitude use separate label/numeric rows, 8px horizontal padding; narrow speed numeric width76px. Time/score retain inline layout."
+  },
+  "checks": {
+    "typescriptOverlay": "passed, node node_modules/typescript/bin/tsc -p /tmp/ac04ui-tsc/tsconfig.json",
+    "pureGeometry": "node /tmp/ac04-ui-fix-probe.cjs passed:45 list extent cases plus numeric allocations across5 viewport sizes and3 input families; not engine events/font metrics",
+    "gitDiffCheck": "passed",
+    "native": "not run; story/build owner retains exclusive lease"
+  },
+  "limitations": [
+    "No Roblox transform compilation/native Jest/Studio/device test",
+    "No independent recheck of fixes",
+    "Target keep-out integration remains open; corrected coordinate contract in INTEGRATION.md",
+    "Active src and frozen candidate untouched by these fixes",
+    "45 originally authored native UI cases remain unrun; geometry case count is separate"
+  ],
+  "humanDocuments": "All four updated by parent; release availability unchanged"
+}

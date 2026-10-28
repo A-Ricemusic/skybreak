@@ -1,0 +1,299 @@
+{
+  "schemaVersion": 1,
+  "reportId": "ac04-campaign-integration-response",
+  "date": "2026-10-27",
+  "author": "GPT-6.1 Sol implementation agent; self-assessment, not independent approval",
+  "integrationStable": "YES",
+  "stabilityMeaning": "Source wiring/runtime changes ready for coordinated native build; scoped noEmit passes. NOT whole-project green, native accepted, playable, beta-ready or published.",
+  "buildLeaseHandoff": {
+    "sourceReady": true,
+    "nativeBuildOwner": "Story Opus thread supplied in task; source remains stable for parent-coordinated build after its story type errors are fixed.",
+    "buildsRunByThisAgent": false,
+    "studioUsed": false,
+    "frozenArtifactsMutatedByThisAgent": false,
+    "commitsPushesUploadsCloud": false
+  },
+  "files": [
+    {
+      "path": "src/shared/AC04MissionData.ts",
+      "sha256": "319d36560539ddcfb638cb6f1001028ffa761bd4015b468fe422d7129d7b6b36"
+    },
+    {
+      "path": "src/shared/AC04WorldData.ts",
+      "sha256": "b494f648d0ad24af1032e6b8d87eb200debb178b869f0b07afac879bf8ca3fe9"
+    },
+    {
+      "path": "src/server/AC04World.ts",
+      "sha256": "cfec6cd2f57885ade89795db152df805b762fcc406842aaa8b387466e6614e5d"
+    },
+    {
+      "path": "src/server/CombatService.ts",
+      "sha256": "f47daf8764324934cbd90dfc2e82de24e51bc7436fb7d15dfd50aeed0367c19d"
+    },
+    {
+      "path": "src/shared/ac04/rebuild/MiddleWorld.ts",
+      "sha256": "b9f961274e685a5c2bc140bbcf30c6058f22f759ae78396fc1944159743a8b27"
+    },
+    {
+      "path": "src/shared/ac04/rebuild/LateCampaign.ts",
+      "sha256": "da82efc24b410093e8adfde75731c53fd7dc90f953acbbc0fadf3681a1d4b3f4"
+    },
+    {
+      "path": "src/shared/ac04/rebuild/LateWorld.ts",
+      "sha256": "48c01335e5cd4fa63584d2ec71113fb674dbf89ed1486e88e3e472da2a0ec0b4"
+    },
+    {
+      "path": "src/shared/ac04/rebuild/LateWorldBuild.ts",
+      "sha256": "d1c4b00d5193e5cdd1635c7a8fad5d2ce457741e1ad65feade4c85f2b9dd63ae"
+    },
+    {
+      "path": "src/shared/ac04/rebuild/LateMegalith.ts",
+      "sha256": "fc41dc91e5545ab5a3b0291fb05487a492401b2917549c5bdfb56beae00bb204"
+    },
+    {
+      "path": "src/shared/ac04/rebuild/LateRuntime.ts",
+      "sha256": "91a52ea8737a71072acb2bfed2304eea3230162bcd3590600feab46bd744e86a"
+    },
+    {
+      "path": "src/tests/AC04Runner.spec.ts",
+      "sha256": "0c9a6e11029be36efef199628289153f293f3ac59420a8b3d5ad144e625a3c53"
+    },
+    {
+      "path": "src/tests/AC04LateRebuild.spec.ts",
+      "sha256": "f49a192bc5ba8298bd10685892ccc70be348cfe7a9b7d082613aa23006599850"
+    },
+    {
+      "path": "src/tests/AC04World.spec.ts",
+      "sha256": "e249f337318c858b20c3988a104aa15d3b02dc1aea4eba7e620ad8e0d28d8424"
+    },
+    {
+      "path": "src/tests/AC04Integration.spec.ts",
+      "sha256": "50079899fa6e85895948de90413160b57bd8009312e53be3cad48cf3d9f10c19"
+    },
+    {
+      "path": "tools/test-ac04-offline.ts",
+      "sha256": "802fbeaa43b9199781ab66c5180802a801a8ddd43b0d121bf868398fc9947e1d"
+    },
+    {
+      "path": "docs/ac04-source-register.json",
+      "sha256": "50ce48a512daa87b3e9e8d378e25d68cb92726ce355b32f9087eace6d18dde10"
+    }
+  ],
+  "historicalReportsPreserved": [
+    {
+      "path": "docs/reviews/ac04-middle-rebuild.json",
+      "sha256": "b362f64dea7f9efade0163b6d3bf56d1fa43688e93747651d1c3aadcc4fcf18d",
+      "status": "Original author report unchanged; historical unwired assessment retained."
+    },
+    {
+      "path": "docs/reviews/ac04-late-rebuild.json",
+      "sha256": "e25dcb093075803aea278825b86e198dd8955869c0985dfeb088c8da9000a060",
+      "status": "Original author report unchanged; historical unwired assessment retained."
+    }
+  ],
+  "hooks": [
+    {
+      "file": "src/shared/AC04MissionData.ts",
+      "call": "refineLateMission(refineMiddleMission(missions[i]))",
+      "placement": "Single loop after BOTH baseline manual tweaks: M2 sRankProvisional and M10 stonehenge-periodic. Disjoint ranges only. Early helpers not imported/wired."
+    },
+    {
+      "file": "src/shared/AC04WorldData.ts",
+      "call": "refineLateLayout(i+1,refineMiddleLayout(i+1,layouts[i]))",
+      "placement": "Single loop AFTER layouts[17].escape/radius and M15 evidence tweaks."
+    },
+    {
+      "file": "src/shared/AC04WorldData.ts",
+      "call": "unitPosition -> refineLateUnitPosition(...refineMiddleUnitPosition(...baseUnitPosition(...)))",
+      "placement": "One wrapper consumed by all placement callers, build target columns, AC04World targets, CombatService aircraft and decoration keep-outs."
+    },
+    {
+      "file": "src/shared/AC04WorldData.ts",
+      "call": "refineMiddleWorld(m,l,p); refineLateWorld(m,l,p);",
+      "placement": "After base geometry, before let targetIndex=0, pads, air columns, naval berths and decoration filtering. middleDeckMounted skips pad/carve and marks deck."
+    },
+    {
+      "file": "src/server/AC04World.ts",
+      "call": "target geometry branches",
+      "placement": "SUBMARINE substring matches named hulls; GUN turret/barrels separate target; deck AA/SAM omit tracks."
+    },
+    {
+      "file": "src/server/CombatService.ts",
+      "call": "middleEscortSpawn in applyAC04Phase aircraft spawn",
+      "placement": "Offset applied to live enabled protected actor matching site, preserving index and scaled live altitude; runs for early kill-triggered waves too."
+    },
+    {
+      "file": "src/server/CombatService.ts",
+      "call": "lateLockDenied in ac04Jammed; M14 lane/weave in stepAC04Unit; M15 formation waypoint",
+      "placement": "Real ac04SpawnedAt/index stored at spawn. Shared paths offset only M15 Tu-160, immutable index0 authored origin survives leader death. Other mission paths unchanged."
+    },
+    {
+      "file": "src/server/CombatService.ts",
+      "call": "lateOpenMegalithGate; lateOpenMegalithHatch; lateMegalithEscapeUpdate",
+      "placement": "Gate at authoritative generator-driven phase update; hatch ONLY after accepted core kill. Flight detector in escape phase, cleanup clears session tracker."
+    }
+  ],
+  "runtimeFixes": [
+    {
+      "id": "INT-M18-001",
+      "implemented": "LATE_MEGALITH_HATCH_WIRED=true. Roof hatch covers full360x600 shaft without edge slit. Opener requires mission18, groupKills core1 and authoritative core_1 dead identity. Sets FlightSolid/CanQuery false and hides hatch; server collision uses queries (CanCollide intentionally false throughout flight architecture).",
+      "tests": "Native world rays across9 roof points, collision sweep before/after opening, generator gate at2 vs3 kills, pre-core opener denial, post-core open, rebuild fresh hatch/gate state. Authored, not run natively."
+    },
+    {
+      "id": "INT-M18-002",
+      "implemented": "Continuous tracker keeps previous position and approach flag; actual rectangular shaft x(-180,180), z(-1450,-850), floor>=390. Leaving bounds discards approach. Must start below deck720 and cross escapeY760 upward while both consecutive positions stay inside. No timestamp/window memory, exterior overflight or lateral flyback success. Runner still rejects actual pre-core crossing. Tracker session-owned and cleared at cleanup.",
+      "tests": "Pure contracts for overflight/no false fail, valid ascent, repeat event rejection, leaving/reentering, x/z boundary violations, fresh retry, authoritative early failure and post-core success. Native execution pending."
+    },
+    {
+      "id": "INT-M14-001",
+      "implemented": "Wave2 diverges into five southwest/five southeast lanes after actual damage or destruction of a wave2 member (dead enemies remain in session array). Final weave uses elapsed since actual spawn and original altitude. Existing line tolerance30 retained via lateMissilePastDefense and still calls authoritative missile_escaped. All16 missiles/1700 missile points,2020 complete score and finite groups preserved.",
+      "adaptation": "Offsets1100, weave amplitudes450/90 and periods0.9/1.7 remain gameplay adaptations. Three-of-five wave2 trigger and F22+20s delay remain provisional."
+    },
+    {
+      "id": "INT-M13-001",
+      "implemented": "lateLockDenied now rejects frigate and balloon locks ONLY for M13; source-hidden frigate source condition active. Gun damage/scoring unchanged.",
+      "open": "Current runner has NO phase scaling; frigate final-score exclusion is still an explicitly documented source divergence. Parent phase-scaling expectation needs reconciliation; no guessed scale added."
+    },
+    {
+      "id": "INT-M15-001",
+      "implemented": "Tu-160 path waypoints preserve spawn offsets from immutable authored index0 origin; no live leader lookup, so leader destruction cannot collapse offsets. Other mission path behavior retained."
+    },
+    {
+      "id": "INT-M6-001",
+      "implemented": "middleDeckHost explicitly maps each component index to a real named host; placement and authoritative suppression share mapping. middleHullHasComponents suppresses abstract firing on equipped hulls for entire sortie, including after component kills. Separate SAM/AA/GUN component threats fire; hull and component identities/points remain independent. No global health/damage changes.",
+      "open": "GUN uses existing abstract defense missile attack rather than an original turret ballistic simulation; threat density, visual firing and human feel require native review."
+    },
+    {
+      "id": "INT-M11-001",
+      "implemented": "M11 attackers spawn relative to their live targeted airliner rather than estimated trigger-clock position. Index offsets/altitude ratios retained."
+    },
+    {
+      "id": "INT-M10-001",
+      "implemented": "Investigated final composed Build(10). All6 submarine center/bow/stern water checks pass; no current water defect reproduced. Middle positions and final berth carves resolve the old Late baseline warning. No extra speculative terrain fix made.",
+      "tests": "Source terrainTop contracts passed. New native AC04World test checks18 downward water rays, pending engine execution."
+    }
+  ],
+  "assumptionsAndObjections": [
+    "M6 author40 non-deck ground aggregate, M8 author41 fighters and M9 provisional per-type substitutions/4620 are NOT verified Normal counts. Retained labels and gaps. M9 authored60 vs83 and M10 disputed counts remain open; M13 remains provisional100 vs115.",
+    "M13 phase-scaling request conflicts with inspected runtime: actual runner simply adds group.points. Audit reports current10340 idealized total, not a fabricated scaled figure. Need parent/reference decision before rank fidelity acceptance. Frigate contributes100 here, although Mitoro says it is excluded from final score.",
+    "M14 S requires waiting for both delayed F22 before final missile kill; immediate final kill can finish at1900. Constructive scheduler waits and reaches2020. Not a gameplay guarantee.",
+    "M12 phase advances after ONE Yellow kill, so actual maximum scheduler score3020, not all-five Yellow arithmetic. M15 fifth Yellow cannot score; scheduler caps four.",
+    "All18 idealized runner schedules win but instant source-only kills do not prove flight/aim/visibility/time feasibility. M7 ravines, M10 salvo routes, M13 fog, M14 interception and M18 pull-up remain engine gates.",
+    "Whole-project noEmit currently reports9 concurrent-story AC04StoryStage.ts TS2345 number-to-CFrame errors; no integration-owned diagnostics. Story files untouched.",
+    "No independent review, Roblox transform, native tests, Studio traversal, new Player session or publication performed. Earlier91927612 candidate supports only independent M1–M5 functional pass; all48 earlier story visuals remain rejected."
+  ],
+  "checksActuallyRun": [
+    {
+      "command": "node node_modules/typescript/bin/tsc --noEmit -p /tmp/ac04-integration-sol/tsconfig.json",
+      "result": "PASS exit0; unique /tmp scoped config/cache includes common mission/world, AC04World, Middle/Late modules and affected tests. CombatService checked by whole-project invocation."
+    },
+    {
+      "command": "node node_modules/typescript/bin/tsc --noEmit -p tsconfig.json --tsBuildInfoFile /tmp/ac04-integration-20261027.tsbuildinfo",
+      "result": "exit2,9 errors in separately owned AC04StoryStage.ts at41:20,60:121,65:81,65:118,70:39,71:41,72:165,73:41,74:41; no integration-owned errors. Not rbxtsc."
+    },
+    {
+      "command": "node /tmp/ac04-integration-sol/check.cjs",
+      "result": "67 passed0 failed (27 Middle,12 Late,19 Runner,9 Integration) via Node transpileModule/Lua API stand-ins. NOT native Jest/Luau."
+    },
+    {
+      "command": "node /tmp/ac04-integration-sol/audit.cjs",
+      "result": "All18 common planners/idealized source runner schedules evaluated. Zero missing required/predecessor/afterKills IDs; M10 all6 subs wet at3 samples each. Results in source register with source hashes and method."
+    },
+    {
+      "command": "node /tmp/ac04-integration-sol/dependencies.cjs",
+      "result": "12-module emitted-JS runtime graph from common mission/world entries:0 cycles,0 missing offline manifest entries. Type-only backedges remain erased."
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS; no whitespace findings."
+    }
+  ],
+  "authoredNativeTestsPending": [
+    "src/tests/AC04World.spec.ts replacement comb/hatch/gate/LOS/collision/rebuild checks and M10 water rays",
+    "src/tests/AC04Integration.spec.ts9 source-contract tests in normal native Jest discovery",
+    "Updated M9 per-beach battery assertions and integrated Late idempotence/hatch assertions",
+    "Existing AC04MiddleRebuild, AC04LateRebuild, AC04Runner and full regression suite; offline dependency module manifest updated but not executed"
+  ],
+  "remainingEngineGates": [
+    "Story owner resolves concurrent type errors; coordinated rbxtsc/build under its exclusive lease",
+    "Native test:roblox and validate:offline against one coherent candidate; no skip path counts as validation",
+    "Inspect/fly M6–M18 worlds and source-specific behaviors, including closed hatch collision/LOS, generator entry, core opener, actual shaft ascent and clean retry",
+    "M6 fire density/component targeting, M11 early/live-relative waves, M13 frigate locks/fog, M14 damage split/weave/line failure, M15 formation after leader death",
+    "Independent gameplay/visual acceptance, Player performance and human feel; reference Normal count reconciliation",
+    "Release only through authorized pipeline and accepted place-version receipt; no publication in this task"
+  ],
+  "humanDocPayloads": {
+    "taste.html": {
+      "status": "Implemented in integrated local source; unreviewed in engine",
+      "decisions": [
+        {
+          "id": "AC04-INT-001",
+          "chosen": "Activate full roof hatch together with authoritative core opener and continuous bounded shaft ascent",
+          "alternatives": [
+            "Open shaft permits roof entry",
+            "Always-closed hatch prevents escape",
+            "Timestamp memory permits lateral flyback"
+          ],
+          "why": "Retains intended entry/destruction/ascent ordering without exterior false failure."
+        },
+        {
+          "id": "AC04-INT-002",
+          "chosen": "Explicit host mapping disables equipped M6 hull abstract attacks; deck targets retain independent firing and scoring",
+          "alternatives": [
+            "Hull+deck duplicate fire",
+            "Destroy components with hull",
+            "Change global health/damage"
+          ],
+          "why": "One source of abstract defense per explicit weapon set without changing score identities."
+        },
+        {
+          "id": "AC04-INT-003",
+          "chosen": "M14 spawn-relative split/weave; M15 immutable formation origin; M11 live escort offsets",
+          "alternatives": [
+            "Centered global-clock weave",
+            "Live surviving-leader anchor",
+            "Static trigger-time escort estimate"
+          ],
+          "why": "Makes authored source behaviors active and stable through early triggers/leader loss; amplitudes, timing and counts remain adaptations."
+        }
+      ],
+      "retainUncertainty": "M6 author40, M8 author41 and M9 substitutions/4620 provisional; M9 83vs60, M10 count conflicts and M13 100vs115 still open."
+    },
+    "plan.html": {
+      "moveToStatus": "M6–M18 common source integration and mandatory runtime corrections completed in local source. Replace wire-hooks proposals with native acceptance work.",
+      "next": [
+        "Fix9 story-owned TypeScript errors before unified native build",
+        "Lease owner builds coherent candidate; native Jest/offline tests and full M6–M18 traversal",
+        "Resolve M13 requested phase-scaling discrepancy from actual runner/reference evidence; do not publish invented scores",
+        "Independent Normal roster and world/presentation review, then release pipeline with receipt"
+      ],
+      "ac04Connection": "Comberth separate ship weapons; escort-relative threats; glacier missile splits; San Salvacion bomber formations; Megalith closed silo roof and real ascent."
+    },
+    "status.html": {
+      "summary": "M6–M18 rebuild modules now composed into actual common mission/layout/placement/world/runtime call sites. Integration source stable YES;67 shim contracts and scoped noEmit pass;9 current whole-project errors confined to story-owned AC04StoryStage. No native acceptance yet.",
+      "completed": [
+        "Mandatory M18 closed hatch/core opener/bounded continuous ascent",
+        "M14 split/weave/defended-line failure retained",
+        "M13 hidden frigate lock denial",
+        "M15 persistent formation offsets",
+        "M6 explicit component host mapping and no duplicate equipped-hull firing",
+        "M11 live-relative spawns",
+        "M10 old dry-sub warning not reproduced in composed planner; native water-ray test authored",
+        "Source register old audit preserved as historical with payload hash; current source scheduler audit added"
+      ],
+      "priorityIssues": [
+        "Concurrent story compile errors",
+        "M13 scaling expectation absent in actual runner; source fidelity decision open",
+        "Coordinated native candidate and independent acceptance",
+        "Provisional Normal counts"
+      ],
+      "evidence": "docs/reviews/ac04-campaign-integration-response.json; docs/ac04-source-register.json. Self-assessment/shim evidence only."
+    },
+    "playtest.html": {
+      "publishedState": "Unchanged: official Roblox link https://www.roblox.com/games/112911685457826; last accepted place version60 / commit288a087 / PR84, Broken Relay,0/18 AC04 published. No upload/deployment occurred.",
+      "missionRows": "M6–M18 logic/world/runtime now integrated local SOURCE, awaiting coherent native build and traversal. Do not label playable or owner-ready in Player. Story track remains separately owned; all48 earlier visuals rejected until new independent evidence.",
+      "evidenceDistinction": "67 source-shim contracts/scoped noEmit and idealized schedules are current SOURCE evidence. Previous91927612 candidate remains only M1–M5 independent functional evidence. No fresh Player observation or current native candidate acceptance.",
+      "mechanicsStatus": "New source-only deck component AI, live escort spawns, missile split/weave, formation retention and authoritative hatch/ascent. Controls/menu publication unchanged."
+    }
+  }
+}

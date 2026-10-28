@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "responseId": "ac04-story-pilot-integration-response",
+  "createdAtUTC": "2026-10-28T03:08:39Z",
+  "role": "implementation sub-agent",
+  "state": "REVIEWABLE_STAGING_COMPLETE_NOT_APPLIED_NOT_UPLOADED",
+  "scope": "Only proposals/ac04-story-integration/ and this response JSON were written. No src/out/build/Studio/cloud/upload/publish/commit/push mutation.",
+  "inputs": [
+    "AGENTS.md",
+    "docs/human/taste.html",
+    "docs/human/plan.html",
+    "docs/human/status.html",
+    "docs/human/playtest.html",
+    "docs/reviews/ac04-story-art-pilot-v3-response.json",
+    "docs/reviews/ac04-story-art-pilot-v3-independent-61.json",
+    "src/client/ac04/AC04Cinematic.tsx",
+    "src/shared/ac04/AC04Story.ts",
+    "src/shared/ac04/AC04CaptionLayout.ts"
+  ],
+  "outputs": [
+    "proposals/ac04-story-integration/INTEGRATION.md",
+    "proposals/ac04-story-integration/asset-manifest.json",
+    "proposals/ac04-story-integration/base-hashes.json",
+    "proposals/ac04-story-integration/integration.patch",
+    "proposals/ac04-story-integration/overlay/src/shared/ac04/AC04StoryImagePilot.ts",
+    "proposals/ac04-story-integration/overlay/src/tests/AC04StoryImagePilot.spec.ts",
+    "proposals/ac04-story-integration/assets/i03-b3-music-pilot-v3.png",
+    "proposals/ac04-story-integration/assets/i09-b2-blackout-pilot-v3.png",
+    "proposals/ac04-story-integration/assets/i11-b2-memorial-pilot-v3.png"
+  ],
+  "behavior": {
+    "eligibleShots": [
+      "i03-b3",
+      "i09-b2",
+      "i11-b2"
+    ],
+    "nativeFallbackBeats": 45,
+    "imageMode": "ImageLabel ScaleType.Fit in the existing scene region over dark letterbox background; measured caption band remains external",
+    "fallback": "No positive integer authoritative Roblox asset ID means no ImageLabel and the existing native ViewportFrame remains visible",
+    "lifecycle": "Existing voice, pause/resume, transient controls, health-CoreGui restore, finish acknowledgement and cancel paths are unchanged by the patch",
+    "publicationIds": "Absent/null until owner upload; no made-up IDs and no local-path runtime claim"
+  },
+  "exactAssetHashes": {
+    "i03-b3": "565d429663d9bca2572b24291ea838eeb9b0c84afdf1e4e3c9081516b09e4681",
+    "i09-b2": "47b998af0d3d65fa7fcfce713058138cc037191786dd5d57fb1db9208b33737a",
+    "i11-b2": "76ae046c2872c355465ff3c8a0db2d1321daae461ba66caa717591c0099be9f6"
+  },
+  "validation": {
+    "stagedPatchApplies": true,
+    "stagedTypecheck": "PASS: bunx tsc --noEmit in /tmp/ac04-story-integration.p18zOD against current source plus overlay",
+    "sharedBuildOrOutChanged": false,
+    "nativeJestRun": false,
+    "studioRendered": false,
+    "playerObserved": false
+  },
+  "toolingReadOnlyFinding": {
+    "repoRasterUploaderFound": false,
+    "audioUploaderApplicable": false,
+    "modelImporterApplicable": false,
+    "credentialNamesPresentInCurrentProcess": [],
+    "secretValuesRead": false,
+    "connector": "No callable Roblox asset connector exposed",
+    "ownerDependency": "Owner-authorized image/decal publication route, permissions, authoritative returned IDs and availability evidence; parent coordinates it"
+  },
+  "humanDocPayloads": {
+    "taste.html": {
+      "replaceCurrentPilotNextActionWith": "Implementation staging is complete outside active source at ../../proposals/ac04-story-integration/: exact approved PNG copies, hash/publication manifest, fail-closed three-beat selector, native Jest regression spec and a minimal AC04Cinematic patch. The chosen image mode is full-scene ImageLabel contain/letterbox with the existing measured caption band outside the image and existing transient controls/lifecycle unchanged. Missing, invalid, unavailable or unapproved asset IDs preserve the native scene. This is a staged implementation decision, not native rendering, upload, merge, all-48 approval or Player release. The other 45 beats remain native.",
+      "decisionPayload": "STORY-ART-PILOT-004 \u00b7 Status: staged outside active source, typechecked only. Chosen: fail-closed per-beat raster selection for i03-b3, i09-b2 and i11-b2; full-image Fit/letterbox in the scene lane; external measured caption band; existing transient controls, voice, acknowledgement, cancel and CoreGui lifecycle retained. Alternative: replace the chapter/stage wholesale or allow local paths/blank image placeholders. Why: the narrow overlay preserves all 45 native beats and guarantees missing publication data retains the current scene. Runtime/native visual acceptance remains pending.",
+      "noChangeReason": "Existing limited-pilot safety/fidelity acceptance and historical 87d17771 rejection remain unchanged; no new subjective rendered-image review occurred."
+    },
+    "plan.html": {
+      "replaceLimitedIntegrationPreparationWith": "The reviewable limited-pilot integration is now staged outside active source at ../../proposals/ac04-story-integration/ and passed an isolated no-emit TypeScript check. Next, after explicit UI/build-lease handover, the parent must publish the exact approved bytes through an owner-authorized Roblox image route, record authoritative IDs, verify availability, apply the staged overlay/patch, and run native Jest/build plus Studio viewport/lifecycle review. Preserve the other 45 native beats. No bulk production follows.",
+      "noChangeReason": "Mission, UI, M6 and release queues are otherwise unchanged."
+    },
+    "status.html": {
+      "insertCurrentStagingPayload": "Limited three-shot story integration staging is complete outside active source. The bundle contains byte-identical approved PNG copies, exact hashes with null publication IDs, base-source hashes, a fail-closed three-beat selector, a minimal AC04Cinematic patch and repo-native Jest regressions. The assembled overlay/patch passes isolated TypeScript no-emit checking. It has not been applied to src, run in native Jest/Studio, uploaded, merged or rendered in Player; no caption/device/timing/audio/transition quality is established. Player availability remains unchanged.",
+      "noChangeReason": "Overall beta readiness, mission completion evidence, UI acceptance and limited-pilot safety verdict do not change."
+    },
+    "playtest.html": {
+      "insertLocalOnlyPayload": "Local-only story pilot staging: a reviewable three-shot image overlay exists under proposals/ac04-story-integration/ for i03-b3, i09-b2 and i11-b2, with missing-ID fallback to the native scenes. It is not applied, uploaded, merged or available in Roblox Player, and has no native rendered-quality evidence. The other 45 story beats and all mission availability are unchanged. Under the owner convention, only a future gameplay PR merge would make applied gameplay live through automatic CI/CD; this staging work creates no new Player revision and needs no receipt claim.",
+      "noChangeReason": "Keep the official game link, last-known version63/PR90 metadata, merged-PR list, all 18 mission reports, controls and published-vs-local distinctions unchanged."
+    }
+  },
+  "documentationContradictions": [
+    "All four documents currently say preparation of the approved integration is next; that is stale after this staging bundle and should be replaced with staging-complete/apply-after-lease language.",
+    "Do not change any statement that the images are unintegrated/unuploaded/unmerged in active source or unavailable in Player; those remain true.",
+    "Do not describe the isolated typecheck as native Jest, Studio rendering, visual acceptance or lifecycle observation."
+  ],
+  "playerAvailability": "UNCHANGED",
+  "parentReview": {
+    "at": "2026-10-27T20:21:43.069211-07:00",
+    "finding": "Staged positive-ID selection hides native ViewportFrame immediately; no IsLoaded/content-fetch handling exists. Missing/invalid-ID fallback is implemented, unavailable/failed-load fallback is not. Corrected INTEGRATION.md claim; runtime fallback remains required before applying optional pilot.",
+    "releaseScope": "Optional post-initial-release feature; must not delay M1\u2013M5 Player release.",
+    "validation": "Source/patch inspection only; no build/native execution."
+  }
+}

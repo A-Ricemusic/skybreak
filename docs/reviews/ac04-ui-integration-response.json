@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 2,
+  "state": "IMPLEMENTATION_COMPLETE_WITH_DISCLOSED_NATIVE_GAPS",
+  "author": "GPT-5.6 Sol recovery implementation agent; no subagents",
+  "finalCandidate": {
+    "path": "build/ac04-ui-integration/candidate-70b6a6ec.rbxlx",
+    "sha256": "70b6a6ecf221ebbda4e1f22b2d16e244702c22051fcad76cc5a815115bf05772",
+    "association": "build/ac04-ui-integration/recovery-frozen.json: 209 unchanged entries from the verified 212-entry da4a8143 manifest plus three explicit changed-source hashes"
+  },
+  "preserved": {
+    "da4a8143": "da4a8143379245da636cee46b015e8dac26ee19193859918d585ba35eb587b8f",
+    "87d17771": "87d17771d5363be367866fcecf6245b700da0fd67df45079ebfcdf90ca312295",
+    "91927612": "91927612ddb4049cc2010a5cfa2a8e0cfaa166eef7a51d5eeaf8d48dc3cf5659"
+  },
+  "fixes": [
+    "Observed 1205x525 ISAF/MOBIUS subtitle overlap with CONTINUE fixed by reserving title plus subline height in all command-screen forms; regression test added.",
+    "Reviewer-authorized chrome-only story repair: full-height image-led stage, transient 2.5s intro, no permanent progress/speaker dashboard, 44px transports revealed by input/pause; story geometry/art/dialogue unchanged.",
+    "SVR3 tint diagnosed: at Humanoid health5.07/100, Roblox Health CoreGui caused the maroon wash across sky/CoreGui/UI. Cinematic now suppresses only Health CoreGui while mounted and restores its exact prior state on unmount; combat damage and other system UI remain unchanged."
+  ],
+  "tests": {
+    "build": "PASS",
+    "offlineLuau": 446,
+    "native": { "passed": 598, "failed": 0, "suites": 62 },
+    "logs": ["build/ac04-ui-integration/final-build.log", "build/ac04-ui-integration/final-offline.log", "build/ac04-ui-integration/final-native.log"],
+    "boundary": "Final results apply to70b6a6ec; inherited597/597 applies only to da4a8143."
+  },
+  "nativePresentation": {
+    "actualRoot": "Studio Current device viewport1205x525; production safe root1205x467 after58px CoreGui inset; exact owned window captured with CGWindowList+screencapture and images inspected.",
+    "fixtureCaptures": "build/ac04-ui-integration/captures/: title, records, hub, mission/story archives, M1/M6/M13/M18 briefings, aircraft, debrief, low-health story and revealed story controls. Fixture label explicitly denies campaign/unlock evidence.",
+    "scroll": "PASS mousewheel mission archive CanvasPosition0->264 limit264 and row18 visible; PASS eleven native Down presses story focus0->11 CanvasPosition0->84 limit84.",
+    "tintEvidence": "fc31-debrief-m05.png maroon at low health; fc31-debrief-health-coregui-off.png clean after Health CoreGui off; final-story-low-health-clean.png clean on final source; prior Health CoreGui restored true after unmount.",
+    "invalid": "fc31-flight-m01.png and fc31-pause-m01.png are blank duplicate captures and are not evidence."
+  },
+  "cleanCampaign": {
+    "input": "Native mouse for production UI; persistent QA pilot used only public FlightController inputs. No pose/CFrame/health/ammo/score/phase/unlock/target-kill/teleport/clock/outcome writes.",
+    "results": [
+      "M1 accomplished600,6 targets,00:21.66",
+      "M2 first attempt failed01:08.66 after6 targets; real retry accomplished1320,11 targets,00:47.98",
+      "M3 accomplished900,9 targets,01:10.35",
+      "M4 accomplished480,3 targets,01:19.23",
+      "M5 accomplished2100,43 targets,10:15.77; quota crossed with4:41 remaining and held to600s update before return"
+    ],
+    "ending": "Production M5 debrief -> CONTINUE -> chapter4 -> revealed native transport -> M6 briefing. Automation evidence, not human flight-feel acceptance."
+  },
+  "m6Attempt": {
+    "result": "FAILED at00:19.53;0 points,0 targets,4 evades; ac04_primary",
+    "contacts": "F-14 groups1/2, F/A-18 groups1/2, Ka-25, TND-IDS groups1/2",
+    "combat": "Locked F-14 1; health100@9s,70@12s,58@15s,40@18s, then destroyed.",
+    "shipFire": "UNTESTED: opening air defense destroyed the aircraft before naval engagement; no balance change made from one automation loss."
+  },
+  "gateSummary": {
+    "passed": ["association", "build", "offline446", "native598", "1205 title", "wheel/keyboard archives", "tint cause/fix/restoration", "clean M1-M5", "chapter4/M6 briefing"],
+    "failed": ["M6 genuine attempt: early air-defense loss"],
+    "untested": ["physical devices", "touch-emulator gesture", "1280x720/390x844/844x390 actual rendering", "runtime numeric TextBounds/TextFits", "LOCAL save-fault retry", "live target cues", "bright/night/ground flight captures", "M6 ship fire", "M7-M18", "audio", "independent final UI fidelity"]
+  },
+  "independentStoryReview": "docs/reviews/ac04-story-visual-independent-61-r3.json rejects AC04 illustrated fidelity despite mechanical improvement; art/geometry findings remain open.",
+  "releaseBoundary": "No commit/push/PR/upload/publish/cloud/delete. Local AC04 remains unmerged and unavailable in Player.",
+  "allFourDocumentPayloads": {
+    "taste.html": "Replace current candidate prose with: Final local candidate70b6a6ec fixes the observed title overlap and story chrome/tint lifecycle. Build,446 offline and598/598 native tests pass. Roblox Health CoreGui was proven to cause the maroon wash at low health; cinematic suppresses only that overlay while mounted and restores it. Story art remains unchanged and independently rejected for AC04 illustrated fidelity. No Player change.",
+    "plan.html": "Replace completed integration item with: Next obtain independent70b6a6ec visual review, actual1280x720/390x844/844x390 device-emulator rendering, touch scroll, runtime numeric fit, LOCAL save-fault recovery, live cue and flight-environment captures. Produce separate original illustrated pilots. Diagnose M6 opening survivability and ship fire before balance changes; continue M7-M18.",
+    "status.html": "Replace pending-native state with: Candidate70b6a6ec passes build,446 offline and598/598 native.1205x525 captures and mousewheel/keyboard archive reachability pass. Clean production-UI/public-input replay completed M1-M5 (one M2 loss then retry), chapter4 and M6 briefing. M6 failed at19.53s with0 targets after health100->40; ship fire and listed device/save/cue/late-mission gates remain untested.",
+    "playtest.html": "Replace local summary only; preserve official link/version63/PR90/all18 unavailable rows: Local unmerged70b6a6ec passes build,446 offline and598/598 native. Studio automation completed M1-M5 and reached M6 briefing; M6 failed before naval engagement. Title/tint/chrome fixes are local; independent story fidelity remains rejected. No gameplay PR merged, so0/18 AC04 missions are available in Player."
+  },
+  "lease": { "exclusiveStudioStopped": true, "released": true, "unrelatedGlobalLeaseTouched": false }
+}

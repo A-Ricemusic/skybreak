@@ -1,0 +1,492 @@
+{
+ "schemaVersion": 1,
+ "reviewId": "ac04-early-rebuild",
+ "date": "2026-10-27",
+ "author": "Claude Opus 5.5 implementation sub-agent (early range M1-M5); no subagents",
+ "scope": "Source-only world refinements for AC04 Normal missions 1-5 (Sitting Duck, Imminent Threat, The Northern Eye, Blockade, Lifeline). Native WorldPlan terrain ops and primitive parts only; no Blender/imported/uploaded/skin assets. NOT wired, NOT built, NOT run in Roblox Studio or Player, NOT merged, NOT live.",
+ "honestStatus": {
+  "integrated": false,
+  "merged": false,
+  "live": false,
+  "builtWithRbxtsc": false,
+  "nativeJestRun": false,
+  "studioOrPlayerObserved": false,
+  "releaseConvention": "Owner convention (AGENTS.md, current): gameplay PRs merged to main are LIVE in Roblox Player via automatic CI/CD; no upload-receipt check or Player test is required to update availability. This Early work is UNMERGED, UNWIRED local source, so it is not live and changes no published availability. Last known place version 63 (commit efc7120, PR #90, accepted 2026-10-27T23:18:57Z, CI run 40601149377) is historical supporting metadata only; no newer version is claimed. Release status is separate from fidelity/quality acceptance: none of M1-M5's new worlds has native, Studio or Player observation.",
+  "frozenArtifact": {
+   "path": "build/ac04-lifeline-fix/candidate-91927612.rbxlx",
+   "sha256": "91927612ddb4049cc2010a5cfa2a8e0cfaa166eef7a51d5eeaf8d48dc3cf5659",
+   "touched": false,
+   "note": "The independently verified M1-M5 completions belong to this frozen candidate, which does not contain these modules. Those completions are NOT evidence for the rebuilt worlds."
+  },
+  "claimLimits": "No mission here is complete, beta-ready or source-exact. Mitoro diagrams are Ace difficulty and show target symbols and routes, not terrain; counts were never taken from them. All relief, coastlines and scale are adaptations."
+ },
+ "files": {
+  "src/shared/ac04/rebuild/EarlyGeometry.ts": {
+   "sha256": "54e79e54aacf3692795f791ffafa65b514037ed7f2b71afc26caa370b365731b",
+   "owner": "this agent",
+   "new": true
+  },
+  "src/shared/ac04/rebuild/EarlyPlacement.ts": {
+   "sha256": "7f18e6f9670db16cc99f10b78c22afecc45397ceb8f1873484891e52fafdf24f",
+   "owner": "this agent",
+   "new": true
+  },
+  "src/shared/ac04/rebuild/EarlyWorld.ts": {
+   "sha256": "2aff905f34590d9e384bb69b1594fa3c7ed0606fa0d901d23caf6b648e6c551e",
+   "owner": "this agent",
+   "new": true
+  },
+  "src/tests/AC04EarlyRebuild.spec.ts": {
+   "sha256": "bd07564e4d104d8978e6fc721651eef1988395ba87d3fbf1a130e50e2f2ac374",
+   "owner": "this agent",
+   "new": true
+  }
+ },
+ "inputsReadOnly": {
+  "src/shared/AC04WorldData.ts": "b494f648d0ad24af1032e6b8d87eb200debb178b869f0b07afac879bf8ca3fe9",
+  "src/shared/AC04MissionData.ts": "319d36560539ddcfb638cb6f1001028ffa761bd4015b468fe422d7129d7b6b36",
+  "src/server/AC04World.ts": "cfec6cd2f57885ade89795db152df805b762fcc406842aaa8b387466e6614e5d",
+  "src/server/CombatService.ts": "8e8171df23965a1c9a448c07e6e9b7eb677f3f8506ea8740e6d101414a1417cd"
+ },
+ "sourcesConsulted": [
+  {
+   "url": "https://mitoro.sakura.ne.jp/ac04/data/m01.htm ... m05.htm",
+   "result": "Fetched (Shift-JIS text read). Gives Ace target tables, routes, qualitative arrivals. M02: substation hit first from range then fly north; M03: two summit clusters, one-way route then due south; M04: transports head NE, two E-767 jamming circles, C-17 4000 m / E-767 5000-5600 m; M05: refinery left (west), offshore oil field right (east), MiG-29s after some refinery destruction, supply line moves ~20 mi north at the update.",
+   "sha256": {
+    "m01.htm": "71326690f1c4fa6fc6797c63e8d2af841c1d6e338c5926ce6fbc503c494a639b",
+    "m02.htm": "a04113567e8692c6987d7af75856e43ffd2afb16d83ae5578d6917f852e0e8ce",
+    "m03.htm": "525d9278d3e8f543fd7b4f953d21477a9894f73b83c6ec21550f6d0862258c7f",
+    "m04.htm": "de9ad59136b8d16a7531e7a8118802b26285e5677598cf8424f51704c1e6da38",
+    "m05.htm": "c596250c4cce7b95040eac539e12f49375b448000df838e7c1c8f3fc219f828d"
+   }
+  },
+  {
+   "url": "https://mitoro.sakura.ne.jp/ac04/data/ac04_m0{1..5}d1.gif plus m01d2, m02d2, m02d3, m03d2, m04d2, m04d3, m05d2",
+   "result": "Downloaded, converted to PNG and VIEWED (not only parsed). All 560 px teal grids with target/aircraft symbols and route lines; NO terrain, coastline or relief is drawn for M1-M5. d1 = full map; m02d2 = Rigley close-up (11 TU-95 rings in 4 clusters, facility dots, AA rows, 3 MiG-21, 2 fighters before take-off); m03d2/m05d2/m04d3/m01d2 = routes/patterns.",
+   "sha256": {
+    "m01d1": "26745821b220290315f5c78f654095f298d708423090d5032d236faa5c242789",
+    "m02d1": "4674eed74d9e48ba4266105e315b95c688576b274d8be2c485fcca5fada69ab2",
+    "m03d1": "21ba1ee3782bfb5ee050b6508fc17b7aaf4ab28e8ed138688662ee80aadfaaaf",
+    "m04d1": "448513c0163c3f8cf1e2ee20b5f284dda9a0fb2bde4b0a86c959349a77e5bfe8",
+    "m05d1": "a27507f6d26c18deacdf5f31dd27d9aa169fa813a40a805dec47c2d97e5027cf",
+    "m01d2": "66b9932cc0f24e317a3c6c7cceb057f4daaaae40128f67f5496edfed1b09387c",
+    "m02d2": "343734e194eceb39a79f61f2d9acc81e8899161e84fad2b25c7eb7f701651d06",
+    "m02d3": "62d020ef62eb0fe42d7e298a492dfe8f1c16aa16ba500bb1b5eaf0880c47fb4c",
+    "m03d2": "bf3fa6b815b6021ae512056bede7f4c939ef471f1869d0dc828ec5d743b67038",
+    "m04d2": "85cb53718a384201f8435440301dc528e6abc1a617fd92608cd945cdbc8e7757",
+    "m04d3": "2c9f58014cc1bb31a42f110e1e4e6c967222d309b2cf509f50c3f01d48bff629",
+    "m05d2": "ab7ec05f707abd25c658b99e7fdcb776b5faf8354e536be3cabff33154455e6b"
+   }
+  },
+  {
+   "url": "https://acecombat.wiki.gg/wiki/Sitting_Duck | Imminent_Threat | The_Northern_Eye | Blockade_(AC04) | Lifeline",
+   "result": "Direct curl 403 for all five; content retrieved via the web-fetch tool. Geography: Newfield Island interception line and Allenfort/North Point (M1); enemy Rigley Air Base near the front, Ciffreo north of the base (M2); radars on the peaks of Mt. Shezna, Shezna Radar 1 east / 2 west, return across the southern Return Line, St. Ark evacuation (M3); transports in and around Comberth Harbor, ground windmills likely civilian (M4); single coastal petrochemical complex west of the start, offshore platforms east (M5). None describes terrain shape for M2-M5."
+  },
+  {
+   "url": "https://acecombat.wiki.gg/wiki/Newfield_Island",
+   "result": "Fetched via tool. Mountainous island off NE Usea; Allenfort Air Base, Belta Port (main population centre), Anderson Crater from a Ulysses fragment on the eastern face."
+  },
+  {
+   "url": "https://lparchive.org/Ace-Combat-04-Shattered-Skies/Update%2001/",
+   "result": "Fetched; Allenfort on the northern tip; Mobius takes off from carrier Fort Grays. Concept/promotional images 14-, 48-, 49-, 50-, 51-Newfield*.jpg downloaded and VIEWED: elongated SW-NE island, central mountain spine, airport on the NE tip with adjacent city, circular flooded crater on the SE face breached to the sea with a small islet, rim cities. These are Namco concept/beauty art, not in-mission terrain captures.",
+   "sha256": {
+    "50-Newfield_Island.jpg": "46c583a9cab9de04a464a2d6cd5961256150cffe9a19ceeb9e2ccff8c5ec2fb5",
+    "48-Newfield_Crater.jpg": "d67927895fdc424c6c1e959d014cf57f0705631061b2f3686975a8d1855e3544",
+    "51-Newfield_Overflight.jpg": "73f4a38ea51ea783f550c739633320945c0809caebd5b48266984f8ae37f3912"
+   }
+  },
+  {
+   "url": "https://gamefaqs.gamespot.com/ps2/452838-ace-combat-04-shattered-skies/faqs/48109",
+   "result": "Direct request HTTP 403 (5852-byte block page). archive.org availability API returned 429 Too Many Requests; web.archive.org is blocked for the fetch tool; web search did not surface an indexed copy this session. Maps from this walkthrough were NOT inspected by this agent. Prior indexed-text findings in docs/reviews/ac04-lifeline-fix-response.json (2000 pts/10 min, western industrial targets, eastern offshore clusters) are consistent with this work and were not re-verified."
+  },
+  {
+   "url": "docs/ac04-source-register.json, docs/reviews/ac04-lifeline-fix-response.json, docs/reviews/ac04-lifeline-story-independent-61.json",
+   "result": "Read. M5 staging (AC04-M5-STAGE-001, afterKills 8 refinery kills, clearance+30 s replacements) lives in AC04MissionData and is untouched; the independent review confirms M1-M5 functional completions on candidate 91927612 only."
+  }
+ ],
+ "missions": [
+  {
+   "id": 1,
+   "title": "Sitting Duck",
+   "changed": [
+    "Reset old coarse hills/runway/settlement; built Newfield Island as 100-stud rotated slices along a SW-NE axis (sand shelf + grass) from a 16-point half-width profile.",
+    "Mountain spine (5 tapered ridges, rock crests, peak ~544 studs) NW of the axis plus two spurs.",
+    "Anderson Crater: 10-segment rock rim, flooded bowl, SSW breach to the sea with a small islet.",
+    "Allenfort Air Base on the NE tip: cleared corridor, runway along the island axis, taxiway, apron, 3 hangars, tower, radome.",
+    "Belta Port: levelled SE slope with 11 city blocks, breakwaters, pier and harbour light.",
+    "Crater-shoulder impact ruins (non-solid); Fort Grays carrier silhouette south of the island (non-solid decoration).",
+    "Layout sites airbase/settlement moved onto the island (world-only sites; no unit uses them)."
+   ],
+   "unchanged": "All bombers/escorts positions, spawn (0,950,2600), returnZ, 600 s phase, score.",
+   "sourceSupported": [
+    "Island name, mountainous shape, Allenfort on the north tip, Belta Port, crater on the eastern face (wiki/lparchive)",
+    "Island SW-NE elongation, spine, crater breach and islet (Namco concept art)",
+    "Carrier Fort Grays as Mobius' base (lparchive)",
+    "Bombers arrive from the north in pairs (Mitoro d1/d2)"
+   ],
+   "interpolation": [
+    "Island size (5,000 x ~1,850 studs), position under the bomber route and orientation in map coordinates",
+    "Peak heights, crater radius 400, city block count/heights",
+    "Carrier position and attitude"
+   ],
+   "risk": "Low: no unit moved. Island peaks stay >500 studs below bombers; spawn over open sea with a clear nose ray (pure check)."
+  },
+  {
+   "id": 2,
+   "title": "Imminent Threat",
+   "changed": [
+    "Re-placed 24 ground units: 11 TU-95 into Mitoro's four dispersal clusters (3/3/3/2), 7 hangars (3 at close-up facility dots, 4 in a row), tower at the southern facility dot, 4 AA south/east of clusters, substation on the southern approach (Mitoro d1 red dot).",
+    "N-S runway threaded between the centre-left and right-row clusters; no scored unit sits on it (base had AA/hangars under the runway).",
+    "Dispersal aprons, taxiways, earth revetments, perimeter road, substation yard with transformer bays and a 5-pylon power line to the base.",
+    "Patchwork farmland top-layer repaint, low northern hills beyond Ciffreo's station, frontline farm village."
+   ],
+   "unchanged": "Group ids/counts/points, 900 s limit, all air units and air sites (runway/airbase/apron/intercept), spawn and returnZ.",
+   "sourceSupported": [
+    "Substation south of the airfield and attacked first (Mitoro text + d1)",
+    "Eleven bombers in four clusters, AA rows, facility dots, fighters before take-off (Mitoro d2)",
+    "Ciffreo north of the base (wiki)"
+   ],
+   "interpolation": [
+    "Runway orientation/position (not drawn by Mitoro)",
+    "Close-up scale 4.5 studs/px for cluster centres and 7.5 for members",
+    "Which facility dots are hangars vs tower",
+    "Farmland, hills, village, revetments"
+   ],
+   "risk": "MEDIUM: target layout changed on a mission with an independently verified completion. Bombers are now dispersed (~1,300-stud spread vs a compact block) and the substation is ~2,400 studs south of the base on the approach path. Requires an M2 replay and timing check after wiring."
+  },
+  {
+   "id": 3,
+   "title": "The Northern Eye",
+   "changed": [
+    "Re-placed 14 ground units onto NW->SE summit chains (east 5 radars + 5 AA; west 4 radars) matching Mitoro chain directions, centres and altitudes unchanged (650 / 850).",
+    "Mt. Shezna summits: crossed tapered rock massifs with snow caps, summit ridge and levelled snow bench under each chain; saddle ridge and northern snow range; grass foothills.",
+    "Barracks, relay masts, CH-47 helipad on the west summit (decoration).",
+    "M3 air spawns within 1,150 studs of a summit lifted to summit+200 (CH-47, F-16, F-16 reinforcements): the base world already embedded them inside the west summit (y 850 at an 850 crest)."
+   ],
+   "unchanged": "Counts, 900+900 s phases, extract-south return, spawn, returnZ, intercept fighters.",
+   "sourceSupported": [
+    "Radars on Mt. Shezna peaks, east/west bases, southern Return Line (wiki)",
+    "Chain shapes/orientation and east-then-west route (Mitoro d1/d2)"
+   ],
+   "interpolation": [
+    "Massif sizes/heights, snowline, ridge network",
+    "Chain spacing widened from Mitoro's ~45 studs to >=130"
+   ],
+   "risk": "MEDIUM: summit relief is now real (north range >500 studs above the base land), radar/AA positions changed and three air spawns are 100-200 studs higher. Southern return corridor verified flat (z >= 0). Needs M3 replay including the return leg."
+  },
+  {
+   "id": 4,
+   "title": "Blockade",
+   "changed": [
+    "Reset; SSW-NNE Erusean coastline (sea east, toward Comberth beyond the NE) with sand shelf.",
+    "Rolling inland downs, two wind farms (19 turbines: tapered tower, nacelle, hub, non-solid 4-arm rotor facing the sea), coastal highway, headland lighthouse, farms."
+   ],
+   "unchanged": "Entire air roster/positions, jamming behaviour, 720 s limit, spawn/returnZ. No ground objectives were created; turbines are unscored decoration.",
+   "sourceSupported": [
+    "Ground windmills in Erusean airspace near Comberth (wiki)",
+    "Transports heading NE, two jamming circles (Mitoro)"
+   ],
+   "interpolation": [
+    "Everything about the coast and relief: Mitoro draws no terrain and the wiki gives none",
+    "Four-arm rotors (yaw-only parts cannot tilt three blades)"
+   ],
+   "risk": "Low: no unit moved; terrain max ~324 studs, far below transports (1200) and jammers (1300)."
+  },
+  {
+   "id": 5,
+   "title": "Lifeline",
+   "changed": [
+    "Replaced the rectangular land slab with an irregular coastline (refinery coast, sea east).",
+    "Removed the solid 1,500x1,800 refinery apron that sat 2 studs above all 39 refinery target bases (pure audit); replaced with a non-solid apron plus bund walls outside the pads.",
+    "Process unit (5 distillation columns with access rings, heaters, pipe rack), export pipe rack to a tanker jetty with loading head, arms and mooring dolphins, shore flare stack.",
+    "Offshore field: one jacketed main deck exactly under the production 5x9 rig grid (top 110 = rigs site y), cellar deck, 20 jacket legs, railings, helideck, flare boom; four bridge-linked satellite wellhead platforms (incl. Mitoro's NE outlier sector)."
+   ],
+   "unchanged": "EXACT production placement of every M5 unit (121/121 identical), all sites incl. rigs relocation point, spawn, returnZ 3400, 600+240 s phases, afterKills/clearance staging, Yellow rules.",
+   "sourceSupported": [
+    "Coastal refinery west, offshore field east (wiki, Mitoro d1/d2)",
+    "Outlying rig clusters incl. north-east (Mitoro d1)"
+   ],
+   "interpolation": [
+    "Coast shape, process-unit/jetty/flare layout, satellite platforms, helideck"
+   ],
+   "risk": "LOW-MEDIUM: placement and timing inputs unchanged, but solid structures changed: refinery targets no longer under a 2-stud solid apron; new solid bund walls (10 high), columns (up to 170), flare stack, jetty and satellite platforms add obstacles. Rig deck shrank from 660x1650 to 560x900 (still under every rig target). Needs an M5 replay to confirm the validated timing still holds."
+  }
+ ],
+ "decisions": [
+  {
+   "id": "EARLY-DEC-01",
+   "topic": "Replace vs decorate base geometry",
+   "chosen": "Reset M1-M5 to the 8000-stud base layers and rebuild",
+   "alternatives": [
+    "Append detail to the old hills/slabs"
+   ],
+   "why": "Base audit found targets under a runway (M2), air spawns inside a summit (M3) and 39 targets under a solid apron (M5); replacement is idempotent and testable.",
+   "status": "implemented in unwired source"
+  },
+  {
+   "id": "EARLY-DEC-02",
+   "topic": "M1 island source",
+   "chosen": "Concept-art Newfield silhouette scaled to the bomber route",
+   "alternatives": [
+    "Keep generic hills and settlement",
+    "Open ocean only (Mitoro draws no land)"
+   ],
+   "why": "Wiki/lparchive name the island, its mountains, Allenfort, Belta Port and the crater; the concept art is the only shape reference.",
+   "status": "implemented in unwired source"
+  },
+  {
+   "id": "EARLY-DEC-03",
+   "topic": "M2 bomber layout",
+   "chosen": "Mitoro close-up four-cluster dispersal at 4.5/7.5 studs/px",
+   "alternatives": [
+    "Keep compact 5x3 block",
+    "True 1.86 studs/px scale (models would overlap)"
+   ],
+   "why": "Close-up count matches Normal 11; dual scale keeps >=135-stud spacing for 2.1x models.",
+   "status": "implemented; replay required"
+  },
+  {
+   "id": "EARLY-DEC-04",
+   "topic": "M2 substation",
+   "chosen": "Move to the southern approach (Mitoro d1)",
+   "alternatives": [
+    "Keep at the airfield"
+   ],
+   "why": "Mitoro marks it far south and attacks it first from range.",
+   "status": "implemented; replay required"
+  },
+  {
+   "id": "EARLY-DEC-05",
+   "topic": "M3 summits",
+   "chosen": "Crossed tapered native wedge massifs + snow bench, axis-aligned flanks",
+   "alternatives": [
+    "Bump hills (Lua voxel writes)",
+    "Single prisms (full-height end cliffs)"
+   ],
+   "why": "Keeps every region under the unsplit cap with stepped (<=1/3 height) ends.",
+   "status": "implemented in unwired source"
+  },
+  {
+   "id": "EARLY-DEC-06",
+   "topic": "M3 air spawn lift",
+   "chosen": "Lift spawns near summits to summit+200, x/z unchanged",
+   "alternatives": [
+    "Lower the summit",
+    "Leave embedded"
+   ],
+   "why": "Preserves summit altitude and position while removing spawn-in-terrain.",
+   "status": "implemented; changes 4 aircraft altitudes"
+  },
+  {
+   "id": "EARLY-DEC-07",
+   "topic": "M4 terrain",
+   "chosen": "Plausible coast + wind farms only, no ground objectives",
+   "alternatives": [
+    "Comberth peninsula copy from M06",
+    "Open sea"
+   ],
+   "why": "Brief forbids manufactured objectives; Comberth geometry here would overclaim. Clearly labelled interpolation.",
+   "status": "implemented in unwired source"
+  },
+  {
+   "id": "EARLY-DEC-08",
+   "topic": "M5 rigs",
+   "chosen": "Keep one continuous deck exactly under the production grid; add jackets, helideck, flare boom, satellites",
+   "alternatives": [
+    "Split into three decks with 20-stud gaps",
+    "Move rig targets onto separate platforms"
+   ],
+   "why": "Preserves validated placement/timing; 20-stud gaps add risk without visible gain.",
+   "status": "implemented in unwired source"
+  },
+  {
+   "id": "EARLY-DEC-09",
+   "topic": "Decoration vs scored types",
+   "chosen": "No decorative part reuses a scored type name or shape class (no decorative fuel tanks, cranes, radars, hulls)",
+   "alternatives": [
+    "Generic industrial clutter"
+   ],
+   "why": "Avoids fake targets; tested for M5.",
+   "status": "implemented"
+  }
+ ],
+ "integration": {
+  "status": "NOT APPLIED to the repo. Applied only to a /tmp copy for checks.",
+  "order": [
+   "After the story owner releases the Studio/build lease, apply the AC04WorldData.ts diff below (3 call sites + import). Early ranges (1-5) are disjoint from Middle (6-12) and Late (13-18).",
+   "Run bun run test:roblox including src/tests/AC04EarlyRebuild.spec.ts and the existing AC04World.spec.ts (voxel cap over all 18; rebuild-in-parent uses M2 then M1; Lifeline air-arrival test).",
+   "Replay M2, M3 and M5 on a fresh candidate (placement/obstacle changes), then M1 and M4 visual flights."
+  ],
+  "callSites": [
+   "Import refineEarlyLayout/refineEarlyUnitPosition/refineEarlyWorld from ./ac04/rebuild/EarlyWorld",
+   "Layout loop: layouts[i]=refineLateLayout(i+1,refineMiddleLayout(i+1,refineEarlyLayout(i+1,layouts[i])))",
+   "unitPosition: refineEarlyUnitPosition wraps baseUnitPosition innermost (before Middle/Late)",
+   "build(): refineEarlyWorld(m,l,p) immediately before refineMiddleWorld(m,l,p), i.e. after base geometry and before the target pad/air/berth loop"
+  ],
+  "diffAgainst": {
+   "file": "src/shared/AC04WorldData.ts",
+   "sha256": "b494f648d0ad24af1032e6b8d87eb200debb178b869f0b07afac879bf8ca3fe9"
+  },
+  "diff": "--- /Users/pelicannurse/Projects/test app/src/shared/AC04WorldData.ts\t2026-10-27 17:05:26\n+++ src/shared/AC04WorldData.ts\t2026-10-27 17:24:39\n@@ -2,6 +2,7 @@\n import type { FlightPoint } from \"./WorldTypes\";\n import type { Rgb } from \"./EnvironmentPresets\";\n import type { PartSpec, TerrainMaterial, WorldPlan } from \"./WorldPlan\";\n+import { refineEarlyLayout, refineEarlyUnitPosition, refineEarlyWorld } from \"./ac04/rebuild/EarlyWorld\";\n import { refineLateLayout, refineLateUnitPosition, refineLateWorld } from \"./ac04/rebuild/LateWorld\";\n import { middleDeckMounted } from \"./ac04/rebuild/MiddleCampaign\";\n import { refineMiddleLayout, refineMiddleUnitPosition, refineMiddleWorld } from \"./ac04/rebuild/MiddleWorld\";\n@@ -48,7 +49,7 @@\n layouts[17].escape=V(0,700,0);layouts[17].escapeRadius=250;\n layouts[14].evidence.inspected=true;layouts[14].evidence.confidence=\"sector-layout\";\n // AC04-MIDDLE-REBUILD: applied once, after base layouts are constructed.\n-for(let i=0;i<layouts.size();i++)layouts[i]=refineLateLayout(i+1,refineMiddleLayout(i+1,layouts[i]));\n+for(let i=0;i<layouts.size();i++)layouts[i]=refineLateLayout(i+1,refineMiddleLayout(i+1,refineEarlyLayout(i+1,layouts[i])));\n \n function part(plan:WorldPlan,name:string,p:FlightPoint,size:FlightPoint,color:Rgb=CONCRETE,material=\"Concrete\",solid=true,shape:PartSpec[\"shape\"]=\"block\",yaw=0):void {\n \tplan.parts.push({name,shape,x:p.x,y:p.y,z:p.z,sx:size.x,sy:size.y,sz:size.z,yaw,color,material,solid,grounded:false});\n@@ -101,7 +102,7 @@\n }\n function unitPosition(id:number,g:AC04UnitGroup,index:number):FlightPoint {\n \tconst mission=AC04MissionData.Get(id),layout=layouts[id-1];\n-\treturn refineLateUnitPosition(mission,layout,g,index,refineMiddleUnitPosition(mission,layout,g,index,baseUnitPosition(id,g,index)));\n+\treturn refineLateUnitPosition(mission,layout,g,index,refineMiddleUnitPosition(mission,layout,g,index,refineEarlyUnitPosition(mission,layout,g,index,baseUnitPosition(id,g,index))));\n }\n function baseUnitPosition(id:number,g:AC04UnitGroup,index:number):FlightPoint {\n \tconst l=layouts[id-1];let s=l.sites[g.site]??l.sites.center;\n@@ -179,6 +180,7 @@\n \t\tfor(const x of [-1200,1200])for(const z of [-1750,1750])part(p,\"Fortress sea defenses\",V(x,120,z),V(1000,200,100),CONCRETE,\"Concrete\");\n \t}\n \t// AC04-MIDDLE-REBUILD: replaces M6-M12 base geometry before final target clearance.\n+\trefineEarlyWorld(m,l,p);\n \trefineMiddleWorld(m,l,p);\n \trefineLateWorld(m,l,p);\n \tlet targetIndex=0;\n",
+  "noOtherFilesNeeded": "AC04World.ts and CombatService.ts already consume AC04WorldPlanner.UnitPosition/Build/Layout, so M2/M3 placement and M3 air lift take effect through the wrapper. No mission data, runner, story or CombatService edits.",
+  "noCycles": "Early* import only types from AC04MissionData/AC04WorldData/WorldPlan/WorldTypes/EnvironmentPresets."
+ },
+ "testsActuallyRun": [
+  {
+   "what": "tsc --noEmit, isolated config with unique /tmp tsBuildInfo, on the three Early modules + AC04EarlyRebuild.spec.ts",
+   "result": "pass"
+  },
+  {
+   "what": "tsc --noEmit on a /tmp copy of src with the wiring diff applied (AC04WorldData, AC04World, CombatService, spec)",
+   "result": "pass"
+  },
+  {
+   "what": "Bun execution with Lua-semantics JS shims (math.*, size(), string.sub/find, pairs) and a minimal jest-globals shim: AC04EarlyRebuild.spec",
+   "result": "10/10 pass against the unwired current repo source and 10/10 against the wired /tmp copy. Shim, not Roblox engine."
+  },
+  {
+   "what": "Shim audit of the wired AC04WorldPlanner.Build for M1-M5 (target terrain/part cover, ships in water, air spawns/samples, spawn ray, voxel regions, part dimensions)",
+   "result": "0 issues. Same audit on current unwired source: M2 4, M3 3, M5 39 issues (pre-existing; fixed by this work)."
+  },
+  {
+   "what": "Unit-position and plan equality, current vs wired, all 18 missions",
+   "result": "Moved only M2 (24 ground) and M3 (14 ground + 4 air altitude). M1/M4/M5 positions identical; spawn/returnZ/escape identical for all 18; M6-M18 Build output byte-identical."
+  },
+  {
+   "what": "Top-down height renders generated from plan data (/tmp/ac04early-render/*.png)",
+   "result": "Inspected by this agent for layout sanity. These are synthetic plan renders, NOT Studio screenshots, and are not repo evidence."
+  }
+ ],
+ "testsAuthoredPendingNative": [
+  "src/tests/AC04EarlyRebuild.spec.ts via bun run test:roblox (not run: Studio/build lease belongs to the story owner)",
+  "Existing AC04World.spec.ts after wiring (voxel cap all 18, rebuild-in-parent with M2/M1 including spawn raycast, Lifeline air arrivals)"
+ ],
+ "nativeTestNeeds": [
+  "Engine raycasts down on every M2/M3/M5 target and both tankers after wiring",
+  "Wedge voxelisation of yawed M1/M4 ridges and rotated slices (pure region estimate only)",
+  "Fly the M3 southern return and the inter-summit pass; fly M1 bomber intercept at low altitude over the spine",
+  "M5 relocation arrival above the rig deck and rearm crossing at returnZ",
+  "Build time and part counts via Scenery.Report (no FPS claims made)"
+ ],
+ "performance": {
+  "method": "Plan op/part counts and largest yawed wedge/ball region estimate; no FPS or build-time measurement.",
+  "beforeAfter": {
+   "1": {
+    "ops": [
+     49,
+     180
+    ],
+    "parts": [
+     62,
+     59
+    ],
+    "maxWedgeRegionCells": 2196400
+   },
+   "2": {
+    "ops": [
+     123,
+     189
+    ],
+    "parts": [
+     18,
+     61
+    ],
+    "maxWedgeRegionCells": 1419120
+   },
+   "3": {
+    "ops": [
+     163,
+     137
+    ],
+    "parts": [
+     0,
+     7
+    ],
+    "maxWedgeRegionCells": 3324420
+   },
+   "4": {
+    "ops": [
+     25,
+     106
+    ],
+    "parts": [
+     16,
+     137
+    ],
+    "maxWedgeRegionCells": 2612064
+   },
+   "5": {
+    "ops": [
+     85,
+     176
+    ],
+    "parts": [
+     27,
+     103
+    ],
+    "maxWedgeRegionCells": 1568697
+   }
+  },
+  "budgets": "Each mission <= 260 authored parts and <= 420 ops; every wedge/ball region < 4,194,304 cells (largest 3.32M, M3); no part dimension > 2048."
+ },
+ "contradictionsFlagged": [
+  {
+   "file": "docs/human/taste.html",
+   "issue": "Still states 'Last confirmed published release remains version 60 / commit 288a087 (Broken Relay)' and a 'Published Player state — verified 27 October 2026 ... place version 60 ... PR #84' passage, contradicting its own version 63 / PR #90 header and the owner's merged-is-live convention. Parent should replace with the current release line or mark it dated history."
+  }
+ ],
+ "humanDocPayloads": {
+  "releaseRule": "Owner convention (AGENTS.md, current): gameplay PRs merged to main are LIVE in Roblox Player via automatic CI/CD; no upload-receipt check or Player test is required to update availability. This Early work is UNMERGED, UNWIRED local source, so it is not live and changes no published availability. Last known place version 63 (commit efc7120, PR #90, accepted 2026-10-27T23:18:57Z, CI run 40601149377) is historical supporting metadata only; no newer version is claimed. Release status is separate from fidelity/quality acceptance: none of M1-M5's new worlds has native, Studio or Player observation.",
+  "taste": {
+   "change": true,
+   "entries": "Add EARLY-DEC-01..09 exactly as in decisions[] (chosen/alternatives/why), status 'implemented in unmerged, unwired source; no native or Player acceptance'. Also fix the flagged version-60 passages."
+  },
+  "plan": {
+   "change": true,
+   "items": [
+    {
+     "title": "Wire and natively test the M1-M5 world hooks",
+     "what": "Apply integration.diff under the build lease; run AC04EarlyRebuild.spec and AC04World.spec",
+     "why": "Nothing reaches a candidate or main until wired, merged and built",
+     "ac04Connection": "Newfield Island, Rigley Air Base, Mt. Shezna, Comberth coast windmills, Lifeline refinery/oil field"
+    },
+    {
+     "title": "Replay M2, M3 and M5 after wiring",
+     "what": "Fresh sequential Normal replays; compare times with the frozen 91927612 results",
+     "why": "Target placement (M2/M3) and obstacles (M5) changed",
+     "ac04Connection": "Mitoro dispersal clusters, Shezna summit chains, retained AC04-M5-STAGE-001 timing"
+    },
+    {
+     "title": "Flight-altitude visual review M1-M5",
+     "what": "Studio captures of each world vs the cited references",
+     "why": "Pure checks cannot judge looks or fairness",
+     "ac04Connection": "Concept-art Newfield silhouette and named landmarks"
+    },
+    {
+     "title": "Retry GameFAQs 48109 maps",
+     "what": "Obtain an accessible copy of the walkthrough maps",
+     "why": "Blocked (403/429) this session; may refine M2-M5 layouts",
+     "ac04Connection": "Normal-difficulty map evidence"
+    }
+   ],
+   "replace": "Replace 'Finish and integrate M1–M5 world refinements after the active author handoff' with the first two items; keep it out of status until wired."
+  },
+  "status": {
+   "change": true,
+   "summary": "Early range M1-M5: world modules authored as local unmerged source (EarlyGeometry/EarlyPlacement/EarlyWorld + spec). Not wired, built, merged or live; type checks and Bun-shim checks only (10/10, 0 audit issues). Fixes three pre-existing base defects in source (M2 targets under runway, M3 spawns inside summit, M5 targets under solid apron). The frozen 91927612 completions do not cover these worlds; M2/M3/M5 need replays after wiring. Release: unchanged; no AC04 merge; last known version 63 is historical metadata.",
+   "missionRows": "For M1-M5 keep 'Baseline implemented' plus 'world rebuild authored locally, unwired, unreviewed in engine'; do not mark any world complete."
+  },
+  "playtest": {
+   "change": true,
+   "payload": "Player availability unchanged: this work is unmerged local source, so per the merged-is-live convention it is not live and adds no PR to the release list. Last known place version 63 (efc7120, PR #90) remains supporting metadata only. In each M1-M5 construction report replace 'world refinement in progress' with: 'Local unmerged source: rebuilt world (Newfield Island / Rigley dispersal / Mt. Shezna summits / Comberth coast wind farms / Lifeline coast, jetty and jacketed rig field) authored and shim-checked; not wired, built or observed; M2/M3/M5 replays required before owner testing.' Keep release status separate from world quality; no fidelity acceptance."
+  }
+ },
+ "remainingNativeGates": [
+  "Wiring under the single Studio/build lease",
+  "bun run test:roblox incl. AC04EarlyRebuild.spec and AC04World.spec",
+  "bun run validate:offline",
+  "Studio captures at flight altitude per mission",
+  "M2/M3/M5 replays (placement/obstacle risk); M1/M4 visual flights",
+  "Merge to main (only then live under the owner convention); owner Player feedback"
+ ]
+}

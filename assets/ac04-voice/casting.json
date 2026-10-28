@@ -1,0 +1,106 @@
+{
+ "model": "eleven_turbo_v2_5",
+ "outputFormat": "mp3_44100_128",
+ "license": "Proposed stock voices only. No AC04 audio generated yet. Confirm paid commercial-use entitlement and voice availability at generation; retain actual subscription provenance. No cloned voices or imitation of original performers.",
+ "defaultSettings": {
+  "stability": 0.5,
+  "similarity_boost": 0.75,
+  "style": 0.0,
+  "use_speaker_boost": true,
+  "speed": 1.0
+ },
+ "speakers": {
+  "THE STORYTELLER": {
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "voiceName": "George",
+   "role": "Adult recollection, restrained and reflective",
+   "settings": {
+    "stability": 0.6,
+    "speed": 0.95
+   }
+  },
+  "BRIEFING": {
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "voiceName": "Daniel",
+   "role": "Original adaptation BRIEFING performance; no actor imitation"
+  },
+  "Bravo One": {
+   "voice": "iP95p4xoKVk53GoZ742B",
+   "voiceName": "Chris",
+   "role": "Original adaptation Bravo One performance; no actor imitation"
+  },
+  "Civilian Pilot": {
+   "voice": "pFZP5JQG7iQjIQuC4Bku",
+   "voiceName": "Lily",
+   "role": "Original adaptation Civilian Pilot performance; no actor imitation"
+  },
+  "Ground Control": {
+   "voice": "pqHfZKP75CvOlQylNhV4",
+   "voiceName": "Bill",
+   "role": "Original adaptation Ground Control performance; no actor imitation"
+  },
+  "Halo": {
+   "voice": "N2lVS1w4EtoT3dr4eOWO",
+   "voiceName": "Callum",
+   "role": "Original adaptation Halo performance; no actor imitation"
+  },
+  "Landing Control": {
+   "voice": "pqHfZKP75CvOlQylNhV4",
+   "voiceName": "Bill",
+   "role": "Original adaptation Landing Control performance; no actor imitation"
+  },
+  "Landing Force": {
+   "voice": "iP95p4xoKVk53GoZ742B",
+   "voiceName": "Chris",
+   "role": "Original adaptation Landing Force performance; no actor imitation"
+  },
+  "Launch Control": {
+   "voice": "hpp4J3VqNfWAUOO0d1Us",
+   "voiceName": "Bella",
+   "role": "Original adaptation Launch Control performance; no actor imitation"
+  },
+  "Omega": {
+   "voice": "iP95p4xoKVk53GoZ742B",
+   "voiceName": "Chris",
+   "role": "Original adaptation Omega performance; no actor imitation"
+  },
+  "Rapier": {
+   "voice": "IKne3meq5aSn9XLyUdCD",
+   "voiceName": "Charlie",
+   "role": "Original adaptation Rapier performance; no actor imitation"
+  },
+  "Recon Pilot": {
+   "voice": "SOYHLrjzK2X1ezoPC6cr",
+   "voiceName": "Harry",
+   "role": "Original adaptation Recon Pilot performance; no actor imitation"
+  },
+  "Resistance": {
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "voiceName": "Sarah",
+   "role": "Original adaptation Resistance performance; no actor imitation"
+  },
+  "SkyEye": {
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "voiceName": "Brian",
+   "role": "Original adaptation SkyEye performance; no actor imitation"
+  },
+  "Viper": {
+   "voice": "cjVigY5qzO86Huf0OWal",
+   "voiceName": "Eric",
+   "role": "Original adaptation Viper performance; no actor imitation"
+  },
+  "Yellow Flight": {
+   "voice": "N2lVS1w4EtoT3dr4eOWO",
+   "voiceName": "Callum",
+   "role": "Original adaptation Yellow Flight performance; no actor imitation"
+  },
+  "Yellow Lead": {
+   "voice": "pNInz6obpgDQGcFmaJgB",
+   "voiceName": "Adam",
+   "role": "Original adaptation Yellow Lead performance; no actor imitation"
+  }
+ },
+ "spokenReplacements": [],
+ "retakes": {},
+ "sttAccepted": {}
+}

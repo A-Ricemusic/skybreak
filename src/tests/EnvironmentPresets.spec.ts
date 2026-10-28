@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { MissionCatalog } from "../shared/MissionCatalog";
+import { AC04MissionData } from "../shared/AC04MissionData";
 import { ENVIRONMENTS as Env, ENVIRONMENT_NAMES, distinctChannels, lampsOn } from "../shared/EnvironmentPresets";
 
 // Pure environment-table contracts; also run in the offline Luau VM.
@@ -7,7 +7,7 @@ describe("Environment presets", () => {
 	it("has one entry per preset and covers every mission's environment", () => {
 		expect(ENVIRONMENT_NAMES.size()).toBe(18);
 		for (const name of ENVIRONMENT_NAMES) expect(Env[name]).toBeDefined();
-		for (const bp of MissionCatalog.All()) expect(Env[bp.environment]).toBeDefined();
+		for (const bp of AC04MissionData.All()) expect(Env[bp.environment]).toBeDefined();
 	});
 	it("keeps every pair of presets visibly distinct", () => {
 		const failures: string[] = [];

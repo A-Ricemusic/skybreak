@@ -1,0 +1,342 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "ac04-story-art-pilot-v3-independent-61",
+  "reviewer": {
+    "identity": "Independent GPT-6.1 Sol review sub-agent in T3 Code/Codex",
+    "independentOfCreator": true,
+    "subagentsSpawned": false,
+    "basis": "Own inspection of exact final v3 and v2 pixels and correct original-game research sheets; creator claims not treated as evidence"
+  },
+  "auditTimeUTC": "2026-10-28T03:04:08.865917+00:00",
+  "reviewDatePacific": "2026-10-27",
+  "state": "REVIEW_COMPLETE_ACCEPT_LIMITED_THREE_SHOT_PILOT_ALL_THREE_EXACT_V3_CONTENT_SAFETY_APPROVED_NO_BULK_OR_FINAL_GAME_APPROVAL",
+  "scope": "Review only. Only assigned JSON written. No source/art/HTML mutation, subagents, builds, tests, Studio/build lease, preview browser/harness, cloud, upload, commit, push or publication.",
+  "inputsRead": [
+    "AGENTS.md",
+    "docs/reviews/ac04-story-art-pilot-v3-response.json",
+    "docs/reviews/ac04-story-art-pilot-v2-independent-61.json",
+    "src/shared/ac04/AC04Story.ts",
+    "docs/human/taste.html",
+    "docs/human/plan.html",
+    "docs/human/status.html",
+    "docs/human/playtest.html"
+  ],
+  "files": [
+    {
+      "path": "proposals/ac04-story-art/i03-b3-music-pilot-v3.png",
+      "absolutePath": "/Users/pelicannurse/Projects/test app/proposals/ac04-story-art/i03-b3-music-pilot-v3.png",
+      "sha256": "565d429663d9bca2572b24291ea838eeb9b0c84afdf1e4e3c9081516b09e4681",
+      "shot": "i03-b3",
+      "version": "pilot-v3 final PNG",
+      "expectedSha256": "565d429663d9bca2572b24291ea838eeb9b0c84afdf1e4e3c9081516b09e4681",
+      "hashMatches": true,
+      "dimensions": [
+        1672,
+        941
+      ],
+      "format": "PNG",
+      "inspection": {
+        "method": "view_image detail=original; exact existing final file",
+        "coverage": "Entire master including all visible figures, props, foreground and background; final pixels personally inspected independently of creator",
+        "nativeRuntimeEvidence": false
+      },
+      "facialComparisonToV2": "Leader now has narrower eyelids, a substantial nose, cheek/jaw structure, nasolabial lines and stubble: a mature adult rather than the v2 smooth tapered youth. Daughter has smaller almond-shaped eyes, a fuller modeled nose and less round cheeks; she reads as a young adult. Boy retains school-age proportions with smaller less circular eyes. Residual warm cheek color fits the warm illumination; the conspicuous v2 cosmetic pink patches are reduced.",
+      "preservationAndActions": "Guitar and both playing hands remain visible; boy holds harmonica to mouth; daughter listens with cheek supported. Same three-person triangle, foreground table and occupied room. Hair/scarf/coats/cardigan/blouse/long skirt and boy tailored jacket/vest/long trousers remain coherent.",
+      "narrativeContext": "Chapter3 beat3: shared guitar/harmonica melody interrupts prepared accusation. Daughter presence is compatible. Nonalcoholic tea-room setting is an explicit adaptation of bar narration, not source-identical venue.",
+      "fidelityVerdict": "ACCEPT_FOR_LIMITED_THREE_SHOT_CINEMATIC_PILOT",
+      "safety": {
+        "reviewType": "Fresh independent exact-v3-file depicted-content review; v2 approvals not inherited",
+        "score": 10,
+        "strict10of10": true,
+        "verdict": "EXPLICIT_APPROVAL_10_OF_10_EXACT_FILE_DEPICTED_CONTENT_ONLY",
+        "unresolvedActualContentConcerns": [],
+        "findings": "Main trio and all visible background patrons are appropriately clothed. Inspected faces/hands, foreground ceramic pitcher and cup, central cups/teapot/food plate, glass flower vase with visible stems, rear floral vase, all background table vessels, chairs, lamps, framed geometric decoration, foliage and windows. Ordinary cups and floral vessels have no alcohol evidence; no liquor wall, drinking intoxication or smoking. No nude or sexualized figure, skin-texture asset, tobacco/smoke, weapon, injury/gore, hateful/extremist mark, readable prohibited text, identifiable branding or watermark observed."
+      }
+    },
+    {
+      "path": "proposals/ac04-story-art/i09-b2-blackout-pilot-v3.png",
+      "absolutePath": "/Users/pelicannurse/Projects/test app/proposals/ac04-story-art/i09-b2-blackout-pilot-v3.png",
+      "sha256": "47b998af0d3d65fa7fcfce713058138cc037191786dd5d57fb1db9208b33737a",
+      "shot": "i09-b2",
+      "version": "pilot-v3 final PNG",
+      "expectedSha256": "47b998af0d3d65fa7fcfce713058138cc037191786dd5d57fb1db9208b33737a",
+      "hashMatches": true,
+      "dimensions": [
+        1672,
+        941
+      ],
+      "format": "PNG",
+      "inspection": {
+        "method": "view_image detail=original; exact existing final file",
+        "coverage": "Entire master including all visible figures, props, foreground and background; final pixels personally inspected independently of creator",
+        "nativeRuntimeEvidence": false
+      },
+      "facialComparisonToV2": "Leader retains the mature facial lines/nose/stubble of music. Daughter eyes are narrower, nose and lower face better differentiated, blush reduced; lowered gaze conveys concentration. Doorway boy has smaller eyes and remains a child. Painted facial modeling increases without photographic pores or photographic rendering.",
+      "preservationAndActions": "Radio remains bracketed by daughter hands in open satchel; torch points downward from separate leader; boy keeps door open beside continuous lit passage/steps. Same costume/hair identities and body staging.",
+      "narrativeContext": "Chapter9 beat2, with beats1/4 context: discovery before patrol and eventual escape. Radio is adaptation shorthand, not a source-authenticated device or proof of transmission. Still does not prove exit motion or a patrol encounter.",
+      "fidelityVerdict": "ACCEPT_FOR_LIMITED_THREE_SHOT_CINEMATIC_PILOT",
+      "safety": {
+        "reviewType": "Fresh independent exact-v3-file depicted-content review; v2 approvals not inherited",
+        "score": 10,
+        "strict10of10": true,
+        "verdict": "EXPLICIT_APPROVAL_10_OF_10_EXACT_FILE_DEPICTED_CONTENT_ONLY",
+        "unresolvedActualContentConcerns": [],
+        "findings": "Inspected all three clothed bodies, exposed ordinary faces/hands, shoes, radio speaker/dials/handle, satchel/straps/buckles, torch and light cone, background barrels/crates, masonry, floor, door/hinges/ring and distant steps/lamp/foliage. No weapon, explosive, attack instructions, nudity/sexualization, alcohol/tobacco/smoke, wound/body/gore, prohibited emblem, identifiable branding or readable text observed. Painted light flecks are not evidence of smoking."
+      }
+    },
+    {
+      "path": "proposals/ac04-story-art/i11-b2-memorial-pilot-v3.png",
+      "absolutePath": "/Users/pelicannurse/Projects/test app/proposals/ac04-story-art/i11-b2-memorial-pilot-v3.png",
+      "sha256": "76ae046c2872c355465ff3c8a0db2d1321daae461ba66caa717591c0099be9f6",
+      "shot": "i11-b2",
+      "version": "pilot-v3 final PNG",
+      "expectedSha256": "76ae046c2872c355465ff3c8a0db2d1321daae461ba66caa717591c0099be9f6",
+      "hashMatches": true,
+      "dimensions": [
+        1672,
+        941
+      ],
+      "format": "PNG",
+      "inspection": {
+        "method": "view_image detail=original; exact existing final file",
+        "coverage": "Entire master including all visible figures, props, foreground and background; final pixels personally inspected independently of creator",
+        "nativeRuntimeEvidence": false
+      },
+      "facialComparisonToV2": "Daughter now has a stronger nose bridge/tip, cheek and jaw planes and smaller eyelid openings; she is distinguishable as a young adult beside the boy. Boy remains school age with reduced eye roundness. Both keep restrained grief. Some stylized contours and warmth remain, but enlarged anime-like facial shorthand is sufficiently corrected for the limited pilot.",
+      "preservationAndActions": "Exactly two mourners retained. Daughter hands still place/contact folded cloth on disturbed soil; boy kneels with lowered gaze. Clothing/hair continuity, close detail framing and branching birches retained. No leader introduced.",
+      "narrativeContext": "Chapter11 beat2 explicitly has no body, only handkerchief. Small folded cloth, bare soil and two mourners fit symbolic burial; still does not prove movement or clock time.",
+      "fidelityVerdict": "ACCEPT_FOR_LIMITED_THREE_SHOT_CINEMATIC_PILOT",
+      "safety": {
+        "reviewType": "Fresh independent exact-v3-file depicted-content review; v2 approvals not inherited",
+        "score": 10,
+        "strict10of10": true,
+        "verdict": "EXPLICIT_APPROVAL_10_OF_10_EXACT_FILE_DEPICTED_CONTENT_ONLY",
+        "unresolvedActualContentConcerns": [],
+        "findings": "Inspected both appropriately clothed figures, normal exposed faces/hands/forearms, cloth folds/contact, soil, foliage/roots/leaves, all visible tree trunks and branches and lower garment/shoe portions. No corpse or body-shaped shroud, coffin, gore/injury, self-harm, sexualization/nudity, skin-texture asset, alcohol/tobacco/smoke, weapon, prohibited symbol, text/logo/watermark observed. Quiet fictional bereavement is not graphic death or encouragement of despair."
+      }
+    }
+  ],
+  "v2ComparisonsActuallyViewed": [
+    {
+      "path": "proposals/ac04-story-art/i03-b3-music-pilot-v2.png",
+      "absolutePath": "/Users/pelicannurse/Projects/test app/proposals/ac04-story-art/i03-b3-music-pilot-v2.png",
+      "sha256": "03626b4a04130354b8d47cef5aa33b7df5da3685bd7e906e0d5ddf1c54ec7b9d",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "viewed": "view_image detail=original; v2 comparison only, not transferred safety approval"
+    },
+    {
+      "path": "proposals/ac04-story-art/i09-b2-blackout-pilot-v2.png",
+      "absolutePath": "/Users/pelicannurse/Projects/test app/proposals/ac04-story-art/i09-b2-blackout-pilot-v2.png",
+      "sha256": "2ceee43657d0539219806334895bea1805d2e093e98bb6bb1c413e3240538a5f",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "viewed": "view_image detail=original; v2 comparison only, not transferred safety approval"
+    },
+    {
+      "path": "proposals/ac04-story-art/i11-b2-memorial-pilot-v2.png",
+      "absolutePath": "/Users/pelicannurse/Projects/test app/proposals/ac04-story-art/i11-b2-memorial-pilot-v2.png",
+      "sha256": "f9a691f0e0ffd3d0620f410fcf757c96320e6c29742d96b6b3d04ba3a6e70f58",
+      "dimensions": [
+        1672,
+        941
+      ],
+      "viewed": "view_image detail=original; v2 comparison only, not transferred safety approval"
+    }
+  ],
+  "referenceFramesActuallyViewed": [
+    {
+      "path": "docs/evidence/ac04-story-reference-review/sb2_5.jpg",
+      "absolutePath": "/Users/pelicannurse/Projects/test app/docs/evidence/ac04-story-reference-review/sb2_5.jpg",
+      "sha256": "3b32153f281b06b4f8b9f01be1e972a7d5064189bf98f36515f1dbaf3251eb22",
+      "dimensions": [
+        600,
+        450
+      ],
+      "viewed": "view_image detail=original",
+      "observed": "Music: populated room, guitar/harmonica, warm selective illumination and deep dark masses; naturally proportioned illustrated figures."
+    },
+    {
+      "path": "docs/evidence/ac04-story-reference-review/sb2_50.jpg",
+      "absolutePath": "/Users/pelicannurse/Projects/test app/docs/evidence/ac04-story-reference-review/sb2_50.jpg",
+      "sha256": "65df6ca93c84f97fd5b41f275b15ef19935a63eaf13447293cd38d4e72fdef36",
+      "dimensions": [
+        600,
+        450
+      ],
+      "viewed": "view_image detail=original",
+      "observed": "Actual blackout sheet: dark street/car/torch discovery and open passage. Not sb2_53 gameplay; radio is not authenticated by this sheet."
+    },
+    {
+      "path": "docs/evidence/ac04-story-reference-review/sb2_65.jpg",
+      "absolutePath": "/Users/pelicannurse/Projects/test app/docs/evidence/ac04-story-reference-review/sb2_65.jpg",
+      "sha256": "02f2d918178d73809dd5538a161a6fa2c096666c12e5df3503785549273f0d16",
+      "dimensions": [
+        600,
+        450
+      ],
+      "viewed": "view_image detail=original",
+      "observed": "Memorial: pale branching birch canopy, deep grove and small mourners/earth focus. Supports restrained composition; does not require the adaptation detail beat to be equally wide."
+    }
+  ],
+  "referenceLimits": "Correct sheets sb2_5 music, sb2_50 blackout, sb2_65 memorial personally viewed at original detail. 120×90 tiles within600×450 sheets support broad naturalistic illustration/value/composition direction, not exact likeness, brush matching, costume authentication, original timing or native UI. Radio is adaptation shorthand, not authenticated by blackout sheet. No research pixels packaged.",
+  "findings": [
+    {
+      "id": "V2-FIDELITY-001",
+      "status": "SUFFICIENTLY_RESOLVED_FOR_LIMITED_PILOT",
+      "finding": "All three reduce enlarged round eyes/iris emphasis and pink youthful shorthand. Mature leader lines/stubble, stronger daughter nose/jaw planes and preserved child identity provide convincing adult differentiation. Residual stylization is compatible with painted direction; no requirement for photographic rendering or exact reference likeness."
+    },
+    {
+      "id": "V3-REGRESSION-001",
+      "status": "NO_CONCRETE_REGRESSION_FOUND",
+      "finding": "All three retain compositions, focal action, safe props and adapted costume/hair identities. Imagegen incidental marks differ, so pixel-identical preservation is not claimed. Main facial modeling is stronger; broad matte environments remain. No new prop/figure/content concern observed."
+    },
+    {
+      "id": "V2-STYLE-002",
+      "status": "OPTIONAL_ONLY",
+      "finding": "Darker music masses, masonry/foliage flattening, exact torch pool, wider memorial or alternative brush texture remain optional aesthetic choices; none is imposed as a new acceptance gate from tiny reference tiles."
+    }
+  ],
+  "policiesActuallyBrowsed": [
+    {
+      "url": "https://www.roblox.com/termsofuse",
+      "read": "Required official entry opened; redirect destination inspected."
+    },
+    {
+      "url": "https://en.help.roblox.com/hc/en-us/articles/115004647846-Roblox-Terms-of-Use",
+      "read": "HTML effective November1,2026 confirmed future relative to October27 Pacific/October28 UTC audit; not applied as current."
+    },
+    {
+      "url": "https://en.help.roblox.com/hc/th/article_attachments/47741686745236",
+      "read": "Official83-page English PDF freshly opened: May19,2026 effective date. Introduction/Community Standards applicability, Creator UGC ownership/license and moderation/IP responsibilities inspected; this is dated baseline and not rights clearance."
+    },
+    {
+      "url": "https://en.help.roblox.com/hc/en-us/articles/203313410-Roblox-Community-Standards/",
+      "read": "Required entry opened and moved notice followed."
+    },
+    {
+      "url": "https://about.roblox.com/community-standards",
+      "read": "Child exploitation, extremism/harassment, self-harm, sensitive events, violence/gore, romantic/sexual content, regulated goods/alcohol/tobacco, profanity and IP provisions inspected. Ordinary vessels assessed from visible evidence."
+    },
+    {
+      "url": "https://en.help.roblox.com/hc/en-us/articles/15869919570708-Age-Restricted-Content-on-Roblox",
+      "read": "Linked restricted policy inspected for violence, sexual content, alcohol and prohibited smoking paraphernalia. No restricted-content exception relied on and no experience rating determined."
+    },
+    {
+      "url": "https://create.roblox.com/docs/marketplace/marketplace-policy",
+      "read": "General creation and avatar modesty/body context inspected. Avatar marketplace-specific requirements do not turn these clothed raster scenes into avatar/skin-texture submissions."
+    }
+  ],
+  "termsDateAssessment": "May19,2026 official PDF is current dated baseline located; November1 HTML terms are future-effective at this audit. Community Standards and linked policy pages freshly consulted as served.",
+  "verdict": {
+    "fidelity": "ACCEPT for LIMITED THREE-SHOT cinematic pilot only; focused facial finding sufficiently corrected. No mandatory composition/background/brush/torch redesign.",
+    "safety": "EXPLICIT10/10 approval for each exact v3 PNG listed, fresh independent depicted-content review, zero unresolved actual content concerns.",
+    "nextAction": "Next: arrange the limited three-shot cinematic integration/test after the current UI owner releases or explicitly hands over the single Studio/build lease. Use full-image contain/letterbox and the chosen external caption band; inspect actual native caption/action visibility, quiet/transient chrome, tint, lifecycle and transitions at representative viewports. Preserve the other45 shots and do not begin bulk48 art production from this verdict. Any modified image hash requires fresh independent depicted-content safety review. This review grants no automatic upload authorization.",
+    "runtime": "UNVERIFIED: standalone pixels establish no native caption/device/reduced-size readability, timing, transitions, audio, input or Player quality.",
+    "publication": "Local unintegrated/unmerged/unuploaded proposals unchanged. No Player availability change. Owner gameplay merge-means-live convention retained without extra receipt/Player gate.",
+    "safetyLimits": "Project maximum depicted-content judgment only; not automatic upload authorization, whole-experience compliance, legal/IP clearance, maturity rating or a guarantee against moderation, bans or future policy changes. These illustrations are not Blender exports. Revisions need fresh exact-file review."
+  },
+  "humanDocumentReadSnapshots": [
+    {
+      "path": "docs/human/taste.html",
+      "absolutePath": "/Users/pelicannurse/Projects/test app/docs/human/taste.html",
+      "sha256": "931c94bbac90f7c93c4e3be9e7e8c0f31f2dd3d03523dfaf62a5e7a0d966f3e5",
+      "ownership": "Parent; not edited"
+    },
+    {
+      "path": "docs/human/plan.html",
+      "absolutePath": "/Users/pelicannurse/Projects/test app/docs/human/plan.html",
+      "sha256": "7a028399522554ff9d96c79d311f3c4155de9c3495c064c65cf3f5a3b5c9be96",
+      "ownership": "Parent; not edited"
+    },
+    {
+      "path": "docs/human/status.html",
+      "absolutePath": "/Users/pelicannurse/Projects/test app/docs/human/status.html",
+      "sha256": "361a1eb548f7383557cd509b95b4e5d437eec36acd284b9458b677b8448ba95c",
+      "ownership": "Parent; not edited"
+    },
+    {
+      "path": "docs/human/playtest.html",
+      "absolutePath": "/Users/pelicannurse/Projects/test app/docs/human/playtest.html",
+      "sha256": "40846e07c91925376f7af6506413f9be3df09d6d9de7be5ed1ef95abdfd3ccc2",
+      "ownership": "Parent; not edited"
+    }
+  ],
+  "humanDocPayloads": {
+    "taste.html": {
+      "replaceTargets": [
+        "story-art-pilots-current pending-review paragraph",
+        "story-independent-r3 next-priorities sentence requiring fresh v3 review",
+        "any repeated current v3 pending-review/no-current-safety-approval claims",
+        "STORY-LOOK-002 status/choice/reason",
+        "STORY-ART-PILOT-001 continuity status",
+        "STORY-ART-PILOT-003 safety status",
+        "next art action after pilot section"
+      ],
+      "exactCurrentReviewPayload": "Fresh independent v3 review is complete. All three exact 1672×941 PNG hashes match the creator manifest and each independently receives explicit 10/10 depicted-content safety approval with zero unresolved actual content concerns. Smaller less rounded eyes, reduced blush and stronger adult nose/jaw planes sufficiently address V2-FIDELITY-001 for a limited three-shot cinematic pilot. Leader reads as mature, daughter as a young adult, and boy remains school age. Safe café props, recurring clothing/identities, guitar/harmonica, radio/satchel/doorway and two-mourner cloth/earth actions are preserved without a composition remake. No concrete regression found. This is acceptance for the limited pilot only, not all48 or final game fidelity approval. No native captions, reduced-size/device readability, timing, audio or Player quality is established. Files remain local, unintegrated, unmerged and unuploaded; Player availability is unchanged. See ../reviews/ac04-story-art-pilot-v3-independent-61.json.",
+      "exactNextActionPayload": "Next: arrange the limited three-shot cinematic integration/test after the current UI owner releases or explicitly hands over the single Studio/build lease. Use full-image contain/letterbox and the chosen external caption band; inspect actual native caption/action visibility, quiet/transient chrome, tint, lifecycle and transitions at representative viewports. Preserve the other45 shots and do not begin bulk48 art production from this verdict. Any modified image hash requires fresh independent depicted-content safety review. This review grants no automatic upload authorization.",
+      "decisionPayloads": {
+        "STORY-LOOK-002": "Status: v3 independently accepted for limited three-shot cinematic pilot. Choice: retain broad matte painted direction, compositions and naturalistic facial correction. Smaller eye openings, reduced blush and differentiated adult nose/jaw planes address V2-FIDELITY-001. Alternatives considered: accept v2 unchanged; remake compositions; return to photorealism; insist on exact source likeness from tiny tiles. Reason: v3 resolves the actionable shared facial mismatch while preserving successful staging and safe props. V2 correction request remains historical; no final-game or bulk48 acceptance.",
+        "STORY-ART-PILOT-001": "Status: continuity preserved in independently inspected v3 masters. Leader silver hair/mustard scarf/olive coat, daughter blonde bob/rust cardigan/cream blouse/long skirt, boy brown tailored jacket/cream shirt/vest/long trousers remain recognizable. Some garments are occluded; no perfect likeness claim.",
+        "STORY-ART-PILOT-003": "Status: all three exact v3 hashes freshly and independently safety-approved 10/10 for depicted content only; no unresolved actual content concerns. Nonalcoholic café cups/teapot/food/floral vessels retained. Alternative: restore bottle/bar cues. Reason: preserve communal music without alcohol/tobacco/smoke. V2 approvals are historical and were not transferred. No automatic upload authorization, rights clearance or moderation guarantee."
+      },
+      "noChangeReason": "STORY-ART-PILOT-002 contain/external-caption choice unchanged; its native readability remains untested. Preserve old v1/v2 and87d17771 evidence as version-scoped history.",
+      "ownership": "Parent owns HTML writes; reviewer did not edit. Exact payloads supplied but not applied."
+    },
+    "plan.html": {
+      "replaceTargets": [
+        "story-art-pilots-current pending-review paragraph",
+        "story-independent-r3 next-priorities sentence requiring fresh v3 review",
+        "any repeated current v3 pending-review/no-current-safety-approval claims",
+        "Next: review v3, then limited cinematic testing heading and paragraph",
+        "priority-one independent-v3-review clause",
+        "Active ownership and build order awaiting fresh review clause"
+      ],
+      "exactHeadingPayload": "Next: limited three-shot cinematic integration and native review",
+      "exactNextActionPayload": "Next: arrange the limited three-shot cinematic integration/test after the current UI owner releases or explicitly hands over the single Studio/build lease. Use full-image contain/letterbox and the chosen external caption band; inspect actual native caption/action visibility, quiet/transient chrome, tint, lifecycle and transitions at representative viewports. Preserve the other45 shots and do not begin bulk48 art production from this verdict. Any modified image hash requires fresh independent depicted-content safety review. This review grants no automatic upload authorization.",
+      "exactOwnershipClause": "The v3 exact-file review is complete: facial correction accepted for the limited three-shot pilot and all three exact hashes freshly safety-approved 10/10 for depicted content only. Pilots remain outside active source. The current UI/native owner retains the single Studio/build lease; schedule story integration only through an explicit handover.",
+      "completedWorkDestination": "Move completed v3 hash/pixel/reference/policy review evidence into status.html; link the v3 independent report. Keep this plan forward-looking.",
+      "noChangeReason": "Other UI/world/gameplay queues and publication rules unchanged.",
+      "ownership": "Parent owns HTML writes; reviewer did not edit. Exact payloads supplied but not applied."
+    },
+    "status.html": {
+      "replaceTargets": [
+        "story-art-pilots-current pending-review paragraph",
+        "story-independent-r3 next-priorities sentence requiring fresh v3 review",
+        "any repeated current v3 pending-review/no-current-safety-approval claims",
+        "current-decisions priority-one independent-v3-review clause"
+      ],
+      "exactCurrentReviewPayload": "Fresh independent v3 review is complete. All three exact 1672×941 PNG hashes match the creator manifest and each independently receives explicit 10/10 depicted-content safety approval with zero unresolved actual content concerns. Smaller less rounded eyes, reduced blush and stronger adult nose/jaw planes sufficiently address V2-FIDELITY-001 for a limited three-shot cinematic pilot. Leader reads as mature, daughter as a young adult, and boy remains school age. Safe café props, recurring clothing/identities, guitar/harmonica, radio/satchel/doorway and two-mourner cloth/earth actions are preserved without a composition remake. No concrete regression found. This is acceptance for the limited pilot only, not all48 or final game fidelity approval. No native captions, reduced-size/device readability, timing, audio or Player quality is established. Files remain local, unintegrated, unmerged and unuploaded; Player availability is unchanged. See ../reviews/ac04-story-art-pilot-v3-independent-61.json.",
+      "exactNextActionPayload": "Next: arrange the limited three-shot cinematic integration/test after the current UI owner releases or explicitly hands over the single Studio/build lease. Use full-image contain/letterbox and the chosen external caption band; inspect actual native caption/action visibility, quiet/transient chrome, tint, lifecycle and transitions at representative viewports. Preserve the other45 shots and do not begin bulk48 art production from this verdict. Any modified image hash requires fresh independent depicted-content safety review. This review grants no automatic upload authorization.",
+      "evidenceLink": "../reviews/ac04-story-art-pilot-v3-independent-61.json",
+      "retainHistoricalEvidence": "Keep v2 safety approval plus V2-FIDELITY-001 as v2 history, and original87d17771 diorama rejection as that candidate history. Existing597/62 and546/58 test claims belong to their recorded UI/gameplay candidates, not this art review.",
+      "noChangeReason": "Overall beta readiness, UI and later-mission acceptance unchanged; no tests/builds or Player observations added.",
+      "ownership": "Parent owns HTML writes; reviewer did not edit. Exact payloads supplied but not applied."
+    },
+    "playtest.html": {
+      "replaceTargets": [
+        "story-art-pilots-current pending-review paragraph",
+        "story-independent-r3 next-priorities sentence requiring fresh v3 review",
+        "any repeated current v3 pending-review/no-current-safety-approval claims"
+      ],
+      "exactCurrentReviewPayload": "Fresh independent v3 review is complete. All three exact 1672×941 PNG hashes match the creator manifest and each independently receives explicit 10/10 depicted-content safety approval with zero unresolved actual content concerns. Smaller less rounded eyes, reduced blush and stronger adult nose/jaw planes sufficiently address V2-FIDELITY-001 for a limited three-shot cinematic pilot. Leader reads as mature, daughter as a young adult, and boy remains school age. Safe café props, recurring clothing/identities, guitar/harmonica, radio/satchel/doorway and two-mourner cloth/earth actions are preserved without a composition remake. No concrete regression found. This is acceptance for the limited pilot only, not all48 or final game fidelity approval. No native captions, reduced-size/device readability, timing, audio or Player quality is established. Files remain local, unintegrated, unmerged and unuploaded; Player availability is unchanged. See ../reviews/ac04-story-art-pilot-v3-independent-61.json. These local proposals change no Player mission or story-shot availability. Gameplay PRs merged to main are live through automatic CI/CD under the owner convention; this review adds no receipt or Player-test prerequisite. Version63/PR90 remains last-known supporting metadata, not a newly observed release.",
+      "exactNextActionPayload": "Next: arrange the limited three-shot cinematic integration/test after the current UI owner releases or explicitly hands over the single Studio/build lease. Use full-image contain/letterbox and the chosen external caption band; inspect actual native caption/action visibility, quiet/transient chrome, tint, lifecycle and transitions at representative viewports. Preserve the other45 shots and do not begin bulk48 art production from this verdict. Any modified image hash requires fresh independent depicted-content safety review. This review grants no automatic upload authorization.",
+      "noChangeReason": "Preserve official game link, merged gameplay revision/PR list, all18 mission construction/availability reports and mechanics/UI published-vs-local distinctions. No gameplay merge/upload or publication verification performed here; parent personally owns publication reconciliation.",
+      "ownership": "Parent owns HTML writes; reviewer did not edit. Exact payloads supplied but not applied."
+    }
+  },
+  "documentationContradictions": [
+    "All four now contain current v3 review-pending language that becomes stale on completion; replace repeated occurrences rather than append conflicting approval.",
+    "taste STORY-LOOK-002, STORY-ART-PILOT-003 and plan ownership/priority clauses also require reconciliation.",
+    "story-independent-r3 repeated next-priority fresh-v3-review sentence is stale in all four; keep the87d17771 rejection itself historical and unchanged.",
+    "Do not report limited pilot acceptance or safety approval as native presentation, all48 approval, upload or Player release. No new release audit performed."
+  ],
+  "parentWriteReminder": "Payloads are not applied. Parent must reconcile all four affected HTML documents before calling documentation current.",
+  "writes": [
+    "docs/reviews/ac04-story-art-pilot-v3-independent-61.json"
+  ]
+}

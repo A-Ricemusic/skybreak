@@ -1,0 +1,1321 @@
+{
+ "generatedBy": "bun tools/ac04-voice-lines.ts",
+ "source": "src/shared/ac04/AC04Story.ts",
+ "sourceSha256": "06a870d7a6cdd6484d1893daa865b2639a6fd8ba200c94ddf3628e018a19ce9e",
+ "lines": [
+  {
+   "id": "ac04.story.i01.b00",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "Before the war, adults spoke about the sky as something that might fall on us. Ulysses had taught them that. The great guns were meant to keep it above our heads.",
+   "spoken": "Before the war, adults spoke about the sky as something that might fall on us. Ulysses had taught them that. The great guns were meant to keep it above our heads."
+  },
+  {
+   "id": "ac04.story.i01.b01",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "Then those guns belonged to an army. I understood little of armies. I understood the path to school, the bend by the cape, and the house waiting for me afterward.",
+   "spoken": "Then those guns belonged to an army. I understood little of armies. I understood the path to school, the bend by the cape, and the house waiting for me afterward."
+  },
+  {
+   "id": "ac04.story.i01.b02",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "That morning I stopped to watch two fighters turning overhead. One began to burn. For a moment its trail seemed almost beautiful. Then I saw where it was going.",
+   "spoken": "That morning I stopped to watch two fighters turning overhead. One began to burn. For a moment its trail seemed almost beautiful. Then I saw where it was going."
+  },
+  {
+   "id": "ac04.story.i01.b03",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "There was no house to return to. No family inside it. The other aircraft passed low enough for me to see a yellow thirteen. I kept that number when almost everything else was gone.",
+   "spoken": "There was no house to return to. No family inside it. The other aircraft passed low enough for me to see a yellow thirteen. I kept that number when almost everything else was gone."
+  },
+  {
+   "id": "ac04.story.i02.b00",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "Occupation arrived in small changes before I understood the large one. Different words at school. Unfamiliar uniforms at the corners. Neighbors speaking softly when footsteps approached.",
+   "spoken": "Occupation arrived in small changes before I understood the large one. Different words at school. Unfamiliar uniforms at the corners. Neighbors speaking softly when footsteps approached."
+  },
+  {
+   "id": "ac04.story.i02.b01",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "My uncle took me in. Without fuel his taxi stood still, and he spent longer over a drink than he ever had behind the wheel. We needed money neither of us knew how to earn.",
+   "spoken": "My uncle took me in. Without fuel his taxi stood still, and he spent longer over a drink than he ever had behind the wheel. We needed money neither of us knew how to earn."
+  },
+  {
+   "id": "ac04.story.i02.b02",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "At the Sky Kid bar, I played my harmonica. The soldiers left coins. My uncle disliked where the money came from, but hunger was less particular.",
+   "spoken": "At the Sky Kid bar, I played my harmonica. The soldiers left coins. My uncle disliked where the money came from, but hunger was less particular."
+  },
+  {
+   "id": "ac04.story.i02.b03",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "The barkeeper's daughter was older than me. Her kindness made the room feel less foreign. Even there, I listened for aircraft, wondering when that yellow number would return.",
+   "spoken": "The barkeeper's daughter was older than me. Her kindness made the room feel less foreign. Even there, I listened for aircraft, wondering when that yellow number would return."
+  },
+  {
+   "id": "ac04.story.i03.b00",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "The pilots entered together, filling the bar with noise and stories of the day's fighting. I watched their patches and tried to decide which face belonged to the number I remembered.",
+   "spoken": "The pilots entered together, filling the bar with noise and stories of the day's fighting. I watched their patches and tried to decide which face belonged to the number I remembered."
+  },
+  {
+   "id": "ac04.story.i03.b01",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "Their leader sat apart with a guitar. When someone announced his victories, the others turned toward him. Yellow Thirteen looked much quieter than the man I had imagined.",
+   "spoken": "Their leader sat apart with a guitar. When someone announced his victories, the others turned toward him. Yellow Thirteen looked much quieter than the man I had imagined."
+  },
+  {
+   "id": "ac04.story.i03.b02",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "He noticed my harmonica and made room in the music for me. I had prepared accusations for this meeting. Instead, I found myself breathing in time with his playing.",
+   "spoken": "He noticed my harmonica and made room in the music for me. I had prepared accusations for this meeting. Instead, I found myself breathing in time with his playing."
+  },
+  {
+   "id": "ac04.story.i03.b03",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "My father had loved that melody. Hearing it there did not excuse anything. It only made it impossible to fit the man across from me into the simple shape of my hatred.",
+   "spoken": "My father had loved that melody. Hearing it there did not excuse anything. It only made it impossible to fit the man across from me into the simple shape of my hatred."
+  },
+  {
+   "id": "ac04.story.i04.b00",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "An unfinished highway beyond town had become their runway. Aircraft slept near tunnels that had never carried traffic. Wheat still moved beside the concrete, indifferent to the uniforms.",
+   "spoken": "An unfinished highway beyond town had become their runway. Aircraft slept near tunnels that had never carried traffic. Wheat still moved beside the concrete, indifferent to the uniforms."
+  },
+  {
+   "id": "ac04.story.i04.b01",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "Thirteen's squadron guarded Stonehenge. As the fighting moved farther away, they followed it. Five aircraft would climb out together, and he wanted five to return.",
+   "spoken": "Thirteen's squadron guarded Stonehenge. As the fighting moved farther away, they followed it. Five aircraft would climb out together, and he wanted five to return."
+  },
+  {
+   "id": "ac04.story.i04.b02",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "Four was his wingman. Quiet on the ground, precise in the air, she watched over him so carefully that the conversation I had imagined never seemed possible.",
+   "spoken": "Four was his wingman. Quiet on the ground, precise in the air, she watched over him so carefully that the conversation I had imagined never seemed possible."
+  },
+  {
+   "id": "ac04.story.i04.b03",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "He spoke of skilled opponents without contempt. I came to understand that he cared more about bringing his pilots home than adding another victory. Somewhere among those evenings, their company became a place I belonged.",
+   "spoken": "He spoke of skilled opponents without contempt. I came to understand that he cared more about bringing his pilots home than adding another victory. Somewhere among those evenings, their company became a place I belonged."
+  },
+  {
+   "id": "ac04.story.i05.b00",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "One day my uncle did not come back. I never learned whether he had left by choice. In an occupied town, an unanswered question could remain unanswered for the rest of your life.",
+   "spoken": "One day my uncle did not come back. I never learned whether he had left by choice. In an occupied town, an unanswered question could remain unanswered for the rest of your life."
+  },
+  {
+   "id": "ac04.story.i05.b01",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "The squadron gave my days a shape. Meals, music, departures, returns. I had lost one home and drifted into another without deciding what that made me.",
+   "spoken": "The squadron gave my days a shape. Meals, music, departures, returns. I had lost one home and drifted into another without deciding what that made me."
+  },
+  {
+   "id": "ac04.story.i05.b02",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "Then I discovered what happened above the bar. The barkeeper's family listened to the soldiers for more than conversation. Information moved from that room to the resistance.",
+   "spoken": "Then I discovered what happened above the bar. The barkeeper's family listened to the soldiers for more than conversation. Information moved from that room to the resistance."
+  },
+  {
+   "id": "ac04.story.i05.b03",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "People called him a collaborator downstairs. Upstairs he risked everything against the occupation. His daughter protected my secret as well as theirs. I was grateful, and ashamed that gratitude was not simpler.",
+   "spoken": "People called him a collaborator downstairs. Upstairs he risked everything against the occupation. His daughter protected my secret as well as theirs. I was grateful, and ashamed that gratitude was not simpler."
+  },
+  {
+   "id": "ac04.story.i06.b00",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "The daughter began listening to the news with a different expression. The Allies were preparing to return. She pictured the town free again; I pictured the empty chairs they would leave behind.",
+   "spoken": "The daughter began listening to the news with a different expression. The Allies were preparing to return. She pictured the town free again; I pictured the empty chairs they would leave behind."
+  },
+  {
+   "id": "ac04.story.i06.b01",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "Her feelings for Thirteen made that freedom harder to imagine. Four remained beside him, trusted without explanation. I was young enough to notice jealousy before I understood it.",
+   "spoken": "Her feelings for Thirteen made that freedom harder to imagine. Four remained beside him, trusted without explanation. I was young enough to notice jealousy before I understood it."
+  },
+  {
+   "id": "ac04.story.i06.b02",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "Thirteen's attention was somewhere above us. A pilot he had encountered was improving. He spoke about that enemy with the concentration he usually reserved for his own aircraft.",
+   "spoken": "Thirteen's attention was somewhere above us. A pilot he had encountered was improving. He spoke about that enemy with the concentration he usually reserved for his own aircraft."
+  },
+  {
+   "id": "ac04.story.i06.b03",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "I wondered why finding someone who might defeat him seemed to restore his spirits. At the time I thought every pilot wanted to be invincible. He seemed to want something more difficult.",
+   "spoken": "I wondered why finding someone who might defeat him seemed to restore his spirits. At the time I thought every pilot wanted to be invincible. He seemed to want something more difficult."
+  },
+  {
+   "id": "ac04.story.i07.b00",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "Bombs began arriving at the base. The front was drawing nearer, and the squadron was being asked to fight a different war.",
+   "spoken": "Bombs began arriving at the base. The front was drawing nearer, and the squadron was being asked to fight a different war."
+  },
+  {
+   "id": "ac04.story.i07.b01",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "Then the resistance struck the runway. Four was wounded. The concrete could be repaired, but the lost supplies could not simply be summoned. The mechanics had already learned to wait for parts that did not arrive.",
+   "spoken": "Then the resistance struck the runway. Four was wounded. The concrete could be repaired, but the lost supplies could not simply be summoned. The mechanics had already learned to wait for parts that did not arrive."
+  },
+  {
+   "id": "ac04.story.i07.b02",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "Thirteen feared being trapped on the ground. Flying at least allowed him to answer danger with his own hands. I could understand that, though the people beyond the fence had no such choice.",
+   "spoken": "Thirteen feared being trapped on the ground. Flying at least allowed him to answer danger with his own hands. I could understand that, though the people beyond the fence had no such choice."
+  },
+  {
+   "id": "ac04.story.i07.b03",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "When the alarm came from Stonehenge, Four went with them. Her aircraft needed work there had been no time or equipment to finish. I watched her take off, as I had so many times before.",
+   "spoken": "When the alarm came from Stonehenge, Four went with them. Her aircraft needed work there had been no time or equipment to finish. I watched her take off, as I had so many times before."
+  },
+  {
+   "id": "ac04.story.i08.b00",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "Four's place stayed empty. Thirteen spoke of inspections and responsibility, of the condition of her aircraft. Those were things a pilot could explain. Her absence was something else.",
+   "spoken": "Four's place stayed empty. Thirteen spoke of inspections and responsibility, of the condition of her aircraft. Those were things a pilot could explain. Her absence was something else."
+  },
+  {
+   "id": "ac04.story.i08.b01",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "Once I found him holding her handkerchief. He told me about the girl she had been before he taught her to fly. I listened because he needed someone there, not because he expected an answer.",
+   "spoken": "Once I found him holding her handkerchief. He told me about the girl she had been before he taught her to fly. I listened because he needed someone there, not because he expected an answer."
+  },
+  {
+   "id": "ac04.story.i08.b02",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "Experienced pilots left to strengthen other units. New faces took their places. The formation still had five aircraft, but I no longer believed that a number could promise anything.",
+   "spoken": "Experienced pilots left to strengthen other units. New faces took their places. The formation still had five aircraft, but I no longer believed that a number could promise anything."
+  },
+  {
+   "id": "ac04.story.i08.b03",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "He displayed a report praising the enemy who had destroyed Stonehenge. His respect was unmistakable. So was his anger at sabotage. Beside me, the daughter looked away. Our town was approaching liberation, and none of us knew how to meet it.",
+   "spoken": "He displayed a report praising the enemy who had destroyed Stonehenge. His respect was unmistakable. So was his anger at sabotage. Beside me, the daughter looked away. Our town was approaching liberation, and none of us knew how to meet it."
+  },
+  {
+   "id": "ac04.story.i09.b00",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "Retreating soldiers crowded the town. Guns appeared above the hospital. Thirteen objected, but the rooftops remained occupied. At night the blackout swallowed even familiar streets.",
+   "spoken": "Retreating soldiers crowded the town. Guns appeared above the hospital. Thirteen objected, but the rooftops remained occupied. At night the blackout swallowed even familiar streets."
+  },
+  {
+   "id": "ac04.story.i09.b01",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "The daughter was caught preparing another resistance attack. Thirteen found her before the patrol did. He understood now who had destroyed the runway, and who had been sitting beside him in the bar.",
+   "spoken": "The daughter was caught preparing another resistance attack. Thirteen found her before the patrol did. He understood now who had destroyed the runway, and who had been sitting beside him in the bar."
+  },
+  {
+   "id": "ac04.story.i09.b02",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "I told him to leave our town. The words came out harder than I expected. For once he looked as though someone had struck him. I could not explain that wanting him gone did not mean wanting him dead.",
+   "spoken": "I told him to leave our town. The words came out harder than I expected. For once he looked as though someone had struck him. I could not explain that wanting him gone did not mean wanting him dead."
+  },
+  {
+   "id": "ac04.story.i09.b03",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "He let us pass. The following day he returned to the work of keeping his aircraft flying. We returned to waiting for the blackout to end. Nothing between us had become simple, but he had given us a way out.",
+   "spoken": "He let us pass. The following day he returned to the work of keeping his aircraft flying. We returned to waiting for the blackout to end. Nothing between us had become simple, but he had given us a way out."
+  },
+  {
+   "id": "ac04.story.i10.b00",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "There was singing in the streets. For so long, voices had carried only as far as the next closed door. Now they crossed the square together.",
+   "spoken": "There was singing in the streets. For so long, voices had carried only as far as the next closed door. Now they crossed the square together."
+  },
+  {
+   "id": "ac04.story.i10.b01",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "The occupation's guns had fired through our streets during the battle. The town began gathering its prisoners and counting its losses. Freedom arrived with work still to do.",
+   "spoken": "The occupation's guns had fired through our streets during the battle. The town began gathering its prisoners and counting its losses. Freedom arrived with work still to do."
+  },
+  {
+   "id": "ac04.story.i10.b02",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "The squadron's rooms were empty. Allied aircraft passed overhead, and I wondered whether one carried the pilot Thirteen had been waiting for.",
+   "spoken": "The squadron's rooms were empty. Allied aircraft passed overhead, and I wondered whether one carried the pilot Thirteen had been waiting for."
+  },
+  {
+   "id": "ac04.story.i10.b03",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "I should have stayed in the town that was finally ours again. Instead I followed the retreat. There were people leaving whom I could not stop caring about, and a meeting in the sky I was afraid to imagine.",
+   "spoken": "I should have stayed in the town that was finally ours again. Instead I followed the retreat. There were people leaving whom I could not stop caring about, and a meeting in the sky I was afraid to imagine."
+  },
+  {
+   "id": "ac04.story.i11.b00",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "We had followed them to the end of the retreat. Above Farbanti, Thirteen met the opponent whose skill he had watched from a distance. This time he did not return.",
+   "spoken": "We had followed them to the end of the retreat. Above Farbanti, Thirteen met the opponent whose skill he had watched from a distance. This time he did not return."
+  },
+  {
+   "id": "ac04.story.i11.b01",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "The daughter and I had no body to bury. There was only the handkerchief, and all the things a small piece of cloth could suddenly mean.",
+   "spoken": "The daughter and I had no body to bury. There was only the handkerchief, and all the things a small piece of cloth could suddenly mean."
+  },
+  {
+   "id": "ac04.story.i11.b02",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "I could not separate his memory from Four's. A guitar in a crowded room. Aircraft lifting from the highway. The way an ordinary evening becomes precious only after there can be no more of them.",
+   "spoken": "I could not separate his memory from Four's. A guitar in a crowded room. Aircraft lifting from the highway. The way an ordinary evening becomes precious only after there can be no more of them."
+  },
+  {
+   "id": "ac04.story.i11.b03",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "That day the surrender was accepted. Maps and broadcasts could call it an ending. Beside that little grave, we had no words large enough for one.",
+   "spoken": "That day the surrender was accepted. Maps and broadcasts could call it an ending. Beside that little grave, we had no words large enough for one."
+  },
+  {
+   "id": "ac04.story.i12.b00",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "The highway carries traffic now. Someone driving through could pass the place where the aircraft waited without noticing anything unusual. I sometimes envy them.",
+   "spoken": "The highway carries traffic now. Someone driving through could pass the place where the aircraft waited without noticing anything unusual. I sometimes envy them."
+  },
+  {
+   "id": "ac04.story.i12.b01",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "Years have made the memories quieter, but they have not arranged them into enemies on one side and friends on the other. The people I knew will not stay in those categories.",
+   "spoken": "Years have made the memories quieter, but they have not arranged them into enemies on one side and friends on the other. The people I knew will not stay in those categories."
+  },
+  {
+   "id": "ac04.story.i12.b02",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "Mobius One, you met Thirteen where I never could. I hope the last contest gave him something beyond the war that had taken so much from everyone. I cannot know whether it did.",
+   "spoken": "Mobius One, you met Thirteen where I never could. I hope the last contest gave him something beyond the war that had taken so much from everyone. I cannot know whether it did."
+  },
+  {
+   "id": "ac04.story.i12.b03",
+   "kind": "story",
+   "speaker": "THE STORYTELLER",
+   "voice": "JBFqnCBsd6RMkjVDRZzb",
+   "tape": false,
+   "text": "This letter cannot recover him, or ask you to undo what happened. I wanted you to know the man beneath that number, and the child who once listened to him play. What remains is yours to read.",
+   "spoken": "This letter cannot recover him, or ask you to undo what happened. I wanted you to know the man beneath that number, and the child who once listened to him play. What remains is yours to read."
+  },
+  {
+   "id": "ac04.radio.complete.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Objective confirmed. Maintain formation while we account for everyone.",
+   "spoken": "Objective confirmed. Maintain formation while we account for everyone."
+  },
+  {
+   "id": "ac04.radio.failure.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: We cannot complete the operation from this position. Disengage if able.",
+   "spoken": "We cannot complete the operation from this position. Disengage if able."
+  },
+  {
+   "id": "ac04.briefing.m01",
+   "kind": "briefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "Erusean bombers are approaching Newfield Island. Our retreat has left North Point exposed, and the damaged warning network gives us little time. Intercept the six Tu-95s before they reach the protected area. Escorts are secondary; a fighter kill is no substitute for stopping a bomber.",
+   "spoken": "Erusean bombers are approaching Newfield Island. Our retreat has left North Point exposed, and the damaged warning network gives us little time. Intercept the six Tu-95s before they reach the protected area. Escorts are secondary; a fighter kill is no substitute for stopping a bomber."
+  },
+  {
+   "id": "ac04.debriefing.m01",
+   "kind": "debriefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "The bomber formation has been destroyed. North Point remains secure for now. We must remove the forward airfield threat before another strike can be assembled.",
+   "spoken": "The bomber formation has been destroyed. North Point remains secure for now. We must remove the forward airfield threat before another strike can be assembled."
+  },
+  {
+   "id": "ac04.radio.m01.primary.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Mobius One, bomber tracks are marked. Keep your attention on the aircraft heading for the island.",
+   "spoken": "Mobius One, bomber tracks are marked. Keep your attention on the aircraft heading for the island."
+  },
+  {
+   "id": "ac04.radio.m01.primary.01",
+   "kind": "radio",
+   "speaker": "Omega",
+   "voice": "iP95p4xoKVk53GoZ742B",
+   "tape": false,
+   "text": "Omega: We've still got a headquarters to defend. Let's keep it that way.",
+   "spoken": "We've still got a headquarters to defend. Let's keep it that way."
+  },
+  {
+   "id": "ac04.radio.m01.event.bombersRemain.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Bomber contacts remain. Check the objective markers before pursuing escorts.",
+   "spoken": "Bomber contacts remain. Check the objective markers before pursuing escorts."
+  },
+  {
+   "id": "ac04.briefing.m02",
+   "kind": "briefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "Rigley Air Base is preparing the next attack on North Point. Strike the eleven bombers parked on its aprons. Expect fighters and anti-aircraft fire around the runway. Hit the designated aircraft while they are concentrated on the ground; optional installations must not distract from the bomber line.",
+   "spoken": "Rigley Air Base is preparing the next attack on North Point. Strike the eleven bombers parked on its aprons. Expect fighters and anti-aircraft fire around the runway. Hit the designated aircraft while they are concentrated on the ground; optional installations must not distract from the bomber line."
+  },
+  {
+   "id": "ac04.debriefing.m02",
+   "kind": "debriefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "The parked bomber force is eliminated. Rigley can no longer launch the planned mass strike. This gives our remaining forces time to consolidate.",
+   "spoken": "The parked bomber force is eliminated. Rigley can no longer launch the planned mass strike. This gives our remaining forces time to consolidate."
+  },
+  {
+   "id": "ac04.radio.m02.primary.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: The bomber parking areas are your priority. Watch the active runway.",
+   "spoken": "The bomber parking areas are your priority. Watch the active runway."
+  },
+  {
+   "id": "ac04.radio.m02.primary.01",
+   "kind": "radio",
+   "speaker": "Viper",
+   "voice": "cjVigY5qzO86Huf0OWal",
+   "tape": false,
+   "text": "Viper: Fighters are rolling. Don't let them pull you away from the strike.",
+   "spoken": "Fighters are rolling. Don't let them pull you away from the strike."
+  },
+  {
+   "id": "ac04.briefing.m03",
+   "kind": "briefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "The Shezna radar installations watch the routes our withdrawing forces need. Destroy all nine radar targets across the two mountain positions. Terrain masks some approaches but leaves little room for careless turns. When the network is down, withdraw across the southern return line.",
+   "spoken": "The Shezna radar installations watch the routes our withdrawing forces need. Destroy all nine radar targets across the two mountain positions. Terrain masks some approaches but leaves little room for careless turns. When the network is down, withdraw across the southern return line."
+  },
+  {
+   "id": "ac04.debriefing.m03",
+   "kind": "debriefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "The Shezna network is silent and our strike aircraft have cleared the area. The evacuation route is less exposed. The survivors reaching North Point will be needed for the counteroffensive.",
+   "spoken": "The Shezna network is silent and our strike aircraft have cleared the area. The evacuation route is less exposed. The survivors reaching North Point will be needed for the counteroffensive."
+  },
+  {
+   "id": "ac04.radio.m03.primary.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Radar groups lie on separate heights. Check both positions.",
+   "spoken": "Radar groups lie on separate heights. Check both positions."
+  },
+  {
+   "id": "ac04.radio.m03.primary.01",
+   "kind": "radio",
+   "speaker": "Rapier",
+   "voice": "IKne3meq5aSn9XLyUdCD",
+   "tape": false,
+   "text": "Rapier: We'll keep the fighters occupied. Take those dishes out.",
+   "spoken": "We'll keep the fighters occupied. Take those dishes out."
+  },
+  {
+   "id": "ac04.radio.m03.update.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Radar network disabled. Proceed south across the withdrawal boundary.",
+   "spoken": "Radar network disabled. Proceed south across the withdrawal boundary."
+  },
+  {
+   "id": "ac04.briefing.m04",
+   "kind": "briefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "Erusea is supplying Comberth through an air corridor. Intercept three C-17 transports to close it. Two airborne control aircraft support the route with jamming; destroying them will improve your sensor picture. Maintain a visual search when the radar becomes unreliable and prevent the transports from escaping.",
+   "spoken": "Erusea is supplying Comberth through an air corridor. Intercept three C-17 transports to close it. Two airborne control aircraft support the route with jamming; destroying them will improve your sensor picture. Maintain a visual search when the radar becomes unreliable and prevent the transports from escaping."
+  },
+  {
+   "id": "ac04.debriefing.m04",
+   "kind": "debriefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "The transport route has been cut. Comberth's forces must now depend more heavily on their local reserves. Our next strike will target those reserves directly.",
+   "spoken": "The transport route has been cut. Comberth's forces must now depend more heavily on their local reserves. Our next strike will target those reserves directly."
+  },
+  {
+   "id": "ac04.radio.m04.primary.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Three transports are moving through the corridor. The jamming originates from separate aircraft.",
+   "spoken": "Three transports are moving through the corridor. The jamming originates from separate aircraft."
+  },
+  {
+   "id": "ac04.radio.m04.primary.01",
+   "kind": "radio",
+   "speaker": "Halo",
+   "voice": "N2lVS1w4EtoT3dr4eOWO",
+   "tape": false,
+   "text": "Halo: I have visual contacts inside the interference. Don't trust an empty scope.",
+   "spoken": "I have visual contacts inside the interference. Don't trust an empty scope."
+  },
+  {
+   "id": "ac04.briefing.m05",
+   "kind": "briefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "Comberth's naval forces rely on the coastal refinery and offshore oil facilities. Inflict the required damage before the strike window closes. Plan a route between the two groups and preserve enough weapons and fuel margin to get home. Enemy reinforcements may force a withdrawal.",
+   "spoken": "Comberth's naval forces rely on the coastal refinery and offshore oil facilities. Inflict the required damage before the strike window closes. Plan a route between the two groups and preserve enough weapons and fuel margin to get home. Enemy reinforcements may force a withdrawal."
+  },
+  {
+   "id": "ac04.debriefing.m05",
+   "kind": "debriefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "The fuel strike has impaired the fleet's readiness. Yellow Squadron's arrival made withdrawal costly, but the surviving aircraft are clear. The harbor remains our next objective.",
+   "spoken": "The fuel strike has impaired the fleet's readiness. Yellow Squadron's arrival made withdrawal costly, but the surviving aircraft are clear. The harbor remains our next objective."
+  },
+  {
+   "id": "ac04.radio.m05.primary.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Work the refinery and offshore installations. Keep the return direction in mind.",
+   "spoken": "Work the refinery and offshore installations. Keep the return direction in mind."
+  },
+  {
+   "id": "ac04.radio.m05.primary.01",
+   "kind": "radio",
+   "speaker": "Omega",
+   "voice": "iP95p4xoKVk53GoZ742B",
+   "tape": false,
+   "text": "Omega: Those platforms are spread out. Pick your run before you commit.",
+   "spoken": "Those platforms are spread out. Pick your run before you commit."
+  },
+  {
+   "id": "ac04.radio.m05.update.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Yellow Squadron has entered the area. The return boundary has moved south. Break contact and withdraw.",
+   "spoken": "Yellow Squadron has entered the area. The return boundary has moved south. Break contact and withdraw."
+  },
+  {
+   "id": "ac04.radio.m05.update.01",
+   "kind": "radio",
+   "speaker": "Rapier",
+   "voice": "IKne3meq5aSn9XLyUdCD",
+   "tape": false,
+   "text": "Rapier: Five yellow-marked fighters. We are not staying here to trade turns with them.",
+   "spoken": "Five yellow-marked fighters. We are not staying here to trade turns with them."
+  },
+  {
+   "id": "ac04.briefing.m06",
+   "kind": "briefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "The Aegir Fleet is concentrated in Comberth Harbor. Attack the warships and supporting facilities until the required damage is achieved. The harbor has several target clusters, with aircraft and shipboard defenses covering the approaches. Use the return route to rearm when necessary, and distinguish hull targets from their weapons.",
+   "spoken": "The Aegir Fleet is concentrated in Comberth Harbor. Attack the warships and supporting facilities until the required damage is achieved. The harbor has several target clusters, with aircraft and shipboard defenses covering the approaches. Use the return route to rearm when necessary, and distinguish hull targets from their weapons."
+  },
+  {
+   "id": "ac04.debriefing.m06",
+   "kind": "debriefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "The fleet has lost its ability to threaten North Point. Our forces can prepare to return to the continent without that naval attack hanging over them. The war is still far from won.",
+   "spoken": "The fleet has lost its ability to threaten North Point. Our forces can prepare to return to the continent without that naval attack hanging over them. The war is still far from won."
+  },
+  {
+   "id": "ac04.radio.m06.primary.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Multiple harbor groups ahead. Select a sector and watch your ammunition.",
+   "spoken": "Multiple harbor groups ahead. Select a sector and watch your ammunition."
+  },
+  {
+   "id": "ac04.radio.m06.primary.01",
+   "kind": "radio",
+   "speaker": "Viper",
+   "voice": "cjVigY5qzO86Huf0OWal",
+   "tape": false,
+   "text": "Viper: Naval fire is heavy near the docks. Keep moving through your attack run.",
+   "spoken": "Naval fire is heavy near the docks. Keep moving through your attack run."
+  },
+  {
+   "id": "ac04.briefing.m07",
+   "kind": "briefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "Attack the designated command, radar and generation structures at Faith Park. This power complex supports Erusea's industrial strength. The route extends into Stonehenge's reach. Study the ravines south of the target before beginning the strike; they may be your only cover on withdrawal.",
+   "spoken": "Attack the designated command, radar and generation structures at Faith Park. This power complex supports Erusea's industrial strength. The route extends into Stonehenge's reach. Study the ravines south of the target before beginning the strike; they may be your only cover on withdrawal."
+  },
+  {
+   "id": "ac04.debriefing.m07",
+   "kind": "debriefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "Faith Park's key facilities are disabled. Stonehenge inflicted serious losses during the withdrawal. A mainland campaign cannot remain under that weapon's shadow indefinitely.",
+   "spoken": "Faith Park's key facilities are disabled. Stonehenge inflicted serious losses during the withdrawal. A mainland campaign cannot remain under that weapon's shadow indefinitely."
+  },
+  {
+   "id": "ac04.radio.m07.primary.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Three designated structures. Keep the ravine exits on your map.",
+   "spoken": "Three designated structures. Keep the ravine exits on your map."
+  },
+  {
+   "id": "ac04.radio.m07.primary.01",
+   "kind": "radio",
+   "speaker": "Halo",
+   "voice": "N2lVS1w4EtoT3dr4eOWO",
+   "tape": false,
+   "text": "Halo: Long way from the sea now. Let's finish the job and turn south.",
+   "spoken": "Long way from the sea now. Let's finish the job and turn south."
+  },
+  {
+   "id": "ac04.radio.m07.update.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Stonehenge fire detected. Descend below two thousand feet and use the ravines. Continue south.",
+   "spoken": "Stonehenge fire detected. Descend below two thousand feet and use the ravines. Continue south."
+  },
+  {
+   "id": "ac04.radio.m07.update.01",
+   "kind": "radio",
+   "speaker": "Omega",
+   "voice": "iP95p4xoKVk53GoZ742B",
+   "tape": false,
+   "text": "Omega: Get under the ridgeline. Stay with the canyon!",
+   "spoken": "Get under the ridgeline. Stay with the canyon!"
+  },
+  {
+   "id": "ac04.briefing.m08",
+   "kind": "briefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "A reconnaissance satellite will launch from the Comona Islands. Win the air battle above the complex and keep hostile aircraft from interrupting the launch. Expect a large fighter engagement and remain ready to intercept a bomber attack. The launch schedule determines how long we must hold this airspace.",
+   "spoken": "A reconnaissance satellite will launch from the Comona Islands. Win the air battle above the complex and keep hostile aircraft from interrupting the launch. Expect a large fighter engagement and remain ready to intercept a bomber attack. The launch schedule determines how long we must hold this airspace."
+  },
+  {
+   "id": "ac04.debriefing.m08",
+   "kind": "debriefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "The launch succeeded. Reconnaissance coverage will support our return to the mainland. Mobius One's performance is becoming known well beyond this formation.",
+   "spoken": "The launch succeeded. Reconnaissance coverage will support our return to the mainland. Mobius One's performance is becoming known well beyond this formation."
+  },
+  {
+   "id": "ac04.radio.m08.primary.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Comona launch control is counting on this air cover. Engage hostile fighters.",
+   "spoken": "Comona launch control is counting on this air cover. Engage hostile fighters."
+  },
+  {
+   "id": "ac04.radio.m08.primary.01",
+   "kind": "radio",
+   "speaker": "Viper",
+   "voice": "cjVigY5qzO86Huf0OWal",
+   "tape": false,
+   "text": "Viper: Contrails everywhere. Check your target before you fire.",
+   "spoken": "Contrails everywhere. Check your target before you fire."
+  },
+  {
+   "id": "ac04.radio.m08.update.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: B-2 bombers approaching from the west. Intercept every bomber, then hold until the launch is secure.",
+   "spoken": "B-2 bombers approaching from the west. Intercept every bomber, then hold until the launch is secure."
+  },
+  {
+   "id": "ac04.radio.m08.update.01",
+   "kind": "radio",
+   "speaker": "Launch Control",
+   "voice": "hpp4J3VqNfWAUOO0d1Us",
+   "tape": false,
+   "text": "Launch Control: We are committed to the countdown. Keep that approach clear.",
+   "spoken": "We are committed to the countdown. Keep that approach clear."
+  },
+  {
+   "id": "ac04.briefing.m09",
+   "kind": "briefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "Support the landing forces across the three beach sectors. Destroy defensive positions and forces that can stop the advance. Conditions vary along the coast; watch the progress of every landing group rather than concentrating all your attacks on one beach. Be ready for a further close-support task once the first defenses break.",
+   "spoken": "Support the landing forces across the three beach sectors. Destroy defensive positions and forces that can stop the advance. Conditions vary along the coast; watch the progress of every landing group rather than concentrating all your attacks on one beach. Be ready for a further close-support task once the first defenses break."
+  },
+  {
+   "id": "ac04.debriefing.m09",
+   "kind": "debriefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "The landing forces have established their foothold. Supply routes and an inland advance can now follow. Our next operations must keep the beachhead from becoming an isolated pocket.",
+   "spoken": "The landing forces have established their foothold. Supply routes and an inland advance can now follow. Our next operations must keep the beachhead from becoming an isolated pocket."
+  },
+  {
+   "id": "ac04.radio.m09.primary.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Three landing sectors are active. Give the ground teams room to move.",
+   "spoken": "Three landing sectors are active. Give the ground teams room to move."
+  },
+  {
+   "id": "ac04.radio.m09.primary.01",
+   "kind": "radio",
+   "speaker": "Landing Force",
+   "voice": "iP95p4xoKVk53GoZ742B",
+   "tape": false,
+   "text": "Landing Force: We're coming off the beach. Marking the positions holding us here.",
+   "spoken": "We're coming off the beach. Marking the positions holding us here."
+  },
+  {
+   "id": "ac04.radio.m09.update.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: New defensive targets are designated. Clear them for the advancing troops.",
+   "spoken": "New defensive targets are designated. Clear them for the advancing troops."
+  },
+  {
+   "id": "ac04.briefing.m10",
+   "kind": "briefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "Break the defenses around Istas Fortress on the Tango Line. The terrain shelters several enemy positions, so use the map to plan separate attack runs. You remain within Stonehenge's reach. The required damage must be achieved without losing the aircraft to the fortress or its distant artillery cover.",
+   "spoken": "Break the defenses around Istas Fortress on the Tango Line. The terrain shelters several enemy positions, so use the map to plan separate attack runs. You remain within Stonehenge's reach. The required damage must be achieved without losing the aircraft to the fortress or its distant artillery cover."
+  },
+  {
+   "id": "ac04.debriefing.m10",
+   "kind": "debriefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "The Tango Line has been breached. Our ground forces can establish a forward headquarters around Los Canas. That position puts a strike on Stonehenge within practical reach.",
+   "spoken": "The Tango Line has been breached. Our ground forces can establish a forward headquarters around Los Canas. That position puts a strike on Stonehenge within practical reach."
+  },
+  {
+   "id": "ac04.radio.m10.primary.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Istas positions are spread through the terrain. Do not mistake one cleared basin for the whole fortress.",
+   "spoken": "Istas positions are spread through the terrain. Do not mistake one cleared basin for the whole fortress."
+  },
+  {
+   "id": "ac04.radio.m10.primary.01",
+   "kind": "radio",
+   "speaker": "Ground Control",
+   "voice": "pqHfZKP75CvOlQylNhV4",
+   "tape": false,
+   "text": "Ground Control: We're waiting on those strongpoints. Keep the pressure on.",
+   "spoken": "We're waiting on those strongpoints. Keep the pressure on."
+  },
+  {
+   "id": "ac04.radio.m10.event.barrage.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Stonehenge is firing. Get below the warning ceiling and use the terrain.",
+   "spoken": "Stonehenge is firing. Get below the warning ceiling and use the terrain."
+  },
+  {
+   "id": "ac04.briefing.m11",
+   "kind": "briefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "Protect two civilian aircraft carrying Stonehenge engineers and their families. The passengers have offered technical information in return for sanctuary. One aircraft is flying low and cannot evade attacks normally. Keep both transports alive until they reach safety; enemy fighters are threats to the passengers, not merely score opportunities.",
+   "spoken": "Protect two civilian aircraft carrying Stonehenge engineers and their families. The passengers have offered technical information in return for sanctuary. One aircraft is flying low and cannot evade attacks normally. Keep both transports alive until they reach safety; enemy fighters are threats to the passengers, not merely score opportunities."
+  },
+  {
+   "id": "ac04.debriefing.m11",
+   "kind": "debriefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "Both aircraft have arrived safely. Their passengers are receiving assistance, and the engineers are being debriefed. Their knowledge may give us the opening we need against Stonehenge.",
+   "spoken": "Both aircraft have arrived safely. Their passengers are receiving assistance, and the engineers are being debriefed. Their knowledge may give us the opening we need against Stonehenge."
+  },
+  {
+   "id": "ac04.radio.m11.primary.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Two civilian tracks. Cover both; the lower aircraft cannot climb out of danger.",
+   "spoken": "Two civilian tracks. Cover both; the lower aircraft cannot climb out of danger."
+  },
+  {
+   "id": "ac04.radio.m11.primary.01",
+   "kind": "radio",
+   "speaker": "Civilian Pilot",
+   "voice": "pFZP5JQG7iQjIQuC4Bku",
+   "tape": false,
+   "text": "Civilian Pilot: We have families aboard. We're holding the assigned route.",
+   "spoken": "We have families aboard. We're holding the assigned route."
+  },
+  {
+   "id": "ac04.radio.m11.event.threatened.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Hostile closing on a civilian aircraft. Intercept before it can fire.",
+   "spoken": "Hostile closing on a civilian aircraft. Intercept before it can fire."
+  },
+  {
+   "id": "ac04.briefing.m12",
+   "kind": "briefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "Destroy Stonehenge. The defectors identified a central jamming installation that interferes with radar and guided weapons. Neutralize that installation, then attack the operational guns. Stay alert for returning defenders. This operation will decide whether our ground forces can advance without the threat of continental artillery.",
+   "spoken": "Destroy Stonehenge. The defectors identified a central jamming installation that interferes with radar and guided weapons. Neutralize that installation, then attack the operational guns. Stay alert for returning defenders. This operation will decide whether our ground forces can advance without the threat of continental artillery."
+  },
+  {
+   "id": "ac04.debriefing.m12",
+   "kind": "debriefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "Stonehenge is destroyed. The counterattack is no longer constrained by its firing radius. Yellow Squadron withdrew after losing one aircraft, but remains a threat as we advance west.",
+   "spoken": "Stonehenge is destroyed. The counterattack is no longer constrained by its firing radius. Yellow Squadron withdrew after losing one aircraft, but remains a threat as we advance west."
+  },
+  {
+   "id": "ac04.radio.m12.primary.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Central jammer first if you need guided weapons. Stonehenge's operational guns are designated.",
+   "spoken": "Central jammer first if you need guided weapons. Stonehenge's operational guns are designated."
+  },
+  {
+   "id": "ac04.radio.m12.primary.01",
+   "kind": "radio",
+   "speaker": "Rapier",
+   "voice": "IKne3meq5aSn9XLyUdCD",
+   "tape": false,
+   "text": "Rapier: All that distance it kept us away. Now we're looking straight at it.",
+   "spoken": "All that distance it kept us away. Now we're looking straight at it."
+  },
+  {
+   "id": "ac04.radio.m12.update.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Yellow Squadron returning. Defend yourselves and maintain visual separation.",
+   "spoken": "Yellow Squadron returning. Defend yourselves and maintain visual separation."
+  },
+  {
+   "id": "ac04.radio.m12.update.01",
+   "kind": "radio",
+   "speaker": "Yellow Flight",
+   "voice": "N2lVS1w4EtoT3dr4eOWO",
+   "tape": false,
+   "text": "Yellow Flight: Stay together. Cover the withdrawal.",
+   "spoken": "Stay together. Cover the withdrawal."
+  },
+  {
+   "id": "ac04.briefing.m13",
+   "kind": "briefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "A damaged reconnaissance aircraft is returning through Gnome Ravine at low altitude. Airborne jammers obscure the route and its instruments. Find and destroy the jammer balloons visually; use the gun when a missile lock is unavailable. Keep the route clear until the reconnaissance aircraft can escape the ravine.",
+   "spoken": "A damaged reconnaissance aircraft is returning through Gnome Ravine at low altitude. Airborne jammers obscure the route and its instruments. Find and destroy the jammer balloons visually; use the gun when a missile lock is unavailable. Keep the route clear until the reconnaissance aircraft can escape the ravine."
+  },
+  {
+   "id": "ac04.debriefing.m13",
+   "kind": "debriefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "The reconnaissance aircraft returned with intelligence on Megalith, another major Erusean weapon under construction. Headquarters wants the war concluded before that facility becomes operational.",
+   "spoken": "The reconnaissance aircraft returned with intelligence on Megalith, another major Erusean weapon under construction. Headquarters wants the war concluded before that facility becomes operational."
+  },
+  {
+   "id": "ac04.radio.m13.primary.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Find the balloons by sight. Radar silence does not mean the canyon is clear.",
+   "spoken": "Find the balloons by sight. Radar silence does not mean the canyon is clear."
+  },
+  {
+   "id": "ac04.radio.m13.primary.01",
+   "kind": "radio",
+   "speaker": "Recon Pilot",
+   "voice": "SOYHLrjzK2X1ezoPC6cr",
+   "tape": false,
+   "text": "Recon Pilot: Engine response is poor. I need the route ahead opened, not a climb.",
+   "spoken": "Engine response is poor. I need the route ahead opened, not a climb."
+  },
+  {
+   "id": "ac04.radio.m13.event.jamCleared.00",
+   "kind": "radio",
+   "speaker": "Recon Pilot",
+   "voice": "SOYHLrjzK2X1ezoPC6cr",
+   "tape": false,
+   "text": "Recon Pilot: Instruments are settling. I can read the route again.",
+   "spoken": "Instruments are settling. I can read the route again."
+  },
+  {
+   "id": "ac04.briefing.m14",
+   "kind": "briefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "Cruise missiles are approaching our northern landing forces at very low altitude. Intercept every weapon before it reaches the defended area. Expect separate groups and changing approach directions. Fast target identification matters more than pursuing optional aircraft; even one missile getting through can end the operation.",
+   "spoken": "Cruise missiles are approaching our northern landing forces at very low altitude. Intercept every weapon before it reaches the defended area. Expect separate groups and changing approach directions. Fast target identification matters more than pursuing optional aircraft; even one missile getting through can end the operation."
+  },
+  {
+   "id": "ac04.debriefing.m14",
+   "kind": "debriefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "The missile attack was stopped and the landing forces remain intact. With the northern coast secure, the advance toward San Salvacion can continue.",
+   "spoken": "The missile attack was stopped and the landing forces remain intact. With the northern coast secure, the advance toward San Salvacion can continue."
+  },
+  {
+   "id": "ac04.radio.m14.primary.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Cruise missiles inbound. Check the low-altitude tracks and close the intercept angle.",
+   "spoken": "Cruise missiles inbound. Check the low-altitude tracks and close the intercept angle."
+  },
+  {
+   "id": "ac04.radio.m14.primary.01",
+   "kind": "radio",
+   "speaker": "Landing Control",
+   "voice": "pqHfZKP75CvOlQylNhV4",
+   "tape": false,
+   "text": "Landing Control: Our formations are exposed. We need every one of those weapons stopped.",
+   "spoken": "Our formations are exposed. We need every one of those weapons stopped."
+  },
+  {
+   "id": "ac04.radio.m14.update.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: A further missile group is approaching. Recheck your map; do not continue on the old heading.",
+   "spoken": "A further missile group is approaching. Recheck your map; do not continue on the old heading."
+  },
+  {
+   "id": "ac04.radio.m14.event.missile-wave-2.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Second missile group. Split approaches; take the nearest threat first.",
+   "spoken": "Second missile group. Split approaches; take the nearest threat first."
+  },
+  {
+   "id": "ac04.radio.m14.event.missile-final.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Final weapon detected. It is maneuvering. Stay with it until destruction is confirmed.",
+   "spoken": "Final weapon detected. It is maneuvering. Stay with it until destruction is confirmed."
+  },
+  {
+   "id": "ac04.briefing.m15",
+   "kind": "briefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "Liberate San Salvacion by breaking the forces blocking our ground troops. Armor holds Old Towne, while helicopters and defenders protect the New City area. Watch the airport for hostile air activity. The resistance will restore the lights as our troops approach; remain ready to defend the city against a counterattack.",
+   "spoken": "Liberate San Salvacion by breaking the forces blocking our ground troops. Armor holds Old Towne, while helicopters and defenders protect the New City area. Watch the airport for hostile air activity. The resistance will restore the lights as our troops approach; remain ready to defend the city against a counterattack."
+  },
+  {
+   "id": "ac04.debriefing.m15",
+   "kind": "debriefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "San Salvacion is free and the bomber counterattack has been defeated. Our troops are entering the city as the remaining Erusean forces retreat. For the people below, this victory is the return of their home.",
+   "spoken": "San Salvacion is free and the bomber counterattack has been defeated. Our troops are entering the city as the remaining Erusean forces retreat. For the people below, this victory is the return of their home."
+  },
+  {
+   "id": "ac04.radio.m15.primary.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Support the ground advance across the city. Watch for the resistance signal.",
+   "spoken": "Support the ground advance across the city. Watch for the resistance signal."
+  },
+  {
+   "id": "ac04.radio.m15.primary.01",
+   "kind": "radio",
+   "speaker": "Resistance",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "Resistance: We're bringing the lights back. Our people are ready.",
+   "spoken": "We're bringing the lights back. Our people are ready."
+  },
+  {
+   "id": "ac04.radio.m15.update.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Tu-160 bombers inbound. Intercept them before the liberated city becomes their target.",
+   "spoken": "Tu-160 bombers inbound. Intercept them before the liberated city becomes their target."
+  },
+  {
+   "id": "ac04.briefing.m16",
+   "kind": "briefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "Break the armored defenses in Whiskey Corridor. Several lines stand between our forces and Farbanti, supported by artillery, aircraft and air defenses. Plan a sustained close-air-support sortie and use the return route when ammunition runs low. Keep attacking until the required defensive capacity has been removed.",
+   "spoken": "Break the armored defenses in Whiskey Corridor. Several lines stand between our forces and Farbanti, supported by artillery, aircraft and air defenses. Plan a sustained close-air-support sortie and use the return route when ammunition runs low. Keep attacking until the required defensive capacity has been removed."
+  },
+  {
+   "id": "ac04.debriefing.m16",
+   "kind": "debriefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "The corridor is open. Erusea's last major defensive line before its capital has broken. Our next operation will strike Farbanti and seek an end to the war.",
+   "spoken": "The corridor is open. Erusea's last major defensive line before its capital has broken. Our next operation will strike Farbanti and seek an end to the war."
+  },
+  {
+   "id": "ac04.radio.m16.primary.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Multiple defensive lines ahead. Work through the sectors and monitor stores.",
+   "spoken": "Multiple defensive lines ahead. Work through the sectors and monitor stores."
+  },
+  {
+   "id": "ac04.radio.m16.primary.01",
+   "kind": "radio",
+   "speaker": "Ground Control",
+   "voice": "pqHfZKP75CvOlQylNhV4",
+   "tape": false,
+   "text": "Ground Control: Armor is massing across the corridor. Your strikes are opening our route.",
+   "spoken": "Armor is massing across the corridor. Your strikes are opening our route."
+  },
+  {
+   "id": "ac04.briefing.m17",
+   "kind": "briefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "Support the assault on Farbanti. Enemy forces occupy several sectors of the damaged capital, including positions near the bridges and flooded district. Achieve the required damage while supporting the advance on headquarters. Yellow Squadron may make its final defense here; be prepared to finish the air battle after the ground operation develops.",
+   "spoken": "Support the assault on Farbanti. Enemy forces occupy several sectors of the damaged capital, including positions near the bridges and flooded district. Achieve the required damage while supporting the advance on headquarters. Yellow Squadron may make its final defense here; be prepared to finish the air battle after the ground operation develops."
+  },
+  {
+   "id": "ac04.debriefing.m17",
+   "kind": "debriefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "Yellow Squadron has been destroyed and Erusea has accepted surrender. Our formations are being accounted for. The formal war is over, though headquarters is still tracking forces that have not obeyed the ceasefire.",
+   "spoken": "Yellow Squadron has been destroyed and Erusea has accepted surrender. Our formations are being accounted for. The formal war is over, though headquarters is still tracking forces that have not obeyed the ceasefire."
+  },
+  {
+   "id": "ac04.radio.m17.primary.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Farbanti sectors are marked. Maintain awareness of bridges, sea level and the ruined district.",
+   "spoken": "Farbanti sectors are marked. Maintain awareness of bridges, sea level and the ruined district."
+  },
+  {
+   "id": "ac04.radio.m17.primary.01",
+   "kind": "radio",
+   "speaker": "Ground Control",
+   "voice": "pqHfZKP75CvOlQylNhV4",
+   "tape": false,
+   "text": "Ground Control: We're approaching headquarters. Keep their reinforcements off us.",
+   "spoken": "We're approaching headquarters. Keep their reinforcements off us."
+  },
+  {
+   "id": "ac04.radio.m17.update.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Five Yellow fighters entering the battle. All five are confirmed hostile. This is the final engagement with Thirteen's squadron.",
+   "spoken": "Five Yellow fighters entering the battle. All five are confirmed hostile. This is the final engagement with Thirteen's squadron."
+  },
+  {
+   "id": "ac04.radio.m17.update.01",
+   "kind": "radio",
+   "speaker": "Yellow Lead",
+   "voice": "pNInz6obpgDQGcFmaJgB",
+   "tape": false,
+   "text": "Yellow Lead: Hold formation. We meet them here.",
+   "spoken": "Hold formation. We meet them here."
+  },
+  {
+   "id": "ac04.briefing.m18",
+   "kind": "briefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "Officers refusing the surrender have seized Megalith. Its rockets can turn remaining asteroid fragments into weapons against the continent. Enter the three outer tunnels and destroy their generators. An infiltration team will open the central route. Destroy the main missile inside and escape through the vertical shaft; the outer walls cannot be defeated by ordinary strafing.",
+   "spoken": "Officers refusing the surrender have seized Megalith. Its rockets can turn remaining asteroid fragments into weapons against the continent. Enter the three outer tunnels and destroy their generators. An infiltration team will open the central route. Destroy the main missile inside and escape through the vertical shaft; the outer walls cannot be defeated by ordinary strafing."
+  },
+  {
+   "id": "ac04.debriefing.m18",
+   "kind": "debriefing",
+   "speaker": "BRIEFING",
+   "voice": "onwK4e9ZLuTAKqWW03F9",
+   "tape": false,
+   "text": "Megalith's main weapon is destroyed and Mobius One has escaped. The surviving aircraft are returning. The immediate threat to Usea is over; rebuilding the continent will take far longer than this final sortie.",
+   "spoken": "Megalith's main weapon is destroyed and Mobius One has escaped. The surviving aircraft are returning. The immediate threat to Usea is over; rebuilding the continent will take far longer than this final sortie."
+  },
+  {
+   "id": "ac04.radio.m18.primary.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Mobius formation, cover the approach. One, take the generator tunnels.",
+   "spoken": "Mobius formation, cover the approach. One, take the generator tunnels."
+  },
+  {
+   "id": "ac04.radio.m18.primary.01",
+   "kind": "radio",
+   "speaker": "Bravo One",
+   "voice": "iP95p4xoKVk53GoZ742B",
+   "tape": false,
+   "text": "Bravo One: We're inside, but the control room is locked. Cut the generators so we can reach the panel.",
+   "spoken": "We're inside, but the control room is locked. Cut the generators so we can reach the panel."
+  },
+  {
+   "id": "ac04.radio.m18.update.00",
+   "kind": "radio",
+   "speaker": "Bravo One",
+   "voice": "iP95p4xoKVk53GoZ742B",
+   "tape": false,
+   "text": "Bravo One: Power is down. Central route opening now. We are holding your exit.",
+   "spoken": "Power is down. Central route opening now. We are holding your exit."
+  },
+  {
+   "id": "ac04.radio.m18.update.01",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Destroy the main missile, then climb out through the shaft. We're waiting for you outside.",
+   "spoken": "Destroy the main missile, then climb out through the shaft. We're waiting for you outside."
+  },
+  {
+   "id": "ac04.radio.m18.event.generator.00",
+   "kind": "radio",
+   "speaker": "Bravo One",
+   "voice": "iP95p4xoKVk53GoZ742B",
+   "tape": false,
+   "text": "Bravo One: Another generator is down. Keep going; we're moving with you.",
+   "spoken": "Another generator is down. Keep going; we're moving with you."
+  },
+  {
+   "id": "ac04.radio.m18.event.core.00",
+   "kind": "radio",
+   "speaker": "SkyEye",
+   "voice": "nPczCjzI2devNBz1zQrb",
+   "tape": false,
+   "text": "SkyEye: Main weapon destroyed. Take the exit now, Mobius One.",
+   "spoken": "Main weapon destroyed. Take the exit now, Mobius One."
+  }
+ ]
+}

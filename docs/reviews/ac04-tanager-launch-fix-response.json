@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "reportId": "ac04-tanager-launch-fix-response",
+  "checkedAt": "2026-10-28T00:27:22.027042+00:00",
+  "author": "Parent orchestrator; direct small review fix",
+  "finding": "AC04-IND61-001",
+  "sourceState": "Implemented, native regression pending",
+  "implementation": [
+    "AircraftCollision.WithoutShooter copies the existing surface allowlist excluding only the launcher model; original shared flight/player allowlist unchanged.",
+    "Hostile ground launches retain per-projectile obstruction params, used by the actual guided/hostile projectile step; aircraft/player shots retain existing params.",
+    "Terrain, water, host hull and other objects remain blockers."
+  ],
+  "regressionAuthored": "AC04World.spec existing Comberth native fixture: tanager-gun_3 exact upward launch hits barrel under original params, clears under outgoing params, original params still see barrel, terrain/host remain included and separate overhead cover still intercepts.",
+  "checksActuallyRun": [
+    {
+      "command": "node node_modules/typescript/bin/tsc --noEmit -p tsconfig.json --tsBuildInfoFile /tmp/ac04-parent-launch-fix.tsbuildinfo",
+      "result": "exit2:10 errors in concurrently edited AC04StoryStage.ts; no diagnostics in changed launch/collision/test files. Not a whole-project pass or Roblox transform."
+    },
+    {
+      "command": "git diff --check",
+      "result": "pass"
+    }
+  ],
+  "nativeTestsRun": false,
+  "actualHostileGameplayObserved": false,
+  "frozenArtifactsModified": false,
+  "buildOwnerNotified": true,
+  "sourceHashes": {
+    "src/server/AircraftCollision.ts": "fa7d4b231fb7eaf2d6ca2c50331b8fe03e216baf9493a889a0a1f6c7703a77bb",
+    "src/server/CombatService.ts": "8e8171df23965a1c9a448c07e6e9b7eb677f3f8506ea8740e6d101414a1417cd",
+    "src/tests/AC04World.spec.ts": "c8a435e902fb8163bc7b1b710a4e6fe9ddd9c4df29e6903296c94277b7dfc553"
+  },
+  "remaining": [
+    "Native regression execution in coordinated candidate",
+    "Actual M6 hostile projectile/cover verification",
+    "Independent review of repaired candidate before fidelity signoff"
+  ],
+  "release": "Unmerged source; merged gameplay PRs are reported live per owner convention."
+}

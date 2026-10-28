@@ -1,0 +1,982 @@
+{
+ "schemaVersion": 1,
+ "reportId": "ac04-story-visual-fix-response",
+ "date": "2026-10-27",
+ "author": "Claude Opus 5.5 implementation sub-agent; no subagents; NOT independent approval",
+ "state": "LOCAL_UNMERGED_CANDIDATE_FROZEN_NATIVE_TESTS_PASS_STORY_VISUALS_IMPROVED_INDEPENDENT_REVIEW_PENDING",
+ "releaseBoundary": {
+  "rule": "Owner convention (AGENTS.md current): gameplay PRs merged to main are LIVE via automatic CI/CD; no receipt/Player test needed to update availability. Release status is separate from fidelity/quality acceptance.",
+  "thisWork": "UNMERGED local source + local candidate; not live; changes no published availability; no commit/push/upload/publish/cloud operation performed.",
+  "lastKnownMetadata": "place version 63, PR #90, commit efc712084cdb8b790c2042d094522dbd09cdc3f7, accepted 2026-10-27T23:18:57Z, CI run 40601149377 (historical supporting metadata; Broken Relay 27 missions, 0/18 AC04). No newer version claimed."
+ },
+ "frozenCandidate": {
+  "path": "build/ac04-story-visual-fix/candidate-87d17771.rbxlx",
+  "sha256": "87d17771d5363be367866fcecf6245b700da0fd67df45079ebfcdf90ca312295",
+  "sameAs": "build/skybreak.rbxlx",
+  "built": "bun run build:place exit 0 (voice artifact check passed)",
+  "includes": "story overhaul + caption layout + Early M1-M5 hooks + Middle/Late integration + root Tanager WithoutShooter fix",
+  "excludes": "staged UI bundle (proposals/ac04-ui) \u2014 not integrated by this agent",
+  "savedByStudio": false,
+  "intermediateCandidate": {
+   "path": "build/ac04-story-visual-fix/candidate-b7ef84e0.rbxlx",
+   "sha256": "b7ef84e093e5ebba37c11149ad950407e5124cb715141a1715a277eeff0a2e44",
+   "use": "viewer session 1 only; superseded (caption band min 180->150, i01 framing, tail-glyph size)"
+  }
+ },
+ "historicalPreserved": {
+  "path": "build/ac04-lifeline-fix/candidate-91927612.rbxlx",
+  "sha256After": "91927612ddb4049cc2010a5cfa2a8e0cfaa166eef7a51d5eeaf8d48dc3cf5659",
+  "untouched": true
+ },
+ "sourceSha256": {
+  "src/shared/ac04/AC04StoryStage.ts": "3c97c8ff7190c58bb945c2f1516b5df93f925a7efa9c6a7792391f01d8542a46",
+  "src/shared/ac04/AC04StoryStageGeometry.ts": "e8f585ad8a4b8f88eac5a2bb96bde251d98bccd8c4b886f1272700360f941c78",
+  "src/shared/ac04/AC04StoryStageShots.ts": "7d4726b176c2eee37601370bb9e416eef742de15ef1a4a387e21b07c9157b301",
+  "src/shared/ac04/AC04CaptionLayout.ts": "8280153b3a238bd8a3b03548add14574d3fe45e0d2c84f3e4c43b4e776200b4f",
+  "src/client/ac04/AC04Cinematic.tsx": "796521e16bf826373e1d8282d20e0f4100363c7d46f456bf43c064bc0ad31514",
+  "src/client/ac04/AC04StoryStage.ts": "03663a93314087d1a1e38bb7635953cefee16268bad5aa5519af8390d9743dc9",
+  "src/client/ac04/AC04StoryStageGeometry.ts": "90a96cbd360acbb007e293465ac6df155db474033236dfb6054055aa50218300",
+  "src/client/ac04/AC04StoryStageShots.ts": "89183ac48a2704b97fb0d11717dd53625c6a4cf36fab6270164448fa4e9b07f6",
+  "src/tests/AC04StoryStage.spec.ts": "4d8e89f050d7950e46c967b4d56ecf47adfeff2e6a5871b9f3a282058d72a0be",
+  "src/tests/AC04CaptionLayout.spec.ts": "d6cad4d7b02a078a4f274a975d85ef82efaf5e28be88d9e0d25561ffdda2e8c3",
+  "src/shared/ac04/AC04Story.ts": "06a870d7a6cdd6484d1893daa865b2639a6fd8ba200c94ddf3628e018a19ce9e",
+  "src/shared/AC04WorldData.ts": "9131c05270a2b850449afb6bd45933d262833692ceb86fa333236991a5f74e65",
+  "src/shared/ac04/rebuild/EarlyWorld.ts": "b65d5a598b72a2521504a59147adcf3b3d71241b4bfc01fe9a0fc2a4da678ac1",
+  "src/shared/ac04/rebuild/MiddleWorld.ts": "9063d204797a67c3bf3c0e50a817948cac0cb335172049221fd6bde6c72cf1e7",
+  "src/shared/ac04/rebuild/LatePlacement.ts": "45d37115ffd9caa9fe0cd1b05dc28bd0f9196b8b2850eeb1be49be43de04ee21",
+  "src/tests/AC04EarlyRebuild.spec.ts": "688925e1008c1f8566e0f234b7914ce869dfa43b75499e9cda35c8efcfb7c0a0",
+  "src/tests/AC04World.spec.ts": "c8a435e902fb8163bc7b1b710a4e6fe9ddd9c4df29e6903296c94277b7dfc553",
+  "src/server/CombatService.ts": "8e8171df23965a1c9a448c07e6e9b7eb677f3f8506ea8740e6d101414a1417cd",
+  "src/server/AircraftCollision.ts": "fa7d4b231fb7eaf2d6ca2c50331b8fe03e216baf9493a889a0a1f6c7703a77bb",
+  "tools/test-ac04-offline.ts": "44e896d8a8687b70cfdb6ee808c383f98542cceacb658c01d6928784bed98d3b"
+ },
+ "rootCauseChair": "Actor model faces local -Z (lookAt) but old chair() placed its back at z-1.3, i.e. between face and what the actor faced, and seated legs extended through it. New chair(cf) puts back at +z behind occupant; occupied chairs are built inside the actor model. Native regression asserts back local Z > seat Z for every occupied chair in all 48 shots.",
+ "stagingChanges": [
+  "Actors: 12 distinct clothed original figures (boy, Thirteen silver hair+yellow scarf, Four long dark hair+grey scarf, daughter blonde bob+skirt+cardigan, barkeeper bald+moustache+apron+waistcoat, uncle flat cap+moustache, writer glasses+overcoat, soldiers steel helmet+greatcoat, recruits pale uniform+forage cap, mechanic coveralls+cap, citizen, pilot). Face/nose/eyes/brows/mouth with mood (neutral/smile/sad/stern/open). No skin textures, decals, meshes, Humanoids; all figures fully clothed.",
+  "Two-bone arm solver to world reach targets; bounded upper-body lean (<=0.5 standing, 0.55 seated, 0.95 kneel); head gaze toward look target; film-style 'cheat' toward camera (default 0.3).",
+  "Held props physically attached: guitar (body/bout/soundhole/bridge/neck/headstock/strings with fretting+strumming hands), harmonica at mouth, folded cloth with fold/drape/border, report, plate, notes, cup, pen to paper, torch beam, rifle, satchel, sling, timber, armband, headphones.",
+  "11 sets: bar (window opening, counter, bottles, stools, dartboard, lamps), attic upstairs, study, cape/headland/sea/far cape, street facades+lamps, highway runway (wheat rows, guardrails, tunnel portal in hillside, damaged variant crater/smoke), blackout door/passage, square (fountain, pennants), birch grave, Farbanti overlook.",
+  "Aircraft rebuilt: nose, canopy, swept wings (sign fixed), canards, intakes, nozzles, canted twin fins, yellow bands; stroke-glyph tail number '13'; landing gear; ladder.",
+  "Per-shot lighting presets (day/dusk/dawn/interior/attic/blackout/birch/study) via ViewportFrame Ambient/LightColor/LightDirection/BackgroundColor3; per-shot FOV; reframe() on resize.",
+  "Instance budget 900 per resident shot (one at a time); all parts anchored, CanCollide/CanTouch/CanQuery false, CastShadow false."
+ ],
+ "captionFix": {
+  "module": "src/shared/ac04/AC04CaptionLayout.ts",
+  "method": "Measure every chapter caption with TextService.GetTextSize at the exact wrap width (caption width minus scrollbar gutter); band sized to the chapter's longest caption within a max that preserves >=max(90,30%) scene lane; CanvasSize set explicitly to measured height (AutomaticCanvasSize None); ScrollingEnabled only when overflow; 'MORE' cue until scrolled to end; Up/Down/DPad scroll. Text 17px narrow / 20px desktop (not shrunk).",
+  "results": "see build/ac04-story-visual-fix/final/caption-geometry-summary.json",
+  "compact1205x525": "48/48 TextFits, label<=window, no scroll",
+  "narrow390x525": "48/48 TextFits, label<=window (window 91/108), no scroll; reviewed i08b4 now label340x108 window108 canvas108 (was 341x80 TextFits=false canvas94)",
+  "tiny320x240": "i08b4 window282x41 canvas288x142; 6 native wheel events -> CanvasPosition 101 == max 101; MORE cue hidden at end",
+  "667x375": "i08 b1/b2/b4 TextFits true (viewer session 1, candidate b7ef84e0)"
+ },
+ "tests": {
+  "nativeRoblox": {
+   "command": "bun run test:roblox",
+   "result": {
+    "total": 546,
+    "passed": 546,
+    "failed": 0,
+    "suites": 58,
+    "success": true
+   },
+   "log": "build/ac04-story-visual-fix/native-final-jest-output.log",
+   "includes": [
+    "AC04StoryStage.spec (5 tests: all-48 assembly + raycast unoccluded/in-frame/front-facing keys at aspects 4.3/1.9/1.62; music occlusion; hand-to-instrument/cloth/harmonica contact; pen-on-paper + address; chair-behind-occupant)",
+    "AC04CaptionLayout.spec (4 tests, TextService measurement over 6 roots)",
+    "AC04EarlyRebuild.spec 12 incl. parent's 121-placement frozen M5 oracle, M2/M3 explicit coordinates",
+    "AC04World.spec 10 incl. Tanager tanager-gun_3 WithoutShooter Comberth fixture",
+    "AC04MiddleRebuild/LateRebuild/Integration"
+   ],
+   "firstRunFailures": "run1: 541/544 (3 new story tests failed: FOV float equality, music occlusion, cloth reach) \u2014 fixed; intermediate story-only runs exposed 190 composition problems -> iterated to 0."
+  },
+  "offline": {
+   "command": "bun run validate:offline",
+   "exit": 0,
+   "luau": "OFFLINE_LUAU_RESULT passed=446 failed=0",
+   "log": "build/ac04-story-visual-fix/offline-final.log"
+  },
+  "typecheck": "tsc --noEmit whole project pass; rbxtsc build pass"
+ },
+ "integrationChangesOutsideStoryOwnership": [
+  {
+   "file": "src/shared/AC04WorldData.ts",
+   "why": "Root-assigned Early hook integration",
+   "change": "Applied docs/reviews/ac04-early-rebuild.json integration.diff exactly (base hash matched b494f648\u2026): import + refineEarlyLayout innermost in layout loop + refineEarlyUnitPosition innermost + refineEarlyWorld before refineMiddleWorld. No conflicts."
+  },
+  {
+   "file": "tools/test-ac04-offline.ts",
+   "why": "Offline runner bundles AC04WorldData so Early modules are required deps",
+   "change": "Added Early modules + AC04EarlyRebuild.spec to files/run list. Also changed OfflineAssertions describe() to queue blocks and run them in result() (Jest semantics), because AC04MiddleRebuild.spec calls a helper declared after its describe (offline 'attempt to call a nil value'; native Jest already passed). No assertion relaxed."
+  },
+  {
+   "file": "src/shared/ac04/rebuild/EarlyWorld.ts",
+   "change": "line 335 local `next` -> `following` (roblox-ts reserved identifier compile error). Behavior identical."
+  },
+  {
+   "file": "src/shared/ac04/rebuild/MiddleWorld.ts",
+   "change": "lines 441-491 `next` -> `following`, `end` -> `arrival` (reserved identifiers). Behavior identical."
+  },
+  {
+   "file": "src/shared/ac04/rebuild/LatePlacement.ts",
+   "change": "line 127/130 `local` -> `segmentT` (reserved identifier). Behavior identical."
+  }
+ ],
+ "perShotLedger": [
+  {
+   "findingId": "LS61-STORY-01-01",
+   "chapterId": "ac04-i01",
+   "beat": 1,
+   "reviewFinding": "Boy and three distant guns visible; cape/sea barely reads.",
+   "fix": "Headland/cliff/sea/far cape set; three large native railgun turrets on a ridge across the bay; gulls; road sign; boy larger in foreground with satchel.",
+   "nativeObservation": "Coast, sea, cape and three great guns read clearly behind boy; boy back-view by design (watching the guns).",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i01-b1.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-01-02",
+   "chapterId": "ac04-i01",
+   "beat": 2,
+   "reviewFinding": "Child, bag, path and intact house visible; a very empty school route.",
+   "fix": "Intact lit house with pitched roof, shutters, garden fence; coastal road bend and stone wall; boy walking toward camera smiling.",
+   "nativeObservation": "House, path and boy's face readable. Path is short; still a sparse headland.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i01-b2.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-01-03",
+   "chapterId": "ac04-i01",
+   "beat": 3,
+   "reviewFinding": "One aircraft is visible above the house; fire/smoke and two-fighter action are not legible.",
+   "fix": "Low camera; burning fighter rotated nose-down with 5-step smoke column and flame; yellow pursuing fighter with trail; house moved to frame side.",
+   "nativeObservation": "Falling fighter, smoke, pursuer and house all visible beside boy. Narrow 390 view also verified.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i01-b3.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-01-04",
+   "chapterId": "ac04-i01",
+   "beat": 4,
+   "reviewFinding": "Rubble and kneeling child readable; yellow thirteen identification cannot be read.",
+   "fix": "Ruined foundation with broken walls, threshold posts, fallen lintel, debris, lingering smoke; yellow fighter low beyond with stroke-glyph '13' on both canted fins (larger glyphs).",
+   "nativeObservation": "Rubble and kneeling child readable; yellow aircraft prominent. Remaining: '13' glyphs still small at compact size (not reliably legible). Open.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i01-b4.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "improved-with-remaining-issue"
+  },
+  {
+   "findingId": "LS61-STORY-02-01",
+   "chapterId": "ac04-i02",
+   "beat": 1,
+   "reviewFinding": "Boy and patrol visible between two generic buildings.",
+   "fix": "Two facade rows (8 attached houses), pavements, lamps, sandbags, background patrol of 3 plus foreground helmeted soldier with slung rifle.",
+   "nativeObservation": "Occupied street with depth; patrol and soldier read; boy glances at soldier.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i02-b1.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-02-02",
+   "chapterId": "ac04-i02",
+   "beat": 2,
+   "reviewFinding": "Chair back hides most of seated uncle; taxi is visible.",
+   "fix": "Uncle seated (chair BEHIND him) with cup in hand, flat cap/moustache; taxi with roof sign beside; boy standing looking at uncle.",
+   "nativeObservation": "Uncle face, cup, taxi and boy all unobstructed.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i02-b2.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-02-03",
+   "chapterId": "ac04-i02",
+   "beat": 3,
+   "reviewFinding": "Harmonica pose visible only weakly; chair/counter obscure hands and coins are tiny.",
+   "fix": "Boy holds harmonica at mouth (both hands); seated soldier reaches toward coins on round table beside upturned cap.",
+   "nativeObservation": "Harmonica-at-mouth, coins and soldier face readable; native test asserts harmonica within .9 of face.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i02-b3.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-02-04",
+   "chapterId": "ac04-i02",
+   "beat": 4,
+   "reviewFinding": "Daughter, child and plate visible; offered meal reads better than earlier scenes.",
+   "fix": "Daughter holds plate with bread toward seated boy; boy gaze toward window; window is a real opening with frame.",
+   "nativeObservation": "Plate in daughter's hands, boy looking to window; readable.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i02-b4.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-03-01",
+   "chapterId": "ac04-i03",
+   "beat": 1,
+   "reviewFinding": "Three pilots and child appear, but seated leader is hidden by chair back.",
+   "fix": "Pilots entering (patch/zip/harness detail), Four with long hair+scarf, boy watching; Thirteen seated at back with chair behind him; resting guitar on wall.",
+   "nativeObservation": "All four faces visible incl. seated leader.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i03-b1.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-03-02",
+   "chapterId": "ac04-i03",
+   "beat": 2,
+   "reviewFinding": "Chair back almost completely hides leader and guitar.",
+   "fix": "Chair reversed (back behind occupant, regression-tested); Thirteen seated facing camera with guitar (body/upper bout/soundhole/neck/headstock/strings); colleague announcing with raised hand.",
+   "nativeObservation": "Leader face + guitar fully visible; raycast test enforces no furniture occlusion.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i03-b2.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-03-03",
+   "chapterId": "ac04-i03",
+   "beat": 3,
+   "reviewFinding": "Boy raises hands to harmonica; guitar player is hidden by chair.",
+   "fix": "Both seated musicians face camera; fretting hand on neck, strumming hand on body (tested); boy harmonica at mouth.",
+   "nativeObservation": "Both musicians, guitar and harmonica visible simultaneously.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i03-b3.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-03-04",
+   "chapterId": "ac04-i03",
+   "beat": 4,
+   "reviewFinding": "Boy faces chair back; the man across from him is mostly invisible.",
+   "fix": "Over-shoulder from boy side across round table; harmonica set on table; Thirteen sad playing; boy faces him.",
+   "nativeObservation": "Intimate exchange; leader face, guitar and boy visible.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i03-b4.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-04-01",
+   "chapterId": "ac04-i04",
+   "beat": 1,
+   "reviewFinding": "Highway/tunnel and yellow rectangular wheat patches visible; parked jet is tiny.",
+   "fix": "Wheat rebuilt as 8 alternating rows+heads per side (no slabs); guardrails, shoulder lines, tunnel portal in hillside; parked fighter scaled 2.6 with gear; fuel drums.",
+   "nativeObservation": "Highway runway, wheat rows, tunnel and jet read; Thirteen partly overlaps jet silhouette.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i04-b1.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "improved-with-remaining-issue"
+  },
+  {
+   "findingId": "LS61-STORY-04-02",
+   "chapterId": "ac04-i04",
+   "beat": 2,
+   "reviewFinding": "Five small jets are visible above tunnel, with boy and leader below.",
+   "fix": "Low camera; five-ship formation (distinct canards/twin fins/yellow tips) over tunnel; Thirteen arm raised counting; boy following gaze.",
+   "nativeObservation": "Formation readable; counting gesture weak at compact size. Open.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i04-b2.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "improved-with-remaining-issue"
+  },
+  {
+   "findingId": "LS61-STORY-04-03",
+   "chapterId": "ac04-i04",
+   "beat": 3,
+   "reviewFinding": "Four stands between boy and leader, all clothed and distinguishable by hair/scarf.",
+   "fix": "Closer 3-shot; Four centred between boy and leader with eye-lines to boy; Thirteen smiling.",
+   "nativeObservation": "All three faces visible; protective placement reads.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i04-b3.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-04-04",
+   "chapterId": "ac04-i04",
+   "beat": 4,
+   "reviewFinding": "Supper group visible; chair hides one pilot and food is tiny.",
+   "fix": "Long table, three plates/cups; all chairs behind occupants; Thirteen gestures to meal; camera from side.",
+   "nativeObservation": "No chair occlusion; shared meal readable.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i04-b4.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-05-01",
+   "chapterId": "ac04-i05",
+   "beat": 1,
+   "reviewFinding": "Empty chair and boy readable; taxi largely hidden behind chair.",
+   "fix": "Taxi and empty chair with left flat cap separated across frame; boy looking at chair.",
+   "nativeObservation": "Both absence cues separated and visible.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i05-b1.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-05-02",
+   "chapterId": "ac04-i05",
+   "beat": 2,
+   "reviewFinding": "Boy and pilot visible; second seated figure hidden; music props not prominent.",
+   "fix": "Thirteen playing, Four standing listening, boy seated at table with meal.",
+   "nativeObservation": "Musicians and meal readable.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i05-b2.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-05-03",
+   "chapterId": "ac04-i05",
+   "beat": 3,
+   "reviewFinding": "Radio, notes, daughter and barkeeper readable; boy watches.",
+   "fix": "Distinct attic set (wallpaper, rafters, round window, cot, crates, bare bulb); barkeeper with headphones at radio desk; daughter hands notes.",
+   "nativeObservation": "Upstairs room distinct from bar; radio and notes hand-off visible; daughter leans (lean bounded).",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i05-b3.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-05-04",
+   "chapterId": "ac04-i05",
+   "beat": 4,
+   "reviewFinding": "Daughter stands between boy and doorway; chair/table clutter weakens protection cue.",
+   "fix": "Doorway cut into attic wall with dark stairwell; daughter guarding in front of boy; chair moved behind barkeeper at desk.",
+   "nativeObservation": "Doorway integrated in wall; protection cue clear.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i05-b4.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-06-01",
+   "chapterId": "ac04-i06",
+   "beat": 1,
+   "reviewFinding": "Radio and empty chairs visible; daughter and boy gaze relationship is weak.",
+   "fix": "Daughter seated reaching toward radio; boy turned toward an empty table with three chairs.",
+   "nativeObservation": "Contrasting gazes readable; radio partially overlaps daughter's lower face (passes 60% visibility test). Minor open.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i06-b1.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "improved-with-remaining-issue"
+  },
+  {
+   "findingId": "LS61-STORY-06-02",
+   "chapterId": "ac04-i06",
+   "beat": 2,
+   "reviewFinding": "Daughter watches Four beside Thirteen; silhouettes repeat prior runway shot.",
+   "fix": "Four offering helmet to Thirteen, both smiling; daughter at back watching.",
+   "nativeObservation": "Four/Thirteen pair reads; daughter small and partially hidden behind Four. Open.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i06-b2.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "improved-with-remaining-issue"
+  },
+  {
+   "findingId": "LS61-STORY-06-03",
+   "chapterId": "ac04-i06",
+   "beat": 3,
+   "reviewFinding": "Chart on table is visible; leader and boy visible, tracing action indistinct.",
+   "fix": "Overhead-ish camera; chart with grid, coastline, red opposing course and blue own course; Thirteen's hand on plotted course (reach solver).",
+   "nativeObservation": "Hand-to-chart contact visible.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i06-b3.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-06-04",
+   "chapterId": "ac04-i06",
+   "beat": 4,
+   "reviewFinding": "Boy and leader visible beside tunnel; hopeful expression is not conveyed.",
+   "fix": "Tight civilian over-shoulder; Thirteen smiling upward (mood smile).",
+   "nativeObservation": "Hopeful expression conveyed through smile and upward gaze.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i06-b4.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-07-01",
+   "chapterId": "ac04-i07",
+   "beat": 1,
+   "reviewFinding": "Kneeling crewman and rack visible; no convincing bomb delivery/base activity.",
+   "fix": "Bomb trolley with two banded bombs, supply crates, sandbags, parked fighter; mechanic handling bombs.",
+   "nativeObservation": "Base activity/bomb delivery readable.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i07-b1.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-07-02",
+   "chapterId": "ac04-i07",
+   "beat": 2,
+   "reviewFinding": "Dark flat runway scar present; Four is largely behind chair and damage is weak.",
+   "fix": "Damaged runway: crater, scorched concrete, broken slabs, smoke; Four seated visibly with arm sling; mechanic kneeling at empty parts rack with tag.",
+   "nativeObservation": "Four exposed; sabotage and supply loss distinct.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i07-b2.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-07-03",
+   "chapterId": "ac04-i07",
+   "beat": 3,
+   "reviewFinding": "Boy, fence and standing leader visible; canopy/ladder action not recognizable.",
+   "fix": "Large fighter with landing gear; boarding ladder hooked to sill; Thirteen climbing with hands on rails and boot on rung; boy beyond fence.",
+   "nativeObservation": "Ladder/grip/grounding readable; wing dominates right side.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i07-b3.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "improved-with-remaining-issue"
+  },
+  {
+   "findingId": "LS61-STORY-07-04",
+   "chapterId": "ac04-i07",
+   "beat": 4,
+   "reviewFinding": "Small departing jet visible; mechanical incompleteness cannot be read.",
+   "fix": "Departing fighter nose-up with primer repair panel and open access hatch, trailing exhaust; mechanic holding timber, toolbox.",
+   "nativeObservation": "Aircraft silhouette readable; repair panel not distinguishable at compact scale. Open.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i07-b4.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "improved-with-remaining-issue"
+  },
+  {
+   "findingId": "LS61-STORY-08-01",
+   "chapterId": "ac04-i08",
+   "beat": 1,
+   "reviewFinding": "Empty chair visible, but seated leader almost hidden behind boy/chair.",
+   "fix": "Thirteen seated facing Four's empty chair with draped grey scarf; inspection report on clipboard; boy listening behind.",
+   "nativeObservation": "Leader, empty chair and grief pose separated.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i08-b1.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-08-02",
+   "chapterId": "ac04-i08",
+   "beat": 2,
+   "reviewFinding": "Cloth is visibly supported near Thirteen hands; it reads as stiff flat board.",
+   "fix": "Close shot; folded cloth with top fold, drape and stitched border cradled in both hands (tested HeldBy + both-hands contact).",
+   "nativeObservation": "Folded cloth silhouette reads as cloth in hands, not a board.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i08-b2.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-08-03",
+   "chapterId": "ac04-i08",
+   "beat": 3,
+   "reviewFinding": "Five jets and replacement pilots visible; identity turnover weakly communicated.",
+   "fix": "Recruits in pale uniforms with forage caps; Thirteen briefing; boy isolated left; parked row of fighters.",
+   "nativeObservation": "Newcomers differentiated and boy distance clear; parked row reads weakly.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i08-b3.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "improved-with-remaining-issue"
+  },
+  {
+   "findingId": "LS61-STORY-08-04",
+   "chapterId": "ac04-i08",
+   "beat": 4,
+   "reviewFinding": "Report and daughter turning away visible; leader hand is hard to associate with report.",
+   "fix": "Thirteen holds report (heading + lines) in both hands; daughter's head turned away; boy between.",
+   "nativeObservation": "Report-in-hands and turned-away daughter readable.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i08-b4.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-09-01",
+   "chapterId": "ac04-i09",
+   "beat": 1,
+   "reviewFinding": "Hospital cross visible; rooftop gun is not legible and street is not crowded.",
+   "fix": "Blackout street; hospital block with cross, sandbagged roof gun with twin barrels; retreat column, patrol, truck; Thirteen pointing at gun.",
+   "nativeObservation": "Rooftop emplacement and crowding readable in teal night palette.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i09-b1.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-09-02",
+   "chapterId": "ac04-i09",
+   "beat": 2,
+   "reviewFinding": "Doorway floats as a freestanding frame in street; satchel on ground.",
+   "fix": "Doorway set in a continuous blackout facade with passage; torch beam from Thirteen onto kneeling daughter; satchel transmitter at her hands.",
+   "nativeObservation": "Doorway connected; torch interaction reads; satchel mostly hidden by daughter's body. Open.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i09-b2.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "improved-with-remaining-issue"
+  },
+  {
+   "findingId": "LS61-STORY-09-03",
+   "chapterId": "ac04-i09",
+   "beat": 3,
+   "reviewFinding": "Confrontation figures visible; facial/emotional response remains minimal.",
+   "fix": "Boy pointing, stern brows; Thirteen sad brows facing him; daughter behind with satchel.",
+   "nativeObservation": "Opposing eye-lines and reaction pose read.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i09-b3.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-09-04",
+   "chapterId": "ac04-i09",
+   "beat": 4,
+   "reviewFinding": "Pilot stands aside and children face doorway; escape path reads only generically.",
+   "fix": "Higher camera through doorway down a lit escape path into moonlit street; children walking away; Thirteen aside.",
+   "nativeObservation": "Continuous open route reads. Note: a transient maroon tint appeared on this capture (observed twice across sessions, origin not isolated; not in source palette).",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i09-b4.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "improved-with-remaining-issue"
+  },
+  {
+   "findingId": "LS61-STORY-10-01",
+   "chapterId": "ac04-i10",
+   "beat": 1,
+   "reviewFinding": "Three citizens and pennants visible; singing/community scale weak.",
+   "fix": "Reopened square with fountain, facades, two pennant cords, 14-person crowd with raised arms; principals singing (open mouths).",
+   "nativeObservation": "Collective singing and community scale read.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i10-b1.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-10-02",
+   "chapterId": "ac04-i10",
+   "beat": 2,
+   "reviewFinding": "Rubble and crouched daughter visible; seated prisoner hidden by chair.",
+   "fix": "Daughter kneeling at rubble, barkeeper carrying timber with armband; seated prisoner on crate guarded by armed citizen.",
+   "nativeObservation": "Prisoner/guard and cleanup readable.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i10-b2.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-10-03",
+   "chapterId": "ac04-i10",
+   "beat": 3,
+   "reviewFinding": "Empty chairs visible; Allied aircraft hidden behind room wall except trails.",
+   "fix": "Real window opening; Allied fighters with contrails placed in window line; boy at window; empty chairs.",
+   "nativeObservation": "Allied aircraft visible through window.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i10-b3.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-10-04",
+   "chapterId": "ac04-i10",
+   "beat": 4,
+   "reviewFinding": "Children and pennants visible, but leaving retreat direction not clear.",
+   "fix": "Children walking away down street under pennants; daughter glances back; retreat trucks placed down road.",
+   "nativeObservation": "Leaving direction clear; trucks out of frame at compact ratio. Minor open.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i10-b4.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "improved-with-remaining-issue"
+  },
+  {
+   "findingId": "LS61-STORY-11-01",
+   "chapterId": "ac04-i11",
+   "beat": 1,
+   "reviewFinding": "Two jets above waterfront blocks; mourners and memorial visible.",
+   "fix": "Hill overlook with Farbanti tower skyline and bay; yellow vs opposing fighter with spiralling contrail; birch frames.",
+   "nativeObservation": "Skyline and final contest readable.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i11-b1.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-11-02",
+   "chapterId": "ac04-i11",
+   "beat": 2,
+   "reviewFinding": "Cloth rests on memorial earth between kneeling daughter and boy; no body shown.",
+   "fix": "Birch grove grave set; daughter's hand at cloth (tested); both children kneel; low camera.",
+   "nativeObservation": "Hand-to-cloth and small-grave focus clear; no body shown.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i11-b2.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-11-03",
+   "chapterId": "ac04-i11",
+   "beat": 3,
+   "reviewFinding": "Memory musicians again obscured by chair; Four visible at side.",
+   "fix": "Three seated: Thirteen guitar, Four, boy harmonica, all chairs behind.",
+   "nativeObservation": "All three faces and both instruments visible.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i11-b3.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-11-04",
+   "chapterId": "ac04-i11",
+   "beat": 4,
+   "reviewFinding": "Mourners and small grave visible, surrender broadcast has no distinct visual cue.",
+   "fix": "Grave with cloth; field radio on stump as surrender cue; mourners standing.",
+   "nativeObservation": "Distinct radio cue and grave composition.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i11-b4.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-12-01",
+   "chapterId": "ac04-i12",
+   "beat": 1,
+   "reviewFinding": "Adult writer and taxi on former runway visible; tunnel/wheat unchanged.",
+   "fix": "Civilian traffic (3 cars, delivery truck) on former runway, wheat unripe/green; adult writer in overcoat.",
+   "nativeObservation": "Civilian reuse convincing; fewer military cues.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i12-b1.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-12-02",
+   "chapterId": "ac04-i12",
+   "beat": 2,
+   "reviewFinding": "Writer is seated facing away; letter is behind him on desk.",
+   "fix": "Study set (window, bookshelf, lamp, photo); writer faces camera with letter and harmonica keepsake on desk.",
+   "nativeObservation": "Writer, letter and keepsake together from readable angle.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i12-b2.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-12-03",
+   "chapterId": "ac04-i12",
+   "beat": 3,
+   "reviewFinding": "Writing gesture visible but nib-to-paper contact and addressee not legible.",
+   "fix": "Pen tip on letter paper (tested); envelope with stroke-glyph 'TO MOBIUS ONE' and stamp.",
+   "nativeObservation": "Address legible; pen contact visible.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i12-b3.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "repaired-pending-independent-review"
+  },
+  {
+   "findingId": "LS61-STORY-12-04",
+   "chapterId": "ac04-i12",
+   "beat": 4,
+   "reviewFinding": "Writer stands beside paper; hand-resting/completed-letter action weak.",
+   "fix": "Completed letter with signature line, hand resting on letter, envelope and harmonica; glasses on writer.",
+   "nativeObservation": "Hand-on-letter and final keepsake composition read; envelope text oblique at this angle.",
+   "evidence": "build/ac04-story-visual-fix/final/compact/i12-b4.png",
+   "narrowEvidence": "build/ac04-story-visual-fix/final/narrow (i01-i03 all beats, i06/i08/i12 b4 screenshots) + caption log for all 48",
+   "openedWithImageViewer": true,
+   "state": "improved-with-remaining-issue"
+  }
+ ],
+ "nativeInspection": {
+  "captureMethod": "CGWindowList exact owned Studio window (preview PID12286 win1355; candidate b7ef84e0 PID18564 win1907; final 87d17771 PID22555 win2049) + screencapture -l; every saved final PNG opened with the image viewer. No desktop/wallpaper captures used.",
+  "finalCompact": "48 PNGs build/ac04-story-visual-fix/final/compact/ (1205x525 viewport, production inset, 1205x467 root)",
+  "finalNarrow": "390x525: chapters i01-i03 all 12 beats in screenshots; i06/i08/i12 beat4 screenshots; caption geometry for all 48 beats engine-recorded",
+  "iterationCaptures": "build/ac04-story-visual-fix/iter/ (edit-mode preview grids; NOT final evidence)",
+  "controls": "Native mouse on production BACK/PAUSE/RESUME/NEXT/SKIP/CONTINUE; wheel scroll; observed BACK from 4/4 to 1/4 paused; auto-advance observed when not paused."
+ },
+ "referenceInspection": {
+  "youtube": {
+   "url": "https://youtu.be/lO7bCwQOYUs",
+   "title": "Ace Combat 04: Shattered Skies. Full campaign [HD 1080p 60fps]",
+   "lengthSeconds": 17522,
+   "chapters": "18 mission timestamps from description (00:00 Sitting Duck \u2026 4:34:01 Megalith)",
+   "framesAttempted": "Downloaded public storyboard sheets L2 (120x90 per frame, 10s interval, 5x5 per sheet, 71 sheets) to /tmp/ac04ref (untrusted data dir).",
+   "limitation": "HONEST: the image contents of those sheets (and of the reviewer's i03-b2/narrow-i08-b2 PNGs) were NOT available to me \u2014 my image tool returned 'media removed: request limit' for those reads. No original interlude frame was visually compared. All composition decisions are from the reviewer's written per-shot findings, the existing transcript-grounded beat text, and general knowledge that AC04 interludes are illustrated still slideshows (Studio 4\u00b0C) narrated by the adult boy; no frame-parity claim."
+  },
+  "web": [
+   {
+    "url": "web search 'Ace Combat 04 interlude cutscenes \u2026'",
+    "finding": "Interludes were slideshow cutscenes by Studio 4\u00b0C; side-story director Sunao Katabuchi (fan wiki); narrator is grown-up boy reading a letter to the player."
+   }
+  ],
+  "carriedForward": "Mitoro words4/0034+0035 chronology (via docs/reviews/ac04-lifeline-story-independent-61.json); Acepedia direct 403 per prior reports; GameFAQs not re-fetched.",
+  "dialogue": "Original adapted dialogue in AC04Story.ts unchanged (sha recorded); no transcript copied; chapter IDs/triggers/voice lifecycle unchanged."
+ },
+ "cleanCampaign": {
+  "session": "Separate Play session after viewer session was stopped; only QA object: QACampaignPilot (persistent, never destroyed mid-game; removed after Stop). Native mouse for all UI (RECORD 1, START SORTIE, SKIP/NEXT/PAUSE, CONTINUE CAMPAIGN). Flight by labelled automation through production public FlightController inputs (inspected pilot.client.luau body); no state writes.",
+  "results": [
+   {
+    "m": 1,
+    "result": "MISSION ACCOMPLISHED 600 0:22 targets6",
+    "evidence": "campaign/m1-result.png"
+   },
+   {
+    "m": 2,
+    "result": "ACCOMPLISHED 1320 1:10 targets11 (new Early dispersed Rigley)",
+    "evidence": "campaign/m2-result.png"
+   },
+   {
+    "m": 3,
+    "result": "ACCOMPLISHED 900 1:19 targets9 (revised Shezna)",
+    "evidence": "campaign/m3-result.png"
+   },
+   {
+    "m": 4,
+    "result": "ACCOMPLISHED 480 2:15 targets3",
+    "evidence": "campaign/m4-result.png"
+   },
+   {
+    "m": 5,
+    "result": "ACCOMPLISHED 2140 10:15 targets43; real 600s score phase (quota 2140 at ~440s, phase held to 600.68), ac04_update relocation, southbound withdrawal to completion 615.48s; hull dipped to 52 then real rearm",
+    "evidence": "campaign/m5-debrief.png, campaign/m5-telemetry-digest.json"
+   }
+  ],
+  "postM5": "M5 debrief -> CONTINUE CAMPAIGN -> chapter4 'Five shadows over wheat' rendered (campaign/post-m5-chapter4.png) -> NEXT x4 -> M6 '06/18 Invincible Fleet' briefing with START SORTIE (campaign/m6-briefing.png). No UI stall in clean session. M6 not flown.",
+  "priorContamination": "Independent-61 stall NOT reproduced in clean session; consistent with QA viewer teardown contamination, not a product defect (one clean run is not proof of absence).",
+  "storyChaptersObservedInCampaign": [
+   "ac04-i01 (pre-M1)",
+   "ac04-i02 (post-M1)",
+   "ac04-i03 (post-M2)",
+   "ac04-i04 (post-M5)"
+  ]
+ },
+ "remainingIssues": [
+  {
+   "id": "SVF-01",
+   "severity": "P2",
+   "issue": "Transient maroon full-screen tint observed twice (viewer session 1 first mount i01b1; final i09b4 capture); origin not isolated (not in story palettes; Lighting WeatherFlash at neutral when checked). Needs independent reproduction."
+  },
+  {
+   "id": "SVF-02",
+   "severity": "P2",
+   "issue": "Small-detail legibility at compact size: i01b4 tail '13', i07b4 repair panel, i04b2 counting gesture, i08b3 parked row, i12b4 address oblique."
+  },
+  {
+   "id": "SVF-03",
+   "severity": "P2",
+   "issue": "Partial overlaps: i06b1 radio over daughter's chin, i06b2 daughter behind Four, i09b2 satchel hidden by daughter, i07b3 wing dominance, i10b4 trucks out of frame."
+  },
+  {
+   "id": "SVF-04",
+   "severity": "P1 fidelity",
+   "issue": "No original interlude frames actually compared (media unavailable to this agent). Native primitive figures are not illustrated-original parity; AC04 still-illustration look not achieved."
+  },
+  {
+   "id": "SVF-05",
+   "severity": "info",
+   "issue": "Narrow 390x525 screenshots exist for i01-i03 all beats + 3 others; remaining narrow beats verified by engine geometry only, not individually screenshotted."
+  },
+  {
+   "id": "SVF-06",
+   "severity": "info",
+   "issue": "Lighting Technology Migration dialog appeared on opening candidates in Studio (unsaved; not dismissed); Brushtool plugin panel present. Not game content."
+  }
+ ],
+ "decisions": [
+  {
+   "id": "STORY-STAGE-002",
+   "topic": "Chair occlusion fix",
+   "chosen": "Rebuild chair geometry with back behind occupant + chair inside actor model + regression test",
+   "alternatives": [
+    "move cameras behind chairs",
+    "remove chairs"
+   ],
+   "why": "Physical fix; any camera now sees faces; chairs are narrative props (empty-chair cues)."
+  },
+  {
+   "id": "STORY-STAGE-003",
+   "topic": "Interaction physicality",
+   "chosen": "Arm IK to world targets + bounded lean + gaze + camera cheat",
+   "alternatives": [
+    "hand-placed static poses per shot",
+    "accept implied contact"
+   ],
+   "why": "Reviewer required readable hand-to-prop contact; solver reuses across 48 shots and is testable."
+  },
+  {
+   "id": "STORY-STAGE-004",
+   "topic": "Composition verification",
+   "chosen": "Native raycast visibility/in-frame/front-face tests per named key at three lane ratios",
+   "alternatives": [
+    "screenshot review only"
+   ],
+   "why": "Prevents regressions like the chair; screenshots still required for art judgment."
+  },
+  {
+   "id": "STORY-CAPTION-002",
+   "topic": "Narrow captions",
+   "chosen": "Measured wrap height sizes band to chapter's longest caption; explicit canvas; scroll only as fallback",
+   "alternatives": [
+    "shrink text",
+    "truncate",
+    "AutomaticSize"
+   ],
+   "why": "AutomaticSize under-measured at narrow width; owner requires legible full captions."
+  },
+  {
+   "id": "STORY-LOOK-001",
+   "topic": "Reference art style",
+   "chosen": "Native primitive dioramas with per-shot lighting; no uploaded/imported assets",
+   "alternatives": [
+    "Blender illustrated stills (requires 10/10 asset review gate)",
+    "decal paintings"
+   ],
+   "why": "Stays inside no-upload scope; still-illustration fidelity remains future decision."
+  }
+ ],
+ "lease": {
+  "owner": "AC04 story visual fix implementation sub-agent (claude-opus-5-5)",
+  "exclusive": true,
+  "started": "2026-10-28T00:01:39Z",
+  "precondition": "ps showed no RobloxStudio GUI process (only StudioMCP helpers); prior lease build/ac04-lifeline-fix/lease.json and independent-61 lease both released/closed",
+  "historicalPreserved": {
+   "path": "build/ac04-lifeline-fix/candidate-91927612.rbxlx",
+   "sha256": "91927612ddb4049cc2010a5cfa2a8e0cfaa166eef7a51d5eeaf8d48dc3cf5659"
+  },
+  "published": false,
+  "released": true,
+  "ownedStudio": [
+   {
+    "pid": 12286,
+    "studioId": "005f9469-34c5-41e0-8df5-4806e1c06588",
+    "place": "build/ac04-story-visual-fix/preview.rbxlx",
+    "purpose": "edit-mode native story preview (not a candidate)",
+    "closed": true,
+    "closure": "TERM ignored; KILL sent only to owned PID 12286 (preview, unsaved)"
+   },
+   {
+    "pid": 18564,
+    "studioId": "50fb7a5a-ba85-40a3-8815-1aa6a3ae8fae",
+    "place": "build/ac04-story-visual-fix/candidate-b7ef84e0.rbxlx",
+    "sha256": "b7ef84e093e5ebba37c11149ad950407e5124cb715141a1715a277eeff0a2e44",
+    "purpose": "candidate story viewer session then separate clean campaign session; never saved",
+    "closed": true,
+    "playStopped": true,
+    "qaRemoved": [
+     "QAStoryViewer (edit)",
+     "QAStoryViewer/QAStoryViewer2/QAStoryViewerV2 (runtime, viewer Play only)"
+    ],
+    "closure": "TERM; owned PID 18564 exited; unsaved"
+   },
+   {
+    "pid": 22555,
+    "studioId": "2e9d923f-fdc0-43d8-9e05-3a4be36e88ea",
+    "place": "build/ac04-story-visual-fix/candidate-87d17771.rbxlx",
+    "sha256": "87d17771d5363be367866fcecf6245b700da0fd67df45079ebfcdf90ca312295",
+    "purpose": "final viewer session then separate clean campaign session; never saved",
+    "closed": true,
+    "playStopped": true,
+    "qaRemoved": [
+     "QAStoryViewerV2 (viewer session)",
+     "QACampaignPilot (campaign session)"
+    ],
+    "closure": "MCP stopped Play after each session; QA scripts removed in edit; TERM ignored; KILL sent only to owned PID 22555; unsaved"
+   }
+  ],
+  "releasedAt": "2026-10-28T02:05:23Z",
+  "frozenCandidate": {
+   "path": "build/ac04-story-visual-fix/candidate-87d17771.rbxlx",
+   "sha256": "87d17771d5363be367866fcecf6245b700da0fd67df45079ebfcdf90ca312295",
+   "alsoAt": "build/skybreak.rbxlx (same hash)"
+  },
+  "historicalPreservedAfter": "91927612ddb4049cc2010a5cfa2a8e0cfaa166eef7a51d5eeaf8d48dc3cf5659",
+  "studioListAfter": "no RobloxStudio GUI process; StudioMCP helpers untouched",
+  "localHttpServer": "python http.server on 127.0.0.1:8765 (preview reload only) stopped by background limit",
+  "handoff": "Lease explicitly released to root for UI integration build"
+ },
+ "prohibitedOperationsPerformed": "none (no commit/push/upload/publish/cloud/Open Cloud/asset upload); human HTML and AGENTS.md untouched",
+ "docContradictionsFlagged": [
+  {
+   "file": "docs/human/taste.html",
+   "issue": "Present-tense 'Version 60 remains Broken Relay; M5/M6 are not shipped in Player.' contradicts current version-63 release line and merged-is-live rule; should read as dated history or be replaced."
+  },
+  {
+   "file": "docs/human/status.html, playtest.html, plan.html",
+   "issue": "State 'coherent native validation remains pending' / 'story composition/caption repair active' / 'all48 shots rejected' as current \u2014 superseded by this report (native 546/546; repaired local candidate 87d17771 pending independent visual review)."
+  }
+ ],
+ "evidenceDirectory": "build/ac04-story-visual-fix",
+ "evidenceManifest": "build/ac04-story-visual-fix/evidence-sha256.txt",
+ "humanDocPayloads": {
+  "releaseRuleForAll": "Merged-to-main gameplay = live via CI/CD; this work is unmerged local candidate 87d17771 \u2192 no availability change; last known v63/PR90/efc7120 historical; release separate from fidelity acceptance.",
+  "taste": {
+   "change": true,
+   "edits": [
+    "Add STORY-STAGE-002/003/004, STORY-CAPTION-002, STORY-LOOK-001 exactly as in decisions[] (chosen/alternatives/why), status 'implemented in local unmerged candidate 87d17771; independent visual review pending'.",
+    "Retain prior story-staging rationale; mark 'chair backs hide people' as superseded by STORY-STAGE-002 with regression test.",
+    "Fix contradiction: change 'Version 60 remains Broken Relay; M5/M6 are not shipped in Player.' to dated history."
+   ]
+  },
+  "plan": {
+   "change": true,
+   "remove": [
+    "Repair chair/instrument occlusion",
+    "Fix narrow caption wrapping/scroll",
+    "Repeat clean M5 result/postM5 story"
+   ],
+   "add": [
+    {
+     "title": "Independent visual review of candidate 87d17771 story shots",
+     "what": "Reviewer inspects final/compact 48 + narrow captures and caption geometry",
+     "why": "Implementer cannot self-approve",
+     "ac04": "Interlude slideshow presentation"
+    },
+    {
+     "title": "Isolate transient maroon tint (SVF-01)",
+     "what": "Reproduce in clean session; identify GUI/lighting source",
+     "why": "Unexplained full-screen tint seen twice",
+     "ac04": "Presentation consistency"
+    },
+    {
+     "title": "Small-detail legibility + partial overlap pass (SVF-02/03)",
+     "what": "Tail '13', repair panel, satchel, daughter i06b2",
+     "why": "Remaining reviewer-level readability gaps",
+     "ac04": "Yellow 13 marking, Four's incomplete aircraft, resistance satchel"
+    },
+    {
+     "title": "Actual original-frame comparison",
+     "what": "Obtain viewable interlude stills/frames and compare composition",
+     "why": "No frame parity established (SVF-04)",
+     "ac04": "Studio 4\u00b0C illustrated stills"
+    },
+    {
+     "title": "UI bundle integration on next build",
+     "what": "Root integrates staged UI with viewportOrigin keep-out",
+     "why": "Lease released; candidate frozen",
+     "ac04": "AC04 menu/HUD fidelity"
+    }
+   ]
+  },
+  "status": {
+   "change": true,
+   "summary": "Local unmerged candidate 87d17771 (story overhaul + captions + Early hooks + Middle/Late + Tanager fix): native 546/546 (58 suites), validate:offline exit0 (446 Luau). All 48 story shots rebuilt and natively captured at 1205x525; captions 48/48 fit at 1205x525 and 390x525, scroll verified at 320x240. Clean session M1-M5 completed with real UI: 600/0:22, 1320/1:10, 900/1:19, 480/2:15, 2140/10:15 targets43; M5 debrief \u2192 chapter4 \u2192 M6 briefing observed; prior stall not reproduced. Story visual acceptance: pending independent review; remaining SVF-01..06. Not merged, not live.",
+   "reviewerFeedbackTracking": "LS61-STORY-ART-001 \u2192 fixes applied, retest pending; LS61-STORY-UI-001 \u2192 fixed with measurements; LS61-QA-001 \u2192 clean retest done (no stall)."
+  },
+  "playtest": {
+   "change": true,
+   "payload": "No Player availability change: candidate 87d17771 is local and unmerged; keep last known v63 (PR90 efc7120) as historical metadata; Broken Relay 27 missions, 0/18 AC04 live. Under M1\u2013M5 construction reports add 'Local candidate 87d17771 (unmerged): clean-session native flight completed M1 600/0:22, M2 1320/1:10, M3 900/1:19, M4 480/2:15, M5 2140/10:15; automation via public inputs, not human-feel evidence.' Under story placement: 'Chapters 1\u20134 observed in campaign playback on local candidate; all 48 shots rebuilt (independent review pending); captions verified at 1205x525/390x525.' M6: 'briefing reached on local candidate; not flown.' Keep release separate from fidelity."
+  }
+ }
+}

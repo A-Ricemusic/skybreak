@@ -1,0 +1,61 @@
+{
+  "schemaVersion": 1,
+  "checkedAt": "2026-10-28T00:18:27.342842+00:00",
+  "author": "Parent orchestrator; personal audit requested by owner",
+  "publishedRevision": "efc712084cdb8b790c2042d094522dbd09cdc3f7",
+  "placeVersion": 63,
+  "publicationRun": "https://github.com/A-Ricemusic/skybreak/actions/runs/40601149377",
+  "findingsCorrected": [
+    "Outdated version60/PR84 replaced by verified version63/PR90 receipt",
+    "Recent merged PR receipt table refreshed",
+    "M6\u2013M18 unwired claims replaced with integrated-source/native-pending state",
+    "Old world descriptions replaced with current rebuild descriptions",
+    "False no-staged-characters claims removed;48-shot visual rejection retained",
+    "M1\u2013M5 outcomes reconciled to independent91927612 candidate",
+    "M5 authoritative completion separated from withheld debrief/story UI",
+    "M18 hatch and ascent runtime now described as integrated",
+    "M13 actual100-point balloon scoring described without invented scaling",
+    "Rearm clarified as immediate refill with15-second cooldown",
+    "Historical taste decisions separated from current product facts",
+    "All4 human documents reconciled; exactly4 files retained"
+  ],
+  "gameplayTestsRun": false,
+  "publicationPerformed": false,
+  "visualBrowserInspectionPerformed": false,
+  "checks": {
+    "exactlyFourHumanFiles": true,
+    "htmlNestingAndUniqueIds": true,
+    "localLinksAndAnchors": true,
+    "all18ExpandedMissionCards": true,
+    "gameplayAndUIAfterMissionReports": true,
+    "targetedStaleClaimScan": true
+  },
+  "documents": {
+    "docs/human/playtest.html": {
+      "sha256": "bce2198cdd5db4c749a3517ba415226bed1767698984bdcc33361c57097d0125"
+    },
+    "docs/human/plan.html": {
+      "sha256": "cd00924ff6acfb926c050cd76dc14e21dfc0ef1baa2903289410fee1a7e4b7cf"
+    },
+    "docs/human/status.html": {
+      "sha256": "7f16aa8a57a41ad0c18e63aff4d698cfd45ded3678b4b7acaac1364ab37992a8"
+    },
+    "docs/human/taste.html": {
+      "sha256": "9077380cc42e1c49abcfa6d865e897312d73a66b709b34b2f4c7decd24578b22"
+    }
+  },
+  "agentInstructionsUpdated": true,
+  "activeAgentsNotified": true,
+  "ownerReleaseConventionUpdate": {
+    "at": "2026-10-28T00:21:23.593784+00:00",
+    "instruction": "Treat merged gameplay PRs as live via automatic CI/CD; owner handles Player testing. Receipt verification is not a reporting prerequisite.",
+    "currentAC04Status": "No AC04 gameplay merge identified; local work remains unmerged."
+  },
+  "lastReconciledAt": "2026-10-28T02:27:07.606616+00:00",
+  "latestHandoff": "Early M1\u2013M5 modules authored/unwired; build owner assigned integration, native tests and replay. Earlier version60 statements marked explicitly historical.",
+  "latestReconciliation": {
+    "at": "2026-10-27T20:21:43.069211-07:00",
+    "change": "All four docs reconcile completed optional image-integration staging, isolated typecheck, absent assetIDs and parent-discovered failed-load fallback gap. First M1\u2013M5 release stays priority; no source integration/publication change.",
+    "verificationLimits": "Source/patch inspection only. No native test, rendering, upload or new merge audit."
+  }
+}

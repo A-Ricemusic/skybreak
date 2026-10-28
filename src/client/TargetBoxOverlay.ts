@@ -64,6 +64,7 @@ export class TargetBoxOverlay {
 		for (const slot of this.slots) slot.frame.Destroy();
 		this.slots.clear();
 		this.gui = undefined;
+		this.keepouts = []; this.bounds = undefined;
 	}
 	/** Touch controls in viewport px and the safe area (TargetBoxes.Bounds): boxes and their text keep inside it and off them. */
 	public SetPlacement(keepouts: readonly Rectangle[], bounds: Rectangle): void { this.keepouts = keepouts; this.bounds = bounds; }
