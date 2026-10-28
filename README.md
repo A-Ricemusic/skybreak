@@ -121,9 +121,9 @@ Studio's documented `CreateAssetAsync` upload route currently reports “not ava
 
 ## Broken Relay campaign validation
 
-Read [the architecture and all 27 mission definitions](docs/broken-relay.md). The [original branch QA](docs/archive/2026-10/broken-relay-qa.md) and [parent integrated acceptance](docs/archive/2026-10/integrated-campaign-acceptance.md) record historical all-27-mission runs and their exact revisions; they predate the current flight, combat, terrain and audio changes. The [2026-10-27 baseline and release matrix](docs/archive/2026-10/release-baseline-2026-10-27.md) separates current checks from outstanding integration acceptance. Do not launch Studio, `test:roblox` or a Rojo server without the parent’s exclusive lease.
+Read [the architecture and all 27 mission definitions](docs/broken-relay.md). Do not launch Studio, `test:roblox` or a Rojo server without the parent’s exclusive lease.
 
-`bun run test:offline` runs the compiled pure-domain contracts in the standalone Luau CLI (set `LUAU_BIN`). It does not replace Roblox Jest or live gameplay. The original [campaign expansion proposal](docs/archive/2026-10/campaign-expansion.html) remains background design material.
+`bun run test:offline` runs the compiled pure-domain contracts in the standalone Luau CLI (set `LUAU_BIN`). It does not replace Roblox Jest or live gameplay.
 
 ### Offline and manual tools
 
