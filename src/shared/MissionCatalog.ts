@@ -1,5 +1,18 @@
 import { missions } from "./missions";
+import {
+	LEGACY_MISSION_AIRSPACE,
+	LEGACY_MISSION_COUNTDOWN,
+	LEGACY_MISSION_SCORING,
+	LEGACY_MISSION_START,
+	MissionAirspacePolicy,
+	MissionPolicy,
+	MissionScoringPolicy,
+	MissionStartPolicy,
+	validateMissionPolicy,
+} from "./MissionPolicy";
 import { WavePlan } from "./WavePlan";
+
+export type { EncounterRole, MissionAirspacePolicy, MissionPolicy, MissionScoringPolicy, MissionStartPolicy } from "./MissionPolicy";
 
 export type Act = 1 | 2 | 3;
 
@@ -147,7 +160,7 @@ export interface GroundTargetSpec {
 	yaw?: number;
 }
 
-export interface MissionBlueprint {
+export interface MissionBlueprint extends MissionPolicy {
 	id: number;
 	act: Act;
 	codename: string;
@@ -239,6 +252,7 @@ for (let index = 0; index < MISSIONS.size(); index++) {
 	const blueprint = MISSIONS[index];
 	const id = blueprint.id;
 	assert(id === index + 1, `Mission ${index + 1} must have id ${index + 1}`);
+	validateMissionPolicy(blueprint, id);
 	if (id >= 3) {
 		const flow = expandPhases(blueprint.phases);
 		assert(flow.size() >= 4 && flow.size() <= 7, `Mission ${id} needs 4-7 objective beats`);
@@ -341,12 +355,48 @@ for (let index = 0; index < MISSIONS.size(); index++) {
 	if (blueprint.aceReturns) assert(requiredAce === 1 && blueprint.aceReturns.size() === 2, `Mission ${id} needs two ace return lines and an ace`);
 }
 
+function resolveBlueprint(value: number | MissionBlueprint): MissionBlueprint {
+	if (typeIs(value, "number")) {
+		assert(value >= 1 && value <= MISSION_COUNT && value % 1 === 0, `Unknown mission id: ${tostring(value)}`);
+		return MISSIONS[value - 1];
+	}
+	return value;
+}
+
 export const MissionCatalog = {
 	/** M3-M27 changed layout; older best times belong to the shorter sorties. */
 	TimeVersion(id: number): number { return id >= 3 ? 2 : 1; },
 	Get(id: number): MissionBlueprint {
-		assert(id >= 1 && id <= MISSION_COUNT && id % 1 === 0, `Unknown mission id: ${tostring(id)}`);
-		return MISSIONS[id - 1];
+		return resolveBlueprint(id);
+	},
+	/** Effective sortie deadline; absent policy preserves the global 900-second limit. */
+	CountdownSeconds(value: number | MissionBlueprint): number {
+		return resolveBlueprint(value).countdownSeconds ?? LEGACY_MISSION_COUNTDOWN;
+	},
+	/** Effective horizontal world limits; absent policy preserves WorldAirspace exactly. */
+	Airspace(value: number | MissionBlueprint): MissionAirspacePolicy {
+		return resolveBlueprint(value).airspace ?? LEGACY_MISSION_AIRSPACE;
+	},
+	/** Effective initial pose; absent policy preserves FlightMath.NewState exactly. */
+	Start(value: number | MissionBlueprint): MissionStartPolicy {
+		return resolveBlueprint(value).start ?? LEGACY_MISSION_START;
+	},
+	/** Effective point values and rank cuts; absent policy describes today's MissionScore rules. */
+	Scoring(value: number | MissionBlueprint): MissionScoringPolicy {
+		return resolveBlueprint(value).scoring ?? LEGACY_MISSION_SCORING;
+	},
+	/** Effective world-plan key; absent policy continues selecting by the mission's region. */
+	WorldKey(value: number | MissionBlueprint): string {
+		const blueprint = resolveBlueprint(value);
+		return blueprint.worldKey ?? blueprint.region;
+	},
+	/** Effective release state; absent policy preserves today's fully available catalog. */
+	Available(value: number | MissionBlueprint): boolean {
+		return resolveBlueprint(value).available ?? true;
+	},
+	/** Exposed for authoring tests and future catalog builders; throws on an invalid policy. */
+	ValidatePolicy(blueprint: MissionBlueprint): void {
+		validateMissionPolicy(blueprint, blueprint.id);
 	},
 	All(): MissionBlueprint[] {
 		return MISSIONS;
