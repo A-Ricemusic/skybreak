@@ -2,6 +2,7 @@
 // and the debrief screen. Nothing here reads instances or the clock.
 import { Difficulty, DifficultyKind } from "./Difficulty";
 import { Act, MissionBlueprint, MissionCatalog, MissionPhaseBlueprint } from "./MissionCatalog";
+import { MissionScoringPolicy } from "./MissionPolicy";
 
 export type MissionRank = "S" | "A" | "B" | "C" | "D";
 
@@ -19,6 +20,8 @@ export interface ScoreInput {
 	missileHits: number;
 	/** Hull points lost (the hull starts at 100). */
 	damageTaken: number;
+	/** Raw total from TargetScore; read only when a passed policy uses the points basis. */
+	targetPoints?: number;
 	/** Level the sortie was flown on; scales the score (not the rank). Absent or unknown means Normal. */
 	difficulty?: DifficultyKind | string;
 }
@@ -26,7 +29,7 @@ export interface ScoreInput {
 export interface ScoreResult {
 	score: number;
 	rank: MissionRank;
-	/** 0-100 performance rating the rank is cut from. */
+	/** 0-100 performance rating; points-basis ranks do not use it. */
 	rating: number;
 	/** 0-1 component ratings, for display. */
 	time: number;
@@ -54,6 +57,15 @@ const RANK_CUTS: { rank: MissionRank; rating: number }[] = [
 
 function finite(value: number, fallback = 0): number {
 	return typeIs(value, "number") && value === value && math.abs(value) !== math.huge ? value : fallback;
+}
+
+function pointsRank(total: number, policy: MissionScoringPolicy): MissionRank {
+	const value = math.max(0, finite(total));
+	if (value >= policy.rank.S) return "S";
+	if (value >= policy.rank.A) return "A";
+	if (value >= policy.rank.B) return "B";
+	if (value >= policy.rank.C) return "C";
+	return "D";
 }
 
 // A good Normal run: two-missile bandits in every act, with time earned by
@@ -104,7 +116,8 @@ export const MissionScore = {
 		return math.ceil(total / 5) * 5;
 	},
 
-	Compute(input: ScoreInput): ScoreResult {
+	/** Points-basis policies use raw TargetScore points; rating missions retain the legacy path exactly. */
+	Compute(input: ScoreInput, policy?: MissionScoringPolicy): ScoreResult {
 		const airKills = math.max(0, math.floor(finite(input.airKills)));
 		const groundKills = math.max(0, math.floor(finite(input.groundKills)));
 		const fired = math.max(0, math.floor(finite(input.missilesFired)));
@@ -117,6 +130,12 @@ export const MissionScore = {
 		// A sortie with no shots fired (pure flying objectives) is not penalised for accuracy.
 		const accuracy = fired > 0 ? hits / fired : 1;
 		const survival = 1 - damage / 100;
+		if (policy?.basis === "points") {
+			const score = math.max(0, finite(input.targetPoints ?? 0));
+			if (!input.won) return { score, rank: "D", rating: 0, time, accuracy, survival };
+			const rating = math.floor(WEIGHT_TIME * time + WEIGHT_ACCURACY * accuracy + WEIGHT_SURVIVAL * survival + 1e-6);
+			return { score, rank: pointsRank(score, policy), rating, time, accuracy, survival };
+		}
 		const killPoints = airKills * AIR_POINTS + groundKills * GROUND_POINTS;
 		// Ace earns a modest bonus and Easy a small penalty on points only; the rank still reads the flying.
 		const difficulty = Difficulty.Coerce(input.difficulty);
@@ -131,6 +150,11 @@ export const MissionScore = {
 		// An S is earned with the missiles too: a high rating carried by speed alone tops out at A.
 		if (rank === "S" && accuracy < S_ACCURACY) rank = "A";
 		return { score: scaled(killPoints + rating * RATING_POINTS), rank, rating, time, accuracy, survival };
+	},
+
+	/** Rank a successful raw point total against a points-basis policy. Failure is always D. */
+	RankPoints(total: number, won: boolean, policy: MissionScoringPolicy): MissionRank {
+		return won && policy.basis === "points" ? pointsRank(total, policy) : "D";
 	},
 
 	IsRank(value: unknown): value is MissionRank {
