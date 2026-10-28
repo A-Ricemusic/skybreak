@@ -71,3 +71,14 @@ Studio, Rojo server, publishing, and live mission QA are intentionally separate
 engine-level steps. In Studio, verify `GeometrySource` is `Blender`, geometry and
 colors replicate to the client, target pivots align with world placement, and
 missile damage continues to use the combat service rather than MeshPart queries.
+
+## Mission 1 carrier (uploaded-asset pipeline, not uploaded)
+
+The aircraft carrier for mission 1's start (a scripted fly-off from the bow) is a
+Model-upload asset, not part of this EditableMesh path.
+`tools/assets/m01_assets.py` (`tools/assets/build-all.sh carrier`) builds
+`assets/roblox-upload/carrier/`. It is 560 studs long (21.5 Kestrel lengths), has
+2,772 triangles and uses 512² maps. It has an angled deck, a starboard island and
+two bow catapults whose track points are in the checklist's `catapults`. It is
+awaiting the independent safety review and is not referenced from `src/`. See
+[the mission 1 assets](assets-bomber-carrier.md).

@@ -1,0 +1,177 @@
+{
+  "name": "heavy-bomber",
+  "title": "Heavy bomber (mission 1 raid)",
+  "variantOf": null,
+  "robloxAssetType": "Model",
+  "usage": "Mission 1: six bombers in formation (required targets, never fire). Pending review; not referenced from src/.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "heavy-bomber.fbx",
+    "bytes": 2674732
+  },
+  "triangleCount": 9364,
+  "triangleLimit": 15000,
+  "objects": [
+    {
+      "name": "Body",
+      "triangles": 9364
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "heavy-bomber-color.png",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 885492
+    },
+    {
+      "role": "normal",
+      "file": "heavy-bomber-normal.png",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 425247
+    },
+    {
+      "role": "rough",
+      "file": "heavy-bomber-roughness.png",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 562948
+    },
+    {
+      "role": "metal",
+      "file": "heavy-bomber-metalness.png",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 158362
+    }
+  ],
+  "robloxSizeStuds": [
+    72.74,
+    16.6,
+    64.8
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bounds-center",
+  "groundOffsetStuds": 0.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png",
+    "preview-closeup.png",
+    "preview-back.png",
+    "preview-side-port.png",
+    "preview-bottom.png",
+    "preview-3q-front-right.png",
+    "preview-3q-rear-left.png",
+    "preview-3q-rear-right.png",
+    "preview-3q-low-front.png",
+    "preview-closeup-engines.png",
+    "preview-closeup-tail.png",
+    "preview-closeup-belly.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "No letters, numbers, call signs, serials, squadron codes or glyph-like marks in mesh or texture; grey countershading, splinter camouflage, panel lines and stains only."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national or unit markings; the only markings are a plain dark-red fin-tip band and plain rings on the engine lips. Airframe is an original design, not a copy of any real or game aircraft (podded turbofans, shoulder wing, low tailplanes)."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces or figures: no crew is modelled; the windscreen is one continuous framed band and the refuelling probe is offset to starboard; engine fronts are four small dark fan discs in a row."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "Unarmed airframe: no guns, turret, missiles or visible bombs; bomb-bay doors are closed panel lines. No kill marks, damage or gore."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "attachments": {
+    "leftWingtip": [
+      -36.3,
+      -5.0174,
+      19.1201
+    ],
+    "rightWingtip": [
+      36.3,
+      -5.0174,
+      19.1201
+    ],
+    "exhaust": [
+      0.0,
+      -6.0339,
+      7.0072
+    ]
+  },
+  "variants": [],
+  "previewNotes": {
+    "preview-front.png": "Orthographic from ahead (-Z in Roblox).",
+    "preview-side.png": "Orthographic from starboard (+X).",
+    "preview-top.png": "Orthographic from above, front at the top.",
+    "preview-3q.png": "Perspective, front-left from above.",
+    "preview-back.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
+    "preview-side-port.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
+    "preview-bottom.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
+    "preview-3q-front-right.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
+    "preview-3q-rear-left.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
+    "preview-3q-rear-right.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
+    "preview-3q-low-front.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
+    "preview-closeup-engines.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
+    "preview-closeup-tail.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
+    "preview-closeup-belly.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise)."
+  },
+  "engineExhausts": [
+    [
+      -10.0,
+      -5.6493,
+      3.4355
+    ],
+    [
+      -21.0,
+      -6.4185,
+      10.579
+    ],
+    [
+      10.0,
+      -5.6493,
+      3.4355
+    ],
+    [
+      21.0,
+      -6.4185,
+      10.579
+    ]
+  ],
+  "design": "Original four-turbofan heavy bomber: shoulder-mounted 33-degree swept wing, slight anhedral, podded engines on pylons, swept fin, low tailplanes, gear sponsons. 72 studs span = 2.9x Vanta v2 (24.6) and 3.2x Kestrel v2 (22.2).",
+  "reviewStatus": "pending independent safety review (AGENTS.md); not uploaded; not referenced from src/",
+  "sha256": {
+    "heavy-bomber.fbx": "7e60258f17e1bee7de9ea423c2cc08f89a7f3c205de9757d07aada1bfb8d7514",
+    "heavy-bomber-color.png": "240c7b4e26030fa2bd3fd3663c574b89ad81f300ba64b73b576c712134458436",
+    "heavy-bomber-normal.png": "1e1f344887a1ff138c78eeee4a6f628c7e4eb1729f832497b83f595ec6795830",
+    "heavy-bomber-roughness.png": "8f745f70bda1b19f1779478c8d196d3fb9aae0a50e398b536d855237c6520f64",
+    "heavy-bomber-metalness.png": "379e9bb3fcfc04f6ff2220eb07d073c9998ae22bed9ee24c9e7e428daa86f3fb"
+  },
+  "scaleReference": {
+    "file": "preview-scale-reference.png",
+    "reference": "vanta-v2",
+    "note": "Review aid only: an approved, already uploaded asset placed at in-game size for scale. Not part of this asset or its FBX."
+  }
+}

@@ -1,0 +1,167 @@
+{
+  "name": "carrier",
+  "title": "Aircraft carrier (mission 1 start)",
+  "variantOf": null,
+  "robloxAssetType": "Model",
+  "usage": "Mission 1 start reference (scripted fly-off from the bow catapults) and intro dressing. Pending review; not referenced from src/.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "carrier.fbx",
+    "bytes": 839004
+  },
+  "triangleCount": 2772,
+  "triangleLimit": 6000,
+  "objects": [
+    {
+      "name": "carrier",
+      "triangles": 2772
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "carrier-color.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 321243
+    },
+    {
+      "role": "normal",
+      "file": "carrier-normal.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 100138
+    },
+    {
+      "role": "rough",
+      "file": "carrier-roughness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 191725
+    },
+    {
+      "role": "metal",
+      "file": "carrier-metalness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 28873
+    }
+  ],
+  "robloxSizeStuds": [
+    181.031,
+    153.76,
+    560.0
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 20.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png",
+    "preview-back.png",
+    "preview-side-port.png",
+    "preview-bottom.png",
+    "preview-3q-front-right.png",
+    "preview-3q-rear-left.png",
+    "preview-3q-rear-right.png",
+    "preview-3q-low-front.png",
+    "preview-closeup-island.png",
+    "preview-closeup-bow.png",
+    "preview-closeup-deck.png",
+    "preview-closeup-hull.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "No letters, numbers or symbols anywhere: no hull number, name or pennant. Deck markings are plain straight lines only (landing-area edges, a dashed centre line, three wire lines, catapult track lines, elevator outlines, a parking line, a dashed foul line); no circles, crosses or glyph-like shapes."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No flags, ensigns, hull numbers or class markings; hull, island and deck plan are an original layout, not a copy of any real or game ship."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or crew; no parked aircraft."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "Four covered point-defence domes on sponsons, as on any warship; no guns, missiles or aircraft weapons shown; nothing aimed, firing or damaged."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": [],
+  "previewNotes": {
+    "preview-front.png": "Orthographic from ahead (-Z in Roblox).",
+    "preview-side.png": "Orthographic from starboard (+X).",
+    "preview-top.png": "Orthographic from above, front at the top.",
+    "preview-3q.png": "Perspective, front-left from above.",
+    "preview-back.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
+    "preview-side-port.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
+    "preview-bottom.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
+    "preview-3q-front-right.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
+    "preview-3q-rear-left.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
+    "preview-3q-rear-right.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
+    "preview-3q-low-front.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
+    "preview-closeup-island.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
+    "preview-closeup-bow.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
+    "preview-closeup-deck.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
+    "preview-closeup-hull.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise)."
+  },
+  "catapults": [
+    {
+      "from": [
+        -2.4845,
+        54.0,
+        -122.0
+      ],
+      "to": [
+        -9.4845,
+        54.0,
+        -276.0
+      ]
+    },
+    {
+      "from": [
+        19.5155,
+        54.0,
+        -122.0
+      ],
+      "to": [
+        24.5155,
+        54.0,
+        -276.0
+      ]
+    }
+  ],
+  "deckHeightStuds": 54.0,
+  "launchHeading": "-Z (bow)",
+  "design": "Original flat-deck carrier: 9-degree angled landing area, starboard island aft of midships, two bow catapults with flush blast deflectors, three deck-edge elevators, four sponsons with covered domes. 560 studs long = 21.5 Kestrel lengths; deck 141 studs wide = 6.3 Kestrel spans.",
+  "reviewStatus": "pending independent safety review (AGENTS.md); not uploaded; not referenced from src/",
+  "sha256": {
+    "carrier.fbx": "440df86f272edb0db8c866d3882950d18e3224bd159cdd30c11a13f0b651150b",
+    "carrier-color.png": "ca798b91a5f05259fe180d242db5cc411f1a5e33af483fd11b6157d697b4f563",
+    "carrier-normal.png": "55a9e763aa36749714d52b82754f6376db731322dc3f88b5a72cdb5a9fdf5ee1",
+    "carrier-roughness.png": "7032c5a87f4cf883872343b2a6ae37ab59a0b722916de2aec50d6eea543481f4",
+    "carrier-metalness.png": "6c73c3ae290517fe721e2cf30820e43fd36351e52e8548e9850cb5779bee4005"
+  },
+  "scaleReference": {
+    "file": "preview-scale-reference.png",
+    "reference": "kestrel-v2",
+    "note": "Review aid only: an approved, already uploaded asset placed at in-game size for scale. Not part of this asset or its FBX."
+  }
+}

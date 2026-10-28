@@ -26,6 +26,7 @@ Generators live in `tools/assets/` and are deterministic Blender Python:
 | `aircraft_v2.py` | Version 2 Kestrel, Vanta and ace liveries: shaped-section fuselages, intakes, cockpit, missiles (see [aircraft assets](aircraft-assets.md#version-2-aircraft)) |
 | `compare_v1_v2.py` | Optional: renders `assets/roblox-upload/v1-vs-v2.png` from the exported FBX files |
 | `world.py` | Frigate, oil platform, quay, containers, crane, hangar, tower, three city buildings, farmhouse, barn, silo, radar dish, relay mast, two trees, three rocks |
+| `m01_assets.py` | Mission 1 heavy bomber and aircraft carrier, with extra review previews, a scale reference, a contact sheet and SHA-256 hashes; pending review and deliberately not in `write_manifest.KEYS` (see [mission 1 assets](assets-bomber-carrier.md)) |
 | `build.py` | Entry point: one asset per fresh Blender process |
 | `build-all.sh` | Every asset, four processes at a time, then `write_manifest.py` |
 | `write_manifest.py` | Validates every checklist, writes `assets/roblox-upload/manifest.json` and `src/shared/UploadedAssetSpecs.ts` |
