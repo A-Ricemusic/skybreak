@@ -32,16 +32,16 @@
   },
   "documents": {
     "docs/human/playtest.html": {
-      "sha256": "ac8afdb66b1bf8075153d8e6dbe44456d765bbcfd043659217e61bee3b581a45"
+      "sha256": "a44b07f1592d994ee244227f1983dad015345fc331cedac6a44cc9fb3d2c1152"
     },
     "docs/human/plan.html": {
-      "sha256": "6c3b587de6c0389aa6227d558ae0e8b1004d8bedfe60df1f14aaa1c217b9133b"
+      "sha256": "761a1a6fe57a2bbc3c0babf3df50b227ed1684b445729ce782092764326cc0f5"
     },
     "docs/human/status.html": {
-      "sha256": "504a9ff4cd41697c5c37219e97148bcd5b7e97b9bed50ceb1cbb2af75f54b7b9"
+      "sha256": "9c6d6b78d2851d2cdf907085a6e2cae12a3403c629c687e63095bf24913e64d5"
     },
     "docs/human/taste.html": {
-      "sha256": "8d5de8a4bfc8f6e3d7988dc5200a6505f4688d547ae10866cc413fc5790d27ca"
+      "sha256": "cd71d42b8323aeaa8e318f0d8093e6bea0456f3c690099bc018334afdb82beeb"
     }
   },
   "agentInstructionsUpdated": true,
@@ -54,8 +54,17 @@
   "lastReconciledAt": "2026-10-28T02:27:07.606616+00:00",
   "latestHandoff": "Early M1\u2013M5 modules authored/unwired; build owner assigned integration, native tests and replay. Earlier version60 statements marked explicitly historical.",
   "latestReconciliation": {
-    "at": "2026-10-27T20:21:43.069211-07:00",
-    "change": "All four docs reconcile completed optional image-integration staging, isolated typecheck, absent assetIDs and parent-discovered failed-load fallback gap. First M1\u2013M5 release stays priority; no source integration/publication change.",
-    "verificationLimits": "Source/patch inspection only. No native test, rendering, upload or new merge audit."
+    "date": "2026-10-27T20:59:35.172287-07:00",
+    "gameplayMerge": "76318c7",
+    "pr": 92,
+    "liveMissions": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "nativeReview": "ac04-initial-release-native-61.json",
+    "limits": "Owner Player verification; old receipt63 retained; source review is bounded; native endpoint simulation not gameplay"
   }
 }

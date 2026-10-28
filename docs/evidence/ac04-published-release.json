@@ -1,9 +1,9 @@
 {
-  "checkedAt": "2026-10-28T00:15:22.205160+00:00",
+  "checkedAt": "2026-10-27T20:58:17.962647-07:00",
   "officialPlaceId": 112911685457826,
-  "publishedRevision": "efc712084cdb8b790c2042d094522dbd09cdc3f7",
+  "publishedRevision": "76318c7b80af746b928d1433e4026e7716e2c726",
   "latestConfirmedVersion": 63,
-  "evidenceType": "GitHub successful publish receipt and inspected exact-commit source; no new Roblox Player session inspection",
+  "evidenceType": "Gameplay PR92 merged; live by owner CI/CD convention. Receipt63 remains historical supporting metadata. No fresh Player observation.",
   "runs": [
     {
       "conclusion": "success",
@@ -142,7 +142,52 @@
       "mergedAt": "2026-10-27T19:53:27Z"
     }
   ],
-  "publishedSource": {
+  "pipeline": {
+    "trigger": "push to main, except docs/** and **.md; manual dispatch also available",
+    "targetVerified": true,
+    "validatesBeforePublishing": true,
+    "requiresReceiptNotOnlyGreenRun": false,
+    "existingMissingCredentialBranch": "Historical workflow inspection noted no-publication branch when credentials absent. No missing credential or deployment failure is established by this merge audit.",
+    "availabilityConvention": "Merged gameplay is live by owner convention; known deployment failure must still be disclosed."
+  },
+  "evidenceLimits": [
+    "No fresh Roblox Player session inspected; owner verifies Player.",
+    "Version63 belongs to the earlier receipt source; no new version number invented.",
+    "Native acceptance covers reported source and scoped checks, not final fidelity."
+  ],
+  "latestMergeAudit": {
+    "head": "76318c7b80af746b928d1433e4026e7716e2c726",
+    "pr": 92,
+    "mergedAt": "2026-10-28T03:54:14Z",
+    "reviewedHead": "31971c65a780654a95cb86210cc7cf101e9a3ce1",
+    "liveByPipelineConvention": true,
+    "freshPlayerObservation": false
+  },
+  "currentAC04MissionAvailability": {
+    "live": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "inPreparation": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18
+    ]
+  },
+  "lastReceiptSource": {
     "campaign": "Broken Relay",
     "missionCount": 27,
     "AC04ModulesPresent": false,
@@ -174,40 +219,39 @@
       }
     }
   },
-  "localAC04": {
+  "publishedSource": {
+    "campaign": "AC04",
+    "missionDefinitions": 18,
+    "launchableMissions": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "lockedMissions": [
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18
+    ],
+    "AC04ModulesPresent": true,
+    "treeURL": "https://github.com/A-Ricemusic/skybreak/tree/76318c7b80af746b928d1433e4026e7716e2c726",
+    "basis": "Merged PR92 with reviewed head31971c6; independent native report ac04-initial-release-native-61.json"
+  },
+  "historicalLocalAC04": {
     "published": false,
     "independentlyReviewedArtifactSHA256": "91927612ddb4049cc2010a5cfa2a8e0cfaa166eef7a51d5eeaf8d48dc3cf5659",
     "sourceIntegrationReport": "docs/reviews/ac04-campaign-integration-response.json",
     "currentSourceNativeAcceptance": false
-  },
-  "pipeline": {
-    "trigger": "push to main, except docs/** and **.md; manual dispatch also available",
-    "targetVerified": true,
-    "validatesBeforePublishing": true,
-    "requiresReceiptNotOnlyGreenRun": true,
-    "existingMissingCredentialBranch": "Exits successfully without publishing; receipt is required to distinguish this case."
-  },
-  "evidenceLimits": [
-    "Publication receipts identify accepted uploads, not versions of already-running Player servers.",
-    "No fresh Roblox Player session inspected during this audit.",
-    "Repeated response version numbers are preserved literally, not treated as one increment per PR.",
-    "Local AC04 source edits are not in the inspected published commit."
-  ],
-  "latestMergeAudit": {
-    "checkedAt": "2026-10-27T20:17:20.374523-07:00",
-    "mainSha": "efc712084cdb8b790c2042d094522dbd09cdc3f7",
-    "latestMergedPr": 90,
-    "methods": [
-      "gh pr list merged latest20",
-      "GitHub main commit API",
-      "Exact main GameConfig and recursive src tree"
-    ],
-    "findings": [
-      "GameConfig subtitle Broken Relay",
-      "No AC04 src paths",
-      "No AC04 gameplay PR merged"
-    ],
-    "convention": "Merged gameplay means live via automaticCI/CD; no additional receipt or Player-verification gate",
-    "playerObserved": false
   }
 }
