@@ -10,7 +10,7 @@ Broken Relay's 27-mission campaign is live in Roblox Player. The redesign rebuil
 
 | # | Reference mission | Footage time | Gameplay length | Footage indexed | Spec written | Built | Live | Owner tested |
 |---|---|---|---|---|---|---|---|---|
-| 1 | Sitting Duck | 0:06:30–0:11:24 | 4.9 min | Yes | — | — | — | — |
+| 1 | Sitting Duck | 0:06:30–0:11:24 | 4.9 min | Yes | In review (PR) | — | — | — |
 | 2 | Imminent Threat | 0:15:38–0:22:34 | 6.9 min | Yes | — | — | — | — |
 | 3 | The Northern Eye | 0:26:41–0:34:24 | 7.7 min | Yes | — | — | — | — |
 | 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | — | — | — | — |
