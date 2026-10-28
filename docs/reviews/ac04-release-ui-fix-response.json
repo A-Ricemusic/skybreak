@@ -7,15 +7,18 @@
     "UI-NATIVE-61-003",
     "UI-NATIVE-61-004"
   ],
-  "status": "Implemented; independent native re-review pending",
+  "status": "Four scoped UI corrections independently accepted; PR92 merged",
   "validation": {
     "build": "passed",
     "offlineLuau": 454,
     "audioLifecycle": 10,
     "pythonTests": 92,
-    "native": "not run on corrected release branch"
+    "native": "609/609 in62suites at31971c6; scoped native review accepted with touch/lifecycle-simulation limits"
   },
-  "ci": "Moved AC04-only generated-output traversal after place build; prior validate run40626513456 failed before this fix. Fresh CI pending push.",
-  "availability": "Unmerged;0/18 AC04 live",
-  "sourceReview": "Read-only Sol review found no blocking regression; CI independently installs pinned Luau. Local isolated runner required existing LUAU_BIN."
+  "ci": "All four GitHub checks passed on31971c6; validate run40627673567 passed. CodeRabbit skipped244files against100limit and cites insufficient review capacity; successfulstatus is not approval. PR ready; independent source coverage and native review pending.",
+  "availability": "M1-M5 live by merged-pipeline convention;M6-M18 locked",
+  "sourceReview": "Read-only Sol review found no blocking regression; CI independently installs pinned Luau. Local isolated runner required existing LUAU_BIN.",
+  "revision": "31971c65a780654a95cb86210cc7cf101e9a3ce1",
+  "checkedAt": "2026-10-27T20:38:23.190799-07:00",
+  "independentSourceCoverage": "ac04-release-source-coverage-61.json: no reproducible blocker in bounded paths; native acceptance ac04-initial-release-native-61.json"
 }

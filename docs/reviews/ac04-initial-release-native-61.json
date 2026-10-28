@@ -1,0 +1,421 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "AC04-INITIAL-RELEASE-NATIVE-61",
+  "reviewer": "GPT-6.1 Sol independent review sub-agent; no delegation",
+  "reviewedAtUTC": "2026-10-28T03:53:24.085277+00:00",
+  "checkout": "/Users/pelicannurse/.t3/worktrees/test app/t3-7b0da7e0",
+  "branch": "release/ac04-initial-m1-m5",
+  "head": "31971c65a780654a95cb86210cc7cf101e9a3ce1",
+  "verdict": "ACCEPT_SCOPED_M1_M5_OWNER_PREVIEW_CORRECTIONS_WITH_DISCLOSED_INPUT_LIMITS; NO_REPRODUCED_RELEASE_BLOCKER; NOT_BETA_OR_FINAL_FIDELITY_APPROVAL",
+  "releaseGate": {
+    "fourCorrections": "accepted for bounded native readability scope",
+    "ceiling": "actual local server rejects all M6\u2013M18 requests; source/native selectors preserve replay",
+    "endpoint": "production UI lifecycle simulation passed; not a gameplay completion",
+    "noNewImplementationFixRequired": true,
+    "freshTouchInputAcceptance": false,
+    "availability": "0/18 until merge"
+  },
+  "candidate": {
+    "candidatePath": "/Users/pelicannurse/.t3/worktrees/test app/t3-7b0da7e0/build/ac04-initial-release-native-61/candidate-31971c65.rbxlx",
+    "sha256": "eff757ae84114b625fb82fdd111b39254da8403a6f7f495e24fd3afa56690a72",
+    "sourceManifestSha256": "76c08007e74a636e8d6d680eb1481479594a2800ea3a3de0d563569c649fdf34",
+    "sourceEntries": 730,
+    "sourceMismatches": []
+  },
+  "sourceIntegrity": {
+    "checkedAtUTC": "2026-10-28T03:53:16.682577+00:00",
+    "head": "31971c65a780654a95cb86210cc7cf101e9a3ce1",
+    "allTrackedBeforeManifestSha256": "76c08007e74a636e8d6d680eb1481479594a2800ea3a3de0d563569c649fdf34",
+    "sourceManifestSha256": "a9936eb11637750928c05a16519f45f96d05bda0df82f99645694a0ca995e0eb",
+    "sourceEntries": 634,
+    "sourceMismatches": [],
+    "externallyChangedDocumentation": [
+      "docs/human/plan.html",
+      "docs/human/playtest.html",
+      "docs/human/status.html",
+      "docs/human/taste.html",
+      "docs/reviews/ac04-human-doc-audit.json",
+      "docs/reviews/ac04-release-ui-fix-response.json"
+    ],
+    "candidateSha256": "eff757ae84114b625fb82fdd111b39254da8403a6f7f495e24fd3afa56690a72",
+    "candidateMatchesFreeze": true,
+    "compiledCandidateScriptCount": 148,
+    "compiledCandidateMismatches": [],
+    "qaInCandidate": false,
+    "humanHTMLWrittenByReviewer": false
+  },
+  "nativeTests": {
+    "command": "bun run test:roblox",
+    "head": "31971c65a780654a95cb86210cc7cf101e9a3ce1",
+    "success": true,
+    "passed": 609,
+    "failed": 0,
+    "total": 609,
+    "suites": 62,
+    "engineReportedSeconds": 69.258,
+    "results": "build/jest-results.json",
+    "output": "build/jest-output.log",
+    "orchestratorLog": "build/ac04-initial-release-native-61/test-run.log",
+    "testPlace": "build/skybreak-tests.rbxlx",
+    "productionBuildAfterTest": true,
+    "productionVoiceArtifactCheck": "passed; not audible playback acceptance",
+    "offlineValidation": "Not repeated; parent reports 454 Luau,10 audio lifecycle simulations,92 Python on corrected source."
+  },
+  "findings": [
+    {
+      "id": "UI-NATIVE-61-001",
+      "originalPriority": "P1",
+      "acceptance": "ACCEPTED_FOR_M1_M5_NATIVE_RENDERING",
+      "evidence": [
+        "briefing-m1-strategic-top.png",
+        "briefing-m1-detail-top.png",
+        "briefing-m2-strategic-top.png",
+        "briefing-m2-detail-top.png",
+        "briefing-m3-strategic-top.png",
+        "briefing-m3-detail-top.png",
+        "briefing-m4-strategic-top.png",
+        "briefing-m4-detail-top.png",
+        "briefing-m5-strategic-top.png",
+        "briefing-m5-detail-top.png"
+      ],
+      "observed": "All10 first-five strategic/detail states captured using actual844\u00d7390 viewport/844\u00d7332 safe root. OperationMetadata rect(204,15,307,170); ObjectiveMetadata rect(523,15,307,170). Clip=true and independent native ScrollingFrames. Operation fields end y177; objective/contacts/legend end y137. Caption viewport starts y195 with69px height; command lane starts y273. No metadata sibling collision or intersection with caption/commands. Actual pixels independently inspected through the saved contact sheet and full M1/M5 frames. All required fields are immediately visible; present content does not overflow either170px viewport, so native scroll attempts correctly leave CanvasPosition0. No claim of successful overflowing metadata scroll or touch gesture; none is needed to reach these fields at this root.",
+      "geometry": "build/ac04-initial-release-native-61/briefing-geometry.json",
+      "limits": "Map marker labels may meet map clip edges; this correction covers metadata, caption and commands, not complete map/fidelity review."
+    },
+    {
+      "id": "UI-NATIVE-61-002",
+      "originalPriority": "P2",
+      "acceptance": "ACCEPTED_COPY_FIT_AND_LOCAL_KEYBOARD_RETRY_WITH_TOUCH_LIMIT",
+      "observed": "Production AC04GameUI with in-memory adapter: initial ListSlots failure shows complete Load failed; saves safe. Use Retry Records. at390\u00d7786 root,356\u00d716 status rectangle, TextFits=true and full pixel text. Start/records are disabled. Switching adapter to success and activating Retry Records via keyboard increased calls1\u21922 and enabled title with complete PROGRESS KEPT THIS SESSION ONLY; no duplicate operation observed. No real save/cloud record mutated.",
+      "evidence": [
+        "portrait-recovery-failure-valid.png",
+        "portrait-recovery-retried.png"
+      ],
+      "limits": "Fresh native touch Retry is unverified. Later input attempts blocked by Studio modal and OS posting denial."
+    },
+    {
+      "id": "UI-NATIVE-61-003",
+      "originalPriority": "P2",
+      "acceptance": "ACCEPTED_LABEL_FIT_WITH_PORTRAIT_INPUT_LIMIT",
+      "observed": "Portrait native aircraft CONFIRM fully visible in44px-high footer. Production desktop keyboard activation moved aircraft\u2192objective confirmation before fixtures. Native selector tests cover available aircraft and never-available X-02. No changed launch semantics found.",
+      "evidence": [
+        "portrait-aircraft.png",
+        "desktop-aircraft.png"
+      ],
+      "limits": "No fresh portrait touch activation or locked-row activation was established. Component fixture uses synthetic record and is not unlock evidence."
+    },
+    {
+      "id": "UI-NATIVE-61-004",
+      "originalPriority": "P2",
+      "acceptance": "ACCEPTED_NATIVE_HEADING_SEPARATION",
+      "observed": "Portrait outcome heading rect(17,12,356,28), separate MISSION05 rect(17,42,356,16), gap2px. Both TextFits=true; native pixels show no collision. Desktop heading remains separate.",
+      "evidence": [
+        "portrait-debrief.png",
+        "desktop-debrief.png"
+      ],
+      "nonBlockingObservation": "Unchanged portrait FLIGHT RECORDS footer has TextFits=false in113\u00d744 while screenshot still shows the wording tightly at its edges. This is outside the four requested corrections and did not obscure Continue/Retry; no release blocker assigned."
+    }
+  ],
+  "actualServerCeiling": {
+    "method": "Actual production AC04Request RemoteFunction InvokeServer in fresh GameId0 local Play, slot1,F-4E,mission6..18,0.3s pacing",
+    "requests": [
+      {
+        "missionId": 6,
+        "ok": false,
+        "error": "That mission is in preparation for a future release."
+      },
+      {
+        "missionId": 7,
+        "ok": false,
+        "error": "That mission is in preparation for a future release."
+      },
+      {
+        "missionId": 8,
+        "ok": false,
+        "error": "That mission is in preparation for a future release."
+      },
+      {
+        "missionId": 9,
+        "ok": false,
+        "error": "That mission is in preparation for a future release."
+      },
+      {
+        "missionId": 10,
+        "ok": false,
+        "error": "That mission is in preparation for a future release."
+      },
+      {
+        "missionId": 11,
+        "ok": false,
+        "error": "That mission is in preparation for a future release."
+      },
+      {
+        "missionId": 12,
+        "ok": false,
+        "error": "That mission is in preparation for a future release."
+      },
+      {
+        "missionId": 13,
+        "ok": false,
+        "error": "That mission is in preparation for a future release."
+      },
+      {
+        "missionId": 14,
+        "ok": false,
+        "error": "That mission is in preparation for a future release."
+      },
+      {
+        "missionId": 15,
+        "ok": false,
+        "error": "That mission is in preparation for a future release."
+      },
+      {
+        "missionId": 16,
+        "ok": false,
+        "error": "That mission is in preparation for a future release."
+      },
+      {
+        "missionId": 17,
+        "ok": false,
+        "error": "That mission is in preparation for a future release."
+      },
+      {
+        "missionId": 18,
+        "ok": false,
+        "error": "That mission is in preparation for a future release."
+      }
+    ],
+    "notMocked": true,
+    "noCloudWrites": true,
+    "limits": "Fresh record; server code checks release ceiling before sequential unlock. No loaded high-progress cloud record was used."
+  },
+  "productionStartup": {
+    "observed": "Native keyboard title Begin\u2192M1 strategic\u2192detail\u2192hub\u2192aircraft\u2192objective\u2192mandatory initial chapter. ActualGameId0/placeId0. No completion credited.",
+    "evidence": [
+      "production-title.png",
+      "production-after-begin.png",
+      "production-story.png"
+    ],
+    "limits": "Later fixture activity is not part of this genuine startup flow or a flown mission."
+  },
+  "lifecycleSimulation": {
+    "qaScript": "build/ac04-initial-release-native-61/lifecycle-fixture.luau",
+    "method": "Exact production AC04GameUI mounted separately with synthetic request/mission-event/controller adapters; no stored profile mutation. CompleteSimulation injects first-five completion data and M5 Completed event. Production Continue refreshes mocked ListSlots; chapter4 appears; natural/native chapter progression invokes StorySeen; hub displays REPLAY MISSION,05LIFELINE and replay help. Last actionStorySeen,calls5.",
+    "endpointPass": true,
+    "simulatedNotGameplay": true,
+    "noCampaignCompletionCredit": true,
+    "evidence": [
+      "sim-m5-chapter4.png",
+      "sim-preview-complete-hub-accepted.png"
+    ],
+    "laterRows": "Production archive components display IN PREPARATION for locked later rows despite synthetic all18 completion in presentation fixture. Top6/7 and bottom12\u201318 captured; bottomCanvasPosition was set by QA, not a gesture.",
+    "earlierReplay": "70b6a6ec historical cleanM1\u2013M5 replay remains unchanged and revision-scoped."
+  },
+  "captures": {
+    "directory": "/Users/pelicannurse/.t3/worktrees/test app/t3-7b0da7e0/build/ac04-initial-release-native-61",
+    "actuallyInspected": [
+      "briefing-m1-strategic-top.png",
+      "briefing-m1-detail-top.png",
+      "briefing-m2-strategic-top.png",
+      "briefing-m2-detail-top.png",
+      "briefing-m3-strategic-top.png",
+      "briefing-m3-detail-top.png",
+      "briefing-m4-strategic-top.png",
+      "briefing-m4-detail-top.png",
+      "briefing-m5-strategic-top.png",
+      "briefing-m5-detail-top.png",
+      "production-title.png",
+      "production-after-begin.png",
+      "production-story.png",
+      "portrait-aircraft.png",
+      "portrait-debrief.png",
+      "portrait-recovery-failure-valid.png",
+      "portrait-recovery-retried.png",
+      "sim-m5-chapter4.png",
+      "sim-preview-complete-hub-accepted.png",
+      "portrait-preparation-rows.png",
+      "portrait-preparation-bottom.png",
+      "desktop-briefing.png",
+      "desktop-aircraft.png",
+      "desktop-debrief.png",
+      "matrix-briefing.png",
+      "briefing-m5-detail-fresh.png"
+    ],
+    "inspection": "All10 briefing screenshots inspected via native-image contact sheet; key full-sizeM1/M5, portrait and desktop images opened directly.",
+    "invalidOrSuperseded": [
+      "portrait-recovery-failure.png: QA Folder had been reset on avatar respawn; sky only, not acceptance",
+      "sim-preview-complete-hub.png and sim-preview-complete-hub-final.png: still chapter4; superseded by accepted hub capture",
+      "briefing-m5-detail-stable.png: transient empty capture during prior production session; superseded by fresh session/full matrix",
+      "First-pass briefing capture cycle during active production story/sortie: replaced with fresh-session captures under same filenames."
+    ],
+    "fixtureWarning": "Fixtures show synthetic records/results; screenshots do not prove gameplay, unlocks, earned score, persistence or cloud completion."
+  },
+  "limitations": [
+    "No new full campaign rerun, Player test, physical device, cloud-save failure/rejoin, old-store deletion, audio, gamepad hardware or final art/fidelity acceptance.",
+    "Input tools stopped delivering observed game InputBegan during later checks. A native Lighting Technology Migration modal remained present; CGPreflightPostEventAccess=false and AppleScript assistive access denied. Click/scroll Success responses without observed events are not accepted as input evidence.",
+    "At exact landscape root all metadata is visible with no overflow; no successful touch scrolling is claimed for these columns.",
+    "No source implementation, HTML, commit,push,merge,upload,publish,cloud mutation,new asset or credential changes by reviewer.",
+    "Parent concurrently updated human/review documentation during this review. Those changes are preserved and separately listed by integrity audit;634 non-doc tracked entries and148 packaged production scripts still match."
+  ],
+  "humanDocumentPayloads": {
+    "taste.html": {
+      "checked": true,
+      "parentOwnsWrites": true,
+      "updates": [
+        {
+          "target": "Current first-owner-preview/local-evidence summary; replace current-branch native-pending prose",
+          "exactText": "Independent native review of PR #92 head 31971c65 passed 609/609 tests in 62 suites. The production candidate is frozen as eff757ae84114b625fb82fdd111b39254da8403a6f7f495e24fd3afa56690a72. At actual Studio viewports 844\u00d7390, 390\u00d7844 and 1280\u00d7720, the production safe roots were 844\u00d7332, 390\u00d7786 and 1280\u00d7662. Both briefing steps for M1\u2013M5 show all mission, title, operation, time, objective, contact and legend fields in separate clipped columns, clear of captions and commands. Portrait recovery/session copy and CONFIRM are readable; the debrief mission label no longer collides with the outcome heading. These four presentation corrections are accepted for the first owner preview, not final AC04 fidelity or beta approval."
+        },
+        {
+          "target": "RELEASE-UI-001 status/rationale",
+          "exactText": "RELEASE-UI-001 \u2014 Chosen: independent clipped operation and objective columns, side by side in short landscape. Alternatives: overflowing vertical halves or smaller type. Reason: preserve readable metadata while separating captions and commands. Native acceptance at 31971c65 confirms all first-five strategic/detail fields fit and are visible at the actual 844\u00d7332 safe root; scrolling containers remain available for overflow. No metadata scroll is required by the present M1\u2013M5 text at that root."
+        },
+        {
+          "target": "RELEASE-UI-002 status",
+          "exactText": "RELEASE-UI-002 \u2014 Short complete recovery/session copy, CONFIRM in aircraft context, and a separate portrait mission-label line are natively accepted as scoped readability corrections at 31971c65. They do not constitute physical-device, final visual-fidelity or new cloud-persistence approval."
+        },
+        {
+          "target": "Current evidence limitations",
+          "exactText": "Actual local server requests for every forged M6\u2013M18 mission ID were rejected as in preparation. Production startup reached strategic/detail briefing, hub, aircraft, objective confirmation and the mandatory opening chapter. A separately labeled in-memory production-UI lifecycle simulation injected an M5 result and synthetic first-five record, displayed chapter 4, acknowledged it and returned to the hub with REPLAY MISSION. This is endpoint/routing evidence, not a legitimate M5 completion or stored progress. The prior clean M1\u2013M5 replay remains scoped to 70b6a6ec. No current-branch full campaign rerun, new Player test, cloud save, physical-device, audio or final fidelity acceptance is claimed. Fresh portrait touch retry/confirmation and archive gestures were not verified in this session; a Studio modal and unavailable OS event-posting access obstructed later input attempts."
+        }
+      ],
+      "noChangeReason": "Retain the owner\u2019s M1\u2013M5 incremental release decision, AC04 fidelity requirement and rejected story-art status. No new subjective world/story/balance decision was made."
+    },
+    "plan.html": {
+      "checked": true,
+      "parentOwnsWrites": true,
+      "updates": [
+        {
+          "target": "First item of Next checks, in priority order; replace completed native inspection work",
+          "exactText": "Assess the completed independent native report for 31971c65 and preserve its frozen artifact and limitations. No reproduced release-blocking defect remains in the four corrected presentation surfaces. Proceed with the separately authorized PR/release decision and reconcile all four documents at merge. Do not repeat the whole M1\u2013M5 campaign solely for the scoped ceiling/UI corrections."
+        },
+        {
+          "target": "Next presentation validation",
+          "exactText": "Current-head native tests and scoped compact-screen rendering are complete. Follow up with fresh portrait touch retry/confirmation, archive gestures and broader physical-device, gamepad, environment, audio and AC04 fidelity work. Metadata at the actual 844\u00d7332 root is already fully visible for both M1\u2013M5 steps; no hidden field was accepted on TextFits alone. M6 investigation and optional illustrated art remain after the first preview."
+        },
+        {
+          "target": "Ownership/build order",
+          "exactText": "The independent native reviewer stopped Play, removed QA mounts and the temporary simulator device, discarded the unsaved Studio session and released the exclusive Studio/build lease. Parent owns all human HTML reconciliation and release-state changes."
+        }
+      ],
+      "noChangeReason": "Keep later-mission/source/art work as follow-up. Offline 454 Luau / 10 audio simulations / 92 Python checks remain inherited parent evidence, not rerun here."
+    },
+    "status.html": {
+      "checked": true,
+      "parentOwnsWrites": true,
+      "updates": [
+        {
+          "target": "Current local evidence, reviewer feedback and readiness; replace current native-pending labels",
+          "exactText": "Independent native review of PR #92 head 31971c65 passed 609/609 tests in 62 suites. The production candidate is frozen as eff757ae84114b625fb82fdd111b39254da8403a6f7f495e24fd3afa56690a72. At actual Studio viewports 844\u00d7390, 390\u00d7844 and 1280\u00d7720, the production safe roots were 844\u00d7332, 390\u00d7786 and 1280\u00d7662. Both briefing steps for M1\u2013M5 show all mission, title, operation, time, objective, contact and legend fields in separate clipped columns, clear of captions and commands. Portrait recovery/session copy and CONFIRM are readable; the debrief mission label no longer collides with the outcome heading. These four presentation corrections are accepted for the first owner preview, not final AC04 fidelity or beta approval."
+        },
+        {
+          "target": "Current release-ceiling and endpoint evidence",
+          "exactText": "Actual local server requests for every forged M6\u2013M18 mission ID were rejected as in preparation. Production startup reached strategic/detail briefing, hub, aircraft, objective confirmation and the mandatory opening chapter. A separately labeled in-memory production-UI lifecycle simulation injected an M5 result and synthetic first-five record, displayed chapter 4, acknowledged it and returned to the hub with REPLAY MISSION. This is endpoint/routing evidence, not a legitimate M5 completion or stored progress. The prior clean M1\u2013M5 replay remains scoped to 70b6a6ec. No current-branch full campaign rerun, new Player test, cloud save, physical-device, audio or final fidelity acceptance is claimed. Fresh portrait touch retry/confirmation and archive gestures were not verified in this session; a Studio modal and unavailable OS event-posting access obstructed later input attempts."
+        },
+        {
+          "target": "Beta readiness and honest assessment",
+          "exactText": "Not beta-ready. The four compact presentation corrections and bounded release ceiling/endpoint checks support the M1\u2013M5 owner preview at 31971c65, with the reported input and simulation limits. No release-blocking correction was reproduced in this review. Earlier mission flights remain revision-scoped; story/world/UI fidelity, physical-device behavior, cloud persistence and later missions remain unfinished."
+        },
+        {
+          "target": "Publication/current mission availability",
+          "exactText": "PR #92 is open and unmerged at this audit; AC04 Player availability remains 0/18. At gameplay merge, mark M1\u2013M5 live by automatic CI/CD and retain M6\u2013M18 unavailable/in preparation without waiting for a new receipt or Player test. Version 63 / PR #90 remains last-known supporting receipt metadata. This review performed no upload, publication or cloud cleanup."
+        }
+      ],
+      "noChangeReason": "Do not increment independent gameplay completions or describe simulated records as earned. No new all-18, ship-fire, audio or cloud deletion evidence."
+    },
+    "playtest.html": {
+      "checked": true,
+      "parentOwnsWrites": true,
+      "updates": [
+        {
+          "target": "Current local first-preview evidence and presentation table; parent personally reconciles publication ledger",
+          "exactText": "Independent native review of PR #92 head 31971c65 passed 609/609 tests in 62 suites. The production candidate is frozen as eff757ae84114b625fb82fdd111b39254da8403a6f7f495e24fd3afa56690a72. At actual Studio viewports 844\u00d7390, 390\u00d7844 and 1280\u00d7720, the production safe roots were 844\u00d7332, 390\u00d7786 and 1280\u00d7662. Both briefing steps for M1\u2013M5 show all mission, title, operation, time, objective, contact and legend fields in separate clipped columns, clear of captions and commands. Portrait recovery/session copy and CONFIRM are readable; the debrief mission label no longer collides with the outcome heading. These four presentation corrections are accepted for the first owner preview, not final AC04 fidelity or beta approval."
+        },
+        {
+          "target": "M5 endpoint/current evidence and first-five expectations",
+          "exactText": "Actual local server requests for every forged M6\u2013M18 mission ID were rejected as in preparation. Production startup reached strategic/detail briefing, hub, aircraft, objective confirmation and the mandatory opening chapter. A separately labeled in-memory production-UI lifecycle simulation injected an M5 result and synthetic first-five record, displayed chapter 4, acknowledged it and returned to the hub with REPLAY MISSION. This is endpoint/routing evidence, not a legitimate M5 completion or stored progress. The prior clean M1\u2013M5 replay remains scoped to 70b6a6ec. No current-branch full campaign rerun, new Player test, cloud save, physical-device, audio or final fidelity acceptance is claimed. Fresh portrait touch retry/confirmation and archive gestures were not verified in this session; a Studio modal and unavailable OS event-posting access obstructed later input attempts."
+        },
+        {
+          "target": "Opening availability summary and all18 mission availability rows",
+          "exactText": "PR #92 is open and unmerged at this audit; AC04 Player availability remains 0/18. At gameplay merge, mark M1\u2013M5 live by automatic CI/CD and retain M6\u2013M18 unavailable/in preparation without waiting for a new receipt or Player test. Version 63 / PR #90 remains last-known supporting receipt metadata. This review performed no upload, publication or cloud cleanup."
+        },
+        {
+          "target": "Obsolete paragraph beginning Candidate da4a8143 passes transform/build",
+          "exactText": "Historical da4a8143 evidence is superseded by later revision-scoped records. Current 31971c65 passes 609 native tests in 62 suites and scoped independent rendering review of the four release corrections. Its endpoint check is a labeled simulation, while genuine clean M1\u2013M5 replay remains earlier 70b6a6ec evidence. Physical-device behavior, cloud recovery, audio and final AC04 fidelity remain unaccepted."
+        },
+        {
+          "target": "Obsolete paragraph saying Touch, fault-recovery and numeric font measurements remain pending",
+          "exactText": "Historical 70b6a6ec independently passed portrait emulator Touch archive reachability, local memory-only save recovery and numeric fit. Current 31971c65 adds acceptance of the four compact readability corrections and bounded release-ceiling/endpoint evidence. Fresh touch retries/confirmation and archive gestures were not verified in this session; do not infer physical-device acceptance."
+        }
+      ],
+      "noChangeReason": "Retain the official game link, ordered18 mission construction reports and last-known version63/PR90 receipt. Nothing becomes live before merge, and no new receipt or owner Player session is required to report the gameplay merge."
+    }
+  },
+  "contradictionsForParent": [
+    "All four current summaries saying native acceptance pending must be reconciled with this scoped report, including its touch-input limits.",
+    "taste.html retained release starts-at-cff03d1c wording; use exact31971c65 review head.",
+    "playtest.html retained obsolete da4a8143 integrated-UI/no-gameplay claims and touch/fault/numeric-pending paragraph despite later70b6a6ec evidence. Replace, rather than append.",
+    "status.html metric caption Current candidate; clean M5 ending observed conflates historical replay with current release. Mark earlier70b6a6ec or87d17771 explicitly.",
+    "Story-independent-r3 next-priorities text still asks to independently verify tint/lifecycle even though70b6a6ec review did so; retain art/set/action work and mark completed observations revision-scoped.",
+    "Do not call green CodeRabbit approval: focused source report records244/100 file limit and insufficient capacity."
+  ],
+  "prStateReadOnly": {
+    "headRefOid": "31971c65a780654a95cb86210cc7cf101e9a3ce1",
+    "isDraft": false,
+    "mergeStateStatus": "CLEAN",
+    "reviewDecision": "",
+    "state": "OPEN",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-28T03:36:56Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/A-Ricemusic/skybreak/actions/runs/40627673565/job/122616398031",
+        "name": "guard",
+        "startedAt": "2026-10-28T03:36:45Z",
+        "status": "COMPLETED",
+        "workflowName": "No React agent testing"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-28T03:37:37Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/A-Ricemusic/skybreak/actions/runs/40627673567/job/122616397859",
+        "name": "validate",
+        "startedAt": "2026-10-28T03:36:44Z",
+        "status": "COMPLETED",
+        "workflowName": "Validate PR"
+      },
+      {
+        "__typename": "StatusContext",
+        "context": "CodeRabbit",
+        "startedAt": "2026-10-28T03:38:31Z",
+        "state": "SUCCESS",
+        "targetUrl": ""
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-28T03:37:18Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://dashboard.gitguardian.com",
+        "name": "GitGuardian Security Checks",
+        "startedAt": "2026-10-28T03:36:48Z",
+        "status": "COMPLETED",
+        "workflowName": ""
+      }
+    ],
+    "url": "https://github.com/A-Ricemusic/skybreak/pull/92"
+  },
+  "lease": {
+    "released": true,
+    "ownedStudioPid": 69629,
+    "playStopped": true,
+    "qaMountsRemoved": true,
+    "temporaryDeviceRemoved": true,
+    "avatarAnchorRemoved": true,
+    "candidateSavedInStudio": false,
+    "stopMethod": "MCP stopped Play and reset simulator/removed temporary custom device. SIGTERM left owned Studio alive at native modal; SIGKILL discarded unsaved state. Owned PID no longer exists.",
+    "exclusiveBuildAndStudioLease": "released"
+  },
+  "releaseBoundary": "PR #92 is open and unmerged at this audit; AC04 Player availability remains 0/18. At gameplay merge, mark M1\u2013M5 live by automatic CI/CD and retain M6\u2013M18 unavailable/in preparation without waiting for a new receipt or Player test. Version 63 / PR #90 remains last-known supporting receipt metadata. This review performed no upload, publication or cloud cleanup."
+}
