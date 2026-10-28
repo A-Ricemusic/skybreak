@@ -147,8 +147,3 @@ flight acceptance (5.6), use real keyboard, physical gamepad and touch:
    courier and ace missions at default and high selection on all difficulties.
 
 Parent review and actual flight acceptance are required before merge.
-
-## PR54 tutorial and boundary followup
-
-See [the archived tutorial-flight-recheck.md](archive/2026-10/tutorial-flight-recheck.md) for the current-main
-rebase, loaded-code reconciliation, live speed matrix, M1 evidence and limitations.

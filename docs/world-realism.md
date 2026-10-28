@@ -1,8 +1,7 @@
 # Mission world realism
 
 The outer-district expansion adds three original runtime Blender infrastructure designs and
-opens the existing terrain belt to flight. See [coverage, travel metrics, mesh budgets and pending
-Studio acceptance](world-expansion.md). M3/M5/M19 have authored outer districts; the other mission
+opens the existing terrain belt to flight. M3/M5/M19 have authored outer districts; the other mission
 compositions retain their existing detail.
 
 Mission worlds are built from Terrain voxels and the 20 moderation-approved Blender world models
