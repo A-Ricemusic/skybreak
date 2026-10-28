@@ -1,6 +1,6 @@
 import { ContentProvider, Players, RunService, SoundService, TweenService } from "@rbxts/services";
 import { voiceLoadAction } from "../shared/VoiceReadiness";
-import { VOICE_BANK_ASSETS } from "../shared/VoiceBanks";
+import { AC04_VOICE_BANK_ASSETS as VOICE_BANK_ASSETS } from "../shared/ac04/AC04VoiceBanks";
 import type { VoiceClip } from "../shared/VoiceLines";
 
 /** One playing line. Every method is safe to call after the line has ended. */

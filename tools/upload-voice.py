@@ -2,16 +2,16 @@
 """Upload reviewed SKYBREAK voice-over banks to Roblox; never publishes the place.
 
 Same account journal, HALT file and lock as tools/upload-audio.py. A bank is
-only uploaded when assets/voice/review.json approves its exact sha256 with
+only uploaded when assets/ac04-voice/review.json approves its exact sha256 with
 transcript-match evidence, its moderation checklist passed every automated
-check, and assets/voice/stt.json shows no line under 90 % for that file. Every
+check, and assets/ac04-voice/stt.json shows no line under 90 % for that file. Every
 upload must complete AND be explicitly approved by moderation; one rejection
 writes the HALT file and stops all uploads for the account. Re-running resumes
 recorded operations instead of consuming another upload slot.
 
 python3 tools/upload-voice.py --key-file <private-file> [--only voiceBank01] [--dry-run]
 
-Review format (assets/voice/review.json), written by the independent reviewer:
+Review format (assets/ac04-voice/review.json), written by the independent reviewer:
 {"commercialUsePermitted": true,
  "banks": {"voiceBank01": {"sha256": "...", "approved": true, "reviewer": "...",
            "method": "listened to the whole bank against checklists/voiceBank01.json",
@@ -26,7 +26,7 @@ from pathlib import Path
 from roblox_upload import APPROVED, HALT, STATE, gate, load_journal, save, submit_and_moderate
 
 ROOT = Path(__file__).resolve().parent.parent
-VOICE = ROOT / "assets/voice"
+VOICE = ROOT / "assets/ac04-voice"
 MAX_SECONDS = 6.5 * 60
 
 

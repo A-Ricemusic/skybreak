@@ -1,7 +1,15 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { BUMP_CHUNK, FILL_CHUNK, TERRAIN_BUDGET, UNSPLIT_MAX, bumpRegion, regionCells, runBudgeted, terrainJobs, type TerrainJob } from "../shared/TerrainSchedule";
-import { WorldPlanner, terrainTop, type TerrainOp } from "../shared/WorldPlan";
+import { terrainTop, type TerrainOp } from "../shared/WorldPlan";
 
+// Synthetic terrain plans retain scheduler stress coverage independent of campaign layouts.
+const WorldPlanner = {
+ Build(id:number) { const ops:TerrainOp[]=[
+ {shape:"block",material:"Grass",x:0,y:0,z:0,sx:4096,sy:128,sz:4096,yaw:0},
+ {shape:"bump",material:"Rock",x:0,y:64,z:0,sx:512,sy:128,sz:512,yaw:0},
+ ]; return {ops}; },
+ Counts(plan:{ops:TerrainOp[]}) { return {bumpCells:plan.ops.filter(o=>o.shape==="bump").reduce((sum,o)=>sum+regionCells(bumpRegion(o)),0)}; },
+};
 // The terrain-write scheduler (pure; also run in the offline Luau VM). The server
 // passes os.clock and task.wait; here a fake clock charges each job a cost.
 const ids: number[] = [];

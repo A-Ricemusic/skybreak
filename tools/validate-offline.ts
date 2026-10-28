@@ -19,12 +19,11 @@ async function run(command: string[], summary?: RegExp, minimum = 0) {
 }
 
 await run(["bun", "tools/check-no-react-agent-testing.ts"], /^NO_REACT_AGENT_TESTING passed tracked=(\d+)$/gm, 1);
+await run(["bun", "test", "tools/tests/check-ac04-only.test.ts"]);
 await run(["bun", "run", "build:place"]);
-await run(["bun", "tools/test-relay-offline.ts"], /^OFFLINE_LUAU_RESULT passed=(\d+) failed=0$/gm, 538);
-await run(["bun", "tools/test-playtest-relay.ts"], /^PLAYTEST_RELAY_REGRESSION passed=(\d+) failed=0$/gm, 3);
+// Rojo maps generated out/ directories; compile before auditing those paths on a clean runner.
+await run(["bun", "tools/check-ac04-only.ts"]);
+await run(["bun", "tools/test-ac04-offline.ts"], /^OFFLINE_LUAU_RESULT passed=(\d+) failed=0$/gm, 381);
 await run(["bun", "tools/test-audio-offline.ts"], /^AUDIO_LIFECYCLE_SIMULATION passed=(\d+) failed=0$/gm, 10);
-await run(["bun", "tools/test-voice-offline.ts"], /^VOICE_CONSUMER_RESULT passed=(\d+); simulated lifecycle only, audible output NOT tested$/gm, 8);
-await run(["bun", "tools/test-radio-delivery.ts"], /^RADIO_DELIVERY passed=(4) failed=0$/gm, 4);
 await run(["python3", "-m", "unittest", "discover", "-s", "tools/tests", "-p", "test_*.py"]);
-await run(["bun", "tools/relay-tables.ts", "--check"]);
-await run(["bun", "tools/world-report.ts", "--check"]);
+await run(["bun", "tools/ac04-voice-lines.ts", "--check"]);

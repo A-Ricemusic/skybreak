@@ -1,0 +1,220 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "ac04-playtest-56-r1",
+  "date": "2026-10-27",
+  "reviewer": "gpt-5.6-sol independent gameplay review sub-agent",
+  "scope": "Unpublished local Roblox Studio review of Normal M1-M6 in sequence on the immutable production place artifact. This is not published Roblox Player acceptance and does not evaluate remote PR #84.",
+  "verdict": {
+    "summary": "LOCAL M1-M4 PLAYABLE; M5 SEQUENTIAL BLOCKER REPRODUCED; M6 LOCKED/UNOBSERVED; REJECT M1-M6 BLOCK ACCEPTANCE",
+    "betaReady": false,
+    "full18Acceptance": "open",
+    "publishedAcceptance": "not tested",
+    "reason": "M1-M4 completed through authoritative outcomes. Four legitimate M5 attempts failed before the 2,000-point phase could finish; the best reached 1,270 points and 21 targets at 8:14 before a terrain collision. M6 remained locked because no M5 win was fabricated."
+  },
+  "artifact": {
+    "path": "build/skybreak.rbxlx",
+    "requiredSha256": "760df73e3e882e2bec493b7da2cbb17e2c2f417cd2fb8b0f5a6704454068bdbf",
+    "sha256Before": "760df73e3e882e2bec493b7da2cbb17e2c2f417cd2fb8b0f5a6704454068bdbf",
+    "sha256After": "760df73e3e882e2bec493b7da2cbb17e2c2f417cd2fb8b0f5a6704454068bdbf",
+    "savedOver": false,
+    "published": false
+  },
+  "studioLease": {
+    "pid": 51909,
+    "studioId": "f6d9217b-6e98-442c-a78d-9e861ceb01f2",
+    "placeId": 0,
+    "ownedUnpublishedLocalSession": true,
+    "playStopped": true,
+    "closed": true,
+    "closure": "Studio MCP stopped Play. TERM did not exit; KILL was sent only to owned PID 51909. Studio list then returned empty. StudioMCP/helper processes were not killed.",
+    "leaseEvidence": "build/ac04-playtest-56-r1/lease.json"
+  },
+  "inputDisclosure": {
+    "manualNative": [
+      "Mouse-operated flight-record, aircraft-change, sticky launch, cinematic skip, continue, pause, resume and retry buttons.",
+      "Keyboard E throttle, W pitch, Tab target cycle, Space missile and held G gun were directly operated in M1; native launch/continue/retry controls were used throughout.",
+      "Pause overlay was opened by its actual button because the injected P key was processed without toggling in that moment."
+    ],
+    "productionControllerAutomation": "After manual input checks, temporary client-context LocalScripts obtained FlightController.GetActive() and used only public SetInput, SetThrottle, CycleTarget, FireMissile, FireGun, Evade, Rearm, SetPaused and read-only telemetry/state methods. Automation never set position/CFrame, health, score, kills, ammo, unlocks, clocks, outcomes or progress.",
+    "automationPurpose": "Sustained legitimate combat coverage and navigation; not evidence of human flight feel.",
+    "clockIntegrity": "No clock acceleration. Pauses were limited to the presentation check and automation handoffs. M5 attempts ran their real elapsed clocks until their authoritative failures.",
+    "diagnostics": "Temporary QA56 LocalScripts printed telemetry and were removed before Play stopped. Direct tool-context module calls that returned an unrelated context were not used as gameplay evidence."
+  },
+  "missions": [
+    {
+      "id": 1,
+      "name": "Sitting Duck",
+      "state": "completed",
+      "attempts": 1,
+      "result": {"score": 600, "time": "1:06", "targets": 6},
+      "aircraft": "F-5E",
+      "observations": [
+        "Fresh local record began at M1. Both F-4E and F-5E were selectable; Change updated the sticky launch button to F-5E.",
+        "The six required Tu-95s produced the authoritative 600-point result. Manual control/weapon inputs preceded production-controller coverage.",
+        "The flight showed a compact objective card, telemetry, radar, target boxes and a long two-line radio caption without caption/objective overlap at the 1205x525 client viewport."
+      ],
+      "referenceComparison": "The six 100-point Tu-95 requirement and broadly linear forward interception agree with the Mitoro M01 table/route. The local islands, aircraft and structures remain sparse blocks rather than an AC04-specific representation."
+    },
+    {
+      "id": 2,
+      "name": "Imminent Threat",
+      "state": "completed",
+      "attempts": 1,
+      "result": {"score": 1320, "time": "1:21", "targets": 11},
+      "observations": [
+        "All eleven parked Tu-95 required targets were destroyed through real hits for the source-matched 1,320 score.",
+        "The automation finished at 22 hull, demonstrating substantial incoming damage rather than a protected scripted pass.",
+        "The airfield encounter was readable as a runway/apron concentration, but the runway aircraft launch behavior and richer base staging described by the reference were not confirmed."
+      ],
+      "referenceComparison": "Mitoro M02 lists eleven Tu-95s at 120 points and a dense Rigley airfield pass using both missiles and gun. Count/score matched; runway-takeoff staging remained unverified."
+    },
+    {
+      "id": 3,
+      "name": "The Northern Eye",
+      "state": "completed",
+      "attempts": 1,
+      "result": {"score": 900, "time": "2:57", "targets": 9},
+      "observations": [
+        "All nine radar targets were destroyed, then the live objective changed to Return south to allied territory.",
+        "The HUD showed PHASE ELAPSED, RETURN LINE · SOUTH (180°), a live south-to-line distance, north-to-south crossing wording and no altitude limit. Completion occurred only after crossing the actual southern line.",
+        "Pause hid SkybreakFlightTargeting (DisplayOrder 5) under the campaign overlay (DisplayOrder 10); Resume restored it."
+      ],
+      "referenceComparison": "The two ground clusters followed by a simple southbound second phase agrees structurally with Mitoro M03. The implemented guidance is clearer than the old review, but geography remained abstract and exact map-scale fidelity was not rated."
+    },
+    {
+      "id": 4,
+      "name": "Blockade",
+      "state": "completed",
+      "attempts": 1,
+      "result": {"score": 480, "time": "2:17", "targets": 3},
+      "observations": [
+        "The three moving C-17 transports were intercepted for 160 points each. A stable close-range gun/reattack approach was required after an initial directly-behind orbit produced no progress.",
+        "The result text correctly connected cutting the transport route to isolating Comberth's reserves.",
+        "Two E-767/jamming presentation and the source-specific reinforcement patterns after each C-17 were not conclusively observed during the required-target run."
+      ],
+      "referenceComparison": "Required C-17 count/points match Mitoro M04. The source describes north-east movement, two distinct E-767 jamming regions and reinforcement patterns after transports; only the required moving transport corridor was verified here."
+    },
+    {
+      "id": 5,
+      "name": "Lifeline",
+      "state": "blocker",
+      "completed": false,
+      "attempts": [
+        {"number": 1, "result": "failed", "reason": "aircraft_destroyed", "time": "1:22", "score": 0, "targets": 0},
+        {"number": 2, "result": "failed", "reason": "aircraft_destroyed", "time": "1:50", "score": 240, "targets": 2},
+        {"number": 3, "result": "failed", "reason": "crash_terrain", "time": "8:14", "score": 1270, "targets": 21},
+        {"number": 4, "result": "failed", "reason": "crash_terrain", "time": "2:00", "score": 210, "targets": 4}
+      ],
+      "observations": [
+        "The real ten-minute 2,000-point phase started and accepted legitimate air/ground/naval hits. No score, target or timer was injected.",
+        "Southern-line Rearm was exercised successfully during attempt 3: the live Base control serviced/weapons replenished radio appeared and hull/ammo returned to 100/48/650. This was real server-authoritative service, not state mutation.",
+        "Plain-language enemy-fire and terrain-collision debriefs both appeared live.",
+        "The best attempt survived 8:14, killed 21 targets and reached only 1,270 before terrain collision. No withdrawal/offshore phase or Yellow Squadron encounter was reached.",
+        "Current source places the full baseline F-16 7 + MiG-29 13 + MIR-2000 7 + Ka-50 3 roster into phase 0 without afterGroup/triggerAt staging; AC04World initially exposes every phase-0 untriggered group. The Mitoro M05 guide instead describes aircraft appearing later, including MiG-29s after enough refinery destruction. This is a concrete pacing/fidelity mismatch and a credible contributor to immediate threat density.",
+        "Because the blocker occurred under controller automation rather than a skilled human pilot, this evidence proves failure of these four legitimate attempts and the staging mismatch, not that every human player is mathematically unable to win."
+      ],
+      "unobserved": ["score-at-timer success", "Yellow Squadron withdrawal", "four-minute offshore/return phase", "M5 completion", "post-M5 story chapter"]
+    },
+    {
+      "id": 6,
+      "name": "Invincible Fleet",
+      "state": "locked-unobserved",
+      "completed": false,
+      "reason": "Sequential campaign progression correctly kept M6 locked after M5 did not complete. No unlock or outcome was spoofed.",
+      "unobserved": ["harbor geography", "Aegir Fleet composition", "named ship components", "score phase", "rearm loop", "fighter respawns", "completion"],
+      "referenceComparison": "Mitoro M06 distinguishes the fleet, Comberth harbor, New Comberth harbor and shipyard; Tanager has four components and fighter respawns depend on local clearance. None of this received live verification. Known Normal manifest uncertainty remains open."
+    }
+  ],
+  "presentationRecheck": {
+    "PT61R2-001": "verified live for compact flight readability, long caption placement, pause target-overlay suppression and resume restoration; narrow/touch still unobserved",
+    "PT61R2-003": "verified live through actual M3 radar elimination, south guidance and authoritative north-to-south crossing completion",
+    "PT61R2-004": "verified current F-4E/F-5E choices and sticky launch update",
+    "PT61R2-005": "verified live plain-language enemy-fire and terrain-collision failures",
+    "PT61R2-002": "open: briefing/menu styling names AC04 but lacks the original's strategic-map/aircraft presentation; interlude/world/aircraft art is visibly sparse block construction",
+    "PT61R2-006": "open: M4 source-specific jammer/reinforcement route staging not verified; M5 later-wave source structure conflicts with simultaneous baseline phase-0 roster"
+  },
+  "story": {
+    "observed": [
+      "Pre-M1 chapter The house beyond the cape, page 1/4, then native Skip Chapter.",
+      "Post-M1 chapter Coins on the counter, page 1/4, then native Skip Chapter.",
+      "A post-M2 chapter transition was skipped through the native control before M3; its title/content was not inspected."
+    ],
+    "assessment": "The two named chapters preserved the intended civilian-war framing in original wording, but their visible scenes were primitive block tableaus with minimal authored detail. This does not yet look or feel specifically like AC04's restrained illustrated interludes.",
+    "unobserved": ["full chapter pages", "audible narration", "post-M5 chapter", "later story", "published presentation"]
+  },
+  "ac04PresentationCriterion": {
+    "assessment": "The start flow clearly labels ACE COMBAT 04 · SHATTERED SKIES and uses a coherent restrained dark/teal campaign UI, but it reads as a functional SKYBREAK menu themed with AC04 text rather than an AC04-specific strategic briefing/deployment presentation.",
+    "prioritizedRecommendations": [
+      "P1: Replace the briefing's text-only expanse with mission-specific strategic map geometry, objective/route markers and aircraft/loadout framing derived from the AC04 reference structure while retaining original art/text.",
+      "P1: Replace the most visible primitive interlude/tableau silhouettes and uniform block aircraft with deliberate original illustrated story panels and recognizable mission aircraft silhouettes.",
+      "P1: Stage M5 aircraft in source-backed waves/conditions instead of presenting the complete baseline fighter roster at phase start; then retest score pacing, survival and withdrawal.",
+      "P2: Add concrete M4 E-767 jamming-region feedback and source-shaped transport/reinforcement routes; verify them live rather than describing generic airborne jamming."
+    ]
+  },
+  "findings": [
+    {
+      "id": "PT56R1-001",
+      "priority": "P0 gameplay progression",
+      "state": "open",
+      "title": "M5 blocks sequential M1-M6 local acceptance",
+      "evidence": "Four authoritative failures: 0/240/1270/210 scores at 1:22/1:50/8:14/2:00. M6 remained locked.",
+      "recommendation": "Reconcile M5 wave/respawn staging to source, calibrate Normal threat/score pacing, then independently replay M5 through the timer, withdrawal and offshore phase before attempting M6."
+    },
+    {
+      "id": "PT56R1-002",
+      "priority": "P1 AC04 fidelity",
+      "state": "open",
+      "title": "M5 baseline fighter groups are simultaneous where the reference describes later appearances",
+      "evidence": "AC04MissionData M5 gives F-16 7, MiG-29 13, MIR-2000 7 and Ka-50 3 no triggers; AC04World initially exposes phase-0 untriggered groups. Mitoro M05 describes later mass arrivals and refinery-destruction-triggered MiG-29s.",
+      "recommendation": "Author source-backed trigger/respawn conditions and record Normal-specific uncertainty rather than collapsing the minimum roster into one initial threat cloud."
+    },
+    {
+      "id": "PT56R1-003",
+      "priority": "P1 presentation",
+      "state": "open",
+      "title": "Start/briefing/story art is coherent but not yet specifically AC04 in look and feel",
+      "evidence": "Text-led start/briefing, sparse block aircraft/worlds and primitive story tableaus; no mission strategic-map/deployment visual was observed.",
+      "recommendation": "Prioritize mission-specific strategic briefing visuals and authored story/aircraft silhouettes over generic polish."
+    },
+    {
+      "id": "PT56R1-004",
+      "priority": "P2 source staging",
+      "state": "open-unverified",
+      "title": "M4 required result is correct but jammer/reinforcement fidelity remains unproven",
+      "evidence": "Three C-17s produced 480, but the two E-767 jamming regions and transport-kill reinforcement patterns were not conclusively observed.",
+      "recommendation": "Instrument and replay M4 while deliberately entering each E-767 region and observing every C-17-triggered reinforcement."
+    }
+  ],
+  "environmentAndLimits": [
+    "Viewport was 1205x525 inside a 1920x836 Studio capture. No physical touch device, narrow/touch emulation, gamepad, FPS measurement or mobile hardware was tested.",
+    "No audible-output claim: radio captions were visible, but audio was not independently listened to or recorded.",
+    "No cloud save/rejoin, published Roblox Player, maxPlayers, physical old-store deletion, upload or release-cutover operation was performed.",
+    "ContentId 203785492 type mismatch and installed Atmos/Rojo plugin messages appeared as previously known environmental noise; no new blocking AC04 exception was observed.",
+    "M6 manifest accuracy is not declared; M6 was never unlocked or played.",
+    "This intermediate block does not close full-18 acceptance."
+  ],
+  "references": [
+    "https://gamefaqs.gamespot.com/ps2/452838-ace-combat-04-shattered-skies/faqs/48109 (direct fetch restricted in this session; prior indexed/source-register evidence retained)",
+    "https://mitoro.sakura.ne.jp/ac04/data/m01.htm",
+    "https://mitoro.sakura.ne.jp/ac04/data/m02.htm",
+    "https://mitoro.sakura.ne.jp/ac04/data/m03.htm",
+    "https://mitoro.sakura.ne.jp/ac04/data/m04.htm",
+    "https://mitoro.sakura.ne.jp/ac04/data/m05.htm",
+    "https://mitoro.sakura.ne.jp/ac04/data/m06.htm",
+    "docs/ac04-source-register.json"
+  ],
+  "evidence": {
+    "directory": "build/ac04-playtest-56-r1",
+    "studioLog": "build/ac04-playtest-56-r1/studio.log",
+    "qaConsoleExtract": "build/ac04-playtest-56-r1/qa-console.log",
+    "savedScreenshot": "build/ac04-playtest-56-r1/m5-blocker-final.png",
+    "note": "Studio MCP capture IDs 56r1-start, 56r1-briefing, 56r1-m1-flight-start, 56r1-m1-result, 56r1-m2-result, 56r1-m3-paused, 56r1-m3-return, 56r1-m3-result, 56r1-m4-progress2, 56r1-m4-result-final, 56r1-m5-ground-progress, 56r1-m5-priority-progress2 and the M5 failure captures were visually inspected live. The MCP returned image data but no local path; only the final blocker desktop capture is a persistent PNG."
+  },
+  "recommendedHumanDocReconciliation": [
+    "Keep published Roblox Player acceptance at 0/18 unless separately observed; this report is unpublished local Studio evidence only.",
+    "Update local construction readiness to M1-M4 completed on 760df73…, M5 blocked after four attempts, M6 locked/unobserved.",
+    "Record PT56R1-001 through PT56R1-004 and retain full-18/beta acceptance as open.",
+    "Record the adopted judgment that menu/briefing/story presentation must look and feel specifically AC04, not merely receive generic arcade polish.",
+    "Move M5 wave staging and replay ahead of M6 acceptance; do not describe the fresh epoch or local session as published persistence proof."
+  ]
+}

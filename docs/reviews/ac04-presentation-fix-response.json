@@ -1,0 +1,187 @@
+{
+  "date": "2026-10-27",
+  "agent": "GPT-6.1 Sol implementation agent; no subagents",
+  "scope": "PT61R2-001/003/004/005 focused presentation response; AC04 sole campaign, Normal baseline; preserve dirty shared work; no commit/push/publish/upload/cloud",
+  "reviewedEvidence": {
+    "report": "docs/reviews/ac04-playtest-61-r2.json",
+    "imagesViewedFirst": [
+      "18-pause-verified.png",
+      "10-m2-visibility.png",
+      "15-m3-return-phase.png",
+      "02-briefing.png",
+      "17-native-crash.png"
+    ],
+    "frozenGameplaySha256": "822e74bd19bb0d0e890e0240fc37e4e2f9eae0e4e16e49cbc1aa47976b41cdf7",
+    "coverage": "M1-M3 completed after native inputs using production-controller automation; 600/1320/900. M4-M18 unflown; fidelity withheld."
+  },
+  "artifact": {
+    "path": "build/skybreak.rbxlx",
+    "sha256": "760df73e3e882e2bec493b7da2cbb17e2c2f417cd2fb8b0f5a6704454068bdbf",
+    "testPlacePath": "build/skybreak-tests.rbxlx",
+    "testPlaceSha256": "2788d0b8a2d27818014ae44e144ae0d6931bccd502d7440d2843dd685c132854",
+    "published": false
+  },
+  "findings": [
+    {
+      "id": "PT61R2-001",
+      "state": "Implemented; compact native flight/pause verified, narrow/touch retest pending",
+      "changes": [
+        "Dark stable telemetry backing; bounded 620px objective card and 760px caption lane above controls, no empty radio box",
+        "Responsive compact text/action sizing and separated touch sticks retained; all six actions retained",
+        "Targeting DisplayOrder5 below campaign10; local/server-followed pause disables targeting and resume restores it"
+      ],
+      "evidence": [
+        "02-flight-compact.png",
+        "03-pause-compact.png",
+        "04-bright-flight-native.png",
+        "native-checks.json"
+      ]
+    },
+    {
+      "id": "PT61R2-003",
+      "state": "Implemented; authoritative M3 phase-boundary native regression passed; live return screen unobserved",
+      "changes": [
+        "Runner exposes real return-line coordinates only in active return phase; server reliably replicates navigation using actual ac04ReturnZ",
+        "HUD provides south180 heading and remaining southward Z distance, describes north-to-south crossing with no altitude limit",
+        "Travel progress explicitly labeled PHASE ELAPSED; remaining phase clock retained",
+        "No radius or ceiling invented: authoritative completion is a line crossing, not a sphere. Existing requestAC04Rearm tolerance and all completion rules unchanged"
+      ],
+      "evidence": [
+        "src/tests/AC04Runner.spec.ts",
+        "jest-results.json"
+      ]
+    },
+    {
+      "id": "PT61R2-004",
+      "state": "Implemented; native compact sticky launch, narrative scrolling, unlock explanation and aircraft cycling verified",
+      "changes": [
+        "Scrollable narrative/objectives/archive above pinned launch footer, launch visible at1205x525",
+        "Single-choice branch explicitly says ONLY AVAILABLE AIRCRAFT, disables cycling, explains campaign unlocks",
+        "Current source differs from frozen review: initial F-4E and F-5E are both available; native Change switches and updates launch; aircraft catalog not modified"
+      ],
+      "evidence": [
+        "01-briefing-compact.png",
+        "07-aircraft-unlock-explanation.png",
+        "08-native-aircraft-change.png"
+      ]
+    },
+    {
+      "id": "PT61R2-005",
+      "state": "Implemented; native water-failure debrief verified; terrain copy native regression passed, live terrain collision not repeated",
+      "changes": [
+        "Reason-specific plain language for terrain/water/destruction/time/score/escort/missile/core/service failures",
+        "Unknown/missing reasons use safe retry guidance without raw tokens"
+      ],
+      "evidence": [
+        "05-native-water-failure.png",
+        "src/tests/AC04Presentation.spec.ts"
+      ]
+    }
+  ],
+  "preserved": [
+    "Exact mission objectives, timers and authoritative return crossing",
+    "Flight physics, combat/target validity, campaign/session/save protections",
+    "Existing shared dirty work; world/art/story staging unchanged",
+    "No old save compatibility or migration added"
+  ],
+  "tests": [
+    {
+      "command": "bun run test:roblox",
+      "result": "PASS 473/473 in52suites,53.787s; final domain-source run",
+      "evidence": "build/ac04-presentation-verified/jest-results.json"
+    },
+    {
+      "command": "bun run validate:offline",
+      "result": "PASS 384 contracts,10SFX simulations,40Python tests,5checker tests",
+      "evidence": "build/ac04-presentation-verified/offline.log"
+    },
+    {
+      "command": "bun run build:place",
+      "result": "PASS final UI source compiled and production place packaged/voice checked",
+      "evidence": "build/ac04-presentation-place.log"
+    },
+    {
+      "command": "git diff --check",
+      "result": "PASS"
+    }
+  ],
+  "nativeVerification": {
+    "viewport": [
+      1205,
+      525
+    ],
+    "launch": {
+      "position": [
+        18,
+        391
+      ],
+      "size": [
+        1169,
+        46
+      ],
+      "withinRoot": true
+    },
+    "pause": {
+      "targetEnabled": false,
+      "targetDisplayOrder": 5,
+      "campaignDisplayOrder": 10
+    },
+    "resume": {
+      "targetEnabled": true
+    },
+    "telemetryTextFits": true,
+    "method": "Native Studio MCP buttons/keyboard, read-only Luau GUI inspection; no mocked mission progress, score, clock or outcome. Temporary client diagnostic reads attitude only.",
+    "screenshots": [
+      "01-briefing-compact.png",
+      "02-flight-compact.png",
+      "03-pause-compact.png",
+      "04-bright-flight-native.png",
+      "05-native-water-failure.png",
+      "06-briefing-scrolled-aircraft.png",
+      "07-aircraft-unlock-explanation.png",
+      "08-native-aircraft-change.png"
+    ],
+    "failure": {
+      "actual": "crash_water",
+      "elapsed": "1:46",
+      "score": 0,
+      "targets": 0,
+      "debriefCopy": "Aircraft lost on impact with the water. Keep altitude above the sea during low approaches."
+    },
+    "aircraft": {
+      "currentSourceInitialChoices": [
+        "F-4E",
+        "F-5E"
+      ],
+      "nativeChangeObserved": "F-4E to F-5E; sticky launch updated",
+      "singleAircraftBranch": "Implemented, not entered by current native campaign"
+    }
+  },
+  "nativeMethod": "Owned unpublished local Studio PID50242, id49714426-8ff6-43d0-8d33-3ef4763583f0. Real menu/start/skip/pause/resume/retry/aircraft buttons and keyboard flight. Read-only GUI and attitude diagnostic; UI-only CanvasPosition set once to reach aircraft. No injected mission telemetry or outcome. Temporary read-only LocalScript removed before stopping Play. MCP screenshots1920x836 represent actual1205x525 viewport. No new mission completions.",
+  "environment": "Known installed-plugin203785492 mismatch and Atmos update messages; no observed blocking AC04 exception. osascript resize denied assistive access; no permission requested or environment settings changed.",
+  "limitations": [
+    "New M3 return guidance not flown live; only runner boundary and source wiring verified",
+    "Narrow/touch, physical devices, gamepad, FPS and audible playback unobserved",
+    "Terrain-specific copy covered by native Jest; live failure was crash_water",
+    "Single-choice aircraft branch not entered because current catalog exposes2initial aircraft",
+    "No overall beta/fidelity acceptance; M4-M18 and independent5.6 gameplay review remain pending",
+    "PT61R2-002 art/world and006 route/runway source fidelity remain open next priorities",
+    "Cloud rejoin, maxPlayers1 release configuration and physical legacy-store deletion remain pending"
+  ],
+  "sourceSha256": {
+    "src/client/ac04/AC04GameUI.tsx": "3c40198dd0fef92c31744251a25cd8aaa01b81150d11e37e3bd9bc1388d0ef4e",
+    "src/client/FlightController.ts": "f829721824305965e36434f2d7bd800f01d3d550a1debc63fd8d0a15c70affc7",
+    "src/server/CombatService.ts": "66a30cc240051ead6fa072b721eca62605998936e9aef58b7de0baf86e0c36c0",
+    "src/shared/AC04Runner.ts": "e0d83274a8ddb9205a8fc973f8c0d68998c0204a1388e9caefa2aac2d27cd51d",
+    "src/shared/AC04Presentation.ts": "f44f2c9906e421e3f4ad0819f702f14ffbe467b15413ea13c1acce6fab7b18b5",
+    "src/tests/AC04Runner.spec.ts": "6e7989825c4e8edc6048151c778688a37c19bc8213231d438aa82f2bf9cbe1b4",
+    "src/tests/AC04Presentation.spec.ts": "5b26d8a183618a86262b4851665dd1ab3e5d1aa54ea992073c940cf579dfa47f"
+  },
+  "lease": "build/ac04-presentation-verified/lease.json",
+  "leaseRelease": {
+    "playStopped": true,
+    "closed": true,
+    "ownedPid": 50242,
+    "closure": "MCP stopped Play; TERM did not exit; KILL only owned PID. Verified process absent and Studio list empty; unrelated helpers untouched."
+  }
+}

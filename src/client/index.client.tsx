@@ -6,7 +6,7 @@ import { Players, ReplicatedStorage, StarterGui, Workspace } from "@rbxts/servic
 import type { Remotes } from "../shared/Types";
 import { CombatEffects } from "./CombatEffects";
 import { FlightController } from "./FlightController";
-import { mountGameUI } from "./GameUI";
+import { mountCampaignUI } from "./CampaignApp";
 import { applyMobileGraphics } from "./MobileGraphics";
 import { Weather } from "./Weather";
 
@@ -33,7 +33,6 @@ if (Workspace.GetAttribute("SkybreakTestMode") !== true) {
 	const graphics = applyMobileGraphics();
 	const folder = ReplicatedStorage.WaitForChild("Remotes");
 	const remotes: Remotes = {
-		CampaignRequest: folder.WaitForChild("CampaignRequest") as RemoteFunction,
 		FlightInput: folder.WaitForChild("FlightInput") as UnreliableRemoteEvent,
 		CombatAction: folder.WaitForChild("CombatAction") as RemoteEvent,
 		MissionState: folder.WaitForChild("MissionState") as RemoteEvent,
@@ -56,7 +55,7 @@ if (Workspace.GetAttribute("SkybreakTestMode") !== true) {
 	});
 	const effects = CombatEffects.Start(remotes);
 	const stopWeather = Weather.Start();
-	const mounted = mountGameUI(playerGui, remotes, controller);
+	const mounted = mountCampaignUI(playerGui, remotes, controller);
 	const destroying = script.Destroying.Connect(() => {
 		destroying.Disconnect();
 		uiAdded.Disconnect(); uiRemoved.Disconnect();

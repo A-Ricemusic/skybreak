@@ -1,6 +1,6 @@
 import { Lighting, UserInputService, Workspace } from "@rbxts/services";
 import { ENVIRONMENT_ATTRIBUTE } from "../shared/EnvironmentPresets";
-import type { EnvironmentPreset } from "../shared/MissionCatalog";
+import type { EnvironmentPreset } from "../shared/WorldTypes";
 import { phoneClouds } from "../shared/WeatherRules";
 
 // Phone-only render trims, applied locally (Lighting and Terrain changes made on

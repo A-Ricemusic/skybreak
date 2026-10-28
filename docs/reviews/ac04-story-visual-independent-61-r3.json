@@ -1,0 +1,1508 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "ac04-story-visual-independent-61-r3",
+  "reviewer": "Independent GPT-6.1 Sol review sub-agent; no subagents",
+  "auditTimeUTC": "2026-10-28T02:22:51.852053+00:00",
+  "state": "REVIEW_COMPLETE_VISUAL_ACCEPTANCE_REJECTED_MECHANICAL_READABILITY_IMPROVED",
+  "scope": "Frozen87d17771 and existing stills only; concurrent UI/controller source outside review. Parent owns all four HTML edits.",
+  "candidate": {
+    "path": "build/ac04-story-visual-fix/candidate-87d17771.rbxlx",
+    "expectedSha256": "87d17771d5363be367866fcecf6245b700da0fd67df45079ebfcdf90ca312295",
+    "actualSha256": "87d17771d5363be367866fcecf6245b700da0fd67df45079ebfcdf90ca312295",
+    "matches": true
+  },
+  "inputsRead": [
+    "AGENTS.md",
+    "docs/human/taste.html",
+    "docs/human/plan.html",
+    "docs/human/status.html",
+    "docs/human/playtest.html",
+    "docs/reviews/ac04-story-visual-fix-response.json (all perShotLedger entries, remainingIssues and referenceInspection)",
+    "docs/reviews/ac04-lifeline-story-independent-61.json",
+    "src/shared/ac04/AC04Story.ts",
+    "src/shared/ac04/AC04StoryStage.ts",
+    "src/shared/ac04/AC04StoryStageShots.ts",
+    "src/client/ac04/AC04Cinematic.tsx",
+    "src/client/CameraShake.ts",
+    "build/ac04-story-visual-fix/final/caption-geometry-summary.json"
+  ],
+  "integrity": {
+    "manifestEntries": 103,
+    "matchingNonSelfEntries": 102,
+    "mismatches": [
+      {
+        "path": "build/ac04-story-visual-fix/evidence-sha256.txt",
+        "matches": false
+      }
+    ],
+    "explanation": "Only self-hash mismatch; no candidate/screenshot corruption inferred.",
+    "sourceChecks": [
+      {
+        "path": "src/shared/ac04/AC04StoryStage.ts",
+        "expected": "3c97c8ff7190c58bb945c2f1516b5df93f925a7efa9c6a7792391f01d8542a46",
+        "actual": "3c97c8ff7190c58bb945c2f1516b5df93f925a7efa9c6a7792391f01d8542a46",
+        "matches": true
+      },
+      {
+        "path": "src/shared/ac04/AC04StoryStageGeometry.ts",
+        "expected": "e8f585ad8a4b8f88eac5a2bb96bde251d98bccd8c4b886f1272700360f941c78",
+        "actual": "e8f585ad8a4b8f88eac5a2bb96bde251d98bccd8c4b886f1272700360f941c78",
+        "matches": true
+      },
+      {
+        "path": "src/shared/ac04/AC04StoryStageShots.ts",
+        "expected": "7d4726b176c2eee37601370bb9e416eef742de15ef1a4a387e21b07c9157b301",
+        "actual": "7d4726b176c2eee37601370bb9e416eef742de15ef1a4a387e21b07c9157b301",
+        "matches": true
+      },
+      {
+        "path": "src/shared/ac04/AC04CaptionLayout.ts",
+        "expected": "8280153b3a238bd8a3b03548add14574d3fe45e0d2c84f3e4c43b4e776200b4f",
+        "actual": "8280153b3a238bd8a3b03548add14574d3fe45e0d2c84f3e4c43b4e776200b4f",
+        "matches": true
+      },
+      {
+        "path": "src/client/ac04/AC04Cinematic.tsx",
+        "expected": "796521e16bf826373e1d8282d20e0f4100363c7d46f456bf43c064bc0ad31514",
+        "actual": "796521e16bf826373e1d8282d20e0f4100363c7d46f456bf43c064bc0ad31514",
+        "matches": true
+      },
+      {
+        "path": "src/client/ac04/AC04StoryStage.ts",
+        "expected": "03663a93314087d1a1e38bb7635953cefee16268bad5aa5519af8390d9743dc9",
+        "actual": "03663a93314087d1a1e38bb7635953cefee16268bad5aa5519af8390d9743dc9",
+        "matches": true
+      },
+      {
+        "path": "src/client/ac04/AC04StoryStageGeometry.ts",
+        "expected": "90a96cbd360acbb007e293465ac6df155db474033236dfb6054055aa50218300",
+        "actual": "90a96cbd360acbb007e293465ac6df155db474033236dfb6054055aa50218300",
+        "matches": true
+      },
+      {
+        "path": "src/client/ac04/AC04StoryStageShots.ts",
+        "expected": "89183ac48a2704b97fb0d11717dd53625c6a4cf36fab6270164448fa4e9b07f6",
+        "actual": "89183ac48a2704b97fb0d11717dd53625c6a4cf36fab6270164448fa4e9b07f6",
+        "matches": true
+      },
+      {
+        "path": "src/tests/AC04StoryStage.spec.ts",
+        "expected": "4d8e89f050d7950e46c967b4d56ecf47adfeff2e6a5871b9f3a282058d72a0be",
+        "actual": "4d8e89f050d7950e46c967b4d56ecf47adfeff2e6a5871b9f3a282058d72a0be",
+        "matches": true
+      },
+      {
+        "path": "src/tests/AC04CaptionLayout.spec.ts",
+        "expected": "d6cad4d7b02a078a4f274a975d85ef82efaf5e28be88d9e0d25561ffdda2e8c3",
+        "actual": "d6cad4d7b02a078a4f274a975d85ef82efaf5e28be88d9e0d25561ffdda2e8c3",
+        "matches": true
+      },
+      {
+        "path": "src/shared/ac04/AC04Story.ts",
+        "expected": "06a870d7a6cdd6484d1893daa865b2639a6fd8ba200c94ddf3628e018a19ce9e",
+        "actual": "06a870d7a6cdd6484d1893daa865b2639a6fd8ba200c94ddf3628e018a19ce9e",
+        "matches": true
+      }
+    ],
+    "finalCandidateSha256": "87d17771d5363be367866fcecf6245b700da0fd67df45079ebfcdf90ca312295"
+  },
+  "visualCoverage": {
+    "compactShotsOpened": 48,
+    "narrowUniqueShotsOpened": 15,
+    "narrowPNGFilesOpened": 9,
+    "tinyAdditionalPNGOpened": 1,
+    "narrowShotsWithoutIndividualPixels": 33,
+    "method": "view_image actual pixels, batches of individual PNGs. Narrow b123 files show3 side-by-side shots; b4 files sometimes repeat earlier two shots. No filenames or author observations substituted for pixel inspection.",
+    "captions": "48 compact captions and15 available narrow captions visually complete. Engine all48 compact/narrow TextFits and tiny wheel101px are inherited, not rerun; final tiny screenshot visibly shows ending text and no MORE cue.",
+    "narrowLimits": "Inset=true embedded host fixture: title overlaps global CoreGui, background records remain visible outside fixtures. This is not proof that actual production portrait layout has the same defect, nor proof it is safe.",
+    "actionVerdictCounts": {
+      "fix": 14,
+      "iterate": 16,
+      "action-readable": 18
+    }
+  },
+  "referenceEvidence": {
+    "manifest": "docs/evidence/ac04-story-reference-review/reference-manifest.json",
+    "actualOriginalPixelsViewed": true,
+    "source": "https://youtu.be/lO7bCwQOYUs",
+    "sourceType": "Original game footage/stills carried in third-party fullcampaign recording, not fan redraws; research-only.",
+    "resolution": "120x90 tiles; some existing sN.png sheets enlarged to1200x900. Enlargement does not restore detail.",
+    "directComparisonExamples": [
+      {
+        "chapter": "i01",
+        "sheet": 0,
+        "cells": "row3 col3-5 and row4",
+        "observed": "Illustrated boy/adults/landscape then aircraft smoke and rubble; naturalistic drawn figures and scenic depth rather than toy coast."
+      },
+      {
+        "chapter": "i02",
+        "sheet": 3,
+        "cells": "rows1-2",
+        "observed": "Tight cropped occupied street, taxi wheel, dark harmonica room and daughter portrait; varied inserts and lighting."
+      },
+      {
+        "chapter": "i03",
+        "sheet": 5,
+        "cells": "rows3-5",
+        "observed": "Crowded bar, seated guitar player close-up, boy harmonica beside guitar/hand insert; dramatic amber side light and dark room masses."
+      },
+      {
+        "chapter": "i04",
+        "sheet": 14,
+        "cells": "rows1-4",
+        "observed": "Wide runway/wheat and aircraft details alternate with intimate pilot/wingman/bar faces; aircraft scale and pastoral distance established."
+      },
+      {
+        "chapter": "i05",
+        "sheet": 23,
+        "cells": "rows1-3",
+        "observed": "Dark room, boy, radio/operator and daughter close profile; clandestine information shown through selective illumination."
+      },
+      {
+        "chapter": "i06",
+        "sheet": 27,
+        "cells": "rows1-3",
+        "observed": "Bar crowd and separated daughter and leader portraits; jealousy/interiority carried by facial close-ups."
+      },
+      {
+        "chapter": "i07",
+        "sheet": 39,
+        "cells": "row5",
+        "observed": "Wounded wingman, supplies/mechanical inserts and departing aircraft; varying detail scales."
+      },
+      {
+        "chapter": "i08",
+        "sheet": 50,
+        "cells": "rows3-5",
+        "observed": "Hand-held cloth close-up, solitary leader/window and newcomers/bar group; absence and turnover through contrasting scales."
+      },
+      {
+        "chapter": "i09",
+        "sheet": 53,
+        "cells": "rows1-4",
+        "observed": "Hospital/retreat and cool dark street/car/torch confrontation; strong pools of light and deep architecture."
+      },
+      {
+        "chapter": "i10",
+        "sheet": 54,
+        "cells": "rows4-5",
+        "observed": "Celebratory rubble/crowd, solitary street figure and aircraft overhead; civic depth and aftermath."
+      },
+      {
+        "chapter": "i11",
+        "sheet": 65,
+        "cells": "rows3-4",
+        "observed": "Branch canopy and deep birch grove; very small grave/mourners within environmental space, restrained bright/dark pattern."
+      }
+    ],
+    "unavailable": "No direct epilogue/i12 frame inspected. YouTube fresh web fetch returned shell; LP archive fetch restricted. Original full-resolution frame detail, exact13 marking, fine expression/anatomy and real audiovisual durations remain unverified. Caption/transcript chronology is distinct from this direct visual evidence.",
+    "copyrightBoundary": "No original dialogue reproduced in report; supplied research sheets must never be packaged as game assets."
+  },
+  "comparisonToPrior": {
+    "resolvedOrSubstantiallyImproved": [
+      "Chair-back obstruction no longer hides guitar player/uncle in reviewed shots",
+      "Both music instruments and physical hand contacts readable",
+      "Doorway now in continuous facade",
+      "Visible report, chart and pen-paper interactions",
+      "Clothed recurring figures distinguishable by hair/scarf/clothing",
+      "Captured compact/narrow captions no longer show previous truncation"
+    ],
+    "stillOpen": "Illustrated AC04 style, cinematic chrome, prop/identity details, remaining overlaps, sparse/exposed sets and unproven pacing. Not a blanket approval of all48 actions.",
+    "authorEvidence": "546 native tests/446offline and clean M1\u2013M5 ending retained as implementer evidence; no rerun and no conversion into visual/human-feel acceptance."
+  },
+  "findings": [
+    {
+      "id": "SVR3-ART-001",
+      "priority": "P1 fidelity",
+      "verdict": "reject visual acceptance",
+      "evidence": [
+        "sb2_5.jpg",
+        "sb2_14.jpg",
+        "sb2_27.jpg",
+        "sb2_53.jpg",
+        "sb2_65.jpg"
+      ],
+      "finding": "Original interludes use illustrated people with proportioned faces, strongly modeled light/shadow, textured layered settings, varied close-ups and wide inserts. Candidate uses repeated plastic blocks, bare rooms, pole birches and front-facing mannequin groups. More native parts alone will not close the visual-language gap.",
+      "patch": "Approve a new original-art style pilot before bulk production. See originalArtDirection."
+    },
+    {
+      "id": "SVR3-CHROME-001",
+      "priority": "P1 fidelity",
+      "finding": "Large permanent title band, progress/speaker row and four full-width colored transport buttons dominate compact composition. Original interlude reference shows images/subtitles with black margins and no persistent chapter dashboard. Sky/CoreGui/health band stays exposed above scene.",
+      "patch": "Use quiet image-led letterboxing; reveal transport on input/pause, preserve accessible44px interaction targets when visible, reserve measured caption lane. Move chapter title to a short intro/interstitial. Coordinate UIREF-D04/UIREF-08 with integrator, not a blanket blue HUD token pass over story art. Keep Roblox system access available; control inset/safe-area deliberately."
+    },
+    {
+      "id": "SVR3-TINT-001",
+      "priority": "P1 presentation",
+      "finding": "Obvious maroon overlay at compact i01-b4,i03-b2,i05-b1,i09-b4; weaker warm/red wash at i03-b4. It affects CoreGui icons/health, title, captions and buttons as well as ViewportFrame. Thus it cannot be explained solely by per-shot ViewportFrame lighting.",
+      "cause": "UNPROVEN. Existing nearly-empty red health bar and screen-edge gradient make native character-health feedback a plausible hypothesis, not a diagnosis. CameraShake source uses a neutral white TintColor flash; no evidence that it produces this red overlay. No engine reproduction allowed/performed.",
+      "patch": "Integrator should inspect character health/damage and CoreGui Health lifecycle during story mounting alongside GUI overlay stack and camera effects. Separate cinematic from active damage updates; restore prior state on finish/cancel. Do not blindly recolor scene palettes or globally disable player controls/CoreGui. Capture same shot before/after wait/pause and from clean campaign and isolated viewer to isolate scope.",
+      "sourceInspectionLimit": "CameraShake.ts is a read-only live-source clue, not an engine reproduction or separate hash-certified frozen feedback-module review. Story/caption/cinematic files are hash-matched; concurrent UI/controller edits are excluded."
+    },
+    {
+      "id": "SVR3-STAGING-001",
+      "priority": "P1 narrative",
+      "finding": "Critical identification/action beats remain weak:13 glyph, five-plane counting, daughter jealousy/radio, satchel transmitter, unfinished aircraft, escape-child separation; report can cover leader mouth.",
+      "patch": "Use named per-shot fixes and camera-side silhouette separation. Require rendered readability at target size, not only visibility-ray/key tests."
+    },
+    {
+      "id": "SVR3-SETS-001",
+      "priority": "P1 composition",
+      "finding": "i10-b3 and i12-b2/3/4 expose floor/wall edges and blank void; several bar wides show dark unused background beyond small set.",
+      "patch": "Extend enclosing walls/floors beyond camera frusta or frame strictly within shell; define original background depth silhouettes. Verify compact and narrow independently."
+    },
+    {
+      "id": "SVR3-NARROW-001",
+      "priority": "P2 evidence/insets",
+      "finding": "15 narrow shots are visible across9 PNGs; CoreGui overlaps first-column title. These are embedded host fixtures, not physical-device/fullscreen production screenshots.",
+      "patch": "Keep caption repair credit, but retest cinematic safe-area/insets with actual production root on next candidate; remaining33 narrow shots still have only geometry evidence."
+    },
+    {
+      "id": "SVR3-INTEGRITY-001",
+      "priority": "P2 evidence hygiene",
+      "finding": "Manifest includes its own hash and fails that entry; all other102 entries match. Candidate and all48 compact PNG entries match.",
+      "patch": "Future evidence generator should exclude manifest itself or use a separate digest file; do not modify frozen evidence."
+    }
+  ],
+  "perShotLedger": [
+    {
+      "shot": "i01-b1",
+      "chapterId": "ac04-i01",
+      "beat": 1,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i01-b1.png",
+      "sha256": "ecd4dae3779839b26cddff5e63271fb42038ccd70f1f7e7d27981b5259899e86",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Guns, child back view, sea and path visible; cape is a thin flat strip and guns read as three generic levers.",
+      "actionVerdict": "iterate",
+      "fixPriority": "P2",
+      "patch": "Rebuild coastal depth and distant gun silhouettes; use an atmospheric establishing composition.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": true,
+        "evidence": "build/ac04-story-visual-fix/final/narrow/i01-b123.png",
+        "verdict": "Caption complete in available narrow capture; same scene/art concerns. Fixture CoreGui overlaps title, so production inset acceptance withheld."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_0.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i01-b2",
+      "chapterId": "ac04-i01",
+      "beat": 2,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i01-b2.png",
+      "sha256": "1aba708a0356f9ac9dd0f122343e0c60de6f5c57e26e0f2fffa7ebf790ca7cbf",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Child face, intact lit house, road bend and wall read; setting remains a sparse toy headland.",
+      "actionVerdict": "action-readable",
+      "fixPriority": "P2",
+      "patch": "Add school-route context and layered coast rather than more foreground props.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": true,
+        "evidence": "build/ac04-story-visual-fix/final/narrow/i01-b123.png",
+        "verdict": "Caption complete in available narrow capture; same scene/art concerns. Fixture CoreGui overlaps title, so production inset acceptance withheld."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_0.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i01-b3",
+      "chapterId": "ac04-i01",
+      "beat": 3,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i01-b3.png",
+      "sha256": "bb4231df13ce7c90f4cce07977900e6356e5c46cb9646aa85bb8d87d983a8816",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Two fighters and descending smoke are separable; the falling aircraft and house relationship is understandable. Smoke uses conspicuous stacked spheres.",
+      "actionVerdict": "action-readable",
+      "fixPriority": "P2",
+      "patch": "Keep the action; replace bead smoke with a soft authored silhouette and improve scale/depth.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": true,
+        "evidence": "build/ac04-story-visual-fix/final/narrow/i01-b123.png",
+        "verdict": "Caption complete in available narrow capture; same scene/art concerns. Fixture CoreGui overlaps title, so production inset acceptance withheld."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_0.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i01-b4",
+      "chapterId": "ac04-i01",
+      "beat": 4,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i01-b4.png",
+      "sha256": "77b51abadfa7def668c4be599d943c754a3b1003faa77aa5d1ce5f11da9e476a",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Ruined threshold, kneeling child and large Yellow jet visible. Tail reads as an ambiguous angular glyph rather than reliably 13; strong red tint covers scene, text and CoreGui.",
+      "actionVerdict": "fix",
+      "fixPriority": "P1",
+      "patch": "Provide a deliberate tail-number insert or broadside with separated 1 and 3; investigate tint separately.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": true,
+        "evidence": "build/ac04-story-visual-fix/final/narrow/i01-b4.png",
+        "verdict": "Caption complete in available narrow capture; same scene/art concerns. Fixture CoreGui overlaps title, so production inset acceptance withheld."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_0.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i02-b1",
+      "chapterId": "ac04-i02",
+      "beat": 1,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i02-b1.png",
+      "sha256": "f99b54f8e6291f63bd0bc9d9029553729213e90844b9afb06d35a5f58d2e0ea5",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Patrol and helmeted foreground soldier establish occupation; child is visible. Repeated tiny houses weaken the town scale.",
+      "actionVerdict": "action-readable",
+      "fixPriority": "P2",
+      "patch": "Keep readable patrol relationship; add believable facade scale and foreground/background layering.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": true,
+        "evidence": "build/ac04-story-visual-fix/final/narrow/i02-b123.png",
+        "verdict": "Caption complete in available narrow capture; same scene/art concerns. Fixture CoreGui overlaps title, so production inset acceptance withheld."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_3.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i02-b2",
+      "chapterId": "ac04-i02",
+      "beat": 2,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i02-b2.png",
+      "sha256": "17aa20ae870da5c37af088ccec2062588fefa25734a6f99141c973d6a3d38ced",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Uncle face and cup now visible with chair behind; yellow taxi is mostly a flat roof/body and does not strongly read as a complete vehicle.",
+      "actionVerdict": "iterate",
+      "fixPriority": "P2",
+      "patch": "Improve taxi silhouette/wheels and retain unobstructed uncle.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": true,
+        "evidence": "build/ac04-story-visual-fix/final/narrow/i02-b123.png",
+        "verdict": "Caption complete in available narrow capture; same scene/art concerns. Fixture CoreGui overlaps title, so production inset acceptance withheld."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_3.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i02-b3",
+      "chapterId": "ac04-i02",
+      "beat": 3,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i02-b3.png",
+      "sha256": "f1d496c9e5a53f278b97b347fec6d9789e006d40894be03f2bf7dbffbab57253",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Harmonica at mouth, coins and seated soldier are readable; no chair-back obstruction of the musician.",
+      "actionVerdict": "action-readable",
+      "fixPriority": "P2",
+      "patch": "Retain contacts; tighten framing and lighting around the transaction.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": true,
+        "evidence": "build/ac04-story-visual-fix/final/narrow/i02-b123.png",
+        "verdict": "Caption complete in available narrow capture; same scene/art concerns. Fixture CoreGui overlaps title, so production inset acceptance withheld."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_3.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i02-b4",
+      "chapterId": "ac04-i02",
+      "beat": 4,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i02-b4.png",
+      "sha256": "9d0f6550e029c80641a712c2d3dcb24107dbde5aed4f3e1e9df756bb3a00127c",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Daughter holds a plate toward the seated child; both identities distinguishable. Empty side chair and broad bare floor compete.",
+      "actionVerdict": "action-readable",
+      "fixPriority": "P2",
+      "patch": "Retain offered-meal pose; crop excess floor and strengthen eye-line.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": true,
+        "evidence": "build/ac04-story-visual-fix/final/narrow/i02-b4.png",
+        "verdict": "Caption complete in available narrow capture; same scene/art concerns. Fixture CoreGui overlaps title, so production inset acceptance withheld."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_3.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i03-b1",
+      "chapterId": "ac04-i03",
+      "beat": 1,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i03-b1.png",
+      "sha256": "90e56c096c752e1b42df6015f02c39185d5926128ecbe06c151619f68de232d1",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Four, another pilot, seated leader and boy all visible. Leader is much smaller and backgrounded; entry and patches rely partly on caption.",
+      "actionVerdict": "iterate",
+      "fixPriority": "P2",
+      "patch": "Establish doorway/entry direction and leader hierarchy while preserving faces.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": true,
+        "evidence": "build/ac04-story-visual-fix/final/narrow/i03-b123.png",
+        "verdict": "Caption complete in available narrow capture; same scene/art concerns. Fixture CoreGui overlaps title, so production inset acceptance withheld."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_5.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i03-b2",
+      "chapterId": "ac04-i03",
+      "beat": 2,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i03-b2.png",
+      "sha256": "4cdbbefd8875eca88540aaf7659da1e60822f771991c24793972dcce5da60aae",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Leader face, guitar body/neck and hands clearly exposed. Announcing pilot has raised arm; boy listens. Maroon overlay visibly reaches buttons/CoreGui.",
+      "actionVerdict": "fix",
+      "fixPriority": "P1",
+      "patch": "Keep chair/contact repair, resolve tint and make announcement a supporting rather than competing silhouette.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": true,
+        "evidence": "build/ac04-story-visual-fix/final/narrow/i03-b123.png",
+        "verdict": "Caption complete in available narrow capture; same scene/art concerns. Fixture CoreGui overlaps title, so production inset acceptance withheld."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_5.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i03-b3",
+      "chapterId": "ac04-i03",
+      "beat": 3,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i03-b3.png",
+      "sha256": "7fdf4e9b574637122609623ea080b3083f747444a22c63e34c54f3570d937b83",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Both seated musicians and instruments simultaneously readable; guitar hands meet body and neck; boy holds harmonica at mouth.",
+      "actionVerdict": "action-readable",
+      "fixPriority": "P2",
+      "patch": "Retain blocking; develop original illustrated treatment and more intimate crop.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": true,
+        "evidence": "build/ac04-story-visual-fix/final/narrow/i03-b123.png",
+        "verdict": "Caption complete in available narrow capture; same scene/art concerns. Fixture CoreGui overlaps title, so production inset acceptance withheld."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_5.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i03-b4",
+      "chapterId": "ac04-i03",
+      "beat": 4,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i03-b4.png",
+      "sha256": "f72a7b30f56d8f51b877f165d3faab9de47dba41bd8337192c57949ae70aa49e",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Leader, guitar, child and table harmonica visible. Exchange reads; dark empty right-side region exposes the small set. Slight warm/red wash visible.",
+      "actionVerdict": "iterate",
+      "fixPriority": "P2",
+      "patch": "Fill/crop set boundary; preserve exchange and verify neutral chrome.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": true,
+        "evidence": "build/ac04-story-visual-fix/final/narrow/i03-b4.png",
+        "verdict": "Caption complete in available narrow capture; same scene/art concerns. Fixture CoreGui overlaps title, so production inset acceptance withheld."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_5.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i04-b1",
+      "chapterId": "ac04-i04",
+      "beat": 1,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i04-b1.png",
+      "sha256": "7da0a2f6929cccbd14a42a52e2233d6de6d6366f38ea150f7fc42b78132f2253",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Wheat rows, highway, tunnel, parked jet, boy and leader read. Leader masks part of aircraft and tunnel is a flat wall portal.",
+      "actionVerdict": "iterate",
+      "fixPriority": "P2",
+      "patch": "Offset parked aircraft and replace slab-like tunnel approach with depth silhouette.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_14.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i04-b2",
+      "chapterId": "ac04-i04",
+      "beat": 2,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i04-b2.png",
+      "sha256": "b2b4256bbe5a6d35ba3be28708dc584965c89c81f7a0a7ad96691940b759ca56",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Five overlapping airborne aircraft form a narrow strip above tunnel; child and leader visible, counting gesture not legible.",
+      "actionVerdict": "fix",
+      "fixPriority": "P1",
+      "patch": "Spread five silhouettes with clear gaps; use a hand/face insert if counting is essential.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_14.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i04-b3",
+      "chapterId": "ac04-i04",
+      "beat": 3,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i04-b3.png",
+      "sha256": "b913331fe36f853da0b88222716ffdc8714bbd3191614a754fb7bef4a98f8983",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Four separates boy and leader; hair/scarves distinguish them. Jet merges behind legs but protective grouping reads.",
+      "actionVerdict": "action-readable",
+      "fixPriority": "P2",
+      "patch": "Retain grouping and improve aircraft separation/grounding.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_14.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i04-b4",
+      "chapterId": "ac04-i04",
+      "beat": 4,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i04-b4.png",
+      "sha256": "6872bc31234e0f0167d8986784482a03d3f029f118dc493699a378fd8aa609b1",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "All three supper figures and food/cups visible; chair backs no longer hide pilot faces. Group is small in a very bare room.",
+      "actionVerdict": "action-readable",
+      "fixPriority": "P2",
+      "patch": "Crop closer; light faces and shared food instead of empty floor.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_14.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i05-b1",
+      "chapterId": "ac04-i05",
+      "beat": 1,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i05-b1.png",
+      "sha256": "04d57fdbbf4a4280fa3dff65409ac67d9d2efd626535d63aa77aa1ea25f569e0",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Boy, idle taxi and separate empty chair readable; absence cue works. Red wash over CoreGui/caption band is visible.",
+      "actionVerdict": "fix",
+      "fixPriority": "P1",
+      "patch": "Retain absence cues, improve taxi and resolve tint.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_23.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i05-b2",
+      "chapterId": "ac04-i05",
+      "beat": 2,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i05-b2.png",
+      "sha256": "68aee8f7fbcd6e58b6b92ffecfcbab9818d37219e3a75ce9a2b22a0b32f14cbe",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Guitar player, Four, boy and meal visible. Table sits close to child shoulder; no severe chair occlusion.",
+      "actionVerdict": "action-readable",
+      "fixPriority": "P2",
+      "patch": "Give meal/music their own readable silhouettes; avoid repeating the same wide bar view.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_23.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i05-b3",
+      "chapterId": "ac04-i05",
+      "beat": 3,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i05-b3.png",
+      "sha256": "c89155c9b1f61e50ed28441a63088bffa8a4cdca844f5149e6de9e566981fa79",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Upstairs has radio/antenna, seated barkeeper, daughter and observing boy. Daughter partly overlaps barkeeper/radio handoff.",
+      "actionVerdict": "iterate",
+      "fixPriority": "P2",
+      "patch": "Shift daughter sideways and show hand-to-notes/radio contact in a closer view.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_23.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i05-b4",
+      "chapterId": "ac04-i05",
+      "beat": 4,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i05-b4.png",
+      "sha256": "e8dbff07c530f62492d7b3c917dab00b04d36c864186b8be5d7efbe3eb9ba811",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Daughter foreground, barkeeper at notes and boy near door read; doorway belongs to wall. Protection is inferred from arrangement rather than a specific gesture.",
+      "actionVerdict": "iterate",
+      "fixPriority": "P2",
+      "patch": "Turn daughter toward doorway/child and create an intentional shielding eye-line.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_23.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i06-b1",
+      "chapterId": "ac04-i06",
+      "beat": 1,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i06-b1.png",
+      "sha256": "1e13150f8c2446bc7dd84018c629ae851596c275c6d16853acdb4756ca0db609",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Radio covers daughter lower face; she appears to carry a large box at chin height. Empty chairs and boy are visible.",
+      "actionVerdict": "fix",
+      "fixPriority": "P1",
+      "patch": "Place radio on table below face, turn daughter toward speaker and child toward empty chair.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_27.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i06-b2",
+      "chapterId": "ac04-i06",
+      "beat": 2,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i06-b2.png",
+      "sha256": "951b9e7162e99aaa8c6e7be9faedaf1db51beff4cc0b8780458242e95fb25c18",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Four and leader pair read; daughter is largely hidden behind Four, making jealousy hierarchy weak.",
+      "actionVerdict": "fix",
+      "fixPriority": "P1",
+      "patch": "Move daughter into a separate lit side profile with an unobstructed look toward pair.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_27.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i06-b3",
+      "chapterId": "ac04-i06",
+      "beat": 3,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i06-b3.png",
+      "sha256": "558443e931220424aa91f110830291a2c6695309a40cc7ff4d7ffcab3a594c46",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Overhead chart, leader hand and red pointer meet; child observes. Diagram reads as a chart without needing text.",
+      "actionVerdict": "action-readable",
+      "fixPriority": "P2",
+      "patch": "Keep contact; create stronger face/hand focal hierarchy.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_27.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i06-b4",
+      "chapterId": "ac04-i06",
+      "beat": 4,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i06-b4.png",
+      "sha256": "031910422ae2576882531e02174ce06875bcf35cc396bf4808b73b6638aaf016",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Upward gaze and smile visible beside boy, tunnel and jet; emotional beat readable in simple form.",
+      "actionVerdict": "action-readable",
+      "fixPriority": "P2",
+      "patch": "Use restrained expression and closer two-shot rather than exaggerated upturned block face.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": true,
+        "evidence": "build/ac04-story-visual-fix/final/narrow/i06-b4.png",
+        "verdict": "Caption complete in available narrow capture; same scene/art concerns. Fixture CoreGui overlaps title, so production inset acceptance withheld."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_27.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i07-b1",
+      "chapterId": "ac04-i07",
+      "beat": 1,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i07-b1.png",
+      "sha256": "04d4f3cab2ec1877c28f5a3c7f711d312789e3bc80173bbb6cc6ef1981419f0f",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Mechanic, low horizontal bomb shapes/rack, boy and aircraft visible; delivery/base activity remains difficult to identify without caption.",
+      "actionVerdict": "iterate",
+      "fixPriority": "P2",
+      "patch": "Show transport cart, distinct bomb silhouettes and an actual hand/rack relationship; avoid obscuring load with boy.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_39.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i07-b2",
+      "chapterId": "ac04-i07",
+      "beat": 2,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i07-b2.png",
+      "sha256": "a8629300fdc5dcde97783d81644dd03bf62ea5e382fc57a3b94a57b9431e3115",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Four sling, crater/debris, smoke and mechanic are visible; wounded state much clearer, supplies loss still mostly verbal.",
+      "actionVerdict": "action-readable",
+      "fixPriority": "P2",
+      "patch": "Keep sling visible; show empty damaged supply rack in separate silhouette.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_39.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i07-b3",
+      "chapterId": "ac04-i07",
+      "beat": 3,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i07-b3.png",
+      "sha256": "1b313aa93f0556d23f5e13c7537f1168e8cc6a570ff80989477189e7b985e8fe",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Leader reaches ladder beside aircraft; boy beyond fence. Huge foreground wing/tail occupies right half and leader shows mostly back.",
+      "actionVerdict": "fix",
+      "fixPriority": "P1",
+      "patch": "Shift camera to ladder/cockpit side; reduce foreground wing dominance and expose gripping hand/foot.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_39.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i07-b4",
+      "chapterId": "ac04-i07",
+      "beat": 4,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i07-b4.png",
+      "sha256": "bb9719bbe748ab881a06dc0e32301c0bc1ca1b8c8cc7a8bc9e372b950917f93b",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Departing aircraft is visible but small and crosses near mechanic head. Unfinished repair panel cannot be distinguished.",
+      "actionVerdict": "fix",
+      "fixPriority": "P1",
+      "patch": "Add original preflight repair insert with open panel/tool/blank attachment point, then departure; separate jet from mechanic.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_39.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i08-b1",
+      "chapterId": "ac04-i08",
+      "beat": 1,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i08-b1.png",
+      "sha256": "a8f475b86c890e73031ca621e86adf8ca526b0955d357ad74aacc28140079a00",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Leader at table and foreground empty chair communicate absence. Child holds an unmarked pale rectangular prop that distracts.",
+      "actionVerdict": "iterate",
+      "fixPriority": "P2",
+      "patch": "Remove nonessential board-like prop or make its meaning clear; reserve empty chair as focal absence cue.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_50.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i08-b2",
+      "chapterId": "ac04-i08",
+      "beat": 2,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i08-b2.png",
+      "sha256": "96ef450eb101e3b6ebb209759b21a09f77e9c5c17fb1069643cdc7d1c8f56816",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Sad leader holds pale folded item in both hands; boy looks up. At this scale it still resembles a stiff box more than soft cloth.",
+      "actionVerdict": "iterate",
+      "fixPriority": "P2",
+      "patch": "Thin cloth, introduce asymmetrical drape and a close hand/cloth crop; preserve contact.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_50.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i08-b3",
+      "chapterId": "ac04-i08",
+      "beat": 3,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i08-b3.png",
+      "sha256": "bc83a2b5ddaf1fd9b3006b4468e18a6ba0e7fcbac238633e20ad4076468255ee",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Leader and two pale-uniform recruits distinguish turnover; boy isolated. Parked aircraft row collapses behind actors into one visual mass.",
+      "actionVerdict": "fix",
+      "fixPriority": "P1",
+      "patch": "Stagger recruits/aircraft and show one unmistakable replacement identity before widening.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_50.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i08-b4",
+      "chapterId": "ac04-i08",
+      "beat": 4,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i08-b4.png",
+      "sha256": "47ed4e9685ac03fe8085da5911f46225b0e9aed31be6bf571df0dd9ceb29243e",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Report is visibly held; daughter turns away and boy watches. Report top edge sits over leader lower face. Caption fits, including narrow sample.",
+      "actionVerdict": "iterate",
+      "fixPriority": "P2",
+      "patch": "Lower report below mouth and use glance/hand relationship; no need for copied report text.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": true,
+        "evidence": "build/ac04-story-visual-fix/final/narrow/i08-b4.png",
+        "verdict": "Caption complete in available narrow capture; same scene/art concerns. Fixture CoreGui overlaps title, so production inset acceptance withheld."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_50.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i09-b1",
+      "chapterId": "ac04-i09",
+      "beat": 1,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i09-b1.png",
+      "sha256": "2841571287b4661256c96108f7eb92437cbc36d34b78f99356d299038794bb10",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Hospital cross and two dark rooftop barrels visible; several soldiers establish occupation. Street does not convincingly feel crowded.",
+      "actionVerdict": "iterate",
+      "fixPriority": "P2",
+      "patch": "Use overlapping retreat silhouettes at multiple depths; local rim light on rooftop gun.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_53.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i09-b2",
+      "chapterId": "ac04-i09",
+      "beat": 2,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i09-b2.png",
+      "sha256": "cfa155a2c1f417ba5294d6ddb35daefbdc602a4800d37c8fdeeba6ecbea57f5a",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Doorway now integrated into wall; torch beam lands near kneeling daughter, boy behind. Satchel is largely hidden and transmitter action unclear.",
+      "actionVerdict": "fix",
+      "fixPriority": "P1",
+      "patch": "Move satchel to lit camera-side knee, separate hands and show harmless recognizable radio controls/antenna.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_53.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i09-b3",
+      "chapterId": "ac04-i09",
+      "beat": 3,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i09-b3.png",
+      "sha256": "830c9538cb7c34580432ad0ba70ea27ce6c9c64cf1e755db059f23679a007cd7",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Boy points at sad leader; daughter behind, faces distinguishable. Confrontation reads, though facial rendering is schematic.",
+      "actionVerdict": "action-readable",
+      "fixPriority": "P2",
+      "patch": "Retain blocking; use a closer restrained reaction pair rather than adding props.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_53.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i09-b4",
+      "chapterId": "ac04-i09",
+      "beat": 4,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i09-b4.png",
+      "sha256": "71eda221097090f126660a82589feb3b97678bc02c0ed8d5a5a61327972395e3",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Leader aside and lit doorway/path visible; children overlap almost into one figure in the opening. Strong maroon wash covers scene, caption and CoreGui.",
+      "actionVerdict": "fix",
+      "fixPriority": "P1",
+      "patch": "Separate children in depth/sideways, expose exit route and eliminate tint contamination.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_53.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i10-b1",
+      "chapterId": "ac04-i10",
+      "beat": 1,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i10-b1.png",
+      "sha256": "57b6adef625c4454b2f79aedae7ee17bfe8285f7e7f4fde4ac76606fd1ce7dfa",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Raised arms/open mouths and background citizens establish celebration; background crowd looks like torso blocks sunk into ground.",
+      "actionVerdict": "iterate",
+      "fixPriority": "P2",
+      "patch": "Complete visible crowd silhouettes and vary scale/poses; build square depth before adding more people.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_54.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i10-b2",
+      "chapterId": "ac04-i10",
+      "beat": 2,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i10-b2.png",
+      "sha256": "78f1dff88678b8cdf903ed68535f37a3e3ef114e0f60544c92952ec7e0deb66a",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Kneeling daughter, barkeeper carrying timber, seated prisoner and standing guard all visible. Rubble/cleanup connection readable.",
+      "actionVerdict": "action-readable",
+      "fixPriority": "P2",
+      "patch": "Retain relationships; strengthen ground contact and avoid stage edge.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_54.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i10-b3",
+      "chapterId": "ac04-i10",
+      "beat": 3,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i10-b3.png",
+      "sha256": "4da88864c6175087f308d9f058675f6d850ed9d319de8a3f2da008a76ffcf54b",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Allied aircraft now visible through window and chairs empty. Right half of scene is blank sky beyond cut-off room wall/floor; aircraft bunch at window.",
+      "actionVerdict": "fix",
+      "fixPriority": "P1",
+      "patch": "Extend room shell or crop within it; separate two aircraft silhouettes and focus empty-chair/window link.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_54.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i10-b4",
+      "chapterId": "ac04-i10",
+      "beat": 4,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i10-b4.png",
+      "sha256": "f8e65fca0e92f1eacf1523b75da0d365b211e90ad4f8bd8ec88ddb07cd917517",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Children walking away under pennants read; no retreat trucks visible, so following retreat is caption-dependent.",
+      "actionVerdict": "fix",
+      "fixPriority": "P1",
+      "patch": "Put a small separated truck column at vanishing point and use daughter backward glance.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_54.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i11-b1",
+      "chapterId": "ac04-i11",
+      "beat": 1,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i11-b1.png",
+      "sha256": "0fc879b0d4bf6459a384135b2a84b3c44ca24ecc90a277c0f970a1f539a64c37",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Children observe two overlapping aircraft above generic tower blocks; skyline and aerial contest readable only broadly.",
+      "actionVerdict": "iterate",
+      "fixPriority": "P2",
+      "patch": "Separate opposing silhouettes; lower city contrast and introduce original coastal depth.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_65.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i11-b2",
+      "chapterId": "ac04-i11",
+      "beat": 2,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i11-b2.png",
+      "sha256": "83611bbe184f68286c175d06afc1cc2e5c25e84794685aaeb8d8c9144ddb0bf1",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Both kneeling mourners and pale cloth on small grave visible; no body depicted. Daughter hand is close, exact contact subtle at screenshot scale.",
+      "actionVerdict": "action-readable",
+      "fixPriority": "P2",
+      "patch": "Retain restrained body-free memorial; lower camera for hand/cloth contact and add branching birches.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_65.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i11-b3",
+      "chapterId": "ac04-i11",
+      "beat": 3,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i11-b3.png",
+      "sha256": "ab9782ba59c6c6cb285973ee557051474a4024654acac54284add0d6059e7793",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Three faces, guitar and harmonica visible in memory; Four squeezed behind guitar neck/leader shoulder.",
+      "actionVerdict": "iterate",
+      "fixPriority": "P2",
+      "patch": "Offset Four into her own silhouette and use warm memory lighting with clear foreground/background.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_65.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i11-b4",
+      "chapterId": "ac04-i11",
+      "beat": 4,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i11-b4.png",
+      "sha256": "869c4e11b93c13311e4b8fb90fa136ac8eba97cf2cd7aecc505f7bf09e35578e",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Mourners, small grave/cloth and green radio on stump visible. Radio is recognizable mainly by box/antenna; bare birch poles dominate.",
+      "actionVerdict": "action-readable",
+      "fixPriority": "P2",
+      "patch": "Keep memorial focus; improve subtle radio speaker silhouette and branching grove depth.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "Direct low-resolution original-game interlude imagery for chapter-level style/composition, not a claimed one-to-one matching shot or timing.",
+        "sheet": "docs/evidence/ac04-story-reference-review/sb2_65.jpg"
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i12-b1",
+      "chapterId": "ac04-i12",
+      "beat": 1,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i12-b1.png",
+      "sha256": "7113ffe6893e6689364fc02508f3530bdcd7ba9b01200ea0e999b6a360ce5fe9",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Adult writer beside highway with cars/truck and tunnel; civilian reuse reads. Foreground car is an extremely flat box.",
+      "actionVerdict": "action-readable",
+      "fixPriority": "P2",
+      "patch": "Refine civilian vehicle silhouette and use a quiet road-led framing.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "No direct original epilogue frame inspected; narrative/geometry assessment only, style compared to other inspected interludes.",
+        "sheet": null
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i12-b2",
+      "chapterId": "ac04-i12",
+      "beat": 2,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i12-b2.png",
+      "sha256": "ec000915f09cc37e68bf3fac25945ee36c66da9e0c2bcfc263abdd95c63875d6",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Writer faces desk; letter and harmonica visible. Room has no side walls and floor edge opens into light-blue void on both sides.",
+      "actionVerdict": "fix",
+      "fixPriority": "P1",
+      "patch": "Extend room shell beyond frustum or crop tightly; reduce bright window competing with letter.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "No direct original epilogue frame inspected; narrative/geometry assessment only, style compared to other inspected interludes.",
+        "sheet": null
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i12-b3",
+      "chapterId": "ac04-i12",
+      "beat": 3,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i12-b3.png",
+      "sha256": "4e62e4e2187d51ab028ca028f3da463d0b5536b107e4b992b89b686e0e0f8475",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Pen/hand on lined paper and TO MOBIUS ONE envelope readable; strong mechanical improvement. Native glyph address is oversized relative to letter.",
+      "actionVerdict": "action-readable",
+      "fixPriority": "P2",
+      "patch": "Retain nib contact; use a restrained original typographic insert while keeping envelope legible at narrow size.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": false,
+        "evidence": null,
+        "verdict": "Not individually captured/viewed; engine measurement only, inherited evidence."
+      },
+      "referenceComparison": {
+        "scope": "No direct original epilogue frame inspected; narrative/geometry assessment only, style compared to other inspected interludes.",
+        "sheet": null
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    },
+    {
+      "shot": "i12-b4",
+      "chapterId": "ac04-i12",
+      "beat": 4,
+      "evidence": "build/ac04-story-visual-fix/final/compact/i12-b4.png",
+      "sha256": "cdcbce4d9eb9979352f7aba998fbf2269555ecd051721abd14602c49ff12e295",
+      "pixelsOpenedWith": "view_image individual compact PNG",
+      "observed": "Hand rests on completed letter with harmonica/envelope visible; address oblique and room edges exposed; pose is hunched over desk.",
+      "actionVerdict": "iterate",
+      "fixPriority": "P2",
+      "patch": "Reframe closer to completed letter/keepsake and relaxed hand, retain adult identity, close room shell.",
+      "captionVisual": "Full caption readable in compact capture; no clipping observed. Tint reduces contrast where noted.",
+      "narrow": {
+        "observed": true,
+        "evidence": "build/ac04-story-visual-fix/final/narrow/i12-b4.png",
+        "verdict": "Caption complete in available narrow capture; same scene/art concerns. Fixture CoreGui overlaps title, so production inset acceptance withheld."
+      },
+      "referenceComparison": {
+        "scope": "No direct original epilogue frame inspected; narrative/geometry assessment only, style compared to other inspected interludes.",
+        "sheet": null
+      },
+      "fidelityVerdict": "NOT ACCEPTED: global illustrated-still/chrome gap remains, independently of action verdict"
+    }
+  ],
+  "originalArtDirection": {
+    "status": "Proposed original-art direction, not implemented/approved/uploaded",
+    "target": "Original restrained illustrated memories: naturalistic clothed silhouettes, hand-drawn contour variation, muted ochre/olive/charcoal daylight and selective cool blue-black night, broad light/shadow masses, original textured painted environments. Use observed reference principles without tracing exact frames, likeness designs, dialogue or assets.",
+    "preferredProduction": "Create new project-owned2D illustrated backgrounds and clothed character/action layers, composited as static image-led tableaux or shallow2.5D cards. Reuse consistent original character model sheets and original room geography. Keep low-motion holds, occasional slow reframing and short fades subordinate to narration; maintain manual advance/pause and readable captions.",
+    "nativeFallback": "If remaining entirely native, use current geometry as a blockout only: soften heads/hair/sleeves, correct human proportions, reduce plastic specular look, flatten lighting into intentional value groups, add authored original silhouette/backdrop layers and crop to designed close-ups. This can improve tone but is not guaranteed to reach illustrated-still fidelity.",
+    "pilotShots": [
+      "i03-b3 music: close triangular face/instrument relationship, warm side light, dark populated bar depth",
+      "i09-b2 blackout: daughter hands/radio in torch pool, leader profile separated, boy behind, continuous exit route",
+      "i11-b2 memorial: small cloth/hand in foreground, two restrained mourners, layered branching birches and quiet negative space"
+    ],
+    "acceptance": "Review3 style pilots at compact/narrow/short landscape with actual pixels before expanding. Each shot needs a clear primary subject, readable action/contact and secondary reaction. Art should carry the beat without relying entirely on caption. Keep full original adapted dialogue, split long beats if needed and time an animatic with voice later; no exact pacing claim from10s thumbnails.",
+    "assetBoundary": "No asset generated or uploaded here. Reference images remain research-only under docs/evidence. Any future Blender-origin export/dependencies require the mandatory independent exact-file/all-angle safety approval before upload; this review supplies no10/10 asset verdict."
+  },
+  "contradictions": [
+    {
+      "source": "fix-response remainingIssues SVF-01",
+      "correction": "Tint is not limited to two named moments: frozen compact i01-b4,i03-b2,i05-b1,i09-b4 visibly affected; weaker wash at i03-b4. Occurrence/frequency/cause not measured."
+    },
+    {
+      "source": "fix-response general openedWithImageViewer=true versus referenceInspection limitation",
+      "correction": "Author explicitly says images were unavailable to its tool; do not interpret perShot opened flag as original-frame comparison. This review actually displayed local PNGs and original-game storyboard sheets."
+    },
+    {
+      "source": "taste STORY-STAGE-002 rationale any camera now sees faces",
+      "correction": "Chair repair does not guarantee every camera sees faces; retain camera/frustum/other-occlusion limitations."
+    },
+    {
+      "source": "plan M05 next-work",
+      "correction": "Clean debrief/chapter4 observation already exists in87d17771 report; retain independent quality/feel review as open instead."
+    },
+    {
+      "source": "human docs independent review pending repeated current prose",
+      "correction": "Replace with completed review/rejected fidelity, preserving historical91927612 review separately. Concurrent UI implementation remains separate and must be reconciled by parent."
+    },
+    {
+      "source": "evidence manifest",
+      "correction": "102 non-self files match; manifest self-hash does not. Do not report all103 as verified."
+    }
+  ],
+  "humanDocPayloads": {
+    "taste.html": {
+      "action": "replace current pending-review story prose and update stable decision statuses; preserve historical rationale",
+      "exactText": "Frozen87d17771 independent still review is complete: all48 compact and15 available narrow shots were opened. Chair/instrument visibility and caption readability are substantially improved; original-game storyboard pixels were actually inspected. AC04 visual acceptance is rejected for the primitive diorama versus illustrated-still gap, persistent playback chrome, exposed set edges, maroon overlay and remaining action/prop overlaps. Caption measurements and tiny scroll are inherited engine evidence, not rerun. No audio, physical-device, Player or full-campaign observation was added.",
+      "decisionUpdates": [
+        {
+          "id": "STORY-STAGE-002",
+          "status": "Observed fixed in reviewed compositions; no blanket all-angle guarantee",
+          "rationale": "Occupied chair backs no longer conceal the guitar player or uncle."
+        },
+        {
+          "id": "STORY-STAGE-003",
+          "status": "Observed improved; remaining radio/report/satchel/wing overlaps need per-shot repair",
+          "rationale": "Physical contacts now read in guitar, harmonica, chart and writing scenes; visibility contracts alone miss narrative hierarchy."
+        },
+        {
+          "id": "STORY-STAGE-004",
+          "status": "Keep as regression guard, not artistic acceptance",
+          "rationale": "Named visible keys do not ensure a countable five-plane row, readable13 or closed set."
+        },
+        {
+          "id": "STORY-CAPTION-002",
+          "status": "Still-readability accepted for captured compact/15 narrow samples; inherited all48 measurements; device/inset acceptance open",
+          "rationale": "All captured text is complete; tiny scroll is supported by recorded geometry and final-line screenshot, not new input testing."
+        },
+        {
+          "id": "STORY-LOOK-001",
+          "status": "Interim implementation; binding illustrated direction remains unmet",
+          "rationale": "Direct original-game pixels show designed illustrated faces, strong light/shadow masses and layered compositions. Adopt original authored illustrated stills or 2.5D treatment after a style pilot; do not rip original art or dialogue."
+        }
+      ]
+    },
+    "plan.html": {
+      "action": "replace completed independent-comparison item with concrete repair/style queue",
+      "exactText": "Independent frozen87d17771 story review is complete; see ac04-story-visual-independent-61-r3.json. Next: isolate the maroon overlay and cinematic/CoreGui lifecycle; make cinematic chrome quiet and transient; close/crop bar/study set edges; repair13 identification, five-plane count, daughter/radio/satchel blocking and damaged-aircraft cue. Produce original illustrated-style pilots for music, blackout and memorial scenes before expanding to48. Preserve original adapted dialogue; establish timed animatics separately because stills do not prove pacing. Re-review a newly frozen candidate after integration under the existing single Studio/build lease. Keep later mission flights and UI integration in their existing queue.",
+      "additionalCorrection": "M05 next-work text still asks to observe a clean debrief/chapter4, although current87d17771 clean-session evidence says that was completed. Move that evidence to status; retain independent presentation/feel and exact Normal gates as open."
+    },
+    "status.html": {
+      "action": "replace current independent-story-review-pending statements, preserve test/replay provenance",
+      "exactText": "Frozen87d17771 independent still review is complete: all48 compact and15 available narrow shots were opened. Chair/instrument visibility and caption readability are substantially improved; original-game storyboard pixels were actually inspected. AC04 visual acceptance is rejected for the primitive diorama versus illustrated-still gap, persistent playback chrome, exposed set edges, maroon overlay and remaining action/prop overlaps. Caption measurements and tiny scroll are inherited engine evidence, not rerun. No audio, physical-device, Player or full-campaign observation was added.",
+      "priorityOrder": [
+        "P1 illustrated-still and persistent-chrome fidelity gap",
+        "P1 maroon overlay contamination; cause not proven",
+        "P1 exposed room edges and story-critical13/count/radio/satchel/repair visibility",
+        "P2 restrained expressions, cloth softness, vehicle/crowd/set depth",
+        "Unchanged: later mission flights, audio and device evidence absent"
+      ],
+      "integrityNote": "Candidate hash matches.102 non-self manifest entries match; the manifest includes its own stale hash, the only mismatch. Do not claim a clean103/103 manifest. Story/caption/cinematic source hashes match the author report at review time."
+    },
+    "playtest.html": {
+      "action": "replace repeated pending-story-review language in local summary, story placements and final presentation/evidence rows; preserve all18 mission availability rows",
+      "exactText": "Frozen87d17771 independent still review is complete: all48 compact and15 available narrow shots were opened. Chair/instrument visibility and caption readability are substantially improved; original-game storyboard pixels were actually inspected. AC04 visual acceptance is rejected for the primitive diorama versus illustrated-still gap, persistent playback chrome, exposed set edges, maroon overlay and remaining action/prop overlaps. Caption measurements and tiny scroll are inherited engine evidence, not rerun. No audio, physical-device, Player or full-campaign observation was added. All18 AC04 missions remain local/unmerged and unavailable in Player in this review scope. A gameplay PR merge changes availability immediately through the owner pipeline convention; no receipt or Player-test gate is added. Version63/PR90 remains last-known supporting metadata, not a newly observed release. Chapters1\u20134 clean playback and later viewer-only captures retain their existing evidence distinction.",
+      "noChangeRationale": "No new gameplay merge, receipt audit, mission flight, control change, upload or Player observation occurred. Keep official link, existing merged-PR list and all18 construction/availability rows; only story review/readiness wording changes. Parent must reconcile concurrent UI work separately; this verdict does not apply to live controller/UI edits."
+    }
+  },
+  "verdict": {
+    "overall": "REJECT AC04 visual/fidelity acceptance; repairs are real but candidate remains an interim diorama adaptation. No perfect recreation claim.",
+    "actionReadability": "Substantially improved; per-shot fix/iterate/action-readable verdicts above, all with global art gap.",
+    "captions": "Captured still readability accepted within48 compact/15 narrow coverage; inherited all48 geometry and tiny-scroll evidence supports mechanical repair; physical device/insets/input/timing unaccepted.",
+    "storyAdaptation": "Original dialogue and broad emotional arc are acceptable adaptation direction: loss, occupation, shared music, divided loyalty, loss and letter. No full original audiovisual pacing measurement; naturalistic emotional hierarchy needs art iteration.",
+    "publication": "No gameplay merge/publish in this review;0/18 AC04 Player availability remains local/unmerged. Merge means live by automatic pipeline under owner convention, without receipt/Player gate.",
+    "safety": "Clothed figures/no nude depiction seen in reviewed frames. No exact-export/all-surface Blender safety review or upload approval supplied."
+  },
+  "limits": [
+    "No Studio/Rojo/build/rbxtsc/test:roblox/validate:offline or build/out mutation.",
+    "No source/HTML edits, cloud, upload, publish, commit or PR operation.",
+    "No new audio listening, voice-bank verification, physical-device input/FPS, Roblox Player observation, fullcampaign completion or later campaign unlock evidence.",
+    "Still images cannot prove scroll input, runtime tint cause, original durations, transitions or faithful narration pacing.",
+    "Parent must apply exact human-document payloads and reconcile all four before claiming docs current."
+  ],
+  "writes": [
+    "docs/reviews/ac04-story-visual-independent-61-r3.json",
+    "docs/evidence/ac04-story-reference-review/ (11 original-game research sheets and provenance manifest)"
+  ],
+  "humanDocumentReadSnapshots": [
+    {
+      "path": "docs/human/taste.html",
+      "sha256": "c25f343c4e544abc2adfd90741ef10362c32f3f31c9094f9f16701ac095515fd",
+      "ownership": "Parent; no edits by reviewer"
+    },
+    {
+      "path": "docs/human/plan.html",
+      "sha256": "361951a35ed7cf182e8783befadaf3e6e10f47576f354272e3d4e87fa727ac8d",
+      "ownership": "Parent; no edits by reviewer"
+    },
+    {
+      "path": "docs/human/status.html",
+      "sha256": "8b761c1a0f3422e2922d2dd900242e1a68f47057ed36841abdc1b062abbdffcc",
+      "ownership": "Parent; no edits by reviewer"
+    },
+    {
+      "path": "docs/human/playtest.html",
+      "sha256": "18839fbf19a410c168cb939a7337edc575529b28d5cea40e03b60a952babba89",
+      "ownership": "Parent; no edits by reviewer"
+    }
+  ]
+}

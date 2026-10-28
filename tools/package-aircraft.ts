@@ -9,16 +9,8 @@ const assets = [
 	{ name: "RoadTile", source: "assets/mission/roadtile.mesh.json", triangleLimit: 5000 },
 	{ name: "CliffTile", source: "assets/mission/clifftile.mesh.json", triangleLimit: 5000 },
 
-	{ name: "CinematicChair", source: "assets/mission/cinematicchair.mesh.json", triangleLimit: 5000 },
-	{ name: "CinematicDesk", source: "assets/mission/cinematicdesk.mesh.json", triangleLimit: 5000 },
 	{ name: "Kestrel", source: "assets/aircraft/kestrel.mesh.json", triangleLimit: 20000 },
 	{ name: "Vanta", source: "assets/aircraft/vanta.mesh.json", triangleLimit: 20000 },
-	{ name: "Warehouse", source: "assets/mission/warehouse.mesh.json", triangleLimit: 5000 },
-	{ name: "Radar", source: "assets/mission/radar.mesh.json", triangleLimit: 5000 },
-	{ name: "CommsRelay", source: "assets/mission/commsrelay.mesh.json", triangleLimit: 5000 },
-	{ name: "GrainSilo", source: "assets/mission/grainsilo.mesh.json", triangleLimit: 5000 },
-	{ name: "RelayTruck", source: "assets/mission/relaytruck.mesh.json", triangleLimit: 5000 },
-	{ name: "HarborLaunch", source: "assets/mission/harborlaunch.mesh.json", triangleLimit: 5000 },
 	] as const;
 
 for (const asset of assets) {

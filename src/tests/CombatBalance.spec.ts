@@ -2,28 +2,8 @@ import { describe, expect, it } from "@rbxts/jest-globals";
 import { FlightMath } from "../shared/FlightMath";
 import { CombatBalance } from "../shared/CombatBalance";
 import { Difficulty } from "../shared/Difficulty";
-import { MissionCatalog } from "../shared/MissionCatalog";
-import { MissionPacing } from "../shared/MissionPacing";
 import { ThreatRules } from "../shared/ThreatRules";
 import { SpecialWeapons } from "../shared/SpecialWeapons";
-
-// Analytic design estimates only: 60% firing opportunity (nose/range/cap), then
-// 50% connections for a phone pilot using some evades/flares, 80% ignoring warnings.
-// Ace launch opportunities are separate, with the server's +2 damage bonus.
-function loss(id: number, hitRate: number): number {
-	const bp = MissionCatalog.Get(id), act = bp.act - 1;
-	let damage = 0;
-	for (const window of MissionPacing.ContactWindows(bp)) {
-		if (window.live > 0) {
-			const soft = id <= CombatBalance.gentle.lastMission;
-			const gate = ThreatRules.FlightGate(soft ? CombatBalance.gentle.flightGate : CombatBalance.flightGate[act], window.live,
-				soft ? CombatBalance.gentle.flightDivisor : CombatBalance.flightDivisor[act], window.directed);
-			damage += window.seconds / gate * 0.6 * hitRate * CombatBalance.hostileDamage[act];
-		}
-		if (window.ace) damage += window.seconds / CombatBalance.aceReload[act] * hitRate * (CombatBalance.hostileDamage[act] + 2);
-	}
-	return damage;
-}
 
 describe("Round-3 difficulty envelope", () => {
 	it("keeps Normal and Act I Ace bandits at two standard hits; later Ace flights retain armor", () => {
@@ -58,22 +38,6 @@ describe("Round-3 difficulty envelope", () => {
 			expect(math.abs(damage - oldDamage[act]) <= 0.5).toBe(true);
 			expect(divisor).toBe(expectedDivisor[act]);
 			expect(math.abs(gate - expectedGate[act]) < 0.02).toBe(true);
-		}
-	});
-	it("bounds Act III mission contact on both sides: tension without an average-player spike", () => {
-		for (const bp of MissionCatalog.ByAct(3)) {
-			const average = loss(bp.id, 0.5), ignored = loss(bp.id, 0.8);
-			// Ordinary sorties should end around 30-60 hull; the boss has the same
-			// upper-loss guard. This catches both the original soft tuning and spikes.
-			expect(average >= 40 && average <= 70).toBe(true);
-			expect(ignored >= 64).toBe(true);
-		}
-		expect(loss(27, 0.8) >= 100).toBe(true);
-	});
-	it("keeps the earlier finales survivable without removing their pressure", () => {
-		for (const id of [9, 18]) {
-			const average = loss(id, 0.5);
-			expect(average >= 25 && average <= 70).toBe(true);
 		}
 	});
 	it("keeps ace reload flat across acts and avoids the paired-launch damage spike on Ace", () => {

@@ -1,0 +1,1263 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "ac04-lifeline-story-independent-61",
+  "reviewer": "gpt-6.1-sol independent reviewer; no subagents",
+  "date": "2026-10-27",
+  "state": "REVIEW_COMPLETE_FUNCTIONAL_M1_M5_CONFIRMED_STORY_VISUAL_ACCEPTANCE_REJECTED",
+  "artifact": {
+    "path": "build/ac04-lifeline-fix/candidate-91927612.rbxlx",
+    "sha256Before": "91927612ddb4049cc2010a5cfa2a8e0cfaa166eef7a51d5eeaf8d48dc3cf5659",
+    "skybreakSha256AtStart": "91927612ddb4049cc2010a5cfa2a8e0cfaa166eef7a51d5eeaf8d48dc3cf5659",
+    "saved": false,
+    "sha256After": "91927612ddb4049cc2010a5cfa2a8e0cfaa166eef7a51d5eeaf8d48dc3cf5659",
+    "skybreakSha256After": "91927612ddb4049cc2010a5cfa2a8e0cfaa166eef7a51d5eeaf8d48dc3cf5659",
+    "savedOver": false
+  },
+  "readRequiredReports": [
+    "AGENTS.md",
+    "docs/reviews/ac04-lifeline-fix-response.json INCLUDING parentEvidenceAudit",
+    "docs/reviews/ac04-playtest-56-r1.json",
+    "docs/reviews/ac04-story-staging-response.json INCLUDING parentReviewFollowup"
+  ],
+  "publication": {
+    "carriedForwardOnly": true,
+    "placeVersion": 60,
+    "commit": "288a087e432351c5ebd976f17cd59dc6344911c9",
+    "content": "Broken Relay",
+    "AC04PublishedMissions": 0,
+    "newPlayerObservation": false,
+    "receiptReverified": false
+  },
+  "inputMethods": {
+    "native": "Studio MCP mouse selected Record1, START SORTIE, campaign Continue, chapter Pause/Skip, sortie Pause. Keyboard E down/up, Tab, Space, G down/up, P sent in M1; success response is input delivery, not proof each weapon fired. Tab also opened Roblox player list. No OS keyboard used successfully.",
+    "osInputBlocker": "System Events: osascript is not allowed assistive access (-1728); no permission changes.",
+    "pilot": "Inspected/reused build/ac04-lifeline-fix/pilot.client.luau, waiting for active FlightController from actual LocalScript. Public SetInput/SetThrottle/CycleTarget/FireMissile/FireGun/Evade/Rearm/SetPaused; telemetry read-only. After2060 score switched to F16 probe (quota hold disabled only in QA helper), then returned to original pilot at2520.",
+    "integrity": "No pose/CFrame/health/ammo/score/kills/unlocks/progression/clocks/outcome writes, CrossReturn injection or fake telemetry. Production relocation is game behavior. Native pause used for handoffs; no acceleration.",
+    "feelLimit": "Automation completion cannot certify balanced human experience.",
+    "diagnostics": "Read-only ListSlots after completion returned persistence=session, completedM1\u20135, score/time; no cloud request. Packaged ac04Unlocked computed6 without mutating progression. QA diagnostic read c.active=false,c.paused=false,elapsed615.058."
+  },
+  "captureAudit": {
+    "id": "CAPTURE-001",
+    "state": "targeted native window capture works; desktop path rejected",
+    "investigation": "CGPreflightScreenCaptureAccess true. Desktop screencapture after activate returned wallpaper. CGWindowList selected exact candidate window959 owner PID87088; screencapture -l959 showed Studio UI. StudioMCP screen_capture initial wrong/home context returned Place is not open. No system permissions changed.",
+    "earlyValidStudioUI": "early-studio-window.png (home screen; not game evidence)",
+    "earlyValidCandidate": "early-candidate.png (candidate editor)",
+    "invalid": [
+      "early-desktop.png (lake wallpaper)",
+      "i02-b1.png",
+      "i02-b2.png",
+      "i02-b3.png",
+      "i02-b4.png"
+    ],
+    "invalidChapter2Reason": "All four contained beat1: initial fixture IgnoreGuiInset=false pushed controls below viewport, so clicks did not advance. Superseded with -valid images, all inspected.",
+    "historicalRejected": [
+      "build/ac04-lifeline-fix/10-m5-result.png",
+      "build/ac04-lifeline-fix/11-post-m5-story.png"
+    ],
+    "filenameCorrection": "m3-return.png actually captured M3 accomplished result; return guidance evidence is telemetry/UI readback, not that filename.",
+    "fixtureLimitation": "1205x525 component host uses IgnoreGuiInset=true; Roblox topbar icons obscured left title in early fixture captures. This is fixture placement, not attributed to production title. Campaign captures use production inset. Label marks fixture; narrow host390x525 overlays ongoing gameplay on right, not physical-device emulation.",
+    "finalScreenshotsOpened": true,
+    "earlyCaptureOrder": "Opened/inspected native Studio home capture and candidate editor capture before sustained gameplay/story review.",
+    "additionalRejectedClaims": {
+      "m5-at-expiry.png": "Genuine Studio image, but stale0:29 scoring HUD; NOT expiry proof.",
+      "m5-result.png": "Genuine Studio image showing avatar swimming under stale0:29 flight HUD; NOT accomplished-result proof.",
+      "cloth-detail-wide.png": "Actual fixture assembly, supports cloth near hands only.",
+      "guitar-occlusion.png": "Actual fixture assembly, confirms chair hiding leader/guitar."
+    },
+    "validCaptureScope": "All final saved PNGs opened/inspected with view_image. Valid Studio content does not establish that screenshot filename matches live phase. Current and historical rejected claims explicitly listed."
+  },
+  "missions": [
+    {
+      "id": 1,
+      "attempts": 1,
+      "losses": 0,
+      "completed": true,
+      "score": 600,
+      "targets": 6,
+      "time": "0:22",
+      "aircraft": "F-4E",
+      "evidence": "m1-result.png"
+    },
+    {
+      "id": 2,
+      "attempts": 1,
+      "losses": 0,
+      "completed": true,
+      "score": 1320,
+      "targets": 11,
+      "time": "1:30",
+      "aircraft": "F-4E",
+      "evidence": "m2-result.png"
+    },
+    {
+      "id": 3,
+      "attempts": 1,
+      "losses": 0,
+      "completed": true,
+      "score": 900,
+      "targets": 9,
+      "time": "1:09",
+      "aircraft": "F-4E",
+      "evidence": "m3-return.png (result, despite filename)",
+      "return": "Actual nine radar kills, live Return south guidance, automated flight through line and authoritative result; no crossing call."
+    },
+    {
+      "id": 4,
+      "attempts": 1,
+      "losses": 0,
+      "completed": true,
+      "score": 480,
+      "targets": 3,
+      "time": "1:32",
+      "aircraft": "F-4E",
+      "evidence": "m4-result.png",
+      "limits": "Required transports exercised; full two-jammer and every reinforcement source route not independently verified."
+    },
+    {
+      "id": 5,
+      "state": "authoritative completed; clean-client result presentation withheld",
+      "attempts": 1,
+      "losses": 0,
+      "completed": true,
+      "score": 2520,
+      "time": "10:15",
+      "authoritativeBestTime": 615.0910820833324,
+      "aircraft": "F-4E",
+      "targets": null,
+      "targetsLimit": "Actual debrief target total unobserved because UI stopped updating after QA cleanup. Actor/score accounting supports49 eliminations (39refinery+2tankers+7F16+1Ka50); this is derived, not a displayed result count.",
+      "evidence": "authoritative-session-record.json + telemetry.json + encounter-headers.json",
+      "radio": "Opening SkyEye refinery/offshore caption observed. Yellow/withdrawal radio not visually observed because UI was stale; no audible claim.",
+      "flightDangers": "Enemy fire reduced hull to58 before real service restored100; no terrain loss in this attempt. Enemy models cluster at pursuit/clamp boundary; no human feel acceptance."
+    },
+    {
+      "id": 6,
+      "state": "unlocked-not-launched",
+      "evidence": "Read-only ListSlots returned completed M1\u20135; actual packaged Shared.AC04Progress.ac04Unlocked(response.slots[1]) returned6.",
+      "limits": "M6 briefing/launch controls were not visually confirmed because campaign UI stalled. No M6 gameplay performed."
+    }
+  ],
+  "m5FunctionalSignoff": {
+    "state": "PASS FUNCTIONAL COMPLETION ONLY; clean-client presentation/retest open",
+    "fidelity": "PROVISIONAL adaptation, not verified original Normal",
+    "feel": "unrated human balance",
+    "sourceGap": "Exact 2/2/3, 30s, 15s, eight-kill threshold and 3/4/4 splits remain authored adaptations.",
+    "initialAircraft": {
+      "F16": 2,
+      "MIR2000": 2,
+      "Ka50": 3,
+      "MiG29": 0,
+      "total": 7,
+      "note": "Client world enumeration duplicated native LocalVisual copies; observer counts direct production encounter children only."
+    },
+    "refineryTrigger": {
+      "lastBefore": {
+        "elapsed": 70.36809366666603,
+        "destroyed": 7,
+        "MiG29": 0
+      },
+      "firstAfter": {
+        "elapsed": 70.6678020833333,
+        "destroyed": 8,
+        "MiG29": 3
+      },
+      "evidence": "encounter-headers-so-far.json; original long observer lines truncate positions in native logfile, header metadata retained."
+    },
+    "lineRearm": {
+      "before": {
+        "elapsed": 217.76058120833295,
+        "z": 2918.1575232375285,
+        "hull": 94,
+        "missiles": 5
+      },
+      "after": {
+        "elapsed": 220.76015137499962,
+        "z": 3470.271452829821,
+        "hull": 100,
+        "missiles": 52
+      },
+      "secondService": "At335.828 elapsed, hull100/missiles52/z3672.82 after58hull retreat."
+    },
+    "laterF16Branch": {
+      "sequence": [
+        {
+          "elapsed": 377.8423764166655,
+          "air": 2
+        },
+        {
+          "elapsed": 381.4415311249995,
+          "air": 1
+        },
+        {
+          "elapsed": 383.74217020833385,
+          "air": 0
+        },
+        {
+          "elapsed": 413.94129350000003,
+          "air": 3
+        },
+        {
+          "elapsed": 417.3413892916669,
+          "air": 2
+        },
+        {
+          "elapsed": 421.541317166666,
+          "air": 1
+        },
+        {
+          "elapsed": 431.2300152083335,
+          "air": 0
+        }
+      ],
+      "observedClearanceToThirdGroup": 30.19912329166618,
+      "scoreAfter": 2520,
+      "method": "Stopped original QA pilot with QA-only Stop attribute; used inspected f16-probe variant with quota hold disabled, only public controls. Stopped probe after all7F16s; resumed original public-input return/hold pilot.",
+      "limits": "MiG3/4/4 later-clearance branches and Mirage/offshore branch remain unexercised. Replicated score/actor channels non-atomic: one count0 snapshot retained prior score."
+    },
+    "scorePhaseExpiry": {
+      "lastCoherentPrimary": {
+        "elapsed": 598.0585359166653,
+        "score": 2520,
+        "remaining": 1.941464083334722
+      },
+      "mixedSnapshotExcluded": {
+        "elapsed": 599.9593651249997,
+        "newPhaseLabel": "ac04_update",
+        "priorRemaining": 0.04063487500025076,
+        "actors": 0,
+        "note": "Non-atomic replication transition; NOT evidence of early authoritative advance."
+      },
+      "firstCoherentUpdate": {
+        "elapsed": 600.1576982499992,
+        "remaining": 239.84230175000084,
+        "YellowAircraft": 5,
+        "priorPhaseActorsRetired": true
+      }
+    },
+    "withdrawal": {
+      "method": "Game production offshore relocation, then real public-input southbound flight. No pose/CFrame/CrossReturn writes.",
+      "samples": [
+        {
+          "elapsed": 600.1576982499992,
+          "x": 2079.174773859236,
+          "z": -1272.4116655776058
+        },
+        {
+          "elapsed": 605.0584629999994,
+          "z": 78.16215403986182
+        },
+        {
+          "elapsed": 610.0577203749981,
+          "z": 1835.1756599090616
+        },
+        {
+          "elapsed": 614.557703083332,
+          "z": 3401.05231092382
+        }
+      ],
+      "serverCompletedAt": 615.0910820833324,
+      "remainingWindowNearCompletion": 225,
+      "limit": "240s withdrawal window started and exited; timeout failure was not tested. Yellow unshootability established by frozen source/known design, not independently attacked during withdrawal."
+    },
+    "telemetrySchemaCorrection": "QA61_COMPACT field named score reads objectiveProgress: valid scoring points in primary, elapsed phase progress0\u201315 in update. It is NOT a score reset; original observer separately read HUD2520.",
+    "cleanClientRetestRequired": true
+  },
+  "story": {
+    "visualVerdict": "REJECT VISUAL ACCEPTANCE; 48 shots observed, concrete composition/prop/caption defects remain",
+    "all48Observed": true,
+    "unobservedShots": [],
+    "campaignPlayback": "PreM1, postM1 and postM2 first pages observed through legitimate campaign playback and native pause/skip. PostM5 chapter4 legitimate playback UNOBSERVED due stalled campaign UI; chapter4 all4beats observed only as isolated visual fixture. Later campaign chapters remain unplayed.",
+    "fixture": "Temporary QA61StoryViewer LocalScript mounts actual packaged production component from PlayerScripts.Client.ac04; actual production shared factory stages all scenes. No fixture tests run.",
+    "coverageLedger": [
+      {
+        "findingId": "LS61-STORY-01-01",
+        "chapterId": "ac04-i01",
+        "beat": 1,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i01-b1.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Boy and three distant guns visible; cape/sea barely reads.",
+        "recommendation": "Frame the coast and gun scale deliberately; enlarge the civilian viewpoint.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-01-02",
+        "chapterId": "ac04-i01",
+        "beat": 2,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i01-b2.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Child, bag, path and intact house visible; a very empty school route.",
+        "recommendation": "Add recognizable coastal environment and a stronger house/path composition.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-01-03",
+        "chapterId": "ac04-i01",
+        "beat": 3,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i01-b3.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "One aircraft is visible above the house; fire/smoke and two-fighter action are not legible.",
+        "recommendation": "Reframe the descending aircraft, smoke and second fighter without obscuring the boy.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-01-04",
+        "chapterId": "ac04-i01",
+        "beat": 4,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i01-b4.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Rubble and kneeling child readable; yellow thirteen identification cannot be read.",
+        "recommendation": "Make the yellow aircraft marking readable and improve the ruined threshold silhouette.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-02-01",
+        "chapterId": "ac04-i02",
+        "beat": 1,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i02-b1-valid.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Boy and patrol visible between two generic buildings.",
+        "recommendation": "Develop an occupied street rather than two isolated building blocks.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-02-02",
+        "chapterId": "ac04-i02",
+        "beat": 2,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i02-b2-valid.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Chair back hides most of seated uncle; taxi is visible.",
+        "recommendation": "Reverse or reposition chair/camera so uncle, drink and idle taxi are all readable.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-02-03",
+        "chapterId": "ac04-i02",
+        "beat": 3,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i02-b3-valid.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Harmonica pose visible only weakly; chair/counter obscure hands and coins are tiny.",
+        "recommendation": "Use a closer front three-quarter view of harmonica, hands and earned coins.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-02-04",
+        "chapterId": "ac04-i02",
+        "beat": 4,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i02-b4-valid.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Daughter, child and plate visible; offered meal reads better than earlier scenes.",
+        "recommendation": "Improve hand-to-plate connection and expressive gaze toward window.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-03-01",
+        "chapterId": "ac04-i03",
+        "beat": 1,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i03-b1.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Three pilots and child appear, but seated leader is hidden by chair back.",
+        "recommendation": "Put leader and sleeve insignia in a readable group composition.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": true,
+        "narrowEvidence": "build/ac04-lifeline-story-independent-61/narrow-i03-b1.png"
+      },
+      {
+        "findingId": "LS61-STORY-03-02",
+        "chapterId": "ac04-i03",
+        "beat": 2,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i03-b2.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Chair back almost completely hides leader and guitar.",
+        "recommendation": "Reverse chair or camera and expose both face and held guitar.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": true,
+        "narrowEvidence": "build/ac04-lifeline-story-independent-61/narrow-i03-b2.png"
+      },
+      {
+        "findingId": "LS61-STORY-03-03",
+        "chapterId": "ac04-i03",
+        "beat": 3,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i03-b3.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Boy raises hands to harmonica; guitar player is hidden by chair.",
+        "recommendation": "Show both musicians and instruments simultaneously; align hands on guitar neck/body.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": true,
+        "narrowEvidence": "build/ac04-lifeline-story-independent-61/narrow-i03-b3.png"
+      },
+      {
+        "findingId": "LS61-STORY-03-04",
+        "chapterId": "ac04-i03",
+        "beat": 4,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i03-b4.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Boy faces chair back; the man across from him is mostly invisible.",
+        "recommendation": "Reframe intimate exchange with visible leader and instrument.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": true,
+        "narrowEvidence": "build/ac04-lifeline-story-independent-61/narrow-i03-b4.png"
+      },
+      {
+        "findingId": "LS61-STORY-04-01",
+        "chapterId": "ac04-i04",
+        "beat": 1,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i04-b1.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Highway/tunnel and yellow rectangular wheat patches visible; parked jet is tiny.",
+        "recommendation": "Replace slab wheat treatment and make makeshift airfield geography recognizable.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-04-02",
+        "chapterId": "ac04-i04",
+        "beat": 2,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i04-b2.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Five small jets are visible above tunnel, with boy and leader below.",
+        "recommendation": "Strengthen distinct formation silhouettes and the leader counting/looking action.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-04-03",
+        "chapterId": "ac04-i04",
+        "beat": 3,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i04-b3.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Four stands between boy and leader, all clothed and distinguishable by hair/scarf.",
+        "recommendation": "Improve protective relationship through eye-lines and a closer composition.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-04-04",
+        "chapterId": "ac04-i04",
+        "beat": 4,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i04-b4.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Supper group visible; chair hides one pilot and food is tiny.",
+        "recommendation": "Remove chair occlusion and stage shared meal as a readable interaction.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-05-01",
+        "chapterId": "ac04-i05",
+        "beat": 1,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i05-b1.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Empty chair and boy readable; taxi largely hidden behind chair.",
+        "recommendation": "Separate taxi and chair silhouettes so both absence cues read.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-05-02",
+        "chapterId": "ac04-i05",
+        "beat": 2,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i05-b2.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Boy and pilot visible; second seated figure hidden; music props not prominent.",
+        "recommendation": "Expose musicians/meal and clarify the new-home interaction.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-05-03",
+        "chapterId": "ac04-i05",
+        "beat": 3,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i05-b3.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Radio, notes, daughter and barkeeper readable; boy watches.",
+        "recommendation": "Improve hand/notes contact and distinguish upstairs room from bar set.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-05-04",
+        "chapterId": "ac04-i05",
+        "beat": 4,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i05-b4.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Daughter stands between boy and doorway; chair/table clutter weakens protection cue.",
+        "recommendation": "Clear doorway silhouette and reposition chair behind the interaction.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-06-01",
+        "chapterId": "ac04-i06",
+        "beat": 1,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i06-b1.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Radio and empty chairs visible; daughter and boy gaze relationship is weak.",
+        "recommendation": "Strengthen contrasting gazes and leave empty chairs unobscured.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-06-02",
+        "chapterId": "ac04-i06",
+        "beat": 2,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i06-b2.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Daughter watches Four beside Thirteen; silhouettes repeat prior runway shot.",
+        "recommendation": "Give Four and Thirteen a stronger relational pose and readable glance from daughter.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-06-03",
+        "chapterId": "ac04-i06",
+        "beat": 3,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i06-b3.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Chart on table is visible; leader and boy visible, tracing action indistinct.",
+        "recommendation": "Align hand to chart and bring chart/course line closer.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-06-04",
+        "chapterId": "ac04-i06",
+        "beat": 4,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i06-b4.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Boy and leader visible beside tunnel; hopeful expression is not conveyed.",
+        "recommendation": "Use facial/pose language and a tighter civilian viewpoint.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-07-01",
+        "chapterId": "ac04-i07",
+        "beat": 1,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i07-b1.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Kneeling crewman and rack visible; no convincing bomb delivery/base activity.",
+        "recommendation": "Show incoming supplies and a developed threatened airfield.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-07-02",
+        "chapterId": "ac04-i07",
+        "beat": 2,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i07-b2.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Dark flat runway scar present; Four is largely behind chair and damage is weak.",
+        "recommendation": "Expose seated Four and make sabotaged concrete/supply loss visually distinct.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-07-03",
+        "chapterId": "ac04-i07",
+        "beat": 3,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i07-b3.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Boy, fence and standing leader visible; canopy/ladder action not recognizable.",
+        "recommendation": "Stage leader at an actual aircraft ladder with clear grip and grounding.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-07-04",
+        "chapterId": "ac04-i07",
+        "beat": 4,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i07-b4.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Small departing jet visible; mechanical incompleteness cannot be read.",
+        "recommendation": "Give departure aircraft recognizable silhouette and visible repair context.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-08-01",
+        "chapterId": "ac04-i08",
+        "beat": 1,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i08-b1.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Empty chair visible, but seated leader almost hidden behind boy/chair.",
+        "recommendation": "Separate leader, boy and empty chair; show grief through pose.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": true,
+        "narrowEvidence": "build/ac04-lifeline-story-independent-61/narrow-i08-b1.png"
+      },
+      {
+        "findingId": "LS61-STORY-08-02",
+        "chapterId": "ac04-i08",
+        "beat": 2,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i08-b2.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Cloth is visibly supported near Thirteen hands; it reads as stiff flat board.",
+        "recommendation": "Keep physical hand support while adding a folded cloth silhouette and closer view.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": true,
+        "narrowEvidence": "build/ac04-lifeline-story-independent-61/narrow-i08-b2.png"
+      },
+      {
+        "findingId": "LS61-STORY-08-03",
+        "chapterId": "ac04-i08",
+        "beat": 3,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i08-b3.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Five jets and replacement pilots visible; identity turnover weakly communicated.",
+        "recommendation": "Differentiate newcomers and isolate boy distance from group.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": true,
+        "narrowEvidence": "build/ac04-lifeline-story-independent-61/narrow-i08-b3.png"
+      },
+      {
+        "findingId": "LS61-STORY-08-04",
+        "chapterId": "ac04-i08",
+        "beat": 4,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i08-b4.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Report and daughter turning away visible; leader hand is hard to associate with report.",
+        "recommendation": "Reframe report and daughter reaction; align pointing/holding hands.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": true,
+        "narrowEvidence": "build/ac04-lifeline-story-independent-61/narrow-i08-b4.png"
+      },
+      {
+        "findingId": "LS61-STORY-09-01",
+        "chapterId": "ac04-i09",
+        "beat": 1,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i09-b1.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Hospital cross visible; rooftop gun is not legible and street is not crowded.",
+        "recommendation": "Expose rooftop emplacement and stage retreating occupation density.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": true,
+        "narrowEvidence": "build/ac04-lifeline-story-independent-61/narrow-i09-b1.png"
+      },
+      {
+        "findingId": "LS61-STORY-09-02",
+        "chapterId": "ac04-i09",
+        "beat": 2,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i09-b2.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Doorway floats as a freestanding frame in street; satchel on ground.",
+        "recommendation": "Connect doorway to building and put transmitter/satchel into meaningful interaction.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": true,
+        "narrowEvidence": "build/ac04-lifeline-story-independent-61/narrow-i09-b2.png"
+      },
+      {
+        "findingId": "LS61-STORY-09-03",
+        "chapterId": "ac04-i09",
+        "beat": 3,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i09-b3.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Confrontation figures visible; facial/emotional response remains minimal.",
+        "recommendation": "Use clear opposing eye-lines and Thirteen reaction pose.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": true,
+        "narrowEvidence": "build/ac04-lifeline-story-independent-61/narrow-i09-b3.png"
+      },
+      {
+        "findingId": "LS61-STORY-09-04",
+        "chapterId": "ac04-i09",
+        "beat": 4,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i09-b4.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Pilot stands aside and children face doorway; escape path reads only generically.",
+        "recommendation": "Integrate doorway into blackout street and show a continuous open route.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": true,
+        "narrowEvidence": "build/ac04-lifeline-story-independent-61/narrow-i09-b4.png"
+      },
+      {
+        "findingId": "LS61-STORY-10-01",
+        "chapterId": "ac04-i10",
+        "beat": 1,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i10-b1.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Three citizens and pennants visible; singing/community scale weak.",
+        "recommendation": "Stage an actual reopened square and readable collective singing poses.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-10-02",
+        "chapterId": "ac04-i10",
+        "beat": 2,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i10-b2.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Rubble and crouched daughter visible; seated prisoner hidden by chair.",
+        "recommendation": "Expose prisoner/guard relationship and make cleanup activity readable.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-10-03",
+        "chapterId": "ac04-i10",
+        "beat": 3,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i10-b3.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Empty chairs visible; Allied aircraft hidden behind room wall except trails.",
+        "recommendation": "Reframe window/sky so passing Allied aircraft are visible.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-10-04",
+        "chapterId": "ac04-i10",
+        "beat": 4,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i10-b4.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Children and pennants visible, but leaving retreat direction not clear.",
+        "recommendation": "Add visible retreat route and directional pose staging.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-11-01",
+        "chapterId": "ac04-i11",
+        "beat": 1,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i11-b1.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Two jets above waterfront blocks; mourners and memorial visible.",
+        "recommendation": "Develop Farbanti skyline and distinct final-contest aircraft framing.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-11-02",
+        "chapterId": "ac04-i11",
+        "beat": 2,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i11-b2.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Cloth rests on memorial earth between kneeling daughter and boy; no body shown.",
+        "recommendation": "Align daughter hand toward cloth and strengthen small-grave focus.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-11-03",
+        "chapterId": "ac04-i11",
+        "beat": 3,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i11-b3.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Memory musicians again obscured by chair; Four visible at side.",
+        "recommendation": "Reframe all three faces and shared music props.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-11-04",
+        "chapterId": "ac04-i11",
+        "beat": 4,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i11-b4.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Mourners and small grave visible, surrender broadcast has no distinct visual cue.",
+        "recommendation": "Use closer grave/cloth composition and a readable radio cue if intended.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": false,
+        "narrowEvidence": null
+      },
+      {
+        "findingId": "LS61-STORY-12-01",
+        "chapterId": "ac04-i12",
+        "beat": 1,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i12-b1.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Adult writer and taxi on former runway visible; tunnel/wheat unchanged.",
+        "recommendation": "Show convincing civilian reuse, remove military-looking emptiness and improve traffic.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": true,
+        "narrowEvidence": "build/ac04-lifeline-story-independent-61/narrow-i12-b1.png"
+      },
+      {
+        "findingId": "LS61-STORY-12-02",
+        "chapterId": "ac04-i12",
+        "beat": 2,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i12-b2.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Writer is seated facing away; letter is behind him on desk.",
+        "recommendation": "Reframe writer, paper and keepsake together from a readable angle.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": true,
+        "narrowEvidence": "build/ac04-lifeline-story-independent-61/narrow-i12-b2.png"
+      },
+      {
+        "findingId": "LS61-STORY-12-03",
+        "chapterId": "ac04-i12",
+        "beat": 3,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i12-b3.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Writing gesture visible but nib-to-paper contact and addressee not legible.",
+        "recommendation": "Align pen tip with paper and show a readable original addressed envelope/letter.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": true,
+        "narrowEvidence": "build/ac04-lifeline-story-independent-61/narrow-i12-b3.png"
+      },
+      {
+        "findingId": "LS61-STORY-12-04",
+        "chapterId": "ac04-i12",
+        "beat": 4,
+        "observed": true,
+        "evidence": "build/ac04-lifeline-story-independent-61/i12-b4.png",
+        "method": "UI-only fixture invokes exact packaged AC04Cinematic and staging; native Next while paused; screenshot opened with view_image",
+        "layout": [
+          1205,
+          525
+        ],
+        "finding": "Writer stands beside paper; hand-resting/completed-letter action weak.",
+        "recommendation": "Pose hand on desk/letter and use a deliberate final keepsake composition.",
+        "visualAcceptance": "not approved",
+        "narrowObserved": true,
+        "narrowEvidence": "build/ac04-lifeline-story-independent-61/narrow-i12-b4.png"
+      }
+    ],
+    "controls": "All12 remounted as UI-only replay, paused, next then back to1/4 PAUSED, skip called onFinish (console callbacks). No audible playback claim. See story-controls.json.",
+    "layoutFinding": {
+      "id": "LS61-STORY-UI-001",
+      "priority": "P1",
+      "state": "open",
+      "description": "390x525 caption text cuts off and native scroll does not reveal remainder. i08-b4 full Text retained but TextFits=false; label341x80, TextBounds337x80, frame94, canvas94, CanvasPosition0 after scroll.",
+      "fix": "Measure wrapped caption height at current width and make scroll canvas contain complete label; test native wheel/touch scroll and TextFits across all captions.",
+      "evidence": "narrow-i08-caption-scroll.png",
+      "measurement": {
+        "width": 390,
+        "height": 525,
+        "textWidth": 341,
+        "textHeight": 80,
+        "TextFits": false,
+        "frameHeight": 94,
+        "canvasHeight": 94,
+        "canvasPositionAfterWheel": 0
+      }
+    },
+    "commonVisualFinding": {
+      "id": "LS61-STORY-ART-001",
+      "priority": "P1",
+      "description": "Visible clothed actors and authored props improve subject presence, but repeated low-detail block rooms/roads, weak expressions and many hidden subjects do not satisfy binding AC04 presentation direction.",
+      "fix": "Repair occlusions first, then iterate composition/character silhouettes/environment detail against independently viewed original frames. Native geometry presence is not illustrated-original parity."
+    },
+    "safety": "Visible figures wear jacket/trousers/boots; no nude depiction observed in reviewed compositions. Occluded surfaces and all angles not inspected. No Blender export/upload review, no10/10 approval or moderation guarantee.",
+    "controlsEvidence": "story-controls.json and QA61_FIXTURE_FINISH callbacks in owned Studio log; replay uses isolated component remount, no campaign flags.",
+    "fixtureCleanup": {
+      "removed": true,
+      "cleanupReturned": true,
+      "warning": "After root:unmount then destroying owning QA61StoryViewer LocalScript around elapsed570, production React UI stopped updating; telemetry/server continued to615.09 completion. Temporal association suggests fixture lifecycle contamination, not proven causation. No source changes or hotreload attempted to mask it.",
+      "recommendation": "Repeat clean M5 result/postM5 playback without running/destroying this viewer in the same session; isolate future fixture lifecycle in its own Play session."
+    }
+  },
+  "references": [
+    {
+      "url": "https://mitoro.sakura.ne.jp/ac04/data/m05.htm",
+      "method": "web opened actual page",
+      "summary": "Explicit Ace difficulty. Supports delayed aircraft, refinery-destruction MiGs and offshore update/south escape qualitatively; does not establish candidate exact Normal thresholds or splits."
+    },
+    {
+      "url": "https://www.asahi-net.or.jp/~MS3M-TKS/game/ac04/mission/05.htm",
+      "method": "web opened actual page",
+      "summary": "Corroborates 2000 points/10minutes, four-minute escape, five unshootable Yellow fighters and baseline aircraft totals. No exact wave gate evidence."
+    },
+    {
+      "url": "https://mitoro.sakura.ne.jp/ac04/",
+      "method": "web opened main page",
+      "summary": "Fan guide index inspected; not a visual-original frame source."
+    },
+    {
+      "url": "https://mitoro.sakura.ne.jp/acecombat_bbs/words4/0034.htm",
+      "method": "web opened transcript",
+      "summary": "Chapters1\u201310: family loss, occupation, shared music, five-plane concern, resistance, Four relationship, damaged aircraft, keepsake, escape and liberation broadly retained. No illustrated composition established."
+    },
+    {
+      "url": "https://mitoro.sakura.ne.jp/acecombat_bbs/words4/0035.htm",
+      "method": "web opened continuation successfully",
+      "summary": "Memorial cloth and postwar letter/highway framing broadly agree with chapters11\u201312. No original frames or timing examined."
+    },
+    {
+      "url": "https://acecombat.wiki.gg/wiki/Lifeline",
+      "method": "direct403",
+      "summary": "No new direct evidence; prior claimed Normal spawn uncertainty remains unresolved."
+    },
+    {
+      "url": "https://acecombat.wiki.gg/wiki/Ace_Combat_04:_Shattered_Skies",
+      "method": "direct403",
+      "summary": "Main wiki page unavailable."
+    },
+    {
+      "url": "https://youtu.be/lO7bCwQOYUs",
+      "method": "web opened redirected watch page; shell yt-dlp absent",
+      "summary": "Only watch-page shell retrieved. ZERO actual playthrough frames viewed; no frame parity/timing claim."
+    }
+  ],
+  "sourceComparisonByChapter": [
+    "i01: family loss/recognition retained.",
+    "i02: occupation/taxi/harmonica retained.",
+    "i03: shared music retained.",
+    "i04: highway/five-plane/wingman concern retained.",
+    "i05: disappearance/resistance retained.",
+    "i06: jealousy/opponent respect retained.",
+    "i07: sabotage/disrepair retained.",
+    "i08: cloth/turnover/report retained.",
+    "i09: confrontation/escape retained.",
+    "i10: liberation/following retreat retained.",
+    "i11: cloth memorial retained.",
+    "i12: postwar highway/letter retained."
+  ],
+  "limits": [
+    "No builds/rbxtsc/test:roblox/validate:offline/Rojo/hotreload/asset upload/publish/cloud/commit/push.",
+    "477/53 native fixture result is inherited implementer evidence, not independently rerun and not visual proof.",
+    "No audible listening/FPS/physical-device/cloud persistence/Roblox Player claims.",
+    "M6\u201318 new unwired parallel modules outside frozen candidate; integration and new-candidate review remain open.",
+    "Old four M5 failures do not prove impossibility; a new success would not establish human balance."
+  ],
+  "humanDocPayloads": {
+    "reason": "Concurrent documentation concern; no human docs edited. Parent owns playtest.html and must reconcile all four.",
+    "taste": "Retain stable staging decisions with rationale; mark native actor presence observed but art/composition acceptance rejected, narrow captions defective. Exact M5 gates remain adaptations.",
+    "plan": "Prioritize chair/instrument visibility, caption wrapping/scroll range, integrated doorway and readable action/prop framing; then inspect original frames and iterate fidelity. Retain M6\u201318 integration/new artifact review. Repeat M5 result/postM5 story with no QA viewer teardown in that gameplay session.",
+    "status": "Record independent candidate919 review results only, 48/48 fixture compositions observed with open visual findings; do not equate native477 pass with visual acceptance. Independent M1\u20135 server completion confirmed (M5 2520/615.09). Clean-client M5 debrief/postM5 story withheld due QA lifecycle contamination. M6 unlock computed6; not launched.",
+    "playtest": "Preserve confirmed Player version60/288a087/Broken Relay and0/18AC04 publication. Add local review evidence under candidate construction only; no publication claim."
+  },
+  "findings": [
+    {
+      "id": "LS61-QA-001",
+      "priority": "P1 evidence contamination",
+      "state": "open",
+      "finding": "Campaign UI stopped updating at0:29 after isolated viewer teardown; M5 real completion confirmed separately, but debrief/postM5 UI evidence unavailable.",
+      "recommendation": "Run future48shot viewer in a separate Play session; independently retest clean-client M5 debrief/story before presentation signoff. Do not claim a proven product regression from this contaminated run."
+    },
+    {
+      "id": "LS61-M5-FIDELITY-001",
+      "priority": "P1",
+      "state": "open",
+      "finding": "Qualitative arrival mismatch improved; exact Normal source fidelity remains unproven.",
+      "recommendation": "Keep authored gates explicitly marked adaptations; obtain original Normal recordings/trigger evidence before claiming replica accuracy."
+    },
+    {
+      "id": "LS61-STORY-ART-001",
+      "priority": "P1",
+      "state": "open",
+      "finding": "48 assembled shots reviewed; visual acceptance rejected for composition/subject/prop limitations.",
+      "recommendation": "Apply per-shot ledger repairs and compare actual original reference frames."
+    },
+    {
+      "id": "LS61-STORY-UI-001",
+      "priority": "P1",
+      "state": "open",
+      "finding": "Narrow captions truncate without working scroll range.",
+      "recommendation": "Fix wrapped measurement/canvas and retest all48 captions."
+    }
+  ],
+  "verdict": {
+    "M1M5FunctionalCompletion": "PASS on exact frozen candidate through real sequential campaign outcomes; M5 session record independently confirms success",
+    "M5CleanClientPresentation": "WITHHELD: temporary QA viewer cleanup coincides with React UI ceasing updates at570s, despite continuing telemetry and authoritative completion. Cause not isolated; cannot infer production defect or clean-client pass.",
+    "M5SourceFidelity": "PROVISIONAL ADAPTATION; exact original Normal gates unverified",
+    "humanFeelAndBalance": "NOT SIGNED OFF; public-input pilot is not human-balance evidence",
+    "storyVisual": "REJECT acceptance with all48 rendered compositions observed and shot findings provided",
+    "full18Beta": "OPEN; M6\u201318 integration/new candidate review pending",
+    "published": "UNCHANGED;0/18AC04 published"
+  },
+  "console": {
+    "evidence": "studio-final.log",
+    "gameExceptions": "No new AC04 exception identified. ContentId203785492 type mismatch and installed plugin/localhostRojo connection errors present. Reviewer did not connect or run Rojo.",
+    "QAErrors": "No error was emitted explaining the UI stall; cause remains unisolated.",
+    "integrity": "Native logfile truncates long observer lines; derived encounter headers retain only fields before positions. Compact later observer lines are complete."
+  },
+  "lease": {
+    "ownedPIDs": [
+      86987,
+      87085,
+      87088
+    ],
+    "candidatePID": 87088,
+    "studioId": "33bc06dd-c8db-4658-bdb9-966da5a59982",
+    "extraHomeWindows": "open -a initially launched home-only windows before direct candidate binary launch; all were created during this review and closed.",
+    "playStopped": true,
+    "QAObjectsRemoved": [
+      "QA61StoryViewer",
+      "QA61StoryFixture",
+      "QA61Observer",
+      "QA61Pilot",
+      "QA61F16Probe",
+      "QA61CompactObserver",
+      "QA61ReturnPilot",
+      "QA61Diagnostic"
+    ],
+    "closure": "MCP stopped Play. TERM closed owned home PIDs86987/87085; candidate87088 required KILL after TERM. StudioMCP helpers untouched.",
+    "released": true,
+    "closureVerified": "Final ps returned no owned Studio PIDs; Studio MCP list returned empty."
+  },
+  "evidenceDirectory": "build/ac04-lifeline-story-independent-61",
+  "evidenceManifest": "build/ac04-lifeline-story-independent-61/evidence-sha256.json"
+}

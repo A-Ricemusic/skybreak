@@ -1,0 +1,213 @@
+{
+  "checkedAt": "2026-10-28T00:15:22.205160+00:00",
+  "officialPlaceId": 112911685457826,
+  "publishedRevision": "efc712084cdb8b790c2042d094522dbd09cdc3f7",
+  "latestConfirmedVersion": 63,
+  "evidenceType": "GitHub successful publish receipt and inspected exact-commit source; no new Roblox Player session inspection",
+  "runs": [
+    {
+      "conclusion": "success",
+      "headSha": "efc712084cdb8b790c2042d094522dbd09cdc3f7",
+      "updatedAt": "2026-10-27T23:19:00Z",
+      "url": "https://github.com/A-Ricemusic/skybreak/actions/runs/40601149377",
+      "runId": 40601149377,
+      "publicationReceipt": "publish\tPublish to Roblox\t2026-10-27T23:18:57.1188777Z Published build/skybreak.rbxlx to place ***: {\"versionNumber\":63}",
+      "placeVersion": 63,
+      "officialTargetMatched": true,
+      "pr": 90,
+      "prTitle": "chore(deps): configure weekly grouped Dependabot updates",
+      "prUrl": "https://github.com/A-Ricemusic/skybreak/pull/90",
+      "mergedAt": "2026-10-27T23:17:50Z"
+    },
+    {
+      "conclusion": "success",
+      "headSha": "31dcc9527476c10985ef1fcb48b5346823d9563f",
+      "updatedAt": "2026-10-27T23:14:50Z",
+      "url": "https://github.com/A-Ricemusic/skybreak/actions/runs/40600666188",
+      "runId": 40600666188,
+      "publicationReceipt": "publish\tPublish to Roblox\t2026-10-27T23:14:46.8089584Z Published build/skybreak.rbxlx to place ***: {\"versionNumber\":63}",
+      "placeVersion": 63,
+      "officialTargetMatched": true,
+      "pr": 89,
+      "prTitle": "fix: harden imported asset dimensions and nested parts",
+      "prUrl": "https://github.com/A-Ricemusic/skybreak/pull/89",
+      "mergedAt": "2026-10-27T23:13:47Z"
+    },
+    {
+      "conclusion": "success",
+      "headSha": "3b47d8407113cf9e4e7682ca18ce53ef13a3567e",
+      "updatedAt": "2026-10-27T23:08:40Z",
+      "url": "https://github.com/A-Ricemusic/skybreak/actions/runs/40599932129",
+      "runId": 40599932129,
+      "publicationReceipt": "publish\tPublish to Roblox\t2026-10-27T23:08:37.1286335Z Published build/skybreak.rbxlx to place ***: {\"versionNumber\":62}",
+      "placeVersion": 62,
+      "officialTargetMatched": true,
+      "pr": 88,
+      "prTitle": "perf(client): release target frames and cut per-frame allocations",
+      "prUrl": "https://github.com/A-Ricemusic/skybreak/pull/88",
+      "mergedAt": "2026-10-27T23:07:45Z"
+    },
+    {
+      "conclusion": "success",
+      "headSha": "b60b8cc33034fd562b118b3e5ff18efaf1a0dbe8",
+      "updatedAt": "2026-10-27T23:05:01Z",
+      "url": "https://github.com/A-Ricemusic/skybreak/actions/runs/40599445650",
+      "runId": 40599445650,
+      "publicationReceipt": "publish\tPublish to Roblox\t2026-10-27T23:04:58.9036468Z Published build/skybreak.rbxlx to place ***: {\"versionNumber\":61}",
+      "placeVersion": 61,
+      "officialTargetMatched": true,
+      "pr": 87,
+      "prTitle": "fix: guard flight prediction against non-finite math",
+      "prUrl": "https://github.com/A-Ricemusic/skybreak/pull/87",
+      "mergedAt": "2026-10-27T23:03:50Z"
+    },
+    {
+      "conclusion": "success",
+      "headSha": "e65d378a1f306e762b1d8ef728c12ed2217037fb",
+      "updatedAt": "2026-10-27T23:04:05Z",
+      "url": "https://github.com/A-Ricemusic/skybreak/actions/runs/40599336915",
+      "runId": 40599336915,
+      "publicationReceipt": "publish\tUNKNOWN STEP\t2026-10-27T23:04:02.9629923Z Published build/skybreak.rbxlx to place ***: {\"versionNumber\":60}",
+      "placeVersion": 60,
+      "officialTargetMatched": true,
+      "pr": 86,
+      "prTitle": "fix: harden artifact cleanup and Rojo plugin installation",
+      "prUrl": "https://github.com/A-Ricemusic/skybreak/pull/86",
+      "mergedAt": "2026-10-27T23:02:58Z"
+    },
+    {
+      "conclusion": "success",
+      "headSha": "7deb386037397210a5d40d05f6c28894b1b2754d",
+      "updatedAt": "2026-10-27T23:01:08Z",
+      "url": "https://github.com/A-Ricemusic/skybreak/actions/runs/40598973621",
+      "runId": 40598973621,
+      "publicationReceipt": "publish\tUNKNOWN STEP\t2026-10-27T23:01:05.9084706Z Published build/skybreak.rbxlx to place ***: {\"versionNumber\":60}",
+      "placeVersion": 60,
+      "officialTargetMatched": true,
+      "pr": 85,
+      "prTitle": "fix: harden Roblox upload HTTP and file validation",
+      "prUrl": "https://github.com/A-Ricemusic/skybreak/pull/85",
+      "mergedAt": "2026-10-27T23:00:05Z"
+    },
+    {
+      "conclusion": "success",
+      "headSha": "288a087e432351c5ebd976f17cd59dc6344911c9",
+      "updatedAt": "2026-10-27T22:52:34Z",
+      "url": "https://github.com/A-Ricemusic/skybreak/actions/runs/40597965060",
+      "runId": 40597965060,
+      "pr": 84,
+      "publicationReceipt": "publish\tPublish to Roblox\t2026-10-27T22:52:32.0308083Z Published build/skybreak.rbxlx to place ***: {\"versionNumber\":60}",
+      "placeVersion": 60,
+      "prTitle": "chore: harden CI checkout credentials and document security",
+      "prUrl": "https://github.com/A-Ricemusic/skybreak/pull/84",
+      "mergedAt": "2026-10-27T22:51:35Z"
+    },
+    {
+      "conclusion": "success",
+      "headSha": "c27bac682d36688989bae406a970dc12252016ca",
+      "updatedAt": "2026-10-27T20:28:15Z",
+      "url": "https://github.com/A-Ricemusic/skybreak/actions/runs/40578168326",
+      "runId": 40578168326,
+      "pr": 83,
+      "publicationReceipt": "publish\tUNKNOWN STEP\t2026-10-27T20:28:11.6585053Z Published build/skybreak.rbxlx to place ***: {\"versionNumber\":60}",
+      "placeVersion": 60,
+      "prTitle": "chore: remove react-agent-testing harness and guard against re-adding",
+      "prUrl": "https://github.com/A-Ricemusic/skybreak/pull/83",
+      "mergedAt": "2026-10-27T20:27:06Z"
+    },
+    {
+      "conclusion": "success",
+      "headSha": "3a9fe755cfe6d3dd24ecef063f76697a24afa8eb",
+      "updatedAt": "2026-10-27T20:13:29Z",
+      "url": "https://github.com/A-Ricemusic/skybreak/actions/runs/40573489568",
+      "runId": 40573489568,
+      "pr": 82,
+      "publicationReceipt": "publish\tUNKNOWN STEP\t2026-10-27T20:13:24.9952735Z Published build/skybreak.rbxlx to place ***: {\"versionNumber\":60}",
+      "placeVersion": 60,
+      "prTitle": "fix(qa): prevent phantom pilot attempts and certify precise result evidence",
+      "prUrl": "https://github.com/A-Ricemusic/skybreak/pull/82",
+      "mergedAt": "2026-10-27T19:55:47Z"
+    },
+    {
+      "conclusion": "success",
+      "headSha": "3f36e7ee51126a64e3cfc763b6a35897ee89625b",
+      "updatedAt": "2026-10-27T19:54:33Z",
+      "url": "https://github.com/A-Ricemusic/skybreak/actions/runs/40573143956",
+      "runId": 40573143956,
+      "pr": 79,
+      "publicationReceipt": "publish\tUNKNOWN STEP\t2026-10-27T19:54:30.1303986Z Published build/skybreak.rbxlx to place ***: {\"versionNumber\":60}",
+      "placeVersion": 60,
+      "prTitle": "perf(ui): cut GameUI render churn and harden telemetry sanitizing",
+      "prUrl": "https://github.com/A-Ricemusic/skybreak/pull/79",
+      "mergedAt": "2026-10-27T19:53:27Z"
+    }
+  ],
+  "publishedSource": {
+    "campaign": "Broken Relay",
+    "missionCount": 27,
+    "AC04ModulesPresent": false,
+    "treeURL": "https://github.com/A-Ricemusic/skybreak/tree/efc712084cdb8b790c2042d094522dbd09cdc3f7",
+    "inspectedFiles": {
+      "src/shared/GameConfig.ts": {
+        "sha256": "6ef721f6a69245a1b88d996fbe3bcd031450fc7571c6e9c501a5c22b08f1dd85",
+        "url": "https://github.com/A-Ricemusic/skybreak/blob/efc712084cdb8b790c2042d094522dbd09cdc3f7/src/shared/GameConfig.ts"
+      },
+      "src/shared/MissionCatalog.ts": {
+        "sha256": "a65fbd002fad2e259ef32bb24f8756f8d0bf75a6e7dbd36425f1cd9555826648",
+        "url": "https://github.com/A-Ricemusic/skybreak/blob/efc712084cdb8b790c2042d094522dbd09cdc3f7/src/shared/MissionCatalog.ts"
+      },
+      "src/client/GameUI.tsx": {
+        "sha256": "ba301aa1a6662b1705a0a08966c6d4652bed50afc7b28eb466141ba03e834880",
+        "url": "https://github.com/A-Ricemusic/skybreak/blob/efc712084cdb8b790c2042d094522dbd09cdc3f7/src/client/GameUI.tsx"
+      },
+      "src/client/FlightController.ts": {
+        "sha256": "01309e248cbc2c4873dc03a5792c4215fef0d35442958856c051befe4b1b6ee6",
+        "url": "https://github.com/A-Ricemusic/skybreak/blob/efc712084cdb8b790c2042d094522dbd09cdc3f7/src/client/FlightController.ts"
+      },
+      ".github/workflows/publish-roblox.yml": {
+        "sha256": "5df1670686f149b4e30a7d8e82a03d6e539e1370e91a874b521e6422bbeb69a4",
+        "url": "https://github.com/A-Ricemusic/skybreak/blob/efc712084cdb8b790c2042d094522dbd09cdc3f7/.github/workflows/publish-roblox.yml"
+      },
+      "tools/publish-place.sh": {
+        "sha256": "5f4f4d8d02e5a8c89557d64644692ec0be0b11b42891dd647f2cfda23d1a9c97",
+        "url": "https://github.com/A-Ricemusic/skybreak/blob/efc712084cdb8b790c2042d094522dbd09cdc3f7/tools/publish-place.sh"
+      }
+    }
+  },
+  "localAC04": {
+    "published": false,
+    "independentlyReviewedArtifactSHA256": "91927612ddb4049cc2010a5cfa2a8e0cfaa166eef7a51d5eeaf8d48dc3cf5659",
+    "sourceIntegrationReport": "docs/reviews/ac04-campaign-integration-response.json",
+    "currentSourceNativeAcceptance": false
+  },
+  "pipeline": {
+    "trigger": "push to main, except docs/** and **.md; manual dispatch also available",
+    "targetVerified": true,
+    "validatesBeforePublishing": true,
+    "requiresReceiptNotOnlyGreenRun": true,
+    "existingMissingCredentialBranch": "Exits successfully without publishing; receipt is required to distinguish this case."
+  },
+  "evidenceLimits": [
+    "Publication receipts identify accepted uploads, not versions of already-running Player servers.",
+    "No fresh Roblox Player session inspected during this audit.",
+    "Repeated response version numbers are preserved literally, not treated as one increment per PR.",
+    "Local AC04 source edits are not in the inspected published commit."
+  ],
+  "latestMergeAudit": {
+    "checkedAt": "2026-10-27T20:17:20.374523-07:00",
+    "mainSha": "efc712084cdb8b790c2042d094522dbd09cdc3f7",
+    "latestMergedPr": 90,
+    "methods": [
+      "gh pr list merged latest20",
+      "GitHub main commit API",
+      "Exact main GameConfig and recursive src tree"
+    ],
+    "findings": [
+      "GameConfig subtitle Broken Relay",
+      "No AC04 src paths",
+      "No AC04 gameplay PR merged"
+    ],
+    "convention": "Merged gameplay means live via automaticCI/CD; no additional receipt or Player-verification gate",
+    "playerObserved": false
+  }
+}

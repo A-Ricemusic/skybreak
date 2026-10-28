@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Grant only the 14 existing voice and SFX banks to the official experience (dry-run default).
+"""Grant only the 8 current SFX banks to the official experience (dry-run default).
 
 API contract: https://raw.githubusercontent.com/Roblox/creator-docs/main/content/en-us/reference/cloud/asset-permissions-api/v1.json
 Requires x-api-key scope asset-permissions:write and authority over assets/subject.
@@ -19,10 +19,7 @@ spec = importlib.util.spec_from_file_location("target", Path(__file__).with_name
 target = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(target)
 
-ASSET_IDS = (96143096268975, 72249736253176, 70686186147484,
-             112591774159889, 119322000491190, 115928309099950,
-             100845993226613, 96034533542673, 129430411346132, 140586818884141,
-             119891912328421, 103061867054487, 78239725791801, 119485031741286)
+ASSET_IDS = (100845993226613, 96034533542673, 129430411346132, 140586818884141, 119891912328421, 103061867054487, 78239725791801, 119485031741286)
 ENDPOINT = "https://apis.roblox.com/asset-permissions-api/v1/assets/permissions"
 MAX_RESPONSE_BYTES = 65536
 
@@ -43,7 +40,7 @@ def report(payload):
     errors = payload.get("errors") if isinstance(payload, dict) else None
     valid_ids = isinstance(successes, list) and all(type(i) is int for i in successes)
     no_errors = isinstance(payload, dict) and errors in (None, [])
-    complete = (valid_ids and len(successes) == 14 and set(successes) == set(ASSET_IDS)
+    complete = (valid_ids and len(successes) == 8 and set(successes) == set(ASSET_IDS)
                 and no_errors)
     for asset_id in ASSET_IDS:
         failed = isinstance(errors, list) and any(
@@ -51,13 +48,13 @@ def report(payload):
         outcome = "error" if failed else (
             "success_reported" if valid_ids and asset_id in successes else "unconfirmed")
         print(f"asset_id={asset_id} outcome={outcome}")
-    print(f"all_14_grants_confirmed={str(complete).lower()}")
+    print(f"all_8_grants_confirmed={str(complete).lower()}")
     return 0 if complete else 1
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--execute", action="store_true", help="Apply the fixed 14 Universe Use grants")
+    parser.add_argument("--execute", action="store_true", help="Apply the fixed 8 Universe Use grants")
     args = parser.parse_args(argv)
     if not target.validate_target():
         print("Target mismatch or missing configuration; no API requests made.")
@@ -85,7 +82,7 @@ def main(argv=None):
         # Numeric HTTP status only; bodies and reason strings can contain secrets.
         print(f"http_status={error.code if type(error.code) is int else 0}")
         if error.code == 403:
-            print("Check asset-permissions:write scope and authority over all 14 assets and the official universe.")
+            print("Check asset-permissions:write scope and authority over all 8 assets and the official universe.")
         error.close()
     except Exception:
         print("transport_or_response_error; grants unconfirmed; inspect before retrying.")

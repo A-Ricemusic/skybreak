@@ -1,4 +1,4 @@
-import type { EnvironmentPreset } from "./MissionCatalog";
+import type { EnvironmentPreset } from "./WorldTypes";
 
 // One table for every mission environment. Pure numbers only (no Roblox types)
 // so the offline Luau runner can audit it; the server converts it to Lighting,

@@ -1,0 +1,21 @@
+{
+  "date": "2026-10-27T20:36:12.651597-07:00",
+  "scope": "PR92 local corrections after cff03d1c",
+  "findings": [
+    "UI-NATIVE-61-001",
+    "UI-NATIVE-61-002",
+    "UI-NATIVE-61-003",
+    "UI-NATIVE-61-004"
+  ],
+  "status": "Implemented; independent native re-review pending",
+  "validation": {
+    "build": "passed",
+    "offlineLuau": 454,
+    "audioLifecycle": 10,
+    "pythonTests": 92,
+    "native": "not run on corrected release branch"
+  },
+  "ci": "Moved AC04-only generated-output traversal after place build; prior validate run40626513456 failed before this fix. Fresh CI pending push.",
+  "availability": "Unmerged;0/18 AC04 live",
+  "sourceReview": "Read-only Sol review found no blocking regression; CI independently installs pinned Luau. Local isolated runner required existing LUAU_BIN."
+}

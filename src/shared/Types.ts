@@ -1,62 +1,6 @@
 import type { FireNotice } from "./WeaponRules";
 export type Persistence = "cloud" | "session" | "unavailable";
-export interface MissionRecord {
-	/** Layout revision that produced bestTime (absent on old saves). */
-	timeVersion?: number;
-	completed: boolean;
-	bestTime?: number;
-	/** Timestamp of first completion (for cutscene gating). */
-	firstCompletedAt?: number;
-	/** Highest debrief score on a completed run (MissionScore). */
-	bestScore?: number;
-	/** Best debrief rank on a completed run: S, A, B, C or D. */
-	bestRank?: string;
-}
-export interface SaveSlot {
-	index: number;
-	occupied: boolean;
-	/** Full campaign (all 27 missions) completed. */
-	completed: boolean;
-	/** Legacy aggregate total used by presentation code. */
-	kills: number;
-	bestTime?: number;
-	updatedAt?: number;
-	/** Highest unlocked mission (1-27). */
-	currentMission?: number;
-	/** Per-mission records; sparse by missionId (1..27). */
-	missions?: { [missionId: number]: MissionRecord };
-	// Legacy v2 fields retained for presentation code and compatibility.
-	mission1Completed?: boolean;
-	mission2Completed?: boolean;
-	mission1BestTime?: number;
-	mission2BestTime?: number;
-	/** Opening cinematic viewed on this slot. */
-	introSeen?: boolean;
-	/** Set of mission briefing cinematics viewed on this slot. */
-	cutscenesSeen?: number[];
-	/** Bumped each time the player deletes this slot; a higher generation replaces older data instead of merging. */
-	generation?: number;
-	/** Last special weapon chosen on the briefing screen for this slot (SpecialWeapons kind). */
-	special?: string;
-	/** Last difficulty chosen on the briefing screen for this slot (Difficulty kind). */
-	difficulty?: string;
-}
-export type DeletionStatus = "confirmed" | "pending" | "failed" | "session-only";
-export interface SlotDeletion {
-	slot: number;
-	generation: number;
-	status: DeletionStatus;
-}
-export interface CampaignResponse {
-	/** Local acceptance is distinct from durable deletion confirmation. */
-	deletions?: SlotDeletion[];
-	ok: boolean;
-	error?: string;
-	slots?: SaveSlot[];
-	persistence?: Persistence;
-}
 export interface Remotes {
-	CampaignRequest: RemoteFunction;
 	/** Client -> server stick/throttle at <= 20 Hz. Unreliable: a lost packet is superseded by the next. */
 	FlightInput: UnreliableRemoteEvent;
 	CombatAction: RemoteEvent;
@@ -119,6 +63,9 @@ export interface HudState {
 	special?: string;
 }
 export interface MissionStats {
+	campaignId?: string;
+	/** Campaign-specific score, computed only by the authoritative runner. */
+	score?: number;
 	missionId?: number;
 	groundKills?: number;
 	reason?: string;
@@ -137,6 +84,7 @@ export interface MissionStats {
 	difficulty?: string;
 }
 export interface MissionStarted {
+	campaignId?: string;
 	missionId?: number;
 	kind: "Started";
 	slot: number;
@@ -146,6 +94,7 @@ export interface MissionStarted {
 }
 /** World and aircraft exist on the server; play begins on "Started" once the client is ready or the server times out. */
 export interface MissionLoading {
+	campaignId?: string;
 	missionId?: number;
 	kind: "Loading";
 	slot: number;
@@ -243,4 +192,5 @@ export interface MissionFinished extends MissionStats {
 	bestRank?: string;
 }
 export type MissionMessage = MissionLoading | MissionStarted | HudState | MissionFinished;
-export type FinishedCallback = (player: Player, won: boolean, stats: MissionStats) => void;
+/** Capture progress synchronously; return optional persistence work for protected settlement. */
+export type FinishedCallback = (player: Player, won: boolean, stats: MissionStats) => (() => void) | void;

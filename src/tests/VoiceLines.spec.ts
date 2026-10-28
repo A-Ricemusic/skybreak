@@ -1,31 +1,6 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { MISSIONS, MissionCatalog, MissionPhaseBlueprint } from "../shared/MissionCatalog";
-import { MissionRules } from "../shared/MissionRules";
-import { STORY, speakerStyle } from "../shared/RelayStory";
-import { VOICE_BANK_ASSETS } from "../shared/VoiceBanks";
-import { VOICE_CUES, VoiceCue } from "../shared/VoiceCues";
-import { VOICE_TAIL, Voice, VoiceLibrary, cinematicBeatSeconds, duckGain, storyLineId } from "../shared/VoiceLines";
-
-function radioTexts(): string[] {
-	const out: string[] = [];
-	const phase = (p: MissionPhaseBlueprint) => {
-		if (p.beat !== undefined) out.push(p.beat);
-		for (const c of p.chatter ?? []) out.push(c.text);
-		for (const g of p.groupCalls ?? []) out.push(g);
-		if (p.hazard) out.push(p.hazard.text);
-		if (p.twist) {
-			out.push(p.twist.text);
-			for (const q of p.twist.insert) phase(q);
-		}
-	};
-	for (const bp of MISSIONS) {
-		for (const p of bp.phases) phase(p);
-		for (const s of bp.aceStages ?? []) out.push(s);
-		for (const s of bp.aceReturns ?? []) out.push(s);
-	}
-	return out;
-}
-
+import { VoiceCue } from "../shared/VoiceCues";
+import { VOICE_TAIL, VoiceLibrary, cinematicBeatSeconds, duckGain, storyLineId } from "../shared/VoiceLines";
 const FAKE: Record<string, VoiceCue> = {
 	"story.c03.b01": { bank: "bankA", start: 10, finish: 14.5, speaker: "SERA", tape: false, radio: false, text: "Story line." },
 	"radio.m02.p1.beat": { bank: "bankA", start: 20, finish: 22, speaker: "SERA", tape: false, radio: true, text: "SERA: Radio line." },
@@ -57,70 +32,6 @@ describe("voice-over cue lookup", () => {
 		expect(library.RadioId("Radio line.")).toBeUndefined();
 		// Story cues are never radio matches.
 		expect(library.RadioId("Story line.")).toBeUndefined();
-	});
-});
-
-describe("shipped voice table", () => {
-	it("has a cue for every cutscene beat with the exact on-screen text", () => {
-		let count = 0;
-		for (const chapter of STORY) {
-			chapter.beats.forEach((beat, index) => {
-				const cue = VOICE_CUES[storyLineId(chapter.id, index)] as VoiceCue | undefined;
-				expect(cue?.text).toBe(beat.text);
-				expect(cue?.radio).toBe(false);
-				count++;
-			});
-		}
-		expect(count).toBeGreaterThan(150);
-	});
-	it("maps catalog radio except explicitly subtitle-only M1 safety instructions", () => {
-		const texts = radioTexts();
-		expect(texts.size()).toBeGreaterThan(250);
-		// Revised M1 safety instructions intentionally have no recording: never play the old
-		// long-hold instructions over the new subtitles. Asset generation is a separate task.
-		const subtitleOnly = new Set(MissionCatalog.Get(1).phases.map(phase => phase.beat!));
-		expect(subtitleOnly.size()).toBe(4);
-		for (const text of [MissionRules.LiveWarning, MissionRules.PracticeReset]) expect(Voice.Radio(text)).toBeUndefined();
-		for (const text of texts) {
-			if (subtitleOnly.has(text)) expect(Voice.Radio(text)).toBeUndefined();
-			else expect(Voice.RadioId(text) !== undefined ? text : `UNMAPPED ${text}`).toBe(text);
-		}
-	});
-	it("voices the server's ace wing calls for every difficulty's raider count", () => {
-		expect(Voice.RadioId("SERA: VULTURE LEAD pulled back to call his wing. 1 inbound.")).toBeDefined();
-		expect(Voice.RadioId("SERA: AIR MARSHAL RUSK pulled back to call his wing. 3 inbound.")).toBeDefined();
-	});
-	it("never voices HUD system text or the trainee on the radio", () => {
-		for (const text of ["MISSION FAILED", "MISSION ACCOMPLISHED · RETURN TO BASE", "Select the radar: TGT / Tab / Y",
-			"Recon drone up: all contacts marked", "VULTURE LEAD deployed flares"]) expect(Voice.RadioId(text)).toBeUndefined();
-		for (const [, cue] of pairs(VOICE_CUES)) if (cue.radio) expect(cue.speaker === "TRAINEE").toBe(false);
-	});
-	it("keeps every cue inside a known bank, in order, without overlap, under 6.5 minutes", () => {
-		const ends = new Map<string, number[][]>();
-		for (const [, cue] of pairs(VOICE_CUES)) {
-			expect(VOICE_BANK_ASSETS[cue.bank] !== undefined).toBe(true);
-			expect(cue.finish).toBeGreaterThan(cue.start);
-			expect(cue.finish).toBeLessThanOrEqual(390);
-			const list = ends.get(cue.bank) ?? [];
-			list.push([cue.start, cue.finish]);
-			ends.set(cue.bank, list);
-		}
-		for (const [, list] of ends) {
-			list.sort((a, b) => a[0] < b[0]);
-			for (let i = 1; i < list.size(); i++) expect(list[i][0]).toBeGreaterThanOrEqual(list[i - 1][1] + 0.2);
-		}
-	});
-	it("keeps Teal's recordings on tape and gives every speaker in a cue a known chip name", () => {
-		for (const chapter of STORY) chapter.beats.forEach((beat, index) => {
-			const cue = VOICE_CUES[storyLineId(chapter.id, index)];
-			if (speakerStyle(beat.speaker).name === "TEAL") expect(cue.tape).toBe(true);
-		});
-	});
-	it("stays silent for every line whose bank has no approved asset yet", () => {
-		for (const [id, cue] of pairs(VOICE_CUES)) {
-			if (VOICE_BANK_ASSETS[cue.bank] === "") expect(Voice.Clip(id as string, cue.text)).toBeUndefined();
-			else expect(Voice.Clip(id as string, cue.text)?.assetId).toBe(VOICE_BANK_ASSETS[cue.bank]);
-		}
 	});
 });
 
