@@ -67,4 +67,4 @@ Apply this section only when implementation/comparison is authorized:
 
 Scale the output to the user’s request. A short visual question can be answered directly with inspected details and limits. A specification should include timestamped observations, key-frame paths/links, requirements, unresolved questions, and comparison criteria. Do not equate captured frames with inspected frames or observed gameplay with simulated results.
 
-For SKYBREAK work, keep evidence outside `docs/human/`. When findings change product decisions, implementation, readiness or release state, reconcile the affected content in all four human HTML documents as required by AGENTS.md; a standalone read-only question does not itself resume game development. Follow existing exact-asset review and publication rules.
+For SKYBREAK work, keep evidence outside `docs/human/`. When findings change product decisions, implementation, readiness or release state, reconcile the affected content in the five human Markdown documents as required by AGENTS.md; a standalone read-only question does not itself resume game development. Follow existing exact-asset review and publication rules.

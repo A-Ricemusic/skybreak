@@ -16,18 +16,16 @@
 
 # Living documentation for human review
 
-- The four human review documents must live ONLY at `docs/human/taste.html`, `docs/human/plan.html`, `docs/human/status.html`, and `docs/human/playtest.html`. Do not keep duplicate copies elsewhere. `docs/human/` must contain ONLY these four files; keep supporting assets and other documentation outside it.
-- Keep all four visually polished and easy to review: readable typography, clear headings, consistent color, useful tables and honest progress indicators.
-- `taste.html` records every subjective decision, including visual/world choices, gameplay feel and difficulty, and story adaptation. Use stable decision IDs and current statuses; record what was chosen, alternatives considered, and why, retaining the rationale when a decision changes.
-- `plan.html` describes the next proposed changes: what each item is, why it belongs in the game. Keep it forward-looking; move completed work and its evidence to `status.html` and replace it with the next proposed work.
-- `status.html` records what is actually completed, beta readiness, an honest assessment of the game, decisions currently being made in priority order, and reviewer feedback. Track responses, fixes, remaining issues, and retest evidence against the reviewed revision.
-- `playtest.html` is the owner’s living guide to Roblox Player, not a local Studio candidate guide. Per the owner’s release convention, treat gameplay PRs merged to main as live in Roblox Player through automatic CI/CD. Update mission availability and included PRs when they merge; do not wait for an upload-receipt check or a Player test. The owner performs Player verification and reports issues. Lead with the official game link, latest merged gameplay revision and included PRs; show the last known place version/receipt as supporting metadata when available, without inventing newer values. Distinguish merged/live-by-pipeline status from observed gameplay quality and local unmerged work.
-- Game changes merged to main use the automatic validation/build/publication pipeline. Report merged gameplay changes as live under the owner’s convention; no additional deployment verification or Roblox Player playtest is required to update the documents. Documentation-only changes are excluded by the current workflow and do not imply new game content. If a deployment failure is actually known, record it honestly rather than claiming a verified upload. Existing exact-asset upload review rules still apply.
-- The parent orchestrator personally owns corrections and publication-state verification for the playtest guide, as requested by the owner; it may directly edit these documents despite the general implementation delegation rule.
-- Update `playtest.html` alongside every affected one of the other three documents whenever playable behavior, readiness, world, story, mechanics, UI, PR merge state, or candidate evidence changes.
-- Continuously update every affected document whenever decisions, proposals, implementation, evidence, or feedback change, and reconcile all four before each handback. They must reflect current reality, not stale snapshots. Distinguish proposed, implemented, verified, and unknown states; never invent reviews, test results, or completion claims.
-- Every agent assignment and handoff must explicitly account for ALL FOUR human documents. Read their current state before work; identify how the task changes each document. If the agent owns documentation writes, update the affected files before handoff and report which were checked. If the parent owns them to avoid concurrent edits, supply exact per-document update payloads (or an explicit no-change reason) and flag any contradiction immediately. The parent must merge those payloads and reconcile all four before reporting the handoff as current; a payload alone does not keep the documents up to date.
-- Maintain one current description of each feature or mission. Replace obsolete current-state prose instead of appending contradictory updates. Retain old evidence only as clearly dated, revision-scoped history. Use merged gameplay PRs to update Player availability; do not require a deployment-receipt audit. Keep the merged-PR list current and label a previously observed place version as last known until new metadata is available. Record the audit time and actual verification limits.
+- Human review docs live only at the five exact paths below; `docs/human/` contains only these files.
+- `docs/human/README.md`: current-state dashboard and 18-mission progress table.
+- `docs/human/shipped.md`: merged main changes and what the owner sees in Roblox Player, newest first.
+- `docs/human/next.md`: upcoming work in priority order and why it matters.
+- `docs/human/blockers.md`: open and resolved blockers, impacts, assumptions and needed actions.
+- `docs/human/decisions.md`: stable decision IDs, alternatives, rationale, decision maker and status.
+- Every PR that changes behaviour, plans, blockers or decisions updates the affected files in the same PR.
+- Merged gameplay PRs are live in Roblox Player under the owner's automatic-pipeline convention; no deployment-receipt audit is needed. Record any known deployment failure honestly.
+- Agents never claim a Player test or verification they did not perform; distinguish merged/live status from observed quality and unmerged work.
+- The orchestrator reconciles all five documents before each handback.
 
 # Blender asset safety review — mandatory before every Roblox upload
 
