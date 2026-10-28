@@ -2,7 +2,7 @@ import { describe, expect, it } from "@rbxts/jest-globals";
 
 import { EvadeRules } from "../shared/EvadeRules";
 import { hudTextWidth, STATUS_SEPARATOR, STATUS_SEPARATOR_TIGHT, statusLine } from "../shared/HudInstruments";
-import { effectiveHudScale } from "../shared/PlayerSettings";
+import { effectiveHudScale, SETTING_ORDER } from "../shared/PlayerSettings";
 import { SpecialWeapons } from "../shared/SpecialWeapons";
 import { WeaponRules } from "../shared/WeaponRules";
 import {
@@ -33,7 +33,6 @@ import {
 	getMenuSceneOpening,
 	getPauseLayout,
 	getSettingsLayout,
-	SETTINGS_ROWS,
 	getToastLayout,
 	COMPACT_MAX_HEIGHT,
 	OBJECTIVE_LINE_HEIGHT,
@@ -881,7 +880,7 @@ describe("pause card and settings sheet", () => {
 		}
 		// Tall roots show every row without scrolling.
 		const desktop = getSettingsLayout(1920, 854);
-		expect(desktop.list.height).toBeGreaterThanOrEqual(desktop.rowHeight * SETTINGS_ROWS);
+		expect(desktop.list.height).toBeGreaterThanOrEqual(desktop.rowHeight * SETTING_ORDER.size());
 	});
 });
 

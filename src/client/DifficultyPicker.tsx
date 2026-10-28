@@ -1,5 +1,6 @@
-import React, { useState } from "@rbxts/react";
+import React from "@rbxts/react";
 import { Difficulty, DifficultyKind } from "../shared/Difficulty";
+import { SELECTION_NONE, useHighlight } from "./Highlight";
 import { C } from "./Theme";
 
 // Briefing-screen block for the difficulty: a section heading, one 44px row of
@@ -12,7 +13,7 @@ function Segment({ kind, selected, enabled, onChange }: {
 	enabled: boolean;
 	onChange: (kind: DifficultyKind) => void;
 }) {
-	const [hot, setHot] = useState(false);
+	const { hot, events, clearHover } = useHighlight(enabled);
 	const definition = Difficulty.Get(kind);
 	const accent = kind === "ace" ? C.Orange : C.Accent;
 	return (
@@ -26,17 +27,19 @@ function Segment({ kind, selected, enabled, onChange }: {
 			BackgroundTransparency={!enabled ? 0.6 : selected ? 0.1 : hot ? 0.05 : 0.3}
 			BorderSizePixel={0}
 			Size={new UDim2(1 / 3, -2, 1, 0)}
+			SelectionImageObject={SELECTION_NONE}
 			Text=""
 			Event={{
-				MouseEnter: () => setHot(true),
-				MouseLeave: () => setHot(false),
-				SelectionGained: () => setHot(true),
-				SelectionLost: () => setHot(false),
-				Activated: () => { if (enabled) onChange(kind); },
+				...events,
+				Activated: () => {
+					clearHover();
+					if (enabled) onChange(kind);
+				},
 			}}
 		>
 			<uicorner CornerRadius={new UDim(0, 8)} />
-			<uistroke ApplyStrokeMode={Enum.ApplyStrokeMode.Border} Color={selected ? accent : hot ? C.Ivory : C.Accent} Thickness={selected || hot ? 2 : 1} Transparency={selected ? 0 : hot ? 0.1 : 0.55} />
+			{/* Focus wins the stroke so the chosen segment still shows gamepad focus; the fill keeps the choice. */}
+			<uistroke ApplyStrokeMode={Enum.ApplyStrokeMode.Border} Color={hot ? C.Ivory : selected ? accent : C.Accent} Thickness={hot ? 3 : selected ? 2 : 1} Transparency={hot || selected ? 0 : 0.55} />
 			<textlabel
 				key="Name"
 				BackgroundTransparency={1}

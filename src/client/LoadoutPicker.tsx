@@ -1,5 +1,6 @@
-import React, { useState } from "@rbxts/react";
+import React from "@rbxts/react";
 import { SpecialKind, SpecialWeapons } from "../shared/SpecialWeapons";
+import { SELECTION_NONE, useHighlight } from "./Highlight";
 import { C } from "./Theme";
 
 // Briefing-screen block for the second weapon slot: a section heading, one
@@ -12,7 +13,7 @@ export function LoadoutPicker({ kind, enabled, layoutOrder, onChange }: {
 	layoutOrder: number;
 	onChange: (kind: SpecialKind) => void;
 }) {
-	const [hot, setHot] = useState(false);
+	const { hot, events, clearHover } = useHighlight(enabled);
 	const definition = SpecialWeapons.Get(kind);
 	const index = SpecialWeapons.Order.indexOf(kind) + 1;
 	const count = SpecialWeapons.Order.size();
@@ -40,13 +41,14 @@ export function LoadoutPicker({ kind, enabled, layoutOrder, onChange }: {
 				BackgroundTransparency={enabled ? (hot ? 0.05 : 0.3) : 0.6}
 				BorderSizePixel={0}
 				Size={new UDim2(1, 0, 0, 44)}
+				SelectionImageObject={SELECTION_NONE}
 				Text=""
 				Event={{
-					MouseEnter: () => setHot(true),
-					MouseLeave: () => setHot(false),
-					SelectionGained: () => setHot(true),
-					SelectionLost: () => setHot(false),
-					Activated: () => { if (enabled) onChange(SpecialWeapons.Next(kind)); },
+					...events,
+					Activated: () => {
+						clearHover();
+						if (enabled) onChange(SpecialWeapons.Next(kind));
+					},
 				}}
 			>
 				<uicorner CornerRadius={new UDim(0, 8)} />

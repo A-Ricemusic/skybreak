@@ -1,5 +1,6 @@
 // Kept pure and shared so ServerStorage-hosted Roblox Jest tests can import it.
 import { hudTextWidth, STATUS_SEPARATOR, STATUS_SEPARATOR_TIGHT, statusMaxChars } from "./HudInstruments";
+import { SETTING_ORDER } from "./PlayerSettings";
 
 export interface Rectangle {
 	x: number;
@@ -921,7 +922,7 @@ export interface SettingsLayout {
 	valueWidth: number;
 }
 
-export const SETTINGS_ROWS = 7;
+export const SETTINGS_ROWS = SETTING_ORDER.size();
 
 /** The settings sheet: header, a scrolling list of 48 px rows with 44 px steppers, and DONE. */
 export function getSettingsLayout(viewportWidth: number, viewportHeight: number): SettingsLayout {

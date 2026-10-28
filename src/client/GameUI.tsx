@@ -3,7 +3,7 @@ import { highestUnlocked } from "../shared/CampaignProgress";
 import { stickVector, TouchSticks } from "../shared/TouchSticks";
 import { FlightMath } from "../shared/FlightMath";
 import { initialTelemetry } from "../shared/InitialTelemetry";
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "@rbxts/react";
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "@rbxts/react";
 import { flightWarning, LOW_ALTITUDE } from "../shared/FlightWarnings";
 import { evadeGauge } from "../shared/EvadeGauge";
 import { RadioQueue, type RadioLine } from "../shared/RadioQueue";
@@ -60,6 +60,7 @@ import { HudLabel, InstrumentBox, Reticle, StatusPanel, WarningBox } from "./Ace
 import { clockLines, instrumentValue, statusLine } from "../shared/HudInstruments";
 import { LoadoutPicker } from "./LoadoutPicker";
 import { DifficultyPicker } from "./DifficultyPicker";
+import { InputModeContext, SELECTION_NONE, useHighlight } from "./Highlight";
 import { Difficulty, DifficultyKind } from "../shared/Difficulty";
 import { NavigationCue } from "./NavigationCue";
 import { RelayCinematic } from "./RelayCinematic";
@@ -175,12 +176,6 @@ interface GameUIProps {
 	controller: FlightController;
 }
 
-const InputModeContext = createContext<InputMode>("keyboard");
-
-const SELECTION_NONE = new Instance("Frame");
-SELECTION_NONE.BackgroundTransparency = 1;
-SELECTION_NONE.BorderSizePixel = 0;
-
 const glyphCache = new Map<string, string>();
 
 function glyphFor(keyCodeName: string): string {
@@ -207,23 +202,6 @@ function readInputMode(): InputMode {
 	if (UserInputService.TouchEnabled && !UserInputService.KeyboardEnabled) return "touch";
 	if (UserInputService.GamepadEnabled && !UserInputService.KeyboardEnabled) return "gamepad";
 	return "keyboard";
-}
-
-function useHighlight(enabled: boolean) {
-	const mode = useContext(InputModeContext);
-	const [hovered, setHovered] = useState(false);
-	const [selected, setSelected] = useState(false);
-	const events = useMemo(() => ({
-		MouseEnter: () => setHovered(true),
-		MouseLeave: () => setHovered(false),
-		SelectionGained: () => setSelected(true),
-		SelectionLost: () => setSelected(false),
-	}), []);
-	return {
-		hot: enabled && ((mode === "keyboard" && hovered) || (mode === "gamepad" && selected)),
-		events,
-		clearHover: () => setHovered(false),
-	};
 }
 
 const Corner = ({ radius = 6, scale }: { radius?: number; scale?: number }) => (
@@ -1373,6 +1351,48 @@ function FlightHint({ hint, order }: { hint: ControlHint; order: number }) {
 	);
 }
 
+// A touch stick pad; the knob is moved directly through knobRef while dragging.
+function TouchStick({ name, knobName, rectangle, frameRef, knobRef, knob, onBegan }: {
+	name: string;
+	knobName: string;
+	rectangle?: Rectangle;
+	frameRef: React.RefObject<Frame>;
+	knobRef: React.RefObject<Frame>;
+	knob: number;
+	onBegan: (input: InputObject) => void;
+}) {
+	return (
+		<frame
+			ref={frameRef}
+			key={name}
+			Active={true}
+			BackgroundColor3={HUD.Shadow}
+			BackgroundTransparency={0.75}
+			BorderSizePixel={0}
+			Position={rectangle ? UDim2.fromOffset(rectangle.x, rectangle.y) : undefined}
+			Size={rectangle ? UDim2.fromOffset(rectangle.width, rectangle.height) : UDim2.fromOffset(96, 96)}
+			Visible={rectangle !== undefined}
+			Event={{ InputBegan: (_rbx, input) => onBegan(input) }}
+		>
+			<Corner scale={0.5} />
+			<Stroke color={HUD.Green} transparency={0.6} thickness={1} />
+			<frame
+				ref={knobRef}
+				key={knobName}
+				AnchorPoint={new Vector2(0.5, 0.5)}
+				BackgroundColor3={HUD.Green}
+				BackgroundTransparency={0.7}
+				BorderSizePixel={0}
+				Position={UDim2.fromScale(0.5, 0.5)}
+				Size={UDim2.fromOffset(knob, knob)}
+			>
+				<Corner scale={0.5} />
+				<Stroke color={HUD.Green} transparency={0.3} thickness={1} />
+			</frame>
+		</frame>
+	);
+}
+
 function MissionHud({
 	visible,
 	viewport,
@@ -1578,47 +1598,8 @@ function MissionHud({
 				/>
 			)}
 
-			<frame
-				ref={joystickRef}
-				key="TouchJoystick"
-				Active={true}
-				BackgroundColor3={HUD.Shadow}
-				BackgroundTransparency={0.75}
-				BorderSizePixel={0}
-				Position={touch ? UDim2.fromOffset(touch.joystick.x, touch.joystick.y) : undefined}
-				Size={touch ? UDim2.fromOffset(touch.joystick.width, touch.joystick.height) : UDim2.fromOffset(96, 96)}
-				Visible={touch !== undefined}
-				Event={{ InputBegan: (_rbx, input) => onJoystickBegan(input) }}
-			>
-				<Corner scale={0.5} />
-				<Stroke color={HUD.Green} transparency={0.6} thickness={1} />
-				<frame
-					ref={knobRef}
-					key="JoystickKnob"
-					AnchorPoint={new Vector2(0.5, 0.5)}
-					BackgroundColor3={HUD.Green}
-					BackgroundTransparency={0.7}
-					BorderSizePixel={0}
-					Position={UDim2.fromScale(0.5, 0.5)}
-					Size={UDim2.fromOffset(knob, knob)}
-				>
-					<Corner scale={0.5} />
-					<Stroke color={HUD.Green} transparency={0.3} thickness={1} />
-				</frame>
-			</frame>
-
-			<frame ref={throttleJoystickRef} key="ThrottleJoystick" Active={true}
-				BackgroundColor3={HUD.Shadow} BackgroundTransparency={0.75} BorderSizePixel={0}
-				Position={touch ? UDim2.fromOffset(touch.throttle.x, touch.throttle.y) : undefined}
-				Size={touch ? UDim2.fromOffset(touch.throttle.width, touch.throttle.height) : UDim2.fromOffset(96, 96)} Visible={touch !== undefined}
-				Event={{ InputBegan: (_rbx, input) => onThrottleBegan(input) }}>
-				<Corner scale={0.5} /><Stroke color={HUD.Green} transparency={0.6} thickness={1} />
-				<frame ref={throttleKnobRef} key="ThrottleKnob" AnchorPoint={new Vector2(0.5, 0.5)}
-					BackgroundColor3={HUD.Green} BackgroundTransparency={0.7} BorderSizePixel={0}
-					Position={UDim2.fromScale(0.5, 0.5)} Size={UDim2.fromOffset(knob, knob)}>
-					<Corner scale={0.5} /><Stroke color={HUD.Green} transparency={0.3} thickness={1} />
-				</frame>
-			</frame>
+			<TouchStick name="TouchJoystick" knobName="JoystickKnob" rectangle={touch?.joystick} frameRef={joystickRef} knobRef={knobRef} knob={knob} onBegan={onJoystickBegan} />
+			<TouchStick name="ThrottleJoystick" knobName="ThrottleKnob" rectangle={touch?.throttle} frameRef={throttleJoystickRef} knobRef={throttleKnobRef} knob={knob} onBegan={onThrottleBegan} />
 			{touch?.throttleUpLabel && (
 				<HudLabel name="ThrottleUp" text="SPEED UP" rectangle={touch.throttleUpLabel} textSize={10} alignment={Enum.TextXAlignment.Center} />
 			)}
