@@ -21,6 +21,7 @@ async function run(command: string[], summary?: RegExp, minimum = 0) {
 await run(["bun", "tools/check-no-react-agent-testing.ts"], /^NO_REACT_AGENT_TESTING passed tracked=(\d+)$/gm, 1);
 await run(["bun", "run", "build:place"]);
 await run(["bun", "tools/test-relay-offline.ts"], /^OFFLINE_LUAU_RESULT passed=(\d+) failed=0$/gm, 538);
+await run(["bun", "tools/test-mission-catalog.ts"], /^MISSION_CATALOG_SNAPSHOT passed=(\d+) failed=0/gm, 27);
 await run(["bun", "tools/test-playtest-relay.ts"], /^PLAYTEST_RELAY_REGRESSION passed=(\d+) failed=0$/gm, 3);
 await run(["bun", "tools/test-audio-offline.ts"], /^AUDIO_LIFECYCLE_SIMULATION passed=(\d+) failed=0$/gm, 10);
 await run(["bun", "tools/test-voice-offline.ts"], /^VOICE_CONSUMER_RESULT passed=(\d+); simulated lifecycle only, audible output NOT tested$/gm, 8);
