@@ -32,16 +32,16 @@
   },
   "documents": {
     "docs/human/playtest.html": {
-      "sha256": "bce2198cdd5db4c749a3517ba415226bed1767698984bdcc33361c57097d0125"
+      "sha256": "ac8afdb66b1bf8075153d8e6dbe44456d765bbcfd043659217e61bee3b581a45"
     },
     "docs/human/plan.html": {
-      "sha256": "cd00924ff6acfb926c050cd76dc14e21dfc0ef1baa2903289410fee1a7e4b7cf"
+      "sha256": "6c3b587de6c0389aa6227d558ae0e8b1004d8bedfe60df1f14aaa1c217b9133b"
     },
     "docs/human/status.html": {
-      "sha256": "7f16aa8a57a41ad0c18e63aff4d698cfd45ded3678b4b7acaac1364ab37992a8"
+      "sha256": "504a9ff4cd41697c5c37219e97148bcd5b7e97b9bed50ceb1cbb2af75f54b7b9"
     },
     "docs/human/taste.html": {
-      "sha256": "9077380cc42e1c49abcfa6d865e897312d73a66b709b34b2f4c7decd24578b22"
+      "sha256": "8d5de8a4bfc8f6e3d7988dc5200a6505f4688d547ae10866cc413fc5790d27ca"
     }
   },
   "agentInstructionsUpdated": true,

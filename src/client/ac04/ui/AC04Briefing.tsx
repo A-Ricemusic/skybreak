@@ -100,24 +100,24 @@ export function AC04Briefing(props: AC04BriefingProps) {
 		{ id: "next", label: strategic ? "DETAIL MAP" : "CONTINUE", enabled: !props.busy },
 	];
 	const typography = layout.typography, labelSize = math.max(11, typography.small - 1);
-	const metaWidth = layout.metaLeft.width;
+	const metaWidth = layout.metaLeft.width - 10;
 	return (
 		<frame BackgroundColor3={AC04Color.Base} BorderSizePixel={0} Size={UDim2.fromScale(1, 1)}>
 			<AC04NavHints rect={layout.hints} input={props.input} sideways={true} textSize={typography.small} />
 			<AC04BriefingMapView rect={layout.map} map={map} window={strategic ? map?.area ?? { x: 0, y: 0, size: 1 } : map?.detail ?? { x: 0, y: 0, size: 1 }} labelSize={labelSize} />
-			<frame BackgroundTransparency={1} {...at(layout.metaLeft)}>
+			<scrollingframe key="OperationMetadata" BackgroundTransparency={1} BorderSizePixel={0} ClipsDescendants={true} Active={true} CanvasSize={new UDim2()} AutomaticCanvasSize={Enum.AutomaticSize.Y} ScrollingDirection={Enum.ScrollingDirection.Y} ScrollBarThickness={4} ScrollBarImageColor3={AC04Color.Ink} {...at(layout.metaLeft)}>
 				<uilistlayout SortOrder={Enum.SortOrder.LayoutOrder} Padding={new UDim(0, 6)} />
 				<AC04Field label={strategic ? "STRATEGIC VIEW" : "OPERATION AREA"} value={`MISSION ${ac04Pad(mission.id, 2)}`} labelSize={typography.small} valueSize={typography.body} width={metaWidth} order={1} numeric={true} />
 				<AC04Field label="TITLE" value={mission.title} labelSize={typography.small} valueSize={typography.body} width={metaWidth} order={2} wrap={true} />
 				<AC04Field label="OPERATION" value={string.upper(mission.operation)} labelSize={typography.small} valueSize={typography.body} width={metaWidth} order={3} wrap={true} />
 				<AC04Field label="TIME LIMIT" value={objective.timeLimit} labelSize={typography.small} valueSize={typography.body} width={metaWidth} order={4} numeric={true} />
-			</frame>
-			<frame BackgroundTransparency={1} {...at(layout.metaRight)}>
+			</scrollingframe>
+			<scrollingframe key="ObjectiveMetadata" BackgroundTransparency={1} BorderSizePixel={0} ClipsDescendants={true} Active={true} CanvasSize={new UDim2()} AutomaticCanvasSize={Enum.AutomaticSize.Y} ScrollingDirection={Enum.ScrollingDirection.Y} ScrollBarThickness={4} ScrollBarImageColor3={AC04Color.Ink} {...at(layout.metaRight)}>
 				<uilistlayout SortOrder={Enum.SortOrder.LayoutOrder} Padding={new UDim(0, 6)} />
-				<AC04Field label="OBJECTIVE" value={objective.headline} labelSize={typography.small} valueSize={typography.body} width={layout.metaRight.width} order={1} wrap={true} />
-				{forces && <AC04Field label="INITIAL CONTACTS" value={`AIR ${ac04Pad(forces.air, 3)}   GRND ${ac04Pad(forces.ground, 3)}\nNAVAL ${ac04Pad(forces.naval, 3)}   TGT ${ac04Pad(forces.targets, 3)}`} labelSize={typography.small} valueSize={typography.small + 1} width={layout.metaRight.width} order={2} wrap={true} numeric={false} valueColor={AC04Color.White} />}
-				<textlabel BackgroundTransparency={1} FontFace={AC04_BODY_FONT} RichText={true} LayoutOrder={3} Text={`<font color="#D66D83">■</font> Hostile   <font color="#63BDD9">■</font> Friendly   <font color="#63BDD9">━</font> Return line`} TextColor3={AC04Color.Muted} TextSize={typography.small} TextWrapped={true} TextXAlignment={Enum.TextXAlignment.Left} Size={new UDim2(1, 0, 0, typography.small * 2 + 6)} />
-			</frame>
+				<AC04Field label="OBJECTIVE" value={objective.headline} labelSize={typography.small} valueSize={typography.body} width={layout.metaRight.width - 10} order={1} wrap={true} />
+				{forces && <AC04Field label="INITIAL CONTACTS" value={`AIR ${ac04Pad(forces.air, 3)}   GRND ${ac04Pad(forces.ground, 3)}\nNAVAL ${ac04Pad(forces.naval, 3)}   TGT ${ac04Pad(forces.targets, 3)}`} labelSize={typography.small} valueSize={typography.small + 1} width={layout.metaRight.width - 10} order={2} wrap={true} numeric={false} valueColor={AC04Color.White} />}
+				<textlabel BackgroundTransparency={1} FontFace={AC04_BODY_FONT} RichText={true} LayoutOrder={3} Text={`<font color="#D66D83">■</font> Hostile   <font color="#63BDD9">■</font> Friendly   <font color="#63BDD9">━</font> Return line`} TextColor3={AC04Color.Muted} TextSize={typography.small} TextWrapped={true} TextXAlignment={Enum.TextXAlignment.Left} Size={new UDim2(1, -10, 0, typography.small * 2 + 6)} AutomaticSize={Enum.AutomaticSize.Y} />
+			</scrollingframe>
 			<AC04CaptionLane rect={layout.caption} text={strategic ? props.narrative.strategic : props.narrative.briefing} textSize={typography.caption} />
 			<AC04CommandBar rect={layout.commands} commands={commands} focus={1} textSize={typography.small + 1} onActivate={(index) => (index === 0 ? back() : advance())} />
 		</frame>

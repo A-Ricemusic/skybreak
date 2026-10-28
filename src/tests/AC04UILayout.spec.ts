@@ -104,6 +104,21 @@ describe("AC04 rectangular radar scope", () => {
 });
 
 describe("AC04 command screen layouts", () => {
+	it("keeps phone-landscape metadata columns beside each other and above captions after the system inset", () => {
+		for (const input of INPUTS) {
+			const layout = ac04BriefingLayout(844, 332, input);
+			expect(layout.metaLeft.y).toBe(layout.metaRight.y);
+			expect(layout.metaLeft.height).toBe(layout.metaRight.height);
+			expect(layout.metaLeft.x + layout.metaLeft.width).toBeLessThan(layout.metaRight.x);
+			expect(layout.metaRight.y + layout.metaRight.height).toBeLessThan(layout.caption.y);
+			expectDisjoint([layout.map, layout.metaLeft, layout.metaRight, layout.caption, layout.commands], "phone safe root");
+		}
+	});
+	it("reserves a separate portrait debrief mission subline above the result table", () => {
+		const layout = ac04DebriefLayout(390, 786, "touch");
+		expect(layout.title.height).toBeGreaterThanOrEqual(layout.typography.title + layout.typography.small + 16);
+		expect(layout.title.y + layout.title.height).toBeLessThan(layout.summary.y);
+	});
 	it("keeps title, list, detail, help, status and Back visible without page scrolling", () => {
 		for (const [width, height] of VIEWPORTS) for (const input of INPUTS) for (const rows of [4, 6, 18]) {
 			const layout = ac04MenuLayout(width, height, input, rows), label = `${width}x${height} ${input} ${rows}`;

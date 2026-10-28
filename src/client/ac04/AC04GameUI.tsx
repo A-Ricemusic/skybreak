@@ -243,7 +243,7 @@ export function AC04GameUI({ remotes, requestRemote, controller }: { remotes: Re
 		if (errorMessage !== "") return { text: errorMessage, warning: true };
 		if (recordsState === "loading") return { text: "RETRIEVING FLIGHT RECORDS" };
 		if (recordsState === "failed") return { text: "FLIGHT RECORDS UNAVAILABLE", warning: true };
-		if (persistence === "session") return { text: "SESSION RECORDS  ·  PROGRESS IS KEPT FOR THIS SESSION ONLY" };
+		if (persistence === "session") return { text: "PROGRESS KEPT THIS SESSION ONLY" };
 		return undefined;
 	};
 	const common = { size, input, status: status(), onConfirmSound: confirmSound };

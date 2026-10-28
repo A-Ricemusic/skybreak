@@ -68,7 +68,7 @@ export function AC04AircraftSelect(props: AC04AircraftSelectProps) {
 		{ id: "back", label: "BACK", enabled: !props.busy },
 		{ id: "prev", label: "◀", enabled: !props.busy && available.size() > 1 },
 		{ id: "next", label: "▶", enabled: !props.busy && available.size() > 1 },
-		{ id: "confirm", label: props.purpose === "sortie" ? "CONFIRM AIRCRAFT" : "CONFIRM", enabled: canConfirm },
+		{ id: "confirm", label: "CONFIRM", enabled: canConfirm },
 	];
 	const rosterRows: React.Element[] = [];
 	for (let i = top; i < math.min(rows.size(), top + visible); i++) {

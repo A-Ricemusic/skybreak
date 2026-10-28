@@ -78,7 +78,7 @@ export function AC04DebriefScreen(props: AC04DebriefProps) {
 		<frame BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)}>
 			<AC04GridBackdrop width={props.size.X} height={props.size.Y} />
 			<AC04NavHints rect={layout.hints} input={props.input} sideways={true} textSize={typography.small} />
-			<AC04Heading rect={layout.title} text={debrief.outcome} sub={`MISSION ${ac04Pad(debrief.missionId, 2)}`} size={typography.title} subSize={typography.small} />
+			<AC04Heading rect={layout.title} text={debrief.outcome} sub={`MISSION ${ac04Pad(debrief.missionId, 2)}`} size={typography.title} subSize={typography.small} stackSub={narrow} />
 			{tables}
 			<AC04CaptionLane rect={layout.caption} text={caption} textSize={typography.body} />
 			<AC04Line rect={layout.status} text={props.errorText !== "" ? props.errorText : debrief.saveNote} textSize={typography.small} color={props.errorText !== "" || debrief.saveWarning ? AC04Color.Warning : AC04Color.Muted} font={AC04_COMMAND_FONT} />

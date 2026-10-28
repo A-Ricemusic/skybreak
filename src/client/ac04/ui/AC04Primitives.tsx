@@ -184,12 +184,12 @@ export function AC04GridBackdrop({ width, height, spacing = 64 }: { width: numbe
 }
 
 /** Screen heading: large command lettering with a short rule. */
-export function AC04Heading({ rect, text, sub, size, subSize }: { rect: AC04Rect; text: string; sub?: string; size: number; subSize: number }) {
+export function AC04Heading({ rect, text, sub, size, subSize, stackSub = false }: { rect: AC04Rect; text: string; sub?: string; size: number; subSize: number; stackSub?: boolean }) {
 	return (
 		<frame BackgroundTransparency={1} {...at(rect)}>
 			<textlabel BackgroundTransparency={1} FontFace={AC04_COMMAND_FONT} Text={text} TextColor3={AC04Color.White} TextSize={size} TextXAlignment={Enum.TextXAlignment.Left} TextTruncate={Enum.TextTruncate.AtEnd} Size={new UDim2(1, 0, 0, size + 4)} />
-			{sub !== undefined && <textlabel BackgroundTransparency={1} FontFace={AC04_COMMAND_FONT} Text={sub} TextColor3={AC04Color.Muted} TextSize={subSize} TextXAlignment={Enum.TextXAlignment.Right} TextTruncate={Enum.TextTruncate.AtEnd} AnchorPoint={new Vector2(1, 0)} Position={new UDim2(1, 0, 0, math.floor((size - subSize) / 2))} Size={new UDim2(0.5, 0, 0, subSize + 4)} />}
-			<frame BackgroundColor3={AC04Color.Ink} BackgroundTransparency={0.35} BorderSizePixel={0} Position={UDim2.fromOffset(0, size + 8)} Size={new UDim2(1, 0, 0, 1)} />
+			{sub !== undefined && <textlabel BackgroundTransparency={1} FontFace={AC04_COMMAND_FONT} Text={sub} TextColor3={AC04Color.Muted} TextSize={subSize} TextXAlignment={stackSub ? Enum.TextXAlignment.Left : Enum.TextXAlignment.Right} TextTruncate={Enum.TextTruncate.AtEnd} AnchorPoint={new Vector2(stackSub ? 0 : 1, 0)} Position={stackSub ? UDim2.fromOffset(0, size + 6) : new UDim2(1, 0, 0, math.floor((size - subSize) / 2))} Size={new UDim2(stackSub ? 1 : 0.5, 0, 0, subSize + 4)} />}
+			<frame BackgroundColor3={AC04Color.Ink} BackgroundTransparency={0.35} BorderSizePixel={0} Position={UDim2.fromOffset(0, size + 8 + (stackSub ? subSize + 8 : 0))} Size={new UDim2(1, 0, 0, 1)} />
 		</frame>
 	);
 }

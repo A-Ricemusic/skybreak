@@ -176,8 +176,10 @@ export function ac04BriefingLayout(width: number, height: number, input: AC04Inp
 		const side = math.max(80, math.min(room, math.floor(width * 0.5)));
 		const map = ac04Rect(m, top, side, side);
 		const x = ac04Right(map) + PANEL_GAP, w = width - m - x;
-		const half = math.floor((room - 8) / 2);
-		return { form, margin: m, hints, map, typography: typography, caption, commands, metaLeft: ac04Rect(x, top, w, half), metaRight: ac04Rect(x, top + half + 8, w, room - half - 8) };
+		// Each metadata column scrolls independently; fixed vertical halves allowed
+		// auto-sized fields to collide with the next column and caption on phones.
+		const half = math.floor((w - 12) / 2);
+		return { form, margin: m, hints, map, typography: typography, caption, commands, metaLeft: ac04Rect(x, top, half, room), metaRight: ac04Rect(x + half + 12, top, w - half - 12, room) };
 	}
 	const sideWidth = math.clamp(width * 0.18, 170, 280);
 	const side = math.max(120, math.min(room, width - 2 * (sideWidth + PANEL_GAP) - 2 * m));
@@ -257,7 +259,7 @@ export function ac04DebriefLayout(width: number, height: number, input: AC04Inpu
 	const hints = ac04Rect(m, math.floor(m / 2), width - 2 * m, hintHeight);
 	const commands = ac04Rect(m, height - m - ac04CommandHeight(input), width - 2 * m, ac04CommandHeight(input));
 	const status = ac04Rect(m, commands.y - typography.small - 10, width - 2 * m, typography.small + 4);
-	const title = ac04Rect(m, ac04Bottom(hints) + 4, width - 2 * m, typography.title + 8);
+	const title = ac04Rect(m, ac04Bottom(hints) + 4, width - 2 * m, typography.title + 8 + (form === "narrow" ? typography.small + 8 : 0));
 	const lines = form === "wide" ? 3 : 2;
 	const caption = ac04Rect(m, status.y - 8 - (typography.body + 4) * lines - 8, width - 2 * m, (typography.body + 4) * lines + 8);
 	const top = ac04Bottom(title) + 8, room = caption.y - 8 - top;

@@ -6,8 +6,8 @@
 const KNOWN: { [message: string]: string } = {
 	"Campaign session is closing.": "The session is closing.",
 	"Please wait for the current campaign operation.": "Please wait for the current command to finish.",
-	"AC04 records could not be loaded. Existing saves are protected; retry shortly.": "Flight records could not be loaded. Saved records are protected; retry shortly.",
-	"AC04 records could not be saved. Existing saves are protected; retry shortly.": "Flight records could not be saved. Saved records are protected; retry shortly.",
+	"AC04 records could not be loaded. Existing saves are protected; retry shortly.": "Load failed; saves safe. Use Retry Records.",
+	"AC04 records could not be saved. Existing saves are protected; retry shortly.": "Save failed; saves safe. Use Retry Records.",
 	"Please wait for the sortie result.": "Please wait for the sortie result.",
 	"Choose a flight record from 1 to 4.": "Choose a flight record.",
 	"That chapter is not yet unlocked.": "That chapter is not yet available.",

@@ -1,0 +1,306 @@
+{
+  "schemaVersion": 1,
+  "reviewId": "AC04-UI-NATIVE-INDEPENDENT-61",
+  "reviewer": "GPT-6.1 Sol independent review agent; no subagents",
+  "reviewedAtUTC": "2026-10-28T03:24:27.486208+00:00",
+  "verdict": "CHANGES_REQUESTED_FOR_SHORT_LANDSCAPE_BRIEFING; OTHER_OBSERVED_FUNCTIONAL_GATES_PASS_WITH_LIMITS; FINAL_FIDELITY_NOT_ACCEPTED",
+  "candidate": {
+    "path": "build/ac04-ui-integration/candidate-70b6a6ec.rbxlx",
+    "sha256": "70b6a6ecf221ebbda4e1f22b2d16e244702c22051fcad76cc5a815115bf05772",
+    "association": "All212 source entries match frozen base plus recovery overrides; candidate SHA matches before and after.",
+    "finalIntegrity": "build/ac04-ui-native-independent/final-integrity.json"
+  },
+  "authorizationAndScope": {
+    "noSourceOrArtifactEdits": true,
+    "noRebuild": true,
+    "noTestsRerun": true,
+    "noUploadsPublishingCloudCommitsPushes": true,
+    "dirtySharedWorkPreserved": true,
+    "humanHTMLUntouched": true,
+    "exclusiveStudioLeaseReleased": true,
+    "ownerSteering": "Prepare M1–M5 preview only, M6–M18 locked; art/all18 acceptance are follow-up. This frozen review does not validate the forthcoming release ceiling.",
+    "otherAgents": "No delegation. M6 read-only/story work remained outside owned Studio/build lease."
+  },
+  "findings": [
+    {
+      "id": "UI-NATIVE-61-001",
+      "priority": "P1",
+      "classification": "M1–M5 mobile preview correction; release-blocking presentation of briefing information",
+      "title": "Short-landscape briefing metadata overlaps",
+      "observed": "844×390 emulator viewport; production safe root 844×332; M1 strategic component. OPERATION label at (204,99), size626×16 intersects OBJECTIVE label at (204,104), size626×16. UMBRELLA at y117/18 intersects objective at y122/18. TIME LIMIT at y141/16 intersects INITIAL CONTACTS at y146/16; 10:00 at y159/18 overlaps contact counts at y164/26. All individual TextFits are true: this is a sibling layout collision, not font clipping. Legend at y196 overlaps briefing caption starting y195.",
+      "evidence": "build/ac04-ui-native-independent/fixture-briefing-844x390.png",
+      "source": [
+        "src/shared/ac04/ui/AC04MenuLayout.ts:154",
+        "src/client/ac04/ui/AC04Briefing.tsx:112"
+      ],
+      "cause": "Short form splits a right-hand metadata lane into fixed halves despite automatic content exceeding each half; no scrolling or clip boundary prevents collision.",
+      "correction": "Use one bounded scrolling metadata region with natural stacked fields, or two side-by-side bounded regions that fit their measured content. Keep commands pinned, reserve caption/legend space. Do not shrink labels to hide overlap.",
+      "retest": "On actual 844×390 emulator/844×332 safe root, M1–M5 strategic and detail steps: no intersecting metadata, legend or caption rectangles; all briefing text reachable, Back/Continue pinned and operable. Objective confirmation remains required.",
+      "functionalLimit": "Launch was reachable in production desktop flow and objective-confirmation fixture was readable. This does not imply a campaign deadlock."
+    },
+    {
+      "id": "UI-NATIVE-61-002",
+      "priority": "P2",
+      "classification": "Usability correction; retry itself works",
+      "title": "Narrow recovery and session warnings truncate",
+      "observed": "390×844 viewport/390×786 safe root. Production UI memory fixture displays “Flight records could not be saved. Saved records are protected; retry shortly.” with TextFits=false; pixels end before retry guidance. Session-only warning also ellipsizes. Retry Records remains visible and recovered calls1→2 after changing memory adapter from failure to session success.",
+      "evidence": [
+        "build/ac04-ui-native-independent/fixture-recovery-failed.png",
+        "build/ac04-ui-native-independent/fixture-recovery-retried.png"
+      ],
+      "source": [
+        "src/client/ac04/ui/AC04Primitives.tsx",
+        "src/client/ac04/AC04GameUI.tsx"
+      ],
+      "correction": "Wrap the status lane to measured height or use short complete copy that states records are safe and identifies Retry Records. Preserve the disabled launch while initial records are unavailable.",
+      "retest": "Complete failure and session-only meaning readable in portrait; actual touch Retry returns usable records with no duplicate operation."
+    },
+    {
+      "id": "UI-NATIVE-61-003",
+      "priority": "P2",
+      "classification": "Polish/usability; button exists",
+      "title": "Portrait aircraft confirmation text truncates",
+      "observed": "390×786 safe root; four equal footer buttons make CONFIRM AIRCRAFT too narrow. Screenshot shows truncated label; 44px-high command area remains present.",
+      "evidence": "build/ac04-ui-native-independent/fixture-aircraft-390x844.png",
+      "correction": "Use CONFIRM in this explicit aircraft context, widen the confirmation command, or use a two-row/footer layout preserving44px touch areas.",
+      "retest": "Full command label visible and actual activation still moves to objective confirmation; locked rows never confirm."
+    },
+    {
+      "id": "UI-NATIVE-61-004",
+      "priority": "P2",
+      "classification": "Presentation polish; result and navigation remain readable",
+      "title": "Portrait debrief heading collides with mission number",
+      "observed": "390×786 safe root: MISSION01 overlays the right end of MISSION ACCOMPLISHED. Score/time and Continue/Retry/Records remain visible.",
+      "evidence": "build/ac04-ui-native-independent/fixture-debrief-390x844.png",
+      "correction": "Stack mission number under the outcome or reserve separate non-overlapping heading/subline rectangles on narrow layouts.",
+      "retest": "Completed and Failed portrait results, full outcome and mission identifier, footer actions unchanged."
+    }
+  ],
+  "checks": {
+    "rendering": {
+      "method": "StudioDeviceSimulatorService; ActualResolution; production components mounted in safe-inset ScreenGui; native screen_capture saved as PNG and actual view_image inspection. CGWindow screen capture used for initial production window. No browser/DOM.",
+      "sizes": [
+        {
+          "viewport": "1280×720",
+          "root": "1280×662",
+          "device": "HD720 preset"
+        },
+        {
+          "viewport": "390×844",
+          "root": "390×786",
+          "device": "temporary Phone config; canonical864×390 to compensate20px system status area"
+        },
+        {
+          "viewport": "844×390",
+          "root": "844×332",
+          "device": "same temporary Phone config; canonical844×410"
+        }
+      ],
+      "notPhysicalDevices": true,
+      "matrix": "11 surfaces per size: title, records, hub, missionArchive, storyArchive, briefing, aircraft, objective, debrief, pause, flight. Original pause fixture captures are INVALID because helper omitted Sibling ZIndexBehavior; corrected short-landscape pause and genuine production pause show children correctly. All other matrix evidence remains scoped to its observed surface.",
+      "productionRoot": "Viewer host uses full ScreenGui AbsoluteSize rather than fabricated Width/Height attributes; those legacy attrs are ignored by the saved fixture."
+    },
+    "numericFit": {
+      "result": "PASS observed values at all3 safe roots",
+      "fixtureTelemetry": {
+        "rawSpeed": 1234,
+        "displaySpeed": "6170",
+        "rawAltitude": 12345,
+        "displayAltitude": "61725"
+      },
+      "measurements": {
+        "390×786": {
+          "speedBounds": "26×14",
+          "altBounds": "32.5×14",
+          "available": "76×19",
+          "TextFits": true
+        },
+        "844×332": {
+          "speedBounds": "26×14",
+          "altBounds": "32.5×14",
+          "available": "84×19",
+          "TextFits": true
+        },
+        "1280×662": {
+          "speedBounds": "28×15",
+          "altBounds": "35×15",
+          "available": "122×20",
+          "TextFits": true
+        }
+      },
+      "files": [
+        "build/ac04-ui-native-independent/numeric-390x844.json",
+        "build/ac04-ui-native-independent/numeric-844x390.json",
+        "build/ac04-ui-native-independent/numeric-1280x720.json"
+      ]
+    },
+    "archiveGestures": {
+      "result": "PASS portrait emulator native Touch reachability",
+      "inputEvidence": "Persistent observer recorded LastBegan=Touch, LastChanged=Touch; processed=true is expected for scrolling UI. Mouse tool is translated by the phone emulator. Direct VirtualInputManager SendTouchEvent was denied RobloxScript capability; native simulator translation provided usable touch evidence instead.",
+      "missionPortrait": "CanvasPositionY0→248.38→470; limit470; row18 visible",
+      "storyPortrait": "CanvasPositionY0→206; limit206",
+      "landscape": "Mission archive moved to320.19 after2 short swipes, limit633. Full landscape bottom and story-landscape gesture were not pursued after owner requested prompt release; do not call those passed.",
+      "noUnlockCredit": true
+    },
+    "saveRecovery": {
+      "result": "PASS local-only coordinator and UI paths separately",
+      "coordinator": "Exact built server AC04Persistence with injected memory IO: load fault false, load retry true, save fault false, dirty preserved=true, save retry=true, dirtyAfter=false; memory seen chapters retained.2 injected update calls, no DataStore service operation.",
+      "UI": "Production AC04GameUI mounted with a table InvokeServer adapter and BindableEvent; initial ListSlots failed with protected-record response. Touch Retry Records after memory flag change recovered calls1→2 and session records. No actual RemoteFunction network, real records, cloud writes, campaign completion or durable cloud guarantee.",
+      "issue": "UI-NATIVE-61-002; copy truncates despite reachable recovery"
+    },
+    "cinematic": {
+      "result": "PASS observed overlay lifecycle and pointer transports",
+      "lowHealth": "Fixture Humanoid set5; later sampled1.016 due local character behavior; Health CoreGui false while mounted. Clean native chapter capture has no maroon wash. No genuine-flight health write.",
+      "restore": "Unmount from prior true restored true. Prior false→mountfalse→unmountfalse. Fixture Skip callback unmounted and restored true.",
+      "controls": "Initially hidden; mouse/touch input revealed four44px-high transports. At844×332 touch Pause changed label to RESUME, Resume/Next/Back/Skip were exercised. Skip callback logged Action=finish and returned fixture title. Portrait transport text fits observed. No mandatory campaign acknowledgment credited to fixture.",
+      "limits": "Keyboard P/Escape attempts arrived processed=true in the native tool; not accepted as shortcut success or a game defect. No physical gamepad. No full caption scroll/all48 timing re-run.",
+      "chrome": "Intro hidden after initial hold; transports remain visible after reveal, with no automatic hide timeout. This matches hide-until-interaction interpretation; clarify transient wording, not a first-preview blocker.",
+      "storyFidelity": "Primitive diorama gap remains. Portrait chapter1 final beat capture shows camera/terrain or aircraft-surface obstruction; existing set/prop/art issues remain follow-up under owner preview direction."
+    },
+    "genuineM1": {
+      "session": "Separate fresh Play session; GameId0; production title→controls→back→briefing strategic/detail→hub→aircraft→objective→unseen chapter→real Skip→mission launch.",
+      "observed": "Live selected/unselected boxes, bright sky/ground, pause targeting GUI Enabled=false, Resume and HIGH backing. Gameplay naturally inflicted6%damage; reviewer did not write health/score/pose/unlock/ammo/clock. No kills or completion claimed.",
+      "cueProbe": "Read-only wrapper forwards exact updateTargetCue then measures rendered selected bracket against Camera:WorldToScreenPoint of actual smoothed contact.2571 visible samples; max0.0000629136px.12keepouts; bounds{x4,y62,width1272,height654} on1280×720, matching58px safe inset plus4px bound pad. Natural offscreen arrow visible; unselected boxes captured.",
+      "limits": "No independent all-control keepout-intersection oracle, all3 live-flight sizes, or ground-target flight was completed. High backing improves observed bright-sky contrast. Night remains untested; no M6/later flights added.",
+      "files": [
+        "genuine-m1-flight.png",
+        "genuine-m1-pause.png",
+        "genuine-m1-high-backing.png"
+      ]
+    },
+    "validation": "No build or broad/full suite rerun.598/598 in62 suites and446 offline checks are inherited implementation reports on exact candidate, not independent reruns."
+  },
+  "referenceReview": {
+    "read": "docs/reviews/ac04-presentation-reference-audit.json",
+    "actualOriginalImagesViewed": [
+      "ac0409.jpg",
+      "ac0413.jpg",
+      "ac0431.jpg",
+      "ac0451.jpg",
+      "briefing-2001-gamewatch.jpg",
+      "namco-manual-page-8.png"
+    ],
+    "location": "docs/evidence/ac04-ui-reference/",
+    "scopedVerdict": "Technical commands, map-led briefing, lower-left radar/dispersed HUD and ruled debrief move toward observed AC04 hierarchy. Generic aircraft schematic, sparse grid-map geography, absent pitch ladder/rank and primitive civilian dioramas do not establish full fidelity. Original stills do not establish exact timing/audio. These art/fidelity gaps are follow-up for the owner-approved incremental preview, not reasons to wait for all18 or art.",
+    "assets": "No research image or approved v3 pilot integrated, uploaded or copied into candidate."
+  },
+  "contradictionsToReconcile": [
+    "Current all-four summary still lists every emulator/touch/numeric/save/lifecycle gate pending; replace with observed scope and remaining limits.",
+    "playtest.html retains obsolete da4a8143 paragraph claiming integrated gameplay and native captures unverified; replace with revision-scoped history.",
+    "status.html M6 row says not launched at87d17771 while current summary records70b6a6ec attempt; retain historical attribution but give current opening-hostile-defense loss in current row.",
+    "UIREF-D18 transient wording must not imply controls auto-hide again after interaction.",
+    "Original helper pause captures used Global ZIndex behavior, unlike production Sibling; they are fixture defects and must not be reported as invisible production pause controls.",
+    "Frozen70b6a6ec allows progression past M5; it is not the forthcoming release ceiling and this review cannot certify M6–M18 locks or end-of-preview behavior."
+  ],
+  "allFourDocumentPayloads": {
+    "taste.html": {
+      "checked": true,
+      "parentOwnsWrites": true,
+      "updates": [
+        {
+          "target": "#ui-integrated-current and current UIREF-D14–D18 evidence labels",
+          "exactText": "Independent native review of frozen 70b6a6ec observed exact 1280×720, 390×844 and 844×390 Studio viewports, using production safe roots 1280×662, 390×786 and 844×332. Labeled component fixtures cover menus, records, archives, briefing, aircraft, objective confirmation, debrief and HUD. Emulator Touch swipes reached both portrait archive limits; numeric speed/altitude TextFits passed all three sizes. Memory-only persistence fault/retry and production UI Retry Records recovered locally. Cinematic low-health suppression and restoration of both prior Health CoreGui states passed. A separate genuine M1 session observed live cues, pause/resume and HIGH backing; selected-cue alignment error was at most 0.000063 pixels across 2,571 frames. No additional campaign completion, physical-device, cloud-save, audio or night-flight acceptance is claimed."
+        },
+        {
+          "target": "#ui-native-decisions; add stable decision UI-NATIVE-61-D01",
+          "exactText": "UI-NATIVE-61-D01 — Proposed correction: stack or scroll short-landscape briefing metadata within bounded space and keep launch/navigation pinned. Alternative: retain fixed half-height metadata frames or shrink text. Reason: actual emulator pixels show overlapping objective, operation, clock and contact rows despite each label reporting TextFits=true. This is a readability correction for the first-five-mission preview, not an art-direction change."
+        },
+        {
+          "target": "UIREF-D18 wording",
+          "exactText": "The intro disappears after its initial hold. Transports are hidden until input/pause and then remain visible; no automatic re-hide timer exists. Touch Pause/Resume, Next/Back and Skip worked in the labeled fixture. Health CoreGui suppression/restoration passed independently. Exact AC04 timing and illustrated fidelity remain unaccepted."
+        }
+      ],
+      "noChangeReason": "Keep existing owner-approved incremental M1–M5 release direction and art alternatives. No release occurred; do not alter Player availability or credit fixture progress."
+    },
+    "plan.html": {
+      "checked": true,
+      "parentOwnsWrites": true,
+      "updates": [
+        {
+          "target": "first native-UI priority and next presentation validation; replace completed-gate queue",
+          "exactText": "Before the M1–M5 Player preview, fix the short-landscape briefing metadata overlap at an 844×332 safe root, then retest strategic/detail views for M1–M5. Keep M6–M18 locked and show a clear end-of-preview message in the separately prepared release candidate. Narrow recovery-message truncation, aircraft confirmation truncation and debrief heading collision are smaller usability corrections. Art, full AC04 fidelity, night-flight review and later missions remain follow-up work; they do not gate the owner’s incremental preview."
+        },
+        {
+          "target": "validation scope below queue",
+          "exactText": "The frozen70b6a6ec independent review completed emulator size observations, portrait Touch archive reachability, numeric TextFits, local memory-only recovery, Health CoreGui lifecycle and limited genuine M1 cue/pause/backing observations. Retest only affected UI and the release-ceiling candidate; do not repeat full M1–M5 flights or wait for all18 missions/art before the preview. Physical devices, joined cloud recovery, gamepad hardware and night-flight contrast remain unverified follow-up."
+        }
+      ],
+      "noChangeReason": "Preserve mission-specific later-work queue as follow-up. The isolated release-ceiling implementation is outside this review and must not be described as live or tested here."
+    },
+    "status.html": {
+      "checked": true,
+      "parentOwnsWrites": true,
+      "updates": [
+        {
+          "target": "#ui-integrated-current, #ui-source-review and reviewer-response rows",
+          "exactText": "Independent native review of frozen 70b6a6ec observed exact 1280×720, 390×844 and 844×390 Studio viewports, using production safe roots 1280×662, 390×786 and 844×332. Labeled component fixtures cover menus, records, archives, briefing, aircraft, objective confirmation, debrief and HUD. Emulator Touch swipes reached both portrait archive limits; numeric speed/altitude TextFits passed all three sizes. Memory-only persistence fault/retry and production UI Retry Records recovered locally. Cinematic low-health suppression and restoration of both prior Health CoreGui states passed. A separate genuine M1 session observed live cues, pause/resume and HIGH backing; selected-cue alignment error was at most 0.000063 pixels across 2,571 frames. No additional campaign completion, physical-device, cloud-save, audio or night-flight acceptance is claimed."
+        },
+        {
+          "target": "#readiness and #priorities",
+          "exactText": "M1–M5 incremental preview: independent review requests a short-landscape briefing layout correction before release. It found no reproduced pointer/touch dead end in the checked startup, retry, cinematic, pause and launch paths. Smaller fixes are complete narrow recovery copy, aircraft confirmation text and portrait debrief heading spacing. This is not final fidelity or beta approval. M6 opening hostile-defense loss and M7–M18 acceptance do not block the separately scoped first-five preview."
+        },
+        {
+          "target": "M6 mission-status row (historical evidence correction)",
+          "exactText": "70b6a6ec reached M6 briefing after the inherited clean M1–M5 replay; its genuine M6 attempt failed at19.53seconds during opening hostile defenses with0points/0targets. The responsible air-versus-surface source was not established by that flight. No naval-fire acceptance or balance change follows."
+        }
+      ],
+      "noChangeReason": "598/598 native and446 offline remain inherited implementation results, not a new test run. Do not increment campaign completions or claim cloud deletion. Parent retains release-state ownership."
+    },
+    "playtest.html": {
+      "checked": true,
+      "parentOwnsWrites": true,
+      "updates": [
+        {
+          "target": "#ui-integrated-current and local presentation table; personally reconcile with current merge ledger",
+          "exactText": "Independent native review of frozen 70b6a6ec observed exact 1280×720, 390×844 and 844×390 Studio viewports, using production safe roots 1280×662, 390×786 and 844×332. Labeled component fixtures cover menus, records, archives, briefing, aircraft, objective confirmation, debrief and HUD. Emulator Touch swipes reached both portrait archive limits; numeric speed/altitude TextFits passed all three sizes. Memory-only persistence fault/retry and production UI Retry Records recovered locally. Cinematic low-health suppression and restoration of both prior Health CoreGui states passed. A separate genuine M1 session observed live cues, pause/resume and HIGH backing; selected-cue alignment error was at most 0.000063 pixels across 2,571 frames. No additional campaign completion, physical-device, cloud-save, audio or night-flight acceptance is claimed."
+        },
+        {
+          "target": "first-five preview expectations/local readiness",
+          "exactText": "Before the M1–M5 Player preview, fix the short-landscape briefing metadata overlap at an 844×332 safe root, then retest strategic/detail views for M1–M5. Keep M6–M18 locked and show a clear end-of-preview message in the separately prepared release candidate. Narrow recovery-message truncation, aircraft confirmation truncation and debrief heading collision are smaller usability corrections. Art, full AC04 fidelity, night-flight review and later missions remain follow-up work; they do not gate the owner’s incremental preview."
+        },
+        {
+          "target": "obsolete paragraph beginning Candidate da4a8143 passes transform/build",
+          "exactText": "Historical da4a8143 build evidence is superseded by frozen70b6a6ec. The integrated UI now has implementation-reported clean M1–M5 replay and independent native surface/input/lifecycle observations. Independent review requests correction of short-landscape briefing overlap; full visual fidelity, physical-device behavior, cloud persistence and audio remain unaccepted."
+        },
+        {
+          "target": "M6 actual-evidence prose",
+          "exactText": "Current local70b6a6ec reached M6 briefing and attempted it; the aircraft was destroyed at19.53seconds during opening hostile defenses before naval-fire acceptance. M6 remains outside the planned M1–M5 preview."
+        }
+      ],
+      "noChangeReason": "Keep official Roblox link, last-known version63/PR90 metadata, current included-PR ledger and all18 current unavailable rows until an actual gameplay merge. At the first-five gameplay merge mark M1–M5 live by automatic CI/CD, retain M6–M18 locked/unavailable; do not wait for a receipt or Player test and do not claim this review published anything."
+    }
+  },
+  "nextConcreteCorrections": [
+    "Use one bounded scrolling metadata region with natural stacked fields, or two side-by-side bounded regions that fit their measured content. Keep commands pinned, reserve caption/legend space. Do not shrink labels to hide overlap.",
+    "Wrap the status lane to measured height or use short complete copy that states records are safe and identifies Retry Records. Preserve the disabled launch while initial records are unavailable.",
+    "Use CONFIRM in this explicit aircraft context, widen the confirmation command, or use a two-row/footer layout preserving44px touch areas.",
+    "Stack mission number under the outcome or reserve separate non-overlapping heading/subline rectangles on narrow layouts.",
+    "Independently review the release-ceiling diff and affected UI only; do not infer frozen70b6a6ec approval applies to a changed candidate."
+  ],
+  "releaseBoundary": "No PR/merge/upload/publication performed. Nothing unmerged becomes live. Parent updates included missions at actual gameplay merge through automatic CI/CD; Player verification/receipt is not a prerequisite. M6–M18 stay outside planned first-five preview.",
+  "lease": {
+    "owner": "GPT-6.1 Sol independent review",
+    "exclusive": false,
+    "released": true,
+    "ownedStudioPid": 57487,
+    "playStopped": true,
+    "stopMethod": "Play stopped using MCP; simulator reset and custom device removed. SIGTERM remained alive; SIGKILL discarded unsaved session state. No place save.",
+    "hashCheck": {
+      "checkedAtUTC": "2026-10-28T03:21:37.333282+00:00",
+      "candidateSha256": "70b6a6ecf221ebbda4e1f22b2d16e244702c22051fcad76cc5a815115bf05772",
+      "expected": "70b6a6ecf221ebbda4e1f22b2d16e244702c22051fcad76cc5a815115bf05772",
+      "sourceEntries": 212,
+      "mismatches": []
+    }
+  },
+  "evidenceIntegrity": {
+    "invalid": [
+      "launch.png and open.png: Studio Home/edit sky; not game acceptance",
+      "device-menu.png: black capture, rejected",
+      "title-1280.png: clipped native window, superseded by full native captures",
+      "fixture-pause-390x844.png, fixture-pause-844x390.png, fixture-pause-1280x720.png: incorrect Global ZIndex helper; not production defect"
+    ],
+    "validCaptureReview": "All33 matrix captures inspected via native-image contact sheets; key findings and genuine/cinematic/recovery screenshots individually opened using view_image. Corrected pause separately inspected. Contact sheets are indexes, individual native files remain originals.",
+    "manifest": "build/ac04-ui-native-independent/evidence-manifest.json"
+  }
+}
