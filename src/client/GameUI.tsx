@@ -1,1664 +1,44 @@
 import { DeletionObservation } from "../shared/DeletionObservation";
-import { highestUnlocked } from "../shared/CampaignProgress";
 import { stickVector, TouchSticks } from "../shared/TouchSticks";
-import { FlightMath } from "../shared/FlightMath";
 import { initialTelemetry } from "../shared/InitialTelemetry";
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "@rbxts/react";
-import { flightWarning, LOW_ALTITUDE } from "../shared/FlightWarnings";
-import { evadeGauge } from "../shared/EvadeGauge";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "@rbxts/react";
+import { flightWarning } from "../shared/FlightWarnings";
 import { RadioQueue, type RadioLine } from "../shared/RadioQueue";
 import { Voice } from "../shared/VoiceLines";
 import { type VoiceHandle, VoicePlayer } from "./VoicePlayer";
 import { effectiveHudScale, type PlayerSettings, type SettingKey } from "../shared/PlayerSettings";
-import { EvadeButton, PauseOverlay, Radar, SettingsSheet } from "./HudControls";
+import { PauseOverlay, SettingsSheet } from "./HudControls";
 import { SettingsStore, useSettings } from "./SettingsStore";
 import type { FlightTrend } from "./FlightController";
-import {
-	CAMPAIGN_HEADER_GAP,
-	CAMPAIGN_HEADER_HEIGHT,
-	getSaveSlotLayout,
-	getSlotListCanvasHeight,
-	getSlotListHeight,
-	SAVE_SLOT_GAP,
-	SAVE_SLOT_SCROLLBAR_LANE,
-	type SaveSlotLayout,
-} from "../shared/SaveSlotLayout";
 import ReactRoblox from "@rbxts/react-roblox";
-import { GuiService, RunService, TweenService, UserInputService, Workspace } from "@rbxts/services";
-
-import type {
-	CampaignResponse,
-	MissionFinished,
-	MissionLoading,
-	MissionMessage,
-	MissionStarted,
-	Persistence,
-	Remotes,
-	SaveSlot,
-	Telemetry,
-} from "../shared/Types";
-import { ACT_NAMES, ACT_NUMERALS, ACTS, environmentName, MissionCatalog, MISSION_COUNT, REGION_NAMES } from "../shared/MissionCatalog";
-import { MENU_JET_POSITION } from "../shared/MenuWorldGeometry";
-import { MissionScore, type MissionRank } from "../shared/MissionScore";
+import { GuiService, RunService, UserInputService, Workspace } from "@rbxts/services";
+import type { CampaignResponse, MissionFinished, MissionLoading, MissionMessage, MissionStarted, Persistence, Remotes, SaveSlot, Telemetry } from "../shared/Types";
+import { MissionCatalog, MISSION_COUNT } from "../shared/MissionCatalog";
+import { MissionScore } from "../shared/MissionScore";
 import { WeaponRules } from "../shared/WeaponRules";
-import { GameConfig } from "../shared/GameConfig";
 import { SpecialKind, SpecialWeapons } from "../shared/SpecialWeapons";
-import {
-	ARCHIVE_GAP,
-	ARCHIVE_HEADER_HEIGHT,
-	ARCHIVE_TAB_HEIGHT,
-	BRIEFING_GAP,
-	BRIEFING_HEADER_SPACING,
-	BRIEFING_LINE_HEIGHT,
-	BRIEFING_STORY_LINE_HEIGHT,
-	getArchiveCanvasHeight,
-	getArchiveGrid,
-	getBriefingLayout,
-} from "../shared/BriefingLayout";
-import { C, HEX, HUD, HUD_FONT_BOLD } from "./Theme";
-import { HudLabel, InstrumentBox, Reticle, StatusPanel, WarningBox } from "./AceHud";
-import { clockLines, instrumentValue, statusLine } from "../shared/HudInstruments";
-import { LoadoutPicker } from "./LoadoutPicker";
-import { DifficultyPicker } from "./DifficultyPicker";
-import { InputModeContext, SELECTION_NONE, useHighlight } from "./Highlight";
+import { C, HUD } from "./Theme";
 import { Difficulty, DifficultyKind } from "../shared/Difficulty";
-import { NavigationCue } from "./NavigationCue";
 import { RelayCinematic } from "./RelayCinematic";
 import { FlightController } from "./FlightController";
 import { CameraShake } from "./CameraShake";
-import { KillFlash, KillMarker } from "./KillMarker";
-import { ImpactFeedback, KillSnapshot } from "../shared/ImpactFeedback";
+import type { KillFlash } from "./KillMarker";
+import { ImpactFeedback } from "../shared/ImpactFeedback";
 import { LoadingScreen } from "./LoadingScreen";
 import { preloadMission } from "./MissionPreload";
-import {
-	getEvadeHint,
-	getSpecialHint,
-	getFlightHints,
-	getHudLayout,
-	getKillMarkerLayout,
-	getMenuHintsLayout,
-	getMenuLayout,
-	getMenuSceneOpening,
-	getToastLayout,
-	getTutorialInstruction,
-	getMovementIndicators,
-	getMovementIndicatorLayout,
-	inputModeFromInputType,
-	JOYSTICK_SIZE,
-	MAX_FLIGHT_HINTS,
-	type HudOptions,
-	MIN_TOUCH_TARGET,
-	inputModeFromPreferred,
-	shouldAcceptInputModeChange,
-	type ControlHint,
-	type InputMode,
-	type MenuLayout,
-	type Rectangle,
-} from "../shared/UILayout";
-
-
-// Frames the DisplayJet that WorldBuilder parks on the east apron.
-const MENU_JET = MENU_JET_POSITION.add(new Vector3(0, 2, 0));
-const MENU_EYE_OFFSET = new Vector3(-17, 9, 54);
-const SLOT_NUMBERS = [1, 2, 3, 4];
-const MENU_SCREEN_FRAMES = { title: "TitleScreen", slots: "CampaignScreen", briefing: "BriefingScreen", outcome: "OutcomeScreen", cinematic: "CinematicScreen" };
-
-type Screen = "title" | "slots" | "briefing" | "loading" | "mission" | "outcome" | "cinematic";
-// The loading overlay is opaque; the camera simply holds its last frame underneath it.
-const NO_MENU_CAMERA: ReadonlySet<Screen> = new Set<Screen>(["mission", "cinematic", "loading"]);
-// If "Started" never follows "Loading" (server holds for at most ~8 s), fall back to the briefing.
-const LOADING_CLIENT_TIMEOUT = 20;
-const MISSION_END_HOLD = 1.2;
-
-interface ToastState {
-	message: string;
-	isError: boolean;
-}
-
-interface OutcomeState {
-	won: boolean;
-	missionId: number;
-	airKills: number;
-	optionalKills: number;
-	groundKills: number;
-	elapsed: number;
-	par: number;
-	completedPhases: number;
-	missilesFired: number;
-	missileHits: number;
-	damageTaken: number;
-	lowestHealth: number;
-	evades: number;
-	score: number;
-	rank: MissionRank;
-	newBestScore: boolean;
-	newBestRank: boolean;
-	bestScore?: number;
-	bestRank?: MissionRank;
-	reason?: string;
-	/** Level the sortie was flown on, when the server said. */
-	difficulty?: DifficultyKind;
-	saveText: string;
-	saveColor: Color3;
-}
-
-interface KillNotice {
-	kills: number;
-	total: number;
-	until: number;
-}
-
-/** Temporarily replaces the one-line objective (radio lines, kills). */
-interface Callout {
-	text: string;
-	color?: Color3;
-}
-
-interface RadioNotice {
-	text: string;
-	until: number;
-}
-/** Seconds a radio line stays up when the server does not specify. */
-const RADIO_SECONDS = 4.5;
-/** Rectangle in a scaled HUD frame -> root pixels. */
-function scaleRectangle(rectangle: Rectangle, scale: number): Rectangle {
-	return { x: rectangle.x * scale, y: rectangle.y * scale, width: rectangle.width * scale, height: rectangle.height * scale };
-}
-/** Seconds a refused FIRE reason stays up. */
-const FIRE_DENIED_SECONDS = 1;
-const FIRE_DENIED_TEXT: { [reason: string]: string } = {
-	no_ammo: "NO MISSILES · RELOADING", cooldown: "LAUNCHER CYCLING", blind: "NO LOCK · FIRING BLIND",
-	special_empty: "SPECIAL EXPENDED", special_cooldown: "SPECIAL CYCLING", special_active: "DRONE ALREADY UP", special_no_target: "SPECIAL · NO TARGET IN CONE",
-};
-
-interface GameUIProps {
-	remotes: Remotes;
-	controller: FlightController;
-}
-
-const glyphCache = new Map<string, string>();
-
-function glyphFor(keyCodeName: string): string {
-	const cached = glyphCache.get(keyCodeName);
-	if (cached !== undefined) return cached;
-	let image = "";
-	const keyCode = Enum.KeyCode.GetEnumItems().find((item) => item.Name === keyCodeName);
-	if (keyCode) {
-		const [ok, result] = pcall(() => UserInputService.GetImageForKeyCode(keyCode));
-		if (ok && typeIs(result, "string")) image = result;
-	}
-	glyphCache.set(keyCodeName, image);
-	return image;
-}
-
-function readInputMode(): InputMode {
-	const [ok, preferred] = pcall(() => UserInputService.PreferredInput);
-	if (ok && typeIs(preferred, "EnumItem")) {
-		const mode = inputModeFromPreferred(preferred.Name);
-		if (mode) return mode;
-	}
-	const last = inputModeFromInputType(UserInputService.GetLastInputType().Name);
-	if (last) return last;
-	if (UserInputService.TouchEnabled && !UserInputService.KeyboardEnabled) return "touch";
-	if (UserInputService.GamepadEnabled && !UserInputService.KeyboardEnabled) return "gamepad";
-	return "keyboard";
-}
-
-const Corner = ({ radius = 6, scale }: { radius?: number; scale?: number }) => (
-	<uicorner CornerRadius={scale !== undefined ? new UDim(scale, 0) : new UDim(0, radius)} />
-);
-
-const Stroke = ({
-	color = C.Ivory,
-	transparency = 0.85,
-	thickness = 1,
-}: {
-	color?: Color3;
-	transparency?: number;
-	thickness?: number;
-}) => <uistroke ApplyStrokeMode={Enum.ApplyStrokeMode.Border} Color={color} Transparency={transparency} Thickness={thickness} />;
-
-interface ActionButtonProps {
-	name: string;
-	text: string;
-	primary?: boolean;
-	enabled?: boolean;
-	position?: UDim2;
-	size?: UDim2;
-	anchorPoint?: Vector2;
-	layoutOrder?: number;
-	textSize?: number;
-	onActivated: () => void;
-}
-
-function ActionButton({
-	name,
-	text,
-	primary = false,
-	enabled = true,
-	position,
-	size = UDim2.fromOffset(180, 48),
-	anchorPoint,
-	layoutOrder,
-	textSize = 14,
-	onActivated,
-}: ActionButtonProps) {
-	const { hot, events, clearHover } = useHighlight(enabled);
-	const background = primary ? (hot ? C.AccentHot : C.Accent) : hot ? C.PanelHot : C.Panel;
-	return (
-		<textbutton
-			key={name}
-			Active={enabled}
-			AutoButtonColor={false}
-			AnchorPoint={anchorPoint}
-			Position={position}
-			Size={size}
-			LayoutOrder={layoutOrder}
-			BackgroundColor3={background}
-			BackgroundTransparency={enabled ? (primary ? 0 : hot ? 0.05 : 0.22) : 0.6}
-			BorderSizePixel={0}
-			Font={Enum.Font.GothamBold}
-			Text={text}
-			TextColor3={primary ? C.Ink : C.Ivory}
-			TextTransparency={enabled ? 0 : 0.45}
-			TextScaled={true}
-			SelectionImageObject={SELECTION_NONE}
-			Event={{
-				...events,
-				Activated: () => {
-					clearHover();
-					if (enabled) onActivated();
-				},
-			}}
-		>
-			<Corner />
-			<Stroke color={hot ? C.Ivory : primary ? C.Accent : C.Ivory} transparency={hot ? 0.1 : primary ? 0.6 : 0.82} thickness={hot ? 2 : 1} />
-			<uipadding PaddingLeft={new UDim(0, 14)} PaddingRight={new UDim(0, 14)} PaddingTop={new UDim(0, 12)} PaddingBottom={new UDim(0, 12)} />
-			<uitextsizeconstraint MaxTextSize={textSize} MinTextSize={8} />
-		</textbutton>
-	);
-}
-
-function Label({
-	name,
-	text,
-	position,
-	size,
-	color = C.Ivory,
-	textSize = 14,
-	font = Enum.Font.Gotham,
-	textXAlignment = Enum.TextXAlignment.Left,
-	textYAlignment = Enum.TextYAlignment.Center,
-	textWrapped = false,
-	richText = false,
-	automaticSize,
-	anchorPoint,
-	layoutOrder,
-	visible = true,
-	stroke = false,
-	zIndex,
-	minTextSize,
-}: {
-	name: string;
-	text: string;
-	position?: UDim2;
-	size: UDim2;
-	color?: Color3;
-	textSize?: number;
-	font?: Enum.Font;
-	textXAlignment?: Enum.TextXAlignment;
-	textYAlignment?: Enum.TextYAlignment;
-	textWrapped?: boolean;
-	richText?: boolean;
-	automaticSize?: Enum.AutomaticSize;
-	anchorPoint?: Vector2;
-	layoutOrder?: number;
-	visible?: boolean;
-	stroke?: boolean;
-	zIndex?: number;
-	/** Shrinks text down to this size (never above textSize) when it would not fit. */
-	minTextSize?: number;
-}) {
-	return (
-		<textlabel
-			key={name}
-			AnchorPoint={anchorPoint}
-			Position={position}
-			Size={size}
-			AutomaticSize={automaticSize}
-			BackgroundTransparency={1}
-			BorderSizePixel={0}
-			Font={font}
-			Text={text}
-			RichText={richText}
-			TextColor3={color}
-			TextSize={textSize}
-			TextXAlignment={textXAlignment}
-			TextYAlignment={textYAlignment}
-			TextWrapped={textWrapped}
-			TextStrokeColor3={C.Ink}
-			TextStrokeTransparency={stroke ? 0.55 : 1}
-			TextScaled={minTextSize !== undefined}
-			LayoutOrder={layoutOrder}
-			Visible={visible}
-			ZIndex={zIndex}
-		>
-			{minTextSize !== undefined && <uitextsizeconstraint MaxTextSize={textSize} MinTextSize={minTextSize} />}
-		</textlabel>
-	);
-}
-
-function KeyCap({ hint }: { hint: ControlHint }) {
-	const glyph = hint.keyCode !== undefined ? glyphFor(hint.keyCode) : "";
-	if (glyph !== "") {
-		return <imagelabel key="Glyph" BackgroundTransparency={1} Image={glyph} LayoutOrder={1} Size={UDim2.fromOffset(22, 22)} />;
-	}
-	return (
-		<textlabel
-			key="Key"
-			AutomaticSize={Enum.AutomaticSize.X}
-			BackgroundColor3={C.Ivory}
-			BackgroundTransparency={0.08}
-			BorderSizePixel={0}
-			Font={Enum.Font.GothamBold}
-			LayoutOrder={1}
-			Size={UDim2.fromOffset(20, 20)}
-			Text={hint.label}
-			TextColor3={C.Ink}
-			TextSize={10}
-		>
-			<Corner radius={4} />
-			<uipadding PaddingLeft={new UDim(0, 6)} PaddingRight={new UDim(0, 6)} />
-		</textlabel>
-	);
-}
-
-function HintChip({ hint, order, color = C.Ivory }: { hint: ControlHint; order: number; color?: Color3 }) {
-	return (
-		<frame key={`${hint.action}Hint`} AutomaticSize={Enum.AutomaticSize.X} BackgroundTransparency={1} LayoutOrder={order} Size={UDim2.fromOffset(0, 24)}>
-			<uilistlayout FillDirection={Enum.FillDirection.Horizontal} Padding={new UDim(0, 6)} SortOrder={Enum.SortOrder.LayoutOrder} VerticalAlignment={Enum.VerticalAlignment.Center} />
-			<KeyCap hint={hint} />
-			<Label name="Action" text={hint.action} color={color} textSize={11} font={Enum.Font.GothamBold} size={UDim2.fromOffset(0, 20)} automaticSize={Enum.AutomaticSize.X} layoutOrder={2} stroke={true} />
-		</frame>
-	);
-}
-
-function HintRowImpl({
-	name,
-	hints,
-	rectangle,
-	alignment = Enum.HorizontalAlignment.Center,
-	visible = true,
-}: {
-	name: string;
-	hints: ControlHint[];
-	rectangle: Rectangle;
-	alignment?: Enum.HorizontalAlignment;
-	visible?: boolean;
-}) {
-	return (
-		<frame
-			key={name}
-			BackgroundTransparency={1}
-			Position={UDim2.fromOffset(rectangle.x, rectangle.y)}
-			Size={UDim2.fromOffset(rectangle.width, rectangle.height)}
-			Visible={visible && hints.size() > 0}
-		>
-			<uilistlayout
-				FillDirection={Enum.FillDirection.Horizontal}
-				HorizontalAlignment={alignment}
-				Padding={new UDim(0, 14)}
-				SortOrder={Enum.SortOrder.LayoutOrder}
-				VerticalAlignment={Enum.VerticalAlignment.Bottom}
-				Wraps={true}
-			/>
-			{hints.map((hint, index) => <HintChip key={`${hint.action}Hint`} hint={hint} order={index + 1} />)}
-		</frame>
-	);
-}
-
-const HintRow = React.memo(HintRowImpl);
-
-function finite(value: unknown, fallback: number): number {
-	return typeIs(value, "number") && value === value && math.abs(value) !== math.huge ? value : fallback;
-}
-
-function safeString(value: unknown, fallback: string): string {
-	return typeIs(value, "string") && value.size() <= 80 ? value : fallback;
-}
-
-function safeRadio(value: unknown, fallback: string | undefined): string | undefined {
-	return typeIs(value, "string") && value.size() > 0 && value.size() <= 140 ? value : fallback;
-}
-
-function formatTime(value: number): string {
-	const seconds = math.max(0, math.floor(finite(value, 0)));
-	return string.format("%02d:%02d", math.floor(seconds / 60), seconds % 60);
-}
-
-function normalizeSlots(response: CampaignResponse): SaveSlot[] | undefined {
-	if (!response.slots || response.slots.size() !== 4) return undefined;
-	const parsed = new Array<SaveSlot>();
-	for (let offset = 0; offset < 4; offset++) {
-		const source = response.slots[offset];
-		if (!typeIs(source, "table")) return undefined;
-		const bestTime = typeIs(source.bestTime, "number") ? finite(source.bestTime, 0) : undefined;
-		parsed.push({
-			index: offset + 1,
-			occupied: source.occupied === true,
-			completed: source.completed === true,
-			kills: math.clamp(math.floor(finite(source.kills, 0)), 0, 99),
-			bestTime,
-			updatedAt: source.updatedAt,
-			currentMission: math.clamp(math.floor(finite(source.currentMission, 1)), 1, MISSION_COUNT),
-			missions: source.missions,
-			introSeen: source.introSeen, cutscenesSeen: source.cutscenesSeen,
-			special: SpecialWeapons.IsKind(source.special) ? source.special : undefined,
-			difficulty: Difficulty.IsKind(source.difficulty) ? source.difficulty : undefined,
-			mission1Completed: source.mission1Completed === true,
-			mission2Completed: source.mission2Completed === true,
-			mission1BestTime: typeIs(source.mission1BestTime, "number") ? math.max(0, finite(source.mission1BestTime, 0)) : undefined,
-			mission2BestTime: typeIs(source.mission2BestTime, "number") ? math.max(0, finite(source.mission2BestTime, 0)) : undefined,
-		});
-	}
-	return parsed;
-}
-
-function normalizePersistence(value: unknown): Persistence {
-	return value === "cloud" || value === "session" ? value : "unavailable";
-}
-
-function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
-	const missionId = MissionCatalog.IsValidId(payload.missionId) ? payload.missionId : previous.missionId;
-	const targetKind = payload.targetKind === "ground" || payload.targetKind === "air" ? payload.targetKind : previous.targetKind;
-	const tutorialStep = payload.tutorialStep === "move" || payload.tutorialStep === "target" || payload.tutorialStep === "missile" || payload.tutorialStep === ""
-		? payload.tutorialStep
-		: previous.tutorialStep;
-	return {
-		kind: "Telemetry",
-		health: math.clamp(finite(payload.health, previous.health), 0, 100),
-		speed: math.max(0, finite(payload.speed, previous.speed)),
-		altitude: finite(payload.altitude, previous.altitude),
-		kills: math.clamp(math.floor(finite(payload.kills, previous.kills)), 0, 99),
-		total: math.clamp(math.floor(finite(payload.total, previous.total)), 1, 99),
-		missiles: math.max(0, math.floor(finite(payload.missiles, previous.missiles))),
-		missileCooldown: math.max(0, finite(payload.missileCooldown, previous.missileCooldown)),
-		evadeCooldown: math.max(0, finite(payload.evadeCooldown, previous.evadeCooldown)),
-		evadeCharges: typeIs(payload.evadeCharges, "number") && finite(payload.evadeCharges, -1) >= 0 ? math.clamp(math.floor(payload.evadeCharges), 0, 9) : undefined,
-		target: typeIs(payload.target, "Instance") && payload.target.IsA("Model") ? payload.target : undefined,
-		targetName: safeString(payload.targetName, previous.targetName),
-		lockProgress: math.clamp(finite(payload.lockProgress, previous.lockProgress), 0, 1),
-		incoming: payload.incoming === true,
-		evadeThreat: payload.evadeThreat === true,
-		lockWarning: payload.lockWarning === true,
-		elapsed: math.max(0, finite(payload.elapsed, previous.elapsed)),
-		targetDistance: math.max(0, finite(payload.targetDistance, previous.targetDistance ?? 0)),
-		boundaryWarning: payload.boundaryWarning === undefined ? previous.boundaryWarning : payload.boundaryWarning === true,
-		missionId,
-		navigation: typeIs(payload.navigation, "Vector3") ? payload.navigation : undefined,
-		navigationRadius: typeIs(payload.navigationRadius, "number") && finite(payload.navigationRadius, -1) >= 0 ? payload.navigationRadius : undefined,
-		navigationCeiling: typeIs(payload.navigationCeiling, "number") && finite(payload.navigationCeiling, -1) >= 0 ? payload.navigationCeiling : undefined,
-		protectedHealth: payload.protectedHealth,
-		phase: safeString(payload.phase, previous.phase ?? ""),
-		objective: safeString(payload.objective, previous.objective ?? "Complete the objective"),
-		objectiveProgress: math.max(0, math.floor(finite(payload.objectiveProgress, previous.objectiveProgress ?? 0))),
-		objectiveTotal: math.max(0, math.floor(finite(payload.objectiveTotal, previous.objectiveTotal ?? 0))),
-		timeRemaining: math.clamp(finite(payload.timeRemaining, previous.timeRemaining ?? GameConfig.Campaign.MissionTimeLimit), 0, GameConfig.Campaign.MissionTimeLimit),
-		pauseRemaining: typeIs(payload.pauseRemaining, "number") ? math.clamp(finite(payload.pauseRemaining, 0), 0, 300) : undefined,
-		turnObserved: payload.turnObserved,
-		pitchObserved: payload.pitchObserved,
-		tutorialStep,
-		groundKills: math.max(0, math.floor(finite(payload.groundKills, previous.groundKills ?? 0))),
-		targetKind,
-		targetRequired: payload.targetRequired === undefined ? previous.targetRequired : payload.targetRequired === true,
-		radio: safeRadio(payload.radio, undefined),
-		radioSerial: typeIs(payload.radioSerial, "number") ? math.max(0, math.floor(finite(payload.radioSerial, previous.radioSerial ?? 0))) : previous.radioSerial,
-		radioPriority: payload.radioPriority === true,
-		radioSeconds: typeIs(payload.radioSeconds, "number") ? math.clamp(finite(payload.radioSeconds, RADIO_SECONDS), 0.25, 10) : undefined,
-		fireDenied: WeaponRules.IsFireNotice(payload.fireDenied) ? payload.fireDenied : undefined,
-		special: SpecialWeapons.IsKind(payload.special) ? payload.special : previous.special,
-		specialCharges: math.max(0, math.floor(finite(payload.specialCharges, previous.specialCharges ?? 0))),
-		specialCooldown: math.max(0, finite(payload.specialCooldown, previous.specialCooldown ?? 0)),
-		specialActive: math.max(0, finite(payload.specialActive, previous.specialActive ?? 0)),
-		targetDamageable: payload.targetDamageable === undefined ? undefined : payload.targetDamageable === true,
-		fireDeniedSerial: typeIs(payload.fireDeniedSerial, "number") ? math.max(0, math.floor(finite(payload.fireDeniedSerial, previous.fireDeniedSerial ?? 0))) : previous.fireDeniedSerial,
-		targetHealth: typeIs(payload.targetHealth, "number") ? math.clamp(finite(payload.targetHealth, 1), 0, 1) : undefined,
-		aceKilled: payload.aceKilled === true,
-		optionalKills: math.max(0, math.floor(finite(payload.optionalKills, previous.optionalKills ?? 0))),
-		incomingDistance: typeIs(payload.incomingDistance, "number") ? math.max(0, finite(payload.incomingDistance, 0)) : undefined,
-	};
-}
-
-function resumeMission(slot?: SaveSlot): number {
-	return slot?.currentMission ?? 1;
-}
-
-function killSnapshot(telemetry: Telemetry): KillSnapshot {
-	// `kills` is required destructions only; raiders still earn a SPLASH callout.
-	return { kills: telemetry.kills + (telemetry.optionalKills ?? 0), groundKills: telemetry.groundKills ?? 0, aceKilled: telemetry.aceKilled === true };
-}
-
-/** Screen point (HUD-root pixels) of the target that just died, if it was the selected one and on screen. */
-function killedTargetPoint(target: Model | undefined, root: Frame | undefined): Vector2 | undefined {
-	const camera = Workspace.CurrentCamera;
-	// The server destroys a killed target, so a still-parented selection was someone else.
-	if (!target || target.Parent !== undefined || !camera || !root) return undefined;
-	const [ok, pivot] = pcall(() => target.GetPivot());
-	if (!ok) return undefined;
-	const [screen, visible] = camera.WorldToViewportPoint(pivot.Position);
-	if (!visible) return undefined;
-	const point = new Vector2(screen.X, screen.Y).sub(root.AbsolutePosition);
-	return point.X >= 0 && point.Y >= 0 && point.X <= root.AbsoluteSize.X && point.Y <= root.AbsoluteSize.Y ? point : undefined;
-}
-
-function missileReady(telemetry: Telemetry): boolean {
-	return telemetry.missileCooldown <= 0 && telemetry.missiles > 0;
-}
-
-const MENU_FOV = 50;
-const MENU_TAN_HALF_FOV = math.tan(math.rad(MENU_FOV / 2));
-let menuCameraViewport: Vector2 | undefined;
-let menuCameraSheet = false;
-let menuCameraOpening = 0.5;
-function setMenuCamera() {
-	const camera = Workspace.CurrentCamera;
-	if (!camera) return;
-	const size = camera.ViewportSize;
-	const clock = os.clock();
-	const sway = new Vector3(math.sin(clock * 0.11) * 2, math.sin(clock * 0.07) * 0.8, 0);
-	let eye = MENU_JET.add(MENU_EYE_OFFSET);
-	let focus: Vector3;
-	// The layout solver only re-runs when the viewport changes, not every menu frame.
-	if (menuCameraViewport !== size) {
-		menuCameraViewport = size;
-		const layout = getMenuLayout(size.X, size.Y);
-		menuCameraSheet = layout.mode === "sheet";
-		menuCameraOpening = getMenuSceneOpening(size.X, layout);
-	}
-	if (menuCameraSheet) {
-		eye = MENU_JET.add(MENU_EYE_OFFSET.mul(1.8));
-		focus = MENU_JET.sub(new Vector3(0, 20, 0));
-	} else {
-		// Centre the jet in the open strip right of the panel. A narrow strip
-		// (phones) pulls the camera back so the whole aircraft still fits in it.
-		const aspect = size.X / math.max(1, size.Y);
-		const open = 1 - menuCameraOpening;
-		const distance = math.clamp(0.5 / open, 1, 1.45);
-		eye = MENU_JET.add(MENU_EYE_OFFSET.mul(distance));
-		const screenX = (menuCameraOpening + open * 0.5) * 2 - 1;
-		const lateral = screenX * MENU_EYE_OFFSET.Magnitude * distance * MENU_TAN_HALF_FOV * aspect;
-		const cameraLeft = MENU_EYE_OFFSET.Cross(Vector3.yAxis).Unit;
-		focus = MENU_JET.add(cameraLeft.mul(lateral));
-	}
-	camera.CameraType = Enum.CameraType.Scriptable;
-	camera.CFrame = CFrame.lookAt(eye.add(sway), focus);
-	camera.FieldOfView = MENU_FOV;
-}
-
-function MenuBackdropImpl({ visible, menu, viewport }: { visible: boolean; menu: MenuLayout; viewport: Vector2 }) {
-	const side = menu.mode === "side";
-	// Ink sits solidly behind the copy and clears just past the panel edge. The
-	// backdrop ignores the safe-area inset, hence the small allowance.
-	const opening = getMenuSceneOpening(viewport.X, menu) + 0.03;
-	const sheetTop = math.clamp(menu.panel.y / math.max(1, viewport.Y), 0.25, 0.8);
-	return (
-		<frame key="Backdrop" BackgroundColor3={C.Ink} BackgroundTransparency={0} BorderSizePixel={0} Size={UDim2.fromScale(1, 1)} Visible={visible} ZIndex={0}>
-			<uigradient
-				Rotation={side ? 0 : 90}
-				Transparency={side
-					? new NumberSequence([
-						new NumberSequenceKeypoint(0, 0.06),
-						new NumberSequenceKeypoint(opening * 0.6, 0.12),
-						new NumberSequenceKeypoint(opening - 0.04, 0.24),
-						new NumberSequenceKeypoint(opening + 0.08, 0.82),
-						new NumberSequenceKeypoint(opening + 0.18, 1),
-						new NumberSequenceKeypoint(1, 1),
-					])
-					: new NumberSequence([
-						new NumberSequenceKeypoint(0, 1),
-						new NumberSequenceKeypoint(sheetTop - 0.2, 1),
-						new NumberSequenceKeypoint(sheetTop - 0.05, 0.45),
-						new NumberSequenceKeypoint(sheetTop + 0.05, 0.12),
-						new NumberSequenceKeypoint(1, 0.04),
-					])}
-			/>
-		</frame>
-	);
-}
-
-const MenuBackdrop = React.memo(MenuBackdropImpl);
-
-function panelPosition(menu: MenuLayout) {
-	return { Position: UDim2.fromOffset(menu.panel.x, menu.panel.y), Size: UDim2.fromOffset(menu.panel.width, menu.panel.height) };
-}
-
-function missionNumber(id: number): string {
-	return string.format("%02d", id);
-}
-
-function actLabel(act: number): string {
-	return `ACT ${ACT_NUMERALS[act] ?? tostring(act)} · ${ACT_NAMES[act] ?? ""}`;
-}
-
-function completedCount(slot?: SaveSlot, act?: number): number {
-	let count = 0;
-	for (const blueprint of MissionCatalog.All()) {
-		if ((act === undefined || blueprint.act === act) && slot?.missions?.[blueprint.id]?.completed === true) count++;
-	}
-	return count;
-}
-
-/** A 44px header row: square back button, then a title over a one-line status. */
-function ScreenHeader({ name, backName, enabled = true, title, subtitle, subtitleColor = C.Muted, compact, onBack }: {
-	name: string;
-	backName: string;
-	enabled?: boolean;
-	title: string;
-	subtitle: string;
-	subtitleColor?: Color3;
-	compact: boolean;
-	onBack: () => void;
-}) {
-	const textLeft = MIN_TOUCH_TARGET + 12;
-	return (
-		<frame key={name} BackgroundTransparency={1} Size={new UDim2(1, 0, 0, MIN_TOUCH_TARGET)}>
-			<ActionButton name={backName} text="‹" size={UDim2.fromOffset(MIN_TOUCH_TARGET, MIN_TOUCH_TARGET)} enabled={enabled} textSize={22} onActivated={onBack} />
-			<Label name={`${name}Title`} text={title} textSize={compact ? 18 : 22} minTextSize={12} font={Enum.Font.GothamBlack} position={UDim2.fromOffset(textLeft, 1)} size={new UDim2(1, -textLeft, 0, compact ? 22 : 25)} />
-			<Label name={`${name}Status`} text={subtitle} color={subtitleColor} textSize={10} minTextSize={8} font={Enum.Font.GothamBold} anchorPoint={new Vector2(0, 1)} position={new UDim2(0, textLeft, 1, -2)} size={new UDim2(1, -textLeft, 0, 13)} />
-		</frame>
-	);
-}
-
-function TitleScreenImpl({ visible, menu, onCampaign, onSettings }: { visible: boolean; menu: MenuLayout; onCampaign: () => void; onSettings: () => void }) {
-	const compact = menu.compact;
-	const tiny = menu.panel.height < 220;
-	// The hero copy reads best as a short column, even when the panel is wide.
-	const contentWidth = math.min(menu.panel.width, 420);
-	return (
-		<frame key="TitleScreen" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={visible}>
-			<frame key="TitleContent" BackgroundTransparency={1} Position={UDim2.fromOffset(menu.panel.x, menu.panel.y)} Size={UDim2.fromOffset(contentWidth, menu.panel.height)}>
-				<uilistlayout
-					Padding={new UDim(0, tiny ? 4 : 8)}
-					SortOrder={Enum.SortOrder.LayoutOrder}
-					VerticalAlignment={menu.mode === "sheet" ? Enum.VerticalAlignment.Bottom : Enum.VerticalAlignment.Center}
-				/>
-				<frame key="Accent" BackgroundColor3={C.Accent} BorderSizePixel={0} LayoutOrder={1} Size={UDim2.fromOffset(32, 2)} />
-				<textlabel
-					key="Title"
-					BackgroundTransparency={1}
-					Font={Enum.Font.GothamBlack}
-					LayoutOrder={2}
-					Size={new UDim2(1, 0, 0, tiny ? 36 : compact ? 52 : 76)}
-					Text="SKYBREAK"
-					TextColor3={C.Ivory}
-					TextScaled={true}
-					TextXAlignment={Enum.TextXAlignment.Left}
-				>
-					<uitextsizeconstraint MaxTextSize={compact ? 48 : 70} MinTextSize={28} />
-				</textlabel>
-				<Label name="Subtitle" text="BROKEN RELAY" color={C.Orange} textSize={compact ? 11 : 13} font={Enum.Font.GothamBold} size={new UDim2(1, 0, 0, 16)} layoutOrder={3} />
-				<Label
-					name="Blurb"
-					visible={!tiny}
-					text={`Follow a missing mentor’s recordings through ${MISSION_COUNT} sorties. Uncover the coup. Bring the coast home.`}
-					color={C.Muted}
-					textSize={compact ? 13 : 15}
-					size={new UDim2(1, 0, 0, 0)}
-					automaticSize={Enum.AutomaticSize.Y}
-					textWrapped={true}
-					layoutOrder={4}
-				/>
-				<Label name="TitleMeta" visible={!tiny} text={`3 ACTS  ·  ${MISSION_COUNT} SORTIES  ·  4 FLIGHT RECORDS`} color={C.Faint} textSize={10} font={Enum.Font.GothamBold} size={new UDim2(1, 0, 0, 14)} layoutOrder={5} />
-				<frame key="Spacer" BackgroundTransparency={1} LayoutOrder={6} Size={UDim2.fromOffset(1, tiny ? 2 : compact ? 6 : 14)} />
-				<ActionButton name="CampaignButton" text="CAMPAIGN  ›" primary={true} layoutOrder={7} size={UDim2.fromOffset(math.min(260, contentWidth), tiny ? 44 : compact ? 48 : 52)} textSize={15} onActivated={onCampaign} />
-				<ActionButton name="SettingsButton" text="SETTINGS" layoutOrder={8} size={UDim2.fromOffset(math.min(260, contentWidth), 44)} textSize={12} onActivated={onSettings} />
-			</frame>
-		</frame>
-	);
-}
-const TitleScreen = React.memo(TitleScreenImpl);
-
-function SaveSlotRow({
-	number,
-	slot,
-	busy,
-	confirming,
-	layout,
-	onSlot,
-	onAskDelete,
-	onConfirmDelete,
-	onCancelDelete,
-}: {
-	number: number;
-	slot?: SaveSlot;
-	busy: boolean;
-	confirming: boolean;
-	layout: SaveSlotLayout;
-	onSlot: (slot: number) => void;
-	onAskDelete: (slot: number) => void;
-	onConfirmDelete: (slot: number) => void;
-	onCancelDelete: () => void;
-}) {
-	const enabled = !busy && slot !== undefined && !confirming;
-	const deletable = !busy && slot?.occupied === true;
-	const { hot, events, clearHover } = useHighlight(enabled);
-	const deleteHighlight = useHighlight(deletable && !confirming);
-	const completed = completedCount(slot);
-	const status = busy ? "READING FILE..." : !slot ? "LINK UNAVAILABLE" : slot.completed ? "COMPLETE · REPLAY" : slot.occupied ? `CONTINUE MISSION ${missionNumber(slot.currentMission ?? 1)}` : "NEW CAMPAIGN";
-	const detail = busy ? "Please stand by" : !slot ? "Return and try again" : `${completed}/${MISSION_COUNT} complete · ${MissionCatalog.Get(slot.currentMission ?? 1).title}`;
-	const statusColor = confirming ? C.Danger : slot?.completed ? C.Accent : slot && !slot.occupied && !busy ? C.Accent : C.Ivory;
-	const accent = confirming ? C.Danger : hot ? C.Accent : C.Faint;
-	// Label uses fixed-size text: the copy frame clips, and SaveSlotLayout sizes
-	// its lanes from real font metrics (see SaveSlotLayout.spec).
-	const copy = (
-		<frame key="Copy" BackgroundTransparency={1} ClipsDescendants={true} Position={UDim2.fromOffset(layout.copyLeft, 0)} Size={UDim2.fromOffset(layout.copyWidth, layout.rowHeight)}>
-			<Label name="Status" text={confirming ? `DELETE FILE ${missionNumber(number)}?` : status} color={statusColor} textSize={13} font={Enum.Font.GothamBold} position={UDim2.fromOffset(0, layout.statusTop)} size={new UDim2(1, 0, 0, layout.statusHeight)} textWrapped={true} />
-			<Label name="Detail" text={confirming ? "All progress in this file is lost." : detail} color={C.Muted} textSize={12} position={UDim2.fromOffset(0, layout.detailTop)} size={new UDim2(1, 0, 0, layout.detailHeight)} textWrapped={true} />
-			{slot?.occupied === true && !confirming && (
-				<frame key="Progress" BackgroundColor3={C.Ivory} BackgroundTransparency={0.88} BorderSizePixel={0} Position={UDim2.fromOffset(0, layout.progressTop)} Size={new UDim2(1, 0, 0, 3)}>
-					<Corner scale={1} />
-					<frame key="Fill" BackgroundColor3={C.Accent} BorderSizePixel={0} Size={new UDim2(completed / MISSION_COUNT, 0, 1, 0)} Visible={completed > 0}>
-						<Corner scale={1} />
-					</frame>
-				</frame>
-			)}
-		</frame>
-	);
-	const numberLabel = <Label name="SlotNumber" text={missionNumber(number)} color={accent} textSize={13} font={Enum.Font.RobotoMono} position={UDim2.fromOffset(12, 0)} size={UDim2.fromOffset(28, layout.rowHeight)} />;
-	const rightLane = MIN_TOUCH_TARGET + 16;
-	return (
-		<frame key={`Slot${number}Row`} BackgroundColor3={hot ? C.PanelHot : C.Panel} BackgroundTransparency={hot ? 0.04 : 0.28} BorderSizePixel={0} LayoutOrder={number} Size={new UDim2(1, -SAVE_SLOT_SCROLLBAR_LANE, 0, confirming ? layout.confirmHeight : layout.rowHeight)}>
-			<Corner radius={8} />
-			<Stroke color={confirming ? C.Danger : hot ? C.Accent : C.Ivory} transparency={confirming || hot ? 0.15 : 0.88} thickness={confirming || hot ? 2 : 1} />
-			{confirming ? (
-				<frame key="Confirmation" BackgroundTransparency={1} Size={new UDim2(1, 0, 0, layout.rowHeight)}>
-					{numberLabel}
-					{copy}
-				</frame>
-			) : (
-				<textbutton key={`Slot${number}Button`} Active={enabled} Selectable={enabled} AutoButtonColor={false} BackgroundTransparency={1} BorderSizePixel={0} SelectionImageObject={SELECTION_NONE} Size={new UDim2(1, deletable ? -rightLane : 0, 0, layout.rowHeight)} Text="" Event={{...events, Activated: () => { clearHover(); if (enabled) onSlot(number); }}}>
-					{numberLabel}
-					{copy}
-					{!deletable && <Label name="Arrow" text="›" color={hot ? C.Accent : C.Faint} textSize={22} anchorPoint={new Vector2(1, 0.5)} position={new UDim2(1, -20, 0, layout.rowHeight / 2)} size={UDim2.fromOffset(16, 28)} textXAlignment={Enum.TextXAlignment.Center} visible={enabled} />}
-				</textbutton>
-			)}
-			{confirming ? (
-				<frame key="DeleteActions" BackgroundTransparency={1} Position={UDim2.fromOffset(8, layout.rowHeight)} Size={new UDim2(1, -16, 0, MIN_TOUCH_TARGET)}>
-					<ActionButton name="KeepButton" text="KEEP" size={new UDim2(0.5, -4, 1, 0)} enabled={!busy} textSize={12} onActivated={onCancelDelete} />
-					<ActionButton name="ConfirmDeleteButton" text="DELETE" primary={true} position={new UDim2(0.5, 4, 0, 0)} size={new UDim2(0.5, -4, 1, 0)} enabled={!busy} textSize={12} onActivated={() => onConfirmDelete(number)} />
-				</frame>
-			) : deletable && (
-				<textbutton
-					key="DeleteButton"
-					AnchorPoint={new Vector2(1, 0.5)}
-					AutoButtonColor={false}
-					BackgroundColor3={deleteHighlight.hot ? C.PanelHot : C.Ink}
-					BackgroundTransparency={deleteHighlight.hot ? 0.05 : 0.5}
-					BorderSizePixel={0}
-					Font={Enum.Font.GothamBold}
-					Position={new UDim2(1, -8, 0, layout.rowHeight / 2)}
-					SelectionImageObject={SELECTION_NONE}
-					Size={UDim2.fromOffset(MIN_TOUCH_TARGET, MIN_TOUCH_TARGET)}
-					Text="✕"
-					TextColor3={deleteHighlight.hot ? C.Danger : C.Muted}
-					TextSize={15}
-					Event={{ ...deleteHighlight.events, Activated: () => { deleteHighlight.clearHover(); onAskDelete(number); } }}
-				>
-					<Corner />
-					<Stroke color={deleteHighlight.hot ? C.Danger : C.Ivory} transparency={deleteHighlight.hot ? 0.2 : 0.88} thickness={deleteHighlight.hot ? 2 : 1} />
-				</textbutton>
-			)}
-		</frame>
-	);
-}
-
-function CampaignScreenImpl({
-	visible,
-	menu,
-	slots,
-	busy,
-	persistence,
-	onBack,
-	onSlot,
-	confirmSlot,
-	onAskDelete,
-	onCancelDelete,
-	onDeleteSlot,
-}: {
-	visible: boolean;
-	menu: MenuLayout;
-	slots?: SaveSlot[];
-	busy: boolean;
-	persistence: Persistence;
-	onBack: () => void;
-	onSlot: (slot: number) => void;
-	confirmSlot?: number;
-	onAskDelete: (slot: number) => void;
-	onCancelDelete: () => void;
-	onDeleteSlot: (slot: number) => void;
-}) {
-	// Narrow panels (under 400px) get short copy so the one-line status never clips.
-	const short = menu.panel.width < 400;
-	const persistenceText = busy
-		? short ? "CONNECTING..." : "CONNECTING TO FLIGHT RECORDS..."
-		: persistence === "cloud"
-			? short ? "CLOUD SAVES ONLINE" : "CLOUD SAVES ONLINE · SELECT A FLIGHT RECORD"
-			: persistence === "session"
-				? short ? "SESSION-ONLY SAVES" : "SAVES KEPT FOR THIS SESSION ONLY"
-				: short ? "OFFLINE · MAY NOT SAVE" : "SAVE SERVICE OFFLINE · PROGRESS MAY NOT PERSIST";
-	const layout = getSaveSlotLayout(menu.panel.width);
-	const canvasHeight = getSlotListCanvasHeight(layout, SLOT_NUMBERS.map((number) => confirmSlot === number));
-	return (
-		<frame key="CampaignScreen" BackgroundTransparency={1} Visible={visible} {...panelPosition(menu)}>
-			<ScreenHeader
-				name="CampaignHeader"
-				backName="CampaignBackButton"
-				enabled={!busy}
-				title="CAMPAIGN FILES"
-				subtitle={persistenceText}
-				subtitleColor={persistence === "unavailable" && !busy ? C.Orange : persistence === "cloud" && !busy ? C.Accent : C.Muted}
-				compact={menu.compact}
-				onBack={onBack}
-			/>
-			<scrollingframe key="SlotGrid" BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={3} ScrollBarImageColor3={C.Ivory} ScrollBarImageTransparency={0.6} ScrollingDirection={Enum.ScrollingDirection.Y} CanvasSize={UDim2.fromOffset(0, canvasHeight)} Position={UDim2.fromOffset(0, CAMPAIGN_HEADER_HEIGHT + CAMPAIGN_HEADER_GAP)} Size={new UDim2(1, 0, 0, getSlotListHeight(menu.panel.height))}>
-				<uilistlayout Padding={new UDim(0, SAVE_SLOT_GAP)} SortOrder={Enum.SortOrder.LayoutOrder} />
-				{SLOT_NUMBERS.map((number) => (
-					<SaveSlotRow
-						key={`Slot${number}Row`}
-						number={number}
-						slot={slots?.[number - 1]}
-						busy={busy}
-						confirming={confirmSlot === number}
-						layout={layout}
-						onSlot={onSlot}
-						onAskDelete={onAskDelete}
-						onConfirmDelete={onDeleteSlot}
-						onCancelDelete={onCancelDelete}
-					/>
-				))}
-			</scrollingframe>
-		</frame>
-	);
-}
-const CampaignScreen = React.memo(CampaignScreenImpl);
-
-function FooterButtons({
-	compact,
-	primaryName,
-	primaryText,
-	secondaryName,
-	secondaryText,
-	primaryFirst = true,
-	busy,
-	onPrimary,
-	onSecondary,
-}: {
-	compact: boolean;
-	primaryName: string;
-	primaryText: string;
-	secondaryName: string;
-	secondaryText: string;
-	primaryFirst?: boolean;
-	busy: boolean;
-	onPrimary: () => void;
-	onSecondary: () => void;
-}) {
-	const height = compact ? 44 : 48;
-	const leftSize = new UDim2(0.58, -4, 0, height);
-	const rightSize = new UDim2(0.42, -4, 0, height);
-	return (
-		<>
-			<ActionButton
-				name={primaryName}
-				text={primaryText}
-				primary={true}
-				anchorPoint={primaryFirst ? new Vector2(0, 1) : new Vector2(1, 1)}
-				position={primaryFirst ? new UDim2(0, 0, 1, 0) : new UDim2(1, 0, 1, 0)}
-				size={primaryFirst ? leftSize : rightSize}
-				enabled={!busy}
-				onActivated={onPrimary}
-			/>
-			<ActionButton
-				name={secondaryName}
-				text={secondaryText}
-				anchorPoint={primaryFirst ? new Vector2(1, 1) : new Vector2(0, 1)}
-				position={primaryFirst ? new UDim2(1, 0, 1, 0) : new UDim2(0, 0, 1, 0)}
-				size={primaryFirst ? rightSize : leftSize}
-				enabled={!busy}
-				textSize={13}
-				onActivated={onSecondary}
-			/>
-		</>
-	);
-}
-
-/** Short mission rules, mentioning beacons and escorts only when this sortie has them. */
-function missionRules(phases: { kind: string }[]): string {
-	const lines = ["10-minute window · Retry any time"];
-	if (phases.some((phase) => phase.kind === "route" || phase.kind === "recon" || phase.kind === "signal" || phase.kind === "defend")) {
-		lines.push("Green beacon: fly inside its volume. Scans need the shown altitude.");
-	}
-	if (phases.some((phase) => phase.kind === "escort")) lines.push("Escort: stay near the vehicle; down raiders before they close.");
-	return lines.join("\n");
-}
-
-function SectionHeading({ name, text, layoutOrder }: { name: string; text: string; layoutOrder: number }) {
-	return <Label name={name} text={text} color={C.Orange} textSize={10} font={Enum.Font.GothamBold} size={new UDim2(1, 0, 0, 12)} layoutOrder={layoutOrder} />;
-}
-
-type TileState = "complete" | "next" | "open" | "locked";
-
-function MissionTile({ id, state, selected, enabled, width, height, onChoose }: {
-	id: number;
-	state: TileState;
-	selected: boolean;
-	enabled: boolean;
-	width: number;
-	height: number;
-	onChoose: (id: number) => void;
-}) {
-	const { hot, events, clearHover } = useHighlight(enabled);
-	const blueprint = MissionCatalog.Get(id);
-	const locked = state === "locked";
-	const lit = selected || hot;
-	const name = `Mission${missionNumber(id)}SelectButton`;
-	const stateText = state === "complete" ? "✓ CLEAR" : state === "next" ? "NEXT" : state === "locked" ? "LOCKED" : "";
-	const stateColor = state === "complete" ? C.Accent : state === "next" ? C.Orange : C.Faint;
-	return (
-		<textbutton
-			key={name}
-			Active={enabled}
-			Selectable={enabled}
-			AutoButtonColor={false}
-			BackgroundColor3={lit ? C.PanelHot : C.Panel}
-			BackgroundTransparency={locked ? 0.7 : hot ? 0.04 : selected ? 0.1 : 0.28}
-			BorderSizePixel={0}
-			LayoutOrder={id}
-			SelectionImageObject={SELECTION_NONE}
-			Size={UDim2.fromOffset(width, height)}
-			Text=""
-			Event={{ ...events, Activated: () => { clearHover(); if (enabled) onChoose(id); } }}
-		>
-			<Corner radius={8} />
-			<Stroke color={hot ? C.Ivory : selected ? C.Accent : C.Ivory} transparency={lit ? 0.1 : 0.88} thickness={lit ? 2 : 1} />
-			<uipadding PaddingLeft={new UDim(0, 8)} PaddingRight={new UDim(0, 8)} PaddingTop={new UDim(0, 7)} PaddingBottom={new UDim(0, 7)} />
-			<Label name="Number" text={missionNumber(id)} color={selected ? C.Accent : C.Faint} textSize={12} font={Enum.Font.RobotoMono} size={new UDim2(0.4, 0, 0, 14)} />
-			<Label name="State" text={stateText} color={stateColor} textSize={9} minTextSize={7} font={Enum.Font.GothamBold} anchorPoint={new Vector2(1, 0)} position={UDim2.fromScale(1, 0)} size={new UDim2(0.6, 0, 0, 14)} textXAlignment={Enum.TextXAlignment.Right} />
-			<textlabel key="MissionTitle" BackgroundTransparency={1} Font={Enum.Font.GothamBold} Position={UDim2.fromOffset(0, 17)} Size={new UDim2(1, 0, 0, 16)} Text={blueprint.title} TextColor3={locked ? C.Faint : C.Ivory} TextScaled={true} TextXAlignment={Enum.TextXAlignment.Left}>
-				{/* Long titles shrink to 10pt rather than truncating on phone-width tiles. */}
-				<uitextsizeconstraint MaxTextSize={12} MinTextSize={10} />
-			</textlabel>
-			<textlabel key="MissionMeta" BackgroundTransparency={1} Font={Enum.Font.GothamMedium} Position={UDim2.fromOffset(0, 34)} Size={new UDim2(1, 0, 0, 12)} Text={REGION_NAMES[blueprint.region] ?? ""} TextColor3={C.Faint} TextSize={10} TextTransparency={locked ? 0.4 : 0} TextTruncate={Enum.TextTruncate.AtEnd} TextXAlignment={Enum.TextXAlignment.Left} />
-		</textbutton>
-	);
-}
-
-function ActTab({ act, active, done, total, showName, onSelect }: { act: number; active: boolean; done: number; total: number; showName: boolean; onSelect: (act: number) => void }) {
-	const { hot, events, clearHover } = useHighlight(true);
-	return (
-		<textbutton
-			key={`Act${act}`}
-			AutoButtonColor={false}
-			BackgroundColor3={active ? C.Accent : hot ? C.PanelHot : C.Panel}
-			BackgroundTransparency={active ? 0 : hot ? 0.05 : 0.28}
-			BorderSizePixel={0}
-			LayoutOrder={act}
-			SelectionImageObject={SELECTION_NONE}
-			Size={new UDim2(1 / 3, -4, 1, 0)}
-			Text=""
-			Event={{ ...events, Activated: () => { clearHover(); onSelect(act); } }}
-		>
-			<Corner />
-			<Stroke color={hot ? C.Ivory : active ? C.Accent : C.Ivory} transparency={hot ? 0.1 : active ? 0.4 : 0.88} thickness={hot ? 2 : 1} />
-			<uipadding PaddingLeft={new UDim(0, 8)} PaddingRight={new UDim(0, 8)} PaddingTop={new UDim(0, 6)} PaddingBottom={new UDim(0, 6)} />
-			<Label name="ActNumber" text={`ACT ${ACT_NUMERALS[act]}`} color={active ? C.Ink : C.Ivory} textSize={12} font={Enum.Font.GothamBlack} position={UDim2.fromOffset(0, showName ? 0 : 8)} size={new UDim2(0.6, 0, 0, 16)} />
-			<Label name="ActCount" text={`${done}/${total}`} color={active ? C.Ink : done === total ? C.Accent : C.Muted} textSize={10} font={Enum.Font.RobotoMono} anchorPoint={new Vector2(1, 0)} position={new UDim2(1, 0, 0, showName ? 0 : 8)} size={new UDim2(0.4, 0, 0, 16)} textXAlignment={Enum.TextXAlignment.Right} />
-			<Label name="ActName" visible={showName} text={ACT_NAMES[act] ?? ""} color={active ? C.Ink : C.Faint} textSize={9} minTextSize={8} font={Enum.Font.GothamBold} anchorPoint={new Vector2(0, 1)} position={UDim2.fromScale(0, 1)} size={new UDim2(1, 0, 0, 12)} />
-		</textbutton>
-	);
-}
-
-function BriefingScreenImpl({visible,menu,selectedSlot,selectedMission,slot,busy,special,difficulty,onBack,onLaunch,onMission,onSpecial,onDifficulty}: {
-	visible:boolean;menu:MenuLayout;selectedSlot:number;selectedMission:number;slot?:SaveSlot;busy:boolean;special:SpecialKind;difficulty:DifficultyKind;
-	onBack:()=>void;onLaunch:()=>void;onMission:(id:number)=>void;onSpecial:(kind:SpecialKind)=>void;onDifficulty:(kind:DifficultyKind)=>void;
-}) {
-	const [browse,setBrowse]=useState(false),[act,setAct]=useState(1);
-	const [detailsCanvasHeight,setDetailsCanvasHeight]=useState(0);
-	const [scrolledToEnd,setScrolledToEnd]=useState(false);
-	const panelRef=useRef<Frame>();const inputMode=useContext(InputModeContext);
-	// Whether the reading column is scrolled to its end, from the live canvas
-	// position and the latest content height (the canvas may grow or remount).
-	const detailsCanvasRef=useRef(0);
-	const updateScrolledToEnd=(frame:ScrollingFrame)=>setScrolledToEnd(frame.CanvasPosition.Y>=detailsCanvasRef.current-frame.AbsoluteWindowSize.Y-4);
-	useEffect(()=>setScrolledToEnd(false),[selectedMission,browse]);
-	useEffect(()=>{if(!visible || inputMode!=="gamepad")return;task.defer(()=>{
-		const panel=panelRef.current;if(!panel)return;
-		let selected:Instance|undefined;
-		if(browse) {
-			// The archive opens on the selected mission's tile, else the act's first playable tile.
-			const tile=panel.FindFirstChild(`Mission${missionNumber(selectedMission)}SelectButton`,true);
-			if(tile?.IsA("GuiObject") && tile.Selectable) selected=tile;
-			const archive=panel.FindFirstChild("MissionArchive",true);
-			if(!selected && archive) {
-				let first:GuiObject|undefined;
-				for(const child of archive.GetChildren()) {
-					if(child.IsA("GuiObject") && child.Selectable && (first===undefined || child.LayoutOrder<first.LayoutOrder)) first=child;
-				}
-				selected=first;
-			}
-		}
-		if(!selected) selected=panel.FindFirstChild(browse ? "ArchiveBackButton" : "LaunchButton",true);
-		if(selected?.IsA("GuiObject"))GuiService.SelectedObject=selected;
-	});},[browse,act,inputMode,visible,selectedMission]);
-	const mission=MissionCatalog.Get(selectedMission);
-	const unlocked=highestUnlocked(slot);
-	const record=slot?.missions?.[selectedMission];
-	const completed=record?.completed===true;
-	const layout=getBriefingLayout(menu.panel.width,menu.panel.height);
-	const grid=getArchiveGrid(menu.panel.width,menu.panel.height);
-	const choose=(id:number)=>{onMission(id);setBrowse(false);};
-	const status=completed
-		? `  <font color="${HEX.Accent}">✓ CLEARED${record?.bestRank!==undefined ? ` · RANK ${record.bestRank}` : ""}${record?.bestTime!==undefined ? ` · ${formatTime(record.bestTime)}` : ""}</font>`
-		: selectedMission===unlocked ? `  <font color="${HEX.Orange}">NEW SORTIE</font>` : "";
-	const overflow=detailsCanvasHeight-layout.detailsHeight;
-	const actMissions=MissionCatalog.All().filter((bp)=>bp.act===act);
-	return <frame key="BriefingScreen" BackgroundTransparency={1} Size={UDim2.fromScale(1,1)} Visible={visible}>
-		<frame ref={panelRef} key="BriefingPanel" BackgroundTransparency={1} {...panelPosition(menu)}>
-			{browse ? <>
-				<ScreenHeader name="ArchiveHeader" backName="ArchiveBackButton" title="MISSION ARCHIVE" subtitle={`FILE ${selectedSlot} · ${completedCount(slot)}/${MISSION_COUNT} COMPLETE`} compact={menu.compact} onBack={()=>setBrowse(false)}/>
-				<frame key="ActTabs" BackgroundTransparency={1} Position={UDim2.fromOffset(0,ARCHIVE_HEADER_HEIGHT+ARCHIVE_GAP)} Size={new UDim2(1,4,0,ARCHIVE_TAB_HEIGHT)}>
-					<uilistlayout FillDirection={Enum.FillDirection.Horizontal} Padding={new UDim(0,4)} SortOrder={Enum.SortOrder.LayoutOrder}/>
-					{ACTS.map((id)=><ActTab key={`Act${id}`} act={id} active={act===id} done={completedCount(slot,id)} total={MissionCatalog.ByAct(id).size()} showName={menu.panel.width>=400} onSelect={setAct}/>)}
-				</frame>
-				<scrollingframe key="MissionArchive" Position={UDim2.fromOffset(0,grid.top)} Size={new UDim2(1,0,0,grid.height)} CanvasSize={UDim2.fromOffset(0,getArchiveCanvasHeight(grid,actMissions.size()))} BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={3} ScrollBarImageColor3={C.Ivory} ScrollBarImageTransparency={0.6} ScrollingDirection={Enum.ScrollingDirection.Y}>
-					<uigridlayout CellPadding={UDim2.fromOffset(grid.gap,grid.gap)} CellSize={UDim2.fromOffset(grid.tileWidth,grid.tileHeight)} FillDirectionMaxCells={grid.columns} SortOrder={Enum.SortOrder.LayoutOrder}/>
-					{actMissions.map((bp)=>{
-						const state:TileState=slot?.missions?.[bp.id]?.completed ? "complete" : bp.id===unlocked ? "next" : bp.id<unlocked ? "open" : "locked";
-						return <MissionTile key={`Mission${missionNumber(bp.id)}SelectButton`} id={bp.id} state={state} selected={selectedMission===bp.id} enabled={!busy && bp.id<=unlocked} width={grid.tileWidth} height={grid.tileHeight} onChoose={choose}/>;
-					})}
-				</scrollingframe>
-			</> : <>
-				{/* The heading scrolls with the copy: short landscape roots spend the
-				    entire height above the single action dock on reading. */}
-				<scrollingframe key="BriefingDetails" Size={new UDim2(1,0,0,layout.detailsHeight)} CanvasSize={UDim2.fromOffset(0,detailsCanvasHeight)} Active={true} Selectable={true} ClipsDescendants={true} ScrollingDirection={Enum.ScrollingDirection.Y} VerticalScrollBarInset={Enum.ScrollBarInset.Always} BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={4} ScrollBarImageColor3={C.Ivory} ScrollBarImageTransparency={0.55} Change={{CanvasPosition:updateScrolledToEnd}}>
-					<uilistlayout Padding={new UDim(0,BRIEFING_GAP)} SortOrder={Enum.SortOrder.LayoutOrder} Change={{AbsoluteContentSize:(list)=>{
-						detailsCanvasRef.current=list.AbsoluteContentSize.Y + 4;
-						setDetailsCanvasHeight(detailsCanvasRef.current);
-						const frame=list.Parent;
-						if(frame?.IsA("ScrollingFrame"))updateScrolledToEnd(frame);
-					}}}/>
-					<frame key="BriefingHeader" AutomaticSize={Enum.AutomaticSize.Y} BackgroundTransparency={1} LayoutOrder={1} Size={new UDim2(1,-12,0,0)}>
-						<uilistlayout Padding={new UDim(0,BRIEFING_HEADER_SPACING)} SortOrder={Enum.SortOrder.LayoutOrder}/>
-						<Label name="BriefingEyebrow" text={`${actLabel(mission.act)}  ·  MISSION ${missionNumber(selectedMission)}/${MISSION_COUNT}`} color={C.Accent} textSize={11} minTextSize={8} font={Enum.Font.GothamBold} size={new UDim2(1,0,0,BRIEFING_LINE_HEIGHT)} layoutOrder={1}/>
-						<Label name="BriefingTitle" text={mission.title} textSize={layout.titleSize} font={Enum.Font.GothamBlack} size={new UDim2(1,0,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={2}/>
-						<Label name="BriefingMeta" text={`${REGION_NAMES[mission.region] ?? ""} · ${environmentName(mission.environment)}${status}`} richText={true} color={C.Muted} textSize={10} minTextSize={7} font={Enum.Font.GothamBold} size={new UDim2(1,0,0,BRIEFING_LINE_HEIGHT)} layoutOrder={3}/>
-					</frame>
-					<textlabel key="Story" AutomaticSize={Enum.AutomaticSize.Y} BackgroundTransparency={1} Font={Enum.Font.Gotham} LayoutOrder={2} LineHeight={BRIEFING_STORY_LINE_HEIGHT} Size={new UDim2(1,-12,0,0)} Text={mission.briefing} TextColor3={C.Ivory} TextSize={layout.bodySize} TextWrapped={true} TextXAlignment={Enum.TextXAlignment.Left} TextYAlignment={Enum.TextYAlignment.Top}/>
-					<frame key="ObjectiveCard" AutomaticSize={Enum.AutomaticSize.Y} BackgroundColor3={C.Panel} BackgroundTransparency={0.4} BorderSizePixel={0} LayoutOrder={3} Size={new UDim2(1,-12,0,0)}>
-						<Corner radius={8}/>
-						<Stroke transparency={0.9}/>
-						<uipadding PaddingLeft={new UDim(0,12)} PaddingRight={new UDim(0,12)} PaddingTop={new UDim(0,10)} PaddingBottom={new UDim(0,10)}/>
-						<uilistlayout Padding={new UDim(0,4)} SortOrder={Enum.SortOrder.LayoutOrder}/>
-						<SectionHeading name="ObjectiveHeading" text="OBJECTIVE" layoutOrder={1}/>
-						<Label name="Primary" text={mission.primary} textSize={13} font={Enum.Font.GothamMedium} size={new UDim2(1,0,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={2}/>
-						<Label name="PhasePlan" text={mission.phases.map((phase,index)=>`<font color="${HEX.Accent}">${missionNumber(index+1)}</font>   ${phase.label}`).join("\n")} richText={true} color={C.Muted} textSize={12} size={new UDim2(1,0,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={3}/>
-						{/* Par is the time the debrief judges; show it before launch, with the slot's best when there is one. */}
-						<Label name="ParTime" text={`PAR ${formatTime(MissionScore.ParSeconds(mission))}${record?.bestTime!==undefined ? `  ·  YOUR BEST ${formatTime(record.bestTime)}` : ""}`} color={C.Accent} textSize={11} minTextSize={8} font={Enum.Font.GothamBold} size={new UDim2(1,0,0,BRIEFING_LINE_HEIGHT)} layoutOrder={4}/>
-						<Label name="MissionRules" text={missionRules(mission.phases)} color={C.Faint} textSize={11} size={new UDim2(1,0,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={5}/>
-					</frame>
-					<LoadoutPicker kind={special} enabled={!busy} layoutOrder={4} onChange={onSpecial}/>
-					<DifficultyPicker kind={difficulty} enabled={!busy} layoutOrder={5} onChange={onDifficulty}/>
-				</scrollingframe>
-				{/* Fades the last visible line while more copy waits below. */}
-				<frame key="MoreFade" Active={false} BackgroundColor3={C.Ink} BorderSizePixel={0} Position={UDim2.fromOffset(0,layout.detailsHeight-22)} Size={new UDim2(1,-6,0,22)} Visible={overflow>2 && !scrolledToEnd} ZIndex={2}>
-					<uigradient Rotation={90} Transparency={new NumberSequence(1,0.15)}/>
-				</frame>
-				<frame key="BriefingDock" BackgroundTransparency={1} Position={UDim2.fromOffset(0,layout.dockTop)} Size={new UDim2(1,0,0,layout.dockHeight)}>
-					<ActionButton name="BriefingBackButton" text={layout.dock.back<80 ? "‹" : "‹ FILES"} size={UDim2.fromOffset(layout.dock.back,layout.dockHeight)} enabled={!busy} textSize={13} onActivated={onBack}/>
-					<ActionButton name="BrowseMissionsButton" text="MISSIONS" position={UDim2.fromOffset(layout.dock.back+layout.dock.gap,0)} size={UDim2.fromOffset(layout.dock.archive,layout.dockHeight)} enabled={!busy} textSize={13} onActivated={()=>{setAct(mission.act);setBrowse(true);}}/>
-					<ActionButton name="LaunchButton" text={busy ? "PREPARING..." : completed ? "REPLAY  ›" : "LAUNCH  ›"} primary={true} position={UDim2.fromOffset(layout.dock.back+layout.dock.archive+layout.dock.gap*2,0)} size={UDim2.fromOffset(layout.dock.launch,layout.dockHeight)} enabled={!busy} textSize={15} onActivated={onLaunch}/>
-				</frame>
-			</>}
-		</frame>
-	</frame>;
-}
-const BriefingScreen = React.memo(BriefingScreenImpl);
-
-const RANK_COLORS: { [rank: string]: Color3 } = { S: C.AccentHot, A: C.Accent, B: C.Ivory, C: C.Muted, D: C.Danger };
-/** Seconds between debrief rows appearing. */
-const DEBRIEF_ROW_STEP = 0.07;
-
-/** Readable failure cause for the debrief. */
-function failureCause(reason?: string): string {
-	if (reason === "crash_water") return "Your aircraft crashed into the water.";
-	if (reason === "crash_terrain") return "Your aircraft crashed into terrain or scenery.";
-	if (reason === "timeout") return `The ${math.floor(GameConfig.Campaign.MissionTimeLimit / 60)}-minute operation window closed.`;
-	if (reason === "escaped") return "The courier got away.";
-	if (reason === "internal_error") return "The sortie was stopped by a server error. Fly it again from the campaign menu.";
-	if (reason === "protected_lost") return "The protected vehicle or site was lost.";
-	if (reason === "destroyed") return "Your aircraft was shot down.";
-	if (reason === "not_recorded") return "The server could not record this sortie. Fly it again from the campaign menu.";
-	return "The sortie ended before the objective was complete.";
-}
-
-function formatScore(value: number): string {
-	const digits = tostring(math.max(0, math.floor(value)));
-	let result = "";
-	for (let index = digits.size(); index >= 1; index -= 3) {
-		const chunk = digits.sub(math.max(1, index - 2), index);
-		result = result === "" ? chunk : `${chunk},${result}`;
-	}
-	return result;
-}
-
-interface DebriefLine {
-	key: string;
-	label: string;
-	value?: string;
-	color?: Color3;
-	valueColor?: Color3;
-}
-
-/** One debrief row: a mono label with an optional right-aligned value, hidden until its reveal step. */
-function DebriefRow({ line, order, shown, compact }: { line: DebriefLine; order: number; shown: boolean; compact: boolean }) {
-	const height = compact ? 18 : 22;
-	const textSize = compact ? 11 : 13;
-	const transparency = shown ? 0 : 1;
-	return (
-		<frame key={line.key} BackgroundTransparency={1} LayoutOrder={order} Size={new UDim2(1, -8, 0, height)}>
-			<textlabel
-				key="Label" BackgroundTransparency={1} Size={new UDim2(line.value !== undefined ? 0.62 : 1, 0, 1, 0)}
-				Font={Enum.Font.GothamMedium} Text={line.label} TextColor3={line.color ?? C.Muted} TextSize={textSize}
-				TextTransparency={transparency} TextXAlignment={Enum.TextXAlignment.Left} TextTruncate={Enum.TextTruncate.AtEnd}
-			/>
-			{line.value !== undefined && (
-				<textlabel
-					key="Value" BackgroundTransparency={1} AnchorPoint={new Vector2(1, 0)} Position={UDim2.fromScale(1, 0)} Size={new UDim2(0.38, 0, 1, 0)}
-					Font={Enum.Font.RobotoMono} Text={line.value} TextColor3={line.valueColor ?? C.Ivory} TextSize={textSize}
-					TextTransparency={transparency} TextXAlignment={Enum.TextXAlignment.Right}
-				/>
-			)}
-		</frame>
-	);
-}
-
-function OutcomeScreenImpl({
-	visible,
-	menu,
-	outcome,
-	busy,
-	onRetry,
-	onReturn,
-	onNext,
-}: {
-	visible: boolean;
-	menu: MenuLayout;
-	outcome: OutcomeState;
-	busy: boolean;
-	onRetry: () => void;
-	onReturn: () => void;
-	onNext: () => void;
-}) {
-	const compact = menu.compact;
-	const ultra = menu.panel.height < 260;
-	const mission = MissionCatalog.Get(outcome.missionId);
-	const retryText = busy ? "RESETTING SORTIE..." : outcome.won ? `REPLAY MISSION ${string.format("%02d",outcome.missionId)}` : "RETRY SORTIE";
-	const campaignComplete = outcome.won && outcome.missionId === MISSION_COUNT;
-	const rankColor = RANK_COLORS[outcome.rank] ?? C.Ivory;
-	const newBest = outcome.newBestScore || outcome.newBestRank;
-	const bestText = outcome.bestScore !== undefined ? `BEST ${outcome.bestRank ?? "-"} · ${formatScore(outcome.bestScore)}` : "";
-
-	// Objective breakdown: phases before `completedPhases` are done; on a failure the next one is where it ended.
-	const objectives: DebriefLine[] = MissionCatalog.ExpandedPhases(mission).map((phase, index) => {
-		const done = outcome.won || index < outcome.completedPhases;
-		const failedHere = !done && index === outcome.completedPhases;
-		return {
-			key: `Objective${index + 1}`,
-			label: `${done ? "✓" : "✕"}  ${phase.label}`,
-			color: done ? C.Accent : failedHere ? C.Danger : C.Faint,
-		};
-	});
-	const accuracy = outcome.missilesFired > 0 ? math.floor((outcome.missileHits / outcome.missilesFired) * 100 + 0.5) : undefined;
-	const stats: DebriefLine[] = [
-		{ key: "StatAir", label: "AIR KILLS", value: outcome.optionalKills > 0 ? `${outcome.airKills}  (+${outcome.optionalKills} RAIDERS)` : `${outcome.airKills}` },
-		{ key: "StatGround", label: "GROUND KILLS", value: `${outcome.groundKills}` },
-		{ key: "StatTime", label: `TIME  ·  PAR ${formatTime(outcome.par)}`, value: formatTime(outcome.elapsed), valueColor: outcome.won && outcome.elapsed <= outcome.par ? C.Accent : C.Ivory },
-		{ key: "StatMissiles", label: "MISSILES FIRED", value: `${outcome.missilesFired}` },
-		{ key: "StatAccuracy", label: "HIT ACCURACY", value: accuracy !== undefined ? `${accuracy}%` : "--" },
-		{ key: "StatHull", label: `LOWEST HULL  ·  DAMAGE ${math.floor(outcome.damageTaken)}`, value: `${math.floor(outcome.lowestHealth)}%`, valueColor: outcome.lowestHealth < 35 ? C.Orange : C.Ivory },
-		{ key: "StatEvades", label: "EVADES USED", value: `${outcome.evades}` },
-		...(outcome.difficulty !== undefined ? [{ key: "StatDifficulty", label: "DIFFICULTY", value: Difficulty.Get(outcome.difficulty).name, valueColor: outcome.difficulty === "ace" ? C.Orange : C.Ivory }] : []),
-	];
-	const rows = [...objectives, ...stats];
-
-	// Short staggered reveal each time a result is shown.
-	const [shown, setShown] = useState(0);
-	const revealRef = useRef(0);
-	useEffect(() => {
-		const serial = ++revealRef.current;
-		setShown(0);
-		if (!visible) return;
-		task.spawn(() => {
-			for (let count = 1; count <= rows.size(); count++) {
-				task.wait(DEBRIEF_ROW_STEP);
-				if (revealRef.current !== serial) return;
-				setShown(count);
-			}
-		});
-		return () => { revealRef.current++; };
-	}, [visible, outcome]);
-
-	const story = outcome.won ? mission.debrief : `${failureCause(outcome.reason)} ${mission.failure}`;
-	const headerSize = ultra ? 22 : compact ? 26 : 34;
-	const rankSize = ultra ? 40 : compact ? 48 : 62;
-	// Score sits between the 12px caption and the 14px best line, without overlapping either.
-	const scoreHeight = math.min(rankSize * 0.48, rankSize - 26);
-	return (
-		<frame key="OutcomeScreen" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={visible}>
-			<frame key="VictoryPanel" BackgroundTransparency={1} {...panelPosition(menu)}>
-				<scrollingframe key="OutcomeDetails" BackgroundTransparency={1} BorderSizePixel={0} Size={new UDim2(1,0,1,compact ? -50 : -56)} CanvasSize={UDim2.fromOffset(0,0)} AutomaticCanvasSize={Enum.AutomaticSize.Y} ScrollBarThickness={3} ScrollingDirection={Enum.ScrollingDirection.Y}>
-					<uilistlayout Padding={new UDim(0,compact ? 4 : 6)} SortOrder={Enum.SortOrder.LayoutOrder}/>
-					<frame key="Accent" LayoutOrder={1} BackgroundColor3={outcome.won ? C.Accent : C.Danger} BorderSizePixel={0} Size={UDim2.fromOffset(32, 2)} />
-					<Label name="OutcomeEyebrow" layoutOrder={2} text={`MISSION ${string.format("%02d",outcome.missionId)}/${MISSION_COUNT} · ${mission.title}`} color={C.Orange} textSize={compact ? 10 : 11} font={Enum.Font.GothamBold} size={new UDim2(1, -8, 0, 14)} />
-					<Label name="OutcomeTitle" layoutOrder={3} text={outcome.won ? "MISSION ACCOMPLISHED" : "MISSION FAILED"} color={outcome.won ? C.Ivory : C.Danger} textSize={headerSize} minTextSize={14} font={Enum.Font.GothamBlack} size={new UDim2(1, -8, 0, headerSize + 4)} />
-					<frame key="RankBlock" LayoutOrder={4} BackgroundTransparency={1} Size={new UDim2(1, -8, 0, rankSize)}>
-						<textlabel key="RankLetter" BackgroundTransparency={1} Size={UDim2.fromOffset(rankSize, rankSize)} Font={Enum.Font.GothamBlack} Text={outcome.rank} TextColor3={rankColor} TextSize={rankSize} TextXAlignment={Enum.TextXAlignment.Left} />
-						<textlabel key="RankCaption" BackgroundTransparency={1} Position={UDim2.fromOffset(rankSize + 6, 0)} Size={new UDim2(1, -rankSize - 6, 0, 12)} Font={Enum.Font.GothamBold} Text="RANK  ·  SCORE" TextColor3={C.Faint} TextSize={10} TextXAlignment={Enum.TextXAlignment.Left} />
-						<textlabel key="ScoreValue" BackgroundTransparency={1} Position={UDim2.fromOffset(rankSize + 6, 12)} Size={new UDim2(1, -rankSize - 6, 0, scoreHeight)} Font={Enum.Font.GothamBlack} Text={formatScore(outcome.score)} TextColor3={C.Ivory} TextSize={math.floor(scoreHeight * 0.96)} TextXAlignment={Enum.TextXAlignment.Left} />
-						<textlabel key="BestLine" BackgroundTransparency={1} AnchorPoint={new Vector2(0, 1)} Position={new UDim2(0, rankSize + 6, 1, 0)} Size={new UDim2(1, -rankSize - 6, 0, 14)} Font={Enum.Font.GothamBold} Text={newBest ? (outcome.newBestRank ? "NEW BEST RANK" : "NEW BEST SCORE") : bestText} TextColor3={newBest ? C.Orange : C.Muted} TextSize={compact ? 10 : 11} TextXAlignment={Enum.TextXAlignment.Left} />
-					</frame>
-					<Label name="OutcomeGoal" layoutOrder={5} text={`OBJECTIVE · ${string.upper(mission.primary)}`} color={C.Faint} textSize={compact ? 10 : 11} font={Enum.Font.GothamBold} size={new UDim2(1, -8, 0, 0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} />
-					<Label name="OutcomeSummary" layoutOrder={6} text={story} color={outcome.won ? C.Ivory : C.Muted} textSize={compact ? 12 : 14} size={new UDim2(1, -8, 0, 0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} textYAlignment={Enum.TextYAlignment.Top} />
-					<Label name="ObjectivesHeading" layoutOrder={7} text="OBJECTIVES" color={C.Orange} textSize={10} font={Enum.Font.GothamBold} size={new UDim2(1, -8, 0, 14)} />
-					{objectives.map((line, index) => <DebriefRow key={line.key} line={line} order={10 + index} shown={index < shown} compact={compact} />)}
-					<Label name="StatsHeading" layoutOrder={40} text="FLIGHT RECORD" color={C.Orange} textSize={10} font={Enum.Font.GothamBold} size={new UDim2(1, -8, 0, 14)} />
-					{stats.map((line, index) => <DebriefRow key={line.key} line={line} order={41 + index} shown={objectives.size() + index < shown} compact={compact} />)}
-					<Label name="SaveStatus" layoutOrder={60} text={outcome.saveText} visible={outcome.saveText !== ""} color={outcome.saveColor} textSize={compact ? 10 : 11} font={Enum.Font.GothamBold} size={new UDim2(1, -8, 0, 0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} />
-				</scrollingframe>
-				{outcome.won ? !campaignComplete ? (
-					<FooterButtons compact={compact} primaryName="Mission1NextMissionButton" primaryText={`NEXT: MISSION ${string.format("%02d",outcome.missionId+1)}`} secondaryName="ReturnToMenuButton" secondaryText="MAIN MENU" busy={busy} onPrimary={onNext} onSecondary={onReturn} />
-				) : (
-					<FooterButtons compact={compact} primaryName="ReturnToMenuButton" primaryText="RETURN TO MENU" secondaryName="RetryButton" secondaryText={retryText} busy={busy} onPrimary={onReturn} onSecondary={onRetry} />
-				) : (
-					<FooterButtons compact={compact} primaryName="RetryButton" primaryText={retryText} secondaryName="ReturnToMenuButton" secondaryText="MAIN MENU" busy={busy} onPrimary={onRetry} onSecondary={onReturn} />
-				)}
-			</frame>
-		</frame>
-	);
-}
-const OutcomeScreen = React.memo(OutcomeScreenImpl);
-
-function RoundButton({
-	name,
-	text,
-	rectangle,
-	filled,
-	enabled,
-	dimmed = false,
-	primary = false,
-	textSize,
-	onActivated,
-}: {
-	name: string;
-	text: string;
-	rectangle: Rectangle;
-	filled: boolean;
-	enabled: boolean;
-	/** Label shown faded while still usable (lock building). */
-	dimmed?: boolean;
-	/** FIRE: same size as the others, set apart by a green tint and a heavier ring even before a lock. */
-	primary?: boolean;
-	textSize: number;
-	onActivated: () => void;
-}) {
-	return (
-		<textbutton
-			key={name}
-			Active={enabled}
-			AutoButtonColor={false}
-			BackgroundColor3={filled || primary ? HUD.Green : HUD.Shadow}
-			BackgroundTransparency={filled ? 0.55 : primary ? 0.8 : enabled ? 0.65 : 0.8}
-			BorderSizePixel={0}
-			FontFace={HUD_FONT_BOLD}
-			Position={UDim2.fromOffset(rectangle.x, rectangle.y)}
-			Selectable={false}
-			Size={UDim2.fromOffset(rectangle.width, rectangle.height)}
-			Text={text}
-			TextColor3={filled ? HUD.White : HUD.Green}
-			TextSize={textSize}
-			TextStrokeColor3={HUD.Shadow}
-			TextStrokeTransparency={0.5}
-			TextTransparency={!enabled ? 0.5 : dimmed ? 0.35 : 0}
-			Event={{ Activated: () => enabled && onActivated() }}
-		>
-			<Corner scale={0.5} />
-			<Stroke color={HUD.Green} transparency={filled || primary ? 0 : enabled ? 0.3 : 0.75} thickness={primary ? 2.5 : 1.5} />
-		</textbutton>
-	);
-}
-
-/** Keyboard/gamepad hint as plain text: key name (or gamepad glyph) in accent, action in ivory. */
-function FlightHint({ hint, order }: { hint: ControlHint; order: number }) {
-	const glyph = hint.keyCode !== undefined ? glyphFor(hint.keyCode) : "";
-	return (
-		<frame key={`${hint.action}Hint`} AutomaticSize={Enum.AutomaticSize.X} BackgroundTransparency={1} LayoutOrder={order} Size={UDim2.fromOffset(0, 16)}>
-			<uilistlayout FillDirection={Enum.FillDirection.Horizontal} Padding={new UDim(0, 4)} SortOrder={Enum.SortOrder.LayoutOrder} VerticalAlignment={Enum.VerticalAlignment.Center} />
-			{glyph !== ""
-				? <imagelabel key="Glyph" BackgroundTransparency={1} Image={glyph} LayoutOrder={1} Size={UDim2.fromOffset(16, 16)} />
-				: <Label name="Key" text={hint.label} color={C.Accent} textSize={10} font={Enum.Font.GothamBold} size={UDim2.fromOffset(0, 14)} automaticSize={Enum.AutomaticSize.X} layoutOrder={1} stroke={true} />}
-			<Label name="Action" text={hint.action} color={C.Ivory} textSize={10} font={Enum.Font.GothamBold} size={UDim2.fromOffset(0, 14)} automaticSize={Enum.AutomaticSize.X} layoutOrder={2} stroke={true} />
-		</frame>
-	);
-}
-
-// A touch stick pad; the knob is moved directly through knobRef while dragging.
-function TouchStick({ name, knobName, rectangle, frameRef, knobRef, knob, onBegan }: {
-	name: string;
-	knobName: string;
-	rectangle?: Rectangle;
-	frameRef: React.RefObject<Frame>;
-	knobRef: React.RefObject<Frame>;
-	knob: number;
-	onBegan: (input: InputObject) => void;
-}) {
-	return (
-		<frame
-			ref={frameRef}
-			key={name}
-			Active={true}
-			BackgroundColor3={HUD.Shadow}
-			BackgroundTransparency={0.75}
-			BorderSizePixel={0}
-			Position={rectangle ? UDim2.fromOffset(rectangle.x, rectangle.y) : undefined}
-			Size={rectangle ? UDim2.fromOffset(rectangle.width, rectangle.height) : UDim2.fromOffset(96, 96)}
-			Visible={rectangle !== undefined}
-			Event={{ InputBegan: (_rbx, input) => onBegan(input) }}
-		>
-			<Corner scale={0.5} />
-			<Stroke color={HUD.Green} transparency={0.6} thickness={1} />
-			<frame
-				ref={knobRef}
-				key={knobName}
-				AnchorPoint={new Vector2(0.5, 0.5)}
-				BackgroundColor3={HUD.Green}
-				BackgroundTransparency={0.7}
-				BorderSizePixel={0}
-				Position={UDim2.fromScale(0.5, 0.5)}
-				Size={UDim2.fromOffset(knob, knob)}
-			>
-				<Corner scale={0.5} />
-				<Stroke color={HUD.Green} transparency={0.3} thickness={1} />
-			</frame>
-		</frame>
-	);
-}
-
-function MissionHud({
-	visible,
-	viewport,
-	inputMode,
-	telemetry,
-	callout,
-	introduction,
-	damageFlash,
-	killFlash,
-	scale,
-	options,
-	trend,
-	fireNotice,
-	radio,
-	controller,
-	joystickRef,
-	knobRef,
-	onJoystickBegan,
-	throttleJoystickRef,
-	throttleKnobRef,
-	onThrottleBegan,
-	onMissile,
-	onTarget,
-	onSpecial,
-	onEvade,
-	onPause,
-}: {
-	visible: boolean;
-	viewport: Vector2;
-	inputMode: InputMode;
-	telemetry: Telemetry;
-	callout?: Callout;
-	introduction: boolean;
-	damageFlash: boolean;
-	killFlash?: KillFlash;
-	/** Effective HUD scale: the HUD is laid out for viewport / scale and drawn through a UIScale. */
-	scale: number;
-	options: HudOptions;
-	trend: FlightTrend;
-	/** Latest FIRE / SPECIAL refusal while it lasts (shown above FIRE, or in the alert lane). */
-	fireNotice?: string;
-	/** Current radio line: the subtitle row, or the objective line on roots without one. */
-	radio?: string;
-	controller: FlightController;
-	joystickRef: React.RefObject<Frame>;
-	knobRef: React.RefObject<Frame>;
-	onJoystickBegan: (input: InputObject) => void;
-	throttleJoystickRef: React.RefObject<Frame>;
-	throttleKnobRef: React.RefObject<Frame>;
-	onThrottleBegan: (input: InputObject) => void;
-	onMissile: () => void;
-	onTarget: () => void;
-	onSpecial: () => void;
-	onEvade: () => void;
-	onPause: () => void;
-}) {
-	const virtualWidth = math.floor(viewport.X / scale);
-	const virtualHeight = math.floor(viewport.Y / scale);
-	// Layout math is pure but not free: recompute only when the root, input mode or stick size changes.
-	const layout = useMemo(() => getHudLayout(virtualWidth, virtualHeight, inputMode, options), [virtualWidth, virtualHeight, inputMode, options]);
-	const killRectangle = useMemo(() => getKillMarkerLayout(virtualWidth, virtualHeight, inputMode, options), [virtualWidth, virtualHeight, inputMode, options]);
-	// Target boxes (FlightController) keep clear of the touch controls this layout draws and inside this safe-area root.
-	const hudFrameRef = useRef<Frame>();
-	useEffect(() => {
-		controller.SetTargetKeepouts(visible ? layout : undefined, scale, hudFrameRef.current, viewport);
-		return () => controller.SetTargetKeepouts(undefined, 1, undefined);
-	}, [controller, layout, scale, visible, viewport]);
-	const metrics = layout.metrics;
-	const touch = layout.touch;
-	const ready = missileReady(telemetry);
-	const locked = telemetry.target !== undefined && telemetry.lockProgress >= 0.99;
-	const narrow = layout.alert.width < 200;
-	const warning = flightWarning({ ...telemetry, acceleration: trend.acceleration, terrainSeconds: trend.terrainSeconds }, narrow);
-	// Refusals ride above FIRE on the touch row; elsewhere they borrow the alert lane while no warning is up.
-	const noticeInAlert = fireNotice !== undefined && layout.fireCaption === undefined && warning === "";
-	const alertText = noticeInAlert ? fireNotice! : warning;
-	const alertColor = noticeInAlert ? HUD.Amber : telemetry.incoming || telemetry.lockWarning ? HUD.Red : HUD.Amber;
-	// Compact roots share the warning with the objective line: the warning shows in its place while it lasts.
-	const alertSharesObjective = layout.alert === layout.callout;
-	const evade = evadeGauge(telemetry);
-	const evadeHint = evade.flash ? getEvadeHint(inputMode) : undefined;
-	const flightHints = getFlightHints(inputMode, { introduction, locked, missileReady: ready });
-	// Second weapon slot: label, button state and a hint when it is both ready and relevant now
-	// (flares with a missile inbound, missiles with a lock, the drone during the opening legend).
-	const specialKind: SpecialKind = SpecialWeapons.IsKind(telemetry.special) ? telemetry.special : SpecialWeapons.Default;
-	const specialDefinition = SpecialWeapons.Get(specialKind);
-	const specialButton = SpecialWeapons.Button(specialKind, telemetry.specialCharges ?? 0, telemetry.specialCooldown ?? 0, telemetry.specialActive ?? 0);
-	const specialReady = (telemetry.specialCharges ?? 0) > 0 && (telemetry.specialCooldown ?? 0) <= 0 && (telemetry.specialActive ?? 0) <= 0;
-	const specialRelevant = specialKind === "flares" ? telemetry.incoming : specialKind === "uav" ? telemetry.target !== undefined && !locked : locked;
-	const specialHint = specialReady && specialRelevant ? getSpecialHint(inputMode, specialDefinition.short) : undefined;
-	// EVADE leads only while a missile is decoyable; never more than two hints at once.
-	const hints = [...(evadeHint ? [evadeHint] : []), ...flightHints.filter((hint) => hint.action !== evadeHint?.action), ...(specialHint ? [specialHint] : [])].filter(
-		(_hint, index) => index < MAX_FLIGHT_HINTS,
-	);
-	const alertActive = visible && alertText !== "";
-	const warningText = useRef<TextLabel>();
-	useEffect(() => {
-		const label = warningText.current;
-		if (!alertActive || !label) return;
-		// Gentle pulse on the text itself; nothing grows or covers more of the view.
-		label.TextTransparency = 0;
-		const pulse = TweenService.Create(label, new TweenInfo(0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { TextTransparency: 0.45 });
-		pulse.Play();
-		return () => {
-			pulse.Cancel();
-			label.TextTransparency = 0;
-		};
-	}, [alertActive, alertSharesObjective]);
-	const ammo = statusLine({
-		missiles: telemetry.missiles,
-		missileCooldown: telemetry.missileCooldown,
-		special: specialDefinition.short,
-		specialCharges: telemetry.specialCharges ?? 0,
-		specialCooldown: telemetry.specialCooldown ?? 0,
-		specialActive: telemetry.specialActive ?? 0,
-		evadeCharges: evade.charges,
-	});
-	const fireButton = WeaponRules.FireButton(telemetry.missiles, telemetry.missileCooldown, telemetry.target !== undefined && telemetry.targetDamageable !== false, telemetry.lockProgress);
-	const timeRemaining = telemetry.timeRemaining ?? GameConfig.Campaign.MissionTimeLimit;
-	const [timeLine, progressLine] = clockLines(timeRemaining, telemetry.objectiveProgress, telemetry.objectiveTotal, telemetry.kills, telemetry.total);
-	const tutorial = getTutorialInstruction(telemetry.tutorialStep, inputMode);
-	// Radio rides the subtitle row; roots without one show it in the objective line (ahead of kill callouts), as before.
-	const objectiveCallout = radio !== undefined && !layout.subtitle ? { text: radio, color: HUD.White } : callout;
-	const objectiveLine = alertSharesObjective && alertText !== "" ? alertText : objectiveCallout?.text ?? (tutorial !== "" ? tutorial : telemetry.objective ?? "Complete the objective");
-	const objectiveColor = alertSharesObjective && alertText !== "" ? alertColor : objectiveCallout?.color ?? (tutorial !== "" ? HUD.Amber : HUD.Green);
-	const movement = telemetry.tutorialStep === "move" && objectiveLine === tutorial
-		? getMovementIndicators(inputMode, telemetry.turnObserved, telemetry.pitchObserved) : undefined;
-	const movementTextSize = metrics.scale === "large" ? 16 : metrics.scale === "compact" ? 10 : 11;
-	const movementCells = getMovementIndicatorLayout(layout.callout, movementTextSize);
-	const stalling = telemetry.speed < FlightMath.WarningSpeed;
-	const knob = math.floor((touch?.joystick.width ?? JOYSTICK_SIZE) * 0.375 + 0.5);
-	return (
-		<frame ref={hudFrameRef} key="MissionHUD" BackgroundTransparency={1} Size={UDim2.fromScale(1 / scale, 1 / scale)} Visible={visible}>
-			<uiscale Scale={scale} />
-			<NavigationCue telemetry={telemetry} visible={visible} inputMode={inputMode} scale={scale} options={options}/>
-			<frame key="DamageFlash" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={damageFlash}>
-				<Stroke color={C.Danger} transparency={0.35} thickness={5} />
-			</frame>
-
-			<KillMarker flash={killFlash} rectangle={killRectangle} visible={visible} />
-
-			{layout.pause && (
-				<textbutton
-					key="PauseButton"
-					Active={true}
-					AutoButtonColor={false}
-					Selectable={false}
-					BackgroundColor3={HUD.Shadow}
-					BackgroundTransparency={0.6}
-					BorderSizePixel={0}
-					FontFace={HUD_FONT_BOLD}
-					Position={UDim2.fromOffset(layout.pause.x, layout.pause.y)}
-					Size={UDim2.fromOffset(layout.pause.width, layout.pause.height)}
-					Text="II"
-					TextColor3={HUD.Green}
-					TextSize={layout.pause.width >= 44 ? 15 : 12}
-					Event={{ Activated: onPause }}
-				>
-					<Stroke color={HUD.Green} transparency={0.35} thickness={1} />
-				</textbutton>
-			)}
-			{layout.radar && <Radar rectangle={layout.radar} controller={controller} visible={visible} textSize={metrics.label} minText={metrics.minText} />}
-
-			<HudLabel name="MissionTimer" text={timeLine} rectangle={{ ...layout.clock, height: metrics.row }} textSize={metrics.text} color={timeRemaining <= 60 ? HUD.Red : HUD.Green} />
-			<HudLabel name="ObjectiveProgress" text={progressLine} rectangle={{ ...layout.clock, y: layout.clock.y + metrics.row + 2, height: metrics.row }} textSize={metrics.text} />
-			{movement ? movement.map((cell, index) => (
-				<HudLabel key={`Movement${index}`} name={`Movement${index}`} text={cell.text}
-					rectangle={movementCells[index]}
-					color={cell.done ? HUD.Green : HUD.Amber} bold={!cell.done} textSize={movementTextSize}
-					verticalAlignment={Enum.TextYAlignment.Top} />
-			)) : <HudLabel name="ObjectiveText" text={objectiveLine} rectangle={layout.callout} color={objectiveColor} textSize={metrics.scale === "large" ? 16 : metrics.scale === "compact" ? 10 : 11} wrap={true} verticalAlignment={Enum.TextYAlignment.Top} />}
-
-			{layout.reticle && <Reticle rectangle={layout.reticle} />}
-			<InstrumentBox name="SpeedBox" caption="MPH" value={instrumentValue(FlightMath.ToMph(telemetry.speed))} rectangle={layout.speed} metrics={metrics} pointsRight={true} color={stalling ? HUD.Amber : HUD.Green} />
-			<InstrumentBox name="AltitudeBox" caption="ALT" value={instrumentValue(telemetry.altitude)} rectangle={layout.altitude} metrics={metrics} pointsRight={false} color={telemetry.altitude < LOW_ALTITUDE ? HUD.Amber : HUD.Green} />
-			{!alertSharesObjective && <WarningBox rectangle={layout.alert} text={alertText} color={alertColor} metrics={metrics} textRef={warningText} />}
-			{/* Reserved for a missile time-to-impact / BREAK cue; empty and hidden until something drives it. */}
-
-			<StatusPanel layout={layout.status} health={telemetry.health} cells={ammo} />
-
-			{layout.subtitle && (
-				<HudLabel
-					name="RadioSubtitle"
-					text={radio ?? ""}
-					rectangle={layout.subtitle}
-					textSize={metrics.scale === "large" ? metrics.text : 12}
-					color={HUD.White}
-					alignment={Enum.TextXAlignment.Center}
-					verticalAlignment={Enum.TextYAlignment.Bottom}
-					wrap={true}
-					visible={radio !== undefined}
-				/>
-			)}
-			{layout.fireCaption && (
-				<HudLabel
-					name="FireCaption"
-					text={fireNotice ?? ""}
-					rectangle={layout.fireCaption}
-					color={HUD.Amber}
-					textSize={10}
-					alignment={Enum.TextXAlignment.Center}
-					visible={visible && fireNotice !== undefined}
-				/>
-			)}
-
-			<TouchStick name="TouchJoystick" knobName="JoystickKnob" rectangle={touch?.joystick} frameRef={joystickRef} knobRef={knobRef} knob={knob} onBegan={onJoystickBegan} />
-			<TouchStick name="ThrottleJoystick" knobName="ThrottleKnob" rectangle={touch?.throttle} frameRef={throttleJoystickRef} knobRef={throttleKnobRef} knob={knob} onBegan={onThrottleBegan} />
-			{touch?.throttleUpLabel && (
-				<HudLabel name="ThrottleUp" text="SPEED UP" rectangle={touch.throttleUpLabel} textSize={10} alignment={Enum.TextXAlignment.Center} />
-			)}
-			{touch?.throttleDownLabel && (
-				<HudLabel name="ThrottleDown" text="SLOW DOWN" rectangle={touch.throttleDownLabel} textSize={10} alignment={Enum.TextXAlignment.Center} />
-			)}
-
-			<frame key="CombatControls" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)}>
-				{touch && (
-					<RoundButton
-						name="MissileButton"
-						text={fireButton.text}
-						rectangle={touch.missile}
-						filled={fireButton.filled}
-						enabled={fireButton.enabled}
-						dimmed={fireButton.dimmed}
-						primary={true}
-						textSize={fireButton.text.size() > 5 ? 10 : 12}
-						onActivated={onMissile}
-					/>
-				)}
-				{touch && <RoundButton name="TargetButton" text="TGT" rectangle={touch.target} filled={false} enabled={true} textSize={11} onActivated={onTarget} />}
-				{touch && (
-					<RoundButton
-						name="SpecialButton"
-						text={specialButton.text}
-						rectangle={touch.special}
-						filled={specialButton.filled}
-						enabled={specialButton.enabled}
-						dimmed={specialButton.dimmed}
-						textSize={10}
-						onActivated={onSpecial}
-					/>
-				)}
-				{touch && <EvadeButton rectangle={touch.evade} telemetry={telemetry} onEvade={onEvade} />}
-			</frame>
-
-			{layout.hints && (
-				<frame
-					key="ControlHints"
-					BackgroundTransparency={1}
-					Position={UDim2.fromOffset(layout.hints.x, layout.hints.y)}
-					Size={UDim2.fromOffset(layout.hints.width, layout.hints.height)}
-					Visible={hints.size() > 0}
-				>
-					<uilistlayout
-						FillDirection={Enum.FillDirection.Horizontal}
-						HorizontalAlignment={Enum.HorizontalAlignment.Center}
-						Padding={new UDim(0, 14)}
-						SortOrder={Enum.SortOrder.LayoutOrder}
-						VerticalAlignment={Enum.VerticalAlignment.Center}
-					/>
-					{hints.map((hint, index) => <FlightHint key={`${hint.action}Hint`} hint={hint} order={index + 1} />)}
-				</frame>
-			)}
-		</frame>
-	);
-}
-
+import { getMenuHintsLayout, getMenuLayout, getToastLayout, inputModeFromInputType, JOYSTICK_SIZE, type HudOptions, shouldAcceptInputModeChange, type ControlHint, type InputMode, type Rectangle } from "../shared/UILayout";
+import { BriefingScreen } from "./screens/BriefingScreen";
+import { CampaignScreen } from "./screens/CampaignScreen";
+import { MenuBackdrop, setMenuCamera } from "./screens/MenuBackdrop";
+import { MissionHud, type Callout } from "./screens/MissionHud";
+import { OutcomeScreen, type OutcomeState } from "./screens/OutcomeScreen";
+import { HintRow } from "./screens/Primitives";
+import { finite, killedTargetPoint, killSnapshot, normalizePersistence, normalizeSlots, RADIO_SECONDS, resumeMission, safeString, sanitizeTelemetry, scaleRectangle } from "./screens/UIFormat";
+import { glyphCache, readInputMode } from "./screens/UIInput";
+import { TitleScreen } from "./screens/TitleScreen";
+import { StatusToast } from "./screens/StatusToast";
+import { FIRE_DENIED_SECONDS, FIRE_DENIED_TEXT, LOADING_CLIENT_TIMEOUT, MENU_SCREEN_FRAMES, MISSION_END_HOLD, NO_MENU_CAMERA, type GameUIProps, type KillNotice, type RadioNotice, type Screen, type ToastState } from "./screens/UIState";
+import { InputModeContext } from "./Highlight";
 export function GameUI({ remotes, controller }: GameUIProps) {
 	const [cinematicId,setCinematicId]=useState(0);
 	const cinematicNext=useRef<()=>void>(()=>undefined);
@@ -1713,7 +93,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	/** The selection before the latest target change: a kill's HudState can retarget before its telemetry lands. */
 	const priorTargetRef = useRef<Model>();
 	const [loadingProgress, setLoadingProgress] = useState(0);
-
 	const mountedRef = useRef(true);
 	const screenRef = useRef<Screen>("title");
 	const inMissionRef = useRef(false);
@@ -1742,7 +121,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const throttleKnobRef = useRef<Frame>();
 	const loadingSerialRef = useRef(0);
 	const slotsRef = useRef<SaveSlot[] | undefined>();
-
 	const deletionObservation = useMemo(() => new DeletionObservation(), []);
 	const changeScreen = useCallback((destination: Screen) => {
 		deletionObservation.cancel();
@@ -1751,7 +129,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		if (destination !== "mission" && pausedRef.current) { pausedRef.current = false; setPausedState(false); }
 		setScreen(destination);
 	}, []);
-
 	const releaseJoystick = useCallback(() => {
 		for (const [, connection] of touchEndConnections) connection.Disconnect();
 		touchEndConnections.clear();
@@ -1761,7 +138,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		if (knobRef.current) knobRef.current.Position = UDim2.fromScale(0.5, 0.5);
 		controller.SetInput(0, 0);
 	}, [controller]);
-
 	const applyInputMode = useCallback((nextMode: InputMode) => {
 		const current = inputModeRef.current;
 		if (!shouldAcceptInputModeChange(current, nextMode, touches.Held())) return;
@@ -1772,12 +148,10 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		setInputMode(nextMode);
 		setHintUntil(os.clock() + 6);
 	}, [releaseJoystick]);
-
 	const endJoystickTouch = useCallback(() => {
 		releaseJoystick();
 		applyInputMode(readInputMode());
 	}, [applyInputMode, releaseJoystick]);
-
 	// Gamepad focus follows the delete confirmation: KEEP while it is open, then back to that slot's row.
 	const setDeleteConfirm = useCallback((slot: number | undefined) => {
 		if (slot !== undefined) slotFocusRef.current = slot;
@@ -1787,7 +161,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	}, []);
 	const askDelete = useCallback((slot: number) => setDeleteConfirm(slot), [setDeleteConfirm]);
 	const cancelDelete = useCallback(() => setDeleteConfirm(undefined), [setDeleteConfirm]);
-
 	const selectDefault = useCallback(() => {
 		const root = rootFrameRef.current;
 		if (!root || !mountedRef.current) return;
@@ -1820,7 +193,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		if (target && target.IsA("GuiObject")) GuiService.SelectedObject = target;
 	}, []);
 	selectDefaultRef.current = selectDefault;
-
 	const goBack = useCallback(() => {
 		if (settingsOpenRef.current) { settingsOpenRef.current = false; setSettingsOpenState(false); task.defer(() => selectDefaultRef.current()); return; }
 		if (busyRef.current) return;
@@ -1828,7 +200,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		else if (screenRef.current === "slots") changeScreen("title");
 		else if (screenRef.current === "briefing") changeScreen("slots");
 	}, [changeScreen]);
-
 	const showToast = useCallback((message: string, isError: boolean) => {
 		if (!mountedRef.current) return;
 		const serial = ++toastRef.current;
@@ -1837,7 +208,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			if (mountedRef.current && toastRef.current === serial) setToast(undefined);
 		});
 	}, []);
-
 	const applyResponseSlots = useCallback((response: CampaignResponse): boolean => {
 		const parsed = normalizeSlots(response);
 		if (!parsed) return false;
@@ -1848,7 +218,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		setPersistence(responsePersistence);
 		return true;
 	}, []);
-
 	const invoke = useCallback((action: string, payload?: unknown): LuaTuple<[CampaignResponse | undefined, string | undefined]> => {
 		const [ok, raw] = pcall(() => remotes.CampaignRequest.InvokeServer(action, payload));
 		if (!ok) return $tuple(undefined, "Command link interrupted. Try again.");
@@ -1857,7 +226,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		if (response.ok !== true) return $tuple(undefined, safeString(response.error, "Command rejected the request."));
 		return $tuple(response, undefined);
 	}, [remotes]);
-
 	const beginRequest = useCallback((work: (requestId: number) => void) => {
 		if (busyRef.current || !mountedRef.current) return;
 		busyRef.current = true;
@@ -1875,13 +243,11 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			}
 		});
 	}, [showToast]);
-
 	const cancelRequests = useCallback(() => {
 		requestRef.current++;
 		busyRef.current = false;
 		if (mountedRef.current) setBusy(false);
 	}, []);
-
 	const loadSlots = useCallback(() => {
 		slotsRef.current = undefined;
 		setSlots(undefined);
@@ -1897,7 +263,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			}
 		});
 	}, [applyResponseSlots, beginRequest, invoke, showToast]);
-
 	const launchMission = useCallback(() => {
 		beginRequest((requestId) => {
 			const [response, problem] = invoke("StartMission", { slot: selectedSlot, missionId: selectedMission, special: selectedSpecialRef.current, difficulty: selectedDifficultyRef.current });
@@ -1909,7 +274,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			}
 		});
 	}, [applyResponseSlots, beginRequest, invoke, selectedMission, selectedSlot, showToast]);
-
 	const startMission=useCallback(()=>{
 		if(busyRef.current)return;
 		const chapter=selectedMissionRef.current-1;
@@ -1920,7 +284,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		setCinematicId(chapter);
 		changeScreen("cinematic");
 	},[launchMission,changeScreen,slots]);
-
 	const returnToMenu = useCallback(() => {
 		cancelRequests();
 		releaseJoystick();
@@ -1934,7 +297,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			else if (response.slots) applyResponseSlots(response);
 		});
 	}, [applyResponseSlots, beginRequest, cancelRequests, changeScreen, controller, invoke, releaseJoystick, showToast]);
-
 	const restartMission = useCallback((missionId: number) => {
 		beginRequest((requestId) => {
 			const [returned, returnError] = invoke("ReturnToMenu");
@@ -1951,7 +313,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			changeScreen("briefing");
 		});
 	}, [applyResponseSlots, beginRequest, changeScreen, invoke, showToast]);
-
 	const retryMission = useCallback(() => restartMission(selectedMissionRef.current), [restartMission]);
 	const nextMission = useCallback(() => restartMission(math.min(MISSION_COUNT,selectedMissionRef.current+1)), [restartMission]);
 	// Stable handlers so the memoised menu screens bail out of mission-time re-renders.
@@ -2044,11 +405,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	}, [controller, setSettingsOpen]);
 	const changeSetting = useCallback(<K extends SettingKey>(key: K, value: PlayerSettings[K]) => SettingsStore.Set(key, value), []);
 	const openSettings = useCallback(() => { if (!busyRef.current) setSettingsOpen(true); }, [setSettingsOpen]);
-
 	// Settings that live outside React: pitch inversion and level assist in the controller (shake is read by CameraShake).
 	useEffect(() => controller.SetInvertY(settings.invertY), [controller, settings.invertY]);
 	useEffect(() => controller.SetLevelAssist(settings.levelAssist), [controller, settings.levelAssist]);
-
 	// Auto-pause when the Roblox menu opens (Esc, the menu button, the gamepad Start menu) or the app loses focus.
 	useEffect(() => {
 		const menuOpened = GuiService.MenuOpened.Connect(pauseSortie);
@@ -2065,7 +424,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		});
 		return () => { menuOpened.Disconnect(); focusLost.Disconnect(); focusGained.Disconnect(); key.Disconnect(); };
 	}, [pauseSortie, resumeSortie]);
-
 	const moveJoystick = useCallback((input: InputObject) => {
 		const joystick = joystickRef.current;
 		const knob = knobRef.current;
@@ -2076,7 +434,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		knob.Position = new UDim2(0.5, stick.offsetX / unit, 0.5, stick.offsetY / unit);
 		controller.SetInput(stick.x, stick.y);
 	}, [controller]);
-
 	const releaseTouch = useCallback((input: InputObject) => {
 		if (touches.steering === input) {
 			controller.SetInput(0, 0);
@@ -2091,7 +448,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		touches.End(input);
 		applyInputMode(readInputMode());
 	}, [controller, touches, applyInputMode]);
-
 	const trackTouchEnd = useCallback((input: InputObject) => {
 		touchEndConnections.set(input, input.GetPropertyChangedSignal("UserInputState").Connect(() => {
 			if (input.UserInputState === Enum.UserInputState.End || input.UserInputState === Enum.UserInputState.Cancel) releaseTouch(input);
@@ -2103,7 +459,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		trackTouchEnd(input);
 		moveJoystick(input);
 	}, [moveJoystick, trackTouchEnd]);
-
 	const moveThrottle = useCallback((input: InputObject) => {
 		const stick = throttleJoystickRef.current;
 		const knob = throttleKnobRef.current;
@@ -2120,7 +475,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		trackTouchEnd(input);
 		moveThrottle(input);
 	}, [moveThrottle, trackTouchEnd]);
-
 	useEffect(() => {
 		mountedRef.current = true;
 		return () => {
@@ -2135,7 +489,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			controller.Stop();
 		};
 	}, [controller]);
-
 	useEffect(() => {
 		const refresh = () => applyInputMode(readInputMode());
 		const connections = [UserInputService.LastInputTypeChanged.Connect(refresh)];
@@ -2146,7 +499,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			for (const connection of connections) connection.Disconnect();
 		};
 	}, [applyInputMode]);
-
 	useEffect(() => {
 		const changed = UserInputService.InputChanged.Connect((input) => {
 			const active = touches.steering;
@@ -2164,23 +516,18 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			focus.Disconnect(); menu.Disconnect(); textFocus.Disconnect();
 		};
 	}, [endJoystickTouch, moveJoystick, moveThrottle, releaseTouch]);
-
 	useEffect(() => {
 		if (screen !== "mission") releaseJoystick();
 	}, [releaseJoystick, screen]);
-
 	useEffect(() => releaseJoystick(), [releaseJoystick, viewport, hudOptions, settings.hudScale]);
-
 	useEffect(() => {
 		task.defer(selectDefault);
 	}, [busy, inputMode, screen, paused, settingsOpen, selectDefault]);
-
 	// Leaving the slot list drops any half-finished delete confirmation.
 	useEffect(() => {
 		slotFocusRef.current = undefined;
 		if (screen !== "slots" && confirmSlotRef.current !== undefined) setDeleteConfirm(undefined);
 	}, [screen, setDeleteConfirm]);
-
 	useEffect(() => {
 		const began = UserInputService.InputBegan.Connect((input) => {
 			if (screenRef.current === "mission" || GuiService.MenuIsOpen) return;
@@ -2197,7 +544,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			changed.Disconnect();
 		};
 	}, [goBack, selectDefault]);
-
 	useEffect(() => {
 		const onMissionState = (raw: unknown, held = false): void => {
 			if (!mountedRef.current || !typeIs(raw, "table")) return;
@@ -2382,7 +728,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		});
 		return () => { connection.Disconnect(); unsubscribe(); };
 	}, [applyResponseSlots, beginRequest, cancelRequests, changeScreen, controller, invoke, releaseJoystick, remotes, showToast]);
-
 	useEffect(() => {
 		let sampleClock = 0;
 		const connection = RunService.RenderStepped.Connect((deltaTime) => {
@@ -2437,14 +782,12 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			radioVoiceRef.current = undefined;
 		};
 	}, [controller]);
-
 	useEffect(() => {
 		task.defer(() => {
 			const root = rootFrameRef.current;
 			if (mountedRef.current && root) setViewport(root.AbsoluteSize);
 		});
 	}, []);
-
 	const menu = useMemo(() => getMenuLayout(viewport.X, viewport.Y), [viewport]);
 	const selectedSave = slots?.[selectedSlot - 1];
 	const rootChange = useMemo(() => ({ AbsoluteSize: (root: Frame) => mountedRef.current && setViewport(root.AbsoluteSize) }), []);
@@ -2470,7 +813,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const menuHintsRectangle = useMemo(() => getMenuHintsLayout(viewport.X, viewport.Y, menu), [viewport, menu]);
 	const openPauseSettings = useCallback(() => setSettingsOpen(true), [setSettingsOpen]);
 	const closeSettings = useCallback(() => setSettingsOpen(false), [setSettingsOpen]);
-
 	return (
 		<InputModeContext.Provider value={inputMode}>
 			<screengui key="SkybreakBackdrop" DisplayOrder={19} IgnoreGuiInset={true} ResetOnSpawn={false} ScreenInsets={Enum.ScreenInsets.None}>
@@ -2522,37 +864,15 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 						alignment={menu.mode === "side" ? Enum.HorizontalAlignment.Right : Enum.HorizontalAlignment.Left}
 						visible={inputMode === "gamepad" && !NO_MENU_CAMERA.has(screen)}
 					/>
-					{toast !== undefined && (
-						<textlabel
-							key="StatusToast"
-							Position={UDim2.fromOffset(toastRectangle.x, toastRectangle.y)}
-							Size={UDim2.fromOffset(toastRectangle.width, toastRectangle.height)}
-							BackgroundColor3={C.Ink}
-							BackgroundTransparency={0.15}
-							BorderSizePixel={0}
-							Font={Enum.Font.GothamMedium}
-							Text={toast.message}
-							TextColor3={toast.isError ? C.Danger : C.Ivory}
-							TextSize={12}
-							TextWrapped={true}
-							TextXAlignment={Enum.TextXAlignment.Center}
-							ZIndex={20}
-						>
-							<Corner />
-							<Stroke color={toast.isError ? C.Danger : C.Accent} transparency={0.45} />
-							<uipadding PaddingLeft={new UDim(0, 12)} PaddingRight={new UDim(0, 12)} />
-						</textlabel>
-					)}
+					<StatusToast toast={toast} toastRectangle={toastRectangle} />
 				</frame>
 			</screengui>
 		</InputModeContext.Provider>
 	);
 }
-
 export interface GameUIMount {
 	unmount: () => void;
 }
-
 export function mountGameUI(parent: Instance, remotes: Remotes, controller: FlightController): GameUIMount {
 	const root = ReactRoblox.createRoot(parent);
 	root.render(<GameUI remotes={remotes} controller={controller} />);
