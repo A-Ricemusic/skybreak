@@ -1,18 +1,18 @@
 # Blockers
 
-Last updated: 2026-10-28. Entries below were raised in the owner's Phase 0 assignment; no independent GitHub-settings or disk audit is claimed here.
+Last updated: 2026-10-28.
 
 ## Open
 
 | Date | Raised by | What is blocked | Impact | What is needed |
 |---|---|---|---|---|
-| 2026-10-28 | Owner / Phase 0 brief | Enforced validation before merges: main has no branch protection. | A PR can merge without a passing `validate` check; manual discipline is currently required. | Owner sets branch protection in GitHub settings to require `validate` on main. This does not block opening the Phase 0 PR. |
-| 2026-10-28 | Owner / Phase 0 brief | Full-resolution campaign footage storage: build Mac has about 14 GB free. | The full 1080p recording cannot be retained locally; proxy detail is insufficient for fine visual claims. | Use a 480p proxy plus per-mission 1080p clips, keep media in ignored `reference/ac04/`, and manage clip retention within available space (D-010). |
+| 2026-10-28 | Orchestrator | Enforced checks before merge: main has no branch protection. | A PR can merge before its `validate` check passes, and every merge goes live. The orchestrator gates merges by hand for now. | **You:** in GitHub, Settings → Branches, require the `validate` check on `main`. |
+| 2026-10-28 | Orchestrator | Disk space: the build Mac has about 11 GB free. | Per-mission 1080p clips and world builds will run it lower. About 21 GB is old T3 Code thread checkouts. | Owner approved removing this project's old checkouts only (2026-10-28). An agent is removing those that are clean and whose branches are pushed or merged. If more space is needed after that, the orchestrator asks the owner. |
+| 2026-10-28 | Footage analyst | Unconfirmed: whether 1080p sections of the video can be downloaded. | If not, specs fall back to 480p, which can't read speed and altitude digits or radar contents. | The mission 1 spec agent checks this first and reports. |
 
 ## Resolved
 
-| Date | Raised by | What was blocked | Impact | Resolution |
-|---|---|---|---|---|
-| 2026-10-28 | Phase 0 implementation agent | First local offline validation attempt: fresh worktree had no `build/offline-luau/luau`. | Build succeeded but compiled-domain checks could not start. | Reused the existing main-checkout CLI via `LUAU_BIN=/Users/pelicannurse/Projects/test app/build/offline-luau/luau`; no system installation or source change. |
-
-Mitigations for the open entries do not mean those underlying constraints have been resolved.
+| Date | Raised by | What was blocked | Resolution |
+|---|---|---|---|
+| 2026-10-28 | Orchestrator | The first footage agent ended its turn while the download was still running, with no ledger. | The download had completed. A second agent resumed from there and finished the ledger; the first was cancelled so only one agent owned the footage folder. |
+| 2026-10-28 | Several agents | Fresh worktrees have no offline Luau runner, so the offline validator fails at first. | Point `LUAU_BIN` at the main checkout's copy (`build/offline-luau/luau`). This recurs in every new worktree; agent briefs now mention it. |
