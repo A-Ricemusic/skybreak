@@ -31,7 +31,7 @@ export function createGroundTarget(spec: TypedGroundTarget): Model {
 	};
 	if (spec.type !== "parked_bomber") {
 		model.PrimaryPart=part("Aim",new Vector3(12,8,12),new Vector3(0,4,0));
-		if(spec.type==="ship") { const loaded=UploadedAssets.Template(AssetSelection.TankerCandidates(UploadedAssetSpecs)); if(loaded) { model.PrimaryPart!.Transparency=1; model.PrimaryPart!.CFrame=new CFrame(0,-loaded.spec.groundOffset,0); attachBomberGeometry(model,loaded.template); const [bounds]=model.GetBoundingBox(); model.PrimaryPart!.CFrame=new CFrame(bounds.Position); model.SetAttribute("UploadedAsset",loaded.name); } else { part("Hull",new Vector3(50,25,220),new Vector3(0,5,0)); part("Bridge",new Vector3(35,30,40),new Vector3(0,30,65)); } }
+		if(spec.type==="ship") { const loaded=UploadedAssets.Template(AssetSelection.TankerCandidates(UploadedAssetSpecs)); if(loaded) { model.PrimaryPart!.Transparency=1; model.PrimaryPart!.CFrame=new CFrame(0,-UploadedAssetSpecs[loaded.name].groundOffset,0); attachBomberGeometry(model,loaded.template); const [bounds]=loaded.template.GetBoundingBox(); const centre=model.PrimaryPart!.CFrame.PointToWorldSpace(loaded.template.GetPivot().PointToObjectSpace(bounds.Position)); model.PrimaryPart!.CFrame=new CFrame(centre); model.SetAttribute("UploadedAsset",loaded.name); } else { part("Hull",new Vector3(50,25,220),new Vector3(0,5,0)); part("Bridge",new Vector3(35,30,40),new Vector3(0,30,65)); } }
   else if (spec.type === "aa_gun") { part("Turret",new Vector3(8,6,8),new Vector3(0,10,0)); part("Barrel",new Vector3(2,2,24),new Vector3(0,13,-10)); }
 		else if (spec.type === "parked_helicopter") { part("Cabin",new Vector3(10,10,24),new Vector3(0,10,0),true); part("Rotor",new Vector3(44,1,3),new Vector3(0,17,0)); part("Tail",new Vector3(3,4,28),new Vector3(0,10,20)); }
 		else if (spec.type === "radar_dome") part("Dome",new Vector3(34,34,34),new Vector3(0,23,0),true);
@@ -40,7 +40,8 @@ export function createGroundTarget(spec: TypedGroundTarget): Model {
 		else if (spec.type === "substation") for (const x of [-16,0,16]) { part("Transformer",new Vector3(9,15,18),new Vector3(x,8,0)); part("Insulator",new Vector3(2,8,2),new Vector3(x,20,0)); }
 		else { part("Plant deck",new Vector3(55,5,45),new Vector3(0,4,0)); for(const x of [-15,15]) part("Tank",new Vector3(20,28,20),new Vector3(x,20,0)); }
 	}
-	model.PivotTo(new CFrame(spec.position.x,spec.position.y,spec.position.z).mul(CFrame.Angles(0,math.rad(spec.yaw),0)));
+	const placement = new CFrame(spec.position.x,spec.position.y,spec.position.z).mul(CFrame.Angles(0,math.rad(spec.yaw),0));
+	model.PivotTo(spec.type === "ship" ? placement.mul(model.GetPivot()) : placement);
 	// A parked bomber's pivot is its fuselage centre: rest the hull on the ground instead of sinking it.
 	if (spec.type === "parked_bomber") restOn(model, spec.position.y);
 	model.Name = GROUND_TARGET_LABELS[spec.type];

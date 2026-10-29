@@ -228,7 +228,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		// Mid-phase "after" twists do not change phase, so applyBlueprintPhase never sees their radio: drain it here.
 		for (let line=BlueprintRunner.TakeRadio(bs); line !== undefined; line=BlueprintRunner.TakeRadio(bs)) radio(session,line,7);
 		const active=BlueprintRunner.ActivePhase(bs);
-  if(active?.jamming) { const count=session.enemies.filter(e=>e.enabled && e.health>0 && e.withdrawUntil===undefined && e.routeActor?.jammer).size(); if(session.jammerCount!==undefined && count<session.jammerCount) radio(session,count>0 ? active.jamming.remainingCall : active.jamming.clearCall); session.jammerCount=count; } else session.jammerCount=undefined;
+
 		if (active && bs.outcome === undefined && ((active.fighterWaves?.size() ?? 0)>0 || active.standaloneAce !== undefined)) {
 			if (!session.arrivalTargets) {
 				session.arrivalTargets=[];
@@ -241,7 +241,9 @@ export function createPhaseDirector(combat: PhaseCombat) {
 			}
 		}
 		for(const enemy of session.enemies) if(enemy.routeActor && enemy.enabled && enemy.health>0 && enemy.withdrawUntil===undefined) {
-   const pose=BomberRules.Sample(enemy.routeActor.route,session.elapsed-enemy.routeActor.startedAt).slots[0];
+   const sample=BomberRules.Sample(enemy.routeActor.route,session.elapsed-enemy.routeActor.startedAt);
+   if(sample.escaped) { enemy.enabled=false; enemy.model.Destroy(); continue; }
+   const pose=sample.slots[0];
    enemy.position=new Vector3(pose.position.x,pose.position.y,pose.position.z); enemy.direction=new Vector3(pose.facing.x,pose.facing.y,pose.facing.z); enemy.velocity=enemy.direction.mul(enemy.routeActor.route.speed); enemy.frame=CFrame.lookAt(enemy.position,enemy.position.add(enemy.direction));
   }
 		if (active) {

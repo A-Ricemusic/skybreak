@@ -275,7 +275,7 @@ export class FlightController {
 	private readonly enemies = new EnemySmoothing();
 	/** Pause overlay is up: the local jet, camera and actions hold until Resume. */
 	private paused = false;
-	private rearm?: {plan:RearmPlan;elapsed:number};
+	private rearm?: {plan:RearmPlan;elapsed:number;cameraCut?:boolean};
  private landing?: {plan: LandingPlan; elapsed: number; cameraCut?: boolean};
 	private launchIntro?: LaunchStageState;
 	private launchCameraTime = CAMERA_HANDOFF_SECONDS;
@@ -304,8 +304,9 @@ export class FlightController {
 		this.streamConnections.push(this.remotes.MissionState.OnClientEvent.Connect((data: unknown) => {
 			if (!typeIs(data, "table")) return;
 			const message = data as Partial<Omit<HudState, "kind">> & { kind?: string };
-			if(message.kind==="RearmStarted" && this.active) { this.rearm={plan:(data as {plan:RearmPlan}).plan,elapsed:0}; this.keys.clear(); }
-   else if(message.kind==="RearmComplete" && this.active) { const handoff=data as FlightControlHandoff; if(this.predictor) FlightPrediction.Handoff(this.predictor,handoff.state,handoff.sequence); this.rearm=undefined; this.keys.clear(); }
+			if(message.kind==="RearmStarted" && this.active) { this.rearm={plan:(data as {plan:RearmPlan}).plan,elapsed:0}; this.keys.clear(); for (const part of this.visual?.GetDescendants() ?? []) if (part.IsA("BasePart")) part.LocalTransparencyModifier=1; }
+   else if(message.kind==="RearmSkipped" && this.rearm) this.rearm.elapsed=(data as {elapsed:number}).elapsed;
+   else if(message.kind==="RearmComplete" && this.active) { const handoff=data as FlightControlHandoff; if(this.predictor) FlightPrediction.Handoff(this.predictor,handoff.state,handoff.sequence); this.rearm=undefined; this.keys.clear(); for (const part of this.visual?.GetDescendants() ?? []) if (part.IsA("BasePart")) part.LocalTransparencyModifier=0; }
    else if (message.kind === "LandingStarted" && this.active) {
 				this.landing={plan:(data as {plan:LandingPlan}).plan,elapsed:0}; this.keys.clear();
 				// The replicated aircraft is already hidden; hide the predicted clone for cockpit flight.
@@ -400,7 +401,7 @@ export class FlightController {
 	private handleBoundInput(state: Enum.UserInputState, keyCode: Enum.KeyCode, position: Vector3): Enum.ContextActionResult {
 		if (!this.active) return Enum.ContextActionResult.Pass;
 		if (UserInputService.GetFocusedTextBox() && state !== Enum.UserInputState.End && state !== Enum.UserInputState.Cancel) return Enum.ContextActionResult.Pass;
-		if (this.landing) {
+		if (this.landing || this.rearm) {
 			if (state === Enum.UserInputState.Begin && (keyCode === Enum.KeyCode.Space || keyCode === Enum.KeyCode.ButtonR2)) this.SkipLanding();
 			return Enum.ContextActionResult.Sink;
 		}
@@ -486,7 +487,7 @@ export class FlightController {
 	}
 	public IsPaused(): boolean { return this.paused; }
 	/** Flight advice and warning tones stay silent while the scripted launch owns the jet. */
-	public SkipLanding(): void { if (this.landing && canSkipLanding(this.landing.elapsed)) this.remotes.CombatAction.FireServer({action:"SkipLanding"}); }
+	public SkipLanding(): void { if (this.paused) return; if ((this.landing && canSkipLanding(this.landing.elapsed)) || (this.rearm && canSkipLanding(this.rearm.elapsed))) this.remotes.CombatAction.FireServer({action:"SkipLanding"}); }
 	public FlightWarningsEnabled(): boolean { return this.launchIntro === undefined && this.landing === undefined; }
 	/** Settings: pushing up dives instead of climbing (every input source). */
 	public SetInvertY(invert: boolean): void { this.invertY = invert; }
@@ -535,7 +536,8 @@ export class FlightController {
 		}
 		const navigation = this.telemetry.navigation;
 		if (navigation) contacts.push({ kind: "objective", x: navigation.X, z: navigation.Z });
-		return this.telemetry.radarPartial ? contacts.filter(c=>math.sqrt((c.x-this.GetPosition()!.X)**2+(c.z-this.GetPosition()!.Z)**2)<=(this.GetAirspace()?.radarRange ?? 3800)/2) : contacts;
+		const position=this.GetPosition();
+		return this.telemetry.radarPartial && position ? contacts.filter(c=>math.sqrt((c.x-position.X)**2+(c.z-position.Z)**2)<=(this.GetAirspace()?.radarRange ?? 3800)/2) : contacts;
 	}
 	/** Forward sweep along the predicted flight path against scenery; warnings only, never gameplay. */
 	private probe(state: FlightState, position: Vector3, now: number): void {
@@ -835,13 +837,14 @@ export class FlightController {
 		this.launchCameraTime = intro ? 0 : math.min(CAMERA_HANDOFF_SECONDS, this.launchCameraTime + dt);
 		const handoff = this.launchCameraTime / CAMERA_HANDOFF_SECONDS;
 		const eased = handoff * handoff * (3 - 2 * handoff);
-		const desired = this.landing ? CFrame.lookAt(position.add(new Vector3(0,5,0)),position.add(forward.mul(100))) : intro ? launch : launch.Lerp(chase, eased);
+		const desired = (this.landing || this.rearm) ? CFrame.lookAt(position.add(new Vector3(0,5,0)),position.add(forward.mul(100))) : intro ? launch : launch.Lerp(chase, eased);
 		// Impact feel (CameraShake) rides on top of the follow: shake is a camera-space
 		// offset and the ace hit-stop slows the follow and punches the FOV. Visual only.
 		const impact = CameraShake.Step(dt);
-		if (this.landing && !this.landing.cameraCut) {
+		const cinematic=this.landing ?? this.rearm;
+		if (cinematic && !cinematic.cameraCut) {
 			this.cameraFrame = desired;
-			this.landing.cameraCut = true;
+			cinematic.cameraCut = true;
 		} else this.cameraFrame = this.cameraFrame.Lerp(desired, FlightMath.DampAlpha(8 * impact.follow, dt));
 		camera.CameraType = Enum.CameraType.Scriptable;
 		camera.CFrame = this.cameraFrame.mul(impact.offset);

@@ -1,6 +1,6 @@
 import { canSkipLanding } from "../shared/EngineBatchB";
 import { buildNightLighting } from "./NightLighting";
-import { liveJammers, lockAllowed, stepRearm } from "./EngineBatchCRuntime";
+import { announceJammerKill, liveJammers, lockAllowed, stepRearm } from "./EngineBatchCRuntime";
 import { sampleClearance, stepLanding } from "./EngineBatchBRuntime";
 import { createGroundTarget } from "./GroundTargetFactory";
 import { GroundAirDefence } from "../shared/GroundAirDefence";
@@ -603,6 +603,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		let name: string;
 		if (options.name !== undefined) name = options.name;
 		else if (role === "bomber") name = options.arrival && "aircraft" in options.arrival ? string.upper(options.arrival.aircraft ?? "AIRCRAFT") : session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.aircraft === "transport" ? "HEAVY TRANSPORT" : "HEAVY BOMBER";
+		else if (options.arrival?.livery === "Elite") name = `ELITE SQUADRON ${index + 1}`;
 		else if (role === "escort") name = `ESCORT ${session.spawnSerial + 1}`;
 		else if (role === "ace") name = session.blueprint?.aceName ?? "ACE";
 		else if (role === "courier") name = session.missionId === 24 ? "FUEL TANKER" : "COURIER";
@@ -641,10 +642,12 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		const runway = arrival !== undefined && "scramble" in arrival && arrival.scramble === true;
 		const [boundsFrame, boundsSize] = model.GetBoundingBox();
 		const pivotAboveBottom = model.GetPivot().Position.Y - (boundsFrame.Position.Y - boundsSize.Y / 2);
-		const pose = options.pose ?? (authoredSpawn ? authoredAirPose(authoredSpawn, arrival?.headingDegrees ?? 0, index, runway, pivotAboveBottom) : undefined);
+		const route = arrival && "route" in arrival && arrival.route ? BomberRules.Create(arrival.route.waypoints,arrival.route.speed,[{x:index*60,y:0,z:0}]) : undefined;
+  const routePose = route && BomberRules.Sample(route,0).slots[0];
+  const pose = routePose ?? options.pose ?? (authoredSpawn ? authoredAirPose(authoredSpawn, arrival?.headingDegrees ?? 0, index, runway, pivotAboveBottom) : undefined);
 		let position = pose ? new Vector3(pose.position.x, pose.position.y, pose.position.z) : new Vector3(px, py, pz);
 		// Preserve legacy random spawns; authored airborne poses get the same terrain probe and floor.
-		if (pose && arrival && !runway) {
+		if (pose && arrival && !runway && !route) {
 			let height = airSpawnHeight(position.Y);
 			const toward = new Vector3(pose.facing.x, pose.facing.y, pose.facing.z);
 			if (session.groundParams) for (const [dx,dz] of [[0,0],[-80,0],[80,0],[0,-80],[0,80],[toward.X*200,toward.Z*200]]) {
@@ -670,7 +673,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		else { session.spawnSerial += 1; serial = session.spawnSerial; }
 		const enemy: Enemy = {
 			scoreRole: options.arrival?.scoreRole ?? (role === "bomber" && session.blueprintState ? BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.scoreRole : undefined),
-   routeActor: options.arrival && "route" in options.arrival && options.arrival.route ? {route:BomberRules.Create(options.arrival.route.waypoints, options.arrival.route.speed, [{x:index*60,y:0,z:0}]),startedAt:session.elapsed,jammer:options.arrival.aircraft==="jammer"} : undefined,
+   routeActor: route ? {route,startedAt:session.elapsed,jammer:arrival !== undefined && "aircraft" in arrival && arrival.aircraft==="jammer"} : undefined,
 			groundAttack: options.arrival && "behaviour" in options.arrival && options.arrival.behaviour === "ground_attack",
 			scramble: options.arrival && "scramble" in options.arrival && options.arrival.scramble ? { spawn: { x:position.X,y:position.Y,z:position.Z }, heading: options.arrival.headingDegrees ?? 0, startedAt:session.elapsed } : undefined,
 			friendly: options.friendly, alliedAmmo: options.friendly ? AlliedRules.MissilesPerWingman : undefined,
@@ -728,6 +731,7 @@ function destroyEnemy(session: CombatSession, enemy: Enemy, allied = false): voi
 	syncElapsed(session);
 	if (!accepted) { if (sessionOutcome(session) !== undefined) finish(session); return; }
 	enemy.health = 0;
+ announceJammerKill(session,enemy,line=>radio(session,line));
 	enemy.enabled = false;
 	enemy.model.SetAttribute("Health", 0);
 	enemy.model.SetAttribute("SkybreakEnemy", false);
@@ -1022,7 +1026,7 @@ function stepEnemies(session: CombatSession, dt: number): void {
 	const maxCap = soft ? GENTLE.threatCap : tuned(session, TUNING.threatCap);
 	let live = 0, threats = 0, raidersAlive = 0;
 	for (const enemy of session.enemies) {
-		if (!ownsEnemy(session, enemy) || enemy.kind !== "air" || enemy.role === "courier" || enemy.role === "bomber" || (enemy.escortSlot !== undefined && !enemy.escortEngaged)) continue;
+		if (!ownsEnemy(session, enemy) || enemy.kind !== "air" || enemy.role === "courier" || (enemy.role === "bomber" && !enemy.routeActor) || (enemy.escortSlot !== undefined && !enemy.escortEngaged)) continue;
 		live += 1;
 		if (enemy.windup > 0) threats += 1;
 		if (!enemy.required) raidersAlive += 1;
@@ -1048,7 +1052,7 @@ function stepEnemies(session: CombatSession, dt: number): void {
 			enemy.scramble=undefined;
 		}
 		// Route actors are stepped only by PhaseDirector and never enter fighter/fire logic.
-		if (enemy.role === BomberRules.Role.role || (enemy.escortSlot !== undefined && !enemy.escortEngaged)) continue;
+		if ((enemy.role === BomberRules.Role.role && (!enemy.routeActor || enemy.routeActor.jammer)) || (enemy.escortSlot !== undefined && !enemy.escortEngaged)) continue;
 		enemy.combatTarget = nearestWingman(session, enemy);
 		const playerPosition = enemy.combatTarget?.position ?? positionFor(session.state);
 		const playerVelocity = enemy.combatTarget?.velocity ?? directionFor(session.state).mul(session.state.speed);
@@ -1149,6 +1153,7 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		// A break stays below the ordinary bandit speed cap, even when the player flies at 600.
 		else if (!ace && enemy.mode === "extend") speed = ThreatRules.ExtendSpeed(session.state.speed, 180);
 		if (!aceFighting) speed += 40;
+		if (!enemy.routeActor) {
 		const oldDirection = enemy.direction;
 		const breaking = enemy.breakUntil > session.elapsed;
 		enemy.direction = steerAircraft(oldDirection, desired, breaking ? breakTurn : ace ? 2.8 : 2.1, dt);
@@ -1158,6 +1163,7 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		const bank = math.clamp(-oldDirection.Cross(enemy.direction).Y * 26, -0.65, 0.65);
 		// Applied once per Heartbeat by flushPivots: a hitch's catch-up sub-steps replicate one CFrame, not five.
 		enemy.frame = CFrame.lookAt(enemy.position, enemy.position.add(enemy.direction)).mul(CFrame.Angles(0, 0, bank));
+		}
 		enemy.fireTimer = math.max(0, enemy.fireTimer - dt);
 		if (courier) continue; // the courier never shoots
 		const aimDot = enemy.direction.Dot(unitOr(playerPosition.sub(enemy.position), enemy.direction));
@@ -1587,7 +1593,7 @@ export const CombatService = {
 			const world = MissionWorld.Build(missionId, folder);
 			assert(player.Parent === Players, "Player left during world construction");
 			const blueprint = MissionCatalog.Get(missionId);
-			if(blueprint.nightLighting) buildNightLighting(folder,blueprint.nightLighting);
+			if(blueprint.nightLighting) buildNightLighting(folder,blueprint.nightLighting,()=>PauseRules.Paused(session.pause));
    assert(world.groundTargets.size() === blueprint.ground.size(), `Mission ${missionId} world ground target count mismatch`);
 			const aircraft = JetFactory.Create("SKYBREAK - Kestrel", false);
 			assert(player.Parent === Players, "Player left during aircraft construction");
@@ -1750,7 +1756,13 @@ export const CombatService = {
 					else if (!resumeSession(session, now)) sendTelemetry(session);
 					return;
 				}
-				if(session.rearmElapsed!==undefined) return;
+				if(session.rearmElapsed!==undefined) {
+     if (!PauseRules.Paused(session.pause) && action === "SkipLanding" && canSkipLanding(session.rearmElapsed)) {
+      const plan=session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.rearm;
+      if(plan) { session.rearmElapsed=math.max(session.rearmElapsed,plan.landing.approachSeconds+plan.landing.rolloutSeconds); missionState!.FireClient(session.player,{kind:"RearmSkipped",elapsed:session.rearmElapsed}); }
+     }
+     return;
+    }
     if (session.blueprintState?.landingElapsed !== undefined) {
 					if (action === "SkipLanding" && session.landingStartedAt !== undefined && canSkipLanding(os.clock()-session.landingStartedAt)) { BlueprintRunner.AdvanceLanding(session.blueprintState,0,true); if (sessionOutcome(session) !== undefined) finish(session); }
 					return;
