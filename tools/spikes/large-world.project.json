@@ -1,0 +1,66 @@
+{
+  "name": "LargeWorldSpike",
+  "tree": {
+    "$className": "DataModel",
+    "Workspace": {
+      "$properties": {
+        "StreamingEnabled": false
+      },
+      "$attributes": {
+        "LargeWorldSpike": true
+      }
+    },
+    "ReplicatedStorage": {
+      "Shared": {
+        "$path": "../../out/shared"
+      },
+      "rbxts_include": {
+        "$path": "../../include",
+        "node_modules": {
+          "$className": "Folder",
+          "@rbxts": {
+            "$path": "../../node_modules/@rbxts"
+          },
+          "@rbxts-js": {
+            "$path": "../../node_modules/@rbxts-js"
+          }
+        }
+      }
+    },
+    "ServerStorage": {
+      "TerrainWriter": {
+        "$path": "../../out/server/TerrainWriter.luau"
+      },
+      "LodPlan": {
+        "$path": "large-world-lod.luau"
+      },
+      "Scenery": {
+        "$path": "../../out/server/Scenery.luau"
+      },
+      "WorldAssets": {
+        "$path": "../../out/server/WorldAssets.luau"
+      }
+    },
+    "ServerScriptService": {
+      "SpikeClientTest": {
+        "$path": "large-world-client.server.luau"
+      },
+      "Server": {
+        "$className": "Folder",
+        "WorldAssets": {
+          "$path": "../../out/server/WorldAssets.luau"
+        },
+        "TerrainWriter": {
+          "$path": "../../out/server/TerrainWriter.luau"
+        }
+      }
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "SpikeClientTest": {
+          "$path": "large-world-client.client.luau"
+        }
+      }
+    }
+  }
+}

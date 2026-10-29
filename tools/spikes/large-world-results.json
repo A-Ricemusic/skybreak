@@ -1,0 +1,1287 @@
+{
+  "date": "2026-10-28",
+  "studioVersion": "0.745.0.7451137",
+  "baseline": "76f7f9e80ab551c64782027a37a8b1a7cc7bfec0",
+  "machine": "MacBookAir10,1 Apple M1 8-core 8GB macOS 26.5.2 25F84",
+  "notes": [
+    "Chronological rows include startup attempts, initial uninstrumented LOD run, and invalid first 8k props row (queries before pad warm-up). Report tables use completed full cases, latest instrumented LOD cases and warmed props repeat.",
+    "Server/client Stats memory readings in Play are aggregate Studio process readings, not separate allocations."
+  ],
+  "sourceSha256": {
+    "tools/spikes/large-world-props.luau": "7391b1040b49d3d4647e111d821ed5ef09efa7ac292dee1395fbe07149e239d6",
+    "tools/spikes/large-world-lod-measure.luau": "37802ef9b0142f51faa020715d4ef9fce4a08129514ef5536b563ce7f9d372ac",
+    "tools/spikes/large-world-client.server.luau": "94bdd65f20b38985a891e25e6b50f26b31acd60fb61bba5cbcc36b40f13747c8",
+    "tools/spikes/large-world-budget.luau": "763ca183dc1b5895b830a1eac9da5dd0e8135cf1c42b3387ec707974b75eca45",
+    "tools/spikes/large-world-lod.luau": "6defc6edd146e4a1561d73437eeab97811397aa7b587b0778d6b7d80f722aad5",
+    "tools/spikes/large-world-play.luau": "a4eafc68c2787056b1954cb0c8d2dac937a0a01a85e3afb1ebebbfcedd78325e",
+    "tools/spikes/large-world-client.client.luau": "1406ea49ea8de189e08e69ed937b8509566d27663e0c42744ac4da821c4c262d",
+    "tools/spikes/large-world.project.json": "f2a324b642ff9868fe552fb46b5eb6d4cbf706206b0e3346c49bbccbe1effa43"
+  },
+  "measurements": [
+    {
+      "source": "LARGE_WORLD",
+      "measurement": {
+        "memoryMb": 2819.43115234375,
+        "kind": "environment",
+        "version": "0.745.0.7451137",
+        "streaming": false
+      }
+    },
+    {
+      "source": "LARGE_WORLD",
+      "measurement": {
+        "memoryMb": 2553.244384765625,
+        "kind": "environment",
+        "version": "0.745.0.7451137",
+        "streaming": false
+      }
+    },
+    {
+      "source": "LARGE_WORLD",
+      "measurement": {
+        "memoryMb": 2576.010009765625,
+        "kind": "environment",
+        "version": "0.745.0.7451137",
+        "streaming": false
+      }
+    },
+    {
+      "source": "LARGE_WORLD",
+      "measurement": {
+        "luaAfterMb": 56.7744140625,
+        "jobs": 128,
+        "sampledPeakMb": 2828.21337890625,
+        "workSeconds": 0.810946999979933,
+        "phase": "water",
+        "memoryBeforeMb": 2579.400634765625,
+        "worstYieldGapSeconds": 0.04742108333448414,
+        "extent": 8000,
+        "cells": 12000000,
+        "wallSeconds": 0.9812403333344264,
+        "memoryAfterMb": 2827.94775390625,
+        "luaBeforeMb": 56.01953125,
+        "longestJobSeconds": 0.008602791665907716,
+        "kind": "terrain",
+        "yields": 53,
+        "mode": "full"
+      }
+    },
+    {
+      "source": "LARGE_WORLD",
+      "measurement": {
+        "luaAfterMb": 38.9541015625,
+        "jobs": 2880,
+        "sampledPeakMb": 3124.43212890625,
+        "workSeconds": 11.667069249921042,
+        "phase": "island",
+        "memoryBeforeMb": 2827.99462890625,
+        "worstYieldGapSeconds": 0.021849999997357372,
+        "extent": 8000,
+        "cells": 84096000,
+        "wallSeconds": 13.341800333331776,
+        "memoryAfterMb": 3124.43212890625,
+        "luaBeforeMb": 58.1357421875,
+        "longestJobSeconds": 0.010696791665395722,
+        "kind": "terrain",
+        "yields": 782,
+        "mode": "full"
+      }
+    },
+    {
+      "source": "LARGE_WORLD",
+      "measurement": {
+        "luaAfterMb": 41.1474609375,
+        "jobs": 128,
+        "sampledPeakMb": 3163.97900390625,
+        "workSeconds": 0.6842706250063202,
+        "phase": "water",
+        "memoryBeforeMb": 3142.88525390625,
+        "worstYieldGapSeconds": 0.025985666667111218,
+        "extent": 8000,
+        "cells": 9720000,
+        "wallSeconds": 0.8083081250006217,
+        "memoryAfterMb": 3162.83837890625,
+        "luaBeforeMb": 40.4541015625,
+        "longestJobSeconds": 0.008840166665322613,
+        "kind": "terrain",
+        "yields": 48,
+        "mode": "core-and-flat"
+      }
+    },
+    {
+      "source": "LARGE_WORLD",
+      "measurement": {
+        "luaAfterMb": 45.86328125,
+        "jobs": 2160,
+        "sampledPeakMb": 3269.99462890625,
+        "workSeconds": 9.83923120829786,
+        "phase": "island",
+        "memoryBeforeMb": 3162.83837890625,
+        "worstYieldGapSeconds": 0.030371583336091135,
+        "extent": 8000,
+        "cells": 68117760,
+        "wallSeconds": 11.513196291667555,
+        "memoryAfterMb": 3260.99462890625,
+        "luaBeforeMb": 42.2001953125,
+        "longestJobSeconds": 0.021683375001884997,
+        "kind": "terrain",
+        "yields": 676,
+        "mode": "core-and-flat"
+      }
+    },
+    {
+      "source": "LARGE_WORLD",
+      "measurement": {
+        "wallSeconds": 0.009477041665377328,
+        "memoryDeltaMb": 0,
+        "kind": "tiles",
+        "instances": 28,
+        "extent": 8000
+      }
+    },
+    {
+      "source": "LARGE_WORLD",
+      "measurement": {
+        "luaAfterMb": 36.9326171875,
+        "jobs": 512,
+        "sampledPeakMb": 3277.76025390625,
+        "workSeconds": 3.180132874967967,
+        "phase": "water",
+        "memoryBeforeMb": 3226.65087890625,
+        "worstYieldGapSeconds": 0.020532333335722797,
+        "extent": 16000,
+        "cells": 48000000,
+        "wallSeconds": 3.620398541668692,
+        "memoryAfterMb": 3268.40087890625,
+        "luaBeforeMb": 33.84375,
+        "longestJobSeconds": 0.009380916668305872,
+        "kind": "terrain",
+        "yields": 212,
+        "mode": "full"
+      }
+    },
+    {
+      "source": "LARGE_WORLD",
+      "measurement": {
+        "luaAfterMb": 53.9580078125,
+        "jobs": 10560,
+        "sampledPeakMb": 3514.213623046875,
+        "workSeconds": 61.612856416792056,
+        "phase": "island",
+        "memoryBeforeMb": 3268.41650390625,
+        "worstYieldGapSeconds": 0.03477620833291439,
+        "extent": 16000,
+        "cells": 336384000,
+        "wallSeconds": 69.27428924999913,
+        "memoryAfterMb": 3423.213623046875,
+        "luaBeforeMb": 42.0185546875,
+        "longestJobSeconds": 0.016227708336373325,
+        "kind": "terrain",
+        "yields": 3878,
+        "mode": "full"
+      }
+    },
+    {
+      "source": "LARGE_WORLD",
+      "measurement": {
+        "luaAfterMb": 34.13671875,
+        "jobs": 128,
+        "sampledPeakMb": 3717.120361328125,
+        "workSeconds": 0.6947242499918502,
+        "phase": "water",
+        "memoryBeforeMb": 3651.464111328125,
+        "worstYieldGapSeconds": 0.022089624999352964,
+        "extent": 16000,
+        "cells": 9720000,
+        "wallSeconds": 0.8263643750033225,
+        "memoryAfterMb": 3715.714111328125,
+        "luaBeforeMb": 54.8974609375,
+        "longestJobSeconds": 0.008705999996891478,
+        "kind": "terrain",
+        "yields": 47,
+        "mode": "core-and-flat"
+      }
+    },
+    {
+      "source": "LARGE_WORLD",
+      "measurement": {
+        "luaAfterMb": 51.8095703125,
+        "jobs": 2160,
+        "sampledPeakMb": 3871.27685546875,
+        "workSeconds": 9.648146416537202,
+        "phase": "island",
+        "memoryBeforeMb": 3715.714111328125,
+        "worstYieldGapSeconds": 0.03054162500120583,
+        "extent": 16000,
+        "cells": 68117760,
+        "wallSeconds": 11.287735000001703,
+        "memoryAfterMb": 3852.04248046875,
+        "luaBeforeMb": 35.189453125,
+        "longestJobSeconds": 0.020786333334399387,
+        "kind": "terrain",
+        "yields": 671,
+        "mode": "core-and-flat"
+      }
+    },
+    {
+      "source": "LARGE_WORLD",
+      "measurement": {
+        "wallSeconds": 0.020101583333598683,
+        "memoryDeltaMb": 0,
+        "kind": "tiles",
+        "instances": 220,
+        "extent": 16000
+      }
+    },
+    {
+      "source": "LARGE_WORLD",
+      "measurement": {
+        "luaAfterMb": 42.1396484375,
+        "jobs": 1152,
+        "sampledPeakMb": 3908.26123046875,
+        "workSeconds": 7.570909291676799,
+        "phase": "water",
+        "memoryBeforeMb": 3759.40185546875,
+        "worstYieldGapSeconds": 0.04444395833343151,
+        "extent": 24000,
+        "cells": 108000000,
+        "wallSeconds": 8.89204987499761,
+        "memoryAfterMb": 3887.58935546875,
+        "luaBeforeMb": 35.291015625,
+        "longestJobSeconds": 0.042064791665325174,
+        "kind": "terrain",
+        "yields": 475,
+        "mode": "full"
+      }
+    },
+    {
+      "source": "LARGE_WORLD",
+      "measurement": {
+        "luaAfterMb": 69.478515625,
+        "jobs": 24480,
+        "sampledPeakMb": 4383.37158203125,
+        "workSeconds": 139.48087758316615,
+        "phase": "island",
+        "memoryBeforeMb": 3887.65185546875,
+        "worstYieldGapSeconds": 6.747776916665316,
+        "extent": 24000,
+        "cells": 756864000,
+        "wallSeconds": 165.82303633333504,
+        "memoryAfterMb": 4246.07470703125,
+        "luaBeforeMb": 53.8427734375,
+        "longestJobSeconds": 0.04200466666588909,
+        "kind": "terrain",
+        "yields": 8799,
+        "mode": "full"
+      }
+    },
+    {
+      "source": "LARGE_WORLD",
+      "measurement": {
+        "luaAfterMb": 46.435546875,
+        "jobs": 128,
+        "sampledPeakMb": 4573.5439453125,
+        "workSeconds": 0.7864279583336611,
+        "phase": "water",
+        "memoryBeforeMb": 4525.8408203125,
+        "worstYieldGapSeconds": 0.05936008333446807,
+        "extent": 24000,
+        "cells": 9720000,
+        "wallSeconds": 1.0171645833324874,
+        "memoryAfterMb": 4573.5439453125,
+        "luaBeforeMb": 69.6337890625,
+        "longestJobSeconds": 0.02893012500135228,
+        "kind": "terrain",
+        "yields": 52,
+        "mode": "core-and-flat"
+      }
+    },
+    {
+      "source": "LARGE_WORLD",
+      "measurement": {
+        "luaAfterMb": 58.7685546875,
+        "jobs": 2160,
+        "sampledPeakMb": 4794.0283203125,
+        "workSeconds": 9.851171291702485,
+        "phase": "island",
+        "memoryBeforeMb": 4573.5439453125,
+        "worstYieldGapSeconds": 0.06637908333505038,
+        "extent": 24000,
+        "cells": 68117760,
+        "wallSeconds": 11.744115666668222,
+        "memoryAfterMb": 4777.0908203125,
+        "luaBeforeMb": 47.48828125,
+        "longestJobSeconds": 0.01721700000052806,
+        "kind": "terrain",
+        "yields": 679,
+        "mode": "core-and-flat"
+      }
+    },
+    {
+      "source": "LARGE_WORLD",
+      "measurement": {
+        "wallSeconds": 0.06086916666754405,
+        "memoryDeltaMb": 10.671875,
+        "kind": "tiles",
+        "instances": 540,
+        "extent": 24000
+      }
+    },
+    {
+      "source": "LARGE_WORLD",
+      "measurement": {
+        "luaAfterMb": 44.65625,
+        "jobs": 2592,
+        "sampledPeakMb": 4815.68505859375,
+        "workSeconds": 16.25843854177583,
+        "phase": "water",
+        "memoryBeforeMb": 4655.9970703125,
+        "worstYieldGapSeconds": 0.07216849999895203,
+        "extent": 35000,
+        "cells": 229687500,
+        "wallSeconds": 21.27768087500226,
+        "memoryAfterMb": 4797.51318359375,
+        "luaBeforeMb": 36.267578125,
+        "longestJobSeconds": 0.022580583332455717,
+        "kind": "terrain",
+        "yields": 1001,
+        "mode": "full"
+      }
+    },
+    {
+      "source": "LARGE_WORLD",
+      "measurement": {
+        "luaAfterMb": 75.9541015625,
+        "jobs": 50400,
+        "sampledPeakMb": 5521.6552734375,
+        "workSeconds": 323.7224730409871,
+        "phase": "island",
+        "memoryBeforeMb": 4814.65380859375,
+        "worstYieldGapSeconds": 12.558151666667982,
+        "extent": 35000,
+        "cells": 1609650000,
+        "wallSeconds": 420.7041492916687,
+        "memoryAfterMb": 5484.2021484375,
+        "luaBeforeMb": 68.7236328125,
+        "longestJobSeconds": 0.8757195833350124,
+        "kind": "terrain",
+        "yields": 20108,
+        "mode": "full"
+      }
+    },
+    {
+      "source": "LARGE_WORLD",
+      "measurement": {
+        "luaAfterMb": 76.966796875,
+        "jobs": 128,
+        "sampledPeakMb": 6197.65625,
+        "workSeconds": 0.7736181666259654,
+        "phase": "water",
+        "memoryBeforeMb": 5990.3125,
+        "worstYieldGapSeconds": 2.171913416666939,
+        "extent": 35000,
+        "cells": 9720000,
+        "wallSeconds": 3.258201749998989,
+        "memoryAfterMb": 6194.953125,
+        "luaBeforeMb": 76.1318359375,
+        "longestJobSeconds": 0.014977166669268627,
+        "kind": "terrain",
+        "yields": 51,
+        "mode": "core-and-flat"
+      }
+    },
+    {
+      "source": "LARGE_WORLD",
+      "measurement": {
+        "luaAfterMb": 48.8916015625,
+        "jobs": 2160,
+        "sampledPeakMb": 6324.96923828125,
+        "workSeconds": 9.87409083330931,
+        "phase": "island",
+        "memoryBeforeMb": 6194.953125,
+        "worstYieldGapSeconds": 0.06781174999923678,
+        "extent": 35000,
+        "cells": 68117760,
+        "wallSeconds": 12.997465000000375,
+        "memoryAfterMb": 6161.78173828125,
+        "luaBeforeMb": 78.01953125,
+        "longestJobSeconds": 0.015413000000989996,
+        "kind": "terrain",
+        "yields": 685,
+        "mode": "core-and-flat"
+      }
+    },
+    {
+      "source": "LARGE_WORLD",
+      "measurement": {
+        "wallSeconds": 0.20261712499996065,
+        "memoryDeltaMb": -2.109375,
+        "kind": "tiles",
+        "instances": 1200,
+        "extent": 35000
+      }
+    },
+    {
+      "source": "LARGE_WORLD",
+      "measurement": {
+        "kind": "complete"
+      }
+    },
+    {
+      "source": "LARGE_WORLD_LOD",
+      "measurement": {
+        "jobs": 1768,
+        "wallSeconds": 0.7829711666672665,
+        "memoryAfterMb": 4006.84375,
+        "workSeconds": 0.46730975000537,
+        "longestJobSeconds": 0.004311916665756144,
+        "memoryBeforeMb": 3960.640625,
+        "yields": 38,
+        "extent": 8000
+      }
+    },
+    {
+      "source": "LARGE_WORLD_LOD",
+      "measurement": {
+        "jobs": 6104,
+        "wallSeconds": 3.4087074999988545,
+        "memoryAfterMb": 4070.765625,
+        "workSeconds": 1.6946725833731762,
+        "longestJobSeconds": 0.027068416668043938,
+        "memoryBeforeMb": 4004.96875,
+        "yields": 135,
+        "extent": 16000
+      }
+    },
+    {
+      "source": "LARGE_WORLD_LOD",
+      "measurement": {
+        "jobs": 10048,
+        "wallSeconds": 5.507383041665889,
+        "memoryAfterMb": 4190.84375,
+        "workSeconds": 3.4473085417266702,
+        "longestJobSeconds": 0.12243858333386015,
+        "memoryBeforeMb": 4079.0625,
+        "yields": 242,
+        "extent": 24000
+      }
+    },
+    {
+      "source": "LARGE_WORLD_LOD",
+      "measurement": {
+        "jobs": 14124,
+        "wallSeconds": 10.45892725000158,
+        "memoryAfterMb": 4411.6875,
+        "workSeconds": 6.748695708378364,
+        "longestJobSeconds": 0.0728200833327719,
+        "memoryBeforeMb": 4225.21875,
+        "yields": 509,
+        "extent": 35000
+      }
+    },
+    {
+      "source": "LARGE_WORLD_LOD",
+      "measurement": {
+        "workSeconds": 0.28635837500405614,
+        "memoryBeforeMb": 4089.421875,
+        "extent": 8000,
+        "wallSeconds": 0.41257287500047823,
+        "memoryAfterMb": 4135.703125,
+        "jobs": 1768,
+        "longestJobSeconds": 0.0058533749979687855,
+        "worstYieldGapSeconds": 0.023430041666870238,
+        "yields": 23,
+        "sampledPeakMb": 4135.703125
+      }
+    },
+    {
+      "source": "LARGE_WORLD_LOD",
+      "measurement": {
+        "workSeconds": 1.0826478749149828,
+        "memoryBeforeMb": 4118.203125,
+        "extent": 16000,
+        "wallSeconds": 1.5460379166688654,
+        "memoryAfterMb": 4176.203125,
+        "jobs": 6104,
+        "longestJobSeconds": 0.002479916667653015,
+        "worstYieldGapSeconds": 0.030622624999523396,
+        "yields": 89,
+        "sampledPeakMb": 4176.203125
+      }
+    },
+    {
+      "source": "LARGE_WORLD_LOD",
+      "measurement": {
+        "workSeconds": 4.543791250260256,
+        "memoryBeforeMb": 4171.46875,
+        "extent": 24000,
+        "wallSeconds": 7.424633875001746,
+        "memoryAfterMb": 4277.46875,
+        "jobs": 10048,
+        "longestJobSeconds": 0.06536612499985495,
+        "worstYieldGapSeconds": 0.0885486666666111,
+        "yields": 325,
+        "sampledPeakMb": 4277.46875
+      }
+    },
+    {
+      "source": "LARGE_WORLD_LOD",
+      "measurement": {
+        "workSeconds": 8.454823833235423,
+        "memoryBeforeMb": 4295.109375,
+        "extent": 35000,
+        "wallSeconds": 13.776921374999802,
+        "memoryAfterMb": 4495.859375,
+        "jobs": 14124,
+        "longestJobSeconds": 0.06327304166552494,
+        "worstYieldGapSeconds": 0.10622129166586092,
+        "yields": 657,
+        "sampledPeakMb": 4495.859375
+      }
+    },
+    {
+      "source": "LARGE_WORLD_PROPS",
+      "measurement": {
+        "late": [],
+        "kind": "preload"
+      }
+    },
+    {
+      "source": "LARGE_WORLD_PROPS",
+      "measurement": {
+        "trees": 140,
+        "airbaseProps": 4,
+        "baseParts": 10,
+        "memoryBeforeMb": 4193.09375,
+        "extent": 8000,
+        "wallSeconds": 0.01038200000039069,
+        "buildings": 6,
+        "memoryAfterMb": 4193.09375,
+        "uploadedModels": 10,
+        "kind": "props",
+        "instances": 30,
+        "rocks": 22
+      }
+    },
+    {
+      "source": "LARGE_WORLD_PROPS",
+      "measurement": {
+        "trees": 560,
+        "airbaseProps": 4,
+        "baseParts": 676,
+        "memoryBeforeMb": 4208.40625,
+        "extent": 16000,
+        "wallSeconds": 0.2996271666670509,
+        "buildings": 24,
+        "memoryAfterMb": 4216.875,
+        "uploadedModels": 676,
+        "kind": "props",
+        "instances": 2028,
+        "rocks": 88
+      }
+    },
+    {
+      "source": "LARGE_WORLD_PROPS",
+      "measurement": {
+        "trees": 1260,
+        "airbaseProps": 4,
+        "baseParts": 1516,
+        "memoryBeforeMb": 4218.6875,
+        "extent": 24000,
+        "wallSeconds": 0.28477579166792566,
+        "buildings": 54,
+        "memoryAfterMb": 4242.125,
+        "uploadedModels": 1516,
+        "kind": "props",
+        "instances": 4548,
+        "rocks": 198
+      }
+    },
+    {
+      "source": "LARGE_WORLD_PROPS",
+      "measurement": {
+        "trees": 2680,
+        "airbaseProps": 4,
+        "baseParts": 3220,
+        "memoryBeforeMb": 4231.59375,
+        "extent": 35000,
+        "wallSeconds": 0.38944824999998673,
+        "buildings": 115,
+        "memoryAfterMb": 4278.0625,
+        "uploadedModels": 3220,
+        "kind": "props",
+        "instances": 9660,
+        "rocks": 421
+      }
+    },
+    {
+      "source": "LARGE_WORLD_PROPS",
+      "measurement": {
+        "late": [],
+        "kind": "preload"
+      }
+    },
+    {
+      "source": "LARGE_WORLD_PROPS",
+      "measurement": {
+        "trees": 140,
+        "airbaseProps": 4,
+        "baseParts": 172,
+        "memoryBeforeMb": 4217.34375,
+        "extent": 8000,
+        "wallSeconds": 0.05936420833313605,
+        "buildings": 6,
+        "memoryAfterMb": 4219.359375,
+        "uploadedModels": 172,
+        "kind": "props",
+        "instances": 516,
+        "rocks": 22
+      }
+    },
+    {
+      "source": "LARGE_WORLD_PROPS",
+      "measurement": {
+        "trees": 560,
+        "airbaseProps": 4,
+        "baseParts": 676,
+        "memoryBeforeMb": 4218.296875,
+        "extent": 16000,
+        "wallSeconds": 0.126788999998098,
+        "buildings": 24,
+        "memoryAfterMb": 4227.171875,
+        "uploadedModels": 676,
+        "kind": "props",
+        "instances": 2028,
+        "rocks": 88
+      }
+    },
+    {
+      "source": "LARGE_WORLD_PROPS",
+      "measurement": {
+        "trees": 1260,
+        "airbaseProps": 4,
+        "baseParts": 1516,
+        "memoryBeforeMb": 4225.1875,
+        "extent": 24000,
+        "wallSeconds": 0.2063422499995795,
+        "buildings": 54,
+        "memoryAfterMb": 4249.078125,
+        "uploadedModels": 1516,
+        "kind": "props",
+        "instances": 4548,
+        "rocks": 198
+      }
+    },
+    {
+      "source": "LARGE_WORLD_PROPS",
+      "measurement": {
+        "trees": 2680,
+        "airbaseProps": 4,
+        "baseParts": 3220,
+        "memoryBeforeMb": 4243.609375,
+        "extent": 35000,
+        "wallSeconds": 0.3685331666674756,
+        "buildings": 115,
+        "memoryAfterMb": 4288.421875,
+        "uploadedModels": 3220,
+        "kind": "props",
+        "instances": 9660,
+        "rocks": 421
+      }
+    },
+    {
+      "source": "LARGE_WORLD_CLIENT",
+      "measurement": {
+        "aheadMisses": 0,
+        "streaming": false,
+        "extent": 8000,
+        "serverBuildSeconds": 1.2099539583323349,
+        "localIslandAfterReadySeconds": 0.0008913333331292961,
+        "samples": 37,
+        "jetGeometry": "Uploaded",
+        "fps": 59.32860451580075,
+        "clientPeakMb": 5515.04736328125,
+        "groundMisses": 0,
+        "serverPeakMb": 5515.04736328125,
+        "readyAfterClientScriptSeconds": 1.138404208333668,
+        "speed": 600,
+        "kind": "result",
+        "initialHit": true,
+        "worstRenderDt": 0.06823950260877609
+      }
+    },
+    {
+      "source": "LARGE_WORLD_FIRST_PLAY",
+      "measurement": {
+        "ok": true,
+        "result": {
+          "aheadMisses": 0,
+          "streaming": false,
+          "clientPeakMb": 5515.04736328125,
+          "serverBuildSeconds": 1.2099539583323349,
+          "speed": 600,
+          "samples": 37,
+          "localIslandAfterReadySeconds": 0.0008913333331292961,
+          "initialHit": true,
+          "jetGeometry": "Uploaded",
+          "groundMisses": 0,
+          "serverPeakMb": 5515.04736328125,
+          "readyAfterClientScriptSeconds": 1.138404208333668,
+          "worstRenderDt": 0.06823950260877609,
+          "kind": "result",
+          "extent": 8000,
+          "fps": 59.32860451580075
+        }
+      }
+    },
+    {
+      "source": "LARGE_WORLD_CLIENT",
+      "measurement": {
+        "aheadMisses": 0,
+        "streaming": false,
+        "extent": 8000,
+        "serverBuildSeconds": 1.4943300833328976,
+        "localIslandAfterReadySeconds": 0.00089408333224128,
+        "samples": 35,
+        "jetGeometry": "Uploaded",
+        "fps": 54.695303156055566,
+        "clientPeakMb": 5656.06298828125,
+        "groundMisses": 0,
+        "serverPeakMb": 5656.09423828125,
+        "readyAfterClientScriptSeconds": 0.6030504166665196,
+        "speed": 600,
+        "kind": "result",
+        "initialHit": true,
+        "worstRenderDt": 0.16923929750919342
+      }
+    },
+    {
+      "source": "LARGE_WORLD_PLAY",
+      "measurement": {
+        "profile": "desktop",
+        "streaming": false,
+        "result": {
+          "aheadMisses": 0,
+          "streaming": false,
+          "clientPeakMb": 5656.06298828125,
+          "serverBuildSeconds": 1.4943300833328976,
+          "speed": 600,
+          "samples": 35,
+          "localIslandAfterReadySeconds": 0.00089408333224128,
+          "initialHit": true,
+          "jetGeometry": "Uploaded",
+          "groundMisses": 0,
+          "serverPeakMb": 5656.09423828125,
+          "readyAfterClientScriptSeconds": 0.6030504166665196,
+          "worstRenderDt": 0.16923929750919342,
+          "kind": "result",
+          "extent": 8000,
+          "fps": 54.695303156055566
+        },
+        "extent": 8000
+      }
+    },
+    {
+      "source": "LARGE_WORLD_CLIENT",
+      "measurement": {
+        "aheadMisses": 0,
+        "streaming": true,
+        "extent": 8000,
+        "serverBuildSeconds": 1.5221444583330594,
+        "localIslandAfterReadySeconds": 0.0006239583344722632,
+        "samples": 38,
+        "jetGeometry": "Uploaded",
+        "fps": 59.31189620268395,
+        "clientPeakMb": 5680.7822265625,
+        "groundMisses": 0,
+        "serverPeakMb": 5680.7822265625,
+        "readyAfterClientScriptSeconds": 0.6557184583325579,
+        "speed": 600,
+        "kind": "result",
+        "initialHit": true,
+        "worstRenderDt": 0.09205950051546097
+      }
+    },
+    {
+      "source": "LARGE_WORLD_PLAY",
+      "measurement": {
+        "profile": "desktop",
+        "streaming": true,
+        "result": {
+          "aheadMisses": 0,
+          "streaming": true,
+          "clientPeakMb": 5680.7822265625,
+          "serverBuildSeconds": 1.5221444583330594,
+          "speed": 600,
+          "samples": 38,
+          "localIslandAfterReadySeconds": 0.0006239583344722632,
+          "initialHit": true,
+          "jetGeometry": "Uploaded",
+          "groundMisses": 0,
+          "serverPeakMb": 5680.7822265625,
+          "readyAfterClientScriptSeconds": 0.6557184583325579,
+          "worstRenderDt": 0.09205950051546097,
+          "kind": "result",
+          "extent": 8000,
+          "fps": 59.31189620268395
+        },
+        "extent": 8000
+      }
+    },
+    {
+      "source": "LARGE_WORLD_CLIENT",
+      "measurement": {
+        "aheadMisses": 0,
+        "streaming": false,
+        "extent": 16000,
+        "serverBuildSeconds": 2.951034791665734,
+        "localIslandAfterReadySeconds": 0.000743791664717719,
+        "samples": 75,
+        "jetGeometry": "Uploaded",
+        "fps": 59.269765475799254,
+        "clientPeakMb": 5890.4853515625,
+        "groundMisses": 0,
+        "serverPeakMb": 5890.4853515625,
+        "readyAfterClientScriptSeconds": 1.8018449583360052,
+        "speed": 600,
+        "kind": "result",
+        "initialHit": true,
+        "worstRenderDt": 0.16790220141410828
+      }
+    },
+    {
+      "source": "LARGE_WORLD_PLAY",
+      "measurement": {
+        "profile": "desktop",
+        "streaming": false,
+        "result": {
+          "aheadMisses": 0,
+          "streaming": false,
+          "clientPeakMb": 5890.4853515625,
+          "serverBuildSeconds": 2.951034791665734,
+          "speed": 600,
+          "samples": 75,
+          "localIslandAfterReadySeconds": 0.000743791664717719,
+          "initialHit": true,
+          "jetGeometry": "Uploaded",
+          "groundMisses": 0,
+          "serverPeakMb": 5890.4853515625,
+          "readyAfterClientScriptSeconds": 1.8018449583360052,
+          "worstRenderDt": 0.16790220141410828,
+          "kind": "result",
+          "extent": 16000,
+          "fps": 59.269765475799254
+        },
+        "extent": 16000
+      }
+    },
+    {
+      "source": "LARGE_WORLD_CLIENT",
+      "measurement": {
+        "aheadMisses": 0,
+        "streaming": true,
+        "extent": 16000,
+        "serverBuildSeconds": 3.1486640833318233,
+        "localIslandAfterReadySeconds": 0.0007045833335723728,
+        "samples": 75,
+        "jetGeometry": "Uploaded",
+        "fps": 59.0017926611069,
+        "clientPeakMb": 5968.0947265625,
+        "groundMisses": 0,
+        "serverPeakMb": 5968.0947265625,
+        "readyAfterClientScriptSeconds": 2.155305666667118,
+        "speed": 600,
+        "kind": "result",
+        "initialHit": true,
+        "worstRenderDt": 0.15197016298770905
+      }
+    },
+    {
+      "source": "LARGE_WORLD_PLAY",
+      "measurement": {
+        "profile": "desktop",
+        "streaming": true,
+        "result": {
+          "aheadMisses": 0,
+          "streaming": true,
+          "clientPeakMb": 5968.0947265625,
+          "serverBuildSeconds": 3.1486640833318233,
+          "speed": 600,
+          "samples": 75,
+          "localIslandAfterReadySeconds": 0.0007045833335723728,
+          "initialHit": true,
+          "jetGeometry": "Uploaded",
+          "groundMisses": 0,
+          "serverPeakMb": 5968.0947265625,
+          "readyAfterClientScriptSeconds": 2.155305666667118,
+          "worstRenderDt": 0.15197016298770905,
+          "kind": "result",
+          "extent": 16000,
+          "fps": 59.0017926611069
+        },
+        "extent": 16000
+      }
+    },
+    {
+      "source": "LARGE_WORLD_CLIENT",
+      "measurement": {
+        "aheadMisses": 0,
+        "streaming": false,
+        "extent": 24000,
+        "serverBuildSeconds": 5.039205833330925,
+        "localIslandAfterReadySeconds": 0.001233583334396826,
+        "samples": 113,
+        "jetGeometry": "Uploaded",
+        "fps": 58.977128763946126,
+        "clientPeakMb": 5876.9541015625,
+        "groundMisses": 0,
+        "serverPeakMb": 5876.9541015625,
+        "readyAfterClientScriptSeconds": 4.061257124998519,
+        "speed": 600,
+        "kind": "result",
+        "initialHit": true,
+        "worstRenderDt": 0.22426700592041016
+      }
+    },
+    {
+      "source": "LARGE_WORLD_PLAY",
+      "measurement": {
+        "profile": "desktop",
+        "streaming": false,
+        "result": {
+          "aheadMisses": 0,
+          "streaming": false,
+          "clientPeakMb": 5876.9541015625,
+          "serverBuildSeconds": 5.039205833330925,
+          "speed": 600,
+          "samples": 113,
+          "localIslandAfterReadySeconds": 0.001233583334396826,
+          "initialHit": true,
+          "jetGeometry": "Uploaded",
+          "groundMisses": 0,
+          "serverPeakMb": 5876.9541015625,
+          "readyAfterClientScriptSeconds": 4.061257124998519,
+          "worstRenderDt": 0.22426700592041016,
+          "kind": "result",
+          "extent": 24000,
+          "fps": 58.977128763946126
+        },
+        "extent": 24000
+      }
+    },
+    {
+      "source": "LARGE_WORLD_CLIENT",
+      "measurement": {
+        "aheadMisses": 0,
+        "streaming": true,
+        "extent": 24000,
+        "serverBuildSeconds": 4.072442125001544,
+        "localIslandAfterReadySeconds": 0.0006498750008177012,
+        "samples": 113,
+        "jetGeometry": "Uploaded",
+        "fps": 58.9669171885881,
+        "clientPeakMb": 6069.7978515625,
+        "groundMisses": 0,
+        "serverPeakMb": 6069.7978515625,
+        "readyAfterClientScriptSeconds": 3.1097262500006764,
+        "speed": 600,
+        "kind": "result",
+        "initialHit": true,
+        "worstRenderDt": 0.22839991748332977
+      }
+    },
+    {
+      "source": "LARGE_WORLD_PLAY",
+      "measurement": {
+        "profile": "desktop",
+        "streaming": true,
+        "result": {
+          "aheadMisses": 0,
+          "streaming": true,
+          "clientPeakMb": 6069.7978515625,
+          "serverBuildSeconds": 4.072442125001544,
+          "speed": 600,
+          "samples": 113,
+          "localIslandAfterReadySeconds": 0.0006498750008177012,
+          "initialHit": true,
+          "jetGeometry": "Uploaded",
+          "groundMisses": 0,
+          "serverPeakMb": 6069.7978515625,
+          "readyAfterClientScriptSeconds": 3.1097262500006764,
+          "worstRenderDt": 0.22839991748332977,
+          "kind": "result",
+          "extent": 24000,
+          "fps": 58.9669171885881
+        },
+        "extent": 24000
+      }
+    },
+    {
+      "source": "LARGE_WORLD_CLIENT",
+      "measurement": {
+        "aheadMisses": 0,
+        "streaming": false,
+        "extent": 35000,
+        "serverBuildSeconds": 8.851427541667363,
+        "localIslandAfterReadySeconds": 0.0007545833323092666,
+        "samples": 166,
+        "jetGeometry": "Uploaded",
+        "fps": 59.29120576290514,
+        "clientPeakMb": 6172.1728515625,
+        "groundMisses": 0,
+        "serverPeakMb": 6172.1728515625,
+        "readyAfterClientScriptSeconds": 7.8024340416668565,
+        "speed": 600,
+        "kind": "result",
+        "initialHit": true,
+        "worstRenderDt": 0.22191299498081207
+      }
+    },
+    {
+      "source": "LARGE_WORLD_PLAY",
+      "measurement": {
+        "profile": "desktop",
+        "streaming": false,
+        "result": {
+          "aheadMisses": 0,
+          "streaming": false,
+          "clientPeakMb": 6172.1728515625,
+          "serverBuildSeconds": 8.851427541667363,
+          "speed": 600,
+          "samples": 166,
+          "localIslandAfterReadySeconds": 0.0007545833323092666,
+          "initialHit": true,
+          "jetGeometry": "Uploaded",
+          "groundMisses": 0,
+          "serverPeakMb": 6172.1728515625,
+          "readyAfterClientScriptSeconds": 7.8024340416668565,
+          "worstRenderDt": 0.22191299498081207,
+          "kind": "result",
+          "extent": 35000,
+          "fps": 59.29120576290514
+        },
+        "extent": 35000
+      }
+    },
+    {
+      "source": "LARGE_WORLD_CLIENT",
+      "measurement": {
+        "aheadMisses": 0,
+        "streaming": true,
+        "extent": 35000,
+        "serverBuildSeconds": 7.6040922083338955,
+        "localIslandAfterReadySeconds": 0.0004430416665854864,
+        "samples": 164,
+        "jetGeometry": "Uploaded",
+        "fps": 58.60465882620795,
+        "clientPeakMb": 6472.6572265625,
+        "groundMisses": 0,
+        "serverPeakMb": 6472.6572265625,
+        "readyAfterClientScriptSeconds": 6.6940176249991055,
+        "speed": 600,
+        "kind": "result",
+        "initialHit": true,
+        "worstRenderDt": 0.23410992324352264
+      }
+    },
+    {
+      "source": "LARGE_WORLD_PLAY",
+      "measurement": {
+        "profile": "desktop",
+        "streaming": true,
+        "result": {
+          "aheadMisses": 0,
+          "streaming": true,
+          "clientPeakMb": 6472.6572265625,
+          "serverBuildSeconds": 7.6040922083338955,
+          "speed": 600,
+          "samples": 164,
+          "localIslandAfterReadySeconds": 0.0004430416665854864,
+          "initialHit": true,
+          "jetGeometry": "Uploaded",
+          "groundMisses": 0,
+          "serverPeakMb": 6472.6572265625,
+          "readyAfterClientScriptSeconds": 6.6940176249991055,
+          "worstRenderDt": 0.23410992324352264,
+          "kind": "result",
+          "extent": 35000,
+          "fps": 58.60465882620795
+        },
+        "extent": 35000
+      }
+    },
+    {
+      "source": "LARGE_WORLD_CLIENT",
+      "measurement": {
+        "aheadMisses": 0,
+        "streaming": false,
+        "extent": 35000,
+        "serverBuildSeconds": 8.74437562499952,
+        "localIslandAfterReadySeconds": 0.0005552916663873475,
+        "samples": 164,
+        "jetGeometry": "Uploaded",
+        "fps": 58.65311200184101,
+        "clientPeakMb": 6219.6728515625,
+        "groundMisses": 0,
+        "serverPeakMb": 6219.6728515625,
+        "readyAfterClientScriptSeconds": 7.686629041665583,
+        "speed": 600,
+        "kind": "result",
+        "initialHit": true,
+        "worstRenderDt": 0.2683127522468567
+      }
+    },
+    {
+      "source": "LARGE_WORLD_PLAY",
+      "measurement": {
+        "profile": "Galaxy A16 emulator",
+        "streaming": false,
+        "result": {
+          "aheadMisses": 0,
+          "streaming": false,
+          "clientPeakMb": 6219.6728515625,
+          "serverBuildSeconds": 8.74437562499952,
+          "speed": 600,
+          "samples": 164,
+          "localIslandAfterReadySeconds": 0.0005552916663873475,
+          "initialHit": true,
+          "jetGeometry": "Uploaded",
+          "groundMisses": 0,
+          "serverPeakMb": 6219.6728515625,
+          "readyAfterClientScriptSeconds": 7.686629041665583,
+          "worstRenderDt": 0.2683127522468567,
+          "kind": "result",
+          "extent": 35000,
+          "fps": 58.65311200184101
+        },
+        "extent": 35000
+      }
+    },
+    {
+      "source": "LARGE_WORLD_CLIENT",
+      "measurement": {
+        "aheadMisses": 2,
+        "streaming": true,
+        "extent": 35000,
+        "serverBuildSeconds": 8.577386624998326,
+        "localIslandAfterReadySeconds": 0.00041816666634986177,
+        "samples": 163,
+        "jetGeometry": "Uploaded",
+        "fps": 58.30174286617253,
+        "clientPeakMb": 6527.9384765625,
+        "groundMisses": 0,
+        "serverPeakMb": 6527.9384765625,
+        "readyAfterClientScriptSeconds": 6.379785916666151,
+        "speed": 600,
+        "kind": "result",
+        "initialHit": true,
+        "worstRenderDt": 0.2398371696472168
+      }
+    },
+    {
+      "source": "LARGE_WORLD_PLAY",
+      "measurement": {
+        "profile": "Galaxy A16 emulator",
+        "streaming": true,
+        "result": {
+          "aheadMisses": 2,
+          "streaming": true,
+          "clientPeakMb": 6527.9384765625,
+          "serverBuildSeconds": 8.577386624998326,
+          "speed": 600,
+          "samples": 163,
+          "localIslandAfterReadySeconds": 0.00041816666634986177,
+          "initialHit": true,
+          "jetGeometry": "Uploaded",
+          "groundMisses": 0,
+          "serverPeakMb": 6527.9384765625,
+          "readyAfterClientScriptSeconds": 6.379785916666151,
+          "worstRenderDt": 0.2398371696472168,
+          "kind": "result",
+          "extent": 35000,
+          "fps": 58.30174286617253
+        },
+        "extent": 35000
+      }
+    },
+    {
+      "source": "LARGE_WORLD_CITY_PROPS",
+      "measurement": {
+        "late": [],
+        "kind": "preload"
+      }
+    },
+    {
+      "source": "LARGE_WORLD_CITY_PROPS",
+      "measurement": {
+        "trees": 140,
+        "airbaseProps": 4,
+        "baseParts": 216,
+        "memoryBeforeMb": 5531.5322265625,
+        "extent": 8000,
+        "memoryAfterMb": 5493.4541015625,
+        "wallSeconds": 0.07227766666619573,
+        "buildings": 50,
+        "uploadedModels": 216,
+        "instances": 648,
+        "kind": "props",
+        "buildingDensity": 50,
+        "rocks": 22
+      }
+    },
+    {
+      "source": "LARGE_WORLD_CITY_PROPS",
+      "measurement": {
+        "trees": 560,
+        "airbaseProps": 4,
+        "baseParts": 852,
+        "memoryBeforeMb": 5493.2041015625,
+        "extent": 16000,
+        "memoryAfterMb": 5496.8603515625,
+        "wallSeconds": 0.13706549999915296,
+        "buildings": 200,
+        "uploadedModels": 852,
+        "instances": 2556,
+        "kind": "props",
+        "buildingDensity": 50,
+        "rocks": 88
+      }
+    },
+    {
+      "source": "LARGE_WORLD_CITY_PROPS",
+      "measurement": {
+        "trees": 1260,
+        "airbaseProps": 4,
+        "baseParts": 1912,
+        "memoryBeforeMb": 5495.1103515625,
+        "extent": 24000,
+        "memoryAfterMb": 5510.3134765625,
+        "wallSeconds": 0.24642508333272417,
+        "buildings": 450,
+        "uploadedModels": 1912,
+        "instances": 5736,
+        "kind": "props",
+        "buildingDensity": 50,
+        "rocks": 198
+      }
+    },
+    {
+      "source": "LARGE_WORLD_CITY_PROPS",
+      "measurement": {
+        "trees": 2680,
+        "airbaseProps": 4,
+        "baseParts": 4062,
+        "memoryBeforeMb": 5497.7509765625,
+        "extent": 35000,
+        "memoryAfterMb": 5533.0634765625,
+        "wallSeconds": 0.41643000000112806,
+        "buildings": 957,
+        "uploadedModels": 4062,
+        "instances": 12186,
+        "kind": "props",
+        "buildingDensity": 50,
+        "rocks": 421
+      }
+    }
+  ]
+}
