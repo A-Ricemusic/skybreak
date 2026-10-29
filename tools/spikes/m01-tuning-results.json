@@ -1,0 +1,143 @@
+{
+  "date": "2026-10-28",
+  "sourceBranch": "feat/m01-world-tuning",
+  "sourceSha256": {
+    "src/shared/M01WorldPlan.ts": "e3479f4f43072229f83fb1d20b90503037f5617c9f7cf5a8fb49e308eef2f65e",
+    "src/server/M01World.ts": "b3c482ca6e4f6d517e88e996cace9cd73390ea552cd1fbc5e6b606efe79da188",
+    "src/server/TerrainWriter.ts": "f3ef7c97284844298ece7df5a41d7f7eda4285393d775759ed66ed7fdce079e0",
+    "src/shared/TerrainSchedule.ts": "3f0563be01578dfb062016ac78cc005dba19182eea6168a9edfa55af920b277b",
+    "tools/spikes/m01-measure.luau": "74aba5cb4860758786e5c472c4bc8edcd2c83317b0e8c768e15e8c6ed4487aab"
+  },
+  "edit": [
+    {
+      "afterMb": 3131.416015625,
+      "worstHeartbeatGapSeconds": 0.03799508333395352,
+      "beforeMb": 2628.025146484375,
+      "instances": 791,
+      "peakMb": 3103.072265625,
+      "workspaceInstances": 795,
+      "counts": {
+        "descendants": 955,
+        "props": 161,
+        "parts": 307,
+        "voxels": 207739968,
+        "estimatedSeconds": 19.963204456094367,
+        "jobs": 27494
+      },
+      "ok": true,
+      "attributes": {
+        "WorldPropsMissing": 0,
+        "WorldPlanSeconds": 0.7852338333359512,
+        "WorldTerrainLongest": 0.005881916669750353,
+        "WorldPlanLongestSlice": 0.0049295416683889925,
+        "WorldTerrainJobs": 27494,
+        "WorldBuildPhase": "done",
+        "WorldTerrainReadySeconds": 7.387207958334329,
+        "WorldBuildSeconds": 7.914501791667135,
+        "Composition": "m01_sea_island"
+      },
+      "jobs": 27494,
+      "worstHeartbeatPhase": "terrain",
+      "terrainSeconds": 6.587604583331995,
+      "version": "0.745.0.7451137",
+      "afterTerrainSeconds": 0.5273207499994896,
+      "longestJobSeconds": 0.005881916669750353,
+      "label": "cold",
+      "totalSeconds": 7.914528708333819
+    },
+    {
+      "afterMb": 3266.60400390625,
+      "worstHeartbeatGapSeconds": 0.07089416666713078,
+      "beforeMb": 3219.36962890625,
+      "instances": 791,
+      "peakMb": 3266.69775390625,
+      "workspaceInstances": 795,
+      "counts": {
+        "descendants": 955,
+        "props": 161,
+        "parts": 307,
+        "voxels": 207739968,
+        "estimatedSeconds": 19.963204456094367,
+        "jobs": 27494
+      },
+      "ok": true,
+      "attributes": {
+        "WorldPropsMissing": 0,
+        "WorldPlanSeconds": 0.8010828750011569,
+        "WorldTerrainLongest": 0.0014542499993694946,
+        "WorldPlanLongestSlice": 0.006123125000158325,
+        "WorldTerrainJobs": 27494,
+        "WorldBuildPhase": "done",
+        "WorldTerrainReadySeconds": 7.581178500000533,
+        "WorldBuildSeconds": 8.117325625000376,
+        "Composition": "m01_sea_island"
+      },
+      "jobs": 27494,
+      "worstHeartbeatPhase": "plan",
+      "terrainSeconds": 6.7650089583366935,
+      "version": "0.745.0.7451137",
+      "afterTerrainSeconds": 0.5361769583323621,
+      "longestJobSeconds": 0.0014542499993694946,
+      "label": "warm",
+      "totalSeconds": 8.117355458332895
+    }
+  ],
+  "method": "Fresh process cold; same process warm after clear and 2 s settle. Counts cached before timers; optional writer budget forwarded. Whole heartbeat gaps include engine and scheduler work, not just script CPU.",
+  "phonePlayServer": {
+    "afterMb": 4213.02734375,
+    "worstHeartbeatGapSeconds": 0.10235049999755574,
+    "beforeMb": 3721.2919921875,
+    "instances": 791,
+    "peakMb": 4212.98046875,
+    "workspaceInstances": 1098,
+    "counts": {
+      "descendants": 955,
+      "props": 161,
+      "parts": 307,
+      "voxels": 207739968,
+      "estimatedSeconds": 19.963204456094367,
+      "jobs": 27494
+    },
+    "ok": true,
+    "attributes": {
+      "WorldPropsMissing": 0,
+      "WorldPlanSeconds": 1.2678316250021453,
+      "WorldTerrainLongest": 0.06771854166436242,
+      "WorldPlanLongestSlice": 0.005874416667211335,
+      "WorldTerrainJobs": 27494,
+      "WorldBuildPhase": "done",
+      "WorldTerrainReadySeconds": 6.732128833333263,
+      "WorldBuildSeconds": 7.358707041668822,
+      "Composition": "m01_sea_island"
+    },
+    "jobs": 27494,
+    "worstHeartbeatPhase": "dressing",
+    "terrainSeconds": 5.4501024583332764,
+    "version": "0.745.0.7451137",
+    "afterTerrainSeconds": 0.6265901249971648,
+    "longestJobSeconds": 0.06771854166436242,
+    "label": "play-server",
+    "totalSeconds": 7.358718958330428
+  },
+  "phoneClient": {
+    "stations": [
+      {
+        "name": "city",
+        "worstRenderSeconds": 0.020429542288184166,
+        "peakMb": 4301.73046875,
+        "fps": 60.010178227402015
+      },
+      {
+        "name": "airbase",
+        "worstRenderSeconds": 0.021651457995176315,
+        "peakMb": 4349.77734375,
+        "fps": 59.99049485204156
+      }
+    ],
+    "islandRayAfterScriptSeconds": 11.49224845833669,
+    "route": [],
+    "kind": "result",
+    "readyAfterScriptSeconds": 11.490726625001116,
+    "initialIslandHit": true
+  }
+}

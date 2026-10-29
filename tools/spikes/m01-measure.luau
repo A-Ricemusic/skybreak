@@ -6,6 +6,10 @@ local plan=require(RS.Shared.M01WorldPlan)
 local writer=require(Server.TerrainWriter).TerrainWriter
 local world=require(Server.M01World).M01World
 local stats=game:GetService("Stats")
+-- Counts are invariant. Do not allocate a second whole plan/schedule between warm
+-- samples: queued GC from instrumentation is not production builder work.
+local countSlice=os.clock()
+local counts=plan.m01Counts(plan.buildM01Plan(101,function() if os.clock()-countSlice>=0.004 then task.wait();countSlice=os.clock() end end))
 return function(label)
  workspace.Terrain:Clear()
  local old=workspace:FindFirstChild("MeasuredWorld");if old then old:Destroy() end
@@ -13,14 +17,14 @@ return function(label)
  local parent=Instance.new("Folder");parent.Name="MeasuredWorld";parent.Parent=workspace
  local row={label=label,version=version(),beforeMb=stats:GetTotalMemoryUsageMb()}
  local original=writer.Write
- writer.Write=function(self,ops)
-  local start=os.clock();local result=original(self,ops)
+ writer.Write=function(self,ops,budget,fillChunk)
+  local start=os.clock();local result=original(self,ops,budget,fillChunk)
   row.terrainSeconds=os.clock()-start;row.jobs=result.jobs;row.longestJobSeconds=result.longest
   return result
  end
  local last=os.clock();local gap=0;local peak=row.beforeMb
  local connection=game:GetService("RunService").Heartbeat:Connect(function()
-  local now=os.clock();gap=math.max(gap,now-last);last=now;peak=math.max(peak,stats:GetTotalMemoryUsageMb())
+  local now=os.clock();if now-last>gap then gap=now-last;row.worstHeartbeatPhase=parent:GetAttribute("WorldBuildPhase") end;last=now;peak=math.max(peak,stats:GetTotalMemoryUsageMb())
  end)
  local start=os.clock();local ok,err=pcall(function() world:Build(parent,101) end)
  row.totalSeconds=os.clock()-start
@@ -29,7 +33,7 @@ return function(label)
  row.attributes=parent:GetAttributes();row.instances=#parent:GetDescendants();row.workspaceInstances=#workspace:GetDescendants()
  row.afterTerrainSeconds=row.totalSeconds-(row.attributes.WorldTerrainReadySeconds or 0)
  row.ok=ok;row.error=not ok and tostring(err) or nil
- row.counts=plan.m01Counts(plan.buildM01Plan(101))
+ row.counts=counts
  print("M01_MEASURE:"..game:GetService("HttpService"):JSONEncode(row))
  return row
 end

@@ -111,3 +111,24 @@ In an isolated unpublished place, clear/build/rebuild this exact composition and
 If the runtime detail or visual acceptance fails, prebuilding is the documented
 fallback, requiring a new terrain artifact/restore lifecycle and measurement.
 Do not silently select this plan as a completed measured world.
+
+## Coast/sea tuning (2026-10-28)
+
+The tuning pass retains the dormant world key, scale, route reservation and budgets.
+The coast now replaces whole cells with adaptive 32-stud shore bands and 16-stud
+waterline samples, while corridor interiors remain 64 studs and distant interiors
+256. Slope selects rock versus sand/forest caps; 192-stud rounded skirts blend
+the civic terraces. Rectangular surf Parts are removed. Identical opaque sea Parts cover the whole
+world, overlapping four studs and sitting 0.25 studs above native water/waves.
+Native coastal and deep launch water remain underneath. No visible Part/voxel
+material boundary remains. The visual sea is flat (no native wave animation or
+water reflections); open sea outside the native regions is visual only, as before.
+No mission currently uses this world.
+
+Planning accepts a cooperative checkpoint, used only by the M01 server executor
+at a 4 ms target. Prop grounding uses the containing coarse tile's actual ops.
+M01 terrain execution caps native fills at 65,536 voxels (one quarter of
+the shared default), uses an 8 ms batch target, and dressing yields every eight
+props; the shared writer's default is unchanged. Atmosphere density/offset/haze
+are reduced; 14:05, cloud cover/density, the 6,000 ft wisps and light shafts stay.
+See the measurement report's Tuning pass for observed results and limitations.

@@ -63,10 +63,10 @@ function cuts(lo: number, hi: number, step: number): number[] {
 }
 
 /** Horizontal slices on 4-stud planes: exact for any yaw-only block and an upright cylinder. */
-function sliceY(o: TerrainOp, out: TerrainJob[]): void {
+function sliceY(o: TerrainOp, out: TerrainJob[], fillChunk: number): void {
 	const voxels = fillVoxels(o);
-	if (voxels <= FILL_CHUNK) { out.push({ op: o, cells: voxels }); return; }
-	const step = math.max(1, math.floor(FILL_CHUNK / (voxels * 4 / o.sy))) * 4;
+	if (voxels <= fillChunk) { out.push({ op: o, cells: voxels }); return; }
+	const step = math.max(1, math.floor(fillChunk / (voxels * 4 / o.sy))) * 4;
 	const ys = cuts(o.y - o.sy / 2, o.y + o.sy / 2, step);
 	for (let j = 1; j < ys.size(); j++) {
 		const piece: TerrainOp = { ...o, y: (ys[j] + ys[j - 1]) / 2, sy: ys[j] - ys[j - 1] };
@@ -74,18 +74,18 @@ function sliceY(o: TerrainOp, out: TerrainJob[]): void {
 	}
 }
 
-function splitFill(o: TerrainOp, out: TerrainJob[]): void {
+function splitFill(o: TerrainOp, out: TerrainJob[], fillChunk: number): void {
 	// A wedge's slope and a ball's curve have no seam-free split on the voxel grid; the plans keep them
 	// small (UNSPLIT_MAX). Everything else is cut only along 4-stud voxel planes.
-	if (fillVoxels(o) <= FILL_CHUNK || o.shape === "wedge" || o.shape === "ball") { out.push({ op: o, cells: fillVoxels(o) }); return; }
-	if (o.shape !== "block" || o.yaw !== 0) { sliceY(o, out); return; }
+	if (fillVoxels(o) <= fillChunk || o.shape === "wedge" || o.shape === "ball") { out.push({ op: o, cells: fillVoxels(o) }); return; }
+	if (o.shape !== "block" || o.yaw !== 0) { sliceY(o, out, fillChunk); return; }
 	// Axis-aligned slabs: square XZ tiles (256 to 1024 studs) on global multiples of the tile, then layers.
 	let side = 64;
-	while (side < 256 && (side * 2) * (side * 2) * math.max(1, o.sy / 4) <= FILL_CHUNK) side *= 2;
+	while (side < 256 && (side * 2) * (side * 2) * math.max(1, o.sy / 4) <= fillChunk) side *= 2;
 	const step = side * 4;
 	const xs = cuts(o.x - o.sx / 2, o.x + o.sx / 2, step), zs = cuts(o.z - o.sz / 2, o.z + o.sz / 2, step);
 	for (let i = 1; i < xs.size(); i++) for (let k = 1; k < zs.size(); k++) {
-		sliceY({ ...o, x: (xs[i] + xs[i - 1]) / 2, z: (zs[k] + zs[k - 1]) / 2, sx: xs[i] - xs[i - 1], sz: zs[k] - zs[k - 1] }, out);
+		sliceY({ ...o, x: (xs[i] + xs[i - 1]) / 2, z: (zs[k] + zs[k - 1]) / 2, sx: xs[i] - xs[i - 1], sz: zs[k] - zs[k - 1] }, out, fillChunk);
 	}
 }
 
@@ -104,11 +104,11 @@ function splitBump(o: TerrainOp, out: TerrainJob[]): void {
 }
 
 /** The plan's ops as bounded jobs, in plan order. */
-export function terrainJobs(ops: TerrainOp[]): TerrainJob[] {
+export function terrainJobs(ops: TerrainOp[], fillChunk = FILL_CHUNK): TerrainJob[] {
 	const out: TerrainJob[] = [];
 	for (const o of ops) {
 		if (o.shape === "bump") splitBump(o, out);
-		else splitFill(o, out);
+		else splitFill(o, out, fillChunk);
 	}
 	return out;
 }

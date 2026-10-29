@@ -1,5 +1,5 @@
 import { Lighting, Workspace } from "@rbxts/services";
-import { buildM01Plan, M01, M01_CLOUD_BASE, M01_ENVIRONMENT, M01_WORLD_KEY } from "../shared/M01WorldPlan";
+import { buildM01Plan, M01, M01_CLOUD_BASE, M01_FILL_CHUNK, M01_ENVIRONMENT, M01_WORLD_KEY } from "../shared/M01WorldPlan";
 import { Scenery } from "./Scenery";
 import { material, TerrainWriter } from "./TerrainWriter";
 import { WorldAssets } from "./WorldAssets";
@@ -11,7 +11,18 @@ import { WorldEnvironment } from "./WorldEnvironment";
  */
 export const M01World = {
 	Build(parent: Instance, seed = 101): { groundTargets: Model[] } {
-		const start = os.clock(), plan = buildM01Plan(seed);
+		const start = os.clock();
+		parent.SetAttribute("WorldBuildPhase", "plan");
+		let slice = start, longestPlanSlice = 0;
+		const checkpoint = () => {
+			const elapsed = os.clock() - slice;
+			longestPlanSlice = math.max(longestPlanSlice, elapsed);
+			if (elapsed >= 0.004) { task.wait(); slice = os.clock(); }
+		};
+		const plan = buildM01Plan(seed, checkpoint);
+		parent.SetAttribute("WorldPlanSeconds", os.clock() - start);
+		parent.SetAttribute("WorldPlanLongestSlice", longestPlanSlice);
+		parent.SetAttribute("WorldBuildPhase", "environment");
 		const names = plan.props.map((p) => p.asset);
 		WorldAssets.Start(names);
 		WorldEnvironment.ApplySpec(M01_ENVIRONMENT, M01_WORLD_KEY);
@@ -21,11 +32,19 @@ export const M01World = {
 		const scene = new Instance("Folder");
 		scene.Name = M01_WORLD_KEY;
 		scene.Parent = parent;
-		const terrain = TerrainWriter.Write(plan.ops);
+		task.wait();
+		parent.SetAttribute("WorldBuildPhase", "terrain");
+		const terrain = TerrainWriter.Write(plan.ops, 0.008, M01_FILL_CHUNK);
 		parent.SetAttribute("WorldTerrainReadySeconds", os.clock() - start);
 		parent.SetAttribute("WorldTerrainLongest", terrain.longest);
 		parent.SetAttribute("WorldTerrainJobs", terrain.jobs);
-		for (const p of plan.parts) Scenery.Part(scene, p.name, new Vector3(p.sx, p.sy, p.sz), new Vector3(p.x, p.y, p.z), Color3.fromRGB(...p.color), material(p.material), { flightSolid: p.solid, castShadow: false });
+		task.wait();
+		parent.SetAttribute("WorldBuildPhase", "dressing");
+		for (let i = 0; i < plan.parts.size(); i++) {
+			const p = plan.parts[i];
+			Scenery.Part(scene, p.name, new Vector3(p.sx, p.sy, p.sz), new Vector3(p.x, p.y, p.z), Color3.fromRGB(...p.color), material(p.material), { flightSolid: p.solid, castShadow: false });
+			if (i % 32 === 31) task.wait();
+		}
 		// Native Clouds has no altitude property. Sparse non-solid wisps locate the broken
 		// lower layer at the reference 6000 ft; native Clouds remains the high overcast deck.
 		for (let i = 0; i < 8; i++) Scenery.Part(scene, "High cloud wisp", new Vector3(1800, 96, 1200), new Vector3((i % 2) * 2800 - 1400, M01_CLOUD_BASE + 48, -4800 + math.floor(i / 2) * 2600), Color3.fromRGB(185, 199, 216), Enum.Material.SmoothPlastic, { shape: Enum.PartType.Ball, transparency: 0.9, flightSolid: false, castShadow: false });
@@ -39,11 +58,12 @@ export const M01World = {
 		for (let i = 0; i < plan.props.size(); i++) {
 			const p = plan.props[i];
 			if (WorldAssets.PlaceUploaded(p.asset, scene, new CFrame(p.x, p.y, p.z), p.scale) === undefined) missing++;
-			if (i % 40 === 39) task.wait();
+			if (i % 8 === 7) task.wait();
 		}
 		const descendants = scene.GetDescendants().size();
 		assert(descendants + 4 <= M01.budget.descendants, "M01 approved template descendants exceeded budget; do not select before re-audit");
 		parent.SetAttribute("WorldPropsMissing", missing);
+		parent.SetAttribute("WorldBuildPhase", "done");
 		parent.SetAttribute("WorldBuildSeconds", os.clock() - start);
 		parent.SetAttribute("Composition", plan.key);
 		return { groundTargets: [] };
