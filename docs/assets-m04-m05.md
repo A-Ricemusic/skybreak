@@ -49,7 +49,7 @@ folder has `preview-scale-reference.png`.
 | `radar-jammer` | `radar-jammer-1` | 59.32 × 15.88 × 62.18 (span over tip pods; 58 at the wingtips) | 6,612 (15,000) | `Body` | 4 × 1024² | ~40 m twin; 2.4× the Vanta span, smaller than the transport it flies with |
 | `fuel-tanker` | `fuel-tanker-1` | 46.0 × 59.6 × 266.68 (beam × height × length) | 2,682 (6,000) | `fuel-tanker` | 4 × 512² | ~185 m tanker; 10 Vanta lengths, about half the 560-stud carrier; pivot bottom centre, `groundOffsetStuds` 16 |
 | `attack-helicopter` | `attack-helicopter-1` | 14.36 × 6.25 × 21.03 (rotor blades parked at 45°) | 3,436 (15,000) | `Body`, `MainRotor`, `TailRotor` | 4 × 1024² | 14 m fuselage and rotor; fuselage 20.2 studs (0.77× the Vanta's length), rotor 20 studs across (0.81× its span) |
-| `vanta-v2-elite` | `vanta-v2-elite-1` | 24.58 × 7.3 × 26.4 | 13,196 (15,000) | as `vanta-v2` (`Body`, `Canopy`, `Aileron_L/R`, `Elevator_L/R`, `Rudder`) | 4 × 1024² | Same airframe as `vanta-v2` |
+| `vanta-v2-elite` | `vanta-v2-elite-2` | 24.58 × 7.3 × 26.4 | 12,992 (15,000) | as `vanta-v2` (`Body`, `Canopy`, `Aileron_L/R`, `Elevator_L/R`, `Rudder`) | 4 × 1024² | Same airframe size as `vanta-v2`; rear changed in revision 2 |
 
 The helicopter's bounding box depends on where the blades are parked; a loader that fits by
 the longest side should use the fuselage length (21.03).
@@ -132,7 +132,8 @@ turret, sensor ball, rockets or missiles.
 
 ## Elite squadron livery (`vanta-v2-elite`)
 
-Mission 5's five-ship elite flight. It uses the uploaded Vanta v2 mesh with a new paint:
+Mission 5's five-ship elite flight. It uses the Vanta v2 airframe with a new paint and, since
+revision 2, a changed rear (below):
 blue-black countershading (`#1d222b` upper, `#2b313b` lower), darker splinter camouflage
 (`#151920`, `#262c36`) and a `#14171c` radome. The whole fin and rudder are pale steel
 blue (`#7f97a8`), and one straight chordwise band crosses each outer wing. There is no
@@ -146,11 +147,41 @@ with a bone feather band) and Rusk (oxblood with a gold pinstripe).
 `aircraft_v2.vanta_v2()` was split into `vanta_v2_airframe()`, which builds the mesh and
 zones, and the `vanta-v2` builder, which finishes it with the Vulture and Rusk liveries.
 The elite builder calls the same `vanta_v2_airframe()` with its own name, paint and export
-version. The folder is therefore a complete asset (mesh, all four maps, previews) with the
-same geometry, parts, hinges and attachments as `vanta-v2`. The uploaded `vanta-v2`,
-`vanta-v2-vulture` and `vanta-v2-rusk` folders were not rebuilt and are unchanged. The elite's normal map is byte-identical to
-`vanta-v2-normal.png` (same SHA-256), which confirms the same mesh and UVs. Its metalness
-map differs because the elite paint uses metalness 0.08 instead of 0.06.
+version, and since revision 2 with `plain_rear=True`. The folder is therefore a complete
+asset (mesh, all four maps, previews) with the same parts, hinges and attachments as
+`vanta-v2`. The uploaded `vanta-v2`, `vanta-v2-vulture` and `vanta-v2-rusk` folders were
+not rebuilt and are unchanged. In revision 1 the elite's normal map was byte-identical to
+`vanta-v2-normal.png`; revision 2 changes the rear geometry, so the normal map and UV
+atlas now differ.
+
+### Revision 2 (`vanta-v2-elite-2`, 2026-10-29)
+
+Review 1 of PR #137 (`docs/qa/asset-reviews/2026-10-29-pr137-review-1.md`) rejected
+`vanta-v2-elite-1` on the face check. In `preview-back.png`, two prominent dark round exhaust
+openings flanked the smaller dark open end of the tail boom, above a curved lower edge. Together
+they could read as an owl or a mask. The dark, sooted aft end face between them added a
+mask-like band. The fin/rudder gap was not the reason.
+
+For this variant only, `vanta_v2_airframe(plain_rear=True)` changes the rear:
+
+- **Nozzles:** `round_nozzle(shallow=True)` keeps the outer petals but closes the liner
+  with a plug 0.18 inside the lip. The plug is light, low-metal grey (`#8e8b84`, new zone
+  `nozzle_inner`). Ten short radial vanes in mid-grey `rail` metal cross it. There is no dark
+  liner, flame holder or centre cone, so from behind each nozzle is a lit, spoked metal disc,
+  not a dark hole with a pupil. Ten vanes were chosen deliberately: 8, 12 and 24 spokes match
+  wheel and sun symbols.
+- **Centre:** the tail boom and its dark open end are removed, so nothing sits between the
+  nozzles.
+- **Paint:** the flat aft end face and the lower aft skin near the nozzles are plain mid-grey
+  metal (`#6b6e70`). There is no exhaust soot, so no dark band joins the nozzles.
+
+With the default arguments, the `vanta_v2_airframe()` used for the uploaded `vanta-v2`
+gives the same mesh as before. A Blender hash of every vertex, polygon, material slot,
+hinge, attachment and zone was identical at `fb00a66` and after the change. Size is
+unchanged: the boom ended ahead of the nozzle exits. There are 12,992 triangles (204 fewer).
+Four rear previews were added: `preview-back-low`, `preview-back-high`, `preview-closeup-rear`
+(straight on) and `preview-closeup-rear-3q`. A new independent review of this exact export is
+required before any upload.
 
 ## Concerns for the safety reviewer and the uploader
 
@@ -158,6 +189,10 @@ map differs because the elite paint uses metalness 0.08 instead of 0.06.
   `closeup-front*` views of the transport, jammer and helicopter, plus `preview-front` and
   `preview-closeup-bow` of the tanker. The creator's own notes on what was checked are in
   each checklist's `noFaces` note.
+- **Elite rear (revision 2):** check `preview-back`, `preview-back-low`, `preview-back-high`,
+  `preview-closeup-rear`, `preview-closeup-rear-3q` and the back view on the contact sheet
+  for any face or mask reading. Also check that the ten-vane nozzle plugs do not read as a
+  wheel, sun or other symbol.
 - **Glyph-like marks:** look at the elite's fin in `preview-side` and `preview-closeup-fin`.
   The Vanta v2's fin/rudder gap still shows as a faint line on the pale fin; it is the same
   geometry as the uploaded `vanta-v2`. On the tanker's `preview-top`, the bridge-roof mast

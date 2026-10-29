@@ -23,16 +23,19 @@ plain straight-edged colour bands only.
   wings with empty pylons and tip pods, a four-blade main rotor (``MainRotor`` part) and a
   four-blade tail rotor (``TailRotor`` part), each with its hub as the part origin so the game
   can spin it. No gun, no sensor ball, no weapons.
-* ``vanta-v2-elite``: mission 5's five-ship elite squadron. The Vanta v2 mesh with a
+* ``vanta-v2-elite``: mission 5's five-ship elite squadron. The Vanta v2 airframe with a
   blue-black paint and pale steel-blue fin and rudder and outer-wing bands
-  (``aircraft_v2.vanta_paint("elite")``). Built as its own folder by the shared
-  ``aircraft_v2.vanta_v2_airframe``; the uploaded ``vanta-v2`` folders are not touched.
+  (``aircraft_v2.vanta_paint("elite")``) and a plain rear (``plain_rear=True``: vaned nozzle
+  plugs, no tail boom, mid-grey aft end) so the back view has no face reading. Built as its own
+  folder by the shared ``aircraft_v2.vanta_v2_airframe``; the uploaded ``vanta-v2`` folders are
+  not touched.
 
 Face rule (review 1 of the mission 1 assets): nothing on these may read as a face head-on.
 Noses and radomes are body colour with no seam ring or dark panel; windscreens are grids of
 small panes tinted only slightly lighter than the paint; nothing protrudes in pairs from the
 nose; the helicopter's engine fronts are closed body-colour fairings (side intakes) and there
-is no chin turret; the tanker has no hawse pipes or anchors at the bow.
+is no chin turret; the tanker has no hawse pipes or anchors at the bow. From behind, the elite
+Vanta shows no dark round nozzle openings, central opening or dark band (review 1 of PR #137).
 
 Every builder runs ``Asset.finish()`` and then ``m01_assets.review_pack()`` (extra views,
 close-ups, scale reference, contact sheet, budgets, ``exportVersion`` and a SHA-256 for every
@@ -1033,24 +1036,29 @@ def attack_helicopter():
 def vanta_v2_elite():
     a, attachments = vanta_v2_airframe(
         name="vanta-v2-elite", title="Vanta elite squadron livery (v2)", paint=vanta_paint("elite"),
-        export_version="vanta-v2-elite-1",
+        export_version="vanta-v2-elite-2", plain_rear=True,
         usage="Mission 5: the five-ship elite squadron that arrives as phase 1 ends. " + PENDING)
     a.finish(origin="center", hinges=a.metadata["hinges"], attachments=attachments, closeup=VANTA_CLOSEUP, extra_notes={
         **CHECK_NOTES,
         "noRealMilitaryInsignia": "No roundels, flags, national, squadron or unit markings, emblems or insignia; the livery is blue-black countershading with darker splinter camouflage, the fin and rudder in plain pale steel blue and one straight chordwise band across each outer wing. Airframe is the original Vanta v2 design.",
         "noLogosOrBrands": "No company, product, brand or squadron emblems; plain straight-edged colour fields only.",
+        "noFaces": CHECK_NOTES["noFaces"] + " Rear (revision 2): the nozzles end in shallow lit metal plugs crossed by ten short radial vanes, with no dark liner, flame holder or centre cone; the dark-ended tail boom between them is removed and the flat aft end and lower aft skin are plain mid-grey metal, so the back view shows no dark round openings, central opening or dark band.",
     })
     review_pack(a, {
         **REVIEW_VIEWS,
         "3q-low-front-right": ((-0.9, -1.2, -0.7), "persp"),
         "front-low": ((0.0, -1.0, -0.4), "persp"),
+        "back-low": ((0.0, 1.0, -0.35), "persp"),
+        "back-high": ((0.0, 1.0, 0.5), "persp"),
     }, {
         "closeup-front": ((0.0, -8.0, 0.2), (0.0, -1.0, 0.06), 11.0),
         "closeup-wing-band": ((-9.8, 4.0, 0.0), (-0.4, -0.3, 1.0), 9.0),
         "closeup-fin": ((0.0, 7.5, 3.6), (1.0, 0.5, 0.3), 8.0),
+        "closeup-rear": ((0.0, 11.4, -0.3), (0.0, 1.0, 0.05), 9.0),
+        "closeup-rear-3q": ((0.0, 11.4, -0.3), (0.6, 1.0, 0.2), 9.0),
     }, 1024, {
         "variantOf": "vanta-v2",
-        "design": "Livery of the uploaded Vanta v2 mesh (same geometry, UVs, parts, hinges and attachments; built by the shared aircraft_v2.vanta_v2_airframe). Upper #1d222b and lower #2b313b blue-black countershading, splinter camouflage #151920/#262c36, radome #14171c, pale steel-blue #7f97a8 fin and rudder and outer-wing bands. Distinct from Vulture (dark grey with bone feather band) and Rusk (oxblood with gold pinstripe).",
-        "sizeRationale": "Same airframe as vanta-v2 (24.58 x 7.30 x 26.4 studs).",
+        "design": "The uploaded Vanta v2 airframe (same parts, hinges and attachments; built by the shared aircraft_v2.vanta_v2_airframe) with a plain rear (plain_rear=True: shallow vaned nozzle plugs instead of dark liners with flame holder and cone, no tail boom, bare mid-grey aft end, no exhaust soot) and its own livery. Upper #1d222b and lower #2b313b blue-black countershading, splinter camouflage #151920/#262c36, radome #14171c, pale steel-blue #7f97a8 fin and rudder and outer-wing bands. Distinct from Vulture (dark grey with bone feather band) and Rusk (oxblood with gold pinstripe).",
+        "sizeRationale": "Same airframe size as vanta-v2 (24.58 x 7.30 x 26.4 studs).",
     }, scale_ref={"folder": UPLOAD / "vanta-v2", "location": (30.0, 0.0, 0.0), "target": (15.0, 0.0, 0.0),
                   "direction": (0.15, -1.0, 0.6), "distance": 62.0})
