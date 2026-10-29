@@ -9,6 +9,7 @@ export type TargetBoxTone = "required" | "optional" | "protected";
 
 /** The replicated attributes the server writes on each enemy model (CombatService.markTarget / publishDamageable). */
 export interface TargetBoxFlags {
+	friendly?: unknown;
 	/** `SkybreakEnemy`: enabled and alive. */
 	enemy: unknown;
 	/** `SkybreakOwner`: the player whose sortie owns the model. */
@@ -101,7 +102,7 @@ export const TargetBoxes = {
 	 * accepts: an enabled enemy of this player's sortie that its phase lets missiles damage.
 	 */
 	Tone(flags: TargetBoxFlags, userId: number): TargetBoxTone | undefined {
-		if (flags.enemy !== true || flags.owner !== userId || flags.damageable !== true) return undefined;
+		if (flags.friendly === true || flags.enemy !== true || flags.owner !== userId || flags.damageable !== true) return undefined;
 		return flags.required === true ? "required" : "optional";
 	},
 	/**

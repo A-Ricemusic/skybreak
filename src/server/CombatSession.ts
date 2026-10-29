@@ -21,6 +21,9 @@ export type EnemyMode = "attack" | "extend" | "orbit" | "run";
 /** What an air enemy is: a required bandit, an optional raider, the courier of a chase phase, or the ace. */
 export type AirRole = "bandit" | "raider" | "courier" | "ace" | "bomber" | "escort";
 export interface Enemy {
+	friendly?: boolean;
+	combatTarget?: Enemy;
+	alliedAmmo?: number;
 	id: string; name: string; model: Model; health: number; maxHealth: number; position: Vector3;
 	kind: TargetKind; required: boolean; enabled: boolean;
 	direction: Vector3; velocity: Vector3; fireTimer: number; windup: number;
@@ -61,6 +64,9 @@ export interface Projectile {
 	part: Part; position: Vector3; direction: Vector3; target?: Enemy; hostile: boolean; age: number;
 	/** Fired by an ace (hostile: tighter guidance), and the damage on impact (hull or enemy health). */
 	ace: boolean; damage: number;
+	allied?: boolean;
+	/** Hostile missile destination, fixed at launch; absent means player. */
+	wingman?: Enemy;
 	/** Guided flight speed. */
 	speed: number;
 	/** Hostile only: flight time at launch, so an evade can spot a missile in its last 1.2 s. */
@@ -94,6 +100,10 @@ export interface CombatSession {
 	special: SpecialState;
 	/** Level chosen at the briefing; scales the act tuning through `tuned()` and enemy health. */
 	difficulty: DifficultyKind;
+	allies: Enemy[];
+	alliesSpawned?: boolean;
+	alliedKills: string[];
+	alliedFireAt: number;
 	enemies: Enemy[]; projectiles: Projectile[]; target?: Enemy; telemetryTime: number;
 	lastInput: number; lastInputEvent: number; active: boolean; finished: boolean; cleaned: boolean;
 	/** Per-action-kind rate limiting for CombatAction events. */

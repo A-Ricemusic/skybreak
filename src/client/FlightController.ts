@@ -472,7 +472,10 @@ export class FlightController {
 		const selected = this.telemetry.target;
 		for (const child of folder.GetChildren()) {
 			if (child.IsA("Model")) {
-				if (child.GetAttribute("SkybreakEnemy") === true) {
+				if (child.GetAttribute("SkybreakFriendly") === true) {
+					const position = child.GetPivot().Position;
+					contacts.push({ kind: "friendly", x: position.X, z: position.Z });
+				} else if (child.GetAttribute("SkybreakEnemy") === true) {
 					const ground = child.GetAttribute("TargetKind") === "ground";
 					const required = child.GetAttribute("RequiredTarget") === true;
 					const kind: RadarContactKind = ground ? (required ? "ground" : "groundOptional") : required ? "required" : "optional";

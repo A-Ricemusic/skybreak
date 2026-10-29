@@ -5,7 +5,7 @@ import { FlightMath } from "./FlightMath";
 // Pure heading-up radar projection shared by the HUD radar and Roblox Jest.
 // The player sits at the centre; their nose points at the top of the disc.
 
-export type RadarContactKind = "required" | "optional" | "ground" | "groundOptional" | "objective" | "protected" | "missile";
+export type RadarContactKind = "friendly" | "required" | "optional" | "ground" | "groundOptional" | "objective" | "protected" | "missile";
 
 export interface RadarContact {
 	kind: RadarContactKind;
@@ -34,6 +34,7 @@ export const RADAR_RIM_INSET = 5;
 
 /** Glyph drawn for each contact kind (text glyphs: no images to upload). */
 export const RADAR_GLYPHS: { [kind in RadarContactKind]: string } = {
+	friendly: "✚",
 	required: "▲",
 	optional: "△",
 	ground: "◆",
@@ -45,7 +46,7 @@ export const RADAR_GLYPHS: { [kind in RadarContactKind]: string } = {
 
 /** Draw order, lowest first: threats always end on top. */
 export const RADAR_LAYER: { [kind in RadarContactKind]: number } = {
-	objective: 1, protected: 2, groundOptional: 3, ground: 4, optional: 5, required: 6, missile: 7,
+	friendly: 2, objective: 1, protected: 2, groundOptional: 3, ground: 4, optional: 5, required: 6, missile: 7,
 };
 
 /**

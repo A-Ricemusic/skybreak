@@ -37,8 +37,24 @@ export interface MissionScoringPolicy {
 	rank: { S: number; A: number; B: number; C: number };
 }
 
+/** One sortie-wide flight; offsets are player-local right/up/aft studs. */
+export interface MissionAllies {
+	count: number;
+	formation: { x: number; y: number; z: number }[];
+	/** Existing friendly Kestrel family (v2 preferred with normal fallback). */
+	model: "Kestrel";
+	callsignPrefix: string;
+	/** Default true: allies may destroy eligible optional enemies. */
+	mayKill?: boolean;
+	/** Default false: no player points, kill tally or objective credit. Proposed owner decision. */
+	creditPlayerKills?: boolean;
+	/** Default false; true requires explicit creditPlayerKills to keep objectives completable. */
+	allowRequiredTargets?: boolean;
+}
+
 /** Optional mission-owned policy. Omitted fields preserve the current campaign. */
 export interface MissionPolicy {
+	allies?: MissionAllies;
 	countdownSeconds?: number;
 	airspace?: MissionAirspacePolicy;
 	start?: MissionStartPolicy;
@@ -81,6 +97,19 @@ function finite(value: number): boolean {
 /** Validates only the optional policy surface; catalog content validation remains in MissionCatalog. */
 export function validateMissionPolicy(policy: MissionPolicy, missionId: number): void {
 	const tag = `Mission ${missionId} policy`;
+	if (policy.allies !== undefined) {
+		const a = policy.allies;
+		assert(finite(a.count) && a.count % 1 === 0 && a.count >= 1 && a.count <= 6, `${tag} allies.count must be 1..6`);
+		assert(a.model === "Kestrel", `${tag} allies.model must be friendly Kestrel`);
+		assert(a.callsignPrefix.size() > 0 && a.callsignPrefix.size() <= 24, `${tag} allies callsign must be 1..24 characters, original text only`);
+		assert(a.formation.size() === a.count, `${tag} allies formation must match count`);
+		for (const offset of a.formation) {
+			for (const value of [offset.x, offset.y, offset.z]) assert(finite(value) && math.abs(value) <= 1500, `${tag} allies offsets must be finite within 1500 studs`);
+			assert(offset.x * offset.x + offset.y * offset.y + offset.z * offset.z >= 6400, `${tag} allies need 80 studs clearance`);
+		}
+		for (const value of [a.mayKill, a.creditPlayerKills, a.allowRequiredTargets]) if (value !== undefined) assert(typeIs(value, "boolean"), `${tag} allies switches must be boolean`);
+		assert(!a.allowRequiredTargets || a.creditPlayerKills === true, `${tag} required allied kills must explicitly credit objective progress`);
+	}
 	if (policy.countdownSeconds !== undefined) {
 		assert(finite(policy.countdownSeconds) && policy.countdownSeconds > 0, `${tag} countdownSeconds must be finite and > 0`);
 	}
