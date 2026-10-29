@@ -1,3 +1,5 @@
+import { canSkipLanding } from "../shared/EngineBatchB";
+import { sampleClearance, stepLanding } from "./EngineBatchBRuntime";
 import { createGroundTarget } from "./GroundTargetFactory";
 import { GroundAirDefence } from "../shared/GroundAirDefence";
 import { authoredAirPose, airSpawnHeight, scramblePose } from "../shared/CampaignEncounters";
@@ -336,6 +338,8 @@ function sendTelemetry(session: CombatSession): void {
 	session.telemetrySequence += 1;
 	telemetryRemote!.FireClient(session.player, TelemetryCodec.Encode(session.telemetrySequence, {
 		health: session.health, speed: session.state.speed, altitude: session.state.y,
+		terrainClearance: sampleClearance(session,os.clock()),
+		missionUpdateSeconds: session.blueprintState?.updateUntil !== undefined ? math.max(0,session.blueprintState.updateUntil-session.elapsed) : undefined,
 		// The HUD tally counts required destructions only; raiders travel separately so it never reads 7/4.
 		kills: sessionRequiredKills(session), total: sessionTotalRequired(session),
 		missiles: session.missiles, missileCooldown: session.missileCooldown, evadeCooldown: EvadeRules.Cooldown(session.evade, session.evadeRemaining),
@@ -367,7 +371,7 @@ function sendTelemetry(session: CombatSession): void {
  * instance replication; unreliable ones are not).
  */
 function sendHud(session: CombatSession, objective: ReturnType<typeof sessionObjective>, target: Enemy | undefined, phase: MissionPhaseBlueprint | undefined): void {
-	const nav = session.blueprintState ? BlueprintRunner.NavigationPoint(session.blueprintState) : undefined;
+	const nav = session.blueprintState ? BlueprintRunner.NavigationPoint(session.blueprintState, session.state) : undefined;
 	const previous = session.hud;
 	const targetKind = target ? (target.kind === "ground" ? "ground" : "air") : "";
 	if (previous && previous.missionId === session.missionId && previous.phase === objective.phase && previous.objective === objective.objective
@@ -988,7 +992,7 @@ function stepEnemies(session: CombatSession, dt: number): void {
 	const playerVelocity = playerForward.mul(session.state.speed);
 	const lateral = lateralFor(session.state, playerForward);
 	const phase = session.blueprintState ? BlueprintRunner.ActivePhase(session.blueprintState) : undefined;
-	const site = session.blueprintState ? BlueprintRunner.NavigationPoint(session.blueprintState) : undefined;
+	const site = session.blueprintState ? BlueprintRunner.NavigationPoint(session.blueprintState, session.state) : undefined;
 	const protectPhase = site !== undefined && (phase?.kind === "escort" || phase?.kind === "defend");
 	const act = sessionAct(session);
 	const behaviour = Difficulty.Behaviour(session.difficulty);
@@ -1365,6 +1369,15 @@ function stepMissiles(session: CombatSession, dt: number): void {
 	refreshSession(session, os.clock());
 }
 function stepSession(session: CombatSession, dt: number): void {
+	if (stepLanding(session,dt,(message)=>missionState!.FireClient(session.player,message))) {
+		session.aircraftFrame=frameFor(session.state);
+		if (sessionOutcome(session) !== undefined) finish(session);
+		else {
+			session.telemetryTime += dt;
+			if (session.telemetryTime >= TELEMETRY_INTERVAL) { session.telemetryTime = math.min(session.telemetryTime - TELEMETRY_INTERVAL, TELEMETRY_INTERVAL); sendTelemetry(session); }
+		}
+		return;
+	}
 	if (session.launch) {
 		const from = new Vector3(session.state.x, session.state.y, session.state.z);
 		const ready = LaunchStage.Advance(session.launch, session.state, dt);
@@ -1423,12 +1436,13 @@ function stepSession(session: CombatSession, dt: number): void {
 	}
 	session.inputSteps += 1;
 	if (session.blueprintState) {
-		const bs=session.blueprintState, nav=BlueprintRunner.NavigationPoint(bs);
+		const bs=session.blueprintState, nav=BlueprintRunner.NavigationPoint(bs, session.state);
 		let threats=0;
 		if (nav) { const navPoint=new Vector3(nav.x,230,nav.z); for(const enemy of session.enemies) if(ownsEnemy(session,enemy) && enemy.kind !== "ground" && enemy.position.sub(navPoint).Magnitude < 650) threats++; }
 		BlueprintRunner.ObserveFlight(bs,from,{x:session.state.x,y:session.state.y,z:session.state.z},dt,os.clock(),threats,Difficulty.Multiplier(session.difficulty,"protectDrain"));
 		if (bs.outcome !== undefined) {finish(session); return;}
 		phaseDirector.Apply(session);
+		if (bs.landingElapsed !== undefined) { sendTelemetry(session); return; }
 		phaseDirector.Step(session);
 		if (bs.outcome !== undefined) { finish(session); return; }
 	}
@@ -1664,7 +1678,7 @@ export const CombatService = {
 		if (!missionRoot) { missionRoot = new Instance("Folder"); missionRoot.Name = "SkybreakCombat"; missionRoot.Parent = Workspace; }
 		connections.push(remote(remotes, "FlightInput").OnServerEvent.Connect((player, payload: unknown) => {
 			const session = sessions.get(player);
-			if (!session?.active || session.loading || session.launch || session.guard.running || PauseRules.Paused(session.pause) || !typeIs(payload, "table")) return;
+			if (!session?.active || session.loading || session.launch || session.blueprintState?.landingElapsed !== undefined || session.guard.running || PauseRules.Paused(session.pause) || !typeIs(payload, "table")) return;
 			const now = os.clock();
 			// Heartbeat runs refreshSession every frame, so this unguarded handler only takes input.
 			// A token bucket caps the packet rate whatever the stamps claim.
@@ -1719,6 +1733,10 @@ export const CombatService = {
 					if (action === "Pause") pauseSession(session, now);
 					// A resume that changed nothing still answers, so the telemetry carries pauseAck.
 					else if (!resumeSession(session, now)) sendTelemetry(session);
+					return;
+				}
+				if (session.blueprintState?.landingElapsed !== undefined) {
+					if (action === "SkipLanding" && session.landingStartedAt !== undefined && canSkipLanding(os.clock()-session.landingStartedAt)) { BlueprintRunner.AdvanceLanding(session.blueprintState,0,true); if (sessionOutcome(session) !== undefined) finish(session); }
 					return;
 				}
 				if (!LaunchStage.CanControl(false, session.launch, PauseRules.Paused(session.pause)) || !refreshSession(session, now)) return;

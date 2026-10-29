@@ -20,6 +20,18 @@ Last updated: 2026-10-29.
 1. **Fix what you report** for mission 1.
 2. **Mission 2:** world composition is done and dormant, in review in PR #140; it is not playable. Remaining: engine integration, mission data and unlock, Studio load measurement and visual check, plus real-phone performance measurement. Proceed toward release after mission 1 feedback (D-004). Engine batch A (typed ground targets, triggered fighter waves, standalone ace and AA guns) is built and dormant on PR #138; it does not change the live practice flight or mission 1.
 3. **Before mission 2 ships:** sequential-unlock and forged-proof tests, remapping the finale chapter, and retiring leftover code keyed to the old 27 missions.
-4. **Mission 3:** world composition done in unmerged PR #139, dormant and not playable. Remaining: engine batch B (mission update banner, clock reset, return-line objective, automatic skippable landing, terrain-relative LOW ALTITUDE warning); mission data and unlock using the exported target layout; Studio load and visual measurement, landing path verification and real-phone performance.
+4. **Mission 3:** world (#139) and engine batch B (#141) merged, dormant and not playable. Remaining: mission data and unlock using the exported target layout; Studio load and visual measurement, landing path verification and real-phone performance.
 5. **Later missions** one at a time; mission 18 gains a one-on-one Rusk duel (D-031).
 6. **Polish not blocking play:** the world items above; a code formatter; specs for the menu, briefing, HUD and results screens.
+
+## Mission 3 — engine batch B
+
+Engine batch B is built and dormant (PR #141): phase-entry MISSION UPDATE with radio/objective/countdown reset; directional return segment with HUD navigation; automatic skippable runway landing that excludes mission and score time; opt-in terrain-clearance warnings. Batch A already expresses site 1 destroyed → fighter wave plus ace via shared `ground_group` triggers. Mission 3 data/unlock and world integration remain separate; use PR #139’s Z=11,040 line and northbound runway centred at X=6000, Z=11264: pavement top Y=84 on terrain Y=80. Landing touchdown authors the aircraft pivot, including gear clearance, rather than the runway surface.
+
+Remaining mission 3 presentation/spec work (not built by batch B): landing 3:00 timer; DIST counter; controller radio during landing; MISSION ACCOMPLISHED on the runway; dotted return line drawn in-world; mission-update banner and landing-skip styling. The engine radio queue and HUD navigation point alone do not complete these items.
+
+Independent-review corrections in PR #141: settlement accepts update-extended mission time and rejects elapsed at/beyond the summed maximum; return guidance projects onto the finite line; landing camera cuts immediately and hides the local jet; skip is ignored for 0.75 seconds on both peers; landing telemetry uses the normal interval without 30 Hz FlightState packets; flare levels before touchdown; ALT tint uses the warning's terrain clearance. Initial and landing phases reject updates. Practice/mission 1 snapshots remain unchanged.
+
+Studio lease remains with the orchestrator: run the Roblox specs and inspect landing camera/skip, update radio delivery and mountain warnings there before enabling mission 3. No Studio or Player test is claimed for batch B.
+
+Batch B offline validation: frozen Bun install and build passed; full offline gate passed (`OFFLINE_LUAU_RESULT passed=675 failed=0`, catalog snapshot `passed=19 failed=0`). Runtime Roblox specs are compiled but unrun. Landing plans require continuous touchdown speed: `2 × rolloutDistance / rolloutSeconds = approachDistance / approachSeconds`.

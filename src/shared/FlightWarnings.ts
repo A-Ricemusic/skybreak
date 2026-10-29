@@ -12,6 +12,7 @@ export const TERRAIN_MIN_PROBE = 160;
 export const LOW_ALTITUDE = 100;
 
 export interface FlightWarningState {
+	terrainClearance?: number;
 	speed: number;
 	altitude: number;
 	incoming: boolean;
@@ -44,12 +45,17 @@ export function lowSpeed(speed: number, acceleration = 0): boolean {
 	return speed + trend * STALL_TREND_SECONDS < FlightMath.StallSpeed;
 }
 
+/** Shared warning/ALT tint metric; missing or invalid terrain probes retain absolute altitude. */
+export function warningAltitude(state: Pick<FlightWarningState, "terrainClearance" | "altitude">): number {
+	return FlightMath.IsFinite(state.terrainClearance) ? state.terrainClearance : state.altitude;
+}
+
 /** The single most urgent flight warning: terrain first, then the stall band, low altitude and the airspace edge. */
 export function flightAdvice(state: FlightWarningState): FlightAdvice {
 	if (state.terrainSeconds !== undefined && state.terrainSeconds <= TERRAIN_LOOKAHEAD) return "PULL UP";
 	if (state.speed <= FlightMath.StallSpeed + 0.01) return "STALL";
 	if (lowSpeed(state.speed, state.acceleration)) return "LOW SPEED";
-	if (state.altitude < LOW_ALTITUDE) return "LOW ALTITUDE";
+	if (warningAltitude(state) < LOW_ALTITUDE) return "LOW ALTITUDE";
 	if (state.boundaryWarning) return "AIRSPACE LIMIT";
 	return "";
 }
