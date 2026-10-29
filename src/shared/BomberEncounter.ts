@@ -28,7 +28,7 @@ export function validateBomberEncounter(phase: MissionPhaseBlueprint, bounds: Mi
 	assert(e.count % 1 === 0 && e.count >= 1 && e.count <= 7 && e.initial % 1 === 0 && e.initial >= 0 && e.initial < e.count, "Invalid escort budget");
 	assert(e.role === "escort" && e.aceName.size() > 0 && e.aceName.size() <= 40 && finite(e.aceAt) && e.aceAt >= 0, "Invalid escort ace");
 	for (const p of [...b.waypoints, b.escape]) assert(finite(p.x) && finite(p.y) && finite(p.z) && math.abs(p.x) <= bounds.spawnLimit && math.abs(p.z) <= bounds.spawnLimit && p.y >= 40 && p.y <= 900, "Bomber route outside mission airspace");
-	assert(phase.groups === undefined && phase.stagger === undefined && phase.execution === undefined && phase.optionalRaiders === undefined && phase.reinforce === undefined && phase.twist === undefined && phase.hazard === undefined, "Bomber encounter owns its wave schedule");
+	assert(phase.groups === undefined && phase.stagger === undefined && phase.execution === undefined && phase.twist === undefined && phase.hazard === undefined, "Bomber encounter owns its wave schedule");
 	compileBomberEncounter(b);
 }
 export function compileBomberEncounter(b: BomberEncounter): BomberRoute {
@@ -48,4 +48,9 @@ export function laterEscortsDue(b: BomberEncounter, state: BomberEncounterState,
 	if (state.laterSpawned || elapsed - state.startedAt < b.escorts.aceAt) return false;
 	state.laterSpawned = true;
 	return true;
+}
+
+/** Bomber optional waves follow the route clock, never the player's required kills. */
+export function reinforcementFraction(objectiveFraction: number, elapsed: number, route?: BomberRoute): number {
+	return route ? math.clamp(elapsed / route.duration, 0, 1) : objectiveFraction;
 }
