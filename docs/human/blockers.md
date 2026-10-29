@@ -22,3 +22,7 @@ Last updated: 2026-10-29.
 | 2026-10-28 | Footage analyst | Whether 1080p sections of the video could be downloaded was unconfirmed. | Confirmed: mission 1 was downloaded at 1440×1080, 59.94 fps. |
 | 2026-10-28 | Orchestrator | The first footage agent ended its turn while the download was still running, with no ledger. | The download had completed. A second agent resumed from there and finished the ledger; the first was cancelled so only one agent owned the footage folder. |
 | 2026-10-28 | Several agents | Fresh worktrees have no offline Luau runner, so the offline validator fails at first. | Point `LUAU_BIN` at the main checkout's copy (`build/offline-luau/luau`). This recurs in every new worktree; agent briefs now mention it. |
+
+## PR #137 elite safety gate
+
+Review 2 rejected `vanta-v2-elite-2` at 8/10 for a rear goggles/mask composition. Revision 3 changes the geometry and awaits a fresh independent 10/10 approval of the exact export and textures. Not uploaded. Four other assets are unchanged and retain their recorded approval.

@@ -96,7 +96,7 @@ def _frame_distance(objects, center, direction, lens=50.0):
     return need * 1.08
 
 
-def review_previews(objects, folder: Path, views: dict, closeups: dict) -> list[str]:
+def review_previews(objects, folder: Path, views: dict, closeups: dict, contrasting=False) -> list[str]:
     """Extra 1024x1024 Eevee views with the final baked material.
 
     ``views``: name -> (direction from centre, "ortho" | "persp"); ``closeups``: name ->
@@ -138,6 +138,15 @@ def review_previews(objects, folder: Path, views: dict, closeups: dict) -> list[
         scene.collection.objects.link(light)
         light.rotation_euler = tuple(math.radians(v) for v in rot)
         helpers.append(light)
+    if contrasting:
+        # Warm raking key and cool fill, with reduced ambient and under-light.
+        bg.inputs["Strength"].default_value = 0.22
+        for light, energy, color, rot in zip(helpers, (5.0, 0.7, 0.35),
+                ((1.0, 0.65, 0.35), (0.35, 0.6, 1.0), (0.5, 0.65, 1.0)),
+                ((75, 0, 115), (50, 0, -65), (145, 0, 0))):
+            light.data.energy = energy
+            light.data.color = color
+            light.rotation_euler = tuple(math.radians(v) for v in rot)
     cam_data = bpy.data.cameras.new("ReviewCam")
     cam = bpy.data.objects.new("ReviewCam", cam_data)
     scene.collection.objects.link(cam)
@@ -243,7 +252,7 @@ REVIEW_VIEWS = {
 
 
 def review_pack(a: Asset, views: dict, closeups: dict, texture_limit: int, extra: dict, scale_ref: dict | None = None,
-                overlays: dict | None = None) -> None:
+                overlays: dict | None = None, contrasting=False) -> None:
     """Extra previews, contact sheet, budget checks and the hashed checklist after ``Asset.finish()``.
 
     ``overlays``: name -> (make, direction): ``make()`` adds review-only helper objects (never in
@@ -258,6 +267,13 @@ def review_pack(a: Asset, views: dict, closeups: dict, texture_limit: int, extra
     notes = {p: f"Perspective from {describe(views[p[8:-4]][0])}." if views[p[8:-4]][1] == "persp"
              else f"Orthographic from {describe(views[p[8:-4]][0])}." for p in extra_previews if p[8:-4] in views}
     notes.update({p: f"Close-up from {describe(closeups[p[8:-4]][1])}." for p in extra_previews if p[8:-4] in closeups})
+    if contrasting:
+        contrast_views = {f"{k}-contrast": v for k, v in views.items() if "rear" in k or "back" in k}
+        contrast_closeups = {f"{k}-contrast": v for k, v in shifted.items() if "rear" in k}
+        extra_previews += review_previews(objects, folder, contrast_views, contrast_closeups, contrasting=True)
+        notes.update({f"preview-{k}.png": "Contrasting warm raking key / cool fill; " +
+                      (f"view direction {v[0]}." if k in contrast_views else f"close-up direction {v[1]}.")
+                      for k, v in {**contrast_views, **contrast_closeups}.items()})
     for name, (make, direction, note) in (overlays or {}).items():
         helpers = make()
         extra_previews += review_previews(objects, folder, {name: (direction, "ortho")}, {})

@@ -327,8 +327,12 @@ def intake(a: Asset, name, zones, mouth, y_lip, rake, *, side=1, cowl_len=3.4, l
     return obj, (side * cx, y_lip, cz)
 
 
-def round_nozzle(a: Asset, name, zones, x, z, y0, y1, r, n=24):
-    """Convergent-divergent petal nozzle: overlapping petals, liner, flame holder and cone."""
+def round_nozzle(a: Asset, name, zones, x, z, y0, y1, r, n=24, shallow=False):
+    """Convergent-divergent petal nozzle: overlapping petals, liner, flame holder and cone.
+
+    ``shallow=True`` closes the liner with a plug just inside the lip, crossed by ten short radial
+    vanes (not 8, 12 or 24, which match wheel and sun symbols), and leaves out the flame holder and cone: from behind the opening is a lit, spoked
+    metal disc rather than a dark hole. ``dark`` then zones the vanes."""
     metal, inner, dark = zones
 
     def ring(rr, y, petal=0.0):
@@ -343,7 +347,17 @@ def round_nozzle(a: Asset, name, zones, x, z, y0, y1, r, n=24):
 
     L = y1 - y0
     rings = [ring(r * 1.04, y0), ring(r * 1.0, y0 + L * 0.35), ring(r * 0.9, y1 - 0.05, petal=0.12),
-             ring(r * 0.82, y1, petal=0.12), ring(r * 0.74, y1 - 0.35), ring(r * 0.66, y1 - L * 0.8)]
+             ring(r * 0.82, y1, petal=0.12)]
+    if shallow:
+        obj = a.loft(name, rings + [ring(r * 0.76, y1 - 0.18)], metal, part="Body", cap_start=False, smooth=50)
+        a.assign(obj, range(3 * n, 5 * n), inner)
+        for k in range(10):
+            t = (k + 0.5) * math.tau / 10
+            rm = r * 0.5
+            a.box(f"{name} vane {k}", (0.04, 0.14, r * 0.52), (x + rm * math.sin(t), y1 - 0.13, z + rm * math.cos(t)), dark,
+                  part="Body", rot=(0, t, 0))
+        return obj
+    rings += [ring(r * 0.74, y1 - 0.35), ring(r * 0.66, y1 - L * 0.8)]
     obj = a.loft(name, rings, metal, part="Body", cap_start=False, smooth=50)
     a.assign(obj, range(3 * n, 6 * n), inner)
     a.assign(obj, range(5 * n, 6 * n), dark)
@@ -983,19 +997,56 @@ def vanta_paint(livery="base"):
 
         return skin(dict(common, upper="#3f1f1f", lower="#33363a", camo=("#2d1617", "#4a2321"), radome="#25100f",
                          accent="#a08440", accent_masks=(fin_tip,), extra=pinstripe, rough=0.42, metal=0.12))
+    if livery == "elite":
+        # Mission 5 elite squadron (vanta-v2-elite, built by m04_m05_assets.py): blue-black with the
+        # whole fin and rudder in pale steel blue and one straight chordwise band across each outer
+        # wing. Plain colour fields only: no emblem, chevron, numeral-like mark or text. (A pale
+        # fin-tip block over the dark fin met the light rudder-hinge gap in a shape like a "7".)
+        def fin_field(n, x, y, z, nx, ny, nz):
+            return n.mul(n.smooth(z, 1.15, 1.3), n.mul(n.smooth(n.absf(x), 0.45, 0.3), n.smooth(y, 3.6, 4.0)))
+
+        def wing_band(n, x, y, z, nx, ny, nz):
+            return n.mul(n.band(n.absf(x), 9.3, 10.3, 0.03), n.smooth(n.absf(nz), 0.3, 0.5))
+
+        def aft_metal(n, col, x, y, z, nx, ny, nz):
+            # Bare mid-grey metal on the flat aft end and the lower aft skin around the nozzles,
+            # close to the nozzle metal, so from behind there is no dark band behind the nozzles and
+            # no separate pale curve under them (no soot either).
+            end = n.mul(n.smooth(ny, 0.5, 0.8), n.smooth(y, 10.7, 10.9))
+            lower = n.mul(n.mul(n.smooth(y, 9.9, 10.3), n.smooth(nz, 0.1, -0.2)), n.smooth(n.absf(x), 2.3, 2.0))
+            return n.vlerp(col, srgb("#6b6e70"), n.maxf(end, lower))
+
+        return skin(dict(common, upper="#1d222b", lower="#2b313b", camo=("#151920", "#262c36"), radome="#14171c",
+                         accent="#7f97a8", accent_masks=(fin_field, wing_band), extra=aft_metal, soot=(60.0, 1.55),
+                         rough=0.5, metal=0.08))
     raise ValueError(livery)
 
 
-@builder("vanta-v2")
-def vanta_v2():
-    a = Asset("vanta-v2", "Vanta enemy interceptor (v2)", texture=1024, kind="aircraft", tri_limit=15000,
+def vanta_v2_airframe(name="vanta-v2", title="Vanta enemy interceptor (v2)", paint=None, export_version=None,
+                      usage="Enemy bandits and raiders (JetFactory.Create enemy=true); preferred over v1 when uploaded.",
+                      plain_rear=False):
+    """The Vanta v2 mesh with its zones, ready for ``finish()``; returns (asset, attachments).
+
+    ``vanta-v2`` passes the defaults. A livery built as its own folder (``vanta-v2-elite``)
+    passes its name, paint and export version: the geometry, seed and scale are the same, so
+    the mesh is the Vanta v2 mesh and only the paint zone differs.
+
+    ``plain_rear=True`` is elite-only: a shared rectangular thrust-vectoring exhaust,
+    flat aft belly and no ventral strakes or tail boom. Defaults preserve the uploaded mesh.
+    """
+    a = Asset(name, title, texture=1024, kind="aircraft", tri_limit=15000,
               bump_distance=0.01, seed=202, target_length=VANTA_LENGTH, weighted_normals=True, glass_parts=("Canopy",),
-              usage="Enemy bandits and raiders (JetFactory.Create enemy=true); preferred over v1 when uploaded.")
+              usage=usage, export_version=export_version)
     ik = VANTA_INTAKE
-    z = zones_common(a, vanta_paint("base"), "#2f3338", (1.55, -0.4), 12.5, 2.6, ik["y"], ik["depth"], (ik["cx"], ik["cz"] + 0.15))
+    z = zones_common(a, paint or vanta_paint("base"), "#2f3338", (1.55, -0.4), 12.5, 2.6, ik["y"], ik["depth"], (ik["cx"], ik["cz"] + 0.15))
     paint = z["paint"]
+    if plain_rear:
+        z["nozzle_inner"] = a.zone("nozzle_inner", standard("#8e8b84", 0.55, 0.3, grime=0.1, ao=0.2, ao_dist=0.4))
     a.metadata["pivots"], a.metadata["hinges"] = {}, {}
-    body = Body(VANTA_KEYS, sharp=[3], counts=KESTREL_COUNTS)
+    # Lower the centre to the nacelle keel: no rising bridge in the aft silhouette.
+    keys = [(y, [(x, min(zz, pts[-2][1])) if i == 6 and y >= 5.0 else (x, zz)
+                  for i, (x, zz) in enumerate(pts)]) for y, pts in VANTA_KEYS] if plain_rear else VANTA_KEYS
+    body = Body(keys, sharp=[3], counts=KESTREL_COUNTS)
     ys = stations(-12.6, 11.0, [(-11.8, 0.2), (-9.2, 0.4), (-1.0, 0.45), (11.0, 0.55)])
     build_body(a, "Fuselage", body, paint, ys)
 
@@ -1087,10 +1138,19 @@ def vanta_v2():
         a.metadata["pivots"][f"Elevator_{tag}"] = tuple(sp)
         a.metadata["hinges"][f"Elevator_{tag}"] = (tuple(sp), tuple(Vector(cf(2.3, -5.85, 0))))
 
-        # Ventral strakes and petal nozzles.
-        vf = fin_frame(side * 1.75, -1.2, math.radians(158), side)
-        surface(a, f"Strake {tag}", paint, "Body", vf, [0.0, 0.8], lambda s: 6.0 + s * 0.9, lambda s: 2.6 - s * 1.0, 0.05, samples=6)
-        round_nozzle(a, f"Nozzle {tag}", (z["metal"], z["liner"], z["dark"]), side * 1.55, -0.4, 9.9, 12.5, 0.52)
+        # The uploaded default keeps its ventral strakes and round nozzles.
+        if not plain_rear:
+            vf = fin_frame(side * 1.75, -1.2, math.radians(158), side)
+            surface(a, f"Strake {tag}", paint, "Body", vf, [0.0, 0.8], lambda s: 6.0 + s * 0.9, lambda s: 2.6 - s * 1.0, 0.05, samples=6)
+            round_nozzle(a, f"Nozzle {tag}", (z["metal"], z["liner"], z["dark"]), side * 1.55, -0.4, 9.9, 12.5, 0.52)
+
+    if plain_rear:
+        # One continuous wide, shallow exit, with no dividing bar, circles or vanes.
+        # Solid grey backplate closes the exit; short straight lips suggest vectoring paddles.
+        a.box("Shared exhaust fairing", (4.24, 1.6, 0.72), (0, 11.6, -0.56), z["metal"], part="Body")
+        a.box("Plain continuous exhaust exit", (4.04, 0.08, 0.44), (0, 12.42, -0.56), z["nozzle_inner"], part="Body")
+        for zz in (-0.87, -0.25):
+            a.box("Vectoring lip", (4.24, 0.3, 0.1), (0, 12.35, zz), z["metal"], part="Body")
 
     # Single swept fin with rudder, dielectric cap.
     ff = fin_frame(0.0, 0.8, 0.0, 1)
@@ -1107,12 +1167,13 @@ def vanta_v2():
     a.box("Fin light", (0.03, 0.12, 0.9), (0.04, fle(2.4) + 0.4, 0.8 + 2.4), z["light"], part="Body")
     a.box("Fin light L", (0.03, 0.12, 0.9), (-0.04, fle(2.4) + 0.4, 0.8 + 2.4), z["light"], part="Body")
 
-    # Tail boom between the nacelles.
-    boom = []
-    for y, r, zc in ((10.2, 0.34, 0.0), (11.0, 0.3, 0.0), (11.9, 0.22, 0.02), (12.35, 0.14, 0.04)):
-        boom.append([(r * math.cos(t), y, zc + r * 0.9 * math.sin(t)) for t in (k * math.tau / 12 for k in range(12))])
-    obj = a.loft("Tail boom", boom, paint, part="Body", cap_start=False, smooth=50)
-    a.assign(obj, range(len(obj.data.polygons) - 12, len(obj.data.polygons)), z["dark"])
+    # Tail boom between the nacelles (none on the plain rear: the aft face stays clear).
+    if not plain_rear:
+        boom = []
+        for y, r, zc in ((10.2, 0.34, 0.0), (11.0, 0.3, 0.0), (11.9, 0.22, 0.02), (12.35, 0.14, 0.04)):
+            boom.append([(r * math.cos(t), y, zc + r * 0.9 * math.sin(t)) for t in (k * math.tau / 12 for k in range(12))])
+        obj = a.loft("Tail boom", boom, paint, part="Body", cap_start=False, smooth=50)
+        a.assign(obj, range(len(obj.data.polygons) - 12, len(obj.data.polygons)), z["dark"])
 
     # Flush gear doors, formation light strips.
     for s in (-1, 1):
@@ -1123,6 +1184,15 @@ def vanta_v2():
 
     tips = a.metadata["wingtips"]
     attachments = {"leftWingtip": tips["L"], "rightWingtip": tips["R"], "exhaust": (0.0, 12.5, -0.4)}
+    return a, attachments
+
+
+VANTA_CLOSEUP = ((1.0, -5.2, -0.2), (1.0, -1.3, 0.45), 8.5)
+
+
+@builder("vanta-v2")
+def vanta_v2():
+    a, attachments = vanta_v2_airframe()
     liveries = [
         {"name": "vulture", "title": "Vanta ace livery: Vulture flight (v2)", "zones": {"paint": vanta_paint("vulture")},
          "usage": "Vulture Lead and Vulture Two aces (M11 and M15 ace phases); preferred over v1 when uploaded."},
@@ -1130,4 +1200,4 @@ def vanta_v2():
          "usage": "Air Marshal Rusk final ace (M27 ace phase); preferred over v1 when uploaded."},
     ]
     a.finish(origin="center", hinges=a.metadata["hinges"], attachments=attachments, liveries=liveries,
-             extra_notes=CHECK_NOTES, closeup=((1.0, -5.2, -0.2), (1.0, -1.3, 0.45), 8.5))
+             extra_notes=CHECK_NOTES, closeup=VANTA_CLOSEUP)

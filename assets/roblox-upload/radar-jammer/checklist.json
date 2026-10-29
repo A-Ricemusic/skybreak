@@ -1,0 +1,215 @@
+{
+  "name": "radar-jammer",
+  "title": "Radar jammer aircraft (mission 4 optional targets)",
+  "variantOf": null,
+  "exportVersion": "radar-jammer-1",
+  "robloxAssetType": "Model",
+  "usage": "Mission 4: two airborne jammers near the transports; radar jamming clears as each is destroyed. Pending independent safety review; not uploaded; not referenced from src/.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "radar-jammer.fbx",
+    "bytes": 2172572
+  },
+  "triangleCount": 6612,
+  "triangleLimit": 15000,
+  "objects": [
+    {
+      "name": "Body",
+      "triangles": 6612
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "radar-jammer-color.png",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 800281
+    },
+    {
+      "role": "normal",
+      "file": "radar-jammer-normal.png",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 303845
+    },
+    {
+      "role": "rough",
+      "file": "radar-jammer-roughness.png",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 490800
+    },
+    {
+      "role": "metal",
+      "file": "radar-jammer-metalness.png",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 120573
+    }
+  ],
+  "robloxSizeStuds": [
+    59.32,
+    15.878,
+    62.182
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bounds-center",
+  "groundOffsetStuds": 0.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png",
+    "preview-closeup.png",
+    "preview-back.png",
+    "preview-side-right.png",
+    "preview-bottom.png",
+    "preview-3q-front-left.png",
+    "preview-3q-rear-right.png",
+    "preview-3q-rear-left.png",
+    "preview-3q-low-front-right.png",
+    "preview-front-low.png",
+    "preview-front-high.png",
+    "preview-closeup-front.png",
+    "preview-closeup-front-3q.png",
+    "preview-closeup-front-low.png",
+    "preview-closeup-rotodome.png",
+    "preview-closeup-engines.png",
+    "preview-closeup-tail.png",
+    "preview-closeup-belly.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "No letters, numbers, call signs, serials, codes or glyph-like marks in mesh or texture; grey countershading, splinter camouflage, panel lines, door outlines, plain rotodome rib circles and stains only."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national or unit markings; the only markings are a plain dark-red fin-top band and plain rings behind the engine lips. Original design, not a copy of any real or game aircraft (low-wing twin with a T-tail, a lens rotodome on one swept pylon and wingtip pods)."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces or figures: no crew is modelled. Head-on, the nose is a radome in the body colour with no seam ring, dark panel or camouflage; the windscreen is a grid of small panes tinted only slightly lighter than the paint; the two engine fronts sit low and wide under the wings, below the windscreen, and the rotodome is a thin body-colour lens above. Nothing protrudes from the nose. Checked in preview-front, preview-closeup-front, preview-closeup-front-3q, preview-front-low, preview-front-high and preview-closeup-front-low."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "Unarmed electronic aircraft: no guns, missiles or stores; wingtip pods are smooth antenna housings. No damage or gore."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "attachments": {
+    "leftWingtip": [
+      -29.6,
+      -2.6838,
+      12.592
+    ],
+    "rightWingtip": [
+      29.6,
+      -2.6838,
+      12.592
+    ],
+    "exhaust": [
+      0.0,
+      -6.3836,
+      -0.095
+    ]
+  },
+  "variants": [],
+  "sha256": {
+    "contact-sheet.png": "983e4757f08cf0b9c72e2d04ac8bb834804c6a74d99597c4bce22d7e844f32c6",
+    "preview-3q-front-left.png": "be3d4a7bb41bbd5d8cef84bc37319391792ba9fcdd7f66122d392425fa773be3",
+    "preview-3q-low-front-right.png": "d025a986ab1c849330ac9af3848c58748d0115ad5b3975420276aac8ea09c6db",
+    "preview-3q-rear-left.png": "e01824b0fb28ca5d84b2f692e6e2ccd5534861cc4553f4e37504f81804cc3227",
+    "preview-3q-rear-right.png": "66334f819dfbd1869105be4cab2acdc6432a3a941686d85c5630668f12a17397",
+    "preview-3q.png": "4b19ac718db45d4c983f38ee8b7c6372115e5ed540047fa55faf1cf7f35e00d7",
+    "preview-back.png": "14dcf9ca8785b9fdf8e8240d7b77b6571a84b4eff2c3cd601e65c64a31522896",
+    "preview-bottom.png": "f2b73f86b0321aa56ef9e67035c575f054d27bacd484ab086ae4d53c44b16737",
+    "preview-closeup-belly.png": "48fb9068df9624553216390e85d3f6bebe6b72afbe3602fee61cc74fff1f727e",
+    "preview-closeup-engines.png": "8cb5ca2140532184634ecf1816cca557dec23376dde336289229685b048c223a",
+    "preview-closeup-front-3q.png": "58e12df511f5185f03af95338cc429a0f8f87aa32763d5cdec22d8350e6e5527",
+    "preview-closeup-front-low.png": "2198f19188096c10d670550c38df29dbf68cd71c1e26c4ac9d56df3fa3fdf847",
+    "preview-closeup-front.png": "c2bb96489e04e20847e4ab7f06a699077028dcced8f503502cda2ad24f603e62",
+    "preview-closeup-rotodome.png": "cd43dc62b139acb6ed9abf74a8f42df23bbec926879f2fc1d07cbb5889430042",
+    "preview-closeup-tail.png": "f4b8629c010705c22cf4370f455b7fefe76257dc41411b16b321934657846e43",
+    "preview-closeup.png": "153f1936af95273a693288862857f42a1e761b9cdc96a6f2d6656995bdc9988e",
+    "preview-front-high.png": "217b6632b2046671e6135857ebfce831e5296367a1a400575c321d36a6d71a33",
+    "preview-front-low.png": "a34511e469283b5089e7c406327756c1e64797ee4ce5cf27920d7d875b58ebed",
+    "preview-front.png": "895f5779ab95a4b4aa508b787a33b34ea5177aee04665372a58226902420dcc7",
+    "preview-scale-reference.png": "b70067a76df3ceec4c0c98d27708dcfe3e71f8a288d31dc89523df3e69d882dc",
+    "preview-side-right.png": "5ea05ee81aa371e97dbfd39a9592f6e250b0f4a42d9e15ef3f6826943096c869",
+    "preview-side.png": "684be38442fc63b8e82dbeabc956449d953c23e51ca10d22e4ac6a3d86702710",
+    "preview-top.png": "1fa3dfc88647b8d603371aaa890e3b5091aab4242b8cada1092da525861250d3",
+    "radar-jammer-color.png": "929ebe92c25f30964c34a82b50d832c08db7a15eb84999a617e1f0f353b9cfc8",
+    "radar-jammer-metalness.png": "1b5b3ef1b5a5a1baec59f82318d045e517030242444da2b2d5e906342cf6f1bd",
+    "radar-jammer-normal.png": "fd7ba2d01e9aebde09b577d64432b07d85b16d73d984e16463afa1c887206540",
+    "radar-jammer-roughness.png": "973363ccaa93944c49ea6a6c7fca55207483c89f1b149e0e46cc31cbae339aab",
+    "radar-jammer.fbx": "83d228d5fb081fbb00d8620aca9d4034e511739d2c9bddf6560da172af59b556"
+  },
+  "previewNotes": {
+    "preview-front.png": "Orthographic from ahead (the model's front, Roblox -Z).",
+    "preview-side.png": "Orthographic from the left (port), Blender +X.",
+    "preview-top.png": "Orthographic from above, front at the top, the model's right (starboard) on the image's right.",
+    "preview-3q.png": "Perspective from ahead, the right (starboard), above.",
+    "preview-closeup.png": "Close-up from ahead, the right (starboard), above.",
+    "preview-back.png": "Orthographic from behind.",
+    "preview-side-right.png": "Orthographic from the right (starboard).",
+    "preview-bottom.png": "Orthographic from below.",
+    "preview-3q-front-left.png": "Perspective from ahead, the left (port), above.",
+    "preview-3q-rear-right.png": "Perspective from behind, the right (starboard), above.",
+    "preview-3q-rear-left.png": "Perspective from behind, the left (port), above.",
+    "preview-3q-low-front-right.png": "Perspective from ahead, the right (starboard), below.",
+    "preview-front-low.png": "Perspective from ahead, below.",
+    "preview-front-high.png": "Perspective from ahead, above.",
+    "preview-closeup-front.png": "Close-up from ahead.",
+    "preview-closeup-front-3q.png": "Close-up from ahead, the right (starboard).",
+    "preview-closeup-front-low.png": "Close-up from ahead, below.",
+    "preview-closeup-rotodome.png": "Close-up from ahead, the right (starboard), above.",
+    "preview-closeup-engines.png": "Close-up from ahead, the right (starboard), below.",
+    "preview-closeup-tail.png": "Close-up from behind, the left (port), above.",
+    "preview-closeup-belly.png": "Close-up from ahead, the left (port), below."
+  },
+  "engineExhausts": [
+    [
+      9.0,
+      -6.3836,
+      -0.095
+    ],
+    [
+      -9.0,
+      -6.3836,
+      -0.095
+    ]
+  ],
+  "rotodome": {
+    "centre": [
+      -0.0,
+      2.729,
+      3.4088
+    ],
+    "radiusStuds": 7.2,
+    "axis": "Roblox +Y (static; part of Body)"
+  },
+  "design": "Original twin-turbofan radar jammer: low wing with 30-degree sweep and 5-degree dihedral, two podded engines, T-tail, a 14.4-stud lens-shaped rotodome on a single swept pylon aft of the wing, wingtip antenna pods and blade antennas. Unarmed.",
+  "sizeRationale": "59.3 studs span over the tip pods (58 at the wingtips) x 62.2 long. At the fighters' ~1.44 studs per metre a ~40 m twin-engine airframe gives about 58 studs: 2.4x the Vanta v2 span (24.6), clearly smaller than the 72-stud heavy transport it flies with, and still a large, slow target.",
+  "reviewStatus": "pending independent safety review (AGENTS.md); not uploaded; not referenced from src/",
+  "scaleReference": {
+    "file": "preview-scale-reference.png",
+    "reference": "vanta-v2",
+    "note": "Review aid only: an approved, already uploaded asset placed at in-game size for scale. Not part of this asset or its FBX."
+  },
+  "contactSheet": "contact-sheet.png"
+}

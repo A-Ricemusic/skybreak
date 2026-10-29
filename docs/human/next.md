@@ -22,3 +22,7 @@ Last updated: 2026-10-29.
 3. **Before mission 2 ships:** sequential-unlock and forged-proof tests, remapping the finale chapter, and retiring leftover code keyed to the old 27 missions.
 4. **Later missions** one at a time; mission 18 gains a one-on-one Rusk duel (D-031).
 5. **Polish not blocking play:** the world items above; a code formatter; specs for the menu, briefing, HUD and results screens.
+
+## PR #137 asset review
+
+Obtain a new independent review of `vanta-v2-elite-3` and its neutral/contrasting rear previews. Review 2 rejected revision 2 at 8/10. No upload is authorized by the creator’s assessment.

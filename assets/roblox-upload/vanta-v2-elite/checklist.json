@@ -1,0 +1,298 @@
+{
+  "name": "vanta-v2-elite",
+  "title": "Vanta elite squadron livery (v2)",
+  "variantOf": "vanta-v2",
+  "exportVersion": "vanta-v2-elite-3",
+  "robloxAssetType": "Model",
+  "usage": "Mission 5: the five-ship elite squadron that arrives as phase 1 ends. Pending independent safety review; not uploaded; not referenced from src/.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "vanta-v2-elite.fbx",
+    "bytes": 2669292
+  },
+  "triangleCount": 12272,
+  "triangleLimit": 15000,
+  "objects": [
+    {
+      "name": "Body",
+      "triangles": 11060
+    },
+    {
+      "name": "Canopy",
+      "triangles": 672
+    },
+    {
+      "name": "Aileron_L",
+      "triangles": 80
+    },
+    {
+      "name": "Elevator_L",
+      "triangles": 160
+    },
+    {
+      "name": "Aileron_R",
+      "triangles": 80
+    },
+    {
+      "name": "Elevator_R",
+      "triangles": 160
+    },
+    {
+      "name": "Rudder",
+      "triangles": 60
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "vanta-v2-elite-color.png",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 699704
+    },
+    {
+      "role": "normal",
+      "file": "vanta-v2-elite-normal.png",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 369379
+    },
+    {
+      "role": "rough",
+      "file": "vanta-v2-elite-roughness.png",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 521284
+    },
+    {
+      "role": "metal",
+      "file": "vanta-v2-elite-metalness.png",
+      "width": 1024,
+      "height": 1024,
+      "bytes": 180772
+    }
+  ],
+  "robloxSizeStuds": [
+    24.691,
+    7.029,
+    26.4
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bounds-center",
+  "groundOffsetStuds": 0.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png",
+    "preview-closeup.png",
+    "preview-back.png",
+    "preview-side-right.png",
+    "preview-bottom.png",
+    "preview-3q-front-left.png",
+    "preview-3q-rear-right.png",
+    "preview-3q-rear-left.png",
+    "preview-3q-low-front-right.png",
+    "preview-front-low.png",
+    "preview-back-low.png",
+    "preview-back-high.png",
+    "preview-closeup-front.png",
+    "preview-closeup-wing-band.png",
+    "preview-closeup-fin.png",
+    "preview-closeup-rear.png",
+    "preview-closeup-rear-3q.png",
+    "preview-back-contrast.png",
+    "preview-3q-rear-right-contrast.png",
+    "preview-3q-rear-left-contrast.png",
+    "preview-back-low-contrast.png",
+    "preview-back-high-contrast.png",
+    "preview-closeup-rear-contrast.png",
+    "preview-closeup-rear-3q-contrast.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "No letters, numbers, call signs, serials, squadron codes or glyph-like marks in mesh or texture; countershading, camouflage, panel lines, rivets and stains only."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product, brand or squadron emblems; plain straight-edged colour fields only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national, squadron or unit markings, emblems or insignia; the livery is blue-black countershading with darker splinter camouflage, the fin and rudder in plain pale steel blue and one straight chordwise band across each outer wing. Airframe is the original Vanta v2 design."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or face-like arrangements: the cockpit holds an empty seat and panel only; intake mouths are plain dark rectangles with no central spinner, so the front view does not read as eyes. Rear revision 3: one continuous flattened rectangular exhaust with a solid mid-grey interior and straight lips; no round nozzles, vanes, tail boom or ventral strakes. Aft belly centre lowered to eliminate the rising bridge. Creator assessment only; independent review required."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "Plain unmarked air-to-air missile shapes on wing pylons as the standard combat loadout of a flight game; no kill marks, damage, blood or gore."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "controlSurfaces": {
+    "Aileron_L": {
+      "from": [
+        -5.9172,
+        -2.115,
+        8.3306
+      ],
+      "to": [
+        -11.4805,
+        -2.3579,
+        9.2318
+      ]
+    },
+    "Elevator_L": {
+      "from": [
+        -1.3149,
+        -1.2618,
+        -5.3609
+      ],
+      "to": [
+        -2.3264,
+        -1.2088,
+        -5.3609
+      ]
+    },
+    "Aileron_R": {
+      "from": [
+        5.9172,
+        -2.115,
+        8.3306
+      ],
+      "to": [
+        11.4805,
+        -2.3579,
+        9.2318
+      ]
+    },
+    "Elevator_R": {
+      "from": [
+        1.3149,
+        -1.2618,
+        -5.3609
+      ],
+      "to": [
+        2.3264,
+        -1.2088,
+        -5.3609
+      ]
+    },
+    "Rudder": {
+      "from": [
+        0.0,
+        -0.4507,
+        9.7899
+      ],
+      "to": [
+        0.0,
+        2.6445,
+        10.9227
+      ]
+    }
+  },
+  "attachments": {
+    "leftWingtip": [
+      -12.2391,
+      -2.3911,
+      9.9531
+    ],
+    "rightWingtip": [
+      12.2391,
+      -2.3911,
+      9.9531
+    ],
+    "exhaust": [
+      0.0,
+      -2.2411,
+      13.2
+    ]
+  },
+  "variants": [],
+  "sha256": {
+    "contact-sheet.png": "ffb863783f46aaf83f9e0140c50dabbd03b9f8f3257f1100f63a3cdfb852ab23",
+    "preview-3q-front-left.png": "38c14543987978f1d59f4984230ed6deef5916a60dec6d8a4cf2cb03a0ac7f3f",
+    "preview-3q-low-front-right.png": "9e295283252f42229c194c8dff10bda916c9c11b30b1083fe836b9f08552dcd4",
+    "preview-3q-rear-left-contrast.png": "752393c938b11bc6168ac20eca2d1b06d25c3baee55cae49b4dc4d4b18fc40cc",
+    "preview-3q-rear-left.png": "031992df203bf9f9e62545f34e3598eebd7b2e30fb771d1220d0698824cff541",
+    "preview-3q-rear-right-contrast.png": "98d6ebbeb9a5372970f24f6e3408182d66fbaeadf5440c0e4591ac62fcffd614",
+    "preview-3q-rear-right.png": "bf17fb202198136d9bf522426a99c9e043537574ac5eaabd06aef5dee0b7ddeb",
+    "preview-3q.png": "3d9b11953cbaf176044fc10d3b7b04b85d5b4fda049d6cd503929658ca482401",
+    "preview-back-contrast.png": "8c5ca133c26b65c8b68b19e3b2ddabf2d12cc01f525a5f5800ce90b4dda76e7b",
+    "preview-back-high-contrast.png": "ba27c93aaaa59627f4f0d2ec8a34f7f23178b301b0cd668c997692292e141ecb",
+    "preview-back-high.png": "9c1ade998148cb89e09561eb3d2e1bfa75e9affe2de04856f60541253fe392c1",
+    "preview-back-low-contrast.png": "fb8da6cdf0fc421dc3d385b8447a6b6b4ea3f797974dc840acd3543918b7c106",
+    "preview-back-low.png": "b45a792d3f1e6b664daada6a533aff67bba86fb688f0a8368ac76ba16a992f34",
+    "preview-back.png": "719932c855e0f6744a24f5cb66365b8c197d51244fea8f7034256ce86bb2a745",
+    "preview-bottom.png": "fbdeec548903651e831696dc1d0b03d94ae5c269ed78ded096f6652fcf521381",
+    "preview-closeup-fin.png": "1c211352cfe038b1dc2dd67d6e3cdf46708bdde36f94851d7004c0b0147f13c3",
+    "preview-closeup-front.png": "9076cc133b6ba8a721daa7c486e3604701879706c82e337bae4f101b493a4744",
+    "preview-closeup-rear-3q-contrast.png": "bc225a8bc4f69950352bd8433fb09cb96d77c1d0ef87fd5df9a6f722bdcc2132",
+    "preview-closeup-rear-3q.png": "5b9ad8e1091f87ebc04df8dab7291f427d0fb45581294abca81dad472ff77d56",
+    "preview-closeup-rear-contrast.png": "0259dadec97b976d5f3d55cd54218359a7368be0b8d5ae43faa1aaace7815417",
+    "preview-closeup-rear.png": "fb8504d3b7f53e41f2603468fd485f0626ec830861b164b7b7afd81943821974",
+    "preview-closeup-wing-band.png": "897342523b47f03884a25ac4d82f8fee1147e813c9cdff872f09017e9f283712",
+    "preview-closeup.png": "67d7ec66b58ccfd21067a3c7d2618843372189e5ec4d381e3d0c3ee9b57136b5",
+    "preview-front-low.png": "074e1e982612aac50e2774831af26306076a5c2e57137841c84a6e0a5ab5b042",
+    "preview-front.png": "3305041be43db89eb8a0981cc0f7ef296ab1d543f6bbbd9ad0d4813fed0c39ab",
+    "preview-scale-reference.png": "ec2f1f054f70a0288c0cb332c518dbf2933ef056705e96e8e9d1eb7f8fb3bed9",
+    "preview-side-right.png": "8ba50b547e2a22e7fe01bf0744c6765e357c18522c8467452e016a72c68f1afb",
+    "preview-side.png": "a192f9f6c8aa29a1dd843f649adaf689eb7d9a1689893bd1fca400bfe1ae4b98",
+    "preview-top.png": "fa58157fe5bd7bfc87d95ffbd7839d4305a368c1126f568e165f64efc3800445",
+    "vanta-v2-elite-color.png": "0ab8e3734bf2aa71cb8a249ec4df09b9e6204cf28c24d8cc51d69787056d8b81",
+    "vanta-v2-elite-metalness.png": "4cdef17d497dc4437ee43ea34d43737aa479e2c90ad0def16c617d31675d7563",
+    "vanta-v2-elite-normal.png": "c9af57a8a365d5ab3a0604f139eb3f8f3de4c721b43477169448f9570534f785",
+    "vanta-v2-elite-roughness.png": "ea171072345864503d96b1c439879722666fd1071b405fdd4cd52d86753bf159",
+    "vanta-v2-elite.fbx": "2fdcf40547df8f11dfd13d15b6b08535c87add64a6db5363c79da3dc2a2b8ada"
+  },
+  "previewNotes": {
+    "preview-front.png": "Orthographic from ahead (the model's front, Roblox -Z).",
+    "preview-side.png": "Orthographic from the left (port), Blender +X.",
+    "preview-top.png": "Orthographic from above, front at the top, the model's right (starboard) on the image's right.",
+    "preview-3q.png": "Perspective from ahead, the right (starboard), above.",
+    "preview-closeup.png": "Close-up from ahead, the right (starboard), above.",
+    "preview-back.png": "Orthographic from behind.",
+    "preview-side-right.png": "Orthographic from the right (starboard).",
+    "preview-bottom.png": "Orthographic from below.",
+    "preview-3q-front-left.png": "Perspective from ahead, the left (port), above.",
+    "preview-3q-rear-right.png": "Perspective from behind, the right (starboard), above.",
+    "preview-3q-rear-left.png": "Perspective from behind, the left (port), above.",
+    "preview-3q-low-front-right.png": "Perspective from ahead, the right (starboard), below.",
+    "preview-front-low.png": "Perspective from ahead, below.",
+    "preview-back-low.png": "Perspective from behind, below.",
+    "preview-back-high.png": "Perspective from behind, above.",
+    "preview-closeup-front.png": "Close-up from ahead.",
+    "preview-closeup-wing-band.png": "Close-up from ahead, the right (starboard), above.",
+    "preview-closeup-fin.png": "Close-up from behind, the left (port), above.",
+    "preview-closeup-rear.png": "Close-up from behind.",
+    "preview-closeup-rear-3q.png": "Close-up from behind, the left (port).",
+    "preview-back-contrast.png": "Contrasting warm raking key / cool fill; view direction (0, 1, 0).",
+    "preview-3q-rear-right-contrast.png": "Contrasting warm raking key / cool fill; view direction (-1.0, 1.25, 0.8).",
+    "preview-3q-rear-left-contrast.png": "Contrasting warm raking key / cool fill; view direction (1.0, 1.3, 0.6).",
+    "preview-back-low-contrast.png": "Contrasting warm raking key / cool fill; view direction (0.0, 1.0, -0.35).",
+    "preview-back-high-contrast.png": "Contrasting warm raking key / cool fill; view direction (0.0, 1.0, 0.5).",
+    "preview-closeup-rear-contrast.png": "Contrasting warm raking key / cool fill; close-up direction (0.0, 1.0, 0.05).",
+    "preview-closeup-rear-3q-contrast.png": "Contrasting warm raking key / cool fill; close-up direction (0.6, 1.0, 0.2)."
+  },
+  "design": "The uploaded Vanta v2 airframe (same parts, hinges and attachments; built by the shared aircraft_v2.vanta_v2_airframe) with a plain rear (plain_rear=True: single continuous rectangular thrust-vectoring exhaust, plain grey interior, flattened aft belly, no ventral strakes or tail boom, no exhaust soot) and its own livery. Upper #1d222b and lower #2b313b blue-black countershading, splinter camouflage #151920/#262c36, radome #14171c, pale steel-blue #7f97a8 fin and rudder and outer-wing bands. Distinct from Vulture (dark grey with bone feather band) and Rusk (oxblood with gold pinstripe).",
+  "sizeRationale": "24.691 x 7.029 x 26.4 studs; target length retained, span changes by less than 1%, reduced height after removing ventral strakes. Original loader part names and source hinges/attachments retained, uniformly rescaled and recentered by finish().",
+  "reviewStatus": "pending independent safety review (AGENTS.md); not uploaded; not referenced from src/",
+  "scaleReference": {
+    "file": "preview-scale-reference.png",
+    "reference": "vanta-v2",
+    "note": "Review aid only: an approved, already uploaded asset placed at in-game size for scale. Not part of this asset or its FBX."
+  },
+  "contactSheet": "contact-sheet.png"
+}
