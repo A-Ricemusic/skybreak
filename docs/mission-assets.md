@@ -79,6 +79,7 @@ Model-upload asset, not part of this EditableMesh path.
 `tools/assets/m01_assets.py` (`tools/assets/build-all.sh carrier`) builds
 `assets/roblox-upload/carrier/`. It is 560 studs long (21.5 Kestrel lengths), has
 2,772 triangles and uses 512² maps. It has an angled deck, a starboard island and
-two bow catapults whose track points are in the checklist's `catapults`. It is
-awaiting the independent safety review and is not referenced from `src/`. See
+two bow catapults whose track points are in the checklist's `catapults`. Export
+`carrier-2` mirrored the ship after review 1 found the island on the port side. It is
+awaiting a new independent safety review and is not referenced from `src/`. See
 [the mission 1 assets](assets-bomber-carrier.md).

@@ -2,19 +2,20 @@
   "name": "heavy-bomber",
   "title": "Heavy bomber (mission 1 raid)",
   "variantOf": null,
+  "exportVersion": "heavy-bomber-2",
   "robloxAssetType": "Model",
   "usage": "Mission 1: six bombers in formation (required targets, never fire). Pending review; not referenced from src/.",
   "generator": "tools/assets/build.py",
   "fbx": {
     "file": "heavy-bomber.fbx",
-    "bytes": 2674732
+    "bytes": 2673996
   },
-  "triangleCount": 9364,
+  "triangleCount": 8704,
   "triangleLimit": 15000,
   "objects": [
     {
       "name": "Body",
-      "triangles": 9364
+      "triangles": 8704
     }
   ],
   "textures": [
@@ -23,28 +24,28 @@
       "file": "heavy-bomber-color.png",
       "width": 1024,
       "height": 1024,
-      "bytes": 885492
+      "bytes": 900301
     },
     {
       "role": "normal",
       "file": "heavy-bomber-normal.png",
       "width": 1024,
       "height": 1024,
-      "bytes": 425247
+      "bytes": 399111
     },
     {
       "role": "rough",
       "file": "heavy-bomber-roughness.png",
       "width": 1024,
       "height": 1024,
-      "bytes": 562948
+      "bytes": 580106
     },
     {
       "role": "metal",
       "file": "heavy-bomber-metalness.png",
       "width": 1024,
       "height": 1024,
-      "bytes": 158362
+      "bytes": 178651
     }
   ],
   "robloxSizeStuds": [
@@ -63,12 +64,16 @@
     "preview-3q.png",
     "preview-closeup.png",
     "preview-back.png",
-    "preview-side-port.png",
+    "preview-side-right.png",
     "preview-bottom.png",
-    "preview-3q-front-right.png",
-    "preview-3q-rear-left.png",
+    "preview-3q-front-left.png",
     "preview-3q-rear-right.png",
-    "preview-3q-low-front.png",
+    "preview-3q-rear-left.png",
+    "preview-3q-low-front-right.png",
+    "preview-front-low.png",
+    "preview-closeup-front.png",
+    "preview-closeup-front-3q.png",
+    "preview-closeup-front-low.png",
     "preview-closeup-engines.png",
     "preview-closeup-tail.png",
     "preview-closeup-belly.png"
@@ -88,7 +93,7 @@
     },
     "noFaces": {
       "value": true,
-      "note": "No faces or figures: no crew is modelled; the windscreen is one continuous framed band and the refuelling probe is offset to starboard; engine fronts are four small dark fan discs in a row."
+      "note": "No faces or figures: no crew is modelled. Head-on (review 1 rejected export 1 for a face-like front) the nose is a long pointed radome in the body colour with no seam ring, dark panel or camouflage; the windscreen is a grid of separate small panes in body-colour frames, tinted only slightly lighter than the paint; nothing protrudes from the nose, cheeks or lower corners (no probe, pitot, chin blister or gear sponsons), so the head-on fuselage outline is a plain oval. Engine fronts are four small fan discs spread along the wings. Checked in preview-front, preview-closeup-front, preview-closeup-front-3q, preview-front-low and preview-closeup-front-low."
     },
     "noSuggestiveShapes": {
       "value": true,
@@ -122,21 +127,54 @@
     ]
   },
   "variants": [],
+  "sha256": {
+    "contact-sheet.png": "b41e6abc35acae6459a54f1843250836890caa42707ed42863190ae0a1c14096",
+    "heavy-bomber-color.png": "97a4627891cebeb6ed76e0f821139c832bacebda88de43bf51a30f0a12f3dd02",
+    "heavy-bomber-metalness.png": "c563eeeb72d9b3ed9c5d5d7506a8c3405cb5e37443fa1c40f1bf51e5e87a428b",
+    "heavy-bomber-normal.png": "52302633254558072f23ad854a4c86343253858d48aecb29cd224051a82ee3e0",
+    "heavy-bomber-roughness.png": "45df7d95cb0e9a1c5bb56b15875ad4e163ba045e42b041844c65ca214465e0af",
+    "heavy-bomber.fbx": "e4b242711e722d6a76ba8d87454a8f80902f10eb35764b5b8308955838cff5a3",
+    "preview-3q-front-left.png": "22acdac7923830239a1e5c56bdd0b59608c24ed2a2b20f86cacb25b5ab614664",
+    "preview-3q-low-front-right.png": "aba03583f1789529d0f4cae2b56ae7d6da1762edf1838dd962ecd080dfa5dd12",
+    "preview-3q-rear-left.png": "0b6653c2f6783ca14269a7270f10fc85134e706c30a78d56ef4491be0b806d22",
+    "preview-3q-rear-right.png": "c9d446441df1cb45bbd4afa8b772475d4205d5ce3e485ff3d997b17d5a6d1b0c",
+    "preview-3q.png": "80c98631faf854d6ee15120634d7ad5c774467f3de1b945c738e586c964864d2",
+    "preview-back.png": "e94721c4c166d5772d2d44ec369b749d223d2fdb6322a43d241a9cd3ea9068f9",
+    "preview-bottom.png": "ed425296bab0b7c8dcc0b2e5e991d185178fdf062d0b5c843a0d122703002563",
+    "preview-closeup-belly.png": "8e5d2b876574c0b65e424b19ed4892c964027bb1d7ee9c56f981f2c34bcf25c4",
+    "preview-closeup-engines.png": "5d980cdb948dd40a5653d2a5b031059c07c057c854ba4ab456cfba93c42659f8",
+    "preview-closeup-front-3q.png": "057d99aa81e7bdcd97dc6cf2343d264d8da725f2d7a32000de621363e36d3a4b",
+    "preview-closeup-front-low.png": "efc198fe232c4db39e682ae17f485bc4a50dfa22890898ed9388c1bc6373f740",
+    "preview-closeup-front.png": "931cedf7dffda3acd4d4f87f1dd9e00b62a6aa1ec7396eac344dea1682f7f199",
+    "preview-closeup-tail.png": "46e77c4fd34c64ac351ac1a83b8688d618a0bbfd148c35f141fa3751f0661794",
+    "preview-closeup.png": "78684330fb19e59cf9976576b26e0698bd50646dab1e9e9f276e44a6bc83017e",
+    "preview-front-low.png": "353a3a9135b8dd9f44782b7b22cc2dc3c425fc3ba80c6fbe83b4febf1eef5ded",
+    "preview-front.png": "4e425c00f79bb6c9c387169d0bebf9a4433aaa6313c9f9a2c79853cda002927d",
+    "preview-scale-reference.png": "95fccebdec085397494360dae83c6d2836b41fca09833a350d20045c9235d986",
+    "preview-side-right.png": "56f890911e04573abf67c014bf6cd7cd0407c63888dd386f1c12707f105ee223",
+    "preview-side.png": "5e14b0fa6459f05837e0fe4c1a12f03d0b07e2cdc515934af6ed31436ffda4ea",
+    "preview-top.png": "2590c2a13d9b54ac4879ad5f77b743f18d95974d4a6f8bcc246f1af6494a07a0"
+  },
   "previewNotes": {
-    "preview-front.png": "Orthographic from ahead (-Z in Roblox).",
-    "preview-side.png": "Orthographic from starboard (+X).",
-    "preview-top.png": "Orthographic from above, front at the top.",
-    "preview-3q.png": "Perspective, front-left from above.",
-    "preview-back.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
-    "preview-side-port.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
-    "preview-bottom.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
-    "preview-3q-front-right.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
-    "preview-3q-rear-left.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
-    "preview-3q-rear-right.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
-    "preview-3q-low-front.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
-    "preview-closeup-engines.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
-    "preview-closeup-tail.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise).",
-    "preview-closeup-belly.png": "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise)."
+    "preview-front.png": "Orthographic from ahead (the model's front, Roblox -Z).",
+    "preview-side.png": "Orthographic from the left (port), Blender +X.",
+    "preview-top.png": "Orthographic from above, front at the top, the model's right (starboard) on the image's right.",
+    "preview-3q.png": "Perspective from ahead, the right (starboard), above.",
+    "preview-closeup.png": "Close-up from ahead, the right (starboard), above.",
+    "preview-back.png": "Orthographic from behind.",
+    "preview-side-right.png": "Orthographic from the right (starboard).",
+    "preview-bottom.png": "Orthographic from below.",
+    "preview-3q-front-left.png": "Perspective from ahead, the left (port), above.",
+    "preview-3q-rear-right.png": "Perspective from behind, the right (starboard), above.",
+    "preview-3q-rear-left.png": "Perspective from behind, the left (port), above.",
+    "preview-3q-low-front-right.png": "Perspective from ahead, the right (starboard), below.",
+    "preview-front-low.png": "Perspective from ahead, below.",
+    "preview-closeup-front.png": "Close-up from ahead.",
+    "preview-closeup-front-3q.png": "Close-up from ahead, the right (starboard).",
+    "preview-closeup-front-low.png": "Close-up from ahead, below.",
+    "preview-closeup-engines.png": "Close-up from ahead, the right (starboard), below.",
+    "preview-closeup-tail.png": "Close-up from behind, the left (port), above.",
+    "preview-closeup-belly.png": "Close-up from ahead, the left (port), below."
   },
   "engineExhausts": [
     [
@@ -160,18 +198,13 @@
       10.579
     ]
   ],
-  "design": "Original four-turbofan heavy bomber: shoulder-mounted 33-degree swept wing, slight anhedral, podded engines on pylons, swept fin, low tailplanes, gear sponsons. 72 studs span = 2.9x Vanta v2 (24.6) and 3.2x Kestrel v2 (22.2).",
+  "design": "Original four-turbofan heavy bomber: pointed radome, shoulder-mounted 33-degree swept wing, slight anhedral, podded engines on pylons, swept fin, low tailplanes, gear housed inside the fuselage. 72 studs span = 2.9x Vanta v2 (24.6) and 3.2x Kestrel v2 (22.2).",
+  "revision": "heavy-bomber-2 (review 1 rejected heavy-bomber-1 for a face-like head-on view): pointed body-colour radome without seam ring, anti-glare panel or nose camouflage; windscreen as separate light panes; refuelling probe, pitot, chin radar blister, nose lights and gear sponsons removed; no longeron or spine lines on the nose cone.",
   "reviewStatus": "pending independent safety review (AGENTS.md); not uploaded; not referenced from src/",
-  "sha256": {
-    "heavy-bomber.fbx": "7e60258f17e1bee7de9ea423c2cc08f89a7f3c205de9757d07aada1bfb8d7514",
-    "heavy-bomber-color.png": "240c7b4e26030fa2bd3fd3663c574b89ad81f300ba64b73b576c712134458436",
-    "heavy-bomber-normal.png": "1e1f344887a1ff138c78eeee4a6f628c7e4eb1729f832497b83f595ec6795830",
-    "heavy-bomber-roughness.png": "8f745f70bda1b19f1779478c8d196d3fb9aae0a50e398b536d855237c6520f64",
-    "heavy-bomber-metalness.png": "379e9bb3fcfc04f6ff2220eb07d073c9998ae22bed9ee24c9e7e428daa86f3fb"
-  },
   "scaleReference": {
     "file": "preview-scale-reference.png",
     "reference": "vanta-v2",
     "note": "Review aid only: an approved, already uploaded asset placed at in-game size for scale. Not part of this asset or its FBX."
-  }
+  },
+  "contactSheet": "contact-sheet.png"
 }

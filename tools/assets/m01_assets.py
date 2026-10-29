@@ -8,8 +8,9 @@ or ship, and no text, numbers, insignia, flags, logos or glyph-like marks.
 * ``heavy-bomber``: the six bombers of mission 1 (fly in formation, never fire).
   Long slender fuselage with an upswept tail, shoulder-mounted 33-degree swept
   wing with slight anhedral, four podded turbofans on pylons, a swept fin over
-  low-set tailplanes, landing-gear sponsons and closed bomb-bay doors. No guns,
-  turret or weapons. 72 studs span (2.9x the Vanta, 3.2x the Kestrel), one
+  low-set tailplanes and closed bomb-bay doors. A pointed
+  radome in the body colour and a windscreen of separate light panes keep the
+  head-on view from reading as a face (review 1). No guns, turret or weapons. 72 studs span (2.9x the Vanta, 3.2x the Kestrel), one
   ``Body`` part, 1024 maps, aircraft budget (<= 15,000 triangles).
 * ``carrier``: the mission 1 start reference (scripted fly-off from the bow) and
   intro dressing. Flat deck with a 9-degree angled landing area, a starboard
@@ -20,17 +21,20 @@ or ship, and no text, numbers, insignia, flags, logos or glyph-like marks.
   the triangle budget; the game can place Kestrel models on deck) and no crew.
 
 After the standard ``Asset.finish()`` (bake, four previews, FBX, checklist) each
-builder renders extra review views (back, port side, bottom, more 3/4 views and
-close-ups), records SHA-256 hashes of the FBX and textures in the checklist,
-writes ``contact-sheet.png`` in the folder and checks the same budgets as
-``write_manifest.py``. These folders are deliberately **not** in
+builder renders extra review views (back, right side, bottom, more 3/4 views and
+close-ups), writes ``contact-sheet.png`` in the folder, checks the same budgets as
+``write_manifest.py`` and records the ``exportVersion`` and a SHA-256 for every
+file in the folder (``skyasset.write_checklist``).
+
+Sides: authored with the front at Blender -Y and Z up, the model's right
+(starboard) is Blender **-X**. The FBX export and the Roblox import only rotate,
+so that holds in Roblox too (bow -Z, starboard +X). These folders are deliberately **not** in
 ``write_manifest.KEYS``: nothing in ``src/`` refers to them until an independent
 reviewer approves them and the coordinator uploads them.
 """
 
 from __future__ import annotations
 
-import hashlib
 import json
 import math
 import os
@@ -42,7 +46,7 @@ from mathutils import Matrix, Vector
 
 from aircraft import naca, surface, wing_frame, fin_frame
 from aircraft_v2 import fan_face, pchip, soot_liner
-from skyasset import Asset, Nodes, look_at, roblox_vec, srgb, standard, world_bounds
+from skyasset import Asset, Nodes, look_at, roblox_vec, srgb, standard, world_bounds, write_checklist
 import zones as Z
 
 BUILDERS: dict = {}
@@ -203,8 +207,22 @@ def scale_reference(folder: Path, ref: dict) -> str:
     return "preview-scale-reference.png"
 
 
-def sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+def describe(direction) -> str:
+    """Where a review camera sits relative to the model (front -Y, right/starboard -X, up +Z)."""
+    x, y, z = direction
+    parts = [("ahead" if y < 0 else "behind") if abs(y) > 0.2 else "",
+             ("the right (starboard)" if x < 0 else "the left (port)") if abs(x) > 0.2 else "",
+             ("above" if z > 0 else "below") if abs(z) > 0.2 else ""]
+    return ", ".join(p for p in parts if p)
+
+
+def roblox_model(v) -> list[float]:
+    """A delivered-frame point in the Roblox model frame after import (front -Z, right +X, up +Y).
+    The export and import only rotate, so Blender (x, y, z) arrives at (-x, z, y). Unlike
+    ``skyasset.roblox_vec`` (a mirror, which is only right for mirror-symmetric records),
+    this keeps the side of an asymmetric feature."""
+    v = Vector(v)
+    return [round(c, 4) for c in (-v.x, v.z, v.y)]
 
 
 # Same rules as write_manifest.py (which does not list these folders yet).
@@ -212,14 +230,40 @@ REQUIRED_CHECKS = ("noText", "noLogosOrBrands", "noRealMilitaryInsignia", "noFac
                    "noGoreOrWeaponsGlorification", "originalDesign")
 
 
-def review_pack(a: Asset, views: dict, closeups: dict, texture_limit: int, extra: dict, scale_ref: dict | None = None) -> None:
-    """Extra previews, contact sheet, hashes and budget checks after ``Asset.finish()``."""
+# Extra review views shared by both builders; names say where the camera is relative to the
+# model's own sides (right = starboard = Blender -X).
+REVIEW_VIEWS = {
+    "back": ((0, 1, 0), "ortho"),
+    "side-right": ((-1, 0, 0), "ortho"),
+    "bottom": ((0, 0, -1), "ortho"),
+    "3q-front-left": ((1.0, -1.25, 0.8), "persp"),
+    "3q-rear-right": ((-1.0, 1.25, 0.8), "persp"),
+    "3q-rear-left": ((1.0, 1.3, 0.6), "persp"),
+}
+
+
+def review_pack(a: Asset, views: dict, closeups: dict, texture_limit: int, extra: dict, scale_ref: dict | None = None,
+                overlays: dict | None = None) -> None:
+    """Extra previews, contact sheet, budget checks and the hashed checklist after ``Asset.finish()``.
+
+    ``overlays``: name -> (make, direction): ``make()`` adds review-only helper objects (never in
+    the FBX, which is already written), the view is rendered orthographically along ``direction``
+    with the same framing as the other views, then the helpers are deleted."""
     if os.environ.get("SKYASSET_DRAFT"):
         return
     objects = [o for o in bpy.context.scene.objects if o.type == "MESH"]
     folder = a.out
     shifted = {k: (a.shift(t), d, dist) for k, (t, d, dist) in closeups.items()}
     extra_previews = review_previews(objects, folder, views, shifted)
+    notes = {p: f"Perspective from {describe(views[p[8:-4]][0])}." if views[p[8:-4]][1] == "persp"
+             else f"Orthographic from {describe(views[p[8:-4]][0])}." for p in extra_previews if p[8:-4] in views}
+    notes.update({p: f"Close-up from {describe(closeups[p[8:-4]][1])}." for p in extra_previews if p[8:-4] in closeups})
+    for name, (make, direction, note) in (overlays or {}).items():
+        helpers = make()
+        extra_previews += review_previews(objects, folder, {name: (direction, "ortho")}, {})
+        notes[f"preview-{name}.png"] = note
+        for h in helpers:
+            bpy.data.objects.remove(h, do_unlink=True)
     if scale_ref is not None:
         ref = dict(scale_ref, location=a.shift(scale_ref["location"]), target=a.shift(scale_ref["target"]))
         scale_image = scale_reference(folder, ref)
@@ -227,17 +271,15 @@ def review_pack(a: Asset, views: dict, closeups: dict, texture_limit: int, extra
     c = json.loads(path.read_text())
     c["previews"] = c["previews"] + extra_previews
     c["previewNotes"] = {
-        "preview-front.png": "Orthographic from ahead (-Z in Roblox).",
-        "preview-side.png": "Orthographic from starboard (+X).",
-        "preview-top.png": "Orthographic from above, front at the top.",
-        "preview-3q.png": "Perspective, front-left from above.",
-        **{p: "Extra review view: see the file name (orthographic for back, side-port and bottom; perspective otherwise)."
-           for p in extra_previews},
+        "preview-front.png": "Orthographic from ahead (the model's front, Roblox -Z).",
+        "preview-side.png": "Orthographic from the left (port), Blender +X.",
+        "preview-top.png": "Orthographic from above, front at the top, the model's right (starboard) on the image's right.",
+        "preview-3q.png": "Perspective from ahead, the right (starboard), above.",
+        **({"preview-closeup.png": "Close-up from ahead, the right (starboard), above."} if "preview-closeup.png" in c["previews"] else {}),
+        **notes,
     }
     c.update(extra)
     c["reviewStatus"] = "pending independent safety review (AGENTS.md); not uploaded; not referenced from src/"
-    files = [c["fbx"]["file"]] + [t["file"] for t in c["textures"]]
-    c["sha256"] = {f: sha256(folder / f) for f in files}
     problems = []
     for check in REQUIRED_CHECKS:
         if c["checks"].get(check, {}).get("value") is not True:
@@ -250,17 +292,24 @@ def review_pack(a: Asset, views: dict, closeups: dict, texture_limit: int, extra
     for p in c["previews"]:
         if not (folder / p).exists():
             problems.append(f"missing {p}")
-    if problems:
-        raise RuntimeError(f"{a.name}: " + "; ".join(problems))
-    path.write_text(json.dumps(c, indent=2) + "\n")
     if scale_ref is not None:
         c["scaleReference"] = {"file": scale_image, "reference": scale_ref["folder"].name,
                                "note": "Review aid only: an approved, already uploaded asset placed at in-game size for scale. Not part of this asset or its FBX."}
-        path.write_text(json.dumps(c, indent=2) + "\n")
     sheet = [str(folder / p) for p in c["previews"]] + ([str(folder / scale_image)] if scale_ref is not None else [])
     subprocess.run([bpy.app.binary_path, "--background", "--factory-startup", "--python", str(HERE / "contact_sheet.py"),
                     "--", str(folder / "contact-sheet.png"), "4", *sheet], check=True, capture_output=True)
-    print(f"REVIEW_PACK {a.name} previews={len(c['previews'])} fbx_sha256={c['sha256'][c['fbx']['file']]}")
+    c["contactSheet"] = "contact-sheet.png"
+    # Every file in the folder must be accounted for, so no stale image from an earlier export
+    # is hashed into this one's record.
+    known = {"checklist.json", c["fbx"]["file"], c["contactSheet"], *c["previews"], *(t["file"] for t in c["textures"])}
+    known |= {scale_image} if scale_ref is not None else set()
+    stale = sorted(p.name for p in folder.iterdir() if p.is_file() and p.name not in known)
+    if stale:
+        problems.append(f"unlisted files in {folder.name}: {', '.join(stale)} (delete them and rebuild)")
+    if problems:
+        raise RuntimeError(f"{a.name}: " + "; ".join(problems))
+    write_checklist(folder, c)
+    print(f"REVIEW_PACK {a.name} {c['exportVersion']} previews={len(c['previews'])} fbx_sha256={c['sha256'][c['fbx']['file']]}")
 
 
 # --------------------------------------------------------------------------
@@ -287,13 +336,16 @@ def b_wing_z(s):
     return B_WING_Z + s * math.tan(B_ANHEDRAL)
 
 
-# Fuselage lines (y, value) nose to tail: straight top line, upswept underside.
-B_TOP = [(-31.0, -0.3), (-29.5, 0.7), (-28.0, 1.45), (-26.0, 2.25), (-23.5, 3.25), (-21.0, 3.55), (-18.0, 3.4),
-         (-14.0, 3.05), (-8.0, 3.0), (22.0, 3.0), (26.0, 2.85), (29.0, 2.45), (31.0, 2.1)]
-B_BOT = [(-31.0, -0.5), (-29.5, -1.3), (-28.0, -1.9), (-25.0, -2.55), (-21.0, -2.9), (8.0, -2.9), (14.0, -2.65),
-         (19.0, -1.9), (24.0, -0.6), (28.0, 0.55), (31.0, 1.2)]
-B_HALF_W = [(-31.0, 0.03), (-29.5, 0.95), (-28.0, 1.5), (-25.0, 2.15), (-21.0, 2.6), (-17.0, 2.75), (12.0, 2.75),
-            (18.0, 2.45), (23.0, 1.85), (27.0, 1.25), (31.0, 0.62)]
+# Fuselage lines (y, value) nose to tail: straight top line, upswept underside. The nose is a
+# long pointed radome on the fuselage axis (the blunt rounded nose of export 1 read as a muzzle
+# head-on); its tip at -31.7 keeps the overall length of export 1, whose probe reached there.
+B_NOSE = -31.7
+B_TOP = [(B_NOSE, 0.14), (-30.6, 0.55), (-29.2, 1.05), (-27.6, 1.65), (-25.8, 2.4), (-23.5, 3.2), (-21.0, 3.55),
+         (-18.0, 3.4), (-14.0, 3.05), (-8.0, 3.0), (22.0, 3.0), (26.0, 2.85), (29.0, 2.45), (31.0, 2.1)]
+B_BOT = [(B_NOSE, -0.09), (-30.6, -0.45), (-29.2, -0.95), (-27.6, -1.55), (-25.0, -2.25), (-21.0, -2.9), (8.0, -2.9),
+         (14.0, -2.65), (19.0, -1.9), (24.0, -0.6), (28.0, 0.55), (31.0, 1.2)]
+B_HALF_W = [(B_NOSE, 0.11), (-30.6, 0.42), (-29.2, 0.9), (-27.6, 1.38), (-25.0, 1.95), (-21.0, 2.55), (-17.0, 2.75),
+            (12.0, 2.75), (18.0, 2.45), (23.0, 1.85), (27.0, 1.25), (31.0, 0.62)]
 
 
 def _lines(points):
@@ -305,8 +357,9 @@ b_top, b_bot, b_half = _lines(B_TOP), _lines(B_BOT), _lines(B_HALF_W)
 
 def bomber_paint():
     """Vanta-family enemy finish scaled for a 72-stud airframe: grey countershading with a
-    dark splinter pattern on top, a slightly darker radome, dark windscreen panels, panel lines, bomb-bay
-    outline, exhaust soot and two plain dark-red accents (fin-tip band, nacelle lip bands)."""
+    dark splinter pattern on top (aft of the cockpit only), a radome in the body colour, separate
+    light-tinted windscreen panes, panel lines, bomb-bay outline, exhaust soot and two plain
+    dark-red accents (fin-tip band, nacelle lip bands)."""
     upper, lower = "#4a5159", "#6c757e"
     camo = ("#373d44", "#59616a", "#2a2f35")
     w = 0.07
@@ -332,18 +385,17 @@ def bomber_paint():
         cx, cy, cz = n.xyz(cell)
         tone = n.vlerp(srgb(camo[0]), srgb(camo[1]), n.smooth(cx, 0.36, 0.37))
         tone = n.vlerp(tone, srgb(camo[2]), n.smooth(cy, 0.7, 0.71))
-        col = n.vlerp(col, tone, n.mul(top, n.smooth(cz, 0.3, 0.31)))
-        # Radome only a shade darker than the body (a dark nose under the dark windscreen band
-        # would make the front view read like a face); anti-glare panel ahead of the windscreen.
-        col = n.vlerp(col, srgb("#5b626a"), n.smooth(y, -28.1, -28.3))
-        ag = n.mul(n.mul(n.band(y, -28.1, -25.8, 0.05), n.smooth(nz, 0.3, 0.5)), n.smooth(ax, 1.2, 1.0))
-        col = n.vlerp(col, srgb("#3a3e43"), ag)
-        # Windscreen: dark glass panels on the cockpit hump, framed; one continuous band.
+        # No camouflage on the nose and cockpit (y < -20): dark patches there could form features
+        # in the head-on view. The radome is the body colour, with no seam ring and no anti-glare panel.
+        col = n.vlerp(col, tone, n.mul(n.mul(top, n.smooth(cz, 0.3, 0.31)), n.smooth(y, -20.5, -19.0)))
+        # Windscreen: a grid of separate small panes in body-colour frames, tinted only a little
+        # lighter and bluer than the paint. Export 1's single dark framed band over a dark nose read
+        # as a face head-on (review 1).
         screen = n.mul(n.mul(n.band(y, -25.6, -21.6, 0.05), n.smooth(z, 1.75, 1.95)), n.smooth(ax, 2.3, 2.1))
         screen = n.mul(screen, n.smooth(z, 3.5, 3.3))
-        frames = n.maxf(n.lines(x, 0.95, 0.07), n.lines(y, 2.0, 0.07, 0.3))
-        glass = n.vlerp(srgb("#1e2932"), srgb("#3a4148"), frames)
-        col = n.vlerp(col, glass, screen)
+        frames = n.maxf(n.lines(x, 1.0, 0.34), n.lines(y, 1.35, 0.34, 0.3))
+        panes = n.mul(screen, n.sub(1.0, frames))
+        col = n.vlerp(col, srgb("#57636c"), panes)
         # Accents: dark red fin-tip band and nacelle lip bands (plain geometric bands).
         accent = n.mul(n.smooth(z, 11.5, 11.6), n.smooth(ax, 0.6, 0.4))
         for ex in B_ENGINES:
@@ -357,10 +409,13 @@ def bomber_paint():
         # Panel lines: fuselage frames and longerons, wing spars, ribs and control-surface hinges.
         body = n.smooth(ax, 3.0, 2.85)
         on_wing = n.mul(n.sub(1.0, body), n.mul(n.smooth(anz, 0.5, 0.7), n.smooth(n.absf(n.sub(z, B_WING_Z)), 1.6, 1.2)))
-        frames_m = n.mul(bands(n, y, [-28.2, -25.8, -21.0, -16.0, -11.5, -6.0, 0.0, 6.0, 11.0, 16.0, 21.0, 26.0], w), body)
+        frames_m = n.mul(bands(n, y, [-21.0, -16.0, -11.5, -6.0, 0.0, 6.0, 11.0, 16.0, 21.0, 26.0], w), body)
         frames_m = n.mul(frames_m, n.sub(1.0, screen))
-        long_m = n.mul(n.mul(bands(n, z, [1.6, -0.4, -1.9], w), n.smooth(anx, 0.45, 0.7)), body)
-        spine = n.mul(n.mul(bands(n, ax, [0.9], w), n.smooth(nz, 0.5, 0.7)), body)
+        # Longerons and spine lines only aft of the cockpit: on the nose cone they drew a curve under
+        # the tip and two lines down from the windscreen in the head-on view.
+        aft = n.smooth(y, -20.5, -19.5)
+        long_m = n.mul(n.mul(n.mul(bands(n, z, [1.6, -0.4, -1.9], w), n.smooth(anx, 0.45, 0.7)), body), aft)
+        spine = n.mul(n.mul(n.mul(bands(n, ax, [0.9], w), n.smooth(nz, 0.5, 0.7)), body), aft)
         le = n.add(-6.0, n.mul(n.sub(ax, B_ROOT), B_SWEEP))
         chord = n.sub(14.0, n.mul(n.sub(ax, B_ROOT), 10.0 / (B_TIP - B_ROOT)))
         u = n.math("DIVIDE", n.sub(y, le), chord)
@@ -388,6 +443,7 @@ def bomber_paint():
             soot = n.maxf(soot, n.mul(n.smooth(n.absf(n.sub(ax, ex)), 1.7, 0.6), n.smooth(y, y_exit - 2.5, y_exit + 1.0)))
         soot = n.mul(soot, n.add(0.5, n.mul(streak, 0.5)))
         col = n.vlerp(col, srgb("#26262a"), n.mul(soot, 0.55))
+        # Panes keep the paint's roughness so the side panes do not glare brighter than the front ones.
         rough_delta = n.add(n.mul(lines, 0.12), n.mul(soot, 0.18))
         height = n.sub(0.5, n.mul(lines, 0.6))
         return col, rough_delta, height
@@ -438,7 +494,7 @@ def nacelle(a: Asset, tag, zones, side, s):
 @builder("heavy-bomber")
 def heavy_bomber():
     a = Asset("heavy-bomber", "Heavy bomber (mission 1 raid)", texture=1024, kind="aircraft", tri_limit=15000,
-              bump_distance=0.02, seed=301, weighted_normals=True,
+              bump_distance=0.02, seed=301, weighted_normals=True, export_version="heavy-bomber-2",
               usage="Mission 1: six bombers in formation (required targets, never fire). Pending review; not referenced from src/.")
     paint = a.zone("paint", bomber_paint())
     lip = a.zone("lip", standard("#9a9ea2", 0.32, 0.9, grime=0.05, ao=0.2, ao_dist=0.4))
@@ -447,14 +503,12 @@ def heavy_bomber():
     fan_out = a.zone("fan_out", fan_face((B_ENGINES[1], b_wing_z(B_ENGINES[1]) - B_NACELLE["drop"])))
     liner = a.zone("liner", soot_liner())
     metal = a.zone("metal", standard("#6a6a66", 0.4, 0.85, grime=0.2, ao=0.45, ao_dist=0.8))
-    dark = a.zone("dark", standard("#1a1b1d", 0.8, 0.2, grime=0.0, ao=0.4, ao_dist=0.6))
     rail = a.zone("rail", standard("#5c6166", 0.55, 0.3, grime=0.15, ao=0.4, ao_dist=0.5))
     light = a.zone("light", standard("#8e9677", 0.4, 0.0, grime=0.05, ao=0.2, ao_dist=0.3))
-    probe_z = a.zone("probe", standard("#8e9295", 0.35, 0.85, grime=0.1, ao=0.3, ao_dist=0.4))
 
     # Fuselage: 26-point superellipse rings along the pchip lines.
     n = 26
-    ys = [-31.0, -30.6, -30.1, -29.5, -28.8, -28.0, -27.0, -26.0, -25.0, -24.0, -23.0, -22.0, -21.0, -19.5, -18.0, -16.0,
+    ys = [B_NOSE, -31.2, -30.6, -29.9, -29.2, -28.4, -27.6, -26.8, -26.0, -25.0, -24.0, -23.0, -22.0, -21.0, -19.5, -18.0, -16.0,
           -14.0, -11.0, -8.0, -5.0, -2.0, 1.0, 4.0, 7.0, 10.0, 12.5, 15.0, 17.0, 19.0, 21.0, 23.0, 25.0, 27.0, 29.0, 30.2,
           31.0]
     rings = []
@@ -472,24 +526,11 @@ def heavy_bomber():
     # Tail cone sting (tail-warning radar fairing; no guns).
     zt = (b_top(31.0) + b_bot(31.0)) / 2
     a.cyl("Tail sting", 0.55, 2.2, (0, 32.0, zt), paint, part="Body", segs=14, r2=0.16, rot=(math.radians(-90), 0, 0))
-    # Refuelling probe offset to starboard of the windscreen (breaks the front-view symmetry).
-    a.beam("Probe fairing", (0.9, -21.5, 3.35), (0.75, -25.0, 2.95), 0.32, paint, part="Body", segs=8)
-    a.beam("Probe", (0.75, -24.6, 3.0), (0.62, -31.4, 2.1), 0.15, probe_z, part="Body", segs=8)
-    a.cyl("Probe tip", 0.11, 0.3, (0.62, -31.55, 2.08), dark, part="Body", segs=8, r2=0.04, rot=(math.radians(90), 0, 0))
-    a.cyl("Pitot", 0.05, 1.2, (-1.2, -28.6, -0.3), probe_z, part="Body", segs=6, rot=(math.radians(90), 0, 0))
-    # Landing-gear sponsons along the lower fuselage under the wing.
-    for side in (-1, 1):
-        sp = []
-        for yy, rr, hh in ((-7.0, 0.05, 0.05), (-5.2, 0.85, 0.7), (-2.5, 1.35, 1.1), (4.0, 1.45, 1.2), (9.5, 1.3, 1.05),
-                           (13.5, 0.7, 0.55), (15.5, 0.05, 0.05)):
-            sp.append([(side * (2.35 + rr * 0.62 * math.cos(t)), yy, -1.95 + hh * math.sin(t))
-                       for t in (k * math.tau / 14 for k in range(14))])
-        a.loft(f"Sponson {side}", sp, paint, part="Body", smooth=55)
-    # Ventral radar blister and dorsal satcom fairing.
-    bl = []
-    for yy, rr in ((-20.0, 0.05), (-18.6, 0.8), (-16.0, 1.15), (-13.0, 1.1), (-11.0, 0.6), (-10.0, 0.05)):
-        bl.append([(rr * 1.2 * math.cos(t), yy, b_bot(yy) + 0.05 + rr * 0.55 * math.sin(t)) for t in (k * math.tau / 16 for k in range(16))])
-    a.loft("Radar blister", bl, paint, part="Body", smooth=55)
+    # Nothing sticks out of the nose, cheeks or lower corners: export 1's refuelling probe and pitot
+    # (one each side), round gear sponsons and chin radar blister gave paired protrusions in the
+    # head-on view. The fuselage section is constant under the wing, so any gear fairing that shows
+    # from the side also shows head-on; the gear stays inside the fuselage.
+    # Dorsal satcom fairing.
     df = []
     for yy, rr in ((-2.0, 0.05), (-1.2, 0.5), (0.5, 0.75), (2.5, 0.7), (4.2, 0.35), (5.0, 0.05)):
         df.append([(rr * 0.9 * math.cos(t), yy, 2.95 + rr * 0.5 * math.sin(t)) for t in (k * math.tau / 14 for k in range(14))])
@@ -556,32 +597,32 @@ def heavy_bomber():
     a.box("Fin cap", (0.18, fch(10.4) * 0.85, 0.16), (0, fle(10.4) + fch(10.4) * 0.48, 2.6 + 10.42), rail, part="Body")
     for s in (-1, 1):
         a.box(f"Fin light {s}", (0.03, 0.15, 1.2), (s * 0.18, fle(5.0) + 1.0, 2.6 + 5.0), light, part="Body")
-        a.box(f"Nose light {s}", (0.03, 0.8, 0.1), (s * 2.62, -18.0, 0.6), light, part="Body")
 
     exhaust_mid = sum((Vector(e) for e in exhausts), Vector()) / len(exhausts)
     attachments = {"leftWingtip": tips["L"], "rightWingtip": tips["R"], "exhaust": tuple(exhaust_mid)}
     a.finish(origin="center", attachments=attachments, closeup=((0.6, -25.0, 2.0), (-1.0, -1.6, 0.7), 11.0), extra_notes={
         "noText": "No letters, numbers, call signs, serials, squadron codes or glyph-like marks in mesh or texture; grey countershading, splinter camouflage, panel lines and stains only.",
         "noRealMilitaryInsignia": "No roundels, flags, national or unit markings; the only markings are a plain dark-red fin-tip band and plain rings on the engine lips. Airframe is an original design, not a copy of any real or game aircraft (podded turbofans, shoulder wing, low tailplanes).",
-        "noFaces": "No faces or figures: no crew is modelled; the windscreen is one continuous framed band and the refuelling probe is offset to starboard; engine fronts are four small dark fan discs in a row.",
+        "noFaces": "No faces or figures: no crew is modelled. Head-on (review 1 rejected export 1 for a face-like front) the nose is a long pointed radome in the body colour with no seam ring, dark panel or camouflage; the windscreen is a grid of separate small panes in body-colour frames, tinted only slightly lighter than the paint; nothing protrudes from the nose, cheeks or lower corners (no probe, pitot, chin blister or gear sponsons), so the head-on fuselage outline is a plain oval. Engine fronts are four small fan discs spread along the wings. Checked in preview-front, preview-closeup-front, preview-closeup-front-3q, preview-front-low and preview-closeup-front-low.",
         "noGoreOrWeaponsGlorification": "Unarmed airframe: no guns, turret, missiles or visible bombs; bomb-bay doors are closed panel lines. No kill marks, damage or gore.",
     })
     ex_records = [roblox_vec(a.shift(e)) for e in exhausts]
     review_pack(a, {
-        "back": ((0, 1, 0), "ortho"),
-        "side-port": ((-1, 0, 0), "ortho"),
-        "bottom": ((0, 0, -1), "ortho"),
-        "3q-front-right": ((1.0, -1.25, 0.8), "persp"),
-        "3q-rear-left": ((-1.0, 1.25, 0.8), "persp"),
-        "3q-rear-right": ((1.0, 1.3, 0.6), "persp"),
-        "3q-low-front": ((-0.9, -1.2, -0.7), "persp"),
+        **REVIEW_VIEWS,
+        "3q-low-front-right": ((-0.9, -1.2, -0.7), "persp"),
+        "front-low": ((0.0, -1.0, -0.4), "persp"),
     }, {
+        # Head-on checks for the face-reading finding of review 1.
+        "closeup-front": ((0.0, -26.0, 1.0), (0.0, -1.0, 0.04), 30.0),
+        "closeup-front-3q": ((0.0, -25.0, 1.0), (-0.65, -1.0, 0.2), 26.0),
+        "closeup-front-low": ((0.0, -24.0, 0.0), (0.05, -1.0, -0.5), 30.0),
         "closeup-engines": ((-15.0, -2.0, -0.6), (-0.9, -1.0, -0.25), 22.0),
         "closeup-tail": ((0.0, 25.0, 6.0), (1.0, 0.75, 0.35), 20.0),
         "closeup-belly": ((0.0, -2.0, -2.6), (0.7, -0.4, -1.0), 22.0),
     }, 1024, {
         "engineExhausts": ex_records,
-        "design": "Original four-turbofan heavy bomber: shoulder-mounted 33-degree swept wing, slight anhedral, podded engines on pylons, swept fin, low tailplanes, gear sponsons. 72 studs span = 2.9x Vanta v2 (24.6) and 3.2x Kestrel v2 (22.2).",
+        "design": "Original four-turbofan heavy bomber: pointed radome, shoulder-mounted 33-degree swept wing, slight anhedral, podded engines on pylons, swept fin, low tailplanes, gear housed inside the fuselage. 72 studs span = 2.9x Vanta v2 (24.6) and 3.2x Kestrel v2 (22.2).",
+        "revision": "heavy-bomber-2 (review 1 rejected heavy-bomber-1 for a face-like head-on view): pointed body-colour radome without seam ring, anti-glare panel or nose camouflage; windscreen as separate light panes; refuelling probe, pitot, chin radar blister, nose lights and gear sponsons removed; no longeron or spine lines on the nose cone.",
     }, scale_ref={"folder": HERE.parents[1] / "assets" / "roblox-upload" / "vanta-v2", "location": (-48.0, 6.0, 0.0),
                   "target": (-22.0, 0.0, 0.0), "direction": (-0.6, -1.0, 0.75), "distance": 105.0})
 
@@ -594,6 +635,17 @@ CV_WL = 20.0
 CV_D = 54.0          # flight deck top
 CV_SLAB = 3.0        # flight deck thickness
 CV_GALLERY = 44.0    # top of the hull loft / bottom of the gallery deck
+# Plan coordinates below have x to STARBOARD (+x) and the bow at -y. Facing the bow (-Y) with Z
+# up, starboard is Blender -X, so the builder mirrors the finished ship in X (``CV_MIRROR``)
+# and the paint reads the mirrored x back (export 1 skipped this and put the island on port).
+CV_MIRROR = Matrix.Scale(-1.0, 4, (1.0, 0.0, 0.0))
+
+
+def cv(p):
+    """A plan point or direction (x to starboard) in Blender coordinates (starboard -X)."""
+    return (-p[0],) + tuple(p[1:])
+
+
 # Flight deck plan (x starboard, -y forward): bow, starboard with island sponson,
 # stern, then the port angled-deck extension.
 CV_DECK = [(-26, -280), (26, -280), (44, -236), (54, -170), (60, -100), (62, -20), (63, 110), (60, 210), (52, 262),
@@ -647,6 +699,7 @@ def carrier_paint():
 
     def pattern(n: Nodes, col):
         x, y, z = n.xyz(n.pos())
+        x = n.mul(x, -1.0)  # plan x (starboard +) from the mirrored Blender x (starboard -X)
         nx, ny, nz = n.xyz(n.normal())
         up = n.smooth(nz, 0.6, 0.85)
         on_deck = n.mul(up, n.smooth(z, CV_D - 1.0, CV_D - 0.6))
@@ -730,6 +783,7 @@ def frustum(a: Asset, name, zone, x0, y0, x1, y1, z0, z1, inset=0.0, front=None,
 @builder("carrier")
 def carrier():
     a = Asset("carrier", "Aircraft carrier (mission 1 start)", texture=512, tri_limit=6000, bump_distance=0.15, seed=302,
+              export_version="carrier-2",
               usage="Mission 1 start reference (scripted fly-off from the bow catapults) and intro dressing. Pending review; not referenced from src/.")
     hull = a.zone("hull", carrier_paint())
     sup = a.zone("super", Z.windows("#858d94", "#1b2329", bay=4.0, win=2.6, floor=8.0, win_h=2.4, z0=CV_D + 41.0,
@@ -844,31 +898,56 @@ def carrier():
     for i, x in enumerate((-24.0, 0.0, 24.0)):
         a.beam(f"Knee {i}", (x, 268.0, CV_GALLERY - 6.0), (x, 279.0, CV_D - CV_SLAB), 2.2, hull)
 
+    # Everything above is in plan coordinates (starboard +x): mirror it so starboard is Blender -X.
+    # apply_transform() flips the normals of a negative-determinant transform.
+    for obj, _ in a.pieces:
+        obj.matrix_basis = CV_MIRROR @ obj.matrix_basis
+
+    def arrow():
+        """Review-only plain arrow from stern to bow along the centre line, 10 studs above the
+        deck (no letters or numbers); added after the FBX was written and deleted after the render."""
+        z = CV_D + 10.0
+        pts = [(-5.0, 230.0), (5.0, 230.0), (5.0, -150.0), (-5.0, -150.0), (18.0, -150.0), (0.0, -215.0),
+               (-18.0, -150.0)]
+        me = bpy.data.meshes.new("OrientationArrow")
+        me.from_pydata([tuple(a.shift(cv((x, y, z)))) for x, y in pts], [], [(0, 1, 2, 3), (4, 5, 6)])
+        mat = bpy.data.materials.new("OrientationArrow")
+        mat.use_nodes = True
+        nodes = mat.node_tree.nodes
+        emit = nodes.new("ShaderNodeEmission")
+        emit.inputs["Color"].default_value = (1.0, 0.32, 0.02, 1.0)
+        emit.inputs["Strength"].default_value = 2.0
+        mat.node_tree.links.new(emit.outputs[0], nodes["Material Output"].inputs["Surface"])
+        me.materials.append(mat)
+        obj = bpy.data.objects.new("OrientationArrow", me)
+        bpy.context.scene.collection.objects.link(obj)
+        return [obj]
+
     a.finish(ground_offset=CV_WL, extra_notes={
         "noText": "No letters, numbers or symbols anywhere: no hull number, name or pennant. Deck markings are plain straight lines only (landing-area edges, a dashed centre line, three wire lines, catapult track lines, elevator outlines, a parking line, a dashed foul line); no circles, crosses or glyph-like shapes.",
         "noRealMilitaryInsignia": "No flags, ensigns, hull numbers or class markings; hull, island and deck plan are an original layout, not a copy of any real or game ship.",
         "noFaces": "No faces, figures or crew; no parked aircraft.",
+        "originalDesign": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans. Island on the starboard side (see orientation).",
         "noGoreOrWeaponsGlorification": "Four covered point-defence domes on sponsons, as on any warship; no guns, missiles or aircraft weapons shown; nothing aimed, firing or damaged.",
     })
-    cats = [{"from": roblox_vec(a.shift((p0[0], p0[1], CV_D))), "to": roblox_vec(a.shift((p1[0], p1[1], CV_D)))}
+    cats = [{"from": roblox_model(a.shift(cv((p0[0], p0[1], CV_D)))), "to": roblox_model(a.shift(cv((p1[0], p1[1], CV_D))))}
             for p0, p1 in CV_CATS]
     review_pack(a, {
-        "back": ((0, 1, 0), "ortho"),
-        "side-port": ((-1, 0, 0), "ortho"),
-        "bottom": ((0, 0, -1), "ortho"),
-        "3q-front-right": ((1.0, -1.25, 0.8), "persp"),
-        "3q-rear-left": ((-1.0, 1.25, 0.8), "persp"),
-        "3q-rear-right": ((1.0, 1.3, 0.6), "persp"),
-        "3q-low-front": ((-0.9, -1.2, -0.25), "persp"),
+        **REVIEW_VIEWS,
+        "3q-low-front-right": ((-0.9, -1.2, -0.25), "persp"),
     }, {
-        "closeup-island": ((52.0, 50.0, CV_D + 30.0), (1.0, -0.9, 0.5), 150.0),
-        "closeup-bow": ((0.0, -210.0, CV_D), (0.35, -0.8, 0.6), 150.0),
-        "closeup-deck": ((-30.0, 180.0, CV_D), (-0.3, 0.8, 0.9), 190.0),
-        "closeup-hull": ((40.0, -120.0, CV_WL + 14.0), (1.0, -0.35, 0.05), 150.0),
+        # Targets and directions in plan coordinates (starboard +x), mirrored by cv().
+        "closeup-island": (cv((52.0, 50.0, CV_D + 30.0)), cv((1.0, -0.9, 0.5)), 150.0),
+        "closeup-bow": (cv((0.0, -210.0, CV_D)), cv((0.35, -0.8, 0.6)), 150.0),
+        "closeup-deck": (cv((-30.0, 180.0, CV_D)), cv((-0.3, 0.8, 0.9)), 190.0),
+        "closeup-hull": (cv((40.0, -120.0, CV_WL + 14.0)), cv((1.0, -0.35, 0.05)), 150.0),
     }, 512, {
         "catapults": cats,
         "deckHeightStuds": round(CV_D, 3),
         "launchHeading": "-Z (bow)",
-        "design": "Original flat-deck carrier: 9-degree angled landing area, starboard island aft of midships, two bow catapults with flush blast deflectors, three deck-edge elevators, four sponsons with covered domes. 560 studs long = 21.5 Kestrel lengths; deck 141 studs wide = 6.3 Kestrel spans.",
-    }, scale_ref={"folder": HERE.parents[1] / "assets" / "roblox-upload" / "kestrel-v2", "location": (-9.0, -134.0, CV_D + 2.7),
-                  "target": (-6.0, -150.0, CV_D + 4.0), "direction": (0.55, -1.0, 0.65), "distance": 110.0})
+        "orientation": "Bow at Roblox -Z, island on starboard = Roblox +X (right when facing the bow). Authored front -Y, Z up, so starboard is Blender -X (right = forward x up = (-Y) x Z = -X); the plan is mirrored to put the island there. The FBX export (axis_forward -Z, axis_up Y, baked) writes Blender (x, y, z) as FBX (x, z, -y), checked by parsing an exported probe, and declares the standard Y-up right-handed axis system; Roblox reads it with the front at -Z, giving Roblox (-x, z, y). Both steps are rotations, so no import mirrors a side. Catapult points use that mapping. preview-top-orientation.png shows a review-only arrow from stern to bow.",
+        "design": "Original flat-deck carrier: 9-degree angled landing area to port, starboard island aft of midships, two bow catapults with flush blast deflectors, three deck-edge elevators (two starboard, one port), four sponsons with covered domes. 560 studs long = 21.5 Kestrel lengths; deck 141 studs wide = 6.3 Kestrel spans.",
+        "revision": "carrier-2 (review 1 noted the island of carrier-1 sat on the port side): the whole ship is mirrored so the island is on starboard and the angled deck to port; catapult points follow. No other design change.",
+    }, scale_ref={"folder": HERE.parents[1] / "assets" / "roblox-upload" / "kestrel-v2", "location": cv((-9.0, -134.0, CV_D + 2.7)),
+                  "target": cv((-6.0, -150.0, CV_D + 4.0)), "direction": cv((0.55, -1.0, 0.65)), "distance": 110.0},
+       overlays={"top-orientation": (arrow, (0, 0, 1), "Review aid only (not in the FBX): orthographic from above, same framing as preview-top.png, with a plain orange arrow from stern to bow on the centre line. The island is on the image's right, the starboard side.")})

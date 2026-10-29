@@ -33,12 +33,17 @@ with embedded textures, checklist). Then `review_pack()` adds:
   the bomber, Kestrel v2 on the carrier's catapult) imported at in-game size after
   the FBX is written. It is a review aid only and is never part of the export;
 - `contact-sheet.png` with every preview on one image (`contact_sheet.py`);
-- SHA-256 hashes of the FBX and the four textures in `checklist.json` (`sha256`);
+- for the carrier, `preview-top-orientation.png`: the top view with a review-only
+  plain arrow from stern to bow (not in the FBX);
+- `exportVersion` and a SHA-256 for every file in the folder except `checklist.json`
+  (FBX, textures, every preview, the contact sheet and the scale reference) in
+  `checklist.json` (`sha256`, written by `skyasset.write_checklist`). The build fails
+  if the folder holds a file the checklist does not list;
 - the same checks `write_manifest.py` applies (all moderation booleans true,
   triangle and texture budgets, every listed preview present). A failure stops the build.
 
 A rebuild changes only the FBX's embedded timestamp and the Eevee noise (as for
-every asset), so the FBX hash changes on every rebuild. The reviewer must approve
+every asset), so the FBX and preview hashes change on every rebuild. The reviewer must approve
 the hashes recorded in the committed checklist, and the uploader must upload that
 exact file.
 
@@ -47,26 +52,29 @@ exact file.
 | | |
 | --- | --- |
 | Size (studs, X × Y × Z) | 72.74 × 16.6 × 64.8 (span × height × length) |
-| Triangles | 9,364 (aircraft limit 15,000) |
+| Export version | `heavy-bomber-2` |
+| Triangles | 8,704 (aircraft limit 15,000) |
 | Parts | 1 (`Body`); no control surfaces |
 | Textures | 4 × 1024² (colour, normal, roughness, metalness) |
 | Pivot | bounds centre, -Z forward; `fbxMetresPerStud` 0.01 (imports at authored size) |
 | Extra checklist data | `attachments` (wingtips, mid-engine exhaust), `engineExhausts` (four nozzle points) |
 
-Design (original; D-001): a long, slender fuselage with an upswept tail and a
-faired cockpit hump; a shoulder-mounted wing with 33° leading-edge sweep and 4°
-anhedral passing over a wing-box fairing; four podded turbofans on pylons; a
-swept fin over low-set tailplanes with dihedral; big landing-gear sponsons,
-flap-track fairings, wing fences and wingtip pods; a refuelling probe offset to
-starboard. It is unarmed: no turret, guns, missiles or visible bombs, and the
+Design (original; D-001): a long, slender fuselage with a pointed radome, an
+upswept tail and a faired cockpit hump; a shoulder-mounted wing with 33°
+leading-edge sweep and 4° anhedral passing over a wing-box fairing; four podded
+turbofans on pylons; a swept fin over low-set tailplanes with dihedral;
+flap-track fairings, wing fences and wingtip pods. The landing gear is housed
+inside the fuselage. It is unarmed: no turret, guns, missiles or visible bombs, and the
 bomb-bay doors are closed panel lines. The deliberate differences from the
 reference footage's four-turboprop bomber are turbofans instead of contra-rotating
 propellers, a shoulder wing with anhedral and podded engines.
 
 Paint follows the Vanta enemy family: upper `#4a5159` and lower `#6c757e`
 countershading with the Vanta's dark splinter camouflage, scaled for the larger
-airframe. The radome is only a shade darker than the body, the windscreen is one
-continuous framed dark band, and there are panel lines, a bomb-bay outline,
+airframe. The radome is the body colour, with no seam ring, anti-glare panel or
+camouflage ahead of the wing-box. The windscreen is a grid of separate small panes
+in body-colour frames, tinted only slightly lighter and bluer than the paint. There
+are panel lines, a bomb-bay outline,
 streaks and engine soot. The only markings are plain dark-red bands (`#6e2a24`,
 the Vanta accent) on the fin tip and engine lips. There is no insignia, number or
 text.
@@ -82,6 +90,7 @@ formation inside the ±3,600-stud airspace.
 
 | | |
 | --- | --- |
+| Export version | `carrier-2` |
 | Size (studs, X × Y × Z) | 181.0 × 153.8 × 560.0 (width incl. sponsons and masts × height × length) |
 | Triangles | 2,772 (large-prop limit 6,000) |
 | Parts | 1 (`carrier`) |
@@ -92,7 +101,7 @@ formation inside the ±3,600-stud airspace.
 Design (original; D-001): a waterline hull with a raked, flared bow and a transom
 stern. A gallery deck sits under an overhanging flight deck with a 9° angled
 landing area to port. The island is aft of midships on the starboard side (Blender
-+X, the pipeline's "right"): stepped sloped blocks, a bridge window band, an
+-X, Roblox +X; see the checklist's `orientation`): stepped sloped blocks, a bridge window band, an
 enclosed mast with four flat panel faces, two radomes and an exhaust stack. There
 are two bow catapults with flush blast-deflector plates and shuttles, three
 deck-edge elevators (two starboard, one port), hangar-bay doors under the
@@ -121,16 +130,19 @@ real escort). The intro should keep escort frigates well away from the carrier o
 scale them down with `Model:ScaleTo`.
 
 Use as the mission start: `catapults[i].from` and `.to` in the checklist are model-space
-points (bottom-centre pivot, -Z forward) on the deck surface. A scripted fly-off can
+points (bottom-centre pivot, -Z forward, +X starboard) on the deck surface. A scripted fly-off can
 run a Kestrel along either track and off the bow.
 
 ## Concerns for the safety reviewer and the uploader
 
-- Orientation: the island is authored on Blender +X. The pipeline treats that as
-  the model's right (starboard), but no asymmetric prop has yet been checked
-  in-game for which side it lands on after the Roblox FBX import. Every prop so far
-  is mirror-symmetric. If the island appears on the port side, the asset is still
-  an original design. Mirroring needs a re-export and a new review.
+- Orientation: the island is on Blender -X, which is starboard for a model facing
+  -Y with Z up. The FBX export and the import only rotate, so it stays on
+  starboard in Roblox (bow -Z, island +X). The FBX bytes show the island at FBX
+  -X and the bow at FBX +Z, which is starboard in that frame too. No asymmetric
+  upload has yet been looked at in Studio. If the bow arrives at +Z rather than
+  -Z, the island is still on starboard, but the game must turn the model 180° and
+  the `catapults` points turn with it. Check the bow direction and the island side
+  in Studio before wiring.
 - The 512² carrier maps give about one texel per stud, so deck lines are 2–3 texels
   wide and soft up close (same limit as the frigate). 1024² would sharpen them at
   4× the texture memory; that budget change was not made here.
@@ -145,3 +157,42 @@ run a Kestrel along either track and off the bow.
    `PROCEDURAL` and it keeps gameScale 1. Rerun `write_manifest.py`, then add both
    IDs to `RobloxAssetIds.ts` (the type requires every key).
 3. Use the bomber through `UploadedAssets` and the carrier through `WorldAssets.PlaceUploaded`.
+
+## Revision 2 (2026-10-28)
+
+[Safety review 1](qa/asset-reviews/2026-10-28-pr107-review-1.md) rejected both
+first exports. Nothing was uploaded. Revision 2 is a re-export, so it needs a new
+independent review.
+
+- **Heavy bomber, `heavy-bomber-2`.** Review 1 failed check 3. Head-on, the round
+  dark nose under a dark framed windscreen band, with paired side protrusions,
+  could read as a face. The protrusions were the refuelling probe and the pitot
+  (one each side of the nose) and the round gear sponsons (two lobes at the lower
+  corners). Changes:
+  - The nose is a long pointed radome in the body colour, with no seam ring,
+    anti-glare panel, camouflage, longerons or spine lines.
+  - The windscreen is separate small panes, tinted only slightly lighter than the
+    paint and no glossier.
+  - The probe, pitot, chin radar blister, nose lights and sponsons are removed.
+    The fuselage section is constant under the wing, so any gear fairing that
+    shows from the side also shows head-on.
+  - The overall size, palette and layout are unchanged. The airframe has 8,704
+    triangles (was 9,364).
+  - New views: `preview-closeup-front`, `preview-closeup-front-3q`,
+    `preview-front-low` and `preview-closeup-front-low`.
+- **Carrier, `carrier-2`.** Review 1 noted the island on the side opposite
+  starboard. That was right. Facing the bow (-Y) with Z up, starboard is Blender
+  -X, and the export and import only rotate. The whole ship is mirrored, putting
+  the island on starboard and the angled deck to port. The paint reads the
+  mirrored x, so the markings still line up. The `catapults` points follow, and
+  the checklist's `orientation` explains the mapping. `preview-top-orientation.png`
+  adds a review-only arrow from stern to bow. Nothing else changed: 2,772
+  triangles, same size.
+- **Both, record.** Review 1 failed check 7. Each checklist now has an
+  `exportVersion` and a SHA-256 for every file in its folder other than
+  `checklist.json`. `skyasset.write_checklist` does this for every future export,
+  `Asset` requires an `export_version` outside the legacy uploaded set, and
+  `verify_fbx.py` checks the hashes. The side-named extra views were renamed to the
+  model's own sides (`side-right`, `3q-front-left`, `3q-rear-right`, `3q-rear-left`,
+  `3q-low-front-right`). The old names had used Blender +X as "right", so
+  `side-port` actually showed starboard.
