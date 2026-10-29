@@ -1,24 +1,26 @@
 # Shipped
 
-Last updated: 2026-10-29, against `main` at `cbdec3a`. PR #142 remains unmerged.
+Last updated: 2026-10-29, against `main` at `68f2df51d34de0eb6f2453fda1aed591c750e2c1`.
 
-[Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). The new 18-mission campaign is live by pipeline: practice flight and mission 1 playable, missions 2 to 18 locked. The latest merged gameplay-code revision is `cbdec3a` (#141), dormant engine work; the playable mission 1 tuning is from #134. The publish workflow for `4891e8a` succeeded on 2026-10-29: it confirmed the official place and Roblox returned **place version 85**. Gameplay merges are live through automatic CI/CD under the owner's convention; documentation-only changes add no game content.
+[Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). The new 18-mission campaign is live by pipeline: practice flight, mission 1 and mission 2 are playable; missions 3 to 18 are locked. The latest merged gameplay revision is `68f2df5` (#143). The 2026-10-29 publish logs confirmed the official place and returned place versions **85** (#130), **86** (#134), **87** (#140), **88** (#138), **88** (#137), **89** (#139), **90** (#141), **91** (#142) and **92** (#143). Gameplay merges are live through automatic CI/CD under the owner's convention; documentation-only changes add no game content. PR #131 merged only into `feat/campaign-switch-m01`, not `main`; #132 closed without merging, so neither is listed as shipped below.
 
 ## Merged 2026-10-29, newest first
 
-| PR | Commit | Change | What you will see |
-|---|---|---|---|
-| #141 | `cbdec3a` | Mission updates, return lines, landing and terrain clearance | Dormant engine support; mission 3 remains locked. |
-| #139 | `7f037a9` | Mission 3 snowy mountains, radar sites and landing base | Dormant world; mission 3 remains locked. |
-| #137 | `c6252fc` | Original mission 4–5 model exports | Asset source work only. PR #142 wires the approved uploads and remains unmerged. |
-| #138 | `4e3534f` | Typed ground targets, AA guns, standalone aces and triggered waves | Dormant engine support; practice and mission 1 unchanged. |
-| #140 | `4992b3d` | Mission 2 farmland, lake and enemy airbase | Dormant world; mission 2 remains locked. |
-| #136 | `85d469a` | Mission/world specifications for missions 2–3 | Documentation only. |
-| #135 | `3e7b95b` | Mission/world specifications for missions 4–5 | Documentation only. |
-| #134 | `3f3e828` | Extend mission 1 bomber intercept gap and add attacking waves | Mission 1 pacing and optional attacking waves updated. |
-| #133 | `07526a2` | Mission 1 beta-test documentation | Documentation only. |
+| PR | Commit | Title | Kind | What you will see |
+|---|---|---|---|---|
+| #143 | `68f2df5` | feat(m02): make mission 2 playable after mission 1 | **Gameplay: mission 2** | **Mission 2 "NO ANIMALS".** After you finish mission 1, mission 2's tile reads NEXT. You start in the air heading north with three LANTERN wingmen and a 15:00 countdown, follow a red-and-white power line about two minutes to a "farm" airfield, and destroy all eleven parked bombers. Optional points: the substation on the way, seven hangars, four AA guns that fire back, and the control tower. Fighters meet you head-on, rise from the base, and one scrambles off the runway; the ace HARROW SIX arrives after four bombers. Everything destroyed is 2,610 points (S ≥ 2,200). Loading takes about 16 s on desktop. |
+| #142 | `051b183` | feat(assets): wire five approved mission 4–5 models | Gameplay code, unused | Nothing yet. The approved heavy transport, radar jammer, fuel tanker, attack helicopter and elite Vanta livery are wired for missions 4–5. Studio checked orientation, scale, tanker waterline and helicopter rotor hubs; missions 4–5 remain locked, and no Player test was performed. |
+| #141 | `cbdec3a` | feat(engine): dormant mission updates, return lines, landing and terrain clearance | Gameplay code, unused | Nothing yet. Mission-update resets, return-line guidance, automatic skippable landing and terrain-relative warnings are available for mission 3, which remains locked. |
+| #139 | `7f037a9` | feat(world): mission 3 snowy mountains, radar sites and landing base (dormant) | Gameplay world, unused | Nothing yet. Mission 3's snowy mountains, two radar sites and landing base are merged, but mission data and unlock are not. |
+| #137 | `c6252fc` | feat(assets): original transport, jammer, tanker, attack helicopter and elite livery (not uploaded) | Assets and safety reviews | No immediate game change. The exact exports received independent 10/10 approvals; uploads afterwards were moderation-approved on 2026-10-29: heavy transport `135095912449793`, radar jammer `80069408823339`, fuel tanker `83861380699092`, attack helicopter `80747426523090`, and elite Vanta livery `139083376207373`. |
+| #138 | `4e3534f` | feat(engine): typed ground targets, AA guns, standalone aces and triggered waves (dormant) | Gameplay code, unused | Nothing yet. Typed ground targets, firing AA guns, standalone aces and time/progress/group-triggered waves are available to later missions. |
+| #140 | `4992b3d` | feat(world): mission 2 farmland, lake and enemy airbase (dormant) | Gameplay world, unused at merge | Nothing yet at this merge. The farmland approach, lake, power line and enemy airbase became playable when #143 merged. |
+| #136 | `85d469a` | docs(specs): missions 2 and 3 mission and world specs from reference footage | Docs | No game change. Reference-grounded mission and world specifications for missions 2 and 3. |
+| #135 | `3e7b95b` | docs(specs): missions 4 and 5 mission and world specs from reference footage | Docs | No game change. Reference-grounded mission and world specifications for missions 4 and 5. |
+| #134 | `3f3e828` | tune(m01): bombers start farther away; bandits attack from the start | **Gameplay: mission 1 tuning** | Mission 1's bombers start farther away, giving a longer intercept, and more bandits attack: four opening raiders plus two later raiders on Normal, with one extra in each wave on Ace. Rank S now requires 1,200 points. |
+| #133 | `07526a2` | docs: mission 1 live for the owner's beta test | Docs | No game change. The owner-facing mission 1 beta guide and current evidence record. |
 
-These merged gameplay changes are live through the automatic pipeline convention. This PR's observed Studio asset quality does not establish Player quality or visual/runtime quality for dormant mission 2–3 worlds. No Player testing is claimed here.
+These merged gameplay changes are live through the automatic pipeline convention. Studio observations do not establish Player quality for mission 2 or visual/runtime quality for dormant mission 3–5 work. No Player testing by agents is claimed here.
 
 ## Merged 2026-10-28, newest first
 
