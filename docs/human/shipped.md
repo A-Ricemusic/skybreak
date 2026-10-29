@@ -2,12 +2,16 @@
 
 Last updated: 2026-10-28, against `main` at `93dc512153b9098cdb7d486f3857e16794fc6ff0`.
 
-[Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). Broken Relay is the live 27-mission campaign. The latest merged gameplay-code revision is `526507c` (#124). Gameplay merges are live through automatic CI/CD under the owner's convention; documentation-only changes add no game content.
+[Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). Broken Relay is the live 27-mission campaign. The latest merged gameplay-code revision is `00070d7` (#128). Gameplay merges are live through automatic CI/CD under the owner's convention; documentation-only changes add no game content.
 
 ## Merged 2026-10-28, newest first
 
 | PR | Commit | Title | Kind | What you will see |
 |---|---|---|---|---|
+| #128 | `00070d7` | fix(flyoff): address launch follow-ups | Gameplay code, unused | Nothing yet. A smooth handoff from the fly-off to your control, wingmen holding formation during the intro, the intro camera on the port side easing into the chase view, and the HUD countdown clamped to each mission's own value. |
+| #127 | `baca7a1` | feat(missions): add opt-in countdown and carrier fly-off | Gameplay code, unused | Nothing yet. The 10-minute countdown that starts at control, and the three-second scripted fly-off from the carrier's bow. |
+| #126 | `7243717` | fix(wingmen): address review follow-ups | Gameplay code, unused | Nothing yet. Enemies commit to a target when they start aiming (lock warnings always right); aces and couriers ignore wingmen; FRND labels, smoothed friendly radar dots, a reliable radar symbol and wingman engine sound. |
+| #125 | `bcd7f0c` | docs: record #119 to #124, the uploads, D-034 and D-035 | Docs | No game change. |
 | #124 | `526507c` | feat(assets): wire approved bomber and carrier for dormant users | Gameplay code, unused | Nothing yet. The uploaded bomber (asset 112476761254185) and carrier (asset 118082412288291) replace the stand-ins in mission 1's dormant world and the bomber encounter. Studio confirmed textures, size, the carrier's bow, starboard island and waterline, and the bomber's alignment. |
 | #123 | `65d7cbb` | feat(encounters): add dormant mission-opt-in allied wingmen | Gameplay code, unused | Nothing yet. Up to six friendly Kestrels for missions that opt in; never targetable; kills don't count for you (D-034). |
 | #122 | `1dd97e9` | fix(encounters): address bomber encounter review nits | Gameplay code, unused | Nothing yet. A bomber escape now reads "The bombers got through."; escorts sit beside the bombers; the ace's livery comes from the encounter. |
@@ -46,6 +50,7 @@ Last updated: 2026-10-28, against `main` at `93dc512153b9098cdb7d486f3857e16794f
 ## What was verified, and what was not
 
 - **#97 and #98:** before merging, the Studio test suite ran on main with both combined: 684 of 684 tests passed across 57 suites. The merged main is file-for-file identical to that tested tree.
+- **#126 to #128:** #126 and #128 audited line by line by the orchestrator; #127 approved by an independent Opus review. Studio suite on main with each included: 768/768 (#126), 780/780 (#127), 782/782 (#128). Main's game source is identical to each tested tree.
 - **#120 to #124:** #120 and #122 were audited line by line by the orchestrator; #121 and #123 were approved by independent Opus reviews; #124 was verified in Studio by its agent. Studio suite runs on main with each batch included: 749/749 (#120, #121), 756/756 (#122), 763/763 (#123, #124). Main's game source is identical to each tested tree. Note: #122's agent claimed an independent review that did not exist; the orchestrator's own audit was the review.
 - **Uploads (2026-10-28):** heavy bomber asset 112476761254185 and carrier asset 118082412288291, both moderation-approved, uploaded by the orchestrator with the gated uploader from the exact reviewed files.
 - **#116 and #118:** reviewed by the orchestrator; the Studio suite passed on main with both included: 735 of 735 tests across 66 suites. Main's game source is identical to that tested tree.

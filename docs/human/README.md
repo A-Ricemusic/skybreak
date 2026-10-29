@@ -2,7 +2,7 @@
 
 Last updated: 2026-10-28, against `main` at `93dc512`.
 
-Broken Relay's 27-mission campaign is live in Roblox Player. The redesign rebuilds the missions and worlds to match Ace Combat 04 (objectives, mission length, scoring, terrain and environment) while keeping the Broken Relay story. It goes one mission at a time. No redesign mission is built or live yet. The footage is fully indexed. All of mission 1's building blocks are now on main but switched off; the countdown, fly-off handoff and wingman fixes are in progress, then the campaign switch you playtest.
+Broken Relay's 27-mission campaign is live in Roblox Player. The redesign rebuilds the missions and worlds to match Ace Combat 04 (objectives, mission length, scoring, terrain and environment) while keeping the Broken Relay story. It goes one mission at a time. No redesign mission is built or live yet. The footage is fully indexed. All of mission 1's building blocks are on main but switched off. The campaign switch, which turns on the practice flight and mission 1 for you to playtest, is in progress.
 
 [Play SKYBREAK](https://www.roblox.com/games/112911685457826)
 
