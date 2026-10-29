@@ -37,6 +37,7 @@ export interface Enemy {
 	lockBreakChance: number;
 	role?: AirRole;
 	bomberSlot?: number;
+	/** Encounter-local ordinal: unique across initial, delayed and queued escort/ace admissions. */
 	escortSlot?: number;
 	escortEngaged?: boolean;
 	/** Ace only: stage, retreat/hold mode and stage invulnerability (AceRules). */
@@ -84,7 +85,7 @@ export interface CombatSession {
 	/** Elapsed time the flight's last windup started (aces keep their own reloads and ignore it). */
 	lastWindupAt: number;
 	appliedBlueprintPhaseIndex?: number;
-	crashReason?: string;
+	crashReason?: "crash_water" | "crash_terrain" | "internal_error";
 	collisionParams?: RaycastParams;
 	health: number; kills: number; elapsed: number; missiles: number; missileCooldown: number;
 	/** Seconds left of the evade barrel roll. */

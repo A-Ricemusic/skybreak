@@ -2,7 +2,7 @@ import { FlightMath, FlightState } from "./FlightMath";
 import { FlightPoint, MissionBlueprint, MissionCatalog, MissionPhaseBlueprint } from "./MissionCatalog";
 import { GameConfig } from "./GameConfig";
 
-export type BlueprintReason = "complete" | "timeout" | "destroyed" | "protected_lost" | "escaped";
+export type BlueprintReason = "complete" | "timeout" | "destroyed" | "protected_lost" | "escaped" | "bombers_escaped";
 /** Hull a protected convoy or site loses per second per raider near it (before the difficulty scale). */
 const PROTECT_DRAIN = 0.55;
 /** Each live hazard gun drains the protected actor like this many raiders. */
@@ -143,7 +143,7 @@ export const BlueprintRunner = {
 			extraRaiders:math.max(0,math.floor(finite(extraRaiders) ? extraRaiders : 0)),phaseClock:0,hazardFired:false,hazardAlive:0};
 	},
 	EscapeBombers(s: BlueprintState): void {
-		if (BlueprintRunner.ActivePhase(s)?.bombers) finish(s, "failed", "escaped");
+		if (BlueprintRunner.ActivePhase(s)?.bombers) finish(s, "failed", "bombers_escaped");
 	},
 	Tick(s: BlueprintState, now: number, health=100): void {
 		if (s.outcome !== undefined || !finite(now)) return;

@@ -24,7 +24,7 @@ export const AircraftCollision = {
 	Sweep(from: Vector3, to: Vector3, params: RaycastParams): RaycastResult | undefined {
 		return sphereSweep(from, 4, to.sub(from), params)?.hit;
 	},
-	Reason(hit: RaycastResult): string {
+	Reason(hit: RaycastResult): "crash_water" | "crash_terrain" {
 		return hit.Material === Enum.Material.Water || (hit.Instance.Name === "Sea" || hit.Instance.Name === "River") ? "crash_water" : "crash_terrain";
 	},
 };
