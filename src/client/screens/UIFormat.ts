@@ -97,6 +97,8 @@ function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
 		navigationRadius: typeIs(payload.navigationRadius, "number") && finite(payload.navigationRadius, -1) >= 0 ? payload.navigationRadius : undefined,
 		navigationCeiling: typeIs(payload.navigationCeiling, "number") && finite(payload.navigationCeiling, -1) >= 0 ? payload.navigationCeiling : undefined,
 		protectedHealth: payload.protectedHealth,
+		terrainClearance: payload.terrainClearance,
+		missionUpdateSeconds: payload.missionUpdateSeconds,
 		phase: safeString(payload.phase, previous.phase ?? ""),
 		objective: safeString(payload.objective, previous.objective ?? "Complete the objective"),
 		objectiveProgress: math.max(0, math.floor(finite(payload.objectiveProgress, previous.objectiveProgress ?? 0))),

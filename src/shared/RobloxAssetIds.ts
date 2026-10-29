@@ -25,6 +25,12 @@ export const RobloxAssetIds: Record<UploadedAssetName, number | undefined> = {
 	// Approved 2026-10-28; dormant bomber encounter and mission 1 world only.
 	HeavyBomber: 112476761254185,
 	Carrier: 118082412288291,
+	// Approved 2026-10-29; reserved for missions 4–5, no live sortie consumers.
+	HeavyTransport: 135095912449793,
+	RadarJammer: 80069408823339,
+	FuelTanker: 83861380699092,
+	AttackHelicopter: 80747426523090,
+	VantaV2Elite: 139083376207373,
 	Frigate: 83984523694725,
 	OilPlatform: 76182723177049,
 	HarbourQuay: 133121801627949,

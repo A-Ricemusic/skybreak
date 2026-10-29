@@ -1,5 +1,6 @@
 import { InsertService, RunService } from "@rbxts/services";
 import { AssetSelection, ImportedPart, SURFACE_MAPS, SurfaceMap } from "./AssetSelection";
+import { UploadedAssetOrientation } from "./UploadedAssetOrientation";
 import { RobloxAssetIds } from "./RobloxAssetIds";
 import { UploadedAssetName, UploadedAssetSpecs } from "./UploadedAssetSpecs";
 
@@ -76,9 +77,16 @@ function normalise(container: Instance, name: UploadedAssetName, assetId: number
 			part.Parent = model;
 			seen.push(describe(part));
 		}
-		const required = spec.kind === "aircraft" ? AssetSelection.RequiredAircraftParts(spec.controlSurfaces, spec.glassParts) : [];
+		const required = spec.kind === "aircraft" ? AssetSelection.RequiredAircraftParts(spec.controlSurfaces, spec.glassParts, spec.rotors) : [];
 		const problem = AssetSelection.AppearanceProblem(seen, required);
 		assert(problem === undefined, problem);
+		const offsets = UploadedAssetOrientation[name];
+		if (offsets !== undefined) {
+			const [bounds] = model.GetBoundingBox();
+			const centre = new CFrame(bounds.Position);
+			const correction = centre.mul(CFrame.Angles(math.rad(offsets.pitch), math.rad(offsets.yaw), math.rad(offsets.roll))).mul(centre.Inverse());
+			for (const part of model.GetChildren()) if (part.IsA("BasePart")) part.CFrame = correction.mul(part.CFrame);
+		}
 		const [, size] = model.GetBoundingBox();
 		const scale = AssetSelection.FitScale(components(size), components(spec.size));
 		assert(scale !== undefined, `implausible size ${tostring(size)} for in-game ${tostring(spec.size)}`);

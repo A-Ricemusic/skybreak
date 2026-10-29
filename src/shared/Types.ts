@@ -174,6 +174,8 @@ export interface MissionLoading {
 	expectedParts?: number;
 }
 export interface Telemetry {
+	terrainClearance?: number;
+	missionUpdateSeconds?: number;
 	missionId?: number;
 	phase?: string;
 	navigation?: Vector3;
@@ -262,5 +264,6 @@ export interface MissionFinished extends MissionStats {
 	bestScore?: number;
 	bestRank?: string;
 }
-export type MissionMessage = MissionLoading | MissionStarted | FlightControlHandoff | HudState | MissionFinished;
+export interface LandingStarted { kind: "LandingStarted"; plan: import("./EngineBatchB").LandingPlan }
+export type MissionMessage = LandingStarted | MissionLoading | MissionStarted | FlightControlHandoff | HudState | MissionFinished;
 export type FinishedCallback = (player: Player, won: boolean, stats: MissionStats) => void;

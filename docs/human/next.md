@@ -33,11 +33,25 @@ Mission 2 becomes playable when its PR merges; until then it shows as locked. PR
 ## After your playtest
 
 1. **Fix what you report** for missions 1 and 2.
-2. **Mission 3:** world composition in review (PR #139); then mission data and unlock as for mission 2.
+2. **Mission 3:** world (#139) and engine batch B (#141) merged, dormant and not playable. Remaining: mission data and unlock using the exported target layout (as for mission 2); Studio load and visual measurement, landing path verification and real-phone performance.
 3. **Before later missions:** remapping the finale chapter, and retiring leftover code keyed to the old 27 missions.
 4. **Later missions** one at a time; mission 18 gains a one-on-one Rusk duel (D-031).
 5. **Polish not blocking play:** the world items above; a code formatter; specs for the menu, briefing, HUD and results screens.
 
-## PR #137 asset review
+## Mission 3 — engine batch B
 
-Obtain a new independent review of `vanta-v2-elite-3` and its neutral/contrasting rear previews. Review 2 rejected revision 2 at 8/10. No upload is authorized by the creator’s assessment.
+Engine batch B is built and dormant (PR #141): phase-entry MISSION UPDATE with radio/objective/countdown reset; directional return segment with HUD navigation; automatic skippable runway landing that excludes mission and score time; opt-in terrain-clearance warnings. Batch A already expresses site 1 destroyed → fighter wave plus ace via shared `ground_group` triggers. Mission 3 data/unlock and world integration remain separate; use PR #139’s Z=11,040 line and northbound runway centred at X=6000, Z=11264: pavement top Y=84 on terrain Y=80. Landing touchdown authors the aircraft pivot, including gear clearance, rather than the runway surface.
+
+Remaining mission 3 presentation/spec work (not built by batch B): landing 3:00 timer; DIST counter; controller radio during landing; MISSION ACCOMPLISHED on the runway; dotted return line drawn in-world; mission-update banner and landing-skip styling. The engine radio queue and HUD navigation point alone do not complete these items.
+
+Independent-review corrections in PR #141: settlement accepts update-extended mission time and rejects elapsed at/beyond the summed maximum; return guidance projects onto the finite line; landing camera cuts immediately and hides the local jet; skip is ignored for 0.75 seconds on both peers; landing telemetry uses the normal interval without 30 Hz FlightState packets; flare levels before touchdown; ALT tint uses the warning's terrain clearance. Initial and landing phases reject updates. Practice/mission 1 snapshots remain unchanged.
+
+The full combined Roblox Jest suite passed in Studio on PR #142 (808/808). The Studio lease is released; the orchestrator still needs to inspect landing camera/skip, update radio delivery and mountain warnings before enabling mission 3. No visual mission 3 or Player test is claimed.
+
+Batch B offline validation: frozen Bun install and build passed; full offline gate passed (`OFFLINE_LUAU_RESULT passed=675 failed=0`, catalog snapshot `passed=19 failed=0`). Runtime Roblox specs subsequently passed in the combined PR #142 Studio run; visual mission 3 quality remains unverified. Landing plans require continuous touchdown speed: `2 × rolloutDistance / rolloutSeconds = approachDistance / approachSeconds`.
+
+## Mission 4–5 asset orientation check
+
+The five mission 4–5 assets (heavy transport, radar jammer, fuel tanker ship, attack helicopter and Vanta v2 elite revision 3) are uploaded and moderation-approved. PR #142 wires them but leaves them unused until missions 4–5. Studio inspection on 2026-10-29 confirmed -Z forward, +Y up and plausible scale beside the heavy bomber, tanker waterline at sea level with `groundOffset=16`, helicopter port tail rotor and both configured rotor hubs, and elite orientation matching regular Vanta v2. All orientation corrections remain zero. [Screenshots and measured results](../qa/orientation/2026-10-29/README.md). Roblox Jest: 808 passed / 0 failed across 80 suites after rebase onto main (#139/#141). No Player test was performed.
+
+Next: integrate these dormant assets with mission 4–5 logic and inspect their placement in those mission worlds. Rotors remain static; animation and mission/Player behaviour are unverified. Elite revision 3 retains its independent 10/10 safety approval (`docs/qa/asset-reviews/2026-10-29-pr137-review-3.md`). No new upload or merge was performed.

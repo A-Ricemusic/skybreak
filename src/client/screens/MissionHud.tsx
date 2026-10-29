@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef } from "@rbxts/react";
 import { TweenService } from "@rbxts/services";
 import { FlightMath } from "../../shared/FlightMath";
-import { flightWarning, LOW_ALTITUDE } from "../../shared/FlightWarnings";
+import { flightWarning, warningAltitude, LOW_ALTITUDE } from "../../shared/FlightWarnings";
 import { evadeGauge } from "../../shared/EvadeGauge";
 import { CountdownDisplay } from "../../shared/CountdownDisplay";
 import { SpecialKind, SpecialWeapons } from "../../shared/SpecialWeapons";
@@ -270,6 +270,7 @@ function MissionHud({
 	// Radio rides the subtitle row; roots without one show it in the objective line (ahead of kill callouts), as before.
 	const objectiveCallout = radio !== undefined && !layout.subtitle ? { text: radio, color: HUD.White } : callout;
 	const objectiveLine = alertSharesObjective && alertText !== "" ? alertText : objectiveCallout?.text ?? (tutorial !== "" ? tutorial : telemetry.objective ?? "Complete the objective");
+	const displayObjective = objectiveLine;
 	const objectiveColor = alertSharesObjective && alertText !== "" ? alertColor : objectiveCallout?.color ?? (tutorial !== "" ? HUD.Amber : HUD.Green);
 	const movement = telemetry.tutorialStep === "move" && objectiveLine === tutorial
 		? getMovementIndicators(inputMode, telemetry.turnObserved, telemetry.pitchObserved) : undefined;
@@ -280,6 +281,8 @@ function MissionHud({
 	return (
 		<frame ref={hudFrameRef} key="MissionHUD" BackgroundTransparency={1} Size={UDim2.fromScale(1 / scale, 1 / scale)} Visible={visible}>
 			<uiscale Scale={scale} />
+			{(telemetry.missionUpdateSeconds ?? 0)>0 && <textlabel key="MissionUpdateBanner" Text="MISSION UPDATE" TextColor3={HUD.White} BackgroundColor3={Color3.fromRGB(65,20,45)} BackgroundTransparency={0.2} Size={UDim2.fromOffset(280,44)} Position={UDim2.fromScale(0.5,0.2)} AnchorPoint={new Vector2(0.5,0)} />}
+			{telemetry.phase === "landing" && <textbutton key="SkipLanding" Text="SKIP LANDING · SPACE / RT" Size={UDim2.fromOffset(200,44)} Position={UDim2.fromScale(0.5,0.75)} AnchorPoint={new Vector2(0.5,0)} Event={{Activated:()=>controller.SkipLanding()}} />}
 			<NavigationCue telemetry={telemetry} visible={visible} inputMode={inputMode} scale={scale} options={options}/>
 			<frame key="DamageFlash" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={damageFlash}>
 				<Stroke color={C.Danger} transparency={0.35} thickness={5} />
@@ -316,11 +319,11 @@ function MissionHud({
 					rectangle={movementCells[index]}
 					color={cell.done ? HUD.Green : HUD.Amber} bold={!cell.done} textSize={movementTextSize}
 					verticalAlignment={Enum.TextYAlignment.Top} />
-			)) : <HudLabel name="ObjectiveText" text={objectiveLine} rectangle={layout.callout} color={objectiveColor} textSize={metrics.scale === "large" ? 16 : metrics.scale === "compact" ? 10 : 11} wrap={true} verticalAlignment={Enum.TextYAlignment.Top} />}
+			)) : <HudLabel name="ObjectiveText" text={displayObjective} rectangle={layout.callout} color={objectiveColor} textSize={metrics.scale === "large" ? 16 : metrics.scale === "compact" ? 10 : 11} wrap={true} verticalAlignment={Enum.TextYAlignment.Top} />}
 
 			{layout.reticle && <Reticle rectangle={layout.reticle} />}
 			<InstrumentBox name="SpeedBox" caption="MPH" value={instrumentValue(FlightMath.ToMph(telemetry.speed))} rectangle={layout.speed} metrics={metrics} pointsRight={true} color={stalling ? HUD.Amber : HUD.Green} />
-			<InstrumentBox name="AltitudeBox" caption="ALT" value={instrumentValue(telemetry.altitude)} rectangle={layout.altitude} metrics={metrics} pointsRight={false} color={telemetry.altitude < LOW_ALTITUDE ? HUD.Amber : HUD.Green} />
+			<InstrumentBox name="AltitudeBox" caption="ALT" value={instrumentValue(telemetry.altitude)} rectangle={layout.altitude} metrics={metrics} pointsRight={false} color={warningAltitude(telemetry) < LOW_ALTITUDE ? HUD.Amber : HUD.Green} />
 			{!alertSharesObjective && <WarningBox rectangle={layout.alert} text={alertText} color={alertColor} metrics={metrics} textRef={warningText} />}
 			{/* Reserved for a missile time-to-impact / BREAK cue; empty and hidden until something drives it. */}
 

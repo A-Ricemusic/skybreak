@@ -35,6 +35,11 @@ KEYS = {
     "vanta-v2-rusk": "VantaV2Rusk",
     "heavy-bomber": "HeavyBomber",
     "carrier": "Carrier",
+    "heavy-transport": "HeavyTransport",
+    "radar-jammer": "RadarJammer",
+    "fuel-tanker": "FuelTanker",
+    "attack-helicopter": "AttackHelicopter",
+    "vanta-v2-elite": "VantaV2Elite",
     "frigate": "Frigate",
     "oil-platform": "OilPlatform",
     "harbour-quay": "HarbourQuay",
@@ -58,9 +63,9 @@ KEYS = {
 }
 # Procedural aircraft whose length the uploaded aircraft are fitted to.
 PROCEDURAL = {"kestrel": "kestrel", "vanta": "vanta", "vanta-vulture": "vanta", "vanta-rusk": "vanta",
-              "kestrel-v2": "kestrel", "vanta-v2": "vanta", "vanta-v2-vulture": "vanta", "vanta-v2-rusk": "vanta"}
+              "kestrel-v2": "kestrel", "vanta-v2": "vanta", "vanta-v2-vulture": "vanta", "vanta-v2-rusk": "vanta", "vanta-v2-elite": "vanta"}
 # Version 2 aircraft must land in the 10k-15k triangle band (detail floor as well as a budget).
-V2_AIRCRAFT = {"kestrel-v2", "vanta-v2", "vanta-v2-vulture", "vanta-v2-rusk"}
+V2_AIRCRAFT = {"kestrel-v2", "vanta-v2", "vanta-v2-vulture", "vanta-v2-rusk", "vanta-v2-elite"}
 V2_TRIANGLES = (10000, 15000)
 # Delivery parts the game renders see-through (SurfaceAppearance part Transparency).
 GLASS_PARTS = ("Canopy",)
@@ -78,7 +83,7 @@ def ts_vec(values) -> str:
 
 
 def texture_limit(folder: str) -> int:
-    if folder in PROCEDURAL or folder == "heavy-bomber":
+    if folder in PROCEDURAL or folder in {"heavy-bomber", "heavy-transport", "radar-jammer", "attack-helicopter"}:
         return 1024
     return 256 if folder in SMALL_PROPS else 512
 
@@ -149,6 +154,12 @@ def main() -> None:
         if c.get("attachments"):
             a = c["attachments"]
             lines.append("\t\tattachments: { " + ", ".join(f"{n}: {ts_vec(scaled(a[n], k))}" for n in ("leftWingtip", "rightWingtip", "exhaust")) + " },")
+        if c.get("rotors"):
+            lines.append("\t\trotors: {")
+            for name, r in c["rotors"].items():
+                axis = [0, 1, 0] if r["axis"] == "Roblox +Y" else [1, 0, 0]
+                lines.append(f"\t\t\t{name}: {{ hub: {ts_vec(scaled(r['hub'], k))}, axis: {ts_vec(axis)} }},")
+            lines.append("\t\t},")
         glass = [o["name"] for o in c["objects"] if o["name"] in GLASS_PARTS]
         if glass:
             lines.append("\t\tglassParts: [" + ", ".join(f'"{g}"' for g in glass) + "],")
@@ -185,6 +196,7 @@ def main() -> None:
         "\tauthoredSize: Vector3;\n\tgameScale: number;\n\tgroundOffset: number;\n"
         "\tattachments?: { leftWingtip: Vector3; rightWingtip: Vector3; exhaust: Vector3 };\n"
         "\tcontrolSurfaces?: Record<string, HingeSpec>;\n"
+        "\t/** Static rotor parts, with authored model-space hubs and spin axes. */\n\trotors?: Record<string, { hub: Vector3; axis: Vector3 }>;\n"
         "\t/** Parts the loader makes see-through (the v2 canopy over its cockpit). */\n\tglassParts?: string[];\n}\n\n"
         "export const UploadedAssetSpecs: Record<UploadedAssetName, UploadedAssetSpec> = {\n"
         + "\n".join(specs) + "\n};\n"

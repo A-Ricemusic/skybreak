@@ -442,7 +442,7 @@ export function completeMission(
 	const requiredGroundKills = MissionCatalog.RequiredGroundKills(blueprint);
 	const objectivesMet = stats.kills >= requiredAirKills && groundKills >= requiredGroundKills;
 	const flightObjectivesMet = stats.completedPhases === MissionCatalog.TotalPhases(blueprint);
-	const qualifiedWin = won && flightObjectivesMet && objectivesMet && elapsed > 0 && elapsed < MissionCatalog.CountdownSeconds(missionId);
+	const qualifiedWin = won && flightObjectivesMet && objectivesMet && elapsed > 0 && elapsed < MissionCatalog.MaxMissionSeconds(missionId);
 	const kills = isFiniteNumber(stats.kills) ? math.max(0, math.floor(stats.kills)) : 0;
 	const par = MissionScore.ParSeconds(MissionCatalog.Get(missionId));
 	const policy = MissionCatalog.Scoring(missionId);
@@ -469,7 +469,7 @@ export function completeMission(
 		kills: result.kills,
 		groundKills,
 		elapsed: result.elapsed,
-		reason: result.completed ? undefined : stats.reason ?? (elapsed >= MissionCatalog.CountdownSeconds(missionId) ? "timeout" : undefined),
+		reason: result.completed ? undefined : stats.reason ?? (elapsed >= MissionCatalog.MaxMissionSeconds(missionId) ? "timeout" : undefined),
 		saved: !coordinator.hasPendingSave(),
 		persistence: coordinator.getPersistence(),
 		optionalKills: counter(stats.optionalKills),
@@ -576,7 +576,7 @@ export class CampaignCoordinator {
 		assert(isValidMission(missionId), "invalid campaign mission");
 		const kills = isFiniteNumber(killsRaw) ? math.clamp(math.floor(killsRaw), 0, MISSION_KILLS) : 0;
 		const elapsed = isFiniteNumber(elapsedRaw) && elapsedRaw > 0 ? elapsedRaw : 0;
-		const completed = won && elapsed > 0 && elapsed < MissionCatalog.CountdownSeconds(missionId);
+		const completed = won && elapsed > 0 && elapsed < MissionCatalog.MaxMissionSeconds(missionId);
 		const slot = this.profile.slots[slotIndex - 1];
 		slot.occupied = true;
 		slot.kills = math.max(slot.kills, kills);

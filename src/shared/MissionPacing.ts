@@ -12,6 +12,8 @@ function estimate(phase: MissionPhaseBlueprint, act: Act, aceHealth: number): nu
 		case "tutorial_missile": return 20;
 		case "required_air": return 10 + count * PER_BANDIT[act];
 		case "required_ground": return count * 10;
+		case "return_line": return 70;
+		case "landing": return 0;
 		case "route": return points * 12;
 		case "recon": return points * (seconds * 1.25 + 10);
 		case "escort": case "defend": return seconds * 1.05 + 10 + hazards;
