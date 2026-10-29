@@ -2,6 +2,7 @@ import { describe, expect, it } from "@rbxts/jest-globals";
 
 import { effectiveHudScale } from "../shared/PlayerSettings";
 import {
+	FRIENDLY_TAG,
 	TARGET_BOX_LIMIT,
 	TARGET_BOX_MAX,
 	TARGET_BOX_MIN,
@@ -31,6 +32,12 @@ describe("target box validity", () => {
 		// Attributes still replicating: no box until the server has said so.
 		expect(TargetBoxes.Tone(flags(true, ME, undefined, true), ME)).toBeUndefined();
 		expect(TargetBoxes.Tone(flags(undefined, undefined, undefined, undefined), ME)).toBeUndefined();
+	});
+	it("labels an owned friendly FRND without giving it a target box", () => {
+		const friendly = { ...flags(false, ME, false, false), friendly: true };
+		expect(TargetBoxes.FriendlyTag(friendly, ME)).toBe(FRIENDLY_TAG);
+		expect(TargetBoxes.Tone(friendly, ME)).toBeUndefined();
+		expect(TargetBoxes.FriendlyTag({ ...friendly, owner: 7 }, ME)).toBeUndefined();
 	});
 	it("still boxes the selected target when it is protected, in the muted tone", () => {
 		expect(TargetBoxes.Selected(false, true, 0).tone).toBe("protected");

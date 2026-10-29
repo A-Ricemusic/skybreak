@@ -1,5 +1,5 @@
 import { viewportOrigin } from "./ViewportGui";
-import { TARGET_BOX_LIMIT, TARGET_TAG_GAP, TARGET_TAG_HEIGHT, TARGET_TAG_RISE, TARGET_TAG_WIDTH, TargetBoxes, TargetBoxFlags, TargetBoxTone, TargetTagSide } from "../shared/TargetBoxes";
+import { FRIENDLY_TAG, TARGET_BOX_LIMIT, TARGET_TAG_GAP, TARGET_TAG_HEIGHT, TARGET_TAG_RISE, TARGET_TAG_WIDTH, TargetBoxes, TargetBoxFlags, TargetBoxTone, TargetTagSide } from "../shared/TargetBoxes";
 import type { Rectangle } from "../shared/UILayout";
 import { HUD, HUD_FONT_BOLD } from "./Theme";
 
@@ -9,6 +9,7 @@ import { HUD, HUD_FONT_BOLD } from "./Theme";
 // attributes cached from AttributeChanged, one pass per RenderStep. Boxes and
 // their TGT tags stay inside the safe area and off the touch controls.
 const COLOR = { required: HUD.Green, optional: HUD.Dim, protected: HUD.Dim } as const;
+const FRIENDLY_COLOR = Color3.fromRGB(85, 185, 255);
 const OUTLINE = Color3.fromRGB(6, 13, 22);
 const WATCHED = new Set(["SkybreakFriendly", "SkybreakEnemy", "SkybreakOwner", "Damageable", "RequiredTarget", "TargetKind"]);
 
@@ -17,6 +18,7 @@ interface Contact {
 	ground: boolean;
 	flags: TargetBoxFlags;
 	tone?: TargetBoxTone;
+	friendly: boolean;
 	connection: RBXScriptConnection;
 	/** Filled each frame for the boxes that made the cut. */
 	distance: number;
@@ -32,6 +34,7 @@ interface Slot {
 	tagLabel: TextLabel;
 	size: number;
 	tone?: TargetBoxTone;
+	friendly?: boolean;
 	/** Where the TGT tag sits; undefined hides it. */
 	tag?: TargetTagSide;
 }
@@ -84,7 +87,7 @@ export class TargetBoxOverlay {
 		ranked.clear();
 		for (const [model, contact] of this.contacts) {
 			contact.boxed = false;
-			if (contact.tone === undefined || model === selected) continue;
+			if ((contact.tone === undefined && !contact.friendly) || model === selected) continue;
 			const world = positionOf(model, contact.ground);
 			const [screen, onScreen] = camera.WorldToViewportPoint(world);
 			// Behind the camera or out of view: no box and no further work (the radar covers it).
@@ -104,20 +107,23 @@ export class TargetBoxOverlay {
 		const width = math.max(1, guiSize.X), height = math.max(1, guiSize.Y);
 		for (let index = 0; index < count; index++) {
 			const contact = ranked[index];
-			contact.boxed = true;
+			contact.boxed = !contact.friendly;
 			const slot = this.slots[index] ?? this.createSlot(gui, index);
 			// Re-evaluate even for a stationary target: topbar/safe-area geometry can change.
 			slot.frame.Position = UDim2.fromScale((contact.x - guiOrigin.X) / width, (contact.y - guiOrigin.Y) / height);
 			if (contact.size !== slot.size) { slot.size = contact.size; slot.frame.Size = UDim2.fromOffset(contact.size, contact.size); }
-			if (contact.tone !== slot.tone) {
+			if (contact.tone !== slot.tone || contact.friendly !== slot.friendly) {
 				slot.tone = contact.tone;
-				const color = COLOR[contact.tone!];
+				slot.friendly = contact.friendly;
+				const color = contact.friendly ? FRIENDLY_COLOR : COLOR[contact.tone!];
 				slot.stroke.Color = color; slot.tagLabel.TextColor3 = color;
+				slot.stroke.Enabled = !contact.friendly;
+				slot.tagLabel.Text = contact.friendly ? FRIENDLY_TAG : "TGT";
 				// Raiders read a step quieter than mission targets; only mission targets carry TGT.
-				slot.stroke.Transparency = contact.tone === "required" ? 0.05 : 0.3;
+				if (!contact.friendly) slot.stroke.Transparency = contact.tone === "required" ? 0.05 : 0.3;
 			}
 			// The TGT tag goes right of the box, else left, else not at all: it never covers a control or leaves the safe area.
-			const tag = contact.tone === "required" ? TargetBoxes.PlaceTag(contact.x, contact.y, contact.size, bounds, keepouts) : undefined;
+			const tag = contact.friendly || contact.tone === "required" ? TargetBoxes.PlaceTag(contact.x, contact.y, contact.size, bounds, keepouts) : undefined;
 			if (tag !== slot.tag) {
 				slot.tag = tag;
 				slot.tagLabel.Visible = tag !== undefined;
@@ -165,7 +171,7 @@ export class TargetBoxOverlay {
 		const contact: Contact = {
 			model: child, ground: false, flags: { enemy: undefined, owner: undefined, damageable: undefined, required: undefined },
 			connection: child.AttributeChanged.Connect((name) => { if (WATCHED.has(name)) this.refresh(contact); }),
-			distance: 0, x: 0, y: 0, size: 0, boxed: false,
+			friendly: false, distance: 0, x: 0, y: 0, size: 0, boxed: false,
 		};
 		this.refresh(contact);
 		this.contacts.set(child, contact);
@@ -186,5 +192,6 @@ export class TargetBoxOverlay {
 		flags.required = model.GetAttribute("RequiredTarget");
 		contact.ground = model.GetAttribute("TargetKind") === "ground";
 		contact.tone = TargetBoxes.Tone(flags, this.userId);
+		contact.friendly = TargetBoxes.FriendlyTag(flags, this.userId) !== undefined;
 	}
 }

@@ -2,6 +2,11 @@ import { describe, expect, it } from "@rbxts/jest-globals";
 import { AudioRules } from "../shared/AudioRules";
 
 describe("flight audio priorities and mix", () => {
+	it("tracks friendly and hostile aircraft engines without treating unrelated models as aircraft", () => {
+		expect(AudioRules.AircraftEngine(true, false)).toBe(true);
+		expect(AudioRules.AircraftEngine(false, true)).toBe(true);
+		expect(AudioRules.AircraftEngine(false, false)).toBe(false);
+	});
 	it("lets an incoming missile override damage, boundaries and searching", () => {
 		expect(AudioRules.Warning(true, 10, true, 0.5, true)).toBe("incoming");
 		expect(AudioRules.Warning(false, 10, true, 0.5, true)).toBe("lowHull");

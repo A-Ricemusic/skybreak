@@ -34,7 +34,7 @@ export const RADAR_RIM_INSET = 5;
 
 /** Glyph drawn for each contact kind (text glyphs: no images to upload). */
 export const RADAR_GLYPHS: { [kind in RadarContactKind]: string } = {
-	friendly: "✚",
+	friendly: "+",
 	required: "▲",
 	optional: "△",
 	ground: "◆",
@@ -46,7 +46,7 @@ export const RADAR_GLYPHS: { [kind in RadarContactKind]: string } = {
 
 /** Draw order, lowest first: threats always end on top. */
 export const RADAR_LAYER: { [kind in RadarContactKind]: number } = {
-	friendly: 2, objective: 1, protected: 2, groundOptional: 3, ground: 4, optional: 5, required: 6, missile: 7,
+	friendly: 0, objective: 1, protected: 2, groundOptional: 3, ground: 4, optional: 5, required: 6, missile: 7,
 };
 
 /**

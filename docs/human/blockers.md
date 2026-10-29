@@ -6,7 +6,6 @@ Last updated: 2026-10-28.
 
 | Date | Raised by | What is blocked | Impact | What is needed |
 |---|---|---|---|---|
-| 2026-10-28 | Orchestrator | Uploading the approved bomber and carrier: the secure key request timed out after 30 minutes. | Missions use the grey stand-in bomber and a stand-in carrier until the models are uploaded and wired. Nothing else is blocked. | **You:** tell the orchestrator when you are available; it shows the secure key card again (never paste the key in chat). |
 | 2026-10-28 | Large-world measurement | Real-phone performance and streaming for full-scale worlds are unverified. Studio measured mission 1's world at 4 to 5.5 s server build and 60 FPS in the phone emulator (#114), but the emulator runs on desktop hardware. | Mission 1's world may need tuning after it goes live. | Re-measure the tuned world in Studio before the campaign switch; your Player playtest on a phone is the real check. |
 | 2026-10-28 | Orchestrator | Enforced checks before merge: main has no branch protection. | A PR can merge before its `validate` check passes, and every merge goes live. The orchestrator gates merges by hand for now. | **You:** in GitHub, Settings → Branches, require the `validate` check on `main`. |
 
@@ -14,6 +13,7 @@ Last updated: 2026-10-28.
 
 | Date | Raised by | What was blocked | Resolution |
 |---|---|---|---|
+| 2026-10-28 | Orchestrator | Uploading the approved bomber and carrier (the first key request timed out). | You provided the key through the secure card; both models uploaded and passed moderation (assets 112476761254185 and 118082412288291), then were wired in and checked in Studio (#124). |
 | 2026-10-28 | Independent reviewer | Bomber and carrier safety review: review 1 rejected both; review 2 stopped at a brief error. | Revision 2 approved at 10/10 in review 3 (D-032). |
 | 2026-10-28 | Orchestrator | Whether full-scale worlds (D-019) could load in reasonable time. | Measured (#109): feasible with level of detail (D-028). Full detail everywhere is not. |
 | 2026-10-28 | Orchestrator | Disk space was down to about 10 GB free. | Owner approved removing this project's old checkouts only. An agent removed 129 that were clean and whose work was pushed or merged; free space is now about 22 GB. 47 were kept by the safety rules (recent, uncommitted, or commits not proven elsewhere). |

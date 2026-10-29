@@ -23,6 +23,8 @@ export type AirRole = "bandit" | "raider" | "courier" | "ace" | "bomber" | "esco
 export interface Enemy {
 	friendly?: boolean;
 	combatTarget?: Enemy;
+	/** Target copied when the hostile windup begins; undefined during a windup means the player. */
+	windupTarget?: Enemy;
 	alliedAmmo?: number;
 	id: string; name: string; model: Model; health: number; maxHealth: number; position: Vector3;
 	kind: TargetKind; required: boolean; enabled: boolean;
@@ -144,7 +146,7 @@ export interface CombatSession {
 	/** Result save and teardown once the sortie ends (Settlement), and the hooks finish() chose. */
 	settlement: SettlementState; settleHooks?: SettlementHooks;
 	/** Per-sortie name counters so every bandit and raider has a unique call sign, and a spawn counter for unique kill ids. */
-	banditSerial: number; raiderSerial: number; spawnSerial: number;
+	banditSerial: number; raiderSerial: number; spawnSerial: number; allySerial: number;
 	/** Staggered groups of the active required_air phase (WavePlan). */
 	bomberEncounter?: BomberEncounterState;
 	wave?: { phaseIndex: number; plan: number[]; next: number; lastAt: number };
