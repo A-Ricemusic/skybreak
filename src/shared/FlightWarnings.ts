@@ -55,8 +55,8 @@ export function flightAdvice(state: FlightWarningState): FlightAdvice {
 }
 
 /** Shared by every input-mode HUD: combat threats must never be hidden by flight advice. */
-export function flightWarning(state: FlightWarningState, narrow = false): string {
-	const flight = flightAdvice(state);
+export function flightWarning(state: FlightWarningState, narrow = false, flightWarningsEnabled = true): string {
+	const flight = flightWarningsEnabled ? flightAdvice(state) : "";
 	const combat = state.incoming ? "MISSILE INBOUND" : state.lockWarning ? "MISSILE LOCK" : "";
 	if (combat !== "") return !narrow && flight !== "" ? `${combat} · ${flight === "PULL UP" ? "TERRAIN" : flight}` : combat;
 	if (flight === "STALL") return narrow ? "STALL: POWER↑ NOSE↓" : "STALL · ACCELERATE + NOSE DOWN";

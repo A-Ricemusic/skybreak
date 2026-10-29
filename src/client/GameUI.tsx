@@ -770,8 +770,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					}
 					// Stall trend and terrain probe: re-render only when the fresh trend changes the warning the HUD shows.
 					const flight = controller.GetFlightTrend();
-					const shown = flightWarning({ ...telemetryRef.current, acceleration: trendRef.current.acceleration, terrainSeconds: trendRef.current.terrainSeconds });
-					const implied = flightWarning({ ...telemetryRef.current, acceleration: flight.acceleration, terrainSeconds: flight.terrainSeconds });
+					const warningsEnabled = controller.FlightWarningsEnabled();
+					const shown = flightWarning({ ...telemetryRef.current, acceleration: trendRef.current.acceleration, terrainSeconds: trendRef.current.terrainSeconds }, false, warningsEnabled);
+					const implied = flightWarning({ ...telemetryRef.current, acceleration: flight.acceleration, terrainSeconds: flight.terrainSeconds }, false, warningsEnabled);
 					if (implied !== shown) {
 						trendRef.current = { acceleration: flight.acceleration, terrainSeconds: flight.terrainSeconds };
 						setTrend(trendRef.current);

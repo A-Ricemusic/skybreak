@@ -139,6 +139,13 @@ describe("opt-in mission countdown and launch stage", () => {
 		expect(forwardStep).toBeGreaterThan(-0.25);
 	});
 	it("keeps the intro camera on port and rotates its offset with heading", () => {
+		const north = FlightMath.FromPose(30, 400, -70, 0, 0, 180), northCamera = LaunchStage.Camera(north);
+		expect(FlightMath.ForwardOf(north)).toEqual([0, 0, -1]);
+		expect(northCamera.position.x).toBeLessThan(north.x);
+		// In this yaw convention -90 degrees points east (+X); port is north (-Z).
+		const east = FlightMath.FromPose(30, 400, -70, -math.pi / 2, 0, 180), eastCamera = LaunchStage.Camera(east);
+		expect(FlightMath.ForwardOf(east)[0]).toBeCloseTo(1, 5);
+		expect(eastCamera.position.z).toBeLessThan(east.z);
 		for (const heading of [0, math.pi / 2, math.pi]) {
 			const state = FlightMath.FromPose(30, 400, -70, heading, 0, 180), camera = LaunchStage.Camera(state);
 			const [fx, fy, fz] = FlightMath.ForwardOf(state), [rx, ry, rz] = FlightMath.RightOf(state), [ux, uy, uz] = FlightMath.UpOf(state);

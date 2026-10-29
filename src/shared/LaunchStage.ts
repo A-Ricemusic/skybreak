@@ -35,8 +35,9 @@ export const LaunchStage = {
 		const [fx, fy, fz] = FlightMath.ForwardOf(state);
 		const [rx, ry, rz] = FlightMath.RightOf(state);
 		const [ux, uy, uz] = FlightMath.UpOf(state);
+		const port = -80;
 		return {
-			position: { x: state.x - rx * 80 + ux * 45 - fx * 110, y: state.y - ry * 80 + uy * 45 - fy * 110, z: state.z - rz * 80 + uz * 45 - fz * 110 },
+			position: { x: state.x + rx * port + ux * 45 - fx * 110, y: state.y + ry * port + uy * 45 - fy * 110, z: state.z + rz * port + uz * 45 - fz * 110 },
 			target: { x: state.x - fx * 260, y: state.y - fy * 260, z: state.z - fz * 260 },
 			up: { x: ux, y: uy, z: uz },
 		};

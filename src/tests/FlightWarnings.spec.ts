@@ -29,6 +29,12 @@ describe("flight and combat warnings shared by touch, keyboard and gamepad", () 
 		expect(flightWarning({ speed: 15, altitude: 250, incoming: false, lockWarning: false })).toBe("STALL · ACCELERATE + NOSE DOWN");
 		expect(flightWarning({ speed: 230, altitude: 250, incoming: false, lockWarning: false })).toBe("");
 	});
+	it("suppresses flight advice during a locked launch without hiding combat threats", () => {
+		const state = { speed: 230, altitude: 80, incoming: false, terrainSeconds: 1 };
+		expect(flightWarning(state, false, false)).toBe("");
+		expect(flightWarning({ ...state, incoming: true }, false, false)).toBe("MISSILE INBOUND");
+		expect(flightWarning(state, false, true)).toBe("TERRAIN AHEAD · PULL UP");
+	});
 	it("warns LOW SPEED inside the stall margin and while bleeding toward the stall", () => {
 		expect(STALL_MARGIN).toBe(5);
 		expect(lowSpeed(FlightMath.StallSpeed + STALL_MARGIN - 1)).toBe(true);

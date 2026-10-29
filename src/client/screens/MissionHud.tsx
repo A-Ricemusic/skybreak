@@ -218,7 +218,7 @@ function MissionHud({
 	const ready = missileReady(telemetry);
 	const locked = telemetry.target !== undefined && telemetry.lockProgress >= 0.99;
 	const narrow = layout.alert.width < 200;
-	const warning = flightWarning({ ...telemetry, acceleration: trend.acceleration, terrainSeconds: trend.terrainSeconds }, narrow);
+	const warning = flightWarning({ ...telemetry, acceleration: trend.acceleration, terrainSeconds: trend.terrainSeconds }, narrow, controller.FlightWarningsEnabled());
 	// Refusals ride above FIRE on the touch row; elsewhere they borrow the alert lane while no warning is up.
 	const noticeInAlert = fireNotice !== undefined && layout.fireCaption === undefined && warning === "";
 	const alertText = noticeInAlert ? fireNotice! : warning;

@@ -5,10 +5,10 @@ export const AudioRules = {
 	MaxMotors: 12,
 	MaxEngines: 8,
 	AircraftEngine(enemy: unknown, friendly: unknown): boolean { return enemy === true || friendly === true; },
-	Warning(incoming: boolean, health: number, boundary: boolean, lock: number, hasTarget: boolean): AudioWarning | undefined {
+	Warning(incoming: boolean, health: number, boundary: boolean, lock: number, hasTarget: boolean, flightWarningsEnabled = true): AudioWarning | undefined {
 		if (incoming) return "incoming";
 		if (health > 0 && health <= 25) return "lowHull";
-		if (boundary) return "boundary";
+		if (boundary && flightWarningsEnabled) return "boundary";
 		if (hasTarget && lock > 0.05 && lock < 0.99) return "lockSearch";
 		return undefined;
 	},

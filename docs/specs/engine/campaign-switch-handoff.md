@@ -75,6 +75,10 @@ Human-doc delta payload (orchestrator applies; this agent does not edit `docs/hu
 
 Run full `bun run test:roblox`, including revised Campaign and RelayWorld integration plus CombatService/PhaseDirector, bomber model/actor disposal, target replication, launch/retry/pause/skip and score/result persistence. Measure the entire M1 in Studio: build latency, descendant/terrain budgets, cold/warm library appearance and carrier orientation, fly-off handoff/collision clearance, six bomber paths, two initial escorts and delayed escort/ace admission, wingman combat/no credit, countdown/escape/destruction/success, retry and locked Next/controller focus. Offline tests establish numeric contracts, not rendering, latency, controls quality or reference fidelity. After merge, the owner performs Player playtesting; no Player observation is claimed here.
 
+## Round 2 Studio-verification fixes (2026-10-29)
+
+The older verified head used a global `+80 X` launch-camera offset. The merged fly-off follow-up at this branch base already replaced it with heading-relative `-RightOf`; Round 2 makes the signed port distance explicit and adds world-axis regressions for north and east headings. Flight HUD advice and warning tones are now disabled only while the client's launch-intro state owns the jet, then restored by the reliable control handoff. Round 1's string-key wire fix already carries M1's score and rank through client normalization; Round 2 also preserves the validated target breakdown when legacy best-time compatibility rebuilds mission 1's record. The briefing now presents the points best, with a six-bomber 600/B save-to-menu regression. Studio/Player behavior remains unobserved by this implementation pass.
+
 ## Payload for the orchestrator's five human documents
 
 **shipped.md:** Before merge: no shipped/live claim. After merge: atomic 18-mission switch, optional practice and mission 1 available; M2–18 visible and locked; new saves; M01 world/carrier launch/bomber intercept, raw scoring and original opening text. Merged/live by pipeline convention; no Player verification by this agent.

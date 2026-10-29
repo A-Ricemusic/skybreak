@@ -227,7 +227,7 @@ export class GameAudio {
 		this.evadeCooldown = t.evadeCooldown;
 	}
 	/** 10 Hz warnings and enemy scans; positional missile sounds follow their Parts. */
-	public Step(dt: number, throttle: number, speed: number, position: Vector3, boundary: boolean): void {
+	public Step(dt: number, throttle: number, speed: number, position: Vector3, boundary: boolean, flightWarningsEnabled = true): void {
 		if (!this.aircraft || this.dead || this.paused) return;
 		const mix = AudioRules.EngineMix(throttle, speed, dt);
 		// Keep the per-frame mix free of temporary arrays of sound/volume pairs.
@@ -238,7 +238,7 @@ export class GameAudio {
 		if (this.scanTime < 0.1) return;
 		this.scanTime = 0;
 		const t = this.observed;
-		const warning = t && AudioRules.Warning(t.incoming, t.health, boundary, t.lockProgress, t.target !== undefined && t.targetDamageable !== false);
+		const warning = t && AudioRules.Warning(t.incoming, t.health, boundary, t.lockProgress, t.target !== undefined && t.targetDamageable !== false, flightWarningsEnabled);
 		if (warning !== this.warningKind) {
 			this.warning?.Destroy(); this.warning = undefined; this.warningKind = warning;
 			if (warning) this.warning = this.create(warning, this.group, warning === "lockSearch" ? 0.14 : 0.3);

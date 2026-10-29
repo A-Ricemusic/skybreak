@@ -255,10 +255,14 @@ export function normalizeSlot(raw: unknown, index: number, legacyV1 = false): Sa
 	const mission1Best = positiveTime(source.mission1BestTime) ?? legacyBest;
 	const mission2Best = positiveTime(source.mission2BestTime);
 	if (mission1Best !== undefined) {
-		missions[1] = copyBests({ completed: missions[1]?.completed === true, bestTime: fastest(missions[1]?.bestTime, mission1Best), firstCompletedAt: missions[1]?.firstCompletedAt }, missions[1]?.bestScore, missions[1]?.bestRank);
+		const current = missions[1];
+		missions[1] = copyBests({ completed: current?.completed === true, bestTime: fastest(current?.bestTime, mission1Best), firstCompletedAt: current?.firstCompletedAt }, current?.bestScore, current?.bestRank);
+		if (current?.bestTargetScore !== undefined) missions[1]!.bestTargetScore = current.bestTargetScore;
 	}
 	if (mission2Best !== undefined) {
-		missions[2] = copyBests({ completed: missions[2]?.completed === true, bestTime: fastest(missions[2]?.bestTime, mission2Best), firstCompletedAt: missions[2]?.firstCompletedAt }, missions[2]?.bestScore, missions[2]?.bestRank);
+		const current = missions[2];
+		missions[2] = copyBests({ completed: current?.completed === true, bestTime: fastest(current?.bestTime, mission2Best), firstCompletedAt: current?.firstCompletedAt }, current?.bestScore, current?.bestRank);
+		if (current?.bestTargetScore !== undefined) missions[2]!.bestTargetScore = current.bestTargetScore;
 	}
 
 	slot.missions = missions;

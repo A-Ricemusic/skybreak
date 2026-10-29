@@ -147,8 +147,9 @@ function BriefingScreenImpl({visible,menu,selectedSlot,selectedMission,slot,busy
 	const layout=getBriefingLayout(menu.panel.width,menu.panel.height);
 	const grid=getArchiveGrid(menu.panel.width,menu.panel.height);
 	const choose=(id:number)=>{onMission(id);setBrowse(false);};
+	const bestPoints=MissionCatalog.Scoring(selectedMission).basis==="points" && record?.bestScore!==undefined ? ` · BEST ${math.floor(record.bestScore)} PTS` : "";
 	const status=completed
-		? `  <font color="${HEX.Accent}">✓ CLEARED${record?.bestRank!==undefined ? ` · RANK ${record.bestRank}` : ""}${record?.bestTime!==undefined ? ` · ${formatTime(record.bestTime)}` : ""}</font>`
+		? `  <font color="${HEX.Accent}">✓ CLEARED${record?.bestRank!==undefined ? ` · RANK ${record.bestRank}` : ""}${bestPoints}${record?.bestTime!==undefined ? ` · ${formatTime(record.bestTime)}` : ""}</font>`
 		: selectedMission===unlocked ? `  <font color="${HEX.Orange}">NEW SORTIE</font>` : "";
 	const overflow=detailsCanvasHeight-layout.detailsHeight;
 	const actMissions=[PRACTICE, ...MissionCatalog.All()].filter((bp)=>bp.act===act);

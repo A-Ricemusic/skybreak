@@ -309,6 +309,7 @@ export class FlightController {
 				this.launchIntro = undefined; this.launchCameraTime = 0; this.keys.clear(); this.touchInput = Vector2.zero; this.gamepadInput = Vector2.zero;
 				this.throttle = FlightMath.CruiseThrottle; this.evadeRoll = 0;
 				this.mouseSteer = false; this.throttleStick = 0; this.touchThrottleAxis = 0;
+				this.notify();
 			}
 			else if (message.kind === "HudState") { if (this.active) this.applyHud(message as Partial<HudState>); }
 			else if (message.kind === "Completed" || message.kind === "Failed") this.Stop();
@@ -469,6 +470,8 @@ export class FlightController {
 		ContextActionService.BindActionAtPriority(this.actionName, (_, state, input) => this.handleBoundInput(state, input.KeyCode, input.Position), false, 3000, ...FLIGHT_KEYS);
 	}
 	public IsPaused(): boolean { return this.paused; }
+	/** Flight advice and warning tones stay silent while the scripted launch owns the jet. */
+	public FlightWarningsEnabled(): boolean { return this.launchIntro === undefined; }
 	/** Settings: pushing up dives instead of climbing (every input source). */
 	public SetInvertY(invert: boolean): void { this.invertY = invert; }
 	/** Settings: a centred stick gently levels the jet (pitch to the horizon, rolls upright). */
@@ -752,7 +755,7 @@ export class FlightController {
 			JetFactory.SetVapor(engine, EngineFx.VaporRate(math.max(math.abs(input.x), math.abs(input.y)), speed));
 		}
 		this.missiles.Step();
-		this.audio.Step(dt, this.frameInput.throttle, speed, this.visualFrame.Position, this.GetBoundaryWarning());
+		this.audio.Step(dt, this.frameInput.throttle, speed, this.visualFrame.Position, this.GetBoundaryWarning(), this.FlightWarningsEnabled());
 	}
 	private render(dt: number): void {
 		const camera = Workspace.CurrentCamera;

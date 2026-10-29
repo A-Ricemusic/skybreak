@@ -12,6 +12,7 @@ import { GameConfig } from "../shared/GameConfig";
 import { compileBomberEncounter, laterEscortsDue } from "../shared/BomberEncounter";
 import { BomberRules } from "../shared/BomberRules";
 import { AlliedRules } from "../shared/AlliedRules";
+import { encodeCampaignSlot, normalizeMissionRecords } from "../shared/CampaignWire";
 import { STORY, reachableStoryChapters } from "../shared/RelayStory";
 import { MissionCatalog as Legacy } from "./LegacyCatalog";
 const bp = MissionCatalog.Get(1);
@@ -38,6 +39,15 @@ describe("Released 18-mission campaign",()=>{
   expect(rank).toBe("S");expect(c.getSlots()[0].missions?.[1]?.bestScore).toBe(960);
   expect(highestUnlocked(c.getSlots()[0])).toBe(1);
   expect(normalizeProfile(serializeProfile({version:3,slots:c.getSlots()})).slots[0].missions?.[1]?.bestScore).toBe(960);
+ });
+ it("returns the six-bomber 600/B best through the save, remote and menu normalization path",()=>{
+  const state=BlueprintRunner.NewState(bp,0),ledger=new TargetScore(bp.scoring!);
+  for(let i=0;i<6;i++)recordScoredKill(state,ledger,`b${i}`,"air",true,170+i,"bomber");
+  const c=fresh();
+  expect(completeMission(c,1,1,true,{slot:1,missionId:1,kills:6,groundKills:0,optionalKills:0,completedPhases:1,elapsed:62,targetScore:ledger.Snapshot()},()=>undefined,0)).toBe(true);
+  const wire=encodeCampaignSlot(c.getSlots()[0]),record=normalizeMissionRecords(wire.missions)?.[1];
+  expect(record?.completed).toBe(true);expect(record?.bestScore).toBe(600);expect(record?.bestRank).toBe("B");
+  expect(record?.bestTargetScore).toEqual(ledger.Snapshot());expect(record?.bestTargetScore?.total).toBe(record?.bestScore);
  });
  for(const cause of ["escape","timeout","destroyed"])it(`fails by ${cause}`,()=>{
   const s=BlueprintRunner.NewState(bp,0);
