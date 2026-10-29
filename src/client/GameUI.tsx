@@ -655,10 +655,11 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				const missileHits = math.min(missilesFired, count(finished.missileHits));
 				const damageTaken = math.clamp(finite(finished.damageTaken, 100 - current.health), 0, 100);
 				// The server scores the run; an older or fallback message is scored here for display only.
-				const fallback = MissionScore.Compute({ won, airKills: kills - groundKills, groundKills, elapsed, par, missilesFired, missileHits, damageTaken, difficulty: finished.difficulty });
+				const fallback = MissionScore.Compute({ won, airKills: kills - groundKills, groundKills, elapsed, par, missilesFired, missileHits, damageTaken, difficulty: finished.difficulty, targetPoints: finished.targetScore?.total }, MissionCatalog.Scoring(missionId));
 				setOutcome({
 					won,
 					missionId,
+					targetScore: MissionCatalog.Scoring(missionId).basis === "points" ? finished.targetScore : undefined,
 					airKills: kills - groundKills,
 					optionalKills: count(finished.optionalKills),
 					groundKills,

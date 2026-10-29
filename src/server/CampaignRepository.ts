@@ -1,3 +1,4 @@
+import { readTargetScore, TargetScoreSnapshot } from "../shared/TargetScore";
 import { GameConfig } from "../shared/GameConfig";
 import { MissionCatalog, MISSION_COUNT } from "../shared/MissionCatalog";
 import { MissionRank, MissionScore, RANK_ORDER } from "../shared/MissionScore";
@@ -12,6 +13,7 @@ export interface StoredMissionRecord {
 	bestTime?: unknown;
 	firstCompletedAt?: unknown;
 	bestScore?: unknown;
+	bestTargetScore?: unknown;
 	bestRank?: unknown;
 }
 
@@ -76,6 +78,7 @@ export interface MissionResult {
 
 /** Debrief score of a run, recorded into the mission's saved bests when the run completes. */
 export interface MissionDebriefScore {
+	targetScore?: TargetScoreSnapshot;
 	score: number;
 	rank: MissionRank;
 }
@@ -182,6 +185,8 @@ function readMissionsMap(raw: unknown): { [missionId: number]: MissionRecord } {
 		const first = positiveTime(stored.firstCompletedAt);
 		if (first !== undefined) record.firstCompletedAt = first;
 		copyBests(record, readScore(stored.bestScore), MissionScore.IsRank(stored.bestRank) ? stored.bestRank : undefined);
+		const breakdown = readTargetScore(stored.bestTargetScore, record.bestScore);
+		if (record.bestScore !== undefined && breakdown !== undefined) record.bestTargetScore = breakdown;
 		if (record.completed || record.bestTime !== undefined) result[id] = record;
 	}
 	return result;
@@ -318,6 +323,9 @@ export function mergeSlot(storedRaw: unknown, desiredRaw: unknown, index: number
 		if (first !== undefined) record.firstCompletedAt = first;
 		// Score bests only ever rise, like bestTime only ever falls.
 		copyBests(record, highest(a?.bestScore, b?.bestScore), MissionScore.BetterRank(rankOf(a?.bestRank), rankOf(b?.bestRank)));
+		const scoreSource = (b?.bestScore ?? -1) > (a?.bestScore ?? -1) ? b : a;
+		const breakdown = scoreSource?.bestTargetScore ?? (a?.bestScore === b?.bestScore ? b?.bestTargetScore : undefined);
+		if (breakdown !== undefined) record.bestTargetScore = breakdown;
 		missions[id] = record;
 	}
 	merged.missions = missions;
@@ -364,6 +372,7 @@ export function serializeProfile(profile: CampaignProfile): StoredProfile {
 			if (record.firstCompletedAt !== undefined) payload.firstCompletedAt = record.firstCompletedAt;
 			if (record.bestScore !== undefined) payload.bestScore = record.bestScore;
 			if (record.bestRank !== undefined) payload.bestRank = record.bestRank;
+			if (record.bestTargetScore !== undefined) payload.bestTargetScore = record.bestTargetScore;
 			missions.set(tostring(id), payload);
 		}
 		const stored: StoredSlot = {
@@ -445,6 +454,7 @@ export function completeMission(
 	const qualifiedWin = won && flightObjectivesMet && objectivesMet && elapsed > 0 && elapsed < GameConfig.Campaign.MissionTimeLimit;
 	const kills = isFiniteNumber(stats.kills) ? math.max(0, math.floor(stats.kills)) : 0;
 	const par = MissionScore.ParSeconds(MissionCatalog.Get(missionId));
+	const policy = MissionCatalog.Scoring(missionId);
 	const scored = MissionScore.Compute({
 		won: qualifiedWin,
 		airKills: math.max(0, kills - groundKills),
@@ -455,8 +465,10 @@ export function completeMission(
 		missileHits: counter(stats.missileHits),
 		damageTaken: counter(stats.damageTaken),
 		difficulty: Difficulty.Coerce(stats.difficulty),
-	});
-	const result = coordinator.recordMissionResult(activeSlot, missionId, qualifiedWin, stats.kills, elapsed, { score: scored.score, rank: scored.rank });
+		targetPoints: policy.basis === "points" ? stats.targetScore?.total : undefined,
+	}, policy);
+	const result = coordinator.recordMissionResult(activeSlot, missionId, qualifiedWin, stats.kills, elapsed, { score: scored.score, rank: scored.rank,
+		targetScore: policy.basis === "points" ? stats.targetScore : undefined });
 	// Give the cloud write a short window so the result screen can confirm the save.
 	if (flushSeconds > 0) coordinator.flush(flushSeconds);
 	notify({
@@ -476,6 +488,7 @@ export function completeMission(
 		damageTaken: counter(stats.damageTaken),
 		lowestHealth: isFiniteNumber(stats.lowestHealth) ? math.clamp(stats.lowestHealth, 0, 100) : undefined,
 		evades: counter(stats.evades),
+		...(policy.basis === "points" && stats.targetScore !== undefined ? { targetScore: stats.targetScore } : {}),
 		score: scored.score,
 		rank: scored.rank,
 		par,
@@ -591,6 +604,9 @@ export class CampaignCoordinator {
 			const rank = debrief && MissionScore.IsRank(debrief.rank) ? debrief.rank : undefined;
 			const previousRank = rankOf(existing?.bestRank);
 			copyBests(record, highest(existing?.bestScore, score), MissionScore.BetterRank(previousRank, rank));
+			const improvesScore = score !== undefined && (existing?.bestScore === undefined || score > existing.bestScore);
+			const breakdown = improvesScore ? readTargetScore(debrief?.targetScore, score) : existing?.bestTargetScore;
+			if (breakdown !== undefined) record.bestTargetScore = breakdown;
 			missions[missionId] = record;
 			slot.missions = missions;
 			result.newBestScore = score !== undefined && (existing?.bestScore === undefined || score > existing.bestScore);
