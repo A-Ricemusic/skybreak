@@ -254,7 +254,7 @@ export class GameAudio {
 			entry.last = part.Position;
 		}
 		for (const [model, entry] of this.engines) {
-			if (!entry.root.Parent || model.PrimaryPart !== entry.root || model.Parent !== this.folder || model.GetAttribute("SkybreakEnemy") !== true || entry.root.Position.sub(position).Magnitude > 2400) {
+			if (!entry.root.Parent || model.PrimaryPart !== entry.root || model.Parent !== this.folder || !AudioRules.AircraftEngine(model.GetAttribute("SkybreakEnemy"), model.GetAttribute("SkybreakFriendly")) || entry.root.Position.sub(position).Magnitude > 2400) {
 				entry.sound.Destroy(); this.engines.delete(model);
 			}
 		}
@@ -263,7 +263,7 @@ export class GameAudio {
 		if (this.folder && (this.motors.size() < AudioRules.MaxMotors || this.engines.size() < AudioRules.MaxEngines)) for (const child of this.folder.GetChildren()) {
 			if (this.motors.size() < AudioRules.MaxMotors) this.track(child, false);
 			if (this.engines.size() >= AudioRules.MaxEngines) continue;
-			if (!child.IsA("Model") || child === this.aircraft || this.engines.has(child) || child.GetAttribute("SkybreakEnemy") !== true || child.GetAttribute("TargetKind") !== "air") continue;
+			if (!child.IsA("Model") || child === this.aircraft || this.engines.has(child) || !AudioRules.AircraftEngine(child.GetAttribute("SkybreakEnemy"), child.GetAttribute("SkybreakFriendly")) || child.GetAttribute("TargetKind") !== "air") continue;
 			const root = child.PrimaryPart;
 			if (!root || root.Position.sub(position).Magnitude > 2200) continue;
 			const sound = this.create("enemyEngine", root, 0.24, 0.95 + math.random() * 0.1);

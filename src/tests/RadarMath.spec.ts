@@ -50,11 +50,13 @@ describe("heading-up radar projection", () => {
 		expect(radarRange(100, 100, [{ kind: "required", x: 600, z: 100 }, { kind: "optional", x: 3000, z: 0 }, { kind: "missile", x: -2500, z: 0 }])).toBe(RADAR_NEAR_RANGE);
 	});
 	it("gives every contact kind a glyph and draws missiles on top", () => {
-		const kinds: RadarContactKind[] = ["required", "optional", "ground", "groundOptional", "objective", "protected", "missile"];
+		const kinds: RadarContactKind[] = ["friendly", "required", "optional", "ground", "groundOptional", "objective", "protected", "missile"];
 		for (const kind of kinds) {
 			expect(RADAR_GLYPHS[kind].size() > 0).toBe(true);
 			expect(RADAR_LAYER[kind]).toBeLessThanOrEqual(RADAR_LAYER.missile);
 		}
 		expect(RADAR_GLYPHS.required).never.toBe(RADAR_GLYPHS.optional);
+		expect(RADAR_GLYPHS.friendly).toBe("+");
+		expect(RADAR_LAYER.friendly).never.toBe(RADAR_LAYER.protected);
 	});
 });

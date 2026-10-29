@@ -4,6 +4,7 @@ export const AudioRules = {
 	MaxOneShots: 18,
 	MaxMotors: 12,
 	MaxEngines: 8,
+	AircraftEngine(enemy: unknown, friendly: unknown): boolean { return enemy === true || friendly === true; },
 	Warning(incoming: boolean, health: number, boundary: boolean, lock: number, hasTarget: boolean): AudioWarning | undefined {
 		if (incoming) return "incoming";
 		if (health > 0 && health <= 25) return "lowHull";

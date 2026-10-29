@@ -138,6 +138,11 @@ test("replacement enemy roots release stale sound ownership",function()
  local replacement=Instance.new("Part"); replacement.Parent=enemy; replacement.Position=vector(100); enemy.PrimaryPart=replacement
  step(a); assert(old.destroyed and a.engines[enemy].root==replacement); a:Destroy()
 end)
+test("friendly aircraft receive engine loops without enemy attributes",function()
+ local a,f=fixture(); local ally=Instance.new("Model"); ally.Parent=f; ally:SetAttribute("SkybreakFriendly",true); ally:SetAttribute("TargetKind","air")
+ local root=Instance.new("Part"); root.Parent=ally; root.Position=vector(100); ally.PrimaryPart=root
+ step(a); assert(a.engines[ally] and a.warning==nil); a:Destroy()
+end)
 test("undamageable targets never search; warning priority recovers",function()
  local a=fixture(); local t=telemetry(Instance.new("Model"),false); a:Telemetry(t); step(a); assert(a.warning==nil)
  t.targetDamageable=true; a:Telemetry(t); step(a); assert(a.warningKind=="lockSearch")
