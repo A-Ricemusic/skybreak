@@ -8,6 +8,14 @@ Derived specifications for the AC04-structured redesign (D-012). Engineers build
 | `worlds/` | One file per mission world (`mNN.md`): environment, layout sketch with scale converted to studs (D-016), terrain, landmarks, lighting, mapping to `WorldPlan` and the world kit, unknowns. |
 | `systems/` | Later: cross-mission systems such as the HUD, scoring and ranks, results screen and briefing. |
 
+Written so far:
+
+| Mission | Reference | Mission spec | World spec |
+|---|---|---|---|
+| 1 | Sitting Duck (bomber intercept) | [missions/m01.md](missions/m01.md) | [worlds/m01.md](worlds/m01.md) (plus `m01-composition.md`, `m01-measurement.md`) |
+| 4 | Blockade (transport intercept under radar jamming) | [missions/m04.md](missions/m04.md) | [worlds/m04.md](worlds/m04.md) |
+| 5 | Lifeline (night fuel-complex strike, score threshold, rearm, elite squadron) | [missions/m05.md](missions/m05.md) | [worlds/m05.md](worlds/m05.md) |
+
 Rules:
 
 - Every claim cites a source timestamp range in the footage indexed by [reference/ledger.md](../../reference/ledger.md). Each spec records the clip it used, how clip time maps to source time, which frames were opened, and what was not inspected.
