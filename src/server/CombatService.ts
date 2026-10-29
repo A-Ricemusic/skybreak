@@ -888,7 +888,7 @@ function spawnAllies(session: CombatSession): void {
 			pose: { position: point(position), facing: point(directionFor(session.state)) } });
 	}
 }
-function stepAllies(session: CombatSession, dt: number): void {
+function stepAllies(session: CombatSession, dt: number, weaponsEnabled = true): void {
 	const policy = session.blueprint?.allies;
 	if (!policy) return;
 	const player = positionFor(session.state);
@@ -902,9 +902,9 @@ function stepAllies(session: CombatSession, dt: number): void {
 		const station = frame.PointToWorldSpace(new Vector3(offset.x, offset.y, offset.z));
 		let target: Enemy | undefined;
 		let range = AlliedRules.Range;
-		if (ally.position.sub(player).Magnitude < AlliedRules.Leash) for (const enemy of session.enemies) {
+		if (weaponsEnabled && ally.position.sub(player).Magnitude < AlliedRules.Leash) for (const enemy of session.enemies) {
 			const distance = enemy.position.sub(ally.position).Magnitude;
-			if (distance < range && AlliedRules.CanEngage(policy, enemy) && canHurt(session, enemy)) { target = enemy; range = distance; }
+			if (distance < range && AlliedRules.CanEngage(policy, enemy, weaponsEnabled) && canHurt(session, enemy)) { target = enemy; range = distance; }
 		}
 		const destination = target ? target.position.add(target.velocity.mul(math.min(range / 600, 0.65))) : station;
 		let desired = unitOr(destination.sub(ally.position), directionFor(session.state));
@@ -913,7 +913,7 @@ function stepAllies(session: CombatSession, dt: number): void {
 		if ((ally.pullUpUntil ?? 0) > session.elapsed) desired = unitOr(desired.add(new Vector3(0, 2, 0)), desired);
 		if (target && range < 280) desired = unitOr(ally.direction.add(frame.RightVector.mul(index % 2 === 0 ? 1 : -1)), ally.direction);
 		ally.direction = steerAircraft(ally.direction, desired, 2.1, dt);
-		const speed = target ? math.clamp(session.state.speed + 24, 285, CombatBalance.banditSpeedCap) : math.clamp(session.state.speed + (station.sub(ally.position).Magnitude - 80) * 0.4, 120, 650);
+		const speed = target ? math.clamp(session.state.speed + 24, 285, CombatBalance.banditSpeedCap) : AlliedRules.FormationSpeed(session.state.speed, station.sub(ally.position).Magnitude);
 		ally.velocity = ally.direction.mul(speed);
 		const moved = ally.position.add(ally.velocity.mul(dt));
 		ally.position = new Vector3(math.clamp(moved.X, -session.airspace.spawnLimit, session.airspace.spawnLimit), math.max(170, moved.Y), math.clamp(moved.Z, -session.airspace.spawnLimit, session.airspace.spawnLimit));
@@ -1307,6 +1307,8 @@ function stepSession(session: CombatSession, dt: number): void {
 		const hit = AircraftCollision.Sweep(from, new Vector3(session.state.x, session.state.y, session.state.z), session.collisionParams!);
 		if (hit) { session.crashReason = AircraftCollision.Reason(hit); finish(session); return; }
 		session.aircraftFrame = frameFor(session.state);
+		// Wingmen visibly hold station through the scripted path; hostiles and all weapons remain frozen.
+		stepAllies(session, dt, false);
 		if (ready) {
 			session.input = { x: 0, y: 0, throttle: FlightMath.CruiseThrottle };
 			session.inputClientTime = 0; session.inputFresh = false; session.inputSteps = 0;

@@ -1,4 +1,4 @@
-import { LaunchStage } from "../shared/LaunchStage";
+import { LaunchStage, LaunchStageState } from "../shared/LaunchStage";
 import type { FlightControlHandoff } from "../shared/Types";
 import { ContextActionService, GuiService, Players, RunService, UserInputService, Workspace } from "@rbxts/services";
 import { airspaceWarning } from "../shared/WorldAirspace";
@@ -71,6 +71,8 @@ const CAMERA_LIFT_STUDS = 20;
 const AIM_LIFT_STUDS = 4;
 /** How fast (1/s) the chase camera's up vector follows the canopy: about 0.2 s of lag in a loop. */
 const CAMERA_ROLL_RATE = 5;
+/** Ease from the aft-facing launch view into chase instead of rotating both views in one frame. */
+const CAMERA_HANDOFF_SECONDS = 0.8;
 // Target box in the HUD palette: green for mission targets, dim green for optional ones, red once locked,
 // grey for a selection the server will not let you damage right now (never red, never LOCKED).
 // The selected box blinks unless it holds a damageable lock.
@@ -100,6 +102,14 @@ function isModel(value: unknown): value is Model {
 function frameFor(state: FlightState): CFrame {
 	const [qx, qy, qz, qw] = FlightMath.Visual(state);
 	return new CFrame(state.x, state.y, state.z, qx, qy, qz, qw);
+}
+function launchCameraFor(state: FlightState): CFrame {
+	const pose = LaunchStage.Camera(state);
+	return CFrame.lookAt(
+		new Vector3(pose.position.x, pose.position.y, pose.position.z),
+		new Vector3(pose.target.x, pose.target.y, pose.target.z),
+		new Vector3(pose.up.x, pose.up.y, pose.up.z),
+	);
 }
 function stateFrom(frame: CFrame): FlightState {
 	const state = FlightMath.NewState();
@@ -263,7 +273,8 @@ export class FlightController {
 	private readonly enemies = new EnemySmoothing();
 	/** Pause overlay is up: the local jet, camera and actions hold until Resume. */
 	private paused = false;
-	private launchIntro = false;
+	private launchIntro?: LaunchStageState;
+	private launchCameraTime = CAMERA_HANDOFF_SECONDS;
 	/** Serial of the latest local Pause/Resume, the action it carried, and when it was last sent; the server echoes `pauseAck`. */
 	private pauseSerial = 0;
 	private pauseAction: "Pause" | "Resume" | undefined;
@@ -289,12 +300,13 @@ export class FlightController {
 		this.streamConnections.push(this.remotes.MissionState.OnClientEvent.Connect((data: unknown) => {
 			if (!typeIs(data, "table")) return;
 			const message = data as Partial<Omit<HudState, "kind">> & { kind?: string };
-			if (message.kind === "FlightControl" && this.active && this.launchIntro) {
+			if (message.kind === "FlightControl" && this.active && this.launchIntro !== undefined) {
 				const handoff = data as FlightControlHandoff;
-				this.predictor = FlightPrediction.New(handoff.state, this.predictor?.airspace);
-				// Ignore any delayed pre-handoff state packet. The next server send increments this sequence.
-				this.predictor.sequence = handoff.sequence;
-				this.launchIntro = false; this.keys.clear(); this.touchInput = Vector2.zero; this.gamepadInput = Vector2.zero;
+				const predictor = this.predictor;
+				if (!predictor) return;
+				FlightPrediction.Handoff(predictor, handoff.state, handoff.sequence);
+				// Ignore delayed pre-handoff packets while the reliable pose gap blends through normal prediction.
+				this.launchIntro = undefined; this.launchCameraTime = 0; this.keys.clear(); this.touchInput = Vector2.zero; this.gamepadInput = Vector2.zero;
 				this.throttle = FlightMath.CruiseThrottle; this.evadeRoll = 0;
 				this.mouseSteer = false; this.throttleStick = 0; this.touchThrottleAxis = 0;
 			}
@@ -762,13 +774,14 @@ export class FlightController {
 			return;
 		}
 		const now = os.clock();
-		if (!this.launchIntro) this.input(dt);
+		const intro = this.launchIntro !== undefined;
+		if (!intro) this.input(dt);
 		const input = this.frameInput;
 		// Fly the local jet with zero input latency; the server reconciles it at 20 Hz.
 		// The next fixed step (the first to use this frame's input) starts at the last step boundary.
 		const stamp = FlightPrediction.InputStamp(predictor, now);
-		const state = this.launchIntro ? predictor.state : FlightPrediction.Step(predictor, input, dt, now);
-		if (this.launchIntro) LaunchStage.Step(state, dt);
+		const state = intro ? predictor.state : FlightPrediction.Step(predictor, input, dt, now);
+		if (intro) LaunchStage.Advance(this.launchIntro!, state, dt);
 		let frame = frameFor(state);
 		if (this.evadeRoll > 0) {
 			this.evadeRoll = math.max(0, this.evadeRoll - dt);
@@ -793,10 +806,12 @@ export class FlightController {
 		this.cameraUp = square.Magnitude > 0.05 ? square.Unit : new Vector3(ux, uy, uz);
 		const speedFactor = math.clamp((state.speed - FlightMath.CruiseSpeed) / (FlightMath.MaxSpeed - FlightMath.CruiseSpeed), 0, 1);
 		const desiredPosition = position.sub(forward.mul(68 + speedFactor * 13)).add(this.cameraUp.mul(CAMERA_LIFT_STUDS));
-		// Look aft from ahead and to port of the jet: carrier group stays behind it in view.
-		const desired = this.launchIntro
-			? CFrame.lookAt(position.add(forward.mul(110)).add(new Vector3(80, 45, 0)), position.sub(forward.mul(260)))
-			: CFrame.lookAt(desiredPosition, position.add(forward.mul(100)).add(this.cameraUp.mul(AIM_LIFT_STUDS)), this.cameraUp);
+		const chase = CFrame.lookAt(desiredPosition, position.add(forward.mul(100)).add(this.cameraUp.mul(AIM_LIFT_STUDS)), this.cameraUp);
+		const launch = launchCameraFor(state);
+		this.launchCameraTime = intro ? 0 : math.min(CAMERA_HANDOFF_SECONDS, this.launchCameraTime + dt);
+		const handoff = this.launchCameraTime / CAMERA_HANDOFF_SECONDS;
+		const eased = handoff * handoff * (3 - 2 * handoff);
+		const desired = intro ? launch : launch.Lerp(chase, eased);
 		// Impact feel (CameraShake) rides on top of the follow: shake is a camera-space
 		// offset and the ace hit-stop slows the follow and punches the FOV. Visual only.
 		const impact = CameraShake.Step(dt);
@@ -813,7 +828,7 @@ export class FlightController {
 		const target = this.telemetry.target;
 		this.boxes.Update(camera, position, target !== undefined && target.Parent !== undefined ? target : undefined, this.boxPosition);
 		this.updateMarkers(camera);
-		if (this.launchIntro) return;
+		if (intro) return;
 		this.sendTime += dt;
 		// Unreliable input: up to 20 Hz while the controls move, 10 Hz keepalive otherwise
 		// (well inside the server's 0.7 s silence timeout even with packet loss).
@@ -850,18 +865,16 @@ export class FlightController {
 		this.visualFrame = this.aircraft.GetPivot();
 		// The server holds the jet still until "Started", so its pivot is the exact initial state;
 		// the first FlightState packet corrects speed and anything else within 50 ms.
-		this.launchIntro = missionData.launchIntro === true;
+		this.launchIntro = missionData.launchIntro === true ? { elapsed: 0 } : undefined;
+		this.launchCameraTime = this.launchIntro === undefined ? CAMERA_HANDOFF_SECONDS : 0;
 		this.predictor = FlightPrediction.New(missionData.initialState ?? stateFrom(this.visualFrame), missionData.airspace);
 		const camera = Workspace.CurrentCamera;
 		if (camera) {
-			if (this.launchIntro) this.visualFrame = frameFor(this.predictor.state);
+			if (this.launchIntro !== undefined) this.visualFrame = frameFor(this.predictor.state);
 			this.previousCamera = { type: camera.CameraType, subject: camera.CameraSubject, frame: camera.CFrame, fov: camera.FieldOfView };
 			this.cameraUp = this.visualFrame.UpVector;
 			this.cameraFrame = CFrame.lookAt(this.visualFrame.Position.sub(this.visualFrame.LookVector.mul(75)).add(this.cameraUp.mul(CAMERA_LIFT_STUDS)), this.visualFrame.Position.add(this.visualFrame.LookVector.mul(100)), this.cameraUp);
-			if (this.launchIntro) {
-				const position = this.visualFrame.Position, forward = this.visualFrame.LookVector;
-				this.cameraFrame = CFrame.lookAt(position.add(forward.mul(110)).add(new Vector3(80, 45, 0)), position.sub(forward.mul(260)));
-			}
+			if (this.launchIntro !== undefined) this.cameraFrame = launchCameraFor(this.predictor.state);
 		} else this.cameraFrame = this.visualFrame;
 		// The predicted local visual; the replicated server aircraft stays hidden.
 		this.visual = this.aircraft.Clone();
@@ -915,7 +928,8 @@ export class FlightController {
 	public Stop(): void {
 		this.audio.Stop();
 		this.active = false;
-		this.launchIntro = false;
+		this.launchIntro = undefined;
+		this.launchCameraTime = CAMERA_HANDOFF_SECONDS;
 		this.paused = false;
 		// Each sortie's server session counts pause serials from 0.
 		this.pauseSerial = 0; this.pauseAction = undefined;

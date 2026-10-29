@@ -20,6 +20,7 @@ const files=["shared/LaunchStage","shared/InitialTelemetry","tests/CountdownFlyo
 	"tests/Flight.spec","shared/FlightPrediction","shared/TelemetryCodec","tests/FlightPrediction.spec",
 	// Ace Combat-style target boxes: validity, size, blink, ranking and touch keep-outs.
 	"shared/TargetBoxes","tests/TargetBoxes.spec"];
+files.push("shared/CountdownDisplay");
 files.push("shared/missions/index", "shared/missions/Phases", ...Array.from({length:27},(_,i)=>`shared/missions/m${String(i+1).padStart(2,"0")}`));
 for(const file of files){
 	let source=await Bun.file(resolve(root,`out/${file === "shared/missions/index" ? "shared/missions/init" : file}.luau`)).text();

@@ -3,6 +3,11 @@ import { MissionStartPolicy } from "./MissionPolicy";
 
 /** Fixed-step launch stage: loading and paused time never enter this clock. */
 export interface LaunchStageState { elapsed: number; }
+export interface LaunchCameraPose {
+	position: { x: number; y: number; z: number };
+	target: { x: number; y: number; z: number };
+	up: { x: number; y: number; z: number };
+}
 export const LaunchStage = {
 	Seconds: 3,
 	CanControl(loading: boolean, launch: LaunchStageState | undefined, paused: boolean): boolean {
@@ -19,9 +24,21 @@ export const LaunchStage = {
 		const [x, y, z] = FlightMath.ForwardOf(state);
 		state.x += x * state.speed * dt; state.y += y * state.speed * dt; state.z += z * state.speed * dt;
 	},
-	Advance(stage: LaunchStageState, state: FlightState, dt: number): boolean {
+	Advance(stage: LaunchStageState, state: FlightState, dt: number, paused = false): boolean {
+		if (paused) return false;
 		const span = math.min(math.max(0, dt), LaunchStage.Seconds - stage.elapsed);
 		LaunchStage.Step(state, span); stage.elapsed += span;
 		return stage.elapsed >= LaunchStage.Seconds - 0.000001;
+	},
+	/** Heading-relative launch view: port, above and behind the jet, looking aft toward the carrier. */
+	Camera(state: FlightState): LaunchCameraPose {
+		const [fx, fy, fz] = FlightMath.ForwardOf(state);
+		const [rx, ry, rz] = FlightMath.RightOf(state);
+		const [ux, uy, uz] = FlightMath.UpOf(state);
+		return {
+			position: { x: state.x - rx * 80 + ux * 45 - fx * 110, y: state.y - ry * 80 + uy * 45 - fy * 110, z: state.z - rz * 80 + uz * 45 - fz * 110 },
+			target: { x: state.x - fx * 260, y: state.y - fy * 260, z: state.z - fz * 260 },
+			up: { x: ux, y: uy, z: uz },
+		};
 	},
 };
