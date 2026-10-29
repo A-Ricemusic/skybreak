@@ -36,3 +36,11 @@ Mission 3 world (#139) and engine batch B (#141) are merged and dormant. Its off
 ## PR #137 elite safety gate — resolved
 
 Revision 3 (`vanta-v2-elite-3`) fixed the rejected rear treatment. Independent review 3 approved the exact export at 10/10: [review record](../qa/asset-reviews/2026-10-29-pr137-review-3.md). All five models were uploaded and moderation-approved on 2026-10-29 (journal `~/.skybreak-roblox-uploads/journal-3407487520.json`). Wiring on this branch remains unused until missions 4–5. The Studio orientation/scale gate passed on 2026-10-29; see the resolved row above. No upload or Player test was performed by this implementation agent.
+
+## M04/M05 pending verification and assumptions (unmerged)
+
+The two worlds are dormant on `feat/m04-m05-worlds`; Studio is leased elsewhere. No Studio launch, Roblox Jest run, Player test, upload or merge was performed. Cold load times, water appearance, shell continuity in the renderer, uploaded assets and phone performance need the orchestrator’s Studio/Player pass before activation. M05 point/search/runway lights need engine batch C; this PR exports anchors only. Approved assets from merged PR #142 use stand-ins if runtime loading fails.
+
+Assumptions: M04’s translated start and NE/east/SE route implement the reference’s recommended hook; initial jammer and escort offsets and four later escort poses are provisional. M05 uses A3’s 48 rig /40 refinery ground split; per-type counts, eight linked decks, individual coordinates, coastline, northbound runway and light-anchor density are not readable precisely in the footage. Review fixes lower the navigable sea bed to8 beneath surface32, clear rotated tanker keels, extend the tower apron and support grass-free rotated tracks. M04 exports nine ordinary escorts plus one ace (maximum1,540); M05 includes an assumed command building for the observed100-point contact and a2,400-point rig ledger. Ship waterline poses stay32. These choices are recorded in D-080–D-085 and the composition specs; mission failure/scoring/RTB behavior remains separate integration work.
+
+Cold Studio builds remain unmeasured. Apply M02’s approximately 1.5× estimate correction when planning the lease (roughly 14 s: M04 9.259 s ×1.5 ≈13.89 s; M05 9.281 s ×1.5 ≈13.92 s); no measured runtime is claimed.

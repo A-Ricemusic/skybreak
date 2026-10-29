@@ -1,16 +1,17 @@
 # Shipped
 
-Last updated: 2026-10-29, against `main` at `cbdec3a`. PR #142 remains unmerged.
+Last updated: 2026-10-29, against `main` at `051b183`. PR #144 remains unmerged.
 
-[Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). The new 18-mission campaign is live by pipeline: practice flight and mission 1 playable, missions 2 to 18 locked. The latest merged gameplay-code revision is `cbdec3a` (#141), dormant engine work; the playable mission 1 tuning is from #134. The publish workflow for `4891e8a` succeeded on 2026-10-29: it confirmed the official place and Roblox returned **place version 85**. Gameplay merges are live through automatic CI/CD under the owner's convention; documentation-only changes add no game content.
+[Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). The new 18-mission campaign is live by pipeline: practice flight and mission 1 playable, missions 2 to 18 locked. The latest merged gameplay-code revision is `051b183` (#142), dormant engine work; the playable mission 1 tuning is from #134. The publish workflow for `4891e8a` succeeded on 2026-10-29: it confirmed the official place and Roblox returned **place version 85**. Gameplay merges are live through automatic CI/CD under the owner's convention; documentation-only changes add no game content.
 
 ## Merged 2026-10-29, newest first
 
 | PR | Commit | Change | What you will see |
 |---|---|---|---|
+| #142 | `051b183` | Wire five approved mission 4–5 models | Dormant asset wiring; missions 4–5 remain locked. |
 | #141 | `cbdec3a` | Mission updates, return lines, landing and terrain clearance | Dormant engine support; mission 3 remains locked. |
 | #139 | `7f037a9` | Mission 3 snowy mountains, radar sites and landing base | Dormant world; mission 3 remains locked. |
-| #137 | `c6252fc` | Original mission 4–5 model exports | Asset source work only. PR #142 wires the approved uploads and remains unmerged. |
+| #137 | `c6252fc` | Original mission 4–5 model exports | Asset source work only. Merged PR #142 wires the approved uploads. |
 | #138 | `4e3534f` | Typed ground targets, AA guns, standalone aces and triggered waves | Dormant engine support; practice and mission 1 unchanged. |
 | #140 | `4992b3d` | Mission 2 farmland, lake and enemy airbase | Dormant world; mission 2 remains locked. |
 | #136 | `85d469a` | Mission/world specifications for missions 2–3 | Documentation only. |
@@ -79,3 +80,5 @@ These merged gameplay changes are live through the automatic pipeline convention
 - **Not done:** no agent has played any of this in Roblox Player. No place version or upload receipt was checked. Your playtest is the real check.
 
 The earlier AC04 release (#92) was rejected and reverted (`b0737fa`). #77 (mission 1 tutorial rework) and #91 (TypeScript 5.9) were closed without merging.
+
+PR #144 remains unmerged; its dormant M04/M05 worlds contribute no Player changes. Offline validation and pending measurements are recorded in the composition specs and Blockers.
