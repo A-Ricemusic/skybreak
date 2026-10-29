@@ -983,16 +983,34 @@ def vanta_paint(livery="base"):
 
         return skin(dict(common, upper="#3f1f1f", lower="#33363a", camo=("#2d1617", "#4a2321"), radome="#25100f",
                          accent="#a08440", accent_masks=(fin_tip,), extra=pinstripe, rough=0.42, metal=0.12))
+    if livery == "elite":
+        # Mission 5 elite squadron (vanta-v2-elite, built by m04_m05_assets.py): blue-black with the
+        # whole fin and rudder in pale steel blue and one straight chordwise band across each outer
+        # wing. Plain colour fields only: no emblem, chevron, numeral-like mark or text. (A pale
+        # fin-tip block over the dark fin met the light rudder-hinge gap in a shape like a "7".)
+        def fin_field(n, x, y, z, nx, ny, nz):
+            return n.mul(n.smooth(z, 1.15, 1.3), n.mul(n.smooth(n.absf(x), 0.45, 0.3), n.smooth(y, 3.6, 4.0)))
+
+        def wing_band(n, x, y, z, nx, ny, nz):
+            return n.mul(n.band(n.absf(x), 9.3, 10.3, 0.03), n.smooth(n.absf(nz), 0.3, 0.5))
+
+        return skin(dict(common, upper="#1d222b", lower="#2b313b", camo=("#151920", "#262c36"), radome="#14171c",
+                         accent="#7f97a8", accent_masks=(fin_field, wing_band), rough=0.5, metal=0.08))
     raise ValueError(livery)
 
 
-@builder("vanta-v2")
-def vanta_v2():
-    a = Asset("vanta-v2", "Vanta enemy interceptor (v2)", texture=1024, kind="aircraft", tri_limit=15000,
+def vanta_v2_airframe(name="vanta-v2", title="Vanta enemy interceptor (v2)", paint=None, export_version=None,
+                      usage="Enemy bandits and raiders (JetFactory.Create enemy=true); preferred over v1 when uploaded."):
+    """The Vanta v2 mesh with its zones, ready for ``finish()``; returns (asset, attachments).
+
+    ``vanta-v2`` passes the defaults. A livery built as its own folder (``vanta-v2-elite``)
+    passes its name, paint and export version: the geometry, seed and scale are the same, so
+    the mesh is the Vanta v2 mesh and only the paint zone differs."""
+    a = Asset(name, title, texture=1024, kind="aircraft", tri_limit=15000,
               bump_distance=0.01, seed=202, target_length=VANTA_LENGTH, weighted_normals=True, glass_parts=("Canopy",),
-              usage="Enemy bandits and raiders (JetFactory.Create enemy=true); preferred over v1 when uploaded.")
+              usage=usage, export_version=export_version)
     ik = VANTA_INTAKE
-    z = zones_common(a, vanta_paint("base"), "#2f3338", (1.55, -0.4), 12.5, 2.6, ik["y"], ik["depth"], (ik["cx"], ik["cz"] + 0.15))
+    z = zones_common(a, paint or vanta_paint("base"), "#2f3338", (1.55, -0.4), 12.5, 2.6, ik["y"], ik["depth"], (ik["cx"], ik["cz"] + 0.15))
     paint = z["paint"]
     a.metadata["pivots"], a.metadata["hinges"] = {}, {}
     body = Body(VANTA_KEYS, sharp=[3], counts=KESTREL_COUNTS)
@@ -1123,6 +1141,15 @@ def vanta_v2():
 
     tips = a.metadata["wingtips"]
     attachments = {"leftWingtip": tips["L"], "rightWingtip": tips["R"], "exhaust": (0.0, 12.5, -0.4)}
+    return a, attachments
+
+
+VANTA_CLOSEUP = ((1.0, -5.2, -0.2), (1.0, -1.3, 0.45), 8.5)
+
+
+@builder("vanta-v2")
+def vanta_v2():
+    a, attachments = vanta_v2_airframe()
     liveries = [
         {"name": "vulture", "title": "Vanta ace livery: Vulture flight (v2)", "zones": {"paint": vanta_paint("vulture")},
          "usage": "Vulture Lead and Vulture Two aces (M11 and M15 ace phases); preferred over v1 when uploaded."},
@@ -1130,4 +1157,4 @@ def vanta_v2():
          "usage": "Air Marshal Rusk final ace (M27 ace phase); preferred over v1 when uploaded."},
     ]
     a.finish(origin="center", hinges=a.metadata["hinges"], attachments=attachments, liveries=liveries,
-             extra_notes=CHECK_NOTES, closeup=((1.0, -5.2, -0.2), (1.0, -1.3, 0.45), 8.5))
+             extra_notes=CHECK_NOTES, closeup=VANTA_CLOSEUP)

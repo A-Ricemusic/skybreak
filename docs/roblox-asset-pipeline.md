@@ -23,10 +23,11 @@ Generators live in `tools/assets/` and are deterministic Blender Python:
 | `skyasset.py` | Shared library: geometry helpers, procedural Cycles materials, PBR bake, previews, FBX export, checklist |
 | `zones.py` | Surface recipes (concrete, painted metal, windows, corrugation, boards, foliage, rock...) |
 | `aircraft.py` | Kestrel, Vanta and the Vanta ace liveries (v1) |
-| `aircraft_v2.py` | Version 2 Kestrel, Vanta and ace liveries: shaped-section fuselages, intakes, cockpit, missiles (see [aircraft assets](aircraft-assets.md#version-2-aircraft)) |
+| `aircraft_v2.py` | Version 2 Kestrel, Vanta and ace liveries: shaped-section fuselages, intakes, cockpit, missiles (see [aircraft assets](aircraft-assets.md#version-2-aircraft)); `vanta_v2_airframe()` is the shared Vanta v2 mesh that a livery folder such as `vanta-v2-elite` builds from |
 | `compare_v1_v2.py` | Optional: renders `assets/roblox-upload/v1-vs-v2.png` from the exported FBX files |
 | `world.py` | Frigate, oil platform, quay, containers, crane, hangar, tower, three city buildings, farmhouse, barn, silo, radar dish, relay mast, two trees, three rocks |
 | `m01_assets.py` | Mission 1 heavy bomber and aircraft carrier, with extra review previews, a scale reference and a contact sheet; pending review and deliberately not in `write_manifest.KEYS` (see [mission 1 assets](assets-bomber-carrier.md)) |
+| `m04_m05_assets.py` | Mission 4 and 5 heavy transport, radar jammer, fuel tanker, attack helicopter and the `vanta-v2-elite` livery, with the same review pack; pending review and not in `write_manifest.KEYS` (see [mission 4 and 5 assets](assets-m04-m05.md)) |
 | `build.py` | Entry point: one asset per fresh Blender process |
 | `build-all.sh` | Every asset, four processes at a time, then `write_manifest.py` |
 | `write_manifest.py` | Validates every checklist, writes `assets/roblox-upload/manifest.json` and `src/shared/UploadedAssetSpecs.ts` |
