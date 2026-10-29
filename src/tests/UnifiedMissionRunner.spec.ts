@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { RadioQueue } from "../shared/RadioQueue";
-import { MissionCatalog } from "../shared/MissionCatalog";
+import { MissionCatalog } from "./LegacyCatalog";
 import { FlightMath } from "../shared/FlightMath";
 import { BlueprintRunner, BlueprintState } from "../shared/BlueprintRunner";
 

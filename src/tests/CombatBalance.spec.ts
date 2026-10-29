@@ -2,7 +2,7 @@ import { describe, expect, it } from "@rbxts/jest-globals";
 import { FlightMath } from "../shared/FlightMath";
 import { CombatBalance } from "../shared/CombatBalance";
 import { Difficulty } from "../shared/Difficulty";
-import { MissionCatalog } from "../shared/MissionCatalog";
+import { MissionCatalog } from "./LegacyCatalog";
 import { MissionPacing } from "../shared/MissionPacing";
 import { ThreatRules } from "../shared/ThreatRules";
 import { SpecialWeapons } from "../shared/SpecialWeapons";

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
-import { MissionBlueprint, MissionCatalog, MISSIONS } from "../shared/MissionCatalog";
+import { MissionBlueprint, MissionCatalog, MISSIONS } from "./LegacyCatalog";
 import { FlightMath } from "../shared/FlightMath";
 import { FlightPrediction } from "../shared/FlightPrediction";
 import { LaunchStage } from "../shared/LaunchStage";
@@ -34,10 +34,11 @@ describe("countdown/fly-off legacy parity (origin/main values)", () => {
 		}
 	});
 	it("keeps the timer text and legacy debrief unchanged", () => {
-		expect(clockLines(CountdownDisplay.Value(1, 900), 0, 3, 0, 3)).toEqual(["TIME 15:00", "TGT 0/3"]);
-		expect(clockLines(CountdownDisplay.Value(1, 899.5), 1, 3, 0, 3)).toEqual(["TIME 14:59", "TGT 1/3"]);
-		expect(clockLines(CountdownDisplay.Value(1, -1), undefined, undefined, 2, 3)).toEqual(["TIME 00:00", "KILL 2/3"]);
-		expect(initialTelemetry(1).timeRemaining).toBe(900);
+		expect(clockLines(CountdownDisplay.Value(0, 900), 0, 3, 0, 3)).toEqual(["TIME 15:00", "TGT 0/3"]);
+		expect(clockLines(CountdownDisplay.Value(0, 899.5), 1, 3, 0, 3)).toEqual(["TIME 14:59", "TGT 1/3"]);
+		expect(clockLines(CountdownDisplay.Value(0, -1), undefined, undefined, 2, 3)).toEqual(["TIME 00:00", "KILL 2/3"]);
+		expect(initialTelemetry(0).timeRemaining).toBe(900);
+
 		expect(failureCause("timeout")).toBe("The 15-minute operation window closed.");
 	});
 });
@@ -138,6 +139,17 @@ describe("opt-in mission countdown and launch stage", () => {
 		expect(forwardStep).toBeGreaterThan(-0.25);
 	});
 	it("keeps the intro camera on port and rotates its offset with heading", () => {
+		const north = FlightMath.FromPose(30, 400, -70, 0, 0, 180), northCamera = LaunchStage.Camera(north);
+		// Compare per component: the forward vector can carry negative zeros, which are the same direction.
+		const [nfx, nfy, nfz] = FlightMath.ForwardOf(north);
+		expect(nfx).toBeCloseTo(0, 5);
+		expect(nfy).toBeCloseTo(0, 5);
+		expect(nfz).toBeCloseTo(-1, 5);
+		expect(northCamera.position.x).toBeLessThan(north.x);
+		// In this yaw convention -90 degrees points east (+X); port is north (-Z).
+		const east = FlightMath.FromPose(30, 400, -70, -math.pi / 2, 0, 180), eastCamera = LaunchStage.Camera(east);
+		expect(FlightMath.ForwardOf(east)[0]).toBeCloseTo(1, 5);
+		expect(eastCamera.position.z).toBeLessThan(east.z);
 		for (const heading of [0, math.pi / 2, math.pi]) {
 			const state = FlightMath.FromPose(30, 400, -70, heading, 0, 180), camera = LaunchStage.Camera(state);
 			const [fx, fy, fz] = FlightMath.ForwardOf(state), [rx, ry, rz] = FlightMath.RightOf(state), [ux, uy, uz] = FlightMath.UpOf(state);

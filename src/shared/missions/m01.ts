@@ -1,22 +1,24 @@
+import { BomberRules } from "../BomberRules";
 import type { MissionBlueprint } from "../MissionCatalog";
+import { M01, M01_WORLD_KEY } from "../M01Geometry";
+import { M01_AIRSPACE } from "../M01Limits";
+import { m01CarrierFlyoffStart } from "../M01CarrierPlan";
 
+// Follow the reserved south-to-north band: coast, city, Varda Rim, north exit.
+const route = M01.route.map(([x, z]) => ({ x, y: 727, z }));
+const distance = BomberRules.Create(route, 1).length;
 export const mission: MissionBlueprint = {
-	id: 1,
-	act: 1,
-	codename: "Rim Static",
-	title: "FIRST FLIGHT",
-	region: "canyon_airfield",
-	environment: "canyon_noon",
-	primary: "Complete flight training and repel a probing attack",
-	briefing: "Trainee pilot checkout at Varda Rim. Turn and pitch, cycle to the training radar, lock and hit it, then intercept three bandits probing the rim.",
-	debrief: "Varda Rim held. The quartermaster hands you a sealed case of your missing mentor's radio recordings.",
-	failure: "The bandits reach the field. Varda Rim is grounded and Teal's recordings stay locked away.",
-	phases: [
-			{ execution: { minimumDwell: 2.5, movementDuration: 3, practice: true, hudPhase: "tutorial_move", objective: "Tap turn and pitch; release to hold, opposite input to level" }, kind: "tutorial_move", label: "Practice short turn and pitch taps", tutorialStep: "move", beat: "Tap turn and pitch briefly. Three seconds TOTAL each; impacts reset you." },
-			{ execution: { minimumDwell: 2.5, practice: true, activatePracticeTarget: true, hudPhase: "tutorial_target", objective: "Press TGT to select the practice target" }, kind: "tutorial_target", label: "Cycle to the training target", tutorialStep: "target", beat: "Select radar: TGT / Tab / Y. Follow marker; turn back if you pass it." },
-			{ execution: { minimumDwell: 2.5, practice: true, hudPhase: "tutorial_missile", objective: "Aim at the practice target, wait for lock, then fire a missile" }, kind: "tutorial_missile", label: "Lock and hit the training radar", tutorialStep: "missile", count: 1, beat: "Aim for LOCK, then FIRE / Space / RT. Pull up after firing." },
-			{ execution: { launchDelay: 4, directSpawn: true, hudPhase: "tutorial_bandits", objective: "Live flight: select a bandit, aim for LOCK, fire; EVADE incoming missiles" }, kind: "required_air", label: "Intercept three bandits", count: 3, beat: "Bandits in 4s. Protection ends on arrival; impacts then fatal." },
-		],
-	ground: [{ asset: "radar", name: "TRAINING RADAR", x: 0, z: -850 }],
-	legacy: 1,
+ id: 1, act: 1, codename: "Rim Static", title: "OUR OWN PAINT", region: "coastal_city", environment: "farm_overcast",
+ available: true, worldKey: M01_WORLD_KEY, airspace: M01_AIRSPACE, start: m01CarrierFlyoffStart(), countdownSeconds: 600,
+ scoring: { basis: "points", points: { bomber: 100, escort: 60, ace: 240 }, rank: { S: 800, A: 700, B: 600, C: 500 } },
+ allies: { count: 4, model: "Kestrel", callsignPrefix: "LANTERN", creditPlayerKills: false, allowRequiredTargets: false,
+ formation: [{x:-180,y:20,z:160},{x:180,y:20,z:160},{x:-360,y:40,z:320},{x:360,y:40,z:320}] },
+ primary: "Destroy all six bombers before they leave the island",
+ briefing: "Teal's unsigned checkout is cut short. Six bombers in Varda's own paint are crossing the islands toward Varda Rim's runway on the headland. They squawk our codes; the warning came late. You are the nearest jet. Fly off the training carrier and stop them. Escorts are optional targets.",
+ debrief: "The six bombers are down and Varda Rim's runway is clear. The quartermaster hands you a sealed case from Teal's bunk, addressed to Sera.",
+ failure: "The raid was not stopped. Varda Rim's runway remains under threat.",
+ ground: [], phases: [{ kind: "required_air", count: 6, label: "Intercept six bombers", beat: "Six bombers, our paint and codes. Stop them before the north coast.",
+ bombers: { count: 6, waypoints: route.filter((_,i)=>i<route.size()-1), escape: route[route.size()-1], speed: distance/240,
+ escapeCall: "The bombers crossed the north coast. Varda Rim, clear the runway.",
+ escorts: { count: 4, initial: 2, role: "escort", aceName: "ASH WARRANT", aceAt: 150 } } }],
 };

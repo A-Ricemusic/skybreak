@@ -1,3 +1,7 @@
+# Historical Broken Relay campaign (retired)
+
+This document records the retired 27-mission campaign. It does not describe the live campaign after the 18-mission switch. Tables below are frozen historical evidence; current availability, practice and mission 1 are tested against the active catalog.
+
 # SKYBREAK: Broken Relay — independent campaign alternative
 
 Status: **round-3 mission structure implementation**, rebased onto main after PR #37, PR #38 and PR #41 (`4f06ef8`). Every M3–M27 sortie has 4–7 alternating objective beats. Normal is retuned for room to follow the story; Ace carries the stronger combat pressure. Build and offline verification are described below; Roblox Jest and live phone balance validation are reserved for the coordinator.

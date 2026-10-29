@@ -1,3 +1,4 @@
+import { MissionCatalog } from "./LegacyCatalog";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { BUMP_CHUNK, FILL_CHUNK, TERRAIN_BUDGET, UNSPLIT_MAX, bumpRegion, regionCells, runBudgeted, terrainJobs, type TerrainJob } from "../shared/TerrainSchedule";
 import { WorldPlanner, terrainTop, type TerrainOp } from "../shared/WorldPlan";
@@ -32,7 +33,7 @@ describe("Terrain write scheduler", () => {
 	it("never runs more than one budget plus one job between yields on the heaviest worlds", () => {
 		// Cost model: 40 ns per filled voxel, 250 ns per bump cell (the Luau loop) - only the ratio matters here.
 		for (const id of [11, 16, 18]) {
-			const jobs = terrainJobs(WorldPlanner.Build(id).ops);
+			const jobs = terrainJobs(WorldPlanner.Build(id, MissionCatalog.Get(id)).ops);
 			let now = 0, sliceStart = 0, worstSlice = 0, longest = 0;
 			const run = runBudgeted(jobs, (job) => { const cost = job.cells * (job.region !== undefined ? 250e-9 : 40e-9); longest = math.max(longest, cost); now += cost; }, {
 				budget: TERRAIN_BUDGET, clock: () => now, pause: () => { worstSlice = math.max(worstSlice, now - sliceStart); now += 1 / 60; sliceStart = now; },
@@ -44,7 +45,7 @@ describe("Terrain write scheduler", () => {
 	});
 	it("bounds every job: fills by FILL_CHUNK, bump slices by BUMP_CHUNK, whole wedges and balls by UNSPLIT_MAX", () => {
 		for (const id of ids) {
-			for (const job of terrainJobs(WorldPlanner.Build(id).ops)) {
+			for (const job of terrainJobs(WorldPlanner.Build(id, MissionCatalog.Get(id)).ops)) {
 				const o = job.op;
 				const cap = job.region !== undefined ? BUMP_CHUNK : o.shape === "wedge" || o.shape === "ball" ? UNSPLIT_MAX : FILL_CHUNK;
 				if (job.cells > cap) expect(`M${id} ${o.shape} ${o.material} at (${math.floor(o.x)}, ${math.floor(o.z)}): ${math.floor(job.cells)} cells > ${cap}`).toBe("");
@@ -53,7 +54,7 @@ describe("Terrain write scheduler", () => {
 	});
 	it("splits only on voxel planes and writes the same terrain as the unsplit plan", () => {
 		for (const id of ids) {
-			const plan = WorldPlanner.Build(id), ops = executedOps(terrainJobs(plan.ops));
+			const plan = WorldPlanner.Build(id, MissionCatalog.Get(id)), ops = executedOps(terrainJobs(plan.ops));
 			for (const o of plan.ops) {
 				if (o.shape === "bump") continue;
 				const pieces = terrainJobs([o]);
@@ -76,7 +77,7 @@ describe("Terrain write scheduler", () => {
 	});
 	it("slices each bump's grid region into disjoint pieces that cover it exactly", () => {
 		for (const id of [5, 13, 16]) {
-			const plan = WorldPlanner.Build(id), jobs = terrainJobs(plan.ops);
+			const plan = WorldPlanner.Build(id, MissionCatalog.Get(id)), jobs = terrainJobs(plan.ops);
 			let bumps = 0;
 			for (const o of plan.ops) {
 				if (o.shape !== "bump") continue;

@@ -43,7 +43,7 @@ export const STORY: StoryChapter[] = [
 		line(TEAL,"radio","Sparrow. You fly the pattern too low and too fast, and I never fixed it, because it's the only thing you do without asking permission."),
 		line(SERA,"wide","Command calls it desertion. They made me say the word on the net. I said it. I'm not saying it again."),
 		line(TEAL,"sky","If I miss your checkout, fly the pattern anyway. The sky will still be there."),
-		line(TRAINEE,"chair","Three bandits on the rim and an empty chair. Fine. I'll fly the pattern.")),
+		line(TRAINEE,"chair","An empty chair and a checkout nobody's signing. Fine. I'll fly the pattern.")),
 	chapter(1,"The sealed case","hangar","night",
 		line(SERA,"evidence","The bandits wore our markings. Our paint, our numbers. One of them was a tail I cleared for departure in March."),
 		line(SERA,"chair","The quartermaster found a case under Teal's bunk. A coffee tin, twelve tapes, and a note: 'For Sera. Not for the net.'"),
@@ -232,3 +232,6 @@ export const STORY: StoryChapter[] = [
 		line(LOG,"black","VARDA RIM ROSTER. TEAL: KILLED IN ACTION, NOT DESERTED. INSTRUCTOR'S CHAIR: FILLED.")),
 ];
 export function storyFor(id:number): StoryChapter { assert(id%1===0 && id>=0 && id<STORY.size(),"Invalid story chapter"); return STORY[id]; }
+
+/** Later scripts remain archived until their missions are authored and released. */
+export function reachableStoryChapters(): number[] { return [0]; }

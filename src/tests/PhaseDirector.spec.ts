@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { fixedRaiders } from "../server/PhaseDirectorRules";
-import { MissionCatalog } from "../shared/MissionCatalog";
+import { MissionCatalog } from "./LegacyCatalog";
 
 describe("PhaseDirector mission-wide raider policy", () => {
 	it("preserves the phase-zero result for all current missions", () => {

@@ -19,15 +19,15 @@ export interface MissionRecord {
 export interface SaveSlot {
 	index: number;
 	occupied: boolean;
-	/** Full campaign (all 27 missions) completed. */
+	/** Full campaign (all 18 missions) completed. */
 	completed: boolean;
 	/** Legacy aggregate total used by presentation code. */
 	kills: number;
 	bestTime?: number;
 	updatedAt?: number;
-	/** Highest unlocked mission (1-27). */
+	/** Highest unlocked mission (1-18). */
 	currentMission?: number;
-	/** Per-mission records; sparse by missionId (1..27). */
+	/** Per-mission records; sparse by missionId (0 = practice, 1..18 = campaign). */
 	missions?: { [missionId: number]: MissionRecord };
 	// Legacy v2 fields retained for presentation code and compatibility.
 	mission1Completed?: boolean;
@@ -51,12 +51,16 @@ export interface SlotDeletion {
 	generation: number;
 	status: DeletionStatus;
 }
+/** String-keyed dictionaries survive Roblox remote serialization, including practice 0. */
+export type WireSaveSlot = Omit<SaveSlot, "missions"> & {
+ missions?: { [missionId: string]: MissionRecord } | SaveSlot["missions"];
+};
 export interface CampaignResponse {
 	/** Local acceptance is distinct from durable deletion confirmation. */
 	deletions?: SlotDeletion[];
 	ok: boolean;
 	error?: string;
-	slots?: SaveSlot[];
+	slots?: WireSaveSlot[];
 	persistence?: Persistence;
 }
 export interface Remotes {

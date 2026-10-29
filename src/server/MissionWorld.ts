@@ -1,3 +1,5 @@
+import { M01World } from "./M01World";
+import { M01_WORLD_KEY } from "../shared/M01WorldPlan";
 import { Workspace } from "@rbxts/services";
 import { IRON_COAST_BOATS, IRON_COAST_FALLBACK_HULL, IRON_COAST_FRIGATE, ironCoastBerthOps, ironCoastMainlandOps } from "../shared/LegacyWorlds";
 import { MissionAssets } from "../shared/MissionAssets";
@@ -210,17 +212,21 @@ function buildIronCoast(scenery: Folder, parent: Instance): Model[] {
 
 export const MissionWorld = {
 	Build(missionId: number, parent: Instance): { groundTargets: Model[] } {
-		if (missionId >= 3) return RelayWorld.Build(missionId, parent);
-		const late = WorldAssets.Preload(UPLOADS[missionId === 1 ? 1 : 2]);
+		assert(MissionCatalog.Available(missionId), "Mission world is in development");
+		if (MissionCatalog.WorldKey(missionId) === M01_WORLD_KEY) {
+			Workspace.FindFirstChild("World")?.Destroy(); Workspace.Terrain.Clear();
+			return M01World.Build(parent);
+		}
+		const late = WorldAssets.Preload(UPLOADS[missionId === 0 ? 1 : 2]);
 		if (late.size() > 0) warn(`[MissionWorld] M${missionId}: ${late.join(", ")} still loading after the preload deadline; placing fallbacks`);
 		parent.SetAttribute("WorldPreloadLate", late.size());
 		Workspace.FindFirstChild("World")?.Destroy();
 		Workspace.Terrain.Clear();
 		WorldEnvironment.Apply(MissionCatalog.Get(missionId).environment);
 		const scenery = new Instance("Folder");
-		scenery.Name = missionId === 1 ? "FirstFlightWorld" : "IronCoastWorld";
+		scenery.Name = missionId === 0 ? "FirstFlightWorld" : "IronCoastWorld";
 		scenery.Parent = parent;
-		const groundTargets = missionId === 1 ? buildVardaRim(scenery, parent) : buildIronCoast(scenery, parent);
+		const groundTargets = missionId === 0 ? buildVardaRim(scenery, parent) : buildIronCoast(scenery, parent);
 		Scenery.Report(parent, scenery.Name, Scenery.PART_BUDGET, true);
 		return { groundTargets };
 	},

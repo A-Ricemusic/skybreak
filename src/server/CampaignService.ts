@@ -1,3 +1,4 @@
+import { encodeCampaignSlot } from "../shared/CampaignWire";
 import { CampaignRequestBudget } from "./CampaignRequestBudget";
 import { DataStoreService, Players, RunService } from "@rbxts/services";
 import { GameConfig } from "../shared/GameConfig";
@@ -110,7 +111,7 @@ function response(state: PlayerState): CampaignResponse {
 	return {
 		ok: true,
 		deletions: state.coordinator.getDeletions(),
-		slots: state.coordinator.getSlots(),
+		slots: state.coordinator.getSlots().map(encodeCampaignSlot),
 		persistence: state.coordinator.getPersistence(),
 	};
 }
@@ -171,7 +172,7 @@ function startMission(state: PlayerState, payload: unknown): CampaignResponse {
 	state.activeMission = missionId;
 	state.coordinator.recordMissionStarted(slot, missionId, special, difficulty);
 	// The briefing chapter for this mission plays once per slot; retries and replays launch directly.
-	state.coordinator.recordCutsceneSeen(slot, missionId - 1);
+	state.coordinator.recordCutsceneSeen(slot, math.max(0, missionId - 1));
 	return response(state);
 }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { MISSIONS, MissionCatalog, MissionPhaseBlueprint } from "../shared/MissionCatalog";
+import { MISSIONS, MissionCatalog, MissionPhaseBlueprint } from "./LegacyCatalog";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { STORY, speakerStyle } from "../shared/RelayStory";
 import { VOICE_BANK_ASSETS } from "../shared/VoiceBanks";
@@ -61,12 +61,15 @@ describe("voice-over cue lookup", () => {
 });
 
 describe("shipped voice table", () => {
-	it("has a cue for every cutscene beat with the exact on-screen text", () => {
+	it("keeps exact recorded transcripts; the rewritten opening answer stays subtitle-only", () => {
 		let count = 0;
 		for (const chapter of STORY) {
 			chapter.beats.forEach((beat, index) => {
 				const cue = VOICE_CUES[storyLineId(chapter.id, index)] as VoiceCue | undefined;
-				expect(cue?.text).toBe(beat.text);
+				if (chapter.id === 0 && index === 5) {
+					expect(Voice.Story(0,5,beat.text)).toBeUndefined();
+					expect(cue?.text).never.toBe(beat.text);
+				} else expect(cue?.text).toBe(beat.text);
 				expect(cue?.radio).toBe(false);
 				count++;
 			});

@@ -1,3 +1,4 @@
+import { normalizeMissionRecords } from "../../shared/CampaignWire";
 import { Workspace } from "@rbxts/services";
 import type { CampaignResponse, Persistence, SaveSlot, Telemetry } from "../../shared/Types";
 import { MISSION_COUNT, ACT_NAMES, ACT_NUMERALS, MissionCatalog } from "../../shared/MissionCatalog";
@@ -48,7 +49,7 @@ function normalizeSlots(response: CampaignResponse): SaveSlot[] | undefined {
 			bestTime,
 			updatedAt: source.updatedAt,
 			currentMission: math.clamp(math.floor(finite(source.currentMission, 1)), 1, MISSION_COUNT),
-			missions: source.missions,
+			missions: normalizeMissionRecords(source.missions),
 			introSeen: source.introSeen, cutscenesSeen: source.cutscenesSeen,
 			special: SpecialWeapons.IsKind(source.special) ? source.special : undefined,
 			difficulty: Difficulty.IsKind(source.difficulty) ? source.difficulty : undefined,

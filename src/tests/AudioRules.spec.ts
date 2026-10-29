@@ -19,6 +19,12 @@ describe("flight audio priorities and mix", () => {
 		expect(AudioRules.Warning(false, 100, false, 0, true)).toBeUndefined();
 		expect(AudioRules.Warning(false, 0, false, 0, false)).toBeUndefined();
 	});
+	it("silences flight warning tones while retaining combat warnings during the scripted launch", () => {
+		expect(AudioRules.Warning(true, 10, true, 0.5, true, false)).toBe("incoming");
+		expect(AudioRules.Warning(false, 100, true, 0, false, false)).toBeUndefined();
+		expect(AudioRules.Warning(false, 100, true, 0.5, true, false)).toBe("lockSearch");
+		expect(AudioRules.Warning(false, 100, true, 0, false, true)).toBe("boundary");
+	});
 	it("keeps a cruise bed and adds afterburner only above cruise throttle", () => {
 		const cruise = AudioRules.EngineMix(0.65, 230, 0.016);
 		const full = AudioRules.EngineMix(1, 320, 0.016);

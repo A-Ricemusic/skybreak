@@ -1168,8 +1168,8 @@ function farTiles(ctx: Ctx, waterColor: Rgb): void {
 
 // --- entry point ------------------------------------------------------------
 const cache = new Map<number, WorldPlan>();
-function build(id: number): WorldPlan {
-	const bp = MissionCatalog.Get(id), layout = layoutFor(id), theme = THEMES[bp.region];
+function build(id: number, blueprint?: MissionBlueprint): WorldPlan {
+	const bp = blueprint ?? MissionCatalog.Get(id), layout = layoutFor(id), theme = THEMES[bp.region];
 	const env = ENVIRONMENTS[bp.environment];
 	const plan: WorldPlan = {
 		id, name: layout.name, theme, environment: bp.environment, lamps: lampsOn(bp.environment),
@@ -1250,8 +1250,9 @@ export function countPlan(plan: WorldPlan): WorldCounts {
 
 export const WorldPlanner = {
 	/** The deterministic plan for missions 3-27 (cached). */
-	Build(id: number): WorldPlan {
+	Build(id: number, blueprint?: MissionBlueprint): WorldPlan {
 		assert(id >= 3 && id <= 27, `No world plan for mission ${id}`);
+		if (blueprint !== undefined) return build(id, blueprint);
 		let plan = cache.get(id);
 		if (plan === undefined) { plan = build(id); cache.set(id, plan); }
 		return plan;

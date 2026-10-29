@@ -2,7 +2,7 @@ import { describe, expect, it } from "@rbxts/jest-globals";
 import { FlightMath } from "../shared/FlightMath";
 import { WorldAirspace } from "../shared/WorldAirspace";
 import { KIT_BOUNDS } from "../shared/WorldDistricts";
-import { MissionCatalog } from "../shared/MissionCatalog";
+import { MissionCatalog } from "./LegacyCatalog";
 import { layoutFor } from "../shared/MissionLayouts";
 import { KEEL_MIN, auditPlan } from "../shared/WorldAudit";
 import { UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
@@ -16,7 +16,7 @@ for (let id = 3; id <= 27; id++) ids.push(id);
 
 describe("Mission world plans", () => {
 	it("catches thin rotated colliders between probes, excludes decoration, and includes water", () => {
-		const plan: WorldPlan = { ...WorldPlanner.Build(11), ops: [], parts: [], props: [] };
+		const plan: WorldPlan = { ...WorldPlanner.Build(11, MissionCatalog.Get(11)), ops: [], parts: [], props: [] };
 		// Neither the centre nor either eight-point ring touches this narrow rail.
 		plan.parts.push({ name: "rail", shape: "block", x: 23, y: 150, z: 17,
 			sx: 2, sy: 300, sz: 20, yaw: 0.4, color: [0, 0, 0], material: "Metal", solid: true, grounded: false });
@@ -32,7 +32,7 @@ describe("Mission world plans", () => {
 		expect(solidTopWithin(plan, 0, 0, 80)).toBe(32);
 	});
 	it("connects M11's farm road beneath both Sable beacons and to the target apron", () => {
-		const plan = WorldPlanner.Build(11);
+		const plan = WorldPlanner.Build(11, MissionCatalog.Get(11));
 		const route = MissionCatalog.ExpandedPhases(MissionCatalog.Get(11)).find((p) => p.kind === "route")!;
 		const points = [{ x: 820, z: -780 }, ...route.points!, { x: 0, z: -1650 }];
 		for (let i = 1; i < points.size(); i++) {
@@ -51,7 +51,7 @@ describe("Mission world plans", () => {
 		// M25 has no route phase; its escort is not a route-exit clearance test.
 		for (const id of [3, 7, 11, 12, 19, 21]) {
 			let auditedExits = 0;
-			const plan = WorldPlanner.Build(id);
+			const plan = WorldPlanner.Build(id, MissionCatalog.Get(id));
 			for (const phase of MissionCatalog.ExpandedPhases(MissionCatalog.Get(id))) {
 				const pts = phase.points ?? [];
 				if (phase.kind !== "route" || pts.size() < 2) continue;
@@ -72,7 +72,7 @@ describe("Mission world plans", () => {
 		expect(WorldAirspace.soft).toBeLessThan(WorldAirspace.hard);
 		expect(WorldAirspace.hard).toBeLessThan(4000);
 		for (const id of [3, 5, 19]) {
-			const plan = WorldPlanner.Build(id);
+			const plan = WorldPlanner.Build(id, MissionCatalog.Get(id));
 			expect(plan.props.filter((p) => p.tag === "OuterDistrict").size()).toBeGreaterThan(15);
 			// At each junction the full surface is paved; the access spur connects
 			// to the longitudinal road instead of stopping short of it.
@@ -82,16 +82,16 @@ describe("Mission world plans", () => {
 				expect(math.max(math.abs(p.x) + p.sx / 2, math.abs(p.z) + p.sz / 2)).toBeLessThan(WorldAirspace.hard);
 			}
 		}
-		const m3 = WorldPlanner.Build(3);
+		const m3 = WorldPlanner.Build(3, MissionCatalog.Get(3));
 		// Sweep the runway and both approaches: no prop/terrain buried in pavement.
 		for (let z = -850; z <= 850; z += 25) {
 			for (const x of [2910, 2950, 2990]) expect(surfaceAt(m3, x, z).y).toBeLessThan(46);
 		}
-		expect(WorldPlanner.Build(5).parts.some((p) => p.mesh === "RunwayTile")).toBe(false);
+		expect(WorldPlanner.Build(5, MissionCatalog.Get(5)).parts.some((p) => p.mesh === "RunwayTile")).toBe(false);
 	});
 	for (const id of ids) {
 		it(`M${id} keeps flight points clear, targets grounded, nothing floating and the budget`, () => {
-			const result = auditPlan(WorldPlanner.Build(id));
+			const result = auditPlan(WorldPlanner.Build(id, MissionCatalog.Get(id)), MissionCatalog.Get(id));
 			const shown = result.problems.size() > 8 ? [...result.problems.filter((_, i) => i < 8), `... ${result.problems.size() - 8} more`] : result.problems;
 			expect(shown.join("\n")).toBe("");
 			expect(result.checkedAir).toBeGreaterThan(3);
@@ -99,7 +99,7 @@ describe("Mission world plans", () => {
 	}
 	it("uses the uploaded models everywhere they fit", () => {
 		for (const id of ids) {
-			const plan = WorldPlanner.Build(id), bp = MissionCatalog.Get(id), c = WorldPlanner.Counts(plan);
+			const plan = WorldPlanner.Build(id, MissionCatalog.Get(id)), bp = MissionCatalog.Get(id), c = WorldPlanner.Counts(plan);
 			const has = (asset: string) => plan.props.filter((p) => p.asset === asset).size();
 			if (plan.theme === "farm" || plan.theme === "coast") {
 				expect(c.trees).toBeGreaterThanOrEqual(60);
@@ -115,10 +115,10 @@ describe("Mission world plans", () => {
 			expect(plan.parts.filter((p) => p.name === "Canopy" || p.name === "Trunk" || p.name === "Boulder").size()).toBe(0);
 		}
 		// Every harbour-landmark mission shows a frigate alongside its quays.
-		for (const id of ids) if (layoutFor(id).landmark === "harbor") expect(WorldPlanner.Build(id).props.filter((p) => p.asset === "Frigate").size()).toBeGreaterThanOrEqual(1);
+		for (const id of ids) if (layoutFor(id).landmark === "harbor") expect(WorldPlanner.Build(id, MissionCatalog.Get(id)).props.filter((p) => p.asset === "Frigate").size()).toBeGreaterThanOrEqual(1);
 	});
 	it("rings the M23 platform with three frigates, the protected one tagged and beaconed", () => {
-		const plan = WorldPlanner.Build(23);
+		const plan = WorldPlanner.Build(23, MissionCatalog.Get(23));
 		const frigates = plan.props.filter((p) => p.asset === "Frigate");
 		expect(frigates.size()).toBe(3);
 		expect(frigates.filter((p) => p.tag === "ProtectedHull").size()).toBe(1);
@@ -128,11 +128,11 @@ describe("Mission world plans", () => {
 		// Alongside the defended point (where the protected launch floats), not on top of it.
 		const d = math.sqrt((hull.x - defend.x) * (hull.x - defend.x) + (hull.z - defend.z) * (hull.z - defend.z));
 		expect(d > 40 && d < 80).toBe(true);
-		expect(WorldPlanner.Build(24).props.filter((p) => p.asset === "OilPlatform").size()).toBe(1);
+		expect(WorldPlanner.Build(24, MissionCatalog.Get(24)).props.filter((p) => p.asset === "OilPlatform").size()).toBe(1);
 	});
 	it("uses Terrain water for every coast and ocean mission and keeps land missions dry", () => {
 		for (const id of ids) {
-			const plan = WorldPlanner.Build(id);
+			const plan = WorldPlanner.Build(id, MissionCatalog.Get(id));
 			const wet = plan.ops.some((o) => o.material === "Water");
 			expect(wet).toBe(plan.theme === "coast" || plan.theme === "ocean" || plan.ops.some((o) => o.material === "Water" && o.sx === 160));
 			if (plan.theme === "ocean") expect(terrainTop(plan.ops, 0, 2500).water).toBe(32);
@@ -141,26 +141,26 @@ describe("Mission world plans", () => {
 	it("keeps every escort, defend and parked launch afloat along its whole path", () => {
 		let checked = 0;
 		for (const id of ids) {
-			const plan = WorldPlanner.Build(id);
+			const plan = WorldPlanner.Build(id, MissionCatalog.Get(id));
 			const wet = plan.theme === "coast" || plan.theme === "ocean";
 			if (wet) expect(plan.waterPaths.size() > 0 || MissionCatalog.ExpandedPhases(MissionCatalog.Get(id)).every((p) => p.kind !== "escort" && p.kind !== "defend" && p.parkedEscort === undefined)).toBe(true);
 			checked += plan.waterPaths.size();
-			const boat = auditPlan(plan).problems.filter((p) => p.sub(1, 4) === "boat");
+			const boat = auditPlan(plan, MissionCatalog.Get(plan.id)).problems.filter((p) => p.sub(1, 4) === "boat");
 			expect(boat.join("\n")).toBe("");
 		}
 		expect(checked).toBeGreaterThan(8);
 		// Regression (PR #47 review): M21's civic pavement roofed the launch's canal between its vertices.
-		const m21 = WorldPlanner.Build(21);
+		const m21 = WorldPlanner.Build(21, MissionCatalog.Get(21));
 		expect(terrainTop(m21.ops, -200, -1260).water).toBe(WATER_Y);
 		expect(surfaceAt(m21, -200, -1260).kind).toBe("water");
 		// And M25's canal mouth had a concrete bank cap standing across it in open water.
-		const m25 = WorldPlanner.Build(25);
+		const m25 = WorldPlanner.Build(25, MissionCatalog.Get(25));
 		expect(terrainTop(m25.ops, -730, -1602).water).toBe(WATER_Y);
 	});
 	it("moors every frigate over a berth deeper than its keel", () => {
 		let frigates = 0;
 		for (const id of ids) {
-			const plan = WorldPlanner.Build(id);
+			const plan = WorldPlanner.Build(id, MissionCatalog.Get(id));
 			for (const p of plan.props) {
 				if (p.asset !== "Frigate") continue;
 				frigates += 1;
@@ -176,7 +176,7 @@ describe("Mission world plans", () => {
 		expect(frigates).toBeGreaterThanOrEqual(8);
 	});
 	it("is deterministic and inside the mobile budget", () => {
-		const a = WorldPlanner.Counts(WorldPlanner.Build(5));
+		const a = WorldPlanner.Counts(WorldPlanner.Build(5, MissionCatalog.Get(5)));
 		expect(a.parts).toBeLessThanOrEqual(WORLD_BUDGET.parts);
 		expect(a.props).toBeLessThanOrEqual(WORLD_BUDGET.props);
 		expect(a.uniqueMeshes).toBeLessThanOrEqual(WORLD_BUDGET.uniqueMeshes);

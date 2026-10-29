@@ -1,8 +1,8 @@
 import React, { useContext, useEffect, useRef, useState } from "@rbxts/react";
 import { GuiService } from "@rbxts/services";
-import { highestUnlocked } from "../../shared/CampaignProgress";
+import { canLaunchMission, highestUnlocked } from "../../shared/CampaignProgress";
 import type { SaveSlot } from "../../shared/Types";
-import { ACT_NAMES, ACT_NUMERALS, ACTS, environmentName, MissionCatalog, MISSION_COUNT, REGION_NAMES } from "../../shared/MissionCatalog";
+import { ACT_NAMES, ACT_NUMERALS, ACTS, environmentName, PRACTICE, MissionCatalog, MISSION_COUNT, REGION_NAMES } from "../../shared/MissionCatalog";
 import { MissionScore } from "../../shared/MissionScore";
 import { type SpecialKind } from "../../shared/SpecialWeapons";
 import { type DifficultyKind } from "../../shared/Difficulty";
@@ -72,13 +72,13 @@ function MissionTile({ id, state, selected, enabled, width, height, onChoose }: 
 			<Corner radius={8} />
 			<Stroke color={hot ? C.Ivory : selected ? C.Accent : C.Ivory} transparency={lit ? 0.1 : 0.88} thickness={lit ? 2 : 1} />
 			<uipadding PaddingLeft={new UDim(0, 8)} PaddingRight={new UDim(0, 8)} PaddingTop={new UDim(0, 7)} PaddingBottom={new UDim(0, 7)} />
-			<Label name="Number" text={missionNumber(id)} color={selected ? C.Accent : C.Faint} textSize={12} font={Enum.Font.RobotoMono} size={new UDim2(0.4, 0, 0, 14)} />
+			<Label name="Number" text={id === 0 ? "Practice" : missionNumber(id)} color={selected ? C.Accent : C.Faint} textSize={12} font={Enum.Font.RobotoMono} size={new UDim2(0.4, 0, 0, 14)} />
 			<Label name="State" text={stateText} color={stateColor} textSize={9} minTextSize={7} font={Enum.Font.GothamBold} anchorPoint={new Vector2(1, 0)} position={UDim2.fromScale(1, 0)} size={new UDim2(0.6, 0, 0, 14)} textXAlignment={Enum.TextXAlignment.Right} />
 			<textlabel key="MissionTitle" BackgroundTransparency={1} Font={Enum.Font.GothamBold} Position={UDim2.fromOffset(0, 17)} Size={new UDim2(1, 0, 0, 16)} Text={blueprint.title} TextColor3={locked ? C.Faint : C.Ivory} TextScaled={true} TextXAlignment={Enum.TextXAlignment.Left}>
 				{/* Long titles shrink to 10pt rather than truncating on phone-width tiles. */}
 				<uitextsizeconstraint MaxTextSize={12} MinTextSize={10} />
 			</textlabel>
-			<textlabel key="MissionMeta" BackgroundTransparency={1} Font={Enum.Font.GothamMedium} Position={UDim2.fromOffset(0, 34)} Size={new UDim2(1, 0, 0, 12)} Text={REGION_NAMES[blueprint.region] ?? ""} TextColor3={C.Faint} TextSize={10} TextTransparency={locked ? 0.4 : 0} TextTruncate={Enum.TextTruncate.AtEnd} TextXAlignment={Enum.TextXAlignment.Left} />
+			<textlabel key="MissionMeta" BackgroundTransparency={1} Font={Enum.Font.GothamMedium} Position={UDim2.fromOffset(0, 34)} Size={new UDim2(1, 0, 0, 12)} Text={locked ? "In development" : REGION_NAMES[blueprint.region] ?? ""} TextColor3={C.Faint} TextSize={10} TextTransparency={locked ? 0.4 : 0} TextTruncate={Enum.TextTruncate.AtEnd} TextXAlignment={Enum.TextXAlignment.Left} />
 		</textbutton>
 	);
 }
@@ -147,11 +147,12 @@ function BriefingScreenImpl({visible,menu,selectedSlot,selectedMission,slot,busy
 	const layout=getBriefingLayout(menu.panel.width,menu.panel.height);
 	const grid=getArchiveGrid(menu.panel.width,menu.panel.height);
 	const choose=(id:number)=>{onMission(id);setBrowse(false);};
+	const bestPoints=MissionCatalog.Scoring(selectedMission).basis==="points" && record?.bestScore!==undefined ? ` · BEST ${math.floor(record.bestScore)} PTS` : "";
 	const status=completed
-		? `  <font color="${HEX.Accent}">✓ CLEARED${record?.bestRank!==undefined ? ` · RANK ${record.bestRank}` : ""}${record?.bestTime!==undefined ? ` · ${formatTime(record.bestTime)}` : ""}</font>`
+		? `  <font color="${HEX.Accent}">✓ CLEARED${record?.bestRank!==undefined ? ` · RANK ${record.bestRank}` : ""}${bestPoints}${record?.bestTime!==undefined ? ` · ${formatTime(record.bestTime)}` : ""}</font>`
 		: selectedMission===unlocked ? `  <font color="${HEX.Orange}">NEW SORTIE</font>` : "";
 	const overflow=detailsCanvasHeight-layout.detailsHeight;
-	const actMissions=MissionCatalog.All().filter((bp)=>bp.act===act);
+	const actMissions=[PRACTICE, ...MissionCatalog.All()].filter((bp)=>bp.act===act);
 	return <frame key="BriefingScreen" BackgroundTransparency={1} Size={UDim2.fromScale(1,1)} Visible={visible}>
 		<frame ref={panelRef} key="BriefingPanel" BackgroundTransparency={1} {...panelPosition(menu)}>
 			{browse ? <>
@@ -163,8 +164,8 @@ function BriefingScreenImpl({visible,menu,selectedSlot,selectedMission,slot,busy
 				<scrollingframe key="MissionArchive" Position={UDim2.fromOffset(0,grid.top)} Size={new UDim2(1,0,0,grid.height)} CanvasSize={UDim2.fromOffset(0,getArchiveCanvasHeight(grid,actMissions.size()))} BackgroundTransparency={1} BorderSizePixel={0} ScrollBarThickness={3} ScrollBarImageColor3={C.Ivory} ScrollBarImageTransparency={0.6} ScrollingDirection={Enum.ScrollingDirection.Y}>
 					<uigridlayout CellPadding={UDim2.fromOffset(grid.gap,grid.gap)} CellSize={UDim2.fromOffset(grid.tileWidth,grid.tileHeight)} FillDirectionMaxCells={grid.columns} SortOrder={Enum.SortOrder.LayoutOrder}/>
 					{actMissions.map((bp)=>{
-						const state:TileState=slot?.missions?.[bp.id]?.completed ? "complete" : bp.id===unlocked ? "next" : bp.id<unlocked ? "open" : "locked";
-						return <MissionTile key={`Mission${missionNumber(bp.id)}SelectButton`} id={bp.id} state={state} selected={selectedMission===bp.id} enabled={!busy && bp.id<=unlocked} width={grid.tileWidth} height={grid.tileHeight} onChoose={choose}/>;
+						const state:TileState=!canLaunchMission(bp.id,slot) ? "locked" : slot?.missions?.[bp.id]?.completed ? "complete" : bp.id===unlocked ? "next" : bp.id<unlocked ? "open" : "locked";
+						return <MissionTile key={`Mission${missionNumber(bp.id)}SelectButton`} id={bp.id} state={state} selected={selectedMission===bp.id} enabled={!busy && canLaunchMission(bp.id,slot)} width={grid.tileWidth} height={grid.tileHeight} onChoose={choose}/>;
 					})}
 				</scrollingframe>
 			</> : <>
@@ -179,7 +180,7 @@ function BriefingScreenImpl({visible,menu,selectedSlot,selectedMission,slot,busy
 					}}}/>
 					<frame key="BriefingHeader" AutomaticSize={Enum.AutomaticSize.Y} BackgroundTransparency={1} LayoutOrder={1} Size={new UDim2(1,-12,0,0)}>
 						<uilistlayout Padding={new UDim(0,BRIEFING_HEADER_SPACING)} SortOrder={Enum.SortOrder.LayoutOrder}/>
-						<Label name="BriefingEyebrow" text={`${actLabel(mission.act)}  ·  MISSION ${missionNumber(selectedMission)}/${MISSION_COUNT}`} color={C.Accent} textSize={11} minTextSize={8} font={Enum.Font.GothamBold} size={new UDim2(1,0,0,BRIEFING_LINE_HEIGHT)} layoutOrder={1}/>
+						<Label name="BriefingEyebrow" text={selectedMission === 0 ? "PRACTICE · OPTIONAL CHECKOUT" : `${actLabel(mission.act)}  ·  MISSION ${missionNumber(selectedMission)}/${MISSION_COUNT}`} color={C.Accent} textSize={11} minTextSize={8} font={Enum.Font.GothamBold} size={new UDim2(1,0,0,BRIEFING_LINE_HEIGHT)} layoutOrder={1}/>
 						<Label name="BriefingTitle" text={mission.title} textSize={layout.titleSize} font={Enum.Font.GothamBlack} size={new UDim2(1,0,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={2}/>
 						<Label name="BriefingMeta" text={`${REGION_NAMES[mission.region] ?? ""} · ${environmentName(mission.environment)}${status}`} richText={true} color={C.Muted} textSize={10} minTextSize={7} font={Enum.Font.GothamBold} size={new UDim2(1,0,0,BRIEFING_LINE_HEIGHT)} layoutOrder={3}/>
 					</frame>
@@ -206,7 +207,7 @@ function BriefingScreenImpl({visible,menu,selectedSlot,selectedMission,slot,busy
 				<frame key="BriefingDock" BackgroundTransparency={1} Position={UDim2.fromOffset(0,layout.dockTop)} Size={new UDim2(1,0,0,layout.dockHeight)}>
 					<ActionButton name="BriefingBackButton" text={layout.dock.back<80 ? "‹" : "‹ FILES"} size={UDim2.fromOffset(layout.dock.back,layout.dockHeight)} enabled={!busy} textSize={13} onActivated={onBack}/>
 					<ActionButton name="BrowseMissionsButton" text="MISSIONS" position={UDim2.fromOffset(layout.dock.back+layout.dock.gap,0)} size={UDim2.fromOffset(layout.dock.archive,layout.dockHeight)} enabled={!busy} textSize={13} onActivated={()=>{setAct(mission.act);setBrowse(true);}}/>
-					<ActionButton name="LaunchButton" text={busy ? "PREPARING..." : completed ? "REPLAY  ›" : "LAUNCH  ›"} primary={true} position={UDim2.fromOffset(layout.dock.back+layout.dock.archive+layout.dock.gap*2,0)} size={UDim2.fromOffset(layout.dock.launch,layout.dockHeight)} enabled={!busy} textSize={15} onActivated={onLaunch}/>
+					<ActionButton name="LaunchButton" text={busy ? "PREPARING..." : completed ? "REPLAY  ›" : "LAUNCH  ›"} primary={true} position={UDim2.fromOffset(layout.dock.back+layout.dock.archive+layout.dock.gap*2,0)} size={UDim2.fromOffset(layout.dock.launch,layout.dockHeight)} enabled={!busy && canLaunchMission(selectedMission,slot)} textSize={15} onActivated={onLaunch}/>
 				</frame>
 			</>}
 		</frame>

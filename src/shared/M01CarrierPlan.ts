@@ -1,6 +1,6 @@
 import { FlightMath } from "./FlightMath";
 import type { MissionStartPolicy } from "./MissionPolicy";
-import { M01 } from "./M01WorldPlan";
+import { M01 } from "./M01Geometry";
 
 /** Exact carrier-2 export dimensions needed before its generated upload spec exists. */
 export const M01_CARRIER_MODEL = {
@@ -32,7 +32,7 @@ export function m01CarrierPoint(point: { x: number; y: number; z: number }): { x
 	};
 }
 
-/** Dormant scripted-fly-off pose. Campaign cutover may select it; no mission does today. */
+/** Scripted fly-off pose selected by mission 1. */
 export function m01CarrierFlyoffStart(): MissionStartPolicy {
 	const catapult = m01CarrierPoint(M01_CARRIER_MODEL.catapultEnd);
 	const yaw = math.rad(M01_CARRIER_PLACEMENT.headingDegrees);
