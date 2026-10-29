@@ -1,3 +1,4 @@
+import { sampleClearance, stepLanding } from "./EngineBatchBRuntime";
 import { createGroundTarget } from "./GroundTargetFactory";
 import { GroundAirDefence } from "../shared/GroundAirDefence";
 import { authoredAirPose, airSpawnHeight, scramblePose } from "../shared/CampaignEncounters";
@@ -336,6 +337,8 @@ function sendTelemetry(session: CombatSession): void {
 	session.telemetrySequence += 1;
 	telemetryRemote!.FireClient(session.player, TelemetryCodec.Encode(session.telemetrySequence, {
 		health: session.health, speed: session.state.speed, altitude: session.state.y,
+		terrainClearance: sampleClearance(session,os.clock()),
+		missionUpdateSeconds: session.blueprintState?.updateUntil !== undefined ? math.max(0,session.blueprintState.updateUntil-session.elapsed) : undefined,
 		// The HUD tally counts required destructions only; raiders travel separately so it never reads 7/4.
 		kills: sessionRequiredKills(session), total: sessionTotalRequired(session),
 		missiles: session.missiles, missileCooldown: session.missileCooldown, evadeCooldown: EvadeRules.Cooldown(session.evade, session.evadeRemaining),
@@ -1365,6 +1368,12 @@ function stepMissiles(session: CombatSession, dt: number): void {
 	refreshSession(session, os.clock());
 }
 function stepSession(session: CombatSession, dt: number): void {
+	if (stepLanding(session,dt,(message)=>missionState!.FireClient(session.player,message))) {
+		session.aircraftFrame=frameFor(session.state);
+		if (sessionOutcome(session) !== undefined) finish(session);
+		else { sendFlightState(session); sendTelemetry(session); }
+		return;
+	}
 	if (session.launch) {
 		const from = new Vector3(session.state.x, session.state.y, session.state.z);
 		const ready = LaunchStage.Advance(session.launch, session.state, dt);
@@ -1429,6 +1438,7 @@ function stepSession(session: CombatSession, dt: number): void {
 		BlueprintRunner.ObserveFlight(bs,from,{x:session.state.x,y:session.state.y,z:session.state.z},dt,os.clock(),threats,Difficulty.Multiplier(session.difficulty,"protectDrain"));
 		if (bs.outcome !== undefined) {finish(session); return;}
 		phaseDirector.Apply(session);
+		if (bs.landingElapsed !== undefined) { sendTelemetry(session); return; }
 		phaseDirector.Step(session);
 		if (bs.outcome !== undefined) { finish(session); return; }
 	}
@@ -1664,7 +1674,7 @@ export const CombatService = {
 		if (!missionRoot) { missionRoot = new Instance("Folder"); missionRoot.Name = "SkybreakCombat"; missionRoot.Parent = Workspace; }
 		connections.push(remote(remotes, "FlightInput").OnServerEvent.Connect((player, payload: unknown) => {
 			const session = sessions.get(player);
-			if (!session?.active || session.loading || session.launch || session.guard.running || PauseRules.Paused(session.pause) || !typeIs(payload, "table")) return;
+			if (!session?.active || session.loading || session.launch || session.blueprintState?.landingElapsed !== undefined || session.guard.running || PauseRules.Paused(session.pause) || !typeIs(payload, "table")) return;
 			const now = os.clock();
 			// Heartbeat runs refreshSession every frame, so this unguarded handler only takes input.
 			// A token bucket caps the packet rate whatever the stamps claim.
@@ -1719,6 +1729,10 @@ export const CombatService = {
 					if (action === "Pause") pauseSession(session, now);
 					// A resume that changed nothing still answers, so the telemetry carries pauseAck.
 					else if (!resumeSession(session, now)) sendTelemetry(session);
+					return;
+				}
+				if (session.blueprintState?.landingElapsed !== undefined) {
+					if (action === "SkipLanding") { BlueprintRunner.AdvanceLanding(session.blueprintState,0,true); finish(session); }
 					return;
 				}
 				if (!LaunchStage.CanControl(false, session.launch, PauseRules.Paused(session.pause)) || !refreshSession(session, now)) return;

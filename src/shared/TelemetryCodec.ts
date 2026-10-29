@@ -13,6 +13,7 @@ import { Telemetry } from "./Types";
 //          specialCharges, specialCooldown, specialActive,
 //          evadeCharges, optionalKills, incomingDistance (-1 none), pauseAck, pauseRemaining (-1 unknown),
 //          turnObserved (-1 unknown), pitchObserved (-1 unknown)]
+// Optional extension: [terrainClearance (-1 no hit), missionUpdateSeconds]. Legacy missions retain 29 fields.
 // flags: 1 incoming, 2 lockWarning, 4 boundaryWarning, 8 targetDamageable,
 //        16 targetDamageable unknown (no target), 32 ace killed this sortie, 64 paused.
 //        2048 evadeThreat (a missile is decoyable now); 128–1024 reserved for PR42 cues.
@@ -20,6 +21,8 @@ export type TelemetryPacket = number[];
 export const TELEMETRY_FIELDS = 29;
 
 export interface TelemetryNumbers {
+	terrainClearance?: number;
+	missionUpdateSeconds?: number;
 	health: number; speed: number; altitude: number; kills: number; total: number; missiles: number;
 	missileCooldown: number; evadeCooldown: number; lockProgress: number;
 	evadeThreat?: boolean;
@@ -45,7 +48,7 @@ export const TelemetryCodec = {
 	Encode(sequence: number, t: TelemetryNumbers): TelemetryPacket {
 		const flags = (t.incoming ? 1 : 0) + (t.lockWarning ? 2 : 0) + (t.boundaryWarning ? 4 : 0)
 			+ (t.targetDamageable === true ? 8 : 0) + (t.targetDamageable === undefined ? 16 : 0) + (t.aceKilled === true ? 32 : 0) + (t.paused === true ? 64 : 0) + (t.evadeThreat === true ? 2048 : 0);
-		return [
+		const packet: number[] = [
 			sequence, t.health, t.speed, t.altitude, t.kills, t.total, t.missiles,
 			t.missileCooldown, t.evadeCooldown, t.lockProgress, flags, t.elapsed,
 			t.timeRemaining, t.objectiveProgress, t.objectiveTotal, t.groundKills,
@@ -55,6 +58,8 @@ export const TelemetryCodec = {
 			t.pauseRemaining ?? -1,
 			t.turnObserved ?? -1, t.pitchObserved ?? -1,
 		];
+		if (t.terrainClearance !== undefined || t.missionUpdateSeconds !== undefined) packet.push(t.terrainClearance ?? -1,t.missionUpdateSeconds ?? 0);
+		return packet;
 	},
 	/**
 	 * Writes a received packet into `into` (no allocation). Returns the packet's
@@ -87,6 +92,8 @@ export const TelemetryCodec = {
 		into.pauseRemaining = FlightMath.IsFinite(n[26]) && n[26] >= 0 ? math.clamp(n[26], 0, 300) : undefined;
 		into.turnObserved = FlightMath.IsFinite(n[27]) && n[27] >= 0 ? math.clamp(n[27], 0, 3) : undefined;
 		into.pitchObserved = FlightMath.IsFinite(n[28]) && n[28] >= 0 ? math.clamp(n[28], 0, 3) : undefined;
+		into.terrainClearance = FlightMath.IsFinite(n[29]) && n[29]>=0 ? n[29] : undefined;
+		into.missionUpdateSeconds = FlightMath.IsFinite(n[30]) ? math.clamp(n[30],0,8) : undefined;
 		return n[0];
 	},
 };

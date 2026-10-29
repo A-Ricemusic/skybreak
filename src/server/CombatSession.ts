@@ -90,6 +90,9 @@ export interface Projectile {
 	lostTrack?: boolean;
 }
 export interface CombatSession {
+	landingSent?: boolean;
+	clearanceProbeAt?: number;
+	terrainClearance?: number;
 	arrivalsFired?: Set<string>;
 	arrivalTargets?: TypedGroundTarget[];
 	launch?: import("../shared/LaunchStage").LaunchStageState;

@@ -1,3 +1,4 @@
+import { LandingPlan, landingPose } from "../shared/EngineBatchB";
 import { LaunchStage, LaunchStageState } from "../shared/LaunchStage";
 import type { FlightControlHandoff } from "../shared/Types";
 import { ContextActionService, GuiService, Players, RunService, UserInputService, Workspace } from "@rbxts/services";
@@ -273,6 +274,7 @@ export class FlightController {
 	private readonly enemies = new EnemySmoothing();
 	/** Pause overlay is up: the local jet, camera and actions hold until Resume. */
 	private paused = false;
+	private landing?: {plan: LandingPlan; elapsed: number};
 	private launchIntro?: LaunchStageState;
 	private launchCameraTime = CAMERA_HANDOFF_SECONDS;
 	/** Serial of the latest local Pause/Resume, the action it carried, and when it was last sent; the server echoes `pauseAck`. */
@@ -300,7 +302,10 @@ export class FlightController {
 		this.streamConnections.push(this.remotes.MissionState.OnClientEvent.Connect((data: unknown) => {
 			if (!typeIs(data, "table")) return;
 			const message = data as Partial<Omit<HudState, "kind">> & { kind?: string };
-			if (message.kind === "FlightControl" && this.active && this.launchIntro !== undefined) {
+			if (message.kind === "LandingStarted" && this.active) {
+				this.landing={plan:(data as {plan:LandingPlan}).plan,elapsed:0}; this.keys.clear();
+			}
+			else if (message.kind === "FlightControl" && this.active && this.launchIntro !== undefined) {
 				const handoff = data as FlightControlHandoff;
 				const predictor = this.predictor;
 				if (!predictor) return;
@@ -332,7 +337,7 @@ export class FlightController {
 		}));
 		this.streamConnections.push(this.remotes.FlightState.OnClientEvent.Connect((packet: unknown) => {
 			const predictor = this.predictor;
-			if (!this.active || !predictor || this.launchIntro) return;
+			if (!this.active || !predictor || this.landing || this.launchIntro) return;
 			const decoded = FlightPrediction.Decode(packet);
 			if (!decoded) return;
 			const now = os.clock();
@@ -389,6 +394,10 @@ export class FlightController {
 	private handleBoundInput(state: Enum.UserInputState, keyCode: Enum.KeyCode, position: Vector3): Enum.ContextActionResult {
 		if (!this.active) return Enum.ContextActionResult.Pass;
 		if (UserInputService.GetFocusedTextBox() && state !== Enum.UserInputState.End && state !== Enum.UserInputState.Cancel) return Enum.ContextActionResult.Pass;
+		if (this.landing) {
+			if (state === Enum.UserInputState.Begin && (keyCode === Enum.KeyCode.Space || keyCode === Enum.KeyCode.ButtonR2)) this.SkipLanding();
+			return Enum.ContextActionResult.Sink;
+		}
 		if (keyCode === Enum.KeyCode.Thumbstick2) {
 			this.throttleStick = state === Enum.UserInputState.End || state === Enum.UserInputState.Cancel ? 0 : position.Y;
 		} else if (keyCode === Enum.KeyCode.Thumbstick1) {
@@ -423,11 +432,11 @@ export class FlightController {
 	public SetThrottle(value: number): void {
 		if (FlightMath.IsFinite(value)) this.throttle = math.clamp(value, 0, 1);
 	}
-	private action(action: string): void { if (this.active && !this.paused && !this.launchIntro) this.remotes.CombatAction.FireServer({ action }); }
+	private action(action: string): void { if (this.active && !this.paused && !this.landing && !this.launchIntro) this.remotes.CombatAction.FireServer({ action }); }
 	public FireMissile(): void { this.action("FireMissile"); }
 	public Evade(): void {
 		if (!this.active) return;
-		if (this.paused || this.launchIntro) return;
+		if (this.paused || this.landing || this.launchIntro) return;
 		// Predict the barrel roll when the HUD says a charge is ready; the server confirms or ignores.
 		if (evadeGauge(this.telemetry).ready && this.evadeRoll <= 0) { this.evadeRoll = FlightPrediction.EvadeRollSeconds; this.evadeStartedAt = os.clock(); }
 		this.action("Evade");
@@ -471,7 +480,8 @@ export class FlightController {
 	}
 	public IsPaused(): boolean { return this.paused; }
 	/** Flight advice and warning tones stay silent while the scripted launch owns the jet. */
-	public FlightWarningsEnabled(): boolean { return this.launchIntro === undefined; }
+	public SkipLanding(): void { if (this.landing) this.remotes.CombatAction.FireServer({action:"SkipLanding"}); }
+	public FlightWarningsEnabled(): boolean { return this.launchIntro === undefined && this.landing === undefined; }
 	/** Settings: pushing up dives instead of climbing (every input source). */
 	public SetInvertY(invert: boolean): void { this.invertY = invert; }
 	/** Settings: a centred stick gently levels the jet (pitch to the horizon, rolls upright). */
@@ -778,12 +788,13 @@ export class FlightController {
 		}
 		const now = os.clock();
 		const intro = this.launchIntro !== undefined;
-		if (!intro) this.input(dt);
+		if (!intro && !this.landing) this.input(dt);
 		const input = this.frameInput;
 		// Fly the local jet with zero input latency; the server reconciles it at 20 Hz.
 		// The next fixed step (the first to use this frame's input) starts at the last step boundary.
 		const stamp = FlightPrediction.InputStamp(predictor, now);
-		const state = intro ? predictor.state : FlightPrediction.Step(predictor, input, dt, now);
+		if (this.landing && !this.paused) this.landing.elapsed+=dt;
+		const state = this.landing ? landingPose(this.landing.plan,this.landing.elapsed) : intro ? predictor.state : FlightPrediction.Step(predictor, input, dt, now);
 		if (intro) LaunchStage.Advance(this.launchIntro!, state, dt);
 		let frame = frameFor(state);
 		if (this.evadeRoll > 0) {
@@ -814,7 +825,7 @@ export class FlightController {
 		this.launchCameraTime = intro ? 0 : math.min(CAMERA_HANDOFF_SECONDS, this.launchCameraTime + dt);
 		const handoff = this.launchCameraTime / CAMERA_HANDOFF_SECONDS;
 		const eased = handoff * handoff * (3 - 2 * handoff);
-		const desired = intro ? launch : launch.Lerp(chase, eased);
+		const desired = this.landing ? CFrame.lookAt(position.add(new Vector3(0,5,0)),position.add(forward.mul(100))) : intro ? launch : launch.Lerp(chase, eased);
 		// Impact feel (CameraShake) rides on top of the follow: shake is a camera-space
 		// offset and the ace hit-stop slows the follow and punches the FOV. Visual only.
 		const impact = CameraShake.Step(dt);
@@ -931,6 +942,7 @@ export class FlightController {
 	public Stop(): void {
 		this.audio.Stop();
 		this.active = false;
+		this.landing = undefined;
 		this.launchIntro = undefined;
 		this.launchCameraTime = CAMERA_HANDOFF_SECONDS;
 		this.paused = false;

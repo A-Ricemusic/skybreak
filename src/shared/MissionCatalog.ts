@@ -1,3 +1,4 @@
+import { MissionUpdate, ReturnLine, LandingPlan, validateBatchB } from "./EngineBatchB";
 import { TypedGroundTarget, FighterArrival, StandaloneAce, validateCampaignEncounters } from "./CampaignEncounters";
 import { BomberEncounter, validateBomberEncounter } from "./BomberEncounter";
 import { mission as practice } from "./missions/practice";
@@ -59,6 +60,8 @@ export type PhaseKind =
 	| "required_air"
 	| "required_ground"
 	| "ace"
+	| "return_line"
+	| "landing"
 	| "route"
 	| "recon"
 	| "signal"
@@ -104,6 +107,10 @@ export interface PhaseExecution {
 }
 
 export interface MissionPhaseBlueprint {
+	/** Fired once on entry to this phase (mid-sortie update). */
+	update?: MissionUpdate;
+	returnLine?: ReturnLine;
+	landing?: LandingPlan;
 	groundTargets?: TypedGroundTarget[];
 	fighterWaves?: FighterArrival[];
 	standaloneAce?: StandaloneAce;
@@ -168,6 +175,7 @@ export interface GroundTargetSpec {
 }
 
 export interface MissionBlueprint extends MissionPolicy {
+	terrainRelativeWarnings?: boolean;
 	id: number;
 	act: Act;
 	codename: string;
@@ -261,6 +269,8 @@ for (let index = -1; index < MISSIONS.size(); index++) {
 	const id = blueprint.id;
 	assert(id === index + 1, `Mission ${index + 1} must have id ${index + 1}`);
 	validateMissionPolicy(blueprint, id);
+	assert(blueprint.terrainRelativeWarnings === undefined || typeIs(blueprint.terrainRelativeWarnings,"boolean"), "Invalid terrain warning flag");
+	validateBatchB(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateCampaignEncounters(blueprint, expandPhases(blueprint.phases), blueprint.airspace ?? LEGACY_MISSION_AIRSPACE, blueprint.scoring ?? LEGACY_MISSION_SCORING);
 	assert(blueprint.phases.size() >= 1, `Mission ${id} must have at least one phase`);
 	assert(blueprint.failure.size() > 0 && blueprint.failure.size() <= 120, `Mission ${id} needs a short failure outcome`);
@@ -400,6 +410,8 @@ export const MissionCatalog = {
 	/** Exposed for authoring tests and future catalog builders; throws on an invalid policy. */
 	ValidatePolicy(blueprint: MissionBlueprint): void {
 		validateMissionPolicy(blueprint, blueprint.id);
+		assert(blueprint.terrainRelativeWarnings === undefined || typeIs(blueprint.terrainRelativeWarnings,"boolean"),"Invalid terrain warning flag");
+		validateBatchB(expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint).hardHalfWidth);
 		assert(blueprint.phases.size()>0,"Mission needs a phase");
 		validateCampaignEncounters(blueprint, expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint), MissionCatalog.Scoring(blueprint));
 		for (const phase of expandPhases(blueprint.phases)) validateBomberEncounter(phase, blueprint.airspace ?? LEGACY_MISSION_AIRSPACE, blueprint.scoring ?? LEGACY_MISSION_SCORING);

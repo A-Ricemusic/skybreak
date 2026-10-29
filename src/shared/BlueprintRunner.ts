@@ -1,3 +1,4 @@
+import { crossesReturnLine, landingDuration } from "./EngineBatchB";
 import { FlightMath, FlightState } from "./FlightMath";
 import { FlightPoint, MissionBlueprint, MissionCatalog, MissionPhaseBlueprint } from "./MissionCatalog";
 import { GameConfig } from "./GameConfig";
@@ -8,6 +9,10 @@ const PROTECT_DRAIN = 0.55;
 /** Each live hazard gun drains the protected actor like this many raiders. */
 const GUN_WEIGHT = 1.5;
 export interface BlueprintState {
+	updateSerial?: number;
+	updateUntil?: number;
+	countdownDeadline?: number;
+	landingElapsed?: number;
 	turnObserved: number;
 	pitchObserved: number;
 	stepSince: number;
@@ -65,7 +70,7 @@ function sweptDistance(p: FlightPoint, a: FlightPoint, b: FlightPoint): number {
 function total(p: MissionPhaseBlueprint): number {
 	if (p.kind === "tutorial_move") return (p.execution?.movementDuration ?? 3)*2;
 	if (p.kind === "tutorial_target") return 1;
-	if (p.kind === "ace") return 1;
+	if (p.kind === "ace" || p.kind === "return_line" || p.kind === "landing") return 1;
 	if (p.kind === "chase") return p.count ?? 1;
 	if (p.kind === "route") return p.points!.size();
 	if (p.kind === "recon") return p.points!.size() * p.seconds!;
@@ -76,6 +81,15 @@ function finish(s: BlueprintState, outcome: "won" | "failed", reason: BlueprintR
 	if (s.outcome !== undefined) return;
 	s.outcome=outcome; s.reason=reason;
 }
+function enter(s: BlueprintState): void {
+	const p=s.phases[s.phaseIndex];
+	if (p?.update) {
+		s.updateSerial=(s.updateSerial ?? 0)+1; s.updateUntil=s.elapsed+8;
+		for (const line of p.update.radio) s.radioQueue.push(line);
+		if (p.update.countdownSeconds !== undefined) s.countdownDeadline=s.elapsed+p.update.countdownSeconds;
+	}
+	s.landingElapsed=p?.landing ? 0 : undefined;
+}
 function advance(s: BlueprintState): void {
 	s.phaseIndex++; s.phaseProgress=0; s.pointIndex=0; s.phaseOptionalKills=0; s.protectedHealth=100; s.phaseTwisted=false;
 	s.phaseClock=0; s.hazardFired=false; s.hazardAlive=0;
@@ -83,6 +97,7 @@ function advance(s: BlueprintState): void {
 	const nextPhase=s.phases[s.phaseIndex];
 	s.banditsDueAt=nextPhase?.execution?.launchDelay !== undefined ? s.elapsed+nextPhase.execution.launchDelay : undefined;
 	if (s.phaseIndex >= s.phases.size()) finish(s,"won","complete");
+	else enter(s);
 }
 /** Teaching actions latch immediately; advancing waits for the prompt's own dwell. */
 function advanceTeaching(s: BlueprintState): void {
@@ -140,9 +155,10 @@ export const BlueprintRunner = {
 		assert(finite(startedAt) && blueprint.phases.size()>0,"Invalid blueprint/clock");
 		const phases: MissionPhaseBlueprint[]=[];
 		for (const phase of blueprint.phases) phases.push(phase);
-		return {turnObserved:0,pitchObserved:0,stepSince:0,cycled:false,blueprint,phases,radioQueue:[],phaseTwisted:false,startedAt,elapsed:0,phaseIndex:0,phaseProgress:0,pointIndex:0,protectedHealth:100,
+		const state: BlueprintState = {turnObserved:0,pitchObserved:0,stepSince:0,cycled:false,blueprint,phases,radioQueue:[],phaseTwisted:false,startedAt,elapsed:0,phaseIndex:0,phaseProgress:0,pointIndex:0,protectedHealth:100,
 			killedIds:new Set<string>(),requiredAirKills:0,requiredGroundKills:0,optionalAirKills:0,optionalGroundKills:0,phaseOptionalKills:0,aceKilled:false,
 			extraRaiders:math.max(0,math.floor(finite(extraRaiders) ? extraRaiders : 0)),phaseClock:0,hazardFired:false,hazardAlive:0};
+		enter(state); return state;
 	},
 	/** Called once when loading/launch staging gives way to player control. */
 	BeginControl(s: BlueprintState, now: number): void {
@@ -152,9 +168,9 @@ export const BlueprintRunner = {
 		if (BlueprintRunner.ActivePhase(s)?.bombers) finish(s, "failed", "bombers_escaped");
 	},
 	Tick(s: BlueprintState, now: number, health=100): void {
-		if (s.outcome !== undefined || !finite(now)) return;
+		if (s.outcome !== undefined || s.landingElapsed !== undefined || !finite(now)) return;
 		s.elapsed=math.max(s.elapsed,now-s.startedAt,0);
-		if (s.elapsed>=MissionCatalog.CountdownSeconds(s.blueprint)) finish(s,"failed","timeout");
+		if (s.elapsed>=(s.countdownDeadline ?? MissionCatalog.CountdownSeconds(s.blueprint))) finish(s,"failed","timeout");
 		else if (finite(health) && health<=0) finish(s,"failed","destroyed");
 		advanceTeaching(s);
 	},
@@ -182,7 +198,13 @@ export const BlueprintRunner = {
 	BanditsDue(s: BlueprintState): boolean {
 		return s.outcome === undefined && s.banditsDueAt !== undefined && s.elapsed>=s.banditsDueAt;
 	},
-	TimeRemaining(s: BlueprintState): number { return math.max(0,MissionCatalog.CountdownSeconds(s.blueprint)-s.elapsed); },
+	TimeRemaining(s: BlueprintState): number { return math.max(0,(s.countdownDeadline ?? MissionCatalog.CountdownSeconds(s.blueprint))-s.elapsed); },
+	AdvanceLanding(s: BlueprintState, dt: number, skip=false): void {
+		const plan=BlueprintRunner.ActivePhase(s)?.landing;
+		if (!plan || s.outcome !== undefined || !finite(dt) || dt<0) return;
+		s.landingElapsed=math.min(landingDuration(plan),(s.landingElapsed ?? 0)+dt);
+		if (skip || s.landingElapsed>=landingDuration(plan)) advance(s);
+	},
 	ActivePhase(s: BlueprintState): MissionPhaseBlueprint | undefined { return s.phases[s.phaseIndex]; },
 	/** The live phase list (authored phases plus twist inserts fired so far). Read-only for callers. */
 	Phases(s: BlueprintState): MissionPhaseBlueprint[] { return s.phases; },
@@ -203,6 +225,7 @@ export const BlueprintRunner = {
 	HazardLive(s: BlueprintState): boolean { return hazardLive(s); },
 	NavigationPoint(s: BlueprintState): FlightPoint | undefined {
 		const p=BlueprintRunner.ActivePhase(s);
+		if (p?.returnLine) return {x:(p.returnLine.a.x+p.returnLine.b.x)/2,y:p.returnLine.markerY,z:(p.returnLine.a.z+p.returnLine.b.z)/2};
 		if (!p?.points) return undefined;
 		if (p.kind !== "escort") return p.points[s.pointIndex] ?? p.points[0];
 		const segment=math.clamp(s.phaseProgress/p.seconds!,0,1)*(p.points.size()-1);
@@ -219,6 +242,7 @@ export const BlueprintRunner = {
 		if (s.outcome !== undefined || !finite(dt) || dt<=0 || dt>0.1) return;
 		for (const n of [from.x,from.y,from.z,to.x,to.y,to.z,threats,drainScale]) if (!finite(n)) return;
 		const p=BlueprintRunner.ActivePhase(s)!;
+		if (p.returnLine) { if (crossesReturnLine(p.returnLine,from,to)) { s.phaseProgress=1; advance(s); } return; }
 		if (p.kind === "chase") {
 			s.phaseClock+=dt;
 			if (s.phaseClock+0.00001>=(p.seconds ?? 0)) finish(s,"failed","escaped");
@@ -293,7 +317,7 @@ export const BlueprintRunner = {
 		const p=BlueprintRunner.ActivePhase(s) ?? s.phases[s.phases.size()-1];
 		const waiting=s.banditsDueAt !== undefined && !BlueprintRunner.BanditsDue(s);
 		const progress=s.outcome === "won" ? total(p) : p.kind === "tutorial_move" ? math.floor(s.turnObserved+1e-6)+math.floor(s.pitchObserved+1e-6) : p.kind === "tutorial_target" ? (s.cycled ? 1 : 0) : s.phaseProgress;
-		return {phase:p.execution?.hudPhase ?? p.kind,objective:waiting ? "Protection ends when bandits arrive; prepare to fight" : p.execution?.objective ?? p.label,
+		return {phase:p.execution?.hudPhase ?? p.kind,objective:waiting ? "Protection ends when bandits arrive; prepare to fight" : p.update?.objective ?? p.execution?.objective ?? p.label,
 			objectiveProgress:math.floor(progress),objectiveTotal:total(p),tutorialStep:p.tutorialStep ?? "",beat:p.beat};
 	},
 };

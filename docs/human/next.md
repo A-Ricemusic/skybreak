@@ -22,3 +22,11 @@ Last updated: 2026-10-29.
 3. **Before mission 2 ships:** sequential-unlock and forged-proof tests, remapping the finale chapter, and retiring leftover code keyed to the old 27 missions.
 4. **Later missions** one at a time; mission 18 gains a one-on-one Rusk duel (D-031).
 5. **Polish not blocking play:** the world items above; a code formatter; specs for the menu, briefing, HUD and results screens.
+
+## Mission 3 — engine batch B
+
+Engine batch B is built, dormant and unmerged on `feat/engine-batch-b`: phase-entry MISSION UPDATE with radio/objective/countdown reset; directional return segment with HUD navigation; automatic skippable runway landing that excludes mission and score time; opt-in terrain-clearance warnings. Batch A already expresses site 1 destroyed → fighter wave plus ace via shared `ground_group` triggers. Mission 3 data/unlock and world integration remain separate; use PR #139’s Z=11,040 line and northbound runway centred (6000,84,11264). Landing touchdown authors the aircraft pivot, including gear clearance, rather than the runway surface.
+
+Studio lease remains with the orchestrator: run the Roblox specs and inspect landing camera/skip, update radio delivery and mountain warnings there before enabling mission 3. No Studio or Player test is claimed for batch B.
+
+Batch B offline validation: frozen Bun install and build passed; full offline gate passed (`OFFLINE_LUAU_RESULT passed=672 failed=0`, catalog snapshot `passed=19 failed=0`). Runtime Roblox specs are compiled but unrun. Landing plans require continuous touchdown speed: `2 × rolloutDistance / rolloutSeconds = approachDistance / approachSeconds`.
