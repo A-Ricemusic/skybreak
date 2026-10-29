@@ -148,6 +148,44 @@ experience owner (the user or the group that owns the place) with Open Cloud.
 Upload nothing else from the folder: previews, checklists and the separate PNGs
 are review evidence.
 
+The coordinator uses the gated uploader (creator user `3407487520`):
+
+```sh
+python3 tools/upload-models.py heavy-bomber carrier --dry-run
+python3 tools/upload-models.py --key-file <private-file> heavy-bomber carrier
+```
+
+Dry run requires no key, makes no network calls and prints one JSON line per
+asset: asset, file, size in bytes, SHA-256, reviewer and journal key. For isolated
+offline verification, append `--state-dir <temporary-state-directory>`; real
+uploads use the shared account state by default.
+
+Every run holds the same `audio-upload.lock` as Audio/Voice, and refuses an
+account HALT or any unresolved earlier upload. Each asset requires
+`docs/qa/asset-reviews/approvals/<asset>.json` with `approved: true`, a nonempty
+reviewer, `uploadAssetType: "Model"`, and `uploadSet` containing exactly
+`<asset>.fbx` and its SHA-256. The FBX bytes and `checklist.json` bytes must
+match the approval's hashes; a nonempty `exportVersion` must match both records.
+All seven required content checks and every additional checklist check must be
+objects with `value: true`. Missing, malformed or changed evidence refuses the
+batch before any submission. Files must be bounded regular files resolving
+inside the repository; the FBX must be nonempty and below 50 MB.
+
+Only the FBX is submitted, with asset type `Model` and content type `model/fbx`.
+Textures travel embedded; previews, standalone textures and JSON are never
+uploaded. The shared journal at
+`~/.skybreak-roblox-uploads/journal-3407487520.json` records
+`<asset>/<asset>.fbx`, its SHA-256, type, reviewer, operation/asset IDs and
+moderation state. Actual runs may resume their own matching journal entry by
+polling its operation/moderation instead of posting again; an ambiguous
+submission without IDs requires manual recovery. Other unresolved entries
+block the run (resume that asset alone first); dry runs refuse even their own
+unresolved entry. A rejection writes `HALT-3407487520` and stops all uploads;
+only explicit moderation approval succeeds. Pending/unknown results stop when
+the bounded polling budget expires. Success prints the asset ID and never
+writes `src/`, the manifest or the asset folders; ID wiring is a separate PR.
+The implementation agent verifies only with fake HTTP and temporary state.
+
 **Confirmed import behaviour (Kestrel pilot, asset 112234026185056,
 2026-10-26):** the Open Cloud Model upload passed moderation, and
 `InsertService:LoadAsset` returns a Model with one MeshPart per FBX object
