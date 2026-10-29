@@ -221,3 +221,50 @@ required before any upload.
 3. The helicopter needs `MainRotor` and `TailRotor` allowed as parts by the loader and
    spun about their hubs. The tanker goes through `WorldAssets.PlaceUploaded` at its
    waterline.
+
+## Revision 3 (`vanta-v2-elite-3`, 2026-10-29)
+
+Independent review 2 rejected revision 2 at 8/10: circular discs at eye spacing,
+a rising central lower edge and ventral fins still formed goggles/mask geometry.
+The exact reviewer record is committed separately at
+`docs/qa/asset-reviews/2026-10-29-pr137-review-2.md` (copied verbatim).
+
+Elite-only changes replace both round nozzle assemblies with one continuous wide,
+short rectangular thrust-vectoring fairing and a plain solid mid-grey exit plate.
+Straight upper/lower lips have no vanes, divider, dark holes or circles. The aft belly
+centre is lowered to the adjacent nacelle keel from station 5 aft, removing the
+central rise; both ventral strakes are removed. No tail boom. All four 1024px maps
+were rebaked. Budget: **12,272 triangles**, **24.691 × 7.029 × 26.4 studs**.
+Original loader part names and source hinges/attachments remain. `finish()` uniformly
+rescales and recentres the export after the shorter exhaust/removal of strakes: loader
+attachments and all ten hinge endpoints match the previous export under one transform
+(scale 1.0045965; maximum rounding error < 0.0002 studs). Target length is unchanged;
+span changes by less than 1%, height decreases.
+
+Default `vanta_v2_airframe()` regression: Blender hashes before and after are both
+`0061228793c8c7f5579fe63f2a4cb8b0a14da974517425ee42e03221f7634f82`.
+`tools/assets/check_vanta_default.py` preserves this check of every mesh vertex,
+polygon, material slot/index, metadata (hinges/pivots) and attachment. Default
+output and the other asset folders, including uploaded Vanta/Vulture/Rusk, are unchanged.
+
+The complete existing preview pack was regenerated, with seven additional contrasting
+warm-key/cool-fill rear views (suffix `-contrast`). Creator inspected every one of the
+14 rear images individually: straight back, low, high, both three-quarters and two
+close-ups under both lighting setups. I see no face, mask, goggles, owl or skull
+composition: no paired eyes or central nose bridge remains. The shared fairing is
+visibly boxy and its border is dark, but contains one undivided plain rectangle;
+I do not find that borderline as a face. This is a creator assessment only, not an
+independent safety verdict. A new independent review of the exact export, assembled
+appearance and all maps is required before upload. Nothing uploaded or merged;
+no Player test performed.
+
+`checklist.json` lists and SHA-256 hashes every other file, including all 27 previews,
+scale-reference image, contact sheet, FBX and four maps. See its `previews` array for
+the complete filename inventory. Verification results are recorded below after checks.
+
+Validation: `verify_fbx.py` **FBX_VERIFY PASS** (all asset folders); default airframe
+hash check passed; `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau" bun run validate:offline`
+passed after installing the checkout's missing dependencies; `git diff --check` passed.
+All 34 non-checklist files have matching SHA-256 entries. No other asset folder changed.
+All five human docs were reconciled: dashboard, next and blockers updated; shipped and
+stable decisions unchanged because this revision is unmerged and introduces no new decision.

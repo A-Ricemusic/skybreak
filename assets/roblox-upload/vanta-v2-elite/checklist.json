@@ -2,20 +2,20 @@
   "name": "vanta-v2-elite",
   "title": "Vanta elite squadron livery (v2)",
   "variantOf": "vanta-v2",
-  "exportVersion": "vanta-v2-elite-2",
+  "exportVersion": "vanta-v2-elite-3",
   "robloxAssetType": "Model",
   "usage": "Mission 5: the five-ship elite squadron that arrives as phase 1 ends. Pending independent safety review; not uploaded; not referenced from src/.",
   "generator": "tools/assets/build.py",
   "fbx": {
     "file": "vanta-v2-elite.fbx",
-    "bytes": 2754732
+    "bytes": 2669292
   },
-  "triangleCount": 12992,
+  "triangleCount": 12272,
   "triangleLimit": 15000,
   "objects": [
     {
       "name": "Body",
-      "triangles": 11780
+      "triangles": 11060
     },
     {
       "name": "Canopy",
@@ -48,33 +48,33 @@
       "file": "vanta-v2-elite-color.png",
       "width": 1024,
       "height": 1024,
-      "bytes": 702024
+      "bytes": 699704
     },
     {
       "role": "normal",
       "file": "vanta-v2-elite-normal.png",
       "width": 1024,
       "height": 1024,
-      "bytes": 370981
+      "bytes": 369379
     },
     {
       "role": "rough",
       "file": "vanta-v2-elite-roughness.png",
       "width": 1024,
       "height": 1024,
-      "bytes": 525520
+      "bytes": 521284
     },
     {
       "role": "metal",
       "file": "vanta-v2-elite-metalness.png",
       "width": 1024,
       "height": 1024,
-      "bytes": 201493
+      "bytes": 180772
     }
   ],
   "robloxSizeStuds": [
-    24.578,
-    7.298,
+    24.691,
+    7.029,
     26.4
   ],
   "studMetres": 0.28,
@@ -101,7 +101,14 @@
     "preview-closeup-wing-band.png",
     "preview-closeup-fin.png",
     "preview-closeup-rear.png",
-    "preview-closeup-rear-3q.png"
+    "preview-closeup-rear-3q.png",
+    "preview-back-contrast.png",
+    "preview-3q-rear-right-contrast.png",
+    "preview-3q-rear-left-contrast.png",
+    "preview-back-low-contrast.png",
+    "preview-back-high-contrast.png",
+    "preview-closeup-rear-contrast.png",
+    "preview-closeup-rear-3q-contrast.png"
   ],
   "checks": {
     "noText": {
@@ -118,7 +125,7 @@
     },
     "noFaces": {
       "value": true,
-      "note": "No faces, figures or face-like arrangements: the cockpit holds an empty seat and panel only; intake mouths are plain dark rectangles with no central spinner, so the front view does not read as eyes. Rear (revision 2): the nozzles end in shallow lit metal plugs crossed by ten short radial vanes, with no dark liner, flame holder or centre cone; the dark-ended tail boom between them is removed and the flat aft end and lower aft skin are plain mid-grey metal, so the back view shows no dark round openings, central opening or dark band."
+      "note": "No faces, figures or face-like arrangements: the cockpit holds an empty seat and panel only; intake mouths are plain dark rectangles with no central spinner, so the front view does not read as eyes. Rear revision 3: one continuous flattened rectangular exhaust with a solid mid-grey interior and straight lips; no round nozzles, vanes, tail boom or ventral strakes. Aft belly centre lowered to eliminate the rising bridge. Creator assessment only; independent review required."
     },
     "noSuggestiveShapes": {
       "value": true,
@@ -137,111 +144,118 @@
   "controlSurfaces": {
     "Aileron_L": {
       "from": [
-        -5.8902,
-        -1.9545,
-        8.232
+        -5.9172,
+        -2.115,
+        8.3306
       ],
       "to": [
-        -11.4279,
-        -2.1963,
-        9.1291
+        -11.4805,
+        -2.3579,
+        9.2318
       ]
     },
     "Elevator_L": {
       "from": [
-        -1.3089,
-        -1.1052,
-        -5.3968
+        -1.3149,
+        -1.2618,
+        -5.3609
       ],
       "to": [
-        -2.3158,
-        -1.0524,
-        -5.3968
+        -2.3264,
+        -1.2088,
+        -5.3609
       ]
     },
     "Aileron_R": {
       "from": [
-        5.8902,
-        -1.9545,
-        8.232
+        5.9172,
+        -2.115,
+        8.3306
       ],
       "to": [
-        11.4279,
-        -2.1963,
-        9.1291
+        11.4805,
+        -2.3579,
+        9.2318
       ]
     },
     "Elevator_R": {
       "from": [
-        1.3089,
-        -1.1052,
-        -5.3968
+        1.3149,
+        -1.2618,
+        -5.3609
       ],
       "to": [
-        2.3158,
-        -1.0524,
-        -5.3968
+        2.3264,
+        -1.2088,
+        -5.3609
       ]
     },
     "Rudder": {
       "from": [
         0.0,
-        -0.2978,
-        9.6847
+        -0.4507,
+        9.7899
       ],
       "to": [
         0.0,
-        2.7832,
-        10.8123
+        2.6445,
+        10.9227
       ]
     }
   },
   "attachments": {
     "leftWingtip": [
-      -12.1831,
-      -2.2293,
-      9.8471
+      -12.2391,
+      -2.3911,
+      9.9531
     ],
     "rightWingtip": [
-      12.1831,
-      -2.2293,
-      9.8471
+      12.2391,
+      -2.3911,
+      9.9531
     ],
     "exhaust": [
       0.0,
-      -2.08,
-      13.0792
+      -2.2411,
+      13.2
     ]
   },
   "variants": [],
   "sha256": {
-    "contact-sheet.png": "fc87535e38cede3b717db3ac4e6b6f4afa12e641d493179687e0d5c590896845",
-    "preview-3q-front-left.png": "09c71d29f966fe2131a800ad96b6a2841474cc3f8984f9e9adf497e6c461f1fb",
-    "preview-3q-low-front-right.png": "62df8c0330ab41c7c2e8b0493819aaf7cdfffd3bb90c7a0aaa1f7ba486b59ad2",
-    "preview-3q-rear-left.png": "bd4f5afacd87b316e5d972645f495834578d09c2a4d75f7d159471ba181ba018",
-    "preview-3q-rear-right.png": "dad73eb25e9f3ecc6171a24875ff082c3ce513b44188d847f0516f6c5e938856",
-    "preview-3q.png": "7c3ad7a1a88cd5d8f0ea77cd788db1e114de9fc844d4512da8859089bc4c6012",
-    "preview-back-high.png": "27a3ffa2f637ec5a5c6c26937426bea5a15d6c25e6c695b997e8448962b126a1",
-    "preview-back-low.png": "3503aba7053cb52eed65975d43c6a78755134b091f5ee22214b60731840e894c",
-    "preview-back.png": "1e506edfb2e2493afe42ebac2ce6d0682702898014047093fc4bcbe2e1b0b389",
-    "preview-bottom.png": "7619a2f733fc3e069bdc8ccfba61232211971fd0db0eb910460ef5820cb8064b",
-    "preview-closeup-fin.png": "87795a7767f6a1fcbdfe0a60d8aa0fb7f0fb3d35dc4cea672637753d3ca2fc7a",
-    "preview-closeup-front.png": "0ef0fae73c5485b357fe3d8ffb4a25dd22d542105bd86e52f71d655cc2563d2c",
-    "preview-closeup-rear-3q.png": "2aec4212954ce2b1beea850f46a6c3a55ca847788eef348a89324dd2ba78e077",
-    "preview-closeup-rear.png": "f1b4246796da8c5859256256fed80f53a8dfc9b8f4d51c8b819fb210ce91b3a1",
-    "preview-closeup-wing-band.png": "7149f0f45e821ceca2199efdf66eac30f3a82b793f2f6e029972b0de64fc3c4f",
-    "preview-closeup.png": "ee622c4a4aa19ceb59d673ad2496306bb37e71c50a96016ce7d15b2638b6c20b",
-    "preview-front-low.png": "733e4dd72dc663645e08eec8d448996eaabfe34cbc3eb2ddb66f1c30fb790cbf",
-    "preview-front.png": "2e0c6e5c7cef6114e540c58c7b4165ce85275288d0c75a4c4f8f3cf1cd735a75",
-    "preview-scale-reference.png": "ca0fb73c3b4607faecc18a877902b5cbd9cff103a95166b246a5bc7f1d5afc6e",
-    "preview-side-right.png": "89f4abc84c7f1b123a125ffdae02936e52b7b0e659fe5f223b7501480386930d",
-    "preview-side.png": "c989d4a57c6308aac82c3bcbc6252e461f2dd4ed224ffac035f911d49b008ebf",
-    "preview-top.png": "d9e7a39be277719932ddd237f27ad537525236f95524288e04e4b25770c9f8d8",
-    "vanta-v2-elite-color.png": "93b591b948cc337f307366f614830bc83e732deb5878de26c9336bdcb1368301",
-    "vanta-v2-elite-metalness.png": "3fdd6418fe81bd2e989fdddb3bb16ccb56905d61f4c3ce828d30581b73c282a6",
-    "vanta-v2-elite-normal.png": "401fafb9637110539990b8b1f2f653baad53884adadd9dd54d816a0dc8887782",
-    "vanta-v2-elite-roughness.png": "10f1768c85fcc0e5638d07840e15ea2c54f3c46c842da73f1f3ff74c14079e27",
-    "vanta-v2-elite.fbx": "a5723d8e1e1a84f85f9640ac33bdd1c11edb627895000668e5a0f2e461f67c59"
+    "contact-sheet.png": "ffb863783f46aaf83f9e0140c50dabbd03b9f8f3257f1100f63a3cdfb852ab23",
+    "preview-3q-front-left.png": "38c14543987978f1d59f4984230ed6deef5916a60dec6d8a4cf2cb03a0ac7f3f",
+    "preview-3q-low-front-right.png": "9e295283252f42229c194c8dff10bda916c9c11b30b1083fe836b9f08552dcd4",
+    "preview-3q-rear-left-contrast.png": "752393c938b11bc6168ac20eca2d1b06d25c3baee55cae49b4dc4d4b18fc40cc",
+    "preview-3q-rear-left.png": "031992df203bf9f9e62545f34e3598eebd7b2e30fb771d1220d0698824cff541",
+    "preview-3q-rear-right-contrast.png": "98d6ebbeb9a5372970f24f6e3408182d66fbaeadf5440c0e4591ac62fcffd614",
+    "preview-3q-rear-right.png": "bf17fb202198136d9bf522426a99c9e043537574ac5eaabd06aef5dee0b7ddeb",
+    "preview-3q.png": "3d9b11953cbaf176044fc10d3b7b04b85d5b4fda049d6cd503929658ca482401",
+    "preview-back-contrast.png": "8c5ca133c26b65c8b68b19e3b2ddabf2d12cc01f525a5f5800ce90b4dda76e7b",
+    "preview-back-high-contrast.png": "ba27c93aaaa59627f4f0d2ec8a34f7f23178b301b0cd668c997692292e141ecb",
+    "preview-back-high.png": "9c1ade998148cb89e09561eb3d2e1bfa75e9affe2de04856f60541253fe392c1",
+    "preview-back-low-contrast.png": "fb8da6cdf0fc421dc3d385b8447a6b6b4ea3f797974dc840acd3543918b7c106",
+    "preview-back-low.png": "b45a792d3f1e6b664daada6a533aff67bba86fb688f0a8368ac76ba16a992f34",
+    "preview-back.png": "719932c855e0f6744a24f5cb66365b8c197d51244fea8f7034256ce86bb2a745",
+    "preview-bottom.png": "fbdeec548903651e831696dc1d0b03d94ae5c269ed78ded096f6652fcf521381",
+    "preview-closeup-fin.png": "1c211352cfe038b1dc2dd67d6e3cdf46708bdde36f94851d7004c0b0147f13c3",
+    "preview-closeup-front.png": "9076cc133b6ba8a721daa7c486e3604701879706c82e337bae4f101b493a4744",
+    "preview-closeup-rear-3q-contrast.png": "bc225a8bc4f69950352bd8433fb09cb96d77c1d0ef87fd5df9a6f722bdcc2132",
+    "preview-closeup-rear-3q.png": "5b9ad8e1091f87ebc04df8dab7291f427d0fb45581294abca81dad472ff77d56",
+    "preview-closeup-rear-contrast.png": "0259dadec97b976d5f3d55cd54218359a7368be0b8d5ae43faa1aaace7815417",
+    "preview-closeup-rear.png": "fb8504d3b7f53e41f2603468fd485f0626ec830861b164b7b7afd81943821974",
+    "preview-closeup-wing-band.png": "897342523b47f03884a25ac4d82f8fee1147e813c9cdff872f09017e9f283712",
+    "preview-closeup.png": "67d7ec66b58ccfd21067a3c7d2618843372189e5ec4d381e3d0c3ee9b57136b5",
+    "preview-front-low.png": "074e1e982612aac50e2774831af26306076a5c2e57137841c84a6e0a5ab5b042",
+    "preview-front.png": "3305041be43db89eb8a0981cc0f7ef296ab1d543f6bbbd9ad0d4813fed0c39ab",
+    "preview-scale-reference.png": "ec2f1f054f70a0288c0cb332c518dbf2933ef056705e96e8e9d1eb7f8fb3bed9",
+    "preview-side-right.png": "8ba50b547e2a22e7fe01bf0744c6765e357c18522c8467452e016a72c68f1afb",
+    "preview-side.png": "a192f9f6c8aa29a1dd843f649adaf689eb7d9a1689893bd1fca400bfe1ae4b98",
+    "preview-top.png": "fa58157fe5bd7bfc87d95ffbd7839d4305a368c1126f568e165f64efc3800445",
+    "vanta-v2-elite-color.png": "0ab8e3734bf2aa71cb8a249ec4df09b9e6204cf28c24d8cc51d69787056d8b81",
+    "vanta-v2-elite-metalness.png": "4cdef17d497dc4437ee43ea34d43737aa479e2c90ad0def16c617d31675d7563",
+    "vanta-v2-elite-normal.png": "c9af57a8a365d5ab3a0604f139eb3f8f3de4c721b43477169448f9570534f785",
+    "vanta-v2-elite-roughness.png": "ea171072345864503d96b1c439879722666fd1071b405fdd4cd52d86753bf159",
+    "vanta-v2-elite.fbx": "2fdcf40547df8f11dfd13d15b6b08535c87add64a6db5363c79da3dc2a2b8ada"
   },
   "previewNotes": {
     "preview-front.png": "Orthographic from ahead (the model's front, Roblox -Z).",
@@ -263,10 +277,17 @@
     "preview-closeup-wing-band.png": "Close-up from ahead, the right (starboard), above.",
     "preview-closeup-fin.png": "Close-up from behind, the left (port), above.",
     "preview-closeup-rear.png": "Close-up from behind.",
-    "preview-closeup-rear-3q.png": "Close-up from behind, the left (port)."
+    "preview-closeup-rear-3q.png": "Close-up from behind, the left (port).",
+    "preview-back-contrast.png": "Contrasting warm raking key / cool fill; view direction (0, 1, 0).",
+    "preview-3q-rear-right-contrast.png": "Contrasting warm raking key / cool fill; view direction (-1.0, 1.25, 0.8).",
+    "preview-3q-rear-left-contrast.png": "Contrasting warm raking key / cool fill; view direction (1.0, 1.3, 0.6).",
+    "preview-back-low-contrast.png": "Contrasting warm raking key / cool fill; view direction (0.0, 1.0, -0.35).",
+    "preview-back-high-contrast.png": "Contrasting warm raking key / cool fill; view direction (0.0, 1.0, 0.5).",
+    "preview-closeup-rear-contrast.png": "Contrasting warm raking key / cool fill; close-up direction (0.0, 1.0, 0.05).",
+    "preview-closeup-rear-3q-contrast.png": "Contrasting warm raking key / cool fill; close-up direction (0.6, 1.0, 0.2)."
   },
-  "design": "The uploaded Vanta v2 airframe (same parts, hinges and attachments; built by the shared aircraft_v2.vanta_v2_airframe) with a plain rear (plain_rear=True: shallow vaned nozzle plugs instead of dark liners with flame holder and cone, no tail boom, bare mid-grey aft end, no exhaust soot) and its own livery. Upper #1d222b and lower #2b313b blue-black countershading, splinter camouflage #151920/#262c36, radome #14171c, pale steel-blue #7f97a8 fin and rudder and outer-wing bands. Distinct from Vulture (dark grey with bone feather band) and Rusk (oxblood with gold pinstripe).",
-  "sizeRationale": "Same airframe size as vanta-v2 (24.58 x 7.30 x 26.4 studs).",
+  "design": "The uploaded Vanta v2 airframe (same parts, hinges and attachments; built by the shared aircraft_v2.vanta_v2_airframe) with a plain rear (plain_rear=True: single continuous rectangular thrust-vectoring exhaust, plain grey interior, flattened aft belly, no ventral strakes or tail boom, no exhaust soot) and its own livery. Upper #1d222b and lower #2b313b blue-black countershading, splinter camouflage #151920/#262c36, radome #14171c, pale steel-blue #7f97a8 fin and rudder and outer-wing bands. Distinct from Vulture (dark grey with bone feather band) and Rusk (oxblood with gold pinstripe).",
+  "sizeRationale": "24.691 x 7.029 x 26.4 studs; target length retained, span changes by less than 1%, reduced height after removing ventral strakes. Original loader part names and source hinges/attachments retained, uniformly rescaled and recentered by finish().",
   "reviewStatus": "pending independent safety review (AGENTS.md); not uploaded; not referenced from src/",
   "scaleReference": {
     "file": "preview-scale-reference.png",

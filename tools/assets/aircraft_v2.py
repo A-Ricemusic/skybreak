@@ -1031,11 +1031,9 @@ def vanta_v2_airframe(name="vanta-v2", title="Vanta enemy interceptor (v2)", pai
     passes its name, paint and export version: the geometry, seed and scale are the same, so
     the mesh is the Vanta v2 mesh and only the paint zone differs.
 
-    ``plain_rear=True`` (``vanta-v2-elite`` only) changes the tail seen from behind: shallow
-    vaned nozzle plugs in place of the dark liners, flame holders and cones, and no tail boom
-    (whose dark open end sat between the nozzles). Dark round nozzles beside a dark central
-    opening read as a face from directly behind (2026-10-29 PR #137 review). The defaults
-    keep the uploaded ``vanta-v2`` mesh unchanged."""
+    ``plain_rear=True`` is elite-only: a shared rectangular thrust-vectoring exhaust,
+    flat aft belly and no ventral strakes or tail boom. Defaults preserve the uploaded mesh.
+    """
     a = Asset(name, title, texture=1024, kind="aircraft", tri_limit=15000,
               bump_distance=0.01, seed=202, target_length=VANTA_LENGTH, weighted_normals=True, glass_parts=("Canopy",),
               usage=usage, export_version=export_version)
@@ -1045,7 +1043,10 @@ def vanta_v2_airframe(name="vanta-v2", title="Vanta enemy interceptor (v2)", pai
     if plain_rear:
         z["nozzle_inner"] = a.zone("nozzle_inner", standard("#8e8b84", 0.55, 0.3, grime=0.1, ao=0.2, ao_dist=0.4))
     a.metadata["pivots"], a.metadata["hinges"] = {}, {}
-    body = Body(VANTA_KEYS, sharp=[3], counts=KESTREL_COUNTS)
+    # Lower the centre to the nacelle keel: no rising bridge in the aft silhouette.
+    keys = [(y, [(x, min(zz, pts[-2][1])) if i == 6 and y >= 5.0 else (x, zz)
+                  for i, (x, zz) in enumerate(pts)]) for y, pts in VANTA_KEYS] if plain_rear else VANTA_KEYS
+    body = Body(keys, sharp=[3], counts=KESTREL_COUNTS)
     ys = stations(-12.6, 11.0, [(-11.8, 0.2), (-9.2, 0.4), (-1.0, 0.45), (11.0, 0.55)])
     build_body(a, "Fuselage", body, paint, ys)
 
@@ -1137,14 +1138,19 @@ def vanta_v2_airframe(name="vanta-v2", title="Vanta enemy interceptor (v2)", pai
         a.metadata["pivots"][f"Elevator_{tag}"] = tuple(sp)
         a.metadata["hinges"][f"Elevator_{tag}"] = (tuple(sp), tuple(Vector(cf(2.3, -5.85, 0))))
 
-        # Ventral strakes and petal nozzles.
-        vf = fin_frame(side * 1.75, -1.2, math.radians(158), side)
-        surface(a, f"Strake {tag}", paint, "Body", vf, [0.0, 0.8], lambda s: 6.0 + s * 0.9, lambda s: 2.6 - s * 1.0, 0.05, samples=6)
-        if plain_rear:
-            round_nozzle(a, f"Nozzle {tag}", (z["metal"], z["nozzle_inner"], z["rail"]), side * 1.55, -0.4, 9.9, 12.5, 0.52,
-                         shallow=True)
-        else:
+        # The uploaded default keeps its ventral strakes and round nozzles.
+        if not plain_rear:
+            vf = fin_frame(side * 1.75, -1.2, math.radians(158), side)
+            surface(a, f"Strake {tag}", paint, "Body", vf, [0.0, 0.8], lambda s: 6.0 + s * 0.9, lambda s: 2.6 - s * 1.0, 0.05, samples=6)
             round_nozzle(a, f"Nozzle {tag}", (z["metal"], z["liner"], z["dark"]), side * 1.55, -0.4, 9.9, 12.5, 0.52)
+
+    if plain_rear:
+        # One continuous wide, shallow exit, with no dividing bar, circles or vanes.
+        # Solid grey backplate closes the exit; short straight lips suggest vectoring paddles.
+        a.box("Shared exhaust fairing", (4.24, 1.6, 0.72), (0, 11.6, -0.56), z["metal"], part="Body")
+        a.box("Plain continuous exhaust exit", (4.04, 0.08, 0.44), (0, 12.42, -0.56), z["nozzle_inner"], part="Body")
+        for zz in (-0.87, -0.25):
+            a.box("Vectoring lip", (4.24, 0.3, 0.1), (0, 12.35, zz), z["metal"], part="Body")
 
     # Single swept fin with rudder, dielectric cap.
     ff = fin_frame(0.0, 0.8, 0.0, 1)
