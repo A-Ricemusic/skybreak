@@ -1,3 +1,4 @@
+import type { MissionReason } from "../shared/OutcomeReason";
 import { createPhaseDirector, SpawnOptions } from "./PhaseDirector";
 import { fixedRaiders } from "./PhaseDirectorRules";
 import { CombatSession, Enemy, AirRole, TargetKind } from "./CombatSession";
@@ -228,7 +229,7 @@ function sessionOutcome(session: CombatSession): "won" | "failed" | undefined {
 	return session.crashReason !== undefined ? "failed" : session.blueprintState?.outcome;
 }
 
-function sessionReason(session: CombatSession): string | undefined {
+function sessionReason(session: CombatSession): MissionReason | undefined {
 	return session.crashReason ?? session.blueprintState?.reason;
 }
 
@@ -590,7 +591,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		else if (role === "courier") name = session.missionId === 24 ? "FUEL TANKER" : "COURIER";
 		else if (role === "bandit") { session.banditSerial += 1; name = string.format("BANDIT %02d", session.banditSerial); }
 		else { session.raiderSerial += 1; name = string.format("RAIDER %02d", session.raiderSerial); }
-		const model = role === BomberRules.Role.role ? BomberFactory.Create(name) : JetFactory.Create(name, true, role === "ace" ? AssetSelection.LiveryForAce(session.blueprint?.aceName) : undefined);
+		const model = role === BomberRules.Role.role ? BomberFactory.Create(name) : JetFactory.Create(name, true, role === "ace" ? AssetSelection.LiveryForAce(options.name, session.blueprint?.aceName) : undefined);
 		if (!session.active || session.folder.Parent === undefined) { model.Destroy(); return; }
 		// The replicated model is hidden on the client behind a smoothed local clone; only the clone draws trails.
 		JetFactory.SetTrails(model, false);
@@ -615,7 +616,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 			}
 		}
 		const pose = options.pose;
-		const position = pose ? new Vector3(pose.position.x, pose.position.y, pose.position.z).add(options.escortSlot !== undefined ? new Vector3(side * 120, 90, 0) : Vector3.zero) : new Vector3(px, py, pz);
+		const position = pose ? new Vector3(pose.position.x, pose.position.y, pose.position.z) : new Vector3(px, py, pz);
 		const direction = pose ? new Vector3(pose.facing.x, pose.facing.y, pose.facing.z) : role === "courier" && options.escape
 			? unitOr(options.escape.sub(position), forward)
 			: unitOr(positionFor(session.state).sub(position), forward.mul(-1));

@@ -96,10 +96,11 @@ export const AssetSelection = {
 		if (glassParts === undefined) return undefined;
 		return glassParts.includes(partName) ? GLASS_TRANSPARENCY : undefined;
 	},
-	/** Campaign ace names map to a livery: Vulture flight or Air Marshal Rusk. */
-	LiveryForAce(aceName: string | undefined): AceLivery | undefined {
-		if (aceName === undefined) return undefined;
-		const upper = aceName.upper();
+	/** Spawn-name overrides take precedence; current campaign aces fall back to their blueprint name. */
+	LiveryForAce(aceName: string | undefined, blueprintAceName?: string): AceLivery | undefined {
+		const resolvedName = aceName ?? blueprintAceName;
+		if (resolvedName === undefined) return undefined;
+		const upper = resolvedName.upper();
 		if (upper.find("RUSK", 1, true)[0] !== undefined || upper.find("MARSHAL", 1, true)[0] !== undefined) return "Rusk";
 		if (upper.find("VULTURE", 1, true)[0] !== undefined) return "Vulture";
 		return undefined;

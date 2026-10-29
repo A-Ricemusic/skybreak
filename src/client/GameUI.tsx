@@ -1,3 +1,4 @@
+import { isMissionReason } from "../shared/OutcomeReason";
 import { DeletionObservation } from "../shared/DeletionObservation";
 import { stickVector, TouchSticks } from "../shared/TouchSticks";
 import { initialTelemetry } from "../shared/InitialTelemetry";
@@ -677,7 +678,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					newBestRank: finished.newBestRank === true,
 					bestScore: finite(finished.bestScore, -1) >= 0 ? math.floor(finished.bestScore!) : undefined,
 					bestRank: MissionScore.IsRank(finished.bestRank) ? finished.bestRank : undefined,
-					reason: safeString(finished.reason, ""),
+					reason: isMissionReason(finished.reason) ? finished.reason : undefined,
 					difficulty: Difficulty.IsKind(finished.difficulty) ? finished.difficulty : undefined,
 					saveText,
 					saveColor: won && finished.saved === true && resultPersistence === "cloud" ? C.Accent : resultPersistence === "cloud" ? C.Muted : C.Orange,

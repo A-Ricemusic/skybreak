@@ -1,3 +1,4 @@
+import type { MissionReason } from "./OutcomeReason";
 import type { MissionAirspacePolicy } from "./MissionPolicy";
 import type { FireNotice } from "./WeaponRules";
 export type Persistence = "cloud" | "session" | "unavailable";
@@ -126,7 +127,7 @@ export interface MissionStats {
 	targetScore?: import("./TargetScore").TargetScoreSnapshot;
 	missionId?: number;
 	groundKills?: number;
-	reason?: string;
+	reason?: MissionReason;
 	completedPhases?: number;
 	slot: number;
 	kills: number;

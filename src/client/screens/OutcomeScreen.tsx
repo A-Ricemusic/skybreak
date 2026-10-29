@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "@rbxts/react";
 import { Difficulty, type DifficultyKind } from "../../shared/Difficulty";
-import { GameConfig } from "../../shared/GameConfig";
+import { failureCause, type MissionReason } from "../../shared/OutcomeReason";
 import { MissionCatalog, MISSION_COUNT } from "../../shared/MissionCatalog";
 import type { MissionRank } from "../../shared/MissionScore";
 import { targetScoreLines } from "../../shared/OutcomePoints";
@@ -31,7 +31,7 @@ interface OutcomeState {
 	newBestRank: boolean;
 	bestScore?: number;
 	bestRank?: MissionRank;
-	reason?: string;
+	reason?: MissionReason;
 	/** Level the sortie was flown on, when the server said. */
 	difficulty?: DifficultyKind;
 	saveText: string;
@@ -41,19 +41,6 @@ interface OutcomeState {
 const RANK_COLORS: { [rank: string]: Color3 } = { S: C.AccentHot, A: C.Accent, B: C.Ivory, C: C.Muted, D: C.Danger };
 /** Seconds between debrief rows appearing. */
 const DEBRIEF_ROW_STEP = 0.07;
-
-/** Readable failure cause for the debrief. */
-function failureCause(reason?: string): string {
-	if (reason === "crash_water") return "Your aircraft crashed into the water.";
-	if (reason === "crash_terrain") return "Your aircraft crashed into terrain or scenery.";
-	if (reason === "timeout") return `The ${math.floor(GameConfig.Campaign.MissionTimeLimit / 60)}-minute operation window closed.`;
-	if (reason === "escaped") return "The courier got away.";
-	if (reason === "internal_error") return "The sortie was stopped by a server error. Fly it again from the campaign menu.";
-	if (reason === "protected_lost") return "The protected vehicle or site was lost.";
-	if (reason === "destroyed") return "Your aircraft was shot down.";
-	if (reason === "not_recorded") return "The server could not record this sortie. Fly it again from the campaign menu.";
-	return "The sortie ended before the objective was complete.";
-}
 
 function formatScore(value: number): string {
 	const digits = tostring(math.max(0, math.floor(value)));
