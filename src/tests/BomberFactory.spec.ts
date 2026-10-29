@@ -1,6 +1,6 @@
 // Instance assembly tests: Studio Jest only, never adapted to the offline runner.
 import { afterEach, describe, expect, it } from "@rbxts/jest-globals";
-import { BomberFactory } from "../shared/BomberFactory";
+import { BomberFactory, attachBomberGeometry } from "../shared/BomberFactory";
 import { AssetSelection } from "../shared/AssetSelection";
 import { UploadedAssets } from "../shared/UploadedAssets";
 import { UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
@@ -37,5 +37,21 @@ describe("BomberFactory unwired visual", () => {
 			expect(p.FindFirstChild("RootWeld")?.IsA("WeldConstraint")).toBe(true);
 		}
 		expect(engines).toBe(4);
+	});
+});
+
+// Synthetic source pivot isolates alignment from asset availability; exact uploaded export still needs Studio inspection.
+describe("Bomber uploaded geometry alignment", () => {
+	it("preserves template-local part poses at a different aircraft root", () => {
+		model = new Instance("Model");
+		const root = new Instance("Part"); root.CFrame = new CFrame(-400, 700, 900); root.Parent = model; model.PrimaryPart = root;
+		const template = new Instance("Model");
+		const body = new Instance("Part"); body.Name = "Body"; body.CFrame = new CFrame(100, 200, 300).mul(CFrame.Angles(0, .7, 0)); body.Parent = template; template.PrimaryPart = body;
+		const wing = new Instance("Part"); wing.Name = "Wing"; wing.CFrame = body.CFrame.mul(new CFrame(20, 2, 4)); wing.Parent = template;
+		attachBomberGeometry(model, template);
+		const clone = model.FindFirstChild("Wing") as BasePart;
+		expect(root.CFrame.ToObjectSpace(clone.CFrame).Position.sub(new Vector3(20, 2, 4)).Magnitude).toBeLessThan(.001);
+		expect((model.FindFirstChild("Body") as BasePart).CFrame.LookVector.sub(root.CFrame.LookVector).Magnitude).toBeLessThan(.001);
+		template.Destroy();
 	});
 });

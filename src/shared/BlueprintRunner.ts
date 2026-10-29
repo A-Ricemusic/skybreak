@@ -142,6 +142,9 @@ export const BlueprintRunner = {
 			killedIds:new Set<string>(),requiredAirKills:0,requiredGroundKills:0,optionalAirKills:0,phaseOptionalKills:0,aceKilled:false,
 			extraRaiders:math.max(0,math.floor(finite(extraRaiders) ? extraRaiders : 0)),phaseClock:0,hazardFired:false,hazardAlive:0};
 	},
+	EscapeBombers(s: BlueprintState): void {
+		if (BlueprintRunner.ActivePhase(s)?.bombers) finish(s, "failed", "escaped");
+	},
 	Tick(s: BlueprintState, now: number, health=100): void {
 		if (s.outcome !== undefined || !finite(now)) return;
 		s.elapsed=math.max(s.elapsed,now-s.startedAt,0);
@@ -247,6 +250,7 @@ export const BlueprintRunner = {
 		const p=BlueprintRunner.ActivePhase(s);
 		if (!p) return false;
 		if (p.kind === "tutorial_missile") return required && kind === "ground" && s.phaseProgress === 0;
+		if (!required && p.bombers) return (kind === "air" || kind === "ace") && s.phaseOptionalKills < p.bombers.escorts.count;
 		if (!required && p.execution?.raiderKillCap !== undefined) return kind === "air" && s.optionalAirKills<p.execution.raiderKillCap;
 		if (!required) return kind==="air" && s.phaseOptionalKills<MissionCatalog.RaiderCap(p,s.extraRaiders);
 		return (kind==="ace" && p.kind==="ace") || (kind==="ground" && (p.kind==="required_ground" || hazardLive(s)))

@@ -3,9 +3,9 @@
 // the previous one, or sooner once half of the previous group is down. A group with an
 // authored `groupAt` trigger instead waits for that share of the whole phase to be down.
 //
-// Every hostile aircraft (bandit or raider) also goes through the live-aircraft budget:
+// Fighter aircraft go through the live-aircraft budget (route bombers have a separate six-slot budget):
 // at most AIR_BUDGET up at once on every difficulty, including Ace's extra raiders.
-// What does not fit waits in a queue, bandits first, until kills free a slot.
+// What does not fit waits in a queue, required bandits first, until kills free a slot.
 export interface WaveDue {
 	/** Index of the next group to spawn. */
 	next: number;
@@ -20,7 +20,7 @@ export interface WaveDue {
 }
 /** Aircraft waiting for a slot under the live-aircraft budget. */
 export interface AirRequest {
-	role: "bandit" | "raider";
+	role: "bandit" | "raider" | "escort" | "ace";
 	count: number;
 	/** Arrive from the rear quarter. */
 	behind: boolean;
@@ -29,7 +29,7 @@ export interface AirRequest {
 }
 /** Most hostile aircraft alive at once on Normal. */
 const AIR_BUDGET = 7;
-const ROLES: AirRequest["role"][] = ["bandit", "raider"];
+const ROLES: AirRequest["role"][] = ["bandit", "ace", "escort", "raider"];
 export const WavePlan = {
 	DefaultStagger: 18,
 	AirBudget: AIR_BUDGET,

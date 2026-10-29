@@ -1,3 +1,5 @@
+import { BomberRules, BomberSlotPose } from "../shared/BomberRules";
+import { compileBomberEncounter, laterEscortsDue } from "../shared/BomberEncounter";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { MissionCatalog, MissionPhaseBlueprint } from "../shared/MissionCatalog";
 import { WavePlan, AirRequest } from "../shared/WavePlan";
@@ -11,6 +13,11 @@ import type { CombatSession, AirRole, Enemy } from "./CombatSession";
 import { fixedRaiders } from "./PhaseDirectorRules";
 
 export interface SpawnOptions {
+	pose?: BomberSlotPose;
+	bomberSlot?: number;
+	escortSlot?: number;
+	name?: string;
+	optional?: boolean;
 	behind?: boolean;
 	aceHealth?: number;
 	escape?: Vector3;
@@ -42,7 +49,13 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		if (session.airQueue.size() === 0) return;
 		const room = WavePlan.Budget(extraRaiders(session)) - liveAircraft(session);
 		for (const batch of WavePlan.Admit(session.airQueue, room)) {
-			spawnAir(session, batch.count, batch.role, { behind: batch.behind });
+			if (session.bomberEncounter && (batch.role === "escort" || batch.role === "ace")) {
+				const poses = BomberRules.Sample(session.bomberEncounter.route, session.elapsed - session.bomberEncounter.startedAt).slots;
+				for (let i = 0; i < batch.count; i++) {
+					const slot = session.spawnSerial % poses.size();
+					spawnAir(session, 1, batch.role, { pose: poses[slot], escortSlot: slot, optional: true, name: batch.role === "ace" ? BlueprintRunner.ActivePhase(session.blueprintState!)?.bombers?.escorts.aceName : undefined });
+				}
+			} else spawnAir(session, batch.count, batch.role, { behind: batch.behind });
 			// A group's call goes out when it is really in the air, not when it was due.
 			if (batch.call !== undefined) radio(session, batch.call);
 		}
@@ -68,6 +81,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		session.chatterIndex=0;
 		session.reinforceIndex=0;
 		session.wave=undefined;
+		session.bomberEncounter=undefined;
 		// Retire the old phase's pursuers: they visibly fly out instead of lingering, firing, or draining a convoy.
 		if (!BlueprintRunner.ActivePhase(state)?.execution?.preservePursuers) withdrawAirborne(session);
 		// Raiders still waiting belonged to the old phase (its bandits were all out, or it could not have ended).
@@ -80,6 +94,14 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		if (!phase) return;
 		if (phase.execution?.activatePracticeTarget) activateGround(session);
 		if (phase.kind === "required_ground") activateGround(session,MissionCatalog.GroundStart(phases,state.phaseIndex),phase.count ?? 0);
+		else if (phase.bombers) {
+			const b = phase.bombers;
+			const route = compileBomberEncounter(b);
+			session.bomberEncounter = { route, startedAt: session.elapsed, laterSpawned: false };
+			const pose = BomberRules.Sample(route, 0);
+			for (let i = 0; i < b.count; i++) spawnAir(session, 1, BomberRules.Role.role, { pose: pose.slots[i], bomberSlot: i });
+			requestAir(session, b.escorts.initial, "escort");
+		}
 		else if (phase.kind === "required_air" && phase.execution?.launchDelay === undefined) {
 			if (phase.execution?.directSpawn) spawnAir(session,phase.count ?? 0,"bandit");
 			else {
@@ -187,6 +209,30 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		for (let line=BlueprintRunner.TakeRadio(bs); line !== undefined; line=BlueprintRunner.TakeRadio(bs)) radio(session,line,7);
 		const active=BlueprintRunner.ActivePhase(bs);
 		if (active) {
+			const encounter = session.bomberEncounter;
+			if (active.bombers && encounter) {
+				const pose = BomberRules.Sample(encounter.route, session.elapsed - encounter.startedAt);
+				if (pose.escaped) { BlueprintRunner.EscapeBombers(bs); radio(session, "Bombers passed the island's north end. Intercept failed."); return; }
+				if (laterEscortsDue(active.bombers, encounter, session.elapsed)) {
+					requestAir(session, 1, "ace");
+					requestAir(session, active.bombers.escorts.count - active.bombers.escorts.initial - 1, "escort");
+				}
+				for (const enemy of session.enemies) {
+					if (!enemy.enabled || enemy.health <= 0 || enemy.withdrawUntil !== undefined) continue;
+					const slot = enemy.bomberSlot ?? enemy.escortSlot;
+					if (slot === undefined) continue;
+					if (enemy.escortSlot !== undefined) {
+						const player = new Vector3(session.state.x, session.state.y, session.state.z);
+						if (enemy.health < enemy.maxHealth || player.sub(enemy.position).Magnitude <= 2300 || session.projectiles.some((p) => !p.hostile && p.target === enemy)) enemy.escortEngaged = true;
+						if (enemy.escortEngaged) continue;
+					}
+					const p = pose.slots[slot];
+					enemy.position = new Vector3(p.position.x, p.position.y, p.position.z).add(enemy.escortSlot !== undefined ? new Vector3(enemy.side * 120, 90, 0) : Vector3.zero);
+					enemy.direction = new Vector3(p.facing.x, p.facing.y, p.facing.z);
+					enemy.velocity = enemy.direction.mul(encounter.route.speed);
+					enemy.frame = CFrame.lookAt(enemy.position, enemy.position.add(enemy.direction));
+				}
+			}
 			const fraction=BlueprintRunner.Fraction(bs);
 			// Anything held back by the live-aircraft budget takes the slots kills have freed.
 			drainAir(session);
