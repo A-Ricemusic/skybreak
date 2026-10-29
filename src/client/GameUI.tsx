@@ -550,6 +550,11 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		const onMissionState = (raw: unknown, held = false): void => {
 			if (!mountedRef.current || !typeIs(raw, "table")) return;
 			const payload = raw as MissionMessage;
+			if (payload.kind === "Queued") {
+				// The last sortie's world is still being cleared; the launch request stays open and proceeds by itself.
+				showToast("Clearing the last sortie. Your launch is queued...", false);
+				return;
+			}
 			if (payload.kind === "Loading") {
 				const loading = payload as MissionLoading;
 				const slot = math.clamp(math.floor(finite(loading.slot, selectedSlotRef.current)), 1, 4);

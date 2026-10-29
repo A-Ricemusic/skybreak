@@ -271,5 +271,7 @@ export interface MissionFinished extends MissionStats {
 export interface LandingStarted { kind: "LandingStarted"; plan: import("./EngineBatchB").LandingPlan }
 /** The server accepted a landing skip; `elapsed` is its authoritative landing time (the runway hold). */
 export interface LandingSkipped { kind: "LandingSkipped"; elapsed: number }
-export type MissionMessage = LandingStarted | LandingSkipped | MissionLoading | MissionStarted | FlightControlHandoff | HudState | MissionFinished;
+/** The launch is queued until the previous world's cleanup completes; the request stays open. */
+export interface MissionQueued { kind: "Queued"; missionId: number }
+export type MissionMessage = LandingStarted | LandingSkipped | MissionQueued | MissionLoading | MissionStarted | FlightControlHandoff | HudState | MissionFinished;
 export type FinishedCallback = (player: Player, won: boolean, stats: MissionStats) => void;

@@ -9,10 +9,14 @@ The new 18-mission campaign is live in Roblox Player through the automatic pipel
 Mission 2 became playable in #143 after its dormant world (#140) and engine batch A (#138). It unlocks after mission 1 and preserves mission 1 score breakdowns through completion, replays and save reloads. The publish workflow returned place version 92. No agent Player test is claimed.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 Missions 3–5 are in review: [#147](https://github.com/A-Ricemusic/skybreak/pull/147), [#149](https://github.com/A-Ricemusic/skybreak/pull/149), and [#148](https://github.com/A-Ricemusic/skybreak/pull/148). Their worlds (#139/#144) and engines (#141/#145) are merged but dormant. They remain locked on main. Latest publish: place version **94** at `088fbfc`; this does not activate missions 3–5. See the per-level page for reported Studio evidence, open findings and beta checklists. No agent Player test is claimed.
 =======
 Missions 3–5 are in progress. Mission 3's world (#139) and engine batch B (#141) are merged; the open mission 3 PR makes it playable after mission 2 (nine radar domes at two snowy mountain sites, a MISSION UPDATE with a clock reset, a dashed return line and an automatic skippable landing). Its Studio results are in that PR; no Player test is claimed. See provisional D-061–D-066 in [Decisions](decisions.md). Mission 4–5 assets are merged and wired but dormant (#137, #142); their worlds are merged and dormant (#144) and engine batch C is in review in #145. The full Roblox Jest suite passed in Studio on #142 (808/808), but mission 3–5 visual integration and Player quality are not established.
 >>>>>>> 6861141 (docs(m03): re-apply mission 3 beta guide, dashboard and blockers on the restructured docs)
+=======
+Missions 3–5 are in progress. Mission 3's world (#139) and engine batch B (#141) are merged; the open mission 3 PR makes it playable after mission 2 (nine radar domes at two snowy mountain sites, a MISSION UPDATE with a clock reset, a dashed return line and an automatic skippable landing). Its Studio results are in that PR; no Player test is claimed. See provisional D-061–D-067 in [Decisions](decisions.md). Mission 4–5 assets are merged and wired but dormant (#137, #142); their worlds are merged and dormant (#144) and engine batch C is in review in #145. The full Roblox Jest suite passed in Studio on #142 (808/808), but mission 3–5 visual integration and Player quality are not established.
+>>>>>>> ff3523a (fix(server): shared world gate queues launches until the last world is cleared)
 
 ## Mission progress
 
