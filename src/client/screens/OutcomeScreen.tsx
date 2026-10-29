@@ -150,7 +150,7 @@ function OutcomeScreenImpl({
 		return () => { revealRef.current++; };
 	}, [visible, outcome]);
 
-	const story = outcome.won ? mission.debrief : `${failureCause(outcome.reason)} ${mission.failure}`;
+	const story = outcome.won ? mission.debrief : `${failureCause(outcome.reason, MissionCatalog.CountdownSeconds(mission))} ${mission.failure}`;
 	const headerSize = ultra ? 22 : compact ? 26 : 34;
 	const rankSize = ultra ? 40 : compact ? 48 : 62;
 	// Score sits between the 12px caption and the 14px best line, without overlapping either.
