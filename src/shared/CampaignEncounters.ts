@@ -1,0 +1,81 @@
+import type { AceLivery } from "./AssetSelection";
+import type { MissionBlueprint, MissionPhaseBlueprint, FlightPoint } from "./MissionCatalog";
+import type { MissionAirspacePolicy, MissionScoringPolicy } from "./MissionPolicy";
+
+export const GROUND_TYPES = ["parked_bomber", "hangar", "aa_gun", "control_tower", "substation", "radar_dome", "parked_helicopter", "refinery", "fuel_tank", "pipeline", "oil_rig", "rig_tower"] as const;
+export type GroundTargetType = typeof GROUND_TYPES[number];
+export interface TypedGroundTarget {
+	id: string; type: GroundTargetType; position: FlightPoint; yaw: number; required: boolean; scoreRole: string; group?: string;
+}
+export type ArrivalTrigger = { kind: "time"; seconds: number } | { kind: "ground_group"; group: string }
+	| { kind: "required_count"; count: number } | { kind: "phase_start"; phase: number };
+export interface FighterArrival {
+	id: string; trigger: ArrivalTrigger; count: number; role: "raider" | "escort"; scoreRole: string;
+	spawn?: FlightPoint; headingDegrees?: number; scramble?: boolean;
+}
+export interface StandaloneAce {
+	id: string; name: string; livery: AceLivery; health: number; trigger: ArrivalTrigger;
+	behaviour: "dogfight" | "ground_attack"; scoreRole: "ace"; spawn?: FlightPoint; headingDegrees?: number;
+}
+export interface TriggerContext { elapsed: number; phase: number; requiredKills: number; destroyed: Set<string>; targets: TypedGroundTarget[] }
+export function arrivalDue(trigger: ArrivalTrigger, context: TriggerContext): boolean {
+	if (trigger.kind === "time") return context.elapsed >= trigger.seconds;
+	if (trigger.kind === "phase_start") return context.phase >= trigger.phase;
+	if (trigger.kind === "required_count") return context.requiredKills >= trigger.count;
+	const group = context.targets.filter(t => t.group === trigger.group);
+	return group.size() > 0 && group.every(t => context.destroyed.has(t.id));
+}
+export function takeArrival(id: string, trigger: ArrivalTrigger, context: TriggerContext, fired: Set<string>): boolean {
+	if (fired.has(id) || !arrivalDue(trigger, context)) return false;
+	fired.add(id); return true;
+}
+export function scramblePose(spawn: FlightPoint, headingDegrees: number, seconds: number): FlightPoint {
+	const t = math.clamp(seconds, 0, 8), distance = 35*t + 9*t*t;
+	return { x: spawn.x + math.sin(math.rad(headingDegrees))*distance, y: spawn.y + math.max(0,t-3)*45, z: spawn.z - math.cos(math.rad(headingDegrees))*distance };
+}
+function finite(n: number): boolean { return typeIs(n,"number") && n === n && math.abs(n) < math.huge; }
+export function validateCampaignEncounters(blueprint: MissionBlueprint, phases: MissionPhaseBlueprint[], airspace: MissionAirspacePolicy, scoring: MissionScoringPolicy): void {
+	const ids = new Set<string>(), groups = new Set<string>();
+	assert(phases.size()>0,"Mission needs at least one phase");
+	const claim = (id: string) => { assert(id.size()>0 && !ids.has(id), "Encounter ids must be unique and nonempty"); ids.add(id); };
+	const point = (p: FlightPoint) => { assert(finite(p.x) && finite(p.y) && finite(p.z) && math.abs(p.x)<=airspace.spawnLimit && math.abs(p.z)<=airspace.spawnLimit && p.y>=0 && p.y<=2000,"Encounter point outside airspace"); };
+	const role = (key: string) => assert(key.size()>0 && key.size()<=32 && scoring.points[key] !== undefined,"Encounter needs a configured scoring role");
+	for (const phase of phases) {
+		assert(phase.label.size()>0 && phase.label.size()<=40,"Phase needs a short label");
+		if(phase.count !== undefined) assert(finite(phase.count) && phase.count%1===0 && phase.count>0,"Phase count must be a positive integer");
+		let required = 0;
+		for (const target of phase.groundTargets ?? []) {
+			claim(target.id); point(target.position); role(target.scoreRole);
+			assert(GROUND_TYPES.includes(target.type) && finite(target.yaw) && typeIs(target.required,"boolean"),"Invalid typed target");
+			if (target.group !== undefined) { assert(target.group.size()>0,"Empty ground group"); groups.add(target.group); }
+			if (target.required) required++;
+		}
+		if (phase.groundTargets !== undefined) {
+			assert(phase.hazard === undefined && phase.twist === undefined,"Typed targets cannot share a legacy hazard/twist phase");
+			if (phase.kind === "required_ground") assert(required === phase.count && required>0,"Typed strike must match its required count");
+			else assert(required===0,"Required typed ground targets need a ground strike phase");
+		}
+	}
+	const trigger = (t: ArrivalTrigger) => {
+		if (t.kind === "time") assert(finite(t.seconds) && t.seconds>=0,"Invalid arrival time");
+		else if (t.kind === "phase_start") assert(finite(t.phase) && t.phase%1===0 && t.phase>=0 && t.phase<phases.size(),"Invalid arrival phase");
+		else if (t.kind === "required_count") assert(finite(t.count) && t.count%1===0 && t.count>0,"Invalid required kill trigger");
+		else assert(t.kind === "ground_group" && groups.has(t.group),"Unknown ground group");
+	};
+	for (const phase of phases) {
+		for (const wave of phase.fighterWaves ?? []) {
+			claim(wave.id); trigger(wave.trigger); role(wave.scoreRole);
+			assert(finite(wave.count) && wave.count%1===0 && wave.count>=1 && wave.count<=32 && (wave.role==="raider" || wave.role==="escort"),"Invalid fighter wave");
+			if (wave.spawn) point(wave.spawn);
+			if (wave.headingDegrees !== undefined) assert(finite(wave.headingDegrees),"Invalid heading");
+			assert(!wave.scramble || (wave.spawn !== undefined && wave.headingDegrees !== undefined),"Scramble needs runway spawn and heading");
+		}
+		const ace=phase.standaloneAce;
+		if (ace) {
+			claim(ace.id); trigger(ace.trigger); role(ace.scoreRole);
+			assert(ace.name.size()>0 && ace.name.size()<=32 && (ace.livery==="Vulture" || ace.livery==="Rusk") && finite(ace.health) && ace.health>0 && ace.scoreRole==="ace" && (ace.behaviour==="dogfight" || ace.behaviour==="ground_attack"),"Invalid standalone ace");
+			if (ace.spawn) point(ace.spawn);
+			if (ace.headingDegrees !== undefined) assert(finite(ace.headingDegrees),"Invalid ace heading");
+		}
+	}
+}

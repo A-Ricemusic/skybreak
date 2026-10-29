@@ -1,3 +1,6 @@
+import { createGroundTarget } from "./GroundTargetFactory";
+import { GroundAirDefence } from "../shared/GroundAirDefence";
+import { scramblePose } from "../shared/CampaignEncounters";
 import { LaunchStage } from "../shared/LaunchStage";
 import { AlliedRules } from "../shared/AlliedRules";
 import type { MissionReason } from "../shared/OutcomeReason";
@@ -199,7 +202,7 @@ function sessionRequiredKills(session: CombatSession): number {
 
 /** Every destruction, air and ground, required or optional. */
 function sessionAllKills(session: CombatSession): number {
-	return sessionRequiredKills(session) + (session.blueprintState?.optionalAirKills ?? 0);
+	return sessionRequiredKills(session) + (session.blueprintState?.optionalAirKills ?? 0) + (session.blueprintState?.optionalGroundKills ?? 0);
 }
 /** Sync elapsed from the authoritative runner. */
 function syncElapsed(session: CombatSession): void {
@@ -207,7 +210,7 @@ function syncElapsed(session: CombatSession): void {
 }
 
 function sessionGroundKills(session: CombatSession): number {
-	return session.blueprintState?.requiredGroundKills ?? 0;
+	return (session.blueprintState?.requiredGroundKills ?? 0) + (session.blueprintState?.optionalGroundKills ?? 0);
 }
 
 function sessionCanDamage(session: CombatSession, kind: TargetKind, required: boolean): boolean {
@@ -218,8 +221,8 @@ function sessionCanDamage(session: CombatSession, kind: TargetKind, required: bo
 	return false;
 }
 
-function sessionRecordKill(session: CombatSession, id: string, kind: TargetKind, required: boolean, now: number, role?: AirRole): boolean {
-	if (session.blueprintState) return recordScoredKill(session.blueprintState, session.targetScore, id, kind, required, now, role);
+function sessionRecordKill(session: CombatSession, id: string, kind: TargetKind, required: boolean, now: number, role?: string, breakdownRole?: string): boolean {
+	if (session.blueprintState) return recordScoredKill(session.blueprintState, session.targetScore, id, kind, required, now, role, breakdownRole);
 	return false;
 }
 
@@ -352,7 +355,7 @@ function sendTelemetry(session: CombatSession): void {
 		turnObserved: session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.kind === "tutorial_move" ? session.blueprintState.turnObserved : undefined,
 		pitchObserved: session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.kind === "tutorial_move" ? session.blueprintState.pitchObserved : undefined,
 		evadeCharges: session.evade.charges,
-		optionalKills: session.blueprintState?.optionalAirKills ?? 0,
+		optionalKills: (session.blueprintState?.optionalAirKills ?? 0) + (session.blueprintState?.optionalGroundKills ?? 0),
 		incomingDistance: incomingDistance < math.huge ? incomingDistance : undefined,
 	}));
 }
@@ -455,7 +458,7 @@ function missionStats(session: CombatSession, won: boolean): MissionStats {
 		slot: session.slot,
 		reason: sessionReason(session),
 		completedPhases: sessionCompletedPhases(session, won),
-		optionalKills: session.blueprintState?.optionalAirKills ?? 0,
+		optionalKills: (session.blueprintState?.optionalAirKills ?? 0) + (session.blueprintState?.optionalGroundKills ?? 0),
 		missilesFired: session.missilesFired,
 		missileHits: session.missileHits,
 		damageTaken: session.damageTaken,
@@ -595,7 +598,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		else if (role === "courier") name = session.missionId === 24 ? "FUEL TANKER" : "COURIER";
 		else if (role === "bandit") { session.banditSerial += 1; name = string.format("BANDIT %02d", session.banditSerial); }
 		else { session.raiderSerial += 1; name = string.format("RAIDER %02d", session.raiderSerial); }
-		const model = role === BomberRules.Role.role ? BomberFactory.Create(name) : JetFactory.Create(name, options.friendly !== true, role === "ace" ? AssetSelection.LiveryForAce(options.name, session.blueprint?.aceName) : undefined);
+		const model = role === BomberRules.Role.role ? BomberFactory.Create(name) : JetFactory.Create(name, options.friendly !== true, options.livery ?? (role === "ace" ? AssetSelection.LiveryForAce(options.name, session.blueprint?.aceName) : undefined));
 		if (!session.active || session.folder.Parent === undefined) { model.Destroy(); return; }
 		// The replicated model is hidden on the client behind a smoothed local clone; only the clone draws trails.
 		JetFactory.SetTrails(model, false);
@@ -619,7 +622,14 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 				if (surface !== undefined) py = math.max(py, surface.y + 120);
 			}
 		}
-		const pose = options.pose;
+		const arrival=options.arrival;
+		const authoredSpawn=arrival?.spawn ?? (arrival?.headingDegrees !== undefined ? {
+			x: clampAirSpawn(session.state.x - math.sin(math.rad(arrival.headingDegrees))*2800,session.airspace),
+			y: math.max(240,session.state.y),
+			z: clampAirSpawn(session.state.z + math.cos(math.rad(arrival.headingDegrees))*2800,session.airspace),
+		} : undefined);
+		const radians=math.rad(arrival?.headingDegrees ?? 0);
+		const pose = options.pose ?? (authoredSpawn ? { position: {x:authoredSpawn.x+index*35*math.cos(radians),y:authoredSpawn.y,z:authoredSpawn.z+index*35*math.sin(radians)}, facing: {x:math.sin(radians),y:0,z:-math.cos(radians)} } : undefined);
 		const position = pose ? new Vector3(pose.position.x, pose.position.y, pose.position.z) : new Vector3(px, py, pz);
 		const direction = pose ? new Vector3(pose.facing.x, pose.facing.y, pose.facing.z) : role === "courier" && options.escape
 			? unitOr(options.escape.sub(position), forward)
@@ -637,6 +647,9 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		if (friendly) { session.allySerial += 1; serial = session.allySerial; }
 		else { session.spawnSerial += 1; serial = session.spawnSerial; }
 		const enemy: Enemy = {
+			scoreRole: options.arrival?.scoreRole,
+			groundAttack: options.arrival && "behaviour" in options.arrival && options.arrival.behaviour === "ground_attack",
+			scramble: options.arrival && "scramble" in options.arrival && options.arrival.scramble ? { spawn: { x:position.X,y:position.Y,z:position.Z }, heading: options.arrival.headingDegrees ?? 0, startedAt:session.elapsed } : undefined,
 			friendly: options.friendly, alliedAmmo: options.friendly ? AlliedRules.MissilesPerWingman : undefined,
 			id: `${friendly ? "ally" : "air"}_${serial}_${missionSerial}`, name, model, health, maxHealth: health,
 			position, direction, velocity: direction.mul(300), kind: role === "ace" ? "ace" : "air", required: options.optional !== true && role !== "raider" && role !== "escort", enabled: true,
@@ -687,8 +700,8 @@ function withdrawAirborne(session: CombatSession): void {
 function destroyEnemy(session: CombatSession, enemy: Enemy, allied = false): void {
 	if (!ownsEnemy(session, enemy)) return;
 	const accepted = allied && session.blueprintState && session.blueprint?.allies
-		? recordAlliedKill(session.blueprintState, session.targetScore, session.alliedKills, session.blueprint.allies, enemy.id, enemy.kind, enemy.required, os.clock(), enemy.role)
-		: sessionRecordKill(session, enemy.id, enemy.kind, enemy.required, os.clock(), enemy.role);
+		? recordAlliedKill(session.blueprintState, session.targetScore, session.alliedKills, session.blueprint.allies, enemy.id, enemy.kind, enemy.required, os.clock(), enemy.role, enemy.typedGround?.type, enemy.scoreRole ?? enemy.role)
+		: sessionRecordKill(session, enemy.id, enemy.kind, enemy.required, os.clock(), enemy.scoreRole ?? enemy.role, enemy.typedGround?.type);
 	syncElapsed(session);
 	if (!accepted) { if (sessionOutcome(session) !== undefined) finish(session); return; }
 	enemy.health = 0;
@@ -933,7 +946,30 @@ function stepAllies(session: CombatSession, dt: number, weaponsEnabled = true): 
 	}
 }
 
+function stepGroundDefence(session: CombatSession, dt: number): void {
+	let firing=0;
+	for(const enemy of session.enemies) if(enemy.typedGround?.type === "aa_gun" && enemy.windup>0 && ownsEnemy(session,enemy)) firing++;
+	for(const enemy of session.enemies) {
+		if(enemy.typedGround?.type !== "aa_gun") continue;
+		const eligible=GroundAirDefence.Eligible(enemy.health>0,enemy.enabled,enemy.position.sub(positionFor(session.state)).Magnitude);
+		if(!eligible) { enemy.windup=0; enemy.model.SetAttribute("AttackWarning",false); if(enemy.warning) enemy.warning.Enabled=false; continue; }
+		enemy.fireTimer=math.max(0,enemy.fireTimer-dt);
+		if(enemy.windup>0) {
+			enemy.windup-=dt;
+			if(enemy.windup<=0) {
+				const target=positionFor(session.state), delta=target.sub(enemy.position);
+				const tracer=new Instance("Part"); tracer.Name="AA tracer burst"; tracer.Anchored=true; tracer.CanCollide=false; tracer.CanTouch=false; tracer.CanQuery=false; tracer.Material=Enum.Material.Neon; tracer.Color=Color3.fromRGB(255,180,75); tracer.Size=new Vector3(1,1,delta.Magnitude); tracer.CFrame=CFrame.lookAt(enemy.position.add(delta.mul(0.5)),target); tracer.Parent=session.folder; task.delay(0.15,()=>tracer.Destroy());
+				if(GroundAirDefence.Hit(math.random(),session.difficulty,session.evadeRemaining>0)) { const damage=GroundAirDefence.Damage*GroundAirDefence.Scale(session.difficulty); session.health=math.max(0,session.health-damage); session.damageTaken+=damage; session.lowestHealth=math.min(session.lowestHealth,session.health); }
+				enemy.fireTimer=GroundAirDefence.Reload; enemy.model.SetAttribute("AttackWarning",false); if(enemy.warning) enemy.warning.Enabled=false;
+			}
+		} else if(enemy.fireTimer<=0 && GroundAirDefence.Admit(firing)) {
+			firing++; enemy.windup=GroundAirDefence.Windup; enemy.model.SetAttribute("AttackWarning",true);
+			if(!enemy.warning) { enemy.warning=attackWarning(enemy.model); const label=enemy.warning.FindFirstChildOfClass("TextLabel"); if(label) label.Text="AA FIRING"; } enemy.warning.Enabled=true;
+		}
+	}
+}
 function stepEnemies(session: CombatSession, dt: number): void {
+	stepGroundDefence(session,dt);
 	const playerPosition = positionFor(session.state);
 	const playerForward = directionFor(session.state);
 	const playerVelocity = playerForward.mul(session.state.speed);
@@ -975,6 +1011,12 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		const enemy = session.enemies[index];
 		if (enemy.withdrawUntil !== undefined) { if (enemy.health > 0) stepWithdrawing(session, enemy, dt); continue; }
 		if (!ownsEnemy(session, enemy) || enemy.kind === "ground") continue;
+		if (enemy.scramble) {
+			const elapsed=session.elapsed-enemy.scramble.startedAt;
+			const p=scramblePose(enemy.scramble.spawn,enemy.scramble.heading,elapsed);
+			if(elapsed<8) { enemy.position=new Vector3(p.x,p.y,p.z); enemy.frame=CFrame.lookAt(enemy.position,enemy.position.add(enemy.direction)); continue; }
+			enemy.scramble=undefined;
+		}
 		// Route actors are stepped only by PhaseDirector and never enter fighter/fire logic.
 		if (enemy.role === BomberRules.Role.role || (enemy.escortSlot !== undefined && !enemy.escortEngaged)) continue;
 		enemy.combatTarget = nearestWingman(session, enemy);
@@ -1070,6 +1112,7 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		if ((session.stepCount + index) % AVOID_EVERY === 0 && session.collisionParams) {
 			if (Workspace.Raycast(enemy.position, enemy.direction.mul(AVOID_RANGE), session.collisionParams)) enemy.pullUpUntil = session.elapsed + 0.8;
 		}
+		if (enemy.groundAttack && (enemy.pullUpUntil ?? 0)<=session.elapsed) desired=unitOr(new Vector3(desired.X,math.clamp((240-enemy.position.Y)/500,-0.2,0.2),desired.Z),desired);
 		if ((enemy.pullUpUntil ?? 0) > session.elapsed) desired = unitOr(new Vector3(desired.X * 0.5, math.max(0.8, desired.Y + 1), desired.Z * 0.5), desired);
 		let speed = math.clamp(session.state.speed + (ace ? 48 : 24), ace ? 320 : 285, ace ? 380 : CombatBalance.banditSpeedCap) + enemy.speedBonus;
 		if (courier) speed = COURIER_SPEED;
@@ -1081,7 +1124,7 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		enemy.direction = steerAircraft(oldDirection, desired, breaking ? breakTurn : ace ? 2.8 : 2.1, dt);
 		enemy.velocity = enemy.direction.mul(speed);
 		const moved = enemy.position.add(enemy.velocity.mul(dt));
-		enemy.position = new Vector3(math.clamp(moved.X, -(session.bomberEncounter ? session.airspace.spawnLimit : 2700), session.bomberEncounter ? session.airspace.spawnLimit : 2700), math.clamp(moved.Y, 170, 1000), math.clamp(moved.Z, -(session.bomberEncounter ? session.airspace.spawnLimit : 2700), session.bomberEncounter ? session.airspace.spawnLimit : 2700));
+		enemy.position = new Vector3(math.clamp(moved.X, -(session.bomberEncounter || enemy.scoreRole !== undefined ? session.airspace.spawnLimit : 2700), session.bomberEncounter || enemy.scoreRole !== undefined ? session.airspace.spawnLimit : 2700), math.clamp(moved.Y, 170, 1000), math.clamp(moved.Z, -(session.bomberEncounter || enemy.scoreRole !== undefined ? session.airspace.spawnLimit : 2700), session.bomberEncounter || enemy.scoreRole !== undefined ? session.airspace.spawnLimit : 2700));
 		const bank = math.clamp(-oldDirection.Cross(enemy.direction).Y * 26, -0.65, 0.65);
 		// Applied once per Heartbeat by flushPivots: a hitch's catch-up sub-steps replicate one CFrame, not five.
 		enemy.frame = CFrame.lookAt(enemy.position, enemy.position.add(enemy.direction)).mul(CFrame.Angles(0, 0, bank));
@@ -1522,21 +1565,28 @@ export const CombatService = {
 			session.blueprint = MissionCatalog.Get(missionId);
 			session.blueprintState = BlueprintRunner.NewState(session.blueprint, startedAt, fixedRaiders(session.blueprint) ? 0 : Difficulty.Behaviour(difficultyKind).extraRaiders);
 			// Hazard targets and hidden strikes stay out of sight until their phase lights them.
+			const typed = new Map<Model, {spec: import("../shared/CampaignEncounters").TypedGroundTarget; phase: number}>();
+			for(let phase=0;phase<blueprint.phases.size();phase++) for(const spec of blueprint.phases[phase].groundTargets ?? []) {
+				const model=createGroundTarget(spec); model.Parent=folder; world.groundTargets.push(model); typed.set(model,{spec,phase});
+			}
 			const hiddenGround = session.blueprint ? MissionCatalog.HiddenGround(session.blueprint) : new Set<number>();
 			for (let index = 0; index < world.groundTargets.size(); index++) {
 				const model = world.groundTargets[index];
+				const data=typed.get(model);
 				assert(model.Parent === folder && model.PrimaryPart !== undefined, "Ground target must have a stationary aim center in its session");
 				const enemy: Enemy = {
-					id: `ground_${index + 1}_${missionSerial}`, name: model.Name, model, health: 55, maxHealth: 55,
+					typedGround:data?.spec, phaseOwner:data?.phase, scoreRole:data?.spec.scoreRole,
+				id: data?.spec.id ?? `ground_${index + 1}_${missionSerial}`, name: model.Name, model, health: 55, maxHealth: 55,
 					position: model.PrimaryPart.Position, direction: new Vector3(0, 0, -1), velocity: Vector3.zero,
-					kind: "ground", groundIndex: index, required: true, enabled: false, fireTimer: 0, windup: 0,
+					kind: "ground", groundIndex: data ? -1 : index, required: data?.spec.required ?? true, enabled: false, fireTimer: 0, windup: 0,
 					mode: "attack", modeTimer: 0, passDirection: new Vector3(0, 0, -1), side: 1,
 					flares: 0, flareTimer: 0, flareUntil: 0, speedBonus: 0, lockBreakTimer: 0, breakTimer: 0, breakUntil: 0, lockBreakChance: 0, hiddenParts: [],
 				};
 				// Mission 1 hides the training radar until the tutorial activates it; blueprints hide hazards and hidden strikes.
-				const hideUntilActivated = missionId === 0 || hiddenGround.has(index);
+				const hideUntilActivated = data !== undefined || missionId === 0 || hiddenGround.has(index);
 				for (const item of model.GetDescendants()) {
 					if (item.IsA("BasePart")) {
+						if (data) item.SetAttribute("OriginalTransparency",item.Transparency);
 						item.Anchored = true; item.CanCollide = false; item.CanTouch = false; item.CanQuery = item.Transparency < 1;
 						item.SetAttribute("FlightSolid", item.CanQuery);
 						if (hideUntilActivated) { enemy.hiddenParts.push({ part: item, transparency: item.Transparency }); item.Transparency = 1; item.CanQuery = false; }

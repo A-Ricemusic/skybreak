@@ -30,6 +30,7 @@ export interface BlueprintState {
 	requiredAirKills: number;
 	requiredGroundKills: number;
 	optionalAirKills: number;
+	optionalGroundKills: number;
 	phaseOptionalKills: number;
 	aceKilled: boolean;
 	/** Extra raiders every wave brings (Ace difficulty); widens each phase's optional kill cap. */
@@ -139,7 +140,7 @@ export const BlueprintRunner = {
 		const phases: MissionPhaseBlueprint[]=[];
 		for (const phase of blueprint.phases) phases.push(phase);
 		return {turnObserved:0,pitchObserved:0,stepSince:0,cycled:false,blueprint,phases,radioQueue:[],phaseTwisted:false,startedAt,elapsed:0,phaseIndex:0,phaseProgress:0,pointIndex:0,protectedHealth:100,
-			killedIds:new Set<string>(),requiredAirKills:0,requiredGroundKills:0,optionalAirKills:0,phaseOptionalKills:0,aceKilled:false,
+			killedIds:new Set<string>(),requiredAirKills:0,requiredGroundKills:0,optionalAirKills:0,optionalGroundKills:0,phaseOptionalKills:0,aceKilled:false,
 			extraRaiders:math.max(0,math.floor(finite(extraRaiders) ? extraRaiders : 0)),phaseClock:0,hazardFired:false,hazardAlive:0};
 	},
 	/** Called once when loading/launch staging gives way to player control. */
@@ -254,6 +255,8 @@ export const BlueprintRunner = {
 		const p=BlueprintRunner.ActivePhase(s);
 		if (!p) return false;
 		if (p.kind === "tutorial_missile") return required && kind === "ground" && s.phaseProgress === 0;
+		if (!required && kind === "ground" && p.groundTargets !== undefined) return true;
+		if (!required && p.standaloneAce && kind === "ace") return true;
 		if (!required && p.bombers) return (kind === "air" || kind === "ace") && s.phaseOptionalKills < MissionCatalog.RaiderCap(p,s.extraRaiders);
 		if (!required && p.execution?.raiderKillCap !== undefined) return kind === "air" && s.optionalAirKills<p.execution.raiderKillCap;
 		if (!required) return kind==="air" && s.phaseOptionalKills<MissionCatalog.RaiderCap(p,s.extraRaiders);
@@ -264,6 +267,7 @@ export const BlueprintRunner = {
 		BlueprintRunner.Tick(s,now);
 		if (id==="" || s.killedIds.has(id) || !BlueprintRunner.CanDamage(s,kind,required)) return false;
 		s.killedIds.add(id);
+		if (!required && kind === "ground") { s.optionalGroundKills++; return true; }
 		if (!required) { s.optionalAirKills++; s.phaseOptionalKills++; return true; }
 		const p=BlueprintRunner.ActivePhase(s)!;
 		if (p.kind === "tutorial_missile") {

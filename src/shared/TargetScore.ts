@@ -1,6 +1,6 @@
 // Pure per-target scoring. The server wiring owns target identity and decides
 // when a kill happened; this ledger only deduplicates and totals those facts.
-import { EncounterRole, MissionScoringPolicy } from "./MissionPolicy";
+import { MissionScoringPolicy } from "./MissionPolicy";
 
 export interface TargetScoreSnapshot {
 	total: number;
@@ -21,13 +21,13 @@ export class TargetScore {
 	public constructor(private readonly policy: MissionScoringPolicy) {}
 
 	/** Records one unique, non-empty target id. Missing/invalid role values award zero points. */
-	public RecordKill(targetId: string, role: EncounterRole): boolean {
+	public RecordKill(targetId: string, role: string, breakdownRole = role): boolean {
 		if (!typeIs(targetId, "string") || !typeIs(role, "string") || targetId.size() === 0 || this.targetIds.has(targetId)) return false;
 		this.targetIds.add(targetId);
 
-		const key = role;
+		const key = breakdownRole;
 		this.kills[key] = (this.kills[key] ?? 0) + 1;
-		const configured = this.policy.points[key];
+		const configured = this.policy.points[role];
 		const awarded = finiteNonnegative(configured) ? configured : 0;
 		this.points[key] = (this.points[key] ?? 0) + awarded;
 		this.total += awarded;
@@ -35,8 +35,8 @@ export class TargetScore {
 	}
 
 	public Total(): number { return this.total; }
-	public RoleKills(role: EncounterRole): number { return this.kills[role] ?? 0; }
-	public RolePoints(role: EncounterRole): number { return this.points[role] ?? 0; }
+	public RoleKills(role: string): number { return this.kills[role] ?? 0; }
+	public RolePoints(role: string): number { return this.points[role] ?? 0; }
 
 	/** Returns detached plain tables suitable for result packets and persistence. */
 	public Snapshot(): TargetScoreSnapshot {
