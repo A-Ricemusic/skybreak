@@ -4,6 +4,9 @@ import { polyDist, type TerrainOp, type TerrainMaterial, type PartSpec, type Pro
 
 export const M02_WORLD_KEY = "m02_farm_airbase";
 export const M02_FILL_CHUNK = 65536;
+// Match M01: a four-stud slab rests on the flat terrain terrace.
+export const M02_PAVEMENT_TOP = 36;
+const PAVEMENT_CENTRE = M02_PAVEMENT_TOP - 2;
 export const M02 = {
 	half: 16384, coarse: 256, detail: 64, corridorHalf: 768,
 	base: { x: -1024, z: -12500, hx: 1408, hz: 1920 },
@@ -45,7 +48,7 @@ export interface M02Target { id: string; type: M02TargetType; x: number; y: numb
 /** Contact poses, not combat instances. Eleven bombers TOTAL, in groups 4/3/2/2. */
 export function m02TargetLayout(): M02Target[] {
 	const out: M02Target[] = [];
-	const add = (targetType: M02TargetType, x: number, z: number, group: string, yaw = 0) => out.push({ id: `m02_${targetType}_${out.size() + 1}`, type: targetType, x, y: m02Height(x, z), z, yaw, group });
+	const add = (targetType: M02TargetType, x: number, z: number, group: string, yaw = 0) => out.push({ id: `m02_${targetType}_${out.size() + 1}`, type: targetType, x, y: targetType === "bomber" || targetType === "control_tower" || targetType === "substation" ? M02_PAVEMENT_TOP : m02Ground(x, z), z, yaw, group });
 	for (let i = 0; i < 4; i++) add("bomber", -1500, -12950 + i * 180, "A", math.pi / 2);
 	for (let i = 0; i < 3; i++) add("bomber", -200, -13700 + i * 220, "B");
 	for (let i = 0; i < 2; i++) add("bomber", -1600, -11400 + i * 180, "C");
@@ -57,9 +60,9 @@ export function m02TargetLayout(): M02Target[] {
 	return out;
 }
 export const M02_RUNWAY = {
-	centreline: { x: -1024, y: 32, z: -12500, yaw: 0, length: 2880, width: 64 },
-	threshold: { x: -1024, y: 32, z: -11060, yaw: 0 },
-	northThreshold: { x: -1024, y: 32, z: -13940, yaw: 0 },
+	centreline: { x: -1024, y: M02_PAVEMENT_TOP, z: -12500, yaw: 0, length: 2880, width: 64 },
+	threshold: { x: -1024, y: M02_PAVEMENT_TOP, z: -11060, yaw: 0 },
+	northThreshold: { x: -1024, y: M02_PAVEMENT_TOP, z: -13940, yaw: 0 },
 };
 export interface M02Beam { name: string; a: [number, number, number]; b: [number, number, number]; color: [number, number, number] }
 export interface M02Plan { key: string; seed: number; ops: TerrainOp[]; parts: PartSpec[]; props: PropSpec[]; beams: M02Beam[]; detailCells: number; coarseCells: number }
@@ -119,21 +122,21 @@ export function buildM02Plan(seed = 202, checkpoint: () => void = () => {}): M02
 	}
 	const pavement: [number, number, number] = [111, 119, 111];
 	for (const z of [-13220, -11780]) {
-		part("Runway", -1024, 30, z, 64, 4, 1440, pavement, "block", true);
-		part("Parallel taxiway", -736, 30, z, 40, 4, 1440, pavement, "block", true);
+		part("Runway", -1024, PAVEMENT_CENTRE, z, 64, 4, 1440, pavement, "block", true);
+		part("Parallel taxiway", -736, PAVEMENT_CENTRE, z, 40, 4, 1440, pavement, "block", true);
 	}
-	for (const z of [-13800, -12500, -11300]) part("Taxiway crosslink", -1150, 30, z, 900, 4, 36, pavement, "block", true);
-	for (const z of [-13220, -11780]) part("West taxiway", -1530, 30, z, 36, 4, 1440, pavement, "block", true);
-	part("Main apron", -1530, 30, -12500, 500, 4, 1100, pavement, "block", true);
-	for (let i = 0; i < 12; i++) part("Runway centre stripe", -1024, 32.15, -13820 + i * 240, 3, 0.2, 80, [205, 210, 198]);
+	for (const z of [-13800, -12500, -11300]) part("Taxiway crosslink", -1150, PAVEMENT_CENTRE, z, 900, 4, 36, pavement, "block", true);
+	for (const z of [-13220, -11780]) part("West taxiway", -1530, PAVEMENT_CENTRE, z, 36, 4, 1440, pavement, "block", true);
+	part("Main apron", -1530, PAVEMENT_CENTRE, -12500, 500, 4, 1100, pavement, "block", true);
+	for (let i = 0; i < 12; i++) part("Runway centre stripe", -1024, M02_PAVEMENT_TOP + 0.15, -13820 + i * 240, 3, 0.2, 80, [205, 210, 198]);
 	for (const t of m02TargetLayout()) {
 		if (t.type === "bomber") {
-			if (t.group !== "A") { const lane = t.group === "B" ? -736 : -1530; part("Pad connector", (lane + t.x) / 2, 30, t.z, math.abs(lane - t.x) + 36, 4, 28, pavement, "block", true); }
-			part("Dispersal hardstand", t.x, 30, t.z, 140, 4, 140, pavement, "cylinder", true);
+			if (t.group !== "A") { const lane = t.group === "B" ? -736 : -1530; part("Pad connector", (lane + t.x) / 2, PAVEMENT_CENTRE, t.z, math.abs(lane - t.x) + 36, 4, 28, pavement, "block", true); }
+			part("Dispersal hardstand", t.x, PAVEMENT_CENTRE, t.z, 140, 4, 140, pavement, "cylinder", true);
 			// Annular taxi loop: four short tangent slabs around a clear inner grass square.
 			if (t.group === "B" || t.group === "D") for (const s of [-1, 1]) {
-				part("Loop taxiway", t.x + s * 85, 30, t.z, 24, 4, 194, pavement, "block", true);
-				part("Loop taxiway", t.x, 30, t.z + s * 85, 146, 4, 24, pavement, "block", true);
+				part("Loop taxiway", t.x + s * 85, PAVEMENT_CENTRE, t.z, 24, 4, 194, pavement, "block", true);
+				part("Loop taxiway", t.x, PAVEMENT_CENTRE, t.z + s * 85, 146, 4, 24, pavement, "block", true);
 			}
 		} else if (t.type === "hangar" || t.type === "control_tower") p.props.push({ asset: t.type === "hangar" ? "Hangar" : "ControlTower", ...t, scale: 1, tint: 0 });
 		else if (t.type === "aa") {
@@ -141,9 +144,9 @@ export function buildM02Plan(seed = 202, checkpoint: () => void = () => {}): M02
 			part("AA turret", t.x, 40, t.z, 10, 8, 12, [62, 74, 61]);
 			part("AA barrel", t.x, 43, t.z - 15, 2, 2, 28, [65, 71, 64]);
 		} else {
-			part("Substation yard", t.x, 30, t.z, 160, 4, 96, pavement, "block", true);
-			for (const x of [-50, 0, 50]) part("Transformer", x, 42, t.z, 26, 20, 32, [88, 98, 91]);
-			for (const s of [-1, 1]) { part("Yard fence", s * 80, 38, t.z, 2, 12, 96, [119, 128, 119]); part("Yard fence", 0, 38, t.z + s * 48, 160, 12, 2, [119, 128, 119]); }
+			part("Substation yard", t.x, PAVEMENT_CENTRE, t.z, 160, 4, 96, pavement, "block", true);
+			for (const x of [-50, 0, 50]) part("Transformer", x, t.y + 10, t.z, 26, 20, 32, [88, 98, 91]);
+			for (const s of [-1, 1]) { part("Yard fence", s * 80, t.y + 6, t.z, 2, 12, 96, [119, 128, 119]); part("Yard fence", 0, t.y + 6, t.z + s * 48, 160, 12, 2, [119, 128, 119]); }
 		}
 	}
 	part("Terminal", -1850, 48, -12400, 160, 32, 58, [177, 184, 174], "block", true);
