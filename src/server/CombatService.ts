@@ -1,164 +1,36 @@
+import { createPhaseDirector, SpawnOptions } from "./PhaseDirector";
+import { fixedRaiders } from "./PhaseDirectorRules";
+import { CombatSession, Enemy, AirRole, TargetKind } from "./CombatSession";
+export type { CombatSession } from "./CombatSession";
 import { WorldAirspace } from "../shared/WorldAirspace";
 import { GameConfig } from "../shared/GameConfig";
 import { CombatBalance } from "../shared/CombatBalance";
 import { AircraftCollision } from "./AircraftCollision";
 import { Players, RunService, Workspace } from "@rbxts/services";
 import { FlightMath, FlightState } from "../shared/FlightMath";
-import { MissionAssets } from "../shared/MissionAssets";
 import { AssetSelection } from "../shared/AssetSelection";
 import { JetFactory } from "../shared/JetFactory";
 import { recordScoredKill } from "./SortieScore";
 import { TargetScore, targetScoreStats } from "../shared/TargetScore";
-type TargetKind = "air" | "ground" | "ace";
-import { BlueprintRunner, BlueprintState } from "../shared/BlueprintRunner";
-import { MissionBlueprint, MissionCatalog, MissionPhaseBlueprint } from "../shared/MissionCatalog";
+import { BlueprintRunner } from "../shared/BlueprintRunner";
+import { MissionCatalog, MissionPhaseBlueprint } from "../shared/MissionCatalog";
 import { CombatEffectPacket, FinishedCallback, FlightInput, HudState, MissionLoading, MissionStats, Remotes } from "../shared/Types";
 import { ExplosionKind } from "../shared/ExplosionFx";
 import { FlightPrediction } from "../shared/FlightPrediction";
 import { TelemetryCodec } from "../shared/TelemetryCodec";
-import { LoadingGate, LoadingGateState } from "../shared/LoadingGate";
+import { LoadingGate } from "../shared/LoadingGate";
 import { countParts } from "../shared/MissionParts";
-import { ActionGateState, FireNotice, WeaponRules } from "../shared/WeaponRules";
-import { SalvoCandidate, SpecialKind, SpecialState, SpecialWeapons } from "../shared/SpecialWeapons";
+import { FireNotice, WeaponRules } from "../shared/WeaponRules";
+import { SalvoCandidate, SpecialKind, SpecialWeapons } from "../shared/SpecialWeapons";
 import { Difficulty, DifficultyKind, DifficultyKnob } from "../shared/Difficulty";
 import { ThreatRules } from "../shared/ThreatRules";
-import { EvadeRules, EvadeState } from "../shared/EvadeRules";
-import { AceRules, AceStageState } from "../shared/AceRules";
-import { AirRequest, WavePlan } from "../shared/WavePlan";
-import { PauseRules, PauseState, Settlement, SettlementHooks, SettlementState, StepGuard, StepGuardState } from "../shared/SessionGuard";
+import { EvadeRules } from "../shared/EvadeRules";
+import { AceRules } from "../shared/AceRules";
+import { WavePlan } from "../shared/WavePlan";
+import { PauseRules, Settlement, SettlementHooks, StepGuard } from "../shared/SessionGuard";
 import { MissionWorld } from "./MissionWorld";
-import { ActorFooting, ActorGrounding } from "./ActorGrounding";
+import { ActorGrounding } from "./ActorGrounding";
 
-type EnemyMode = "attack" | "extend" | "orbit" | "run";
-/** What an air enemy is: a required bandit, an optional raider, the courier of a chase phase, or the ace. */
-type AirRole = "bandit" | "raider" | "courier" | "ace";
-interface Enemy {
-	id: string; name: string; model: Model; health: number; maxHealth: number; position: Vector3;
-	kind: TargetKind; required: boolean; enabled: boolean;
-	direction: Vector3; velocity: Vector3; fireTimer: number; windup: number;
-	/** Current maneuver. `extend` is a timed break-away (pass or lock-break), `orbit`/`run` are escort raider cycles. */
-	mode: EnemyMode; modeTimer: number; passDirection: Vector3;
-	/** +1 or -1: which side of the player's nose this enemy brackets and breaks toward. */
-	side: number;
-	flares: number; flareTimer: number; speedBonus: number; lockBreakTimer: number;
-	/** A popped flare decoys every player missile within ThreatRules.FlareRadius until this elapsed time. */
-	flareUntil: number;
-	/** Defensive break (lock building close, or a guided missile inbound): cooldown until the next one, and when the current one ends. */
-	breakTimer: number; breakUntil: number;
-	/** Odds this enemy breaks out of a close lock (act, difficulty and Ace behaviour). */
-	lockBreakChance: number;
-	role?: AirRole;
-	/** Ace only: stage, retreat/hold mode and stage invulnerability (AceRules). */
-	aceState?: AceStageState;
-	/** Courier only: where it runs. */
-	escape?: Vector3;
-	/** Retired at a phase change: flying out for the boundary until this elapsed time, then removed. Never targetable. */
-	withdrawUntil?: number;
-	/** Ground-avoidance: climbing away from scenery ahead until this elapsed time. */
-	pullUpUntil?: number;
-	warning?: BillboardGui;
-	groundIndex?: number;
-	hiddenParts: { part: BasePart; transparency: number }[];
-	/** Latest pivot from this Heartbeat's sub-steps; applied once by flushPivots. */
-	frame?: CFrame;
-	/** Last `Damageable` attribute written (publishDamageable), so it only replicates on change. */
-	damageable?: boolean;
-}
-interface Projectile {
-	/** A player missile without `target` is a blind (unguided) shot that relies on its proximity fuse. */
-	part: Part; position: Vector3; direction: Vector3; target?: Enemy; hostile: boolean; age: number;
-	/** Fired by an ace (hostile: tighter guidance), and the damage on impact (hull or enemy health). */
-	ace: boolean; damage: number;
-	/** Guided flight speed. */
-	speed: number;
-	/** Hostile only: flight time at launch, so an evade can spot a missile in its last 1.2 s. */
-	life?: number;
-	/** Launched by the special slot: never refunded as a standard missile. */
-	special?: boolean;
-	/** Hostile only: this missile has already rolled against the player's flare cloud. */
-	/** Which flare cloud (session.flareBursts) this missile already rolled against. */
-	flareRolled?: number;
-	/** Player guided only: range to the target last step, to detect an overshoot of a breaking bandit. */
-	lastDistance?: number;
-	/** Player guided shot that overshot a breaking bandit: now unguided but keeps its guided lifetime and speed. */
-	lostTrack?: boolean;
-}
-export interface CombatSession {
-	targetScore: TargetScore;
-	player: Player; slot: number; folder: Folder; aircraft: Model; state: FlightState; input: FlightInput;
-	blueprintState?: BlueprintState;
-	blueprint?: MissionBlueprint;
-	missionId: number;
-	/** Elapsed time the flight's last windup started (aces keep their own reloads and ignore it). */
-	lastWindupAt: number;
-	appliedBlueprintPhaseIndex?: number;
-	crashReason?: string;
-	collisionParams?: RaycastParams;
-	health: number; kills: number; elapsed: number; missiles: number; missileCooldown: number;
-	/** Seconds left of the evade barrel roll. */
-	evadeRemaining: number; regen: number; lockProgress: number;
-	/** Second weapon slot chosen at the briefing; authoritative charges, cooldown and effect timer. */
-	special: SpecialState;
-	/** Level chosen at the briefing; scales the act tuning through `tuned()` and enemy health. */
-	difficulty: DifficultyKind;
-	enemies: Enemy[]; projectiles: Projectile[]; target?: Enemy; telemetryTime: number;
-	lastInput: number; lastInputEvent: number; active: boolean; finished: boolean; cleaned: boolean;
-	/** Per-action-kind rate limiting for CombatAction events. */
-	actionGate?: ActionGateState;
-	navigationMarker?: Part; navigationActor?: Model;
-	previousReplicationFocus?: BasePart; characterRoot?: BasePart; wasAnchored?: boolean;
-	/** Present while the client is still receiving the world; nothing simulates until it is released. */
-	loading?: LoadingGateState;
-	/** Latest radio line and a serial so the client can detect repeats. */
-	radio?: string; radioSerial: number; radioSeconds?: number; radioPriority?: boolean;
-	/** Latest refused FIRE and its serial, so the HUD can show the reason once per press. */
-	fireDenied?: FireNotice; fireDeniedSerial?: number;
-	/** Mission 1: elapsed time when the tutorial target step began, and whether its hint has aired. */
-	targetStepSince?: number; targetStepHinted?: boolean;
-	/** Next unfired chatter line of the active phase. */
-	chatterIndex: number;
-	/** Client stamp of the newest FlightInput, whether a step has used it yet, and how many fixed steps have. */
-	inputClientTime: number; inputFresh: boolean; inputSteps: number;
-	/** FlightInput token bucket: tokens left and when it was last refilled. */
-	inputTokens: number; inputTokensAt: number;
-	/** 20 Hz FlightState accumulator and packet sequences for both unreliable streams. */
-	stateTime: number; stateSequence: number; telemetrySequence: number;
-	/** Last HudState sent; a new one goes out (reliably) only when a field differs. */
-	hud?: HudState;
-	/** Pending pivots applied once per Heartbeat, after every fixed sub-step. */
-	aircraftFrame?: CFrame; actorFrame?: CFrame;
-	/** Debrief counters: player missiles launched and connected, hull lost, lowest hull, evades used. */
-	missilesFired: number; missileHits: number; flareBursts: number; damageTaken: number; lowestHealth: number; evades: number;
-	/** Evade charges and the decoy window (EvadeRules). */
-	evade: EvadeState;
-	/** Error isolation and re-entrancy for this session's steps (StepGuard). */
-	guard: StepGuardState;
-	/** Pause budget and the current pause (PauseRules); nothing steps while paused. */
-	pause: PauseState;
-	/** Highest client Pause/Resume serial handled, echoed in telemetry so the client knows its request landed. */
-	pauseAck: number;
-	/** Result save and teardown once the sortie ends (Settlement), and the hooks finish() chose. */
-	settlement: SettlementState; settleHooks?: SettlementHooks;
-	/** Per-sortie name counters so every bandit and raider has a unique call sign, and a spawn counter for unique kill ids. */
-	banditSerial: number; raiderSerial: number; spawnSerial: number;
-	/** Staggered groups of the active required_air phase (WavePlan). */
-	wave?: { phaseIndex: number; plan: number[]; next: number; lastAt: number };
-	/** Reinforcement waves already spawned in the active phase. */
-	reinforceIndex: number;
-	/** Bandits and raiders waiting for a slot under the live-aircraft budget (WavePlan.Admit). */
-	airQueue: AirRequest[];
-	/** Phase index whose hazard targets are already lit. */
-	hazardPhase?: number;
-	/** Mission 1: the post-radar bandits have launched. */
-	tutorialBanditsSpawned?: boolean;
-	practiceHintAt?: number;
-	/** Surfaces protected actors stand on (scenery and terrain only, captured before any actor exists). */
-	groundParams?: RaycastParams;
-	/** The protected actor's footing, for re-grounding it as it moves. */
-	actorFooting?: ActorFooting;
-	/** Fixed steps run, for staggering occasional per-enemy work (ground-avoidance rays). */
-	stepCount: number;
-}
 const sessions = new Map<Player, CombatSession>();
 const completing = new Set<Player>();
 const connections: RBXScriptConnection[] = [];
@@ -274,12 +146,6 @@ function tuned(session: CombatSession, values: number[]): number {
 }
 /** Missions 1-4 fire on the gentle gate. */
 function gentle(session: CombatSession): boolean { return session.missionId <= GENTLE.lastMission; }
-/** Extra raiders per wave for the session's difficulty (Ace: one). */
-function extraRaiders(session: CombatSession): number { return Difficulty.Behaviour(session.difficulty).extraRaiders; }
-/** A raider wave of `count`, plus the difficulty's extra (Mission 2 keeps its fixed five). */
-function raiderWave(session: CombatSession, count: number): number {
-	return count > 0 && !session.blueprint?.phases[0].execution?.fixedRaiders ? count + extraRaiders(session) : count;
-}
 function remote<K extends keyof Remotes>(remotes: Remotes | Instance, name: K): Remotes[K] {
 	if (typeIs(remotes, "Instance")) return remotes.WaitForChild(name) as Remotes[K];
 	assert(remotes[name], `Missing combat remote: ${name}`);
@@ -413,9 +279,9 @@ function cycleTarget(session: CombatSession): void {
 		if (ownsEnemy(session, candidate)) {
 			session.target = candidate; session.lockProgress = 0;
 			// The Mission 1 tutorial watches the CycleTarget event.
-			if (session.blueprintState) {
+			if (session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.kind === "tutorial_target") {
 				BlueprintRunner.CycleTarget(session.blueprintState, os.clock());
-				applyPhase(session);
+				phaseDirector.Apply(session);
 			}
 			return;
 		}
@@ -707,13 +573,6 @@ function attackWarning(model: Model): BillboardGui {
 	label.Parent = warning;
 	return warning;
 }
-interface SpawnOptions {
-	/** Arrive from the rear quarter (reinforcements, flanking groups, an ace's wing). */
-	behind?: boolean;
-	aceHealth?: number;
-	/** Courier only: where it runs. */
-	escape?: Vector3;
-}
 function spawnAir(session: CombatSession, count: number, role: AirRole, options: SpawnOptions = {}): void {
 	const forward = directionFor(session.state);
 	const right = new Vector3(-forward.Z, 0, forward.X);
@@ -786,22 +645,6 @@ function liveAircraft(session: CombatSession): number {
 	for (const enemy of session.enemies) if (enemy.kind !== "ground" && ownsEnemy(session, enemy)) live += 1;
 	return live;
 }
-/** Spawns what the live-aircraft budget has room for now; the rest keeps waiting. */
-function drainAir(session: CombatSession): void {
-	if (session.airQueue.size() === 0) return;
-	const room = WavePlan.Budget(extraRaiders(session)) - liveAircraft(session);
-	for (const batch of WavePlan.Admit(session.airQueue, room)) {
-		spawnAir(session, batch.count, batch.role, { behind: batch.behind });
-		// A group's call goes out when it is really in the air, not when it was due.
-		if (batch.call !== undefined) radio(session, batch.call);
-	}
-}
-/** Bandits or raiders for missions 3-27: they spawn as the live-aircraft budget allows (WavePlan). */
-function requestAir(session: CombatSession, count: number, role: AirRequest["role"], behind = false, call?: string): void {
-	if (count <= 0) return;
-	session.airQueue.push({ role, count, behind, call });
-	drainAir(session);
-}
 /**
  * Phase change: every airborne enemy still alive breaks off and runs for the boundary for
  * WITHDRAW_SECONDS (untargetable, silent), and any missile chasing one is refunded. Dead
@@ -828,100 +671,6 @@ function withdrawAirborne(session: CombatSession): void {
 	session.enemies = session.enemies.filter((enemy) => enemy.health > 0);
 	if (session.target !== undefined && session.target.health <= 0) session.target = undefined;
 }
-/** Names the escorted or defended actor for its HUD label. */
-function actorName(session: CombatSession, defend: boolean, coast: boolean): string {
-	const names: { [id: number]: string } = { 5: "EVACUATION TRUCK", 8: "VARDA TOWER", 12: "TRANSMITTER TRUCK", 18: "MARINE PICKUP", 20: "EVIDENCE LAUNCH", 23: "COMMAND FRIGATE", 25: "LANDING CRAFT" };
-	return names[session.missionId] ?? (coast ? "LOYALIST LAUNCH" : defend ? "LOYALIST TOWER" : "LOYALIST TRUCK");
-}
-
-// Blueprint-driven phase application for every mission.
-function applyBlueprintPhase(session: CombatSession): void {
-	assert(session.blueprintState && session.blueprint, "blueprint phase application requires blueprint state");
-	const state=session.blueprintState;
-	if (state.outcome !== undefined || session.appliedBlueprintPhaseIndex === state.phaseIndex) return;
-	session.appliedBlueprintPhaseIndex=state.phaseIndex;
-	session.chatterIndex=0;
-	session.reinforceIndex=0;
-	session.wave=undefined;
-	// Retire the old phase's pursuers: they visibly fly out instead of lingering, firing, or draining a convoy.
-	if (!BlueprintRunner.ActivePhase(state)?.execution?.preservePursuers) withdrawAirborne(session);
-	// Raiders still waiting belonged to the old phase (its bandits were all out, or it could not have ended).
-	session.airQueue.clear();
-	session.navigationMarker?.Destroy(); session.navigationMarker=undefined;
-	session.navigationActor?.Destroy(); session.navigationActor=undefined; session.actorFooting=undefined;
-	// The live list, not the catalog: twists splice new objectives in after the phase that fired them.
-	const phases=BlueprintRunner.Phases(state);
-	const phase: MissionPhaseBlueprint | undefined=phases[state.phaseIndex];
-	if (!phase) return;
-	if (phase.execution?.activatePracticeTarget) activateGround(session);
-	if (phase.kind === "required_ground") activateGround(session,MissionCatalog.GroundStart(phases,state.phaseIndex),phase.count ?? 0);
-	else if (phase.kind === "required_air" && phase.execution?.launchDelay === undefined) {
-		if (phase.execution?.directSpawn) spawnAir(session,phase.count ?? 0,"bandit");
-		else {
-		// Staggered groups: the first now, the rest by WavePlan.Due (stepSession).
-		const plan=WavePlan.Groups(phase.count ?? 0,phase.groups ?? 1);
-		session.wave={phaseIndex:state.phaseIndex,plan,next:1,lastAt:session.elapsed};
-		requestAir(session,plan[0] ?? 0,"bandit");
-		}
-	}
-	else if (phase.kind === "chase") spawnAir(session,phase.count ?? 1,"courier",{escape: phase.escape ? new Vector3(phase.escape.x,phase.escape.y,phase.escape.z) : undefined});
-	else if (phase.kind === "ace") spawnAir(session,1,"ace",{aceHealth: session.blueprint.aceHealth ?? 165});
-	// Ace phases hold their raiders back for the ace's stage calls; reinforced phases keep part of theirs for mid-phase.
-	const initialRaiders=raiderWave(session,MissionCatalog.InitialRaiders(phase));
-	if (phase.execution?.directSpawn) spawnAir(session,initialRaiders,"raider");
-	else requestAir(session,initialRaiders,"raider");
-	// A twist that changed the objective speaks first: radio() overwrites, so its call goes out now and
-	// the new phase's beat follows a few seconds later (if the sortie is still on this phase). This runs
-	// for both the tick path and the synchronous kill path (destroyEnemy -> advance -> applyPhase).
-	let twisted=false;
-	for (let line=BlueprintRunner.TakeRadio(state); line !== undefined; line=BlueprintRunner.TakeRadio(state)) { radio(session,line,7); twisted=true; }
-	if (phase.beat !== undefined) {
-		if (!twisted) radio(session, phase.beat, phase.execution?.launchDelay, phase.execution?.launchDelay !== undefined);
-		else {
-			const beat=phase.beat, index=state.phaseIndex;
-			task.delay(4, () => { if (session.active && sessions.get(session.player) === session && state.phaseIndex === index && state.outcome === undefined) radio(session, beat); });
-		}
-	}
-	const nav=BlueprintRunner.NavigationPoint(state);
-	if (nav) {
-		const marker=new Instance("Part"); marker.Name="Flight objective"; marker.Size=new Vector3(20,20,20); marker.Shape=Enum.PartType.Ball;
-		marker.Anchored=true; marker.CanCollide=false; marker.CanTouch=false; marker.CanQuery=false;
-		marker.Color=Color3.fromRGB(75,238,212); marker.Material=Enum.Material.Neon; marker.Transparency=.3;
-		marker.Position=new Vector3(nav.x,nav.y,nav.z); marker.Parent=session.folder;
-		marker.SetAttribute("ObjectiveRadius",phase.radius); marker.SetAttribute("ObjectiveCeiling",phase.ceiling);
-		session.navigationMarker=marker;
-		const gui=new Instance("BillboardGui"); gui.Size=UDim2.fromOffset(160,38); gui.AlwaysOnTop=true; gui.StudsOffsetWorldSpace=new Vector3(0,30,0); gui.Parent=marker;
-		const label=new Instance("TextLabel"); label.Size=UDim2.fromScale(1,1); label.BackgroundTransparency=.25;
-		label.BackgroundColor3=Color3.fromRGB(7,23,30); label.TextColor3=marker.Color; label.Text=phase.kind === "route" ? "FLIGHT BEACON" : phase.kind === "escort" ? "PROTECT CONVOY" : phase.kind === "defend" ? "PROTECT SITE" : "SIGNAL VOLUME";
-		label.TextSize=13; label.Font=Enum.Font.GothamBold; label.Parent=gui;
-		if (phase.kind === "escort" || phase.kind === "defend" || phase.parkedEscort !== undefined) {
-			const actorPoint=phase.parkedEscort ?? nav;
-			const coast=session.blueprint.region === "coastal_city" || session.blueprint.region === "coastal_harbor" || session.blueprint.region === "ocean_platform";
-			const name=actorName(session,phase.kind === "defend",coast);
-			const actor=coast ? MissionAssets.CreateHarborLaunch(name) : phase.kind === "defend" ? MissionAssets.CreateCommsRelay(name) : MissionAssets.CreateRelayTruck(name);
-			if (!session.active || !session.folder.Parent) {actor.Destroy(); return;}
-			// The escorted vehicle moves every step: weld it so one part replicates per move.
-			JetFactory.WeldAssembly(actor);
-			// Grounded from its own bounds and the surface under it: wheels on the road, a hull at the waterline.
-			const footing=ActorGrounding.Footing(actor,coast);
-			session.actorFooting=footing;
-			const y=session.groundParams ? ActorGrounding.PivotY(footing,actorPoint.x,actorPoint.z,session.groundParams,actorPoint.y) : actorPoint.y;
-			actor.SetAttribute("ProtectedObjective",true); actor.Parent=session.folder; session.navigationActor=actor;
-			actor.PivotTo(new CFrame(actorPoint.x,y,actorPoint.z));
-		}
-	}
-	// Refresh only at phase transitions: includes new protected actors and drops destroyed ones.
-	session.collisionParams = AircraftCollision.Parameters(session.folder);
-	acquireTarget(session);
-}
-
-function applyPhase(session: CombatSession): void {
-	const before = session.appliedBlueprintPhaseIndex;
-	applyBlueprintPhase(session);
-	// A phase change flips which enemies are damageable; box them now, not at the next telemetry tick.
-	if (session.appliedBlueprintPhaseIndex !== before) publishDamageable(session);
-}
-
 function destroyEnemy(session: CombatSession, enemy: Enemy): void {
 	if (!ownsEnemy(session, enemy)) return;
 	const accepted = sessionRecordKill(session, enemy.id, enemy.kind, enemy.required, os.clock(), enemy.role);
@@ -940,7 +689,7 @@ function destroyEnemy(session: CombatSession, enemy: Enemy): void {
 	enemy.model.Destroy();
 	// Kills count every destruction, air and ground, so the HUD tally matches sessionTotalRequired.
 	if (session.blueprintState) session.kills = sessionAllKills(session);
-	applyPhase(session);
+	phaseDirector.Apply(session);
 	// A kill can fill a raider cap or clear a hazard without a phase change.
 	publishDamageable(session);
 	if (session.target === enemy || !ownsEnemy(session, session.target)) acquireTarget(session);
@@ -1090,18 +839,6 @@ function stepWithdrawing(session: CombatSession, enemy: Enemy, dt: number): void
 	enemy.position = new Vector3(math.clamp(moved.X, -2900, 2900), math.clamp(moved.Y, 170, 1200), math.clamp(moved.Z, -2900, 2900));
 	enemy.frame = CFrame.lookAt(enemy.position, enemy.position.add(enemy.direction));
 }
-/** A retreated ace calls the raiders its phase holds for this stage. */
-function aceCall(session: CombatSession, enemy: Enemy): void {
-	const phase = session.blueprintState ? BlueprintRunner.ActivePhase(session.blueprintState) : undefined;
-	const total = phase?.kind === "ace" ? phase.optionalRaiders ?? 0 : 0;
-	const count = raiderWave(session, AceRules.RaidersForStage(total, enemy.aceState?.stage ?? 0));
-	if (count <= 0) return;
-	radio(session, `SERA: ${enemy.name} pulled back to call his wing. ${count} inbound.`);
-	if (session.blueprintState) requestAir(session, count, "raider", true);
-	else spawnAir(session, count, "raider", { behind: true });
-	// Hand the lock to the wing; the ace is out of reach until it turns back in.
-	if (session.target === enemy) acquireTarget(session);
-}
 function stepEnemies(session: CombatSession, dt: number): void {
 	const playerPosition = positionFor(session.state);
 	const playerForward = directionFor(session.state);
@@ -1155,7 +892,7 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		// Ace stages: retreat out of lock range, call the wing, hold off, then turn back in.
 		if (aceState) {
 			const event = AceRules.Step(aceState, dt, separation, raidersAlive);
-			if (event === "called") aceCall(session, enemy);
+			if (event === "called") phaseDirector.AceCall(session, enemy);
 			else if (event === "returned") radio(session, session.blueprint?.aceReturns?.[aceState.stage - 1] ?? `SERA: ${enemy.name} is turning back in.`);
 			// Immunity running out and the turn back in both make it hittable again (cached: no write unless it changed).
 			publishEnemyDamageable(session, enemy);
@@ -1322,18 +1059,6 @@ function flareDecoys(session: CombatSession, enemy: Enemy, distance: number, mis
 	if (decoyed) JetFactory.Burst(session.folder, missilePosition, Color3.fromRGB(255, 220, 142), 4);
 	return decoyed;
 }
-/** Mission 1 target step: after 8 s without a TGT press, say what the step wants. Auto-selection never skips it. */
-function stepTutorialHint(session: CombatSession): void {
-	if (session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.kind === "tutorial_move" && session.elapsed >= (session.practiceHintAt ?? 6)) {
-		session.practiceHintAt = session.elapsed + 10;
-		radio(session, "Release holds the nose. Tap opposite pitch to level; avoid long holds.");
-	}
-	if (!session.blueprintState || BlueprintRunner.ActivePhase(session.blueprintState)?.kind !== "tutorial_target") { session.targetStepSince = undefined; return; }
-	if (session.targetStepSince === undefined) session.targetStepSince = session.elapsed;
-	if (session.targetStepHinted || session.elapsed - session.targetStepSince < 8) return;
-	session.targetStepHinted = true;
-	radio(session, "Select the radar: TGT / Tab / Y");
-}
 /**
  * An ace crossing 2/3 or 1/3 health: a stage call (radio line), 3 s invulnerability, the lock on it reset,
  * more speed, and (when its phase holds raiders for this stage) a retreat to call them (AceRules).
@@ -1353,7 +1078,7 @@ function aceStage(session: CombatSession, enemy: Enemy, before: number, after: n
 	radio(session, lines?.[aceState.stage - 1] ?? fallback);
 }
 function stepMissiles(session: CombatSession, dt: number): void {
-	stepTutorialHint(session);
+	phaseDirector.TutorialHint(session);
 	for (let index = session.projectiles.size() - 1; index >= 0; index--) {
 		const missile = session.projectiles[index];
 		missile.age += dt;
@@ -1472,14 +1197,8 @@ function stepSession(session: CombatSession, dt: number): void {
 	// Mission 1 observes real control usage during its tutorial phases.
 	if (session.blueprintState) BlueprintRunner.ObserveControls(session.blueprintState, session.input.x, session.input.y, dt, os.clock());
 	if (sessionOutcome(session) !== undefined) { finish(session); return; }
-	applyPhase(session);
-	// Mission 1: the bandits launch a radio beat after the training radar dies.
-	if (session.blueprintState && !session.tutorialBanditsSpawned && BlueprintRunner.BanditsDue(session.blueprintState)) {
-		session.tutorialBanditsSpawned = true;
-		radio(session, BlueprintRunner.LiveWarning, 6, true);
-		spawnAir(session, BlueprintRunner.ActivePhase(session.blueprintState)!.count ?? 0, "bandit");
-		acquireTarget(session);
-	}
+	phaseDirector.Apply(session);
+	phaseDirector.LaunchDue(session);
 	const from={x:session.state.x,y:session.state.y,z:session.state.z};
 	if (session.inputFresh) { session.inputFresh = false; session.inputSteps = 0; }
 	FlightMath.Step(session.state, session.input, dt);
@@ -1503,55 +1222,8 @@ function stepSession(session: CombatSession, dt: number): void {
 		if (nav) { const navPoint=new Vector3(nav.x,230,nav.z); for(const enemy of session.enemies) if(ownsEnemy(session,enemy) && enemy.kind !== "ground" && enemy.position.sub(navPoint).Magnitude < 650) threats++; }
 		BlueprintRunner.ObserveFlight(bs,from,{x:session.state.x,y:session.state.y,z:session.state.z},dt,os.clock(),threats,Difficulty.Multiplier(session.difficulty,"protectDrain"));
 		if (bs.outcome !== undefined) {finish(session); return;}
-		applyPhase(session);
-		// Mid-phase "after" twists do not change phase, so applyBlueprintPhase never sees their radio: drain it here.
-		for (let line=BlueprintRunner.TakeRadio(bs); line !== undefined; line=BlueprintRunner.TakeRadio(bs)) radio(session,line,7);
-		const active=BlueprintRunner.ActivePhase(bs);
-		if (active) {
-			const fraction=BlueprintRunner.Fraction(bs);
-			// Anything held back by the live-aircraft budget takes the slots kills have freed.
-			drainAir(session);
-			// Mid-phase raider waves, in authored order (each one larger on Ace).
-			const waves=active.reinforce;
-			while (waves && session.reinforceIndex < waves.size() && fraction >= waves[session.reinforceIndex].at) {
-				requestAir(session,raiderWave(session,waves[session.reinforceIndex].count),"raider",true);
-				session.reinforceIndex += 1;
-			}
-			// Staggered bandit groups: the next comes after `stagger` seconds, once half the last is down, or at its
-			// authored share of the phase. A group still waiting for slots holds the next one back.
-			const wave=session.wave;
-			if (wave && wave.phaseIndex === bs.phaseIndex && WavePlan.Queued(session.airQueue,"bandit") === 0
-				&& WavePlan.Due({next:wave.next,plan:wave.plan,sinceLast:session.elapsed-wave.lastAt,stagger:active.stagger ?? WavePlan.DefaultStagger,killed:bs.phaseProgress,groupAt:active.groupAt})) {
-				requestAir(session,wave.plan[wave.next],"bandit",active.flank === true,active.groupCalls?.[wave.next-1]);
-				wave.next += 1; wave.lastAt=session.elapsed;
-			}
-			// A hazard lit by the runner (jammers, bank guns): reveal its ground targets and make them strikeable.
-			if (active.hazard && bs.hazardFired && session.hazardPhase !== bs.phaseIndex) {
-				session.hazardPhase=bs.phaseIndex;
-				activateGround(session,MissionCatalog.GroundStart(BlueprintRunner.Phases(bs),bs.phaseIndex),active.hazard.count);
-				publishDamageable(session);
-				acquireTarget(session);
-			}
-			const chatter=active.chatter;
-			if (chatter) while (session.chatterIndex < chatter.size() && fraction >= chatter[session.chatterIndex].at) {
-				radio(session,chatter[session.chatterIndex].text);
-				session.chatterIndex += 1;
-			}
-		}
-		const point=BlueprintRunner.NavigationPoint(bs);
-		if (point && session.navigationMarker) {
-			const pos=new Vector3(point.x,point.y,point.z);
-			session.navigationMarker.Position=pos;
-			const actor=session.navigationActor;
-			// A defended site stays where it was grounded; an escorted vehicle re-grounds as it moves.
-			if(actor && BlueprintRunner.ActivePhase(bs)!.kind === "escort") {
-				const old=actor.GetPivot().Position;
-				const direction=new Vector3(pos.X-old.X,0,pos.Z-old.Z);
-				const y=session.actorFooting && session.groundParams ? ActorGrounding.PivotY(session.actorFooting,pos.X,pos.Z,session.groundParams,pos.Y) : pos.Y;
-				const current=new Vector3(pos.X,y,pos.Z);
-				session.actorFrame = direction.Magnitude>.01 ? CFrame.lookAt(current,current.add(direction)) : new CFrame(current);
-			}
-		}
+		phaseDirector.Apply(session);
+		phaseDirector.Step(session);
 	}
 	let flightFrame = frameFor(session.state);
 	if (session.evadeRemaining > 0) flightFrame = flightFrame.mul(CFrame.Angles(0, 0, (1 - session.evadeRemaining / EVADE_ROLL) * math.pi * 2));
@@ -1642,6 +1314,11 @@ function resumeSession(session: CombatSession, now: number): boolean {
 	return true;
 }
 
+const phaseDirector = createPhaseDirector({
+	spawnAir, activateGround, withdrawAirborne, liveAircraft, radio, acquireTarget, publishDamageable,
+	isCurrent: (session) => sessions.get(session.player) === session,
+});
+
 // Clients supply validated controls and button events, never damage or results.
 export const CombatService = {
 	EndMission(player: Player): void {
@@ -1695,7 +1372,7 @@ export const CombatService = {
 				banditSerial: 0, raiderSerial: 0, spawnSerial: 0, reinforceIndex: 0, airQueue: [], stepCount: 0,
 			};
 			session.blueprint = MissionCatalog.Get(missionId);
-			session.blueprintState = BlueprintRunner.NewState(session.blueprint, startedAt, session.blueprint.phases[0].execution?.fixedRaiders ? 0 : Difficulty.Behaviour(difficultyKind).extraRaiders);
+			session.blueprintState = BlueprintRunner.NewState(session.blueprint, startedAt, fixedRaiders(session.blueprint) ? 0 : Difficulty.Behaviour(difficultyKind).extraRaiders);
 			// Hazard targets and hidden strikes stay out of sight until their phase lights them.
 			const hiddenGround = session.blueprint ? MissionCatalog.HiddenGround(session.blueprint) : new Set<number>();
 			for (let index = 0; index < world.groundTargets.size(); index++) {
@@ -1727,7 +1404,7 @@ export const CombatService = {
 			// generation, which is safe on this RemoteFunction thread) so its parts
 			// replicate under the loading screen. Enemy timers only advance once play
 			// begins, so this is gameplay-equivalent to spawning at launch.
-			applyPhase(session);
+			phaseDirector.Apply(session);
 			assert(player.Parent === Players, "Player left during mission setup");
 			// Hold in the loading gate: no clock, stepping or input until the client
 			// confirms replication (CombatAction "Ready") or the timeout elapses.
