@@ -1,3 +1,5 @@
+import { LaunchStage } from "../shared/LaunchStage";
+import type { FlightControlHandoff } from "../shared/Types";
 import { ContextActionService, GuiService, Players, RunService, UserInputService, Workspace } from "@rbxts/services";
 import { airspaceWarning } from "../shared/WorldAirspace";
 import { MissionCatalog } from "../shared/MissionCatalog";
@@ -261,6 +263,7 @@ export class FlightController {
 	private readonly enemies = new EnemySmoothing();
 	/** Pause overlay is up: the local jet, camera and actions hold until Resume. */
 	private paused = false;
+	private launchIntro = false;
 	/** Serial of the latest local Pause/Resume, the action it carried, and when it was last sent; the server echoes `pauseAck`. */
 	private pauseSerial = 0;
 	private pauseAction: "Pause" | "Resume" | undefined;
@@ -285,8 +288,17 @@ export class FlightController {
 		this.renderName = `SkybreakCamera_${controllerSerial}`;
 		this.streamConnections.push(this.remotes.MissionState.OnClientEvent.Connect((data: unknown) => {
 			if (!typeIs(data, "table")) return;
-			const message = data as Partial<HudState> & { kind?: string };
-			if (message.kind === "HudState") { if (this.active) this.applyHud(message); }
+			const message = data as Partial<Omit<HudState, "kind">> & { kind?: string };
+			if (message.kind === "FlightControl" && this.active && this.launchIntro) {
+				const handoff = data as FlightControlHandoff;
+				this.predictor = FlightPrediction.New(handoff.state, this.predictor?.airspace);
+				// Ignore any delayed pre-handoff state packet. The next server send increments this sequence.
+				this.predictor.sequence = handoff.sequence;
+				this.launchIntro = false; this.keys.clear(); this.touchInput = Vector2.zero; this.gamepadInput = Vector2.zero;
+				this.throttle = FlightMath.CruiseThrottle; this.evadeRoll = 0;
+				this.mouseSteer = false; this.throttleStick = 0; this.touchThrottleAxis = 0;
+			}
+			else if (message.kind === "HudState") { if (this.active) this.applyHud(message as Partial<HudState>); }
 			else if (message.kind === "Completed" || message.kind === "Failed") this.Stop();
 			else if (message.kind === "Loading") this.Stop();
 		}));
@@ -307,7 +319,7 @@ export class FlightController {
 		}));
 		this.streamConnections.push(this.remotes.FlightState.OnClientEvent.Connect((packet: unknown) => {
 			const predictor = this.predictor;
-			if (!this.active || !predictor) return;
+			if (!this.active || !predictor || this.launchIntro) return;
 			const decoded = FlightPrediction.Decode(packet);
 			if (!decoded) return;
 			const now = os.clock();
@@ -398,11 +410,11 @@ export class FlightController {
 	public SetThrottle(value: number): void {
 		if (FlightMath.IsFinite(value)) this.throttle = math.clamp(value, 0, 1);
 	}
-	private action(action: string): void { if (this.active && !this.paused) this.remotes.CombatAction.FireServer({ action }); }
+	private action(action: string): void { if (this.active && !this.paused && !this.launchIntro) this.remotes.CombatAction.FireServer({ action }); }
 	public FireMissile(): void { this.action("FireMissile"); }
 	public Evade(): void {
 		if (!this.active) return;
-		if (this.paused) return;
+		if (this.paused || this.launchIntro) return;
 		// Predict the barrel roll when the HUD says a charge is ready; the server confirms or ignores.
 		if (evadeGauge(this.telemetry).ready && this.evadeRoll <= 0) { this.evadeRoll = FlightPrediction.EvadeRollSeconds; this.evadeStartedAt = os.clock(); }
 		this.action("Evade");
@@ -750,12 +762,13 @@ export class FlightController {
 			return;
 		}
 		const now = os.clock();
-		this.input(dt);
+		if (!this.launchIntro) this.input(dt);
 		const input = this.frameInput;
 		// Fly the local jet with zero input latency; the server reconciles it at 20 Hz.
 		// The next fixed step (the first to use this frame's input) starts at the last step boundary.
 		const stamp = FlightPrediction.InputStamp(predictor, now);
-		const state = FlightPrediction.Step(predictor, input, dt, now);
+		const state = this.launchIntro ? predictor.state : FlightPrediction.Step(predictor, input, dt, now);
+		if (this.launchIntro) LaunchStage.Step(state, dt);
 		let frame = frameFor(state);
 		if (this.evadeRoll > 0) {
 			this.evadeRoll = math.max(0, this.evadeRoll - dt);
@@ -780,7 +793,10 @@ export class FlightController {
 		this.cameraUp = square.Magnitude > 0.05 ? square.Unit : new Vector3(ux, uy, uz);
 		const speedFactor = math.clamp((state.speed - FlightMath.CruiseSpeed) / (FlightMath.MaxSpeed - FlightMath.CruiseSpeed), 0, 1);
 		const desiredPosition = position.sub(forward.mul(68 + speedFactor * 13)).add(this.cameraUp.mul(CAMERA_LIFT_STUDS));
-		const desired = CFrame.lookAt(desiredPosition, position.add(forward.mul(100)).add(this.cameraUp.mul(AIM_LIFT_STUDS)), this.cameraUp);
+		// Look aft from ahead and to port of the jet: carrier group stays behind it in view.
+		const desired = this.launchIntro
+			? CFrame.lookAt(position.add(forward.mul(110)).add(new Vector3(80, 45, 0)), position.sub(forward.mul(260)))
+			: CFrame.lookAt(desiredPosition, position.add(forward.mul(100)).add(this.cameraUp.mul(AIM_LIFT_STUDS)), this.cameraUp);
 		// Impact feel (CameraShake) rides on top of the follow: shake is a camera-space
 		// offset and the ace hit-stop slows the follow and punches the FOV. Visual only.
 		const impact = CameraShake.Step(dt);
@@ -797,6 +813,7 @@ export class FlightController {
 		const target = this.telemetry.target;
 		this.boxes.Update(camera, position, target !== undefined && target.Parent !== undefined ? target : undefined, this.boxPosition);
 		this.updateMarkers(camera);
+		if (this.launchIntro) return;
 		this.sendTime += dt;
 		// Unreliable input: up to 20 Hz while the controls move, 10 Hz keepalive otherwise
 		// (well inside the server's 0.7 s silence timeout even with packet loss).
@@ -833,12 +850,18 @@ export class FlightController {
 		this.visualFrame = this.aircraft.GetPivot();
 		// The server holds the jet still until "Started", so its pivot is the exact initial state;
 		// the first FlightState packet corrects speed and anything else within 50 ms.
-		this.predictor = FlightPrediction.New(stateFrom(this.visualFrame), missionData.airspace);
+		this.launchIntro = missionData.launchIntro === true;
+		this.predictor = FlightPrediction.New(missionData.initialState ?? stateFrom(this.visualFrame), missionData.airspace);
 		const camera = Workspace.CurrentCamera;
 		if (camera) {
+			if (this.launchIntro) this.visualFrame = frameFor(this.predictor.state);
 			this.previousCamera = { type: camera.CameraType, subject: camera.CameraSubject, frame: camera.CFrame, fov: camera.FieldOfView };
 			this.cameraUp = this.visualFrame.UpVector;
 			this.cameraFrame = CFrame.lookAt(this.visualFrame.Position.sub(this.visualFrame.LookVector.mul(75)).add(this.cameraUp.mul(CAMERA_LIFT_STUDS)), this.visualFrame.Position.add(this.visualFrame.LookVector.mul(100)), this.cameraUp);
+			if (this.launchIntro) {
+				const position = this.visualFrame.Position, forward = this.visualFrame.LookVector;
+				this.cameraFrame = CFrame.lookAt(position.add(forward.mul(110)).add(new Vector3(80, 45, 0)), position.sub(forward.mul(260)));
+			}
 		} else this.cameraFrame = this.visualFrame;
 		// The predicted local visual; the replicated server aircraft stays hidden.
 		this.visual = this.aircraft.Clone();
@@ -892,6 +915,7 @@ export class FlightController {
 	public Stop(): void {
 		this.audio.Stop();
 		this.active = false;
+		this.launchIntro = false;
 		this.paused = false;
 		// Each sortie's server session counts pause serials from 0.
 		this.pauseSerial = 0; this.pauseAction = undefined;

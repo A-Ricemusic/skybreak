@@ -142,13 +142,17 @@ export const BlueprintRunner = {
 			killedIds:new Set<string>(),requiredAirKills:0,requiredGroundKills:0,optionalAirKills:0,phaseOptionalKills:0,aceKilled:false,
 			extraRaiders:math.max(0,math.floor(finite(extraRaiders) ? extraRaiders : 0)),phaseClock:0,hazardFired:false,hazardAlive:0};
 	},
+	/** Called once when loading/launch staging gives way to player control. */
+	BeginControl(s: BlueprintState, now: number): void {
+		s.startedAt = now; s.elapsed = 0;
+	},
 	EscapeBombers(s: BlueprintState): void {
 		if (BlueprintRunner.ActivePhase(s)?.bombers) finish(s, "failed", "bombers_escaped");
 	},
 	Tick(s: BlueprintState, now: number, health=100): void {
 		if (s.outcome !== undefined || !finite(now)) return;
 		s.elapsed=math.max(s.elapsed,now-s.startedAt,0);
-		if (s.elapsed>=BlueprintRunner.Duration) finish(s,"failed","timeout");
+		if (s.elapsed>=MissionCatalog.CountdownSeconds(s.blueprint)) finish(s,"failed","timeout");
 		else if (finite(health) && health<=0) finish(s,"failed","destroyed");
 		advanceTeaching(s);
 	},
@@ -176,7 +180,7 @@ export const BlueprintRunner = {
 	BanditsDue(s: BlueprintState): boolean {
 		return s.outcome === undefined && s.banditsDueAt !== undefined && s.elapsed>=s.banditsDueAt;
 	},
-	TimeRemaining(s: BlueprintState): number { return math.max(0,BlueprintRunner.Duration-s.elapsed); },
+	TimeRemaining(s: BlueprintState): number { return math.max(0,MissionCatalog.CountdownSeconds(s.blueprint)-s.elapsed); },
 	ActivePhase(s: BlueprintState): MissionPhaseBlueprint | undefined { return s.phases[s.phaseIndex]; },
 	/** The live phase list (authored phases plus twist inserts fired so far). Read-only for callers. */
 	Phases(s: BlueprintState): MissionPhaseBlueprint[] { return s.phases; },

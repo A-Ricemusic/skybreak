@@ -1,3 +1,4 @@
+import { LaunchStage } from "../shared/LaunchStage";
 import { AlliedRules } from "../shared/AlliedRules";
 import type { MissionReason } from "../shared/OutcomeReason";
 import { createPhaseDirector, SpawnOptions } from "./PhaseDirector";
@@ -517,26 +518,26 @@ function finish(session: CombatSession): void {
 function refreshSession(session: CombatSession, now: number): boolean {
 	if (!session.active) return false;
 	// The mission clock is monotonic; never tick it while the client is still loading or the sortie is paused.
-	if (session.loading || PauseRules.Paused(session.pause)) return true;
+	if (!LaunchStage.CanControl(session.loading !== undefined, session.launch, PauseRules.Paused(session.pause))) return true;
 	sessionTick(session, now, session.health);
 	syncElapsed(session);
 	if (sessionOutcome(session) !== undefined) { finish(session); return false; }
 	return true;
 }
-// Leaves the loading gate: the playable clock starts now, and the client gets
-// the same "Started" message it always did.
+// Leaves loading for either player control or the opt-in scripted launch.
 function beginPlay(session: CombatSession): void {
 	if (!session.loading || !session.active || session.cleaned) return;
 	session.loading = undefined;
+	session.launch = LaunchStage.New(MissionCatalog.Start(session.missionId));
 	const now = os.clock();
-	if (session.blueprintState) { session.blueprintState.startedAt = now; session.blueprintState.elapsed = 0; }
+	if (session.blueprintState) BlueprintRunner.BeginControl(session.blueprintState, now);
 	session.elapsed = 0;
 	session.lastInput = now;
 	session.telemetryTime = 0;
 	session.stateTime = 0;
 	session.hud = undefined; // the first HUD message after Started is always complete
 	if (session.player.Parent !== Players) { cleanupSession(session); return; }
-	missionState!.FireClient(session.player, { kind: "Started", slot: session.slot, missionId: session.missionId, aircraft: session.aircraft, airspace: session.airspace, difficulty: session.difficulty });
+	missionState!.FireClient(session.player, { kind: "Started", slot: session.slot, missionId: session.missionId, aircraft: session.aircraft, airspace: session.airspace, difficulty: session.difficulty, initialState: session.blueprint?.start ? session.state : undefined, launchIntro: session.launch !== undefined });
 	if (refreshSession(session, now)) { sendTelemetry(session); sendFlightState(session); }
 }
 function markTarget(session: CombatSession, enemy: Enemy): void {
@@ -1283,6 +1284,28 @@ function stepMissiles(session: CombatSession, dt: number): void {
 	refreshSession(session, os.clock());
 }
 function stepSession(session: CombatSession, dt: number): void {
+	if (session.launch) {
+		const from = new Vector3(session.state.x, session.state.y, session.state.z);
+		const ready = LaunchStage.Advance(session.launch, session.state, dt);
+		const hit = AircraftCollision.Sweep(from, new Vector3(session.state.x, session.state.y, session.state.z), session.collisionParams!);
+		if (hit) { session.crashReason = AircraftCollision.Reason(hit); finish(session); return; }
+		session.aircraftFrame = frameFor(session.state);
+		if (ready) {
+			session.input = { x: 0, y: 0, throttle: FlightMath.CruiseThrottle };
+			session.inputClientTime = 0; session.inputFresh = false; session.inputSteps = 0;
+			// Phase setup may yield for asset construction; it must not spend playable time.
+			phaseDirector.Apply(session);
+			if (!session.active || session.cleaned || session.player.Parent !== Players) return;
+			session.launch = undefined;
+			const now = os.clock();
+			if (session.blueprintState) BlueprintRunner.BeginControl(session.blueprintState, now);
+			session.elapsed = 0; session.lastInput = now;
+			missionState!.FireClient(session.player, { kind: "FlightControl", state: session.state, sequence: session.stateSequence });
+			sendFlightState(session); sendTelemetry(session);
+		}
+		return;
+	}
+
 	if (!refreshSession(session, os.clock())) return;
 	session.stepCount += 1;
 	session.missileCooldown = math.max(0, session.missileCooldown - dt);
@@ -1457,7 +1480,7 @@ export const CombatService = {
 			aircraft.SetAttribute("SkybreakPlayer", true);
 			JetFactory.SetTrails(aircraft, false); // the client flies a predicted local clone that owns the trails
 			aircraft.Parent = folder;
-			const state = FlightMath.NewState();
+			const state = blueprint.start ? LaunchStage.Pose(MissionCatalog.Start(missionId)) : FlightMath.NewState();
 			aircraft.PivotTo(frameFor(state));
 			const session: CombatSession = {
 				targetScore: new TargetScore(MissionCatalog.Scoring(missionId)),
@@ -1545,7 +1568,7 @@ export const CombatService = {
 		if (!missionRoot) { missionRoot = new Instance("Folder"); missionRoot.Name = "SkybreakCombat"; missionRoot.Parent = Workspace; }
 		connections.push(remote(remotes, "FlightInput").OnServerEvent.Connect((player, payload: unknown) => {
 			const session = sessions.get(player);
-			if (!session?.active || session.loading || session.guard.running || PauseRules.Paused(session.pause) || !typeIs(payload, "table")) return;
+			if (!session?.active || session.loading || session.launch || session.guard.running || PauseRules.Paused(session.pause) || !typeIs(payload, "table")) return;
 			const now = os.clock();
 			// Heartbeat runs refreshSession every frame, so this unguarded handler only takes input.
 			// A token bucket caps the packet rate whatever the stamps claim.
@@ -1602,7 +1625,7 @@ export const CombatService = {
 					else if (!resumeSession(session, now)) sendTelemetry(session);
 					return;
 				}
-				if (PauseRules.Paused(session.pause) || !refreshSession(session, now)) return;
+				if (!LaunchStage.CanControl(false, session.launch, PauseRules.Paused(session.pause)) || !refreshSession(session, now)) return;
 				if (action === "FireMissile") launchMissile(session, false);
 				else if (action === "Evade") evade(session);
 				else if (action === "CycleTarget") cycleTarget(session);

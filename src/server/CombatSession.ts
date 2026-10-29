@@ -82,6 +82,7 @@ export interface Projectile {
 	lostTrack?: boolean;
 }
 export interface CombatSession {
+	launch?: import("../shared/LaunchStage").LaunchStageState;
 	airspace: MissionAirspacePolicy;
 	targetScore: TargetScore;
 	player: Player; slot: number; folder: Folder; aircraft: Model; state: FlightState; input: FlightInput;

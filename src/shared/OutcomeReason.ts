@@ -11,10 +11,10 @@ export function isMissionReason(value: unknown): value is MissionReason {
 }
 
 /** Readable failure cause for the debrief. */
-export function failureCause(reason?: string): string {
+export function failureCause(reason?: string, deadline: number = GameConfig.Campaign.MissionTimeLimit): string {
 	if (reason === "crash_water") return "Your aircraft crashed into the water.";
 	if (reason === "crash_terrain") return "Your aircraft crashed into terrain or scenery.";
-	if (reason === "timeout") return `The ${math.floor(GameConfig.Campaign.MissionTimeLimit / 60)}-minute operation window closed.`;
+	if (reason === "timeout") return `The ${math.floor(deadline / 60)}-minute operation window closed.`;
 	if (reason === "bombers_escaped") return "The bombers got through.";
 	if (reason === "escaped") return "The courier got away.";
 	if (reason === "internal_error") return "The sortie was stopped by a server error. Fly it again from the campaign menu.";

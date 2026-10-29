@@ -1,5 +1,4 @@
 import { BlueprintRunner } from "./BlueprintRunner";
-import { GameConfig } from "./GameConfig";
 import { MissionCatalog } from "./MissionCatalog";
 import { SpecialWeapons } from "./SpecialWeapons";
 import type { Telemetry } from "./Types";
@@ -18,6 +17,6 @@ export function initialTelemetry(missionId: number | undefined): Telemetry {
 		elapsed: 0, targetDistance: 0, boundaryWarning: false,
 		special: SpecialWeapons.Default, specialCharges: 0, specialCooldown: 0, specialActive: 0,
 		missionId: id, phase, objective, objectiveProgress: 0, objectiveTotal,
-		timeRemaining: GameConfig.Campaign.MissionTimeLimit, tutorialStep, groundKills: 0, targetKind: "air", targetRequired: false,
+		timeRemaining: MissionCatalog.CountdownSeconds(id), tutorialStep, groundKills: 0, targetKind: "air", targetRequired: false,
 	};
 }

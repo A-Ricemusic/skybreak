@@ -142,7 +142,15 @@ export interface MissionStats {
 	/** Level the sortie was flown on (Difficulty kind). */
 	difficulty?: string;
 }
+/** Reliable transition, including an exact prediction reset before accepting controls. */
+export interface FlightControlHandoff {
+	kind: "FlightControl";
+	state: import("./FlightMath").FlightState;
+	sequence: number;
+}
 export interface MissionStarted {
+	initialState?: import("./FlightMath").FlightState;
+	launchIntro?: boolean;
 	/** Effective session limits delivered reliably before client control; absent on old servers. */
 	airspace?: MissionAirspacePolicy;
 	missionId?: number;
@@ -250,5 +258,5 @@ export interface MissionFinished extends MissionStats {
 	bestScore?: number;
 	bestRank?: string;
 }
-export type MissionMessage = MissionLoading | MissionStarted | HudState | MissionFinished;
+export type MissionMessage = MissionLoading | MissionStarted | FlightControlHandoff | HudState | MissionFinished;
 export type FinishedCallback = (player: Player, won: boolean, stats: MissionStats) => void;
