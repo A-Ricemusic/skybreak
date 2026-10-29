@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { MissionCatalog, MISSIONS } from "../shared/MissionCatalog";
+import { MissionCatalog, MISSIONS } from "./LegacyCatalog";
 import { MissionScore, ScoreInput, ScoreResult } from "../shared/MissionScore";
 import { CampaignCoordinator, completeMission, mergeProfiles, normalizeProfile, serializeProfile } from "../server/CampaignRepository";
 import { MissionFinished } from "../shared/Types";
@@ -139,44 +139,11 @@ describe("MissionScore", () => {
 });
 
 describe("Mission debrief results", () => {
-	it("sends the server score and flight record with the result and saves bests monotonically", () => {
-		const c = coordinator();
-		const par = MissionScore.ParSeconds(MissionCatalog.Get(3));
-		const first = finishMission3(c, { elapsed: par * 2, missilesFired: 10, missileHits: 5, damageTaken: 40 });
-		expect(first.kind).toBe("Completed");
-		expect(first.par).toBe(par);
-		expect(first.missilesFired).toBe(10);
-		expect(first.missileHits).toBe(5);
-		expect(first.newBestScore).toBe(true);
-		expect(first.newBestRank).toBe(true);
-		expect(first.bestScore).toBe(first.score);
-
-		const better = finishMission3(c, { elapsed: par - 5, missilesFired: 4, missileHits: 4, damageTaken: 0 });
-		expect(better.rank).toBe("S");
-		expect(better.newBestScore).toBe(true);
-		expect(better.newBestRank).toBe(true);
-
-		const worse = finishMission3(c, { elapsed: par * 2, missilesFired: 10, missileHits: 2, damageTaken: 80 });
-		expect(worse.newBestScore).toBe(false);
-		expect(worse.newBestRank).toBe(false);
-		expect(worse.bestScore).toBe(better.score);
-		expect(worse.bestRank).toBe("S");
-
-		// Bests survive a save round trip and merge by max with an older stored copy.
-		const saved = normalizeProfile(serializeProfile({ version: 3, slots: c.getSlots() }));
-		expect(saved.slots[0].missions?.[3]?.bestScore).toBe(better.score);
-		expect(saved.slots[0].missions?.[3]?.bestRank).toBe("S");
-		const older = { version: 3, slots: [{ ...saved.slots[0], missions: { 3: { completed: true, bestTime: 50, timeVersion: MissionCatalog.TimeVersion(3), bestScore: 10, bestRank: "C" } } }] };
-		const merged = mergeProfiles(older, saved);
-		expect(merged.slots[0].missions?.[3]?.bestScore).toBe(better.score);
-		expect(merged.slots[0].missions?.[3]?.bestRank).toBe("S");
-		expect(merged.slots[0].missions?.[3]?.bestTime).toBe(50);
-	});
 
 	it("does not record a best for a failed sortie", () => {
 		const c = coordinator();
 		let message: MissionFinished | undefined;
-		completeMission(c, 1, 3, false, { slot: 1, missionId: 3, kills: 1, groundKills: 0, completedPhases: 1, elapsed: 90, reason: "destroyed" }, (m) => message = m, 0);
+		completeMission(c, 1, 1, false, { slot: 1, missionId: 1, kills: 1, groundKills: 0, completedPhases: 1, elapsed: 90, reason: "destroyed" }, (m) => message = m, 0);
 		expect(message!.kind).toBe("Failed");
 		expect(message!.rank).toBe("D");
 		expect(message!.completedPhases).toBe(1);

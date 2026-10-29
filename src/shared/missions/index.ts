@@ -16,14 +16,4 @@ import { mission as m15 } from "./m15";
 import { mission as m16 } from "./m16";
 import { mission as m17 } from "./m17";
 import { mission as m18 } from "./m18";
-import { mission as m19 } from "./m19";
-import { mission as m20 } from "./m20";
-import { mission as m21 } from "./m21";
-import { mission as m22 } from "./m22";
-import { mission as m23 } from "./m23";
-import { mission as m24 } from "./m24";
-import { mission as m25 } from "./m25";
-import { mission as m26 } from "./m26";
-import { mission as m27 } from "./m27";
-
-export const missions = [m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16, m17, m18, m19, m20, m21, m22, m23, m24, m25, m26, m27];
+export const missions = [m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16, m17, m18];

@@ -1,3 +1,4 @@
+import { canLaunchMission, highestUnlocked } from "../shared/CampaignProgress";
 import { isMissionReason } from "../shared/OutcomeReason";
 import { DeletionObservation } from "../shared/DeletionObservation";
 import { stickVector, TouchSticks } from "../shared/TouchSticks";
@@ -189,7 +190,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				? confirmSlotRef.current !== undefined ? "KeepButton" : `Slot${slotFocusRef.current ?? selectedSlotRef.current}Button`
 				: current === "briefing"
 					? "LaunchButton"
-					: outcomeWonRef.current && outcomeMissionRef.current < MISSION_COUNT ? "Mission1NextMissionButton" : outcomeWonRef.current ? "ReturnToMenuButton" : "RetryButton";
+					: outcomeWonRef.current && outcomeMissionRef.current < MISSION_COUNT && MissionCatalog.Available(outcomeMissionRef.current+1) ? "Mission1NextMissionButton" : outcomeWonRef.current ? "ReturnToMenuButton" : "RetryButton";
 		const target = screenFrame.FindFirstChild(defaultName, true);
 		if (target && target.IsA("GuiObject")) GuiService.SelectedObject = target;
 	}, []);
@@ -276,8 +277,8 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		});
 	}, [applyResponseSlots, beginRequest, invoke, selectedMission, selectedSlot, showToast]);
 	const startMission=useCallback(()=>{
-		if(busyRef.current)return;
-		const chapter=selectedMissionRef.current-1;
+		if(busyRef.current || !canLaunchMission(selectedMissionRef.current, slots?.[selectedSlotRef.current-1]))return;
+		const chapter=math.max(0,selectedMissionRef.current-1);
 		// A chapter already seen on this slot (retry or replay) goes straight to launch.
 		const seen=slots?.[selectedSlotRef.current-1]?.cutscenesSeen;
 		if(seen && seen.includes(chapter)){launchMission();return;}
@@ -315,13 +316,13 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		});
 	}, [applyResponseSlots, beginRequest, changeScreen, invoke, showToast]);
 	const retryMission = useCallback(() => restartMission(selectedMissionRef.current), [restartMission]);
-	const nextMission = useCallback(() => restartMission(math.min(MISSION_COUNT,selectedMissionRef.current+1)), [restartMission]);
+	const nextMission = useCallback(() => { const id = selectedMissionRef.current+1; if(canLaunchMission(id,slots?.[selectedSlotRef.current-1])) restartMission(id); }, [restartMission, slots]);
 	// Stable handlers so the memoised menu screens bail out of mission-time re-renders.
 	const openCampaign = useCallback(() => { if (!busyRef.current) { changeScreen("slots"); loadSlots(); } }, [changeScreen, loadSlots]);
 	const chooseSlot = useCallback((slot: number) => {
 		const current = slotsRef.current;
 		if (busyRef.current || !current?.[slot - 1]) return;
-		const missionId = resumeMission(current[slot - 1]);
+		const missionId = highestUnlocked(current[slot - 1]);
 		selectedSlotRef.current = slot; selectedMissionRef.current = missionId;
 		setSelectedSlot(slot); setSelectedMission(missionId);
 		// The slot remembers its last loadout; a fresh slot starts on the default special.

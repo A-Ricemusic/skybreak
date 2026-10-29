@@ -9,7 +9,7 @@ local FlightController=require(player:WaitForChild("PlayerScripts"):WaitForChild
 local shared=game.ReplicatedStorage.Shared
 local Pilot=require(shared.NavigationPilot).NavigationPilot
 local Catalog=require(shared.MissionCatalog).MissionCatalog
-local missionTimeLimit=require(shared.GameConfig).GameConfig.Campaign.MissionTimeLimit
+-- Per-sortie deadlines and release state come from the current catalog.
 local old=player.PlayerScripts:FindFirstChild("BrokenRelayQA")
 assert(not old,"A Broken Relay pilot is already installed; destroy its LocalScript and report before replacing")
 local report=Instance.new("Folder");report.Name="BrokenRelayQA";report.Parent=player.PlayerScripts
@@ -22,7 +22,7 @@ local function stage(mission)
     local aircraft=mission.aircraft
     if aircraft and seenAircraft[aircraft] then return end
     if aircraft then seenAircraft[aircraft]=true end
-    local id=mission.missionId or 1;attempts[id]=(attempts[id] or 0)+1
+    local id=mission.missionId or 1;if not Catalog:Available(id) then return end;attempts[id]=(attempts[id] or 0)+1
     local entry=Instance.new("Folder");entry.Name=string.format("M%02d_Attempt%d",id,attempts[id]);entry.Parent=report
     entry:SetAttribute("MissionId",id);entry:SetAttribute("Outcome","Running");entry:SetAttribute("StartedAt",os.clock())
     entry:SetAttribute("MissileCommands",0);entry:SetAttribute("EvadeCommands",0);entry:SetAttribute("LowestHealth",100)
@@ -43,7 +43,7 @@ local stateConnection=game.ReplicatedStorage.Remotes.MissionState.OnClientEvent:
     local air=count(message.kills) and count(message.groundKills) and message.kills>=message.groundKills and message.kills-message.groundKills or nil
     local requiredAir=air and count(message.optionalKills) and message.optionalKills<=air and air-message.optionalKills or nil
     current:SetAttribute("AirKills",air);current:SetAttribute("RequiredAirKillsObserved",requiredAir)
-    local valid=message.kind=="Completed" and type(message.elapsed)=="number" and message.elapsed>0 and message.elapsed<missionTimeLimit
+    local valid=message.kind=="Completed" and type(message.elapsed)=="number" and message.elapsed>0 and message.elapsed<Catalog:CountdownSeconds(bp)
         and requiredAir~=nil and requiredAir>=Catalog:RequiredAirKills(bp)
         and message.groundKills==Catalog:RequiredGroundKills(bp)
         and count(message.completedPhases) and message.completedPhases==Catalog:TotalPhases(bp)

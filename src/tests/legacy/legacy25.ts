@@ -1,5 +1,5 @@
-import type { MissionBlueprint } from "../MissionCatalog";
-import { fly, air, ground } from "./Phases";
+import type { MissionBlueprint } from "../../shared/MissionCatalog";
+import { fly, air, ground } from "../../shared/missions/Phases";
 
 export const mission: MissionBlueprint = {
 	id: 25,

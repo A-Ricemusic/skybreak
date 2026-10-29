@@ -2,7 +2,7 @@ import { describe, expect, it } from "@rbxts/jest-globals";
 import { BomberEncounter, bomberEscortPose, compileBomberEncounter, laterEscortsDue } from "../shared/BomberEncounter";
 import { BomberRules } from "../shared/BomberRules";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
-import { MissionCatalog } from "../shared/MissionCatalog";
+import { MissionCatalog } from "./LegacyCatalog";
 import { M01_AIRSPACE } from "../shared/M01Limits";
 import { TargetScore } from "../shared/TargetScore";
 import { recordScoredKill } from "../server/SortieScore";

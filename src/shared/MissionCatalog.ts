@@ -1,4 +1,5 @@
 import { BomberEncounter, validateBomberEncounter } from "./BomberEncounter";
+import { mission as practice } from "./missions/practice";
 import { missions } from "./missions";
 import {
 	LEGACY_MISSION_AIRSPACE,
@@ -198,6 +199,7 @@ export interface MissionBlueprint extends MissionPolicy {
 	legacy?: 1 | 2;
 }
 
+export const PRACTICE = practice;
 export const MISSIONS: MissionBlueprint[] = missions;
 
 /** The phase list a sortie actually runs when every twist fires: inserts spliced after their host phase. */
@@ -249,13 +251,13 @@ function reinforceTotal(phase: MissionPhaseBlueprint): number {
 	if (phase.reinforce) for (const wave of phase.reinforce) total += wave.count;
 	return total;
 }
-assert(MISSION_COUNT === 27, "Broken Relay must ship 27 missions");
-for (let index = 0; index < MISSIONS.size(); index++) {
-	const blueprint = MISSIONS[index];
+assert(MISSION_COUNT === 18, "SKYBREAK must ship 18 numbered missions");
+for (let index = -1; index < MISSIONS.size(); index++) {
+	const blueprint = index === -1 ? PRACTICE : MISSIONS[index];
 	const id = blueprint.id;
 	assert(id === index + 1, `Mission ${index + 1} must have id ${index + 1}`);
 	validateMissionPolicy(blueprint, id);
-	if (id >= 3) {
+	if (blueprint.available !== false && id >= 3) {
 		const flow = expandPhases(blueprint.phases);
 		assert(flow.size() >= 4 && flow.size() <= 7, `Mission ${id} needs 4-7 objective beats`);
 		for (let beat = 1; beat < flow.size(); beat++) {
@@ -293,7 +295,7 @@ for (let index = 0; index < MISSIONS.size(); index++) {
 			assert((phase.count ?? 0) >= 1, `${tag} needs count >= 1`);
 		}
 		if (phase.kind === "required_ground") groundCount += phase.count ?? 0;
-		if (phase.kind === "tutorial_missile") { assert(id === 1, `${tag} is only valid on Mission 1`); groundCount += phase.count ?? 0; }
+		if (phase.kind === "tutorial_missile") { assert(id === 0, `${tag} is only valid in Practice`); groundCount += phase.count ?? 0; }
 		if (phase.parkedEscort) {
 			assert((phase.kind === "recon" || phase.kind === "signal" || phase.kind === "route") && inBounds(phase.parkedEscort), `${tag} parked escort needs an in-bounds recon, signal or route stop`);
 		}
@@ -360,8 +362,8 @@ for (let index = 0; index < MISSIONS.size(); index++) {
 
 function resolveBlueprint(value: number | MissionBlueprint): MissionBlueprint {
 	if (typeIs(value, "number")) {
-		assert(value >= 1 && value <= MISSION_COUNT && value % 1 === 0, `Unknown mission id: ${tostring(value)}`);
-		return MISSIONS[value - 1];
+		assert(value >= 0 && value <= MISSION_COUNT && value % 1 === 0, `Unknown mission id: ${tostring(value)}`);
+		return value === 0 ? PRACTICE : MISSIONS[value - 1];
 	}
 	return value;
 }
@@ -409,7 +411,7 @@ export const MissionCatalog = {
 		return MISSIONS.filter((blueprint) => blueprint.act === act);
 	},
 	IsValidId(value: unknown): value is number {
-		return typeIs(value, "number") && value === value && value % 1 === 0 && value >= 1 && value <= MISSION_COUNT;
+		return typeIs(value, "number") && value === value && value % 1 === 0 && value >= 0 && value <= MISSION_COUNT;
 	},
 	/**
 	 * Every phase a sortie runs, in order, with each twist's inserted phases spliced after

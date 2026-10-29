@@ -1,6 +1,5 @@
-// Compare the compiled catalog with the deep, sorted snapshot captured before extraction.
-// Only the newly explicit execution metadata is excluded: every pre-existing key/value,
-// including the historical `legacy` data tag, must remain identical.
+// Freeze the released practice + 18 numbered entries. Execution policies are separately
+// checked by campaign/tutorial contracts rather than excluded metadata snapshots.
 import { resolve } from "node:path";
 import { requireLuauBin } from "./luau-bin";
 import { deepStrictEqual } from "node:assert";
@@ -24,7 +23,7 @@ local function serialize(v)
  for _,k in keys do table.insert(parts,(array and '' or quote(k)..':')..serialize(v[k])) end
  return (array and '[' or '{')..table.concat(parts,',')..(array and ']' or '}')
 end
-print(serialize(C.MISSIONS))
+print(serialize({C.PRACTICE, unpack(C.MISSIONS)}))
 `;
 const path=resolve(dir,"catalog-snapshot.luau");
 await Bun.write(path,script);
@@ -37,6 +36,7 @@ function sorted(value: unknown): unknown {
  return value;
 }
 const actual=sorted(JSON.parse(stdout));
-const expected=sorted(await Bun.file(resolve(import.meta.dir,"fixtures/mission-catalog.before.json")).json());
-deepStrictEqual(actual,expected);
-console.log("MISSION_CATALOG_SNAPSHOT passed=27 failed=0 (all original fields; additive execution metadata excluded)");
+const expected=process.argv.includes("--update") ? actual : sorted(await Bun.file(resolve(import.meta.dir,"fixtures/mission-catalog.campaign18.json")).json());
+if (process.argv.includes("--update")) await Bun.write(resolve(import.meta.dir,"fixtures/mission-catalog.campaign18.json"),JSON.stringify(actual,null,2)+"\n");
+else deepStrictEqual(actual,expected);
+console.log("MISSION_CATALOG_SNAPSHOT passed=19 failed=0 (practice and 18 numbered entries; execution metadata excluded)");

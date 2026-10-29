@@ -95,7 +95,7 @@ describe("Campaign domain unit tests", () => {
 		expect(profile.slots[1].mission1Completed).toBe(true);
 		expect(profile.slots[1].mission2Completed).toBe(false);
 		expect(profile.slots[1].completed).toBe(false);
-		expect(profile.slots[1].currentMission).toBe(2);
+		expect(profile.slots[1].currentMission).toBe(1);
 		expect(profile.slots[1].mission1BestTime).toBe(51);
 		expect(profile.slots[2].occupied).toBe(false);
 		expect(profile.slots[3].occupied).toBe(false);
@@ -108,7 +108,7 @@ describe("Campaign domain unit tests", () => {
 		expect(merged.slots[0].completed).toBe(false);
 		expect(merged.slots[0].mission1BestTime).toBe(53.33);
 		expect(merged.slots[0].mission2BestTime).toBe(91);
-		expect(merged.slots[0].currentMission).toBe(3);
+		expect(merged.slots[0].currentMission).toBe(1);
 	});
 
 	it("defaults to the unfinished mission, locks Mission 2, and permits Mission 1 replay", () => {
@@ -116,9 +116,9 @@ describe("Campaign domain unit tests", () => {
 		expect(resolveMissionRequest(fresh, undefined)[0]).toBe(1);
 		expect(resolveMissionRequest(fresh, 2)[0]).toBeUndefined();
 		const progressed = normalizeProfile(profileWith(1, { mission1Completed: true })).slots[0];
-		expect(resolveMissionRequest(progressed, undefined)[0]).toBe(2);
+		expect(resolveMissionRequest(progressed, undefined)[0]).toBe(1);
 		expect(resolveMissionRequest(progressed, 1)[0]).toBe(1);
-		expect(resolveMissionRequest(progressed, 2)[0]).toBe(2);
+		expect(resolveMissionRequest(progressed, 2)[0]).toBeUndefined();
 	});
 
 	it("rejects fractional, out-of-range, and non-number slots", () => {
@@ -178,7 +178,7 @@ describe("CampaignCoordinator datastore integration", () => {
 		expect(coordinator.load()).toBe(true);
 		coordinator.recordMissionStarted(1, 1);
 		let saved: boolean | undefined;
-		expect(completeMission(coordinator, 1, 1, true, { slot: 1, missionId: 1, kills: 4, groundKills: 1, elapsed: 53.33 }, (message) => {
+		expect(completeMission(coordinator, 1, 1, true, { slot: 1, missionId: 1, kills: 6, groundKills: 0, completedPhases: 1, elapsed: 53.33 }, (message) => {
 			saved = message.saved;
 		})).toBe(true);
 		expect(saved).toBe(true);
@@ -238,22 +238,12 @@ describe("CampaignCoordinator datastore integration", () => {
 		expect(serializeProfile(profile).version).toBe(3);
 	});
 
-	it("records Mission 2 independently and unlocks M3 without completing the 27-mission campaign", () => {
-		const store = new FakeStore(profileWith(1, { mission1Completed: true, mission1BestTime: 70 }));
-		const { coordinator, deferred } = harness(store);
-		coordinator.load();
-		let finishedMission: number | undefined;
-		expect(completeMission(coordinator, 1, 2, true, { slot: 1, missionId: 2, kills: 4, groundKills: 5, elapsed: 88 }, (message) => {
-			finishedMission = message.missionId;
-		})).toBe(true);
-		expect(finishedMission).toBe(2);
-		deferred.shift()!();
-		const slot = normalizeProfile(store.data).slots[0];
-		expect(slot.completed).toBe(false);
-		expect(slot.currentMission).toBe(3);
-		expect(slot.mission1BestTime).toBe(70);
-		expect(slot.mission2BestTime).toBe(88);
-	});
+	it("does not record or notify a forged locked Mission 2 completion", () => {
+ const { coordinator } = harness(new FakeStore()); coordinator.load();
+ let notified=false;
+ expect(completeMission(coordinator,1,2,true,{slot:1,missionId:2,kills:100,groundKills:100,completedPhases:1,elapsed:88},()=>{notified=true;})).toBe(false);
+ expect(notified).toBe(false);expect(coordinator.getSlots()[0].mission2Completed).toBe(false);
+ });
 
 	it("ignores a result whose mission does not match the active server mission", () => {
 		const { coordinator } = harness(new FakeStore());
@@ -358,7 +348,7 @@ describe("CampaignCoordinator datastore integration", () => {
 		expect(fresh.generation).toBe(1);
 		expect(fresh.mission1BestTime).toBe(120);
 		expect(fresh.mission2Completed).toBe(false);
-		expect(fresh.currentMission).toBe(2);
+		expect(fresh.currentMission).toBe(1);
 	});
 
 	it("remembers the slot's last special weapon, drops unknown ones, and keeps the newer choice on merge", () => {

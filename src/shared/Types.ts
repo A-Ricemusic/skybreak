@@ -27,7 +27,7 @@ export interface SaveSlot {
 	updatedAt?: number;
 	/** Highest unlocked mission (1-27). */
 	currentMission?: number;
-	/** Per-mission records; sparse by missionId (1..27). */
+	/** Per-mission records; sparse by missionId (0 = practice, 1..18 = campaign). */
 	missions?: { [missionId: number]: MissionRecord };
 	// Legacy v2 fields retained for presentation code and compatibility.
 	mission1Completed?: boolean;

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
-import { MissionBlueprint, MissionCatalog, MISSIONS } from "../shared/MissionCatalog";
+import { MissionBlueprint, MissionCatalog, MISSIONS } from "./LegacyCatalog";
 import { FlightMath } from "../shared/FlightMath";
 import { FlightPrediction } from "../shared/FlightPrediction";
 import { LaunchStage } from "../shared/LaunchStage";
@@ -36,7 +36,7 @@ describe("countdown/fly-off legacy parity (origin/main values)", () => {
 		expect(clockLines(900, 0, 3, 0, 3)).toEqual(["TIME 15:00", "TGT 0/3"]);
 		expect(clockLines(899.5, 1, 3, 0, 3)).toEqual(["TIME 14:59", "TGT 1/3"]);
 		expect(clockLines(0, undefined, undefined, 2, 3)).toEqual(["TIME 00:00", "KILL 2/3"]);
-		expect(initialTelemetry(1).timeRemaining).toBe(900);
+		expect(initialTelemetry(0).timeRemaining).toBe(900);
 		expect(failureCause("timeout")).toBe("The 15-minute operation window closed.");
 	});
 });

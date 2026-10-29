@@ -1,7 +1,7 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { AlliedRules } from "../shared/AlliedRules";
 import { MissionAllies, validateMissionPolicy } from "../shared/MissionPolicy";
-import { MISSIONS, MissionCatalog } from "../shared/MissionCatalog";
+import { MISSIONS, MissionCatalog } from "./LegacyCatalog";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { TargetScore } from "../shared/TargetScore";
 import { recordAlliedKill, recordScoredKill } from "../server/SortieScore";

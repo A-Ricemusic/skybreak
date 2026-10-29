@@ -1,6 +1,6 @@
 import {describe,expect,it} from "@rbxts/jest-globals";
 import {BlueprintRunner} from "../shared/BlueprintRunner";
-import {MissionCatalog,MISSIONS} from "../shared/MissionCatalog";
+import {MissionCatalog,MISSIONS} from "./LegacyCatalog";
 
 describe("BlueprintRunner phase progress fractions",()=>{
 	it("reports a total for every phase kind that matches its objective total",()=>{

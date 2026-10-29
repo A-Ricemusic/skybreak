@@ -34,7 +34,12 @@ for (const chapter of STORY) for (const [index, beat] of chapter.beats.entries()
   const id = `story.c${String(chapter.id).padStart(2, "0")}.b${String(index).padStart(2, "0")}`;
   const cue = VOICE_CUES[id], line = lines.lines.find((l: { id: string }) => l.id === id);
   const rawSpeaker = beat.speaker.split(" · ")[0], speaker = casting.aliases[rawSpeaker] ?? rawSpeaker;
-  if (!cue || cue.radio || cue.text !== beat.text || cue.speaker !== speaker || line?.text !== beat.text || line?.speaker !== speaker || line?.spoken !== transcripts[id].spoken || line?.voice !== transcripts[id].voice) throw Error(`Authored/recorded dialogue mismatch: ${id}`);
+  // The new opening answer has no recording. Preserve the real bank transcript;
+  // VoiceLibrary's exact-text gate (covered in VoiceLines.spec) keeps this beat silent.
+  const rewritten = id === "story.c00.b05";
+  if (rewritten && beat.text !== "An empty chair and a checkout nobody's signing. Fine. I'll fly the pattern.") throw Error("Unexpected opening subtitle edit");
+  const recordedText = rewritten ? "Three bandits on the rim and an empty chair. Fine. I'll fly the pattern." : beat.text;
+  if (!cue || cue.radio || cue.text !== recordedText || cue.speaker !== speaker || line?.text !== recordedText || line?.speaker !== speaker || line?.spoken !== transcripts[id].spoken || line?.voice !== transcripts[id].voice) throw Error(`Authored/recorded dialogue mismatch: ${id}`);
   beats++;
 }
 console.log(`VOICE_MANIFEST chapters=${STORY.length} beats=${beats} regions=${regions} bankHashes=${plan.banks.length}`);

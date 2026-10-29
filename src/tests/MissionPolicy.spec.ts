@@ -1,7 +1,7 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { FlightMath } from "../shared/FlightMath";
 import { GameConfig } from "../shared/GameConfig";
-import { MissionBlueprint, MissionCatalog, MISSIONS } from "../shared/MissionCatalog";
+import { MissionBlueprint, MissionCatalog, MISSIONS } from "./LegacyCatalog";
 import { WorldAirspace } from "../shared/WorldAirspace";
 
 function withPolicy(fields: Partial<MissionBlueprint>): MissionBlueprint {
@@ -23,23 +23,23 @@ describe("Mission policy schema", () => {
 			expect(blueprint.scoring).toBeUndefined();
 			expect(blueprint.worldKey).toBeUndefined();
 			expect(blueprint.available).toBeUndefined();
-			expect(MissionCatalog.CountdownSeconds(blueprint.id)).toBe(GameConfig.Campaign.MissionTimeLimit);
-			expect(MissionCatalog.Airspace(blueprint.id)).toEqual({
+			expect(MissionCatalog.CountdownSeconds(MissionCatalog.Get(blueprint.id))).toBe(GameConfig.Campaign.MissionTimeLimit);
+			expect(MissionCatalog.Airspace(MissionCatalog.Get(blueprint.id))).toEqual({
 				softHalfWidth: WorldAirspace.soft,
 				hardHalfWidth: WorldAirspace.hard,
 				spawnLimit: WorldAirspace.spawnLimit,
 				radarRange: WorldAirspace.radarRange,
 			});
-			expect(MissionCatalog.Start(blueprint.id)).toEqual({
+			expect(MissionCatalog.Start(MissionCatalog.Get(blueprint.id))).toEqual({
 				kind: "airborne", x: state.x, y: state.y, z: state.z, headingDegrees: 0, speed: state.speed,
 			});
-			expect(MissionCatalog.Scoring(blueprint.id)).toEqual({
+			expect(MissionCatalog.Scoring(MissionCatalog.Get(blueprint.id))).toEqual({
 				points: { bandit: 100, raider: 100, courier: 100, ace: 100, ground: 150 },
 				basis: "rating",
 				rank: { S: 90, A: 75, B: 55, C: 35 },
 			});
-			expect(MissionCatalog.WorldKey(blueprint.id)).toBe(blueprint.region);
-			expect(MissionCatalog.Available(blueprint.id)).toBe(true);
+			expect(MissionCatalog.WorldKey(MissionCatalog.Get(blueprint.id))).toBe(blueprint.region);
+			expect(MissionCatalog.Available(MissionCatalog.Get(blueprint.id))).toBe(true);
 		}
 	});
 

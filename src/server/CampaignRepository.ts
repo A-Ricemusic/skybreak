@@ -5,7 +5,7 @@ import { MissionRank, MissionScore, RANK_ORDER } from "../shared/MissionScore";
 import { MissionFinished, MissionRecord, MissionStats, Persistence, SaveSlot, SlotDeletion } from "../shared/Types";
 import { SpecialWeapons } from "../shared/SpecialWeapons";
 import { Difficulty } from "../shared/Difficulty";
-import { highestUnlocked } from "../shared/CampaignProgress";
+import { canLaunchMission, highestUnlocked } from "../shared/CampaignProgress";
 
 export interface StoredMissionRecord {
 	timeVersion?: unknown;
@@ -119,15 +119,12 @@ function positiveTime(value: unknown): number | undefined {
 }
 
 export function isValidMission(value: unknown): value is number {
-	return isFiniteNumber(value) && value % 1 === 0 && value >= 1 && value <= MISSION_COUNT;
+	return isFiniteNumber(value) && value % 1 === 0 && value >= 0 && value <= MISSION_COUNT;
 }
 
 /** Resume at the lowest-numbered unfinished mission, or 1 for a fresh slot. */
 export function resumeMission(slot: SaveSlot): number {
-	for (let id = 1; id <= MISSION_COUNT; id++) {
-		if (!(slot.missions?.[id]?.completed === true)) return id;
-	}
-	return MISSION_COUNT;
+	return highestUnlocked(slot);
 }
 
 export { highestUnlocked };
@@ -136,13 +133,13 @@ export function resolveMissionRequest(
 	slot: SaveSlot,
 	requested: unknown,
 ): LuaTuple<[number | undefined, string | undefined]> {
-	if (requested === undefined) return $tuple(resumeMission(slot), undefined);
-	if (!isValidMission(requested)) return $tuple(undefined, "Choose a valid mission (1-27).");
+	if (requested === undefined) requested = resumeMission(slot);
+	if (!isValidMission(requested)) return $tuple(undefined, "Choose Practice or a mission (1-18).");
 	const unlocked = highestUnlocked(slot);
-	if (requested > unlocked) {
+	if (!canLaunchMission(requested, slot)) {
 		return $tuple(
 			undefined,
-			`Mission ${string.format("%02d", requested)} is locked until Mission ${string.format("%02d", unlocked)} is complete.`,
+			`Mission ${string.format("%02d", requested)} is locked or in development.`,
 		);
 	}
 	return $tuple(requested, undefined);
@@ -173,7 +170,7 @@ function readMissionsMap(raw: unknown): { [missionId: number]: MissionRecord } {
 	const result: { [missionId: number]: MissionRecord } = {};
 	if (!typeIs(raw, "table")) return result;
 	const map = raw as Record<string, unknown> & Map<string, unknown>;
-	for (let id = 1; id <= MISSION_COUNT; id++) {
+	for (let id = 0; id <= MISSION_COUNT; id++) {
 		const entry = (map as Record<string, unknown>)[tostring(id)] ?? (map as Record<number, unknown>)[id];
 		if (!typeIs(entry, "table")) continue;
 		const stored = entry as StoredMissionRecord;
@@ -267,7 +264,7 @@ export function normalizeSlot(raw: unknown, index: number, legacyV1 = false): Sa
 	slot.missions = missions;
 	refreshDerived(slot);
 	slot.occupied = source.occupied === true || slot.kills > 0 || slot.mission1Completed === true || slot.mission2Completed === true;
-	for (let id = 1; id <= MISSION_COUNT; id++) if (missions[id] !== undefined) slot.occupied = true;
+	for (let id = 0; id <= MISSION_COUNT; id++) if (missions[id] !== undefined) slot.occupied = true;
 	if (isFiniteNumber(source.updatedAt) && source.updatedAt > 0) {
 		slot.updatedAt = math.floor(source.updatedAt);
 		slot.occupied = true;
@@ -311,7 +308,7 @@ export function mergeSlot(storedRaw: unknown, desiredRaw: unknown, index: number
 	merged.generation = stored.generation;
 	merged.occupied = stored.occupied || desired.occupied;
 	const missions: { [missionId: number]: MissionRecord } = {};
-	for (let id = 1; id <= MISSION_COUNT; id++) {
+	for (let id = 0; id <= MISSION_COUNT; id++) {
 		const a = stored.missions?.[id];
 		const b = desired.missions?.[id];
 		if (a === undefined && b === undefined) continue;
@@ -364,7 +361,7 @@ export function serializeProfile(profile: CampaignProfile): StoredProfile {
 	for (let index = 1; index <= SLOT_COUNT; index++) {
 		const source = normalizeSlot(profile.slots[index - 1], index);
 		const missions = new Map<string, StoredMissionRecord>();
-		for (let id = 1; id <= MISSION_COUNT; id++) {
+		for (let id = 0; id <= MISSION_COUNT; id++) {
 			const record = source.missions?.[id];
 			if (record === undefined) continue;
 			const payload: StoredMissionRecord = { completed: record.completed, timeVersion: record.timeVersion };
@@ -426,31 +423,17 @@ export function completeMission(
 		!isValidSlot(stats.slot) ||
 		stats.slot !== activeSlot ||
 		!isValidMission(missionId) ||
+		!MissionCatalog.Available(missionId) ||
 		missionId !== activeMission
 	) return false;
 	const groundKills = isFiniteNumber(stats.groundKills) ? math.max(0, math.floor(stats.groundKills)) : 0;
 	const elapsed = isFiniteNumber(stats.elapsed) ? stats.elapsed : 0;
 
-	// Required air/ground kills come from the blueprint, except that the legacy
-	// callbacks for the first two missions preserve their original enforcement.
-	let requiredAirKills: number;
-	let requiredGroundKills: number;
-	if (missionId === 1) {
-		requiredAirKills = GameConfig.Campaign.Missions[1].RequiredAirKills;
-		requiredGroundKills = GameConfig.Campaign.Missions[1].RequiredGroundKills;
-	} else if (missionId === 2) {
-		requiredAirKills = GameConfig.Campaign.Missions[2].RequiredAirKills;
-		requiredGroundKills = GameConfig.Campaign.Missions[2].RequiredGroundKills;
-	} else {
-		const blueprint = MissionCatalog.Get(missionId);
-		requiredAirKills = MissionCatalog.RequiredAirKills(blueprint);
-		requiredGroundKills = MissionCatalog.RequiredGroundKills(blueprint);
-	}
-	// Old combat callbacks did not carry missionId/groundKills. They remain valid
-	// only as Mission 1 results; all new callbacks must prove every objective.
-	const legacyMission1 = stats.missionId === undefined;
-	const objectivesMet = stats.kills >= requiredAirKills && (legacyMission1 || groundKills >= requiredGroundKills);
-	const flightObjectivesMet = missionId <= 2 || stats.completedPhases === MissionCatalog.TotalPhases(MissionCatalog.Get(missionId));
+	const blueprint = MissionCatalog.Get(missionId);
+	const requiredAirKills = MissionCatalog.RequiredAirKills(blueprint);
+	const requiredGroundKills = MissionCatalog.RequiredGroundKills(blueprint);
+	const objectivesMet = stats.kills >= requiredAirKills && groundKills >= requiredGroundKills;
+	const flightObjectivesMet = stats.completedPhases === MissionCatalog.TotalPhases(blueprint);
 	const qualifiedWin = won && flightObjectivesMet && objectivesMet && elapsed > 0 && elapsed < MissionCatalog.CountdownSeconds(missionId);
 	const kills = isFiniteNumber(stats.kills) ? math.max(0, math.floor(stats.kills)) : 0;
 	const par = MissionScore.ParSeconds(MissionCatalog.Get(missionId));
@@ -568,7 +551,7 @@ export class CampaignCoordinator {
 		slot.occupied = true;
 		if (SpecialWeapons.IsKind(special)) slot.special = special;
 		if (Difficulty.IsKind(difficulty)) slot.difficulty = difficulty;
-		slot.currentMission = math.max(slot.currentMission ?? 1, missionId);
+		slot.currentMission = highestUnlocked(slot);
 		slot.updatedAt = this.now();
 		this.markDirty();
 	}

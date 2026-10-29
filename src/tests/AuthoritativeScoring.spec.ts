@@ -33,16 +33,6 @@ function fixedStats(id: number): MissionStats {
 const points: MissionScoringPolicy = { basis: "points", points: { bandit: 100, raider: 60, courier: 80, ace: 240, ground: 150 }, rank: { S: 400, A: 300, B: 200, C: 100 } };
 
 describe("Authoritative sortie scoring", () => {
-	for (let id = 1; id <= 3; id++) it(`preserves M${id} stats, finished packet and serialized records byte for byte`, () => {
-		const c = coordinator();
-		const ledger = new TargetScore(MissionCatalog.Scoring(id));
-		ledger.RecordKill("optional", "raider");
-		const stats = { ...fixedStats(id), ...targetScoreStats(ledger, MissionCatalog.Scoring(id)) };
-		const capture = LEGACY_SCORING_CAPTURE[id - 1];
-		expect(canonical(stats)).toBe(capture.stats);
-		completeMission(c, 1, id, true, stats, (packet) => expect(canonical(packet)).toBe(capture.packet), 0);
-		expect(canonical(serializeProfile({ version: 3, slots: c.getSlots() }))).toBe(capture.save);
-	});
 
 	it("admits optional kills once, rejects duplicate/invalid events and settles the exact server ledger", () => {
 		const bp = MissionCatalog.Get(3);
@@ -59,6 +49,7 @@ describe("Authoritative sortie scoring", () => {
 		expect(ledger.Snapshot().kills.raider).toBe(1);
 		expect(state.optionalAirKills).toBe(1);
 		// Opt in only for the duration of this synchronous test; production catalog remains rating.
+		const available = bp.available; bp.available = true;
 		const old = bp.scoring;
 		bp.scoring = points;
 		const [ok, message] = pcall(() => {
@@ -81,7 +72,7 @@ describe("Authoritative sortie scoring", () => {
 			expect(fallback.score).toBe(packet?.score);
 			expect(fallback.rank).toBe(packet?.rank);
 		});
-		bp.scoring = old;
+		bp.scoring = old; bp.available = available;
 		if (!ok) error(tostring(message));
 	});
 

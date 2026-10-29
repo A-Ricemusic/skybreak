@@ -9,8 +9,8 @@ import { polyDist, terrainTop } from "../shared/WorldPlan";
 
 describe("Unselected full-scale M01 world", () => {
 	const plan = buildM01Plan();
-	it("is never selected by a current mission", () => {
-		for (const bp of MissionCatalog.All()) expect(MissionCatalog.WorldKey(bp.id)).never.toBe(plan.key);
+	it("is selected only by mission 1", () => {
+		for (const bp of MissionCatalog.All()) expect(MissionCatalog.WorldKey(bp.id) === plan.key).toBe(bp.id === 1);
 	});
 	it("is deterministic, including seeded forest dressing", () => {
 		expect(buildM01Plan()).toEqual(plan);

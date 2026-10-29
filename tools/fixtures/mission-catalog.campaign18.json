@@ -1,0 +1,539 @@
+[
+  {
+    "act": 1,
+    "briefing": "Teal never signed your checkout. Fly the training pattern, practice the controls, then select and hit the training radar. No enemies.",
+    "codename": "Rim Static",
+    "debrief": "Checkout interrupted: six bombers are crossing the islands. Mission 1 is ready when you are.",
+    "environment": "canyon_noon",
+    "failure": "The checkout can be flown again.",
+    "ground": [
+      {
+        "asset": "radar",
+        "name": "TRAINING RADAR",
+        "x": 0,
+        "z": -850
+      }
+    ],
+    "id": 0,
+    "legacy": 1,
+    "phases": [
+      {
+        "beat": "Tap turn and pitch briefly. Three seconds TOTAL each; impacts reset you.",
+        "kind": "tutorial_move",
+        "label": "Practice short turn and pitch taps",
+        "tutorialStep": "move"
+      },
+      {
+        "beat": "Select radar: TGT / Tab / Y. Follow marker; turn back if you pass it.",
+        "kind": "tutorial_target",
+        "label": "Cycle to the training target",
+        "tutorialStep": "target"
+      },
+      {
+        "beat": "Aim for LOCK, then FIRE / Space / RT. Pull up after firing.",
+        "count": 1,
+        "kind": "tutorial_missile",
+        "label": "Lock and hit the training radar",
+        "tutorialStep": "missile"
+      }
+    ],
+    "primary": "Complete Teal's unsigned checkout",
+    "region": "canyon_airfield",
+    "title": "Practice"
+  },
+  {
+    "act": 1,
+    "airspace": {
+      "hardHalfWidth": 15360,
+      "radarRange": 18000,
+      "softHalfWidth": 14000,
+      "spawnLimit": 13500
+    },
+    "allies": {
+      "allowRequiredTargets": false,
+      "callsignPrefix": "LANTERN",
+      "count": 4,
+      "creditPlayerKills": false,
+      "formation": [
+        {
+          "x": -180,
+          "y": 20,
+          "z": 160
+        },
+        {
+          "x": 180,
+          "y": 20,
+          "z": 160
+        },
+        {
+          "x": -360,
+          "y": 40,
+          "z": 320
+        },
+        {
+          "x": 360,
+          "y": 40,
+          "z": 320
+        }
+      ],
+      "model": "Kestrel"
+    },
+    "available": true,
+    "briefing": "Teal's unsigned checkout is cut short. Six bombers in Varda's own paint are crossing the islands toward Varda Rim's runway on the headland. They squawk our codes; the warning came late. You are the nearest jet. Fly off the training carrier and stop them. Escorts are optional targets.",
+    "codename": "Rim Static",
+    "countdownSeconds": 600,
+    "debrief": "The six bombers are down and Varda Rim's runway is clear. The quartermaster hands you a sealed case from Teal's bunk, addressed to Sera.",
+    "environment": "farm_overcast",
+    "failure": "The raid was not stopped. Varda Rim's runway remains under threat.",
+    "ground": [],
+    "id": 1,
+    "optionalRaiderMax": 4,
+    "phases": [
+      {
+        "beat": "Six bombers, our paint and codes. Stop them before the north coast.",
+        "bombers": {
+          "count": 6,
+          "escape": {
+            "x": -1280,
+            "y": 727,
+            "z": -8000
+          },
+          "escapeCall": "The bombers crossed the north coast. Varda Rim, clear the runway.",
+          "escorts": {
+            "aceAt": 150,
+            "aceName": "ASH WARRANT",
+            "count": 4,
+            "initial": 2,
+            "role": "escort"
+          },
+          "speed": 79.43478417093667,
+          "waypoints": [
+            {
+              "x": 0,
+              "y": 727,
+              "z": 10000
+            },
+            {
+              "x": 512,
+              "y": 727,
+              "z": 4200
+            },
+            {
+              "x": 1280,
+              "y": 727,
+              "z": 256
+            },
+            {
+              "x": -1280,
+              "y": 727,
+              "z": -3200
+            }
+          ]
+        },
+        "count": 6,
+        "kind": "required_air",
+        "label": "Intercept six bombers"
+      }
+    ],
+    "primary": "Destroy all six bombers before they leave the island",
+    "region": "canyon_airfield",
+    "scoring": {
+      "basis": "points",
+      "points": {
+        "ace": 240,
+        "bomber": 100,
+        "escort": 60
+      },
+      "rank": {
+        "A": 700,
+        "B": 600,
+        "C": 500,
+        "S": 800
+      }
+    },
+    "start": {
+      "headingDegrees": 0,
+      "kind": "carrier_flyoff",
+      "speed": 180,
+      "x": 24.5155,
+      "y": 90,
+      "z": 10828
+    },
+    "title": "OUR OWN PAINT",
+    "worldKey": "m01_sea_island"
+  },
+  {
+    "act": 1,
+    "available": false,
+    "briefing": "In development",
+    "codename": "In development",
+    "debrief": "In development",
+    "environment": "farm_overcast",
+    "failure": "In development",
+    "ground": [],
+    "id": 2,
+    "optionalRaiderMax": 0,
+    "phases": [
+      {
+        "count": 1,
+        "kind": "required_air",
+        "label": "In development"
+      }
+    ],
+    "primary": "In development",
+    "region": "canyon_airfield",
+    "title": "Mission 2"
+  },
+  {
+    "act": 1,
+    "available": false,
+    "briefing": "In development",
+    "codename": "In development",
+    "debrief": "In development",
+    "environment": "farm_overcast",
+    "failure": "In development",
+    "ground": [],
+    "id": 3,
+    "optionalRaiderMax": 0,
+    "phases": [
+      {
+        "count": 1,
+        "kind": "required_air",
+        "label": "In development"
+      }
+    ],
+    "primary": "In development",
+    "region": "canyon_airfield",
+    "title": "Mission 3"
+  },
+  {
+    "act": 1,
+    "available": false,
+    "briefing": "In development",
+    "codename": "In development",
+    "debrief": "In development",
+    "environment": "farm_overcast",
+    "failure": "In development",
+    "ground": [],
+    "id": 4,
+    "optionalRaiderMax": 0,
+    "phases": [
+      {
+        "count": 1,
+        "kind": "required_air",
+        "label": "In development"
+      }
+    ],
+    "primary": "In development",
+    "region": "canyon_airfield",
+    "title": "Mission 4"
+  },
+  {
+    "act": 1,
+    "available": false,
+    "briefing": "In development",
+    "codename": "In development",
+    "debrief": "In development",
+    "environment": "farm_overcast",
+    "failure": "In development",
+    "ground": [],
+    "id": 5,
+    "optionalRaiderMax": 0,
+    "phases": [
+      {
+        "count": 1,
+        "kind": "required_air",
+        "label": "In development"
+      }
+    ],
+    "primary": "In development",
+    "region": "canyon_airfield",
+    "title": "Mission 5"
+  },
+  {
+    "act": 1,
+    "available": false,
+    "briefing": "In development",
+    "codename": "In development",
+    "debrief": "In development",
+    "environment": "farm_overcast",
+    "failure": "In development",
+    "ground": [],
+    "id": 6,
+    "optionalRaiderMax": 0,
+    "phases": [
+      {
+        "count": 1,
+        "kind": "required_air",
+        "label": "In development"
+      }
+    ],
+    "primary": "In development",
+    "region": "canyon_airfield",
+    "title": "Mission 6"
+  },
+  {
+    "act": 2,
+    "available": false,
+    "briefing": "In development",
+    "codename": "In development",
+    "debrief": "In development",
+    "environment": "farm_overcast",
+    "failure": "In development",
+    "ground": [],
+    "id": 7,
+    "optionalRaiderMax": 0,
+    "phases": [
+      {
+        "count": 1,
+        "kind": "required_air",
+        "label": "In development"
+      }
+    ],
+    "primary": "In development",
+    "region": "canyon_airfield",
+    "title": "Mission 7"
+  },
+  {
+    "act": 2,
+    "available": false,
+    "briefing": "In development",
+    "codename": "In development",
+    "debrief": "In development",
+    "environment": "farm_overcast",
+    "failure": "In development",
+    "ground": [],
+    "id": 8,
+    "optionalRaiderMax": 0,
+    "phases": [
+      {
+        "count": 1,
+        "kind": "required_air",
+        "label": "In development"
+      }
+    ],
+    "primary": "In development",
+    "region": "canyon_airfield",
+    "title": "Mission 8"
+  },
+  {
+    "act": 2,
+    "available": false,
+    "briefing": "In development",
+    "codename": "In development",
+    "debrief": "In development",
+    "environment": "farm_overcast",
+    "failure": "In development",
+    "ground": [],
+    "id": 9,
+    "optionalRaiderMax": 0,
+    "phases": [
+      {
+        "count": 1,
+        "kind": "required_air",
+        "label": "In development"
+      }
+    ],
+    "primary": "In development",
+    "region": "canyon_airfield",
+    "title": "Mission 9"
+  },
+  {
+    "act": 2,
+    "available": false,
+    "briefing": "In development",
+    "codename": "In development",
+    "debrief": "In development",
+    "environment": "farm_overcast",
+    "failure": "In development",
+    "ground": [],
+    "id": 10,
+    "optionalRaiderMax": 0,
+    "phases": [
+      {
+        "count": 1,
+        "kind": "required_air",
+        "label": "In development"
+      }
+    ],
+    "primary": "In development",
+    "region": "canyon_airfield",
+    "title": "Mission 10"
+  },
+  {
+    "act": 2,
+    "available": false,
+    "briefing": "In development",
+    "codename": "In development",
+    "debrief": "In development",
+    "environment": "farm_overcast",
+    "failure": "In development",
+    "ground": [],
+    "id": 11,
+    "optionalRaiderMax": 0,
+    "phases": [
+      {
+        "count": 1,
+        "kind": "required_air",
+        "label": "In development"
+      }
+    ],
+    "primary": "In development",
+    "region": "canyon_airfield",
+    "title": "Mission 11"
+  },
+  {
+    "act": 2,
+    "available": false,
+    "briefing": "In development",
+    "codename": "In development",
+    "debrief": "In development",
+    "environment": "farm_overcast",
+    "failure": "In development",
+    "ground": [],
+    "id": 12,
+    "optionalRaiderMax": 0,
+    "phases": [
+      {
+        "count": 1,
+        "kind": "required_air",
+        "label": "In development"
+      }
+    ],
+    "primary": "In development",
+    "region": "canyon_airfield",
+    "title": "Mission 12"
+  },
+  {
+    "act": 3,
+    "available": false,
+    "briefing": "In development",
+    "codename": "In development",
+    "debrief": "In development",
+    "environment": "farm_overcast",
+    "failure": "In development",
+    "ground": [],
+    "id": 13,
+    "optionalRaiderMax": 0,
+    "phases": [
+      {
+        "count": 1,
+        "kind": "required_air",
+        "label": "In development"
+      }
+    ],
+    "primary": "In development",
+    "region": "canyon_airfield",
+    "title": "Mission 13"
+  },
+  {
+    "act": 3,
+    "available": false,
+    "briefing": "In development",
+    "codename": "In development",
+    "debrief": "In development",
+    "environment": "farm_overcast",
+    "failure": "In development",
+    "ground": [],
+    "id": 14,
+    "optionalRaiderMax": 0,
+    "phases": [
+      {
+        "count": 1,
+        "kind": "required_air",
+        "label": "In development"
+      }
+    ],
+    "primary": "In development",
+    "region": "canyon_airfield",
+    "title": "Mission 14"
+  },
+  {
+    "act": 3,
+    "available": false,
+    "briefing": "In development",
+    "codename": "In development",
+    "debrief": "In development",
+    "environment": "farm_overcast",
+    "failure": "In development",
+    "ground": [],
+    "id": 15,
+    "optionalRaiderMax": 0,
+    "phases": [
+      {
+        "count": 1,
+        "kind": "required_air",
+        "label": "In development"
+      }
+    ],
+    "primary": "In development",
+    "region": "canyon_airfield",
+    "title": "Mission 15"
+  },
+  {
+    "act": 3,
+    "available": false,
+    "briefing": "In development",
+    "codename": "In development",
+    "debrief": "In development",
+    "environment": "farm_overcast",
+    "failure": "In development",
+    "ground": [],
+    "id": 16,
+    "optionalRaiderMax": 0,
+    "phases": [
+      {
+        "count": 1,
+        "kind": "required_air",
+        "label": "In development"
+      }
+    ],
+    "primary": "In development",
+    "region": "canyon_airfield",
+    "title": "Mission 16"
+  },
+  {
+    "act": 3,
+    "available": false,
+    "briefing": "In development",
+    "codename": "In development",
+    "debrief": "In development",
+    "environment": "farm_overcast",
+    "failure": "In development",
+    "ground": [],
+    "id": 17,
+    "optionalRaiderMax": 0,
+    "phases": [
+      {
+        "count": 1,
+        "kind": "required_air",
+        "label": "In development"
+      }
+    ],
+    "primary": "In development",
+    "region": "canyon_airfield",
+    "title": "Mission 17"
+  },
+  {
+    "act": 3,
+    "available": false,
+    "briefing": "In development",
+    "codename": "In development",
+    "debrief": "In development",
+    "environment": "farm_overcast",
+    "failure": "In development",
+    "ground": [],
+    "id": 18,
+    "optionalRaiderMax": 0,
+    "phases": [
+      {
+        "count": 1,
+        "kind": "required_air",
+        "label": "In development"
+      }
+    ],
+    "primary": "In development",
+    "region": "canyon_airfield",
+    "title": "Mission 18"
+  }
+]

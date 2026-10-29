@@ -1,7 +1,7 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { FlightMath, type FlightState } from "../shared/FlightMath";
 import { FlightPrediction } from "../shared/FlightPrediction";
-import { MissionCatalog } from "../shared/MissionCatalog";
+import { MissionCatalog } from "./LegacyCatalog";
 import { M01_AIRSPACE } from "../shared/M01Limits";
 import { M01 } from "../shared/M01WorldPlan";
 import { airspaceWarning, clampAirSpawn, resolveAirspace } from "../shared/WorldAirspace";
@@ -21,7 +21,7 @@ function sameState(actual: FlightState, expected: FlightState): void {
 describe("per-session mission airspace", () => {
 	for (const id of [1, 2, 3, 26]) {
 		it(`mission ${id} matches pre-change main flight, prediction, recovery, spawning and radar`, () => {
-			const limits = MissionCatalog.Airspace(id);
+			const limits = MissionCatalog.Airspace(MissionCatalog.Get(id));
 			for (let i = 0; i < poses.size(); i++) {
 				const pose = poses[i];
 				const state = FlightMath.FromPose(pose[0], 500, pose[1], pose[2], 0.15, 600);
@@ -57,13 +57,13 @@ describe("per-session mission airspace", () => {
 			expect(airspaceWarning(server.x, server.z, client.airspace, 100)).toBe(false);
 		}
 		expect(math.abs(server.z)).toBeGreaterThan(3800);
-		expect(FlightPrediction.New(FlightMath.NewState()).airspace).toEqual(MissionCatalog.Airspace(1));
+		expect(FlightPrediction.New(FlightMath.NewState()).airspace).toEqual(MissionCatalog.Airspace(MissionCatalog.Get(1)));
 	});
 	it("missing or invalid handoff falls back safely to legacy limits", () => {
 		const message: Pick<MissionStarted, "kind" | "airspace"> = { kind: "Started" };
-		expect(resolveAirspace(message.airspace)).toEqual(MissionCatalog.Airspace(1));
-		expect(resolveAirspace({ ...M01_AIRSPACE, hardHalfWidth: 0 / 0 })).toEqual(MissionCatalog.Airspace(1));
-		expect(resolveAirspace({ ...M01_AIRSPACE, spawnLimit: math.huge })).toEqual(MissionCatalog.Airspace(1));
+		expect(resolveAirspace(message.airspace)).toEqual(MissionCatalog.Airspace(MissionCatalog.Get(1)));
+		expect(resolveAirspace({ ...M01_AIRSPACE, hardHalfWidth: 0 / 0 })).toEqual(MissionCatalog.Airspace(MissionCatalog.Get(1)));
+		expect(resolveAirspace({ ...M01_AIRSPACE, spawnLimit: math.huge })).toEqual(MissionCatalog.Airspace(MissionCatalog.Get(1)));
 	});
 	it("large-session hard edge clamps then recovers inward using its own limits", () => {
 		const state = FlightMath.FromPose(0, 622, -M01_AIRSPACE.hardHalfWidth, 0, 0, 600);

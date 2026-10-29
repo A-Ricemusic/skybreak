@@ -98,33 +98,11 @@ grid-aligned regions the hills read and write (the executor's own regions, not t
 <!-- world-counts:begin (bun tools/world-report.ts) -->
 | Mission | Theme | Environment | Terrain ops | Voxel writes (M) | Hill cells (M) | Parts | Props | Trees | Rocks | Buildings | Ships | Unique meshes | Instances |
 |---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| M3 Fox switchback | canyon | canyon_dawn | 320 | 88.2 | 0.40 | 144 | 106 | 36 | 60 | 10 | 0 | 13 | 576 |
-| M4 Hidden quarters bowl | canyon | canyon_noon | 255 | 52.7 | 0.49 | 70 | 91 | 36 | 44 | 11 | 0 | 10 | 252 |
-| M5 Teklan orchard terraces | farm | farm_morning | 237 | 96.2 | 2.20 | 71 | 183 | 140 | 22 | 21 | 0 | 10 | 601 |
-| M6 Grain valley irrigation | farm | farm_overcast | 254 | 76.7 | 2.36 | 25 | 168 | 140 | 22 | 6 | 0 | 8 | 361 |
-| M7 Dust courier narrows | canyon | canyon_dusk | 289 | 67.3 | 0.49 | 39 | 82 | 36 | 44 | 2 | 0 | 7 | 203 |
-| M8 Varda tower siege | canyon | canyon_dusk | 240 | 57.7 | 0.42 | 67 | 90 | 36 | 44 | 10 | 0 | 9 | 247 |
-| M9 Vulture moonlit bowl | canyon | canyon_night | 302 | 63.0 | 0.33 | 26 | 88 | 36 | 44 | 8 | 0 | 9 | 202 |
-| M10 Kiro abandoned mine | plateau | farm_overcast | 251 | 80.5 | 1.57 | 28 | 123 | 80 | 36 | 7 | 0 | 8 | 274 |
-| M11 Twin ridge relay saddle | farm | farm_sunset | 257 | 89.6 | 2.16 | 39 | 168 | 140 | 22 | 6 | 0 | 8 | 375 |
-| M12 Open field refugee corridor | farm | farm_morning | 248 | 55.7 | 2.24 | 26 | 174 | 140 | 22 | 12 | 0 | 8 | 374 |
-| M13 Staging farm rail yard | farm | farm_overcast | 250 | 68.6 | 2.37 | 41 | 168 | 140 | 22 | 6 | 0 | 8 | 377 |
-| M14 High relay crossing | plateau | relay_night | 257 | 75.3 | 1.58 | 31 | 122 | 80 | 36 | 6 | 0 | 9 | 275 |
-| M15 Loyalist broadcast common | farm | farm_morning | 251 | 74.6 | 2.33 | 30 | 179 | 140 | 22 | 17 | 0 | 10 | 388 |
-| M16 Storm river divide | farm | farm_storm | 235 | 85.6 | 2.11 | 39 | 165 | 140 | 22 | 3 | 0 | 8 | 369 |
-| M17 Aurora crown array | plateau | relay_aurora | 263 | 75.5 | 1.56 | 28 | 124 | 80 | 36 | 8 | 0 | 9 | 276 |
-| M18 Vulture searchlight ridge | plateau | relay_night | 271 | 83.7 | 1.76 | 69 | 128 | 80 | 36 | 12 | 0 | 11 | 325 |
-| M19 Military quays and canal | coast | harbor_fog | 126 | 63.9 | 1.41 | 117 | 168 | 106 | 14 | 47 | 1 | 14 | 617 |
-| M20 Eastern wing divided harbor | coast | city_evening | 120 | 34.9 | 1.20 | 68 | 155 | 90 | 14 | 50 | 1 | 12 | 378 |
-| M21 Black canal city | coast | city_night | 143 | 32.2 | 1.25 | 94 | 147 | 90 | 14 | 43 | 0 | 11 | 388 |
-| M22 Five fog fuel piers | coast | harbor_fog | 119 | 46.9 | 1.37 | 61 | 129 | 90 | 14 | 24 | 1 | 12 | 319 |
-| M23 Frigate ring over deep water | ocean | ocean_clear | 108 | 34.9 | 0.00 | 22 | 4 | 0 | 0 | 1 | 3 | 2 | 30 |
-| M24 Storm platform trident | ocean | ocean_storm | 91 | 31.7 | 0.00 | 44 | 1 | 0 | 0 | 1 | 0 | 1 | 46 |
-| M25 Dawn beachhead | coast | city_dawn | 136 | 41.6 | 1.17 | 45 | 159 | 90 | 14 | 53 | 2 | 12 | 363 |
-| M26 Civic plaza blackout | coast | city_night | 137 | 37.0 | 1.59 | 96 | 167 | 90 | 14 | 63 | 0 | 11 | 430 |
-| M27 Coastal parliament sunrise | coast | city_dawn | 121 | 35.2 | 1.62 | 61 | 165 | 90 | 14 | 61 | 0 | 11 | 391 |
+| Practice | Legacy training islands | canyon_noon | engine-built | - | - | - | - | - | - | - | - | - | - |
+| M1 | Sea and island | sea overcast afternoon | 25152 | 207.7 | - | 307 | 161 | - | - | - | - | - | 955 |
 
-Budget per world: 340 parts, 280 props, 20 unique meshes, 100M voxel writes, 2.5M hill cells, 700 terrain ops.
+Current worlds only. Practice is engine-built; numeric counts require Studio. M1 counts are pure-plan estimates including the carrier stand-in allowance, not assembled runtime measurements.
+M1 budgets: 340 parts, 240 props, 1300 descendants, 260M voxel writes, 30000 scheduled jobs. Practice retains the 600 primitive-part engine budget.
 <!-- world-counts:end -->
 
 Missions 1–2 are hand-composed. Their counts come from the engine (`PartCount`, `UploadedParts`

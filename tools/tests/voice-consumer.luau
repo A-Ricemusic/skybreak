@@ -92,13 +92,17 @@ end
 local count=0
 local function test(name,fn) fn();count+=1;print("PASS "..name) end
 
-test("all 28 mounted chapters send every authored beat to the real compiled VoicePlayer",function()
+test("all archived and active chapters play matching recorded beats; rewritten opening stays silent",function()
  local total=0
  for _,chapter in STORY do
   local status=mount(chapter.id)
   for i,beat in chapter.beats do
    tick(.1)
-   local live=voices();assert(#live==1,`chapter {chapter.id} beat {i-1}: expected one voice`)
+   local live=voices()
+   if chapter.id==0 and i==6 then
+    assert(#live==0 and modules.VoiceLines.Voice:Story(0,5,beat.text)==nil,"rewritten opening must never play stale words")
+   else
+   assert(#live==1,`chapter {chapter.id} beat {i-1}: expected one voice`)
    local sound=live[1]
    local id=modules.VoiceLines.storyLineId(chapter.id,i-1)
    local clip=modules.VoiceLines.Voice:Story(chapter.id,i-1,beat.text)
@@ -108,6 +112,7 @@ test("all 28 mounted chapters send every authored beat to the real compiled Voic
    assert(sound.SoundGroup.Name=="VoiceCutscene" and sound.SoundGroup.Volume==1)
    assert(sound.SoundGroup.Parent.Volume==1 and sound.Volume==1)
    assert(sound.TimePosition>=clip.start and sound.TimePosition<clip.finish)
+   end
    total+=1;input("Right");tick(.4)
   end
   assert(status()==1);unmount();assert(#voices()==0 and not VoicePlayer:IsSpeaking())

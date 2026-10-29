@@ -134,9 +134,9 @@ function boatPathProblems(plan: WorldPlan, out: string[]): void {
 
 export interface AuditResult { problems: string[]; checkedAir: number; checkedProps: number; checkedParts: number }
 
-export function auditPlan(plan: WorldPlan): AuditResult {
+export function auditPlan(plan: WorldPlan, blueprint?: import("./MissionCatalog").MissionBlueprint): AuditResult {
 	const problems: string[] = [];
-	const bp = MissionCatalog.Get(plan.id);
+	const bp = blueprint ?? MissionCatalog.Get(plan.id);
 	// Flight clearance: terrain, solid parts and prop bounds stay under every authored point, leg and ceiling.
 	for (const s of plan.air) {
 		const top = solidTopWithin(plan, s.x, s.z, s.rad);
