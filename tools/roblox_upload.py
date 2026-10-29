@@ -1,6 +1,6 @@
 """Shared Roblox Open Cloud upload journal, HALT gate and polling for SKYBREAK tools.
 
-Imported by tools/upload-audio.py and tools/upload-voice.py. Both tools share
+Imported by the Audio, Voice and Model upload tools. All tools share
 one account journal and HALT file: a single moderation rejection halts every
 upload for the account, and no new upload starts while another is unresolved.
 Callers hold STATE / "audio-upload.lock" while using these helpers.
@@ -26,6 +26,7 @@ APPROVED = "MODERATION_STATE_APPROVED"
 REJECTED = "MODERATION_STATE_REJECTED"
 POLL_TIMEOUT_SECONDS = 600
 MAX_AUDIO_BYTES = 20_000_000
+MAX_MODEL_BYTES = 50_000_000
 
 
 def save(path: Path, value: Any) -> None:
@@ -107,24 +108,33 @@ def _pause(seconds: float, deadline: float) -> None:
 
 def submit_and_moderate(name: str, entry: str, item: dict[str, Any] | None,
                         content: bytes, digest: str, filename: str, description: str,
-                        reviewer: str, key: str, rejected_message: str) -> dict[str, Any]:
+                        reviewer: str, key: str, rejected_message: str, *,
+                        asset_type: str = "Audio") -> dict[str, Any]:
     """Submit once, then poll operation and moderation within one time budget.
 
     The caller has already run gate(entry), looked up `item` in the journal and
     verified its sha256. Returns the approved journal item.
     """
     deadline = time.monotonic() + POLL_TIMEOUT_SECONDS
-    if not re.fullmatch(r"[A-Za-z0-9_-]+\.ogg", filename) or not content.startswith(b"OggS") or len(content) >= MAX_AUDIO_BYTES:
-        raise RuntimeError("Invalid Ogg upload content or filename")
+    if asset_type == "Audio":
+        if not re.fullmatch(r"[A-Za-z0-9_-]+\.ogg", filename) or not content.startswith(b"OggS") or len(content) >= MAX_AUDIO_BYTES:
+            raise RuntimeError("Invalid Ogg upload content or filename")
+        content_type = "audio/ogg"
+    elif asset_type == "Model":
+        if not re.fullmatch(r"[A-Za-z0-9_-]+\.fbx", filename) or not 0 < len(content) < MAX_MODEL_BYTES:
+            raise RuntimeError("Invalid FBX upload content or filename (must be below 50 MB)")
+        content_type = "model/fbx"
+    else:
+        raise RuntimeError("Unsupported upload asset type")
     if not item:
-        meta = {"assetType": "Audio", "displayName": f"SKYBREAK {name}",
+        meta = {"assetType": asset_type, "displayName": f"SKYBREAK {name}",
                 "description": description,
                 "creationContext": {"creator": {"userId": "3407487520"}}}
         boundary = uuid.uuid4().hex
         body = (f'--{boundary}\r\nContent-Disposition: form-data; name="request"\r\n\r\n{json.dumps(meta)}\r\n'
                 f'--{boundary}\r\nContent-Disposition: form-data; name="fileContent"; filename="{filename}"\r\n'
-                'Content-Type: audio/ogg\r\n\r\n').encode() + content + f"\r\n--{boundary}--\r\n".encode()
-        item = {"sha256": digest, "assetType": "Audio", "state": "SUBMITTING", "reviewer": reviewer,
+                f'Content-Type: {content_type}\r\n\r\n').encode() + content + f"\r\n--{boundary}--\r\n".encode()
+        item = {"sha256": digest, "assetType": asset_type, "state": "SUBMITTING", "reviewer": reviewer,
                 "at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
         record(entry, item)
         try:
