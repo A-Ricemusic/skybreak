@@ -1,5 +1,5 @@
 import { Lighting, Workspace } from "@rbxts/services";
-import { ENVIRONMENT_ATTRIBUTE, environmentFor, type Rgb } from "../shared/EnvironmentPresets";
+import { ENVIRONMENT_ATTRIBUTE, environmentFor, type Rgb, type EnvironmentSpec } from "../shared/EnvironmentPresets";
 import type { EnvironmentPreset } from "../shared/MissionCatalog";
 
 // Applies one EnvironmentPresets entry to Lighting, the sky, clouds, post
@@ -7,7 +7,7 @@ import type { EnvironmentPreset } from "../shared/MissionCatalog";
 // trim them locally in client/MobileGraphics and the client adds the weather
 // (rain, lightning, dust, aurora) in client/Weather from the Lighting attribute.
 
-const EFFECTS = ["SkybreakAtmosphere", "SkybreakColor", "SkybreakBloom", "MissionAtmosphere", "MissionGrade", "MissionSky", "MissionBloom"];
+const EFFECTS = ["SkybreakAtmosphere", "SkybreakColor", "SkybreakBloom", "MissionAtmosphere", "MissionGrade", "MissionSky", "MissionBloom", "M01SunRays"];
 const rgb = (c: Rgb) => Color3.fromRGB(c[0], c[1], c[2]);
 
 // Terrain material colours persist across Terrain:Clear(), so each build starts from the
@@ -23,10 +23,8 @@ function clear(): void {
 	Workspace.Terrain.FindFirstChild("MissionClouds")?.Destroy();
 }
 
-export const WorldEnvironment = {
-	Apply(preset: EnvironmentPreset): void {
+function applySpec(e: EnvironmentSpec, preset: string): void {
 		clear();
-		const e = environmentFor(preset);
 		Lighting.ClockTime = e.clock;
 		Lighting.Brightness = e.brightness;
 		Lighting.ExposureCompensation = e.exposure;
@@ -90,7 +88,12 @@ export const WorldEnvironment = {
 		terrain.WaterTransparency = e.water.transparency;
 		terrain.WaterWaveSize = e.water.waveSize;
 		terrain.WaterWaveSpeed = e.water.waveSpeed;
-	},
+}
+
+export const WorldEnvironment = {
+	Apply(preset: EnvironmentPreset): void { applySpec(environmentFor(preset), preset); },
+	/** Explicit composition hook; no catalog selection changes. */
+	ApplySpec: applySpec,
 	Clear(): void {
 		clear();
 		Lighting.SetAttribute(ENVIRONMENT_ATTRIBUTE, undefined);
