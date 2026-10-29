@@ -83,6 +83,4 @@ These merged gameplay changes are live through the automatic pipeline convention
 
 The earlier AC04 release (#92) was rejected and reverted (`b0737fa`). #77 (mission 1 tutorial rework) and #91 (TypeScript 5.9) were closed without merging.
 
-PR #144 remains unmerged; its dormant M04/M05 worlds contribute no Player changes. Offline validation and pending measurements are recorded in the composition specs and Blockers.
-
 PR #144 merged as `7711b70`: dormant mission 4–5 worlds, with M05 owning environment/effects. PR #145 batch C review fixes remain unmerged; no Studio or Player observation from this pass.
