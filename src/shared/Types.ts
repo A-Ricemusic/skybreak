@@ -1,3 +1,4 @@
+import type { MissionAirspacePolicy } from "./MissionPolicy";
 import type { FireNotice } from "./WeaponRules";
 export type Persistence = "cloud" | "session" | "unavailable";
 export interface MissionRecord {
@@ -141,6 +142,8 @@ export interface MissionStats {
 	difficulty?: string;
 }
 export interface MissionStarted {
+	/** Effective session limits delivered reliably before client control; absent on old servers. */
+	airspace?: MissionAirspacePolicy;
 	missionId?: number;
 	kind: "Started";
 	slot: number;

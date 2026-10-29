@@ -1,3 +1,5 @@
+import type { MissionAirspacePolicy } from "./MissionPolicy";
+import { resolveAirspace } from "./WorldAirspace";
 import { FlightMath, FlightState } from "./FlightMath";
 import { FlightInput } from "./Types";
 
@@ -39,6 +41,7 @@ const ALL = ["x", "y", "z", "qw", "qx", "qy", "qz", "lean", "yaw", "pitch", "rol
 const PACKET_FIELDS = 13;
 
 export interface Predictor {
+	airspace: MissionAirspacePolicy;
 	/** Simulated state at the last fixed step (what history and reconciliation use). */
 	state: FlightState;
 	/** `state` advanced by the leftover partial step; what the client draws. */
@@ -91,14 +94,14 @@ export const FlightPrediction = {
 	/** Round trip assumed until the first echoed input arrives. */
 	DefaultRtt: 0.15,
 
-	New(initial: FlightState): Predictor {
+	New(initial: FlightState, limits?: MissionAirspacePolicy): Predictor {
 		const raw: FlightState[] = [];
 		const times: number[] = [];
 		for (let index = 0; index < HISTORY; index++) { raw.push(zero()); times.push(0); }
 		const state = zero();
 		copyInto(state, initial);
 		FlightMath.Sync(state);
-		return { state, display: zero(), accumulator: 0, pending: zero(), applied: zero(), times, raw, head: 0, count: 0, sequence: -1, last: "none" };
+		return { airspace: resolveAirspace(limits), state, display: zero(), accumulator: 0, pending: zero(), applied: zero(), times, raw, head: 0, count: 0, sequence: -1, last: "none" };
 	},
 
 	/** Blend `from` toward `to` by `alpha`, always across the short side of the ±pi seam (HUD angles). */
@@ -130,12 +133,12 @@ export const FlightPrediction = {
 		if (corrected) FlightMath.Normalize(predictor.state);
 		predictor.accumulator = math.min(predictor.accumulator + dt, MAX_CATCH_UP);
 		while (predictor.accumulator >= FIXED_STEP - 1e-9) {
-			FlightMath.Step(predictor.state, input, FIXED_STEP);
+			FlightMath.Step(predictor.state, input, FIXED_STEP, predictor.airspace);
 			predictor.accumulator = math.max(0, predictor.accumulator - FIXED_STEP);
 			FlightPrediction.Record(predictor, now - predictor.accumulator);
 		}
 		copyInto(predictor.display, predictor.state);
-		if (predictor.accumulator > 0) FlightMath.Step(predictor.display, input, predictor.accumulator);
+		if (predictor.accumulator > 0) FlightMath.Step(predictor.display, input, predictor.accumulator, predictor.airspace);
 		return predictor.display;
 	},
 

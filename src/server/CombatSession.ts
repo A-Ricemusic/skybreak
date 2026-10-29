@@ -1,3 +1,4 @@
+import type { MissionAirspacePolicy } from "../shared/MissionPolicy";
 import { TargetScore } from "../shared/TargetScore";
 import { FlightState } from "../shared/FlightMath";
 import { BlueprintState } from "../shared/BlueprintRunner";
@@ -70,6 +71,7 @@ export interface Projectile {
 	lostTrack?: boolean;
 }
 export interface CombatSession {
+	airspace: MissionAirspacePolicy;
 	targetScore: TargetScore;
 	player: Player; slot: number; folder: Folder; aircraft: Model; state: FlightState; input: FlightInput;
 	blueprintState?: BlueprintState;
