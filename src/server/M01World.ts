@@ -1,9 +1,60 @@
 import { Lighting, Workspace } from "@rbxts/services";
+import { AssetSelection } from "../shared/AssetSelection";
+import { M01_CARRIER_MODEL, M01_CARRIER_PLACEMENT } from "../shared/M01CarrierPlan";
 import { buildM01Plan, M01, M01_CLOUD_BASE, M01_FILL_CHUNK, M01_ENVIRONMENT, M01_WORLD_KEY } from "../shared/M01WorldPlan";
+import { UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
 import { Scenery } from "./Scenery";
 import { material, TerrainWriter } from "./TerrainWriter";
-import { WorldAssets } from "./WorldAssets";
+import { WorldAssets, type WorldAssetName } from "./WorldAssets";
 import { WorldEnvironment } from "./WorldEnvironment";
+
+const carrierFrame = () => new CFrame(M01_CARRIER_PLACEMENT.x, M01_CARRIER_PLACEMENT.y, M01_CARRIER_PLACEMENT.z)
+	.mul(CFrame.Angles(0, math.rad(M01_CARRIER_PLACEMENT.headingDegrees), 0));
+
+function carrierPart(model: Model, name: string, size: Vector3, offset: Vector3, color: Color3): Part {
+	const part = new Instance("Part");
+	part.Name = name;
+	part.Size = size;
+	part.CFrame = carrierFrame().mul(new CFrame(offset));
+	part.Color = color;
+	part.Material = Enum.Material.SmoothPlastic;
+	part.Anchored = true;
+	part.CanCollide = false;
+	part.CanTouch = false;
+	part.CanQuery = false;
+	part.CastShadow = false;
+	part.Parent = model;
+	return part;
+}
+
+/** Clearly labelled, non-physical placeholder used only until Carrier gains an approved ID. */
+export function placeM01CarrierStandIn(parent: Instance): Model {
+	const model = new Instance("Model");
+	model.Name = "CarrierStandIn";
+	model.SetAttribute("GeometrySource", "CarrierStandIn");
+	model.SetAttribute("StandIn", true);
+	const water = M01_CARRIER_MODEL.waterlineAboveKeel;
+	const deck = M01_CARRIER_MODEL.deckAboveKeel - water;
+	const top = M01_CARRIER_MODEL.size.y - water;
+	carrierPart(model, "StandInHull", new Vector3(150, 52, 440), new Vector3(0, 6, 60), Color3.fromRGB(112, 123, 132));
+	carrierPart(model, "StandInBow", new Vector3(104, 48, 120), new Vector3(0, 4, -220), Color3.fromRGB(112, 123, 132));
+	carrierPart(model, "StandInDeck", new Vector3(M01_CARRIER_MODEL.size.x, 4, M01_CARRIER_MODEL.size.z), new Vector3(0, deck - 2, 0), Color3.fromRGB(64, 72, 78));
+	// Facing the bow (-Z), +X is starboard.
+	carrierPart(model, "StandInIslandStarboard", new Vector3(32, top - deck, 100), new Vector3(55, (top + deck) / 2, 45), Color3.fromRGB(139, 147, 154));
+	model.WorldPivot = carrierFrame();
+	model.Parent = parent;
+	return model;
+}
+
+function placeM01Carrier(parent: Instance, candidates: WorldAssetName[]): Model {
+	// The upload must be checked in Studio: if its bow imports at +Z, turn the model
+	// and its model-space catapult points together by 180 degrees before cutover.
+	for (const candidate of candidates) {
+		const uploaded = WorldAssets.PlaceUploaded(candidate, parent, carrierFrame());
+		if (uploaded !== undefined) return uploaded;
+	}
+	return placeM01CarrierStandIn(parent);
+}
 
 /** C2/cutover may call this explicitly by worldKey; no current mission calls it.
  * Caller owns Terrain clearing and mission-clock handoff. Returns only after all work.
@@ -24,7 +75,9 @@ export const M01World = {
 		parent.SetAttribute("WorldPlanLongestSlice", longestPlanSlice);
 		parent.SetAttribute("WorldBuildPhase", "environment");
 		const names = plan.props.map((p) => p.asset);
+		const carrierAssets = AssetSelection.CarrierCandidates(UploadedAssetSpecs) as WorldAssetName[];
 		WorldAssets.Start(names);
+		WorldAssets.Start(carrierAssets);
 		WorldEnvironment.ApplySpec(M01_ENVIRONMENT, M01_WORLD_KEY);
 		Workspace.Terrain.SetMaterialColor(Enum.Material.LeafyGrass, Color3.fromRGB(36, 59, 62));
 		Workspace.Terrain.SetMaterialColor(Enum.Material.Rock, Color3.fromRGB(51, 70, 87));
@@ -60,6 +113,7 @@ export const M01World = {
 			if (WorldAssets.PlaceUploaded(p.asset, scene, new CFrame(p.x, p.y, p.z), p.scale) === undefined) missing++;
 			if (i % 8 === 7) task.wait();
 		}
+		placeM01Carrier(scene, carrierAssets);
 		const descendants = scene.GetDescendants().size();
 		assert(descendants + 4 <= M01.budget.descendants, "M01 approved template descendants exceeded budget; do not select before re-audit");
 		parent.SetAttribute("WorldPropsMissing", missing);

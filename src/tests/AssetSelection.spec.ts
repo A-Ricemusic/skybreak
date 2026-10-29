@@ -198,3 +198,11 @@ describe("Bomber asset selection", () => {
 		expect(AssetSelection.Resolve({ HeavyBomber: 123 }, candidates, new Set([123]))).toBeUndefined();
 	});
 });
+
+describe("Carrier asset selection", () => {
+	it("falls back without a carrier spec and discovers only the carrier world folder", () => {
+		expect(AssetSelection.CarrierCandidates({ Frigate: { kind: "world", folder: "frigate" } })).toEqual([]);
+		const specs = { Carrier: { kind: "world", folder: "carrier" }, Aircraft: { kind: "aircraft", folder: "carrier" } };
+		expect(AssetSelection.CarrierCandidates(specs)).toEqual(["Carrier"]);
+	});
+});

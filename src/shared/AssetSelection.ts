@@ -55,6 +55,15 @@ export const AssetSelection = {
 		table.sort(names);
 		return names;
 	},
+	/** Future approved carrier export contract. No generated spec or ID exists yet. */
+	CarrierCandidates<K extends string>(specs: Record<K, { kind: string; folder: string }>): K[] {
+		const names: K[] = [];
+		for (const [name, spec] of pairs(specs as Record<string, { kind: string; folder: string }>)) {
+			if (spec.kind === "world" && spec.folder === "carrier") names.push(name as K);
+		}
+		table.sort(names);
+		return names;
+	},
 	/** A usable Roblox asset ID: a positive whole number. */
 	IsAssetId(value: unknown): value is number {
 		return typeIs(value, "number") && value > 0 && value % 1 === 0 && value < math.huge;
