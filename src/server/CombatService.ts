@@ -439,8 +439,18 @@ function effect(session: CombatSession, kind: ExplosionKind, position: Vector3, 
 }
 function restoreMenu(): void {
 	if (sessions.size() > 0) return;
-	const [ok, message] = pcall(() => MissionWorld.RestoreMenu());
-	if (!ok) warn(`SKYBREAK menu restoration failed: ${tostring(message)}`);
+	// Clearing mission 3's terrain measured about 10 s in Studio, past the script execution limit; the timeout
+	// fires after the (completed) clear and killed settlement before release ("still being saved" forever).
+	// The clear and the menu rebuild each run in their own deferred thread, so neither can strand the player.
+	task.defer(() => {
+		const [cleared, clearError] = pcall(() => Workspace.Terrain.Clear());
+		if (!cleared) warn(`SKYBREAK terrain clear failed: ${tostring(clearError)}`);
+	});
+	task.defer(() => {
+		if (sessions.size() > 0) return;
+		const [ok, message] = pcall(() => MissionWorld.RestoreMenu());
+		if (!ok) warn(`SKYBREAK menu restoration failed: ${tostring(message)}`);
+	});
 }
 function cleanupSession(session: CombatSession, restore = true): void {
 	if (session.cleaned) return;
