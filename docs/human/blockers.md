@@ -6,6 +6,7 @@ Last updated: 2026-10-28.
 
 | Date | Raised by | What is blocked | Impact | What is needed |
 |---|---|---|---|---|
+| 2026-10-29 | Orchestrator | Owner acceptance of mission 1 (the beta test). | Mission 2 waits for your feedback (D-004). | **You:** play the practice flight and mission 1 in Roblox Player and report what you notice. |
 | 2026-10-28 | Large-world measurement | Real-phone performance and streaming for full-scale worlds are unverified. Studio measured mission 1's world at 4 to 5.5 s server build and 60 FPS in the phone emulator (#114), but the emulator runs on desktop hardware. | Mission 1's world may need tuning after it goes live. | Re-measure the tuned world in Studio before the campaign switch; your Player playtest on a phone is the real check. |
 | 2026-10-28 | Orchestrator | Enforced checks before merge: main has no branch protection. | A PR can merge before its `validate` check passes, and every merge goes live. The orchestrator gates merges by hand for now. | **You:** in GitHub, Settings → Branches, require the `validate` check on `main`. |
 

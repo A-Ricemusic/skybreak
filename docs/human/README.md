@@ -2,7 +2,7 @@
 
 Last updated: 2026-10-28, against `main` at `93dc512`.
 
-Broken Relay's 27-mission campaign is live in Roblox Player. The redesign rebuilds the missions and worlds to match Ace Combat 04 (objectives, mission length, scoring, terrain and environment) while keeping the Broken Relay story. It goes one mission at a time. No redesign mission is built or live yet. The footage is fully indexed. All of mission 1's building blocks are on main but switched off. The campaign switch, which turns on the practice flight and mission 1 for you to playtest, is in progress.
+The new 18-mission campaign is live in Roblox Player (practice flight and mission 1 playable). The redesign rebuilds the missions and worlds to match Ace Combat 04 (objectives, mission length, scoring, terrain and environment) while keeping the Broken Relay story. It goes one mission at a time. No redesign mission is built or live yet. The footage is fully indexed. **Mission 1 is ready for your beta test.** The new campaign is live by pipeline: the practice flight and mission 1 are playable, missions 2 to 18 are locked. See [Next](next.md) for what to try.
 
 [Play SKYBREAK](https://www.roblox.com/games/112911685457826)
 
@@ -10,7 +10,7 @@ Broken Relay's 27-mission campaign is live in Roblox Player. The redesign rebuil
 
 | # | Reference mission | Footage time | Gameplay length | Footage indexed | Spec written | Built | Live | Owner tested |
 |---|---|---|---|---|---|---|---|---|
-| 1 | Sitting Duck | 0:06:30–0:11:24 | 4.9 min | Yes | Yes | — | — | — |
+| 1 | Sitting Duck | 0:06:30–0:11:24 | 4.9 min | Yes | Yes | Yes | Yes | — |
 | 2 | Imminent Threat | 0:15:38–0:22:34 | 6.9 min | Yes | — | — | — | — |
 | 3 | The Northern Eye | 0:26:41–0:34:24 | 7.7 min | Yes | — | — | — | — |
 | 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | — | — | — | — |
