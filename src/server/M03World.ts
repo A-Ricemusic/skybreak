@@ -69,12 +69,12 @@ export const M03World = {
 			Scenery.Part(scene, p.name, new Vector3(p.sx, p.sy, p.sz), new Vector3(p.x, p.y, p.z), Color3.fromRGB(...p.color), material(p.material), { shape: p.shape === "ball" ? Enum.PartType.Ball : Enum.PartType.Block, flightSolid: p.solid, castShadow: false });
 			if (i % 32 === 31) task.wait();
 		}
-		const targets: Model[] = [];
-		for (const t of plan.targets) targets.push(placeM03Target(scene, t));
+		// Engine-owned gameplay targets are authored separately; these are scenery only.
+		for (const t of plan.targets) placeM03Target(scene, t);
 		assert(scene.GetDescendants().size() <= M03.budget.descendants, "M03 descendants exceeded budget");
 		parent.SetAttribute("WorldBuildPhase", "done");
 		parent.SetAttribute("WorldBuildSeconds", os.clock() - start);
 		parent.SetAttribute("Composition", plan.key);
-		return { groundTargets: targets };
+		return { groundTargets: [] };
 	},
 };

@@ -7,7 +7,7 @@ import { M03_BUILD_LIMITS } from "./M03Limits";
 export const M03_WORLD_KEY = "m03_snow_radar";
 export const M03_FILL_CHUNK = 65536;
 export const M03 = {
-	halfX: 14976, halfZ: 12928, bottom: 0, coarse: 512, detail: 128, targetDetail: 64, corridorHalf: 640,
+	halfX: 15488, halfZ: 15488, bottom: 0, coarse: 512, detail: 128, targetDetail: 64, corridorHalf: 640,
 	valley: 80, summit: 944, scale: 0.96,
 	start: { x: 12000, y: 640, z: 9120, headingDegrees: 47.3 }, // CFrame yaw: -Z toward NW
 	site1: { x: -480, z: -2400 }, site2: { x: -10080, z: -8160 },
@@ -58,6 +58,11 @@ export function m03Height(x: number, z: number): number {
 	const low = math.max(math.abs(x - M03.landing.x) / 1400, math.abs(z - M03.landing.z) / 1408);
 	const blend = math.clamp((low - 1) / 0.8, 0, 1);
 	h = 80 + (h - 80) * blend;
+	// Flat exterior skirt covers the hard airspace without adding distant ridges.
+	const skirt = math.clamp(math.min((14976 - math.abs(x)) / 512, (12928 - math.abs(z)) / 512), 0, 1);
+	h = 80 + (h - 80) * skirt;
+	// Reserve the entire southern landing corridor, blending its sides.
+	if (z >= M03.landing.z) h = 80 + (h - 80) * math.clamp((math.abs(x - M03.landing.x) - 512) / 512, 0, 1);
 	return math.floor(math.clamp(h, 80, M03.summit) / 4) * 4;
 }
 export function m03Detailed(x: number, z: number): boolean {
@@ -106,10 +111,19 @@ export function m03Material(x: number, z: number): TerrainMaterial {
 	if (math.sqrt(dx * dx + dz * dz) > 0.65 || dx > 0.32 && dz > 0.1) return "Rock";
 	return z > 9600 && x > 3000 ? "Ground" : "Snow";
 }
+/** Structural foundation spans all sampled terrain under the target footprint. */
+export function m03TargetSupport(x: number, z: number): { bottom: number; top: number } {
+	let bottom = math.huge, top = 0;
+	for (let dx = -24; dx <= 24; dx += 4) for (let dz = -24; dz <= 24; dz += 4) {
+		const h = m03Ground(x + dx, z + dz);
+		bottom = math.min(bottom, h); top = math.max(top, h);
+	}
+	return { bottom: bottom - 8, top };
+}
 /** Engine-facing pure layout; y is the base, yaw radians uses CFrame convention. */
 export function m03TargetLayout(): M03Target[] {
 	const targets: M03Target[] = [];
-	const add = (id: string, targetType: M03Target["type"], group: M03Target["group"], x: number, z: number, yaw = 0) => targets.push({ id, type: targetType, group, x, y: m03Ground(x, z), z, yaw });
+	const add = (id: string, targetType: M03Target["type"], group: M03Target["group"], x: number, z: number, yaw = 0) => targets.push({ id, type: targetType, group, x, y: m03TargetSupport(x, z).top, z, yaw });
 	for (let i = 0; i < 5; i++) add(`m03_s1_radar_${i + 1}`, "radar", "site1", -480 + (i - 2) * 384, -2400 + (i - 2) * 192);
 	for (let i = 0; i < 4; i++) add(`m03_s2_radar_${i + 1}`, "radar", "site2", -10400 + i * 224, -8160 + (i % 2) * 192);
 	add("m03_s1_aa_1", "aaGun", "site1", -160, -2272, math.pi / 4);
@@ -122,6 +136,9 @@ export function m03TargetLayout(): M03Target[] {
 export function buildM03Plan(seed = 303, checkpoint: () => void = () => {}): M03Plan {
 	const p: M03Plan = { key: M03_WORLD_KEY, seed, ops: [], parts: [], targets: m03TargetLayout(), detailCells: 0, coarseCells: 0 };
 	const block = (material: TerrainMaterial, x: number, z: number, sx: number, sz: number, bottom: number, top: number) => p.ops.push({ shape: "block", material, x, y: (bottom + top) / 2, z, sx, sy: top - bottom, sz, yaw: 0 });
+	// Continuous rock floor seals the underside; perimeter curtains meet it outside
+	// the hard airspace, so negative-altitude flight cannot enter the shell.
+	block("Rock", 0, 0, M03.halfX * 2, M03.halfZ * 2, -4, 0);
 	// Cache the adaptive surface on a 64-stud address grid. It also lets walls
 	// follow fine/coarse joins without evaluating the height function per edge.
 	const cells: Array<{ x: number; z: number; sx: number; sz: number; top: number }> = [];
@@ -174,7 +191,7 @@ export function buildM03Plan(seed = 303, checkpoint: () => void = () => {}): M03
 	p.parts.push({ name: "Daytime moon", shape: "ball", x: -12000, y: 12000, z: -12500,
 		sx: 120, sy: 120, sz: 120, yaw: 0, color: [216, 225, 235], material: "Neon", solid: false, grounded: false });
 	const r = M03.landing;
-	part("Landing runway", r.x, r.y + 2, r.z, r.width, 4, r.length, [39, 43, 48], true);
+	for (const sign of [-1, 1]) part("Landing runway", r.x, r.y + 2, r.z + sign * r.length / 4, r.width, 4, r.length / 2, [39, 43, 48], true);
 	part("Landing apron", r.x + 256, r.y + 2, r.z, 384, 4, 1024, [96, 102, 105], true);
 	for (let i = 0; i < 16; i++) {
 		const z = r.z - r.length / 2 + 64 + i * 144;
@@ -186,7 +203,8 @@ export function buildM03Plan(seed = 303, checkpoint: () => void = () => {}): M03
 	part("Control tower cab", r.x + 160, 150, r.z + 512, 48, 12, 48, [74, 115, 139]);
 	for (const t of p.targets) {
 		// A level structural foundation covers all sampled columns beneath each small model.
-		part(`${t.id} foundation`, t.x, t.y - 16, t.z, 48, 32, 48, [111, 117, 119], true);
+		const support = m03TargetSupport(t.x, t.z);
+		part(`${t.id} foundation`, t.x, (support.bottom + t.y) / 2, t.z, 48, t.y - support.bottom, 48, [111, 117, 119], true);
 		if (t.type === "radar") part("Radar equipment shed", t.x + 64, m03Ground(t.x + 64, t.z) + 6, t.z, 32, 12, 16, [110, 119, 124], true);
 	}
 	return p;

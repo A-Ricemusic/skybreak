@@ -20,5 +20,6 @@ Last updated: 2026-10-29.
 1. **Fix what you report** for mission 1.
 2. **Mission 2:** world composition is done and dormant, in review in PR #140; it is not playable. Remaining: engine integration, mission data and unlock, Studio load measurement and visual check, plus real-phone performance measurement. Proceed toward release after mission 1 feedback (D-004). Engine batch A (typed ground targets, triggered fighter waves, standalone ace and AA guns) is built and dormant on PR #138; it does not change the live practice flight or mission 1.
 3. **Before mission 2 ships:** sequential-unlock and forged-proof tests, remapping the finale chapter, and retiring leftover code keyed to the old 27 missions.
-4. **Later missions** one at a time; mission 18 gains a one-on-one Rusk duel (D-031).
-5. **Polish not blocking play:** the world items above; a code formatter; specs for the menu, briefing, HUD and results screens.
+4. **Mission 3:** world composition done in unmerged PR #139, dormant and not playable. Remaining: engine batch B (mission update banner, clock reset, return-line objective, automatic skippable landing, terrain-relative LOW ALTITUDE warning); mission data and unlock using the exported target layout; Studio load and visual measurement, landing path verification and real-phone performance.
+5. **Later missions** one at a time; mission 18 gains a one-on-one Rusk duel (D-031).
+6. **Polish not blocking play:** the world items above; a code formatter; specs for the menu, briefing, HUD and results screens.

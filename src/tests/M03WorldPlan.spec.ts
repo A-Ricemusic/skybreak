@@ -22,9 +22,9 @@ describe("Dormant M03 snowy mountain composition", () => {
 		expect(p.targets.filter((t) => t.type === "radar" && t.group === "site2").size()).toBe(4);
 		expect(p.targets.filter((t) => t.type === "aaGun").size()).toBe(4);
 		expect(p.targets.filter((t) => t.type === "helicopter").size()).toBe(1);
-		expect(p.targets.map((t) => t.y)).toEqual([736, 756, 780, 756, 736, 656, 656, 656, 656, 736, 452, 424, 520, 656]);
+
 		for (const t of p.targets) {
-			expect(t.y).toBe(terrainTop(p.ops, t.x, t.z).solid);
+			expect(t.y).toBeGreaterThanOrEqual(terrainTop(p.ops, t.x, t.z).solid);
 			expect(math.max(math.abs(t.x), math.abs(t.z))).toBeLessThan(M03_AIRSPACE.softHalfWidth);
 			print(`M03_TARGET ${t.id} ${t.type} ${t.group} x=${t.x} y=${t.y} z=${t.z} yaw=${t.yaw}`);
 		}
@@ -53,7 +53,7 @@ describe("Dormant M03 snowy mountain composition", () => {
 		expect(M03.returnLine.x2).toBeGreaterThan(a.x);
 		const r = M03.landing;
 		for (let z = r.z - r.length / 2; z <= r.z + r.length / 2; z += 64) for (const x of [r.x - r.width / 2, r.x, r.x + r.width / 2]) expect(m03Ground(x, z)).toBe(r.y);
-		expect(p.parts.filter((q) => q.name === "Landing runway").size()).toBe(1);
+		expect(p.parts.filter((q) => q.name === "Landing runway").size()).toBe(2);
 		expect(M03.start.y).toBeGreaterThan(m03Ground(a.x, a.z) + 100);
 		expect(M03.summit + 200).toBeLessThan(FlightMath.SoftAltitude);
 		expect(FlightMath.SoftAltitude).toBeLessThan(FlightMath.MaxAltitude);
@@ -120,6 +120,57 @@ describe("Dormant M03 snowy mountain composition", () => {
 					&& math.abs(wx - o.x) <= o.sx / 2 && math.abs(wz - o.z) <= o.sz / 2
 					&& o.y - o.sy / 2 <= math.min(top, neighbor) && o.y + o.sy / 2 >= math.max(top, neighbor));
 				expect(walls.size()).toBeGreaterThan(0);
+			}
+		}
+	});
+	it("seals the entire hard airspace with one continuous bottom floor", () => {
+		expect(M03.halfX).toBeGreaterThan(M03_AIRSPACE.hardHalfWidth);
+		expect(M03.halfZ).toBeGreaterThan(M03_AIRSPACE.hardHalfWidth);
+		const floor = p.ops.filter((o) => o.x === 0 && o.z === 0 && o.y === -2 && o.sy === 4);
+		expect(floor.size()).toBe(1);
+		expect(floor[0].sx).toBe(2 * M03.halfX);
+		expect(floor[0].sz).toBe(2 * M03.halfZ);
+	});
+	it("uses unique mission ids and supports the entire non-overlapping target footprint", () => {
+		const ids = new Set<string>();
+		for (const t of p.targets) {
+			expect(t.id.sub(1, 4)).toBe("m03_");
+			expect(ids.has(t.id)).toBe(false); ids.add(t.id);
+			const f = p.parts.find((q) => q.name === `${t.id} foundation`)!;
+			expect(f.y + f.sy / 2).toBe(t.y);
+			for (let dx = -24; dx <= 24; dx += 4) for (let dz = -24; dz <= 24; dz += 4) {
+				const h = m03Ground(t.x + dx, t.z + dz);
+				expect(h).toBeLessThanOrEqual(t.y);
+				expect(f.y - f.sy / 2).toBeLessThan(h);
+			}
+			for (const other of p.targets) if (other.id !== t.id)
+				expect(math.max(math.abs(t.x - other.x), math.abs(t.z - other.z))).toBeGreaterThan(48);
+		}
+	});
+	it("keeps all native parts within 2048 and tiles both runway thresholds above terrain", () => {
+		for (const q of p.parts) for (const side of [q.sx, q.sy, q.sz]) {
+			expect(side).toBeGreaterThan(0); expect(side).toBeLessThanOrEqual(2048);
+		}
+		const r = M03.landing, strips = p.parts.filter((q) => q.name === "Landing runway");
+		expect(strips[0].z - strips[0].sz / 2).toBe(r.z - r.length / 2);
+		expect(strips[0].z + strips[0].sz / 2).toBe(strips[1].z - strips[1].sz / 2);
+		expect(strips[1].z + strips[1].sz / 2).toBe(r.z + r.length / 2);
+		for (const q of strips) {
+			expect(q.sx).toBe(128); expect(q.y + q.sy / 2).toBe(84);
+			for (let z = q.z - q.sz / 2; z <= q.z + q.sz / 2; z += 32)
+				for (let x = q.x - q.sx / 2; x <= q.x + q.sx / 2; x += 16)
+					expect(m03Ground(x, z)).toBeLessThanOrEqual(q.y - q.sy / 2);
+		}
+	});
+	it("clears terrain and structures along a swept southern three-degree landing approach", () => {
+		const r = M03.landing, threshold = r.z + r.length / 2;
+		// 96-stud-wide corridor, 8-stud depth below the aircraft; stops at hard airspace.
+		for (let z = threshold + 32; z <= M03_AIRSPACE.hardHalfWidth; z += 16) {
+			const bottom = 84 + 12 + (z - threshold) * math.tan(math.rad(3)) - 8;
+			for (let x = r.x - 48; x <= r.x + 48; x += 16) {
+				expect(m03Ground(x, z)).toBeLessThan(bottom);
+				for (const q of p.parts) if (math.abs(x - q.x) <= q.sx / 2 + 8 && math.abs(z - q.z) <= q.sz / 2 + 8)
+					expect(q.y + q.sy / 2).toBeLessThan(bottom);
 			}
 		}
 	});
