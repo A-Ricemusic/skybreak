@@ -44,6 +44,8 @@ describe("Authoritative sortie scoring", () => {
 			expect(MissionCatalog.MaxMissionSeconds(3)).toBe(1500);
 			const settle = (won: boolean, elapsed: number, reason?: "timeout") => {
 				const c = coordinator(); let packet: MissionFinished | undefined;
+				// Mission 3 results are recorded only once the slot has unlocked it (D-055).
+				for (const prior of [1, 2]) expect(completeMission(c,1,prior,true,fixedStats(prior),()=>undefined,0)).toBe(true);
 				expect(completeMission(c,1,3,won,{...fixedStats(3),elapsed,reason},m=>{packet=m;},0)).toBe(true);
 				return {packet,saved:c.getSlots()[0].missions?.[3]};
 			};
