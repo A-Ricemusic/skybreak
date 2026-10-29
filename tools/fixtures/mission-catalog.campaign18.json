@@ -172,25 +172,504 @@
   },
   {
     "act": 1,
-    "available": false,
-    "briefing": "In development",
-    "codename": "In development",
-    "debrief": "In development",
+    "airspace": {
+      "hardHalfWidth": 15360,
+      "radarRange": 18000,
+      "softHalfWidth": 14500,
+      "spawnLimit": 14000
+    },
+    "allies": {
+      "allowRequiredTargets": false,
+      "callsignPrefix": "LANTERN",
+      "count": 3,
+      "creditPlayerKills": false,
+      "formation": [
+        {
+          "x": -180,
+          "y": 20,
+          "z": 160
+        },
+        {
+          "x": 180,
+          "y": 20,
+          "z": 160
+        },
+        {
+          "x": 0,
+          "y": 40,
+          "z": 320
+        }
+      ],
+      "model": "Kestrel"
+    },
+    "available": true,
+    "briefing": "The grain drums in Teal's manifest lead north to a 'farm' with a runway and no animals. Yesterday's bombers flew from it; eleven more are parked on its pads. Follow the power line and destroy them before they raid. Hangars, AA guns, the tower and the substation are optional. Hit aircraft, not the farmhouses.",
+    "codename": "The Sealed Case",
+    "countdownSeconds": 900,
+    "debrief": "All eleven bombers are burning on their pads. The farm will not launch another raid. Sera wants to know who paid for its runway.",
     "environment": "farm_overcast",
-    "failure": "In development",
+    "failure": "The bombers survived. The farm can launch its next raid.",
     "ground": [],
     "id": 2,
-    "optionalRaiderMax": 0,
+    "optionalRaiderMax": 8,
     "phases": [
       {
-        "count": 1,
-        "kind": "required_air",
-        "label": "In development"
+        "beat": "SERA: Follow the power line north. Their bombers are parked on the farm.",
+        "chatter": [
+          {
+            "at": 0.09090909090909091,
+            "text": "FARM CONTROL: Bombers, start engines! Get them off the ground!"
+          },
+          {
+            "at": 0.36363636363636365,
+            "text": "SERA: Four down. Their guns are still up, watch the base edges."
+          },
+          {
+            "at": 0.7272727272727273,
+            "text": "FARM CONTROL: The pads are burning. Nobody takes off from here."
+          },
+          {
+            "at": 0.9090909090909091,
+            "text": "LANTERN 2: One bomber left. Finish it, trainee."
+          }
+        ],
+        "count": 11,
+        "fighterWaves": [
+          {
+            "call": "LANTERN 2: Two bandits off the nose, low over the fields.",
+            "count": 2,
+            "headingDegrees": 180,
+            "id": "m02_intercept",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "time",
+              "seconds": 35
+            }
+          },
+          {
+            "call": "FARM CONTROL: Raid from the south. This is not a drill!",
+            "count": 2,
+            "headingDegrees": 180,
+            "id": "m02_defenders",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "spawn": {
+              "x": -1024,
+              "y": 700,
+              "z": -13100
+            },
+            "trigger": {
+              "kind": "approach",
+              "radius": 9000,
+              "x": -1024,
+              "z": -12500
+            }
+          },
+          {
+            "call": "FARM CONTROL: Runway is yours. Get up, get up!",
+            "count": 1,
+            "headingDegrees": 0,
+            "id": "m02_scramble",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "scramble": true,
+            "spawn": {
+              "x": -1024,
+              "y": 40,
+              "z": -11060
+            },
+            "trigger": {
+              "kind": "approach",
+              "radius": 4500,
+              "x": -1024,
+              "z": -12500
+            }
+          },
+          {
+            "call": "SERA: Two more from the west valley. They waited for you.",
+            "count": 2,
+            "headingDegrees": 90,
+            "id": "m02_late_pair",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "count": 6,
+              "kind": "required_count"
+            }
+          }
+        ],
+        "groundTargets": [
+          {
+            "group": "A",
+            "id": "m02_bomber_1",
+            "position": {
+              "x": -1500,
+              "y": 40,
+              "z": -12950
+            },
+            "required": true,
+            "scoreRole": "parked_bomber",
+            "type": "parked_bomber",
+            "yaw": 90
+          },
+          {
+            "group": "A",
+            "id": "m02_bomber_2",
+            "position": {
+              "x": -1500,
+              "y": 40,
+              "z": -12770
+            },
+            "required": true,
+            "scoreRole": "parked_bomber",
+            "type": "parked_bomber",
+            "yaw": 90
+          },
+          {
+            "group": "A",
+            "id": "m02_bomber_3",
+            "position": {
+              "x": -1500,
+              "y": 40,
+              "z": -12590
+            },
+            "required": true,
+            "scoreRole": "parked_bomber",
+            "type": "parked_bomber",
+            "yaw": 90
+          },
+          {
+            "group": "A",
+            "id": "m02_bomber_4",
+            "position": {
+              "x": -1500,
+              "y": 40,
+              "z": -12410
+            },
+            "required": true,
+            "scoreRole": "parked_bomber",
+            "type": "parked_bomber",
+            "yaw": 90
+          },
+          {
+            "group": "B",
+            "id": "m02_bomber_5",
+            "position": {
+              "x": -200,
+              "y": 40,
+              "z": -13700
+            },
+            "required": true,
+            "scoreRole": "parked_bomber",
+            "type": "parked_bomber",
+            "yaw": 0
+          },
+          {
+            "group": "B",
+            "id": "m02_bomber_6",
+            "position": {
+              "x": -200,
+              "y": 40,
+              "z": -13480
+            },
+            "required": true,
+            "scoreRole": "parked_bomber",
+            "type": "parked_bomber",
+            "yaw": 0
+          },
+          {
+            "group": "B",
+            "id": "m02_bomber_7",
+            "position": {
+              "x": -200,
+              "y": 40,
+              "z": -13260
+            },
+            "required": true,
+            "scoreRole": "parked_bomber",
+            "type": "parked_bomber",
+            "yaw": 0
+          },
+          {
+            "group": "C",
+            "id": "m02_bomber_8",
+            "position": {
+              "x": -1600,
+              "y": 40,
+              "z": -11400
+            },
+            "required": true,
+            "scoreRole": "parked_bomber",
+            "type": "parked_bomber",
+            "yaw": 0
+          },
+          {
+            "group": "C",
+            "id": "m02_bomber_9",
+            "position": {
+              "x": -1600,
+              "y": 40,
+              "z": -11220
+            },
+            "required": true,
+            "scoreRole": "parked_bomber",
+            "type": "parked_bomber",
+            "yaw": 0
+          },
+          {
+            "group": "D",
+            "id": "m02_bomber_10",
+            "position": {
+              "x": -1800,
+              "y": 40,
+              "z": -13800
+            },
+            "required": true,
+            "scoreRole": "parked_bomber",
+            "type": "parked_bomber",
+            "yaw": 0
+          },
+          {
+            "group": "D",
+            "id": "m02_bomber_11",
+            "position": {
+              "x": -1800,
+              "y": 40,
+              "z": -13620
+            },
+            "required": true,
+            "scoreRole": "parked_bomber",
+            "type": "parked_bomber",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "id": "m02_hangar_12",
+            "position": {
+              "x": -2000,
+              "y": 32,
+              "z": -14000
+            },
+            "required": false,
+            "scoreRole": "hangar",
+            "type": "hangar",
+            "yaw": -90
+          },
+          {
+            "group": "west",
+            "id": "m02_hangar_13",
+            "position": {
+              "x": -2000,
+              "y": 32,
+              "z": -13750
+            },
+            "required": false,
+            "scoreRole": "hangar",
+            "type": "hangar",
+            "yaw": -90
+          },
+          {
+            "group": "west",
+            "id": "m02_hangar_14",
+            "position": {
+              "x": -2000,
+              "y": 32,
+              "z": -13500
+            },
+            "required": false,
+            "scoreRole": "hangar",
+            "type": "hangar",
+            "yaw": -90
+          },
+          {
+            "group": "west",
+            "id": "m02_hangar_15",
+            "position": {
+              "x": -2000,
+              "y": 32,
+              "z": -11750
+            },
+            "required": false,
+            "scoreRole": "hangar",
+            "type": "hangar",
+            "yaw": -90
+          },
+          {
+            "group": "west",
+            "id": "m02_hangar_16",
+            "position": {
+              "x": -2000,
+              "y": 32,
+              "z": -11500
+            },
+            "required": false,
+            "scoreRole": "hangar",
+            "type": "hangar",
+            "yaw": -90
+          },
+          {
+            "group": "west",
+            "id": "m02_hangar_17",
+            "position": {
+              "x": -2000,
+              "y": 32,
+              "z": -11250
+            },
+            "required": false,
+            "scoreRole": "hangar",
+            "type": "hangar",
+            "yaw": -90
+          },
+          {
+            "group": "west",
+            "id": "m02_hangar_18",
+            "position": {
+              "x": -2000,
+              "y": 32,
+              "z": -11000
+            },
+            "required": false,
+            "scoreRole": "hangar",
+            "type": "hangar",
+            "yaw": -90
+          },
+          {
+            "group": "perimeter",
+            "id": "m02_aa_19",
+            "position": {
+              "x": -2200,
+              "y": 32,
+              "z": -14000
+            },
+            "required": false,
+            "scoreRole": "aa_gun",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "perimeter",
+            "id": "m02_aa_20",
+            "position": {
+              "x": -2200,
+              "y": 32,
+              "z": -11000
+            },
+            "required": false,
+            "scoreRole": "aa_gun",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "perimeter",
+            "id": "m02_aa_21",
+            "position": {
+              "x": 100,
+              "y": 32,
+              "z": -14000
+            },
+            "required": false,
+            "scoreRole": "aa_gun",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "perimeter",
+            "id": "m02_aa_22",
+            "position": {
+              "x": 100,
+              "y": 32,
+              "z": -11000
+            },
+            "required": false,
+            "scoreRole": "aa_gun",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "terminal",
+            "id": "m02_control_tower_23",
+            "position": {
+              "x": -1700,
+              "y": 40,
+              "z": -12400
+            },
+            "required": false,
+            "scoreRole": "control_tower",
+            "type": "control_tower",
+            "yaw": 0
+          },
+          {
+            "group": "power_line",
+            "id": "m02_substation_24",
+            "position": {
+              "x": 0,
+              "y": 40,
+              "z": 3200
+            },
+            "required": false,
+            "scoreRole": "substation",
+            "type": "substation",
+            "yaw": 0
+          }
+        ],
+        "kind": "required_ground",
+        "label": "Destroy eleven parked bombers",
+        "standaloneAce": {
+          "behaviour": "ground_attack",
+          "call": "HARROW SIX: Harrow Six, rolling in. Get off my pads, trainee.",
+          "headingDegrees": 180,
+          "health": 165,
+          "id": "m02_ace",
+          "livery": "Vulture",
+          "name": "HARROW SIX",
+          "scoreRole": "ace",
+          "spawn": {
+            "x": -1024,
+            "y": 300,
+            "z": -13800
+          },
+          "stageLines": [
+            "HARROW SIX: Varda paint on a Varda kid. Shame to waste it.",
+            "HARROW SIX: Harrow, breaking low. Somebody cover the bombers!"
+          ],
+          "trigger": {
+            "count": 4,
+            "kind": "required_count"
+          }
+        }
       }
     ],
-    "primary": "In development",
-    "region": "canyon_airfield",
-    "title": "Mission 2"
+    "primary": "Destroy all eleven parked bombers on the farm airfield",
+    "region": "upland_farm",
+    "scoring": {
+      "basis": "points",
+      "points": {
+        "aa_gun": 20,
+        "ace": 240,
+        "control_tower": 100,
+        "fighter": 60,
+        "hangar": 50,
+        "parked_bomber": 120,
+        "substation": 100
+      },
+      "rank": {
+        "A": 1750,
+        "B": 1500,
+        "C": 1320,
+        "S": 2200
+      }
+    },
+    "start": {
+      "headingDegrees": 0,
+      "kind": "airborne",
+      "speed": 160,
+      "x": 0,
+      "y": 500,
+      "z": 12500
+    },
+    "title": "NO ANIMALS",
+    "worldKey": "m02_farm_airbase"
   },
   {
     "act": 1,

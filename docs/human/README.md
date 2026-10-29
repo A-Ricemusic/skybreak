@@ -1,12 +1,12 @@
 # SKYBREAK redesign dashboard
 
-Last updated: 2026-10-29; rebased onto main `051b183`; PR #144 world fixes remain unmerged.
+Last updated: 2026-10-29.
 
 The new 18-mission campaign is live in Roblox Player (practice flight and mission 1 playable). The redesign rebuilds the missions and worlds to match Ace Combat 04 (objectives, mission length, scoring, terrain and environment) while keeping the Broken Relay story. It goes one mission at a time. The footage is fully indexed. **Mission 1 is ready for your beta test.** The new campaign is live by pipeline: the practice flight and mission 1 are playable, missions 2 to 18 are locked. See [Next](next.md) for what to try.
 
 [Play SKYBREAK](https://www.roblox.com/games/112911685457826)
 
-Engine batch A is merged and dormant in PR #138: typed targets, triggered waves, standalone ace and AA. Practice and mission 1 catalog snapshots remain frozen; no Studio or Player testing is claimed for this branch. See [Next](next.md) and provisional D-042–D-044 in [Decisions](decisions.md).
+Engine batch A (#138: typed targets, triggered waves, standalone ace and AA) and the mission 2 world (#140) are merged. The mission 2 PR makes mission 2 playable after mission 1 once it merges; until then mission 2 stays locked. Practice and mission 1 gameplay are unchanged. The unmerged PR also repairs mission 1 score-breakdown preservation after mission 2 completion and during replays/save reloads, with shared offline/Roblox Jest regression coverage. Studio results for that PR are in its description; no Player test is claimed. See [Next](next.md) and provisional D-048, D-049, D-052–D-058 in [Decisions](decisions.md).
 
 Engine batch B is merged and dormant in PR #141; mission 3 remains locked. Return/update/landing and terrain warning contracts are available for later integration. PR #141 review corrections cover extended-clock settlement, projected return guidance, landing camera/skip safety and clearance tint; mission 3 presentation gaps remain listed in Next. The full Roblox Jest suite passed in Studio on PR #142 (808/808); visual integration and Player verification remain pending.
 
@@ -15,10 +15,10 @@ Engine batch B is merged and dormant in PR #141; mission 3 remains locked. Retur
 | # | Reference mission | Footage time | Gameplay length | Footage indexed | Spec written | Built | Live | Owner tested |
 |---|---|---|---|---|---|---|---|---|
 | 1 | Sitting Duck | 0:06:30–0:11:24 | 4.9 min | Yes | Yes | Yes | Yes | — |
-| 2 | Imminent Threat | 0:15:38–0:22:34 | 6.9 min | Yes | Yes | Merged dormant world (#140); mission integration in review (#143); not playable | No | — |
+| 2 | Imminent Threat | 0:15:38–0:22:34 | 6.9 min | Yes | Yes | Yes — live (place version 92) | No | — |
 | 3 | The Northern Eye | 0:26:41–0:34:24 | 7.7 min | Yes | Yes | Dormant world (#139) and engine batch B (#141) merged; mission data pending; not playable | No | — |
-| 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | Yes | Dormant inland world in PR #144; integration pending | No | — |
-| 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | Yes | Dormant night refinery world in PR #144; anchors only | No | — |
+| 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | Yes | — | — | — |
+| 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | Yes | — | — | — |
 | 6 | Invincible Fleet | 1:03:01–1:20:00 | 17.0 min | Yes | — | — | — | — |
 | 7 | Deep Strike | 1:22:13–1:35:49 | 13.6 min | Yes | — | — | — | — |
 | 8 | Shattered Skies | 1:39:16–1:52:39 | 13.4 min | Yes | — | — | — | — |
@@ -43,8 +43,4 @@ Engine batch B is merged and dormant in PR #141; mission 3 remains locked. Retur
 - [Decisions](decisions.md): every decision, with reasons. All four open questions are now answered.
 - [Redesign plan](../redesign-plan.md): the original plan. Where it conflicts with the decisions log, the decisions log wins.
 
-The five mission 4–5 assets (heavy transport, radar jammer, fuel tanker ship, attack helicopter and Vanta v2 elite revision 3) are uploaded and moderation-approved. Merged PR #142 wires them but leaves them unused until missions 4–5. Studio inspection on 2026-10-29 confirmed -Z forward, +Y up and plausible scale beside the heavy bomber, tanker waterline at sea level with `groundOffset=16`, helicopter port tail rotor and both configured rotor hubs, and elite orientation matching regular Vanta v2. All orientation corrections remain zero. [Screenshots and measured results](../qa/orientation/2026-10-29/README.md). Roblox Jest: 808 passed / 0 failed across 80 suites after rebase onto main (#139/#141). No Player test was performed.
-
-M04/M05 composition plans export stable scenery ids and contact poses, with sealed terrain and enforced offline budgets. No mission selects them. Engine batch C owns M05 lights/searchlights. Studio/Player visuals, build measurements and phone performance remain pending. See [M04 composition](../specs/worlds/m04-composition.md) and [M05 composition](../specs/worlds/m05-composition.md).
-
-PR #144 review fixes pass frozen install, build and full offline validation (`OFFLINE_LUAU_RESULT passed=701 failed=0`). M04/M05 estimates are9.259/9.281 s (about14 s with M02’s1.5× correction); Studio measurements remain pending. No Studio or Player run was performed for these fixes.
+The five mission 4–5 assets (heavy transport, radar jammer, fuel tanker ship, attack helicopter and Vanta v2 elite revision 3) are uploaded and moderation-approved. PR #142 wires them but leaves them unused until missions 4–5. Studio inspection on 2026-10-29 confirmed -Z forward, +Y up and plausible scale beside the heavy bomber, tanker waterline at sea level with `groundOffset=16`, helicopter port tail rotor and both configured rotor hubs, and elite orientation matching regular Vanta v2. All orientation corrections remain zero. [Screenshots and measured results](../qa/orientation/2026-10-29/README.md). Roblox Jest: 808 passed / 0 failed across 80 suites after rebase onto main (#139/#141). No Player test was performed.

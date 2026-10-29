@@ -210,7 +210,9 @@ function refreshDerived(slot: SaveSlot): void {
 	// Preserve the v2 Mission 2 prerequisite: a completed Mission 2 implies a completed Mission 1 record.
 	if (missions[2]?.completed) {
 		const existing = missions[1];
-		missions[1] = copyBests({ completed: true, bestTime: existing?.bestTime, firstCompletedAt: existing?.firstCompletedAt }, existing?.bestScore, existing?.bestRank);
+		// Repair only the flag so score breakdowns and any other saved fields survive.
+		if (existing !== undefined) existing.completed = true;
+		else missions[1] = { completed: true };
 	}
 	slot.missions = missions;
 	slot.mission1Completed = missions[1]?.completed === true;
@@ -250,19 +252,19 @@ export function normalizeSlot(raw: unknown, index: number, legacyV1 = false): Sa
 	if (mission2Flag && missions[2] === undefined) {
 		missions[2] = { completed: true };
 	}
-	// v2 best times feed into v3 per-mission records when the new record is absent.
+	// Merge v2 best times without replacing any other fields of an existing v3 record.
 	const legacyBest = legacyV1 ? positiveTime(source.bestTime) : undefined;
 	const mission1Best = positiveTime(source.mission1BestTime) ?? legacyBest;
 	const mission2Best = positiveTime(source.mission2BestTime);
 	if (mission1Best !== undefined) {
 		const current = missions[1];
-		missions[1] = copyBests({ completed: current?.completed === true, bestTime: fastest(current?.bestTime, mission1Best), firstCompletedAt: current?.firstCompletedAt }, current?.bestScore, current?.bestRank);
-		if (current?.bestTargetScore !== undefined) missions[1]!.bestTargetScore = current.bestTargetScore;
+		if (current !== undefined) current.bestTime = fastest(current.bestTime, mission1Best);
+		else missions[1] = { completed: false, bestTime: mission1Best };
 	}
 	if (mission2Best !== undefined) {
 		const current = missions[2];
-		missions[2] = copyBests({ completed: current?.completed === true, bestTime: fastest(current?.bestTime, mission2Best), firstCompletedAt: current?.firstCompletedAt }, current?.bestScore, current?.bestRank);
-		if (current?.bestTargetScore !== undefined) missions[2]!.bestTargetScore = current.bestTargetScore;
+		if (current !== undefined) current.bestTime = fastest(current.bestTime, mission2Best);
+		else missions[2] = { completed: false, bestTime: mission2Best };
 	}
 
 	slot.missions = missions;
@@ -428,7 +430,9 @@ export function completeMission(
 		stats.slot !== activeSlot ||
 		!isValidMission(missionId) ||
 		!MissionCatalog.Available(missionId) ||
-		missionId !== activeMission
+		missionId !== activeMission ||
+		// Defence in depth: a result for a mission this slot has not unlocked is never recorded.
+		!canLaunchMission(missionId, coordinator.getSlots()[activeSlot - 1])
 	) return false;
 	const groundKills = isFiniteNumber(stats.groundKills) ? math.max(0, math.floor(stats.groundKills)) : 0;
 	const elapsed = isFiniteNumber(stats.elapsed) ? stats.elapsed : 0;

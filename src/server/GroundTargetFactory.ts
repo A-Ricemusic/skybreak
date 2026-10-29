@@ -1,9 +1,27 @@
 import { BomberFactory } from "../shared/BomberFactory";
-import { TypedGroundTarget } from "../shared/CampaignEncounters";
-/** Replace this factory per world while retaining spec ids/positions and stationary aim roots. No uploads. */
+import { GROUND_TARGET_LABELS, GroundTargetType, TypedGroundTarget } from "../shared/CampaignEncounters";
+/** Lifts `model` so its bounding box rests on `baseY` (a parked aircraft's wheels on the pavement). */
+export function restOn(model: Model, baseY: number): void {
+	const [bounds, size] = model.GetBoundingBox();
+	model.PivotTo(model.GetPivot().add(new Vector3(0, baseY - (bounds.Position.Y - size.Y / 2), 0)));
+}
+/**
+ * A world's own visual becomes a typed target: renamed to its HUD label, tagged with the spec id and
+ * given an invisible stationary aim centre (the PrimaryPart combat locks and homes on).
+ */
+export function adoptGroundTarget(model: Model, id: string, targetType: GroundTargetType): Model {
+	const [bounds] = model.GetBoundingBox();
+	const aim = new Instance("Part");
+	aim.Name = "Aim"; aim.Size = new Vector3(4, 4, 4); aim.CFrame = new CFrame(bounds.Position); aim.Transparency = 1;
+	aim.Anchored = true; aim.CanCollide = false; aim.CanTouch = false; aim.CanQuery = false; aim.Parent = model;
+	model.PrimaryPart = aim;
+	model.Name = GROUND_TARGET_LABELS[targetType];
+	model.SetAttribute("TargetId", id);
+	return model;
+}
+/** Fallback visual for worlds that do not draw a target themselves; retains spec ids/positions and stationary aim roots. No uploads. */
 export function createGroundTarget(spec: TypedGroundTarget): Model {
 	const model = spec.type === "parked_bomber" ? BomberFactory.Create(spec.type) : new Instance("Model");
-	model.Name = string.upper(spec.type);
 	const part = (name: string, size: Vector3, at: Vector3, ball=false) => {
 		const p=new Instance("Part"); p.Name=name; p.Size=size; p.Position=at; p.Anchored=true; p.CanCollide=false; p.CanTouch=false;
 		p.Color=Color3.fromRGB(105,120,112); p.Material=Enum.Material.Metal; if(ball) p.Shape=Enum.PartType.Ball; p.Parent=model; return p;
@@ -19,5 +37,9 @@ export function createGroundTarget(spec: TypedGroundTarget): Model {
 		else { part("Plant deck",new Vector3(55,5,45),new Vector3(0,4,0)); for(const x of [-15,15]) part("Tank",new Vector3(20,28,20),new Vector3(x,20,0)); }
 	}
 	model.PivotTo(new CFrame(spec.position.x,spec.position.y,spec.position.z).mul(CFrame.Angles(0,math.rad(spec.yaw),0)));
+	// A parked bomber's pivot is its fuselage centre: rest the hull on the ground instead of sinking it.
+	if (spec.type === "parked_bomber") restOn(model, spec.position.y);
+	model.Name = GROUND_TARGET_LABELS[spec.type];
+	model.SetAttribute("TargetId", spec.id);
 	return model;
 }

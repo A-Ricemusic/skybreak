@@ -15,14 +15,28 @@ Last updated: 2026-10-29.
 
 **Known, already on the list:** visible terracing on the hillsides; a rectangular waterfront; flat-looking sea shading; a brief build stall when the mission loads; the fly-off camera frames the carrier heavily with your jet near the edge.
 
+## Mission 2 beta (once its PR is merged)
+
+Mission 2 becomes playable when its PR merges; until then it shows as locked. PR #143 also preserves mission 1’s saved score breakdown through mission 2 completion, replays and save reloads.
+
+1. **How to reach it.** Finish mission 1 on the same save file (any rank). Mission 2's tile then reads NEXT; a fresh file cannot start it. The chapter "The sealed case" plays once before the briefing, then the briefing "NO ANIMALS".
+2. **The sortie.** You start in the air, about 470 studs up, heading north with three LANTERN wingmen; a 15:00 countdown starts at control. Follow the red-and-white power line north for about two minutes to a "farm" airfield. Destroy all **eleven parked bombers** (red TGT); the mission ends the moment the last one dies. Nothing needs landing.
+3. **On the way.** The substation under the power line is an optional 100-point target. Two fighters meet you head-on at about 35 seconds. Two more come up from the base as you approach, and one fighter scrambles from the runway (watch it roll and climb out north).
+4. **Over the base.** Four AA guns fire at you (warning, then small hits; evade blocks them). Seven hangars, the control tower and the AA guns are optional points. After four bombers the ace HARROW SIX arrives flying low; after six bombers two more fighters come from the west valley. The bombers never take off (D-057).
+5. **Weapons.** There are no bombs; use missiles and the gun. The **4AAM salvo** special hits four targets per press and suits the parked rows (D-058).
+6. **Scoring.** Bomber 120, hangar 50, AA gun 20, tower 100, substation 100, fighter 60, ace 240. Rank S ≥ 2,200, A ≥ 1,750, B ≥ 1,500, C ≥ 1,320 (all bombers only). Everything destroyed = 2,610, the reference player's S score. Fails only if you are shot down or the clock ends.
+
+**Most useful feedback:** whether the base is easy to find and read from the approach; whether the bombers, hangars and guns look right and burn convincingly; whether 15:00 and the difficulty feel right (the footage player took 6:29); whether the AA guns and fighters give enough pressure; whether the briefing and radio make sense.
+
+**Known:** the world takes about 16 seconds to build on a desktop in Studio, so expect a longer loading screen than mission 1; phone load time and frame rate are not measured yet. Destroyed targets vanish in an explosion and leave no wreck.
+
 ## After your playtest
 
-1. **Fix what you report** for mission 1.
-2. **Mission 2:** world composition is merged and dormant in PR #140; it is not playable. Mission integration is in review (#143). Remaining: engine integration, mission data and unlock, Studio load measurement and visual check, plus real-phone performance measurement. Proceed toward release after mission 1 feedback (D-004). Engine batch A (typed ground targets, triggered fighter waves, standalone ace and AA guns) is merged and dormant in PR #138; it does not change the live practice flight or mission 1.
-3. **Before mission 2 ships:** sequential-unlock and forged-proof tests, remapping the finale chapter, and retiring leftover code keyed to the old 27 missions.
-4. **Mission 3:** world (#139) and engine batch B (#141) merged, dormant and not playable. Remaining: mission data and unlock using the exported target layout; Studio load and visual measurement, landing path verification and real-phone performance.
-5. **Later missions** one at a time; mission 18 gains a one-on-one Rusk duel (D-031).
-6. **Polish not blocking play:** the world items above; a code formatter; specs for the menu, briefing, HUD and results screens.
+1. **Fix what you report** for missions 1 and 2.
+2. **Mission 3:** world (#139) and engine batch B (#141) merged, dormant and not playable. Remaining: mission data and unlock using the exported target layout (as for mission 2); Studio load and visual measurement, landing path verification and real-phone performance.
+3. **Before later missions:** remapping the finale chapter, and retiring leftover code keyed to the old 27 missions.
+4. **Later missions** one at a time; mission 18 gains a one-on-one Rusk duel (D-031).
+5. **Polish not blocking play:** the world items above; a code formatter; specs for the menu, briefing, HUD and results screens.
 
 ## Mission 3 — engine batch B
 
@@ -38,10 +52,6 @@ Batch B offline validation: frozen Bun install and build passed; full offline ga
 
 ## Mission 4–5 asset orientation check
 
-The five mission 4–5 assets (heavy transport, radar jammer, fuel tanker ship, attack helicopter and Vanta v2 elite revision 3) are uploaded and moderation-approved. Merged PR #142 wires them but leaves them unused until missions 4–5. Studio inspection on 2026-10-29 confirmed -Z forward, +Y up and plausible scale beside the heavy bomber, tanker waterline at sea level with `groundOffset=16`, helicopter port tail rotor and both configured rotor hubs, and elite orientation matching regular Vanta v2. All orientation corrections remain zero. [Screenshots and measured results](../qa/orientation/2026-10-29/README.md). Roblox Jest: 808 passed / 0 failed across 80 suites after rebase onto main (#139/#141). No Player test was performed.
+The five mission 4–5 assets (heavy transport, radar jammer, fuel tanker ship, attack helicopter and Vanta v2 elite revision 3) are uploaded and moderation-approved. PR #142 wires them but leaves them unused until missions 4–5. Studio inspection on 2026-10-29 confirmed -Z forward, +Y up and plausible scale beside the heavy bomber, tanker waterline at sea level with `groundOffset=16`, helicopter port tail rotor and both configured rotor hubs, and elite orientation matching regular Vanta v2. All orientation corrections remain zero. [Screenshots and measured results](../qa/orientation/2026-10-29/README.md). Roblox Jest: 808 passed / 0 failed across 80 suites after rebase onto main (#139/#141). No Player test was performed.
 
 Next: integrate these dormant assets with mission 4–5 logic and inspect their placement in those mission worlds. Rotors remain static; animation and mission/Player behaviour are unverified. Elite revision 3 retains its independent 10/10 safety approval (`docs/qa/asset-reviews/2026-10-29-pr137-review-3.md`). No new upload or merge was performed.
-
-## Missions 4 and 5 — dormant worlds
-
-`feat/m04-m05-worlds` adds inland hills for M04 and the night coast/refinery/rig for M05, registered but unselected. Next: mission data adopts exported target ids and poses; engine batch C consumes `m05LightAnchors()` for point lights, searchlights and runway lights. Use the approved-asset wiring merged in PR #142. Then, under the orchestrator’s Studio lease, measure cold builds (M01-calibrated estimate cap12 s, allow roughly 14 s with M02’s 1.5× correction, runtime goal≤20 s), inspect terrain/LOD closure and asset footprints, and test on a real phone before activation. No Studio, Player or Roblox Jest run is claimed. The full per-target tables are in the two composition specs.
