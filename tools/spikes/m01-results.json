@@ -1,0 +1,244 @@
+{
+  "source": "127d13e77af6d0622224d94de9369e42e199b65f",
+  "cold2": {
+    "label": "cold-2",
+    "ok": true,
+    "version": "0.745.0.7451137",
+    "totalSeconds": 4.16737866666881,
+    "terrainSeconds": 3.91052904166645,
+    "afterTerrainSeconds": 0.09245287500016275,
+    "worstHeartbeatGapSeconds": 0.18335791666686418,
+    "longestJobSeconds": 0.006390250000549713,
+    "instances": 802,
+    "workspaceInstances": 806,
+    "beforeMb": 2618.665771484375,
+    "afterMb": 3137.135009765625,
+    "peakMb": 3136.619384765625,
+    "jobs": 8517,
+    "attributes": {
+      "WorldPropsMissing": 0,
+      "WorldTerrainReadySeconds": 4.074925791668647,
+      "WorldBuildSeconds": 4.16736149999997,
+      "WorldTerrainJobs": 8517
+    }
+  },
+  "desktop": [
+    {
+      "ok": true,
+      "peakMb": 4330.80859375,
+      "afterTerrainSeconds": 0.09718795833396143,
+      "label": "play-server",
+      "worstHeartbeatGapSeconds": 0.17172329166714917,
+      "workspaceInstances": 1109,
+      "beforeMb": 3900.151611328125,
+      "jobs": 8517,
+      "instances": 802,
+      "terrainSeconds": 5.28071812500275,
+      "version": "0.745.0.7451137",
+      "attributes": {
+        "WorldPropsMissing": 0,
+        "WorldTerrainReadySeconds": 5.436265500000445,
+        "Composition": "m01_sea_island",
+        "WorldTerrainLongest": 0.08972137500313693,
+        "WorldBuildSeconds": 5.533344250001392,
+        "WorldTerrainJobs": 8517
+      },
+      "longestJobSeconds": 0.08972137500313693,
+      "afterMb": 4331.30859375,
+      "counts": {
+        "descendants": 968,
+        "props": 163,
+        "parts": 312,
+        "voxels": 207692032,
+        "estimatedSeconds": 10.325475098296199,
+        "jobs": 8517
+      },
+      "totalSeconds": 5.533453458334407
+    },
+    {
+      "stations": [
+        {
+          "name": "city",
+          "worstRenderSeconds": 0.050893623381853104,
+          "peakMb": 4782.7626953125,
+          "fps": 59.905977592870805
+        },
+        {
+          "name": "airbase",
+          "worstRenderSeconds": 0.05761358514428139,
+          "peakMb": 4658.1533203125,
+          "fps": 59.69669268981253
+        }
+      ],
+      "islandRayAfterScriptSeconds": 7.64820304166642,
+      "route": [
+        {
+          "peakMb": 4710.38720703125,
+          "worstRenderSeconds": 0.6990417242050171,
+          "speed": 160,
+          "landMisses": 0,
+          "samples": 659,
+          "fps": 55.67970077473061
+        },
+        {
+          "peakMb": 4852.5283203125,
+          "worstRenderSeconds": 0.4700024724006653,
+          "speed": 600,
+          "landMisses": 0,
+          "samples": 182,
+          "fps": 57.63444718614873
+        }
+      ],
+      "kind": "result",
+      "readyAfterScriptSeconds": 7.646632166666677,
+      "initialIslandHit": true
+    }
+  ],
+  "phone": [
+    {
+      "ok": true,
+      "peakMb": 4455.4345703125,
+      "afterTerrainSeconds": 0.0981043750034587,
+      "label": "play-server",
+      "worstHeartbeatGapSeconds": 0.18793799999912153,
+      "workspaceInstances": 1109,
+      "beforeMb": 4156.0908203125,
+      "jobs": 8517,
+      "instances": 802,
+      "terrainSeconds": 5.20005770833086,
+      "version": "0.745.0.7451137",
+      "attributes": {
+        "WorldPropsMissing": 0,
+        "WorldTerrainReadySeconds": 5.372348333330592,
+        "Composition": "m01_sea_island",
+        "WorldTerrainLongest": 0.05944633333274396,
+        "WorldBuildSeconds": 5.47039812499861,
+        "WorldTerrainJobs": 8517
+      },
+      "longestJobSeconds": 0.05944633333274396,
+      "afterMb": 4455.4345703125,
+      "counts": {
+        "descendants": 968,
+        "props": 163,
+        "parts": 312,
+        "voxels": 207692032,
+        "estimatedSeconds": 10.325475098296199,
+        "jobs": 8517
+      },
+      "totalSeconds": 5.470452708334051
+    },
+    {
+      "stations": [
+        {
+          "name": "city",
+          "worstRenderSeconds": 0.02051108330488205,
+          "peakMb": 4551.0908203125,
+          "fps": 59.99684319491264
+        },
+        {
+          "name": "airbase",
+          "worstRenderSeconds": 0.020255625247955322,
+          "peakMb": 4577.1689453125,
+          "fps": 59.998058184057506
+        }
+      ],
+      "islandRayAfterScriptSeconds": 7.458471666668629,
+      "route": [],
+      "kind": "result",
+      "readyAfterScriptSeconds": 7.456880791669391,
+      "initialIslandHit": true
+    },
+    {
+      "stations": [
+        {
+          "name": "city",
+          "worstRenderSeconds": 0.018660208210349083,
+          "peakMb": 4586.8095703125,
+          "fps": 59.99529352824806
+        },
+        {
+          "name": "airbase",
+          "worstRenderSeconds": 0.02231612429022789,
+          "peakMb": 4583.9970703125,
+          "fps": 59.99698870655552
+        }
+      ],
+      "kind": "result",
+      "label": "phone-clear-view"
+    }
+  ],
+  "cold1AndWarm": [
+    {
+      "ok": true,
+      "peakMb": 3091.166015625,
+      "afterTerrainSeconds": 0.08750920833699638,
+      "label": "cold-1",
+      "worstHeartbeatGapSeconds": 0.18605733333606622,
+      "workspaceInstances": 806,
+      "beforeMb": 2601.415283203125,
+      "jobs": 8517,
+      "instances": 802,
+      "terrainSeconds": 4.192063708331261,
+      "version": "0.745.0.7451137",
+      "attributes": {
+        "WorldPropsMissing": 0,
+        "WorldTerrainReadySeconds": 4.36075604166399,
+        "Composition": "m01_sea_island",
+        "WorldTerrainLongest": 0.007498374998249346,
+        "WorldBuildSeconds": 4.448252166665043,
+        "WorldTerrainJobs": 8517
+      },
+      "longestJobSeconds": 0.007498374998249346,
+      "afterMb": 3090.291015625,
+      "counts": {
+        "descendants": 968,
+        "props": 163,
+        "parts": 312,
+        "voxels": 207692032,
+        "estimatedSeconds": 10.325475098296199,
+        "jobs": 8517
+      },
+      "totalSeconds": 4.448265250000986
+    },
+    {
+      "ok": true,
+      "peakMb": 3288.822509765625,
+      "afterTerrainSeconds": 0.09711654166676453,
+      "label": "warm-1",
+      "worstHeartbeatGapSeconds": 0.3256989583314862,
+      "workspaceInstances": 806,
+      "beforeMb": 3223.744384765625,
+      "jobs": 8517,
+      "instances": 802,
+      "terrainSeconds": 4.269069583333476,
+      "version": "0.745.0.7451137",
+      "attributes": {
+        "WorldPropsMissing": 0,
+        "WorldTerrainReadySeconds": 4.569314041666075,
+        "Composition": "m01_sea_island",
+        "WorldTerrainLongest": 0.011820458334113937,
+        "WorldBuildSeconds": 4.666252666665969,
+        "WorldTerrainJobs": 8517
+      },
+      "longestJobSeconds": 0.011820458334113937,
+      "afterMb": 3288.822509765625,
+      "counts": {
+        "descendants": 968,
+        "props": 163,
+        "parts": 312,
+        "voxels": 207692032,
+        "estimatedSeconds": 10.325475098296199,
+        "jobs": 8517
+      },
+      "totalSeconds": 4.66643058333284
+    }
+  ],
+  "sha256": {
+    "src/server/M01World.ts": "bbc2057bb9429ad1b38c9dd857bf90c7aaa6a495ee012c489731874121bb7f8f",
+    "src/shared/M01WorldPlan.ts": "f2616152c19169a57cd9284263c7c65a0a2b3a851fc8038963a04e46144450c9",
+    "src/server/TerrainWriter.ts": "c52a120cc7366aef80ee3f6900df287c0065710135ae5fa3449c4d61460bbac8",
+    "src/shared/TerrainSchedule.ts": "a14fd7984abe1289e54793f2a9173cbe845d1516af8ff9878bba5d1fc5f145d6",
+    "out/server/M01World.luau": "d28786b4004ad7dad876da7dc137243245a27b99b50ee6a5a28d92faf3037184",
+    "out/server/TerrainWriter.luau": "8d2cd7a393341f007039d707971915cc695d3f5f1ba52b4251af40f6087f5b53"
+  }
+}
