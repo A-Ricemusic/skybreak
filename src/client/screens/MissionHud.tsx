@@ -265,7 +265,8 @@ function MissionHud({
 	});
 	const fireButton = WeaponRules.FireButton(telemetry.missiles, telemetry.missileCooldown, telemetry.target !== undefined && telemetry.targetDamageable !== false, telemetry.lockProgress);
 	const timeRemaining = CountdownDisplay.Value(telemetry.missionId, telemetry.timeRemaining);
-	const [timeLine, progressLine] = clockLines(timeRemaining, telemetry.objectiveProgress, telemetry.objectiveTotal, telemetry.kills, telemetry.total);
+	const [timeLine, normalProgressLine] = clockLines(timeRemaining, telemetry.objectiveProgress, telemetry.objectiveTotal, telemetry.kills, telemetry.total);
+	const progressLine=telemetry.missionPoints!==undefined ? `PTS ${telemetry.missionPoints}${telemetry.missionPoints<(telemetry.objectiveTotal ?? 0) ? `/${telemetry.objectiveTotal}` : ""}` : normalProgressLine;
 	const tutorial = getTutorialInstruction(telemetry.tutorialStep, inputMode);
 	// Radio rides the subtitle row; roots without one show it in the objective line (ahead of kill callouts), as before.
 	const objectiveCallout = radio !== undefined && !layout.subtitle ? { text: radio, color: HUD.White } : callout;

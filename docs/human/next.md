@@ -39,3 +39,10 @@ Most useful feedback: whether the base is easy to find and read; whether the par
 ## Later
 
 Continue one mission at a time after owner feedback. Before the finale, remap the final story chapter and retire leftover code keyed to the old 27-mission campaign. Mission 18 retains the planned one-on-one Rusk duel (D-031). Non-blocking polish remains: terrain and shoreline presentation, a code formatter, and dedicated menu/briefing/HUD/results specifications.
+
+Before missions 4–5 activation (PR #145 remains dormant/unmerged):
+- Integrate mission data with #144’s worlds; build M05 lights using `nightLightingFromAnchors(m05LightAnchors())`. Keep the world’s environment/effects as the sole owner. Verify lighting and route clearances in Studio/Player under the orchestrator’s lease.
+- F4 remaining: add the separate landing 3:00 and takeoff 1:00 HUD clocks, TAKEOFF / CHANGE WEAPON menu (at least special-weapon selection), and surprise elite formation cut-in with its own paused mission-clock span. Current rearm supports the approach gate, cockpit hard cut, hidden local jet, skip and automatic takeoff; the main clock pauses throughout, damage persists, missiles/special refill only as authored, hostile threats block entry, and repeats require zone exit (m05 A4).
+- Run the compiled Roblox runtime specs (ship waterline/aim centre, rearm abuse/pause, jammer calls and lighting isolation), then inspect rearm camera/skip/clock handoff and searchlight sweep/pause. This pass did not launch Studio or run Roblox Jest.
+
+PR #145 validation (2026-10-29): frozen Bun install and build passed; full offline validation passed: `OFFLINE_LUAU_RESULT passed=730 failed=0`, `MISSION_CATALOG_SNAPSHOT passed=19 failed=0`, Python `Ran 122 tests` / `OK`. Practice/M01/M02 mission data and snapshots are unchanged. Roblox runtime specs compile but were not executed.

@@ -57,7 +57,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		for (const batch of WavePlan.Admit(session.airQueue, room)) {
 			if (batch.arrival) {
 				const a=batch.arrival;
-				spawnAir(session,batch.count,batch.role,{ arrival:a, optional:true, name: "name" in a ? a.name : undefined, livery: "livery" in a ? a.livery : undefined, aceHealth: "health" in a ? a.health : undefined });
+				spawnAir(session,batch.count,"aircraft" in a && a.aircraft ? "bomber" : batch.role,{ arrival:a, optional:true, name: "name" in a ? a.name : undefined, livery: "livery" in a ? a.livery : undefined, aceHealth: "health" in a ? a.health : undefined });
 			} else if (session.bomberEncounter && (batch.role === "escort" || batch.role === "ace")) {
 				const encounter = session.bomberEncounter;
 				const leading = BomberRules.Sample(encounter.route, session.elapsed - encounter.startedAt).slots[0];
@@ -228,6 +228,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		// Mid-phase "after" twists do not change phase, so applyBlueprintPhase never sees their radio: drain it here.
 		for (let line=BlueprintRunner.TakeRadio(bs); line !== undefined; line=BlueprintRunner.TakeRadio(bs)) radio(session,line,7);
 		const active=BlueprintRunner.ActivePhase(bs);
+
 		if (active && bs.outcome === undefined && ((active.fighterWaves?.size() ?? 0)>0 || active.standaloneAce !== undefined)) {
 			if (!session.arrivalTargets) {
 				session.arrivalTargets=[];
@@ -238,6 +239,12 @@ export function createPhaseDirector(combat: PhaseCombat) {
 			for(const arrival of [...(active.fighterWaves ?? []), ...(active.standaloneAce ? [active.standaloneAce] : [])]) {
 				if(takeArrival(arrival.id,arrival.trigger,context,fired)) session.airQueue.push({ arrival, role: "name" in arrival ? "ace" : arrival.role, count: "name" in arrival ? 1 : arrival.count, behind:false, call: arrival.call });
 			}
+		}
+		for(const enemy of session.enemies) if(enemy.routeActor && enemy.enabled && enemy.health>0 && enemy.withdrawUntil===undefined) {
+			const sample=BomberRules.Sample(enemy.routeActor.route,session.elapsed-enemy.routeActor.startedAt);
+			if(sample.escaped) { enemy.enabled=false; enemy.model.Destroy(); continue; }
+			const pose=sample.slots[0];
+			enemy.position=new Vector3(pose.position.x,pose.position.y,pose.position.z); enemy.direction=new Vector3(pose.facing.x,pose.facing.y,pose.facing.z); enemy.velocity=enemy.direction.mul(enemy.routeActor.route.speed); enemy.frame=CFrame.lookAt(enemy.position,enemy.position.add(enemy.direction));
 		}
 		if (active) {
 			const encounter = session.bomberEncounter;

@@ -79,7 +79,7 @@ export class TargetBoxOverlay {
 	 * Boxes the nearest valid on-screen targets other than `selected` (which the caller draws).
 	 * `positionOf` gives the world point the player sees for a contact (smoothed clone for jets).
 	 */
-	public Update(camera: Camera, origin: Vector3, selected: Model | undefined, positionOf: (model: Model, ground: boolean) => Vector3): void {
+	public Update(camera: Camera, origin: Vector3, selected: Model | undefined, positionOf: (model: Model, ground: boolean) => Vector3, visualRange=math.huge): void {
 		const gui = this.gui, bounds = this.bounds, keepouts = this.keepouts;
 		if (!gui || !bounds) return;
 		const viewport = camera.ViewportSize;
@@ -93,6 +93,7 @@ export class TargetBoxOverlay {
 			// Behind the camera or out of view: no box and no further work (the radar covers it).
 			if (!onScreen) continue;
 			const distance = world.sub(origin).Magnitude;
+			if(distance>visualRange) continue;
 			const size = TargetBoxes.Size(distance, viewport.Y);
 			const x = math.floor(screen.X + 0.5), y = math.floor(screen.Y + 0.5);
 			if (!TargetBoxes.Fits(x, y, size, bounds, keepouts)) continue;

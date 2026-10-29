@@ -4,6 +4,8 @@ import type { MissionAirspacePolicy, MissionScoringPolicy } from "./MissionPolic
 
 /** Opt-in required_air encounter. count is the bomber count, never the escorts. */
 export interface BomberEncounter {
+	aircraft?: "transport";
+	scoreRole?: string;
 	count: number;
 	waypoints: BomberPoint[];
 	speed: number;
@@ -19,7 +21,9 @@ export function validateBomberEncounter(phase: MissionPhaseBlueprint, bounds: Mi
 	const b = phase.bombers;
 	if (!b) return;
 	assert(scoring.basis === "points", "Bomber encounters require points-basis scoring");
-	for (const role of ["bomber", "escort", "ace"]) { const n = scoring.points[role]; assert(n !== undefined && finite(n) && n > 0, "Bomber encounter needs bomber/escort/ace point values"); }
+	assert(b.aircraft===undefined || b.aircraft==="transport","Invalid route aircraft");
+	assert(b.scoreRole===undefined || scoring.points[b.scoreRole]!==undefined,"Invalid route score role");
+	for (const role of [b.scoreRole ?? "bomber", "escort", "ace"]) { const n = scoring.points[role]; assert(n !== undefined && finite(n) && n > 0, "Bomber encounter needs bomber/escort/ace point values"); }
 	assert(phase.kind === "required_air" && phase.count === b.count, "Bombers require matching required_air count");
 	assert(b.count % 1 === 0 && b.count >= 1 && b.count <= 6, "Bomber route budget is six");
 	assert(finite(b.speed) && b.speed > 0, "Invalid bomber speed");
@@ -27,7 +31,7 @@ export function validateBomberEncounter(phase: MissionPhaseBlueprint, bounds: Mi
 	const e = b.escorts;
 	assert(e.count % 1 === 0 && e.count >= 1 && e.count <= 7 && e.initial % 1 === 0 && e.initial >= 0 && e.initial < e.count, "Invalid escort budget");
 	assert(e.role === "escort" && e.aceName.size() > 0 && e.aceName.size() <= 40 && finite(e.aceAt) && e.aceAt >= 0, "Invalid escort ace");
-	for (const p of [...b.waypoints, b.escape]) assert(finite(p.x) && finite(p.y) && finite(p.z) && math.abs(p.x) <= bounds.spawnLimit && math.abs(p.z) <= bounds.spawnLimit && p.y >= 40 && p.y <= 900, "Bomber route outside mission airspace");
+	for (const p of [...b.waypoints, b.escape]) assert(finite(p.x) && finite(p.y) && finite(p.z) && math.abs(p.x) <= bounds.spawnLimit && math.abs(p.z) <= bounds.spawnLimit && p.y >= 40 && p.y <= (b.aircraft ? 2000 : 900), "Bomber route outside mission airspace");
 	assert(phase.groups === undefined && phase.stagger === undefined && phase.execution === undefined && phase.twist === undefined && phase.hazard === undefined, "Bomber encounter owns its wave schedule");
 	compileBomberEncounter(b);
 }

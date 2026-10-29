@@ -7,6 +7,7 @@ function estimate(phase: MissionPhaseBlueprint, act: Act, aceHealth: number): nu
 	const count = phase.count ?? 0, points = phase.points?.size() ?? 0, seconds = phase.seconds ?? 0;
 	const hazards = (phase.hazard?.count ?? 0) * 10;
 	switch (phase.kind) {
+		case "score_threshold": return phase.scoreThreshold?.seconds ?? 0;
 		case "tutorial_move": return 20;
 		case "tutorial_target": return 10;
 		case "tutorial_missile": return 20;

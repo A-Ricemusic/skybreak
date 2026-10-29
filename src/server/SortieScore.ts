@@ -9,6 +9,7 @@ export function recordScoredKill(state: BlueprintState, ledger: TargetScore, id:
 	kind: "air" | "ground" | "ace", required: boolean, now: number, role?: string, breakdownRole?: string): boolean {
 	if (!BlueprintRunner.RecordKill(state, id, kind, required, now)) return false;
 	ledger.RecordKill(id, role ?? (kind === "ground" ? "ground" : (kind === "ace" ? "ace" : "bandit")), breakdownRole);
+	state.score=ledger.Total();
 	return true;
 }
 

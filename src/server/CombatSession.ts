@@ -47,6 +47,8 @@ export interface Enemy {
 	/** Odds this enemy breaks out of a close lock (act, difficulty and Ace behaviour). */
 	lockBreakChance: number;
 	role?: AirRole;
+	jammerKillAnnounced?: boolean;
+	routeActor?: { route: import("../shared/BomberRules").BomberRoute; startedAt: number; jammer: boolean };
 	bomberSlot?: number;
 	/** Encounter-local ordinal: unique across initial, delayed and queued escort/ace admissions. */
 	escortSlot?: number;
@@ -90,6 +92,10 @@ export interface Projectile {
 	lostTrack?: boolean;
 }
 export interface CombatSession {
+	rearmStartedAt?: number;
+	rearmEpoch?: number;
+	rearmElapsed?: number;
+	rearmLatched?: boolean;
 	landingSent?: boolean;
 	landingStartedAt?: number;
 	clearanceProbeAt?: number;
