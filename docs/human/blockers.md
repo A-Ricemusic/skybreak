@@ -4,8 +4,13 @@ Last updated: 2026-10-29.
 
 ## Open
 
+Mission 3 remains dormant in unmerged PR #139. Its offline contracts establish geometry only; no Studio or Player observation is claimed.
+
+
 | Date | Raised by | What is blocked | Impact | What is needed |
 |---|---|---|---|---|
+| 2026-10-29 | Mission 3 implementation | M03 Studio load time, rendered shell continuity/LOD seams, landing path verification and phone performance are unmeasured. | Offline estimates and swept geometry checks do not establish runtime quality. | Measure cold load and inspect all shell/LOD transitions; verify the engine landing with the real aircraft and measure a real phone before activation. |
+| 2026-10-29 | Mission 3 implementation | Mission 3 engine batch B and mission data/unlock remain outstanding. | World composition alone cannot make mission 3 playable. | Engine batch B owns mission update banner, clock reset, return-line objective, automatic skippable landing and terrain-relative LOW ALTITUDE; do not implement the warning in the world builder. |
 | 2026-10-29 | Engine batch B | Mission 3 runtime quality and integration are unverified. | Dormant features do not enable mission 3; no Studio or Player test performed. | Orchestrator runs Roblox specs under its Studio lease, checks update/radio/return/landing/skip and mountain clearance, then integrates mission 3 data and the remaining presentation items in Next. PR #141 review corrections are unmerged; they do not establish visual quality. |
 | 2026-10-29 | Mission 2 world implementation | Mission 2 world Studio load time, visuals and phone performance are unmeasured. | Offline budgets are estimates; PR #140 remains dormant and does not establish runtime quality. | Measure load time and inspect visuals in Studio, then measure on a real phone before release. No Studio or Player test was performed for this PR revision. |
 | 2026-10-29 | Orchestrator | Owner acceptance of mission 1 (the beta test). | Mission 2 waits for your feedback (D-004). | **You:** play the practice flight and mission 1 in Roblox Player and report what you notice. |
@@ -23,3 +28,7 @@ Last updated: 2026-10-29.
 | 2026-10-28 | Footage analyst | Whether 1080p sections of the video could be downloaded was unconfirmed. | Confirmed: mission 1 was downloaded at 1440×1080, 59.94 fps. |
 | 2026-10-28 | Orchestrator | The first footage agent ended its turn while the download was still running, with no ledger. | The download had completed. A second agent resumed from there and finished the ledger; the first was cancelled so only one agent owned the footage folder. |
 | 2026-10-28 | Several agents | Fresh worktrees have no offline Luau runner, so the offline validator fails at first. | Point `LUAU_BIN` at the main checkout's copy (`build/offline-luau/luau`). This recurs in every new worktree; agent briefs now mention it. |
+
+## PR #137 elite safety gate
+
+Review 2 rejected `vanta-v2-elite-2` at 8/10 for a rear goggles/mask composition. Revision 3 changes the geometry and awaits a fresh independent 10/10 approval of the exact export and textures. Not uploaded. Four other assets are unchanged and retain their recorded approval.

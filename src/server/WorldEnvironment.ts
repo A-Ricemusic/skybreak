@@ -7,7 +7,7 @@ import type { EnvironmentPreset } from "../shared/MissionCatalog";
 // trim them locally in client/MobileGraphics and the client adds the weather
 // (rain, lightning, dust, aurora) in client/Weather from the Lighting attribute.
 
-const EFFECTS = ["SkybreakAtmosphere", "SkybreakColor", "SkybreakBloom", "MissionAtmosphere", "MissionGrade", "MissionSky", "MissionBloom", "M01SunRays"];
+const EFFECTS = ["SkybreakAtmosphere", "SkybreakColor", "SkybreakBloom", "MissionAtmosphere", "MissionGrade", "MissionSky", "MissionBloom", "M01SunRays", "M03SunRays"];
 const rgb = (c: Rgb) => Color3.fromRGB(c[0], c[1], c[2]);
 
 // Terrain material colours persist across Terrain:Clear(), so each build starts from the
