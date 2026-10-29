@@ -2,12 +2,17 @@
 
 Last updated: 2026-10-28, against `main` at `93dc512153b9098cdb7d486f3857e16794fc6ff0`.
 
-[Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). Broken Relay is the live 27-mission campaign. The latest merged gameplay-code revision is `8a2ac2e` (#112). Gameplay merges are live through automatic CI/CD under the owner's convention; documentation-only changes add no game content.
+[Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). Broken Relay is the live 27-mission campaign. The latest merged gameplay-code revision is `80d7585` (#118). Gameplay merges are live through automatic CI/CD under the owner's convention; documentation-only changes add no game content.
 
 ## Merged 2026-10-28, newest first
 
 | PR | Commit | Title | Kind | What you will see |
 |---|---|---|---|---|
+| #118 | `80d7585` | feat(world): tune dormant mission 1 coast, sea and build scheduling | Gameplay code, unused | Nothing yet. Finer coastline, no sea seams, island visible from the start; build about 8 s, worst stall 102 ms (target 50 ms not yet met). Current worlds build exactly as before. |
+| #116 | `c4ceba1` | feat(flight): per-mission airspace limits end to end | Gameplay code | Nothing. Flyable area, spawn limit and radar range now come from each mission's settings; every current mission keeps today's values, matched exactly in recorded flights. |
+| #117 | `6a2db3e` | tools: gate approved FBX Model uploads | Tooling | No game change. The gated uploader for approved models. |
+| #107 | `ee1b543` | feat(assets): original heavy bomber and carrier exports (not uploaded) | Assets and docs | No game change yet. The approved bomber and carrier, with their safety review records. Not uploaded. |
+| #115 | `d6383b8` | docs: record #110 to #114 and current mission 1 work | Docs | No game change. |
 | #112 | `8a2ac2e` | refactor(server): extract PhaseDirector from CombatService | Gameplay code, refactor | Nothing. Mission phase logic moved into its own module; the combat service shrank from 1,861 to 1,538 lines. Includes the two small fixes from the #98 review. |
 | #113 | `032447e` | docs(story): proposed 18-chapter Broken Relay map for the new campaign | Docs | No game change. The story map you approved (D-030, D-031). |
 | #114 | `46260e9` | docs(world): measure mission 1 composition in Studio | Docs and standalone tools | No game change. Mission 1's world builds in about 4 to 5.5 s on the server. |
@@ -35,6 +40,7 @@ Last updated: 2026-10-28, against `main` at `93dc512153b9098cdb7d486f3857e16794f
 ## What was verified, and what was not
 
 - **#97 and #98:** before merging, the Studio test suite ran on main with both combined: 684 of 684 tests passed across 57 suites. The merged main is file-for-file identical to that tested tree.
+- **#116 and #118:** reviewed by the orchestrator; the Studio suite passed on main with both included: 735 of 735 tests across 66 suites. Main's game source is identical to that tested tree.
 - **#111 and #112:** #111 was reviewed by the orchestrator and measured in Studio (#114): cold build 4.2 to 4.5 s, warm 4.7 s, 60 FPS in the phone emulator near the city and airbase (not a real phone). #112 was approved by an independent Opus review and passed the Studio suite on main plus #112: 724 of 724 tests across 65 suites; main's game source is identical to that tested tree.
 - **#103 to #105 and #108:** the orchestrator audited #103 and #104 line by line and reviewed #105 and #108. Before #108 merged, the Studio suite ran on main with #108 included: 714 of 714 tests passed across 63 suites. Main differs from that tested tree only by #109's report and standalone spike scripts.
 - **All PRs:** the offline validator passed (545 compiled contracts, audio, radio and voice simulations, 90 Python tests).
