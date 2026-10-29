@@ -94,7 +94,9 @@ describe("Uploaded asset loader with procedural fallback", () => {
 			expect((id as number) > 0 && (id as number) % 1 === 0).toBe(true);
 			count += 1;
 		}
-		expect(count).toBe(28);
+		expect(count).toBe(30);
+		expect(AssetSelection.BomberCandidates(UploadedAssetSpecs)).toEqual(["HeavyBomber"]);
+		expect(AssetSelection.CarrierCandidates(UploadedAssetSpecs)).toEqual(["Carrier"]);
 	});
 
 	it("uses an uploaded aircraft when its ID is set: validated, scaled to the procedural size, cached and welded", () => {

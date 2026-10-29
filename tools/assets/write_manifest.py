@@ -33,6 +33,8 @@ KEYS = {
     "vanta-v2": "VantaV2",
     "vanta-v2-vulture": "VantaV2Vulture",
     "vanta-v2-rusk": "VantaV2Rusk",
+    "heavy-bomber": "HeavyBomber",
+    "carrier": "Carrier",
     "frigate": "Frigate",
     "oil-platform": "OilPlatform",
     "harbour-quay": "HarbourQuay",
@@ -76,7 +78,7 @@ def ts_vec(values) -> str:
 
 
 def texture_limit(folder: str) -> int:
-    if folder in PROCEDURAL:
+    if folder in PROCEDURAL or folder == "heavy-bomber":
         return 1024
     return 256 if folder in SMALL_PROPS else 512
 

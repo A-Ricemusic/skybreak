@@ -4,7 +4,7 @@
 // attachments and hinges are in-game studs: authoredSize x gameScale, where aircraft are
 // fitted to the procedural aircraft's length and world props keep their authored size.
 
-export type UploadedAssetName = "Kestrel" | "Vanta" | "VantaVulture" | "VantaRusk" | "KestrelV2" | "VantaV2" | "VantaV2Vulture" | "VantaV2Rusk" | "Frigate" | "OilPlatform" | "HarbourQuay" | "ContainerStack" | "GantryCrane" | "Hangar" | "ControlTower" | "OfficeMidrise" | "ApartmentBlock" | "CityTower" | "Farmhouse" | "Barn" | "GrainSilo" | "RadarDish" | "RelayMast" | "Pine" | "Broadleaf" | "RockA" | "RockB" | "RockC";
+export type UploadedAssetName = "Kestrel" | "Vanta" | "VantaVulture" | "VantaRusk" | "KestrelV2" | "VantaV2" | "VantaV2Vulture" | "VantaV2Rusk" | "HeavyBomber" | "Carrier" | "Frigate" | "OilPlatform" | "HarbourQuay" | "ContainerStack" | "GantryCrane" | "Hangar" | "ControlTower" | "OfficeMidrise" | "ApartmentBlock" | "CityTower" | "Farmhouse" | "Barn" | "GrainSilo" | "RadarDish" | "RelayMast" | "Pine" | "Broadleaf" | "RockA" | "RockB" | "RockC";
 
 export interface HingeSpec {
 	from: Vector3;
@@ -158,6 +158,23 @@ export const UploadedAssetSpecs: Record<UploadedAssetName, UploadedAssetSpec> = 
 			Elevator_R: { from: new Vector3(1.3089, -1.1052, -5.3968), to: new Vector3(2.3158, -1.0524, -5.3968) },
 			Rudder: { from: new Vector3(0, -0.2978, 9.6847), to: new Vector3(0, 2.7832, 10.8123) },
 		},
+	},
+	HeavyBomber: {
+		folder: "heavy-bomber",
+		kind: "aircraft",
+		size: new Vector3(72.74, 16.6, 64.8),
+		authoredSize: new Vector3(72.74, 16.6, 64.8),
+		gameScale: 1,
+		groundOffset: 0,
+		attachments: { leftWingtip: new Vector3(-36.3, -5.0174, 19.1201), rightWingtip: new Vector3(36.3, -5.0174, 19.1201), exhaust: new Vector3(0, -6.0339, 7.0072) },
+	},
+	Carrier: {
+		folder: "carrier",
+		kind: "world",
+		size: new Vector3(181.031, 153.76, 560),
+		authoredSize: new Vector3(181.031, 153.76, 560),
+		gameScale: 1,
+		groundOffset: 20,
 	},
 	Frigate: {
 		folder: "frigate",
