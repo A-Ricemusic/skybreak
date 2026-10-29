@@ -3,6 +3,8 @@ import { buildM03Plan, M03, M03_ENVIRONMENT, M03_FILL_CHUNK, M03_WORLD_KEY, type
 import { M03_TARGET_TYPES } from "../shared/missions/m03";
 import { adoptGroundTarget } from "./GroundTargetFactory";
 import { Scenery } from "./Scenery";
+import { registerWorldClear } from "./WorldLifecycleRuntime";
+import type { TerrainOp } from "../shared/WorldPlan";
 import { material, TerrainWriter } from "./TerrainWriter";
 import { WorldEnvironment } from "./WorldEnvironment";
 
@@ -40,6 +42,18 @@ export function placeM03Target(parent: Instance, t: M03Target): Model {
 	return m;
 }
 
+/** Terrain ops this server has written for mission 3 and not yet cleared. */
+let writtenOps: TerrainOp[] | undefined;
+/**
+ * Mission 3's world clear (D-067), run through the world gate: Air over exactly the recorded shell ops in the
+ * build's bounded, yielding jobs, instead of a native Terrain:Clear() that froze the server for 10-30 s.
+ */
+export function clearM03World(cancelled: () => boolean): void {
+	if (writtenOps === undefined) { Workspace.Terrain.Clear(); return; }
+	if (TerrainWriter.Clear(writtenOps, cancelled, 0.008, M03_FILL_CHUNK)) writtenOps = undefined;
+}
+registerWorldClear(M03_WORLD_KEY, clearM03World);
+
 /** Mission 3's world. No uploads or asset downloads. Every m03TargetLayout site is drawn exactly once, as its
  * own model keyed by target id in `targetVisuals`; combat adopts those models instead of building copies.
  */
@@ -63,6 +77,8 @@ export const M03World = {
 		rays.Name = "M03SunRays"; rays.Intensity = 0.12; rays.Spread = 0.85; rays.Parent = Lighting;
 		const scene = new Instance("Folder"); scene.Name = M03_WORLD_KEY; scene.Parent = parent;
 		parent.SetAttribute("WorldBuildPhase", "terrain");
+		// Recorded before writing, so even a build abandoned part-way clears exactly what it wrote.
+		writtenOps = plan.ops;
 		const timing = TerrainWriter.Write(plan.ops, 0.008, M03_FILL_CHUNK);
 		parent.SetAttribute("WorldTerrainReadySeconds", os.clock() - start);
 		parent.SetAttribute("WorldTerrainLongest", timing.longest);

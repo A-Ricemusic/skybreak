@@ -3,6 +3,7 @@ import { buildNightLighting } from "./NightLighting";
 import { announceJammerKill, liveJammers, lockAllowed, stepRearm } from "./EngineBatchCRuntime";
 import { sampleClearance, skipLanding, stepLanding } from "./EngineBatchBRuntime";
 import { worldClear, worldLifecycle } from "./WorldLifecycleRuntime";
+import { awaitLaunchSlot, type LaunchSlot } from "../shared/WorldLifecycle";
 import { createGroundTarget } from "./GroundTargetFactory";
 import { GroundAirDefence } from "../shared/GroundAirDefence";
 import { authoredAirPose, airSpawnHeight, scramblePose } from "../shared/CampaignEncounters";
@@ -1597,10 +1598,20 @@ export const CombatService = {
 		if (buildingMission || sessions.size() > 0) return $tuple(false, "This mission world is single-player");
 		buildingMission = true;
 		// The previous world's cleanup must finish first: wait queued (the client keeps its launch request open).
-		if (!worldLifecycle.Idle()) {
-			missionState.FireClient(player, { kind: "Queued", missionId });
-			if (!worldLifecycle.AwaitIdle()) { buildingMission = false; return $tuple(false, "The previous sortie is still being cleared. Please retry."); }
-			if (player.Parent !== Players || sessions.size() > 0) { buildingMission = false; return $tuple(false, "Player is unavailable"); }
+		let launchSlot: LaunchSlot = { kind: "refuse", message: "The mission could not be started.", restoreMenu: true };
+		const [waited, queueError] = pcall(() => {
+			launchSlot = awaitLaunchSlot(worldLifecycle, {
+				playerPresent: () => player.Parent === Players,
+				sessions: () => sessions.size(),
+				queued: () => { if (player.Parent === Players) missionState!.FireClient(player, { kind: "Queued", missionId }); },
+			});
+		});
+		if (!waited) warn(`SKYBREAK launch queue failed: ${tostring(queueError)}`);
+		if (launchSlot.kind === "refuse") {
+			buildingMission = false;
+			// The cleanup it waited on skipped the menu while this launch was pending: rebuild it.
+			if (launchSlot.restoreMenu) restoreMenu();
+			return $tuple(false, launchSlot.message);
 		}
 		const startedAt = os.clock();
 		missionSerial += 1;

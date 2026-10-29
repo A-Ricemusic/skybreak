@@ -202,10 +202,12 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		else if (screenRef.current === "slots") changeScreen("title");
 		else if (screenRef.current === "briefing") changeScreen("slots");
 	}, [changeScreen]);
-	const showToast = useCallback((message: string, isError: boolean) => {
+	/** `sticky` keeps the toast until another toast or the Loading screen replaces it (a queued launch). */
+	const showToast = useCallback((message: string, isError: boolean, sticky = false) => {
 		if (!mountedRef.current) return;
 		const serial = ++toastRef.current;
 		setToast({ message, isError });
+		if (sticky) return;
 		task.delay(4, () => {
 			if (mountedRef.current && toastRef.current === serial) setToast(undefined);
 		});
@@ -552,7 +554,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			const payload = raw as MissionMessage;
 			if (payload.kind === "Queued") {
 				// The last sortie's world is still being cleared; the launch request stays open and proceeds by itself.
-				showToast("Clearing the last sortie. Your launch is queued...", false);
+				showToast("Clearing the last sortie. Your launch is queued...", false, true);
 				return;
 			}
 			if (payload.kind === "Loading") {

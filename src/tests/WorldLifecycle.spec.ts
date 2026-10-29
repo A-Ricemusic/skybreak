@@ -1,12 +1,12 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { LifecycleScheduler, WorldLifecycle } from "../shared/WorldLifecycle";
+import { awaitLaunchSlot, IsolatedWork, LaunchSlot, LifecycleScheduler, WORLD_CANCEL_GRACE, WorldLifecycle } from "../shared/WorldLifecycle";
 
-/** Frame-stepped stand-in for the Roblox task library: isolate = task.defer, wait = one frame. */
+/** Frame-stepped stand-in for the Roblox task library: isolate = task.defer, wait = one frame, cancel = task.cancel. */
 class FakeScheduler implements LifecycleScheduler {
 	public clock = 0;
 	public threads: thread[] = [];
 	public warnings: string[] = [];
-	public isolate(work: () => void): () => boolean {
+	public isolate(work: () => void): IsolatedWork {
 		let ended = false;
 		const co = coroutine.create(() => {
 			const [ok, err] = pcall(work);
@@ -14,7 +14,10 @@ class FakeScheduler implements LifecycleScheduler {
 			ended = true;
 		});
 		this.threads.push(co);
-		return () => ended || coroutine.status(co) === "dead";
+		return {
+			ended: () => ended || coroutine.status(co) === "dead",
+			cancel: () => { if (!ended && coroutine.status(co) === "suspended") { coroutine.close(co); ended = true; } },
+		};
 	}
 	public wait(): void { coroutine.yield(); }
 	public now(): number { return this.clock; }
@@ -30,44 +33,57 @@ class FakeScheduler implements LifecycleScheduler {
 		}
 	}
 	public run(frames: number): void { for (let i = 0; i < frames; i++) this.tick(); }
+	public warned(text: string): boolean { return this.warnings.some((w) => w.find(text, 1, true)[0] !== undefined); }
 }
+/** A clear that yields for `frames` frames, checking its cancellation token at each yield. */
 function longClear(fake: FakeScheduler, log: string[], frames: number) {
-	return () => { log.push("clear"); for (let i = 0; i < frames; i++) fake.wait(); log.push("cleared"); };
+	return (cancelled: () => boolean) => {
+		log.push("clear");
+		for (let i = 0; i < frames; i++) { if (cancelled()) { log.push("clear cancelled"); return; } fake.wait(); }
+		log.push("cleared");
+	};
+}
+/** A launch through the real queue policy, as CombatService runs it. */
+function launch(fake: FakeScheduler, gate: WorldLifecycle, log: string[], player: { present: boolean }, sessions = () => 0) {
+	let result: LaunchSlot | undefined;
+	fake.isolate(() => {
+		result = awaitLaunchSlot(gate, { playerPresent: () => player.present, sessions, queued: () => log.push("queued") });
+		log.push(result.kind === "build" ? "build" : `refused: ${result.message}`);
+	});
+	return () => result;
 }
 
 describe("World lifecycle gate (one world at a time)", () => {
 	it("queues an immediate relaunch until the old world is cleared and the menu restored", () => {
 		const fake = new FakeScheduler(), gate = new WorldLifecycle(fake), log: string[] = [];
 		gate.Cleanup({ clear: longClear(fake, log, 300), restore: () => log.push("restore"), delaySeconds: 1 });
-		expect(gate.Idle()).toBe(false);
-		let waited: boolean | undefined;
-		fake.isolate(() => { waited = gate.AwaitIdle(); log.push("launch"); });
+		const result = launch(fake, gate, log, { present: true });
 		fake.run(200);
-		expect(log.includes("launch")).toBe(false);
+		expect(log).toEqual(["queued", "clear"]);
 		fake.run(400);
-		expect(waited).toBe(true);
-		expect(log).toEqual(["clear", "cleared", "restore", "launch"]);
+		expect(result()).toEqual({ kind: "build" });
+		expect(log).toEqual(["queued", "clear", "cleared", "restore", "build"]);
 		expect(gate.Idle()).toBe(true);
 	});
-	it("never fires a stale restoration after the next world is built", () => {
+	it("never fires a stale clear or restore after the next world is built", () => {
 		const fake = new FakeScheduler(), gate = new WorldLifecycle(fake), log: string[] = [];
 		gate.Cleanup({ clear: longClear(fake, log, 60), restore: () => log.push("restore"), delaySeconds: 1 });
-		fake.isolate(() => { gate.AwaitIdle(); log.push("build"); });
-		fake.run(600);
-		const built = log.indexOf("build");
-		expect(built).toBe(log.size() - 1);
+		launch(fake, gate, log, { present: true });
+		fake.run(900);
+		expect(log.indexOf("build")).toBe(log.size() - 1);
 		expect(log.filter((e) => e === "clear").size()).toBe(1);
 		expect(log.filter((e) => e === "restore").size()).toBe(1);
 		expect(gate.Pending()).toBe(0);
 	});
-	it("completes a cleanup and frees the gate when the player leaves during it", () => {
-		const fake = new FakeScheduler(), gate = new WorldLifecycle(fake), log: string[] = [];
-		let playerPresent = true;
-		gate.Cleanup({ clear: () => { log.push("clear"); for (let i = 0; i < 90; i++) { if (i === 10) playerPresent = false; fake.wait(); } log.push("cleared"); },
-			restore: () => log.push("restore"), delaySeconds: 1 });
-		fake.run(200);
-		expect(playerPresent).toBe(false);
-		expect(log).toEqual(["clear", "cleared", "restore"]);
+	it("refuses a queued launch whose player left during cleanup, finishes the cleanup and asks for the menu", () => {
+		const fake = new FakeScheduler(), gate = new WorldLifecycle(fake), log: string[] = [], player = { present: true };
+		gate.Cleanup({ clear: longClear(fake, log, 120), restore: () => log.push("restore"), delaySeconds: 1 });
+		const result = launch(fake, gate, log, player);
+		fake.run(60);
+		player.present = false;
+		fake.run(300);
+		expect(log).toEqual(["queued", "clear", "cleared", "restore", "refused: Player is unavailable"]);
+		expect(result()).toEqual({ kind: "refuse", message: "Player is unavailable", restoreMenu: true });
 		expect(gate.Idle()).toBe(true);
 	});
 	it("clears a world abandoned during construction before the next launch builds", () => {
@@ -80,51 +96,83 @@ describe("World lifecycle gate (one world at a time)", () => {
 			gate.Cleanup({ clear: longClear(fake, log, 120), restore: () => log.push("restore"), delaySeconds: 1 });
 		});
 		fake.run(25);
-		fake.isolate(() => { gate.AwaitIdle(); log.push("build 2"); });
+		launch(fake, gate, log, { present: true });
 		fake.run(400);
-		expect(log).toEqual(["build 1", "left", "clear", "cleared", "restore", "build 2"]);
+		expect(log).toEqual(["build 1", "left", "queued", "clear", "cleared", "restore", "build"]);
 	});
-	it("never sticks when a clear throws, outlasts its bound, or its coordinator is killed", () => {
+	it("cancels an overrunning clear and opens the gate only after it has stopped", () => {
+		const fake = new FakeScheduler(), gate = new WorldLifecycle(fake, 5), log: string[] = [];
+		// A registered chunked clear that would run for 60 s; it honours its token at each yield.
+		gate.Cleanup({ clear: longClear(fake, log, 1800), restore: () => log.push("restore") });
+		fake.run(140);
+		expect(gate.Idle()).toBe(false);
+		fake.run(20);
+		expect(log).toEqual(["clear", "clear cancelled", "restore"]);
+		expect(gate.Idle()).toBe(true);
+		expect(fake.warned("cancelling")).toBe(true);
+	});
+	it("stops a clear that ignores its token at its next yield before opening the gate", () => {
+		const fake = new FakeScheduler(), gate = new WorldLifecycle(fake, 5), log: string[] = [];
+		let writes = 0;
+		gate.Cleanup({ clear: () => { for (;;) { writes++; fake.wait(); } }, restore: () => log.push("restore") });
+		fake.run(150 + WORLD_CANCEL_GRACE * 30 - 5);
+		expect(gate.Idle()).toBe(false);
+		fake.run(15);
+		const stoppedAt = writes;
+		fake.run(60);
+		expect(writes).toBe(stoppedAt);
+		expect(log).toEqual(["restore"]);
+		expect(gate.Idle()).toBe(true);
+	});
+	it("never sticks when a clear throws or its coordinator is killed", () => {
 		const thrown = new FakeScheduler(), a = new WorldLifecycle(thrown), log: string[] = [];
 		a.Cleanup({ clear: () => error("boom"), restore: () => log.push("restore") });
 		thrown.run(10);
-		expect(a.Idle()).toBe(true); expect(log).toEqual(["restore"]);
-		expect(thrown.warnings.some((w) => w.find("boom")[0] !== undefined)).toBe(true);
-
-		const stuck = new FakeScheduler(), b = new WorldLifecycle(stuck, 5);
-		b.Cleanup({ clear: () => { for (;;) stuck.wait(); }, restore: () => undefined });
-		stuck.run(100);
-		expect(b.Idle()).toBe(false);
-		stuck.run(100);
-		expect(b.Idle()).toBe(true);
-		expect(stuck.warnings.some((w) => w.find("still running")[0] !== undefined)).toBe(true);
-
-		// A script-timeout kill ends the coordinator without releasing; the next launch reaps it.
+		expect(a.Idle()).toBe(true); expect(log).toEqual(["restore"]); expect(thrown.warned("boom")).toBe(true);
+		// A script-timeout kill ends coordinator and clear without releasing; the next launch reaps them.
 		const killed = new FakeScheduler(), c = new WorldLifecycle(killed);
 		c.Cleanup({ clear: () => { for (;;) killed.wait(); }, restore: () => undefined });
 		killed.run(3);
 		for (const co of killed.threads) coroutine.close(co);
 		killed.threads = [];
-		let ok: boolean | undefined;
-		killed.isolate(() => { ok = c.AwaitIdle(); });
+		const result = launch(killed, c, [], { present: true });
 		killed.run(3);
-		expect(ok).toBe(true); expect(c.Idle()).toBe(true);
+		expect(result()).toEqual({ kind: "build" }); expect(c.Idle()).toBe(true);
 	});
-	it("refuses a launch only when the wait bound passes", () => {
+	it("refuses a launch (and asks for the menu) only when the wait bound passes", () => {
 		const fake = new FakeScheduler(), gate = new WorldLifecycle(fake, 1000);
 		gate.Cleanup({ clear: () => { for (;;) fake.wait(); }, restore: () => undefined });
-		let ok: boolean | undefined;
-		fake.isolate(() => { ok = gate.AwaitIdle(2); });
+		let result: LaunchSlot | undefined;
+		fake.isolate(() => { result = awaitLaunchSlot(gate, { playerPresent: () => true, sessions: () => 0, queued: () => undefined }, 2); });
 		fake.run(90);
-		expect(ok).toBe(false);
+		expect(result).toEqual({ kind: "refuse", message: "The previous sortie is still being cleared. Please retry.", restoreMenu: true });
 	});
-	it("adds only the result delay for an instant clear (missions 1 and 2)", () => {
+	it("skips and cancels world clears once the server is closing", () => {
 		const fake = new FakeScheduler(), gate = new WorldLifecycle(fake), log: string[] = [];
+		gate.Cleanup({ clear: longClear(fake, log, 600), restore: () => log.push("restore"), delaySeconds: 0 });
+		fake.run(10);
+		gate.Close();
+		gate.Cleanup({ clear: () => log.push("late clear"), restore: () => log.push("late restore") });
+		fake.run(10);
+		expect(log).toEqual(["clear", "clear cancelled"]);
+		expect(gate.Idle()).toBe(true); expect(gate.Closing()).toBe(true);
+	});
+	it("builds at once when idle and adds only the result delay for an instant clear (missions 1 and 2)", () => {
+		const fake = new FakeScheduler(), gate = new WorldLifecycle(fake), log: string[] = [];
+		const first = launch(fake, gate, log, { present: true });
+		fake.run(1);
+		expect(first()).toEqual({ kind: "build" }); expect(log).toEqual(["build"]);
 		gate.Cleanup({ clear: () => log.push("clear"), restore: () => log.push("restore"), delaySeconds: 1 });
 		fake.run(30);
 		expect(gate.Idle()).toBe(false);
 		fake.run(5);
 		expect(gate.Idle()).toBe(true);
-		expect(log).toEqual(["clear", "restore"]);
+		expect(log).toEqual(["build", "clear", "restore"]);
+	});
+	it("refuses a second world while one is live", () => {
+		const fake = new FakeScheduler(), gate = new WorldLifecycle(fake);
+		const result = launch(fake, gate, [], { present: true }, () => 1);
+		fake.run(1);
+		expect(result()).toEqual({ kind: "refuse", message: "This mission world is single-player", restoreMenu: false });
 	});
 });
