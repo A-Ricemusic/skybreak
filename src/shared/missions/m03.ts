@@ -15,9 +15,12 @@ const targets: TypedGroundTarget[] = m03TargetLayout().map((t) => ({
 	id: t.id, type: M03_TARGET_TYPES[t.type], position: { x: t.x, y: t.y, z: t.z }, yaw: math.deg(t.yaw),
 	required: t.type === "radar", scoreRole: M03_TARGET_TYPES[t.type], group: t.type === "radar" ? t.group : `${t.group}_defence`,
 }));
+/** Altitude of the airborne start: a ridge of about 700-764 studs crosses the opening heading 15-20 s out, which the
+ * world plan's 640 would fly into hands-off (measured in Studio); 880 clears the first 50 s by over 100 studs. */
+export const M03_START_ALTITUDE = 880;
 /** Airborne start from the world plan: heading about 313° (CFrame yaw +47.3°) toward site 1, three LANTERN wingmen. */
 export const M03_START: MissionStartPolicy = {
-	kind: "airborne", x: M03.start.x, y: M03.start.y, z: M03.start.z, headingDegrees: M03.start.headingDegrees, speed: 160,
+	kind: "airborne", x: M03.start.x, y: M03_START_ALTITUDE, z: M03.start.z, headingDegrees: M03.start.headingDegrees, speed: 160,
 };
 /** PR #139's return line: X ±13,500 at Z=11,040, crossed southbound (+Z). */
 export const M03_RETURN_LINE: ReturnLine = {

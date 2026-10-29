@@ -1077,7 +1077,7 @@
       "kind": "airborne",
       "speed": 160,
       "x": 12000,
-      "y": 640,
+      "y": 880,
       "z": 9120
     },
     "terrainRelativeWarnings": true,

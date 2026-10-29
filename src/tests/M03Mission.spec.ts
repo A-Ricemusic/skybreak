@@ -77,6 +77,11 @@ describe("Mission 3 data: the mountain radar strike and return", () => {
 		const [fx, , fz] = FlightMath.ForwardOf(LaunchStage.Pose(M03_START));
 		const dx = M03.site1.x - M03_START.x, dz = M03.site1.z - M03_START.z, length = math.sqrt(dx * dx + dz * dz);
 		expect((fx * dx + fz * dz) / length).toBeGreaterThan(0.99);
+		// Hands-off, the opening 50 s at 160 studs/s clear a 400-stud-wide corridor by 100 studs.
+		for (let d = 0; d <= 8000; d += 100) for (let o = -200; o <= 200; o += 50) {
+			const x = M03_START.x + (dx * d - dz * o) / length, z = M03_START.z + (dz * d + dx * o) / length;
+			expect(m03Height(x, z)).toBeLessThan(M03_START.y - 100);
+		}
 	});
 	it("authors every target once from the world layout: nine required radars, four AA guns and a helicopter", () => {
 		const layout = m03TargetLayout();
