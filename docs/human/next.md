@@ -28,7 +28,7 @@ Mission 2 becomes playable when its PR merges; until then it shows as locked.
 
 **Most useful feedback:** whether the base is easy to find and read from the approach; whether the bombers, hangars and guns look right and burn convincingly; whether 15:00 and the difficulty feel right (the footage player took 6:29); whether the AA guns and fighters give enough pressure; whether the briefing and radio make sense.
 
-**Known, not yet measured:** real-phone load time and frame rate on this larger world; destroyed targets disappear in an explosion and leave no wreck.
+**Known:** the world takes about 16 seconds to build on a desktop in Studio, so expect a longer loading screen than mission 1; phone load time and frame rate are not measured yet. Destroyed targets vanish in an explosion and leave no wreck.
 
 ## After your playtest
 
