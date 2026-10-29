@@ -54,6 +54,8 @@ describe("Authoritative sortie scoring", () => {
 		bp.scoring = points;
 		const [ok, message] = pcall(() => {
 			const c = coordinator();
+			// Results only record for unlocked missions: clear missions 1 and 2 first.
+			c.recordMissionResult(1, 1, true, 6, 100); c.recordMissionResult(1, 2, true, 11, 100);
 			const stats = { ...fixedStats(3), ...targetScoreStats(ledger, points) };
 			let packet: MissionFinished | undefined;
 			expect(completeMission(c, 1, 3, true, stats, (message) => { packet = message; }, 0)).toBe(true);

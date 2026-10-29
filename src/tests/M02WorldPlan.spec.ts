@@ -23,12 +23,13 @@ const targetBounds = targets.map((t) => {
 	return bounds(t.x, t.z, size?.X ?? (t.type === "aa" ? 22 : 160), size?.Z ?? (t.type === "aa" ? 58 : 96), t.yaw);
 });
 
-describe("Dormant mission 2 farmland composition", () => {
+describe("Mission 2 farmland composition", () => {
 	const plan = buildM02Plan();
-	it("is deterministic and unselected by every mission", () => {
+	it("is deterministic and selected only by mission 2", () => {
 		expect(buildM02Plan()).toEqual(plan);
 		expect(buildM02Plan(203).props).never.toEqual(plan.props);
-		for (const bp of MissionCatalog.All()) expect(MissionCatalog.WorldKey(bp.id)).never.toBe(plan.key);
+		for (const bp of MissionCatalog.All()) expect(MissionCatalog.WorldKey(bp.id) === plan.key).toBe(bp.id === 2);
+		expect(MissionCatalog.WorldKey(0)).never.toBe(plan.key);
 	});
 	it("exports the full contact roster on flat terrain, with a separate substation", () => {
 		const targets = m02TargetLayout();

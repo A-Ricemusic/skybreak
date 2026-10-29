@@ -428,7 +428,9 @@ export function completeMission(
 		stats.slot !== activeSlot ||
 		!isValidMission(missionId) ||
 		!MissionCatalog.Available(missionId) ||
-		missionId !== activeMission
+		missionId !== activeMission ||
+		// Defence in depth: a result for a mission this slot has not unlocked is never recorded.
+		!canLaunchMission(missionId, coordinator.getSlots()[activeSlot - 1])
 	) return false;
 	const groundKills = isFiniteNumber(stats.groundKills) ? math.max(0, math.floor(stats.groundKills)) : 0;
 	const elapsed = isFiniteNumber(stats.elapsed) ? stats.elapsed : 0;

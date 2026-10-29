@@ -1590,7 +1590,9 @@ export const CombatService = {
 			const typed = new Map<Model, {spec: import("../shared/CampaignEncounters").TypedGroundTarget; phase: number}>();
 			const expandedPhases = MissionCatalog.ExpandedPhases(blueprint);
 			for(let phase=0;phase<expandedPhases.size();phase++) for(const spec of expandedPhases[phase].groundTargets ?? []) {
-				const model=createGroundTarget(spec); model.Parent=folder; world.groundTargets.push(model); typed.set(model,{spec,phase});
+				// The world's own drawing of this target when it has one, so every target exists exactly once.
+				const model=world.targetVisuals?.get(spec.id) ?? createGroundTarget(spec); world.targetVisuals?.delete(spec.id);
+				model.Parent=folder; world.groundTargets.push(model); typed.set(model,{spec,phase});
 			}
 			const hiddenGround = session.blueprint ? MissionCatalog.HiddenGround(session.blueprint) : new Set<number>();
 			for (let index = 0; index < world.groundTargets.size(); index++) {

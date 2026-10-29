@@ -213,7 +213,8 @@ function buildIronCoast(scenery: Folder, parent: Instance): Model[] {
 }
 
 export const MissionWorld = {
-	Build(missionId: number, parent: Instance): { groundTargets: Model[] } {
+	/** `targetVisuals`: a world's own drawing of each typed target, keyed by target id; combat adopts them instead of building copies. */
+	Build(missionId: number, parent: Instance): { groundTargets: Model[]; targetVisuals?: Map<string, Model> } {
 		assert(MissionCatalog.Available(missionId), "Mission world is in development");
 		if (MissionCatalog.WorldKey(missionId) === M01_WORLD_KEY) {
 			Workspace.FindFirstChild("World")?.Destroy(); Workspace.Terrain.Clear();

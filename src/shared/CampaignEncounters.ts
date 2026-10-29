@@ -4,24 +4,34 @@ import type { MissionAirspacePolicy, MissionScoringPolicy } from "./MissionPolic
 
 export const GROUND_TYPES = ["parked_bomber", "hangar", "aa_gun", "control_tower", "substation", "radar_dome", "parked_helicopter", "refinery", "fuel_tank", "pipeline", "oil_rig", "rig_tower"] as const;
 export type GroundTargetType = typeof GROUND_TYPES[number];
+/** HUD label (model name) of each typed ground target. */
+export const GROUND_TARGET_LABELS: { readonly [K in GroundTargetType]: string } = {
+	parked_bomber: "BOMBER", hangar: "HANGAR", aa_gun: "AA GUN", control_tower: "CTRL TOWER", substation: "SUBSTATION", radar_dome: "RADAR",
+	parked_helicopter: "HELICOPTER", refinery: "REFINERY", fuel_tank: "FUEL TANK", pipeline: "PIPELINE", oil_rig: "OIL RIG", rig_tower: "RIG TOWER",
+};
 export interface TypedGroundTarget {
 	id: string; type: GroundTargetType; position: FlightPoint; yaw: number; required: boolean; scoreRole: string; group?: string;
 }
 // time is mission time since control; an elapsed time fires immediately when its owning phase starts.
 export type ArrivalTrigger = { kind: "time"; seconds: number } | { kind: "ground_group"; group: string }
-	| { kind: "required_count"; count: number } | { kind: "phase_start"; phase: number };
+	| { kind: "required_count"; count: number } | { kind: "phase_start"; phase: number }
+	// The player's aircraft comes within `radius` horizontal studs of (x, z).
+	| { kind: "approach"; x: number; z: number; radius: number };
 export interface FighterArrival {
 	id: string; trigger: ArrivalTrigger; count: number; role: "raider" | "escort"; scoreRole: string;
 	spawn?: FlightPoint; headingDegrees?: number; scramble?: boolean;
+	/** Radio line said when the wave is really in the air. */
+	call?: string;
 }
 export interface StandaloneAce {
 	id: string; name: string; livery: AceLivery; health: number; trigger: ArrivalTrigger;
-	stageLines?: string[];
+	stageLines?: string[]; call?: string;
 	behaviour: "dogfight" | "ground_attack"; scoreRole: "ace"; spawn?: FlightPoint; headingDegrees?: number;
 }
-export interface TriggerContext { elapsed: number; phase: number; requiredKills: number; destroyed: Set<string>; targets: TypedGroundTarget[] }
+export interface TriggerContext { elapsed: number; phase: number; requiredKills: number; destroyed: Set<string>; targets: TypedGroundTarget[]; player?: { x: number; z: number } }
 export function arrivalDue(trigger: ArrivalTrigger, context: TriggerContext): boolean {
 	if (trigger.kind === "time") return context.elapsed >= trigger.seconds;
+	if (trigger.kind === "approach") return context.player !== undefined && math.sqrt((context.player.x-trigger.x)**2 + (context.player.z-trigger.z)**2) <= trigger.radius;
 	if (trigger.kind === "phase_start") return context.phase >= trigger.phase;
 	if (trigger.kind === "required_count") return context.requiredKills >= trigger.count;
 	const group = context.targets.filter(t => t.group === trigger.group);
@@ -68,6 +78,7 @@ export function validateCampaignEncounters(blueprint: MissionBlueprint, phases: 
 		if (t.kind === "time") assert(finite(t.seconds) && t.seconds>=0,"Invalid arrival time");
 		else if (t.kind === "phase_start") assert(finite(t.phase) && t.phase%1===0 && t.phase>=0 && t.phase<phases.size() && t.phase<=owner,"Invalid arrival phase");
 		else if (t.kind === "required_count") assert(finite(t.count) && t.count%1===0 && t.count>0,"Invalid required kill trigger");
+		else if (t.kind === "approach") assert(finite(t.x) && finite(t.z) && finite(t.radius) && t.radius>0 && math.abs(t.x)<=airspace.hardHalfWidth && math.abs(t.z)<=airspace.hardHalfWidth,"Invalid approach trigger");
 		else assert(t.kind === "ground_group" && groups.has(t.group),"Unknown ground group");
 	};
 	for (let owner=0;owner<phases.size();owner++) {
@@ -77,6 +88,7 @@ export function validateCampaignEncounters(blueprint: MissionBlueprint, phases: 
 			assert(finite(wave.count) && wave.count%1===0 && wave.count>=1 && wave.count<=32 && (wave.role==="raider" || wave.role==="escort"),"Invalid fighter wave");
 			if (wave.spawn) point(wave.spawn);
 			if (wave.headingDegrees !== undefined) assert(finite(wave.headingDegrees),"Invalid heading");
+			if (wave.call !== undefined) assert(wave.call.size()>0 && wave.call.size()<=72,"Invalid fighter wave call");
 			assert(!wave.scramble || (wave.spawn !== undefined && wave.headingDegrees !== undefined),"Scramble needs runway spawn and heading");
 		}
 		const ace=phase.standaloneAce;
@@ -86,6 +98,7 @@ export function validateCampaignEncounters(blueprint: MissionBlueprint, phases: 
 			assert(ace.name.size()>0 && ace.name.size()<=32 && (ace.livery==="Vulture" || ace.livery==="Rusk") && finite(ace.health) && ace.health>0 && ace.scoreRole==="ace" && (ace.behaviour==="dogfight" || ace.behaviour==="ground_attack"),"Invalid standalone ace");
 			if (ace.spawn) point(ace.spawn);
 			if (ace.headingDegrees !== undefined) assert(finite(ace.headingDegrees),"Invalid ace heading");
+			if (ace.call !== undefined) assert(ace.call.size()>0 && ace.call.size()<=72,"Invalid standalone ace call");
 		}
 	}
 }
