@@ -15,7 +15,7 @@ export function attachBomberGeometry(model: Model, template: Model): void {
 
 /** Route bomber visual. No upload/generation of Blender content happens here. */
 export const BomberFactory = {
-	Create(name = "HeavyBomber"): Model {
+	Create(name = "HeavyBomber", aircraft?: "transport" | "jammer" | "helicopter"): Model {
 		const model = new Instance("Model");
 		model.Name = name;
 		const root = new Instance("Part");
@@ -28,7 +28,7 @@ export const BomberFactory = {
 		root.CanQuery = false;
 		root.Parent = model;
 		model.PrimaryPart = root;
-		const uploaded = UploadedAssets.Template(AssetSelection.BomberCandidates(UploadedAssetSpecs));
+		const uploaded = UploadedAssets.Template(aircraft === "transport" ? AssetSelection.TransportCandidates(UploadedAssetSpecs) : aircraft === "jammer" ? AssetSelection.JammerCandidates(UploadedAssetSpecs) : aircraft === "helicopter" ? AssetSelection.HelicopterCandidates(UploadedAssetSpecs) : AssetSelection.BomberCandidates(UploadedAssetSpecs));
 		if (uploaded !== undefined) {
 			attachBomberGeometry(model, uploaded.template);
 			model.SetAttribute("GeometrySource", "Uploaded");

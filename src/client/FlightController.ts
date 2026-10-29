@@ -1,3 +1,4 @@
+import { RearmPlan, rearmPose } from "../shared/EngineBatchC";
 import { canSkipLanding, LandingPlan, landingPose } from "../shared/EngineBatchB";
 import { LaunchStage, LaunchStageState } from "../shared/LaunchStage";
 import type { FlightControlHandoff } from "../shared/Types";
@@ -274,7 +275,8 @@ export class FlightController {
 	private readonly enemies = new EnemySmoothing();
 	/** Pause overlay is up: the local jet, camera and actions hold until Resume. */
 	private paused = false;
-	private landing?: {plan: LandingPlan; elapsed: number; cameraCut?: boolean};
+	private rearm?: {plan:RearmPlan;elapsed:number};
+ private landing?: {plan: LandingPlan; elapsed: number; cameraCut?: boolean};
 	private launchIntro?: LaunchStageState;
 	private launchCameraTime = CAMERA_HANDOFF_SECONDS;
 	/** Serial of the latest local Pause/Resume, the action it carried, and when it was last sent; the server echoes `pauseAck`. */
@@ -302,7 +304,9 @@ export class FlightController {
 		this.streamConnections.push(this.remotes.MissionState.OnClientEvent.Connect((data: unknown) => {
 			if (!typeIs(data, "table")) return;
 			const message = data as Partial<Omit<HudState, "kind">> & { kind?: string };
-			if (message.kind === "LandingStarted" && this.active) {
+			if(message.kind==="RearmStarted" && this.active) { this.rearm={plan:(data as {plan:RearmPlan}).plan,elapsed:0}; this.keys.clear(); }
+   else if(message.kind==="RearmComplete" && this.active) { const handoff=data as FlightControlHandoff; if(this.predictor) FlightPrediction.Handoff(this.predictor,handoff.state,handoff.sequence); this.rearm=undefined; this.keys.clear(); }
+   else if (message.kind === "LandingStarted" && this.active) {
 				this.landing={plan:(data as {plan:LandingPlan}).plan,elapsed:0}; this.keys.clear();
 				// The replicated aircraft is already hidden; hide the predicted clone for cockpit flight.
 				for (const part of this.visual?.GetDescendants() ?? []) if (part.IsA("BasePart")) part.LocalTransparencyModifier = 1;
@@ -339,7 +343,7 @@ export class FlightController {
 		}));
 		this.streamConnections.push(this.remotes.FlightState.OnClientEvent.Connect((packet: unknown) => {
 			const predictor = this.predictor;
-			if (!this.active || !predictor || this.landing || this.launchIntro) return;
+			if (!this.active || !predictor || this.landing || this.rearm || this.launchIntro) return;
 			const decoded = FlightPrediction.Decode(packet);
 			if (!decoded) return;
 			const now = os.clock();
@@ -434,11 +438,11 @@ export class FlightController {
 	public SetThrottle(value: number): void {
 		if (FlightMath.IsFinite(value)) this.throttle = math.clamp(value, 0, 1);
 	}
-	private action(action: string): void { if (this.active && !this.paused && !this.landing && !this.launchIntro) this.remotes.CombatAction.FireServer({ action }); }
+	private action(action: string): void { if (this.active && !this.paused && !this.landing && !this.rearm && !this.launchIntro) this.remotes.CombatAction.FireServer({ action }); }
 	public FireMissile(): void { this.action("FireMissile"); }
 	public Evade(): void {
 		if (!this.active) return;
-		if (this.paused || this.landing || this.launchIntro) return;
+		if (this.paused || this.landing || this.rearm || this.launchIntro) return;
 		// Predict the barrel roll when the HUD says a charge is ready; the server confirms or ignores.
 		if (evadeGauge(this.telemetry).ready && this.evadeRoll <= 0) { this.evadeRoll = FlightPrediction.EvadeRollSeconds; this.evadeStartedAt = os.clock(); }
 		this.action("Evade");
@@ -506,6 +510,7 @@ export class FlightController {
 	 */
 	public GetRadarContacts(): RadarContact[] {
 		const contacts: RadarContact[] = [];
+  if(this.telemetry.radarJammed && !this.telemetry.radarPartial) return contacts;
 		const folder = this.aircraft?.Parent;
 		if (!this.active || !folder) return contacts;
 		const selected = this.telemetry.target;
@@ -530,7 +535,7 @@ export class FlightController {
 		}
 		const navigation = this.telemetry.navigation;
 		if (navigation) contacts.push({ kind: "objective", x: navigation.X, z: navigation.Z });
-		return contacts;
+		return this.telemetry.radarPartial ? contacts.filter(c=>math.sqrt((c.x-this.GetPosition()!.X)**2+(c.z-this.GetPosition()!.Z)**2)<=(this.GetAirspace()?.radarRange ?? 3800)/2) : contacts;
 	}
 	/** Forward sweep along the predicted flight path against scenery; warnings only, never gameplay. */
 	private probe(state: FlightState, position: Vector3, now: number): void {
@@ -646,7 +651,8 @@ export class FlightController {
 		// Track the smoothed clone the player actually sees, not the hidden replicated model.
 		const ground = this.telemetry.targetKind === "ground";
 		const worldPosition = ground ? target.GetPivot().Position : this.enemies.GetFrame(target).Position;
-		const [screen, visible] = camera.WorldToViewportPoint(worldPosition);
+		if(this.telemetry.jamVisualRange!==undefined && worldPosition.sub(camera.CFrame.Position).Magnitude>this.telemetry.jamVisualRange) { bracket.Visible=false; arrow.Visible=false; return; }
+  const [screen, visible] = camera.WorldToViewportPoint(worldPosition);
 		const size = camera.ViewportSize;
 		const required = this.telemetry.targetRequired === true;
 		const lockProgress = this.telemetry.lockProgress;
@@ -720,7 +726,8 @@ export class FlightController {
 				if (!child.IsA("Model") || child === this.telemetry.target || child.GetAttribute("SkybreakEnemy") !== true) continue;
 				const ground = child.GetAttribute("TargetKind") === "ground";
 				const worldPosition = ground ? child.GetPivot().Position : this.enemies.GetFrame(child).Position;
-				const [screen, visible] = camera.WorldToViewportPoint(worldPosition);
+				if(this.telemetry.jamVisualRange!==undefined && worldPosition.sub(camera.CFrame.Position).Magnitude>this.telemetry.jamVisualRange) continue;
+  const [screen, visible] = camera.WorldToViewportPoint(worldPosition);
 				// A boxed contact already reads as a target (only on-screen contacts are boxed); a glyph or arrow would only stack on it.
 				if (this.boxes.IsBoxed(child)) continue;
 				const inside = visible && screen.X >= safeX && screen.X <= size.X - safeX && screen.Y >= safeY && screen.Y <= size.Y - safeY;
@@ -790,13 +797,14 @@ export class FlightController {
 		}
 		const now = os.clock();
 		const intro = this.launchIntro !== undefined;
-		if (!intro && !this.landing) this.input(dt);
+		if (!intro && !this.landing && !this.rearm) this.input(dt);
 		const input = this.frameInput;
 		// Fly the local jet with zero input latency; the server reconciles it at 20 Hz.
 		// The next fixed step (the first to use this frame's input) starts at the last step boundary.
 		const stamp = FlightPrediction.InputStamp(predictor, now);
 		if (this.landing && !this.paused) this.landing.elapsed+=dt;
-		const state = this.landing ? landingPose(this.landing.plan,this.landing.elapsed) : intro ? predictor.state : FlightPrediction.Step(predictor, input, dt, now);
+		if(this.rearm && !this.paused) this.rearm.elapsed+=dt;
+  const state = this.rearm ? rearmPose(this.rearm.plan,this.rearm.elapsed) : this.landing ? landingPose(this.landing.plan,this.landing.elapsed) : intro ? predictor.state : FlightPrediction.Step(predictor, input, dt, now);
 		if (intro) LaunchStage.Advance(this.launchIntro!, state, dt);
 		let frame = frameFor(state);
 		if (this.evadeRoll > 0) {
@@ -845,7 +853,7 @@ export class FlightController {
 		this.updateKeepouts(camera.ViewportSize);
 		this.updateTargetCue(camera);
 		const target = this.telemetry.target;
-		this.boxes.Update(camera, position, target !== undefined && target.Parent !== undefined ? target : undefined, this.boxPosition);
+		this.boxes.Update(camera, position, target !== undefined && target.Parent !== undefined ? target : undefined, this.boxPosition, this.telemetry.jamVisualRange);
 		this.updateMarkers(camera);
 		if (intro) return;
 		this.sendTime += dt;
@@ -947,7 +955,7 @@ export class FlightController {
 	public Stop(): void {
 		this.audio.Stop();
 		this.active = false;
-		this.landing = undefined;
+		this.landing = undefined; this.rearm=undefined;
 		this.launchIntro = undefined;
 		this.launchCameraTime = CAMERA_HANDOFF_SECONDS;
 		this.paused = false;

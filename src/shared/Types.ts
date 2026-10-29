@@ -174,7 +174,11 @@ export interface MissionLoading {
 	expectedParts?: number;
 }
 export interface Telemetry {
-	terrainClearance?: number;
+	radarJammed?: boolean;
+ radarPartial?: boolean;
+ jamVisualRange?: number;
+ missionPoints?: number;
+ terrainClearance?: number;
 	missionUpdateSeconds?: number;
 	missionId?: number;
 	phase?: string;

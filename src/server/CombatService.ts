@@ -1,4 +1,6 @@
 import { canSkipLanding } from "../shared/EngineBatchB";
+import { buildNightLighting } from "./NightLighting";
+import { liveJammers, lockAllowed, stepRearm } from "./EngineBatchCRuntime";
 import { sampleClearance, stepLanding } from "./EngineBatchBRuntime";
 import { createGroundTarget } from "./GroundTargetFactory";
 import { GroundAirDefence } from "../shared/GroundAirDefence";
@@ -229,7 +231,7 @@ function sessionRecordKill(session: CombatSession, id: string, kind: TargetKind,
 }
 
 function sessionTick(session: CombatSession, now: number, health: number): void {
-	if (session.blueprintState) BlueprintRunner.Tick(session.blueprintState, now, health);
+	if (session.blueprintState) { session.blueprintState.score=session.targetScore.Total(); BlueprintRunner.Tick(session.blueprintState, now, health); }
 }
 
 function sessionOutcome(session: CombatSession): "won" | "failed" | undefined {
@@ -343,7 +345,11 @@ function sendTelemetry(session: CombatSession): void {
 		// The HUD tally counts required destructions only; raiders travel separately so it never reads 7/4.
 		kills: sessionRequiredKills(session), total: sessionTotalRequired(session),
 		missiles: session.missiles, missileCooldown: session.missileCooldown, evadeCooldown: EvadeRules.Cooldown(session.evade, session.evadeRemaining),
-		lockProgress: session.lockProgress, incoming, lockWarning, evadeThreat,
+		missionPoints: phase?.scoreThreshold ? session.targetScore.Total() : undefined,
+  radarPartial: phase?.jamming ? liveJammers(session)===1 : undefined,
+  jamVisualRange: phase?.jamming && liveJammers(session)>0 ? phase.jamming.visualLockRange : undefined,
+  radarJammed: session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.jamming ? liveJammers(session)>0 : undefined,
+  lockProgress: session.lockProgress, incoming, lockWarning, evadeThreat,
 		boundaryWarning: airspaceWarning(session.state.x, session.state.z, session.airspace),
 		targetDamageable: target ? canHurt(session, target) : undefined,
 		elapsed: session.elapsed, timeRemaining: sessionTimeRemaining(session),
@@ -596,13 +602,13 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 	for (let index = 0; index < count; index++) {
 		let name: string;
 		if (options.name !== undefined) name = options.name;
-		else if (role === "bomber") name = "HEAVY BOMBER";
+		else if (role === "bomber") name = options.arrival && "aircraft" in options.arrival ? string.upper(options.arrival.aircraft ?? "AIRCRAFT") : session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.aircraft === "transport" ? "HEAVY TRANSPORT" : "HEAVY BOMBER";
 		else if (role === "escort") name = `ESCORT ${session.spawnSerial + 1}`;
 		else if (role === "ace") name = session.blueprint?.aceName ?? "ACE";
 		else if (role === "courier") name = session.missionId === 24 ? "FUEL TANKER" : "COURIER";
 		else if (role === "bandit") { session.banditSerial += 1; name = string.format("BANDIT %02d", session.banditSerial); }
 		else { session.raiderSerial += 1; name = string.format("RAIDER %02d", session.raiderSerial); }
-		const model = role === BomberRules.Role.role ? BomberFactory.Create(name) : JetFactory.Create(name, options.friendly !== true, options.livery ?? (role === "ace" ? AssetSelection.LiveryForAce(options.name, session.blueprint?.aceName) : undefined));
+		const model = role === BomberRules.Role.role ? BomberFactory.Create(name, options.arrival && "aircraft" in options.arrival ? options.arrival.aircraft : session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.aircraft) : JetFactory.Create(name, options.friendly !== true, options.livery ?? (role === "ace" ? AssetSelection.LiveryForAce(options.name, session.blueprint?.aceName) : undefined));
 		if (!session.active || session.folder.Parent === undefined) { model.Destroy(); return; }
 		// The replicated model is hidden on the client behind a smoothed local clone; only the clone draws trails.
 		JetFactory.SetTrails(model, false);
@@ -663,7 +669,8 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		if (friendly) { session.allySerial += 1; serial = session.allySerial; }
 		else { session.spawnSerial += 1; serial = session.spawnSerial; }
 		const enemy: Enemy = {
-			scoreRole: options.arrival?.scoreRole,
+			scoreRole: options.arrival?.scoreRole ?? (role === "bomber" && session.blueprintState ? BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.scoreRole : undefined),
+   routeActor: options.arrival && "route" in options.arrival && options.arrival.route ? {route:BomberRules.Create(options.arrival.route.waypoints, options.arrival.route.speed, [{x:index*60,y:0,z:0}]),startedAt:session.elapsed,jammer:options.arrival.aircraft==="jammer"} : undefined,
 			groundAttack: options.arrival && "behaviour" in options.arrival && options.arrival.behaviour === "ground_attack",
 			scramble: options.arrival && "scramble" in options.arrival && options.arrival.scramble ? { spawn: { x:position.X,y:position.Y,z:position.Z }, heading: options.arrival.headingDegrees ?? 0, startedAt:session.elapsed } : undefined,
 			friendly: options.friendly, alliedAmmo: options.friendly ? AlliedRules.MissilesPerWingman : undefined,
@@ -763,7 +770,7 @@ function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy, 
 		if (current) [distance, dot] = targetMetrics(session, current);
 		const decision = WeaponRules.Launch({
 			missiles: session.missiles, missileCooldown: session.missileCooldown,
-			hasTarget: current !== undefined, lockProgress: session.lockProgress, distance, dot, groundTarget: current?.kind === "ground",
+			hasTarget: current !== undefined, lockProgress: lockAllowed(session,distance) ? session.lockProgress : 0, distance, dot, groundTarget: current?.kind === "ground",
 			canDamage: current ? sessionCanDamage(session, current.kind, current.required) : false,
 			lockRange: SpecialWeapons.StandardLockRange(session.special),
 		});
@@ -820,7 +827,7 @@ function activateSpecial(session: CombatSession): void {
 			const allowed = ownsEnemy(session, enemy) && sessionCanDamage(session, enemy.kind, enemy.required);
 			let distance = math.huge, dot = -1;
 			if (allowed) [distance, dot] = targetMetrics(session, enemy);
-			return { distance, dot, ground: enemy.kind === "ground", required: enemy.required, allowed, current: enemy === current };
+			return { distance, dot, ground: enemy.kind === "ground", required: enemy.required, allowed: allowed && lockAllowed(session,distance), current: enemy === current };
 		});
 		salvo = SpecialWeapons.SalvoTargets(candidates, range);
 		targets = salvo.size();
@@ -828,7 +835,7 @@ function activateSpecial(session: CombatSession): void {
 		let locked = false;
 		if (current && sessionCanDamage(session, current.kind, current.required) && session.lockProgress >= WeaponRules.LockedAt) {
 			const [distance, dot] = targetMetrics(session, current);
-			locked = distance <= WeaponRules.EnvelopeRange(range, current.kind === "ground") && dot >= WeaponRules.LockDotFor(current.kind === "ground");
+			locked = lockAllowed(session,distance) && distance <= WeaponRules.EnvelopeRange(range, current.kind === "ground") && dot >= WeaponRules.LockDotFor(current.kind === "ground");
 		}
 		targets = locked ? 1 : 0;
 	}
@@ -1369,7 +1376,12 @@ function stepMissiles(session: CombatSession, dt: number): void {
 	refreshSession(session, os.clock());
 }
 function stepSession(session: CombatSession, dt: number): void {
-	if (stepLanding(session,dt,(message)=>missionState!.FireClient(session.player,message))) {
+	if (stepRearm(session,dt,MAX_MISSILES,(message)=>missionState!.FireClient(session.player,message))) {
+  session.telemetryTime+=dt;
+  if(session.telemetryTime>=TELEMETRY_INTERVAL) { session.telemetryTime=0; sendTelemetry(session); }
+  return;
+ }
+ if (stepLanding(session,dt,(message)=>missionState!.FireClient(session.player,message))) {
 		session.aircraftFrame=frameFor(session.state);
 		if (sessionOutcome(session) !== undefined) finish(session);
 		else {
@@ -1459,7 +1471,7 @@ function stepSession(session: CombatSession, dt: number): void {
 		const [distance, dot] = targetMetrics(session, session.target);
 		const ground = session.target.kind === "ground";
 		// Air targets lock inside 40 degrees and 1800 studs; ground targets keep the wide 80 degree, 2450-stud cone.
-		const inEnvelope = distance <= WeaponRules.EnvelopeRange(SpecialWeapons.LockRange(session.special), ground) && dot >= WeaponRules.LockDotFor(ground);
+		const inEnvelope = lockAllowed(session,distance) && distance <= WeaponRules.EnvelopeRange(SpecialWeapons.LockRange(session.special), ground) && dot >= WeaponRules.LockDotFor(ground);
 		const staged = session.target.aceState !== undefined && AceRules.Invulnerable(session.target.aceState, session.elapsed);
 		session.lockProgress = staged ? 0 : inEnvelope
 			? math.min(1, session.lockProgress + dt / SpecialWeapons.LockBuildSeconds(session.special)) : math.max(0, session.lockProgress - dt * WeaponRules.LockDecayPerSecond);
@@ -1575,7 +1587,8 @@ export const CombatService = {
 			const world = MissionWorld.Build(missionId, folder);
 			assert(player.Parent === Players, "Player left during world construction");
 			const blueprint = MissionCatalog.Get(missionId);
-			assert(world.groundTargets.size() === blueprint.ground.size(), `Mission ${missionId} world ground target count mismatch`);
+			if(blueprint.nightLighting) buildNightLighting(folder,blueprint.nightLighting);
+   assert(world.groundTargets.size() === blueprint.ground.size(), `Mission ${missionId} world ground target count mismatch`);
 			const aircraft = JetFactory.Create("SKYBREAK - Kestrel", false);
 			assert(player.Parent === Players, "Player left during aircraft construction");
 			aircraft.SetAttribute("SkybreakOwner", player.UserId);
@@ -1680,7 +1693,7 @@ export const CombatService = {
 		if (!missionRoot) { missionRoot = new Instance("Folder"); missionRoot.Name = "SkybreakCombat"; missionRoot.Parent = Workspace; }
 		connections.push(remote(remotes, "FlightInput").OnServerEvent.Connect((player, payload: unknown) => {
 			const session = sessions.get(player);
-			if (!session?.active || session.loading || session.launch || session.blueprintState?.landingElapsed !== undefined || session.guard.running || PauseRules.Paused(session.pause) || !typeIs(payload, "table")) return;
+			if (!session?.active || session.loading || session.launch || (session.blueprintState?.landingElapsed !== undefined || session.rearmElapsed !== undefined) || session.guard.running || PauseRules.Paused(session.pause) || !typeIs(payload, "table")) return;
 			const now = os.clock();
 			// Heartbeat runs refreshSession every frame, so this unguarded handler only takes input.
 			// A token bucket caps the packet rate whatever the stamps claim.
@@ -1737,7 +1750,8 @@ export const CombatService = {
 					else if (!resumeSession(session, now)) sendTelemetry(session);
 					return;
 				}
-				if (session.blueprintState?.landingElapsed !== undefined) {
+				if(session.rearmElapsed!==undefined) return;
+    if (session.blueprintState?.landingElapsed !== undefined) {
 					if (action === "SkipLanding" && session.landingStartedAt !== undefined && canSkipLanding(os.clock()-session.landingStartedAt)) { BlueprintRunner.AdvanceLanding(session.blueprintState,0,true); if (sessionOutcome(session) !== undefined) finish(session); }
 					return;
 				}

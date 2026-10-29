@@ -1,3 +1,4 @@
+import { thresholdResult } from "./EngineBatchC";
 import { canSkipLanding, crossesReturnLine, landingDuration } from "./EngineBatchB";
 import { FlightMath, FlightState } from "./FlightMath";
 import { FlightPoint, MissionBlueprint, MissionCatalog, MissionPhaseBlueprint } from "./MissionCatalog";
@@ -9,7 +10,10 @@ const PROTECT_DRAIN = 0.55;
 /** Each live hazard gun drains the protected actor like this many raiders. */
 const GUN_WEIGHT = 1.5;
 export interface BlueprintState {
-	updateSerial?: number;
+	rearmActive?: boolean;
+ score?: number;
+ scorePhaseStarted?: number;
+ updateSerial?: number;
 	updateUntil?: number;
 	countdownDeadline?: number;
 	landingElapsed?: number;
@@ -68,6 +72,7 @@ function sweptDistance(p: FlightPoint, a: FlightPoint, b: FlightPoint): number {
 	return distance(p,{x:a.x+dx*t,y:a.y+dy*t,z:a.z+dz*t});
 }
 function total(p: MissionPhaseBlueprint): number {
+	if (p.scoreThreshold) return p.scoreThreshold.points;
 	if (p.kind === "tutorial_move") return (p.execution?.movementDuration ?? 3)*2;
 	if (p.kind === "tutorial_target") return 1;
 	if (p.kind === "ace" || p.kind === "return_line" || p.kind === "landing") return 1;
@@ -83,6 +88,7 @@ function finish(s: BlueprintState, outcome: "won" | "failed", reason: BlueprintR
 }
 function enter(s: BlueprintState): void {
 	const p=s.phases[s.phaseIndex];
+	if (p?.scoreThreshold) { s.scorePhaseStarted=s.elapsed; s.countdownDeadline=s.elapsed+p.scoreThreshold.seconds; }
 	if (p?.update) {
 		s.updateSerial=(s.updateSerial ?? 0)+1; s.updateUntil=s.elapsed+8;
 		for (const line of p.update.radio) s.radioQueue.push(line);
@@ -168,8 +174,17 @@ export const BlueprintRunner = {
 		if (BlueprintRunner.ActivePhase(s)?.bombers) finish(s, "failed", "bombers_escaped");
 	},
 	Tick(s: BlueprintState, now: number, health=100): void {
-		if (s.outcome !== undefined || s.landingElapsed !== undefined || !finite(now)) return;
+		if (s.outcome !== undefined || s.rearmActive || s.landingElapsed !== undefined || !finite(now)) return;
 		s.elapsed=math.max(s.elapsed,now-s.startedAt,0);
+		const threshold=BlueprintRunner.ActivePhase(s)?.scoreThreshold;
+  if (threshold && finite(health) && health<=0) { finish(s,"failed","destroyed"); return; }
+  if(threshold) {
+   s.phaseProgress=math.min(threshold.points,s.score ?? 0);
+   const result=thresholdResult(threshold,s.score ?? 0,s.elapsed-(s.scorePhaseStarted ?? 0));
+   if(result==="failed") finish(s,"failed","timeout");
+   else if(result==="complete") { s.countdownDeadline=undefined; advance(s); }
+   return;
+  }
 		if (s.elapsed>=(s.countdownDeadline ?? MissionCatalog.CountdownSeconds(s.blueprint))) finish(s,"failed","timeout");
 		else if (finite(health) && health<=0) finish(s,"failed","destroyed");
 		advanceTeaching(s);
