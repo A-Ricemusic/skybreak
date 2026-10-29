@@ -4,7 +4,7 @@
 // attachments and hinges are in-game studs: authoredSize x gameScale, where aircraft are
 // fitted to the procedural aircraft's length and world props keep their authored size.
 
-export type UploadedAssetName = "Kestrel" | "Vanta" | "VantaVulture" | "VantaRusk" | "KestrelV2" | "VantaV2" | "VantaV2Vulture" | "VantaV2Rusk" | "HeavyBomber" | "Carrier" | "Frigate" | "OilPlatform" | "HarbourQuay" | "ContainerStack" | "GantryCrane" | "Hangar" | "ControlTower" | "OfficeMidrise" | "ApartmentBlock" | "CityTower" | "Farmhouse" | "Barn" | "GrainSilo" | "RadarDish" | "RelayMast" | "Pine" | "Broadleaf" | "RockA" | "RockB" | "RockC";
+export type UploadedAssetName = "Kestrel" | "Vanta" | "VantaVulture" | "VantaRusk" | "KestrelV2" | "VantaV2" | "VantaV2Vulture" | "VantaV2Rusk" | "HeavyBomber" | "Carrier" | "HeavyTransport" | "RadarJammer" | "FuelTanker" | "AttackHelicopter" | "VantaV2Elite" | "Frigate" | "OilPlatform" | "HarbourQuay" | "ContainerStack" | "GantryCrane" | "Hangar" | "ControlTower" | "OfficeMidrise" | "ApartmentBlock" | "CityTower" | "Farmhouse" | "Barn" | "GrainSilo" | "RadarDish" | "RelayMast" | "Pine" | "Broadleaf" | "RockA" | "RockB" | "RockC";
 
 export interface HingeSpec {
 	from: Vector3;
@@ -20,6 +20,8 @@ export interface UploadedAssetSpec {
 	groundOffset: number;
 	attachments?: { leftWingtip: Vector3; rightWingtip: Vector3; exhaust: Vector3 };
 	controlSurfaces?: Record<string, HingeSpec>;
+	/** Static rotor parts, with authored model-space hubs and spin axes. */
+	rotors?: Record<string, { hub: Vector3; axis: Vector3 }>;
 	/** Parts the loader makes see-through (the v2 canopy over its cockpit). */
 	glassParts?: string[];
 }
@@ -175,6 +177,62 @@ export const UploadedAssetSpecs: Record<UploadedAssetName, UploadedAssetSpec> = 
 		authoredSize: new Vector3(181.031, 153.76, 560),
 		gameScale: 1,
 		groundOffset: 20,
+	},
+	HeavyTransport: {
+		folder: "heavy-transport",
+		kind: "aircraft",
+		size: new Vector3(72.68, 19.6, 67.552),
+		authoredSize: new Vector3(72.68, 19.6, 67.552),
+		gameScale: 1,
+		groundOffset: 0,
+		attachments: { leftWingtip: new Vector3(-36.3, -1.9367, 12.852), rightWingtip: new Vector3(36.3, -1.9367, 12.852), exhaust: new Vector3(0, -3.2861, 4.0022) },
+	},
+	RadarJammer: {
+		folder: "radar-jammer",
+		kind: "aircraft",
+		size: new Vector3(59.32, 15.878, 62.182),
+		authoredSize: new Vector3(59.32, 15.878, 62.182),
+		gameScale: 1,
+		groundOffset: 0,
+		attachments: { leftWingtip: new Vector3(-29.6, -2.6838, 12.592), rightWingtip: new Vector3(29.6, -2.6838, 12.592), exhaust: new Vector3(0, -6.3836, -0.095) },
+	},
+	FuelTanker: {
+		folder: "fuel-tanker",
+		kind: "world",
+		size: new Vector3(46, 59.6, 266.677),
+		authoredSize: new Vector3(46, 59.6, 266.677),
+		gameScale: 1,
+		groundOffset: 16,
+	},
+	AttackHelicopter: {
+		folder: "attack-helicopter",
+		kind: "aircraft",
+		size: new Vector3(14.356, 6.245, 21.025),
+		authoredSize: new Vector3(14.356, 6.245, 21.025),
+		gameScale: 1,
+		groundOffset: 0,
+		attachments: { leftWingtip: new Vector3(-3.9, -1.8525, -0.4125), rightWingtip: new Vector3(3.9, -1.8525, -0.4125), exhaust: new Vector3(0, 0.5975, 3.0875) },
+		rotors: {
+			MainRotor: { hub: new Vector3(-0, 1.8975, -0.5125), axis: new Vector3(0, 1, 0) },
+			TailRotor: { hub: new Vector3(-0.62, 1.5475, 8.9375), axis: new Vector3(1, 0, 0) },
+		},
+	},
+	VantaV2Elite: {
+		folder: "vanta-v2-elite",
+		kind: "aircraft",
+		size: new Vector3(24.691, 7.029, 26.4),
+		authoredSize: new Vector3(24.691, 7.029, 26.4),
+		gameScale: 1,
+		groundOffset: 0,
+		attachments: { leftWingtip: new Vector3(-12.2391, -2.3911, 9.9531), rightWingtip: new Vector3(12.2391, -2.3911, 9.9531), exhaust: new Vector3(0, -2.2411, 13.2) },
+		glassParts: ["Canopy"],
+		controlSurfaces: {
+			Aileron_L: { from: new Vector3(-5.9172, -2.115, 8.3306), to: new Vector3(-11.4805, -2.3579, 9.2318) },
+			Elevator_L: { from: new Vector3(-1.3149, -1.2618, -5.3609), to: new Vector3(-2.3264, -1.2088, -5.3609) },
+			Aileron_R: { from: new Vector3(5.9172, -2.115, 8.3306), to: new Vector3(11.4805, -2.3579, 9.2318) },
+			Elevator_R: { from: new Vector3(1.3149, -1.2618, -5.3609), to: new Vector3(2.3264, -1.2088, -5.3609) },
+			Rudder: { from: new Vector3(0, -0.4507, 9.7899), to: new Vector3(0, 2.6445, 10.9227) },
+		},
 	},
 	Frigate: {
 		folder: "frigate",

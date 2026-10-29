@@ -667,6 +667,406 @@
       ]
     },
     {
+      "folder": "heavy-transport",
+      "robloxAssetIdsKey": "HeavyTransport",
+      "title": "Heavy transport (mission 4 required targets)",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "heavy-transport.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "heavy-transport-color.png",
+          "role": "color"
+        },
+        {
+          "file": "heavy-transport-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "heavy-transport-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "heavy-transport-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        72.68,
+        19.6,
+        67.552
+      ],
+      "gameSizeStuds": [
+        72.68,
+        19.6,
+        67.552
+      ],
+      "usage": "Mission 4: three transports flying a route under jamming (required targets, never fire). Pending independent safety review; not uploaded; not referenced from src/.",
+      "triangleCount": 8492,
+      "textures": [
+        "heavy-transport-color.png 1024x1024",
+        "heavy-transport-normal.png 1024x1024",
+        "heavy-transport-roughness.png 1024x1024",
+        "heavy-transport-metalness.png 1024x1024"
+      ],
+      "textureLimit": 1024,
+      "robloxSizeStuds": [
+        72.68,
+        19.6,
+        67.552
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "heavy-transport/preview-front.png",
+        "heavy-transport/preview-side.png",
+        "heavy-transport/preview-top.png",
+        "heavy-transport/preview-3q.png",
+        "heavy-transport/preview-closeup.png",
+        "heavy-transport/preview-back.png",
+        "heavy-transport/preview-side-right.png",
+        "heavy-transport/preview-bottom.png",
+        "heavy-transport/preview-3q-front-left.png",
+        "heavy-transport/preview-3q-rear-right.png",
+        "heavy-transport/preview-3q-rear-left.png",
+        "heavy-transport/preview-3q-low-front-right.png",
+        "heavy-transport/preview-front-low.png",
+        "heavy-transport/preview-front-high.png",
+        "heavy-transport/preview-closeup-front.png",
+        "heavy-transport/preview-closeup-front-3q.png",
+        "heavy-transport/preview-closeup-front-low.png",
+        "heavy-transport/preview-closeup-engines.png",
+        "heavy-transport/preview-closeup-tail.png",
+        "heavy-transport/preview-closeup-belly.png"
+      ]
+    },
+    {
+      "folder": "radar-jammer",
+      "robloxAssetIdsKey": "RadarJammer",
+      "title": "Radar jammer aircraft (mission 4 optional targets)",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "radar-jammer.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "radar-jammer-color.png",
+          "role": "color"
+        },
+        {
+          "file": "radar-jammer-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "radar-jammer-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "radar-jammer-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        59.32,
+        15.878,
+        62.182
+      ],
+      "gameSizeStuds": [
+        59.32,
+        15.878,
+        62.182
+      ],
+      "usage": "Mission 4: two airborne jammers near the transports; radar jamming clears as each is destroyed. Pending independent safety review; not uploaded; not referenced from src/.",
+      "triangleCount": 6612,
+      "textures": [
+        "radar-jammer-color.png 1024x1024",
+        "radar-jammer-normal.png 1024x1024",
+        "radar-jammer-roughness.png 1024x1024",
+        "radar-jammer-metalness.png 1024x1024"
+      ],
+      "textureLimit": 1024,
+      "robloxSizeStuds": [
+        59.32,
+        15.878,
+        62.182
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "radar-jammer/preview-front.png",
+        "radar-jammer/preview-side.png",
+        "radar-jammer/preview-top.png",
+        "radar-jammer/preview-3q.png",
+        "radar-jammer/preview-closeup.png",
+        "radar-jammer/preview-back.png",
+        "radar-jammer/preview-side-right.png",
+        "radar-jammer/preview-bottom.png",
+        "radar-jammer/preview-3q-front-left.png",
+        "radar-jammer/preview-3q-rear-right.png",
+        "radar-jammer/preview-3q-rear-left.png",
+        "radar-jammer/preview-3q-low-front-right.png",
+        "radar-jammer/preview-front-low.png",
+        "radar-jammer/preview-front-high.png",
+        "radar-jammer/preview-closeup-front.png",
+        "radar-jammer/preview-closeup-front-3q.png",
+        "radar-jammer/preview-closeup-front-low.png",
+        "radar-jammer/preview-closeup-rotodome.png",
+        "radar-jammer/preview-closeup-engines.png",
+        "radar-jammer/preview-closeup-tail.png",
+        "radar-jammer/preview-closeup-belly.png"
+      ]
+    },
+    {
+      "folder": "fuel-tanker",
+      "robloxAssetIdsKey": "FuelTanker",
+      "title": "Fuel tanker ship (mission 5 naval targets)",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "fuel-tanker.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "fuel-tanker-color.png",
+          "role": "color"
+        },
+        {
+          "file": "fuel-tanker-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "fuel-tanker-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "fuel-tanker-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        46.0,
+        59.6,
+        266.677
+      ],
+      "gameSizeStuds": [
+        46.0,
+        59.6,
+        266.677
+      ],
+      "usage": "Mission 5: two tankers at sea (one near the start route, one near the rig complex); naval targets. Pending independent safety review; not uploaded; not referenced from src/.",
+      "triangleCount": 2682,
+      "textures": [
+        "fuel-tanker-color.png 512x512",
+        "fuel-tanker-normal.png 512x512",
+        "fuel-tanker-roughness.png 512x512",
+        "fuel-tanker-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        46.0,
+        59.6,
+        266.677
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "fuel-tanker/preview-front.png",
+        "fuel-tanker/preview-side.png",
+        "fuel-tanker/preview-top.png",
+        "fuel-tanker/preview-3q.png",
+        "fuel-tanker/preview-back.png",
+        "fuel-tanker/preview-side-right.png",
+        "fuel-tanker/preview-bottom.png",
+        "fuel-tanker/preview-3q-front-left.png",
+        "fuel-tanker/preview-3q-rear-right.png",
+        "fuel-tanker/preview-3q-rear-left.png",
+        "fuel-tanker/preview-3q-low-front-right.png",
+        "fuel-tanker/preview-closeup-bow.png",
+        "fuel-tanker/preview-closeup-deckhouse.png",
+        "fuel-tanker/preview-closeup-manifold.png",
+        "fuel-tanker/preview-closeup-stern.png",
+        "fuel-tanker/preview-top-orientation.png"
+      ]
+    },
+    {
+      "folder": "attack-helicopter",
+      "robloxAssetIdsKey": "AttackHelicopter",
+      "title": "Attack helicopter (mission 5 rig defenders)",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "attack-helicopter.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "attack-helicopter-color.png",
+          "role": "color"
+        },
+        {
+          "file": "attack-helicopter-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "attack-helicopter-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "attack-helicopter-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        14.356,
+        6.245,
+        21.025
+      ],
+      "gameSizeStuds": [
+        14.356,
+        6.245,
+        21.025
+      ],
+      "usage": "Mission 5: three helicopters defending the oil-rig complex (air targets). Pending independent safety review; not uploaded; not referenced from src/.",
+      "triangleCount": 3436,
+      "textures": [
+        "attack-helicopter-color.png 1024x1024",
+        "attack-helicopter-normal.png 1024x1024",
+        "attack-helicopter-roughness.png 1024x1024",
+        "attack-helicopter-metalness.png 1024x1024"
+      ],
+      "textureLimit": 1024,
+      "robloxSizeStuds": [
+        14.356,
+        6.245,
+        21.025
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "attack-helicopter/preview-front.png",
+        "attack-helicopter/preview-side.png",
+        "attack-helicopter/preview-top.png",
+        "attack-helicopter/preview-3q.png",
+        "attack-helicopter/preview-closeup.png",
+        "attack-helicopter/preview-back.png",
+        "attack-helicopter/preview-side-right.png",
+        "attack-helicopter/preview-bottom.png",
+        "attack-helicopter/preview-3q-front-left.png",
+        "attack-helicopter/preview-3q-rear-right.png",
+        "attack-helicopter/preview-3q-rear-left.png",
+        "attack-helicopter/preview-3q-low-front-right.png",
+        "attack-helicopter/preview-front-low.png",
+        "attack-helicopter/preview-front-high.png",
+        "attack-helicopter/preview-closeup-front.png",
+        "attack-helicopter/preview-closeup-front-3q.png",
+        "attack-helicopter/preview-closeup-front-low.png",
+        "attack-helicopter/preview-closeup-canopy.png",
+        "attack-helicopter/preview-closeup-rotor-head.png",
+        "attack-helicopter/preview-closeup-tail.png",
+        "attack-helicopter/preview-closeup-stub-wing.png"
+      ]
+    },
+    {
+      "folder": "vanta-v2-elite",
+      "robloxAssetIdsKey": "VantaV2Elite",
+      "title": "Vanta elite squadron livery (v2)",
+      "variantOf": "vanta-v2",
+      "upload": [
+        {
+          "file": "vanta-v2-elite.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "vanta-v2-elite-color.png",
+          "role": "color"
+        },
+        {
+          "file": "vanta-v2-elite-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "vanta-v2-elite-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "vanta-v2-elite-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        24.691,
+        7.029,
+        26.4
+      ],
+      "gameSizeStuds": [
+        24.691,
+        7.029,
+        26.4
+      ],
+      "usage": "Mission 5: the five-ship elite squadron that arrives as phase 1 ends. Pending independent safety review; not uploaded; not referenced from src/.",
+      "triangleCount": 12272,
+      "textures": [
+        "vanta-v2-elite-color.png 1024x1024",
+        "vanta-v2-elite-normal.png 1024x1024",
+        "vanta-v2-elite-roughness.png 1024x1024",
+        "vanta-v2-elite-metalness.png 1024x1024"
+      ],
+      "textureLimit": 1024,
+      "robloxSizeStuds": [
+        24.691,
+        7.029,
+        26.4
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "vanta-v2-elite/preview-front.png",
+        "vanta-v2-elite/preview-side.png",
+        "vanta-v2-elite/preview-top.png",
+        "vanta-v2-elite/preview-3q.png",
+        "vanta-v2-elite/preview-closeup.png",
+        "vanta-v2-elite/preview-back.png",
+        "vanta-v2-elite/preview-side-right.png",
+        "vanta-v2-elite/preview-bottom.png",
+        "vanta-v2-elite/preview-3q-front-left.png",
+        "vanta-v2-elite/preview-3q-rear-right.png",
+        "vanta-v2-elite/preview-3q-rear-left.png",
+        "vanta-v2-elite/preview-3q-low-front-right.png",
+        "vanta-v2-elite/preview-front-low.png",
+        "vanta-v2-elite/preview-back-low.png",
+        "vanta-v2-elite/preview-back-high.png",
+        "vanta-v2-elite/preview-closeup-front.png",
+        "vanta-v2-elite/preview-closeup-wing-band.png",
+        "vanta-v2-elite/preview-closeup-fin.png",
+        "vanta-v2-elite/preview-closeup-rear.png",
+        "vanta-v2-elite/preview-closeup-rear-3q.png",
+        "vanta-v2-elite/preview-back-contrast.png",
+        "vanta-v2-elite/preview-3q-rear-right-contrast.png",
+        "vanta-v2-elite/preview-3q-rear-left-contrast.png",
+        "vanta-v2-elite/preview-back-low-contrast.png",
+        "vanta-v2-elite/preview-back-high-contrast.png",
+        "vanta-v2-elite/preview-closeup-rear-contrast.png",
+        "vanta-v2-elite/preview-closeup-rear-3q-contrast.png"
+      ]
+    },
+    {
       "folder": "frigate",
       "robloxAssetIdsKey": "Frigate",
       "title": "Navy frigate",

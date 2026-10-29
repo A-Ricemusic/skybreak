@@ -3,8 +3,8 @@
 // whether its parts kept their textures.
 // No Roblox services here, so the offline Luau runner can execute it.
 
-export type AceLivery = "Vulture" | "Rusk";
-export type AircraftAssetName = "Kestrel" | "Vanta" | "VantaVulture" | "VantaRusk" | "KestrelV2" | "VantaV2" | "VantaV2Vulture" | "VantaV2Rusk";
+export type AceLivery = "Vulture" | "Rusk" | "Elite";
+export type AircraftAssetName = "Kestrel" | "Vanta" | "VantaVulture" | "VantaRusk" | "KestrelV2" | "VantaV2" | "VantaV2Vulture" | "VantaV2Rusk" | "VantaV2Elite";
 
 /**
  * Part Transparency for glass parts (the v2 Canopy) so the cockpit shows through.
@@ -41,6 +41,7 @@ export interface ImportedPart {
 
 const TINTS: Record<AceLivery, ProceduralTint> = {
 	Vulture: { White: [34, 36, 40], Navy: [20, 21, 23], Cyan: [198, 190, 169] },
+	Elite: { White: [29, 34, 43], Navy: [21, 25, 32], Cyan: [127, 151, 168] },
 	Rusk: { White: [72, 28, 31], Navy: [42, 44, 48], Cyan: [168, 135, 62] },
 };
 
@@ -59,6 +60,42 @@ export const AssetSelection = {
 		const names: K[] = [];
 		for (const [name, spec] of pairs(specs as Record<string, { kind: string; folder: string }>)) {
 			if (spec.kind === "world" && spec.folder === "carrier") names.push(name as K);
+		}
+		table.sort(names);
+		return names;
+	},
+	/** Mission 4–5 only; does not add a live consumer. */
+	TransportCandidates<K extends string>(specs: Record<K, { kind: string; folder: string }>): K[] {
+		const names: K[] = [];
+		for (const [name, spec] of pairs(specs as Record<string, { kind: string; folder: string }>)) {
+			if (spec.kind === "aircraft" && spec.folder === "heavy-transport") names.push(name as K);
+		}
+		table.sort(names);
+		return names;
+	},
+	/** Mission 4–5 only; does not add a live consumer. */
+	JammerCandidates<K extends string>(specs: Record<K, { kind: string; folder: string }>): K[] {
+		const names: K[] = [];
+		for (const [name, spec] of pairs(specs as Record<string, { kind: string; folder: string }>)) {
+			if (spec.kind === "aircraft" && spec.folder === "radar-jammer") names.push(name as K);
+		}
+		table.sort(names);
+		return names;
+	},
+	/** Mission 4–5 only; does not add a live consumer. */
+	TankerCandidates<K extends string>(specs: Record<K, { kind: string; folder: string }>): K[] {
+		const names: K[] = [];
+		for (const [name, spec] of pairs(specs as Record<string, { kind: string; folder: string }>)) {
+			if (spec.kind === "world" && spec.folder === "fuel-tanker") names.push(name as K);
+		}
+		table.sort(names);
+		return names;
+	},
+	/** Mission 4–5 only; does not add a live consumer. */
+	HelicopterCandidates<K extends string>(specs: Record<K, { kind: string; folder: string }>): K[] {
+		const names: K[] = [];
+		for (const [name, spec] of pairs(specs as Record<string, { kind: string; folder: string }>)) {
+			if (spec.kind === "aircraft" && spec.folder === "attack-helicopter") names.push(name as K);
 		}
 		table.sort(names);
 		return names;
@@ -87,6 +124,7 @@ export const AssetSelection = {
 	AircraftCandidates(enemy: boolean, livery?: AceLivery): AircraftAssetName[] {
 		if (!enemy) return ["KestrelV2", "Kestrel"];
 		if (livery === "Vulture") return ["VantaV2Vulture", "VantaVulture", "VantaV2", "Vanta"];
+		if (livery === "Elite") return ["VantaV2Elite", "VantaV2", "Vanta"];
 		if (livery === "Rusk") return ["VantaV2Rusk", "VantaRusk", "VantaV2", "Vanta"];
 		return ["VantaV2", "Vanta"];
 	},
@@ -143,8 +181,8 @@ export const AssetSelection = {
 	 * control surface and every glass part (the v2 Canopy). The bounds check cannot
 	 * catch a lost canopy (it sits inside the body's bounds), so names are checked.
 	 */
-	RequiredAircraftParts(surfaces: Record<string, unknown> | undefined, glassParts: readonly string[] | undefined): string[] {
-		return ["Body", ...AssetSelection.ControlSurfaceNames(surfaces), ...(glassParts ?? [])];
+	RequiredAircraftParts(surfaces: Record<string, unknown> | undefined, glassParts: readonly string[] | undefined, rotors?: Record<string, unknown>): string[] {
+		return ["Body", ...AssetSelection.ControlSurfaceNames(surfaces), ...(glassParts ?? []), ...AssetSelection.ControlSurfaceNames(rotors)];
 	},
 	/**
 	 * Whether an imported model's parts carry the textures the FBX embedded. The

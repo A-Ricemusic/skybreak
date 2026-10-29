@@ -35,3 +35,8 @@ Independent-review corrections in PR #141: settlement accepts update-extended mi
 Studio lease remains with the orchestrator: run the Roblox specs and inspect landing camera/skip, update radio delivery and mountain warnings there before enabling mission 3. No Studio or Player test is claimed for batch B.
 
 Batch B offline validation: frozen Bun install and build passed; full offline gate passed (`OFFLINE_LUAU_RESULT passed=675 failed=0`, catalog snapshot `passed=19 failed=0`). Runtime Roblox specs are compiled but unrun. Landing plans require continuous touchdown speed: `2 × rolloutDistance / rolloutSeconds = approachDistance / approachSeconds`.
+## Mission 4–5 asset orientation check
+
+The five mission 4–5 assets (heavy transport, radar jammer, fuel tanker ship, attack helicopter and Vanta v2 elite revision 3) are uploaded and moderation-approved on 2026-10-29. This branch wires their IDs, specs and selectors but leaves them unused until missions 4–5; practice and mission 1 remain unchanged. Studio orientation/scale inspection is pending with the orchestrator; no Studio or Player test was performed here.
+
+Next: inspect each asset's forward/up axes and size beside the bomber, the tanker's bow/starboard details and 16-stud keel-to-waterline offset, and the helicopter's main hub and port tail rotor. Use `src/shared/UploadedAssetOrientation.ts` for data-only yaw/pitch/roll corrections before mission integration. Rotors remain static; no animation is claimed. Elite revision 3 passed independent review 3 at 10/10 (`docs/qa/asset-reviews/2026-10-29-pr137-review-3.md`).

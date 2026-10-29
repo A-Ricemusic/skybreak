@@ -43,4 +43,4 @@ Engine batch B is built but dormant and unmerged on `feat/engine-batch-b`; missi
 - [Decisions](decisions.md): every decision, with reasons. All four open questions are now answered.
 - [Redesign plan](../redesign-plan.md): the original plan. Where it conflicts with the decisions log, the decisions log wins.
 
-PR #137 asset work: elite export `vanta-v2-elite-3` replaces the rejected rear with a continuous rectangular exhaust. Unmerged, not uploaded; independent review required. The other four assets remain unchanged.
+The five mission 4–5 assets (heavy transport, radar jammer, fuel tanker ship, attack helicopter and Vanta v2 elite revision 3) are uploaded and moderation-approved on 2026-10-29. This branch wires their IDs, specs and selectors but leaves them unused until missions 4–5; practice and mission 1 remain unchanged. Studio orientation/scale inspection is pending with the orchestrator; no Studio or Player test was performed here.

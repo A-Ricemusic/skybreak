@@ -4,6 +4,7 @@ import { WorldAssets } from "../server/WorldAssets";
 import { AssetSelection, GLASS_TRANSPARENCY, SURFACE_MAPS, SurfaceMap } from "../shared/AssetSelection";
 import { JetFactory } from "../shared/JetFactory";
 import { RobloxAssetIds } from "../shared/RobloxAssetIds";
+import { UploadedAssetOrientation } from "../shared/UploadedAssetOrientation";
 import { UploadedAssets } from "../shared/UploadedAssets";
 import { UploadedAssetName, UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
 
@@ -46,7 +47,7 @@ function fakeUpload(name: UploadedAssetName, options: FakeOptions = {}): Model {
 	inner.Parent = container;
 	const offset = new Vector3(500, 80, -300);
 	const size = spec.authoredSize.mul(scale).mul(new Vector3(options.stretchX ?? 1, 1, 1));
-	const names = spec.kind === "aircraft" ? ["Body", ...AssetSelection.ControlSurfaceNames(spec.controlSurfaces), ...(spec.glassParts ?? [])] : [spec.folder];
+	const names = spec.kind === "aircraft" ? AssetSelection.RequiredAircraftParts(spec.controlSurfaces, spec.glassParts, spec.rotors) : [spec.folder];
 	for (const [index, partName] of pairs(names)) {
 		if (partName === options.omit) continue;
 		const part = new Instance(options.surface === "parts" ? "Part" : "MeshPart");
@@ -94,9 +95,39 @@ describe("Uploaded asset loader with procedural fallback", () => {
 			expect((id as number) > 0 && (id as number) % 1 === 0).toBe(true);
 			count += 1;
 		}
-		expect(count).toBe(30);
+		expect(count).toBe(35);
 		expect(AssetSelection.BomberCandidates(UploadedAssetSpecs)).toEqual(["HeavyBomber"]);
 		expect(AssetSelection.CarrierCandidates(UploadedAssetSpecs)).toEqual(["Carrier"]);
+	});
+
+	it("accepts the helicopter rotor meshes and the tanker hull without fighter parts", () => {
+		for (const name of ["AttackHelicopter", "FuelTanker"] as const) {
+			UploadedAssets.Configure({ probe, loader: () => fakeUpload(name) });
+			const loaded = UploadedAssets.Template([name]);
+			expect(loaded?.name).toBe(name);
+			if (name === "AttackHelicopter") {
+				expect(loaded?.template.FindFirstChild("MainRotor")?.IsA("MeshPart")).toBe(true);
+				expect(loaded?.template.FindFirstChild("TailRotor")?.IsA("MeshPart")).toBe(true);
+			}
+		}
+	});
+
+	it("corrects a swapped import heading before fitting bounds using orientation data", () => {
+		const offsets = UploadedAssetOrientation.FuelTanker!;
+		const prior = offsets.yaw;
+		offsets.yaw = -90;
+		try {
+			UploadedAssets.Configure({ probe, loader: () => {
+				const container = fakeUpload("FuelTanker");
+				for (const part of container.GetDescendants()) if (part.IsA("BasePart")) part.CFrame = CFrame.Angles(0, math.rad(90), 0).mul(part.CFrame);
+				return container;
+			} });
+			const loaded = UploadedAssets.Template(["FuelTanker"]);
+			expect(loaded?.name).toBe("FuelTanker");
+			close(loaded!.template.GetExtentsSize().Z, UploadedAssetSpecs.FuelTanker.size.Z);
+		} finally {
+			offsets.yaw = prior;
+		}
 	});
 
 	it("uses an uploaded aircraft when its ID is set: validated, scaled to the procedural size, cached and welded", () => {

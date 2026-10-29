@@ -59,6 +59,8 @@ Last updated: 2026-10-29.
 | D-046 | 2026-10-29 | M03 landing base is separate, centred at (6000,80,11264), northbound runway top Y=84, with a cleared southern approach. | Continue landing straight down the mountain return corridor. | Fits the lowland base while preserving the long mountain return; cinematic and real-aircraft path require Studio verification. | Mission 3 implementation agent | Provisional, owner may override |
 | D-047 | 2026-10-29 | M03 leaves the 3000 soft / 3600 hard flight ceiling unchanged. | Raise flight ceiling for mountains. | Summit cap 944 leaves ample clearance; terrain-relative warning belongs to engine batch B. | Mission 3 implementation agent | Provisional, owner may override |
 
+| D-060 | 2026-10-29 | Elite-only rear treatment: one rectangular exhaust, flat aft belly and no ventral strakes; default Vanta/Vulture/Rusk stay unchanged. | Reuse the paired circular nozzles and strakes rejected in reviews 1–2. | Removes the rear face/mask composition; revision 3 received independent 10/10 approval in PR #137 review 3. Reserved for mission 5 elite enemies. | Asset implementation per owner brief; independent reviewer approved exact revision 3 export | Provisional (owner may override) |
+
 ## D-001 — Copyright line
 
 The recording may be copied; the game it shows belongs to Bandai Namco.
