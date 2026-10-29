@@ -14,3 +14,11 @@ Rules:
 - Observations, inferences and assumptions are labelled separately. Unreadable values are flagged, not guessed (D-014).
 - D-001 applies: reference titles may be used here as cross-references, but dialogue, briefing prose and on-screen text are described by function only. Places and characters are generic. Media (frames, clips, audio, transcripts) stay in gitignored `reference/ac04/` and are never committed.
 - Any new Blender asset a spec calls for must pass the AGENTS.md upload safety gate before it reaches Roblox.
+
+Current specs:
+
+| Mission | Mission spec | World spec | Written |
+|---|---|---|---|
+| 1 (reference "Sitting Duck") | [missions/m01.md](missions/m01.md) | [worlds/m01.md](worlds/m01.md), plus [composition](worlds/m01-composition.md) and [measurement](worlds/m01-measurement.md) | 2026-10-28 |
+| 2 (reference "Imminent Threat") | [missions/m02.md](missions/m02.md) | [worlds/m02.md](worlds/m02.md) | 2026-10-29 |
+| 3 (reference "The Northern Eye") | [missions/m03.md](missions/m03.md) | [worlds/m03.md](worlds/m03.md) | 2026-10-29 |
