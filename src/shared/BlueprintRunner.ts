@@ -254,7 +254,7 @@ export const BlueprintRunner = {
 		const p=BlueprintRunner.ActivePhase(s);
 		if (!p) return false;
 		if (p.kind === "tutorial_missile") return required && kind === "ground" && s.phaseProgress === 0;
-		if (!required && p.bombers) return (kind === "air" || kind === "ace") && s.phaseOptionalKills < p.bombers.escorts.count;
+		if (!required && p.bombers) return (kind === "air" || kind === "ace") && s.phaseOptionalKills < MissionCatalog.RaiderCap(p,s.extraRaiders);
 		if (!required && p.execution?.raiderKillCap !== undefined) return kind === "air" && s.optionalAirKills<p.execution.raiderKillCap;
 		if (!required) return kind==="air" && s.phaseOptionalKills<MissionCatalog.RaiderCap(p,s.extraRaiders);
 		return (kind==="ace" && p.kind==="ace") || (kind==="ground" && (p.kind==="required_ground" || hazardLive(s)))

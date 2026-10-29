@@ -1,5 +1,5 @@
 import { BomberRules, BomberSlotPose } from "../shared/BomberRules";
-import { bomberEscortPose, compileBomberEncounter, laterEscortsDue } from "../shared/BomberEncounter";
+import { bomberEscortPose, compileBomberEncounter, laterEscortsDue, reinforcementFraction } from "../shared/BomberEncounter";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { MissionCatalog, MissionPhaseBlueprint } from "../shared/MissionCatalog";
 import { WavePlan, AirRequest } from "../shared/WavePlan";
@@ -242,7 +242,8 @@ export function createPhaseDirector(combat: PhaseCombat) {
 			drainAir(session);
 			// Mid-phase raider waves, in authored order (each one larger on Ace).
 			const waves=active.reinforce;
-			while (waves && session.reinforceIndex < waves.size() && fraction >= waves[session.reinforceIndex].at) {
+			const waveFraction = reinforcementFraction(fraction, session.elapsed - (encounter?.startedAt ?? 0), encounter?.route);
+			while (waves && session.reinforceIndex < waves.size() && waveFraction >= waves[session.reinforceIndex].at) {
 				requestAir(session,raiderWave(session,waves[session.reinforceIndex].count),"raider",true);
 				session.reinforceIndex += 1;
 			}

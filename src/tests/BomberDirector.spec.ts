@@ -42,6 +42,30 @@ describe("Bomber director integration", () => {
 		expect(ace.size()).toBe(1); expect(ace[0].options?.name).toBe("GREY KITE"); expect(ace[0].options?.optional).toBe(true);
 		h.folder.Destroy();
 	});
+	it("opens M1 with four north-quarter attackers, requests two aft at 120 s without kills, and queues the ace within budget", () => {
+		for (const difficulty of ["normal", "ace"] as const) {
+			const h = harness(MissionCatalog.Get(1)); h.s.difficulty = difficulty;
+			const initial = difficulty === "ace" ? 5 : 4;
+			h.director.Apply(h.s); h.director.Apply(h.s);
+			expect(h.calls.filter(c => c.role === "raider").size()).toBe(initial);
+			for (const c of h.calls.filter(c => c.role === "raider")) expect(c.options?.behind).toBe(false);
+			h.s.elapsed = 119.99; h.director.Step(h.s); expect(h.s.reinforceIndex).toBe(0);
+			h.s.elapsed = 120; h.director.Step(h.s); h.director.Step(h.s);
+			expect(h.s.reinforceIndex).toBe(1);
+			expect(h.calls.filter(c => c.role !== "bomber").size()).toBe(7);
+			h.s.elapsed = 150; h.director.Step(h.s);
+			expect(h.calls.filter(c => c.role !== "bomber").size()).toBe(7);
+			// Simulate one fighter lost: ace takes the next slot ahead of queued raiders.
+			h.budget.fighters = 6; h.director.Step(h.s);
+			expect(h.calls[h.calls.size()-1].role).toBe("ace");
+			h.budget.fighters = 0; h.director.Step(h.s);
+			const followup = h.calls.filter(c => c.role === "raider" && c.options?.behind);
+			expect(followup.size()).toBe(difficulty === "ace" ? 3 : 2);
+			expect(h.calls.filter(c => c.role === "ace").size()).toBe(1);
+			h.folder.Destroy();
+		}
+	});
+
 	it("passes the encounter ace identity for its livery even when the blueprint names a different ace", () => {
 		for (const name of ["AIR MARSHAL RUSK", "VULTURE LEAD"]) {
 			const bp = encounter(); bp.aceName = name === "AIR MARSHAL RUSK" ? "VULTURE LEAD" : "AIR MARSHAL RUSK";

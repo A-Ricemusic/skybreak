@@ -68,7 +68,7 @@ export type PhaseKind =
 
 /** A radio line fired once when the phase progress fraction crosses `at` (0-1). */
 export interface PhaseChatter { at: number; text: string }
-/** Optional raiders spawned mid-phase when the progress fraction crosses `at`. */
+/** Optional raiders spawned at objective progress `at`; bomber phases use elapsed route fraction. */
 export interface PhaseReinforcement { at: number; count: number }
 /**
  * Ground targets that light up during a timed phase once its progress fraction reaches `at`
@@ -214,7 +214,7 @@ function expandPhases(phases: MissionPhaseBlueprint[]): MissionPhaseBlueprint[] 
 // Recompute optional counts after authored flight objectives are installed.
 for (const mission of MISSIONS) {
 	let optional = 0;
-	for (const phase of expandPhases(mission.phases)) optional += phase.bombers?.escorts.count ?? phase.optionalRaiders ?? 0;
+	for (const phase of expandPhases(mission.phases)) optional += (phase.bombers?.escorts.count ?? 0) + (phase.optionalRaiders ?? 0);
 	mission.optionalRaiderMax = optional;
 }
 
@@ -470,7 +470,7 @@ export const MissionCatalog = {
 	},
 	/** Raiders that arrive at a phase's start (the rest come in its reinforcement waves; an ace calls all of its own). */
 	InitialRaiders(phase: MissionPhaseBlueprint): number {
-		if (phase.bombers || phase.kind === "ace") return 0;
+		if (phase.kind === "ace") return 0;
 		return math.max(0, (phase.optionalRaiders ?? 0) - reinforceTotal(phase));
 	},
 	/** Separate raider waves a phase spawns: its opening wave, each reinforcement, or an ace's two calls. */
@@ -481,7 +481,7 @@ export const MissionCatalog = {
 	},
 	/** Raiders a phase may lose when every wave brings `extra` more (Ace difficulty). */
 	RaiderCap(phase: MissionPhaseBlueprint, extra = 0): number {
-		return phase.bombers?.escorts.count ?? (phase.optionalRaiders ?? 0) + math.max(0, extra) * MissionCatalog.RaiderWaves(phase);
+		return (phase.bombers?.escorts.count ?? 0) + (phase.optionalRaiders ?? 0) + math.max(0, extra) * MissionCatalog.RaiderWaves(phase);
 	},
 	/**
 	 * The most hostile aircraft a phase can have up at once if nothing held them back: every group a
@@ -491,7 +491,7 @@ export const MissionCatalog = {
 	 * more than WavePlan.Budget(extra) fly (see CombatService requestAir); this is the demand on it.
 	 */
 	PeakAircraft(phase: MissionPhaseBlueprint, extra = 0): number {
-		if (phase.bombers) return phase.bombers.count + phase.bombers.escorts.count;
+		if (phase.bombers) return phase.bombers.count + MissionCatalog.RaiderCap(phase, extra);
 		const wave = (count: number) => (count > 0 ? count + math.max(0, extra) : 0);
 		const raiders = phase.optionalRaiders ?? 0;
 		if (phase.kind === "ace") return 1 + wave(math.ceil(raiders / 2)) + wave(raiders - math.ceil(raiders / 2));
@@ -525,7 +525,7 @@ export const MissionCatalog = {
 	MaxOptionalRaiders(blueprint: MissionBlueprint): number {
 		if (blueprint.optionalRaiderMax !== undefined) return blueprint.optionalRaiderMax;
 		let total = 0;
-		for (const phase of expandPhases(blueprint.phases)) total += phase.bombers?.escorts.count ?? phase.optionalRaiders ?? 0;
+		for (const phase of expandPhases(blueprint.phases)) total += (phase.bombers?.escorts.count ?? 0) + (phase.optionalRaiders ?? 0);
 		return total;
 	},
 };
