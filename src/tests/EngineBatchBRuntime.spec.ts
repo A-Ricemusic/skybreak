@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { Workspace } from "@rbxts/services";
-import { sampleClearance, stepLanding } from "../server/EngineBatchBRuntime";
+import { sampleClearance, skipLanding, stepLanding } from "../server/EngineBatchBRuntime";
 import { CombatSession } from "../server/CombatSession";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { MissionCatalog } from "../shared/MissionCatalog";
@@ -28,5 +28,23 @@ describe("Engine batch B runtime adapters (Studio)",()=>{
   const messages: string[]=[];
   expect(stepLanding(session,20,m=>messages.push(tostring(m)))).toBe(true);expect(session.state.y).toBeGreaterThan(90);
   expect(stepLanding(session,20,m=>messages.push(tostring(m)))).toBe(true);expect(bs.outcome).toBe("won");expect(bs.elapsed).toBe(123);expect(messages.size()).toBe(1);
+ });
+ it("says each tower cue once on the fixed step and skips to the runway hold, telling the client where",()=>{
+  const plan: LandingPlan={touchdown:{x:6000,y:94,z:11896},headingDegrees:0,approachDistance:2100,rolloutDistance:612.5,approachSeconds:24,rolloutSeconds:14,glideDegrees:3,
+   countdownSeconds:180,accomplishedSeconds:4,radio:[{at:0.5,text:"one"},{at:7,text:"two"},{at:20,text:"skipped"},{at:34.5,text:"three"}]};
+  const bp={...MissionCatalog.Get(1),phases:[{kind:"landing" as const,label:"Landing",landing:plan}]};
+  const bs=BlueprintRunner.NewState(bp,0);
+  const session={state:FlightMath.NewState(),blueprintState:bs} as CombatSession;
+  const said: string[]=[],sent: defined[]=[];
+  for(let i=0;i<300;i++) stepLanding(session,1/30,m=>sent.push(m as defined),l=>said.push(l));
+  expect(said).toEqual(["one","two"]);expect(BlueprintRunner.TimeRemaining(bs)).toBeCloseTo(170);
+  skipLanding(session,m=>sent.push(m as defined));
+  expect(bs.outcome).toBeUndefined();expect(bs.landingElapsed).toBe(34);
+  expect((sent[sent.size()-1] as {kind:string;elapsed:number}).kind).toBe("LandingSkipped");expect((sent[sent.size()-1] as {elapsed:number}).elapsed).toBe(34);
+  // The skipped cue stays silent; the hold's own cue plays, then the sortie ends after four seconds.
+  for(let i=0;i<119;i++) stepLanding(session,1/30,m=>sent.push(m as defined),l=>said.push(l));
+  expect(bs.outcome).toBeUndefined();expect(said).toEqual(["one","two","three"]);
+  stepLanding(session,1/30,m=>sent.push(m as defined),l=>said.push(l));stepLanding(session,1/30,m=>sent.push(m as defined),l=>said.push(l));
+  expect(bs.outcome).toBe("won");
  });
 });

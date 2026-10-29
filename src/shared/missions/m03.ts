@@ -40,7 +40,7 @@ export const M03_LANDING: LandingPlan = {
 		{ at: 7, text: "RIM TOWER: Runway in sight. You're on the centreline." },
 		{ at: 14, text: "RIM TOWER: Short final. Glide path is good, hold it there." },
 		{ at: 24.5, text: "RIM TOWER: Touchdown. Nice and gentle." },
-		{ at: 34, text: "RIM TOWER: Welcome home. Sera wants that film before you unstrap." },
+		{ at: 34.5, text: "RIM TOWER: Welcome home. Sera wants that film before you unstrap." },
 	],
 };
 // D-061: the reference roster. Two fighter-bombers head-on and three escorts from the start; site 1's five
