@@ -13,8 +13,8 @@ The new 18-mission campaign is live in Roblox Player (practice flight and missio
 | 1 | Sitting Duck | 0:06:30–0:11:24 | 4.9 min | Yes | Yes | Yes | Yes | — |
 | 2 | Imminent Threat | 0:15:38–0:22:34 | 6.9 min | Yes | — | — | — | — |
 | 3 | The Northern Eye | 0:26:41–0:34:24 | 7.7 min | Yes | — | — | — | — |
-| 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | — | — | — | — |
-| 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | — | — | — | — |
+| 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | Yes (PR) | — | — | — |
+| 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | Yes (PR) | — | — | — |
 | 6 | Invincible Fleet | 1:03:01–1:20:00 | 17.0 min | Yes | — | — | — | — |
 | 7 | Deep Strike | 1:22:13–1:35:49 | 13.6 min | Yes | — | — | — | — |
 | 8 | Shattered Skies | 1:39:16–1:52:39 | 13.4 min | Yes | — | — | — | — |
