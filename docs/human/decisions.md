@@ -53,6 +53,10 @@ Last updated: 2026-10-29.
 | D-043 | 2026-10-29 | Remove the old 4–7 objective-beat rule for missions 3+; use footage-matched objective structures. | Retain a fixed objective count. | Objective count must follow each accepted footage specification and pacing. | Orchestrator | Provisional (owner may override) |
 | D-044 | 2026-10-29 | Typed targets are hidden and invulnerable outside their owning phase; ownership follows the twist-expanded phase list. | Leave future/past targets visible or damageable. | Prevents early kills and phase progression errors; applies to AA as well. | Engine batch A implementation, requested by orchestrator | Provisional (owner may override) |
 
+| D-045 | 2026-10-29 | M03 uses sealed hollow-shell terrain with 64/128/512-stud LOD, 8-stud caps, 4-stud curtains and a continuous bottom floor beyond the whole hard airspace; revised budgets are recorded in M03Limits and the composition spec. | Solid mountain columns; open undersides; full fine detail. | Preserve full-scale relief within a ≤20 s offline estimate; shell continuity, load time and phone performance still need measurement. | Mission 3 implementation agent | Provisional, owner may override |
+| D-046 | 2026-10-29 | M03 landing base is separate, centred at (6000,80,11264), northbound runway top Y=84, with a cleared southern approach. | Continue landing straight down the mountain return corridor. | Fits the lowland base while preserving the long mountain return; cinematic and real-aircraft path require Studio verification. | Mission 3 implementation agent | Provisional, owner may override |
+| D-047 | 2026-10-29 | M03 leaves the 3000 soft / 3600 hard flight ceiling unchanged. | Raise flight ceiling for mountains. | Summit cap 944 leaves ample clearance; terrain-relative warning belongs to engine batch B. | Mission 3 implementation agent | Provisional, owner may override |
+
 ## D-001 — Copyright line
 
 The recording may be copied; the game it shows belongs to Bandai Namco.

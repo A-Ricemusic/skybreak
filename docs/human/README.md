@@ -1,6 +1,6 @@
 # SKYBREAK redesign dashboard
 
-Last updated: 2026-10-29; mission 2 status includes unmerged PR #140.
+Last updated: 2026-10-29; mission 2/3 status includes unmerged PRs #140/#139.
 
 The new 18-mission campaign is live in Roblox Player (practice flight and mission 1 playable). The redesign rebuilds the missions and worlds to match Ace Combat 04 (objectives, mission length, scoring, terrain and environment) while keeping the Broken Relay story. It goes one mission at a time. The footage is fully indexed. **Mission 1 is ready for your beta test.** The new campaign is live by pipeline: the practice flight and mission 1 are playable, missions 2 to 18 are locked. See [Next](next.md) for what to try.
 
@@ -14,7 +14,7 @@ Engine batch A is built but dormant on unmerged PR #138: typed targets, triggere
 |---|---|---|---|---|---|---|---|---|
 | 1 | Sitting Duck | 0:06:30–0:11:24 | 4.9 min | Yes | Yes | Yes | Yes | — |
 | 2 | Imminent Threat | 0:15:38–0:22:34 | 6.9 min | Yes | Yes | Dormant world in review (#140); not playable | No | — |
-| 3 | The Northern Eye | 0:26:41–0:34:24 | 7.7 min | Yes | Yes | — | — | — |
+| 3 | The Northern Eye | 0:26:41–0:34:24 | 7.7 min | Yes | Yes | Dormant world in unmerged PR #139; not playable | No | — |
 | 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | Yes | — | — | — |
 | 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | Yes | — | — | — |
 | 6 | Invincible Fleet | 1:03:01–1:20:00 | 17.0 min | Yes | — | — | — | — |

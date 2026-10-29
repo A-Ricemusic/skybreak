@@ -4,8 +4,13 @@ Last updated: 2026-10-29.
 
 ## Open
 
+Mission 3 remains dormant in unmerged PR #139. Its offline contracts establish geometry only; no Studio or Player observation is claimed.
+
+
 | Date | Raised by | What is blocked | Impact | What is needed |
 |---|---|---|---|---|
+| 2026-10-29 | Mission 3 implementation | M03 Studio load time, rendered shell continuity/LOD seams, landing path verification and phone performance are unmeasured. | Offline estimates and swept geometry checks do not establish runtime quality. | Measure cold load and inspect all shell/LOD transitions; verify the engine landing with the real aircraft and measure a real phone before activation. |
+| 2026-10-29 | Mission 3 implementation | Mission 3 engine batch B and mission data/unlock remain outstanding. | World composition alone cannot make mission 3 playable. | Engine batch B owns mission update banner, clock reset, return-line objective, automatic skippable landing and terrain-relative LOW ALTITUDE; do not implement the warning in the world builder. |
 | 2026-10-29 | Mission 2 world implementation | Mission 2 world Studio load time, visuals and phone performance are unmeasured. | Offline budgets are estimates; PR #140 remains dormant and does not establish runtime quality. | Measure load time and inspect visuals in Studio, then measure on a real phone before release. No Studio or Player test was performed for this PR revision. |
 | 2026-10-29 | Orchestrator | Owner acceptance of mission 1 (the beta test). | Mission 2 waits for your feedback (D-004). | **You:** play the practice flight and mission 1 in Roblox Player and report what you notice. |
 | 2026-10-28 | Large-world measurement | Real-phone performance and streaming for full-scale worlds are unverified. Studio measured mission 1's world at 4 to 5.5 s server build and 60 FPS in the phone emulator (#114), but the emulator runs on desktop hardware. | Mission 1's world may need tuning after it goes live. | Re-measure the tuned world in Studio before the campaign switch; your Player playtest on a phone is the real check. |
