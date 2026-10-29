@@ -7,6 +7,8 @@ import { M02_AIRSPACE, M02_START } from "../M02Limits";
 export const M02_TARGET_TYPES: { readonly [K in M02TargetType]: GroundTargetType } = {
 	bomber: "parked_bomber", hangar: "hangar", aa: "aa_gun", control_tower: "control_tower", substation: "substation",
 };
+// D-057: parked bombers never escape; failure is shot down or timeout.
+// D-058: existing missiles and gun substitute for reference bombs.
 // Only the eleven parked bombers are indicated targets; the rest score points.
 const targets: TypedGroundTarget[] = m02TargetLayout().map((t) => ({
 	id: t.id, type: M02_TARGET_TYPES[t.type], position: { x: t.x, y: t.y, z: t.z }, yaw: math.deg(t.yaw),

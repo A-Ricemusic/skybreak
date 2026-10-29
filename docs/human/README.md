@@ -6,7 +6,7 @@ The new 18-mission campaign is live in Roblox Player (practice flight and missio
 
 [Play SKYBREAK](https://www.roblox.com/games/112911685457826)
 
-Engine batch A (#138: typed targets, triggered waves, standalone ace and AA) and the mission 2 world (#140) are merged. The mission 2 PR makes mission 2 playable after mission 1 once it merges; until then mission 2 stays locked. Practice and mission 1 are unchanged. Studio results for that PR are in its description; no Player test is claimed. See [Next](next.md) and provisional D-048–D-055 in [Decisions](decisions.md).
+Engine batch A (#138: typed targets, triggered waves, standalone ace and AA) and the mission 2 world (#140) are merged. The mission 2 PR makes mission 2 playable after mission 1 once it merges; until then mission 2 stays locked. Practice and mission 1 gameplay are unchanged. The unmerged PR also repairs mission 1 score-breakdown preservation after mission 2 completion and during replays/save reloads, with shared offline/Roblox Jest regression coverage. Studio results for that PR are in its description; no Player test is claimed. See [Next](next.md) and provisional D-048, D-049, D-052–D-058 in [Decisions](decisions.md).
 
 ## Mission progress
 
