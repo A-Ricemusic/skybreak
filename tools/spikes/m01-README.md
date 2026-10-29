@@ -14,3 +14,20 @@ These projects deliberately exclude campaign startup and never publish/upload.
 9. Close only Studio processes you launched; verify with `pgrep -x RobloxStudio`.
 
 `Measure` temporarily wraps `TerrainWriter.Write` to time its original implementation, restoring it afterwards. Total includes plan construction, environment, async template-load kickoff, terrain, primitive parts and cached prop placement. Terrain is writer wall time including schedule construction and waits; `WorldTerrainReadySeconds` also includes preceding plan/environment work. After-terrain is the builder's remaining part/prop/effect phase. Module imports and clearing/2 s settling are outside the timer. Heartbeat gap is an interval proxy including initialization and engine scheduling, not a renderer frame. Stats MB includes Studio/plugin/cache overhead and is not separate server/client allocation. Counted voxel writes are scheduled filled-cell volume, not unique occupied cells. Ray success is terrain availability, not rendered visibility.
+
+## Tuning pass harness notes
+
+The tuning harness forwards the writer's optional batch budget and fill-chunk cap when wrapping
+`Write`; omitting those arguments silently measures the defaults instead of M01's
+budget. `worstHeartbeatPhase` records the builder phase at the longest observed
+interval. The server exposes planning wall time and longest cooperative CPU
+slice separately: a heartbeat interval also includes engine/scheduler work and
+must not be reported as a script CPU measurement.
+
+Counts now run once at module load, outside the timed samples, with cooperative
+planning checkpoints. The original harness generated another complete plan and
+job array immediately after each sample, queuing instrumentation allocation/GC
+between cold and warm builds. This method change is documented in the tuning
+report; historical heartbeat rows are retained, not overwritten. Clearing and
+the two-second settle remain outside builder timing. Do not overlap measurement
+with compilation/offline validation. Capture only after readiness is confirmed.

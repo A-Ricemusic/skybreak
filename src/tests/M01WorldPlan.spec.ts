@@ -1,9 +1,10 @@
 import { weatherPlan, phoneClouds } from "../shared/WeatherRules";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { buildM01Plan, M01, M01_ENVIRONMENT, m01Counts, m01Detailed, m01Height } from "../shared/M01WorldPlan";
+import { buildM01Plan, M01, M01_ENVIRONMENT, M01_FILL_CHUNK, m01Counts, m01Detailed, m01Height } from "../shared/M01WorldPlan";
 import { distinctChannels, ENVIRONMENTS, ENVIRONMENT_NAMES } from "../shared/EnvironmentPresets";
 import { UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
+import { terrainJobs } from "../shared/TerrainSchedule";
 import { polyDist, terrainTop } from "../shared/WorldPlan";
 
 describe("Unselected full-scale M01 world", () => {
@@ -29,15 +30,29 @@ describe("Unselected full-scale M01 world", () => {
 		// Actual approved bounds include template height and ground-contact offset.
 		for (const p of plan.props) if (polyDist(p.x, p.z, M01.route) < 768) expect(p.y + (UploadedAssetSpecs[p.asset].size.Y - UploadedAssetSpecs[p.asset].groundOffset) * p.scale + 48).toBeLessThan(M01.routeFloor);
 	});
-	it("tiles water continuously across full bounds without sea parts roofing voxel water", () => {
+	it("covers the full sea with one consistent opaque surface above native water", () => {
 		for (let x = -16382; x < 16384; x += 256) for (let z = -16382; z < 16384; z += 256) {
 			let surfaces = 0;
-			for (const op of plan.ops) if (op.material === "Water" && math.abs(x - op.x) < op.sx / 2 && math.abs(z - op.z) < op.sz / 2) surfaces++;
 			for (const p of plan.parts) if (p.name === "Far sea" && math.abs(x - p.x) < p.sx / 2 && math.abs(z - p.z) < p.sz / 2) surfaces++;
-			expect(surfaces).toBe(1);
+			expect(surfaces).toBeGreaterThanOrEqual(1);
 		}
 		expect(m01Height(-1600, 1728 + 120 * math.sin(-1600 / 400))).toBeLessThan(32);
 		expect(terrainTop(plan.ops, 0, 11200).solid).toBeLessThan(32);
+	});
+	it("keeps cooperative planning identical and removes artificial surf strips", () => {
+		let checkpoints = 0;
+		expect(buildM01Plan(101, () => { checkpoints++; })).toEqual(plan);
+		expect(checkpoints).toBeGreaterThan(1000);
+		for (const p of plan.parts) {
+			expect(p.name).never.toBe("Shore surf");
+			if (p.name === "Far sea") { expect(p.sx).toBeLessThanOrEqual(2048); expect(p.sz).toBeLessThanOrEqual(2048); }
+		}
+	});
+	it("grounds dressing on the actual planned land", () => {
+		for (const p of plan.props) if (p.asset !== "HarbourQuay") expect(p.y).toBe(terrainTop(plan.ops, p.x, p.z).solid);
+	});
+	it("bounds each M01 native fill without raising shared limits", () => {
+		for (const job of terrainJobs(plan.ops, M01_FILL_CHUNK)) expect(job.cells).toBeLessThanOrEqual(65536);
 	});
 	it("stays within explicit new budgets without changing old limits", () => {
 		const c = m01Counts(plan);

@@ -1,5 +1,5 @@
 import { Workspace } from "@rbxts/services";
-import { runBudgeted, terrainJobs, TERRAIN_BUDGET, type BudgetRun, type TerrainJob } from "../shared/TerrainSchedule";
+import { runBudgeted, terrainJobs, FILL_CHUNK, TERRAIN_BUDGET, type BudgetRun, type TerrainJob } from "../shared/TerrainSchedule";
 import { bumpProfile, type TerrainOp } from "../shared/WorldPlan";
 
 // Executes planned terrain ops (shared/WorldPlan) as bounded jobs
@@ -59,9 +59,9 @@ function run(terrain: Terrain, job: TerrainJob): void {
 
 export const TerrainWriter = {
 	/** Writes `ops` in order as bounded jobs, yielding between resumptions; returns the timing. */
-	Write(ops: TerrainOp[]): BudgetRun & { jobs: number } {
-		const terrain = Workspace.Terrain, jobs = terrainJobs(ops);
-		const timing = runBudgeted(jobs, (job) => run(terrain, job), { budget: TERRAIN_BUDGET, clock: os.clock, pause: () => task.wait() });
+	Write(ops: TerrainOp[], budget = TERRAIN_BUDGET, fillChunk = FILL_CHUNK): BudgetRun & { jobs: number } {
+		const terrain = Workspace.Terrain, jobs = terrainJobs(ops, fillChunk);
+		const timing = runBudgeted(jobs, (job) => run(terrain, job), { budget, clock: os.clock, pause: () => task.wait() });
 		return { ...timing, jobs: jobs.size() };
 	},
 };
