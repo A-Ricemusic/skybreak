@@ -1,0 +1,56 @@
+{
+  "name": "M01Measurement",
+  "tree": {
+    "$className": "DataModel",
+    "Workspace": {
+      "$properties": {
+        "StreamingEnabled": false
+      },
+      "$attributes": {
+        "M01Measurement": true
+      }
+    },
+    "ReplicatedStorage": {
+      "Shared": {
+        "$path": "../../out/shared"
+      },
+      "rbxts_include": {
+        "$path": "../../include",
+        "node_modules": {
+          "$className": "Folder",
+          "@rbxts": {
+            "$path": "../../node_modules/@rbxts"
+          },
+          "@rbxts-js": {
+            "$path": "../../node_modules/@rbxts-js"
+          }
+        }
+      }
+    },
+    "ServerStorage": {
+      "Measure": {
+        "$path": "m01-measure.luau"
+      }
+    },
+    "ServerScriptService": {
+      "Server": {
+        "$className": "Folder",
+        "M01World": {
+          "$path": "../../out/server/M01World.luau"
+        },
+        "TerrainWriter": {
+          "$path": "../../out/server/TerrainWriter.luau"
+        },
+        "Scenery": {
+          "$path": "../../out/server/Scenery.luau"
+        },
+        "WorldAssets": {
+          "$path": "../../out/server/WorldAssets.luau"
+        },
+        "WorldEnvironment": {
+          "$path": "../../out/server/WorldEnvironment.luau"
+        }
+      }
+    }
+  }
+}
