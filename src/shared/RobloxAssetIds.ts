@@ -22,6 +22,9 @@ export const RobloxAssetIds: Record<UploadedAssetName, number | undefined> = {
 	VantaV2: 93195734008147,
 	VantaV2Vulture: 101186966862069,
 	VantaV2Rusk: 93509098875902,
+	// Approved 2026-10-28; dormant bomber encounter and mission 1 world only.
+	HeavyBomber: 112476761254185,
+	Carrier: 118082412288291,
 	Frigate: 83984523694725,
 	OilPlatform: 76182723177049,
 	HarbourQuay: 133121801627949,

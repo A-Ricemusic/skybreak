@@ -1,6 +1,6 @@
 # Uploaded Roblox assets (owner user 3407487520)
 
-Every row passed the Sol 6.1 visual gate (`review.json` hash-matched) and Roblox moderation (approved) before use. Source: `~/.skybreak-roblox-uploads/journal-3407487520.json`. Embedded FBX textures become a SurfaceAppearance on every MeshPart. Pre-fix exports (aircraft and large props) arrive 28x oversize; the loader scales templates.
+Every row passed the independent Sol 6.1 visual gate (hash-matched review evidence) and Roblox moderation (approved) before use. Source: `~/.skybreak-roblox-uploads/journal-3407487520.json`. Embedded FBX textures become a SurfaceAppearance on every MeshPart. Pre-fix exports (aircraft and large props) arrive 28x oversize; the loader scales templates.
 
 | Asset | Model asset ID | Reviewed FBX sha256 |
 |---|---|---|
@@ -34,3 +34,14 @@ Every row passed the Sol 6.1 visual gate (`review.json` hash-matched) and Roblox
 | vanta-v2-rusk | 93509098875902 | `09ed7ee70d14` |
 
 Superseded: container-stack 140388036263796 (512² textures, replaced by the 256² upload above).
+
+## Heavy bomber and carrier — 2026-10-28 (PDT)
+
+Both pre-existing uploads are `MODERATION_STATE_APPROVED` in the read-only owner journal; no upload was performed by this wiring change. Reviewer: **GPT-6.1 Sol (independent; not the creator)**. Review record: [review 3](asset-reviews/2026-10-28-pr107-review-3.md), explicit 10/10 approval of these exact exports and embedded textures.
+
+| Asset | Model asset ID | Export version | FBX SHA-256 | Moderation |
+|---|---|---|---|---|
+| heavy-bomber | 112476761254185 | heavy-bomber-2 | `e4b242711e722d6a76ba8d87454a8f80902f10eb35764b5b8308955838cff5a3` | Approved |
+| carrier | 118082412288291 | carrier-2 | `31cb21fa341c9b168575df765e559d136bcd62123c08a6a0d8bd5a6f1a0fad63` | Approved |
+
+Journal timestamps are 2026-10-29 02:31:57 UTC and 02:32:14 UTC respectively (2026-10-28 locally). Only the dormant bomber encounter and M01 world can select these assets; current campaign worlds and starts remain unchanged.

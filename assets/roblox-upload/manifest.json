@@ -514,6 +514,159 @@
       ]
     },
     {
+      "folder": "heavy-bomber",
+      "robloxAssetIdsKey": "HeavyBomber",
+      "title": "Heavy bomber (mission 1 raid)",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "heavy-bomber.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "heavy-bomber-color.png",
+          "role": "color"
+        },
+        {
+          "file": "heavy-bomber-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "heavy-bomber-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "heavy-bomber-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        72.74,
+        16.6,
+        64.8
+      ],
+      "gameSizeStuds": [
+        72.74,
+        16.6,
+        64.8
+      ],
+      "usage": "Mission 1: six bombers in formation (required targets, never fire). Pending review; not referenced from src/.",
+      "triangleCount": 8704,
+      "textures": [
+        "heavy-bomber-color.png 1024x1024",
+        "heavy-bomber-normal.png 1024x1024",
+        "heavy-bomber-roughness.png 1024x1024",
+        "heavy-bomber-metalness.png 1024x1024"
+      ],
+      "textureLimit": 1024,
+      "robloxSizeStuds": [
+        72.74,
+        16.6,
+        64.8
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "heavy-bomber/preview-front.png",
+        "heavy-bomber/preview-side.png",
+        "heavy-bomber/preview-top.png",
+        "heavy-bomber/preview-3q.png",
+        "heavy-bomber/preview-closeup.png",
+        "heavy-bomber/preview-back.png",
+        "heavy-bomber/preview-side-right.png",
+        "heavy-bomber/preview-bottom.png",
+        "heavy-bomber/preview-3q-front-left.png",
+        "heavy-bomber/preview-3q-rear-right.png",
+        "heavy-bomber/preview-3q-rear-left.png",
+        "heavy-bomber/preview-3q-low-front-right.png",
+        "heavy-bomber/preview-front-low.png",
+        "heavy-bomber/preview-closeup-front.png",
+        "heavy-bomber/preview-closeup-front-3q.png",
+        "heavy-bomber/preview-closeup-front-low.png",
+        "heavy-bomber/preview-closeup-engines.png",
+        "heavy-bomber/preview-closeup-tail.png",
+        "heavy-bomber/preview-closeup-belly.png"
+      ]
+    },
+    {
+      "folder": "carrier",
+      "robloxAssetIdsKey": "Carrier",
+      "title": "Aircraft carrier (mission 1 start)",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "carrier.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "carrier-color.png",
+          "role": "color"
+        },
+        {
+          "file": "carrier-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "carrier-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "carrier-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        181.031,
+        153.76,
+        560.0
+      ],
+      "gameSizeStuds": [
+        181.031,
+        153.76,
+        560.0
+      ],
+      "usage": "Mission 1 start reference (scripted fly-off from the bow catapults) and intro dressing. Pending review; not referenced from src/.",
+      "triangleCount": 2772,
+      "textures": [
+        "carrier-color.png 512x512",
+        "carrier-normal.png 512x512",
+        "carrier-roughness.png 512x512",
+        "carrier-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        181.031,
+        153.76,
+        560.0
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "carrier/preview-front.png",
+        "carrier/preview-side.png",
+        "carrier/preview-top.png",
+        "carrier/preview-3q.png",
+        "carrier/preview-back.png",
+        "carrier/preview-side-right.png",
+        "carrier/preview-bottom.png",
+        "carrier/preview-3q-front-left.png",
+        "carrier/preview-3q-rear-right.png",
+        "carrier/preview-3q-rear-left.png",
+        "carrier/preview-3q-low-front-right.png",
+        "carrier/preview-closeup-island.png",
+        "carrier/preview-closeup-bow.png",
+        "carrier/preview-closeup-deck.png",
+        "carrier/preview-closeup-hull.png",
+        "carrier/preview-top-orientation.png"
+      ]
+    },
+    {
       "folder": "frigate",
       "robloxAssetIdsKey": "Frigate",
       "title": "Navy frigate",

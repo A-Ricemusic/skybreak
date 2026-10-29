@@ -45,8 +45,7 @@ const TINTS: Record<AceLivery, ProceduralTint> = {
 };
 
 export const AssetSelection = {
-	/** Future approved heavy bomber export contract: aircraft kind and folder heavy-bomber.
-	 * No invented spec/ID; use the normal loader when the generated manifest gains it. */
+	/** Approved heavy bomber export contract: aircraft kind and folder heavy-bomber. */
 	BomberCandidates<K extends string>(specs: Record<K, { kind: string; folder: string }>): K[] {
 		const names: K[] = [];
 		for (const [name, spec] of pairs(specs as Record<string, { kind: string; folder: string }>)) {
@@ -55,7 +54,7 @@ export const AssetSelection = {
 		table.sort(names);
 		return names;
 	},
-	/** Future approved carrier export contract. No generated spec or ID exists yet. */
+	/** Approved carrier export contract: world kind and folder carrier. */
 	CarrierCandidates<K extends string>(specs: Record<K, { kind: string; folder: string }>): K[] {
 		const names: K[] = [];
 		for (const [name, spec] of pairs(specs as Record<string, { kind: string; folder: string }>)) {

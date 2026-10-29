@@ -6,9 +6,9 @@ import { UploadedAssets } from "../shared/UploadedAssets";
 import { UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
 let model: Model | undefined;
 afterEach(() => { model?.Destroy(); model = undefined; UploadedAssets.Configure(); });
-describe("BomberFactory unwired visual", () => {
-	it("uses the labelled stand-in while no uploaded bomber spec exists", () => {
-		expect(AssetSelection.BomberCandidates(UploadedAssetSpecs).size()).toBe(0);
+describe("BomberFactory fallback visual", () => {
+	it("uses the labelled stand-in when the uploaded bomber ID is unavailable", () => {
+		expect(AssetSelection.BomberCandidates(UploadedAssetSpecs)).toEqual(["HeavyBomber"]);
 		UploadedAssets.Configure({ ids: {}, loader: () => error("stand-in must not load an asset") });
 		model = BomberFactory.Create("TestBomber");
 		expect(model.GetAttribute("GeometrySource")).toBe("BomberStandIn");
