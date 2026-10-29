@@ -2,12 +2,15 @@
 
 Last updated: 2026-10-28, against `main` at `93dc512153b9098cdb7d486f3857e16794fc6ff0`.
 
-[Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). Broken Relay is the live 27-mission campaign. The latest merged gameplay-code revision is `d44b865` (#105). Gameplay merges are live through automatic CI/CD under the owner's convention; documentation-only changes add no game content.
+[Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). Broken Relay is the live 27-mission campaign. The latest merged gameplay-code revision is `b17fb9e` (#108). Gameplay merges are live through automatic CI/CD under the owner's convention; documentation-only changes add no game content.
 
 ## Merged 2026-10-28, newest first
 
 | PR | Commit | Title | Kind | What you will see |
 |---|---|---|---|---|
+| #108 | `b17fb9e` | feat(scoring): wire dormant authoritative target results | Gameplay code, dormant | Nothing for current missions. The server now counts points per accepted kill and saves the breakdown; a points-based mission's results screen will show total points, a kill list by type and the rank. |
+| #109 | `7f578a3` | docs(spike): measure full-scale terrain and streaming budgets | Docs and standalone tools | No game change. The large-world measurement behind D-028. |
+| #106 | `c20cca8` | docs: record the mission 1 foundation merges and their decisions | Docs | No game change. |
 | #105 | `d44b865` | feat(enemies): add unwired bomber routes and visual factory | Gameplay code, unused | Nothing yet. Bomber flight paths, formation and a stand-in model, ready for mission 1. |
 | #104 | `7958d04` | feat(scoring): add target-point ledger and ranks | Gameplay code, unused | Nothing yet. Points per target counted once per kill, and ranks by points. Today's scoring is unchanged. |
 | #103 | `2da939d` | feat(missions): optional per-mission policy fields (no behaviour change) | Gameplay code, unused | Nothing. Per-mission settings for countdown, world size, start and scoring; no mission uses them yet. |
@@ -27,7 +30,7 @@ Last updated: 2026-10-28, against `main` at `93dc512153b9098cdb7d486f3857e16794f
 ## What was verified, and what was not
 
 - **#97 and #98:** before merging, the Studio test suite ran on main with both combined: 684 of 684 tests passed across 57 suites. The merged main is file-for-file identical to that tested tree.
-- **#103, #104, #105:** the orchestrator audited #103 and #104 line by line and reviewed #105; each passed the offline validator and CI (564 offline contracts after #105). The Studio suite has not run on them yet, because the large-world measurement holds the Studio lease; it runs before the scoring wiring merges.
+- **#103 to #105 and #108:** the orchestrator audited #103 and #104 line by line and reviewed #105 and #108. Before #108 merged, the Studio suite ran on main with #108 included: 714 of 714 tests passed across 63 suites. Main differs from that tested tree only by #109's report and standalone spike scripts.
 - **All PRs:** the offline validator passed (545 compiled contracts, audio, radio and voice simulations, 90 Python tests).
 - **Not done:** no agent has played any of this in Roblox Player. No place version or upload receipt was checked. Your playtest is the real check.
 

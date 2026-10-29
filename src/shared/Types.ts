@@ -9,6 +9,8 @@ export interface MissionRecord {
 	firstCompletedAt?: number;
 	/** Highest debrief score on a completed run (MissionScore). */
 	bestScore?: number;
+	/** Optional points ledger associated with bestScore; absent from legacy records. */
+	bestTargetScore?: import("./TargetScore").TargetScoreSnapshot;
 	/** Best debrief rank on a completed run: S, A, B, C or D. */
 	bestRank?: string;
 }
@@ -119,6 +121,8 @@ export interface HudState {
 	special?: string;
 }
 export interface MissionStats {
+	/** Server-owned target ledger; present only for points-basis sorties. */
+	targetScore?: import("./TargetScore").TargetScoreSnapshot;
 	missionId?: number;
 	groundKills?: number;
 	reason?: string;

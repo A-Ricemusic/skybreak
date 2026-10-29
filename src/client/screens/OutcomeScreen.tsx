@@ -3,12 +3,15 @@ import { Difficulty, type DifficultyKind } from "../../shared/Difficulty";
 import { GameConfig } from "../../shared/GameConfig";
 import { MissionCatalog, MISSION_COUNT } from "../../shared/MissionCatalog";
 import type { MissionRank } from "../../shared/MissionScore";
+import { targetScoreLines } from "../../shared/OutcomePoints";
+import type { TargetScoreSnapshot } from "../../shared/TargetScore";
 import type { MenuLayout } from "../../shared/UILayout";
 import { C } from "../Theme";
 import { FooterButtons, Label } from "./Primitives";
 import { formatTime, panelPosition } from "./UIFormat";
 
 interface OutcomeState {
+	targetScore?: TargetScoreSnapshot;
 	won: boolean;
 	missionId: number;
 	airKills: number;
@@ -131,6 +134,7 @@ function OutcomeScreenImpl({
 	});
 	const accuracy = outcome.missilesFired > 0 ? math.floor((outcome.missileHits / outcome.missilesFired) * 100 + 0.5) : undefined;
 	const stats: DebriefLine[] = [
+		...targetScoreLines(outcome.targetScore),
 		{ key: "StatAir", label: "AIR KILLS", value: outcome.optionalKills > 0 ? `${outcome.airKills}  (+${outcome.optionalKills} RAIDERS)` : `${outcome.airKills}` },
 		{ key: "StatGround", label: "GROUND KILLS", value: `${outcome.groundKills}` },
 		{ key: "StatTime", label: `TIME  ·  PAR ${formatTime(outcome.par)}`, value: formatTime(outcome.elapsed), valueColor: outcome.won && outcome.elapsed <= outcome.par ? C.Accent : C.Ivory },
@@ -174,7 +178,7 @@ function OutcomeScreenImpl({
 					<Label name="OutcomeTitle" layoutOrder={3} text={outcome.won ? "MISSION ACCOMPLISHED" : "MISSION FAILED"} color={outcome.won ? C.Ivory : C.Danger} textSize={headerSize} minTextSize={14} font={Enum.Font.GothamBlack} size={new UDim2(1, -8, 0, headerSize + 4)} />
 					<frame key="RankBlock" LayoutOrder={4} BackgroundTransparency={1} Size={new UDim2(1, -8, 0, rankSize)}>
 						<textlabel key="RankLetter" BackgroundTransparency={1} Size={UDim2.fromOffset(rankSize, rankSize)} Font={Enum.Font.GothamBlack} Text={outcome.rank} TextColor3={rankColor} TextSize={rankSize} TextXAlignment={Enum.TextXAlignment.Left} />
-						<textlabel key="RankCaption" BackgroundTransparency={1} Position={UDim2.fromOffset(rankSize + 6, 0)} Size={new UDim2(1, -rankSize - 6, 0, 12)} Font={Enum.Font.GothamBold} Text="RANK  ·  SCORE" TextColor3={C.Faint} TextSize={10} TextXAlignment={Enum.TextXAlignment.Left} />
+						<textlabel key="RankCaption" BackgroundTransparency={1} Position={UDim2.fromOffset(rankSize + 6, 0)} Size={new UDim2(1, -rankSize - 6, 0, 12)} Font={Enum.Font.GothamBold} Text={outcome.targetScore ? "RANK  ·  POINTS" : "RANK  ·  SCORE"} TextColor3={C.Faint} TextSize={10} TextXAlignment={Enum.TextXAlignment.Left} />
 						<textlabel key="ScoreValue" BackgroundTransparency={1} Position={UDim2.fromOffset(rankSize + 6, 12)} Size={new UDim2(1, -rankSize - 6, 0, scoreHeight)} Font={Enum.Font.GothamBlack} Text={formatScore(outcome.score)} TextColor3={C.Ivory} TextSize={math.floor(scoreHeight * 0.96)} TextXAlignment={Enum.TextXAlignment.Left} />
 						<textlabel key="BestLine" BackgroundTransparency={1} AnchorPoint={new Vector2(0, 1)} Position={new UDim2(0, rankSize + 6, 1, 0)} Size={new UDim2(1, -rankSize - 6, 0, 14)} Font={Enum.Font.GothamBold} Text={newBest ? (outcome.newBestRank ? "NEW BEST RANK" : "NEW BEST SCORE") : bestText} TextColor3={newBest ? C.Orange : C.Muted} TextSize={compact ? 10 : 11} TextXAlignment={Enum.TextXAlignment.Left} />
 					</frame>
@@ -182,7 +186,7 @@ function OutcomeScreenImpl({
 					<Label name="OutcomeSummary" layoutOrder={6} text={story} color={outcome.won ? C.Ivory : C.Muted} textSize={compact ? 12 : 14} size={new UDim2(1, -8, 0, 0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} textYAlignment={Enum.TextYAlignment.Top} />
 					<Label name="ObjectivesHeading" layoutOrder={7} text="OBJECTIVES" color={C.Orange} textSize={10} font={Enum.Font.GothamBold} size={new UDim2(1, -8, 0, 14)} />
 					{objectives.map((line, index) => <DebriefRow key={line.key} line={line} order={10 + index} shown={index < shown} compact={compact} />)}
-					<Label name="StatsHeading" layoutOrder={40} text="FLIGHT RECORD" color={C.Orange} textSize={10} font={Enum.Font.GothamBold} size={new UDim2(1, -8, 0, 14)} />
+					<Label name="StatsHeading" layoutOrder={40} text={outcome.targetScore ? "TARGETS · COUNT / POINTS" : "FLIGHT RECORD"} color={C.Orange} textSize={10} font={Enum.Font.GothamBold} size={new UDim2(1, -8, 0, 14)} />
 					{stats.map((line, index) => <DebriefRow key={line.key} line={line} order={41 + index} shown={objectives.size() + index < shown} compact={compact} />)}
 					<Label name="SaveStatus" layoutOrder={60} text={outcome.saveText} visible={outcome.saveText !== ""} color={outcome.saveColor} textSize={compact ? 10 : 11} font={Enum.Font.GothamBold} size={new UDim2(1, -8, 0, 0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} />
 				</scrollingframe>

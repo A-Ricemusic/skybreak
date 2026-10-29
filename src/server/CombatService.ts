@@ -7,6 +7,8 @@ import { FlightMath, FlightState } from "../shared/FlightMath";
 import { MissionAssets } from "../shared/MissionAssets";
 import { AssetSelection } from "../shared/AssetSelection";
 import { JetFactory } from "../shared/JetFactory";
+import { recordScoredKill } from "./SortieScore";
+import { TargetScore, targetScoreStats } from "../shared/TargetScore";
 type TargetKind = "air" | "ground" | "ace";
 import { BlueprintRunner, BlueprintState } from "../shared/BlueprintRunner";
 import { MissionBlueprint, MissionCatalog, MissionPhaseBlueprint } from "../shared/MissionCatalog";
@@ -82,6 +84,7 @@ interface Projectile {
 	lostTrack?: boolean;
 }
 export interface CombatSession {
+	targetScore: TargetScore;
 	player: Player; slot: number; folder: Folder; aircraft: Model; state: FlightState; input: FlightInput;
 	blueprintState?: BlueprintState;
 	blueprint?: MissionBlueprint;
@@ -345,8 +348,8 @@ function sessionCanDamage(session: CombatSession, kind: TargetKind, required: bo
 	return false;
 }
 
-function sessionRecordKill(session: CombatSession, id: string, kind: TargetKind, required: boolean, now: number): boolean {
-	if (session.blueprintState) return BlueprintRunner.RecordKill(session.blueprintState, id, kind, required, now);
+function sessionRecordKill(session: CombatSession, id: string, kind: TargetKind, required: boolean, now: number, role?: AirRole): boolean {
+	if (session.blueprintState) return recordScoredKill(session.blueprintState, session.targetScore, id, kind, required, now, role);
 	return false;
 }
 
@@ -574,6 +577,7 @@ function cleanupSession(session: CombatSession, restore = true): void {
 /** Debrief counters handed to the completion callback. */
 function missionStats(session: CombatSession, won: boolean): MissionStats {
 	return {
+		...targetScoreStats(session.targetScore, MissionCatalog.Scoring(session.missionId)),
 		kills: session.kills,
 		groundKills: sessionGroundKills(session),
 		missionId: session.missionId,
@@ -920,7 +924,7 @@ function applyPhase(session: CombatSession): void {
 
 function destroyEnemy(session: CombatSession, enemy: Enemy): void {
 	if (!ownsEnemy(session, enemy)) return;
-	const accepted = sessionRecordKill(session, enemy.id, enemy.kind, enemy.required, os.clock());
+	const accepted = sessionRecordKill(session, enemy.id, enemy.kind, enemy.required, os.clock(), enemy.role);
 	syncElapsed(session);
 	if (!accepted) { if (sessionOutcome(session) !== undefined) finish(session); return; }
 	enemy.health = 0;
@@ -1677,6 +1681,7 @@ export const CombatService = {
 			const state = FlightMath.NewState();
 			aircraft.PivotTo(frameFor(state));
 			const session: CombatSession = {
+				targetScore: new TargetScore(MissionCatalog.Scoring(missionId)),
 				player, slot, folder, aircraft, state, missionId, lastWindupAt: -math.huge, radioSerial: 0, chatterIndex: 0,
 				input: { x: 0, y: 0, throttle: FlightMath.CruiseThrottle }, health: 100, kills: 0, elapsed: 0,
 				missiles: MAX_MISSILES, missileCooldown: 0, evadeRemaining: 0, regen: 0, lockProgress: 0,

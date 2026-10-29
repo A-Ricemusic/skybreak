@@ -6,13 +6,15 @@ Last updated: 2026-10-28.
 
 | Date | Raised by | What is blocked | Impact | What is needed |
 |---|---|---|---|---|
+| 2026-10-28 | Independent reviewer | Uploading the heavy bomber and the carrier: review 1 rejected both (D-029). | Missions use a grey stand-in bomber and no carrier model until they pass. Mission 1 can still be built around the stand-ins. | Fixes in progress, then a new independent review at 10/10. |
+| 2026-10-28 | Large-world measurement | Real-phone performance and streaming for full-scale worlds are unverified; only Studio and its phone emulator were measured. | Mission 1's world may need tuning after it goes live. | Measure load time in Studio before the campaign switch; your Player playtest on a phone is the real check. |
 | 2026-10-28 | Orchestrator | Enforced checks before merge: main has no branch protection. | A PR can merge before its `validate` check passes, and every merge goes live. The orchestrator gates merges by hand for now. | **You:** in GitHub, Settings → Branches, require the `validate` check on `main`. |
-| 2026-10-28 | Orchestrator | Full-scale worlds (D-019): mission 1's time-matched world is about 15,000 to 35,000 studs across, against today's ±3,600-stud airspace. The engine check found terrain writing already near its time budget, streaming off, and phone limits unmeasured. | If full scale can't load in reasonable time or runs badly on phones, mission 1's world has to change. | The large-world measurement reports feasibility; the orchestrator brings any change of design to the owner. |
 
 ## Resolved
 
 | Date | Raised by | What was blocked | Resolution |
 |---|---|---|---|
+| 2026-10-28 | Orchestrator | Whether full-scale worlds (D-019) could load in reasonable time. | Measured (#109): feasible with level of detail (D-028). Full detail everywhere is not. |
 | 2026-10-28 | Orchestrator | Disk space was down to about 10 GB free. | Owner approved removing this project's old checkouts only. An agent removed 129 that were clean and whose work was pushed or merged; free space is now about 22 GB. 47 were kept by the safety rules (recent, uncommitted, or commits not proven elsewhere). |
 | 2026-10-28 | Footage analyst | Whether 1080p sections of the video could be downloaded was unconfirmed. | Confirmed: mission 1 was downloaded at 1440×1080, 59.94 fps. |
 | 2026-10-28 | Orchestrator | The first footage agent ended its turn while the download was still running, with no ledger. | The download had completed. A second agent resumed from there and finished the ledger; the first was cancelled so only one agent owned the footage folder. |
