@@ -26,3 +26,12 @@ Last updated: 2026-10-29.
 | 2026-10-28 | Orchestrator | Disk space was down to about 10 GB free. | The owner approved removing this project's old checkouts under safety rules; free space increased to about 22 GB. |
 | 2026-10-28 | Footage analyst | Whether 1080p sections of the reference could be downloaded. | Confirmed with 1440×1080, 59.94 fps mission clips. |
 | 2026-10-28 | Several agents | Fresh worktrees lack an offline Luau runner. | Set `LUAU_BIN=/Users/pelicannurse/Projects/test app/build/offline-luau/luau`; agent briefs now carry this requirement. |
+
+## M04/M05 pending verification and assumptions
+
+
+The two worlds are merged and dormant (#144). The full Studio test suite passed with them (840/840), but no world was loaded and inspected visually, and no Player test was performed. Cold load times, water appearance, shell continuity in the renderer, uploaded assets and phone performance need the orchestrator’s Studio/Player pass before activation. M05 point/search/runway lights need engine batch C; this PR exports anchors only. Approved assets from merged PR #142 use stand-ins if runtime loading fails.
+
+Assumptions: M04’s translated start and NE/east/SE route implement the reference’s recommended hook; initial jammer and escort offsets and four later escort poses are provisional. M05 uses A3’s 48 rig /40 refinery ground split; per-type counts, eight linked decks, individual coordinates, coastline, northbound runway and light-anchor density are not readable precisely in the footage. Review fixes lower the navigable sea bed to8 beneath surface32, clear rotated tanker keels, extend the tower apron and support grass-free rotated tracks. M04 exports nine ordinary escorts plus one ace (maximum1,540); M05 includes an assumed command building for the observed100-point contact and a2,400-point rig ledger. Ship waterline poses stay32. These choices are recorded in D-080–D-085 and the composition specs; mission failure/scoring/RTB behavior remains separate integration work.
+
+Cold Studio builds remain unmeasured. Apply M02’s approximately 1.5× estimate correction when planning the lease (roughly 14 s: M04 9.259 s ×1.5 ≈13.89 s; M05 9.281 s ×1.5 ≈13.92 s); no measured runtime is claimed.

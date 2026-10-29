@@ -17,8 +17,8 @@ Missions 3–5 are in progress. Mission 3's world (#139) and engine batch B (#14
 | 1 | Sitting Duck | 0:06:30–0:11:24 | 4.9 min | Yes | Yes | Yes | Yes | Earlier tuning; current #134 tuning awaits feedback |
 | 2 | Imminent Threat | 0:15:38–0:22:34 | 6.9 min | Yes | Yes | Yes (#143) | Yes | — |
 | 3 | The Northern Eye | 0:26:41–0:34:24 | 7.7 min | Yes | Yes | In progress: dormant world (#139) and engine batch B (#141) merged; mission-data PR in progress | No | — |
-| 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | Yes | In progress: dormant assets wired (#142); world #144 and engine #145 in review | No | — |
-| 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | Yes | In progress: dormant assets wired (#142); world #144 and engine #145 in review | No | — |
+| 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | Yes | In progress: assets wired (#142) and world (#144) merged, dormant; engine batch C #145 in review | No | — |
+| 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | Yes | In progress: assets wired (#142) and world (#144) merged, dormant; engine batch C #145 in review | No | — |
 | 6 | Invincible Fleet | 1:03:01–1:20:00 | 17.0 min | Yes | — | — | — | — |
 | 7 | Deep Strike | 1:22:13–1:35:49 | 13.6 min | Yes | — | — | — | — |
 | 8 | Shattered Skies | 1:39:16–1:52:39 | 13.4 min | Yes | — | — | — | — |

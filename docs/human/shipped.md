@@ -1,6 +1,6 @@
 # Shipped
 
-Last updated: 2026-10-29, against `main` at `68f2df51d34de0eb6f2453fda1aed591c750e2c1`.
+Last updated: 2026-10-29, against `main` at `7711b70`.
 
 [Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). The new 18-mission campaign is live by pipeline: practice flight, mission 1 and mission 2 are playable; missions 3 to 18 are locked. The latest merged gameplay revision is `68f2df5` (#143). The 2026-10-29 publish logs confirmed the official place and returned place versions **85** (#130), **86** (#134), **87** (#140), **88** (#138), **88** (#137), **89** (#139), **90** (#141), **91** (#142) and **92** (#143). Gameplay merges are live through automatic CI/CD under the owner's convention; documentation-only changes add no game content. PR #131 merged only into `feat/campaign-switch-m01`, not `main`; #132 closed without merging, so neither is listed as shipped below.
 
@@ -8,6 +8,7 @@ Last updated: 2026-10-29, against `main` at `68f2df51d34de0eb6f2453fda1aed591c75
 
 | PR | Commit | Title | Kind | What you will see |
 |---|---|---|---|---|
+| #144 | `7711b70` | feat(world): dormant M04 inland hills and M05 night refinery | Gameplay world, unused | Nothing yet. Mission 4's inland hills (three transports, two jammers, nine escorts and an ace; 1,540 points) and mission 5's night refinery and oil rig (rig 2,400 points; full inventory 4,500) are merged but not selected by any mission. |
 | #143 | `68f2df5` | feat(m02): make mission 2 playable after mission 1 | **Gameplay: mission 2** | **Mission 2 "NO ANIMALS".** After you finish mission 1, mission 2's tile reads NEXT. You start in the air heading north with three LANTERN wingmen and a 15:00 countdown, follow a red-and-white power line about two minutes to a "farm" airfield, and destroy all eleven parked bombers. Optional points: the substation on the way, seven hangars, four AA guns that fire back, and the control tower. Fighters meet you head-on, rise from the base, and one scrambles off the runway; the ace HARROW SIX arrives after four bombers. Everything destroyed is 2,610 points (S ≥ 2,200). Loading takes about 16 s on desktop. |
 | #142 | `051b183` | feat(assets): wire five approved mission 4–5 models | Gameplay code, unused | Nothing yet. The approved heavy transport, radar jammer, fuel tanker, attack helicopter and elite Vanta livery are wired for missions 4–5. Studio checked orientation, scale, tanker waterline and helicopter rotor hubs; missions 4–5 remain locked, and no Player test was performed. |
 | #141 | `cbdec3a` | feat(engine): dormant mission updates, return lines, landing and terrain clearance | Gameplay code, unused | Nothing yet. Mission-update resets, return-line guidance, automatic skippable landing and terrain-relative warnings are available for mission 3, which remains locked. |
@@ -81,3 +82,5 @@ These merged gameplay changes are live through the automatic pipeline convention
 - **Not done:** no agent has played any of this in Roblox Player. No place version or upload receipt was checked. Your playtest is the real check.
 
 The earlier AC04 release (#92) was rejected and reverted (`b0737fa`). #77 (mission 1 tutorial rework) and #91 (TypeScript 5.9) were closed without merging.
+
+PR #144 remains unmerged; its dormant M04/M05 worlds contribute no Player changes. Offline validation and pending measurements are recorded in the composition specs and Blockers.

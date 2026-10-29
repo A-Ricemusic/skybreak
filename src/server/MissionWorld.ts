@@ -1,3 +1,7 @@
+import { M04World } from "./M04World";
+import { M04_WORLD_KEY } from "../shared/M04WorldPlan";
+import { M05World } from "./M05World";
+import { M05_WORLD_KEY } from "../shared/M05WorldPlan";
 import { M02World } from "./M02World";
 import { M02_WORLD_KEY } from "../shared/M02WorldPlan";
 import { M03World } from "./M03World";
@@ -229,6 +233,10 @@ export const MissionWorld = {
 		if (MissionCatalog.WorldKey(missionId) === M03_WORLD_KEY) {
 			Workspace.FindFirstChild("World")?.Destroy(); Workspace.Terrain.Clear();
 			return M03World.Build(parent);
+		}
+		if (MissionCatalog.WorldKey(missionId) === M04_WORLD_KEY || MissionCatalog.WorldKey(missionId) === M05_WORLD_KEY) {
+			Workspace.FindFirstChild("World")?.Destroy(); Workspace.Terrain.Clear();
+			return MissionCatalog.WorldKey(missionId) === M04_WORLD_KEY ? M04World.Build(parent) : M05World.Build(parent);
 		}
 		const late = WorldAssets.Preload(UPLOADS[missionId === 0 ? 1 : 2]);
 		if (late.size() > 0) warn(`[MissionWorld] M${missionId}: ${late.join(", ")} still loading after the preload deadline; placing fallbacks`);
