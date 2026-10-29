@@ -7,7 +7,7 @@ export interface OrientationOffsets {
 	roll: number;
 }
 
-/** Import correction only. Keep identity until the orchestrator's Studio inspection.
+/** Import correction only. Identity verified in Studio on 2026-10-29; see docs/qa/orientation/2026-10-29/.
  * Rotation is around the imported bounds centre; world pivots are then bottom-centred.
  * Corrections rotate the whole asset, including rotor parts, without changing approved files.
  */

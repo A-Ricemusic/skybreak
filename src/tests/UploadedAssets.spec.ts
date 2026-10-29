@@ -41,7 +41,9 @@ interface FakeOptions {
  */
 function fakeUpload(name: UploadedAssetName, options: FakeOptions = {}): Model {
 	const spec = UploadedAssetSpecs[name];
-	const scale = options.scale ?? PILOT_IMPORT_SCALE;
+	// Large world meshes cannot use the pilot aircraft's 28x import scale:
+	// Roblox clamps each BasePart.Size axis to 2048, corrupting their proportions.
+	const scale = options.scale ?? (spec.kind === "world" ? 1 : PILOT_IMPORT_SCALE);
 	const container = new Instance("Model");
 	const inner = new Instance("Model");
 	inner.Parent = container;
@@ -53,7 +55,9 @@ function fakeUpload(name: UploadedAssetName, options: FakeOptions = {}): Model {
 		const part = new Instance(options.surface === "parts" ? "Part" : "MeshPart");
 		part.Name = options.rename !== undefined && options.rename[0] === partName ? options.rename[1] : partName;
 		// The body (or the single world mesh) spans the whole bounds; surfaces sit inside it.
-		part.Size = index === 1 ? size : size.mul(0.1);
+		const partSize = index === 1 ? size : size.mul(0.1);
+		assert(math.max(partSize.X, partSize.Y, partSize.Z) <= 2048, `fakeUpload ${name} exceeds Roblox's part size limit`);
+		part.Size = partSize;
 		part.CFrame = new CFrame(offset.add(index === 1 ? Vector3.zero : new Vector3((index % 2 === 0 ? -1 : 1) * size.X * 0.3, 0, size.Z * 0.3)));
 		part.Anchored = false;
 		part.CanCollide = true;
@@ -128,6 +132,21 @@ describe("Uploaded asset loader with procedural fallback", () => {
 		} finally {
 			offsets.yaw = prior;
 		}
+	});
+
+	it("places the tanker at its waterline through the cached world loader", () => {
+		const parent = track(new Instance("Folder"));
+		parent.Parent = Workspace;
+		UploadedAssets.Configure({ ids: { FuelTanker: 1 }, probe, loader: () => fakeUpload("FuelTanker") });
+		expect(WorldAssets.Preload(["FuelTanker"])).toEqual([]);
+		const placed = WorldAssets.PlaceUploaded("FuelTanker", parent, new CFrame(100, 0, -50))!;
+		expect(placed.GetAttribute("GeometrySource")).toBe("Uploaded");
+		const [box, size] = placed.GetBoundingBox();
+		const spec = UploadedAssetSpecs.FuelTanker;
+		close(size.X, spec.size.X);
+		close(size.Y, spec.size.Y);
+		close(size.Z, spec.size.Z);
+		close(box.Position.Y - size.Y / 2, -spec.groundOffset);
 	});
 
 	it("uses an uploaded aircraft when its ID is set: validated, scaled to the procedural size, cached and welded", () => {
