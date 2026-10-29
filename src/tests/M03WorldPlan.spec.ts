@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { buildM03Plan, M03, M03_ENVIRONMENT, M03_FILL_CHUNK, m03Counts, m03Detailed, m03Ground, m03Height, m03Material } from "../shared/M03WorldPlan";
-import { M03_AIRSPACE } from "../shared/M03Limits";
+import { M03_AIRSPACE, M03_BUILD_LIMITS as BUILD_BUDGET } from "../shared/M03Limits";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { FlightMath } from "../shared/FlightMath";
 import { distinctChannels, ENVIRONMENTS, ENVIRONMENT_NAMES } from "../shared/EnvironmentPresets";
@@ -22,6 +22,7 @@ describe("Dormant M03 snowy mountain composition", () => {
 		expect(p.targets.filter((t) => t.type === "radar" && t.group === "site2").size()).toBe(4);
 		expect(p.targets.filter((t) => t.type === "aaGun").size()).toBe(4);
 		expect(p.targets.filter((t) => t.type === "helicopter").size()).toBe(1);
+		expect(p.targets.map((t) => t.y)).toEqual([736, 756, 780, 756, 736, 656, 656, 656, 656, 736, 452, 424, 520, 656]);
 		for (const t of p.targets) {
 			expect(t.y).toBe(terrainTop(p.ops, t.x, t.z).solid);
 			expect(math.max(math.abs(t.x), math.abs(t.z))).toBeLessThan(M03_AIRSPACE.softHalfWidth);
@@ -82,11 +83,45 @@ describe("Dormant M03 snowy mountain composition", () => {
 	it("stays within explicit budgets and bounds every native fill", () => {
 		const c = m03Counts(p);
 		print(`M03_ESTIMATE voxels=${c.voxels} jobs=${c.jobs} seconds=${c.estimatedSeconds} parts=${c.parts} descendants=${c.descendants} detailCells=${p.detailCells} coarseCells=${p.coarseCells}`);
+		expect(M03.budget).toBe(BUILD_BUDGET);
+		expect(c.estimatedSeconds).toBeLessThanOrEqual(BUILD_BUDGET.estimatedSeconds);
 		expect(c.voxels).toBeLessThanOrEqual(M03.budget.voxelWrites);
 		expect(c.jobs).toBeLessThanOrEqual(M03.budget.jobs);
 		expect(c.parts).toBeLessThanOrEqual(M03.budget.parts);
 		expect(c.descendants).toBeLessThanOrEqual(M03.budget.descendants);
 		for (const job of terrainJobs(p.ops, M03_FILL_CHUNK)) expect(job.cells).toBeLessThanOrEqual(M03_FILL_CHUNK);
+	});
+	it("tiles the entire footprint with thin caps and closes sampled LOD edges", () => {
+		const caps = p.ops.filter((o) => o.sy === 8 && o.sx >= 64 && o.sz >= 64);
+		let area = 0;
+		for (const o of caps) area += o.sx * o.sz;
+		expect(area).toBe(4 * M03.halfX * M03.halfZ);
+		expect(caps.size()).toBe(p.detailCells + p.coarseCells);
+		for (const o of p.ops) {
+			// No solid mountain columns: caps are eight studs, curtains four.
+			expect(math.min(o.sx, o.sy, o.sz)).toBeLessThanOrEqual(8);
+			for (const v of [o.x - o.sx / 2, o.z - o.sz / 2, o.y - o.sy / 2, o.sx, o.sy, o.sz]) expect(v % 4).toBe(0);
+		}
+		for (let i = 0; i < caps.size(); i += 97) {
+			const c = caps[i], top = c.y + 4;
+			expect(m03Ground(c.x, c.z)).toBe(top);
+			for (const axis of ["x", "z"]) for (const sign of [-1, 1]) {
+				const edge = axis === "x" ? c.x + sign * c.sx / 2 : c.z + sign * c.sz / 2;
+				const along = axis === "x" ? c.z : c.x;
+				const nx = axis === "x" ? edge + sign * 32 : along;
+				const nz = axis === "z" ? edge + sign * 32 : along;
+				const neighbor = math.abs(nx) >= M03.halfX || math.abs(nz) >= M03.halfZ ? 0 : m03Ground(nx, nz);
+				if (neighbor === top) continue;
+				// The tall side owns the four-stud wall, all the way down to
+				// the lower cap (or Y=0 at the outside perimeter).
+				const wallAt = edge + (top > neighbor ? -sign * 2 : sign * 2);
+				const wx = axis === "x" ? wallAt : along, wz = axis === "z" ? wallAt : along;
+				const walls = p.ops.filter((o) => o.material === "Rock" && math.min(o.sx, o.sz) === 4
+					&& math.abs(wx - o.x) <= o.sx / 2 && math.abs(wz - o.z) <= o.sz / 2
+					&& o.y - o.sy / 2 <= math.min(top, neighbor) && o.y + o.sy / 2 >= math.max(top, neighbor));
+				expect(walls.size()).toBeGreaterThan(0);
+			}
+		}
 	});
 	it("has distinct dry clear 16:28 light, strong sun and visible moon settings", () => {
 		for (const key of ENVIRONMENT_NAMES) expect(distinctChannels(M03_ENVIRONMENT, ENVIRONMENTS[key])).toBeGreaterThanOrEqual(2);

@@ -14,8 +14,11 @@ The exported airborne start is **(12000, 640, 9120)**, CFrame yaw **+47.3°**, p
 
 ## Terrain and detail
 
-Whole-footprint 256-stud sampled columns, replaced by 64-stud columns around the ingress, both sites, inter-site route, gorge and entire southbound return route. Corridor half-width is 640; gorge detail extends 768 either side. Coarse-tile selection samples corners, edge midpoints and centre. LOD uses a single height function; detail replaces whole coarse cells rather than overlaying terrain. Native voxels remain 4 studs. The terrain body is solid Rock from Y=0, with an 8-stud Snow cap on gentle combat-area surfaces; gradient magnitude over 0.65 exposes dark Rock, and selected uphill-facing surfaces over 0.32/0.1 gradient approximate shaded/scoured faces. This is a static aspect heuristic, not a shadow simulation. The home lowland has Ground caps.
+The full footprint uses **512-stud distant cells**, **128-stud cells** around ingress, both sites, inter-site route, gorge and the entire southbound return corridor, and **64-stud cells** around each target (including sheds and helicopter rotors). Corridor half-width remains 640; gorge reservation remains 768 either side. Selection samples each 512-stud tile on a 128-stud grid and replaces complete tiles; target refinement replaces whole 128-stud cells. Edge cells clip to the original footprint. All levels sample the same height function at cell centres. **These are geometry sampling widths; native terrain resolution stays 4 studs.** Target cells retain the old 64-stud grid and all table heights are unchanged.
 
+Mountains are **hollow shells**, rather than solid columns from Y=0. Each cell writes one 8-stud cap of Snow, Rock or lowland Ground. Shared height steps receive a 4-stud vertical Rock curtain from the lower cap to the higher cap; edges are grouped into runs of equal neighboring height. Each edge is emitted once, including fine/coarse joins; the outside perimeter closes down to Y=0. Curtains occupy the taller cell's edge and overlap its cap. There is no second Rock body under snow and no separate cap/body overlay. The interior is deliberately empty; flight collision concerns the exterior surface. This preserves the sampled mountain relief while removing invisible solid volume. The 128/512-stud silhouettes and thin-wall collision still need Studio inspection.
+
+Gradient magnitude over 0.65 exposes dark Rock; selected uphill-facing surfaces over 0.32/0.1 gradient approximate shaded/scoured faces. This is a static aspect heuristic, not a shadow simulation. The home lowland has Ground caps.
 Targets snap to the exact sampled column height, not the ideal continuous height. Their small structural foundations stay within each 64-stud cell; radar sheds use the adjacent sampled cell. No trees or settlements are added to the combat mountains. All targets use primitive stand-ins, with stable IDs, `TargetType`, `TargetGroup` and `StandIn` attributes; `groundTargets` returns all 14 models in table order. The engine must attach typed behavior and choose required/optional targets. These stand-ins do not fire or award points.
 
 ## Exported layout
@@ -51,13 +54,23 @@ Separate `M03_ENVIRONMENT`, clear **16:28**, no clouds/precipitation, strong sun
 
 ## Budgets, offline estimate and activation gate
 
-Explicit provisional budgets: **8 billion voxel writes, 180,000 bounded fill jobs, 340 parts, 450 descendants**; zero uploaded props. Terrain fills cap at **65,536 voxels/job**, execution slices at 8 ms with yields, planning checkpoints at each coarse tile (4 ms target). These are limits on planned work, not measured memory or heartbeat guarantees. Solid volume under a full mountain range is much more expensive than mission 1's island/sea world; these large terrain allowances are local to this dormant composition and do not raise shared budgets.
+Budgets live in `src/shared/M03Limits.ts` as `M03_BUILD_LIMITS`: **130 million voxel writes, 29,000 bounded fill jobs, 120 parts, 140 descendants and a 20-second estimate ceiling**. Tests enforce every limit. Terrain fills still cap at **65,536 voxels/job**, execution slices at 8 ms with yields, and planning checkpoints target 4 ms while populating the adaptive grid and emitting shells. Zero uploaded props. Counts represent planned writes including overlaps, not unique occupied cells, measured memory or heartbeat guarantees.
 
-Default-plan audit: **5,135,175,680 voxel writes; 144,493 jobs; 26,800 detail cells; 10,142 coarse cells; 116 parts; 131 descendants**.
+| Default plan | Before (solid columns) | After (shell LOD) |
+|---|---:|---:|
+| Voxel writes | 5,135,175,680 | 124,670,496 |
+| Bounded terrain jobs | 144,493 | 28,824 |
+| Detail cells | 26,800 | 7,859 |
+| Coarse cells | 10,142 | 2,535 |
+| Parts | 116 | 116 |
+| Descendants | 131 | 131 |
+| Offline estimate | 281.95 s | 18.60 s |
 
-The offline estimate doubles the measured 35k coarse-spike job-rate extrapolation (`2 × jobs / 14124 × 13.78 s`). It estimates **281.95 seconds (about 4.7 minutes)**, **not a demonstrated 30-second terrain-ready pass**. It excludes network replication, cold-client visibility and rendering. Selection must wait for Studio measurement and either acceptance of loading time or further construction optimization/baking. No claim of acceptable mobile memory/performance follows from passing the count budgets.
+Voxel writes fall **97.6%**, jobs **80.1%**. The revised estimate uses the same formula as M02: `2 × (jobs / 27494 × 7.915 s + 1 s)`, based on the tuned M01 cold measurement (27,494 jobs / 207,739,968 writes, 7.915 s), reserving twice the extrapolated job time and twice a fixed one-second allowance. This replaces the old generic coarse-spike formula `2 × jobs / 14124 × 13.78 s`; the old plan would estimate **85.19 s** under the revised formula. The improvement is therefore both actual work reduction and a changed calibration, not a measured 15× speedup. M03's job count is comparable to tuned M01, with lower write volume. Thin curtains have a different workload mix and the fixed allowance is unverified for this planner.
 
-Required offline commands: frozen Bun install, build, validate:offline with the local Luau binary, and diff whitespace check. The new pure specs cover dormancy, deterministic/cooperative planning, count and exact terrain grounding, crest/saddle geometry, AA sides, bounds, distances, runway flatness, altitude, corridor coverage, materials, job limits and distinct preset. The existing world-report check verifies unchanged practice and mission 1 rows. Frozen install and build passed; `validate:offline` passed with `OFFLINE_LUAU_RESULT passed=649 failed=0`, radio delivery 4/0, 119 Python tests OK, and `world counts up to date`. `git diff --check` passed. No Studio or Roblox Jest run is performed by this task.
+**18.60 seconds is an offline estimate, not an observed Studio/Player load time.** It excludes replication, cold-client visibility and rendering. Runtime measurement and real-phone acceptance remain required before activation. No mobile memory/performance acceptance follows from passing count budgets.
+
+Required offline commands: frozen Bun install, build, validate:offline with the local Luau binary, and diff whitespace check. Pure specs retain all existing contracts and add fixed target-height regression values, full-footprint cap area, 4-stud alignment, absence of solid mountain columns, sampled shell closure across LOD edges and the estimate ceiling. The existing world-report check verifies unchanged practice and mission 1 rows. Frozen Bun install and build passed. Full `validate:offline` passed: `OFFLINE_LUAU_RESULT passed=650 failed=0`, `MISSION_CATALOG_SNAPSHOT passed=19 failed=0`, `RADIO_DELIVERY passed=4 failed=0`, 119 Python tests OK, and `world counts up to date`. `git diff --check` passed. No Studio or Roblox Jest run is performed by this task.
 
 ## What Studio must measure
 
@@ -67,6 +80,6 @@ Before selecting this world, measure terrain-ready and total build seconds, long
 
 - README: M03 world composition implemented in an unmerged dormant PR; mission/engine integration and visual/performance acceptance remain outstanding. No Player verification.
 - shipped: no entry until merge; on merge state that the dormant world is available to code but changes no currently selected sortie.
-- next: integrate the exported key, start, airspace, target layout, return crossing and landing deck with the engine agent; first profile the several-minute build estimate and reduce or accept loading cost before activation.
+- next: integrate the exported key, start, airspace, target layout, return crossing and landing deck with the engine agent; profile the optimized 18.60-second estimate and inspect shell/LOD appearance before activation.
 - blockers: no physical altitude ceiling blocker (944 summit, 3000 soft/3600 hard). Runtime loading, replication, LOD appearance, daytime moon and real-phone performance are unmeasured. Review the separate 900-stud authored-point constraint for mountain clearance.
-- decisions: implementation assumptions only, owner may override: valley Y=80, summit cap944, static aspect-based rock, 64/256 sampling, separate eastern lowland base and procedural daytime moon; provisional terrain budgets are not production approval. Preserve D-001/016/019/028/033 and streaming policy.
+- decisions: implementation assumptions only, owner may override: valley Y=80, summit cap944, static aspect-based rock, 64/128/512 sampling and hollow shell construction, separate eastern lowland base and procedural daytime moon; tighter terrain budgets and offline estimates are not production approval. Preserve D-001/016/019/028/033 and streaming policy.

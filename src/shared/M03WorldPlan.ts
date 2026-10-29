@@ -2,10 +2,12 @@ import type { EnvironmentSpec } from "./EnvironmentPresets";
 import { fillVoxels, terrainJobs } from "./TerrainSchedule";
 import { polyDist, type TerrainOp, type PartSpec, type TerrainMaterial } from "./WorldPlan";
 
+import { M03_BUILD_LIMITS } from "./M03Limits";
+
 export const M03_WORLD_KEY = "m03_snow_radar";
 export const M03_FILL_CHUNK = 65536;
 export const M03 = {
-	halfX: 14976, halfZ: 12928, bottom: 0, coarse: 256, detail: 64, corridorHalf: 640,
+	halfX: 14976, halfZ: 12928, bottom: 0, coarse: 512, detail: 128, targetDetail: 64, corridorHalf: 640,
 	valley: 80, summit: 944, scale: 0.96,
 	start: { x: 12000, y: 640, z: 9120, headingDegrees: 47.3 }, // CFrame yaw: -Z toward NW
 	site1: { x: -480, z: -2400 }, site2: { x: -10080, z: -8160 },
@@ -14,7 +16,7 @@ export const M03 = {
 	returnLine: { x1: -13500, x2: 13500, z: 11040 },
 	// Flat lowland east of the mountain return route; runway heading north.
 	landing: { x: 6000, y: 80, z: 11264, headingDegrees: 0, length: 2304, width: 128 },
-	budget: { voxelWrites: 8e9, jobs: 180000, parts: 340, descendants: 450 },
+	budget: M03_BUILD_LIMITS,
 };
 export const M03_ENVIRONMENT: EnvironmentSpec = {
 	label: "Clear snow late afternoon", clock: 16 + 28 / 60, brightness: 3, exposure: -0.12,
@@ -64,16 +66,39 @@ export function m03Detailed(x: number, z: number): boolean {
 		|| math.abs(x - M03.site2.x) < 1600 && math.abs(z - M03.site2.z) < 1400
 		|| math.abs(x - M03.landing.x) < 1800 && math.abs(z - M03.landing.z) < 1600;
 }
-/** Entire coarse tiles are replaced, avoiding overlapping LOD surfaces. */
-function detailedTile(x: number, z: number): boolean {
-	for (let dx = 0; dx <= 256; dx += 128) for (let dz = 0; dz <= 256; dz += 128) if (m03Detailed(x + dx, z + dz)) return true;
+// Keep the original 64-stud sampling under every target, shed and rotor.
+// This list contains coordinates only; querying ground here would recurse.
+function targetPositions(): number[][] {
+	const out: number[][] = [];
+	for (let i = 0; i < 5; i++) out.push([-480 + (i - 2) * 384, -2400 + (i - 2) * 192]);
+	for (let i = 0; i < 4; i++) out.push([-10400 + i * 224, -8160 + (i % 2) * 192]);
+	out.push([-160, -2272], [-11552, -7520], [-8544, -7520], [-10528, -6496], [-10080, -8480]);
+	return out;
+}
+const TARGET_POSITIONS = targetPositions();
+function targetTile(x: number, z: number): boolean {
+	for (const t of TARGET_POSITIONS) if (t[0] >= x - 128 && t[0] <= x + 256 && t[1] >= z - 128 && t[1] <= z + 256) return true;
 	return false;
 }
+/** Whole 512-stud tiles refine to 128 along the flight reservation. */
+function detailedTile(x: number, z: number): boolean {
+	for (let dx = 0; dx <= 512; dx += 128) for (let dz = 0; dz <= 512; dz += 128) if (m03Detailed(x + dx, z + dz)) return true;
+	return false;
+}
+function cellAt(x: number, z: number) {
+	const tx = math.floor((x + M03.halfX) / 512) * 512 - M03.halfX;
+	const tz = math.floor((z + M03.halfZ) / 512) * 512 - M03.halfZ;
+	let side = detailedTile(tx, tz) ? 128 : 512;
+	let cx = tx + math.floor((x - tx) / side) * side, cz = tz + math.floor((z - tz) / side) * side;
+	if (side === 128 && targetTile(cx, cz)) {
+		side = 64;
+		cx += math.floor((x - cx) / side) * side; cz += math.floor((z - cz) / side) * side;
+	}
+	const sx = math.min(side, M03.halfX - cx), sz = math.min(side, M03.halfZ - cz);
+	return { x: cx, z: cz, sx, sz, top: m03Height(cx + sx / 2, cz + sz / 2) };
+}
 export function m03Ground(x: number, z: number): number {
-	const tx = math.floor((x + M03.halfX) / 256) * 256 - M03.halfX;
-	const tz = math.floor((z + M03.halfZ) / 256) * 256 - M03.halfZ;
-	const side = detailedTile(tx, tz) ? 64 : 256;
-	return m03Height(tx + math.floor((x - tx) / side) * side + side / 2, tz + math.floor((z - tz) / side) * side + side / 2);
+	return cellAt(x, z).top;
 }
 export function m03Material(x: number, z: number): TerrainMaterial {
 	const dx = (m03Height(x + 32, z) - m03Height(x - 32, z)) / 64;
@@ -96,15 +121,51 @@ export function m03TargetLayout(): M03Target[] {
 }
 export function buildM03Plan(seed = 303, checkpoint: () => void = () => {}): M03Plan {
 	const p: M03Plan = { key: M03_WORLD_KEY, seed, ops: [], parts: [], targets: m03TargetLayout(), detailCells: 0, coarseCells: 0 };
-	const block = (material: TerrainMaterial, x: number, z: number, side: number, bottom: number, top: number) => p.ops.push({ shape: "block", material, x, y: (bottom + top) / 2, z, sx: side, sy: top - bottom, sz: side, yaw: 0 });
-	for (let x = -M03.halfX; x < M03.halfX; x += 256) for (let z = -M03.halfZ; z < M03.halfZ; z += 256) {
-		const side = detailedTile(x, z) ? 64 : 256;
-		for (let dx = 0; dx < 256; dx += side) for (let dz = 0; dz < 256; dz += side) {
-			const cx = x + dx + side / 2, cz = z + dz + side / 2, top = m03Height(cx, cz), mat = m03Material(cx, cz);
-			if (mat === "Rock") block(mat, cx, cz, side, 0, top);
-			else { block("Rock", cx, cz, side, 0, top - 8); block(mat, cx, cz, side, top - 8, top); }
-			if (side === 64) p.detailCells++; else p.coarseCells++;
+	const block = (material: TerrainMaterial, x: number, z: number, sx: number, sz: number, bottom: number, top: number) => p.ops.push({ shape: "block", material, x, y: (bottom + top) / 2, z, sx, sy: top - bottom, sz, yaw: 0 });
+	// Cache the adaptive surface on a 64-stud address grid. It also lets walls
+	// follow fine/coarse joins without evaluating the height function per edge.
+	const cells: Array<{ x: number; z: number; sx: number; sz: number; top: number }> = [];
+	const heights = new Map<string, number>();
+	const key = (x: number, z: number) => `${x},${z}`;
+	for (let x = -M03.halfX; x < M03.halfX; x += 512) for (let z = -M03.halfZ; z < M03.halfZ; z += 512) {
+		const side = detailedTile(x, z) ? 128 : 512;
+		for (let dx = 0; dx < math.min(512, M03.halfX - x); dx += side) for (let dz = 0; dz < math.min(512, M03.halfZ - z); dz += side) {
+			const fine = side === 128 && targetTile(x + dx, z + dz) ? 64 : side;
+			for (let fx = 0; fx < side && x + dx + fx < M03.halfX; fx += fine) for (let fz = 0; fz < side && z + dz + fz < M03.halfZ; fz += fine) {
+				const c = cellAt(x + dx + fx, z + dz + fz);
+				cells.push(c);
+				for (let gx = c.x; gx < c.x + c.sx; gx += 64) for (let gz = c.z; gz < c.z + c.sz; gz += 64) heights.set(key(gx, gz), c.top);
+				if (fine <= 128) p.detailCells++; else p.coarseCells++;
+				checkpoint();
+			}
 		}
+		checkpoint();
+	}
+	for (const c of cells) {
+		const cx = c.x + c.sx / 2, cz = c.z + c.sz / 2;
+		// One 8-stud cap replaces the rock body plus snow overlay.
+		block(m03Material(cx, cz), cx, cz, c.sx, c.sz, c.top - 8, c.top);
+		// Each shared edge is emitted once, in equal-height runs. Four-stud
+		// vertical rock curtains close the hollow shell, including LOD joins.
+		const wall = (axis: "x" | "z", edge: number, start: number, length: number, negative = false) => {
+			let run = start, previous = -1;
+			const flush = (finish: number) => {
+				if (previous === c.top || finish === run) return;
+				const lo = math.min(previous, c.top), hi = math.max(previous, c.top);
+				const offset = (c.top > previous ? -2 : 2) * (negative ? -1 : 1);
+				block("Rock", axis === "x" ? edge + offset : (run + finish) / 2, axis === "z" ? edge + offset : (run + finish) / 2,
+					axis === "x" ? 4 : finish - run, axis === "z" ? 4 : finish - run, math.max(0, lo - 8), hi);
+			};
+			for (let v = start; v < start + length; v += 64) {
+				const neighbor = heights.get(axis === "x" ? key(negative ? edge - 64 : edge, v) : key(v, negative ? edge - 64 : edge)) ?? 0;
+				if (neighbor !== previous) { if (previous >= 0) flush(v); run = v; previous = neighbor; }
+			}
+			flush(start + length);
+		};
+		wall("x", c.x + c.sx, c.z, c.sz);
+		wall("z", c.z + c.sz, c.x, c.sx);
+		if (c.x === -M03.halfX) wall("x", c.x, c.z, c.sz, true);
+		if (c.z === -M03.halfZ) wall("z", c.z, c.x, c.sx, true);
 		checkpoint();
 	}
 	const part = (name: string, x: number, y: number, z: number, sx: number, sy: number, sz: number, color: [number, number, number], solid = false) => p.parts.push({ name, shape: "block", x, y, z, sx, sy, sz, yaw: 0, material: "Concrete", color, solid, grounded: solid });
@@ -136,6 +197,6 @@ export function m03Counts(p: M03Plan) {
 	const jobs = terrainJobs(p.ops, M03_FILL_CHUNK).size();
 	const targetParts = 9 * 2 + 4 * 3 + 7;
 	return { voxels, jobs, parts: p.parts.size() + targetParts, descendants: p.parts.size() + targetParts + p.targets.size() + 1,
-		// Conservative extrapolation from the 35k coarse spike, doubled for layered snow and variability.
-		estimatedSeconds: 2 * jobs / 14124 * 13.78 };
+		// Same measured M01 tuned cold rate and 2x reserve used by M02.
+		estimatedSeconds: 2 * (jobs / 27494 * 7.915 + 1) };
 }
