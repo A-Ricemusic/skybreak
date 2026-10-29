@@ -8,7 +8,11 @@ The new 18-mission campaign is live in Roblox Player through the automatic pipel
 
 Mission 2 became playable in #143 after its dormant world (#140) and engine batch A (#138). It unlocks after mission 1 and preserves mission 1 score breakdowns through completion, replays and save reloads. The publish workflow returned place version 92. No agent Player test is claimed.
 
+<<<<<<< HEAD
 Missions 3–5 are in review: [#147](https://github.com/A-Ricemusic/skybreak/pull/147), [#149](https://github.com/A-Ricemusic/skybreak/pull/149), and [#148](https://github.com/A-Ricemusic/skybreak/pull/148). Their worlds (#139/#144) and engines (#141/#145) are merged but dormant. They remain locked on main. Latest publish: place version **94** at `088fbfc`; this does not activate missions 3–5. See the per-level page for reported Studio evidence, open findings and beta checklists. No agent Player test is claimed.
+=======
+Missions 3–5 are in progress. Mission 3's world (#139) and engine batch B (#141) are merged; the open mission 3 PR makes it playable after mission 2 (nine radar domes at two snowy mountain sites, a MISSION UPDATE with a clock reset, a dashed return line and an automatic skippable landing). Its Studio results are in that PR; no Player test is claimed. See provisional D-061–D-066 in [Decisions](decisions.md). Mission 4–5 assets are merged and wired but dormant (#137, #142); their worlds are merged and dormant (#144) and engine batch C is in review in #145. The full Roblox Jest suite passed in Studio on #142 (808/808), but mission 3–5 visual integration and Player quality are not established.
+>>>>>>> 6861141 (docs(m03): re-apply mission 3 beta guide, dashboard and blockers on the restructured docs)
 
 ## Mission progress
 
@@ -16,9 +20,15 @@ Missions 3–5 are in review: [#147](https://github.com/A-Ricemusic/skybreak/pul
 |---|---|---|---|---|---|---|---|---|
 | 1 | Sitting Duck | 0:06:30–0:11:24 | 4.9 min | Yes | Yes | Yes | Yes | Earlier tuning; current #134 tuning awaits feedback |
 | 2 | Imminent Threat | 0:15:38–0:22:34 | 6.9 min | Yes | Yes | Yes (#143) | Yes | — |
+<<<<<<< HEAD
 | 3 | The Northern Eye | 0:26:41–0:34:24 | 7.7 min | Yes | Yes | In review #147; world #139 and engine #141 merged, dormant | No | — |
 | 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | Yes | In review #149; assets #142, world #144 and engine #145 merged, dormant | No | — |
 | 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | Yes | In review #148; assets #142, world #144 and engine #145 merged, dormant | No | — |
+=======
+| 3 | The Northern Eye | 0:26:41–0:34:24 | 7.7 min | Yes | Yes | Yes (mission 3 PR open; playable after mission 2 once merged) | No | — |
+| 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | Yes | In progress: assets wired (#142) and world (#144) merged, dormant; engine batch C #145 in review | No | — |
+| 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | Yes | In progress: assets wired (#142) and world (#144) merged, dormant; engine batch C #145 in review | No | — |
+>>>>>>> 6861141 (docs(m03): re-apply mission 3 beta guide, dashboard and blockers on the restructured docs)
 | 6 | Invincible Fleet | 1:03:01–1:20:00 | 17.0 min | Yes | — | — | — | — |
 | 7 | Deep Strike | 1:22:13–1:35:49 | 13.6 min | Yes | — | — | — | — |
 | 8 | Shattered Skies | 1:39:16–1:52:39 | 13.4 min | Yes | — | — | — | — |
