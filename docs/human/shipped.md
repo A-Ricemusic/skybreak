@@ -2,12 +2,14 @@
 
 Last updated: 2026-10-28, against `main` at `93dc512153b9098cdb7d486f3857e16794fc6ff0`.
 
-[Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). Broken Relay is the live 27-mission campaign. The latest merged gameplay-code revision is `00070d7` (#128). Gameplay merges are live through automatic CI/CD under the owner's convention; documentation-only changes add no game content.
+[Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). The new 18-mission campaign is live by pipeline: practice flight and mission 1 playable, missions 2 to 18 locked. The latest merged gameplay-code revision is `4891e8a` (#130), the campaign switch. The publish workflow for `4891e8a` succeeded on 2026-10-29: it confirmed the official place and Roblox returned **place version 85**. Gameplay merges are live through automatic CI/CD under the owner's convention; documentation-only changes add no game content.
 
 ## Merged 2026-10-28, newest first
 
 | PR | Commit | Title | Kind | What you will see |
 |---|---|---|---|---|
+| #130 | `4891e8a` | feat(campaign): switch to the 18-mission campaign; practice flight and mission 1 playable | **Gameplay: the campaign switch** | **The new campaign.** The menu lists the practice flight first (optional), then missions 1 to 18. Mission 1 is playable: carrier fly-off, 10:00 countdown, six bombers with escorts and the ace ASH WARRANT, four LANTERN wingmen, points scoring and rank. Missions 2 to 18 show as locked. Your save starts fresh; Broken Relay progress is no longer shown (it is not deleted). |
+| #129 | `a42de5d` | docs: record #125 to #128, D-036 practice optional and D-037 | Docs | No game change. |
 | #128 | `00070d7` | fix(flyoff): address launch follow-ups | Gameplay code, unused | Nothing yet. A smooth handoff from the fly-off to your control, wingmen holding formation during the intro, the intro camera on the port side easing into the chase view, and the HUD countdown clamped to each mission's own value. |
 | #127 | `baca7a1` | feat(missions): add opt-in countdown and carrier fly-off | Gameplay code, unused | Nothing yet. The 10-minute countdown that starts at control, and the three-second scripted fly-off from the carrier's bow. |
 | #126 | `7243717` | fix(wingmen): address review follow-ups | Gameplay code, unused | Nothing yet. Enemies commit to a target when they start aiming (lock warnings always right); aces and couriers ignore wingmen; FRND labels, smoothed friendly radar dots, a reliable radar symbol and wingman engine sound. |
@@ -50,6 +52,7 @@ Last updated: 2026-10-28, against `main` at `93dc512153b9098cdb7d486f3857e16794f
 ## What was verified, and what was not
 
 - **#97 and #98:** before merging, the Studio test suite ran on main with both combined: 684 of 684 tests passed across 57 suites. The merged main is file-for-file identical to that tested tree.
+- **#130 (campaign switch):** independent Opus review (two rounds of fixes), two Studio verification runs (`docs/specs/engine/campaign-switch-verification.md`). Final head: Studio suite 750/750 across 74 suites; scripted pilot flew practice (5,150 points, S) and mission 1 (six bombers in 48 s, 600 points, B); the menu showed CLEARED · RANK B · BEST 600 PTS and kept it after a save reload; the escape at 240 s showed "The bombers got through."; missions 2 to 18 refused a forged start. Phone emulator near the city: 60 FPS (not a real phone). Not observed by agents: how the fly-off handoff feels, warning sounds, all four wingmen together on screen. No Roblox Player test by agents; that is your playtest.
 - **#126 to #128:** #126 and #128 audited line by line by the orchestrator; #127 approved by an independent Opus review. Studio suite on main with each included: 768/768 (#126), 780/780 (#127), 782/782 (#128). Main's game source is identical to each tested tree.
 - **#120 to #124:** #120 and #122 were audited line by line by the orchestrator; #121 and #123 were approved by independent Opus reviews; #124 was verified in Studio by its agent. Studio suite runs on main with each batch included: 749/749 (#120, #121), 756/756 (#122), 763/763 (#123, #124). Main's game source is identical to each tested tree. Note: #122's agent claimed an independent review that did not exist; the orchestrator's own audit was the review.
 - **Uploads (2026-10-28):** heavy bomber asset 112476761254185 and carrier asset 118082412288291, both moderation-approved, uploaded by the orchestrator with the gated uploader from the exact reviewed files.
