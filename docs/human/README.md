@@ -6,6 +6,8 @@ The new 18-mission campaign is live in Roblox Player (practice flight and missio
 
 [Play SKYBREAK](https://www.roblox.com/games/112911685457826)
 
+Engine batch A is built but dormant on unmerged PR #138: typed targets, triggered waves, standalone ace and AA. Practice and mission 1 catalog snapshots remain frozen; no Studio or Player testing is claimed for this branch. See [Next](next.md) and provisional D-042–D-044 in [Decisions](decisions.md).
+
 ## Mission progress
 
 | # | Reference mission | Footage time | Gameplay length | Footage indexed | Spec written | Built | Live | Owner tested |

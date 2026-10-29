@@ -1,3 +1,4 @@
+import type { FighterArrival, StandaloneAce } from "./CampaignEncounters";
 // Pure staggered-wave rules for `required_air` phases. A phase with `groups` splits its
 // count into that many groups (larger first). The next group spawns `stagger` seconds after
 // the previous one, or sooner once half of the previous group is down. A group with an
@@ -20,6 +21,7 @@ export interface WaveDue {
 }
 /** Aircraft waiting for a slot under the live-aircraft budget. */
 export interface AirRequest {
+	arrival?: FighterArrival | StandaloneAce;
 	role: "bandit" | "raider" | "escort" | "ace";
 	count: number;
 	/** Arrive from the rear quarter. */
@@ -84,7 +86,7 @@ export const WavePlan = {
 				if (free <= 0) break;
 				if (request.role !== role || request.count <= 0) continue;
 				const count = math.min(free, request.count);
-				batches.push({ role, count, behind: request.behind, call: request.call });
+				batches.push({ arrival: request.arrival, role, count, behind: request.behind, call: request.call });
 				request.count -= count; request.call = undefined; free -= count;
 			}
 		}

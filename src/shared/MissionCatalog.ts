@@ -1,3 +1,4 @@
+import { TypedGroundTarget, FighterArrival, StandaloneAce, validateCampaignEncounters } from "./CampaignEncounters";
 import { BomberEncounter, validateBomberEncounter } from "./BomberEncounter";
 import { mission as practice } from "./missions/practice";
 import { missions } from "./missions";
@@ -103,6 +104,9 @@ export interface PhaseExecution {
 }
 
 export interface MissionPhaseBlueprint {
+	groundTargets?: TypedGroundTarget[];
+	fighterWaves?: FighterArrival[];
+	standaloneAce?: StandaloneAce;
 	bombers?: BomberEncounter;
 	execution?: PhaseExecution;
 	kind: PhaseKind;
@@ -214,7 +218,7 @@ function expandPhases(phases: MissionPhaseBlueprint[]): MissionPhaseBlueprint[] 
 // Recompute optional counts after authored flight objectives are installed.
 for (const mission of MISSIONS) {
 	let optional = 0;
-	for (const phase of expandPhases(mission.phases)) optional += (phase.bombers?.escorts.count ?? 0) + (phase.optionalRaiders ?? 0);
+	for (const phase of expandPhases(mission.phases)) optional += (phase.bombers?.escorts.count ?? 0) + (phase.optionalRaiders ?? 0) + (phase.standaloneAce ? 1 : 0) + (phase.fighterWaves ?? []).reduce((sum,w)=>sum+w.count,0);
 	mission.optionalRaiderMax = optional;
 }
 
@@ -257,13 +261,7 @@ for (let index = -1; index < MISSIONS.size(); index++) {
 	const id = blueprint.id;
 	assert(id === index + 1, `Mission ${index + 1} must have id ${index + 1}`);
 	validateMissionPolicy(blueprint, id);
-	if (blueprint.available !== false && id >= 3) {
-		const flow = expandPhases(blueprint.phases);
-		assert(flow.size() >= 4 && flow.size() <= 7, `Mission ${id} needs 4-7 objective beats`);
-		for (let beat = 1; beat < flow.size(); beat++) {
-			assert(flow[beat].kind !== flow[beat - 1].kind, `Mission ${id} repeats adjacent objective kinds`);
-		}
-	}
+	validateCampaignEncounters(blueprint, expandPhases(blueprint.phases), blueprint.airspace ?? LEGACY_MISSION_AIRSPACE, blueprint.scoring ?? LEGACY_MISSION_SCORING);
 	assert(blueprint.phases.size() >= 1, `Mission ${id} must have at least one phase`);
 	assert(blueprint.failure.size() > 0 && blueprint.failure.size() <= 120, `Mission ${id} needs a short failure outcome`);
 	for (const line of [...(blueprint.aceStages ?? []), ...(blueprint.aceReturns ?? [])]) assert(line.size() <= 72, `Mission ${id} ace radio must fit 72 characters`);
@@ -294,7 +292,7 @@ for (let index = -1; index < MISSIONS.size(); index++) {
 		if (phase.kind === "required_air" || phase.kind === "required_ground" || phase.kind === "chase") {
 			assert((phase.count ?? 0) >= 1, `${tag} needs count >= 1`);
 		}
-		if (phase.kind === "required_ground") groundCount += phase.count ?? 0;
+		if (phase.kind === "required_ground" && phase.groundTargets === undefined) groundCount += phase.count ?? 0;
 		if (phase.kind === "tutorial_missile") { assert(id === 0, `${tag} is only valid in Practice`); groundCount += phase.count ?? 0; }
 		if (phase.parkedEscort) {
 			assert((phase.kind === "recon" || phase.kind === "signal" || phase.kind === "route") && inBounds(phase.parkedEscort), `${tag} parked escort needs an in-bounds recon, signal or route stop`);
@@ -402,6 +400,8 @@ export const MissionCatalog = {
 	/** Exposed for authoring tests and future catalog builders; throws on an invalid policy. */
 	ValidatePolicy(blueprint: MissionBlueprint): void {
 		validateMissionPolicy(blueprint, blueprint.id);
+		assert(blueprint.phases.size()>0,"Mission needs a phase");
+		validateCampaignEncounters(blueprint, expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint), MissionCatalog.Scoring(blueprint));
 		for (const phase of expandPhases(blueprint.phases)) validateBomberEncounter(phase, blueprint.airspace ?? LEGACY_MISSION_AIRSPACE, blueprint.scoring ?? LEGACY_MISSION_SCORING);
 	},
 	All(): MissionBlueprint[] {
@@ -451,7 +451,7 @@ export const MissionCatalog = {
 	GroundStart(phases: MissionPhaseBlueprint[], index: number): number {
 		let start = 0;
 		for (let i = 0; i < index && i < phases.size(); i++) {
-			if (phases[i].kind === "required_ground") start += phases[i].count ?? 0;
+			if (phases[i].kind === "required_ground" && phases[i].groundTargets === undefined) start += phases[i].count ?? 0;
 			start += phases[i].hazard?.count ?? 0;
 		}
 		return start;
@@ -462,7 +462,7 @@ export const MissionCatalog = {
 		const phases = expandPhases(blueprint.phases);
 		for (let index = 0; index < phases.size(); index++) {
 			const phase = phases[index];
-			const count = phase.hazard?.count ?? (phase.hidden ? phase.count ?? 0 : 0);
+			const count = phase.groundTargets !== undefined ? 0 : phase.hazard?.count ?? (phase.hidden ? phase.count ?? 0 : 0);
 			const start = MissionCatalog.GroundStart(phases, index);
 			for (let offset = 0; offset < count; offset++) hidden.add(start + offset);
 		}
@@ -481,7 +481,7 @@ export const MissionCatalog = {
 	},
 	/** Raiders a phase may lose when every wave brings `extra` more (Ace difficulty). */
 	RaiderCap(phase: MissionPhaseBlueprint, extra = 0): number {
-		return (phase.bombers?.escorts.count ?? 0) + (phase.optionalRaiders ?? 0) + math.max(0, extra) * MissionCatalog.RaiderWaves(phase);
+		return (phase.standaloneAce ? 1 : 0) + (phase.fighterWaves ?? []).reduce((sum,w) => sum+w.count,0) + (phase.bombers?.escorts.count ?? 0) + (phase.optionalRaiders ?? 0) + math.max(0, extra) * MissionCatalog.RaiderWaves(phase);
 	},
 	/**
 	 * The most hostile aircraft a phase can have up at once if nothing held them back: every group a

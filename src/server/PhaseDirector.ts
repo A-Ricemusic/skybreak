@@ -1,3 +1,5 @@
+import { takeArrival, FighterArrival, StandaloneAce } from "../shared/CampaignEncounters";
+import type { AceLivery } from "../shared/AssetSelection";
 import { BomberRules, BomberSlotPose } from "../shared/BomberRules";
 import { bomberEscortPose, compileBomberEncounter, laterEscortsDue, reinforcementFraction } from "../shared/BomberEncounter";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
@@ -13,6 +15,8 @@ import type { CombatSession, AirRole, Enemy } from "./CombatSession";
 import { fixedRaiders } from "./PhaseDirectorRules";
 
 export interface SpawnOptions {
+	arrival?: FighterArrival | StandaloneAce;
+	livery?: AceLivery;
 	friendly?: boolean;
 	pose?: BomberSlotPose;
 	bomberSlot?: number;
@@ -51,7 +55,10 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		if (session.airQueue.size() === 0) return;
 		const room = WavePlan.Budget(extraRaiders(session)) - liveAircraft(session);
 		for (const batch of WavePlan.Admit(session.airQueue, room)) {
-			if (session.bomberEncounter && (batch.role === "escort" || batch.role === "ace")) {
+			if (batch.arrival) {
+				const a=batch.arrival;
+				spawnAir(session,batch.count,batch.role,{ arrival:a, optional:true, name: "name" in a ? a.name : undefined, livery: "livery" in a ? a.livery : undefined, aceHealth: "health" in a ? a.health : undefined });
+			} else if (session.bomberEncounter && (batch.role === "escort" || batch.role === "ace")) {
 				const encounter = session.bomberEncounter;
 				const leading = BomberRules.Sample(encounter.route, session.elapsed - encounter.startedAt).slots[0];
 				for (let i = 0; i < batch.count; i++) {
@@ -95,9 +102,18 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		const phases=BlueprintRunner.Phases(state);
 		const phase: MissionPhaseBlueprint | undefined=phases[state.phaseIndex];
 		if (!phase) return;
+		for (const enemy of session.enemies) if (enemy.typedGround) {
+			enemy.enabled=enemy.phaseOwner === state.phaseIndex && enemy.health>0;
+			for(const item of enemy.model.GetDescendants()) if(item.IsA("BasePart")) {
+				item.Transparency=enemy.enabled ? (item.GetAttribute("OriginalTransparency") as number ?? 0) : 1;
+				item.CanQuery=enemy.enabled && item.GetAttribute("FlightSolid") === true;
+			}
+			enemy.model.SetAttribute("SkybreakEnemy",enemy.enabled);
+			enemy.model.SetAttribute("RequiredTarget",enemy.enabled && enemy.required);
+		}
 		combat.spawnAllies(session);
 		if (phase.execution?.activatePracticeTarget) activateGround(session);
-		if (phase.kind === "required_ground") activateGround(session,MissionCatalog.GroundStart(phases,state.phaseIndex),phase.count ?? 0);
+		if (phase.kind === "required_ground" && phase.groundTargets === undefined) activateGround(session,MissionCatalog.GroundStart(phases,state.phaseIndex),phase.count ?? 0);
 		else if (phase.bombers) {
 			const b = phase.bombers;
 			const route = compileBomberEncounter(b);
@@ -212,6 +228,17 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		// Mid-phase "after" twists do not change phase, so applyBlueprintPhase never sees their radio: drain it here.
 		for (let line=BlueprintRunner.TakeRadio(bs); line !== undefined; line=BlueprintRunner.TakeRadio(bs)) radio(session,line,7);
 		const active=BlueprintRunner.ActivePhase(bs);
+		if (active && bs.outcome === undefined && ((active.fighterWaves?.size() ?? 0)>0 || active.standaloneAce !== undefined)) {
+			if (!session.arrivalTargets) {
+				session.arrivalTargets=[];
+				for (const phase of MissionCatalog.ExpandedPhases(bs.blueprint)) for (const target of phase.groundTargets ?? []) session.arrivalTargets.push(target);
+			}
+			const fired=session.arrivalsFired ?? new Set<string>(); session.arrivalsFired=fired;
+			const context={ elapsed:session.elapsed, phase:bs.phaseIndex, requiredKills:bs.requiredAirKills+bs.requiredGroundKills+(bs.aceKilled ? 1 : 0), destroyed:bs.killedIds, targets:session.arrivalTargets };
+			for(const arrival of [...(active.fighterWaves ?? []), ...(active.standaloneAce ? [active.standaloneAce] : [])]) {
+				if(takeArrival(arrival.id,arrival.trigger,context,fired)) session.airQueue.push({ arrival, role: "name" in arrival ? "ace" : arrival.role, count: "name" in arrival ? 1 : arrival.count, behind:false });
+			}
+		}
 		if (active) {
 			const encounter = session.bomberEncounter;
 			if (active.bombers && encounter) {

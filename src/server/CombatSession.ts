@@ -1,3 +1,4 @@
+import type { TypedGroundTarget } from "../shared/CampaignEncounters";
 import type { BomberEncounterState } from "../shared/BomberEncounter";
 import type { MissionAirspacePolicy } from "../shared/MissionPolicy";
 import { TargetScore } from "../shared/TargetScore";
@@ -21,6 +22,11 @@ export type EnemyMode = "attack" | "extend" | "orbit" | "run";
 /** What an air enemy is: a required bandit, an optional raider, the courier of a chase phase, or the ace. */
 export type AirRole = "bandit" | "raider" | "courier" | "ace" | "bomber" | "escort";
 export interface Enemy {
+	typedGround?: TypedGroundTarget;
+	phaseOwner?: number;
+	scoreRole?: string;
+	groundAttack?: boolean;
+	scramble?: { spawn: import("../shared/MissionCatalog").FlightPoint; heading: number; startedAt: number };
 	friendly?: boolean;
 	combatTarget?: Enemy;
 	/** Target copied when the hostile windup begins; undefined during a windup means the player. */
@@ -84,6 +90,8 @@ export interface Projectile {
 	lostTrack?: boolean;
 }
 export interface CombatSession {
+	arrivalsFired?: Set<string>;
+	arrivalTargets?: TypedGroundTarget[];
 	launch?: import("../shared/LaunchStage").LaunchStageState;
 	airspace: MissionAirspacePolicy;
 	targetScore: TargetScore;
