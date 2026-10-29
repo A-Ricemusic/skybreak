@@ -1,12 +1,12 @@
 # SKYBREAK redesign dashboard
 
-Last updated: 2026-10-29; mission 2/3 status includes unmerged PRs #140/#139.
+Last updated: 2026-10-29.
 
 The new 18-mission campaign is live in Roblox Player (practice flight and mission 1 playable). The redesign rebuilds the missions and worlds to match Ace Combat 04 (objectives, mission length, scoring, terrain and environment) while keeping the Broken Relay story. It goes one mission at a time. The footage is fully indexed. **Mission 1 is ready for your beta test.** The new campaign is live by pipeline: the practice flight and mission 1 are playable, missions 2 to 18 are locked. See [Next](next.md) for what to try.
 
 [Play SKYBREAK](https://www.roblox.com/games/112911685457826)
 
-Engine batch A is merged and dormant in PR #138: typed targets, triggered waves, standalone ace and AA. Practice and mission 1 catalog snapshots remain frozen; no Studio or Player testing is claimed for this branch. See [Next](next.md) and provisional D-042–D-044 in [Decisions](decisions.md).
+Engine batch A (#138: typed targets, triggered waves, standalone ace and AA) and the mission 2 world (#140) are merged. The mission 2 PR makes mission 2 playable after mission 1 once it merges; until then mission 2 stays locked. Practice and mission 1 gameplay are unchanged. The unmerged PR also repairs mission 1 score-breakdown preservation after mission 2 completion and during replays/save reloads, with shared offline/Roblox Jest regression coverage. Studio results for that PR are in its description; no Player test is claimed. See [Next](next.md) and provisional D-048, D-049, D-052–D-058 in [Decisions](decisions.md).
 
 Engine batch B is merged and dormant in PR #141; mission 3 remains locked. Return/update/landing and terrain warning contracts are available for later integration. PR #141 review corrections cover extended-clock settlement, projected return guidance, landing camera/skip safety and clearance tint; mission 3 presentation gaps remain listed in Next. The full Roblox Jest suite passed in Studio on PR #142 (808/808); visual integration and Player verification remain pending.
 
@@ -15,7 +15,7 @@ Engine batch B is merged and dormant in PR #141; mission 3 remains locked. Retur
 | # | Reference mission | Footage time | Gameplay length | Footage indexed | Spec written | Built | Live | Owner tested |
 |---|---|---|---|---|---|---|---|---|
 | 1 | Sitting Duck | 0:06:30–0:11:24 | 4.9 min | Yes | Yes | Yes | Yes | — |
-| 2 | Imminent Threat | 0:15:38–0:22:34 | 6.9 min | Yes | Yes | Merged dormant world (#140); not playable | No | — |
+| 2 | Imminent Threat | 0:15:38–0:22:34 | 6.9 min | Yes | Yes | Yes (mission PR open; playable after mission 1 once merged) | No | — |
 | 3 | The Northern Eye | 0:26:41–0:34:24 | 7.7 min | Yes | Yes | Dormant world (#139) and engine batch B (#141) merged; mission data pending; not playable | No | — |
 | 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | Yes | — | — | — |
 | 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | Yes | — | — | — |

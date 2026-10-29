@@ -77,9 +77,37 @@ describe("Released campaign world integration (Studio only)",()=>{
   }
   fixture.Destroy();expect(world.groundTargets.every((m)=>m.Parent===undefined)).toBe(true);
  },120000);
+ it("builds mission 2 with every typed target drawn once by the world, ready for combat to adopt",()=>{
+  fixture=new Instance("Folder");fixture.Name="CampaignWorldFixture";fixture.Parent=Workspace;
+  const specs=MissionCatalog.Get(2).phases[0].groundTargets!,world=MissionWorld.Build(2,fixture);
+  expect(world.groundTargets.size()).toBe(0);
+  expect(fixture.GetAttribute("WorldBuildPhase")).toBe("done");
+  expect(Lighting.GetAttribute(ENVIRONMENT_ATTRIBUTE)).toBe("m02_farm_airbase");
+  const visuals=world.targetVisuals!;
+  expect(visuals.size()).toBe(specs.size());
+  const labels: {[k: string]: string}={parked_bomber:"BOMBER",hangar:"HANGAR",aa_gun:"AA GUN",control_tower:"CTRL TOWER",substation:"SUBSTATION"};
+  for(const spec of specs){
+   const model=visuals.get(spec.id)!;
+   expect(model.IsDescendantOf(fixture)).toBe(true);
+   expect(model.Name).toBe(labels[spec.type]);expect(model.GetAttribute("TargetId")).toBe(spec.id);
+   const aim=model.PrimaryPart!;expect(aim.Name).toBe("Aim");expect(aim.Transparency).toBe(1);
+   expect(math.abs(aim.Position.X-spec.position.x)).toBeLessThan(80);expect(math.abs(aim.Position.Z-spec.position.z)).toBeLessThan(80);
+   if(spec.type==="parked_bomber"){const [box,size]=model.GetBoundingBox();expect(box.Position.Y-size.Y/2).toBeCloseTo(spec.position.y,2);}
+  }
+  // Exactly once: one tagged model per id and no untagged copy of any target visual anywhere in the world.
+  const tagged=fixture.GetDescendants().filter((i)=>i.IsA("Model") && i.GetAttribute("TargetId")!==undefined);
+  expect(tagged.size()).toBe(specs.size());
+  expect(new Set(tagged.map((m)=>m.GetAttribute("TargetId") as string)).size()).toBe(specs.size());
+  for(const item of fixture.GetDescendants()){
+   const inTarget=item.FindFirstAncestorWhichIsA("Model")?.GetAttribute("TargetId")!==undefined || item.GetAttribute("TargetId")!==undefined;
+   if(item.IsA("Model") && (item.Name==="Hangar" || item.Name==="ControlTower" || item.Name==="HeavyBomber" || item.Name.sub(1,4)==="m02_")) expect(`${item.GetFullName()} untagged`).toBe("tagged");
+   if(item.IsA("BasePart") && (item.Name==="AA turret" || item.Name==="Transformer")) expect(inTarget).toBe(true);
+  }
+  print(`M02_STUDIO_BUILD seconds=${fixture.GetAttribute("WorldBuildSeconds")} terrain=${fixture.GetAttribute("WorldTerrainReadySeconds")} jobs=${fixture.GetAttribute("WorldTerrainJobs")} missing=${fixture.GetAttribute("WorldPropsMissing")} descendants=${fixture.GetDescendants().size()} (fake uploads)`);
+ },180000);
  it("rejects every unreleased world before building anything",()=>{
   fixture=new Instance("Folder");fixture.Parent=Workspace;
-  for(let id=2;id<=18;id++){const [ok]=pcall(()=>MissionWorld.Build(id,fixture!));expect(ok).toBe(false);}
+  for(let id=3;id<=18;id++){const [ok]=pcall(()=>MissionWorld.Build(id,fixture!));expect(ok).toBe(false);}
   expect(fixture.GetDescendants().size()).toBe(0);
  });
 });

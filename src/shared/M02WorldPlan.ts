@@ -1,12 +1,15 @@
 import type { EnvironmentSpec } from "./EnvironmentPresets";
 import { fillVoxels, terrainJobs } from "./TerrainSchedule";
-import { polyDist, type TerrainOp, type TerrainMaterial, type PartSpec, type PropSpec } from "./WorldPlan";
+import { polyDist } from "./Polyline";
+import type { TerrainOp, TerrainMaterial, PartSpec, PropSpec } from "./WorldPlan";
 
 export const M02_WORLD_KEY = "m02_farm_airbase";
 export const M02_FILL_CHUNK = 65536;
-// Match M01: a four-stud slab rests on the flat terrain terrace.
-export const M02_PAVEMENT_TOP = 36;
-const PAVEMENT_CENTRE = M02_PAVEMENT_TOP - 2;
+// An eight-stud slab from the terrain terrace (32) up to 40. Measured in Studio: smooth grass renders
+// about 4-6 studs above its voxels, so a four-stud slab topping out at 36 was invisible at every range.
+export const M02_PAVEMENT_TOP = 40;
+const PAVEMENT_DEPTH = 8;
+const PAVEMENT_CENTRE = M02_PAVEMENT_TOP - PAVEMENT_DEPTH / 2;
 export const M02 = {
 	half: 16384, coarse: 256, detail: 64, corridorHalf: 768,
 	base: { x: -1024, z: -12500, hx: 1408, hz: 1920 },
@@ -65,7 +68,9 @@ export const M02_RUNWAY = {
 	northThreshold: { x: -1024, y: M02_PAVEMENT_TOP, z: -13940, yaw: 0 },
 };
 export interface M02Beam { name: string; a: [number, number, number]; b: [number, number, number]; color: [number, number, number] }
-export interface M02Plan { key: string; seed: number; ops: TerrainOp[]; parts: PartSpec[]; props: PropSpec[]; beams: M02Beam[]; detailCells: number; coarseCells: number }
+/** `target` names the m02TargetLayout id a part or prop draws; the world hands those to combat as that target's model. */
+export type M02Part = PartSpec & { target?: string };
+export interface M02Plan { key: string; seed: number; ops: TerrainOp[]; parts: M02Part[]; props: PropSpec[]; beams: M02Beam[]; detailCells: number; coarseCells: number }
 const block = (material: TerrainMaterial, x: number, y: number, z: number, sx: number, sy: number, sz: number): TerrainOp => ({ shape: "block", material, x, y, z, sx, sy, sz, yaw: 0 });
 /** Same tile subdivision used by terrain and contact queries. Shore sampled at 16 studs. */
 function tileSide(x: number, z: number, side: number): boolean {
@@ -112,7 +117,7 @@ export function buildM02Plan(seed = 202, checkpoint: () => void = () => {}): M02
 		for (let dx = 0; dx < 256; dx += side) for (let dz = 0; dz < 256; dz += side) tile(x + dx, z + dz, side);
 		checkpoint();
 	}
-	const part = (name: string, x: number, y: number, z: number, sx: number, sy: number, sz: number, color: [number, number, number], shape: PartSpec["shape"] = "block", solid = false) => p.parts.push({ name, x, y, z, sx, sy, sz, color, shape, material: "SmoothPlastic", yaw: 0, solid, grounded: false });
+	const part = (name: string, x: number, y: number, z: number, sx: number, sy: number, sz: number, color: [number, number, number], shape: PartSpec["shape"] = "block", solid = false, target?: string) => p.parts.push({ name, x, y, z, sx, sy, sz, color, shape, material: "SmoothPlastic", yaw: 0, solid, grounded: false, target });
 	// One consistent opaque lake surface, no mixed native/Part seam; 16-stud sampled shore clips it.
 	for (let z = -15100; z < -8300; z += 400) {
 		const rz = (z + 200 + 11700) / 3400;
@@ -122,30 +127,31 @@ export function buildM02Plan(seed = 202, checkpoint: () => void = () => {}): M02
 	}
 	const pavement: [number, number, number] = [111, 119, 111];
 	for (const z of [-13220, -11780]) {
-		part("Runway", -1024, PAVEMENT_CENTRE, z, 64, 4, 1440, pavement, "block", true);
-		part("Parallel taxiway", -736, PAVEMENT_CENTRE, z, 40, 4, 1440, pavement, "block", true);
+		part("Runway", -1024, PAVEMENT_CENTRE, z, 64, PAVEMENT_DEPTH, 1440, pavement, "block", true);
+		part("Parallel taxiway", -736, PAVEMENT_CENTRE, z, 40, PAVEMENT_DEPTH, 1440, pavement, "block", true);
 	}
-	for (const z of [-13800, -12500, -11300]) part("Taxiway crosslink", -1150, PAVEMENT_CENTRE, z, 900, 4, 36, pavement, "block", true);
-	for (const z of [-13220, -11780]) part("West taxiway", -1530, PAVEMENT_CENTRE, z, 36, 4, 1440, pavement, "block", true);
-	part("Main apron", -1530, PAVEMENT_CENTRE, -12500, 500, 4, 1100, pavement, "block", true);
+	for (const z of [-13800, -12500, -11300]) part("Taxiway crosslink", -1150, PAVEMENT_CENTRE, z, 900, PAVEMENT_DEPTH, 36, pavement, "block", true);
+	for (const z of [-13220, -11780]) part("West taxiway", -1530, PAVEMENT_CENTRE, z, 36, PAVEMENT_DEPTH, 1440, pavement, "block", true);
+	part("Main apron", -1530, PAVEMENT_CENTRE, -12500, 500, PAVEMENT_DEPTH, 1100, pavement, "block", true);
 	for (let i = 0; i < 12; i++) part("Runway centre stripe", -1024, M02_PAVEMENT_TOP + 0.15, -13820 + i * 240, 3, 0.2, 80, [205, 210, 198]);
 	for (const t of m02TargetLayout()) {
 		if (t.type === "bomber") {
-			if (t.group !== "A") { const lane = t.group === "B" ? -736 : -1530; part("Pad connector", (lane + t.x) / 2, PAVEMENT_CENTRE, t.z, math.abs(lane - t.x) + 36, 4, 28, pavement, "block", true); }
-			part("Dispersal hardstand", t.x, PAVEMENT_CENTRE, t.z, 140, 4, 140, pavement, "cylinder", true);
+			if (t.group !== "A") { const lane = t.group === "B" ? -736 : -1530; part("Pad connector", (lane + t.x) / 2, PAVEMENT_CENTRE, t.z, math.abs(lane - t.x) + 36, PAVEMENT_DEPTH, 28, pavement, "block", true); }
+			part("Dispersal hardstand", t.x, PAVEMENT_CENTRE, t.z, 140, PAVEMENT_DEPTH, 140, pavement, "cylinder", true);
 			// Annular taxi loop: four short tangent slabs around a clear inner grass square.
 			if (t.group === "B" || t.group === "D") for (const s of [-1, 1]) {
-				part("Loop taxiway", t.x + s * 85, PAVEMENT_CENTRE, t.z, 24, 4, 194, pavement, "block", true);
-				part("Loop taxiway", t.x, PAVEMENT_CENTRE, t.z + s * 85, 146, 4, 24, pavement, "block", true);
+				part("Loop taxiway", t.x + s * 85, PAVEMENT_CENTRE, t.z, 24, PAVEMENT_DEPTH, 194, pavement, "block", true);
+				part("Loop taxiway", t.x, PAVEMENT_CENTRE, t.z + s * 85, 146, PAVEMENT_DEPTH, 24, pavement, "block", true);
 			}
-		} else if (t.type === "hangar" || t.type === "control_tower") p.props.push({ asset: t.type === "hangar" ? "Hangar" : "ControlTower", ...t, scale: 1, tint: 0 });
+		} else if (t.type === "hangar" || t.type === "control_tower") p.props.push({ asset: t.type === "hangar" ? "Hangar" : "ControlTower", x: t.x, y: t.y, z: t.z, yaw: t.yaw, scale: 1, tint: 0, tag: t.id });
 		else if (t.type === "aa") {
-			part("AA emplacement", t.x, 34, t.z, 22, 4, 22, [77, 85, 67], "cylinder");
-			part("AA turret", t.x, 40, t.z, 10, 8, 12, [62, 74, 61]);
-			part("AA barrel", t.x, 43, t.z - 15, 2, 2, 28, [65, 71, 64]);
+			// The emplacement rises clear of the rendered grass, like the pavement.
+			part("AA emplacement", t.x, 36, t.z, 22, 8, 22, [77, 85, 67], "cylinder", false, t.id);
+			part("AA turret", t.x, 44, t.z, 10, 8, 12, [62, 74, 61], "block", false, t.id);
+			part("AA barrel", t.x, 47, t.z - 15, 2, 2, 28, [65, 71, 64], "block", false, t.id);
 		} else {
-			part("Substation yard", t.x, PAVEMENT_CENTRE, t.z, 160, 4, 96, pavement, "block", true);
-			for (const x of [-50, 0, 50]) part("Transformer", x, t.y + 10, t.z, 26, 20, 32, [88, 98, 91]);
+			part("Substation yard", t.x, PAVEMENT_CENTRE, t.z, 160, PAVEMENT_DEPTH, 96, pavement, "block", true);
+			for (const x of [-50, 0, 50]) part("Transformer", x, t.y + 10, t.z, 26, 20, 32, [88, 98, 91], "block", false, t.id);
 			for (const s of [-1, 1]) { part("Yard fence", s * 80, t.y + 6, t.z, 2, 12, 96, [119, 128, 119]); part("Yard fence", 0, t.y + 6, t.z + s * 48, 160, 12, 2, [119, 128, 119]); }
 		}
 	}

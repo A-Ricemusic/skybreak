@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useRef, useState } from "@rbxts/react";
 import { GuiService } from "@rbxts/services";
 import { canLaunchMission, highestUnlocked } from "../../shared/CampaignProgress";
 import type { SaveSlot } from "../../shared/Types";
-import { ACT_NAMES, ACT_NUMERALS, ACTS, environmentName, PRACTICE, MissionCatalog, MISSION_COUNT, REGION_NAMES } from "../../shared/MissionCatalog";
+import { ACT_NAMES, ACT_NUMERALS, ACTS, environmentName, PRACTICE, MissionCatalog, MISSION_COUNT, REGION_NAMES, type MissionBlueprint } from "../../shared/MissionCatalog";
 import { MissionScore } from "../../shared/MissionScore";
 import { type SpecialKind } from "../../shared/SpecialWeapons";
 import { type DifficultyKind } from "../../shared/Difficulty";
@@ -27,8 +27,11 @@ import { ActionButton, Corner, Label, ScreenHeader, SectionHeading, Stroke } fro
 import { actLabel, completedCount, formatTime, missionNumber, panelPosition } from "./UIFormat";
 
 /** Short mission rules, mentioning beacons and escorts only when this sortie has them. */
-function missionRules(phases: { kind: string }[]): string {
-	const lines = ["10-minute window · Retry any time"];
+function missionRules(mission: MissionBlueprint): string {
+	const phases = mission.phases;
+	// Numbered missions show their own countdown; practice keeps its original wording.
+	const minutes = mission.id === 0 ? 10 : math.floor(MissionCatalog.CountdownSeconds(mission) / 60);
+	const lines = [`${minutes}-minute window · Retry any time`];
 	if (phases.some((phase) => phase.kind === "route" || phase.kind === "recon" || phase.kind === "signal" || phase.kind === "defend")) {
 		lines.push("Green beacon: fly inside its volume. Scans need the shown altitude.");
 	}
@@ -195,7 +198,7 @@ function BriefingScreenImpl({visible,menu,selectedSlot,selectedMission,slot,busy
 						<Label name="PhasePlan" text={mission.phases.map((phase,index)=>`<font color="${HEX.Accent}">${missionNumber(index+1)}</font>   ${phase.label}`).join("\n")} richText={true} color={C.Muted} textSize={12} size={new UDim2(1,0,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={3}/>
 						{/* Par is the time the debrief judges; show it before launch, with the slot's best when there is one. */}
 						<Label name="ParTime" text={`PAR ${formatTime(MissionScore.ParSeconds(mission))}${record?.bestTime!==undefined ? `  ·  YOUR BEST ${formatTime(record.bestTime)}` : ""}`} color={C.Accent} textSize={11} minTextSize={8} font={Enum.Font.GothamBold} size={new UDim2(1,0,0,BRIEFING_LINE_HEIGHT)} layoutOrder={4}/>
-						<Label name="MissionRules" text={missionRules(mission.phases)} color={C.Faint} textSize={11} size={new UDim2(1,0,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={5}/>
+						<Label name="MissionRules" text={missionRules(mission)} color={C.Faint} textSize={11} size={new UDim2(1,0,0,0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} layoutOrder={5}/>
 					</frame>
 					<LoadoutPicker kind={special} enabled={!busy} layoutOrder={4} onChange={onSpecial}/>
 					<DifficultyPicker kind={difficulty} enabled={!busy} layoutOrder={5} onChange={onDifficulty}/>

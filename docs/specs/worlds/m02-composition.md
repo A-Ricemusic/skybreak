@@ -1,4 +1,9 @@
-# Mission 2 dormant farmland and lake airbase
+# Mission 2 farmland and lake airbase
+
+> **Update 2026-10-29 (mission 2 PR):** mission 2 now selects this world. Pavement is an 8-stud slab
+> from the terrain (32) to `M02_PAVEMENT_TOP` = 40 (D-056, measured in Studio), so bomber, tower and
+> substation contacts sit at 40 and the rest on terrain at 32. The world draws each target once,
+> tagged by id, and combat adopts those models (D-053). Text below is the original dormant record.
 
 `m02_farm_airbase` is a deterministic procedural composition, following M01's
 sampled-column plan, TerrainWriter, environment executor and cooperative builder.
