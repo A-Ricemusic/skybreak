@@ -1,3 +1,4 @@
+import { canSkipLanding } from "../shared/EngineBatchB";
 import { sampleClearance, stepLanding } from "./EngineBatchBRuntime";
 import { createGroundTarget } from "./GroundTargetFactory";
 import { GroundAirDefence } from "../shared/GroundAirDefence";
@@ -370,7 +371,7 @@ function sendTelemetry(session: CombatSession): void {
  * instance replication; unreliable ones are not).
  */
 function sendHud(session: CombatSession, objective: ReturnType<typeof sessionObjective>, target: Enemy | undefined, phase: MissionPhaseBlueprint | undefined): void {
-	const nav = session.blueprintState ? BlueprintRunner.NavigationPoint(session.blueprintState) : undefined;
+	const nav = session.blueprintState ? BlueprintRunner.NavigationPoint(session.blueprintState, session.state) : undefined;
 	const previous = session.hud;
 	const targetKind = target ? (target.kind === "ground" ? "ground" : "air") : "";
 	if (previous && previous.missionId === session.missionId && previous.phase === objective.phase && previous.objective === objective.objective
@@ -991,7 +992,7 @@ function stepEnemies(session: CombatSession, dt: number): void {
 	const playerVelocity = playerForward.mul(session.state.speed);
 	const lateral = lateralFor(session.state, playerForward);
 	const phase = session.blueprintState ? BlueprintRunner.ActivePhase(session.blueprintState) : undefined;
-	const site = session.blueprintState ? BlueprintRunner.NavigationPoint(session.blueprintState) : undefined;
+	const site = session.blueprintState ? BlueprintRunner.NavigationPoint(session.blueprintState, session.state) : undefined;
 	const protectPhase = site !== undefined && (phase?.kind === "escort" || phase?.kind === "defend");
 	const act = sessionAct(session);
 	const behaviour = Difficulty.Behaviour(session.difficulty);
@@ -1371,7 +1372,10 @@ function stepSession(session: CombatSession, dt: number): void {
 	if (stepLanding(session,dt,(message)=>missionState!.FireClient(session.player,message))) {
 		session.aircraftFrame=frameFor(session.state);
 		if (sessionOutcome(session) !== undefined) finish(session);
-		else { sendFlightState(session); sendTelemetry(session); }
+		else {
+			session.telemetryTime += dt;
+			if (session.telemetryTime >= TELEMETRY_INTERVAL) { session.telemetryTime = math.min(session.telemetryTime - TELEMETRY_INTERVAL, TELEMETRY_INTERVAL); sendTelemetry(session); }
+		}
 		return;
 	}
 	if (session.launch) {
@@ -1432,7 +1436,7 @@ function stepSession(session: CombatSession, dt: number): void {
 	}
 	session.inputSteps += 1;
 	if (session.blueprintState) {
-		const bs=session.blueprintState, nav=BlueprintRunner.NavigationPoint(bs);
+		const bs=session.blueprintState, nav=BlueprintRunner.NavigationPoint(bs, session.state);
 		let threats=0;
 		if (nav) { const navPoint=new Vector3(nav.x,230,nav.z); for(const enemy of session.enemies) if(ownsEnemy(session,enemy) && enemy.kind !== "ground" && enemy.position.sub(navPoint).Magnitude < 650) threats++; }
 		BlueprintRunner.ObserveFlight(bs,from,{x:session.state.x,y:session.state.y,z:session.state.z},dt,os.clock(),threats,Difficulty.Multiplier(session.difficulty,"protectDrain"));
@@ -1732,7 +1736,7 @@ export const CombatService = {
 					return;
 				}
 				if (session.blueprintState?.landingElapsed !== undefined) {
-					if (action === "SkipLanding") { BlueprintRunner.AdvanceLanding(session.blueprintState,0,true); finish(session); }
+					if (action === "SkipLanding" && session.landingStartedAt !== undefined && canSkipLanding(os.clock()-session.landingStartedAt)) { BlueprintRunner.AdvanceLanding(session.blueprintState,0,true); if (sessionOutcome(session) !== undefined) finish(session); }
 					return;
 				}
 				if (!LaunchStage.CanControl(false, session.launch, PauseRules.Paused(session.pause)) || !refreshSession(session, now)) return;

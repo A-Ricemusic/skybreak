@@ -386,6 +386,13 @@ export const MissionCatalog = {
 	CountdownSeconds(value: number | MissionBlueprint): number {
 		return resolveBlueprint(value).countdownSeconds ?? LEGACY_MISSION_COUNTDOWN;
 	},
+	/** Upper bound for settlement: each phase-entry reset can extend the previous deadline. */
+	MaxMissionSeconds(value: number | MissionBlueprint): number {
+		const blueprint = resolveBlueprint(value);
+		let limit = MissionCatalog.CountdownSeconds(blueprint);
+		for (const phase of expandPhases(blueprint.phases)) limit += phase.update?.countdownSeconds ?? 0;
+		return limit;
+	},
 	/** Effective horizontal world limits; absent policy preserves WorldAirspace exactly. */
 	Airspace(value: number | MissionBlueprint): MissionAirspacePolicy {
 		return resolveBlueprint(value).airspace ?? LEGACY_MISSION_AIRSPACE;

@@ -8,7 +8,7 @@ The new 18-mission campaign is live in Roblox Player (practice flight and missio
 
 Engine batch A is built but dormant on unmerged PR #138: typed targets, triggered waves, standalone ace and AA. Practice and mission 1 catalog snapshots remain frozen; no Studio or Player testing is claimed for this branch. See [Next](next.md) and provisional D-042–D-044 in [Decisions](decisions.md).
 
-Engine batch B is built but dormant and unmerged on `feat/engine-batch-b`; mission 3 remains locked. Return/update/landing and terrain warning contracts are available for later integration. Studio and Player verification remain pending.
+Engine batch B is built but dormant and unmerged on `feat/engine-batch-b`; mission 3 remains locked. Return/update/landing and terrain warning contracts are available for later integration. PR #141 review corrections cover extended-clock settlement, projected return guidance, landing camera/skip safety and clearance tint; mission 3 presentation gaps remain listed in Next. Studio and Player verification remain pending.
 
 ## Mission progress
 

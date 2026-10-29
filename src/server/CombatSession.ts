@@ -91,6 +91,7 @@ export interface Projectile {
 }
 export interface CombatSession {
 	landingSent?: boolean;
+	landingStartedAt?: number;
 	clearanceProbeAt?: number;
 	terrainClearance?: number;
 	arrivalsFired?: Set<string>;

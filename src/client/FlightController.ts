@@ -1,4 +1,4 @@
-import { LandingPlan, landingPose } from "../shared/EngineBatchB";
+import { canSkipLanding, LandingPlan, landingPose } from "../shared/EngineBatchB";
 import { LaunchStage, LaunchStageState } from "../shared/LaunchStage";
 import type { FlightControlHandoff } from "../shared/Types";
 import { ContextActionService, GuiService, Players, RunService, UserInputService, Workspace } from "@rbxts/services";
@@ -274,7 +274,7 @@ export class FlightController {
 	private readonly enemies = new EnemySmoothing();
 	/** Pause overlay is up: the local jet, camera and actions hold until Resume. */
 	private paused = false;
-	private landing?: {plan: LandingPlan; elapsed: number};
+	private landing?: {plan: LandingPlan; elapsed: number; cameraCut?: boolean};
 	private launchIntro?: LaunchStageState;
 	private launchCameraTime = CAMERA_HANDOFF_SECONDS;
 	/** Serial of the latest local Pause/Resume, the action it carried, and when it was last sent; the server echoes `pauseAck`. */
@@ -304,6 +304,8 @@ export class FlightController {
 			const message = data as Partial<Omit<HudState, "kind">> & { kind?: string };
 			if (message.kind === "LandingStarted" && this.active) {
 				this.landing={plan:(data as {plan:LandingPlan}).plan,elapsed:0}; this.keys.clear();
+				// The replicated aircraft is already hidden; hide the predicted clone for cockpit flight.
+				for (const part of this.visual?.GetDescendants() ?? []) if (part.IsA("BasePart")) part.LocalTransparencyModifier = 1;
 			}
 			else if (message.kind === "FlightControl" && this.active && this.launchIntro !== undefined) {
 				const handoff = data as FlightControlHandoff;
@@ -480,7 +482,7 @@ export class FlightController {
 	}
 	public IsPaused(): boolean { return this.paused; }
 	/** Flight advice and warning tones stay silent while the scripted launch owns the jet. */
-	public SkipLanding(): void { if (this.landing) this.remotes.CombatAction.FireServer({action:"SkipLanding"}); }
+	public SkipLanding(): void { if (this.landing && canSkipLanding(this.landing.elapsed)) this.remotes.CombatAction.FireServer({action:"SkipLanding"}); }
 	public FlightWarningsEnabled(): boolean { return this.launchIntro === undefined && this.landing === undefined; }
 	/** Settings: pushing up dives instead of climbing (every input source). */
 	public SetInvertY(invert: boolean): void { this.invertY = invert; }
@@ -829,7 +831,10 @@ export class FlightController {
 		// Impact feel (CameraShake) rides on top of the follow: shake is a camera-space
 		// offset and the ace hit-stop slows the follow and punches the FOV. Visual only.
 		const impact = CameraShake.Step(dt);
-		this.cameraFrame = this.cameraFrame.Lerp(desired, FlightMath.DampAlpha(8 * impact.follow, dt));
+		if (this.landing && !this.landing.cameraCut) {
+			this.cameraFrame = desired;
+			this.landing.cameraCut = true;
+		} else this.cameraFrame = this.cameraFrame.Lerp(desired, FlightMath.DampAlpha(8 * impact.follow, dt));
 		camera.CameraType = Enum.CameraType.Scriptable;
 		camera.CFrame = this.cameraFrame.mul(impact.offset);
 		camera.Focus = new CFrame(position.add(forward.mul(90)));

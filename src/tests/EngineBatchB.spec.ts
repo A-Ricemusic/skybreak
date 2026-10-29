@@ -2,10 +2,10 @@ import { TelemetryCodec, TelemetryNumbers } from "../shared/TelemetryCodec";
 import { Telemetry } from "../shared/Types";
 import { FlightMath } from "../shared/FlightMath";
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { crossesReturnLine, landingPose, landingDuration, terrainClearance, validateBatchB, ReturnLine, LandingPlan } from "../shared/EngineBatchB";
+import { canSkipLanding, crossesReturnLine, landingPose, landingDuration, terrainClearance, validateBatchB, ReturnLine, LandingPlan } from "../shared/EngineBatchB";
 import { BlueprintRunner as Runner } from "../shared/BlueprintRunner";
 import { MissionCatalog, MissionBlueprint } from "../shared/MissionCatalog";
-import { flightAdvice } from "../shared/FlightWarnings";
+import { flightAdvice, warningAltitude } from "../shared/FlightWarnings";
 import { CountdownDisplay } from "../shared/CountdownDisplay";
 import { takeArrival, TypedGroundTarget } from "../shared/CampaignEncounters";
 const line: ReturnLine={a:{x:-100,z:11040},b:{x:100,z:11040},direction:{x:0,z:1},markerY:400};
@@ -36,17 +36,34 @@ describe("Dormant engine batch B",()=>{
   Runner.AdvanceLanding(s,39);expect(s.outcome).toBeUndefined();Runner.AdvanceLanding(s,1);expect(s.outcome).toBe("won");expect(s.elapsed).toBe(110);
   expect(CountdownDisplay.Limit({...bp,countdownSeconds:600})).toBe(900);
  });
- it("skip succeeds immediately with the same frozen score time",()=>{
+ it("rejects handoff FIRE/skip for 0.75 seconds on the authoritative landing clock",()=>{
   const s=Runner.NewState(blueprint(),0);Runner.RecordKill(s,"enemy","air",true,5);Runner.ObserveFlight(s,{x:0,y:400,z:11000},{x:0,y:400,z:11100},0.1,10);
-  Runner.AdvanceLanding(s,0,true);expect(s.outcome).toBe("won");expect(s.elapsed).toBe(10);
+  expect(canSkipLanding(0)).toBe(false);expect(canSkipLanding(0.749)).toBe(false);expect(canSkipLanding(0.75)).toBe(true);
+  Runner.AdvanceLanding(s,0,true);expect(s.outcome).toBeUndefined();
+  Runner.AdvanceLanding(s,0.749,true);expect(s.outcome).toBeUndefined();
+  Runner.AdvanceLanding(s,0.001,true);expect(s.outcome).toBe("won");expect(s.elapsed).toBe(10);
+ });
+ it("projects return guidance onto the segment and clamps both endpoints",()=>{
+  const s=Runner.NewState(blueprint(),0);Runner.RecordKill(s,"enemy","air",true,5);
+  for (const x of [-200,-100,-25,100,200]) expect(Runner.NavigationPoint(s,{x,y:900,z:10000})).toEqual({x:math.clamp(x,-100,100),y:400,z:11040});
+  const diagonal={...line,a:{x:0,z:0},b:{x:100,z:100}};
+  s.phases[1]={...s.phases[1],returnLine:diagonal};
+  expect(Runner.NavigationPoint(s,{x:100,y:900,z:0})).toEqual({x:50,y:400,z:50});
+ });
+ it("levels the flare continuously before touchdown",()=>{
+  const pitch=(t:number)=>FlightMath.ForwardOf(landingPose(landing,t))[1];
+  expect(pitch(28)).toBeLessThan(pitch(29));expect(pitch(29)).toBeLessThan(pitch(29.99));expect(pitch(30)).toBeCloseTo(0);
  });
  it("computes mountain clearance, rejects no-hit/nonfinite inputs and preserves absolute fallback",()=>{
+  expect(warningAltitude({altitude:850,terrainClearance:50})).toBe(50);expect(warningAltitude({altitude:850})).toBe(850);
   expect(terrainClearance(850,800)).toBe(50);expect(terrainClearance(790,800)).toBe(0);expect(terrainClearance(850)).toBeUndefined();expect(terrainClearance(math.huge,800)).toBeUndefined();
   expect(flightAdvice({speed:160,altitude:850,incoming:false,terrainClearance:50})).toBe("LOW ALTITUDE");expect(flightAdvice({speed:160,altitude:850,incoming:false})).toBe("");
  });
  it("rejects malformed line, landing, update and flag data",()=>{
   const bad: MissionBlueprint[]=[];
-  let b=blueprint();b.phases[1].returnLine={...line,direction:{x:1,z:0}};bad.push(b);
+  let b=blueprint();b.phases[0].update={objective:"Invalid initial",radio:["No"]};bad.push(b);
+  b=blueprint();b.phases[2].update={objective:"Invalid landing",radio:["No"]};bad.push(b);
+  b=blueprint();b.phases[1].returnLine={...line,direction:{x:1,z:0}};bad.push(b);
   b=blueprint();b.phases[1].returnLine={...line,b:line.a};bad.push(b);
   b=blueprint();b.phases[1].update={objective:"",radio:[],countdownSeconds:-1};bad.push(b);
   b=blueprint();b.phases[2].landing={...landing,approachSeconds:0};bad.push(b);

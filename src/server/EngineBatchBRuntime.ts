@@ -19,7 +19,7 @@ export function stepLanding(session: CombatSession, dt: number, send: (message: 
 	const state=session.blueprintState;
 	const plan=state && BlueprintRunner.ActivePhase(state)?.landing;
 	if (!state || !plan) return false;
-	if (!session.landingSent) { session.landingSent=true; send({kind:"LandingStarted",plan}); }
+	if (!session.landingSent) { session.landingSent=true; session.landingStartedAt=os.clock(); send({kind:"LandingStarted",plan}); }
 	BlueprintRunner.AdvanceLanding(state,dt);
 	session.state=landingPose(plan,state.landingElapsed ?? plan.approachSeconds+plan.rolloutSeconds);
 	return true;

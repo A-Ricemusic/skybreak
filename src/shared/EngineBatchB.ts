@@ -20,16 +20,22 @@ export function crossesReturnLine(line: ReturnLine, from: PointXZ, to: PointXZ):
 	const dx=line.b.x-line.a.x,dz=line.b.z-line.a.z, along=(x*dx+z*dz)/(dx*dx+dz*dz);
 	return along>=0 && along<=1;
 }
+/** FIRE and skip share controls; both peers must ignore the landing handoff press. */
+export const LANDING_SKIP_DELAY = 0.75;
+export function canSkipLanding(elapsed: number): boolean { return finiteNumber(elapsed) && elapsed >= LANDING_SKIP_DELAY; }
 export function landingDuration(plan: LandingPlan): number { return plan.approachSeconds+plan.rolloutSeconds; }
 export function landingPose(plan: LandingPlan, elapsed: number): FlightState {
 	const t=math.clamp(elapsed,0,landingDuration(plan)), angle=math.rad(plan.headingDegrees);
 	const airborne=t<plan.approachSeconds;
 	const remaining=plan.approachDistance*(1-math.min(t/plan.approachSeconds,1));
 	const u=math.clamp((t-plan.approachSeconds)/plan.rolloutSeconds,0,1);
+	// Ease pitch to level over the last two seconds, before the wheels touch.
+	const flare = math.clamp((plan.approachSeconds-t)/2,0,1);
+	const pitch = -math.rad(plan.glideDegrees)*flare*flare*(3-2*flare);
 	const distance=airborne ? -remaining : plan.rolloutDistance*(2*u-u*u);
 	return FlightMath.FromPose(plan.touchdown.x+math.sin(angle)*distance,
 		plan.touchdown.y+remaining*math.tan(math.rad(plan.glideDegrees)), plan.touchdown.z-math.cos(angle)*distance,
-		-angle,airborne ? -math.rad(plan.glideDegrees) : 0,
+		-angle,airborne ? pitch : 0,
 		airborne ? plan.approachDistance/plan.approachSeconds : 2*plan.rolloutDistance/plan.rolloutSeconds*(1-u));
 }
 /** Missing/no-hit probes fall back to absolute altitude; never invent ground at sea level. */
@@ -42,6 +48,7 @@ export function validateBatchB(phases: {kind: string; update?: MissionUpdate; re
 	for (let i=0;i<phases.size();i++) {
 		const p=phases[i];
 		if (p.update) {
+			assert(i>0 && p.kind!=="landing","Mission updates require a noninitial, nonlanding phase");
 			assert(p.update.objective.size()>0 && p.update.objective.size()<=120,"Invalid mission update objective");
 			assert(p.update.radio.size()>0 && p.update.radio.size()<=8,"Mission update needs radio lines");
 			for (const line of p.update.radio) assert(line.size()>0 && line.size()<=72,"Invalid mission update radio");

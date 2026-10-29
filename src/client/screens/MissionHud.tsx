@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef } from "@rbxts/react";
 import { TweenService } from "@rbxts/services";
 import { FlightMath } from "../../shared/FlightMath";
-import { flightWarning, LOW_ALTITUDE } from "../../shared/FlightWarnings";
+import { flightWarning, warningAltitude, LOW_ALTITUDE } from "../../shared/FlightWarnings";
 import { evadeGauge } from "../../shared/EvadeGauge";
 import { CountdownDisplay } from "../../shared/CountdownDisplay";
 import { SpecialKind, SpecialWeapons } from "../../shared/SpecialWeapons";
@@ -323,7 +323,7 @@ function MissionHud({
 
 			{layout.reticle && <Reticle rectangle={layout.reticle} />}
 			<InstrumentBox name="SpeedBox" caption="MPH" value={instrumentValue(FlightMath.ToMph(telemetry.speed))} rectangle={layout.speed} metrics={metrics} pointsRight={true} color={stalling ? HUD.Amber : HUD.Green} />
-			<InstrumentBox name="AltitudeBox" caption="ALT" value={instrumentValue(telemetry.altitude)} rectangle={layout.altitude} metrics={metrics} pointsRight={false} color={telemetry.altitude < LOW_ALTITUDE ? HUD.Amber : HUD.Green} />
+			<InstrumentBox name="AltitudeBox" caption="ALT" value={instrumentValue(telemetry.altitude)} rectangle={layout.altitude} metrics={metrics} pointsRight={false} color={warningAltitude(telemetry) < LOW_ALTITUDE ? HUD.Amber : HUD.Green} />
 			{!alertSharesObjective && <WarningBox rectangle={layout.alert} text={alertText} color={alertColor} metrics={metrics} textRef={warningText} />}
 			{/* Reserved for a missile time-to-impact / BREAK cue; empty and hidden until something drives it. */}
 

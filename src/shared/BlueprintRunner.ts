@@ -1,4 +1,4 @@
-import { crossesReturnLine, landingDuration } from "./EngineBatchB";
+import { canSkipLanding, crossesReturnLine, landingDuration } from "./EngineBatchB";
 import { FlightMath, FlightState } from "./FlightMath";
 import { FlightPoint, MissionBlueprint, MissionCatalog, MissionPhaseBlueprint } from "./MissionCatalog";
 import { GameConfig } from "./GameConfig";
@@ -203,7 +203,7 @@ export const BlueprintRunner = {
 		const plan=BlueprintRunner.ActivePhase(s)?.landing;
 		if (!plan || s.outcome !== undefined || !finite(dt) || dt<0) return;
 		s.landingElapsed=math.min(landingDuration(plan),(s.landingElapsed ?? 0)+dt);
-		if (skip || s.landingElapsed>=landingDuration(plan)) advance(s);
+		if ((skip && canSkipLanding(s.landingElapsed)) || s.landingElapsed>=landingDuration(plan)) advance(s);
 	},
 	ActivePhase(s: BlueprintState): MissionPhaseBlueprint | undefined { return s.phases[s.phaseIndex]; },
 	/** The live phase list (authored phases plus twist inserts fired so far). Read-only for callers. */
@@ -223,9 +223,13 @@ export const BlueprintRunner = {
 	},
 	/** The active phase's hazard targets are lit and alive (they may be struck; the phase cannot finish). */
 	HazardLive(s: BlueprintState): boolean { return hazardLive(s); },
-	NavigationPoint(s: BlueprintState): FlightPoint | undefined {
+	NavigationPoint(s: BlueprintState, position?: FlightPoint): FlightPoint | undefined {
 		const p=BlueprintRunner.ActivePhase(s);
-		if (p?.returnLine) return {x:(p.returnLine.a.x+p.returnLine.b.x)/2,y:p.returnLine.markerY,z:(p.returnLine.a.z+p.returnLine.b.z)/2};
+		if (p?.returnLine) {
+			const line=p.returnLine, dx=line.b.x-line.a.x, dz=line.b.z-line.a.z;
+			const t=position ? math.clamp(((position.x-line.a.x)*dx+(position.z-line.a.z)*dz)/(dx*dx+dz*dz),0,1) : 0.5;
+			return {x:line.a.x+dx*t,y:line.markerY,z:line.a.z+dz*t};
+		}
 		if (!p?.points) return undefined;
 		if (p.kind !== "escort") return p.points[s.pointIndex] ?? p.points[0];
 		const segment=math.clamp(s.phaseProgress/p.seconds!,0,1)*(p.points.size()-1);
