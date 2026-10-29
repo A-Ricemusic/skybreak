@@ -1,0 +1,165 @@
+{
+  "name": "fuel-tanker",
+  "title": "Fuel tanker ship (mission 5 naval targets)",
+  "variantOf": null,
+  "exportVersion": "fuel-tanker-1",
+  "robloxAssetType": "Model",
+  "usage": "Mission 5: two tankers at sea (one near the start route, one near the rig complex); naval targets. Pending independent safety review; not uploaded; not referenced from src/.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "fuel-tanker.fbx",
+    "bytes": 811436
+  },
+  "triangleCount": 2682,
+  "triangleLimit": 6000,
+  "objects": [
+    {
+      "name": "fuel-tanker",
+      "triangles": 2682
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "fuel-tanker-color.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 320935
+    },
+    {
+      "role": "normal",
+      "file": "fuel-tanker-normal.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 66953
+    },
+    {
+      "role": "rough",
+      "file": "fuel-tanker-roughness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 199714
+    },
+    {
+      "role": "metal",
+      "file": "fuel-tanker-metalness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 33769
+    }
+  ],
+  "robloxSizeStuds": [
+    46.0,
+    59.6,
+    266.677
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 16.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png",
+    "preview-back.png",
+    "preview-side-right.png",
+    "preview-bottom.png",
+    "preview-3q-front-left.png",
+    "preview-3q-rear-right.png",
+    "preview-3q-rear-left.png",
+    "preview-3q-low-front-right.png",
+    "preview-closeup-bow.png",
+    "preview-closeup-deckhouse.png",
+    "preview-closeup-manifold.png",
+    "preview-closeup-stern.png",
+    "preview-top-orientation.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "No letters, numbers or symbols anywhere: no hull number, name, port of registry, draught marks, funnel mark or company colours. Paint is plain charcoal topsides, a black boot-top, red antifouling, a green-grey deck and an off-white deckhouse with rows of plain windows."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; the funnel is plain off-white with a soot-dark top."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No flags, ensigns or markings; an original tanker layout (deckhouse aft, raised forecastle, three cargo lines, a two-pipe manifold, catwalk to starboard of the pipes), not a copy of any real or game ship."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or crew. Head-on the bow is a plain raked stem with no hawse pipes, anchors or dark openings; the deckhouse front has rows of many small windows and a wide bridge band, which reads as a building. Checked in preview-front, preview-closeup-bow and preview-closeup-deckhouse."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "A civilian-type cargo ship: no guns, launchers or weapons; nothing damaged or burning."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": [],
+  "sha256": {
+    "contact-sheet.png": "df39a9de9fd0cdc2a8d3022b6b632336c59602111a32db72a6ccee533ed858a2",
+    "fuel-tanker-color.png": "ce530394e9382b30a98d0b40277ec3efc1ed100db1b39019bec2a5f318fc9192",
+    "fuel-tanker-metalness.png": "be22a1a3c92254ec11cc76f32b53048c88d03155898e949a2aff0e86e709f24f",
+    "fuel-tanker-normal.png": "5bc06b7a86b5f89d133153f6cbd70ff4cc3dc4b4a7df4df34cd7971b75a9db08",
+    "fuel-tanker-roughness.png": "8489ca08470c90a037244113db7f20f9789429829d0b60f11977d2ec1bf9d6c7",
+    "fuel-tanker.fbx": "2a7797171ed3d9e0889ba292faa87189b44ff9862a2d011f56e0f8dff0d3f965",
+    "preview-3q-front-left.png": "811a64019ee02c38fb514143c96fd18c78296b88ebc61131654678c488d3f013",
+    "preview-3q-low-front-right.png": "5d49176fbf8b1f5ebdbaffeb974587105f4ba7fabeba831364ce28098edc78b7",
+    "preview-3q-rear-left.png": "6fc979f8d8526a808f5d10ddf4942dde896184f496f6bf7e5c5b73ff8b4c2224",
+    "preview-3q-rear-right.png": "a6aeccb9efd6a54591db833e7bbf064413c363176ca2438d548f5016da4e8595",
+    "preview-3q.png": "147e224818616951db20c1b571d4739129ba4eb5ffc2d8743b0e9c5a57c46971",
+    "preview-back.png": "d1ab05f236dd124bfc2fdc7eef3bb1672ff3b0f682bd33d68677c37574d811f9",
+    "preview-bottom.png": "71aa63b902d58050577f4f0746a7b75a0625dec9648eddd14d852d172bbae638",
+    "preview-closeup-bow.png": "7c86bac07d75704d0b7b17c324eec4f0653d60d9997a7d3bc2eb393136a88706",
+    "preview-closeup-deckhouse.png": "2ffd41196cf36fcc6017ea719a28b0277aadc8307a67bd3f17b86bfdf2a8d44d",
+    "preview-closeup-manifold.png": "d4411e4ca536e408a714f93fafa3bda044784f3ee1f212f615fb84a4acba184d",
+    "preview-closeup-stern.png": "621430d5c06b5ac3ee3a83150834383d40403449f202fe000818a8ccfa690e21",
+    "preview-front.png": "5225a16337428349e56c78c2b7db7d50b38c553f5ced3cec4b4c21858099976a",
+    "preview-scale-reference.png": "5c48d19248535c68485ae46910a970e7512c547c3bdb2e94b66b5f6ba380fa86",
+    "preview-side-right.png": "4c74a685de1f8ff1330313b17c5b60d4882487a872f953b41354147335840fc3",
+    "preview-side.png": "17c1258c4dc27a7587431c012550727549124c93b2f624ab8e091703eebfe1b8",
+    "preview-top-orientation.png": "8728c3d8793fe2097a43b97e95fe6aaaf17fc5b6e0985bfffd8886a2b79103be",
+    "preview-top.png": "0ffc3917d8f6742e64e8663d71c7b769eadf3794f91657fd6fc78dba847c369a"
+  },
+  "previewNotes": {
+    "preview-front.png": "Orthographic from ahead (the model's front, Roblox -Z).",
+    "preview-side.png": "Orthographic from the left (port), Blender +X.",
+    "preview-top.png": "Orthographic from above, front at the top, the model's right (starboard) on the image's right.",
+    "preview-3q.png": "Perspective from ahead, the right (starboard), above.",
+    "preview-back.png": "Orthographic from behind.",
+    "preview-side-right.png": "Orthographic from the right (starboard).",
+    "preview-bottom.png": "Orthographic from below.",
+    "preview-3q-front-left.png": "Perspective from ahead, the left (port), above.",
+    "preview-3q-rear-right.png": "Perspective from behind, the right (starboard), above.",
+    "preview-3q-rear-left.png": "Perspective from behind, the left (port), above.",
+    "preview-3q-low-front-right.png": "Perspective from ahead, the right (starboard), below.",
+    "preview-closeup-bow.png": "Close-up from ahead, the right (starboard), above.",
+    "preview-closeup-deckhouse.png": "Close-up from ahead, the right (starboard), above.",
+    "preview-closeup-manifold.png": "Close-up from ahead, the right (starboard), above.",
+    "preview-closeup-stern.png": "Close-up from behind, the left (port), above.",
+    "preview-top-orientation.png": "Review aid only (not in the FBX): orthographic from above, same framing as preview-top.png, with a plain orange arrow from stern to bow on the centre line. The hose crane and rescue boat are on the image's right, the starboard side."
+  },
+  "orientation": "Bow at Roblox -Z; starboard = Roblox +X (right when facing the bow), which carries the hose crane at the manifold, the raised catwalk (just starboard of the pipes) and the rescue boat on the deckhouse. Authored front -Y, Z up, so starboard is Blender -X; the plan is mirrored to put those features there. The FBX export and the Roblox import only rotate (Blender (x, y, z) -> Roblox (-x, z, y)), so no import mirrors a side. preview-top-orientation.png shows a review-only arrow from stern to bow.",
+  "waterline": "groundOffsetStuds = 16: the waterline is 16 studs above the keel (the model's lowest point). Place the pivot (bottom centre) 16 studs below the sea surface.",
+  "deckHeightStuds": 26.0,
+  "design": "Original medium tanker: raked stem with a bulbous bow, parallel midbody, transom stern, raised forecastle with a breakwater, deckhouse of three tiers plus bridge aft with bridge wings, a raked funnel, three longitudinal cargo pipes, a two-pipe manifold midships, a raised catwalk, tank hatches, a starboard hose crane, a free-fall lifeboat on a stern ramp, a rescue boat on a starboard davit, a foremast and mooring winches. No hull number or name.",
+  "sizeRationale": "266.7 studs overall (260 at the waterline plus the raked stem and bulb) x 46 beam. At the fighters' ~1.44 studs per metre this is a ~185 m medium tanker (32 m beam): 10 Vanta lengths, about half the 560-stud carrier. The legacy frigate (430 studs) is authored at 0.28 m per stud and is oversized next to this ship; keep them apart or scale the frigate down.",
+  "reviewStatus": "pending independent safety review (AGENTS.md); not uploaded; not referenced from src/",
+  "scaleReference": {
+    "file": "preview-scale-reference.png",
+    "reference": "kestrel-v2",
+    "note": "Review aid only: an approved, already uploaded asset placed at in-game size for scale. Not part of this asset or its FBX."
+  },
+  "contactSheet": "contact-sheet.png"
+}

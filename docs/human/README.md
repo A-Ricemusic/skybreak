@@ -40,3 +40,5 @@ Engine batch A is built but dormant on unmerged PR #138: typed targets, triggere
 - [Blockers](blockers.md): what is slowing agents down, and what needs you.
 - [Decisions](decisions.md): every decision, with reasons. All four open questions are now answered.
 - [Redesign plan](../redesign-plan.md): the original plan. Where it conflicts with the decisions log, the decisions log wins.
+
+PR #137 asset work: elite export `vanta-v2-elite-3` replaces the rejected rear with a continuous rectangular exhaust. Unmerged, not uploaded; independent review required. The other four assets remain unchanged.

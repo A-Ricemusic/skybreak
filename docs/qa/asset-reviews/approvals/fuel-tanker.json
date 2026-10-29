@@ -1,0 +1,24 @@
+{
+  "asset": "fuel-tanker",
+  "folder": "assets/roblox-upload/fuel-tanker/",
+  "exportVersion": "fuel-tanker-1",
+  "approved": true,
+  "reviewer": "GPT-6.1 Sol (independent; not the creator)",
+  "reviewedAt": "2026-10-29T19:09:49Z",
+  "score": "10/10",
+  "commitReviewed": "150df95a8ba2253958372f8904a4aa9f18648a57",
+  "pr": 137,
+  "record": "docs/qa/asset-reviews/2026-10-29-pr137-review-1.md",
+  "uploadSet": {
+    "fuel-tanker.fbx": "2a7797171ed3d9e0889ba292faa87189b44ff9862a2d011f56e0f8dff0d3f965"
+  },
+  "uploadAssetType": "Model",
+  "embeddedTextures": {
+    "fuel-tanker-color.png": "ce530394e9382b30a98d0b40277ec3efc1ed100db1b39019bec2a5f318fc9192",
+    "fuel-tanker-metalness.png": "be22a1a3c92254ec11cc76f32b53048c88d03155898e949a2aff0e86e709f24f",
+    "fuel-tanker-normal.png": "5bc06b7a86b5f89d133153f6cbd70ff4cc3dc4b4a7df4df34cd7971b75a9db08",
+    "fuel-tanker-roughness.png": "8489ca08470c90a037244113db7f20f9789429829d0b60f11977d2ec1bf9d6c7"
+  },
+  "checklistSha256": "3a923c951c6773ebff016b7965aa5fd8ab3d60a9cd758eaf42ca27fdf4687da8",
+  "note": "Approval covers only this exact FBX and its byte-matched embedded textures. Any edit or re-export requires a new independent review. Not a guarantee against moderation."
+}

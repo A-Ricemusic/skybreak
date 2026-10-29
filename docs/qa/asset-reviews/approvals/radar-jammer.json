@@ -1,0 +1,24 @@
+{
+  "asset": "radar-jammer",
+  "folder": "assets/roblox-upload/radar-jammer/",
+  "exportVersion": "radar-jammer-1",
+  "approved": true,
+  "reviewer": "GPT-6.1 Sol (independent; not the creator)",
+  "reviewedAt": "2026-10-29T19:09:49Z",
+  "score": "10/10",
+  "commitReviewed": "150df95a8ba2253958372f8904a4aa9f18648a57",
+  "pr": 137,
+  "record": "docs/qa/asset-reviews/2026-10-29-pr137-review-1.md",
+  "uploadSet": {
+    "radar-jammer.fbx": "83d228d5fb081fbb00d8620aca9d4034e511739d2c9bddf6560da172af59b556"
+  },
+  "uploadAssetType": "Model",
+  "embeddedTextures": {
+    "radar-jammer-color.png": "929ebe92c25f30964c34a82b50d832c08db7a15eb84999a617e1f0f353b9cfc8",
+    "radar-jammer-metalness.png": "1b5b3ef1b5a5a1baec59f82318d045e517030242444da2b2d5e906342cf6f1bd",
+    "radar-jammer-normal.png": "fd7ba2d01e9aebde09b577d64432b07d85b16d73d984e16463afa1c887206540",
+    "radar-jammer-roughness.png": "973363ccaa93944c49ea6a6c7fca55207483c89f1b149e0e46cc31cbae339aab"
+  },
+  "checklistSha256": "1b2c6cc6d5bcaf832a73bae8371768563c64c80cc1d308ef004d231f7852cf63",
+  "note": "Approval covers only this exact FBX and its byte-matched embedded textures. Any edit or re-export requires a new independent review. Not a guarantee against moderation."
+}
