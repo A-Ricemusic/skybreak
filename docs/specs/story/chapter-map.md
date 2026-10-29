@@ -1,6 +1,6 @@
 # Broken Relay: proposed 18-chapter map for the new campaign
 
-Status: **proposal for the owner (D-013)**. Nothing here is built. Written 2026-10-28 by the design sub-agent (Opus 5.5) from `main` at `b17fb9e`.
+Status: **approved by the owner on 2026-10-28, with changes (D-030, D-031)**. Nothing here is built. Written 2026-10-28 by the design sub-agent (Opus 5.5) from `main` at `b17fb9e`, then updated the same day with the owner's answers (section 5). The main change: Rusk survives mission 17 and falls in a one-on-one duel added at the end of mission 18 (section 2c).
 
 Read for this proposal: `src/shared/RelayStory.ts` (all 28 chapters), `src/shared/StoryDocuments.ts`, `docs/broken-relay.md`, `src/shared/missions/m01.ts` to `m27.ts`, `reference/ledger.md` (the 18 reference missions), `docs/specs/missions/m01.md`, `docs/specs/worlds/m01.md` and `docs/human/decisions.md` (D-001, D-011, D-013, D-021).
 
@@ -61,8 +61,8 @@ How to read it: "ch 14" means today's chapter 14 in `RelayStory.ts`. "New 7" mea
 | 14 | Breaking Arrows, 3:20:22–3:28:38 | Night, sea ice and glaciers under a green aurora. Intercept low-flying cruise missiles | **New 13 "Aurora archive"** (ch 16) | — The crown station stands on the ice coast; the missiles are aimed at its dish |
 | 15 | Emancipation, 3:32:45–3:47:38 | Night battle over a lit city: tanks, helicopters, AA, then a bomber attack on the city; mid-mission rearm | **New 14 "The city in darkness"** (ch 20) | Ch 17's ORDER 0001 log and Sera's wing-ceremony beat merged: the name comes first, then his voice over the city |
 | 16 | Whiskey Corridor, 3:50:50–4:12:27 | Hazy clear-day desert: crater, bunkers, ruined town. Close air support for an armoured advance; airbase rearm | **New 15 "The dawn landing"** (ch 24) | Ch 21's Rusk-in-his-own-name beat, Sera's reply and the trainee's answer merged. Ch 21 is otherwise cut |
-| 17 | Siege of Farbanti, 4:14:30–4:32:17 | Flooded coastal capital at golden hour: bridges, a battleship, tanks; rearm at dusk; five ace fighters at the end | **New 16 "The last fracture"** (ch 25) | — Rusk leads the five aces and is brought down here (question Q2) |
-| 18 | Megalith, 4:36:59–4:46:22 | Vast grey coastal structure under storm. Fly inside narrow grooves to kill generators, run the central vent, get out | **New 17 "Broken relay"** (ch 26) | — The structure is Rusk's relay works, still playing his recorded voice |
+| 17 | Siege of Farbanti, 4:14:30–4:32:17 | Flooded coastal capital at golden hour: bridges, a battleship, tanks; rearm at dusk; five ace fighters at the end | **New 16 "The last fracture"** (ch 25) | — Rusk leads the five aces and **survives**: he breaks off and flies out to sea once his four wingmen are down (section 2c) |
+| 18 | Megalith, 4:36:59–4:46:22 | Vast grey coastal structure under storm. Fly inside narrow grooves to kill generators, run the central vent, get out | **New 17 "Broken relay"** (ch 26) | — The structure is Rusk's relay works, playing his voice on a loop. **Added final phase, not in the reference:** a one-on-one duel with Rusk above the broken works, where he falls (section 2c) |
 | Finale | — (after mission 18) | — | **New 18 "A clear frequency"** (ch 27) | Unchanged apart from one line |
 
 **Cut entirely:** ch 23 "The storm platform" (no beat survives).
@@ -93,9 +93,23 @@ Every new chapter stays within today's three-to-eight-beat limit. Merges keep th
 | 14 | Relay at night under the aurora → night sea ice under the aurora. The strongest fit in the map. | The crown station on the ice coast transmits only at night. It holds the first order, signed in his own name. He has launched missiles at the dish. Stop every one until the archive is received. |
 | 15 | City at night → lit city at night. A strong fit. | ORDER 0001: Rusk. His voice holds the city through one relay. Silence it, cover the loyalist ground forces, then stop his bombers punishing the city. |
 | 16 | City at dawn → hazy desert by day, ruined town. The landing becomes a column crossing the dry coast. | Parliament is coming home behind the loyalist column. Clear the bunkers and the town ahead of it until both squads answer from the streets. |
-| 17 | Canyon at dawn (Teal found) → flooded capital at golden hour. Different places but the same tone: the last light of the long day. | Teal was found; the witnesses must reach parliament tonight. Keep the bridges and the quay open. Rusk's own wing of five is over the capital. |
-| 18 | City at dusk → coastal structure in a storm. Mood changes to storm. | Rusk is down, but his relay works keep playing his voice on a loop. Fly inside it and break it, so the trainee's voice can go out. |
+| 17 | Canyon at dawn (Teal found) → flooded capital at golden hour. Different places but the same tone: the last light of the long day. | Teal was found; the witnesses must reach parliament tonight. Keep the bridges and the quay open. Rusk is flying with his own wing of five over the capital. The debrief says he left his wing to die and ran for the coast. |
+| 18 | City at dusk → coastal structure in a storm. Scene changes to the relay works, mood to storm. | Rusk ran to his relay works on the coast, which keep playing his voice on a loop. Fly inside it and break it, so the trainee's voice can go out. When the loop stops, he will come up to meet you alone. |
 | Finale | City at dawn, after the storm. A good fit. | — (the chapter plays automatically after the mission is won) |
+
+### 2c. Rusk at missions 17 and 18 (owner's answer to Q2)
+
+**Mission 17: how Rusk survives.** Rusk leads the five aces over the flooded capital. He cannot be shot down in this mission. When the last of his four wingmen falls, he breaks off and flies out to sea, toward his relay works on the coast. If the player damages him badly before that, he breaks off at that point instead. The mission is won when the four wingmen are down and Rusk has gone. This is one small change to the reference's ending, where all five aces are fought: one of them now leaves instead of falling.
+
+Why he withdraws, rather than escaping by luck or being driven off: it is who Rusk has been all story. He has let other people carry his risk (Vulture Lead, Vulture Two, his wing) and has only ever reached the city through a relay. When his wing breaks, he runs to the one thing that keeps him in power, his voice. It also makes today's ch 26 opener literally true: "The wing is broken. He's alone up there with one relay and his own voice."
+
+**Mission 18: the added duel.** This is a new final phase that the reference's mission 18 does not have.
+
+- **When it starts:** after the player has destroyed the generators, run the central vent and got out of the structure, in the same mission and without a loading screen. The structure breaks, the loop of his voice stops, and Sera calls it: he is coming up.
+- **Where:** in open air above and around the broken relay works, over the stormy sea. Not inside the grooves. The works is a dead, smoking landmark under the fight.
+- **What makes it a duel:** Rusk alone. No wingmen, no other enemy aircraft, and the structure's guns are already dead. Any enemy fighters still flying when the vent run ends leave before he arrives. The player's own wingmen, if the mission has any, hold off and do not fire on him.
+- **How it ends:** the mission is won when the player shoots Rusk down. The usual failures still apply (for example, the player is shot down). The finale chapter then plays.
+- **For the later spec and build:** Rusk's aircraft, his difficulty, how long the duel may run and whether it has its own countdown are left to the mission 18 spec. The reference's mission 18 runs about 9.4 minutes; the duel adds to that.
 
 ## 3. Continuity check
 
@@ -119,12 +133,14 @@ Every new chapter stays within today's three-to-eight-beat limit. Merges keep th
 | The voice named: RUSK | ch 17 | New 14 (M15) | Named before he speaks as RUSK. OK |
 | Rusk uses his own name to the trainee | ch 21 | New 15 (M16) | After the naming. OK |
 | Teal's last recording; the amended record | ch 25 | New 16 (M17) | Second-to-last, as today. OK |
-| Rusk's last offer; "one of three" | ch 26 | New 17 (M18) | OK |
+| Rusk leaves his wing and runs for the coast | — (new) | M17's ending and debrief | New. Sets up his last stand at the relay works. OK |
+| Rusk's last offer, live and alone; "one of three" | ch 26 | New 17 (M18) | OK. Still his own live voice, as today |
+| Rusk falls in the duel | ch 26's duel | End of M18 (added phase) | Last fight of the game, as today. OK |
 | The final broadcast; "two of three" | ch 27 | New 18 (finale) | Last. OK |
 
 **Conflicts found and how the map resolves them**
 
-1. **Varda Rim is a canyon airfield; mission 1 is sea, island and a carrier.** Varda already has "training islands" (today's first mission). Varda Rim becomes the airfield on the island's headland, the base the bombers are heading for; the trainee flies off the training carrier. "The rim" still reads as a sea-cliff rim. (Q3.)
+1. **Varda Rim is a canyon airfield; mission 1 is sea, island and a carrier.** Varda already has "training islands" (today's first mission). Varda Rim becomes the airfield on the island's headland, the base the bombers are heading for; the trainee flies off the training carrier. "The rim" still reads as a sea-cliff rim. (Q3, adopted.)
 2. **"Three bandits on the rim" (ch 0) and "the bandits wore our markings" (ch 1)** no longer match a practice flight and a six-bomber raid. Both lines are rewritten for the bombers.
 3. **Ch 1's manifest sends the fuel to five quays on Iron Coast, but M2 is a farm airfield and the harbour comes at M6.** The manifest names both: the farm with a runway first, the Iron Coast quays later.
 4. **Ch 2 and 3 are set in a rock canyon; M3 is snowy mountains.** "Canyon" and "switchback" become "the pass". This also makes the pass where Teal is later found (ch 25) the same pass the player already knows.
@@ -132,7 +148,7 @@ Every new chapter stays within today's three-to-eight-beat limit. Merges keep th
 6. **Ch 8 opens with "The tower is ours again" (after ch 7), but the tower defence moves to M8.** Ch 8's opener is replaced; Vulture Lead now follows the fuel strike.
 7. **Ch 7's orders "effective 0400" make the tower attack imminent, but it now waits until M8.** The urgent-orders framing goes. The tower is attacked because it is about to broadcast. Sera's "I'm not leaving my chair" stays.
 8. **Ch 9's chain runs "Kiro, Lira, Merel, the harbours" in that order, but the harbour (M6) comes before the arrays (M7).** The beat is reframed: hit the end of the chain first and listen back up it.
-9. **Ch 11's mobile transmitter is cut, but ch 14 says "the mobile crew has it on tape".** The broadcast goes out from Varda's island transmitter. Ch 15 already says "Varda Rim has broadcast enemy propaganda", so this now matches better. (Q4.)
+9. **Ch 11's mobile transmitter is cut, but ch 14 says "the mobile crew has it on tape".** The broadcast goes out from Varda's island transmitter. Ch 15 already says "Varda Rim has broadcast enemy propaganda", so this now matches better. (Q4, adopted.)
 10. **Ch 13 says "the staging raid exposed a command frequency", but the staging farm is now M2 and the saddle comes later.** The checkride card comes from Sera's own files; the reference to the raid goes.
 11. **Ch 15 is a storm chapter, but M10 is clear.** The chapter keeps the storm (the day of the burning). Teal's storm line ("when the weather's bad, that's when they move") moves to new 8 before the misty landing. "Rain hides the last fuel markings" goes.
 12. **Ch 16 says "his plateau fuel is gone" and places the crown station on the plateau; M14 is sea ice.** The opener points at M10's broken line instead. The crown station stands on the ice coast. "Only transmits at night" and the aurora stay.
@@ -144,7 +160,7 @@ Every new chapter stays within today's three-to-eight-beat limit. Merges keep th
 18. **Ch 22 has "Rusk forgot" and "at his wing ceremony too" before Rusk is named, and "his convoy can't refuel" refers to cut missions.** These become "the Marshal" and the ceremony line drops "too". The fuel framing gives way to the landing.
 19. **Ch 23 is cut, and with it "He said the canyon got Teal".** That line pointed back at ch 21's Rusk line; both are gone or moved, so nothing dangles.
 20. **Ch 24's landing craft on the city beach do not fit a desert column.** They become a loyalist column with parliament following it "home by road". "Both squads answer from the streets" fits the ruined town.
-21. **Ch 26 has Rusk alive and speaking live "above the parliament tower", with a duel to come, but the M18 structure has no duel.** Rusk falls at M17 as the lead of the five aces. Ch 26 plays his recorded offer from the relay works, and the trainee answers a recording, as they have answered Teal's all along. The finale's "He's down. His relay is dark" stays true. (Q2.)
+21. **Ch 26 has Rusk alive and speaking live "above the parliament tower", with a duel to come, but the reference's M18 structure has no duel.** The owner chose to keep the duel (Q2, D-031). Rusk survives M17 by leaving his wing and flying to his relay works on the coast. Ch 26 keeps his live offer; only its place changes, from the parliament tower to the relay works. M18 gains an added final phase: once the works is broken, Rusk comes up alone and falls in the duel (section 2c). The finale's "He's down. His relay is dark" now reads literally: the relay went dark when the works broke, and he went down in the duel.
 22. **The story documents shown on the flight chart are keyed by today's chapter numbers**, and several name cut places (the dust pass, the mobile transmitter, the offshore platform, the parliament tower bearing). They are re-keyed and edited in section 4.
 23. **Visual cues keyed to chapter numbers**: farms charred "from chapter 15", Sera's board without Teal's name "during chapter 9", the aurora on "night relay chapters", the dented recorder "in chapter 25". They move to new 9, new 5, new 13 and new 16.
 24. **No chapter now refers to a mission or place that no longer exists**, once the changes in section 4 are made. The remaining places are Varda Rim and its islands, the farm airfield, the pass, the Teklan orchard, the fuel works, Iron Coast, the relay ridges (Kiro, Lira, Merel), the saddle, the crown station, the city and the parliament.
@@ -174,10 +190,10 @@ Story chapters (`RelayStory.ts`), in new order:
 19. New 13: replace "His plateau fuel is gone" with a line about the broken river line; the crown station is on the ice coast.
 20. New 14: open with ch 17's ORDER 0001 log beat and Sera's wing-ceremony beat, then ch 20; "The launch is clear" becomes the evidence plane.
 21. New 15: add ch 21's Rusk own-name beat, Sera's "first time he's used his own name" beat and the trainee's answer; landing craft become a column; parliament comes "home by road".
-22. New 16: Sera's last radio beat points at the capital's bridges and quay and names Rusk's wing of five.
-23. New 17: open with Rusk down at M17 and his relay still playing his voice; mood becomes storm; drop "Mark a clear road for Rusk before the duel".
-24. New 17: Rusk's offer becomes a recording on loop; e.g. "It's a recording, Sparrow. He isn't up there any more. Only his voice is."
-25. New 18 (finale): no change needed; check "He's down. His relay is dark." against the Q2 decision.
+22. New 16: Sera's last radio beat points at the capital's bridges and quay and says Rusk is flying with his own wing of five tonight; e.g. "He's flying with his wing himself tonight. Five of them, over the bridges."
+23. New 17: keep "The wing is broken" and "alone up there with one relay and his own voice"; "above the parliament tower" becomes his relay works on the coast; scene becomes the relay works and mood becomes storm.
+24. New 17: Rusk's offer stays live, in his own voice, and the trainee's answer stays. "Mark a clear road for Rusk before the duel" becomes the order of the fight; e.g. "Break the works first. When his voice stops, he'll come up to meet you alone."
+25. New 18 (finale): no change needed. "He's down. His relay is dark." now matches the duel exactly.
 26. The RUSK speaker-label comment changes from "chapter 17 on" to "new chapter 14 on".
 
 Story documents (`StoryDocuments.ts`):
@@ -190,26 +206,28 @@ Story documents (`StoryDocuments.ts`):
 32. ORDER 0001 (ch 17): moves to new 14.
 33. Offshore platform (ch 22): rewrite as the landing frigates and drop "CONVOY FUEL: NONE".
 34. Storm platform (ch 23): drop.
-35. Last transmission fix (ch 26): "BEARING: PARLIAMENT TWR" becomes the coastal relay works, and "VOICE: HIS OWN" becomes "VOICE: RECORDED".
+35. Last transmission fix (ch 26): "BEARING: PARLIAMENT TWR" becomes the coastal relay works; "VOICE: HIS OWN" stays, because he is still live.
 36. Re-key every remaining document to its new chapter number.
 
 Briefings, debriefs and other text:
 
 37. Write new briefing, debrief and failure text for the practice flight and missions 1 to 18 from section 2b, replacing today's 27 mission texts.
-38. Each debrief ends on the thread its next chapter picks up (for example, M1's debrief hands over the sealed case).
+38. Each debrief ends on the thread its next chapter picks up (for example, M1's debrief hands over the sealed case, and M17's says Rusk left his wing and ran for the coast). M18 has no debrief in the reference; the finale follows the duel.
 39. `docs/broken-relay.md`: update the story paragraph's chapter numbers (aurora archive, orchard burning, confession, last recording) and the mission manifest when the new campaign ships.
 40. Cutscene cues keyed to chapter numbers (charred farms, the board name strip, the aurora, the dented recorder) move as in conflict 23.
 
-## 5. Open questions for the owner
+## 5. Owner answers (2026-10-28)
 
-| # | Question | Recommendation |
-|---|---|---|
-| Q1 | D-013 says 18 chapters. Is that 18 chapters before missions plus the finale (19 in all, the same rule as today), or 18 in all? | **18 plus the finale.** Squeezing to 18 in all would mean dropping either the opening or the finale, and both are load-bearing. |
-| Q2 | Where does Rusk fall? The final reference mission has no duel. | **At mission 17, as the lead of its five aces.** Mission 18's relay works then play his recorded voice. Both missions stay faithful to the reference (D-012). The alternative, a duel added after mission 18's vent run, keeps today's live final offer but adds a phase the reference does not have. |
-| Q3 | Varda Rim moves from a canyon rim to an island headland (mission 1's world, with a carrier start). | **Yes.** Varda already has training islands, and nothing in the story needs the base to be inland. |
-| Q4 | Cut the mobile transmitter truck (ch 11) and broadcast the 35 seconds from Varda's island transmitter at mission 8? | **Yes.** Ch 15 already blames Varda for the broadcast, and Sera staying in her tower gives the big battle its stakes. |
-| Q5 | The crown station moves to an ice coast to meet mission 14's aurora. Should mission 12's ring of eight towers be the crown station instead? | **Keep the crown station at mission 14.** The aurora is its signature look, and the missiles-at-the-dish idea fits. Mission 12's ring makes a good command array for Vulture Two to guard. |
-| Q6 | Cut "The storm platform" (ch 23) and almost all of "Fog fuel" (ch 21)? | **Yes.** They cut off fuel and add no reveal. The one load-bearing beat (Rusk using his own name) moves to new 15. |
-| Q7 | Does the practice flight keep today's three live bandits at the end? | **No enemies.** That keeps the practice a pure checkout and makes the bombers in Varda's paint the first enemy. If the bandits stay, new 0's last line can stay closer to today's. |
-| Q8 | Replays: should the opening play before every practice flight, or only the first time and before mission 1 replays? | **Opening on the first run; a replay reprise before mission 1 only**, as reprises work today. |
-| Q9 | Merged chapters take one existing title (for example "Fuel under grain", not "Vulture Lead"). Any titles you want back? | Keep the titles in section 2a. All of them are today's titles, so no new names are needed. |
+The owner approved the map with these answers. Questions 1 and 5 to 9 take the writer's recommendations.
+
+| # | Question | Answer | Consequence |
+|---|---|---|---|
+| Q1 | D-013 says 18 chapters. Is that 18 chapters before missions plus the finale (19 in all), or 18 in all? | **18 plus the finale** (recommendation adopted). | 19 chapters in all: one before each of missions 1 to 18 (mission 1's is the opening, played before the practice flight) and the finale after mission 18. |
+| Q2 | Where does Rusk fall? The final reference mission has no duel. | **Owner's choice, against the recommendation (fall at mission 17): Rusk survives mission 17 and falls in a one-on-one duel added at the end of mission 18** (D-031). | Rusk leaves his wing at M17 and runs to his relay works. M18 gains a duel phase after the vent run (section 2c). Ch 26 keeps his live offer. M18 departs from the reference by this one added phase. |
+| Q3 | Varda Rim moves from a canyon rim to an island headland (mission 1's world, with a carrier start). | **Yes** (recommendation adopted). | Varda Rim is the airbase on mission 1's island headland, the base the bombers are heading for. |
+| Q4 | Cut the mobile transmitter truck (ch 11) and broadcast the 35 seconds from Varda's island transmitter at mission 8? | **Yes** (recommendation adopted). | The truck and its document go; the broadcast goes out from Varda while Sera stays in her tower. |
+| Q5 | Should mission 12's ring of eight towers be the crown station instead of mission 14's ice coast? | **Keep the crown station at mission 14** (recommendation adopted). | The crown station stands on the ice coast under the aurora; mission 12's ring is the command array Vulture Two guards. |
+| Q6 | Cut "The storm platform" (ch 23) and almost all of "Fog fuel" (ch 21)? | **Yes** (recommendation adopted). | Ch 23 is cut; ch 21 survives only as the Rusk-own-name beat and its replies, in new 15. |
+| Q7 | Does the practice flight keep today's three live bandits at the end? | **No enemies** (recommendation adopted). | The practice flight is a pure checkout; the bombers in Varda's paint are the first enemy. New 0's last trainee line is rewritten. |
+| Q8 | Replays: should the opening play before every practice flight, or only the first time and before mission 1 replays? | **Opening on the first run; a replay reprise before mission 1 only** (recommendation adopted). | Reprises work as they do today. |
+| Q9 | Merged chapters take one existing title. Any titles wanted back? | **Keep the titles in section 2a** (recommendation adopted). | No new chapter names are needed. |
