@@ -1,6 +1,6 @@
 # Uploaded Roblox assets (owner user 3407487520)
 
-Every row passed the independent Sol 6.1 visual gate (hash-matched review evidence) and Roblox moderation (approved) before use. Source: `~/.skybreak-roblox-uploads/journal-3407487520.json`. Embedded FBX textures become a SurfaceAppearance on every MeshPart. Pre-fix exports (aircraft and large props) arrive 28x oversize; the loader scales templates.
+Every row passed an independent visual gate (hash-matched review evidence) and Roblox moderation (approved) before use. Source: `~/.skybreak-roblox-uploads/journal-3407487520.json`. Embedded FBX textures become a SurfaceAppearance on every MeshPart. Pre-fix exports (aircraft and large props) arrive 28x oversize; the loader scales templates.
 
 | Asset | Model asset ID | Reviewed FBX sha256 |
 |---|---|---|
@@ -45,3 +45,15 @@ Both pre-existing uploads are `MODERATION_STATE_APPROVED` in the read-only owner
 | carrier | 118082412288291 | carrier-2 | `31cb21fa341c9b168575df765e559d136bcd62123c08a6a0d8bd5a6f1a0fad63` | Approved |
 
 Journal timestamps are 2026-10-29 02:31:57 UTC and 02:32:14 UTC respectively (2026-10-28 locally). Only the dormant bomber encounter and M01 world can select these assets; current campaign worlds and starts remain unchanged.
+
+## Mission 4–5 reserved uploads (2026-10-29)
+
+All five passed moderation; unused until missions 4–5. Studio orientation check pending. Elite revision 3 was independently approved by Claude Opus 5.5 in [review 3](asset-reviews/2026-10-29-pr137-review-3.md); the other four retain their Sol approvals in `asset-reviews/approvals/`.
+
+| Asset | Model asset ID | Export | FBX SHA-256 |
+|---|---|---|---|
+| heavy-transport | 135095912449793 | heavy-transport-1 | `b6ec50634826a176b57de4c7a84208fe0e3931d783a589fd8cd01f505ee06408` |
+| radar-jammer | 80069408823339 | radar-jammer-1 | `83d228d5fb081fbb00d8620aca9d4034e511739d2c9bddf6560da172af59b556` |
+| fuel-tanker | 83861380699092 | fuel-tanker-1 | `2a7797171ed3d9e0889ba292faa87189b44ff9862a2d011f56e0f8dff0d3f965` |
+| attack-helicopter | 80747426523090 | attack-helicopter-1 | `d31e015e7959c55ec534d48454e27cbb668d87ec6a3f6bf111edb9acdb74dd29` |
+| vanta-v2-elite | 139083376207373 | vanta-v2-elite-3 | `2fdcf40547df8f11dfd13d15b6b08535c87add64a6db5363c79da3dc2a2b8ada` |

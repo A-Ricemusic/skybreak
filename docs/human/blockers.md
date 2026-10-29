@@ -4,14 +4,14 @@ Last updated: 2026-10-29.
 
 ## Open
 
-Mission 3 remains dormant in unmerged PR #139. Its offline contracts establish geometry only; no Studio or Player observation is claimed.
+Mission 3 world (#139) and engine batch B (#141) are merged and dormant. Its offline contracts establish geometry only; no Studio or Player observation is claimed.
 
 
 | Date | Raised by | What is blocked | Impact | What is needed |
 |---|---|---|---|---|
 | 2026-10-29 | Mission 3 implementation | M03 Studio load time, rendered shell continuity/LOD seams, landing path verification and phone performance are unmeasured. | Offline estimates and swept geometry checks do not establish runtime quality. | Measure cold load and inspect all shell/LOD transitions; verify the engine landing with the real aircraft and measure a real phone before activation. |
-| 2026-10-29 | Mission 3 implementation | Mission 3 engine batch B and mission data/unlock remain outstanding. | World composition alone cannot make mission 3 playable. | Engine batch B owns mission update banner, clock reset, return-line objective, automatic skippable landing and terrain-relative LOW ALTITUDE; do not implement the warning in the world builder. |
-| 2026-10-29 | Engine batch B | Mission 3 runtime quality and integration are unverified. | Dormant features do not enable mission 3; no Studio or Player test performed. | Orchestrator runs Roblox specs under its Studio lease, checks update/radio/return/landing/skip and mountain clearance, then integrates mission 3 data and the remaining presentation items in Next. PR #141 review corrections are unmerged; they do not establish visual quality. |
+| 2026-10-29 | Mission 3 implementation | Mission 3 mission data/unlock remain outstanding; engine batch B is merged and dormant. | World composition alone cannot make mission 3 playable. | Engine batch B owns mission update banner, clock reset, return-line objective, automatic skippable landing and terrain-relative LOW ALTITUDE; do not implement the warning in the world builder. |
+| 2026-10-29 | Engine batch B | Mission 3 runtime quality and integration are unverified. | Dormant features do not enable mission 3; no Studio or Player test performed. | Orchestrator runs Roblox specs under its Studio lease, checks update/radio/return/landing/skip and mountain clearance, then integrates mission 3 data and the remaining presentation items in Next. PR #141 review corrections are merged and dormant; they do not establish visual quality. |
 | 2026-10-29 | Mission 2 world implementation | Mission 2 world Studio load time, visuals and phone performance are unmeasured. | Offline budgets are estimates; PR #140 remains dormant and does not establish runtime quality. | Measure load time and inspect visuals in Studio, then measure on a real phone before release. No Studio or Player test was performed for this PR revision. |
 | 2026-10-29 | Orchestrator | Owner acceptance of mission 1 (the beta test). | Mission 2 waits for your feedback (D-004). | **You:** play the practice flight and mission 1 in Roblox Player and report what you notice. |
 | 2026-10-28 | Large-world measurement | Real-phone performance and streaming for full-scale worlds are unverified. Studio measured mission 1's world at 4 to 5.5 s server build and 60 FPS in the phone emulator (#114), but the emulator runs on desktop hardware. | Mission 1's world may need tuning after it goes live. | Re-measure the tuned world in Studio before the campaign switch; your Player playtest on a phone is the real check. |
@@ -21,6 +21,7 @@ Mission 3 remains dormant in unmerged PR #139. Its offline contracts establish g
 
 | Date | Raised by | What was blocked | Resolution |
 |---|---|---|---|
+| 2026-10-29 | Asset wiring / PR #142 | Mission 4–5 uploaded asset orientation and scale; two Studio-only tanker Jest failures. | Studio checked all five real uploads beside the bomber and regular Vanta v2: -Z forward, +Y up, scale plausible, tanker waterline at Y=0 with offset 16, helicopter rotor hubs and port tail rotor correct. No correction data changes needed. The tanker fake exceeded Roblox’s 2048-stud part limit; fixed fixture scale without weakening validation. Jest 808 passed / 0 failed, 80 suites after rebase onto main (#139/#141). [Evidence](../qa/orientation/2026-10-29/README.md). Assets remain dormant; no Player test. |
 | 2026-10-28 | Orchestrator | Uploading the approved bomber and carrier (the first key request timed out). | You provided the key through the secure card; both models uploaded and passed moderation (assets 112476761254185 and 118082412288291), then were wired in and checked in Studio (#124). |
 | 2026-10-28 | Independent reviewer | Bomber and carrier safety review: review 1 rejected both; review 2 stopped at a brief error. | Revision 2 approved at 10/10 in review 3 (D-032). |
 | 2026-10-28 | Orchestrator | Whether full-scale worlds (D-019) could load in reasonable time. | Measured (#109): feasible with level of detail (D-028). Full detail everywhere is not. |
@@ -29,6 +30,6 @@ Mission 3 remains dormant in unmerged PR #139. Its offline contracts establish g
 | 2026-10-28 | Orchestrator | The first footage agent ended its turn while the download was still running, with no ledger. | The download had completed. A second agent resumed from there and finished the ledger; the first was cancelled so only one agent owned the footage folder. |
 | 2026-10-28 | Several agents | Fresh worktrees have no offline Luau runner, so the offline validator fails at first. | Point `LUAU_BIN` at the main checkout's copy (`build/offline-luau/luau`). This recurs in every new worktree; agent briefs now mention it. |
 
-## PR #137 elite safety gate
+## PR #137 elite safety gate — resolved
 
-Review 2 rejected `vanta-v2-elite-2` at 8/10 for a rear goggles/mask composition. Revision 3 changes the geometry and awaits a fresh independent 10/10 approval of the exact export and textures. Not uploaded. Four other assets are unchanged and retain their recorded approval.
+Revision 3 (`vanta-v2-elite-3`) fixed the rejected rear treatment. Independent review 3 approved the exact export at 10/10: [review record](../qa/asset-reviews/2026-10-29-pr137-review-3.md). All five models were uploaded and moderation-approved on 2026-10-29 (journal `~/.skybreak-roblox-uploads/journal-3407487520.json`). Wiring on this branch remains unused until missions 4–5. The Studio orientation/scale gate passed on 2026-10-29; see the resolved row above. No upload or Player test was performed by this implementation agent.

@@ -1,8 +1,24 @@
 # Shipped
 
-Last updated: 2026-10-28, against `main` at `93dc512153b9098cdb7d486f3857e16794fc6ff0`.
+Last updated: 2026-10-29, against `main` at `cbdec3a`. PR #142 remains unmerged.
 
-[Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). The new 18-mission campaign is live by pipeline: practice flight and mission 1 playable, missions 2 to 18 locked. The latest merged gameplay-code revision is `4891e8a` (#130), the campaign switch. The publish workflow for `4891e8a` succeeded on 2026-10-29: it confirmed the official place and Roblox returned **place version 85**. Gameplay merges are live through automatic CI/CD under the owner's convention; documentation-only changes add no game content.
+[Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). The new 18-mission campaign is live by pipeline: practice flight and mission 1 playable, missions 2 to 18 locked. The latest merged gameplay-code revision is `cbdec3a` (#141), dormant engine work; the playable mission 1 tuning is from #134. The publish workflow for `4891e8a` succeeded on 2026-10-29: it confirmed the official place and Roblox returned **place version 85**. Gameplay merges are live through automatic CI/CD under the owner's convention; documentation-only changes add no game content.
+
+## Merged 2026-10-29, newest first
+
+| PR | Commit | Change | What you will see |
+|---|---|---|---|
+| #141 | `cbdec3a` | Mission updates, return lines, landing and terrain clearance | Dormant engine support; mission 3 remains locked. |
+| #139 | `7f037a9` | Mission 3 snowy mountains, radar sites and landing base | Dormant world; mission 3 remains locked. |
+| #137 | `c6252fc` | Original mission 4–5 model exports | Asset source work only. PR #142 wires the approved uploads and remains unmerged. |
+| #138 | `4e3534f` | Typed ground targets, AA guns, standalone aces and triggered waves | Dormant engine support; practice and mission 1 unchanged. |
+| #140 | `4992b3d` | Mission 2 farmland, lake and enemy airbase | Dormant world; mission 2 remains locked. |
+| #136 | `85d469a` | Mission/world specifications for missions 2–3 | Documentation only. |
+| #135 | `3e7b95b` | Mission/world specifications for missions 4–5 | Documentation only. |
+| #134 | `3f3e828` | Extend mission 1 bomber intercept gap and add attacking waves | Mission 1 pacing and optional attacking waves updated. |
+| #133 | `07526a2` | Mission 1 beta-test documentation | Documentation only. |
+
+These merged gameplay changes are live through the automatic pipeline convention. This PR's observed Studio asset quality does not establish Player quality or visual/runtime quality for dormant mission 2–3 worlds. No Player testing is claimed here.
 
 ## Merged 2026-10-28, newest first
 

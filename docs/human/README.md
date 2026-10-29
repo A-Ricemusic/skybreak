@@ -6,16 +6,16 @@ The new 18-mission campaign is live in Roblox Player (practice flight and missio
 
 [Play SKYBREAK](https://www.roblox.com/games/112911685457826)
 
-Engine batch A is built but dormant on unmerged PR #138: typed targets, triggered waves, standalone ace and AA. Practice and mission 1 catalog snapshots remain frozen; no Studio or Player testing is claimed for this branch. See [Next](next.md) and provisional D-042–D-044 in [Decisions](decisions.md).
+Engine batch A is merged and dormant in PR #138: typed targets, triggered waves, standalone ace and AA. Practice and mission 1 catalog snapshots remain frozen; no Studio or Player testing is claimed for this branch. See [Next](next.md) and provisional D-042–D-044 in [Decisions](decisions.md).
 
-Engine batch B is built but dormant and unmerged on `feat/engine-batch-b`; mission 3 remains locked. Return/update/landing and terrain warning contracts are available for later integration. PR #141 review corrections cover extended-clock settlement, projected return guidance, landing camera/skip safety and clearance tint; mission 3 presentation gaps remain listed in Next. Studio and Player verification remain pending.
+Engine batch B is merged and dormant in PR #141; mission 3 remains locked. Return/update/landing and terrain warning contracts are available for later integration. PR #141 review corrections cover extended-clock settlement, projected return guidance, landing camera/skip safety and clearance tint; mission 3 presentation gaps remain listed in Next. The full Roblox Jest suite passed in Studio on PR #142 (808/808); visual integration and Player verification remain pending.
 
 ## Mission progress
 
 | # | Reference mission | Footage time | Gameplay length | Footage indexed | Spec written | Built | Live | Owner tested |
 |---|---|---|---|---|---|---|---|---|
 | 1 | Sitting Duck | 0:06:30–0:11:24 | 4.9 min | Yes | Yes | Yes | Yes | — |
-| 2 | Imminent Threat | 0:15:38–0:22:34 | 6.9 min | Yes | Yes | Dormant world in review (#140); not playable | No | — |
+| 2 | Imminent Threat | 0:15:38–0:22:34 | 6.9 min | Yes | Yes | Merged dormant world (#140); not playable | No | — |
 | 3 | The Northern Eye | 0:26:41–0:34:24 | 7.7 min | Yes | Yes | Dormant world (#139) and engine batch B (#141) merged; mission data pending; not playable | No | — |
 | 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | Yes | — | — | — |
 | 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | Yes | — | — | — |
@@ -43,4 +43,4 @@ Engine batch B is built but dormant and unmerged on `feat/engine-batch-b`; missi
 - [Decisions](decisions.md): every decision, with reasons. All four open questions are now answered.
 - [Redesign plan](../redesign-plan.md): the original plan. Where it conflicts with the decisions log, the decisions log wins.
 
-PR #137 asset work: elite export `vanta-v2-elite-3` replaces the rejected rear with a continuous rectangular exhaust. Unmerged, not uploaded; independent review required. The other four assets remain unchanged.
+The five mission 4–5 assets (heavy transport, radar jammer, fuel tanker ship, attack helicopter and Vanta v2 elite revision 3) are uploaded and moderation-approved. PR #142 wires them but leaves them unused until missions 4–5. Studio inspection on 2026-10-29 confirmed -Z forward, +Y up and plausible scale beside the heavy bomber, tanker waterline at sea level with `groundOffset=16`, helicopter port tail rotor and both configured rotor hubs, and elite orientation matching regular Vanta v2. All orientation corrections remain zero. [Screenshots and measured results](../qa/orientation/2026-10-29/README.md). Roblox Jest: 808 passed / 0 failed across 80 suites after rebase onto main (#139/#141). No Player test was performed.
