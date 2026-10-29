@@ -10,6 +10,8 @@ import { Players, RunService, Workspace } from "@rbxts/services";
 import { FlightMath, FlightState } from "../shared/FlightMath";
 import { AssetSelection } from "../shared/AssetSelection";
 import { JetFactory } from "../shared/JetFactory";
+import { BomberFactory } from "../shared/BomberFactory";
+import { BomberRules } from "../shared/BomberRules";
 import { recordScoredKill } from "./SortieScore";
 import { TargetScore, targetScoreStats } from "../shared/TargetScore";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
@@ -581,11 +583,14 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 	const sides = WavePlan.BracketSides(session.spawnSerial, count);
 	for (let index = 0; index < count; index++) {
 		let name: string;
-		if (role === "ace") name = session.blueprint?.aceName ?? "ACE";
+		if (options.name !== undefined) name = options.name;
+		else if (role === "bomber") name = "HEAVY BOMBER";
+		else if (role === "escort") name = `ESCORT ${session.spawnSerial + 1}`;
+		else if (role === "ace") name = session.blueprint?.aceName ?? "ACE";
 		else if (role === "courier") name = session.missionId === 24 ? "FUEL TANKER" : "COURIER";
 		else if (role === "bandit") { session.banditSerial += 1; name = string.format("BANDIT %02d", session.banditSerial); }
 		else { session.raiderSerial += 1; name = string.format("RAIDER %02d", session.raiderSerial); }
-		const model = JetFactory.Create(name, true, role === "ace" ? AssetSelection.LiveryForAce(session.blueprint?.aceName) : undefined);
+		const model = role === BomberRules.Role.role ? BomberFactory.Create(name) : JetFactory.Create(name, true, role === "ace" ? AssetSelection.LiveryForAce(session.blueprint?.aceName) : undefined);
 		if (!session.active || session.folder.Parent === undefined) { model.Destroy(); return; }
 		// The replicated model is hidden on the client behind a smoothed local clone; only the clone draws trails.
 		JetFactory.SetTrails(model, false);
@@ -609,13 +614,14 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 				if (surface !== undefined) py = math.max(py, surface.y + 120);
 			}
 		}
-		const position = new Vector3(px, py, pz);
-		const direction = role === "courier" && options.escape
+		const pose = options.pose;
+		const position = pose ? new Vector3(pose.position.x, pose.position.y, pose.position.z).add(options.escortSlot !== undefined ? new Vector3(side * 120, 90, 0) : Vector3.zero) : new Vector3(px, py, pz);
+		const direction = pose ? new Vector3(pose.facing.x, pose.facing.y, pose.facing.z) : role === "courier" && options.escape
 			? unitOr(options.escape.sub(position), forward)
 			: unitOr(positionFor(session.state).sub(position), forward.mul(-1));
 		model.Parent = session.folder;
 		model.PivotTo(CFrame.lookAt(position, position.add(direction)));
-		const baseHealth = role === "ace" ? options.aceHealth ?? 165 : role === "bandit" ? TUNING.banditHealth[act - 1] : role === "courier" ? COURIER_HEALTH : RAIDER_HEALTH;
+		const baseHealth = role === "bomber" ? 180 : role === "ace" ? options.aceHealth ?? 165 : role === "bandit" ? TUNING.banditHealth[act - 1] : role === "courier" ? COURIER_HEALTH : RAIDER_HEALTH;
 		const health = math.floor(role === "bandit" ? Difficulty.BanditHealth(session.difficulty, act, baseHealth)
 			: role === "ace" ? Difficulty.Scale(session.difficulty, "aceHealth", baseHealth)
 			: Difficulty.SupportHealth(session.difficulty, baseHealth));
@@ -625,10 +631,10 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		session.spawnSerial += 1;
 		const enemy: Enemy = {
 			id: `air_${session.spawnSerial}_${missionSerial}`, name, model, health, maxHealth: health,
-			position, direction, velocity: direction.mul(300), kind: role === "ace" ? "ace" : "air", required: role !== "raider", enabled: true,
+			position, direction, velocity: direction.mul(300), kind: role === "ace" ? "ace" : "air", required: options.optional !== true && role !== "raider" && role !== "escort", enabled: true,
 			fireTimer: role === "courier" ? math.huge : 4 + index * 1.5, windup: 0, mode: "attack", modeTimer: 0, passDirection: direction, side,
 			flares, flareTimer: 0, flareUntil: 0, speedBonus: 0, lockBreakTimer: TUNING.aceLockBreak[act - 1],
-			breakTimer: 0, breakUntil: 0, lockBreakChance, role,
+			breakTimer: 0, breakUntil: 0, lockBreakChance, role, bomberSlot: options.bomberSlot, escortSlot: options.escortSlot,
 			aceState: role === "ace" ? AceRules.New() : undefined, escape: options.escape,
 			hiddenParts: [], warning: attackWarning(model),
 		};
@@ -638,10 +644,10 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		publishEnemyDamageable(session, enemy);
 	}
 }
-/** Hostile aircraft alive and fighting (a withdrawing jet is disabled, silent and gone in 4 s). */
+/** Fighter budget only. Opt-in non-firing route bombers have six separate slots; withdrawing jets do not count. */
 function liveAircraft(session: CombatSession): number {
 	let live = 0;
-	for (const enemy of session.enemies) if (enemy.kind !== "ground" && ownsEnemy(session, enemy)) live += 1;
+	for (const enemy of session.enemies) if (enemy.kind !== "ground" && enemy.role !== "bomber" && ownsEnemy(session, enemy)) live += 1;
 	return live;
 }
 /**
@@ -867,7 +873,7 @@ function stepEnemies(session: CombatSession, dt: number): void {
 	const maxCap = soft ? GENTLE.threatCap : tuned(session, TUNING.threatCap);
 	let live = 0, threats = 0, raidersAlive = 0;
 	for (const enemy of session.enemies) {
-		if (!ownsEnemy(session, enemy) || enemy.kind !== "air" || enemy.role === "courier") continue;
+		if (!ownsEnemy(session, enemy) || enemy.kind !== "air" || enemy.role === "courier" || enemy.role === "bomber" || (enemy.escortSlot !== undefined && !enemy.escortEngaged)) continue;
 		live += 1;
 		if (enemy.windup > 0) threats += 1;
 		if (!enemy.required) raidersAlive += 1;
@@ -880,6 +886,8 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		const enemy = session.enemies[index];
 		if (enemy.withdrawUntil !== undefined) { if (enemy.health > 0) stepWithdrawing(session, enemy, dt); continue; }
 		if (!ownsEnemy(session, enemy) || enemy.kind === "ground") continue;
+		// Route actors are stepped only by PhaseDirector and never enter fighter/fire logic.
+		if (enemy.role === BomberRules.Role.role || (enemy.escortSlot !== undefined && !enemy.escortEngaged)) continue;
 		const ace = enemy.kind === "ace";
 		const courier = enemy.role === "courier";
 		const aceState = enemy.aceState;
@@ -981,7 +989,7 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		enemy.direction = unitOr(oldDirection.Lerp(desired, FlightMath.DampAlpha(breaking ? breakTurn : ace ? 2.8 : 2.1, dt)), oldDirection);
 		enemy.velocity = enemy.direction.mul(speed);
 		const moved = enemy.position.add(enemy.velocity.mul(dt));
-		enemy.position = new Vector3(math.clamp(moved.X, -2700, 2700), math.clamp(moved.Y, 170, 1000), math.clamp(moved.Z, -2700, 2700));
+		enemy.position = new Vector3(math.clamp(moved.X, -(session.bomberEncounter ? session.airspace.spawnLimit : 2700), session.bomberEncounter ? session.airspace.spawnLimit : 2700), math.clamp(moved.Y, 170, 1000), math.clamp(moved.Z, -(session.bomberEncounter ? session.airspace.spawnLimit : 2700), session.bomberEncounter ? session.airspace.spawnLimit : 2700));
 		const bank = math.clamp(-oldDirection.Cross(enemy.direction).Y * 26, -0.65, 0.65);
 		// Applied once per Heartbeat by flushPivots: a hitch's catch-up sub-steps replicate one CFrame, not five.
 		enemy.frame = CFrame.lookAt(enemy.position, enemy.position.add(enemy.direction)).mul(CFrame.Angles(0, 0, bank));
@@ -1223,6 +1231,7 @@ function stepSession(session: CombatSession, dt: number): void {
 		if (bs.outcome !== undefined) {finish(session); return;}
 		phaseDirector.Apply(session);
 		phaseDirector.Step(session);
+		if (bs.outcome !== undefined) { finish(session); return; }
 	}
 	let flightFrame = frameFor(session.state);
 	if (session.evadeRemaining > 0) flightFrame = flightFrame.mul(CFrame.Angles(0, 0, (1 - session.evadeRemaining / EVADE_ROLL) * math.pi * 2));

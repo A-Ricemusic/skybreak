@@ -1,3 +1,4 @@
+import type { BomberEncounterState } from "../shared/BomberEncounter";
 import type { MissionAirspacePolicy } from "../shared/MissionPolicy";
 import { TargetScore } from "../shared/TargetScore";
 import { FlightState } from "../shared/FlightMath";
@@ -18,7 +19,7 @@ export type TargetKind = "air" | "ground" | "ace";
 
 export type EnemyMode = "attack" | "extend" | "orbit" | "run";
 /** What an air enemy is: a required bandit, an optional raider, the courier of a chase phase, or the ace. */
-export type AirRole = "bandit" | "raider" | "courier" | "ace";
+export type AirRole = "bandit" | "raider" | "courier" | "ace" | "bomber" | "escort";
 export interface Enemy {
 	id: string; name: string; model: Model; health: number; maxHealth: number; position: Vector3;
 	kind: TargetKind; required: boolean; enabled: boolean;
@@ -35,6 +36,9 @@ export interface Enemy {
 	/** Odds this enemy breaks out of a close lock (act, difficulty and Ace behaviour). */
 	lockBreakChance: number;
 	role?: AirRole;
+	bomberSlot?: number;
+	escortSlot?: number;
+	escortEngaged?: boolean;
 	/** Ace only: stage, retreat/hold mode and stage invulnerability (AceRules). */
 	aceState?: AceStageState;
 	/** Courier only: where it runs. */
@@ -130,6 +134,7 @@ export interface CombatSession {
 	/** Per-sortie name counters so every bandit and raider has a unique call sign, and a spawn counter for unique kill ids. */
 	banditSerial: number; raiderSerial: number; spawnSerial: number;
 	/** Staggered groups of the active required_air phase (WavePlan). */
+	bomberEncounter?: BomberEncounterState;
 	wave?: { phaseIndex: number; plan: number[]; next: number; lastAt: number };
 	/** Reinforcement waves already spawned in the active phase. */
 	reinforceIndex: number;

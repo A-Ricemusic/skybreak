@@ -3,7 +3,17 @@ import { UploadedAssets } from "./UploadedAssets";
 import { UploadedAssetSpecs } from "./UploadedAssetSpecs";
 import { JetFactory } from "./JetFactory";
 
-/** Unwired bomber visual. No upload/generation of Blender content happens here. */
+/** Rebase template-local geometry at the aircraft root, including rotated/translated templates. */
+export function attachBomberGeometry(model: Model, template: Model): void {
+	const root = model.PrimaryPart!;
+	for (const item of template.GetChildren()) if (item.IsA("BasePart")) {
+		const clone = item.Clone();
+		clone.CFrame = root.CFrame.mul(template.GetPivot().ToObjectSpace(item.CFrame));
+		clone.Parent = model;
+	}
+}
+
+/** Route bomber visual. No upload/generation of Blender content happens here. */
 export const BomberFactory = {
 	Create(name = "HeavyBomber"): Model {
 		const model = new Instance("Model");
@@ -20,9 +30,7 @@ export const BomberFactory = {
 		model.PrimaryPart = root;
 		const uploaded = UploadedAssets.Template(AssetSelection.BomberCandidates(UploadedAssetSpecs));
 		if (uploaded !== undefined) {
-			for (const item of uploaded.template.GetChildren()) {
-				if (item.IsA("BasePart")) item.Clone().Parent = model;
-			}
+			attachBomberGeometry(model, uploaded.template);
 			model.SetAttribute("GeometrySource", "Uploaded");
 			model.SetAttribute("UploadedAsset", uploaded.name);
 		} else {
@@ -48,6 +56,7 @@ export const BomberFactory = {
 			}
 		}
 		JetFactory.WeldAssembly(model);
+		for (const p of model.GetDescendants()) if (p.IsA("BasePart")) { p.CanCollide = false; p.CanTouch = false; p.CanQuery = false; }
 		return model;
 	},
 };
