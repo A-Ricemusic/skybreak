@@ -140,7 +140,11 @@ describe("opt-in mission countdown and launch stage", () => {
 	});
 	it("keeps the intro camera on port and rotates its offset with heading", () => {
 		const north = FlightMath.FromPose(30, 400, -70, 0, 0, 180), northCamera = LaunchStage.Camera(north);
-		expect(FlightMath.ForwardOf(north)).toEqual([0, 0, -1]);
+		// Compare per component: the forward vector can carry negative zeros, which are the same direction.
+		const [nfx, nfy, nfz] = FlightMath.ForwardOf(north);
+		expect(nfx).toBeCloseTo(0, 5);
+		expect(nfy).toBeCloseTo(0, 5);
+		expect(nfz).toBeCloseTo(-1, 5);
 		expect(northCamera.position.x).toBeLessThan(north.x);
 		// In this yaw convention -90 degrees points east (+X); port is north (-Z).
 		const east = FlightMath.FromPose(30, 400, -70, -math.pi / 2, 0, 180), eastCamera = LaunchStage.Camera(east);
