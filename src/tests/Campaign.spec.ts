@@ -109,8 +109,8 @@ describe("Campaign domain unit tests", () => {
 		expect(merged.slots[0].completed).toBe(false);
 		expect(merged.slots[0].mission1BestTime).toBe(53.33);
 		expect(merged.slots[0].mission2BestTime).toBe(91);
-		// Mission 3 is still in development, so mission 2 is the furthest open mission.
-		expect(merged.slots[0].currentMission).toBe(2);
+		// Missions unlock in order: with mission 2 complete, mission 3 is the furthest open mission.
+		expect(merged.slots[0].currentMission).toBe(3);
 	});
 
 	it("defaults to the unfinished mission, locks Mission 2 until Mission 1 is done, and permits Mission 1 replay", () => {
@@ -122,6 +122,11 @@ describe("Campaign domain unit tests", () => {
 		expect(resolveMissionRequest(progressed, 1)[0]).toBe(1);
 		expect(resolveMissionRequest(progressed, 2)[0]).toBe(2);
 		expect(resolveMissionRequest(progressed, 3)[0]).toBeUndefined();
+		// Mission 3 opens only after mission 2; mission 4 stays in development.
+		const second = normalizeProfile(profileWith(1, { mission1Completed: true, mission2Completed: true })).slots[0];
+		expect(resolveMissionRequest(second, undefined)[0]).toBe(3);
+		expect(resolveMissionRequest(second, 3)[0]).toBe(3);
+		expect(resolveMissionRequest(second, 4)[0]).toBeUndefined();
 	});
 
 	it("rejects fractional, out-of-range, and non-number slots", () => {

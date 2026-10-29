@@ -1,7 +1,7 @@
 import { canSkipLanding } from "../shared/EngineBatchB";
 import { buildNightLighting } from "./NightLighting";
 import { announceJammerKill, liveJammers, lockAllowed, stepRearm } from "./EngineBatchCRuntime";
-import { sampleClearance, stepLanding } from "./EngineBatchBRuntime";
+import { sampleClearance, skipLanding, stepLanding } from "./EngineBatchBRuntime";
 import { createGroundTarget } from "./GroundTargetFactory";
 import { GroundAirDefence } from "../shared/GroundAirDefence";
 import { authoredAirPose, airSpawnHeight, scramblePose } from "../shared/CampaignEncounters";
@@ -486,7 +486,9 @@ function settlementHooks(session: CombatSession, won: boolean): SettlementHooks 
 			const crashed = session.crashReason !== undefined && session.crashReason !== "internal_error";
 			if (!won && (session.health <= 0 || crashed)) effect(session, "player", positionFor(session.state), { velocity: directionFor(session.state).mul(session.state.speed) });
 			// The result screen waits up to a few seconds for the save; say the outcome on the HUD right away.
-			session.radio = won ? "MISSION ACCOMPLISHED · RETURN TO BASE" : "MISSION FAILED";
+			// A sortie that ends with its landing is already home.
+			const landed = session.blueprint !== undefined && MissionCatalog.ExpandedPhases(session.blueprint).some((phase) => phase.kind === "landing");
+			session.radio = won ? (landed ? "MISSION ACCOMPLISHED" : "MISSION ACCOMPLISHED · RETURN TO BASE") : "MISSION FAILED";
 			session.radioSerial += 1;
 			session.radioSeconds = 6;
 			session.radioPriority = true;
@@ -1387,7 +1389,7 @@ function stepSession(session: CombatSession, dt: number): void {
 		if(session.telemetryTime>=TELEMETRY_INTERVAL) { session.telemetryTime=0; sendTelemetry(session); }
 		return;
 	}
-	if (stepLanding(session,dt,(message)=>missionState!.FireClient(session.player,message))) {
+	if (stepLanding(session,dt,(message)=>missionState!.FireClient(session.player,message),(line)=>radio(session,line,6))) {
 		session.aircraftFrame=frameFor(session.state);
 		if (sessionOutcome(session) !== undefined) finish(session);
 		else {
@@ -1764,7 +1766,7 @@ export const CombatService = {
 					return;
 				}
 				if (session.blueprintState?.landingElapsed !== undefined) {
-					if (action === "SkipLanding" && session.landingStartedAt !== undefined && canSkipLanding(os.clock()-session.landingStartedAt)) { BlueprintRunner.AdvanceLanding(session.blueprintState,0,true); if (sessionOutcome(session) !== undefined) finish(session); }
+					if (action === "SkipLanding" && session.landingStartedAt !== undefined && canSkipLanding(os.clock()-session.landingStartedAt)) { skipLanding(session,(message)=>missionState!.FireClient(session.player,message)); if (sessionOutcome(session) !== undefined) finish(session); }
 					return;
 				}
 				if (!LaunchStage.CanControl(false, session.launch, PauseRules.Paused(session.pause)) || !refreshSession(session, now)) return;

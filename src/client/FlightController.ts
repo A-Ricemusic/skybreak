@@ -1,5 +1,5 @@
 import { RearmPlan, rearmPose } from "../shared/EngineBatchC";
-import { canSkipLanding, LandingPlan, landingPose } from "../shared/EngineBatchB";
+import { canSkipLanding, LandingPlan, landingAccomplishedAt, landingDistance, landingPose } from "../shared/EngineBatchB";
 import { LaunchStage, LaunchStageState } from "../shared/LaunchStage";
 import type { FlightControlHandoff } from "../shared/Types";
 import { ContextActionService, GuiService, Players, RunService, UserInputService, Workspace } from "@rbxts/services";
@@ -312,6 +312,11 @@ export class FlightController {
 				// The replicated aircraft is already hidden; hide the predicted clone for cockpit flight.
 				for (const part of this.visual?.GetDescendants() ?? []) if (part.IsA("BasePart")) part.LocalTransparencyModifier = 1;
 			}
+			else if (message.kind === "LandingSkipped" && this.active && this.landing) {
+				// Skip cuts straight to the runway hold on the server's clock.
+				const elapsed = (data as { elapsed?: unknown }).elapsed;
+				if (typeIs(elapsed, "number") && FlightMath.IsFinite(elapsed)) { this.landing.elapsed = math.max(this.landing.elapsed, elapsed); this.landing.cameraCut = false; }
+			}
 			else if (message.kind === "FlightControl" && this.active && this.launchIntro !== undefined) {
 				const handoff = data as FlightControlHandoff;
 				const predictor = this.predictor;
@@ -487,6 +492,13 @@ export class FlightController {
 	}
 	public IsPaused(): boolean { return this.paused; }
 	/** Flight advice and warning tones stay silent while the scripted launch owns the jet. */
+	/** HUD landing readouts from the local cinematic clock: DIST to touchdown and the runway MISSION ACCOMPLISHED hold. */
+	public LandingStatus(): { distance: number; accomplished: boolean; skippable: boolean } | undefined {
+		const landing = this.landing;
+		if (!landing) return undefined;
+		return { distance: landingDistance(landing.plan, landing.elapsed), accomplished: landing.elapsed >= landingAccomplishedAt(landing.plan),
+			skippable: canSkipLanding(landing.elapsed) };
+	}
 	public SkipLanding(): void { if (this.paused) return; if ((this.landing && canSkipLanding(this.landing.elapsed)) || (this.rearm && canSkipLanding(this.rearm.elapsed))) this.remotes.CombatAction.FireServer({action:"SkipLanding"}); }
 	public FlightWarningsEnabled(): boolean { return this.launchIntro === undefined && this.landing === undefined && this.rearm === undefined; }
 	/** Settings: pushing up dives instead of climbing (every input source). */

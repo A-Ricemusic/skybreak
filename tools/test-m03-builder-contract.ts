@@ -14,13 +14,15 @@ function visit(node: ts.Node) {
     assert(n.expression && ts.isObjectLiteralExpression(n.expression), "Build must return its explicit contract");
     const targets = n.expression.properties.find((p) => p.name?.getText(source) === "groundTargets");
     assert(targets && ts.isPropertyAssignment(targets) && ts.isArrayLiteralExpression(targets.initializer) && targets.initializer.elements.length === 0,
-     "Scenery builder must return no gameplay targets; GroundTargetFactory owns them");
+     "Builder must return no legacy ground targets; typed targets come from mission data");
+    assert(n.expression.properties.some((p) => p.name?.getText(source) === "targetVisuals"),
+     "Builder must return its target-id visuals for combat to adopt (each target exists once)");
    }
    ts.forEachChild(n, check);
   }
   check(node);
   assert.equal(returns, 1);
-  assert.match(node.getText(source), /placeM03Target\(scene, t\)/, "Target-id visuals must remain scenery");
+  assert.match(node.getText(source), /adoptGroundTarget\(placeM03Target\(scene, t\), t\.id, M03_TARGET_TYPES\[t\.type\]\)/, "Each layout target is drawn once and adopted by id");
  }
  ts.forEachChild(node, visit);
 }

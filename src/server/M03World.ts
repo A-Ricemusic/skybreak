@@ -1,10 +1,12 @@
 import { Lighting, Workspace } from "@rbxts/services";
 import { buildM03Plan, M03, M03_ENVIRONMENT, M03_FILL_CHUNK, M03_WORLD_KEY, type M03Target } from "../shared/M03WorldPlan";
+import { M03_TARGET_TYPES } from "../shared/missions/m03";
+import { adoptGroundTarget } from "./GroundTargetFactory";
 import { Scenery } from "./Scenery";
 import { material, TerrainWriter } from "./TerrainWriter";
 import { WorldEnvironment } from "./WorldEnvironment";
 
-/** Primitive stand-ins only. Engine owns typed target behavior and destruction. */
+/** Primitive stand-ins only; combat adopts each model by id as its typed target. */
 export function placeM03Target(parent: Instance, t: M03Target): Model {
 	const m = new Instance("Model");
 	m.Name = t.id;
@@ -38,9 +40,11 @@ export function placeM03Target(parent: Instance, t: M03Target): Model {
 	return m;
 }
 
-/** Dormant until an authored mission explicitly chooses this key. No uploads or asset downloads. */
+/** Mission 3's world. No uploads or asset downloads. Every m03TargetLayout site is drawn exactly once, as its
+ * own model keyed by target id in `targetVisuals`; combat adopts those models instead of building copies.
+ */
 export const M03World = {
-	Build(parent: Instance, seed = 303): { groundTargets: Model[] } {
+	Build(parent: Instance, seed = 303): { groundTargets: Model[]; targetVisuals: Map<string, Model> } {
 		const start = os.clock();
 		let slice = start, longest = 0;
 		parent.SetAttribute("WorldBuildPhase", "plan");
@@ -69,12 +73,14 @@ export const M03World = {
 			Scenery.Part(scene, p.name, new Vector3(p.sx, p.sy, p.sz), new Vector3(p.x, p.y, p.z), Color3.fromRGB(...p.color), material(p.material), { shape: p.shape === "ball" ? Enum.PartType.Ball : Enum.PartType.Block, flightSolid: p.solid, castShadow: false });
 			if (i % 32 === 31) task.wait();
 		}
-		// Engine-owned gameplay targets are authored separately; these are scenery only.
-		for (const t of plan.targets) placeM03Target(scene, t);
+		// Each target model is drawn once here and adopted by id: HUD label, TargetId and an aim root.
+		const targetVisuals = new Map<string, Model>();
+		for (const t of plan.targets) targetVisuals.set(t.id, adoptGroundTarget(placeM03Target(scene, t), t.id, M03_TARGET_TYPES[t.type]));
 		assert(scene.GetDescendants().size() <= M03.budget.descendants, "M03 descendants exceeded budget");
 		parent.SetAttribute("WorldBuildPhase", "done");
 		parent.SetAttribute("WorldBuildSeconds", os.clock() - start);
 		parent.SetAttribute("Composition", plan.key);
-		return { groundTargets: [] };
+		parent.SetAttribute("WorldTargetVisuals", targetVisuals.size());
+		return { groundTargets: [], targetVisuals };
 	},
 };

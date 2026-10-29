@@ -304,7 +304,7 @@ interface Ctx {
 }
 const THEMES: Record<MissionRegion, Theme> = {
 	canyon_airfield: "canyon", canyon_pass: "canyon", upland_farm: "farm", plateau_relay: "plateau",
-	coastal_city: "coast", coastal_harbor: "coast", ocean_platform: "ocean",
+	coastal_city: "coast", coastal_harbor: "coast", ocean_platform: "ocean", snow_mountains: "plateau",
 };
 const BASE_MATERIAL: Record<Theme, TerrainMaterial> = { farm: "Grass", canyon: "Ground", plateau: "Grass", coast: "Grass", ocean: "Sand" };
 export const MATERIAL_COLORS: Record<Theme, Array<[TerrainMaterial, Rgb]>> = {

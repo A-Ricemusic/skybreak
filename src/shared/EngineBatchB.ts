@@ -9,6 +9,12 @@ export interface LandingPlan {
 	touchdown: { x: number; y: number; z: number };
 	headingDegrees: number; approachDistance: number; rolloutDistance: number;
 	approachSeconds: number; rolloutSeconds: number; glideDegrees: number;
+	/** Optional landing-only HUD countdown; it freezes once MISSION ACCOMPLISHED shows. */
+	countdownSeconds?: number;
+	/** Optional closing hold on the runway with MISSION ACCOMPLISHED; skip jumps to its start instead of ending at once. */
+	accomplishedSeconds?: number;
+	/** Optional controller radio, `at` seconds after the landing begins. */
+	radio?: { at: number; text: string }[];
 }
 export function finiteNumber(n: number): boolean { return typeIs(n,"number") && n === n && math.abs(n)<math.huge; }
 export function crossesReturnLine(line: ReturnLine, from: PointXZ, to: PointXZ): boolean {
@@ -24,6 +30,33 @@ export function crossesReturnLine(line: ReturnLine, from: PointXZ, to: PointXZ):
 export const LANDING_SKIP_DELAY = 0.75;
 export function canSkipLanding(elapsed: number): boolean { return finiteNumber(elapsed) && elapsed >= LANDING_SKIP_DELAY; }
 export function landingDuration(plan: LandingPlan): number { return plan.approachSeconds+plan.rolloutSeconds; }
+/** Landing time at which MISSION ACCOMPLISHED shows; plans without a hold reach it at the very end. */
+export function landingAccomplishedAt(plan: LandingPlan): number { return landingDuration(plan)-(plan.accomplishedSeconds ?? 0); }
+/** Landing time after an accepted skip: straight to the runway hold, or the end without one. */
+export function landingSkipTarget(plan: LandingPlan, elapsed: number): number {
+	return math.max(math.min(elapsed,landingDuration(plan)),plan.accomplishedSeconds !== undefined ? landingAccomplishedAt(plan) : landingDuration(plan));
+}
+/** HUD DIST: studs along the approach to touchdown; zero once the wheels are down. */
+export function landingDistance(plan: LandingPlan, elapsed: number): number {
+	return plan.approachDistance*math.clamp(1-elapsed/plan.approachSeconds,0,1);
+}
+/** Landing-only countdown, frozen once MISSION ACCOMPLISHED shows; undefined keeps the mission clock. */
+export function landingTimeRemaining(plan: LandingPlan, elapsed: number): number | undefined {
+	return plan.countdownSeconds !== undefined ? math.max(0,plan.countdownSeconds-math.clamp(elapsed,0,landingAccomplishedAt(plan))) : undefined;
+}
+/** Controller lines whose cue falls in (from, to]; a cue at 0 goes out on the first step. */
+export function landingRadioDue(plan: LandingPlan, from: number, to: number): string[] {
+	const due: string[] = [];
+	for (const cue of plan.radio ?? []) if ((cue.at>from || (from<=0 && cue.at<=0)) && cue.at<=to) due.push(cue.text);
+	return due;
+}
+/** Points for the in-world dotted return line, `spacing` studs apart, inset half a gap from each end. */
+export function returnLineDots(line: ReturnLine, spacing: number): PointXZ[] {
+	const dx=line.b.x-line.a.x, dz=line.b.z-line.a.z, length=math.sqrt(dx*dx+dz*dz);
+	const count=math.max(1,math.floor(length/spacing)), dots: PointXZ[]=[];
+	for (let i=0;i<count;i++) { const t=(i+0.5)/count; dots.push({x:line.a.x+dx*t,z:line.a.z+dz*t}); }
+	return dots;
+}
 export function landingPose(plan: LandingPlan, elapsed: number): FlightState {
 	const t=math.clamp(elapsed,0,landingDuration(plan)), angle=math.rad(plan.headingDegrees);
 	const airborne=t<plan.approachSeconds;
@@ -69,6 +102,9 @@ export function validateBatchB(phases: {kind: string; update?: MissionUpdate; re
 			assert(math.abs(2*l.rolloutDistance/l.rolloutSeconds-l.approachDistance/l.approachSeconds)<0.01,"Landing rollout must preserve touchdown speed");
 			assert(l.glideDegrees<=6 && landingDuration(l)<=180,"Invalid landing slope/duration");
 			const start=landingPose(l,0),last=landingPose(l,landingDuration(l)); point(start); point(last);
+			if (l.countdownSeconds !== undefined) assert(finiteNumber(l.countdownSeconds) && l.countdownSeconds>=landingDuration(l) && l.countdownSeconds<=600,"Landing countdown must cover the landing");
+			if (l.accomplishedSeconds !== undefined) assert(finiteNumber(l.accomplishedSeconds) && l.accomplishedSeconds>0 && l.accomplishedSeconds<l.rolloutSeconds,"Accomplished hold must sit inside the rollout");
+			for (const cue of l.radio ?? []) assert(finiteNumber(cue.at) && cue.at>=0 && cue.at<=landingDuration(l) && cue.text.size()>0 && cue.text.size()<=72,"Invalid landing radio cue");
 		}
 	}
 }

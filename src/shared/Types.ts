@@ -269,5 +269,7 @@ export interface MissionFinished extends MissionStats {
 	bestRank?: string;
 }
 export interface LandingStarted { kind: "LandingStarted"; plan: import("./EngineBatchB").LandingPlan }
-export type MissionMessage = LandingStarted | MissionLoading | MissionStarted | FlightControlHandoff | HudState | MissionFinished;
+/** The server accepted a landing skip; `elapsed` is its authoritative landing time (the runway hold). */
+export interface LandingSkipped { kind: "LandingSkipped"; elapsed: number }
+export type MissionMessage = LandingStarted | LandingSkipped | MissionLoading | MissionStarted | FlightControlHandoff | HudState | MissionFinished;
 export type FinishedCallback = (player: Player, won: boolean, stats: MissionStats) => void;
