@@ -7,6 +7,7 @@ export type GroundTargetType = typeof GROUND_TYPES[number];
 export interface TypedGroundTarget {
 	id: string; type: GroundTargetType; position: FlightPoint; yaw: number; required: boolean; scoreRole: string; group?: string;
 }
+// time is mission time since control; an elapsed time fires immediately when its owning phase starts.
 export type ArrivalTrigger = { kind: "time"; seconds: number } | { kind: "ground_group"; group: string }
 	| { kind: "required_count"; count: number } | { kind: "phase_start"; phase: number };
 export interface FighterArrival {
@@ -15,6 +16,7 @@ export interface FighterArrival {
 }
 export interface StandaloneAce {
 	id: string; name: string; livery: AceLivery; health: number; trigger: ArrivalTrigger;
+	stageLines?: string[];
 	behaviour: "dogfight" | "ground_attack"; scoreRole: "ace"; spawn?: FlightPoint; headingDegrees?: number;
 }
 export interface TriggerContext { elapsed: number; phase: number; requiredKills: number; destroyed: Set<string>; targets: TypedGroundTarget[] }
@@ -33,6 +35,12 @@ export function scramblePose(spawn: FlightPoint, headingDegrees: number, seconds
 	const t = math.clamp(seconds, 0, 8), distance = 35*t + 9*t*t;
 	return { x: spawn.x + math.sin(math.rad(headingDegrees))*distance, y: spawn.y + math.max(0,t-3)*45, z: spawn.z - math.cos(math.rad(headingDegrees))*distance };
 }
+/** Pure authored formation placement: runway aircraft trail the leader on the centreline. */
+export function authoredAirPose(spawn: FlightPoint, heading: number, index: number, runway: boolean, pivotAboveBottom: number) {
+	const angle=math.rad(heading), lateral=runway ? 0 : index*35, trail=runway ? index*70 : 0;
+	return { position: {x:spawn.x+lateral*math.cos(angle)-trail*math.sin(angle), y:spawn.y+(runway ? pivotAboveBottom : 0), z:spawn.z+lateral*math.sin(angle)+trail*math.cos(angle)}, facing:{x:math.sin(angle),y:0,z:-math.cos(angle)} };
+}
+export function airSpawnHeight(y: number, surfaceY?: number): number { return math.max(170,y,surfaceY !== undefined ? surfaceY+120 : 170); }
 function finite(n: number): boolean { return typeIs(n,"number") && n === n && math.abs(n) < math.huge; }
 export function validateCampaignEncounters(blueprint: MissionBlueprint, phases: MissionPhaseBlueprint[], airspace: MissionAirspacePolicy, scoring: MissionScoringPolicy): void {
 	const ids = new Set<string>(), groups = new Set<string>();
@@ -56,15 +64,16 @@ export function validateCampaignEncounters(blueprint: MissionBlueprint, phases: 
 			else assert(required===0,"Required typed ground targets need a ground strike phase");
 		}
 	}
-	const trigger = (t: ArrivalTrigger) => {
+	const trigger = (t: ArrivalTrigger, owner: number) => {
 		if (t.kind === "time") assert(finite(t.seconds) && t.seconds>=0,"Invalid arrival time");
-		else if (t.kind === "phase_start") assert(finite(t.phase) && t.phase%1===0 && t.phase>=0 && t.phase<phases.size(),"Invalid arrival phase");
+		else if (t.kind === "phase_start") assert(finite(t.phase) && t.phase%1===0 && t.phase>=0 && t.phase<phases.size() && t.phase<=owner,"Invalid arrival phase");
 		else if (t.kind === "required_count") assert(finite(t.count) && t.count%1===0 && t.count>0,"Invalid required kill trigger");
 		else assert(t.kind === "ground_group" && groups.has(t.group),"Unknown ground group");
 	};
-	for (const phase of phases) {
+	for (let owner=0;owner<phases.size();owner++) {
+		const phase=phases[owner];
 		for (const wave of phase.fighterWaves ?? []) {
-			claim(wave.id); trigger(wave.trigger); role(wave.scoreRole);
+			claim(wave.id); trigger(wave.trigger,owner); role(wave.scoreRole);
 			assert(finite(wave.count) && wave.count%1===0 && wave.count>=1 && wave.count<=32 && (wave.role==="raider" || wave.role==="escort"),"Invalid fighter wave");
 			if (wave.spawn) point(wave.spawn);
 			if (wave.headingDegrees !== undefined) assert(finite(wave.headingDegrees),"Invalid heading");
@@ -72,7 +81,8 @@ export function validateCampaignEncounters(blueprint: MissionBlueprint, phases: 
 		}
 		const ace=phase.standaloneAce;
 		if (ace) {
-			claim(ace.id); trigger(ace.trigger); role(ace.scoreRole);
+			claim(ace.id); trigger(ace.trigger,owner);
+			for (const line of ace.stageLines ?? []) assert(line.size()>0 && line.size()<=72,"Invalid standalone ace stage line"); role(ace.scoreRole);
 			assert(ace.name.size()>0 && ace.name.size()<=32 && (ace.livery==="Vulture" || ace.livery==="Rusk") && finite(ace.health) && ace.health>0 && ace.scoreRole==="ace" && (ace.behaviour==="dogfight" || ace.behaviour==="ground_attack"),"Invalid standalone ace");
 			if (ace.spawn) point(ace.spawn);
 			if (ace.headingDegrees !== undefined) assert(finite(ace.headingDegrees),"Invalid ace heading");

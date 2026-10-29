@@ -13,7 +13,7 @@ export function targetScoreLines(snapshot?: TargetScoreSnapshot): { key: string;
 	table.sort(extra);
 	for (const role of [...roles,...extra]) {
 		const count = snapshot.kills[role] ?? 0;
-		if (count > 0) rows.push({ key: `Target_${role}`, label: `${string.upper(role)} ×${count}`, value: `${snapshot.points[role] ?? 0}` });
+		if (count > 0) rows.push({ key: `Target_${role}`, label: `${string.upper(role.gsub("_", " ")[0])} ×${count}`, value: `${snapshot.points[role] ?? 0}` });
 	}
 	return rows;
 }

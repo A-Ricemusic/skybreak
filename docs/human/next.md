@@ -18,7 +18,7 @@ Last updated: 2026-10-29.
 ## After your playtest
 
 1. **Fix what you report** for mission 1.
-2. **Mission 2,** built the same way from its footage spec, once you're happy with mission 1 (D-004).
+2. **Mission 2,** built the same way from its footage spec, once you're happy with mission 1 (D-004). Engine batch A (typed targets, triggered fighter waves, standalone ace and AA) is built on PR #138, dormant; it does not change the live practice flight or mission 1. Offline validation only; Studio/Player testing remains with the orchestrator.
 3. **Before mission 2 ships:** sequential-unlock and forged-proof tests, remapping the finale chapter, and retiring leftover code keyed to the old 27 missions.
 4. **Later missions** one at a time; mission 18 gains a one-on-one Rusk duel (D-031).
 5. **Polish not blocking play:** the world items above; a code formatter; specs for the menu, briefing, HUD and results screens.

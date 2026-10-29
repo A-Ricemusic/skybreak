@@ -91,6 +91,7 @@ export interface Projectile {
 }
 export interface CombatSession {
 	arrivalsFired?: Set<string>;
+	arrivalTargets?: TypedGroundTarget[];
 	launch?: import("../shared/LaunchStage").LaunchStageState;
 	airspace: MissionAirspacePolicy;
 	targetScore: TargetScore;

@@ -1,6 +1,6 @@
 import { createGroundTarget } from "./GroundTargetFactory";
 import { GroundAirDefence } from "../shared/GroundAirDefence";
-import { scramblePose } from "../shared/CampaignEncounters";
+import { authoredAirPose, airSpawnHeight, scramblePose } from "../shared/CampaignEncounters";
 import { LaunchStage } from "../shared/LaunchStage";
 import { AlliedRules } from "../shared/AlliedRules";
 import type { MissionReason } from "../shared/OutcomeReason";
@@ -348,14 +348,14 @@ function sendTelemetry(session: CombatSession): void {
 		targetHealth: target ? math.clamp(target.health / math.max(1, target.maxHealth), 0, 1) : undefined,
 		protectedHealth: phase?.kind === "escort" || phase?.kind === "defend" ? session.blueprintState?.protectedHealth : undefined,
 		specialCharges: session.special.charges, specialCooldown: session.special.cooldown, specialActive: session.special.active,
-		aceKilled: session.blueprintState?.aceKilled ?? false,
+		aceKilled: (session.blueprintState?.aceKilled ?? false) || (session.blueprintState?.optionalAceKilled ?? false),
 		paused: PauseRules.Paused(session.pause),
 		pauseAck: session.pauseAck,
 		pauseRemaining: PauseRules.Remaining(session.pause, os.clock()),
 		turnObserved: session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.kind === "tutorial_move" ? session.blueprintState.turnObserved : undefined,
 		pitchObserved: session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.kind === "tutorial_move" ? session.blueprintState.pitchObserved : undefined,
 		evadeCharges: session.evade.charges,
-		optionalKills: (session.blueprintState?.optionalAirKills ?? 0) + (session.blueprintState?.optionalGroundKills ?? 0),
+		optionalKills: session.blueprintState?.optionalAirKills ?? 0,
 		incomingDistance: incomingDistance < math.huge ? incomingDistance : undefined,
 	}));
 }
@@ -458,7 +458,7 @@ function missionStats(session: CombatSession, won: boolean): MissionStats {
 		slot: session.slot,
 		reason: sessionReason(session),
 		completedPhases: sessionCompletedPhases(session, won),
-		optionalKills: (session.blueprintState?.optionalAirKills ?? 0) + (session.blueprintState?.optionalGroundKills ?? 0),
+		optionalKills: session.blueprintState?.optionalAirKills ?? 0,
 		missilesFired: session.missilesFired,
 		missileHits: session.missileHits,
 		damageTaken: session.damageTaken,
@@ -628,9 +628,21 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 			y: math.max(240,session.state.y),
 			z: clampAirSpawn(session.state.z + math.cos(math.rad(arrival.headingDegrees))*2800,session.airspace),
 		} : undefined);
-		const radians=math.rad(arrival?.headingDegrees ?? 0);
-		const pose = options.pose ?? (authoredSpawn ? { position: {x:authoredSpawn.x+index*35*math.cos(radians),y:authoredSpawn.y,z:authoredSpawn.z+index*35*math.sin(radians)}, facing: {x:math.sin(radians),y:0,z:-math.cos(radians)} } : undefined);
-		const position = pose ? new Vector3(pose.position.x, pose.position.y, pose.position.z) : new Vector3(px, py, pz);
+		const runway = arrival !== undefined && "scramble" in arrival && arrival.scramble === true;
+		const [boundsFrame, boundsSize] = model.GetBoundingBox();
+		const pivotAboveBottom = model.GetPivot().Position.Y - (boundsFrame.Position.Y - boundsSize.Y / 2);
+		const pose = options.pose ?? (authoredSpawn ? authoredAirPose(authoredSpawn, arrival?.headingDegrees ?? 0, index, runway, pivotAboveBottom) : undefined);
+		let position = pose ? new Vector3(pose.position.x, pose.position.y, pose.position.z) : new Vector3(px, py, pz);
+		// Preserve legacy random spawns; authored airborne poses get the same terrain probe and floor.
+		if (pose && arrival && !runway) {
+			let height = airSpawnHeight(position.Y);
+			const toward = new Vector3(pose.facing.x, pose.facing.y, pose.facing.z);
+			if (session.groundParams) for (const [dx,dz] of [[0,0],[-80,0],[80,0],[0,-80],[0,80],[toward.X*200,toward.Z*200]]) {
+				const surface = ActorGrounding.Sample(position.X+dx, position.Z+dz, session.groundParams);
+				if (surface) height = airSpawnHeight(height, surface.y);
+			}
+			position = new Vector3(position.X,height,position.Z);
+		}
 		const direction = pose ? new Vector3(pose.facing.x, pose.facing.y, pose.facing.z) : role === "courier" && options.escape
 			? unitOr(options.escape.sub(position), forward)
 			: unitOr(positionFor(session.state).sub(position), forward.mul(-1));
@@ -959,7 +971,7 @@ function stepGroundDefence(session: CombatSession, dt: number): void {
 			if(enemy.windup<=0) {
 				const target=positionFor(session.state), delta=target.sub(enemy.position);
 				const tracer=new Instance("Part"); tracer.Name="AA tracer burst"; tracer.Anchored=true; tracer.CanCollide=false; tracer.CanTouch=false; tracer.CanQuery=false; tracer.Material=Enum.Material.Neon; tracer.Color=Color3.fromRGB(255,180,75); tracer.Size=new Vector3(1,1,delta.Magnitude); tracer.CFrame=CFrame.lookAt(enemy.position.add(delta.mul(0.5)),target); tracer.Parent=session.folder; task.delay(0.15,()=>tracer.Destroy());
-				if(GroundAirDefence.Hit(math.random(),session.difficulty,session.evadeRemaining>0)) { const damage=GroundAirDefence.Damage*GroundAirDefence.Scale(session.difficulty); session.health=math.max(0,session.health-damage); session.damageTaken+=damage; session.lowestHealth=math.min(session.lowestHealth,session.health); }
+				if(GroundAirDefence.Hit(math.random(),session.difficulty,session.evadeRemaining>0)) { const damage=GroundAirDefence.Damage; session.health=math.max(0,session.health-damage); session.damageTaken+=damage; session.lowestHealth=math.min(session.lowestHealth,session.health); if (session.health <= 0) return; }
 				enemy.fireTimer=GroundAirDefence.Reload; enemy.model.SetAttribute("AttackWarning",false); if(enemy.warning) enemy.warning.Enabled=false;
 			}
 		} else if(enemy.fireTimer<=0 && GroundAirDefence.Admit(firing)) {
@@ -970,6 +982,7 @@ function stepGroundDefence(session: CombatSession, dt: number): void {
 }
 function stepEnemies(session: CombatSession, dt: number): void {
 	stepGroundDefence(session,dt);
+	if (session.health <= 0) return;
 	const playerPosition = positionFor(session.state);
 	const playerForward = directionFor(session.state);
 	const playerVelocity = playerForward.mul(session.state.speed);
@@ -1014,7 +1027,13 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		if (enemy.scramble) {
 			const elapsed=session.elapsed-enemy.scramble.startedAt;
 			const p=scramblePose(enemy.scramble.spawn,enemy.scramble.heading,elapsed);
-			if(elapsed<8) { enemy.position=new Vector3(p.x,p.y,p.z); enemy.frame=CFrame.lookAt(enemy.position,enemy.position.add(enemy.direction)); continue; }
+			if(elapsed<8) {
+				// Only the terrain altitude floor is waived during takeoff. Scenery ahead still triggers avoidance.
+				if (session.collisionParams && Workspace.Raycast(enemy.position, enemy.direction.mul(AVOID_RANGE), session.collisionParams)) enemy.pullUpUntil=session.elapsed+0.8;
+				const avoiding=(enemy.pullUpUntil ?? 0)>session.elapsed;
+				enemy.position=new Vector3(p.x,math.max(p.y,enemy.position.Y+(avoiding ? 120*dt : 0)),p.z);
+				enemy.frame=CFrame.lookAt(enemy.position,enemy.position.add(enemy.direction)); continue;
+			}
 			enemy.scramble=undefined;
 		}
 		// Route actors are stepped only by PhaseDirector and never enter fighter/fire logic.
@@ -1221,7 +1240,9 @@ function aceStage(session: CombatSession, enemy: Enemy, before: number, after: n
 	enemy.windup = 0; enemy.windupTarget = undefined; enemy.warning!.Enabled = false; enemy.model.SetAttribute("AttackWarning", false);
 	if (enemy.mode === "extend") enemy.mode = "attack";
 	if (session.target === enemy) session.lockProgress = 0;
-	const lines = session.blueprint?.aceStages;
+	const standalone = phase?.standaloneAce;
+	const lines = standalone ? standalone.stageLines : session.blueprint?.aceStages;
+	if (standalone) { const line=lines?.[aceState.stage-1]; if (line !== undefined) radio(session,line); return; }
 	const fallback = retreats ? `${enemy.name}: Not bad, trainee. Wing, on me.` : aceState.stage === 1 ? `${enemy.name}: Not bad, trainee. Again.` : `${enemy.name}: Enough. Head on.`;
 	radio(session, lines?.[aceState.stage - 1] ?? fallback);
 }
@@ -1418,6 +1439,7 @@ function stepSession(session: CombatSession, dt: number): void {
 	if (EvadeRules.Open(session.evade)) decoyEvade(session);
 	stepAllies(session, dt);
 	stepEnemies(session, dt);
+	if (session.health <= 0) { refreshSession(session, os.clock()); return; }
 	if (!ownsEnemy(session, session.target)) acquireTarget(session);
 	if (session.target) {
 		const [distance, dot] = targetMetrics(session, session.target);
@@ -1566,7 +1588,8 @@ export const CombatService = {
 			session.blueprintState = BlueprintRunner.NewState(session.blueprint, startedAt, fixedRaiders(session.blueprint) ? 0 : Difficulty.Behaviour(difficultyKind).extraRaiders);
 			// Hazard targets and hidden strikes stay out of sight until their phase lights them.
 			const typed = new Map<Model, {spec: import("../shared/CampaignEncounters").TypedGroundTarget; phase: number}>();
-			for(let phase=0;phase<blueprint.phases.size();phase++) for(const spec of blueprint.phases[phase].groundTargets ?? []) {
+			const expandedPhases = MissionCatalog.ExpandedPhases(blueprint);
+			for(let phase=0;phase<expandedPhases.size();phase++) for(const spec of expandedPhases[phase].groundTargets ?? []) {
 				const model=createGroundTarget(spec); model.Parent=folder; world.groundTargets.push(model); typed.set(model,{spec,phase});
 			}
 			const hiddenGround = session.blueprint ? MissionCatalog.HiddenGround(session.blueprint) : new Set<number>();

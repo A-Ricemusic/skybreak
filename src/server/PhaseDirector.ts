@@ -228,9 +228,13 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		// Mid-phase "after" twists do not change phase, so applyBlueprintPhase never sees their radio: drain it here.
 		for (let line=BlueprintRunner.TakeRadio(bs); line !== undefined; line=BlueprintRunner.TakeRadio(bs)) radio(session,line,7);
 		const active=BlueprintRunner.ActivePhase(bs);
-		if (active && bs.outcome === undefined) {
+		if (active && bs.outcome === undefined && ((active.fighterWaves?.size() ?? 0)>0 || active.standaloneAce !== undefined)) {
+			if (!session.arrivalTargets) {
+				session.arrivalTargets=[];
+				for (const phase of MissionCatalog.ExpandedPhases(bs.blueprint)) for (const target of phase.groundTargets ?? []) session.arrivalTargets.push(target);
+			}
 			const fired=session.arrivalsFired ?? new Set<string>(); session.arrivalsFired=fired;
-			const context={ elapsed:session.elapsed, phase:bs.phaseIndex, requiredKills:bs.requiredAirKills+bs.requiredGroundKills+(bs.aceKilled ? 1 : 0), destroyed:bs.killedIds, targets:bs.phases.reduce((all,p) => [...all,...(p.groundTargets ?? [])], [] as import("../shared/CampaignEncounters").TypedGroundTarget[]) };
+			const context={ elapsed:session.elapsed, phase:bs.phaseIndex, requiredKills:bs.requiredAirKills+bs.requiredGroundKills+(bs.aceKilled ? 1 : 0), destroyed:bs.killedIds, targets:session.arrivalTargets };
 			for(const arrival of [...(active.fighterWaves ?? []), ...(active.standaloneAce ? [active.standaloneAce] : [])]) {
 				if(takeArrival(arrival.id,arrival.trigger,context,fired)) session.airQueue.push({ arrival, role: "name" in arrival ? "ace" : arrival.role, count: "name" in arrival ? 1 : arrival.count, behind:false });
 			}

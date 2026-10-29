@@ -1,28 +1,66 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { arrivalDue, takeArrival, scramblePose, TypedGroundTarget, FighterArrival } from "../shared/CampaignEncounters";
+import { arrivalDue, takeArrival, scramblePose, authoredAirPose, airSpawnHeight, TypedGroundTarget, FighterArrival } from "../shared/CampaignEncounters";
 import { GroundAirDefence as AA } from "../shared/GroundAirDefence";
 import { MissionBlueprint, MissionCatalog } from "../shared/MissionCatalog";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { TargetScore } from "../shared/TargetScore";
 import { recordScoredKill } from "../server/SortieScore";
 import { targetScoreLines } from "../shared/OutcomePoints";
+import { ImpactFeedback } from "../shared/ImpactFeedback";
 import { AirRequest, WavePlan } from "../shared/WavePlan";
 import { mission as practiceSnapshot } from "./EnginePracticeSnapshot";
 import { mission as m01Snapshot } from "./EngineM01Snapshot";
 const target: TypedGroundTarget={id:"b1",type:"parked_bomber",position:{x:0,y:50,z:0},yaw:90,required:true,scoreRole:"parked_bomber",group:"apron"};
 const wave: FighterArrival={id:"scramble",trigger:{kind:"time",seconds:45},count:3,role:"raider",scoreRole:"fighter",spawn:{x:0,y:50,z:0},headingDegrees:0,scramble:true};
-function blueprint(): MissionBlueprint { return {...MissionCatalog.Get(1),id:2,ground:[], phases:[{kind:"required_ground",label:"Strike",count:1,groundTargets:[target,{...target,id:"h1",type:"hangar",required:false,scoreRole:"hangar"}],fighterWaves:[wave],standaloneAce:{id:"ace",name:"DUSK",livery:"Rusk",health:200,trigger:{kind:"ground_group",group:"apron"},behaviour:"ground_attack",scoreRole:"ace"}}],scoring:{basis:"points",points:{parked_bomber:120,hangar:50,aa_gun:20,control_tower:100,substation:100,fighter:60,ace:240},rank:{S:2400,A:2000,B:1500,C:1320}}}; }
+function blueprint(): MissionBlueprint { return {...MissionCatalog.Get(1),id:2,ground:[], phases:[{kind:"required_ground",label:"Strike",count:1,groundTargets:[{...target},{...target,id:"h1",type:"hangar",required:false,scoreRole:"hangar"}],fighterWaves:[{...wave}],standaloneAce:{id:"ace",name:"DUSK",livery:"Rusk",health:200,trigger:{kind:"ground_group",group:"apron"},behaviour:"ground_attack",scoreRole:"ace"}}],scoring:{basis:"points",points:{parked_bomber:120,hangar:50,aa_gun:20,control_tower:100,substation:100,fighter:60,ace:240},rank:{S:2400,A:2000,B:1500,C:1320}}}; }
 describe("Dormant campaign engine",()=>{
+ it("uses expanded ownership for typed targets inside and after a twist",()=>{
+  const bp=blueprint(), strike=bp.phases[0];
+  strike.fighterWaves=undefined;strike.standaloneAce=undefined;
+  bp.phases=[{kind:"required_air",label:"Entry",count:1,twist:{at:1,mode:"now",text:"New strike",insert:[{...strike,groundTargets:[{...target,id:"inserted"}]}]}}, {...strike,groundTargets:[{...target,id:"later"}]}];
+  MissionCatalog.ValidatePolicy(bp);
+  const expanded=MissionCatalog.ExpandedPhases(bp),s=BlueprintRunner.NewState(bp,0);
+  expect(expanded[1].groundTargets![0].id).toBe("inserted");expect(expanded[2].groundTargets![0].id).toBe("later");
+  expect(BlueprintRunner.RecordKill(s,"entry","air",true,1)).toBe(true);expect(s.phaseIndex).toBe(1);
+  expect(BlueprintRunner.ActivePhase(s)?.groundTargets).toEqual(expanded[1].groundTargets);
+  expect(BlueprintRunner.RecordKill(s,"inserted","ground",true,2)).toBe(true);expect(s.phaseIndex).toBe(2);
+  expect(BlueprintRunner.ActivePhase(s)?.groundTargets).toEqual(expanded[2].groundTargets);
+ });
+ it("rejects future and unknown phase_start triggers, including expanded twist owners",()=>{
+  for(const phase of [1,99]) { const bp=blueprint();bp.phases[0].fighterWaves![0].trigger={kind:"phase_start",phase};const [ok]=pcall(()=>MissionCatalog.ValidatePolicy(bp));expect(ok).toBe(false); }
+  const bp=blueprint();bp.phases[0].fighterWaves![0].trigger={kind:"phase_start",phase:0};MissionCatalog.ValidatePolicy(bp);
+  expect(arrivalDue({kind:"time",seconds:10},{elapsed:50,phase:1,requiredKills:0,destroyed:new Set<string>(),targets:[]})).toBe(true);
+ });
+ it("places runway hulls above the surface and keeps wingmen on the centreline; airborne spawns clear terrain",()=>{
+  const spawn={x:100,y:50,z:200};
+  const lead=authoredAirPose(spawn,0,0,true,6),wing=authoredAirPose(spawn,0,2,true,6);
+  expect(lead.position.y).toBe(56);expect(wing.position.x).toBe(100);expect(wing.position.z).toBe(340);
+  const east=authoredAirPose(spawn,90,2,true,6);expect(east.position.z).toBeCloseTo(200);expect(east.position.x).toBeCloseTo(-40);
+  expect(scramblePose(lead.position,0,3).y).toBe(56);expect(scramblePose(lead.position,0,8).y).toBe(281);
+  expect(airSpawnHeight(50)).toBe(170);expect(airSpawnHeight(200,400)).toBe(520);expect(airSpawnHeight(900,400)).toBe(900);
+  expect(authoredAirPose(spawn,0,1,false,6).position).toEqual({x:135,y:50,z:200});
+ });
+ it("reports standalone ace down without adding required kills or inheriting stage radio",()=>{
+  const bp=blueprint(),s=BlueprintRunner.NewState(bp,0);bp.aceStages=["ESCORT ACE RADIO"];
+  expect(bp.phases[0].standaloneAce?.stageLines).toBeUndefined();
+  expect(BlueprintRunner.RecordKill(s,"ace","ace",false,1)).toBe(true);
+  expect(s.aceKilled).toBe(false);expect(s.optionalAceKilled).toBe(true);expect(s.optionalAirKills).toBe(1);
+  const before={kills:0,groundKills:0,aceKilled:false},after={kills:1,groundKills:0,aceKilled:s.optionalAceKilled ?? false};
+  expect(ImpactFeedback.DetectKill(before,after)?.text).toBe("ACE DOWN");
+ });
  it("scores M02 reference inventory exactly once by type for 2610",()=>{
   const ledger=new TargetScore(blueprint().scoring!);
   for(const [role,count] of pairs({parked_bomber:11,hangar:7,aa_gun:4,control_tower:1,substation:1,fighter:7,ace:1})) for(let i=0;i<count;i++) {expect(ledger.RecordKill(`${role}${i}`,role)).toBe(true);expect(ledger.RecordKill(`${role}${i}`,role)).toBe(false);}
   expect(ledger.Total()).toBe(2610); expect(targetScoreLines(ledger.Snapshot()).size()).toBe(7);
   const custom=new TargetScore({ ...blueprint().scoring!,points:{structure:50} }); custom.RecordKill("hangar","structure","hangar"); expect(targetScoreLines(custom.Snapshot())[0].label).toBe("HANGAR ×1");
+  const aa=new TargetScore(blueprint().scoring!);aa.RecordKill("aa","aa_gun");expect(targetScoreLines(aa.Snapshot())[0].label).toBe("AA GUN ×1");
  });
  it("counts required ground only, optional ground stays destroyable and scores once",()=>{
   const bp=blueprint(); MissionCatalog.ValidatePolicy(bp); const s=BlueprintRunner.NewState(bp,0),ledger=new TargetScore(bp.scoring!);
   expect(recordScoredKill(s,ledger,"h1","ground",false,1,"hangar")).toBe(true); expect(recordScoredKill(s,ledger,"h1","ground",false,1,"hangar")).toBe(false);
   expect(s.phaseProgress).toBe(0);expect(s.optionalAirKills).toBe(0);expect(s.optionalGroundKills).toBe(1);
+  // optionalKills in telemetry/results is this air-only counter; groundKills already includes h1.
+  expect(s.requiredGroundKills+s.optionalGroundKills).toBe(1);
   expect(recordScoredKill(s,ledger,"fighter","air",false,2,"fighter")).toBe(true);expect(recordScoredKill(s,ledger,"ace","ace",false,2,"ace")).toBe(true);
   expect(s.phaseProgress).toBe(0);expect(recordScoredKill(s,ledger,"b1","ground",true,3,"parked_bomber")).toBe(true);expect(s.outcome).toBe("won");expect(ledger.Total()).toBe(470);
  });
@@ -32,6 +70,7 @@ describe("Dormant campaign engine",()=>{
  });
  it("gates AA by range, life, active phase and two-gun cap; difficulty and evade are explicit",()=>{
   expect(AA.Eligible(true,true,1500)).toBe(true);expect(AA.Eligible(true,true,1501)).toBe(false);expect(AA.Eligible(true,true,79)).toBe(false);expect(AA.Eligible(false,true,500)).toBe(false);expect(AA.Eligible(true,false,500)).toBe(false);
+  expect(AA.Damage).toBe(4);expect(AA.Scale("easy")).toBe(.65);expect(AA.Scale("normal")).toBe(1);expect(AA.Scale("ace")).toBe(1.25);
   expect(AA.Admit(1)).toBe(true);expect(AA.Admit(2)).toBe(false);expect(AA.Hit(.34,"normal",false)).toBe(true);expect(AA.Hit(.34,"easy",false)).toBe(false);expect(AA.Hit(.4,"ace",false)).toBe(true);expect(AA.Hit(0,"normal",true)).toBe(false);
  });
  it("fires each ace/wave trigger once at control time or a named event",()=>{

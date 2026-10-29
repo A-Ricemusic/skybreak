@@ -33,6 +33,7 @@ export interface BlueprintState {
 	optionalGroundKills: number;
 	phaseOptionalKills: number;
 	aceKilled: boolean;
+	optionalAceKilled?: boolean;
 	/** Extra raiders every wave brings (Ace difficulty); widens each phase's optional kill cap. */
 	extraRaiders: number;
 	/** Seconds the active phase has been observed (chase timer). */
@@ -268,7 +269,7 @@ export const BlueprintRunner = {
 		if (id==="" || s.killedIds.has(id) || !BlueprintRunner.CanDamage(s,kind,required)) return false;
 		s.killedIds.add(id);
 		if (!required && kind === "ground") { s.optionalGroundKills++; return true; }
-		if (!required) { s.optionalAirKills++; s.phaseOptionalKills++; return true; }
+		if (!required) { if (kind === "ace" && BlueprintRunner.ActivePhase(s)?.standaloneAce) s.optionalAceKilled=true; s.optionalAirKills++; s.phaseOptionalKills++; return true; }
 		const p=BlueprintRunner.ActivePhase(s)!;
 		if (p.kind === "tutorial_missile") {
 			s.requiredGroundKills++; s.phaseProgress++; advanceTeaching(s); return true;
