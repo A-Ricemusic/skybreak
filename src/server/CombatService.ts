@@ -437,17 +437,24 @@ function effect(session: CombatSession, kind: ExplosionKind, position: Vector3, 
 	if (session.cleaned || session.player.Parent !== Players) return;
 	combatEffectRemote?.FireClient(session.player, { kind, position, ...extra });
 }
+/** Bumped by every StartMission, so a delayed menu restore never clears a world that started after it. */
+let worldGeneration = 0;
+/** Seconds the result has to reach the player before the (server-blocking) terrain clear starts. */
+const MENU_RESTORE_DELAY = 1;
 function restoreMenu(): void {
 	if (sessions.size() > 0) return;
-	// Clearing mission 3's terrain measured about 10 s in Studio, past the script execution limit; the timeout
+	// Clearing mission 3's terrain measured 10-30 s in Studio, past the script execution limit; the timeout
 	// fires after the (completed) clear and killed settlement before release ("still being saved" forever).
-	// The clear and the menu rebuild each run in their own deferred thread, so neither can strand the player.
-	task.defer(() => {
+	// The clear and the menu rebuild each run in their own thread, so neither can strand the player, and they
+	// wait a moment so the result screen arrives before the clear stalls the server frame.
+	const generation = worldGeneration;
+	task.delay(MENU_RESTORE_DELAY, () => {
+		if (generation !== worldGeneration || sessions.size() > 0) return;
 		const [cleared, clearError] = pcall(() => Workspace.Terrain.Clear());
 		if (!cleared) warn(`SKYBREAK terrain clear failed: ${tostring(clearError)}`);
 	});
-	task.defer(() => {
-		if (sessions.size() > 0) return;
+	task.delay(MENU_RESTORE_DELAY, () => {
+		if (generation !== worldGeneration || sessions.size() > 0) return;
 		const [ok, message] = pcall(() => MissionWorld.RestoreMenu());
 		if (!ok) warn(`SKYBREAK menu restoration failed: ${tostring(message)}`);
 	});
@@ -1602,6 +1609,7 @@ export const CombatService = {
 		folder.Name = `Mission_${player.UserId}_${missionSerial}`;
 		folder.Parent = missionRoot;
 		const [ok, result] = pcall(() => {
+			worldGeneration += 1;
 			const world = MissionWorld.Build(missionId, folder);
 			assert(player.Parent === Players, "Player left during world construction");
 			const blueprint = MissionCatalog.Get(missionId);
