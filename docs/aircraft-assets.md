@@ -184,6 +184,18 @@ then procedural).
 on top and Vanta below, all with the same camera at in-game scale
 (`compare_v1_v2.py`).
 
+## Heavy bomber (mission 1, not uploaded)
+
+`tools/assets/m01_assets.py` (`tools/assets/build-all.sh heavy-bomber`) builds
+`assets/roblox-upload/heavy-bomber/`. It is an original unarmed four-turbofan bomber
+with a pointed radome, a shoulder wing and 4° anhedral, podded engines, a swept fin
+and low tailplanes, in Vanta-family paint. It measures 72.7 × 16.6 × 64.8 studs
+(2.96× the Vanta v2's span), has 8,704 triangles and one `Body` part, and uses 1024²
+maps. Export `heavy-bomber-2` reworked the nose after review 1 found the head-on view
+face-like. It is awaiting a new independent safety review. It
+is not in `write_manifest.KEYS` and nothing in `src/` refers to it. See
+[the mission 1 assets](assets-bomber-carrier.md).
+
 ## Asset upload alternatives and known limitations
 
 The installed Studio build `0.744.0.7441077` returned this exact error on 2026-10-24 when the documented plugin upload API was tested:

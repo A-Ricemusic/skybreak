@@ -26,6 +26,7 @@ Generators live in `tools/assets/` and are deterministic Blender Python:
 | `aircraft_v2.py` | Version 2 Kestrel, Vanta and ace liveries: shaped-section fuselages, intakes, cockpit, missiles (see [aircraft assets](aircraft-assets.md#version-2-aircraft)) |
 | `compare_v1_v2.py` | Optional: renders `assets/roblox-upload/v1-vs-v2.png` from the exported FBX files |
 | `world.py` | Frigate, oil platform, quay, containers, crane, hangar, tower, three city buildings, farmhouse, barn, silo, radar dish, relay mast, two trees, three rocks |
+| `m01_assets.py` | Mission 1 heavy bomber and aircraft carrier, with extra review previews, a scale reference and a contact sheet; pending review and deliberately not in `write_manifest.KEYS` (see [mission 1 assets](assets-bomber-carrier.md)) |
 | `build.py` | Entry point: one asset per fresh Blender process |
 | `build-all.sh` | Every asset, four processes at a time, then `write_manifest.py` |
 | `write_manifest.py` | Validates every checklist, writes `assets/roblox-upload/manifest.json` and `src/shared/UploadedAssetSpecs.ts` |
@@ -56,9 +57,20 @@ shows those files as modified even when nothing changed.
 `contact_sheet.py` makes `assets/roblox-upload/contact-sheet.png` (every 3/4
 preview on one image) for a quick review pass.
 
-Conventions: one Blender unit is one stud (1 stud ~ 0.28 m), Blender X right,
-Z up, **-Y forward**; the FBX uses Roblox axes (+Y up, -Z forward). Aircraft are
-centred on their bounding box; world props have their pivot at the bottom centre.
+Conventions: one Blender unit is one stud (1 stud ~ 0.28 m), Z up, **-Y
+forward**; the FBX uses Roblox axes (+Y up, -Z forward). Aircraft are centred on
+their bounding box; world props have their pivot at the bottom centre.
+
+**Sides.** "X right" holds for the Blender front view, not for the model: facing
+its front (-Y) with Z up, the model's own right (starboard) is Blender **-X**. The
+export writes Blender `(x, y, z)` as FBX `(x, z, -y)` (checked by parsing an
+exported probe), and the import arrives with the front at -Z, so Blender `(x, y, z)`
+lands at Roblox `(-x, z, y)`. Both steps are rotations, so they never move a feature
+to the other side: author a starboard feature at -X. `skyasset.roblox_vec` maps to
+`(x, z, y)`, a mirror, which is only right for mirror-symmetric records such as
+wingtip pairs. Asymmetric records use `m01_assets.roblox_model`. The old
+EditableMesh JSON path mirrors deliberately and reverses the winding (see
+[aircraft assets](aircraft-assets.md)), so its +X stays on the right.
 
 **FBX unit scale.** Roblox's Model import reads the FBX's centimetre values as
 studs and ignores the file's unit metadata. The pilot upload proved it: the
@@ -81,7 +93,7 @@ regardless (see below), so both kinds work.
 | `<asset>-color.png`, `-normal.png`, `-roughness.png`, `-metalness.png` | The same textures for review (aircraft 1024², large props 512², small props 256²). Not uploaded: the Model import carries them. |
 | `preview-front.png`, `preview-side.png`, `preview-top.png`, `preview-3q.png` | 1024² Eevee renders on a neutral background for review and moderation pre-check. |
 | `preview-closeup.png` | v2 aircraft only: 1024² close-up of the cockpit and an intake (the canopy is rendered see-through as in game). |
-| `checklist.json` | Name, triangle count and limit, objects, texture list and sizes, Roblox size in studs, ground offset, moderation booleans with notes, aircraft hinges and attachments. |
+| `checklist.json` | Name, `exportVersion`, triangle count and limit, objects, texture list and sizes, Roblox size in studs, ground offset, moderation booleans with notes, aircraft hinges and attachments, and `sha256`: a hash of every other file in the folder (FBX, textures, previews and any review image). |
 
 `manifest.json` lists every folder, its Roblox asset types and where the game
 uses it. Everything here is committed (each file is well under 5 MB).
@@ -95,8 +107,14 @@ reads as text, a logo, a face or a real insignia.
 
 ## 3. Checklist
 
-`checklist.json` must have `allChecksTrue: true`. The booleans and their
-one-line notes are:
+`checklist.json` must have `allChecksTrue: true`. The safety review records the
+export version and the hashes it inspected, so `skyasset.Asset` requires an
+`export_version` (for example `carrier-2`) for every asset not in
+`LEGACY_UNVERSIONED` (the folders uploaded before this rule). Bump it on every
+re-export, because a re-export needs a new review. `skyasset.write_checklist` writes
+the checklist last, with a SHA-256 for every other file in the folder.
+`verify_fbx.py` fails on a hash mismatch, and for a versioned checklist it also fails
+on any file the checklist does not list. The booleans and their one-line notes are:
 
 - `noText`: no letters, numbers or words anywhere in mesh or texture (no call signs, serials, squadron codes or hull numbers).
 - `noLogosOrBrands`

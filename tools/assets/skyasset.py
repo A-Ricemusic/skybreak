@@ -11,7 +11,8 @@ Every generator under ``tools/assets/`` builds one asset from code, then calls
 4. swaps in a single image-textured material, renders four 1024x1024 Eevee
    previews on a neutral background, exports an FBX with embedded textures,
 5. writes ``checklist.json`` with triangle counts, texture sizes, Roblox
-   dimensions and the moderation pre-check booleans.
+   dimensions, the moderation pre-check booleans, the ``exportVersion`` and a
+   SHA-256 for every other file in the folder (``write_checklist``).
 
 Coordinates: author in Blender with X right, Z up and **-Y forward**, one
 Blender unit = one Roblox stud (1 stud ~ 0.28 m). The FBX export maps this to
@@ -23,6 +24,7 @@ draws glyphs: every texture is built from noise, grids and masks, which is what 
 
 from __future__ import annotations
 
+import hashlib
 import json
 import math
 import os
@@ -45,6 +47,15 @@ STUD_METRES = 0.28
 # Folders exported before this change have no ``fbxMetresPerStud`` and arrive 28x too
 # large; the game's loader rescales either way.
 FBX_METRES_PER_STUD = 0.01
+# Folders exported and uploaded before checklists carried an ``exportVersion``. Every other
+# asset must pass ``export_version`` (AGENTS.md: the safety review records the export version),
+# and every new export must bump it, because a re-export needs a new independent review.
+LEGACY_UNVERSIONED = frozenset((
+    "kestrel", "vanta", "vanta-vulture", "vanta-rusk", "kestrel-v2", "vanta-v2", "vanta-v2-vulture", "vanta-v2-rusk",
+    "frigate", "oil-platform", "harbour-quay", "container-stack", "gantry-crane", "hangar", "control-tower",
+    "office-midrise", "apartment-block", "city-tower", "farmhouse", "barn", "grain-silo", "radar-dish", "relay-mast",
+    "pine", "broadleaf", "rock-a", "rock-b", "rock-c",
+))
 
 
 def m(metres: float) -> float:
@@ -396,8 +407,11 @@ def _object(name: str, bm: bmesh.types.BMesh) -> bpy.types.Object:
 class Asset:
     def __init__(self, name: str, title: str, *, texture: int = 512, kind: str = "world", tri_limit: int = 2500,
                  bump_distance: float = 0.05, usage: str = "", seed: int = 1, target_length: float | None = None,
-                 weighted_normals: bool = False, glass_parts: tuple = ()):
+                 weighted_normals: bool = False, glass_parts: tuple = (), export_version: str | None = None):
+        if export_version is None and name not in LEGACY_UNVERSIONED:
+            raise RuntimeError(f"{name}: pass export_version (for example '{name}-1') and bump it on every re-export")
         self.name = name
+        self.export_version = export_version
         self.title = title
         self.texture = texture
         self.kind = kind
@@ -639,7 +653,7 @@ class Asset:
             variants.append(self._livery(objects, livery, final, tris, size, ground_offset, hinge_records,
                                          attachments, extra_notes or {}))
         checklist["variants"] = variants
-        (self.out / "checklist.json").write_text(json.dumps(checklist, indent=2) + "\n")
+        write_checklist(self.out, checklist)
         print(f"ASSET_DONE {self.name} tris={tris} size={[round(v, 2) for v in roblox_vec(size, absolute=True)]}")
         return checklist
 
@@ -803,14 +817,17 @@ class Asset:
         export_fbx(objects, fbx)
         checklist = self._checklist(objects, tris, textures, size, ground_offset, hinges, attachments,
                                     extra_notes, fbx, name=name, title=livery["title"], usage=livery["usage"],
-                                    variant_of=self.name)
-        (folder / "checklist.json").write_text(json.dumps(checklist, indent=2) + "\n")
+                                    variant_of=self.name, export_version=livery.get("export_version"))
+        write_checklist(folder, checklist)
         print(f"ASSET_DONE {name} tris={tris}")
         return name
 
     def _checklist(self, objects, tris, textures, size, ground_offset, hinges, attachments, extra_notes, fbx,
-                   name=None, title=None, usage=None, variant_of=None) -> dict:
+                   name=None, title=None, usage=None, variant_of=None, export_version=None) -> dict:
         name = name or self.name
+        export_version = export_version if variant_of else self.export_version
+        if export_version is None and name not in LEGACY_UNVERSIONED:
+            raise RuntimeError(f"{name}: no export version (liveries pass export_version in their livery dict)")
         notes = {
             "noText": "Textures are baked from noise, grids and masks only; no letters, numbers, words, call signs or codes in mesh or texture.",
             "noLogosOrBrands": "No company, product or brand marks; colour fields and wear only.",
@@ -826,6 +843,7 @@ class Asset:
             "name": name,
             "title": title or self.title,
             "variantOf": variant_of,
+            **({"exportVersion": export_version} if export_version else {}),
             "robloxAssetType": "Model",
             "usage": usage or self.usage,
             "generator": "tools/assets/" + Path(sys.argv[sys.argv.index("--python") + 1]).name if "--python" in sys.argv else "tools/assets",
@@ -853,6 +871,21 @@ class Asset:
         if attachments:
             record["attachments"] = {k: roblox_vec(self.shift(v)) for k, v in attachments.items()}
         return record
+
+
+def sha256_files(folder: Path) -> dict[str, str]:
+    """SHA-256 of every file in an asset folder except ``checklist.json`` (the FBX, textures,
+    previews and any other review image), so a review record can pin the exact files it saw."""
+    return {p.name: hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in sorted(folder.iterdir()) if p.is_file() and p.name != "checklist.json"}
+
+
+def write_checklist(folder: Path, checklist: dict) -> dict:
+    """Write ``checklist.json`` with fresh hashes of every other file in the folder. Call it last,
+    after every preview and review image is written."""
+    checklist["sha256"] = sha256_files(folder)
+    (folder / "checklist.json").write_text(json.dumps(checklist, indent=2) + "\n")
+    return checklist
 
 
 # --------------------------------------------------------------------------

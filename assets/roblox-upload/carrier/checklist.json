@@ -1,0 +1,191 @@
+{
+  "name": "carrier",
+  "title": "Aircraft carrier (mission 1 start)",
+  "variantOf": null,
+  "exportVersion": "carrier-2",
+  "robloxAssetType": "Model",
+  "usage": "Mission 1 start reference (scripted fly-off from the bow catapults) and intro dressing. Pending review; not referenced from src/.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "carrier.fbx",
+    "bytes": 850380
+  },
+  "triangleCount": 2772,
+  "triangleLimit": 6000,
+  "objects": [
+    {
+      "name": "carrier",
+      "triangles": 2772
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "carrier-color.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 323893
+    },
+    {
+      "role": "normal",
+      "file": "carrier-normal.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 94783
+    },
+    {
+      "role": "rough",
+      "file": "carrier-roughness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 193529
+    },
+    {
+      "role": "metal",
+      "file": "carrier-metalness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 30436
+    }
+  ],
+  "robloxSizeStuds": [
+    181.031,
+    153.76,
+    560.0
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 20.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png",
+    "preview-back.png",
+    "preview-side-right.png",
+    "preview-bottom.png",
+    "preview-3q-front-left.png",
+    "preview-3q-rear-right.png",
+    "preview-3q-rear-left.png",
+    "preview-3q-low-front-right.png",
+    "preview-closeup-island.png",
+    "preview-closeup-bow.png",
+    "preview-closeup-deck.png",
+    "preview-closeup-hull.png",
+    "preview-top-orientation.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "No letters, numbers or symbols anywhere: no hull number, name or pennant. Deck markings are plain straight lines only (landing-area edges, a dashed centre line, three wire lines, catapult track lines, elevator outlines, a parking line, a dashed foul line); no circles, crosses or glyph-like shapes."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No flags, ensigns, hull numbers or class markings; hull, island and deck plan are an original layout, not a copy of any real or game ship."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or crew; no parked aircraft."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "Four covered point-defence domes on sponsons, as on any warship; no guns, missiles or aircraft weapons shown; nothing aimed, firing or damaged."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans. Island on the starboard side (see orientation)."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": [],
+  "sha256": {
+    "carrier-color.png": "69474a253c553a54643fb9125b1fa9fedfca8c94494b61223d995f41720c2750",
+    "carrier-metalness.png": "bc89e247ba224fb0935877ccdf3e015621c67a3727e3c50356da31d6f12b5368",
+    "carrier-normal.png": "dc3c98a27eba9b72b39b89165c859e87c719acc58ef0a734845d23536921aa06",
+    "carrier-roughness.png": "68f194df9e637b9be901633f750ad7d9bcff537e2787da5e5abedf0fdcdd2fe7",
+    "carrier.fbx": "31cb21fa341c9b168575df765e559d136bcd62123c08a6a0d8bd5a6f1a0fad63",
+    "contact-sheet.png": "4d1060e8a26ac56605e8ad5c90b45b8e873d077c744ed7d3fbef0a6dbfa8537a",
+    "preview-3q-front-left.png": "ca7e6e4b55c8250f55ff67787b665b21273cb72f484241fb7fd6bd6dcff0aead",
+    "preview-3q-low-front-right.png": "019dc0173245c57e33e4ee09aae9afc081dde92720b894c2859f365b4309bd4f",
+    "preview-3q-rear-left.png": "815e69d7a2f60f1b42315623ffefcc98261b597da2d6d2b5daaaca41c63fe1b7",
+    "preview-3q-rear-right.png": "ca00dde2cf114aea8909a5132ead933972764552852276060922412cae9dfbc5",
+    "preview-3q.png": "2aeff94e2262f40ee985690cefa0dd2f0fe2fbbeffb92791817942de19370977",
+    "preview-back.png": "96d4927c8be023dc4375449517f07ac52fab7da822a14eff6b84dcf3f9865ef5",
+    "preview-bottom.png": "ef327e75883253e404d0605bfa8cdb6fd1e1fdd00295d5db7d78bde1d27b5e09",
+    "preview-closeup-bow.png": "838d16f577d456097a1de2870c582db036972f948542a5bd481780d547e97955",
+    "preview-closeup-deck.png": "f07b2cf5679b056599cd083caa031e810bd7b002f206b49d59816801a502f29f",
+    "preview-closeup-hull.png": "452325e3b6ec363b2269ffd5d1ff7f9b277bbda42b27c79c7ee952894b5dccb6",
+    "preview-closeup-island.png": "5e009dc225da954eba7d71de1041c53bc43c5fd398942dc59222598df6bdcaf9",
+    "preview-front.png": "4363012d819b35deb0ab59c735bc7c564514c55cac76e137c6358c89fb0eabf4",
+    "preview-scale-reference.png": "5974f18fbfe27fb4b11d1193879f23d2703b7d3f0907e2fb675eaf1d2ae3f1bc",
+    "preview-side-right.png": "c3820add3b6ebcdfcf976f3f0783dce28edff9bd8a461865fb41c13e517e0bdb",
+    "preview-side.png": "46a6e1019a235dfa34f255507bd47ecc70ebfe450ccdf550fdfdc0359f7213bc",
+    "preview-top-orientation.png": "00a9110e4e9b1ea3245c61b1013004b7389cf85de8c1badd16285a00d8af48a2",
+    "preview-top.png": "f61a14a147f4c4374ce8cafd63900c0a88c07347168e803d14fb267dc6d12f83"
+  },
+  "previewNotes": {
+    "preview-front.png": "Orthographic from ahead (the model's front, Roblox -Z).",
+    "preview-side.png": "Orthographic from the left (port), Blender +X.",
+    "preview-top.png": "Orthographic from above, front at the top, the model's right (starboard) on the image's right.",
+    "preview-3q.png": "Perspective from ahead, the right (starboard), above.",
+    "preview-back.png": "Orthographic from behind.",
+    "preview-side-right.png": "Orthographic from the right (starboard).",
+    "preview-bottom.png": "Orthographic from below.",
+    "preview-3q-front-left.png": "Perspective from ahead, the left (port), above.",
+    "preview-3q-rear-right.png": "Perspective from behind, the right (starboard), above.",
+    "preview-3q-rear-left.png": "Perspective from behind, the left (port), above.",
+    "preview-3q-low-front-right.png": "Perspective from ahead, the right (starboard), below.",
+    "preview-closeup-island.png": "Close-up from ahead, the right (starboard), above.",
+    "preview-closeup-bow.png": "Close-up from ahead, the right (starboard), above.",
+    "preview-closeup-deck.png": "Close-up from behind, the left (port), above.",
+    "preview-closeup-hull.png": "Close-up from ahead, the right (starboard).",
+    "preview-top-orientation.png": "Review aid only (not in the FBX): orthographic from above, same framing as preview-top.png, with a plain orange arrow from stern to bow on the centre line. The island is on the image's right, the starboard side."
+  },
+  "catapults": [
+    {
+      "from": [
+        -2.4845,
+        54.0,
+        -122.0
+      ],
+      "to": [
+        -9.4845,
+        54.0,
+        -276.0
+      ]
+    },
+    {
+      "from": [
+        19.5155,
+        54.0,
+        -122.0
+      ],
+      "to": [
+        24.5155,
+        54.0,
+        -276.0
+      ]
+    }
+  ],
+  "deckHeightStuds": 54.0,
+  "launchHeading": "-Z (bow)",
+  "orientation": "Bow at Roblox -Z, island on starboard = Roblox +X (right when facing the bow). Authored front -Y, Z up, so starboard is Blender -X (right = forward x up = (-Y) x Z = -X); the plan is mirrored to put the island there. The FBX export (axis_forward -Z, axis_up Y, baked) writes Blender (x, y, z) as FBX (x, z, -y), checked by parsing an exported probe, and declares the standard Y-up right-handed axis system; Roblox reads it with the front at -Z, giving Roblox (-x, z, y). Both steps are rotations, so no import mirrors a side. Catapult points use that mapping. preview-top-orientation.png shows a review-only arrow from stern to bow.",
+  "design": "Original flat-deck carrier: 9-degree angled landing area to port, starboard island aft of midships, two bow catapults with flush blast deflectors, three deck-edge elevators (two starboard, one port), four sponsons with covered domes. 560 studs long = 21.5 Kestrel lengths; deck 141 studs wide = 6.3 Kestrel spans.",
+  "revision": "carrier-2 (review 1 noted the island of carrier-1 sat on the port side): the whole ship is mirrored so the island is on starboard and the angled deck to port; catapult points follow. No other design change.",
+  "reviewStatus": "pending independent safety review (AGENTS.md); not uploaded; not referenced from src/",
+  "scaleReference": {
+    "file": "preview-scale-reference.png",
+    "reference": "kestrel-v2",
+    "note": "Review aid only: an approved, already uploaded asset placed at in-game size for scale. Not part of this asset or its FBX."
+  },
+  "contactSheet": "contact-sheet.png"
+}

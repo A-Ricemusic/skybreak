@@ -1,0 +1,24 @@
+{
+  "asset": "carrier",
+  "folder": "assets/roblox-upload/carrier/",
+  "exportVersion": "carrier-2",
+  "approved": true,
+  "reviewer": "GPT-6.1 Sol (independent; not the creator)",
+  "reviewedAt": "2026-10-29T01:05:26Z",
+  "score": "10/10",
+  "commitReviewed": "9bd3ea8ddd757745894e068c7c1f95b02bab1e2f",
+  "pr": 107,
+  "record": "docs/qa/asset-reviews/2026-10-28-pr107-review-3.md",
+  "uploadSet": {
+    "carrier.fbx": "31cb21fa341c9b168575df765e559d136bcd62123c08a6a0d8bd5a6f1a0fad63"
+  },
+  "uploadAssetType": "Model",
+  "embeddedTextures": {
+    "carrier-color.png": "69474a253c553a54643fb9125b1fa9fedfca8c94494b61223d995f41720c2750",
+    "carrier-normal.png": "dc3c98a27eba9b72b39b89165c859e87c719acc58ef0a734845d23536921aa06",
+    "carrier-roughness.png": "68f194df9e637b9be901633f750ad7d9bcff537e2787da5e5abedf0fdcdd2fe7",
+    "carrier-metalness.png": "bc89e247ba224fb0935877ccdf3e015621c67a3727e3c50356da31d6f12b5368"
+  },
+  "checklistSha256": "504ff6013f0024a9728b94e17ff2a55b8ab9e88d7b58fe62096a30444286675d",
+  "note": "Approval covers only this exact FBX and its byte-matched embedded textures. Any edit or re-export requires a new independent review. Not a guarantee against moderation."
+}

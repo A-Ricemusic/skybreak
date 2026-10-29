@@ -4,9 +4,12 @@
 
 Checks object names, triangle count, size (studs x the checklist's
 ``fbxMetresPerStud``: 0.01 for current exports, 0.28 for legacy ones) and that the
-material still references four embedded image textures.
+material still references four embedded image textures. Where a checklist has ``sha256``
+hashes, every listed file must match; a checklist with an ``exportVersion`` must also
+list every file in its folder (``skyasset.write_checklist``).
 """
 
+import hashlib
 import json
 import math
 import sys
@@ -42,8 +45,15 @@ for checklist in sorted(UPLOAD.glob("*/checklist.json")):
     expected = Vector((sx, sz, sy)) * c.get("fbxMetresPerStud", 0.28)
     error = max(abs(a - b) / max(b, 1e-6) for a, b in zip(size, expected))
     want = sorted(o["name"] for o in c["objects"])
-    ok = tris == c["triangleCount"] and error < 0.01 and names == want and len(images) >= 4
-    print(f"FBX {'OK  ' if ok else 'FAIL'} {checklist.parent.name}: objects={names} tris={tris} size_m={[round(v, 2) for v in size]} images={len(images)}")
+    hashes = c.get("sha256", {})
+    bad = sorted(f for f, h in hashes.items()
+                 if not (checklist.parent / f).is_file() or hashlib.sha256((checklist.parent / f).read_bytes()).hexdigest() != h)
+    if "exportVersion" in c:
+        bad += sorted(f"{p.name} (unlisted)" for p in checklist.parent.iterdir()
+                      if p.is_file() and p.name != "checklist.json" and p.name not in hashes)
+    ok = tris == c["triangleCount"] and error < 0.01 and names == want and len(images) >= 4 and not bad
+    print(f"FBX {'OK  ' if ok else 'FAIL'} {checklist.parent.name}: objects={names} tris={tris} size_m={[round(v, 2) for v in size]} images={len(images)}"
+          + (f" hashes={len(hashes)} {c.get('exportVersion', 'unversioned')}" if hashes else "") + (f" BAD {bad}" if bad else ""))
     if not ok:
         failures.append(checklist.parent.name)
 print("FBX_VERIFY " + ("PASS" if not failures else "FAIL " + " ".join(failures)))

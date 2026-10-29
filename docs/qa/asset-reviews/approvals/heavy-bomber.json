@@ -1,0 +1,24 @@
+{
+  "asset": "heavy-bomber",
+  "folder": "assets/roblox-upload/heavy-bomber/",
+  "exportVersion": "heavy-bomber-2",
+  "approved": true,
+  "reviewer": "GPT-6.1 Sol (independent; not the creator)",
+  "reviewedAt": "2026-10-29T01:05:26Z",
+  "score": "10/10",
+  "commitReviewed": "9bd3ea8ddd757745894e068c7c1f95b02bab1e2f",
+  "pr": 107,
+  "record": "docs/qa/asset-reviews/2026-10-28-pr107-review-3.md",
+  "uploadSet": {
+    "heavy-bomber.fbx": "e4b242711e722d6a76ba8d87454a8f80902f10eb35764b5b8308955838cff5a3"
+  },
+  "uploadAssetType": "Model",
+  "embeddedTextures": {
+    "heavy-bomber-color.png": "97a4627891cebeb6ed76e0f821139c832bacebda88de43bf51a30f0a12f3dd02",
+    "heavy-bomber-normal.png": "52302633254558072f23ad854a4c86343253858d48aecb29cd224051a82ee3e0",
+    "heavy-bomber-roughness.png": "45df7d95cb0e9a1c5bb56b15875ad4e163ba045e42b041844c65ca214465e0af",
+    "heavy-bomber-metalness.png": "c563eeeb72d9b3ed9c5d5d7506a8c3405cb5e37443fa1c40f1bf51e5e87a428b"
+  },
+  "checklistSha256": "8477ca8477a55bf6697862509a71e63e64a239eaa07fd308129de7e9fb184f70",
+  "note": "Approval covers only this exact FBX and its byte-matched embedded textures. Any edit or re-export requires a new independent review. Not a guarantee against moderation."
+}
