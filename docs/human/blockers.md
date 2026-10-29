@@ -6,8 +6,8 @@ Last updated: 2026-10-28.
 
 | Date | Raised by | What is blocked | Impact | What is needed |
 |---|---|---|---|---|
-| 2026-10-28 | Independent reviewer | Uploading the heavy bomber and the carrier: review 1 rejected both (D-029). | Missions use a grey stand-in bomber and no carrier model until they pass. Mission 1 can still be built around the stand-ins. | Fixes in progress, then a new independent review at 10/10. |
-| 2026-10-28 | Large-world measurement | Real-phone performance and streaming for full-scale worlds are unverified; only Studio and its phone emulator were measured. | Mission 1's world may need tuning after it goes live. | Measure load time in Studio before the campaign switch; your Player playtest on a phone is the real check. |
+| 2026-10-28 | Independent reviewer | Uploading the heavy bomber and the carrier: review 1 rejected both (D-029). Revision 2 fixed the bomber's face-like front, moved the carrier's island to starboard and completed both records; review 2 stopped at a brief error before any visual check. | Missions use a grey stand-in bomber and no carrier model until they pass. Mission 1 can still be built around the stand-ins. | Review 3 (full visual and policy review) is running; each needs 10/10. |
+| 2026-10-28 | Large-world measurement | Real-phone performance and streaming for full-scale worlds are unverified. Studio measured mission 1's world at 4 to 5.5 s server build and 60 FPS in the phone emulator (#114), but the emulator runs on desktop hardware. | Mission 1's world may need tuning after it goes live. | Re-measure the tuned world in Studio before the campaign switch; your Player playtest on a phone is the real check. |
 | 2026-10-28 | Orchestrator | Enforced checks before merge: main has no branch protection. | A PR can merge before its `validate` check passes, and every merge goes live. The orchestrator gates merges by hand for now. | **You:** in GitHub, Settings → Branches, require the `validate` check on `main`. |
 
 ## Resolved
