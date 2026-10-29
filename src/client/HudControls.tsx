@@ -113,6 +113,7 @@ export function EvadeButton({ rectangle, telemetry, onEvade }: { rectangle: Rect
 
 // HUD green for the frame; contacts differ by glyph fill and brightness, threats in red.
 const RADAR_COLORS: { [kind in RadarContactKind]: Color3 } = {
+	friendly: Color3.fromRGB(85, 185, 255),
 	required: HUD.Green,
 	optional: HUD.Dim,
 	ground: HUD.Green,
@@ -122,7 +123,7 @@ const RADAR_COLORS: { [kind in RadarContactKind]: Color3 } = {
 	missile: HUD.Red,
 };
 const RADAR_TEXT: { [kind in RadarContactKind]: number } = {
-	required: 11, optional: 11, ground: 10, groundOptional: 9, objective: 13, protected: 10, missile: 14,
+	friendly: 12, required: 11, optional: 11, ground: 10, groundOptional: 9, objective: 13, protected: 10, missile: 14,
 };
 /** Seconds between radar refreshes: smooth enough for a heading-up scope, cheap on phones. */
 const RADAR_INTERVAL = 1 / 20;

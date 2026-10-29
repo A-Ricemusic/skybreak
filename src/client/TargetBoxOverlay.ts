@@ -10,7 +10,7 @@ import { HUD, HUD_FONT_BOLD } from "./Theme";
 // their TGT tags stay inside the safe area and off the touch controls.
 const COLOR = { required: HUD.Green, optional: HUD.Dim, protected: HUD.Dim } as const;
 const OUTLINE = Color3.fromRGB(6, 13, 22);
-const WATCHED = new Set(["SkybreakEnemy", "SkybreakOwner", "Damageable", "RequiredTarget", "TargetKind"]);
+const WATCHED = new Set(["SkybreakFriendly", "SkybreakEnemy", "SkybreakOwner", "Damageable", "RequiredTarget", "TargetKind"]);
 
 interface Contact {
 	model: Model;
@@ -179,6 +179,7 @@ export class TargetBoxOverlay {
 	}
 	private refresh(contact: Contact): void {
 		const model = contact.model, flags = contact.flags;
+		flags.friendly = model.GetAttribute("SkybreakFriendly");
 		flags.enemy = model.GetAttribute("SkybreakEnemy");
 		flags.owner = model.GetAttribute("SkybreakOwner");
 		flags.damageable = model.GetAttribute("Damageable");

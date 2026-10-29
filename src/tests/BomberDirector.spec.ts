@@ -16,6 +16,7 @@ function harness(blueprint: MissionBlueprint) {
 	const calls: { role: AirRole; options?: SpawnOptions }[] = [];
 	const radio: string[] = [], budget = { fighters: undefined as number | undefined };
 	const director = createPhaseDirector({
+		spawnAllies: () => undefined,
 		spawnAir: (_, count, role, options) => { for (let i = 0; i < count; i++) { calls.push({ role, options }); s.spawnSerial++; } },
 		activateGround: () => undefined, withdrawAirborne: () => undefined,
 		liveAircraft: () => budget.fighters ?? calls.filter((c) => c.role !== "bomber").size(),

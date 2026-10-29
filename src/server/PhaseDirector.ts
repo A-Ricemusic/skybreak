@@ -13,6 +13,7 @@ import type { CombatSession, AirRole, Enemy } from "./CombatSession";
 import { fixedRaiders } from "./PhaseDirectorRules";
 
 export interface SpawnOptions {
+	friendly?: boolean;
 	pose?: BomberSlotPose;
 	bomberSlot?: number;
 	escortSlot?: number;
@@ -25,6 +26,7 @@ export interface SpawnOptions {
 
 /** Combat owns simulation and lifecycle; the director only requests their effects. */
 export interface PhaseCombat {
+	spawnAllies: (session: CombatSession) => void;
 	spawnAir: (session: CombatSession, count: number, role: AirRole, options?: SpawnOptions) => void;
 	activateGround: (session: CombatSession, start?: number, count?: number) => void;
 	withdrawAirborne: (session: CombatSession) => void;
@@ -93,6 +95,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		const phases=BlueprintRunner.Phases(state);
 		const phase: MissionPhaseBlueprint | undefined=phases[state.phaseIndex];
 		if (!phase) return;
+		combat.spawnAllies(session);
 		if (phase.execution?.activatePracticeTarget) activateGround(session);
 		if (phase.kind === "required_ground") activateGround(session,MissionCatalog.GroundStart(phases,state.phaseIndex),phase.count ?? 0);
 		else if (phase.bombers) {
