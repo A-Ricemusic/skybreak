@@ -151,6 +151,19 @@ export const FlightPrediction = {
 		return predictor.count > 0 ? predictor.times[predictor.head] : now;
 	},
 
+	/** Reliable launch handoff: preserve the displayed pose and blend every remaining authoritative gap. */
+	Handoff(predictor: Predictor, server: FlightState, sequence: number): void {
+		predictor.sequence = math.max(predictor.sequence, sequence);
+		const hemisphere = server.qw * predictor.state.qw + server.qx * predictor.state.qx + server.qy * predictor.state.qy + server.qz * predictor.state.qz < 0 ? -1 : 1;
+		let changed = false;
+		for (const key of KEYS) {
+			const target = QUATERNION.includes(key as typeof QUATERNION[number]) ? server[key] * hemisphere : server[key];
+			predictor.pending[key] = target - predictor.state[key];
+			changed = changed || predictor.pending[key] !== 0;
+		}
+		predictor.last = changed ? "blend" : "ignore";
+	},
+
 	/** Stores the current state (minus corrections so far) at time `now`. */
 	Record(predictor: Predictor, now: number): void {
 		predictor.head = (predictor.head + 1) % HISTORY;

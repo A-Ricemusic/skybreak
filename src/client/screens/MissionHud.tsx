@@ -3,7 +3,7 @@ import { TweenService } from "@rbxts/services";
 import { FlightMath } from "../../shared/FlightMath";
 import { flightWarning, LOW_ALTITUDE } from "../../shared/FlightWarnings";
 import { evadeGauge } from "../../shared/EvadeGauge";
-import { GameConfig } from "../../shared/GameConfig";
+import { CountdownDisplay } from "../../shared/CountdownDisplay";
 import { SpecialKind, SpecialWeapons } from "../../shared/SpecialWeapons";
 import { WeaponRules } from "../../shared/WeaponRules";
 import { clockLines, instrumentValue, statusLine } from "../../shared/HudInstruments";
@@ -264,7 +264,7 @@ function MissionHud({
 		evadeCharges: evade.charges,
 	});
 	const fireButton = WeaponRules.FireButton(telemetry.missiles, telemetry.missileCooldown, telemetry.target !== undefined && telemetry.targetDamageable !== false, telemetry.lockProgress);
-	const timeRemaining = telemetry.timeRemaining ?? GameConfig.Campaign.MissionTimeLimit;
+	const timeRemaining = CountdownDisplay.Value(telemetry.missionId, telemetry.timeRemaining);
 	const [timeLine, progressLine] = clockLines(timeRemaining, telemetry.objectiveProgress, telemetry.objectiveTotal, telemetry.kills, telemetry.total);
 	const tutorial = getTutorialInstruction(telemetry.tutorialStep, inputMode);
 	// Radio rides the subtitle row; roots without one show it in the objective line (ahead of kill callouts), as before.

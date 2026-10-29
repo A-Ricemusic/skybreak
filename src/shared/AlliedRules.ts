@@ -21,9 +21,13 @@ export const AlliedRules = {
 		return count;
 	},
 	Count(policy: MissionAllies | undefined): number { return policy?.count ?? 0; },
-	CanEngage(policy: MissionAllies, candidate: { friendly?: boolean; required: boolean; role?: string; enabled: boolean; health: number }): boolean {
-		return candidate.friendly !== true && candidate.enabled && candidate.health > 0
+	CanEngage(policy: MissionAllies, candidate: { friendly?: boolean; required: boolean; role?: string; enabled: boolean; health: number }, weaponsEnabled = true): boolean {
+		return weaponsEnabled && candidate.friendly !== true && candidate.enabled && candidate.health > 0
 			&& (candidate.required ? policy.allowRequiredTargets === true : candidate.role === "escort" || candidate.role === "raider");
+	},
+	/** Formation catch-up remains active during launch even while weapon engagement is suppressed. */
+	FormationSpeed(playerSpeed: number, stationDistance: number): number {
+		return math.clamp(playerSpeed + (stationDistance - 80) * 0.4, 120, 650);
 	},
 	Credit(policy: MissionAllies): boolean { return policy.creditPlayerKills === true; },
 	MayDestroy(policy: MissionAllies): boolean { return policy.mayKill !== false; },
