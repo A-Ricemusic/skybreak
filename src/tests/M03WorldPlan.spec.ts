@@ -187,7 +187,7 @@ describe("M03 snowy mountain composition", () => {
 		expect(strips[0].z + strips[0].sz / 2).toBe(strips[1].z - strips[1].sz / 2);
 		expect(strips[1].z + strips[1].sz / 2).toBe(r.z + r.length / 2);
 		for (const q of strips) {
-			// D-063: an eight-stud slab from the lowland (80) to 88, like mission 2's raised pavement (D-056).
+			// D-064: an eight-stud slab from the lowland (80) to 88, like mission 2's raised pavement (D-056).
 			expect(q.sx).toBe(128); expect(q.y + q.sy / 2).toBe(M03_RUNWAY_TOP); expect(q.sy).toBe(8);
 			for (let z = q.z - q.sz / 2; z <= q.z + q.sz / 2; z += 32)
 				for (let x = q.x - q.sx / 2; x <= q.x + q.sx / 2; x += 16)

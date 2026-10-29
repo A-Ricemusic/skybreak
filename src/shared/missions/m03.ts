@@ -9,7 +9,7 @@ import { M03_AIRSPACE } from "../M03Limits";
 export const M03_TARGET_TYPES: { readonly [K in M03Target["type"]]: GroundTargetType } = {
 	radar: "radar_dome", aaGun: "aa_gun", helicopter: "parked_helicopter",
 };
-// D-060: a site's trigger group is its radar domes alone, so "site 1 destroyed" means its five domes;
+// D-061: a site's trigger group is its radar domes alone, so "site 1 destroyed" means its five domes;
 // the AA guns and helicopter keep the site name with a "_defence" suffix.
 const targets: TypedGroundTarget[] = m03TargetLayout().map((t) => ({
 	id: t.id, type: M03_TARGET_TYPES[t.type], position: { x: t.x, y: t.y, z: t.z }, yaw: math.deg(t.yaw),
@@ -27,7 +27,7 @@ export const M03_RETURN_LINE: ReturnLine = {
 export const M03_GEAR_CLEARANCE = 6;
 const runway = M03.landing;
 /**
- * D-062: automatic northbound landing on the M03 runway. Touchdown 520 studs inside the south threshold; the
+ * D-063: automatic northbound landing on the M03 runway. Touchdown 520 studs inside the south threshold; the
  * 3° approach starts 2,100 studs out (inside the soft airspace) at 87.5 studs/s, then a 14 s rollout whose last
  * 4 s hold MISSION ACCOMPLISHED. Landing-only 3:00 clock as in the reference.
  */
@@ -43,7 +43,7 @@ export const M03_LANDING: LandingPlan = {
 		{ at: 34.5, text: "RIM TOWER: Welcome home. Sera wants that film before you unstrap." },
 	],
 };
-// D-061: the reference roster. Two fighter-bombers head-on and three escorts from the start; site 1's five
+// D-062: the reference roster. Two fighter-bombers head-on and three escorts from the start; site 1's five
 // domes bring two fighters and the ace from between the sites. Every fighter is 60 points, the ace 240.
 const site1 = M03.site1, site2 = M03.site2;
 const waves: FighterArrival[] = [
