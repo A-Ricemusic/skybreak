@@ -1,3 +1,5 @@
+// ONE-OFF PROOF for PR #112 only. Do not wire into validate:offline or package.json:
+// the fixture is meant to break on the next legitimate edit to CombatService or PhaseDirector.
 // Token-level extraction parity, not an engine simulation. The baseline was captured
 // from main b17fb9ee10224579602c74679cbcdcc85488a74f before extracting PhaseDirector.
 import ts from "typescript";

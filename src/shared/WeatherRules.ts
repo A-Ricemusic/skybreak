@@ -1,3 +1,4 @@
+import { M01_ENVIRONMENT, M01_WORLD_KEY } from "./M01WorldPlan";
 import { ENVIRONMENTS, type Rgb } from "./EnvironmentPresets";
 import type { EnvironmentPreset } from "./MissionCatalog";
 
@@ -21,9 +22,9 @@ const PHONE_DRIFT_CAP = 14;
 const PHONE_CLOUD_DENSITY = 0.18;
 const PHONE_CLOUD_COVER = 0.25;
 
-export function weatherPlan(preset: EnvironmentPreset | undefined, phone: boolean, reducedMotion: boolean): WeatherPlan {
+export function weatherPlan(preset: EnvironmentPreset | typeof M01_WORLD_KEY | undefined, phone: boolean, reducedMotion: boolean): WeatherPlan {
 	if (preset === undefined) return {};
-	const e = ENVIRONMENTS[preset];
+	const e = preset === M01_WORLD_KEY ? M01_ENVIRONMENT : ENVIRONMENTS[preset];
 	const share = phone ? PHONE_SHARE : 1;
 	if (e.weather === "storm") {
 		const heavy = preset === "ocean_storm";
@@ -52,9 +53,9 @@ export function weatherPlan(preset: EnvironmentPreset | undefined, phone: boolea
  * Phone cloud trim. Density (the volumetric fill) is always clamped; cover is cheap, so storm,
  * fog and overcast decks keep theirs on phones (a storm with a clear sky does not read as a storm).
  */
-export function phoneClouds(preset: EnvironmentPreset | undefined, cover: number, density: number): { cover: number; density: number } {
-	const e = preset !== undefined ? ENVIRONMENTS[preset] : undefined;
-	const keepDeck = e !== undefined && (e.weather === "storm" || e.weather === "fog" || e.sky === "overcast");
+export function phoneClouds(preset: EnvironmentPreset | typeof M01_WORLD_KEY | undefined, cover: number, density: number): { cover: number; density: number } {
+	const e = preset === M01_WORLD_KEY ? M01_ENVIRONMENT : preset !== undefined ? ENVIRONMENTS[preset] : undefined;
+	const keepDeck = e !== undefined && (preset === M01_WORLD_KEY || e.weather === "storm" || e.weather === "fog" || e.sky === "overcast");
 	return { cover: keepDeck && e !== undefined ? e.clouds.cover : math.min(cover, PHONE_CLOUD_COVER), density: math.min(density, PHONE_CLOUD_DENSITY) };
 }
 
