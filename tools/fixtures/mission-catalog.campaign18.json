@@ -96,7 +96,7 @@
           "escape": {
             "x": -1280,
             "y": 727,
-            "z": -8000
+            "z": -5600
           },
           "escapeCall": "The bombers crossed the north coast. Varda Rim, clear the runway.",
           "escorts": {
@@ -106,12 +106,12 @@
             "initial": 2,
             "role": "escort"
           },
-          "speed": 79.43478417093667,
+          "speed": 61.88463497893345,
           "waypoints": [
             {
               "x": 0,
               "y": 727,
-              "z": 10000
+              "z": 8200
             },
             {
               "x": 512,
@@ -136,7 +136,7 @@
       }
     ],
     "primary": "Destroy all six bombers before they leave the island",
-    "region": "canyon_airfield",
+    "region": "coastal_city",
     "scoring": {
       "basis": "points",
       "points": {

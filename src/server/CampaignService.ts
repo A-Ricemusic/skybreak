@@ -1,3 +1,4 @@
+import { encodeCampaignSlot } from "../shared/CampaignWire";
 import { CampaignRequestBudget } from "./CampaignRequestBudget";
 import { DataStoreService, Players, RunService } from "@rbxts/services";
 import { GameConfig } from "../shared/GameConfig";
@@ -110,7 +111,7 @@ function response(state: PlayerState): CampaignResponse {
 	return {
 		ok: true,
 		deletions: state.coordinator.getDeletions(),
-		slots: state.coordinator.getSlots(),
+		slots: state.coordinator.getSlots().map(encodeCampaignSlot),
 		persistence: state.coordinator.getPersistence(),
 	};
 }

@@ -8,7 +8,7 @@ import { m01CarrierFlyoffStart } from "../M01CarrierPlan";
 const route = M01.route.map(([x, z]) => ({ x, y: 727, z }));
 const distance = BomberRules.Create(route, 1).length;
 export const mission: MissionBlueprint = {
- id: 1, act: 1, codename: "Rim Static", title: "OUR OWN PAINT", region: "canyon_airfield", environment: "farm_overcast",
+ id: 1, act: 1, codename: "Rim Static", title: "OUR OWN PAINT", region: "coastal_city", environment: "farm_overcast",
  available: true, worldKey: M01_WORLD_KEY, airspace: M01_AIRSPACE, start: m01CarrierFlyoffStart(), countdownSeconds: 600,
  scoring: { basis: "points", points: { bomber: 100, escort: 60, ace: 240 }, rank: { S: 800, A: 700, B: 600, C: 500 } },
  allies: { count: 4, model: "Kestrel", callsignPrefix: "LANTERN", creditPlayerKills: false, allowRequiredTargets: false,

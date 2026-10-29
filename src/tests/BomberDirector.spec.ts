@@ -102,6 +102,14 @@ describe("Bomber director integration", () => {
 		for (const bp of MissionCatalog.All()) for (const phase of MissionCatalog.ExpandedPhases(bp)) {
 			if (phase.kind !== "required_air" && phase.kind !== "chase" && phase.kind !== "ace") continue;
 			const h = harness({ ...bp, phases: [phase] }); h.director.Apply(h.s);
+			if (phase.bombers) {
+                expect(h.calls.filter((c) => c.role === "bomber").size()).toBe(phase.bombers.count);
+                expect(h.calls.filter((c) => c.role === "escort" && c.options?.optional).size()).toBe(phase.bombers.escorts.initial);
+                expect(h.calls.filter((c) => c.role === "bandit").size()).toBe(0);
+                expect(h.s.bomberEncounter).toBeDefined();
+                h.folder.Destroy();
+                continue;
+            }
 			const role = phase.kind === "ace" ? "ace" : phase.kind === "chase" ? "courier" : "bandit";
 			const count = phase.kind === "ace" ? 1 : phase.kind === "chase" ? phase.count ?? 1
 				: phase.execution?.launchDelay !== undefined ? 0 : phase.execution?.directSpawn ? phase.count ?? 0 : math.ceil((phase.count ?? 0) / (phase.groups ?? 1));

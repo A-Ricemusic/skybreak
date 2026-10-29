@@ -12,11 +12,11 @@ Fresh namespace: **SkybreakCampaign18_v1**, schema 3. No old DataStore is read, 
 
 ## Mission 1 exact authored settings
 
-Title **OUR OWN PAINT**, codename **Rim Static**. World key `m01_sea_island`, custom sea-overcast afternoon environment from M01World, `M01_AIRSPACE` soft/hard/spawn/radar **14000 / 15360 / 13500 / 18000** studs. Catalog display preset `farm_overcast`; runtime applies the custom M01 environment.
+Title **OUR OWN PAINT**, codename **Rim Static**. World key `m01_sea_island`, custom sea-overcast afternoon environment from M01World, `M01_AIRSPACE` soft/hard/spawn/radar **14000 / 15360 / 13500 / 18000** studs. Briefing region **coastal_city** (COASTAL CITY); world selection remains `m01_sea_island`. Catalog display preset `farm_overcast`; runtime applies the custom M01 environment.
 
 `m01CarrierFlyoffStart()`: kind `carrier_flyoff`, position **(24.5155, 90, 10828)**, heading **0°**, speed **180 studs/s**. Existing LaunchStage handles handoff. Countdown **600 seconds**, beginning on player control.
 
-One `required_air` phase, **6 required bombers**, no ground targets. Waypoints **(0,727,10000) → (512,727,4200) → (1280,727,256) → (-1280,727,-3200)**, escape **(-1280,727,-8000)**. South to north, coastal city before Varda Rim's headland runway. The compiled Hermite route's arc length is **19064.3482010248 studs**; speed **79.43478417093667 studs/s** gives **240 seconds**. Speed is computed from `BomberRules.Create(route, 1).length / 240`, rather than the shorter straight-line path. Pure tests sample all six slots every second for corridor containment and terrain clearance.
+One `required_air` phase, **6 required bombers**, no ground targets. Waypoints **(0,727,8200) → (512,727,4200) → (1280,727,256) → (-1280,727,-3200)**, escape **(-1280,727,-5600)**. South to north, coastal city before Varda Rim's headland runway. The compiled Hermite route's arc length is **14852.312394944027 studs**; speed **61.88463497893345 studs/s** gives **240 seconds**. Speed is computed from `BomberRules.Create(route, 1).length / 240`, rather than the shorter straight-line path. Pure tests sample all six slots every second for corridor containment and terrain clearance.
 
 **4 optional escorts total, including ace**: 2 initially; remaining ordinary escort and ace scheduled at **150 s**, admitted through the existing fighter queue/budget. Ace **ASH WARRANT**, original name. Escape call: “The bombers crossed the north coast. Varda Rim, clear the runway.”
 
@@ -46,7 +46,30 @@ Legacy runner, wave, airspace, scoring-default, world geometry and terrain tests
 
 RelayWorld's engine tests now build only practice and M01, check disposal, bounds, targets, actual bomber corridor raycasts and unreleased-world rejection. Old executable-world tests for retired compositions are replaced; their pure geometry audits remain. Synthetic playtest regression uses M1's target totals, mission-owned deadline and availability filter. It preserves duplicate-event, retry, shutdown, invalid-counter and wrong-result checks. Voice manifest and compiled consumer tests preserve original recordings and explicitly expect zero audio for the rewritten opening answer.
 
-Removed from production catalog: all old 27 compositions, old m19–m27 files/imports, and the dead GameConfig per-mission objective constants. Dormant runtime cleanup deferred: Iron Coast builder, legacy layouts/districts/planner/executor, LegacyWorlds assets, later story/documents/voice cues and legacy serialization fields. They have shared dependencies or valuable compatibility coverage; releasing future missions must not accidentally reactivate their old content. No FlightController, MissionHud, UIFormat, FlightPrediction, LaunchStage or AlliedRules implementation edits; CombatService changes only release rejection and practice target hiding (formerly hardcoded M1).
+Removed from production catalog: all old 27 compositions, old m19–m27 files/imports, and the dead GameConfig per-mission objective constants. Dormant runtime cleanup deferred: Iron Coast builder, legacy layouts/districts/planner/executor, LegacyWorlds assets, later story/documents/voice cues and legacy serialization fields. They have shared dependencies or valuable compatibility coverage; releasing future missions must not accidentally reactivate their old content. No FlightController, MissionHud, FlightPrediction, LaunchStage or AlliedRules implementation edits; UIFormat now decodes remote mission-record keys; CombatService changes only release rejection and practice target hiding (formerly hardcoded M1).
+
+## PR #130 review fixes (2026-10-29)
+
+Merged current `origin/main` (#128 fly-off follow-ups and #129 docs) without rewriting history. Kept CountdownDisplay and its validations while retaining the 18 numbered modules, practice and legacy fixture registrations. CountdownFlyoff's legacy telemetry/HUD check uses practice ID 0 for its unchanged 900-second clock, with CountdownDisplay still applied.
+
+Remote campaign responses now encode mission records with string keys in CampaignWire; UIFormat decodes them to numeric client lookup keys. DataStore encoding is unchanged. The pure CampaignWire spec runs offline and in the Studio suite: records 0 and 1 survive encoding/decoding with ranks intact, every outgoing key is a string, and old contiguous 1..k arrays still decode.
+
+Studio-only specs updated:
+- `src/tests/Campaign.spec.ts`: delayed startup save now submits missionId 1, six kills, zero ground kills and one completed phase. Recovery, failed-save/recovery, replay, shutdown, deletion and fresh-generation successful ledger fixtures now use six kills. Objective failure uses five kills with phase proof; timeout uses six kills/phase proof and M1's authored 600-second limit.
+- `src/tests/BomberDirector.spec.ts`: current-catalog phase coverage now asserts six route bombers, two optional opening escorts and an active encounter for M1 rather than legacy bandit scheduling. Other phases keep their generic assertions.
+
+Searched Studio specs for three-kill M1, M2 warehouses/legacy phases and 27-mission assumptions; no further active Studio-only assumptions found. Historical contracts explicitly importing LegacyCatalog remain historical.
+
+The new route begins 2,628 studs north of the fly-off in z (center-to-player distance about 2,704 studs), before the city and airbase; final escape is 200 studs beyond the island's north end at z=-5400. Arc length **14852.312394944027**, speed **61.88463497893345**, duration **240 s**. RelayCampaign checks the start gap, exact route, coast exit and region, and samples all six bomber slots each second for terrain clearance and corridor containment. These are offline numeric checks, not observed Player pacing.
+
+Known follow-ups deferred until mission 2: sequential-unlock tests, forged-phase-proof tests, finale chapter remapping, WorldPlan ids, TimeVersion and the replay reprise. None is addressed in this fix pass.
+
+Human-doc delta payload (orchestrator applies; this agent does not edit `docs/human/`):
+- README: PR #130 remains unmerged; review findings fixed, main integrated, offline gate rerun; Studio and Player quality still unobserved.
+- shipped: no new shipped/live entry until merge.
+- next: orchestrator runs Studio suite and whole-sortie checks, accepts/merges, then owner playtests; carry the seven deferred M2 follow-ups above.
+- blockers: remote mixed-key hazard fixed; startup-save and bomber-director stale fixtures fixed. Studio lease retained by orchestrator; this agent did not run Studio or Roblox Jest.
+- decisions: retain D-024 coast exit at (-1280,727,-5600) and D-035 route/240 rule; record the new five points, computed length/speed and coastal_city display region. No new deployment or Player verification claim.
 
 ## Studio-only handoff
 
@@ -56,7 +79,7 @@ Run full `bun run test:roblox`, including revised Campaign and RelayWorld integr
 
 **shipped.md:** Before merge: no shipped/live claim. After merge: atomic 18-mission switch, optional practice and mission 1 available; M2–18 visible and locked; new saves; M01 world/carrier launch/bomber intercept, raw scoring and original opening text. Merged/live by pipeline convention; no Player verification by this agent.
 
-**next.md:** Run full Studio suite and whole-mission measurement before merge; reconcile #128's fly-off follow-ups, especially the small CombatService intersection. Then merge only after orchestrator acceptance, owner Player playtest, calibrate provisional pace/ranks if needed. Build mission 2 and adapt its chapter before unlocking it; later dormant-content cleanup follows.
+**next.md:** Run full Studio suite and whole-mission measurement before merge; verify #128's fly-off follow-ups, now merged from main along with #129 documentation. Then merge only after orchestrator acceptance, owner Player playtest, calibrate provisional pace/ranks if needed. Build mission 2 and adapt its chapter before unlocking it; later dormant-content cleanup follows.
 
 **blockers.md:** No known implementation blocker after the offline gate. Studio execution/whole-sortie measurements and owner Player quality acceptance remain unperformed. The rewritten trainee line and new M1 radio have no new recordings; subtitle-only fallback is intentional, no upload is needed for this switch. Procedural carrier fallback and existing library appearance need engine inspection. No new Blender exports or uploads in this PR.
 
@@ -91,7 +114,7 @@ Run full `bun run test:roblox`, including revised Campaign and RelayWorld integr
 `bun install --frozen-lockfile`: passed. `bun run build`: passed. Final `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau" bun run validate:offline`: exited 0. `git diff --check` and staged diff check: passed. The gate built the production place and checked packaged voice code; no place was uploaded.
 
 ```text
-OFFLINE_LUAU_RESULT passed=632 failed=0
+OFFLINE_LUAU_RESULT passed=636 failed=0
 MISSION_CATALOG_SNAPSHOT passed=19 failed=0 (practice and 18 numbered entries; execution metadata excluded)
 PLAYTEST_RELAY_REGRESSION passed=3 failed=0
 AUDIO_LIFECYCLE_SIMULATION passed=11 failed=0

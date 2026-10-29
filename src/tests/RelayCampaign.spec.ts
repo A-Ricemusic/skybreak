@@ -1,3 +1,4 @@
+import { m01CarrierFlyoffStart } from "../shared/M01CarrierPlan";
 import { m01Height, M01 } from "../shared/M01WorldPlan";
 import { polyDist } from "../shared/WorldPlan";
 import { describe, expect, it } from "@rbxts/jest-globals";
@@ -67,6 +68,11 @@ describe("Released 18-mission campaign",()=>{
   const b=bp.phases[0].bombers!,route=compileBomberEncounter(b);
   expect(BomberRules.Sample(route,239).escaped).toBe(false);expect(BomberRules.Sample(route,240.001).escaped).toBe(true);
   expect(route.duration).toBeCloseTo(240,8);
+  const start=m01CarrierFlyoffStart();
+  expect(b.waypoints[0].z).toBeLessThan(start.z-2000);
+  expect(b.waypoints).toEqual([{x:0,y:727,z:8200},{x:512,y:727,z:4200},{x:1280,y:727,z:256},{x:-1280,y:727,z:-3200}]);
+  expect(b.escape).toEqual({x:-1280,y:727,z:-5600});
+  expect(bp.region).toBe("coastal_city");
   for(let t=0;t<=240;t++)for(const pose of BomberRules.Sample(route,t).slots){
    expect(polyDist(pose.position.x,pose.position.z,M01.route)<=M01.corridorHalf).toBe(true);
    expect(pose.position.y>m01Height(pose.position.x,pose.position.z)+72).toBe(true);
