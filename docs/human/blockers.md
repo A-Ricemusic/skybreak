@@ -37,3 +37,11 @@ Assumptions: M04’s translated start and NE/east/SE route implement the referen
 Cold Studio builds remain unmeasured. Apply M02’s approximately 1.5× estimate correction when planning the lease (roughly 14 s: M04 9.259 s ×1.5 ≈13.89 s; M05 9.281 s ×1.5 ≈13.92 s); no measured runtime is claimed.
 
 PR #145 review pass: rebased onto #142/#143, retaining main’s verified orientation and upload tests. #144 merged as `7711b70`; its M05LightAnchor contract is consumed directly by the light adapter. No Studio launch, Roblox Jest run, Player test, Blender edit or upload in this pass. Remaining M05 presentation gaps are listed precisely in Next and block mission activation.
+
+## Mission 4 integration (unmerged)
+
+- Dependency: #147 (mission 3) remains open. Mission 4 is released in data but sequential progression stops at unavailable mission 3 on current main; tests temporarily make mission 3 available and complete 1–3 through completeMission in order. No production bypass is added.
+- Assumptions used: A1 escape/death/timeout failure; A2 provisional rank cuts480/650/800/1300; A3 five ordinary guards + ace initially and four ordinary guards after the first transport; A4 1,200-stud visual locks and partial radar with one jammer.
+- The authored world route begins ahead of the player at the transport pose, then uses the NE/east/SE hook at140 studs/s; the escape deadline is shorter than the 12-minute HUD clock. Route and speed remain provisional for beta pacing. Existing approved uploaded assets are consumed; no asset is exported or uploaded. Studio scripted campaign verification passed (1540/S, client full/partial/clear radar, next practice launch and cleanup). No Player test.
+
+M04 runtime blockers resolved: world-key weather lookup and post-result native-terrain-clear watchdog. Bounded exact-shell removal and empty-terrain tracking passed full Jest and the real campaign/cleanup path. Open performance/presentation limits: latest actual world build45.08s (target20s), substantial post-result terrain-clear wait, strong haze/coarse terraces; owner beta still required. Evidence: `docs/qa/m04/README.md`.

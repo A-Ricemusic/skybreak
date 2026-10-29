@@ -15,6 +15,7 @@ import type { CombatSession, AirRole, Enemy } from "./CombatSession";
 import { fixedRaiders } from "./PhaseDirectorRules";
 
 export interface SpawnOptions {
+	targetId?: string;
 	arrival?: FighterArrival | StandaloneAce;
 	livery?: AceLivery;
 	friendly?: boolean;
@@ -57,7 +58,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		for (const batch of WavePlan.Admit(session.airQueue, room)) {
 			if (batch.arrival) {
 				const a=batch.arrival;
-				spawnAir(session,batch.count,"aircraft" in a && a.aircraft ? "bomber" : batch.role,{ arrival:a, optional:true, name: "name" in a ? a.name : undefined, livery: "livery" in a ? a.livery : undefined, aceHealth: "health" in a ? a.health : undefined });
+				spawnAir(session,batch.count,"aircraft" in a && a.aircraft ? "bomber" : batch.role,{ arrival:a, targetId: session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.targetIds !== undefined && ("name" in a || a.count === 1) ? a.id : undefined, optional:true, name: "name" in a ? a.name : undefined, livery: "livery" in a ? a.livery : undefined, aceHealth: "health" in a ? a.health : undefined });
 			} else if (session.bomberEncounter && (batch.role === "escort" || batch.role === "ace")) {
 				const encounter = session.bomberEncounter;
 				const leading = BomberRules.Sample(encounter.route, session.elapsed - encounter.startedAt).slots[0];
@@ -119,7 +120,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 			const route = compileBomberEncounter(b);
 			session.bomberEncounter = { route, startedAt: session.elapsed, laterSpawned: false, escortsSpawned: 0 };
 			const pose = BomberRules.Sample(route, 0);
-			for (let i = 0; i < b.count; i++) spawnAir(session, 1, BomberRules.Role.role, { pose: pose.slots[i], bomberSlot: i });
+			for (let i = 0; i < b.count; i++) spawnAir(session, 1, BomberRules.Role.role, { pose: pose.slots[i], bomberSlot: i, targetId: b.targetIds?.[i] });
 			requestAir(session, b.escorts.initial, "escort");
 		}
 		else if (phase.kind === "required_air" && phase.execution?.launchDelay === undefined) {

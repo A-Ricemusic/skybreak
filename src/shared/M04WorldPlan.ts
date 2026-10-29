@@ -1,5 +1,6 @@
 import type { EnvironmentSpec } from "./EnvironmentPresets";
-import { polyDist, type PartSpec, type PropSpec } from "./WorldPlan";
+import type { PartSpec, PropSpec } from "./WorldPlan";
+import { polyDist } from "./Polyline";
 import { sealedSurface, surfaceGround, surfaceSide, type WorldSurface } from "./SealedWorldSurface";
 import { worldCounts } from "./WorldCompositionCounts";
 export const M04_WORLD_KEY = "m04_inland_hills";
@@ -43,7 +44,7 @@ export const M04_SURFACE: WorldSurface = {
 };
 export const m04Ground = (x: number, z: number) => surfaceGround(M04_SURFACE, x, z);
 export interface M04Target { id: string; type: "transport" | "jammer" | "escort" | "ace"; group: string; x: number; y: number; z: number; yaw: number }
-/** Initial air contact poses only: six escorts initially, four later reinforcements.
+/** Initial air contact poses only: five escorts and the ace initially, four later reinforcements.
  * Scene poses do not implement the mission's movement or spawn timing.
  */
 export function m04TargetLayout(): M04Target[] {
@@ -51,7 +52,7 @@ export function m04TargetLayout(): M04Target[] {
  const add = (targetType: M04Target["type"], i: number, x: number, y: number, z: number, group: string) => out.push({ id: targetType === "ace" ? "m04_ace" : `m04_${targetType}_${i + 1}`, type: targetType, group, x, y, z, yaw: -math.pi / 4 });
  for (let i = 0; i < 3; i++) add("transport", i, -4550 + i * 240, 1202, 5100 + i * 160, "transports");
  for (let i = 0; i < 2; i++) add("jammer", i, -5100 + i * 1500, 1524, 4800, "jammers");
- for (let i = 0; i < 10; i++) add(i === 9 ? "ace" : "escort", i, -5500 + (i % 5) * 480, 1000 + (i % 3) * 160, 3800 + math.floor(i / 5) * 900, i < 6 ? "initial_escorts" : "reinforcements");
+ for (let i = 0; i < 10; i++) add(i === 9 ? "ace" : "escort", i, -5500 + (i % 5) * 480, 1000 + (i % 3) * 160, 3800 + math.floor(i / 5) * 900, i < 5 || i === 9 ? "initial_escorts" : "reinforcements");
  return out;
 }
 export function buildM04Plan(seed = 404, checkpoint: () => void = () => {}) {

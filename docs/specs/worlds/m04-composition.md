@@ -1,8 +1,8 @@
-# M04 dormant world composition
+# M04 world composition
 
-Built against [world reference](m04.md) and [mission reference](../missions/m04.md). Pure plan: `src/shared/M04WorldPlan.ts`; server adapter: `src/server/M04World.ts`. New key `m04_inland_hills` is registered but no mission selects it. Not playable, merged or visually verified by this PR.
+Built against [world reference](m04.md) and [mission reference](../missions/m04.md). Pure plan: `src/shared/M04WorldPlan.ts`; server adapter: `src/server/M04World.ts`. Key `m04_inland_hills` is selected by mission 4 on the unmerged integration branch. The world originated as dormant scenery; runtime evidence and limitations are in `docs/qa/m04/README.md`.
 
-Forest hills across a 32,768-stud square, north = −Z. No coast, settlement or base. A winding mid-map river valley, clearings and pale dirt tracks are scenery; sparse Pine silhouettes sit on the exact sampled terrain. Relief is assumed, with a 24-stud channel floor and hill tops below 600 studs. Start is shifted to (−7000,1202,10000) so the recommended NE/east/SE hook fits inside hard airspace. The route is about 44,237 studs, for later engine-owned flight near 140 studs/s. Initial transports are about 5,500 studs NNE; jammers are higher. All ten escort poses are exported: nine ordinary escorts and one explicit ace (`m04_ace`, the last reinforcement); six initial and four reinforcement reservations; scenery does not implement their spawn schedule.
+Forest hills across a 32,768-stud square, north = −Z. No coast, settlement or base. A winding mid-map river valley, clearings and pale dirt tracks are scenery; sparse Pine silhouettes sit on the exact sampled terrain. Relief is assumed, with a 24-stud channel floor and hill tops below 600 studs. Start is shifted to (−7000,1202,10000) so the recommended NE/east/SE hook fits inside hard airspace. The route is about 44,237 studs, for later engine-owned flight near 140 studs/s. Initial transports are about 5,500 studs NNE; jammers are higher. All ten escort poses are exported: nine ordinary escorts and one explicit ace (`m04_ace`, initial per mission spec A3); five ordinary escorts plus the ace initially and four ordinary reinforcement reservations; scenery does not implement their spawn schedule.
 
 Environment: 12:26, 15% sparse cloud, no rain, strong cool-blue haze. Cloud base reference 5,500 ft is metadata; native Clouds cannot place that altitude exactly. Screen colours inform atmosphere rather than being copied into terrain albedo.
 
@@ -45,11 +45,11 @@ Individual positions below are assumed within the reference's site geometry; exa
 | m04_escort_3 | escort | initial_escorts | -4540 | 1320 | 3800 | -π/4 |
 | m04_escort_4 | escort | initial_escorts | -4060 | 1000 | 3800 | -π/4 |
 | m04_escort_5 | escort | initial_escorts | -3580 | 1160 | 3800 | -π/4 |
-| m04_escort_6 | escort | initial_escorts | -5500 | 1320 | 4700 | -π/4 |
+| m04_escort_6 | escort | reinforcements | -5500 | 1320 | 4700 | -π/4 |
 | m04_escort_7 | escort | reinforcements | -5020 | 1000 | 4700 | -π/4 |
 | m04_escort_8 | escort | reinforcements | -4540 | 1160 | 4700 | -π/4 |
 | m04_escort_9 | escort | reinforcements | -4060 | 1320 | 4700 | -π/4 |
-| m04_ace | ace | reinforcements | -3580 | 1000 | 4700 | -π/4 |
+| m04_ace | ace | initial_escorts | -3580 | 1000 | 4700 | -π/4 |
 
 
 ## Maximum score ledger
@@ -65,3 +65,5 @@ Individual positions below are assumed within the reference's site geometry; exa
 Points follow the mission spec; poses do not implement scoring or spawn timing.
 
 Review-fix validation: frozen Bun install and build passed; full offline gate passed (`OFFLINE_LUAU_RESULT passed=701 failed=0`). Budget unchanged:217,137,856 voxel writes,12,608 jobs,92 Parts,120 props,3,228 estimated descendants,9.259 s estimate. M02’s approximate1.5 correction gives13.89 s; Studio measurement remains pending.
+
+Mission integration on `feat/m04-mission` activates this key. The active M04 adapter builds terrain/dressing with an empty scenery-contact list; combat owns all 15 moving models using these exact ids. Exported dormant layout remains available for authoring/tests.

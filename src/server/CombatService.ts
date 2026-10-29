@@ -1,3 +1,4 @@
+import { M04World } from "./M04World";
 import { canSkipLanding } from "../shared/EngineBatchB";
 import { buildNightLighting } from "./NightLighting";
 import { announceJammerKill, liveJammers, lockAllowed, stepRearm } from "./EngineBatchCRuntime";
@@ -437,15 +438,17 @@ function effect(session: CombatSession, kind: ExplosionKind, position: Vector3, 
 	if (session.cleaned || session.player.Parent !== Players) return;
 	combatEffectRemote?.FireClient(session.player, { kind, position, ...extra });
 }
-function restoreMenu(): void {
+function restoreMenu(terrainAlreadyClear = false): void {
 	if (sessions.size() > 0) return;
-	const [ok, message] = pcall(() => MissionWorld.RestoreMenu());
+	const [ok, message] = pcall(() => MissionWorld.RestoreMenu(terrainAlreadyClear));
 	if (!ok) warn(`SKYBREAK menu restoration failed: ${tostring(message)}`);
 }
 function cleanupSession(session: CombatSession, restore = true): void {
 	if (session.cleaned) return;
 	session.cleaned = true;
 	session.active = false;
+	// Retain the session/global launch exclusion while M04 terrain clears in bounded jobs.
+	if (restore && session.missionId === 4) M04World.Clear();
 	if (sessions.get(session.player) === session) {
 		sessions.delete(session.player);
 		if (session.characterRoot?.Parent) session.characterRoot.Anchored = session.wasAnchored ?? false;
@@ -455,7 +458,12 @@ function cleanupSession(session: CombatSession, restore = true): void {
 	session.projectiles.clear();
 	session.enemies.clear();
 	session.target = undefined;
-	if (restore) restoreMenu();
+	if (restore) {
+		// M04 teardown follows a large terrain build; reset the script budget before restoration.
+		// Settlement retains the completing lock until this returns.
+		if (session.missionId === 4) task.wait();
+		restoreMenu(session.missionId === 4);
+	}
 }
 /** Debrief counters handed to the completion callback. */
 function missionStats(session: CombatSession, won: boolean): MissionStats {
@@ -677,7 +685,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 			groundAttack: options.arrival && "behaviour" in options.arrival && options.arrival.behaviour === "ground_attack",
 			scramble: options.arrival && "scramble" in options.arrival && options.arrival.scramble ? { spawn: { x:position.X,y:position.Y,z:position.Z }, heading: options.arrival.headingDegrees ?? 0, startedAt:session.elapsed } : undefined,
 			friendly: options.friendly, alliedAmmo: options.friendly ? AlliedRules.MissilesPerWingman : undefined,
-			id: `${friendly ? "ally" : "air"}_${serial}_${missionSerial}`, name, model, health, maxHealth: health,
+			id: options.targetId ?? `${friendly ? "ally" : "air"}_${serial}_${missionSerial}`, name, model, health, maxHealth: health,
 			position, direction, velocity: direction.mul(300), kind: role === "ace" ? "ace" : "air", required: options.optional !== true && role !== "raider" && role !== "escort", enabled: true,
 			fireTimer: role === "courier" ? math.huge : 4 + index * 1.5, windup: 0, mode: "attack", modeTimer: 0, passDirection: direction, side,
 			flares, flareTimer: 0, flareUntil: 0, speedBonus: 0, lockBreakTimer: TUNING.aceLockBreak[act - 1],

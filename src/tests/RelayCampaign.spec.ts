@@ -24,7 +24,7 @@ describe("Released 18-mission campaign",()=>{
  it("contains 18 ordered numbered missions and optional practice outside the count",()=>{
   expect(MISSION_COUNT).toBe(18); expect(GameConfig.Campaign.MissionCount).toBe(18); expect(MISSIONS.size()).toBe(18);
   expect(PRACTICE.id).toBe(0); expect(MissionCatalog.Get(0)).toBe(PRACTICE);
-  MISSIONS.forEach((m,i)=>{expect(m.id).toBe(i+1);expect(MissionCatalog.Available(m)).toBe(i<=1);if(i>1){expect(m.title).toBe(`Mission ${i+1}`);expect(m.briefing).toBe("In development");}});
+  MISSIONS.forEach((m,i)=>{expect(m.id).toBe(i+1);expect(MissionCatalog.Available(m)).toBe(i<=1 || m.id===4);if(i>1 && m.id!==4){expect(m.title).toBe(`Mission ${i+1}`);expect(m.briefing).toBe("In development");}});
   for(const id of [19,27,-1,1.5,math.huge]) expect(MissionCatalog.IsValidId(id)).toBe(false);
  });
  it("keeps the three original control exercises and radar without enemies",()=>{

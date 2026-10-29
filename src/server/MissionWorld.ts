@@ -218,31 +218,39 @@ function buildIronCoast(scenery: Folder, parent: Instance): Model[] {
 	return targets;
 }
 
+// M04's bounded clear already empties terrain; the next build must not repeat the
+// monolithic clear of that large shell. Menu scenery is Parts only.
+let terrainAlreadyEmpty = false;
+function clearForBuild(partsOnly = false): void {
+ if (!terrainAlreadyEmpty) Workspace.Terrain.Clear();
+ if (!partsOnly) terrainAlreadyEmpty=false;
+}
+
 export const MissionWorld = {
 	/** `targetVisuals`: a world's own drawing of each typed target, keyed by target id; combat adopts them instead of building copies. */
 	Build(missionId: number, parent: Instance): { groundTargets: Model[]; targetVisuals?: Map<string, Model> } {
 		assert(MissionCatalog.Available(missionId), "Mission world is in development");
 		if (MissionCatalog.WorldKey(missionId) === M01_WORLD_KEY) {
-			Workspace.FindFirstChild("World")?.Destroy(); Workspace.Terrain.Clear();
+			Workspace.FindFirstChild("World")?.Destroy(); clearForBuild();
 			return M01World.Build(parent);
 		}
 		if (MissionCatalog.WorldKey(missionId) === M02_WORLD_KEY) {
-			Workspace.FindFirstChild("World")?.Destroy(); Workspace.Terrain.Clear();
+			Workspace.FindFirstChild("World")?.Destroy(); clearForBuild();
 			return M02World.Build(parent);
 		}
 		if (MissionCatalog.WorldKey(missionId) === M03_WORLD_KEY) {
-			Workspace.FindFirstChild("World")?.Destroy(); Workspace.Terrain.Clear();
+			Workspace.FindFirstChild("World")?.Destroy(); clearForBuild();
 			return M03World.Build(parent);
 		}
 		if (MissionCatalog.WorldKey(missionId) === M04_WORLD_KEY || MissionCatalog.WorldKey(missionId) === M05_WORLD_KEY) {
-			Workspace.FindFirstChild("World")?.Destroy(); Workspace.Terrain.Clear();
+			Workspace.FindFirstChild("World")?.Destroy(); clearForBuild();
 			return MissionCatalog.WorldKey(missionId) === M04_WORLD_KEY ? M04World.Build(parent) : M05World.Build(parent);
 		}
 		const late = WorldAssets.Preload(UPLOADS[missionId === 0 ? 1 : 2]);
 		if (late.size() > 0) warn(`[MissionWorld] M${missionId}: ${late.join(", ")} still loading after the preload deadline; placing fallbacks`);
 		parent.SetAttribute("WorldPreloadLate", late.size());
 		Workspace.FindFirstChild("World")?.Destroy();
-		Workspace.Terrain.Clear();
+		clearForBuild(true);
 		WorldEnvironment.Apply(MissionCatalog.Get(missionId).environment);
 		const scenery = new Instance("Folder");
 		scenery.Name = missionId === 0 ? "FirstFlightWorld" : "IronCoastWorld";
@@ -251,8 +259,9 @@ export const MissionWorld = {
 		Scenery.Report(parent, scenery.Name, Scenery.PART_BUDGET, true);
 		return { groundTargets };
 	},
-	RestoreMenu(): void {
-		Workspace.Terrain.Clear();
+	RestoreMenu(alreadyClear = false): void {
+		if (!alreadyClear && !terrainAlreadyEmpty) Workspace.Terrain.Clear();
+		terrainAlreadyEmpty=alreadyClear || terrainAlreadyEmpty;
 		WorldEnvironment.Clear();
 		WorldBuilder.Build();
 	},

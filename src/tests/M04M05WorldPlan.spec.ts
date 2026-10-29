@@ -17,11 +17,11 @@ function footprint(x: number, z: number, sx: number, sz: number, yaw: number): A
 }
 describe("Dormant M04/M05 world compositions", () => {
  const a = buildM04Plan(), b = buildM05Plan();
- it("is deterministic, cooperatively planned and unselected", () => {
+ it("is deterministic, cooperatively planned with only M04 activated", () => {
   let checkpoints = 0;
   expect(buildM04Plan(404, () => { checkpoints++; })).toEqual(a);
   expect(buildM05Plan()).toEqual(b); expect(checkpoints).toBeGreaterThan(1000);
-  for (const bp of MissionCatalog.All()) { expect(MissionCatalog.WorldKey(bp.id)).never.toBe(a.key); expect(MissionCatalog.WorldKey(bp.id)).never.toBe(b.key); }
+  for (const bp of MissionCatalog.All()) { if(bp.id!==4) expect(MissionCatalog.WorldKey(bp.id)).never.toBe(a.key); expect(MissionCatalog.WorldKey(bp.id)).never.toBe(b.key); }
  });
  it("exports unique prefixed ids, required air counts and NNE contact poses", () => {
   for (const [targets, prefix] of [[a.targets, "m04_"], [b.targets, "m05_"]] as const) {

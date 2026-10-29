@@ -46,3 +46,11 @@ Before missions 4–5 activation (PR #145 remains dormant/unmerged):
 - Run the compiled Roblox runtime specs (ship waterline/aim centre, rearm abuse/pause, jammer calls and lighting isolation), then inspect rearm camera/skip/clock handoff and searchlight sweep/pause. This pass did not launch Studio or run Roblox Jest.
 
 PR #145 validation (2026-10-29): frozen Bun install and build passed; full offline validation passed: `OFFLINE_LUAU_RESULT passed=730 failed=0`, `MISSION_CATALOG_SNAPSHOT passed=19 failed=0`, Python `Ran 122 tests` / `OK`. Practice/M01/M02 mission data and snapshots are unchanged. Roblox runtime specs compile but were not executed.
+
+## Mission 4 beta guide — after its PR and #147 merge
+
+Finish missions 1–3 in order on one save, then launch BLIND COURIERS. Start airborne over the orchard hills with two LANTERN wingmen and 12:00. Find three required transports ahead by eye. Both jammers alive blank radar; one leaves partial radar, and the last restores contacts and distant locks. Locks remain available within 1,200 studs. Five guards and ORCHARD WARRANT start with the transports; four guards enter the reserve queue after your first transport kill (the existing seven-fighter cap can delay admission).
+
+For maximum score, destroy both jammers and all ten guards before the third transport. The third transport ends the mission immediately: no return or landing. Three transports alone earn 480/C; B650, A800, S1300; maximum1540. A surviving transport reaching the route exit fails the mission. Wingman kills earn no player points and wingmen never attack transports. Report hunt difficulty, radar restoration, escort pressure, route escape timing, terrain appearance and saved results. This is a future Player beta guide, not evidence of an agent Player test.
+
+M04 beta loading note: current Studio campaign world build45.08s; post-result bounded terrain removal also delays the next launch. These exceed the loading target and need performance follow-up. Scripted Studio integration passed1540/S, client radar transitions and subsequent practice cleanup; it does not establish flown difficulty or Player quality.

@@ -1,3 +1,4 @@
+import { M04World } from "../server/M04World";
 import { M01 } from "../shared/M01Geometry";
 import { compileBomberEncounter } from "../shared/BomberEncounter";
 import { BomberRules } from "../shared/BomberRules";
@@ -105,9 +106,21 @@ describe("Released campaign world integration (Studio only)",()=>{
   }
   print(`M02_STUDIO_BUILD seconds=${fixture.GetAttribute("WorldBuildSeconds")} terrain=${fixture.GetAttribute("WorldTerrainReadySeconds")} jobs=${fixture.GetAttribute("WorldTerrainJobs")} missing=${fixture.GetAttribute("WorldPropsMissing")} descendants=${fixture.GetDescendants().size()} (fake uploads)`);
  },180000);
+ it("builds M04 terrain without dormant aircraft duplicates",()=>{
+  fixture=new Instance("Folder");fixture.Name="M04WorldFixture";fixture.Parent=Workspace;
+  const world=MissionWorld.Build(4,fixture);
+  expect(world.groundTargets.size()).toBe(0);expect(fixture.GetAttribute("WorldBuildPhase")).toBe("done");
+  expect(fixture.GetDescendants().some(i=>i.IsA("Model") && i.Name.sub(1,4)==="m04_")).toBe(false);
+  print(`M04_STUDIO_BUILD seconds=${fixture.GetAttribute("WorldBuildSeconds")} terrain=${fixture.GetAttribute("WorldTerrainReadySeconds")} jobs=${fixture.GetAttribute("WorldTerrainJobs")} descendants=${fixture.GetDescendants().size()} (fake world uploads)`);
+  const cleared=M04World.Clear();expect(cleared.jobs).toBe(12608);
+  MissionWorld.RestoreMenu(true);
+  const again=new Instance("Folder");again.Parent=Workspace;
+  expect(MissionWorld.Build(0,again).groundTargets.size()).toBe(1);again.Destroy();
+  MissionWorld.RestoreMenu();expect(Workspace.FindFirstChild("World")).toBeDefined();
+ },180000);
  it("rejects every unreleased world before building anything",()=>{
   fixture=new Instance("Folder");fixture.Parent=Workspace;
-  for(let id=3;id<=18;id++){const [ok]=pcall(()=>MissionWorld.Build(id,fixture!));expect(ok).toBe(false);}
+  for(let id=3;id<=18;id++){if(MissionCatalog.Available(id)) continue;const [ok]=pcall(()=>MissionWorld.Build(id,fixture!));expect(ok).toBe(false);}
   expect(fixture.GetDescendants().size()).toBe(0);
  });
 });
