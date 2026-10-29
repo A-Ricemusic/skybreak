@@ -1,12 +1,12 @@
 import { Workspace } from "@rbxts/services";
 import type { CampaignResponse, Persistence, SaveSlot, Telemetry } from "../../shared/Types";
 import { MISSION_COUNT, ACT_NAMES, ACT_NUMERALS, MissionCatalog } from "../../shared/MissionCatalog";
-import { GameConfig } from "../../shared/GameConfig";
 import { WeaponRules } from "../../shared/WeaponRules";
 import { SpecialWeapons } from "../../shared/SpecialWeapons";
 import { Difficulty } from "../../shared/Difficulty";
 import type { KillSnapshot } from "../../shared/ImpactFeedback";
 import type { MenuLayout, Rectangle } from "../../shared/UILayout";
+import { CountdownDisplay } from "../../shared/CountdownDisplay";
 
 /** Seconds a radio line stays up when the server does not specify. */
 const RADIO_SECONDS = 4.5;
@@ -100,7 +100,7 @@ function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
 		objective: safeString(payload.objective, previous.objective ?? "Complete the objective"),
 		objectiveProgress: math.max(0, math.floor(finite(payload.objectiveProgress, previous.objectiveProgress ?? 0))),
 		objectiveTotal: math.max(0, math.floor(finite(payload.objectiveTotal, previous.objectiveTotal ?? 0))),
-		timeRemaining: math.clamp(finite(payload.timeRemaining, previous.timeRemaining ?? GameConfig.Campaign.MissionTimeLimit), 0, GameConfig.Campaign.MissionTimeLimit),
+		timeRemaining: CountdownDisplay.Value(missionId, payload.timeRemaining, previous.timeRemaining),
 		pauseRemaining: typeIs(payload.pauseRemaining, "number") ? math.clamp(finite(payload.pauseRemaining, 0), 0, 300) : undefined,
 		turnObserved: payload.turnObserved,
 		pitchObserved: payload.pitchObserved,

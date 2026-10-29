@@ -11,6 +11,7 @@ import { failureCause } from "../shared/OutcomeReason";
 import { m01CarrierFlyoffStart, M01_CARRIER_MODEL, m01CarrierPoint } from "../shared/M01CarrierPlan";
 import { M01_AIRSPACE } from "../shared/M01Limits";
 import { m01Height, M01 } from "../shared/M01WorldPlan";
+import { CountdownDisplay } from "../shared/CountdownDisplay";
 
 function policy(): MissionBlueprint {
 	return { ...MissionCatalog.Get(2), countdownSeconds: 600, start: m01CarrierFlyoffStart(), airspace: M01_AIRSPACE,
@@ -33,10 +34,11 @@ describe("countdown/fly-off legacy parity (origin/main values)", () => {
 		}
 	});
 	it("keeps the timer text and legacy debrief unchanged", () => {
-		expect(clockLines(900, 0, 3, 0, 3)).toEqual(["TIME 15:00", "TGT 0/3"]);
-		expect(clockLines(899.5, 1, 3, 0, 3)).toEqual(["TIME 14:59", "TGT 1/3"]);
-		expect(clockLines(0, undefined, undefined, 2, 3)).toEqual(["TIME 00:00", "KILL 2/3"]);
+		expect(clockLines(CountdownDisplay.Value(0, 900), 0, 3, 0, 3)).toEqual(["TIME 15:00", "TGT 0/3"]);
+		expect(clockLines(CountdownDisplay.Value(0, 899.5), 1, 3, 0, 3)).toEqual(["TIME 14:59", "TGT 1/3"]);
+		expect(clockLines(CountdownDisplay.Value(0, -1), undefined, undefined, 2, 3)).toEqual(["TIME 00:00", "KILL 2/3"]);
 		expect(initialTelemetry(0).timeRemaining).toBe(900);
+
 		expect(failureCause("timeout")).toBe("The 15-minute operation window closed.");
 	});
 });
@@ -77,22 +79,27 @@ describe("opt-in mission countdown and launch stage", () => {
 	it("does not advance a paused intro, and starts a fresh stage for every retry or replay", () => {
 		const first = LaunchStage.New(m01CarrierFlyoffStart())!, flight = LaunchStage.Pose(m01CarrierFlyoffStart());
 		LaunchStage.Advance(first, flight, 1);
-		// Paused sessions do not call Advance; resume cannot charge wall-clock time to the stage.
+		const held = { ...flight };
+		expect(LaunchStage.Advance(first, flight, 30, true)).toBe(false);
 		expect(first.elapsed).toBe(1);
+		expect(flight).toEqual(held);
 		const retry = LaunchStage.New(m01CarrierFlyoffStart())!;
 		expect(retry.elapsed).toBe(0); expect(first.elapsed).toBe(1);
 		expect(LaunchStage.Pose(m01CarrierFlyoffStart()).z).toBe(m01CarrierFlyoffStart().z);
 	});
 	it("uses an authored deadline longer than the legacy limit", () => {
-		const state = BlueprintRunner.NewState({ ...policy(), countdownSeconds: 1200 }, 100);
+		const mission = { ...policy(), countdownSeconds: 1200 }, state = BlueprintRunner.NewState(mission, 100);
+		expect(CountdownDisplay.Value(mission, undefined)).toBe(1200);
+		expect(CountdownDisplay.Value(mission, 1100)).toBe(1100);
+		expect(CountdownDisplay.Value(mission, 1300)).toBe(1200);
 		BlueprintRunner.Tick(state, 1000); expect(state.outcome).toBeUndefined();
 		expect(BlueprintRunner.TimeRemaining(state)).toBe(300);
 		BlueprintRunner.Tick(state, 1300); expect(state.reason).toBe("timeout");
 	});
-	it("rejects delayed intro state after the reliable handoff resets prediction", () => {
+	it("rejects a delayed intro packet with an older sequence after the reliable handoff", () => {
 		const state = LaunchStage.Pose(m01CarrierFlyoffStart()), client = FlightPrediction.New(state, M01_AIRSPACE);
-		client.sequence = 1;
-		expect(FlightPrediction.Reconcile(client, FlightMath.NewState(), 100, 1)).toBe("none");
+		FlightPrediction.Handoff(client, state, 8);
+		expect(FlightPrediction.Reconcile(client, FlightMath.NewState(), 100, 7)).toBe("none");
 		expect(client.state).toEqual(state);
 	});
 	it("fails at deadline equality with the existing timeout reason and correct debrief", () => {
@@ -111,13 +118,37 @@ describe("opt-in mission countdown and launch stage", () => {
 		expect(remaining).toBeCloseTo(368.81);
 		BlueprintRunner.Tick(state, 900); expect(BlueprintRunner.TimeRemaining(state)).toBe(remaining);
 	});
-	it("shares exact pose, speed and straight path between client and server, including the handoff reset", () => {
+	it("caps the client stage at three seconds and blends a delayed handoff without a backward jump", () => {
 		const mission = policy(), server = LaunchStage.Pose(mission.start!);
-		const client = FlightPrediction.New(server, mission.airspace);
+		const client = FlightPrediction.New(server, mission.airspace), clientStage = LaunchStage.New(mission.start!)!;
 		expect(client.state).toEqual(server); expect(server.speed).toBe(180);
-		for (let i = 0; i < 90; i++) { LaunchStage.Step(server, 1 / 30); LaunchStage.Step(client.state, 1 / 30); }
+		for (let i = 0; i < 90; i++) { LaunchStage.Step(server, 1 / 30); LaunchStage.Advance(clientStage, client.state, 1 / 30); }
 		expect(client.state).toEqual(server);
-		expect(FlightPrediction.New(server, mission.airspace).state).toEqual(server);
+		const stopped = { ...client.state };
+		for (let i = 0; i < 60; i++) LaunchStage.Advance(clientStage, client.state, 1 / 30);
+		expect(clientStage.elapsed).toBeCloseTo(LaunchStage.Seconds, 6);
+		expect(client.state).toEqual(stopped);
+		const [fx, fy, fz] = FlightMath.ForwardOf(client.state);
+		const handoff = FlightMath.SetAttitude({ ...server }, server.yaw + 0.04, server.pitch);
+		handoff.x -= fx * 10; handoff.y -= fy * 10; handoff.z -= fz * 10;
+		FlightPrediction.Handoff(client, handoff, 8);
+		const before = { ...client.state };
+		const after = FlightPrediction.Step(client, { x: 0, y: 0, throttle: FlightMath.CruiseThrottle }, 1 / 60, 5);
+		const forwardStep = (after.x - before.x) * fx + (after.y - before.y) * fy + (after.z - before.z) * fz;
+		expect(client.last).toBe("blend");
+		expect(forwardStep).toBeGreaterThan(-0.25);
+	});
+	it("keeps the intro camera on port and rotates its offset with heading", () => {
+		for (const heading of [0, math.pi / 2, math.pi]) {
+			const state = FlightMath.FromPose(30, 400, -70, heading, 0, 180), camera = LaunchStage.Camera(state);
+			const [fx, fy, fz] = FlightMath.ForwardOf(state), [rx, ry, rz] = FlightMath.RightOf(state), [ux, uy, uz] = FlightMath.UpOf(state);
+			const ox = camera.position.x - state.x, oy = camera.position.y - state.y, oz = camera.position.z - state.z;
+			expect(ox * rx + oy * ry + oz * rz).toBeCloseTo(-80, 5);
+			expect(ox * ux + oy * uy + oz * uz).toBeCloseTo(45, 5);
+			expect(ox * fx + oy * fy + oz * fz).toBeCloseTo(-110, 5);
+			const lx = camera.target.x - camera.position.x, ly = camera.target.y - camera.position.y, lz = camera.target.z - camera.position.z;
+			expect(lx * fx + ly * fy + lz * fz).toBeLessThan(0);
+		}
 	});
 	it("keeps the full three-second swept fuselage path ahead of the carrier and above clear water", () => {
 		const start = m01CarrierFlyoffStart(), state = LaunchStage.Pose(start), stage = LaunchStage.New(start)!;

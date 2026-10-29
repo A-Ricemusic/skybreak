@@ -42,6 +42,12 @@ describe("Dormant allied flight contracts", () => {
 		expect(AlliedRules.CanEngage(policy, { ...raider, required: true, role: "bomber" })).toBe(false);
 		expect(AlliedRules.CanEngage({ ...policy, allowRequiredTargets: true, creditPlayerKills: true }, { ...raider, required: true, role: "bomber" })).toBe(true);
 	});
+	it("keeps formation moving during launch while suppressing all wingman fire", () => {
+		expect(AlliedRules.CanEngage(policy, raider, false)).toBe(false);
+		const speed = AlliedRules.FormationSpeed(180, 160);
+		expect(speed).toBeGreaterThan(0);
+		expect(speed / 30).toBeGreaterThan(0);
+	});
 	it("excludes friendlies from player selection, lock eligibility and hostile boxes", () => {
 		expect(AlliedRules.PlayerTarget({ ...raider, friendly: true })).toBe(false);
 		expect(TargetBoxes.Tone({ enemy: true, friendly: true, owner: 7, damageable: true, required: false }, 7)).toBeUndefined();
