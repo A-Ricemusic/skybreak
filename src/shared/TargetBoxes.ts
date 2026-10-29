@@ -67,6 +67,7 @@ export const TARGET_TAG_WIDTH = 24;
 export const TARGET_TAG_HEIGHT = 10;
 export const TARGET_TAG_GAP = 2;
 export const TARGET_TAG_RISE = 9;
+export const FRIENDLY_TAG = "FRND";
 
 /** Where the selected caption sits: under the box or over it, slid `dx` px sideways to stay on screen. */
 export interface CaptionSpot {
@@ -97,6 +98,10 @@ function compareDistance(a: RankedContact, b: RankedContact): boolean {
 }
 
 export const TargetBoxes = {
+	/** Friendly aircraft carry a label, but never a target box or lock bracket. */
+	FriendlyTag(flags: TargetBoxFlags, userId: number): string | undefined {
+		return flags.friendly === true && flags.owner === userId ? FRIENDLY_TAG : undefined;
+	},
 	/**
 	 * The box a contact gets, or undefined for none. Valid means exactly what the server
 	 * accepts: an enabled enemy of this player's sortie that its phase lets missiles damage.

@@ -7,6 +7,7 @@ import { TargetScore } from "../shared/TargetScore";
 import { recordAlliedKill, recordScoredKill } from "../server/SortieScore";
 import { TargetBoxes } from "../shared/TargetBoxes";
 import { RADAR_GLYPHS } from "../shared/RadarMath";
+import { WavePlan } from "../shared/WavePlan";
 import { LEGACY_PHASE_ROSTERS } from "./LegacyPhaseRosters";
 
 const policy: MissionAllies = { count: 4, formation: [{ x: -180, y: 20, z: 160 }, { x: 180, y: 20, z: 160 }, { x: -360, y: 40, z: 320 }, { x: 360, y: 40, z: 320 }], model: "Kestrel", callsignPrefix: "LANTERN" };
@@ -50,6 +51,47 @@ describe("Dormant allied flight contracts", () => {
 		const hostiles = [raider, { ...raider, role: "bomber" }, { ...raider, enabled: false }];
 		expect(AlliedRules.HostileBudget(hostiles)).toBe(1);
 		expect(AlliedRules.HostileBudget([...hostiles, ...policy.formation.map(() => ({ ...raider, friendly: true })), { ...raider, friendly: true }, { ...raider, friendly: true }])).toBe(1);
+	});
+	it("commits a windup target so its warning and launch destination cannot disagree", () => {
+		const wingman = { id: "ally_1" };
+		const committed = AlliedRules.CommitWindupTarget<typeof wingman>(wingman);
+		const recomputed = undefined;
+		expect(AlliedRules.WarnsPlayer(committed)).toBe(false);
+		expect(committed).toBe(wingman);
+		expect(recomputed).toBeUndefined();
+		const player = AlliedRules.CommitWindupTarget<typeof wingman>(undefined);
+		expect(AlliedRules.WarnsPlayer(player)).toBe(true);
+		expect(player).toBeUndefined();
+	});
+	it("uses hysteresis for ordinary hostiles and keeps aces and couriers focused on the player", () => {
+		expect(AlliedRules.HostileTargetsWingman("air", "bandit", 1000, 810, false)).toBe(false);
+		expect(AlliedRules.HostileTargetsWingman("air", "bandit", 1000, 790, false)).toBe(true);
+		expect(AlliedRules.HostileTargetsWingman("air", "bandit", 1000, 990, true)).toBe(true);
+		expect(AlliedRules.HostileTargetsWingman("air", "bandit", 1000, 1010, true)).toBe(false);
+		expect(AlliedRules.HostileTargetsWingman("ace", "ace", 1000, 100, false)).toBe(false);
+		expect(AlliedRules.HostileTargetsWingman("air", "courier", 1000, 100, false)).toBe(false);
+	});
+	it("preserves fixed-sortie hostile ids, bracket sides and player focus when allies are absent or inserted", () => {
+		function fixedSortie(withAllies: boolean): { ids: string; sides: string; targets: string } {
+			let hostileSerial = 0, alliedSerial = 0;
+			const ids: string[] = [], sides: number[] = [], targets: string[] = [];
+			function spawn(friendly: boolean, count: number): void {
+				const first = AlliedRules.AirSerial(friendly, hostileSerial, alliedSerial);
+				for (const side of WavePlan.BracketSides(first, count)) sides.push(side);
+				for (let index = 0; index < count; index++) {
+					if (friendly) alliedSerial += 1;
+					else { hostileSerial += 1; ids.push(`air_${hostileSerial}_77`); targets.push(AlliedRules.HostileTargetsWingman("air", "bandit", 1200, math.huge, false) ? "wingman" : "player"); }
+				}
+			}
+			spawn(false, 2);
+			if (withAllies) spawn(true, 4);
+			spawn(false, 3);
+			return { ids: ids.join(","), sides: sides.filter((_, index) => !withAllies || index < 2 || index >= 6).join(","), targets: targets.join(",") };
+		}
+		const legacy = fixedSortie(false), allied = fixedSortie(true);
+		expect(allied.ids).toBe(legacy.ids);
+		expect(allied.sides).toBe(legacy.sides);
+		expect(allied.targets).toBe("player,player,player,player,player");
 	});
 	it("records an allied death once without player points, kills or objective progress", () => {
 		const { state, ledger, destroyed } = sortie();

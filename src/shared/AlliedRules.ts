@@ -2,6 +2,16 @@ import type { MissionAllies } from "./MissionPolicy";
 
 /** Pure allegiance, credit and fire policy shared by simulation and offline specs. */
 export const AlliedRules = {
+	/** Acquire a wingman only with a clear distance advantage; retain it until the player is closer. */
+	HostileTargetsWingman(kind: string, role: string | undefined, playerDistance: number, wingmanDistance: number, retaining: boolean): boolean {
+		if (kind === "ace" || role === "courier") return false;
+		return wingmanDistance < playerDistance * (retaining ? 1 : 0.8);
+	},
+	/** The windup target is copied once; undefined deliberately means the player. */
+	CommitWindupTarget<T>(target: T | undefined): T | undefined { return target; },
+	WarnsPlayer(target: unknown): boolean { return target === undefined; },
+	/** Friendlies and hostiles advance independent ordinals. */
+	AirSerial(friendly: boolean, hostileSerial: number, alliedSerial: number): number { return friendly ? alliedSerial : hostileSerial; },
 	PlayerTarget(candidate: { friendly?: boolean; enabled: boolean; health: number }): boolean {
 		return candidate.friendly !== true && candidate.enabled && candidate.health > 0;
 	},
