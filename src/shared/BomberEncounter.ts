@@ -5,8 +5,8 @@ import type { MissionAirspacePolicy, MissionScoringPolicy } from "./MissionPolic
 /** Opt-in required_air encounter. count is the bomber count, never the escorts. */
 export interface BomberEncounter {
 	aircraft?: "transport";
- scoreRole?: string;
- count: number;
+	scoreRole?: string;
+	count: number;
 	waypoints: BomberPoint[];
 	speed: number;
 	/** Final route endpoint; reaching it fails the encounter. */
@@ -22,8 +22,8 @@ export function validateBomberEncounter(phase: MissionPhaseBlueprint, bounds: Mi
 	if (!b) return;
 	assert(scoring.basis === "points", "Bomber encounters require points-basis scoring");
 	assert(b.aircraft===undefined || b.aircraft==="transport","Invalid route aircraft");
- assert(b.scoreRole===undefined || scoring.points[b.scoreRole]!==undefined,"Invalid route score role");
- for (const role of [b.scoreRole ?? "bomber", "escort", "ace"]) { const n = scoring.points[role]; assert(n !== undefined && finite(n) && n > 0, "Bomber encounter needs bomber/escort/ace point values"); }
+	assert(b.scoreRole===undefined || scoring.points[b.scoreRole]!==undefined,"Invalid route score role");
+	for (const role of [b.scoreRole ?? "bomber", "escort", "ace"]) { const n = scoring.points[role]; assert(n !== undefined && finite(n) && n > 0, "Bomber encounter needs bomber/escort/ace point values"); }
 	assert(phase.kind === "required_air" && phase.count === b.count, "Bombers require matching required_air count");
 	assert(b.count % 1 === 0 && b.count >= 1 && b.count <= 6, "Bomber route budget is six");
 	assert(finite(b.speed) && b.speed > 0, "Invalid bomber speed");

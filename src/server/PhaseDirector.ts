@@ -241,11 +241,11 @@ export function createPhaseDirector(combat: PhaseCombat) {
 			}
 		}
 		for(const enemy of session.enemies) if(enemy.routeActor && enemy.enabled && enemy.health>0 && enemy.withdrawUntil===undefined) {
-   const sample=BomberRules.Sample(enemy.routeActor.route,session.elapsed-enemy.routeActor.startedAt);
-   if(sample.escaped) { enemy.enabled=false; enemy.model.Destroy(); continue; }
-   const pose=sample.slots[0];
-   enemy.position=new Vector3(pose.position.x,pose.position.y,pose.position.z); enemy.direction=new Vector3(pose.facing.x,pose.facing.y,pose.facing.z); enemy.velocity=enemy.direction.mul(enemy.routeActor.route.speed); enemy.frame=CFrame.lookAt(enemy.position,enemy.position.add(enemy.direction));
-  }
+			const sample=BomberRules.Sample(enemy.routeActor.route,session.elapsed-enemy.routeActor.startedAt);
+			if(sample.escaped) { enemy.enabled=false; enemy.model.Destroy(); continue; }
+			const pose=sample.slots[0];
+			enemy.position=new Vector3(pose.position.x,pose.position.y,pose.position.z); enemy.direction=new Vector3(pose.facing.x,pose.facing.y,pose.facing.z); enemy.velocity=enemy.direction.mul(enemy.routeActor.route.speed); enemy.frame=CFrame.lookAt(enemy.position,enemy.position.add(enemy.direction));
+		}
 		if (active) {
 			const encounter = session.bomberEncounter;
 			if (active.bombers && encounter) {

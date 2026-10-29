@@ -31,8 +31,23 @@ export function createGroundTarget(spec: TypedGroundTarget): Model {
 	};
 	if (spec.type !== "parked_bomber") {
 		model.PrimaryPart=part("Aim",new Vector3(12,8,12),new Vector3(0,4,0));
-		if(spec.type==="ship") { const loaded=UploadedAssets.Template(AssetSelection.TankerCandidates(UploadedAssetSpecs)); if(loaded) { model.PrimaryPart!.Transparency=1; model.PrimaryPart!.CFrame=new CFrame(0,-UploadedAssetSpecs[loaded.name].groundOffset,0); attachBomberGeometry(model,loaded.template); const [bounds]=loaded.template.GetBoundingBox(); const centre=model.PrimaryPart!.CFrame.PointToWorldSpace(loaded.template.GetPivot().PointToObjectSpace(bounds.Position)); model.PrimaryPart!.CFrame=new CFrame(centre); model.SetAttribute("UploadedAsset",loaded.name); } else { part("Hull",new Vector3(50,25,220),new Vector3(0,5,0)); part("Bridge",new Vector3(35,30,40),new Vector3(0,30,65)); } }
-  else if (spec.type === "aa_gun") { part("Turret",new Vector3(8,6,8),new Vector3(0,10,0)); part("Barrel",new Vector3(2,2,24),new Vector3(0,13,-10)); }
+		if (spec.type === "ship") {
+			const loaded = UploadedAssets.Template(AssetSelection.TankerCandidates(UploadedAssetSpecs));
+			if (loaded) {
+				const aim = model.PrimaryPart!;
+				aim.Transparency = 1;
+				// Uploaded world geometry is bottom-centred; its waterline sits above the keel.
+				aim.CFrame = new CFrame(0, -UploadedAssetSpecs[loaded.name].groundOffset, 0);
+				attachBomberGeometry(model, loaded.template);
+				const [bounds] = loaded.template.GetBoundingBox();
+				const centre = aim.CFrame.PointToWorldSpace(loaded.template.GetPivot().PointToObjectSpace(bounds.Position));
+				aim.CFrame = new CFrame(centre);
+				model.SetAttribute("UploadedAsset", loaded.name);
+			} else {
+				part("Hull", new Vector3(50,25,220), new Vector3(0,5,0));
+				part("Bridge", new Vector3(35,30,40), new Vector3(0,30,65));
+			}
+		} else if (spec.type === "aa_gun") { part("Turret",new Vector3(8,6,8),new Vector3(0,10,0)); part("Barrel",new Vector3(2,2,24),new Vector3(0,13,-10)); }
 		else if (spec.type === "parked_helicopter") { part("Cabin",new Vector3(10,10,24),new Vector3(0,10,0),true); part("Rotor",new Vector3(44,1,3),new Vector3(0,17,0)); part("Tail",new Vector3(3,4,28),new Vector3(0,10,20)); }
 		else if (spec.type === "radar_dome") part("Dome",new Vector3(34,34,34),new Vector3(0,23,0),true);
 		else if (spec.type === "hangar") { part("Hangar",new Vector3(65,25,55),new Vector3(0,12.5,0)); part("Door",new Vector3(45,20,1),new Vector3(0,10,-28)).Color=Color3.fromRGB(35,40,45); }

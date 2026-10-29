@@ -160,9 +160,9 @@ function RadarImpl({ rectangle, controller, visible, textSize = 10, minText = 8 
 			let used = 0;
 			if (position && yaw !== undefined) {
 				const jammed=controller.GetTelemetry().radarJammed;
-    scope.BackgroundColor3=jammed ? Color3.fromRGB(12,35+math.floor(os.clock()*17)%15,22) : HUD.Shadow;
-    if(jammed && rangeRef.current) rangeRef.current.Text=controller.GetTelemetry().radarPartial ? "PARTIAL JAM" : "JAMMED";
-    const contacts = controller.GetRadarContacts();
+				scope.BackgroundColor3=jammed ? Color3.fromRGB(12,35+math.floor(os.clock()*17)%15,22) : HUD.Shadow;
+				if(jammed && rangeRef.current) rangeRef.current.Text=controller.GetTelemetry().radarPartial ? "PARTIAL JAM" : "JAMMED";
+				const contacts = controller.GetRadarContacts();
 				const range = radarRange(position.X, position.Z, contacts, controller.GetAirspace());
 				if (!jammed && (range !== lastRange || (rangeRef.current?.Text==="JAMMED" || rangeRef.current?.Text==="PARTIAL JAM")) && rangeRef.current) {
 					lastRange = range;

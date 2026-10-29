@@ -110,9 +110,9 @@ export interface PhaseExecution {
 }
 
 export interface MissionPhaseBlueprint {
- scoreThreshold?: ScoreThreshold;
- jamming?: RadarJamming;
- rearm?: RearmPlan;
+	scoreThreshold?: ScoreThreshold;
+	jamming?: RadarJamming;
+	rearm?: RearmPlan;
 	/** Fired once on entry to this phase (mid-sortie update). */
 	update?: MissionUpdate;
 	returnLine?: ReturnLine;
@@ -182,7 +182,7 @@ export interface GroundTargetSpec {
 
 export interface MissionBlueprint extends MissionPolicy {
 	nightLighting?: NightLighting;
- terrainRelativeWarnings?: boolean;
+	terrainRelativeWarnings?: boolean;
 	id: number;
 	act: Act;
 	codename: string;

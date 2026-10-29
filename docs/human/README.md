@@ -1,6 +1,6 @@
 # SKYBREAK redesign dashboard
 
-Last updated: 2026-10-29, against `main` at `68f2df5`.
+Last updated: 2026-10-29, against `main` at `d4b8373`.
 
 The new 18-mission campaign is live in Roblox Player through the automatic pipeline. **Practice flight, mission 1 and mission 2 are playable; missions 3 to 18 are locked.** The redesign rebuilds missions and worlds to match Ace Combat 04's structure and pacing while keeping the Broken Relay story and original shipped expression. Mission 2 is ready for the owner's beta test; see [Next](next.md).
 

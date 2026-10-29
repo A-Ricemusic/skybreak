@@ -276,7 +276,7 @@ export class FlightController {
 	/** Pause overlay is up: the local jet, camera and actions hold until Resume. */
 	private paused = false;
 	private rearm?: {plan:RearmPlan;elapsed:number;cameraCut?:boolean};
- private landing?: {plan: LandingPlan; elapsed: number; cameraCut?: boolean};
+	private landing?: {plan: LandingPlan; elapsed: number; cameraCut?: boolean};
 	private launchIntro?: LaunchStageState;
 	private launchCameraTime = CAMERA_HANDOFF_SECONDS;
 	/** Serial of the latest local Pause/Resume, the action it carried, and when it was last sent; the server echoes `pauseAck`. */
@@ -305,9 +305,9 @@ export class FlightController {
 			if (!typeIs(data, "table")) return;
 			const message = data as Partial<Omit<HudState, "kind">> & { kind?: string };
 			if(message.kind==="RearmStarted" && this.active) { this.rearm={plan:(data as {plan:RearmPlan}).plan,elapsed:0}; this.keys.clear(); for (const part of this.visual?.GetDescendants() ?? []) if (part.IsA("BasePart")) part.LocalTransparencyModifier=1; }
-   else if(message.kind==="RearmSkipped" && this.rearm) this.rearm.elapsed=(data as {elapsed:number}).elapsed;
-   else if(message.kind==="RearmComplete" && this.active) { const handoff=data as FlightControlHandoff; if(this.predictor) FlightPrediction.Handoff(this.predictor,handoff.state,handoff.sequence); this.rearm=undefined; this.keys.clear(); for (const part of this.visual?.GetDescendants() ?? []) if (part.IsA("BasePart")) part.LocalTransparencyModifier=0; }
-   else if (message.kind === "LandingStarted" && this.active) {
+			else if(message.kind==="RearmSkipped" && this.rearm) this.rearm.elapsed=(data as {elapsed:number}).elapsed;
+			else if(message.kind==="RearmComplete" && this.active) { const handoff=data as FlightControlHandoff; if(this.predictor) FlightPrediction.Handoff(this.predictor,handoff.state,handoff.sequence); this.rearm=undefined; this.keys.clear(); for (const part of this.visual?.GetDescendants() ?? []) if (part.IsA("BasePart")) part.LocalTransparencyModifier=0; }
+			else if (message.kind === "LandingStarted" && this.active) {
 				this.landing={plan:(data as {plan:LandingPlan}).plan,elapsed:0}; this.keys.clear();
 				// The replicated aircraft is already hidden; hide the predicted clone for cockpit flight.
 				for (const part of this.visual?.GetDescendants() ?? []) if (part.IsA("BasePart")) part.LocalTransparencyModifier = 1;
@@ -488,7 +488,7 @@ export class FlightController {
 	public IsPaused(): boolean { return this.paused; }
 	/** Flight advice and warning tones stay silent while the scripted launch owns the jet. */
 	public SkipLanding(): void { if (this.paused) return; if ((this.landing && canSkipLanding(this.landing.elapsed)) || (this.rearm && canSkipLanding(this.rearm.elapsed))) this.remotes.CombatAction.FireServer({action:"SkipLanding"}); }
-	public FlightWarningsEnabled(): boolean { return this.launchIntro === undefined && this.landing === undefined; }
+	public FlightWarningsEnabled(): boolean { return this.launchIntro === undefined && this.landing === undefined && this.rearm === undefined; }
 	/** Settings: pushing up dives instead of climbing (every input source). */
 	public SetInvertY(invert: boolean): void { this.invertY = invert; }
 	/** Settings: a centred stick gently levels the jet (pitch to the horizon, rolls upright). */
@@ -511,7 +511,7 @@ export class FlightController {
 	 */
 	public GetRadarContacts(): RadarContact[] {
 		const contacts: RadarContact[] = [];
-  if(this.telemetry.radarJammed && !this.telemetry.radarPartial) return contacts;
+		if(this.telemetry.radarJammed && !this.telemetry.radarPartial) return contacts;
 		const folder = this.aircraft?.Parent;
 		if (!this.active || !folder) return contacts;
 		const selected = this.telemetry.target;
@@ -654,7 +654,7 @@ export class FlightController {
 		const ground = this.telemetry.targetKind === "ground";
 		const worldPosition = ground ? target.GetPivot().Position : this.enemies.GetFrame(target).Position;
 		if(this.telemetry.jamVisualRange!==undefined && worldPosition.sub(camera.CFrame.Position).Magnitude>this.telemetry.jamVisualRange) { bracket.Visible=false; arrow.Visible=false; return; }
-  const [screen, visible] = camera.WorldToViewportPoint(worldPosition);
+		const [screen, visible] = camera.WorldToViewportPoint(worldPosition);
 		const size = camera.ViewportSize;
 		const required = this.telemetry.targetRequired === true;
 		const lockProgress = this.telemetry.lockProgress;
@@ -729,7 +729,7 @@ export class FlightController {
 				const ground = child.GetAttribute("TargetKind") === "ground";
 				const worldPosition = ground ? child.GetPivot().Position : this.enemies.GetFrame(child).Position;
 				if(this.telemetry.jamVisualRange!==undefined && worldPosition.sub(camera.CFrame.Position).Magnitude>this.telemetry.jamVisualRange) continue;
-  const [screen, visible] = camera.WorldToViewportPoint(worldPosition);
+		const [screen, visible] = camera.WorldToViewportPoint(worldPosition);
 				// A boxed contact already reads as a target (only on-screen contacts are boxed); a glyph or arrow would only stack on it.
 				if (this.boxes.IsBoxed(child)) continue;
 				const inside = visible && screen.X >= safeX && screen.X <= size.X - safeX && screen.Y >= safeY && screen.Y <= size.Y - safeY;
@@ -806,7 +806,7 @@ export class FlightController {
 		const stamp = FlightPrediction.InputStamp(predictor, now);
 		if (this.landing && !this.paused) this.landing.elapsed+=dt;
 		if(this.rearm && !this.paused) this.rearm.elapsed+=dt;
-  const state = this.rearm ? rearmPose(this.rearm.plan,this.rearm.elapsed) : this.landing ? landingPose(this.landing.plan,this.landing.elapsed) : intro ? predictor.state : FlightPrediction.Step(predictor, input, dt, now);
+		const state = this.rearm ? rearmPose(this.rearm.plan,this.rearm.elapsed) : this.landing ? landingPose(this.landing.plan,this.landing.elapsed) : intro ? predictor.state : FlightPrediction.Step(predictor, input, dt, now);
 		if (intro) LaunchStage.Advance(this.launchIntro!, state, dt);
 		let frame = frameFor(state);
 		if (this.evadeRoll > 0) {

@@ -346,10 +346,10 @@ function sendTelemetry(session: CombatSession): void {
 		kills: sessionRequiredKills(session), total: sessionTotalRequired(session),
 		missiles: session.missiles, missileCooldown: session.missileCooldown, evadeCooldown: EvadeRules.Cooldown(session.evade, session.evadeRemaining),
 		missionPoints: phase?.scoreThreshold ? session.targetScore.Total() : undefined,
-  radarPartial: phase?.jamming ? liveJammers(session)===1 : undefined,
-  jamVisualRange: phase?.jamming && liveJammers(session)>0 ? phase.jamming.visualLockRange : undefined,
-  radarJammed: session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.jamming ? liveJammers(session)>0 : undefined,
-  lockProgress: session.lockProgress, incoming, lockWarning, evadeThreat,
+		radarPartial: phase?.jamming ? liveJammers(session)===1 : undefined,
+		jamVisualRange: phase?.jamming && liveJammers(session)>0 ? phase.jamming.visualLockRange : undefined,
+		radarJammed: session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.jamming ? liveJammers(session)>0 : undefined,
+		lockProgress: session.lockProgress, incoming, lockWarning, evadeThreat,
 		boundaryWarning: airspaceWarning(session.state.x, session.state.z, session.airspace),
 		targetDamageable: target ? canHurt(session, target) : undefined,
 		elapsed: session.elapsed, timeRemaining: sessionTimeRemaining(session),
@@ -643,8 +643,8 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		const [boundsFrame, boundsSize] = model.GetBoundingBox();
 		const pivotAboveBottom = model.GetPivot().Position.Y - (boundsFrame.Position.Y - boundsSize.Y / 2);
 		const route = arrival && "route" in arrival && arrival.route ? BomberRules.Create(arrival.route.waypoints,arrival.route.speed,[{x:index*60,y:0,z:0}]) : undefined;
-  const routePose = route && BomberRules.Sample(route,0).slots[0];
-  const pose = routePose ?? options.pose ?? (authoredSpawn ? authoredAirPose(authoredSpawn, arrival?.headingDegrees ?? 0, index, runway, pivotAboveBottom) : undefined);
+		const routePose = route && BomberRules.Sample(route,0).slots[0];
+		const pose = routePose ?? options.pose ?? (authoredSpawn ? authoredAirPose(authoredSpawn, arrival?.headingDegrees ?? 0, index, runway, pivotAboveBottom) : undefined);
 		let position = pose ? new Vector3(pose.position.x, pose.position.y, pose.position.z) : new Vector3(px, py, pz);
 		// Preserve legacy random spawns; authored airborne poses get the same terrain probe and floor.
 		if (pose && arrival && !runway && !route) {
@@ -673,7 +673,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		else { session.spawnSerial += 1; serial = session.spawnSerial; }
 		const enemy: Enemy = {
 			scoreRole: options.arrival?.scoreRole ?? (role === "bomber" && session.blueprintState ? BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.scoreRole : undefined),
-   routeActor: route ? {route,startedAt:session.elapsed,jammer:arrival !== undefined && "aircraft" in arrival && arrival.aircraft==="jammer"} : undefined,
+			routeActor: route ? {route,startedAt:session.elapsed,jammer:arrival !== undefined && "aircraft" in arrival && arrival.aircraft==="jammer"} : undefined,
 			groundAttack: options.arrival && "behaviour" in options.arrival && options.arrival.behaviour === "ground_attack",
 			scramble: options.arrival && "scramble" in options.arrival && options.arrival.scramble ? { spawn: { x:position.X,y:position.Y,z:position.Z }, heading: options.arrival.headingDegrees ?? 0, startedAt:session.elapsed } : undefined,
 			friendly: options.friendly, alliedAmmo: options.friendly ? AlliedRules.MissilesPerWingman : undefined,
@@ -731,7 +731,7 @@ function destroyEnemy(session: CombatSession, enemy: Enemy, allied = false): voi
 	syncElapsed(session);
 	if (!accepted) { if (sessionOutcome(session) !== undefined) finish(session); return; }
 	enemy.health = 0;
- announceJammerKill(session,enemy,line=>radio(session,line));
+	announceJammerKill(session,enemy,line=>radio(session,line));
 	enemy.enabled = false;
 	enemy.model.SetAttribute("Health", 0);
 	enemy.model.SetAttribute("SkybreakEnemy", false);
@@ -1383,11 +1383,11 @@ function stepMissiles(session: CombatSession, dt: number): void {
 }
 function stepSession(session: CombatSession, dt: number): void {
 	if (stepRearm(session,dt,MAX_MISSILES,(message)=>missionState!.FireClient(session.player,message))) {
-  session.telemetryTime+=dt;
-  if(session.telemetryTime>=TELEMETRY_INTERVAL) { session.telemetryTime=0; sendTelemetry(session); }
-  return;
- }
- if (stepLanding(session,dt,(message)=>missionState!.FireClient(session.player,message))) {
+		session.telemetryTime+=dt;
+		if(session.telemetryTime>=TELEMETRY_INTERVAL) { session.telemetryTime=0; sendTelemetry(session); }
+		return;
+	}
+	if (stepLanding(session,dt,(message)=>missionState!.FireClient(session.player,message))) {
 		session.aircraftFrame=frameFor(session.state);
 		if (sessionOutcome(session) !== undefined) finish(session);
 		else {
@@ -1594,7 +1594,7 @@ export const CombatService = {
 			assert(player.Parent === Players, "Player left during world construction");
 			const blueprint = MissionCatalog.Get(missionId);
 			if(blueprint.nightLighting) buildNightLighting(folder,blueprint.nightLighting,()=>PauseRules.Paused(session.pause));
-   assert(world.groundTargets.size() === blueprint.ground.size(), `Mission ${missionId} world ground target count mismatch`);
+			assert(world.groundTargets.size() === blueprint.ground.size(), `Mission ${missionId} world ground target count mismatch`);
 			const aircraft = JetFactory.Create("SKYBREAK - Kestrel", false);
 			assert(player.Parent === Players, "Player left during aircraft construction");
 			aircraft.SetAttribute("SkybreakOwner", player.UserId);
@@ -1757,13 +1757,13 @@ export const CombatService = {
 					return;
 				}
 				if(session.rearmElapsed!==undefined) {
-     if (!PauseRules.Paused(session.pause) && action === "SkipLanding" && canSkipLanding(session.rearmElapsed)) {
-      const plan=session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.rearm;
-      if(plan) { session.rearmElapsed=math.max(session.rearmElapsed,plan.landing.approachSeconds+plan.landing.rolloutSeconds); missionState!.FireClient(session.player,{kind:"RearmSkipped",elapsed:session.rearmElapsed}); }
-     }
-     return;
-    }
-    if (session.blueprintState?.landingElapsed !== undefined) {
+					if (!PauseRules.Paused(session.pause) && action === "SkipLanding" && canSkipLanding(session.rearmElapsed)) {
+						const plan=session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.rearm;
+						if(plan) { session.rearmElapsed=math.max(session.rearmElapsed,plan.landing.approachSeconds+plan.landing.rolloutSeconds); missionState!.FireClient(session.player,{kind:"RearmSkipped",elapsed:session.rearmElapsed}); }
+					}
+					return;
+				}
+				if (session.blueprintState?.landingElapsed !== undefined) {
 					if (action === "SkipLanding" && session.landingStartedAt !== undefined && canSkipLanding(os.clock()-session.landingStartedAt)) { BlueprintRunner.AdvanceLanding(session.blueprintState,0,true); if (sessionOutcome(session) !== undefined) finish(session); }
 					return;
 				}

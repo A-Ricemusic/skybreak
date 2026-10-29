@@ -13,7 +13,7 @@ export function validateNightLighting(plan: NightLighting, limit: number): void 
 	for(const s of plan.searchlights) { point(s.position); assert([s.heading,s.sweep,s.period,s.length].every(finiteNumber) && s.sweep>=0 && s.sweep<=180 && s.period>=2 && s.length>0 && s.length<=2000,"Invalid searchlight"); }
 }
 
-/** Structural contract of #144's M05LightAnchor; accepts m05LightAnchors() directly.
+/** Consumes #144's M05LightAnchor; accepts m05LightAnchors() directly.
 	* The world authors every position/yaw; this adapter adds rendering budgets only. */
 export function nightLightingFromAnchors(anchors: M05LightAnchor[]): NightLighting {
 	let realLights = 0;

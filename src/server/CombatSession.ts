@@ -49,7 +49,7 @@ export interface Enemy {
 	role?: AirRole;
 	jammerKillAnnounced?: boolean;
 	routeActor?: { route: import("../shared/BomberRules").BomberRoute; startedAt: number; jammer: boolean };
- bomberSlot?: number;
+	bomberSlot?: number;
 	/** Encounter-local ordinal: unique across initial, delayed and queued escort/ace admissions. */
 	escortSlot?: number;
 	escortEngaged?: boolean;
@@ -93,11 +93,10 @@ export interface Projectile {
 }
 export interface CombatSession {
 	rearmStartedAt?: number;
- rearmEpoch?: number;
- rearmElapsed?: number;
- rearmLatched?: boolean;
- jammerCount?: number;
- landingSent?: boolean;
+	rearmEpoch?: number;
+	rearmElapsed?: number;
+	rearmLatched?: boolean;
+	landingSent?: boolean;
 	landingStartedAt?: number;
 	clearanceProbeAt?: number;
 	terrainClearance?: number;

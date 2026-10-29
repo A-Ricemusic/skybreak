@@ -57,9 +57,9 @@ describe("Dormant engine batch C",()=>{
 		expect(BomberRules.Sample(route,19).escaped).toBe(false);expect(BomberRules.Sample(route,20).escaped).toBe(true);
 	});
 	it("validates route wave budgets, aircraft, livery and airspace",()=>{
-		const wave:FighterArrival={id:"route",trigger:{kind:"time",seconds:1},count:2,role:"escort",scoreRole:"fighter",aircraft:"helicopter",route:{waypoints:[{x:0,y:300,z:0},{x:0,y:300,z:-1000}],speed:50}};
+		const wave:FighterArrival={id:"route",trigger:{kind:"time",seconds:1},count:2,role:"escort",scoreRole:"escort",aircraft:"helicopter",route:{waypoints:[{x:0,y:300,z:0},{x:0,y:300,z:-1000}],speed:50}};
 		const bp=blueprint();bp.phases[0].fighterWaves=[wave];MissionCatalog.ValidatePolicy(bp);
-		for(const invalid of [{...wave,count:7},{...wave,livery:"Bogus" as "Elite"},{...wave,route:{...wave.route!,speed:81}},{...wave,route:{...wave.route!,waypoints:[{x:0,y:300,z:0},{x:999999,y:300,z:0}]}}]) {
+		for(const invalid of [{...wave,count:7},{...wave,aircraft:"transport" as "helicopter"},{...wave,livery:"Bogus" as "Elite"},{...wave,route:{...wave.route!,speed:81}},{...wave,route:{...wave.route!,waypoints:[{x:0,y:300,z:0},{x:999999,y:300,z:0}]}}]) {
 			bp.phases[0].fighterWaves=[invalid];expect(rejects(()=>MissionCatalog.ValidatePolicy(bp))).toBe(true);
 		}
 	});

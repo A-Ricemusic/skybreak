@@ -51,11 +51,11 @@ describe("Batch C runtime paths (Studio lease required to execute)",()=>{
 
 	it("places the uploaded ship hull at the waterline and centres its aim root",()=>{
 		UploadedAssets.Configure({ids:{FuelTanker:1},probe:()=>true,loader:()=>{
-   const container=new Instance("Model"), inner=new Instance("Model"), hull=new Instance("MeshPart");
-   inner.Parent=container;hull.Name=UploadedAssetSpecs.FuelTanker.folder;hull.Size=UploadedAssetSpecs.FuelTanker.authoredSize;
-   hull.Parent=inner;const surface=new Instance("SurfaceAppearance");surface.Parent=hull;return container;
-  }});
-  let ship:Model | undefined;
+			const container=new Instance("Model"), inner=new Instance("Model"), hull=new Instance("MeshPart");
+			inner.Parent=container;hull.Name=UploadedAssetSpecs.FuelTanker.folder;hull.Size=UploadedAssetSpecs.FuelTanker.authoredSize;
+			hull.Parent=inner;const surface=new Instance("SurfaceAppearance");surface.Parent=hull;return container;
+		}});
+		let ship:Model | undefined;
 		try {
 			ship=createGroundTarget({id:"waterline",type:"ship",position:{x:100,y:32,z:200},yaw:90,required:false,scoreRole:"ship"});
 			const visual=ship.GetChildren().find(p=>p.IsA("BasePart") && p.Name!=="Aim") as BasePart;

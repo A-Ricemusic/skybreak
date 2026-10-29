@@ -11,9 +11,9 @@ const PROTECT_DRAIN = 0.55;
 const GUN_WEIGHT = 1.5;
 export interface BlueprintState {
 	rearmActive?: boolean;
- score?: number;
- scorePhaseStarted?: number;
- updateSerial?: number;
+	score?: number;
+	scorePhaseStarted?: number;
+	updateSerial?: number;
 	updateUntil?: number;
 	countdownDeadline?: number;
 	landingElapsed?: number;
@@ -177,14 +177,14 @@ export const BlueprintRunner = {
 		if (s.outcome !== undefined || s.rearmActive || s.landingElapsed !== undefined || !finite(now)) return;
 		s.elapsed=math.max(s.elapsed,now-s.startedAt,0);
 		const threshold=BlueprintRunner.ActivePhase(s)?.scoreThreshold;
-  if (threshold && finite(health) && health<=0) { finish(s,"failed","destroyed"); return; }
-  if(threshold) {
-   s.phaseProgress=math.min(threshold.points,s.score ?? 0);
-   const result=thresholdResult(threshold,s.score ?? 0,s.elapsed-(s.scorePhaseStarted ?? 0));
-   if(result==="failed") finish(s,"failed","timeout");
-   else if(result==="complete") { s.countdownDeadline=undefined; advance(s); }
-   return;
-  }
+		if (threshold && finite(health) && health<=0) { finish(s,"failed","destroyed"); return; }
+		if(threshold) {
+			s.phaseProgress=math.min(threshold.points,s.score ?? 0);
+			const result=thresholdResult(threshold,s.score ?? 0,s.elapsed-(s.scorePhaseStarted ?? 0));
+			if(result==="failed") finish(s,"failed","timeout");
+			else if(result==="complete") { s.countdownDeadline=undefined; advance(s); }
+			return;
+		}
 		if (s.elapsed>=(s.countdownDeadline ?? MissionCatalog.CountdownSeconds(s.blueprint))) finish(s,"failed","timeout");
 		else if (finite(health) && health<=0) finish(s,"failed","destroyed");
 		advanceTeaching(s);

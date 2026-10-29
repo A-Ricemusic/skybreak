@@ -23,10 +23,10 @@ export const TELEMETRY_FIELDS = 29;
 
 export interface TelemetryNumbers {
 	radarJammed?: boolean;
- radarPartial?: boolean;
- jamVisualRange?: number;
- missionPoints?: number;
- terrainClearance?: number;
+	radarPartial?: boolean;
+	jamVisualRange?: number;
+	missionPoints?: number;
+	terrainClearance?: number;
 	missionUpdateSeconds?: number;
 	health: number; speed: number; altitude: number; kills: number; total: number; missiles: number;
 	missileCooldown: number; evadeCooldown: number; lockProgress: number;
@@ -65,7 +65,7 @@ export const TelemetryCodec = {
 		];
 		if (t.terrainClearance !== undefined || t.missionUpdateSeconds !== undefined || t.jamVisualRange !== undefined || t.missionPoints !== undefined) packet.push(t.terrainClearance ?? -1,t.missionUpdateSeconds ?? 0);
 		if(t.jamVisualRange!==undefined || t.missionPoints!==undefined) packet.push(t.jamVisualRange ?? -1);
-  if(t.missionPoints!==undefined) packet.push(t.missionPoints);
+		if(t.missionPoints!==undefined) packet.push(t.missionPoints);
 		return packet;
 	},
 	/**
@@ -82,9 +82,9 @@ export const TelemetryCodec = {
 		into.missileCooldown = n[7]; into.evadeCooldown = n[8]; into.lockProgress = n[9];
 		const flags = n[10];
 		into.missionPoints=FlightMath.IsFinite(n[32]) && n[32]>=0 ? n[32] : undefined;
-  into.radarPartial=flags % 16384 >= 8192;
-  into.jamVisualRange=FlightMath.IsFinite(n[31]) && n[31]>0 ? n[31] : undefined;
-  into.radarJammed = flags % 8192 >= 4096;
+		into.radarPartial=flags % 16384 >= 8192;
+		into.jamVisualRange=FlightMath.IsFinite(n[31]) && n[31]>0 ? n[31] : undefined;
+		into.radarJammed = flags % 8192 >= 4096;
 		into.incoming = flags % 2 >= 1;
 		into.evadeThreat = flags % 4096 >= 2048;
 		into.lockWarning = flags % 4 >= 2;
