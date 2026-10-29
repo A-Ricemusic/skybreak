@@ -1,4 +1,5 @@
 import { ContextActionService, GuiService, Players, RunService, UserInputService, Workspace } from "@rbxts/services";
+import { airspaceWarning } from "../shared/WorldAirspace";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { initialTelemetry } from "../shared/InitialTelemetry";
 import { FlightMath, FlightState } from "../shared/FlightMath";
@@ -522,9 +523,10 @@ export class FlightController {
 	public GetBoundaryWarning(): boolean {
 		const state = this.predictor?.state;
 		if (!this.active || !state) return false;
-		return math.max(math.abs(state.x), math.abs(state.z)) > FlightMath.SoftBoundary - 100
+		return airspaceWarning(state.x, state.z, this.predictor!.airspace, 100)
 			|| state.y > FlightMath.MaxAltitude - 70;
 	}
+	public GetAirspace() { return this.predictor?.airspace; }
 	public GetThrottle(): number { return this.throttle; }
 	/**
 	 * The HUD's touch layout (virtual px), its UIScale, the frame it is drawn in and that root's size (its
@@ -828,7 +830,7 @@ export class FlightController {
 		this.visualFrame = this.aircraft.GetPivot();
 		// The server holds the jet still until "Started", so its pivot is the exact initial state;
 		// the first FlightState packet corrects speed and anything else within 50 ms.
-		this.predictor = FlightPrediction.New(stateFrom(this.visualFrame));
+		this.predictor = FlightPrediction.New(stateFrom(this.visualFrame), missionData.airspace);
 		const camera = Workspace.CurrentCamera;
 		if (camera) {
 			this.previousCamera = { type: camera.CameraType, subject: camera.CameraSubject, frame: camera.CFrame, fov: camera.FieldOfView };

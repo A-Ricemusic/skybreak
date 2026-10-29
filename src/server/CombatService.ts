@@ -2,7 +2,7 @@ import { createPhaseDirector, SpawnOptions } from "./PhaseDirector";
 import { fixedRaiders } from "./PhaseDirectorRules";
 import { CombatSession, Enemy, AirRole, TargetKind } from "./CombatSession";
 export type { CombatSession } from "./CombatSession";
-import { WorldAirspace } from "../shared/WorldAirspace";
+import { airspaceWarning, clampAirSpawn } from "../shared/WorldAirspace";
 import { GameConfig } from "../shared/GameConfig";
 import { CombatBalance } from "../shared/CombatBalance";
 import { AircraftCollision } from "./AircraftCollision";
@@ -107,7 +107,6 @@ const ACE_DAMAGE_BONUS = 2;
 /** Required waves arrive this far out (an approach before the lock); reinforcements from behind come a little closer. */
 const SPAWN_FRONT: [number, number] = [2600, 3200];
 const SPAWN_BEHIND: [number, number] = [2000, 2400];
-const SPAWN_LIMIT = WorldAirspace.spawnLimit;
 /** A retired raider flies for the boundary this long before it is removed. */
 const WITHDRAW_SECONDS = 4;
 /** Ground-avoidance look-ahead for enemy jets, and how often each jet casts it. */
@@ -333,7 +332,7 @@ function sendTelemetry(session: CombatSession): void {
 		kills: sessionRequiredKills(session), total: sessionTotalRequired(session),
 		missiles: session.missiles, missileCooldown: session.missileCooldown, evadeCooldown: EvadeRules.Cooldown(session.evade, session.evadeRemaining),
 		lockProgress: session.lockProgress, incoming, lockWarning, evadeThreat,
-		boundaryWarning: math.max(math.abs(session.state.x), math.abs(session.state.z)) > FlightMath.SoftBoundary,
+		boundaryWarning: airspaceWarning(session.state.x, session.state.z, session.airspace),
 		targetDamageable: target ? canHurt(session, target) : undefined,
 		elapsed: session.elapsed, timeRemaining: sessionTimeRemaining(session),
 		objectiveProgress: objective.objectiveProgress, objectiveTotal: objective.objectiveTotal,
@@ -533,7 +532,7 @@ function beginPlay(session: CombatSession): void {
 	session.stateTime = 0;
 	session.hud = undefined; // the first HUD message after Started is always complete
 	if (session.player.Parent !== Players) { cleanupSession(session); return; }
-	missionState!.FireClient(session.player, { kind: "Started", slot: session.slot, missionId: session.missionId, aircraft: session.aircraft, difficulty: session.difficulty });
+	missionState!.FireClient(session.player, { kind: "Started", slot: session.slot, missionId: session.missionId, aircraft: session.aircraft, airspace: session.airspace, difficulty: session.difficulty });
 	if (refreshSession(session, now)) { sendTelemetry(session); sendFlightState(session); }
 }
 function markTarget(session: CombatSession, enemy: Enemy): void {
@@ -598,7 +597,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		const distance = near + math.random() * (far - near);
 		const offset = forward.mul(math.cos(angle) * distance).add(right.mul(math.sin(angle) * side * distance));
 		const spawn = positionFor(session.state).add(offset);
-		const px = math.clamp(spawn.X, -SPAWN_LIMIT, SPAWN_LIMIT), pz = math.clamp(spawn.Z, -SPAWN_LIMIT, SPAWN_LIMIT);
+		const px = clampAirSpawn(spawn.X, session.airspace), pz = clampAirSpawn(spawn.Z, session.airspace);
 		let py = math.clamp(spawn.Y + 60 + math.random() * 60, 230, 900);
 		// The former horizon is now flyable: clamping XZ alone could put an
 		// arriving wave inside its ridges. Probe scenery + terrain, not actors,
@@ -1201,7 +1200,7 @@ function stepSession(session: CombatSession, dt: number): void {
 	phaseDirector.LaunchDue(session);
 	const from={x:session.state.x,y:session.state.y,z:session.state.z};
 	if (session.inputFresh) { session.inputFresh = false; session.inputSteps = 0; }
-	FlightMath.Step(session.state, session.input, dt);
+	FlightMath.Step(session.state, session.input, dt, session.airspace);
 	// Resolve impacts before navigation, phase completion, enemy fire or missile kills.
 	const hit = AircraftCollision.Sweep(new Vector3(from.x, from.y, from.z), new Vector3(session.state.x, session.state.y, session.state.z), session.collisionParams!);
 	if (hit) {
@@ -1359,7 +1358,7 @@ export const CombatService = {
 			aircraft.PivotTo(frameFor(state));
 			const session: CombatSession = {
 				targetScore: new TargetScore(MissionCatalog.Scoring(missionId)),
-				player, slot, folder, aircraft, state, missionId, lastWindupAt: -math.huge, radioSerial: 0, chatterIndex: 0,
+				player, slot, folder, aircraft, state, missionId, airspace: MissionCatalog.Airspace(missionId), lastWindupAt: -math.huge, radioSerial: 0, chatterIndex: 0,
 				input: { x: 0, y: 0, throttle: FlightMath.CruiseThrottle }, health: 100, kills: 0, elapsed: 0,
 				missiles: MAX_MISSILES, missileCooldown: 0, evadeRemaining: 0, regen: 0, lockProgress: 0,
 				special: SpecialWeapons.New(specialKind),

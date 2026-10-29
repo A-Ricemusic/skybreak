@@ -1,3 +1,4 @@
+import type { MissionAirspacePolicy } from "./MissionPolicy";
 import { WorldAirspace } from "./WorldAirspace";
 import { FlightInput } from "./Types";
 
@@ -90,6 +91,7 @@ function pitchTowardGround(state: FlightState, sign: number, angle: number): voi
 export const FlightMath = {
 	MinSpeed: 15,
 	MaxSpeed: 600,
+	/** Legacy compatibility values; Step uses its session limits. */
 	SoftBoundary: WorldAirspace.soft,
 	HardBoundary: WorldAirspace.hard,
 	StallSpeed: 15,
@@ -258,7 +260,9 @@ export const FlightMath = {
 	 * upright/inverted attitude; only a stall, the airspace edge or
 	 * the opt-in level assist (`input.assist`) move the nose by themselves.
 	 */
-	Step(state: FlightState, input: FlightInput, dt: number): FlightState {
+	Step(state: FlightState, input: FlightInput, dt: number, limits?: MissionAirspacePolicy): FlightState {
+		const soft = limits?.softHalfWidth ?? WorldAirspace.soft;
+		const hard = limits?.hardHalfWidth ?? WorldAirspace.hard;
 		dt = math.clamp(dt, 0, 0.1);
 		const x = FlightMath.ClampInput(input.x);
 		const y = FlightMath.ClampInput(input.y);
@@ -287,10 +291,10 @@ export const FlightMath = {
 			}
 		}
 		const edge = math.max(math.abs(state.x), math.abs(state.z));
-		if (edge > FlightMath.SoftBoundary) {
+		if (edge > soft) {
 			const [fx, , fz] = FlightMath.ForwardOf(state);
 			if (fx * fx + fz * fz > 1e-4) {
-				const recovery = math.clamp((edge - FlightMath.SoftBoundary) / 250, 0, 1);
+				const recovery = math.clamp((edge - soft) / 250, 0, 1);
 				const heading = math.atan2(-fx, -fz);
 				rotateWorld(state, 0, 1, 0, math.clamp(FlightMath.WrapAngle(math.atan2(state.x, state.z) - heading), -recovery * 2.4 * dt, recovery * 2.4 * dt));
 			}
@@ -298,12 +302,12 @@ export const FlightMath = {
 		normalize(state);
 		state.lean += (-x * FlightMath.LeanMax * math.abs(turnFactor) - state.lean) * FlightMath.DampAlpha(5, dt);
 		const [dx, dy, dz] = FlightMath.ForwardOf(state);
-		state.x = math.clamp(state.x + dx * state.speed * dt, -FlightMath.HardBoundary, FlightMath.HardBoundary);
+		state.x = math.clamp(state.x + dx * state.speed * dt, -hard, hard);
 		// Ease outward vertical travel to zero over 600 studs. Never rotate the pilot's
 		// attitude; a loop or dive immediately travels back into the airspace.
 		const ceilingScale = dy > 0 ? math.clamp((FlightMath.MaxAltitude - state.y) / (FlightMath.MaxAltitude - FlightMath.SoftAltitude), 0, 1) : 1;
 		state.y += (dy * state.speed * ceilingScale - stall * 65) * dt;
-		state.z = math.clamp(state.z + dz * state.speed * dt, -FlightMath.HardBoundary, FlightMath.HardBoundary);
+		state.z = math.clamp(state.z + dz * state.speed * dt, -hard, hard);
 		return FlightMath.Sync(state);
 	},
 };

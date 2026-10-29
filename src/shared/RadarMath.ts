@@ -1,3 +1,4 @@
+import type { MissionAirspacePolicy } from "./MissionPolicy";
 import { WorldAirspace } from "./WorldAirspace";
 import { FlightMath } from "./FlightMath";
 
@@ -24,6 +25,7 @@ export interface RadarBlip {
 }
 
 /** Wide tactical range covers an outer district and the central objectives; distant contacts pin to the rim. */
+// Compatibility export for legacy callers; session HUD uses radarRange(..., limits).
 export const RADAR_RANGE = WorldAirspace.radarRange;
 /** Close-in range used while every required contact is inside it (dogfights read better zoomed). */
 export const RADAR_NEAR_RANGE = 1600;
@@ -70,7 +72,7 @@ export function radarHeadingDegrees(yaw: number): number {
 }
 
 /** Zooms in while every required contact (and the objective) sits inside the near range. */
-export function radarRange(playerX: number, playerZ: number, contacts: RadarContact[]): number {
+export function radarRange(playerX: number, playerZ: number, contacts: RadarContact[], limits?: MissionAirspacePolicy): number {
 	let farthest = 0;
 	let any = false;
 	for (const contact of contacts) {
@@ -79,5 +81,6 @@ export function radarRange(playerX: number, playerZ: number, contacts: RadarCont
 		const dx = contact.x - playerX, dz = contact.z - playerZ;
 		farthest = math.max(farthest, math.sqrt(dx * dx + dz * dz));
 	}
-	return any && farthest <= RADAR_NEAR_RANGE * 0.9 ? RADAR_NEAR_RANGE : RADAR_RANGE;
+	const wide = limits?.radarRange ?? WorldAirspace.radarRange;
+	return any && farthest <= RADAR_NEAR_RANGE * 0.9 ? math.min(RADAR_NEAR_RANGE, wide) : wide;
 }

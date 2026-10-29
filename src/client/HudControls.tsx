@@ -159,7 +159,7 @@ function RadarImpl({ rectangle, controller, visible, textSize = 10, minText = 8 
 			let used = 0;
 			if (position && yaw !== undefined) {
 				const contacts = controller.GetRadarContacts();
-				const range = radarRange(position.X, position.Z, contacts);
+				const range = radarRange(position.X, position.Z, contacts, controller.GetAirspace());
 				if (range !== lastRange && rangeRef.current) {
 					lastRange = range;
 					rangeRef.current.Text = range === RADAR_NEAR_RANGE ? "1.6k" : string.format("%.1fk", range / 1000);
