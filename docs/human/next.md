@@ -46,3 +46,7 @@ Before missions 4–5 activation (PR #145 remains dormant/unmerged):
 - Run the compiled Roblox runtime specs (ship waterline/aim centre, rearm abuse/pause, jammer calls and lighting isolation), then inspect rearm camera/skip/clock handoff and searchlight sweep/pause. This pass did not launch Studio or run Roblox Jest.
 
 PR #145 validation (2026-10-29): frozen Bun install and build passed; full offline validation passed: `OFFLINE_LUAU_RESULT passed=730 failed=0`, `MISSION_CATALOG_SNAPSHOT passed=19 failed=0`, Python `Ran 122 tests` / `OK`. Practice/M01/M02 mission data and snapshots are unchanged. Roblox runtime specs compile but were not executed.
+
+## Missions 14–18 specifications — review ready
+
+Mission/world spec pairs are in `docs/specs/missions/m14.md`–`m18.md` and `docs/specs/worlds/m14.md`–`m18.md`, with source coverage in `reference/ledger.md`. Review the observed inventories, unresolved ground subtypes/rank cuts and proposed layouts before implementation; preserve Rusk’s M17 withdrawal and the added M18 duel. Docs only: these missions remain locked and no Studio/Player quality is claimed.
