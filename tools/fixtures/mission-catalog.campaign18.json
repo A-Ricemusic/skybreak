@@ -1373,9 +1373,9 @@
   {
     "act": 3,
     "available": false,
-    "briefing": "Teal's last tape buys the witnesses their voice tonight. Keep the flooded capital's bridges and quay open. Break the defences, then defeat Rusk's four wingmen. Rusk withdraws to sea; he must survive for the final confrontation.",
+    "briefing": "Teal's last tape buys the witnesses their voice tonight. Keep the flooded capital's bridges and quay open. Break the defences, then defeat Rusk's four wingmen, including Vulture Lead. Rusk withdraws to sea; he must survive for the final confrontation.",
     "codename": "In development",
-    "debrief": "The four wingmen are down. Rusk abandoned them and ran to the coastal relay works. The witnesses reach parliament; his own voice is all he has left.",
+    "debrief": "Vulture Lead and the other three wingmen are down. Rusk abandoned them and ran to the coastal relay works. The witnesses reach parliament; his own voice is all he has left.",
     "environment": "farm_overcast",
     "failure": "The witnesses cannot reach parliament. The bridges and quay remain under fire.",
     "ground": [],

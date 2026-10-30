@@ -41,7 +41,6 @@ export const STORY: StoryChapter[] = [
 		line(SERA,"chair","The quartermaster found a case under Teal's bunk. A coffee tin, twelve tapes, and a note: 'For Sera. Not for the net.'","story.c01.b01"),
 		line(TEAL,"recorder","Keep these off the command net. Somebody up there is listening and signing things they shouldn't. If I go quiet, the case goes to Sera. Only Sera.","story.c01.b02"),
 		line(TEAL,"radio","The manifest sends grain drums to a farm with a runway, then five quays on Iron Coast. Nobody ships grain in drums."),
-		line(TEAL,"radio","They call it a farm because a fuel ledger would show the number of aircraft. The silos with no dust on the ladders. Those are the ones.","story.c12.b01"),
 		line(SERA,"chair","There are real houses in that yard. Families who work the siding. I need you to come home with the right number of fires.","story.c12.b02"),
 		line(SERA,"wide","Iron Coast is a hundred miles of our own shoreline. Whoever this is, they're not invading. They're already home.","story.c01.b04"),
 		line(TRAINEE,"sky","Then I'll look at that farm. From above, before anyone can tidy it up.")),
@@ -58,8 +57,8 @@ export const STORY: StoryChapter[] = [
 		line(SERA,"wide","The radar's memory names that orchard. Three days later somebody ordered it evacuated. Now there are patrols firing on the evacuation trucks.","story.c04.b01"),
 		line(SERA,"chair","They're not shooting at farmers. They're shooting at a seed tin. That's how badly someone wants Teal's tape back.","story.c04.b02"),
 		line(MARSHAL,"black","...three officers at Varda are being reassigned tonight. Their names are already off the roster. Nobody will ask. Nobody ever asks.","story.c04.b03"),
-		line(TEAL,"radio","One courier carries the frequency book high over the orchard hills. His radar guides the patrols onto the trucks."),
-		line(SERA,"evidence","Five escorts above the cloud line. Bring the high flyers down and the families have a road out."),
+		line(TEAL,"radio","The couriers carry patrol routes high over the orchard hills. Their crews guide the guns onto the trucks."),
+		line(SERA,"radio","Three transports above the hills, with escorts hidden by two jammers. Find the transports and the families have a road out."),
 		line(TRAINEE,"sky","Those trucks are carrying somebody who asked his name. They get out.","story.c04.b05")),
 	chapter(4,"Fuel under grain","farm","night",
 		line(SERA,"wide","The convoy made it. The old woman's granddaughter drove the lead truck. She marked three silos on the map with her thumb. 'Those smell wrong.'","story.c05.b00"),
@@ -82,7 +81,7 @@ export const STORY: StoryChapter[] = [
 		line(MARSHAL,"black","Declare the emergency first. Find the reason after. In a year, nobody has asked me for the reason.","story.c10.b00"),
 		line(SERA,"evidence","The harbour traffic gave us Kiro's signing key. A key alone is a rumour. We need Lira and Merel's logs with the same signature."),
 		line(TEAL,"radio","Lira and Merel sit on opposite ridges and hate each other's weather. Lira lies, Merel repeats her. The west ridge still hears the farms.","story.c10.b02"),
-		line(SERA,"wide","Three logs, one signature. If his words go out from the west ridge, they reach the people who hid him.","story.c10.b03"),
+		line(SERA,"wide","Three logs, one signature. Send them home to Varda. Its island transmitter can reach the farms without borrowing his voice."),
 		line(TEAL,"radio","I came home through the pass. Not the pretty way. The way you take when you don't want to be seen coming home."),
 		line(TRAINEE,"sky","His own words, in his own voice, on their own relay. He'd have liked that.","story.c10.b05")),
 	chapter(7,"The loyalist window","relay","day",
@@ -124,7 +123,7 @@ export const STORY: StoryChapter[] = [
 		line(SERA,"chair","The signatures, his tapes, a living witness on paper. If that plane falls, command gets to call him a deserter again."),
 		line(TRAINEE,"sky","Then it doesn't fall.")),
 	chapter(13,"Aurora archive","relay","night",
-		line(SERA,"wide","His river line is broken. The crown station on the ice coast still talks under the aurora. He has sent missiles to silence its dish."),
+		line(SERA,"wide","The evidence plane is clear. Its papers point to the crown station on the ice coast. Missiles are closing on the dish; we need its archive intact."),
 		line(TEAL,"radio","At the crown station I left the order that started all of this. The first one. With his real signature, before he learned to use dead men's names.","story.c16.b01"),
 		line(TEAL,"recorder","I didn't take it with me. I didn't trust myself to get home. I trusted the dish.","story.c16.b02"),
 		line(SERA,"chair","He didn't trust himself to get home. He said it out loud, to a tape, and flew anyway. I keep rewinding that part.","story.c16.b03"),
@@ -132,7 +131,7 @@ export const STORY: StoryChapter[] = [
 	chapter(14,"The city in darkness","city","night",
 		line(LOG,"evidence","ARCHIVE RECOVERED. ORDER 0001. 'Declare regional emergency. Suspend parliament. Assume air command.' Signed: RUSK, AIR MARSHAL.","story.c17.b00"),
 		line(SERA,"wide","Rusk. He gave the speech at Teal's wing ceremony. He told us the sky belongs to whoever is willing to be up in it.","story.c17.b01"),
-		line(SERA,"wide","The evidence plane is clear. Marines have the case. Now we have his signature too. And the city still hears nothing but him."),
+		line(SERA,"wide","Marines have the paper copy. Now the archive gives us his signature too. And the city still hears nothing but him."),
 		line(RUSK,"black","Citizens. Parliament has fled. Rebel aircraft are over the harbour. Stay inside. Trust the lights. Trust my voice.","story.c20.b01"),
 		line(TEAL,"radio","One tower, one voice, one emergency on repeat. He didn't build it to tell anyone anything. He built it so nothing else gets in.","story.c20.b02"),
 		line(SERA,"evidence","The broadcast relay sits in a block of apartments. He chose that too. The canal is the only dark line through the city.","story.c20.b03"),
@@ -140,7 +139,7 @@ export const STORY: StoryChapter[] = [
 	chapter(15,"The dawn landing","city","dawn",
 		line(RUSK,"black","Trainee. This is Rusk. Teal flew my wing the winter the coast starved while parliament debated. He had talent too. Ask the pass how far it got him."),
 		line(SERA,"chair","That's the first time he's used his own name. He wants you to know he's a person. Don't let him.","story.c21.b03"),
-		line(TRAINEE,"sky","He flew your wing. Then you hunted him at night with your lights off. I'll remember both.","story.c21.b05"),
+		line(TRAINEE,"sky","He flew your wing. Vulture Lead hunted him for you. I'll remember who gave the order."),
 		line(SERA,"wide","A loyalist column is crossing the dry coast. Parliament is coming home by road. The ruined town ahead of them still has guns."),
 		line(TEAL,"radio","Don't fly for the people giving orders. Fly for the people who have to live beneath them. The man on the net is weather.","story.c24.b01"),
 		line(SERA,"chair","He recorded that one at two in the morning. I can hear the hangar heater behind him. I could find that hangar in the dark by that sound.","story.c24.b02"),
@@ -152,7 +151,7 @@ export const STORY: StoryChapter[] = [
 		line(TEAL,"black","Two taps. Sparrow, it's me. Lead is on my tail and I'm out of altitude, so I'm going to stay in the pass a while. The seed trucks need ten minutes.","story.c25.b02"),
 		line(TEAL,"black","I flew that order knowing the price. The tapes are so you never have to take my word for any of it. This part I'm choosing myself.","story.c25.b03"),
 		line(TEAL,"black","Fly the pattern too low and too fast. Nobody ever fixed it. Good. The sky will...","story.c25.b04"),
-		line(SERA,"chair","Witnesses reach parliament tonight. Keep the bridges and quay open. He's flying with his own wing: five of them over the capital."),
+		line(SERA,"chair","Witnesses reach parliament tonight. Keep the bridges and quay open. Rusk leads four wingmen over the capital. Vulture Lead is one of them."),
 		line(SERA,"evidence","I've amended the record myself. 'Aircraft lost with pilot. KILLED, NOT DESERTED.' Command can court-martial the paperwork.","story.c25.b06"),
 		line(TRAINEE,"sky","Ten minutes. He bought ten minutes. I'm going to go and spend them.","story.c25.b07")),
 	chapter(17,"Broken relay","relay","storm",
@@ -177,7 +176,7 @@ export function storyFor(id:number): StoryChapter { assert(id%1===0 && id>=0 && 
 export function chapterBeforeMission(id:number): number { assert(id%1===0 && id>=0 && id<=18,"Invalid mission"); return math.max(0,id-1); }
 /** Chapters reachable with the current mission release flags; finale remains dormant. */
 export function reachableStoryChapters(): number[] { return [0,1,2]; }
-/** D-030 Q8: opening reprise on M1 replays; retries and practice replays retain seen semantics. */
-export function shouldPlayChapter(missionId:number,seen:number[] | undefined,completed:boolean): boolean {
- return (missionId===1 && completed) || !(seen?.includes(chapterBeforeMission(missionId)) ?? false);
+/** D-030 Q8: opening reprise on completed M1 launches from the mission menu only. Retry/Next honour seen flags. */
+export function shouldPlayChapter(missionId:number,seen:number[] | undefined,completed:boolean,fromMissionMenu:boolean): boolean {
+ return (missionId===1 && completed && fromMissionMenu) || !(seen?.includes(chapterBeforeMission(missionId)) ?? false);
 }

@@ -6,13 +6,13 @@ import {STORY} from "../shared/RelayStory";
 describe("evidence documents",()=>{
 	it("gives every chapter with an evidence shot a document; chapter 3's roster is the one extra, on the chart behind the radio",()=>{
 		const withEvidence=new Set(chaptersWithEvidence());
-		expect(withEvidence.size()>=10).toBe(true);
+		expect(withEvidence.size()).toBe(12);
 		for(const chapter of STORY){
 			const doc=documentFor(chapter.id);
 			if(withEvidence.has(chapter.id) || chapter.id===3)expect(doc!==undefined && doc.size()>0).toBe(true);
 			else expect(doc).toBeUndefined();
 		}
-		expect(withEvidence.has(3)).toBe(true);
+		expect(withEvidence.has(3)).toBe(false);
 		expect(documentFor(99)).toBeUndefined();
 	});
 	it("keeps every document to six ASCII lines of at most 28 characters",()=>{

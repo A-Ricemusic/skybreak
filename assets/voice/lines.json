@@ -94,15 +94,6 @@
   {
    "id": "story.c01.b04",
    "kind": "story",
-   "speaker": "TEAL",
-   "voice": "JBFqnCBsd6RMkjVDRZzb",
-   "tape": true,
-   "text": "They call it a farm because a fuel ledger would show the number of aircraft. The silos with no dust on the ladders. Those are the ones.",
-   "spoken": "They call it a farm because a fuel ledger would show the number of aircraft. The silos with no dust on the ladders. Those are the ones."
-  },
-  {
-   "id": "story.c01.b05",
-   "kind": "story",
    "speaker": "SERA",
    "voice": "EXAVITQu4vr4xnSDxMaL",
    "tape": false,
@@ -110,7 +101,7 @@
    "spoken": "There are real houses in that yard. Families who work the siding. I need you to come home with the right number of fires."
   },
   {
-   "id": "story.c01.b06",
+   "id": "story.c01.b05",
    "kind": "story",
    "speaker": "SERA",
    "voice": "EXAVITQu4vr4xnSDxMaL",
@@ -119,7 +110,7 @@
    "spoken": "Iron Coast is a hundred miles of our own shoreline. Whoever this is, they're not invading. They're already home."
   },
   {
-   "id": "story.c01.b07",
+   "id": "story.c01.b06",
    "kind": "story",
    "speaker": "TRAINEE",
    "voice": "SAz9YHcvj6GT2YYXdXww",
@@ -232,8 +223,8 @@
    "speaker": "TEAL",
    "voice": "JBFqnCBsd6RMkjVDRZzb",
    "tape": true,
-   "text": "One courier carries the frequency book high over the orchard hills. His radar guides the patrols onto the trucks.",
-   "spoken": "One courier carries the frequency book high over the orchard hills. His radar guides the patrols onto the trucks."
+   "text": "The couriers carry patrol routes high over the orchard hills. Their crews guide the guns onto the trucks.",
+   "spoken": "The couriers carry patrol routes high over the orchard hills. Their crews guide the guns onto the trucks."
   },
   {
    "id": "story.c03.b05",
@@ -241,8 +232,8 @@
    "speaker": "SERA",
    "voice": "EXAVITQu4vr4xnSDxMaL",
    "tape": false,
-   "text": "Five escorts above the cloud line. Bring the high flyers down and the families have a road out.",
-   "spoken": "Five escorts above the cloud line. Bring the high flyers down and the families have a road out."
+   "text": "Three transports above the hills, with escorts hidden by two jammers. Find the transports and the families have a road out.",
+   "spoken": "Three transports above the hills, with escorts hidden by two jammers. Find the transports and the families have a road out."
   },
   {
    "id": "story.c03.b06",
@@ -421,8 +412,8 @@
    "speaker": "SERA",
    "voice": "EXAVITQu4vr4xnSDxMaL",
    "tape": false,
-   "text": "Three logs, one signature. If his words go out from the west ridge, they reach the people who hid him.",
-   "spoken": "Three logs, one signature. If his words go out from the west ridge, they reach the people who hid him."
+   "text": "Three logs, one signature. Send them home to Varda. Its island transmitter can reach the farms without borrowing his voice.",
+   "spoken": "Three logs, one signature. Send them home to Varda. Its island transmitter can reach the farms without borrowing his voice."
   },
   {
    "id": "story.c06.b05",
@@ -736,8 +727,8 @@
    "speaker": "SERA",
    "voice": "EXAVITQu4vr4xnSDxMaL",
    "tape": false,
-   "text": "His river line is broken. The crown station on the ice coast still talks under the aurora. He has sent missiles to silence its dish.",
-   "spoken": "His river line is broken. The crown station on the ice coast still talks under the aurora. He has sent missiles to silence its dish."
+   "text": "The evidence plane is clear. Its papers point to the crown station on the ice coast. Missiles are closing on the dish; we need its archive intact.",
+   "spoken": "The evidence plane is clear. Its papers point to the crown station on the ice coast. Missiles are closing on the dish; we need its archive intact."
   },
   {
    "id": "story.c13.b01",
@@ -799,8 +790,8 @@
    "speaker": "SERA",
    "voice": "EXAVITQu4vr4xnSDxMaL",
    "tape": false,
-   "text": "The evidence plane is clear. Marines have the case. Now we have his signature too. And the city still hears nothing but him.",
-   "spoken": "The evidence plane is clear. Marines have the case. Now we have his signature too. And the city still hears nothing but him."
+   "text": "Marines have the paper copy. Now the archive gives us his signature too. And the city still hears nothing but him.",
+   "spoken": "Marines have the paper copy. Now the archive gives us his signature too. And the city still hears nothing but him."
   },
   {
    "id": "story.c14.b03",
@@ -862,8 +853,8 @@
    "speaker": "TRAINEE",
    "voice": "SAz9YHcvj6GT2YYXdXww",
    "tape": false,
-   "text": "He flew your wing. Then you hunted him at night with your lights off. I'll remember both.",
-   "spoken": "He flew your wing. Then you hunted him at night with your lights off. I'll remember both."
+   "text": "He flew your wing. Vulture Lead hunted him for you. I'll remember who gave the order.",
+   "spoken": "He flew your wing. Vulture Lead hunted him for you. I'll remember who gave the order."
   },
   {
    "id": "story.c15.b03",
@@ -961,8 +952,8 @@
    "speaker": "SERA",
    "voice": "EXAVITQu4vr4xnSDxMaL",
    "tape": false,
-   "text": "Witnesses reach parliament tonight. Keep the bridges and quay open. He's flying with his own wing: five of them over the capital.",
-   "spoken": "Witnesses reach parliament tonight. Keep the bridges and quay open. He's flying with his own wing: five of them over the capital."
+   "text": "Witnesses reach parliament tonight. Keep the bridges and quay open. Rusk leads four wingmen over the capital. Vulture Lead is one of them.",
+   "spoken": "Witnesses reach parliament tonight. Keep the bridges and quay open. Rusk leads four wingmen over the capital. Vulture Lead is one of them."
   },
   {
    "id": "story.c16.b06",
@@ -1357,8 +1348,8 @@
    "speaker": "SERA",
    "voice": "EXAVITQu4vr4xnSDxMaL",
    "tape": false,
-   "text": "SERA: Five aces above the capital. Rusk is leading them himself.",
-   "spoken": "Five aces above the capital. Rusk is leading them himself."
+   "text": "SERA: Rusk leads four wingmen. Vulture Lead is back over the capital.",
+   "spoken": "Rusk leads four wingmen. Vulture Lead is back over the capital."
   },
   {
    "id": "radio.m17.story.2",
@@ -1480,8 +1471,8 @@
   {
    "id": "radio.m03.p3.landing1",
    "kind": "radio",
-   "speaker": "SERA",
-   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "speaker": "RIM TOWER",
+   "voice": "pFZP5JQG7iQjIQuC4Bku",
    "tape": false,
    "text": "RIM TOWER: Trainee, gear check. Cleared to land, runway three-six.",
    "spoken": "Trainee, gear check. Cleared to land, runway three-six."
@@ -1489,8 +1480,8 @@
   {
    "id": "radio.m03.p3.landing2",
    "kind": "radio",
-   "speaker": "SERA",
-   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "speaker": "RIM TOWER",
+   "voice": "pFZP5JQG7iQjIQuC4Bku",
    "tape": false,
    "text": "RIM TOWER: Runway in sight. You're on the centreline.",
    "spoken": "Runway in sight. You're on the centreline."
@@ -1498,8 +1489,8 @@
   {
    "id": "radio.m03.p3.landing3",
    "kind": "radio",
-   "speaker": "SERA",
-   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "speaker": "RIM TOWER",
+   "voice": "pFZP5JQG7iQjIQuC4Bku",
    "tape": false,
    "text": "RIM TOWER: Short final. Glide path is good, hold it there.",
    "spoken": "Short final. Glide path is good, hold it there."
@@ -1507,8 +1498,8 @@
   {
    "id": "radio.m03.p3.landing4",
    "kind": "radio",
-   "speaker": "SERA",
-   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "speaker": "RIM TOWER",
+   "voice": "pFZP5JQG7iQjIQuC4Bku",
    "tape": false,
    "text": "RIM TOWER: Touchdown. Nice and gentle.",
    "spoken": "Touchdown. Nice and gentle."
@@ -1516,8 +1507,8 @@
   {
    "id": "radio.m03.p3.landing5",
    "kind": "radio",
-   "speaker": "SERA",
-   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "speaker": "RIM TOWER",
+   "voice": "pFZP5JQG7iQjIQuC4Bku",
    "tape": false,
    "text": "RIM TOWER: Welcome home. Sera wants that film before you unstrap.",
    "spoken": "Welcome home. Sera wants that film before you unstrap."

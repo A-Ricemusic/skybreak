@@ -8,7 +8,7 @@ The new 18-mission campaign is live in Roblox Player through the automatic pipel
 
 Mission 2 became playable in #143 after its dormant world (#140) and engine batch A (#138). It unlocks after mission 1 and preserves mission 1 score breakdowns through completion, replays and save reloads. The publish workflow returned place version 92. No agent Player test is claimed.
 
-Mission 3 merged in [#147](https://github.com/A-Ricemusic/skybreak/pull/147) and is live by pipeline convention; no new Player test is claimed. Missions 4–5 remain in review (#149/#148). This unmerged story PR remaps all 18 chapters and the finale, prepares future mission text and a recording manifest. Studio verification and new audio are pending; see [routing audit](../specs/story/routing-audit.md).
+Mission 3 merged in [#147](https://github.com/A-Ricemusic/skybreak/pull/147) and is live by pipeline convention; no new Player test is claimed. Missions 4–5 remain in review (#149/#148). The story remap (#159) aligns all 18 chapters and the finale, with future mission text and a recording manifest. Studio verification and new audio are pending; see [routing audit](../specs/story/routing-audit.md).
 
 The mission 3 PR (#147) also adds a shared world gate: after any sortie the world is cleared in the background and the next launch waits, queued, until that finishes (D-067). Provisional mission 3 decisions are D-061–D-067 in [Decisions](decisions.md).
 

@@ -94,10 +94,13 @@ describe("Released 18-mission campaign",()=>{
  it("maps every mission to D-030 and keeps the closing chapter after M18",()=>{
   const titles: string[] = ["A voice in the static", "The sealed case", "An unlisted station", "The orchard witnesses", "Fuel under grain", "Military quays", "Two ridges", "The loyalist window", "The frigate ring", "Walking the storm", "High crossing", "Vulture Two", "The evidence launch", "Aurora archive", "The city in darkness", "The dawn landing", "The last fracture", "Broken relay", "A clear frequency"];
   expect(chapterBeforeMission(0)).toBe(0);
-  expect(shouldPlayChapter(0,[0],true)).toBe(false);
-  expect(shouldPlayChapter(1,[0],false)).toBe(false);
-  expect(shouldPlayChapter(1,[0],true)).toBe(true);
-  expect(shouldPlayChapter(3,[2],true)).toBe(false);
+  expect(shouldPlayChapter(0,[0],true,true)).toBe(false);
+  expect(shouldPlayChapter(1,[0],false,true)).toBe(false);
+  expect(shouldPlayChapter(1,[0],true,true)).toBe(true);
+  expect(shouldPlayChapter(1,[0],true,false)).toBe(false); // Retry after death in completed M1
+  expect(shouldPlayChapter(1,[0],false,false)).toBe(false);
+  expect(shouldPlayChapter(3,[],false,false)).toBe(true);
+  expect(shouldPlayChapter(3,[2],true,true)).toBe(false);
   for(let id=1;id<=18;id++) { expect(chapterBeforeMission(id)).toBe(id-1); expect(STORY[chapterBeforeMission(id)].title).toBe(titles[id-1]); }
   expect(STORY[18].title).toBe("A clear frequency");
   for(const c of STORY) {
@@ -106,6 +109,7 @@ describe("Released 18-mission campaign",()=>{
   }
   for(const id of [19,26,27]) { expect(pcall(()=>storyFor(id))[0]).toBe(false); }
   expect(STORY[5].beats[0].text.find("got clear of Vulture Lead")[0]!==undefined).toBe(true);
+  expect(STORY[16].beats[5].text.find("Vulture Lead is one of them")[0]!==undefined).toBe(true);
   expect(STORY[17].beats[0].text.find("left his wingmen")[0]!==undefined).toBe(true);
  });
  it("normalises numeric cutscene compatibility without touching retired stores",()=>{

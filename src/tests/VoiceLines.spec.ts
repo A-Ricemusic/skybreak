@@ -68,7 +68,8 @@ describe("shipped voice table", () => {
 			if (beat.recordingId === undefined) { expect(clip).toBeUndefined(); pending++; }
 			else { const cue=VOICE_CUES[beat.recordingId]; expect(cue.text).toBe(beat.text); expect(cue.speaker).toBe(speakerStyle(beat.speaker).name === "MARSHAL" ? "RUSK" : speakerStyle(beat.speaker).name === "FLIGHT LOG" ? "LOG" : speakerStyle(beat.speaker).name === "RECORDER 7-T" ? "RECORDER" : speakerStyle(beat.speaker).name); expect(clip).toBeDefined(); recorded++; }
 		});
-		expect(recorded>50 && pending>20).toBe(true);
+		expect(recorded).toBe(78);
+		expect(pending).toBe(44);
 	});
 	it("maps catalog radio except explicitly subtitle-only M1 safety instructions", () => {
 		const texts = radioTexts();
