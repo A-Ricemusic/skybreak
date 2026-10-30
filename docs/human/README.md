@@ -1,14 +1,14 @@
 # SKYBREAK redesign dashboard
 
-Last updated: 2026-10-29, against `main` at `d4b8373`.
+Last updated: 2026-10-29, against `main` at `088fbfc`.
 
 The new 18-mission campaign is live in Roblox Player through the automatic pipeline. **Practice flight, mission 1 and mission 2 are playable; missions 3 to 18 are locked.** The redesign rebuilds missions and worlds to match Ace Combat 04's structure and pacing while keeping the Broken Relay story and original shipped expression. Mission 2 is ready for the owner's beta test; see [Next](next.md).
 
-[Play SKYBREAK](https://www.roblox.com/games/112911685457826)
+[Per-level status and test checklist](levels.html) · [Play SKYBREAK](https://www.roblox.com/games/112911685457826)
 
 Mission 2 became playable in #143 after its dormant world (#140) and engine batch A (#138). It unlocks after mission 1 and preserves mission 1 score breakdowns through completion, replays and save reloads. The publish workflow returned place version 92. No agent Player test is claimed.
 
-Missions 3–5 are in progress. Mission 3's world (#139) and engine batch B (#141) are merged and dormant; its mission-data PR is in progress. Mission 4–5 assets are merged and wired but dormant (#137, #142); their worlds are merged and dormant (#144) and engine batch C is in review in #145. The full Roblox Jest suite passed in Studio on #142 (808/808), but mission 3–5 visual integration and Player quality are not established.
+Missions 3–5 are in review: [#147](https://github.com/A-Ricemusic/skybreak/pull/147), [#149](https://github.com/A-Ricemusic/skybreak/pull/149), and [#148](https://github.com/A-Ricemusic/skybreak/pull/148). Their worlds (#139/#144) and engines (#141/#145) are merged but dormant. They remain locked on main. Latest publish: place version **94** at `088fbfc`; this does not activate missions 3–5. See the per-level page for reported Studio evidence, open findings and beta checklists. No agent Player test is claimed.
 
 ## Mission progress
 
@@ -16,9 +16,9 @@ Missions 3–5 are in progress. Mission 3's world (#139) and engine batch B (#14
 |---|---|---|---|---|---|---|---|---|
 | 1 | Sitting Duck | 0:06:30–0:11:24 | 4.9 min | Yes | Yes | Yes | Yes | Earlier tuning; current #134 tuning awaits feedback |
 | 2 | Imminent Threat | 0:15:38–0:22:34 | 6.9 min | Yes | Yes | Yes (#143) | Yes | — |
-| 3 | The Northern Eye | 0:26:41–0:34:24 | 7.7 min | Yes | Yes | In progress: dormant world (#139) and engine batch B (#141) merged; mission-data PR in progress | No | — |
-| 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | Yes | In progress: assets wired (#142) and world (#144) merged, dormant; engine batch C #145 in review | No | — |
-| 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | Yes | In progress: assets wired (#142) and world (#144) merged, dormant; engine batch C #145 in review | No | — |
+| 3 | The Northern Eye | 0:26:41–0:34:24 | 7.7 min | Yes | Yes | In review #147; world #139 and engine #141 merged, dormant | No | — |
+| 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | Yes | In review #149; assets #142, world #144 and engine #145 merged, dormant | No | — |
+| 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | Yes | In review #148; assets #142, world #144 and engine #145 merged, dormant | No | — |
 | 6 | Invincible Fleet | 1:03:01–1:20:00 | 17.0 min | Yes | — | — | — | — |
 | 7 | Deep Strike | 1:22:13–1:35:49 | 13.6 min | Yes | — | — | — | — |
 | 8 | Shattered Skies | 1:39:16–1:52:39 | 13.4 min | Yes | — | — | — | — |
@@ -45,4 +45,4 @@ Missions 3–5 are in progress. Mission 3's world (#139) and engine batch B (#14
 
 The five mission 4–5 assets (heavy transport, radar jammer, fuel tanker ship, attack helicopter and Vanta v2 elite revision 3) are uploaded and moderation-approved. PR #142 wires them but leaves them unused until missions 4–5. Studio inspection on 2026-10-29 confirmed -Z forward, +Y up and plausible scale beside the heavy bomber, tanker waterline at sea level with `groundOffset=16`, helicopter port tail rotor and both configured rotor hubs, and elite orientation matching regular Vanta v2. All orientation corrections remain zero. [Screenshots and measured results](../qa/orientation/2026-10-29/README.md). Roblox Jest: 808 passed / 0 failed across 80 suites after rebase onto main (#139/#141). No Player test was performed.
 
-PR #145 review fixes remain dormant and unmerged. #142 is merged; approved elite revision 3 (10/10) is uploaded as `139083376207373`. #144 is now merged; its world owns M05 environment and exports light anchors. See Next for the precise remaining presentation work.
+PR #145 is merged at `088fbfc` and remains dormant. #142 is merged; approved elite revision 3 (10/10) is uploaded as `139083376207373`. #144 is now merged; its world owns M05 environment and exports light anchors. See Next for the precise remaining presentation work.
