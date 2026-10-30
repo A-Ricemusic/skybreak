@@ -14,6 +14,8 @@ The mission 3 PR (#147) also adds a shared world gate: after any sortie the worl
 
 Engine plan for missions 6–18 and batch D1 (player gun, optional finite ammunition with rearm refills) are in review; D1 is dormant, so practice and missions 1–5 are unchanged (D-150–D-155). See [Next](next.md) and the [engine plan](../specs/engine/missions-06-18-plan.md).
 
+D3 is an unmerged engine stack above D2: dormant artillery/canyon escape, area footprint and M7 target types (D-240–D-244). No mission unlock or Player quality claim. See [Next](next.md).
+
 Audio policy update (D-142, owner, 2026-10-30): no further audio uploads; story continues in subtitles beyond existing approved voices and changed lines stay silent. The rejected bank is preserved at `evidence/voicebank01-rejected` (`ff4a78b`); [full incident case](../qa/audio-rejections/2026-10-30-voicebank01.md). This documentation adds no gameplay changes or Player verification.
 
 ## Mission progress

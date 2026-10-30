@@ -1,3 +1,4 @@
+import { CanyonEscape, validateBatchD3 } from "./EngineBatchD3";
 import { NightLighting, validateNightLighting } from "./NightLighting";
 import { SortieArmament, validateArmament } from "./SortieArmament";
 import { ScoreThreshold, RadarJamming, RearmPlan, validateBatchC } from "./EngineBatchC";
@@ -113,6 +114,7 @@ export interface PhaseExecution {
 }
 
 export interface MissionPhaseBlueprint {
+	canyonEscape?: CanyonEscape;
 	scoreThreshold?: ScoreThreshold;
 	jamming?: RadarJamming;
 	rearm?: RearmPlan;
@@ -286,7 +288,8 @@ for (let index = -1; index < MISSIONS.size(); index++) {
 	if(blueprint.nightLighting) validateNightLighting(blueprint.nightLighting, (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 		validateBatchC(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateArmament(blueprint.armament, expandPhases(blueprint.phases).some(phase => phase.rearm?.gun === true));
-		validateBatchB(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
+		validateBatchD3(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth, blueprint.terrainRelativeWarnings === true);
+	validateBatchB(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateCampaignEncounters(blueprint, expandPhases(blueprint.phases), blueprint.airspace ?? LEGACY_MISSION_AIRSPACE, blueprint.scoring ?? LEGACY_MISSION_SCORING);
 	assert(blueprint.phases.size() >= 1, `Mission ${id} must have at least one phase`);
 	assert(blueprint.failure.size() > 0 && blueprint.failure.size() <= 120, `Mission ${id} needs a short failure outcome`);
@@ -437,6 +440,7 @@ export const MissionCatalog = {
 		if(blueprint.nightLighting) validateNightLighting(blueprint.nightLighting, (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateBatchC(expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint).hardHalfWidth);
 	validateArmament(blueprint.armament, expandPhases(blueprint.phases).some(phase => phase.rearm?.gun === true));
+	validateBatchD3(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth, blueprint.terrainRelativeWarnings === true);
 	validateBatchB(expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint).hardHalfWidth);
 		assert(blueprint.phases.size()>0,"Mission needs a phase");
 		validateCampaignEncounters(blueprint, expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint), MissionCatalog.Scoring(blueprint));

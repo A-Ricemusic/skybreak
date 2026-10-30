@@ -1,3 +1,4 @@
+import { AreaAttack, validateAreaAttack } from "./EngineBatchD3";
 // Engine batch D1: the player gun and opt-in finite sortie ammunition.
 // Pure rules shared by the server (authoritative) and the HUD (presentation).
 // A mission without `armament` keeps today's sortie exactly: no gun, an eight-missile
@@ -15,7 +16,7 @@ export interface SortieStock {
 	/** Special charges for the sortie; absent keeps the special's own charge count (still without recharge). */
 	specialCharges?: number;
 }
-export interface SortieArmament { gun?: GunFit; stock?: SortieStock; /** Hull-only sea-skimming XLAA mode. */ antiShip?: true }
+export interface SortieArmament { gun?: GunFit; stock?: SortieStock; /** Hull-only sea-skimming XLAA mode. */ antiShip?: true; /** Converts the selected 4AAM into a ground footprint. */ areaAttack?: AreaAttack }
 /** Which stocks a rearm restores; `gun` absent follows `missiles`. */
 export interface RefillFlags { missiles: boolean; special: boolean; gun?: boolean }
 export interface Refill { missiles?: number; special?: SpecialState; gunRounds?: number }
@@ -34,7 +35,8 @@ function integer(value: unknown, low: number, high: number): boolean {
 export function validateArmament(armament: SortieArmament | undefined, rearmGun: boolean): void {
 	if (armament === undefined) { assert(!rearmGun, "Rearm gun refill needs a fitted gun"); return; }
 	assert(typeIs(armament, "table"), "Invalid armament");
-	assert(armament.gun !== undefined || armament.stock !== undefined || armament.antiShip !== undefined, "Armament must fit a gun, finite stocks or anti-ship mode");
+	assert(armament.gun !== undefined || armament.stock !== undefined || armament.antiShip !== undefined || armament.areaAttack !== undefined, "Armament must fit a gun, finite stocks or anti-ship mode");
+	if (armament.areaAttack !== undefined) { validateAreaAttack(armament.areaAttack); assert(!armament.antiShip,"Choose one special conversion"); }
 	assert(armament.antiShip === undefined || armament.antiShip === true, "Invalid anti-ship fit");
 	if (armament.gun !== undefined) assert(typeIs(armament.gun, "table") && integer(armament.gun.rounds, 1, GUN_ROUNDS_MAX), "Invalid gun rounds");
 	else assert(!rearmGun, "Rearm gun refill needs a fitted gun");
