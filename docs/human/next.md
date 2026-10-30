@@ -38,6 +38,8 @@ Most useful feedback: whether the base is easy to find and read; whether the par
 
 ## Later
 
+- Mission and world specs for 10–13 are ready for review: [M10](../specs/missions/m10.md), [M11](../specs/missions/m11.md), [M12](../specs/missions/m12.md), [M13](../specs/missions/m13.md), with companion world specs. Footage-backed clocks, debriefs, target counts and Broken Relay chapter fit are recorded; unresolved full rosters, exact rank cuts and measured layouts remain explicit. Specs only; no mission activation or Player verification.
+
 Continue one mission at a time after owner feedback. Before the finale, remap the final story chapter and retire leftover code keyed to the old 27-mission campaign. Mission 18 retains the planned one-on-one Rusk duel (D-031). Non-blocking polish remains: terrain and shoreline presentation, a code formatter, and dedicated menu/briefing/HUD/results specifications.
 
 Before missions 4–5 activation (PR #145 remains dormant/unmerged):
