@@ -29,9 +29,7 @@ export const mission: MissionBlueprint = {
  allies:{count:2,model:"Kestrel",callsignPrefix:"LANTERN",creditPlayerKills:false,allowRequiredTargets:false,
  formation:[{x:-180,y:20,z:160},{x:180,y:20,z:160}]},
  primary:"Destroy all three transports before they escape",
- briefing:"Three high-flying couriers are guiding patrols onto the evacuation trucks below the Teklan orchard. Their escorts are hiding behind two airborne jammers. Find the aircraft by eye; destroy the jammers to restore radar. All three transports must fall before they reach the harbour route. The jammers and guards are optional targets.",
- debrief:"The three couriers are down. The patrols have lost their eyes over the orchard. Sera can move the evacuation trucks again.",
- failure:"The courier screen held. Patrols still have eyes on the evacuation road.",
+ briefing:MISSION_STORY_TEXT[4].briefing,debrief:MISSION_STORY_TEXT[4].debrief,failure:MISSION_STORY_TEXT[4].failure,
  ground:[],phases:[{
  kind:"required_air",count:3,label:"Intercept three transports",
  beat:"SERA: High flyers ahead. Break their jammers to get radar back.",

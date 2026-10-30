@@ -1091,25 +1091,454 @@
   },
   {
     "act": 1,
-    "available": false,
-    "briefing": "The radar memory names the Teklan orchard. Three high couriers are the patrols' eyes over the evacuation road. Destroy all three before they escape along the harbour route. Two airborne jammers hide their escorts; find them by eye or destroy the optional jammers to restore radar.",
-    "codename": "In development",
-    "debrief": "The high flyers are gone. The trucks reach Varda; the lead driver's granddaughter marks the fuel works on Sera's map.",
-    "environment": "farm_overcast",
-    "failure": "The patrols still have their eyes above the orchard. The evacuation road is unsafe.",
+    "airspace": {
+      "hardHalfWidth": 15360,
+      "radarRange": 18000,
+      "softHalfWidth": 14000,
+      "spawnLimit": 13500
+    },
+    "allies": {
+      "allowRequiredTargets": false,
+      "callsignPrefix": "LANTERN",
+      "count": 2,
+      "creditPlayerKills": false,
+      "formation": [
+        {
+          "x": -180,
+          "y": 20,
+          "z": 160
+        },
+        {
+          "x": 180,
+          "y": 20,
+          "z": 160
+        }
+      ],
+      "model": "Kestrel"
+    },
+    "available": true,
+    "briefing": "Three high-flying couriers are guiding patrols onto the evacuation trucks below the Teklan orchard. Their escorts are hiding behind two airborne jammers. Find the aircraft by eye; destroy the jammers to restore radar. All three transports must fall before they reach the harbour route. The jammers and guards are optional targets.",
+    "codename": "The High Flyers",
+    "countdownSeconds": 720,
+    "debrief": "The three couriers are down. The patrols have lost their eyes over the orchard. Sera can move the evacuation trucks again.",
+    "environment": "farm_morning",
+    "failure": "The courier screen held. Patrols still have eyes on the evacuation road.",
     "ground": [],
     "id": 4,
-    "optionalRaiderMax": 0,
+    "optionalRaiderMax": 12,
     "phases": [
       {
-        "count": 1,
+        "beat": "SERA: High flyers ahead. Break their jammers to get radar back.",
+        "bombers": {
+          "aircraft": "transport",
+          "count": 3,
+          "escape": {
+            "x": 4500,
+            "y": 1202,
+            "z": 11000
+          },
+          "escapeCall": "SERA: A courier reached the harbour route. Pull back.",
+          "escorts": {
+            "aceAt": 0,
+            "aceName": "ORCHARD WARRANT",
+            "count": 0,
+            "initial": 0,
+            "role": "escort"
+          },
+          "scoreRole": "transport",
+          "slots": [
+            {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            {
+              "x": 286.2167011199731,
+              "y": 0,
+              "z": 35.77708763999665
+            },
+            {
+              "x": 572.4334022399462,
+              "y": 0,
+              "z": 71.5541752799933
+            }
+          ],
+          "speed": 140,
+          "targetIds": [
+            "m04_transport_1",
+            "m04_transport_2",
+            "m04_transport_3"
+          ],
+          "waypoints": [
+            {
+              "x": -4550,
+              "y": 1202,
+              "z": 5100
+            },
+            {
+              "x": -3000,
+              "y": 1202,
+              "z": 2000
+            },
+            {
+              "x": 2000,
+              "y": 1202,
+              "z": -10000
+            },
+            {
+              "x": 11000,
+              "y": 1202,
+              "z": -11000
+            },
+            {
+              "x": 12500,
+              "y": 1202,
+              "z": 2000
+            },
+            {
+              "x": 12500,
+              "y": 1202,
+              "z": 11000
+            }
+          ]
+        },
+        "chatter": [
+          {
+            "at": 0.3333333333333333,
+            "text": "SERA: One courier down. Two still watching the road."
+          },
+          {
+            "at": 0.6666666666666666,
+            "text": "LANTERN 2: One transport left. The trucks are counting on us."
+          }
+        ],
+        "count": 3,
+        "fighterWaves": [
+          {
+            "aircraft": "jammer",
+            "count": 1,
+            "headingDegrees": 45,
+            "id": "m04_jammer_1",
+            "role": "escort",
+            "route": {
+              "speed": 110,
+              "waypoints": [
+                {
+                  "x": -5100,
+                  "y": 1524,
+                  "z": 4800
+                },
+                {
+                  "x": -3000,
+                  "y": 1524,
+                  "z": 2000
+                },
+                {
+                  "x": 2000,
+                  "y": 1524,
+                  "z": -10000
+                },
+                {
+                  "x": 11000,
+                  "y": 1524,
+                  "z": -11000
+                },
+                {
+                  "x": 12500,
+                  "y": 1524,
+                  "z": 2000
+                },
+                {
+                  "x": 12500,
+                  "y": 1524,
+                  "z": 11000
+                },
+                {
+                  "x": 4500,
+                  "y": 1524,
+                  "z": 11000
+                }
+              ]
+            },
+            "scoreRole": "jammer",
+            "spawn": {
+              "x": -5100,
+              "y": 1524,
+              "z": 4800
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 0
+            }
+          },
+          {
+            "aircraft": "jammer",
+            "count": 1,
+            "headingDegrees": 45,
+            "id": "m04_jammer_2",
+            "role": "escort",
+            "route": {
+              "speed": 110,
+              "waypoints": [
+                {
+                  "x": -3600,
+                  "y": 1524,
+                  "z": 4800
+                },
+                {
+                  "x": -3000,
+                  "y": 1524,
+                  "z": 2000
+                },
+                {
+                  "x": 2000,
+                  "y": 1524,
+                  "z": -10000
+                },
+                {
+                  "x": 11000,
+                  "y": 1524,
+                  "z": -11000
+                },
+                {
+                  "x": 12500,
+                  "y": 1524,
+                  "z": 2000
+                },
+                {
+                  "x": 12500,
+                  "y": 1524,
+                  "z": 11000
+                },
+                {
+                  "x": 4500,
+                  "y": 1524,
+                  "z": 11000
+                }
+              ]
+            },
+            "scoreRole": "jammer",
+            "spawn": {
+              "x": -3600,
+              "y": 1524,
+              "z": 4800
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 0
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 45,
+            "id": "m04_escort_1",
+            "role": "escort",
+            "scoreRole": "escort",
+            "spawn": {
+              "x": -5500,
+              "y": 1000,
+              "z": 3800
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 0
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 45,
+            "id": "m04_escort_2",
+            "role": "escort",
+            "scoreRole": "escort",
+            "spawn": {
+              "x": -5020,
+              "y": 1160,
+              "z": 3800
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 0
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 45,
+            "id": "m04_escort_3",
+            "livery": "Vulture",
+            "role": "escort",
+            "scoreRole": "escort",
+            "spawn": {
+              "x": -4540,
+              "y": 1320,
+              "z": 3800
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 0
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 45,
+            "id": "m04_escort_4",
+            "livery": "Elite",
+            "role": "escort",
+            "scoreRole": "escort",
+            "spawn": {
+              "x": -4060,
+              "y": 1000,
+              "z": 3800
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 0
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 45,
+            "id": "m04_escort_5",
+            "livery": "Elite",
+            "role": "escort",
+            "scoreRole": "escort",
+            "spawn": {
+              "x": -3580,
+              "y": 1160,
+              "z": 3800
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 0
+            }
+          },
+          {
+            "call": "COURIER GUARD: They found us. Send the reserve flight!",
+            "count": 1,
+            "headingDegrees": 45,
+            "id": "m04_escort_6",
+            "role": "escort",
+            "scoreRole": "escort",
+            "spawn": {
+              "x": -5500,
+              "y": 1320,
+              "z": 4700
+            },
+            "trigger": {
+              "count": 1,
+              "kind": "required_count"
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 45,
+            "id": "m04_escort_7",
+            "livery": "Vulture",
+            "role": "escort",
+            "scoreRole": "escort",
+            "spawn": {
+              "x": -5020,
+              "y": 1000,
+              "z": 4700
+            },
+            "trigger": {
+              "count": 1,
+              "kind": "required_count"
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 45,
+            "id": "m04_escort_8",
+            "livery": "Elite",
+            "role": "escort",
+            "scoreRole": "escort",
+            "spawn": {
+              "x": -4540,
+              "y": 1160,
+              "z": 4700
+            },
+            "trigger": {
+              "count": 1,
+              "kind": "required_count"
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 45,
+            "id": "m04_escort_9",
+            "livery": "Elite",
+            "role": "escort",
+            "scoreRole": "escort",
+            "spawn": {
+              "x": -4060,
+              "y": 1320,
+              "z": 4700
+            },
+            "trigger": {
+              "count": 1,
+              "kind": "required_count"
+            }
+          }
+        ],
+        "jamming": {
+          "clearCall": "SERA: Both jammers down. Radar is clear. Find those transports.",
+          "remainingCall": "SERA: Still jammed. A second aircraft is masking the couriers.",
+          "visualLockRange": 1200
+        },
         "kind": "required_air",
-        "label": "In development"
+        "label": "Intercept three transports",
+        "standaloneAce": {
+          "behaviour": "dogfight",
+          "call": "ORCHARD WARRANT: Keep the couriers flying. I will take the trainee.",
+          "headingDegrees": 45,
+          "health": 165,
+          "id": "m04_ace",
+          "livery": "Vulture",
+          "name": "ORCHARD WARRANT",
+          "scoreRole": "ace",
+          "spawn": {
+            "x": -3580,
+            "y": 1000,
+            "z": 4700
+          },
+          "stageLines": [
+            "ORCHARD WARRANT: Guard flight, keep them off my tail!",
+            "ORCHARD WARRANT: The road is ours as long as one courier flies."
+          ],
+          "trigger": {
+            "kind": "time",
+            "seconds": 0
+          }
+        }
       }
     ],
-    "primary": "In development",
-    "region": "canyon_airfield",
-    "title": "Mission 4"
+    "primary": "Destroy all three transports before they escape",
+    "region": "upland_farm",
+    "scoring": {
+      "basis": "points",
+      "points": {
+        "ace": 240,
+        "escort": 60,
+        "jammer": 140,
+        "transport": 160
+      },
+      "rank": {
+        "A": 800,
+        "B": 650,
+        "C": 480,
+        "S": 1300
+      }
+    },
+    "start": {
+      "headingDegrees": 20,
+      "kind": "airborne",
+      "speed": 129.6,
+      "x": -7000,
+      "y": 1202,
+      "z": 10000
+    },
+    "title": "BLIND COURIERS",
+    "worldKey": "m04_inland_hills"
   },
   {
     "act": 1,
