@@ -53,7 +53,17 @@ export interface MissionAllies {
 }
 
 /** Optional mission-owned policy. Omitted fields preserve the current campaign. */
+export interface MissionPressure {
+	/** Fraction of five staggered eight-second targeting slots reserved for the player. */
+	playerPriority: number;
+	/** Raider approach half-cone, degrees either side of the nose. */
+	forwardConeDegrees: number;
+	/** Tail reactions use existing break cooldown, turn rate and threat budget. */
+	tailDefence: boolean;
+}
+
 export interface MissionPolicy {
+	pressure?: MissionPressure;
 	allies?: MissionAllies;
 	countdownSeconds?: number;
 	airspace?: MissionAirspacePolicy;
@@ -97,6 +107,12 @@ function finite(value: number): boolean {
 /** Validates only the optional policy surface; catalog content validation remains in MissionCatalog. */
 export function validateMissionPolicy(policy: MissionPolicy, missionId: number): void {
 	const tag = `Mission ${missionId} policy`;
+	if (policy.pressure !== undefined) {
+		const p = policy.pressure;
+		assert(finite(p.playerPriority) && p.playerPriority >= 0 && p.playerPriority <= 1, `${tag} playerPriority must be 0..1`);
+		assert(finite(p.forwardConeDegrees) && p.forwardConeDegrees >= 10 && p.forwardConeDegrees <= 75, `${tag} forward cone must be 10..75`);
+		assert(typeIs(p.tailDefence, "boolean"), `${tag} tailDefence must be boolean`);
+	}
 	if (policy.allies !== undefined) {
 		const a = policy.allies;
 		assert(finite(a.count) && a.count % 1 === 0 && a.count >= 1 && a.count <= 6, `${tag} allies.count must be 1..6`);
