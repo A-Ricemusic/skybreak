@@ -1,9 +1,9 @@
 {
  "bank": "voiceBank03",
  "file": "voiceBank03.ogg",
- "sha256": "f5a1bc2b2be9b0a4261404e853ddd00200c64191b0335213c01f1ef7fb5aec18",
- "seconds": 373.557,
- "lines": 62,
+ "sha256": "70519bf97a12654af5f2845140500dc2c4039b936f5f53541611e2ca7dddc659",
+ "seconds": 206.125,
+ "lines": 55,
  "automated": {
   "noProfanityOrSlurs": {
    "pass": true,
@@ -27,10 +27,11 @@
    "pass": true,
    "voices": {
     "EXAVITQu4vr4xnSDxMaL": "premade",
+    "IKne3meq5aSn9XLyUdCD": "premade",
     "JBFqnCBsd6RMkjVDRZzb": "premade",
     "SAz9YHcvj6GT2YYXdXww": "premade",
     "onwK4e9ZLuTAKqWW03F9": "premade",
-    "pNInz6obpgDQGcFmaJgB": "premade"
+    "pFZP5JQG7iQjIQuC4Bku": "premade"
    },
    "note": "ElevenLabs premade voices, generated on the paid Starter plan (commercial use permitted). No cloned or designed voices; no imitation of real people or known characters."
   },
@@ -39,10 +40,17 @@
    "note": "ElevenLabs library premades only; no cloning, no voice design prompts naming people."
   },
   "speechToTextMatch": {
-   "pass": true,
-   "meanRate": 0.9883,
-   "minRate": 0.429,
-   "flagged": []
+   "pass": false,
+   "meanRate": 0.9825,
+   "minRate": 0.833,
+   "flagged": [
+    "radio.m09.story.2",
+    "radio.m15.story.1",
+    "radio.m03.p1.beat",
+    "radio.m03.p1.chatter2",
+    "radio.m03.p3.landing2",
+    "radio.m03.p3.landing5"
+   ]
   },
   "durationUnderRobloxLimit": {
    "pass": true
@@ -50,438 +58,389 @@
  },
  "transcript": [
   {
-   "id": "story.c19.b00",
+   "id": "story.c17.b05",
    "start": 0.25,
-   "end": 8.481,
-   "speaker": "TEAL",
-   "text": "I made a paper copy. Radios get jammed. Ink still travels in a boat. It's in the harbour master's safe, and she doesn't like the Marshal either."
-  },
-  {
-   "id": "story.c19.b01",
-   "start": 8.731,
-   "end": 15.919,
-   "speaker": "SERA",
-   "text": "The harbour stores are gone. The harbour master has the copy on a courier launch. The eastern wing has the harbour mouth sealed."
-  },
-  {
-   "id": "story.c19.b02",
-   "start": 16.169,
-   "end": 22.709,
-   "speaker": "SERA",
-   "text": "Everything we have is on that boat. The archive, the signatures, his tapes. If it sinks, Teal is a deserter forever."
-  },
-  {
-   "id": "story.c19.b03",
-   "start": 22.959,
-   "end": 28.989,
-   "speaker": "SERA",
-   "text": "Check the exit before the launch moves. Then stay until the patrol boat confirms the case has changed hands at sea."
-  },
-  {
-   "id": "story.c19.b04",
-   "start": 29.239,
-   "end": 30.025,
-   "speaker": "TRAINEE",
-   "text": "It doesn't sink."
-  },
-  {
-   "id": "story.c20.b00",
-   "start": 30.275,
-   "end": 35.356,
-   "speaker": "SERA",
-   "text": "The launch is clear. Marines have the evidence. And the city still hears nothing but him."
-  },
-  {
-   "id": "story.c20.b01",
-   "start": 35.606,
-   "end": 42.337,
-   "speaker": "RUSK",
-   "text": "Citizens. Parliament has fled. Rebel aircraft are over the harbour. Stay inside. Trust the lights. Trust my voice."
-  },
-  {
-   "id": "story.c20.b02",
-   "start": 42.587,
-   "end": 50.535,
-   "speaker": "TEAL",
-   "text": "One tower, one voice, one emergency on repeat. He didn't build it to tell anyone anything. He built it so nothing else gets in."
-  },
-  {
-   "id": "story.c20.b03",
-   "start": 50.785,
-   "end": 57.838,
-   "speaker": "SERA",
-   "text": "The broadcast relay sits in a block of apartments. He chose that too. The canal is the only dark line through the city."
-  },
-  {
-   "id": "story.c20.b04",
-   "start": 58.088,
-   "end": 64.714,
-   "speaker": "SERA",
-   "text": "Find the dish above the apartments before firing. Our repair crew is waiting in a launch to bring the district back afterwards."
-  },
-  {
-   "id": "story.c20.b05",
-   "start": 64.964,
-   "end": 69.324,
-   "speaker": "TRAINEE",
-   "text": "Everyone in those apartments has been listening to him for a year. I'd like to give them some quiet."
-  },
-  {
-   "id": "story.c21.b00",
-   "start": 69.574,
-   "end": 77.367,
-   "speaker": "SERA",
-   "text": "The city heard silence last night. First time since spring. People opened their windows. Then the fog came in and he started fuelling."
-  },
-  {
-   "id": "story.c21.b01",
-   "start": 77.617,
-   "end": 85.845,
-   "speaker": "TEAL",
-   "text": "The reserve fuel has five piers. Each one has a civilian permit, and every permit has the same signature. He never learned a second name."
-  },
-  {
-   "id": "story.c21.b02",
-   "start": 86.095,
-   "end": 95.893,
-   "speaker": "RUSK",
-   "text": "Trainee. I knew Teal. He flew my wing the winter the coast starved while parliament debated. He had talent too. Ask the canyon how far it got him."
-  },
-  {
-   "id": "story.c21.b03",
-   "start": 96.143,
-   "end": 100.401,
-   "speaker": "SERA",
-   "text": "That's the first time he's used his own name. He wants you to know he's a person. Don't let him."
-  },
-  {
-   "id": "story.c21.b04",
-   "start": 100.651,
-   "end": 107.482,
-   "speaker": "SERA",
-   "text": "An inspection launch will follow you through the fog. Let its crew check the hoses, then show us the last two piers are dry."
-  },
-  {
-   "id": "story.c21.b05",
-   "start": 107.732,
-   "end": 112.014,
-   "speaker": "TRAINEE",
-   "text": "He flew your wing. Then you hunted him at night with your lights off. I'll remember both."
-  },
-  {
-   "id": "story.c22.b00",
-   "start": 112.264,
-   "end": 120.863,
-   "speaker": "SERA",
-   "text": "His convoy can't refuel. Three loyalist frigates have ringed the offshore platform. The command frigate carries a green beacon and most of our hope."
-  },
-  {
-   "id": "story.c22.b01",
-   "start": 121.113,
-   "end": 127.516,
-   "speaker": "TEAL",
-   "text": "If I don't get home, leave the lane open for the next one. That's the job. There isn't a second part."
-  },
-  {
-   "id": "story.c22.b02",
-   "start": 127.766,
-   "end": 134.076,
-   "speaker": "SERA",
-   "text": "The frigate captain was at his wing ceremony too. Half this coast was. Rusk forgot that we all remember."
-  },
-  {
-   "id": "story.c22.b03",
-   "start": 134.326,
-   "end": 140.681,
-   "speaker": "SERA",
-   "text": "Check the last gap and cover the inspection launch across it. The landing force is waiting for a ring we have actually checked."
-  },
-  {
-   "id": "story.c22.b04",
-   "start": 140.931,
-   "end": 142.957,
-   "speaker": "TRAINEE",
-   "text": "Green beacon. I'll stay close enough to read it."
-  },
-  {
-   "id": "story.c23.b00",
-   "start": 143.207,
-   "end": 151.325,
-   "speaker": "SERA",
-   "text": "The frigate held. He's pulling his flag off the platform tonight and leaving his reserves on the deck. He's running, and he's leaving the fuel behind."
-  },
-  {
-   "id": "story.c23.b01",
-   "start": 151.575,
-   "end": 157.691,
-   "speaker": "TEAL",
-   "text": "Those stores were never on a defence map. You don't hide fuel at sea for a week. Only for a war."
-  },
-  {
-   "id": "story.c23.b02",
-   "start": 157.941,
-   "end": 164.67,
-   "speaker": "SERA",
-   "text": "Three stores on a trident of decks, under a storm he didn't order. There's no high approach left. Only the sea."
-  },
-  {
-   "id": "story.c23.b03",
-   "start": 164.92,
-   "end": 171.683,
-   "speaker": "SERA",
-   "text": "A tanker is still on the platform, and workers are still on the deck. Stop the fuel leaving, then bring the rescue launch clear."
-  },
-  {
-   "id": "story.c23.b04",
-   "start": 171.933,
-   "end": 175.174,
-   "speaker": "TRAINEE",
-   "text": "He said the canyon got Teal. Let's see what the sea does to him."
-  },
-  {
-   "id": "story.c24.b00",
-   "start": 175.424,
-   "end": 183.271,
-   "speaker": "SERA",
-   "text": "The platform is dry. Loyalist landing craft are off the city beach, waiting for first light. Parliament is coming home by boat."
-  },
-  {
-   "id": "story.c24.b01",
-   "start": 183.521,
-   "end": 190.163,
-   "speaker": "TEAL",
-   "text": "Don't fly for the people giving orders. Fly for the people who have to live beneath them. The man on the net is weather."
-  },
-  {
-   "id": "story.c24.b02",
-   "start": 190.413,
-   "end": 197.032,
-   "speaker": "SERA",
-   "text": "He recorded that one at two in the morning. I can hear the hangar heater behind him. I could find that hangar in the dark by that sound."
-  },
-  {
-   "id": "story.c24.b03",
-   "start": 197.282,
-   "end": 203.547,
-   "speaker": "SERA",
-   "text": "Check both beach exits between the attacks. Stay on the landing channel until both squads answer from the streets."
-  },
-  {
-   "id": "story.c24.b04",
-   "start": 203.797,
-   "end": 205.97,
-   "speaker": "TRAINEE",
-   "text": "Beneath them. Right. The beach, then."
-  },
-  {
-   "id": "story.c25.b00",
-   "start": 206.22,
-   "end": 213.268,
-   "speaker": "SERA",
-   "text": "Recovery reached the upper pass this morning. They found his aircraft. They found him. He was in the seat. The recorder was still running."
-  },
-  {
-   "id": "story.c25.b01",
-   "start": 213.518,
-   "end": 217.102,
-   "speaker": "RECORDER",
-   "text": "RECORDER 7-T. ENTRY 04:12. PLAYBACK."
-  },
-  {
-   "id": "story.c25.b02",
-   "start": 217.352,
-   "end": 226.255,
-   "speaker": "TEAL",
-   "text": "Two taps. Sparrow, it's me. Lead is on my tail and I'm out of altitude, so I'm going to stay in the pass a while. The seed trucks need ten minutes."
-  },
-  {
-   "id": "story.c25.b03",
-   "start": 226.505,
-   "end": 234.301,
-   "speaker": "TEAL",
-   "text": "I flew that order knowing the price. The tapes are so you never have to take my word for any of it. This part I'm choosing myself."
-  },
-  {
-   "id": "story.c25.b04",
-   "start": 234.551,
-   "end": 241.285,
-   "speaker": "TEAL",
-   "text": "Fly the pattern too low and too fast. Nobody ever fixed it. Good. The sky will..."
-  },
-  {
-   "id": "story.c25.b05",
-   "start": 241.535,
-   "end": 248.253,
-   "speaker": "SERA",
-   "text": "He bought those trucks ten minutes. Witnesses are boarding for parliament tonight. Keep their quay and launch safe so they can say what he did."
-  },
-  {
-   "id": "story.c25.b06",
-   "start": 248.503,
-   "end": 255.815,
-   "speaker": "SERA",
-   "text": "I've amended the record myself. 'Aircraft lost with pilot. KILLED, NOT DESERTED.' Command can court-martial the paperwork."
-  },
-  {
-   "id": "story.c25.b07",
-   "start": 256.065,
-   "end": 259.198,
-   "speaker": "TRAINEE",
-   "text": "Ten minutes. He bought ten minutes. I'm going to go and spend them."
-  },
-  {
-   "id": "story.c26.b00",
-   "start": 259.448,
-   "end": 267.51,
-   "speaker": "SERA",
-   "text": "The wing is broken. Your triangulation puts his last transmission above the parliament tower. He's alone up there with one relay and his own voice."
-  },
-  {
-   "id": "story.c26.b01",
-   "start": 267.76,
-   "end": 275.179,
-   "speaker": "RUSK",
-   "text": "Trainee. Land, and I'll tell the city you were misled by a dead man. Fly, and you're the traitor in every history I write."
-  },
-  {
-   "id": "story.c26.b02",
-   "start": 275.429,
-   "end": 280.523,
-   "speaker": "TEAL",
-   "text": "When you have the truth, send it in your own voice. You don't have to sound like me. You never did."
-  },
-  {
-   "id": "story.c26.b03",
-   "start": 280.773,
-   "end": 288.247,
-   "speaker": "SERA",
-   "text": "I've got every harbour on the net. Every loyalist station is listening for one call sign. Not his. Yours."
-  },
-  {
-   "id": "story.c26.b04",
-   "start": 288.497,
-   "end": 295.402,
-   "speaker": "SERA",
-   "text": "Mark a clear road for Rusk before the duel. Then climb Teal's beacon line and stay on the air until every harbor hears you."
-  },
-  {
-   "id": "story.c26.b05",
-   "start": 295.652,
-   "end": 300.35,
+   "end": 4.948,
    "speaker": "TRAINEE",
    "text": "Marshal. I heard the tape. He didn't sound misled. He sounded like he was counting trucks."
   },
   {
-   "id": "story.c26.b06",
-   "start": 300.6,
-   "end": 305.035,
+   "id": "story.c17.b06",
+   "start": 5.198,
+   "end": 9.633,
    "speaker": "TRAINEE",
    "text": "Sera. Varda trainee, checking in. One of three. The other two are for after."
   },
   {
-   "id": "story.c27.b00",
-   "start": 305.285,
-   "end": 313.763,
+   "id": "story.c18.b00",
+   "start": 9.883,
+   "end": 18.361,
    "speaker": "SERA",
    "text": "He's down. His relay is dark. Every harbour on the coast is answering. You're on every receiver from the rim to the sea. Say it your way."
   },
   {
-   "id": "story.c27.b01",
-   "start": 314.013,
-   "end": 320.424,
+   "id": "story.c18.b01",
+   "start": 18.611,
+   "end": 25.022,
    "speaker": "TRAINEE",
    "text": "This is Varda trainee, transmitting in the clear. The Air Marshal is down. The emergency is over. It never started."
   },
   {
-   "id": "story.c27.b02",
-   "start": 320.674,
-   "end": 328.232,
+   "id": "story.c18.b02",
+   "start": 25.272,
+   "end": 32.83,
    "speaker": "TRAINEE",
    "text": "The orders were forged. The names were dead men's. An orchard was burned for a seed tin. Teal flew the pass so the trucks could get out."
   },
   {
-   "id": "story.c27.b03",
-   "start": 328.482,
-   "end": 336.027,
+   "id": "story.c18.b03",
+   "start": 33.08,
+   "end": 40.625,
    "speaker": "TRAINEE",
    "text": "His name was Teal. He was not a deserter. Amend your records. For Teal. For the rim. We are coming home."
   },
   {
-   "id": "story.c27.b04",
-   "start": 336.277,
-   "end": 342.851,
+   "id": "story.c18.b04",
+   "start": 40.875,
+   "end": 47.449,
    "speaker": "SERA",
    "text": "Varda trainee, Varda Control. Check-in received. Two of three. Come home and make the third in person."
   },
   {
-   "id": "story.c27.b05",
-   "start": 343.101,
-   "end": 344.566,
+   "id": "story.c18.b05",
+   "start": 47.699,
+   "end": 49.164,
    "speaker": "TEAL",
    "text": "...the sky will still be there."
   },
   {
-   "id": "story.c27.b06",
-   "start": 344.816,
-   "end": 351.844,
+   "id": "story.c18.b06",
+   "start": 49.414,
+   "end": 56.442,
    "speaker": "LOG",
    "text": "VARDA RIM ROSTER. TEAL: KILLED IN ACTION, NOT DESERTED. INSTRUCTOR'S CHAIR: FILLED."
   },
   {
+   "id": "radio.m04.story.1",
+   "start": 56.692,
+   "end": 60.745,
+   "speaker": "SERA",
+   "text": "SERA: High contacts are guiding the patrols. The trucks need that sky clear."
+  },
+  {
+   "id": "radio.m04.story.2",
+   "start": 60.995,
+   "end": 63.296,
+   "speaker": "SERA",
+   "text": "SERA: The road is open. Count the trucks at Varda."
+  },
+  {
+   "id": "radio.m05.story.1",
+   "start": 63.546,
+   "end": 66.985,
+   "speaker": "SERA",
+   "text": "SERA: Fuel tanks only. The grain silos beside them feed families."
+  },
+  {
+   "id": "radio.m05.story.2",
+   "start": 67.235,
+   "end": 71.795,
+   "speaker": "SERA",
+   "text": "SERA: Vulture flight inbound. Leave the works. Survive; this is no duel."
+  },
+  {
+   "id": "radio.m05.story.3",
+   "start": 72.045,
+   "end": 74.001,
+   "speaker": "SERA",
+   "text": "SERA: You are clear. I kept his orders on tape."
+  },
+  {
+   "id": "radio.m06.story.1",
+   "start": 74.251,
+   "end": 77.761,
+   "speaker": "SERA",
+   "text": "SERA: Iron Coast ahead. Ships and tankers; leave the market clear."
+  },
+  {
+   "id": "radio.m06.story.2",
+   "start": 78.011,
+   "end": 80.904,
+   "speaker": "SERA",
+   "text": "SERA: Harbour traffic copied. We can follow the orders inland."
+  },
+  {
+   "id": "radio.m07.story.1",
+   "start": 81.154,
+   "end": 84.484,
+   "speaker": "SERA",
+   "text": "SERA: Copy before you cut. We need the signature, not just wreckage."
+  },
+  {
+   "id": "radio.m07.story.2",
+   "start": 84.734,
+   "end": 86.619,
+   "speaker": "SERA",
+   "text": "SERA: Guns have the ridge. Take the canyon."
+  },
+  {
+   "id": "radio.m08.story.1",
+   "start": 86.869,
+   "end": 90.298,
+   "speaker": "SERA",
+   "text": "SERA: I am staying in the tower. Keep the bombers away from the transmitter."
+  },
+  {
+   "id": "radio.m08.story.2",
+   "start": 90.548,
+   "end": 93.584,
+   "speaker": "SERA",
+   "text": "SERA: Thirty-five seconds sent. Two garrisons are answering."
+  },
+  {
+   "id": "radio.m09.story.1",
+   "start": 93.834,
+   "end": 97.086,
+   "speaker": "SERA",
+   "text": "SERA: Green beacon is ours. Clear the guns above the beach."
+  },
+  {
+   "id": "radio.m09.story.2",
+   "start": 97.336,
+   "end": 100.075,
+   "speaker": "SERA",
+   "text": "SERA: The landing is through. There is smoke over Teklan."
+  },
+  {
+   "id": "radio.m10.story.1",
+   "start": 100.325,
+   "end": 103.114,
+   "speaker": "SERA",
+   "text": "SERA: Keep the valley between you and the long-range guns."
+  },
+  {
+   "id": "radio.m10.story.2",
+   "start": 103.364,
+   "end": 106.226,
+   "speaker": "SERA",
+   "text": "SERA: The corridor is open. Two civilian flights are ready."
+  },
+  {
+   "id": "radio.m11.story.1",
+   "start": 106.476,
+   "end": 109.82,
+   "speaker": "SERA",
+   "text": "SERA: One airliner cannot climb. Watch both altitude bands."
+  },
+  {
+   "id": "radio.m11.story.2",
+   "start": 110.07,
+   "end": 112.908,
+   "speaker": "SERA",
+   "text": "SERA: Both flights are clear. I have a name for that handwriting."
+  },
+  {
+   "id": "radio.m12.story.1",
+   "start": 113.158,
+   "end": 117.047,
+   "speaker": "SERA",
+   "text": "SERA: Eight towers. The command array is his; the crater is your way in."
+  },
+  {
+   "id": "radio.m12.story.2",
+   "start": 117.297,
+   "end": 119.294,
+   "speaker": "SERA",
+   "text": "SERA: Ejection marked. Marines are moving."
+  },
+  {
+   "id": "radio.m13.story.1",
+   "start": 119.544,
+   "end": 122.047,
+   "speaker": "SERA",
+   "text": "SERA: Jammers in the ravine. Clear the plane a channel."
+  },
+  {
+   "id": "radio.m13.story.2",
+   "start": 122.297,
+   "end": 125.047,
+   "speaker": "SERA",
+   "text": "SERA: Fighters beyond the fog. Keep them off the evidence plane."
+  },
+  {
+   "id": "radio.m14.story.1",
+   "start": 125.297,
+   "end": 128.19,
+   "speaker": "SERA",
+   "text": "SERA: Missiles low over the ice. The dish must keep talking."
+  },
+  {
+   "id": "radio.m14.story.2",
+   "start": 128.44,
+   "end": 132.063,
+   "speaker": "SERA",
+   "text": "SERA: Archive received. Order zero-zero-zero-one. Rusk."
+  },
+  {
+   "id": "radio.m15.story.1",
+   "start": 132.313,
+   "end": 135.796,
+   "speaker": "SERA",
+   "text": "SERA: Loyalist troops below. Keep Rusk's armour off their streets."
+  },
+  {
+   "id": "radio.m15.story.2",
+   "start": 136.046,
+   "end": 138.418,
+   "speaker": "SERA",
+   "text": "SERA: Bombers incoming. They are turning on the city."
+  },
+  {
+   "id": "radio.m16.story.1",
+   "start": 138.668,
+   "end": 140.505,
+   "speaker": "SERA",
+   "text": "SERA: Clear the bunkers ahead of the column."
+  },
+  {
+   "id": "radio.m16.story.2",
+   "start": 140.755,
+   "end": 144.492,
+   "speaker": "SERA",
+   "text": "SERA: Both squads answering from the streets. Parliament has a road home."
+  },
+  {
+   "id": "radio.m17.story.1",
+   "start": 144.742,
+   "end": 148.436,
+   "speaker": "SERA",
+   "text": "SERA: Rusk leads four wingmen. Vulture Lead is back over the capital."
+  },
+  {
+   "id": "radio.m17.story.2",
+   "start": 148.686,
+   "end": 151.366,
+   "speaker": "SERA",
+   "text": "SERA: He left his wing. Rusk is running for the coast."
+  },
+  {
+   "id": "radio.m18.story.1",
+   "start": 151.616,
+   "end": 155.371,
+   "speaker": "SERA",
+   "text": "SERA: Generators first. Then the central vent. Leave yourself a way out."
+  },
+  {
+   "id": "radio.m18.story.2",
+   "start": 155.621,
+   "end": 159.295,
+   "speaker": "SERA",
+   "text": "SERA: You are clear. His loop has stopped. Rusk is coming up alone."
+  },
+  {
    "id": "radio.m01.p1.beat",
-   "start": 352.094,
-   "end": 355.871,
+   "start": 159.545,
+   "end": 163.067,
    "speaker": "SERA",
-   "text": "Turn, then pitch. Three seconds each. Feel how she answers."
-  },
-  {
-   "id": "radio.m01.p2.beat",
-   "start": 356.121,
-   "end": 358.56,
-   "speaker": "SERA",
-   "text": "Cycle targets. Mark the practice radar."
-  },
-  {
-   "id": "radio.m01.p3.beat",
-   "start": 358.81,
-   "end": 360.844,
-   "speaker": "SERA",
-   "text": "Nose on it. Hold the lock. Then fire."
-  },
-  {
-   "id": "radio.m01.p4.beat",
-   "start": 361.094,
-   "end": 364.075,
-   "speaker": "SERA",
-   "text": "SERA: Good hit. Three bandits inbound. Keep them off the field."
+   "text": "Six bombers, our paint and codes. Stop them before the north coast."
   },
   {
    "id": "radio.m02.p1.beat",
-   "start": 364.325,
-   "end": 366.196,
+   "start": 163.317,
+   "end": 166.298,
    "speaker": "SERA",
-   "text": "SERA: Three bandits over the harbor. Take them."
+   "text": "SERA: Follow the power line north. Their bombers are parked on the farm."
   },
   {
-   "id": "radio.m02.p2.beat",
-   "start": 366.446,
-   "end": 369.021,
-   "speaker": "SERA",
-   "text": "SERA: Five warehouses feed the raid. Burn them all."
+   "id": "radio.m02.p1.chatter1",
+   "start": 166.548,
+   "end": 170.056,
+   "speaker": "BROADCAST",
+   "text": "FARM CONTROL: Bombers, start engines! Get them off the ground!"
   },
   {
-   "id": "radio.m02.p3.beat",
-   "start": 369.271,
-   "end": 371.531,
+   "id": "radio.m02.p1.chatter2",
+   "start": 170.306,
+   "end": 173.104,
    "speaker": "SERA",
-   "text": "SERA: Their lead is armored. Make every shot count."
+   "text": "SERA: Four down. Their guns are still up, watch the base edges."
+  },
+  {
+   "id": "radio.m02.p1.chatter3",
+   "start": 173.354,
+   "end": 176.294,
+   "speaker": "BROADCAST",
+   "text": "FARM CONTROL: The pads are burning. Nobody takes off from here."
+  },
+  {
+   "id": "radio.m02.p1.chatter4",
+   "start": 176.544,
+   "end": 178.568,
+   "speaker": "MARINE",
+   "text": "LANTERN 2: One bomber left. Finish it, trainee."
   },
   {
    "id": "radio.m03.p1.beat",
-   "start": 371.781,
-   "end": 373.307,
-   "speaker": "TEAL",
-   "text": "TEAL (tape): Stay low on the switchback."
+   "start": 178.818,
+   "end": 181.961,
+   "speaker": "SERA",
+   "text": "SERA: Enemy airspace. Site one is on the ridge north-west of you."
+  },
+  {
+   "id": "radio.m03.p1.chatter1",
+   "start": 182.211,
+   "end": 184.194,
+   "speaker": "MARINE",
+   "text": "LANTERN 2: Dome down. Good hit, trainee."
+  },
+  {
+   "id": "radio.m03.p1.chatter2",
+   "start": 184.444,
+   "end": 187.78,
+   "speaker": "SERA",
+   "text": "SERA: Five domes down. Site two is on the saddle west-north-west."
+  },
+  {
+   "id": "radio.m03.p1.chatter3",
+   "start": 188.03,
+   "end": 190.131,
+   "speaker": "MARINE",
+   "text": "LANTERN 2: One dome left. Finish it and we go home."
+  },
+  {
+   "id": "radio.m03.p3.landing1",
+   "start": 190.381,
+   "end": 194.499,
+   "speaker": "RIM TOWER",
+   "text": "RIM TOWER: Trainee, gear check. Cleared to land, runway three-six."
+  },
+  {
+   "id": "radio.m03.p3.landing2",
+   "start": 194.749,
+   "end": 197.075,
+   "speaker": "RIM TOWER",
+   "text": "RIM TOWER: Runway in sight. You're on the centreline."
+  },
+  {
+   "id": "radio.m03.p3.landing3",
+   "start": 197.325,
+   "end": 200.576,
+   "speaker": "RIM TOWER",
+   "text": "RIM TOWER: Short final. Glide path is good, hold it there."
+  },
+  {
+   "id": "radio.m03.p3.landing4",
+   "start": 200.826,
+   "end": 202.355,
+   "speaker": "RIM TOWER",
+   "text": "RIM TOWER: Touchdown. Nice and gentle."
+  },
+  {
+   "id": "radio.m03.p3.landing5",
+   "start": 202.605,
+   "end": 205.875,
+   "speaker": "RIM TOWER",
+   "text": "RIM TOWER: Welcome home. Sera wants that film before you unstrap."
   }
  ],
  "humanReview": {
