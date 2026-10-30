@@ -33,6 +33,51 @@ function ringSequence(fraction: number): NumberSequence {
 	]);
 }
 
+let gunTouchSerial = 0;
+/**
+ * Round touch GUN (batch D1, only when the sortie fits a gun): fires while held. Each touch is its own
+ * trigger source and releases when that input ends anywhere, so a finger sliding off never sticks the gun on.
+ */
+export function GunButton({ rectangle, rounds, onTrigger }: { rectangle: Rectangle; rounds: number; onTrigger: (source: string, held: boolean) => void }) {
+	const empty = rounds <= 0;
+	return (
+		<textbutton
+			key="GunButton"
+			Active={true}
+			AutoButtonColor={false}
+			Selectable={false}
+			BackgroundColor3={HUD.Shadow}
+			BackgroundTransparency={empty ? 0.8 : 0.65}
+			BorderSizePixel={0}
+			FontFace={HUD_FONT_BOLD}
+			Text={`GUN ${math.max(0, math.floor(rounds))}`}
+			TextColor3={HUD.Green}
+			TextSize={rectangle.width >= 54 ? 10 : 9}
+			TextStrokeColor3={HUD.Shadow}
+			TextStrokeTransparency={0.5}
+			TextTransparency={empty ? 0.5 : 0}
+			{...at(rectangle)}
+			Event={{
+				InputBegan: (_rbx, input) => {
+					if (input.UserInputState !== Enum.UserInputState.Begin) return;
+					if (input.UserInputType !== Enum.UserInputType.Touch && input.UserInputType !== Enum.UserInputType.MouseButton1) return;
+					gunTouchSerial += 1;
+					const source = `touch${gunTouchSerial}`;
+					onTrigger(source, true);
+					const connection = input.GetPropertyChangedSignal("UserInputState").Connect(() => {
+						if (input.UserInputState !== Enum.UserInputState.End && input.UserInputState !== Enum.UserInputState.Cancel) return;
+						connection.Disconnect();
+						onTrigger(source, false);
+					});
+				},
+			}}
+		>
+			<uicorner CornerRadius={new UDim(0.5, 0)} />
+			<uistroke ApplyStrokeMode={Enum.ApplyStrokeMode.Border} Color={HUD.Green} Thickness={1.5} Transparency={empty ? 0.5 : 0.2} />
+		</textbutton>
+	);
+}
+
 /**
  * Round touch EVADE: fires on touch-down (the roll is a timed skill), shows the
  * charge pips and a recharge ring, and pulses red while a missile is inbound

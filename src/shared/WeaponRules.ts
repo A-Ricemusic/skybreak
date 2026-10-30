@@ -1,16 +1,20 @@
 // Pure weapon rules shared by the server (authoritative) and the HUD (presentation).
 // Nothing here touches instances; CombatService adapts Vector3 to plain points.
 /** Pause and Resume freeze the sortie on the server (single-player): no stepping, and the clock is shifted. */
-export type CombatActionKind = "FireMissile" | "Evade" | "CycleTarget" | "Special" | "Pause" | "Resume" | "SkipLanding";
+/** GunStart/GunStop hold and release the opt-in player gun (SortieArmament); a sortie without a gun ignores them. */
+export type CombatActionKind = "FireMissile" | "Evade" | "CycleTarget" | "Special" | "Pause" | "Resume" | "SkipLanding" | "GunStart" | "GunStop";
 export type FireDenied = "no_ammo" | "cooldown";
 /** Why a SPECIAL press did nothing (see SpecialWeapons.Activate). */
 export type SpecialDenied = "special_empty" | "special_cooldown" | "special_active" | "special_no_target";
-/** What the weapons channel reports after a FIRE or SPECIAL press: a refusal or a blind launch. */
-export type FireNotice = FireDenied | "blind" | SpecialDenied;
+/** Opt-in armament refusals: a finite missile stock is spent, or the gun magazine is empty. */
+export type ArmamentDenied = "missiles_spent" | "gun_empty";
+/** What the weapons channel reports after a FIRE, GUN or SPECIAL press: a refusal or a blind launch. */
+export type FireNotice = FireDenied | "blind" | SpecialDenied | ArmamentDenied;
 /** Keyed by every FireNotice, so a new reason that is not listed here fails to compile. */
 const FIRE_NOTICES: Record<FireNotice, true> = {
 	no_ammo: true, cooldown: true, blind: true,
 	special_empty: true, special_cooldown: true, special_active: true, special_no_target: true,
+	missiles_spent: true, gun_empty: true,
 };
 export interface Point { x: number; y: number; z: number }
 export interface ActionGateState { last: Map<CombatActionKind, number> }
@@ -50,7 +54,7 @@ function segmentDistance(point: Point, from: Point, to: Point): number {
 	const cx = from.x + dx * t - point.x, cy = from.y + dy * t - point.y, cz = from.z + dz * t - point.z;
 	return math.sqrt(cx * cx + cy * cy + cz * cz);
 }
-const ACTION_KINDS: CombatActionKind[] = ["FireMissile", "Evade", "CycleTarget", "Special", "Pause", "Resume", "SkipLanding"];
+const ACTION_KINDS: CombatActionKind[] = ["FireMissile", "Evade", "CycleTarget", "Special", "Pause", "Resume", "SkipLanding", "GunStart", "GunStop"];
 /** Minimum spacing between accepted events of the same action kind. */
 const ACTION_WINDOW = 0.09;
 /** Ground envelope: 80 degree half-cone out to 2450 studs (you orbit a target, you do not chase it). */

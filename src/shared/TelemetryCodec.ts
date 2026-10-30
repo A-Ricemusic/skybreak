@@ -13,7 +13,8 @@ import { Telemetry } from "./Types";
 //          specialCharges, specialCooldown, specialActive,
 //          evadeCharges, optionalKills, incomingDistance (-1 none), pauseAck, pauseRemaining (-1 unknown),
 //          turnObserved (-1 unknown), pitchObserved (-1 unknown)]
-// Optional tail: clearance, update seconds, jam visual range (-1 absent), mission points.
+// Optional tail: clearance, update seconds, jam visual range (-1 absent), mission points (-1 absent),
+// then batch D1 gun rounds (-1 or absent: no gun fitted). Earlier tail slots are padded only when a later one is present.
 // Flags 4096 = any jammer, 8192 = one jammer (partial radar). Legacy packet lengths are unchanged.
 // flags: 1 incoming, 2 lockWarning, 4 boundaryWarning, 8 targetDamageable,
 //        16 targetDamageable unknown (no target), 32 ace killed this sortie, 64 paused.
@@ -26,6 +27,8 @@ export interface TelemetryNumbers {
 	radarPartial?: boolean;
 	jamVisualRange?: number;
 	missionPoints?: number;
+	/** Batch D1: rounds left in the fitted gun; absent when the sortie has no gun. */
+	gunRounds?: number;
 	terrainClearance?: number;
 	missionUpdateSeconds?: number;
 	health: number; speed: number; altitude: number; kills: number; total: number; missiles: number;
@@ -63,9 +66,11 @@ export const TelemetryCodec = {
 			t.pauseRemaining ?? -1,
 			t.turnObserved ?? -1, t.pitchObserved ?? -1,
 		];
-		if (t.terrainClearance !== undefined || t.missionUpdateSeconds !== undefined || t.jamVisualRange !== undefined || t.missionPoints !== undefined) packet.push(t.terrainClearance ?? -1,t.missionUpdateSeconds ?? 0);
-		if(t.jamVisualRange!==undefined || t.missionPoints!==undefined) packet.push(t.jamVisualRange ?? -1);
-		if(t.missionPoints!==undefined) packet.push(t.missionPoints);
+		const gun = t.gunRounds !== undefined;
+		if (t.terrainClearance !== undefined || t.missionUpdateSeconds !== undefined || t.jamVisualRange !== undefined || t.missionPoints !== undefined || gun) packet.push(t.terrainClearance ?? -1,t.missionUpdateSeconds ?? 0);
+		if(t.jamVisualRange!==undefined || t.missionPoints!==undefined || gun) packet.push(t.jamVisualRange ?? -1);
+		if(t.missionPoints!==undefined || gun) packet.push(t.missionPoints ?? -1);
+		if(gun) packet.push(math.max(0, t.gunRounds!));
 		return packet;
 	},
 	/**
@@ -82,6 +87,7 @@ export const TelemetryCodec = {
 		into.missileCooldown = n[7]; into.evadeCooldown = n[8]; into.lockProgress = n[9];
 		const flags = n[10];
 		into.missionPoints=FlightMath.IsFinite(n[32]) && n[32]>=0 ? n[32] : undefined;
+		into.gunRounds=FlightMath.IsFinite(n[33]) && n[33]>=0 ? n[33] : undefined;
 		into.radarPartial=flags % 16384 >= 8192;
 		into.jamVisualRange=FlightMath.IsFinite(n[31]) && n[31]>0 ? n[31] : undefined;
 		into.radarJammed = flags % 8192 >= 4096;

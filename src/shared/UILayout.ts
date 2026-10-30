@@ -29,6 +29,8 @@ export interface TouchLayout {
 	special: Rectangle;
 	/** Round EVADE button, nearest the throttle. */
 	evade: Rectangle;
+	/** Hold-to-fire GUN (batch D1): only when the sortie fits a gun and a free spot clears every other control. */
+	gun?: Rectangle;
 	/** Edge of every action button, px. */
 	button: number;
 	/** row: TGT FIRE SPECIAL EVADE on one baseline between the sticks; grid: TGT SPECIAL over FIRE EVADE (roots too narrow for the row). */
@@ -45,6 +47,8 @@ export interface HudOptions {
 	stickSize?: number;
 	/** Effective HUD SCALE: the UIScale the layout is drawn through. Text sizes rise so nothing draws under MIN_PHYSICAL_TEXT px. */
 	scale?: number;
+	/** The sortie fits a gun (batch D1): touch layouts add a GUN button. Absent leaves every layout unchanged. */
+	gun?: boolean;
 }
 
 /** Smallest text the HUD draws, in physical px after its UIScale. */
@@ -409,7 +413,27 @@ function getTouchLayout(width: number, height: number, options?: HudOptions): { 
 		target = cell(left, upper);
 		special = cell(right, upper);
 	}
-	return { touch: { joystick, throttle, throttleUpLabel, throttleDownLabel, missile, target, special, evade, button, arrangement }, fireCaption };
+	let gun: Rectangle | undefined;
+	if (options?.gun === true) {
+		// First free spot below the objective and navigation rows, clear of every other control and caption;
+		// the instruments and warning row are placed afterwards around it (getHudLayout's `placed`).
+		const reservedTop = compact ? objectiveBottom + NAVIGATION_ROW_HEIGHT + 2 : objectiveBottom + 41 + gap;
+		const taken = [joystick, throttle, missile, target, special, evade];
+		for (const optional of [throttleUpLabel, throttleDownLabel, fireCaption]) if (optional) taken.push(optional);
+		const above = (rectangle: Rectangle) => cell(rectangle.x, rectangle.y - controlGap - button);
+		const candidates = arrangement === "row"
+			? [above(target), above(special), above(evade), above(fireCaption ?? missile)]
+			: compact
+				// Studio's compact grid keeps SPEED/ALT above it: try beside the lower row instead.
+				? [cell(missile.x - controlGap - button, missile.y), cell(rightOf(evade) + controlGap, evade.y)]
+				: [above(target), above(special)];
+		for (const candidate of candidates) {
+			if (candidate.y < reservedTop || !rectangleInside(candidate, width, height, margin) || !clear(candidate, taken)) continue;
+			gun = candidate;
+			break;
+		}
+	}
+	return { touch: { joystick, throttle, throttleUpLabel, throttleDownLabel, missile, target, special, evade, gun, button, arrangement }, fireCaption };
 }
 
 /** Pure layout calculation shared by the React HUD and Roblox Jest tests. */
@@ -458,7 +482,7 @@ export function getHudLayout(viewportWidth: number, viewportHeight: number, inpu
 		fireCaption = controls.fireCaption;
 		const { joystick, throttle, throttleUpLabel, throttleDownLabel, missile, target, special, evade } = touch;
 		placed.push(joystick, throttle, missile, target, special, evade);
-		for (const optional of [throttleUpLabel, throttleDownLabel, fireCaption]) if (optional) placed.push(optional);
+		for (const optional of [throttleUpLabel, throttleDownLabel, fireCaption, touch.gun]) if (optional) placed.push(optional);
 		leftBottom = joystick.y - gap;
 		rightBottom = (throttleUpLabel?.y ?? throttle.y) - gap;
 	} else {
@@ -754,6 +778,7 @@ export function hudObstacles(hud: HudLayout): Rectangle[] {
 	const touch = hud.touch;
 	if (touch) {
 		rectangles.push(touch.joystick, touch.throttle, touch.missile, touch.target, touch.special, touch.evade);
+		if (touch.gun) rectangles.push(touch.gun);
 		if (touch.throttleUpLabel) rectangles.push(touch.throttleUpLabel);
 		if (touch.throttleDownLabel) rectangles.push(touch.throttleDownLabel);
 	}

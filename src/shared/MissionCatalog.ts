@@ -1,4 +1,5 @@
 import { NightLighting, validateNightLighting } from "./NightLighting";
+import { SortieArmament, validateArmament } from "./SortieArmament";
 import { ScoreThreshold, RadarJamming, RearmPlan, validateBatchC } from "./EngineBatchC";
 import { MissionUpdate, ReturnLine, LandingPlan, validateBatchB } from "./EngineBatchB";
 import { TypedGroundTarget, FighterArrival, StandaloneAce, validateCampaignEncounters } from "./CampaignEncounters";
@@ -18,6 +19,7 @@ import {
 } from "./MissionPolicy";
 import { WavePlan } from "./WavePlan";
 
+export type { SortieArmament } from "./SortieArmament";
 export type { EncounterRole, MissionAirspacePolicy, MissionPolicy, MissionScoringPolicy, MissionStartPolicy } from "./MissionPolicy";
 
 export type Act = 1 | 2 | 3;
@@ -182,6 +184,8 @@ export interface GroundTargetSpec {
 }
 
 export interface MissionBlueprint extends MissionPolicy {
+	/** Engine batch D1: fitted gun and finite sortie stocks. Absent keeps today's regenerating rack and no gun. */
+	armament?: SortieArmament;
 	nightLighting?: NightLighting;
 	terrainRelativeWarnings?: boolean;
 	id: number;
@@ -281,6 +285,7 @@ for (let index = -1; index < MISSIONS.size(); index++) {
 	assert(blueprint.terrainRelativeWarnings === undefined || typeIs(blueprint.terrainRelativeWarnings,"boolean"), "Invalid terrain warning flag");
 	if(blueprint.nightLighting) validateNightLighting(blueprint.nightLighting, (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 		validateBatchC(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
+	validateArmament(blueprint.armament, expandPhases(blueprint.phases).some(phase => phase.rearm?.gun === true));
 		validateBatchB(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateCampaignEncounters(blueprint, expandPhases(blueprint.phases), blueprint.airspace ?? LEGACY_MISSION_AIRSPACE, blueprint.scoring ?? LEGACY_MISSION_SCORING);
 	assert(blueprint.phases.size() >= 1, `Mission ${id} must have at least one phase`);
@@ -431,6 +436,7 @@ export const MissionCatalog = {
 		assert(blueprint.terrainRelativeWarnings === undefined || typeIs(blueprint.terrainRelativeWarnings,"boolean"),"Invalid terrain warning flag");
 		if(blueprint.nightLighting) validateNightLighting(blueprint.nightLighting, (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateBatchC(expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint).hardHalfWidth);
+	validateArmament(blueprint.armament, expandPhases(blueprint.phases).some(phase => phase.rearm?.gun === true));
 	validateBatchB(expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint).hardHalfWidth);
 		assert(blueprint.phases.size()>0,"Mission needs a phase");
 		validateCampaignEncounters(blueprint, expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint), MissionCatalog.Scoring(blueprint));

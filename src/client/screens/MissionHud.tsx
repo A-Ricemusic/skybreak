@@ -6,7 +6,7 @@ import { evadeGauge } from "../../shared/EvadeGauge";
 import { CountdownDisplay } from "../../shared/CountdownDisplay";
 import { SpecialKind, SpecialWeapons } from "../../shared/SpecialWeapons";
 import { WeaponRules } from "../../shared/WeaponRules";
-import { clockLines, instrumentValue, returnProgressLine, skipPrompt, statusLine } from "../../shared/HudInstruments";
+import { armamentStatusLine, clockLines, instrumentValue, returnProgressLine, skipPrompt } from "../../shared/HudInstruments";
 import type { Telemetry } from "../../shared/Types";
 import {
 	getEvadeHint,
@@ -26,7 +26,7 @@ import {
 } from "../../shared/UILayout";
 import type { FlightTrend } from "../FlightController";
 import { FlightController } from "../FlightController";
-import { EvadeButton, Radar } from "../HudControls";
+import { EvadeButton, GunButton, Radar } from "../HudControls";
 import { HudBanner, HudLabel, InstrumentBox, Reticle, StatusPanel, WarningBox } from "../AceHud";
 import { NavigationCue } from "../NavigationCue";
 import { KillMarker, type KillFlash } from "../KillMarker";
@@ -208,8 +208,11 @@ function MissionHud({
 	const virtualWidth = math.floor(viewport.X / scale);
 	const virtualHeight = math.floor(viewport.Y / scale);
 	// Layout math is pure but not free: recompute only when the root, input mode or stick size changes.
-	const layout = useMemo(() => getHudLayout(virtualWidth, virtualHeight, inputMode, options), [virtualWidth, virtualHeight, inputMode, options]);
-	const killRectangle = useMemo(() => getKillMarkerLayout(virtualWidth, virtualHeight, inputMode, options), [virtualWidth, virtualHeight, inputMode, options]);
+	// Batch D1: a sortie with a fitted gun adds the touch GUN button; every other sortie keeps its exact layout.
+	const hasGun = telemetry.gunRounds !== undefined;
+	const layoutOptions = useMemo(() => (hasGun ? { ...options, gun: true } : options), [options, hasGun]);
+	const layout = useMemo(() => getHudLayout(virtualWidth, virtualHeight, inputMode, layoutOptions), [virtualWidth, virtualHeight, inputMode, layoutOptions]);
+	const killRectangle = useMemo(() => getKillMarkerLayout(virtualWidth, virtualHeight, inputMode, layoutOptions), [virtualWidth, virtualHeight, inputMode, layoutOptions]);
 	// Target boxes (FlightController) keep clear of the touch controls this layout draws and inside this safe-area root.
 	const hudFrameRef = useRef<Frame>();
 	useEffect(() => {
@@ -257,7 +260,7 @@ function MissionHud({
 			label.TextTransparency = 0;
 		};
 	}, [alertActive, alertSharesObjective]);
-	const ammo = statusLine({
+	const ammo = armamentStatusLine({
 		missiles: telemetry.missiles,
 		missileCooldown: telemetry.missileCooldown,
 		special: specialDefinition.short,
@@ -265,7 +268,7 @@ function MissionHud({
 		specialCooldown: telemetry.specialCooldown ?? 0,
 		specialActive: telemetry.specialActive ?? 0,
 		evadeCharges: evade.charges,
-	});
+	}, telemetry.gunRounds);
 	const fireButton = WeaponRules.FireButton(telemetry.missiles, telemetry.missileCooldown, telemetry.target !== undefined && telemetry.targetDamageable !== false, telemetry.lockProgress);
 	const timeRemaining = CountdownDisplay.Value(telemetry.missionId, telemetry.timeRemaining);
 	const [timeLine, normalProgressLine] = clockLines(timeRemaining, telemetry.objectiveProgress, telemetry.objectiveTotal, telemetry.kills, telemetry.total);
@@ -342,7 +345,7 @@ function MissionHud({
 			{!alertSharesObjective && <WarningBox rectangle={layout.alert} text={alertText} color={alertColor} metrics={metrics} textRef={warningText} />}
 			{/* Reserved for a missile time-to-impact / BREAK cue; empty and hidden until something drives it. */}
 
-			<StatusPanel layout={layout.status} health={telemetry.health} cells={ammo} />
+			<StatusPanel layout={layout.status} health={telemetry.health} cells={ammo.cells} fit={ammo.fit} />
 
 			{layout.subtitle && (
 				<HudLabel
@@ -406,6 +409,7 @@ function MissionHud({
 					/>
 				)}
 				{touch && <EvadeButton rectangle={touch.evade} telemetry={telemetry} onEvade={onEvade} />}
+				{touch?.gun && <GunButton rectangle={touch.gun} rounds={telemetry.gunRounds ?? 0} onTrigger={(source, held) => controller.SetGunTrigger(source, held)} />}
 			</frame>
 
 			{layout.hints && (

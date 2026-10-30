@@ -33,6 +33,9 @@ export interface SpecialState {
 	recharge: number;
 	/** Seconds of effect remaining (0 when idle). */
 	active: number;
+	/** Opt-in finite sortie stock (SortieArmament): no recharge, and the charges a rearm restores. */
+	finite?: boolean;
+	capacity?: number;
 }
 
 export interface SpecialButtonState {
@@ -122,7 +125,7 @@ export const SpecialWeapons = {
 		state.cooldown = math.max(0, state.cooldown - dt);
 		state.active = math.max(0, state.active - dt);
 		const definition = DEFINITIONS[state.kind];
-		if (definition.rechargeSeconds === undefined || state.charges >= definition.charges) { state.recharge = 0; return; }
+		if (state.finite === true || definition.rechargeSeconds === undefined || state.charges >= definition.charges) { state.recharge = 0; return; }
 		state.recharge += dt;
 		while (state.recharge >= definition.rechargeSeconds && state.charges < definition.charges) {
 			state.recharge -= definition.rechargeSeconds;

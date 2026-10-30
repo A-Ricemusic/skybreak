@@ -3,7 +3,9 @@ import { FlightMath, FlightState } from "./FlightMath";
 import type { MissionPhaseBlueprint, FlightPoint } from "./MissionCatalog";
 export interface ScoreThreshold { points: number; seconds: number; /** Keep fighting until expiry. */ waitForExpiry: boolean }
 export interface RadarJamming { visualLockRange: number; remainingCall: string; clearCall: string }
-export interface RearmPlan { zone: FlightPoint; radius: number; landing: LandingPlan; takeoffSeconds: number; missiles: boolean; special: boolean; health: boolean }
+export interface RearmPlan { zone: FlightPoint; radius: number; landing: LandingPlan; takeoffSeconds: number; missiles: boolean; special: boolean; health: boolean;
+	/** Batch D1: refill the fitted gun's magazine; absent follows `missiles`. Needs `armament.gun`. */
+	gun?: boolean }
 export function thresholdResult(plan: ScoreThreshold, score: number, elapsed: number): "continue" | "complete" | "failed" {
 	if (elapsed>=plan.seconds) return score>=plan.points ? "complete" : "failed";
 	return !plan.waitForExpiry && score>=plan.points ? "complete" : "continue";
@@ -34,6 +36,7 @@ export function validateBatchC(phases: MissionPhaseBlueprint[], limit: number): 
 			const start=landingPose(r.landing,0);
 			assert(math.sqrt((start.x-r.zone.x)**2+(start.y-r.zone.y)**2+(start.z-r.zone.z)**2)<=r.radius,"Rearm zone must include approach gate");
 			for(const b of [r.missiles,r.special,r.health]) assert(typeIs(b,"boolean"),"Invalid rearm refill");
+			assert(r.gun===undefined || typeIs(r.gun,"boolean"),"Invalid rearm gun refill");
 			validateBatchB([{kind:"return_line" as const,returnLine:{a:{x:-1,z:0},b:{x:1,z:0},direction:{x:0,z:1},markerY:1}},{kind:"landing" as const,landing:r.landing}],limit);
 		}
 	}

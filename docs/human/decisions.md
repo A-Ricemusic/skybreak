@@ -1,6 +1,6 @@
 # Decisions
 
-Last updated: 2026-10-29.
+Last updated: 2026-10-30.
 
 | ID | Date | Decision | Alternatives considered | Why | Decided by | Status |
 |---|---|---|---|---|---|---|
@@ -118,3 +118,17 @@ IDs D-070–D-074 checked against origin/main and PR #143 and PR #144 (#144 rese
 | D-072 | Score-threshold phases can hold until clock expiry; at expiry meeting the inclusive goal advances to the next authored phase/update and its own clock. Below goal fails. Escape is batch B’s directional return line; elite kills need not be required. | End immediately on reaching goal; fail at all clock expiries. Matches m05’s continued strike and surprise. | Batch C implementation agent | Provisional, owner may override |
 | D-073 | The world exclusively owns environment/effects. Batch C consumes #144’s M05LightAnchor positions through nightLightingFromAnchors. Light fields use up to 512 emissive points and 16 real PointLights; at most eight nonshadowed searchlights use sweeping Beam/SpotLight assemblies, updated at most 10 Hz, frozen while paused and disconnected on world destruction. SpotLight covers the near field at Roblox’s 60-stud limit; Beam covers the long visible sweep. | Thousands of real lights, uploaded beam textures. Bounded procedural rendering supports phone budgets; observed brightness still needs Studio/phone checks. | Batch C implementation agent | Provisional, owner may override |
 | D-074 | Elite flight provisionally means Vulture Lead (Vulture livery) plus four wingmen (Elite livery), authored as a standalone optional ace and four-member fighter wave on the escape phase. | Lone Vulture Lead; five identical aces. Preserves the reference five-ship surprise while supporting the story hunter. No mission roster is activated by batch C. | Batch C implementation agent | Provisional, owner may override |
+
+## Engine batch D1 decisions (2026-10-30)
+
+IDs D-150–D-155 checked against origin/main `6df703f` and the open PRs (#148, #149, #151, #152, #156–#160); no prior use found. Plan: [missions 6–18 engine plan](../specs/engine/missions-06-18-plan.md).
+
+| ID | Choice | Alternatives and rationale | Decision maker | Status |
+|---|---|---|---|---|
+| D-150 | The player gun is **opt-in per mission** (`armament.gun`). No current mission fits one, so practice and missions 1–5 play exactly as before. | Enable the gun everywhere now. Rejected for now: the owner is playing missions 1–3 and a new weapon changes their balance and the touch layout mid-beta. | Implementation agent (default requested by orchestrator) | Proposed; in PR |
+| D-151 | **Proposal:** enable the gun in every mission once mission 6 or 7 has flown it, after the owner has tried it, tuning M01–M05 pressure and rank cuts if needed. | Keep it mission-only forever; reference footage uses the gun in every mission, so per-mission gating would be odd long-term. | Owner to decide | Open proposal |
+| D-152 | Finite sortie stocks are opt-in (`armament.stock`): no missile regeneration, no special recharge, empty FIRE reads MISSILES EXPENDED, withdrawal refunds stay within the stock. Rearm restores missiles, special charges and the gun magazine (`rearm.gun` defaults to the missile flag). Without `armament` the eight-missile 2.5 s rack, special charges and batch C rearm are unchanged. | One global finite rack; partial regeneration. Rejected: specs ask for depletion that makes the rearm detour worth it, while M18's duel and missions 1–5 keep regeneration. | Implementation agent | Proposed; in PR |
+| D-153 | Gun mechanics: hold to fire; server-authoritative 10 rounds/s, 4 damage per round, 900-stud range, an instant line from the nose with a generous cone, blocked by terrain/solid scenery; same kill path and phase damage rules as missiles. Gun hits do not count toward missile accuracy. | Simulated bullets with travel time and lead; client-side hits. Rejected: more server work and network traffic, and client hits would not be authoritative. A lead reticle can come later. | Implementation agent | Proposed; in PR; tuning untested in Player |
+| D-154 | Gun controls: G on keyboard, LT on gamepad, a round GUN button on touch drawn only when the sortie fits a gun (above the action row, or beside it on Studio's compact grid). Release is always honoured and never rate-limited; pause, landing, rearm, 0.7 s of input silence and an empty magazine stop firing. | Hold FIRE for gun; mouse right button. Rejected: overloads the missile button and conflicts with camera use. | Implementation agent | Proposed; in PR |
+| D-155 | The gun has no firing sound; impacts use the existing approved metal-hit sounds and hit effect, with local cosmetic tracers. | Upload a cannon sound. Not allowed under D-142 (no further audio uploads). | Implementation agent, following D-142 | Proposed; in PR |
+

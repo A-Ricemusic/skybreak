@@ -18,6 +18,7 @@ import { CameraShake } from "./CameraShake";
 import { CombatEffects } from "./CombatEffects";
 import { EnemySmoothing } from "./EnemySmoothing";
 import { MissileTrails } from "./MissileTrails";
+import { GunTracers } from "./GunTracers";
 import { GameAudio } from "./GameAudio";
 import { HUD, HUD_FONT_BOLD } from "./Theme";
 import { evadeGauge } from "../shared/EvadeGauge";
@@ -37,6 +38,8 @@ const FLIGHT_KEYS: Enum.KeyCode[] = [
 	Enum.KeyCode.Q, Enum.KeyCode.E, Enum.KeyCode.LeftShift, Enum.KeyCode.ButtonL1, Enum.KeyCode.ButtonR1,
 	Enum.KeyCode.Space, Enum.KeyCode.F, Enum.KeyCode.Tab, Enum.KeyCode.R, Enum.KeyCode.C,
 	Enum.KeyCode.ButtonR2, Enum.KeyCode.ButtonB, Enum.KeyCode.ButtonY, Enum.KeyCode.ButtonX, Enum.KeyCode.Thumbstick1, Enum.KeyCode.Thumbstick2,
+	// Batch D1 gun (hold): G on keyboard, LT on a gamepad. Only sent when the sortie has a fitted gun.
+	Enum.KeyCode.G, Enum.KeyCode.ButtonL2,
 ];
 /** Drone-marked contacts: one glyph per hostile, dimmer than the selected target's cue. */
 const COLOR_MARKED = Color3.fromRGB(255, 193, 98);
@@ -211,6 +214,10 @@ export class FlightController {
 	private connections: RBXScriptConnection[] = [];
 	private hiddenParts = new Map<BasePart | Trail | ParticleEmitter | Light, number | boolean>();
 	private readonly missiles = new MissileTrails();
+	private readonly tracers = new GunTracers();
+	/** Held gun inputs (key names, "touch"); the server hears only the first press and the last release. */
+	private readonly gunSources = new Set<string>();
+	private gunHeld = false;
 	private readonly audio = new GameAudio();
 	private engine?: EngineRig;
 	private engineSpool = 0;
@@ -304,11 +311,11 @@ export class FlightController {
 		this.streamConnections.push(this.remotes.MissionState.OnClientEvent.Connect((data: unknown) => {
 			if (!typeIs(data, "table")) return;
 			const message = data as Partial<Omit<HudState, "kind">> & { kind?: string };
-			if(message.kind==="RearmStarted" && this.active) { this.rearm={plan:(data as {plan:RearmPlan}).plan,elapsed:0}; this.keys.clear(); for (const part of this.visual?.GetDescendants() ?? []) if (part.IsA("BasePart")) part.LocalTransparencyModifier=1; }
+			if(message.kind==="RearmStarted" && this.active) { this.rearm={plan:(data as {plan:RearmPlan}).plan,elapsed:0}; this.keys.clear(); this.ReleaseGun(); for (const part of this.visual?.GetDescendants() ?? []) if (part.IsA("BasePart")) part.LocalTransparencyModifier=1; }
 			else if(message.kind==="RearmSkipped" && this.rearm) this.rearm.elapsed=(data as {elapsed:number}).elapsed;
 			else if(message.kind==="RearmComplete" && this.active) { const handoff=data as FlightControlHandoff; if(this.predictor) FlightPrediction.Handoff(this.predictor,handoff.state,handoff.sequence); this.rearm=undefined; this.keys.clear(); for (const part of this.visual?.GetDescendants() ?? []) if (part.IsA("BasePart")) part.LocalTransparencyModifier=0; }
 			else if (message.kind === "LandingStarted" && this.active) {
-				this.landing={plan:(data as {plan:LandingPlan}).plan,elapsed:0}; this.keys.clear();
+				this.landing={plan:(data as {plan:LandingPlan}).plan,elapsed:0}; this.keys.clear(); this.ReleaseGun();
 				// The replicated aircraft is already hidden; hide the predicted clone for cockpit flight.
 				for (const part of this.visual?.GetDescendants() ?? []) if (part.IsA("BasePart")) part.LocalTransparencyModifier = 1;
 			}
@@ -408,6 +415,7 @@ export class FlightController {
 		if (UserInputService.GetFocusedTextBox() && state !== Enum.UserInputState.End && state !== Enum.UserInputState.Cancel) return Enum.ContextActionResult.Pass;
 		if (this.landing || this.rearm) {
 			if (state === Enum.UserInputState.Begin && (keyCode === Enum.KeyCode.Space || keyCode === Enum.KeyCode.ButtonR2)) this.SkipLanding();
+			this.ReleaseGun();
 			return Enum.ContextActionResult.Sink;
 		}
 		if (keyCode === Enum.KeyCode.Thumbstick2) {
@@ -424,6 +432,7 @@ export class FlightController {
 				if (keyCode === Enum.KeyCode.Tab || keyCode === Enum.KeyCode.R || keyCode === Enum.KeyCode.ButtonY) this.CycleTarget();
 				if (keyCode === Enum.KeyCode.C || keyCode === Enum.KeyCode.ButtonX) this.Special();
 			}
+			if (keyCode === Enum.KeyCode.G || keyCode === Enum.KeyCode.ButtonL2) this.SetGunTrigger(keyCode.Name, state === Enum.UserInputState.Begin || state === Enum.UserInputState.Change);
 		}
 		return Enum.ContextActionResult.Sink;
 	}
@@ -454,6 +463,27 @@ export class FlightController {
 		this.action("Evade");
 	}
 	public CycleTarget(): void { this.action("CycleTarget"); }
+	/** The sortie has a fitted gun (batch D1): the server reports its rounds. */
+	public HasGun(): boolean { return this.telemetry.gunRounds !== undefined; }
+	/** Hold or release one gun input; GunStart on the first held source, GunStop when the last lets go. */
+	public SetGunTrigger(source: string, held: boolean): void {
+		const usable = this.active && !this.paused && !this.landing && !this.rearm && !this.launchIntro && this.HasGun();
+		if (held && usable) this.gunSources.add(source); else this.gunSources.delete(source);
+		const now = this.gunSources.size() > 0;
+		if (now === this.gunHeld) return;
+		this.gunHeld = now;
+		if (now) this.action("GunStart");
+		// Release is always sent while a sortie runs, even mid-pause or landing, so the server never keeps firing.
+		else if (this.active) this.remotes.CombatAction.FireServer({ action: "GunStop" });
+	}
+	/** Drop every held gun input (pause, landing, rearm, end of sortie). */
+	public ReleaseGun(): void {
+		this.gunSources.clear();
+		if (!this.gunHeld) return;
+		this.gunHeld = false;
+		if (this.active) this.remotes.CombatAction.FireServer({ action: "GunStop" });
+	}
+	public IsGunFiring(): boolean { return this.gunHeld && (this.telemetry.gunRounds ?? 0) > 0; }
 	public ConfirmAudio(): void { this.audio.Confirm(); }
 	public ResultAudio(won: boolean): void { this.audio.Result(won); }
 	/**
@@ -479,6 +509,7 @@ export class FlightController {
 	/** Server resumed without a local Resume (pause budget spent) or refused the pause: follow it, sending nothing. */
 	private releaseLocalPause(): void { if (this.paused) this.applyLocalPause(false); }
 	private applyLocalPause(paused: boolean): void {
+		if (paused) this.ReleaseGun();
 		this.paused = paused;
 		this.audio.SetPaused(paused);
 		this.keys.clear(); this.mouseSteer = false; this.touchInput = Vector2.zero; this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0;
@@ -788,6 +819,7 @@ export class FlightController {
 			JetFactory.SetVapor(engine, EngineFx.VaporRate(math.max(math.abs(input.x), math.abs(input.y)), speed));
 		}
 		this.missiles.Step();
+		this.tracers.Step(dt, this.IsGunFiring(), this.visualFrame);
 		this.audio.Step(dt, this.frameInput.throttle, speed, this.visualFrame.Position, this.GetBoundaryWarning(), this.FlightWarningsEnabled());
 	}
 	private render(dt: number): void {
@@ -968,6 +1000,8 @@ export class FlightController {
 		return true;
 	}
 	public Stop(): void {
+		this.ReleaseGun();
+		this.tracers.Stop();
 		this.audio.Stop();
 		this.active = false;
 		this.landing = undefined; this.rearm=undefined;

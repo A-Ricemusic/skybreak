@@ -218,6 +218,7 @@ export const TargetBoxes = {
 		const touch = hud.touch;
 		if (!touch) return result;
 		const rectangles = [touch.joystick, touch.throttle, touch.missile, touch.target, touch.special, touch.evade];
+		if (touch.gun) rectangles.push(touch.gun);
 		if (hud.pause) rectangles.push(hud.pause);
 		for (const rectangle of rectangles) {
 			if (rectangle.width <= 0 || rectangle.height <= 0) continue;

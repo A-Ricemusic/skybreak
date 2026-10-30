@@ -219,7 +219,7 @@ export function statusText(cells: StatusCell[], separator: string): string {
 }
 
 /** Hull bar (green, amber, then red with damage) with the one-line ammo readout under it. */
-export function StatusPanel({ layout, health, cells }: { layout: StatusPanelLayout; health: number; cells: StatusCell[] }) {
+export function StatusPanel({ layout, health, cells, fit = false }: { layout: StatusPanelLayout; health: number; cells: StatusCell[]; fit?: boolean }) {
 	const frame = layout.frame;
 	const bar = relative(layout.bar, frame);
 	const color = TONE_COLOR[hullTone(math.floor(health + 0.5))];
@@ -237,11 +237,15 @@ export function StatusPanel({ layout, health, cells }: { layout: StatusPanelLayo
 				Text={statusText(cells, layout.separator)}
 				TextColor3={HUD.Green}
 				TextSize={layout.text}
+				// Batch D1: a gun cell or a long finite stock shrinks to the panel instead of overrunning it.
+				TextScaled={fit}
 				TextStrokeColor3={HUD.Shadow}
 				TextStrokeTransparency={0.45}
 				TextXAlignment={Enum.TextXAlignment.Left}
 				{...at(relative(layout.line, frame))}
-			/>
+			>
+				{fit && <uitextsizeconstraint MaxTextSize={layout.text} />}
+			</textlabel>
 		</frame>
 	);
 }
