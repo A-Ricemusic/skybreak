@@ -4,6 +4,8 @@ Last updated: 2026-10-29.
 
 ## Open
 
+Story PR follow-up: Studio/Player chapter sequencing and audible output are pending; Studio is signed out and the queue is busy. New/rewritten lines remain subtitle-only until separately generated, reviewed and uploaded. This is not a gameplay unlock blocker.
+
 | Date | Raised by | What is blocked | Impact | What is needed |
 |---|---|---|---|---|
 | 2026-10-29 | Mission 2 agent | Mission 1's runway may have the same hidden-pavement problem found on mission 2 (a 4-stud slab on terrain, D-056). It has not been checked. | Mission 1's runway may be hard to see. | Check mission 1's runway in Studio and fix it separately if needed. |
@@ -16,6 +18,8 @@ Last updated: 2026-10-29.
 | 2026-10-28 | Orchestrator | `main` has no required `validate` branch-protection check. | A PR can merge before validation even though every gameplay merge publishes automatically. | In GitHub Settings → Branches, require the `validate` check on `main`; until then the orchestrator continues to gate merges manually. |
 
 ## Resolved
+
+**Chapters keyed to 27 missions (mission 5 agent): resolved in this PR branch, pending merge.** Production story/document tables now use c0–18, M5 escape does not imply Vulture Lead died, and the finale is “A clear frequency”. Immutable old audio IDs and test-only legacy snapshots are retained; see [audit](../specs/story/routing-audit.md). Studio verification remains pending.
 
 | Date | Raised by | What was blocked | Resolution |
 |---|---|---|---|

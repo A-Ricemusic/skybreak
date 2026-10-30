@@ -1,3 +1,4 @@
+import { chapterBeforeMission, shouldPlayChapter } from "../shared/RelayStory";
 import { canLaunchMission, highestUnlocked } from "../shared/CampaignProgress";
 import { isMissionReason } from "../shared/OutcomeReason";
 import { DeletionObservation } from "../shared/DeletionObservation";
@@ -280,10 +281,11 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	}, [applyResponseSlots, beginRequest, invoke, selectedMission, selectedSlot, showToast]);
 	const startMission=useCallback(()=>{
 		if(busyRef.current || !canLaunchMission(selectedMissionRef.current, slots?.[selectedSlotRef.current-1]))return;
-		const chapter=math.max(0,selectedMissionRef.current-1);
+		const chapter=chapterBeforeMission(selectedMissionRef.current);
 		// A chapter already seen on this slot (retry or replay) goes straight to launch.
 		const seen=slots?.[selectedSlotRef.current-1]?.cutscenesSeen;
-		if(seen && seen.includes(chapter)){launchMission();return;}
+		const completed=slots?.[selectedSlotRef.current-1]?.missions?.[selectedMissionRef.current]?.completed===true;
+		if(!shouldPlayChapter(selectedMissionRef.current,seen,completed)){launchMission();return;}
 		cinematicNext.current=launchMission;
 		setCinematicId(chapter);
 		changeScreen("cinematic");

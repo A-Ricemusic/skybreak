@@ -42,7 +42,7 @@ export const mission: MissionBlueprint = {
 		formation: [{ x: -180, y: 20, z: 160 }, { x: 180, y: 20, z: 160 }, { x: 0, y: 40, z: 320 }] },
 	primary: "Destroy all eleven parked bombers on the farm airfield",
 	briefing: "The grain drums in Teal's manifest lead north to a 'farm' with a runway and no animals. Yesterday's bombers flew from it; eleven more are parked on its pads. Follow the power line and destroy them before they raid. Hangars, AA guns, the tower and the substation are optional. Hit aircraft, not the farmhouses.",
-	debrief: "All eleven bombers are burning on their pads. The farm will not launch another raid. Sera wants to know who paid for its runway.",
+	debrief: "All eleven bombers are burning on their pads. The farm will not launch another raid. The manifest points recovery toward Teal's beacons in the pass.",
 	failure: "The bombers survived. The farm can launch its next raid.",
 	ground: [],
 	phases: [{

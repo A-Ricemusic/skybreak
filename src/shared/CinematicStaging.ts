@@ -107,12 +107,12 @@ export function tapesInTin(id:number): number | undefined {
 	for(const chapter of STORY)if(chapter.id>=1 && chapter.id<id && chapter.beats.some((b)=>b.speaker===TEAL))played++;
 	return math.max(1,12-math.floor(played/2));
 }
-/** The Teklan orchard burns at noon in chapter 15; farm scenes are charred from then on. */
-export function orchardBurned(id:number): boolean { return id>=15; }
-/** Recovery brings Teal's recorder home in chapter 25: dented, lid open, lamp steady. */
-export function recorderOpen(id:number): boolean { return id===25; }
-/** Sera's board keeps Teal's name strip through chapter 8, loses it for chapter 9 until the chapter's last beat, and keeps it after. */
-export function boardShowsTeal(id:number,beat:number,lastBeat:number): boolean { return id!==9 || beat>=lastBeat; }
+/** The Teklan orchard burns at noon in chapter 9; farm scenes are charred from then on. */
+export function orchardBurned(id:number): boolean { return id>=9; }
+/** Recovery brings Teal's recorder home in chapter 16: dented, lid open, lamp steady. */
+export function recorderOpen(id:number): boolean { return id===16; }
+/** Sera's board keeps Teal's name strip through chapter 4, loses it for chapter 5 until the chapter's last beat, and keeps it after. */
+export function boardShowsTeal(id:number,beat:number,lastBeat:number): boolean { return id!==5 || beat>=lastBeat; }
 /** Faint green ribbons high over the crown station; only the night relay chapters have them. */
 export function auroraVisible(scene:StoryScene,mood:StoryMood): boolean { return scene==="relay" && mood==="night"; }
 export interface AuroraRibbon { pos: Vec; yaw: number; size: Vec; color: Rgb; transparency: number; }
