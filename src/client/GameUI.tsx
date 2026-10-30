@@ -33,6 +33,7 @@ import { BriefingScreen } from "./screens/BriefingScreen";
 import { CampaignScreen } from "./screens/CampaignScreen";
 import { MenuBackdrop, setMenuCamera } from "./screens/MenuBackdrop";
 import { MissionHud, type Callout } from "./screens/MissionHud";
+import { SortieOverlay } from "./SortieOverlay";
 import { OutcomeScreen, type OutcomeState } from "./screens/OutcomeScreen";
 import { HintRow } from "./screens/Primitives";
 import { finite, killedTargetPoint, killSnapshot, normalizePersistence, normalizeSlots, RADIO_SECONDS, resumeMission, safeString, sanitizeTelemetry, scaleRectangle } from "./screens/UIFormat";
@@ -178,6 +179,8 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			return;
 		}
 		if (current === "mission" || current === "loading" || inputModeRef.current !== "gamepad") {
+			// The rearm's TAKEOFF / CHANGE WEAPON menu owns gamepad focus while it is open (SortieOverlay).
+			if (current === "mission" && controller.RearmStatus()?.menu === true) return;
 			if (selected && selected.IsDescendantOf(root)) GuiService.SelectedObject = undefined;
 			return;
 		}
@@ -837,7 +840,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					<BriefingScreen visible={screen === "briefing"} menu={menu} selectedSlot={selectedSlot} selectedMission={selectedMission} slot={selectedSave} busy={busy} special={selectedSpecial} difficulty={selectedDifficulty} onBack={goBack} onLaunch={startMission} onMission={chooseMission} onSpecial={chooseSpecial} onDifficulty={chooseDifficulty} />
 					<LoadingScreen visible={screen === "loading"} missionId={selectedMission} progress={loadingProgress} viewport={viewport} />
 					<MissionHud
-						visible={screen === "mission"}
+						visible={screen === "mission" && controller.CutInStatus() === undefined}
 						viewport={viewport}
 						inputMode={inputMode}
 						telemetry={telemetry}
@@ -863,6 +866,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 						onEvade={evadeNow}
 						onPause={pauseSortie}
 					/>
+					{screen === "mission" && <SortieOverlay controller={controller} telemetry={telemetry} viewport={viewport} inputMode={inputMode} />}
 					{screen === "mission" && paused && !settingsOpen && (
 						<PauseOverlay remaining={telemetry.pauseRemaining} viewport={viewport} onResume={resumeSortie} onSettings={openPauseSettings} onMenu={returnToMenu} />
 					)}

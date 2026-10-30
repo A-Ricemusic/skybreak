@@ -3,7 +3,8 @@ import { FlightMath, FlightState } from "./FlightMath";
 import type { MissionPhaseBlueprint, FlightPoint } from "./MissionCatalog";
 export interface ScoreThreshold { points: number; seconds: number; /** Keep fighting until expiry. */ waitForExpiry: boolean }
 export interface RadarJamming { visualLockRange: number; remainingCall: string; clearCall: string }
-export interface RearmPlan { zone: FlightPoint; radius: number; landing: LandingPlan; takeoffSeconds: number; missiles: boolean; special: boolean; health: boolean }
+export interface RearmPlan { zone: FlightPoint; radius: number; landing: LandingPlan; takeoffSeconds: number; missiles: boolean; special: boolean; health: boolean;
+	/** Hold on the runway for the TAKEOFF / CHANGE WEAPON menu (SortieCutaways). */ weaponMenu?: boolean; /** Tower cues by rearm time. */ radio?: { at: number; text: string }[] }
 export function thresholdResult(plan: ScoreThreshold, score: number, elapsed: number): "continue" | "complete" | "failed" {
 	if (elapsed>=plan.seconds) return score>=plan.points ? "complete" : "failed";
 	return !plan.waitForExpiry && score>=plan.points ? "complete" : "continue";

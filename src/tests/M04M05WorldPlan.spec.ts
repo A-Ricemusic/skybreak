@@ -21,7 +21,9 @@ describe("Dormant M04/M05 world compositions", () => {
   let checkpoints = 0;
   expect(buildM04Plan(404, () => { checkpoints++; })).toEqual(a);
   expect(buildM05Plan()).toEqual(b); expect(checkpoints).toBeGreaterThan(1000);
-  for (const bp of MissionCatalog.All()) { expect(MissionCatalog.WorldKey(bp.id)).never.toBe(a.key); expect(MissionCatalog.WorldKey(bp.id)).never.toBe(b.key); }
+  // Mission 5 selects the night refinery (D-100); nothing else selects either composition.
+  for (const bp of MissionCatalog.All()) { expect(MissionCatalog.WorldKey(bp.id)).never.toBe(a.key); if (bp.id !== 5) expect(MissionCatalog.WorldKey(bp.id)).never.toBe(b.key); }
+  expect(MissionCatalog.WorldKey(5)).toBe(b.key);
  });
  it("exports unique prefixed ids, required air counts and NNE contact poses", () => {
   for (const [targets, prefix] of [[a.targets, "m04_"], [b.targets, "m05_"]] as const) {

@@ -14,6 +14,7 @@ import { AircraftCollision } from "./AircraftCollision";
 import { ActorGrounding } from "./ActorGrounding";
 import type { CombatSession, AirRole, Enemy } from "./CombatSession";
 import { fixedRaiders } from "./PhaseDirectorRules";
+import { buildRearmGate } from "./EngineBatchCRuntime";
 
 export interface SpawnOptions {
 	arrival?: FighterArrival | StandaloneAce;
@@ -102,6 +103,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		session.airQueue.clear();
 		session.navigationMarker?.Destroy(); session.navigationMarker=undefined;
 		session.returnLineMarker?.Destroy(); session.returnLineMarker=undefined;
+		session.rearmGate?.Destroy(); session.rearmGate=undefined;
 		session.navigationActor?.Destroy(); session.navigationActor=undefined; session.actorFooting=undefined;
 		// The live list, not the catalog: twists splice new objectives in after the phase that fired them.
 		const phases=BlueprintRunner.Phases(state);
@@ -118,6 +120,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 			enemy.model.SetAttribute("SkybreakEnemy",enemy.enabled);
 			enemy.model.SetAttribute("RequiredTarget",enemy.enabled && enemy.required);
 		}
+		if (phase.rearm) session.rearmGate=buildRearmGate(session.folder,phase.rearm);
 		combat.spawnAllies(session);
 		if (phase.execution?.activatePracticeTarget) activateGround(session);
 		if (phase.kind === "required_ground" && phase.groundTargets === undefined) activateGround(session,MissionCatalog.GroundStart(phases,state.phaseIndex),phase.count ?? 0);

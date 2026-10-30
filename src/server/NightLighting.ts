@@ -6,7 +6,8 @@ export function buildNightLighting(parent: Instance, plan: NightLighting, paused
 	const part = (name: string, position: Vector3) => {
 		const p = new Instance("Part");
 		p.Name = name;
-		p.Size = new Vector3(2, 2, 2);
+		// Studio check (M05): 2-stud points vanished beyond about 1 km; 6 studs keep the field readable on approach.
+		p.Size = new Vector3(6, 6, 6);
 		p.Position = position;
 		p.Anchored = true;
 		p.CanCollide = false;

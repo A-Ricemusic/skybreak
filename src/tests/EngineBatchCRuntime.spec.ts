@@ -4,7 +4,8 @@ import { Lighting } from "@rbxts/services";
 import { PauseRules } from "../shared/SessionGuard";
 import { Enemy } from "../server/CombatSession";
 import { afterEach, describe, expect, it } from "@rbxts/jest-globals";
-import { announceJammerKill, stepRearm, liveJammers, lockAllowed } from "../server/EngineBatchCRuntime";
+import { announceJammerKill, answerRearmMenu, skipCutIn, skipRearm, stepCutIn, stepRearm, liveJammers, lockAllowed } from "../server/EngineBatchCRuntime";
+import { landingDuration, landingPose } from "../shared/EngineBatchB";
 import { CombatSession } from "../server/CombatSession";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { MissionCatalog } from "../shared/MissionCatalog";
@@ -64,6 +65,45 @@ describe("Batch C runtime paths (Studio lease required to execute)",()=>{
 			expect(ship.PrimaryPart!.Position.X).toBeCloseTo(100);expect(ship.PrimaryPart!.Position.Z).toBeCloseTo(200);
 			expect(ship.GetAttribute("TargetId")).toBe("waterline");
 		} finally { ship?.Destroy();UploadedAssets.Configure(); }
+	});
+
+	it("holds mission 5's rearm for TAKEOFF / CHANGE WEAPON, swaps and refills the special, keeps damage, and blocks a repeat in the zone",()=>{
+		const bp=MissionCatalog.Get(5),plan=bp.phases[0].rearm!,landed=landingDuration(plan.landing),gate=landingPose(plan.landing,0);
+		const make=()=>{
+			const state=BlueprintRunner.NewState(bp,os.clock());
+			return {active:true,blueprintState:state,state:FlightMath.FromPose(gate.x,gate.y,gate.z,0,0,160),targetScore:new TargetScore(MissionCatalog.Scoring(5)),enemies:[],projectiles:[],special:SpecialWeapons.New("uav"),missiles:0,health:40,stateSequence:1} as unknown as CombatSession;
+		};
+		const s=make(),messages:{kind:string}[]=[],send=(m:unknown)=>messages.push(m as {kind:string}),said:string[]=[];
+		expect(stepRearm(s,1,52,send,l=>said.push(l))).toBe(true);expect(messages[0].kind).toBe("RearmStarted");expect(said).toEqual([plan.radio![0].text]);
+		expect(stepRearm(s,landed,52,send,l=>said.push(l))).toBe(true);expect(s.rearmElapsed).toBe(landed);expect(s.rearmMenu).toBe(0);expect(messages[1].kind).toBe("RearmMenu");expect(s.missiles).toBe(0);
+		expect(stepRearm(s,10,52,send)).toBe(true);expect(s.rearmElapsed).toBe(landed);
+		const epoch=s.blueprintState!.startedAt;BlueprintRunner.Tick(s.blueprintState!,epoch+500);expect(s.blueprintState!.elapsed).toBeLessThan(1);
+		expect(answerRearmMenu(s,"lance",send)).toBe(true);expect(s.special.kind).toBe("lance");expect(messages[2].kind).toBe("RearmTakeoff");expect(answerRearmMenu(s,"salvo",send)).toBe(false);
+		expect(stepRearm(s,plan.takeoffSeconds,52,send)).toBe(true);
+		expect(s.rearmElapsed).toBeUndefined();expect(s.missiles).toBe(52);expect(s.special.kind).toBe("lance");expect(s.special.charges).toBe(SpecialWeapons.Get("lance").charges);expect(s.health).toBe(40);
+		expect(messages[messages.size()-1].kind).toBe("RearmComplete");expect(stepRearm(s,0.1,52,send)).toBe(false);
+		// An unanswered menu takes off with the current weapon; SKIP jumps the approach to the menu, then takes off.
+		const idle=make();stepRearm(idle,1,52,()=>{});stepRearm(idle,landed,52,()=>{});expect(stepRearm(idle,31,52,()=>{})).toBe(true);expect(idle.rearmMenu).toBeUndefined();expect(idle.special.kind).toBe("uav");
+		const skip=make();stepRearm(skip,1,52,()=>{});skipRearm(skip,plan,()=>{});expect(skip.rearmElapsed).toBe(landed);stepRearm(skip,0.1,52,()=>{});expect(skip.rearmMenu).toBe(0);
+		skipRearm(skip,plan,()=>{});expect(skip.rearmMenu).toBeUndefined();expect(skip.rearmAnswered).toBe(true);
+		answerRearmMenu(skip,"bogus",()=>{});expect(skip.special.kind).toBe("uav");
+	});
+	it("holds the escape clock through the elite cut-in, plays it once and radios the clearance after",()=>{
+		const bp=MissionCatalog.Get(5),start=os.clock()-612,state=BlueprintRunner.NewState(bp,start);state.score=2000;
+		BlueprintRunner.Tick(state,start+600);expect(state.phaseIndex).toBe(1);BlueprintRunner.Tick(state,start+612);
+		const subject=(role:string)=>({enabled:true,health:100,scoreRole:role,model:new Instance("Model")} as unknown as Enemy);
+		const s={active:true,blueprintState:state,enemies:[subject("elite"),subject("ace")],state:FlightMath.FromPose(0,500,0,0,0,160),stateSequence:3} as unknown as CombatSession;
+		const messages:{kind:string;subjects?:Model[]}[]=[],said:string[]=[];
+		expect(stepCutIn(s,0.5,m=>messages.push(m as {kind:string}),l=>said.push(l))).toBe(true);
+		expect(messages[0].kind).toBe("CutInStarted");expect(messages[0].subjects![0]).toBe(s.enemies[1].model);expect(state.cutInActive).toBe(true);
+		const remaining=BlueprintRunner.TimeRemaining(state);BlueprintRunner.Tick(state,os.clock()+100);expect(BlueprintRunner.TimeRemaining(state)).toBe(remaining);
+		skipCutIn(s);expect(s.cutInElapsed).toBe(0.5);
+		expect(stepCutIn(s,0.5,m=>messages.push(m as {kind:string}),l=>said.push(l))).toBe(true);skipCutIn(s);
+		expect(stepCutIn(s,0.1,m=>messages.push(m as {kind:string}),l=>said.push(l))).toBe(true);
+		expect(messages[1].kind).toBe("CutInComplete");expect(said).toEqual(bp.phases[1].cutIn!.after!);expect(state.cutInActive).toBeUndefined();
+		BlueprintRunner.Tick(state,os.clock());expect(BlueprintRunner.TimeRemaining(state)).toBeCloseTo(remaining,0);
+		expect(stepCutIn(s,0.1,()=>{},()=>{})).toBe(false);
+		for(const e of s.enemies) e.model.Destroy();
 	});
 
 });

@@ -7,6 +7,8 @@ import { CountdownDisplay } from "../../shared/CountdownDisplay";
 import { SpecialKind, SpecialWeapons } from "../../shared/SpecialWeapons";
 import { WeaponRules } from "../../shared/WeaponRules";
 import { clockLines, instrumentValue, returnProgressLine, skipPrompt, statusLine } from "../../shared/HudInstruments";
+import { pointsLine } from "../../shared/SortieCutaways";
+import { MissionCatalog } from "../../shared/MissionCatalog";
 import type { Telemetry } from "../../shared/Types";
 import {
 	getEvadeHint,
@@ -37,6 +39,12 @@ import { missileReady } from "./UIFormat";
 
 /** Accent of the reference's white-and-pink MISSION UPDATE box. */
 const MISSION_UPDATE_PINK = Color3.fromRGB(255, 120, 196);
+/** `PTS nnnn/2000` until a mission's score goal is met, then its rank letter (m05 §7). */
+function missionPointsLine(missionId: number | undefined, points: number): string {
+	const blueprint = MissionCatalog.IsValidId(missionId) ? MissionCatalog.Get(missionId) : undefined;
+	const goal = blueprint?.phases.find((p) => p.scoreThreshold !== undefined)?.scoreThreshold?.points;
+	return blueprint ? pointsLine(points, goal, MissionCatalog.Scoring(blueprint)) : `PTS ${points}`;
+}
 
 /** Temporarily replaces the one-line objective (radio lines, kills). */
 interface Callout {
@@ -269,7 +277,7 @@ function MissionHud({
 	const fireButton = WeaponRules.FireButton(telemetry.missiles, telemetry.missileCooldown, telemetry.target !== undefined && telemetry.targetDamageable !== false, telemetry.lockProgress);
 	const timeRemaining = CountdownDisplay.Value(telemetry.missionId, telemetry.timeRemaining);
 	const [timeLine, normalProgressLine] = clockLines(timeRemaining, telemetry.objectiveProgress, telemetry.objectiveTotal, telemetry.kills, telemetry.total);
-	const tallyLine=telemetry.missionPoints!==undefined ? `PTS ${telemetry.missionPoints}${telemetry.missionPoints<(telemetry.objectiveTotal ?? 0) ? `/${telemetry.objectiveTotal}` : ""}` : normalProgressLine;
+	const tallyLine=telemetry.missionPoints!==undefined ? missionPointsLine(telemetry.missionId, telemetry.missionPoints) : normalProgressLine;
 	const landing = telemetry.phase === "landing" ? controller.LandingStatus() : undefined;
 	const progressLine = returnProgressLine(telemetry.phase, landing?.distance) ?? tallyLine;
 	const tutorial = getTutorialInstruction(telemetry.tutorialStep, inputMode);
