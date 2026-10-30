@@ -19,7 +19,8 @@ describe("Dormant M06/M07 worlds", () => {
   expect(land.yields).toBe(1); expect(water.yields).toBe(1);
   expect(math.abs(land.estimatedSeconds - 3.20007)).toBeLessThan(1e-6);
   expect(math.abs(water.estimatedSeconds - 3.6502)).toBeLessThan(1e-6);
-  expect(land.legacyEstimatedSeconds).toBe(water.legacyEstimatedSeconds);
+  // Main's WorldCompositionCounts (#158) now charges water too, so the legacy figures legitimately differ.
+  expect(water.legacyEstimatedSeconds).toBeGreaterThan(land.legacyEstimatedSeconds);
  });
  it("is deterministic, checkpointed, and never selected by a mission", () => {
   let checkpoints = 0;
