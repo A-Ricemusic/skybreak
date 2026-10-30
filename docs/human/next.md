@@ -1,5 +1,12 @@
 # Next
 
+## M10/M11 world review and integration
+
+1. Review [M10](../specs/worlds/m10-composition.md) and [M11](../specs/worlds/m11-composition.md), including provisional inventories, full target tables and budgets. Rebase onto main after #164/#166 merge; do not merge this PR as part of this task.
+2. Once Studio is authenticated, compare ingress, river turn/pen mouth and snowy high/low bands against the cited spec views, fly both landing envelopes and both civilian routes, and measure real build/clear/phone performance. Offline checks establish geometry contracts only.
+3. Resolve M10 per-type roster/26-air activation, artillery, ammunition/rearm and 3,000-point/20:00 integration. Extend M11 encounter validation above 2,000 without clipping its 2,800-stud route; implement independent survival/progress for both civilians and the 5:30 protection objective. Review compressed vertical/cloud treatment together before activation.
+
+
 ## M08/M09 worlds — in review
 
 Review the [broadcast island](../specs/worlds/m08-composition.md) and [three beaches/carrier](../specs/worlds/m09-composition.md), including full scenery tables. Offline estimates are 4.235 s / 10.474 s (≤16 s). Rebase `feat/m08-m09-worlds` onto main after #164 merges. Later authenticated Studio work must check silhouette, materials, native/distant sea seams, carrier deck/approach, navigation, build/clear costs and phone readability. Resolve M09 subtype/83-contact inventory before activating mission data; preserve M08 7:00+6:00/six bombers/NW ingress and M09 10:00+7:00/six attack jets/carrier rearm. No Studio or gameplay activation in this PR.

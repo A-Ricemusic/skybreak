@@ -1,5 +1,14 @@
 # Blockers
 
+## M10/M11 world review (2026-10-30)
+
+- Worlds are in review, dormant; Studio is signed out and this task is offline only. Rendered fidelity, actual load/clear time, Player/phone performance and flight feel remain unverified. No owner action is needed for dormant review.
+- #164 and #166 remain open at branching. This branch starts at #166 head `80b5f712916e04d37ea09bb3538fa1b47384afb6`; rebase onto main after those dependencies merge.
+- M10 reserves the map's 100 ground +24 naval contacts, with an explicitly authored subtype split; it does not recover unreadable source identities or create the 26-air combat roster. Mission integration, artillery shielding, finite ammunition/rearm and 20:00 scoring remain separate.
+- M11 preserves the proposed high route at Y=2,800 and low route at Y=900. Encounter route/arrival validation still caps Y=2,000; mission actors cannot adopt the high route until deliberately extended. The 23,000-ft literal altitude exceeds the hard flight ceiling; vertical compression remains reviewable. Bright overcast is implemented; an altitude-dependent 1,600–2,200-stud cloud transition is exported metadata, not a rendered volumetric layer.
+- Resolved offline findings: adjusted river bends to stay outside ground foundations; reduced distant ridge/detail cost to meet the existing ≤16-second estimator cap. These fixes make no claim of measured runtime or visual acceptance.
+
+
 ## M08/M09 world review (2026-10-30)
 
 - Worlds are in review, dormant; offline work is complete in this branch. Studio is signed out and this task excludes Studio; visual, Player, phone and actual load/cleanup acceptance remain open. No owner action is needed for this PR.

@@ -1,3 +1,7 @@
+import { M10World } from "./M10World";
+import { M10_WORLD_KEY } from "../shared/M10WorldPlan";
+import { M11World } from "./M11World";
+import { M11_WORLD_KEY } from "../shared/M11WorldPlan";
 import { M08World } from "./M08World";
 import { M09World } from "./M09World";
 import { M08_WORLD_KEY } from "../shared/M08WorldPlan";
@@ -250,6 +254,10 @@ export const MissionWorld = {
 		if (MissionCatalog.WorldKey(missionId) === M06_WORLD_KEY || MissionCatalog.WorldKey(missionId) === M07_WORLD_KEY) {
 			Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();
 			return MissionCatalog.WorldKey(missionId) === M06_WORLD_KEY ? M06World.Build(parent) : M07World.Build(parent);
+		}
+		if (MissionCatalog.WorldKey(missionId) === M10_WORLD_KEY || MissionCatalog.WorldKey(missionId) === M11_WORLD_KEY) {
+			Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();
+			return MissionCatalog.WorldKey(missionId) === M10_WORLD_KEY ? M10World.Build(parent) : M11World.Build(parent);
 		}
 		if (MissionCatalog.WorldKey(missionId) === M08_WORLD_KEY || MissionCatalog.WorldKey(missionId) === M09_WORLD_KEY) {
 			Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();

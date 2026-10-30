@@ -1,5 +1,8 @@
 # Shipped
 
+M10/M11 worlds are **in review**, dormant on `feat/m10-m11-worlds`, stacked on [#166](https://github.com/A-Ricemusic/skybreak/pull/166) above #164. [M10 composition and complete target table](../specs/worlds/m10-composition.md) · [M11 composition and routes](../specs/worlds/m11-composition.md). No mission unlock, Studio/Player/phone verification, asset export or upload. Decisions D-180–D-183.
+
+
 M06/M07 world work is **unmerged / in review** on `feat/m06-m07-worlds`; it changes no currently selectable mission or Player experience. See [M06](../specs/worlds/m06-composition.md) and [M07](../specs/worlds/m07-composition.md). Review fixes add the local #158 chunk/yield budget model (10.265 s / 14.501 s), distant M06 sea Parts and corrected detail counts. No Studio/Player verification or new asset upload is claimed.
 
 Last updated: 2026-10-29, against `main` at `088fbfc`.
