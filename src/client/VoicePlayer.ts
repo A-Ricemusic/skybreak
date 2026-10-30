@@ -1,3 +1,4 @@
+import { VoiceDisclosureSession, VOICE_NOTICE_ATTRIBUTE } from "../shared/VoiceDisclosure";
 import { ContentProvider, Players, RunService, SoundService, TweenService } from "@rbxts/services";
 import { voiceLoadAction } from "../shared/VoiceReadiness";
 import { VOICE_BANK_ASSETS } from "../shared/VoiceBanks";
@@ -23,6 +24,8 @@ type SpeakingListener = (speaking: boolean) => void;
 // Client voice-over output only. Never embeds provider credentials or calls
 // generation APIs; clips come from the generated cue table (VoiceLines) and
 // play nothing until their bank has an approved Roblox asset id.
+const disclosureSession = new VoiceDisclosureSession();
+
 let master: SoundGroup | undefined;
 const channels = new Map<VoiceChannel, SoundGroup>();
 const active = new Set<VoiceHandle>();
@@ -189,6 +192,8 @@ export const VoicePlayer = {
 				sound.SetAttribute("VoiceState", "Playing");
 				// Seek only after load: some clients discard a seek on an unloaded bank.
 				sound.TimePosition = clip.start;
+				const noticeUntil = disclosureSession.FirstVoice(os.clock());
+				if (noticeUntil !== undefined) Players.LocalPlayer.FindFirstChildOfClass("PlayerGui")?.SetAttribute(VOICE_NOTICE_ATTRIBUTE, noticeUntil);
 				sound.Play();
 				return;
 			}

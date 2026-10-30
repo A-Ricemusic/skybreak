@@ -12,6 +12,8 @@ Missions 3–5 are in review: [#147](https://github.com/A-Ricemusic/skybreak/pul
 
 The mission 3 PR (#147) also adds a shared world gate: after any sortie the world is cleared in the background and the next launch waits, queued, until that finishes (D-067). Provisional mission 3 decisions are D-061–D-067 in [Decisions](decisions.md).
 
+Audio policy update (D-142, owner, 2026-10-30): no further audio uploads; story continues in subtitles beyond existing approved voices and changed lines stay silent. The rejected bank is preserved at `evidence/voicebank01-rejected` (`ff4a78b`); [full incident case](../qa/audio-rejections/2026-10-30-voicebank01.md). This documentation adds no gameplay changes or Player verification.
+
 ## Mission progress
 
 | # | Reference mission | Footage time | Gameplay length | Footage indexed | Spec written | Built | Live | Owner tested |

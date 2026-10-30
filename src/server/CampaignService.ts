@@ -211,7 +211,9 @@ function handleRequest(player: Player, action: unknown, payload?: unknown): Camp
 	// Never create state here: a late invoke after PlayerRemoving must not start a fresh load.
 	const state = states.get(player);
 	if (!state || state.closing) return refuse("Campaign session is closing.");
-	// A timeout must be able to cancel a yielding StartMission without releasing its world/build lock.
+	// Rate-limit before validating, so malformed requests spend budget too.
+	if (!state.budget.accept(os.clock(), typeIs(action, "string") && action === "DeletionStatus")) return refuse("Please wait a moment before trying again.");
+	// A timeout must be able to cancel a yielding StartMission without releasing its world/build lock (rate-limited like every request).
 	if (action === "CancelLaunch") {
 		const launchId = typeIs(payload, "table") ? (payload as { launchId?: unknown }).launchId : undefined;
 		if (!typeIs(launchId, "number") || launchId !== launchId || launchId < 1 || launchId > 1e9 || launchId % 1 !== 0) return refuse("Invalid launch generation.");
@@ -219,8 +221,6 @@ function handleRequest(player: Player, action: unknown, payload?: unknown): Camp
 		if (state.activeLaunchId === launchId) { state.activeLaunchId = undefined; state.activeSlot = undefined; state.activeMission = undefined; }
 		return { ok: true };
 	}
-	// Rate-limit before validating, so malformed requests spend budget too.
-	if (!state.budget.accept(os.clock(), typeIs(action, "string") && action === "DeletionStatus")) return refuse("Please wait a moment before trying again.");
 	if (!typeIs(action, "string")) return refuse("Invalid campaign action.");
 	// No yielding load/recovery, queue ownership or foreground timestamp changes for observations.
 	if (action === "DeletionStatus") {
