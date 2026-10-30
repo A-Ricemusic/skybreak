@@ -27,7 +27,7 @@ export function speakerStyle(speaker: string): SpeakerStyle {
 function line(speaker:string,shot:StoryShot,text:string,recordingId?:string): StoryBeat { return {speaker,text,shot,recordingId}; }
 function chapter(id:number,title:string,scene:StoryScene,mood:StoryMood,...beats:StoryBeat[]): StoryChapter { return {id,title,scene,mood,beats}; }
 /** D-030/D-031: eighteen pre-mission chapters (opening shared with practice), then the finale.
- * recordingId references immutable approved bank transcripts; absent means new recording required. */
+ * recordingId references immutable approved bank transcripts; absent means a subtitle-only beat (D-142: no new audio). */
 export const STORY: StoryChapter[] = [
 	chapter(0,"A voice in the static","hangar","dawn",
 		line(TEAL,"recorder","Two taps. That's me. If you're hearing this, I missed a check-in, and you're sitting in my chair because nobody else wanted the paperwork.","story.c00.b00"),

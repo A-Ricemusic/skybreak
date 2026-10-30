@@ -4,13 +4,13 @@ Last updated: 2026-10-29, against main `7d73c44` (mission 3 merged).
 
 The new 18-mission campaign is live in Roblox Player through the automatic pipeline. **Practice flight and missions 1–3 are playable; missions 4–18 are locked.** The redesign rebuilds missions and worlds to match Ace Combat 04's structure and pacing while keeping the Broken Relay story and original shipped expression. Mission 2 is ready for the owner's beta test; see [Next](next.md).
 
-**Voice uploads halted (2026-10-30):** Roblox rejected the regenerated voiceBank01 (asset 97298487668258). The approved live voice is unaffected. #159 rewrites the 10 riskiest new lines (D-141). See [blockers](blockers.md).
+**Voice (2026-10-30):** Roblox rejected the regenerated voiceBank01, and there will be no more audio uploads (D-142). The approved live voice is unaffected. New and changed story lines are subtitle-only. #159 rewrites the 10 riskiest lines. See [blockers](blockers.md).
 
 [Per-level status and test checklist](levels.html) · [Play SKYBREAK](https://www.roblox.com/games/112911685457826)
 
 Mission 2 became playable in #143 after its dormant world (#140) and engine batch A (#138). It unlocks after mission 1 and preserves mission 1 score breakdowns through completion, replays and save reloads. The publish workflow returned place version 92. No agent Player test is claimed.
 
-Mission 3 merged in [#147](https://github.com/A-Ricemusic/skybreak/pull/147) and is live by pipeline convention; no new Player test is claimed. Missions 4–5 remain in review (#149/#148). The story remap (#159) aligns all 18 chapters and the finale, with future mission text and a recording manifest. Studio verification and new audio are pending; see [routing audit](../specs/story/routing-audit.md).
+Mission 3 merged in [#147](https://github.com/A-Ricemusic/skybreak/pull/147) and is live by pipeline convention; no new Player test is claimed. Missions 4–5 remain in review (#149/#148). The story remap (#159) aligns all 18 chapters and the finale, with future mission text and a recording manifest. New dialogue is subtitle-only (D-142); Studio verification is pending; see [routing audit](../specs/story/routing-audit.md).
 
 The mission 3 PR (#147) also adds a shared world gate: after any sortie the world is cleared in the background and the next launch waits, queued, until that finishes (D-067). Provisional mission 3 decisions are D-061–D-067 in [Decisions](decisions.md).
 
