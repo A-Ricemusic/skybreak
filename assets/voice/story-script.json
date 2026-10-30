@@ -2138,6 +2138,42 @@
    "maxDurationSeconds": 5,
    "recordingId": null,
    "needsRecording": true
+  },
+  {
+   "id": "radio.m04.p1.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "chip": "SERA",
+   "text": "SERA: High flyers ahead. Break their jammers to get radar back.",
+   "context": "Live mission phase/landing radio",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 5,
+   "recordingId": null,
+   "needsRecording": true
+  },
+  {
+   "id": "radio.m04.p1.chatter1",
+   "kind": "radio",
+   "speaker": "SERA",
+   "chip": "SERA",
+   "text": "SERA: One courier down. Two still watching the road.",
+   "context": "Live mission phase/landing radio",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 5,
+   "recordingId": null,
+   "needsRecording": true
+  },
+  {
+   "id": "radio.m04.p1.chatter2",
+   "kind": "radio",
+   "speaker": "MARINE",
+   "chip": "LANTERN 2",
+   "text": "LANTERN 2: One transport left. The trucks are counting on us.",
+   "context": "Live mission phase/landing radio",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 5,
+   "recordingId": null,
+   "needsRecording": true
   }
  ]
 }

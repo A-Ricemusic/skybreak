@@ -1512,6 +1512,33 @@
    "tape": false,
    "text": "RIM TOWER: Welcome home. Sera wants that film before you unstrap.",
    "spoken": "Welcome home. Sera wants that film before you unstrap."
+  },
+  {
+   "id": "radio.m04.p1.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: High flyers ahead. Break their jammers to get radar back.",
+   "spoken": "High flyers ahead. Break their jammers to get radar back."
+  },
+  {
+   "id": "radio.m04.p1.chatter1",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: One courier down. Two still watching the road.",
+   "spoken": "One courier down. Two still watching the road."
+  },
+  {
+   "id": "radio.m04.p1.chatter2",
+   "kind": "radio",
+   "speaker": "MARINE",
+   "voice": "IKne3meq5aSn9XLyUdCD",
+   "tape": false,
+   "text": "LANTERN 2: One transport left. The trucks are counting on us.",
+   "spoken": "One transport left. The trucks are counting on us."
   }
  ]
 }
