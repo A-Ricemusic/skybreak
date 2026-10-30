@@ -5,6 +5,7 @@ import { Players, ReplicatedStorage, StarterGui, Workspace } from "@rbxts/servic
 
 import type { Remotes } from "../shared/Types";
 import { CombatEffects } from "./CombatEffects";
+import { CoreGuiPolicy } from "../shared/CoreGuiPolicy";
 import { FlightController } from "./FlightController";
 import { mountGameUI } from "./GameUI";
 import { applyMobileGraphics } from "./MobileGraphics";
@@ -22,12 +23,10 @@ if (Workspace.GetAttribute("SkybreakTestMode") !== true) {
 		}
 	}
 
+	// No avatar health bar, red damage flash, backpack or reset button: the jet HUD is the only HUD.
 	task.spawn(() => {
-		for (let attempt = 0; attempt < 20; attempt++) {
-			const [disabled] = pcall(() => StarterGui.SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false));
-			if (disabled) break;
-			task.wait(0.25);
-		}
+		const applied = CoreGuiPolicy.Apply(StarterGui);
+		if (!applied.health || !applied.backpack || !applied.resetButton) warn(`SKYBREAK core GUI policy incomplete after ${applied.attempts} attempts: health=${applied.health} backpack=${applied.backpack} reset=${applied.resetButton}`);
 	});
 
 	const graphics = applyMobileGraphics();
