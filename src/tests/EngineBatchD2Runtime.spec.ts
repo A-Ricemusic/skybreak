@@ -1,6 +1,13 @@
+import { Workspace } from "@rbxts/services";
+import { MissionBlueprint, MissionCatalog } from "../shared/MissionCatalog";
+import { BlueprintRunner } from "../shared/BlueprintRunner";
+import { TargetScore } from "../shared/TargetScore";
+import { recordScoredKill } from "../server/SortieScore";
+import { SamRules } from "../shared/EngineBatchD2";
+import { arrivalDue } from "../shared/CampaignEncounters";
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { sinkNavalTarget, stepSurfaceTargets, stepSamDefence } from "../server/EngineBatchD2Runtime";
-import { CombatSession, Enemy } from "../server/CombatSession";
+import { sinkNavalTarget, stepSurfaceTargets, stepSamDefence, antiShipObstructed } from "../server/EngineBatchD2Runtime";
+import { CombatSession, Enemy, Projectile } from "../server/CombatSession";
 import { createGroundTarget } from "../server/GroundTargetFactory";
 import { TypedGroundTarget } from "../shared/CampaignEncounters";
 import { FlightMath } from "../shared/FlightMath";
@@ -69,4 +76,48 @@ describe("Batch D2 Roblox instance lifecycle (Studio lease required)",()=>{
 			s.state.x=10000; stepSamDefence(s,5,warning); expect(s.projectiles.size()).toBe(0); expect(mount.windup).toBe(0); expect(mount.warning!.Enabled).toBe(false);
 		} finally {folder.Destroy();}
 	});
+	it("keeps warmups plus airborne SAM missiles inside each difficulty budget until a missile is removed",()=>{
+		for(const difficulty of ["easy","normal","ace"] as const) {
+			const {s,folder}=fixture();
+			try {
+				s.difficulty=difficulty;
+				for(let i=0;i<8;i++) s.enemies.push(target({...spec(`sam${i}`),type:"sam",route:undefined,sam:true},folder));
+				const cap=SamRules.Cap(difficulty), count=()=>s.projectiles.size()+s.enemies.reduce((n,e)=>n+(e.windup>0 ? 1 : 0),0);
+				stepSamDefence(s,0.1,warning); expect(count()).toBe(cap);
+				stepSamDefence(s,4,warning); expect(s.projectiles.size()).toBe(cap); expect(count()).toBe(cap);
+				for(let i=0;i<30;i++) { stepSamDefence(s,1,warning); expect(count()).toBe(cap); }
+				for(const missile of s.projectiles) expect(missile.sam).toBe(true);
+				s.projectiles.remove(0)!.part.Destroy();
+				stepSamDefence(s,0.1,warning); expect(count()).toBe(cap); expect(s.projectiles.size()).toBe(cap-1);
+			} finally {folder.Destroy();}
+		}
+	});
+	it("credits a destroyed hull once, sinks surviving mounts without tally/score credit, and releases a deck-group arrival",()=>{
+		const {s,hull,mount,folder}=fixture();
+		try {
+			hull.typedGround!.group="deck"; mount.typedGround!.group="deck";
+			const bp: MissionBlueprint={...MissionCatalog.Get(1),ground:[],phases:[{kind:"score_threshold",label:"Harbour",scoreThreshold:{points:100,seconds:900,waitForExpiry:true}}],scoring:{basis:"points",points:{hull:120,mount:30},rank:{S:150,A:140,B:130,C:100}}};
+			const state=BlueprintRunner.NewState(bp,0), ledger=new TargetScore(bp.scoring!);
+			const destroy=()=>{ if(recordScoredKill(state,ledger,hull.id,"ground",false,10,"hull")) sinkNavalTarget(s,hull); };
+			destroy(); expect(hull.model.GetAttribute("Sinking")).toBe(true); expect(mount.model.GetAttribute("Sinking")).toBe(true);
+			expect(ledger.Total()).toBe(120); expect(state.optionalGroundKills).toBe(1); expect(state.killedIds.has(mount.id)).toBe(false);
+			destroy(); expect(ledger.Total()).toBe(120); expect(state.optionalGroundKills).toBe(1);
+			// Simulate the combat list dropping dead instances; retired group membership survives.
+			s.enemies.clear();
+			expect(arrivalDue({kind:"ground_group",group:"deck"},{elapsed:10,phase:0,requiredKills:0,destroyed:state.killedIds,retired:s.retiredGroundIds,targets:[hull.typedGround!,mount.typedGround!]})).toBe(true);
+		} finally {folder.Destroy();}
+	});
+	it("blocks the actual anti-ship flight segment on scenery, ignoring the hull and preserving legacy missiles",()=>{
+		const {s,hull,folder}=fixture(); folder.Parent=Workspace;
+		try {
+			const blocker=new Instance("Part"); blocker.Anchored=true; blocker.Size=new Vector3(20,20,2); blocker.Position=new Vector3(0,5000,-50); blocker.Parent=folder;
+			const params=new RaycastParams(); params.FilterType=Enum.RaycastFilterType.Include; params.FilterDescendantsInstances=[folder]; s.groundParams=params;
+			const missile={antiShip:true,target:hull,position:new Vector3(0,5000,0)} as Projectile, endpoint=new Vector3(0,5000,-100);
+			expect(antiShipObstructed(s,missile,endpoint)).toBe(true);
+			missile.antiShip=false; expect(antiShipObstructed(s,missile,endpoint)).toBe(false);
+			missile.antiShip=true; blocker.Parent=hull.model; expect(antiShipObstructed(s,missile,endpoint)).toBe(false);
+			blocker.Parent=undefined; expect(antiShipObstructed(s,missile,endpoint)).toBe(false); blocker.Destroy();
+		} finally {folder.Destroy();}
+	});
+
 });

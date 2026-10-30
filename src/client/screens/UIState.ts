@@ -34,7 +34,7 @@ const FIRE_DENIED_SECONDS = 1;
 const FIRE_DENIED_TEXT: { [reason: string]: string } = {
 	no_ammo: "NO MISSILES · RELOADING", cooldown: "LAUNCHER CYCLING", blind: "NO LOCK · FIRING BLIND",
 	missiles_spent: "MISSILES EXPENDED", gun_empty: "GUN EMPTY",
-	special_empty: "SPECIAL EXPENDED", special_cooldown: "SPECIAL CYCLING", special_active: "DRONE ALREADY UP", special_no_target: "SPECIAL · NO TARGET IN CONE",
+	special_empty: "SPECIAL EXPENDED", special_cooldown: "SPECIAL CYCLING", special_active: "DRONE ALREADY UP", special_no_target: "SPECIAL · NO TARGET IN CONE", anti_ship_hull_only: "ANTI-SHIP XLAA · SELECT A SHIP HULL",
 };
 
 interface GameUIProps {

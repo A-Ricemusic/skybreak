@@ -1,5 +1,5 @@
-import { AntiShipRules, navalHull } from "../shared/EngineBatchD2";
-import { sinkNavalTarget, stepSurfaceTargets, stepSamDefence } from "./EngineBatchD2Runtime";
+import { AntiShipRules } from "../shared/EngineBatchD2";
+import { sinkNavalTarget, stepSurfaceTargets, stepSamDefence, antiShipObstructed } from "./EngineBatchD2Runtime";
 import { canSkipLanding } from "../shared/EngineBatchB";
 import { buildNightLighting } from "./NightLighting";
 import { announceJammerKill, liveJammers, lockAllowed, stepRearm } from "./EngineBatchCRuntime";
@@ -862,8 +862,8 @@ function activateSpecial(session: CombatSession): void {
 		}
 		targets = locked ? 1 : 0;
 	}
-	if (state.kind === "lance" && session.blueprint?.armament?.antiShip && (!current?.typedGround || !navalHull(current.typedGround.type))) targets = 0;
-	const decision = SpecialWeapons.Activate(state, targets);
+	const decision = state.kind === "lance" && session.blueprint?.armament?.antiShip
+		? AntiShipRules.Activate(state,targets,current?.typedGround?.type) : SpecialWeapons.Activate(state, targets);
 	if (decision.kind === "denied") { denyFire(session, decision.reason); return; }
 	if (state.kind === "uav") {
 		radio(session, "Recon drone up: all contacts marked", 3);
@@ -1359,7 +1359,7 @@ function stepMissiles(session: CombatSession, dt: number): void {
 			const playerTurn = distance < 300 ? 14 : 7;
 			missile.direction = unitOr(missile.direction.Lerp(unitOr(delta, missile.direction), FlightMath.DampAlpha(missile.hostile ? tuned(session, TUNING.missileTurn) + (missile.ace ? tuned(session, TUNING.aceMissileTurn) : 0) : playerTurn, dt)), missile.direction);
 			const nextPosition = missile.position.add(missile.direction.mul(speed * dt));
-			if (missile.antiShip && session.groundParams && gunOccluded(session.gunParams ??= gunRaycastParams(session.groundParams), missile.position, nextPosition, missile.target!.model)) {
+			if (antiShipObstructed(session,missile,nextPosition)) {
 				removed=true; effect(session,"missile",nextPosition);
 			} else if (segmentDistance(targetPosition, missile.position, nextPosition) < (missile.hostile ? tuned(session, TUNING.missileFuse) : WeaponRules.FuseRadius)) {
 				removed = true;

@@ -5,7 +5,7 @@
 export type CombatActionKind = "FireMissile" | "Evade" | "CycleTarget" | "Special" | "Pause" | "Resume" | "SkipLanding" | "GunStart" | "GunStop";
 export type FireDenied = "no_ammo" | "cooldown";
 /** Why a SPECIAL press did nothing (see SpecialWeapons.Activate). */
-export type SpecialDenied = "special_empty" | "special_cooldown" | "special_active" | "special_no_target";
+export type SpecialDenied = "special_empty" | "special_cooldown" | "special_active" | "special_no_target" | "anti_ship_hull_only";
 /** Opt-in armament refusals: a finite missile stock is spent, or the gun magazine is empty. */
 export type ArmamentDenied = "missiles_spent" | "gun_empty";
 /** What the weapons channel reports after a FIRE, GUN or SPECIAL press: a refusal or a blind launch. */
@@ -13,7 +13,7 @@ export type FireNotice = FireDenied | "blind" | SpecialDenied | ArmamentDenied;
 /** Keyed by every FireNotice, so a new reason that is not listed here fails to compile. */
 const FIRE_NOTICES: Record<FireNotice, true> = {
 	no_ammo: true, cooldown: true, blind: true,
-	special_empty: true, special_cooldown: true, special_active: true, special_no_target: true,
+	special_empty: true, special_cooldown: true, special_active: true, special_no_target: true, anti_ship_hull_only: true,
 	missiles_spent: true, gun_empty: true,
 };
 export interface Point { x: number; y: number; z: number }

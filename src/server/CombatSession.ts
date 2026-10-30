@@ -85,6 +85,8 @@ export interface Projectile {
 	/** Hostile only: flight time at launch, so an evade can spot a missile in its last 1.2 s. */
 	life?: number;
 	/** Launched by the special slot: never refunded as a standard missile. */
+	/** Counts toward the ground-to-air threat budget until this projectile is removed. */
+	sam?: boolean;
 	antiShip?: boolean;
 	special?: boolean;
 	/** Hostile only: this missile has already rolled against the player's flare cloud. */

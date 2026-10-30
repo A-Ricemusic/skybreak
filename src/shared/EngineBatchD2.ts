@@ -1,3 +1,4 @@
+import { SpecialWeapons, SpecialState, SpecialDecision } from "./SpecialWeapons";
 // Dormant naval/shore defence rules. No mission roster is activated here.
 import type { FlightPoint } from "./MissionCatalog";
 import type { GroundTargetType, TypedGroundTarget } from "./CampaignEncounters";
@@ -38,19 +39,39 @@ export function validateNavalTargets(targets: TypedGroundTarget[], limit: number
 				assert(finite(p.x) && finite(p.y) && finite(p.z) && math.abs(p.x)<=limit && math.abs(p.z)<=limit && p.y===t.position.y,"Surface route outside water plane/airspace");
 				if(i>0) { const a=r.waypoints[i-1]; assert((p.x-a.x)**2+(p.z-a.z)**2>1,"Duplicate surface waypoint"); }
 			}
+			const firstYaw=surfacePose(r,0).yaw;
+			const difference=(t.yaw-firstYaw+180)%360-180;
+			assert(finite(t.yaw) && math.abs(difference)<=0.1,"Surface yaw must match first route leg (0.1 degree tolerance)");
 		}
 	}
 }
+export interface SamShooter { typedGround?: {sam?: true}; health: number; enabled: boolean; windup: number }
+export interface SamProjectile { sam?: boolean; hostile: boolean }
 export const SamRules = {
-	Range: 2400, MinimumRange: 120, Windup: 2, Reload: 10, Cap: 2,
+	/** A warmup transfers its occupied slot to its projectile on launch. No temporary arrays. */
+	Threats(enemies: readonly SamShooter[], projectiles: readonly SamProjectile[]): number {
+		let count=0;
+		for(const e of enemies) if(e.typedGround?.sam===true && e.health>0 && e.enabled && e.windup>0) count++;
+		for(const p of projectiles) if(p.sam===true && p.hostile) count++;
+		return count;
+	},
+	Range: 2400, MinimumRange: 120, Windup: 2, Reload: 10,
+	Cap(d: DifficultyKind): number { return d==="easy" ? 1 : d==="ace" ? 3 : 2; },
 	Scale(d: DifficultyKind): number { return d==="easy" ? 0.65 : d==="ace" ? 1.25 : 1; },
-	Eligible(alive: boolean, enabled: boolean, distance: number): boolean { return alive && enabled && distance>=120 && distance<=2400; },
+	Eligible(alive: boolean, enabled: boolean, distance: number): boolean { return alive && enabled && distance>=SamRules.MinimumRange && distance<=SamRules.Range; },
 };
 /** An opted-in XLAA becomes a hull-only sea-skimming strike. No blast/splash credits. */
 export const AntiShipRules = {
-	Damage: 220, Speed: 600, Range: 3800, CruiseHeight: 22,
+	Damage: 220, Speed: 600, CruiseHeight: 22, LookAhead: 160, TerminalRange: 240,
+	/** Lock range stays owned by SpecialWeapons (the selected XLAA envelope). */
+	Activate(state: SpecialState, lockedTargets: number, targetType?: GroundTargetType): SpecialDecision {
+		if(targetType===undefined || !navalHull(targetType)) return {kind:"denied",reason:"anti_ship_hull_only"};
+		return SpecialWeapons.Activate(state,lockedTargets);
+	},
 	Aim(from: FlightPoint, target: FlightPoint, waterY: number): FlightPoint {
 		const distance=math.sqrt((target.x-from.x)**2+(target.z-from.z)**2);
-		return {x:target.x,y:distance>240 ? waterY+22 : target.y,z:target.z};
+		if(distance<=AntiShipRules.TerminalRange) return target;
+		const fraction=AntiShipRules.LookAhead/distance;
+		return {x:from.x+(target.x-from.x)*fraction,y:waterY+AntiShipRules.CruiseHeight,z:from.z+(target.z-from.z)*fraction};
 	},
 };

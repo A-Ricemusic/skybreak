@@ -54,3 +54,5 @@ The five mission 4–5 assets (heavy transport, radar jammer, fuel tanker ship, 
 PR #145 is merged at `088fbfc` and remains dormant. #142 is merged; approved elite revision 3 (10/10) is uploaded as `139083376207373`. #144 is now merged; its world owns M05 environment and exports light anchors. See Next for the precise remaining presentation work.
 
 Engine batch D2 is implemented but unmerged on a branch stacked on D1 (#165). Naval lifecycle/routes, firing SAMs and anti-ship fit remain data opt-ins with no mission activation or level-status change. See D-190–D-193 and [Next](next.md). No D2 Studio or Player observation is claimed.
+
+D2 review follow-up addresses the orchestrator’s approval-with-nits at `20d21ec`: combined SAM threat budgets, initial route heading validation, allocation-free retired-group checks, anti-ship guidance/refusal clarity and added regression coverage. No level activation or shipped status changes; updated-head Roblox verification remains outstanding.

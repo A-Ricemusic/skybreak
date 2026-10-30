@@ -37,14 +37,18 @@ export interface StandaloneAce {
 	stageLines?: string[]; call?: string;
 	behaviour: "dogfight" | "ground_attack"; scoreRole: "ace"; spawn?: FlightPoint; headingDegrees?: number;
 }
-export interface TriggerContext { elapsed: number; phase: number; requiredKills: number; destroyed: Set<string>; targets: TypedGroundTarget[]; player?: { x: number; z: number } }
+export interface TriggerContext { elapsed: number; phase: number; requiredKills: number; destroyed: Set<string>; retired?: Set<string>; targets: TypedGroundTarget[]; player?: { x: number; z: number } }
 export function arrivalDue(trigger: ArrivalTrigger, context: TriggerContext): boolean {
 	if (trigger.kind === "time") return context.elapsed >= trigger.seconds;
 	if (trigger.kind === "approach") return context.player !== undefined && math.sqrt((context.player.x-trigger.x)**2 + (context.player.z-trigger.z)**2) <= trigger.radius;
 	if (trigger.kind === "phase_start") return context.phase >= trigger.phase;
 	if (trigger.kind === "required_count") return context.requiredKills >= trigger.count;
-	const group = context.targets.filter(t => t.group === trigger.group);
-	return group.size() > 0 && group.every(t => context.destroyed.has(t.id));
+	let found=false;
+	for(const target of context.targets) if(target.group===trigger.group) {
+		found=true;
+		if(!context.destroyed.has(target.id) && context.retired?.has(target.id)!==true) return false;
+	}
+	return found;
 }
 export function takeArrival(id: string, trigger: ArrivalTrigger, context: TriggerContext, fired: Set<string>): boolean {
 	if (fired.has(id) || !arrivalDue(trigger, context)) return false;
