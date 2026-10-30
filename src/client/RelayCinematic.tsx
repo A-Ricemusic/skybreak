@@ -106,7 +106,7 @@ function sceneFor(chapter:StoryChapter): Stage {
 		lid.CFrame=rec.CFrame.mul(new CFrame(0,.5,-.55)).mul(CFrame.Angles(-1.2,0,0)).mul(new CFrame(0,0,-.75));
 	}
 	const recorderLight=detail("Recorder light",new Vector3(.3,.2,.3),new Vector3(-.6,.55,1.1),Color3.fromRGB(255,40,40),Enum.Material.Neon);
-	// Sera's board by the desk: dark slate on a post, three name strips; Teal's is the bright one, and chapter 9 wipes it for a while.
+	// Sera's board by the desk: dark slate on a post, three name strips; Teal's is the bright one, and chapter 5 wipes it for a while.
 	const b=vec(BOARD);
 	prop(scene,"Board post",new Vector3(.3,8,.3),new Vector3(b.X,2,b.Z),Color3.fromRGB(52,54,58));
 	prop(scene,"Sera's board",new Vector3(5,3.2,.25),b,Color3.fromRGB(30,50,46),Enum.Material.Slate);
@@ -335,7 +335,7 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 			const exitSpan=endRef.current<duration ? CUT_DIP : EXIT_FADE;
 			const exit=index===last ? 1-math.clamp(left/exitSpan,0,1) : 0;
 			if(fadeRef.current)fadeRef.current.BackgroundTransparency=1-math.max(enter,dipOut,dipIn,exit);
-			// Stage life: reels turn while a tape or the log speaks; the recorder lamp blinks in its close-up; Sera's board follows chapter 9.
+			// Stage life: reels turn while a tape or the log speaks; the recorder lamp blinks in its close-up; Sera's board follows chapter 5.
 			if(!pausedRef.current && reelsSpin(toneNow))reelAngle+=step*2.4;
 			for(const {part,base} of stage.reels)part.CFrame=base.mul(CFrame.Angles(reelAngle,0,0));
 			stage.recorderLight.Transparency=recorderLightOn(shot,clock,steadyLamp) ? 0 : shot==="recorder" ? .85 : .55;

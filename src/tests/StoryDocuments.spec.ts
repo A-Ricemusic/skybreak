@@ -4,15 +4,15 @@ import {STORY} from "../shared/RelayStory";
 
 // Only toBe/toBeUndefined: this spec also runs in the offline Luau harness.
 describe("evidence documents",()=>{
-	it("gives every chapter with an evidence shot a document; chapter 4's roster is the one extra, on the chart behind the radio",()=>{
+	it("gives every chapter with an evidence shot a document; chapter 3's roster is the one extra, on the chart behind the radio",()=>{
 		const withEvidence=new Set(chaptersWithEvidence());
-		expect(withEvidence.size()>=15).toBe(true);
+		expect(withEvidence.size()>=10).toBe(true);
 		for(const chapter of STORY){
 			const doc=documentFor(chapter.id);
-			if(withEvidence.has(chapter.id) || chapter.id===4)expect(doc!==undefined && doc.size()>0).toBe(true);
+			if(withEvidence.has(chapter.id) || chapter.id===3)expect(doc!==undefined && doc.size()>0).toBe(true);
 			else expect(doc).toBeUndefined();
 		}
-		expect(withEvidence.has(4)).toBe(false);
+		expect(withEvidence.has(3)).toBe(true);
 		expect(documentFor(99)).toBeUndefined();
 	});
 	it("keeps every document to six ASCII lines of at most 28 characters",()=>{
@@ -39,11 +39,11 @@ describe("evidence documents",()=>{
 	it("tells the story beats the brief asks for on paper",()=>{
 		const struck=(id:number)=>documentFor(id)!.filter((raw)=>documentLine(raw).struck).size();
 		const stamped=(id:number)=>documentFor(id)!.filter((raw)=>documentLine(raw).stamp).map((raw)=>documentLine(raw).text);
-		expect(struck(4)).toBe(3);
+		expect(struck(3)).toBe(3);
 		expect(documentFor(1)![0].find("GRAIN")[0]!==undefined).toBe(true);
-		expect(documentFor(9)![0]).toBe("CERTIFICATE OF DEATH");
-		expect(documentFor(17)![0]).toBe("ORDER 0001");expect(stamped(17)[0]).toBe("SIGNED: RUSK, AIR MARSHAL");
-		expect(struck(25)).toBe(1);expect(stamped(25)[0]).toBe("KILLED, NOT DESERTED");
-		expect(documentFor(27)![0].find("ROSTER")[0]!==undefined).toBe(true);expect(struck(27)).toBe(1);
+		expect(documentFor(5)![0]).toBe("CERTIFICATE OF DEATH");
+		expect(documentFor(14)![0]).toBe("ORDER 0001");expect(stamped(14)[0]).toBe("SIGNED: RUSK, AIR MARSHAL");
+		expect(struck(16)).toBe(1);expect(stamped(16)[0]).toBe("KILLED, NOT DESERTED");
+		expect(documentFor(18)![0].find("ROSTER")[0]!==undefined).toBe(true);expect(struck(18)).toBe(1);
 	});
 });

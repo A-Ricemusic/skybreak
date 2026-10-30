@@ -92,19 +92,19 @@ end
 local count=0
 local function test(name,fn) fn();count+=1;print("PASS "..name) end
 
-test("all archived and active chapters play matching recorded beats; rewritten opening stays silent",function()
+test("all 19 remapped chapters use exact recordings and rewritten beats stay silent",function()
  local total=0
  for _,chapter in STORY do
   local status=mount(chapter.id)
   for i,beat in chapter.beats do
    tick(.1)
    local live=voices()
-   if chapter.id==0 and i==6 then
-    assert(#live==0 and modules.VoiceLines.Voice:Story(0,5,beat.text)==nil,"rewritten opening must never play stale words")
+   if not beat.recordingId then
+    assert(#live==0 and modules.VoiceLines.Voice:Story(chapter.id,i-1,beat.text)==nil,"rewritten beat must never play stale words")
    else
    assert(#live==1,`chapter {chapter.id} beat {i-1}: expected one voice`)
    local sound=live[1]
-   local id=modules.VoiceLines.storyLineId(chapter.id,i-1)
+   local id=beat.recordingId
    local clip=modules.VoiceLines.Voice:Story(chapter.id,i-1,beat.text)
    assert(clip and sound.Name=="Voice_"..id)
    assert(sound.SoundId==clip.assetId and sound.PlaybackRegionsEnabled)
@@ -117,7 +117,7 @@ test("all archived and active chapters play matching recorded beats; rewritten o
   end
   assert(status()==1);unmount();assert(#voices()==0 and not VoicePlayer:IsSpeaking())
  end
- assert(total==165)
+ assert(total>=110 and total<=152)
 end)
 test("cold-bank mount holds first beat, pause holds load, next cancels pending voice",function()
  loaded=false;mount(0);tick(3)

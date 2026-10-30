@@ -4,6 +4,7 @@
 //
 // A line only plays when its recorded text is exactly the text on screen and
 // its bank has an approved Roblox asset; anything else is silently skipped.
+import { STORY } from "./RelayStory";
 import { VOICE_BANK_ASSETS } from "./VoiceBanks";
 import { VOICE_CUES, VoiceCue } from "./VoiceCues";
 
@@ -48,6 +49,8 @@ export class VoiceLibrary {
 	}
 
 	public Story(chapter: number, beat: number, text: string): VoiceClip | undefined {
+		const authored = STORY[chapter]?.beats[beat];
+		if (authored && authored.text === text) return this.Clip(storyLineId(chapter, beat), text) ?? (authored.recordingId === undefined ? undefined : this.Clip(authored.recordingId, text));
 		return this.Clip(storyLineId(chapter, beat), text);
 	}
 

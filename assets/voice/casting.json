@@ -15,7 +15,10 @@
   "AIR MARSHAL RUSK": "RUSK",
   "FLIGHT LOG": "LOG",
   "RECORDER 7-T": "RECORDER",
-  "LANDING FORCE": "LANDING CRAFT"
+  "LANDING FORCE": "LANDING CRAFT",
+  "FARM CONTROL": "BROADCAST",
+  "RIM TOWER": "SERA",
+  "LANTERN 2": "MARINE"
  },
  "speakers": {
   "SERA": {
@@ -48,12 +51,12 @@
   "VULTURE LEAD": {
    "voice": "SOYHLrjzK2X1ezoPC6cr",
    "voiceName": "Harry",
-   "role": "Mission 9 enemy ace"
+   "role": "Elite hunter encountered at mission 5; trainee escapes"
   },
   "VULTURE TWO": {
    "voice": "N2lVS1w4EtoT3dr4eOWO",
    "voiceName": "Callum",
-   "role": "Mission 18 enemy ace, Teal's old wingman"
+   "role": "Mission 12 opponent; Teal's instructor and later witness"
   },
   "BROADCAST": {
    "voice": "onwK4e9ZLuTAKqWW03F9",
