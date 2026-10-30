@@ -47,12 +47,20 @@ export function placeM03Target(parent: Instance, t: M03Target): Model {
 let writtenOps: TerrainOp[] | undefined;
 /**
  * Mission 3's world clear (D-067), run through the world gate: Air over exactly the recorded shell ops in the
- * build's bounded, yielding jobs, instead of a native Terrain:Clear() that froze the server for 17.6 s (measured).
+ * build's bounded, yielding jobs, then releases the emptied extent with one native clear (about 9 s, against 17.6 s
+ * for a native clear of the full world).
  */
 export function clearM03World(cancelled: () => boolean): void {
 	if (writtenOps === undefined) { clearTerrainIfDirty(); return; }
-	// 30 ms slices: measured 49.7 s for the whole shell with the server responsive (8 ms slices took 75-88 s).
-	if (TerrainWriter.Clear(writtenOps, cancelled, 0.03, M03_FILL_CHUNK)) { writtenOps = undefined; markTerrainClean(); }
+	// 30 ms slices: measured 40-50 s for the whole shell with the server responsive (8 ms slices took 75-88 s).
+	if (!TerrainWriter.Clear(writtenOps, cancelled, 0.03, M03_FILL_CHUNK)) return;
+	writtenOps = undefined;
+	// The emptied voxels still hold mission 3's allocated extent; left alone, the next world's native clear paid
+	// for it (mission 1's cleanup then froze the server 25 s). Release it here, in this isolated step, while the
+	// results screen shows: measured about 9 s instead of the 17.6 s full clear.
+	if (cancelled()) return;
+	Workspace.Terrain.Clear();
+	markTerrainClean();
 }
 registerWorldClear(M03_WORLD_KEY, clearM03World);
 
