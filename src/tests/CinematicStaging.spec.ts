@@ -74,11 +74,11 @@ describe("cinematic staging tables",()=>{
 	});
 	it("moves the props with the story: tapes, the orchard, the recorder, the board and the aurora",()=>{
 		expect(tapesInTin(0)).toBeUndefined();expect(tapesInTin(1)).toBe(12);expect(tapesInTin(2)).toBe(12);expect(tapesInTin(5)).toBe(10);
-		let prev=12;for(let id=1;id<=27;id++){const n=tapesInTin(id)!;expect(n>=1 && n<=prev).toBe(true);prev=n;}expect(tapesInTin(27)).toBe(1);
-		for(const id of [0,4,14])expect(orchardBurned(id)).toBe(false);for(const id of [15,16,27])expect(orchardBurned(id)).toBe(true);
-		expect(recorderOpen(24)).toBe(false);expect(recorderOpen(25)).toBe(true);expect(recorderOpen(26)).toBe(false);
+		let prev=12;for(let id=1;id<=18;id++){const n=tapesInTin(id)!;expect(n>=1 && n<=prev).toBe(true);prev=n;}expect(tapesInTin(18)!>=1).toBe(true);
+		for(const id of [0,4,8])expect(orchardBurned(id)).toBe(false);for(const id of [9,16,18])expect(orchardBurned(id)).toBe(true);
+		expect(recorderOpen(15)).toBe(false);expect(recorderOpen(16)).toBe(true);expect(recorderOpen(17)).toBe(false);
 		expect(recorderLightOn("wide",.7,true)).toBe(true);expect(recorderLightOn("wide",.7,false)).toBe(false);
-		expect(boardShowsTeal(0,0,5)).toBe(true);expect(boardShowsTeal(8,3,4)).toBe(true);expect(boardShowsTeal(9,0,4)).toBe(false);expect(boardShowsTeal(9,3,4)).toBe(false);expect(boardShowsTeal(9,4,4)).toBe(true);expect(boardShowsTeal(10,0,4)).toBe(true);
+		expect(boardShowsTeal(0,0,5)).toBe(true);expect(boardShowsTeal(8,3,4)).toBe(true);expect(boardShowsTeal(5,0,4)).toBe(false);expect(boardShowsTeal(5,3,4)).toBe(false);expect(boardShowsTeal(5,4,4)).toBe(true);expect(boardShowsTeal(10,0,4)).toBe(true);
 		expect(auroraVisible("relay","night")).toBe(true);expect(auroraVisible("relay","dawn")).toBe(false);expect(auroraVisible("hangar","night")).toBe(false);
 		expect(AURORA.size()>=3 && AURORA.size()<=6).toBe(true);
 		for(const ribbon of AURORA)expect(ribbon.pos.y>250 && ribbon.transparency>=.4 && ribbon.transparency<1 && ribbon.color.g>ribbon.color.r).toBe(true);

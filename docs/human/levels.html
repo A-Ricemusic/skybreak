@@ -11,8 +11,8 @@ No generator, network dependencies, JavaScript or build step is required. -->
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,sans-serif}main{max-width:1180px;margin:auto;padding:32px 20px}h1{font-size:2.4rem;line-height:1.15}h2{font-size:1.25rem;margin:0}a{color:var(--link);text-underline-offset:3px}a:focus-visible{outline:3px solid var(--link);outline-offset:4px}.muted,dt{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:18px}.card,.legend{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px}.badge{display:inline-block;border:1px solid currentColor;border-radius:20px;padding:2px 12px;font-weight:700;margin:10px 0}.live{color:var(--live)}.review{color:var(--review)}.pieces{padding-left:20px}dl{margin-bottom:0}dd{margin:0 0 12px}nav{margin:20px 0}code{overflow-wrap:anywhere}.legend{margin:24px 0}.legend p{margin:8px 0}footer{margin-top:28px}
 </style></head><body><main>
 <header><p class="muted">SKYBREAK / Campaign readiness</p><h1>Every level, at a glance</h1>
-<p>Updated 2026-10-29 · Main <code>eb915626064219f6d4b1672d5b71ad785565f809</code> · Live place version <strong>94</strong></p>
-<p>Practice and missions 1–2 are live. Missions 3–18 remain locked on main. Live means published through the pipeline; no agent Player test is claimed.</p>
+<p>Updated 2026-10-29 · Main <code>7d73c44</code> · Last recorded publish version <strong>94</strong> (before #147; no new receipt audit)</p>
+<p>Practice and missions 1–3 are live on main (#147 merged). Missions 4–18 remain locked on main. Live means published through the pipeline; no agent Player test is claimed.</p>
 <p>Missions 6–9 have mission and world specs in <a href="https://github.com/A-Ricemusic/skybreak/pull/155">PR #155</a>; they remain unbuilt and locked.</p>
 <p>Missions 10–13 have mission and world specs in <a href="https://github.com/A-Ricemusic/skybreak/pull/153">PR #153</a>; they remain unbuilt and unavailable.</p>
 <nav><a href="https://www.roblox.com/games/112911685457826">Play SKYBREAK ↗</a> · <a href="README.md">Human dashboard</a> · <a href="blockers.md">Blockers</a> · <a href="https://github.com/A-Ricemusic/skybreak/actions/runs/40963804844">Publish evidence (version 94)</a></nav>
@@ -21,6 +21,7 @@ No generator, network dependencies, JavaScript or build step is required. -->
 <p><strong>Live</strong> — playable in Roblox Player through the pipeline.</p><p><strong>In review</strong> — an open PR proposes the playable level.</p><p><strong>In progress</strong> — being built; pieces describe what exists.</p><p><strong>Spec only</strong> — a spec exists, playable implementation does not.</p><p><strong>Not started</strong> — no mission spec or playable implementation; indexed footage and placeholder data do not count as implementation.</p>
 <p><strong>Spec in review</strong> — mission/world documentation is proposed in an open PR; the level remains unbuilt and locked.</p>
 <p>Pieces: ✓ merged/present · ◐ proposed in linked PR · — absent · ? unconfirmed. Studio evidence is scoped below and never establishes Player quality. Reference titles are internal AC04 cross-references, not shipped game names.</p></section>
+<p>Story remap implemented in <a href="https://github.com/A-Ricemusic/skybreak/pull/159">#159</a>: <a href="../specs/story/routing-audit.md">before/after chapters 0–18</a>. Chapters, documents and future mission text are prepared. New or changed dialogue is subtitle-only, with no new audio (D-142); Studio verification is pending. This does not activate locked levels.</p>
 <!-- LEVEL DATA: one independently editable article per level. -->
 <section class="grid" aria-label="Levels">
 
@@ -34,7 +35,7 @@ No generator, network dependencies, JavaScript or build step is required. -->
     <li>Studio verified: ✓ campaign-switch checks (#130)</li>
     <li>Live: ✓ place version 94 (M02 activated in version 92)</li></ul></dd>
   <dt>Open PRs</dt><dd>None at snapshot</dd>
-  <dt>Known issues</dt><dd>No new level-specific issue recorded; Player quality has not been agent-verified.</dd>
+  <dt>Known issues</dt><dd>No new level-specific issue recorded; Player quality has not been agent-verified. Avatar-death fix (<a href="https://github.com/A-Ricemusic/skybreak/pull/156">PR #156</a>, pending merge): the Roblox avatar used to fall and die at every world build/teardown, showing the default zero health bar and red flash; the game now spawns no avatar and hides that GUI. Studio-verified on this level; not Player-tested.</dd>
   <dt>Owner test</dt><dd>Fly the training pattern, select and hit the radar; retry and confirm mission 1 remains accessible.</dd></dl>
 </article>
 
@@ -47,9 +48,9 @@ No generator, network dependencies, JavaScript or build step is required. -->
     <li>Mission data & unlock: ✓ merged</li>
     <li>Studio verified: ✓ scripted campaign-switch checks (#130); current tuning awaits owner feedback</li>
     <li>Live: ✓ place version 94 (M02 activated in version 92)</li></ul></dd>
-  <dt>Open PRs</dt><dd>None at snapshot</dd>
-  <dt>Known issues</dt><dd>Runway pavement visibility remains unchecked; owner found earlier tuning too easy.</dd>
-  <dt>Owner test</dt><dd>Check the longer intercept, attacking raiders, fly-off, runway visibility and saved ranks.</dd></dl>
+  <dt>Open PRs</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/151">#151</a> — proposed M01 pressure tuning (D-109); Studio lease blocked</dd>
+  <dt>Known issues</dt><dd>Runway pavement visibility remains unchecked. Proposed tuning targets the player in 80% of slots, adds two opening raiders in a head-on screen, and sets S/A/B/C to 1320/1020/600/500; M02 behavior is unchanged. Combat launch counts and Easy balance await Studio verification.</dd>
+  <dt>Owner test</dt><dd>After tuning merges, fight or pass the forward screen; tail a fighter to check breaks/flares and return attacks. Verify Easy bomber interception, fly-off, runway visibility, saved ranks and phone performance.</dd></dl>
 </article>
 
 <article class="card" id="level-2"><h2>02 · NO ANIMALS</h2><span class="badge live">Live</span><p class="muted">Reference: Imminent Threat</p><dl>
@@ -62,22 +63,22 @@ No generator, network dependencies, JavaScript or build step is required. -->
     <li>Studio verified: ✓ reported integration (#143)</li>
     <li>Live: ✓ place version 94 (M02 activated in version 92)</li></ul></dd>
   <dt>Open PRs</dt><dd>None at snapshot</dd>
-  <dt>Known issues</dt><dd>About 16 s desktop Studio load; phone performance, rank cuts and 15:00 pacing await feedback.</dd>
+  <dt>Known issues</dt><dd>About 16 s desktop Studio load; phone performance, rank cuts and 15:00 pacing await feedback. Avatar-death fix (<a href="https://github.com/A-Ricemusic/skybreak/pull/156">PR #156</a>, pending merge): the Roblox avatar used to fall and die at every world build/teardown, showing the default zero health bar and red flash; the game now spawns no avatar and hides that GUI. Studio-verified on this level; not Player-tested.</dd>
   <dt>Owner test</dt><dd>Finish mission 1, follow the power line, destroy 11 bombers; check optional targets, pressure and score persistence across replay/reload.</dd></dl>
 </article>
 
-<article class="card" id="level-3"><h2>03 · Mission 3</h2><span class="badge review">In review</span><p class="muted">Reference: The Northern Eye<br>PR title: NOBODY SIGNED (main still has placeholder)</p><dl>
+<article class="card" id="level-3"><h2>03 · NOBODY SIGNED</h2><span class="badge live">Live</span><p class="muted">Reference: The Northern Eye<br>NOBODY SIGNED is playable after mission 2</p><dl>
   <dt>Reference footage</dt><dd>0:26:41–0:34:24</dd>
   <dt>Pieces</dt><dd><ul class="pieces">
     <li>Spec: ✓ mission spec</li>
     <li>World: ✓ merged</li>
     <li>Engine needs: ✓ merged</li>
-    <li>Mission data & unlock: ◐ <a href="https://github.com/A-Ricemusic/skybreak/pull/147">#147</a></li>
+    <li>Mission data & unlock: ✓ merged <a href="https://github.com/A-Ricemusic/skybreak/pull/147">#147</a></li>
     <li>Studio verified: ◐ #147 reports 845/845 Jest and scripted landing; visual concerns remain</li>
-    <li>Live: — locked on main</li></ul></dd>
-  <dt>Open PRs</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/147">#147</a></dd>
+    <li>Live: ✓ by automatic-pipeline convention (#147)</li></ul></dd>
+  <dt>Open PRs</dt><dd>None; #147 is merged</dd>
   <dt>Known issues</dt><dd>PR reports 35–88 s Studio loading, terraced mountains, poor distant terrain at low quality; return line absent from minimap and landing compass concern.</dd>
-  <dt>Owner test</dt><dd>After merge: destroy nine radars, check update clock reset, south return, automatic landing/skip, clearance and saved results.</dd></dl>
+  <dt>Owner test</dt><dd>Start a new slot for the remapped story, then destroy nine radars, check update clock reset, south return, automatic landing/skip, clearance and saved results.</dd></dl>
 </article>
 
 <article class="card" id="level-4"><h2>04 · Mission 4</h2><span class="badge review">In review</span><p class="muted">Reference: Blockade<br>PR title: BLIND COURIERS (main still has placeholder)</p><dl>
@@ -87,10 +88,10 @@ No generator, network dependencies, JavaScript or build step is required. -->
     <li>World: ✓ merged</li>
     <li>Engine needs: ✓ merged</li>
     <li>Mission data & unlock: ◐ <a href="https://github.com/A-Ricemusic/skybreak/pull/149">#149</a></li>
-    <li>Studio verified: ◐ #149 reports 865/865 Jest and scripted integration; pacing unresolved</li>
+    <li>Studio verified: ◐ #149 reports 865/865 Jest and scripted integration; earlier revision; lifecycle/route re-check pending</li>
     <li>Live: — locked on main</li></ul></dd>
   <dt>Open PRs</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/149">#149</a></dd>
-  <dt>Known issues</dt><dd>Transports escape after about 4:43.5 despite a 12:00 clock. About 45 s loading; bounded cleanup can delay menu. Terrain work is being addressed on perf/m04-m05-terrain (not merged or verified here).</dd>
+  <dt>Known issues</dt><dd>PR #149 now uses the shared #147 cleanup gate and a 6:48.33 escape (D-096/D-097), validated offline. The exit heads west back inside the world for owner beta judgment; jammer routes now share the hook and outlast transports. Studio re-check of completion, failed construction/player leave and queued relaunch is pending. Earlier loading was about 45 s; perf/m04-m05-terrain remains separate and unmerged. No Player verification.</dd>
   <dt>Owner test</dt><dd>After merge and mission 3: test full/partial/clear jamming, transport escape timing, final-target win, 1,540 maximum points and return to practice.</dd></dl>
 </article>
 
@@ -289,4 +290,4 @@ No generator, network dependencies, JavaScript or build step is required. -->
   <dt>Known issues</dt><dd>Spec assumptions and coverage gaps await review; no playable implementation, level remains locked and unavailable.</dd>
   <dt>Owner test</dt><dd>No playable test yet. Review the proposed spec before implementation.</dd></dl>
 </article>
-</section><footer><p>Sources: <a href="README.md">mission timeline</a>, <a href="../specs/missions/">mission specs (1–13 on main; 14–18 proposed in #154)</a>, <a href="https://github.com/A-Ricemusic/skybreak/tree/088fbfc395a35ca9dd3054cf321e18baaa923ae2/src/shared/missions">main mission data</a>, and linked PR reports. Worlds #139/#144 and engines #141/#145 are merged, dormant for missions 3–5. Specs for 6–9 came through #155 and 10–13 through #153; specs for 14–18 are in review in <a href="https://github.com/A-Ricemusic/skybreak/pull/154">#154</a>. These later missions remain unbuilt and locked. This page records reports, not a new Studio or Player verification.</p></footer></main></body></html>
+</section><footer><p>Sources: <a href="README.md">mission timeline</a>, <a href="../specs/missions/">mission specs (1–13 on main; 14–18 proposed in #154)</a>, <a href="https://github.com/A-Ricemusic/skybreak/tree/088fbfc395a35ca9dd3054cf321e18baaa923ae2/src/shared/missions">main mission data</a>, and linked PR reports. Worlds #139/#144 and engines #141/#145 are merged, dormant for missions 4–5. Specs for 6–9 came through #155 and 10–13 through #153; specs for 14–18 are in review in <a href="https://github.com/A-Ricemusic/skybreak/pull/154">#154</a>. These later missions remain unbuilt and locked. This page records reports, not a new Studio or Player verification.</p></footer></main></body></html>

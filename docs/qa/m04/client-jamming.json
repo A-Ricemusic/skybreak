@@ -1,0 +1,24 @@
+[
+  {
+    "partial": false,
+    "elapsed": 0,
+    "jammed": false
+  },
+  {
+    "partial": false,
+    "elapsed": 1.3343480833427748,
+    "visualRange": 1200,
+    "jammed": true
+  },
+  {
+    "partial": true,
+    "elapsed": 2.7505527083412744,
+    "visualRange": 1200,
+    "jammed": true
+  },
+  {
+    "partial": false,
+    "elapsed": 3.2366404166677967,
+    "jammed": false
+  }
+]

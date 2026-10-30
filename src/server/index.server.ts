@@ -1,12 +1,14 @@
-import { ReplicatedStorage } from "@rbxts/services";
+import { Players, ReplicatedStorage } from "@rbxts/services";
 import { MissionAssets } from "../shared/MissionAssets";
 import { JetFactory } from "../shared/JetFactory";
 import { GameConfig } from "../shared/GameConfig";
 import { Remotes } from "../shared/Types";
 import { CampaignService } from "./CampaignService";
+import { CharacterPolicy } from "./CharacterPolicy";
 import { CombatService } from "./CombatService";
 import { WorldAssets } from "./WorldAssets";
 import { WorldBuilder } from "./WorldBuilder";
+import { BACKDROP_ASSETS, CINEMATIC_PROPS } from "../shared/CinematicSet";
 
 function ensureRemote<T extends "RemoteFunction" | "RemoteEvent" | "UnreliableRemoteEvent">(folder: Folder, name: string, className: T): CreatableInstances[T] {
 	let existing = folder.FindFirstChild(name);
@@ -23,6 +25,9 @@ function ensureRemote<T extends "RemoteFunction" | "RemoteEvent" | "UnreliableRe
 }
 
 function initialize(): void {
+	// First, before any player can join: the game never spawns an avatar (see CharacterPolicy).
+	const [characterPolicyApplied, characterPolicyError] = pcall(() => CharacterPolicy.Apply(Players));
+	if (!characterPolicyApplied) warn(`SKYBREAK character policy failed; avatars may spawn: ${tostring(characterPolicyError)}`);
 	const existingFolder = ReplicatedStorage.FindFirstChild("Remotes");
 	let remotesFolder: Folder | undefined;
 	if (existingFolder?.IsA("Folder")) {
@@ -84,11 +89,18 @@ function initialize(): void {
 		});
 		if (!storyBuilt) warn(`SKYBREAK cinematic story models failed to build; the cinematic will use its fallbacks: ${tostring(storyError)}`);
 		const [hangarPlaced, hangarError] = pcall(() => {
-			// Reuse the approved uploaded hangar; never substitute third-party assets.
-			WorldAssets.Preload(["Hangar"]);
+			// Reuse the approved uploaded hangar and scenery; never substitute third-party assets. The desk
+			// props have no IDs until their safety review and upload, so they place nothing and the stage
+			// keeps its procedural props (docs/specs/cutscene-assets.md).
+			WorldAssets.Preload(["Hangar", ...BACKDROP_ASSETS, ...CINEMATIC_PROPS]);
 			const hangar = WorldAssets.PlaceUploaded("Hangar", storyModels, new CFrame());
 			if (hangar) hangar.Name = "CinematicHangar";
 			else warn("SKYBREAK cinematic hangar unavailable; stage will use its explicit fallback");
+			for (const name of BACKDROP_ASSETS) {
+				const model = WorldAssets.PlaceUploaded(name, storyModels, new CFrame());
+				if (model) model.Name = `Backdrop${name}`;
+			}
+			for (const name of CINEMATIC_PROPS) WorldAssets.PlaceUploaded(name, storyModels, new CFrame());
 		});
 		if (!hangarPlaced) warn(`SKYBREAK cinematic hangar preload failed; stage will use its explicit fallback: ${tostring(hangarError)}`);
 	});

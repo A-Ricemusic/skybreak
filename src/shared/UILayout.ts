@@ -878,7 +878,7 @@ export function getMovementIndicators(mode: InputMode, turn?: number, pitch?: nu
 /** Mission 1 training copy, short enough for the one-line objective (<= TUTORIAL_MAX_CHARS). */
 export function getTutorialInstruction(step: string | undefined, mode: InputMode): string {
 	if (step === "move") return mode === "touch" ? "Tap L turn/pitch; 3s total each" : mode === "gamepad" ? "Tap LS turn/pitch; 3s total each" : "Tap A/D, W/S; 3s total each";
-	if (step === "target") return mode === "touch" ? "Tap TGT to select the radar" : mode === "gamepad" ? "Press Y to select the radar" : "Press Tab to select the radar";
+	if (step === "target") return mode === "touch" ? "Tap radar box or TGT to select it" : mode === "gamepad" ? "Press Y to select the radar" : "Press Tab to select the radar";
 	if (step === "missile") return mode === "touch" ? "Hold the lock, then tap FIRE" : mode === "gamepad" ? "Hold the lock, then press RT" : "Hold the lock, then press Space";
 	return "";
 }

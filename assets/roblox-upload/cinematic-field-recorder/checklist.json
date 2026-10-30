@@ -1,0 +1,190 @@
+{
+  "name": "cinematic-field-recorder",
+  "title": "Handheld cassette field recorder (cutscene desk prop)",
+  "variantOf": null,
+  "exportVersion": "cinematic-field-recorder-1",
+  "robloxAssetType": "Model",
+  "usage": "Broken Relay cutscenes: Teal's handheld recorder on the desk (recorder close-ups); the Lid part opens in chapter 25. Pending independent safety review (AGENTS.md); not uploaded. Dormant slot in src/: RobloxAssetIds entry undefined, so the cinematic keeps its procedural prop until approval and upload.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "cinematic-field-recorder.fbx",
+    "bytes": 423004
+  },
+  "triangleCount": 864,
+  "triangleLimit": 1800,
+  "objects": [
+    {
+      "name": "cinematic-field-recorder",
+      "triangles": 796
+    },
+    {
+      "name": "Lid",
+      "triangles": 68
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "cinematic-field-recorder-color.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 157028
+    },
+    {
+      "role": "normal",
+      "file": "cinematic-field-recorder-normal.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 15119
+    },
+    {
+      "role": "rough",
+      "file": "cinematic-field-recorder-roughness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 165328
+    },
+    {
+      "role": "metal",
+      "file": "cinematic-field-recorder-metalness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 15752
+    }
+  ],
+  "robloxSizeStuds": [
+    2.14,
+    1.11,
+    3.32
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 0.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png",
+    "preview-back.png",
+    "preview-side-right.png",
+    "preview-bottom.png",
+    "preview-3q-front-left.png",
+    "preview-3q-rear-right.png",
+    "preview-3q-rear-left.png",
+    "preview-front-low.png",
+    "preview-front-high.png",
+    "preview-3q-low-front-right.png",
+    "preview-closeup-top.png",
+    "preview-closeup-front.png",
+    "preview-closeup-lamp.png",
+    "preview-closeup-desk-camera.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "No letters, numbers, level marks, codes or glyph-like marks: keys are plain cream and one plain red, the grilles are parallel slots, the door a smoked pane."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No maker's badge or brand marks; a plain worn grey case."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No flags, roundels or markings; an original recorder layout, not a copy of any real product."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces or figures. The top has one grille, a row of three keys, the cassette door and one small lamp in an irregular layout; the front end carries a single round microphone, the right side a single thumbwheel and the left side a single small jack, never a pair. Checked in preview-top, preview-front, preview-closeup-top and preview-closeup-front."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface recorder in every view."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "A tape recorder: no weapons, damage or gore."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "controlSurfaces": {
+    "Lid": {
+      "from": [
+        -0.64,
+        1.05,
+        0.725
+      ],
+      "to": [
+        0.66,
+        1.05,
+        0.725
+      ]
+    }
+  },
+  "variants": [],
+  "sha256": {
+    "cinematic-field-recorder-color.png": "a0419c091f27c668383621e8973a72fdf6f20b5517aee54d8c75569aba3e2fb1",
+    "cinematic-field-recorder-metalness.png": "058f57e3cd987e3141b6e78745e8e3f4d651c4efc54d250b20b41e46f1d00c36",
+    "cinematic-field-recorder-normal.png": "855926e31ace6ede0a25d09398f13696c543d20ba8524ed8afd1f9b67cc15357",
+    "cinematic-field-recorder-roughness.png": "d47244d0b9ba6c028feeec44e9fbb82aa13c24cad52cd98e68867d8e5b8b2f97",
+    "cinematic-field-recorder.fbx": "0ec0ad7de0cd375e6dc20c6c558581fc153a8ae27aee1f477b0bf5f1d40a13da",
+    "contact-sheet.png": "a21497809a7087504024349b99e07669945cfd0b6473b275c159f68f930c9ffd",
+    "preview-3q-front-left.png": "cd4b4bd0b656ae424cb54f937864fe03d548b1242658425774b31a47dcd55212",
+    "preview-3q-low-front-right.png": "dc3dfd5e9060649388887f1b84bb90dd021c7a8e89d1e3747c5ca441267c5e2d",
+    "preview-3q-rear-left.png": "e90968e31896522c1d958711e898f8f90468de6e4eb3b743c9b427481963fcfc",
+    "preview-3q-rear-right.png": "3c231300b615f0227fae075fd3ebd2327dbb2a1e60db0162e1b5fc426099acc3",
+    "preview-3q.png": "8bbd32919b9c25d571934d290387e2dfbba77b1f549a3dc944bad20d1515cc90",
+    "preview-back.png": "a8bd98e55486fbdfed7d589932a61a4a2d8dfc615ca9ec4243133fcfb990f8a2",
+    "preview-bottom.png": "5d29ce2f23447b2bd1b536e84d15050cfe7d8c24fe3e53621d32cea62cd39d3c",
+    "preview-closeup-desk-camera.png": "a64b583014f631559c1e1d59ab5b9a776feb7f45338b8c6b42e6146264cbc19c",
+    "preview-closeup-front.png": "7f488f1e099269904e74d5486dbc22a614d74d0fde3a2949c52937b91468cc9f",
+    "preview-closeup-lamp.png": "498b5524fe596601c503132f8f892d6530f4a63714a34040bed9198d9f6f4f9a",
+    "preview-closeup-top.png": "8b4ece07ff3e275670ae2709eafac48f7cf9b27f290e197fc51176df1081326a",
+    "preview-front-high.png": "e4e19e69bda1dbf4fda00cf05e5c0ddeac9985b1e13420759453dfa474339e34",
+    "preview-front-low.png": "d65f3c744b8a6692c46744b3cff95562b3a2c3b7e87221380360199afab07958",
+    "preview-front.png": "b1262768d93d2596ec46704dca5d75d6a996625b3e8171320afbf815c66b9eb2",
+    "preview-side-right.png": "16a3e0be9fbf086e9c68739863e5f787f1f6d7642817fe5199ffc8b53b6d48cf",
+    "preview-side.png": "8e6d80dd60a78b35020407b601e131f8a578f838dfb0c182753895b1c544b363",
+    "preview-top.png": "2ee06c4f4f673bc38861cadb6420b24546156902b96740d7c8d4c13e17725bd3"
+  },
+  "previewNotes": {
+    "preview-front.png": "Orthographic from ahead (the model's front, Roblox -Z).",
+    "preview-side.png": "Orthographic from the left (port), Blender +X.",
+    "preview-top.png": "Orthographic from above, front at the top, the model's right (starboard) on the image's right.",
+    "preview-3q.png": "Perspective from ahead, the right (starboard), above.",
+    "preview-back.png": "Orthographic from behind.",
+    "preview-side-right.png": "Orthographic from the right (starboard).",
+    "preview-bottom.png": "Orthographic from below.",
+    "preview-3q-front-left.png": "Perspective from ahead, the left (port), above.",
+    "preview-3q-rear-right.png": "Perspective from behind, the right (starboard), above.",
+    "preview-3q-rear-left.png": "Perspective from behind, the left (port), above.",
+    "preview-front-low.png": "Perspective from ahead, below.",
+    "preview-front-high.png": "Perspective from ahead, above.",
+    "preview-3q-low-front-right.png": "Perspective from ahead, the right (starboard), below.",
+    "preview-closeup-top.png": "Close-up from ahead, the right (starboard), above.",
+    "preview-closeup-front.png": "Close-up from ahead.",
+    "preview-closeup-lamp.png": "Close-up from behind, the left (port), above.",
+    "preview-closeup-desk-camera.png": "Close-up from behind, the right (starboard), above."
+  },
+  "anchors": {
+    "Centre": [
+      -0.01,
+      0.52,
+      0.1
+    ],
+    "Lamp": [
+      -0.61,
+      1.1,
+      1.2
+    ]
+  },
+  "orientation": "Microphone end at Roblox -Z; the keys and lamp are on the model's left (Roblox -X), the grille and thumbwheel on its right (Roblox +X).",
+  "design": "Original handheld cassette field recorder: worn grey metal case with rubber corner bumpers, a slotted speaker grille, three cream transport keys and a red record key, a smoked cassette door (Lid part) over the tape well hinged along its rear edge, a red tally lamp, one round microphone on the front end, a side thumbwheel and a jack.",
+  "sizeRationale": "Body 2 x 1 x 3 studs, the procedural recorder box's envelope (the recorder close-up pose frames it). Anchors.Centre is the body centre (the procedural box's CFrame); anchors.Lamp is the lens top where the game keeps its blinking neon light. controlSurfaces.Lid is the door hinge: rotate the Lid part about it (positive angle about Roblox +X lifts the door) for chapter 25.",
+  "reviewStatus": "pending independent safety review (AGENTS.md); not uploaded; dormant RobloxAssetIds slot (undefined) with procedural fallback",
+  "contactSheet": "contact-sheet.png"
+}

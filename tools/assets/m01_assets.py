@@ -252,7 +252,7 @@ REVIEW_VIEWS = {
 
 
 def review_pack(a: Asset, views: dict, closeups: dict, texture_limit: int, extra: dict, scale_ref: dict | None = None,
-                overlays: dict | None = None, contrasting=False) -> None:
+                overlays: dict | None = None, contrasting=False, review_status: str | None = None) -> None:
     """Extra previews, contact sheet, budget checks and the hashed checklist after ``Asset.finish()``.
 
     ``overlays``: name -> (make, direction): ``make()`` adds review-only helper objects (never in
@@ -295,7 +295,7 @@ def review_pack(a: Asset, views: dict, closeups: dict, texture_limit: int, extra
         **notes,
     }
     c.update(extra)
-    c["reviewStatus"] = "pending independent safety review (AGENTS.md); not uploaded; not referenced from src/"
+    c["reviewStatus"] = review_status or "pending independent safety review (AGENTS.md); not uploaded; not referenced from src/"
     problems = []
     for check in REQUIRED_CHECKS:
         if c["checks"].get(check, {}).get("value") is not True:

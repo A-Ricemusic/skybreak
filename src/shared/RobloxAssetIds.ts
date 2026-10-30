@@ -51,4 +51,11 @@ export const RobloxAssetIds: Record<UploadedAssetName, number | undefined> = {
 	RockA: 116039802470338,
 	RockB: 132942349903345,
 	RockC: 124683188002264,
+	// Cutscene desk props (assets/roblox-upload/cinematic-*): independent 10/10 approval 2026-10-30
+	// (docs/qa/asset-reviews/approvals/cinematic-*.json), uploaded and moderation-approved. RelayCinematic
+	// keeps its procedural props whenever a load fails.
+	CinematicRadioConsole: 107763051422036,
+	CinematicFieldRecorder: 87111261775563,
+	CinematicStatusBoard: 105938775214679,
+	CinematicTapeTin: 86951943477271,
 };
