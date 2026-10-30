@@ -44,7 +44,7 @@ export interface PartSpec {
 	transparency?: number; reflectance?: number;
 }
 
-export type PropAsset = "Frigate" | "OilPlatform" | "HarbourQuay" | "ContainerStack" | "GantryCrane" | "Hangar" | "ControlTower" | "OfficeMidrise" | "ApartmentBlock" | "CityTower" | "Farmhouse" | "Barn" | "GrainSilo" | "RadarDish" | "RelayMast" | "Pine" | "Broadleaf" | "RockA" | "RockB" | "RockC";
+export type PropAsset = "Carrier" | "Frigate" | "OilPlatform" | "HarbourQuay" | "ContainerStack" | "GantryCrane" | "Hangar" | "ControlTower" | "OfficeMidrise" | "ApartmentBlock" | "CityTower" | "Farmhouse" | "Barn" | "GrainSilo" | "RadarDish" | "RelayMast" | "Pine" | "Broadleaf" | "RockA" | "RockB" | "RockC";
 export interface PropSpec { asset: PropAsset; x: number; y: number; z: number; yaw: number; scale: number; tint: number; tag?: string }
 /** Ground-target site: the model is grounded with its bounds' bottom at baseY. */
 export interface TargetSite { index: number; x: number; z: number; baseY: number; apron: number; deck: boolean }
