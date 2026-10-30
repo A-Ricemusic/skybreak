@@ -1,6 +1,6 @@
 # Shipped
 
-M12/M13 worlds are **unmerged / world in review**, dormant on `feat/m12-m13-worlds` above #167/#166/#164. [M12 table](../specs/worlds/m12-composition.md) · [M13 table](../specs/worlds/m13-composition.md). Offline estimates12.770960s/13.253200s; no mission selection, Player change, Studio/Player verification or asset upload. Decisions D-230–D-234. Existing shipped entries below are unchanged by this branch.
+M12/M13 worlds are **unmerged / world in review** in [PR #170](https://github.com/A-Ricemusic/skybreak/pull/170), dormant on `feat/m12-m13-worlds` above #167/#166/#164. [M12 table](../specs/worlds/m12-composition.md) · [M13 table](../specs/worlds/m13-composition.md). Offline estimates12.770960s/13.253200s; no mission selection, Player change, Studio/Player verification or asset upload. Decisions D-230–D-234. Existing shipped entries below are unchanged by this branch.
 
 PR [#167](https://github.com/A-Ricemusic/skybreak/pull/167) remains **unmerged / in review**. Its P1 M10 disconnected-river fix adds a generated-water flood-fill and full-centreline regression; revised M10 estimate14.731517s (1.268483s headroom), M11 unchanged14.455200s. No Player content or Studio verification is claimed.
 

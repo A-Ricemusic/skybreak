@@ -1,6 +1,6 @@
 # Blockers
 
-## M12/M13 world review (2026-10-30)
+## M12/M13 world review (2026-10-30), [PR #170](https://github.com/A-Ricemusic/skybreak/pull/170)
 
 - Dormant worlds in review, stacked on #167 head1b33139 above #166/#164, all still open when checked. Rebase main as dependencies merge. No Studio lease acquired; offline-only work needs no owner action.
 - Offline estimates12.770960s/13.253200s pass≤15s headroom gate. Actual load/clear, phone rendering, flight feel and source comparison are unverified. Conservative coarse ravine width and procedural gun/balloon silhouettes require rendered review; no replacement of accepted assets or upload occurs.
