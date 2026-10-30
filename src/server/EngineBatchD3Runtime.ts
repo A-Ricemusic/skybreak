@@ -1,3 +1,4 @@
+import { sphereSweep } from "../shared/SphereSweep";
 import { Workspace } from "@rbxts/services";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { canyonSampleSafe, artilleryExposed, newArtillery, stepArtillery, CanyonEscape } from "../shared/EngineBatchD3";
@@ -8,7 +9,7 @@ export function auditCanyon(plan: CanyonEscape, params: RaycastParams): boolean 
 	for(let i=1;i<plan.channel.size();i++) {
 		const a=plan.channel[i-1], b=plan.channel[i];
 		const delta=new Vector3(b.x-a.x,b.y-a.y,b.z-a.z);
-		if(Workspace.Spherecast(new Vector3(a.x,a.y,a.z),math.min(20,plan.clearance/2),delta,params)) return false;
+		if(sphereSweep(new Vector3(a.x,a.y,a.z),math.min(20,plan.clearance/2),delta,params)) return false;
 		const steps=math.max(1,math.ceil(new Vector3(b.x-a.x,b.y-a.y,b.z-a.z).Magnitude/32));
 		for(let j=0;j<=steps;j++) {
 			const t=j/steps, p={x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t,z:a.z+(b.z-a.z)*t};

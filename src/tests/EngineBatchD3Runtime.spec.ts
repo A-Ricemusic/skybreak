@@ -24,6 +24,19 @@ describe("D3 Roblox terrain and hazard integration",()=>{
    expect(auditCanyon(f.plan,f.params)).toBe(false); wall.Destroy(); f.floor.Destroy(); expect(auditCanyon(f.plan,f.params)).toBe(false);
   } finally { f.folder.Destroy(); }
  });
+ it("audits a long leg and detects a sphere obstruction beyond the first segment",()=>{
+  const f=fixture(); try {
+   // A 2,000-stud leg exceeds Roblox's 1,024-stud Spherecast limit.
+   f.floor.Size=new Vector3(600,20,2048); f.floor.Position=new Vector3(0,9990,900);
+   f.plan.channel=[{x:0,y:10300,z:-100},{x:0,y:10300,z:1900}];
+   expect(auditCanyon(f.plan,f.params)).toBe(true);
+   // Offset from the centreline: floor rays miss this wall, but the sweep's
+   // 20-stud radius must catch it 1,500 studs down the leg (segment two).
+   const wall=new Instance("Part"); wall.Anchored=true; wall.Size=new Vector3(12,100,10); wall.Position=new Vector3(24,10300,1400); wall.Parent=f.folder;
+   expect(auditCanyon(f.plan,f.params)).toBe(false);
+   wall.Destroy(); expect(auditCanyon(f.plan,f.params)).toBe(true);
+  } finally { f.folder.Destroy(); }
+ });
  it("punishes exposed low flight once per impact and preserves damage accounting",()=>{
   const f=fixture(); try {
    const lines: string[]=[]; const say=(line:string)=>{lines.push(line);};

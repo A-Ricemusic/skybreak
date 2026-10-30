@@ -6,6 +6,8 @@ D3 adds a mission-owned artillery escape, safe-band/terrain masking, bounded bui
 
 Validation: frozen install/build and the full offline gate passed (793 Luau contracts, 19 catalog snapshots, 122 Python tests). All 12 D3 Jest cases passed during a shared-lease run after empty Studio checks spanning 305 seconds. The full suite did not finish before the configured 60-second timeout and also reported an inherited D2 hull/group-credit fixture failure; test-owned Studio exited. No full Jest pass or Player test is claimed.
 
+D3 review follow-up: canyon passage sweeps now use the shared segmented `sphereSweep`, so legs longer than Roblox’s 1,024-stud cast limit remain valid. A runtime regression covers a clear 2,000-stud leg and an offset obstruction in segment two that centreline floor rays cannot detect. Targeting changes remain with the orchestrator’s stack rebase. The added Roblox regression is compiled, not yet executed in Studio.
+
 Before M7 activation: resolve or explicitly adopt provisional target counts/ranks, author the southbound canyon/exit and 585-stud ceiling, verify terrain/turn basins/transition pose and battery masking, fit finite stock/area attack as wanted, then fly warnings, damage, timeout, multi-target credit and replay in Roblox Player and on a phone. No new audio (D-142). D3 is engine support, not a playable M7 or a rendered-world acceptance claim.
 
 
