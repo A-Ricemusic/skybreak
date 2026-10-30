@@ -31,6 +31,16 @@ Targeting (#157): on a phone, tap an enemy target box to select it. TGT now pick
 
 Most useful feedback: whether the base is easy to find and read; whether the parked bombers, pavement and optional targets look convincing; whether the AA and fighters create enough pressure; whether 15:00 and the rank cuts feel right; how the roughly 16-second desktop Studio load feels on your phone; and whether the briefing, radio and results are clear. Mission 2's rank cuts, failure rules and air roster remain assumptions awaiting owner feedback.
 
+## Avatar death fix — what to check when playing
+
+[PR #156](https://github.com/A-Ricemusic/skybreak/pull/156) stops the Roblox avatar from existing at all, so the top-right health bar and the red damage flash should never appear again (D-086). When you next play:
+
+1. **Menu and flight.** The menu backdrop, briefing, flight camera, HUD, pause, results and mobile touch controls should behave exactly as before. Nothing in the game used the avatar.
+2. **No red flash, no health bar.** Play practice, mission 1 and mission 2 for a few minutes each, including the loading screen and the return to the menu. There should be no red screen flash and no health bar in the top-right corner at any point.
+3. **Escape menu.** The Roblox menu's "Reset Character" entry is disabled on purpose; the jet is the only thing you control.
+
+If any of these still appear, report where and when (menu, loading, in flight, results).
+
 ## Mission 3 beta (once #147 is merged)
 
 Mission 3 becomes playable when its PR merges; until then it shows as locked.

@@ -10,6 +10,8 @@ Targeting (#157): the jet now targets what the nose is on. Auto-acquire and TGT 
 
 Mission 2 became playable in #143 after its dormant world (#140) and engine batch A (#138). It unlocks after mission 1 and preserves mission 1 score breakdowns through completion, replays and save reloads. The publish workflow returned place version 92. No agent Player test is claimed.
 
+The owner's report of the avatar dying in flight (zero health bar top right, red screen flash) is diagnosed and fixed in [PR #156](https://github.com/A-Ricemusic/skybreak/pull/156): the game no longer spawns a Roblox avatar at all and hides the default health GUI (D-086). Verified in Studio across practice, mission 1 and mission 2; not a Player test.
+
 Missions 3–5 are in review: [#147](https://github.com/A-Ricemusic/skybreak/pull/147), [#149](https://github.com/A-Ricemusic/skybreak/pull/149), and [#148](https://github.com/A-Ricemusic/skybreak/pull/148). Their worlds (#139/#144) and engines (#141/#145) are merged but dormant. They remain locked on main. Latest publish: place version **94** at `088fbfc`; this does not activate missions 3–5. See the per-level page for reported Studio evidence, open findings and beta checklists. No agent Player test is claimed.
 
 The mission 3 PR (#147) also adds a shared world gate: after any sortie the world is cleared in the background and the next launch waits, queued, until that finishes (D-067). Provisional mission 3 decisions are D-061–D-067 in [Decisions](decisions.md).
