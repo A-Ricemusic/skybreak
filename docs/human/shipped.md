@@ -106,3 +106,7 @@ These merged gameplay changes are live through the automatic pipeline convention
 The earlier AC04 release (#92) was rejected and reverted (`b0737fa`). #77 (mission 1 tutorial rework) and #91 (TypeScript 5.9) were closed without merging.
 
 PR #144 merged as `7711b70`: dormant mission 4–5 worlds, with M05 owning environment/effects. PR #145 batch C review fixes remain unmerged; no Studio or Player observation from this pass.
+
+## Unmerged mission 7 implementation (2026-10-30)
+
+`feat/m07-mission` is based on #171 (D1 #165 → D2 #168 → D3 #171). This is not a merged/live change. It activates ARRAY BREAK data with world-id adoption, three required installations and canyon escape; normal progression still waits for concurrent mission 6. Offline validation only; Studio/Player pending. No audio generation/upload, new Blender assets or deployment. See D-280–D-284 and the mission 7 beta guide in next.md.

@@ -1,8 +1,21 @@
 # Next
 
+## Mission 7 beta guide — after D3 and mission 6 integration
+
+`feat/m07-mission` depends on #171 (D1 #165 → D2 #168 → D3 #171). Rebase after concurrent `feat/m06-mission` merges, retain its mission 6 release and retest sequential unlock. Mission 7 is unmerged and cannot be reached on this base while mission 6 remains unavailable.
+
+1. Complete missions 1–6 on a test slot. Confirm ARRAY BREAK unlocks only after 6 and shows chapter 6 “Two ridges” with original subtitles.
+2. Fly north through the dusk arrays. There are 51 ground contacts (40 panels, three required installations, eight defences) and 11 authored air contacts. Kill optional contacts, verify their points; the scenery-only last plant panel has no target box or points. Only the three red installations advance the strike. Logs copy as part of the strike; no scan hold.
+3. Destroy all three within 15:00. Confirm MISSION UPDATE rather than success, cumulative score retained, and a fresh 5:00 clock. Fly the western canyon below 2,000 ft absolute altitude; terrain cover is also required against artillery. Warning/countdown precede 35 damage per exposed impact, every 25 seconds. Exit south through X ±1,200 at Z=11,520 below the ceiling. Expect about two minutes from plant to exit at cruise.
+4. Check high/wrong-direction crossings do not win, low southbound crossing settles once, either clock expires as failure, and destruction fails in either phase. Friendly losses are not a failure condition. Verify retry resets targets, clock and hazard; successful results retain score and unlock no unreleased mission 8.
+5. Inspect actual canyon clearance, target adoption, terrain masking, dusk HUD/phone readability, skyline/spacing versus cited spec frames, and measure build/clear time. Offline samples are not a rendered acceptance or Studio test.
+
+S is provisionally 1,600; A/B/C 1,400/1,000/340. The 2,245 reference result uses conflicting kill totals and is not the threshold or this roster's maximum (2,050). Allies fly without killing until #174's roughly one-kill budget can be integrated; enemy pressure targets the player in 80% of slots. Tune only after observed gameplay. Validation: `bun run validate:offline` EXIT 0; 904 Luau contracts, 19 catalog snapshots and 124 Python tests. No Studio lease taken and no audio/assets uploaded.
+
+
 ## Engine batch D3 — stacked on D2; dormant
 
-D3 adds a mission-owned artillery escape, safe-band/terrain masking, bounded built-world canyon centreline audit, a locked area footprint and M7 solar panel/tower, flak and pillbox targets. Required-target strike → mission update → fresh 5:00 escape reuses batch B; high exits cannot win. No catalog mission opts in and frozen practice/M01 engine snapshots and catalog data are unchanged. See D-240–D-244 and the engine plan.
+D3 adds a mission-owned artillery escape, safe-band/terrain masking, bounded built-world canyon centreline audit, a locked area footprint and M7 solar panel/tower, flak and pillbox targets. Required-target strike → mission update → fresh 5:00 escape reuses batch B; high exits cannot win. Mission 7 on its dependent implementation branch opts in; no merged catalog mission opts in and frozen practice/M01 engine snapshots and catalog data are unchanged. See D-240–D-244 and the engine plan.
 
 Validation: frozen install/build and the full offline gate passed (793 Luau contracts, 19 catalog snapshots, 122 Python tests). All 12 D3 Jest cases passed during a shared-lease run after empty Studio checks spanning 305 seconds. That earlier full suite did not finish before the configured 60-second timeout and reported a D2 hull/group-credit fixture failure (now corrected in the merged D2 base); test-owned Studio exited. No full Jest pass or Player test is claimed.
 
@@ -31,7 +44,7 @@ Review the [broadcast island](../specs/worlds/m08-composition.md) and [three bea
 
 ## M06/M07 worlds — in review
 
-Review the dormant [M06 harbour](../specs/worlds/m06-composition.md) and [M07 array/canyon](../specs/worlds/m07-composition.md) worlds, including their complete target tables. Chunk/yield estimates: 10.265 s / 14.501 s under the 16 s caps (legacy jobs ×1.5: 6.384 s / 10.716 s); actual load cost is unmeasured. Once Studio is authenticated, inspect silhouette, materials, low canyon flight, waterline props and service approach against the accepted specs, then measure terrain/build/clear on desktop and phone. Resolve M06 subtype totals and M07 51-versus-52 accounting before mission activation. No Studio launch is authorized in this work; no catalog/unlock changes are included.
+Review the dormant [M06 harbour](../specs/worlds/m06-composition.md) and [M07 array/canyon](../specs/worlds/m07-composition.md) worlds, including their complete target tables. Chunk/yield estimates: 10.265 s / 14.501 s under the 16 s caps (legacy jobs ×1.5: 6.384 s / 10.716 s); actual load cost is unmeasured. Once Studio is authenticated, inspect silhouette, materials, low canyon flight, waterline props and service approach against the accepted specs, then measure terrain/build/clear on desktop and phone. Resolve M06 subtype totals; M07 mission implementation resolves 51-versus-52 under D-280, pending integration. No Studio launch is authorized in this work; no catalog/unlock changes are included.
 
 Last updated: 2026-10-29.
 

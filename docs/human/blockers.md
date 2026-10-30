@@ -30,7 +30,7 @@ Last updated: 2026-10-29.
 ## M06/M07 world review (2026-10-30)
 
 - Studio is signed out; this task explicitly permits offline validation only. Both worlds are in review, unselected and unverified in Studio/Player/on phone. Rendered fidelity, navigation and real load/cleanup performance await a later authenticated session. No action from the owner is needed for this PR.
-- Exact per-target positions and M06 subtype totals remain unknown; D-160 records the finite provisional scenery layout. M07 uses the reconstructed 52 credited ground contacts, preserving the unresolved initial 51-ground discrepancy. Do not activate either mission from scenery counts alone.
+- Exact per-target positions and M06 subtype totals remain unknown; D-160 records the finite provisional scenery layout. M07 uses the reconstructed 52 credited ground contacts, preserving the unresolved initial 51-ground discrepancy. M06 activation still needs its own roster decision; M07 implementation adopts the explicit provisional roster in D-280/D-281.
 - Resolved review findings P1/P3: a local #158 chunk/yield model now gates both worlds at ≤16 s (M06 10.265 s, M07 14.501 s), and 256-stud detail counts are fixed and asserted positive. Distant M06 sea Parts cut water touches to 4,224; their rendered seams/materials and runtime timing remain unverified. Target-count reconciliation remains a mission-data activation step.
 
 ## Open
@@ -87,3 +87,10 @@ Mission 4 transports exit after about 4:43.5 despite a 12:00 HUD clock; pacing r
 
 AI voice disclosure missing: addressed on fix/ai-voice-disclosure (D-140), pending merge. Settings provides permanent provenance and the first voiced line triggers a once-per-session notice. Latest Studio log (2026-10-30T03:39:39Z) shows RBX::Studio::LoginDialog; Studio was not launched and visual verification remains unperformed.
 PR #149 fixes the old 4:43.5 transport exit to 6:48.33 (D-096), covered offline; Studio/owner pacing re-check remains pending. The re-review’s early jammer despawn is fixed in the branch: both routes derive from the transport hook at jammer altitude/110 studs/s, with duration regressions keeping radar jamming and 280 optional points available throughout the transport window. Its duplicate cleanup mechanism is replaced by #147’s shared gate (D-097), including failed/partial construction and player leave. Mission 5 reports dark rig/tankers, follow-up lighting fixes awaiting Studio re-check, and a cleanup dependency on #147. Main now includes #147 (`7d73c44`); missions 4–18 remain locked. No Player test is claimed.
+
+## Mission 7 implementation — 2026-10-30
+
+- Integration: based on `origin/feat/engine-batch-d3` (#171; #165 → #168 → #171). Mission 6 is concurrent on `feat/m06-mission` based on D2; rebase after it merges and rerun offline/unlock checks. Until then mission 7 is release-enabled in data but unreachable through normal sequential progression. Do not merge this PR yet.
+- Studio/Player pending by instruction: no Studio launch, Roblox Jest run, phone test, rendered reference comparison, terrain-raycast audit or measured build/clear claimed. Offline canyon samples check the authored height function, not built voxels and Parts.
+- #174 allied-budget PR is open. Conservative `mayKill:false` prevents unlimited score theft; approximately one allied kill per sortie remains a follow-up after integration. More enemy pressure is opted in now.
+- Resolved provisionally: 52 world poses versus 51-ground roster. D-280 keeps the last panel as scenery, adopting the other 51 by stable id. D-281 reconciles 11-air roster versus 14 reconstructed air kills; finite maximum is 2,050, while 2,245 remains the source-run comparison. These choices prioritize the select roster and do not claim an exhaustive source audit.

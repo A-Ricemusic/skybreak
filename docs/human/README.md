@@ -1,5 +1,7 @@
 # SKYBREAK redesign dashboard
 
+**Mission 7 implementation (2026-10-30):** `feat/m07-mission`, based on D3 #171 (D1 #165 → D2 #168 → D3 #171). Unmerged; offline validation only. ARRAY BREAK adopts 51 of 52 world drawings, three required installations, 11 air contacts, 15:00 strike then fresh 5:00 canyon escape. Unlock requires completed missions 1–6; mission 6 is concurrent on `feat/m06-mission` and must merge before release. `bun run validate:offline` EXIT 0 (904 Luau contracts, 19 catalog snapshots, 124 Python tests). Studio/Player and rendered reference comparison pending. D-280–D-284.
+
 Last updated: 2026-10-29, against main `7d73c44` (mission 3 merged).
 M12/M13 procedural worlds are in review in [PR #170](https://github.com/A-Ricemusic/skybreak/pull/170) on `feat/m12-m13-worlds`, stacked on #167 → #166 → #164. Dormant registry only; estimates12.771s/13.253s, full validator exit0 (788 Luau contracts,122 Python tests); offline validation only. No Player/Studio test or mission activation. Decisions D-230–D-234.
 
@@ -51,7 +53,7 @@ Audio policy update (D-142, owner, 2026-10-30): no further audio uploads; story 
 | 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | Yes | In review #149; shared cleanup gate and 6:48.33 escape fixed in branch, Studio re-check pending; load-time fix (D-120: 66→11.7 s terrain in a Studio bench) in a PR stacked on #149; assets #142, world #144 and engine #145 merged, dormant | No | — |
 | 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | Yes | In review #148: Studio Jest 972/972; a real-UI scripted run completed; world build about 18 s after D-120 | No | — |
 | 6 | Invincible Fleet | 1:03:01–1:20:00 | 17.0 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m06.md), [world](../specs/worlds/m06.md)) | Unbuilt / locked | No | — |
-| 7 | Deep Strike | 1:22:13–1:35:49 | 13.6 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m07.md), [world](../specs/worlds/m07.md)) | Unbuilt / locked | No | — |
+| 7 | Deep Strike | 1:22:13–1:35:49 | 13.6 min | Yes | Implemented on D3 / unmerged ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m07.md), [world](../specs/worlds/m07.md)) | 51 ground + 11 air / M06 gated | No | — |
 | 8 | Shattered Skies | 1:39:16–1:52:39 | 13.4 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m08.md), [world](../specs/worlds/m08.md)) | Unbuilt / locked | No | — |
 | 9 | Operation Bunker Shot | 1:56:14–2:14:14 | 18.0 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m09.md), [world](../specs/worlds/m09.md)) | Unbuilt / locked | No | — |
 | 10 | Tango Line | 2:16:13–2:37:51 | 21.6 min | Yes | Written / in review ([#153](https://github.com/A-Ricemusic/skybreak/pull/153); [mission](../specs/missions/m10.md), [world](../specs/worlds/m10.md)) | Unbuilt / unavailable | No | — |
@@ -60,7 +62,7 @@ Audio policy update (D-142, owner, 2026-10-30): no further audio uploads; story 
 | 13 | Safe Return | 3:08:30–3:18:42 | 10.2 min | Yes | Written / in review ([#153](https://github.com/A-Ricemusic/skybreak/pull/153); [mission](../specs/missions/m13.md), [world](../specs/worlds/m13.md)) | Unbuilt / unavailable | No | — |
 | 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | Yes | In review #148; assets #142, world #144 and engine #145 merged, dormant | No | — |
 | 6 | Invincible Fleet | 1:03:01–1:20:00 | 17.0 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m06.md), [world](../specs/worlds/m06.md)) | World in review / locked | No | — |
-| 7 | Deep Strike | 1:22:13–1:35:49 | 13.6 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m07.md), [world](../specs/worlds/m07.md)) | World in review / locked | No | — |
+| 7 | Deep Strike | 1:22:13–1:35:49 | 13.6 min | Yes | Implemented on D3 / unmerged ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m07.md), [world](../specs/worlds/m07.md)) | 51 ground + 11 air / M06 gated | No | — |
 | 8 | Shattered Skies | 1:39:16–1:52:39 | 13.4 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m08.md), [world](../specs/worlds/m08.md)) | World in review / locked | No | — |
 | 9 | Operation Bunker Shot | 1:56:14–2:14:14 | 18.0 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m09.md), [world](../specs/worlds/m09.md)) | World in review / locked | No | — |
 | 10 | Tango Line | 2:16:13–2:37:51 | 21.6 min | Yes | Written / in review ([#153](https://github.com/A-Ricemusic/skybreak/pull/153); [mission](../specs/missions/m10.md), [world](../specs/worlds/m10.md)) | World in review / dormant | No | — |

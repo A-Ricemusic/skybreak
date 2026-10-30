@@ -1584,6 +1584,33 @@
    "tape": false,
    "text": "SERA: That's two thousand. Keep burning it until the clock runs out.",
    "spoken": "That's two thousand. Keep burning it until the clock runs out."
+  },
+  {
+   "id": "radio.m07.p1.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Copy before you cut. We need the signature, not just wreckage.",
+   "spoken": "Copy before you cut. We need the signature, not just wreckage."
+  },
+  {
+   "id": "radio.m07.p1.chatter1",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Lira log copied. Keep moving to the next installation.",
+   "spoken": "Lira log copied. Keep moving to the next installation."
+  },
+  {
+   "id": "radio.m07.p1.chatter2",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Merel log copied. One transmitter remains.",
+   "spoken": "Merel log copied. One transmitter remains."
   }
  ]
 }
