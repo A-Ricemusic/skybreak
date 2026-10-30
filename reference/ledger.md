@@ -307,3 +307,51 @@ M10 independent-review correction: reopened the local continuous 640×480 proxy 
 ### PR #155 independent-review correction
 
 The orchestrator reports 27 of 28 frame checks confirmed. M08 opening heading is **NW at source1:39:16–1:39:17**, correcting the north-facing world sketch; the revised southeast start coordinate is explicitly proposed, not measured. This follow-up did not re-download footage or claim a new visual inspection. The mission specs also correct the code baseline: no player gun action, eight missiles with one replenished every2.5s, and missing finite-sortie/area/anti-ship weapon contracts where required. These code corrections do not change source-footage observations.
+
+## Mission 14–18 specification pass (2026-10-29)
+
+Source remains GamePlayShare <https://youtu.be/lO7bCwQOYUs>. Mapping checked against D-013, human dashboard and accepted chapter map: reference missions 14, 15, 16, 17 and 18 map directly to SKYBREAK 14–18. No merged/split reference mission in this range. New derived text is in `docs/specs/missions/m14.md`–`m18.md` and companion worlds.
+
+### Acquisition and timestamp precision
+
+Read AGENTS and `skills/video-reference-analysis/SKILL.md` plus extraction instructions before inspection. Reused `/Users/pelicannurse/Projects/test app/reference/ac04/video/proxy-480p.mp4` for navigation; did not fetch the full video. Used brew yt-dlp and `/opt/homebrew/bin/ffmpeg` to cut source sections at 1080p (format 399, AV1, silent video). **No audio listened to.** Subtitle functions alone inform radio notes. Initial M16/M17 exports failed when the disk filled; partial MP4 files lacked moov metadata and were rejected by ffprobe. A subsequent yt-dlp request hit YouTube’s bot check; recovered the exact bounded sections using still-valid media inputs from the original local logs. No replacement source used. Signed URLs stay ignored and are not committed.
+
+| Mission | Local clip (gitignored; may be deleted after findings) | Source start, seconds | Verified duration / raster | SHA-256 |
+|---|---|---|---|---|
+| M14 | `reference/ac04/clips/tail-11946.mp4` | 11946 | 587.003817 s; 1440×1080; 60000/1001 fps | `4790edb2e7bb46de577ef3272dc3bffbb9165567c275d19d60ad265c9d198986` |
+| M15 | `reference/ac04/clips/tail-12656.mp4` | 12656 | 1020.012350 s; 1440×1080; 60000/1001 fps | `7354b5307fb8126b68f7103ba27b95a649539aae479ae9fff74ea9493fb86d88` |
+| M16 | `reference/ac04/clips/m16-detail.mp4` | 13744 | 1415.010533 s; 1440×1080; 60000/1001 fps | `38e3d923f8392b494d62d19a7e7c732530370e199da0c5a2c7dc065728f51b5b` |
+| M17 | `reference/ac04/clips/m17-detail.mp4` | 15159 | 1230.005967 s; 1440×1080; 60000/1001 fps | `5b35cf37e59f07e9d68b275d7b93025b8f9ffa7191af7977ce0386e41c113bbf` |
+| M18 | `reference/ac04/clips/m18-detail.mp4` | 16440 | 787.009800 s; 1440×1080; 60000/1001 fps | `5f23c3cd6413a8da518cce8ea76c65df7e486727fc5290fa3e2af4e833408437` |
+
+All source starts are stream-copy offsets, not forced-keyframe recuts. Native start/control/debrief screens were cross-checked against the continuous proxy. Event times allow ±2 s, coarse overview windows ±5 s. ffprobe metadata alone is not the timestamp verification. 1440×1080 preserves the source’s 4:3 image; the title’s “1080p60” does not make the underlying game typography sharper.
+
+### Actual visual inspection and coverage
+
+Images live under `reference/ac04/frames/m14-m18/mNN/`. `source-SSSSS.png` is a proxy frame at absolute source second; `native-SSSSS.png` is a native frame at the matching clip offset or directly from the same media stream. `core-SSSSS.png` and `timer-SSSSS.png` identify additional bounded checks. Temporary contact sheets/clips can be deleted for disk budget after this record; native selected frames are retained locally for review.
+
+| Mission | Whole-section overview actually opened | Native detail actually opened | Readable full-resolution keys actually opened |
+|---|---|---|---|
+| 14 | `overview-01–02.jpg`, proxy every 10 s from 3:19:06 through debrief; ignore padded/next-scene tiles beyond 3:28:53 | All `detail-01–09.jpg`, every 2 s across 11946–12533 s | 11946, 11992, 12023, 12531; proxy keys 11977, 11992, 12004, 12023, 12300, 12531 |
+| 15 | `overview-01–04.jpg`, proxy every 10 s from 3:30:56 through debrief; next-story tiles are incidental | All `detail-01–15.jpg`, every 2 s across 12656–13676 s | 12711, 12766, 13000, 13300, 13465, 13673; proxy briefing/select/debrief 12711, 12721, 12766, 13673 |
+| 16 | `overview-01–05.jpg`, proxy every 10 s across 13744–15159 s; incidental next-title tiles excluded from coverage | All `native-overview-01–08.jpg`, 5 s samples across 13744–15159 s | 13795, 13851, 14000, 14500, 14900, 15157; proxy briefing/select/debrief 13795, 13805, 13851, 15157 |
+| 17 | `overview-01–05.jpg`, proxy every 10 s across 15159–16389 s; later-story tiles incidental | All `native-overview-01–07.jpg`, 5 s samples across 15159–16389 s; `elite-01–05.jpg`, 2 s samples across 16059–16389 s | 15220, 15271, 15400, 15600, 16077, 16387; timer crops 16070, 16072, 16074, 16076, 16315 |
+| 18 | `overview-01–03.jpg`, proxy every 10 s across 16440–17227 s; later credits incidental | All `detail-01–11.jpg`, every 2 s across 16440–17227 s | 16475, 16525, 16660, 16900, 16960, 17105, 17175, 17210; extra core 17108, 17135, 17165, 17185, 17190; fighter-value at 16710 and final-hud at 17180 |
+
+Extracting contact sheets does not establish inspection. The rows above list images opened with the image-viewing tool. Samples between these frames, other playthroughs, failure screens, hidden spawn/ace rules and difficulty variants were **not** examined. Ground subtype totals in M15–17 remain unreconciled; debrief aggregates do not prove those counts. Proposed world positions are adaptation assumptions with explicit 0.96 studs/m conversion, not measurements from one camera path. No Roblox render, Studio launch or Player verification performed.
+
+### Findings, source-specific
+
+| Mission | Settled debrief / HUD | Inventory and objective observations | Remaining gaps |
+|---|---|---|---|
+| 14 | 3:28:51: **2,260 / 1,700, S**, objective 7:49.88. Initial HUD 20:00 at 3:20:23. | MISSILE ×16 = 1,700; F-22 ×3 = 360; XB-70 ×1 = 200. Low cruise weapons, separating contacts and last isolated weapon along glacier. Score decomposition implies fifteen 100-point and one 200-point missile kills; not sixteen initial carriers. | Parent/child initial inventory, exact split triggers, optional fighter arrivals and exact rank cuts unknown. |
+| 15 | 3:47:53: **4,930 / 2,000, S**, 10:00 + 2:53.28 = 12:53.28. HUD 10:00 at 3:32:46; ~9:49 after bomber update at 3:44:25. | Roster 19 air / 62 ground / 0 naval; kills C-17 7, Ka-50 4, A-10 2, Su-37 1, Tu-160 6, EF-2000 1, **ground 53** = 2,440. Corrected an initial proxy reading of 55 ground kills using native debrief. | Ground subtypes, complete waves/conditions and S cutoff unresolved. |
+| 16 | 4:12:37: **7,800 / 3,500, S**, objective 20:00. Initial HUD 20:00 at 3:50:51. | Roster 13 air / 113 ground; kills Tornado 3, A-10 2, F-117 3, AH-64 5, F-2 1, ground 138 = 6,830. More kills than initial roster prove additional enemies existed. | Subtype counts, reinforcement predicates and full possible spawn total unknown. |
+| 17 | 4:33:07: **5,040 / 2,100, S**, 12:00 + 3:58.46 = 15:58.46. | Roster 4 air / 34 ground / 4 naval. Debrief: Su-37 5, AH-64 4, F-22 4, F-15 ACTIVE 3, S-37 1, V-22 4, EF-2000 2; ground 55 = 2,530; ships 4 = 580. Timer: 00:01.91 at 4:27:50, 17:59.93 at 4:27:52, 14:01.53 on victory 4:31:55: **18:00 elite reset**. | Ground/hull subtype allocation and full wave schedule unknown. D-031 explicitly replaces the fifth elite kill with Rusk’s withdrawal. |
+| 18 | No debrief. Final HUD at 4:46:20: **4,920 / S**, 28:41.13 remaining. | Native roster 3 ground / 3 required, not 23. Three 500-point generators; update shows 29:55.84 at 4:45:05 (30:00 reset); ascending missiles 300, central target 990. Four ascending kills inferred from +1,200; core adds 990. Early fighter HUD 90; 990 pre-generator total implies 11 kills; separate +240 implies ace kill. Reconciliation 990+240+1,500+1,200+990 = 4,920. | These air counts are score inferences, not complete spawn counts. Ascending missiles’ requiredness/failure remains unproved; final core required. Exact S cutoff unknown. Duel is an original D-031 addition with no video counterpart. |
+
+All five mission/world pairs include source observations, explicit unknowns, original adaptation proposals, main baseline `088fbfc` and batch A/B/C gaps. No asset upload or copied reference production art/text is included. Blender upload gate remains mandatory for any future exact exports.
+
+Disk-budget closeout: this worktree stayed below 1 GB during recovery. After recording hashes/findings, removed this task’s full mission clips, failed partials, media download logs and temporary contact sheets; retained small native keyframes/probe metadata under the ignored evidence directory. The shared main-checkout proxy and other agents’ evidence were not modified. Offline validation passed: Luau 730/0, catalog 19/0, Python 122 tests / OK; no Studio or Roblox Player test.
+
+PR #154 independent-review corrections (2026-10-29): review confirmed 30/33 checked frames; corrected M15 opening ALT to 1,200 ft at 3:32:46 (0.96 conversion plus sea y=32 gives y≈383), M16 opening heading to NW at 3:50:51, and M14 CONDITION “Ci” to cirrus at 3:19:37, separate from sea ice. These are corrections from independent review, not a new footage-inspection claim by this fix pass. Duel/loadout design now explicitly retains main’s regenerating 8-missile rack (one missile per 2.5 s), no gun, no reserved stock/support drop or transition refill; finite reference racks/rearm remain opt-in engine gaps. Original story/duel design and D-013 mapping retained. Main eb91562 and subsequent b359c61 merged with M6–9 and M10–13 evidence preserved.
