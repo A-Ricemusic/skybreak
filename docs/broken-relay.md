@@ -1,5 +1,7 @@
 # Historical Broken Relay campaign (retired)
 
+> Historical 27-mission implementation record. The active campaign is 18 missions; [approved chapter map](specs/story/chapter-map.md), [routing audit](specs/story/routing-audit.md) and [voice script](specs/story/voice-script.md) supersede the old numbering and mission table below. Original engine evidence below is historical and is not a new Studio/Player claim.
+
 This document records the retired 27-mission campaign. It does not describe the live campaign after the 18-mission switch. Tables below are frozen historical evidence; current availability, practice and mission 1 are tested against the active catalog.
 
 # SKYBREAK: Broken Relay — independent campaign alternative

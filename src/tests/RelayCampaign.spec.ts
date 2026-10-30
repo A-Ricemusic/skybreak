@@ -16,7 +16,7 @@ import { WavePlan, AirRequest } from "../shared/WavePlan";
 import { BomberRules } from "../shared/BomberRules";
 import { AlliedRules } from "../shared/AlliedRules";
 import { encodeCampaignSlot, normalizeMissionRecords } from "../shared/CampaignWire";
-import { STORY, reachableStoryChapters } from "../shared/RelayStory";
+import { STORY, storyFor, MARSHAL, RUSK, shouldPlayChapter, chapterBeforeMission, reachableStoryChapters } from "../shared/RelayStory";
 import { MissionCatalog as Legacy } from "./LegacyCatalog";
 const bp = MissionCatalog.Get(1);
 function fresh() { const c = new CampaignCoordinator("campaign18",undefined,{now:()=>1000,defer:()=>undefined}); c.load(); return c; }
@@ -24,7 +24,7 @@ describe("Released 18-mission campaign",()=>{
  it("contains 18 ordered numbered missions and optional practice outside the count",()=>{
   expect(MISSION_COUNT).toBe(18); expect(GameConfig.Campaign.MissionCount).toBe(18); expect(MISSIONS.size()).toBe(18);
   expect(PRACTICE.id).toBe(0); expect(MissionCatalog.Get(0)).toBe(PRACTICE);
-  MISSIONS.forEach((m,i)=>{expect(m.id).toBe(i+1);expect(MissionCatalog.Available(m)).toBe(i<=2);if(i>2){expect(m.title).toBe(`Mission ${i+1}`);expect(m.briefing).toBe("In development");}});
+  MISSIONS.forEach((m,i)=>{expect(m.id).toBe(i+1);expect(MissionCatalog.Available(m)).toBe(i<=2);if(i>2){expect(m.title).toBe(`Mission ${i+1}`);expect(m.briefing.size()>30).toBe(true);}});
   for(const id of [19,27,-1,1.5,math.huge]) expect(MissionCatalog.IsValidId(id)).toBe(false);
  });
  it("keeps the three original control exercises and radar without enemies",()=>{
@@ -91,9 +91,35 @@ describe("Released 18-mission campaign",()=>{
   const slot=normalizeProfile(serializeProfile({version:3,slots:c.getSlots()})).slots[0];
   expect(slot.missions?.[0]?.completed).toBe(true);expect(slot.mission1Completed).toBe(false);expect(highestUnlocked(slot)).toBe(1);
  });
- it("reaches only the opening chapter and retains later scripts and finale dormant",()=>{
-  expect(reachableStoryChapters()).toEqual([0]);expect(STORY.size()).toBe(28);
+ it("reaches the three live chapters and retains later chapters dormant",()=>{
+  expect(reachableStoryChapters()).toEqual([0,1,2]);expect(STORY.size()).toBe(19);
   expect(STORY[0].beats[5].text).toBe("An empty chair and a checkout nobody's signing. Fine. I'll fly the pattern.");
+ });
+ it("maps every mission to D-030 and keeps the closing chapter after M18",()=>{
+  const titles: string[] = ["A voice in the static", "The sealed case", "An unlisted station", "The orchard witnesses", "Fuel under grain", "Military quays", "Two ridges", "The loyalist window", "The frigate ring", "Walking the storm", "High crossing", "Vulture Two", "The evidence launch", "Aurora archive", "The city in darkness", "The dawn landing", "The last fracture", "Broken relay", "A clear frequency"];
+  expect(chapterBeforeMission(0)).toBe(0);
+  expect(shouldPlayChapter(0,[0],true,true)).toBe(false);
+  expect(shouldPlayChapter(1,[0],false,true)).toBe(false);
+  expect(shouldPlayChapter(1,[0],true,true)).toBe(true);
+  expect(shouldPlayChapter(1,[0],true,false)).toBe(false); // Retry after death in completed M1
+  expect(shouldPlayChapter(1,[0],false,false)).toBe(false);
+  expect(shouldPlayChapter(3,[],false,false)).toBe(true);
+  expect(shouldPlayChapter(3,[2],true,true)).toBe(false);
+  for(let id=1;id<=18;id++) { expect(chapterBeforeMission(id)).toBe(id-1); expect(STORY[chapterBeforeMission(id)].title).toBe(titles[id-1]); }
+  expect(STORY[18].title).toBe("A clear frequency");
+  for(const c of STORY) {
+   expect(c.id<=18).toBe(true); expect(c.beats.size()>=3 && c.beats.size()<=8).toBe(true);
+   for(const b of c.beats) { if(b.speaker===RUSK) expect(c.id>=14).toBe(true); if(b.speaker===MARSHAL) expect(c.id<14).toBe(true); }
+  }
+  for(const id of [19,26,27]) { expect(pcall(()=>storyFor(id))[0]).toBe(false); }
+  expect(STORY[5].beats[0].text.find("got clear of Vulture Lead")[0]!==undefined).toBe(true);
+  expect(STORY[16].beats[5].text.find("Vulture Lead is one of them")[0]!==undefined).toBe(true);
+  expect(STORY[17].beats[0].text.find("left his wingmen")[0]!==undefined).toBe(true);
+ });
+ it("normalises numeric cutscene compatibility without touching retired stores",()=>{
+  const profile=normalizeProfile({version:3,slots:[{name:"Seen",cutscenesSeen:[0,1,2,17,18,19,27,-1,1.5,"3"]}]});
+  expect(profile.slots[0].cutscenesSeen).toEqual([0,1,2,17,18]);
+  expect(normalizeProfile(serializeProfile(profile)).slots[0].cutscenesSeen).toEqual([0,1,2,17,18]);
  });
  it("takes 240 seconds over the reserved island band, schedules the ace once and protects required targets",()=>{
   const b=bp.phases[0].bombers!,route=compileBomberEncounter(b);

@@ -1,4 +1,5 @@
 import { VoiceDisclosureNotice } from "./VoiceDisclosureNotice";
+import { chapterBeforeMission, shouldPlayChapter } from "../shared/RelayStory";
 import { canLaunchMission, highestUnlocked } from "../shared/CampaignProgress";
 import { isMissionReason } from "../shared/OutcomeReason";
 import { DeletionObservation } from "../shared/DeletionObservation";
@@ -112,6 +113,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const slotFocusRef = useRef<number>();
 	const selectDefaultRef = useRef<() => void>(() => undefined);
 	const selectedMissionRef = useRef(1);
+	const fromMissionMenuRef = useRef(true);
 	const selectedSpecialRef = useRef<SpecialKind>(SpecialWeapons.Default);
 	const selectedDifficultyRef = useRef<DifficultyKind>(Difficulty.Default);
 	const persistenceRef = useRef<Persistence>("unavailable");
@@ -307,10 +309,11 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	}, [applyResponseSlots, beginRequest, cancelRequests, changeScreen, invoke, launchLoading, selectedMission, selectedSlot, showToast]);
 	const startMission=useCallback(()=>{
 		if(busyRef.current || launchLoading.Pending() || !canLaunchMission(selectedMissionRef.current, slots?.[selectedSlotRef.current-1]))return;
-		const chapter=math.max(0,selectedMissionRef.current-1);
-		// A chapter already seen on this slot (retry or replay) goes straight to launch.
+		const chapter=chapterBeforeMission(selectedMissionRef.current);
+		// Seen chapters skip; completed M1 gets an opening reprise only from the mission menu, never Retry/Next.
 		const seen=slots?.[selectedSlotRef.current-1]?.cutscenesSeen;
-		if(seen && seen.includes(chapter)){launchMission();return;}
+		const completed=slots?.[selectedSlotRef.current-1]?.missions?.[selectedMissionRef.current]?.completed===true;
+		if(!shouldPlayChapter(selectedMissionRef.current,seen,completed,fromMissionMenuRef.current)){launchMission();return;}
 		cinematicNext.current=launchMission;
 		setCinematicId(chapter);
 		changeScreen("cinematic");
@@ -339,6 +342,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			if (returned.slots) applyResponseSlots(returned);
 			task.wait(0.16);
 			if (!mountedRef.current || requestRef.current !== requestId) return;
+			fromMissionMenuRef.current = false;
 			selectedMissionRef.current = missionId;
 			setSelectedMission(missionId);
 			changeScreen("briefing");
@@ -352,6 +356,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		const current = slotsRef.current;
 		if (busyRef.current || !current?.[slot - 1]) return;
 		const missionId = highestUnlocked(current[slot - 1]);
+		fromMissionMenuRef.current = true;
 		selectedSlotRef.current = slot; selectedMissionRef.current = missionId;
 		setSelectedSlot(slot); setSelectedMission(missionId);
 		// The slot remembers its last loadout; a fresh slot starts on the default special.
@@ -400,7 +405,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			}
 		});
 	}, [applyResponseSlots, beginRequest, invoke, setDeleteConfirm, showToast]);
-	const chooseMission = useCallback((missionId: number) => { selectedMissionRef.current = missionId; setSelectedMission(missionId); }, []);
+	const chooseMission = useCallback((missionId: number) => { fromMissionMenuRef.current = true; selectedMissionRef.current = missionId; setSelectedMission(missionId); }, []);
 	const chooseSpecial = useCallback((kind: SpecialKind) => { selectedSpecialRef.current = kind; setSelectedSpecial(kind); }, []);
 	const chooseDifficulty = useCallback((kind: DifficultyKind) => { selectedDifficultyRef.current = kind; setSelectedDifficulty(kind); }, []);
 	// Always send: the server either launches (guided or blind) or answers with `fireDenied`, so a press is never silent.

@@ -1,3 +1,4 @@
+import { chapterBeforeMission } from "../shared/RelayStory";
 import { encodeCampaignSlot } from "../shared/CampaignWire";
 import { CampaignRequestBudget } from "./CampaignRequestBudget";
 import { DataStoreService, Players, RunService } from "@rbxts/services";
@@ -177,7 +178,7 @@ function startMission(state: PlayerState, payload: unknown): CampaignResponse {
 	state.activeMission = missionId;
 	state.coordinator.recordMissionStarted(slot, missionId, special, difficulty);
 	// The briefing chapter for this mission plays once per slot; retries and replays launch directly.
-	state.coordinator.recordCutsceneSeen(slot, math.max(0, missionId - 1));
+	state.coordinator.recordCutsceneSeen(slot, chapterBeforeMission(missionId));
 	return response(state);
 }
 

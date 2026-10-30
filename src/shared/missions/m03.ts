@@ -75,7 +75,7 @@ export const mission: MissionBlueprint = {
 		formation: [{ x: -180, y: 20, z: 160 }, { x: 180, y: 20, z: 160 }, { x: 0, y: 40, z: 320 }] },
 	primary: "Destroy all nine radar domes, then return to base",
 	briefing: "Teal's receiver names a radar inside our own training box that nobody signed for: nine domes on two snowy mountain sites north-west of the pass. Destroy all nine with the gun camera running, then turn south across the return line and land with the film. AA guns and a parked helicopter are optional.",
-	debrief: "Nine domes are down and the film is home. Sera locks the gun-camera tape in her desk: the station was watching trainees, not the sky.",
+	debrief: "Nine domes are down and the film is home. Sera locks the gun-camera tape in her desk: the station watched trainees, and its memory names the Teklan orchard.",
 	failure: "The station is still watching, and the film never reached Varda Rim.",
 	ground: [],
 	phases: [{
