@@ -1,5 +1,9 @@
 # Next
 
+## M08/M09 worlds — in review
+
+Review the [broadcast island](../specs/worlds/m08-composition.md) and [three beaches/carrier](../specs/worlds/m09-composition.md), including full scenery tables. Offline estimates are 4.235 s / 10.474 s (≤16 s). Rebase `feat/m08-m09-worlds` onto main after #164 merges. Later authenticated Studio work must check silhouette, materials, native/distant sea seams, carrier deck/approach, navigation, build/clear costs and phone readability. Resolve M09 subtype/83-contact inventory before activating mission data; preserve M08 7:00+6:00/six bombers/NW ingress and M09 10:00+7:00/six attack jets/carrier rearm. No Studio or gameplay activation in this PR.
+
 ## M06/M07 worlds — in review
 
 Review the dormant [M06 harbour](../specs/worlds/m06-composition.md) and [M07 array/canyon](../specs/worlds/m07-composition.md) worlds, including their complete target tables. Chunk/yield estimates: 10.265 s / 14.501 s under the 16 s caps (legacy jobs ×1.5: 6.384 s / 10.716 s); actual load cost is unmeasured. Once Studio is authenticated, inspect silhouette, materials, low canyon flight, waterline props and service approach against the accepted specs, then measure terrain/build/clear on desktop and phone. Resolve M06 subtype totals and M07 51-versus-52 accounting before mission activation. No Studio launch is authorized in this work; no catalog/unlock changes are included.

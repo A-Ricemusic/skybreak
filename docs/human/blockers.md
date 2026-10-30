@@ -1,5 +1,12 @@
 # Blockers
 
+## M08/M09 world review (2026-10-30)
+
+- Worlds are in review, dormant; offline work is complete in this branch. Studio is signed out and this task excludes Studio; visual, Player, phone and actual load/cleanup acceptance remain open. No owner action is needed for this PR.
+- Stacked on PR #164; rebase onto main after it merges. Reuses its CompactWorldSurface and local chunk/yield estimator.
+- M09 uses only the documented 55-contact credited-kill reconstruction; 28 initial contacts, precise subtype totals and phase triggers remain unresolved. M08 has zero combat ground targets; its three broadcast ids are scenery. These gaps block mission activation, not dormant world review (D-170–D-173).
+- Carrier sketch Y=64 is reconciled to actual deck Y=66 at waterline32/keel12. No asset edit/upload. Offline support fixes keep foundations off lower beach cells and trees within sampled terrain cells; rendered appearance remains unverified.
+
 Last updated: 2026-10-29.
 
 ## M06/M07 world review (2026-10-30)

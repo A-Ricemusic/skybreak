@@ -4,7 +4,8 @@ import { WORLD_FILL_CHUNK } from "./CompactWorldSurface";
 import { worldCounts } from "./WorldCompositionCounts";
 // Minimal local copy of PR #158's Studio-calibrated chunk/yield model (D-120/D-121).
 // Unify with WorldCompositionCounts when #158 lands; no dependency on its unmerged code.
-// Valid only at the M06/M07 runtime terrain slice of 0.25 s. Estimates are not measurements.
+// Shared by M06–M09; accepts any compact composition, including Carrier props.
+// Valid only at the compact-world runtime terrain slice of 0.25 s. Estimates are not measurements.
 const span = (centre: number, size: number) => math.floor((centre + size / 2 - 0.01) / 128) - math.floor((centre - size / 2) / 128) + 1;
 export function chunkTouches(o: TerrainOp): number {
  const c = math.abs(math.cos(o.yaw)), s = math.abs(math.sin(o.yaw));

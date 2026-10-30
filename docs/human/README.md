@@ -1,5 +1,7 @@
 # SKYBREAK redesign dashboard
 
+M08/M09 worlds are in review on `feat/m08-m09-worlds`, stacked on PR #164: [island broadcast](../specs/worlds/m08-composition.md), [beach landing/carrier](../specs/worlds/m09-composition.md). Chunk/yield estimates **4.235 s / 10.474 s** (≤16 s); 771 offline Luau contracts and 122 Python tests pass. Dormant only; no Studio/Player/phone verification. D-170–D-173 document provisional scenery and carrier deck correction.
+
 M06/M07 procedural worlds are in review on `feat/m06-m07-worlds`: [harbour composition](../specs/worlds/m06-composition.md), [array/canyon composition](../specs/worlds/m07-composition.md). Dormant registry only; no mission selects them. Local #158 chunk/yield estimates are 10.265 s / 14.501 s (≤16 s); M06 uses native water near action and flat distant sea Parts. Offline geometry/budget checks pass; no Studio/Player/phone verification. Provisional target layouts and measured load/visual acceptance remain open (D-160–D-163).
 
 Last updated: 2026-10-29, documentation against `main` at `b359c61`; gameplay/publish baseline remains `088fbfc`.
@@ -27,8 +29,8 @@ Audio policy update (D-142, owner, 2026-10-30): no further audio uploads; story 
 | 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | Yes | In review #148; assets #142, world #144 and engine #145 merged, dormant | No | — |
 | 6 | Invincible Fleet | 1:03:01–1:20:00 | 17.0 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m06.md), [world](../specs/worlds/m06.md)) | World in review / locked | No | — |
 | 7 | Deep Strike | 1:22:13–1:35:49 | 13.6 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m07.md), [world](../specs/worlds/m07.md)) | World in review / locked | No | — |
-| 8 | Shattered Skies | 1:39:16–1:52:39 | 13.4 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m08.md), [world](../specs/worlds/m08.md)) | Unbuilt / locked | No | — |
-| 9 | Operation Bunker Shot | 1:56:14–2:14:14 | 18.0 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m09.md), [world](../specs/worlds/m09.md)) | Unbuilt / locked | No | — |
+| 8 | Shattered Skies | 1:39:16–1:52:39 | 13.4 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m08.md), [world](../specs/worlds/m08.md)) | World in review / locked | No | — |
+| 9 | Operation Bunker Shot | 1:56:14–2:14:14 | 18.0 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m09.md), [world](../specs/worlds/m09.md)) | World in review / locked | No | — |
 | 10 | Tango Line | 2:16:13–2:37:51 | 21.6 min | Yes | Written / in review ([#153](https://github.com/A-Ricemusic/skybreak/pull/153); [mission](../specs/missions/m10.md), [world](../specs/worlds/m10.md)) | Unbuilt / unavailable | No | — |
 | 11 | Escort | 2:39:46–2:45:27 | 5.7 min | Yes | Written / in review ([#153](https://github.com/A-Ricemusic/skybreak/pull/153); [mission](../specs/missions/m11.md), [world](../specs/worlds/m11.md)) | Unbuilt / unavailable | No | — |
 | 12 | Stonehenge Offensive | 2:48:27–3:04:55 | 16.5 min | Yes | Written / in review ([#153](https://github.com/A-Ricemusic/skybreak/pull/153); [mission](../specs/missions/m12.md), [world](../specs/worlds/m12.md)) | Unbuilt / unavailable | No | — |

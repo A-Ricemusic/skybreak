@@ -1,5 +1,5 @@
 import type { TerrainOp, TerrainMaterial, PartSpec } from "./WorldPlan";
-/** M06/M07 floorless shell (D-162), adapted from the M03 topology: aligned caps and shared-edge curtains.
+/** M06–M09 floorless shell (D-162), adapted from the M03 topology: aligned caps and shared-edge curtains.
  * The 128-stud address grid covers every fine/coarse join. Perimeter curtains
  * reach Y=0 outside hard airspace; caps never extend below Y=0.
  */
