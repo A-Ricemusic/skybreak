@@ -2,7 +2,7 @@ import { TargetPriority, type TargetCandidate } from "../shared/TargetPriority";
 import { LaunchCancellation } from "../shared/LaunchLoading";
 import { canSkipLanding } from "../shared/EngineBatchB";
 import { buildNightLighting } from "./NightLighting";
-import { announceJammerKill, liveJammers, lockAllowed, stepRearm } from "./EngineBatchCRuntime";
+import { announceJammerKill, answerRearmMenu, liveJammers, lockAllowed, skipCutIn, skipRearm, stepCutIn, stepRearm } from "./EngineBatchCRuntime";
 import { sampleClearance, skipLanding, stepLanding } from "./EngineBatchBRuntime";
 import { worldClear, worldLifecycle } from "./WorldLifecycleRuntime";
 import { awaitLaunchSlot, type LaunchSlot } from "../shared/WorldLifecycle";
@@ -407,7 +407,8 @@ function sendTelemetry(session: CombatSession): void {
 		// The HUD tally counts required destructions only; raiders travel separately so it never reads 7/4.
 		kills: sessionRequiredKills(session), total: sessionTotalRequired(session),
 		missiles: session.missiles, missileCooldown: session.missileCooldown, evadeCooldown: EvadeRules.Cooldown(session.evade, session.evadeRemaining),
-		missionPoints: phase?.scoreThreshold ? session.targetScore.Total() : undefined,
+		// A points mission keeps its PTS line through the phases after its score threshold.
+		missionPoints: phase?.scoreThreshold || session.blueprint?.phases.some((p) => p.scoreThreshold !== undefined) ? session.targetScore.Total() : undefined,
 		radarPartial: phase?.jamming ? liveJammers(session)===1 : undefined,
 		jamVisualRange: phase?.jamming && liveJammers(session)>0 ? phase.jamming.visualLockRange : undefined,
 		radarJammed: session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.jamming ? liveJammers(session)>0 : undefined,
@@ -1467,7 +1468,12 @@ function stepMissiles(session: CombatSession, dt: number): void {
 	refreshSession(session, os.clock());
 }
 function stepSession(session: CombatSession, dt: number): void {
-	if (stepRearm(session,dt,MAX_MISSILES,(message)=>missionState!.FireClient(session.player,message))) {
+	if (stepCutIn(session,dt,(message)=>missionState!.FireClient(session.player,message),(line)=>radio(session,line))) {
+		session.telemetryTime+=dt;
+		if(session.telemetryTime>=TELEMETRY_INTERVAL) { session.telemetryTime=0; sendTelemetry(session); }
+		return;
+	}
+	if (stepRearm(session,dt,MAX_MISSILES,(message)=>missionState!.FireClient(session.player,message),(line)=>radio(session,line))) {
 		session.telemetryTime+=dt;
 		if(session.telemetryTime>=TELEMETRY_INTERVAL) { session.telemetryTime=0; sendTelemetry(session); }
 		return;
@@ -1711,7 +1717,8 @@ export const CombatService = {
 			assert(!cancelled(), "Launch request expired");
 			assert(player.Parent === Players, "Player left during world construction");
 			const blueprint = MissionCatalog.Get(missionId);
-			if(blueprint.nightLighting) buildNightLighting(folder,blueprint.nightLighting,()=>PauseRules.Paused(session.pause));
+			// The session is assigned below; the sweep only reads its pause once it exists.
+			if(blueprint.nightLighting) buildNightLighting(folder,blueprint.nightLighting,()=>(session as CombatSession | undefined) !== undefined && PauseRules.Paused(session.pause));
 			assert(world.groundTargets.size() === blueprint.ground.size(), `Mission ${missionId} world ground target count mismatch`);
 			const aircraft = JetFactory.Create("SKYBREAK - Kestrel", false);
 			assert(!cancelled(), "Launch request expired");
@@ -1821,7 +1828,7 @@ export const CombatService = {
 		if (!missionRoot) { missionRoot = new Instance("Folder"); missionRoot.Name = "SkybreakCombat"; missionRoot.Parent = Workspace; }
 		connections.push(remote(remotes, "FlightInput").OnServerEvent.Connect((player, payload: unknown) => {
 			const session = sessions.get(player);
-			if (!session?.active || session.loading || session.launch || (session.blueprintState?.landingElapsed !== undefined || session.rearmElapsed !== undefined) || session.guard.running || PauseRules.Paused(session.pause) || !typeIs(payload, "table")) return;
+			if (!session?.active || session.loading || session.launch || (session.blueprintState?.landingElapsed !== undefined || session.rearmElapsed !== undefined || session.cutInElapsed !== undefined) || session.guard.running || PauseRules.Paused(session.pause) || !typeIs(payload, "table")) return;
 			const now = os.clock();
 			// Heartbeat runs refreshSession every frame, so this unguarded handler only takes input.
 			// A token bucket caps the packet rate whatever the stamps claim.
@@ -1853,7 +1860,7 @@ export const CombatService = {
 		connections.push(remote(remotes, "CombatAction").OnServerEvent.Connect((player, payload: unknown) => {
 			const session = sessions.get(player);
 			if (!session?.active || !typeIs(payload, "table")) return;
-			const data = payload as { action?: unknown; serial?: unknown; target?: unknown };
+			const data = payload as { action?: unknown; serial?: unknown; target?: unknown; special?: unknown };
 			if (!typeIs(data.action, "string")) return;
 			const now = os.clock();
 			if (session.loading) {
@@ -1878,10 +1885,16 @@ export const CombatService = {
 					else if (!resumeSession(session, now)) sendTelemetry(session);
 					return;
 				}
+				if (session.cutInElapsed !== undefined) {
+					if (!PauseRules.Paused(session.pause) && action === "SkipLanding") skipCutIn(session);
+					return;
+				}
 				if(session.rearmElapsed!==undefined) {
-					if (!PauseRules.Paused(session.pause) && action === "SkipLanding" && canSkipLanding(session.rearmElapsed)) {
-						const plan=session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.rearm;
-						if(plan) { session.rearmElapsed=math.max(session.rearmElapsed,plan.landing.approachSeconds+plan.landing.rolloutSeconds); missionState!.FireClient(session.player,{kind:"RearmSkipped",elapsed:session.rearmElapsed}); }
+					const plan=session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.rearm;
+					const send=(message: unknown)=>missionState!.FireClient(session.player,message);
+					if (plan && !PauseRules.Paused(session.pause)) {
+						if (action === "SkipLanding") skipRearm(session,plan,send);
+						else if (action === "RearmTakeoff") answerRearmMenu(session,data.special,send);
 					}
 					return;
 				}

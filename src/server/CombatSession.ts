@@ -103,6 +103,16 @@ export interface CombatSession {
 	rearmEpoch?: number;
 	rearmElapsed?: number;
 	rearmLatched?: boolean;
+	/** Seconds the TAKEOFF / CHANGE WEAPON menu has waited, while it is open. */
+	rearmMenu?: number;
+	rearmAnswered?: boolean;
+	/** The rearm gate beacon of the active phase. */
+	rearmGate?: BasePart;
+	cutInElapsed?: number;
+	cutInStartedAt?: number;
+	cutInEpoch?: number;
+	/** Phase index whose cut-in has played (once per phase). */
+	cutInPlayed?: number;
 	landingSent?: boolean;
 	landingStartedAt?: number;
 	clearanceProbeAt?: number;
