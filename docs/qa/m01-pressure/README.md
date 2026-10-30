@@ -5,7 +5,7 @@ Scope: source/data tuning; no Studio or Roblox Player combat test performed.
 - `bun install --frozen-lockfile`: passed.
 - `bun run build`: passed; offline gate also builds the isolated test place.
 - Offline Luau contracts: 733 passed, 0 failed, including player targeting slots/overrides, forward arrival angles, wave queue, rank boundaries, route/pursuit and snapshots.
-- Full offline gate result is recorded in the PR after completion.
+- Full offline gate: passed with the requested `LUAU_BIN` override; catalog snapshots, relay/audio/voice/radio checks, 122 Python tests and generated-doc checks passed.
 - `bun run test:roblox`: not launched. It unconditionally starts Studio, which would violate this task's lease condition.
 - Scripted/observed mission run: not performed. Shots at player: **unmeasured**; shots at allies: **unmeasured**. 80% refers to targeting slots, not measured shots or a claimed playtest result.
 
