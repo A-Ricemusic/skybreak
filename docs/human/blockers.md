@@ -1,5 +1,12 @@
 # Blockers
 
+## M12/M13 world review (2026-10-30)
+
+- Dormant worlds in review, stacked on #167 head1b33139 above #166/#164, all still open when checked. Rebase main as dependencies merge. No Studio lease acquired; offline-only work needs no owner action.
+- Offline estimates12.770960s/13.253200s pass≤15s headroom gate. Actual load/clear, phone rendering, flight feel and source comparison are unverified. Conservative coarse ravine width and procedural gun/balloon silhouettes require rendered review; no replacement of accepted assets or upload occurs.
+- M12 wreck southeast is authored, not verified compass evidence. Initial3 air/18 ground differs from24 ground/9 air credited kills; the source trigger/roster explanation stays unresolved. Combat actors, animation/destruction, ECM, ammunition/rearm, elite retreat/ejection and mission phases are separate integration work.
+- M13 balloon deployment count beyond32 kills remains unknown. Spatial jammer coverage, gun targeting, friendly survival, phase handoff and five interceptors are absent gameplay; full stratus/local fog readability remains unmeasured. No river/water feature is invented; generated traversable low caps are flood-filled to check connectivity.
+
 ## M10/M11 world review (2026-10-30)
 
 - Worlds are in review, dormant; Studio is signed out and this task is offline only. Rendered fidelity, actual load/clear time, Player/phone performance and flight feel remain unverified. No owner action is needed for dormant review.

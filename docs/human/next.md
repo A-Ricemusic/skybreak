@@ -1,5 +1,11 @@
 # Next
 
+## M12/M13 worlds — in review
+
+1. Review [M12 composition/table](../specs/worlds/m12-composition.md) and [M13 composition/table](../specs/worlds/m13-composition.md). Estimates12.770960s/13.253200s retain3.229040s/2.746800s against16s. Branch stacks on #167 → #166 → #164; rebase main as dependencies merge; do not merge this PR yet.
+2. Render and fly crater ingress/service approaches and the fog ravine/exit, compare against accepted specs, inspect procedural silhouettes and conservative ravine width, and measure build/clear/phone costs before activation.
+3. Integrate M12 seven live guns then elite,24 ground/9 air kills,15:00+10:00, initial3/18/21; resolve initial/final count difference, ECM, finite ammunition/rearm, animated destruction/ejection. Integrate M13 ≥1300 at7:00 expiry then15:00 protected-plane intercept,32 jammers, spatial coverage, visual guns, damageable plane and fighter priorities. No unlock changes here.
+
 ## M10/M11 world review and integration
 
 1. Re-review PR [#167](https://github.com/A-Ricemusic/skybreak/pull/167) P1 fix: generated-water connectivity and centreline checks now pass; M10 estimate14.732s with1.268s headroom. Review [M10](../specs/worlds/m10-composition.md) and [M11](../specs/worlds/m11-composition.md), including provisional inventories, full target tables and budgets. Rebase onto main after #164/#166 merge; do not merge this PR as part of this task.
@@ -59,7 +65,7 @@ Mission and world specs are in review in [PR #155](https://github.com/A-Ricemusi
 
 ## Later
 
-- Mission and world specs for 10–13 are in review in [PR #153](https://github.com/A-Ricemusic/skybreak/pull/153): [M10](../specs/missions/m10.md), [M11](../specs/missions/m11.md), [M12](../specs/missions/m12.md), [M13](../specs/missions/m13.md), with companion world specs. Unresolved rosters, rank cuts and layout assumptions remain explicit. Missions remain unbuilt, locked and unavailable; no Player verification.
+- Mission and world specs for 10–13 are in review in [PR #153](https://github.com/A-Ricemusic/skybreak/pull/153): [M10](../specs/missions/m10.md), [M11](../specs/missions/m11.md), [M12](../specs/missions/m12.md), [M13](../specs/missions/m13.md), with companion world specs. Unresolved rosters, rank cuts and layout assumptions remain explicit. M10–M13 worlds are in review; mission gameplay remains unbuilt, locked and unavailable; no Player verification.
 
 Before the finale, remap the final story chapter and retire leftover code keyed to the old 27-mission campaign. Mission 18 retains the planned one-on-one Rusk duel (D-031).
 

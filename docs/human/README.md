@@ -1,5 +1,7 @@
 # SKYBREAK redesign dashboard
 
+M12/M13 procedural worlds are in review on `feat/m12-m13-worlds`, stacked on #167 → #166 → #164. Dormant registry only; estimates12.771s/13.253s, full validator exit0 (788 Luau contracts,122 Python tests); offline validation only. No Player/Studio test or mission activation. Decisions D-230–D-234.
+
 M10/M11 worlds are **in review**, dormant on `feat/m10-m11-worlds`, stacked on [#166](https://github.com/A-Ricemusic/skybreak/pull/166) above #164. [M10 composition and complete target table](../specs/worlds/m10-composition.md) · [M11 composition and routes](../specs/worlds/m11-composition.md). No mission unlock, Studio/Player/phone verification, asset export or upload. Estimates **14.732 s / 14.455 s**, reserved descendants **1,422 / 264**; **780 offline Luau contracts and 122 Python tests pass**. PR [#167](https://github.com/A-Ricemusic/skybreak/pull/167): P1 river continuity fixed with generated-water flood-fill and centreline regression; M10 has1.268s estimate headroom. Decisions D-180–D-184.
 
 
@@ -36,8 +38,8 @@ Audio policy update (D-142, owner, 2026-10-30): no further audio uploads; story 
 | 9 | Operation Bunker Shot | 1:56:14–2:14:14 | 18.0 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m09.md), [world](../specs/worlds/m09.md)) | World in review / locked | No | — |
 | 10 | Tango Line | 2:16:13–2:37:51 | 21.6 min | Yes | Written / in review ([#153](https://github.com/A-Ricemusic/skybreak/pull/153); [mission](../specs/missions/m10.md), [world](../specs/worlds/m10.md)) | World in review / dormant | No | — |
 | 11 | Escort | 2:39:46–2:45:27 | 5.7 min | Yes | Written / in review ([#153](https://github.com/A-Ricemusic/skybreak/pull/153); [mission](../specs/missions/m11.md), [world](../specs/worlds/m11.md)) | World in review / dormant | No | — |
-| 12 | Stonehenge Offensive | 2:48:27–3:04:55 | 16.5 min | Yes | Written / in review ([#153](https://github.com/A-Ricemusic/skybreak/pull/153); [mission](../specs/missions/m12.md), [world](../specs/worlds/m12.md)) | Unbuilt / unavailable | No | — |
-| 13 | Safe Return | 3:08:30–3:18:42 | 10.2 min | Yes | Written / in review ([#153](https://github.com/A-Ricemusic/skybreak/pull/153); [mission](../specs/missions/m13.md), [world](../specs/worlds/m13.md)) | Unbuilt / unavailable | No | — |
+| 12 | Stonehenge Offensive | 2:48:27–3:04:55 | 16.5 min | Yes | Written / in review ([#153](https://github.com/A-Ricemusic/skybreak/pull/153); [mission](../specs/missions/m12.md), [world](../specs/worlds/m12.md)) | World in review ([composition](../specs/worlds/m12-composition.md)); mission unavailable | No | — |
+| 13 | Safe Return | 3:08:30–3:18:42 | 10.2 min | Yes | Written / in review ([#153](https://github.com/A-Ricemusic/skybreak/pull/153); [mission](../specs/missions/m13.md), [world](../specs/worlds/m13.md)) | World in review ([composition](../specs/worlds/m13-composition.md)); mission unavailable | No | — |
 | 14 | Breaking Arrows | 3:20:22–3:28:38 | 8.3 min | Yes | Spec written / in review ([PR #154](https://github.com/A-Ricemusic/skybreak/pull/154); [mission](../specs/missions/m14.md), [world](../specs/worlds/m14.md)) | Unbuilt / unavailable | No | — |
 | 15 | Emancipation | 3:32:45–3:47:38 | 14.9 min | Yes | Spec written / in review ([PR #154](https://github.com/A-Ricemusic/skybreak/pull/154); [mission](../specs/missions/m15.md), [world](../specs/worlds/m15.md)) | Unbuilt / unavailable | No | — |
 | 16 | Whiskey Corridor | 3:50:50–4:12:27 | 21.6 min | Yes | Spec written / in review ([PR #154](https://github.com/A-Ricemusic/skybreak/pull/154); [mission](../specs/missions/m16.md), [world](../specs/worlds/m16.md)) | Unbuilt / unavailable | No | — |
