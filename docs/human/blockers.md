@@ -1,6 +1,37 @@
 # Blockers
 
 Last updated: 2026-10-30.
+## M12/M13 world review (2026-10-30), [PR #170](https://github.com/A-Ricemusic/skybreak/pull/170)
+
+- Dormant worlds in review, stacked on #167 head1b33139 above #166/#164, all still open when checked. Rebase main as dependencies merge. No Studio lease acquired; offline-only work needs no owner action.
+- Offline estimates12.770960s/13.253200s pass≤15s headroom gate. Actual load/clear, phone rendering, flight feel and source comparison are unverified. Conservative coarse ravine width and procedural gun/balloon silhouettes require rendered review; no replacement of accepted assets or upload occurs.
+- M12 wreck southeast is authored, not verified compass evidence. Initial3 air/18 ground differs from24 ground/9 air credited kills; the source trigger/roster explanation stays unresolved. Combat actors, animation/destruction, ECM, ammunition/rearm, elite retreat/ejection and mission phases are separate integration work.
+- M13 balloon deployment count beyond32 kills remains unknown. Spatial jammer coverage, gun targeting, friendly survival, phase handoff and five interceptors are absent gameplay; full stratus/local fog readability remains unmeasured. No river/water feature is invented; generated traversable low caps are flood-filled to check connectivity.
+
+## M10/M11 world review (2026-10-30)
+
+- Worlds are in review, dormant; Studio is signed out and this task is offline only. Rendered fidelity, actual load/clear time, Player/phone performance and flight feel remain unverified. No owner action is needed for dormant review.
+- #164 and #166 remain open at branching. This branch starts at #166 head `80b5f712916e04d37ea09bb3538fa1b47384afb6`; rebase onto main after those dependencies merge.
+- M10 reserves the map's 100 ground +24 naval contacts, with an explicitly authored subtype split; it does not recover unreadable source identities or create the 26-air combat roster. Mission integration, artillery shielding, finite ammunition/rearm and 20:00 scoring remain separate.
+- M11 preserves the proposed high route at Y=2,800 and low route at Y=900. Encounter route/arrival validation still caps Y=2,000; mission actors cannot adopt the high route until deliberately extended. The 23,000-ft literal altitude exceeds the hard flight ceiling; vertical compression remains reviewable. Bright overcast is implemented; an altitude-dependent 1,600–2,200-stud cloud transition is exported metadata, not a rendered volumetric layer.
+- Resolved P1 from independent review of PR #167 at6ea0475: generated water had13 disconnected components and dry centreline cells despite passing local hull/sealing checks. Row-sweep water coverage now yields one connected component through all districts and24 ship footprints; centreline checks run every16studs plus the reported(-2302.4,-7168) failure. Coarse grouped ridge heights bring M10 to14.731517s (1.268483s headroom), with a≤15s regression gate. No rendered/runtime measurement is implied (D-184).
+- Resolved offline findings: adjusted river bends to stay outside ground foundations; reduced distant ridge/detail cost to meet the existing ≤16-second estimator cap. These fixes make no claim of measured runtime or visual acceptance.
+
+
+## M08/M09 world review (2026-10-30)
+
+- Worlds are in review, dormant; offline work is complete in this branch. Studio is signed out and this task excludes Studio; visual, Player, phone and actual load/cleanup acceptance remain open. No owner action is needed for this PR.
+- Stacked on PR #164; rebase onto main after it merges. Reuses its CompactWorldSurface and local chunk/yield estimator.
+- M09 uses only the documented 55-contact credited-kill reconstruction; 28 initial contacts, precise subtype totals and phase triggers remain unresolved. M08 has zero combat ground targets; its three broadcast ids are scenery. These gaps block mission activation, not dormant world review (D-170–D-173).
+- Carrier sketch Y=64 is reconciled to actual deck Y=66 at waterline32/keel12. No asset edit/upload. Offline support fixes keep foundations off lower beach cells and trees within sampled terrain cells; rendered appearance remains unverified.
+
+Last updated: 2026-10-29.
+
+## M06/M07 world review (2026-10-30)
+
+- Studio is signed out; this task explicitly permits offline validation only. Both worlds are in review, unselected and unverified in Studio/Player/on phone. Rendered fidelity, navigation and real load/cleanup performance await a later authenticated session. No action from the owner is needed for this PR.
+- Exact per-target positions and M06 subtype totals remain unknown; D-160 records the finite provisional scenery layout. M07 uses the reconstructed 52 credited ground contacts, preserving the unresolved initial 51-ground discrepancy. Do not activate either mission from scenery counts alone.
+- Resolved review findings P1/P3: a local #158 chunk/yield model now gates both worlds at ≤16 s (M06 10.265 s, M07 14.501 s), and 256-stud detail counts are fixed and asserted positive. Distant M06 sea Parts cut water touches to 4,224; their rendered seams/materials and runtime timing remain unverified. Target-count reconciliation remains a mission-data activation step.
 
 ## Open
 

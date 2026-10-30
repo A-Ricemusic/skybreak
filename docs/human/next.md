@@ -1,6 +1,28 @@
 # Next
 
 Last updated: 2026-10-30.
+## M12/M13 worlds — in review [#170](https://github.com/A-Ricemusic/skybreak/pull/170)
+
+1. Review [M12 composition/table](../specs/worlds/m12-composition.md) and [M13 composition/table](../specs/worlds/m13-composition.md). Estimates12.770960s/13.253200s retain3.229040s/2.746800s against16s. Branch stacks on #167 → #166 → #164; rebase main as dependencies merge; do not merge this PR yet.
+2. Render and fly crater ingress/service approaches and the fog ravine/exit, compare against accepted specs, inspect procedural silhouettes and conservative ravine width, and measure build/clear/phone costs before activation.
+3. Integrate M12 seven live guns then elite,24 ground/9 air kills,15:00+10:00, initial3/18/21; resolve initial/final count difference, ECM, finite ammunition/rearm, animated destruction/ejection. Integrate M13 ≥1300 at7:00 expiry then15:00 protected-plane intercept,32 jammers, spatial coverage, visual guns, damageable plane and fighter priorities. No unlock changes here.
+
+## M10/M11 world review and integration
+
+1. Re-review PR [#167](https://github.com/A-Ricemusic/skybreak/pull/167) P1 fix: generated-water connectivity and centreline checks now pass; M10 estimate14.732s with1.268s headroom. Review [M10](../specs/worlds/m10-composition.md) and [M11](../specs/worlds/m11-composition.md), including provisional inventories, full target tables and budgets. Rebase onto main after #164/#166 merge; do not merge this PR as part of this task.
+2. Once Studio is authenticated, compare ingress, river turn/pen mouth and snowy high/low bands against the cited spec views, fly both landing envelopes and both civilian routes, and measure real build/clear/phone performance. Offline checks establish geometry contracts only.
+3. Resolve M10 per-type roster/26-air activation, artillery, ammunition/rearm and 3,000-point/20:00 integration. Extend M11 encounter validation above 2,000 without clipping its 2,800-stud route; implement independent survival/progress for both civilians and the 5:30 protection objective. Review compressed vertical/cloud treatment together before activation.
+
+
+## M08/M09 worlds — in review
+
+Review the [broadcast island](../specs/worlds/m08-composition.md) and [three beaches/carrier](../specs/worlds/m09-composition.md), including full scenery tables. Offline estimates are 4.235 s / 10.474 s (≤16 s). Rebase `feat/m08-m09-worlds` onto main after #164 merges. Later authenticated Studio work must check silhouette, materials, native/distant sea seams, carrier deck/approach, navigation, build/clear costs and phone readability. Resolve M09 subtype/83-contact inventory before activating mission data; preserve M08 7:00+6:00/six bombers/NW ingress and M09 10:00+7:00/six attack jets/carrier rearm. No Studio or gameplay activation in this PR.
+
+## M06/M07 worlds — in review
+
+Review the dormant [M06 harbour](../specs/worlds/m06-composition.md) and [M07 array/canyon](../specs/worlds/m07-composition.md) worlds, including their complete target tables. Chunk/yield estimates: 10.265 s / 14.501 s under the 16 s caps (legacy jobs ×1.5: 6.384 s / 10.716 s); actual load cost is unmeasured. Once Studio is authenticated, inspect silhouette, materials, low canyon flight, waterline props and service approach against the accepted specs, then measure terrain/build/clear on desktop and phone. Resolve M06 subtype totals and M07 51-versus-52 accounting before mission activation. No Studio launch is authorized in this work; no catalog/unlock changes are included.
+
+Last updated: 2026-10-29.
 
 **Story with subtitles (D-142, 2026-10-30).** Roblox rejected the regenerated voiceBank01, and the owner's policy is now no more audio uploads ([blockers](blockers.md)). Merging #159 keeps main's six approved voice banks: 78 story beats keep their exact recordings, and every new or changed line is subtitle-only. #159 also rewrites the 10 riskiest lines. Next: merge #159, then carry its story text into M04/M05 integration. Any investigation of the rejection's cause stays offline, using the [preserved case file](../qa/audio-rejections/2026-10-30-voicebank01.md).
 Audio policy (D-142): continue the story in subtitles beyond existing approved voices; changed lines stay silent. No further audio uploads. Any cause investigation must remain offline using the [preserved case file](../qa/audio-rejections/2026-10-30-voicebank01.md).
@@ -93,7 +115,7 @@ Still to do: check the radio, recorder (chapter 16 with the lid open), board and
 
 ## Later
 
-- Mission and world specs for 10–13 are in review in [PR #153](https://github.com/A-Ricemusic/skybreak/pull/153): [M10](../specs/missions/m10.md), [M11](../specs/missions/m11.md), [M12](../specs/missions/m12.md), [M13](../specs/missions/m13.md), with companion world specs. Unresolved rosters, rank cuts and layout assumptions remain explicit. Missions remain unbuilt, locked and unavailable; no Player verification.
+- Mission and world specs for 10–13 are in review in [PR #153](https://github.com/A-Ricemusic/skybreak/pull/153): [M10](../specs/missions/m10.md), [M11](../specs/missions/m11.md), [M12](../specs/missions/m12.md), [M13](../specs/missions/m13.md), with companion world specs. Unresolved rosters, rank cuts and layout assumptions remain explicit. M10–M13 worlds are in review; mission gameplay remains unbuilt, locked and unavailable; no Player verification.
 
 Story remap #159 is implemented (D-130/D-131): use its [0–18 routing audit](../specs/story/routing-audit.md), retain its story text when integrating M04/M05 gameplay, and keep new dialogue subtitle-only (D-142); the [voice script](../specs/story/voice-script.md) lists which beats are silent. Studio and audible Player verification are pending. Mission 18 retains the one-on-one Rusk duel (D-031).
 
