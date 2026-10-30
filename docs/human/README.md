@@ -56,3 +56,5 @@ PR #145 is merged at `088fbfc` and remains dormant. #142 is merged; approved eli
 Engine batch D2 is implemented but unmerged on a branch stacked on D1 (#165). Naval lifecycle/routes, firing SAMs and anti-ship fit remain data opt-ins with no mission activation or level-status change. See D-190–D-193 and [Next](next.md). No D2 Studio or Player observation is claimed.
 
 D2 review follow-up addresses the orchestrator’s approval-with-nits at `20d21ec`: combined SAM threat budgets, initial route heading validation, allocation-free retired-group checks, anti-ship guidance/refusal clarity and added regression coverage. No level activation or shipped status changes; updated-head Roblox verification remains outstanding.
+
+D2 test-fixture follow-up corrects the missing phase target list reported by the D3 Jest run; build/offline validation pass. No D2 Jest run or totals were obtained. The orchestrator deferred D2 Studio use until D1 (#165) merges and D2 rebases, prioritizing D1 and mission 5 first. No gameplay or level-status change.
