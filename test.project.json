@@ -41,6 +41,11 @@
         "SkybreakTestMode": true
       }
     },
+    "Players": {
+      "$properties": {
+        "CharacterAutoLoads": false
+      }
+    },
     "ServerStorage": {
       "Tests": {
         "$path": "out/tests"

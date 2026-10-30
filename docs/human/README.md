@@ -1,5 +1,6 @@
 # SKYBREAK redesign dashboard
 
+Last updated: 2026-10-29, against main `7d73c44` (mission 3 merged).
 M12/M13 procedural worlds are in review in [PR #170](https://github.com/A-Ricemusic/skybreak/pull/170) on `feat/m12-m13-worlds`, stacked on #167 → #166 → #164. Dormant registry only; estimates12.771s/13.253s, full validator exit0 (788 Luau contracts,122 Python tests); offline validation only. No Player/Studio test or mission activation. Decisions D-230–D-234.
 
 M10/M11 worlds are **in review**, dormant on `feat/m10-m11-worlds`, stacked on [#166](https://github.com/A-Ricemusic/skybreak/pull/166) above #164. [M10 composition and complete target table](../specs/worlds/m10-composition.md) · [M11 composition and routes](../specs/worlds/m11-composition.md). No mission unlock, Studio/Player/phone verification, asset export or upload. Estimates **14.732 s / 14.455 s**, reserved descendants **1,422 / 264**; **780 offline Luau contracts and 122 Python tests pass**. PR [#167](https://github.com/A-Ricemusic/skybreak/pull/167): P1 river continuity fixed with generated-water flood-fill and centreline regression; M10 has1.268s estimate headroom. Decisions D-180–D-184.
@@ -11,15 +12,26 @@ M06/M07 procedural worlds are in review on `feat/m06-m07-worlds`: [harbour compo
 
 Last updated: 2026-10-29, documentation against `main` at `b359c61`; gameplay/publish baseline remains `088fbfc`.
 
-The new 18-mission campaign is live in Roblox Player through the automatic pipeline. **Practice flight, mission 1 and mission 2 are playable; missions 3 to 18 are locked.** The redesign rebuilds missions and worlds to match Ace Combat 04's structure and pacing while keeping the Broken Relay story and original shipped expression. Mission 2 is ready for the owner's beta test; see [Next](next.md).
+The new 18-mission campaign is live in Roblox Player through the automatic pipeline. **Practice flight and missions 1 to 3 are playable; missions 4 to 18 are locked.** The redesign rebuilds missions and worlds to match Ace Combat 04's structure and pacing while keeping the Broken Relay story and original shipped expression. Mission 2 is ready for the owner's beta test; see [Next](next.md).
+
+Targeting (#157): the jet now targets what the nose is on. Auto-acquire and TGT use the same nose-first order (ahead, in range and visible first; required targets favoured at similar bearings; blocked, out-of-range and behind contacts last). TGT snaps to the nose-best, then advances; quick presses keep walking the list. On a phone, tap an enemy target box to select it. Build and offline checks pass; no agent phone or Player check is claimed (see [Blockers](blockers.md) for the Roblox Jest status).
+The new 18-mission campaign is live in Roblox Player through the automatic pipeline. **Practice flight and missions 1–3 are playable; missions 4–18 are locked.** The redesign rebuilds missions and worlds to match Ace Combat 04's structure and pacing while keeping the Broken Relay story and original shipped expression. Mission 2 is ready for the owner's beta test; see [Next](next.md).
+
+**Voice (2026-10-30):** Roblox rejected the regenerated voiceBank01, and there will be no more audio uploads (D-142). The approved live voice is unaffected. New and changed story lines are subtitle-only. #159 rewrites the 10 riskiest lines. See [blockers](blockers.md).
+Last updated: 2026-10-29, against `main` at `7d73c44` (#147), with unmerged M04 fixes on PR #149.
+
+The new 18-mission campaign is live in Roblox Player through the automatic pipeline. **Practice flight and missions 1–3 are playable; missions 4–18 are locked on main.** The redesign rebuilds missions and worlds to match Ace Combat 04's structure and pacing while keeping the Broken Relay story and original shipped expression. Mission 2 is ready for the owner's beta test; see [Next](next.md).
 
 [Per-level status and test checklist](levels.html) · [Play SKYBREAK](https://www.roblox.com/games/112911685457826)
 
 Mission 2 became playable in #143 after its dormant world (#140) and engine batch A (#138). It unlocks after mission 1 and preserves mission 1 score breakdowns through completion, replays and save reloads. The publish workflow returned place version 92. No agent Player test is claimed.
 
-Missions 3–5 are in review: [#147](https://github.com/A-Ricemusic/skybreak/pull/147), [#149](https://github.com/A-Ricemusic/skybreak/pull/149), and [#148](https://github.com/A-Ricemusic/skybreak/pull/148). Their worlds (#139/#144) and engines (#141/#145) are merged but dormant. They remain locked on main. Latest publish: place version **94** at `088fbfc`; this does not activate missions 3–5. See the per-level page for reported Studio evidence, open findings and beta checklists. No agent Player test is claimed.
+The owner's report of the avatar dying in flight (zero health bar top right, red screen flash) is diagnosed and fixed in [PR #156](https://github.com/A-Ricemusic/skybreak/pull/156): the game no longer spawns a Roblox avatar at all and hides the default health GUI (D-086). Verified in Studio across practice, mission 1 and mission 2; not a Player test.
 
-The mission 3 PR (#147) also adds a shared world gate: after any sortie the world is cleared in the background and the next launch waits, queued, until that finishes (D-067). Provisional mission 3 decisions are D-061–D-067 in [Decisions](decisions.md).
+Missions 3–5 are in review: [#147](https://github.com/A-Ricemusic/skybreak/pull/147), [#149](https://github.com/A-Ricemusic/skybreak/pull/149), and [#148](https://github.com/A-Ricemusic/skybreak/pull/148). Their worlds (#139/#144) and engines (#141/#145) are merged but dormant. They remain locked on main. Latest publish: place version **94** at `088fbfc`; this does not activate missions 3–5. See the per-level page for reported Studio evidence, open findings and beta checklists. No agent Player test is claimed.
+Mission 3 merged in [#147](https://github.com/A-Ricemusic/skybreak/pull/147) and is live by pipeline convention; no new Player test is claimed. Missions 4–5 remain in review (#149/#148). The story remap (#159) aligns all 18 chapters and the finale, with future mission text and a recording manifest. New dialogue is subtitle-only (D-142); Studio verification is pending; see [routing audit](../specs/story/routing-audit.md).
+Mission 3 merged as #147 (`7d73c44`) and is live by the owner's pipeline convention, including the shared world gate (D-067). Mission 4 [#149](https://github.com/A-Ricemusic/skybreak/pull/149) and mission 5 [#148](https://github.com/A-Ricemusic/skybreak/pull/148) remain in review and locked on main. M04 now uses that gate and a 6:48.33 transport escape route (D-096/D-097); this revision has no Studio or Player verification. The orchestrator owns the Studio re-check and terrain performance follow-up.
+
 
 Audio policy update (D-142, owner, 2026-10-30): no further audio uploads; story continues in subtitles beyond existing approved voices and changed lines stay silent. The rejected bank is preserved at `evidence/voicebank01-rejected` (`ff4a78b`); [full incident case](../qa/audio-rejections/2026-10-30-voicebank01.md). This documentation adds no gameplay changes or Player verification.
 
@@ -29,8 +41,19 @@ Audio policy update (D-142, owner, 2026-10-30): no further audio uploads; story 
 |---|---|---|---|---|---|---|---|---|
 | 1 | Sitting Duck | 0:06:30–0:11:24 | 4.9 min | Yes | Yes | Yes | Yes | Earlier tuning; current #134 tuning awaits feedback |
 | 2 | Imminent Threat | 0:15:38–0:22:34 | 6.9 min | Yes | Yes | Yes (#143) | Yes | — |
-| 3 | The Northern Eye | 0:26:41–0:34:24 | 7.7 min | Yes | Yes | Yes (#147 open; playable after mission 2 once merged); world #139 and engine #141 merged | No | — |
+| 3 | The Northern Eye | 0:26:41–0:34:24 | 7.7 min | Yes | Yes | Yes (#147 merged); world #139 and engine #141 merged | Yes | — |
 | 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | Yes | In review #149; assets #142, world #144 and engine #145 merged, dormant | No | — |
+| 3 | The Northern Eye | 0:26:41–0:34:24 | 7.7 min | Yes | Yes | Yes (#147 merged); world #139 and engine #141 merged | Yes (pipeline) | — |
+| 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | Yes | In review #149; shared cleanup gate and 6:48.33 escape fixed in branch, Studio re-check pending; load-time fix (D-120: 66→11.7 s terrain in a Studio bench) in a PR stacked on #149; assets #142, world #144 and engine #145 merged, dormant | No | — |
+| 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | Yes | In review #148; load still about 37 s of terrain after D-120 (target 20 s); assets #142, world #144 and engine #145 merged, dormant | No | — |
+| 6 | Invincible Fleet | 1:03:01–1:20:00 | 17.0 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m06.md), [world](../specs/worlds/m06.md)) | Unbuilt / locked | No | — |
+| 7 | Deep Strike | 1:22:13–1:35:49 | 13.6 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m07.md), [world](../specs/worlds/m07.md)) | Unbuilt / locked | No | — |
+| 8 | Shattered Skies | 1:39:16–1:52:39 | 13.4 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m08.md), [world](../specs/worlds/m08.md)) | Unbuilt / locked | No | — |
+| 9 | Operation Bunker Shot | 1:56:14–2:14:14 | 18.0 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m09.md), [world](../specs/worlds/m09.md)) | Unbuilt / locked | No | — |
+| 10 | Tango Line | 2:16:13–2:37:51 | 21.6 min | Yes | Written / in review ([#153](https://github.com/A-Ricemusic/skybreak/pull/153); [mission](../specs/missions/m10.md), [world](../specs/worlds/m10.md)) | Unbuilt / unavailable | No | — |
+| 11 | Escort | 2:39:46–2:45:27 | 5.7 min | Yes | Written / in review ([#153](https://github.com/A-Ricemusic/skybreak/pull/153); [mission](../specs/missions/m11.md), [world](../specs/worlds/m11.md)) | Unbuilt / unavailable | No | — |
+| 12 | Stonehenge Offensive | 2:48:27–3:04:55 | 16.5 min | Yes | Written / in review ([#153](https://github.com/A-Ricemusic/skybreak/pull/153); [mission](../specs/missions/m12.md), [world](../specs/worlds/m12.md)) | Unbuilt / unavailable | No | — |
+| 13 | Safe Return | 3:08:30–3:18:42 | 10.2 min | Yes | Written / in review ([#153](https://github.com/A-Ricemusic/skybreak/pull/153); [mission](../specs/missions/m13.md), [world](../specs/worlds/m13.md)) | Unbuilt / unavailable | No | — |
 | 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | Yes | In review #148; assets #142, world #144 and engine #145 merged, dormant | No | — |
 | 6 | Invincible Fleet | 1:03:01–1:20:00 | 17.0 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m06.md), [world](../specs/worlds/m06.md)) | World in review / locked | No | — |
 | 7 | Deep Strike | 1:22:13–1:35:49 | 13.6 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m07.md), [world](../specs/worlds/m07.md)) | World in review / locked | No | — |

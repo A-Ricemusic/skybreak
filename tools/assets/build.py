@@ -14,11 +14,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import skyasset  # noqa: E402
 import aircraft  # noqa: E402
 import aircraft_v2  # noqa: E402
+import cinematic_assets  # noqa: E402
 import m01_assets  # noqa: E402
 import m04_m05_assets  # noqa: E402
 import world  # noqa: E402
 
-BUILDERS = {**aircraft.BUILDERS, **aircraft_v2.BUILDERS, **world.BUILDERS, **m01_assets.BUILDERS, **m04_m05_assets.BUILDERS}
+BUILDERS = {**aircraft.BUILDERS, **aircraft_v2.BUILDERS, **world.BUILDERS, **m01_assets.BUILDERS, **m04_m05_assets.BUILDERS, **cinematic_assets.BUILDERS}
 
 
 def main() -> None:

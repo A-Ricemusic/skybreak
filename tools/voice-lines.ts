@@ -16,6 +16,7 @@ const casting=await Bun.file(resolve(root,"assets/voice/casting.json")).json();
 const generator=String.raw`
 local C=require("./MissionCatalog")
 local S=require("./RelayStory")
+local M=require("./StoryMissionText")
 local A=require("./AceRules").AceRules
 local D=require("./Difficulty").Difficulty
 local function emit(id,kind,speaker,text) print(id.."\t"..kind.."\t"..speaker.."\t"..text) end
@@ -25,9 +26,14 @@ for _,ch in S.STORY do
 		emit("story.c"..two(ch.id)..".b"..two(b-1),"story",S.speakerStyle(beat.speaker).name,beat.text)
 	end
 end
+-- Planned radio is stable story-owned dialogue; mission builders wire these exact strings.
+for id=4,18 do
+ for i,text in M.MISSION_STORY_TEXT[id].radio do emit("radio.m"..two(id)..".story."..i,"radio","",text) end
+end
 for _,bp in C.MISSIONS do
 	local m="radio.m"..two(bp.id)
 	local function phase(p,tag)
+		for i,c in (p.landing and p.landing.radio) or {} do emit(tag..".landing"..i,"radio","",c.text) end
 		if p.beat then emit(tag..".beat","radio","",p.beat) end
 		for i,c in p.chatter or {} do emit(tag..".chatter"..i,"radio","",c.text) end
 		for i,g in p.groupCalls or {} do emit(tag..".group"..i,"radio","",g) end
@@ -83,7 +89,7 @@ for(const row of stdout.split("\n")){
 	let speaker=rawSpeaker,body=text,tape=false;
 	if(kind==="radio"){
 		// "SERA: ...", "TEAL (tape): ...". Unprefixed catalog beats are Varda Control (Sera).
-		const match=/^([A-Z][A-Z ]*[A-Z])( \(tape\))?: (.*)$/.exec(text);
+		const match=/^([A-Z][A-Z0-9 ]*[A-Z0-9])( \(tape\))?: (.*)$/.exec(text);
 		if(match){speaker=match[1];tape=match[2]!==undefined;body=match[3];}
 		else speaker=casting.unprefixedRadio;
 	}

@@ -2,7 +2,8 @@ import { Workspace } from "@rbxts/services";
 import type { EnvironmentSpec } from "../shared/EnvironmentPresets";
 import type { PartSpec, PropSpec, TerrainOp } from "../shared/WorldPlan";
 import { UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
-import { WORLD_FILL_CHUNK } from "../shared/SealedWorldSurface";
+import { WORLD_FILL_CHUNK, WORLD_TERRAIN_BUDGET } from "../shared/SealedWorldSurface";
+import { clearTerrainIfDirty } from "./TerrainState";
 import { Scenery } from "./Scenery";
 import { material, TerrainWriter } from "./TerrainWriter";
 import { WorldAssets, type WorldAssetName } from "./WorldAssets";
@@ -17,7 +18,17 @@ function available(name: string): WorldAssetName | undefined {
  const key = name as WorldAssetName;
  return UploadedAssetSpecs[key] !== undefined ? key : undefined;
 }
-export function buildComposition(parent: Instance, environment: EnvironmentSpec, makePlan: (checkpoint: () => void) => Composition, descendantLimit: number, cloudFeet: number, terrainBudget = 0.008): { groundTargets: Model[] } {
+/**
+ * The M04/M05 world clear, run by the world gate in its own thread, for a finished or a partly built world.
+ * Measured in Studio Play: Air-filling M04's shell in bounded jobs took 14 s and the native clear that still had
+ * to follow took 8 s more (an Air-filled extent stays allocated), so one native Terrain:Clear() is the cheapest
+ * correct clear; the floorless shell (SealedWorldSurface) keeps it about 8-12 s. A native call cannot stop
+ * part-way, so `cancelled` only skips a clear that has not started.
+ */
+export function compositionClear(cancelled: () => boolean): void {
+ if (!cancelled()) clearTerrainIfDirty();
+}
+export function buildComposition(parent: Instance, environment: EnvironmentSpec, makePlan: (checkpoint: () => void) => Composition, descendantLimit: number, cloudFeet: number, terrainBudget = WORLD_TERRAIN_BUDGET): { groundTargets: Model[] } {
  const start = os.clock(); let slice = start, longest = 0;
  parent.SetAttribute("WorldBuildPhase", "plan");
  const plan = makePlan(() => { const dt = os.clock() - slice; longest = math.max(longest, dt); if (dt >= 0.004) { task.wait(); slice = os.clock(); } });
@@ -64,7 +75,8 @@ export function buildComposition(parent: Instance, environment: EnvironmentSpec,
     standIn("Platform derrick stand-in", new Vector3(24, 120, 24), new Vector3(p.x + 50, 180, p.z));
    } else standIn(`${p.asset} stand-in`, size, new Vector3(p.x, p.y + size.Y / 2 - UploadedAssetSpecs[p.asset].groundOffset * p.scale, p.z));
   }
-  if (terrainBudget === 0.008 || pi % 8 === 7) task.wait();
+   // Eight placements per frame, as M02 does: one frame per prop cost M04's 120 pines two seconds.
+   if (pi % 8 === 7) task.wait();
  }
  for (const t of plan.targets) {
   const name = candidate(t); if (name === undefined && t.type !== "submarine") continue;
