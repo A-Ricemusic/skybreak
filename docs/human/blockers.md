@@ -1,5 +1,7 @@
 # Blockers
 
+Owner tuning validation (2026-10-30): shared Studio initially belonged to another checkout’s Jest run; left untouched. This task waits for five minutes of empty process checks before its own Jest launch. No Player or phone balance verification is claimed. Final automated validation results will be recorded in the PR.
+
 Last updated: 2026-10-30.
 ## M12/M13 world review (2026-10-30), [PR #170](https://github.com/A-Ricemusic/skybreak/pull/170)
 

@@ -1,5 +1,17 @@
 # Next
 
+## Owner difficulty and allied-flight tuning — unmerged (D-220/D-221, 2026-10-30)
+
+M01 keeps six required bombers, the same route/240-second escape and 10:00 clock. The T+120/halfway rear reinforcement grows from two to six: twelve optional raiders total, plus three escorts and the ace. The opening six-raider screen is unchanged. Normal maximum is 1,740; S/A/B/C = 1,560/1,200/600/500. S requires the ace plus substantial optional combat.
+
+M02 keeps eleven required parked bombers, all existing ground scenery/targets and the 15:00 clock. Two extra head-on fighters queue at T+75; two more queue after eight bomber kills. Twelve aircraft total including the ace; Normal maximum 2,850; S/A/B/C = 2,500/1,990/1,620/1,320. M02 adopts M01's 80% player-priority policy and Easy-safe tail-defence rules. Both missions retain the seven-fighter concurrent budget; queued fighters can remain unspawned if the player finishes objectives quickly.
+
+All missions using the shared allied flight now default to **one combined allied kill per sortie**, with a mission-tunable nonnegative integer `allies.killBudget` (zero disables combat). Required targets remain forbidden even with legacy opt-in flags. Allies fire at most one missile at a time, at eight-second group spacing, 20-second individual reload, 1,600-stud acquisition range and 35% damaging-shot chance at 30 damage. Impact and kill admission both enforce the budget; after spending it, surviving wingmen keep flying formation and avoiding terrain. No M03–M18 mission data or story/radio lines changed. M05 on main is dormant; its future allied flight inherits this default.
+
+Owner test after merge: fly M01/M02 on Easy and Normal; confirm both objectives remain achievable, the new pairs/rear wave attack the player, no more than seven hostile fighters coexist, and S takes optional combat. In M01–M04 (and M05 when integrated), watch the whole group: at most one kill per sortie, no required-target kills, continuing formation/radio and visible missiles before budget exhaustion. Retry to confirm the budget resets; check phone frame rate. These are automated contracts and proposed tuning, not a claimed Player playtest.
+
+
+
 Last updated: 2026-10-30.
 ## M12/M13 worlds — in review [#170](https://github.com/A-Ricemusic/skybreak/pull/170)
 
