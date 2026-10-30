@@ -14,6 +14,7 @@ import { MissionAssets } from "../shared/MissionAssets";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { RelayWorld } from "./RelayWorld";
 import { Scenery } from "./Scenery";
+import { beginTerrainWrite, clearTerrainIfDirty } from "./TerrainState";
 import { TerrainWriter } from "./TerrainWriter";
 import { WorldAssets, type WorldAssetName } from "./WorldAssets";
 import { WorldBuilder } from "./WorldBuilder";
@@ -223,26 +224,26 @@ export const MissionWorld = {
 	Build(missionId: number, parent: Instance): { groundTargets: Model[]; targetVisuals?: Map<string, Model> } {
 		assert(MissionCatalog.Available(missionId), "Mission world is in development");
 		if (MissionCatalog.WorldKey(missionId) === M01_WORLD_KEY) {
-			Workspace.FindFirstChild("World")?.Destroy(); Workspace.Terrain.Clear();
+			Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();
 			return M01World.Build(parent);
 		}
 		if (MissionCatalog.WorldKey(missionId) === M02_WORLD_KEY) {
-			Workspace.FindFirstChild("World")?.Destroy(); Workspace.Terrain.Clear();
+			Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();
 			return M02World.Build(parent);
 		}
 		if (MissionCatalog.WorldKey(missionId) === M03_WORLD_KEY) {
-			Workspace.FindFirstChild("World")?.Destroy(); Workspace.Terrain.Clear();
+			Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();
 			return M03World.Build(parent);
 		}
 		if (MissionCatalog.WorldKey(missionId) === M04_WORLD_KEY || MissionCatalog.WorldKey(missionId) === M05_WORLD_KEY) {
-			Workspace.FindFirstChild("World")?.Destroy(); Workspace.Terrain.Clear();
+			Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();
 			return MissionCatalog.WorldKey(missionId) === M04_WORLD_KEY ? M04World.Build(parent) : M05World.Build(parent);
 		}
 		const late = WorldAssets.Preload(UPLOADS[missionId === 0 ? 1 : 2]);
 		if (late.size() > 0) warn(`[MissionWorld] M${missionId}: ${late.join(", ")} still loading after the preload deadline; placing fallbacks`);
 		parent.SetAttribute("WorldPreloadLate", late.size());
 		Workspace.FindFirstChild("World")?.Destroy();
-		Workspace.Terrain.Clear();
+		beginTerrainWrite();
 		WorldEnvironment.Apply(MissionCatalog.Get(missionId).environment);
 		const scenery = new Instance("Folder");
 		scenery.Name = missionId === 0 ? "FirstFlightWorld" : "IronCoastWorld";
@@ -252,7 +253,7 @@ export const MissionWorld = {
 		return { groundTargets };
 	},
 	RestoreMenu(): void {
-		Workspace.Terrain.Clear();
+		clearTerrainIfDirty();
 		WorldEnvironment.Clear();
 		WorldBuilder.Build();
 	},

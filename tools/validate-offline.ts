@@ -20,6 +20,7 @@ async function run(command: string[], summary?: RegExp, minimum = 0) {
 
 await run(["bun", "tools/check-no-react-agent-testing.ts"], /^NO_REACT_AGENT_TESTING passed tracked=(\d+)$/gm, 1);
 await run(["bun", "run", "build:place"]);
+await run(["bun", "tools/test-voice-disclosure-ui.ts"]);
 await run(["bun", "tools/test-m03-builder-contract.ts"]);
 await run(["bun", "tools/test-relay-offline.ts"], /^OFFLINE_LUAU_RESULT passed=(\d+) failed=0$/gm, 538);
 await run(["bun", "tools/test-mission-catalog.ts"], /^MISSION_CATALOG_SNAPSHOT passed=(\d+) failed=0/gm, 19);

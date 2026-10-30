@@ -1,4 +1,5 @@
-import React, { useMemo } from "@rbxts/react";
+import React, { useEffect, useMemo, useRef } from "@rbxts/react";
+import { TweenService } from "@rbxts/services";
 import { hullFraction, hullTone, type HudTone, type StatusCell } from "../shared/HudInstruments";
 import type { HudMetrics, Rectangle, StatusPanelLayout } from "../shared/UILayout";
 import { HUD, HUD_FONT, HUD_FONT_BOLD } from "./Theme";
@@ -181,6 +182,31 @@ export function WarningBox({ rectangle, text, color, metrics, textRef }: { recta
 			>
 				<uitextsizeconstraint MaxTextSize={metrics.text + 2} MinTextSize={metrics.minText} />
 				<uipadding PaddingLeft={new UDim(0, 4)} PaddingRight={new UDim(0, 4)} />
+			</textlabel>
+		</frame>
+	);
+}
+
+/** Centred mission banner (MISSION UPDATE, MISSION ACCOMPLISHED) in the warning box's frame, font and stroke; `blink` pulses its text. */
+export function HudBanner({ name, text, color, stroke, metrics, blink = false, y = 0.2 }: { name: string; text: string; color: Color3; stroke?: Color3; metrics: HudMetrics; blink?: boolean; y?: number }) {
+	const label = useRef<TextLabel>();
+	useEffect(() => {
+		const current = label.current;
+		if (!blink || !current) return;
+		current.TextTransparency = 0;
+		const pulse = TweenService.Create(current, new TweenInfo(0.35, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut, -1, true), { TextTransparency: 0.85 });
+		pulse.Play();
+		return () => { pulse.Cancel(); current.TextTransparency = 0; };
+	}, [blink]);
+	const height = metrics.row * 2;
+	return (
+		<frame key={name} BackgroundColor3={HUD.Shadow} BackgroundTransparency={0.6} BorderSizePixel={0} AnchorPoint={new Vector2(0.5, 0)}
+			Position={new UDim2(0.5, 0, y, 0)} Size={UDim2.fromOffset(math.max(200, height * 7), height)}>
+			<uistroke ApplyStrokeMode={Enum.ApplyStrokeMode.Border} Color={stroke ?? color} Thickness={LINE} />
+			<textlabel ref={label} key="BannerText" BackgroundTransparency={1} FontFace={HUD_FONT_BOLD} Size={UDim2.fromScale(1, 1)} Text={text}
+				TextColor3={color} TextScaled={true} TextStrokeColor3={HUD.Shadow} TextStrokeTransparency={0.4}>
+				<uitextsizeconstraint MaxTextSize={metrics.text + 8} MinTextSize={metrics.minText} />
+				<uipadding PaddingLeft={new UDim(0, 6)} PaddingRight={new UDim(0, 6)} />
 			</textlabel>
 		</frame>
 	);

@@ -1,3 +1,4 @@
+import { VoiceDisclosureNotice } from "./VoiceDisclosureNotice";
 import { canLaunchMission, highestUnlocked } from "../shared/CampaignProgress";
 import { isMissionReason } from "../shared/OutcomeReason";
 import { DeletionObservation } from "../shared/DeletionObservation";
@@ -202,10 +203,12 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		else if (screenRef.current === "slots") changeScreen("title");
 		else if (screenRef.current === "briefing") changeScreen("slots");
 	}, [changeScreen]);
-	const showToast = useCallback((message: string, isError: boolean) => {
+	/** `sticky` keeps the toast until another toast or the Loading screen replaces it (a queued launch). */
+	const showToast = useCallback((message: string, isError: boolean, sticky = false) => {
 		if (!mountedRef.current) return;
 		const serial = ++toastRef.current;
 		setToast({ message, isError });
+		if (sticky) return;
 		task.delay(4, () => {
 			if (mountedRef.current && toastRef.current === serial) setToast(undefined);
 		});
@@ -550,6 +553,11 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		const onMissionState = (raw: unknown, held = false): void => {
 			if (!mountedRef.current || !typeIs(raw, "table")) return;
 			const payload = raw as MissionMessage;
+			if (payload.kind === "Queued") {
+				// The last sortie's world is still being cleared; the launch request stays open and proceeds by itself.
+				showToast("Clearing the last sortie. Your launch is queued...", false, true);
+				return;
+			}
 			if (payload.kind === "Loading") {
 				const loading = payload as MissionLoading;
 				const slot = math.clamp(math.floor(finite(loading.slot, selectedSlotRef.current)), 1, 4);
@@ -825,6 +833,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			<screengui key="SkybreakUI" DisplayOrder={20} IgnoreGuiInset={false} ResetOnSpawn={false} ScreenInsets={Enum.ScreenInsets.CoreUISafeInsets} ZIndexBehavior={Enum.ZIndexBehavior.Sibling}>
 				<frame ref={rootFrameRef} key="Root" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Change={rootChange}>
 					{screen === "cinematic" && <RelayCinematic id={cinematicId} viewport={viewport} onFinish={()=>{const continueStory=cinematicNext.current;changeScreen(cinematicId===MISSION_COUNT ? "outcome" : "briefing");continueStory();}} onCancel={()=>changeScreen(cinematicId===MISSION_COUNT ? "outcome" : "briefing")}/>}
+					<VoiceDisclosureNotice />
 					<TitleScreen visible={screen === "title"} menu={menu} onCampaign={openCampaign} onSettings={openSettings} />
 					<CampaignScreen visible={screen === "slots"} menu={menu} slots={slots} busy={busy} persistence={persistence} onBack={goBack} onSlot={chooseSlot} confirmSlot={confirmSlot} onAskDelete={askDelete} onCancelDelete={cancelDelete} onDeleteSlot={deleteSlot} />
 					<BriefingScreen visible={screen === "briefing"} menu={menu} selectedSlot={selectedSlot} selectedMission={selectedMission} slot={selectedSave} busy={busy} special={selectedSpecial} difficulty={selectedDifficulty} onBack={goBack} onLaunch={startMission} onMission={chooseMission} onSpecial={chooseSpecial} onDifficulty={chooseDifficulty} />

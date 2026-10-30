@@ -6,4 +6,4 @@ export const M03_AIRSPACE: MissionAirspacePolicy = {
 };
 
 /** Planned work caps, independent of the mission airspace policy. */
-export const M03_BUILD_LIMITS = { voxelWrites: 208e6, jobs: 31000, parts: 118, descendants: 134, estimatedSeconds: 20 };
+export const M03_BUILD_LIMITS = { voxelWrites: 208e6, jobs: 31000, parts: 132, descendants: 148, estimatedSeconds: 20 };

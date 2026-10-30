@@ -29,7 +29,8 @@ export type MissionRegion =
 	| "plateau_relay"
 	| "coastal_city"
 	| "coastal_harbor"
-	| "ocean_platform";
+	| "ocean_platform"
+	| "snow_mountains";
 
 export type GroundAsset = "radar" | "warehouse" | "comms_relay" | "grain_silo";
 
@@ -253,6 +254,7 @@ export const REGION_NAMES: { readonly [region: string]: string } = {
 	coastal_city: "COASTAL CITY",
 	coastal_harbor: "COASTAL HARBOR",
 	ocean_platform: "OCEAN PLATFORM",
+	snow_mountains: "SNOWY MOUNTAINS",
 };
 
 /** Time-of-day or weather word of an environment preset: "harbor_sunset" -> "SUNSET". */
