@@ -1,5 +1,6 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { buildM03Plan, M03, M03_ENVIRONMENT, M03_FILL_CHUNK, m03Counts, m03Detailed, m03Ground, m03Height, m03Material } from "../shared/M03WorldPlan";
+import { buildM03Plan, M03, M03_ENVIRONMENT, M03_FILL_CHUNK, M03_RUNWAY_TOP, m03Counts, m03Detailed, m03Ground, m03Height, m03Material } from "../shared/M03WorldPlan";
+import type { TerrainOp } from "../shared/WorldPlan";
 import { M03_AIRSPACE, M03_BUILD_LIMITS as BUILD_BUDGET } from "../shared/M03Limits";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { FlightMath } from "../shared/FlightMath";
@@ -9,10 +10,11 @@ import { terrainJobs } from "../shared/TerrainSchedule";
 import { terrainTop } from "../shared/WorldPlan";
 import { weatherPlan, phoneClouds } from "../shared/WeatherRules";
 
-describe("Dormant M03 snowy mountain composition", () => {
+describe("M03 snowy mountain composition", () => {
 	const p = buildM03Plan();
-	it("remains unselected and deterministic with cooperative planning", () => {
-		for (const bp of MissionCatalog.All()) expect(MissionCatalog.WorldKey(bp.id)).never.toBe(p.key);
+	it("is selected by mission 3 alone and deterministic with cooperative planning", () => {
+		for (const bp of MissionCatalog.All()) if (bp.id !== 3) expect(MissionCatalog.WorldKey(bp.id)).never.toBe(p.key);
+		expect(MissionCatalog.WorldKey(3)).toBe(p.key);
 		let checkpoints = 0;
 		expect(buildM03Plan(303, () => { checkpoints++; })).toEqual(p);
 		expect(checkpoints).toBeGreaterThan(10000);
@@ -102,26 +104,51 @@ describe("Dormant M03 snowy mountain composition", () => {
 			expect(math.min(o.sx, o.sy, o.sz)).toBeLessThanOrEqual(8);
 			for (const v of [o.x - o.sx / 2, o.z - o.sz / 2, o.y - o.sy / 2, o.sx, o.sy, o.sz]) expect(v % 4).toBe(0);
 		}
-		for (let i = 0; i < caps.size(); i += 97) {
-			const c = caps[i], top = c.y + 4;
+		// Exhaustive: the written cap heights on a 64-stud column grid (outside the footprint is open air down to Y=0).
+		const columns = (2 * M03.halfX) / 64;
+		const grid: number[] = [];
+		for (const c of caps) {
+			const top = c.y + 4;
 			expect(m03Ground(c.x, c.z)).toBe(top);
-			for (const axis of ["x", "z"]) for (const sign of [-1, 1]) {
-				const edge = axis === "x" ? c.x + sign * c.sx / 2 : c.z + sign * c.sz / 2;
-				const along = axis === "x" ? c.z : c.x;
-				const nx = axis === "x" ? edge + sign * 32 : along;
-				const nz = axis === "z" ? edge + sign * 32 : along;
-				const neighbor = math.abs(nx) >= M03.halfX || math.abs(nz) >= M03.halfZ ? 0 : m03Ground(nx, nz);
-				if (neighbor === top) continue;
-				// The tall side owns the four-stud wall, all the way down to
-				// the lower cap (or Y=0 at the outside perimeter).
-				const wallAt = edge + (top > neighbor ? -sign * 2 : sign * 2);
-				const wx = axis === "x" ? wallAt : along, wz = axis === "z" ? wallAt : along;
-				const walls = p.ops.filter((o) => o.material === "Rock" && math.min(o.sx, o.sz) === 4
-					&& math.abs(wx - o.x) <= o.sx / 2 && math.abs(wz - o.z) <= o.sz / 2
-					&& o.y - o.sy / 2 <= math.min(top, neighbor) && o.y + o.sy / 2 >= math.max(top, neighbor));
-				expect(walls.size()).toBeGreaterThan(0);
+			for (let gx = c.x - c.sx / 2; gx < c.x + c.sx / 2; gx += 64) for (let gz = c.z - c.sz / 2; gz < c.z + c.sz / 2; gz += 64) {
+				const index = ((gx + M03.halfX) / 64) * columns + (gz + M03.halfZ) / 64;
+				expect(grid[index]).toBe(undefined);
+				grid[index] = top;
 			}
 		}
+		const height = (gx: number, gz: number) => math.abs(gx + 32) >= M03.halfX || math.abs(gz + 32) >= M03.halfZ ? 0
+			: grid[((gx + M03.halfX) / 64) * columns + (gz + M03.halfZ) / 64];
+		// Index every four-stud rock curtain by the line it stands on.
+		const walls = new Map<string, TerrainOp[]>();
+		for (const o of p.ops) if (o.material === "Rock" && o.sy !== 4 && math.min(o.sx, o.sz) === 4) {
+			const key = o.sx === 4 ? `x${o.x}` : `z${o.z}`;
+			const list = walls.get(key) ?? []; list.push(o); walls.set(key, list);
+		}
+		let checked = 0, closed = 0;
+		for (const c of caps) {
+			const top = c.y + 4, x0 = c.x - c.sx / 2, z0 = c.z - c.sz / 2;
+			for (const axis of ["x", "z"]) for (const sign of [-1, 1]) {
+				const edge = axis === "x" ? c.x + sign * c.sx / 2 : c.z + sign * c.sz / 2;
+				const first = axis === "x" ? z0 : x0, length = axis === "x" ? c.sz : c.sx;
+				// Every 64-stud column along the whole edge, not a sample.
+				for (let v = first; v < first + length; v += 64) {
+					checked++;
+					const neighbor = axis === "x" ? height(sign > 0 ? edge : edge - 64, v) : height(v, sign > 0 ? edge : edge - 64);
+					if (neighbor === top) continue;
+					// The tall side owns the four-stud wall, all the way down to the lower cap (or Y=0 outside).
+					const wallAt = edge + (top > neighbor ? -sign * 2 : sign * 2);
+					const lo = math.min(top, neighbor), hi = math.max(top, neighbor);
+					const covering = (walls.get(`${axis}${wallAt}`) ?? []).filter((o) => {
+						const from = axis === "x" ? o.z - o.sz / 2 : o.x - o.sx / 2, to = axis === "x" ? o.z + o.sz / 2 : o.x + o.sx / 2;
+						return from <= v && to >= v + 64 && o.y - o.sy / 2 <= lo && o.y + o.sy / 2 >= hi;
+					});
+					expect(covering.size()).toBeGreaterThan(0);
+					closed++;
+				}
+			}
+		}
+		print(`M03_SHELL_COVERAGE columns=${checked} height_steps=${closed} caps=${caps.size()}`);
+		expect(closed).toBeGreaterThan(1000);
 	});
 	it("seals the entire hard airspace with one continuous bottom floor", () => {
 		expect(M03.halfX).toBeGreaterThan(M03_AIRSPACE.hardHalfWidth);
@@ -130,6 +157,10 @@ describe("Dormant M03 snowy mountain composition", () => {
 		expect(floor.size()).toBe(1);
 		expect(floor[0].sx).toBe(2 * M03.halfX);
 		expect(floor[0].sz).toBe(2 * M03.halfZ);
+		// A solid, unrotated rock block: no air pocket, no wedge, no gap at the corners.
+		expect(floor[0].material).toBe("Rock");
+		expect(floor[0].shape).toBe("block");
+		expect(floor[0].yaw).toBe(0);
 	});
 	it("uses unique mission ids and supports the entire non-overlapping target footprint", () => {
 		const ids = new Set<string>();
@@ -156,7 +187,8 @@ describe("Dormant M03 snowy mountain composition", () => {
 		expect(strips[0].z + strips[0].sz / 2).toBe(strips[1].z - strips[1].sz / 2);
 		expect(strips[1].z + strips[1].sz / 2).toBe(r.z + r.length / 2);
 		for (const q of strips) {
-			expect(q.sx).toBe(128); expect(q.y + q.sy / 2).toBe(84);
+			// D-064: an eight-stud slab from the lowland (80) to 88, like mission 2's raised pavement (D-056).
+			expect(q.sx).toBe(128); expect(q.y + q.sy / 2).toBe(M03_RUNWAY_TOP); expect(q.sy).toBe(8);
 			for (let z = q.z - q.sz / 2; z <= q.z + q.sz / 2; z += 32)
 				for (let x = q.x - q.sx / 2; x <= q.x + q.sx / 2; x += 16)
 					expect(m03Ground(x, z)).toBeLessThanOrEqual(q.y - q.sy / 2);
@@ -166,7 +198,7 @@ describe("Dormant M03 snowy mountain composition", () => {
 		const r = M03.landing, threshold = r.z + r.length / 2;
 		// 96-stud-wide corridor, 8-stud depth below the aircraft; stops at hard airspace.
 		for (let z = threshold + 32; z <= M03_AIRSPACE.hardHalfWidth; z += 16) {
-			const bottom = 84 + 12 + (z - threshold) * math.tan(math.rad(3)) - 8;
+			const bottom = M03_RUNWAY_TOP + 12 + (z - threshold) * math.tan(math.rad(3)) - 8;
 			for (let x = r.x - 48; x <= r.x + 48; x += 16) {
 				expect(m03Ground(x, z)).toBeLessThan(bottom);
 				for (const q of p.parts) if (math.abs(x - q.x) <= q.sx / 2 + 8 && math.abs(z - q.z) <= q.sz / 2 + 8)

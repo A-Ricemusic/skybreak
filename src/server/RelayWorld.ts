@@ -1,3 +1,4 @@
+import { beginTerrainWrite } from "./TerrainState";
 import { Workspace } from "@rbxts/services";
 import type { Rgb } from "../shared/EnvironmentPresets";
 import { MissionAssets } from "../shared/MissionAssets";
@@ -94,7 +95,7 @@ export const RelayWorld = {
 		for (const asset of unique) assets.push(asset);
 		WorldAssets.Start(assets);
 		Workspace.FindFirstChild("World")?.Destroy();
-		Workspace.Terrain.Clear();
+		beginTerrainWrite();
 		WorldEnvironment.Apply(bp.environment);
 		const scene = new Instance("Folder");
 		scene.Name = plan.name;

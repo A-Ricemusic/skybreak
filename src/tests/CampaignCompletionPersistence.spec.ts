@@ -70,12 +70,26 @@ describe("Campaign completion persistence (offline and Roblox Jest)", () => {
 		expect(finish(c, 2, undefined, notify)).toBe(false);
 		expect(finish(c, 3, undefined, notify)).toBe(false);
 		expect(c.getSlots()[0]).toEqual(before);
+		// Mission 1 opens mission 2 only: a mission 3 result is still forged.
 		finish(c, 1, breakdown());
-		finish(c, 2);
 		const unlocked = c.getSlots()[0];
 		expect(finish(c, 3, undefined, notify)).toBe(false);
 		expect(c.getSlots()[0]).toEqual(unlocked);
 		expect(notifications).toBe(0);
 		expect(roundTrip(c).missions?.[3]).toBeUndefined();
+	});
+
+	it("accepts mission 3 after mission 2 and keeps both earlier records", () => {
+		const c = fresh();
+		finish(c, 1, breakdown());
+		finish(c, 2);
+		const earlier = { ...c.getSlots()[0].missions! };
+		let kind: string | undefined;
+		expect(finish(c, 3, undefined, (message) => { kind = message.kind; })).toBe(true);
+		expect(kind).toBe("Completed");
+		expect(c.getSlots()[0].missions![3].completed).toBe(true);
+		expect(c.getSlots()[0].missions![1]).toEqual(earlier[1]);
+		expect(c.getSlots()[0].missions![2]).toEqual(earlier[2]);
+		expect(roundTrip(c).missions![3].completed).toBe(true);
 	});
 });
