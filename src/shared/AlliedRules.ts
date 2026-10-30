@@ -1,3 +1,4 @@
+import type { DifficultyKind } from "./Difficulty";
 import type { MissionAllies, MissionPressure } from "./MissionPolicy";
 
 /** Pure allegiance, credit and fire policy shared by simulation and offline specs. */
@@ -6,13 +7,21 @@ export const AlliedRules = {
 	 * Nearby/tailing players and incoming player fire override the ally slot. */
 	PrioritisesPlayer(policy: MissionPressure | undefined, serial: number, elapsed: number, distance: number, tailDot: number, threatened: boolean): boolean {
 		if (!policy) return false;
-		return distance < 700 || (distance < 1500 && tailDot < -0.6) || threatened
+		return distance < 700 || AlliedRules.TailThreat(distance, tailDot) || threatened
 			|| ((serial + math.floor(elapsed / 8)) % 5) / 5 < policy.playerPriority;
 	},
 	ApproachDegrees(policy: MissionPressure | undefined, role: string, behind: boolean, roll: number): number {
 		return behind ? 150 + roll * 20 : policy && role === "raider" ? 10 + roll * (policy.forwardConeDegrees - 10) : 60 + roll * 15;
 	},
-	TailThreat(distance: number, tailDot: number): boolean { return distance < 1500 && tailDot < -0.6; },
+	TailThreat(distance: number, tailDot: number, graceRemaining = 0): boolean {
+		return graceRemaining <= 0 && distance < 1500 && tailDot < -0.6;
+	},
+	PressureFlare(policy: MissionPressure | undefined, friendly: boolean, role: string, difficulty: DifficultyKind): boolean {
+		return !friendly && policy?.tailDefence === true && difficulty !== "easy" && (role === "raider" || role === "escort");
+	},
+	ForcePressureBreak(policy: MissionPressure | undefined, difficulty: DifficultyKind, tailing: boolean, threatened: boolean): boolean {
+		return policy?.tailDefence === true && (tailing || difficulty !== "easy" && threatened);
+	},
 	/** Acquire a wingman only with a clear distance advantage; retain it until the player is closer. */
 	HostileTargetsWingman(kind: string, role: string | undefined, playerDistance: number, wingmanDistance: number, retaining: boolean): boolean {
 		if (kind === "ace" || role === "courier") return false;

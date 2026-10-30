@@ -613,8 +613,8 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		if (!session.active || session.folder.Parent === undefined) { model.Destroy(); return; }
 		// The replicated model is hidden on the client behind a smoothed local clone; only the clone draws trails.
 		JetFactory.SetTrails(model, false);
-		// Required waves arrive 2600-3200 studs out and 60-75 degrees off the nose: an approach, then a turn
-		// into the merge, and nothing is lockable on the first frame. Reinforcements come from the rear quarter.
+		// Ordinary forward waves arrive 2600–3200 studs out at 60–75°; M01 raiders use its narrower head-on cone.
+		// Rear requests retain the rear-quarter approach; authored poses below override these random placements.
 		const side = sides[index];
 		const [near, far] = options.behind ? SPAWN_BEHIND : SPAWN_FRONT;
 		const angle = math.rad(AlliedRules.ApproachDegrees(session.blueprint?.pressure, role, options.behind === true, math.random()));
@@ -667,7 +667,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 			: Difficulty.SupportHealth(session.difficulty, baseHealth));
 		// Bandits and couriers break close locks; the opening sorties stay gentle unless the level says every bandit breaks.
 		const lockBreakChance = role === "ace" ? 0 : behaviour.banditsAlwaysBreak ? 1 : gentle(session) ? 0 : math.clamp(tuned(session, TUNING.lockBreakChance), 0, 1);
-		const flares = session.blueprint?.pressure?.tailDefence && (role === "raider" || role === "escort") ? 1 : role === "ace" ? TUNING.aceFlares[act - 1] : role === "bandit" ? math.max(TUNING.banditFlares[act - 1], behaviour.banditFlares) : 0;
+		const flares = AlliedRules.PressureFlare(session.blueprint?.pressure, friendly, role, session.difficulty) ? 1 : role === "ace" ? TUNING.aceFlares[act - 1] : role === "bandit" ? math.max(TUNING.banditFlares[act - 1], behaviour.banditFlares) : 0;
 		let serial: number;
 		if (friendly) { session.allySerial += 1; serial = session.allySerial; }
 		else { session.spawnSerial += 1; serial = session.spawnSerial; }
@@ -781,6 +781,7 @@ function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy, 
 		if (decision.kind === "denied") { denyFire(session, decision.reason); return; }
 		position = positionFor(session.state).add(directionFor(session.state).mul(16)).sub(new Vector3(0, 2, 0));
 		direction = directionFor(session.state);
+		// session.target is the enemy the player's lock is building on; preserve that meaning with nose-aligned selection.
 		target = decision.kind === "guided" ? session.target : undefined;
 		if (target && session.blueprint?.pressure) target.playerThreatUntil = session.elapsed + 8;
 		session.missiles -= 1;
@@ -1058,6 +1059,7 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		const toPlayer = positionFor(session.state).sub(enemy.position);
 		const tailDot = enemy.direction.Dot(unitOr(toPlayer, enemy.direction));
 		const pressure = session.blueprint?.pressure;
+		// session.target denotes the enemy under the player's building lock, including nose-aligned selection.
 		const threatened = pressure !== undefined && ((enemy.playerThreatUntil ?? 0) > session.elapsed || session.target === enemy && session.lockProgress > 0.3
 			|| ThreatRules.Inbound(enemy, session.projectiles, missile => missile.allied ? undefined : missile.target, missile => missile.position.sub(enemy.position).Magnitude));
 		const focusPlayer = AlliedRules.PrioritisesPlayer(pressure, enemy.targetSlot ?? index, session.elapsed, toPlayer.Magnitude, tailDot, threatened);
@@ -1081,16 +1083,16 @@ function stepEnemies(session: CombatSession, dt: number): void {
 			publishEnemyDamageable(session, enemy);
 		}
 		const aceFighting = aceState === undefined || AceRules.Fights(aceState);
-		// Defensive break, at most once per 12 s: a lock building past 80% inside 900 studs (this bandit's odds,
-		// rolled once per attempt), or a guided missile inbound (the act's odds). A failed roll waits 3 s.
+		// Defensive breaks use the 12 s cooldown; failed rolls wait 3 s. M01 forces tail breaks after overshoot grace.
+		// Normal/Ace also force lock/inbound reactions; Easy retains close-lock odds (M01 zero) and inbound breakChance.
 		if (!ace && enemy.mode !== "extend" && enemy.breakTimer <= 0) {
 			const lockClose = session.target === enemy && ThreatRules.ShouldLockBreak({
 				lockProgress: session.lockProgress, distance: separation, cooldownRemaining: 0, extending: false, roll: 0, chance: 1,
 			});
 			const inbound = !lockClose && ThreatRules.Inbound(enemy, session.projectiles, (missile) => missile.target, (missile) => missile.position.sub(enemy.position).Magnitude);
-			const tailing = pressure?.tailDefence === true && AlliedRules.TailThreat(toPlayer.Magnitude, tailDot);
+			const tailing = pressure?.tailDefence === true && AlliedRules.TailThreat(toPlayer.Magnitude, tailDot, (enemy.tailBreakAfter ?? 0) - session.elapsed);
 			if (lockClose || inbound || tailing) {
-				if (tailing || (pressure?.tailDefence && threatened) || math.random() < (lockClose ? enemy.lockBreakChance : breakChance)) {
+				if (AlliedRules.ForcePressureBreak(pressure, session.difficulty, tailing, threatened) || math.random() < (lockClose ? enemy.lockBreakChance : breakChance)) {
 					enemy.mode = "extend"; enemy.modeTimer = breakSeconds;
 					enemy.breakTimer = ThreatRules.BreakCooldown; enemy.breakUntil = session.elapsed + breakSeconds;
 					const pass = ThreatRules.BreakDirection(point(enemy.direction), point(lateral), enemy.side);
@@ -1107,6 +1109,7 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		// Overshoot: break away to the bracket side and climb instead of orbiting the player's tail.
 		if (!courier && aceFighting && separation < 280 && enemy.mode !== "extend") {
 			enemy.mode = "extend"; enemy.modeTimer = ace ? 2.2 : 3.0;
+			if (pressure?.tailDefence) enemy.tailBreakAfter = session.elapsed + enemy.modeTimer + 3;
 			enemy.passDirection = unitOr(enemy.direction.add(lateral.mul(enemy.side * 0.6)).add(new Vector3(0, 0.3, 0)), enemy.direction);
 		}
 		// Aces notch hard on the act's cadence when a lock is building on them; a desperate ace notches faster.

@@ -1,4 +1,4 @@
-// Deliberately refreshed for owner M01 pressure tuning; engine regression baseline.
+// Deliberately refreshed for owner M01 pressure tuning (D-109); engine regression baseline.
 import { BomberRules } from "../shared/BomberRules";
 import type { MissionBlueprint } from "../shared/MissionCatalog";
 import { M01, M01_WORLD_KEY } from "../shared/M01Geometry";

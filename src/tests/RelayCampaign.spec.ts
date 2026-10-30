@@ -122,6 +122,7 @@ describe("Released 18-mission campaign",()=>{
  it("adds two optional attacking waves without inflating required objectives or bypassing the seven-fighter queue",()=>{
   const phase=bp.phases[0],route=compileBomberEncounter(phase.bombers!);
   expect(bp.pressure?.playerPriority).toBe(0.8);expect(MissionCatalog.Get(2).pressure).toBeUndefined();
+  for (const mission of [PRACTICE, ...MISSIONS]) expect(mission.pressure !== undefined).toBe(mission.id === 1);
   expect(MissionCatalog.InitialRaiders(phase)).toBe(6);expect(phase.reinforce).toEqual([{at:0.5,count:2}]);
   expect(reinforcementFraction(1,119.99,route)<0.5).toBe(true);
   expect(reinforcementFraction(0,120,route)).toBe(0.5);
