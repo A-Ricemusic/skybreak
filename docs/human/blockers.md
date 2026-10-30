@@ -36,3 +36,5 @@ Last updated: 2026-10-29.
 Worlds #144 and engine #145 are merged and dormant; playable data/unlock remain in open #149 and #148. See [per-level status](levels.html) and those PRs for reported Studio checks and assumptions. Earlier cold-load estimates of about 14 s were superseded by reported roughly 45–46 s live-asset Studio builds. Terrain cleanup can delay menu restoration; work on `perf/m04-m05-terrain` is not merged or verified here.
 
 Mission 4 transports exit after about 4:43.5 despite a 12:00 HUD clock; pacing remains unresolved. Mission 5 reports dark rig/tankers, follow-up lighting fixes awaiting Studio re-check, and a cleanup dependency on #147. Main still locks missions 3–18. No Player test is claimed.
+
+AI voice disclosure missing: addressed on fix/ai-voice-disclosure (D-140), pending merge. Settings provides permanent provenance and the first voiced line triggers a once-per-session notice. Latest Studio log (2026-10-30T03:39:39Z) shows RBX::Studio::LoginDialog; Studio was not launched and visual verification remains unperformed.
