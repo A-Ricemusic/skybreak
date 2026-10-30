@@ -1,5 +1,34 @@
 # Next
 
+## Owner difficulty and allied-flight tuning — unmerged (D-220/D-221, 2026-10-30)
+
+Validation on main 5034b39: frozen install/build and offline validation pass (848 Luau contracts). Final rebased Roblox Jest is deferred to the orchestrator’s merge queue so mission 5/D1 retain Studio priority; the queued local launch is cancelled. No full Jest pass is claimed.
+
+M01 keeps six required bombers, the same route/240-second escape and 10:00 clock. The T+120/halfway rear reinforcement grows from two to six: twelve optional raiders total, plus three escorts and the ace. The opening six-raider screen is unchanged. Normal maximum is 1,740; S/A/B/C = 1,560/1,200/600/500. S requires the ace plus substantial optional combat.
+
+M02 keeps eleven required parked bombers, all existing ground scenery/targets and the 15:00 clock. Two extra head-on fighters queue at T+75; two more queue after eight bomber kills. Twelve aircraft total including the ace; Normal maximum 2,850; S/A/B/C = 2,500/1,990/1,620/1,320. M02 adopts M01's 80% player-priority policy and Easy-safe tail-defence rules. Both missions retain the seven-fighter concurrent budget; queued fighters can remain unspawned if the player finishes objectives quickly.
+
+All missions using the shared allied flight now default to **one combined allied kill per sortie**, with a mission-tunable nonnegative integer `allies.killBudget` (zero disables combat). Required targets remain forbidden even with legacy opt-in flags. Allies fire at most one missile at a time, at eight-second group spacing, 20-second individual reload, 1,600-stud acquisition range and 35% damaging-shot chance at 30 damage. Impact and kill admission both enforce the budget; after spending it, surviving wingmen keep flying formation and avoiding terrain. No M03–M18 mission data or story/radio lines changed. M05 on main is dormant; its future allied flight inherits this default.
+
+Owner test after merge: fly M01/M02 on Easy and Normal; confirm both objectives remain achievable, the new pairs/rear wave attack the player, no more than seven hostile fighters coexist, and S takes optional combat. In M01–M04 (and M05 when integrated), watch the whole group: at most one kill per sortie, no required-target kills, continuing formation/radio and visible missiles before budget exhaustion. Retry to confirm the budget resets; check phone frame rate. These are automated contracts and proposed tuning, not a claimed Player playtest.
+
+
+## PR #176 review fixes (2026-10-30)
+
+**Mission 5 client fix included:** the old weather lookup also dereferenced nil for every M05–M13 world key on main. The shared world-environment registry now resolves all eighteen server world keys, including M05, and safely ignores unknown/unset names. Desktop/phone/reduced-motion effects and phone cloud decks are checked against each environment; a static offline gate checks registry coverage against actual server registrations/publications. No Studio/Player observation is claimed.
+
+M18 groove/vent decks now include solid structural columns from Y0 to the unchanged Y104 flight floor; the local exit foundation continues beneath the over-water end. Floor widths support the walls across their complete footprints (244 groove /392 vent); core extends down to the deck. Generator-end floor modules extend40studs beyond each room end to carry the complete target footprint. Tests explicitly require all thirteen structural decks and check terrain contact/clearance across their footprints, wall/target/buttress support and the unchanged swept flight envelopes. This replaces the vacuous name-only M18 foundation check.
+
+M17 now matches the spec:18:20 and12,000ft cloud-base reference metadata. No adaptation is claimed. Build and full offline validation passed (exit0;856 Luau contracts,124 Python tests,18-key registry gate). Worlds remain dormant and unmerged.
+
+
+## M14–M18 worlds — in review (2026-10-30)
+
+1. Review the five [M14](../specs/worlds/m14-composition.md), [M15](../specs/worlds/m15-composition.md), [M16](../specs/worlds/m16-composition.md), [M17](../specs/worlds/m17-composition.md), [M18](../specs/worlds/m18-composition.md) composition docs, complete target tables and budgets. One PR from main, no merge or mission activation.
+2. Later shared-Studio lease: compare polar night/cirrus, city readability, desert scale, flooded bridges, and enclosed-flight/core exit against accepted specs. Fly all approaches/overshoots; measure build/clear and phone costs. No new Studio/Player observation is claimed.
+3. Integrate mission-owned encounters, scoring/timers and cleanup. Resolve unknown ground subtypes, initial/credited count differences and cruise split predicates. M17 Rusk retreats after four wingmen; M18 must preserve damage, missile count/regeneration and charges through no-other-fire duel staging. Core destruction alone cannot win.
+
+
 Last updated: 2026-10-30.
 ## M12/M13 worlds — in review [#170](https://github.com/A-Ricemusic/skybreak/pull/170)
 

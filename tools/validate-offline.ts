@@ -22,6 +22,7 @@ await run(["bun", "tools/check-no-react-agent-testing.ts"], /^NO_REACT_AGENT_TES
 await run(["bun", "run", "build:place"]);
 await run(["bun", "tools/test-voice-disclosure-ui.ts"]);
 await run(["bun", "tools/test-m03-builder-contract.ts"]);
+await run(["bun", "tools/test-world-environments.ts"]);
 await run(["bun", "tools/test-relay-offline.ts"], /^OFFLINE_LUAU_RESULT passed=(\d+) failed=0$/gm, 538);
 await run(["bun", "tools/voice-lines.ts", "--check"]);
 await run(["bun", "tools/story-voice-script.ts", "--check"]);

@@ -1,5 +1,23 @@
 # Blockers
 
+Owner tuning validation (2026-10-30): rebased on main 5034b39, preserving terrain performance, dormant worlds and D-120/D-121. Frozen install, build and validate:offline pass (848 Luau contracts, 124 Python tests); catalog fixture regenerated. Initial Jest exposed an outdated rear-wave assertion, now corrected. A subsequent attempt stalled at Studio startup during concurrent launches and produced no Jest summary. Final rebased Jest is deferred to the orchestrator’s merge queue: the priority mission 5 agent relaunched Studio during this task’s idle gate. This task cancelled its queued launch and closed its own Studio; no other Studio was stopped. No Player or phone balance verification is claimed.
+## PR #176 review fixes (2026-10-30)
+
+**Mission 5 client fix included:** the old weather lookup also dereferenced nil for every M05–M13 world key on main. The shared world-environment registry now resolves all eighteen server world keys, including M05, and safely ignores unknown/unset names. Desktop/phone/reduced-motion effects and phone cloud decks are checked against each environment; a static offline gate checks registry coverage against actual server registrations/publications. No Studio/Player observation is claimed.
+
+M18 groove/vent decks now include solid structural columns from Y0 to the unchanged Y104 flight floor; the local exit foundation continues beneath the over-water end. Floor widths support the walls across their complete footprints (244 groove /392 vent); core extends down to the deck. Generator-end floor modules extend40studs beyond each room end to carry the complete target footprint. Tests explicitly require all thirteen structural decks and check terrain contact/clearance across their footprints, wall/target/buttress support and the unchanged swept flight envelopes. This replaces the vacuous name-only M18 foundation check.
+
+M17 now matches the spec:18:20 and12,000ft cloud-base reference metadata. No adaptation is claimed. Build and full offline validation passed (exit0;856 Luau contracts,124 Python tests,18-key registry gate). Worlds remain dormant and unmerged.
+
+
+## M14–M18 dormant world review (2026-10-30)
+
+- Offline world work in review; no owner input needed for this PR. Studio/Player/phone rendering, true flight feel and runtime build/clear costs are unverified. Offline geometry and time estimates do not establish reference fidelity.
+- M14 sixteen credited missile kills do not establish initial carrier count/split triggers. M15 62 initial versus53 credited ground, M16 113/13 initial versus138/14 credited, M17 34 initial versus55 credited ground remain distinct. Unknown ground subtypes use explicitly unresolved scenery slots, not arbitrary type allocations.
+- M18 central core sits130studs west of the proposed centreline; independent vertical entry/roof apertures and wider central vent are original blockout adaptations. Swept clearance passes offline; entry/overshoot/retry, target occlusion and unchanged-flight-model acceptance need a future leased Studio pass.
+- Combat actors, phase clocks, ship weapons, destruction, cruise separation, friendly column movement and Rusk transitions remain mission integration. All five keys are registered but unselected; no asset uploads, runtime activation or Player claim.
+
+
 Last updated: 2026-10-30.
 ## M12/M13 world review (2026-10-30), [PR #170](https://github.com/A-Ricemusic/skybreak/pull/170)
 

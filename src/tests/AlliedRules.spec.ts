@@ -17,6 +17,25 @@ function sortie() {
 	return { state: BlueprintRunner.NewState(bp, 0), ledger: new TargetScore({ basis: "points", points: { escort: 60, bomber: 100 }, rank: { S: 800, A: 700, B: 600, C: 0 } }), destroyed: [] as string[] };
 }
 describe("Dormant allied flight contracts", () => {
+	it("caps the entire allied group across phases, in-flight hits and fresh sorties", () => {
+		for (const budget of [0, 1, 2]) {
+			const { state, ledger, destroyed } = sortie();
+			const tuned = { ...policy, killBudget: budget };
+			for (let shot = 0; shot < 100; shot++) {
+				const damage = AlliedRules.ShotDamage(tuned, destroyed.size(), false, 100);
+				if (damage > 0) recordAlliedKill(state, ledger, destroyed, tuned, `enemy-${shot}`, "air", false, shot, "escort");
+				expect(destroyed.size() <= budget).toBe(true);
+			}
+			expect(destroyed.size()).toBe(budget);
+			expect(AlliedRules.ShotDamage(tuned, destroyed.size(), false, 100)).toBe(0);
+			expect(AlliedRules.ShotDamage(tuned, 0, true, 100)).toBe(0);
+			expect(ledger.Total()).toBe(0);
+		}
+		const fresh = sortie();
+		expect(recordAlliedKill(fresh.state, fresh.ledger, fresh.destroyed, policy, "fresh", "air", false, 1, "escort")).toBe(true);
+		expect(recordAlliedKill(fresh.state, fresh.ledger, fresh.destroyed, policy, "second", "air", false, 2, "escort")).toBe(false);
+	});
+
 	it("only spawns on opt in and preserves every current phase roster", () => {
 		expect(AlliedRules.Count(policy)).toBe(4);
 		for (let index = 0; index < MISSIONS.size(); index++) {
@@ -29,7 +48,7 @@ describe("Dormant allied flight contracts", () => {
 	});
 	it("validates bounded formations, friendly models and deliberate required-target credit", () => {
 		validateMissionPolicy({ allies: policy }, 99);
-		for (const invalid of [{ ...policy, count: 0 }, { ...policy, count: 7 }, { ...policy, count: 1.5 }, { ...policy, formation: [] }, { ...policy, model: "Vanta" }, { ...policy, callsignPrefix: "" }, { ...policy, allowRequiredTargets: true }, { ...policy, mayKill: "yes" }, { ...policy, formation: [{ x: math.huge, y: 0, z: 80 }, ...policy.formation.filter((_, index) => index > 0)] }, { ...policy, formation: [{ x: 0, y: 0, z: 0 }, ...policy.formation.filter((_, index) => index > 0)] }]) {
+		for (const invalid of [{ ...policy, killBudget: -1 }, { ...policy, killBudget: 0.5 }, { ...policy, killBudget: math.huge }, { ...policy, count: 0 }, { ...policy, count: 7 }, { ...policy, count: 1.5 }, { ...policy, formation: [] }, { ...policy, model: "Vanta" }, { ...policy, callsignPrefix: "" }, { ...policy, allowRequiredTargets: true }, { ...policy, mayKill: "yes" }, { ...policy, formation: [{ x: math.huge, y: 0, z: 80 }, ...policy.formation.filter((_, index) => index > 0)] }, { ...policy, formation: [{ x: 0, y: 0, z: 0 }, ...policy.formation.filter((_, index) => index > 0)] }]) {
 			const [ok] = pcall(() => validateMissionPolicy({ allies: invalid as MissionAllies }, 99));
 			expect(ok).toBe(false);
 		}
@@ -40,7 +59,7 @@ describe("Dormant allied flight contracts", () => {
 		expect(AlliedRules.CanEngage(policy, raider)).toBe(true);
 		expect(AlliedRules.CanEngage(policy, { ...raider, role: "escort" })).toBe(true);
 		expect(AlliedRules.CanEngage(policy, { ...raider, required: true, role: "bomber" })).toBe(false);
-		expect(AlliedRules.CanEngage({ ...policy, allowRequiredTargets: true, creditPlayerKills: true }, { ...raider, required: true, role: "bomber" })).toBe(true);
+		expect(AlliedRules.CanEngage({ ...policy, allowRequiredTargets: true, creditPlayerKills: true }, { ...raider, required: true, role: "bomber" })).toBe(false);
 	});
 	it("keeps formation moving during launch while suppressing all wingman fire", () => {
 		expect(AlliedRules.CanEngage(policy, raider, false)).toBe(false);
@@ -109,10 +128,10 @@ describe("Dormant allied flight contracts", () => {
 		expect(recordAlliedKill(state, ledger, destroyed, policy, "bomber-1", "air", true, 1, "bomber")).toBe(false);
 		expect(recordAlliedKill(state, ledger, destroyed, { ...policy, mayKill: false }, "escort-2", "air", false, 1, "escort")).toBe(false);
 	});
-	it("credits raw points and required progress only on the explicit option", () => {
+	it("protects required targets even if a legacy policy requests credit", () => {
 		const { state, ledger, destroyed } = sortie();
-		expect(recordAlliedKill(state, ledger, destroyed, { ...policy, creditPlayerKills: true, allowRequiredTargets: true }, "bomber-1", "air", true, 1, "bomber")).toBe(true);
-		expect(ledger.Total()).toBe(100); expect(state.requiredAirKills).toBe(1); expect(state.phaseProgress).toBe(1);
+		expect(recordAlliedKill(state, ledger, destroyed, { ...policy, creditPlayerKills: true, allowRequiredTargets: true }, "bomber-1", "air", true, 1, "bomber")).toBe(false);
+		expect(ledger.Total()).toBe(0); expect(state.requiredAirKills).toBe(0); expect(state.phaseProgress).toBe(0);
 	});
 });
 

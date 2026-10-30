@@ -1022,7 +1022,7 @@ function stepAllies(session: CombatSession, dt: number, weaponsEnabled = true): 
 		const station = frame.PointToWorldSpace(new Vector3(offset.x, offset.y, offset.z));
 		let target: Enemy | undefined;
 		let range = AlliedRules.Range;
-		if (weaponsEnabled && ally.position.sub(player).Magnitude < AlliedRules.Leash) for (const enemy of session.enemies) {
+		if (weaponsEnabled && AlliedRules.BudgetRemaining(policy, session.alliedKills.size()) && ally.position.sub(player).Magnitude < AlliedRules.Leash) for (const enemy of session.enemies) {
 			const distance = enemy.position.sub(ally.position).Magnitude;
 			if (distance < range && AlliedRules.CanEngage(policy, enemy, weaponsEnabled) && canHurt(session, enemy)) { target = enemy; range = distance; }
 		}
@@ -1044,7 +1044,7 @@ function stepAllies(session: CombatSession, dt: number, weaponsEnabled = true): 
 				globalReady: true, evading: false, playerStraight: false, minRange: 300, maxRange: 1800, aimThreshold: 0.9, straightRelax: 0 })) {
 			const position = ally.position.add(ally.direction.mul(18));
 			session.projectiles.push({ part: JetFactory.CreateMissile(session.folder, position, ally.direction, false), position, direction: ally.direction,
-				target, hostile: false, allied: true, age: 0, ace: false, damage: AlliedRules.Damage, speed: WeaponRules.MissileSpeed });
+				target, hostile: false, allied: true, age: 0, ace: false, damage: math.random() < AlliedRules.HitChance ? AlliedRules.Damage : 0, speed: WeaponRules.MissileSpeed });
 			ally.alliedAmmo = (ally.alliedAmmo ?? 0) - 1;
 			ally.fireTimer = AlliedRules.Reload;
 			session.alliedFireAt = session.elapsed;
@@ -1301,7 +1301,8 @@ function strikeEnemy(session: CombatSession, enemy: Enemy, index: number): boole
 	if (!allied) { session.missileHits += 1; enemy.playerThreatUntil = session.elapsed + 8; }
 	// Staged ace: the hit bursts harmlessly while it breaks away.
 	if (enemy.aceState && AceRules.Invulnerable(enemy.aceState, session.elapsed)) return true;
-	let damage = session.projectiles[index].damage > 0 ? session.projectiles[index].damage : PLAYER_MISSILE_DAMAGE;
+	let damage = allied ? session.projectiles[index].damage : session.projectiles[index].damage > 0 ? session.projectiles[index].damage : PLAYER_MISSILE_DAMAGE;
+	if (allied) damage = session.blueprint?.allies ? AlliedRules.ShotDamage(session.blueprint.allies, session.alliedKills.size(), enemy.required, damage) : 0;
 	// A heavy hit stops at the ace's next stage line, and a hit while it retreats or holds stops above it,
 	// so no stage (radio call, retreat, raiders, return) is skipped or cut short.
 	if (enemy.aceState) damage = AceRules.CapHit(enemy.aceState, enemy.health, enemy.maxHealth, damage);
@@ -1388,7 +1389,9 @@ function stepMissiles(session: CombatSession, dt: number): void {
 				missile.part.CFrame = CFrame.lookAt(nextPosition, nextPosition.add(missile.direction));
 			}
 		} else if (!removed) {
-			const targetPosition = missile.hostile ? missile.wingman?.position ?? positionFor(session.state) : missile.target!.position;
+			// Non-damaging allied shots visibly pass wide rather than reporting a hit on the aircraft.
+			const targetPosition = missile.hostile ? missile.wingman?.position ?? positionFor(session.state)
+				: missile.target!.position.add(missile.allied && missile.damage === 0 ? new Vector3(180, 90, 0) : Vector3.zero);
 			const velocity = missile.hostile ? missile.wingman?.velocity ?? directionFor(session.state).mul(session.state.speed) : missile.target!.velocity;
 			const speed = missile.speed;
 			const distance = targetPosition.sub(missile.position).Magnitude;

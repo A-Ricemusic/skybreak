@@ -16,7 +16,7 @@ export function recordScoredKill(state: BlueprintState, ledger: TargetScore, id:
 /** Destruction admission is independent of player credit. Default allied kills never enter objectives or points. */
 export function recordAlliedKill(state: BlueprintState, ledger: TargetScore, destroyed: string[], policy: MissionAllies,
 	id: string, kind: "air" | "ground" | "ace", required: boolean, now: number, role?: string, breakdownRole?: string, scoringRole = role): boolean {
-	if (id === "" || state.killedIds.has(id) || destroyed.includes(id) || !AlliedRules.MayDestroy(policy) || !AlliedRules.CanEngage(policy, { required, role, enabled: true, health: 1 })) return false;
+	if (!AlliedRules.BudgetRemaining(policy, destroyed.size()) || required || id === "" || state.killedIds.has(id) || destroyed.includes(id) || !AlliedRules.MayDestroy(policy) || !AlliedRules.CanEngage(policy, { required, role, enabled: true, health: 1 })) return false;
 	if (AlliedRules.Credit(policy) && !recordScoredKill(state, ledger, id, kind, required, now, scoringRole, breakdownRole)) return false;
 	state.killedIds.add(id);
 	destroyed.push(id);
