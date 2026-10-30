@@ -1,8 +1,8 @@
 {
  "bank": "voiceBank01",
  "file": "voiceBank01.ogg",
- "sha256": "9ac91ce80cd367d85963be0fc42a5ab3ad375082935d757210577bff8eea1e84",
- "seconds": 373.526,
+ "sha256": "26d100894c938b4df8c4a54de4065ac849bca9cec82187ac2ba03e02c0fa6222",
+ "seconds": 373.239,
  "lines": 56,
  "automated": {
   "noProfanityOrSlurs": {
@@ -38,10 +38,14 @@
    "note": "ElevenLabs library premades only; no cloning, no voice design prompts naming people."
   },
   "speechToTextMatch": {
-   "pass": true,
-   "meanRate": 0.9926,
-   "minRate": 0.889,
-   "flagged": []
+   "pass": false,
+   "meanRate": 0.9862,
+   "minRate": 0.864,
+   "flagged": [
+    "story.c05.b01",
+    "story.c05.b05",
+    "story.c07.b04"
+   ]
   },
   "durationUnderRobloxLimit": {
    "pass": true
@@ -86,359 +90,359 @@
   {
    "id": "story.c00.b05",
    "start": 33.874,
-   "end": 37.627,
+   "end": 37.602,
    "speaker": "TRAINEE",
-   "text": "Three bandits on the rim and an empty chair. Fine. I'll fly the pattern."
+   "text": "An empty chair and a checkout nobody's signing. Fine. I'll fly the pattern."
   },
   {
    "id": "story.c01.b00",
-   "start": 37.877,
-   "end": 44.445,
+   "start": 37.852,
+   "end": 43.851,
    "speaker": "SERA",
-   "text": "The bandits wore our markings. Our paint, our numbers. One of them was a tail I cleared for departure in March."
+   "text": "The bombers wore our markings. Our paint, our numbers. One of them was a tail I cleared for departure in March."
   },
   {
    "id": "story.c01.b01",
-   "start": 44.695,
-   "end": 51.579,
+   "start": 44.101,
+   "end": 50.986,
    "speaker": "SERA",
    "text": "The quartermaster found a case under Teal's bunk. A coffee tin, twelve tapes, and a note: 'For Sera. Not for the net.'"
   },
   {
    "id": "story.c01.b02",
-   "start": 51.829,
-   "end": 60.527,
+   "start": 51.236,
+   "end": 59.933,
    "speaker": "TEAL",
    "text": "Keep these off the command net. Somebody up there is listening and signing things they shouldn't. If I go quiet, the case goes to Sera. Only Sera."
   },
   {
    "id": "story.c01.b03",
-   "start": 60.777,
-   "end": 68.464,
+   "start": 60.183,
+   "end": 67.708,
    "speaker": "TEAL",
-   "text": "There's a manifest in the tin. Aviation fuel, shipped as grain, to five quays on Iron Coast. Nobody ships grain in drums."
+   "text": "The manifest sends grain drums to a farm with a runway, then five quays on Iron Coast. Nobody ships grain in drums."
   },
   {
    "id": "story.c01.b04",
-   "start": 68.714,
-   "end": 75.115,
+   "start": 67.958,
+   "end": 74.158,
+   "speaker": "SERA",
+   "text": "There are real houses in that yard. Families who work the siding. I need you to come home with the right number of fires."
+  },
+  {
+   "id": "story.c01.b05",
+   "start": 74.408,
+   "end": 80.808,
    "speaker": "SERA",
    "text": "Iron Coast is a hundred miles of our own shoreline. Whoever this is, they're not invading. They're already home."
   },
   {
-   "id": "story.c01.b05",
-   "start": 75.365,
-   "end": 77.098,
+   "id": "story.c01.b06",
+   "start": 81.058,
+   "end": 84.656,
    "speaker": "TRAINEE",
-   "text": "Then I'll go and look at the quays myself."
+   "text": "Then I'll look at that farm. From above, before anyone can tidy it up."
   },
   {
    "id": "story.c02.b00",
-   "start": 77.348,
-   "end": 83.936,
-   "speaker": "TEAL",
-   "text": "I came home through the western switchback. Not the pretty way. The way you take when you don't want to be seen coming home."
-  },
-  {
-   "id": "story.c02.b01",
-   "start": 84.186,
-   "end": 92.491,
+   "start": 84.906,
+   "end": 93.212,
    "speaker": "TEAL",
    "text": "I dropped beacons on the way in. Low power, my own frequency. If anyone ever follows me, I wanted it to be someone who knew the song."
   },
   {
-   "id": "story.c02.b02",
-   "start": 92.741,
-   "end": 100.489,
+   "id": "story.c02.b01",
+   "start": 93.462,
+   "end": 97.92,
    "speaker": "SERA",
-   "text": "Recovery wanted to walk the canyon for him. Command said no: there are scouts in the rocks, and recovery teams don't carry missiles."
+   "text": "He used to tune that pass on Sundays. Said it was the only place the tower couldn't talk to him."
+  },
+  {
+   "id": "story.c02.b02",
+   "start": 98.17,
+   "end": 107.019,
+   "speaker": "SERA",
+   "text": "Recovery followed the beacons into the snowy pass. His receiver was in the rocks. Cracked case, memory intact. He meant us to find it."
   },
   {
    "id": "story.c02.b03",
-   "start": 100.739,
-   "end": 105.736,
-   "speaker": "SERA",
-   "text": "He used to tune that canyon on Sundays. Said it was the only place the tower couldn't talk to him."
-  },
-  {
-   "id": "story.c02.b04",
-   "start": 105.986,
-   "end": 111.949,
-   "speaker": "SERA",
-   "text": "Recovery can reach his receiver if you mark it and stay on their frequency. Finding him is work we can do together."
-  },
-  {
-   "id": "story.c02.b05",
-   "start": 112.199,
-   "end": 114.642,
-   "speaker": "TRAINEE",
-   "text": "Then that's where he went when he had something to say."
-  },
-  {
-   "id": "story.c03.b00",
-   "start": 114.892,
-   "end": 123.641,
-   "speaker": "SERA",
-   "text": "Recovery got into the lower switchback. They found his receiver in the rocks. Cracked case, memory intact. He put it where it would be found."
-  },
-  {
-   "id": "story.c03.b01",
-   "start": 123.891,
-   "end": 132.401,
+   "start": 107.269,
+   "end": 115.779,
    "speaker": "TEAL",
    "text": "There's a radar inside our own training box. Dug into the bowl north of the pass. Nobody signed for it. I checked the ledger three times."
   },
   {
-   "id": "story.c03.b02",
-   "start": 132.651,
-   "end": 139.998,
+   "id": "story.c02.b04",
+   "start": 116.029,
+   "end": 123.375,
    "speaker": "TEAL",
    "text": "Somebody wanted to watch trainees. Not the sky. Trainees. Think about why you'd want to know when the kids fly."
   },
   {
-   "id": "story.c03.b03",
-   "start": 140.248,
-   "end": 147.684,
+   "id": "story.c02.b05",
+   "start": 123.625,
+   "end": 131.062,
    "speaker": "SERA",
    "text": "If it's real, it's been watching every pattern you've flown for a year. Command wants it gone quietly. I want it photographed first."
   },
   {
-   "id": "story.c03.b04",
-   "start": 147.934,
-   "end": 153.877,
-   "speaker": "SERA",
-   "text": "The staff list has to reach Varda after the strike. An erased radar can still leave a record nobody can explain away."
-  },
-  {
-   "id": "story.c03.b05",
-   "start": 154.127,
-   "end": 157.936,
+   "id": "story.c02.b06",
+   "start": 131.312,
+   "end": 135.12,
    "speaker": "TRAINEE",
    "text": "If I just blow it up, it's a rumour. If I look at it first, it's a crime."
   },
   {
-   "id": "story.c04.b00",
-   "start": 158.186,
-   "end": 167.853,
+   "id": "story.c03.b00",
+   "start": 135.37,
+   "end": 145.037,
    "speaker": "TEAL",
    "text": "The Teklan farmers let me hide a tape in a seed tin. The old woman asked my name, not my rank. Nobody at Varda has asked my name in ten years."
   },
   {
-   "id": "story.c04.b01",
-   "start": 168.103,
-   "end": 177.079,
+   "id": "story.c03.b01",
+   "start": 145.287,
+   "end": 154.263,
    "speaker": "SERA",
    "text": "The radar's memory names that orchard. Three days later somebody ordered it evacuated. Now there are patrols firing on the evacuation trucks."
   },
   {
-   "id": "story.c04.b02",
-   "start": 177.329,
-   "end": 183.633,
+   "id": "story.c03.b02",
+   "start": 154.513,
+   "end": 160.818,
    "speaker": "SERA",
    "text": "They're not shooting at farmers. They're shooting at a seed tin. That's how badly someone wants Teal's tape back."
   },
   {
-   "id": "story.c04.b03",
-   "start": 183.883,
-   "end": 191.005,
+   "id": "story.c03.b03",
+   "start": 161.068,
+   "end": 168.19,
    "speaker": "RUSK",
    "text": "...three officers at Varda are being reassigned tonight. Their names are already off the roster. Nobody will ask. Nobody ever asks."
   },
   {
-   "id": "story.c04.b04",
-   "start": 191.255,
-   "end": 197.661,
-   "speaker": "SERA",
-   "text": "Count the trucks again at the road. I want names for the beds at Varda, not a report that says most of them got out."
+   "id": "story.c03.b04",
+   "start": 168.44,
+   "end": 174.4,
+   "speaker": "TEAL",
+   "text": "The couriers carry patrol routes high over the orchard hills. Their crews guide the guns onto the trucks."
   },
   {
-   "id": "story.c04.b05",
-   "start": 197.911,
-   "end": 201.017,
+   "id": "story.c03.b05",
+   "start": 174.65,
+   "end": 181.214,
+   "speaker": "SERA",
+   "text": "Three transports above the hills, with escorts hidden by two jammers. Find the transports and the families have a road out."
+  },
+  {
+   "id": "story.c03.b06",
+   "start": 181.464,
+   "end": 184.57,
    "speaker": "TRAINEE",
    "text": "Those trucks are carrying somebody who asked his name. They get out."
   },
   {
-   "id": "story.c05.b00",
-   "start": 201.267,
-   "end": 210.423,
+   "id": "story.c04.b00",
+   "start": 184.82,
+   "end": 193.975,
    "speaker": "SERA",
    "text": "The convoy made it. The old woman's granddaughter drove the lead truck. She marked three silos on the map with her thumb. 'Those smell wrong.'"
   },
   {
-   "id": "story.c05.b01",
-   "start": 210.673,
-   "end": 218.638,
+   "id": "story.c04.b01",
+   "start": 194.225,
+   "end": 202.191,
    "speaker": "TEAL",
    "text": "Three tanks under grain permits. Aviation fuel. The farmers know the difference, they just can't prove it. A fuel ledger would prove it."
   },
   {
-   "id": "story.c05.b02",
-   "start": 218.888,
-   "end": 226.125,
+   "id": "story.c04.b02",
+   "start": 202.441,
+   "end": 209.677,
    "speaker": "TEAL",
    "text": "Sparrow. Every unmarked silo in that valley is somebody's winter. Don't be the one who makes them hungry to make a point."
   },
   {
-   "id": "story.c05.b03",
-   "start": 226.375,
-   "end": 231.896,
+   "id": "story.c04.b03",
+   "start": 209.927,
+   "end": 215.449,
    "speaker": "SERA",
    "text": "He wrote that one for you. He never wrote anything for me. I'm choosing not to be hurt by that today."
   },
   {
-   "id": "story.c05.b04",
-   "start": 232.146,
-   "end": 239.072,
+   "id": "story.c04.b04",
+   "start": 215.699,
+   "end": 224.484,
+   "speaker": "TEAL",
+   "text": "Vulture Lead followed me into the pass. He wasn't chasing a deserter. You don't chase deserters at night with your lights off. He was erasing a witness."
+  },
+  {
+   "id": "story.c04.b05",
+   "start": 224.734,
+   "end": 230.146,
    "speaker": "SERA",
-   "text": "The farm crew can read the ledger over your radio once the patrol is gone. Fuel burns. The names on the page must survive it."
+   "text": "If the fuel burns, he'll come looking for you over the works. You don't owe him a duel. Bring yourself home."
+  },
+  {
+   "id": "story.c04.b06",
+   "start": 230.396,
+   "end": 233.517,
+   "speaker": "TRAINEE",
+   "text": "Three thumbprints. Three fires. Then I'm leaving him in the dark."
+  },
+  {
+   "id": "story.c05.b00",
+   "start": 233.767,
+   "end": 241.66,
+   "speaker": "SERA",
+   "text": "You got clear of Vulture Lead. His orders kept repeating on guard; we recorded them. Every one bears a governor's name. He died in spring."
+  },
+  {
+   "id": "story.c05.b01",
+   "start": 241.91,
+   "end": 249.473,
+   "speaker": "TEAL",
+   "text": "Kiro talks to Lira. Lira talks to Merel. Merel talks to the harbours. Start at the quays; listen back up the chain."
+  },
+  {
+   "id": "story.c05.b02",
+   "start": 249.723,
+   "end": 255.299,
+   "speaker": "SERA",
+   "text": "I wiped his name off my board this morning. Then I wrote it back. I'm not ready to decide what he is."
+  },
+  {
+   "id": "story.c05.b03",
+   "start": 255.549,
+   "end": 260.982,
+   "speaker": "TEAL",
+   "text": "On the coast, look at what the cranes unload. The uniforms tell you nothing. The crates do."
+  },
+  {
+   "id": "story.c05.b04",
+   "start": 261.232,
+   "end": 267.409,
+   "speaker": "SERA",
+   "text": "Iron Coast. Military stores beside a fish market. The Marshal put his war where he knew we'd hesitate."
   },
   {
    "id": "story.c05.b05",
-   "start": 239.322,
-   "end": 241.813,
+   "start": 267.659,
+   "end": 273.858,
+   "speaker": "SERA",
+   "text": "Workers are two blocks from those quays. The ships and tankers are his supply line. Their neighbours are not."
+  },
+  {
+   "id": "story.c05.b06",
+   "start": 274.108,
+   "end": 276.094,
    "speaker": "TRAINEE",
-   "text": "Three thumbprints. Three fires. Nothing else."
+   "text": "He's right. I'll hesitate. Then I'll aim."
   },
   {
    "id": "story.c06.b00",
-   "start": 242.063,
-   "end": 250.917,
+   "start": 276.344,
+   "end": 283.32,
    "speaker": "TEAL",
-   "text": "One courier flies the frequency book through the dust pass every evening. Same time, same whine in the engine. Somebody should fix that bearing."
+   "text": "Kiro keeps an archive. Every forged order, filed, because forgers are vain. It's the only honest thing on the plateau."
   },
   {
    "id": "story.c06.b01",
-   "start": 251.167,
-   "end": 259.07,
-   "speaker": "SERA",
-   "text": "We pulled his escort code out of the silo radios. Five fighters hide in the dust front with him. They'd rather lose him than drop what he carries."
+   "start": 283.57,
+   "end": 289.111,
+   "speaker": "RUSK",
+   "text": "Declare the emergency first. Find the reason after. In a year, nobody has asked me for the reason."
   },
   {
    "id": "story.c06.b02",
-   "start": 259.32,
-   "end": 264.502,
+   "start": 289.361,
+   "end": 296.171,
    "speaker": "SERA",
-   "text": "If the book is real, every relay on the plateau is in it. Every forged voice. Every name."
+   "text": "The harbour traffic gave us Kiro's signing key. A key alone is a rumour. We need Lira and Merel's logs with the same signature."
   },
   {
    "id": "story.c06.b03",
-   "start": 264.752,
-   "end": 272.093,
-   "speaker": "SERA",
-   "text": "Scan the clearings before you chase. Then read me the packet on a clean channel; I want its words before command can rewrite them."
+   "start": 296.421,
+   "end": 304.962,
+   "speaker": "TEAL",
+   "text": "Lira and Merel sit on opposite ridges and hate each other's weather. Lira lies, Merel repeats her. The west ridge still hears the farms."
   },
   {
    "id": "story.c06.b04",
-   "start": 272.343,
-   "end": 273.286,
+   "start": 305.212,
+   "end": 313.057,
+   "speaker": "SERA",
+   "text": "Three logs, one signature. Send them home to Varda. Its island transmitter can reach the farms without borrowing his voice."
+  },
+  {
+   "id": "story.c06.b05",
+   "start": 313.307,
+   "end": 318.768,
+   "speaker": "TEAL",
+   "text": "I came home through the pass. Not the pretty way. The way you take when you don't want to be seen coming home."
+  },
+  {
+   "id": "story.c06.b06",
+   "start": 319.018,
+   "end": 322.972,
    "speaker": "TRAINEE",
-   "text": "Then I'd like to read it."
+   "text": "His own words, in his own voice, on their own relay. He'd have liked that."
   },
   {
    "id": "story.c07.b00",
-   "start": 273.536,
-   "end": 282.269,
+   "start": 323.222,
+   "end": 330.839,
    "speaker": "SERA",
-   "text": "Not a frequency book. Tomorrow's orders. Varda tower 'compromised', the challenge code changed, my crew 'relieved' at 0400."
+   "text": "Three stations, one signature. Varda's island transmitter has the orders and the governor's death certificate. Thirty-five seconds."
   },
   {
    "id": "story.c07.b01",
-   "start": 282.519,
-   "end": 289.256,
+   "start": 331.089,
+   "end": 338.207,
    "speaker": "TEAL",
-   "text": "If they ever call our tower compromised, check who changed the challenge code. The tower doesn't go bad. The code does."
+   "text": "A clear signal needs time. Don't give them a hero. Give them thirty-five seconds and a hero is beside the point."
   },
   {
    "id": "story.c07.b02",
-   "start": 289.506,
-   "end": 297.687,
+   "start": 338.457,
+   "end": 345.821,
    "speaker": "SERA",
-   "text": "They've moved it up. They know we have the packet. Two flights are inbound and my crew is in the tower with a soldering iron and the old code on a napkin."
+   "text": "He recorded that two weeks before he vanished. Thirty-five seconds. He'd already timed it. He knew exactly what this would take."
   },
   {
    "id": "story.c07.b03",
-   "start": 297.937,
-   "end": 301.804,
+   "start": 346.071,
+   "end": 349.938,
    "speaker": "SERA",
    "text": "I'm staying in the tower. In case you were wondering. I'm not leaving my chair for them."
   },
   {
    "id": "story.c07.b04",
-   "start": 302.054,
-   "end": 308.012,
-   "speaker": "SERA",
-   "text": "Spotters are using the apron smoke. Mark the dishes first, and stay until our own flights answer the restored tower code."
-  },
-  {
-   "id": "story.c07.b05",
-   "start": 308.262,
-   "end": 310.439,
+   "start": 350.188,
+   "end": 352.364,
    "speaker": "TRAINEE",
    "text": "Keep the lights on, Sera. I'll keep the sky."
   },
   {
    "id": "story.c08.b00",
-   "start": 310.689,
-   "end": 319.012,
+   "start": 352.614,
+   "end": 357.349,
    "speaker": "SERA",
-   "text": "The tower is ours again. The old code went out at 0353 and three flights turned around on hearing it. One didn't."
+   "text": "Three garrisons heard it. Two stood down. Their people are coming ashore to join us."
   },
   {
    "id": "story.c08.b01",
-   "start": 319.262,
-   "end": 328.046,
-   "speaker": "TEAL",
-   "text": "Vulture Lead followed me into the pass. He wasn't chasing a deserter. You don't chase deserters at night with your lights off. He was erasing a witness."
+   "start": 357.599,
+   "end": 363.773,
+   "speaker": "SERA",
+   "text": "Three loyalist frigates cover the landing under the weather. The command ship carries a green beacon and most of our hope."
   },
   {
    "id": "story.c08.b02",
-   "start": 328.296,
-   "end": 334.588,
+   "start": 364.023,
+   "end": 372.989,
    "speaker": "TEAL",
-   "text": "He talks on the guard channel when he's hunting. Likes you to know. Don't answer him. Let the canyon answer."
-  },
-  {
-   "id": "story.c08.b03",
-   "start": 334.838,
-   "end": 340.924,
-   "speaker": "SERA",
-   "text": "He's searching the night approach for you now. Same lights off. Same voice. He thinks he's finishing a job."
-  },
-  {
-   "id": "story.c08.b04",
-   "start": 341.174,
-   "end": 347.176,
-   "speaker": "SERA",
-   "text": "He carries a recorder. Mark where it falls. Recovery should come home with more than another empty aircraft."
-  },
-  {
-   "id": "story.c08.b05",
-   "start": 347.426,
-   "end": 348.273,
-   "speaker": "TRAINEE",
-   "text": "He's starting one."
-  },
-  {
-   "id": "story.c09.b00",
-   "start": 348.523,
-   "end": 358.311,
-   "speaker": "SERA",
-   "text": "Vulture Lead is down. His recorder survived. He carried relayed 'emergency orders', dozens, every one signed by a governor who's been dead since spring."
-  },
-  {
-   "id": "story.c09.b01",
-   "start": 358.561,
-   "end": 366.05,
-   "speaker": "TEAL",
-   "text": "Kiro talks to Lira. Lira talks to Merel. Merel talks to the harbours. Break one link and listen to who screams."
-  },
-  {
-   "id": "story.c09.b02",
-   "start": 366.3,
-   "end": 373.276,
-   "speaker": "TEAL",
-   "text": "Kiro keeps an archive. Every forged order, filed, because forgers are vain. It's the only honest thing on the plateau."
+   "text": "Storms ground frightened people. They don't ground orders, or fuel, or the people who own them. When the weather's bad, that's when they move."
   }
  ],
  "humanReview": {
