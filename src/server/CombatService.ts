@@ -286,9 +286,9 @@ function acquireTarget(session: CombatSession): void {
 	session.target = best;
 	session.lockProgress = 0;
 }
-/** Both explicit selection paths notify the tutorial, even when reselecting the same contact. */
+/** Both explicit selection paths notify the tutorial, even when reselecting the same contact; a repeat tap keeps the lock it already has. */
 function selectTarget(session: CombatSession, enemy: Enemy): void {
-	session.target = enemy; session.lockProgress = 0;
+	if (session.target !== enemy) { session.target = enemy; session.lockProgress = 0; }
 	if (session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.kind === "tutorial_target") {
 		BlueprintRunner.CycleTarget(session.blueprintState, os.clock());
 		phaseDirector.Apply(session);
