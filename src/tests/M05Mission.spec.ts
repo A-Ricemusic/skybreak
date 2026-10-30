@@ -55,6 +55,8 @@ describe("Mission 5 data: the night fuel works", () => {
 		expect([M05_START.x, M05_START.y, M05_START.z, M05_START.headingDegrees]).toEqual([M05.start.x, M05.start.y, M05.start.z, 0]);
 		expect(MissionCatalog.CountdownSeconds(5)).toBe(600);
 		expect(MissionCatalog.MaxMissionSeconds(5)).toBe(600 + 600 + 240);
+		// Par counts the full strike clock (it was 0:45 before score phases had a par rule).
+		expect(MissionScore.ParSeconds(bp)).toBe(635);
 		expect(bp.phases.size()).toBe(2);
 		expect([strike.kind, escape.kind]).toEqual(["score_threshold", "return_line"]);
 		expect(strike.scoreThreshold).toEqual({ points: 2000, seconds: 600, waitForExpiry: true });
