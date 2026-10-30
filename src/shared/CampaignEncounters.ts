@@ -4,7 +4,7 @@ import type { AceLivery } from "./AssetSelection";
 import type { MissionBlueprint, MissionPhaseBlueprint, FlightPoint } from "./MissionCatalog";
 import type { MissionAirspacePolicy, MissionScoringPolicy } from "./MissionPolicy";
 
-export const GROUND_TYPES = ["parked_bomber", "hangar", "aa_gun", "control_tower", "substation", "radar_dome", "parked_helicopter", "refinery", "fuel_tank", "pipeline", "oil_rig", "rig_tower", "ship", "crane", "sam", "control_room", "smokestack", "gas_tank", "pump_station", "destroyer", "cruiser", "submarine", "missile_boat", "supply_ship", "landing_ship", "container_ship", "gun_mount", "containers", "storage"] as const;
+export const GROUND_TYPES = ["parked_bomber", "hangar", "aa_gun", "control_tower", "substation", "radar_dome", "parked_helicopter", "refinery", "fuel_tank", "pipeline", "oil_rig", "rig_tower", "ship", "crane", "sam", "control_room", "smokestack", "gas_tank", "pump_station", "destroyer", "cruiser", "submarine", "missile_boat", "supply_ship", "landing_ship", "container_ship", "gun_mount", "containers", "storage", "tanker", "command_post"] as const;
 export type GroundTargetType = typeof GROUND_TYPES[number];
 /** HUD label (model name) of each typed ground target. */
 export const GROUND_TARGET_LABELS: { readonly [K in GroundTargetType]: string } = {
@@ -12,6 +12,7 @@ export const GROUND_TARGET_LABELS: { readonly [K in GroundTargetType]: string } 
 	parked_helicopter: "HELICOPTER", refinery: "REFINERY", fuel_tank: "FUEL TANK", pipeline: "PIPELINE", oil_rig: "OIL RIG", rig_tower: "RIG TOWER",
 	destroyer: "DESTROYER", cruiser: "CRUISER", submarine: "SUBMARINE", missile_boat: "MISSILE BOAT", supply_ship: "SUPPLY SHIP", landing_ship: "LANDING SHIP", container_ship: "CONTAINER SHIP", gun_mount: "GUN", containers: "CONTAINERS", storage: "STORAGE",
 	ship: "SHIP", crane: "CRANE", sam: "SAM", control_room: "CONTROL ROOM", smokestack: "SMOKESTACK", gas_tank: "GAS TANK", pump_station: "PUMP STATION",
+	tanker: "TANKER", command_post: "COMMAND POST",
 };
 export interface TypedGroundTarget {
 	/** Mount positions are authored world positions; movement preserves the hull-local offset. */
@@ -75,6 +76,7 @@ export function validateCampaignEncounters(blueprint: MissionBlueprint, phases: 
 		assert(phase.label.size()>0 && phase.label.size()<=40,"Phase needs a short label");
 		if(phase.count !== undefined) assert(finite(phase.count) && phase.count%1===0 && phase.count>0,"Phase count must be a positive integer");
 		validateNavalTargets(phase.groundTargets ?? [], airspace.spawnLimit);
+		for (const id of phase.bombers?.targetIds ?? []) claim(id);
 		let required = 0;
 		for (const target of phase.groundTargets ?? []) {
 			claim(target.id); point(target.position); role(target.scoreRole);

@@ -14,8 +14,10 @@ import { AircraftCollision } from "./AircraftCollision";
 import { ActorGrounding } from "./ActorGrounding";
 import type { CombatSession, AirRole, Enemy } from "./CombatSession";
 import { fixedRaiders } from "./PhaseDirectorRules";
+import { buildRearmGate } from "./EngineBatchCRuntime";
 
 export interface SpawnOptions {
+	targetId?: string;
 	arrival?: FighterArrival | StandaloneAce;
 	livery?: AceLivery;
 	friendly?: boolean;
@@ -41,6 +43,8 @@ export interface PhaseCombat {
 	liveAircraft: (session: CombatSession) => number;
 	radio: (session: CombatSession, text: string, seconds?: number, priority?: boolean) => void;
 	acquireTarget: (session: CombatSession) => void;
+	/** Re-acquire only when the current target is gone; defaults to acquireTarget for older callers. */
+	retargetIfLost?: (session: CombatSession) => void;
 	publishDamageable: (session: CombatSession) => void;
 	isCurrent: (session: CombatSession) => boolean;
 }
@@ -48,6 +52,7 @@ export interface PhaseCombat {
 /** Bound once by CombatService; no session registry or stepping clock is owned here. */
 export function createPhaseDirector(combat: PhaseCombat) {
 	const { spawnAir, activateGround, withdrawAirborne, liveAircraft, radio, acquireTarget, publishDamageable, isCurrent } = combat;
+	const retargetIfLost = combat.retargetIfLost ?? acquireTarget;
 	/** Extra raiders per wave for the session's difficulty (Ace: one). */
 	function extraRaiders(session: CombatSession): number { return Difficulty.Behaviour(session.difficulty).extraRaiders; }
 	/** A raider wave of `count`, plus the difficulty's extra (Mission 2 keeps its fixed five). */
@@ -61,7 +66,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		for (const batch of WavePlan.Admit(session.airQueue, room)) {
 			if (batch.arrival) {
 				const a=batch.arrival;
-				spawnAir(session,batch.count,"aircraft" in a && a.aircraft ? "bomber" : batch.role,{ arrival:a, optional:true, name: "name" in a ? a.name : undefined, livery: "livery" in a ? a.livery : undefined, aceHealth: "health" in a ? a.health : undefined });
+				spawnAir(session,batch.count,"aircraft" in a && a.aircraft ? "bomber" : batch.role,{ arrival:a, targetId: session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.targetIds !== undefined && ("name" in a || a.count === 1) ? a.id : undefined, optional:true, name: "name" in a ? a.name : undefined, livery: "livery" in a ? a.livery : undefined, aceHealth: "health" in a ? a.health : undefined });
 			} else if (session.bomberEncounter && (batch.role === "escort" || batch.role === "ace")) {
 				const encounter = session.bomberEncounter;
 				const leading = BomberRules.Sample(encounter.route, session.elapsed - encounter.startedAt).slots[0];
@@ -102,6 +107,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		session.airQueue.clear();
 		session.navigationMarker?.Destroy(); session.navigationMarker=undefined;
 		session.returnLineMarker?.Destroy(); session.returnLineMarker=undefined;
+		session.rearmGate?.Destroy(); session.rearmGate=undefined;
 		session.navigationActor?.Destroy(); session.navigationActor=undefined; session.actorFooting=undefined;
 		// The live list, not the catalog: twists splice new objectives in after the phase that fired them.
 		const phases=BlueprintRunner.Phases(state);
@@ -118,6 +124,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 			enemy.model.SetAttribute("SkybreakEnemy",enemy.enabled);
 			enemy.model.SetAttribute("RequiredTarget",enemy.enabled && enemy.required);
 		}
+		if (phase.rearm) session.rearmGate=buildRearmGate(session.folder,phase.rearm);
 		combat.spawnAllies(session);
 		if (phase.execution?.activatePracticeTarget) activateGround(session);
 		if (phase.kind === "required_ground" && phase.groundTargets === undefined) activateGround(session,MissionCatalog.GroundStart(phases,state.phaseIndex),phase.count ?? 0);
@@ -126,7 +133,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 			const route = compileBomberEncounter(b);
 			session.bomberEncounter = { route, startedAt: session.elapsed, laterSpawned: false, escortsSpawned: 0 };
 			const pose = BomberRules.Sample(route, 0);
-			for (let i = 0; i < b.count; i++) spawnAir(session, 1, BomberRules.Role.role, { pose: pose.slots[i], bomberSlot: i });
+			for (let i = 0; i < b.count; i++) spawnAir(session, 1, BomberRules.Role.role, { pose: pose.slots[i], bomberSlot: i, targetId: b.targetIds?.[i] });
 			requestAir(session, b.escorts.initial, "escort");
 		}
 		else if (phase.kind === "required_air" && phase.execution?.launchDelay === undefined) {
@@ -187,7 +194,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		}
 		// Refresh only at phase transitions: includes new protected actors and drops destroyed ones.
 		session.collisionParams = AircraftCollision.Parameters(session.folder);
-		acquireTarget(session);
+		retargetIfLost(session);
 	}
 
 	/** The reference's white dotted return line, laid across the ground under the flight path (presentation only). */
@@ -243,7 +250,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 			session.tutorialBanditsSpawned = true;
 			radio(session, BlueprintRunner.LiveWarning, 6, true);
 			spawnAir(session, BlueprintRunner.ActivePhase(session.blueprintState)!.count ?? 0, "bandit");
-			acquireTarget(session);
+			retargetIfLost(session);
 		}
 	}
 
@@ -318,7 +325,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 				session.hazardPhase=bs.phaseIndex;
 				activateGround(session,MissionCatalog.GroundStart(BlueprintRunner.Phases(bs),bs.phaseIndex),active.hazard.count);
 				publishDamageable(session);
-				acquireTarget(session);
+				retargetIfLost(session);
 			}
 			const chatter=active.chatter;
 			if (chatter) while (session.chatterIndex < chatter.size() && fraction >= chatter[session.chatterIndex].at) {

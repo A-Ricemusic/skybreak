@@ -42,13 +42,14 @@ describe("Bomber director integration", () => {
 		expect(ace.size()).toBe(1); expect(ace[0].options?.name).toBe("GREY KITE"); expect(ace[0].options?.optional).toBe(true);
 		h.folder.Destroy();
 	});
-	it("opens M1 with four north-quarter attackers, requests two aft at 120 s without kills, and queues the ace within budget", () => {
+	it("opens M1 with six forward attackers (budgeted), requests two aft at 120 s without kills, and queues the ace within budget", () => {
 		for (const difficulty of ["normal", "ace"] as const) {
 			const h = harness(MissionCatalog.Get(1)); h.s.difficulty = difficulty;
-			const initial = difficulty === "ace" ? 5 : 4;
+			const initial = 5;
 			h.director.Apply(h.s); h.director.Apply(h.s);
 			expect(h.calls.filter(c => c.role === "raider").size()).toBe(initial);
 			for (const c of h.calls.filter(c => c.role === "raider")) expect(c.options?.behind).toBe(false);
+			expect(h.s.airQueue.filter(w => w.role === "raider" && !w.behind).reduce((n,w)=>n+w.count,0)).toBe(difficulty === "ace" ? 2 : 1);
 			h.s.elapsed = 119.99; h.director.Step(h.s); expect(h.s.reinforceIndex).toBe(0);
 			h.s.elapsed = 120; h.director.Step(h.s); h.director.Step(h.s);
 			expect(h.s.reinforceIndex).toBe(1);

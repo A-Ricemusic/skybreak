@@ -2325,6 +2325,308 @@
         "rock-c/preview-top.png",
         "rock-c/preview-3q.png"
       ]
+    },
+    {
+      "folder": "cinematic-radio-console",
+      "robloxAssetIdsKey": "CinematicRadioConsole",
+      "title": "Field radio console with reel-to-reel deck (cutscene desk prop)",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "cinematic-radio-console.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "cinematic-radio-console-color.png",
+          "role": "color"
+        },
+        {
+          "file": "cinematic-radio-console-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "cinematic-radio-console-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "cinematic-radio-console-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        7.34,
+        7.02,
+        3.541
+      ],
+      "gameSizeStuds": [
+        7.34,
+        7.02,
+        3.541
+      ],
+      "usage": "Broken Relay cutscenes: Teal's receiver on the radio desk in every chapter; its two reels turn while a tape or the log speaks. Pending independent safety review (AGENTS.md); not uploaded. Dormant slot in src/: RobloxAssetIds entry undefined, so the cinematic keeps its procedural prop until approval and upload.",
+      "triangleCount": 3068,
+      "textures": [
+        "cinematic-radio-console-color.png 512x512",
+        "cinematic-radio-console-normal.png 512x512",
+        "cinematic-radio-console-roughness.png 512x512",
+        "cinematic-radio-console-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        7.34,
+        7.02,
+        3.541
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "cinematic-radio-console/preview-front.png",
+        "cinematic-radio-console/preview-side.png",
+        "cinematic-radio-console/preview-top.png",
+        "cinematic-radio-console/preview-3q.png",
+        "cinematic-radio-console/preview-back.png",
+        "cinematic-radio-console/preview-side-right.png",
+        "cinematic-radio-console/preview-bottom.png",
+        "cinematic-radio-console/preview-3q-front-left.png",
+        "cinematic-radio-console/preview-3q-rear-right.png",
+        "cinematic-radio-console/preview-3q-rear-left.png",
+        "cinematic-radio-console/preview-front-low.png",
+        "cinematic-radio-console/preview-front-high.png",
+        "cinematic-radio-console/preview-3q-low-front-right.png",
+        "cinematic-radio-console/preview-closeup-front.png",
+        "cinematic-radio-console/preview-closeup-deck.png",
+        "cinematic-radio-console/preview-closeup-reel.png",
+        "cinematic-radio-console/preview-closeup-rear.png",
+        "cinematic-radio-console/preview-closeup-desk-camera.png"
+      ]
+    },
+    {
+      "folder": "cinematic-field-recorder",
+      "robloxAssetIdsKey": "CinematicFieldRecorder",
+      "title": "Handheld cassette field recorder (cutscene desk prop)",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "cinematic-field-recorder.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "cinematic-field-recorder-color.png",
+          "role": "color"
+        },
+        {
+          "file": "cinematic-field-recorder-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "cinematic-field-recorder-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "cinematic-field-recorder-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        2.14,
+        1.11,
+        3.32
+      ],
+      "gameSizeStuds": [
+        2.14,
+        1.11,
+        3.32
+      ],
+      "usage": "Broken Relay cutscenes: Teal's handheld recorder on the desk (recorder close-ups); the Lid part opens in chapter 25. Pending independent safety review (AGENTS.md); not uploaded. Dormant slot in src/: RobloxAssetIds entry undefined, so the cinematic keeps its procedural prop until approval and upload.",
+      "triangleCount": 864,
+      "textures": [
+        "cinematic-field-recorder-color.png 512x512",
+        "cinematic-field-recorder-normal.png 512x512",
+        "cinematic-field-recorder-roughness.png 512x512",
+        "cinematic-field-recorder-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        2.14,
+        1.11,
+        3.32
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "cinematic-field-recorder/preview-front.png",
+        "cinematic-field-recorder/preview-side.png",
+        "cinematic-field-recorder/preview-top.png",
+        "cinematic-field-recorder/preview-3q.png",
+        "cinematic-field-recorder/preview-back.png",
+        "cinematic-field-recorder/preview-side-right.png",
+        "cinematic-field-recorder/preview-bottom.png",
+        "cinematic-field-recorder/preview-3q-front-left.png",
+        "cinematic-field-recorder/preview-3q-rear-right.png",
+        "cinematic-field-recorder/preview-3q-rear-left.png",
+        "cinematic-field-recorder/preview-front-low.png",
+        "cinematic-field-recorder/preview-front-high.png",
+        "cinematic-field-recorder/preview-3q-low-front-right.png",
+        "cinematic-field-recorder/preview-closeup-top.png",
+        "cinematic-field-recorder/preview-closeup-front.png",
+        "cinematic-field-recorder/preview-closeup-lamp.png",
+        "cinematic-field-recorder/preview-closeup-desk-camera.png"
+      ]
+    },
+    {
+      "folder": "cinematic-status-board",
+      "robloxAssetIdsKey": "CinematicStatusBoard",
+      "title": "Rolling slate status board (cutscene set prop)",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "cinematic-status-board.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "cinematic-status-board-color.png",
+          "role": "color"
+        },
+        {
+          "file": "cinematic-status-board-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "cinematic-status-board-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "cinematic-status-board-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        5.24,
+        9.53,
+        2.44
+      ],
+      "gameSizeStuds": [
+        5.24,
+        9.53,
+        2.44
+      ],
+      "usage": "Broken Relay cutscenes: Sera's board beside the radio desk; the game adds the three plain name strips (Teal's lit) in front of the slate. Pending independent safety review (AGENTS.md); not uploaded. Dormant slot in src/: RobloxAssetIds entry undefined, so the cinematic keeps its procedural prop until approval and upload.",
+      "triangleCount": 744,
+      "textures": [
+        "cinematic-status-board-color.png 512x512",
+        "cinematic-status-board-normal.png 512x512",
+        "cinematic-status-board-roughness.png 512x512",
+        "cinematic-status-board-metalness.png 512x512"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        5.24,
+        9.53,
+        2.44
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "cinematic-status-board/preview-front.png",
+        "cinematic-status-board/preview-side.png",
+        "cinematic-status-board/preview-top.png",
+        "cinematic-status-board/preview-3q.png",
+        "cinematic-status-board/preview-back.png",
+        "cinematic-status-board/preview-side-right.png",
+        "cinematic-status-board/preview-bottom.png",
+        "cinematic-status-board/preview-3q-front-left.png",
+        "cinematic-status-board/preview-3q-rear-right.png",
+        "cinematic-status-board/preview-3q-rear-left.png",
+        "cinematic-status-board/preview-front-low.png",
+        "cinematic-status-board/preview-front-high.png",
+        "cinematic-status-board/preview-3q-low-front-right.png",
+        "cinematic-status-board/preview-closeup-front.png",
+        "cinematic-status-board/preview-closeup-foot.png",
+        "cinematic-status-board/preview-closeup-back.png"
+      ]
+    },
+    {
+      "folder": "cinematic-tape-tin",
+      "robloxAssetIdsKey": "CinematicTapeTin",
+      "title": "Open coffee tin for cassette tapes (cutscene desk prop)",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "cinematic-tape-tin.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "cinematic-tape-tin-color.png",
+          "role": "color"
+        },
+        {
+          "file": "cinematic-tape-tin-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "cinematic-tape-tin-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "cinematic-tape-tin-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        1.9,
+        1.705,
+        1.9
+      ],
+      "gameSizeStuds": [
+        1.9,
+        1.705,
+        1.9
+      ],
+      "usage": "Broken Relay cutscenes: the coffee tin of Teal's tapes on the desk from chapter 1; the game stands the remaining cassettes in it. Pending independent safety review (AGENTS.md); not uploaded. Dormant slot in src/: RobloxAssetIds entry undefined, so the cinematic keeps its procedural prop until approval and upload.",
+      "triangleCount": 896,
+      "textures": [
+        "cinematic-tape-tin-color.png 256x256",
+        "cinematic-tape-tin-normal.png 256x256",
+        "cinematic-tape-tin-roughness.png 256x256",
+        "cinematic-tape-tin-metalness.png 256x256"
+      ],
+      "textureLimit": 512,
+      "robloxSizeStuds": [
+        1.9,
+        1.705,
+        1.9
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "cinematic-tape-tin/preview-front.png",
+        "cinematic-tape-tin/preview-side.png",
+        "cinematic-tape-tin/preview-top.png",
+        "cinematic-tape-tin/preview-3q.png",
+        "cinematic-tape-tin/preview-back.png",
+        "cinematic-tape-tin/preview-side-right.png",
+        "cinematic-tape-tin/preview-bottom.png",
+        "cinematic-tape-tin/preview-3q-front-left.png",
+        "cinematic-tape-tin/preview-3q-rear-right.png",
+        "cinematic-tape-tin/preview-3q-rear-left.png",
+        "cinematic-tape-tin/preview-front-low.png",
+        "cinematic-tape-tin/preview-front-high.png",
+        "cinematic-tape-tin/preview-3q-low-front-right.png",
+        "cinematic-tape-tin/preview-closeup-inside.png",
+        "cinematic-tape-tin/preview-closeup-label.png"
+      ]
     }
   ]
 }

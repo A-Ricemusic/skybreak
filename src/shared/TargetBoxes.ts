@@ -97,7 +97,23 @@ function compareDistance(a: RankedContact, b: RankedContact): boolean {
 	return a.distance < b.distance;
 }
 
+/** A rendered box in viewport pixels; friendly labels are never tappable. */
+export interface TapContact { x: number; y: number; size: number; boxed: boolean; friendly: boolean }
+
 export const TargetBoxes = {
+	TapHit<T extends TapContact>(contacts: readonly T[], x: number, y: number, minTouch = 44): T | undefined {
+		let best: T | undefined;
+		let nearest = math.huge;
+		for (const contact of contacts) {
+			if (!contact.boxed || contact.friendly) continue;
+			const half = math.max(contact.size, minTouch) / 2;
+			const dx = x - contact.x, dy = y - contact.y;
+			if (math.abs(dx) > half || math.abs(dy) > half) continue;
+			const distance = dx * dx + dy * dy;
+			if (distance < nearest) { best = contact; nearest = distance; }
+		}
+		return best;
+	},
 	/** Friendly aircraft carry a label, but never a target box or lock bracket. */
 	FriendlyTag(flags: TargetBoxFlags, userId: number): string | undefined {
 		return flags.friendly === true && flags.owner === userId ? FRIENDLY_TAG : undefined;

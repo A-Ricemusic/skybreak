@@ -99,7 +99,7 @@ describe("Uploaded asset loader with procedural fallback", () => {
 			expect((id as number) > 0 && (id as number) % 1 === 0).toBe(true);
 			count += 1;
 		}
-		expect(count).toBe(35);
+		expect(count).toBe(39);
 		expect(AssetSelection.BomberCandidates(UploadedAssetSpecs)).toEqual(["HeavyBomber"]);
 		expect(AssetSelection.CarrierCandidates(UploadedAssetSpecs)).toEqual(["Carrier"]);
 	});

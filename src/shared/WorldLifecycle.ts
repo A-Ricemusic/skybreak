@@ -40,6 +40,7 @@ export interface WorldCleanup {
 }
 /** Default bound on each cleanup step before it is cancelled. */
 export const WORLD_CLEANUP_LIMIT = 180;
+export const WORLD_LAUNCH_WAIT_LIMIT = WORLD_CLEANUP_LIMIT * 2 + 30;
 /** Seconds a cancelled step gets to stop on its own before it is stopped at its next yield. */
 export const WORLD_CANCEL_GRACE = 5;
 

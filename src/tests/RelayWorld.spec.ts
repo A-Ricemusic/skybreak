@@ -1,3 +1,7 @@
+import { robloxScheduler, worldClear } from "../server/WorldLifecycleRuntime";
+import { WorldLifecycle } from "../shared/WorldLifecycle";
+import { M04_WORLD_KEY } from "../shared/M04WorldPlan";
+import { terrainDirty } from "../server/TerrainState";
 import { M01 } from "../shared/M01Geometry";
 import { compileBomberEncounter } from "../shared/BomberEncounter";
 import { BomberRules } from "../shared/BomberRules";
@@ -13,6 +17,10 @@ import {SURFACE_MAPS,type SurfaceMap} from "../shared/AssetSelection";
 import {UploadedAssets} from "../shared/UploadedAssets";
 import {UploadedAssetSpecs,type UploadedAssetName} from "../shared/UploadedAssetSpecs";
 import {WorldPlanner,type PropAsset} from "../shared/WorldPlan";
+import {buildNightLighting} from "../server/NightLighting";
+import {GROUND_TARGET_LABELS} from "../shared/CampaignEncounters";
+import {M05_ENVIRONMENT,M05_WORLD_KEY} from "../shared/M05WorldPlan";
+import {M01_ENVIRONMENT} from "../shared/M01WorldPlan";
 
 /** Engine integration only. Included in Roblox Jest; never run by the offline VM (WorldPlan.spec audits the plans there). */
 
@@ -105,6 +113,20 @@ describe("Released campaign world integration (Studio only)",()=>{
   }
   print(`M02_STUDIO_BUILD seconds=${fixture.GetAttribute("WorldBuildSeconds")} terrain=${fixture.GetAttribute("WorldTerrainReadySeconds")} jobs=${fixture.GetAttribute("WorldTerrainJobs")} missing=${fixture.GetAttribute("WorldPropsMissing")} descendants=${fixture.GetDescendants().size()} (fake uploads)`);
  },180000);
+ it("builds M04 terrain without dormant aircraft duplicates",()=>{
+  fixture=new Instance("Folder");fixture.Name="M04WorldFixture";fixture.Parent=Workspace;
+  const world=MissionWorld.Build(4,fixture);
+  expect(world.groundTargets.size()).toBe(0);expect(fixture.GetAttribute("WorldBuildPhase")).toBe("done");
+  expect(fixture.GetDescendants().some(i=>i.IsA("Model") && i.Name.sub(1,4)==="m04_")).toBe(false);
+  print(`M04_STUDIO_BUILD seconds=${fixture.GetAttribute("WorldBuildSeconds")} terrain=${fixture.GetAttribute("WorldTerrainReadySeconds")} jobs=${fixture.GetAttribute("WorldTerrainJobs")} descendants=${fixture.GetDescendants().size()} (fake world uploads)`);
+  const gate=new WorldLifecycle(robloxScheduler);
+  gate.Cleanup({clear:worldClear(M04_WORLD_KEY),restore:()=>MissionWorld.RestoreMenu()});
+  expect(gate.Idle()).toBe(false);expect(gate.AwaitIdle()).toBe(true);
+  expect(terrainDirty()).toBe(false);
+  const again=new Instance("Folder");again.Parent=Workspace;
+  expect(MissionWorld.Build(0,again).groundTargets.size()).toBe(1);again.Destroy();
+  MissionWorld.RestoreMenu();expect(Workspace.FindFirstChild("World")).toBeDefined();
+ },180000);
  it("builds mission 3 with every typed target drawn once by the world and a raised runway, ready for combat to adopt",()=>{
   fixture=new Instance("Folder");fixture.Name="CampaignWorldFixture";fixture.Parent=Workspace;
   const specs=MissionCatalog.Get(3).phases[0].groundTargets!,world=MissionWorld.Build(3,fixture);
@@ -137,9 +159,42 @@ describe("Released campaign world integration (Studio only)",()=>{
   expect(ground).toBeDefined();expect(ground!.Position.Y).toBeLessThan(84);
   print(`M03_STUDIO_BUILD seconds=${fixture.GetAttribute("WorldBuildSeconds")} terrain=${fixture.GetAttribute("WorldTerrainReadySeconds")} plan=${fixture.GetAttribute("WorldPlanSeconds")} jobs=${fixture.GetAttribute("WorldTerrainJobs")} longest=${fixture.GetAttribute("WorldTerrainLongest")} descendants=${fixture.GetDescendants().size()} lowland=${ground!.Position.Y}`);
  },240000);
+ it("builds mission 5 at night with every ground and naval target adopted once, no helicopter scenery, and lights that leave with the world",()=>{
+  fixture=new Instance("Folder");fixture.Name="CampaignWorldFixture";fixture.Parent=Workspace;
+  const bp=MissionCatalog.Get(5),specs=bp.phases[0].groundTargets!,started=os.clock(),world=MissionWorld.Build(5,fixture);
+  buildNightLighting(fixture,bp.nightLighting!);
+  const seconds=os.clock()-started;
+  expect(world.groundTargets.size()).toBe(0);
+  expect(fixture.GetAttribute("WorldBuildPhase")).toBe("done");
+  expect(Lighting.GetAttribute(ENVIRONMENT_ATTRIBUTE)).toBe(M05_WORLD_KEY);
+  expect(Lighting.ClockTime).toBeCloseTo(M05_ENVIRONMENT.clock,3);
+  const visuals=world.targetVisuals!;
+  expect(visuals.size()).toBe(specs.size());
+  for(const spec of specs){
+   const model=visuals.get(spec.id)!;
+   expect(model.IsDescendantOf(fixture)).toBe(true);
+   expect(model.Name).toBe(GROUND_TARGET_LABELS[spec.type]);expect(model.GetAttribute("TargetId")).toBe(spec.id);
+   const aim=model.PrimaryPart!;expect(aim.Name).toBe("Aim");
+   expect(math.abs(aim.Position.X-spec.position.x)).toBeLessThan(200);expect(math.abs(aim.Position.Z-spec.position.z)).toBeLessThan(200);
+  }
+  const tagged=fixture.GetDescendants().filter((i)=>i.IsA("Model") && i.GetAttribute("TargetId")!==undefined);
+  expect(tagged.size()).toBe(specs.size());
+  for(const item of fixture.GetDescendants()) if(item.IsA("Model")) expect(item.GetAttribute("TargetType")==="helicopter").toBe(false);
+  const lights=fixture.GetDescendants().filter((i)=>i.IsA("BasePart") && (i.Name==="Industrial light" || i.Name==="Searchlight"));
+  expect(lights.size()).toBe(bp.nightLighting!.fields.reduce((n,f)=>n+f.rows*f.columns,0)+bp.nightLighting!.searchlights.size());
+  expect(fixture.GetDescendants().filter((i)=>i.IsA("PointLight")).size()).toBe(16);
+  print(`M05_STUDIO_BUILD seconds=${string.format("%.2f",seconds)} world=${fixture.GetAttribute("WorldBuildSeconds")} terrain=${fixture.GetAttribute("WorldTerrainReadySeconds")} jobs=${fixture.GetAttribute("WorldTerrainJobs")} missing=${fixture.GetAttribute("WorldPropsMissing")} descendants=${fixture.GetDescendants().size()} (fake uploads)`);
+  // No night leaks into mission 1: the lights leave with the world and mission 1 applies its own sky.
+  cleanup(fixture);
+  fixture=new Instance("Folder");fixture.Name="CampaignWorldFixture";fixture.Parent=Workspace;
+  MissionWorld.Build(1,fixture);
+  expect(Lighting.GetAttribute(ENVIRONMENT_ATTRIBUTE)).toBe("m01_sea_island");
+  expect(Lighting.ClockTime).toBeCloseTo(M01_ENVIRONMENT.clock,3);
+  expect(Workspace.GetDescendants().some((i)=>i.Name==="Industrial light" || i.Name==="Searchlight")).toBe(false);
+ },300000);
  it("rejects every unreleased world before building anything",()=>{
   fixture=new Instance("Folder");fixture.Parent=Workspace;
-  for(let id=4;id<=18;id++){const [ok]=pcall(()=>MissionWorld.Build(id,fixture!));expect(ok).toBe(false);}
+  for(let id=4;id<=18;id++){if(MissionCatalog.Available(id)) continue;const [ok]=pcall(()=>MissionWorld.Build(id,fixture!));expect(ok).toBe(false);}
   expect(fixture.GetDescendants().size()).toBe(0);
  });
 });

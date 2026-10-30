@@ -61,20 +61,15 @@ describe("voice-over cue lookup", () => {
 });
 
 describe("shipped voice table", () => {
-	it("keeps exact recorded transcripts; the rewritten opening answer stays subtitle-only", () => {
-		let count = 0;
-		for (const chapter of STORY) {
-			chapter.beats.forEach((beat, index) => {
-				const cue = VOICE_CUES[storyLineId(chapter.id, index)] as VoiceCue | undefined;
-				if (chapter.id === 0 && index === 5) {
-					expect(Voice.Story(0,5,beat.text)).toBeUndefined();
-					expect(cue?.text).never.toBe(beat.text);
-				} else expect(cue?.text).toBe(beat.text);
-				expect(cue?.radio).toBe(false);
-				count++;
-			});
-		}
-		expect(count).toBeGreaterThan(150);
+	it("reuses exact speaker/text recordings and leaves changed lines silent", () => {
+		let recorded = 0, pending = 0;
+		for (const chapter of STORY) chapter.beats.forEach((beat, index) => {
+			const clip=Voice.Story(chapter.id,index,beat.text);
+			if (beat.recordingId === undefined) { expect(clip).toBeUndefined(); pending++; }
+			else { const cue=VOICE_CUES[beat.recordingId]; expect(cue.text).toBe(beat.text); expect(cue.speaker).toBe(speakerStyle(beat.speaker).name === "MARSHAL" ? "RUSK" : speakerStyle(beat.speaker).name === "FLIGHT LOG" ? "LOG" : speakerStyle(beat.speaker).name === "RECORDER 7-T" ? "RECORDER" : speakerStyle(beat.speaker).name); expect(clip).toBeDefined(); recorded++; }
+		});
+		expect(recorded).toBe(78);
+		expect(pending).toBe(44);
 	});
 	it("maps catalog radio except explicitly subtitle-only M1 safety instructions", () => {
 		const texts = radioTexts();
@@ -115,7 +110,8 @@ describe("shipped voice table", () => {
 	});
 	it("keeps Teal's recordings on tape and gives every speaker in a cue a known chip name", () => {
 		for (const chapter of STORY) chapter.beats.forEach((beat, index) => {
-			const cue = VOICE_CUES[storyLineId(chapter.id, index)];
+			if (beat.recordingId === undefined) return;
+			const cue = VOICE_CUES[beat.recordingId];
 			if (speakerStyle(beat.speaker).name === "TEAL") expect(cue.tape).toBe(true);
 		});
 	});
