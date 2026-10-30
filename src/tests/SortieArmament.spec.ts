@@ -92,6 +92,40 @@ describe("Engine batch D1: opt-in sortie armament", () => {
 		GunRules.Refill(gun, 9999); expect(gun.rounds).toBe(12);
 		expect(GunRules.Step(gun, 0 / 0)).toBe(0);
 	});
+	it("never beats the held rate by cycling the trigger (shot cooldown survives releases)", () => {
+		const dt = 1 / 30, steps = 300;
+		const held = GunRules.New({ gun: { rounds: 2000 } })!;
+		GunRules.Start(held);
+		let heldShots = 0;
+		for (let step = 0; step < steps; step++) heldShots += GunRules.Step(held, dt);
+		expect(heldShots).toBeGreaterThanOrEqual(100); expect(heldShots).toBeLessThanOrEqual(101);
+		// Press every 90 ms, release 45 ms later (the reviewer's reproduction), re-sending Start while held.
+		const cycling = GunRules.New({ gun: { rounds: 2000 } })!;
+		let cycledShots = 0;
+		for (let step = 0; step < steps; step++) {
+			const phase = (step * dt) % 0.09;
+			if (phase < 0.045) GunRules.Start(cycling); else GunRules.Stop(cycling);
+			cycledShots += GunRules.Step(cycling, dt);
+		}
+		expect(cycledShots).toBeLessThanOrEqual(heldShots);
+		// Worst case: press, release and press again inside every step.
+		const spam = GunRules.New({ gun: { rounds: 2000 } })!;
+		let spamShots = 0;
+		for (let step = 0; step < steps; step++) { GunRules.Start(spam); GunRules.Stop(spam); GunRules.Start(spam); spamShots += GunRules.Step(spam, dt); }
+		expect(spamShots).toBeLessThanOrEqual(heldShots);
+		// A release does not bank credit: after a long pause the next press fires one round, not a burst.
+		GunRules.Stop(spam); expect(GunRules.Step(spam, 5)).toBe(0); expect(spam.cooldown).toBe(0);
+		GunRules.Start(spam); expect(GunRules.Step(spam, dt)).toBe(1);
+		GunRules.Stop(spam); GunRules.Start(spam); expect(GunRules.Step(spam, dt)).toBe(0);
+	});
+	it("blocks a round on any cover before the aim point, near or far, but never on the target itself", () => {
+		expect(GunRules.Occluded(undefined, false, 500)).toBe(false);
+		expect(GunRules.Occluded(490, false, 500)).toBe(true); // cover 10 studs in front of the target
+		expect(GunRules.Occluded(50, false, 500)).toBe(true); // a ridge near the muzzle
+		expect(GunRules.Occluded(495, true, 500)).toBe(false); // the target's own parts
+		expect(GunRules.Occluded(500 - GunRules.CoverEpsilon + 0.5, false, 500)).toBe(false); // at the aim point
+		expect(GunRules.Occluded(500 - GunRules.CoverEpsilon - 0.5, false, 500)).toBe(true);
+	});
 	it("resolves each round to the nearest allowed target inside the cone and range", () => {
 		expect(GunRules.Resolve(ORIGIN, NOSE, [ahead(500), ahead(300)])).toBe(1);
 		expect(GunRules.Resolve(ORIGIN, NOSE, [ahead(300, 0, false, false), ahead(500)])).toBe(1);

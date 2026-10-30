@@ -47,7 +47,7 @@ The [missions 6–18 engine plan](../specs/engine/missions-06-18-plan.md) lists 
 3. **D3 for mission 7:** incoming artillery (warning, countdown, safe-altitude band under the canyon rim), canyon flight checks, an area-attack weapon.
 4. **D4–D6 for missions 8–10:** intercept-and-hold objectives with a protected site, bigger air battles, carrier-deck rearm, friendly landing/column progress, repeated artillery.
 5. **D7–D9 for missions 11–13:** protected airliners/plane that enemies target, ground and airship radar jammers, rearm during a strike, guided bombs, elite retreat and ejection.
-6. **D10–D13 for missions 14–18:** cruise-missile intercepts, city/column support, rearm repair (needs your decision), Rusk's protected withdrawal, generators-unlock-core, the vent run and the final duel.
+6. **D10–D13 for missions 14–18:** cruise-missile intercepts, city/column support, rearm repair for missions 15–17 only (provisional D-156), Rusk's protected withdrawal, generators-unlock-core, the vent run and the final duel.
 
 D1 has offline tests only; its Roblox Jest specs compile but have not run because Studio is signed out (see Blockers). No Studio or Player check is claimed.
 

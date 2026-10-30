@@ -94,13 +94,19 @@ const GUN_GROUND_RADIUS = 20;
 const GUN_SPREAD = 0.02;
 /** Most impact effects the server sends per second (each round still counts). */
 const GUN_EFFECT_INTERVAL = 0.15;
+/** Float slack for the shot clock, and how far short of the aim point an obstacle hit still counts as the target. */
+const SHOT_EPSILON = 1e-6;
+const COVER_EPSILON = 2;
 
 export interface GunState {
 	rounds: number;
 	capacity: number;
 	held: boolean;
-	/** Seconds of trigger time not yet spent on a round. */
-	timer: number;
+	/**
+	 * Seconds until the next round may fire. Server-owned and kept across releases: pressing the
+	 * trigger never replenishes firing time, so tapping cannot beat the held rate.
+	 */
+	cooldown: number;
 	fired: number;
 	hits: number;
 	/** Elapsed time of the last impact effect sent. */
@@ -124,27 +130,44 @@ export const GunRules = {
 	/** No gun unless the mission fits one. */
 	New(armament: SortieArmament | undefined): GunState | undefined {
 		const fit = armament?.gun;
-		return fit ? { rounds: fit.rounds, capacity: fit.rounds, held: false, timer: 0, fired: 0, hits: 0, effectAt: -math.huge } : undefined;
+		return fit ? { rounds: fit.rounds, capacity: fit.rounds, held: false, cooldown: 0, fired: 0, hits: 0, effectAt: -math.huge } : undefined;
 	},
-	/** Trigger pressed: the first round goes on the next step. Refused (and not held) when the magazine is empty. */
+	/** Trigger pressed: the next round fires once the shot cooldown allows. Refused (and not held) when the magazine is empty. */
 	Start(state: GunState): "gun_empty" | undefined {
 		if (!finite(state.rounds) || state.rounds <= 0) { state.held = false; return "gun_empty"; }
-		if (!state.held) { state.held = true; state.timer = GUN_RATE > 0 ? 1 / GUN_RATE : 0; }
+		state.held = true;
 		return undefined;
 	},
-	/** Trigger released, or the sortie took the jet away (pause, landing, rearm, input silence). */
-	Stop(state: GunState): void { state.held = false; state.timer = 0; },
-	/** Rounds to fire in this fixed step; spends them and releases the trigger when the magazine runs dry. */
+	/** Trigger released, or the sortie took the jet away (pause, landing, rearm, input silence). The cooldown keeps running. */
+	Stop(state: GunState): void { state.held = false; },
+	/**
+	 * Call every fixed step, held or not. Rounds to fire in this step: one each time the shot cooldown
+	 * expires while held. Released, the cooldown only runs down to zero (no banked credit).
+	 */
 	Step(state: GunState, dt: number): number {
-		if (!state.held || !finite(dt) || dt <= 0) return 0;
-		if (state.rounds <= 0) { GunRules.Stop(state); return 0; }
-		state.timer += dt;
-		let rounds = 0;
+		if (!finite(dt) || dt <= 0) return 0;
+		if (state.rounds <= 0) state.held = false;
+		if (!state.held) { state.cooldown = math.max(0, state.cooldown - dt); return 0; }
+		// Walk this step's time: a round fires whenever the cooldown is spent; one due exactly at the
+		// step's end belongs to the next step. Held time never carries back before the press.
+		let rounds = 0, budget = dt;
 		const interval = 1 / GUN_RATE;
-		while (state.timer >= interval && state.rounds > 0) { state.timer -= interval; state.rounds -= 1; state.fired += 1; rounds += 1; }
+		while (state.rounds > 0) {
+			if (state.cooldown <= SHOT_EPSILON) { state.cooldown = interval; state.rounds -= 1; state.fired += 1; rounds += 1; }
+			else if (state.cooldown < budget - SHOT_EPSILON) { budget -= state.cooldown; state.cooldown = 0; }
+			else { state.cooldown = math.max(0, state.cooldown - budget); break; }
+		}
 		if (state.rounds <= 0) GunRules.Stop(state);
 		return rounds;
 	},
+	/**
+	 * Line-of-fire verdict from one ray cast muzzle -> aim point (`distance` studs): any terrain/scenery hit
+	 * before the aim point blocks the round, short of a 2-stud epsilon; hits on the target's own model never do.
+	 */
+	Occluded(hitDistance: number | undefined, hitIsTarget: boolean, distance: number): boolean {
+		return hitDistance !== undefined && !hitIsTarget && hitDistance < distance - COVER_EPSILON;
+	},
+	CoverEpsilon: COVER_EPSILON,
 	Refill(state: GunState, rounds: number): void { state.rounds = math.clamp(math.floor(rounds), 0, state.capacity); },
 	/** Miss tolerance for a candidate `along` studs down the line. */
 	Tolerance(ground: boolean, along: number): number { return (ground ? GUN_GROUND_RADIUS : GUN_AIR_RADIUS) + GUN_SPREAD * math.max(0, along); },

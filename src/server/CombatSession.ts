@@ -120,8 +120,10 @@ export interface CombatSession {
 	evadeRemaining: number; regen: number; lockProgress: number;
 	/** Second weapon slot chosen at the briefing; authoritative charges, cooldown and effect timer. */
 	special: SpecialState;
-	/** Batch D1: the fitted gun (rounds, trigger, rate timer); absent unless the mission's armament fits one. */
+	/** Batch D1: the fitted gun (rounds, trigger, shot cooldown); absent unless the mission's armament fits one. */
 	gun?: GunState;
+	/** Gun line-of-fire filter (ground surfaces, water ignored), built on first use. */
+	gunParams?: RaycastParams;
 	/** Level chosen at the briefing; scales the act tuning through `tuned()` and enemy health. */
 	difficulty: DifficultyKind;
 	allies: Enemy[];

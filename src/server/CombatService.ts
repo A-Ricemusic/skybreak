@@ -37,6 +37,7 @@ import { countParts } from "../shared/MissionParts";
 import { FireNotice, WeaponRules } from "../shared/WeaponRules";
 import { SalvoCandidate, SpecialKind, SpecialWeapons } from "../shared/SpecialWeapons";
 import { GunCandidate, GunRules, SortieArmament } from "../shared/SortieArmament";
+import { gunOccluded, gunRaycastParams } from "./GunRuntime";
 import { Difficulty, DifficultyKind, DifficultyKnob } from "../shared/Difficulty";
 import { ThreatRules } from "../shared/ThreatRules";
 import { EvadeRules } from "../shared/EvadeRules";
@@ -1402,13 +1403,6 @@ function startGun(session: CombatSession): void {
 	const refused = GunRules.Start(session.gun);
 	if (refused) denyFire(session, refused);
 }
-/** Terrain or solid scenery between the muzzle and the target eats the round (the target's own parts do not). */
-function gunOccluded(session: CombatSession, from: Vector3, enemy: Enemy): boolean {
-	if (!session.groundParams) return false;
-	const delta = enemy.position.sub(from);
-	const result = Workspace.Raycast(from, delta, session.groundParams);
-	return result !== undefined && !result.Instance.IsDescendantOf(enemy.model) && result.Distance < delta.Magnitude - 30;
-}
 /** One gun round on an enemy: the same ace staging and kill path as a missile hit, without a projectile. */
 function gunStrike(session: CombatSession, enemy: Enemy): void {
 	if (enemy.aceState && AceRules.Invulnerable(enemy.aceState, session.elapsed)) return;
@@ -1440,7 +1434,10 @@ function stepGun(session: CombatSession, dt: number): void {
 		const index = GunRules.Resolve(point(origin), forward, candidates);
 		if (index === undefined) continue;
 		const enemy = session.enemies[index];
-		if (gunOccluded(session, origin, enemy)) continue;
+		if (session.groundParams) {
+			session.gunParams ??= gunRaycastParams(session.groundParams);
+			if (gunOccluded(session.gunParams, origin, enemy.position, enemy.model)) continue;
+		}
 		gun.hits += 1;
 		if (GunRules.TakeEffect(gun, session.elapsed)) effect(session, "hit", enemy.position, { scale: 0.5 });
 		gunStrike(session, enemy);

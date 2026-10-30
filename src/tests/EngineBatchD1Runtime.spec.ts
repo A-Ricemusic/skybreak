@@ -7,6 +7,8 @@ import { TargetScore } from "../shared/TargetScore";
 import { FlightMath } from "../shared/FlightMath";
 import { GunRules, SortieArmament } from "../shared/SortieArmament";
 import type { RearmPlan } from "../shared/EngineBatchC";
+import { Workspace } from "@rbxts/services";
+import { gunOccluded, gunRaycastParams } from "../server/GunRuntime";
 
 const plan: RearmPlan = { zone: { x: 0, y: 145.7786702793, z: 2400 }, radius: 2000, landing: { touchdown: { x: 0, y: 20, z: 0 }, headingDegrees: 0, approachDistance: 2400, rolloutDistance: 400, approachSeconds: 30, rolloutSeconds: 10, glideDegrees: 3 }, takeoffSeconds: 10, missiles: true, special: true, health: false };
 function session(armament: MissionBlueprint["armament"], rearm: RearmPlan = plan): CombatSession {
@@ -39,5 +41,26 @@ describe("Batch D1 runtime paths (Studio lease required to execute)", () => {
 		s.gun!.rounds = 3;
 		stepRearm(s, 25, 8, () => {}); stepRearm(s, 25, 8, () => {});
 		expect(s.gun!.rounds).toBe(3); expect(s.missiles).toBe(8);
+	});
+	it("lets cover block gun rounds near the target and near the muzzle, but not the target's own hull", () => {
+		const folder = new Instance("Folder"); folder.Parent = Workspace;
+		const block = (name: string, z: number, size: Vector3, parent: Instance = folder) => {
+			const part = new Instance("Part"); part.Name = name; part.Anchored = true; part.Size = size; part.Position = new Vector3(0, 5000, z); part.Parent = parent; return part;
+		};
+		try {
+			const target = new Instance("Model"); target.Parent = folder;
+			block("Hull", -500, new Vector3(30, 20, 30), target);
+			const near = block("NearCover", -490, new Vector3(40, 40, 2));
+			const far = block("FarCover", -50, new Vector3(40, 40, 2));
+			const surfaces = new RaycastParams(); surfaces.FilterType = Enum.RaycastFilterType.Include; surfaces.FilterDescendantsInstances = [folder]; surfaces.IgnoreWater = false;
+			const params = gunRaycastParams(surfaces);
+			expect(params.IgnoreWater).toBe(true);
+			const from = new Vector3(0, 5000, 0), aim = new Vector3(0, 5000, -500);
+			expect(gunOccluded(params, from, aim, target)).toBe(true);
+			near.Parent = undefined;
+			expect(gunOccluded(params, from, aim, target)).toBe(true);
+			far.Parent = undefined;
+			expect(gunOccluded(params, from, aim, target)).toBe(false);
+		} finally { folder.Destroy(); }
 	});
 });
