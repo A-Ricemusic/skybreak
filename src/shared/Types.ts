@@ -153,6 +153,7 @@ export interface FlightControlHandoff {
 	sequence: number;
 }
 export interface MissionStarted {
+	launchId?: number;
 	initialState?: import("./FlightMath").FlightState;
 	launchIntro?: boolean;
 	/** Effective session limits delivered reliably before client control; absent on old servers. */
@@ -166,6 +167,7 @@ export interface MissionStarted {
 }
 /** World and aircraft exist on the server; play begins on "Started" once the client is ready or the server times out. */
 export interface MissionLoading {
+	launchId?: number;
 	missionId?: number;
 	kind: "Loading";
 	slot: number;
@@ -272,6 +274,7 @@ export interface LandingStarted { kind: "LandingStarted"; plan: import("./Engine
 /** The server accepted a landing skip; `elapsed` is its authoritative landing time (the runway hold). */
 export interface LandingSkipped { kind: "LandingSkipped"; elapsed: number }
 /** The launch is queued until the previous world's cleanup completes; the request stays open. */
-export interface MissionQueued { kind: "Queued"; missionId: number }
-export type MissionMessage = LandingStarted | LandingSkipped | MissionQueued | MissionLoading | MissionStarted | FlightControlHandoff | HudState | MissionFinished;
+export interface MissionQueued { launchId?: number; kind: "Queued"; missionId: number }
+export interface MissionBuilding { launchId?: number; kind: "Building"; missionId: number; folder: Instance }
+export type MissionMessage = MissionBuilding | LandingStarted | LandingSkipped | MissionQueued | MissionLoading | MissionStarted | FlightControlHandoff | HudState | MissionFinished;
 export type FinishedCallback = (player: Player, won: boolean, stats: MissionStats) => void;

@@ -41,6 +41,8 @@ export interface PhaseCombat {
 	liveAircraft: (session: CombatSession) => number;
 	radio: (session: CombatSession, text: string, seconds?: number, priority?: boolean) => void;
 	acquireTarget: (session: CombatSession) => void;
+	/** Re-acquire only when the current target is gone; defaults to acquireTarget for older callers. */
+	retargetIfLost?: (session: CombatSession) => void;
 	publishDamageable: (session: CombatSession) => void;
 	isCurrent: (session: CombatSession) => boolean;
 }
@@ -48,6 +50,7 @@ export interface PhaseCombat {
 /** Bound once by CombatService; no session registry or stepping clock is owned here. */
 export function createPhaseDirector(combat: PhaseCombat) {
 	const { spawnAir, activateGround, withdrawAirborne, liveAircraft, radio, acquireTarget, publishDamageable, isCurrent } = combat;
+	const retargetIfLost = combat.retargetIfLost ?? acquireTarget;
 	/** Extra raiders per wave for the session's difficulty (Ace: one). */
 	function extraRaiders(session: CombatSession): number { return Difficulty.Behaviour(session.difficulty).extraRaiders; }
 	/** A raider wave of `count`, plus the difficulty's extra (Mission 2 keeps its fixed five). */
@@ -187,7 +190,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		}
 		// Refresh only at phase transitions: includes new protected actors and drops destroyed ones.
 		session.collisionParams = AircraftCollision.Parameters(session.folder);
-		acquireTarget(session);
+		retargetIfLost(session);
 	}
 
 	/** The reference's white dotted return line, laid across the ground under the flight path (presentation only). */
@@ -243,7 +246,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 			session.tutorialBanditsSpawned = true;
 			radio(session, BlueprintRunner.LiveWarning, 6, true);
 			spawnAir(session, BlueprintRunner.ActivePhase(session.blueprintState)!.count ?? 0, "bandit");
-			acquireTarget(session);
+			retargetIfLost(session);
 		}
 	}
 
@@ -318,7 +321,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 				session.hazardPhase=bs.phaseIndex;
 				activateGround(session,MissionCatalog.GroundStart(BlueprintRunner.Phases(bs),bs.phaseIndex),active.hazard.count);
 				publishDamageable(session);
-				acquireTarget(session);
+				retargetIfLost(session);
 			}
 			const chatter=active.chatter;
 			if (chatter) while (session.chatterIndex < chatter.size() && fraction >= chatter[session.chatterIndex].at) {

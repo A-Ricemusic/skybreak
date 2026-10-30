@@ -1,9 +1,10 @@
-import { ReplicatedStorage } from "@rbxts/services";
+import { Players, ReplicatedStorage } from "@rbxts/services";
 import { MissionAssets } from "../shared/MissionAssets";
 import { JetFactory } from "../shared/JetFactory";
 import { GameConfig } from "../shared/GameConfig";
 import { Remotes } from "../shared/Types";
 import { CampaignService } from "./CampaignService";
+import { CharacterPolicy } from "./CharacterPolicy";
 import { CombatService } from "./CombatService";
 import { WorldAssets } from "./WorldAssets";
 import { WorldBuilder } from "./WorldBuilder";
@@ -23,6 +24,9 @@ function ensureRemote<T extends "RemoteFunction" | "RemoteEvent" | "UnreliableRe
 }
 
 function initialize(): void {
+	// First, before any player can join: the game never spawns an avatar (see CharacterPolicy).
+	const [characterPolicyApplied, characterPolicyError] = pcall(() => CharacterPolicy.Apply(Players));
+	if (!characterPolicyApplied) warn(`SKYBREAK character policy failed; avatars may spawn: ${tostring(characterPolicyError)}`);
 	const existingFolder = ReplicatedStorage.FindFirstChild("Remotes");
 	let remotesFolder: Folder | undefined;
 	if (existingFolder?.IsA("Folder")) {

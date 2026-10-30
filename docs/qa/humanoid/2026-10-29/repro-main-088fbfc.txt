@@ -1,0 +1,35 @@
+# Studio play-solo on unmodified origin/main (088fbfc), place built from /tmp worktree.
+# Server logger: docs/qa/humanoid/2026-10-29/repro-logger.server.luau. Timeline (seconds after arming):
+#   ~6.5 s  client invoked StartMission practice (slot 1, mission 0)
+#   ~86 s   client invoked ReturnToMenu; +12 s StartMission mission 1
+#   ~160 s  mission 1 session ended on its own (no pilot input); lobby restored
+logger armed; CharacterAutoLoads=true FallenPartsDestroyHeight=-500 players=1 character=Workspace.A_Ricemusic pos=0, 26.9739990234375, 0
+[   0.0s] CHARACTER ADDED A_Ricemusic World folder present: true
+[   0.0s] POS 0 27 0 anchored false World true combat 0
+[   6.0s] POS 0 27 0 anchored false World true combat 0
+[   7.1s] POS 0 27 0 anchored false World true combat 1
+[   8.2s] POS 0 23 0 anchored false World false combat 1      <- lobby World destroyed by the practice world build; avatar starts falling
+[   9.2s] POS 0 -10 0 anchored false World false combat 1
+[  10.3s] POS 3 -26 -1 anchored false World false combat 1
+[  11.3s] POS 3 -26 -1 anchored false World false combat 1
+[  12.3s] POS 3 -78 -1 anchored false World false combat 1
+[  13.3s] POS 3 -286 -1 anchored true World false combat 1    <- CombatService anchors the root only now, after the build; avatar hangs in the void at Y=-286
+  ... (identical lines each second until 85.3 s)
+[  86.4s] POS 3 -286 -1 anchored false World true combat 0    <- ReturnToMenu: cleanupSession unanchors the root
+[  87.7s] POS 3 -474 -1 anchored false World true combat 0
+[  87.7s] ROOT REMOVED (destroyed) last Y -506                <- FallenPartsDestroyHeight (-500)
+[  87.7s] HEALTH 0 state Dead rootY gone
+[  87.7s] DIED rootY gone root parent nil                     <- death 1: red flash, health bar 0
+[  88.8s] HEALTH 1.0159862041473389 state Dead rootY gone
+[  92.8s] HEALTH 5.081782341003418 state Dead rootY gone
+[  93.4s] CHARACTER ADDED A_Ricemusic World folder present: true   <- Roblox respawn (RespawnTime 5 s) at the origin
+[ 100.9s] ROOT REMOVED (destroyed) last Y -506                <- mission 1 build destroyed the lobby again; this character was never anchored
+[ 100.9s] HEALTH 0 state Dead rootY gone
+[ 100.9s] DIED rootY gone root parent nil                     <- death 2
+[ 106.0s] HEALTH 5.120324611663818 state Dead rootY gone
+[ 106.3s] CHARACTER ADDED A_Ricemusic World folder present: false  <- respawn into the mission world
+[ 160.6s] ROOT REMOVED (destroyed) last Y -508                <- mission 1 ended; world folder destroyed and terrain cleared under the avatar
+[ 160.6s] HEALTH 0 state Dead rootY gone
+[ 160.6s] DIED rootY gone root parent nil                     <- death 3
+[ 166.0s] CHARACTER ADDED A_Ricemusic World folder present: true
+[ 188.1s] character=Workspace.A_Ricemusic pos=0, 26.97, 0.96 World=true combat=0

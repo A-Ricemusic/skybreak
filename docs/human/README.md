@@ -2,6 +2,9 @@
 
 Last updated: 2026-10-29, against main `7d73c44` (mission 3 merged).
 
+The new 18-mission campaign is live in Roblox Player through the automatic pipeline. **Practice flight and missions 1 to 3 are playable; missions 4 to 18 are locked.** The redesign rebuilds missions and worlds to match Ace Combat 04's structure and pacing while keeping the Broken Relay story and original shipped expression. Mission 2 is ready for the owner's beta test; see [Next](next.md).
+
+Targeting (#157): the jet now targets what the nose is on. Auto-acquire and TGT use the same nose-first order (ahead, in range and visible first; required targets favoured at similar bearings; blocked, out-of-range and behind contacts last). TGT snaps to the nose-best, then advances; quick presses keep walking the list. On a phone, tap an enemy target box to select it. Build and offline checks pass; no agent phone or Player check is claimed (see [Blockers](blockers.md) for the Roblox Jest status).
 The new 18-mission campaign is live in Roblox Player through the automatic pipeline. **Practice flight and missions 1–3 are playable; missions 4–18 are locked.** The redesign rebuilds missions and worlds to match Ace Combat 04's structure and pacing while keeping the Broken Relay story and original shipped expression. Mission 2 is ready for the owner's beta test; see [Next](next.md).
 
 **Voice (2026-10-30):** Roblox rejected the regenerated voiceBank01, and there will be no more audio uploads (D-142). The approved live voice is unaffected. New and changed story lines are subtitle-only. #159 rewrites the 10 riskiest lines. See [blockers](blockers.md).
@@ -10,9 +13,14 @@ The new 18-mission campaign is live in Roblox Player through the automatic pipel
 
 Mission 2 became playable in #143 after its dormant world (#140) and engine batch A (#138). It unlocks after mission 1 and preserves mission 1 score breakdowns through completion, replays and save reloads. The publish workflow returned place version 92. No agent Player test is claimed.
 
+The owner's report of the avatar dying in flight (zero health bar top right, red screen flash) is diagnosed and fixed in [PR #156](https://github.com/A-Ricemusic/skybreak/pull/156): the game no longer spawns a Roblox avatar at all and hides the default health GUI (D-086). Verified in Studio across practice, mission 1 and mission 2; not a Player test.
+
+Missions 3–5 are in review: [#147](https://github.com/A-Ricemusic/skybreak/pull/147), [#149](https://github.com/A-Ricemusic/skybreak/pull/149), and [#148](https://github.com/A-Ricemusic/skybreak/pull/148). Their worlds (#139/#144) and engines (#141/#145) are merged but dormant. They remain locked on main. Latest publish: place version **94** at `088fbfc`; this does not activate missions 3–5. See the per-level page for reported Studio evidence, open findings and beta checklists. No agent Player test is claimed.
 Mission 3 merged in [#147](https://github.com/A-Ricemusic/skybreak/pull/147) and is live by pipeline convention; no new Player test is claimed. Missions 4–5 remain in review (#149/#148). The story remap (#159) aligns all 18 chapters and the finale, with future mission text and a recording manifest. New dialogue is subtitle-only (D-142); Studio verification is pending; see [routing audit](../specs/story/routing-audit.md).
 
 The mission 3 PR (#147) also adds a shared world gate: after any sortie the world is cleared in the background and the next launch waits, queued, until that finishes (D-067). Provisional mission 3 decisions are D-061–D-067 in [Decisions](decisions.md).
+
+Audio policy update (D-142, owner, 2026-10-30): no further audio uploads; story continues in subtitles beyond existing approved voices and changed lines stay silent. The rejected bank is preserved at `evidence/voicebank01-rejected` (`ff4a78b`); [full incident case](../qa/audio-rejections/2026-10-30-voicebank01.md). This documentation adds no gameplay changes or Player verification.
 
 ## Mission progress
 
