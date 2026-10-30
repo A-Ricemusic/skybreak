@@ -18,7 +18,11 @@ Offline chunk/yield model at0.25-second terrain slices:0.07ms solid/0.2ms water 
 
 63863296 voxel writes · 2153 jobs · 32616 solid / 0 native-water chunk touches · 10 modeled yields · 349 Parts ·0props ·605 reserved descendants · **7.28312s** estimate · **8.716880s** headroom.
 
-Offline tests cover deterministic/checkpointed plans, dormant selection, inventories, foundations, sealing, water connectivity, approach/flight obstruction, swept M18 trench/vent and open duel geometry, negative-control obstruction and budgets. Validation: frozen dependency install and build passed; full offline validator exited 0 (854 Luau contracts, 124 Python tests, plus document/UI/voice/radio/place gates). No Studio lease, Player test, phone performance measurement, audio listening or new footage inspection is claimed. Accepted specs supply reference evidence; coordinate/layout/count proposals remain labelled assumptions. Rendered comparison, real flight feel and owner acceptance remain future review gates.
+Offline tests cover deterministic/checkpointed plans, dormant selection, inventories, foundations, sealing, water connectivity, approach/flight obstruction, swept M18 trench/vent and open duel geometry, negative-control obstruction and budgets. Validation: frozen dependency install and build passed; full offline validator exited 0 (856 Luau contracts, 124 Python tests, plus document/UI/voice/radio/place gates). No Studio lease, Player test, phone performance measurement, audio listening or new footage inspection is claimed. Accepted specs supply reference evidence; coordinate/layout/count proposals remain labelled assumptions. Rendered comparison, real flight feel and owner acceptance remain future review gates.
+
+## Independent-review corrections
+
+M17 now uses18:20 clock time and12,000ft cloud-base reference metadata, matching the accepted world spec. The builder reads the tested metadata; the prior17:36/3000ft mismatch was not a design adaptation. Shared weather resolution now also covers all eighteen registered worlds, including the previously broken M05–M13 keys, with safe unknown-key behavior and full phone-deck/effect tests.
 
 ## Complete exported scenery layout
 

@@ -18,7 +18,13 @@ Offline chunk/yield model at0.25-second terrain slices:0.07ms solid/0.2ms water 
 
 6653952 voxel writes · 348 jobs · 4320 solid / 0 native-water chunk touches · 2 modeled yields · 324 Parts ·0props ·580 reserved descendants · **3.7024s** estimate · **12.297600s** headroom.
 
-Offline tests cover deterministic/checkpointed plans, dormant selection, inventories, foundations, sealing, water connectivity, approach/flight obstruction, swept M18 trench/vent and open duel geometry, negative-control obstruction and budgets. Validation: frozen dependency install and build passed; full offline validator exited 0 (854 Luau contracts, 124 Python tests, plus document/UI/voice/radio/place gates). No Studio lease, Player test, phone performance measurement, audio listening or new footage inspection is claimed. Accepted specs supply reference evidence; coordinate/layout/count proposals remain labelled assumptions. Rendered comparison, real flight feel and owner acceptance remain future review gates.
+Offline tests cover deterministic/checkpointed plans, dormant selection, inventories, foundations, sealing, water connectivity, approach/flight obstruction, swept M18 trench/vent and open duel geometry, negative-control obstruction and budgets. Validation: frozen dependency install and build passed; full offline validator exited 0 (856 Luau contracts, 124 Python tests, plus document/UI/voice/radio/place gates). No Studio lease, Player test, phone performance measurement, audio listening or new footage inspection is claimed. Accepted specs supply reference evidence; coordinate/layout/count proposals remain labelled assumptions. Rendered comparison, real flight feel and owner acceptance remain future review gates.
+
+## Independent-review corrections
+
+All13 groove/vent floor modules are now grounded structural columns from Y0 to the unchanged deckY104. Groove width244 carries both wall footprints; vent width392 carries its full walls/core and local over-water exit foundation. Generator-end supports extend40studs beyond the groove end to carry the complete generator footprint. The core extends from deck104 to ceiling244, off the aircraft tube. This adds no ocean-wide solid seabed and preserves water-only Sea Parts. Explicit structural-role tests cover full sampled footprints, count13, wall/target/buttress support, plus the existing swept groove/vent/duel checks; they cannot pass by finding zero Parts named foundation. Part/descendant counts and terrain estimator remain unchanged.
+
+Shared weather resolution now handles all18 registered world keys, including M18 storm/phone overcast and M14 aurora. M05–M13 also crashed under the old client lookup; the registry fixes them in this PR.
 
 ## Complete exported scenery layout
 

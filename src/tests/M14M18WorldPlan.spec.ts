@@ -2,7 +2,7 @@ import { describe,expect,it } from "@rbxts/jest-globals";
 import { buildM14Plan,m14Counts,m14Ground,M14,M14_ENVIRONMENT,m14Routes } from "../shared/M14WorldPlan";
 import { buildM15Plan,m15Counts,m15Ground,M15,m15BomberRoutes } from "../shared/M15WorldPlan";
 import { buildM16Plan,m16Counts,m16Ground,M16 } from "../shared/M16WorldPlan";
-import { buildM17Plan,m17Counts,m17Ground,M17 } from "../shared/M17WorldPlan";
+import { buildM17Plan,m17Counts,m17Ground,M17,M17_ENVIRONMENT } from "../shared/M17WorldPlan";
 import { buildM18Plan,m18Counts,m18Ground,M18,m18VentRoute } from "../shared/M18WorldPlan";
 import { M14_BUILD_LIMITS } from "../shared/M14Limits";
 import { M15_BUILD_LIMITS } from "../shared/M15Limits";
@@ -59,6 +59,32 @@ describe("Dormant M14–M18 procedural worlds",()=>{
    for(let z=s.z-s.length/2-s.approachLength;z<=s.z+s.length/2+s.approachLength;z+=32)
     for(const dx of [-164,0,164]){const q={x:s.x+dx,y:s.y+40,z};expect(g(q.x,q.z)).toBeLessThan(s.y);expect(hit(p.parts,q,q,16)).toBe(false);}
   }
+ });
+ it("grounds M18 structural decks, walls, targets and buttresses across their full footprints",()=>{
+  // Explicit structural roles: this does not depend on a 'foundation' name being present.
+  const floors=e.parts.filter(f=>f.name==="m18_groove_floor"||f.name==="m18_vent_floor");
+  expect(floors.size()).toBe(13);
+  for(const f of floors){
+   expect(f.y+f.sy/2).toBe(M18.floor);
+   for(let dx=-f.sx/2+1;dx<f.sx/2;dx+=32)for(let dz=-f.sz/2+1;dz<f.sz/2;dz+=32){
+    const g=m18Ground(f.x+dx,f.z+dz);expect(f.y-f.sy/2).toBeLessThanOrEqual(g);expect(f.y+f.sy/2-g).toBeGreaterThanOrEqual(8);
+   }
+  }
+  const supported=(f:PartSpec)=>{
+   for(const dx of [-f.sx/2+1,0,f.sx/2-1])for(const dz of [-f.sz/2+1,0,f.sz/2-1]){
+    const x=f.x+dx,z=f.z+dz,bottom=f.y-f.sy/2;
+    if(bottom<=m18Ground(x,z))continue;
+    if(!floors.some(p=>math.abs(x-p.x)<=p.sx/2&&math.abs(z-p.z)<=p.sz/2&&p.y+p.sy/2>=bottom))return false;
+   }
+   return true;
+  };
+  const structures=e.parts.filter(f=>f.name==="m18_groove_wall"||f.name==="m18_vent_wall"||f.name==="m18_buttress"||f.name.find("m18_generator_")[0]!==undefined||f.name==="m18_core");
+  expect(structures.size()).toBe(40);
+  for(const f of structures)expect(supported(f)).toBe(true);
+  // Original thin/floating floors must fail this check even when they are not named 'foundation'.
+  expect(96-16/2>m18Ground(0,-500)).toBe(true);
+  expect(96-16/2>m18Ground(0,-6800)).toBe(true);
+  expect(M17_ENVIRONMENT.clock).toBe(18+20/60);expect(M17.cloudFeet).toBe(12000);
  });
  it("clears missile lanes, bomber ingress, Rusk retreat and player starts",()=>{
   for(const r of m14Routes())expect(hit(a.parts.filter(p=>p.name.find("m14_cruise")[0]===undefined),r.points[0],r.points[1],40)).toBe(false);

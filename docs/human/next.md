@@ -1,5 +1,14 @@
 # Next
 
+## PR #176 review fixes (2026-10-30)
+
+**Mission 5 client fix included:** the old weather lookup also dereferenced nil for every M05–M13 world key on main. The shared world-environment registry now resolves all eighteen server world keys, including M05, and safely ignores unknown/unset names. Desktop/phone/reduced-motion effects and phone cloud decks are checked against each environment; a static offline gate checks registry coverage against actual server registrations/publications. No Studio/Player observation is claimed.
+
+M18 groove/vent decks now include solid structural columns from Y0 to the unchanged Y104 flight floor; the local exit foundation continues beneath the over-water end. Floor widths support the walls across their complete footprints (244 groove /392 vent); core extends down to the deck. Generator-end floor modules extend40studs beyond each room end to carry the complete target footprint. Tests explicitly require all thirteen structural decks and check terrain contact/clearance across their footprints, wall/target/buttress support and the unchanged swept flight envelopes. This replaces the vacuous name-only M18 foundation check.
+
+M17 now matches the spec:18:20 and12,000ft cloud-base reference metadata. No adaptation is claimed. Build and full offline validation passed (exit0;856 Luau contracts,124 Python tests,18-key registry gate). Worlds remain dormant and unmerged.
+
+
 ## M14–M18 worlds — in review (2026-10-30)
 
 1. Review the five [M14](../specs/worlds/m14-composition.md), [M15](../specs/worlds/m15-composition.md), [M16](../specs/worlds/m16-composition.md), [M17](../specs/worlds/m17-composition.md), [M18](../specs/worlds/m18-composition.md) composition docs, complete target tables and budgets. One PR from main, no merge or mission activation.

@@ -18,7 +18,9 @@ Offline chunk/yield model at0.25-second terrain slices:0.07ms solid/0.2ms water 
 
 140329984 voxel writes · 4434 jobs · 72864 solid / 0 native-water chunk touches · 21 modeled yields · 334 Parts ·0props ·590 reserved descendants · **12.30048s** estimate · **3.699520s** headroom.
 
-Offline tests cover deterministic/checkpointed plans, dormant selection, inventories, foundations, sealing, water connectivity, approach/flight obstruction, swept M18 trench/vent and open duel geometry, negative-control obstruction and budgets. Validation: frozen dependency install and build passed; full offline validator exited 0 (854 Luau contracts, 124 Python tests, plus document/UI/voice/radio/place gates). No Studio lease, Player test, phone performance measurement, audio listening or new footage inspection is claimed. Accepted specs supply reference evidence; coordinate/layout/count proposals remain labelled assumptions. Rendered comparison, real flight feel and owner acceptance remain future review gates.
+Offline tests cover deterministic/checkpointed plans, dormant selection, inventories, foundations, sealing, water connectivity, approach/flight obstruction, swept M18 trench/vent and open duel geometry, negative-control obstruction and budgets. Validation: frozen dependency install and build passed; full offline validator exited 0 (856 Luau contracts, 124 Python tests, plus document/UI/voice/radio/place gates). No Studio lease, Player test, phone performance measurement, audio listening or new footage inspection is claimed. Accepted specs supply reference evidence; coordinate/layout/count proposals remain labelled assumptions. Rendered comparison, real flight feel and owner acceptance remain future review gates.
+
+Shared weather review correction: all M01–M18 world keys now resolve through the client environment registry, including the previously broken M05–M13 keys. Offline weather tests iterate every registered environment and verify effects, safe unknown names and phone cloud trimming; static coverage is checked against the server world registrations.
 
 ## Complete exported scenery layout
 

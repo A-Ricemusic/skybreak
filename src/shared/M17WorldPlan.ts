@@ -3,8 +3,8 @@ import { M06_ENVIRONMENT } from "./M06WorldPlan";
 import { surfaceGround, type WorldSurface } from "./CompactWorldSurface";
 import { worldDressing, compactWorldCounts, type WorldContact } from "./LateWorldDressing";
 export const M17_WORLD_KEY="m17_capital_assault";
-export const M17={start:{x:0,y:471,z:7680,headingDegrees:0},initial:{ground:34,naval:4},creditedGround:55,wingmen:4,ruskRetreatFraction:0.25,elite:{x:0,y:1200,z:-3840},exit:{x:-13440,y:1200,z:-3840}};
-export const M17_ENVIRONMENT:EnvironmentSpec={...M06_ENVIRONMENT,water:{...M06_ENVIRONMENT.water,color:[86,91,88]},label:"Capital gold low sun",clock:17.6,sky:"dusk",brightness:1.6,ambient:[143,115,92],outdoorAmbient:[175,141,103],atmosphere:{density:0.25,offset:0,haze:2,glare:0.8,color:[233,191,127],decay:[127,110,93]},clouds:{cover:0.2,density:0.15,color:[231,209,176]}};
+export const M17={cloudFeet:12000,start:{x:0,y:471,z:7680,headingDegrees:0},initial:{ground:34,naval:4},creditedGround:55,wingmen:4,ruskRetreatFraction:0.25,elite:{x:0,y:1200,z:-3840},exit:{x:-13440,y:1200,z:-3840}};
+export const M17_ENVIRONMENT:EnvironmentSpec={...M06_ENVIRONMENT,water:{...M06_ENVIRONMENT.water,color:[86,91,88]},label:"Capital gold low sun",clock:18+20/60,sky:"dusk",brightness:1.6,ambient:[143,115,92],outdoorAmbient:[175,141,103],atmosphere:{density:0.25,offset:0,haze:2,glare:0.8,color:[233,191,127],decay:[127,110,93]},clouds:{cover:0.2,density:0.15,color:[231,209,176]}};
 export function m17Height(x:number,z:number):number{if(x>=-3072&&x<0&&(z<=-6144||z>=-4096&&z<=-3072))return 80;return x<0||math.abs(z+1024)<=512||math.abs(z+5120)<=512?32:80;}
 export const M17_SURFACE:WorldSurface={height:m17Height,detail:()=>false,material:(x,z)=>m17Height(x,z)===32?"Water":"Ground",nativeWater:()=>false};
 export const m17Ground=(x:number,z:number)=>surfaceGround(M17_SURFACE,x,z);

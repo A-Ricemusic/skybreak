@@ -18,20 +18,22 @@ export function m18VentRoute(){return [{x:0,y:617,z:-3400},{x:0,y:174,z:-3400},{
 export function buildM18Plan(seed=1818,checkpoint:()=>void=()=>{}){
  const d=worldDressing(M18_SURFACE,checkpoint),targets=m18TargetLayout();
  for(const sea of d.seaParts)sea.color=M18_ENVIRONMENT.water.color;
+ // Structural floor/support columns run from Y=0 to the unchanged deck Y=104.
+ // The vent spans the walls too, including its local over-water exit foundation.
  // Axis-aligned convex modules; internal 180 x 140 clear openings, no hidden ribs.
  for(const x of M18.grooves){
   for(let i=0;i<3;i++){const z=-480-i*960;
-   d.part("m18_groove_floor",x,96,z,212,16,960);
+   d.part("m18_groove_floor",x,52,z,244,104,i===2?1040:960);
    for(const side of [-1,1])d.part("m18_groove_wall",x+side*106,174,z,32,156,960);
    d.part("m18_groove_roof",x,252,z,244,16,960);
   }
  }
- for(const t of targets){if(t.type==="generator")d.part(t.id,t.x,144,t.z,60,80,40,"Metal",[132,175,181]);else if(t.type==="core")d.part(t.id,t.x,t.y,t.z,40,80,100,"Metal",[201,142,69]);}
+ for(const t of targets){if(t.type==="generator")d.part(t.id,t.x,144,t.z,60,80,40,"Metal",[132,175,181]);else if(t.type==="core")d.part(t.id,t.x,t.y,t.z,40,140,100,"Metal",[201,142,69]);}
  for(const t of targets)if(t.group==="optional_air"||t.group==="optional_missile")d.contact(t);
  // Separate vertical entry aperture at z=-3400. Roof starts after descent;
  // floor/side walls continue to an independent open north exit.
  for(let i=0;i<4;i++){const z=-3750-i*900;
-  d.part("m18_vent_floor",0,96,z,212,16,900);
+  d.part("m18_vent_floor",0,52,z,392,104,900);
   for(const side of [-1,1])d.part("m18_vent_wall",side*180,174,z,32,156,900);
   if(i>0&&i<3)d.part("m18_vent_roof",0,252,z,392,16,900);
  }
