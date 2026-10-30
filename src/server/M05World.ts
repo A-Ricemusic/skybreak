@@ -1,7 +1,8 @@
+import { registerWorldClear } from "./WorldLifecycleRuntime";
 import { buildM05Plan, M05_ENVIRONMENT, M05_WORLD_KEY, m05TargetLayout } from "../shared/M05WorldPlan";
 import { M05_BUILD_LIMITS } from "../shared/M05Limits";
 import { M05_TARGET_TYPES } from "../shared/missions/m05";
-import { buildComposition } from "./CompositionWorld";
+import { buildComposition, compositionClear } from "./CompositionWorld";
 import { adoptGroundTarget } from "./GroundTargetFactory";
 
 /**
@@ -24,4 +25,8 @@ export const M05World = {
 		parent.SetAttribute("WorldTargetVisuals", visuals.size());
 		return { groundTargets: built.groundTargets, targetVisuals: visuals };
 	},
+	/** One clear for normal exit and partial construction, owned by the shared world gate (see compositionClear). */
+	Clear: compositionClear,
 };
+
+registerWorldClear(M05_WORLD_KEY, M05World.Clear);

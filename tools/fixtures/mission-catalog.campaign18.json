@@ -24,7 +24,7 @@
         "tutorialStep": "move"
       },
       {
-        "beat": "Select radar: TGT / Tab / Y. Follow marker; turn back if you pass it.",
+        "beat": "Select radar: tap box / TGT / Tab / Y. Turn back if you pass it.",
         "kind": "tutorial_target",
         "label": "Cycle to the training target",
         "tutorialStep": "target"
@@ -87,7 +87,7 @@
     "failure": "The raid was not stopped. Varda Rim's runway remains under threat.",
     "ground": [],
     "id": 1,
-    "optionalRaiderMax": 10,
+    "optionalRaiderMax": 12,
     "phases": [
       {
         "beat": "Six bombers, our paint and codes. Stop them before the north coast.",
@@ -133,7 +133,7 @@
         "count": 6,
         "kind": "required_air",
         "label": "Intercept six bombers",
-        "optionalRaiders": 6,
+        "optionalRaiders": 8,
         "reinforce": [
           {
             "at": 0.5,
@@ -142,6 +142,11 @@
         ]
       }
     ],
+    "pressure": {
+      "forwardConeDegrees": 25,
+      "playerPriority": 0.8,
+      "tailDefence": true
+    },
     "primary": "Destroy all six bombers before they leave the island",
     "region": "coastal_city",
     "scoring": {
@@ -153,10 +158,10 @@
         "raider": 60
       },
       "rank": {
-        "A": 900,
+        "A": 1020,
         "B": 600,
         "C": 500,
-        "S": 1200
+        "S": 1320
       }
     },
     "start": {
@@ -206,7 +211,7 @@
     "briefing": "The grain drums in Teal's manifest lead north to a 'farm' with a runway and no animals. Yesterday's bombers flew from it; eleven more are parked on its pads. Follow the power line and destroy them before they raid. Hangars, AA guns, the tower and the substation are optional. Hit aircraft, not the farmhouses.",
     "codename": "The Sealed Case",
     "countdownSeconds": 900,
-    "debrief": "All eleven bombers are burning on their pads. The farm will not launch another raid. Sera wants to know who paid for its runway.",
+    "debrief": "All eleven bombers are burning on their pads. The farm will not launch another raid. The manifest points recovery toward Teal's beacons in the pass.",
     "environment": "farm_overcast",
     "failure": "The bombers survived. The farm can launch its next raid.",
     "ground": [],
@@ -707,7 +712,7 @@
     "briefing": "Teal's receiver names a radar inside our own training box that nobody signed for: nine domes on two snowy mountain sites north-west of the pass. Destroy all nine with the gun camera running, then turn south across the return line and land with the film. AA guns and a parked helicopter are optional.",
     "codename": "An Unlisted Station",
     "countdownSeconds": 900,
-    "debrief": "Nine domes are down and the film is home. Sera locks the gun-camera tape in her desk: the station was watching trainees, not the sky.",
+    "debrief": "Nine domes are down and the film is home. Sera locks the gun-camera tape in her desk: the station watched trainees, and its memory names the Teklan orchard.",
     "environment": "ocean_clear",
     "failure": "The station is still watching, and the film never reached Varda Rim.",
     "ground": [],
@@ -1086,25 +1091,454 @@
   },
   {
     "act": 1,
-    "available": false,
-    "briefing": "In development",
-    "codename": "In development",
-    "debrief": "In development",
-    "environment": "farm_overcast",
-    "failure": "In development",
+    "airspace": {
+      "hardHalfWidth": 15360,
+      "radarRange": 18000,
+      "softHalfWidth": 14000,
+      "spawnLimit": 13500
+    },
+    "allies": {
+      "allowRequiredTargets": false,
+      "callsignPrefix": "LANTERN",
+      "count": 2,
+      "creditPlayerKills": false,
+      "formation": [
+        {
+          "x": -180,
+          "y": 20,
+          "z": 160
+        },
+        {
+          "x": 180,
+          "y": 20,
+          "z": 160
+        }
+      ],
+      "model": "Kestrel"
+    },
+    "available": true,
+    "briefing": "The radar memory names the Teklan orchard. Three high couriers are the patrols' eyes over the evacuation road. Destroy all three before they escape along the harbour route. Two airborne jammers hide their escorts; find them by eye or destroy the optional jammers to restore radar.",
+    "codename": "The High Flyers",
+    "countdownSeconds": 720,
+    "debrief": "The high flyers are gone. The trucks reach Varda; the lead driver's granddaughter marks the fuel works on Sera's map.",
+    "environment": "farm_morning",
+    "failure": "The patrols still have their eyes above the orchard. The evacuation road is unsafe.",
     "ground": [],
     "id": 4,
-    "optionalRaiderMax": 0,
+    "optionalRaiderMax": 12,
     "phases": [
       {
-        "count": 1,
+        "beat": "SERA: High flyers ahead. Break their jammers to get radar back.",
+        "bombers": {
+          "aircraft": "transport",
+          "count": 3,
+          "escape": {
+            "x": 4500,
+            "y": 1202,
+            "z": 11000
+          },
+          "escapeCall": "SERA: A courier reached the harbour route. Pull back.",
+          "escorts": {
+            "aceAt": 0,
+            "aceName": "ORCHARD WARRANT",
+            "count": 0,
+            "initial": 0,
+            "role": "escort"
+          },
+          "scoreRole": "transport",
+          "slots": [
+            {
+              "x": 0,
+              "y": 0,
+              "z": 0
+            },
+            {
+              "x": 286.2167011199731,
+              "y": 0,
+              "z": 35.77708763999665
+            },
+            {
+              "x": 572.4334022399462,
+              "y": 0,
+              "z": 71.5541752799933
+            }
+          ],
+          "speed": 140,
+          "targetIds": [
+            "m04_transport_1",
+            "m04_transport_2",
+            "m04_transport_3"
+          ],
+          "waypoints": [
+            {
+              "x": -4550,
+              "y": 1202,
+              "z": 5100
+            },
+            {
+              "x": -3000,
+              "y": 1202,
+              "z": 2000
+            },
+            {
+              "x": 2000,
+              "y": 1202,
+              "z": -10000
+            },
+            {
+              "x": 11000,
+              "y": 1202,
+              "z": -11000
+            },
+            {
+              "x": 12500,
+              "y": 1202,
+              "z": 2000
+            },
+            {
+              "x": 12500,
+              "y": 1202,
+              "z": 11000
+            }
+          ]
+        },
+        "chatter": [
+          {
+            "at": 0.3333333333333333,
+            "text": "SERA: One courier down. Two still watching the road."
+          },
+          {
+            "at": 0.6666666666666666,
+            "text": "LANTERN 2: One transport left. The trucks are counting on us."
+          }
+        ],
+        "count": 3,
+        "fighterWaves": [
+          {
+            "aircraft": "jammer",
+            "count": 1,
+            "headingDegrees": 45,
+            "id": "m04_jammer_1",
+            "role": "escort",
+            "route": {
+              "speed": 110,
+              "waypoints": [
+                {
+                  "x": -5100,
+                  "y": 1524,
+                  "z": 4800
+                },
+                {
+                  "x": -3000,
+                  "y": 1524,
+                  "z": 2000
+                },
+                {
+                  "x": 2000,
+                  "y": 1524,
+                  "z": -10000
+                },
+                {
+                  "x": 11000,
+                  "y": 1524,
+                  "z": -11000
+                },
+                {
+                  "x": 12500,
+                  "y": 1524,
+                  "z": 2000
+                },
+                {
+                  "x": 12500,
+                  "y": 1524,
+                  "z": 11000
+                },
+                {
+                  "x": 4500,
+                  "y": 1524,
+                  "z": 11000
+                }
+              ]
+            },
+            "scoreRole": "jammer",
+            "spawn": {
+              "x": -5100,
+              "y": 1524,
+              "z": 4800
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 0
+            }
+          },
+          {
+            "aircraft": "jammer",
+            "count": 1,
+            "headingDegrees": 45,
+            "id": "m04_jammer_2",
+            "role": "escort",
+            "route": {
+              "speed": 110,
+              "waypoints": [
+                {
+                  "x": -3600,
+                  "y": 1524,
+                  "z": 4800
+                },
+                {
+                  "x": -3000,
+                  "y": 1524,
+                  "z": 2000
+                },
+                {
+                  "x": 2000,
+                  "y": 1524,
+                  "z": -10000
+                },
+                {
+                  "x": 11000,
+                  "y": 1524,
+                  "z": -11000
+                },
+                {
+                  "x": 12500,
+                  "y": 1524,
+                  "z": 2000
+                },
+                {
+                  "x": 12500,
+                  "y": 1524,
+                  "z": 11000
+                },
+                {
+                  "x": 4500,
+                  "y": 1524,
+                  "z": 11000
+                }
+              ]
+            },
+            "scoreRole": "jammer",
+            "spawn": {
+              "x": -3600,
+              "y": 1524,
+              "z": 4800
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 0
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 45,
+            "id": "m04_escort_1",
+            "role": "escort",
+            "scoreRole": "escort",
+            "spawn": {
+              "x": -5500,
+              "y": 1000,
+              "z": 3800
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 0
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 45,
+            "id": "m04_escort_2",
+            "role": "escort",
+            "scoreRole": "escort",
+            "spawn": {
+              "x": -5020,
+              "y": 1160,
+              "z": 3800
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 0
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 45,
+            "id": "m04_escort_3",
+            "livery": "Vulture",
+            "role": "escort",
+            "scoreRole": "escort",
+            "spawn": {
+              "x": -4540,
+              "y": 1320,
+              "z": 3800
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 0
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 45,
+            "id": "m04_escort_4",
+            "livery": "Elite",
+            "role": "escort",
+            "scoreRole": "escort",
+            "spawn": {
+              "x": -4060,
+              "y": 1000,
+              "z": 3800
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 0
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 45,
+            "id": "m04_escort_5",
+            "livery": "Elite",
+            "role": "escort",
+            "scoreRole": "escort",
+            "spawn": {
+              "x": -3580,
+              "y": 1160,
+              "z": 3800
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 0
+            }
+          },
+          {
+            "call": "COURIER GUARD: They found us. Send the reserve flight!",
+            "count": 1,
+            "headingDegrees": 45,
+            "id": "m04_escort_6",
+            "role": "escort",
+            "scoreRole": "escort",
+            "spawn": {
+              "x": -5500,
+              "y": 1320,
+              "z": 4700
+            },
+            "trigger": {
+              "count": 1,
+              "kind": "required_count"
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 45,
+            "id": "m04_escort_7",
+            "livery": "Vulture",
+            "role": "escort",
+            "scoreRole": "escort",
+            "spawn": {
+              "x": -5020,
+              "y": 1000,
+              "z": 4700
+            },
+            "trigger": {
+              "count": 1,
+              "kind": "required_count"
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 45,
+            "id": "m04_escort_8",
+            "livery": "Elite",
+            "role": "escort",
+            "scoreRole": "escort",
+            "spawn": {
+              "x": -4540,
+              "y": 1160,
+              "z": 4700
+            },
+            "trigger": {
+              "count": 1,
+              "kind": "required_count"
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 45,
+            "id": "m04_escort_9",
+            "livery": "Elite",
+            "role": "escort",
+            "scoreRole": "escort",
+            "spawn": {
+              "x": -4060,
+              "y": 1320,
+              "z": 4700
+            },
+            "trigger": {
+              "count": 1,
+              "kind": "required_count"
+            }
+          }
+        ],
+        "jamming": {
+          "clearCall": "SERA: Both jammers down. Radar is clear. Find those transports.",
+          "remainingCall": "SERA: Still jammed. A second aircraft is masking the couriers.",
+          "visualLockRange": 1200
+        },
         "kind": "required_air",
-        "label": "In development"
+        "label": "Intercept three transports",
+        "standaloneAce": {
+          "behaviour": "dogfight",
+          "call": "ORCHARD WARRANT: Keep the couriers flying. I will take the trainee.",
+          "headingDegrees": 45,
+          "health": 165,
+          "id": "m04_ace",
+          "livery": "Vulture",
+          "name": "ORCHARD WARRANT",
+          "scoreRole": "ace",
+          "spawn": {
+            "x": -3580,
+            "y": 1000,
+            "z": 4700
+          },
+          "stageLines": [
+            "ORCHARD WARRANT: Guard flight, keep them off my tail!",
+            "ORCHARD WARRANT: The road is ours as long as one courier flies."
+          ],
+          "trigger": {
+            "kind": "time",
+            "seconds": 0
+          }
+        }
       }
     ],
-    "primary": "In development",
-    "region": "canyon_airfield",
-    "title": "Mission 4"
+    "primary": "Destroy all three transports before they escape",
+    "region": "upland_farm",
+    "scoring": {
+      "basis": "points",
+      "points": {
+        "ace": 240,
+        "escort": 60,
+        "jammer": 140,
+        "transport": 160
+      },
+      "rank": {
+        "A": 800,
+        "B": 650,
+        "C": 480,
+        "S": 1300
+      }
+    },
+    "start": {
+      "headingDegrees": 20,
+      "kind": "airborne",
+      "speed": 129.6,
+      "x": -7000,
+      "y": 1202,
+      "z": 10000
+    },
+    "title": "BLIND COURIERS",
+    "worldKey": "m04_inland_hills"
   },
   {
     "act": 1,
@@ -1139,12 +1573,12 @@
       "model": "Kestrel"
     },
     "available": true,
-    "briefing": "The granddaughter's thumbprints marked three silos. Behind them on the coast is a whole fuel works: a refinery on the shore to the west and a drilling rig out at sea to the east, and it fuels every coup jet on the rim. Burn it before dawn. Score 2,000 points in ten minutes, then keep burning until the clock runs out. Land at the base south of the start to rearm if you run dry. And watch the dark: the pilot who hunted Teal flies here at night, with his lights off.",
+    "briefing": "The granddaughter marked the tanks hidden under grain permits. Strike the refinery and offshore rig under the searchlights. Reach 2,000 points in ten minutes and keep burning until the clock expires. Rearm at the southern base if needed. When Vulture Lead arrives, escape his squadron across the return line.",
     "codename": "Fuel under grain",
     "countdownSeconds": 600,
-    "debrief": "The fuel works burned until dawn and you crossed the line home. Vulture Lead turned back with his lights off. Sera has his voice on tape now, from the guard channel.",
+    "debrief": "The fuel works are burning. You escaped Vulture Lead; Sera recorded his relayed orders while he hunted you. Their signatures lead to Iron Coast.",
     "environment": "ocean_night",
-    "failure": "The fuel works is still pumping. The coup's jets fly again tomorrow.",
+    "failure": "The fuel trail and the pilot carrying it have not reached safety.",
     "ground": [],
     "id": 5,
     "nightLighting": {
@@ -7690,7 +8124,7 @@
           "objective": "Withdraw south across the line before the clock runs out",
           "radio": [
             "SERA: Clock's out and the works is burning. Good. Now go south.",
-            "SERA: Heavy group from the north. Five aircraft, and they're hot."
+            "SERA: Vulture flight inbound. Leave the works. Survive; this is no duel."
           ]
         }
       }
@@ -7740,11 +8174,11 @@
   {
     "act": 1,
     "available": false,
-    "briefing": "In development",
+    "briefing": "Vulture Lead's guard-channel orders are signed by a man who died in spring. The chain ends at Iron Coast. Strike the docked warships and fuel barges; AA guards the docks. Workers and the fish market are nearby. Use the service stop if needed.",
     "codename": "In development",
-    "debrief": "In development",
+    "debrief": "The warships and fuel barges are gone. Harbour traffic gives Sera Kiro's signing key. Two more station logs will prove whose hand used it.",
     "environment": "farm_overcast",
-    "failure": "In development",
+    "failure": "The harbour supply line holds. Sera still has only one link in the order chain.",
     "ground": [],
     "id": 6,
     "optionalRaiderMax": 0,
@@ -7762,11 +8196,11 @@
   {
     "act": 2,
     "available": false,
-    "briefing": "In development",
+    "briefing": "Kiro's key needs matching logs from Lira and Merel. Cross the hills low at sunset, copy the array traffic and cut the transmitters. Long-range guns watch the ridges; drop into the canyon when they find you.",
     "codename": "In development",
-    "debrief": "In development",
+    "debrief": "Three stations carry one signature. Varda's island transmitter can send the proof in thirty-five seconds.",
     "environment": "farm_overcast",
-    "failure": "In development",
+    "failure": "The array logs are incomplete. The forgery still has room to hide.",
     "ground": [],
     "id": 7,
     "optionalRaiderMax": 0,
@@ -7784,11 +8218,11 @@
   {
     "act": 2,
     "available": false,
-    "briefing": "In development",
+    "briefing": "Varda's island transmitter will broadcast Teal's thirty-five seconds. Sera stays in the tower. Hold the tropical island's sky against the fighters and bomber wave until the signal is out, then clear the remaining attackers.",
     "codename": "In development",
-    "debrief": "In development",
+    "debrief": "The broadcast is out. Three garrisons heard it. Two stood down and are coming ashore to join us.",
     "environment": "farm_overcast",
-    "failure": "In development",
+    "failure": "The transmitter could not hold the window. The garrisons have not heard the proof.",
     "ground": [],
     "id": 8,
     "optionalRaiderMax": 0,
@@ -7806,11 +8240,11 @@
   {
     "act": 2,
     "available": false,
-    "briefing": "In development",
+    "briefing": "The garrisons that stood down are landing under the weather. Loyalist frigates cover them. Clear the coastal pillboxes, artillery and AA so the troops reach shore. The carrier can service you between attacks.",
     "codename": "In development",
-    "debrief": "In development",
+    "debrief": "The landing holds. Then the Marshal answers Varda's broadcast: the Teklan orchard burns, and his guns close the river valleys.",
     "environment": "farm_overcast",
-    "failure": "In development",
+    "failure": "The beach guns still hold the landing offshore.",
     "ground": [],
     "id": 9,
     "optionalRaiderMax": 0,
@@ -7828,11 +8262,11 @@
   {
     "act": 2,
     "available": false,
-    "briefing": "In development",
+    "briefing": "The orchard burned in reprisal. Its survivors are alive, but the Marshal's defensive line closes the rivers. Break the positions along the forested valleys. Stay below the long-range guns and use the service stop if needed.",
     "codename": "In development",
-    "debrief": "In development",
+    "debrief": "The river line is broken. The orchard survivors can fly out over the snowy saddle on two civilian airliners.",
     "environment": "farm_overcast",
-    "failure": "In development",
+    "failure": "The river line holds. The survivors still have no safe crossing.",
     "ground": [],
     "id": 10,
     "optionalRaiderMax": 0,
@@ -7850,11 +8284,11 @@
   {
     "act": 2,
     "available": false,
-    "briefing": "In development",
+    "briefing": "Two civilian airliners carry the orchard survivors over the snowy saddle. One cannot climb. Move between their altitude bands and keep hostile fighters off both aircraft. These families trusted Teal; now they are trusting you.",
     "codename": "In development",
-    "debrief": "In development",
+    "debrief": "Both airliners are clear. Sera matches Vulture Two's checkride signature to the forged orders. He is waiting over the command array.",
     "environment": "farm_overcast",
-    "failure": "In development",
+    "failure": "The families did not make the crossing safely.",
     "ground": [],
     "id": 11,
     "optionalRaiderMax": 0,
@@ -7872,11 +8306,11 @@
   {
     "act": 2,
     "available": false,
-    "briefing": "In development",
+    "briefing": "The eight towers in the crater are the Marshal's command array. Destroy them; use the service landing if needed. Vulture Two is waiting after the last tower. Defeat him and mark his ejection so the marines can recover a living witness.",
     "codename": "In development",
-    "debrief": "In development",
+    "debrief": "Vulture Two ejected and was recovered. He admits the handwriting is his. His statement and the harbour master's paper copy leave on an evidence plane.",
     "environment": "farm_overcast",
-    "failure": "In development",
+    "failure": "The array or its guardian still controls the crater. No witness has been recovered.",
     "ground": [],
     "id": 12,
     "optionalRaiderMax": 0,
@@ -7894,11 +8328,11 @@
   {
     "act": 3,
     "available": false,
-    "briefing": "In development",
+    "briefing": "A slow reconnaissance plane carries the paper copy and Vulture Two's statement through a fog-filled ravine. Silence the airship jammers, then intercept the fighters before they reach it. The archive he points to is still on the ice coast.",
     "codename": "In development",
-    "debrief": "In development",
+    "debrief": "The evidence plane is clear. The crown station holds the first order; missiles are already on their way to silence it.",
     "environment": "farm_overcast",
-    "failure": "In development",
+    "failure": "The evidence plane did not get through. The paper trail is still trapped.",
     "ground": [],
     "id": 13,
     "optionalRaiderMax": 0,
@@ -7916,11 +8350,11 @@
   {
     "act": 3,
     "available": false,
-    "briefing": "In development",
+    "briefing": "The crown station stands on the ice coast under the aurora. Its archive holds the first signed order. Stop every low-flying cruise missile before it reaches the dish; keep it transmitting until the record is received.",
     "codename": "In development",
-    "debrief": "In development",
+    "debrief": "Archive received. ORDER 0001: RUSK, AIR MARSHAL. Sera finally has a name for the voice holding the city.",
     "environment": "farm_overcast",
-    "failure": "In development",
+    "failure": "The dish fell before the whole archive arrived. The first signature is lost.",
     "ground": [],
     "id": 14,
     "optionalRaiderMax": 0,
@@ -7938,11 +8372,11 @@
   {
     "act": 3,
     "available": false,
-    "briefing": "In development",
+    "briefing": "ORDER 0001 names Rusk. His relay holds the lit city on one repeated emergency. Silence it, cover the loyalist ground forces against armour and helicopters, then stop the bomber retaliation. Use the service stop if needed.",
     "codename": "In development",
-    "debrief": "In development",
+    "debrief": "The city hears silence for the first time since spring. Rusk addresses the trainee by his own name while parliament's column approaches the dry coast.",
     "environment": "farm_overcast",
-    "failure": "In development",
+    "failure": "The city remains under Rusk's voice and guns.",
     "ground": [],
     "id": 15,
     "optionalRaiderMax": 0,
@@ -7960,11 +8394,11 @@
   {
     "act": 3,
     "available": false,
-    "briefing": "In development",
+    "briefing": "Parliament follows a loyalist column across the dry coast. Clear the crater, bunkers and ruined town ahead of its armour. The airbase can service you. Stay until both squads answer from the streets.",
     "codename": "In development",
-    "debrief": "In development",
+    "debrief": "The column is through. Recovery reaches the upper pass and finds Teal in his aircraft, his recorder still running. The witnesses head for parliament.",
     "environment": "farm_overcast",
-    "failure": "In development",
+    "failure": "The column cannot reach the town. Parliament is still outside its own city.",
     "ground": [],
     "id": 16,
     "optionalRaiderMax": 0,
@@ -7982,11 +8416,11 @@
   {
     "act": 3,
     "available": false,
-    "briefing": "In development",
+    "briefing": "Teal's last tape buys the witnesses their voice tonight. Keep the flooded capital's bridges and docks open. Break the defences, then defeat Rusk's four wingmen, including Vulture Lead. Rusk withdraws to sea; he must survive for the final confrontation.",
     "codename": "In development",
-    "debrief": "In development",
+    "debrief": "Vulture Lead and the other three wingmen are down. Rusk abandoned them and ran to the coastal relay works. The witnesses reach parliament; his own voice is all he has left.",
     "environment": "farm_overcast",
-    "failure": "In development",
+    "failure": "The witnesses cannot reach parliament. The bridges and docks remain under fire.",
     "ground": [],
     "id": 17,
     "optionalRaiderMax": 0,
@@ -8004,11 +8438,11 @@
   {
     "act": 3,
     "available": false,
-    "briefing": "In development",
+    "briefing": "Rusk's coastal relay works repeat his voice through the storm. Destroy three generators inside the grooves, run the central vent and escape. When the works fall silent, Rusk rises alone. Shoot him down in open air; then broadcast in your own voice.",
     "codename": "In development",
-    "debrief": "In development",
+    "debrief": "Rusk is down. The relay is dark. Every harbour is listening for the trainee's voice.",
     "environment": "farm_overcast",
-    "failure": "In development",
+    "failure": "The relay has not been silenced. Rusk still owns the frequency.",
     "ground": [],
     "id": 18,
     "optionalRaiderMax": 0,

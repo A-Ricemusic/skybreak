@@ -1,3 +1,4 @@
+import { MISSION_STORY_TEXT } from "../StoryMissionText";
 import type { FighterArrival, GroundTargetType, StandaloneAce, TypedGroundTarget } from "../CampaignEncounters";
 import type { LandingPlan, ReturnLine } from "../EngineBatchB";
 import type { RearmPlan } from "../EngineBatchC";
@@ -149,9 +150,8 @@ export const mission: MissionBlueprint = {
 	allies: { count: 3, model: "Kestrel", callsignPrefix: "LANTERN", creditPlayerKills: false, allowRequiredTargets: false,
 		formation: [{ x: -180, y: 20, z: 160 }, { x: 180, y: 20, z: 160 }, { x: 0, y: 40, z: 320 }] },
 	primary: "Score 2,000 points at the fuel works within 10:00, then withdraw south",
-	briefing: "The granddaughter's thumbprints marked three silos. Behind them on the coast is a whole fuel works: a refinery on the shore to the west and a drilling rig out at sea to the east, and it fuels every coup jet on the rim. Burn it before dawn. Score 2,000 points in ten minutes, then keep burning until the clock runs out. Land at the base south of the start to rearm if you run dry. And watch the dark: the pilot who hunted Teal flies here at night, with his lights off.",
-	debrief: "The fuel works burned until dawn and you crossed the line home. Vulture Lead turned back with his lights off. Sera has his voice on tape now, from the guard channel.",
-	failure: "The fuel works is still pumping. The coup's jets fly again tomorrow.",
+	// D-130 / #159: the remapped Broken Relay story owns the briefing and results text.
+	briefing: MISSION_STORY_TEXT[5].briefing, debrief: MISSION_STORY_TEXT[5].debrief, failure: MISSION_STORY_TEXT[5].failure,
 	ground: [],
 	phases: [
 		{
@@ -171,7 +171,8 @@ export const mission: MissionBlueprint = {
 			kind: "return_line", label: "Withdraw south across the line", returnLine: M05_RETURN_LINE,
 			update: {
 				objective: "Withdraw south across the line before the clock runs out", countdownSeconds: 240,
-				radio: ["SERA: Clock's out and the works is burning. Good. Now go south.", "SERA: Heavy group from the north. Five aircraft, and they're hot."],
+				// The second line is #159's planned story radio for mission 5, wired as exact text.
+				radio: ["SERA: Clock's out and the works is burning. Good. Now go south.", MISSION_STORY_TEXT[5].radio[1]],
 			},
 			cutIn: M05_CUT_IN,
 			fighterWaves: eliteWing, standaloneAce: vultureLead,

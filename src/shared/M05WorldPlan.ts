@@ -35,7 +35,9 @@ export function m05Detailed(x: number, z: number): boolean {
  return math.abs(x + 8900) < 1300 && math.abs(z + 7000) < 1800
   || math.abs(x + 1024) < 800 && math.abs(z - 6700) < 1800;
 }
-export const M05_SURFACE: WorldSurface = { height: m05Height, detail: m05Detailed, material: (x, z) => m05Height(x, z) < 32 ? "Mud" : x < -11000 ? "LeafyGrass" : "Ground" };
+/** Sea cells are opaque native water from Y=0 to 32 with no rock under it (D-121); m05Height's 8 stays the
+ * nominal bed used for keel clearance, and the real clearance below every keel is 16 studs of water. */
+export const M05_SURFACE: WorldSurface = { height: m05Height, detail: m05Detailed, material: (x, z) => m05Height(x, z) < 32 ? "Mud" : x < -11000 ? "LeafyGrass" : "Ground", waterColumns: true };
 export const m05Ground = (x: number, z: number) => surfaceGround(M05_SURFACE, x, z);
 export type M05TargetType = "crane" | "tower" | "control_room" | "sam" | "aa" | "fuel_tank_large" | "fuel_tank" | "gas_tank" | "refinery_unit" | "smokestack" | "pump_station" | "refinery_command" | "tanker" | "helicopter";
 /** Observed points except SAM=50 (observed range 30–50) and pump=40 (unread).

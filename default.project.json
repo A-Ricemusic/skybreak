@@ -38,6 +38,11 @@
         "StreamingEnabled": false
       }
     },
+    "Players": {
+      "$properties": {
+        "CharacterAutoLoads": false
+      }
+    },
     "ServerStorage": {
       "KestrelGeometry": {
         "$path": "build/KestrelGeometry.txt"

@@ -67,6 +67,7 @@ export function validateCampaignEncounters(blueprint: MissionBlueprint, phases: 
 	for (const phase of phases) {
 		assert(phase.label.size()>0 && phase.label.size()<=40,"Phase needs a short label");
 		if(phase.count !== undefined) assert(finite(phase.count) && phase.count%1===0 && phase.count>0,"Phase count must be a positive integer");
+		for (const id of phase.bombers?.targetIds ?? []) claim(id);
 		let required = 0;
 		for (const target of phase.groundTargets ?? []) {
 			claim(target.id); point(target.position); role(target.scoreRole);

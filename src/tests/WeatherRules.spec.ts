@@ -4,6 +4,10 @@ import { PHONE_SHARE, lightningGap, phoneClouds, weatherPlan } from "../shared/W
 
 // Pure weather contracts; also run in the offline Luau VM.
 describe("Mission weather", () => {
+	it("resolves M04 clear-noon weather and phone clouds from its published world key", () => {
+		expect(weatherPlan("m04_inland_hills",false,false)).toEqual({});
+		expect(phoneClouds("m04_inland_hills",0.15,0.2)).toEqual({cover:0.15,density:0.18});
+	});
 	it("gives storms rain and lightning, dust and fog drift, and the aurora its sky", () => {
 		for (const name of ["farm_storm", "ocean_storm"] as const) {
 			const plan = weatherPlan(name, false, false);

@@ -475,6 +475,15 @@ export class FlightController {
 		this.action("Evade");
 	}
 	public CycleTarget(): void { this.action("CycleTarget"); }
+	/** Touch positions are inset-relative; target boxes use WorldToViewportPoint pixels. */
+	public TryTapTarget(position: Vector3): boolean {
+		if (!this.active || this.paused || this.landing || this.rearm || this.launchIntro) return false;
+		const [inset] = GuiService.GetGuiInset();
+		const target = this.boxes.HitTest(position.X + inset.X, position.Y + inset.Y);
+		if (!target) return false;
+		this.remotes.CombatAction.FireServer({ action: "SelectTarget", target });
+		return true;
+	}
 	public ConfirmAudio(): void { this.audio.Confirm(); }
 	public ResultAudio(won: boolean): void { this.audio.Result(won); }
 	/**
@@ -724,6 +733,7 @@ export class FlightController {
 		const bounds = this.boxes.GetBounds(), keepouts = this.boxes.GetKeepouts();
 		const inside = visible && bounds !== undefined && TargetBoxes.Fits(screen.X, screen.Y, boxSize, bounds, keepouts);
 		bracket.Visible = inside;
+		this.boxes.SetSelectedBox(target, screen.X, screen.Y, boxSize, inside);
 		arrow.Visible = !inside;
 		const color = CUE_COLOR[style.tone];
 		if (color !== this.cueColor) {
@@ -916,9 +926,9 @@ export class FlightController {
 		camera.FieldOfView = baseFov + (72 + speedFactor * 9 - baseFov) * FlightMath.DampAlpha(3, dt) + impact.fov;
 		this.enemies.Step(dt);
 		this.updateKeepouts(camera.ViewportSize);
-		this.updateTargetCue(camera);
 		const target = this.telemetry.target;
 		this.boxes.Update(camera, position, target !== undefined && target.Parent !== undefined ? target : undefined, this.boxPosition, this.telemetry.jamVisualRange);
+		this.updateTargetCue(camera);
 		this.updateMarkers(camera);
 		if (intro) return;
 		this.sendTime += dt;
