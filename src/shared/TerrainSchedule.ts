@@ -114,7 +114,7 @@ export function terrainJobs(ops: TerrainOp[], fillChunk = FILL_CHUNK): TerrainJo
 }
 
 export interface BudgetRun { yields: number; longest: number; total: number }
-export interface BudgetOptions { budget: number; clock: () => number; pause: () => void }
+export interface BudgetOptions { budget: number; clock: () => number; pause: () => void; cancelled?: () => boolean }
 
 /**
  * Runs `work` over `items` in order, pausing whenever one resumption has used `budget`
@@ -124,6 +124,7 @@ export function runBudgeted<T>(items: T[], work: (item: T) => void, options: Bud
 	let yields = 0, longest = 0, total = 0;
 	let slice = options.clock();
 	for (const item of items) {
+		if (options.cancelled?.()) break;
 		const start = options.clock();
 		work(item);
 		const finish = options.clock();

@@ -1,0 +1,24 @@
+{
+  "asset": "cinematic-field-recorder",
+  "folder": "assets/roblox-upload/cinematic-field-recorder/",
+  "exportVersion": "cinematic-field-recorder-1",
+  "approved": true,
+  "reviewer": "Claude Opus 5.5 (independent; not the creator)",
+  "reviewedAt": "2026-10-30T04:13:02Z",
+  "score": "10/10",
+  "commitReviewed": "09f6a904c8ed44716ae6cacb493c643e16d687ce",
+  "pr": 152,
+  "record": "docs/qa/asset-reviews/2026-10-29-pr152-review-1.md",
+  "uploadSet": {
+    "cinematic-field-recorder.fbx": "0ec0ad7de0cd375e6dc20c6c558581fc153a8ae27aee1f477b0bf5f1d40a13da"
+  },
+  "uploadAssetType": "Model",
+  "embeddedTextures": {
+    "cinematic-field-recorder-color.png": "a0419c091f27c668383621e8973a72fdf6f20b5517aee54d8c75569aba3e2fb1",
+    "cinematic-field-recorder-metalness.png": "058f57e3cd987e3141b6e78745e8e3f4d651c4efc54d250b20b41e46f1d00c36",
+    "cinematic-field-recorder-normal.png": "855926e31ace6ede0a25d09398f13696c543d20ba8524ed8afd1f9b67cc15357",
+    "cinematic-field-recorder-roughness.png": "d47244d0b9ba6c028feeec44e9fbb82aa13c24cad52cd98e68867d8e5b8b2f97"
+  },
+  "checklistSha256": "469c0ac7c9c1305b34b3f6f67493956cb9030e03d3bfdcb195659c5dfb6e944b",
+  "note": "Approval covers only this exact FBX and its byte-matched embedded textures. Any edit or re-export requires a new independent review. Not a guarantee against moderation."
+}

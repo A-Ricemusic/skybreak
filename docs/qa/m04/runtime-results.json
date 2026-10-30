@@ -1,0 +1,110 @@
+{
+  "Initial": {
+    "jammers": 2,
+    "assets": {
+      "m04_ace": {
+        "source": "Uploaded",
+        "asset": "VantaV2Vulture"
+      },
+      "m04_escort_2": {
+        "source": "Uploaded",
+        "asset": "VantaV2"
+      },
+      "m04_jammer_2": {
+        "source": "Uploaded",
+        "asset": "RadarJammer"
+      },
+      "m04_escort_4": {
+        "source": "Uploaded",
+        "asset": "VantaV2Elite"
+      },
+      "m04_jammer_1": {
+        "source": "Uploaded",
+        "asset": "RadarJammer"
+      },
+      "m04_escort_3": {
+        "source": "Uploaded",
+        "asset": "VantaV2Vulture"
+      },
+      "m04_escort_5": {
+        "source": "Uploaded",
+        "asset": "VantaV2Elite"
+      },
+      "m04_transport_1": {
+        "source": "Uploaded",
+        "asset": "HeavyTransport"
+      },
+      "m04_transport_2": {
+        "source": "Uploaded",
+        "asset": "HeavyTransport"
+      },
+      "m04_transport_3": {
+        "source": "Uploaded",
+        "asset": "HeavyTransport"
+      },
+      "m04_escort_1": {
+        "source": "Uploaded",
+        "asset": "VantaV2"
+      }
+    },
+    "ids": {
+      "m04_ace": true,
+      "m04_escort_2": true,
+      "m04_jammer_2": true,
+      "m04_escort_4": true,
+      "m04_jammer_1": true,
+      "m04_escort_3": true,
+      "m04_escort_5": true,
+      "m04_transport_1": true,
+      "m04_transport_2": true,
+      "m04_transport_3": true,
+      "m04_escort_1": true
+    }
+  },
+  "ClearRadar": {
+    "jammers": 0
+  },
+  "attributes": {
+    "CaptureReady": true,
+    "Complete": true
+  },
+  "ForgedRequest": {
+    "ok": false,
+    "error": "Mission 04 is locked or in development."
+  },
+  "Settlement": {
+    "completed": true,
+    "bestTargetScore": {
+      "total": 1540,
+      "points": {
+        "transport": 480,
+        "jammer": 280,
+        "escort": 540,
+        "ace": 240
+      },
+      "kills": {
+        "transport": 3,
+        "jammer": 2,
+        "escort": 9,
+        "ace": 1
+      }
+    },
+    "timeVersion": 2,
+    "firstCompletedAt": 1793315930,
+    "bestScore": 1540,
+    "bestTime": 7.001845541672083,
+    "bestRank": "S"
+  },
+  "PartialJam": {
+    "jammers": 1
+  },
+  "SubsequentLaunch": {
+    "ok": true,
+    "missionId": 0
+  },
+  "Build": {
+    "seconds": 45.07696529167879,
+    "terrainSeconds": 42.78626791667193,
+    "jobs": 12608
+  }
+}

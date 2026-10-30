@@ -74,6 +74,17 @@ export class TargetBoxOverlay {
 	public GetBounds(): Rectangle | undefined { return this.bounds; }
 	/** Whether `model` has a box this frame. */
 	public IsBoxed(model: Model): boolean { return this.contacts.get(model)?.boxed === true; }
+	public HitTest(x: number, y: number): Model | undefined {
+		const contacts: Contact[] = [];
+		for (const [, contact] of this.contacts) contacts.push(contact);
+		return TargetBoxes.TapHit(contacts, x, y)?.model;
+	}
+	/** The separately drawn selected bracket supplies its exact footprint, even during blink-off. */
+	public SetSelectedBox(model: Model, x: number, y: number, size: number, boxed: boolean): void {
+		const contact = this.contacts.get(model);
+		if (!contact) return;
+		contact.x = x; contact.y = y; contact.size = size; contact.boxed = boxed && !contact.friendly;
+	}
 
 	/**
 	 * Boxes the nearest valid on-screen targets other than `selected` (which the caller draws).

@@ -99,6 +99,8 @@ function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
 		protectedHealth: payload.protectedHealth,
 		terrainClearance: payload.terrainClearance,
 		missionUpdateSeconds: payload.missionUpdateSeconds,
+		// Score-threshold missions: the server-authoritative points total for the PTS line.
+		missionPoints: typeIs(payload.missionPoints, "number") && finite(payload.missionPoints, -1) >= 0 ? math.floor(payload.missionPoints) : undefined,
 		phase: safeString(payload.phase, previous.phase ?? ""),
 		objective: safeString(payload.objective, previous.objective ?? "Complete the objective"),
 		objectiveProgress: math.max(0, math.floor(finite(payload.objectiveProgress, previous.objectiveProgress ?? 0))),

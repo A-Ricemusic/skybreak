@@ -8,7 +8,7 @@ import {MissionScore} from "../shared/MissionScore";
 import {AirRequest,WavePlan} from "../shared/WavePlan";
 import {GameConfig} from "../shared/GameConfig";
 import {LEVEL_LAYOUTS} from "../shared/MissionLayouts";
-import {LOG,MARSHAL,RECORDER,RUSK,SERA,STORY,TEAL,TRAINEE,VULTURE_TWO} from "../shared/RelayStory";
+import {LOG,MARSHAL,RECORDER,RUSK,SERA,STORY,TEAL,TRAINEE,VULTURE_TWO} from "./legacy/LegacyStory";
 import {CampaignCoordinator,completeMission,highestUnlocked,normalizeProfile,mergeProfiles,resolveMissionRequest,serializeProfile} from "../server/CampaignRepository";
 
 function coordinator(): CampaignCoordinator {

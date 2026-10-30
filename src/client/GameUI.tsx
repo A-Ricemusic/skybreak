@@ -1,4 +1,5 @@
 import { VoiceDisclosureNotice } from "./VoiceDisclosureNotice";
+import { chapterBeforeMission, shouldPlayChapter } from "../shared/RelayStory";
 import { canLaunchMission, highestUnlocked } from "../shared/CampaignProgress";
 import { isMissionReason } from "../shared/OutcomeReason";
 import { DeletionObservation } from "../shared/DeletionObservation";
@@ -27,6 +28,7 @@ import { FlightController } from "./FlightController";
 import { CameraShake } from "./CameraShake";
 import type { KillFlash } from "./KillMarker";
 import { ImpactFeedback } from "../shared/ImpactFeedback";
+import { LAUNCH_REQUEST_TIMEOUT, LaunchLoading, type LaunchPhase } from "../shared/LaunchLoading";
 import { LoadingScreen } from "./LoadingScreen";
 import { preloadMission } from "./MissionPreload";
 import { getMenuHintsLayout, getMenuLayout, getToastLayout, inputModeFromInputType, JOYSTICK_SIZE, type HudOptions, shouldAcceptInputModeChange, type ControlHint, type InputMode, type Rectangle } from "../shared/UILayout";
@@ -34,6 +36,7 @@ import { BriefingScreen } from "./screens/BriefingScreen";
 import { CampaignScreen } from "./screens/CampaignScreen";
 import { MenuBackdrop, setMenuCamera } from "./screens/MenuBackdrop";
 import { MissionHud, type Callout } from "./screens/MissionHud";
+import { SortieOverlay } from "./SortieOverlay";
 import { OutcomeScreen, type OutcomeState } from "./screens/OutcomeScreen";
 import { HintRow } from "./screens/Primitives";
 import { finite, killedTargetPoint, killSnapshot, normalizePersistence, normalizeSlots, RADIO_SECONDS, resumeMission, safeString, sanitizeTelemetry, scaleRectangle } from "./screens/UIFormat";
@@ -96,6 +99,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	/** The selection before the latest target change: a kill's HudState can retarget before its telemetry lands. */
 	const priorTargetRef = useRef<Model>();
 	const [loadingProgress, setLoadingProgress] = useState(0);
+	const launchLoading = useMemo(() => new LaunchLoading(), []);
+	const [launchPhase, setLaunchPhase] = useState<LaunchPhase>("idle");
+	const [buildFolder, setBuildFolder] = useState<Instance>();
 	const mountedRef = useRef(true);
 	const screenRef = useRef<Screen>("title");
 	const inMissionRef = useRef(false);
@@ -108,6 +114,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const slotFocusRef = useRef<number>();
 	const selectDefaultRef = useRef<() => void>(() => undefined);
 	const selectedMissionRef = useRef(1);
+	const fromMissionMenuRef = useRef(true);
 	const selectedSpecialRef = useRef<SpecialKind>(SpecialWeapons.Default);
 	const selectedDifficultyRef = useRef<DifficultyKind>(Difficulty.Default);
 	const persistenceRef = useRef<Persistence>("unavailable");
@@ -179,6 +186,8 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			return;
 		}
 		if (current === "mission" || current === "loading" || inputModeRef.current !== "gamepad") {
+			// The rearm's TAKEOFF / CHANGE WEAPON menu owns gamepad focus while it is open (SortieOverlay).
+			if (current === "mission" && controller.RearmStatus()?.menu === true) return;
 			if (selected && selected.IsDescendantOf(root)) GuiService.SelectedObject = undefined;
 			return;
 		}
@@ -240,6 +249,10 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			const [ok, problem] = pcall(() => work(requestId));
 			if (!ok && mountedRef.current && requestRef.current === requestId) {
 				warn("SKYBREAK UI request failed:", problem);
+				if (launchLoading.Pending()) {
+					launchLoading.Fail(); loadingSerialRef.current++;
+					changeScreen(launchLoading.Screen());
+				}
 				showToast("Command link error. Try again.", true);
 			}
 			if (mountedRef.current && requestRef.current === requestId) {
@@ -247,7 +260,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				setBusy(false);
 			}
 		});
-	}, [showToast]);
+	}, [changeScreen, launchLoading, showToast]);
 	const cancelRequests = useCallback(() => {
 		requestRef.current++;
 		busyRef.current = false;
@@ -269,26 +282,45 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		});
 	}, [applyResponseSlots, beginRequest, invoke, showToast]);
 	const launchMission = useCallback(() => {
-		beginRequest((requestId) => {
-			const [response, problem] = invoke("StartMission", { slot: selectedSlot, missionId: selectedMission, special: selectedSpecialRef.current, difficulty: selectedDifficultyRef.current });
-			if (!mountedRef.current || requestRef.current !== requestId) return;
-			if (!response) showToast(problem ?? "Command rejected the request.", true);
-			else {
-				if (response.slots) applyResponseSlots(response);
-				if (screenRef.current !== "mission") showToast("Clearance received. Preparing aircraft...", false);
-			}
+		if (busyRef.current || !mountedRef.current || !launchLoading.Begin(os.clock())) return;
+		const generation = launchLoading.Generation();
+		task.delay(LAUNCH_REQUEST_TIMEOUT, () => {
+			if (!mountedRef.current || !launchLoading.Watchdog(generation, os.clock())) return;
+			loadingSerialRef.current++;
+			cancelRequests();
+			changeScreen(launchLoading.Screen());
+			showToast("World preparation timed out. Request another launch.", true);
+			// Bypasses the server foreground request lock; cancellation retains world ownership until the old build stops.
+			task.spawn(() => invoke("CancelLaunch", { launchId: generation }));
 		});
-	}, [applyResponseSlots, beginRequest, invoke, selectedMission, selectedSlot, showToast]);
+		// Cover the world before the yielding RPC can destroy the menu or write terrain.
+		setLaunchPhase(launchLoading.Phase());
+		setBuildFolder(undefined);
+		setLoadingProgress(0);
+		toastRef.current++; setToast(undefined);
+		changeScreen(launchLoading.Screen());
+		beginRequest((requestId) => {
+			const [response, problem] = invoke("StartMission", { launchId: generation, slot: selectedSlot, missionId: selectedMission, special: selectedSpecialRef.current, difficulty: selectedDifficultyRef.current });
+			if (!mountedRef.current || requestRef.current !== requestId || !launchLoading.Current(generation)) return;
+			if (!response) {
+				launchLoading.Fail();
+				loadingSerialRef.current++;
+				changeScreen(launchLoading.Screen());
+				showToast(problem ?? "Command rejected the request.", true);
+			} else if (response.slots) applyResponseSlots(response);
+		});
+	}, [applyResponseSlots, beginRequest, cancelRequests, changeScreen, invoke, launchLoading, selectedMission, selectedSlot, showToast]);
 	const startMission=useCallback(()=>{
-		if(busyRef.current || !canLaunchMission(selectedMissionRef.current, slots?.[selectedSlotRef.current-1]))return;
-		const chapter=math.max(0,selectedMissionRef.current-1);
-		// A chapter already seen on this slot (retry or replay) goes straight to launch.
+		if(busyRef.current || launchLoading.Pending() || !canLaunchMission(selectedMissionRef.current, slots?.[selectedSlotRef.current-1]))return;
+		const chapter=chapterBeforeMission(selectedMissionRef.current);
+		// Seen chapters skip; completed M1 gets an opening reprise only from the mission menu, never Retry/Next.
 		const seen=slots?.[selectedSlotRef.current-1]?.cutscenesSeen;
-		if(seen && seen.includes(chapter)){launchMission();return;}
+		const completed=slots?.[selectedSlotRef.current-1]?.missions?.[selectedMissionRef.current]?.completed===true;
+		if(!shouldPlayChapter(selectedMissionRef.current,seen,completed,fromMissionMenuRef.current)){launchMission();return;}
 		cinematicNext.current=launchMission;
 		setCinematicId(chapter);
 		changeScreen("cinematic");
-	},[launchMission,changeScreen,slots]);
+	},[launchMission,launchLoading,changeScreen,slots]);
 	const returnToMenu = useCallback(() => {
 		cancelRequests();
 		releaseJoystick();
@@ -313,6 +345,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			if (returned.slots) applyResponseSlots(returned);
 			task.wait(0.16);
 			if (!mountedRef.current || requestRef.current !== requestId) return;
+			fromMissionMenuRef.current = false;
 			selectedMissionRef.current = missionId;
 			setSelectedMission(missionId);
 			changeScreen("briefing");
@@ -326,6 +359,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		const current = slotsRef.current;
 		if (busyRef.current || !current?.[slot - 1]) return;
 		const missionId = highestUnlocked(current[slot - 1]);
+		fromMissionMenuRef.current = true;
 		selectedSlotRef.current = slot; selectedMissionRef.current = missionId;
 		setSelectedSlot(slot); setSelectedMission(missionId);
 		// The slot remembers its last loadout; a fresh slot starts on the default special.
@@ -374,7 +408,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			}
 		});
 	}, [applyResponseSlots, beginRequest, invoke, setDeleteConfirm, showToast]);
-	const chooseMission = useCallback((missionId: number) => { selectedMissionRef.current = missionId; setSelectedMission(missionId); }, []);
+	const chooseMission = useCallback((missionId: number) => { fromMissionMenuRef.current = true; selectedMissionRef.current = missionId; setSelectedMission(missionId); }, []);
 	const chooseSpecial = useCallback((kind: SpecialKind) => { selectedSpecialRef.current = kind; setSelectedSpecial(kind); }, []);
 	const chooseDifficulty = useCallback((kind: DifficultyKind) => { selectedDifficultyRef.current = kind; setSelectedDifficulty(kind); }, []);
 	// Always send: the server either launches (guided or blind) or answers with `fireDenied`, so a press is never silent.
@@ -464,6 +498,14 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		trackTouchEnd(input);
 		moveJoystick(input);
 	}, [moveJoystick, trackTouchEnd]);
+	// The stick's InputBegan only covers its own frame. World boxes need the unconsumed screen touches too.
+	useEffect(() => {
+		const began = UserInputService.TouchStarted.Connect((input, processed) => {
+			if (processed || !inMissionRef.current || inputModeRef.current !== "touch" || GuiService.MenuIsOpen || UserInputService.GetFocusedTextBox()) return;
+			controller.TryTapTarget(input.Position);
+		});
+		return () => began.Disconnect();
+	}, [controller]);
 	const moveThrottle = useCallback((input: InputObject) => {
 		const stick = throttleJoystickRef.current;
 		const knob = throttleKnobRef.current;
@@ -553,12 +595,22 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		const onMissionState = (raw: unknown, held = false): void => {
 			if (!mountedRef.current || !typeIs(raw, "table")) return;
 			const payload = raw as MissionMessage;
+			if ((payload.kind === "Queued" || payload.kind === "Building" || payload.kind === "Loading" || payload.kind === "Started") && !launchLoading.Current(payload.launchId)) return;
 			if (payload.kind === "Queued") {
-				// The last sortie's world is still being cleared; the launch request stays open and proceeds by itself.
-				showToast("Clearing the last sortie. Your launch is queued...", false, true);
+				launchLoading.Queued();
+				setLaunchPhase(launchLoading.Phase());
+				return;
+			}
+			if (payload.kind === "Building") {
+				if (!launchLoading.Pending()) return;
+				launchLoading.Building();
+				setLaunchPhase(launchLoading.Phase());
+				setBuildFolder(payload.folder);
 				return;
 			}
 			if (payload.kind === "Loading") {
+				if (!launchLoading.Preload()) return;
+				setLaunchPhase(launchLoading.Phase());
 				const loading = payload as MissionLoading;
 				const slot = math.clamp(math.floor(finite(loading.slot, selectedSlotRef.current)), 1, 4);
 				const missionId = MissionCatalog.IsValidId(loading.missionId) ? loading.missionId : 1;
@@ -577,7 +629,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				task.delay(LOADING_CLIENT_TIMEOUT, () => {
 					if (!alive()) return;
 					loadingSerialRef.current++;
-					changeScreen("briefing");
+					launchLoading.Fail();
+					cancelRequests();
+					changeScreen(launchLoading.Screen());
 					showToast("The aircraft never reported ready. Request another launch.", true);
 					beginRequest((requestId) => {
 						const [response] = invoke("ReturnToMenu");
@@ -586,6 +640,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					});
 				});
 			} else if (payload.kind === "Started") {
+				if (!launchLoading.Started()) return;
 				loadingSerialRef.current++;
 				const started = payload as MissionStarted;
 				const slot = math.clamp(math.floor(finite(started.slot, selectedSlotRef.current)), 1, 4);
@@ -616,7 +671,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					});
 					return;
 				}
-				changeScreen("mission");
+				changeScreen(launchLoading.Screen());
 				// A menu opened or focus lost during loading/cutscene fires no new event once flight starts: pause now.
 				task.defer(() => { if (GuiService.MenuIsOpen || focusLostRef.current) pauseSortieRef.current(); });
 				const [ok, initial] = pcall(() => controller.GetTelemetry());
@@ -738,7 +793,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			setTelemetry(sanitized);
 		});
 		return () => { connection.Disconnect(); unsubscribe(); };
-	}, [applyResponseSlots, beginRequest, cancelRequests, changeScreen, controller, invoke, releaseJoystick, remotes, showToast]);
+	}, [applyResponseSlots, beginRequest, cancelRequests, changeScreen, controller, invoke, launchLoading, releaseJoystick, remotes, showToast]);
 	useEffect(() => {
 		let sampleClock = 0;
 		const connection = RunService.RenderStepped.Connect((deltaTime) => {
@@ -837,9 +892,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					<TitleScreen visible={screen === "title"} menu={menu} onCampaign={openCampaign} onSettings={openSettings} />
 					<CampaignScreen visible={screen === "slots"} menu={menu} slots={slots} busy={busy} persistence={persistence} onBack={goBack} onSlot={chooseSlot} confirmSlot={confirmSlot} onAskDelete={askDelete} onCancelDelete={cancelDelete} onDeleteSlot={deleteSlot} />
 					<BriefingScreen visible={screen === "briefing"} menu={menu} selectedSlot={selectedSlot} selectedMission={selectedMission} slot={selectedSave} busy={busy} special={selectedSpecial} difficulty={selectedDifficulty} onBack={goBack} onLaunch={startMission} onMission={chooseMission} onSpecial={chooseSpecial} onDifficulty={chooseDifficulty} />
-					<LoadingScreen visible={screen === "loading"} missionId={selectedMission} progress={loadingProgress} viewport={viewport} />
+					<LoadingScreen visible={screen === "loading"} missionId={selectedMission} progress={loadingProgress} phase={launchPhase} buildFolder={buildFolder} viewport={viewport} />
 					<MissionHud
-						visible={screen === "mission"}
+						visible={screen === "mission" && controller.CutInStatus() === undefined}
 						viewport={viewport}
 						inputMode={inputMode}
 						telemetry={telemetry}
@@ -865,6 +920,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 						onEvade={evadeNow}
 						onPause={pauseSortie}
 					/>
+					{screen === "mission" && <SortieOverlay controller={controller} telemetry={telemetry} viewport={viewport} inputMode={inputMode} />}
 					{screen === "mission" && paused && !settingsOpen && (
 						<PauseOverlay remaining={telemetry.pauseRemaining} viewport={viewport} onResume={resumeSortie} onSettings={openPauseSettings} onMenu={returnToMenu} />
 					)}
