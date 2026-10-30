@@ -4,6 +4,12 @@ Last updated: 2026-10-30.
 
 Audio policy (D-142): continue the story in subtitles beyond existing approved voices; changed lines stay silent. No further audio uploads. Any cause investigation must remain offline using the [preserved case file](../qa/audio-rejections/2026-10-30-voicebank01.md).
 
+## Engine batch D2 — stacked implementation
+
+D2 is implemented on `feat/engine-batch-d2`, based on D1 / [#165](https://github.com/A-Ricemusic/skybreak/pull/165); it is unmerged and activates no mission. Rebase onto main after D1 merges. It adds opt-in firing SAMs, naval classes and independent deck mounts, once-only hull/mount credit, six-second sinking, moving surface routes and a hull-only sea-skimming XLAA fit. Procedural harbour targets need no uploads or new audio. Decisions D-190–D-193 describe the provisional rules. Frozen install, build and the full offline validation gate passed (779 Luau contracts, catalog snapshots and 122 Python checks). Six D2 Roblox runtime specs compile but were not executed: the shared Studio remained occupied; no Player test is claimed.
+
+Before M6 activation: author the roster/score roles and finite stocks, resolve or explicitly document provisional counts and ranks, fit `armament.antiShip` if wanted, and author per-target health/routes/mount ownership/SAM opt-ins. Exercise these in Studio and compare the assembled harbour, ship motion, weapon trajectory, warnings and service sequence in Player; phone performance remains unmeasured. Existing score-at-expiry and damage-preserving rearm need no D2 changes. Area attack belongs to D3/M7; weapon selection at rearm and separate service clocks remain F24/D11 in the accepted engine plan.
+
 ## Mission 2 beta test — start here
 
 [Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). Mission 2 is live through the automatic pipeline and unlocks after you finish mission 1 on the same save. Agents have not performed a Roblox Player test.

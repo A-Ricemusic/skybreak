@@ -259,7 +259,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 				for (const phase of MissionCatalog.ExpandedPhases(bs.blueprint)) for (const target of phase.groundTargets ?? []) session.arrivalTargets.push(target);
 			}
 			const fired=session.arrivalsFired ?? new Set<string>(); session.arrivalsFired=fired;
-			const context={ elapsed:session.elapsed, phase:bs.phaseIndex, requiredKills:bs.requiredAirKills+bs.requiredGroundKills+(bs.aceKilled ? 1 : 0), destroyed:bs.killedIds, targets:session.arrivalTargets, player:{ x:session.state.x, z:session.state.z } };
+			const context={ elapsed:session.elapsed, phase:bs.phaseIndex, requiredKills:bs.requiredAirKills+bs.requiredGroundKills+(bs.aceKilled ? 1 : 0), destroyed:session.retiredGroundIds ? new Set([...bs.killedIds,...session.retiredGroundIds]) : bs.killedIds, targets:session.arrivalTargets, player:{ x:session.state.x, z:session.state.z } };
 			for(const arrival of [...(active.fighterWaves ?? []), ...(active.standaloneAce ? [active.standaloneAce] : [])]) {
 				if(takeArrival(arrival.id,arrival.trigger,context,fired)) session.airQueue.push({ arrival, role: "name" in arrival ? "ace" : arrival.role, count: "name" in arrival ? 1 : arrival.count, behind:false, call: arrival.call });
 			}
