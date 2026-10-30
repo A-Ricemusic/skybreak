@@ -28,7 +28,7 @@ top-right health bar read zero and the screen flashed red.
 
 Place built from a detached worktree of `origin/main`; Studio play-solo; the server logger in
 `repro-logger.server.luau` armed from the MCP; practice then mission 1 started with
-`launch.client.luau`. Full log: `repro-main-088fbfc.log`.
+`launch.client.luau`. Full log: `repro-main-088fbfc.txt`.
 
 | Time | What happened | Evidence |
 |---|---|---|
@@ -49,7 +49,7 @@ into the same fall, and repeats until the world has something under the origin. 
 loop repeats at every mission end. Nothing in the game logic reacts to the deaths, so the
 mission itself continued; only the Roblox default UI was affected.
 
-## Studio verification of the fix (branch `fix/humanoid-death`, commit `adec1f3`)
+## Studio verification of the fix (branch `fix/humanoid-death`, commit `adec1f3`; the review follow-up commit changed only the never-reached fallback for an unexpected character from hardening to removal, the place-file `CharacterAutoLoads=false` and the CoreGui retry loop shape, and was covered by build/offline validation only)
 
 Place `build/skybreak.rbxlx` from this branch; Studio play-solo; the server watchdog logs any
 `CharacterAdded` or `Humanoid` appearing in `Workspace` and every change of

@@ -17,7 +17,7 @@ Most useful feedback: whether the base is easy to find and read; whether the par
 
 ## Avatar death fix — what to check when playing
 
-The humanoid-death PR stops the Roblox avatar from existing at all, so the top-right health bar and the red damage flash should never appear again (D-086). When you next play:
+[PR #156](https://github.com/A-Ricemusic/skybreak/pull/156) stops the Roblox avatar from existing at all, so the top-right health bar and the red damage flash should never appear again (D-086). When you next play:
 
 1. **Menu and flight.** The menu backdrop, briefing, flight camera, HUD, pause, results and mobile touch controls should behave exactly as before. Nothing in the game used the avatar.
 2. **No red flash, no health bar.** Play practice, mission 1 and mission 2 for a few minutes each, including the loading screen and the return to the menu. There should be no red screen flash and no health bar in the top-right corner at any point.
@@ -25,34 +25,22 @@ The humanoid-death PR stops the Roblox avatar from existing at all, so the top-r
 
 If any of these still appear, report where and when (menu, loading, in flight, results).
 
-## Mission 3 — in progress
+## Missions 3–5 — in review
 
-- The snowy mountain world, two radar sites and landing base are merged but dormant in #139.
-- Engine batch B is merged but dormant in #141: mission updates, return-line guidance, automatic skippable landing and terrain-relative warnings.
-- The mission 3 data and unlock PR is in progress. Mission 3 remains locked on `main`.
-- Still required before activation: Studio load and shell/LOD inspection, real-aircraft return and landing-path verification, update/radio/landing presentation checks, and real-phone performance.
+See [per-level status](levels.html) for the current pieces, findings and owner test checklists. Mission 3 [#147](https://github.com/A-Ricemusic/skybreak/pull/147), mission 4 [#149](https://github.com/A-Ricemusic/skybreak/pull/149), and mission 5 [#148](https://github.com/A-Ricemusic/skybreak/pull/148) remain open; sequential unlocks depend on preceding missions merging. Worlds #139/#144 and engines #141/#145 are merged but dormant.
 
-## Mission 4 — in progress
+Priorities before activation: resolve review findings, reconcile sequential integration, reduce roughly 45–46 s M04/M05 loading and cleanup delays (work on `perf/m04-m05-terrain`), and address M04 transports escaping at about 4:43.5 versus the 12:00 HUD clock. M03 terrain/LOD presentation and M05 lighting follow-up remain review concerns. Linked PRs report Studio checks; this docs change performed no Studio or Player test.
 
-- The heavy transport and radar jammer assets are moderation-approved, wired in #142 and dormant.
-- The inland-hills world is in review in PR #144.
-- Engine batch C is in review in PR #145. It supplies dormant jamming and later mission 4–5 contracts.
-- Mission data, integration, Studio visual checks and unlock remain after those reviews.
+## Missions 6–9 — specs ready for review
 
-## Mission 5 — in progress
-
-- The fuel tanker, attack helicopter and elite Vanta livery are moderation-approved, wired in #142 and dormant.
-- The night refinery world is in review in PR #144.
-- Engine batch C is in review in PR #145.
-- Mission data, score-threshold flow, surprise elite phase, landing/rearm integration, Studio visual checks and unlock remain.
+Mission and world specs are in review in [PR #155](https://github.com/A-Ricemusic/skybreak/pull/155), at `docs/specs/missions/m06.md`–`m09.md` and `docs/specs/worlds/m06.md`–`m09.md`, with source timestamps, observed debriefs, scale sketches, Broken Relay adaptations and main’s engine gaps. Review the flagged inventory/trigger/rank assumptions before implementation; these are documentation proposals, not mission activation or Player verification.
 
 ## Later
 
-Continue one mission at a time after owner feedback. Before the finale, remap the final story chapter and retire leftover code keyed to the old 27-mission campaign. Mission 18 retains the planned one-on-one Rusk duel (D-031). Non-blocking polish remains: terrain and shoreline presentation, a code formatter, and dedicated menu/briefing/HUD/results specifications.
+- Mission and world specs for 10–13 are in review in [PR #153](https://github.com/A-Ricemusic/skybreak/pull/153): [M10](../specs/missions/m10.md), [M11](../specs/missions/m11.md), [M12](../specs/missions/m12.md), [M13](../specs/missions/m13.md), with companion world specs. Unresolved rosters, rank cuts and layout assumptions remain explicit. Missions remain unbuilt, locked and unavailable; no Player verification.
 
-Before missions 4–5 activation (PR #145 remains dormant/unmerged):
-- Integrate mission data with #144’s worlds; build M05 lights using `nightLightingFromAnchors(m05LightAnchors())`. Keep the world’s environment/effects as the sole owner. Verify lighting and route clearances in Studio/Player under the orchestrator’s lease.
-- F4 remaining: add the separate landing 3:00 and takeoff 1:00 HUD clocks, TAKEOFF / CHANGE WEAPON menu (at least special-weapon selection), and surprise elite formation cut-in with its own paused mission-clock span. Current rearm supports the approach gate, cockpit hard cut, hidden local jet, skip and automatic takeoff; the main clock pauses throughout, damage persists, missiles/special refill only as authored, hostile threats block entry, and repeats require zone exit (m05 A4).
-- Run the compiled Roblox runtime specs (ship waterline/aim centre, rearm abuse/pause, jammer calls and lighting isolation), then inspect rearm camera/skip/clock handoff and searchlight sweep/pause. This pass did not launch Studio or run Roblox Jest.
+Before the finale, remap the final story chapter and retire leftover code keyed to the old 27-mission campaign. Mission 18 retains the planned one-on-one Rusk duel (D-031).
 
-PR #145 validation (2026-10-29): frozen Bun install and build passed; full offline validation passed: `OFFLINE_LUAU_RESULT passed=730 failed=0`, `MISSION_CATALOG_SNAPSHOT passed=19 failed=0`, Python `Ran 122 tests` / `OK`. Practice/M01/M02 mission data and snapshots are unchanged. Roblox runtime specs compile but were not executed.
+## Missions 14–18 specifications — in review
+
+[PR #154](https://github.com/A-Ricemusic/skybreak/pull/154) contains [M14](../specs/missions/m14.md), [M15](../specs/missions/m15.md), [M16](../specs/missions/m16.md), [M17](../specs/missions/m17.md) and [M18](../specs/missions/m18.md), companion world specs and source coverage in `reference/ledger.md`. Review unresolved ground subtypes/rank cuts and proposed layouts before implementation; preserve Rusk’s M17 withdrawal and added M18 duel. The duel keeps the existing regenerating missile rack; reference finite racks/rearm loadouts remain an explicit engine gap. Missions remain unbuilt and locked; no Studio/Player quality is claimed. Main now includes PR #155 (M6–9) and PR #153 (M10–13); their dashboard, level-card and ledger updates are preserved.

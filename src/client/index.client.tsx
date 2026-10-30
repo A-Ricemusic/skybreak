@@ -26,7 +26,11 @@ if (Workspace.GetAttribute("SkybreakTestMode") !== true) {
 	// No avatar health bar, red damage flash, backpack or reset button: the jet HUD is the only HUD.
 	task.spawn(() => {
 		const applied = CoreGuiPolicy.Apply(StarterGui);
-		if (!applied.health || !applied.backpack || !applied.resetButton) warn(`SKYBREAK core GUI policy incomplete after ${applied.attempts} attempts: health=${applied.health} backpack=${applied.backpack} reset=${applied.resetButton}`);
+		if (!applied.complete) {
+			const missing: string[] = CoreGuiPolicy.Hidden.filter((kind) => !applied.hidden.has(kind)).map((kind) => kind.Name);
+			if (!applied.resetButton) missing.push("ResetButton");
+			warn(`SKYBREAK core GUI policy incomplete after ${applied.attempts} attempts; still showing: ${missing.join(", ")}`);
+		}
 	});
 
 	const graphics = applyMobileGraphics();

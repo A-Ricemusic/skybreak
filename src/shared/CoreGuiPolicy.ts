@@ -1,5 +1,5 @@
 /**
- * Roblox's default CoreGui for a humanoid: the top-right health bar, the red
+ * Roblox's default CoreGui for a humanoid: the top-right health bar and the red
  * damage flash (both `CoreGuiType.Health`), the backpack hotbar and the reset
  * button. SKYBREAK draws its own jet HUD, so all of them are turned off.
  *
@@ -14,7 +14,14 @@ export interface CoreGuiTarget {
 	SetCoreGuiEnabled(kind: Enum.CoreGuiType, enabled: boolean): void;
 	SetCore(parameter: string, value: unknown): void;
 }
-export interface CoreGuiPolicyResult { health: boolean; backpack: boolean; resetButton: boolean; attempts: number }
+export interface CoreGuiPolicyResult {
+	/** Core GUIs confirmed hidden. */
+	hidden: Set<Enum.CoreGuiType>;
+	resetButton: boolean;
+	/** Everything in `Hidden` plus the reset button succeeded. */
+	complete: boolean;
+	attempts: number;
+}
 
 /** Core GUIs hidden for the whole session. */
 const HIDDEN: ReadonlyArray<Enum.CoreGuiType> = [Enum.CoreGuiType.Health, Enum.CoreGuiType.Backpack];
@@ -26,19 +33,22 @@ export const CoreGuiPolicy = {
 	Attempts: ATTEMPTS,
 	RetrySeconds: RETRY_SECONDS,
 	/**
-	 * Hide the health bar and damage flash, the backpack and the reset button.
-	 * `wait` is called between attempts; the result says what succeeded.
+	 * Hide every `Hidden` core GUI and the reset button. `wait` is called between
+	 * attempts; the result says what succeeded.
 	 */
 	Apply(target: CoreGuiTarget, wait: (seconds: number) => unknown = (seconds) => task.wait(seconds)): CoreGuiPolicyResult {
-		const result: CoreGuiPolicyResult = { health: false, backpack: false, resetButton: false, attempts: 0 };
-		const done = () => result.health && result.backpack && result.resetButton;
-		while (!done() && result.attempts < ATTEMPTS) {
-			if (result.attempts > 0) wait(RETRY_SECONDS);
-			result.attempts++;
-			if (!result.health) result.health = pcall(() => target.SetCoreGuiEnabled(Enum.CoreGuiType.Health, false))[0];
-			if (!result.backpack) result.backpack = pcall(() => target.SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false))[0];
-			if (!result.resetButton) result.resetButton = pcall(() => target.SetCore("ResetButtonCallback", false))[0];
+		const hidden = new Set<Enum.CoreGuiType>();
+		let resetButton = false;
+		let attempts = 0;
+		const complete = () => resetButton && HIDDEN.every((kind) => hidden.has(kind));
+		while (!complete() && attempts < ATTEMPTS) {
+			if (attempts > 0) wait(RETRY_SECONDS);
+			attempts++;
+			for (const kind of HIDDEN) {
+				if (!hidden.has(kind) && pcall(() => target.SetCoreGuiEnabled(kind, false))[0]) hidden.add(kind);
+			}
+			if (!resetButton) resetButton = pcall(() => target.SetCore("ResetButtonCallback", false))[0];
 		}
-		return result;
+		return { hidden, resetButton, complete: complete(), attempts };
 	},
 };
