@@ -1,7 +1,6 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { registerWorldClear, robloxScheduler, worldClear } from "../server/WorldLifecycleRuntime";
 import { WorldLifecycle } from "../shared/WorldLifecycle";
-import { clearM03World } from "../server/M03World";
 import { Workspace } from "@rbxts/services";
 import { beginTerrainWrite, clearTerrainIfDirty, markTerrainClean, terrainDirty } from "../server/TerrainState";
 
@@ -28,13 +27,12 @@ describe("World lifecycle runtime (Studio)", () => {
 		log.push("launch");
 		expect(log).toEqual(["clear", "restore", "launch"]);
 	});
-	it("uses a registered per-world clear, including mission 3's, and falls back to Terrain:Clear", () => {
+	it("uses a registered per-world clear and falls back to the native clear", () => {
 		let used = false;
 		registerWorldClear("lifecycle_test_world", () => { used = true; });
 		worldClear("lifecycle_test_world")(() => false);
 		expect(used).toBe(true);
-		expect(worldClear("m03_snow_radar")).toBe(clearM03World);
-		expect(worldClear("no_such_world")).never.toBe(clearM03World);
+		expect(worldClear("no_such_world")).never.toBe(worldClear("lifecycle_test_world"));
 		expect(typeIs(worldClear(undefined), "function")).toBe(true);
 	});
 	it("runs the native terrain clear only when terrain may hold something", () => {

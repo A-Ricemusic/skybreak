@@ -3,9 +3,6 @@ import { buildM03Plan, M03, M03_ENVIRONMENT, M03_FILL_CHUNK, M03_WORLD_KEY, type
 import { M03_TARGET_TYPES } from "../shared/missions/m03";
 import { adoptGroundTarget } from "./GroundTargetFactory";
 import { Scenery } from "./Scenery";
-import { registerWorldClear } from "./WorldLifecycleRuntime";
-import { clearTerrainIfDirty, markTerrainClean } from "./TerrainState";
-import type { TerrainOp } from "../shared/WorldPlan";
 import { material, TerrainWriter } from "./TerrainWriter";
 import { WorldEnvironment } from "./WorldEnvironment";
 
@@ -43,26 +40,6 @@ export function placeM03Target(parent: Instance, t: M03Target): Model {
 	return m;
 }
 
-/** Terrain ops this server has written for mission 3 and not yet cleared. */
-let writtenOps: TerrainOp[] | undefined;
-/**
- * Mission 3's world clear (D-067), run through the world gate: Air over exactly the recorded shell ops in the
- * build's bounded, yielding jobs, then releases the emptied extent with one native clear (about 9 s, against 17.6 s
- * for a native clear of the full world).
- */
-export function clearM03World(cancelled: () => boolean): void {
-	if (writtenOps === undefined) { clearTerrainIfDirty(); return; }
-	// 30 ms slices: measured 40-50 s for the whole shell with the server responsive (8 ms slices took 75-88 s).
-	if (!TerrainWriter.Clear(writtenOps, cancelled, 0.03, M03_FILL_CHUNK)) return;
-	writtenOps = undefined;
-	// The emptied voxels still hold mission 3's allocated extent; left alone, the next world's native clear paid
-	// for it (mission 1's cleanup then froze the server 25 s). Release it here, in this isolated step, while the
-	// results screen shows: measured about 9 s instead of the 17.6 s full clear.
-	if (cancelled()) return;
-	Workspace.Terrain.Clear();
-	markTerrainClean();
-}
-registerWorldClear(M03_WORLD_KEY, clearM03World);
 
 /** Mission 3's world. No uploads or asset downloads. Every m03TargetLayout site is drawn exactly once, as its
  * own model keyed by target id in `targetVisuals`; combat adopts those models instead of building copies.
@@ -87,8 +64,6 @@ export const M03World = {
 		rays.Name = "M03SunRays"; rays.Intensity = 0.12; rays.Spread = 0.85; rays.Parent = Lighting;
 		const scene = new Instance("Folder"); scene.Name = M03_WORLD_KEY; scene.Parent = parent;
 		parent.SetAttribute("WorldBuildPhase", "terrain");
-		// Recorded before writing, so even a build abandoned part-way clears exactly what it wrote.
-		writtenOps = plan.ops;
 		const timing = TerrainWriter.Write(plan.ops, 0.008, M03_FILL_CHUNK);
 		parent.SetAttribute("WorldTerrainReadySeconds", os.clock() - start);
 		parent.SetAttribute("WorldTerrainLongest", timing.longest);

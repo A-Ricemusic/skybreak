@@ -1,9 +1,10 @@
 import { Workspace } from "@rbxts/services";
 
-// Measured in Studio: a native Terrain:Clear() of mission 3 froze the server 17.6 s, and even after its voxels were
-// cleared to Air in bounded jobs a native clear still took 8.8 s (the allocated extent), long enough to hit the
-// script execution limit inside the next launch. So a world's registered clear runs any native call itself, inside
-// the world gate's isolated step, and marks the terrain clean; builds and the menu then clear natively only when dirty.
+// Measured in Studio: a native Terrain:Clear() of mission 3 froze the server 17.6 s; clearing its voxels to Air in
+// bounded jobs first did not help, because a native clear of the emptied extent still took 9-23 s, and skipping it
+// moved that cost onto the next world's clear (25 s after mission 1). So each world's clear runs once, natively,
+// inside the world gate's isolated step (WorldLifecycle), and builds or the menu clear again only when terrain may
+// hold something: a native clear here, or a registered world clear calling markTerrainClean(), marks it empty.
 let dirty = true;
 /** Native Terrain:Clear() only if something may have written terrain since the terrain was last known empty. */
 export function clearTerrainIfDirty(): void {

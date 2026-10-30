@@ -64,19 +64,4 @@ export const TerrainWriter = {
 		const timing = runBudgeted(jobs, (job) => run(terrain, job), { budget, clock: os.clock, pause: () => task.wait() });
 		return { ...timing, jobs: jobs.size() };
 	},
-	/**
-	 * Clears what `ops` wrote (Air over every op's box) in the same bounded, yielding jobs, so even a very large
-	 * world clears without holding the server's heartbeat. Stops at the next job once `cancelled()` is true;
-	 * returns false if it stopped early.
-	 */
-	Clear(ops: TerrainOp[], cancelled: () => boolean, budget = TERRAIN_BUDGET, fillChunk = FILL_CHUNK): boolean {
-		const terrain = Workspace.Terrain;
-		const jobs = terrainJobs(ops.map((o) => ({ ...o, material: "Air" as const })), fillChunk);
-		let stopped = false;
-		runBudgeted(jobs, (job) => {
-			if (stopped || cancelled()) { stopped = true; return; }
-			run(terrain, job);
-		}, { budget, clock: os.clock, pause: () => task.wait() });
-		return !stopped;
-	},
 };
