@@ -89,7 +89,11 @@ export const TargetPriority = {
 		const count = ordered.size();
 		if (count === 0) return undefined;
 		let index: number;
-		if (cursor !== undefined) index = (math.floor(cursor) + 1) % count;
+		if (cursor !== undefined) {
+			index = (math.floor(cursor) + 1) % count;
+			// The order may have shifted since the last press: never land on the current target while another exists.
+			if (ordered[index].id === current && count > 1) index = (index + 1) % count;
+		}
 		else if (ordered[0].id !== current) index = 0;
 		else index = 1 % count;
 		return { id: ordered[index].id, cursor: index };

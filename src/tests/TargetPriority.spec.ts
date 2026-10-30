@@ -51,6 +51,11 @@ describe("automatic acquisition", () => {
 		expect(TargetPriority.Order(list).map((c) => c.id)).toEqual([3, 2, 4, 1, 0]);
 		expect(list.map((c) => TargetPriority.Tier(c))).toEqual([3, 2, 1, 0, 1]);
 	});
+	it("holds contacts the phase protects behind damageable ones ahead", () => {
+		const list = [{ id: 0, distance: 500, dot: 0.99, required: true, held: true }, { id: 1, distance: 900, dot: 0.5 }];
+		expect(TargetPriority.Best(list)).toBe(1);
+		expect(TargetPriority.Best([list[0]])).toBe(0);
+	});
 	it("picks the nose-best among the survivors after a kill", () => {
 		const before = [{ id: 0, distance: 600, dot: 0.99 }, { id: 1, distance: 700, dot: 0.9 }, { id: 2, distance: 200, dot: 0.3 }];
 		expect(TargetPriority.Best(before)).toBe(0);
@@ -96,6 +101,12 @@ describe("TGT press", () => {
 		const third = TargetPriority.Next(contacts, second.id, second.cursor)!;
 		const fourth = TargetPriority.Next(contacts, third.id, third.cursor)!;
 		expect([first.id, second.id, third.id, fourth.id]).toEqual([1, 2, 0, 1]);
+	});
+	it("steps past the current target when a re-sort would land a chained press on it", () => {
+		// Cursor 0 last picked id 2; the order has since shifted so id 2 now sits at index 1.
+		const shifted = [{ id: 1, distance: 100, dot: 1 }, { id: 2, distance: 100, dot: 0.99 }, { id: 0, distance: 100, dot: 0.5 }];
+		expect(TargetPriority.Next(shifted, 2, 0)).toEqual({ id: 0, cursor: 2 });
+		expect(TargetPriority.Next([shifted[1]], 2, 0)).toEqual({ id: 2, cursor: 0 });
 	});
 	it("snaps back once the chain lapses", () => {
 		expect(TargetPriority.Next(contacts, 0, undefined)).toEqual({ id: 1, cursor: 0 });
