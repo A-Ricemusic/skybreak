@@ -96,6 +96,7 @@ export interface Projectile {
 	lostTrack?: boolean;
 }
 export interface CombatSession {
+	launchId?: number;
 	rearmStartedAt?: number;
 	rearmEpoch?: number;
 	rearmElapsed?: number;
@@ -134,6 +135,8 @@ export interface CombatSession {
 	/** Per-action-kind rate limiting for CombatAction events. */
 	actionGate?: ActionGateState;
 	navigationMarker?: Part; navigationActor?: Model;
+	/** In-world dotted return line while a return_line phase runs. */
+	returnLineMarker?: Model;
 	previousReplicationFocus?: BasePart; characterRoot?: BasePart; wasAnchored?: boolean;
 	/** Present while the client is still receiving the world; nothing simulates until it is released. */
 	loading?: LoadingGateState;

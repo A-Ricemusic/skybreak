@@ -678,25 +678,416 @@
   },
   {
     "act": 1,
-    "available": false,
-    "briefing": "In development",
-    "codename": "In development",
-    "debrief": "In development",
-    "environment": "farm_overcast",
-    "failure": "In development",
+    "airspace": {
+      "hardHalfWidth": 15360,
+      "radarRange": 18000,
+      "softHalfWidth": 14000,
+      "spawnLimit": 13500
+    },
+    "allies": {
+      "allowRequiredTargets": false,
+      "callsignPrefix": "LANTERN",
+      "count": 3,
+      "creditPlayerKills": false,
+      "formation": [
+        {
+          "x": -180,
+          "y": 20,
+          "z": 160
+        },
+        {
+          "x": 180,
+          "y": 20,
+          "z": 160
+        },
+        {
+          "x": 0,
+          "y": 40,
+          "z": 320
+        }
+      ],
+      "model": "Kestrel"
+    },
+    "available": true,
+    "briefing": "Teal's receiver names a radar inside our own training box that nobody signed for: nine domes on two snowy mountain sites north-west of the pass. Destroy all nine with the gun camera running, then turn south across the return line and land with the film. AA guns and a parked helicopter are optional.",
+    "codename": "An Unlisted Station",
+    "countdownSeconds": 900,
+    "debrief": "Nine domes are down and the film is home. Sera locks the gun-camera tape in her desk: the station was watching trainees, not the sky.",
+    "environment": "ocean_clear",
+    "failure": "The station is still watching, and the film never reached Varda Rim.",
     "ground": [],
     "id": 3,
-    "optionalRaiderMax": 0,
+    "optionalRaiderMax": 8,
     "phases": [
       {
-        "count": 1,
-        "kind": "required_air",
-        "label": "In development"
+        "beat": "SERA: Enemy airspace. Site one is on the ridge north-west of you.",
+        "chatter": [
+          {
+            "at": 0.1111111111111111,
+            "text": "LANTERN 2: Dome down. Good hit, trainee."
+          },
+          {
+            "at": 0.5555555555555556,
+            "text": "SERA: Five domes down. Site two is on the saddle west-north-west."
+          },
+          {
+            "at": 0.8888888888888888,
+            "text": "LANTERN 2: One dome left. Finish it and we go home."
+          }
+        ],
+        "count": 9,
+        "fighterWaves": [
+          {
+            "call": "RIDGE STATION: Intruders from the south-east. Fighters, intercept.",
+            "count": 2,
+            "headingDegrees": 133,
+            "id": "m03_strike_pair",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "time",
+              "seconds": 10
+            }
+          },
+          {
+            "call": "RIDGE STATION: Escorts, keep them away from the domes!",
+            "count": 3,
+            "headingDegrees": 150,
+            "id": "m03_escorts",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "time",
+              "seconds": 39
+            }
+          },
+          {
+            "call": "SERA: Site one is silent. Three fighters inbound from the west.",
+            "count": 2,
+            "headingDegrees": 121,
+            "id": "m03_second_wave",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "spawn": {
+              "x": -4800,
+              "y": 1300,
+              "z": -5000
+            },
+            "trigger": {
+              "group": "site1",
+              "kind": "ground_group"
+            }
+          }
+        ],
+        "groundTargets": [
+          {
+            "group": "site1",
+            "id": "m03_s1_radar_1",
+            "position": {
+              "x": -1248,
+              "y": 736,
+              "z": -2784
+            },
+            "required": true,
+            "scoreRole": "radar_dome",
+            "type": "radar_dome",
+            "yaw": 0
+          },
+          {
+            "group": "site1",
+            "id": "m03_s1_radar_2",
+            "position": {
+              "x": -864,
+              "y": 756,
+              "z": -2592
+            },
+            "required": true,
+            "scoreRole": "radar_dome",
+            "type": "radar_dome",
+            "yaw": 0
+          },
+          {
+            "group": "site1",
+            "id": "m03_s1_radar_3",
+            "position": {
+              "x": -480,
+              "y": 780,
+              "z": -2400
+            },
+            "required": true,
+            "scoreRole": "radar_dome",
+            "type": "radar_dome",
+            "yaw": 0
+          },
+          {
+            "group": "site1",
+            "id": "m03_s1_radar_4",
+            "position": {
+              "x": -96,
+              "y": 756,
+              "z": -2208
+            },
+            "required": true,
+            "scoreRole": "radar_dome",
+            "type": "radar_dome",
+            "yaw": 0
+          },
+          {
+            "group": "site1",
+            "id": "m03_s1_radar_5",
+            "position": {
+              "x": 288,
+              "y": 736,
+              "z": -2016
+            },
+            "required": true,
+            "scoreRole": "radar_dome",
+            "type": "radar_dome",
+            "yaw": 0
+          },
+          {
+            "group": "site2",
+            "id": "m03_s2_radar_1",
+            "position": {
+              "x": -10400,
+              "y": 656,
+              "z": -8160
+            },
+            "required": true,
+            "scoreRole": "radar_dome",
+            "type": "radar_dome",
+            "yaw": 0
+          },
+          {
+            "group": "site2",
+            "id": "m03_s2_radar_2",
+            "position": {
+              "x": -10176,
+              "y": 656,
+              "z": -7968
+            },
+            "required": true,
+            "scoreRole": "radar_dome",
+            "type": "radar_dome",
+            "yaw": 0
+          },
+          {
+            "group": "site2",
+            "id": "m03_s2_radar_3",
+            "position": {
+              "x": -9952,
+              "y": 656,
+              "z": -8160
+            },
+            "required": true,
+            "scoreRole": "radar_dome",
+            "type": "radar_dome",
+            "yaw": 0
+          },
+          {
+            "group": "site2",
+            "id": "m03_s2_radar_4",
+            "position": {
+              "x": -9728,
+              "y": 656,
+              "z": -7968
+            },
+            "required": true,
+            "scoreRole": "radar_dome",
+            "type": "radar_dome",
+            "yaw": 0
+          },
+          {
+            "group": "site1_defence",
+            "id": "m03_s1_aa_1",
+            "position": {
+              "x": -160,
+              "y": 736,
+              "z": -2272
+            },
+            "required": false,
+            "scoreRole": "aa_gun",
+            "type": "aa_gun",
+            "yaw": 45
+          },
+          {
+            "group": "site2_defence",
+            "id": "m03_s2_aa_1",
+            "position": {
+              "x": -11552,
+              "y": 452,
+              "z": -7520
+            },
+            "required": false,
+            "scoreRole": "aa_gun",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "site2_defence",
+            "id": "m03_s2_aa_2",
+            "position": {
+              "x": -8544,
+              "y": 424,
+              "z": -7520
+            },
+            "required": false,
+            "scoreRole": "aa_gun",
+            "type": "aa_gun",
+            "yaw": 180
+          },
+          {
+            "group": "site2_defence",
+            "id": "m03_s2_aa_3",
+            "position": {
+              "x": -10528,
+              "y": 520,
+              "z": -6496
+            },
+            "required": false,
+            "scoreRole": "aa_gun",
+            "type": "aa_gun",
+            "yaw": 90
+          },
+          {
+            "group": "site2_defence",
+            "id": "m03_s2_helicopter",
+            "position": {
+              "x": -10080,
+              "y": 656,
+              "z": -8480
+            },
+            "required": false,
+            "scoreRole": "parked_helicopter",
+            "type": "parked_helicopter",
+            "yaw": 90
+          }
+        ],
+        "kind": "required_ground",
+        "label": "Destroy nine radar domes",
+        "standaloneAce": {
+          "behaviour": "dogfight",
+          "call": "CAIRN LEAD: You found our little station. Now you stay up here.",
+          "headingDegrees": 121,
+          "health": 165,
+          "id": "m03_ace",
+          "livery": "Vulture",
+          "name": "CAIRN LEAD",
+          "scoreRole": "ace",
+          "spawn": {
+            "x": -5200,
+            "y": 1400,
+            "z": -5300
+          },
+          "stageLines": [
+            "CAIRN LEAD: A training jet. They sent a training jet.",
+            "CAIRN LEAD: Missile! Breaking hard. Cairn is hit!"
+          ],
+          "trigger": {
+            "group": "site1",
+            "kind": "ground_group"
+          }
+        }
+      },
+      {
+        "kind": "return_line",
+        "label": "Return to base",
+        "returnLine": {
+          "a": {
+            "x": -13500,
+            "z": 11040
+          },
+          "b": {
+            "x": 13500,
+            "z": 11040
+          },
+          "direction": {
+            "x": 0,
+            "z": 1
+          },
+          "markerY": 1000
+        },
+        "update": {
+          "countdownSeconds": 900,
+          "objective": "Return to base: fly south across the return line",
+          "radio": [
+            "SERA: All nine domes confirmed destroyed. Good work.",
+            "SERA: All aircraft, turn south. Cross the return line to leave the area.",
+            "SERA: Follow the green cue to the white dashes on the ground below."
+          ]
+        }
+      },
+      {
+        "kind": "landing",
+        "label": "Land at Varda Rim",
+        "landing": {
+          "accomplishedSeconds": 4,
+          "approachDistance": 2100,
+          "approachSeconds": 24,
+          "countdownSeconds": 180,
+          "glideDegrees": 3,
+          "headingDegrees": 0,
+          "radio": [
+            {
+              "at": 0.5,
+              "text": "RIM TOWER: Trainee, gear check. Cleared to land, runway three-six."
+            },
+            {
+              "at": 7,
+              "text": "RIM TOWER: Runway in sight. You're on the centreline."
+            },
+            {
+              "at": 14,
+              "text": "RIM TOWER: Short final. Glide path is good, hold it there."
+            },
+            {
+              "at": 24.5,
+              "text": "RIM TOWER: Touchdown. Nice and gentle."
+            },
+            {
+              "at": 34.5,
+              "text": "RIM TOWER: Welcome home. Sera wants that film before you unstrap."
+            }
+          ],
+          "rolloutDistance": 612.5,
+          "rolloutSeconds": 14,
+          "touchdown": {
+            "x": 6000,
+            "y": 94,
+            "z": 11896
+          }
+        }
       }
     ],
-    "primary": "In development",
-    "region": "canyon_airfield",
-    "title": "Mission 3"
+    "primary": "Destroy all nine radar domes, then return to base",
+    "region": "snow_mountains",
+    "scoring": {
+      "basis": "points",
+      "points": {
+        "aa_gun": 20,
+        "ace": 240,
+        "fighter": 60,
+        "parked_helicopter": 40,
+        "radar_dome": 100
+      },
+      "rank": {
+        "A": 1150,
+        "B": 1000,
+        "C": 900,
+        "S": 1300
+      }
+    },
+    "start": {
+      "headingDegrees": 47.3,
+      "kind": "airborne",
+      "speed": 160,
+      "x": 12000,
+      "y": 880,
+      "z": 9120
+    },
+    "terrainRelativeWarnings": true,
+    "title": "NOBODY SIGNED",
+    "worldKey": "m03_snow_radar"
   },
   {
     "act": 1,

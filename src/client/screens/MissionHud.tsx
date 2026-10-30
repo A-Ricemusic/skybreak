@@ -6,7 +6,7 @@ import { evadeGauge } from "../../shared/EvadeGauge";
 import { CountdownDisplay } from "../../shared/CountdownDisplay";
 import { SpecialKind, SpecialWeapons } from "../../shared/SpecialWeapons";
 import { WeaponRules } from "../../shared/WeaponRules";
-import { clockLines, instrumentValue, statusLine } from "../../shared/HudInstruments";
+import { clockLines, instrumentValue, returnProgressLine, skipPrompt, statusLine } from "../../shared/HudInstruments";
 import type { Telemetry } from "../../shared/Types";
 import {
 	getEvadeHint,
@@ -27,13 +27,16 @@ import {
 import type { FlightTrend } from "../FlightController";
 import { FlightController } from "../FlightController";
 import { EvadeButton, Radar } from "../HudControls";
-import { HudLabel, InstrumentBox, Reticle, StatusPanel, WarningBox } from "../AceHud";
+import { HudBanner, HudLabel, InstrumentBox, Reticle, StatusPanel, WarningBox } from "../AceHud";
 import { NavigationCue } from "../NavigationCue";
 import { KillMarker, type KillFlash } from "../KillMarker";
 import { C, HUD, HUD_FONT_BOLD } from "../Theme";
 import { Corner, Label, Stroke } from "./Primitives";
 import { glyphFor } from "./UIInput";
 import { missileReady } from "./UIFormat";
+
+/** Accent of the reference's white-and-pink MISSION UPDATE box. */
+const MISSION_UPDATE_PINK = Color3.fromRGB(255, 120, 196);
 
 /** Temporarily replaces the one-line objective (radio lines, kills). */
 interface Callout {
@@ -266,7 +269,9 @@ function MissionHud({
 	const fireButton = WeaponRules.FireButton(telemetry.missiles, telemetry.missileCooldown, telemetry.target !== undefined && telemetry.targetDamageable !== false, telemetry.lockProgress);
 	const timeRemaining = CountdownDisplay.Value(telemetry.missionId, telemetry.timeRemaining);
 	const [timeLine, normalProgressLine] = clockLines(timeRemaining, telemetry.objectiveProgress, telemetry.objectiveTotal, telemetry.kills, telemetry.total);
-	const progressLine=telemetry.missionPoints!==undefined ? `PTS ${telemetry.missionPoints}${telemetry.missionPoints<(telemetry.objectiveTotal ?? 0) ? `/${telemetry.objectiveTotal}` : ""}` : normalProgressLine;
+	const tallyLine=telemetry.missionPoints!==undefined ? `PTS ${telemetry.missionPoints}${telemetry.missionPoints<(telemetry.objectiveTotal ?? 0) ? `/${telemetry.objectiveTotal}` : ""}` : normalProgressLine;
+	const landing = telemetry.phase === "landing" ? controller.LandingStatus() : undefined;
+	const progressLine = returnProgressLine(telemetry.phase, landing?.distance) ?? tallyLine;
 	const tutorial = getTutorialInstruction(telemetry.tutorialStep, inputMode);
 	// Radio rides the subtitle row; roots without one show it in the objective line (ahead of kill callouts), as before.
 	const objectiveCallout = radio !== undefined && !layout.subtitle ? { text: radio, color: HUD.White } : callout;
@@ -282,8 +287,17 @@ function MissionHud({
 	return (
 		<frame ref={hudFrameRef} key="MissionHUD" BackgroundTransparency={1} Size={UDim2.fromScale(1 / scale, 1 / scale)} Visible={visible}>
 			<uiscale Scale={scale} />
-			{(telemetry.missionUpdateSeconds ?? 0)>0 && <textlabel key="MissionUpdateBanner" Text="MISSION UPDATE" TextColor3={HUD.White} BackgroundColor3={Color3.fromRGB(65,20,45)} BackgroundTransparency={0.2} Size={UDim2.fromOffset(280,44)} Position={UDim2.fromScale(0.5,0.2)} AnchorPoint={new Vector2(0.5,0)} />}
-			{telemetry.phase === "landing" && <textbutton key="SkipLanding" Text="SKIP LANDING · SPACE / RT" Size={UDim2.fromOffset(200,44)} Position={UDim2.fromScale(0.5,0.75)} AnchorPoint={new Vector2(0.5,0)} Event={{Activated:()=>controller.SkipLanding()}} />}
+			{/* Reference: a blinking white-and-pink MISSION UPDATE box; MISSION ACCOMPLISHED holds on the runway. */}
+			{(telemetry.missionUpdateSeconds ?? 0)>0 && <HudBanner name="MissionUpdateBanner" text="MISSION UPDATE" color={HUD.White} stroke={MISSION_UPDATE_PINK} metrics={metrics} blink={true} />}
+			{landing?.accomplished === true && <HudBanner name="MissionAccomplishedBanner" text="MISSION ACCOMPLISHED" color={HUD.Green} metrics={metrics} />}
+			{landing !== undefined && !landing.accomplished && (
+				<textbutton key="SkipLanding" Active={true} AutoButtonColor={false} Selectable={false} BackgroundColor3={HUD.Shadow} BackgroundTransparency={0.6} BorderSizePixel={0}
+					FontFace={HUD_FONT_BOLD} Text={skipPrompt(inputMode)} TextColor3={landing.skippable ? HUD.Green : HUD.Dim} TextSize={metrics.text}
+					AnchorPoint={new Vector2(0.5, 0)} Position={UDim2.fromScale(0.5, 0.72)} Size={UDim2.fromOffset(math.max(160, metrics.row * 6), metrics.row * 2)}
+					Event={{ Activated: () => controller.SkipLanding() }}>
+					<Stroke color={HUD.Green} transparency={0.35} thickness={1} />
+				</textbutton>
+			)}
 			<NavigationCue telemetry={telemetry} visible={visible} inputMode={inputMode} scale={scale} options={options}/>
 			<frame key="DamageFlash" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Visible={damageFlash}>
 				<Stroke color={C.Danger} transparency={0.35} thickness={5} />

@@ -44,7 +44,7 @@ for (const chapter of STORY) for (const [index, beat] of chapter.beats.entries()
 }
 console.log(`VOICE_MANIFEST chapters=${STORY.length} beats=${beats} regions=${regions} bankHashes=${plan.banks.length}`);
 let harness = await Bun.file(resolve(root, "tools/tests/voice-consumer.luau")).text();
-const files = ["shared/VoiceReadiness", "shared/VoiceBanks", "shared/VoiceCues", "shared/VoiceLines", "shared/RelayStory", "shared/CinematicInput", "shared/CinematicLayout", "shared/CinematicStaging", "shared/StoryDocuments", "client/MotionPreference", "client/VoicePlayer", "client/RelayCinematic"];
+const files = ["shared/VoiceDisclosure", "shared/VoiceReadiness", "shared/VoiceBanks", "shared/VoiceCues", "shared/VoiceLines", "shared/RelayStory", "shared/CinematicInput", "shared/CinematicLayout", "shared/CinematicStaging", "shared/StoryDocuments", "client/MotionPreference", "client/VoicePlayer", "client/RelayCinematic"];
 let modules = "";
 for (const file of files) {
   let source = await Bun.file(resolve(root, `out/${file}.luau`)).text();

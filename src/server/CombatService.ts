@@ -1,7 +1,10 @@
+import { LaunchCancellation } from "../shared/LaunchLoading";
 import { canSkipLanding } from "../shared/EngineBatchB";
 import { buildNightLighting } from "./NightLighting";
 import { announceJammerKill, liveJammers, lockAllowed, stepRearm } from "./EngineBatchCRuntime";
-import { sampleClearance, stepLanding } from "./EngineBatchBRuntime";
+import { sampleClearance, skipLanding, stepLanding } from "./EngineBatchBRuntime";
+import { worldClear, worldLifecycle } from "./WorldLifecycleRuntime";
+import { awaitLaunchSlot, type LaunchSlot } from "../shared/WorldLifecycle";
 import { createGroundTarget } from "./GroundTargetFactory";
 import { GroundAirDefence } from "../shared/GroundAirDefence";
 import { authoredAirPose, airSpawnHeight, scramblePose } from "../shared/CampaignEncounters";
@@ -44,6 +47,7 @@ import { MissionWorld } from "./MissionWorld";
 import { ActorGrounding } from "./ActorGrounding";
 
 const sessions = new Map<Player, CombatSession>();
+const launchCancellations = new Map<Player, LaunchCancellation>();
 const completing = new Set<Player>();
 const connections: RBXScriptConnection[] = [];
 let missionSerial = 0;
@@ -437,10 +441,19 @@ function effect(session: CombatSession, kind: ExplosionKind, position: Vector3, 
 	if (session.cleaned || session.player.Parent !== Players) return;
 	combatEffectRemote?.FireClient(session.player, { kind, position, ...extra });
 }
-function restoreMenu(): void {
+/** Seconds the result has to reach the player before the (server-blocking) terrain clear starts. */
+const MENU_RESTORE_DELAY = 1;
+/**
+ * Clears the finished world and rebuilds the menu through the shared world gate (WorldLifecycle). Returns at once:
+ * settlement and release never wait. Clearing mission 3's terrain measured 10-30 s, past the script execution
+ * limit, so it runs isolated; StartMission waits for the gate, so no launch builds on top of a world being cleared.
+ */
+function restoreMenu(worldKey?: string): void {
 	if (sessions.size() > 0) return;
-	const [ok, message] = pcall(() => MissionWorld.RestoreMenu());
-	if (!ok) warn(`SKYBREAK menu restoration failed: ${tostring(message)}`);
+	worldLifecycle.Cleanup({ clear: worldClear(worldKey), delaySeconds: MENU_RESTORE_DELAY, restore: () => {
+		if (sessions.size() > 0 || buildingMission) return;
+		MissionWorld.RestoreMenu();
+	} });
 }
 function cleanupSession(session: CombatSession, restore = true): void {
 	if (session.cleaned) return;
@@ -455,7 +468,7 @@ function cleanupSession(session: CombatSession, restore = true): void {
 	session.projectiles.clear();
 	session.enemies.clear();
 	session.target = undefined;
-	if (restore) restoreMenu();
+	if (restore) restoreMenu(MissionCatalog.WorldKey(session.missionId));
 }
 /** Debrief counters handed to the completion callback. */
 function missionStats(session: CombatSession, won: boolean): MissionStats {
@@ -486,7 +499,9 @@ function settlementHooks(session: CombatSession, won: boolean): SettlementHooks 
 			const crashed = session.crashReason !== undefined && session.crashReason !== "internal_error";
 			if (!won && (session.health <= 0 || crashed)) effect(session, "player", positionFor(session.state), { velocity: directionFor(session.state).mul(session.state.speed) });
 			// The result screen waits up to a few seconds for the save; say the outcome on the HUD right away.
-			session.radio = won ? "MISSION ACCOMPLISHED · RETURN TO BASE" : "MISSION FAILED";
+			// A sortie that ends with its landing is already home.
+			const landed = session.blueprint !== undefined && MissionCatalog.ExpandedPhases(session.blueprint).some((phase) => phase.kind === "landing");
+			session.radio = won ? (landed ? "MISSION ACCOMPLISHED" : "MISSION ACCOMPLISHED · RETURN TO BASE") : "MISSION FAILED";
 			session.radioSerial += 1;
 			session.radioSeconds = 6;
 			session.radioPriority = true;
@@ -510,7 +525,7 @@ function settlementHooks(session: CombatSession, won: boolean): SettlementHooks 
 		teardown: () => cleanupSession(session),
 		release: () => {
 			// A teardown that threw part-way must not leave the session registered either.
-			if (sessions.get(session.player) === session) { sessions.delete(session.player); restoreMenu(); }
+			if (sessions.get(session.player) === session) { sessions.delete(session.player); restoreMenu(MissionCatalog.WorldKey(session.missionId)); }
 			completing.delete(session.player);
 		},
 		warn: (message) => warn(`SKYBREAK mission ${session.missionId} settlement: ${message}`),
@@ -550,7 +565,7 @@ function beginPlay(session: CombatSession): void {
 	session.stateTime = 0;
 	session.hud = undefined; // the first HUD message after Started is always complete
 	if (session.player.Parent !== Players) { cleanupSession(session); return; }
-	missionState!.FireClient(session.player, { kind: "Started", slot: session.slot, missionId: session.missionId, aircraft: session.aircraft, airspace: session.airspace, difficulty: session.difficulty, initialState: session.blueprint?.start ? session.state : undefined, launchIntro: session.launch !== undefined });
+	missionState!.FireClient(session.player, { kind: "Started", launchId: session.launchId, slot: session.slot, missionId: session.missionId, aircraft: session.aircraft, airspace: session.airspace, difficulty: session.difficulty, initialState: session.blueprint?.start ? session.state : undefined, launchIntro: session.launch !== undefined });
 	if (refreshSession(session, now)) { sendTelemetry(session); sendFlightState(session); }
 }
 function markTarget(session: CombatSession, enemy: Enemy): void {
@@ -1399,7 +1414,7 @@ function stepSession(session: CombatSession, dt: number): void {
 		if(session.telemetryTime>=TELEMETRY_INTERVAL) { session.telemetryTime=0; sendTelemetry(session); }
 		return;
 	}
-	if (stepLanding(session,dt,(message)=>missionState!.FireClient(session.player,message))) {
+	if (stepLanding(session,dt,(message)=>missionState!.FireClient(session.player,message),(line)=>radio(session,line,6))) {
 		session.aircraftFrame=frameFor(session.state);
 		if (sessionOutcome(session) !== undefined) finish(session);
 		else {
@@ -1578,12 +1593,19 @@ const phaseDirector = createPhaseDirector({
 
 // Clients supply validated controls and button events, never damage or results.
 export const CombatService = {
+	CancelLaunch(player: Player, launchId: number): void {
+		let cancellation = launchCancellations.get(player);
+		if (!cancellation) { cancellation = new LaunchCancellation(); launchCancellations.set(player, cancellation); }
+		cancellation.Cancel(launchId);
+		const session = sessions.get(player);
+		if (session?.launchId === launchId) cleanupSession(session);
+	},
 	EndMission(player: Player): void {
 		const session = sessions.get(player);
 		if (session) cleanupSession(session);
 	},
 	GetSession(player: Player): CombatSession | undefined { return sessions.get(player); },
-	StartMission(player: Player, slot: number, missionId = 1, special?: unknown, difficulty?: unknown): LuaTuple<[boolean, string?]> {
+	StartMission(player: Player, slot: number, missionId = 1, special?: unknown, difficulty?: unknown, launchId?: number): LuaTuple<[boolean, string?]> {
 		if (!missionState || !onFinished) return $tuple(false, "CombatService is not initialized");
 		if (!FlightMath.IsFinite(slot) || slot % 1 !== 0 || slot < 1 || slot > 4) return $tuple(false, "Choose a save slot from 1 to 4");
 		if (!MissionCatalog.IsValidId(missionId) || !MissionCatalog.Available(missionId)) return $tuple(false, "Choose a valid mission");
@@ -1594,20 +1616,47 @@ export const CombatService = {
 		if (!typeIs(player, "Instance") || !player.IsA("Player") || player.Parent !== Players) return $tuple(false, "Player is unavailable");
 		if (completing.has(player)) return $tuple(false, "Your mission result is still being saved");
 		if (sessions.has(player)) return $tuple(false, "A mission is already in progress or its result is being saved");
-		if (buildingMission || sessions.size() > 0) return $tuple(false, "This mission world is single-player");
+		if (buildingMission) return $tuple(false, "The previous launch is still preparing. Please wait before retrying.");
+		if (sessions.size() > 0) return $tuple(false, "This mission world is single-player");
+		const cancelled = () => launchCancellations.get(player)?.Cancelled(launchId) === true;
+		if (cancelled()) return $tuple(false, "This launch request expired. Request another launch.");
 		buildingMission = true;
+		// The previous world's cleanup must finish first: wait queued (the client keeps its launch request open).
+		let launchSlot: LaunchSlot = { kind: "refuse", message: "The mission could not be started.", restoreMenu: true };
+		const [waited, queueError] = pcall(() => {
+			launchSlot = awaitLaunchSlot(worldLifecycle, {
+				playerPresent: () => player.Parent === Players,
+				sessions: () => sessions.size(),
+				queued: () => { if (player.Parent === Players) missionState!.FireClient(player, { kind: "Queued", missionId, launchId }); },
+			});
+		});
+		if (!waited) warn(`SKYBREAK launch queue failed: ${tostring(queueError)}`);
+		if (launchSlot.kind === "refuse") {
+			buildingMission = false;
+			// The cleanup it waited on skipped the menu while this launch was pending: rebuild it.
+			if (launchSlot.restoreMenu) restoreMenu();
+			return $tuple(false, launchSlot.message);
+		}
+		if (cancelled()) {
+			buildingMission = false;
+			restoreMenu();
+			return $tuple(false, "This launch request expired. Request another launch.");
+		}
 		const startedAt = os.clock();
 		missionSerial += 1;
 		const folder = new Instance("Folder");
 		folder.Name = `Mission_${player.UserId}_${missionSerial}`;
 		folder.Parent = missionRoot;
 		const [ok, result] = pcall(() => {
+			missionState!.FireClient(player, { kind: "Building", missionId, folder, launchId });
 			const world = MissionWorld.Build(missionId, folder);
+			assert(!cancelled(), "Launch request expired");
 			assert(player.Parent === Players, "Player left during world construction");
 			const blueprint = MissionCatalog.Get(missionId);
 			if(blueprint.nightLighting) buildNightLighting(folder,blueprint.nightLighting,()=>PauseRules.Paused(session.pause));
 			assert(world.groundTargets.size() === blueprint.ground.size(), `Mission ${missionId} world ground target count mismatch`);
 			const aircraft = JetFactory.Create("SKYBREAK - Kestrel", false);
+			assert(!cancelled(), "Launch request expired");
 			assert(player.Parent === Players, "Player left during aircraft construction");
 			aircraft.SetAttribute("SkybreakOwner", player.UserId);
 			aircraft.SetAttribute("SkybreakPlayer", true);
@@ -1616,6 +1665,7 @@ export const CombatService = {
 			const state = blueprint.start ? LaunchStage.Pose(MissionCatalog.Start(missionId)) : FlightMath.NewState();
 			aircraft.PivotTo(frameFor(state));
 			const session: CombatSession = {
+				launchId,
 				targetScore: new TargetScore(MissionCatalog.Scoring(missionId)),
 				player, slot, folder, aircraft, state, missionId, airspace: MissionCatalog.Airspace(missionId), lastWindupAt: -math.huge, radioSerial: 0, chatterIndex: 0,
 				input: { x: 0, y: 0, throttle: FlightMath.CruiseThrottle }, health: 100, kills: 0, elapsed: 0,
@@ -1673,6 +1723,7 @@ export const CombatService = {
 			// replicate under the loading screen. Enemy timers only advance once play
 			// begins, so this is gameplay-equivalent to spawning at launch.
 			phaseDirector.Apply(session);
+			assert(!cancelled(), "Launch request expired");
 			assert(player.Parent === Players, "Player left during mission setup");
 			// Hold in the loading gate: no clock, stepping or input until the client
 			// confirms replication (CombatAction "Ready") or the timeout elapses.
@@ -1683,7 +1734,7 @@ export const CombatService = {
 			if (characterRoot?.IsA("BasePart")) {
 				session.characterRoot = characterRoot; session.wasAnchored = characterRoot.Anchored; characterRoot.Anchored = true;
 			}
-			const loading: MissionLoading = { kind: "Loading", slot, missionId, aircraft, expectedParts: countParts(folder) };
+			const loading: MissionLoading = { kind: "Loading", launchId, slot, missionId, aircraft, expectedParts: countParts(folder) };
 			missionState!.FireClient(player, loading);
 		});
 		buildingMission = false;
@@ -1691,7 +1742,8 @@ export const CombatService = {
 			const session = sessions.get(player);
 			if (session) cleanupSession(session, false);
 			folder.Destroy();
-			restoreMenu();
+			// A partly built world (the player may have left) is cleared through the same gate.
+			restoreMenu(MissionCatalog.WorldKey(missionId));
 			warn(`SKYBREAK mission construction failed: ${tostring(result)}`);
 			return $tuple(false, "The mission world could not be built. Please retry.");
 		}
@@ -1776,7 +1828,7 @@ export const CombatService = {
 					return;
 				}
 				if (session.blueprintState?.landingElapsed !== undefined) {
-					if (action === "SkipLanding" && session.landingStartedAt !== undefined && canSkipLanding(os.clock()-session.landingStartedAt)) { BlueprintRunner.AdvanceLanding(session.blueprintState,0,true); if (sessionOutcome(session) !== undefined) finish(session); }
+					if (action === "SkipLanding" && session.landingStartedAt !== undefined && canSkipLanding(os.clock()-session.landingStartedAt)) { skipLanding(session,(message)=>missionState!.FireClient(session.player,message)); if (sessionOutcome(session) !== undefined) finish(session); }
 					return;
 				}
 				if (!LaunchStage.CanControl(false, session.launch, PauseRules.Paused(session.pause)) || !refreshSession(session, now)) return;
@@ -1786,7 +1838,7 @@ export const CombatService = {
 				else if (action === "Special") activateSpecial(session);
 			}, (message) => abortSession(session, message));
 		}));
-		connections.push(Players.PlayerRemoving.Connect((player) => CombatService.EndMission(player)));
+		connections.push(Players.PlayerRemoving.Connect((player) => { CombatService.EndMission(player); launchCancellations.delete(player); }));
 		let accumulator = 0;
 		connections.push(RunService.Heartbeat.Connect((dt) => {
 			const now = os.clock();

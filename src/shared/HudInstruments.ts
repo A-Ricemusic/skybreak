@@ -88,6 +88,18 @@ export function clockLines(timeRemaining: number, objectiveProgress: number | un
 	return [`TIME ${formatClock(timeRemaining)}`, progress];
 }
 
+/** Second clock row while returning (RTB) and landing (DIST to touchdown); undefined keeps the target tally. */
+export function returnProgressLine(phase: string | undefined, distance?: number): string | undefined {
+	if (phase === "return_line") return "RTB";
+	if (phase === "landing") return `DIST ${math.clamp(math.floor((distance ?? 0) + 0.5), 0, 9999)}`;
+	return undefined;
+}
+
+/** Landing skip prompt for the current input mode (SPACE / RT / tap share the FIRE control). */
+export function skipPrompt(inputMode: "touch" | "gamepad" | "keyboard"): string {
+	return inputMode === "touch" ? "TAP TO SKIP" : inputMode === "gamepad" ? "RT  SKIP" : "SPACE  SKIP";
+}
+
 /** SPEED and ALT box values: whole numbers, clamped to four digits so the box never overflows. */
 export function instrumentValue(value: number): string {
 	return `${math.clamp(math.floor(value), -999, 9999)}`;

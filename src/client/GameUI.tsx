@@ -1,3 +1,4 @@
+import { VoiceDisclosureNotice } from "./VoiceDisclosureNotice";
 import { canLaunchMission, highestUnlocked } from "../shared/CampaignProgress";
 import { isMissionReason } from "../shared/OutcomeReason";
 import { DeletionObservation } from "../shared/DeletionObservation";
@@ -26,6 +27,7 @@ import { FlightController } from "./FlightController";
 import { CameraShake } from "./CameraShake";
 import type { KillFlash } from "./KillMarker";
 import { ImpactFeedback } from "../shared/ImpactFeedback";
+import { LAUNCH_REQUEST_TIMEOUT, LaunchLoading, type LaunchPhase } from "../shared/LaunchLoading";
 import { LoadingScreen } from "./LoadingScreen";
 import { preloadMission } from "./MissionPreload";
 import { getMenuHintsLayout, getMenuLayout, getToastLayout, inputModeFromInputType, JOYSTICK_SIZE, type HudOptions, shouldAcceptInputModeChange, type ControlHint, type InputMode, type Rectangle } from "../shared/UILayout";
@@ -95,6 +97,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	/** The selection before the latest target change: a kill's HudState can retarget before its telemetry lands. */
 	const priorTargetRef = useRef<Model>();
 	const [loadingProgress, setLoadingProgress] = useState(0);
+	const launchLoading = useMemo(() => new LaunchLoading(), []);
+	const [launchPhase, setLaunchPhase] = useState<LaunchPhase>("idle");
+	const [buildFolder, setBuildFolder] = useState<Instance>();
 	const mountedRef = useRef(true);
 	const screenRef = useRef<Screen>("title");
 	const inMissionRef = useRef(false);
@@ -202,10 +207,12 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		else if (screenRef.current === "slots") changeScreen("title");
 		else if (screenRef.current === "briefing") changeScreen("slots");
 	}, [changeScreen]);
-	const showToast = useCallback((message: string, isError: boolean) => {
+	/** `sticky` keeps the toast until another toast or the Loading screen replaces it (a queued launch). */
+	const showToast = useCallback((message: string, isError: boolean, sticky = false) => {
 		if (!mountedRef.current) return;
 		const serial = ++toastRef.current;
 		setToast({ message, isError });
+		if (sticky) return;
 		task.delay(4, () => {
 			if (mountedRef.current && toastRef.current === serial) setToast(undefined);
 		});
@@ -237,6 +244,10 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			const [ok, problem] = pcall(() => work(requestId));
 			if (!ok && mountedRef.current && requestRef.current === requestId) {
 				warn("SKYBREAK UI request failed:", problem);
+				if (launchLoading.Pending()) {
+					launchLoading.Fail(); loadingSerialRef.current++;
+					changeScreen(launchLoading.Screen());
+				}
 				showToast("Command link error. Try again.", true);
 			}
 			if (mountedRef.current && requestRef.current === requestId) {
@@ -244,7 +255,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				setBusy(false);
 			}
 		});
-	}, [showToast]);
+	}, [changeScreen, launchLoading, showToast]);
 	const cancelRequests = useCallback(() => {
 		requestRef.current++;
 		busyRef.current = false;
@@ -266,18 +277,36 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		});
 	}, [applyResponseSlots, beginRequest, invoke, showToast]);
 	const launchMission = useCallback(() => {
-		beginRequest((requestId) => {
-			const [response, problem] = invoke("StartMission", { slot: selectedSlot, missionId: selectedMission, special: selectedSpecialRef.current, difficulty: selectedDifficultyRef.current });
-			if (!mountedRef.current || requestRef.current !== requestId) return;
-			if (!response) showToast(problem ?? "Command rejected the request.", true);
-			else {
-				if (response.slots) applyResponseSlots(response);
-				if (screenRef.current !== "mission") showToast("Clearance received. Preparing aircraft...", false);
-			}
+		if (busyRef.current || !mountedRef.current || !launchLoading.Begin(os.clock())) return;
+		const generation = launchLoading.Generation();
+		task.delay(LAUNCH_REQUEST_TIMEOUT, () => {
+			if (!mountedRef.current || !launchLoading.Watchdog(generation, os.clock())) return;
+			loadingSerialRef.current++;
+			cancelRequests();
+			changeScreen(launchLoading.Screen());
+			showToast("World preparation timed out. Request another launch.", true);
+			// Bypasses the server foreground request lock; cancellation retains world ownership until the old build stops.
+			task.spawn(() => invoke("CancelLaunch", { launchId: generation }));
 		});
-	}, [applyResponseSlots, beginRequest, invoke, selectedMission, selectedSlot, showToast]);
+		// Cover the world before the yielding RPC can destroy the menu or write terrain.
+		setLaunchPhase(launchLoading.Phase());
+		setBuildFolder(undefined);
+		setLoadingProgress(0);
+		toastRef.current++; setToast(undefined);
+		changeScreen(launchLoading.Screen());
+		beginRequest((requestId) => {
+			const [response, problem] = invoke("StartMission", { launchId: generation, slot: selectedSlot, missionId: selectedMission, special: selectedSpecialRef.current, difficulty: selectedDifficultyRef.current });
+			if (!mountedRef.current || requestRef.current !== requestId || !launchLoading.Current(generation)) return;
+			if (!response) {
+				launchLoading.Fail();
+				loadingSerialRef.current++;
+				changeScreen(launchLoading.Screen());
+				showToast(problem ?? "Command rejected the request.", true);
+			} else if (response.slots) applyResponseSlots(response);
+		});
+	}, [applyResponseSlots, beginRequest, cancelRequests, changeScreen, invoke, launchLoading, selectedMission, selectedSlot, showToast]);
 	const startMission=useCallback(()=>{
-		if(busyRef.current || !canLaunchMission(selectedMissionRef.current, slots?.[selectedSlotRef.current-1]))return;
+		if(busyRef.current || launchLoading.Pending() || !canLaunchMission(selectedMissionRef.current, slots?.[selectedSlotRef.current-1]))return;
 		const chapter=math.max(0,selectedMissionRef.current-1);
 		// A chapter already seen on this slot (retry or replay) goes straight to launch.
 		const seen=slots?.[selectedSlotRef.current-1]?.cutscenesSeen;
@@ -285,7 +314,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		cinematicNext.current=launchMission;
 		setCinematicId(chapter);
 		changeScreen("cinematic");
-	},[launchMission,changeScreen,slots]);
+	},[launchMission,launchLoading,changeScreen,slots]);
 	const returnToMenu = useCallback(() => {
 		cancelRequests();
 		releaseJoystick();
@@ -550,7 +579,22 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		const onMissionState = (raw: unknown, held = false): void => {
 			if (!mountedRef.current || !typeIs(raw, "table")) return;
 			const payload = raw as MissionMessage;
+			if ((payload.kind === "Queued" || payload.kind === "Building" || payload.kind === "Loading" || payload.kind === "Started") && !launchLoading.Current(payload.launchId)) return;
+			if (payload.kind === "Queued") {
+				launchLoading.Queued();
+				setLaunchPhase(launchLoading.Phase());
+				return;
+			}
+			if (payload.kind === "Building") {
+				if (!launchLoading.Pending()) return;
+				launchLoading.Building();
+				setLaunchPhase(launchLoading.Phase());
+				setBuildFolder(payload.folder);
+				return;
+			}
 			if (payload.kind === "Loading") {
+				if (!launchLoading.Preload()) return;
+				setLaunchPhase(launchLoading.Phase());
 				const loading = payload as MissionLoading;
 				const slot = math.clamp(math.floor(finite(loading.slot, selectedSlotRef.current)), 1, 4);
 				const missionId = MissionCatalog.IsValidId(loading.missionId) ? loading.missionId : 1;
@@ -569,7 +613,9 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				task.delay(LOADING_CLIENT_TIMEOUT, () => {
 					if (!alive()) return;
 					loadingSerialRef.current++;
-					changeScreen("briefing");
+					launchLoading.Fail();
+					cancelRequests();
+					changeScreen(launchLoading.Screen());
 					showToast("The aircraft never reported ready. Request another launch.", true);
 					beginRequest((requestId) => {
 						const [response] = invoke("ReturnToMenu");
@@ -578,6 +624,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					});
 				});
 			} else if (payload.kind === "Started") {
+				if (!launchLoading.Started()) return;
 				loadingSerialRef.current++;
 				const started = payload as MissionStarted;
 				const slot = math.clamp(math.floor(finite(started.slot, selectedSlotRef.current)), 1, 4);
@@ -608,7 +655,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					});
 					return;
 				}
-				changeScreen("mission");
+				changeScreen(launchLoading.Screen());
 				// A menu opened or focus lost during loading/cutscene fires no new event once flight starts: pause now.
 				task.defer(() => { if (GuiService.MenuIsOpen || focusLostRef.current) pauseSortieRef.current(); });
 				const [ok, initial] = pcall(() => controller.GetTelemetry());
@@ -730,7 +777,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			setTelemetry(sanitized);
 		});
 		return () => { connection.Disconnect(); unsubscribe(); };
-	}, [applyResponseSlots, beginRequest, cancelRequests, changeScreen, controller, invoke, releaseJoystick, remotes, showToast]);
+	}, [applyResponseSlots, beginRequest, cancelRequests, changeScreen, controller, invoke, launchLoading, releaseJoystick, remotes, showToast]);
 	useEffect(() => {
 		let sampleClock = 0;
 		const connection = RunService.RenderStepped.Connect((deltaTime) => {
@@ -825,10 +872,11 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			<screengui key="SkybreakUI" DisplayOrder={20} IgnoreGuiInset={false} ResetOnSpawn={false} ScreenInsets={Enum.ScreenInsets.CoreUISafeInsets} ZIndexBehavior={Enum.ZIndexBehavior.Sibling}>
 				<frame ref={rootFrameRef} key="Root" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Change={rootChange}>
 					{screen === "cinematic" && <RelayCinematic id={cinematicId} viewport={viewport} onFinish={()=>{const continueStory=cinematicNext.current;changeScreen(cinematicId===MISSION_COUNT ? "outcome" : "briefing");continueStory();}} onCancel={()=>changeScreen(cinematicId===MISSION_COUNT ? "outcome" : "briefing")}/>}
+					<VoiceDisclosureNotice />
 					<TitleScreen visible={screen === "title"} menu={menu} onCampaign={openCampaign} onSettings={openSettings} />
 					<CampaignScreen visible={screen === "slots"} menu={menu} slots={slots} busy={busy} persistence={persistence} onBack={goBack} onSlot={chooseSlot} confirmSlot={confirmSlot} onAskDelete={askDelete} onCancelDelete={cancelDelete} onDeleteSlot={deleteSlot} />
 					<BriefingScreen visible={screen === "briefing"} menu={menu} selectedSlot={selectedSlot} selectedMission={selectedMission} slot={selectedSave} busy={busy} special={selectedSpecial} difficulty={selectedDifficulty} onBack={goBack} onLaunch={startMission} onMission={chooseMission} onSpecial={chooseSpecial} onDifficulty={chooseDifficulty} />
-					<LoadingScreen visible={screen === "loading"} missionId={selectedMission} progress={loadingProgress} viewport={viewport} />
+					<LoadingScreen visible={screen === "loading"} missionId={selectedMission} progress={loadingProgress} phase={launchPhase} buildFolder={buildFolder} viewport={viewport} />
 					<MissionHud
 						visible={screen === "mission"}
 						viewport={viewport}
