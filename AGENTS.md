@@ -16,16 +16,17 @@
 
 # Living documentation for human review
 
-- Human review docs live only at the five exact paths below; `docs/human/` contains only these files.
+- Human review docs live only at the six exact paths below; `docs/human/` contains only these files.
 - `docs/human/README.md`: current-state dashboard and 18-mission progress table.
 - `docs/human/shipped.md`: merged main changes and what the owner sees in Roblox Player, newest first.
 - `docs/human/next.md`: upcoming work in priority order and why it matters.
 - `docs/human/blockers.md`: open and resolved blockers, impacts, assumptions and needed actions.
 - `docs/human/decisions.md`: stable decision IDs, alternatives, rationale, decision maker and status.
+- `docs/human/levels.html`: per-level status page (Practice and missions 1–18), updated in every PR that changes a level's status.
 - Every PR that changes behaviour, plans, blockers or decisions updates the affected files in the same PR.
 - Merged gameplay PRs are live in Roblox Player under the owner's automatic-pipeline convention; no deployment-receipt audit is needed. Record any known deployment failure honestly.
 - Agents never claim a Player test or verification they did not perform; distinguish merged/live status from observed quality and unmerged work.
-- The orchestrator reconciles all five documents before each handback.
+- The orchestrator reconciles all six documents (including levels.html) before each handback.
 
 # Blender asset safety review — mandatory before every Roblox upload
 

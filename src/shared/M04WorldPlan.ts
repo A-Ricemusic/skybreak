@@ -6,8 +6,8 @@ import { worldCounts } from "./WorldCompositionCounts";
 export const M04_WORLD_KEY = "m04_inland_hills";
 export const M04 = {
  half: 16384, start: { x: -7000, y: 1202, z: 10000, headingDegrees: 20 },
- // Recommended NE route followed by an east/southeast hook; ~43k studs.
- route: [[-7000, 10000], [-3000, 2000], [2000, -10000], [11000, -11000], [13500, 2000]],
+ // D-096: extend the NE/east/SE hook south then west for a 6:30–7:00 escape at 140 studs/s.
+ route: [[-7000, 10000], [-3000, 2000], [2000, -10000], [11000, -11000], [12500, 2000], [12500, 11000], [4500, 11000]],
  river: [[-9000, 14000], [-5000, 5000], [0, 0], [-1500, -6000], [3000, -15000]],
 };
 export const M04_ENVIRONMENT: EnvironmentSpec = {

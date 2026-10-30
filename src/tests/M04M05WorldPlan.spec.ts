@@ -38,9 +38,8 @@ describe("Dormant M04/M05 world compositions", () => {
   for (const t of a.targets) score += t.type === "transport" ? 160 : t.type === "jammer" ? 140 : t.type === "ace" ? 240 : 60;
   expect(score).toBe(1540);
   for (const t of a.targets) { expect(t.x).toBeGreaterThan(M04.start.x); expect(t.z).toBeLessThan(M04.start.z); expect(t.y - m04Ground(t.x, t.z)).toBeGreaterThan(300); }
-  let length = 0;
-  for (let i = 1; i < M04.route.size(); i++) { const dx = M04.route[i][0] - M04.route[i - 1][0], dz = M04.route[i][1] - M04.route[i - 1][1]; length += math.sqrt(dx * dx + dz * dz); }
-  expect(length).toBeGreaterThan(40000); expect(length).toBeLessThan(45000);
+  // Runtime starts ahead of the player at transport 1; D-096 duration is tested on its compiled curve in M04Mission.
+  for (const [x,z] of M04.route) expect(math.abs(x)<14000 && math.abs(z)<14000).toBe(true);
  });
  it("places exactly 88 industrial ground contacts, two tankers and three helicopters", () => {
   expect(b.targets.filter(t => t.group === "rig").size()).toBe(48);

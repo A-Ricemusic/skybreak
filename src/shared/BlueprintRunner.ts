@@ -1,5 +1,5 @@
 import { thresholdResult } from "./EngineBatchC";
-import { canSkipLanding, crossesReturnLine, landingDuration } from "./EngineBatchB";
+import { canSkipLanding, crossesReturnLine, landingDuration, landingSkipTarget, landingTimeRemaining } from "./EngineBatchB";
 import { FlightMath, FlightState } from "./FlightMath";
 import { FlightPoint, MissionBlueprint, MissionCatalog, MissionPhaseBlueprint } from "./MissionCatalog";
 import { GameConfig } from "./GameConfig";
@@ -213,12 +213,18 @@ export const BlueprintRunner = {
 	BanditsDue(s: BlueprintState): boolean {
 		return s.outcome === undefined && s.banditsDueAt !== undefined && s.elapsed>=s.banditsDueAt;
 	},
-	TimeRemaining(s: BlueprintState): number { return math.max(0,(s.countdownDeadline ?? MissionCatalog.CountdownSeconds(s.blueprint))-s.elapsed); },
+	TimeRemaining(s: BlueprintState): number {
+		const landing=s.landingElapsed !== undefined ? BlueprintRunner.ActivePhase(s)?.landing : undefined;
+		const clock=landing ? landingTimeRemaining(landing,s.landingElapsed!) : undefined;
+		return clock ?? math.max(0,(s.countdownDeadline ?? MissionCatalog.CountdownSeconds(s.blueprint))-s.elapsed);
+	},
 	AdvanceLanding(s: BlueprintState, dt: number, skip=false): void {
 		const plan=BlueprintRunner.ActivePhase(s)?.landing;
 		if (!plan || s.outcome !== undefined || !finite(dt) || dt<0) return;
 		s.landingElapsed=math.min(landingDuration(plan),(s.landingElapsed ?? 0)+dt);
-		if ((skip && canSkipLanding(s.landingElapsed)) || s.landingElapsed>=landingDuration(plan)) advance(s);
+		// A skip lands on the runway hold when the plan has one (MISSION ACCOMPLISHED), else it ends at once.
+		if (skip && canSkipLanding(s.landingElapsed)) s.landingElapsed=landingSkipTarget(plan,s.landingElapsed);
+		if (s.landingElapsed>=landingDuration(plan)) advance(s);
 	},
 	ActivePhase(s: BlueprintState): MissionPhaseBlueprint | undefined { return s.phases[s.phaseIndex]; },
 	/** The live phase list (authored phases plus twist inserts fired so far). Read-only for callers. */

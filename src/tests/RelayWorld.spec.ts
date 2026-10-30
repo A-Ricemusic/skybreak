@@ -1,4 +1,7 @@
-import { M04World } from "../server/M04World";
+import { robloxScheduler, worldClear } from "../server/WorldLifecycleRuntime";
+import { WorldLifecycle } from "../shared/WorldLifecycle";
+import { M04_WORLD_KEY } from "../shared/M04WorldPlan";
+import { terrainDirty } from "../server/TerrainState";
 import { M01 } from "../shared/M01Geometry";
 import { compileBomberEncounter } from "../shared/BomberEncounter";
 import { BomberRules } from "../shared/BomberRules";
@@ -112,15 +115,49 @@ describe("Released campaign world integration (Studio only)",()=>{
   expect(world.groundTargets.size()).toBe(0);expect(fixture.GetAttribute("WorldBuildPhase")).toBe("done");
   expect(fixture.GetDescendants().some(i=>i.IsA("Model") && i.Name.sub(1,4)==="m04_")).toBe(false);
   print(`M04_STUDIO_BUILD seconds=${fixture.GetAttribute("WorldBuildSeconds")} terrain=${fixture.GetAttribute("WorldTerrainReadySeconds")} jobs=${fixture.GetAttribute("WorldTerrainJobs")} descendants=${fixture.GetDescendants().size()} (fake world uploads)`);
-  const cleared=M04World.Clear();expect(cleared.jobs).toBe(12608);
-  MissionWorld.RestoreMenu(true);
+  const gate=new WorldLifecycle(robloxScheduler);
+  gate.Cleanup({clear:worldClear(M04_WORLD_KEY),restore:()=>MissionWorld.RestoreMenu()});
+  expect(gate.Idle()).toBe(false);expect(gate.AwaitIdle()).toBe(true);
+  expect(terrainDirty()).toBe(false);
   const again=new Instance("Folder");again.Parent=Workspace;
   expect(MissionWorld.Build(0,again).groundTargets.size()).toBe(1);again.Destroy();
   MissionWorld.RestoreMenu();expect(Workspace.FindFirstChild("World")).toBeDefined();
  },180000);
+ it("builds mission 3 with every typed target drawn once by the world and a raised runway, ready for combat to adopt",()=>{
+  fixture=new Instance("Folder");fixture.Name="CampaignWorldFixture";fixture.Parent=Workspace;
+  const specs=MissionCatalog.Get(3).phases[0].groundTargets!,world=MissionWorld.Build(3,fixture);
+  expect(world.groundTargets.size()).toBe(0);
+  expect(fixture.GetAttribute("WorldBuildPhase")).toBe("done");
+  expect(Lighting.GetAttribute(ENVIRONMENT_ATTRIBUTE)).toBe("m03_snow_radar");
+  const visuals=world.targetVisuals!;
+  expect(visuals.size()).toBe(specs.size());
+  const labels: {[k: string]: string}={radar_dome:"RADAR",aa_gun:"AA GUN",parked_helicopter:"HELICOPTER"};
+  for(const spec of specs){
+   const model=visuals.get(spec.id)!;
+   expect(model.IsDescendantOf(fixture)).toBe(true);
+   expect(model.Name).toBe(labels[spec.type]);expect(model.GetAttribute("TargetId")).toBe(spec.id);
+   const aim=model.PrimaryPart!;expect(aim.Name).toBe("Aim");expect(aim.Transparency).toBe(1);
+   expect(math.abs(aim.Position.X-spec.position.x)).toBeLessThan(40);expect(math.abs(aim.Position.Z-spec.position.z)).toBeLessThan(40);
+   // Each model stands on its foundation top: the layout's ground contact.
+   const [box,size]=model.GetBoundingBox();expect(box.Position.Y-size.Y/2).toBeCloseTo(spec.position.y,1);
+  }
+  const tagged=fixture.GetDescendants().filter((i)=>i.IsA("Model") && i.GetAttribute("TargetId")!==undefined);
+  expect(tagged.size()).toBe(specs.size());
+  expect(new Set(tagged.map((m)=>m.GetAttribute("TargetId") as string)).size()).toBe(specs.size());
+  for(const item of fixture.GetDescendants()) if(item.IsA("Model") && item.Name.sub(1,4)==="m03_") expect(`${item.GetFullName()} untagged`).toBe("tagged");
+  // The runway reads above the lowland: its top (88) clears the terrain surface sampled beside it.
+  const runway=fixture.GetDescendants().filter((i)=>i.IsA("BasePart") && i.Name==="Landing runway") as BasePart[];
+  expect(runway.size()).toBe(2);
+  for(const strip of runway) expect(strip.Position.Y+strip.Size.Y/2).toBe(88);
+  const params=new RaycastParams();params.FilterType=Enum.RaycastFilterType.Include;params.FilterDescendantsInstances=[Workspace.Terrain];
+  const ground=Workspace.Raycast(new Vector3(5800,400,11264),new Vector3(0,-800,0),params);
+  // Measured: the lowland Ground surface reads about 82 (two studs over its voxel top), so the slab shows 6 studs.
+  expect(ground).toBeDefined();expect(ground!.Position.Y).toBeLessThan(84);
+  print(`M03_STUDIO_BUILD seconds=${fixture.GetAttribute("WorldBuildSeconds")} terrain=${fixture.GetAttribute("WorldTerrainReadySeconds")} plan=${fixture.GetAttribute("WorldPlanSeconds")} jobs=${fixture.GetAttribute("WorldTerrainJobs")} longest=${fixture.GetAttribute("WorldTerrainLongest")} descendants=${fixture.GetDescendants().size()} lowland=${ground!.Position.Y}`);
+ },240000);
  it("rejects every unreleased world before building anything",()=>{
   fixture=new Instance("Folder");fixture.Parent=Workspace;
-  for(let id=3;id<=18;id++){if(MissionCatalog.Available(id)) continue;const [ok]=pcall(()=>MissionWorld.Build(id,fixture!));expect(ok).toBe(false);}
+  for(let id=4;id<=18;id++){if(MissionCatalog.Available(id)) continue;const [ok]=pcall(()=>MissionWorld.Build(id,fixture!));expect(ok).toBe(false);}
   expect(fixture.GetDescendants().size()).toBe(0);
  });
 });

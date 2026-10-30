@@ -16,6 +16,16 @@ function executedOps(jobs: TerrainJob[]): TerrainOp[] {
 }
 
 describe("Terrain write scheduler", () => {
+ it("stops a chunked clear at cancellation after a yield without writing later jobs", () => {
+  let now=0, cancelled=false;
+  const writes:number[]=[];
+  runBudgeted([1,2,3], n=>{writes.push(n);now+=0.01;}, {
+   budget:0.008,clock:()=>now,pause:()=>{cancelled=true;},cancelled:()=>cancelled,
+  });
+  expect(writes).toEqual([1]);
+  runBudgeted([4], n=>writes.push(n), {budget:0.008,clock:()=>now,pause:()=>undefined,cancelled:()=>true});
+  expect(writes).toEqual([1]);
+ });
 	it("yields whenever a resumption has used its budget, in order, and reports the longest job", () => {
 		let now = 0, pauses = 0;
 		const order: number[] = [], slices: number[][] = [[]];

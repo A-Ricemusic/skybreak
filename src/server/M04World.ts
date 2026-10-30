@@ -1,4 +1,6 @@
-import { buildM04Plan, M04_ENVIRONMENT } from "../shared/M04WorldPlan";
+import { registerWorldClear } from "./WorldLifecycleRuntime";
+import { markTerrainClean } from "./TerrainState";
+import { buildM04Plan, M04_ENVIRONMENT, M04_WORLD_KEY } from "../shared/M04WorldPlan";
 import { M04_BUILD_LIMITS } from "../shared/M04Limits";
 import type { TerrainOp } from "../shared/WorldPlan";
 import { WORLD_FILL_CHUNK } from "../shared/SealedWorldSurface";
@@ -11,12 +13,12 @@ export const M04World = {
   const plan=buildM04Plan(seed,checkpoint);terrainOps=plan.ops;
   return {...plan,targets:[]};
  }, M04_BUILD_LIMITS.descendants, 5500),
- /** Clear the exact written shell in bounded, yielding jobs before the global menu clear.
-  * A monolithic Terrain.Clear on this large shell exceeded Studio's watchdog.
-  */
- Clear: () => {
-  const timing=TerrainWriter.Write(terrainOps.map(op=>({...op,material:"Air" as const})),0.008,WORLD_FILL_CHUNK);
-  terrainOps=[];
+ /** One cancellable clear for normal exit and partial construction, owned by the shared world gate. */
+ Clear: (cancelled: () => boolean) => {
+  const timing=TerrainWriter.Write(terrainOps.map(op=>({...op,material:"Air" as const})),0.008,WORLD_FILL_CHUNK,cancelled);
+  if (!cancelled()) { terrainOps=[]; markTerrainClean(); }
   return timing;
  },
 };
+
+registerWorldClear(M04_WORLD_KEY, cancelled => { M04World.Clear(cancelled); });

@@ -1,8 +1,14 @@
 # Mission 4 integration verification
 
+Historical evidence before the #147 merge/lifecycle and D-096 route revision. No Studio was launched for that revision; the orchestrator must re-check it.
+
 2026-10-29; unmerged `feat/m04-mission`, based on main `088fbfc`. No Roblox Player or human combat playtest is claimed.
 
-## Checks
+## Current lifecycle and pacing revision
+
+Frozen Bun install and build passed. `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau" bun run validate:offline` passed: 764 domain tests, 19 catalog snapshots, 3 pilot regressions, 11 audio simulations, 8 voice simulations, 4 radio delivery checks, 122 Python tests and generated-report checks. The D-096 route measured 57,166.078572 studs / 408.329133 seconds. Cancellation tests verify no later terrain jobs run after cancellation at a yield. The Studio-only M04 world fixture now uses its registered clear through the gate, but was only compiled here, not run. Normal completion, partial construction/player leave and queued relaunch require the orchestrator's Studio re-check.
+
+## Historical checks
 
 | Check | Result |
 |---|---|
@@ -30,7 +36,7 @@ M04's third required transport immediately settled1540/S after all optional targ
 
 Latest real campaign world build: **45.07697s**, terrain-ready42.78627s,12,608 jobs. Other campaign runs measured40.01–45.69s. Latest full-suite fake-world-upload build was recorded in the Jest log; it is not the live-asset campaign measurement. Real loading exceeds the20s target and the world plan estimate. Bounded terrain removal also adds a substantial post-result wait before another sortie can launch.
 
-The39,686.69-stud route at140studs/s escapes after283.476s (4:43.5), earlier than the12-minute HUD clock. The owner should assess escape pace and scoring pressure in beta.
+The tested old route was 39,686.69 studs / 283.476 s. D-096 now extends it to 57,166.079 studs / 408.329 s (6:48.33); only offline route sampling validates this revision so far.
 
 Runtime viewport captures: [transports](transports.jpg), [jammer with distant transports](jammers.jpg), [terrain](terrain.jpg). Captured during integration before the final livery-only distribution change. Guards engage rather than holding a rigid transport formation. Strong blue haze and coarse terrain terraces are visible; no reference visual-parity claim is made.
 
@@ -39,6 +45,8 @@ Runtime viewport captures: [transports](transports.jpg), [jammer with distant tr
 - Registered the M04 world key with client weather/phone cloud rules.
 - Corrected the ace to the initial group and kept five initial ordinary guards/four reserves. The existing seven-fighter budget can queue reserves; the QA script waits for actual admission.
 - Removed static aircraft from the active world; combat owns each layout id once.
-- Native Terrain.Clear after this large shell repeatedly exceeded Studio's watchdog. M04 now clears the exact recorded shell with bounded yielding Air jobs, retaining launch exclusion. An already-empty marker skips redundant native clears through menu/Parts-only practice, then is consumed by a terrain-writing build. The final full sequence passed, including immediate practice exit.
+- Native Terrain.Clear after this large shell repeatedly exceeded Studio's watchdog. That tested revision cleared the exact recorded shell with bounded yielding Air jobs, retaining launch exclusion. Its already-empty marker skipped redundant native clears through menu/Parts-only practice, then is consumed by a terrain-writing build. The final full sequence passed, including immediate practice exit.
 
 Studio vacancy was checked with `pgrep -x RobloxStudio` at22:12:31,22:13:05,22:13:31,22:14:00,22:14:57,22:15:35,22:16:08,22:17:10 and22:18:17 UTC (5m46s spanning recorded empty checks) before the first launch. Only owned worktree instances were closed. Final `pgrep -x RobloxStudio` was empty.
+
+Current revision removes that duplicate marker and registers M04World.Clear(cancelled) with the shared lifecycle gate (D-097). Earlier runtime results do not verify the new gate integration.

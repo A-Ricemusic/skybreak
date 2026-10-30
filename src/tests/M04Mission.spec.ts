@@ -1,7 +1,8 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { MissionCatalog } from "../shared/MissionCatalog";
-import { m04TargetLayout } from "../shared/M04WorldPlan";
+import { M04, m04TargetLayout } from "../shared/M04WorldPlan";
 import { compileBomberEncounter, laterEscortsDue } from "../shared/BomberEncounter";
+import { M04_AIRSPACE } from "../shared/M04Limits";
 import { BomberRules } from "../shared/BomberRules";
 import { arrivalDue, takeArrival, TriggerContext } from "../shared/CampaignEncounters";
 import { BlueprintRunner as Runner } from "../shared/BlueprintRunner";
@@ -48,6 +49,19 @@ describe("Mission 4 jammed transport intercept",()=>{
  });
  it("uses exact provisional rank boundaries without time or accuracy gates",()=>{
   for(const [score,rank] of [[479,"D"],[480,"C"],[649,"C"],[650,"B"],[799,"B"],[800,"A"],[1299,"A"],[1300,"S"],[1540,"S"]] as const) expect(MissionScore.RankPoints(score,true,bp.scoring!)).toBe(rank);
+ });
+ it("preserves D-096 escape pacing and keeps every transport inside the inland airspace",()=>{
+  const route=compileBomberEncounter(b);
+  print(`M04_ROUTE length=${route.length} duration=${route.duration}`);
+  expect(route.speed).toBe(140);
+  expect(route.duration >= 390 && route.duration <= 420).toBe(true);
+  expect(BomberRules.Sample(route,340.61).escaped).toBe(false);
+  expect(BomberRules.Sample(route,389.99).escaped).toBe(false);
+  for(let time=0;time<=math.ceil(route.duration);time++) for(const slot of BomberRules.Sample(route,time).slots) {
+   expect(math.abs(slot.position.x) < M04_AIRSPACE.softHalfWidth).toBe(true);
+   expect(math.abs(slot.position.z) < M04_AIRSPACE.softHalfWidth).toBe(true);
+   expect(math.abs(slot.position.x) < M04.half && math.abs(slot.position.z) < M04.half).toBe(true);
+  }
  });
  it("fails escape, death and the exact deadline",()=>{
   const escape=Runner.NewState(bp,0);Runner.EscapeBombers(escape);expect(escape.outcome).toBe("failed");

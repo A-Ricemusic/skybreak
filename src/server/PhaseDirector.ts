@@ -3,6 +3,7 @@ import type { AceLivery } from "../shared/AssetSelection";
 import { BomberRules, BomberSlotPose } from "../shared/BomberRules";
 import { bomberEscortPose, compileBomberEncounter, laterEscortsDue, reinforcementFraction } from "../shared/BomberEncounter";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
+import { returnLineDots, type ReturnLine } from "../shared/EngineBatchB";
 import { MissionCatalog, MissionPhaseBlueprint } from "../shared/MissionCatalog";
 import { WavePlan, AirRequest } from "../shared/WavePlan";
 import { Difficulty } from "../shared/Difficulty";
@@ -30,6 +31,9 @@ export interface SpawnOptions {
 }
 
 /** Combat owns simulation and lifecycle; the director only requests their effects. */
+/** Dotted return line: dash length and spacing along the line, and height above the sampled ground. */
+const RETURN_DOT_LENGTH = 160, RETURN_DOT_SPACING = 400, RETURN_DOT_LIFT = 24;
+
 export interface PhaseCombat {
 	spawnAllies: (session: CombatSession) => void;
 	spawnAir: (session: CombatSession, count: number, role: AirRole, options?: SpawnOptions) => void;
@@ -98,6 +102,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		// Raiders still waiting belonged to the old phase (its bandits were all out, or it could not have ended).
 		session.airQueue.clear();
 		session.navigationMarker?.Destroy(); session.navigationMarker=undefined;
+		session.returnLineMarker?.Destroy(); session.returnLineMarker=undefined;
 		session.navigationActor?.Destroy(); session.navigationActor=undefined; session.actorFooting=undefined;
 		// The live list, not the catalog: twists splice new objectives in after the phase that fired them.
 		const phases=BlueprintRunner.Phases(state);
@@ -105,8 +110,10 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		if (!phase) return;
 		for (const enemy of session.enemies) if (enemy.typedGround) {
 			enemy.enabled=enemy.phaseOwner === state.phaseIndex && enemy.health>0;
+			// Later phases' targets stay hidden; an earlier phase's survivors stay standing but inert.
+			const shown=enemy.enabled || (enemy.health>0 && (enemy.phaseOwner ?? 0)<state.phaseIndex);
 			for(const item of enemy.model.GetDescendants()) if(item.IsA("BasePart")) {
-				item.Transparency=enemy.enabled ? (item.GetAttribute("OriginalTransparency") as number ?? 0) : 1;
+				item.Transparency=shown ? (item.GetAttribute("OriginalTransparency") as number ?? 0) : 1;
 				item.CanQuery=enemy.enabled && item.GetAttribute("FlightSolid") === true;
 			}
 			enemy.model.SetAttribute("SkybreakEnemy",enemy.enabled);
@@ -150,7 +157,8 @@ export function createPhaseDirector(combat: PhaseCombat) {
 				task.delay(4, () => { if (session.active && isCurrent(session) && state.phaseIndex === index && state.outcome === undefined) radio(session, beat); });
 			}
 		}
-		const nav=BlueprintRunner.NavigationPoint(state);
+		if (phase.returnLine) session.returnLineMarker=drawReturnLine(session,phase.returnLine);
+		const nav=phase.returnLine ? undefined : BlueprintRunner.NavigationPoint(state);
 		if (nav) {
 			const marker=new Instance("Part"); marker.Name="Flight objective"; marker.Size=new Vector3(20,20,20); marker.Shape=Enum.PartType.Ball;
 			marker.Anchored=true; marker.CanCollide=false; marker.CanTouch=false; marker.CanQuery=false;
@@ -181,6 +189,22 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		// Refresh only at phase transitions: includes new protected actors and drops destroyed ones.
 		session.collisionParams = AircraftCollision.Parameters(session.folder);
 		acquireTarget(session);
+	}
+
+	/** The reference's white dotted return line, laid across the ground under the flight path (presentation only). */
+	function drawReturnLine(session: CombatSession, line: ReturnLine): Model {
+		const model=new Instance("Model"); model.Name="Return line";
+		const dx=line.b.x-line.a.x, dz=line.b.z-line.a.z, yaw=math.atan2(-dz,dx);
+		for (const dot of returnLineDots(line,RETURN_DOT_SPACING)) {
+			const surface=session.groundParams ? ActorGrounding.Sample(dot.x,dot.z,session.groundParams) : undefined;
+			const part=new Instance("Part"); part.Name="Return line dash"; part.Size=new Vector3(RETURN_DOT_LENGTH,6,40);
+			part.Anchored=true; part.CanCollide=false; part.CanTouch=false; part.CanQuery=false; part.CastShadow=false;
+			part.Material=Enum.Material.Neon; part.Color=Color3.fromRGB(245,250,255);
+			part.CFrame=new CFrame(dot.x,(surface?.y ?? line.markerY-400)+RETURN_DOT_LIFT,dot.z).mul(CFrame.Angles(0,yaw,0));
+			part.Parent=model;
+		}
+		model.Parent=session.folder;
+		return model;
 	}
 
 	function applyPhase(session: CombatSession): void {
