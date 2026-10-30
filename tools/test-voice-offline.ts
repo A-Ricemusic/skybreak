@@ -40,7 +40,7 @@ for (const chapter of STORY) for (const [index, beat] of chapter.beats.entries()
 }
 console.log(`VOICE_MANIFEST chapters=${STORY.length} beats=${beats} regions=${regions} bankHashes=${plan.banks.length}`);
 let harness = await Bun.file(resolve(root, "tools/tests/voice-consumer.luau")).text();
-const files = ["shared/VoiceDisclosure", "shared/VoiceReadiness", "shared/VoiceBanks", "shared/VoiceCues", "shared/RelayStory", "shared/VoiceLines", "shared/CinematicInput", "shared/CinematicLayout", "shared/CinematicStaging", "shared/StoryDocuments", "client/MotionPreference", "client/VoicePlayer", "client/RelayCinematic"];
+const files = ["shared/VoiceDisclosure", "shared/VoiceReadiness", "shared/VoiceBanks", "shared/VoiceCues", "shared/RelayStory", "shared/VoiceLines", "shared/CinematicInput", "shared/CinematicLayout", "shared/CinematicStaging", "shared/CinematicSet", "shared/UploadedAssetSpecs", "shared/Teardown", "shared/StoryDocuments", "client/MotionPreference", "client/VoicePlayer", "client/RelayCinematic"];
 let modules = "";
 for (const file of files) {
   let source = await Bun.file(resolve(root, `out/${file}.luau`)).text();
@@ -52,11 +52,12 @@ for (const file of files) {
   }).join("\n");
   if (source.includes("TS.")) throw Error(`Unhandled runtime dependency: ${file}`);
   if (file === "client/RelayCinematic") {
-    // Exclude only scenery construction/lighting. Keep the actual component, hooks,
+    // Exclude only scenery construction/lighting/post-processing; the doubles register their undo steps
+    // with the real teardown and can inject setup and cleanup faults (harnessFaults). Keep the actual component, hooks,
     // input handlers, effect body, beat clock, Voice.Story and VoicePlayer.Play calls.
     const marker = "local function RelayCinematic(_param)";
     if (!source.includes(marker)) throw Error("Cinematic test seam changed");
-    source = source.replace(marker, `sceneFor = function() return {scene=Instance.new("Folder"),reels={},recorderLight={},tealStrip={}} end\nstageLighting = function() return function() end end\n${marker}`);
+    source = source.replace(marker, `sceneFor = function(chapter,track) local folder=Instance.new("Folder");harnessStage.folder=folder;track(function() folder:Destroy() end);if harnessFaults.scene then error("injected scene fault") end;return {scene=folder,reels={},recorderLight={},tealStrip={}} end\nstageLighting = function(mood,track) harnessStage.lightingApplied+=1;track(function() harnessStage.lightingRestored+=1;if harnessFaults.lightingRestore then error("injected lighting restore fault") end end) end\nstageEffects = function(mood,track) track(function() harnessStage.effectsRestored+=1 end);if harnessFaults.effects then error("injected effects fault") end;return {depth=function() end} end\n${marker}`);
   }
   modules += `modules["${file.split("/").at(-1)}"] = (function()\n${source}\nend)()\n`;
 }
