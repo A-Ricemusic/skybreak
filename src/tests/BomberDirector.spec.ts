@@ -42,7 +42,7 @@ describe("Bomber director integration", () => {
 		expect(ace.size()).toBe(1); expect(ace[0].options?.name).toBe("GREY KITE"); expect(ace[0].options?.optional).toBe(true);
 		h.folder.Destroy();
 	});
-	it("opens M1 with six forward attackers (budgeted), requests two aft at 120 s without kills, and queues the ace within budget", () => {
+	it("opens M1 with six forward attackers (budgeted), requests six aft at 120 s without kills, and queues the ace within budget", () => {
 		for (const difficulty of ["normal", "ace"] as const) {
 			const h = harness(MissionCatalog.Get(1)); h.s.difficulty = difficulty;
 			const initial = 5;
@@ -61,7 +61,11 @@ describe("Bomber director integration", () => {
 			expect(h.calls[h.calls.size()-1].role).toBe("ace");
 			h.budget.fighters = 0; h.director.Step(h.s);
 			const followup = h.calls.filter(c => c.role === "raider" && c.options?.behind);
-			expect(followup.size()).toBe(difficulty === "ace" ? 3 : 2);
+			// The remaining opening raiders and escort consume the first released slots.
+			expect(followup.size()).toBe(difficulty === "ace" ? 4 : 5);
+			h.director.Step(h.s);
+			expect(h.calls.filter(c => c.role === "raider" && c.options?.behind).size()).toBe(difficulty === "ace" ? 7 : 6);
+			expect(h.s.airQueue.size()).toBe(0);
 			expect(h.calls.filter(c => c.role === "ace").size()).toBe(1);
 			h.folder.Destroy();
 		}

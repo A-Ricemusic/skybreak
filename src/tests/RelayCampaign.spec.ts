@@ -161,20 +161,20 @@ describe("Released 18-mission campaign",()=>{
  });
  it("adds two optional attacking waves without inflating required objectives or bypassing the seven-fighter queue",()=>{
   const phase=bp.phases[0],route=compileBomberEncounter(phase.bombers!);
-  expect(bp.pressure?.playerPriority).toBe(0.8);expect(MissionCatalog.Get(2).pressure).toBeUndefined();
-  for (const mission of [PRACTICE, ...MISSIONS]) expect(mission.pressure !== undefined).toBe(mission.id === 1);
-  expect(MissionCatalog.InitialRaiders(phase)).toBe(6);expect(phase.reinforce).toEqual([{at:0.5,count:2}]);
+  expect(bp.pressure?.playerPriority).toBe(0.8);expect(MissionCatalog.Get(2).pressure?.playerPriority).toBe(0.8);
+  for (const mission of [PRACTICE, ...MISSIONS]) expect(mission.pressure !== undefined).toBe((mission.id === 1 || mission.id === 2));
+  expect(MissionCatalog.InitialRaiders(phase)).toBe(6);expect(phase.reinforce).toEqual([{at:0.5,count:6}]);
   expect(reinforcementFraction(1,119.99,route)<0.5).toBe(true);
   expect(reinforcementFraction(0,120,route)).toBe(0.5);
   expect(reinforcementFraction(0.25,120)).toBe(0.25);
-  expect(MissionCatalog.RequiredAirKills(bp)).toBe(6);expect(MissionCatalog.MaxOptionalRaiders(bp)).toBe(12);
+  expect(MissionCatalog.RequiredAirKills(bp)).toBe(6);expect(MissionCatalog.MaxOptionalRaiders(bp)).toBe(16);
   for(const extra of [0,1]){
-   expect(MissionCatalog.RaiderCap(phase,extra)).toBe(12+2*extra);
-   expect(MissionCatalog.PeakAircraft(phase,extra)).toBe(18+2*extra);
+   expect(MissionCatalog.RaiderCap(phase,extra)).toBe(16+2*extra);
+   expect(MissionCatalog.PeakAircraft(phase,extra)).toBe(22+2*extra);
    const q:AirRequest[]=[{role:"escort",count:2,behind:false},{role:"raider",count:6+extra,behind:false}];
    let live=WavePlan.Admit(q,7).reduce((n,w)=>n+w.count,0);
    expect(live).toBe(7);
-   q.push({role:"raider",count:2+extra,behind:true});
+   q.push({role:"raider",count:6+extra,behind:true});
    live+=WavePlan.Admit(q,7-live).reduce((n,w)=>n+w.count,0);expect(live).toBe(7);
    q.push({role:"ace",count:1,behind:false},{role:"escort",count:1,behind:false});
    expect(WavePlan.Admit(q,0).size()).toBe(0);
@@ -184,16 +184,16 @@ describe("Released 18-mission campaign",()=>{
  });
  it("scores every optional fighter, keeps six bombers sufficient, and raises S above the non-ace maximum",()=>{
   const state=BlueprintRunner.NewState(bp,0),ledger=new TargetScore(bp.scoring!);
-  for(let i=0;i<8;i++)expect(recordScoredKill(state,ledger,`r${i}`,"air",false,120+i,"raider")).toBe(true);
+  for(let i=0;i<12;i++)expect(recordScoredKill(state,ledger,`r${i}`,"air",false,120+i,"raider")).toBe(true);
   for(let i=0;i<3;i++)expect(recordScoredKill(state,ledger,`e${i}`,"air",false,150+i,"escort")).toBe(true);
   expect(recordScoredKill(state,ledger,"ace","ace",false,160,"ace")).toBe(true);
   expect(recordScoredKill(state,ledger,"overflow","air",false,161,"raider")).toBe(false);
   expect(state.phaseProgress).toBe(0);expect(state.outcome).toBeUndefined();
   for(let i=0;i<6;i++)expect(recordScoredKill(state,ledger,`b${i}`,"air",true,170+i,"bomber")).toBe(true);
-  expect(state.outcome).toBe("won");expect(ledger.Total()).toBe(1500);expect(ledger.RolePoints("raider")).toBe(480);
-  expect(bp.scoring!.rank).toEqual({S:1320,A:1020,B:600,C:500});
-  expect(1500-240<bp.scoring!.rank.S).toBe(true);
-  for(const [points,rank] of [[1320,"S"],[1319,"A"],[1020,"A"],[1019,"B"],[600,"B"],[599,"C"],[500,"C"],[499,"D"]] as [number,string][]){
+  expect(state.outcome).toBe("won");expect(ledger.Total()).toBe(1740);expect(ledger.RolePoints("raider")).toBe(720);
+  expect(bp.scoring!.rank).toEqual({S:1560,A:1200,B:600,C:500});
+  expect(1740-240<bp.scoring!.rank.S).toBe(true);
+  for(const [points,rank] of [[1560,"S"],[1559,"A"],[1200,"A"],[1199,"B"],[600,"B"],[599,"C"],[500,"C"],[499,"D"]] as [number,string][]){
    expect(MissionScore.RankPoints(points,true,bp.scoring!)).toBe(rank);
    expect(MissionScore.RankPoints(points,false,bp.scoring!)).toBe("D");
   }
