@@ -1,5 +1,12 @@
 # Next
 
+## M14–M18 worlds — in review (2026-10-30)
+
+1. Review the five [M14](../specs/worlds/m14-composition.md), [M15](../specs/worlds/m15-composition.md), [M16](../specs/worlds/m16-composition.md), [M17](../specs/worlds/m17-composition.md), [M18](../specs/worlds/m18-composition.md) composition docs, complete target tables and budgets. One PR from main, no merge or mission activation.
+2. Later shared-Studio lease: compare polar night/cirrus, city readability, desert scale, flooded bridges, and enclosed-flight/core exit against accepted specs. Fly all approaches/overshoots; measure build/clear and phone costs. No new Studio/Player observation is claimed.
+3. Integrate mission-owned encounters, scoring/timers and cleanup. Resolve unknown ground subtypes, initial/credited count differences and cruise split predicates. M17 Rusk retreats after four wingmen; M18 must preserve damage, missile count/regeneration and charges through no-other-fire duel staging. Core destruction alone cannot win.
+
+
 Last updated: 2026-10-30.
 ## M12/M13 worlds — in review [#170](https://github.com/A-Ricemusic/skybreak/pull/170)
 

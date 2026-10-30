@@ -1,5 +1,13 @@
 # Blockers
 
+## M14–M18 dormant world review (2026-10-30)
+
+- Offline world work in review; no owner input needed for this PR. Studio/Player/phone rendering, true flight feel and runtime build/clear costs are unverified. Offline geometry and time estimates do not establish reference fidelity.
+- M14 sixteen credited missile kills do not establish initial carrier count/split triggers. M15 62 initial versus53 credited ground, M16 113/13 initial versus138/14 credited, M17 34 initial versus55 credited ground remain distinct. Unknown ground subtypes use explicitly unresolved scenery slots, not arbitrary type allocations.
+- M18 central core sits130studs west of the proposed centreline; independent vertical entry/roof apertures and wider central vent are original blockout adaptations. Swept clearance passes offline; entry/overshoot/retry, target occlusion and unchanged-flight-model acceptance need a future leased Studio pass.
+- Combat actors, phase clocks, ship weapons, destruction, cruise separation, friendly column movement and Rusk transitions remain mission integration. All five keys are registered but unselected; no asset uploads, runtime activation or Player claim.
+
+
 Last updated: 2026-10-30.
 ## M12/M13 world review (2026-10-30), [PR #170](https://github.com/A-Ricemusic/skybreak/pull/170)
 

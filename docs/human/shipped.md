@@ -1,5 +1,10 @@
 # Shipped
 
+## M14–M18 review status (2026-10-30)
+
+The `feat/m14-m18-worlds` work is unmerged and dormant; it changes nothing in Roblox Player. Composition docs report offline geometry/count budgets. No Studio, Player or phone test is claimed. Existing merged/live history below is unchanged.
+
+
 Last updated: 2026-10-29, against `main` at `7d73c44`.
 M12/M13 worlds are **unmerged / world in review** in [PR #170](https://github.com/A-Ricemusic/skybreak/pull/170), dormant on `feat/m12-m13-worlds` above #167/#166/#164. [M12 table](../specs/worlds/m12-composition.md) · [M13 table](../specs/worlds/m13-composition.md). Offline estimates12.770960s/13.253200s; no mission selection, Player change, Studio/Player verification or asset upload. Decisions D-230–D-234. Existing shipped entries below are unchanged by this branch.
 

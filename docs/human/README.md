@@ -35,6 +35,8 @@ Mission 3 merged as #147 (`7d73c44`) and is live by the owner's pipeline convent
 
 Audio policy update (D-142, owner, 2026-10-30): no further audio uploads; story continues in subtitles beyond existing approved voices and changed lines stay silent. The rejected bank is preserved at `evidence/voicebank01-rejected` (`ff4a78b`); [full incident case](../qa/audio-rejections/2026-10-30-voicebank01.md). This documentation adds no gameplay changes or Player verification.
 
+M14–M18 procedural worlds are in review on `feat/m14-m18-worlds`, dormant and unmerged. Offline geometry/build budgets are reported in their composition docs; Studio/Player/phone quality remains unverified. No catalog/unlock changes.
+
 ## Mission progress
 
 | # | Reference mission | Footage time | Gameplay length | Footage indexed | Spec written | Built | Live | Owner tested |
@@ -63,11 +65,11 @@ Audio policy update (D-142, owner, 2026-10-30): no further audio uploads; story 
 | 11 | Escort | 2:39:46–2:45:27 | 5.7 min | Yes | Written / in review ([#153](https://github.com/A-Ricemusic/skybreak/pull/153); [mission](../specs/missions/m11.md), [world](../specs/worlds/m11.md)) | World in review / dormant | No | — |
 | 12 | Stonehenge Offensive | 2:48:27–3:04:55 | 16.5 min | Yes | Written / in review ([#153](https://github.com/A-Ricemusic/skybreak/pull/153); [mission](../specs/missions/m12.md), [world](../specs/worlds/m12.md)) | World in review ([composition](../specs/worlds/m12-composition.md)); mission unavailable | No | — |
 | 13 | Safe Return | 3:08:30–3:18:42 | 10.2 min | Yes | Written / in review ([#153](https://github.com/A-Ricemusic/skybreak/pull/153); [mission](../specs/missions/m13.md), [world](../specs/worlds/m13.md)) | World in review ([composition](../specs/worlds/m13-composition.md)); mission unavailable | No | — |
-| 14 | Breaking Arrows | 3:20:22–3:28:38 | 8.3 min | Yes | Spec written / in review ([PR #154](https://github.com/A-Ricemusic/skybreak/pull/154); [mission](../specs/missions/m14.md), [world](../specs/worlds/m14.md)) | Unbuilt / unavailable | No | — |
-| 15 | Emancipation | 3:32:45–3:47:38 | 14.9 min | Yes | Spec written / in review ([PR #154](https://github.com/A-Ricemusic/skybreak/pull/154); [mission](../specs/missions/m15.md), [world](../specs/worlds/m15.md)) | Unbuilt / unavailable | No | — |
-| 16 | Whiskey Corridor | 3:50:50–4:12:27 | 21.6 min | Yes | Spec written / in review ([PR #154](https://github.com/A-Ricemusic/skybreak/pull/154); [mission](../specs/missions/m16.md), [world](../specs/worlds/m16.md)) | Unbuilt / unavailable | No | — |
-| 17 | Siege of Farbanti | 4:14:30–4:32:17 | 17.8 min | Yes | Spec written / in review ([PR #154](https://github.com/A-Ricemusic/skybreak/pull/154); [mission](../specs/missions/m17.md), [world](../specs/worlds/m17.md)) | Unbuilt / unavailable | No | — |
-| 18 | Megalith | 4:36:59–4:46:22 | 9.4 min | Yes | Spec written / in review ([PR #154](https://github.com/A-Ricemusic/skybreak/pull/154); [mission](../specs/missions/m18.md), [world](../specs/worlds/m18.md)) | Unbuilt / unavailable | No | — |
+| 14 | Breaking Arrows | 3:20:22–3:28:38 | 8.3 min | Yes | Spec written / in review ([PR #154](https://github.com/A-Ricemusic/skybreak/pull/154); [mission](../specs/missions/m14.md), [world](../specs/worlds/m14.md)) | World in review ([composition](../specs/worlds/m14-composition.md)); mission unavailable | No | — |
+| 15 | Emancipation | 3:32:45–3:47:38 | 14.9 min | Yes | Spec written / in review ([PR #154](https://github.com/A-Ricemusic/skybreak/pull/154); [mission](../specs/missions/m15.md), [world](../specs/worlds/m15.md)) | World in review ([composition](../specs/worlds/m15-composition.md)); mission unavailable | No | — |
+| 16 | Whiskey Corridor | 3:50:50–4:12:27 | 21.6 min | Yes | Spec written / in review ([PR #154](https://github.com/A-Ricemusic/skybreak/pull/154); [mission](../specs/missions/m16.md), [world](../specs/worlds/m16.md)) | World in review ([composition](../specs/worlds/m16-composition.md)); mission unavailable | No | — |
+| 17 | Siege of Farbanti | 4:14:30–4:32:17 | 17.8 min | Yes | Spec written / in review ([PR #154](https://github.com/A-Ricemusic/skybreak/pull/154); [mission](../specs/missions/m17.md), [world](../specs/worlds/m17.md)) | World in review ([composition](../specs/worlds/m17-composition.md)); mission unavailable | No | — |
+| 18 | Megalith | 4:36:59–4:46:22 | 9.4 min | Yes | Spec written / in review ([PR #154](https://github.com/A-Ricemusic/skybreak/pull/154); [mission](../specs/missions/m18.md), [world](../specs/worlds/m18.md)) | World in review ([composition](../specs/worlds/m18-composition.md)); mission unavailable | No | — |
 
 "Footage indexed" means the mission's boundaries are timed to about 1 second from the 480p copy. Detail inside missions has only been seen every 10 seconds so far; each spec adds a closer look. "Gameplay length" is the footage player's time from launch to mission end, including landings. Reference titles are internal cross-references (D-001) and never appear in the game. The full timeline is in the [footage ledger](../../reference/ledger.md).
 
