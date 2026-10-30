@@ -1,3 +1,4 @@
+import { LaunchCancellation } from "../shared/LaunchLoading";
 import { canSkipLanding } from "../shared/EngineBatchB";
 import { buildNightLighting } from "./NightLighting";
 import { announceJammerKill, liveJammers, lockAllowed, stepRearm } from "./EngineBatchCRuntime";
@@ -46,6 +47,7 @@ import { MissionWorld } from "./MissionWorld";
 import { ActorGrounding } from "./ActorGrounding";
 
 const sessions = new Map<Player, CombatSession>();
+const launchCancellations = new Map<Player, LaunchCancellation>();
 const completing = new Set<Player>();
 const connections: RBXScriptConnection[] = [];
 let missionSerial = 0;
@@ -563,7 +565,7 @@ function beginPlay(session: CombatSession): void {
 	session.stateTime = 0;
 	session.hud = undefined; // the first HUD message after Started is always complete
 	if (session.player.Parent !== Players) { cleanupSession(session); return; }
-	missionState!.FireClient(session.player, { kind: "Started", slot: session.slot, missionId: session.missionId, aircraft: session.aircraft, airspace: session.airspace, difficulty: session.difficulty, initialState: session.blueprint?.start ? session.state : undefined, launchIntro: session.launch !== undefined });
+	missionState!.FireClient(session.player, { kind: "Started", launchId: session.launchId, slot: session.slot, missionId: session.missionId, aircraft: session.aircraft, airspace: session.airspace, difficulty: session.difficulty, initialState: session.blueprint?.start ? session.state : undefined, launchIntro: session.launch !== undefined });
 	if (refreshSession(session, now)) { sendTelemetry(session); sendFlightState(session); }
 }
 function markTarget(session: CombatSession, enemy: Enemy): void {
@@ -1579,12 +1581,19 @@ const phaseDirector = createPhaseDirector({
 
 // Clients supply validated controls and button events, never damage or results.
 export const CombatService = {
+	CancelLaunch(player: Player, launchId: number): void {
+		let cancellation = launchCancellations.get(player);
+		if (!cancellation) { cancellation = new LaunchCancellation(); launchCancellations.set(player, cancellation); }
+		cancellation.Cancel(launchId);
+		const session = sessions.get(player);
+		if (session?.launchId === launchId) cleanupSession(session);
+	},
 	EndMission(player: Player): void {
 		const session = sessions.get(player);
 		if (session) cleanupSession(session);
 	},
 	GetSession(player: Player): CombatSession | undefined { return sessions.get(player); },
-	StartMission(player: Player, slot: number, missionId = 1, special?: unknown, difficulty?: unknown): LuaTuple<[boolean, string?]> {
+	StartMission(player: Player, slot: number, missionId = 1, special?: unknown, difficulty?: unknown, launchId?: number): LuaTuple<[boolean, string?]> {
 		if (!missionState || !onFinished) return $tuple(false, "CombatService is not initialized");
 		if (!FlightMath.IsFinite(slot) || slot % 1 !== 0 || slot < 1 || slot > 4) return $tuple(false, "Choose a save slot from 1 to 4");
 		if (!MissionCatalog.IsValidId(missionId) || !MissionCatalog.Available(missionId)) return $tuple(false, "Choose a valid mission");
@@ -1595,7 +1604,10 @@ export const CombatService = {
 		if (!typeIs(player, "Instance") || !player.IsA("Player") || player.Parent !== Players) return $tuple(false, "Player is unavailable");
 		if (completing.has(player)) return $tuple(false, "Your mission result is still being saved");
 		if (sessions.has(player)) return $tuple(false, "A mission is already in progress or its result is being saved");
-		if (buildingMission || sessions.size() > 0) return $tuple(false, "This mission world is single-player");
+		if (buildingMission) return $tuple(false, "The previous launch is still preparing. Please wait before retrying.");
+		if (sessions.size() > 0) return $tuple(false, "This mission world is single-player");
+		const cancelled = () => launchCancellations.get(player)?.Cancelled(launchId) === true;
+		if (cancelled()) return $tuple(false, "This launch request expired. Request another launch.");
 		buildingMission = true;
 		// The previous world's cleanup must finish first: wait queued (the client keeps its launch request open).
 		let launchSlot: LaunchSlot = { kind: "refuse", message: "The mission could not be started.", restoreMenu: true };
@@ -1603,7 +1615,7 @@ export const CombatService = {
 			launchSlot = awaitLaunchSlot(worldLifecycle, {
 				playerPresent: () => player.Parent === Players,
 				sessions: () => sessions.size(),
-				queued: () => { if (player.Parent === Players) missionState!.FireClient(player, { kind: "Queued", missionId }); },
+				queued: () => { if (player.Parent === Players) missionState!.FireClient(player, { kind: "Queued", missionId, launchId }); },
 			});
 		});
 		if (!waited) warn(`SKYBREAK launch queue failed: ${tostring(queueError)}`);
@@ -1613,18 +1625,26 @@ export const CombatService = {
 			if (launchSlot.restoreMenu) restoreMenu();
 			return $tuple(false, launchSlot.message);
 		}
+		if (cancelled()) {
+			buildingMission = false;
+			restoreMenu();
+			return $tuple(false, "This launch request expired. Request another launch.");
+		}
 		const startedAt = os.clock();
 		missionSerial += 1;
 		const folder = new Instance("Folder");
 		folder.Name = `Mission_${player.UserId}_${missionSerial}`;
 		folder.Parent = missionRoot;
 		const [ok, result] = pcall(() => {
+			missionState!.FireClient(player, { kind: "Building", missionId, folder, launchId });
 			const world = MissionWorld.Build(missionId, folder);
+			assert(!cancelled(), "Launch request expired");
 			assert(player.Parent === Players, "Player left during world construction");
 			const blueprint = MissionCatalog.Get(missionId);
 			if(blueprint.nightLighting) buildNightLighting(folder,blueprint.nightLighting,()=>PauseRules.Paused(session.pause));
 			assert(world.groundTargets.size() === blueprint.ground.size(), `Mission ${missionId} world ground target count mismatch`);
 			const aircraft = JetFactory.Create("SKYBREAK - Kestrel", false);
+			assert(!cancelled(), "Launch request expired");
 			assert(player.Parent === Players, "Player left during aircraft construction");
 			aircraft.SetAttribute("SkybreakOwner", player.UserId);
 			aircraft.SetAttribute("SkybreakPlayer", true);
@@ -1633,6 +1653,7 @@ export const CombatService = {
 			const state = blueprint.start ? LaunchStage.Pose(MissionCatalog.Start(missionId)) : FlightMath.NewState();
 			aircraft.PivotTo(frameFor(state));
 			const session: CombatSession = {
+				launchId,
 				targetScore: new TargetScore(MissionCatalog.Scoring(missionId)),
 				player, slot, folder, aircraft, state, missionId, airspace: MissionCatalog.Airspace(missionId), lastWindupAt: -math.huge, radioSerial: 0, chatterIndex: 0,
 				input: { x: 0, y: 0, throttle: FlightMath.CruiseThrottle }, health: 100, kills: 0, elapsed: 0,
@@ -1690,6 +1711,7 @@ export const CombatService = {
 			// replicate under the loading screen. Enemy timers only advance once play
 			// begins, so this is gameplay-equivalent to spawning at launch.
 			phaseDirector.Apply(session);
+			assert(!cancelled(), "Launch request expired");
 			assert(player.Parent === Players, "Player left during mission setup");
 			// Hold in the loading gate: no clock, stepping or input until the client
 			// confirms replication (CombatAction "Ready") or the timeout elapses.
@@ -1700,7 +1722,7 @@ export const CombatService = {
 			if (characterRoot?.IsA("BasePart")) {
 				session.characterRoot = characterRoot; session.wasAnchored = characterRoot.Anchored; characterRoot.Anchored = true;
 			}
-			const loading: MissionLoading = { kind: "Loading", slot, missionId, aircraft, expectedParts: countParts(folder) };
+			const loading: MissionLoading = { kind: "Loading", launchId, slot, missionId, aircraft, expectedParts: countParts(folder) };
 			missionState!.FireClient(player, loading);
 		});
 		buildingMission = false;
@@ -1804,7 +1826,7 @@ export const CombatService = {
 				else if (action === "Special") activateSpecial(session);
 			}, (message) => abortSession(session, message));
 		}));
-		connections.push(Players.PlayerRemoving.Connect((player) => CombatService.EndMission(player)));
+		connections.push(Players.PlayerRemoving.Connect((player) => { CombatService.EndMission(player); launchCancellations.delete(player); }));
 		let accumulator = 0;
 		connections.push(RunService.Heartbeat.Connect((dt) => {
 			const now = os.clock();

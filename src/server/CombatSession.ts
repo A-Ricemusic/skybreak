@@ -92,6 +92,7 @@ export interface Projectile {
 	lostTrack?: boolean;
 }
 export interface CombatSession {
+	launchId?: number;
 	rearmStartedAt?: number;
 	rearmEpoch?: number;
 	rearmElapsed?: number;
