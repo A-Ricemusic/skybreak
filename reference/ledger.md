@@ -235,3 +235,53 @@ Totals by type (minutes): mission 227.1, cutscene 23.4, briefing 19.8, aircraft_
 1. **0:04:55-0:06:35**: briefing, aircraft and weapon select, and loading card, for exact typography, panel layout, map styling and transition timing.
 2. **0:06:25-0:07:40**: carrier launch intro, quote card and first gameplay frames with the full HUD (layout, fonts, small numerals, radar).
 3. **0:07:30-0:11:45**: full engagement through MISSION ACCOMPLISHED and the debrief, for enemy arrival timing, target labels and results-table detail. If only one clip is allowed, take **0:04:55-0:11:45** (~6 min 50 s).
+
+
+## M06–M09 detailed specification pass — 2026-10-29
+
+This addendum supersedes the earlier “no 1080p inspected” statement **for missions 6–9 only**. Source remains the supplied GamePlayShare upload. The continuous 640×480 proxy was reused from `/Users/pelicannurse/Projects/test app/reference/ac04/video/proxy-480p.mp4`; no full campaign was downloaded in this worktree. Only bounded 1080p mission sections and short panel clips were fetched. The interrupted M06 partial had no valid moov atom and was discarded; the replacement uses two sections, below. A later yt-dlp bot check was bypassed by reusing the still-valid media URL from the original successful extraction, with FFmpeg bounded cuts; no cookies/account were used. Signed URLs are not committed.
+
+### Acquisition
+
+All listed clips are **1440×1080 AV1, 60000/1001 fps, video only**, verified with FFprobe. Local root: `reference/ac04/clips/` (ignored). Audio was **not listened to or transcribed**; subtitle functions only. These are 4:3 1080p source images, not 1920×1080 or proof that the underlying game rendered at that resolution.
+
+| Local file | Source interval (seconds) | Duration s | Bytes | SHA-256 |
+|---|---|---|---|---|
+| `m06-3672.mp4` | 3672–4272 (1:01:12–1:11:12) | 600.001067 | 153983812 | `bb1db31c4e49ab7cf00bc8fe7b3c299f1b404e576e7df0696603defdffe3a377` |
+| `m06-4272.mp4` | 4272–4824 (1:11:12–1:20:24) | 552.002517 | 215792787 | `2851bb7a6135cd1097f432b1dcd5b7b736c6a64ae7870e3ca04f7942ea4eb28f` |
+| `m07-1080p.mp4` | 4824–5764 (1:20:24–1:36:04) | 940.008250 | 155654553 | `c62ce5c05c85a026da83e254ff55acd90e4406eee40163f1401f306327f284c3` |
+| `m08-1080p.mp4` | 5854–6777 (1:37:34–1:52:57) | 923.003567 | 148755115 | `114b910730c4e3451cb434422c1e9b400a0500631b80f2578396715d0e0bcc0b` |
+| `m09-1080p.mp4` | 6857–8069 (1:54:17–2:14:29) | 1212.010950 | 137131780 | `be8994b7c5535de8d0746ceaa21b827ad74b662ea04ff9b5ce068a26814f6573` |
+
+Additional panel cuts: 3720–3736, 3780–3790, 4808–4823, 4870–4885, 4933–4943, 5750–5763, 5900–5915, 5956–5966, 6763–6776, 6910–6927, 6974–6984, 8055–8068 source seconds, named `detail-START.mp4`. Local FFprobe/hash manifest: `reference/ac04/acquisition-m06-m09.json` (no media URL).
+
+**Timestamp mapping.** Requested source start + local elapsed time. Stream-copy boundaries were not assumed frame-exact: matching downscaled native/proxy images at nominal source 5503, 6388 and 7648 found best proxy matches within ±0.25 s at a 0.5 s search grid. Roster, HUD and debrief screen states also cross-checked against source-native proxy frames. Cite full detail frames to ±1 s, HUD crop events generally ±3 s and overview events ±5 s; this is not sub-frame alignment or an exhaustive cut audit. FFmpeg `fps` selects around bin centres, so a crop sheet’s tile j (zero based) maps approximately to `start + sheetIndex*100 + 2*j + 1 s`. Overview uses five-second bins and 60 tiles/sheet. Last sheets have black padding; padding is not a source black interval.
+
+### Images actually opened
+
+All paths relative to `reference/ac04/frames/specs-m06-m09/`:
+
+| Surface | Opened evidence | Coverage / limits |
+|---|---|---|
+| Whole interval overview | M06 `m06/overview-01`–`04`; M07 `m07/overview-01`–`04`; M08 `m08/overview-01`–`04`; M09 `m09/overview-01`–`05` (JPEG) | All requested intervals at five-second sampling, 256×192 tiles. Terrain and sequence only; not fine numbers |
+| M06 PTS/kill feed | `m06/audit-3672-01`–`06` and `m06/audit-4272-01`–`06` | Two-second native-source crops (500×185 →350×129); all 12 sheets opened. Multiple kills in a burst can remain unresolved |
+| M07 PTS/kill feed | `m07/hud-01`–`06`; `m07/audit-600-01`–`04` | Two-second crops over the complete interval. `hud-07` was generated but is not claimed as opened; audit-600 covers that interval onward |
+| M08 PTS/kill feed | `m08/audit-0-01`–`10` | Two-second crops over complete interval; ace and live rank transition examined |
+| M09 PTS/kill feed | `m09/audit-0-01`–`13` | Two-second crops over complete interval; ace, per-target values, six 100-point attack jets and live rank examined |
+| Native detail panels | `m06`–`m09` each `-roster-1080.png`, `-hud-1080.png`, `-debrief-1080.png` | Full resolution; M06 initial HUD additionally opened as proxy p3782 and native panel |
+| Native terrain / target / service / success | `d3850`, `d4050`, `d4095`, `d4450`, `d4765`, `d5395`, `d5398`, `d5404`, `d5499`, `d5503`, `d5520`, `d5613`, `d5616`, `d6388`, `d6718`, `d7545` (PNG) | Full resolution, source seconds in filename. `d8065` extracted, not separately opened; use the opened debrief panel instead |
+| Update sequences | `update-7.jpg` (5618–5630), `update-8.jpg` (6383–6395), `update-9.jpg` (7638–7650) | One-second full-frame sequence, 480×360 tiles, all opened. M09 clock reset seen between third/fourth frames |
+| Proxy native spot frames | p3728,3733,3758,3782,4819,4865,4880,4934,5395-equivalent via native,5618,5622,5628,5745,5758,5762,5908,5958,6388,6772,6913,6920,6975,6978,7528,7638,7648,8065 | Proxy detail used for source-state cross-check, not a claim that every extracted proxy PNG was opened |
+
+Short overlays between two-second samples, exact spawn triggers, failure variants, full off-screen target inventories and audio remain gaps. No simulated or rendered SKYBREAK comparison, Studio session or Player test occurred. Assets were neither made nor uploaded.
+
+### Findings and corrections
+
+| Mission | Native roster | Final debrief (source) | Refinements / limits |
+|---|---|---|---|
+| 6 | AIR11 / GRND40 / NAVAL36 / TGT0 / TOTAL87 (1:02:08) | 6,260 /3,000, S; ground58=1,960, ships32=3,650; active15:00 (1:20:19) | 15:00 score window; optional land rearm; named ace LEVY240 and ordinary F-14 60. Individual ship classes and ground subtype totals remain incomplete; mounted weapons may explain ground credits exceeding40 |
+| 7 | AIR11 / GRND51 / NAVAL0 / **TGT3** / TOTAL62 (1:21:20) | 2,245 /0340, S; 11:18.60 +2:04.63=13:23.23 (1:36:02) | Corrects small-text TGT2 and TND-IDS3 reads: TND-IDS **2** /300 =60+named ace240. Ground52/1,255 reconciles to the spec’s reconstructed inventory; 15:00 strike then5:00 canyon escape, drop below2,000ft. Three required types provisionally radar100/control120/tower120; exact red-tag audit remains uncertain |
+| 8 | AIR27 / GRND0 / NAVAL0 / TGT0 / TOTAL27 (1:38:28) | 2,930 /0800, S; 7:00+6:00=13:00 (1:52:52) | Six bomber kills /900; named ace VAISALA240 explains F/A-18 ×10 /780. S in(2870,2930] from A→S HUD. Rocket ignition caption at1:51:58; Broken Relay replaces launch with broadcast |
+| 9 | AIR13 / GRND83 / NAVAL0 / TGT0 / TOTAL96 (1:55:13) | 4,490 /2200, S; 10:00+6:10.51=16:10.51 (2:14:25) | Corrects small-text ground56 to **55**, F-15C6 to **3** /360. Named ace TUTTLE240 plus two60. Six A-10s are100 each. Ground55/3,260 residual type reconstruction flagged as inferred; initial83 includes28 ground targets not killed by player |
+
+Detailed citations, point bounds, unknowns and proposed stud sketches live in `docs/specs/missions/m06.md`–`m09.md` and companion worlds. Whole interval overview does not mean whole footage watched continuously. Acquired video total stayed below 1 GB after restart; corrupt partials and redundant/intermediate files were removed after recording findings per the owner’s disk instruction. Key panels may be retained locally, but ignored media paths are reproducibility notes, not portable PR attachments.

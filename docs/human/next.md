@@ -36,6 +36,10 @@ Most useful feedback: whether the base is easy to find and read; whether the par
 - Engine batch C is in review in PR #145.
 - Mission data, score-threshold flow, surprise elite phase, landing/rearm integration, Studio visual checks and unlock remain.
 
+## Missions 6–9 — specs ready for review
+
+Mission and world specs are drafted at `docs/specs/missions/m06.md`–`m09.md` and `docs/specs/worlds/m06.md`–`m09.md`, with source timestamps, observed debriefs, scale sketches, Broken Relay adaptations and main’s engine gaps. Review the flagged inventory/trigger/rank assumptions before implementation; these are documentation proposals, not mission activation or Player verification.
+
 ## Later
 
 Continue one mission at a time after owner feedback. Before the finale, remap the final story chapter and retire leftover code keyed to the old 27-mission campaign. Mission 18 retains the planned one-on-one Rusk duel (D-031). Non-blocking polish remains: terrain and shoreline presentation, a code formatter, and dedicated menu/briefing/HUD/results specifications.
