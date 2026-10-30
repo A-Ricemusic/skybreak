@@ -1,0 +1,291 @@
+<!doctype html>
+<!-- UPDATE: Edit the static LEVEL DATA articles below and header snapshot together.
+Verify origin/main, gh pr view, docs/specs/missions and Publish to Roblox logs.
+Keep all 19 articles and the fixed legend. Update affected human docs in the same PR.
+No generator, network dependencies, JavaScript or build step is required. -->
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SKYBREAK · Level status</title>
+<style>
+:root{color-scheme:light dark;--bg:#f2f5fa;--panel:#fff;--ink:#182638;--muted:#485b71;--line:#cad5e1;--link:#125bac;--live:#17623e;--review:#744b00}
+@media(prefers-color-scheme:dark){:root{--bg:#101923;--panel:#192635;--ink:#eef4fc;--muted:#bdcbdc;--line:#41546a;--link:#9ccaff;--live:#8ee5b3;--review:#ffcf7b}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,sans-serif}main{max-width:1180px;margin:auto;padding:32px 20px}h1{font-size:2.4rem;line-height:1.15}h2{font-size:1.25rem;margin:0}a{color:var(--link);text-underline-offset:3px}a:focus-visible{outline:3px solid var(--link);outline-offset:4px}.muted,dt{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:18px}.card,.legend{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px}.badge{display:inline-block;border:1px solid currentColor;border-radius:20px;padding:2px 12px;font-weight:700;margin:10px 0}.live{color:var(--live)}.review{color:var(--review)}.pieces{padding-left:20px}dl{margin-bottom:0}dd{margin:0 0 12px}nav{margin:20px 0}code{overflow-wrap:anywhere}.legend{margin:24px 0}.legend p{margin:8px 0}footer{margin-top:28px}
+</style></head><body><main>
+<header><p class="muted">SKYBREAK / Campaign readiness</p><h1>Every level, at a glance</h1>
+<p>Updated 2026-10-29 · Main <code>f48a6849abd00240b394cda7d8e93fa78f43b708</code> · Live place version <strong>94</strong></p>
+<p>Practice and missions 1–2 are live. Missions 3–18 remain locked on main. Live means published through the pipeline; no agent Player test is claimed.</p>
+<p>Missions 10–13 have mission and world specs in <a href="https://github.com/A-Ricemusic/skybreak/pull/153">PR #153</a>; they remain unbuilt and unavailable.</p>
+<nav><a href="https://www.roblox.com/games/112911685457826">Play SKYBREAK ↗</a> · <a href="README.md">Human dashboard</a> · <a href="blockers.md">Blockers</a> · <a href="https://github.com/A-Ricemusic/skybreak/actions/runs/40963804844">Publish evidence (version 94)</a></nav>
+</header>
+<section class="legend" aria-labelledby="legend"><h2 id="legend">Fixed status legend</h2>
+<p><strong>Live</strong> — playable in Roblox Player through the pipeline.</p><p><strong>In review</strong> — an open PR proposes the playable level.</p><p><strong>In progress</strong> — being built; pieces describe what exists.</p><p><strong>Spec only</strong> — a spec exists, playable implementation does not.</p><p><strong>Not started</strong> — no mission spec or playable implementation; indexed footage and placeholder data do not count as implementation.</p>
+<p><strong>Spec in review</strong> — mission/world documentation is proposed in an open PR; the level remains unbuilt and locked.</p>
+<p>Pieces: ✓ merged/present · ◐ proposed in linked PR · — absent · ? unconfirmed. Studio evidence is scoped below and never establishes Player quality. Reference titles are internal AC04 cross-references, not shipped game names.</p></section>
+<!-- LEVEL DATA: one independently editable article per level. -->
+<section class="grid" aria-label="Levels">
+
+<article class="card" id="level-0"><h2>00 · Practice flight</h2><span class="badge live">Live</span><p class="muted">Reference: Original training</p><dl>
+  <dt>Reference footage</dt><dd>No AC04 footage counterpart; original optional checkout.</dd>
+  <dt>Pieces</dt><dd><ul class="pieces">
+    <li>Spec: ✓ authored practice blueprint; no separate mission spec</li>
+    <li>World: ✓ merged</li>
+    <li>Engine needs: ✓ merged</li>
+    <li>Mission data & unlock: ✓ merged</li>
+    <li>Studio verified: ✓ campaign-switch checks (#130)</li>
+    <li>Live: ✓ place version 94 (M02 activated in version 92)</li></ul></dd>
+  <dt>Open PRs</dt><dd>None at snapshot</dd>
+  <dt>Known issues</dt><dd>No new level-specific issue recorded; Player quality has not been agent-verified.</dd>
+  <dt>Owner test</dt><dd>Fly the training pattern, select and hit the radar; retry and confirm mission 1 remains accessible.</dd></dl>
+</article>
+
+<article class="card" id="level-1"><h2>01 · OUR OWN PAINT</h2><span class="badge live">Live</span><p class="muted">Reference: Sitting Duck</p><dl>
+  <dt>Reference footage</dt><dd>0:06:30–0:11:24</dd>
+  <dt>Pieces</dt><dd><ul class="pieces">
+    <li>Spec: ✓ mission spec</li>
+    <li>World: ✓ merged</li>
+    <li>Engine needs: ✓ merged</li>
+    <li>Mission data & unlock: ✓ merged</li>
+    <li>Studio verified: ✓ scripted campaign-switch checks (#130); current tuning awaits owner feedback</li>
+    <li>Live: ✓ place version 94 (M02 activated in version 92)</li></ul></dd>
+  <dt>Open PRs</dt><dd>None at snapshot</dd>
+  <dt>Known issues</dt><dd>Runway pavement visibility remains unchecked; owner found earlier tuning too easy.</dd>
+  <dt>Owner test</dt><dd>Check the longer intercept, attacking raiders, fly-off, runway visibility and saved ranks.</dd></dl>
+</article>
+
+<article class="card" id="level-2"><h2>02 · NO ANIMALS</h2><span class="badge live">Live</span><p class="muted">Reference: Imminent Threat</p><dl>
+  <dt>Reference footage</dt><dd>0:15:38–0:22:34</dd>
+  <dt>Pieces</dt><dd><ul class="pieces">
+    <li>Spec: ✓ mission spec</li>
+    <li>World: ✓ merged</li>
+    <li>Engine needs: ✓ merged</li>
+    <li>Mission data & unlock: ✓ merged</li>
+    <li>Studio verified: ✓ reported integration (#143)</li>
+    <li>Live: ✓ place version 94 (M02 activated in version 92)</li></ul></dd>
+  <dt>Open PRs</dt><dd>None at snapshot</dd>
+  <dt>Known issues</dt><dd>About 16 s desktop Studio load; phone performance, rank cuts and 15:00 pacing await feedback.</dd>
+  <dt>Owner test</dt><dd>Finish mission 1, follow the power line, destroy 11 bombers; check optional targets, pressure and score persistence across replay/reload.</dd></dl>
+</article>
+
+<article class="card" id="level-3"><h2>03 · Mission 3</h2><span class="badge review">In review</span><p class="muted">Reference: The Northern Eye<br>PR title: NOBODY SIGNED (main still has placeholder)</p><dl>
+  <dt>Reference footage</dt><dd>0:26:41–0:34:24</dd>
+  <dt>Pieces</dt><dd><ul class="pieces">
+    <li>Spec: ✓ mission spec</li>
+    <li>World: ✓ merged</li>
+    <li>Engine needs: ✓ merged</li>
+    <li>Mission data & unlock: ◐ <a href="https://github.com/A-Ricemusic/skybreak/pull/147">#147</a></li>
+    <li>Studio verified: ◐ #147 reports 845/845 Jest and scripted landing; visual concerns remain</li>
+    <li>Live: — locked on main</li></ul></dd>
+  <dt>Open PRs</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/147">#147</a></dd>
+  <dt>Known issues</dt><dd>PR reports 35–88 s Studio loading, terraced mountains, poor distant terrain at low quality; return line absent from minimap and landing compass concern.</dd>
+  <dt>Owner test</dt><dd>After merge: destroy nine radars, check update clock reset, south return, automatic landing/skip, clearance and saved results.</dd></dl>
+</article>
+
+<article class="card" id="level-4"><h2>04 · Mission 4</h2><span class="badge review">In review</span><p class="muted">Reference: Blockade<br>PR title: BLIND COURIERS (main still has placeholder)</p><dl>
+  <dt>Reference footage</dt><dd>0:36:36–0:42:42</dd>
+  <dt>Pieces</dt><dd><ul class="pieces">
+    <li>Spec: ✓ mission spec</li>
+    <li>World: ✓ merged</li>
+    <li>Engine needs: ✓ merged</li>
+    <li>Mission data & unlock: ◐ <a href="https://github.com/A-Ricemusic/skybreak/pull/149">#149</a></li>
+    <li>Studio verified: ◐ #149 reports 865/865 Jest and scripted integration; pacing unresolved</li>
+    <li>Live: — locked on main</li></ul></dd>
+  <dt>Open PRs</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/149">#149</a></dd>
+  <dt>Known issues</dt><dd>Transports escape after about 4:43.5 despite a 12:00 clock. About 45 s loading; bounded cleanup can delay menu. Terrain work is being addressed on perf/m04-m05-terrain (not merged or verified here).</dd>
+  <dt>Owner test</dt><dd>After merge and mission 3: test full/partial/clear jamming, transport escape timing, final-target win, 1,540 maximum points and return to practice.</dd></dl>
+</article>
+
+<article class="card" id="level-5"><h2>05 · Mission 5</h2><span class="badge review">In review</span><p class="muted">Reference: Lifeline<br>PR title: LIGHTS OFF (main still has placeholder)</p><dl>
+  <dt>Reference footage</dt><dd>0:44:42–0:58:13</dd>
+  <dt>Pieces</dt><dd><ul class="pieces">
+    <li>Spec: ✓ mission spec</li>
+    <li>World: ✓ merged</li>
+    <li>Engine needs: ✓ merged</li>
+    <li>Mission data & unlock: ◐ <a href="https://github.com/A-Ricemusic/skybreak/pull/148">#148</a></li>
+    <li>Studio verified: ◐ #148 reports 874/874 Jest; follow-up fixes await re-check</li>
+    <li>Live: — locked on main</li></ul></dd>
+  <dt>Open PRs</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/148">#148</a></dd>
+  <dt>Known issues</dt><dd>About 46 s loading; terrain cleanup dependency on #147 and perf/m04-m05-terrain. PR reports dark rig/tankers and pending follow-up lighting/Studio checks.</dd>
+  <dt>Owner test</dt><dd>After merges and mission 4: score 2,000 by 10:00, try rearm/weapon menu, check paused clocks, elite cut-in, south escape, night visibility and result cleanup.</dd></dl>
+</article>
+
+<article class="card" id="level-6"><h2>06 · Mission 6</h2><span class="badge ">Not started</span><p class="muted">Reference: Invincible Fleet</p><dl>
+  <dt>Reference footage</dt><dd>1:03:01–1:20:00</dd>
+  <dt>Pieces</dt><dd><ul class="pieces">
+    <li>Spec: — no file on main</li>
+    <li>World: —</li>
+    <li>Engine needs: ? not assessed per level</li>
+    <li>Mission data & unlock: — placeholder only; locked</li>
+    <li>Studio verified: —</li>
+    <li>Live: —</li></ul></dd>
+  <dt>Open PRs</dt><dd>None at snapshot</dd>
+  <dt>Known issues</dt><dd>No level-specific implementation findings yet; level is locked.</dd>
+  <dt>Owner test</dt><dd>No playable test yet. Review the forthcoming spec before implementation.</dd></dl>
+</article>
+
+<article class="card" id="level-7"><h2>07 · Mission 7</h2><span class="badge ">Not started</span><p class="muted">Reference: Deep Strike</p><dl>
+  <dt>Reference footage</dt><dd>1:22:13–1:35:49</dd>
+  <dt>Pieces</dt><dd><ul class="pieces">
+    <li>Spec: — no file on main</li>
+    <li>World: —</li>
+    <li>Engine needs: ? not assessed per level</li>
+    <li>Mission data & unlock: — placeholder only; locked</li>
+    <li>Studio verified: —</li>
+    <li>Live: —</li></ul></dd>
+  <dt>Open PRs</dt><dd>None at snapshot</dd>
+  <dt>Known issues</dt><dd>No level-specific implementation findings yet; level is locked.</dd>
+  <dt>Owner test</dt><dd>No playable test yet. Review the forthcoming spec before implementation.</dd></dl>
+</article>
+
+<article class="card" id="level-8"><h2>08 · Mission 8</h2><span class="badge ">Not started</span><p class="muted">Reference: Shattered Skies</p><dl>
+  <dt>Reference footage</dt><dd>1:39:16–1:52:39</dd>
+  <dt>Pieces</dt><dd><ul class="pieces">
+    <li>Spec: — no file on main</li>
+    <li>World: —</li>
+    <li>Engine needs: ? not assessed per level</li>
+    <li>Mission data & unlock: — placeholder only; locked</li>
+    <li>Studio verified: —</li>
+    <li>Live: —</li></ul></dd>
+  <dt>Open PRs</dt><dd>None at snapshot</dd>
+  <dt>Known issues</dt><dd>No level-specific implementation findings yet; level is locked.</dd>
+  <dt>Owner test</dt><dd>No playable test yet. Review the forthcoming spec before implementation.</dd></dl>
+</article>
+
+<article class="card" id="level-9"><h2>09 · Mission 9</h2><span class="badge ">Not started</span><p class="muted">Reference: Operation Bunker Shot</p><dl>
+  <dt>Reference footage</dt><dd>1:56:14–2:14:14</dd>
+  <dt>Pieces</dt><dd><ul class="pieces">
+    <li>Spec: — no file on main</li>
+    <li>World: —</li>
+    <li>Engine needs: ? not assessed per level</li>
+    <li>Mission data & unlock: — placeholder only; locked</li>
+    <li>Studio verified: —</li>
+    <li>Live: —</li></ul></dd>
+  <dt>Open PRs</dt><dd>None at snapshot</dd>
+  <dt>Known issues</dt><dd>No level-specific implementation findings yet; level is locked.</dd>
+  <dt>Owner test</dt><dd>No playable test yet. Review the forthcoming spec before implementation.</dd></dl>
+</article>
+
+<article class="card" id="level-10"><h2>10 · Mission 10</h2><span class="badge review">Spec in review</span><p class="muted">Reference: Tango Line</p><dl>
+  <dt>Reference footage</dt><dd>2:16:13–2:37:51</dd>
+  <dt>Pieces</dt><dd><ul class="pieces">
+    <li>Spec: ◐ <a href="../specs/missions/m10.md">mission spec</a> and <a href="../specs/worlds/m10.md">world spec</a> in <a href="https://github.com/A-Ricemusic/skybreak/pull/153">#153</a></li>
+    <li>World: — unbuilt; world spec proposed</li>
+    <li>Engine needs: ◐ gaps documented in proposed spec; implementation absent</li>
+    <li>Mission data & unlock: — placeholder only; locked</li>
+    <li>Studio verified: —</li>
+    <li>Live: —</li></ul></dd>
+  <dt>Open PRs</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/153">#153 · specs only</a></dd>
+  <dt>Known issues</dt><dd>Spec assumptions and coverage gaps await review; no playable implementation, level remains locked and unavailable.</dd>
+  <dt>Owner test</dt><dd>No playable test yet. Review the linked mission/world specs before implementation.</dd></dl>
+</article>
+
+<article class="card" id="level-11"><h2>11 · Mission 11</h2><span class="badge review">Spec in review</span><p class="muted">Reference: Escort</p><dl>
+  <dt>Reference footage</dt><dd>2:39:46–2:45:27</dd>
+  <dt>Pieces</dt><dd><ul class="pieces">
+    <li>Spec: ◐ <a href="../specs/missions/m11.md">mission spec</a> and <a href="../specs/worlds/m11.md">world spec</a> in <a href="https://github.com/A-Ricemusic/skybreak/pull/153">#153</a></li>
+    <li>World: — unbuilt; world spec proposed</li>
+    <li>Engine needs: ◐ gaps documented in proposed spec; implementation absent</li>
+    <li>Mission data & unlock: — placeholder only; locked</li>
+    <li>Studio verified: —</li>
+    <li>Live: —</li></ul></dd>
+  <dt>Open PRs</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/153">#153 · specs only</a></dd>
+  <dt>Known issues</dt><dd>Spec assumptions and coverage gaps await review; no playable implementation, level remains locked and unavailable.</dd>
+  <dt>Owner test</dt><dd>No playable test yet. Review the linked mission/world specs before implementation.</dd></dl>
+</article>
+
+<article class="card" id="level-12"><h2>12 · Mission 12</h2><span class="badge review">Spec in review</span><p class="muted">Reference: Stonehenge Offensive</p><dl>
+  <dt>Reference footage</dt><dd>2:48:27–3:04:55</dd>
+  <dt>Pieces</dt><dd><ul class="pieces">
+    <li>Spec: ◐ <a href="../specs/missions/m12.md">mission spec</a> and <a href="../specs/worlds/m12.md">world spec</a> in <a href="https://github.com/A-Ricemusic/skybreak/pull/153">#153</a></li>
+    <li>World: — unbuilt; world spec proposed</li>
+    <li>Engine needs: ◐ gaps documented in proposed spec; implementation absent</li>
+    <li>Mission data & unlock: — placeholder only; locked</li>
+    <li>Studio verified: —</li>
+    <li>Live: —</li></ul></dd>
+  <dt>Open PRs</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/153">#153 · specs only</a></dd>
+  <dt>Known issues</dt><dd>Spec assumptions and coverage gaps await review; no playable implementation, level remains locked and unavailable.</dd>
+  <dt>Owner test</dt><dd>No playable test yet. Review the linked mission/world specs before implementation.</dd></dl>
+</article>
+
+<article class="card" id="level-13"><h2>13 · Mission 13</h2><span class="badge review">Spec in review</span><p class="muted">Reference: Safe Return</p><dl>
+  <dt>Reference footage</dt><dd>3:08:30–3:18:42</dd>
+  <dt>Pieces</dt><dd><ul class="pieces">
+    <li>Spec: ◐ <a href="../specs/missions/m13.md">mission spec</a> and <a href="../specs/worlds/m13.md">world spec</a> in <a href="https://github.com/A-Ricemusic/skybreak/pull/153">#153</a></li>
+    <li>World: — unbuilt; world spec proposed</li>
+    <li>Engine needs: ◐ gaps documented in proposed spec; implementation absent</li>
+    <li>Mission data & unlock: — placeholder only; locked</li>
+    <li>Studio verified: —</li>
+    <li>Live: —</li></ul></dd>
+  <dt>Open PRs</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/153">#153 · specs only</a></dd>
+  <dt>Known issues</dt><dd>Spec assumptions and coverage gaps await review; no playable implementation, level remains locked and unavailable.</dd>
+  <dt>Owner test</dt><dd>No playable test yet. Review the linked mission/world specs before implementation.</dd></dl>
+</article>
+
+<article class="card" id="level-14"><h2>14 · Mission 14</h2><span class="badge ">Not started</span><p class="muted">Reference: Breaking Arrows</p><dl>
+  <dt>Reference footage</dt><dd>3:20:22–3:28:38</dd>
+  <dt>Pieces</dt><dd><ul class="pieces">
+    <li>Spec: — no file on main</li>
+    <li>World: —</li>
+    <li>Engine needs: ? not assessed per level</li>
+    <li>Mission data & unlock: — placeholder only; locked</li>
+    <li>Studio verified: —</li>
+    <li>Live: —</li></ul></dd>
+  <dt>Open PRs</dt><dd>None at snapshot</dd>
+  <dt>Known issues</dt><dd>No level-specific implementation findings yet; level is locked.</dd>
+  <dt>Owner test</dt><dd>No playable test yet. Review the forthcoming spec before implementation.</dd></dl>
+</article>
+
+<article class="card" id="level-15"><h2>15 · Mission 15</h2><span class="badge ">Not started</span><p class="muted">Reference: Emancipation</p><dl>
+  <dt>Reference footage</dt><dd>3:32:45–3:47:38</dd>
+  <dt>Pieces</dt><dd><ul class="pieces">
+    <li>Spec: — no file on main</li>
+    <li>World: —</li>
+    <li>Engine needs: ? not assessed per level</li>
+    <li>Mission data & unlock: — placeholder only; locked</li>
+    <li>Studio verified: —</li>
+    <li>Live: —</li></ul></dd>
+  <dt>Open PRs</dt><dd>None at snapshot</dd>
+  <dt>Known issues</dt><dd>No level-specific implementation findings yet; level is locked.</dd>
+  <dt>Owner test</dt><dd>No playable test yet. Review the forthcoming spec before implementation.</dd></dl>
+</article>
+
+<article class="card" id="level-16"><h2>16 · Mission 16</h2><span class="badge ">Not started</span><p class="muted">Reference: Whiskey Corridor</p><dl>
+  <dt>Reference footage</dt><dd>3:50:50–4:12:27</dd>
+  <dt>Pieces</dt><dd><ul class="pieces">
+    <li>Spec: — no file on main</li>
+    <li>World: —</li>
+    <li>Engine needs: ? not assessed per level</li>
+    <li>Mission data & unlock: — placeholder only; locked</li>
+    <li>Studio verified: —</li>
+    <li>Live: —</li></ul></dd>
+  <dt>Open PRs</dt><dd>None at snapshot</dd>
+  <dt>Known issues</dt><dd>No level-specific implementation findings yet; level is locked.</dd>
+  <dt>Owner test</dt><dd>No playable test yet. Review the forthcoming spec before implementation.</dd></dl>
+</article>
+
+<article class="card" id="level-17"><h2>17 · Mission 17</h2><span class="badge ">Not started</span><p class="muted">Reference: Siege of Farbanti</p><dl>
+  <dt>Reference footage</dt><dd>4:14:30–4:32:17</dd>
+  <dt>Pieces</dt><dd><ul class="pieces">
+    <li>Spec: — no file on main</li>
+    <li>World: —</li>
+    <li>Engine needs: ? not assessed per level</li>
+    <li>Mission data & unlock: — placeholder only; locked</li>
+    <li>Studio verified: —</li>
+    <li>Live: —</li></ul></dd>
+  <dt>Open PRs</dt><dd>None at snapshot</dd>
+  <dt>Known issues</dt><dd>No level-specific implementation findings yet; level is locked.</dd>
+  <dt>Owner test</dt><dd>No playable test yet. Review the forthcoming spec before implementation.</dd></dl>
+</article>
+
+<article class="card" id="level-18"><h2>18 · Mission 18</h2><span class="badge ">Not started</span><p class="muted">Reference: Megalith</p><dl>
+  <dt>Reference footage</dt><dd>4:36:59–4:46:22</dd>
+  <dt>Pieces</dt><dd><ul class="pieces">
+    <li>Spec: — no file on main</li>
+    <li>World: —</li>
+    <li>Engine needs: ? not assessed per level</li>
+    <li>Mission data & unlock: — placeholder only; locked</li>
+    <li>Studio verified: —</li>
+    <li>Live: —</li></ul></dd>
+  <dt>Open PRs</dt><dd>None at snapshot</dd>
+  <dt>Known issues</dt><dd>No level-specific implementation findings yet; level is locked.</dd>
+  <dt>Owner test</dt><dd>No playable test yet. Review the forthcoming spec before implementation.</dd></dl>
+</article>
+</section><footer><p>Sources: <a href="README.md">mission timeline</a>, <a href="../specs/missions/">mission specs (1–5 on main; 10–13 proposed in #153)</a>, <a href="https://github.com/A-Ricemusic/skybreak/tree/088fbfc395a35ca9dd3054cf321e18baaa923ae2/src/shared/missions">main mission data</a>, and linked PR reports. Worlds #139/#144 and engines #141/#145 are merged, dormant for missions 3–5. Specs for 10–13 are in review in #153, with no implementation or unlock; other later-mission status remains as listed above. This page records reports, not a new Studio or Player verification.</p></footer></main></body></html>
