@@ -117,7 +117,8 @@ class PermissionsTests(unittest.TestCase):
                 self.assertEqual(entry["state"], "MODERATION_STATE_APPROVED")
                 recorded.add(int(entry["assetId"]))
             plan = json.loads((root / "assets" / directory / "upload-plan.json").read_text())
-            banks = plan["banks"] if directory == "voice" else [{"id": name, "sha256": entry["sha256"]} for name, entry in entries.items()]
+            # Voice: approved live banks whose regions are reused (D-142) plus the new banks.
+            banks = plan.get("legacyBanks", []) + plan["banks"] if directory == "voice" else [{"id": name, "sha256": entry["sha256"]} for name, entry in entries.items()]
             for bank in banks:
                 entry = entries.get(bank["id"], {})
                 # The fixed permission-repair scope below is historical. Only a

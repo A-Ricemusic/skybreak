@@ -1,877 +1,626 @@
 {
- "version": 1,
+ "version": 2,
  "format": "ogg/vorbis mono 44.1 kHz",
  "gapSeconds": 0.25,
- "banks": [
+ "banks": [],
+ "legacyBanks": [
   {
    "id": "voiceBank01",
    "file": "voiceBank01.ogg",
-   "sha256": "26d100894c938b4df8c4a54de4065ac849bca9cec82187ac2ba03e02c0fa6222",
-   "seconds": 373.239,
-   "bytes": 3439124,
-   "peak": 0.922,
+   "sha256": "9ac91ce80cd367d85963be0fc42a5ab3ad375082935d757210577bff8eea1e84",
+   "seconds": 373.526,
+   "assetId": "96143096268975",
    "members": [
     {
      "id": "story.c00.b00",
      "start": 0.25,
-     "end": 8.269
+     "end": 8.269,
+     "legacyId": "story.c00.b00"
     },
     {
      "id": "story.c00.b01",
      "start": 8.519,
-     "end": 15.793
+     "end": 15.793,
+     "legacyId": "story.c00.b01"
     },
     {
      "id": "story.c00.b02",
      "start": 16.043,
-     "end": 22.958
+     "end": 22.958,
+     "legacyId": "story.c00.b02"
     },
     {
      "id": "story.c00.b03",
      "start": 23.208,
-     "end": 29.025
+     "end": 29.025,
+     "legacyId": "story.c00.b03"
     },
     {
      "id": "story.c00.b04",
      "start": 29.275,
-     "end": 33.624
-    },
-    {
-     "id": "story.c00.b05",
-     "start": 33.874,
-     "end": 37.602
-    },
-    {
-     "id": "story.c01.b00",
-     "start": 37.852,
-     "end": 43.851
+     "end": 33.624,
+     "legacyId": "story.c00.b04"
     },
     {
      "id": "story.c01.b01",
-     "start": 44.101,
-     "end": 50.986
+     "start": 44.695,
+     "end": 51.579,
+     "legacyId": "story.c01.b01"
     },
     {
      "id": "story.c01.b02",
-     "start": 51.236,
-     "end": 59.933
-    },
-    {
-     "id": "story.c01.b03",
-     "start": 60.183,
-     "end": 67.708
-    },
-    {
-     "id": "story.c01.b04",
-     "start": 67.958,
-     "end": 74.158
+     "start": 51.829,
+     "end": 60.527,
+     "legacyId": "story.c01.b02"
     },
     {
      "id": "story.c01.b05",
-     "start": 74.408,
-     "end": 80.808
-    },
-    {
-     "id": "story.c01.b06",
-     "start": 81.058,
-     "end": 84.656
+     "start": 68.714,
+     "end": 75.115,
+     "legacyId": "story.c01.b04"
     },
     {
      "id": "story.c02.b00",
-     "start": 84.906,
-     "end": 93.212
-    },
-    {
-     "id": "story.c02.b01",
-     "start": 93.462,
-     "end": 97.92
-    },
-    {
-     "id": "story.c02.b02",
-     "start": 98.17,
-     "end": 107.019
+     "start": 84.186,
+     "end": 92.491,
+     "legacyId": "story.c02.b01"
     },
     {
      "id": "story.c02.b03",
-     "start": 107.269,
-     "end": 115.779
+     "start": 123.891,
+     "end": 132.401,
+     "legacyId": "story.c03.b01"
     },
     {
      "id": "story.c02.b04",
-     "start": 116.029,
-     "end": 123.375
+     "start": 132.651,
+     "end": 139.998,
+     "legacyId": "story.c03.b02"
     },
     {
      "id": "story.c02.b05",
-     "start": 123.625,
-     "end": 131.062
+     "start": 140.248,
+     "end": 147.684,
+     "legacyId": "story.c03.b03"
     },
     {
      "id": "story.c02.b06",
-     "start": 131.312,
-     "end": 135.12
+     "start": 154.127,
+     "end": 157.936,
+     "legacyId": "story.c03.b05"
     },
     {
      "id": "story.c03.b00",
-     "start": 135.37,
-     "end": 145.037
+     "start": 158.186,
+     "end": 167.853,
+     "legacyId": "story.c04.b00"
     },
     {
      "id": "story.c03.b01",
-     "start": 145.287,
-     "end": 154.263
+     "start": 168.103,
+     "end": 177.079,
+     "legacyId": "story.c04.b01"
     },
     {
      "id": "story.c03.b02",
-     "start": 154.513,
-     "end": 160.818
+     "start": 177.329,
+     "end": 183.633,
+     "legacyId": "story.c04.b02"
     },
     {
      "id": "story.c03.b03",
-     "start": 161.068,
-     "end": 168.19
-    },
-    {
-     "id": "story.c03.b04",
-     "start": 168.44,
-     "end": 174.4
-    },
-    {
-     "id": "story.c03.b05",
-     "start": 174.65,
-     "end": 181.214
+     "start": 183.883,
+     "end": 191.005,
+     "legacyId": "story.c04.b03"
     },
     {
      "id": "story.c03.b06",
-     "start": 181.464,
-     "end": 184.57
+     "start": 197.911,
+     "end": 201.017,
+     "legacyId": "story.c04.b05"
     },
     {
      "id": "story.c04.b00",
-     "start": 184.82,
-     "end": 193.975
+     "start": 201.267,
+     "end": 210.423,
+     "legacyId": "story.c05.b00"
     },
     {
      "id": "story.c04.b01",
-     "start": 194.225,
-     "end": 202.191
+     "start": 210.673,
+     "end": 218.638,
+     "legacyId": "story.c05.b01"
     },
     {
      "id": "story.c04.b02",
-     "start": 202.441,
-     "end": 209.677
+     "start": 218.888,
+     "end": 226.125,
+     "legacyId": "story.c05.b02"
     },
     {
      "id": "story.c04.b03",
-     "start": 209.927,
-     "end": 215.449
-    },
-    {
-     "id": "story.c04.b04",
-     "start": 215.699,
-     "end": 224.484
-    },
-    {
-     "id": "story.c04.b05",
-     "start": 224.734,
-     "end": 230.146
-    },
-    {
-     "id": "story.c04.b06",
-     "start": 230.396,
-     "end": 233.517
-    },
-    {
-     "id": "story.c05.b00",
-     "start": 233.767,
-     "end": 241.66
-    },
-    {
-     "id": "story.c05.b01",
-     "start": 241.91,
-     "end": 249.473
-    },
-    {
-     "id": "story.c05.b02",
-     "start": 249.723,
-     "end": 255.299
-    },
-    {
-     "id": "story.c05.b03",
-     "start": 255.549,
-     "end": 260.982
-    },
-    {
-     "id": "story.c05.b04",
-     "start": 261.232,
-     "end": 267.409
-    },
-    {
-     "id": "story.c05.b05",
-     "start": 267.659,
-     "end": 273.858
-    },
-    {
-     "id": "story.c05.b06",
-     "start": 274.108,
-     "end": 276.094
-    },
-    {
-     "id": "story.c06.b00",
-     "start": 276.344,
-     "end": 283.32
-    },
-    {
-     "id": "story.c06.b01",
-     "start": 283.57,
-     "end": 289.111
-    },
-    {
-     "id": "story.c06.b02",
-     "start": 289.361,
-     "end": 296.171
-    },
-    {
-     "id": "story.c06.b03",
-     "start": 296.421,
-     "end": 304.962
-    },
-    {
-     "id": "story.c06.b04",
-     "start": 305.212,
-     "end": 313.057
-    },
-    {
-     "id": "story.c06.b05",
-     "start": 313.307,
-     "end": 318.768
-    },
-    {
-     "id": "story.c06.b06",
-     "start": 319.018,
-     "end": 322.972
-    },
-    {
-     "id": "story.c07.b00",
-     "start": 323.222,
-     "end": 330.839
-    },
-    {
-     "id": "story.c07.b01",
-     "start": 331.089,
-     "end": 338.207
-    },
-    {
-     "id": "story.c07.b02",
-     "start": 338.457,
-     "end": 345.821
+     "start": 226.375,
+     "end": 231.896,
+     "legacyId": "story.c05.b03"
     },
     {
      "id": "story.c07.b03",
-     "start": 346.071,
-     "end": 349.938
+     "start": 297.937,
+     "end": 301.804,
+     "legacyId": "story.c07.b03"
     },
     {
      "id": "story.c07.b04",
-     "start": 350.188,
-     "end": 352.364
+     "start": 308.262,
+     "end": 310.439,
+     "legacyId": "story.c07.b05"
     },
     {
-     "id": "story.c08.b00",
-     "start": 352.614,
-     "end": 357.349
+     "id": "story.c04.b04",
+     "start": 319.262,
+     "end": 328.046,
+     "legacyId": "story.c08.b01"
     },
     {
-     "id": "story.c08.b01",
-     "start": 357.599,
-     "end": 363.773
-    },
-    {
-     "id": "story.c08.b02",
-     "start": 364.023,
-     "end": 372.989
+     "id": "story.c06.b00",
+     "start": 366.3,
+     "end": 373.276,
+     "legacyId": "story.c09.b02"
     }
    ]
   },
   {
    "id": "voiceBank02",
    "file": "voiceBank02.ogg",
-   "sha256": "6d998143cb8e459e1a2a3e2fc10e33f175891e231722eb6c2c04c63a3036e7c7",
-   "seconds": 374.325,
-   "bytes": 3459109,
-   "peak": 0.914,
+   "sha256": "9fee21d4544d11c01a7cea849ad381ecda29bcae0be2d045dc4a192713a33a14",
+   "seconds": 370.434,
+   "assetId": "72249736253176",
    "members": [
     {
-     "id": "story.c08.b03",
+     "id": "story.c05.b02",
      "start": 0.25,
-     "end": 6.652
+     "end": 5.826,
+     "legacyId": "story.c09.b03"
     },
     {
-     "id": "story.c08.b04",
-     "start": 6.902,
-     "end": 12.816
+     "id": "story.c06.b01",
+     "start": 14.459,
+     "end": 20.001,
+     "legacyId": "story.c10.b00"
     },
     {
-     "id": "story.c08.b05",
-     "start": 13.066,
-     "end": 15.092
+     "id": "story.c06.b03",
+     "start": 28.111,
+     "end": 36.652,
+     "legacyId": "story.c10.b02"
     },
     {
-     "id": "story.c09.b00",
-     "start": 15.342,
-     "end": 20.097
+     "id": "story.c06.b06",
+     "start": 49.541,
+     "end": 53.495,
+     "legacyId": "story.c10.b05"
     },
     {
-     "id": "story.c09.b01",
-     "start": 20.347,
-     "end": 28.742
-    },
-    {
-     "id": "story.c09.b02",
-     "start": 28.992,
-     "end": 37.218
-    },
-    {
-     "id": "story.c09.b03",
-     "start": 37.468,
-     "end": 42.176
-    },
-    {
-     "id": "story.c09.b04",
-     "start": 42.426,
-     "end": 45.453
-    },
-    {
-     "id": "story.c10.b00",
-     "start": 45.703,
-     "end": 52.343
+     "id": "story.c01.b04",
+     "start": 105.547,
+     "end": 111.748,
+     "legacyId": "story.c12.b02"
     },
     {
      "id": "story.c10.b01",
-     "start": 52.593,
-     "end": 60.612
-    },
-    {
-     "id": "story.c10.b02",
-     "start": 60.862,
-     "end": 67.268
+     "start": 138.1,
+     "end": 146.118,
+     "legacyId": "story.c13.b02"
     },
     {
      "id": "story.c10.b03",
-     "start": 67.518,
-     "end": 70.546
+     "start": 152.901,
+     "end": 155.929,
+     "legacyId": "story.c13.b04"
     },
     {
-     "id": "story.c11.b00",
-     "start": 70.796,
-     "end": 77.692
+     "id": "story.c07.b01",
+     "start": 165.089,
+     "end": 172.206,
+     "legacyId": "story.c14.b01"
     },
     {
-     "id": "story.c11.b01",
-     "start": 77.942,
-     "end": 87.728
+     "id": "story.c07.b02",
+     "start": 172.456,
+     "end": 179.82,
+     "legacyId": "story.c14.b02"
     },
     {
-     "id": "story.c11.b02",
-     "start": 87.978,
-     "end": 95.812
+     "id": "story.c09.b01",
+     "start": 196.569,
+     "end": 204.964,
+     "legacyId": "story.c15.b01"
     },
     {
-     "id": "story.c11.b03",
-     "start": 96.062,
-     "end": 101.56
+     "id": "story.c09.b02",
+     "start": 205.214,
+     "end": 213.44,
+     "legacyId": "story.c15.b02"
     },
     {
-     "id": "story.c11.b04",
-     "start": 101.81,
-     "end": 105.978
+     "id": "story.c09.b03",
+     "start": 213.69,
+     "end": 218.398,
+     "legacyId": "story.c15.b03"
     },
     {
-     "id": "story.c11.b05",
-     "start": 106.228,
-     "end": 107.003
-    },
-    {
-     "id": "story.c12.b00",
-     "start": 107.253,
-     "end": 113.042
-    },
-    {
-     "id": "story.c12.b01",
-     "start": 113.292,
-     "end": 121.036
-    },
-    {
-     "id": "story.c12.b02",
-     "start": 121.286,
-     "end": 129.059
-    },
-    {
-     "id": "story.c12.b03",
-     "start": 129.309,
-     "end": 138.095
-    },
-    {
-     "id": "story.c12.b04",
-     "start": 138.345,
-     "end": 145.407
-    },
-    {
-     "id": "story.c12.b05",
-     "start": 145.657,
-     "end": 146.677
-    },
-    {
-     "id": "story.c13.b00",
-     "start": 146.927,
-     "end": 156.16
+     "id": "story.c08.b02",
+     "start": 218.648,
+     "end": 227.613,
+     "legacyId": "story.c15.b04"
     },
     {
      "id": "story.c13.b01",
-     "start": 156.41,
-     "end": 165.419
+     "start": 246.999,
+     "end": 256.007,
+     "legacyId": "story.c16.b01"
     },
     {
      "id": "story.c13.b02",
-     "start": 165.669,
-     "end": 170.77
+     "start": 256.257,
+     "end": 261.359,
+     "legacyId": "story.c16.b02"
     },
     {
      "id": "story.c13.b03",
-     "start": 171.02,
-     "end": 178.031
+     "start": 261.609,
+     "end": 268.619,
+     "legacyId": "story.c16.b03"
     },
     {
      "id": "story.c13.b04",
-     "start": 178.281,
-     "end": 180.705
+     "start": 275.795,
+     "end": 278.219,
+     "legacyId": "story.c16.b05"
     },
     {
      "id": "story.c14.b00",
-     "start": 180.955,
-     "end": 193.279
+     "start": 278.469,
+     "end": 290.794,
+     "legacyId": "story.c17.b00"
     },
     {
      "id": "story.c14.b01",
-     "start": 193.529,
-     "end": 200.439
+     "start": 291.044,
+     "end": 297.954,
+     "legacyId": "story.c17.b01"
     },
     {
-     "id": "story.c14.b02",
-     "start": 200.689,
-     "end": 207.232
+     "id": "story.c11.b02",
+     "start": 310.031,
+     "end": 317.865,
+     "legacyId": "story.c17.b03"
     },
     {
-     "id": "story.c14.b03",
-     "start": 207.482,
-     "end": 214.213
+     "id": "story.c11.b05",
+     "start": 332.72,
+     "end": 333.494,
+     "legacyId": "story.c17.b06"
     },
     {
-     "id": "story.c14.b04",
-     "start": 214.463,
-     "end": 222.411
+     "id": "story.c12.b01",
+     "start": 341.012,
+     "end": 348.756,
+     "legacyId": "story.c18.b01"
     },
     {
-     "id": "story.c14.b05",
-     "start": 222.661,
-     "end": 229.713
+     "id": "story.c05.b03",
+     "start": 349.006,
+     "end": 354.439,
+     "legacyId": "story.c18.b02"
     },
     {
-     "id": "story.c14.b06",
-     "start": 229.963,
-     "end": 234.323
-    },
-    {
-     "id": "story.c15.b00",
-     "start": 234.573,
-     "end": 245.597
-    },
-    {
-     "id": "story.c15.b01",
-     "start": 245.847,
-     "end": 250.105
-    },
-    {
-     "id": "story.c15.b02",
-     "start": 250.355,
-     "end": 254.844
-    },
-    {
-     "id": "story.c15.b03",
-     "start": 255.094,
-     "end": 262.644
-    },
-    {
-     "id": "story.c15.b04",
-     "start": 262.894,
-     "end": 269.537
-    },
-    {
-     "id": "story.c15.b05",
-     "start": 269.787,
-     "end": 276.405
-    },
-    {
-     "id": "story.c15.b06",
-     "start": 276.655,
-     "end": 281.563
-    },
-    {
-     "id": "story.c15.b07",
-     "start": 281.813,
-     "end": 284.023
-    },
-    {
-     "id": "story.c16.b00",
-     "start": 284.273,
-     "end": 291.322
-    },
-    {
-     "id": "story.c16.b01",
-     "start": 291.572,
-     "end": 295.155
-    },
-    {
-     "id": "story.c16.b02",
-     "start": 295.405,
-     "end": 304.309
-    },
-    {
-     "id": "story.c16.b03",
-     "start": 304.559,
-     "end": 312.354
-    },
-    {
-     "id": "story.c16.b04",
-     "start": 312.604,
-     "end": 319.338
-    },
-    {
-     "id": "story.c16.b05",
-     "start": 319.588,
-     "end": 327.37
-    },
-    {
-     "id": "story.c16.b06",
-     "start": 327.62,
-     "end": 334.931
-    },
-    {
-     "id": "story.c16.b07",
-     "start": 335.181,
-     "end": 338.314
-    },
-    {
-     "id": "story.c17.b00",
-     "start": 338.564,
-     "end": 345.852
-    },
-    {
-     "id": "story.c17.b01",
-     "start": 346.102,
-     "end": 353.521
-    },
-    {
-     "id": "story.c17.b02",
-     "start": 353.771,
-     "end": 358.865
-    },
-    {
-     "id": "story.c17.b03",
-     "start": 359.115,
-     "end": 366.588
-    },
-    {
-     "id": "story.c17.b04",
-     "start": 366.838,
-     "end": 374.075
+     "id": "story.c05.b06",
+     "start": 368.198,
+     "end": 370.184,
+     "legacyId": "story.c18.b05"
     }
    ]
   },
   {
    "id": "voiceBank03",
    "file": "voiceBank03.ogg",
-   "sha256": "70519bf97a12654af5f2845140500dc2c4039b936f5f53541611e2ca7dddc659",
-   "seconds": 206.125,
-   "bytes": 1846451,
-   "peak": 0.8978,
+   "sha256": "f5a1bc2b2be9b0a4261404e853ddd00200c64191b0335213c01f1ef7fb5aec18",
+   "seconds": 373.557,
+   "assetId": "70686186147484",
    "members": [
     {
+     "id": "story.c14.b03",
+     "start": 35.606,
+     "end": 42.337,
+     "legacyId": "story.c20.b01"
+    },
+    {
+     "id": "story.c14.b04",
+     "start": 42.587,
+     "end": 50.535,
+     "legacyId": "story.c20.b02"
+    },
+    {
+     "id": "story.c14.b05",
+     "start": 50.785,
+     "end": 57.838,
+     "legacyId": "story.c20.b03"
+    },
+    {
+     "id": "story.c14.b06",
+     "start": 64.964,
+     "end": 69.324,
+     "legacyId": "story.c20.b05"
+    },
+    {
+     "id": "story.c15.b01",
+     "start": 96.143,
+     "end": 100.401,
+     "legacyId": "story.c21.b03"
+    },
+    {
+     "id": "story.c08.b03",
+     "start": 121.113,
+     "end": 127.516,
+     "legacyId": "story.c22.b01"
+    },
+    {
+     "id": "story.c08.b05",
+     "start": 140.931,
+     "end": 142.957,
+     "legacyId": "story.c22.b04"
+    },
+    {
+     "id": "story.c15.b04",
+     "start": 183.521,
+     "end": 190.163,
+     "legacyId": "story.c24.b01"
+    },
+    {
+     "id": "story.c15.b05",
+     "start": 190.413,
+     "end": 197.032,
+     "legacyId": "story.c24.b02"
+    },
+    {
+     "id": "story.c16.b00",
+     "start": 206.22,
+     "end": 213.268,
+     "legacyId": "story.c25.b00"
+    },
+    {
+     "id": "story.c16.b01",
+     "start": 213.518,
+     "end": 217.102,
+     "legacyId": "story.c25.b01"
+    },
+    {
+     "id": "story.c16.b02",
+     "start": 217.352,
+     "end": 226.255,
+     "legacyId": "story.c25.b02"
+    },
+    {
+     "id": "story.c16.b03",
+     "start": 226.505,
+     "end": 234.301,
+     "legacyId": "story.c25.b03"
+    },
+    {
+     "id": "story.c16.b04",
+     "start": 234.551,
+     "end": 241.285,
+     "legacyId": "story.c25.b04"
+    },
+    {
+     "id": "story.c16.b06",
+     "start": 248.503,
+     "end": 255.815,
+     "legacyId": "story.c25.b06"
+    },
+    {
+     "id": "story.c16.b07",
+     "start": 256.065,
+     "end": 259.198,
+     "legacyId": "story.c25.b07"
+    },
+    {
+     "id": "story.c17.b01",
+     "start": 267.76,
+     "end": 275.179,
+     "legacyId": "story.c26.b01"
+    },
+    {
+     "id": "story.c17.b02",
+     "start": 275.429,
+     "end": 280.523,
+     "legacyId": "story.c26.b02"
+    },
+    {
+     "id": "story.c17.b03",
+     "start": 280.773,
+     "end": 288.247,
+     "legacyId": "story.c26.b03"
+    },
+    {
      "id": "story.c17.b05",
-     "start": 0.25,
-     "end": 4.948
+     "start": 295.652,
+     "end": 300.35,
+     "legacyId": "story.c26.b05"
     },
     {
      "id": "story.c17.b06",
-     "start": 5.198,
-     "end": 9.633
+     "start": 300.6,
+     "end": 305.035,
+     "legacyId": "story.c26.b06"
     },
     {
      "id": "story.c18.b00",
-     "start": 9.883,
-     "end": 18.361
+     "start": 305.285,
+     "end": 313.763,
+     "legacyId": "story.c27.b00"
     },
     {
      "id": "story.c18.b01",
-     "start": 18.611,
-     "end": 25.022
+     "start": 314.013,
+     "end": 320.424,
+     "legacyId": "story.c27.b01"
     },
     {
      "id": "story.c18.b02",
-     "start": 25.272,
-     "end": 32.83
+     "start": 320.674,
+     "end": 328.232,
+     "legacyId": "story.c27.b02"
     },
     {
      "id": "story.c18.b03",
-     "start": 33.08,
-     "end": 40.625
+     "start": 328.482,
+     "end": 336.027,
+     "legacyId": "story.c27.b03"
     },
     {
      "id": "story.c18.b04",
-     "start": 40.875,
-     "end": 47.449
+     "start": 336.277,
+     "end": 342.851,
+     "legacyId": "story.c27.b04"
     },
     {
      "id": "story.c18.b05",
-     "start": 47.699,
-     "end": 49.164
+     "start": 343.101,
+     "end": 344.566,
+     "legacyId": "story.c27.b05"
     },
     {
      "id": "story.c18.b06",
-     "start": 49.414,
-     "end": 56.442
-    },
-    {
-     "id": "radio.m04.story.1",
-     "start": 56.692,
-     "end": 60.745
-    },
-    {
-     "id": "radio.m04.story.2",
-     "start": 60.995,
-     "end": 63.296
-    },
-    {
-     "id": "radio.m05.story.1",
-     "start": 63.546,
-     "end": 66.985
-    },
-    {
-     "id": "radio.m05.story.2",
-     "start": 67.235,
-     "end": 71.795
-    },
-    {
-     "id": "radio.m05.story.3",
-     "start": 72.045,
-     "end": 74.001
-    },
-    {
-     "id": "radio.m06.story.1",
-     "start": 74.251,
-     "end": 77.761
-    },
-    {
-     "id": "radio.m06.story.2",
-     "start": 78.011,
-     "end": 80.904
-    },
-    {
-     "id": "radio.m07.story.1",
-     "start": 81.154,
-     "end": 84.484
-    },
-    {
-     "id": "radio.m07.story.2",
-     "start": 84.734,
-     "end": 86.619
-    },
-    {
-     "id": "radio.m08.story.1",
-     "start": 86.869,
-     "end": 90.298
-    },
-    {
-     "id": "radio.m08.story.2",
-     "start": 90.548,
-     "end": 93.584
-    },
-    {
-     "id": "radio.m09.story.1",
-     "start": 93.834,
-     "end": 97.086
-    },
-    {
-     "id": "radio.m09.story.2",
-     "start": 97.336,
-     "end": 100.075
-    },
-    {
-     "id": "radio.m10.story.1",
-     "start": 100.325,
-     "end": 103.114
-    },
-    {
-     "id": "radio.m10.story.2",
-     "start": 103.364,
-     "end": 106.226
-    },
-    {
-     "id": "radio.m11.story.1",
-     "start": 106.476,
-     "end": 109.82
-    },
-    {
-     "id": "radio.m11.story.2",
-     "start": 110.07,
-     "end": 112.908
-    },
-    {
-     "id": "radio.m12.story.1",
-     "start": 113.158,
-     "end": 117.047
-    },
-    {
-     "id": "radio.m12.story.2",
-     "start": 117.297,
-     "end": 119.294
-    },
-    {
-     "id": "radio.m13.story.1",
-     "start": 119.544,
-     "end": 122.047
-    },
-    {
-     "id": "radio.m13.story.2",
-     "start": 122.297,
-     "end": 125.047
-    },
-    {
-     "id": "radio.m14.story.1",
-     "start": 125.297,
-     "end": 128.19
-    },
-    {
-     "id": "radio.m14.story.2",
-     "start": 128.44,
-     "end": 132.063
-    },
-    {
-     "id": "radio.m15.story.1",
-     "start": 132.313,
-     "end": 135.796
-    },
-    {
-     "id": "radio.m15.story.2",
-     "start": 136.046,
-     "end": 138.418
-    },
-    {
-     "id": "radio.m16.story.1",
-     "start": 138.668,
-     "end": 140.505
-    },
-    {
-     "id": "radio.m16.story.2",
-     "start": 140.755,
-     "end": 144.492
-    },
-    {
-     "id": "radio.m17.story.1",
-     "start": 144.742,
-     "end": 148.436
-    },
-    {
-     "id": "radio.m17.story.2",
-     "start": 148.686,
-     "end": 151.366
-    },
-    {
-     "id": "radio.m18.story.1",
-     "start": 151.616,
-     "end": 155.371
-    },
-    {
-     "id": "radio.m18.story.2",
-     "start": 155.621,
-     "end": 159.295
-    },
-    {
-     "id": "radio.m01.p1.beat",
-     "start": 159.545,
-     "end": 163.067
-    },
-    {
-     "id": "radio.m02.p1.beat",
-     "start": 163.317,
-     "end": 166.298
-    },
-    {
-     "id": "radio.m02.p1.chatter1",
-     "start": 166.548,
-     "end": 170.056
-    },
-    {
-     "id": "radio.m02.p1.chatter2",
-     "start": 170.306,
-     "end": 173.104
-    },
-    {
-     "id": "radio.m02.p1.chatter3",
-     "start": 173.354,
-     "end": 176.294
-    },
-    {
-     "id": "radio.m02.p1.chatter4",
-     "start": 176.544,
-     "end": 178.568
-    },
-    {
-     "id": "radio.m03.p1.beat",
-     "start": 178.818,
-     "end": 181.961
-    },
-    {
-     "id": "radio.m03.p1.chatter1",
-     "start": 182.211,
-     "end": 184.194
-    },
-    {
-     "id": "radio.m03.p1.chatter2",
-     "start": 184.444,
-     "end": 187.78
-    },
-    {
-     "id": "radio.m03.p1.chatter3",
-     "start": 188.03,
-     "end": 190.131
-    },
-    {
-     "id": "radio.m03.p3.landing1",
-     "start": 190.381,
-     "end": 194.499
-    },
-    {
-     "id": "radio.m03.p3.landing2",
-     "start": 194.749,
-     "end": 197.075
-    },
-    {
-     "id": "radio.m03.p3.landing3",
-     "start": 197.325,
-     "end": 200.576
-    },
-    {
-     "id": "radio.m03.p3.landing4",
-     "start": 200.826,
-     "end": 202.355
-    },
-    {
-     "id": "radio.m03.p3.landing5",
-     "start": 202.605,
-     "end": 205.875
+     "start": 344.816,
+     "end": 351.844,
+     "legacyId": "story.c27.b06"
     }
    ]
   }
- ]
+ ],
+ "pendingTiers": {
+  "voiceBankN1": {
+   "risk": "lowest: tactical radio calls and landing chatter",
+   "lines": [
+    "radio.m04.story.1",
+    "radio.m04.story.2",
+    "radio.m05.story.1",
+    "radio.m05.story.2",
+    "radio.m05.story.3",
+    "radio.m06.story.1",
+    "radio.m06.story.2",
+    "radio.m07.story.1",
+    "radio.m07.story.2",
+    "radio.m08.story.1",
+    "radio.m08.story.2",
+    "radio.m09.story.1",
+    "radio.m09.story.2",
+    "radio.m10.story.1",
+    "radio.m10.story.2",
+    "radio.m11.story.1",
+    "radio.m11.story.2",
+    "radio.m12.story.1",
+    "radio.m12.story.2",
+    "radio.m13.story.1",
+    "radio.m13.story.2",
+    "radio.m14.story.1",
+    "radio.m14.story.2",
+    "radio.m15.story.1",
+    "radio.m15.story.2",
+    "radio.m16.story.1",
+    "radio.m16.story.2",
+    "radio.m17.story.1",
+    "radio.m17.story.2",
+    "radio.m18.story.1",
+    "radio.m18.story.2",
+    "radio.m01.p1.beat",
+    "radio.m02.p1.beat",
+    "radio.m02.p1.chatter1",
+    "radio.m02.p1.chatter2",
+    "radio.m02.p1.chatter3",
+    "radio.m02.p1.chatter4",
+    "radio.m03.p1.beat",
+    "radio.m03.p1.chatter1",
+    "radio.m03.p1.chatter2",
+    "radio.m03.p1.chatter3",
+    "radio.m03.p3.landing1",
+    "radio.m03.p3.landing2",
+    "radio.m03.p3.landing3",
+    "radio.m03.p3.landing4",
+    "radio.m03.p3.landing5"
+   ],
+   "needGeneration": [
+    "radio.m06.story.1"
+   ]
+  },
+  "voiceBankN2": {
+   "risk": "medium: story chapters 9-18",
+   "lines": [
+    "story.c09.b00",
+    "story.c09.b04",
+    "story.c10.b00",
+    "story.c10.b02",
+    "story.c11.b00",
+    "story.c11.b01",
+    "story.c11.b03",
+    "story.c11.b04",
+    "story.c12.b00",
+    "story.c12.b02",
+    "story.c12.b03",
+    "story.c12.b04",
+    "story.c12.b05",
+    "story.c13.b00",
+    "story.c14.b02",
+    "story.c15.b00",
+    "story.c15.b02",
+    "story.c15.b03",
+    "story.c15.b06",
+    "story.c15.b07",
+    "story.c16.b05",
+    "story.c17.b00",
+    "story.c17.b04"
+   ],
+   "needGeneration": [
+    "story.c09.b00",
+    "story.c16.b05"
+   ]
+  },
+  "voiceBankN3": {
+   "risk": "highest: story chapters 0-8 (themes of the rejected voiceBank01)",
+   "lines": [
+    "story.c00.b05",
+    "story.c01.b00",
+    "story.c01.b03",
+    "story.c01.b06",
+    "story.c02.b01",
+    "story.c02.b02",
+    "story.c03.b04",
+    "story.c03.b05",
+    "story.c04.b05",
+    "story.c04.b06",
+    "story.c05.b00",
+    "story.c05.b01",
+    "story.c05.b04",
+    "story.c05.b05",
+    "story.c06.b02",
+    "story.c06.b04",
+    "story.c06.b05",
+    "story.c07.b00",
+    "story.c08.b00",
+    "story.c08.b01",
+    "story.c08.b04"
+   ],
+   "needGeneration": [
+    "story.c01.b03",
+    "story.c03.b04",
+    "story.c05.b00",
+    "story.c05.b01",
+    "story.c05.b04",
+    "story.c05.b05",
+    "story.c07.b00"
+   ]
+  }
+ }
 }

@@ -1,6 +1,6 @@
 # SKYBREAK redesign dashboard
 
-Voice follow-up: draft [#161](https://github.com/A-Ricemusic/skybreak/pull/161), stacked on #159, contains three regenerated banks (168 lines). Automated checklists pass after 10 documented cached-STT exceptions. All bank asset IDs intentionally remain empty pending exact-hash independent review and upload; this is unmerged work, not Player-verified audio. Human listening remains false. All 122 story recording references and the editorial manifest now use the regenerated cues; consumer simulation checks silence before fake asset injection. Frozen install, build and full offline validation passed (756 relay tests, 9 voice simulations, 122 Python tests); this does not establish audible quality. See VOICE-161 in decisions.
+Voice follow-up: draft [#161](https://github.com/A-Ricemusic/skybreak/pull/161), stacked on #159, is prep only after the voiceBank01 rejection. 78 of the 168 lines are takes already inside approved live banks; they play from those banks' regions and are never re-uploaded (D-142). The other 90 wait for three small, risk-ordered banks (N1 radio, N2 chapters 9–18, N3 chapters 0–8) with stricter speech-to-text gates (D-143). 10 rewritten lines still need generation. All three regenerated exports and their review were removed. No audio was generated, uploaded or listened to. What you hear is unchanged from #159: the same 78 lines play.
 
 Last updated: 2026-10-29, against main `7d73c44` (mission 3 merged).
 

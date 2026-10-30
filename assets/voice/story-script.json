@@ -12,7 +12,11 @@
    "maxDurationSeconds": 13,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c00.b00",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank01",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c00.b01",
@@ -25,7 +29,11 @@
    "maxDurationSeconds": 12,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c00.b01",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank01",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c00.b02",
@@ -38,7 +46,11 @@
    "maxDurationSeconds": 14,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c00.b02",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank01",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c00.b03",
@@ -51,7 +63,11 @@
    "maxDurationSeconds": 12,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c00.b03",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank01",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c00.b04",
@@ -64,7 +80,11 @@
    "maxDurationSeconds": 9,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c00.b04",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank01",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c00.b05",
@@ -75,9 +95,13 @@
    "context": "A voice in the static; hangar, dawn; chair shot",
    "emotion": "Private reflection; speak to the listener, not the room",
    "maxDurationSeconds": 8,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c00.b05",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN3",
+   "needsGeneration": false
   },
   {
    "id": "story.c01.b00",
@@ -88,9 +112,13 @@
    "context": "The sealed case; hangar, night; evidence shot",
    "emotion": "Read the evidence clearly; let the facts carry the weight",
    "maxDurationSeconds": 12,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c01.b00",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN3",
+   "needsGeneration": false
   },
   {
    "id": "story.c01.b01",
@@ -103,7 +131,11 @@
    "maxDurationSeconds": 12,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c01.b01",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank01",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c01.b02",
@@ -116,20 +148,28 @@
    "maxDurationSeconds": 15,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c01.b02",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank01",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c01.b03",
    "kind": "story",
    "speaker": "TEAL",
    "chip": "TEAL · RECORDED",
-   "text": "The manifest sends grain drums to a farm with a runway, then five quays on Iron Coast. Nobody ships grain in drums.",
+   "text": "The manifest calls it grain. It's aviation fuel: drums to a farm with a runway, then on to the Iron Coast docks. Nobody ships grain in drums.",
    "context": "The sealed case; hangar, night; radio shot",
    "emotion": "Intimate recorded testimony; restrained",
-   "maxDurationSeconds": 12,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "maxDurationSeconds": 15,
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c01.b03",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN3",
+   "needsGeneration": true
   },
   {
    "id": "story.c01.b04",
@@ -142,7 +182,11 @@
    "maxDurationSeconds": 13,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c01.b04",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank02",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c01.b05",
@@ -155,7 +199,11 @@
    "maxDurationSeconds": 11,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c01.b05",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank01",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c01.b06",
@@ -166,9 +214,13 @@
    "context": "The sealed case; hangar, night; sky shot",
    "emotion": "Steady outward resolve",
    "maxDurationSeconds": 9,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c01.b06",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN3",
+   "needsGeneration": false
   },
   {
    "id": "story.c02.b00",
@@ -181,7 +233,11 @@
    "maxDurationSeconds": 15,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c02.b00",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank01",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c02.b01",
@@ -192,9 +248,13 @@
    "context": "An unlisted station; canyon, dawn; chair shot",
    "emotion": "Private reflection; speak to the listener, not the room",
    "maxDurationSeconds": 12,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c02.b01",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN3",
+   "needsGeneration": false
   },
   {
    "id": "story.c02.b02",
@@ -205,9 +265,13 @@
    "context": "An unlisted station; canyon, dawn; evidence shot",
    "emotion": "Read the evidence clearly; let the facts carry the weight",
    "maxDurationSeconds": 13,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c02.b02",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN3",
+   "needsGeneration": false
   },
   {
    "id": "story.c02.b03",
@@ -220,7 +284,11 @@
    "maxDurationSeconds": 14,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c02.b03",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank01",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c02.b04",
@@ -233,7 +301,11 @@
    "maxDurationSeconds": 12,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c02.b04",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank01",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c02.b05",
@@ -246,7 +318,11 @@
    "maxDurationSeconds": 13,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c02.b05",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank01",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c02.b06",
@@ -259,7 +335,11 @@
    "maxDurationSeconds": 11,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c02.b06",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank01",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c03.b00",
@@ -272,7 +352,11 @@
    "maxDurationSeconds": 17,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c03.b00",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank01",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c03.b01",
@@ -285,7 +369,11 @@
    "maxDurationSeconds": 12,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c03.b01",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank01",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c03.b02",
@@ -298,7 +386,11 @@
    "maxDurationSeconds": 11,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c03.b02",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank01",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c03.b03",
@@ -311,20 +403,28 @@
    "maxDurationSeconds": 12,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c03.b03",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank01",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c03.b04",
    "kind": "story",
    "speaker": "TEAL",
    "chip": "TEAL · RECORDED",
-   "text": "The couriers carry patrol routes high over the orchard hills. Their crews guide the guns onto the trucks.",
+   "text": "The couriers fly the patrol routes high over the orchard hills. They're the patrols' eyes. Close them, and the road goes quiet.",
    "context": "The orchard witnesses; farm, day; radio shot",
    "emotion": "Intimate recorded testimony; restrained",
-   "maxDurationSeconds": 11,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "maxDurationSeconds": 12,
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c03.b04",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN3",
+   "needsGeneration": true
   },
   {
    "id": "story.c03.b05",
@@ -335,9 +435,13 @@
    "context": "The orchard witnesses; farm, day; radio shot",
    "emotion": "Plain operational speech; match the scene's stakes",
    "maxDurationSeconds": 12,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c03.b05",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN3",
+   "needsGeneration": false
   },
   {
    "id": "story.c03.b06",
@@ -350,7 +454,11 @@
    "maxDurationSeconds": 8,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c03.b06",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank01",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c04.b00",
@@ -363,7 +471,11 @@
    "maxDurationSeconds": 14,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c04.b00",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank01",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c04.b01",
@@ -376,7 +488,11 @@
    "maxDurationSeconds": 13,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c04.b01",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank01",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c04.b02",
@@ -389,7 +505,11 @@
    "maxDurationSeconds": 12,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c04.b02",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank01",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c04.b03",
@@ -402,7 +522,11 @@
    "maxDurationSeconds": 12,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c04.b03",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank01",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c04.b04",
@@ -415,7 +539,11 @@
    "maxDurationSeconds": 15,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c04.b04",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank01",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c04.b05",
@@ -426,9 +554,13 @@
    "context": "Fuel under grain; farm, night; chair shot",
    "emotion": "Private reflection; speak to the listener, not the room",
    "maxDurationSeconds": 12,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c04.b05",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN3",
+   "needsGeneration": false
   },
   {
    "id": "story.c04.b06",
@@ -439,35 +571,47 @@
    "context": "Fuel under grain; farm, night; evidence shot",
    "emotion": "Read the evidence clearly; let the facts carry the weight",
    "maxDurationSeconds": 7,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c04.b06",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN3",
+   "needsGeneration": false
   },
   {
    "id": "story.c05.b00",
    "kind": "story",
    "speaker": "SERA",
    "chip": "SERA · VARDA CONTROL",
-   "text": "You got clear of Vulture Lead. His orders kept repeating on guard; we recorded them. Every one bears a governor's name. He died in spring.",
+   "text": "You got clear of Vulture Lead. His orders kept repeating on guard; we recorded them. Every one is signed by a man who died in spring.",
    "context": "Military quays; harbor, dawn; evidence shot",
    "emotion": "Read the evidence clearly; let the facts carry the weight",
    "maxDurationSeconds": 14,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c05.b00",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN3",
+   "needsGeneration": true
   },
   {
    "id": "story.c05.b01",
    "kind": "story",
    "speaker": "TEAL",
    "chip": "TEAL · RECORDED",
-   "text": "Kiro talks to Lira. Lira talks to Merel. Merel talks to the harbours. Start at the quays; listen back up the chain.",
+   "text": "Kiro talks to Lira. Lira talks to Merel. Merel talks to the harbours. Start at the docks; listen back up the chain.",
    "context": "Military quays; harbor, dawn; radio shot",
    "emotion": "Intimate recorded testimony; restrained",
    "maxDurationSeconds": 12,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c05.b01",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN3",
+   "needsGeneration": true
   },
   {
    "id": "story.c05.b02",
@@ -480,7 +624,11 @@
    "maxDurationSeconds": 12,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c05.b02",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank02",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c05.b03",
@@ -493,33 +641,45 @@
    "maxDurationSeconds": 10,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c05.b03",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank02",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c05.b04",
    "kind": "story",
    "speaker": "SERA",
    "chip": "SERA · VARDA CONTROL",
-   "text": "Iron Coast. Military stores beside a fish market. The Marshal put his war where he knew we'd hesitate.",
+   "text": "Iron Coast. His supply depots sit beside a fish market. The Marshal put them where he knew we'd hesitate.",
    "context": "Military quays; harbor, dawn; evidence shot",
    "emotion": "Read the evidence clearly; let the facts carry the weight",
    "maxDurationSeconds": 11,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c05.b04",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN3",
+   "needsGeneration": true
   },
   {
    "id": "story.c05.b05",
    "kind": "story",
    "speaker": "SERA",
    "chip": "SERA · VARDA CONTROL",
-   "text": "Workers are two blocks from those quays. The ships and tankers are his supply line. Their neighbours are not.",
+   "text": "Workers live two blocks from those docks. The cargo ships and fuel barges are his supply line. Their neighbours are not.",
    "context": "Military quays; harbor, dawn; radio shot",
    "emotion": "Plain operational speech; match the scene's stakes",
-   "maxDurationSeconds": 11,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "maxDurationSeconds": 12,
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c05.b05",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN3",
+   "needsGeneration": true
   },
   {
    "id": "story.c05.b06",
@@ -532,7 +692,11 @@
    "maxDurationSeconds": 6,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c05.b06",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank02",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c06.b00",
@@ -545,7 +709,11 @@
    "maxDurationSeconds": 12,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c06.b00",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank01",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c06.b01",
@@ -558,7 +726,11 @@
    "maxDurationSeconds": 11,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c06.b01",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank02",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c06.b02",
@@ -569,9 +741,13 @@
    "context": "Two ridges; relay, dusk; evidence shot",
    "emotion": "Read the evidence clearly; let the facts carry the weight",
    "maxDurationSeconds": 13,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c06.b02",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN3",
+   "needsGeneration": false
   },
   {
    "id": "story.c06.b03",
@@ -584,7 +760,11 @@
    "maxDurationSeconds": 13,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c06.b03",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank02",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c06.b04",
@@ -595,9 +775,13 @@
    "context": "Two ridges; relay, dusk; wide shot",
    "emotion": "Plain operational speech; match the scene's stakes",
    "maxDurationSeconds": 12,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c06.b04",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN3",
+   "needsGeneration": false
   },
   {
    "id": "story.c06.b05",
@@ -608,9 +792,13 @@
    "context": "Two ridges; relay, dusk; radio shot",
    "emotion": "Intimate recorded testimony; restrained",
    "maxDurationSeconds": 13,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c06.b05",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN3",
+   "needsGeneration": false
   },
   {
    "id": "story.c06.b06",
@@ -623,20 +811,28 @@
    "maxDurationSeconds": 9,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c06.b06",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank02",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c07.b00",
    "kind": "story",
    "speaker": "SERA",
    "chip": "SERA · VARDA CONTROL",
-   "text": "Three stations, one signature. Varda's island transmitter has the orders and the governor's death certificate. Thirty-five seconds.",
+   "text": "Three stations, one signature. Varda's island transmitter has the orders and proof their signer died in spring. Thirty-five seconds.",
    "context": "The loyalist window; relay, day; evidence shot",
    "emotion": "Read the evidence clearly; let the facts carry the weight",
-   "maxDurationSeconds": 10,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "maxDurationSeconds": 11,
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c07.b00",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN3",
+   "needsGeneration": true
   },
   {
    "id": "story.c07.b01",
@@ -649,7 +845,11 @@
    "maxDurationSeconds": 12,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c07.b01",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank02",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c07.b02",
@@ -662,7 +862,11 @@
    "maxDurationSeconds": 12,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c07.b02",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank02",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c07.b03",
@@ -675,7 +879,11 @@
    "maxDurationSeconds": 10,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c07.b03",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank01",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c07.b04",
@@ -688,7 +896,11 @@
    "maxDurationSeconds": 7,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c07.b04",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank01",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c08.b00",
@@ -699,9 +911,13 @@
    "context": "The frigate ring; sea, storm; wide shot",
    "emotion": "Plain operational speech; match the scene's stakes",
    "maxDurationSeconds": 9,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c08.b00",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN3",
+   "needsGeneration": false
   },
   {
    "id": "story.c08.b01",
@@ -712,9 +928,13 @@
    "context": "The frigate ring; sea, storm; evidence shot",
    "emotion": "Read the evidence clearly; let the facts carry the weight",
    "maxDurationSeconds": 12,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c08.b01",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN3",
+   "needsGeneration": false
   },
   {
    "id": "story.c08.b02",
@@ -727,7 +947,11 @@
    "maxDurationSeconds": 13,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c08.b02",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank02",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c08.b03",
@@ -740,7 +964,11 @@
    "maxDurationSeconds": 12,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c08.b03",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c08.b04",
@@ -751,9 +979,13 @@
    "context": "The frigate ring; sea, storm; chair shot",
    "emotion": "Private reflection; speak to the listener, not the room",
    "maxDurationSeconds": 11,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c08.b04",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN3",
+   "needsGeneration": false
   },
   {
    "id": "story.c08.b05",
@@ -766,20 +998,28 @@
    "maxDurationSeconds": 7,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c08.b05",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c09.b00",
    "kind": "story",
    "speaker": "SERA",
    "chip": "SERA · VARDA CONTROL",
-   "text": "And then the Marshal answered. Fire at the orchard. A line of guns along the rivers.",
+   "text": "And then the Marshal answered. He turned on the orchard, and put a line of guns along the rivers.",
    "context": "Walking the storm; farm, storm; wide shot",
    "emotion": "Plain operational speech; match the scene's stakes",
-   "maxDurationSeconds": 10,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "maxDurationSeconds": 11,
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c09.b00",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN2",
+   "needsGeneration": true
   },
   {
    "id": "story.c09.b01",
@@ -792,7 +1032,11 @@
    "maxDurationSeconds": 13,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c09.b01",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank02",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c09.b02",
@@ -805,7 +1049,11 @@
    "maxDurationSeconds": 14,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c09.b02",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank02",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c09.b03",
@@ -818,7 +1066,11 @@
    "maxDurationSeconds": 10,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c09.b03",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank02",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c09.b04",
@@ -829,9 +1081,13 @@
    "context": "Walking the storm; farm, storm; sky shot",
    "emotion": "Steady outward resolve",
    "maxDurationSeconds": 7,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c09.b04",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN2",
+   "needsGeneration": false
   },
   {
    "id": "story.c10.b00",
@@ -842,9 +1098,13 @@
    "context": "High crossing; relay, day; wide shot",
    "emotion": "Plain operational speech; match the scene's stakes",
    "maxDurationSeconds": 14,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c10.b00",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN2",
+   "needsGeneration": false
   },
   {
    "id": "story.c10.b01",
@@ -857,7 +1117,11 @@
    "maxDurationSeconds": 13,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c10.b01",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank02",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c10.b02",
@@ -868,9 +1132,13 @@
    "context": "High crossing; relay, day; recorder shot",
    "emotion": "Intimate recorded testimony; restrained",
    "maxDurationSeconds": 12,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c10.b02",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN2",
+   "needsGeneration": false
   },
   {
    "id": "story.c10.b03",
@@ -883,7 +1151,11 @@
    "maxDurationSeconds": 7,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c10.b03",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank02",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c11.b00",
@@ -894,9 +1166,13 @@
    "context": "Vulture Two; relay, day; wide shot",
    "emotion": "Plain operational speech; match the scene's stakes",
    "maxDurationSeconds": 13,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c11.b00",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN2",
+   "needsGeneration": false
   },
   {
    "id": "story.c11.b01",
@@ -907,9 +1183,13 @@
    "context": "Vulture Two; relay, day; black shot",
    "emotion": "Personal warning from a former instructor; menace covering shame, not heroic resolve",
    "maxDurationSeconds": 14,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c11.b01",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN2",
+   "needsGeneration": false
   },
   {
    "id": "story.c11.b02",
@@ -922,7 +1202,11 @@
    "maxDurationSeconds": 13,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c11.b02",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank02",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c11.b03",
@@ -933,9 +1217,13 @@
    "context": "Vulture Two; relay, day; chair shot",
    "emotion": "Private reflection; speak to the listener, not the room",
    "maxDurationSeconds": 11,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c11.b03",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN2",
+   "needsGeneration": false
   },
   {
    "id": "story.c11.b04",
@@ -946,9 +1234,13 @@
    "context": "Vulture Two; relay, day; radio shot",
    "emotion": "Plain operational speech; match the scene's stakes",
    "maxDurationSeconds": 9,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c11.b04",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN2",
+   "needsGeneration": false
   },
   {
    "id": "story.c11.b05",
@@ -961,7 +1253,11 @@
    "maxDurationSeconds": 6,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c11.b05",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank02",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c12.b00",
@@ -972,9 +1268,13 @@
    "context": "The evidence launch; canyon, storm; wide shot",
    "emotion": "Plain operational speech; match the scene's stakes",
    "maxDurationSeconds": 11,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c12.b00",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN2",
+   "needsGeneration": false
   },
   {
    "id": "story.c12.b01",
@@ -987,7 +1287,11 @@
    "maxDurationSeconds": 13,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c12.b01",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank02",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c12.b02",
@@ -998,9 +1302,13 @@
    "context": "The evidence launch; canyon, storm; recorder shot",
    "emotion": "Intimate recorded testimony; restrained",
    "maxDurationSeconds": 13,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c12.b02",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN2",
+   "needsGeneration": false
   },
   {
    "id": "story.c12.b03",
@@ -1011,9 +1319,13 @@
    "context": "The evidence launch; canyon, storm; wide shot",
    "emotion": "Plain operational speech; match the scene's stakes",
    "maxDurationSeconds": 13,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c12.b03",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN2",
+   "needsGeneration": false
   },
   {
    "id": "story.c12.b04",
@@ -1024,9 +1336,13 @@
    "context": "The evidence launch; canyon, storm; chair shot",
    "emotion": "Private reflection; speak to the listener, not the room",
    "maxDurationSeconds": 12,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c12.b04",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN2",
+   "needsGeneration": false
   },
   {
    "id": "story.c12.b05",
@@ -1037,9 +1353,13 @@
    "context": "The evidence launch; canyon, storm; sky shot",
    "emotion": "Steady outward resolve",
    "maxDurationSeconds": 6,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c12.b05",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN2",
+   "needsGeneration": false
   },
   {
    "id": "story.c13.b00",
@@ -1050,9 +1370,13 @@
    "context": "Aurora archive; relay, night; wide shot",
    "emotion": "Plain operational speech; match the scene's stakes",
    "maxDurationSeconds": 15,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c13.b00",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN2",
+   "needsGeneration": false
   },
   {
    "id": "story.c13.b01",
@@ -1065,7 +1389,11 @@
    "maxDurationSeconds": 15,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c13.b01",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank02",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c13.b02",
@@ -1078,7 +1406,11 @@
    "maxDurationSeconds": 10,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c13.b02",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank02",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c13.b03",
@@ -1091,7 +1423,11 @@
    "maxDurationSeconds": 13,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c13.b03",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank02",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c13.b04",
@@ -1104,7 +1440,11 @@
    "maxDurationSeconds": 7,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c13.b04",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank02",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c14.b00",
@@ -1117,7 +1457,11 @@
    "maxDurationSeconds": 13,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c14.b00",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank02",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c14.b01",
@@ -1130,7 +1474,11 @@
    "maxDurationSeconds": 13,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c14.b01",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank02",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c14.b02",
@@ -1141,9 +1489,13 @@
    "context": "The city in darkness; city, night; wide shot",
    "emotion": "Plain operational speech; match the scene's stakes",
    "maxDurationSeconds": 12,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c14.b02",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN2",
+   "needsGeneration": false
   },
   {
    "id": "story.c14.b03",
@@ -1156,7 +1508,11 @@
    "maxDurationSeconds": 11,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c14.b03",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c14.b04",
@@ -1169,7 +1525,11 @@
    "maxDurationSeconds": 13,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c14.b04",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c14.b05",
@@ -1182,7 +1542,11 @@
    "maxDurationSeconds": 13,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c14.b05",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c14.b06",
@@ -1195,7 +1559,11 @@
    "maxDurationSeconds": 11,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c14.b06",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c15.b00",
@@ -1206,9 +1574,13 @@
    "context": "The dawn landing; city, dawn; black shot",
    "emotion": "Contemptuous personal offer; calm confidence in his power",
    "maxDurationSeconds": 15,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c15.b00",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN2",
+   "needsGeneration": false
   },
   {
    "id": "story.c15.b01",
@@ -1221,7 +1593,11 @@
    "maxDurationSeconds": 12,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c15.b01",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c15.b02",
@@ -1232,9 +1608,13 @@
    "context": "The dawn landing; city, dawn; sky shot",
    "emotion": "Accusation kept steady; distinguish the hunter from the man who ordered him",
    "maxDurationSeconds": 10,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c15.b02",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN2",
+   "needsGeneration": false
   },
   {
    "id": "story.c15.b03",
@@ -1245,9 +1625,13 @@
    "context": "The dawn landing; city, dawn; wide shot",
    "emotion": "Plain operational speech; match the scene's stakes",
    "maxDurationSeconds": 13,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c15.b03",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN2",
+   "needsGeneration": false
   },
   {
    "id": "story.c15.b04",
@@ -1260,7 +1644,11 @@
    "maxDurationSeconds": 13,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c15.b04",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c15.b05",
@@ -1273,7 +1661,11 @@
    "maxDurationSeconds": 15,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c15.b05",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c15.b06",
@@ -1284,9 +1676,13 @@
    "context": "The dawn landing; city, dawn; radio shot",
    "emotion": "Plain operational speech; match the scene's stakes",
    "maxDurationSeconds": 11,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c15.b06",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN2",
+   "needsGeneration": false
   },
   {
    "id": "story.c15.b07",
@@ -1297,9 +1693,13 @@
    "context": "The dawn landing; city, dawn; sky shot",
    "emotion": "Steady outward resolve",
    "maxDurationSeconds": 6,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c15.b07",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN2",
+   "needsGeneration": false
   },
   {
    "id": "story.c16.b00",
@@ -1312,7 +1712,11 @@
    "maxDurationSeconds": 13,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c16.b00",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c16.b01",
@@ -1325,7 +1729,11 @@
    "maxDurationSeconds": 6,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c16.b01",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c16.b02",
@@ -1338,7 +1746,11 @@
    "maxDurationSeconds": 17,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c16.b02",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c16.b03",
@@ -1351,7 +1763,11 @@
    "maxDurationSeconds": 15,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c16.b03",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c16.b04",
@@ -1364,20 +1780,28 @@
    "maxDurationSeconds": 10,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c16.b04",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c16.b05",
    "kind": "story",
    "speaker": "SERA",
    "chip": "SERA · VARDA CONTROL",
-   "text": "Witnesses reach parliament tonight. Keep the bridges and quay open. Rusk leads four wingmen over the capital. Vulture Lead is one of them.",
+   "text": "Witnesses reach parliament tonight. Keep the bridges and the docks open. Rusk leads four wingmen over the capital. Vulture Lead is one of them.",
    "context": "The last fracture; canyon, dawn; chair shot",
    "emotion": "Private reflection; speak to the listener, not the room",
    "maxDurationSeconds": 13,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c16.b05",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN2",
+   "needsGeneration": true
   },
   {
    "id": "story.c16.b06",
@@ -1390,7 +1814,11 @@
    "maxDurationSeconds": 10,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c16.b06",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c16.b07",
@@ -1403,7 +1831,11 @@
    "maxDurationSeconds": 8,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c16.b07",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c17.b00",
@@ -1414,9 +1846,13 @@
    "context": "Broken relay; relay, storm; evidence shot",
    "emotion": "Read the evidence clearly; let the facts carry the weight",
    "maxDurationSeconds": 14,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c17.b00",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN2",
+   "needsGeneration": false
   },
   {
    "id": "story.c17.b01",
@@ -1429,7 +1865,11 @@
    "maxDurationSeconds": 13,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c17.b01",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c17.b02",
@@ -1442,7 +1882,11 @@
    "maxDurationSeconds": 12,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c17.b02",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c17.b03",
@@ -1455,7 +1899,11 @@
    "maxDurationSeconds": 11,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c17.b03",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c17.b04",
@@ -1466,9 +1914,13 @@
    "context": "Broken relay; relay, storm; radio shot",
    "emotion": "Plain operational speech; match the scene's stakes",
    "maxDurationSeconds": 14,
-   "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
+   "durationBasis": "Editorial word-count cap; review the take before upload",
    "recordingId": "story.c17.b04",
-   "needsRecording": false
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN2",
+   "needsGeneration": false
   },
   {
    "id": "story.c17.b05",
@@ -1481,7 +1933,11 @@
    "maxDurationSeconds": 10,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c17.b05",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c17.b06",
@@ -1494,7 +1950,11 @@
    "maxDurationSeconds": 9,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c17.b06",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c18.b00",
@@ -1507,7 +1967,11 @@
    "maxDurationSeconds": 15,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c18.b00",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c18.b01",
@@ -1520,7 +1984,11 @@
    "maxDurationSeconds": 12,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c18.b01",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c18.b02",
@@ -1533,7 +2001,11 @@
    "maxDurationSeconds": 15,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c18.b02",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c18.b03",
@@ -1546,7 +2018,11 @@
    "maxDurationSeconds": 12,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c18.b03",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c18.b04",
@@ -1559,7 +2035,11 @@
    "maxDurationSeconds": 10,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c18.b04",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c18.b05",
@@ -1572,7 +2052,11 @@
    "maxDurationSeconds": 6,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c18.b05",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "story.c18.b06",
@@ -1585,7 +2069,11 @@
    "maxDurationSeconds": 8,
    "durationBasis": "Cap accommodates the measured packed take; never truncate its bank region",
    "recordingId": "story.c18.b06",
-   "needsRecording": false
+   "needsRecording": false,
+   "voiceSource": "legacy",
+   "bank": "voiceBank03",
+   "tier": null,
+   "needsGeneration": false
   },
   {
    "id": "radio.m04.story.1",
@@ -1596,8 +2084,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 6,
-   "recordingId": "radio.m04.story.1",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m04.story.2",
@@ -1608,8 +2100,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m04.story.2",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m05.story.1",
@@ -1620,8 +2116,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m05.story.1",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m05.story.2",
@@ -1632,8 +2132,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 6,
-   "recordingId": "radio.m05.story.2",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m05.story.3",
@@ -1644,20 +2148,28 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m05.story.3",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m06.story.1",
    "kind": "radio",
    "speaker": "SERA",
    "chip": "SERA",
-   "text": "SERA: Iron Coast ahead. Ships and tankers; leave the market clear.",
+   "text": "SERA: Iron Coast ahead. Cargo ships and fuel barges; leave the market clear.",
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
-   "maxDurationSeconds": 5,
-   "recordingId": "radio.m06.story.1",
-   "needsRecording": false
+   "maxDurationSeconds": 6,
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": true
   },
   {
    "id": "radio.m06.story.2",
@@ -1668,8 +2180,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m06.story.2",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m07.story.1",
@@ -1680,8 +2196,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 6,
-   "recordingId": "radio.m07.story.1",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m07.story.2",
@@ -1692,8 +2212,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m07.story.2",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m08.story.1",
@@ -1704,8 +2228,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 7,
-   "recordingId": "radio.m08.story.1",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m08.story.2",
@@ -1716,8 +2244,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m08.story.2",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m09.story.1",
@@ -1728,8 +2260,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m09.story.1",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m09.story.2",
@@ -1740,8 +2276,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m09.story.2",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m10.story.1",
@@ -1752,8 +2292,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m10.story.1",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m10.story.2",
@@ -1764,8 +2308,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m10.story.2",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m11.story.1",
@@ -1776,8 +2324,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m11.story.1",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m11.story.2",
@@ -1788,8 +2340,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 6,
-   "recordingId": "radio.m11.story.2",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m12.story.1",
@@ -1800,8 +2356,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 7,
-   "recordingId": "radio.m12.story.1",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m12.story.2",
@@ -1812,8 +2372,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m12.story.2",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m13.story.1",
@@ -1824,8 +2388,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m13.story.1",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m13.story.2",
@@ -1836,8 +2404,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m13.story.2",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m14.story.1",
@@ -1848,8 +2420,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m14.story.1",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m14.story.2",
@@ -1860,8 +2436,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m14.story.2",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m15.story.1",
@@ -1872,8 +2452,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m15.story.1",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m15.story.2",
@@ -1884,8 +2468,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m15.story.2",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m16.story.1",
@@ -1896,8 +2484,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m16.story.1",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m16.story.2",
@@ -1908,8 +2500,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 6,
-   "recordingId": "radio.m16.story.2",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m17.story.1",
@@ -1920,8 +2516,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 6,
-   "recordingId": "radio.m17.story.1",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m17.story.2",
@@ -1932,8 +2532,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m17.story.2",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m18.story.1",
@@ -1944,8 +2548,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 6,
-   "recordingId": "radio.m18.story.1",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m18.story.2",
@@ -1956,8 +2564,12 @@
    "context": "Planned mission radio; future builder must wire this exact text",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 6,
-   "recordingId": "radio.m18.story.2",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m01.p1.beat",
@@ -1968,8 +2580,12 @@
    "context": "Live mission phase/landing radio",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 6,
-   "recordingId": "radio.m01.p1.beat",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m02.p1.beat",
@@ -1980,8 +2596,12 @@
    "context": "Live mission phase/landing radio",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 6,
-   "recordingId": "radio.m02.p1.beat",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m02.p1.chatter1",
@@ -1992,8 +2612,12 @@
    "context": "Live mission phase/landing radio",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m02.p1.chatter1",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m02.p1.chatter2",
@@ -2004,8 +2628,12 @@
    "context": "Live mission phase/landing radio",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 6,
-   "recordingId": "radio.m02.p1.chatter2",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m02.p1.chatter3",
@@ -2016,8 +2644,12 @@
    "context": "Live mission phase/landing radio",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m02.p1.chatter3",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m02.p1.chatter4",
@@ -2028,8 +2660,12 @@
    "context": "Live mission phase/landing radio",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m02.p1.chatter4",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m03.p1.beat",
@@ -2040,8 +2676,12 @@
    "context": "Live mission phase/landing radio",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 6,
-   "recordingId": "radio.m03.p1.beat",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m03.p1.chatter1",
@@ -2052,8 +2692,12 @@
    "context": "Live mission phase/landing radio",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m03.p1.chatter1",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m03.p1.chatter2",
@@ -2064,8 +2708,12 @@
    "context": "Live mission phase/landing radio",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m03.p1.chatter2",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m03.p1.chatter3",
@@ -2076,8 +2724,12 @@
    "context": "Live mission phase/landing radio",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m03.p1.chatter3",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m03.p3.landing1",
@@ -2088,8 +2740,12 @@
    "context": "Live mission phase/landing radio",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m03.p3.landing1",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m03.p3.landing2",
@@ -2100,8 +2756,12 @@
    "context": "Live mission phase/landing radio",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m03.p3.landing2",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m03.p3.landing3",
@@ -2112,8 +2772,12 @@
    "context": "Live mission phase/landing radio",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m03.p3.landing3",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m03.p3.landing4",
@@ -2124,8 +2788,12 @@
    "context": "Live mission phase/landing radio",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m03.p3.landing4",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   },
   {
    "id": "radio.m03.p3.landing5",
@@ -2136,8 +2804,12 @@
    "context": "Live mission phase/landing radio",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
-   "recordingId": "radio.m03.p3.landing5",
-   "needsRecording": false
+   "recordingId": null,
+   "needsRecording": true,
+   "voiceSource": "pending",
+   "bank": null,
+   "tier": "voiceBankN1",
+   "needsGeneration": false
   }
  ]
 }

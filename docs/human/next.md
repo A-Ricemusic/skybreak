@@ -1,6 +1,6 @@
 # Next
 
-Voice follow-up [#161](https://github.com/A-Ricemusic/skybreak/pull/161): record an independent review for the three current exact bank hashes, then perform a separately authorized upload and audible verification before merge. Automated STT/checklists now pass with 10 explicit accepted exceptions; transcript/STT/casting review does not imply human listening.
+Voice follow-up [#161](https://github.com/A-Ricemusic/skybreak/pull/161) (prep only; HALT stands): after the notice check and appeal, generate the 10 rewritten lines with the key (`voice.py generate --only …`). Then run `voice.py pack`, `stt` and `checklist`, and get an independent 10/10 review and upload for **one bank at a time**: voiceBankN1 → N2 → N3. Expected lexicon review hits that need a reviewer decision: `story.c06.b02` "key", `story.c08.b01` "frigates" and `story.c08.b04` "frigate" (N3) and `radio.m09.story.1` "beach" (N1).
 
 Last updated: 2026-10-29.
 
@@ -48,7 +48,7 @@ Mission and world specs are in review in [PR #155](https://github.com/A-Ricemusi
 
 - Mission and world specs for 10–13 are in review in [PR #153](https://github.com/A-Ricemusic/skybreak/pull/153): [M10](../specs/missions/m10.md), [M11](../specs/missions/m11.md), [M12](../specs/missions/m12.md), [M13](../specs/missions/m13.md), with companion world specs. Unresolved rosters, rank cuts and layout assumptions remain explicit. Missions remain unbuilt, locked and unavailable; no Player verification.
 
-Story remap #159 is implemented (D-130/D-131): use its [0–18 routing audit](../specs/story/routing-audit.md), retain its story text when integrating M04/M05 gameplay, then complete exact-hash review/upload for draft #161 and its [packed voice script](../specs/story/voice-script.md). Studio and audible Player verification are pending. Mission 18 retains the one-on-one Rusk duel (D-031).
+Story remap #159 is implemented (D-130/D-131): use its [0–18 routing audit](../specs/story/routing-audit.md), retain its story text when integrating M04/M05 gameplay, then follow draft #161's risk-ordered voice plan and its [voice script](../specs/story/voice-script.md). Studio and audible Player verification are pending. Mission 18 retains the one-on-one Rusk duel (D-031).
 
 ## Missions 14–18 specifications — in review
 

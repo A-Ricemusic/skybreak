@@ -6,7 +6,7 @@ import { Difficulty } from "../shared/Difficulty";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { STORY, speakerStyle } from "../shared/RelayStory";
 import { VOICE_BANK_ASSETS } from "../shared/VoiceBanks";
-import { VOICE_CUES, VoiceCue } from "../shared/VoiceCues";
+import { VOICE_CUES, VOICE_PENDING, VoiceCue } from "../shared/VoiceCues";
 import { VOICE_TAIL, Voice, VoiceLibrary, cinematicBeatSeconds, duckGain, storyLineId } from "../shared/VoiceLines";
 
 function radioTexts(): string[] {
@@ -66,7 +66,7 @@ describe("voice-over cue lookup", () => {
 });
 
 describe("shipped voice table", () => {
-	it("records all 122 current story beats with exact text and speaker, independently of upload", () => {
+	it("records all 122 current story beats with exact text and speaker, or lists them as pending", () => {
 		const assets: Record<string, string> = {};
 		for (const [bank] of pairs(VOICE_BANK_ASSETS)) assets[bank as string] = "rbxassetid://1";
 		const uploaded = new VoiceLibrary(VOICE_CUES, assets);
@@ -74,7 +74,15 @@ describe("shipped voice table", () => {
 		let recorded = 0;
 		for (const chapter of STORY) chapter.beats.forEach((beat, index) => {
 			const id = storyLineId(chapter.id, index);
-			const cue = VOICE_CUES[id];
+			const cue = VOICE_CUES[id] as VoiceCue | undefined;
+			if (cue === undefined) {
+				// A new take that is not packed yet: scripted with its exact text, silent even with every bank uploaded.
+				expect(VOICE_PENDING[id]).toBe(beat.text);
+				expect(uploaded.Story(chapter.id, index, beat.text)).toBeUndefined();
+				recorded++;
+				return;
+			}
+			expect(VOICE_PENDING[id]).toBeUndefined();
 			expect(cue.text).toBe(beat.text);
 			const name = speakerStyle(beat.speaker).name;
 			expect(cue.speaker).toBe(aliases[name] ?? name);
@@ -89,18 +97,21 @@ describe("shipped voice table", () => {
 		const texts = radioTexts();
 		expect(texts.size()).toBe(46);
 		const expected = new Set(texts);
+		const pending = new Set<string>();
+		for (const [id, text] of pairs(VOICE_PENDING)) if ((id as string).sub(1, 6) === "radio.") pending.add(text);
 		let recorded = 0;
 		for (const text of texts) {
 			const id = Voice.RadioId(text);
-			expect(id).toBeDefined();
-			if (id !== undefined) expect(VOICE_CUES[id].text).toBe(text);
+			if (id === undefined) expect(pending.has(text)).toBe(true);
+			else expect(VOICE_CUES[id].text).toBe(text);
 			expect(Voice.RadioId(text + " edited")).toBeUndefined();
 		}
 		for (const [, cue] of pairs(VOICE_CUES)) if (cue.radio) {
 			expect(expected.has(cue.text)).toBe(true);
 			recorded++;
 		}
-		expect(recorded).toBe(46);
+		for (const text of pending) expect(expected.has(text)).toBe(true);
+		expect(recorded + pending.size()).toBe(46);
 		for (const text of [BlueprintRunner.LiveWarning, BlueprintRunner.PracticeReset]) expect(Voice.Radio(text)).toBeUndefined();
 	});
 	it("covers any current ace wing calls and excludes obsolete legacy calls", () => {
@@ -149,7 +160,22 @@ describe("shipped voice table", () => {
 			expect(cue.tape).toBe(cue.speaker === "TEAL" || cue.speaker === "RECORDER");
 			cues++;
 		}
-		expect(cues).toBe(168);
+		let pending = 0;
+		for (const [id] of pairs(VOICE_PENDING)) {
+			expect(VOICE_CUES[id as string]).toBeUndefined();
+			pending++;
+		}
+		expect(cues + pending).toBe(168);
+	});
+	it("never plays a pending line, even with every bank uploaded", () => {
+		const assets: Record<string, string> = {};
+		for (const [bank] of pairs(VOICE_BANK_ASSETS)) assets[bank as string] = "rbxassetid://1";
+		const uploaded = new VoiceLibrary(VOICE_CUES, assets);
+		for (const [id, text] of pairs(VOICE_PENDING)) {
+			expect(Voice.Clip(id as string, text)).toBeUndefined();
+			expect(uploaded.Clip(id as string, text)).toBeUndefined();
+			expect(uploaded.Radio(text)).toBeUndefined();
+		}
 	});
 	it("stays silent for every line whose bank has no approved asset yet", () => {
 		for (const [id, cue] of pairs(VOICE_CUES)) {

@@ -1,6 +1,6 @@
 # Shipped
 
-Unmerged voice work: draft [#161](https://github.com/A-Ricemusic/skybreak/pull/161) is not a shipped change. Its 168-line inventory has empty asset IDs pending review/upload; this follow-up performs no upload, merge, Studio test or Player test. The merged history below is unchanged.
+Unmerged voice work: draft [#161](https://github.com/A-Ricemusic/skybreak/pull/161) is not a shipped change. If merged, the same 78 lines would play as today from the approved live banks, and 90 new or rewritten lines would stay subtitle-only. It performs no generation, upload, Studio test or Player test. The merged history below is unchanged.
 
 Last updated: 2026-10-29, against `main` at `7d73c44`.
 

@@ -92,14 +92,16 @@ end
 local count=0
 local function test(name,fn) fn();count+=1;print("PASS "..name) end
 
-test("unuploaded banks stay silent before simulated asset injection",function()
+test("unuploaded banks and pending lines stay silent before simulated asset injection",function()
  for id,cue in modules.VoiceCues.VOICE_CUES do
-  if modules.VoiceBanks.VOICE_BANK_ASSETS[cue.bank]=="" then
-   assert(modules.VoiceLines.Voice:Clip(id,cue.text)==nil,"unuploaded clip must be silent")
-  end
+  local asset=modules.VoiceBanks.VOICE_BANK_ASSETS[cue.bank]
+  assert(asset~=nil,"cue in an unknown bank")
+  local clip=modules.VoiceLines.Voice:Clip(id,cue.text)
+  if asset=="" then assert(clip==nil,"unuploaded clip must be silent")
+  else assert(clip and clip.assetId==asset,"approved live region must play from its own asset") end
  end
- if modules.VoiceBanks.VOICE_BANK_ASSETS.voiceBank01=="" then
-  mount(0);tick(.1);assert(#voices()==0,"unuploaded cinematic must not create a voice");unmount()
+ for id,text in modules.VoiceCues.VOICE_PENDING do
+  assert(modules.VoiceCues.VOICE_CUES[id]==nil and modules.VoiceLines.Voice:Clip(id,text)==nil,"pending line must be silent")
  end
  -- Fake IDs exist only inside this deterministic lifecycle simulation.
  for bank in modules.VoiceBanks.VOICE_BANK_ASSETS do modules.VoiceBanks.VOICE_BANK_ASSETS[bank]="rbxassetid://1" end
@@ -111,8 +113,8 @@ test("all 19 regenerated chapters play exact recordings with simulated uploaded 
   for i,beat in chapter.beats do
    tick(.1)
    local live=voices()
-   if not beat.recordingId then
-    assert(#live==0 and modules.VoiceLines.Voice:Story(chapter.id,i-1,beat.text)==nil,"rewritten beat must never play stale words")
+   if not beat.recordingId or modules.VoiceCues.VOICE_PENDING[beat.recordingId] then
+    assert(#live==0 and modules.VoiceLines.Voice:Story(chapter.id,i-1,beat.text)==nil,"pending or rewritten beat must never play stale words")
    else
    assert(#live==1,`chapter {chapter.id} beat {i-1}: expected one voice`)
    local sound=live[1]

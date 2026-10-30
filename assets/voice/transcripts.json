@@ -6,7 +6,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank01"
+  "bank": "voiceBank01",
+  "source": "legacy"
  },
  "story.c00.b01": {
   "speaker": "SERA",
@@ -15,7 +16,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": "voiceBank01",
+  "source": "legacy"
  },
  "story.c00.b02": {
   "speaker": "TEAL",
@@ -24,7 +26,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank01"
+  "bank": "voiceBank01",
+  "source": "legacy"
  },
  "story.c00.b03": {
   "speaker": "SERA",
@@ -33,7 +36,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": "voiceBank01",
+  "source": "legacy"
  },
  "story.c00.b04": {
   "speaker": "TEAL",
@@ -42,7 +46,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank01"
+  "bank": "voiceBank01",
+  "source": "legacy"
  },
  "story.c00.b05": {
   "speaker": "TRAINEE",
@@ -51,7 +56,8 @@
   "voice": "SAz9YHcvj6GT2YYXdXww",
   "voiceName": "River",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": null,
+  "source": "pending"
  },
  "story.c01.b00": {
   "speaker": "SERA",
@@ -60,7 +66,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": null,
+  "source": "pending"
  },
  "story.c01.b01": {
   "speaker": "SERA",
@@ -69,7 +76,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": "voiceBank01",
+  "source": "legacy"
  },
  "story.c01.b02": {
   "speaker": "TEAL",
@@ -78,16 +86,18 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank01"
+  "bank": "voiceBank01",
+  "source": "legacy"
  },
  "story.c01.b03": {
   "speaker": "TEAL",
-  "text": "The manifest sends grain drums to a farm with a runway, then five quays on Iron Coast. Nobody ships grain in drums.",
-  "spoken": "The manifest sends grain drums to a farm with a runway, then five quays on Iron Coast. Nobody ships grain in drums.",
+  "text": "The manifest calls it grain. It's aviation fuel: drums to a farm with a runway, then on to the Iron Coast docks. Nobody ships grain in drums.",
+  "spoken": "The manifest calls it grain. It's aviation fuel: drums to a farm with a runway, then on to the Iron Coast docks. Nobody ships grain in drums.",
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank01"
+  "bank": null,
+  "source": "pending"
  },
  "story.c01.b04": {
   "speaker": "SERA",
@@ -96,7 +106,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": "voiceBank02",
+  "source": "legacy"
  },
  "story.c01.b05": {
   "speaker": "SERA",
@@ -105,7 +116,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": "voiceBank01",
+  "source": "legacy"
  },
  "story.c01.b06": {
   "speaker": "TRAINEE",
@@ -114,7 +126,8 @@
   "voice": "SAz9YHcvj6GT2YYXdXww",
   "voiceName": "River",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": null,
+  "source": "pending"
  },
  "story.c02.b00": {
   "speaker": "TEAL",
@@ -123,7 +136,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank01"
+  "bank": "voiceBank01",
+  "source": "legacy"
  },
  "story.c02.b01": {
   "speaker": "SERA",
@@ -132,7 +146,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": null,
+  "source": "pending"
  },
  "story.c02.b02": {
   "speaker": "SERA",
@@ -141,7 +156,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": null,
+  "source": "pending"
  },
  "story.c02.b03": {
   "speaker": "TEAL",
@@ -150,7 +166,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank01"
+  "bank": "voiceBank01",
+  "source": "legacy"
  },
  "story.c02.b04": {
   "speaker": "TEAL",
@@ -159,7 +176,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank01"
+  "bank": "voiceBank01",
+  "source": "legacy"
  },
  "story.c02.b05": {
   "speaker": "SERA",
@@ -168,7 +186,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": "voiceBank01",
+  "source": "legacy"
  },
  "story.c02.b06": {
   "speaker": "TRAINEE",
@@ -177,7 +196,8 @@
   "voice": "SAz9YHcvj6GT2YYXdXww",
   "voiceName": "River",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": "voiceBank01",
+  "source": "legacy"
  },
  "story.c03.b00": {
   "speaker": "TEAL",
@@ -186,7 +206,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank01"
+  "bank": "voiceBank01",
+  "source": "legacy"
  },
  "story.c03.b01": {
   "speaker": "SERA",
@@ -195,7 +216,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": "voiceBank01",
+  "source": "legacy"
  },
  "story.c03.b02": {
   "speaker": "SERA",
@@ -204,7 +226,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": "voiceBank01",
+  "source": "legacy"
  },
  "story.c03.b03": {
   "speaker": "RUSK",
@@ -213,16 +236,18 @@
   "voice": "pNInz6obpgDQGcFmaJgB",
   "voiceName": "Adam",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": "voiceBank01",
+  "source": "legacy"
  },
  "story.c03.b04": {
   "speaker": "TEAL",
-  "text": "The couriers carry patrol routes high over the orchard hills. Their crews guide the guns onto the trucks.",
-  "spoken": "The couriers carry patrol routes high over the orchard hills. Their crews guide the guns onto the trucks.",
+  "text": "The couriers fly the patrol routes high over the orchard hills. They're the patrols' eyes. Close them, and the road goes quiet.",
+  "spoken": "The couriers fly the patrol routes high over the orchard hills. They're the patrols' eyes. Close them, and the road goes quiet.",
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank01"
+  "bank": null,
+  "source": "pending"
  },
  "story.c03.b05": {
   "speaker": "SERA",
@@ -231,7 +256,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": null,
+  "source": "pending"
  },
  "story.c03.b06": {
   "speaker": "TRAINEE",
@@ -240,7 +266,8 @@
   "voice": "SAz9YHcvj6GT2YYXdXww",
   "voiceName": "River",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": "voiceBank01",
+  "source": "legacy"
  },
  "story.c04.b00": {
   "speaker": "SERA",
@@ -249,7 +276,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": "voiceBank01",
+  "source": "legacy"
  },
  "story.c04.b01": {
   "speaker": "TEAL",
@@ -258,7 +286,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank01"
+  "bank": "voiceBank01",
+  "source": "legacy"
  },
  "story.c04.b02": {
   "speaker": "TEAL",
@@ -267,7 +296,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank01"
+  "bank": "voiceBank01",
+  "source": "legacy"
  },
  "story.c04.b03": {
   "speaker": "SERA",
@@ -276,7 +306,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": "voiceBank01",
+  "source": "legacy"
  },
  "story.c04.b04": {
   "speaker": "TEAL",
@@ -285,7 +316,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank01"
+  "bank": "voiceBank01",
+  "source": "legacy"
  },
  "story.c04.b05": {
   "speaker": "SERA",
@@ -294,7 +326,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": null,
+  "source": "pending"
  },
  "story.c04.b06": {
   "speaker": "TRAINEE",
@@ -303,25 +336,28 @@
   "voice": "SAz9YHcvj6GT2YYXdXww",
   "voiceName": "River",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": null,
+  "source": "pending"
  },
  "story.c05.b00": {
   "speaker": "SERA",
-  "text": "You got clear of Vulture Lead. His orders kept repeating on guard; we recorded them. Every one bears a governor's name. He died in spring.",
-  "spoken": "You got clear of Vulture Lead. His orders kept repeating on guard; we recorded them. Every one bears a governor's name. He died in spring.",
+  "text": "You got clear of Vulture Lead. His orders kept repeating on guard; we recorded them. Every one is signed by a man who died in spring.",
+  "spoken": "You got clear of Vulture Lead. His orders kept repeating on guard; we recorded them. Every one is signed by a man who died in spring.",
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": null,
+  "source": "pending"
  },
  "story.c05.b01": {
   "speaker": "TEAL",
-  "text": "Kiro talks to Lira. Lira talks to Merel. Merel talks to the harbours. Start at the quays; listen back up the chain.",
-  "spoken": "Kiro talks to Lira. Lira talks to Merel. Merel talks to the harbours. Start at the quays; listen back up the chain.",
+  "text": "Kiro talks to Lira. Lira talks to Merel. Merel talks to the harbours. Start at the docks; listen back up the chain.",
+  "spoken": "Kiro talks to Lira. Lira talks to Merel. Merel talks to the harbours. Start at the docks; listen back up the chain.",
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank01"
+  "bank": null,
+  "source": "pending"
  },
  "story.c05.b02": {
   "speaker": "SERA",
@@ -330,7 +366,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": "voiceBank02",
+  "source": "legacy"
  },
  "story.c05.b03": {
   "speaker": "TEAL",
@@ -339,25 +376,28 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank01"
+  "bank": "voiceBank02",
+  "source": "legacy"
  },
  "story.c05.b04": {
   "speaker": "SERA",
-  "text": "Iron Coast. Military stores beside a fish market. The Marshal put his war where he knew we'd hesitate.",
-  "spoken": "Iron Coast. Military stores beside a fish market. The Marshal put his war where he knew we'd hesitate.",
+  "text": "Iron Coast. His supply depots sit beside a fish market. The Marshal put them where he knew we'd hesitate.",
+  "spoken": "Iron Coast. His supply depots sit beside a fish market. The Marshal put them where he knew we'd hesitate.",
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": null,
+  "source": "pending"
  },
  "story.c05.b05": {
   "speaker": "SERA",
-  "text": "Workers are two blocks from those quays. The ships and tankers are his supply line. Their neighbours are not.",
-  "spoken": "Workers are two blocks from those quays. The ships and tankers are his supply line. Their neighbours are not.",
+  "text": "Workers live two blocks from those docks. The cargo ships and fuel barges are his supply line. Their neighbours are not.",
+  "spoken": "Workers live two blocks from those docks. The cargo ships and fuel barges are his supply line. Their neighbours are not.",
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": null,
+  "source": "pending"
  },
  "story.c05.b06": {
   "speaker": "TRAINEE",
@@ -366,7 +406,8 @@
   "voice": "SAz9YHcvj6GT2YYXdXww",
   "voiceName": "River",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": "voiceBank02",
+  "source": "legacy"
  },
  "story.c06.b00": {
   "speaker": "TEAL",
@@ -375,7 +416,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank01"
+  "bank": "voiceBank01",
+  "source": "legacy"
  },
  "story.c06.b01": {
   "speaker": "RUSK",
@@ -384,7 +426,8 @@
   "voice": "pNInz6obpgDQGcFmaJgB",
   "voiceName": "Adam",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": "voiceBank02",
+  "source": "legacy"
  },
  "story.c06.b02": {
   "speaker": "SERA",
@@ -393,7 +436,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": null,
+  "source": "pending"
  },
  "story.c06.b03": {
   "speaker": "TEAL",
@@ -402,7 +446,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank01"
+  "bank": "voiceBank02",
+  "source": "legacy"
  },
  "story.c06.b04": {
   "speaker": "SERA",
@@ -411,7 +456,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": null,
+  "source": "pending"
  },
  "story.c06.b05": {
   "speaker": "TEAL",
@@ -420,7 +466,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank01"
+  "bank": null,
+  "source": "pending"
  },
  "story.c06.b06": {
   "speaker": "TRAINEE",
@@ -429,16 +476,18 @@
   "voice": "SAz9YHcvj6GT2YYXdXww",
   "voiceName": "River",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": "voiceBank02",
+  "source": "legacy"
  },
  "story.c07.b00": {
   "speaker": "SERA",
-  "text": "Three stations, one signature. Varda's island transmitter has the orders and the governor's death certificate. Thirty-five seconds.",
-  "spoken": "Three stations, one signature. Varda's island transmitter has the orders and the governor's death certificate. Thirty-five seconds.",
+  "text": "Three stations, one signature. Varda's island transmitter has the orders and proof their signer died in spring. Thirty-five seconds.",
+  "spoken": "Three stations, one signature. Varda's island transmitter has the orders and proof their signer died in spring. Thirty-five seconds.",
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": null,
+  "source": "pending"
  },
  "story.c07.b01": {
   "speaker": "TEAL",
@@ -447,7 +496,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank01"
+  "bank": "voiceBank02",
+  "source": "legacy"
  },
  "story.c07.b02": {
   "speaker": "SERA",
@@ -456,7 +506,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": "voiceBank02",
+  "source": "legacy"
  },
  "story.c07.b03": {
   "speaker": "SERA",
@@ -465,7 +516,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": "voiceBank01",
+  "source": "legacy"
  },
  "story.c07.b04": {
   "speaker": "TRAINEE",
@@ -474,7 +526,8 @@
   "voice": "SAz9YHcvj6GT2YYXdXww",
   "voiceName": "River",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": "voiceBank01",
+  "source": "legacy"
  },
  "story.c08.b00": {
   "speaker": "SERA",
@@ -483,7 +536,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": null,
+  "source": "pending"
  },
  "story.c08.b01": {
   "speaker": "SERA",
@@ -492,7 +546,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank01"
+  "bank": null,
+  "source": "pending"
  },
  "story.c08.b02": {
   "speaker": "TEAL",
@@ -501,7 +556,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank01"
+  "bank": "voiceBank02",
+  "source": "legacy"
  },
  "story.c08.b03": {
   "speaker": "TEAL",
@@ -510,7 +566,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank02"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c08.b04": {
   "speaker": "SERA",
@@ -519,7 +576,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": null,
+  "source": "pending"
  },
  "story.c08.b05": {
   "speaker": "TRAINEE",
@@ -528,16 +586,18 @@
   "voice": "SAz9YHcvj6GT2YYXdXww",
   "voiceName": "River",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c09.b00": {
   "speaker": "SERA",
-  "text": "And then the Marshal answered. Fire at the orchard. A line of guns along the rivers.",
-  "spoken": "And then the Marshal answered. Fire at the orchard. A line of guns along the rivers.",
+  "text": "And then the Marshal answered. He turned on the orchard, and put a line of guns along the rivers.",
+  "spoken": "And then the Marshal answered. He turned on the orchard, and put a line of guns along the rivers.",
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": null,
+  "source": "pending"
  },
  "story.c09.b01": {
   "speaker": "RUSK",
@@ -546,7 +606,8 @@
   "voice": "pNInz6obpgDQGcFmaJgB",
   "voiceName": "Adam",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": "voiceBank02",
+  "source": "legacy"
  },
  "story.c09.b02": {
   "speaker": "SERA",
@@ -555,7 +616,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": "voiceBank02",
+  "source": "legacy"
  },
  "story.c09.b03": {
   "speaker": "SERA",
@@ -564,7 +626,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": "voiceBank02",
+  "source": "legacy"
  },
  "story.c09.b04": {
   "speaker": "TRAINEE",
@@ -573,7 +636,8 @@
   "voice": "SAz9YHcvj6GT2YYXdXww",
   "voiceName": "River",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": null,
+  "source": "pending"
  },
  "story.c10.b00": {
   "speaker": "SERA",
@@ -582,7 +646,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": null,
+  "source": "pending"
  },
  "story.c10.b01": {
   "speaker": "SERA",
@@ -591,7 +656,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": "voiceBank02",
+  "source": "legacy"
  },
  "story.c10.b02": {
   "speaker": "TEAL",
@@ -600,7 +666,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank02"
+  "bank": null,
+  "source": "pending"
  },
  "story.c10.b03": {
   "speaker": "TRAINEE",
@@ -609,7 +676,8 @@
   "voice": "SAz9YHcvj6GT2YYXdXww",
   "voiceName": "River",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": "voiceBank02",
+  "source": "legacy"
  },
  "story.c11.b00": {
   "speaker": "SERA",
@@ -618,7 +686,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": null,
+  "source": "pending"
  },
  "story.c11.b01": {
   "speaker": "VULTURE TWO",
@@ -627,7 +696,8 @@
   "voice": "N2lVS1w4EtoT3dr4eOWO",
   "voiceName": "Callum",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": null,
+  "source": "pending"
  },
  "story.c11.b02": {
   "speaker": "TEAL",
@@ -636,7 +706,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank02"
+  "bank": "voiceBank02",
+  "source": "legacy"
  },
  "story.c11.b03": {
   "speaker": "SERA",
@@ -645,7 +716,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": null,
+  "source": "pending"
  },
  "story.c11.b04": {
   "speaker": "SERA",
@@ -654,7 +726,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": null,
+  "source": "pending"
  },
  "story.c11.b05": {
   "speaker": "TRAINEE",
@@ -663,7 +736,8 @@
   "voice": "SAz9YHcvj6GT2YYXdXww",
   "voiceName": "River",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": "voiceBank02",
+  "source": "legacy"
  },
  "story.c12.b00": {
   "speaker": "SERA",
@@ -672,7 +746,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": null,
+  "source": "pending"
  },
  "story.c12.b01": {
   "speaker": "VULTURE TWO",
@@ -681,7 +756,8 @@
   "voice": "N2lVS1w4EtoT3dr4eOWO",
   "voiceName": "Callum",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": "voiceBank02",
+  "source": "legacy"
  },
  "story.c12.b02": {
   "speaker": "TEAL",
@@ -690,7 +766,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank02"
+  "bank": null,
+  "source": "pending"
  },
  "story.c12.b03": {
   "speaker": "SERA",
@@ -699,7 +776,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": null,
+  "source": "pending"
  },
  "story.c12.b04": {
   "speaker": "SERA",
@@ -708,7 +786,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": null,
+  "source": "pending"
  },
  "story.c12.b05": {
   "speaker": "TRAINEE",
@@ -717,7 +796,8 @@
   "voice": "SAz9YHcvj6GT2YYXdXww",
   "voiceName": "River",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": null,
+  "source": "pending"
  },
  "story.c13.b00": {
   "speaker": "SERA",
@@ -726,7 +806,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": null,
+  "source": "pending"
  },
  "story.c13.b01": {
   "speaker": "TEAL",
@@ -735,7 +816,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank02"
+  "bank": "voiceBank02",
+  "source": "legacy"
  },
  "story.c13.b02": {
   "speaker": "TEAL",
@@ -744,7 +826,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank02"
+  "bank": "voiceBank02",
+  "source": "legacy"
  },
  "story.c13.b03": {
   "speaker": "SERA",
@@ -753,7 +836,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": "voiceBank02",
+  "source": "legacy"
  },
  "story.c13.b04": {
   "speaker": "TRAINEE",
@@ -762,7 +846,8 @@
   "voice": "SAz9YHcvj6GT2YYXdXww",
   "voiceName": "River",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": "voiceBank02",
+  "source": "legacy"
  },
  "story.c14.b00": {
   "speaker": "LOG",
@@ -771,7 +856,8 @@
   "voice": "onwK4e9ZLuTAKqWW03F9",
   "voiceName": "Daniel",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": "voiceBank02",
+  "source": "legacy"
  },
  "story.c14.b01": {
   "speaker": "SERA",
@@ -780,7 +866,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": "voiceBank02",
+  "source": "legacy"
  },
  "story.c14.b02": {
   "speaker": "SERA",
@@ -789,7 +876,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": null,
+  "source": "pending"
  },
  "story.c14.b03": {
   "speaker": "RUSK",
@@ -798,7 +886,8 @@
   "voice": "pNInz6obpgDQGcFmaJgB",
   "voiceName": "Adam",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c14.b04": {
   "speaker": "TEAL",
@@ -807,7 +896,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank02"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c14.b05": {
   "speaker": "SERA",
@@ -816,7 +906,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c14.b06": {
   "speaker": "TRAINEE",
@@ -825,7 +916,8 @@
   "voice": "SAz9YHcvj6GT2YYXdXww",
   "voiceName": "River",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c15.b00": {
   "speaker": "RUSK",
@@ -834,7 +926,8 @@
   "voice": "pNInz6obpgDQGcFmaJgB",
   "voiceName": "Adam",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": null,
+  "source": "pending"
  },
  "story.c15.b01": {
   "speaker": "SERA",
@@ -843,7 +936,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c15.b02": {
   "speaker": "TRAINEE",
@@ -852,7 +946,8 @@
   "voice": "SAz9YHcvj6GT2YYXdXww",
   "voiceName": "River",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": null,
+  "source": "pending"
  },
  "story.c15.b03": {
   "speaker": "SERA",
@@ -861,7 +956,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": null,
+  "source": "pending"
  },
  "story.c15.b04": {
   "speaker": "TEAL",
@@ -870,7 +966,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank02"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c15.b05": {
   "speaker": "SERA",
@@ -879,7 +976,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c15.b06": {
   "speaker": "SERA",
@@ -888,7 +986,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": null,
+  "source": "pending"
  },
  "story.c15.b07": {
   "speaker": "TRAINEE",
@@ -897,7 +996,8 @@
   "voice": "SAz9YHcvj6GT2YYXdXww",
   "voiceName": "River",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": null,
+  "source": "pending"
  },
  "story.c16.b00": {
   "speaker": "SERA",
@@ -906,7 +1006,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c16.b01": {
   "speaker": "RECORDER",
@@ -915,7 +1016,8 @@
   "voice": "onwK4e9ZLuTAKqWW03F9",
   "voiceName": "Daniel",
   "tape": true,
-  "bank": "voiceBank02"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c16.b02": {
   "speaker": "TEAL",
@@ -924,7 +1026,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank02"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c16.b03": {
   "speaker": "TEAL",
@@ -933,7 +1036,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank02"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c16.b04": {
   "speaker": "TEAL",
@@ -942,16 +1046,18 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank02"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c16.b05": {
   "speaker": "SERA",
-  "text": "Witnesses reach parliament tonight. Keep the bridges and quay open. Rusk leads four wingmen over the capital. Vulture Lead is one of them.",
-  "spoken": "Witnesses reach parliament tonight. Keep the bridges and quay open. Rusk leads four wingmen over the capital. Vulture Lead is one of them.",
+  "text": "Witnesses reach parliament tonight. Keep the bridges and the docks open. Rusk leads four wingmen over the capital. Vulture Lead is one of them.",
+  "spoken": "Witnesses reach parliament tonight. Keep the bridges and the docks open. Rusk leads four wingmen over the capital. Vulture Lead is one of them.",
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": null,
+  "source": "pending"
  },
  "story.c16.b06": {
   "speaker": "SERA",
@@ -960,7 +1066,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c16.b07": {
   "speaker": "TRAINEE",
@@ -969,7 +1076,8 @@
   "voice": "SAz9YHcvj6GT2YYXdXww",
   "voiceName": "River",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c17.b00": {
   "speaker": "SERA",
@@ -978,7 +1086,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": null,
+  "source": "pending"
  },
  "story.c17.b01": {
   "speaker": "RUSK",
@@ -987,7 +1096,8 @@
   "voice": "pNInz6obpgDQGcFmaJgB",
   "voiceName": "Adam",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c17.b02": {
   "speaker": "TEAL",
@@ -996,7 +1106,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank02"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c17.b03": {
   "speaker": "SERA",
@@ -1005,7 +1116,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c17.b04": {
   "speaker": "SERA",
@@ -1014,7 +1126,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank02"
+  "bank": null,
+  "source": "pending"
  },
  "story.c17.b05": {
   "speaker": "TRAINEE",
@@ -1023,7 +1136,8 @@
   "voice": "SAz9YHcvj6GT2YYXdXww",
   "voiceName": "River",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c17.b06": {
   "speaker": "TRAINEE",
@@ -1032,7 +1146,8 @@
   "voice": "SAz9YHcvj6GT2YYXdXww",
   "voiceName": "River",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c18.b00": {
   "speaker": "SERA",
@@ -1041,7 +1156,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c18.b01": {
   "speaker": "TRAINEE",
@@ -1050,7 +1166,8 @@
   "voice": "SAz9YHcvj6GT2YYXdXww",
   "voiceName": "River",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c18.b02": {
   "speaker": "TRAINEE",
@@ -1059,7 +1176,8 @@
   "voice": "SAz9YHcvj6GT2YYXdXww",
   "voiceName": "River",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c18.b03": {
   "speaker": "TRAINEE",
@@ -1068,7 +1186,8 @@
   "voice": "SAz9YHcvj6GT2YYXdXww",
   "voiceName": "River",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c18.b04": {
   "speaker": "SERA",
@@ -1077,7 +1196,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c18.b05": {
   "speaker": "TEAL",
@@ -1086,7 +1206,8 @@
   "voice": "JBFqnCBsd6RMkjVDRZzb",
   "voiceName": "George",
   "tape": true,
-  "bank": "voiceBank03"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "story.c18.b06": {
   "speaker": "LOG",
@@ -1095,7 +1216,8 @@
   "voice": "onwK4e9ZLuTAKqWW03F9",
   "voiceName": "Daniel",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": "voiceBank03",
+  "source": "legacy"
  },
  "radio.m04.story.1": {
   "speaker": "SERA",
@@ -1104,7 +1226,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m04.story.2": {
   "speaker": "SERA",
@@ -1113,7 +1236,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m05.story.1": {
   "speaker": "SERA",
@@ -1122,7 +1246,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m05.story.2": {
   "speaker": "SERA",
@@ -1131,7 +1256,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m05.story.3": {
   "speaker": "SERA",
@@ -1140,16 +1266,18 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m06.story.1": {
   "speaker": "SERA",
-  "text": "SERA: Iron Coast ahead. Ships and tankers; leave the market clear.",
-  "spoken": "Iron Coast ahead. Ships and tankers; leave the market clear.",
+  "text": "SERA: Iron Coast ahead. Cargo ships and fuel barges; leave the market clear.",
+  "spoken": "Iron Coast ahead. Cargo ships and fuel barges; leave the market clear.",
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m06.story.2": {
   "speaker": "SERA",
@@ -1158,7 +1286,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m07.story.1": {
   "speaker": "SERA",
@@ -1167,7 +1296,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m07.story.2": {
   "speaker": "SERA",
@@ -1176,7 +1306,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m08.story.1": {
   "speaker": "SERA",
@@ -1185,7 +1316,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m08.story.2": {
   "speaker": "SERA",
@@ -1194,7 +1326,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m09.story.1": {
   "speaker": "SERA",
@@ -1203,7 +1336,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m09.story.2": {
   "speaker": "SERA",
@@ -1212,7 +1346,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m10.story.1": {
   "speaker": "SERA",
@@ -1221,7 +1356,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m10.story.2": {
   "speaker": "SERA",
@@ -1230,7 +1366,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m11.story.1": {
   "speaker": "SERA",
@@ -1239,7 +1376,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m11.story.2": {
   "speaker": "SERA",
@@ -1248,7 +1386,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m12.story.1": {
   "speaker": "SERA",
@@ -1257,7 +1396,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m12.story.2": {
   "speaker": "SERA",
@@ -1266,7 +1406,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m13.story.1": {
   "speaker": "SERA",
@@ -1275,7 +1416,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m13.story.2": {
   "speaker": "SERA",
@@ -1284,7 +1426,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m14.story.1": {
   "speaker": "SERA",
@@ -1293,7 +1436,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m14.story.2": {
   "speaker": "SERA",
@@ -1302,7 +1446,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m15.story.1": {
   "speaker": "SERA",
@@ -1311,7 +1456,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m15.story.2": {
   "speaker": "SERA",
@@ -1320,7 +1466,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m16.story.1": {
   "speaker": "SERA",
@@ -1329,7 +1476,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m16.story.2": {
   "speaker": "SERA",
@@ -1338,7 +1486,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m17.story.1": {
   "speaker": "SERA",
@@ -1347,7 +1496,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m17.story.2": {
   "speaker": "SERA",
@@ -1356,7 +1506,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m18.story.1": {
   "speaker": "SERA",
@@ -1365,7 +1516,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m18.story.2": {
   "speaker": "SERA",
@@ -1374,7 +1526,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m01.p1.beat": {
   "speaker": "SERA",
@@ -1383,7 +1536,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m02.p1.beat": {
   "speaker": "SERA",
@@ -1392,7 +1546,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m02.p1.chatter1": {
   "speaker": "BROADCAST",
@@ -1401,7 +1556,8 @@
   "voice": "onwK4e9ZLuTAKqWW03F9",
   "voiceName": "Daniel",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m02.p1.chatter2": {
   "speaker": "SERA",
@@ -1410,7 +1566,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m02.p1.chatter3": {
   "speaker": "BROADCAST",
@@ -1419,7 +1576,8 @@
   "voice": "onwK4e9ZLuTAKqWW03F9",
   "voiceName": "Daniel",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m02.p1.chatter4": {
   "speaker": "MARINE",
@@ -1428,7 +1586,8 @@
   "voice": "IKne3meq5aSn9XLyUdCD",
   "voiceName": "Charlie",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m03.p1.beat": {
   "speaker": "SERA",
@@ -1437,7 +1596,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m03.p1.chatter1": {
   "speaker": "MARINE",
@@ -1446,7 +1606,8 @@
   "voice": "IKne3meq5aSn9XLyUdCD",
   "voiceName": "Charlie",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m03.p1.chatter2": {
   "speaker": "SERA",
@@ -1455,7 +1616,8 @@
   "voice": "EXAVITQu4vr4xnSDxMaL",
   "voiceName": "Sarah",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m03.p1.chatter3": {
   "speaker": "MARINE",
@@ -1464,7 +1626,8 @@
   "voice": "IKne3meq5aSn9XLyUdCD",
   "voiceName": "Charlie",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m03.p3.landing1": {
   "speaker": "RIM TOWER",
@@ -1473,7 +1636,8 @@
   "voice": "pFZP5JQG7iQjIQuC4Bku",
   "voiceName": "Lily",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m03.p3.landing2": {
   "speaker": "RIM TOWER",
@@ -1482,7 +1646,8 @@
   "voice": "pFZP5JQG7iQjIQuC4Bku",
   "voiceName": "Lily",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m03.p3.landing3": {
   "speaker": "RIM TOWER",
@@ -1491,7 +1656,8 @@
   "voice": "pFZP5JQG7iQjIQuC4Bku",
   "voiceName": "Lily",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m03.p3.landing4": {
   "speaker": "RIM TOWER",
@@ -1500,7 +1666,8 @@
   "voice": "pFZP5JQG7iQjIQuC4Bku",
   "voiceName": "Lily",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  },
  "radio.m03.p3.landing5": {
   "speaker": "RIM TOWER",
@@ -1509,6 +1676,7 @@
   "voice": "pFZP5JQG7iQjIQuC4Bku",
   "voiceName": "Lily",
   "tape": false,
-  "bank": "voiceBank03"
+  "bank": null,
+  "source": "pending"
  }
 }

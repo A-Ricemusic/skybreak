@@ -204,8 +204,6 @@
   "radio.m06.p3.beat": 2
  },
  "sttAccepted": {
-  "story.c05.b01": "Fictional-name homophone Merel → Meril and quays → keys; harbours → harbors is British/American spelling. Cached transcript retains the words and meaning.",
-  "story.c05.b05": "Homophone quays → keys and British/American spelling neighbours → neighbors; no dialogue omitted in cached STT.",
   "story.c07.b04": "Fictional-name homophone Sera → Sarah; all other words match cached STT.",
   "story.c16.b01": "Number formatting seven-T → 7T; oh-four-twelve → oh four twelve is punctuation/tokenisation. Cached STT retains the full recorder header.",
   "radio.m09.story.2": "Fictional-name homophone Teklan → Teclin; all other words match cached STT.",
@@ -214,5 +212,6 @@
   "radio.m03.p1.chatter2": "Compound tokenisation west-north-west → west-northwest; all words retained in cached STT.",
   "radio.m03.p3.landing2": "British/American spelling and compound tokenisation centreline → center line; cached STT retains the full landing instruction.",
   "radio.m03.p3.landing5": "Fictional-name homophone Sera → Sarah; all other words match cached STT."
- }
+ },
+ "lexiconAccepted": {}
 }
