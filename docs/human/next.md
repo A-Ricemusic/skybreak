@@ -2,6 +2,8 @@
 
 ## Owner difficulty and allied-flight tuning — unmerged (D-220/D-221, 2026-10-30)
 
+Validation on main 5034b39: frozen install/build and offline validation pass (848 Luau contracts). Final rebased Roblox Jest is deferred to the orchestrator’s merge queue so mission 5/D1 retain Studio priority; the queued local launch is cancelled. No full Jest pass is claimed.
+
 M01 keeps six required bombers, the same route/240-second escape and 10:00 clock. The T+120/halfway rear reinforcement grows from two to six: twelve optional raiders total, plus three escorts and the ace. The opening six-raider screen is unchanged. Normal maximum is 1,740; S/A/B/C = 1,560/1,200/600/500. S requires the ace plus substantial optional combat.
 
 M02 keeps eleven required parked bombers, all existing ground scenery/targets and the 15:00 clock. Two extra head-on fighters queue at T+75; two more queue after eight bomber kills. Twelve aircraft total including the ace; Normal maximum 2,850; S/A/B/C = 2,500/1,990/1,620/1,320. M02 adopts M01's 80% player-priority policy and Easy-safe tail-defence rules. Both missions retain the seven-fighter concurrent budget; queued fighters can remain unspawned if the player finishes objectives quickly.

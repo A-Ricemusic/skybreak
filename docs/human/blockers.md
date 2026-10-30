@@ -1,6 +1,6 @@
 # Blockers
 
-Owner tuning validation (2026-10-30): shared Studio initially belonged to another checkout’s Jest run; left untouched. This task waits for five minutes of empty process checks before its own Jest launch. No Player or phone balance verification is claimed. Final automated validation results will be recorded in the PR.
+Owner tuning validation (2026-10-30): rebased on main 5034b39, preserving terrain performance, dormant worlds and D-120/D-121. Frozen install, build and validate:offline pass (848 Luau contracts, 124 Python tests); catalog fixture regenerated. Initial Jest exposed an outdated rear-wave assertion, now corrected. A subsequent attempt stalled at Studio startup during concurrent launches and produced no Jest summary. Final rebased Jest is deferred to the orchestrator’s merge queue: the priority mission 5 agent relaunched Studio during this task’s idle gate. This task cancelled its queued launch and closed its own Studio; no other Studio was stopped. No Player or phone balance verification is claimed.
 
 Last updated: 2026-10-30.
 ## M12/M13 world review (2026-10-30), [PR #170](https://github.com/A-Ricemusic/skybreak/pull/170)
