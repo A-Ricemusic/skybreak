@@ -25,8 +25,13 @@ for(const [name,hook] of [
  await Bun.write(dest,text.replace(marker,`assert(game:GetService("RunService"):IsStudio())\nreturn {\n\t${hook}\n\t${name} = ${name},`));
  project.tree.ServerScriptService.Server[name]={$path:dest};
 }
-project.tree.StarterPlayer.StarterPlayerScripts.M04JammingObserver={$path:resolve(root,'tools/verification/m04-jamming.client.luau')};
-project.tree.ServerScriptService.M04QA={$path:resolve(root,'tools/verification/m04-playthrough.server.luau')};
-await Bun.write(resolve(root,'build/m04-verification.project.json'),JSON.stringify(project,null,2));
-const p=Bun.spawn(['rojo','build','build/m04-verification.project.json','-o','build/m04-verification.rbxlx'],{cwd:root,stdout:'inherit',stderr:'inherit'});
+// `--perf`: world build/cleanup timing (tools/verification/world-perf.server.luau) instead of the playthrough.
+const perf=process.argv.includes('--perf'),name=perf?'world-perf':'m04-verification';
+if(perf) project.tree.ServerScriptService.WorldPerf={$path:resolve(root,'tools/verification/world-perf.server.luau')};
+else {
+ project.tree.StarterPlayer.StarterPlayerScripts.M04JammingObserver={$path:resolve(root,'tools/verification/m04-jamming.client.luau')};
+ project.tree.ServerScriptService.M04QA={$path:resolve(root,'tools/verification/m04-playthrough.server.luau')};
+}
+await Bun.write(resolve(root,`build/${name}.project.json`),JSON.stringify(project,null,2));
+const p=Bun.spawn(['rojo','build',`build/${name}.project.json`,'-o',`build/${name}.rbxlx`],{cwd:root,stdout:'inherit',stderr:'inherit'});
 if(await p.exited!==0)throw new Error('M04 QA place build failed');

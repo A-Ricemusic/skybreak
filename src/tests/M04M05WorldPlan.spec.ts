@@ -56,7 +56,10 @@ describe("Dormant M04/M05 world compositions", () => {
     for (const [sx, sz, draft] of [[64, 360, 16], [spec.size.X, spec.size.Z, spec.groundOffset]])
      for (const [x, z] of footprint(t.x, t.z, sx, sz, t.yaw)) {
       expect(t.y - draft - m05Ground(x, z)).toBeGreaterThanOrEqual(8);
-      expect(terrainTop(b.ops, x, z).solid).toBe(m05Ground(x, z));
+      // Water-only sea column (D-121): native water to the surface, nothing solid within 8 studs of the keel.
+      const column = terrainTop(b.ops, x, z);
+      expect(column.water).toBe(32);
+      expect(t.y - draft - column.solid).toBeGreaterThanOrEqual(8);
      }
    }
   }
@@ -110,7 +113,7 @@ describe("Dormant M04/M05 world compositions", () => {
   for (const t of b.targets) { const score = M05_TARGET_POINTS[t.type]; total += score; if (t.group === "rig") rig += score; if (t.group === "refinery") refinery += score; }
   expect(rig).toBe(2400); expect(refinery).toBe(1740); expect(total).toBe(4500);
  });
- it("caps Part dimensions and enforces M01-calibrated budgets", () => {
+ it("caps Part dimensions and enforces Studio-calibrated budgets", () => {
   for (const [p, counts, limits] of [[a, m04Counts(a), M04_BUILD_LIMITS], [b, m05Counts(b), M05_BUILD_LIMITS]] as const) {
    print(`${p.key} BUDGET voxels=${counts.voxels} jobs=${counts.jobs} parts=${counts.parts} props=${counts.props} descendants=${counts.descendants} estimatedSeconds=${counts.estimatedSeconds}`);
    for (const prop of p.props) {
@@ -124,16 +127,25 @@ describe("Dormant M04/M05 world compositions", () => {
 
   }
  });
- it("seals both undersides and perimeters beyond the hard airspace", () => {
+ it("caps every column above Y=0 and seals perimeters beyond the hard airspace", () => {
   for (const [p, surface, ground, airspace] of [[a, M04_SURFACE, m04Ground, M04_AIRSPACE], [b, M05_SURFACE, m05Ground, M05_AIRSPACE]] as const) {
-   const floor = p.ops[0]; expect(floor.y - floor.sy / 2).toBe(-4); expect(floor.y + floor.sy / 2).toBe(0);
-   expect(floor.sx / 2).toBeGreaterThan(airspace.hardHalfWidth);
+   // No floor layer: the hollow below the caps is reachable only from below Y=0 outside the
+   // terrain square, which lies beyond hard airspace. Every column is capped (gaps below).
+   expect(WORLD_HALF).toBeGreaterThan(airspace.hardHalfWidth);
+   for (const op of p.ops) expect(op.y - op.sy / 2).toBeGreaterThanOrEqual(0);
    // Index all caps/walls on the same finest address grid, then check every
    // exposed step and fine/coarse join for a curtain overlapping both caps.
    const caps = new Map<string, number>();
    const walls = new Map<string, Array<{lo: number; hi: number}>>();
+   // A water-only column (D-121) is capped by its water: aircraft collide with water. It stands for a cap
+   // of the cell's sampled top (its bottom + 8) when curtains are matched against neighbours.
+   const waterCaps = new Map<string, number>();
    for (const op of p.ops) {
-    if (op.material === "Water" || op === floor) continue;
+    if (op.material === "Water") {
+     const x0 = op.x - op.sx / 2, z0 = op.z - op.sz / 2, lo = op.y - op.sy / 2;
+     for (let x = x0; x < x0 + op.sx; x += 128) for (let z = z0; z < z0 + op.sz; z += 128) waterCaps.set(`${x},${z}`, lo + 8);
+     continue;
+    }
     const x0 = op.x - op.sx / 2, z0 = op.z - op.sz / 2, lo = op.y - op.sy / 2, hi = op.y + op.sy / 2;
     if (op.sx >= 128 && op.sz >= 128) {
      for (let x = x0; x < x0 + op.sx; x += 128) for (let z = z0; z < z0 + op.sz; z += 128) caps.set(`${x},${z}`, hi);
@@ -143,6 +155,7 @@ describe("Dormant M04/M05 world compositions", () => {
      for (let v = begin; v < begin + length; v += 128) { const key = `${axis},${edge},${v}`, list = walls.get(key) ?? []; list.push({lo, hi}); walls.set(key, list); }
     }
    }
+   for (const [key, h] of waterCaps) if (!caps.has(key)) caps.set(key, h);
    let gaps = 0;
    for (let x = -WORLD_HALF; x < WORLD_HALF; x += 128) for (let z = -WORLD_HALF; z < WORLD_HALF; z += 128) {
     const h = caps.get(`${x},${z}`); if (h === undefined) { gaps++; continue; }
@@ -152,7 +165,11 @@ describe("Dormant M04/M05 world compositions", () => {
     }
    }
    expect(gaps).toBe(0);
-   for (const x of [-12000, 0, 12000]) for (const z of [-12000, 0, 12000]) expect(terrainTop(p.ops, x + 17, z + 17).solid).toBe(ground(x + 17, z + 17));
+   for (const x of [-12000, 0, 12000]) for (const z of [-12000, 0, 12000]) {
+    const t = terrainTop(p.ops, x + 17, z + 17);
+    if (t.solid === -math.huge) { expect(t.water).toBe(32); expect(ground(x + 17, z + 17)).toBeLessThan(32); }
+    else expect(t.solid).toBe(ground(x + 17, z + 17));
+   }
    expect(surfaceSide(surface, 0, 0)).toBeGreaterThanOrEqual(128);
   }
  });

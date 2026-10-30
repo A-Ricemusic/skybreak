@@ -58,6 +58,8 @@ function run(terrain: Terrain, job: TerrainJob): void {
 }
 
 export const TerrainWriter = {
+	/** One scheduled job (measurement harnesses time jobs individually). */
+	WriteJob: run,
 	/** Writes `ops` in order as bounded jobs, yielding between resumptions; returns the timing. */
 	Write(ops: TerrainOp[], budget = TERRAIN_BUDGET, fillChunk = FILL_CHUNK, cancelled?: () => boolean): BudgetRun & { jobs: number } {
 		const terrain = Workspace.Terrain, jobs = terrainJobs(ops, fillChunk);
