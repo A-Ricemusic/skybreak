@@ -1,6 +1,16 @@
 # Shipped
 
 Last updated: 2026-10-29, against `main` at `7d73c44`.
+M12/M13 worlds are **unmerged / world in review** in [PR #170](https://github.com/A-Ricemusic/skybreak/pull/170), dormant on `feat/m12-m13-worlds` above #167/#166/#164. [M12 table](../specs/worlds/m12-composition.md) · [M13 table](../specs/worlds/m13-composition.md). Offline estimates12.770960s/13.253200s; no mission selection, Player change, Studio/Player verification or asset upload. Decisions D-230–D-234. Existing shipped entries below are unchanged by this branch.
+
+PR [#167](https://github.com/A-Ricemusic/skybreak/pull/167) remains **unmerged / in review**. Its P1 M10 disconnected-river fix adds a generated-water flood-fill and full-centreline regression; revised M10 estimate14.731517s (1.268483s headroom), M11 unchanged14.455200s. No Player content or Studio verification is claimed.
+
+M10/M11 worlds are **in review**, dormant on `feat/m10-m11-worlds`, stacked on [#166](https://github.com/A-Ricemusic/skybreak/pull/166) above #164. [M10 composition and complete target table](../specs/worlds/m10-composition.md) · [M11 composition and routes](../specs/worlds/m11-composition.md). No mission unlock, Studio/Player/phone verification, asset export or upload. Decisions D-180–D-183.
+
+
+M06/M07 world work is **unmerged / in review** on `feat/m06-m07-worlds`; it changes no currently selectable mission or Player experience. See [M06](../specs/worlds/m06-composition.md) and [M07](../specs/worlds/m07-composition.md). Review fixes add the local #158 chunk/yield budget model (10.265 s / 14.501 s), distant M06 sea Parts and corrected detail counts. No Studio/Player verification or new asset upload is claimed.
+
+Last updated: 2026-10-29, against `main` at `088fbfc`.
 
 [Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). The new 18-mission campaign is live by pipeline: practice flight and missions 1–3 are playable; missions 4–18 are locked. The latest merged gameplay revision is `7d73c44` (#147, mission 3). The story remap (#159, open, not yet merged) would align chapters/documents with the 18-mission campaign, preserves M5 escape and returns Vulture Lead at M17. New dialogue will be subtitle-only, with no new recordings (D-142); Studio/Player verification remains pending. Last recorded publish before the story remap returned place version **94** ([run](https://github.com/A-Ricemusic/skybreak/actions/runs/40963804844)). See [per-level status](levels.html). The 2026-10-29 publish logs confirmed the official place and returned place versions **85** (#130), **86** (#134), **87** (#140), **88** (#138), **88** (#137), **89** (#139), **90** (#141), **91** (#142) and **92** (#143). Gameplay merges are live through automatic CI/CD under the owner's convention; documentation-only changes add no game content. PR #131 merged only into `feat/campaign-switch-m01`, not `main`; #132 closed without merging, so neither is listed as shipped below.
 

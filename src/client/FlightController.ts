@@ -1,4 +1,7 @@
 import { RearmPlan, rearmPose } from "../shared/EngineBatchC";
+import type { CutInPlan } from "../shared/SortieCutaways";
+import type { SpecialKind } from "../shared/SpecialWeapons";
+import { EliteCutIn } from "./EliteCutIn";
 import { canSkipLanding, LandingPlan, landingAccomplishedAt, landingDistance, landingPose } from "../shared/EngineBatchB";
 import { LaunchStage, LaunchStageState } from "../shared/LaunchStage";
 import type { FlightControlHandoff } from "../shared/Types";
@@ -282,7 +285,10 @@ export class FlightController {
 	private readonly enemies = new EnemySmoothing();
 	/** Pause overlay is up: the local jet, camera and actions hold until Resume. */
 	private paused = false;
-	private rearm?: {plan:RearmPlan;elapsed:number;cameraCut?:boolean};
+	private rearm?: {plan:RearmPlan;elapsed:number;cameraCut?:boolean;menu?:boolean;special?:SpecialKind};
+	private cutIn?: EliteCutIn;
+	/** Bumped by gamepad B while the rearm menu is open: the overlay steps back out of the weapon list. */
+	private rearmMenuBack = 0;
 	private landing?: {plan: LandingPlan; elapsed: number; cameraCut?: boolean};
 	private launchIntro?: LaunchStageState;
 	private launchCameraTime = CAMERA_HANDOFF_SECONDS;
@@ -313,7 +319,22 @@ export class FlightController {
 			const message = data as Partial<Omit<HudState, "kind">> & { kind?: string };
 			if(message.kind==="RearmStarted" && this.active) { this.rearm={plan:(data as {plan:RearmPlan}).plan,elapsed:0}; this.keys.clear(); this.ReleaseGun(); for (const part of this.visual?.GetDescendants() ?? []) if (part.IsA("BasePart")) part.LocalTransparencyModifier=1; }
 			else if(message.kind==="RearmSkipped" && this.rearm) this.rearm.elapsed=(data as {elapsed:number}).elapsed;
-			else if(message.kind==="RearmComplete" && this.active) { const handoff=data as FlightControlHandoff; if(this.predictor) FlightPrediction.Handoff(this.predictor,handoff.state,handoff.sequence); this.rearm=undefined; this.keys.clear(); for (const part of this.visual?.GetDescendants() ?? []) if (part.IsA("BasePart")) part.LocalTransparencyModifier=0; }
+			else if((message.kind==="RearmMenu" || message.kind==="RearmTakeoff") && this.rearm) {
+				const menu=data as {elapsed:number;special:unknown};
+				this.rearm.elapsed=menu.elapsed; this.rearm.menu=message.kind==="RearmMenu";
+				// The menu owns the gamepad: D-pad/stick/A navigate the GUI; flight resumes on takeoff.
+				if (!this.paused) this.bindControls();
+				if (SpecialWeapons.IsKind(menu.special)) { this.rearm.special=menu.special; this.telemetry.special=menu.special; this.notify(); }
+			}
+			else if(message.kind==="CutInStarted" && this.active) {
+				const start=data as {plan:CutInPlan;subjects:Model[]};
+				this.cutIn?.Stop(); this.cutIn=new EliteCutIn(start.plan,start.subjects.filter((m)=>typeIs(m,"Instance"))); this.keys.clear();
+			}
+			else if(message.kind==="CutInComplete" && this.cutIn) {
+				const handoff=data as FlightControlHandoff; if(this.predictor) FlightPrediction.Handoff(this.predictor,handoff.state,handoff.sequence);
+				this.cutIn.Stop(); this.cutIn=undefined; this.keys.clear();
+			}
+			else if(message.kind==="RearmComplete" && this.active) { const handoff=data as FlightControlHandoff; if(this.predictor) FlightPrediction.Handoff(this.predictor,handoff.state,handoff.sequence); this.rearm=undefined; this.keys.clear(); if (!this.paused) this.bindControls(); for (const part of this.visual?.GetDescendants() ?? []) if (part.IsA("BasePart")) part.LocalTransparencyModifier=0; }
 			else if (message.kind === "LandingStarted" && this.active) {
 				this.landing={plan:(data as {plan:LandingPlan}).plan,elapsed:0}; this.keys.clear(); this.ReleaseGun();
 				// The replicated aircraft is already hidden; hide the predicted clone for cockpit flight.
@@ -413,7 +434,7 @@ export class FlightController {
 	private handleBoundInput(state: Enum.UserInputState, keyCode: Enum.KeyCode, position: Vector3): Enum.ContextActionResult {
 		if (!this.active) return Enum.ContextActionResult.Pass;
 		if (UserInputService.GetFocusedTextBox() && state !== Enum.UserInputState.End && state !== Enum.UserInputState.Cancel) return Enum.ContextActionResult.Pass;
-		if (this.landing || this.rearm) {
+		if (this.landing || this.rearm || this.cutIn) {
 			if (state === Enum.UserInputState.Begin && (keyCode === Enum.KeyCode.Space || keyCode === Enum.KeyCode.ButtonR2)) this.SkipLanding();
 			this.ReleaseGun();
 			return Enum.ContextActionResult.Sink;
@@ -453,11 +474,11 @@ export class FlightController {
 	public SetThrottle(value: number): void {
 		if (FlightMath.IsFinite(value)) this.throttle = math.clamp(value, 0, 1);
 	}
-	private action(action: string): void { if (this.active && !this.paused && !this.landing && !this.rearm && !this.launchIntro) this.remotes.CombatAction.FireServer({ action }); }
+	private action(action: string): void { if (this.active && !this.paused && !this.landing && !this.rearm && !this.cutIn && !this.launchIntro) this.remotes.CombatAction.FireServer({ action }); }
 	public FireMissile(): void { this.action("FireMissile"); }
 	public Evade(): void {
 		if (!this.active) return;
-		if (this.paused || this.landing || this.rearm || this.launchIntro) return;
+		if (this.paused || this.landing || this.rearm || this.cutIn || this.launchIntro) return;
 		// Predict the barrel roll when the HUD says a charge is ready; the server confirms or ignores.
 		if (evadeGauge(this.telemetry).ready && this.evadeRoll <= 0) { this.evadeRoll = FlightPrediction.EvadeRollSeconds; this.evadeStartedAt = os.clock(); }
 		this.action("Evade");
@@ -524,12 +545,27 @@ export class FlightController {
 		this.keys.clear(); this.mouseSteer = false; this.touchInput = Vector2.zero; this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0;
 		this.sendTime = INPUT_KEEPALIVE;
 		// Free the gamepad stick and buttons for the pause card's GUI navigation.
-		if (paused) ContextActionService.UnbindAction(this.actionName);
+		if (paused) { ContextActionService.UnbindAction(this.actionName); ContextActionService.UnbindAction(`${this.actionName}_RearmMenu`); }
 		else this.bindControls();
 	}
 	private bindControls(): void {
+		const menuAction = `${this.actionName}_RearmMenu`;
+		ContextActionService.UnbindAction(this.actionName);
+		ContextActionService.UnbindAction(menuAction);
+		if (this.rearm?.menu === true) {
+			// TAKEOFF / CHANGE WEAPON menu: leave navigation (D-pad, thumbsticks, A) to GuiService selection. SPACE / RT
+			// takes off as loaded; B steps back out of the weapon list.
+			ContextActionService.BindActionAtPriority(menuAction, (_, state, input) => {
+				if (state !== Enum.UserInputState.Begin) return Enum.ContextActionResult.Sink;
+				if (input.KeyCode === Enum.KeyCode.ButtonB) { this.rearmMenuBack += 1; this.notify(); }
+				else this.SkipLanding();
+				return Enum.ContextActionResult.Sink;
+			}, false, 3000, Enum.KeyCode.Space, Enum.KeyCode.ButtonR2, Enum.KeyCode.ButtonB);
+			return;
+		}
 		ContextActionService.BindActionAtPriority(this.actionName, (_, state, input) => this.handleBoundInput(state, input.KeyCode, input.Position), false, 3000, ...FLIGHT_KEYS);
 	}
+
 	public IsPaused(): boolean { return this.paused; }
 	/** Flight advice and warning tones stay silent while the scripted launch owns the jet. */
 	/** HUD landing readouts from the local cinematic clock: DIST to touchdown and the runway MISSION ACCOMPLISHED hold. */
@@ -539,8 +575,16 @@ export class FlightController {
 		return { distance: landingDistance(landing.plan, landing.elapsed), accomplished: landing.elapsed >= landingAccomplishedAt(landing.plan),
 			skippable: canSkipLanding(landing.elapsed) };
 	}
-	public SkipLanding(): void { if (this.paused) return; if ((this.landing && canSkipLanding(this.landing.elapsed)) || (this.rearm && canSkipLanding(this.rearm.elapsed))) this.remotes.CombatAction.FireServer({action:"SkipLanding"}); }
-	public FlightWarningsEnabled(): boolean { return this.launchIntro === undefined && this.landing === undefined && this.rearm === undefined; }
+	public SkipLanding(): void { if (this.paused) return; if ((this.landing && canSkipLanding(this.landing.elapsed)) || (this.rearm && canSkipLanding(this.rearm.elapsed)) || this.cutIn?.Skippable()) this.remotes.CombatAction.FireServer({action:"SkipLanding"}); }
+	public FlightWarningsEnabled(): boolean { return this.launchIntro === undefined && this.landing === undefined && this.rearm === undefined && this.cutIn === undefined; }
+	/** Rearm presentation for the HUD: plan, rearm seconds, and whether the TAKEOFF / CHANGE WEAPON menu is open. */
+	public RearmStatus(): { plan: RearmPlan; elapsed: number; menu: boolean; special?: SpecialKind; skippable: boolean; back: number } | undefined {
+		const r=this.rearm; return r ? { plan:r.plan, elapsed:r.elapsed, menu:r.menu === true, special:r.special, skippable:canSkipLanding(r.elapsed), back:this.rearmMenuBack } : undefined;
+	}
+	/** TAKEOFF (keep the loadout) or CHANGE WEAPON (a special kind); the server validates and answers. */
+	public RearmTakeoff(special?: SpecialKind): void { if (!this.paused && this.rearm?.menu === true) this.remotes.CombatAction.FireServer({action:"RearmTakeoff",special}); }
+	/** The surprise cut-in while it plays: the HUD hides and shows its caption. */
+	public CutInStatus(): { caption?: string; skippable: boolean } | undefined { return this.cutIn ? { caption:this.cutIn.Caption(), skippable:this.cutIn.Skippable() } : undefined; }
 	/** Settings: pushing up dives instead of climbing (every input source). */
 	public SetInvertY(invert: boolean): void { this.invertY = invert; }
 	/** Settings: a centred stick gently levels the jet (pitch to the horizon, rolls upright). */
@@ -851,6 +895,12 @@ export class FlightController {
 			camera.CFrame = this.cameraFrame;
 			return;
 		}
+		if (this.cutIn) {
+			// The server holds the sortie: no prediction or input; the camera films the local flypast.
+			camera.CameraType = Enum.CameraType.Scriptable;
+			camera.CFrame = this.cutIn.Step(dt);
+			return;
+		}
 		const now = os.clock();
 		const intro = this.launchIntro !== undefined;
 		if (!intro && !this.landing && !this.rearm) this.input(dt);
@@ -859,7 +909,7 @@ export class FlightController {
 		// The next fixed step (the first to use this frame's input) starts at the last step boundary.
 		const stamp = FlightPrediction.InputStamp(predictor, now);
 		if (this.landing && !this.paused) this.landing.elapsed+=dt;
-		if(this.rearm && !this.paused) this.rearm.elapsed+=dt;
+		if(this.rearm && !this.paused && !this.rearm.menu) this.rearm.elapsed+=dt;
 		const state = this.rearm ? rearmPose(this.rearm.plan,this.rearm.elapsed) : this.landing ? landingPose(this.landing.plan,this.landing.elapsed) : intro ? predictor.state : FlightPrediction.Step(predictor, input, dt, now);
 		if (intro) LaunchStage.Advance(this.launchIntro!, state, dt);
 		let frame = frameFor(state);
@@ -1015,6 +1065,7 @@ export class FlightController {
 		this.audio.Stop();
 		this.active = false;
 		this.landing = undefined; this.rearm=undefined;
+		this.cutIn?.Stop(); this.cutIn=undefined;
 		this.launchIntro = undefined;
 		this.launchCameraTime = CAMERA_HANDOFF_SECONDS;
 		this.paused = false;
@@ -1026,6 +1077,7 @@ export class FlightController {
 		this.stopExplosions?.(); this.stopExplosions = undefined;
 		RunService.UnbindFromRenderStep(this.renderName);
 		ContextActionService.UnbindAction(this.actionName);
+		ContextActionService.UnbindAction(`${this.actionName}_RearmMenu`);
 		for (const connection of this.connections) connection.Disconnect();
 		this.connections.clear();
 		for (const [part, previous] of this.hiddenParts) {

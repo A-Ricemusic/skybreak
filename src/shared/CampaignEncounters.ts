@@ -3,13 +3,14 @@ import type { AceLivery } from "./AssetSelection";
 import type { MissionBlueprint, MissionPhaseBlueprint, FlightPoint } from "./MissionCatalog";
 import type { MissionAirspacePolicy, MissionScoringPolicy } from "./MissionPolicy";
 
-export const GROUND_TYPES = ["parked_bomber", "hangar", "aa_gun", "control_tower", "substation", "radar_dome", "parked_helicopter", "refinery", "fuel_tank", "pipeline", "oil_rig", "rig_tower", "ship", "crane", "sam", "control_room", "smokestack", "gas_tank", "pump_station"] as const;
+export const GROUND_TYPES = ["parked_bomber", "hangar", "aa_gun", "control_tower", "substation", "radar_dome", "parked_helicopter", "refinery", "fuel_tank", "pipeline", "oil_rig", "rig_tower", "ship", "crane", "sam", "control_room", "smokestack", "gas_tank", "pump_station", "tanker", "command_post"] as const;
 export type GroundTargetType = typeof GROUND_TYPES[number];
 /** HUD label (model name) of each typed ground target. */
 export const GROUND_TARGET_LABELS: { readonly [K in GroundTargetType]: string } = {
 	parked_bomber: "BOMBER", hangar: "HANGAR", aa_gun: "AA GUN", control_tower: "CTRL TOWER", substation: "SUBSTATION", radar_dome: "RADAR",
 	parked_helicopter: "HELICOPTER", refinery: "REFINERY", fuel_tank: "FUEL TANK", pipeline: "PIPELINE", oil_rig: "OIL RIG", rig_tower: "RIG TOWER",
 	ship: "SHIP", crane: "CRANE", sam: "SAM", control_room: "CONTROL ROOM", smokestack: "SMOKESTACK", gas_tank: "GAS TANK", pump_station: "PUMP STATION",
+	tanker: "TANKER", command_post: "COMMAND POST",
 };
 export interface TypedGroundTarget {
 	id: string; type: GroundTargetType; position: FlightPoint; yaw: number; required: boolean; scoreRole: string; group?: string;

@@ -2174,6 +2174,66 @@
    "maxDurationSeconds": 5,
    "recordingId": null,
    "needsRecording": true
+  },
+  {
+   "id": "radio.m05.p1.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "chip": "SERA",
+   "text": "SERA: Rig to the east, refinery to the west. Burn them before dawn.",
+   "context": "Live mission phase/landing radio",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 6,
+   "recordingId": null,
+   "needsRecording": true
+  },
+  {
+   "id": "radio.m05.p1.chatter1",
+   "kind": "radio",
+   "speaker": "MARINE",
+   "chip": "LANTERN 2",
+   "text": "LANTERN 2: Tanks are going up like flares. Keep it coming.",
+   "context": "Live mission phase/landing radio",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 5,
+   "recordingId": null,
+   "needsRecording": true
+  },
+  {
+   "id": "radio.m05.p1.chatter2",
+   "kind": "radio",
+   "speaker": "SERA",
+   "chip": "SERA",
+   "text": "SERA: Halfway there. The platform's guns are still awake.",
+   "context": "Live mission phase/landing radio",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 5,
+   "recordingId": null,
+   "needsRecording": true
+  },
+  {
+   "id": "radio.m05.p1.chatter3",
+   "kind": "radio",
+   "speaker": "MARINE",
+   "chip": "LANTERN 3",
+   "text": "LANTERN 3: Nearly there. Don't stop at the number, trainee.",
+   "context": "Live mission phase/landing radio",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 5,
+   "recordingId": null,
+   "needsRecording": true
+  },
+  {
+   "id": "radio.m05.p1.chatter4",
+   "kind": "radio",
+   "speaker": "SERA",
+   "chip": "SERA",
+   "text": "SERA: That's two thousand. Keep burning it until the clock runs out.",
+   "context": "Live mission phase/landing radio",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 6,
+   "recordingId": null,
+   "needsRecording": true
   }
  ]
 }
