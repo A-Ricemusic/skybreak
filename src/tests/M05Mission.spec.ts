@@ -29,7 +29,7 @@ function context(elapsed: number, phase: number, x = M05_START.x, z = M05_START.
 	return { elapsed, phase, requiredKills: 0, destroyed: new Set<string>(), targets, player: { x, z } };
 }
 function rejects(fn: () => void): boolean { const [ok] = pcall(fn); return !ok; }
-/** Missions 3 and 4 are released by their own PRs; fixtures open them so mission 5's unlock can be exercised on main. */
+/** Mission 4 (and mission 3 on older bases) is released by its own PR; fixtures open them so mission 5's unlock can be exercised. */
 function withEarlierMissions(fn: () => void): void {
 	const before = [MISSIONS[2].available, MISSIONS[3].available];
 	MISSIONS[2].available = true; MISSIONS[3].available = true;
@@ -338,11 +338,17 @@ describe("Mission 5 unlock", () => {
 	it("unlocks only after mission 4, in order, and refuses forged, skipped or locked results", () => {
 		const c = fresh();
 		let notified = 0;
-		// On main, missions 3 and 4 are still locked: nothing past mission 2 can be launched or recorded.
-		finish(c, 1); finish(c, 2);
-		expect(highestUnlocked(c.getSlots()[0])).toBe(2);
-		expect(canLaunchMission(5, c.getSlots()[0])).toBe(false);
-		expect(finish(c, 5, {}, () => notified++)).toBe(false);
+		// Without mission 4 released, nothing past the last released mission before it can be launched or recorded.
+		const before = MISSIONS[3].available;
+		MISSIONS[3].available = false;
+		const [ok, err] = pcall(() => {
+			for (let id = 1; id <= 3; id++) if (MissionCatalog.Available(id)) finish(c, id);
+			expect(highestUnlocked(c.getSlots()[0]) <= 3).toBe(true);
+			expect(canLaunchMission(5, c.getSlots()[0])).toBe(false);
+			expect(finish(c, 5, {}, () => notified++)).toBe(false);
+		});
+		MISSIONS[3].available = before;
+		if (!ok) error(err, 0);
 		withEarlierMissions(() => {
 			const d = fresh();
 			const slot = d.getSlots()[0];
