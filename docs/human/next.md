@@ -1,6 +1,6 @@
 # Next
 
-Last updated: 2026-10-29.
+Last updated: 2026-10-30.
 
 **Story with subtitles (D-142, 2026-10-30).** Roblox rejected the regenerated voiceBank01, and the owner's policy is now no more audio uploads ([blockers](blockers.md)). Merging #159 keeps main's six approved voice banks: 78 story beats keep their exact recordings, and every new or changed line is subtitle-only. #159 also rewrites the 10 riskiest lines. Next: merge #159, then carry its story text into M04/M05 integration. Any investigation of the rejection's cause stays offline, using the [preserved case file](../qa/audio-rejections/2026-10-30-voicebank01.md).
 Audio policy (D-142): continue the story in subtitles beyond existing approved voices; changed lines stay silent. No further audio uploads. Any cause investigation must remain offline using the [preserved case file](../qa/audio-rejections/2026-10-30-voicebank01.md).
@@ -69,7 +69,7 @@ See [per-level status](levels.html). Mission 3 #147 is merged; mission 4 [#149](
 
 1. Orchestrator: re-check M04 normal completion, construction failure/player leave and immediate queued relaunch through #147's shared gate. This revision did not launch Studio.
 2. Confirm the D-096 transport escape at 6:48.33 (57,166.079 studs at 140 studs/s); offline tests enforce 6:30–7:00 and sample all transport positions inside soft airspace. The exit heads west back inside the world; the owner should judge this inland turn in beta. Jammers now follow the same hook at 110 studs/s and remain present through transport escape; re-check radar and point availability.
-3. Finish `perf/m04-m05-terrain` for roughly 45–46 s loading and cleanup delays; preserve the single `M04World.Clear(cancelled)` interface. No terrain generation was rewritten here. Then measure Studio and real-phone performance.
+3. Review and merge the `perf/m04-m05-terrain` PR after #149 (D-120). In a Studio Play terrain bench it cut M04 terrain from 66 s to 11.7 s and M05 from 107 s to 37 s; the cleanup is one native clear (M04 8–12 s) through the shared gate, and `M04World.Clear(cancelled)`/`M05World.Clear(cancelled)` stay the registered entry points. Sign Studio back in first (see Blockers), then re-measure the real campaign path and fix M05's water cost (still over 20 s). Real-phone performance remains unmeasured.
 4. Re-check M05 lighting and M03 terrain/LOD presentation. Earlier linked Studio evidence does not verify these M04 changes; no Player test is claimed.
 
 ## Missions 6–9 — specs ready for review
