@@ -24,7 +24,7 @@
         "tutorialStep": "move"
       },
       {
-        "beat": "Select radar: TGT / Tab / Y. Follow marker; turn back if you pass it.",
+        "beat": "Select radar: tap box / TGT / Tab / Y. Turn back if you pass it.",
         "kind": "tutorial_target",
         "label": "Cycle to the training target",
         "tutorialStep": "target"

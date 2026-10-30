@@ -4,6 +4,8 @@ Last updated: 2026-10-29, documentation against `main` at `b359c61`; gameplay/pu
 
 The new 18-mission campaign is live in Roblox Player through the automatic pipeline. **Practice flight, mission 1 and mission 2 are playable; missions 3 to 18 are locked.** The redesign rebuilds missions and worlds to match Ace Combat 04's structure and pacing while keeping the Broken Relay story and original shipped expression. Mission 2 is ready for the owner's beta test; see [Next](next.md).
 
+Targeting update (this branch, pending merge): on a phone, tap an enemy target box to select it. TGT still cycles, now nearest the nose first, with nearby contacts favoured at similar angles. Phone/Player checks are still needed. Build and offline validation pass (768 pure checks); Roblox Jest returned no results within its 180-second deadline.
+
 [Per-level status and test checklist](levels.html) · [Play SKYBREAK](https://www.roblox.com/games/112911685457826)
 
 Mission 2 became playable in #143 after its dormant world (#140) and engine batch A (#138). It unlocks after mission 1 and preserves mission 1 score breakdowns through completion, replays and save reloads. The publish workflow returned place version 92. No agent Player test is claimed.

@@ -1,3 +1,4 @@
+import { TargetPriority, type TargetCandidate } from "../shared/TargetPriority";
 import { canSkipLanding } from "../shared/EngineBatchB";
 import { buildNightLighting } from "./NightLighting";
 import { announceJammerKill, liveJammers, lockAllowed, stepRearm } from "./EngineBatchCRuntime";
@@ -276,7 +277,7 @@ function acquireTarget(session: CombatSession): void {
 	for (const enemy of session.enemies) {
 		if (!ownsEnemy(session, enemy)) continue;
 		const [distance, dot] = targetMetrics(session, enemy);
-		const candidateScore = distance + (dot < 0 ? 5000 : (1 - dot) * 700);
+		const candidateScore = TargetPriority.AcquireScore(distance, dot);
 		const first = priority(enemy);
 		if (!best || (first && !bestPriority) || (first === bestPriority && candidateScore < score)) {
 			best = enemy; score = candidateScore; bestPriority = first;
@@ -285,20 +286,25 @@ function acquireTarget(session: CombatSession): void {
 	session.target = best;
 	session.lockProgress = 0;
 }
-function cycleTarget(session: CombatSession): void {
-	const current = session.target === undefined ? -1 : session.enemies.indexOf(session.target);
-	for (let offset = 1; offset <= session.enemies.size(); offset++) {
-		const candidate = session.enemies[(current + offset) % session.enemies.size()];
-		if (ownsEnemy(session, candidate)) {
-			session.target = candidate; session.lockProgress = 0;
-			// The Mission 1 tutorial watches the CycleTarget event.
-			if (session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.kind === "tutorial_target") {
-				BlueprintRunner.CycleTarget(session.blueprintState, os.clock());
-				phaseDirector.Apply(session);
-			}
-			return;
-		}
+/** Both explicit selection paths notify the tutorial, even when reselecting the same contact. */
+function selectTarget(session: CombatSession, enemy: Enemy): void {
+	session.target = enemy; session.lockProgress = 0;
+	if (session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.kind === "tutorial_target") {
+		BlueprintRunner.CycleTarget(session.blueprintState, os.clock());
+		phaseDirector.Apply(session);
 	}
+}
+function cycleTarget(session: CombatSession): void {
+	const candidates: TargetCandidate[] = [];
+	for (let id = 0; id < session.enemies.size(); id++) {
+		const enemy = session.enemies[id];
+		if (!ownsEnemy(session, enemy)) continue;
+		const [distance, dot] = targetMetrics(session, enemy);
+		candidates.push({ id, distance, dot });
+	}
+	const current = session.target === undefined ? undefined : session.enemies.indexOf(session.target);
+	const nextId = TargetPriority.Next(candidates, current);
+	if (nextId !== undefined) selectTarget(session, session.enemies[nextId]);
 }
 /** Would a missile hurt `enemy` right now: owned, damageable this phase and, for an ace, not immune or held at a stage floor (strikeEnemy). */
 function canHurt(session: CombatSession, enemy: Enemy | undefined): boolean {
@@ -1761,7 +1767,7 @@ export const CombatService = {
 		connections.push(remote(remotes, "CombatAction").OnServerEvent.Connect((player, payload: unknown) => {
 			const session = sessions.get(player);
 			if (!session?.active || !typeIs(payload, "table")) return;
-			const data = payload as { action?: unknown; serial?: unknown };
+			const data = payload as { action?: unknown; serial?: unknown; target?: unknown };
 			if (!typeIs(data.action, "string")) return;
 			const now = os.clock();
 			if (session.loading) {
@@ -1801,6 +1807,12 @@ export const CombatService = {
 				if (action === "FireMissile") launchMissile(session, false);
 				else if (action === "Evade") evade(session);
 				else if (action === "CycleTarget") cycleTarget(session);
+				else if (action === "SelectTarget") {
+					const model = data.target;
+					if (!typeIs(model, "Instance") || !model.IsA("Model")) return;
+					const enemy = session.enemies.find((candidate) => candidate.model === model && ownsEnemy(session, candidate));
+					if (enemy) selectTarget(session, enemy);
+				}
 				else if (action === "Special") activateSpecial(session);
 			}, (message) => abortSession(session, message));
 		}));

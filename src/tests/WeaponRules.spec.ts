@@ -9,6 +9,15 @@ function fuse(from: { x: number; y: number; z: number }, to: { x: number; y: num
 const launchReady = { missiles: 8, missileCooldown: 0, hasTarget: true, lockProgress: 1, distance: 900, dot: 1 };
 
 describe("WeaponRules action gate", () => {
+	it("recognizes selection and rate-limits it independently from cycling and firing", () => {
+		expect(WeaponRules.IsActionKind("SelectTarget")).toBe(true);
+		const gate = WeaponRules.NewActionGate();
+		expect(WeaponRules.AcceptAction(gate, "SelectTarget", 10)).toBe(true);
+		expect(WeaponRules.AcceptAction(gate, "SelectTarget", 10.01)).toBe(false);
+		expect(WeaponRules.AcceptAction(gate, "CycleTarget", 10.01)).toBe(true);
+		expect(WeaponRules.AcceptAction(gate, "FireMissile", 10.01)).toBe(true);
+		expect(WeaponRules.AcceptAction(gate, "SelectTarget", 10 + WeaponRules.ActionWindow + 0.001)).toBe(true);
+	});
 	it("accepts a FIRE right after a TGT tap because kinds are limited independently", () => {
 		const gate = WeaponRules.NewActionGate();
 		expect(WeaponRules.AcceptAction(gate, "CycleTarget", 10)).toBe(true);
