@@ -303,6 +303,7 @@ M10 ending refinement: native clip1380/source2:37:29 has TIME00:05.10; clip1390/
 
 M10 independent-review correction: reopened the local continuous 640×480 proxy at source 2:16:14–2:16:16, sampled at 2 fps in `reference/ac04/frames/m10-m13/m10/heading-review-8174.png` and actually opened the four-frame sheet. The opening heading reads **NE**, not NW. Source times are direct proxy seeks (±0.5 s sampling); no audio inspected or new download. The world sketch now reflects its proposed anchors east-to-west, placing the first base NE of the start while retaining travel distances.
 
+
 ### PR #155 independent-review correction
 
 The orchestrator reports 27 of 28 frame checks confirmed. M08 opening heading is **NW at source1:39:16–1:39:17**, correcting the north-facing world sketch; the revised southeast start coordinate is explicitly proposed, not measured. This follow-up did not re-download footage or claim a new visual inspection. The mission specs also correct the code baseline: no player gun action, eight missiles with one replenished every2.5s, and missing finite-sortie/area/anti-ship weapon contracts where required. These code corrections do not change source-footage observations.
