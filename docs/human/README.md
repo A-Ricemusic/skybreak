@@ -1,6 +1,6 @@
 # SKYBREAK redesign dashboard
 
-Last updated: 2026-10-29, against `main` at `088fbfc`.
+Last updated: 2026-10-29, documentation against `main` at `eb91562`; gameplay/publish baseline remains `088fbfc`.
 
 The new 18-mission campaign is live in Roblox Player through the automatic pipeline. **Practice flight, mission 1 and mission 2 are playable; missions 3 to 18 are locked.** The redesign rebuilds missions and worlds to match Ace Combat 04's structure and pacing while keeping the Broken Relay story and original shipped expression. Mission 2 is ready for the owner's beta test; see [Next](next.md).
 
@@ -19,10 +19,10 @@ Missions 3–5 are in review: [#147](https://github.com/A-Ricemusic/skybreak/pul
 | 3 | The Northern Eye | 0:26:41–0:34:24 | 7.7 min | Yes | Yes | In review #147; world #139 and engine #141 merged, dormant | No | — |
 | 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | Yes | In review #149; assets #142, world #144 and engine #145 merged, dormant | No | — |
 | 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | Yes | In review #148; assets #142, world #144 and engine #145 merged, dormant | No | — |
-| 6 | Invincible Fleet | 1:03:01–1:20:00 | 17.0 min | Yes | — | — | — | — |
-| 7 | Deep Strike | 1:22:13–1:35:49 | 13.6 min | Yes | — | — | — | — |
-| 8 | Shattered Skies | 1:39:16–1:52:39 | 13.4 min | Yes | — | — | — | — |
-| 9 | Operation Bunker Shot | 1:56:14–2:14:14 | 18.0 min | Yes | — | — | — | — |
+| 6 | Invincible Fleet | 1:03:01–1:20:00 | 17.0 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m06.md), [world](../specs/worlds/m06.md)) | Unbuilt / locked | No | — |
+| 7 | Deep Strike | 1:22:13–1:35:49 | 13.6 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m07.md), [world](../specs/worlds/m07.md)) | Unbuilt / locked | No | — |
+| 8 | Shattered Skies | 1:39:16–1:52:39 | 13.4 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m08.md), [world](../specs/worlds/m08.md)) | Unbuilt / locked | No | — |
+| 9 | Operation Bunker Shot | 1:56:14–2:14:14 | 18.0 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m09.md), [world](../specs/worlds/m09.md)) | Unbuilt / locked | No | — |
 | 10 | Tango Line | 2:16:13–2:37:51 | 21.6 min | Yes | Written / in review ([#153](https://github.com/A-Ricemusic/skybreak/pull/153); [mission](../specs/missions/m10.md), [world](../specs/worlds/m10.md)) | Unbuilt / unavailable | No | — |
 | 11 | Escort | 2:39:46–2:45:27 | 5.7 min | Yes | Written / in review ([#153](https://github.com/A-Ricemusic/skybreak/pull/153); [mission](../specs/missions/m11.md), [world](../specs/worlds/m11.md)) | Unbuilt / unavailable | No | — |
 | 12 | Stonehenge Offensive | 2:48:27–3:04:55 | 16.5 min | Yes | Written / in review ([#153](https://github.com/A-Ricemusic/skybreak/pull/153); [mission](../specs/missions/m12.md), [world](../specs/worlds/m12.md)) | Unbuilt / unavailable | No | — |
