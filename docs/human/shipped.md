@@ -1,6 +1,6 @@
 # Shipped
 
-M06/M07 world work is **unmerged / in review** on `feat/m06-m07-worlds`; it changes no currently selectable mission or Player experience. See [M06](../specs/worlds/m06-composition.md) and [M07](../specs/worlds/m07-composition.md). No Studio/Player verification or new asset upload is claimed.
+M06/M07 world work is **unmerged / in review** on `feat/m06-m07-worlds`; it changes no currently selectable mission or Player experience. See [M06](../specs/worlds/m06-composition.md) and [M07](../specs/worlds/m07-composition.md). Review fixes add the local #158 chunk/yield budget model (10.265 s / 14.501 s), distant M06 sea Parts and corrected detail counts. No Studio/Player verification or new asset upload is claimed.
 
 Last updated: 2026-10-29, against `main` at `088fbfc`.
 

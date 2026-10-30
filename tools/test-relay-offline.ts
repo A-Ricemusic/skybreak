@@ -21,7 +21,7 @@ const files=["shared/RobloxAssetIds","shared/UploadedAssetOrientation","tests/M0
 	// Ace Combat-style target boxes: validity, size, blink, ranking and touch keep-outs.
 	"shared/TargetBoxes","tests/TargetBoxes.spec"];
 files.push("shared/CampaignEncounters", "shared/GroundAirDefence", "tests/EnginePracticeSnapshot", "tests/EngineM01Snapshot", "tests/CampaignEncounters.spec");
-files.push("shared/CompactWorldSurface", "shared/M06Limits", "shared/M07Limits", "shared/M06WorldPlan", "shared/M07WorldPlan", "tests/M06M07WorldPlan.spec");
+files.push("shared/M06M07WorldCounts", "shared/CompactWorldSurface", "shared/M06Limits", "shared/M07Limits", "shared/M06WorldPlan", "shared/M07WorldPlan", "tests/M06M07WorldPlan.spec");
 files.push("shared/SealedWorldSurface", "shared/WorldCompositionCounts", "shared/M04Limits", "shared/M05Limits", "shared/M04WorldPlan", "shared/M05WorldPlan", "tests/M04M05WorldPlan.spec");
 files.push("shared/M03WorldPlan", "shared/M03Limits", "tests/M03WorldPlan.spec", "tests/M03Mission.spec");
 files.push("shared/WorldLifecycle", "tests/WorldLifecycle.spec");

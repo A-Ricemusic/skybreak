@@ -1,6 +1,6 @@
 # SKYBREAK redesign dashboard
 
-M06/M07 procedural worlds are in review on `feat/m06-m07-worlds`: [harbour composition](../specs/worlds/m06-composition.md), [array/canyon composition](../specs/worlds/m07-composition.md). Dormant registry only; no mission selects them. Offline geometry/budget checks pass; no Studio/Player/phone verification. Provisional target layouts and measured load/visual acceptance remain open (D-160–D-163).
+M06/M07 procedural worlds are in review on `feat/m06-m07-worlds`: [harbour composition](../specs/worlds/m06-composition.md), [array/canyon composition](../specs/worlds/m07-composition.md). Dormant registry only; no mission selects them. Local #158 chunk/yield estimates are 10.265 s / 14.501 s (≤16 s); M06 uses native water near action and flat distant sea Parts. Offline geometry/budget checks pass; no Studio/Player/phone verification. Provisional target layouts and measured load/visual acceptance remain open (D-160–D-163).
 
 Last updated: 2026-10-29, documentation against `main` at `b359c61`; gameplay/publish baseline remains `088fbfc`.
 

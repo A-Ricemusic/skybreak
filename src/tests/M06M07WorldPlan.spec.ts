@@ -5,10 +5,22 @@ import { M06_BUILD_LIMITS, M06_AIRSPACE } from "../shared/M06Limits";
 import { M07_BUILD_LIMITS, M07_AIRSPACE } from "../shared/M07Limits";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
+import { chunkTouches, compactWorldCounts } from "../shared/M06M07WorldCounts";
 import type { TerrainOp } from "../shared/WorldPlan";
 
 describe("Dormant M06/M07 worlds", () => {
  const a = buildM06Plan(), b = buildM07Plan();
+ it("counts scheduled chunk touches and charges water and full yield frames", () => {
+  const op: TerrainOp = { shape: "block", material: "Rock", x: 64, y: 4, z: 64, sx: 128, sy: 8, sz: 128, yaw: 0 };
+  expect(chunkTouches(op)).toBe(1);
+  expect(chunkTouches({ ...op, x: 0 })).toBe(2);
+  const land = compactWorldCounts({ ops: [op], parts: [], props: [] }, 0);
+  const water = compactWorldCounts({ ops: [{ ...op, material: "Water" }], parts: [], props: [] }, 0);
+  expect(land.yields).toBe(1); expect(water.yields).toBe(1);
+  expect(math.abs(land.estimatedSeconds - 3.20007)).toBeLessThan(1e-6);
+  expect(math.abs(water.estimatedSeconds - 3.6502)).toBeLessThan(1e-6);
+  expect(land.legacyEstimatedSeconds).toBe(water.legacyEstimatedSeconds);
+ });
  it("is deterministic, checkpointed, and never selected by a mission", () => {
   let checkpoints = 0;
   expect(buildM06Plan(606, () => { checkpoints++; })).toEqual(a);
@@ -68,16 +80,17 @@ describe("Dormant M06/M07 worlds", () => {
    expect(a.ops.some(op => op.material === "Water" && math.abs(x - op.x) <= op.sx / 2 && math.abs(z - op.z) <= op.sz / 2 && op.y - op.sy / 2 === 0)).toBe(true);
    expect(a.ops.some(op => op.material !== "Water" && math.abs(x - op.x) < op.sx / 2 && math.abs(z - op.z) < op.sz / 2)).toBe(false);
   }
+  expect(a.parts.some(p => p.name === "Sea")).toBe(true);
   for (const p of [a, b]) for (const f of p.parts) for (const dim of [f.sx, f.sy, f.sz]) { expect(dim).toBeGreaterThan(0); expect(dim).toBeLessThanOrEqual(2048); }
  });
  it("seals every column and shared edge down to Y=0 beyond hard airspace without a floor", () => {
   for (const [p, airspace] of [[a, M06_AIRSPACE], [b, M07_AIRSPACE]] as const) {
    expect(16384).toBeGreaterThan(airspace.hardHalfWidth);
    const caps = new Map<string, number>(), walls = new Map<string, TerrainOp[]>();
-   for (const op of p.ops) {
+   for (const op of [...p.ops, ...p.parts.filter(f => f.name === "Sea").map(f => ({ ...f, shape: "block" as const, material: "Water" as const }))]) {
     expect(op.y - op.sy / 2).toBeGreaterThanOrEqual(0);
     if (op.sx >= 128 && op.sz >= 128) {
-     for (let x = op.x - op.sx / 2; x < op.x + op.sx / 2; x += 128) for (let z = op.z - op.sz / 2; z < op.z + op.sz / 2; z += 128) caps.set(`${x},${z}`, op.y + op.sy / 2);
+     for (let x = op.x - op.sx / 2; x < op.x + op.sx / 2; x += 128) for (let z = op.z - op.sz / 2; z < op.z + op.sz / 2; z += 128) { expect(caps.has(`${x},${z}`)).toBe(false); caps.set(`${x},${z}`, op.y + op.sy / 2); }
     } else {
      const axis = op.sx === 4 ? "x" : "z", edge = math.floor((axis === "x" ? op.x : op.z) / 128 + 0.5) * 128;
      const start = axis === "x" ? op.z - op.sz / 2 : op.x - op.sx / 2, length = axis === "x" ? op.sz : op.sx;
@@ -114,7 +127,8 @@ describe("Dormant M06/M07 worlds", () => {
  });
  it("enforces the ≤16-second calibrated budget and specified weather/time", () => {
   for (const [p, counts, limit] of [[a, m06Counts(a), M06_BUILD_LIMITS], [b, m07Counts(b), M07_BUILD_LIMITS]] as const) {
-   print(`${p.key} BUDGET voxels=${counts.voxels} jobs=${counts.jobs} parts=${counts.parts} props=${counts.props} descendants=${counts.descendants} estimatedSeconds=${counts.estimatedSeconds}`);
+   expect(p.detailCells).toBeGreaterThan(0);
+   print(`${p.key} BUDGET solidTouches=${counts.solidTouches} waterTouches=${counts.waterTouches} yields=${counts.yields} legacyEstimatedSeconds=${counts.legacyEstimatedSeconds} voxels=${counts.voxels} jobs=${counts.jobs} parts=${counts.parts} props=${counts.props} descendants=${counts.descendants} estimatedSeconds=${counts.estimatedSeconds}`);
    expect(counts.voxels).toBeLessThanOrEqual(limit.voxelWrites); expect(counts.jobs).toBeLessThanOrEqual(limit.jobs); expect(counts.parts).toBeLessThanOrEqual(limit.parts);
    expect(counts.props).toBeLessThanOrEqual(limit.props); expect(counts.descendants).toBeLessThanOrEqual(limit.descendants); expect(counts.estimatedSeconds).toBeLessThanOrEqual(limit.estimatedSeconds);
   }

@@ -1,7 +1,7 @@
 import type { EnvironmentSpec } from "./EnvironmentPresets";
 import type { PartSpec, PropSpec } from "./WorldPlan";
 import { compactSurface, surfaceGround, type WorldSurface } from "./CompactWorldSurface";
-import { worldCounts } from "./WorldCompositionCounts";
+import { compactWorldCounts } from "./M06M07WorldCounts";
 export const M06_WORLD_KEY = "m06_military_quays";
 export const M06 = {
  half: 16384, sea: 32, pavement: 48,
@@ -28,6 +28,8 @@ export function m06Height(x: number, z: number): number {
  return 32;
 }
 export const M06_SURFACE: WorldSurface = {
+ // Keep native waves and water depth around every basin, quay and outer-channel ship.
+ nativeWater: (x, z) => M06.basins.some(b => math.abs(x - b.x) < 2200 && math.abs(z - b.z) < 2400) || math.abs(x) < 3400 && math.abs(z - 3840) < 1100,
  height: m06Height, detail: (x, z) => M06.basins.some(b => math.abs(x - b.x) < 3000 && math.abs(z - b.z + 2000) < 1000) || math.abs(x + 6720) < 1600 && math.abs(z - 11520) < 2400,
  material: (x, z) => m06Height(x, z) === 32 ? "Water" : z < -8500 ? "Grass" : "Ground",
 };
@@ -51,7 +53,7 @@ export function m06TargetLayout(): M06Target[] {
  return out;
 }
 export function buildM06Plan(seed = 606, checkpoint: () => void = () => {}) {
- const terrain = compactSurface(M06_SURFACE, checkpoint), parts: PartSpec[] = [], props: PropSpec[] = [];
+ const terrain = compactSurface(M06_SURFACE, checkpoint), parts: PartSpec[] = [...terrain.seaParts], props: PropSpec[] = [];
  const part = (name: string, x: number, y: number, z: number, sx: number, sy: number, sz: number, shape: PartSpec["shape"] = "block", material = "Concrete", color: [number, number, number] = [99, 103, 98]) => parts.push({ name, x, y, z, sx, sy, sz, shape, material, color, yaw: 0, solid: true, grounded: false });
  for (const b of M06.basins) {
   part("Military yard foundation", b.x, 40, b.z - 2800, 1800, 16, 2000);
@@ -82,5 +84,4 @@ export function buildM06Plan(seed = 606, checkpoint: () => void = () => {}) {
  }
  return { ...terrain, key: M06_WORLD_KEY, seed, parts, props, targets };
 }
-// Main lacks #158's estimator: M02/M03 calibration with the requested ×1.5 reserve.
-export const m06Counts = (p: ReturnType<typeof buildM06Plan>) => { const c = worldCounts(p, 36 * 4); return { ...c, estimatedSeconds: c.estimatedSeconds * 1.5 }; };
+export const m06Counts = (p: ReturnType<typeof buildM06Plan>) => compactWorldCounts(p, 36 * 4);

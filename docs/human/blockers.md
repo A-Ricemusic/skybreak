@@ -6,7 +6,7 @@ Last updated: 2026-10-29.
 
 - Studio is signed out; this task explicitly permits offline validation only. Both worlds are in review, unselected and unverified in Studio/Player/on phone. Rendered fidelity, navigation and real load/cleanup performance await a later authenticated session. No action from the owner is needed for this PR.
 - Exact per-target positions and M06 subtype totals remain unknown; D-160 records the finite provisional scenery layout. M07 uses the reconstructed 52 credited ground contacts, preserving the unresolved initial 51-ground discrepancy. Do not activate either mission from scenery counts alone.
-- Main lacks #158’s chunk/yield estimator. D-163 uses the authorized main calibration ×1.5 (10.602 s / 10.716 s, caps 16 s). Native sea and frame costs may be greater; these estimates are not runtime acceptance.
+- Resolved review findings P1/P3: a local #158 chunk/yield model now gates both worlds at ≤16 s (M06 10.265 s, M07 14.501 s), and 256-stud detail counts are fixed and asserted positive. Distant M06 sea Parts cut water touches to 4,224; their rendered seams/materials and runtime timing remain unverified. Target-count reconciliation remains a mission-data activation step.
 
 ## Open
 

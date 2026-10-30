@@ -1,6 +1,6 @@
 import type { PartSpec } from "./WorldPlan";
 import { compactSurface, surfaceGround, type WorldSurface } from "./CompactWorldSurface";
-import { worldCounts } from "./WorldCompositionCounts";
+import { compactWorldCounts } from "./M06M07WorldCounts";
 import { M06_ENVIRONMENT } from "./M06WorldPlan";
 import type { EnvironmentSpec } from "./EnvironmentPresets";
 export const M07_WORLD_KEY = "m07_two_ridges";
@@ -78,4 +78,4 @@ export function buildM07Plan(seed = 707, checkpoint: () => void = () => {}) {
  }
  return { ...terrain, key: M07_WORLD_KEY, seed, parts, props: [], targets: m07TargetLayout() };
 }
-export const m07Counts = (p: ReturnType<typeof buildM07Plan>) => { const c = worldCounts(p, 0); return { ...c, estimatedSeconds: c.estimatedSeconds * 1.5 }; };
+export const m07Counts = (p: ReturnType<typeof buildM07Plan>) => compactWorldCounts(p, 0);

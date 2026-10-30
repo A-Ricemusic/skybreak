@@ -16,19 +16,19 @@ The canyon begins at (0,-7000), passes the exact A/B/C sketch XZ bends (-1920,-4
 
 ## Terrain and lifecycle
 
-`CompactWorldSurface` isolates the #158 floorless approach without changing existing M01–M05 geometry. Every column has a cap at or above Y=0. Shared-edge curtains cover every height discontinuity and the perimeter outside the 16,000-stud hard boundary reaches Y=0. No continuous rock floor and no operation below Y=0. Native sea columns are water only from 0 to 32; no rock bed is touched beneath ship keels. Detail is 256 studs near the action/canyon, 1024 elsewhere. Water writes use 128-stud strips to reduce write jobs; no extra floor chunk layer is allocated. Part dimensions and scaled prop bounds stay ≤2048. Worlds use 0.25-second terrain slices, batched prop yields and registered one-native-clear teardown inside the world gate.
+`CompactWorldSurface` isolates the #158 floorless approach without changing existing M01–M05 geometry. Every column has a cap at or above Y=0. Shared-edge curtains cover every height discontinuity and the perimeter outside the 16,000-stud hard boundary reaches Y=0. No continuous rock floor and no operation below Y=0. Detail is 256 studs near the action/canyon, 1024 elsewhere; both plans report nonzero detail-cell counts. Part dimensions and scaled prop bounds stay ≤2048. Worlds use 0.25-second terrain slices, batched prop yields and registered one-native-clear teardown inside the world gate. M07 has no water or distant sea Parts.
 
 ## Offline budgets and acceptance
 
-Main does not yet include #158's chunk/yield estimator. Per the task, estimates use the existing M02/M03 calibration ×1.5: `3 × (jobs / 27494 × 7.915 + 1)`. This fallback does not predict water-heavy engine frame cost reliably; the ≤16-second estimate is not a load-time guarantee. Runtime measurement remains required before activation. Limits: 600,000,000 voxel writes, 15,000 jobs, 400 Parts including fallback allowance, 60 props, 2,400 descendants, estimate ≤16 s.
+The ≤16 s gate uses a minimal local copy of [PR #158](https://github.com/A-Ricemusic/skybreak/pull/158)'s Studio-calibrated chunk/yield model (D-120/D-121), pending later unification on main. Scheduled jobs touch 128-stud terrain chunks: solid work costs 0.07 ms/touch, water 0.2 ms/touch; `yields = ceil(work / 0.25)`, `frame = 0.2 + 0.45 × waterWork / work`, and estimate is `work + yields × frame + 3 s`. The legacy job estimator ×1.5 is reported separately for comparison, not acceptance. Neither estimate is a runtime measurement; Studio/Player/phone acceptance remains pending. Limits: 600,000,000 voxel writes, 15,000 jobs, 400 Parts including fallback allowance, 60 props, 2,400 descendants, estimate ≤16 s.
 
-145,820,672 voxel writes · 8,934 jobs · 107 Parts · 0 props · 363 reserved descendants · **10.716 s estimated**.
+145,820,672 voxel writes · 8,934 jobs · 90,014 solid + 0 water chunk touches · 26 modeled yields · 107 Parts · 0 props · 363 reserved descendants · **14.501 s chunk/yield estimate; 10.716 s legacy job estimate ×1.5**.
 
-Checks: deterministic plans, exact sketch anchors, provisional target counts/ids, supported nonoverlapping target footprints, rotated prop supports, ship water/keel footprints, all caps/curtains and perimeter sealing, pavement clearance and Part limits; M07 also checks the low escape tube against terrain and scenery. Full `bun install --frozen-lockfile`, `bun run build`, and `LUAU_BIN=... bun run validate:offline` are required. Studio deliberately not launched (signed out). Visual fidelity, actual navigation/load/cleanup timing and real-phone quality remain pending.
+Checks: deterministic plans, exact sketch anchors, provisional target counts/ids, supported nonoverlapping target footprints, rotated prop supports, ship water/keel footprints, all caps/curtains and perimeter sealing, pavement clearance and Part limits; M07 also checks the low escape tube against terrain and scenery. Validation passed: `bun install --frozen-lockfile`, `bun run build`, and `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau" bun run validate:offline` (764 offline Luau domain tests, 122 Python tests, and all remaining gate checks). Studio deliberately not launched (signed out). Visual fidelity, actual navigation/load/cleanup timing and real-phone quality remain pending.
 
 ## Target table
 
-All positions studs; yaw radians. IDs count a contact once, independent of its visual Part count. Scenery only; no score or activation is inferred.
+All positions studs; yaw radians. IDs count a contact once, independent of its visual Part count. Scenery only; no score or activation is inferred. Target-count reconciliation remains a mission-data activation step, including M06 subtype totals and M07’s initial 51-versus-52 credited discrepancy.
 
 | Type | Count |
 |---|---:|

@@ -2,7 +2,7 @@
 
 ## M06/M07 worlds — in review
 
-Review the dormant [M06 harbour](../specs/worlds/m06-composition.md) and [M07 array/canyon](../specs/worlds/m07-composition.md) worlds, including their complete target tables. Offline estimates: 10.602 s / 10.716 s under the 16 s caps; actual load cost is unmeasured. Once Studio is authenticated, inspect silhouette, materials, low canyon flight, waterline props and service approach against the accepted specs, then measure terrain/build/clear on desktop and phone. Resolve M06 subtype totals and M07 51-versus-52 accounting before mission activation. No Studio launch is authorized in this work; no catalog/unlock changes are included.
+Review the dormant [M06 harbour](../specs/worlds/m06-composition.md) and [M07 array/canyon](../specs/worlds/m07-composition.md) worlds, including their complete target tables. Chunk/yield estimates: 10.265 s / 14.501 s under the 16 s caps (legacy jobs ×1.5: 6.384 s / 10.716 s); actual load cost is unmeasured. Once Studio is authenticated, inspect silhouette, materials, low canyon flight, waterline props and service approach against the accepted specs, then measure terrain/build/clear on desktop and phone. Resolve M06 subtype totals and M07 51-versus-52 accounting before mission activation. No Studio launch is authorized in this work; no catalog/unlock changes are included.
 
 Last updated: 2026-10-29.
 
