@@ -29,6 +29,10 @@ export interface Enemy {
 	scramble?: { spawn: import("../shared/MissionCatalog").FlightPoint; heading: number; startedAt: number };
 	friendly?: boolean;
 	combatTarget?: Enemy;
+	playerThreatUntil?: number;
+	targetSlot?: number;
+	/** Tail-only break grace through an overshoot extend and three seconds of recovery. */
+	tailBreakAfter?: number;
 	/** Target copied when the hostile windup begins; undefined during a windup means the player. */
 	windupTarget?: Enemy;
 	alliedAmmo?: number;
