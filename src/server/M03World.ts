@@ -4,6 +4,7 @@ import { M03_TARGET_TYPES } from "../shared/missions/m03";
 import { adoptGroundTarget } from "./GroundTargetFactory";
 import { Scenery } from "./Scenery";
 import { registerWorldClear } from "./WorldLifecycleRuntime";
+import { clearTerrainIfDirty, markTerrainClean } from "./TerrainState";
 import type { TerrainOp } from "../shared/WorldPlan";
 import { material, TerrainWriter } from "./TerrainWriter";
 import { WorldEnvironment } from "./WorldEnvironment";
@@ -46,11 +47,12 @@ export function placeM03Target(parent: Instance, t: M03Target): Model {
 let writtenOps: TerrainOp[] | undefined;
 /**
  * Mission 3's world clear (D-067), run through the world gate: Air over exactly the recorded shell ops in the
- * build's bounded, yielding jobs, instead of a native Terrain:Clear() that froze the server for 10-30 s.
+ * build's bounded, yielding jobs, instead of a native Terrain:Clear() that froze the server for 17.6 s (measured).
  */
 export function clearM03World(cancelled: () => boolean): void {
-	if (writtenOps === undefined) { Workspace.Terrain.Clear(); return; }
-	if (TerrainWriter.Clear(writtenOps, cancelled, 0.008, M03_FILL_CHUNK)) writtenOps = undefined;
+	if (writtenOps === undefined) { clearTerrainIfDirty(); return; }
+	// 30 ms slices: measured 49.7 s for the whole shell with the server responsive (8 ms slices took 75-88 s).
+	if (TerrainWriter.Clear(writtenOps, cancelled, 0.03, M03_FILL_CHUNK)) { writtenOps = undefined; markTerrainClean(); }
 }
 registerWorldClear(M03_WORLD_KEY, clearM03World);
 

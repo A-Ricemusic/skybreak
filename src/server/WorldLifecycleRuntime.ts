@@ -1,5 +1,5 @@
-import { Workspace } from "@rbxts/services";
 import { LifecycleScheduler, WorldClear, WorldLifecycle } from "../shared/WorldLifecycle";
+import { clearTerrainIfDirty } from "./TerrainState";
 
 /** Roblox scheduler: isolated work runs in a deferred thread; a thread killed by the script timeout reads as ended. */
 export const robloxScheduler: LifecycleScheduler = {
@@ -24,14 +24,15 @@ const clears = new Map<string, WorldClear>();
 /**
  * Registers a world's own clear, keyed by its catalog world key (MissionCatalog.WorldKey). It runs in its own
  * thread through the world gate (WorldLifecycle): it may yield in bounded jobs, should return once `cancelled()`
- * is true, and must leave no mission terrain behind. Worlds without one use Terrain:Clear().
+ * is true, and must leave no mission terrain behind; on success it should call markTerrainClean() (TerrainState) so
+ * the next build skips the native clear. Worlds without one use a native Terrain:Clear().
  */
 export function registerWorldClear(worldKey: string, clear: WorldClear): void {
 	assert(worldKey.size() > 0, "World clear needs a world key");
 	clears.set(worldKey, clear);
 }
 export function worldClear(worldKey?: string): WorldClear {
-	return (worldKey !== undefined ? clears.get(worldKey) : undefined) ?? (() => Workspace.Terrain.Clear());
+	return (worldKey !== undefined ? clears.get(worldKey) : undefined) ?? (() => clearTerrainIfDirty());
 }
 /** The server's single world gate (see WorldLifecycle). */
 export const worldLifecycle = new WorldLifecycle(robloxScheduler);

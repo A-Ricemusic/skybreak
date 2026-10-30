@@ -2,6 +2,8 @@ import { describe, expect, it } from "@rbxts/jest-globals";
 import { registerWorldClear, robloxScheduler, worldClear } from "../server/WorldLifecycleRuntime";
 import { WorldLifecycle } from "../shared/WorldLifecycle";
 import { clearM03World } from "../server/M03World";
+import { Workspace } from "@rbxts/services";
+import { beginTerrainWrite, clearTerrainIfDirty, markTerrainClean, terrainDirty } from "../server/TerrainState";
 
 // Studio only: the real task-library scheduler behind the server's world gate.
 describe("World lifecycle runtime (Studio)", () => {
@@ -34,5 +36,22 @@ describe("World lifecycle runtime (Studio)", () => {
 		expect(worldClear("m03_snow_radar")).toBe(clearM03World);
 		expect(worldClear("no_such_world")).never.toBe(clearM03World);
 		expect(typeIs(worldClear(undefined), "function")).toBe(true);
+	});
+	it("runs the native terrain clear only when terrain may hold something", () => {
+		const probe = (): number => {
+			const [, occupancy] = Workspace.Terrain.ReadVoxels(new Region3(new Vector3(9000, 4000, 9000), new Vector3(9008, 4008, 9008)), 4);
+			return occupancy[0][0][0];
+		};
+		beginTerrainWrite();
+		Workspace.Terrain.FillBlock(new CFrame(9004, 4004, 9004), new Vector3(8, 8, 8), Enum.Material.Rock);
+		expect(terrainDirty()).toBe(true);
+		// A registered clear that removed its own writes marks the terrain clean; no native clear follows.
+		markTerrainClean();
+		clearTerrainIfDirty();
+		expect(probe()).toBeGreaterThan(0);
+		beginTerrainWrite();
+		clearTerrainIfDirty();
+		expect(terrainDirty()).toBe(false);
+		expect(probe()).toBe(0);
 	});
 });
