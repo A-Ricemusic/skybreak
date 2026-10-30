@@ -7,12 +7,12 @@
    "lines": 56,
    "meanRate": 0.9862,
    "minRate": 0.864,
-   "flagged": [
+   "flagged": [],
+   "acceptedUnder90": [
     "story.c05.b01",
     "story.c05.b05",
     "story.c07.b04"
    ],
-   "acceptedUnder90": [],
    "perLine": {
     "story.c00.b00": {
      "rate": 1.0,
@@ -192,7 +192,8 @@
     "story.c05.b01": {
      "rate": 0.864,
      "heard": "Kiro talks to Lira. Lira talks to Meril. Meril talks to the harbors. Start at the keys. Listen back up the chain.",
-     "flag": true
+     "flag": false,
+     "acceptedBecause": "Fictional-name homophone Merel → Meril and quays → keys; harbours → harbors is British/American spelling. Cached transcript retains the words and meaning."
     },
     "story.c05.b02": {
      "rate": 1.0,
@@ -212,7 +213,8 @@
     "story.c05.b05": {
      "rate": 0.895,
      "heard": "Workers are two blocks from those keys. The ships and tankers are his supply line. Their neighbors are not.",
-     "flag": true
+     "flag": false,
+     "acceptedBecause": "Homophone quays → keys and British/American spelling neighbours → neighbors; no dialogue omitted in cached STT."
     },
     "story.c05.b06": {
      "rate": 1.0,
@@ -277,7 +279,8 @@
     "story.c07.b04": {
      "rate": 0.889,
      "heard": "Keep the lights on, Sarah. I'll keep the sky.",
-     "flag": true
+     "flag": false,
+     "acceptedBecause": "Fictional-name homophone Sera → Sarah; all other words match cached STT."
     },
     "story.c08.b00": {
      "rate": 1.0,
@@ -301,10 +304,10 @@
    "lines": 57,
    "meanRate": 0.9909,
    "minRate": 0.75,
-   "flagged": [
+   "flagged": [],
+   "acceptedUnder90": [
     "story.c16.b01"
    ],
-   "acceptedUnder90": [],
    "perLine": {
     "story.c08.b03": {
      "rate": 1.0,
@@ -534,7 +537,8 @@
     "story.c16.b01": {
      "rate": 0.75,
      "heard": "Recorder 7T, entry oh four twelve. Playback.",
-     "flag": true
+     "flag": false,
+     "acceptedBecause": "Number formatting seven-T → 7T; oh-four-twelve → oh four twelve is punctuation/tokenisation. Cached STT retains the full recorder header."
     },
     "story.c16.b02": {
      "rate": 1.0,
@@ -598,7 +602,8 @@
    "lines": 55,
    "meanRate": 0.9825,
    "minRate": 0.833,
-   "flagged": [
+   "flagged": [],
+   "acceptedUnder90": [
     "radio.m09.story.2",
     "radio.m15.story.1",
     "radio.m03.p1.beat",
@@ -606,7 +611,6 @@
     "radio.m03.p3.landing2",
     "radio.m03.p3.landing5"
    ],
-   "acceptedUnder90": [],
    "perLine": {
     "story.c17.b05": {
      "rate": 1.0,
@@ -716,7 +720,8 @@
     "radio.m09.story.2": {
      "rate": 0.889,
      "heard": "The landing is through. There is smoke over Teclin.",
-     "flag": true
+     "flag": false,
+     "acceptedBecause": "Fictional-name homophone Teklan → Teclin; all other words match cached STT."
     },
     "radio.m10.story.1": {
      "rate": 1.0,
@@ -771,7 +776,8 @@
     "radio.m15.story.1": {
      "rate": 0.889,
      "heard": "Loyalist troops below. Keep Rusk's armor off their streets.",
-     "flag": true
+     "flag": false,
+     "acceptedBecause": "British/American spelling armour → armor; no dialogue change in cached STT."
     },
     "radio.m15.story.2": {
      "rate": 1.0,
@@ -841,7 +847,8 @@
     "radio.m03.p1.beat": {
      "rate": 0.833,
      "heard": "Enemy airspace. Site one is on the ridge northwest of you.",
-     "flag": true
+     "flag": false,
+     "acceptedBecause": "Compound tokenisation north-west → northwest; all words retained in cached STT."
     },
     "radio.m03.p1.chatter1": {
      "rate": 1.0,
@@ -851,7 +858,8 @@
     "radio.m03.p1.chatter2": {
      "rate": 0.833,
      "heard": "Five domes down. Site two is on the saddle west-northwest.",
-     "flag": true
+     "flag": false,
+     "acceptedBecause": "Compound tokenisation west-north-west → west-northwest; all words retained in cached STT."
     },
     "radio.m03.p1.chatter3": {
      "rate": 1.0,
@@ -866,7 +874,8 @@
     "radio.m03.p3.landing2": {
      "rate": 0.857,
      "heard": "Runway in sight. You're on the center line.",
-     "flag": true
+     "flag": false,
+     "acceptedBecause": "British/American spelling and compound tokenisation centreline → center line; cached STT retains the full landing instruction."
     },
     "radio.m03.p3.landing3": {
      "rate": 1.0,
@@ -881,7 +890,8 @@
     "radio.m03.p3.landing5": {
      "rate": 0.889,
      "heard": "Welcome home. Sarah wants that film before you unstrap.",
-     "flag": true
+     "flag": false,
+     "acceptedBecause": "Fictional-name homophone Sera → Sarah; all other words match cached STT."
     }
    }
   }

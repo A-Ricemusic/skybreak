@@ -439,6 +439,35 @@ def transcribe(key, path):
     return api("POST", "/v1/speech-to-text", key, body, {"Content-Type": "multipart/form-data; boundary=" + boundary}, timeout=600)
 
 
+def cmd_stt_offline(args):
+    """Re-score stored heard strings only; never access the API or audio files."""
+    plan = load_json(VOICE / "upload-plan.json")
+    transcripts = load_json(VOICE / "transcripts.json")
+    result = load_json(VOICE / "stt.json")
+    accepted = casting().get("sttAccepted", {})
+    for bank in plan["banks"]:
+        check = result["banks"][bank["id"]]
+        if check["sha256"] != bank["sha256"]:
+            raise ValueError(f"{bank['id']}: cached STT belongs to a different audio hash")
+        rows = check["perLine"]
+        if set(rows) != {m["id"] for m in bank["members"]}:
+            raise ValueError(f"{bank['id']}: cached STT membership differs from upload plan")
+        for id, row in rows.items():
+            line = transcripts[id]
+            expected = line["text"].split(": ", 1)[-1] if line["text"] != line["spoken"] else line["text"]
+            rate = max(match_rate(expected, row["heard"]), match_rate(line["spoken"], row["heard"]))
+            row.update(rate=round(rate, 3), flag=rate < 0.9)
+            row.pop("acceptedBecause", None)
+            if row["flag"] and id in accepted:
+                row.update(flag=False, acceptedBecause=accepted[id])
+        rates = [r["rate"] for r in rows.values()]
+        check.update(lines=len(rows), meanRate=round(sum(rates) / len(rates), 4), minRate=min(rates),
+                     flagged=[id for id, r in rows.items() if r["flag"]],
+                     acceptedUnder90=[id for id, r in rows.items() if "acceptedBecause" in r])
+        print(f"{bank['id']}: {len(check['flagged'])} flagged, {len(check['acceptedUnder90'])} accepted under 90% (cached STT only)")
+    save_json(VOICE / "stt.json", result)
+
+
 def cmd_stt(args):
     key = Path(args.key_file).read_text().strip()
     plan = load_json(VOICE / "upload-plan.json")
@@ -594,13 +623,14 @@ def main():
     stt = sub.add_parser("stt")
     stt.add_argument("--key-file", required=True)
     stt.add_argument("--only")
+    sub.add_parser("stt-offline", help="re-score existing stt.json heard strings without API access")
     sub.add_parser("checklist")
     voices = sub.add_parser("voices")
     voices.add_argument("--key-file", required=True)
     sub.add_parser("sampler")
     args = parser.parse_args()
     {"plan": cmd_plan, "generate": cmd_generate, "pack": cmd_pack, "stt": cmd_stt, "checklist": cmd_checklist,
-     "voices": cmd_voices, "sampler": cmd_sampler}[args.command](args)
+     "voices": cmd_voices, "sampler": cmd_sampler, "stt-offline": cmd_stt_offline}[args.command](args)
 
 
 if __name__ == "__main__":

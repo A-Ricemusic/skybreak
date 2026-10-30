@@ -1,5 +1,7 @@
 # Decisions
 
+VOICE-161 (2026-10-29, implementation following owner instructions; adopted for draft #161): retain the exact three Ogg exports and 90% raw STT threshold; accept only the 10 individually explained spelling/homophone/tokenisation/number differences via `casting.json` `sttAccepted`. Alternative: regenerate audio or globally loosen matching. Reasons: cached heard strings explain the discrepancies and audio must remain byte-identical. `voice.py stt-offline` recomputes scores from cached heard strings without API access. Human listening remains false, following the prior transcript/STT/casting-only review precedent; exact-hash independent upload approval is still required. Retire old story aliases after exact speaker/text verification for all 122 beats; the regenerated manifest records 168 packed lines and zero pending takes. Permission preparation includes only active, hash-verified approved assets, omitting empty voice IDs. Keep the conservative 390-second project cap; the uploader no longer labels it Roblox’s platform limit.
+
 Last updated: 2026-10-29.
 
 | ID | Date | Decision | Alternatives considered | Why | Decided by | Status |

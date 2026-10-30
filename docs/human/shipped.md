@@ -1,5 +1,7 @@
 # Shipped
 
+Unmerged voice work: draft [#161](https://github.com/A-Ricemusic/skybreak/pull/161) is not a shipped change. Its 168-line inventory has empty asset IDs pending review/upload; this follow-up performs no upload, merge, Studio test or Player test. The merged history below is unchanged.
+
 Last updated: 2026-10-29, against `main` at `7d73c44`.
 
 [Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). The new 18-mission campaign is live by pipeline: practice flight and missions 1–3 are playable; missions 4–18 are locked. The latest merged gameplay revision is `7d73c44` (#147, mission 3). The story remap (#159) aligns chapters/documents with the 18-mission campaign, preserves M5 escape and returns Vulture Lead at M17. New dialogue awaits separate recordings; Studio/Player verification remains pending. Last recorded publish before the story remap returned place version **94** ([run](https://github.com/A-Ricemusic/skybreak/actions/runs/40963804844)). See [per-level status](levels.html). The 2026-10-29 publish logs confirmed the official place and returned place versions **85** (#130), **86** (#134), **87** (#140), **88** (#138), **88** (#137), **89** (#139), **90** (#141), **91** (#142) and **92** (#143). Gameplay merges are live through automatic CI/CD under the owner's convention; documentation-only changes add no game content. PR #131 merged only into `feat/campaign-switch-m01`, not `main`; #132 closed without merging, so neither is listed as shipped below.

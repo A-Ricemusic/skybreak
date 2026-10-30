@@ -1,5 +1,8 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { MISSIONS, MissionCatalog, MissionPhaseBlueprint } from "./LegacyCatalog";
+import { MISSIONS, MissionPhaseBlueprint } from "../shared/MissionCatalog";
+import { MISSION_STORY_TEXT } from "../shared/StoryMissionText";
+import { AceRules } from "../shared/AceRules";
+import { Difficulty } from "../shared/Difficulty";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { STORY, speakerStyle } from "../shared/RelayStory";
 import { VOICE_BANK_ASSETS } from "../shared/VoiceBanks";
@@ -9,6 +12,7 @@ import { VOICE_TAIL, Voice, VoiceLibrary, cinematicBeatSeconds, duckGain, storyL
 function radioTexts(): string[] {
 	const out: string[] = [];
 	const phase = (p: MissionPhaseBlueprint) => {
+		for (const c of p.landing?.radio ?? []) out.push(c.text);
 		if (p.beat !== undefined) out.push(p.beat);
 		for (const c of p.chatter ?? []) out.push(c.text);
 		for (const g of p.groupCalls ?? []) out.push(g);
@@ -23,6 +27,7 @@ function radioTexts(): string[] {
 		for (const s of bp.aceStages ?? []) out.push(s);
 		for (const s of bp.aceReturns ?? []) out.push(s);
 	}
+	for (let id = 4; id <= 18; id++) for (const text of MISSION_STORY_TEXT[id].radio) out.push(text);
 	return out;
 }
 
@@ -61,32 +66,62 @@ describe("voice-over cue lookup", () => {
 });
 
 describe("shipped voice table", () => {
-	it("reuses exact speaker/text recordings and leaves changed lines silent", () => {
-		let recorded = 0, pending = 0;
+	it("records all 122 current story beats with exact text and speaker, independently of upload", () => {
+		const assets: Record<string, string> = {};
+		for (const [bank] of pairs(VOICE_BANK_ASSETS)) assets[bank as string] = "rbxassetid://1";
+		const uploaded = new VoiceLibrary(VOICE_CUES, assets);
+		const aliases: Record<string, string> = { MARSHAL: "RUSK", "FLIGHT LOG": "LOG", "RECORDER 7-T": "RECORDER" };
+		let recorded = 0;
 		for (const chapter of STORY) chapter.beats.forEach((beat, index) => {
-			const clip=Voice.Story(chapter.id,index,beat.text);
-			if (beat.recordingId === undefined) { expect(clip).toBeUndefined(); pending++; }
-			else { const cue=VOICE_CUES[beat.recordingId]; expect(cue.text).toBe(beat.text); expect(cue.speaker).toBe(speakerStyle(beat.speaker).name === "MARSHAL" ? "RUSK" : speakerStyle(beat.speaker).name === "FLIGHT LOG" ? "LOG" : speakerStyle(beat.speaker).name === "RECORDER 7-T" ? "RECORDER" : speakerStyle(beat.speaker).name); expect(clip).toBeDefined(); recorded++; }
+			const id = storyLineId(chapter.id, index);
+			const cue = VOICE_CUES[id];
+			expect(cue.text).toBe(beat.text);
+			const name = speakerStyle(beat.speaker).name;
+			expect(cue.speaker).toBe(aliases[name] ?? name);
+			expect(cue.radio).toBe(false);
+			expect(uploaded.Story(chapter.id, index, beat.text)?.id).toBe(id);
+			expect(uploaded.Story(chapter.id, index, beat.text + " edited")).toBeUndefined();
+			recorded++;
 		});
-		expect(recorded).toBe(78);
-		expect(pending).toBe(44);
+		expect(recorded).toBe(122);
 	});
-	it("maps catalog radio except explicitly subtitle-only M1 safety instructions", () => {
+	it("covers current catalog and planned story radio exactly, including landing instructions", () => {
 		const texts = radioTexts();
-		expect(texts.size()).toBeGreaterThan(250);
-		// Revised M1 safety instructions intentionally have no recording: never play the old
-		// long-hold instructions over the new subtitles. Asset generation is a separate task.
-		const subtitleOnly = new Set(MissionCatalog.Get(1).phases.map(phase => phase.beat!));
-		expect(subtitleOnly.size()).toBe(4);
-		for (const text of [BlueprintRunner.LiveWarning, BlueprintRunner.PracticeReset]) expect(Voice.Radio(text)).toBeUndefined();
+		expect(texts.size()).toBe(46);
+		const expected = new Set(texts);
+		let recorded = 0;
 		for (const text of texts) {
-			if (subtitleOnly.has(text)) expect(Voice.Radio(text)).toBeUndefined();
-			else expect(Voice.RadioId(text) !== undefined ? text : `UNMAPPED ${text}`).toBe(text);
+			const id = Voice.RadioId(text);
+			expect(id).toBeDefined();
+			if (id !== undefined) expect(VOICE_CUES[id].text).toBe(text);
+			expect(Voice.RadioId(text + " edited")).toBeUndefined();
 		}
+		for (const [, cue] of pairs(VOICE_CUES)) if (cue.radio) {
+			expect(expected.has(cue.text)).toBe(true);
+			recorded++;
+		}
+		expect(recorded).toBe(46);
+		for (const text of [BlueprintRunner.LiveWarning, BlueprintRunner.PracticeReset]) expect(Voice.Radio(text)).toBeUndefined();
 	});
-	it("voices the server's ace wing calls for every difficulty's raider count", () => {
-		expect(Voice.RadioId("SERA: VULTURE LEAD pulled back to call his wing. 1 inbound.")).toBeDefined();
-		expect(Voice.RadioId("SERA: AIR MARSHAL RUSK pulled back to call his wing. 3 inbound.")).toBeDefined();
+	it("covers any current ace wing calls and excludes obsolete legacy calls", () => {
+		// Current missions have standalone aces, with no staged raider calls. If a
+		// staged ace is authored, every difficulty/count must acquire an exact cue.
+		let calls = 0;
+		for (const bp of MISSIONS) {
+			if (bp.aceName === undefined) continue;
+			let total = 0;
+			for (const phase of bp.phases) if (phase.kind === "ace") total = phase.optionalRaiders ?? 0;
+			for (const kind of Difficulty.Order) for (let stage = 1; stage <= 2; stage++) {
+				const base = AceRules.RaidersForStage(total, stage);
+				if (base <= 0) continue;
+				const count = base + Difficulty.Behaviour(kind).extraRaiders;
+				expect(Voice.RadioId(`SERA: ${bp.aceName} pulled back to call his wing. ${count} inbound.`)).toBeDefined();
+				calls++;
+			}
+		}
+		expect(calls).toBe(0);
+		for (const text of ["SERA: VULTURE LEAD pulled back to call his wing. 1 inbound.",
+			"SERA: AIR MARSHAL RUSK pulled back to call his wing. 3 inbound."]) expect(Voice.RadioId(text)).toBeUndefined();
 	});
 	it("never voices HUD system text or the trainee on the radio", () => {
 		for (const text of ["MISSION FAILED", "MISSION ACCOMPLISHED · RETURN TO BASE", "Select the radar: TGT / Tab / Y",
@@ -108,16 +143,22 @@ describe("shipped voice table", () => {
 			for (let i = 1; i < list.size(); i++) expect(list[i][0]).toBeGreaterThanOrEqual(list[i - 1][1] + 0.2);
 		}
 	});
-	it("keeps Teal's recordings on tape and gives every speaker in a cue a known chip name", () => {
-		for (const chapter of STORY) chapter.beats.forEach((beat, index) => {
-			if (beat.recordingId === undefined) return;
-			const cue = VOICE_CUES[beat.recordingId];
-			if (speakerStyle(beat.speaker).name === "TEAL") expect(cue.tape).toBe(true);
-		});
+	it("keeps Teal and recorder cues on tape, with all other speakers untreated", () => {
+		let cues = 0;
+		for (const [, cue] of pairs(VOICE_CUES)) {
+			expect(cue.tape).toBe(cue.speaker === "TEAL" || cue.speaker === "RECORDER");
+			cues++;
+		}
+		expect(cues).toBe(168);
 	});
 	it("stays silent for every line whose bank has no approved asset yet", () => {
 		for (const [id, cue] of pairs(VOICE_CUES)) {
-			if (VOICE_BANK_ASSETS[cue.bank] === "") expect(Voice.Clip(id as string, cue.text)).toBeUndefined();
+			if (VOICE_BANK_ASSETS[cue.bank] === "") {
+				expect(Voice.Clip(id as string, cue.text)).toBeUndefined();
+				const uploaded = new VoiceLibrary(VOICE_CUES, { [cue.bank]: "rbxassetid://1" });
+				expect(uploaded.Clip(id as string, cue.text)).toBeDefined();
+				expect(uploaded.Clip(id as string, cue.text + " edited")).toBeUndefined();
+			}
 			else expect(Voice.Clip(id as string, cue.text)?.assetId).toBe(VOICE_BANK_ASSETS[cue.bank]);
 		}
 	});

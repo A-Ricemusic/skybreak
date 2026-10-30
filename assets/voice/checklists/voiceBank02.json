@@ -40,12 +40,10 @@
    "note": "ElevenLabs library premades only; no cloning, no voice design prompts naming people."
   },
   "speechToTextMatch": {
-   "pass": false,
+   "pass": true,
    "meanRate": 0.9909,
    "minRate": 0.75,
-   "flagged": [
-    "story.c16.b01"
-   ]
+   "flagged": []
   },
   "durationUnderRobloxLimit": {
    "pass": true

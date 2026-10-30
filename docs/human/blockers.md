@@ -1,10 +1,12 @@
 # Blockers
 
+Voice #161: cached STT exceptions are resolved (3/1/6 per bank), with raw rates retained. Upload dry-run still blocks all three banks because `review.json` approvals reference earlier audio hashes; the reported independent review has not been recorded for these exports. All `VoiceBanks.ts` IDs remain intentionally empty. No audio was regenerated, uploaded or listened to in this fix. This draft remains unmerged.
+
 Last updated: 2026-10-29.
 
 ## Open
 
-Story PR follow-up: Studio/Player chapter sequencing and audible output are pending; Studio is signed out and the queue is busy. New/rewritten lines remain subtitle-only until separately generated, reviewed and uploaded. This is not a gameplay unlock blocker.
+Story PR follow-up: Studio/Player chapter sequencing and audible output are pending; Studio is signed out and the queue is busy. All regenerated lines in draft #161 remain subtitle-only until their exact banks are reviewed and uploaded. This is not a gameplay unlock blocker.
 
 | Date | Raised by | What is blocked | Impact | What is needed |
 |---|---|---|---|---|
@@ -20,7 +22,7 @@ Story PR follow-up: Studio/Player chapter sequencing and audible output are pend
 
 ## Resolved
 
-**Chapters keyed to 27 missions (mission 5 agent): resolved by #159.** Production story/document tables now use c0–18, M5 escape does not imply Vulture Lead died, and the finale is “A clear frequency”. Immutable old audio IDs and test-only legacy snapshots are retained; see [audit](../specs/story/routing-audit.md). Studio verification remains pending.
+**Chapters keyed to 27 missions (mission 5 agent): resolved by #159.** Production story/document tables now use c0–18, M5 escape does not imply Vulture Lead died, and the finale is “A clear frequency”. The #159 baseline retained immutable old audio IDs and test-only legacy snapshots; draft #161 now points story recording references at the regenerated exact transcripts; see [audit](../specs/story/routing-audit.md). Studio verification remains pending.
 
 | Date | Raised by | What was blocked | Resolution |
 |---|---|---|---|

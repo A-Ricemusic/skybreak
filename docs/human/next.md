@@ -1,5 +1,7 @@
 # Next
 
+Voice follow-up [#161](https://github.com/A-Ricemusic/skybreak/pull/161): record an independent review for the three current exact bank hashes, then perform a separately authorized upload and audible verification before merge. Automated STT/checklists now pass with 10 explicit accepted exceptions; transcript/STT/casting review does not imply human listening.
+
 Last updated: 2026-10-29.
 
 **Voice HALT (2026-10-30).** Roblox rejected the regenerated voiceBank01, and all uploads are halted ([blockers](blockers.md)). In order: (1) **You:** look for a violation notice for asset 97298487668258 and appeal once. (2) Merge-ready prep: #159 rewrites 10 risky lines (D-141); #161 reuses the approved live takes and packs only new takes into three small banks. (3) With the ElevenLabs key, regenerate only the changed lines, then run speech-to-text and the new checklists. (4) Upload one bank at a time, N1 → N2 → N3, each after its own independent 10/10 review. Stop on any rejection. Waiting about 48 h for the appeal or the notice category is recommended before the first new upload.
@@ -46,7 +48,7 @@ Mission and world specs are in review in [PR #155](https://github.com/A-Ricemusi
 
 - Mission and world specs for 10–13 are in review in [PR #153](https://github.com/A-Ricemusic/skybreak/pull/153): [M10](../specs/missions/m10.md), [M11](../specs/missions/m11.md), [M12](../specs/missions/m12.md), [M13](../specs/missions/m13.md), with companion world specs. Unresolved rosters, rank cuts and layout assumptions remain explicit. Missions remain unbuilt, locked and unavailable; no Player verification.
 
-Story remap #159 is implemented (D-130/D-131): use its [0–18 routing audit](../specs/story/routing-audit.md), retain its story text when integrating M04/M05 gameplay, then generate/review the [pending voice script](../specs/story/voice-script.md) in a separate secure-key step. Studio and audible Player verification are pending. Mission 18 retains the one-on-one Rusk duel (D-031).
+Story remap #159 is implemented (D-130/D-131): use its [0–18 routing audit](../specs/story/routing-audit.md), retain its story text when integrating M04/M05 gameplay, then complete exact-hash review/upload for draft #161 and its [packed voice script](../specs/story/voice-script.md). Studio and audible Player verification are pending. Mission 18 retains the one-on-one Rusk duel (D-031).
 
 ## Missions 14–18 specifications — in review
 

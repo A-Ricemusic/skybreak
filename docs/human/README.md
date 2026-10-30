@@ -1,5 +1,7 @@
 # SKYBREAK redesign dashboard
 
+Voice follow-up: draft [#161](https://github.com/A-Ricemusic/skybreak/pull/161), stacked on #159, contains three regenerated banks (168 lines). Automated checklists pass after 10 documented cached-STT exceptions. All bank asset IDs intentionally remain empty pending exact-hash independent review and upload; this is unmerged work, not Player-verified audio. Human listening remains false. All 122 story recording references and the editorial manifest now use the regenerated cues; consumer simulation checks silence before fake asset injection. Frozen install, build and full offline validation passed (756 relay tests, 9 voice simulations, 122 Python tests); this does not establish audible quality. See VOICE-161 in decisions.
+
 Last updated: 2026-10-29, against main `7d73c44` (mission 3 merged).
 
 The new 18-mission campaign is live in Roblox Player through the automatic pipeline. **Practice flight and missions 1–3 are playable; missions 4–18 are locked.** The redesign rebuilds missions and worlds to match Ace Combat 04's structure and pacing while keeping the Broken Relay story and original shipped expression. Mission 2 is ready for the owner's beta test; see [Next](next.md).
@@ -10,7 +12,7 @@ The new 18-mission campaign is live in Roblox Player through the automatic pipel
 
 Mission 2 became playable in #143 after its dormant world (#140) and engine batch A (#138). It unlocks after mission 1 and preserves mission 1 score breakdowns through completion, replays and save reloads. The publish workflow returned place version 92. No agent Player test is claimed.
 
-Mission 3 merged in [#147](https://github.com/A-Ricemusic/skybreak/pull/147) and is live by pipeline convention; no new Player test is claimed. Missions 4–5 remain in review (#149/#148). The story remap (#159) aligns all 18 chapters and the finale, with future mission text and a recording manifest. Studio verification and new audio are pending; see [routing audit](../specs/story/routing-audit.md).
+Mission 3 merged in [#147](https://github.com/A-Ricemusic/skybreak/pull/147) and is live by pipeline convention; no new Player test is claimed. Missions 4–5 remain in review (#149/#148). The story remap (#159) aligns all 18 chapters and the finale, with future mission text and a recording manifest. Studio verification and voice upload are pending (regenerated audio is in draft #161); see [routing audit](../specs/story/routing-audit.md).
 
 The mission 3 PR (#147) also adds a shared world gate: after any sortie the world is cleared in the background and the next launch waits, queued, until that finishes (D-067). Provisional mission 3 decisions are D-061–D-067 in [Decisions](decisions.md).
 
