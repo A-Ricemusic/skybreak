@@ -1,12 +1,13 @@
 import type { EnvironmentSpec } from "./EnvironmentPresets";
-import { polyDist, type PartSpec, type PropSpec } from "./WorldPlan";
+import type { PartSpec, PropSpec } from "./WorldPlan";
+import { polyDist } from "./Polyline";
 import { sealedSurface, surfaceGround, surfaceSide, type WorldSurface } from "./SealedWorldSurface";
 import { worldCounts } from "./WorldCompositionCounts";
 export const M04_WORLD_KEY = "m04_inland_hills";
 export const M04 = {
  half: 16384, start: { x: -7000, y: 1202, z: 10000, headingDegrees: 20 },
- // Recommended NE route followed by an east/southeast hook; ~43k studs.
- route: [[-7000, 10000], [-3000, 2000], [2000, -10000], [11000, -11000], [13500, 2000]],
+ // D-096: extend the NE/east/SE hook south then west for a 6:30–7:00 escape at 140 studs/s.
+ route: [[-7000, 10000], [-3000, 2000], [2000, -10000], [11000, -11000], [12500, 2000], [12500, 11000], [4500, 11000]],
  river: [[-9000, 14000], [-5000, 5000], [0, 0], [-1500, -6000], [3000, -15000]],
 };
 export const M04_ENVIRONMENT: EnvironmentSpec = {
@@ -43,7 +44,7 @@ export const M04_SURFACE: WorldSurface = {
 };
 export const m04Ground = (x: number, z: number) => surfaceGround(M04_SURFACE, x, z);
 export interface M04Target { id: string; type: "transport" | "jammer" | "escort" | "ace"; group: string; x: number; y: number; z: number; yaw: number }
-/** Initial air contact poses only: six escorts initially, four later reinforcements.
+/** Initial air contact poses only: five escorts and the ace initially, four later reinforcements.
  * Scene poses do not implement the mission's movement or spawn timing.
  */
 export function m04TargetLayout(): M04Target[] {
@@ -51,7 +52,7 @@ export function m04TargetLayout(): M04Target[] {
  const add = (targetType: M04Target["type"], i: number, x: number, y: number, z: number, group: string) => out.push({ id: targetType === "ace" ? "m04_ace" : `m04_${targetType}_${i + 1}`, type: targetType, group, x, y, z, yaw: -math.pi / 4 });
  for (let i = 0; i < 3; i++) add("transport", i, -4550 + i * 240, 1202, 5100 + i * 160, "transports");
  for (let i = 0; i < 2; i++) add("jammer", i, -5100 + i * 1500, 1524, 4800, "jammers");
- for (let i = 0; i < 10; i++) add(i === 9 ? "ace" : "escort", i, -5500 + (i % 5) * 480, 1000 + (i % 3) * 160, 3800 + math.floor(i / 5) * 900, i < 6 ? "initial_escorts" : "reinforcements");
+ for (let i = 0; i < 10; i++) add(i === 9 ? "ace" : "escort", i, -5500 + (i % 5) * 480, 1000 + (i % 3) * 160, 3800 + math.floor(i / 5) * 900, i < 5 || i === 9 ? "initial_escorts" : "reinforcements");
  return out;
 }
 export function buildM04Plan(seed = 404, checkpoint: () => void = () => {}) {

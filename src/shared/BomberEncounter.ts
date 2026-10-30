@@ -6,6 +6,9 @@ import type { MissionAirspacePolicy, MissionScoringPolicy } from "./MissionPolic
 export interface BomberEncounter {
 	aircraft?: "transport";
 	scoreRole?: string;
+	targetIds?: string[];
+	/** Formation offsets, local right/up/aft. */
+	slots?: BomberPoint[];
 	count: number;
 	waypoints: BomberPoint[];
 	speed: number;
@@ -29,14 +32,16 @@ export function validateBomberEncounter(phase: MissionPhaseBlueprint, bounds: Mi
 	assert(finite(b.speed) && b.speed > 0, "Invalid bomber speed");
 	assert(b.escapeCall === undefined || b.escapeCall.size() > 0, "Bomber escape call must not be empty");
 	const e = b.escorts;
-	assert(e.count % 1 === 0 && e.count >= 1 && e.count <= 7 && e.initial % 1 === 0 && e.initial >= 0 && e.initial < e.count, "Invalid escort budget");
+	assert(e.count % 1 === 0 && e.count >= 0 && e.count <= 7 && e.initial % 1 === 0 && e.initial >= 0 && (e.count === 0 ? e.initial === 0 : e.initial < e.count), "Invalid escort budget");
 	assert(e.role === "escort" && e.aceName.size() > 0 && e.aceName.size() <= 40 && finite(e.aceAt) && e.aceAt >= 0, "Invalid escort ace");
 	for (const p of [...b.waypoints, b.escape]) assert(finite(p.x) && finite(p.y) && finite(p.z) && math.abs(p.x) <= bounds.spawnLimit && math.abs(p.z) <= bounds.spawnLimit && p.y >= 40 && p.y <= (b.aircraft ? 2000 : 900), "Bomber route outside mission airspace");
 	assert(phase.groups === undefined && phase.stagger === undefined && phase.execution === undefined && phase.twist === undefined && phase.hazard === undefined, "Bomber encounter owns its wave schedule");
+	if (b.targetIds) assert(b.targetIds.size() === b.count && new Set(b.targetIds).size() === b.count, "Unique route ids must match count");
+	if (b.slots) assert(b.slots.size() === b.count, "Route slots must match count");
 	compileBomberEncounter(b);
 }
 export function compileBomberEncounter(b: BomberEncounter): BomberRoute {
-	return BomberRules.Create([...b.waypoints, b.escape], b.speed, BomberRules.DefaultSlots.filter((_, i) => i < b.count));
+	return BomberRules.Create([...b.waypoints, b.escape], b.speed, b.slots ?? BomberRules.DefaultSlots.filter((_, i) => i < b.count));
 }
 /** Beside/above the leading bomber in its sampled frame. A unique ordinal alternates sides and steps outward. */
 export function bomberEscortPose(leading: BomberSlotPose, slot: number): BomberSlotPose {
@@ -49,7 +54,7 @@ export function bomberEscortPose(leading: BomberSlotPose, slot: number): BomberS
 }
 /** Pure once-only elapsed trigger, independent of kills or queued admissions. Ace is part of count. */
 export function laterEscortsDue(b: BomberEncounter, state: BomberEncounterState, elapsed: number): boolean {
-	if (state.laterSpawned || elapsed - state.startedAt < b.escorts.aceAt) return false;
+	if (b.escorts.count === 0 || state.laterSpawned || elapsed - state.startedAt < b.escorts.aceAt) return false;
 	state.laterSpawned = true;
 	return true;
 }

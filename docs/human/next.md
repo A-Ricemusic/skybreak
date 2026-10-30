@@ -47,6 +47,9 @@ If any of these still appear, report where and when (menu, loading, in flight, r
 ## Mission 3 beta (#147 merged)
 
 Mission 3 is live by pipeline convention after #147 merged; no new Player test is claimed.
+## Mission 3 beta — live after #147
+
+Mission 3 merged as `7d73c44` (#147) and is live by pipeline; it unlocks after mission 2.
 
 1. **How to reach it.** Finish missions 1 and 2 on the same save file (any rank). Mission 3's tile then reads NEXT; a file that has not finished mission 2 cannot start it. The current chapter cutscene plays once, then the briefing "NOBODY SIGNED" (region SNOWY MOUNTAINS).
 2. **The sortie.** You start in the air over snowy mountains, heading north-west toward site 1 with three LANTERN wingmen; a 15:00 countdown starts. Destroy all **nine radar domes** (red TGT, white spheres): five along a ridge crest about 1–2 minutes ahead, four on a high saddle further west-north-west. LOW ALTITUDE now warns about the ground under you, not sea level.
@@ -62,8 +65,12 @@ Mission 3 is live by pipeline convention after #147 merged; no new Player test i
 ## Missions 4–5 — in review
 
 See [per-level status](levels.html) for the current pieces, findings and owner test checklists. Mission 3 [#147](https://github.com/A-Ricemusic/skybreak/pull/147) is merged. Mission 4 [#149](https://github.com/A-Ricemusic/skybreak/pull/149), and mission 5 [#148](https://github.com/A-Ricemusic/skybreak/pull/148) remain open; sequential unlocks depend on preceding missions merging. Worlds #139/#144 and engines #141/#145 are merged but dormant.
+See [per-level status](levels.html). Mission 3 #147 is merged; mission 4 [#149](https://github.com/A-Ricemusic/skybreak/pull/149) and mission 5 [#148](https://github.com/A-Ricemusic/skybreak/pull/148) remain open.
 
-Priorities before activation: resolve review findings, reconcile sequential integration, reduce roughly 45–46 s M04/M05 loading and cleanup delays (work on `perf/m04-m05-terrain`), and address M04 transports escaping at about 4:43.5 versus the 12:00 HUD clock. M03 terrain/LOD presentation and M05 lighting follow-up remain review concerns. Linked PRs report Studio checks; this docs change performed no Studio or Player test.
+1. Orchestrator: re-check M04 normal completion, construction failure/player leave and immediate queued relaunch through #147's shared gate. This revision did not launch Studio.
+2. Confirm the D-096 transport escape at 6:48.33 (57,166.079 studs at 140 studs/s); offline tests enforce 6:30–7:00 and sample all transport positions inside soft airspace. The exit heads west back inside the world; the owner should judge this inland turn in beta. Jammers now follow the same hook at 110 studs/s and remain present through transport escape; re-check radar and point availability.
+3. Finish `perf/m04-m05-terrain` for roughly 45–46 s loading and cleanup delays; preserve the single `M04World.Clear(cancelled)` interface. No terrain generation was rewritten here. Then measure Studio and real-phone performance.
+4. Re-check M05 lighting and M03 terrain/LOD presentation. Earlier linked Studio evidence does not verify these M04 changes; no Player test is claimed.
 
 ## Missions 6–9 — specs ready for review
 

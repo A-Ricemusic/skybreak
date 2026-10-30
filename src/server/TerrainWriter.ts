@@ -59,9 +59,9 @@ function run(terrain: Terrain, job: TerrainJob): void {
 
 export const TerrainWriter = {
 	/** Writes `ops` in order as bounded jobs, yielding between resumptions; returns the timing. */
-	Write(ops: TerrainOp[], budget = TERRAIN_BUDGET, fillChunk = FILL_CHUNK): BudgetRun & { jobs: number } {
+	Write(ops: TerrainOp[], budget = TERRAIN_BUDGET, fillChunk = FILL_CHUNK, cancelled?: () => boolean): BudgetRun & { jobs: number } {
 		const terrain = Workspace.Terrain, jobs = terrainJobs(ops, fillChunk);
-		const timing = runBudgeted(jobs, (job) => run(terrain, job), { budget, clock: os.clock, pause: () => task.wait() });
+		const timing = runBudgeted(jobs, (job) => run(terrain, job), { budget, clock: os.clock, pause: () => task.wait(), cancelled });
 		return { ...timing, jobs: jobs.size() };
 	},
 };
