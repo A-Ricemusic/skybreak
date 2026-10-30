@@ -273,5 +273,6 @@ export interface LandingStarted { kind: "LandingStarted"; plan: import("./Engine
 export interface LandingSkipped { kind: "LandingSkipped"; elapsed: number }
 /** The launch is queued until the previous world's cleanup completes; the request stays open. */
 export interface MissionQueued { kind: "Queued"; missionId: number }
-export type MissionMessage = LandingStarted | LandingSkipped | MissionQueued | MissionLoading | MissionStarted | FlightControlHandoff | HudState | MissionFinished;
+export interface MissionBuilding { kind: "Building"; missionId: number; folder: Instance }
+export type MissionMessage = MissionBuilding | LandingStarted | LandingSkipped | MissionQueued | MissionLoading | MissionStarted | FlightControlHandoff | HudState | MissionFinished;
 export type FinishedCallback = (player: Player, won: boolean, stats: MissionStats) => void;

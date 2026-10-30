@@ -2,6 +2,12 @@
 
 Last updated: 2026-10-29.
 
+## Launch loading UX — pending PR
+
+On `fix/loading-before-build` (unmerged), confirming a launch after its story chapter immediately covers the world with the existing opaque loading screen. You will see “Building world…” with an animated bar and replicated planning/terrain/scenery phase when available, or “Waiting for the previous mission to clear…” during cleanup. The screen stays up through the existing replication/preload percentage and tower clearance; mission clocks and the carrier fly-off still begin through the existing Ready handshake. Launch inputs stay locked until flight starts. Refusals and build errors restore the briefing with the existing error toast; the queue and post-build readiness timeouts retain their existing bounds.
+
+Owner check after merge: launch practice and missions 1–3, including an immediate relaunch after results. Construction should stay hidden, the queue should advance automatically, and mission 1's carrier fly-off should follow loading. Offline regression tests cover the shared launch state machine; Studio verification is blocked: the attempted Jest launch displayed the login dialog (2026-10-29 PDT); no practice/M01–M03 or carrier-intro runtime check was performed. Another agent acquired Studio during the final lease interval; the accidental overlapping launch was stopped, and only this task’s processes were closed. Engine snapshots are unchanged.
+
 ## Mission 2 beta test — start here
 
 [Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). Mission 2 is live through the automatic pipeline and unlocks after you finish mission 1 on the same save. Agents have not performed a Roblox Player test.
@@ -28,7 +34,7 @@ Mission 3 becomes playable when its PR merges; until then it shows as locked.
 
 **Most useful feedback:** whether the domes and sites are easy to find in the mountains; how flying low in the valleys feels with the new LOW ALTITUDE warning; whether the update, the dashed line and the landing read clearly and feel right; whether 15:00 and the pressure feel right (the footage player took 5:35 plus 1:12 home); how the snow, rock and sky look.
 
-**Known:** the world took 35–88 seconds to build in Studio on a desktop (five measurements; mission 2 takes 16), so expect a long loading screen, After the results appear the server clears the mountains, which froze it for 17–46 s in Studio; launching another mission straight away shows "Clearing the last sortie. Your launch is queued..." and starts by itself once that finishes (D-067). The mountains look terraced (large flat steps), and on low graphics quality distant ground may not draw (see Blockers). Phone load time and frame rate are not measured. There are no bombs; use missiles and the gun. Optional targets you leave behind stay standing but can no longer be scored after the update. The radar minimap does not draw the return line; the green cue points to it.
+**Known:** the world took 35–88 seconds to build in Studio on a desktop (five measurements; mission 2 takes 16), so expect a long loading screen, After the results appear the server clears the mountains, which froze it for 17–46 s in Studio; launching another mission straight away currently shows "Clearing the last sortie. Your launch is queued..." (the pending launch UX change above moves this wait onto the loading screen) and starts by itself once that finishes (D-067). The mountains look terraced (large flat steps), and on low graphics quality distant ground may not draw (see Blockers). Phone load time and frame rate are not measured. There are no bombs; use missiles and the gun. Optional targets you leave behind stay standing but can no longer be scored after the update. The radar minimap does not draw the return line; the green cue points to it.
 
 ## Missions 3–5 — in review
 
