@@ -1,0 +1,161 @@
+{
+  "name": "cinematic-tape-tin",
+  "title": "Open coffee tin for cassette tapes (cutscene desk prop)",
+  "variantOf": null,
+  "exportVersion": "cinematic-tape-tin-1",
+  "robloxAssetType": "Model",
+  "usage": "Broken Relay cutscenes: the coffee tin of Teal's tapes on the desk from chapter 1; the game stands the remaining cassettes in it. Pending independent safety review (AGENTS.md); not uploaded. Dormant slot in src/: RobloxAssetIds entry undefined, so the cinematic keeps its procedural prop until approval and upload.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "cinematic-tape-tin.fbx",
+    "bytes": 197036
+  },
+  "triangleCount": 896,
+  "triangleLimit": 1200,
+  "objects": [
+    {
+      "name": "cinematic-tape-tin",
+      "triangles": 896
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "cinematic-tape-tin-color.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 60211
+    },
+    {
+      "role": "normal",
+      "file": "cinematic-tape-tin-normal.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 7559
+    },
+    {
+      "role": "rough",
+      "file": "cinematic-tape-tin-roughness.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 42975
+    },
+    {
+      "role": "metal",
+      "file": "cinematic-tape-tin-metalness.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 6303
+    }
+  ],
+  "robloxSizeStuds": [
+    1.9,
+    1.705,
+    1.9
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 0.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png",
+    "preview-back.png",
+    "preview-side-right.png",
+    "preview-bottom.png",
+    "preview-3q-front-left.png",
+    "preview-3q-rear-right.png",
+    "preview-3q-rear-left.png",
+    "preview-front-low.png",
+    "preview-front-high.png",
+    "preview-3q-low-front-right.png",
+    "preview-closeup-inside.png",
+    "preview-closeup-label.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "No letters, numbers, brand name or glyph-like marks: the label is a plain cream band with two thin brown pinstripes and one olive band."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No coffee brand, logo or product marks; plain colour fields only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No flags, roundels or markings."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces or figures; a plain open cylinder."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "An ordinary open tin in every view."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "A tin can: no weapons, damage or gore."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": [],
+  "sha256": {
+    "cinematic-tape-tin-color.png": "afb65106433dcc2a9a0598a32df7fa2c096d23aef99c02c2531d2537324fe39a",
+    "cinematic-tape-tin-metalness.png": "12fea72b464e890e6c2cbe634ec01591fec8cee76b583feab55050d85af17ed3",
+    "cinematic-tape-tin-normal.png": "22c37c727230a4652298a953be1ca8cf6a3befc1e3f0f121361cedf243c078f6",
+    "cinematic-tape-tin-roughness.png": "275abb4432657b5144f9370befc6a4f3f5eaa87dc7aeb6413cdb2be5d1af32ef",
+    "cinematic-tape-tin.fbx": "e65aa071ff3441468603abe610412cf6d5824a14e5a23f761ef2ccd61f3a913a",
+    "contact-sheet.png": "210735076e4a50689e1063575a08e8b46f5b66e99ea982670118b36352a1946d",
+    "preview-3q-front-left.png": "33ed1b133a1a48e76ff7c44d654b49f1de57bb526db9446e112e3db7e952b970",
+    "preview-3q-low-front-right.png": "5572f7cbe539e83db8c71ea870753c1f275a64918db98ca7d82650cd53fbca7b",
+    "preview-3q-rear-left.png": "bdc0b91f299d1bd6f2bae13c40f510f970d2d0350edda1eb4aab17d587fe3c3d",
+    "preview-3q-rear-right.png": "5379207a520ba5799407a95c614033a4517e416b65b093e40458ca027ed07585",
+    "preview-3q.png": "7bbbad36cbf7b7805e6be0418652d4a4b7e878eb5e1bd4e8a1dc28bc5fc3b04b",
+    "preview-back.png": "7613f9b0c490fc4a725e10dfc4bd9ff6b5d22830cd0b9a6d797c05c61a3a2cb6",
+    "preview-bottom.png": "902adb77eb17379b70cff8c3affc8f76ff7c436b95f034829f0ae1dd4d1e3f2c",
+    "preview-closeup-inside.png": "d351348d8153921a731af17034ca863442794dfa1ba1ee4b9c0eb9e9669fef64",
+    "preview-closeup-label.png": "f2e85715556b67f02639f4247a03c2dfc8a72ce9665e0ef210dcd9731b9dab67",
+    "preview-front-high.png": "c0c5eba06f0d3406f39260dc7c82f89c274245169b6fee8274835866a8d85c0c",
+    "preview-front-low.png": "b11e7418e6ba804b5605b250c40b1664a36aca2c742c9263f78066e4dba3c130",
+    "preview-front.png": "9c705394c684ef1e73e1e0d51bf03d49e8e065808bb61fb95806110e71ce6297",
+    "preview-side-right.png": "c2a907a788a94136a2c0aae98338290c5d4c99208581f14d80753441ede7f32c",
+    "preview-side.png": "325fe677ada7eeefa4d01ee1ddc449032b609b52020d36965279ff18ee4c5b0f",
+    "preview-top.png": "fef1f5731a05500ce244c71193086b55b301c0c1d14401b3dc76de67900ed0d1"
+  },
+  "previewNotes": {
+    "preview-front.png": "Orthographic from ahead (the model's front, Roblox -Z).",
+    "preview-side.png": "Orthographic from the left (port), Blender +X.",
+    "preview-top.png": "Orthographic from above, front at the top, the model's right (starboard) on the image's right.",
+    "preview-3q.png": "Perspective from ahead, the right (starboard), above.",
+    "preview-back.png": "Orthographic from behind.",
+    "preview-side-right.png": "Orthographic from the right (starboard).",
+    "preview-bottom.png": "Orthographic from below.",
+    "preview-3q-front-left.png": "Perspective from ahead, the left (port), above.",
+    "preview-3q-rear-right.png": "Perspective from behind, the right (starboard), above.",
+    "preview-3q-rear-left.png": "Perspective from behind, the left (port), above.",
+    "preview-front-low.png": "Perspective from ahead, below.",
+    "preview-front-high.png": "Perspective from ahead, above.",
+    "preview-3q-low-front-right.png": "Perspective from ahead, the right (starboard), below.",
+    "preview-closeup-inside.png": "Close-up from ahead, the right (starboard), above.",
+    "preview-closeup-label.png": "Close-up from ahead."
+  },
+  "anchors": {
+    "Centre": [
+      -0.0,
+      0.85,
+      0.0
+    ]
+  },
+  "orientation": "Rotationally symmetric; open end up (Roblox +Y).",
+  "design": "Original open coffee tin: oxide-red painted steel with two rolled ribs and a rolled rim, a plain cream paper label band with brown pinstripes and an olive band, bare steel inside.",
+  "sizeRationale": "1.9 studs across the rim, 1.7 tall: the procedural tin cylinder's envelope. anchors.Centre is the procedural TIN point (desk-relative (-5.2, 5.85, -2.6)); the game stands the cassettes in the open top.",
+  "reviewStatus": "pending independent safety review (AGENTS.md); not uploaded; dormant RobloxAssetIds slot (undefined) with procedural fallback",
+  "contactSheet": "contact-sheet.png"
+}

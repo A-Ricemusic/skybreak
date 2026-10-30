@@ -1,0 +1,208 @@
+{
+  "name": "cinematic-radio-console",
+  "title": "Field radio console with reel-to-reel deck (cutscene desk prop)",
+  "variantOf": null,
+  "exportVersion": "cinematic-radio-console-1",
+  "robloxAssetType": "Model",
+  "usage": "Broken Relay cutscenes: Teal's receiver on the radio desk in every chapter; its two reels turn while a tape or the log speaks. Pending independent safety review (AGENTS.md); not uploaded. Dormant slot in src/: RobloxAssetIds entry undefined, so the cinematic keeps its procedural prop until approval and upload.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "cinematic-radio-console.fbx",
+    "bytes": 733164
+  },
+  "triangleCount": 3068,
+  "triangleLimit": 3500,
+  "objects": [
+    {
+      "name": "cinematic-radio-console",
+      "triangles": 2028
+    },
+    {
+      "name": "ReelL",
+      "triangles": 520
+    },
+    {
+      "name": "ReelR",
+      "triangles": 520
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "cinematic-radio-console-color.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 243081
+    },
+    {
+      "role": "normal",
+      "file": "cinematic-radio-console-normal.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 24648
+    },
+    {
+      "role": "rough",
+      "file": "cinematic-radio-console-roughness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 208381
+    },
+    {
+      "role": "metal",
+      "file": "cinematic-radio-console-metalness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 44788
+    }
+  ],
+  "robloxSizeStuds": [
+    7.34,
+    7.02,
+    3.541
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 0.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png",
+    "preview-back.png",
+    "preview-side-right.png",
+    "preview-bottom.png",
+    "preview-3q-front-left.png",
+    "preview-3q-rear-right.png",
+    "preview-3q-rear-left.png",
+    "preview-front-low.png",
+    "preview-front-high.png",
+    "preview-3q-low-front-right.png",
+    "preview-closeup-front.png",
+    "preview-closeup-deck.png",
+    "preview-closeup-reel.png",
+    "preview-closeup-rear.png",
+    "preview-closeup-desk-camera.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "No letters, numbers, dial scales, frequency markings, codes or glyph-like marks: the window is a plain dark teal pane, the meter a plain cream face with one needle, the grille parallel slots, the keys plain colour."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No maker's plate, badge or brand marks; a plain blue-grey painted housing."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No flags, roundels, unit or national markings; an original field-radio layout, not a copy of any real set."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces or figures. The front is deliberately asymmetric: top row a long window on the model's right and one small meter on its left; bottom row a wide slotted grille under the window, then one tuning knob, a column of two small knobs and a column of three toggles on the left. Nothing is paired across the centre line and there is no central feature under a pair. The two round reels lie flat on the top deck with visibly different tape packs (one nearly full, one nearly empty), staggered front to back and joined by the tape path; the head block is at the front centre and the transport keys run along the front edge on the right, so the top view reads as a tape transport, not a pair of eyes. Checked in preview-front, preview-front-low, preview-front-high, preview-closeup-front and preview-closeup-deck."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface radio equipment in every view."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "A radio and tape deck: no weapons, damage or gore."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": [],
+  "sha256": {
+    "cinematic-radio-console-color.png": "7643e62f9fb36869e7879519a9ba09aa71e5e56807989210c66b520853f8e23c",
+    "cinematic-radio-console-metalness.png": "7e901ea9d5de81bc4a8192814b16b46aac210af3e83db0cbfd9ea44cf66b997f",
+    "cinematic-radio-console-normal.png": "5d9939e99a9c3b6098640273a06fafe582273ed62411ec23822c42dda875fc64",
+    "cinematic-radio-console-roughness.png": "8f3c546dc1e8bcd440e61c45d195ab62926019cdf8e7a8525c3e6fbce3bba671",
+    "cinematic-radio-console.fbx": "8398f60a2363852be9e900dc146c211fb190e7faf4c92484c364ded70e4e0ca6",
+    "contact-sheet.png": "6655f2abfb6288c379789e847dea67c1e6fdc9b3d1a2c9cfa22dd5e24f181313",
+    "preview-3q-front-left.png": "fa277eb2142a79738dec7c954c9fe1b6031bac075c040d4a9f048fb7b3bbeae4",
+    "preview-3q-low-front-right.png": "3739867003d15dbbebb1d46aaf2bd7ef256cb666ed60b8fe29c75f7ddca24795",
+    "preview-3q-rear-left.png": "15002a7f13914b041369524cbe9309eacafc57b98e457b741d1f8df27646deaf",
+    "preview-3q-rear-right.png": "d2d7660c9a31f1077a0a37e61dd05a893d114b45698baab1ed57c2e1d83b2290",
+    "preview-3q.png": "e64925c51ba7915a111f1322fcb5378f76b153415eba9f34173b7cb4c5573e92",
+    "preview-back.png": "cbfa24d928193cdfcc7d3ea00fe81f9f2f3b6743cd220158f0fbdb663687d6c8",
+    "preview-bottom.png": "afa2b7ae25bcbd5d1bf9920f2ecb5504249a4b98c41f9c2791a0563e301ab151",
+    "preview-closeup-deck.png": "3d31028c6d3817b949eeb7d98cac945752d6dc3ffc15564f50257830997f6516",
+    "preview-closeup-desk-camera.png": "7133d31f7d1be0f797b8407e0673e38ee18493db01c02d4fb3af759b693473be",
+    "preview-closeup-front.png": "553fed3a70e7de563631551fe1cab2842cddb3b17e8bf25b2c6a1d52a78bc217",
+    "preview-closeup-rear.png": "2dce1803a62dc105ab9850a56ff13ce55bf5e7678707045c8149dda504bee11a",
+    "preview-closeup-reel.png": "f750e6bffb1db703591f7cbc2248c1c8dd9e98f6a08f26abb8ea2bc6ce180120",
+    "preview-front-high.png": "8171da67dc52ad56f9288447b91a5288585b2a84250e7b7124250e71726b10a3",
+    "preview-front-low.png": "a90668f0ac4902634006585cc127cd3db1210663adeb684a680fbac78340d8bd",
+    "preview-front.png": "0146a5abe69ff4e7e55e0f78ddaf9eeba9415bfa84ac093f8a356f30db83d1ea",
+    "preview-side-right.png": "75a8d6d82d414ca4bb4d87570591c82d0120b0904f2f57f9b9d897dba6f48f1c",
+    "preview-side.png": "0397c8bf2ce3294ab9e671e0b235b8294a62ee7af627ee9c108c75c8e5d3e81a",
+    "preview-top.png": "31824075ba5b55acb107bc4d1ad29e81cb3779983ee7f2dd188d85b1e8433169"
+  },
+  "previewNotes": {
+    "preview-front.png": "Orthographic from ahead (the model's front, Roblox -Z).",
+    "preview-side.png": "Orthographic from the left (port), Blender +X.",
+    "preview-top.png": "Orthographic from above, front at the top, the model's right (starboard) on the image's right.",
+    "preview-3q.png": "Perspective from ahead, the right (starboard), above.",
+    "preview-back.png": "Orthographic from behind.",
+    "preview-side-right.png": "Orthographic from the right (starboard).",
+    "preview-bottom.png": "Orthographic from below.",
+    "preview-3q-front-left.png": "Perspective from ahead, the left (port), above.",
+    "preview-3q-rear-right.png": "Perspective from behind, the right (starboard), above.",
+    "preview-3q-rear-left.png": "Perspective from behind, the left (port), above.",
+    "preview-front-low.png": "Perspective from ahead, below.",
+    "preview-front-high.png": "Perspective from ahead, above.",
+    "preview-3q-low-front-right.png": "Perspective from ahead, the right (starboard), below.",
+    "preview-closeup-front.png": "Close-up from ahead.",
+    "preview-closeup-deck.png": "Close-up from ahead, the right (starboard), above.",
+    "preview-closeup-reel.png": "Close-up from ahead, the left (port), above.",
+    "preview-closeup-rear.png": "Close-up from behind, the left (port), above.",
+    "preview-closeup-desk-camera.png": "Close-up from ahead, the right (starboard), above."
+  },
+  "anchors": {
+    "Body": [
+      -0.0,
+      2.0,
+      -0.0305
+    ],
+    "FrequencyWindow": [
+      0.9,
+      2.75,
+      -1.5655
+    ]
+  },
+  "rotors": {
+    "ReelL": {
+      "hub": [
+        -2.15,
+        4.17,
+        0.2695
+      ],
+      "axis": "Roblox +Y",
+      "radiusStuds": 0.85,
+      "blades": 3,
+      "note": "Tape reel lying flat on the deck; part origin is the hub; spin about the part's Y axis."
+    },
+    "ReelR": {
+      "hub": [
+        2.15,
+        4.17,
+        -0.1305
+      ],
+      "axis": "Roblox +Y",
+      "radiusStuds": 0.85,
+      "blades": 3,
+      "note": "Tape reel lying flat on the deck; part origin is the hub; spin about the part's Y axis."
+    }
+  },
+  "orientation": "Front (window, meter, grille, knobs) at Roblox -Z; the meter, knobs and toggles are on the model's left (Roblox -X), the long window, grille, transport keys and antenna on its right (Roblox +X).",
+  "design": "Original field radio console: blue-grey painted steel housing, dark front panel with a long frequency window in a steel bezel, one analogue meter, a wide slotted speaker grille, one tuning knob, two small knobs and three toggles, side carry handles, rear heat-sink fins and connectors, and a brushed reel-to-reel transport on top (two open-spoke reels as ReelL and ReelR parts, tape path through a head block, capstan and pinch roller, five transport keys) and a short whip antenna.",
+  "sizeRationale": "Housing 7 x 4 x 3 studs, the procedural receiver's envelope; the camera's radio and wide poses were tuned around it. Anchors.Body is the housing centre (the procedural receiver's centre, desk-relative (0, 7, 0)); anchors.FrequencyWindow is the centre of the 4.2 x 0.7 window's front face, where the game keeps a 4.0 x 0.6 glowing teal strip.",
+  "cinematicUse": "Seat with model:PivotTo(target * CFrame.new(-anchors.Body)). Spin ReelL/ReelR about their own Y axis while a tape or the log speaks.",
+  "reviewStatus": "pending independent safety review (AGENTS.md); not uploaded; dormant RobloxAssetIds slot (undefined) with procedural fallback",
+  "contactSheet": "contact-sheet.png"
+}

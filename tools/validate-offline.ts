@@ -29,6 +29,7 @@ await run(["bun", "tools/test-mission-catalog.ts"], /^MISSION_CATALOG_SNAPSHOT p
 await run(["bun", "tools/test-playtest-relay.ts"], /^PLAYTEST_RELAY_REGRESSION passed=(\d+) failed=0$/gm, 3);
 await run(["bun", "tools/test-audio-offline.ts"], /^AUDIO_LIFECYCLE_SIMULATION passed=(\d+) failed=0$/gm, 10);
 await run(["bun", "tools/test-voice-offline.ts"], /^VOICE_CONSUMER_RESULT passed=(\d+); simulated lifecycle only, audible output NOT tested$/gm, 8);
+await run(["bun", "tools/test-cinematic-offline.ts"], /^CINEMATIC_STAGE_RESULT passed=(\d+); engine doubles only, rendering NOT tested$/gm, 10);
 await run(["bun", "tools/test-radio-delivery.ts"], /^RADIO_DELIVERY passed=(4) failed=0$/gm, 4);
 await run(["python3", "-m", "unittest", "discover", "-s", "tools/tests", "-p", "test_*.py"]);
 await run(["bun", "tools/relay-tables.ts", "--check"]);
