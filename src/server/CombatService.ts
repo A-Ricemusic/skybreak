@@ -321,6 +321,7 @@ function targetCandidates(session: CombatSession, view?: ViewFrustum): TargetCan
 	const lockRange = SpecialWeapons.LockRange(session.special);
 	const jamming = session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.jamming;
 	const visualRange = view !== undefined && jamming && liveJammers(session) > 0 ? jamming.visualLockRange : undefined;
+	const camera = view === undefined ? undefined : new Vector3(view.position.x, view.position.y, view.position.z);
 	for (let id = 0; id < session.enemies.size(); id++) {
 		const enemy = session.enemies[id];
 		if (!ownsEnemy(session, enemy)) continue;
@@ -334,10 +335,9 @@ function targetCandidates(session: CombatSession, view?: ViewFrustum): TargetCan
 			held: retreatingAce || !sessionCanDamage(session, enemy.kind, enemy.required),
 			inRange: distance <= WeaponRules.EnvelopeRange(lockRange, enemy.kind === "ground"),
 		};
-		if (view !== undefined) {
-			const seen = point(enemy.position);
-			const viewDistance = visualRange === undefined ? 0 : enemy.position.sub(new Vector3(view.position.x, view.position.y, view.position.z)).Magnitude;
-			candidate.onScreen = (visualRange === undefined || viewDistance <= visualRange) && TargetPriority.InView(view, seen);
+		if (view !== undefined && camera !== undefined) {
+			const withinVisual = visualRange === undefined || enemy.position.sub(camera).Magnitude <= visualRange;
+			candidate.onScreen = withinVisual && TargetPriority.InView(view, point(enemy.position));
 		}
 		candidates.push(candidate);
 	}

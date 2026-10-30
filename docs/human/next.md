@@ -2,7 +2,7 @@
 
 Last updated: 2026-10-30.
 
-**TGT button (D-210, 2026-10-30, open PR `fix/tgt-closest-onscreen`).** After playing, the owner found the target itself good but the button inconsistent. The PR makes every TGT press (PC key, gamepad Y, on-screen button) select the closest enemy on screen, or the second closest when the closest is already selected; quick presses keep walking outward. Automatic targeting after a kill is unchanged. Next: merge on green CI, then the owner checks it on a phone and on PC (steps under "Mission 2 beta test"). Spec: [targeting](../specs/engine/targeting.md).
+**TGT button (D-210, 2026-10-30, open PR [#172](https://github.com/A-Ricemusic/skybreak/pull/172)).** After playing, the owner found the target itself good but the button inconsistent. The PR makes every TGT press (PC key, gamepad Y, on-screen button) select the closest enemy on screen, or the second closest when the closest is already selected; quick presses keep walking outward. Automatic targeting after a kill is unchanged. Next: merge on green CI, then the owner checks it on a phone and on PC (steps under "Mission 2 beta test"). Spec: [targeting](../specs/engine/targeting.md).
 
 ## M12/M13 worlds — in review [#170](https://github.com/A-Ricemusic/skybreak/pull/170)
 
@@ -46,7 +46,7 @@ Owner check after merge: launch practice and missions 1–3, including an immedi
 
 [Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). Mission 2 is live through the automatic pipeline and unlocks after you finish mission 1 on the same save. Agents have not performed a Roblox Player test.
 
-Targeting: on a phone, tap an enemy target box to select it. Auto-targeting after a kill still picks what the nose is on (#157). The TGT button, Tab/R and gamepad Y now select the closest enemy you can see on screen; if that is already your target, the second closest; quick presses within 2.5 s keep walking outward and wrap (D-210, this PR). With nothing on screen it picks the closest enemy overall and the edge arrow points to it. Check: with two or three enemies in view, one TGT press should take the nearest, a second quick press the next nearest; turn so an enemy leaves the screen and confirm TGT no longer picks it while others are visible. Tapping a box should not steer the jet.
+Targeting: on a phone, tap an enemy target box to select it. Auto-targeting after a kill still picks what the nose is on (#157). The TGT button, Tab/R and gamepad Y now select the closest enemy you can see on screen; if that is already your target, the second closest; quick presses within 2.5 s keep walking outward and wrap (D-210, PR #172). An enemy whose box is on screen but which is hidden behind terrain (the server's line-of-sight check) ranks after every visible one, because you cannot actually see it; it is still reachable with a further press. With nothing on screen it picks the closest enemy overall and the edge arrow points to it. Check: with two or three enemies in view, one TGT press should take the nearest, a second quick press the next nearest; turn so an enemy leaves the screen and confirm TGT no longer picks it while others are visible. Tapping a box should not steer the jet.
 
 1. **Reach it.** Finish mission 1 at any rank. Mission 2's tile should read NEXT. The chapter "The sealed case" plays once before the briefing "NO ANIMALS".
 2. **Fly north.** You start in the air about 470 studs up with three LANTERN wingmen and a 15:00 countdown. Follow the red-and-white power line for about two minutes to the "farm" airfield.

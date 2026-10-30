@@ -1,6 +1,6 @@
 # Targeting: automatic acquisition and the TGT press
 
-Status: implemented on branch `fix/tgt-closest-onscreen` (this PR), superseding the TGT part of D-087 (PR #157) with D-210. Automatic acquisition is unchanged from #157. This is a code specification, not a Roblox Player observation; see the "Verification" section for what was actually run.
+Status: implemented on PR #172 (branch `fix/tgt-closest-onscreen`), superseding the TGT part of D-087 (PR #157) with D-210. Automatic acquisition is unchanged from #157. This is a code specification, not a Roblox Player observation; see the "Verification" section for what was actually run.
 
 Code: `src/shared/TargetPriority.ts` (pure order, frustum, press rule), `src/server/TargetView.ts` (payload validation), `src/server/CombatService.ts` (`targetCandidates`, `acquireTarget`, `cycleTarget`, `selectTarget`, the `CombatAction` handler), `src/client/FlightController.ts` (`CycleTarget`, `TryTapTarget`). Tests: `src/tests/TargetPriority.spec.ts` (also run offline), `src/tests/TargetView.spec.ts` (Roblox Jest only, needs `CFrame`).
 
@@ -20,7 +20,7 @@ The same rule serves the PC keys (Tab, R), the gamepad Y button and the on-scree
 
 **On screen.** `TargetPriority.InView` projects the server's position of each owned contact through that frustum: it is on screen when it is at least 1 stud ahead of the camera along the look axis and inside both the vertical half-angle and the horizontal half-angle (vertical times aspect). Under jamming, a contact beyond the phase's visual range from the camera is treated as off screen because the HUD hides its box. Line of sight is raycast for the four nearest on-screen damageable contacts only (`PressLosChecks`), reusing the 0.1 s cache.
 
-**Order.** `PressOrder` sorts by tier, then distance from the jet (closest first), then id:
+**Order.** A contact whose box is on screen but which terrain hides from the jet is not something the player can actually see, so it ranks after every clear on-screen contact yet before off-screen ones (still reachable with a further press). `PressOrder` sorts by tier, then distance from the jet (closest first), then id:
 
 | Tier | Meaning |
 |---|---|
