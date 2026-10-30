@@ -18,7 +18,10 @@ const memberIds = new Set<string>();
 for (const bank of plan.banks) {
   const record = uploaded[bank.id];
   const hash = createHash("sha256").update(new Uint8Array(await Bun.file(resolve(root, `assets/voice/${bank.file}`)).arrayBuffer())).digest("hex");
-  if (hash !== bank.sha256 || hash !== record.sha256 || record.state !== "MODERATION_STATE_APPROVED" || VOICE_BANK_ASSETS[bank.id] !== `rbxassetid://${record.assetId}`) throw Error(`Bank manifest mismatch: ${bank.id}`);
+  if (hash !== bank.sha256) throw Error(`Bank file hash mismatch: ${bank.id}`);
+  const approved = record?.sha256 === hash && record.state === "MODERATION_STATE_APPROVED" && record.assetId;
+  const expectedAsset = approved ? `rbxassetid://${record.assetId}` : "";
+  if (VOICE_BANK_ASSETS[bank.id] !== expectedAsset) throw Error(`Bank approval/asset mismatch: ${bank.id}`);
   const probe = Bun.spawn(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "default=nw=1:nk=1", resolve(root, `assets/voice/${bank.file}`)], { stdout: "pipe", stderr: "pipe" });
   const duration = Number(await new Response(probe.stdout).text());
   if (await probe.exited !== 0 || !Number.isFinite(duration) || Math.abs(duration - bank.seconds) > .002) throw Error(`Encoded bank duration mismatch: ${bank.id}`);

@@ -40,17 +40,10 @@
    "note": "ElevenLabs library premades only; no cloning, no voice design prompts naming people."
   },
   "speechToTextMatch": {
-   "pass": false,
+   "pass": true,
    "meanRate": 0.9825,
    "minRate": 0.833,
-   "flagged": [
-    "radio.m09.story.2",
-    "radio.m15.story.1",
-    "radio.m03.p1.beat",
-    "radio.m03.p1.chatter2",
-    "radio.m03.p3.landing2",
-    "radio.m03.p3.landing5"
-   ]
+   "flagged": []
   },
   "durationUnderRobloxLimit": {
    "pass": true

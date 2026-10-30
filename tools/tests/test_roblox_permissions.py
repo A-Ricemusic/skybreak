@@ -109,15 +109,25 @@ class PermissionsTests(unittest.TestCase):
         root = Path(__file__).resolve().parents[2]
         recorded = set()
         runtime = set()
+        expected_runtime = set()
         for directory, source in (("audio", "SoundBank.ts"), ("voice", "VoiceBanks.ts")):
             entries = json.loads((root / "assets" / directory / "uploaded.json").read_text())
             for entry in entries.values():
                 self.assertEqual(entry["assetType"], "Audio")
                 self.assertEqual(entry["state"], "MODERATION_STATE_APPROVED")
                 recorded.add(int(entry["assetId"]))
+            plan = json.loads((root / "assets" / directory / "upload-plan.json").read_text())
+            banks = plan["banks"] if directory == "voice" else [{"id": name, "sha256": entry["sha256"]} for name, entry in entries.items()]
+            for bank in banks:
+                entry = entries.get(bank["id"], {})
+                # The fixed permission-repair scope below is historical. Only a
+                # matching approved export may appear in today's runtime table.
+                if entry.get("sha256") == bank["sha256"]:
+                    expected_runtime.add(int(entry["assetId"]))
             runtime.update(int(i) for i in re.findall(r"rbxassetid://(\d+)", (root / "src/shared" / source).read_text()))
         self.assertEqual(recorded, set(IDS))
-        self.assertEqual(runtime, set(IDS))
+        self.assertEqual(runtime, expected_runtime)
+        self.assertTrue(runtime.issubset(set(IDS)))
         self.assertEqual(tuple(IDS), repair.ASSET_IDS)
         self.assertEqual(len(set(IDS)), 14)
 

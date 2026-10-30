@@ -204,14 +204,15 @@
   "radio.m06.p3.beat": 2
  },
  "sttAccepted": {
-  "story.c07.b05": "Homophone: invented name 'Sera' transcribed as 'Sara'; every word spoken.",
-  "story.c25.b01": "Number formatting: spoken 'Recorder seven-T. Entry oh-four-twelve.' transcribed as digits '7T, entry 0412'.",
-  "radio.m11.p3.beat": "Homophone: invented name 'Merel' transcribed as 'Merle'.",
-  "radio.m18.p3.beat": "Homophone: 'wingmen' transcribed as 'wingman'.",
-  "radio.m27.p1.beat": "Homophone: 'wingmen' transcribed as 'wingman'.",
-  "radio.m19.p1.beat": "Homophone: 'quays' (said 'keys') transcribed as 'keys'.",
-  "radio.m19.p1.chatter1": "Homophone: 'quays' (said 'keys') transcribed as 'keys'.",
-  "radio.m19.p2.beat": "Homophone: 'quays' (said 'keys') transcribed as 'keys'.",
-  "radio.m19.p6.chatter1": "Homophone: 'quay' (said 'key') transcribed as 'key'."
+  "story.c05.b01": "Fictional-name homophone Merel → Meril and quays → keys; harbours → harbors is British/American spelling. Cached transcript retains the words and meaning.",
+  "story.c05.b05": "Homophone quays → keys and British/American spelling neighbours → neighbors; no dialogue omitted in cached STT.",
+  "story.c07.b04": "Fictional-name homophone Sera → Sarah; all other words match cached STT.",
+  "story.c16.b01": "Number formatting seven-T → 7T; oh-four-twelve → oh four twelve is punctuation/tokenisation. Cached STT retains the full recorder header.",
+  "radio.m09.story.2": "Fictional-name homophone Teklan → Teclin; all other words match cached STT.",
+  "radio.m15.story.1": "British/American spelling armour → armor; no dialogue change in cached STT.",
+  "radio.m03.p1.beat": "Compound tokenisation north-west → northwest; all words retained in cached STT.",
+  "radio.m03.p1.chatter2": "Compound tokenisation west-north-west → west-northwest; all words retained in cached STT.",
+  "radio.m03.p3.landing2": "British/American spelling and compound tokenisation centreline → center line; cached STT retains the full landing instruction.",
+  "radio.m03.p3.landing5": "Fictional-name homophone Sera → Sarah; all other words match cached STT."
  }
 }

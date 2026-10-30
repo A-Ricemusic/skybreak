@@ -92,7 +92,19 @@ end
 local count=0
 local function test(name,fn) fn();count+=1;print("PASS "..name) end
 
-test("all 19 remapped chapters use exact recordings and rewritten beats stay silent",function()
+test("unuploaded banks stay silent before simulated asset injection",function()
+ for id,cue in modules.VoiceCues.VOICE_CUES do
+  if modules.VoiceBanks.VOICE_BANK_ASSETS[cue.bank]=="" then
+   assert(modules.VoiceLines.Voice:Clip(id,cue.text)==nil,"unuploaded clip must be silent")
+  end
+ end
+ if modules.VoiceBanks.VOICE_BANK_ASSETS.voiceBank01=="" then
+  mount(0);tick(.1);assert(#voices()==0,"unuploaded cinematic must not create a voice");unmount()
+ end
+ -- Fake IDs exist only inside this deterministic lifecycle simulation.
+ for bank in modules.VoiceBanks.VOICE_BANK_ASSETS do modules.VoiceBanks.VOICE_BANK_ASSETS[bank]="rbxassetid://1" end
+end)
+test("all 19 regenerated chapters play exact recordings with simulated uploaded assets",function()
  local total=0
  for _,chapter in STORY do
   local status=mount(chapter.id)

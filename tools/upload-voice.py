@@ -27,6 +27,7 @@ from roblox_upload import APPROVED, HALT, STATE, gate, load_journal, save, submi
 
 ROOT = Path(__file__).resolve().parent.parent
 VOICE = ROOT / "assets/voice"
+# Conservative project cap: 6.5 minutes, below Roblox's under-seven-minute limit.
 MAX_SECONDS = 6.5 * 60
 
 
@@ -48,7 +49,7 @@ def preflight(bank, review, stt):
     if not content.startswith(b"OggS") or len(content) >= 20_000_000:
         raise RuntimeError(f"{name}: invalid Ogg upload")
     if bank["seconds"] > MAX_SECONDS:
-        raise RuntimeError(f"{name}: {bank['seconds']}s is over Roblox's 6.5 minute limit")
+        raise RuntimeError(f"{name}: {bank['seconds']}s is over the project's conservative 6.5 minute cap")
     checked = review.get("banks", {}).get(name, {})
     match = checked.get("transcriptMatch", {})
     if not (review.get("commercialUsePermitted") is True and checked.get("approved") is True
