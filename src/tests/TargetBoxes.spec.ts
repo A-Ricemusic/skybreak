@@ -304,7 +304,7 @@ describe("target box text across phone roots and HUD scales", () => {
 
 describe("touch target boxes", () => {
 	function contact(x = 100, y = 100, size = 14) { return { x, y, size, boxed: true, friendly: false }; }
-	it("hits a rendered contact, including a selected contact's footprint", () => {
+	it("hits a rendered contact by its boxed footprint", () => {
 		const selected = contact(100, 100, 24);
 		expect(TargetBoxes.TapHit([selected], 100, 100)).toBe(selected);
 	});
