@@ -9,6 +9,9 @@ import { MotionPreference } from "./MotionPreference";
 import { documentFor, documentLine } from "../shared/StoryDocuments";
 import { Voice, cinematicBeatSeconds, storyLineId } from "../shared/VoiceLines";
 import { VoiceHandle, VoicePlayer } from "./VoicePlayer";
+import { BackdropItem, CinematicPropAsset, GroundMaterial, HARBOUR_WATER, NO_DEPTH, ORCHARD_SPOTS, PROP_ANCHOR, RECEIVER, RECORDER_LID_OPEN, ShotDepth, StandInMaterial, StandInPart, backdropFor, dressBackdrop, moodGrade, shotDepth, stageGround, stageHalf, standInParts, subjectStandInParts } from "../shared/CinematicSet";
+import { createTeardown } from "../shared/Teardown";
+import { UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
 
 const ORIGIN=new Vector3(0,6000,0);
 const vec=(p:Vec)=>new Vector3(p.x,p.y,p.z),col=(c:Rgb)=>Color3.fromRGB(c.r,c.g,c.b),rgb=(c:Color3):Rgb=>({r:c.R*255,g:c.G*255,b:c.B*255});
@@ -18,16 +21,23 @@ function prop(parent:Instance,name:string,size:Vector3,pos:Vector3,color:Color3,
 	const p=new Instance("Part"); p.Name=name; p.Size=size; p.Position=ORIGIN.add(pos); p.Color=color; p.Material=material;
 	p.Anchored=true; p.CanCollide=false; p.CanTouch=false; p.CanQuery=false; p.Parent=parent; return p;
 }
-interface Stage { scene:Folder; reels:{part:Part;base:CFrame}[]; recorderLight:Part; tealStrip:Part; }
+/** Reels spin about local X (procedural cylinders on the receiver's face) or local Y (the uploaded console's flat deck reels). */
+interface Reel { part:BasePart; base:CFrame; axis:"x" | "y"; }
+interface Stage { scene:Folder; reels:Reel[]; recorderLight:Part; tealStrip:Part; }
 const SUBJECT_Y:Record<string,number>={RelayTruck:18,HarborLaunch:19,CommsRelay:45};
 function cloneModel(template:Instance | undefined,parent:Instance,name:string,cf:CFrame): boolean {
 	if(!template?.IsA("Model")) { warn(`SKYBREAK cinematic ${name}: template missing; using stage fallback where available`); return false; }
-	const model=template.Clone();model.Name=name;
-	for(const item of model.GetDescendants()) {
-		if(item.IsA("BasePart")) { item.Anchored=true; item.CanCollide=false; item.CanTouch=false; item.CanQuery=false; }
-		else if(item.IsA("Trail") || item.IsA("ParticleEmitter") || item.IsA("Light")) item.Enabled=false;
-	}
-	model.PivotTo(cf);model.Parent=parent;
+	// A clone that cannot be placed is destroyed here, never left behind beside the stand-in that replaces it.
+	const model=template.Clone();
+	const [placed,problem]=pcall(()=>{
+		model.Name=name;
+		for(const item of model.GetDescendants()) {
+			if(item.IsA("BasePart")) { item.Anchored=true; item.CanCollide=false; item.CanTouch=false; item.CanQuery=false; }
+			else if(item.IsA("Trail") || item.IsA("ParticleEmitter") || item.IsA("Light")) item.Enabled=false;
+		}
+		model.PivotTo(cf);model.Parent=parent;
+	});
+	if(!placed) { model.Destroy(); warn(`SKYBREAK cinematic ${name}: could not be placed (${tostring(problem)}); using stage fallback where available`); return false; }
 	const source=model.GetAttribute("GeometrySource");
 	if(source==="Fallback") warn(`SKYBREAK cinematic ${name}: procedural fallback geometry active`);
 	return true;
@@ -40,6 +50,44 @@ function cloneFurniture(models:Instance | undefined,scene:Folder,name:string,pos
 	const [,size]=template.GetBoundingBox();
 	return cloneModel(template,scene,name,new CFrame(ORIGIN.add(position).add(new Vector3(0,size.Y/2,0))).mul(CFrame.Angles(0,yaw,0)));
 }
+/** An uploaded desk prop (dormant until its RobloxAssetIds entry is set), seated so its recorded anchor lands on `target`. */
+function seatProp(models:Instance | undefined,scene:Folder,name:CinematicPropAsset,target:CFrame): Model | undefined {
+	const template=models?.FindFirstChild(name);
+	if(!template?.IsA("Model") || template.GetAttribute("GeometrySource")!=="Uploaded")return undefined;
+	const anchor=UploadedAssetSpecs[name].anchors?.[PROP_ANCHOR[name]] ?? Vector3.zero;
+	return cloneModel(template,scene,name,target.mul(new CFrame(anchor.mul(-1)))) ? scene.FindFirstChild(name) as Model : undefined;
+}
+/** Approved uploaded scenery around the desk: ground contact at the item's spot (the template's pivot is its bottom centre). */
+function placeBackdrop(models:Instance | undefined,scene:Folder,item:BackdropItem): boolean {
+	const template=models?.FindFirstChild(`Backdrop${item.asset}`);
+	if(!template?.IsA("Model"))return false;
+	const model=template.Clone();
+	const [placed,problem]=pcall(()=>{
+		model.Name=item.asset;
+		for(const part of model.GetDescendants())if(part.IsA("BasePart")){part.Anchored=true;part.CanCollide=false;part.CanTouch=false;part.CanQuery=false;}
+		if(item.scale!==1)model.ScaleTo(model.GetScale()*item.scale);
+		model.PivotTo(new CFrame(ORIGIN.add(new Vector3(item.x,-UploadedAssetSpecs[item.asset].groundOffset*item.scale,item.z))).mul(CFrame.Angles(0,item.yaw,0)));
+		model.Parent=scene;
+	});
+	// Destroyed before its stand-in is built, so a failed placement never leaves a half-placed clone.
+	if(!placed){model.Destroy();warn(`SKYBREAK cinematic ${item.asset}: could not be placed (${tostring(problem)}); using its stand-in`);}
+	return placed;
+}
+const STAND_IN:Record<StandInMaterial,Enum.Material>={Concrete:Enum.Material.Concrete,Metal:Enum.Material.Metal,Grass:Enum.Material.Grass,Slate:Enum.Material.Slate,Wood:Enum.Material.Wood,Neon:Enum.Material.Neon};
+/** Part-built boxes in `frame` (a ground contact turned to the item's yaw); neon keeps its own colour, the rest take the mood tint. */
+function buildStandIn(scene:Folder,frame:CFrame,parts:StandInPart[],tint:(c:Color3)=>Color3): void {
+	for(const part of parts){
+		const color=col(part.color),p=prop(scene,part.name,vec(part.size),Vector3.zero,part.material==="Neon" ? color : tint(color),STAND_IN[part.material]);
+		p.CFrame=frame.mul(new CFrame(vec(part.offset)));
+	}
+}
+/** The stand-in for one backdrop spot, sized from the asset's in-game size. */
+function standInBackdrop(scene:Folder,item:BackdropItem,tint:(c:Color3)=>Color3): void {
+	const spec=UploadedAssetSpecs[item.asset],s=item.scale;
+	const frame=new CFrame(ORIGIN.add(new Vector3(item.x,0,item.z))).mul(CFrame.Angles(0,item.yaw,0));
+	buildStandIn(scene,frame,standInParts(item.asset,{x:spec.size.X*s,y:spec.size.Y*s,z:spec.size.Z*s},spec.groundOffset*s),tint);
+}
+const GROUND:Record<GroundMaterial,Enum.Material>={Concrete:Enum.Material.Concrete,Sandstone:Enum.Material.Sandstone,Grass:Enum.Material.Grass,Ground:Enum.Material.Ground,Rock:Enum.Material.Rock,Asphalt:Enum.Material.Asphalt,Glass:Enum.Material.Glass};
 const PAPER=Color3.fromRGB(226,218,192),INK_BROWN=Color3.fromRGB(46,38,30),STAMP=Color3.fromRGB(172,42,36);
 /** The chapter's document on the chart's top face: monospace ink on paper, lit flat so the lamp cannot blow it out. */
 function dressChart(chart:Part,id:number): void {
@@ -60,40 +108,9 @@ function dressChart(chart:Part,id:number): void {
 	chart.CFrame=chart.CFrame.mul(CFrame.Angles(0,math.pi/2,0));
 	gui.Parent=chart;
 }
-/** One stage per chapter: the radio desk is always there; the surroundings follow `scene`, props tint to `mood`, and a few props follow the story. */
-function sceneFor(chapter:StoryChapter): Stage {
-	const {scene:kind,mood,id}=chapter,scene=new Instance("Folder"); scene.Name="BrokenRelayCinematic"; scene.Parent=Workspace;
-	const models=ReplicatedStorage.FindFirstChild("RelayStoryModels");
-	const tint=(c:Color3)=>col(sceneTint(rgb(c),mood));
-	const sea=kind==="sea";
-	if(sea) prop(scene,"Stage",new Vector3(700,4,700),new Vector3(0,-2,0),tint(Color3.fromRGB(16,38,70)),Enum.Material.Glass).Reflectance=.25;
-	else prop(scene,"Stage",new Vector3(700,4,700),new Vector3(0,-2,0),tint(Color3.fromRGB(40,57,64)),Enum.Material.Slate);
-	if(!cloneFurniture(models,scene,"CinematicDesk",new Vector3(0,0,0))) {
-		prop(scene,"Radio desk",new Vector3(16,2,9),new Vector3(0,4,0),Color3.fromRGB(93,63,47),Enum.Material.Wood);
-		// The desk floated five studs off the floor in the low chair shot; four legs reach the stage.
-		for(const [dx,dz] of [[-7.4,-4],[7.4,-4],[-7.4,4],[7.4,4]]) prop(scene,"Desk leg",new Vector3(.6,5,.6),new Vector3(dx,.5,dz),Color3.fromRGB(70,48,36),Enum.Material.Wood);
-	}
-	const radio=prop(scene,"Teal's receiver",new Vector3(7,4,3),new Vector3(0,7,0),Color3.fromRGB(44,68,75));
-	prop(scene,"Frequency window",new Vector3(4.5,.7,.2),new Vector3(0,7.6,-1.6),Color3.fromRGB(76,234,208),Enum.Material.Neon);
-	// Reels are cylinders (axis along X, turned to face the camera) with a spoke so the spin reads.
-	const reels:Stage["reels"]=[];
-	for(const x of [-2.4,2.4]) {
-		const base=new CFrame(ORIGIN.add(new Vector3(x,6.4,-1.7))).mul(CFrame.Angles(0,math.pi/2,0));
-		const reel=prop(scene,"Tape reel",new Vector3(.4,1.7,1.7),Vector3.zero,Color3.fromRGB(197,178,132));reel.Shape=Enum.PartType.Cylinder;reel.CFrame=base;
-		const spoke=prop(scene,"Tape reel",new Vector3(.5,.18,1.4),Vector3.zero,Color3.fromRGB(70,58,40));spoke.CFrame=base;
-		reels.push({part:reel,base},{part:spoke,base});
-	}
-	// The flight chart is a sheet of paper; the chapter's document is printed on it for the evidence shot.
-	dressChart(prop(scene,"Flight chart",new Vector3(5.2,.15,3.8),vec(CHART),Color3.fromRGB(196,188,160),Enum.Material.SmoothPlastic),id);
-	// The coffee tin of tapes, found under Teal's bunk in chapter 1; one cassette leaves it for every chapter he has spoken in since.
-	const tapes=tapesInTin(id);
-	if(tapes!==undefined) {
-		const tin=prop(scene,"Coffee tin",new Vector3(1.7,1.8,1.8),vec(TIN),Color3.fromRGB(118,46,34));tin.Shape=Enum.PartType.Cylinder;tin.CFrame=tin.CFrame.mul(CFrame.Angles(0,0,math.pi/2));
-		for(let i=0;i<tapes;i++) prop(scene,"Tape cassette",new Vector3(.2,1,.7),vec(TIN).add(new Vector3(-.42+(i%4)*.28,.55,-.36+math.floor(i/4)*.36)),i%3===0 ? Color3.fromRGB(58,54,50) : Color3.fromRGB(40,38,36),Enum.Material.SmoothPlastic);
-	}
-	// Teal's handheld recorder: a dented grey box with a grille, a tape window and a red tally lamp that blinks in recorder shots.
-	const open=recorderOpen(id),r=vec(RECORDER),tilt=CFrame.Angles(0,-.35,.04);
-	const rec=prop(scene,"Recorder",new Vector3(2,1,3),r,Color3.fromRGB(96,99,102),Enum.Material.DiamondPlate);rec.CFrame=rec.CFrame.mul(tilt);
+/** Teal's handheld recorder from parts: a dented grey box with a grille, a tape window and a red tally lamp (returned). */
+function proceduralRecorder(scene:Folder,frame:CFrame,open:boolean): Part {
+	const rec=prop(scene,"Recorder",new Vector3(2,1,3),Vector3.zero,Color3.fromRGB(96,99,102),Enum.Material.DiamondPlate);rec.CFrame=frame;
 	const detail=(name:string,size:Vector3,offset:Vector3,color:Color3,material:Enum.Material)=>{const p=prop(scene,name,size,Vector3.zero,color,material);p.CFrame=rec.CFrame.mul(new CFrame(offset));return p;};
 	detail("Recorder grille",new Vector3(.9,.06,.6),new Vector3(.3,.53,-.9),Color3.fromRGB(40,42,44),Enum.Material.Metal);
 	detail("Recorder window",new Vector3(1.2,.06,.7),new Vector3(0,.53,.2),Color3.fromRGB(150,160,150),Enum.Material.Glass).Transparency=.3;
@@ -105,17 +122,83 @@ function sceneFor(chapter:StoryChapter): Stage {
 		const lid=prop(scene,"Recorder lid",new Vector3(2,.1,1.5),Vector3.zero,Color3.fromRGB(88,91,94),Enum.Material.DiamondPlate);
 		lid.CFrame=rec.CFrame.mul(new CFrame(0,.5,-.55)).mul(CFrame.Angles(-1.2,0,0)).mul(new CFrame(0,0,-.75));
 	}
-	const recorderLight=detail("Recorder light",new Vector3(.3,.2,.3),new Vector3(-.6,.55,1.1),Color3.fromRGB(255,40,40),Enum.Material.Neon);
+	return detail("Recorder light",new Vector3(.3,.2,.3),new Vector3(-.6,.55,1.1),Color3.fromRGB(255,40,40),Enum.Material.Neon);
+}
+/** One stage per chapter: the radio desk is always there; the surroundings follow `scene`, props tint to `mood`, and a few props follow the story. */
+function sceneFor(chapter:StoryChapter,track:(undo:()=>void)=>void): Stage {
+	const {scene:kind,mood,id}=chapter,scene=new Instance("Folder"); scene.Name="BrokenRelayCinematic";
+	track(()=>scene.Destroy());scene.Parent=Workspace;
+	const models=ReplicatedStorage.FindFirstChild("RelayStoryModels");
+	const tint=(c:Color3)=>col(sceneTint(rgb(c),mood));
+	const sea=kind==="sea",burned=kind==="farm" && orchardBurned(id);
+	// Ground per scene (it was one slate slab everywhere); the sea runs out to the storm fog so the ships float on water.
+	const ground=stageGround(kind,burned),half=stageHalf(kind);
+	prop(scene,"Stage",new Vector3(half*2,4,half*2),new Vector3(0,-2,0),tint(col(ground.color)),GROUND[ground.material]).Reflectance=ground.reflectance;
+	if(kind==="harbor") prop(scene,"Harbour water",new Vector3(700,4,HARBOUR_WATER.z1-HARBOUR_WATER.z0),new Vector3(0,-1.8,(HARBOUR_WATER.z0+HARBOUR_WATER.z1)/2),tint(Color3.fromRGB(22,52,78)),Enum.Material.Glass).Reflectance=.2;
+	if(!cloneFurniture(models,scene,"CinematicDesk",new Vector3(0,0,0))) {
+		prop(scene,"Radio desk",new Vector3(16,2,9),new Vector3(0,4,0),Color3.fromRGB(93,63,47),Enum.Material.Wood);
+		// The desk floated five studs off the floor in the low chair shot; four legs reach the stage.
+		for(const [dx,dz] of [[-7.4,-4],[7.4,-4],[-7.4,4],[7.4,4]]) prop(scene,"Desk leg",new Vector3(.6,5,.6),new Vector3(dx,.5,dz),Color3.fromRGB(70,48,36),Enum.Material.Wood);
+	}
+	const reels:Reel[]=[],receiverAt=ORIGIN.add(vec(RECEIVER));
+	const console=seatProp(models,scene,"CinematicRadioConsole",new CFrame(receiverAt));
+	let radio:Part;
+	if(console) {
+		// Uploaded console: its flat deck reels turn, the lamp hangs off an invisible anchor, and the teal strip sits on its window.
+		radio=prop(scene,"Teal's receiver",new Vector3(1,1,1),vec(RECEIVER),Color3.fromRGB(44,68,75));radio.Transparency=1;
+		for(const name of ["ReelL","ReelR"]){const reel=console.FindFirstChild(name);if(reel?.IsA("BasePart"))reels.push({part:reel,base:reel.CFrame,axis:"y"});}
+		const window=UploadedAssetSpecs.CinematicRadioConsole.anchors?.FrequencyWindow;
+		if(window){const strip=prop(scene,"Frequency window",new Vector3(4,.6,.05),Vector3.zero,Color3.fromRGB(76,234,208),Enum.Material.Neon);strip.CFrame=console.GetPivot().mul(new CFrame(window.add(new Vector3(0,0,-.03))));}
+	} else {
+		radio=prop(scene,"Teal's receiver",new Vector3(7,4,3),vec(RECEIVER),Color3.fromRGB(44,68,75));
+		prop(scene,"Frequency window",new Vector3(4.5,.7,.2),new Vector3(0,7.6,-1.6),Color3.fromRGB(76,234,208),Enum.Material.Neon);
+		// Reels are cylinders (axis along X, turned to face the camera) with a spoke so the spin reads.
+		for(const x of [-2.4,2.4]) {
+			const base=new CFrame(ORIGIN.add(new Vector3(x,6.4,-1.7))).mul(CFrame.Angles(0,math.pi/2,0));
+			const reel=prop(scene,"Tape reel",new Vector3(.4,1.7,1.7),Vector3.zero,Color3.fromRGB(197,178,132));reel.Shape=Enum.PartType.Cylinder;reel.CFrame=base;
+			const spoke=prop(scene,"Tape reel",new Vector3(.5,.18,1.4),Vector3.zero,Color3.fromRGB(70,58,40));spoke.CFrame=base;
+			reels.push({part:reel,base,axis:"x"},{part:spoke,base,axis:"x"});
+		}
+	}
+	// The flight chart is a sheet of paper; the chapter's document is printed on it for the evidence shot.
+	dressChart(prop(scene,"Flight chart",new Vector3(5.2,.15,3.8),vec(CHART),Color3.fromRGB(196,188,160),Enum.Material.SmoothPlastic),id);
+	// The coffee tin of tapes, found under Teal's bunk in chapter 1; one cassette leaves it for every chapter he has spoken in since.
+	const tapes=tapesInTin(id);
+	if(tapes!==undefined) {
+		if(!seatProp(models,scene,"CinematicTapeTin",new CFrame(ORIGIN.add(vec(TIN))))){const tin=prop(scene,"Coffee tin",new Vector3(1.7,1.8,1.8),vec(TIN),Color3.fromRGB(118,46,34));tin.Shape=Enum.PartType.Cylinder;tin.CFrame=tin.CFrame.mul(CFrame.Angles(0,0,math.pi/2));}
+		for(let i=0;i<tapes;i++) prop(scene,"Tape cassette",new Vector3(.2,1,.7),vec(TIN).add(new Vector3(-.42+(i%4)*.28,.55,-.36+math.floor(i/4)*.36)),i%3===0 ? Color3.fromRGB(58,54,50) : Color3.fromRGB(40,38,36),Enum.Material.SmoothPlastic);
+	}
+	// Teal's handheld recorder: a dented grey box with a grille, a tape window and a red tally lamp that blinks in recorder shots.
+	const open=recorderOpen(id),r=vec(RECORDER),tilt=CFrame.Angles(0,-.35,.04),recFrame=new CFrame(ORIGIN.add(r)).mul(tilt);
+	const recorder=seatProp(models,scene,"CinematicFieldRecorder",recFrame);
+	let recorderLight:Part;
+	if(recorder) {
+		// Uploaded recorder: the blinking neon sits on its lamp lens; the recovery chapter (CinematicStaging.recorderOpen) swings the cassette door open on its hinge.
+		const spec=UploadedAssetSpecs.CinematicFieldRecorder,pivot=recorder.GetPivot(),lamp=spec.anchors?.Lamp ?? new Vector3(-.6,1,1.1);
+		recorderLight=prop(scene,"Recorder light",new Vector3(.16,.04,.16),Vector3.zero,Color3.fromRGB(255,40,40),Enum.Material.Neon);recorderLight.CFrame=pivot.mul(new CFrame(lamp));
+		const lid=recorder.FindFirstChild("Lid"),hinge=spec.controlSurfaces?.Lid;
+		if(open && lid?.IsA("BasePart") && hinge) {
+			// An X-parallel hinge: its X position does not change the swing.
+			const at=pivot.mul(new CFrame(hinge.from.add(hinge.to).div(2))),swing=at.mul(CFrame.Angles(RECORDER_LID_OPEN,0,0)).mul(at.Inverse());
+			lid.CFrame=swing.mul(lid.CFrame);
+		}
+	} else recorderLight=proceduralRecorder(scene,recFrame,open);
 	// Sera's board by the desk: dark slate on a post, three name strips; Teal's is the bright one, and chapter 5 wipes it for a while.
 	const b=vec(BOARD);
-	prop(scene,"Board post",new Vector3(.3,8,.3),new Vector3(b.X,2,b.Z),Color3.fromRGB(52,54,58));
-	prop(scene,"Sera's board",new Vector3(5,3.2,.25),b,Color3.fromRGB(30,50,46),Enum.Material.Slate);
+	if(!seatProp(models,scene,"CinematicStatusBoard",new CFrame(ORIGIN.add(b)))) {
+		prop(scene,"Board post",new Vector3(.3,8,.3),new Vector3(b.X,2,b.Z),Color3.fromRGB(52,54,58));
+		prop(scene,"Sera's board",new Vector3(5,3.2,.25),b,Color3.fromRGB(30,50,46),Enum.Material.Slate);
+	}
 	for(const [dy,name] of [[.9,"Teal strip smear"],[.2,"Name strip"],[-.5,"Name strip"]] as [number,string][]) prop(scene,name,new Vector3(3.4,.3,.05),b.add(new Vector3(0,dy,-.15)),name==="Name strip" ? Color3.fromRGB(200,196,180) : Color3.fromRGB(44,66,62),Enum.Material.SmoothPlastic);
 	const tealStrip=prop(scene,"Teal strip",new Vector3(3.4,.3,.05),b.add(new Vector3(0,.9,-.17)),Color3.fromRGB(76,234,208),Enum.Material.Neon);
 	const lighting=moodLighting(mood);
 	const lamp=new Instance("PointLight");lamp.Brightness=lighting.lamp;lamp.Range=mood==="night" ? 80 : 60;lamp.Color=Color3.fromRGB(255,218,171);lamp.Parent=radio;
 	const subject=stageSubject(kind);
-	if(subject) cloneModel(models?.FindFirstChild(subject),scene,"Story subject",new CFrame(ORIGIN.add(new Vector3(SUBJECT.x,SUBJECT_Y[subject],SUBJECT.z))));
+	if(subject) {
+		const at=new CFrame(ORIGIN.add(new Vector3(SUBJECT.x,SUBJECT_Y[subject],SUBJECT.z)));
+		// The story subject keeps a part-built stand-in (the launch on its sea platform included) if its model is missing.
+		if(!cloneModel(models?.FindFirstChild(subject),scene,"Story subject",at)) buildStandIn(scene,new CFrame(ORIGIN.add(new Vector3(SUBJECT.x,sea ? 10 : 0,SUBJECT.z))),subjectStandInParts(subject),tint);
+	}
 	const jet=models?.FindFirstChild("CinematicKestrel");
 	cloneModel(jet,scene,"Kestrel",new CFrame(ORIGIN.add(vec(CINEMATIC_JET))).mul(CFrame.Angles(0,.7,0)));
 	// The empty instructor's chair beside the desk, worn leather; the `chair` shot pushes in on it in every scene.
@@ -141,34 +224,24 @@ function sceneFor(chapter:StoryChapter): Stage {
 		}
 	}
 	if(sea) prop(scene,"Sea platform",new Vector3(70,12,70),new Vector3(SUBJECT.x,4,SUBJECT.z),tint(Color3.fromRGB(70,76,82)),Enum.Material.Concrete);
-	// Mast 2 of the ring stood between the wide camera and the jet, so the ring has five.
-	if(kind==="relay") for(let i=0;i<6;i++) {
-		if(i===2)continue;
-		const ang=i/6*math.pi*2,r=75;
-		prop(scene,"Antenna mast",new Vector3(2,40+(i%2)*14,2),new Vector3(SUBJECT.x+math.cos(ang)*r,20+(i%2)*7,SUBJECT.z+math.sin(ang)*r),tint(Color3.fromRGB(150,156,160)));
-	}
+	// Approved uploaded scenery around the desk; every spot whose model has not replicated, or fails to place, gets its own part-built stand-in.
+	const dressed=dressBackdrop(backdropFor(kind,id,burned),(item)=>placeBackdrop(models,scene,item),(item)=>standInBackdrop(scene,item,tint));
+	if(dressed.standIns.size()>0) warn(`SKYBREAK cinematic ${kind}: ${dressed.standIns.size()} of ${dressed.standIns.size()+dressed.uploaded.size()} scenery models unavailable; using part-built stand-ins for them`);
 	if(auroraVisible(kind,mood)) for(const ribbon of AURORA) {
 		const p=prop(scene,"Aurora",vec(ribbon.size),vec(ribbon.pos),col(ribbon.color),Enum.Material.Neon);
 		p.CFrame=p.CFrame.mul(CFrame.Angles(0,ribbon.yaw,.06));p.Transparency=ribbon.transparency;p.CastShadow=false;
 	}
-	if(!sea && kind!=="hangar") {
-		const burned=kind==="farm" && orchardBurned(id);
-		const color=tint(burned ? Color3.fromRGB(30,26,24) : kind==="farm" ? Color3.fromRGB(82,113,63) : kind==="canyon" ? Color3.fromRGB(152,102,67) : kind==="city" ? Color3.fromRGB(44,52,66) : Color3.fromRGB(90,115,129));
-		for(let i=0;i<7;i++) {
-			const h=kind==="city" ? 110+(i%3)*40 : kind==="canyon" ? 100+(i%3)*28 : 20+(i%3)*8,x=-180+i*60,z=-180-(i%2)*60;
-			prop(scene,kind,new Vector3(50,h,65),new Vector3(x,h/2,z),color,burned ? Enum.Material.Slate : kind==="farm" ? Enum.Material.Grass : Enum.Material.Concrete);
-			// Charred orchard: a couple of ember flecks per block, no smoke particles (phones).
-			if(burned) for(let e=0;e<2;e++) prop(scene,"Ember",new Vector3(1.2,.4,1.2),new Vector3(x-12+e*24,h+.2,z+(e===0 ? 10 : -14)),Color3.fromRGB(255,110,40),Enum.Material.Neon);
-			// A few lit window strips so the city reads as inhabited at any mood.
-			if(kind==="city") for(let w=0;w<3;w++) prop(scene,"Window strip",new Vector3(30,1.2,.4),new Vector3(x,h*(.35+w*.22),z+32.7),(i+w)%3===0 ? Color3.fromRGB(255,120,200) : Color3.fromRGB(120,230,255),Enum.Material.Neon);
-		}
+	// Burned orchard (CinematicStaging.orchardBurned): charred stumps with a few embers where the trees stood, no smoke particles (phones).
+	if(burned) for(const [i,spot] of ipairs(ORCHARD_SPOTS)) {
+		prop(scene,"Charred tree",new Vector3(3,5+(i%3)*2,3),new Vector3(spot.x,2.5+(i%3),spot.z),tint(Color3.fromRGB(30,26,24)),Enum.Material.Slate);
+		if(i%2===0) prop(scene,"Ember",new Vector3(1.2,.4,1.2),new Vector3(spot.x+2.5,.2,spot.z-1.5),Color3.fromRGB(255,110,40),Enum.Material.Neon);
 	}
 	return {scene,reels,recorderLight,tealStrip};
 }
 type LightingKeys="ClockTime" | "Brightness" | "Ambient" | "OutdoorAmbient" | "FogColor" | "FogEnd" | "FogStart" | "ExposureCompensation";
 const LIGHTING_KEYS:LightingKeys[]=["ClockTime","Brightness","Ambient","OutdoorAmbient","FogColor","FogEnd","FogStart","ExposureCompensation"];
 /**
- * Applies the mood to Lighting and returns the restore function. The server
+ * Applies the mood to Lighting, registering every restore with `track` as it goes. The server
  * rewrites Lighting whenever it rebuilds a world (the finale cinematic starts
  * at the same moment the menu world comes back), so each property is watched:
  * a value we did not set becomes the new restore target and the mood is
@@ -176,34 +249,49 @@ const LIGHTING_KEYS:LightingKeys[]=["ClockTime","Brightness","Ambient","OutdoorA
  * world's Atmosphere is thickened locally too, and a local cloud deck gives the
  * storm its grey sky (client changes do not replicate).
  */
-function stageLighting(mood:StoryChapter["mood"]): ()=>void {
+function stageLighting(mood:StoryChapter["mood"],track:(undo:()=>void)=>void): void {
 	type Bag=Record<LightingKeys,unknown>;
 	const live=Lighting as unknown as Bag,saved:Partial<Bag>={},mine:Partial<Bag>={};
 	const l=moodLighting(mood);
 	const wanted:Bag={ClockTime:l.clockTime,Brightness:l.brightness,ExposureCompensation:l.exposure,Ambient:col(l.ambient),OutdoorAmbient:col(l.outdoorAmbient),FogColor:col(l.fogColor),FogStart:l.fogStart,FogEnd:l.fogEnd};
 	const apply=(key:LightingKeys)=>{mine[key]=wanted[key];live[key]=wanted[key];};
-	const watchers:RBXScriptConnection[]=[];
+	// Each key's restore is registered before it changes, and its watcher's disconnect after it connects,
+	// so teardown (newest first) stops a watcher before putting its key back.
 	for(const key of LIGHTING_KEYS) {
-		saved[key]=live[key];apply(key);
-		watchers.push(Lighting.GetPropertyChangedSignal(key).Connect(()=>{if(live[key]!==mine[key]){saved[key]=live[key];apply(key);}}));
+		saved[key]=live[key];track(()=>{live[key]=saved[key];});apply(key);
+		const watcher=Lighting.GetPropertyChangedSignal(key).Connect(()=>{if(live[key]!==mine[key]){saved[key]=live[key];apply(key);}});
+		track(()=>watcher.Disconnect());
 	}
 	const atmosphere=Lighting.FindFirstChildOfClass("Atmosphere");
-	const atmo=atmosphere ? {density:atmosphere.Density,haze:atmosphere.Haze,color:atmosphere.Color} : undefined;
-	if(atmosphere){atmosphere.Density=l.density;atmosphere.Haze=l.haze;atmosphere.Color=col(l.fogColor);}
+	if(atmosphere){
+		const atmo={density:atmosphere.Density,haze:atmosphere.Haze,color:atmosphere.Color};
+		track(()=>{if(atmosphere.Parent){atmosphere.Density=atmo.density;atmosphere.Haze=atmo.haze;atmosphere.Color=atmo.color;}});
+		atmosphere.Density=l.density;atmosphere.Haze=l.haze;atmosphere.Color=col(l.fogColor);
+	}
 	const existing=Workspace.Terrain.FindFirstChildOfClass("Clouds"),clouds=existing ?? new Instance("Clouds");
-	const cloudsBefore={cover:clouds.Cover,density:clouds.Density,color:clouds.Color,enabled:clouds.Enabled};
+	if(existing){
+		const before={cover:clouds.Cover,density:clouds.Density,color:clouds.Color,enabled:clouds.Enabled};
+		track(()=>{clouds.Cover=before.cover;clouds.Density=before.density;clouds.Color=before.color;clouds.Enabled=before.enabled;});
+	} else track(()=>clouds.Destroy());
 	// A night deck hid the stars and the aurora entirely, so night runs with the layer off.
 	// Phones keep the project's cloud budget (MobileGraphics only trims decks added later).
 	const touch=UserInputService.TouchEnabled;
 	clouds.Cover=touch ? math.min(l.clouds.cover,.3) : l.clouds.cover;clouds.Density=touch ? math.min(l.clouds.density,.3) : l.clouds.density;clouds.Color=col(l.clouds.color);clouds.Enabled=l.clouds.cover>0;
 	if(!existing)clouds.Parent=Workspace.Terrain;
-	return ()=>{
-		for(const w of watchers)w.Disconnect();
-		for(const key of LIGHTING_KEYS)live[key]=saved[key];
-		if(atmosphere && atmo && atmosphere.Parent){atmosphere.Density=atmo.density;atmosphere.Haze=atmo.haze;atmosphere.Color=atmo.color;}
-		if(existing){clouds.Cover=cloudsBefore.cover;clouds.Density=cloudsBefore.density;clouds.Color=cloudsBefore.color;clouds.Enabled=cloudsBefore.enabled;}
-		else clouds.Destroy();
-	};
+}
+/**
+ * Cinematic-only post-processing, created locally and destroyed on unmount: a mood grade stacked on
+ * the world's own, soft sun rays at dawn and dusk (only when the world has none), and a depth of
+ * field that follows the shot. Phones keep their budget: MobileGraphics disables sun rays and depth
+ * of field as they are added, and only their settings (never Enabled) change per frame.
+ */
+function stageEffects(mood:StoryChapter["mood"],track:(undo:()=>void)=>void): {depth:(d:ShotDepth)=>void} {
+	const g=moodGrade(mood);
+	const effect=<T extends "ColorCorrectionEffect" | "SunRaysEffect" | "DepthOfFieldEffect">(kind:T,name:string)=>{const e=new Instance(kind);track(()=>e.Destroy());e.Name=name;return e;};
+	const grade=effect("ColorCorrectionEffect","CinematicGrade");grade.TintColor=col(g.tint);grade.Saturation=g.saturation;grade.Contrast=g.contrast;grade.Brightness=g.brightness;grade.Parent=Lighting;
+	if(g.sunRays && !Lighting.FindFirstChildWhichIsA("SunRaysEffect")){const rays=effect("SunRaysEffect","CinematicSunRays");rays.Intensity=g.sunRays.intensity;rays.Spread=g.sunRays.spread;rays.Parent=Lighting;}
+	const dof=effect("DepthOfFieldEffect","CinematicDepth");dof.FarIntensity=0;dof.NearIntensity=0;dof.Parent=Lighting;
+	return {depth:(d)=>{dof.FocusDistance=d.focusDistance;dof.InFocusRadius=d.inFocusRadius;dof.FarIntensity=d.farIntensity;dof.NearIntensity=d.nearIntensity;}};
 }
 const INK=Color3.fromRGB(4,9,14),IVORY=Color3.fromRGB(242,238,226),MUTED=Color3.fromRGB(152,168,176),FAINT=Color3.fromRGB(104,122,132);
 const ACCENT=Color3.fromRGB(64,224,206),ORANGE=Color3.fromRGB(255,150,84),DANGER=Color3.fromRGB(255,84,76),AMBER=Color3.fromRGB(242,196,78);
@@ -299,63 +387,86 @@ export function RelayCinematic({id,viewport,onFinish,onCancel}:{id:number;viewpo
 		else if(action==="text"){prefs.large=!prefs.large;setLarge(prefs.large);}
 	};
 	useEffect(()=>{
+		// Every resource registers its undo the moment it exists, so a setup that throws halfway leaks nothing;
+		// teardown runs each undo once (newest first, each under its own pcall), whether a failed setup or React calls it.
+		const teardown=createTeardown((problem)=>warn(`SKYBREAK cinematic ${id}: a cleanup step failed: ${problem}`));
+		const track=(undo:()=>void)=>teardown.add(undo);
 		// Timeline and overlay run even without a camera so the fade can never stick on black.
 		const camera=Workspace.CurrentCamera;
-		const oldType=camera?.CameraType,oldFov=camera?.FieldOfView,oldFrame=camera?.CFrame;
-		const stage=sceneFor(chapter),restoreLighting=stageLighting(chapter.mood);let clock=0,reelAngle=0;
-		const last=chapter.beats.size()-1,steadyLamp=recorderOpen(id);
-		const lengths=chapter.beats.map((b)=>graphemes(b.text));
-		speak(0);
-		const move=RunService.RenderStepped.Connect((dt)=>{
-			if(done.current)return;
-			const step=math.min(dt,.1);
-			clock+=step;if(!pausedRef.current)presentationTimeRef.current+=step;
-			beatTimeRef.current+=cinematicClockStep(step,pausedRef.current,voiceRef.current?.IsLoading()===true);
-			if(beatTimeRef.current>=endRef.current){advance();if(done.current)return;}
-			const index=indexRef.current,t=beatTimeRef.current,duration=durations[index],calm=stillRef.current;
-			const loading=voiceRef.current?.IsLoading()===true,presentationT=presentationTimeRef.current;
-			if(audioStatusRef.current){
-				const unavailable=audioUnavailableRef.current || voiceRef.current?.HasFailed()===true;
-				audioStatusRef.current.Visible=loading || unavailable;
-				audioStatusRef.current.Text=unavailable ? "Dialogue unavailable · subtitles only" : "Loading dialogue…";
-			}
-			const left=endRef.current-t;
-			const {shot,speaker:who}=chapter.beats[index],toneNow=speakerStyle(who).tone;
-			// Text: tapes, the log and title cards type out over the first 40 % of the beat; everyone else fades in. All fade out over the outro unless reduced motion asks for instant swaps.
-			const typed=isTyped(toneNow,shot);
-			const fadeOut=index===last ? 1 : math.clamp(left/TEXT_FADE_OUT,0,1);
-			setTextAlpha(calm || loading ? 0 : 1-math.min(typed ? 1 : math.clamp(presentationT/TEXT_FADE_IN,0,1),fadeOut));
-			setVisible(typed ? typedGraphemes(presentationT,duration,lengths[index],calm) : -1);
-			if(progressRef.current)progressRef.current.Size=new UDim2(math.clamp(t/duration,0,1),0,1,0);
-			// Black overlay: fade up from black, dip on camera cuts, fade out at the natural end.
-			const enter=1-math.clamp(clock/ENTER_FADE,0,1);
-			// Cut dip: darken over the outgoing beat's last CUT_DIP, then lift on the incoming shot.
-			const dipOut=calm || index===last ? 0 : (1-math.clamp(left/CUT_DIP,0,1))*CUT_BLACK;
-			const dipIn=calm || index===0 ? 0 : (1-math.clamp(presentationT/CUT_DIP,0,1))*CUT_BLACK;
-			const exitSpan=endRef.current<duration ? CUT_DIP : EXIT_FADE;
-			const exit=index===last ? 1-math.clamp(left/exitSpan,0,1) : 0;
-			if(fadeRef.current)fadeRef.current.BackgroundTransparency=1-math.max(enter,dipOut,dipIn,exit);
-			// Stage life: reels turn while a tape or the log speaks; the recorder lamp blinks in its close-up; Sera's board follows chapter 5.
-			if(!pausedRef.current && reelsSpin(toneNow))reelAngle+=step*2.4;
-			for(const {part,base} of stage.reels)part.CFrame=base.mul(CFrame.Angles(reelAngle,0,0));
-			stage.recorderLight.Transparency=recorderLightOn(shot,clock,steadyLamp) ? 0 : shot==="recorder" ? .85 : .55;
-			stage.tealStrip.Transparency=boardShowsTeal(id,index,last) ? 0 : 1;
-			// Camera framing follows the beat's shot; camera motion OFF holds each shot's mid pose.
-			const alpha=calm ? .5 : math.clamp(t/duration,0,1);
-			const size=viewportRef.current,pose=shotPose(shot,chapter.scene,alpha,size.Y<240,size.Y>size.X);
-			if(!camera)return;
-			camera.CameraType=Enum.CameraType.Scriptable;camera.FieldOfView=pose.fov;camera.CFrame=CFrame.lookAt(ORIGIN.add(vec(pose.eye)),ORIGIN.add(vec(pose.focus)));
+		// One terminal path for any failure, at setup or on a later frame or input: undo everything, then leave like Skip.
+		const fail=(when:string,problem:unknown)=>{
+			if(teardown.ran())return;
+			warn(`SKYBREAK cinematic ${id}: ${when} failed; skipping the cutscene: ${tostring(problem)}`);
+			teardown.run();finish();
+		};
+		const guarded=<A extends unknown[]>(when:string,callback:(...args:A)=>void)=>(...args:A)=>{
+			const [ok,problem]=pcall(callback,...args);
+			if(!ok)fail(when,problem);
+		};
+		const [ready,problem]=pcall(()=>{
+			if(camera){const oldType=camera.CameraType,oldFov=camera.FieldOfView,oldFrame=camera.CFrame;track(()=>{camera.CameraType=oldType;camera.FieldOfView=oldFov;camera.CFrame=oldFrame;});}
+			track(()=>silence(0));
+			const stage=sceneFor(chapter,track);stageLighting(chapter.mood,track);const effects=stageEffects(chapter.mood,track);let clock=0,reelAngle=0;
+			const last=chapter.beats.size()-1,steadyLamp=recorderOpen(id);
+			const lengths=chapter.beats.map((b)=>graphemes(b.text));
+			speak(0);
+			const move=RunService.RenderStepped.Connect(guarded("a frame",(dt:number)=>{
+				if(done.current)return;
+				const step=math.min(dt,.1);
+				clock+=step;if(!pausedRef.current)presentationTimeRef.current+=step;
+				beatTimeRef.current+=cinematicClockStep(step,pausedRef.current,voiceRef.current?.IsLoading()===true);
+				if(beatTimeRef.current>=endRef.current){advance();if(done.current)return;}
+				const index=indexRef.current,t=beatTimeRef.current,duration=durations[index],calm=stillRef.current;
+				const loading=voiceRef.current?.IsLoading()===true,presentationT=presentationTimeRef.current;
+				if(audioStatusRef.current){
+					const unavailable=audioUnavailableRef.current || voiceRef.current?.HasFailed()===true;
+					audioStatusRef.current.Visible=loading || unavailable;
+					audioStatusRef.current.Text=unavailable ? "Dialogue unavailable · subtitles only" : "Loading dialogue…";
+				}
+				const left=endRef.current-t;
+				const {shot,speaker:who}=chapter.beats[index],toneNow=speakerStyle(who).tone;
+				// Text: tapes, the log and title cards type out over the first 40 % of the beat; everyone else fades in. All fade out over the outro unless reduced motion asks for instant swaps.
+				const typed=isTyped(toneNow,shot);
+				const fadeOut=index===last ? 1 : math.clamp(left/TEXT_FADE_OUT,0,1);
+				setTextAlpha(calm || loading ? 0 : 1-math.min(typed ? 1 : math.clamp(presentationT/TEXT_FADE_IN,0,1),fadeOut));
+				setVisible(typed ? typedGraphemes(presentationT,duration,lengths[index],calm) : -1);
+				if(progressRef.current)progressRef.current.Size=new UDim2(math.clamp(t/duration,0,1),0,1,0);
+				// Black overlay: fade up from black, dip on camera cuts, fade out at the natural end.
+				const enter=1-math.clamp(clock/ENTER_FADE,0,1);
+				// Cut dip: darken over the outgoing beat's last CUT_DIP, then lift on the incoming shot.
+				const dipOut=calm || index===last ? 0 : (1-math.clamp(left/CUT_DIP,0,1))*CUT_BLACK;
+				const dipIn=calm || index===0 ? 0 : (1-math.clamp(presentationT/CUT_DIP,0,1))*CUT_BLACK;
+				const exitSpan=endRef.current<duration ? CUT_DIP : EXIT_FADE;
+				const exit=index===last ? 1-math.clamp(left/exitSpan,0,1) : 0;
+				if(fadeRef.current)fadeRef.current.BackgroundTransparency=1-math.max(enter,dipOut,dipIn,exit);
+				// Stage life: reels turn while a tape or the log speaks; the recorder lamp blinks in its close-up; Sera's board follows chapter 5.
+				if(!pausedRef.current && reelsSpin(toneNow))reelAngle+=step*2.4;
+				for(const {part,base,axis} of stage.reels)part.CFrame=base.mul(axis==="x" ? CFrame.Angles(reelAngle,0,0) : CFrame.Angles(0,reelAngle,0));
+				stage.recorderLight.Transparency=recorderLightOn(shot,clock,steadyLamp) ? 0 : shot==="recorder" ? .85 : .55;
+				stage.tealStrip.Transparency=boardShowsTeal(id,index,last) ? 0 : 1;
+				// Camera framing follows the beat's shot; camera motion OFF holds each shot's mid pose.
+				const alpha=calm ? .5 : math.clamp(t/duration,0,1);
+				const size=viewportRef.current,pose=shotPose(shot,chapter.scene,alpha,size.Y<240,size.Y>size.X);
+				effects.depth(shotDepth(shot,pose) ?? NO_DEPTH);
+				if(!camera)return;
+				camera.CameraType=Enum.CameraType.Scriptable;camera.FieldOfView=pose.fov;camera.CFrame=CFrame.lookAt(ORIGIN.add(vec(pose.eye)),ORIGIN.add(vec(pose.focus)));
+			}));
+			track(()=>move.Disconnect());
+			const input=UserInputService.InputBegan.Connect(guarded("input",(key:InputObject,processed:boolean)=>{
+				dispatch(routeCinematicInput({kind:"shortcut",key:key.KeyCode.Name,
+					processed:processed || GuiService.MenuIsOpen,guiSelected:GuiService.SelectedObject!==undefined}));
+			}));
+			track(()=>input.Disconnect());
+			const inputType=UserInputService.LastInputTypeChanged.Connect(guarded("input",(kind:Enum.UserInputType)=>{
+				if(kind===Enum.UserInputType.MouseMovement || kind===Enum.UserInputType.Focus || kind===Enum.UserInputType.TextInput)return;
+				setHintMode(hintModeFor(kind));
+			}));
+			track(()=>inputType.Disconnect());
 		});
-		const input=UserInputService.InputBegan.Connect((key,processed)=>{
-			dispatch(routeCinematicInput({kind:"shortcut",key:key.KeyCode.Name,
-				processed:processed || GuiService.MenuIsOpen,guiSelected:GuiService.SelectedObject!==undefined}));
-		});
-		const inputType=UserInputService.LastInputTypeChanged.Connect((kind)=>{
-			if(kind===Enum.UserInputType.MouseMovement || kind===Enum.UserInputType.Focus || kind===Enum.UserInputType.TextInput)return;
-			setHintMode(hintModeFor(kind));
-		});
-		// Unmount (finish, skip or cancel) puts the stage, lighting and camera back exactly as found.
-		return ()=>{silence(0);move.Disconnect();input.Disconnect();inputType.Disconnect();stage.scene.Destroy();restoreLighting();if(camera && oldType && oldFov!==undefined && oldFrame){camera.CameraType=oldType;camera.FieldOfView=oldFov;camera.CFrame=oldFrame;}};
+		// A stage that cannot be built is skipped like a tap on Skip, after everything created so far is undone.
+		if(!ready)fail("stage setup",problem);
+		// Unmount (finish, skip or cancel) puts the stage, lighting and camera back exactly as found; safe to call again.
+		return ()=>teardown.run();
 	},[id]);
 
 	const activate=(control:CinematicControl)=>()=>dispatch(routeCinematicInput({kind:"activated",control}));

@@ -57,3 +57,14 @@ All five passed moderation; unused until missions 4–5. Studio orientation chec
 | fuel-tanker | 83861380699092 | fuel-tanker-1 | `2a7797171ed3d9e0889ba292faa87189b44ff9862a2d011f56e0f8dff0d3f965` |
 | attack-helicopter | 80747426523090 | attack-helicopter-1 | `d31e015e7959c55ec534d48454e27cbb668d87ec6a3f6bf111edb9acdb74dd29` |
 | vanta-v2-elite | 139083376207373 | vanta-v2-elite-3 | `2fdcf40547df8f11dfd13d15b6b08535c87add64a6db5363c79da3dc2a2b8ada` |
+
+## Cinematic desk props (2026-10-30)
+
+All four passed an independent 10/10 safety review ([record](asset-reviews/2026-10-29-pr152-review-1.md); approvals in `asset-reviews/approvals/cinematic-*.json`) and Roblox moderation. Used only by story cutscenes; procedural props remain the fallback.
+
+| Asset | Model asset ID | Export | FBX SHA-256 |
+|---|---|---|---|
+| cinematic-radio-console | 107763051422036 | cinematic-radio-console-1 | `8398f60a2363852be9e900dc146c211fb190e7faf4c92484c364ded70e4e0ca6` |
+| cinematic-field-recorder | 87111261775563 | cinematic-field-recorder-1 | `0ec0ad7de0cd375e6dc20c6c558581fc153a8ae27aee1f477b0bf5f1d40a13da` |
+| cinematic-status-board | 105938775214679 | cinematic-status-board-1 | `313dc862ef36680c52aeb3b9756c2f6a5a737fbe369f5dc660f492c42dbd94f8` |
+| cinematic-tape-tin | 86951943477271 | cinematic-tape-tin-1 | `e65aa071ff3441468603abe610412cf6d5824a14e5a23f761ef2ccd61f3a913a` |

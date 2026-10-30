@@ -1,0 +1,24 @@
+{
+  "asset": "cinematic-status-board",
+  "folder": "assets/roblox-upload/cinematic-status-board/",
+  "exportVersion": "cinematic-status-board-1",
+  "approved": true,
+  "reviewer": "Claude Opus 5.5 (independent; not the creator)",
+  "reviewedAt": "2026-10-30T04:13:02Z",
+  "score": "10/10",
+  "commitReviewed": "09f6a904c8ed44716ae6cacb493c643e16d687ce",
+  "pr": 152,
+  "record": "docs/qa/asset-reviews/2026-10-29-pr152-review-1.md",
+  "uploadSet": {
+    "cinematic-status-board.fbx": "313dc862ef36680c52aeb3b9756c2f6a5a737fbe369f5dc660f492c42dbd94f8"
+  },
+  "uploadAssetType": "Model",
+  "embeddedTextures": {
+    "cinematic-status-board-color.png": "f7c2b0a065df77214dacedb5ce8d027897ecd6e9ac7d19247509d88226d29579",
+    "cinematic-status-board-metalness.png": "eebee763a157932b83f3722ca5d77a5f2935c91c4b388ea15a711f86fc50a610",
+    "cinematic-status-board-normal.png": "8782f3a19045362ccdbc8e4db2c89d073bc12a4a41602d292d4b274b12914eb0",
+    "cinematic-status-board-roughness.png": "938dda1fe86f28fa9ea0eae2982ebb9e4dc4b4e2ece05a589d0bdfb2c6da9576"
+  },
+  "checklistSha256": "1ca8d0ea4f4ddc440f4e26dbc4fa6cad8d60c27fa0e7f794b7d7049493d11e56",
+  "note": "Approval covers only this exact FBX and its byte-matched embedded textures. Any edit or re-export requires a new independent review. Not a guarantee against moderation."
+}

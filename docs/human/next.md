@@ -2,6 +2,7 @@
 
 Last updated: 2026-10-29.
 
+**Story with subtitles (D-142, 2026-10-30).** Roblox rejected the regenerated voiceBank01, and the owner's policy is now no more audio uploads ([blockers](blockers.md)). Merging #159 keeps main's six approved voice banks: 78 story beats keep their exact recordings, and every new or changed line is subtitle-only. #159 also rewrites the 10 riskiest lines. Next: merge #159, then carry its story text into M04/M05 integration. Any investigation of the rejection's cause stays offline, using the [preserved case file](../qa/audio-rejections/2026-10-30-voicebank01.md).
 Audio policy (D-142): continue the story in subtitles beyond existing approved voices; changed lines stay silent. No further audio uploads. Any cause investigation must remain offline using the [preserved case file](../qa/audio-rejections/2026-10-30-voicebank01.md).
 
 ## Launch loading UX
@@ -74,6 +75,21 @@ See [per-level status](levels.html). Mission 3 #147 is merged; mission 4 [#149](
 ## Missions 6–9 — specs ready for review
 
 Mission and world specs are in review in [PR #155](https://github.com/A-Ricemusic/skybreak/pull/155), at `docs/specs/missions/m06.md`–`m09.md` and `docs/specs/worlds/m06.md`–`m09.md`, with source timestamps, observed debriefs, scale sketches, Broken Relay adaptations and main’s engine gaps. Review the flagged inventory/trigger/rank assumptions before implementation; these are documentation proposals, not mission activation or Player verification.
+
+## Cutscene modernization — in review (this PR, not merged)
+
+Why: the story cutscenes before every mission still used grey blocks, a single slate floor and part-built desk props next to the realistic jets. Details: [cutscene asset spec](../specs/cutscene-assets.md); decisions D-110–D-116.
+
+Done in code (live once merged; no upload needed):
+- Approved, already-uploaded scenery stands around the desk in every non-hangar chapter: city blocks and towers, farm buildings and an orchard (charred stumps once it burns in chapter 9, "Walking the storm"), rocks, pines, relay masts and a radar dish, the harbour quay, cranes and containers, and frigates in chapter 8, "The frigate ring". A second band stands in front of the desk so the most common shot has a background. Any model that does not load gets its own part-built stand-in at its spot (ships and the story subject included).
+- If the stage cannot be built, or something fails on a later frame or input, everything already created is undone and the cutscene is skipped like Skip. Every cleanup step runs once, even if another fails; a model that fails to place is destroyed before its stand-in goes up.
+- Per-scene ground, a strip of harbour water and a larger sea; a gentle per-mood colour grade, sun rays at dawn and dusk, and depth of field on close shots. Phones keep their existing effect trims.
+- Cutscene timing, text, voice, camera poses and controls are unchanged; practice and missions are untouched.
+
+Approved, uploaded and wired (live once this PR merges):
+- Four original Blender desk props: radio console with spinning tape reels, field recorder with an opening lid, rolling status board, tape tin. They received an independent 10/10 safety review ([record](../qa/asset-reviews/2026-10-29-pr152-review-1.md)), were uploaded and passed moderation: radio console `107763051422036`, field recorder `87111261775563`, status board `105938775214679`, tape tin `86951943477271`. If one fails to load, the cutscene keeps today's procedural prop.
+
+Still to do: check the radio, recorder (chapter 16 with the lid open), board and wide shots in Studio, including the props' import orientation and scale, which no Studio session has checked yet. Next in the plan: textured desk and chair. Agents have not performed a Roblox Player test; Studio before/after captures and the Roblox Jest run are still pending: Studio is signed out on this Mac and needs the owner to sign back in (see Blockers); `docs/qa/cutscenes/2026-10-29/` has only the Blender set preview for now.
 
 ## Later
 
