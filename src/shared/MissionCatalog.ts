@@ -1,5 +1,6 @@
 import { NightLighting, validateNightLighting } from "./NightLighting";
 import { ScoreThreshold, RadarJamming, RearmPlan, validateBatchC } from "./EngineBatchC";
+import { CutInPlan, validateCutIn, validateRearmPresentation } from "./SortieCutaways";
 import { MissionUpdate, ReturnLine, LandingPlan, validateBatchB } from "./EngineBatchB";
 import { TypedGroundTarget, FighterArrival, StandaloneAce, validateCampaignEncounters } from "./CampaignEncounters";
 import { BomberEncounter, validateBomberEncounter } from "./BomberEncounter";
@@ -114,6 +115,8 @@ export interface MissionPhaseBlueprint {
 	scoreThreshold?: ScoreThreshold;
 	jamming?: RadarJamming;
 	rearm?: RearmPlan;
+	/** HUD-less cut-in with the mission clock held (SortieCutaways). */
+	cutIn?: CutInPlan;
 	/** Fired once on entry to this phase (mid-sortie update). */
 	update?: MissionUpdate;
 	returnLine?: ReturnLine;
@@ -282,6 +285,8 @@ for (let index = -1; index < MISSIONS.size(); index++) {
 	if(blueprint.nightLighting) validateNightLighting(blueprint.nightLighting, (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 		validateBatchC(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 		validateBatchB(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
+	validateCutIn(expandPhases(blueprint.phases));
+	for (const phase of expandPhases(blueprint.phases)) if (phase.rearm) validateRearmPresentation(phase.rearm);
 	validateCampaignEncounters(blueprint, expandPhases(blueprint.phases), blueprint.airspace ?? LEGACY_MISSION_AIRSPACE, blueprint.scoring ?? LEGACY_MISSION_SCORING);
 	assert(blueprint.phases.size() >= 1, `Mission ${id} must have at least one phase`);
 	assert(blueprint.failure.size() > 0 && blueprint.failure.size() <= 120, `Mission ${id} needs a short failure outcome`);
@@ -432,6 +437,8 @@ export const MissionCatalog = {
 		if(blueprint.nightLighting) validateNightLighting(blueprint.nightLighting, (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateBatchC(expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint).hardHalfWidth);
 	validateBatchB(expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint).hardHalfWidth);
+	validateCutIn(expandPhases(blueprint.phases));
+	for (const phase of expandPhases(blueprint.phases)) if (phase.rearm) validateRearmPresentation(phase.rearm);
 		assert(blueprint.phases.size()>0,"Mission needs a phase");
 		validateCampaignEncounters(blueprint, expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint), MissionCatalog.Scoring(blueprint));
 		for (const phase of expandPhases(blueprint.phases)) validateBomberEncounter(phase, blueprint.airspace ?? LEGACY_MISSION_AIRSPACE, blueprint.scoring ?? LEGACY_MISSION_SCORING);

@@ -1,5 +1,7 @@
 # SKYBREAK redesign dashboard
 
+Unmerged owner tuning (D-220/D-221): M01/M02 add four optional fighters each with higher rank cuts; shared allied flights default to one combined kill per sortie. Existing live gameplay stays as merged main until this PR merges. See [Next](next.md) for exact changes and owner checks.
+
 Last updated: 2026-10-29, against main `7d73c44` (mission 3 merged).
 M12/M13 procedural worlds are in review in [PR #170](https://github.com/A-Ricemusic/skybreak/pull/170) on `feat/m12-m13-worlds`, stacked on #167 → #166 → #164. Dormant registry only; estimates12.771s/13.253s, full validator exit0 (788 Luau contracts,122 Python tests); offline validation only. No Player/Studio test or mission activation. Decisions D-230–D-234.
 
@@ -55,7 +57,7 @@ M17 now matches the spec:18:20 and12,000ft cloud-base reference metadata. No ada
 | 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | Yes | In review #149; assets #142, world #144 and engine #145 merged, dormant | No | — |
 | 3 | The Northern Eye | 0:26:41–0:34:24 | 7.7 min | Yes | Yes | Yes (#147 merged); world #139 and engine #141 merged | Yes (pipeline) | — |
 | 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | Yes | In review #149; shared cleanup gate and 6:48.33 escape fixed in branch, Studio re-check pending; load-time fix (D-120: 66→11.7 s terrain in a Studio bench) in a PR stacked on #149; assets #142, world #144 and engine #145 merged, dormant | No | — |
-| 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | Yes | In review #148; load still about 37 s of terrain after D-120 (target 20 s); assets #142, world #144 and engine #145 merged, dormant | No | — |
+| 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | Yes | In review #148: Studio Jest 972/972; a real-UI scripted run completed; world build about 18 s after D-120 | No | — |
 | 6 | Invincible Fleet | 1:03:01–1:20:00 | 17.0 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m06.md), [world](../specs/worlds/m06.md)) | Unbuilt / locked | No | — |
 | 7 | Deep Strike | 1:22:13–1:35:49 | 13.6 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m07.md), [world](../specs/worlds/m07.md)) | Unbuilt / locked | No | — |
 | 8 | Shattered Skies | 1:39:16–1:52:39 | 13.4 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m08.md), [world](../specs/worlds/m08.md)) | Unbuilt / locked | No | — |

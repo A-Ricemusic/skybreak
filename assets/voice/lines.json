@@ -1539,6 +1539,51 @@
    "tape": false,
    "text": "LANTERN 2: One transport left. The trucks are counting on us.",
    "spoken": "One transport left. The trucks are counting on us."
+  },
+  {
+   "id": "radio.m05.p1.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Rig to the east, refinery to the west. Burn them before dawn.",
+   "spoken": "Rig to the east, refinery to the west. Burn them before dawn."
+  },
+  {
+   "id": "radio.m05.p1.chatter1",
+   "kind": "radio",
+   "speaker": "MARINE",
+   "voice": "IKne3meq5aSn9XLyUdCD",
+   "tape": false,
+   "text": "LANTERN 2: Tanks are going up like flares. Keep it coming.",
+   "spoken": "Tanks are going up like flares. Keep it coming."
+  },
+  {
+   "id": "radio.m05.p1.chatter2",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Halfway there. The platform's guns are still awake.",
+   "spoken": "Halfway there. The platform's guns are still awake."
+  },
+  {
+   "id": "radio.m05.p1.chatter3",
+   "kind": "radio",
+   "speaker": "MARINE",
+   "voice": "IKne3meq5aSn9XLyUdCD",
+   "tape": false,
+   "text": "LANTERN 3: Nearly there. Don't stop at the number, trainee.",
+   "spoken": "Nearly there. Don't stop at the number, trainee."
+  },
+  {
+   "id": "radio.m05.p1.chatter4",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: That's two thousand. Keep burning it until the clock runs out.",
+   "spoken": "That's two thousand. Keep burning it until the clock runs out."
   }
  ]
 }

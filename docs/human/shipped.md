@@ -1,5 +1,6 @@
 # Shipped
 
+Pending only (2026-10-30): D-220/D-221 difficulty/allied-flight tuning is unmerged. No new Player observation or deployment is claimed; see [Next](next.md).
 ## PR #176 review fixes (2026-10-30)
 
 **Mission 5 client fix included:** the old weather lookup also dereferenced nil for every M05–M13 world key on main. The shared world-environment registry now resolves all eighteen server world keys, including M05, and safely ignores unknown/unset names. Desktop/phone/reduced-motion effects and phone cloud decks are checked against each environment; a static offline gate checks registry coverage against actual server registrations/publications. No Studio/Player observation is claimed.

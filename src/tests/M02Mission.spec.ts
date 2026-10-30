@@ -5,6 +5,7 @@ import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { TargetScore } from "../shared/TargetScore";
 import { recordAlliedKill, recordScoredKill } from "../server/SortieScore";
 import { MissionScore } from "../shared/MissionScore";
+import { WavePlan, AirRequest } from "../shared/WavePlan";
 import { AlliedRules } from "../shared/AlliedRules";
 import { buildM02Plan, M02, M02_RUNWAY, M02_WORLD_KEY, m02TargetLayout } from "../shared/M02WorldPlan";
 import { M02_AIRSPACE, M02_START } from "../shared/M02Limits";
@@ -79,33 +80,33 @@ describe("Mission 2 data: the farm airfield strike", () => {
 		}
 		expect(targets.filter((t) => t.required).size()).toBe(phase.count);
 	});
-	it("fields the reference's eight aircraft and makes 2,610 the maximum score", () => {
-		expect(waves.reduce((n, w) => n + w.count, 0)).toBe(7);
+	it("fields the owner-tuned twelve aircraft and makes 2,850 the maximum score", () => {
+		expect(waves.reduce((n, w) => n + w.count, 0)).toBe(11);
 		for (const w of waves) { expect(w.role).toBe("raider"); expect(scoring.points[w.scoreRole]).toBe(60); }
 		expect(ace.name).toBe("HARROW SIX");
 		expect(scoring.points[ace.scoreRole]).toBe(240);
-		expect(bp.optionalRaiderMax).toBe(8);
-		expect(MissionCatalog.RaiderCap(phase, 0)).toBe(8);
+		expect(bp.optionalRaiderMax).toBe(12);
+		expect(MissionCatalog.RaiderCap(phase, 0)).toBe(12);
 		let ground = 0, required = 0;
 		for (const t of targets) { ground += points(t); if (t.required) required += points(t); }
 		expect(required).toBe(1320);
 		expect(ground).toBe(1950);
-		expect(ground + 7 * 60 + 240).toBe(2610);
+		expect(ground + 11 * 60 + 240).toBe(2850);
 	});
-	it("ranks S 2,200, A 1,750, B 1,500, C 1,320 (all bombers), inside the footage bounds", () => {
-		expect(scoring.rank).toEqual({ S: 2200, A: 1750, B: 1500, C: 1320 });
-		// Footage: 1,700 read B; 1,750 read A; 2,370 read S.
-		for (const [total, rank] of [[1320, "C"], [1499, "C"], [1500, "B"], [1700, "B"], [1750, "A"], [1950, "A"], [2199, "A"], [2200, "S"], [2370, "S"], [2610, "S"]] as [number, string][]) {
+	it("resizes rank cuts for owner tuning, with bombers alone still C", () => {
+		expect(scoring.rank).toEqual({ S: 2500, A: 1990, B: 1620, C: 1320 });
+		// D-220 supersedes inferred reference rank cuts.
+		for (const [total, rank] of [[1320, "C"], [1619, "C"], [1620, "B"], [1989, "B"], [1990, "A"], [2499, "A"], [2500, "S"], [2850, "S"]] as [number, string][]) {
 			expect(MissionScore.RankPoints(total, true, scoring)).toBe(rank);
 		}
 		expect(MissionScore.RankPoints(2610, false, scoring)).toBe("D");
-		// S is reachable without the ace (2,370) but not on ground targets alone (1,950).
-		expect(2610 - 240 >= scoring.rank.S).toBe(true);
+		// S is reachable without the ace (2,610) but not on ground targets alone (1,950).
+		expect(2850 - 240 >= scoring.rank.S).toBe(true);
 		expect(1950 < scoring.rank.S).toBe(true);
 	});
 	it("schedules the waves: head-on at T+35, base defence and runway scramble on approach, late pair and ace on bomber kills", () => {
 		const ids = waves.map((w) => w.id);
-		expect(ids).toEqual(["m02_intercept", "m02_defenders", "m02_scramble", "m02_late_pair"]);
+		expect(ids).toEqual(["m02_intercept", "m02_defenders", "m02_scramble", "m02_late_pair", "m02_valley_reserve", "m02_final_cover"]);
 		const [intercept, defenders, scramble, late] = waves;
 		expect(intercept.trigger).toEqual({ kind: "time", seconds: 35 });
 		expect(arrivalDue(intercept.trigger, context(34.9, 0))).toBe(false);
@@ -127,8 +128,30 @@ describe("Mission 2 data: the farm airfield strike", () => {
 		expect(ace.trigger).toEqual({ kind: "required_count", count: 4 });
 		expect(arrivalDue(ace.trigger, context(0, 3))).toBe(false);
 		expect(arrivalDue(ace.trigger, context(0, 4))).toBe(true);
-		for (const w of waves) expect(w.call !== undefined && w.call.size() <= 72).toBe(true);
+		for (const w of waves) if (w.call !== undefined) expect(w.call.size() <= 72).toBe(true);
 		expect(ace.behaviour).toBe("ground_attack");
+	});
+
+	it("queues the added pairs once and never exceeds seven live fighters on any difficulty", () => {
+		const reserve = waves[4], cover = waves[5], fired = new Set<string>();
+		expect(arrivalDue(reserve.trigger, context(74.99, 0))).toBe(false);
+		expect(takeArrival(reserve.id, reserve.trigger, context(75, 0), fired)).toBe(true);
+		expect(takeArrival(reserve.id, reserve.trigger, context(76, 0), fired)).toBe(false);
+		expect(arrivalDue(cover.trigger, context(0, 7))).toBe(false);
+		expect(arrivalDue(cover.trigger, context(0, 8))).toBe(true);
+		for (const extra of [0, 1]) {
+			const queue: AirRequest[] = waves.map(w => ({ role: w.role, count: w.count + extra, behind: false }));
+			queue.push({ role: "ace", count: 1, behind: false });
+			const total = queue.reduce((n, w) => n + w.count, 0);
+			let live = 0, spawned = 0;
+			while (queue.size() > 0) {
+				const added = WavePlan.Admit(queue, WavePlan.Budget(extra) - live).reduce((n, w) => n + w.count, 0);
+				live += added; spawned += added;
+				expect(live <= 7).toBe(true);
+				live = math.max(0, live - 1);
+			}
+			expect(spawned).toBe(total);
+		}
 	});
 	it("scrambles one fighter northbound from the south runway threshold, staying on the runway until airborne", () => {
 		const scramble = waves[2];
@@ -145,7 +168,7 @@ describe("Mission 2 data: the farm airfield strike", () => {
 		}
 		expect(scramblePose(scramble.spawn!, 0, 8).y).toBeGreaterThan(M02_RUNWAY.threshold.y + 200);
 	});
-	it("plays the footage kill order to a win on the eleventh bomber at 2,610 points, rank S", () => {
+	it("plays the footage kill order to a win on the eleventh bomber at 2,850 points, rank S", () => {
 		const state = BlueprintRunner.NewState(bp, 0), ledger = new TargetScore(scoring), fired = new Set<string>();
 		const byType = (targetType: string) => targets.filter((t) => t.type === targetType);
 		const bombers = byType("parked_bomber"), hangars = byType("hangar"), guns = byType("aa_gun");
@@ -163,13 +186,13 @@ describe("Mission 2 data: the farm airfield strike", () => {
 		ground(bombers[0]);
 		for (let i = 0; i < 2; i++) ground(hangars[i]);
 		for (let i = 1; i < 4; i++) ground(bombers[i]);
-		expect(due()).toEqual(["m02_intercept", "m02_defenders", "m02_scramble", "m02_ace"]);
+		expect(due()).toEqual(["m02_intercept", "m02_defenders", "m02_scramble", "m02_valley_reserve", "m02_ace"]);
 		expect(recordScoredKill(state, ledger, "ace", "ace", false, now += 5, "ace")).toBe(true);
 		for (let i = 4; i < 7; i++) ground(bombers[i]);
 		ground(byType("control_tower")[0]);
 		expect(due()).toEqual(["m02_late_pair"]);
 		for (let i = 2; i < 7; i++) ground(hangars[i]);
-		fighter(); fighter(); fighter();
+		fighter(); fighter(); fighter(); fighter(); fighter(); fighter(); fighter();
 		for (let i = 7; i < 10; i++) { ground(bombers[i]); expect(state.outcome).toBeUndefined(); }
 		// An ally may not take the last bomber, and a duplicate kill never counts.
 		expect(recordAlliedKill(state, ledger, [], bp.allies!, bombers[10].id, "ground", true, now, "parked_bomber")).toBe(false);
@@ -177,7 +200,7 @@ describe("Mission 2 data: the farm airfield strike", () => {
 		ground(bombers[10]);
 		expect(state.outcome).toBe("won");
 		expect(state.requiredGroundKills).toBe(11);
-		expect(ledger.Total()).toBe(2610);
+		expect(ledger.Total()).toBe(2850);
 		expect(MissionScore.RankPoints(ledger.Total(), true, scoring)).toBe("S");
 		expect(now).toBeLessThan(MissionCatalog.CountdownSeconds(bp));
 	});
@@ -202,7 +225,7 @@ describe("Mission 2 data: the farm airfield strike", () => {
 		expect(phase.bombers).toBeUndefined();
 	});
 	it("keeps all radio and story text short and its own (Broken Relay voice)", () => {
-		const lines = [phase.beat!, ...phase.chatter!.map((c) => c.text), ...waves.map((w) => w.call!), ace.call!, ...ace.stageLines!];
+		const lines = [phase.beat!, ...phase.chatter!.map((c) => c.text), ...waves.filter((w) => w.call !== undefined).map((w) => w.call!), ace.call!, ...ace.stageLines!];
 		for (const line of lines) expect(line.size() > 0 && line.size() <= 72).toBe(true);
 		expect(phase.label.size() <= 40).toBe(true);
 		expect(bp.failure.size() <= 120).toBe(true);

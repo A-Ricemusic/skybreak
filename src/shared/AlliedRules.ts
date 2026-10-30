@@ -43,7 +43,7 @@ export const AlliedRules = {
 	Count(policy: MissionAllies | undefined): number { return policy?.count ?? 0; },
 	CanEngage(policy: MissionAllies, candidate: { friendly?: boolean; required: boolean; role?: string; enabled: boolean; health: number }, weaponsEnabled = true): boolean {
 		return weaponsEnabled && candidate.friendly !== true && candidate.enabled && candidate.health > 0
-			&& (candidate.required ? policy.allowRequiredTargets === true : candidate.role === "escort" || candidate.role === "raider");
+			&& !candidate.required && (candidate.role === "escort" || candidate.role === "raider");
 	},
 	/** Formation catch-up remains active during launch even while weapon engagement is suppressed. */
 	FormationSpeed(playerSpeed: number, stationDistance: number): number {
@@ -51,11 +51,19 @@ export const AlliedRules = {
 	},
 	Credit(policy: MissionAllies): boolean { return policy.creditPlayerKills === true; },
 	MayDestroy(policy: MissionAllies): boolean { return policy.mayKill !== false; },
-	Range: 2200,
+	BudgetRemaining(policy: MissionAllies, kills: number): boolean {
+		return kills < (policy.killBudget ?? 1);
+	},
+	/** Rechecked at impact so missiles already in flight cannot spend a second kill. */
+	ShotDamage(policy: MissionAllies, kills: number, required: boolean, damage: number): number {
+		return !required && AlliedRules.BudgetRemaining(policy, kills) ? damage : 0;
+	},
+	Range: 1600,
 	Leash: 3600,
-	Reload: 12,
-	FlightSpacing: 3,
+	Reload: 20,
+	FlightSpacing: 8,
 	MissilesPerWingman: 8,
-	MaxInFlight: 2,
-	Damage: 45,
+	MaxInFlight: 1,
+	Damage: 30,
+	HitChance: 0.35,
 };

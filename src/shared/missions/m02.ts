@@ -15,7 +15,8 @@ const targets: TypedGroundTarget[] = m02TargetLayout().map((t) => ({
 	required: t.type === "bomber", scoreRole: M02_TARGET_TYPES[t.type], group: t.group,
 }));
 const base = M02.base;
-// Eight aircraft in all, as the reference player killed: 2 head-on, 2 base defenders, 1 runway scramble, a late pair and the ace.
+// D-220 adds four optional fighters to the reference roster; all arrivals share the seven-fighter queue.
+// Original roster: 2 head-on, 2 base defenders, 1 runway scramble, a late pair and the ace.
 const waves: FighterArrival[] = [
 	{ id: "m02_intercept", trigger: { kind: "time", seconds: 35 }, count: 2, role: "raider", scoreRole: "fighter", headingDegrees: 180,
 		call: "LANTERN 2: Two bandits off the nose, low over the fields." },
@@ -26,6 +27,8 @@ const waves: FighterArrival[] = [
 		call: "FARM CONTROL: Runway is yours. Get up, get up!" },
 	{ id: "m02_late_pair", trigger: { kind: "required_count", count: 6 }, count: 2, role: "raider", scoreRole: "fighter", headingDegrees: 90,
 		call: "SERA: Two more from the west valley. They waited for you." },
+	{ id: "m02_valley_reserve", trigger: { kind: "time", seconds: 75 }, count: 2, role: "raider", scoreRole: "fighter", headingDegrees: 180 },
+	{ id: "m02_final_cover", trigger: { kind: "required_count", count: 8 }, count: 2, role: "raider", scoreRole: "fighter", headingDegrees: 90 },
 ];
 const ace: StandaloneAce = {
 	id: "m02_ace", name: "HARROW SIX", livery: "Vulture", health: 165, trigger: { kind: "required_count", count: 4 },
@@ -35,9 +38,10 @@ const ace: StandaloneAce = {
 };
 export const mission: MissionBlueprint = {
 	id: 2, act: 1, codename: "The Sealed Case", title: "NO ANIMALS", region: "upland_farm", environment: "farm_overcast",
+	pressure: { playerPriority: 0.8, forwardConeDegrees: 25, tailDefence: true },
 	available: true, worldKey: M02_WORLD_KEY, airspace: M02_AIRSPACE, start: M02_START, countdownSeconds: 900,
 	scoring: { basis: "points", points: { parked_bomber: 120, hangar: 50, aa_gun: 20, control_tower: 100, substation: 100, fighter: 60, ace: 240 },
-		rank: { S: 2200, A: 1750, B: 1500, C: 1320 } },
+		rank: { S: 2500, A: 1990, B: 1620, C: 1320 } },
 	allies: { count: 3, model: "Kestrel", callsignPrefix: "LANTERN", creditPlayerKills: false, allowRequiredTargets: false,
 		formation: [{ x: -180, y: 20, z: 160 }, { x: 180, y: 20, z: 160 }, { x: 0, y: 40, z: 320 }] },
 	primary: "Destroy all eleven parked bombers on the farm airfield",
