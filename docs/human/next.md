@@ -2,6 +2,8 @@
 
 Last updated: 2026-10-29.
 
+**Voice HALT (2026-10-30).** Roblox rejected the regenerated voiceBank01, and all uploads are halted ([blockers](blockers.md)). In order: (1) **You:** look for a violation notice for asset 97298487668258 and appeal once. (2) Merge-ready prep: #159 rewrites 10 risky lines (D-141); #161 reuses the approved live takes and packs only new takes into three small banks. (3) With the ElevenLabs key, regenerate only the changed lines, then run speech-to-text and the new checklists. (4) Upload one bank at a time, N1 → N2 → N3, each after its own independent 10/10 review. Stop on any rejection. Waiting about 48 h for the appeal or the notice category is recommended before the first new upload.
+
 ## Mission 2 beta test — start here
 
 [Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). Mission 2 is live through the automatic pipeline and unlocks after you finish mission 1 on the same save. Agents have not performed a Roblox Player test.
