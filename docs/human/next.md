@@ -2,6 +2,8 @@
 
 Last updated: 2026-10-29.
 
+Audio policy (D-142): continue the story in subtitles beyond existing approved voices; changed lines stay silent. No further audio uploads. Any cause investigation must remain offline using the [preserved case file](../qa/audio-rejections/2026-10-30-voicebank01.md).
+
 ## Mission 2 beta test — start here
 
 [Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). Mission 2 is live through the automatic pipeline and unlocks after you finish mission 1 on the same save. Agents have not performed a Roblox Player test.
