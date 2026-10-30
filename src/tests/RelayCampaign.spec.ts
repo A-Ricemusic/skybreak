@@ -16,7 +16,7 @@ import { WavePlan, AirRequest } from "../shared/WavePlan";
 import { BomberRules } from "../shared/BomberRules";
 import { AlliedRules } from "../shared/AlliedRules";
 import { encodeCampaignSlot, normalizeMissionRecords } from "../shared/CampaignWire";
-import { STORY, reachableStoryChapters } from "../shared/RelayStory";
+import { STORY, storyFor, MARSHAL, RUSK, shouldPlayChapter, chapterBeforeMission, reachableStoryChapters } from "../shared/RelayStory";
 import { MissionCatalog as Legacy } from "./LegacyCatalog";
 const bp = MissionCatalog.Get(1);
 function fresh() { const c = new CampaignCoordinator("campaign18",undefined,{now:()=>1000,defer:()=>undefined}); c.load(); return c; }
@@ -24,14 +24,18 @@ describe("Released 18-mission campaign",()=>{
  it("contains 18 ordered numbered missions and optional practice outside the count",()=>{
   expect(MISSION_COUNT).toBe(18); expect(GameConfig.Campaign.MissionCount).toBe(18); expect(MISSIONS.size()).toBe(18);
   expect(PRACTICE.id).toBe(0); expect(MissionCatalog.Get(0)).toBe(PRACTICE);
-  MISSIONS.forEach((m,i)=>{expect(m.id).toBe(i+1);expect(MissionCatalog.Available(m)).toBe(i<=3);if(i>3){expect(m.title).toBe(`Mission ${i+1}`);expect(m.briefing).toBe("In development");}});
+  MISSIONS.forEach((m,i)=>{expect(m.id).toBe(i+1);expect(MissionCatalog.Available(m)).toBe(i<=3);if(i>3){expect(m.title).toBe(`Mission ${i+1}`);expect(m.briefing.size()>30).toBe(true);}});
   for(const id of [19,27,-1,1.5,math.huge]) expect(MissionCatalog.IsValidId(id)).toBe(false);
  });
  it("keeps the three original control exercises and radar without enemies",()=>{
-  expect(PRACTICE.phases).toEqual(Legacy.Get(1).phases.filter((_,i)=>i<3)); expect(PRACTICE.ground).toEqual(Legacy.Get(1).ground);
+  const expected = Legacy.Get(1).phases.filter((_,i)=>i<3).map((phase, i) => i !== 1 ? phase : {
+   ...phase, beat: "Select radar: tap box / TGT / Tab / Y. Turn back if you pass it.",
+   execution: { ...phase.execution, objective: "Tap the target box or press TGT to select the practice target" },
+  });
+  expect(PRACTICE.phases).toEqual(expected); expect(PRACTICE.ground).toEqual(Legacy.Get(1).ground);
   expect(MissionCatalog.RequiredAirKills(PRACTICE)).toBe(0); expect(MissionCatalog.Available(0)).toBe(true);
  });
- it("wins on all six bombers with 960 raw points, A, and persists the authoritative ledger",()=>{
+ it("wins on all six bombers with 960 raw points, B, and persists the authoritative ledger",()=>{
   const s=BlueprintRunner.NewState(bp,0), ledger=new TargetScore(bp.scoring!);
   for(const id of ["escort1","escort2"]) recordScoredKill(s,ledger,id,"air",false,100,"escort");
   recordScoredKill(s,ledger,"ace","ace",false,151,"ace");
@@ -39,7 +43,7 @@ describe("Released 18-mission campaign",()=>{
   expect(s.outcome).toBe("won"); expect(ledger.Total()).toBe(960);
   const c=fresh(); let rank="";
   expect(completeMission(c,1,1,true,{slot:1,missionId:1,kills:9,groundKills:0,optionalKills:3,completedPhases:1,elapsed:175,targetScore:ledger.Snapshot()},m=>{rank=m.rank ?? "";},0)).toBe(true);
-  expect(rank).toBe("A");expect(c.getSlots()[0].missions?.[1]?.bestScore).toBe(960);
+  expect(rank).toBe("B");expect(c.getSlots()[0].missions?.[1]?.bestScore).toBe(960);
   expect(highestUnlocked(c.getSlots()[0])).toBe(2);
   expect(normalizeProfile(serializeProfile({version:3,slots:c.getSlots()})).slots[0].missions?.[1]?.bestScore).toBe(960);
  });
@@ -88,9 +92,35 @@ describe("Released 18-mission campaign",()=>{
   const slot=normalizeProfile(serializeProfile({version:3,slots:c.getSlots()})).slots[0];
   expect(slot.missions?.[0]?.completed).toBe(true);expect(slot.mission1Completed).toBe(false);expect(highestUnlocked(slot)).toBe(1);
  });
- it("reaches only the opening chapter and retains later scripts and finale dormant",()=>{
-  expect(reachableStoryChapters()).toEqual([0]);expect(STORY.size()).toBe(28);
+ it("reaches the three live chapters and retains later chapters dormant",()=>{
+  expect(reachableStoryChapters()).toEqual([0,1,2]);expect(STORY.size()).toBe(19);
   expect(STORY[0].beats[5].text).toBe("An empty chair and a checkout nobody's signing. Fine. I'll fly the pattern.");
+ });
+ it("maps every mission to D-030 and keeps the closing chapter after M18",()=>{
+  const titles: string[] = ["A voice in the static", "The sealed case", "An unlisted station", "The orchard witnesses", "Fuel under grain", "Military quays", "Two ridges", "The loyalist window", "The frigate ring", "Walking the storm", "High crossing", "Vulture Two", "The evidence launch", "Aurora archive", "The city in darkness", "The dawn landing", "The last fracture", "Broken relay", "A clear frequency"];
+  expect(chapterBeforeMission(0)).toBe(0);
+  expect(shouldPlayChapter(0,[0],true,true)).toBe(false);
+  expect(shouldPlayChapter(1,[0],false,true)).toBe(false);
+  expect(shouldPlayChapter(1,[0],true,true)).toBe(true);
+  expect(shouldPlayChapter(1,[0],true,false)).toBe(false); // Retry after death in completed M1
+  expect(shouldPlayChapter(1,[0],false,false)).toBe(false);
+  expect(shouldPlayChapter(3,[],false,false)).toBe(true);
+  expect(shouldPlayChapter(3,[2],true,true)).toBe(false);
+  for(let id=1;id<=18;id++) { expect(chapterBeforeMission(id)).toBe(id-1); expect(STORY[chapterBeforeMission(id)].title).toBe(titles[id-1]); }
+  expect(STORY[18].title).toBe("A clear frequency");
+  for(const c of STORY) {
+   expect(c.id<=18).toBe(true); expect(c.beats.size()>=3 && c.beats.size()<=8).toBe(true);
+   for(const b of c.beats) { if(b.speaker===RUSK) expect(c.id>=14).toBe(true); if(b.speaker===MARSHAL) expect(c.id<14).toBe(true); }
+  }
+  for(const id of [19,26,27]) { expect(pcall(()=>storyFor(id))[0]).toBe(false); }
+  expect(STORY[5].beats[0].text.find("got clear of Vulture Lead")[0]!==undefined).toBe(true);
+  expect(STORY[16].beats[5].text.find("Vulture Lead is one of them")[0]!==undefined).toBe(true);
+  expect(STORY[17].beats[0].text.find("left his wingmen")[0]!==undefined).toBe(true);
+ });
+ it("normalises numeric cutscene compatibility without touching retired stores",()=>{
+  const profile=normalizeProfile({version:3,slots:[{name:"Seen",cutscenesSeen:[0,1,2,17,18,19,27,-1,1.5,"3"]}]});
+  expect(profile.slots[0].cutscenesSeen).toEqual([0,1,2,17,18]);
+  expect(normalizeProfile(serializeProfile(profile)).slots[0].cutscenesSeen).toEqual([0,1,2,17,18]);
  });
  it("takes 240 seconds over the reserved island band, schedules the ace once and protects required targets",()=>{
   const b=bp.phases[0].bombers!,route=compileBomberEncounter(b);
@@ -129,17 +159,19 @@ describe("Released 18-mission campaign",()=>{
  });
  it("adds two optional attacking waves without inflating required objectives or bypassing the seven-fighter queue",()=>{
   const phase=bp.phases[0],route=compileBomberEncounter(phase.bombers!);
-  expect(MissionCatalog.InitialRaiders(phase)).toBe(4);expect(phase.reinforce).toEqual([{at:0.5,count:2}]);
+  expect(bp.pressure?.playerPriority).toBe(0.8);expect(MissionCatalog.Get(2).pressure).toBeUndefined();
+  for (const mission of [PRACTICE, ...MISSIONS]) expect(mission.pressure !== undefined).toBe(mission.id === 1);
+  expect(MissionCatalog.InitialRaiders(phase)).toBe(6);expect(phase.reinforce).toEqual([{at:0.5,count:2}]);
   expect(reinforcementFraction(1,119.99,route)<0.5).toBe(true);
   expect(reinforcementFraction(0,120,route)).toBe(0.5);
   expect(reinforcementFraction(0.25,120)).toBe(0.25);
-  expect(MissionCatalog.RequiredAirKills(bp)).toBe(6);expect(MissionCatalog.MaxOptionalRaiders(bp)).toBe(10);
+  expect(MissionCatalog.RequiredAirKills(bp)).toBe(6);expect(MissionCatalog.MaxOptionalRaiders(bp)).toBe(12);
   for(const extra of [0,1]){
-   expect(MissionCatalog.RaiderCap(phase,extra)).toBe(10+2*extra);
-   expect(MissionCatalog.PeakAircraft(phase,extra)).toBe(16+2*extra);
-   const q:AirRequest[]=[{role:"escort",count:2,behind:false},{role:"raider",count:4+extra,behind:false}];
+   expect(MissionCatalog.RaiderCap(phase,extra)).toBe(12+2*extra);
+   expect(MissionCatalog.PeakAircraft(phase,extra)).toBe(18+2*extra);
+   const q:AirRequest[]=[{role:"escort",count:2,behind:false},{role:"raider",count:6+extra,behind:false}];
    let live=WavePlan.Admit(q,7).reduce((n,w)=>n+w.count,0);
-   expect(live).toBe(6+extra);
+   expect(live).toBe(7);
    q.push({role:"raider",count:2+extra,behind:true});
    live+=WavePlan.Admit(q,7-live).reduce((n,w)=>n+w.count,0);expect(live).toBe(7);
    q.push({role:"ace",count:1,behind:false},{role:"escort",count:1,behind:false});
@@ -150,16 +182,16 @@ describe("Released 18-mission campaign",()=>{
  });
  it("scores every optional fighter, keeps six bombers sufficient, and raises S above the non-ace maximum",()=>{
   const state=BlueprintRunner.NewState(bp,0),ledger=new TargetScore(bp.scoring!);
-  for(let i=0;i<6;i++)expect(recordScoredKill(state,ledger,`r${i}`,"air",false,120+i,"raider")).toBe(true);
+  for(let i=0;i<8;i++)expect(recordScoredKill(state,ledger,`r${i}`,"air",false,120+i,"raider")).toBe(true);
   for(let i=0;i<3;i++)expect(recordScoredKill(state,ledger,`e${i}`,"air",false,150+i,"escort")).toBe(true);
   expect(recordScoredKill(state,ledger,"ace","ace",false,160,"ace")).toBe(true);
   expect(recordScoredKill(state,ledger,"overflow","air",false,161,"raider")).toBe(false);
   expect(state.phaseProgress).toBe(0);expect(state.outcome).toBeUndefined();
   for(let i=0;i<6;i++)expect(recordScoredKill(state,ledger,`b${i}`,"air",true,170+i,"bomber")).toBe(true);
-  expect(state.outcome).toBe("won");expect(ledger.Total()).toBe(1380);expect(ledger.RolePoints("raider")).toBe(360);
-  expect(bp.scoring!.rank).toEqual({S:1200,A:900,B:600,C:500});
-  expect(1380-240<bp.scoring!.rank.S).toBe(true);
-  for(const [points,rank] of [[1200,"S"],[1199,"A"],[900,"A"],[899,"B"],[600,"B"],[599,"C"],[500,"C"],[499,"D"]] as [number,string][]){
+  expect(state.outcome).toBe("won");expect(ledger.Total()).toBe(1500);expect(ledger.RolePoints("raider")).toBe(480);
+  expect(bp.scoring!.rank).toEqual({S:1320,A:1020,B:600,C:500});
+  expect(1500-240<bp.scoring!.rank.S).toBe(true);
+  for(const [points,rank] of [[1320,"S"],[1319,"A"],[1020,"A"],[1019,"B"],[600,"B"],[599,"C"],[500,"C"],[499,"D"]] as [number,string][]){
    expect(MissionScore.RankPoints(points,true,bp.scoring!)).toBe(rank);
    expect(MissionScore.RankPoints(points,false,bp.scoring!)).toBe("D");
   }

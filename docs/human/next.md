@@ -2,9 +2,26 @@
 
 Last updated: 2026-10-29.
 
+Audio policy (D-142): continue the story in subtitles beyond existing approved voices; changed lines stay silent. No further audio uploads. Any cause investigation must remain offline using the [preserved case file](../qa/audio-rejections/2026-10-30-voicebank01.md).
+
+## Launch loading UX
+
+Confirming a launch after its story chapter immediately covers the world with the existing opaque loading screen. You will see “Building world…” with an animated bar and replicated planning/terrain/scenery phase when available, or “Waiting for the previous mission to clear…” during cleanup. The screen stays up through the existing replication/preload percentage and tower clearance; mission clocks and the carrier fly-off still begin through the existing Ready handshake. Launch inputs stay locked until flight starts. Refusals and build errors restore the briefing with the existing error toast; the queue and post-build readiness timeouts retain their existing bounds. PR [#160](https://github.com/A-Ricemusic/skybreak/pull/160) also bounds a silent launch request at 510 seconds (the server’s 390-second cleanup wait plus 120 seconds to build). On expiry you return to briefing with a timeout toast. Late responses and loading/start events cannot hijack a retry. The old launch is cancelled; while its server build still owns the world, retries say “still preparing” rather than building another world. If a server thread never recovers, retries remain refused until that server is restarted.
+
+Owner check after merge: launch practice and missions 1–3, including an immediate relaunch after results. Construction should stay hidden, the queue should advance automatically, and mission 1's carrier fly-off should follow loading. Offline regression tests cover the shared launch state machine; Studio verification is blocked: the attempted Jest launch displayed the login dialog (2026-10-29 PDT); no practice/M01–M03 or carrier-intro runtime check was performed. Another agent acquired Studio during the final lease interval; the accidental overlapping launch was stopped, and only this task’s processes were closed. Engine snapshots are unchanged.
+## Mission 1 pressure tuning — proposed, unmerged
+
+- Owner feedback: wingmen absorbed too much attention and the bomber approach was too quiet. M01 alone opts into 80% player-priority targeting slots (revisited every eight seconds), close/tail/fire overrides (guided/special launches and player hits start an eight-second threat window). Tail breaks/jinking use existing break steering with three seconds of recovery after overshoot extends. Easy forces only tail breaks, keeps zero close-lock odds and rolled inbound breaks, and adds no flare; Normal/Ace force close-lock/inbound breaks and give hostile raiders/escorts one flare. Wingmen get no pressure flare. Mission 2 keeps legacy targeting and defence.
+- Opening raiders increase four → six and arrive 10–25° either side of the nose, head-on, 2,600–3,200 studs ahead between carrier and bombers. Two escorts plus five admitted raiders fill the seven-fighter cap; remaining requests wait. The two aft raiders at T+120 and escort/ace at T+150 remain. No increase in simultaneous fighter budget.
+- Normal maximum 1,500 (six bombers 600 + three escorts 180 + ace 240 + eight raiders 480). Ranks S 1,320 / A 1,020 / B 600 / C 500; without ace Normal tops out at 1,260. Ace adds two raiders as before, maximum 1,620. Ally kills still earn nothing. The frozen EngineM01Snapshot and catalog fixture deliberately adopt these owner-requested data changes.
+- Test Easy/Normal/Ace: fly through or fight the forward screen, tail a raider, shoot at a wingman-focused enemy, observe breaks/flares and return attacks. Record actual missile launches at player versus allies; 80% is the targeting-slot policy, not a measured launch ratio. Confirm Easy bomber interception remains achievable, rear wave queues once at 120 s, ace keeps queue priority, bomber route/240 s escape and 10:00 countdown remain solid. Phone frame rate and human combat balance remain unmeasured.
+**Story with subtitles (D-142, 2026-10-30).** Roblox rejected the regenerated voiceBank01, and the owner's policy is now no more audio uploads ([blockers](blockers.md)). Merging #159 keeps main's six approved voice banks: 78 story beats keep their exact recordings, and every new or changed line is subtitle-only. #159 also rewrites the 10 riskiest lines. Next: merge #159, then carry its story text into M04/M05 integration.
+
 ## Mission 2 beta test — start here
 
 [Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). Mission 2 is live through the automatic pipeline and unlocks after you finish mission 1 on the same save. Agents have not performed a Roblox Player test.
+
+Targeting (#157): on a phone, tap an enemy target box to select it. TGT now picks what the nose is on first (required targets favoured at similar bearings, contacts behind you or hidden by terrain last) and advances with quick presses. Auto-targeting after a kill follows the same rule. Check that tapping a box does not steer the jet and that TGT feels predictable.
 
 1. **Reach it.** Finish mission 1 at any rank. Mission 2's tile should read NEXT. The chapter "The sealed case" plays once before the briefing "NO ANIMALS".
 2. **Fly north.** You start in the air about 470 studs up with three LANTERN wingmen and a 15:00 countdown. Follow the red-and-white power line for about two minutes to the "farm" airfield.
@@ -15,6 +32,20 @@ Last updated: 2026-10-29.
 
 Most useful feedback: whether the base is easy to find and read; whether the parked bombers, pavement and optional targets look convincing; whether the AA and fighters create enough pressure; whether 15:00 and the rank cuts feel right; how the roughly 16-second desktop Studio load feels on your phone; and whether the briefing, radio and results are clear. Mission 2's rank cuts, failure rules and air roster remain assumptions awaiting owner feedback.
 
+## Avatar death fix — what to check when playing
+
+[PR #156](https://github.com/A-Ricemusic/skybreak/pull/156) stops the Roblox avatar from existing at all, so the top-right health bar and the red damage flash should never appear again (D-086). When you next play:
+
+1. **Menu and flight.** The menu backdrop, briefing, flight camera, HUD, pause, results and mobile touch controls should behave exactly as before. Nothing in the game used the avatar.
+2. **No red flash, no health bar.** Play practice, mission 1 and mission 2 for a few minutes each, including the loading screen and the return to the menu. There should be no red screen flash and no health bar in the top-right corner at any point.
+3. **Escape menu.** The Roblox menu's "Reset Character" entry is disabled on purpose; the jet is the only thing you control.
+
+If any of these still appear, report where and when (menu, loading, in flight, results).
+
+## Mission 3 beta (once #147 is merged)
+## Mission 3 beta (#147 merged)
+
+Mission 3 is live by pipeline convention after #147 merged; no new Player test is claimed.
 ## Mission 3 beta — live after #147
 
 Mission 3 merged as `7d73c44` (#147) and is live by pipeline; it unlocks after mission 2.
@@ -28,10 +59,11 @@ Mission 3 merged as `7d73c44` (#147) and is live by pipeline; it unlocks after m
 
 **Most useful feedback:** whether the domes and sites are easy to find in the mountains; how flying low in the valleys feels with the new LOW ALTITUDE warning; whether the update, the dashed line and the landing read clearly and feel right; whether 15:00 and the pressure feel right (the footage player took 5:35 plus 1:12 home); how the snow, rock and sky look.
 
-**Known:** the world took 35–88 seconds to build in Studio on a desktop (five measurements; mission 2 takes 16), so expect a long loading screen, After the results appear the server clears the mountains, which froze it for 17–46 s in Studio; launching another mission straight away shows "Clearing the last sortie. Your launch is queued..." and starts by itself once that finishes (D-067). The mountains look terraced (large flat steps), and on low graphics quality distant ground may not draw (see Blockers). Phone load time and frame rate are not measured. There are no bombs; use missiles and the gun. Optional targets you leave behind stay standing but can no longer be scored after the update. The radar minimap does not draw the return line; the green cue points to it.
+**Known:** the world took 35–88 seconds to build in Studio on a desktop (five measurements; mission 2 takes 16), so expect a long loading screen, After the results appear the server clears the mountains, which froze it for 17–46 s in Studio; launching another mission straight away currently shows "Clearing the last sortie. Your launch is queued..." (the pending launch UX change above moves this wait onto the loading screen) and starts by itself once that finishes (D-067). The mountains look terraced (large flat steps), and on low graphics quality distant ground may not draw (see Blockers). Phone load time and frame rate are not measured. There are no bombs; use missiles and the gun. Optional targets you leave behind stay standing but can no longer be scored after the update. The radar minimap does not draw the return line; the green cue points to it.
 
 ## Missions 4–5 — in review
 
+See [per-level status](levels.html) for the current pieces, findings and owner test checklists. Mission 3 [#147](https://github.com/A-Ricemusic/skybreak/pull/147) is merged. Mission 4 [#149](https://github.com/A-Ricemusic/skybreak/pull/149), and mission 5 [#148](https://github.com/A-Ricemusic/skybreak/pull/148) remain open; sequential unlocks depend on preceding missions merging. Worlds #139/#144 and engines #141/#145 are merged but dormant.
 See [per-level status](levels.html). Mission 3 #147 is merged; mission 4 [#149](https://github.com/A-Ricemusic/skybreak/pull/149) and mission 5 [#148](https://github.com/A-Ricemusic/skybreak/pull/148) remain open.
 
 1. Orchestrator: re-check M04 normal completion, construction failure/player leave and immediate queued relaunch through #147's shared gate. This revision did not launch Studio.
@@ -47,8 +79,12 @@ Mission and world specs are in review in [PR #155](https://github.com/A-Ricemusi
 
 - Mission and world specs for 10–13 are in review in [PR #153](https://github.com/A-Ricemusic/skybreak/pull/153): [M10](../specs/missions/m10.md), [M11](../specs/missions/m11.md), [M12](../specs/missions/m12.md), [M13](../specs/missions/m13.md), with companion world specs. Unresolved rosters, rank cuts and layout assumptions remain explicit. Missions remain unbuilt, locked and unavailable; no Player verification.
 
-Before the finale, remap the final story chapter and retire leftover code keyed to the old 27-mission campaign. Mission 18 retains the planned one-on-one Rusk duel (D-031).
+Story remap #159 is implemented (D-130/D-131): use its [0–18 routing audit](../specs/story/routing-audit.md), retain its story text when integrating M04/M05 gameplay, and keep new dialogue subtitle-only (D-142); the [voice script](../specs/story/voice-script.md) lists which beats are silent. Studio and audible Player verification are pending. Mission 18 retains the one-on-one Rusk duel (D-031).
 
 ## Missions 14–18 specifications — in review
 
 [PR #154](https://github.com/A-Ricemusic/skybreak/pull/154) contains [M14](../specs/missions/m14.md), [M15](../specs/missions/m15.md), [M16](../specs/missions/m16.md), [M17](../specs/missions/m17.md) and [M18](../specs/missions/m18.md), companion world specs and source coverage in `reference/ledger.md`. Review unresolved ground subtypes/rank cuts and proposed layouts before implementation; preserve Rusk’s M17 withdrawal and added M18 duel. The duel keeps the existing regenerating missile rack; reference finite racks/rearm loadouts remain an explicit engine gap. Missions remain unbuilt and locked; no Studio/Player quality is claimed. Main now includes PR #155 (M6–9) and PR #153 (M10–13); their dashboard, level-card and ledger updates are preserved.
+
+AI voice disclosure (D-140, pending merge): the owner will see a permanent ElevenLabs AI voice credit at the end of Settings and a passive 12-second banner when the first voiced cutscene or radio line starts each session. No gameplay or playback changes. Latest Studio log contains LoginDialog; no Studio screenshot or Player verification claimed.
+
+Story review priority: **start a new save slot to see the new c1/c2 chapters**; existing numeric seen flags intentionally skip chapters already seen. Verify M3 now receives “An unlisted station”, M4 “The orchard witnesses”, M5 “Fuel under grain”; follow M5 escape into recorded guard-channel evidence. Existing seen flags remain compatible; D-030 Q8 adds the opening reprise on completed M1 launches from the mission menu only; Retry after death does not replay the opening. M3 is live on main (#147); M4–M18 remain locked.

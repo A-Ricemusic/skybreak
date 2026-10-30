@@ -703,7 +703,7 @@ describe("mission HUD layout", () => {
 		}
 		expect(TUTORIAL_MAX_CHARS).toBe(34);
 		expect(getTutorialInstruction(undefined, "touch")).toBe("");
-		expect(getTutorialInstruction("target", "touch")).toBe("Tap TGT to select the radar");
+		expect(getTutorialInstruction("target", "touch")).toBe("Tap radar box or TGT to select it");
 	});
 	it("teaches short inputs with cumulative durations", () => {
 		for (const mode of MODES) {

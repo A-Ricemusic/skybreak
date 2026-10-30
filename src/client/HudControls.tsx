@@ -1,3 +1,4 @@
+import { VOICE_DISCLOSURE, VOICE_DISCLOSURE_DETAIL } from "../shared/VoiceDisclosure";
 import React, { useEffect, useRef } from "@rbxts/react";
 import { RunService, TweenService } from "@rbxts/services";
 import { evadeGauge } from "../shared/EvadeGauge";
@@ -331,11 +332,12 @@ export function SettingsSheet({ viewport, settings, onChange, onClose }: {
 				<uistroke Color={C.Accent} Transparency={0.6} />
 				<textlabel key="SettingsTitle" BackgroundTransparency={1} Font={Enum.Font.GothamBlack} Text="SETTINGS" TextColor3={C.Ivory} TextSize={layout.header.height >= 30 ? 18 : 14} TextXAlignment={Enum.TextXAlignment.Left} ZIndex={42} {...at(layout.header)} />
 				<textlabel key="SettingsNote" BackgroundTransparency={1} Font={Enum.Font.GothamBold} Text="SAVED FOR THIS SESSION" TextColor3={C.Faint} TextSize={9} TextXAlignment={Enum.TextXAlignment.Right} ZIndex={42} {...at(layout.header)} />
-				<scrollingframe key="SettingsList" Active={true} BackgroundTransparency={1} BorderSizePixel={0} CanvasSize={UDim2.fromOffset(0, SETTING_ORDER.size() * layout.rowHeight)} ScrollBarThickness={3} ScrollBarImageColor3={C.Ivory} ScrollBarImageTransparency={0.6} ScrollingDirection={Enum.ScrollingDirection.Y} Selectable={false} ZIndex={42} {...at(layout.list)}>
+				<scrollingframe key="SettingsList" Active={true} BackgroundTransparency={1} BorderSizePixel={0} CanvasSize={UDim2.fromOffset(0, SETTING_ORDER.size() * layout.rowHeight + 140)} ScrollBarThickness={3} ScrollBarImageColor3={C.Ivory} ScrollBarImageTransparency={0.6} ScrollingDirection={Enum.ScrollingDirection.Y} Selectable={false} ZIndex={42} {...at(layout.list)}>
 					<uilistlayout SortOrder={Enum.SortOrder.LayoutOrder} />
 					{SETTING_ORDER.map((key, index) => (
 						<SettingRow key={`Setting_${key}`} settingKey={key} settings={settings} order={index} rowHeight={layout.rowHeight} control={layout.control} valueWidth={layout.valueWidth} onChange={onChange} />
 					))}
+					<textlabel key="VoiceDisclosure" BackgroundTransparency={1} LayoutOrder={SETTING_ORDER.size()} Size={new UDim2(1, -12, 0, 140)} Font={Enum.Font.Gotham} Text={VOICE_DISCLOSURE + "\n" + VOICE_DISCLOSURE_DETAIL} TextColor3={C.Ivory} TextSize={13} TextWrapped={true} TextXAlignment={Enum.TextXAlignment.Left} ZIndex={43} />
 				</scrollingframe>
 				<OverlayButton name="SettingsDoneButton" text="DONE" rectangle={layout.done} primary={true} onActivated={onClose} />
 			</frame>
