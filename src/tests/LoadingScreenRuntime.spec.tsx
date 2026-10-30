@@ -173,4 +173,37 @@ describe("loading screen component", () => {
 		expect(waitUntil(() => container.GetChildren().size() === 0)).toBe(true);
 		container.Destroy();
 	});
+	// Review regression: a retry that lands inside the 0.25 s failure fade keeps the screen mounted;
+	// its bar must restart from zero and still advance, not wait to exceed the failed attempt's fill.
+	it("restarts and advances the fill when a retry arrives before the failure fade finishes", () => {
+		const container = new Instance("Folder");
+		const root = ReactRoblox.createRoot(container);
+		const props = { missionId: 1, viewport: new Vector2(1280, 662), inputMode: "touch" as const, motion: false };
+		const terrain = new Instance("Folder");
+		terrain.SetAttribute("WorldBuildPhase", "terrain");
+		root.render(<LoadingScreen visible={true} launched={false} phase="preloading" progress={1} {...props} />);
+		expect(waitUntil(() => container.FindFirstChild("Fill", true) !== undefined)).toBe(true);
+		const fill = container.FindFirstChild("Fill", true) as Frame;
+		const backdrop = container.FindFirstChild("SkybreakLoadingBackdrop") as ScreenGui;
+		expect(waitUntil(() => fill.Size.X.Scale > 5 / 6)).toBe(true);
+		const failed = fill.Size.X.Scale;
+
+		root.render(<LoadingScreen visible={false} launched={false} phase="idle" progress={1} {...props} />);
+		task.wait(0.05);
+		root.render(<LoadingScreen visible={true} launched={false} phase="building" progress={0} buildFolder={terrain} {...props} />);
+		task.wait(0.05);
+		expect(backdrop.Enabled).toBe(true);
+		// The retry is at TERRAIN (segment 3 of 6): the bar must show it, below the failed attempt's fill.
+		expect(waitUntil(() => fill.Size.X.Scale > 0.33, 2)).toBe(true);
+		expect(fill.Size.X.Scale).toBeLessThan(failed);
+		task.wait(0.5);
+		expect(backdrop.Enabled).toBe(true);
+		const status = container.FindFirstChild("Status", true) as TextLabel;
+		expect(status.Text).toBe("Shaping terrain…");
+
+		root.unmount();
+		expect(waitUntil(() => container.GetChildren().size() === 0)).toBe(true);
+		terrain.Destroy();
+		container.Destroy();
+	});
 });

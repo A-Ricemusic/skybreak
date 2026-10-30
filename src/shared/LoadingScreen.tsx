@@ -170,12 +170,15 @@ function LoadingScreenComponent({ visible, launched, missionId, progress, viewpo
 	// Show/hide. A fresh show resets the fill; leaving into flight completes it first.
 	const showing = useRef(false);
 	const hideSerial = useRef(0);
+	/** Tick-loop bookkeeping. Reset per attempt: a retry inside the failure fade keeps `mounted`, so the loop survives. */
+	const tick = useRef({ fill: -1, second: -1, tip: -1 });
 	useEffect(() => {
 		const serial = ++hideSerial.current;
 		if (visible) {
 			if (!showing.current) {
 				showing.current = true;
 				model.Reset();
+				tick.current = { fill: -1, second: -1, tip: -1 };
 				live.current.shownAt = os.clock();
 				setActive(0);
 				setElapsedText(formatElapsed(0));
@@ -247,9 +250,8 @@ function LoadingScreenComponent({ visible, launched, missionId, progress, viewpo
 	useEffect(() => {
 		if (!mounted) return;
 		let running = true;
-		let lastSecond = -1, lastTip = -1, lastFill = -1;
 		const tips = loadingTips(live.current.inputMode, { rearm: hasRearm(live.current.missionId) });
-		let tipsMode = live.current.inputMode;
+		let tipsMode = live.current.inputMode, tipsMission = live.current.missionId;
 		let current = tips;
 		const step = () => {
 			const state = live.current;
@@ -257,14 +259,14 @@ function LoadingScreenComponent({ visible, launched, missionId, progress, viewpo
 			const elapsed = now - state.shownAt;
 			if (showing.current) {
 				const value = model.Update(loadingStage({ phase: state.phase, worldPhase: state.worldPhase, world: state.world, preload: state.progress }), now);
-				if (value - lastFill > 0.0005) { lastFill = value; setFill(value, true); }
+				if (value - tick.current.fill > 0.0005) { tick.current.fill = value; setFill(value, true); }
 				setActive(model.ActiveSegment());
 			}
 			const second = math.floor(elapsed);
-			if (second !== lastSecond) { lastSecond = second; setElapsedText(formatElapsed(elapsed)); }
-			if (state.inputMode !== tipsMode) { tipsMode = state.inputMode; current = loadingTips(tipsMode, { rearm: hasRearm(state.missionId) }); lastTip = -1; }
+			if (second !== tick.current.second) { tick.current.second = second; setElapsedText(formatElapsed(elapsed)); }
+			if (state.inputMode !== tipsMode || state.missionId !== tipsMission) { tipsMode = state.inputMode; tipsMission = state.missionId; current = loadingTips(tipsMode, { rearm: hasRearm(state.missionId) }); tick.current.tip = -1; }
 			const index = tipIndex(current.size(), elapsed);
-			if (index !== lastTip) { lastTip = index; setTipText(`<font color="${HEX.Accent}">TIP</font>   ${current[index]}`); }
+			if (index !== tick.current.tip) { tick.current.tip = index; setTipText(`<font color="${HEX.Accent}">TIP</font>   ${current[index]}`); }
 		};
 		step();
 		const thread = task.spawn(() => {
