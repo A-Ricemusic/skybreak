@@ -2,7 +2,9 @@
 
 Last updated: 2026-10-29, documentation against `main` at `b359c61`; gameplay/publish baseline remains `088fbfc`.
 
-The new 18-mission campaign is live in Roblox Player through the automatic pipeline. **Practice flight, mission 1 and mission 2 are playable; missions 3 to 18 are locked.** The redesign rebuilds missions and worlds to match Ace Combat 04's structure and pacing while keeping the Broken Relay story and original shipped expression. Mission 2 is ready for the owner's beta test; see [Next](next.md).
+The new 18-mission campaign is live in Roblox Player through the automatic pipeline. **Practice flight and missions 1 to 3 are playable; missions 4 to 18 are locked.** The redesign rebuilds missions and worlds to match Ace Combat 04's structure and pacing while keeping the Broken Relay story and original shipped expression. Mission 2 is ready for the owner's beta test; see [Next](next.md).
+
+Targeting (#157): the jet now targets what the nose is on. Auto-acquire and TGT use the same nose-first order (ahead, in range and visible first; required targets favoured at similar bearings; blocked, out-of-range and behind contacts last). TGT snaps to the nose-best, then advances; quick presses keep walking the list. On a phone, tap an enemy target box to select it. Build and offline checks pass; no agent phone or Player check is claimed (see [Blockers](blockers.md) for the Roblox Jest status).
 
 [Per-level status and test checklist](levels.html) · [Play SKYBREAK](https://www.roblox.com/games/112911685457826)
 

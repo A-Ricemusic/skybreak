@@ -28,7 +28,11 @@ describe("Released 18-mission campaign",()=>{
   for(const id of [19,27,-1,1.5,math.huge]) expect(MissionCatalog.IsValidId(id)).toBe(false);
  });
  it("keeps the three original control exercises and radar without enemies",()=>{
-  expect(PRACTICE.phases).toEqual(Legacy.Get(1).phases.filter((_,i)=>i<3)); expect(PRACTICE.ground).toEqual(Legacy.Get(1).ground);
+  const expected = Legacy.Get(1).phases.filter((_,i)=>i<3).map((phase, i) => i !== 1 ? phase : {
+   ...phase, beat: "Select radar: tap box / TGT / Tab / Y. Turn back if you pass it.",
+   execution: { ...phase.execution, objective: "Tap the target box or press TGT to select the practice target" },
+  });
+  expect(PRACTICE.phases).toEqual(expected); expect(PRACTICE.ground).toEqual(Legacy.Get(1).ground);
   expect(MissionCatalog.RequiredAirKills(PRACTICE)).toBe(0); expect(MissionCatalog.Available(0)).toBe(true);
  });
  it("wins on all six bombers with 960 raw points, B, and persists the authoritative ledger",()=>{

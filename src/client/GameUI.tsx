@@ -490,6 +490,14 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		trackTouchEnd(input);
 		moveJoystick(input);
 	}, [moveJoystick, trackTouchEnd]);
+	// The stick's InputBegan only covers its own frame. World boxes need the unconsumed screen touches too.
+	useEffect(() => {
+		const began = UserInputService.TouchStarted.Connect((input, processed) => {
+			if (processed || !inMissionRef.current || inputModeRef.current !== "touch" || GuiService.MenuIsOpen || UserInputService.GetFocusedTextBox()) return;
+			controller.TryTapTarget(input.Position);
+		});
+		return () => began.Disconnect();
+	}, [controller]);
 	const moveThrottle = useCallback((input: InputObject) => {
 		const stick = throttleJoystickRef.current;
 		const knob = throttleKnobRef.current;
