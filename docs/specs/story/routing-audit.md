@@ -66,7 +66,7 @@ Main results are rendered from each mission file at the listed line; failure tex
 | 3 | Nine domes are down and the film is home. Sera locks the gun-camera tape in her desk: the station was watching trainees, not the sky. (`src/shared/missions/m03.ts:78`) | Nine domes are down and the film is home. Sera locks the gun-camera tape in her desk: the station watched trainees, and its memory names the Teklan orchard. |
 | 4 | In development (`src/shared/missions/m04.ts:4`) | The high flyers are gone. The trucks reach Varda; the lead driver's granddaughter marks the fuel works on Sera's map. |
 | 5 | In development (`src/shared/missions/m05.ts:4`) | The fuel works are burning. You escaped Vulture Lead; Sera recorded his relayed orders while he hunted you. Their signatures lead to Iron Coast. |
-| 6 | In development (`src/shared/missions/m06.ts:4`) | The warships and tankers are gone. Harbour traffic gives Sera Kiro's signing key. Two more station logs will prove whose hand used it. |
+| 6 | In development (`src/shared/missions/m06.ts:4`) | The warships and fuel barges are gone. Harbour traffic gives Sera Kiro's signing key. Two more station logs will prove whose hand used it. |
 | 7 | In development (`src/shared/missions/m07.ts:4`) | Three stations carry one signature. Varda's island transmitter can send the proof in thirty-five seconds. |
 | 8 | In development (`src/shared/missions/m08.ts:4`) | The broadcast is out. Three garrisons heard it. Two stood down and are coming ashore to join us. |
 | 9 | In development (`src/shared/missions/m09.ts:4`) | The landing holds. Then the Marshal answers Varda's broadcast: the Teklan orchard burns, and his guns close the river valleys. |
