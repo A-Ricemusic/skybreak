@@ -17,8 +17,9 @@ import {
 } from "./CampaignRepository";
 
 interface CombatApi {
-	StartMission(player: Player, slot: number, missionId?: number, special?: unknown, difficulty?: unknown): LuaTuple<[boolean, string?]>;
+	StartMission(player: Player, slot: number, missionId?: number, special?: unknown, difficulty?: unknown, launchId?: number): LuaTuple<[boolean, string?]>;
 	EndMission(player: Player): void;
+	CancelLaunch(player: Player, launchId: number): void;
 	GetSession(player: Player): unknown;
 }
 
@@ -29,6 +30,7 @@ interface PlayerState {
 	loadStarted: boolean;
 	activeSlot?: number;
 	activeMission?: number;
+	activeLaunchId?: number;
 	requestBusy: boolean;
 	budget: CampaignRequestBudget;
 	lastRecovery: number;
@@ -137,6 +139,8 @@ function listSlots(state: PlayerState): CampaignResponse {
 function startMission(state: PlayerState, payload: unknown): CampaignResponse {
 	const slot = typeIs(payload, "table") ? (payload as { slot?: unknown }).slot : undefined;
 	const requestedMission = typeIs(payload, "table") ? (payload as { missionId?: unknown }).missionId : undefined;
+	const launchId = typeIs(payload, "table") ? (payload as { launchId?: unknown }).launchId : undefined;
+	if (launchId !== undefined && (!typeIs(launchId, "number") || launchId !== launchId || launchId < 1 || launchId > 1e9 || launchId % 1 !== 0)) return refuse("Invalid launch generation.");
 	const requestedSpecial = typeIs(payload, "table") ? (payload as { special?: unknown }).special : undefined;
 	const requestedDifficulty = typeIs(payload, "table") ? (payload as { difficulty?: unknown }).difficulty : undefined;
 	if (!isValidSlot(slot)) return refuse("Choose a valid campaign slot (1-4).");
@@ -161,13 +165,14 @@ function startMission(state: PlayerState, payload: unknown): CampaignResponse {
 	}
 	if (existingSession !== undefined || state.activeSlot !== undefined || state.activeMission !== undefined) return refuse("A mission is already in progress.");
 
-	const [startedCallOk, started, startError] = pcall(() => combatService!.StartMission(state.player, slot, missionId, special, difficulty));
+	const [startedCallOk, started, startError] = pcall(() => combatService!.StartMission(state.player, slot, missionId, special, difficulty, launchId));
 	if (!startedCallOk) {
 		warn(`SKYBREAK mission start failed: ${tostring(started)}`);
 		return refuse("The mission could not be started.");
 	}
 	if (started !== true) return refuse(tostring(startError ?? "The mission could not be started."));
 
+	state.activeLaunchId = launchId;
 	state.activeSlot = slot;
 	state.activeMission = missionId;
 	state.coordinator.recordMissionStarted(slot, missionId, special, difficulty);
@@ -192,6 +197,7 @@ function deleteSlot(state: PlayerState, payload: unknown): CampaignResponse {
 function returnToMenu(state: PlayerState): CampaignResponse {
 	state.activeSlot = undefined;
 	state.activeMission = undefined;
+	state.activeLaunchId = undefined;
 	if (!combatService) return response(state);
 	const [success, errorMessage] = pcall(() => combatService!.EndMission(state.player));
 	if (!success) {
@@ -207,13 +213,21 @@ function handleRequest(player: Player, action: unknown, payload?: unknown): Camp
 	if (!state || state.closing) return refuse("Campaign session is closing.");
 	// Rate-limit before validating, so malformed requests spend budget too.
 	if (!state.budget.accept(os.clock(), typeIs(action, "string") && action === "DeletionStatus")) return refuse("Please wait a moment before trying again.");
+	// A timeout must be able to cancel a yielding StartMission without releasing its world/build lock (rate-limited like every request).
+	if (action === "CancelLaunch") {
+		const launchId = typeIs(payload, "table") ? (payload as { launchId?: unknown }).launchId : undefined;
+		if (!typeIs(launchId, "number") || launchId !== launchId || launchId < 1 || launchId > 1e9 || launchId % 1 !== 0) return refuse("Invalid launch generation.");
+		combatService?.CancelLaunch(player, launchId);
+		if (state.activeLaunchId === launchId) { state.activeLaunchId = undefined; state.activeSlot = undefined; state.activeMission = undefined; }
+		return { ok: true };
+	}
 	if (!typeIs(action, "string")) return refuse("Invalid campaign action.");
 	// No yielding load/recovery, queue ownership or foreground timestamp changes for observations.
 	if (action === "DeletionStatus") {
 		if (!state.loaded) return refuse("Campaign data is still loading. Please try again.");
 		return response(state);
 	}
-	if (state.requestBusy) return refuse("Another campaign request is already in progress.");
+	if (state.requestBusy) return refuse(action === "StartMission" ? "The previous launch is still preparing. Please wait before retrying." : "Another campaign request is already in progress.");
 	state.requestBusy = true;
 
 	const [success, result] = xpcall(() => {
