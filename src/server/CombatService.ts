@@ -1,4 +1,5 @@
-import { TargetPriority, type TargetCandidate } from "../shared/TargetPriority";
+import { TargetPriority, type TargetCandidate, type ViewFrustum } from "../shared/TargetPriority";
+import { TargetView } from "./TargetView";
 import { LaunchCancellation } from "../shared/LaunchLoading";
 import { canSkipLanding } from "../shared/EngineBatchB";
 import { buildNightLighting } from "./NightLighting";
@@ -309,10 +310,17 @@ function lineOfSightBlocked(session: CombatSession, enemy: Enemy): boolean {
 	enemy.losBlocked = blocked;
 	return blocked;
 }
-/** Every targetable contact as the shared priority sees it; line of sight is checked for the leading few only. */
-function targetCandidates(session: CombatSession): TargetCandidate[] {
+/**
+ * Every targetable contact as the shared priority sees it. With a `view` (a TGT press) each contact also
+ * learns whether the player sees its box: inside the camera frustum and, under jamming, within visual
+ * range. Line of sight is checked for the leading few only: nose-leading for acquisition, nearest on
+ * screen for a press.
+ */
+function targetCandidates(session: CombatSession, view?: ViewFrustum): TargetCandidate[] {
 	const candidates: TargetCandidate[] = [];
 	const lockRange = SpecialWeapons.LockRange(session.special);
+	const jamming = session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.jamming;
+	const visualRange = view !== undefined && jamming && liveJammers(session) > 0 ? jamming.visualLockRange : undefined;
 	for (let id = 0; id < session.enemies.size(); id++) {
 		const enemy = session.enemies[id];
 		if (!ownsEnemy(session, enemy)) continue;
@@ -320,14 +328,21 @@ function targetCandidates(session: CombatSession): TargetCandidate[] {
 		// An ace that has broken off to call its wing is neither required nor worth the nose until it turns back in;
 		// anything this phase protects (a raider over the kill cap, a ground target during an air phase) is held too.
 		const retreatingAce = enemy.aceState !== undefined && !AceRules.Fights(enemy.aceState);
-		candidates.push({
+		const candidate: TargetCandidate = {
 			id, distance, dot,
 			required: enemy.required && !retreatingAce,
 			held: retreatingAce || !sessionCanDamage(session, enemy.kind, enemy.required),
 			inRange: distance <= WeaponRules.EnvelopeRange(lockRange, enemy.kind === "ground"),
-		});
+		};
+		if (view !== undefined) {
+			const seen = point(enemy.position);
+			const viewDistance = visualRange === undefined ? 0 : enemy.position.sub(new Vector3(view.position.x, view.position.y, view.position.z)).Magnitude;
+			candidate.onScreen = (visualRange === undefined || viewDistance <= visualRange) && TargetPriority.InView(view, seen);
+		}
+		candidates.push(candidate);
 	}
-	for (const candidate of TargetPriority.LosChecks(candidates)) candidate.blocked = lineOfSightBlocked(session, session.enemies[candidate.id]);
+	const checks = view === undefined ? TargetPriority.LosChecks(candidates) : TargetPriority.PressLosChecks(candidates);
+	for (const candidate of checks) candidate.blocked = lineOfSightBlocked(session, session.enemies[candidate.id]);
 	return candidates;
 }
 /** Automatic acquisition: the nose-best contact. The lock survives when that is still the current target. */
@@ -348,16 +363,21 @@ function selectTarget(session: CombatSession, enemy: Enemy): void {
 		phaseDirector.Apply(session);
 	}
 }
-/** TGT: snap to the nose-best, advance from it, and keep walking the order while presses come quickly. */
-function cycleTarget(session: CombatSession): void {
-	const candidates = targetCandidates(session);
+/**
+ * TGT: the closest contact the player can see on screen, or the second closest when that is already the
+ * target; presses within TargetPriority.CycleChainSeconds walk on through the order. The view comes from
+ * the client's payload (validated, bounded) or falls back to the jet's nose; see TargetView.
+ */
+function cycleTarget(session: CombatSession, rawView: unknown): void {
+	const view = TargetView.FromClient(rawView, positionFor(session.state), frameFor(session.state));
+	const candidates = targetCandidates(session, view);
 	const current = session.target === undefined ? undefined : session.enemies.indexOf(session.target);
 	const chain = session.cycle;
-	const cursor = chain !== undefined && chain.target === session.target && session.elapsed - chain.at <= TargetPriority.CycleChainSeconds ? chain.cursor : undefined;
-	const step = TargetPriority.Next(candidates, current, cursor);
-	if (step === undefined) return;
-	const enemy = session.enemies[step.id];
-	session.cycle = { target: enemy, cursor: step.cursor, at: session.elapsed };
+	const chained = chain !== undefined && chain.target === session.target && session.elapsed - chain.at <= TargetPriority.CycleChainSeconds;
+	const id = TargetPriority.Press(candidates, current, chained);
+	if (id === undefined) return;
+	const enemy = session.enemies[id];
+	session.cycle = { target: enemy, at: session.elapsed };
 	selectTarget(session, enemy);
 }
 /** Would a missile hurt `enemy` right now: owned, damageable this phase and, for an ace, not immune or held at a stage floor (strikeEnemy). */
@@ -1860,7 +1880,7 @@ export const CombatService = {
 		connections.push(remote(remotes, "CombatAction").OnServerEvent.Connect((player, payload: unknown) => {
 			const session = sessions.get(player);
 			if (!session?.active || !typeIs(payload, "table")) return;
-			const data = payload as { action?: unknown; serial?: unknown; target?: unknown; special?: unknown };
+			const data = payload as { action?: unknown; serial?: unknown; target?: unknown; special?: unknown; view?: unknown };
 			if (!typeIs(data.action, "string")) return;
 			const now = os.clock();
 			if (session.loading) {
@@ -1905,7 +1925,7 @@ export const CombatService = {
 				if (!LaunchStage.CanControl(false, session.launch, PauseRules.Paused(session.pause)) || !refreshSession(session, now)) return;
 				if (action === "FireMissile") launchMissile(session, false);
 				else if (action === "Evade") evade(session);
-				else if (action === "CycleTarget") cycleTarget(session);
+				else if (action === "CycleTarget") cycleTarget(session, data.view);
 				else if (action === "SelectTarget") {
 					const model = data.target;
 					if (!typeIs(model, "Instance") || !model.IsA("Model")) return;

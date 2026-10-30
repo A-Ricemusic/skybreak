@@ -465,7 +465,7 @@ export class FlightController {
 	public SetThrottle(value: number): void {
 		if (FlightMath.IsFinite(value)) this.throttle = math.clamp(value, 0, 1);
 	}
-	private action(action: string): void { if (this.active && !this.paused && !this.landing && !this.rearm && !this.cutIn && !this.launchIntro) this.remotes.CombatAction.FireServer({ action }); }
+	private action(action: string, view?: { cframe: CFrame; fov: number; aspect: number }): void { if (this.active && !this.paused && !this.landing && !this.rearm && !this.cutIn && !this.launchIntro) this.remotes.CombatAction.FireServer({ action, view }); }
 	public FireMissile(): void { this.action("FireMissile"); }
 	public Evade(): void {
 		if (!this.active) return;
@@ -474,7 +474,13 @@ export class FlightController {
 		if (evadeGauge(this.telemetry).ready && this.evadeRoll <= 0) { this.evadeRoll = FlightPrediction.EvadeRollSeconds; this.evadeStartedAt = os.clock(); }
 		this.action("Evade");
 	}
-	public CycleTarget(): void { this.action("CycleTarget"); }
+	/** TGT (key, gamepad or on-screen button) carries the camera so the server can rank what is on screen; see TargetView. */
+	public CycleTarget(): void {
+		const camera = Workspace.CurrentCamera;
+		const size = camera?.ViewportSize;
+		const view = camera !== undefined && size !== undefined && size.Y > 0 ? { cframe: camera.CFrame, fov: camera.FieldOfView, aspect: size.X / size.Y } : undefined;
+		this.action("CycleTarget", view);
+	}
 	/** Touch positions are inset-relative; target boxes use WorldToViewportPoint pixels. */
 	public TryTapTarget(position: Vector3): boolean {
 		if (!this.active || this.paused || this.landing || this.rearm || this.launchIntro) return false;

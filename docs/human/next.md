@@ -1,6 +1,9 @@
 # Next
 
 Last updated: 2026-10-30.
+
+**TGT button (D-210, 2026-10-30, open PR `fix/tgt-closest-onscreen`).** After playing, the owner found the target itself good but the button inconsistent. The PR makes every TGT press (PC key, gamepad Y, on-screen button) select the closest enemy on screen, or the second closest when the closest is already selected; quick presses keep walking outward. Automatic targeting after a kill is unchanged. Next: merge on green CI, then the owner checks it on a phone and on PC (steps under "Mission 2 beta test"). Spec: [targeting](../specs/engine/targeting.md).
+
 ## M12/M13 worlds — in review [#170](https://github.com/A-Ricemusic/skybreak/pull/170)
 
 1. Review [M12 composition/table](../specs/worlds/m12-composition.md) and [M13 composition/table](../specs/worlds/m13-composition.md). Estimates12.770960s/13.253200s retain3.229040s/2.746800s against16s. Branch stacks on #167 → #166 → #164; rebase main as dependencies merge; do not merge this PR yet.
@@ -22,7 +25,6 @@ Review the [broadcast island](../specs/worlds/m08-composition.md) and [three bea
 
 Review the dormant [M06 harbour](../specs/worlds/m06-composition.md) and [M07 array/canyon](../specs/worlds/m07-composition.md) worlds, including their complete target tables. Chunk/yield estimates: 10.265 s / 14.501 s under the 16 s caps (legacy jobs ×1.5: 6.384 s / 10.716 s); actual load cost is unmeasured. Once Studio is authenticated, inspect silhouette, materials, low canyon flight, waterline props and service approach against the accepted specs, then measure terrain/build/clear on desktop and phone. Resolve M06 subtype totals and M07 51-versus-52 accounting before mission activation. No Studio launch is authorized in this work; no catalog/unlock changes are included.
 
-Last updated: 2026-10-29.
 
 **Story with subtitles (D-142, 2026-10-30).** Roblox rejected the regenerated voiceBank01, and the owner's policy is now no more audio uploads ([blockers](blockers.md)). Merging #159 keeps main's six approved voice banks: 78 story beats keep their exact recordings, and every new or changed line is subtitle-only. #159 also rewrites the 10 riskiest lines. Next: merge #159, then carry its story text into M04/M05 integration. Any investigation of the rejection's cause stays offline, using the [preserved case file](../qa/audio-rejections/2026-10-30-voicebank01.md).
 Audio policy (D-142): continue the story in subtitles beyond existing approved voices; changed lines stay silent. No further audio uploads. Any cause investigation must remain offline using the [preserved case file](../qa/audio-rejections/2026-10-30-voicebank01.md).
@@ -44,7 +46,7 @@ Owner check after merge: launch practice and missions 1–3, including an immedi
 
 [Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). Mission 2 is live through the automatic pipeline and unlocks after you finish mission 1 on the same save. Agents have not performed a Roblox Player test.
 
-Targeting (#157): on a phone, tap an enemy target box to select it. TGT now picks what the nose is on first (required targets favoured at similar bearings, contacts behind you or hidden by terrain last) and advances with quick presses. Auto-targeting after a kill follows the same rule. Check that tapping a box does not steer the jet and that TGT feels predictable.
+Targeting: on a phone, tap an enemy target box to select it. Auto-targeting after a kill still picks what the nose is on (#157). The TGT button, Tab/R and gamepad Y now select the closest enemy you can see on screen; if that is already your target, the second closest; quick presses within 2.5 s keep walking outward and wrap (D-210, this PR). With nothing on screen it picks the closest enemy overall and the edge arrow points to it. Check: with two or three enemies in view, one TGT press should take the nearest, a second quick press the next nearest; turn so an enemy leaves the screen and confirm TGT no longer picks it while others are visible. Tapping a box should not steer the jet.
 
 1. **Reach it.** Finish mission 1 at any rank. Mission 2's tile should read NEXT. The chapter "The sealed case" plays once before the briefing "NO ANIMALS".
 2. **Fly north.** You start in the air about 470 studs up with three LANTERN wingmen and a 15:00 countdown. Follow the red-and-white power line for about two minutes to the "farm" airfield.
