@@ -117,7 +117,7 @@ test("all 19 remapped chapters use exact recordings and rewritten beats stay sil
   end
   assert(status()==1);unmount();assert(#voices()==0 and not VoicePlayer:IsSpeaking())
  end
- assert(total>=110 and total<=152)
+ assert(total==122)
 end)
 test("cold-bank mount holds first beat, pause holds load, next cancels pending voice",function()
  loaded=false;mount(0);tick(3)

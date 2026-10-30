@@ -19,7 +19,7 @@ Story PR follow-up: Studio/Player chapter sequencing and audible output are pend
 
 ## Resolved
 
-**Chapters keyed to 27 missions (mission 5 agent): resolved in this PR branch, pending merge.** Production story/document tables now use c0–18, M5 escape does not imply Vulture Lead died, and the finale is “A clear frequency”. Immutable old audio IDs and test-only legacy snapshots are retained; see [audit](../specs/story/routing-audit.md). Studio verification remains pending.
+**Chapters keyed to 27 missions (mission 5 agent): resolved by #159.** Production story/document tables now use c0–18, M5 escape does not imply Vulture Lead died, and the finale is “A clear frequency”. Immutable old audio IDs and test-only legacy snapshots are retained; see [audit](../specs/story/routing-audit.md). Studio verification remains pending.
 
 | Date | Raised by | What was blocked | Resolution |
 |---|---|---|---|
