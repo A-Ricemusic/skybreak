@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { buildM10Plan, m10Counts, m10Ground, M10, M10_ENVIRONMENT } from "../shared/M10WorldPlan";
+import { buildM10Plan, m10Counts, m10Ground, m10RiverX, M10, M10_ENVIRONMENT } from "../shared/M10WorldPlan";
 import { buildM11Plan, m11Counts, m11Ground, m11RoutePoint, M11, M11_ENVIRONMENT } from "../shared/M11WorldPlan";
 import { M10_BUILD_LIMITS, M10_AIRSPACE } from "../shared/M10Limits";
 import { M11_BUILD_LIMITS, M11_AIRSPACE } from "../shared/M11Limits";
@@ -62,6 +62,43 @@ describe("Dormant M10/M11 worlds", () => {
    expect(a.parts.some(p => p.name !== t.id && p.name !== "Sea" && math.abs(p.x-t.x)<p.sx/2+sx/2 && math.abs(p.z-t.z)<p.sz/2+sz/2)).toBe(false);
   }
  });
+ it("connects generated river water across every district, ship basin and centreline sample", () => {
+  // Inspect the emitted Water ops, not the authored wet predicate. Four-way
+  // adjacency on the same 128-stud address grid used by the sealing audit.
+  const key = (x: number, z: number) => `${x},${z}`;
+  const at = (x: number, z: number) => key(math.floor(x / 128) * 128, math.floor(z / 128) * 128);
+  const water = new Set<string>();
+  for (const o of a.ops.filter(o => o.material === "Water")) {
+   expect(o.y - o.sy / 2).toBe(0); expect(o.y + o.sy / 2).toBe(M10.sea);
+   for (let x = o.x - o.sx / 2; x < o.x + o.sx / 2; x += 128) for (let z = o.z - o.sz / 2; z < o.z + o.sz / 2; z += 128) water.add(key(x, z));
+  }
+  const first = M10.districts[0], startX = math.floor((first.x - 1800) / 128) * 128, startZ = math.floor(first.z / 128) * 128;
+  const queue: Array<[number, number]> = [[startX, startZ]], visited = new Set<string>([key(startX, startZ)]);
+  expect(water.has(key(startX, startZ))).toBe(true);
+  let cursor = 0;
+  while (cursor < queue.size()) {
+   const [x, z] = queue[cursor++];
+   for (const [dx, dz] of [[128, 0], [-128, 0], [0, 128], [0, -128]]) {
+    const neighborKey = key(x + dx, z + dz);
+    if (water.has(neighborKey) && !visited.has(neighborKey)) { visited.add(neighborKey); queue.push([x + dx, z + dz]); }
+   }
+  }
+  // Every generated water address belongs to ONE component, stronger than
+  // only checking four local ship footprints in otherwise isolated basins.
+  expect(visited.size()).toBe(water.size());
+  for (const d of M10.districts) expect(visited.has(at(d.x - 1800, d.z))).toBe(true);
+  for (const t of a.targets.filter(t => t.domain === "naval")) {
+   const spec = t.type === "frigate" ? UploadedAssetSpecs.Frigate : t.type === "tanker" ? UploadedAssetSpecs.FuelTanker : undefined;
+   for (const dx of [-(spec?.size.X ?? 40) / 2, 0, (spec?.size.X ?? 40) / 2]) for (const dz of [-(spec?.size.Z ?? 140) / 2, 0, (spec?.size.Z ?? 140) / 2]) expect(visited.has(at(t.x + dx, t.z + dz))).toBe(true);
+  }
+  // Include row boundaries, midpoints and intermediate offsets along the
+  // entire world, plus the independent review's specific failing point.
+  for (let z = -M10.half; z < M10.half; z += 16) {
+   const x = m10RiverX(z);
+   expect(m10Ground(x, z)).toBe(M10.sea); expect(visited.has(at(x, z))).toBe(true);
+  }
+  expect(m10Ground(-2302.4, -7168)).toBe(M10.sea);
+ });
  it("keeps service/landing envelopes clear of terrain, Parts AND props", () => {
   for (const [x,z,length,width] of [[-9600,12000,2304,128],[2940,6720,1920,58]]) for (let dz=-length/2-3200;dz<=length/2+3200;dz+=64) for (const dx of [-width/2-100,0,width/2+100]) {
    // Full 100-stud side margin, tested 8 above runway and along both approach extensions.
@@ -114,6 +151,7 @@ describe("Dormant M10/M11 worlds", () => {
    for (const f of p.props) for (const dim of [UploadedAssetSpecs[f.asset].size.X,UploadedAssetSpecs[f.asset].size.Y,UploadedAssetSpecs[f.asset].size.Z]) expect(dim*f.scale).toBeLessThanOrEqual(2048);
    expect(c.voxels).toBeLessThanOrEqual(limit.voxelWrites); expect(c.jobs).toBeLessThanOrEqual(limit.jobs); expect(c.parts).toBeLessThanOrEqual(limit.parts); expect(c.props).toBeLessThanOrEqual(limit.props); expect(c.descendants).toBeLessThanOrEqual(limit.descendants); expect(c.estimatedSeconds).toBeLessThanOrEqual(limit.estimatedSeconds);
   }
+  expect(m10Counts(a).estimatedSeconds).toBeLessThanOrEqual(15);
   expect(M10_ENVIRONMENT.clock).toBe(14.25); expect(M11_ENVIRONMENT.sky).toBe("overcast"); expect(M10_ENVIRONMENT.weather).toBe("none"); expect(M11_ENVIRONMENT.weather).toBe("none");
  });
 });

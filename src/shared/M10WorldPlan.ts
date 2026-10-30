@@ -16,7 +16,7 @@ export const M10_ENVIRONMENT: EnvironmentSpec = {
  clouds: { cover: 0.18, density: 0.18, color: [240, 244, 248] },
  water: { color: [95, 82, 57], reflectance: 0.08, transparency: 0, waveSize: 0.06, waveSpeed: 3 },
 };
-/** Connected, winding channel; district berthing pockets widen it locally. */
+/** Authored centreline; the sampled water footprint below also covers each row's sweep. */
 export function m10RiverX(z: number): number {
  const ds = M10.districts;
  for (let i = 0; i < ds.size() - 1; i++) {
@@ -26,7 +26,12 @@ export function m10RiverX(z: number): number {
  return (z > ds[0].z ? ds[0] : ds[3]).x - 1800;
 }
 function wet(x: number, z: number): boolean {
- return math.abs(x - m10RiverX(z)) < 480 || M10.districts.some(b => math.abs(x - (b.x - 1800)) < 800 && math.abs(z - b.z) < 1800);
+ // Cover the entire centreline sweep across a 256-stud terrain row, not just
+ // its midpoint. Even the steep C→D bend then shares water faces with the
+ // next row; 480-stud margins also absorb the cell's 128-stud X rounding.
+ const rowZ = math.floor(z / 256) * 256;
+ const a = m10RiverX(rowZ), b = m10RiverX(rowZ + 256);
+ return x > math.min(a, b) - 480 && x < math.max(a, b) + 480 || M10.districts.some(b => math.abs(x - (b.x - 1800)) < 800 && math.abs(z - b.z) < 1800);
 }
 export function m10Height(x: number, z: number): number {
  if (math.abs(x + 9600) < 900 && math.abs(z - 12000) < 5000) return 64;
@@ -35,12 +40,16 @@ export function m10Height(x: number, z: number): number {
  for (const b of M10.districts) if (math.abs(x - b.x) < 1200 && math.abs(z - b.z) < 1700) return b.group === "C" || b.group === "D" ? 32 : 64;
  // Lower ingress/escape pocket; high, abrupt rock/forest ranges elsewhere.
  if (math.abs(x) < 2400 && z > 10240) return 180;
- return 208 + 64 * math.floor(6 * math.abs(math.sin(x / 1800) * math.cos(z / 2300)));
+ // Keep distant ridge relief on its 3072-stud sampling lattice even where
+ // the nearby river forces finer cells. Avoid paying for incidental fine
+ // ridge curtains to fund continuous native water without losing ship detail.
+ const ridgeX = math.floor(x / 3072) * 3072 + 1536, ridgeZ = math.floor(z / 3072) * 3072 + 1536;
+ return 256 + 128 * math.floor(3 * math.abs(math.sin(ridgeX / 1800) * math.cos(ridgeZ / 2300)));
 }
 export const M10_SURFACE: WorldSurface = {
  height: m10Height, nativeWater: () => true,
- detail: (x, z) => math.abs(x - m10RiverX(z)) < 500 || M10.districts.some(b => math.abs(x - b.x) < 1000 && math.abs(z - b.z) < 1500) || math.abs(x + 9600) < 1000 && math.abs(z - 12000) < 5000,
- material: (x, z) => wet(x, z) && m10Height(x, z) === 32 ? "Water" : m10Height(x, z) < 100 ? "Ground" : m10Height(x, z) > 440 ? "Rock" : "LeafyGrass",
+ detail: (x, z) => wet(x, z) || M10.districts.some(b => math.abs(x - b.x) < 1000 && math.abs(z - b.z) < 1500) || math.abs(x + 9600) < 1000 && math.abs(z - 12000) < 5000,
+ material: (x, z) => wet(x, z) && m10Height(x, z) === 32 ? "Water" : m10Height(x, z) < 100 ? "Ground" : m10Height(x, z) > 400 ? "Rock" : "LeafyGrass",
 };
 export const m10Ground = (x: number, z: number) => surfaceGround(M10_SURFACE, x, z);
 export interface M10Target { id: string; type: string; group: string; x: number; y: number; z: number; yaw: number; domain: "ground" | "naval" }

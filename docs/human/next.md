@@ -2,7 +2,7 @@
 
 ## M10/M11 world review and integration
 
-1. Review [M10](../specs/worlds/m10-composition.md) and [M11](../specs/worlds/m11-composition.md), including provisional inventories, full target tables and budgets. Rebase onto main after #164/#166 merge; do not merge this PR as part of this task.
+1. Re-review PR [#167](https://github.com/A-Ricemusic/skybreak/pull/167) P1 fix: generated-water connectivity and centreline checks now pass; M10 estimate14.732s with1.268s headroom. Review [M10](../specs/worlds/m10-composition.md) and [M11](../specs/worlds/m11-composition.md), including provisional inventories, full target tables and budgets. Rebase onto main after #164/#166 merge; do not merge this PR as part of this task.
 2. Once Studio is authenticated, compare ingress, river turn/pen mouth and snowy high/low bands against the cited spec views, fly both landing envelopes and both civilian routes, and measure real build/clear/phone performance. Offline checks establish geometry contracts only.
 3. Resolve M10 per-type roster/26-air activation, artillery, ammunition/rearm and 3,000-point/20:00 integration. Extend M11 encounter validation above 2,000 without clipping its 2,800-stud route; implement independent survival/progress for both civilians and the 5:30 protection objective. Review compressed vertical/cloud treatment together before activation.
 
