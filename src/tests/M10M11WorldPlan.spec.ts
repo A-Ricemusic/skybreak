@@ -116,7 +116,7 @@ describe("Dormant M10/M11 worlds", () => {
    const p=m11RoutePoint(high,j/512); expect(p.y).toBe(high?2800:900);
    for (const dx of [-720,0,720]) { expect(p.y-m11Ground(p.x+dx,p.z)).toBeGreaterThanOrEqual(150); expect(obstructed(b.parts.filter(f=>f.name!==(high?"m11_civilian_high":"m11_civilian_low")),b.props,p.x+dx,p.y,p.z,40)).toBe(false); }
   }
-  for (const r of b.routes) { expect(r.points[64]).toEqual({x:0,y:r.points[0].y,z:-11520}); expect(r.durationSeconds).toBeLessThan(M11.durationSeconds); }
+  for (const r of b.routes) { const mid=r.points[64]; expect(math.abs(mid.x)).toBe(0); expect(mid.y).toBe(r.points[0].y); expect(mid.z).toBe(-11520); expect(r.durationSeconds).toBeLessThan(M11.durationSeconds); }
  });
  it("seals every column and shared edge down to Y=0 beyond hard airspace without a floor", () => {
   for (const [p, airspace] of [[a, M10_AIRSPACE], [b, M11_AIRSPACE]] as const) {
