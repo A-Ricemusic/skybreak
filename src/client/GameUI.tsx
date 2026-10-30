@@ -459,11 +459,10 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	}, [releaseTouch, touchEndConnections]);
 	const joystickBegan = useCallback((input: InputObject) => {
 		if (!inMissionRef.current || GuiService.MenuIsOpen || UserInputService.GetFocusedTextBox() || inputModeRef.current !== "touch" || input.UserInputType !== Enum.UserInputType.Touch) return;
-		if (controller.TryTapTarget(input.Position)) return;
 		if (!touches.Begin("steering", input)) return;
 		trackTouchEnd(input);
 		moveJoystick(input);
-	}, [controller, moveJoystick, trackTouchEnd]);
+	}, [moveJoystick, trackTouchEnd]);
 	// The stick's InputBegan only covers its own frame. World boxes need the unconsumed screen touches too.
 	useEffect(() => {
 		const began = UserInputService.TouchStarted.Connect((input, processed) => {

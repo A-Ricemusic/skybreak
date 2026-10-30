@@ -268,23 +268,63 @@ function sessionObjective(session: CombatSession): {
 	};
 }
 
-function acquireTarget(session: CombatSession): void {
-	let best: Enemy | undefined;
-	let score = math.huge;
-	// Required targets first, except an ace that has broken off to call its wing: its raiders come first then.
-	const priority = (enemy: Enemy) => enemy.required && !(enemy.aceState !== undefined && !AceRules.Fights(enemy.aceState));
-	let bestPriority = false;
-	for (const enemy of session.enemies) {
+/** Longest line-of-sight ray; anything farther is out of every envelope and is never checked. */
+const LOS_MAX_RANGE = 5000;
+/** The ray stops short of the contact so a ground target's own footing never reads as cover. */
+const LOS_MARGIN = 25;
+/** Terrain and flight-solid scenery block the view; aircraft and targets (enemy or friendly models) do not. */
+function occludes(hit: RaycastResult): boolean {
+	let node: Instance | undefined = hit.Instance;
+	while (node !== undefined) {
+		if (node.IsA("Model") && (node.GetAttribute("SkybreakEnemy") !== undefined || node.GetAttribute("SkybreakFriendly") !== undefined)) return false;
+		node = node.Parent;
+	}
+	return true;
+}
+/** Cached per enemy and refreshed at most every TargetPriority.LosInterval, so a TGT burst or a kill chain never fans out into raycasts every frame. */
+function lineOfSightBlocked(session: CombatSession, enemy: Enemy): boolean {
+	if (enemy.losAt !== undefined && session.elapsed - enemy.losAt < TargetPriority.LosInterval) return enemy.losBlocked === true;
+	enemy.losAt = session.elapsed;
+	const origin = positionFor(session.state);
+	const delta = enemy.position.sub(origin);
+	const length = math.min(delta.Magnitude, LOS_MAX_RANGE) - LOS_MARGIN;
+	let blocked = false;
+	if (length > 0 && session.collisionParams !== undefined) {
+		const hit = Workspace.Raycast(origin, delta.Unit.mul(length), session.collisionParams);
+		blocked = hit !== undefined && occludes(hit);
+	}
+	enemy.losBlocked = blocked;
+	return blocked;
+}
+/** Every targetable contact as the shared priority sees it; line of sight is checked for the leading few only. */
+function targetCandidates(session: CombatSession): TargetCandidate[] {
+	const candidates: TargetCandidate[] = [];
+	const lockRange = SpecialWeapons.LockRange(session.special);
+	for (let id = 0; id < session.enemies.size(); id++) {
+		const enemy = session.enemies[id];
 		if (!ownsEnemy(session, enemy)) continue;
 		const [distance, dot] = targetMetrics(session, enemy);
-		const candidateScore = TargetPriority.AcquireScore(distance, dot);
-		const first = priority(enemy);
-		if (!best || (first && !bestPriority) || (first === bestPriority && candidateScore < score)) {
-			best = enemy; score = candidateScore; bestPriority = first;
-		}
+		// An ace that has broken off to call its wing is neither required nor worth the nose until it turns back in.
+		const retreatingAce = enemy.aceState !== undefined && !AceRules.Fights(enemy.aceState);
+		candidates.push({
+			id, distance, dot,
+			required: enemy.required && !retreatingAce,
+			held: retreatingAce,
+			inRange: distance <= WeaponRules.EnvelopeRange(lockRange, enemy.kind === "ground"),
+		});
 	}
-	session.target = best;
-	session.lockProgress = 0;
+	for (const candidate of TargetPriority.LosChecks(candidates)) candidate.blocked = lineOfSightBlocked(session, session.enemies[candidate.id]);
+	return candidates;
+}
+/** Automatic acquisition: the nose-best contact. The lock survives when that is still the current target. */
+function acquireTarget(session: CombatSession): void {
+	const bestId = TargetPriority.Best(targetCandidates(session));
+	const best = bestId === undefined ? undefined : session.enemies[bestId];
+	if (session.target !== best) { session.target = best; session.lockProgress = 0; }
+}
+/** Phase entries and spawns keep a still-valid target; only a lost one is replaced. */
+function retargetIfLost(session: CombatSession): void {
+	if (!ownsEnemy(session, session.target)) acquireTarget(session);
 }
 /** Both explicit selection paths notify the tutorial, even when reselecting the same contact; a repeat tap keeps the lock it already has. */
 function selectTarget(session: CombatSession, enemy: Enemy): void {
@@ -294,17 +334,17 @@ function selectTarget(session: CombatSession, enemy: Enemy): void {
 		phaseDirector.Apply(session);
 	}
 }
+/** TGT: snap to the nose-best, advance from it, and keep walking the order while presses come quickly. */
 function cycleTarget(session: CombatSession): void {
-	const candidates: TargetCandidate[] = [];
-	for (let id = 0; id < session.enemies.size(); id++) {
-		const enemy = session.enemies[id];
-		if (!ownsEnemy(session, enemy)) continue;
-		const [distance, dot] = targetMetrics(session, enemy);
-		candidates.push({ id, distance, dot });
-	}
+	const candidates = targetCandidates(session);
 	const current = session.target === undefined ? undefined : session.enemies.indexOf(session.target);
-	const nextId = TargetPriority.Next(candidates, current);
-	if (nextId !== undefined) selectTarget(session, session.enemies[nextId]);
+	const chain = session.cycle;
+	const cursor = chain !== undefined && chain.target === session.target && session.elapsed - chain.at <= TargetPriority.CycleChainSeconds ? chain.cursor : undefined;
+	const step = TargetPriority.Next(candidates, current, cursor);
+	if (step === undefined) return;
+	const enemy = session.enemies[step.id];
+	session.cycle = { target: enemy, cursor: step.cursor, at: session.elapsed };
+	selectTarget(session, enemy);
 }
 /** Would a missile hurt `enemy` right now: owned, damageable this phase and, for an ace, not immune or held at a stage floor (strikeEnemy). */
 function canHurt(session: CombatSession, enemy: Enemy | undefined): boolean {
@@ -1579,7 +1619,7 @@ function resumeSession(session: CombatSession, now: number): boolean {
 }
 
 const phaseDirector = createPhaseDirector({
-	spawnAllies, spawnAir, activateGround, withdrawAirborne, liveAircraft, radio, acquireTarget, publishDamageable,
+	spawnAllies, spawnAir, activateGround, withdrawAirborne, liveAircraft, radio, acquireTarget, retargetIfLost, publishDamageable,
 	isCurrent: (session) => sessions.get(session.player) === session,
 });
 

@@ -6,7 +6,7 @@ Last updated: 2026-10-29.
 
 [Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). Mission 2 is live through the automatic pipeline and unlocks after you finish mission 1 on the same save. Agents have not performed a Roblox Player test.
 
-Targeting (#157): on a phone, tap an enemy target box to select it; TGT still cycles, now nearest the nose first, favouring nearby contacts at similar angles. Check that tapping a box does not steer the jet.
+Targeting (#157): on a phone, tap an enemy target box to select it. TGT now picks what the nose is on first (required targets favoured at similar bearings, contacts behind you or hidden by terrain last) and advances with quick presses. Auto-targeting after a kill follows the same rule. Check that tapping a box does not steer the jet and that TGT feels predictable.
 
 1. **Reach it.** Finish mission 1 at any rank. Mission 2's tile should read NEXT. The chapter "The sealed case" plays once before the briefing "NO ANIMALS".
 2. **Fly north.** You start in the air about 470 studs up with three LANTERN wingmen and a 15:00 countdown. Follow the red-and-white power line for about two minutes to the "farm" airfield.
