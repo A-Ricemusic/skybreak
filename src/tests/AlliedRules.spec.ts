@@ -115,3 +115,56 @@ describe("Dormant allied flight contracts", () => {
 		expect(ledger.Total()).toBe(100); expect(state.requiredAirKills).toBe(1); expect(state.phaseProgress).toBe(1);
 	});
 });
+
+
+describe("Mission pressure opt in", () => {
+	const pressure = {playerPriority:0.8,forwardConeDegrees:25,tailDefence:true};
+	it("reserves eight of ten slots for the player and rotates ally attention every eight seconds", () => {
+		for (const elapsed of [0,8,16,80]) {
+			let player = 0;
+			for(let serial=0;serial<10;serial++) if(AlliedRules.PrioritisesPlayer(pressure,serial,elapsed,2000,1,false)) player++;
+			expect(player).toBe(8);
+		}
+		expect(AlliedRules.PrioritisesPlayer(pressure,4,7.99,2000,1,false)).toBe(false);
+		expect(AlliedRules.PrioritisesPlayer(pressure,4,8,2000,1,false)).toBe(true);
+	});
+	it("overrides ally assignments for proximity, tails and player fire; omitted policy preserves legacy", () => {
+		expect(AlliedRules.PrioritisesPlayer(pressure,9,0,699,1,false)).toBe(true);
+		expect(AlliedRules.PrioritisesPlayer(pressure,9,0,1400,-0.8,false)).toBe(true);
+		expect(AlliedRules.PrioritisesPlayer(pressure,9,0,2000,1,true)).toBe(true);
+		expect(AlliedRules.PrioritisesPlayer(undefined,9,0,100,-1,true)).toBe(false);
+		expect(AlliedRules.TailThreat(1499,-0.61)).toBe(true);
+		expect(AlliedRules.TailThreat(1500,-0.61)).toBe(false);
+		expect(AlliedRules.TailThreat(500,0.8)).toBe(false);
+	});
+	it("keeps Easy lock/inbound breaks probabilistic and pressure flares hostile-only on Normal/Ace", () => {
+		expect(AlliedRules.ForcePressureBreak(pressure,"easy",false,true)).toBe(false);
+		expect(AlliedRules.ForcePressureBreak(pressure,"easy",true,true)).toBe(true);
+		for (const difficulty of ["normal","ace"] as const) {
+			expect(AlliedRules.ForcePressureBreak(pressure,difficulty,false,true)).toBe(true);
+			expect(AlliedRules.PressureFlare(pressure,false,"raider",difficulty)).toBe(true);
+			expect(AlliedRules.PressureFlare(pressure,false,"escort",difficulty)).toBe(true);
+			expect(AlliedRules.PressureFlare(pressure,true,"raider",difficulty)).toBe(false);
+		}
+		expect(AlliedRules.PressureFlare(pressure,false,"raider","easy")).toBe(false);
+		expect(AlliedRules.PressureFlare(pressure,false,"escort","easy")).toBe(false);
+		expect(AlliedRules.PressureFlare(undefined,false,"raider","ace")).toBe(false);
+		expect(AlliedRules.ForcePressureBreak(undefined,"ace",true,true)).toBe(false);
+	});
+	it("suppresses a tail break through overshoot extension and three seconds of recovery", () => {
+		const overshootAt = 10, extendSeconds = 3, tailBreakAfter = overshootAt + extendSeconds + 3;
+		for (const now of [10,12.99,13,15.99]) expect(AlliedRules.TailThreat(1000,-0.8,tailBreakAfter-now)).toBe(false);
+		expect(AlliedRules.TailThreat(1000,-0.8,tailBreakAfter-16)).toBe(true);
+		expect(AlliedRules.TailThreat(1000,0.8,tailBreakAfter-17)).toBe(false);
+	});
+	it("keeps M01 opening screen ahead and preserves rear/legacy arrival angles", () => {
+		const p={playerPriority:0.8,forwardConeDegrees:25,tailDefence:true};
+		for(const roll of [0,0.5,1]) {
+			const angle=AlliedRules.ApproachDegrees(p,"raider",false,roll);
+			expect(angle>=10 && angle<=25).toBe(true);
+			expect(math.cos(math.rad(angle))*2600>2300).toBe(true);
+			expect(AlliedRules.ApproachDegrees(undefined,"raider",false,roll)).toBe(60+15*roll);
+			expect(AlliedRules.ApproachDegrees(p,"raider",true,roll)).toBe(150+20*roll);
+		}
+	});
+});

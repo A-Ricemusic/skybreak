@@ -1,5 +1,7 @@
-import React from "@rbxts/react";
+import React, { useBinding, useEffect, useState } from "@rbxts/react";
 import { MissionCatalog } from "../shared/MissionCatalog";
+import { RunService } from "@rbxts/services";
+import type { LaunchPhase } from "../shared/LaunchLoading";
 import { C } from "./Theme";
 
 export interface LoadingScreenProps {
@@ -8,12 +10,29 @@ export interface LoadingScreenProps {
 	/** 0..1 replication/preload progress. */
 	progress: number;
 	viewport: Vector2;
+	phase: LaunchPhase;
+	buildFolder?: Instance;
 }
 
-// Full-screen opaque overlay shown between "Loading" and "Started". It hides
+// Full-screen opaque overlay shown from launch confirmation until "Started". It hides
 // meshes popping in while the world replicates. Everything sits in a centred
 // column so it survives 320x240 compact phones and notch insets (44 px safe).
-function LoadingScreenComponent({ visible, missionId, progress, viewport }: LoadingScreenProps) {
+function LoadingScreenComponent({ visible, missionId, progress, viewport, phase, buildFolder }: LoadingScreenProps) {
+	const indeterminate = phase !== "preloading";
+	const [pulse, setPulse] = useBinding(0);
+	const [worldPhase, setWorldPhase] = useState<unknown>();
+	useEffect(() => {
+		setWorldPhase(buildFolder?.GetAttribute("WorldBuildPhase"));
+		const connection = buildFolder?.GetAttributeChangedSignal("WorldBuildPhase").Connect(() => setWorldPhase(buildFolder.GetAttribute("WorldBuildPhase")));
+		return () => connection?.Disconnect();
+	}, [buildFolder]);
+	useEffect(() => {
+		if (!visible || !indeterminate) return;
+		let elapsed = 0;
+		const connection = RunService.RenderStepped.Connect((dt) => { elapsed += dt; setPulse((math.sin(elapsed * 3) + 1) / 2); });
+		return () => connection.Disconnect();
+	}, [visible, indeterminate]);
+	const detail = worldPhase === "plan" ? "Planning" : worldPhase === "terrain" ? "Terrain" : worldPhase === "environment" ? "Environment" : worldPhase === "dressing" ? "Scenery" : undefined;
 	const compact = viewport.Y < 300;
 	const title = MissionCatalog.IsValidId(missionId) ? MissionCatalog.Get(missionId).title : "SORTIE";
 	const columnWidth = math.min(360, math.max(200, viewport.X - 88));
@@ -49,15 +68,16 @@ function LoadingScreenComponent({ visible, missionId, progress, viewport }: Load
 					<uitextsizeconstraint MaxTextSize={compact ? 22 : 30} MinTextSize={14} />
 				</textlabel>
 				<frame key="BarTrack" BackgroundColor3={Color3.fromRGB(26, 54, 72)} BorderSizePixel={0} LayoutOrder={3} Size={UDim2.fromOffset(barWidth, 4)} ZIndex={31}>
-					<frame key="BarFill" BackgroundColor3={C.Accent} BorderSizePixel={0} Size={new UDim2(progress, 0, 1, 0)} ZIndex={32} />
+					<frame key="BarFill" BackgroundColor3={C.Accent} BorderSizePixel={0} Position={indeterminate ? pulse.map((p) => UDim2.fromScale(p * 0.7, 0)) : UDim2.fromScale(0, 0)} Size={new UDim2(indeterminate ? 0.3 : progress, 0, 1, 0)} ZIndex={32} />
 				</frame>
 				<textlabel
 					key="Status"
 					BackgroundTransparency={1}
 					Font={Enum.Font.GothamBold}
 					LayoutOrder={4}
-					Size={new UDim2(1, 0, 0, 16)}
-					Text={progress >= 1 ? "AWAITING TOWER CLEARANCE" : `PREPARING SORTIE  ·  ${percent}%`}
+					Size={new UDim2(1, 0, 0, 32)}
+					TextWrapped={true}
+					Text={phase === "queued" ? "Waiting for the previous mission to clear…" : indeterminate ? `Building world…${detail ? `  ·  ${detail}` : ""}` : progress >= 1 ? "AWAITING TOWER CLEARANCE" : `PREPARING SORTIE  ·  ${percent}%`}
 					TextColor3={C.Muted}
 					TextSize={compact ? 10 : 12}
 					ZIndex={31}

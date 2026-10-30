@@ -32,19 +32,15 @@ for (const bank of plan.banks) {
 if (regions !== Object.keys(VOICE_CUES).length) throw Error("Unmanifested cues");
 for (const chapter of STORY) for (const [index, beat] of chapter.beats.entries()) {
   const id = `story.c${String(chapter.id).padStart(2, "0")}.b${String(index).padStart(2, "0")}`;
-  const cue = VOICE_CUES[id], line = lines.lines.find((l: { id: string }) => l.id === id);
+  if (!beat.recordingId) { beats++; continue; } // subtitle-only, listed in voice-script.md
+  const cue = VOICE_CUES[beat.recordingId], transcript = transcripts[beat.recordingId];
   const rawSpeaker = beat.speaker.split(" · ")[0], speaker = casting.aliases[rawSpeaker] ?? rawSpeaker;
-  // The new opening answer has no recording. Preserve the real bank transcript;
-  // VoiceLibrary's exact-text gate (covered in VoiceLines.spec) keeps this beat silent.
-  const rewritten = id === "story.c00.b05";
-  if (rewritten && beat.text !== "An empty chair and a checkout nobody's signing. Fine. I'll fly the pattern.") throw Error("Unexpected opening subtitle edit");
-  const recordedText = rewritten ? "Three bandits on the rim and an empty chair. Fine. I'll fly the pattern." : beat.text;
-  if (!cue || cue.radio || cue.text !== recordedText || cue.speaker !== speaker || line?.text !== recordedText || line?.speaker !== speaker || line?.spoken !== transcripts[id].spoken || line?.voice !== transcripts[id].voice) throw Error(`Authored/recorded dialogue mismatch: ${id}`);
+  if (!cue || cue.radio || cue.text !== beat.text || cue.speaker !== speaker || transcript.text !== beat.text) throw Error(`Authored/recorded dialogue mismatch: ${id}`);
   beats++;
 }
 console.log(`VOICE_MANIFEST chapters=${STORY.length} beats=${beats} regions=${regions} bankHashes=${plan.banks.length}`);
 let harness = await Bun.file(resolve(root, "tools/tests/voice-consumer.luau")).text();
-const files = ["shared/VoiceDisclosure", "shared/VoiceReadiness", "shared/VoiceBanks", "shared/VoiceCues", "shared/VoiceLines", "shared/RelayStory", "shared/CinematicInput", "shared/CinematicLayout", "shared/CinematicStaging", "shared/StoryDocuments", "client/MotionPreference", "client/VoicePlayer", "client/RelayCinematic"];
+const files = ["shared/VoiceDisclosure", "shared/VoiceReadiness", "shared/VoiceBanks", "shared/VoiceCues", "shared/RelayStory", "shared/VoiceLines", "shared/CinematicInput", "shared/CinematicLayout", "shared/CinematicStaging", "shared/CinematicSet", "shared/UploadedAssetSpecs", "shared/Teardown", "shared/StoryDocuments", "client/MotionPreference", "client/VoicePlayer", "client/RelayCinematic"];
 let modules = "";
 for (const file of files) {
   let source = await Bun.file(resolve(root, `out/${file}.luau`)).text();
@@ -56,11 +52,12 @@ for (const file of files) {
   }).join("\n");
   if (source.includes("TS.")) throw Error(`Unhandled runtime dependency: ${file}`);
   if (file === "client/RelayCinematic") {
-    // Exclude only scenery construction/lighting. Keep the actual component, hooks,
+    // Exclude only scenery construction/lighting/post-processing; the doubles register their undo steps
+    // with the real teardown and can inject setup and cleanup faults (harnessFaults). Keep the actual component, hooks,
     // input handlers, effect body, beat clock, Voice.Story and VoicePlayer.Play calls.
     const marker = "local function RelayCinematic(_param)";
     if (!source.includes(marker)) throw Error("Cinematic test seam changed");
-    source = source.replace(marker, `sceneFor = function() return {scene=Instance.new("Folder"),reels={},recorderLight={},tealStrip={}} end\nstageLighting = function() return function() end end\n${marker}`);
+    source = source.replace(marker, `sceneFor = function(chapter,track) local folder=Instance.new("Folder");harnessStage.folder=folder;track(function() folder:Destroy() end);if harnessFaults.scene then error("injected scene fault") end;return {scene=folder,reels={},recorderLight={},tealStrip={}} end\nstageLighting = function(mood,track) harnessStage.lightingApplied+=1;track(function() harnessStage.lightingRestored+=1;if harnessFaults.lightingRestore then error("injected lighting restore fault") end end) end\nstageEffects = function(mood,track) track(function() harnessStage.effectsRestored+=1 end);if harnessFaults.effects then error("injected effects fault") end;return {depth=function() end} end\n${marker}`);
   }
   modules += `modules["${file.split("/").at(-1)}"] = (function()\n${source}\nend)()\n`;
 }

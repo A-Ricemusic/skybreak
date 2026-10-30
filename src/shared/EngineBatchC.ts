@@ -5,7 +5,8 @@ export interface ScoreThreshold { points: number; seconds: number; /** Keep figh
 export interface RadarJamming { visualLockRange: number; remainingCall: string; clearCall: string }
 export interface RearmPlan { zone: FlightPoint; radius: number; landing: LandingPlan; takeoffSeconds: number; missiles: boolean; special: boolean; health: boolean;
 	/** Batch D1: refill the fitted gun's magazine; absent follows `missiles`. Needs `armament.gun`. */
-	gun?: boolean }
+	gun?: boolean;
+	/** Hold on the runway for the TAKEOFF / CHANGE WEAPON menu (SortieCutaways). */ weaponMenu?: boolean; /** Tower cues by rearm time. */ radio?: { at: number; text: string }[] }
 export function thresholdResult(plan: ScoreThreshold, score: number, elapsed: number): "continue" | "complete" | "failed" {
 	if (elapsed>=plan.seconds) return score>=plan.points ? "complete" : "failed";
 	return !plan.waitForExpiry && score>=plan.points ? "complete" : "continue";

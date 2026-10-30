@@ -60,6 +60,11 @@ KEYS = {
     "rock-a": "RockA",
     "rock-b": "RockB",
     "rock-c": "RockC",
+    # Cutscene desk props: dormant slots (RobloxAssetIds undefined) until review, approval and upload.
+    "cinematic-radio-console": "CinematicRadioConsole",
+    "cinematic-field-recorder": "CinematicFieldRecorder",
+    "cinematic-status-board": "CinematicStatusBoard",
+    "cinematic-tape-tin": "CinematicTapeTin",
 }
 # Procedural aircraft whose length the uploaded aircraft are fitted to.
 PROCEDURAL = {"kestrel": "kestrel", "vanta": "vanta", "vanta-vulture": "vanta", "vanta-rusk": "vanta",
@@ -157,9 +162,11 @@ def main() -> None:
         if c.get("rotors"):
             lines.append("\t\trotors: {")
             for name, r in c["rotors"].items():
-                axis = [0, 1, 0] if r["axis"] == "Roblox +Y" else [1, 0, 0]
+                axis = {"Roblox +Y": [0, 1, 0], "Roblox +Z": [0, 0, 1]}.get(r["axis"], [1, 0, 0])
                 lines.append(f"\t\t\t{name}: {{ hub: {ts_vec(scaled(r['hub'], k))}, axis: {ts_vec(axis)} }},")
             lines.append("\t\t},")
+        if c.get("anchors"):
+            lines.append("\t\tanchors: { " + ", ".join(f"{n}: {ts_vec(scaled(v, k))}" for n, v in c["anchors"].items()) + " },")
         glass = [o["name"] for o in c["objects"] if o["name"] in GLASS_PARTS]
         if glass:
             lines.append("\t\tglassParts: [" + ", ".join(f'"{g}"' for g in glass) + "],")
@@ -197,7 +204,8 @@ def main() -> None:
         "\tattachments?: { leftWingtip: Vector3; rightWingtip: Vector3; exhaust: Vector3 };\n"
         "\tcontrolSurfaces?: Record<string, HingeSpec>;\n"
         "\t/** Static rotor parts, with authored model-space hubs and spin axes. */\n\trotors?: Record<string, { hub: Vector3; axis: Vector3 }>;\n"
-        "\t/** Parts the loader makes see-through (the v2 canopy over its cockpit). */\n\tglassParts?: string[];\n}\n\n"
+        "\t/** Parts the loader makes see-through (the v2 canopy over its cockpit). */\n\tglassParts?: string[];\n"
+        "\t/** Named model-space points (from the bottom-centre pivot) for seating a prop, e.g. the cutscene desk props. */\n\tanchors?: Record<string, Vector3>;\n}\n\n"
         "export const UploadedAssetSpecs: Record<UploadedAssetName, UploadedAssetSpec> = {\n"
         + "\n".join(specs) + "\n};\n"
     )

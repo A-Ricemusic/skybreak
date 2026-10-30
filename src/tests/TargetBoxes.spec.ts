@@ -301,3 +301,35 @@ describe("target box text across phone roots and HUD scales", () => {
 		expect(leftTags).toBeGreaterThan(100);
 	});
 });
+
+describe("touch target boxes", () => {
+	function contact(x = 100, y = 100, size = 14) { return { x, y, size, boxed: true, friendly: false }; }
+	it("hits a rendered contact by its boxed footprint", () => {
+		const selected = contact(100, 100, 24);
+		expect(TargetBoxes.TapHit([selected], 100, 100)).toBe(selected);
+	});
+	it("misses outside boxes and empty lists", () => {
+		expect(TargetBoxes.TapHit([contact()], 123, 100)).toBeUndefined();
+		expect(TargetBoxes.TapHit([], 100, 100)).toBeUndefined();
+	});
+	it("pads to 44 pixels, supports an override, and retains larger boxes", () => {
+		const small = contact();
+		expect(TargetBoxes.TapHit([small], 122, 122)).toBe(small);
+		expect(TargetBoxes.TapHit([small], 122, 122, 20)).toBeUndefined();
+		const large = contact(100, 100, 60);
+		expect(TargetBoxes.TapHit([large], 130, 100)).toBe(large);
+	});
+	it("chooses the nearest centre among overlapping boxes", () => {
+		const a = contact(), b = contact(110, 110);
+		expect(TargetBoxes.TapHit([a, b], 108, 108)).toBe(b);
+		expect(TargetBoxes.TapHit([b, a], 101, 101)).toBe(a);
+	});
+	it("ignores friendly and unboxed contacts even when closer", () => {
+		const enemy = contact(110);
+		expect(TargetBoxes.TapHit([{ ...contact(), friendly: true }, { ...contact(), boxed: false }, enemy], 100, 100)).toBe(enemy);
+	});
+	it("keeps the first contact for equal centre distances", () => {
+		const a = contact(90), b = contact(110);
+		expect(TargetBoxes.TapHit([a, b], 100, 100)).toBe(a);
+	});
+});

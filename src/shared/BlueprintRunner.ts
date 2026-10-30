@@ -11,6 +11,8 @@ const PROTECT_DRAIN = 0.55;
 const GUN_WEIGHT = 1.5;
 export interface BlueprintState {
 	rearmActive?: boolean;
+	/** A HUD-less cut-in holds the mission clock like a rearm (SortieCutaways). */
+	cutInActive?: boolean;
 	score?: number;
 	scorePhaseStarted?: number;
 	updateSerial?: number;
@@ -174,7 +176,7 @@ export const BlueprintRunner = {
 		if (BlueprintRunner.ActivePhase(s)?.bombers) finish(s, "failed", "bombers_escaped");
 	},
 	Tick(s: BlueprintState, now: number, health=100): void {
-		if (s.outcome !== undefined || s.rearmActive || s.landingElapsed !== undefined || !finite(now)) return;
+		if (s.outcome !== undefined || s.rearmActive || s.cutInActive || s.landingElapsed !== undefined || !finite(now)) return;
 		s.elapsed=math.max(s.elapsed,now-s.startedAt,0);
 		const threshold=BlueprintRunner.ActivePhase(s)?.scoreThreshold;
 		if (threshold && finite(health) && health<=0) { finish(s,"failed","destroyed"); return; }

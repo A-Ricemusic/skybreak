@@ -15,7 +15,13 @@
   "AIR MARSHAL RUSK": "RUSK",
   "FLIGHT LOG": "LOG",
   "RECORDER 7-T": "RECORDER",
-  "LANDING FORCE": "LANDING CRAFT"
+  "LANDING FORCE": "LANDING CRAFT",
+  "FARM CONTROL": "BROADCAST",
+  "LANTERN 2": "MARINE",
+  "LANTERN 3": "MARINE",
+  "WORKS CONTROL": "BROADCAST",
+  "SHORE TOWER": "RIM TOWER",
+  "CINDER LEAD": "VULTURE TWO"
  },
  "speakers": {
   "SERA": {
@@ -48,12 +54,12 @@
   "VULTURE LEAD": {
    "voice": "SOYHLrjzK2X1ezoPC6cr",
    "voiceName": "Harry",
-   "role": "Mission 9 enemy ace"
+   "role": "Elite hunter at M5; returns among Rusk's four wingmen at M17"
   },
   "VULTURE TWO": {
    "voice": "N2lVS1w4EtoT3dr4eOWO",
    "voiceName": "Callum",
-   "role": "Mission 18 enemy ace, Teal's old wingman"
+   "role": "Mission 12 opponent; Teal's instructor and later witness"
   },
   "BROADCAST": {
    "voice": "onwK4e9ZLuTAKqWW03F9",
@@ -124,6 +130,11 @@
    "voice": "nPczCjzI2devNBz1zQrb",
    "voiceName": "Brian",
    "role": "Recovery team"
+  },
+  "RIM TOWER": {
+   "voice": "pFZP5JQG7iQjIQuC4Bku",
+   "voiceName": "Lily",
+   "role": "Varda Rim landing controller; distinct from Sera, refers to her in third person"
   }
  },
  "spokenReplacements": [

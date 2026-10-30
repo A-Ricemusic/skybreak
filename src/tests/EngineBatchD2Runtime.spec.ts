@@ -95,13 +95,18 @@ describe("Batch D2 Roblox instance lifecycle (Studio lease required)",()=>{
 	it("credits a destroyed hull once, sinks surviving mounts without tally/score credit, and releases a deck-group arrival",()=>{
 		const {s,hull,mount,folder}=fixture();
 		try {
-			hull.typedGround!.group="deck"; mount.typedGround!.group="deck";
-			const bp: MissionBlueprint={...MissionCatalog.Get(1),ground:[],phases:[{kind:"score_threshold",label:"Harbour",scoreThreshold:{points:100,seconds:900,waitForExpiry:true}}],scoring:{basis:"points",points:{hull:120,mount:30},rank:{S:150,A:140,B:130,C:100}}};
+			hull.typedGround!.group="deck"; mount.typedGround!.group="deck"; mount.typedGround!.scoreRole="mount";
+			const bp: MissionBlueprint={...MissionCatalog.Get(1),ground:[],phases:[{kind:"score_threshold",label:"Harbour",groundTargets:[hull.typedGround!,mount.typedGround!],scoreThreshold:{points:100,seconds:900,waitForExpiry:true}}],scoring:{basis:"points",points:{hull:120,mount:30},rank:{S:150,A:140,B:130,C:100}}};
+			MissionCatalog.ValidatePolicy(bp);
 			const state=BlueprintRunner.NewState(bp,0), ledger=new TargetScore(bp.scoring!);
-			const destroy=()=>{ if(recordScoredKill(state,ledger,hull.id,"ground",false,10,"hull")) sinkNavalTarget(s,hull); };
-			destroy(); expect(hull.model.GetAttribute("Sinking")).toBe(true); expect(mount.model.GetAttribute("Sinking")).toBe(true);
+			const destroy=()=>{
+				const accepted=recordScoredKill(state,ledger,hull.id,"ground",false,10,"hull");
+				if(accepted) sinkNavalTarget(s,hull);
+				return accepted;
+			};
+			expect(destroy()).toBe(true); expect(hull.model.GetAttribute("Sinking")).toBe(true); expect(mount.model.GetAttribute("Sinking")).toBe(true);
 			expect(ledger.Total()).toBe(120); expect(state.optionalGroundKills).toBe(1); expect(state.killedIds.has(mount.id)).toBe(false);
-			destroy(); expect(ledger.Total()).toBe(120); expect(state.optionalGroundKills).toBe(1);
+			expect(destroy()).toBe(false); expect(ledger.Total()).toBe(120); expect(state.optionalGroundKills).toBe(1);
 			// Simulate the combat list dropping dead instances; retired group membership survives.
 			s.enemies.clear();
 			expect(arrivalDue({kind:"ground_group",group:"deck"},{elapsed:10,phase:0,requiredKills:0,destroyed:state.killedIds,retired:s.retiredGroundIds,targets:[hull.typedGround!,mount.typedGround!]})).toBe(true);

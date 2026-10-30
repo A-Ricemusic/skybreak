@@ -1,0 +1,164 @@
+{
+  "name": "cinematic-status-board",
+  "title": "Rolling slate status board (cutscene set prop)",
+  "variantOf": null,
+  "exportVersion": "cinematic-status-board-1",
+  "robloxAssetType": "Model",
+  "usage": "Broken Relay cutscenes: Sera's board beside the radio desk; the game adds the three plain name strips (Teal's lit) in front of the slate. Pending independent safety review (AGENTS.md); not uploaded. Dormant slot in src/: RobloxAssetIds entry undefined, so the cinematic keeps its procedural prop until approval and upload.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "cinematic-status-board.fbx",
+    "bytes": 434892
+  },
+  "triangleCount": 744,
+  "triangleLimit": 1800,
+  "objects": [
+    {
+      "name": "cinematic-status-board",
+      "triangles": 744
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "cinematic-status-board-color.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 185474
+    },
+    {
+      "role": "normal",
+      "file": "cinematic-status-board-normal.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 10330
+    },
+    {
+      "role": "rough",
+      "file": "cinematic-status-board-roughness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 168543
+    },
+    {
+      "role": "metal",
+      "file": "cinematic-status-board-metalness.png",
+      "width": 512,
+      "height": 512,
+      "bytes": 13262
+    }
+  ],
+  "robloxSizeStuds": [
+    5.24,
+    9.53,
+    2.44
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 0.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png",
+    "preview-back.png",
+    "preview-side-right.png",
+    "preview-bottom.png",
+    "preview-3q-front-left.png",
+    "preview-3q-rear-right.png",
+    "preview-3q-rear-left.png",
+    "preview-front-low.png",
+    "preview-front-high.png",
+    "preview-3q-low-front-right.png",
+    "preview-closeup-front.png",
+    "preview-closeup-foot.png",
+    "preview-closeup-back.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "No letters, numbers, writing or glyph-like marks: the slate is plain dark green with soft chalk-dust smudges; the game's name strips are blank colour bars."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No maker's marks; plain aluminium frame and dark painted stand."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No flags, roundels or markings."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces or figures; a plain rectangle on a two-post stand with three thin horizontal strip ledges."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary office/workshop board in every view."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "A status board: no weapons, damage or gore."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": [],
+  "sha256": {
+    "cinematic-status-board-color.png": "f7c2b0a065df77214dacedb5ce8d027897ecd6e9ac7d19247509d88226d29579",
+    "cinematic-status-board-metalness.png": "eebee763a157932b83f3722ca5d77a5f2935c91c4b388ea15a711f86fc50a610",
+    "cinematic-status-board-normal.png": "8782f3a19045362ccdbc8e4db2c89d073bc12a4a41602d292d4b274b12914eb0",
+    "cinematic-status-board-roughness.png": "938dda1fe86f28fa9ea0eae2982ebb9e4dc4b4e2ece05a589d0bdfb2c6da9576",
+    "cinematic-status-board.fbx": "313dc862ef36680c52aeb3b9756c2f6a5a737fbe369f5dc660f492c42dbd94f8",
+    "contact-sheet.png": "7f326e9313ae6bbf46e90dfc2636eb84bc5ea677c705128d30ade9799a4696ea",
+    "preview-3q-front-left.png": "0d397d1751361abfb03c6cc01c44656eab7f1c665c5d8b1ff1df05658248d370",
+    "preview-3q-low-front-right.png": "0963ea57af9957b59867298cf1653a2316c79dccca6f4b67108437a4b9f24f7c",
+    "preview-3q-rear-left.png": "654a2eab9fa2868d480ab01b70dbbb73464eef8ddcdf77616a2aa729b81293d3",
+    "preview-3q-rear-right.png": "c94dce73c49a7f4464a6d4e779516a147a818ea98b0c3c28c08ae99ab31ec12c",
+    "preview-3q.png": "350b6e490604eccb42b05e5933c7b20b3c1c8795d3131cc99330ba2306686c91",
+    "preview-back.png": "39cf22260733545324fd6d583e7d0f08f3b4f6122c0ed1aba3ecaf6a3c7b72d3",
+    "preview-bottom.png": "b22a66e4f202b7f4dc1813a28d11aa9e14b6634d53a18adb34b486cac7c5954d",
+    "preview-closeup-back.png": "dedce62e2351cfce3107d01f4ece1102a9438a98f131be991ae71020113acfe2",
+    "preview-closeup-foot.png": "617d762e92f0409a8fb9fd9a88eb49ae4f3ed9aacc884738d5599747824e7286",
+    "preview-closeup-front.png": "f594f6a63f1e3d43d4057811d87cc6f01c64cc51d072c252b7e9608895c1750d",
+    "preview-front-high.png": "8bdaa0ffa045c0056392a716a1a18c556acc9530ae7d52c5081b8c6d903b7fc2",
+    "preview-front-low.png": "5c73d50709c0a9389e994e3a92849f27beec041bc002a353f35150e56d4344a6",
+    "preview-front.png": "536df21b718c8053be47ebdc2d4970faac3e5af219b297e312cd83b1b6cebe6e",
+    "preview-side-right.png": "10c1fd7b6972cfda1069c328faeb2957c24dc5701ea4a1f3cdd03bde6063d083",
+    "preview-side.png": "b8f9fd6e253ef03ca7bd769e68e2763c2264b6fc9335826040cca0444030d28a",
+    "preview-top.png": "f59954c5372086cd7d8f202f2aa7b31be15aa30858964afa67a44b74ba6a64e3"
+  },
+  "previewNotes": {
+    "preview-front.png": "Orthographic from ahead (the model's front, Roblox -Z).",
+    "preview-side.png": "Orthographic from the left (port), Blender +X.",
+    "preview-top.png": "Orthographic from above, front at the top, the model's right (starboard) on the image's right.",
+    "preview-3q.png": "Perspective from ahead, the right (starboard), above.",
+    "preview-back.png": "Orthographic from behind.",
+    "preview-side-right.png": "Orthographic from the right (starboard).",
+    "preview-bottom.png": "Orthographic from below.",
+    "preview-3q-front-left.png": "Perspective from ahead, the left (port), above.",
+    "preview-3q-rear-right.png": "Perspective from behind, the right (starboard), above.",
+    "preview-3q-rear-left.png": "Perspective from behind, the left (port), above.",
+    "preview-front-low.png": "Perspective from ahead, below.",
+    "preview-front-high.png": "Perspective from ahead, above.",
+    "preview-3q-low-front-right.png": "Perspective from ahead, the right (starboard), below.",
+    "preview-closeup-front.png": "Close-up from ahead.",
+    "preview-closeup-foot.png": "Close-up from ahead, the left (port), above.",
+    "preview-closeup-back.png": "Close-up from behind."
+  },
+  "anchors": {
+    "Board": [
+      -0.0,
+      7.6,
+      -0.24
+    ]
+  },
+  "orientation": "Slate face at Roblox -Z; the marker tray is in front of it, the uprights and rear brackets behind it.",
+  "design": "Original rolling status board: a dark green slate in an aluminium frame with a marker tray and three thin strip ledges, on two dark uprights with wheeled feet and a crossbar.",
+  "sizeRationale": "Slate 5 x 3.2 x 0.25 studs centred 7.6 above the floor, the procedural board's envelope; anchors.Board is the slate centre (the procedural BOARD point, desk-relative (12.5, 7.6, 2.5)). The game keeps its name strips 0.15 in front of that point.",
+  "reviewStatus": "pending independent safety review (AGENTS.md); not uploaded; dormant RobloxAssetIds slot (undefined) with procedural fallback",
+  "contactSheet": "contact-sheet.png"
+}

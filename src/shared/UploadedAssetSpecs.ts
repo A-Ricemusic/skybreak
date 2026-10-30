@@ -4,7 +4,7 @@
 // attachments and hinges are in-game studs: authoredSize x gameScale, where aircraft are
 // fitted to the procedural aircraft's length and world props keep their authored size.
 
-export type UploadedAssetName = "Kestrel" | "Vanta" | "VantaVulture" | "VantaRusk" | "KestrelV2" | "VantaV2" | "VantaV2Vulture" | "VantaV2Rusk" | "HeavyBomber" | "Carrier" | "HeavyTransport" | "RadarJammer" | "FuelTanker" | "AttackHelicopter" | "VantaV2Elite" | "Frigate" | "OilPlatform" | "HarbourQuay" | "ContainerStack" | "GantryCrane" | "Hangar" | "ControlTower" | "OfficeMidrise" | "ApartmentBlock" | "CityTower" | "Farmhouse" | "Barn" | "GrainSilo" | "RadarDish" | "RelayMast" | "Pine" | "Broadleaf" | "RockA" | "RockB" | "RockC";
+export type UploadedAssetName = "Kestrel" | "Vanta" | "VantaVulture" | "VantaRusk" | "KestrelV2" | "VantaV2" | "VantaV2Vulture" | "VantaV2Rusk" | "HeavyBomber" | "Carrier" | "HeavyTransport" | "RadarJammer" | "FuelTanker" | "AttackHelicopter" | "VantaV2Elite" | "Frigate" | "OilPlatform" | "HarbourQuay" | "ContainerStack" | "GantryCrane" | "Hangar" | "ControlTower" | "OfficeMidrise" | "ApartmentBlock" | "CityTower" | "Farmhouse" | "Barn" | "GrainSilo" | "RadarDish" | "RelayMast" | "Pine" | "Broadleaf" | "RockA" | "RockB" | "RockC" | "CinematicRadioConsole" | "CinematicFieldRecorder" | "CinematicStatusBoard" | "CinematicTapeTin";
 
 export interface HingeSpec {
 	from: Vector3;
@@ -24,6 +24,8 @@ export interface UploadedAssetSpec {
 	rotors?: Record<string, { hub: Vector3; axis: Vector3 }>;
 	/** Parts the loader makes see-through (the v2 canopy over its cockpit). */
 	glassParts?: string[];
+	/** Named model-space points (from the bottom-centre pivot) for seating a prop, e.g. the cutscene desk props. */
+	anchors?: Record<string, Vector3>;
 }
 
 export const UploadedAssetSpecs: Record<UploadedAssetName, UploadedAssetSpec> = {
@@ -393,5 +395,48 @@ export const UploadedAssetSpecs: Record<UploadedAssetName, UploadedAssetSpec> = 
 		authoredSize: new Vector3(17.122, 20.682, 13.195),
 		gameScale: 1,
 		groundOffset: 2.5,
+	},
+	CinematicRadioConsole: {
+		folder: "cinematic-radio-console",
+		kind: "world",
+		size: new Vector3(7.34, 7.02, 3.541),
+		authoredSize: new Vector3(7.34, 7.02, 3.541),
+		gameScale: 1,
+		groundOffset: 0,
+		rotors: {
+			ReelL: { hub: new Vector3(-2.15, 4.17, 0.2695), axis: new Vector3(0, 1, 0) },
+			ReelR: { hub: new Vector3(2.15, 4.17, -0.1305), axis: new Vector3(0, 1, 0) },
+		},
+		anchors: { Body: new Vector3(-0, 2, -0.0305), FrequencyWindow: new Vector3(0.9, 2.75, -1.5655) },
+	},
+	CinematicFieldRecorder: {
+		folder: "cinematic-field-recorder",
+		kind: "world",
+		size: new Vector3(2.14, 1.11, 3.32),
+		authoredSize: new Vector3(2.14, 1.11, 3.32),
+		gameScale: 1,
+		groundOffset: 0,
+		anchors: { Centre: new Vector3(-0.01, 0.52, 0.1), Lamp: new Vector3(-0.61, 1.1, 1.2) },
+		controlSurfaces: {
+			Lid: { from: new Vector3(-0.64, 1.05, 0.725), to: new Vector3(0.66, 1.05, 0.725) },
+		},
+	},
+	CinematicStatusBoard: {
+		folder: "cinematic-status-board",
+		kind: "world",
+		size: new Vector3(5.24, 9.53, 2.44),
+		authoredSize: new Vector3(5.24, 9.53, 2.44),
+		gameScale: 1,
+		groundOffset: 0,
+		anchors: { Board: new Vector3(-0, 7.6, -0.24) },
+	},
+	CinematicTapeTin: {
+		folder: "cinematic-tape-tin",
+		kind: "world",
+		size: new Vector3(1.9, 1.705, 1.9),
+		authoredSize: new Vector3(1.9, 1.705, 1.9),
+		gameScale: 1,
+		groundOffset: 0,
+		anchors: { Centre: new Vector3(-0, 0.85, 0) },
 	},
 };

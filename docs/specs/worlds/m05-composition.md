@@ -14,7 +14,7 @@ LOD: 1,024-stud far tiles; whole tiles refine to128 around refinery and runway. 
 
 ## Terrain closure and placement
 
-M03-style eight-stud terrain caps, four-stud shared-edge curtains and a continuous rock floor from −4 to0. Perimeter curtains outside hard airspace meet the floor. Tests index all 65,536 finest-address columns and check every exposed step, coarse/fine join and perimeter; underside flight cannot reach the hollow interior from inside hard airspace. Terrain operations may exceed 2,048 studs and are chunked into ≤65,536-voxel native jobs; every rendered Part dimension is ≤2,048.
+M03-style eight-stud terrain caps and four-stud shared-edge curtains, without the continuous rock floor (D-120). Sea cells are water-only columns (D-121): opaque native water from Y=0 to the 32 surface with no rock under it, so each sea chunk is written once instead of twice. Aircraft collide with water (`crash_water`) and nothing below the opaque surface is seen, so the water caps the column; land cells keep eight-stud caps, and curtains between sea and land run from Y=0 to the land top. Every finest-address column is therefore capped at or above Y=0, and perimeter curtains outside hard airspace reach Y=0, so no path from hard airspace reaches the hollow interior. `m05Height`'s sea value 8 stays the nominal bed for keel clearance; below every keel there are now 16 studs of water and nothing solid. Tests check every column (water columns count as capped), exposed step, coarse/fine join and perimeter. Terrain operations may exceed 2,048 studs and are chunked into ≤65,536-voxel native jobs; every rendered Part dimension is ≤2,048.
 
 Target scenery is grouped in Models named by exact target id, with `TargetType` and `LayoutGroup`. Builders return `groundTargets: []`. Layout Y is base/waterline for ground/naval targets and the scenery reference pose for air contacts. Exported yaw follows CFrame convention. Mission data and adoption are separate work.
 
@@ -24,14 +24,25 @@ Target scenery is grouped in Models named by exact target id, with `TargetType` 
 
 | Measure | Planned | Cap |
 |---|---:|---:|
-| Voxel writes |460,238,336|480,000,000|
-| Terrain jobs |12,645|17,300|
+| Voxel writes |393,129,472|480,000,000|
+| Terrain jobs |8,861|17,300|
+| 128-stud chunk touches (41,760 water) |74,040|—|
 | Parts (including ship/helicopter stand-ins) |262|400|
 | Props |5|12|
 | Estimated descendants |638|1,100|
-| Estimated seconds |9.281|12|
+| Estimated seconds (Studio Play calibrated) |37.44|40 (regression guard; target 20)|
 
-Estimates use M01 measured 7.915 s /27,494 jobs, with M02's 2× reserve and one-second overhead: `2 * (jobs /27494 *7.915 +1)`. Hard estimate cap12 s leaves margin below20 s; M02's estimate10.5 s measured16 s. No Studio, Player, Roblox Jest or real-phone measurement was performed. Actual descendants are guarded at runtime; uploaded props reserve 24 descendants each even for single-mesh Pine, covering fallback Parts, wrappers, mesh/appearance descendants and future approved template changes. Four Parts per air/naval target plus 256 fixed descendants reserve target wrappers and template overhead; these are conservative allowances, not measured counts. Offline/Jest tests cover deterministic plans, counts, target ids, positions, supported non-overlapping industrial footprints, pavement clearance, dimensions, all shell seams, environmental metadata and budgets.
+Estimates use the Studio Play calibration in [the M04 composition](m04-composition.md#load-time-calibration-d-120) (D-120). **M05 does not yet meet the 20 s load target.** Measured in Studio Play before D-121, the floorless world at the 0.25 s loading budget took 37.0 s of terrain (14.0 s of Lua work, 55 yields at about 0.42 s each), down from 107.4 s with the floor and the 8 ms budget; a native clear afterwards took 11.2 s. D-121's water-only sea columns cut 41,760 cap touches and 2,760 jobs; the estimate falls from 42.8 to 37.4 s. That is not yet measured: Studio was signed out.
+
+Native sea water remains the cost: every loading frame costs about twice a land frame. Model what-ifs, all unmeasured (the model is calibrated only at 0.25 s):
+
+| Option | Estimate | Trade-off |
+|---|---:|---|
+| Same world, 0.5 s loading slices for M05 | 25.8 s | Server stalls up to about 0.9 s per slice while loading |
+| Same world, 1.0 s loading slices for M05 | 19.7 s | Stalls up to about 1.4 s; needs the loading screen shown before the build (`fix/loading-before-build`) |
+| Native water only near the action (refinery coast, rig, tankers, escape corridor), far sea as `Sea` Parts at Y=32 | 14.1 s | Uses the engine's existing `Sea` Part water (collision `crash_water`, `ActorPlacement.IsWater`), as the legacy worlds do; far sea would look flatter than native water and the seam needs a Studio look |
+
+Measure these in Studio before choosing; the campaign-path measurement is also pending (mission 5 data is on #148).
 
 ## Target layout
 

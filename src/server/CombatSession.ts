@@ -33,6 +33,10 @@ export interface Enemy {
 	scramble?: { spawn: import("../shared/MissionCatalog").FlightPoint; heading: number; startedAt: number };
 	friendly?: boolean;
 	combatTarget?: Enemy;
+	playerThreatUntil?: number;
+	targetSlot?: number;
+	/** Tail-only break grace through an overshoot extend and three seconds of recovery. */
+	tailBreakAfter?: number;
 	/** Target copied when the hostile windup begins; undefined during a windup means the player. */
 	windupTarget?: Enemy;
 	alliedAmmo?: number;
@@ -65,6 +69,8 @@ export interface Enemy {
 	withdrawUntil?: number;
 	/** Ground-avoidance: climbing away from scenery ahead until this elapsed time. */
 	pullUpUntil?: number;
+	/** Target-priority line-of-sight cache: session elapsed time of the last check and its result (TargetPriority.LosInterval). */
+	losAt?: number; losBlocked?: boolean;
 	warning?: BillboardGui;
 	groundIndex?: number;
 	hiddenParts: { part: BasePart; transparency: number }[];
@@ -102,10 +108,21 @@ export interface CombatSession {
 	artillery?: { phase: number; state: ArtilleryState };
 	/** Collateral mount removal satisfies groups but never earns score or kills. */
 	retiredGroundIds?: Set<string>;
+	launchId?: number;
 	rearmStartedAt?: number;
 	rearmEpoch?: number;
 	rearmElapsed?: number;
 	rearmLatched?: boolean;
+	/** Seconds the TAKEOFF / CHANGE WEAPON menu has waited, while it is open. */
+	rearmMenu?: number;
+	rearmAnswered?: boolean;
+	/** The rearm gate beacon of the active phase. */
+	rearmGate?: BasePart;
+	cutInElapsed?: number;
+	cutInStartedAt?: number;
+	cutInEpoch?: number;
+	/** Phase index whose cut-in has played (once per phase). */
+	cutInPlayed?: number;
 	landingSent?: boolean;
 	landingStartedAt?: number;
 	clearanceProbeAt?: number;
@@ -124,6 +141,8 @@ export interface CombatSession {
 	appliedBlueprintPhaseIndex?: number;
 	crashReason?: "crash_water" | "crash_terrain" | "internal_error";
 	collisionParams?: RaycastParams;
+	/** Last TGT press: a quick follow-up press continues from `cursor` instead of snapping back to the nose-best. */
+	cycle?: { target: Enemy; cursor: number; at: number };
 	health: number; kills: number; elapsed: number; missiles: number; missileCooldown: number;
 	/** Seconds left of the evade barrel roll. */
 	evadeRemaining: number; regen: number; lockProgress: number;

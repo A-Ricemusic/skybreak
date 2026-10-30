@@ -94,6 +94,8 @@ function phasePar(phase: MissionPhaseBlueprint, act: Act, aceHealth: number): nu
 		case "required_ground": return 5 + count * PAR_PER_GROUND;
 		case "ace": return PAR_ACE_BASE + aceHealth * PAR_ACE_PER_HEALTH;
 		case "chase": return 35;
+		// A score-threshold phase runs to its own clock (m05: strike until 10:00 expires).
+		case "score_threshold": return phase.scoreThreshold?.seconds ?? 0;
 		case "route": return points * PAR_PER_BEACON;
 		case "recon": return points * (seconds * 1.1 + 8);
 		case "escort": case "defend": return seconds * 1.05 + 8 + hazards;
