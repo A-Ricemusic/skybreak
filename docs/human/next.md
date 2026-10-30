@@ -2,6 +2,13 @@
 
 Last updated: 2026-10-29.
 
+## Mission 1 pressure tuning — proposed, unmerged
+
+- Owner feedback: wingmen absorbed too much attention and the bomber approach was too quiet. M01 alone opts into 80% player-priority targeting slots (revisited every eight seconds), close/tail/fire overrides, tail breaks/jinking through existing break steering and one defensive flare for raiders/escorts. Mission 2 keeps legacy targeting and defence.
+- Opening raiders increase four → six and arrive 10–25° either side of the nose, head-on, 2,600–3,200 studs ahead between carrier and bombers. Two escorts plus five admitted raiders fill the seven-fighter cap; remaining requests wait. The two aft raiders at T+120 and escort/ace at T+150 remain. No increase in simultaneous fighter budget.
+- Normal maximum 1,500 (six bombers 600 + three escorts 180 + ace 240 + eight raiders 480). Ranks S 1,320 / A 1,020 / B 600 / C 500; without ace Normal tops out at 1,260. Ace adds two raiders as before, maximum 1,620. Ally kills still earn nothing. The frozen EngineM01Snapshot and catalog fixture deliberately adopt these owner-requested data changes.
+- Test Easy/Normal/Ace: fly through or fight the forward screen, tail a raider, shoot at a wingman-focused enemy, observe breaks/flares and return attacks. Record actual missile launches at player versus allies; 80% is the targeting-slot policy, not a measured launch ratio. Confirm Easy bomber interception remains achievable, rear wave queues once at 120 s, ace keeps queue priority, bomber route/240 s escape and 10:00 countdown remain solid. Phone frame rate and human combat balance remain unmeasured.
+
 ## Mission 2 beta test — start here
 
 [Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). Mission 2 is live through the automatic pipeline and unlocks after you finish mission 1 on the same save. Agents have not performed a Roblox Player test.

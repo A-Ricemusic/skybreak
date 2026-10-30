@@ -1,7 +1,18 @@
-import type { MissionAllies } from "./MissionPolicy";
+import type { MissionAllies, MissionPressure } from "./MissionPolicy";
 
 /** Pure allegiance, credit and fire policy shared by simulation and offline specs. */
 export const AlliedRules = {
+	/** Stable staggered slots: 80% player focus without random per-frame target flicker.
+	 * Nearby/tailing players and incoming player fire override the ally slot. */
+	PrioritisesPlayer(policy: MissionPressure | undefined, serial: number, elapsed: number, distance: number, tailDot: number, threatened: boolean): boolean {
+		if (!policy) return false;
+		return distance < 700 || (distance < 1500 && tailDot < -0.6) || threatened
+			|| ((serial + math.floor(elapsed / 8)) % 5) / 5 < policy.playerPriority;
+	},
+	ApproachDegrees(policy: MissionPressure | undefined, role: string, behind: boolean, roll: number): number {
+		return behind ? 150 + roll * 20 : policy && role === "raider" ? 10 + roll * (policy.forwardConeDegrees - 10) : 60 + roll * 15;
+	},
+	TailThreat(distance: number, tailDot: number): boolean { return distance < 1500 && tailDot < -0.6; },
 	/** Acquire a wingman only with a clear distance advantage; retain it until the player is closer. */
 	HostileTargetsWingman(kind: string, role: string | undefined, playerDistance: number, wingmanDistance: number, retaining: boolean): boolean {
 		if (kind === "ace" || role === "courier") return false;

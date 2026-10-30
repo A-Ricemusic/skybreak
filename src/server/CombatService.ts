@@ -617,7 +617,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		// into the merge, and nothing is lockable on the first frame. Reinforcements come from the rear quarter.
 		const side = sides[index];
 		const [near, far] = options.behind ? SPAWN_BEHIND : SPAWN_FRONT;
-		const angle = math.rad(options.behind ? 150 + math.random() * 20 : 60 + math.random() * 15);
+		const angle = math.rad(AlliedRules.ApproachDegrees(session.blueprint?.pressure, role, options.behind === true, math.random()));
 		const distance = near + math.random() * (far - near);
 		const offset = forward.mul(math.cos(angle) * distance).add(right.mul(math.sin(angle) * side * distance));
 		const spawn = positionFor(session.state).add(offset);
@@ -667,7 +667,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 			: Difficulty.SupportHealth(session.difficulty, baseHealth));
 		// Bandits and couriers break close locks; the opening sorties stay gentle unless the level says every bandit breaks.
 		const lockBreakChance = role === "ace" ? 0 : behaviour.banditsAlwaysBreak ? 1 : gentle(session) ? 0 : math.clamp(tuned(session, TUNING.lockBreakChance), 0, 1);
-		const flares = role === "ace" ? TUNING.aceFlares[act - 1] : role === "bandit" ? math.max(TUNING.banditFlares[act - 1], behaviour.banditFlares) : 0;
+		const flares = session.blueprint?.pressure?.tailDefence && (role === "raider" || role === "escort") ? 1 : role === "ace" ? TUNING.aceFlares[act - 1] : role === "bandit" ? math.max(TUNING.banditFlares[act - 1], behaviour.banditFlares) : 0;
 		let serial: number;
 		if (friendly) { session.allySerial += 1; serial = session.allySerial; }
 		else { session.spawnSerial += 1; serial = session.spawnSerial; }
@@ -679,7 +679,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 			friendly: options.friendly, alliedAmmo: options.friendly ? AlliedRules.MissilesPerWingman : undefined,
 			id: `${friendly ? "ally" : "air"}_${serial}_${missionSerial}`, name, model, health, maxHealth: health,
 			position, direction, velocity: direction.mul(300), kind: role === "ace" ? "ace" : "air", required: options.optional !== true && role !== "raider" && role !== "escort", enabled: true,
-			fireTimer: role === "courier" ? math.huge : 4 + index * 1.5, windup: 0, mode: "attack", modeTimer: 0, passDirection: direction, side,
+			targetSlot: serial, fireTimer: role === "courier" ? math.huge : 4 + index * 1.5, windup: 0, mode: "attack", modeTimer: 0, passDirection: direction, side,
 			flares, flareTimer: 0, flareUntil: 0, speedBonus: 0, lockBreakTimer: TUNING.aceLockBreak[act - 1],
 			breakTimer: 0, breakUntil: 0, lockBreakChance, role, bomberSlot: options.bomberSlot, escortSlot: options.escortSlot,
 			aceState: role === "ace" ? AceRules.New() : undefined, escape: options.escape,
@@ -782,6 +782,7 @@ function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy, 
 		position = positionFor(session.state).add(directionFor(session.state).mul(16)).sub(new Vector3(0, 2, 0));
 		direction = directionFor(session.state);
 		target = decision.kind === "guided" ? session.target : undefined;
+		if (target && session.blueprint?.pressure) target.playerThreatUntil = session.elapsed + 8;
 		session.missiles -= 1;
 		session.missilesFired += 1;
 		session.missileCooldown = 1.15;
@@ -800,6 +801,7 @@ function launchSpecialMissile(session: CombatSession, enemy: Enemy, lateral: num
 	const position = positionFor(session.state).add(forward.mul(14)).add(right.mul(lateral)).sub(new Vector3(0, 2.5, 0));
 	const direction = unitOr(forward.add(right.mul(lateral * 0.03)), forward);
 	const kind = session.special.kind;
+	if (session.blueprint?.pressure) enemy.playerThreatUntil = session.elapsed + 8;
 	// Special launches count toward accuracy the same as standard ones; their hits already do.
 	session.missilesFired += 1;
 	session.projectiles.push({
@@ -1053,7 +1055,13 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		}
 		// Route actors are stepped only by PhaseDirector and never enter fighter/fire logic.
 		if ((enemy.role === BomberRules.Role.role && (!enemy.routeActor || enemy.routeActor.jammer)) || (enemy.escortSlot !== undefined && !enemy.escortEngaged)) continue;
-		enemy.combatTarget = nearestWingman(session, enemy);
+		const toPlayer = positionFor(session.state).sub(enemy.position);
+		const tailDot = enemy.direction.Dot(unitOr(toPlayer, enemy.direction));
+		const pressure = session.blueprint?.pressure;
+		const threatened = pressure !== undefined && ((enemy.playerThreatUntil ?? 0) > session.elapsed || session.target === enemy && session.lockProgress > 0.3
+			|| ThreatRules.Inbound(enemy, session.projectiles, missile => missile.allied ? undefined : missile.target, missile => missile.position.sub(enemy.position).Magnitude));
+		const focusPlayer = AlliedRules.PrioritisesPlayer(pressure, enemy.targetSlot ?? index, session.elapsed, toPlayer.Magnitude, tailDot, threatened);
+		enemy.combatTarget = focusPlayer ? undefined : nearestWingman(session, enemy);
 		const playerPosition = enemy.combatTarget?.position ?? positionFor(session.state);
 		const playerVelocity = enemy.combatTarget?.velocity ?? directionFor(session.state).mul(session.state.speed);
 		const ace = enemy.kind === "ace";
@@ -1080,8 +1088,9 @@ function stepEnemies(session: CombatSession, dt: number): void {
 				lockProgress: session.lockProgress, distance: separation, cooldownRemaining: 0, extending: false, roll: 0, chance: 1,
 			});
 			const inbound = !lockClose && ThreatRules.Inbound(enemy, session.projectiles, (missile) => missile.target, (missile) => missile.position.sub(enemy.position).Magnitude);
-			if (lockClose || inbound) {
-				if (math.random() < (lockClose ? enemy.lockBreakChance : breakChance)) {
+			const tailing = pressure?.tailDefence === true && AlliedRules.TailThreat(toPlayer.Magnitude, tailDot);
+			if (lockClose || inbound || tailing) {
+				if (tailing || (pressure?.tailDefence && threatened) || math.random() < (lockClose ? enemy.lockBreakChance : breakChance)) {
 					enemy.mode = "extend"; enemy.modeTimer = breakSeconds;
 					enemy.breakTimer = ThreatRules.BreakCooldown; enemy.breakUntil = session.elapsed + breakSeconds;
 					const pass = ThreatRules.BreakDirection(point(enemy.direction), point(lateral), enemy.side);
@@ -1209,7 +1218,7 @@ function segmentDistance(target: Vector3, startPosition: Vector3, endPosition: V
  */
 function strikeEnemy(session: CombatSession, enemy: Enemy, index: number): boolean {
 	const allied = session.projectiles[index].allied === true;
-	if (!allied) session.missileHits += 1;
+	if (!allied) { session.missileHits += 1; enemy.playerThreatUntil = session.elapsed + 8; }
 	// Staged ace: the hit bursts harmlessly while it breaks away.
 	if (enemy.aceState && AceRules.Invulnerable(enemy.aceState, session.elapsed)) return true;
 	let damage = session.projectiles[index].damage > 0 ? session.projectiles[index].damage : PLAYER_MISSILE_DAMAGE;
