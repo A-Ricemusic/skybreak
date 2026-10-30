@@ -23,10 +23,10 @@ Missions 3–5 are in review: [#147](https://github.com/A-Ricemusic/skybreak/pul
 | 7 | Deep Strike | 1:22:13–1:35:49 | 13.6 min | Yes | — | — | — | — |
 | 8 | Shattered Skies | 1:39:16–1:52:39 | 13.4 min | Yes | — | — | — | — |
 | 9 | Operation Bunker Shot | 1:56:14–2:14:14 | 18.0 min | Yes | — | — | — | — |
-| 10 | Tango Line | 2:16:13–2:37:51 | 21.6 min | Yes | — | — | — | — |
-| 11 | Escort | 2:39:46–2:45:27 | 5.7 min | Yes | — | — | — | — |
-| 12 | Stonehenge Offensive | 2:48:27–3:04:55 | 16.5 min | Yes | — | — | — | — |
-| 13 | Safe Return | 3:08:30–3:18:42 | 10.2 min | Yes | — | — | — | — |
+| 10 | Tango Line | 2:16:13–2:37:51 | 21.6 min | Yes | Written / in review ([#153](https://github.com/A-Ricemusic/skybreak/pull/153); [mission](../specs/missions/m10.md), [world](../specs/worlds/m10.md)) | Unbuilt / unavailable | No | — |
+| 11 | Escort | 2:39:46–2:45:27 | 5.7 min | Yes | Written / in review ([#153](https://github.com/A-Ricemusic/skybreak/pull/153); [mission](../specs/missions/m11.md), [world](../specs/worlds/m11.md)) | Unbuilt / unavailable | No | — |
+| 12 | Stonehenge Offensive | 2:48:27–3:04:55 | 16.5 min | Yes | Written / in review ([#153](https://github.com/A-Ricemusic/skybreak/pull/153); [mission](../specs/missions/m12.md), [world](../specs/worlds/m12.md)) | Unbuilt / unavailable | No | — |
+| 13 | Safe Return | 3:08:30–3:18:42 | 10.2 min | Yes | Written / in review ([#153](https://github.com/A-Ricemusic/skybreak/pull/153); [mission](../specs/missions/m13.md), [world](../specs/worlds/m13.md)) | Unbuilt / unavailable | No | — |
 | 14 | Breaking Arrows | 3:20:22–3:28:38 | 8.3 min | Yes | — | — | — | — |
 | 15 | Emancipation | 3:32:45–3:47:38 | 14.9 min | Yes | — | — | — | — |
 | 16 | Whiskey Corridor | 3:50:50–4:12:27 | 21.6 min | Yes | — | — | — | — |
