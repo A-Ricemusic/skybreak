@@ -15,6 +15,9 @@ export const M04World = {
  }, M04_BUILD_LIMITS.descendants, 5500),
  /** One cancellable clear for normal exit and partial construction, owned by the shared world gate. */
  Clear: (cancelled: () => boolean) => {
+  // The sealed-shell plan contains only block fills. Replaying them as Air removes their exact volume;
+  // bump operations use occupancy blending and cannot be undone this way.
+  assert(terrainOps.every(op=>op.shape==="block"), "M04 clear requires block-only terrain operations");
   const timing=TerrainWriter.Write(terrainOps.map(op=>({...op,material:"Air" as const})),0.008,WORLD_FILL_CHUNK,cancelled);
   if (!cancelled()) { terrainOps=[]; markTerrainClean(); }
   return timing;

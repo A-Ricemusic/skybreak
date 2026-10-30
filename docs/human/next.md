@@ -35,7 +35,7 @@ Mission 3 merged as `7d73c44` (#147) and is live by pipeline; it unlocks after m
 See [per-level status](levels.html). Mission 3 #147 is merged; mission 4 [#149](https://github.com/A-Ricemusic/skybreak/pull/149) and mission 5 [#148](https://github.com/A-Ricemusic/skybreak/pull/148) remain open.
 
 1. Orchestrator: re-check M04 normal completion, construction failure/player leave and immediate queued relaunch through #147's shared gate. This revision did not launch Studio.
-2. Confirm the D-096 transport escape at 6:48.33 (57,166.079 studs at 140 studs/s); offline tests enforce 6:30–7:00 and sample all transport positions inside soft airspace. Assess combat pace in beta.
+2. Confirm the D-096 transport escape at 6:48.33 (57,166.079 studs at 140 studs/s); offline tests enforce 6:30–7:00 and sample all transport positions inside soft airspace. The exit heads west back inside the world; the owner should judge this inland turn in beta. Jammers now follow the same hook at 110 studs/s and remain present through transport escape; re-check radar and point availability.
 3. Finish `perf/m04-m05-terrain` for roughly 45–46 s loading and cleanup delays; preserve the single `M04World.Clear(cancelled)` interface. No terrain generation was rewritten here. Then measure Studio and real-phone performance.
 4. Re-check M05 lighting and M03 terrain/LOD presentation. Earlier linked Studio evidence does not verify these M04 changes; no Player test is claimed.
 

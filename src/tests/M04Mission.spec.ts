@@ -63,6 +63,17 @@ describe("Mission 4 jammed transport intercept",()=>{
    expect(math.abs(slot.position.x) < M04.half && math.abs(slot.position.z) < M04.half).toBe(true);
   }
  });
+ it("keeps both jammers and their points available throughout the transport route",()=>{
+  const transport=compileBomberEncounter(b),jammers=waves.filter(w=>w.aircraft==="jammer");
+  expect(jammers.size()).toBe(2);
+  for(const jammer of jammers) {
+   const spec=jammer.route!,route=BomberRules.Create(spec.waypoints,spec.speed,[{x:0,y:0,z:0}]);
+   expect(route.duration >= transport.duration).toBe(true);
+   expect(BomberRules.Sample(route,transport.duration).escaped).toBe(false);
+   expect(spec.waypoints.filter((_,i)=>i>0)).toEqual(M04.route.filter((_,i)=>i>0).map(([x,z])=>({x,y:jammer.spawn!.y,z})));
+   print(`M04_JAMMER ${jammer.id} duration=${route.duration}`);
+  }
+ });
  it("fails escape, death and the exact deadline",()=>{
   const escape=Runner.NewState(bp,0);Runner.EscapeBombers(escape);expect(escape.outcome).toBe("failed");
   const timeout=Runner.NewState(bp,0);Runner.Tick(timeout,720);expect(timeout.reason).toBe("timeout");

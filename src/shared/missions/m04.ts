@@ -6,7 +6,7 @@ import { M04_AIRSPACE } from "../M04Limits";
 const layout = m04TargetLayout();
 const transports = layout.filter(t => t.type === "transport");
 const origin = transports[0];
-// Keep the measured 140-stud/s closing feel; NE, east, then SE toward the off-map harbour.
+// Keep the measured 140-stud/s closing feel: NE/east/SE, then south and west to an inland exit (D-096).
 const route = [{ x: origin.x, y: origin.y, z: origin.z }, ...M04.route.filter((_, i) => i > 0).map(([x,z]) => ({x,y:1202,z}))];
 const dx=route[1].x-origin.x, dz=route[1].z-origin.z, length=math.sqrt(dx*dx+dz*dz);
 const fx=dx/length, fz=dz/length;
@@ -16,7 +16,7 @@ const waves: FighterArrival[] = layout.filter(t => t.type === "escort" || t.type
  spawn: {x:t.x,y:t.y,z:t.z}, headingDegrees:45,
  livery: t.type !== "escort" ? undefined : ["m04_escort_3","m04_escort_7"].includes(t.id) ? "Vulture" : ["m04_escort_4","m04_escort_5","m04_escort_8","m04_escort_9"].includes(t.id) ? "Elite" : undefined,
  aircraft: t.type === "jammer" ? "jammer" : undefined,
- route: t.type === "jammer" ? {speed:110,waypoints:[{x:t.x,y:t.y,z:t.z},{x:-3000,y:t.y,z:2000},{x:2000,y:t.y,z:-10000},{x:11000,y:t.y,z:-11000},{x:13500,y:t.y,z:2000}]} : undefined,
+ route: t.type === "jammer" ? {speed:110,waypoints:[{x:t.x,y:t.y,z:t.z},...M04.route.filter((_,i)=>i>0).map(([x,z])=>({x,y:t.y,z}))]} : undefined,
  call: t.id === "m04_escort_6" ? "COURIER GUARD: They found us. Send the reserve flight!" : undefined,
 }));
 const ace = layout.find(t => t.type === "ace")!;
