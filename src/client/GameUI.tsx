@@ -26,7 +26,7 @@ import { FlightController } from "./FlightController";
 import { CameraShake } from "./CameraShake";
 import type { KillFlash } from "./KillMarker";
 import { ImpactFeedback } from "../shared/ImpactFeedback";
-import { LaunchLoading, type LaunchPhase } from "../shared/LaunchLoading";
+import { LAUNCH_REQUEST_TIMEOUT, LaunchLoading, type LaunchPhase } from "../shared/LaunchLoading";
 import { LoadingScreen } from "./LoadingScreen";
 import { preloadMission } from "./MissionPreload";
 import { getMenuHintsLayout, getMenuLayout, getToastLayout, inputModeFromInputType, JOYSTICK_SIZE, type HudOptions, shouldAcceptInputModeChange, type ControlHint, type InputMode, type Rectangle } from "../shared/UILayout";
@@ -276,7 +276,17 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		});
 	}, [applyResponseSlots, beginRequest, invoke, showToast]);
 	const launchMission = useCallback(() => {
-		if (busyRef.current || !mountedRef.current || !launchLoading.Begin()) return;
+		if (busyRef.current || !mountedRef.current || !launchLoading.Begin(os.clock())) return;
+		const generation = launchLoading.Generation();
+		task.delay(LAUNCH_REQUEST_TIMEOUT, () => {
+			if (!mountedRef.current || !launchLoading.Watchdog(generation, os.clock())) return;
+			loadingSerialRef.current++;
+			cancelRequests();
+			changeScreen(launchLoading.Screen());
+			showToast("World preparation timed out. Request another launch.", true);
+			// Bypasses the server foreground request lock; cancellation retains world ownership until the old build stops.
+			task.spawn(() => invoke("CancelLaunch", { launchId: generation }));
+		});
 		// Cover the world before the yielding RPC can destroy the menu or write terrain.
 		setLaunchPhase(launchLoading.Phase());
 		setBuildFolder(undefined);
@@ -284,8 +294,8 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		toastRef.current++; setToast(undefined);
 		changeScreen(launchLoading.Screen());
 		beginRequest((requestId) => {
-			const [response, problem] = invoke("StartMission", { slot: selectedSlot, missionId: selectedMission, special: selectedSpecialRef.current, difficulty: selectedDifficultyRef.current });
-			if (!mountedRef.current || requestRef.current !== requestId) return;
+			const [response, problem] = invoke("StartMission", { launchId: generation, slot: selectedSlot, missionId: selectedMission, special: selectedSpecialRef.current, difficulty: selectedDifficultyRef.current });
+			if (!mountedRef.current || requestRef.current !== requestId || !launchLoading.Current(generation)) return;
 			if (!response) {
 				launchLoading.Fail();
 				loadingSerialRef.current++;
@@ -293,7 +303,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				showToast(problem ?? "Command rejected the request.", true);
 			} else if (response.slots) applyResponseSlots(response);
 		});
-	}, [applyResponseSlots, beginRequest, changeScreen, invoke, launchLoading, selectedMission, selectedSlot, showToast]);
+	}, [applyResponseSlots, beginRequest, cancelRequests, changeScreen, invoke, launchLoading, selectedMission, selectedSlot, showToast]);
 	const startMission=useCallback(()=>{
 		if(busyRef.current || launchLoading.Pending() || !canLaunchMission(selectedMissionRef.current, slots?.[selectedSlotRef.current-1]))return;
 		const chapter=math.max(0,selectedMissionRef.current-1);
@@ -568,6 +578,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		const onMissionState = (raw: unknown, held = false): void => {
 			if (!mountedRef.current || !typeIs(raw, "table")) return;
 			const payload = raw as MissionMessage;
+			if ((payload.kind === "Queued" || payload.kind === "Building" || payload.kind === "Loading" || payload.kind === "Started") && !launchLoading.Current(payload.launchId)) return;
 			if (payload.kind === "Queued") {
 				launchLoading.Queued();
 				setLaunchPhase(launchLoading.Phase());
