@@ -1,3 +1,5 @@
+import { D12Identities } from "../shared/EngineBatchD12";
+import { clearLeader, stepLeader } from "./EngineBatchD12Runtime";
 import { dampedSteer, pursuitDestination, guidedDirection } from "../shared/EncounterKinematics";
 
 import { clearCruise, cruiseKilled, stepCruise } from "./EngineBatchD10Runtime";
@@ -558,6 +560,7 @@ function cleanupSession(session: CombatSession, restore = true): void {
 		if (session.characterRoot?.Parent) session.characterRoot.Anchored = session.wasAnchored ?? false;
 		if (session.player.Parent === Players) session.player.ReplicationFocus = session.previousReplicationFocus;
 	}
+	clearLeader(session);
 	clearCruise(session);
 	clearAirships(session);
 	clearProtection(session);
@@ -725,7 +728,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		else if (role === "courier") name = session.missionId === 24 ? "FUEL TANKER" : "COURIER";
 		else if (role === "bandit") { session.banditSerial += 1; name = string.format("BANDIT %02d", session.banditSerial); }
 		else { session.raiderSerial += 1; name = string.format("RAIDER %02d", session.raiderSerial); }
-		const eliteFit=role === "bandit" && session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.eliteFormation!==undefined;
+		const eliteFit=role === "bandit" && session.blueprintState && (BlueprintRunner.ActivePhase(session.blueprintState)?.eliteFormation!==undefined || BlueprintRunner.ActivePhase(session.blueprintState)?.leaderWithdrawal!==undefined);
 		if(eliteFit) name=`ELITE ${index+1}`;
 		const model = role === BomberRules.Role.role ? BomberFactory.Create(name, options.arrival && "aircraft" in options.arrival ? options.arrival.aircraft : session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.aircraft) : JetFactory.Create(name, options.friendly !== true, options.livery ?? (eliteFit ? "Elite" : role === "ace" ? AssetSelection.LiveryForAce(options.name, session.blueprint?.aceName) : undefined));
 		if (!session.active || session.folder.Parent === undefined) { model.Destroy(); return; }
@@ -798,7 +801,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 			groundAttack: options.arrival && "behaviour" in options.arrival && options.arrival.behaviour === "ground_attack",
 			scramble: options.arrival && "scramble" in options.arrival && options.arrival.scramble ? { spawn: { x:position.X,y:position.Y,z:position.Z }, heading: options.arrival.headingDegrees ?? 0, startedAt:session.elapsed } : undefined,
 			friendly: options.friendly, alliedAmmo: options.friendly ? AlliedRules.MissilesPerWingman : undefined,
-			id: handoffId ?? options.targetId ?? `${friendly ? "ally" : "air"}_${serial}_${missionSerial}`, name, model, health, maxHealth: health,
+			id: handoffId ?? options.targetId ?? (role === "bandit" && session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.leaderWithdrawal ? D12Identities.wingmen[index] : undefined) ?? `${friendly ? "ally" : "air"}_${serial}_${missionSerial}`, name, model, health, maxHealth: health,
 			position, direction, velocity: direction.mul(300), kind: role === "ace" ? "ace" : "air", required: (options.arrival !== undefined && "required" in options.arrival && options.arrival.required === true) || (options.optional !== true && role !== "raider" && role !== "escort"), enabled: true,
 			targetSlot: serial, fireTimer: role === "courier" ? math.huge : 4 + index * 1.5, windup: 0, mode: "attack", modeTimer: 0, passDirection: direction, side,
 			flares, flareTimer: 0, flareUntil: 0, speedBonus: 0, lockBreakTimer: TUNING.aceLockBreak[act - 1],
@@ -1679,6 +1682,7 @@ function stepSession(session: CombatSession, dt: number): void {
 		}
 	}
 	session.inputSteps += 1;
+	stepLeader(session,dt,line=>radio(session,line,4));
 	stepCruise(session,dt);
 	if(session.crashReason || session.blueprintState?.outcome!==undefined) {finish(session);return;}
 	stepAirships(session);

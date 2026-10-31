@@ -15,13 +15,13 @@ export interface GroundProgressPlan { sectors: GroundSector[] }
 export interface SectorState { elapsed: number; health: number; started: boolean; secured: boolean; warned: boolean }
 export function newGroundProgress(p: GroundProgressPlan): SectorState[] { return p.sectors.map(s=>({elapsed:0,health:s.health,started:false,secured:false,warned:false})); }
 /** No allied offensive damage/kill path: the existing sortie-wide ally budget remains authoritative. */
-export function stepGroundProgress(p: GroundProgressPlan, states: SectorState[], destroyed: Set<string>, dt: number): string[] {
+export function stepGroundProgress(p: GroundProgressPlan, states: SectorState[], destroyed: Set<string>, dt: number, closed?: Set<string>): string[] {
  const lines: string[]=[];
  if(!finiteNumber(dt) || dt<=0) return lines;
  const secured=new Set<string>(); for(let i=0;i<states.size();i++) if(states[i].secured) secured.add(p.sectors[i].id);
  for(let i=0;i<p.sectors.size();i++) {
   const s=p.sectors[i], state=states[i];
-  if(state.health<=0 || state.secured || (s.after!==undefined && !secured.has(s.after)) || !s.clearTargetIds.every(id=>destroyed.has(id))) continue;
+  if(closed?.has(s.id) || state.health<=0 || state.secured || (s.after!==undefined && !secured.has(s.after)) || !s.clearTargetIds.every(id=>destroyed.has(id))) continue;
   if(!state.started) { state.started=true; lines.push(s.advanceCall); }
   state.elapsed=math.min(s.seconds,state.elapsed+dt);
   if(state.elapsed>=s.seconds) { state.secured=true; lines.push(s.securedCall); }

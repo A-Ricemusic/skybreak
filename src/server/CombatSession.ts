@@ -116,6 +116,7 @@ export interface CombatSession {
 	cruise?: CruiseRuntime;
  airshipPhase?: number;
 	ringArtillery?: { phase: number; state: ArtilleryState };
+	leaderWithdrawal?: import("./EngineBatchD12Runtime").LeaderRuntime;
 	protectedFlight?: {phase: number; actors: import("./EngineBatchD7Runtime").ProtectedActor[]};
 	contactClock?: number;
 	repeatedArtillery?: {phase:number;state:import("../shared/EngineBatchD6").ScheduledArtillery};

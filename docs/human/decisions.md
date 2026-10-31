@@ -440,6 +440,21 @@ The model bypasses PhaseDirector/CombatService call sites, instances and frame o
 | D-484 | Reject all cruise-phase twists; share one sortie-wide identity validator across D10 and campaign encounters, including bomber target IDs and cruise IDs. | M14 spec needs no twist. A halfway twist could clear surviving threats, and reused bomber identities could reject later cruise credit. Separate phase ordering checks would leave asymmetric gaps. | D10 review-fix implementation sub-agent, 2026-10-30 | Implemented in PR #190; dormant and unmerged |
 | D-485 | Extend D10’s shared authored identity namespace to D7 protected aircraft and D9 spatial airships across all phase orders. D8 elite actors retain generated runtime IDs and the existing one-loss retreat path. | Per-batch checks cannot catch cross-batch collisions; inventing authored elite IDs would change an unrelated dormant contract. | D10 main-integration implementation sub-agent, 2026-10-30 | Implemented in PR #190; dormant and unmerged |
 
+## D-520 — Rusk excluded from TGT in dormant D12 (accepted implementation, 2026-10-30)
+Decision maker: D12 implementation agent within the owner's F25 scope. Rusk is a labelled, nonquery procedural command aircraft outside Enemy/damage registries. Alternative: lockable aircraft with a 25% health floor (m17 proposal). Exclusion avoids spending ammunition on an invulnerable target and preserves the story's M18 duel. Four required wingman kills start departure; no early withdrawal, fifth kill or leader points. No mission opts in.
+
+## D-521 — Departure is required phase completion (accepted implementation, 2026-10-30)
+Decision maker: D12 implementation agent. Existing required-player kills and once-only ledger advance to four, then await a bounded server-owned route departure. Sortie/folder departure flag persists; D8 ejection flag is separate. Alternative: instant success on the fourth kill, rejected because departure must occur. Pause/service/cut-in freeze the actor; phase/session teardown destroys it. Authored clock includes departure reserve; missing the clock remains normal timeout failure.
+
+## D-522 — Bridge destruction closes explicit routes (accepted implementation, 2026-10-30)
+Decision maker: D12 implementation agent. Same-phase military bridge targets close named D5 sector/D2 hull routes at their current pose; unrelated routes are preserved. Alternative: automatic pathfinding/detours, rejected without authored navigation geometry/evidence. Authors must keep the loyalist/witness crossing distinct from the destructible enemy crossing and must not make an indispensable route depend on a closed crossing. Closure adds no score or sector-secured events. Existing D2 hull/mount ownership, naval turret firing and collateral retirement are reused unchanged.
+
+## D-523 — M17 repair waits for D11 integration (accepted implementation, 2026-10-30)
+Decision maker: D12 implementation agent, following owner direction. Do not depend on unmerged #192 or duplicate its allowlist. M17 activation must reuse D11 `rearm.health` after merge (M15–M17 only); main's damage-preserving service remains unchanged here. Alternative: ship a parallel repair path, rejected to avoid conflicting ownership. D12 is dormant; no Studio, audio or asset upload authorized/performed.
+
+## D-524 — D12 shares the sortie identity namespace (accepted implementation, 2026-10-30)
+Decision maker: D12 main-integration implementation agent under owner direction. Reserve `d12_rusk` and `d12_wingman_1` through `d12_wingman_4` in the shared encounter validator when withdrawal is authored. Runtime wingmen use those exact identities; Rusk remains outside damage and score registries. Bridge sections and turrets use the existing ground-target identity claims. Alternatives: generated wingman ids or a separate D12 validator; rejected because they cannot detect cross-batch collisions symmetrically. Both phase orders are covered by offline regressions. Withdrawal rejects cruise, spatial-airship and protected-flight co-ownership; D8 lifecycle remains separate and unchanged.
+
 ## Engine batch D11 decisions (2026-10-30)
 
 | ID | Choice | Alternatives and rationale | Decision maker | Status |

@@ -141,6 +141,14 @@ D9 integration validation (2026-10-30, main `06ca3e4`): `bun install --frozen-lo
 
 PR #190 remains dormant and unmerged. Main D6–D9 and missions 8–9 are preserved; practice, mission catalog and frozen snapshots are unchanged. Cruise twists remain rejected. The shared sortie identity namespace now also includes protected aircraft and spatial airships; elites use generated runtime identities, with the existing elite retreat lifecycle preserved. M14 activation still needs authored routes/roster/scoring and Studio/Player/phone acceptance. No Studio, Player test or upload was performed. Integration validation passed: frozen install, build and full offline validation each exited 0; runtime Jest compiled only. Main was `f35430f`; mission 10 had not merged.
 
+## D12 main integration (2026-10-30)
+
+PR #193 is rebased by merge onto main `0450491` (D9, D10 and missions 9–10 included); D11 #192 is excluded. D12 remains dormant and M17 locked. Practice and missions 1–10 retain main's catalog and frozen snapshots. D12 keeps protected Rusk/four required wingmen, bridge-linked closures and the reviewed hull/mount velocity fix. D7–D10 radar, protected-target warning suppression, D8 retreat and D4/D6 admission budgets including `concurrentRoutes` remain composed. No Studio, Roblox Jest or Player test was performed.
+
+No owner action is needed for this integration. Runtime Jest execution, Studio/Player appearance, departure pacing and phone acceptance remain unverified. D11 repair must merge before M17 activation; this branch retains main's health-repair prohibition.
+
+D12 integration validation: frozen install, standalone build and the full prescribed offline command each exited 0 (1,069 Luau contracts, 19 unchanged catalog snapshots, four loader guard probes, 124 Python tests). Runtime Jest compiled only; no Studio, `test:roblox` or Player run.
+
 ## Dormant D11 acceptance
 
 D11 implementation adds no activation blocker requiring owner input. No catalog mission opts in; dormant M15/M16 worlds are unchanged. Studio/Roblox runtime Jest execution, Player/phone profiling, rendered city/column/armour review, final bomber routes/site adoption and mission balance remain unperformed acceptance work. M15 uses D4's single protected city-site cluster, not independently healthy districts; this scope assumption is recorded in D-502. Service repair follows provisional owner decision D-156 and can be revisited after playtests. No new audio/assets/uploads; no deployment claim for this unmerged branch.
