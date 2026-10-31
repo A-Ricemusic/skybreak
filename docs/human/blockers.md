@@ -1,17 +1,17 @@
 # Blockers
 
-Updated 2026-10-30 against main `9857358`. Publish succeeded per CI; no known deployment failure is recorded. Live status follows the owner's pipeline convention and does not establish observed Player quality. This reconciliation performs offline checks only.
+Updated 2026-10-30 against main `199e7ee`. Publish succeeded per CI; no known deployment failure is recorded. Live status follows the owner's pipeline convention and does not establish observed Player quality. This reconciliation performs offline checks only.
 
 ## Resolved dependencies
 
-- M04 #149, M05 #148, terrain performance #158, story #159 and cutscenes #152 are merged. Practice/M01–M06 are live after #179 merges; their old review/unlock dependencies are resolved.
+- M04 #149, M05 #148, terrain performance #158, story #159 and cutscenes #152 are merged. Practice/M01–M07 are live after #178 merges; their old review/unlock dependencies are resolved.
 - #172 targeting, #173 loading and #174 difficulty/allied budget are merged/live. Human balance, phone and rendered acceptance remain open.
-- Worlds 6–13 (#175, combining #164/#166/#167/#170) and 14–18 (#176) are built, merged and dormant. No stack rebase remains for those world PRs. #176 fixes M05–M13 weather lookup and all 18 environment registrations, M17 metadata and M18 foundations.
-- D1 #165, D2 #168 and D3 #171 are merged; #179 activates D1/D2 support for mission 6, while D3 remains dormant. Their former stack dependencies are resolved; engine merge alone does not activate missions 7–18. D4 #177 and mission 7 #178 remain open; mission 6 #179 is Live after merge; D5 #180 and D6 #182 remain open.
+- Worlds 6–13 (#175, combining #164/#166/#167/#170) and 14–18 (#176) are built and merged; M06/M07 activate their worlds, with M08–M18 dormant. No stack rebase remains for those world PRs. #176 fixes M05–M13 weather lookup and all 18 environment registrations, M17 metadata and M18 foundations.
+- D1 #165, D2 #168 and D3 #171 are merged; #179 activates D1/D2 support for mission 6, while #178 activates D3 for mission 7. Their former stack dependencies are resolved; engine merge alone does not activate missions 7–18. D4 #177 and mission 7 #178 remain open; missions 6/7 are Live after their activation PRs merge; D5 #180 and D6 #182 remain open.
 
 ## Remaining world/activation gaps
 
-All dormant worlds still need rendered reference comparison, runtime load/clear measurements, real flight and phone acceptance. Offline geometry/budget estimates cannot prove those qualities. M06 subtype positions/counts are provisional; M07 world drawings and mission roster/ranks require reconciliation (#178). M08 broadcast scenery is not combat ground targets; M09 initial versus credited roster remains unresolved. M10 authored subtype split is provisional; its disconnected river was fixed offline. M11 high route at Y2800 needs encounter validation beyond the current Y2000 cap; cloud-transition metadata is not volumetric rendering. M12 initial/credited counts and M13 deployment/jamming remain integration work. M14 cruise separation, M15/M16/M17 initial versus credited totals, unknown ground subtypes and M18 offset core/vent adaptations remain explicit assumptions. M18 flight entry, overshoot/retry, occlusion and duel transitions need runtime acceptance. No dormant world is a mission unlock.
+All dormant worlds still need rendered reference comparison, runtime load/clear measurements, real flight and phone acceptance. Offline geometry/budget estimates cannot prove those qualities. M06 subtype positions/counts are provisional; M07 adopts the provisional roster/ranks in D-280/D-281 (#178), with rendered acceptance pending. M08 broadcast scenery is not combat ground targets; M09 initial versus credited roster remains unresolved. M10 authored subtype split is provisional; its disconnected river was fixed offline. M11 high route at Y2800 needs encounter validation beyond the current Y2000 cap; cloud-transition metadata is not volumetric rendering. M12 initial/credited counts and M13 deployment/jamming remain integration work. M14 cruise separation, M15/M16/M17 initial versus credited totals, unknown ground subtypes and M18 offset core/vent adaptations remain explicit assumptions. M18 flight entry, overshoot/retry, occlusion and duel transitions need runtime acceptance. No dormant world is a mission unlock.
 
 Historical Studio/sign-in and test reports below are scoped to their recorded dates, not a fresh check of authentication. The orchestrator owns future Studio work. The full suite now approaches its former 600 s deadline; this PR raises the default to 1200 s while retaining the environment override. No Roblox suite is run here.
 
@@ -61,17 +61,16 @@ Story PR follow-up: Studio/Player chapter sequencing and audible output are pend
 | 2026-10-28 | Footage analyst | Whether 1080p sections of the reference could be downloaded. | Confirmed with 1440×1080, 59.94 fps mission clips. |
 | 2026-10-28 | Several agents | Fresh worktrees lack an offline Luau runner. | Set `LUAU_BIN=/Users/pelicannurse/Projects/test app/build/offline-luau/luau`; agent briefs now carry this requirement. |
 
-## Missions 4–5 review findings
+## Missions 4–5 acceptance
 
-Worlds #144 and engine #145 are merged and dormant; playable data/unlock remain in open #149 and #148. See [per-level status](levels.html) and those PRs for reported Studio checks and assumptions. Earlier cold-load estimates of about 14 s were superseded by reported roughly 45–46 s live-asset Studio builds. The unmerged `perf/m04-m05-terrain` PR (D-120, stacked on #149) removes the shell's unreachable rock floor, uses a 0.25 s loading budget and clears with one native clear through the gate. In a Studio Play terrain bench, M04 went from 66 s to 11.7 s of terrain and M05 from 107 s to 37 s (still over target); M04 native clear is 8–12 s. The campaign-path re-measure is pending Studio sign-in.
-
-Mission 4 transports exit after about 4:43.5 despite a 12:00 HUD clock; pacing remains unresolved. Mission 5 reports dark rig/tankers, follow-up lighting fixes awaiting Studio re-check, and a cleanup dependency on #147. Main still locks missions 3–18. No Player test is claimed.
-
-AI voice disclosure missing: addressed on fix/ai-voice-disclosure (D-140), pending merge. Settings provides permanent provenance and the first voiced line triggers a once-per-session notice. Latest Studio log (2026-10-30T03:39:39Z) shows RBX::Studio::LoginDialog; Studio was not launched and visual verification remains unperformed.
-PR #149 fixes the old 4:43.5 transport exit to 6:48.33 (D-096), covered offline; Studio/owner pacing re-check remains pending. The re-review’s early jammer despawn is fixed in the branch: both routes derive from the transport hook at jammer altitude/110 studs/s, with duration regressions keeping radar jamming and 280 optional points available throughout the transport window. Its duplicate cleanup mechanism is replaced by #147’s shared gate (D-097), including failed/partial construction and player leave. Mission 5 reports dark rig/tankers, follow-up lighting fixes awaiting Studio re-check, and a cleanup dependency on #147. Main now includes #147 (`7d73c44`); missions 4–18 remain locked. No Player test is claimed.
+Playable data/unlocks #149/#148, performance #158 and cleanup #147 are merged. Mission 4's transport exit is 6:48.33 (D-096); the prior 4:43.5 issue is resolved. Mission 5 campaign-path world build measured 17.30–17.96 s in Studio; the slower Jest figure is historical. Phone loading, rendered quality and owner pacing feedback remain pending. AI voice disclosure is merged via #162; Studio verification of its appearance remains unclaimed here.
 
 ## Mission 6 acceptance (#179)
 
 Sequential unlock after mission 5, finite stocks/rearm, score expiry and shared engine integration are implemented. Independent review approved #179; the orchestrator’s full Studio Jest suite passed 1,133/1,133 at `e5c2fd2`. This docs reconciliation does not rerun Studio or establish Player quality.
 
 D-260 retains 36 naval hulls, 40 yard contacts and 18 separately scored hull-owned components; the reference initial-40/credited-58 discrepancy remains unresolved. Sixteen hostile aircraft reflect owner pressure direction. Rendered reference comparison, real flight/ship sinking/SAM/anti-ship feel, service skip/clock behavior, load/clear timing and phone readability remain acceptance gaps. Player/phone not yet observed. No new audio or Blender asset upload.
+
+## Mission 7 acceptance (#178)
+
+Studio verified: pending orchestrator run. This task does not launch Studio or run Roblox Jest; no Player test is claimed. Main engine and mission 6 are preserved; sequential/forged unlock, strike/update/escape, score/reset/failure paths are checked offline. Rendered reference comparison, actual canyon clearance/masking, transition pose, area attack/gun feel, load/clear timing and phone readability remain acceptance gaps. D-280 explicitly adopts 51 contacts from 52 drawings; reference roster/kill discrepancy remains unresolved. Owner direction is integrated: 20 hostile aircraft (above 14 reference credited kills), one optional allied kill budget, no new audio.

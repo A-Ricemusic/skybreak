@@ -26,7 +26,7 @@ describe("Dormant M06/M07 worlds", () => {
   let checkpoints = 0;
   expect(buildM06Plan(606, () => { checkpoints++; })).toEqual(a);
   expect(buildM07Plan()).toEqual(b); expect(checkpoints).toBeGreaterThan(1000);
-  for (const mission of MissionCatalog.All()) { if (mission.id !== 6) expect(MissionCatalog.WorldKey(mission.id)).never.toBe(a.key); expect(MissionCatalog.WorldKey(mission.id)).never.toBe(b.key); }
+  for (const mission of MissionCatalog.All()) { if (mission.id !== 6) expect(MissionCatalog.WorldKey(mission.id)).never.toBe(a.key); if (mission.id === 7) expect(MissionCatalog.WorldKey(mission.id)).toBe(b.key); else expect(MissionCatalog.WorldKey(mission.id)).never.toBe(b.key); }
   expect(MissionCatalog.WorldKey(6)).toBe(a.key);
  });
  it("exports unique ids, provisional counts and the exact sketch anchors", () => {
