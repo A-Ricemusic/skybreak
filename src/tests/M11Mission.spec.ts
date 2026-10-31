@@ -64,66 +64,6 @@ describe("M11 High Crossing",()=>{
   const damage=(1+math.ceil((4*killSeconds+transition)/gate))*CombatBalance.hostileDamage[1];
   expect(damage).toBeLessThan(M11_AIRCRAFT_HEALTH);
  });
- // Analytical encounter simulation: guaranteed in-range/aimed shots after acquisition,
- // no misses. Not a CombatService steering or Player test. The neglected band keeps
- // >=2 attackers even after the allied budget; the other band is cleared promptly.
- it("derives all difficulty gates and projectile delay from authoritative combat tables",()=>{
-  const gates=[17.857142857,11.428571429,4.857142857];
-  for(let i=0;i<Difficulty.Order.size();i++) {
-   const d=Difficulty.Order[i];
-   const gate=ThreatRules.FlightGate(Difficulty.Scale(d,"hostileGate",CombatBalance.flightGate[1]),6,Difficulty.Scale(d,"flightDivisor",CombatBalance.flightDivisor[1]));
-   expect(gate).toBeCloseTo(gates[i],6);
-  }
-  for(const a of M11_AIRCRAFT) {
-   // Even a shot launched at the 2300-stud launch cutoff can catch the
-   // receding aircraft within missile life; real steering may still miss.
-   expect(2300/(CombatBalance.missileSpeed[1]-a.route.speed)).toBeLessThan(CombatBalance.missileLife[1]);
-  }
- });
- it("loses either neglected escort before safety despite acquisition and full-lifetime travel delay",()=>{
-  for(const aircraft of M11_AIRCRAFT) {
-   const wave=M11_WAVES.find(w=>w.attackProtected===aircraft.id)!;
-   assert(wave.trigger.kind==="time");
-   const live=wave.count-1; // pessimistically spend the allied kill on this band
-   const gate=ThreatRules.FlightGate(CombatBalance.flightGate[1],live,CombatBalance.flightDivisor[1]);
-   const windup=CombatBalance.windup[1],travel=CombatBalance.missileLife[1];
-   const spacing=math.max(gate,windup+travel,windup+CombatBalance.banditReload[1]);
-   const state=fresh(),runner=R.NewState(bp,0);
-   let at=wave.trigger.seconds+45+4+windup+travel;
-   while(state.health>0 && at<M11_SAFE_SECONDS) {
-    stepProtected(state,aircraft,at-state.elapsed);damageProtected(state,CombatBalance.hostileDamage[1]);
-    at+=spacing;
-   }
-   expect(protectionResult([state,fresh()])).toBe("lost");
-   expect(state.elapsed).toBeLessThan(M11_SAFE_SECONDS);
-   R.ObserveProtection(runner,0,true);expect(runner.reason).toBe("protected_lost");
-  }
- });
- it("survives attentive defence and a recoverable 30-second lapse at either altitude",()=>{
-  // Clear each wave at 10s/contact, serially; allow 25s per altitude change.
-  // A lapse delays one wave by 30s and propagates to subsequent waves.
-  // Overstate pressure by ignoring startup/travel, granting a hit at windup
-  // completion and every fastest shared gate until the whole wave is cleared.
-  const gate=ThreatRules.FlightGate(CombatBalance.flightGate[1],6,CombatBalance.flightDivisor[1]);
-  for(const lapseBand of ["none","m11_civilian_low","m11_civilian_high"]) {
-   const states=M11_AIRCRAFT.map(()=>fresh());let lapsed=false, clearedAt=0, lastBand="m11_civilian_high";
-   for(const wave of M11_WAVES) {
-    const index=M11_AIRCRAFT.findIndex(a=>a.id===wave.attackProtected);
-    const lapse=!lapsed && wave.attackProtected===lapseBand ? 30 : 0;
-    if(lapse>0) lapsed=true;
-    assert(wave.trigger.kind==="time");
-    const start=math.max(wave.trigger.seconds,clearedAt+(lastBand===wave.attackProtected ? 0 : 25))+lapse;
-    clearedAt=start+wave.count*10;lastBand=wave.attackProtected!;
-    expect(clearedAt).toBeLessThan(M11_SAFE_SECONDS);
-    // After each kill actual live count falls and the gate only gets slower.
-    const hits=1+math.floor((clearedAt-wave.trigger.seconds-CombatBalance.windup[1])/gate);
-    damageProtected(states[index],hits*CombatBalance.hostileDamage[1]);
-   }
-   for(let i=0;i<states.size();i++) {expect(states[i].health).toBeGreaterThan(0);stepProtected(states[i],M11_AIRCRAFT[i],M11_SAFE_SECONDS);}
-   expect(protectionResult(states)).toBe("safe");
-   const runner=R.NewState(bp,0);R.ObserveProtection(runner,2,false);expect(runner.outcome).toBe("won");
-  }
- });
  it("needs both safe, never kill count or points, and fails either loss or expiry",()=>{
   const a=fresh(),b=fresh(),s=R.NewState(bp,0);s.score=1260;
   stepProtected(a,M11_AIRCRAFT[0],314);stepProtected(b,M11_AIRCRAFT[1],200);

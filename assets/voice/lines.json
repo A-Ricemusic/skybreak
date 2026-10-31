@@ -1186,8 +1186,8 @@
    "speaker": "SERA",
    "voice": "EXAVITQu4vr4xnSDxMaL",
    "tape": false,
-   "text": "SERA: I am staying in the tower. Keep the bombers away from the transmitter.",
-   "spoken": "I am staying in the tower. Keep the bombers away from the transmitter."
+   "text": "SERA: I stay in the tower. Keep bombers off the transmitter.",
+   "spoken": "I stay in the tower. Keep bombers off the transmitter."
   },
   {
    "id": "radio.m08.story.2",
@@ -1197,6 +1197,33 @@
    "tape": false,
    "text": "SERA: Thirty-five seconds sent. Two garrisons are answering.",
    "spoken": "Thirty-five seconds sent. Two garrisons are answering."
+  },
+  {
+   "id": "radio.m08.story.3",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Six bombers west. Keep them off the tower until the window closes.",
+   "spoken": "Six bombers west. Keep them off the tower until the window closes."
+  },
+  {
+   "id": "radio.m08.story.4",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Transmitter is live. Hold this sky for thirty-five seconds.",
+   "spoken": "Transmitter is live. Hold this sky for thirty-five seconds."
+  },
+  {
+   "id": "radio.m08.story.5",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: A bomber reached the tower. We have lost the transmitter.",
+   "spoken": "A bomber reached the tower. We have lost the transmitter."
   },
   {
    "id": "radio.m09.story.1",
@@ -1233,6 +1260,42 @@
    "tape": false,
    "text": "SERA: The corridor is open. Two civilian flights are ready.",
    "spoken": "The corridor is open. Two civilian flights are ready."
+  },
+  {
+   "id": "radio.m10.story.3",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Pads waking up. Strike the aircraft before they climb.",
+   "spoken": "Pads waking up. Strike the aircraft before they climb."
+  },
+  {
+   "id": "radio.m10.story.4",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Docks and pen mouths feed this line. Cut their supply route.",
+   "spoken": "Docks and pen mouths feed this line. Cut their supply route."
+  },
+  {
+   "id": "radio.m10.story.5",
+   "kind": "radio",
+   "speaker": "RIM TOWER",
+   "voice": "pFZP5JQG7iQjIQuC4Bku",
+   "tape": false,
+   "text": "RIVER TOWER: Cleared to land southbound. Racks ready; damage stays.",
+   "spoken": "Cleared to land southbound. Racks ready; damage stays."
+  },
+  {
+   "id": "radio.m10.story.6",
+   "kind": "radio",
+   "speaker": "RIM TOWER",
+   "voice": "pFZP5JQG7iQjIQuC4Bku",
+   "tape": false,
+   "text": "RIVER TOWER: Ammunition aboard. Cleared for takeoff.",
+   "spoken": "Ammunition aboard. Cleared for takeoff."
   },
   {
    "id": "radio.m11.story.1",
@@ -1730,31 +1793,76 @@
    "spoken": "Merel log copied. One transmitter remains."
   },
   {
-   "id": "radio.m11.p1.beat",
+   "id": "radio.m08.p1.beat",
    "kind": "radio",
    "speaker": "SERA",
    "voice": "EXAVITQu4vr4xnSDxMaL",
    "tape": false,
-   "text": "SERA: One airliner cannot climb. Watch both altitude bands.",
-   "spoken": "One airliner cannot climb. Watch both altitude bands."
+   "text": "SERA: I stay in the tower. Keep bombers off the transmitter.",
+   "spoken": "I stay in the tower. Keep bombers off the transmitter."
   },
   {
-   "id": "radio.m11.p1.chatter1",
+   "id": "radio.m08.p2.ignition",
    "kind": "radio",
    "speaker": "SERA",
    "voice": "EXAVITQu4vr4xnSDxMaL",
    "tape": false,
-   "text": "SERA: Orchard Two stays low. Leave room to descend.",
-   "spoken": "Orchard Two stays low. Leave room to descend."
+   "text": "SERA: Transmitter is live. Hold this sky for thirty-five seconds.",
+   "spoken": "Transmitter is live. Hold this sky for thirty-five seconds."
   },
   {
-   "id": "radio.m11.p1.chatter2",
+   "id": "radio.m09.p1.beat",
    "kind": "radio",
-   "speaker": "TRUCK",
-   "voice": "cgSgspJ2msm6clMCkdW9",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
    "tape": false,
-   "text": "ORCHARD TWO: They can see the escort. Stay with us to the ridge.",
-   "spoken": "They can see the escort. Stay with us to the ridge."
+   "text": "SERA: Green beacon is ours. Clear the guns above the beach.",
+   "spoken": "Green beacon is ours. Clear the guns above the beach."
+  },
+  {
+   "id": "radio.m09.p1.chatter1",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Teal taught us: weather hides a turn. Keep moving.",
+   "spoken": "Teal taught us: weather hides a turn. Keep moving."
+  },
+  {
+   "id": "radio.m09.p2.chatter1",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: The landing is through. There is smoke over Teklan.",
+   "spoken": "The landing is through. There is smoke over Teklan."
+  },
+  {
+   "id": "radio.m10.p1.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Keep the valley between you and the long-range guns.",
+   "spoken": "Keep the valley between you and the long-range guns."
+  },
+  {
+   "id": "radio.m10.p1.chatter1",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Pads waking up. Strike the aircraft before they climb.",
+   "spoken": "Pads waking up. Strike the aircraft before they climb."
+  },
+  {
+   "id": "radio.m10.p1.chatter2",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Docks and pen mouths feed this line. Cut their supply route.",
+   "spoken": "Docks and pen mouths feed this line. Cut their supply route."
   }
  ]
 }

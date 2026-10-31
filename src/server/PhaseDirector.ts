@@ -1,3 +1,4 @@
+import { Workspace } from "@rbxts/services";
 import { clearProtection } from "./EngineBatchD7Runtime";
 import { clearGroundDirector } from "./EngineBatchD5Runtime";
 import { takeArrival, FighterArrival, StandaloneAce } from "../shared/CampaignEncounters";
@@ -64,11 +65,13 @@ export function createPhaseDirector(combat: PhaseCombat) {
 	/** Spawns what the live-aircraft budget has room for now; the rest keeps waiting. */
 	function drainAir(session: CombatSession): void {
 		if (session.airQueue.size() === 0) return;
-		const room = ((session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.concurrentFighters) ?? WavePlan.Budget(extraRaiders(session))) - liveAircraft(session);
-		for (const batch of WavePlan.Admit(session.airQueue, room)) {
+		const phase = session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState);
+		const room = (phase?.concurrentFighters ?? WavePlan.Budget(extraRaiders(session))) - liveAircraft(session);
+		const liveRoutes = phase?.concurrentRoutes === undefined ? 0 : session.enemies.filter(enemy => enemy.routeActor !== undefined && enemy.enabled && enemy.health>0 && enemy.withdrawUntil===undefined && enemy.model.Parent===session.folder).size();
+		for (const batch of WavePlan.Admit(session.airQueue, room, phase?.concurrentRoutes === undefined ? room : phase.concurrentRoutes-liveRoutes)) {
 			if (batch.arrival) {
 				const a=batch.arrival;
-				spawnAir(session,batch.count,"aircraft" in a && a.aircraft ? "bomber" : batch.role,{ arrival:a, targetId: session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.targetIds !== undefined && ("name" in a || a.count === 1) ? a.id : undefined, optional:true, name: "name" in a ? a.name : undefined, livery: "livery" in a ? a.livery : undefined, aceHealth: "health" in a ? a.health : undefined });
+				spawnAir(session,batch.count,"aircraft" in a && a.aircraft ? "bomber" : batch.role,{ arrival:a, targetId: session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.targetIds !== undefined && ("name" in a || a.count === 1) ? a.id : undefined, optional:!("required" in a && a.required === true), name: "name" in a ? a.name : undefined, livery: "livery" in a ? a.livery : undefined, aceHealth: "health" in a ? a.health : undefined });
 			} else if (session.bomberEncounter && (batch.role === "escort" || batch.role === "ace")) {
 				const encounter = session.bomberEncounter;
 				const leading = BomberRules.Sample(encounter.route, session.elapsed - encounter.startedAt).slots[0];
@@ -112,15 +115,16 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		session.navigationMarker?.Destroy(); session.navigationMarker=undefined;
 		session.returnLineMarker?.Destroy(); session.returnLineMarker=undefined;
 		session.rearmGate?.Destroy(); session.rearmGate=undefined;
-		session.navigationActor?.Destroy(); session.navigationActor=undefined; session.actorFooting=undefined;
+		if (session.navigationActor?.GetAttribute("WorldOwnedProtectedSite") !== true) session.navigationActor?.Destroy();
+		session.navigationActor=undefined; session.actorFooting=undefined;
 		// The live list, not the catalog: twists splice new objectives in after the phase that fired them.
 		const phases=BlueprintRunner.Phases(state);
 		const phase: MissionPhaseBlueprint | undefined=phases[state.phaseIndex];
 		if (!phase) return;
 		for (const enemy of session.enemies) if (enemy.typedGround) {
-			enemy.enabled=enemy.phaseOwner === state.phaseIndex && enemy.health>0;
+			enemy.enabled=enemy.typedGround.type!=="wreck" && enemy.phaseOwner === state.phaseIndex && enemy.health>0;
 			// Later phases' targets stay hidden; an earlier phase's survivors stay standing but inert.
-			const shown=enemy.enabled || (enemy.health>0 && (enemy.phaseOwner ?? 0)<state.phaseIndex);
+			const shown=(enemy.typedGround.type==="wreck" && enemy.phaseOwner===state.phaseIndex) || enemy.enabled || (enemy.health>0 && (enemy.phaseOwner ?? 0)<state.phaseIndex);
 			for(const item of enemy.model.GetDescendants()) if(item.IsA("BasePart")) {
 				item.Transparency=shown ? (item.GetAttribute("OriginalTransparency") as number ?? 0) : 1;
 				item.CanQuery=enemy.enabled && item.GetAttribute("FlightSolid") === true;
@@ -144,7 +148,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 			}
 			requestAir(session, b.escorts.initial, "escort");
 		}
-		else if (phase.kind === "required_air" && phase.execution?.launchDelay === undefined) {
+		else if (phase.kind === "required_air" && !phase.fighterWaves?.some(w => w.required) && phase.execution?.launchDelay === undefined) {
 			if (phase.execution?.directSpawn) spawnAir(session,phase.count ?? 0,"bandit");
 			else {
 			// Staggered groups: the first now, the rest by WavePlan.Due (stepSession).
@@ -188,16 +192,24 @@ export function createPhaseDirector(combat: PhaseCombat) {
 				const actorPoint=phase.parkedEscort ?? nav;
 				const coast=session.blueprint.region === "coastal_city" || session.blueprint.region === "coastal_harbor" || session.blueprint.region === "ocean_platform";
 				const name=phase.interceptHold?.siteName ?? actorName(session,phase.kind === "defend",coast);
-				const actor=phase.interceptHold ? MissionAssets.CreateCommsRelay(name) : coast ? MissionAssets.CreateHarborLaunch(name) : phase.kind === "defend" ? MissionAssets.CreateCommsRelay(name) : MissionAssets.CreateRelayTruck(name);
-				if (!session.active || !session.folder.Parent) {actor.Destroy(); return;}
-				// The escorted vehicle moves every step: weld it so one part replicates per move.
-				JetFactory.WeldAssembly(actor);
-				// Grounded from its own bounds and the surface under it: wheels on the road, a hull at the waterline.
-				const footing=ActorGrounding.Footing(actor,coast && !phase.interceptHold);
-				session.actorFooting=footing;
-				const y=session.groundParams ? ActorGrounding.PivotY(footing,actorPoint.x,actorPoint.z,session.groundParams,actorPoint.y) : actorPoint.y;
-				actor.SetAttribute("ProtectedObjective",true); actor.Parent=session.folder; session.navigationActor=actor;
-				actor.PivotTo(new CFrame(actorPoint.x,y,actorPoint.z));
+				const siteId=phase.interceptHold?.siteId;
+				const world=siteId ? Workspace.FindFirstChild(session.blueprint.worldKey ?? "",true) : undefined;
+				const existing=siteId ? world?.FindFirstChild(siteId) : undefined;
+				const adopted=existing?.IsA("Model") ? existing : undefined;
+				const actor=adopted ?? (phase.interceptHold ? MissionAssets.CreateCommsRelay(name) : coast ? MissionAssets.CreateHarborLaunch(name) : phase.kind === "defend" ? MissionAssets.CreateCommsRelay(name) : MissionAssets.CreateRelayTruck(name));
+				if (!session.active || !session.folder.Parent) {if (!adopted) actor.Destroy(); return;}
+				if (adopted) {
+					actor.SetAttribute("WorldOwnedProtectedSite",true);actor.SetAttribute("ProtectedObjective",true);session.navigationActor=actor;
+				} else {
+					// The escorted vehicle moves every step: weld it so one part replicates per move.
+					JetFactory.WeldAssembly(actor);
+					// Grounded from its own bounds and the surface under it: wheels on the road, a hull at the waterline.
+					const footing=ActorGrounding.Footing(actor,coast && !phase.interceptHold);
+					session.actorFooting=footing;
+					const y=session.groundParams ? ActorGrounding.PivotY(footing,actorPoint.x,actorPoint.z,session.groundParams,actorPoint.y) : actorPoint.y;
+					actor.SetAttribute("ProtectedObjective",true); actor.Parent=session.folder; session.navigationActor=actor;
+					actor.PivotTo(new CFrame(actorPoint.x,y,actorPoint.z));
+				}
 			}
 		}
 		// Refresh only at phase transitions: includes new protected actors and drops destroyed ones.

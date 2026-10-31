@@ -6,8 +6,9 @@ import { M11_AIRSPACE } from "../M11Limits";
 import type { ProtectedAircraftPlan } from "../EngineBatchD7";
 
 // D-440: 17 ordinary attackers + optional ace; two independent, time-matched routes.
-// D-444: thirteen Normal hits to lose either escort; shared combat tuning is unchanged.
+// D-445: mission-local hull budgets; shared combat tuning is unchanged.
 export const M11_AIRCRAFT_HEALTH = 91;
+export const M11_HEALTH = { easy: 34, normal: 91, ace: 245 };
 export const M11_SAFE_SECONDS = 313.28;
 export const M11_AIRCRAFT: ProtectedAircraftPlan[] = [false, true].map(high => {
  const waypoints: FlightPoint[] = [];
@@ -19,7 +20,7 @@ export const M11_AIRCRAFT: ProtectedAircraftPlan[] = [false, true].map(high => {
  }
  let distance=0;
  for(let i=1;i<waypoints.size();i++) { const a=waypoints[i-1],b=waypoints[i]; distance+=math.sqrt((b.x-a.x)**2+(b.z-a.z)**2); }
- return { id: high ? "m11_civilian_high" : "m11_civilian_low", callsign: high ? "ORCHARD ONE" : "ORCHARD TWO", health: M11_AIRCRAFT_HEALTH,
+ return { id: high ? "m11_civilian_high" : "m11_civilian_low", callsign: high ? "ORCHARD ONE" : "ORCHARD TWO", health: M11_AIRCRAFT_HEALTH, healthByDifficulty: M11_HEALTH,
   route: { waypoints, speed: distance/M11_SAFE_SECONDS } };
 });
 // Authored timing, not recovered source spawns. No route/patrol enemies consume the pursuit budget.

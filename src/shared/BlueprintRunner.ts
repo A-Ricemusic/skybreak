@@ -11,6 +11,8 @@ const PROTECT_DRAIN = 0.55;
 const GUN_WEIGHT = 1.5;
 export interface BlueprintState {
 	rearmActive?: boolean;
+	/** Sortie-persistent story outcome, survives phase updates. */
+	vultureTwoRecovered?: boolean;
 	/** A HUD-less cut-in holds the mission clock like a rearm (SortieCutaways). */
 	cutInActive?: boolean;
 	score?: number;
@@ -75,6 +77,7 @@ function sweptDistance(p: FlightPoint, a: FlightPoint, b: FlightPoint): number {
 	return distance(p,{x:a.x+dx*t,y:a.y+dy*t,z:a.z+dz*t});
 }
 function total(p: MissionPhaseBlueprint): number {
+	if(p.eliteFormation) return 1;
 	if (p.protection) return p.protection.aircraft.size();
 	if (p.scoreThreshold) return p.scoreThreshold.points;
 	if (p.kind === "tutorial_move") return (p.execution?.movementDuration ?? 3)*2;
@@ -357,6 +360,7 @@ export const BlueprintRunner = {
 			if (!hazardLive(s) && s.phaseProgress+0.00001>=total(p)) advance(s);
 			return true;
 		}
+		if(p.eliteFormation && kind==="air") s.vultureTwoRecovered=true;
 		if (kind==="ace") s.aceKilled=true;
 		else if (kind==="air") s.requiredAirKills++;
 		else s.requiredGroundKills++;

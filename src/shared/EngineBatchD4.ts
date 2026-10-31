@@ -4,6 +4,8 @@ import type { FlightPoint, MissionPhaseBlueprint } from "./MissionCatalog";
 
 /** No invented health budget: any surviving bomber reaching its endpoint loses the site. */
 export interface InterceptHold {
+	/** Optional existing world model id; renderer adopts it without moving or cloning it. */
+	siteId?: string;
 	site: FlightPoint;
 	siteName: string;
 	/** Original broadcast ignition subtitle and visual; no new audio. */
@@ -17,6 +19,7 @@ export function validateBatchD4(phases: MissionPhaseBlueprint[], limit: number):
 			assert(p.execution?.directSpawn!==true,"D4 population must use queued admissions");
 			assert((p.fighterWaves ?? []).reduce((n,w)=>n+w.count,0)<=150,"D4 finite wave inventory exceeds 150");
 		}
+		if (p.concurrentRoutes !== undefined) assert(p.concurrentFighters !== undefined && finiteNumber(p.concurrentRoutes) && p.concurrentRoutes%1===0 && p.concurrentRoutes>=1 && p.concurrentRoutes<p.concurrentFighters,"Route budget must reserve at least one pursuer slot");
 		const h=p.interceptHold, b=p.bombers;
 		if (b?.arrivalSeconds) {
 			assert(h!==undefined && b.escorts.count===0,"Stream arrivals need an unescorted intercept hold");
@@ -25,6 +28,7 @@ export function validateBatchD4(phases: MissionPhaseBlueprint[], limit: number):
 			for(const at of b.arrivalSeconds) { assert(finiteNumber(at) && at>=last && at< (p.update?.countdownSeconds ?? 0),"Invalid stream arrival time"); last=at; }
 		}
 		if (!h) continue;
+		assert(h.siteId===undefined || h.siteId.size()>0,"Empty protected world id");
 		const seconds=p.update?.countdownSeconds;
 		assert(p.kind==="required_air" && b!==undefined && b.count===p.count && b.targetIds!==undefined,"Intercept hold needs identified required bombers");
 		assert(seconds!==undefined && finiteNumber(seconds) && seconds>0,"Intercept hold needs a fresh phase clock");

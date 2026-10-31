@@ -37,6 +37,7 @@ describe("Dormant D4 intercept hold",()=>{
 	});
 	it("rejects malformed budgets, streams, hold clocks, sites and cues",()=>{
 		const mutations:((b:MissionBlueprint)=>void)[]=[
+			b=>{b.phases[0].concurrentRoutes=7;},b=>{b.phases[0].concurrentRoutes=0;},b=>{b.phases[0].concurrentRoutes=1.5;},b=>{b.phases[0].concurrentRoutes=0/0;},b=>{b.phases[0].concurrentFighters=undefined;b.phases[0].concurrentRoutes=2;},
 			b=>{b.phases[0].concurrentFighters=13;},b=>{b.phases[0].concurrentFighters=0/0;},b=>{b.phases[0].execution={directSpawn:true};},
 			b=>{b.phases[1].update!.countdownSeconds=undefined;},b=>{b.phases[1].bombers!.targetIds=undefined;},
 			b=>{b.phases[1].bombers!.arrivalSeconds=[0];},b=>{b.phases[1].bombers!.arrivalSeconds=[0,10,9,30,40,50];},b=>{b.phases[1].bombers!.speed=1;},
@@ -59,5 +60,6 @@ describe("Dormant D4 intercept hold",()=>{
 			expect(one.slots.size()).toBe(1);expect(one.slots[0]).toEqual(all.slots[slot]);expect(one.escaped).toBe(all.escaped);
 		}
 	});
-	it("leaves other mission D4 opt-ins dormant",()=>{for(const b of MissionCatalog.All()) for(const p of MissionCatalog.ExpandedPhases(b)) {expect(p.interceptHold).toBeUndefined();if(b.id!==11) expect(p.concurrentFighters).toBeUndefined();expect(p.bombers?.arrivalSeconds).toBeUndefined();}});
+	it("leaves missions other than M08, M09 and M10 dormant",()=>{for(const b of MissionCatalog.All().filter(b=>b.id!==8 && b.id!==9 && b.id!==10 && b.id!==11)) for(const p of MissionCatalog.ExpandedPhases(b)) {expect(p.interceptHold).toBeUndefined();expect(p.concurrentFighters).toBeUndefined();expect(p.concurrentRoutes).toBeUndefined();expect(p.bombers?.arrivalSeconds).toBeUndefined();}});
+	it("reserves route capacity only for M10",()=>{for(const b of MissionCatalog.All()) for(const p of MissionCatalog.ExpandedPhases(b)) expect(p.concurrentRoutes).toBe(b.id===10 ? 2 : undefined);});
 });

@@ -1,3 +1,4 @@
+import { spatialJammersAt } from "./EngineBatchD9Runtime";
 import { FlightMath } from "../shared/FlightMath";
 import { GunRules, SortieArmament } from "../shared/SortieArmament";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
@@ -10,7 +11,9 @@ import { AlliedRules } from "../shared/AlliedRules";
 import { CombatSession, Enemy } from "./CombatSession";
 
 export function liveJammers(s: CombatSession): number {
-	return s.enemies.filter(e => e.enabled && e.health > 0 && e.withdrawUntil === undefined && e.routeActor?.jammer === true).size();
+	const spatial=spatialJammersAt(s,s.state);
+	if(spatial!==undefined) return spatial;
+	return s.enemies.filter(e => e.enabled && e.health > 0 && e.withdrawUntil === undefined && (e.routeActor?.jammer === true || e.typedGround?.ecm === true)).size();
 }
 export function lockAllowed(s: CombatSession, distance: number): boolean {
 	const plan = s.blueprintState && BlueprintRunner.ActivePhase(s.blueprintState)?.jamming;
@@ -19,7 +22,7 @@ export function lockAllowed(s: CombatSession, distance: number): boolean {
 /** Called only by the accepted kill path, before phase compaction. */
 export function announceJammerKill(s: CombatSession, enemy: Enemy, radio: (line: string) => void): void {
 	const plan=s.blueprintState && BlueprintRunner.ActivePhase(s.blueprintState)?.jamming;
-	if(!plan || !enemy.routeActor?.jammer || enemy.health>0 || enemy.withdrawUntil!==undefined || enemy.jammerKillAnnounced) return;
+	if(!plan || !(enemy.routeActor?.jammer || enemy.typedGround?.ecm || enemy.airshipJammer) || enemy.health>0 || enemy.withdrawUntil!==undefined || enemy.jammerKillAnnounced) return;
 	enemy.jammerKillAnnounced=true;
 	radio(liveJammers(s)>0 ? plan.remainingCall : plan.clearCall);
 }
