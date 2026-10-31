@@ -24,7 +24,7 @@ describe("Released 18-mission campaign",()=>{
  it("contains 18 ordered numbered missions and optional practice outside the count",()=>{
   expect(MISSION_COUNT).toBe(18); expect(GameConfig.Campaign.MissionCount).toBe(18); expect(MISSIONS.size()).toBe(18);
   expect(PRACTICE.id).toBe(0); expect(MissionCatalog.Get(0)).toBe(PRACTICE);
-  MISSIONS.forEach((m,i)=>{expect(m.id).toBe(i+1);expect(MissionCatalog.Available(m)).toBe(i<=4);if(i>4){expect(m.title).toBe(`Mission ${i+1}`);expect(m.briefing.size()>30).toBe(true);}});
+  MISSIONS.forEach((m,i)=>{expect(m.id).toBe(i+1);expect(MissionCatalog.Available(m)).toBe(i<=5);if(i>5){expect(m.title).toBe(`Mission ${i+1}`);expect(m.briefing.size()>30).toBe(true);}});
   for(const id of [19,27,-1,1.5,math.huge]) expect(MissionCatalog.IsValidId(id)).toBe(false);
  });
  it("keeps the three original control exercises and radar without enemies",()=>{
@@ -61,7 +61,7 @@ describe("Released 18-mission campaign",()=>{
   if(cause==="escape") BlueprintRunner.EscapeBombers(s); else BlueprintRunner.Tick(s,cause==="timeout" ? 600 : 20,cause==="destroyed" ? 0 : 100);
   expect(s.outcome).toBe("failed");expect(s.reason).toBe(cause==="escape" ? "bombers_escaped" : cause);
  });
- it("unlocks missions 2–5 in order and keeps 6–18 locked across forged records, omitted requests, retry and next",()=>{
+ it("unlocks missions 2–6 in order and keeps 7–18 locked across forged records, omitted requests, retry and next",()=>{
   const c=fresh();let slot=c.getSlots()[0];
   // A fresh slot cannot skip ahead: the server refuses mission 2 and 3 requests before mission 1 is complete.
   expect(canLaunchMission(2,slot)).toBe(false);expect(resolveMissionRequest(slot,2)[0]).toBeUndefined();
@@ -80,11 +80,11 @@ describe("Released 18-mission campaign",()=>{
    if(forged)for(let id=1;id<=18;id++)slot.missions[id]={completed:true};
    else slot.missions[2]={completed:true};
    for(const id of [0,1,2,3])expect(canLaunchMission(id,slot)).toBe(true);
-   expect(highestUnlocked(slot)).toBe(forged ? 5 : 3);expect(resolveMissionRequest(slot,3)[0]).toBe(3);expect(resolveMissionRequest(slot,undefined)[0]).toBe(forged ? 5 : 3);
+   expect(highestUnlocked(slot)).toBe(forged ? 6 : 3);expect(resolveMissionRequest(slot,3)[0]).toBe(3);expect(resolveMissionRequest(slot,undefined)[0]).toBe(forged ? 6 : 3);
    expect(canLaunchMission(4,slot)).toBe(forged);expect(resolveMissionRequest(slot,4)[0]).toBe(forged ? 4 : undefined);
-   // Mission 5 follows mission 4 in order (#148); a forged slot reaches it, nothing past it.
-   expect(canLaunchMission(5,slot)).toBe(forged);
-   for(let id=6;id<=18;id++){expect(canLaunchMission(id,slot)).toBe(false);expect(resolveMissionRequest(slot,id)[0]).toBeUndefined();}
+   // Missions 5 and 6 follow in order (#148, mission 6); a forged slot reaches them, nothing past them.
+   expect(canLaunchMission(5,slot)).toBe(forged);expect(canLaunchMission(6,slot)).toBe(forged);
+   for(let id=7;id<=18;id++){expect(canLaunchMission(id,slot)).toBe(false);expect(resolveMissionRequest(slot,id)[0]).toBeUndefined();}
   }
   for(const id of [-1,19,27,"1",math.huge])expect(resolveMissionRequest(slot,id)[0]).toBeUndefined();
  });
@@ -162,7 +162,7 @@ describe("Released 18-mission campaign",()=>{
  it("adds two optional attacking waves without inflating required objectives or bypassing the seven-fighter queue",()=>{
   const phase=bp.phases[0],route=compileBomberEncounter(phase.bombers!);
   expect(bp.pressure?.playerPriority).toBe(0.8);expect(MissionCatalog.Get(2).pressure).toBeUndefined();
-  for (const mission of [PRACTICE, ...MISSIONS]) expect(mission.pressure !== undefined).toBe(mission.id === 1);
+  for (const mission of [PRACTICE, ...MISSIONS]) expect(mission.pressure !== undefined).toBe(mission.id === 1 || mission.id === 6);
   expect(MissionCatalog.InitialRaiders(phase)).toBe(6);expect(phase.reinforce).toEqual([{at:0.5,count:2}]);
   expect(reinforcementFraction(1,119.99,route)<0.5).toBe(true);
   expect(reinforcementFraction(0,120,route)).toBe(0.5);

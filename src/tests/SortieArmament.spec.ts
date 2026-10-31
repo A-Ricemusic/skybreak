@@ -18,8 +18,10 @@ const ahead = (z: number, x = 0, ground = false, allowed = true): GunCandidate =
 const ORIGIN = { x: 0, y: 100, z: 0 }, NOSE = { x: 0, y: 0, z: -1 };
 
 describe("Engine batch D1: opt-in sortie armament", () => {
-	it("keeps every released mission on today's rack: no armament, no gun", () => {
+	it("keeps every released mission but mission 6 on today's rack: no armament, no gun", () => {
 		for (let id = 0; id <= 18; id++) {
+			// Mission 6 opts in to finite stocks, a gun and the anti-ship fit (D-265; M06Mission.spec).
+			if (id === 6) continue;
 			const blueprint = MissionCatalog.Get(id);
 			expect(blueprint.armament).toBeUndefined();
 			expect(GunRules.New(blueprint.armament)).toBeUndefined();
