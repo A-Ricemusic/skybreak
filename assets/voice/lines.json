@@ -1186,8 +1186,8 @@
    "speaker": "SERA",
    "voice": "EXAVITQu4vr4xnSDxMaL",
    "tape": false,
-   "text": "SERA: I am staying in the tower. Keep the bombers away from the transmitter.",
-   "spoken": "I am staying in the tower. Keep the bombers away from the transmitter."
+   "text": "SERA: I stay in the tower. Keep bombers off the transmitter.",
+   "spoken": "I stay in the tower. Keep bombers off the transmitter."
   },
   {
    "id": "radio.m08.story.2",
@@ -1197,6 +1197,33 @@
    "tape": false,
    "text": "SERA: Thirty-five seconds sent. Two garrisons are answering.",
    "spoken": "Thirty-five seconds sent. Two garrisons are answering."
+  },
+  {
+   "id": "radio.m08.story.3",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Six bombers west. Keep them off the tower until the window closes.",
+   "spoken": "Six bombers west. Keep them off the tower until the window closes."
+  },
+  {
+   "id": "radio.m08.story.4",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Transmitter is live. Hold this sky for thirty-five seconds.",
+   "spoken": "Transmitter is live. Hold this sky for thirty-five seconds."
+  },
+  {
+   "id": "radio.m08.story.5",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: A bomber reached the tower. We have lost the transmitter.",
+   "spoken": "A bomber reached the tower. We have lost the transmitter."
   },
   {
    "id": "radio.m09.story.1",
@@ -1629,6 +1656,24 @@
    "tape": false,
    "text": "SERA: Harbour traffic copied. We can follow the orders inland.",
    "spoken": "Harbour traffic copied. We can follow the orders inland."
+  },
+  {
+   "id": "radio.m08.p1.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: I stay in the tower. Keep bombers off the transmitter.",
+   "spoken": "I stay in the tower. Keep bombers off the transmitter."
+  },
+  {
+   "id": "radio.m08.p2.ignition",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Transmitter is live. Hold this sky for thirty-five seconds.",
+   "spoken": "Transmitter is live. Hold this sky for thirty-five seconds."
   }
  ]
 }

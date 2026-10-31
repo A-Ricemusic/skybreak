@@ -1,12 +1,12 @@
 # Next
 
-Updated 2026-10-30 against main `9857358`. Practice and missions 1–6 are Live after #179 merges; worlds 7–18 and D3 remain dormant. M06 activates merged D1/D2 contracts. Publish succeeded per CI; no new Player observation is claimed.
+Updated 2026-10-30 against main `199e7ee` (#179 merged). Practice and missions 1–6 are live by pipeline convention (#179 merged); worlds 7–18 and D3 remain dormant. M06 activates merged D1/D2 contracts. No known deployment failure is recorded; no new Player observation is claimed.
 
 1. **Merge D4 [#177](https://github.com/A-Ricemusic/skybreak/pull/177)** after review/checks and updating its base to main. D1/D2/D3 dependencies have merged. Queued air battles, timed bomber interception and protected relay support remain dormant until mission integration.
 2. **Finish mission 7 [#178](https://github.com/A-Ricemusic/skybreak/pull/178)** (in review). D3 is merged; retain mission 6 when updating the branch, integrate #174's allied budget, and rerun progression/settlement checks. The proposal has a 15:00 three-installation strike and fresh 5:00 canyon escape; roster/ranks are provisional. Runtime canyon sweeps, transition pose, altitude masking and low southbound exit require verification.
 3. **Complete engine D5 [#180](https://github.com/A-Ricemusic/skybreak/pull/180)**, following the [engine plan](../specs/engine/missions-06-18-plan.md). Keep opt-in support dormant until a mission deliberately uses it; preserve current campaign behavior.
 4. **Complete engine D6 [#182](https://github.com/A-Ricemusic/skybreak/pull/182)** after D5, preserving opt-in support and current campaign behavior.
-5. **Integrate missions 8–18 in order.** All worlds are built/dormant (#175/#176), all mission/world specs exist. Mission actors, target identity/count reconciliation, phases, clock/failure/rank rules, unlock/settlement and runtime acceptance remain. M08 uses D4; later engine batches follow the engine plan. Built scenery alone is not a playable mission.
+5. **Review mission 8, then integrate missions 9–18 in order.** All worlds are built/dormant (#175/#176), all mission/world specs exist. Mission actors, target identity/count reconciliation, phases, clock/failure/rank rules, unlock/settlement and runtime acceptance remain. M08 uses D4; later engine batches follow the engine plan. Built scenery alone is not a playable mission.
 
 ## Mission 6 beta guide — IRON COAST (Live after #179 merges)
 
@@ -32,3 +32,13 @@ The orchestrator’s full Studio Jest suite passed 1,133/1,133 at `e5c2fd2`. Rea
 - M05: after M04, score 2000 by 10:00; try the green REARM beacon and TAKEOFF / CHANGE WEAPON (including controller). At update, check Vulture cut-in and south escape within 4:00. Ranks S/A/B/C 4000/3000/2500/2000. Report night readability, weather, phone load, results and replay/save persistence. Reported Studio build was 17.30–17.96 s; this is not a phone/Player measurement.
 
 New/changed dialogue stays subtitle-only; no further audio uploads (D-142). Existing approved voice remains. See [blockers](blockers.md) and [per-level checklists](levels.html). This task does not launch Studio or run Roblox Jest.
+
+## Mission 8 beta guide — OPEN FREQUENCY (in review)
+
+After #177, #178 and this mission merge, complete mission 7 to unlock mission 8. Fly NW from the southeast start; the island mast is protected scenery, not a target. Original Broken Relay briefing/radio remains subtitle-only.
+
+- Reach 800 points, then keep fighting until the full 7:00 expires. Expect a fresh 6:00 bomber clock without losing cumulative points.
+- Intercept all six bombers approaching from the west in 15-second steps. Any surviving bomber reaching the transmitter fails. Destroying the sixth early must not end the mission; defend until zero. At 0:35 the mast lights cyan and the broadcast starts; the debrief confirms two garrisons standing down.
+- 47 finite hostile aircraft; queued population capped at eight in battle/six in intercept (route supports consume slots; ace uses its reserved slot). Three allies share one optional kill without player credit. Score values: ordinary60, ace240, tanker150, radar140, bomber150; max3710. Provisional C/B/A/S:800/1700/2400/2900.
+- Verify destruction, <800 at7:00, incomplete intercept at6:00 and penetration failures; verify duplicate kills and retries never duplicate rewards. Check completion persists and mission8 cannot launch before mission7.
+- Studio verification pending: no Studio or Roblox Jest run in this implementation. Orchestrator should verify adopted mast/no duplicate relay, cyan ignition, bomber stream endpoints, clocks, skyline, flight/travel time, phone labels and balance. Support silhouettes use existing route-aircraft stand-ins; service/finite-stock fidelity remains deferred (D-324).

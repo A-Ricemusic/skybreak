@@ -24,7 +24,7 @@ describe("Released 18-mission campaign",()=>{
  it("contains 18 ordered numbered missions and optional practice outside the count",()=>{
   expect(MISSION_COUNT).toBe(18); expect(GameConfig.Campaign.MissionCount).toBe(18); expect(MISSIONS.size()).toBe(18);
   expect(PRACTICE.id).toBe(0); expect(MissionCatalog.Get(0)).toBe(PRACTICE);
-  MISSIONS.forEach((m,i)=>{expect(m.id).toBe(i+1);expect(MissionCatalog.Available(m)).toBe(i<=5);if(i>5){expect(m.title).toBe(`Mission ${i+1}`);expect(m.briefing.size()>30).toBe(true);}});
+  MISSIONS.forEach((m,i)=>{expect(m.id).toBe(i+1);expect(MissionCatalog.Available(m)).toBe(i<=5 || m.id===8);if(i>5 && m.id!==8){expect(m.title).toBe(`Mission ${i+1}`);expect(m.briefing.size()>30).toBe(true);}});
   for(const id of [19,27,-1,1.5,math.huge]) expect(MissionCatalog.IsValidId(id)).toBe(false);
  });
  it("keeps the three original control exercises and radar without enemies",()=>{
@@ -163,7 +163,7 @@ describe("Released 18-mission campaign",()=>{
  it("adds two optional attacking waves without inflating required objectives or bypassing the seven-fighter queue",()=>{
   const phase=bp.phases[0],route=compileBomberEncounter(phase.bombers!);
   expect(bp.pressure?.playerPriority).toBe(0.8);expect(MissionCatalog.Get(2).pressure?.playerPriority).toBe(0.8);
-  for (const mission of [PRACTICE, ...MISSIONS]) expect(mission.pressure !== undefined).toBe((mission.id === 1 || mission.id === 2 || mission.id === 6));
+  for (const mission of [PRACTICE, ...MISSIONS]) expect(mission.pressure !== undefined).toBe((mission.id === 1 || mission.id === 2 || mission.id === 6 || mission.id === 8));
   expect(MissionCatalog.InitialRaiders(phase)).toBe(6);expect(phase.reinforce).toEqual([{at:0.5,count:6}]);
   expect(reinforcementFraction(1,119.99,route)<0.5).toBe(true);
   expect(reinforcementFraction(0,120,route)).toBe(0.5);

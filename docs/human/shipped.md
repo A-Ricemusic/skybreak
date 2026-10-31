@@ -1,12 +1,12 @@
 # Shipped
 
-Updated 2026-10-30 against main `9857358`; its publish workflow succeeded per CI. Practice and missions 1–6 are live after #179 merges in Roblox Player by the owner's pipeline convention. No new Studio, Player or phone test is claimed. Older entries describe behavior at their merge; later entries supersede tuning and dormant activation status.
+Updated 2026-10-30 against main `199e7ee` (#179 merged); live status follows the owner’s automatic-pipeline convention. Practice and missions 1–6 are live (#179 merged) in Roblox Player by the owner's pipeline convention. No new Studio, Player or phone test is claimed. Older entries describe behavior at their merge; later entries supersede tuning and dormant activation status.
 
 ## Merged 2026-10-30, newest first
 
 | PR | Commit | Change | What the owner sees in Roblox Player |
 |---|---|---|---|
-| [#179](https://github.com/A-Ricemusic/skybreak/pull/179) | Merge pending | Mission 6 IRON COAST playable | Live after merge by pipeline convention: unlocks after mission 5; harbour strike, score ≥3,000 in 15:00, optional runway rearm with finite ammo. Full Studio Jest 1,133/1,133 in the orchestrator’s run at `e5c2fd2`; Player/phone not yet observed. |
+| [#179](https://github.com/A-Ricemusic/skybreak/pull/179) | `199e7ee` | Mission 6 IRON COAST playable | Live by pipeline convention: unlocks after mission 5; harbour strike, score ≥3,000 in 15:00, optional runway rearm with finite ammo. Full Studio Jest 1,133/1,133 in the orchestrator’s run at `e5c2fd2`; Player/phone not yet observed. |
 | [#171](https://github.com/A-Ricemusic/skybreak/pull/171) | `9857358` | D3 canyon artillery escape, area strike and target types | No visible change — engine support, dormant. Mission 7 has not activated on main. |
 | [#168](https://github.com/A-Ricemusic/skybreak/pull/168) | `989c802` | D2 naval mounts, firing SAMs and anti-ship fit | No visible change — engine support, dormant. Legacy SAMs remain inert unless opted in. |
 | [#165](https://github.com/A-Ricemusic/skybreak/pull/165) | `439bc66` | D1 player gun and finite ammunition | No visible change — engine support, dormant. Practice/M01–M05 keep their existing replenishing missiles and no gun. |
@@ -110,3 +110,5 @@ These merged gameplay changes are live through the automatic pipeline convention
 The earlier AC04 release (#92) was rejected and reverted (`b0737fa`). #77 (mission 1 tutorial rework) and #91 (TypeScript 5.9) were closed without merging.
 
 PR #144 merged as `7711b70`: dormant mission 4–5 worlds, with M05 owning environment/effects. PR #145 batch C is merged; no Studio or Player observation from this pass.
+
+Mission8 status clarification: OPEN FREQUENCY is an unmerged review proposal, dependent on #177/#178. It is not in the shipped list and no Player verification is claimed.

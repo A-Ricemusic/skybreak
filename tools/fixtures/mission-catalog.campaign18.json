@@ -10126,25 +10126,388 @@
   },
   {
     "act": 2,
-    "available": false,
+    "airspace": {
+      "hardHalfWidth": 16000,
+      "radarRange": 24000,
+      "softHalfWidth": 15600,
+      "spawnLimit": 15600
+    },
+    "allies": {
+      "allowRequiredTargets": false,
+      "callsignPrefix": "LANTERN",
+      "count": 3,
+      "creditPlayerKills": false,
+      "formation": [
+        {
+          "x": -180,
+          "y": 20,
+          "z": 160
+        },
+        {
+          "x": 180,
+          "y": 20,
+          "z": 160
+        },
+        {
+          "x": 0,
+          "y": 40,
+          "z": 320
+        }
+      ],
+      "killBudget": 1,
+      "model": "Kestrel"
+    },
+    "available": true,
     "briefing": "Varda's island transmitter will broadcast Teal's thirty-five seconds. Sera stays in the tower. Hold the tropical island's sky against the fighters and bomber wave until the signal is out, then clear the remaining attackers.",
-    "codename": "In development",
+    "codename": "The loyalist window",
+    "countdownSeconds": 420,
     "debrief": "The broadcast is out. Three garrisons heard it. Two stood down and are coming ashore to join us.",
-    "environment": "farm_overcast",
+    "environment": "ocean_clear",
     "failure": "The transmitter could not hold the window. The garrisons have not heard the proof.",
     "ground": [],
     "id": 8,
-    "optionalRaiderMax": 0,
+    "optionalRaiderMax": 41,
     "phases": [
       {
-        "count": 1,
+        "beat": "SERA: I stay in the tower. Keep bombers off the transmitter.",
+        "concurrentFighters": 8,
+        "fighterWaves": [
+          {
+            "count": 8,
+            "headingDegrees": 135,
+            "id": "m08_opening",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          },
+          {
+            "count": 8,
+            "headingDegrees": 225,
+            "id": "m08_second",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "time",
+              "seconds": 75
+            }
+          },
+          {
+            "count": 8,
+            "headingDegrees": 90,
+            "id": "m08_reserves",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "time",
+              "seconds": 160
+            }
+          },
+          {
+            "count": 8,
+            "headingDegrees": 180,
+            "id": "m08_last_flight",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "time",
+              "seconds": 270
+            }
+          },
+          {
+            "aircraft": "jammer",
+            "count": 1,
+            "id": "m08_tanker",
+            "role": "raider",
+            "route": {
+              "speed": 100,
+              "waypoints": [
+                {
+                  "x": -9000,
+                  "y": 1500,
+                  "z": -9000
+                },
+                {
+                  "x": 9000,
+                  "y": 1500,
+                  "z": -9000
+                },
+                {
+                  "x": 9000,
+                  "y": 1500,
+                  "z": -4000
+                },
+                {
+                  "x": -9000,
+                  "y": 1500,
+                  "z": -4000
+                },
+                {
+                  "x": -9000,
+                  "y": 1500,
+                  "z": -9000
+                },
+                {
+                  "x": 9000,
+                  "y": 1500,
+                  "z": -9000
+                },
+                {
+                  "x": 9000,
+                  "y": 1500,
+                  "z": -4000
+                },
+                {
+                  "x": -9000,
+                  "y": 1500,
+                  "z": -4000
+                },
+                {
+                  "x": -9000,
+                  "y": 1500,
+                  "z": -9000
+                },
+                {
+                  "x": 9000,
+                  "y": 1500,
+                  "z": -9000
+                },
+                {
+                  "x": 9000,
+                  "y": 1500,
+                  "z": -4000
+                },
+                {
+                  "x": -9000,
+                  "y": 1500,
+                  "z": -4000
+                }
+              ]
+            },
+            "scoreRole": "tanker",
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          },
+          {
+            "aircraft": "jammer",
+            "count": 1,
+            "id": "m08_radar",
+            "role": "raider",
+            "route": {
+              "speed": 100,
+              "waypoints": [
+                {
+                  "x": -9000,
+                  "y": 1500,
+                  "z": -10000
+                },
+                {
+                  "x": 9000,
+                  "y": 1500,
+                  "z": -10000
+                },
+                {
+                  "x": 9000,
+                  "y": 1500,
+                  "z": -5000
+                },
+                {
+                  "x": -9000,
+                  "y": 1500,
+                  "z": -5000
+                },
+                {
+                  "x": -9000,
+                  "y": 1500,
+                  "z": -10000
+                },
+                {
+                  "x": 9000,
+                  "y": 1500,
+                  "z": -10000
+                },
+                {
+                  "x": 9000,
+                  "y": 1500,
+                  "z": -5000
+                },
+                {
+                  "x": -9000,
+                  "y": 1500,
+                  "z": -5000
+                },
+                {
+                  "x": -9000,
+                  "y": 1500,
+                  "z": -10000
+                },
+                {
+                  "x": 9000,
+                  "y": 1500,
+                  "z": -10000
+                },
+                {
+                  "x": 9000,
+                  "y": 1500,
+                  "z": -5000
+                },
+                {
+                  "x": -9000,
+                  "y": 1500,
+                  "z": -5000
+                }
+              ]
+            },
+            "scoreRole": "radar",
+            "trigger": {
+              "kind": "time",
+              "seconds": 60
+            }
+          }
+        ],
+        "kind": "score_threshold",
+        "label": "Score 800 points before 7:00",
+        "scoreThreshold": {
+          "points": 800,
+          "seconds": 420,
+          "waitForExpiry": true
+        },
+        "standaloneAce": {
+          "behaviour": "dogfight",
+          "headingDegrees": 90,
+          "health": 165,
+          "id": "m08_prism",
+          "livery": "Vulture",
+          "name": "PRISM LEAD",
+          "scoreRole": "ace",
+          "trigger": {
+            "kind": "time",
+            "seconds": 300
+          }
+        }
+      },
+      {
+        "bombers": {
+          "arrivalSeconds": [
+            0,
+            15,
+            30,
+            45,
+            60,
+            75
+          ],
+          "count": 6,
+          "escape": {
+            "x": 1920,
+            "y": 700,
+            "z": 0
+          },
+          "escapeCall": "SERA: A bomber reached the tower. We have lost the transmitter.",
+          "escorts": {
+            "aceAt": 0,
+            "aceName": "NONE",
+            "count": 0,
+            "initial": 0,
+            "role": "escort"
+          },
+          "speed": 60,
+          "targetIds": [
+            "m08_west_bomber_1",
+            "m08_west_bomber_2",
+            "m08_west_bomber_3",
+            "m08_west_bomber_4",
+            "m08_west_bomber_5",
+            "m08_west_bomber_6"
+          ],
+          "waypoints": [
+            {
+              "x": -13440,
+              "y": 700,
+              "z": -960
+            },
+            {
+              "x": -5760,
+              "y": 700,
+              "z": -960
+            }
+          ]
+        },
+        "concurrentFighters": 6,
+        "count": 6,
+        "fighterWaves": [
+          {
+            "count": 6,
+            "headingDegrees": 90,
+            "id": "m08_cover",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 1
+            }
+          }
+        ],
+        "interceptHold": {
+          "ignitionCall": "SERA: Transmitter is live. Hold this sky for thirty-five seconds.",
+          "ignitionSecondsRemaining": 35,
+          "site": {
+            "x": 1920,
+            "y": 90,
+            "z": 0
+          },
+          "siteId": "m08_broadcast_mast",
+          "siteName": "VARDA TRANSMITTER"
+        },
         "kind": "required_air",
-        "label": "In development"
+        "label": "Intercept bombers; hold broadcast",
+        "update": {
+          "countdownSeconds": 360,
+          "objective": "Destroy six western bombers; protect the transmitter until 0:00",
+          "radio": [
+            "SERA: Six bombers west. Keep them off the tower until the window closes."
+          ]
+        }
       }
     ],
-    "primary": "In development",
-    "region": "canyon_airfield",
-    "title": "Mission 8"
+    "pressure": {
+      "forwardConeDegrees": 25,
+      "playerPriority": 0.8,
+      "tailDefence": true
+    },
+    "primary": "Score 800 in 7:00, then intercept six western bombers and hold the transmitter for 6:00",
+    "region": "ocean_platform",
+    "scoring": {
+      "basis": "points",
+      "points": {
+        "ace": 240,
+        "bomber": 150,
+        "escort": 60,
+        "fighter": 60,
+        "radar": 140,
+        "tanker": 150
+      },
+      "rank": {
+        "A": 2400,
+        "B": 1700,
+        "C": 800,
+        "S": 2900
+      }
+    },
+    "start": {
+      "headingDegrees": 315,
+      "kind": "airborne",
+      "speed": 160,
+      "x": 7680,
+      "y": 851,
+      "z": 7680
+    },
+    "terrainRelativeWarnings": true,
+    "title": "OPEN FREQUENCY",
+    "worldKey": "m08_island_broadcast"
   },
   {
     "act": 2,

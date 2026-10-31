@@ -1,10 +1,10 @@
 # Blockers
 
-Updated 2026-10-30 against main `9857358`. Publish succeeded per CI; no known deployment failure is recorded. Live status follows the owner's pipeline convention and does not establish observed Player quality. This reconciliation performs offline checks only.
+Updated 2026-10-30 against main `199e7ee` (#179 merged). No known deployment failure is recorded; no known deployment failure is recorded. Live status follows the owner's pipeline convention and does not establish observed Player quality. This reconciliation performs offline checks only.
 
 ## Resolved dependencies
 
-- M04 #149, M05 #148, terrain performance #158, story #159 and cutscenes #152 are merged. Practice/M01–M06 are live after #179 merges; their old review/unlock dependencies are resolved.
+- M04 #149, M05 #148, terrain performance #158, story #159 and cutscenes #152 are merged. Practice/M01–M06 are live (#179 merged); their old review/unlock dependencies are resolved.
 - #172 targeting, #173 loading and #174 difficulty/allied budget are merged/live. Human balance, phone and rendered acceptance remain open.
 - Worlds 6–13 (#175, combining #164/#166/#167/#170) and 14–18 (#176) are built, merged and dormant. No stack rebase remains for those world PRs. #176 fixes M05–M13 weather lookup and all 18 environment registrations, M17 metadata and M18 foundations.
 - D1 #165, D2 #168 and D3 #171 are merged; #179 activates D1/D2 support for mission 6, while D3 remains dormant. Their former stack dependencies are resolved; engine merge alone does not activate missions 7–18. D4 #177 and mission 7 #178 remain open; mission 6 #179 is Live after merge; D5 #180 and D6 #182 remain open.
@@ -75,3 +75,9 @@ PR #149 fixes the old 4:43.5 transport exit to 6:48.33 (D-096), covered offline;
 Sequential unlock after mission 5, finite stocks/rearm, score expiry and shared engine integration are implemented. Independent review approved #179; the orchestrator’s full Studio Jest suite passed 1,133/1,133 at `e5c2fd2`. This docs reconciliation does not rerun Studio or establish Player quality.
 
 D-260 retains 36 naval hulls, 40 yard contacts and 18 separately scored hull-owned components; the reference initial-40/credited-58 discrepancy remains unresolved. Sixteen hostile aircraft reflect owner pressure direction. Rendered reference comparison, real flight/ship sinking/SAM/anti-ship feel, service skip/clock behavior, load/clear timing and phone readability remain acceptance gaps. Player/phone not yet observed. No new audio or Blender asset upload.
+
+## Mission 8 review dependencies and acceptance
+
+OPEN FREQUENCY is implemented on `feat/m08-mission`, based on #177; depends on #177 and mission7 #178 (both open at implementation check). Latest main, including mission6 #179, is merged into the branch. Unlock uses existing sequential campaign guard: mission7 must be available and completed; no bypass is added. Keep M07 files untouched while #178 rebases.
+
+Validation on this branch: frozen install, build, `test:offline` (975 contracts), regenerated subtitle inventories/catalog snapshot and `validate:offline` all EXIT 0; the full gate includes 124 Python tests. Offline and Jest-source tests cover data/score/world-site identities, timing, bomber endpoint/site loss, unlock forgery and settlement. Studio/Roblox Jest and Player/phone/rendered/balance verification remain pending with the orchestrator. No audio or Blender uploads. Provisional roster/ranks/routes and support silhouettes are D-320–D-324; optional service/finite-stock reference fidelity remains a follow-up, not claimed implemented. No known deployment failure; this branch is unmerged and not live.

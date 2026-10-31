@@ -21,14 +21,14 @@ describe("Mission 8 OPEN FREQUENCY",()=>{
  it("validates air-only data and adopts the world's protected mast pose",()=>{
   MissionCatalog.ValidatePolicy(bp);expect(bp.available).toBe(true);expect(bp.worldKey).toBe(M08_WORLD_KEY);
   const mast=m08TargetLayout().filter(t=>t.id===M08_SITE_ID)[0];expect(M08_SITE).toEqual({x:mast.x,y:mast.y,z:mast.z});
-  expect(hold.interceptHold!.site).toEqual(M08_SITE);expect(bp.ground.size()).toBe(0);
+  expect(hold.interceptHold!.siteId).toBe(M08_SITE_ID);expect(hold.interceptHold!.site).toEqual(M08_SITE);expect(bp.ground.size()).toBe(0);
   expect(MissionCatalog.RequiredGroundKills(bp)).toBe(0);expect(MissionCatalog.RequiredAirKills(bp)).toBe(6);
   expect(hold.bombers!.targetIds).toEqual(M08_BOMBER_IDS);expect(new Set(M08_BOMBER_IDS).size()).toBe(6);
  });
- it("has a finite 44-aircraft 3710-point ledger, reachable provisional ranks and bounded queues",()=>{
+ it("has a finite 47-aircraft 3710-point ledger, reachable provisional ranks and bounded queues",()=>{
   const points=bp.scoring!.points;
   const total=bp.phases.reduce((n,p)=>n+(p.fighterWaves??[]).reduce((v,w)=>v+w.count*points[w.scoreRole],0)+(p.standaloneAce ? points.ace : 0)+(p.bombers?.count??0)*points.bomber,0);
-  expect(total).toBe(3710);expect(total-240>=bp.scoring!.rank.S).toBe(true);
+  expect(bp.phases.reduce((n,p)=>n+(p.fighterWaves??[]).reduce((v,w)=>v+w.count,0)+(p.standaloneAce?1:0)+(p.bombers?.count??0),0)).toBe(47);expect(total).toBe(3710);expect(total-240>=bp.scoring!.rank.S).toBe(true);
   expect(bp.scoring!.rank).toEqual({S:2900,A:2400,B:1700,C:800});
   const queue:AirRequest[]=[{role:"raider",count:32,behind:false}];let admitted=0;
   for(let i=0;i<4;i++) { const a=WavePlan.Admit(queue,battle.concurrentFighters!);const n=a.reduce((v,w)=>v+w.count,0);expect(n<=8).toBe(true);admitted+=n; }
