@@ -82,6 +82,6 @@ describe("M15 SILENT STREETS",()=>{
   const ledger=strike().ledger;for(let i=1;i<=6;i++)ledger.RecordKill(`m15_bomber_${i}`,"bomber");
   const settle=(phases:number,ground=1)=>completeMission(c,1,15,true,{slot:1,missionId:15,kills:7,groundKills:ground,completedPhases:phases,elapsed:800,targetScore:ledger.Snapshot()},()=>undefined,0);
   settle(1);expect(c.getSlots()[0].missions?.[15]?.completed===true).toBe(false);settle(2,0);expect(c.getSlots()[0].missions?.[15]?.completed===true).toBe(false);settle(2);
-  const saved=normalizeProfile(serializeProfile({version:3,slots:c.getSlots()})).slots[0];expect(saved.missions![15].completed).toBe(true);expect(saved.missions![15].bestScore).toBe(4460);expect(canLaunchMission(16,saved)).toBe(false);
+  const saved=normalizeProfile(serializeProfile({version:3,slots:c.getSlots()})).slots[0];expect(saved.missions![15].completed).toBe(true);expect(saved.missions![15].bestScore).toBe(4460);expect(canLaunchMission(16,saved)).toBe(true);expect(canLaunchMission(17,saved)).toBe(false);
  }));
 });

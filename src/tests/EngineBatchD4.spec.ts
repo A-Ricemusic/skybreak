@@ -60,6 +60,6 @@ describe("Dormant D4 intercept hold",()=>{
 			expect(one.slots.size()).toBe(1);expect(one.slots[0]).toEqual(all.slots[slot]);expect(one.escaped).toBe(all.escaped);
 		}
 	});
-	it("leaves missions other than M08–M15 dormant",()=>{for(const b of MissionCatalog.All().filter(b=>b.id!==8 && b.id!==9 && b.id!==10 && b.id!==11 && b.id!==12 && b.id!==13 && b.id!==14 && b.id!==15)) for(const p of MissionCatalog.ExpandedPhases(b)) {expect(p.interceptHold).toBeUndefined();expect(p.concurrentFighters).toBeUndefined();expect(p.concurrentRoutes).toBeUndefined();expect(p.bombers?.arrivalSeconds).toBeUndefined();}});
-	it("reserves route capacity for M10, M14 and M15",()=>{for(const b of MissionCatalog.All()) for(const p of MissionCatalog.ExpandedPhases(b)) expect(p.concurrentRoutes).toBe(b.id===10 || (b.id===15 && p.kind==="score_threshold") ? 2 : b.id===14 ? 1 : undefined);});
+	it("leaves missions other than M08–M16 dormant",()=>{for(const b of MissionCatalog.All().filter(b=>b.id!==8 && b.id!==9 && b.id!==10 && b.id!==11 && b.id!==12 && b.id!==13 && b.id!==14 && b.id!==15 && b.id!==16)) for(const p of MissionCatalog.ExpandedPhases(b)) {expect(p.interceptHold).toBeUndefined();expect(p.concurrentFighters).toBeUndefined();expect(p.concurrentRoutes).toBeUndefined();expect(p.bombers?.arrivalSeconds).toBeUndefined();}});
+	it("reserves route capacity for M10, M14, M15 and M16",()=>{for(const b of MissionCatalog.All()) for(const p of MissionCatalog.ExpandedPhases(b)) expect(p.concurrentRoutes).toBe(b.id===10 || b.id===16 || (b.id===15 && p.kind==="score_threshold") ? 2 : b.id===14 ? 1 : undefined);});
 });

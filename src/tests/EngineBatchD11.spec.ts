@@ -93,6 +93,6 @@ describe("Dormant D11 ground support and service",()=>{
   const lost=R.NewState(bp,0);lost.score=800;R.Tick(lost,420);R.EscapeBombers(lost);expect(lost.protectedHealth).toBe(0);expect(lost.reason).toBe("bombers_escaped");
  });
  it("keeps all new contracts dormant in the catalog",()=>{
-  for(let id=0;id<=18;id++) if(id!==15) for(const p of MissionCatalog.ExpandedPhases(MissionCatalog.Get(id))) {expect(p.rearm?.health===true).toBe(false);for(const s of p.groundProgress?.sectors ?? []) expect(s.formation).toBeUndefined();for(const t of p.groundTargets ?? []) expect(t.reinforceAfterSector).toBeUndefined();}
+  for(let id=0;id<=18;id++) if(id!==15 && id!==16) for(const p of MissionCatalog.ExpandedPhases(MissionCatalog.Get(id))) {expect(p.rearm?.health===true).toBe(false);for(const s of p.groundProgress?.sectors ?? []) expect(s.formation).toBeUndefined();for(const t of p.groundTargets ?? []) expect(t.reinforceAfterSector).toBeUndefined();}
  });
 });

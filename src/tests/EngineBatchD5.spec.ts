@@ -35,7 +35,7 @@ describe("Dormant D5 shared rules",()=>{
   for(const mutate of [(p:MissionPhaseBlueprint)=>{p.groundProgress!.sectors[0].after="ridge";},(p:MissionPhaseBlueprint)=>{p.groundProgress!.sectors[0].clearTargetIds=["missing"];},(p:MissionPhaseBlueprint)=>{p.fighterWaves![0].attackSector="missing";},(p:MissionPhaseBlueprint)=>{p.rearm!.carrier!.catapult.x=100;},(p:MissionPhaseBlueprint)=>{p.rearm!.takeoffSeconds=3;},(p:MissionPhaseBlueprint)=>{p.groundProgress!.sectors[0].route.speed=0/0;}]) { const p=phase(); mutate(p); const [ok]=pcall(()=>validateBatchD5([p],3000)); expect(ok).toBe(false); }
  });
  it("keeps missions other than M09 dormant and supplies distinct M09 labels",()=>{
-  for(let i=0;i<=18;i++) { if(i===9 || i===15) continue; const b=MissionCatalog.Get(i); for(const p of b.phases) { expect(p.groundProgress).toBeUndefined(); expect(p.rearm?.carrier).toBeUndefined(); } }
+  for(let i=0;i<=18;i++) { if(i===9 || i===15 || i===16) continue; const b=MissionCatalog.Get(i); for(const p of b.phases) { expect(p.groundProgress).toBeUndefined(); expect(p.rearm?.carrier).toBeUndefined(); } }
   expect(GROUND_TARGET_LABELS.artillery).toBe("ARTILLERY"); expect(GROUND_TARGET_LABELS.bunker).toBe("BUNKER"); expect(GROUND_TARGET_LABELS.tank).toBe("TANK"); expect(GROUND_TARGET_LABELS.vehicle).toBe("VEHICLE");
  });
 });

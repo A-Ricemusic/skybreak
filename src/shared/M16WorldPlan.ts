@@ -30,3 +30,12 @@ export function buildM16Plan(seed=1616,checkpoint:()=>void=()=>{}){
  return {key:M16_WORLD_KEY,seed,ops:d.ops,parts:d.parts,props:d.props,targets,routes:[{id:"m16_column",points:m16ColumnRoute()}]};
 }
 export const m16Counts=(p:ReturnType<typeof buildM16Plan>)=>compactWorldCounts(p,0);
+
+/** Live directors own airborne contacts and the moving column. */
+export function buildM16ScenePlan(seed=1616,checkpoint:()=>void=()=>{}) {
+ const plan=buildM16Plan(seed,checkpoint);
+ const airborne=new Set(plan.targets.filter(t=>t.group==="air_cover").map(t=>t.id));
+ plan.targets=plan.targets.filter(t=>!airborne.has(t.id));
+ plan.parts=plan.parts.filter(p=>!airborne.has(p.name)&&p.name.sub(1,20)!=="m16_friendly_column_");
+ return plan;
+}
