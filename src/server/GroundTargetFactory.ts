@@ -1,3 +1,4 @@
+import { navalHull } from "../shared/EngineBatchD2";
 import { AssetSelection } from "../shared/AssetSelection";
 import { UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
 import { UploadedAssets } from "../shared/UploadedAssets";
@@ -47,7 +48,17 @@ export function createGroundTarget(spec: TypedGroundTarget): Model {
 				part("Hull", new Vector3(50,25,220), new Vector3(0,5,0));
 				part("Bridge", new Vector3(35,30,40), new Vector3(0,30,65));
 			}
-		} else if (spec.type === "aa_gun") { part("Turret",new Vector3(8,6,8),new Vector3(0,10,0)); part("Barrel",new Vector3(2,2,24),new Vector3(0,13,-10)); }
+		} else if (navalHull(spec.type)) {
+			const length=spec.type==="missile_boat" ? 85 : spec.type==="cruiser" ? 260 : 200;
+			model.PrimaryPart!.Transparency=1;
+			part("Hull",new Vector3(spec.type==="submarine" ? 25 : 48,18,length),new Vector3(0,0,0));
+			part(spec.type==="submarine" ? "Sail" : "Bridge",new Vector3(22,22,32),new Vector3(0,18,length*0.25));
+			if(spec.type==="container_ship" || spec.type==="supply_ship") for(const z of [-55,-20,15]) part("Deck cargo",new Vector3(32,18,25),new Vector3(0,17,z));
+		} else if (spec.type === "containers") {
+			for(const x of [-18,0,18]) part("Container",new Vector3(16,16,40),new Vector3(x,8,0));
+		} else if (spec.type === "storage") { part("Storehouse",new Vector3(65,30,45),new Vector3(0,15,0)); }
+		else if (spec.type === "sam" && spec.sam) { part("Launcher",new Vector3(16,8,20),new Vector3(0,8,0)); for(const x of [-5,5]) part("Tube",new Vector3(3,4,22),new Vector3(x,15,-4)); }
+		else if (spec.type === "aa_gun" || spec.type === "gun_mount") { part("Turret",new Vector3(8,6,8),new Vector3(0,10,0)); part("Barrel",new Vector3(2,2,24),new Vector3(0,13,-10)); }
 		else if (spec.type === "parked_helicopter") { part("Cabin",new Vector3(10,10,24),new Vector3(0,10,0),true); part("Rotor",new Vector3(44,1,3),new Vector3(0,17,0)); part("Tail",new Vector3(3,4,28),new Vector3(0,10,20)); }
 		else if (spec.type === "radar_dome") part("Dome",new Vector3(34,34,34),new Vector3(0,23,0),true);
 		else if (spec.type === "hangar") { part("Hangar",new Vector3(65,25,55),new Vector3(0,12.5,0)); part("Door",new Vector3(45,20,1),new Vector3(0,10,-28)).Color=Color3.fromRGB(35,40,45); }
