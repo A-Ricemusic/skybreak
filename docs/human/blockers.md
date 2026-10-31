@@ -2,9 +2,11 @@
 
 ## D10 validation and acceptance boundary
 
-D10 validation: frozen install, build and full offline validation exited 0 (1,007 Luau contracts, 19 catalog snapshots, 124 Python tests). Runtime Jest compiled only; no Studio run.
+D10 review fixes (#190, unmerged): cruise phases reject twists (M14 spec requires none), and D10/campaign validation share a sortie-wide uniqueness check for bomber, ground, wave, ace and cruise identities. Regression coverage includes both phase orders and twist-inserted phases. No mission opts in; M01–M08 data and runtime behavior are unchanged. No Studio/Player run or upload was performed.
 
-No implementation blocker remains for dormant F26. M14 activation is still blocked on authored routes/roster/scoring and Studio/Player/phone acceptance; the existing world is dormant. Runtime Jest specs are compiled but were not executed, per task instruction. Main `085373c` includes D5 #180, D6 #182 and M08 #183; their older open-dependency notes below are historical. No new asset/audio upload or Studio lease is needed for this branch.
+D10 validation: frozen install, build and full offline validation exited 0 (1,010 Luau contracts, 19 catalog snapshots, 124 Python tests). Runtime Jest compiled only; no Studio run.
+
+No implementation blocker remains for dormant F26. M14 activation is still blocked on authored routes/roster/scoring and Studio/Player/phone acceptance; the existing world is dormant. Runtime Jest specs are compiled but were not executed, per task instruction. Main `5d84486` includes D5 #180, D6 #182 and M08 #183; their older open-dependency notes below are historical. No new asset/audio upload or Studio lease is needed for this branch.
 
 Updated 2026-10-30 against main `a04fdd6` (#177/#178 merged); no known deployment failure is recorded. Live status follows the owner's pipeline convention and does not establish observed Player quality. This reconciliation performs offline checks only.
 

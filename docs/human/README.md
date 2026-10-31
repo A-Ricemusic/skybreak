@@ -2,9 +2,11 @@
 
 ## D10 branch status
 
-D10 validation: frozen install, build and full offline validation exited 0 (1,007 Luau contracts, 19 catalog snapshots, 124 Python tests). Runtime Jest compiled only; no Studio run.
+D10 review fixes (#190, unmerged): cruise phases reject twists (M14 spec requires none), and D10/campaign validation share a sortie-wide uniqueness check for bomber, ground, wave, ace and cruise identities. Regression coverage includes both phase orders and twist-inserted phases. No mission opts in; M01–M08 data and runtime behavior are unchanged. No Studio/Player run or upload was performed.
 
-D10 F26 cruise-intercept support is implemented in `feat/engine-batch-d10`, unmerged and dormant; no mission opts in. Based on fetched main `085373c`: D1–D6 and M01–M08 are merged/live by pipeline convention (older dashboard paragraphs retain their historical PR status). M14 remains locked. No Studio/Player verification or upload was performed. See D-480–D-483 and the engine plan’s Batch D10 implementation section.
+D10 validation: frozen install, build and full offline validation exited 0 (1,010 Luau contracts, 19 catalog snapshots, 124 Python tests). Runtime Jest compiled only; no Studio run.
+
+D10 F26 cruise-intercept support is implemented in `feat/engine-batch-d10`, unmerged and dormant; no mission opts in. Based on fetched main `5d84486`: D1–D6 and M01–M08 are merged/live by pipeline convention (older dashboard paragraphs retain their historical PR status). M14 remains locked. No Studio/Player verification or upload was performed. See D-480–D-483 and the engine plan’s Batch D10 implementation section.
 
 Updated 2026-10-30 against main `a04fdd6` (#177 and #178 merged), integrating mission 8 #183. Merged gameplay is live in Roblox Player under the owner's automatic-pipeline convention; no Player test is claimed here.
 

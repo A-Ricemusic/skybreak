@@ -1,5 +1,7 @@
 # Shipped
 
+PR #190 review fixes remain unmerged and dormant: cruise twists and cross-encounter identity collisions are rejected during authoring validation. No Roblox Player behavior changes or new Player observations. See D-484.
+
 Updated 2026-10-30 against main `a04fdd6`; #177 and #178 are merged. Practice and missions 1–7 are live by pipeline convention; mission 8 will be live after #183 merges. No new Studio, Player or phone test is claimed. Older entries describe behavior at their merge; later entries supersede tuning and dormant activation status.
 
 ## Merged and pending 2026-10-30, newest first

@@ -1,3 +1,4 @@
+import { validateEncounterIdentities } from "./CampaignEncounters";
 import { BomberPoint, BomberRoute, BomberRules } from "./BomberRules";
 import { finiteNumber } from "./EngineBatchB";
 import type { MissionPhaseBlueprint } from "./MissionCatalog";
@@ -23,20 +24,15 @@ export function cruiseDestroyed(p: CruisePlan, states: CruiseState[], index: num
 }
 export function cruiseComplete(states: CruiseState[]): boolean { return states.every(s=>s.status==="destroyed" || s.status==="separated" || s.status==="cancelled"); }
 export function validateBatchD10(phases: MissionPhaseBlueprint[], limit: number): void {
- const sortieIds=new Set<string>();
- for(const phase of phases) {
-  for(const t of phase.groundTargets ?? []) sortieIds.add(t.id);
-  for(const w of phase.fighterWaves ?? []) sortieIds.add(w.id);
-  if(phase.standaloneAce) sortieIds.add(phase.standaloneAce.id);
- }
+ validateEncounterIdentities(phases);
  for(const phase of phases) {
   const p: CruisePlan | undefined=phase.cruiseIntercept; if(!p) continue;
-  assert(phase.kind==="required_air" && phase.count===p.targets.size() && !phase.bombers && !phase.interceptHold && !phase.execution && !phase.scoreThreshold,"D10 needs its own required-air director phase");
+  assert(phase.kind==="required_air" && phase.count===p.targets.size() && !phase.twist && !phase.bombers && !phase.interceptHold && !phase.execution && !phase.scoreThreshold,"D10 needs its own required-air director phase");
   assert(p.targets.size()>0 && p.targets.size()<=CruiseBudget.inventory,"D10 inventory budget");
   const point=(v:BomberPoint)=>assert(finiteNumber(v.x) && finiteNumber(v.y) && finiteNumber(v.z) && math.abs(v.x)<=limit && math.abs(v.z)<=limit && v.y>=0 && v.y<=2000,"D10 point outside airspace");
-  point(p.site); const ids=new Set<string>(); let roots=0;
+  point(p.site); let roots=0;
   for(const t of p.targets) {
-   assert(t.id.size()>0 && !ids.has(t.id) && !sortieIds.has(t.id) && t.scoreRole.size()>0,"D10 unique identities and score roles required"); ids.add(t.id); sortieIds.add(t.id);
+   assert(t.scoreRole.size()>0,"D10 score role required");
    assert(finiteNumber(t.speed) && t.speed>=CruiseBudget.speedMin && t.speed<=CruiseBudget.speedMax,"D10 pursuit speed");
    assert(t.route.size()>=2 && t.route.size()<=16,"D10 route budget"); for(const v of t.route) point(v);
    const r=cruiseRoute(t), endpoint=t.route[t.route.size()-1];

@@ -2,7 +2,9 @@
 
 ## D10 / M14 integration
 
-D10 validation: frozen install, build and full offline validation exited 0 (1,007 Luau contracts, 19 catalog snapshots, 124 Python tests). Runtime Jest compiled only; no Studio run.
+D10 review fixes (#190, unmerged): cruise phases reject twists (M14 spec requires none), and D10/campaign validation share a sortie-wide uniqueness check for bomber, ground, wave, ace and cruise identities. Regression coverage includes both phase orders and twist-inserted phases. No mission opts in; M01–M08 data and runtime behavior are unchanged. No Studio/Player run or upload was performed.
+
+D10 validation: frozen install, build and full offline validation exited 0 (1,010 Luau contracts, 19 catalog snapshots, 124 Python tests). Runtime Jest compiled only; no Studio run.
 
 After review of dormant D10, author M14’s finite cruise/carrier/child roster, score-role values, staggered arrivals and terrain-audited routes using the existing world. Calibrate visual locks, missile/gun hit fairness, impact ordering, low-altitude radar, phone cost and carrier-before-release score totals in Studio/Player. Run the added runtime Jest suite under the orchestrator’s lease; this implementation task deliberately did not launch Studio. D7 #184, D8 #186 and D9 #188 remain separate open work; D10 does not depend on their files.
 
