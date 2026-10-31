@@ -177,9 +177,13 @@ describe("D4 director contracts (compiled for orchestrator Studio lease)",()=>{
 		const h=harness(stream());h.director.Apply(h.s);h.s.elapsed=50;h.director.Step(h.s);
 		for(let slot=0;slot<6;slot++) h.s.enemies.push({enabled:true,health:180,maxHealth:180,bomberSlot:slot,role:"bomber"} as Enemy);
 		h.s.elapsed=100;h.director.Step(h.s);
-		expect(h.s.enemies[0].position.X).toBeCloseTo(-5000);expect(h.s.enemies[5].position.X).toBeCloseTo(-7500);
+		// +X route: X = -10000 + 50 * (100 - arrivalSeconds[slot]) - local aft offset.
+		// The default formation's second row remains 220 studs aft even with independent clocks.
+		const expectedX = [-5000, -5500, -6000, -6720, -7220, -7720];
+		for (let slot = 0; slot < 6; slot++) expect(h.s.enemies[slot].position.X).toBeCloseTo(expectedX[slot]);
+		// Ignore dead slot 0's endpoint at 200 s; surviving slot 1 reaches it at 10 + 10000 / 50 = 210 s.
 		h.s.enemies[0].health=0;h.s.elapsed=209.99;h.director.Step(h.s);expect(h.s.blueprintState?.outcome).toBeUndefined();
-		h.s.elapsed=210;h.director.Step(h.s);expect(h.s.blueprintState?.reason).toBe("bombers_escaped");h.folder.Destroy();
+		h.s.elapsed=210;h.director.Step(h.s);expect(h.s.blueprintState?.outcome).toBe("failed");expect(h.s.blueprintState?.reason).toBe("bombers_escaped");h.folder.Destroy();
 	});
 	it("queues the initial 27 contacts at a seven-fighter ceiling without repeating the wave",()=>{
 		const bp=encounter();bp.phases=[{kind:"score_threshold",label:"Battle",concurrentFighters:7,scoreThreshold:{points:800,seconds:420,waitForExpiry:true},fighterWaves:[{id:"battle",count:27,role:"raider",scoreRole:"escort",trigger:{kind:"phase_start",phase:0}}]}];
