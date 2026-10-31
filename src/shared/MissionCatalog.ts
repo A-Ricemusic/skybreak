@@ -1,5 +1,7 @@
 import { ProtectionPlan, validateBatchD7 } from "./EngineBatchD7";
+import { RepeatedArtillery, validateBatchD6 } from "./EngineBatchD6";
 import { InterceptHold, validateBatchD4 } from "./EngineBatchD4";
+import { GroundProgressPlan, validateBatchD5 } from "./EngineBatchD5";
 import { CanyonEscape, validateBatchD3 } from "./EngineBatchD3";
 import { NightLighting, validateNightLighting } from "./NightLighting";
 import { SortieArmament, validateArmament } from "./SortieArmament";
@@ -123,8 +125,11 @@ export interface MissionPhaseBlueprint {
 	concurrentFighters?: number;
 	interceptHold?: InterceptHold;
 	canyonEscape?: CanyonEscape;
+	repeatedArtillery?: RepeatedArtillery;
+	cheapContacts?: true;
 	scoreThreshold?: ScoreThreshold;
 	jamming?: RadarJamming;
+	groundProgress?: GroundProgressPlan;
 	rearm?: RearmPlan;
 	/** HUD-less cut-in with the mission clock held (SortieCutaways). */
 	cutIn?: CutInPlan;
@@ -299,7 +304,9 @@ for (let index = -1; index < MISSIONS.size(); index++) {
 		validateBatchC(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateArmament(blueprint.armament, expandPhases(blueprint.phases).some(phase => phase.rearm?.gun === true));
 	validateBatchD7(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
+	validateBatchD6(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth, blueprint.terrainRelativeWarnings === true);
 	validateBatchD4(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
+	validateBatchD5(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateBatchD3(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth, blueprint.terrainRelativeWarnings === true);
 		validateBatchB(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateCutIn(expandPhases(blueprint.phases));
@@ -455,7 +462,9 @@ export const MissionCatalog = {
 	validateBatchC(expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint).hardHalfWidth);
 	validateArmament(blueprint.armament, expandPhases(blueprint.phases).some(phase => phase.rearm?.gun === true));
 	validateBatchD7(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
+	validateBatchD6(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth, blueprint.terrainRelativeWarnings === true);
 	validateBatchD4(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
+	validateBatchD5(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateBatchD3(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth, blueprint.terrainRelativeWarnings === true);
 	validateBatchB(expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint).hardHalfWidth);
 	validateCutIn(expandPhases(blueprint.phases));

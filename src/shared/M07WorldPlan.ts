@@ -1,3 +1,4 @@
+import { M07_SAFE_CEILING } from "./EngineBatchD3";
 import type { PartSpec } from "./WorldPlan";
 import { compactSurface, surfaceGround, type WorldSurface } from "./CompactWorldSurface";
 import { compactWorldCounts } from "./M06M07WorldCounts";
@@ -8,7 +9,7 @@ export const M07 = {
  half: 16384, start: { x: 0, y: 968, z: 15360, headingDegrees: 0 },
  south: { x: 0, y: 160, z: 6720 }, middle: { x: 960, y: 190, z: 0 }, plant: { x: 0, y: 230, z: -8640 },
  canyonA: { x: -1920, y: 120, z: -4800 }, canyonB: { x: -3840, y: 90, z: 0 }, canyonC: { x: -1920, y: 70, z: 5760 },
- escape: { x: 0, y: 32, z: 11520 }, artilleryCeiling: 32 + 0.96 * 0.3048 * 2000,
+ escape: { x: 0, y: 32, z: 11520 }, artilleryCeiling: M07_SAFE_CEILING,
 };
 export const M07_ENVIRONMENT: EnvironmentSpec = {
  ...M06_ENVIRONMENT, label: "Golden arid dusk 16:40", clock: 16 + 40 / 60, brightness: 1.7, exposure: 0,
@@ -19,7 +20,7 @@ export const M07_ENVIRONMENT: EnvironmentSpec = {
  sky: "dusk", moonSize: 12, sunSize: 22,
 };
 /** Centreline preserves all three sketch bends. Heights are floor heights;
- * flight route adds 56 studs, below the absolute 2,000-ft hazard band. */
+ * flight route adds 80 studs, below the absolute 2,000-ft hazard band. */
 export const M07_CANYON = [
  { x: 0, z: -7000, floor: 100 }, { x: -1920, z: -4800, floor: 64 },
  { x: -3840, z: 0, floor: 32 }, { x: -1920, z: 5760, floor: 12 }, { x: 0, z: 11520, floor: 8 },

@@ -86,7 +86,19 @@ describe("Dormant allied flight contracts", () => {
 		expect(recomputed).toBeUndefined();
 		const player = AlliedRules.CommitWindupTarget<typeof wingman>(undefined);
 		expect(AlliedRules.WarnsPlayer(player)).toBe(true);
+		expect(AlliedRules.WarnsPlayer(player, "beach")).toBe(false);
 		expect(player).toBeUndefined();
+	});
+	it("combines sector ownership and protected-aircraft commitment without hiding player windups", () => {
+		const protectedAircraft = { id: "protected-high", friendly: true };
+		const committed = AlliedRules.CommitWindupTarget(protectedAircraft);
+		for (const sector of [undefined, "beach"]) {
+			expect(AlliedRules.WarnsPlayer(committed, sector)).toBe(false);
+			expect(AlliedRules.WarnsPlayer({ id: "wingman" }, sector)).toBe(false);
+		}
+		expect(AlliedRules.WarnsPlayer(undefined, "beach")).toBe(false);
+		expect(AlliedRules.WarnsPlayer(undefined, undefined)).toBe(true);
+		expect(AlliedRules.WarnsPlayer(undefined)).toBe(true);
 	});
 	it("uses hysteresis for ordinary hostiles and keeps aces and couriers focused on the player", () => {
 		expect(AlliedRules.HostileTargetsWingman("air", "bandit", 1000, 810, false)).toBe(false);

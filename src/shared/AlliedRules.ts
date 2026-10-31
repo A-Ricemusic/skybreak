@@ -29,6 +29,7 @@ export const AlliedRules = {
 	},
 	/** The windup target is copied once; undefined deliberately means the player. */
 	CommitWindupTarget<T>(target: T | undefined): T | undefined { return target; },
+	/** Sector-owned attackers and committed friendly targets never warn the player. */
 	WarnsPlayer(target: unknown, attackSector?: string): boolean { return target === undefined && attackSector === undefined; },
 	/** Friendlies and hostiles advance independent ordinals. */
 	AirSerial(friendly: boolean, hostileSerial: number, alliedSerial: number): number { return friendly ? alliedSerial : hostileSerial; },

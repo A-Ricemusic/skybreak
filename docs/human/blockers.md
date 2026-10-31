@@ -1,8 +1,10 @@
 # Blockers
 
-D7 (`feat/engine-batch-d7`) is dormant and unmerged. PR #184 P2 review finding is fixed on this branch: ordinary-wingman targets retain the player evade-window suppression and original aim threshold; only selected protected aircraft receive D7 overrides. New offline regressions cover both paths, strict aim boundaries and unchanged range/reload/global readiness gates. Runtime Jest specs compile, but Studio verification is explicitly deferred to the orchestrator’s lease. No Studio/Player observation is claimed. M11 still needs mission roster/trigger/route/health tuning, terrain clearance along high/low routes, procedural stand-in replacement or acceptance, marker readability and Player/phone checks. Frozen install/build/full offline validation exited 0 (981 Luau contracts, 19 catalog snapshots, 124 Python tests); these results do not resolve those activation gates.
+Updated 2026-10-30 against main `9857358`. Publish succeeded per CI; no known deployment failure is recorded. Live status follows the owner's pipeline convention and does not establish observed Player quality. This reconciliation performs offline checks only.
 
-Updated 2026-10-30 against main `6f17a95`, with dormant D7 implementation on this branch. Publish succeeded per CI; no known deployment failure is recorded. Live status follows the owner's pipeline convention and does not establish observed Player quality. This reconciliation performs offline checks only.
+## D5 verification and mission integration (2026-10-30)
+
+Resolved PR #180 P2: sector-only windups no longer emit player lock warnings or prevent carrier service. Shared policy coverage and a beach-attacker-to-service integration regression preserve player windup warnings/service blocking. The integration case is compiled but awaits the orchestrator-owned Roblox test run. No implementation blocker requiring owner input. Studio/Jest runtime, Player feel, phone readability, carrier approach/deck clearance and force-health tuning remain unverified. The implementation agent did not launch Studio or run test:roblox. M09 subtype inventory, exact points and authored routes remain mission readiness gaps; dormant engine support does not resolve them. No uploads or new audio. D5 is updated against main `d1fb3a8`; D4 #177 remains a separate open dependency.
 
 ## Resolved dependencies
 
@@ -77,3 +79,19 @@ PR #149 fixes the old 4:43.5 transport exit to 6:48.33 (D-096), covered offline;
 Sequential unlock after mission 5, finite stocks/rearm, score expiry and shared engine integration are implemented. Independent review approved #179; the orchestrator’s full Studio Jest suite passed 1,133/1,133 at `e5c2fd2`. This docs reconciliation does not rerun Studio or establish Player quality.
 
 D-260 retains 36 naval hulls, 40 yard contacts and 18 separately scored hull-owned components; the reference initial-40/credited-58 discrepancy remains unresolved. Sixteen hostile aircraft reflect owner pressure direction. Rendered reference comparison, real flight/ship sinking/SAM/anti-ship feel, service skip/clock behavior, load/clear timing and phone readability remain acceptance gaps. Player/phone not yet observed. No new audio or Blender asset upload.
+
+## Mission 7 review fixes (unmerged #178)
+
+Resolved in code/offline coverage: ray masking beyond Roblox’s 15,000-stud single-cast limit, incorrect 617.216 ceiling, short initial ingress window, main/M06 merge conflicts and one-kill allied budget integration. The distant battery is authored because neither reference spec measures its position. Initial warning remains immediate, first impact is 60s; later salvos remain 25s apart. New actual-build first-step audit and masking Jest spec awaits the orchestrator’s Studio run. Player/phone balance, transition flight and rendered acceptance remain open; no Studio/Player test is claimed.
+
+## Engine D6 verification and M10 activation
+
+D6 remains dormant. Runtime Jest, Studio, Player observations and 150-contact phone profiling remain pending under the orchestrator’s Studio lease. M10 roster, artillery cadence, rank thresholds and rendered-world acceptance remain unresolved. D4/D5 and mission 7 are now integrated; repeated artillery uses M7’s segmented masking rays. No uploads or owner action required.
+
+D6 integration checks: frozen install, build and full offline validation exit 0 (993 Luau contracts, 19 catalog snapshots, 124 Python tests; four negative loader probes). D4+D6 admission/contact regressions added; runtime specs compiled only. No Studio, `test:roblox`, Player or phone test performed.
+
+## Dormant D7 acceptance
+
+PR #184 remains unmerged and dormant. The protected-target-only firing correction is retained. Main integration combines sector-attacker and committed protected-aircraft warning/service suppression while preserving player windup threats. No Studio or Player testing is performed here; route clearance, marker readability, both loss branches, all-safe completion and phone performance remain activation gates.
+
+Main integration validation (2026-10-30): frozen install, standalone build and full offline validation exited 0; 1,007 Luau contracts, 19 unchanged catalog snapshots and 124 Python tests. The combined sector/protected-target warning rule passes offline; service-entry runtime regressions compile but remain unrun. No Studio/Player test. Main at integration is `ea0045d` (D5/D6 merged, M08 not merged). D4/D6 admission logic is retained; this main revision has no `concurrentRoutes` option.

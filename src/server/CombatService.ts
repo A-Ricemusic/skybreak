@@ -1,4 +1,6 @@
 import { stepProtection, protectedTarget, hitProtected, clearProtection } from "./EngineBatchD7Runtime";
+import { createCheapContact, cheapEligible, stepContacts, handoffParked, stepRepeatedArtillery } from "./EngineBatchD6Runtime";
+import { clearGroundDirector, stepGroundDirector, stepBeachAttacker } from "./EngineBatchD5Runtime";
 import { stepCanyon } from "./EngineBatchD3Runtime";
 import { insideArea } from "../shared/EngineBatchD3";
 import { AntiShipRules } from "../shared/EngineBatchD2";
@@ -416,7 +418,7 @@ function sendTelemetry(session: CombatSession): void {
 		if (EvadeRules.Decoys(range, (missile.life ?? 0) - missile.age)) evadeThreat = true;
 	}
 	// A windup is a lock warning, not a missile: evading now would waste the countermeasure.
-	for (const enemy of session.enemies) if (ownsEnemy(session, enemy) && enemy.windup > 0 && AlliedRules.WarnsPlayer(enemy.windupTarget)) { lockWarning = true; break; }
+	for (const enemy of session.enemies) if (ownsEnemy(session, enemy) && enemy.windup > 0 && AlliedRules.WarnsPlayer(enemy.windupTarget, enemy.attackSector)) { lockWarning = true; break; }
 	const target = ownsEnemy(session, session.target) ? session.target : undefined;
 	let distance = 0;
 	if (target) { const [targetDistance] = targetMetrics(session, target); distance = targetDistance; }
@@ -551,6 +553,7 @@ function cleanupSession(session: CombatSession, restore = true): void {
 		if (session.player.Parent === Players) session.player.ReplicationFocus = session.previousReplicationFocus;
 	}
 	clearProtection(session);
+	clearGroundDirector(session);
 	session.folder.Destroy();
 	session.projectiles.clear();
 	session.enemies.clear();
@@ -694,6 +697,9 @@ function attackWarning(model: Model): BillboardGui {
 	return warning;
 }
 function spawnAir(session: CombatSession, count: number, role: AirRole, options: SpawnOptions = {}): void {
+	const parkedId=options.arrival && "parkedSourceId" in options.arrival ? options.arrival.parkedSourceId : undefined;
+	const handoffId=parkedId!==undefined ? handoffParked(session,parkedId) : undefined;
+	if(parkedId!==undefined && handoffId===undefined) return;
 	const forward = directionFor(session.state);
 	const right = new Vector3(-forward.Z, 0, forward.X);
 	const act = sessionAct(session);
@@ -777,10 +783,12 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 			attackProtected: options.arrival && "attackProtected" in options.arrival ? options.arrival.attackProtected : undefined,
 			scoreRole: options.arrival?.scoreRole ?? (role === "bomber" && session.blueprintState ? BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.scoreRole : undefined),
 			routeActor: route ? {route,startedAt:session.elapsed,jammer:arrival !== undefined && "aircraft" in arrival && arrival.aircraft==="jammer"} : undefined,
+			phaseOwner: options.arrival && "attackSector" in options.arrival && options.arrival.attackSector!==undefined ? session.blueprintState?.phaseIndex : undefined,
+			attackSector: options.arrival && "attackSector" in options.arrival ? options.arrival.attackSector : undefined,
 			groundAttack: options.arrival && "behaviour" in options.arrival && options.arrival.behaviour === "ground_attack",
 			scramble: options.arrival && "scramble" in options.arrival && options.arrival.scramble ? { spawn: { x:position.X,y:position.Y,z:position.Z }, heading: options.arrival.headingDegrees ?? 0, startedAt:session.elapsed } : undefined,
 			friendly: options.friendly, alliedAmmo: options.friendly ? AlliedRules.MissilesPerWingman : undefined,
-			id: options.targetId ?? `${friendly ? "ally" : "air"}_${serial}_${missionSerial}`, name, model, health, maxHealth: health,
+			id: handoffId ?? options.targetId ?? `${friendly ? "ally" : "air"}_${serial}_${missionSerial}`, name, model, health, maxHealth: health,
 			position, direction, velocity: direction.mul(300), kind: role === "ace" ? "ace" : "air", required: options.optional !== true && role !== "raider" && role !== "escort", enabled: true,
 			targetSlot: serial, fireTimer: role === "courier" ? math.huge : 4 + index * 1.5, windup: 0, mode: "attack", modeTimer: 0, passDirection: direction, side,
 			flares, flareTimer: 0, flareUntil: 0, speedBonus: 0, lockBreakTimer: TUNING.aceLockBreak[act - 1],
@@ -1168,6 +1176,7 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		const enemy = session.enemies[index];
 		if (enemy.withdrawUntil !== undefined) { if (enemy.health > 0) stepWithdrawing(session, enemy, dt); continue; }
 		if (!ownsEnemy(session, enemy) || enemy.kind === "ground") continue;
+		if(stepBeachAttacker(session,enemy,dt,line=>radio(session,line,4))) continue;
 		if (enemy.scramble) {
 			const elapsed=session.elapsed-enemy.scramble.startedAt;
 			const p=scramblePose(enemy.scramble.spawn,enemy.scramble.heading,elapsed);
@@ -1657,8 +1666,11 @@ function stepSession(session: CombatSession, dt: number): void {
 	}
 	session.inputSteps += 1;
 	stepProtection(session,dt,(line)=>radio(session,line,4));
+	stepGroundDirector(session,dt,line=>radio(session,line,4));
 	if(session.blueprintState?.outcome!==undefined) { finish(session); return; }
 	stepCanyon(session,dt,(line)=>radio(session,line,4));
+	stepRepeatedArtillery(session,dt,(line)=>radio(session,line,4));
+	stepContacts(session,dt);
 	if(session.crashReason) { finish(session); return; }
 	if(session.health<=0) { refreshSession(session,os.clock()); return; }
 	if (session.blueprintState) {
@@ -1872,7 +1884,10 @@ export const CombatService = {
 			const expandedPhases = MissionCatalog.ExpandedPhases(blueprint);
 			for(let phase=0;phase<expandedPhases.size();phase++) for(const spec of expandedPhases[phase].groundTargets ?? []) {
 				// The world's own drawing of this target when it has one, so every target exists exactly once.
-				const model=world.targetVisuals?.get(spec.id) ?? createGroundTarget(spec); world.targetVisuals?.delete(spec.id);
+				const existing=world.targetVisuals?.get(spec.id);
+				const cheap=expandedPhases[phase].cheapContacts && cheapEligible(spec);
+				if(cheap) existing?.Destroy();
+				const model=cheap ? createCheapContact(spec) : existing ?? createGroundTarget(spec); world.targetVisuals?.delete(spec.id);
 				model.Parent=folder; world.groundTargets.push(model); typed.set(model,{spec,phase});
 			}
 			const hiddenGround = session.blueprint ? MissionCatalog.HiddenGround(session.blueprint) : new Set<number>();

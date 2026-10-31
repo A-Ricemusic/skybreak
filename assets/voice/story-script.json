@@ -2294,6 +2294,42 @@
    "maxDurationSeconds": 5,
    "recordingId": null,
    "needsRecording": true
+  },
+  {
+   "id": "radio.m07.p1.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "chip": "SERA",
+   "text": "SERA: Copy before you cut. We need the signature, not just wreckage.",
+   "context": "Live mission phase/landing radio",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 6,
+   "recordingId": null,
+   "needsRecording": true
+  },
+  {
+   "id": "radio.m07.p1.chatter1",
+   "kind": "radio",
+   "speaker": "SERA",
+   "chip": "SERA",
+   "text": "SERA: Lira log copied. Keep moving to the next installation.",
+   "context": "Live mission phase/landing radio",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 5,
+   "recordingId": null,
+   "needsRecording": true
+  },
+  {
+   "id": "radio.m07.p1.chatter2",
+   "kind": "radio",
+   "speaker": "SERA",
+   "chip": "SERA",
+   "text": "SERA: Merel log copied. One transmitter remains.",
+   "context": "Live mission phase/landing radio",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 5,
+   "recordingId": null,
+   "needsRecording": true
   }
  ]
 }

@@ -3,7 +3,7 @@ import { SpecialWeapons, SpecialState, SpecialDecision } from "./SpecialWeapons"
 import type { FlightPoint } from "./MissionCatalog";
 import type { GroundTargetType, TypedGroundTarget } from "./CampaignEncounters";
 import type { DifficultyKind } from "./Difficulty";
-export const NAVAL_TYPES: readonly GroundTargetType[] = ["ship", "destroyer", "cruiser", "submarine", "missile_boat", "supply_ship", "landing_ship", "container_ship"];
+export const NAVAL_TYPES: readonly GroundTargetType[] = ["ship", "destroyer", "cruiser", "submarine", "missile_boat", "supply_ship", "landing_ship", "container_ship", "gunboat"];
 export interface SurfaceRoute { waypoints: FlightPoint[]; speed: number }
 export function navalHull(targetType: GroundTargetType): boolean { return NAVAL_TYPES.includes(targetType); }
 export function surfacePose(route: SurfaceRoute, elapsed: number): { position: FlightPoint; yaw: number; moving: boolean } {
