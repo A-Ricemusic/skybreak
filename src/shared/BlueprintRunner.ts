@@ -1,4 +1,4 @@
-import { newVent, stepVent, VentState } from "./EngineBatchD13";
+import { duelTargetId, newVent, stepVent, VentState } from "./EngineBatchD13";
 import { thresholdResult } from "./EngineBatchC";
 import { canSkipLanding, crossesReturnLine, landingDuration, landingSkipTarget, landingTimeRemaining } from "./EngineBatchB";
 import { FlightMath, FlightState } from "./FlightMath";
@@ -360,6 +360,7 @@ export const BlueprintRunner = {
 		if (p.kind === "tutorial_missile") return required && kind === "ground" && s.phaseProgress === 0;
 		if (!required && kind === "ground" && p.groundTargets !== undefined) return true;
 		if (!required && p.standaloneAce && kind === "ace") return true;
+  if(!required && kind==="ace" && p.batchD13?.vent && p.execution?.preservePursuers) return !s.optionalAceKilled;
 		if (!required && p.bombers) return (kind === "air" || kind === "ace") && s.phaseOptionalKills < MissionCatalog.RaiderCap(p,s.extraRaiders);
 		if (!required && p.execution?.raiderKillCap !== undefined) return kind === "air" && s.optionalAirKills<p.execution.raiderKillCap;
 		if (!required) return kind==="air" && s.phaseOptionalKills<MissionCatalog.RaiderCap(p,s.extraRaiders);
@@ -370,9 +371,16 @@ export const BlueprintRunner = {
 		BlueprintRunner.Tick(s,now);
 		if (required && kind==="ground" && BlueprintRunner.ActivePhase(s)?.scoreThreshold?.requiredTargetIds && !BlueprintRunner.ActivePhase(s)!.scoreThreshold!.requiredTargetIds!.includes(id)) return false;
 		if (id==="" || s.killedIds.has(id) || !BlueprintRunner.CanDamage(s,kind,required)) return false;
+  if(required && s.phases.some(phase=>phase.batchD13?.vent!==undefined)) {
+   const phase=BlueprintRunner.ActivePhase(s)!;
+   if(phase.groundTargets && !phase.groundTargets.some(t=>t.required && t.id===id)) return false;
+   if(phase.batchD13?.duel && id!==duelTargetId(s.phaseIndex)) return false;
+   const vent=phase.batchD13?.vent;
+   if(vent && (!s.vent || s.vent.elapsed<vent.openingSeconds || s.vent.checkpoint<vent.checkpoints.size())) return false;
+  }
 		s.killedIds.add(id);
 		if (!required && kind === "ground") { s.optionalGroundKills++; return true; }
-		if (!required) { if (kind === "ace" && BlueprintRunner.ActivePhase(s)?.standaloneAce) s.optionalAceKilled=true; s.optionalAirKills++; s.phaseOptionalKills++; return true; }
+		if (!required) { if (kind === "ace" && (BlueprintRunner.ActivePhase(s)?.standaloneAce || BlueprintRunner.ActivePhase(s)?.batchD13?.vent)) s.optionalAceKilled=true; s.optionalAirKills++; s.phaseOptionalKills++; return true; }
 		const p=BlueprintRunner.ActivePhase(s)!;
 		if (p.kind === "tutorial_missile") {
 			s.requiredGroundKills++; s.phaseProgress++; advanceTeaching(s); return true;

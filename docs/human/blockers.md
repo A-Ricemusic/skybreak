@@ -1,3 +1,12 @@
+# M18 integration status — 2026-10-31
+
+- Resolved: old D13 ancestry replaced by M17 base, preserving shared runtime fixes, mission history and decision records.
+- Release ordering: #197 → #198 → #199 → #200; #200 Merge pending, targets main. Live by pipeline convention after merge.
+- Studio verified: pending orchestrator run. This task does not launch Studio or test:roblox. Player/phone full-campaign acceptance and rank calibration remain open; owner checklist is in next.md.
+- Offline fairness steps shared acquisition, guidance, fuse, seeker and admission with negative probes; deterministic duel bands remain conditional simulations.
+
+Historical blocker records follow.
+
 ## M17 integration — #199 Merge pending
 
 Resolved: old D12 base and D11 merge removed; M17 replayed over M16 `9752a5ad`. Shared implementations and all base decisions retained. D11 now provides M17 opt-in health repair. Airborne contact scenery is omitted; adoption tests use TargetId attributes.
@@ -241,3 +250,6 @@ M16 #198 shared-targeting review fix (2026-10-31; unmerged): fairness now select
 Shared-targeting fix validation: frozen install, build and full prescribed-LUAU_BIN validate:offline exited 0. Catalog snapshot changed only the two M16 town ingress coordinates. No merge or Studio/Player verification.
 
 M17 #199 replay validation (2026-10-31, M16 base `9752a5ad`): frozen install, standalone build, required test:offline/voice/story/catalog sequence and full prescribed-LUAU_BIN validate:offline each exited 0. Passed 1,201 offline Luau contracts, four loader probes, 475 module compilations, 197 require-graph nodes, 19 catalog snapshots, three QA pilot scenarios and 124 Python tests. All 113 base offline specs plus three M17 specs remain in both lists with checkedRequire. Runtime Jest compiled only; adopted models are tested by TargetId. Only M17 catalog snapshot changes; every base decision and non-M17 voice entry is preserved. Voice inventory: 239 entries / 161 pending recordings. No Studio, test:roblox, Player tests, uploads or merge performed. Studio verified: pending orchestrator run. #199 Merge pending; live by pipeline convention after merge.
+
+
+M18 #200 replay validation (2026-10-31, M17 base be746a10): frozen install, standalone build, test:offline plus voice/story/catalog regeneration, and full prescribed-LUAU_BIN validate:offline exited 0. Passed 1,210 Luau contracts, four loader probes, 483 module compilations, 201 require-graph nodes, 19 catalog snapshots, three QA pilot scenarios and 124 Python tests. Both lists retain all 118 offline specs and checkedRequire. Base decision text is preserved in full; every non-M18 voice entry is unchanged; only M18 catalog changes. Voice inventory: 250 entries / 172 pending recordings. Duel wins: Easy 107.16s / Normal 134.12s / Hard 199.92s. Runtime/world Jest compiled only. No Studio, test:roblox, Player tests, uploads or merge performed. Studio verified: pending orchestrator run. Merge pending; live by pipeline convention after merge.

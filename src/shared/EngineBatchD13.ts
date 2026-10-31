@@ -1,4 +1,4 @@
-import type { FlightPoint, MissionBlueprint } from "./MissionCatalog";
+import type { FlightPoint, MissionBlueprint, MissionPhaseBlueprint } from "./MissionCatalog";
 import { finiteNumber } from "./EngineBatchB";
 import { ENVIRONMENTS } from "./EnvironmentPresets";
 import type { EnvironmentPreset } from "./MissionCatalog";
@@ -14,7 +14,8 @@ export interface VentRun {
  exit: VentVolume;
 }
 export interface DuelArena { center: FlightPoint; radius: number; minY: number; maxY: number }
-export interface BatchD13Phase { vent?: VentRun; duel?: DuelArena; environment?: string }
+import type { AscendingTarget } from "./M18FinaleRules";
+export interface BatchD13Phase { enclosed?: true; ascending?: AscendingTarget[]; vent?: VentRun; duel?: DuelArena; environment?: string }
 /** Reserved sortie identity, shared by admission and the authoritative spawn. */
 export function duelTargetId(phaseIndex: number): string { return `d13_duel_${phaseIndex}`; }
 export interface VentState { checkpoint: number; elapsed: number; exited: boolean }
@@ -48,16 +49,20 @@ export function validateBatchD13(b: MissionBlueprint): void {
  assert(phases.every(p=>!p.twist),"D13 uses a fixed reveal sequence");
  assert(vi>0 && di===vi+1 && di===phases.size()-1,"D13 reveal, vent and final duel must be ordered");
  for(const phase of phases) {
-  const d=phase.batchD13;
+  const d:BatchD13Phase | undefined=phase.batchD13;
   if(!d) continue;
   assert(!phase.twist && !phase.rearm && !phase.returnLine && !phase.interceptHold && !phase.cruiseIntercept && !phase.protection && !phase.spatialJamming && !phase.eliteFormation && !phase.ringSweep,"D13 has exclusive phase ownership");
   if(d.environment) assert(d.environment==="m18_voice_breaks" || ENVIRONMENTS[d.environment as EnvironmentPreset]!==undefined,"Unknown D13 environment");
-  const v=d.vent;
+  if(d.ascending) {
+   assert(b.id===18 && d.vent!==undefined && d.ascending.size()===4,"Ascending launches belong to M18 vent");
+   for(const t of d.ascending) assert([t.start.x,t.start.y,t.start.z,t.end.x,t.end.y,t.end.z].every(finiteNumber) && t.start.y<t.end.y && finiteNumber(t.speed) && t.speed>0 && t.speed<=40 && t.start.x===t.end.x && t.start.z===t.end.z && t.start.y>=400 && t.end.y===2000 && math.abs(t.start.x)<14000 && math.abs(t.start.z)<14000,"Invalid ascending route");
+  }
+  const v:VentRun | undefined=d.vent;
   if(v) {
    assert(!d.duel && !phase.points && !phase.hazard && !phase.bombers,"Vent owns navigation and objective progression");
    assert(phase.kind==="required_ground" && phase.hidden===true && phase.count===1 && phase.groundTargets?.size()===1 && phase.groundTargets[0].id===v.core && phase.groundTargets[0].required,"Vent needs one hidden required core");
    assert(v.generators.size()===3 && new Set(v.generators).size()===3,"Three unique generators required");
-   const previous=phases[vi-1];
+   const previous:MissionPhaseBlueprint=phases[vi-1];
    assert(previous.kind==="required_ground" && previous.count===3 && previous.groundTargets?.filter(t=>t.required).size()===3 && v.generators.every(id=>previous.groundTargets?.some(t=>t.id===id && t.type==="generator" && t.required)),"Generators must gate core reveal");
    assert(v.checkpoints.size()>=2 && v.checkpoints.size()<=16 && finiteNumber(v.openingSeconds) && v.openingSeconds>=3 && v.openingSeconds<=60,"Invalid vent timing/sequence");
    for(const axis of ["x","y","z"] as const) assert(v.checkpoints[0].center[axis]===v.gate.center[axis],"First checkpoint must be the timed opening");
@@ -67,7 +72,7 @@ export function validateBatchD13(b: MissionBlueprint): void {
    assert(phase.groundTargets[0].type==="core","Vent objective must be a core");
   }
   if(d.duel) {
-   const a=d.duel;
+   const a:DuelArena=d.duel;
    assert(phase.kind==="ace" && (phase.optionalRaiders ?? 0)===0 && !phase.fighterWaves && !phase.standaloneAce && !phase.bombers && !phase.hazard && !phase.groundTargets && !phase.reinforce && phase.update?.countdownSeconds===300,"Duel requires isolated ace and fresh 5:00 clock");
    assert([a.center.x,a.center.y,a.center.z,a.radius,a.minY,a.maxY].every(finiteNumber) && a.radius>=1000 && a.radius<=6000 && a.minY>=800 && a.maxY>a.minY && a.maxY<=3000 && math.abs(a.center.x)+a.radius<=(b.airspace?.hardHalfWidth ?? 15360) && math.abs(a.center.z)+a.radius<=(b.airspace?.hardHalfWidth ?? 15360),"Invalid open-air duel arena");
   }

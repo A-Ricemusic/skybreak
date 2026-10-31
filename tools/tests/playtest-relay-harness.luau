@@ -77,7 +77,10 @@ local function scenario(late,detach)
     finish("Failed",{reason="destroyed"});finish("Completed");tick(37)
     assert(#entries()==4 and entries()[4]:GetAttribute("Outcome")=="Failed" and entries()[4]:GetAttribute("ResultValid")==false)
     controller.aircraft={Parent=true,GetPivot=function() return {} end};start(18);tick()
-    assert(#entries()==4) -- mission 18 remains a locked placeholder and is never admitted
+    assert(#entries()==5) -- the released finale is admitted
+    controller.aircraft={Parent=true,GetPivot=function() return {} end};start(19);tick()
+    assert(#entries()==5) -- no mission exists beyond the finale
+    finish("Failed",{missionId=18,reason="destroyed"}) -- settle the admitted finale before teardown
     commands=controller.commands;destroying:fire();assert(controller.commands==commands)
     passed+=1
 end

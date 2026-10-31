@@ -48,7 +48,7 @@ function response(id:number,d:DifficultyKind,fault="none") {
  return {won:false,spent,elapsed:180};
 }
 describe("released late-mission shared combat response envelopes",()=>{
- for(const id of [11,13,14,15,16,17])it(`M${id} selects all live contacts and needs working homing`,()=>{
+ for(const id of [11,13,14,15,16,17,18])it(`M${id} selects all live contacts and needs working homing`,()=>{
   const results=Difficulty.Order.map(d=>response(id,d));
   for(const r of results)expect(r.won).toBe(true);
   expect(results[0].spent).toBeLessThanOrEqual(results[1].spent);expect(results[1].spent).toBeLessThanOrEqual(results[2].spent);

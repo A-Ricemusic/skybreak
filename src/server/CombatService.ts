@@ -1,6 +1,10 @@
 import * as M14WorldActors from "./M14WorldActors";
 import * as CombatSessionFactory from "./CombatSessionFactory";
 // Keep batch helpers namespaced: per-symbol imports exhausted Luau's 200 local registers.
+import { m18RuskTuning } from "../shared/M18FinaleRules";
+import { stepM18Ascending } from "./M18AscendingRuntime";
+import { CombatMotion } from "../shared/CombatMotion";
+import { CombatEnvelope } from "../shared/CombatEnvelope";
 import { boundDuelPosition, projectileContact, ventObstructed } from "../shared/EngineBatchD13";
 import * as EngineBatchD13 from "./EngineBatchD13Runtime";
 import { D12Identities } from "../shared/EngineBatchD12";
@@ -122,9 +126,9 @@ const TUNING = {
 	banditHealth: CombatBalance.banditHealth,
 	banditFlares: [0, 0, 1],
 	lockBreakChance: [0.5, 1, 1],
-	aceFlares: [2, 3, 4],
-	aceLockBreak: [7, 5.5, 4],
-	aceStageSpeed: [30, 40, 55],
+	aceFlares: CombatEnvelope.aceFlares,
+	aceLockBreak: CombatEnvelope.aceLockBreak,
+	aceStageSpeed: CombatEnvelope.aceStageSpeed,
 	aceSalvo: CombatBalance.aceSalvo,
 	missileTurn: [1.6, 2.2, 2.8],
 	aceMissileTurn: [0.6, 0.9, 1.2],
@@ -141,7 +145,7 @@ const RAIDER_HEALTH = CombatBalance.raiderHealth;
 const COURIER_HEALTH = 160;
 /** Faster than cruise (255) but slower than full throttle (320): a chase you win by committing to it. */
 const COURIER_SPEED = 275;
-const ACE_DAMAGE_BONUS = 2;
+const ACE_DAMAGE_BONUS = CombatEnvelope.aceDamageBonus;
 /** Required waves arrive this far out (an approach before the lock); reinforcements from behind come a little closer. */
 const SPAWN_FRONT: [number, number] = [2600, 3200];
 const SPAWN_BEHIND: [number, number] = [2000, 2400];
@@ -312,8 +316,12 @@ function occludes(hit: RaycastResult): boolean {
 	return true;
 }
 /** Cached per enemy and refreshed at most every TargetPriority.LosInterval, so a TGT burst or a kill chain never fans out into raycasts every frame. */
+function enclosedPhase(session:CombatSession):boolean {
+ const d=session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.batchD13;
+ return d?.vent!==undefined || d?.enclosed===true;
+}
 function lineOfSightBlocked(session: CombatSession, enemy: Enemy): boolean {
- if(session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.batchD13?.vent) {
+ if(session.blueprintState && enclosedPhase(session)) {
   return ventObstructed(session.state,point(enemy.position),(o,d)=>{
    const hit=Workspace.Raycast(new Vector3(o.x,o.y,o.z),new Vector3(d.x,d.y,d.z),session.collisionParams);
    return hit && !hit.Instance.IsDescendantOf(enemy.model) && occludes(hit) ? hit.Distance : undefined;
@@ -368,7 +376,7 @@ function targetCandidates(session: CombatSession, view?: ViewFrustum): TargetCan
 		}
 		candidates.push(candidate);
 	}
-	if(session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.batchD13?.vent) {
+	if(session.blueprintState && enclosedPhase(session)) {
 		for(let i=candidates.size()-1;i>=0;i--) if(lineOfSightBlocked(session,session.enemies[candidates[i].id])) candidates.remove(i);
 	}
 	const checks = view === undefined ? TargetPriority.LosChecks(candidates) : TargetPriority.PressLosChecks(candidates);
@@ -916,7 +924,7 @@ function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy, 
 		});
 		// A finite stock (batch D1) says the missiles are spent, not reloading.
 		if (decision.kind === "denied") { denyFire(session, decision.reason === "no_ammo" ? SortieArmament.EmptyNotice(session.blueprint?.armament) : decision.reason); return; }
-		position = positionFor(session.state).add(directionFor(session.state).mul(16)).sub(new Vector3(0, 2, 0));
+		position = positionFor(session.state).add(directionFor(session.state).mul(WeaponRules.LaunchForward)).sub(new Vector3(0, WeaponRules.LaunchDrop, 0));
 		direction = directionFor(session.state);
 		// session.target is the enemy the player's lock is building on; preserve that meaning with nose-aligned selection.
 		target = decision.kind === "guided" ? session.target : undefined;
@@ -1249,6 +1257,7 @@ export function stepEnemies(session: CombatSession, dt: number): void {
 			publishEnemyDamageable(session, enemy);
 		}
 		const aceFighting = aceState === undefined || AceRules.Fights(aceState);
+		const rusk = m18RuskTuning(session.blueprint?.id, ace && enemy.required && enemy.phaseOwner !== undefined, session.difficulty);
 		// Defensive breaks use the 12 s cooldown; failed rolls wait 3 s. M01 forces tail breaks after overshoot grace.
 		// Normal/Ace also force lock/inbound reactions; Easy retains close-lock odds (M01 zero) and inbound breakChance.
 		if (!ace && enemy.mode !== "extend" && enemy.breakTimer <= 0) {
@@ -1323,7 +1332,7 @@ export function stepEnemies(session: CombatSession, dt: number): void {
 		}
 		if (enemy.groundAttack && (enemy.pullUpUntil ?? 0)<=session.elapsed) desired=unitOr(new Vector3(desired.X,math.clamp((240-enemy.position.Y)/500,-0.2,0.2),desired.Z),desired);
 		if ((enemy.pullUpUntil ?? 0) > session.elapsed) desired = unitOr(new Vector3(desired.X * 0.5, math.max(0.8, desired.Y + 1), desired.Z * 0.5), desired);
-		let speed = math.clamp(session.state.speed + (ace ? 48 : 24), ace ? 320 : 285, ace ? 380 : CombatBalance.banditSpeedCap) + enemy.speedBonus;
+		let speed = ace ? CombatMotion.AceSpeed(session.state.speed, enemy.speedBonus) : math.clamp(session.state.speed + 24,285,CombatBalance.banditSpeedCap) + enemy.speedBonus;
 		if (courier) speed = COURIER_SPEED;
 		// A break stays below the ordinary bandit speed cap, even when the player flies at 600.
 		else if (!ace && enemy.mode === "extend") speed = ThreatRules.ExtendSpeed(session.state.speed, 180);
@@ -1348,7 +1357,7 @@ export function stepEnemies(session: CombatSession, dt: number): void {
 		enemy.fireTimer = math.max(0, enemy.fireTimer - dt);
 		if (courier) continue; // the courier never shoots
 		const aimDot = enemy.direction.Dot(unitOr(playerPosition.sub(enemy.position), enemy.direction));
-		const mayFire = (enemy.mode === "attack" || enemy.mode === "run") && aceFighting && !(aceState && AceRules.Invulnerable(aceState, session.elapsed));
+		const mayFire = (enemy.mode === "attack" || enemy.mode === "run" || (rusk !== undefined && enemy.mode === "extend")) && aceFighting && !(aceState && AceRules.Invulnerable(aceState, session.elapsed));
 		if (enemy.windup > 0) {
 			enemy.windup = math.max(0, enemy.windup - dt);
 			if (enemy.windup <= 0) {
@@ -1362,11 +1371,11 @@ export function stepEnemies(session: CombatSession, dt: number): void {
 					for (let shot = 0; shot < salvo; shot++) launchMissile(session, true, enemy, shot, salvo);
 				}
 				enemy.windupTarget = undefined;
-				enemy.fireTimer = tuned(session, ace ? TUNING.aceReload : TUNING.banditReload);
+				enemy.fireTimer = rusk?.reload ?? tuned(session, ace ? TUNING.aceReload : TUNING.banditReload);
 			}
 		} else if (mayFire && (ace || flightReady) && ThreatRules.MayFire({
 			separation, aimDot, fireTimer: enemy.fireTimer, globalReady: true,
-			evading: session.evadeRemaining > 0, playerStraight, minRange: fireMin, maxRange: ace ? fireMax + 200 : fireMax,
+			evading: session.evadeRemaining > 0, playerStraight, minRange: rusk?.fireMin ?? fireMin, maxRange: ace ? fireMax + 200 : fireMax,
 			aimThreshold, straightRelax,
 		}, protectedAircraft !== undefined)) {
 			enemy.windup = windupSeconds;
@@ -1450,7 +1459,7 @@ function aceStage(session: CombatSession, enemy: Enemy, before: number, after: n
 }
 /** Opt-in only: no scenery raycasts are added to legacy missile movement. */
 function ventProjectileBlocked(session: CombatSession, start: Vector3, finish: Vector3, target?: Enemy): boolean {
- if (!session.blueprintState || !BlueprintRunner.ActivePhase(session.blueprintState)?.batchD13?.vent) return false;
+ if (!session.blueprintState || !enclosedPhase(session)) return false;
  return ventObstructed(point(start), point(finish), (o,d) => {
   const hit=Workspace.Raycast(new Vector3(o.x,o.y,o.z),new Vector3(d.x,d.y,d.z),session.collisionParams);
   return hit && !(target && hit.Instance.IsDescendantOf(target.model)) && occludes(hit) ? hit.Distance : undefined;
@@ -1462,7 +1471,7 @@ function contactPosition(start: Vector3, finish: Vector3, target: Vector3): Vect
 }
 export function stepMissiles(session: CombatSession, dt: number): void {
 	phaseDirector.TutorialHint(session);
-	const ventPhase = session.blueprintState !== undefined && BlueprintRunner.ActivePhase(session.blueprintState)?.batchD13?.vent !== undefined;
+	const ventPhase = session.blueprintState !== undefined && enclosedPhase(session);
 	for (let index = session.projectiles.size() - 1; index >= 0; index--) {
 		const missile = session.projectiles[index];
 		missile.age += dt;
@@ -1604,7 +1613,7 @@ function startGun(session: CombatSession): void {
 }
 /** One gun round on an enemy: the same ace staging and kill path as a missile hit, without a projectile. */
 function gunStrike(session: CombatSession, enemy: Enemy, hitDamage = GunRules.Damage): void {
-	if(session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.batchD13?.vent && lineOfSightBlocked(session,enemy)) return;
+	if(session.blueprintState && enclosedPhase(session) && lineOfSightBlocked(session,enemy)) return;
 	if (enemy.aceState && AceRules.Invulnerable(enemy.aceState, session.elapsed)) return;
 	let damage = hitDamage;
 	if (enemy.aceState) damage = AceRules.CapHit(enemy.aceState, enemy.health, enemy.maxHealth, damage);
@@ -1752,6 +1761,7 @@ function stepSession(session: CombatSession, dt: number): void {
 	session.aircraftFrame = flightFrame;
 	// The evade window stays open for a moment after the press, so a phone's round trip does not eat the timing.
 	if (EvadeRules.Open(session.evade)) decoyEvade(session);
+	stepM18Ascending(session, dt);
 	EngineBatchD13.stepBatchD13(session,line=>radio(session,line,4));
 	stepAllies(session, dt, !EngineBatchD13.duelActive(session));
 	stepEnemies(session, dt);
@@ -1761,7 +1771,7 @@ function stepSession(session: CombatSession, dt: number): void {
 		const [distance, dot] = targetMetrics(session, session.target);
 		const ground = session.target.kind === "ground";
 		// Air targets lock inside 40 degrees and 1800 studs; ground targets keep the wide 80 degree, 2450-stud cone.
-		const inEnvelope = (!(session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.batchD13?.vent) || !lineOfSightBlocked(session,session.target)) && EngineBatchC.lockAllowed(session,distance) && distance <= WeaponRules.EnvelopeRange(SpecialWeapons.LockRange(session.special), ground) && dot >= WeaponRules.LockDotFor(ground);
+		const inEnvelope = (!(session.blueprintState && enclosedPhase(session)) || !lineOfSightBlocked(session,session.target)) && EngineBatchC.lockAllowed(session,distance) && distance <= WeaponRules.EnvelopeRange(SpecialWeapons.LockRange(session.special), ground) && dot >= WeaponRules.LockDotFor(ground);
 		const staged = session.target.aceState !== undefined && AceRules.Invulnerable(session.target.aceState, session.elapsed);
 		session.lockProgress = staged ? 0 : inEnvelope
 			? math.min(1, session.lockProgress + dt / SpecialWeapons.LockBuildSeconds(session.special)) : math.max(0, session.lockProgress - dt * WeaponRules.LockDecayPerSecond);

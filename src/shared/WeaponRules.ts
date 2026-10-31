@@ -76,6 +76,8 @@ const MAX_MISSILES = 8;
 
 export const WeaponRules = {
 	MaxMissiles: MAX_MISSILES,
+ LaunchForward:16,
+ LaunchDrop:2,
 	ActionWindow: ACTION_WINDOW,
 	LockRange: LOCK_RANGE,
 	AirLockRange: AIR_LOCK_RANGE,

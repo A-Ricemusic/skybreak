@@ -18,8 +18,8 @@ function fixture():MissionBlueprint {
 }
 function rejects(fn:()=>void):boolean { const [ok]=pcall(fn);return !ok; }
 describe("D13 dormant finale contracts",()=>{
- it("leaves all catalog missions and practice dormant",()=>{
-  for(let i=0;i<=18;i++) expect(MissionCatalog.Get(i).phases.some(p=>p.batchD13!==undefined)).toBe(false);
+ it("leaves practice and missions 1–17 dormant",()=>{
+  for(let i=0;i<18;i++) expect(MissionCatalog.Get(i).phases.some(p=>p.batchD13!==undefined)).toBe(false);
  });
  it("validates ordered generator reveal, a single hidden core and final isolated duel",()=>{
   validateBatchD13(fixture());
@@ -75,19 +75,21 @@ describe("D13 dormant finale contracts",()=>{
   const b=fixture(),s=BlueprintRunner.NewState(b,0);
   for(const id of vent().generators) expect(BlueprintRunner.RecordKill(s,id,"ground",true,1)).toBe(true);
   expect(s.phaseIndex).toBe(1);expect(s.vent).toBeDefined();
+  s.vent!.elapsed=3;s.vent!.checkpoint=2;
   expect(BlueprintRunner.RecordKill(s,"core","ground",true,2)).toBe(true);
   expect(s.phaseIndex).toBe(1);expect(s.outcome).toBeUndefined();
   s.vent!.elapsed=3;s.vent!.checkpoint=2;
   BlueprintRunner.ObserveFlight(s,{x:0,y:174,z:-6900},{x:0,y:174,z:-7100},0.1,10);
   expect(s.phaseIndex).toBe(2);expect(BlueprintRunner.TimeRemaining(s)).toBe(300);
-  expect(BlueprintRunner.RecordKill(s,"rusk","ace",true,11)).toBe(true);
+  expect(BlueprintRunner.RecordKill(s,duelTargetId(2),"ace",true,11)).toBe(true);
   expect(s.outcome).toBe("won");
-  expect(BlueprintRunner.RecordKill(s,"rusk","ace",true,12)).toBe(false);
+  expect(BlueprintRunner.RecordKill(s,duelTargetId(2),"ace",true,12)).toBe(false);
   const retry=BlueprintRunner.NewState(b,0);expect(retry.killedIds.size()).toBe(0);
  });
  it("expires the duel independently without a finale",()=>{
   const b=fixture(),s=BlueprintRunner.NewState(b,0);
   for(const id of vent().generators) BlueprintRunner.RecordKill(s,id,"ground",true,1);
+  s.vent!.elapsed=3;s.vent!.checkpoint=2;
   BlueprintRunner.RecordKill(s,"core","ground",true,2);
   s.vent!.elapsed=3;s.vent!.checkpoint=2;
   BlueprintRunner.ObserveFlight(s,{x:0,y:174,z:-6900},{x:0,y:174,z:-7100},0.1,100);

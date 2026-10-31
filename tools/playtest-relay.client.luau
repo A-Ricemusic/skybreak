@@ -22,7 +22,7 @@ local function stage(mission)
     local aircraft=mission.aircraft
     if aircraft and seenAircraft[aircraft] then return end
     if aircraft then seenAircraft[aircraft]=true end
-    local id=mission.missionId or 1;if not Catalog:Available(id) then return end;attempts[id]=(attempts[id] or 0)+1
+    local id=mission.missionId or 1;if not Catalog:IsValidId(id) or not Catalog:Available(id) then return end;attempts[id]=(attempts[id] or 0)+1
     local entry=Instance.new("Folder");entry.Name=string.format("M%02d_Attempt%d",id,attempts[id]);entry.Parent=report
     entry:SetAttribute("MissionId",id);entry:SetAttribute("Outcome","Running");entry:SetAttribute("StartedAt",os.clock())
     entry:SetAttribute("MissileCommands",0);entry:SetAttribute("EvadeCommands",0);entry:SetAttribute("LowestHealth",100)
