@@ -1,5 +1,7 @@
 // Studio only: director scheduling and replicated actor poses use actual Instances/CFrames.
 import { describe, expect, it } from "@rbxts/jest-globals";
+import { Workspace } from "@rbxts/services";
+import { clearCruise, cruiseKilled, stepCruise } from "../server/EngineBatchD10Runtime";
 import { createPhaseDirector, SpawnOptions } from "../server/PhaseDirector";
 import { AirRole, CombatSession, Enemy } from "../server/CombatSession";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
@@ -131,6 +133,14 @@ describe("Bomber director integration", () => {
 	it("preserves every current combat phase's required roles, opening counts and authored arrivals", () => {
 		// Keep scheduling paths covered even when no current mission uses one.
 		const fixtures: MissionBlueprint[] = [
+			{ ...encounter(), phases: [{ kind: "required_air", label: "Cruise releases", count: 4, cruiseIntercept: {
+				site: { x: 1000, y: 100, z: 0 }, targets: [
+					{ id: "late", speed: 100, scoreRole: "cruise", arrivalSeconds: 5, route: [{ x: 0, y: 100, z: 0 }, { x: 1000, y: 100, z: 0 }] },
+					{ id: "carrier", speed: 100, scoreRole: "cruise", separateSeconds: 3, route: [{ x: 0, y: 100, z: 0 }, { x: 1000, y: 100, z: 0 }] },
+					{ id: "child1", parentId: "carrier", speed: 100, scoreRole: "cruise", route: [{ x: 300, y: 100, z: 0 }, { x: 1000, y: 100, z: 0 }] },
+					{ id: "child2", parentId: "carrier", speed: 100, scoreRole: "cruise", route: [{ x: 300, y: 100, z: 0 }, { x: 1000, y: 100, z: 0 }] },
+				],
+			} }] },
 			{ ...encounter(), phases: [{ kind: "required_air", label: "Timed groups", count: 6, groups: 3, stagger: 12 }] },
 			{ ...encounter(), phases: [{ kind: "required_air", label: "Kill-gated groups", count: 6, groups: 3, groupAt: [1 / 3, 2 / 3] }] },
 			{ ...encounter(), phases: [{ kind: "required_air", label: "Delayed launch", count: 6, execution: { launchDelay: 4 } }] },
@@ -143,6 +153,84 @@ describe("Bomber director integration", () => {
 		for (const bp of [...MissionCatalog.All(), ...fixtures]) for (const phase of MissionCatalog.ExpandedPhases(bp)) {
 			if (phase.kind !== "required_air" && phase.kind !== "chase" && phase.kind !== "ace") continue;
 			const h = harness({ ...bp, phases: [phase] }); h.director.Apply(h.s);
+			if (phase.cruiseIntercept) {
+				const plan = phase.cruiseIntercept, bs = h.s.blueprintState!;
+				// D10 owns real actors, independently of the fighter admission budget.
+				h.s.player = { UserId: 1 } as Player; h.s.pause = { used: 0 };
+				h.budget.fighters = 8; h.folder.Parent = Workspace;
+				const floor = new Instance("Folder"); floor.Parent = h.folder;
+				let minX = math.huge, maxX = -math.huge, minZ = math.huge, maxZ = -math.huge;
+				for (const target of plan.targets) for (const p of target.route) {
+					minX = math.min(minX, p.x); maxX = math.max(maxX, p.x);
+					minZ = math.min(minZ, p.z); maxZ = math.max(maxZ, p.z);
+				}
+				// Tile within Roblox's Part size limit; exclude all other Workspace geometry.
+				for (let x = minX - 2048; x <= maxX + 2048; x += 2048) for (let z = minZ - 2048; z <= maxZ + 2048; z += 2048) {
+					const part = new Instance("Part"); part.Anchored = true;
+					part.Size = new Vector3(2048, 10, 2048); part.Position = new Vector3(x, -5, z); part.Parent = floor;
+				}
+				const params = new RaycastParams(); params.FilterType = Enum.RaycastFilterType.Include;
+				params.FilterDescendantsInstances = [floor]; h.s.collisionParams = params;
+				try {
+					const releases = plan.targets.map(t => {
+						if (t.parentId === undefined) return t.arrivalSeconds ?? 0;
+						const parent = plan.targets.find(p => p.id === t.parentId)!;
+						assert(parent.separateSeconds !== undefined, "Cruise child needs an authored separation");
+						return (parent.arrivalSeconds ?? 0) + parent.separateSeconds;
+					});
+					const times = [...new Set([0, ...releases])]; times.sort((a, b) => a < b);
+					const stepTo = (at: number) => {
+						while (h.s.elapsed < at) {
+							const dt = math.min(0.1, at - h.s.elapsed); h.s.elapsed += dt;
+							stepCruise(h.s, dt);
+						}
+					};
+					const expectDue = () => {
+						let due = 0;
+						for (let i = 0; i < plan.targets.size(); i++) {
+							const expected = releases[i] <= h.s.elapsed ? 1 : 0; due += expected;
+							const actors = h.s.enemies.filter(e => e.id === plan.targets[i].id);
+							expect(actors.size()).toBe(expected);
+							for (const actor of actors) {
+								expect(actor.cruiseTarget).toBe(true); expect(actor.required).toBe(true);
+								expect(actor.phaseOwner).toBe(0);
+							}
+						}
+						expect(h.s.enemies.size()).toBe(due);
+						expect(h.s.crashReason).toBeUndefined();
+						expect(h.calls.filter(c => c.options?.optional !== true).size()).toBe(0);
+						expect(h.s.airQueue.size()).toBe(0);
+						expect(bs.phaseIndex).toBe(0); expect(bs.outcome).toBeUndefined();
+					};
+					for (const at of times) {
+						if (at > 0) { stepTo(at - 0.001); expectDue(); }
+						stepTo(at + 0.001); expectDue();
+						h.director.Apply(h.s); stepTo(at + 0.002); expectDue();
+						// Resolve all admitted leaves before the next release. Waiting targets
+						// must still hold the phase; carriers remain alive to release every child.
+						if (at !== times[times.size() - 1]) for (const actor of h.s.enemies) {
+							const target = plan.targets.find(t => t.id === actor.id)!;
+							if (!actor.enabled || actor.health <= 0 || target.separateSeconds !== undefined) continue;
+							expect(BlueprintRunner.RecordKill(bs, actor.id, "air", true, h.s.elapsed)).toBe(true);
+							actor.health = 0; cruiseKilled(h.s, actor);
+							expect(bs.phaseIndex).toBe(0); expect(bs.outcome).toBeUndefined();
+						}
+					}
+					expect(h.s.enemies.size()).toBe(phase.count);
+					const remaining = h.s.enemies.filter(e => e.enabled && e.health > 0);
+					expect(remaining.size() > 0).toBe(true);
+					for (let i = 0; i < remaining.size(); i++) {
+						const actor = remaining[i];
+						expect(BlueprintRunner.RecordKill(bs, actor.id, "air", true, h.s.elapsed)).toBe(true);
+						// A kill ledger entry alone cannot bypass D10 settlement, even the last one.
+						expect(bs.phaseIndex).toBe(0); expect(bs.outcome).toBeUndefined();
+						actor.health = 0; cruiseKilled(h.s, actor);
+						if (i < remaining.size() - 1) { expect(bs.phaseIndex).toBe(0); expect(bs.outcome).toBeUndefined(); }
+					}
+					expect(bs.outcome).toBe("won"); expect(h.s.cruise).toBeUndefined();
+				} finally { clearCruise(h.s); h.folder.Destroy(); }
+				continue;
+			}
 			if (phase.bombers) {
 				const bombers = phase.bombers;
 				// Unscheduled formations still require their full count at opening.
