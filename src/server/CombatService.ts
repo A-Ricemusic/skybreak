@@ -1908,7 +1908,7 @@ export const CombatService = {
 			for(let phase=0;phase<expandedPhases.size();phase++) for(const spec of expandedPhases[phase].groundTargets ?? []) {
 				// The world's own drawing of this target when it has one, so every target exists exactly once.
 				const existing=world.targetVisuals?.get(spec.id);
-				const cheap=expandedPhases[phase].cheapContacts && cheapEligible(spec);
+				const cheap=expandedPhases[phase].cheapContacts && cheapEligible(spec,blueprint.id);
 				if(cheap) existing?.Destroy();
 				const model=cheap ? createCheapContact(spec) : existing ?? createGroundTarget(spec); world.targetVisuals?.delete(spec.id);
 				model.Parent=folder; world.groundTargets.push(model); typed.set(model,{spec,phase});

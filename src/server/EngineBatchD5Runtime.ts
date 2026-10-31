@@ -1,3 +1,4 @@
+import { releaseZoneReserves } from "./EngineBatchD11Runtime";
 import { surfacePose } from "../shared/EngineBatchD2";
 import { Workspace } from "@rbxts/services";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
@@ -25,6 +26,7 @@ export function stepGroundDirector(s: CombatSession, dt: number, say: (line:stri
  const runtime=s.groundDirector;
  const cleared=new Set<string>(); for(const id of bs.killedIds) cleared.add(id); if(s.retiredGroundIds) for(const id of s.retiredGroundIds) cleared.add(id);
  for(const line of stepGroundProgress(plan,runtime.states,cleared,dt)) say(line);
+ releaseZoneReserves(s);
  for(let i=0;i<plan.sectors.size();i++) {
   const sector=plan.sectors[i], state=runtime.states[i], p=groundProgressPose(sector,state), actor=runtime.actors[i];
   actor.CFrame=new CFrame(p.x,p.y,p.z).mul(CFrame.Angles(0,math.rad(surfacePose(sector.route,state.elapsed).yaw),0)); actor.SetAttribute("Health",state.health); actor.SetAttribute("Secured",state.secured); actor.SetAttribute("Progress",state.elapsed/sector.seconds);

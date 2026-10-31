@@ -7,6 +7,7 @@ import type { FlightPoint, MissionPhaseBlueprint } from "./MissionCatalog";
 /** Aircraft pivot plane, including gear clearance. Deck footprint is authored, not a terrain guess. */
 export interface CarrierRearm { centre: FlightPoint; width: number; length: number; catapult: FlightPoint }
 export interface GroundSector {
+ /** D11 presentation only; progression remains the D5 director. */ formation?: "city_squad" | "desert_column";
  id: string; clearTargetIds: string[]; after?: string; seconds: number; health: number;
  route: SurfaceRoute; kind: "landing_craft" | "troops" | "column"; advanceCall: string; securedCall: string; hitCall: string;
 }
