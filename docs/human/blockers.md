@@ -86,7 +86,7 @@ Resolved in code/offline coverage: ray masking beyond Roblox’s 15,000-stud sin
 
 ## Mission 8 integration and acceptance
 
-D4 #177 and mission 7 #178 are merged; #183 is integrated onto current main. M08 unlocks only after sequential completion through M07; M09–M18 stay locked even with forged records. Live after #183 merges by pipeline convention; no known deployment failure. Studio verified: pending orchestrator run. Player/phone/rendered/balance acceptance remains open. Validate adopted mast without duplicate relay, both full clocks, six bomber endpoints, ignition and settlement. D-320–D-324 retain provisional roster/ranks/routes, support stand-ins and deferred service/finite-stock fidelity. No Studio, Roblox Jest, Player tests, new audio or asset uploads performed in this integration.
+D4 #177, mission 7 #178 and mission 8 #183 are merged on current main. M08 unlocks only after sequential completion through M07; M09–M18 stay locked even with forged records. Live by pipeline convention; no known deployment failure. Studio verified: pending orchestrator run. Player/phone/rendered/balance acceptance remains open. Validate adopted mast without duplicate relay, both full clocks, six bomber endpoints, ignition and settlement. D-320–D-324 retain provisional roster/ranks/routes, support stand-ins and deferred service/finite-stock fidelity. No Studio, Roblox Jest, Player tests, new audio or asset uploads performed in this integration.
 
 ### M08 catalog assertion corrected; Studio rerun pending
 
@@ -100,6 +100,12 @@ D6 integration checks: frozen install, build and full offline validation exit 0 
 
 ## Dormant D7 acceptance
 
-PR #184 remains unmerged and dormant. The protected-target-only firing correction is retained. Main integration combines sector-attacker and committed protected-aircraft warning/service suppression while preserving player windup threats. No Studio or Player testing is performed here; route clearance, marker readability, both loss branches, all-safe completion and phone performance remain activation gates.
+PR #184 is merged on main `5d84486` and remains dormant. The protected-target-only firing correction is retained. Main integration combines sector-attacker and committed protected-aircraft warning/service suppression while preserving player windup threats. No Studio or Player testing is performed here; route clearance, marker readability, both loss branches, all-safe completion and phone performance remain activation gates.
 
 Main integration validation (2026-10-30): frozen install, standalone build and full offline validation exited 0; 1,007 Luau contracts, 19 unchanged catalog snapshots and 124 Python tests. The combined sector/protected-target warning rule passes offline; service-entry runtime regressions compile but remain unrun. No Studio/Player test. Main at integration is `ea0045d` (D5/D6 merged, M08 not merged). D4/D6 admission logic is retained; this main revision has no `concurrentRoutes` option.
+
+## Dormant D11 acceptance
+
+D11 implementation adds no activation blocker requiring owner input. No catalog mission opts in; dormant M15/M16 worlds are unchanged. Studio/Roblox runtime Jest execution, Player/phone profiling, rendered city/column/armour review, final bomber routes/site adoption and mission balance remain unperformed acceptance work. M15 uses D4's single protected city-site cluster, not independently healthy districts; this scope assumption is recorded in D-502. Service repair follows provisional owner decision D-156 and can be revisited after playtests. No new audio/assets/uploads; no deployment claim for this unmerged branch.
+
+D11 validation: frozen install, standalone build and full `validate:offline` exited 0 (1,024 Luau contracts, 19 unchanged catalog snapshots, 124 Python tests). Runtime Jest compiled only; no Studio/Player/phone test.

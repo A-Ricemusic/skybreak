@@ -1,10 +1,10 @@
 # Next
 
-Updated 2026-10-30 against main `a04fdd6`. Practice and missions 1–7 are live by pipeline convention. M08 will be live after #183 merges; worlds 9–18 remain dormant. No Player observation is claimed.
+Updated 2026-10-30 against main `5d84486`. Practice and missions 1–8 are live by pipeline convention; D1–D7 are merged and worlds 9–18 remain dormant. No Player observation is claimed.
 
-1. **Review and merge mission 8 [#183](https://github.com/A-Ricemusic/skybreak/pull/183).** D4 #177 and M07 #178 are merged. Studio verified: pending orchestrator run; confirm clocks, protected mast adoption, bomber endpoint loss and sequential unlock.
+1. **Verify merged mission 8 [#183](https://github.com/A-Ricemusic/skybreak/pull/183).** Studio verified: pending orchestrator run; confirm both clocks, protected mast adoption, bomber endpoint loss and sequential unlock.
 2. **Verify live M07 in the orchestrator's Studio session.** Check actual-world canyon masking/ingress, Y=585 ceiling and phone flight; offline coverage does not establish play quality.
-3. **D5 [#180](https://github.com/A-Ricemusic/skybreak/pull/180) is merged (dormant); complete D6 #182 next**, following the [engine plan](../specs/engine/missions-06-18-plan.md), keeping opt-in support dormant until mission activation.
+3. **Review open engine work D8 #186, D9 #188, D10 #190 and dormant D11**, following the [engine plan](../specs/engine/missions-06-18-plan.md). D5–D7 are merged; runtime and phone acceptance remain pending.
 4. **Integrate missions 9–18 in order.** Worlds and specs exist; actors, counts, timing, failure, ranks, unlock and runtime acceptance remain.
 
 ## Mission 6 beta guide — IRON COAST (Live after #179 merges)
@@ -57,3 +57,7 @@ D6 integrates repeated artillery, parked/airborne credit ownership, bounded stat
 Review PR #184 after main integration and offline validation. Before M11 activation, author and inspect routes/health/roster, terrain clearance, markers, damage/loss branches and all-safe completion under the orchestrator’s Studio lease. No mission opts in; runtime Jest and Player/phone acceptance remain pending. See D-360–D-363 and the engine plan.
 
 Main integration validation (2026-10-30): frozen install, standalone build and full offline validation exited 0; 1,007 Luau contracts, 19 unchanged catalog snapshots and 124 Python tests. The combined sector/protected-target warning rule passes offline; service-entry runtime regressions compile but remain unrun. No Studio/Player test. Main at integration is `ea0045d` (D5/D6 merged, M08 not merged). D4/D6 admission logic is retained; this main revision has no `concurrentRoutes` option.
+
+## D11 review and activation handoff
+
+Review dormant D11 ground-support/service extensions (D-500–D-503); no mission opts in. M15/M16 activation must author clearance/reserve IDs, routes, D4 protected-city bomber phase and M15–M17 repair opt-ins, then verify rearm menu/skip/timeout with PC/gamepad/touch, sector threats, cleanup and once-only scoring. Run the compiled runtime Jest specs under the orchestrator's Studio lease and profile 150 armour contacts on phone before claiming performance or visual acceptance. D8 #186, D9 #188 and D10 #190 remain separate open engine work. No uploads needed.

@@ -18,6 +18,7 @@ export const GROUND_TARGET_LABELS: { readonly [K in GroundTargetType]: string } 
 	tanker: "TANKER", command_post: "COMMAND POST",
 };
 export interface TypedGroundTarget {
+ /** D11: hidden reserve, released when this same-phase friendly sector is secured. */ reinforceAfterSector?: string;
 	/** Mount positions are authored world positions; movement preserves the hull-local offset. */
 	naval?: true; parentId?: string; route?: SurfaceRoute; sam?: true; health?: number;
 	id: string; type: GroundTargetType; position: FlightPoint; yaw: number; required: boolean; scoreRole: string; group?: string;

@@ -120,7 +120,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		const phase: MissionPhaseBlueprint | undefined=phases[state.phaseIndex];
 		if (!phase) return;
 		for (const enemy of session.enemies) if (enemy.typedGround) {
-			enemy.enabled=enemy.phaseOwner === state.phaseIndex && enemy.health>0;
+			enemy.enabled=enemy.phaseOwner === state.phaseIndex && enemy.health>0 && enemy.typedGround.reinforceAfterSector===undefined;
 			// Later phases' targets stay hidden; an earlier phase's survivors stay standing but inert.
 			const shown=enemy.enabled || (enemy.health>0 && (enemy.phaseOwner ?? 0)<state.phaseIndex);
 			for(const item of enemy.model.GetDescendants()) if(item.IsA("BasePart")) {

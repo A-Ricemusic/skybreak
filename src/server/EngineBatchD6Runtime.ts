@@ -1,3 +1,4 @@
+import { cheapArmourEligible } from "../shared/EngineBatchD11";
 import { Workspace } from "@rbxts/services";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { artilleryMasked, artilleryExposed } from "../shared/EngineBatchD3";
@@ -8,13 +9,13 @@ import { createGroundTarget } from "./GroundTargetFactory";
 import type { CombatSession } from "./CombatSession";
 /** Static scenery only: movers, weapons and aircraft retain their original geometry/aim semantics. */
 export function cheapEligible(spec: TypedGroundTarget): boolean {
-	return ["container","containers","watchtower","antenna","barracks","sub_pen","storage"].includes(spec.type) && !spec.route && !spec.parentId && !spec.sam;
+	return cheapArmourEligible(spec) || ["container","containers","watchtower","antenna","barracks","sub_pen","storage"].includes(spec.type) && !spec.route && !spec.parentId && !spec.sam;
 }
 export function createCheapContact(spec: TypedGroundTarget): Model {
 	const model=new Instance("Model"), part=new Instance("Part");
 	model.Name=GROUND_TARGET_LABELS[spec.type]; model.SetAttribute("TargetId",spec.id); model.SetAttribute("D6Detailed",false);
 	part.Name="Aim"; part.Size=new Vector3(12,8,12); part.Anchored=true; part.CanCollide=false; part.CanTouch=false; part.CanQuery=false;
-	part.CFrame=new CFrame(spec.position.x,spec.position.y+4,spec.position.z); part.Color=Color3.fromRGB(105,120,112); part.Parent=model; model.PrimaryPart=part;
+	part.CFrame=new CFrame(spec.position.x,spec.position.y+(cheapArmourEligible(spec) ? 0 : 4),spec.position.z).mul(CFrame.Angles(0,math.rad(spec.yaw),0)); part.Color=Color3.fromRGB(105,120,112); part.Parent=model; model.PrimaryPart=part;
 	return model;
 }
 /** Keeps the aim Part and Model identities stable for missiles, HUD and health attributes. */
