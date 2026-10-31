@@ -124,3 +124,5 @@ These merged gameplay changes are live through the automatic pipeline convention
 The earlier AC04 release (#92) was rejected and reverted (`b0737fa`). #77 (mission 1 tutorial rework) and #91 (TypeScript 5.9) were closed without merging.
 
 PR #144 merged as `7711b70`: dormant mission 4–5 worlds, with M05 owning environment/effects. PR #145 batch C is merged; no Studio or Player observation from this pass.
+
+M12 review note (2026-10-30): THE COMMAND RING is unmerged work on the D8 base, not a shipped/live claim. See `next.md` for the beta route and dependencies. Existing merged-main entries above remain the source of live status.

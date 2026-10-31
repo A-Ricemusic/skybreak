@@ -30,6 +30,15 @@ describe("D8 runtime contracts (Studio pending)",()=>{
    f.session.blueprintState!.phases[0].ringSweep=undefined; stepRingSweep(f.session,1,()=>{}); expect(f.session.ringArtillery).toBeUndefined();
   } finally { f.folder.Destroy(); }
  });
+ it("honors an opted-in absolute sweep ceiling and keeps overlapping guns to one damage event",()=>{
+  const f=fixture(); try {
+   const p=f.session.blueprintState!.phases[0].ringSweep!; p.ceiling=900;
+   f.session.state.y=901; stepRingSweep(f.session,4,()=>{}); expect(f.session.health).toBe(100);
+   stepRingSweep(f.session,8,()=>{}); f.session.state.y=900;
+   p.guns.push({...p.guns[0],targetId:"second"}); f.session.enemies.push({...f.gun,id:"second"});
+   stepRingSweep(f.session,4,()=>{}); expect(f.session.health).toBe(75);
+  } finally { f.folder.Destroy(); }
+ });
  it("uses segmented terrain masking beyond 15,000 studs and stops destroyed guns",()=>{
   const f=fixture(); try {
    const ridge=new Instance("Part"); ridge.Anchored=true; ridge.Size=new Vector3(1000,1000,50); ridge.Position=new Vector3(0,10000,3000); ridge.Parent=f.folder;

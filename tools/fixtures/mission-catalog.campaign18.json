@@ -15814,25 +15814,663 @@
   },
   {
     "act": 2,
-    "available": false,
-    "briefing": "The eight towers in the crater are the Marshal's command array. Destroy them; use the service landing if needed. Vulture Two is waiting after the last tower. Defeat him and mark his ejection so the marines can recover a living witness.",
-    "codename": "In development",
-    "debrief": "Vulture Two ejected and was recovered. He admits the handwriting is his. His statement and the harbour master's paper copy leave on an evidence plane.",
-    "environment": "farm_overcast",
-    "failure": "The array or its guardian still controls the crater. No witness has been recovered.",
+    "airspace": {
+      "hardHalfWidth": 16000,
+      "radarRange": 24000,
+      "softHalfWidth": 15600,
+      "spawnLimit": 15600
+    },
+    "allies": {
+      "allowRequiredTargets": false,
+      "callsignPrefix": "LANTERN",
+      "count": 4,
+      "creditPlayerKills": false,
+      "formation": [
+        {
+          "x": -180,
+          "y": 20,
+          "z": 160
+        },
+        {
+          "x": 180,
+          "y": 20,
+          "z": 160
+        },
+        {
+          "x": -320,
+          "y": 40,
+          "z": 320
+        },
+        {
+          "x": 320,
+          "y": 40,
+          "z": 320
+        }
+      ],
+      "killBudget": 1,
+      "mayKill": true,
+      "model": "Kestrel"
+    },
+    "armament": {
+      "guidedBomb": {
+        "damage": 180,
+        "depth": 80,
+        "radius": 30
+      },
+      "gun": {
+        "rounds": 1200
+      },
+      "stock": {
+        "missiles": 54,
+        "specialCharges": 14
+      }
+    },
+    "available": true,
+    "briefing": "Seven live guns defend the Marshal's command array; the eighth tower is wreckage. Destroy the central ECM for clear radar, then silence the ring within fifteen minutes. Sweep fire ends above 3,080 feet absolute altitude. The southwest service strip can refill your racks. Expect Vulture Two after the final gun falls.",
+    "codename": "Vulture Two",
+    "countdownSeconds": 900,
+    "debrief": "Vulture Two ejected and was recovered alive from the crater. His statement and the harbour master's paper copy will leave on an evidence plane.",
+    "environment": "canyon_noon",
+    "failure": "The command ring or its elite defenders still control the crater. The recovery team cannot approach.",
     "ground": [],
     "id": 12,
-    "optionalRaiderMax": 0,
+    "optionalRaiderMax": 15,
     "phases": [
       {
-        "count": 1,
+        "beat": "SERA: Seven guns. Kill central ECM for radar. Sweeps end above 3,080 ft.",
+        "chatter": [
+          {
+            "at": 0.14285714285714285,
+            "text": "SERA: Six live guns remain. Wreckage is no target."
+          },
+          {
+            "at": 0.5714285714285714,
+            "text": "LANTERN 2: Three left. Watch the barrel sweep."
+          },
+          {
+            "at": 0.8571428571428571,
+            "text": "SERA: One gun left. Keep clear of its firing line."
+          }
+        ],
+        "concurrentFighters": 6,
+        "count": 7,
+        "fighterWaves": [
+          {
+            "count": 4,
+            "headingDegrees": 90,
+            "id": "m12_cap",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          },
+          {
+            "count": 4,
+            "headingDegrees": 270,
+            "id": "m12_reserve",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "time",
+              "seconds": 120
+            }
+          },
+          {
+            "count": 4,
+            "headingDegrees": 180,
+            "id": "m12_response",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "time",
+              "seconds": 300
+            }
+          },
+          {
+            "count": 2,
+            "headingDegrees": 45,
+            "id": "m12_last_cover",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "time",
+              "seconds": 480
+            }
+          }
+        ],
+        "groundTargets": [
+          {
+            "group": "ring",
+            "health": 165,
+            "id": "m12_gun_1",
+            "position": {
+              "x": 0,
+              "y": 104,
+              "z": -2400
+            },
+            "required": true,
+            "scoreRole": "ring_gun",
+            "type": "railgun_emplacement",
+            "yaw": 0
+          },
+          {
+            "group": "ring",
+            "health": 165,
+            "id": "m12_gun_2",
+            "position": {
+              "x": 1697.056274847714,
+              "y": 104,
+              "z": -1697.0562748477141
+            },
+            "required": true,
+            "scoreRole": "ring_gun",
+            "type": "railgun_emplacement",
+            "yaw": -45
+          },
+          {
+            "group": "ring",
+            "health": 165,
+            "id": "m12_gun_3",
+            "position": {
+              "x": 2400,
+              "y": 104,
+              "z": -1.4695761589768238e-13
+            },
+            "required": true,
+            "scoreRole": "ring_gun",
+            "type": "railgun_emplacement",
+            "yaw": -90
+          },
+          {
+            "group": "ring",
+            "health": 165,
+            "id": "m12_gun_5",
+            "position": {
+              "x": 2.9391523179536476e-13,
+              "y": 104,
+              "z": 2400
+            },
+            "required": true,
+            "scoreRole": "ring_gun",
+            "type": "railgun_emplacement",
+            "yaw": -180
+          },
+          {
+            "group": "ring",
+            "health": 165,
+            "id": "m12_gun_6",
+            "position": {
+              "x": -1697.056274847714,
+              "y": 104,
+              "z": 1697.0562748477143
+            },
+            "required": true,
+            "scoreRole": "ring_gun",
+            "type": "railgun_emplacement",
+            "yaw": -225
+          },
+          {
+            "group": "ring",
+            "health": 165,
+            "id": "m12_gun_7",
+            "position": {
+              "x": -2400,
+              "y": 104,
+              "z": 4.4087284769304714e-13
+            },
+            "required": true,
+            "scoreRole": "ring_gun",
+            "type": "railgun_emplacement",
+            "yaw": -270
+          },
+          {
+            "group": "ring",
+            "health": 165,
+            "id": "m12_gun_8",
+            "position": {
+              "x": -1697.0562748477143,
+              "y": 104,
+              "z": -1697.0562748477137
+            },
+            "required": true,
+            "scoreRole": "ring_gun",
+            "type": "railgun_emplacement",
+            "yaw": -315
+          },
+          {
+            "ecm": true,
+            "group": "core",
+            "id": "m12_ecm",
+            "position": {
+              "x": 0,
+              "y": 104,
+              "z": 0
+            },
+            "required": false,
+            "scoreRole": "ground_ecm",
+            "type": "ground_ecm",
+            "yaw": 0
+          },
+          {
+            "group": "defence",
+            "id": "m12_defence_1",
+            "position": {
+              "x": 296.5992123534364,
+              "y": 104,
+              "z": -3286.644018939581
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": -5.156620156177409
+          },
+          {
+            "group": "defence",
+            "id": "m12_defence_2",
+            "position": {
+              "x": 1531.7661557823005,
+              "y": 104,
+              "z": -2922.9595351287217
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": -27.656620156177407
+          },
+          {
+            "group": "defence",
+            "id": "m12_defence_3",
+            "position": {
+              "x": 2533.735587488089,
+              "y": 104,
+              "z": -2114.280958788682
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": -50.156620156177404
+          },
+          {
+            "group": "defence",
+            "id": "m12_defence_4",
+            "position": {
+              "x": 3149.966744369112,
+              "y": 104,
+              "z": -983.7222724776832
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": -72.65662015617741
+          },
+          {
+            "group": "defence",
+            "id": "m12_defence_5",
+            "position": {
+              "x": 3286.644018939581,
+              "y": 104,
+              "z": 296.59921235343654
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": -95.15662015617741
+          },
+          {
+            "group": "defence",
+            "id": "m12_defence_6",
+            "position": {
+              "x": 2922.959535128722,
+              "y": 104,
+              "z": 1531.7661557823
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": -117.6566201561774
+          },
+          {
+            "group": "defence",
+            "id": "m12_defence_7",
+            "position": {
+              "x": 2114.2809587886823,
+              "y": 104,
+              "z": 2533.7355874880886
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": -140.1566201561774
+          },
+          {
+            "group": "defence",
+            "id": "m12_defence_8",
+            "position": {
+              "x": 983.7222724776841,
+              "y": 104,
+              "z": 3149.966744369112
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": -162.6566201561774
+          },
+          {
+            "group": "defence",
+            "id": "m12_defence_9",
+            "position": {
+              "x": -296.59921235343563,
+              "y": 104,
+              "z": 3286.644018939581
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": -185.1566201561774
+          },
+          {
+            "group": "defence",
+            "id": "m12_defence_10",
+            "position": {
+              "x": -1531.7661557823,
+              "y": 104,
+              "z": 2922.959535128722
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": -207.65662015617738
+          },
+          {
+            "group": "defence",
+            "id": "m12_defence_11",
+            "position": {
+              "x": -2533.7355874880886,
+              "y": 104,
+              "z": 2114.2809587886823
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": -230.15662015617738
+          },
+          {
+            "group": "defence",
+            "id": "m12_defence_12",
+            "position": {
+              "x": -3149.9667443691114,
+              "y": 104,
+              "z": 983.7222724776857
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": -252.65662015617738
+          },
+          {
+            "group": "defence",
+            "id": "m12_defence_13",
+            "position": {
+              "x": -3286.644018939581,
+              "y": 104,
+              "z": -296.5992123534354
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": -275.1566201561774
+          },
+          {
+            "group": "defence",
+            "id": "m12_defence_14",
+            "position": {
+              "x": -2922.959535128721,
+              "y": 104,
+              "z": -1531.766155782301
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": -297.65662015617744
+          },
+          {
+            "group": "defence",
+            "id": "m12_defence_15",
+            "position": {
+              "x": -2114.2809587886823,
+              "y": 104,
+              "z": -2533.735587488088
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": -320.1566201561774
+          },
+          {
+            "group": "defence",
+            "id": "m12_defence_16",
+            "position": {
+              "x": -983.7222724776859,
+              "y": 104,
+              "z": -3149.9667443691114
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": -342.6566201561774
+          }
+        ],
+        "jamming": {
+          "clearCall": "SERA: Jammer down. Radar and long-range locks restored.",
+          "remainingCall": "SERA: Central ECM active. Close for visual lock.",
+          "visualLockRange": 650
+        },
+        "kind": "required_ground",
+        "label": "Destroy seven live command guns",
+        "rearm": {
+          "gun": true,
+          "health": false,
+          "landing": {
+            "approachDistance": 2400,
+            "approachSeconds": 20,
+            "glideDegrees": 3,
+            "headingDegrees": 180,
+            "rolloutDistance": 900,
+            "rolloutSeconds": 15,
+            "touchdown": {
+              "x": -8640,
+              "y": 110,
+              "z": 9828
+            }
+          },
+          "missiles": true,
+          "radio": [
+            {
+              "at": 0.5,
+              "text": "CRATER TOWER: Cleared to land. Your target damage is holding."
+            },
+            {
+              "at": 36,
+              "text": "CRATER TOWER: Racks full. Cleared for departure."
+            }
+          ],
+          "radius": 1500,
+          "special": true,
+          "takeoffSeconds": 20,
+          "weaponMenu": true,
+          "zone": {
+            "x": -8640,
+            "y": 235.77867027929892,
+            "z": 7428
+          }
+        },
+        "ringSweep": {
+          "ceiling": 900,
+          "countdownSeconds": 8,
+          "damage": 25,
+          "guns": [
+            {
+              "bearingDegrees": 0,
+              "source": {
+                "x": 0,
+                "y": 184,
+                "z": -2400
+              },
+              "targetId": "m12_gun_1"
+            },
+            {
+              "bearingDegrees": 45,
+              "source": {
+                "x": 1697.056274847714,
+                "y": 184,
+                "z": -1697.0562748477141
+              },
+              "targetId": "m12_gun_2"
+            },
+            {
+              "bearingDegrees": 90,
+              "source": {
+                "x": 2400,
+                "y": 184,
+                "z": -1.4695761589768238e-13
+              },
+              "targetId": "m12_gun_3"
+            },
+            {
+              "bearingDegrees": 180,
+              "source": {
+                "x": 2.9391523179536476e-13,
+                "y": 184,
+                "z": 2400
+              },
+              "targetId": "m12_gun_5"
+            },
+            {
+              "bearingDegrees": 225,
+              "source": {
+                "x": -1697.056274847714,
+                "y": 184,
+                "z": 1697.0562748477143
+              },
+              "targetId": "m12_gun_6"
+            },
+            {
+              "bearingDegrees": 270,
+              "source": {
+                "x": -2400,
+                "y": 184,
+                "z": 4.4087284769304714e-13
+              },
+              "targetId": "m12_gun_7"
+            },
+            {
+              "bearingDegrees": 315,
+              "source": {
+                "x": -1697.0562748477143,
+                "y": 184,
+                "z": -1697.0562748477137
+              },
+              "targetId": "m12_gun_8"
+            }
+          ],
+          "halfWidth": 80,
+          "intervalSeconds": 30,
+          "range": 6000,
+          "sweepDegrees": 30,
+          "warningSeconds": 8
+        },
+        "standaloneAce": {
+          "behaviour": "dogfight",
+          "call": "CAIRN: Those guns answer to me. Clear the crater.",
+          "headingDegrees": 180,
+          "health": 165,
+          "id": "m12_cairn",
+          "livery": "Vulture",
+          "name": "CAIRN",
+          "scoreRole": "ace",
+          "trigger": {
+            "kind": "time",
+            "seconds": 420
+          }
+        }
+      },
+      {
+        "count": 5,
+        "cutIn": {
+          "after": [
+            "SERA: LANTERN, leave this to the trainee. Mark the ejection."
+          ],
+          "at": 0,
+          "captions": [
+            {
+              "at": 0,
+              "text": "VULTURE TWO: You broke the array. Show me what Teal taught you."
+            }
+          ],
+          "seconds": 6,
+          "subjects": [
+            "bandit"
+          ]
+        },
+        "eliteFormation": {
+          "ejectionFlag": "vulture_two_recovered"
+        },
         "kind": "required_air",
-        "label": "In development"
+        "label": "Defeat one elite; mark ejection",
+        "update": {
+          "countdownSeconds": 600,
+          "objective": "Defeat one elite; survivors withdraw",
+          "radio": [
+            "SERA: Ring silent. Five elites inbound; one defeat will break them."
+          ]
+        }
       }
     ],
-    "primary": "In development",
-    "region": "canyon_airfield",
-    "title": "Mission 12"
+    "pressure": {
+      "forwardConeDegrees": 25,
+      "playerPriority": 0.8,
+      "tailDefence": true
+    },
+    "primary": "Destroy seven live guns in 15:00, then defeat one elite in 10:00",
+    "region": "plateau_relay",
+    "scoring": {
+      "basis": "points",
+      "points": {
+        "aa": 20,
+        "ace": 240,
+        "bandit": 150,
+        "fighter": 60,
+        "ground_ecm": 100,
+        "ring_gun": 250,
+        "sam": 30
+      },
+      "rank": {
+        "A": 2400,
+        "B": 2100,
+        "C": 1750,
+        "S": 2900
+      }
+    },
+    "start": {
+      "headingDegrees": 0,
+      "kind": "airborne",
+      "speed": 160,
+      "x": 0,
+      "y": 500,
+      "z": 10080
+    },
+    "terrainRelativeWarnings": true,
+    "title": "THE COMMAND RING",
+    "worldKey": "m12_command_ring"
   },
   {
     "act": 3,

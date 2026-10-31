@@ -361,17 +361,17 @@ M09 #185 arrival-test correction (2026-10-30): D-342 is unchanged. The nine requ
 
 ## D-400 — D8 ground ECM and required-strike service
 
-- **Status:** provisional implementation; dormant, pending runtime/mission acceptance. **Decision maker:** implementation agent within the engine plan (2026-10-30).
+- **Status:** provisional implementation; activated by M12 in review, pending runtime/mission acceptance. **Decision maker:** implementation agent within the engine plan (2026-10-30).
 - Explicit ground ECM shares batch C's live-source radar/lock and clearance policy. Required-ground strikes may rearm using the same complete pause/refill/expiry/threat gates and preserved health. Alternative: fake airborne jammer or score objective; rejected because M12 is a required-ground strike with a ground emitter.
 
 ## D-401 — Precision bomb equivalent and ring salvo sweep
 
-- **Status:** provisional implementation; dormant. **Decision maker:** implementation agent (2026-10-30).
+- **Status:** provisional implementation; activated by M12 in review. **Decision maker:** implementation agent (2026-10-30).
 - SALVO precision conversion uses D3 ground-special plumbing and hits only the locked ground victim; special conversions are exclusive. No new ballistic projectile. Ring salvos test the whole authored bearing wedge at impact and use D3 segmented masking rays (1,000 studs per cast); overlapping lines pay at most one damage event. Alternative: continuous beam simulation; deferred pending M12 flight acceptance. Current wedge is an authored gameplay abstraction, not reference telemetry.
 
 ## D-402 — One-loss elite retreat and recovery story flag
 
-- **Status:** provisional implementation; dormant. **Decision maker:** implementation agent (2026-10-30).
+- **Status:** provisional implementation; activated by M12 in review. **Decision maker:** implementation agent (2026-10-30).
 - Five required elite fighters form a one-defeat objective. The defeated elite represents the Vulture Two ejection/recovery story event; the other four retreat without credit. Required status protects the formation from allied kills. Optional named ace remains separate. Recovery flag persists through sortie phase updates and replicates on the session folder; account persistence/presentation belongs to mission integration. Alternative: kill all five; rejected by M12 ending evidence. D12 protected-leader lifecycle remains separate future work.
 
 ## D-380 — M10 authored roster and world ownership
