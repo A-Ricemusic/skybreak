@@ -1,11 +1,16 @@
 # Shipped
 
-Updated 2026-10-30 against main `9857358`; its publish workflow succeeded per CI. Practice and missions 1–5 are live in Roblox Player by the owner's pipeline convention. No new Studio, Player or phone test is claimed. Older entries describe behavior at their merge; later entries supersede tuning and dormant activation status.
+Updated 2026-10-30 against main `199e7ee`; its publish workflow succeeded per CI. Practice and missions 1–7 are live after #178 merges in Roblox Player by the owner's pipeline convention. No new Studio, Player or phone test is claimed. Older entries describe behavior at their merge; later entries supersede tuning and dormant activation status.
+
+Mission 7 #178 remains unmerged: masking/ceiling/ingress review fixes are prepared with offline regressions and actual-build Jest coverage pending the orchestrator. These changes are not listed as shipped.
 
 ## Merged 2026-10-30, newest first
 
 | PR | Commit | Change | What the owner sees in Roblox Player |
 |---|---|---|---|
+| [#178](https://github.com/A-Ricemusic/skybreak/pull/178) | Merge pending | Mission 7 ARRAY BREAK playable | Live after merge by pipeline convention: unlock after mission 6, 51 ground /20 air, three-installation strike then canyon artillery escape. One allied kill budget; no new audio. Studio verified: pending orchestrator run. Player/phone not yet observed. |
+| [#177](https://github.com/A-Ricemusic/skybreak/pull/177) | `6f17a95` | D4 queued air battles and timed bomber-intercept hold | No visible change — engine support, dormant. Mission 8 has not activated on main. |
+| [#179](https://github.com/A-Ricemusic/skybreak/pull/179) | `199e7ee` | Mission 6 IRON COAST playable | Live after merge by pipeline convention: unlocks after mission 5; harbour strike, score ≥3,000 in 15:00, optional runway rearm with finite ammo. Full Studio Jest 1,133/1,133 in the orchestrator’s run at `e5c2fd2`; Player/phone not yet observed. |
 | [#171](https://github.com/A-Ricemusic/skybreak/pull/171) | `9857358` | D3 canyon artillery escape, area strike and target types | No visible change — engine support, dormant. Mission 7 has not activated on main. |
 | [#168](https://github.com/A-Ricemusic/skybreak/pull/168) | `989c802` | D2 naval mounts, firing SAMs and anti-ship fit | No visible change — engine support, dormant. Legacy SAMs remain inert unless opted in. |
 | [#165](https://github.com/A-Ricemusic/skybreak/pull/165) | `439bc66` | D1 player gun and finite ammunition | No visible change — engine support, dormant. Practice/M01–M05 keep their existing replenishing missiles and no gun. |

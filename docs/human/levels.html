@@ -11,9 +11,9 @@ No generator, network dependencies, JavaScript or build step is required. -->
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,sans-serif}main{max-width:1180px;margin:auto;padding:32px 20px}h1{font-size:2.4rem;line-height:1.15}h2{font-size:1.25rem;margin:0}a{color:var(--link);text-underline-offset:3px}a:focus-visible{outline:3px solid var(--link);outline-offset:4px}.muted,dt{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:18px}.card,.legend{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px}.badge{display:inline-block;border:1px solid currentColor;border-radius:20px;padding:2px 12px;font-weight:700;margin:10px 0}.live{color:var(--live)}.review{color:var(--review)}.pieces{padding-left:20px}dl{margin-bottom:0}dd{margin:0 0 12px}nav{margin:20px 0}code{overflow-wrap:anywhere}.legend{margin:24px 0}.legend p{margin:8px 0}footer{margin-top:28px}
 </style></head><body><main>
 <header><p class="muted">SKYBREAK / Campaign readiness</p><h1>Every level, at a glance</h1>
-<p>Updated 2026-10-30 · Main <code>9857358</code> · Publish workflow succeeded per CI.</p>
-<p>Practice and missions 1–5 are Live by the owner's automatic-pipeline convention. No new Studio or Player test is claimed.</p>
-<p>Missions 6–18 have built, dormant worlds and remain locked. Mission 6 is In progress; mission 7 is In review (#178). D1–D3 are merged/dormant; D4 #177 awaits merge; D5/D6 are in progress.</p>
+<p>Updated 2026-10-30 · Main <code>199e7ee</code> · Publish workflow succeeded per CI.</p>
+<p>Practice and missions 1–7 are Live after #178 merges by the owner's automatic-pipeline convention. No new Studio or Player test is claimed.</p>
+<p>Missions 8–18 have built, dormant worlds and remain locked. Mission 6 is Live after #179 merges; Studio Jest passed 1,133/1,133 in the orchestrator’s run. Player/phone not yet observed. Mission 7 is Live after #178 merges; Studio verified: pending orchestrator run. D1/D2 are active for M06; M07 activates D3. Priorities: D4 #177, M07 #178, D5 #180, D6 #182, then M08–M18.</p>
 <nav><a href="https://www.roblox.com/games/112911685457826">Play SKYBREAK ↗</a> · <a href="README.md">Human dashboard</a> · <a href="blockers.md">Blockers</a></nav>
 </header>
 <section class="legend" aria-labelledby="legend"><h2 id="legend">Fixed status legend</h2>
@@ -110,33 +110,26 @@ No generator, network dependencies, JavaScript or build step is required. -->
   <dt>Owner test</dt><dd>Finish missions 1–4 on one save. Score 2,000 by 10:00 (PTS reads /2000, then the rank letter); rig 2,400, refinery 1,740, tankers 120, helicopters 40, fighters 60, CINDER LEAD 240. Fly through the green REARM beacon south of the start, check the LANDING/TAKEOFF clocks and TAKEOFF / CHANGE WEAPON (also with a controller), and that damage stays. At 10:00, check MISSION UPDATE, the letterboxed cut-in of VULTURE LEAD and four ELITE jets, and the escape south across the line within 4:00. Report night readability, loading time and result cleanup. Ranks S 4,000 / A 3,000 / B 2,500 / C 2,000; maximum 5,940. Agent Studio evidence: <a href="../qa/m05/2026-10-29/README.md">QA 2026-10-29</a> (a scripted Easy run completed; no Player test).</dd></dl>
 </article>
 
-<article class="card" id="level-6"><h2>06 · Mission 6</h2><span class="badge review">In progress</span><p class="muted">Reference: Invincible Fleet</p><dl>
+<article class="card" id="level-6"><h2>06 · Mission 6</h2><span class="badge live">Live</span><p class="muted">Reference: Invincible Fleet</p><dl>
   <dt>Reference footage</dt><dd>1:03:01–1:20:00</dd>
   <dt>Pieces</dt><dd><ul class="pieces">
-    <li>Spec: ✓ merged <a href="../specs/missions/m06.md">mission</a> and <a href="../specs/worlds/m06.md">world</a></li>
-    <li>World: ✓ built/dormant (#175); <a href="../specs/worlds/m06-composition.md">composition and budget</a></li>
-    <li>Engine needs: D1–D3 merged/dormant; remaining integration follows engine plan</li>
-    <li>Mission data & unlock: — placeholder only; locked</li>
-    <li>Studio verified: —</li>
-    <li>Live: —</li></ul></dd>
-  <dt>Open PRs</dt><dd>None for playable mission at snapshot; mission 6 in progress</dd>
-  <dt>Known issues</dt><dd>Offline world geometry and budget checks pass. Target inventory is provisional; Studio/Player/phone appearance and load unverified. Mission remains locked and unavailable.</dd>
-  <dt>Owner test</dt><dd>No playable test yet. Review composition/target assumptions; rendered comparison and measured load follow after Studio authentication.</dd></dl>
+    <li>Spec: ✓ <a href="../specs/missions/m06.md">mission spec</a> and <a href="../specs/worlds/m06.md">world spec</a> in <a href="https://github.com/A-Ricemusic/skybreak/pull/155">PR #155</a></li>
+    <li>World: ✓ merged; adopted targets from <a href="../specs/worlds/m06-composition.md">composition and target table</a></li>
+    <li>Engine: ✓ shared D1 finite stocks/gun, D2 ships/SAM/anti-ship, batch C score/rearm</li>
+    <li>Mission data & unlock: ✓ #179; sequential after mission 5</li>
+    <li>Studio verified: ✓ full Jest suite 1,133/1,133 in the orchestrator’s run at e5c2fd2</li>
+    <li>Live: ✓ pipeline after #179 merges</li></ul></dd>
+  <dt>Open PRs</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/179">#179 · mission activation</a></dd>
+  <dt>Known issues</dt><dd>Provisional 36 hull /40 yard /18 component roster (D-260);16 hostile air. Studio Jest passed; Player/phone not yet observed. Rendered appearance, flight feel and load remain unverified.</dd>
+  <dt>Owner test</dt><dd>After merge: score ≥3,000 through15:00; verify runway18 rearm, finite ammo, ship components/SAMs and one allied kill. Follow next.md beta guide; Player/phone checks remain pending.</dd></dl>
 </article>
 
-<article class="card" id="level-7"><h2>07 · Mission 7</h2><span class="badge review">In review</span><p class="muted">Reference: Deep Strike</p><dl>
-  <dt>Reference footage</dt><dd>1:22:13–1:35:49</dd>
-  <dt>Pieces</dt><dd><ul class="pieces">
-    <li>Spec: ✓ merged <a href="../specs/missions/m07.md">mission</a> and <a href="../specs/worlds/m07.md">world</a></li>
-    <li>World: ✓ built/dormant (#175); <a href="../specs/worlds/m07-composition.md">composition and budget</a></li>
-    <li>Engine needs: D1–D3 merged/dormant; remaining integration follows engine plan</li>
-    <li>Mission data & unlock: ◐ #178 in review; locked on main</li>
-    <li>Studio verified: —</li>
-    <li>Live: —</li></ul></dd>
-  <dt>Open PRs</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/178">#178 playable mission proposal</a></dd>
-  <dt>Known issues</dt><dd>Offline world geometry and budget checks pass. Target inventory is provisional; Studio/Player/phone appearance and load unverified. Mission remains locked and unavailable.</dd>
-  <dt>Owner test</dt><dd>No playable test yet. Review composition/target assumptions; rendered comparison and measured load follow after Studio authentication.</dd></dl>
-</article>
+<article class="card" id="level-7"><h2>07 · ARRAY BREAK</h2><span class="badge live">Live after #178 merges</span><p class="muted">Reference: Deep Strike · 1:22:13–1:35:49</p><dl>
+<dt>Mission</dt><dd>Sequential unlock after mission 6. 51 ground contacts and 20 optional hostile aircraft; three marked installations in 15:00, then fresh 5:00 southbound canyon escape below 2,000 ft with terrain cover.</dd>
+<dt>Pieces</dt><dd>World #175 and engine D1–D3 merged; mission data/unlock <a href="https://github.com/A-Ricemusic/skybreak/pull/178">#178</a>. Shared one-kill allied budget. Original subtitles; no new audio.</dd>
+<dt>Verification</dt><dd>Studio verified: pending orchestrator run. Live by pipeline convention after merge; Player/phone not yet observed.</dd>
+<dt>Known issues</dt><dd>Provisional roster/ranks D-280–D-284. S 1,600; maximum 2,590 before allied kill. Rendered comparison, canyon flight, artillery masking and load/clear timing remain unverified.</dd>
+<dt>Owner test</dt><dd>Follow <a href="next.md">mission 7 beta guide</a>: sequential unlock, points, update clock, low south exit, failures, retry/save and phone readability.</dd></dl></article>
 
 <article class="card" id="level-8"><h2>08 · Mission 8</h2><span class="badge review">Spec only</span><p class="muted">Reference: Shattered Skies</p><dl>
   <dt>Reference footage</dt><dd>1:39:16–1:52:39</dd>
