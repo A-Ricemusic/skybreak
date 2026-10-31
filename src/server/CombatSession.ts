@@ -25,6 +25,7 @@ export type EnemyMode = "attack" | "extend" | "orbit" | "run";
 /** What an air enemy is: a required bandit, an optional raider, the courier of a chase phase, or the ace. */
 export type AirRole = "bandit" | "raider" | "courier" | "ace" | "bomber" | "escort";
 export interface Enemy {
+	attackProtected?: string;
 	surfaceOrigin?: CFrame;
 	surfaceStartedAt?: number;
 	typedGround?: TypedGroundTarget;
@@ -108,6 +109,9 @@ export interface Projectile {
 }
 export interface CombatSession {
 	ringArtillery?: { phase: number; state: ArtilleryState };
+	protectedFlight?: {phase: number; actors: import("./EngineBatchD7Runtime").ProtectedActor[]};
+	contactClock?: number;
+	repeatedArtillery?: {phase:number;state:import("../shared/EngineBatchD6").ScheduledArtillery};
 	artillery?: { phase: number; state: ArtilleryState };
 	/** Collateral mount removal satisfies groups but never earns score or kills. */
 	retiredGroundIds?: Set<string>;

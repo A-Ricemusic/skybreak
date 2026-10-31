@@ -37,6 +37,7 @@ for _,bp in C.MISSIONS do
 		if p.beat then emit(tag..".beat","radio","",p.beat) end
 		for i,c in p.chatter or {} do emit(tag..".chatter"..i,"radio","",c.text) end
 		for i,g in p.groupCalls or {} do emit(tag..".group"..i,"radio","",g) end
+		if p.interceptHold then emit(tag..".ignition","radio","",p.interceptHold.ignitionCall) end
 		if p.hazard then emit(tag..".hazard","radio","",p.hazard.text) end
 		if p.twist then
 			emit(tag..".twist","radio","",p.twist.text)

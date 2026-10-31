@@ -1,8 +1,8 @@
 # SKYBREAK redesign dashboard
 
-Updated 2026-10-30 from main #181 (`d1fb3a8`), with mission 6 #179. Publish workflow for this main revision succeeded per CI. Merged gameplay is live in Roblox Player under the owner's automatic-pipeline convention; no Player test is claimed here.
+Updated 2026-10-30 against main `a04fdd6` (#177 and #178 merged), integrating mission 8 #183. Merged gameplay is live in Roblox Player under the owner's automatic-pipeline convention; no Player test is claimed here.
 
-**Practice and missions 1–6 are Live by the owner’s pipeline convention after #179 merges. Missions 7–18 remain locked, with their worlds built and dormant.** Mission 6 IRON COAST unlocks after mission 5: harbour strike, ≥3,000 points in 15:00, finite ammo and optional runway rearm. Studio verified: full Jest suite 1,133/1,133 in the orchestrator’s run at `e5c2fd2`; Player/phone not yet observed. Mission 7 is in review [#178](https://github.com/A-Ricemusic/skybreak/pull/178). Engine D1–D3 are merged; mission 6 activates D1/D2 while D3 remains dormant; D4 [#177](https://github.com/A-Ricemusic/skybreak/pull/177) awaits merge, D5 #180 and D6 #182 remain open.
+**Practice and missions 1–7 are live; mission 8 OPEN FREQUENCY will be live after #183 merges. Missions 9–18 remain locked, with their worlds built and dormant.** Mission 8 unlocks after mission 7: ≥800 points over 7:00, then six bombers approaching from the west to intercept during a fresh 6:00 hold protecting the broadcast mast. Studio verified: pending orchestrator run. Player/phone not yet observed. D1–D4 are merged; M06 activates D1/D2, M07 D3 and M08 D4. D5 #180 and D6 #182 remain open.
 
 Live changes include mission 5's refinery strike/rearm/escape (#148), closest-on-screen TGT cycling (#172), full-bleed loading with jet/progress/tips (#173), and harder M01/M02 with a shared allied kill budget of approximately one per sortie (#174). #176 also fixes weather lookup for M05–M13 and registers all 18 environments. Automatic acquisition remains nose-first; practice and missions 1–5 do not enable the dormant gun, finite stock, naval/SAM/anti-ship or canyon/area-strike contracts.
 
@@ -10,7 +10,7 @@ New and changed story dialogue stays subtitle-only: no further audio uploads (D-
 
 [Per-level status and owner checklist](levels.html) · [Play SKYBREAK](https://www.roblox.com/games/112911685457826)
 
-Mission 7 review fixes in #178: absolute Y=585 ceiling, full segmented artillery masking and a 60-second first impact for retained-pose canyon ingress. New real-world D-242 Jest coverage awaits the orchestrator; no Studio or Player verification claimed.
+Mission 7 merged fixes in #178: absolute Y=585 ceiling, full segmented artillery masking and a 60-second first impact for retained-pose canyon ingress. New real-world D-242 Jest coverage awaits the orchestrator; no Studio or Player verification claimed.
 
 ## Mission progress
 
@@ -22,8 +22,8 @@ Mission 7 review fixes in #178: absolute Y=585 ceiling, full segmented artillery
 | 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | Yes | Playable | Yes (pipeline) | — |
 | 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | Yes | Playable | Yes (pipeline) | — |
 | 6 | Invincible Fleet | 1:03:01–1:20:00 | 15:00 active + optional service | Yes | Yes; provisional roster D-260 | ✓ #179 data/unlock; Studio ✓ full Jest 1,133/1,133 (orchestrator) | Live (pipeline after #179 merges) | Player/phone not yet observed |
-| 7 | Deep Strike | 1:22:13–1:35:49 | 13.6 min | Yes | Yes | Playable in #178 (unmerged); review fixes and offline checks, Studio pending | No | — |
-| 8 | Shattered Skies | 1:39:16–1:52:39 | 13.4 min | Yes | Yes | World built/dormant; mission integration pending | No | — |
+| 7 | Deep Strike | 1:22:13–1:35:49 | 13.6 min | Yes | Yes | Playable #178; Studio verified: pending orchestrator run | Yes (pipeline) | — |
+| 8 | Shattered Skies | 1:39:16–1:52:39 | 7:00 + 6:00 hold | Yes | Yes; provisional D-320–D-324 | Playable #183; Studio verified: pending orchestrator run | Live after #183 merges (pipeline) | Player/phone not yet observed |
 | 9 | Operation Bunker Shot | 1:56:14–2:14:14 | 18.0 min | Yes | Yes | World built/dormant; mission integration pending | No | — |
 | 10 | Tango Line | 2:16:13–2:37:51 | 21.6 min | Yes | Yes | World built/dormant; mission integration pending | No | — |
 | 11 | Escort | 2:39:46–2:45:27 | 5.7 min | Yes | Yes | World built/dormant; mission integration pending | No | — |
@@ -44,6 +44,26 @@ Footage times are internal reference cross-references, not shipped titles; see t
 
 M07 review-fix validation (2026-10-30): frozen install, build and full `validate:offline` exited 0; 967 Luau contracts and 19 catalog snapshots passed. Voice manifests regenerated; no audio generated/uploaded. Studio/Player not run by this agent.
 
-D8 review candidate (2026-10-30): dormant ground ECM, strike rearm, precision bomb, elite retreat/recovery story flag and railgun sweep/type contracts are implemented without catalog opt-ins. See D-400–D-402 and the engine plan's **Batch D8 implementation** section. Studio/Jest execution and M12 activation/flight acceptance remain pending. This entry does not change the 18-mission release table or claim Player verification.
+M08 integration validation (2026-10-30): frozen install, `bun run build`, `test:offline` and full `validate:offline` exited 0 using the supplied LUAU_BIN. Passed 984 Luau contracts, 19 catalog snapshots and 124 Python tests. Voice inventories regenerated: 189 entries, 111 pending recordings. All 87 offline spec registrations match the runner imports. Studio verified: pending orchestrator run; no Roblox Jest or Player tests performed.
 
-D8 branch baseline is fetched `origin/main` `248e387`: D1–D5 are merged there (superseding historical open-D4/D5 notes above); D6 #182 and D7 #184 remain separate work. `shipped.md` is intentionally unchanged by this implementation task.
+M08 arrival regression follow-up (2026-10-30): the orchestrator reported 1,175/1,176 Studio Jest tests passing at `0227c1f`; the catalog opening-count test expected six immediate bombers instead of the authored one. Runtime inspection confirms D-272 scheduling and full-six-kill/6:00 completion accounting. The test now checks exact due slots/identities before and at every arrival, rejects duplicate admissions, and preserves full opening counts for unscheduled formations. A partial-kill timeout regression covers one through five kills. Studio rerun belongs to the orchestrator; this agent did not launch Studio or run Roblox Jest.
+
+M08 follow-up validation: `bun install --frozen-lockfile`, `bun run build`, and full `validate:offline` with the supplied `LUAU_BIN` each exited 0 (991 Luau contracts, 19 catalog snapshots, 124 Python tests). The director regression compiled; Studio execution remains pending. No gameplay/runtime changes.
+
+## D6 merged (#182, dormant)
+
+D6 engine work is merged (#182, `ea0045d`): dormant repeated artillery, parked/airborne credit deduplication, bounded static contact detail and six M10 target types (D-300–D-303). No mission opts in; Studio/runtime Jest/phone verification and M10 activation remain pending. See [engine plan](../specs/engine/missions-06-18-plan.md#7-batch-d6-implementation).
+
+D6 integration checks: frozen install, build and full offline validation exit 0 (993 Luau contracts, 19 catalog snapshots, 124 Python tests; four negative loader probes). D4+D6 admission/contact regressions added; runtime specs compiled only. No Studio, `test:roblox`, Player or phone test performed.
+
+## Dormant D7 branch
+
+PR [#184](https://github.com/A-Ricemusic/skybreak/pull/184) adds protected-aircraft health/routes/markers, all-safe completion and immediate loss failure, airliner-priority attackers and an opt-in altitude envelope. It is unmerged and no catalog mission opts in. Main’s practice and missions 1–7 remain unchanged. D7 firing overrides apply only to selected protected aircraft; ordinary wingmen/player keep existing firing gates. Runtime Jest, Studio, Player and visual acceptance remain pending.
+
+Main integration validation (2026-10-30): frozen install, standalone build and full offline validation exited 0; 1,007 Luau contracts, 19 unchanged catalog snapshots and 124 Python tests. The combined sector/protected-target warning rule passes offline; service-entry runtime regressions compile but remain unrun. No Studio/Player test. Main at integration is `ea0045d` (D5/D6 merged, M08 not merged). D4/D6 admission logic is retained; this main revision has no `concurrentRoutes` option.
+
+## D8 main integration (2026-10-30)
+
+Dormant D8 ground ECM, required-strike rearm, precision bomb, elite retreat/recovery and ring sweep contracts are integrated with main’s D6, M08 and D7 hooks. No catalog opt-ins or frozen snapshots change. See D-400–D-402 and the engine plan. Runtime Jest, Studio/Player and M12 acceptance remain pending.
+
+D8 main integration validation (2026-10-30, main `5d84486`): frozen install, build and full `validate:offline` with the prescribed `LUAU_BIN` each exited 0: 1,023 Luau contracts, 19 unchanged catalog snapshots, four loader guard probes and 124 Python tests. All 92 spec registrations match runner imports and retain both parents. No Studio, `test:roblox`, Player tests or uploads performed. D8 remains dormant; M12 dependent branch untouched.

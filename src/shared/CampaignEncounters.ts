@@ -4,10 +4,11 @@ import type { AceLivery } from "./AssetSelection";
 import type { MissionBlueprint, MissionPhaseBlueprint, FlightPoint } from "./MissionCatalog";
 import type { MissionAirspacePolicy, MissionScoringPolicy } from "./MissionPolicy";
 
-export const GROUND_TYPES = ["parked_bomber", "hangar", "aa_gun", "control_tower", "substation", "radar_dome", "parked_helicopter", "refinery", "fuel_tank", "pipeline", "oil_rig", "rig_tower", "ship", "crane", "sam", "control_room", "smokestack", "gas_tank", "pump_station", "destroyer", "cruiser", "submarine", "missile_boat", "supply_ship", "landing_ship", "container_ship", "gun_mount", "containers", "storage", "solar_panel", "solar_tower", "flak_gun", "pillbox", "tanker", "command_post", "artillery", "bunker", "tank", "vehicle", "ground_ecm", "railgun_emplacement", "wreck"] as const;
+export const GROUND_TYPES = ["parked_bomber", "hangar", "aa_gun", "control_tower", "substation", "radar_dome", "parked_helicopter", "refinery", "fuel_tank", "pipeline", "oil_rig", "rig_tower", "ship", "crane", "sam", "control_room", "smokestack", "gas_tank", "pump_station", "destroyer", "cruiser", "submarine", "missile_boat", "supply_ship", "landing_ship", "container_ship", "gun_mount", "containers", "storage", "solar_panel", "solar_tower", "flak_gun", "pillbox", "tanker", "command_post", "artillery", "bunker", "tank", "vehicle", "container", "watchtower", "antenna", "barracks", "gunboat", "sub_pen", "ground_ecm", "railgun_emplacement", "wreck"] as const;
 export type GroundTargetType = typeof GROUND_TYPES[number];
 /** HUD label (model name) of each typed ground target. */
 export const GROUND_TARGET_LABELS: { readonly [K in GroundTargetType]: string } = {
+	container:"CONTAINER", watchtower:"WATCHTOWER", antenna:"ANTENNA", barracks:"BARRACKS", gunboat:"GUNBOAT", sub_pen:"SUB PEN",
 	ground_ecm: "ECM", railgun_emplacement: "RAILGUN", wreck: "WRECK",
 	artillery: "ARTILLERY", bunker: "BUNKER", tank: "TANK", vehicle: "VEHICLE",
 	solar_panel: "SOLAR PANEL", solar_tower: "SOLAR TOWER", flak_gun: "FLAK GUN", pillbox: "PILLBOX",
@@ -29,6 +30,9 @@ export type ArrivalTrigger = { kind: "time"; seconds: number } | { kind: "ground
 	// The player's aircraft comes within `radius` horizontal studs of (x, z).
 	| { kind: "approach"; x: number; z: number; radius: number };
 export interface FighterArrival {
+	attackProtected?: string;
+	/** One optional parked contact becomes this single aircraft; shares its kill identity. */
+	parkedSourceId?: string;
 	/** D5: prioritise this friendly sector, never the player. */ attackSector?: string;
 	livery?: AceLivery;
 	aircraft?: "jammer" | "helicopter";
@@ -75,13 +79,14 @@ export function validateCampaignEncounters(blueprint: MissionBlueprint, phases: 
 	const ids = new Set<string>(), groups = new Set<string>();
 	assert(phases.size()>0,"Mission needs at least one phase");
 	const claim = (id: string) => { assert(id.size()>0 && !ids.has(id), "Encounter ids must be unique and nonempty"); ids.add(id); };
-	const point = (p: FlightPoint) => { assert(finite(p.x) && finite(p.y) && finite(p.z) && math.abs(p.x)<=airspace.spawnLimit && math.abs(p.z)<=airspace.spawnLimit && p.y>=0 && p.y<=2000,"Encounter point outside airspace"); };
+	const point = (p: FlightPoint, ceiling=2000) => { assert(finite(p.x) && finite(p.y) && finite(p.z) && math.abs(p.x)<=airspace.spawnLimit && math.abs(p.z)<=airspace.spawnLimit && p.y>=0 && p.y<=ceiling,"Encounter point outside airspace"); };
 	const role = (key: string) => assert(key.size()>0 && key.size()<=32 && scoring.points[key] !== undefined,"Encounter needs a configured scoring role");
 	for (const phase of phases) {
 		assert(phase.label.size()>0 && phase.label.size()<=40,"Phase needs a short label");
 		if(phase.count !== undefined) assert(finite(phase.count) && phase.count%1===0 && phase.count>0,"Phase count must be a positive integer");
 		validateNavalTargets(phase.groundTargets ?? [], airspace.spawnLimit);
 		for (const id of phase.bombers?.targetIds ?? []) claim(id);
+		for(const a of phase.protection?.aircraft ?? []) claim(a.id);
 		let required = 0;
 		for (const target of phase.groundTargets ?? []) {
 			claim(target.id); point(target.position); role(target.scoreRole);
@@ -111,7 +116,7 @@ export function validateCampaignEncounters(blueprint: MissionBlueprint, phases: 
 			if(wave.route) { assert(wave.aircraft==="jammer" || wave.aircraft==="helicopter","Invalid route aircraft"); assert(wave.count<=6 && wave.scramble!==true,"Invalid route wave"); for(const p of wave.route.waypoints) point(p); assert(wave.route.speed<= (wave.aircraft==="helicopter" ? 80 : 200),"Route aircraft too fast"); BomberRules.Create(wave.route.waypoints,wave.route.speed); }
 			claim(wave.id); trigger(wave.trigger,owner); role(wave.scoreRole);
 			assert(finite(wave.count) && wave.count%1===0 && wave.count>=1 && wave.count<=32 && (wave.role==="raider" || wave.role==="escort"),"Invalid fighter wave");
-			if (wave.spawn) point(wave.spawn);
+			if (wave.spawn) point(wave.spawn, phase.protection?.altitudeCeiling ?? 2000);
 			if (wave.headingDegrees !== undefined) assert(finite(wave.headingDegrees),"Invalid heading");
 			if (wave.call !== undefined) assert(wave.call.size()>0 && wave.call.size()<=72,"Invalid fighter wave call");
 			assert(!wave.scramble || (wave.spawn !== undefined && wave.headingDegrees !== undefined),"Scramble needs runway spawn and heading");

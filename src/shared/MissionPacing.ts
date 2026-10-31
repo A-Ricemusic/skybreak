@@ -1,3 +1,4 @@
+import { protectedDuration } from "./EngineBatchD7";
 import { Act, MissionBlueprint, MissionCatalog, MissionPhaseBlueprint } from "./MissionCatalog";
 
 // Design estimates for an average phone pilot on Normal, NOT live measurements.
@@ -7,6 +8,7 @@ function estimate(phase: MissionPhaseBlueprint, act: Act, aceHealth: number): nu
 	const count = phase.count ?? 0, points = phase.points?.size() ?? 0, seconds = phase.seconds ?? 0;
 	const hazards = (phase.hazard?.count ?? 0) * 10;
 	switch (phase.kind) {
+		case "protected_air": return math.max(0,...(phase.protection?.aircraft ?? []).map(protectedDuration));
 		case "score_threshold": return phase.scoreThreshold?.seconds ?? 0;
 		case "tutorial_move": return 20;
 		case "tutorial_target": return 10;

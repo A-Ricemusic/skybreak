@@ -40,7 +40,7 @@ describe("D5 server director and beach attacker",()=>{
   s.state=landingPose(plan.landing,0); expect(stepRearm(s,1,40,()=>{})).toBe(false);
   s.state=FlightMath.FromPose(0,300,4000,0,0,160); stepRearm(s,1,40,()=>{}); s.state=landingPose(plan.landing,0); expect(stepRearm(s,1,40,()=>{})).toBe(true);
  });
- it("allows carrier entry during a beach windup while player windups still warn and block service",()=>{
+ it("allows carrier entry during sector and protected-aircraft windups while player threats still block service",()=>{
   const f=fixture(); try {
    const plan: RearmPlan={zone:{x:0,y:150,z:1150},radius:1500,landing:{touchdown:{x:0,y:100,z:150},headingDegrees:0,approachDistance:1000,rolloutDistance:50,approachSeconds:10,rolloutSeconds:3,glideDegrees:3},takeoffSeconds:8,missiles:true,special:true,health:false,carrier:{centre:{x:0,y:100,z:0},width:150,length:560,catapult:{x:0,y:100,z:-240}}};
    const bp={...f.bs.blueprint,phases:[{...f.bs.blueprint.phases[0],rearm:plan}]};
@@ -54,7 +54,14 @@ describe("D5 server director and beach attacker",()=>{
    const player={...f.enemy,attackSector:undefined,windupTarget:undefined}; s.enemies.push(player);
    expect(AlliedRules.WarnsPlayer(player.windupTarget,player.attackSector)).toBe(true);
    expect(stepRearm(s,0.1,40,()=>{})).toBe(false); expect(s.rearmElapsed).toBeUndefined();
-   s.enemies=[f.enemy]; const messages:{kind:string}[]=[];
+   const protectedAircraft={...f.enemy,id:"protected-high",friendly:true};
+   const protectedAttacker={...f.enemy,attackSector:undefined,windupTarget:protectedAircraft};
+   expect(AlliedRules.WarnsPlayer(protectedAttacker.windupTarget,protectedAttacker.attackSector)).toBe(false);
+   s.enemies=[f.enemy,protectedAttacker];
+   s.projectiles=[{hostile:true,wingman:protectedAircraft} as CombatSession["projectiles"][number],{hostile:true} as CombatSession["projectiles"][number]];
+   expect(stepRearm(s,0.1,40,()=>{})).toBe(false);
+   s.projectiles=[{hostile:true,wingman:protectedAircraft} as CombatSession["projectiles"][number]];
+   const messages:{kind:string}[]=[];
    expect(stepRearm(s,0.1,40,m=>messages.push(m as {kind:string}))).toBe(true);
    expect(messages[0].kind).toBe("RearmStarted"); expect(s.blueprintState.rearmActive).toBe(true); expect(f.enemy.windup).toBe(2);
   } finally { f.folder.Destroy(); }

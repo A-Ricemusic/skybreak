@@ -127,18 +127,41 @@ describe("Bomber director integration", () => {
 		expect(h.s.blueprintState?.reason).toBe("bombers_escaped");
 		expect(h.radio[h.radio.size() - 1]).toBe(b.escapeCall); h.folder.Destroy();
 	});
-	it("preserves every current combat phase's opening required roles and counts", () => {
+	it("preserves every current combat phase's required roles, opening counts and authored arrivals", () => {
 		for (const bp of MissionCatalog.All()) for (const phase of MissionCatalog.ExpandedPhases(bp)) {
 			if (phase.kind !== "required_air" && phase.kind !== "chase" && phase.kind !== "ace") continue;
 			const h = harness({ ...bp, phases: [phase] }); h.director.Apply(h.s);
 			if (phase.bombers) {
-                expect(h.calls.filter((c) => c.role === "bomber").size()).toBe(phase.bombers.count);
-                expect(h.calls.filter((c) => c.role === "escort" && c.options?.optional).size()).toBe(phase.bombers.escorts.initial);
-                expect(h.calls.filter((c) => c.role === "bandit").size()).toBe(0);
-                expect(h.s.bomberEncounter).toBeDefined();
-                h.folder.Destroy();
-                continue;
-            }
+				const bombers = phase.bombers;
+				// Unscheduled formations still require their full count at opening.
+				// Streams require exactly the slots due on the phase-relative clock.
+				const expectDue = (elapsed: number) => {
+					const expectedSlots: number[] = [];
+					for (let slot = 0; slot < bombers.count; slot++) {
+						if ((bombers.arrivalSeconds?.[slot] ?? 0) <= elapsed) expectedSlots.push(slot);
+					}
+					const spawned = h.calls.filter((c) => c.role === "bomber");
+					expect(spawned.size()).toBe(expectedSlots.size());
+					expect(spawned.map((c) => c.options?.bomberSlot)).toEqual(expectedSlots);
+					for (const call of spawned) expect(call.options?.targetId).toBe(bombers.targetIds?.[call.options!.bomberSlot!]);
+					expect(h.s.bomberEncounter?.bombersSpawned).toBe(expectedSlots.size());
+				};
+				expectDue(0);
+				expect(h.calls.filter((c) => c.role === "escort" && c.options?.optional).size()).toBe(bombers.escorts.initial);
+				expect(h.calls.filter((c) => c.role === "bandit").size()).toBe(0);
+				expect(h.s.bomberEncounter).toBeDefined();
+				let previousArrival = 0;
+				for (const at of bombers.arrivalSeconds ?? []) {
+					if (at <= previousArrival) continue;
+					previousArrival = at;
+					h.s.elapsed = at - 0.001; h.director.Step(h.s); expectDue(h.s.elapsed);
+					h.s.elapsed = at; h.director.Step(h.s); expectDue(at);
+					h.director.Step(h.s); expectDue(at); // A repeated step cannot duplicate a slot.
+				}
+				expect(h.calls.filter((c) => c.role === "bomber").size()).toBe(bombers.count);
+				h.folder.Destroy();
+				continue;
+			}
 			const role = phase.kind === "ace" ? "ace" : phase.kind === "chase" ? "courier" : "bandit";
 			const count = phase.kind === "ace" ? 1 : phase.kind === "chase" ? phase.count ?? 1
 				: phase.execution?.launchDelay !== undefined ? 0 : phase.execution?.directSpawn ? phase.count ?? 0 : math.ceil((phase.count ?? 0) / (phase.groups ?? 1));
@@ -185,6 +208,21 @@ describe("D4 director contracts (compiled for orchestrator Studio lease)",()=>{
 		h.s.enemies[0].health=0;h.s.elapsed=209.99;h.director.Step(h.s);expect(h.s.blueprintState?.outcome).toBeUndefined();
 		h.s.elapsed=210;h.director.Step(h.s);expect(h.s.blueprintState?.outcome).toBe("failed");expect(h.s.blueprintState?.reason).toBe("bombers_escaped");h.folder.Destroy();
 	});
+ it("holds D6 parked handoffs until D4 admits a slot alongside 150 cheap contacts",()=>{
+  const bp=encounter();bp.phases=[{kind:"score_threshold",label:"D6 battle",cheapContacts:true,concurrentFighters:2,scoreThreshold:{points:9999,seconds:420,waitForExpiry:true},groundTargets:[],fighterWaves:[]}];
+  const phase=bp.phases[0];
+  for(let i=0;i<150;i++) phase.groundTargets!.push({id:`contact${i}`,type:i===0 ? "parked_helicopter" : "barracks",position:{x:i,y:0,z:0},yaw:0,required:false,scoreRole:"air"});
+  phase.fighterWaves!.push({id:"takeoff",parkedSourceId:"contact0",count:1,role:"raider",scoreRole:"air",trigger:{kind:"time",seconds:1}});
+  const h=harness(bp);
+  try {
+   h.budget.fighters=2;h.director.Apply(h.s);h.s.elapsed=1;h.director.Step(h.s);
+   expect(h.calls.size()).toBe(0);expect(h.s.airQueue.size()).toBe(1);
+   h.budget.fighters=1;h.director.Step(h.s);
+   expect(h.calls.size()).toBe(1);expect(h.calls[0].options?.arrival).toBe(phase.fighterWaves![0]);expect(h.s.airQueue.size()).toBe(0);
+   h.director.Step(h.s);expect(h.calls.size()).toBe(1);
+  } finally {h.folder.Destroy();}
+ });
+
 	it("queues the initial 27 contacts at a seven-fighter ceiling without repeating the wave",()=>{
 		const bp=encounter();bp.phases=[{kind:"score_threshold",label:"Battle",concurrentFighters:7,scoreThreshold:{points:800,seconds:420,waitForExpiry:true},fighterWaves:[{id:"battle",count:27,role:"raider",scoreRole:"escort",trigger:{kind:"phase_start",phase:0}}]}];
 		const h=harness(bp);h.director.Apply(h.s);h.director.Step(h.s);h.director.Step(h.s);expect(h.calls.size()).toBe(7);expect(h.s.airQueue[0].count).toBe(20);
