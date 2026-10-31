@@ -22300,25 +22300,1499 @@
   },
   {
     "act": 3,
-    "available": false,
+    "airspace": {
+      "hardHalfWidth": 15360,
+      "radarRange": 24000,
+      "softHalfWidth": 14000,
+      "spawnLimit": 14000
+    },
+    "allies": {
+      "allowRequiredTargets": false,
+      "callsignPrefix": "LANTERN",
+      "count": 4,
+      "creditPlayerKills": false,
+      "formation": [
+        {
+          "x": -180,
+          "y": 20,
+          "z": 160
+        },
+        {
+          "x": 180,
+          "y": 20,
+          "z": 160
+        },
+        {
+          "x": -300,
+          "y": 40,
+          "z": 320
+        },
+        {
+          "x": 300,
+          "y": 40,
+          "z": 320
+        }
+      ],
+      "killBudget": 1,
+      "mayKill": true,
+      "model": "Kestrel"
+    },
+    "available": true,
     "briefing": "Teal's last tape buys the witnesses their voice tonight. Keep the flooded capital's bridges and docks open. Break the defences, then defeat Rusk's four wingmen, including Vulture Lead. Rusk withdraws to sea; he must survive for the final confrontation.",
-    "codename": "In development",
+    "codename": "The last fracture",
+    "countdownSeconds": 720,
     "debrief": "Vulture Lead and the other three wingmen are down. Rusk abandoned them and ran to the coastal relay works. The witnesses reach parliament; his own voice is all he has left.",
-    "environment": "farm_overcast",
+    "environment": "ocean_clear",
     "failure": "The witnesses cannot reach parliament. The bridges and docks remain under fire.",
     "ground": [],
     "id": 17,
-    "optionalRaiderMax": 0,
+    "optionalRaiderMax": 18,
     "phases": [
       {
-        "count": 1,
+        "beat": "SERA: East bridge is friendly. Break the western supply line.",
+        "bridgeClosures": [
+          {
+            "hullIds": [
+              "m17_hull_4"
+            ],
+            "sectorIds": [],
+            "targetId": "m17_enemy_bridge"
+          }
+        ],
+        "chatter": [
+          {
+            "at": 0.5,
+            "text": "SERA: Keep turning over the guns. The flooded streets are no refuge."
+          }
+        ],
+        "cheapContacts": true,
+        "concurrentFighters": 8,
+        "concurrentRoutes": 2,
+        "fighterWaves": [
+          {
+            "aircraft": "helicopter",
+            "count": 1,
+            "headingDegrees": 0,
+            "id": "m17_air_1",
+            "role": "raider",
+            "route": {
+              "speed": 80,
+              "waypoints": [
+                {
+                  "x": -10000,
+                  "y": 650,
+                  "z": 4000
+                },
+                {
+                  "x": -10000,
+                  "y": 650,
+                  "z": -2000
+                },
+                {
+                  "x": -8500,
+                  "y": 650,
+                  "z": -2000
+                },
+                {
+                  "x": -8500,
+                  "y": 650,
+                  "z": 5000
+                }
+              ]
+            },
+            "scoreRole": "helicopter",
+            "spawn": {
+              "x": -10000,
+              "y": 650,
+              "z": 4000
+            },
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          },
+          {
+            "aircraft": "helicopter",
+            "count": 1,
+            "headingDegrees": 0,
+            "id": "m17_air_2",
+            "role": "raider",
+            "route": {
+              "speed": 80,
+              "waypoints": [
+                {
+                  "x": -9000,
+                  "y": 650,
+                  "z": 4000
+                },
+                {
+                  "x": -9000,
+                  "y": 650,
+                  "z": -2000
+                },
+                {
+                  "x": -7500,
+                  "y": 650,
+                  "z": -2000
+                },
+                {
+                  "x": -7500,
+                  "y": 650,
+                  "z": 5000
+                }
+              ]
+            },
+            "scoreRole": "helicopter",
+            "spawn": {
+              "x": -9000,
+              "y": 650,
+              "z": 4000
+            },
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          },
+          {
+            "aircraft": "helicopter",
+            "count": 1,
+            "headingDegrees": 0,
+            "id": "m17_air_3",
+            "role": "raider",
+            "route": {
+              "speed": 80,
+              "waypoints": [
+                {
+                  "x": -8000,
+                  "y": 650,
+                  "z": 4000
+                },
+                {
+                  "x": -8000,
+                  "y": 650,
+                  "z": -2000
+                },
+                {
+                  "x": -6500,
+                  "y": 650,
+                  "z": -2000
+                },
+                {
+                  "x": -6500,
+                  "y": 650,
+                  "z": 5000
+                }
+              ]
+            },
+            "scoreRole": "helicopter",
+            "spawn": {
+              "x": -8000,
+              "y": 650,
+              "z": 4000
+            },
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          },
+          {
+            "aircraft": "helicopter",
+            "count": 1,
+            "headingDegrees": 0,
+            "id": "m17_air_4",
+            "role": "raider",
+            "route": {
+              "speed": 80,
+              "waypoints": [
+                {
+                  "x": -7000,
+                  "y": 650,
+                  "z": 4000
+                },
+                {
+                  "x": -7000,
+                  "y": 650,
+                  "z": -2000
+                },
+                {
+                  "x": -5500,
+                  "y": 650,
+                  "z": -2000
+                },
+                {
+                  "x": -5500,
+                  "y": 650,
+                  "z": 5000
+                }
+              ]
+            },
+            "scoreRole": "helicopter",
+            "spawn": {
+              "x": -7000,
+              "y": 650,
+              "z": 4000
+            },
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 0,
+            "id": "m17_air_5",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "spawn": {
+              "x": -6000,
+              "y": 650,
+              "z": 4000
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 60
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 0,
+            "id": "m17_air_6",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "spawn": {
+              "x": -5000,
+              "y": 650,
+              "z": 4000
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 90
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 0,
+            "id": "m17_air_7",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "spawn": {
+              "x": -4000,
+              "y": 650,
+              "z": 4000
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 120
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 0,
+            "id": "m17_air_8",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "spawn": {
+              "x": -3000,
+              "y": 650,
+              "z": 4000
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 150
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 0,
+            "id": "m17_air_9",
+            "role": "raider",
+            "scoreRole": "active",
+            "spawn": {
+              "x": -2000,
+              "y": 650,
+              "z": 4000
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 180
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 0,
+            "id": "m17_air_10",
+            "role": "raider",
+            "scoreRole": "active",
+            "spawn": {
+              "x": -10000,
+              "y": 650,
+              "z": 4800
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 210
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 0,
+            "id": "m17_air_11",
+            "role": "raider",
+            "scoreRole": "active",
+            "spawn": {
+              "x": -9000,
+              "y": 650,
+              "z": 4800
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 240
+            }
+          },
+          {
+            "aircraft": "helicopter",
+            "count": 1,
+            "headingDegrees": 0,
+            "id": "m17_air_12",
+            "role": "raider",
+            "route": {
+              "speed": 80,
+              "waypoints": [
+                {
+                  "x": -8000,
+                  "y": 650,
+                  "z": 4800
+                },
+                {
+                  "x": -8000,
+                  "y": 650,
+                  "z": -2000
+                },
+                {
+                  "x": -6500,
+                  "y": 650,
+                  "z": -2000
+                },
+                {
+                  "x": -6500,
+                  "y": 650,
+                  "z": 5000
+                }
+              ]
+            },
+            "scoreRole": "tiltrotor",
+            "spawn": {
+              "x": -8000,
+              "y": 650,
+              "z": 4800
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 270
+            }
+          },
+          {
+            "aircraft": "helicopter",
+            "count": 1,
+            "headingDegrees": 0,
+            "id": "m17_air_13",
+            "role": "raider",
+            "route": {
+              "speed": 80,
+              "waypoints": [
+                {
+                  "x": -7000,
+                  "y": 650,
+                  "z": 4800
+                },
+                {
+                  "x": -7000,
+                  "y": 650,
+                  "z": -2000
+                },
+                {
+                  "x": -5500,
+                  "y": 650,
+                  "z": -2000
+                },
+                {
+                  "x": -5500,
+                  "y": 650,
+                  "z": 5000
+                }
+              ]
+            },
+            "scoreRole": "tiltrotor",
+            "spawn": {
+              "x": -7000,
+              "y": 650,
+              "z": 4800
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 300
+            }
+          },
+          {
+            "aircraft": "helicopter",
+            "count": 1,
+            "headingDegrees": 0,
+            "id": "m17_air_14",
+            "role": "raider",
+            "route": {
+              "speed": 80,
+              "waypoints": [
+                {
+                  "x": -6000,
+                  "y": 650,
+                  "z": 4800
+                },
+                {
+                  "x": -6000,
+                  "y": 650,
+                  "z": -2000
+                },
+                {
+                  "x": -4500,
+                  "y": 650,
+                  "z": -2000
+                },
+                {
+                  "x": -4500,
+                  "y": 650,
+                  "z": 5000
+                }
+              ]
+            },
+            "scoreRole": "tiltrotor",
+            "spawn": {
+              "x": -6000,
+              "y": 650,
+              "z": 4800
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 330
+            }
+          },
+          {
+            "aircraft": "helicopter",
+            "count": 1,
+            "headingDegrees": 0,
+            "id": "m17_air_15",
+            "role": "raider",
+            "route": {
+              "speed": 80,
+              "waypoints": [
+                {
+                  "x": -5000,
+                  "y": 650,
+                  "z": 4800
+                },
+                {
+                  "x": -5000,
+                  "y": 650,
+                  "z": -2000
+                },
+                {
+                  "x": -3500,
+                  "y": 650,
+                  "z": -2000
+                },
+                {
+                  "x": -3500,
+                  "y": 650,
+                  "z": 5000
+                }
+              ]
+            },
+            "scoreRole": "tiltrotor",
+            "spawn": {
+              "x": -5000,
+              "y": 650,
+              "z": 4800
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 360
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 0,
+            "id": "m17_air_16",
+            "role": "raider",
+            "scoreRole": "scout",
+            "spawn": {
+              "x": -4000,
+              "y": 650,
+              "z": 4800
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 390
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 0,
+            "id": "m17_air_17",
+            "role": "raider",
+            "scoreRole": "interceptor",
+            "spawn": {
+              "x": -3000,
+              "y": 650,
+              "z": 4800
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 420
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 0,
+            "id": "m17_air_18",
+            "role": "raider",
+            "scoreRole": "interceptor",
+            "spawn": {
+              "x": -2000,
+              "y": 650,
+              "z": 4800
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 450
+            }
+          }
+        ],
+        "groundProgress": {
+          "sectors": [
+            {
+              "advanceCall": "MARINE: East crossing clear. Witness convoy moving.",
+              "clearTargetIds": [
+                "m17_ground_slot_4",
+                "m17_ground_slot_12"
+              ],
+              "health": 300,
+              "hitCall": "MARINE: Crossing under fire!",
+              "id": "m17_witnesses",
+              "kind": "column",
+              "route": {
+                "speed": 20,
+                "waypoints": [
+                  {
+                    "x": 3840,
+                    "y": 140,
+                    "z": 160
+                  },
+                  {
+                    "x": 3840,
+                    "y": 140,
+                    "z": -2240
+                  }
+                ]
+              },
+              "seconds": 120,
+              "securedCall": "MARINE: Witnesses across. Parliament is within reach."
+            }
+          ]
+        },
+        "groundTargets": [
+          {
+            "id": "m17_ground_slot_1",
+            "position": {
+              "x": 1300,
+              "y": 92,
+              "z": -7200
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_2",
+            "position": {
+              "x": 2100,
+              "y": 92,
+              "z": -7200
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_3",
+            "position": {
+              "x": 2900,
+              "y": 92,
+              "z": -7200
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_4",
+            "position": {
+              "x": 3700,
+              "y": 92,
+              "z": -7200
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_5",
+            "position": {
+              "x": 4500,
+              "y": 92,
+              "z": -7200
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_6",
+            "position": {
+              "x": 5300,
+              "y": 92,
+              "z": -7200
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_7",
+            "position": {
+              "x": 6100,
+              "y": 92,
+              "z": -7200
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_8",
+            "position": {
+              "x": 6900,
+              "y": 92,
+              "z": -7200
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_9",
+            "position": {
+              "x": 1300,
+              "y": 44,
+              "z": -5800
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_10",
+            "position": {
+              "x": 2100,
+              "y": 44,
+              "z": -5800
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_11",
+            "position": {
+              "x": 2900,
+              "y": 44,
+              "z": -5800
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_12",
+            "position": {
+              "x": 3700,
+              "y": 44,
+              "z": -5800
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_13",
+            "position": {
+              "x": 4500,
+              "y": 44,
+              "z": -5800
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_14",
+            "position": {
+              "x": 5300,
+              "y": 44,
+              "z": -5800
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_15",
+            "position": {
+              "x": 6100,
+              "y": 44,
+              "z": -5800
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_16",
+            "position": {
+              "x": 6900,
+              "y": 44,
+              "z": -5800
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_17",
+            "position": {
+              "x": 1300,
+              "y": 44,
+              "z": -4400
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_18",
+            "position": {
+              "x": 2100,
+              "y": 44,
+              "z": -4400
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_19",
+            "position": {
+              "x": 2900,
+              "y": 44,
+              "z": -4400
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_20",
+            "position": {
+              "x": 3700,
+              "y": 44,
+              "z": -4400
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_21",
+            "position": {
+              "x": 4500,
+              "y": 44,
+              "z": -4400
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_22",
+            "position": {
+              "x": 5300,
+              "y": 44,
+              "z": -4400
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_23",
+            "position": {
+              "x": 6100,
+              "y": 44,
+              "z": -4400
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_24",
+            "position": {
+              "x": 6900,
+              "y": 44,
+              "z": -4400
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_25",
+            "position": {
+              "x": 1300,
+              "y": 92,
+              "z": -3000
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_26",
+            "position": {
+              "x": 2100,
+              "y": 92,
+              "z": -3000
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_27",
+            "position": {
+              "x": 2900,
+              "y": 92,
+              "z": -3000
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_28",
+            "position": {
+              "x": 3700,
+              "y": 92,
+              "z": -3000
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_29",
+            "position": {
+              "x": 4500,
+              "y": 92,
+              "z": -3000
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_30",
+            "position": {
+              "x": 5300,
+              "y": 92,
+              "z": -3000
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_31",
+            "position": {
+              "x": 6100,
+              "y": 92,
+              "z": -3000
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_32",
+            "position": {
+              "x": 6900,
+              "y": 92,
+              "z": -3000
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_33",
+            "position": {
+              "x": 1300,
+              "y": 44,
+              "z": -1600
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_34",
+            "position": {
+              "x": 2100,
+              "y": 44,
+              "z": -1600
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_35",
+            "position": {
+              "x": 2900,
+              "y": 44,
+              "z": -1600
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_36",
+            "position": {
+              "x": 3700,
+              "y": 44,
+              "z": -1600
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_37",
+            "position": {
+              "x": 4500,
+              "y": 44,
+              "z": -1600
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_38",
+            "position": {
+              "x": 5300,
+              "y": 44,
+              "z": -1600
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_39",
+            "position": {
+              "x": 6100,
+              "y": 44,
+              "z": -1600
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_40",
+            "position": {
+              "x": 6900,
+              "y": 44,
+              "z": -1600
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_41",
+            "position": {
+              "x": 1300,
+              "y": 44,
+              "z": -200
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_42",
+            "position": {
+              "x": 2100,
+              "y": 44,
+              "z": -200
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_43",
+            "position": {
+              "x": 2900,
+              "y": 44,
+              "z": -200
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_44",
+            "position": {
+              "x": 3700,
+              "y": 44,
+              "z": -200
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_45",
+            "position": {
+              "x": 4500,
+              "y": 44,
+              "z": -200
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_46",
+            "position": {
+              "x": 5300,
+              "y": 44,
+              "z": -200
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_47",
+            "position": {
+              "x": 6100,
+              "y": 44,
+              "z": -200
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_48",
+            "position": {
+              "x": 6900,
+              "y": 44,
+              "z": -200
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_49",
+            "parentId": "m17_hull_1",
+            "position": {
+              "x": -9000,
+              "y": 80,
+              "z": -2460
+            },
+            "required": false,
+            "scoreRole": "mount",
+            "type": "gun_mount",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_50",
+            "parentId": "m17_hull_2",
+            "position": {
+              "x": -7200,
+              "y": 80,
+              "z": -2460
+            },
+            "required": false,
+            "scoreRole": "mount",
+            "type": "gun_mount",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_51",
+            "parentId": "m17_hull_3",
+            "position": {
+              "x": -5400,
+              "y": 80,
+              "z": -2460
+            },
+            "required": false,
+            "scoreRole": "mount",
+            "type": "gun_mount",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_52",
+            "parentId": "m17_hull_4",
+            "position": {
+              "x": -3600,
+              "y": 80,
+              "z": -2460
+            },
+            "required": false,
+            "scoreRole": "mount",
+            "type": "gun_mount",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_53",
+            "parentId": "m17_hull_1",
+            "position": {
+              "x": -9000,
+              "y": 80,
+              "z": -2340
+            },
+            "required": false,
+            "scoreRole": "mount",
+            "type": "gun_mount",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_54",
+            "parentId": "m17_hull_2",
+            "position": {
+              "x": -7200,
+              "y": 80,
+              "z": -2340
+            },
+            "required": false,
+            "scoreRole": "mount",
+            "type": "gun_mount",
+            "yaw": 0
+          },
+          {
+            "id": "m17_ground_slot_55",
+            "parentId": "m17_hull_3",
+            "position": {
+              "x": -5400,
+              "y": 80,
+              "z": -2340
+            },
+            "required": false,
+            "scoreRole": "mount",
+            "type": "gun_mount",
+            "yaw": 0
+          },
+          {
+            "health": 220,
+            "id": "m17_hull_1",
+            "naval": true,
+            "position": {
+              "x": -9000,
+              "y": 40,
+              "z": -2400
+            },
+            "required": false,
+            "scoreRole": "battleship",
+            "type": "cruiser",
+            "yaw": 0
+          },
+          {
+            "health": 220,
+            "id": "m17_hull_2",
+            "naval": true,
+            "position": {
+              "x": -7200,
+              "y": 40,
+              "z": -2400
+            },
+            "required": false,
+            "scoreRole": "destroyer",
+            "type": "destroyer",
+            "yaw": 0
+          },
+          {
+            "health": 220,
+            "id": "m17_hull_3",
+            "naval": true,
+            "position": {
+              "x": -5400,
+              "y": 40,
+              "z": -2400
+            },
+            "required": false,
+            "scoreRole": "submarine",
+            "type": "submarine",
+            "yaw": 0
+          },
+          {
+            "health": 220,
+            "id": "m17_hull_4",
+            "naval": true,
+            "position": {
+              "x": -3600,
+              "y": 40,
+              "z": -2400
+            },
+            "required": false,
+            "route": {
+              "speed": 12,
+              "waypoints": [
+                {
+                  "x": -3600,
+                  "y": 40,
+                  "z": -2400
+                },
+                {
+                  "x": -3600,
+                  "y": 40,
+                  "z": -4800
+                },
+                {
+                  "x": -1920,
+                  "y": 40,
+                  "z": -4800
+                },
+                {
+                  "x": -1920,
+                  "y": 40,
+                  "z": -5700
+                }
+              ]
+            },
+            "scoreRole": "supply",
+            "type": "supply_ship",
+            "yaw": 0
+          },
+          {
+            "id": "m17_enemy_bridge",
+            "position": {
+              "x": -1920,
+              "y": 126,
+              "z": -4800
+            },
+            "required": false,
+            "scoreRole": "bridge",
+            "type": "bridge_section",
+            "yaw": 0
+          }
+        ],
+        "kind": "score_threshold",
+        "label": "Open the capital approaches",
+        "rearm": {
+          "health": true,
+          "landing": {
+            "approachDistance": 2400,
+            "approachSeconds": 20,
+            "glideDegrees": 3,
+            "headingDegrees": 0,
+            "rolloutDistance": 900,
+            "rolloutSeconds": 15,
+            "touchdown": {
+              "x": 11000,
+              "y": 100,
+              "z": 6000
+            }
+          },
+          "missiles": true,
+          "radio": [
+            {
+              "at": 1,
+              "text": "RIM TOWER: Eastern runway clear. Weapons only; no hull repair."
+            }
+          ],
+          "radius": 1500,
+          "special": true,
+          "takeoffSeconds": 20,
+          "weaponMenu": true,
+          "zone": {
+            "lean": 0,
+            "pitch": -0.05236,
+            "qw": 0.999657,
+            "qx": -0.026177,
+            "qy": 0,
+            "qz": 0,
+            "roll": 0,
+            "speed": 120,
+            "x": 11000,
+            "y": 225.77867,
+            "yaw": 0,
+            "z": 8400
+          }
+        },
+        "scoreThreshold": {
+          "points": 2100,
+          "seconds": 720,
+          "waitForExpiry": true
+        }
+      },
+      {
+        "count": 4,
         "kind": "required_air",
-        "label": "In development"
+        "label": "Break Rusk's last wing",
+        "leaderWithdrawal": {
+          "departure": {
+            "speed": 220,
+            "waypoints": [
+              {
+                "x": 0,
+                "y": 1200,
+                "z": -3840
+              },
+              {
+                "x": -13440,
+                "y": 1200,
+                "z": -3840
+              }
+            ]
+          }
+        },
+        "update": {
+          "countdownSeconds": 1080,
+          "objective": "Defeat all four wingmen; confirm Rusk's coastward departure",
+          "radio": [
+            "SERA: Four wingmen with Rusk. Vulture Lead is over the capital.",
+            "SERA: Four red targets. Rusk is leaving them for the coast."
+          ]
+        }
       }
     ],
-    "primary": "In development",
-    "region": "canyon_airfield",
-    "title": "Mission 17"
+    "pressure": {
+      "forwardConeDegrees": 45,
+      "playerPriority": 0.8,
+      "tailDefence": true
+    },
+    "primary": "Score 2,100 in 12:00; defeat four wingmen and confirm Rusk's departure in 18:00",
+    "region": "coastal_harbor",
+    "scoring": {
+      "basis": "points",
+      "points": {
+        "aa": 20,
+        "active": 120,
+        "bandit": 150,
+        "battleship": 200,
+        "bridge": 0,
+        "destroyer": 140,
+        "fighter": 60,
+        "helicopter": 50,
+        "interceptor": 60,
+        "mount": 50,
+        "sam": 60,
+        "scout": 60,
+        "submarine": 120,
+        "supply": 120,
+        "tank": 50,
+        "tiltrotor": 50
+      },
+      "rank": {
+        "A": 3900,
+        "B": 3200,
+        "C": 2100,
+        "S": 4500
+      }
+    },
+    "start": {
+      "headingDegrees": 0,
+      "kind": "airborne",
+      "speed": 160,
+      "x": 0,
+      "y": 471,
+      "z": 7680
+    },
+    "terrainRelativeWarnings": true,
+    "title": "LAST WING",
+    "worldKey": "m17_capital_assault"
   },
   {
     "act": 3,

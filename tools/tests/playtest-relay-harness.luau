@@ -76,8 +76,8 @@ local function scenario(late,detach)
     controller.aircraft={Parent=true,GetPivot=function() return {} end};start();tick()
     finish("Failed",{reason="destroyed"});finish("Completed");tick(37)
     assert(#entries()==4 and entries()[4]:GetAttribute("Outcome")=="Failed" and entries()[4]:GetAttribute("ResultValid")==false)
-    controller.aircraft={Parent=true,GetPivot=function() return {} end};start(17);tick()
-    assert(#entries()==4) -- mission 17 remains a locked placeholder and is never admitted
+    controller.aircraft={Parent=true,GetPivot=function() return {} end};start(18);tick()
+    assert(#entries()==4) -- mission 18 remains a locked placeholder and is never admitted
     commands=controller.commands;destroying:fire();assert(controller.commands==commands)
     passed+=1
 end

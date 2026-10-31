@@ -72,7 +72,7 @@ describe("D12 protected leader and bridge rules",()=>{
   }
   validateEncounterIdentities([phase()]);
  });
- it("keeps all catalog missions dormant",()=>{
-  for(let id=0;id<=18;id++) for(const p of MissionCatalog.Get(id).phases) { expect(p.leaderWithdrawal).toBeUndefined(); expect(p.bridgeClosures).toBeUndefined(); }
+ it("keeps missions other than M17 dormant",()=>{
+  for(let id=0;id<=18;id++) if(id!==17) for(const p of MissionCatalog.Get(id).phases) { expect(p.leaderWithdrawal).toBeUndefined(); expect(p.bridgeClosures).toBeUndefined(); }
  });
 });

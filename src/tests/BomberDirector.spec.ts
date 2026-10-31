@@ -311,6 +311,11 @@ describe("Bomber director integration", () => {
 				continue;
 			}
 			const role = phase.kind === "ace" ? "ace" : phase.kind === "chase" ? "courier" : "bandit";
+			if (phase.leaderWithdrawal) {
+				expect(h.calls.filter(c=>c.role==="bandit").size()).toBe(4);
+				expect(h.calls.filter(c=>c.role!=="bandit" && c.options?.optional!==true).size()).toBe(0);
+				expect(h.s.blueprintState?.ruskDeparted).toBeUndefined();
+			}
 			const count = phase.kind === "ace" ? 1 : phase.kind === "chase" ? phase.count ?? 1
 				: phase.execution?.launchDelay !== undefined ? 0 : phase.execution?.directSpawn ? phase.count ?? 0 : math.ceil((phase.count ?? 0) / (phase.groups ?? 1));
 			expect(h.calls.filter((c) => c.role === role).size()).toBe(count);

@@ -1,4 +1,6 @@
-M16 #198 — Merge pending. DUST ROAD adds 138 ground targets, 32 queued aircraft, three column legs and repair service. Live by pipeline convention after merge; M17–M18 remain locked. Studio verified: pending orchestrator run. No Player tests performed.
+M17 #199 — Merge pending. LAST WING adds the capital score battle, four wingmen and protected Rusk withdrawal. Live by pipeline convention after merge; M18 remains locked. Studio verified: pending orchestrator run. No Player tests performed.
+
+M16 #198 — Merge pending. DUST ROAD adds 138 ground targets, 32 queued aircraft, three column legs and repair service. Live by pipeline convention after merge; M18 remains locked. Studio verified: pending orchestrator run. No Player tests performed.
 
 # M15 integration — #197 Merge pending
 
@@ -68,7 +70,7 @@ Mission 7 merged fixes in #178: absolute Y=585 ceiling, full segmented artillery
 | 14 | Breaking Arrows / AURORA SHIELD | 3:20:22–3:28:38 | 20:00 shared clock | Yes | Yes; D-580–D-589 | Playable #196; Studio verified: pending orchestrator run | Live after #196 merges (pipeline) | Pending; no Player test |
 | 15 | Emancipation | 3:32:45–3:47:38 | 14.9 min | Yes | Yes | Playable SILENT STREETS #197; Studio verified: pending orchestrator run | Live after #197 merges (pipeline); Merge pending | Pending; no Player test |
 | 16 | Whiskey Corridor | 3:50:50–4:12:27 | 20:00 + optional service | Yes | Yes; provisional D-620–D-623 | DUST ROAD; #198 Merge pending | Live by pipeline convention after merge | Studio verified: pending orchestrator run |
-| 17 | Siege of Farbanti | 4:14:30–4:32:17 | 17.8 min | Yes | Yes | World built/dormant; mission integration pending | No | — |
+| 17 | Siege of Farbanti | 4:14:30–4:32:17 | 12:00 score + up to 18:00 wing | Yes | Yes; provisional D-640–D-644 | LAST WING; #199 Merge pending | Live by pipeline convention after merge | Studio verified: pending orchestrator run |
 | 18 | Megalith | 4:36:59–4:46:22 | 9.4 min | Yes | Yes | World built/dormant; mission integration pending | No | — |
 
 Footage times are internal reference cross-references, not shipped titles; see the [ledger](../../reference/ledger.md). World construction does not activate a mission. No new Studio or Player verification was performed for this reconciliation.
@@ -169,3 +171,5 @@ M16 #198 replay validation (2026-10-31, M15 base `caf2889a`, including original 
 M16 #198 shared-targeting review fix (2026-10-31; unmerged): fairness now selects through shared TargetPriority auto/TGT rules over live attackers and persistent/routed cover. Scripted warning-bearing steering and TGT cycling retain lock-cone/time, homing, fuse, seeker and difficulty checks. Selection-failure injection must fail attentive protection. Town attack ingress moved from Z=-6500 to Z=-1000 after shared selection exposed a stationary Normal defense loss; other mission timing/positions unchanged. Stationary defense leaves Easy 90/170/180 hull and Normal/Hard 10/100/150; moving defense leaves Easy 140/180/180 and Normal/Hard 80/90/200. Missiles: stationary 42/63/63, moving 42/64/64. Studio/Player acceptance remains pending; no Studio or test:roblox run performed.
 
 Shared-targeting fix validation: frozen install, build and full prescribed-LUAU_BIN validate:offline exited 0. Catalog snapshot changed only the two M16 town ingress coordinates. No merge or Studio/Player verification.
+
+M17 #199 replay validation (2026-10-31, M16 base `9752a5ad`): frozen install, standalone build, required test:offline/voice/story/catalog sequence and full prescribed-LUAU_BIN validate:offline each exited 0. Passed 1,201 offline Luau contracts, four loader probes, 475 module compilations, 197 require-graph nodes, 19 catalog snapshots, three QA pilot scenarios and 124 Python tests. All 113 base offline specs plus three M17 specs remain in both lists with checkedRequire. Runtime Jest compiled only; adopted models are tested by TargetId. Only M17 catalog snapshot changes; every base decision and non-M17 voice entry is preserved. Voice inventory: 239 entries / 161 pending recordings. No Studio, test:roblox, Player tests, uploads or merge performed. Studio verified: pending orchestrator run. #199 Merge pending; live by pipeline convention after merge.

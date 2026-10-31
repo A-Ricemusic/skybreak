@@ -32,8 +32,8 @@ describe("Dormant M14–M18 procedural worlds",()=>{
   for(const [i,build]of [buildM14Plan,buildM15Plan,buildM16Plan,buildM17Plan,buildM18Plan].map((build,i)=>[i,build] as const)){
    let calls=0;expect(build(undefined,()=>{calls++;})).toEqual(worlds[i]);expect(calls).toBeGreaterThan(1000);
    const p=worlds[i];expect(p.props.size()).toBe(0);expect(new Set(p.targets.map(t=>t.id)).size()).toBe(p.targets.size());
-   for(const t of p.targets){expect(t.id.sub(1,4)).toBe("m"+(14+i)+"_");expect(p.parts.some(f=>f.name===t.id)).toBe(true);}
-   for(const m of MissionCatalog.All().filter(m=>m.id!==14 && m.id!==15 && m.id!==16))expect(MissionCatalog.WorldKey(m.id)).never.toBe(p.key);
+   for(const t of p.targets){expect(t.id.sub(1,4)).toBe("m"+(14+i)+"_");expect(p.parts.some(f=>f.name===t.id)).toBe(!(i===3&&(t.group==="elite"||t.group==="optional_air")));}
+   for(const m of MissionCatalog.All().filter(m=>m.id!==14 && m.id!==15 && m.id!==16 && m.id!==17))expect(MissionCatalog.WorldKey(m.id)).never.toBe(p.key);
   }
  });
  it("retains inventories, stages and proposed anchors separately from credited kills",()=>{
@@ -43,7 +43,7 @@ describe("Dormant M14–M18 procedural worlds",()=>{
   expect(b.targets.filter(t=>t.type==="parked_transport").size()).toBe(7);expect(m15BomberRoutes().size()).toBe(6);
   expect(b.targets[0]).toEqual({id:"m15_command_relay",type:"command_relay",group:"city",x:2880,y:92,z:-4800,yaw:0});
   expect(c.targets.filter(t=>t.type==="unresolved_ground").size()).toBe(138);expect(c.targets.filter(t=>t.group==="air_cover").size()).toBe(14);expect(M16.initial).toEqual({ground:113,air:13});
-  expect(d.targets.filter(t=>t.group==="capital").size()).toBe(55);expect(d.targets.filter(t=>t.group==="naval").size()).toBe(4);expect(d.targets.filter(t=>t.type==="elite_wingman").size()).toBe(4);expect(d.targets.filter(t=>t.type==="rusk_retreat").size()).toBe(1);
+  expect(d.targets.filter(t=>t.group==="capital"||t.group==="naval_mount").size()).toBe(55);expect(d.targets.filter(t=>t.group==="naval").size()).toBe(4);expect(d.targets.filter(t=>t.type==="elite_wingman").size()).toBe(4);expect(d.targets.filter(t=>t.type==="rusk_retreat").size()).toBe(1);
   for(const p of [b,d])for(const t of p.targets.filter(t=>t.group==="city"||t.group==="capital"))for(const f of p.parts.filter(f=>f.name.find("m15_block_")[0]!==undefined||f.name.find("m17_city_")[0]!==undefined)){
    expect(math.abs(t.x-f.x)>=f.sx/2+48||math.abs(t.z-f.z)>=f.sz/2+48).toBe(true);
   }
