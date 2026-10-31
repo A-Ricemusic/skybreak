@@ -29,6 +29,8 @@ export interface Enemy {
 	surfaceOrigin?: CFrame;
 	surfaceStartedAt?: number;
 	typedGround?: TypedGroundTarget;
+	/** D11 gate passed during its owning phase; persists after the director is cleared. */
+	reserveReleased?: boolean;
 	phaseOwner?: number;
 	scoreRole?: string;
 	groundAttack?: boolean;

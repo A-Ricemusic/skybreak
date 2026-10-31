@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { Workspace } from "@rbxts/services";
-import { completeRearmRepair, releaseZoneReserves } from "../server/EngineBatchD11Runtime";
+import { applyGroundPhase, completeRearmRepair, releaseZoneReserves } from "../server/EngineBatchD11Runtime";
 import { clearGroundDirector, stepGroundDirector } from "../server/EngineBatchD5Runtime";
 import { createCheapContact, cheapEligible, setContactDetail, stepContacts } from "../server/EngineBatchD6Runtime";
 import { createGroundTarget } from "../server/GroundTargetFactory";
@@ -14,6 +14,7 @@ import { landingPose } from "../shared/EngineBatchB";
 import { TargetScore } from "../shared/TargetScore";
 import { SortieArmament } from "../shared/SortieArmament";
 import { recordScoredKill } from "../server/SortieScore";
+import { d4Fixture } from "./EngineBatchD4Fixture";
 function spec(id:string):TypedGroundTarget {return {id,type:"tank",position:{x:0,y:100,z:0},yaw:45,required:false,scoreRole:"ground"};}
 describe("D11 runtime (compiled; Studio execution pending)",()=>{
  it("releases reserves through D5 only after clearance, freezes at service, never resurrects, and cleans on phase exit",()=>{
@@ -30,6 +31,22 @@ describe("D11 runtime (compiled; Studio execution pending)",()=>{
    e.health=0;e.enabled=false;releaseZoneReserves(s);expect(e.enabled).toBe(false);
    bs.phaseIndex=1;stepGroundDirector(s,1,()=>{});expect(s.groundDirector).toBeUndefined();expect(actor.Parent).toBeUndefined();
   } finally {clearGroundDirector(s);folder.Destroy();}
+ });
+ it("keeps unopened reserves hidden at score expiry and destroys them with the sortie folder",()=>{
+  const folder=new Instance("Folder");folder.Parent=Workspace;
+  const t={...spec("unreleased"),reinforceAfterSector:"city"}, model=createCheapContact(t);model.Parent=folder;
+  const bp=d4Fixture();bp.id=15;
+  const bs=BlueprintRunner.NewState(bp,0), e={id:t.id,model,typedGround:t,phaseOwner:0,kind:"ground",enabled:false,health:55} as Enemy;
+  try {
+   applyGroundPhase([e],0);bs.score=800;BlueprintRunner.Tick(bs,420);expect(bs.phaseIndex).toBe(1);
+   applyGroundPhase([e],bs.phaseIndex);
+   expect(e.reserveReleased).toBeUndefined();expect(e.enabled).toBe(false);
+   for(const part of model.GetDescendants()) if(part.IsA("BasePart")) {expect(part.Transparency).toBe(1);expect(part.CanQuery).toBe(false);}
+   expect(model.GetAttribute("SkybreakEnemy")).toBe(false);
+   // cleanupSession destroys this owning folder; hidden reserves have no separate lifetime.
+   const descendants=model.GetDescendants();folder.Destroy();expect(model.Parent).toBeUndefined();
+   for(const part of descendants) expect(part.Parent).toBeUndefined();
+  } finally {folder.Destroy();}
  });
  it("repairs at completed service only, retains historical damage and weapon menu behavior",()=>{
   const plan:RearmPlan={zone:{x:0,y:100,z:1000},radius:1500,landing:{touchdown:{x:0,y:100,z:0},headingDegrees:0,approachDistance:1000,rolloutDistance:150,approachSeconds:10,rolloutSeconds:3,glideDegrees:3},takeoffSeconds:8,missiles:true,special:true,health:true,weaponMenu:true};

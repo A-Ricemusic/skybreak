@@ -108,4 +108,6 @@ Main integration validation (2026-10-30): frozen install, standalone build and f
 
 D11 implementation adds no activation blocker requiring owner input. No catalog mission opts in; dormant M15/M16 worlds are unchanged. Studio/Roblox runtime Jest execution, Player/phone profiling, rendered city/column/armour review, final bomber routes/site adoption and mission balance remain unperformed acceptance work. M15 uses D4's single protected city-site cluster, not independently healthy districts; this scope assumption is recorded in D-502. Service repair follows provisional owner decision D-156 and can be revisited after playtests. No new audio/assets/uploads; no deployment claim for this unmerged branch.
 
-D11 validation: frozen install, standalone build and full `validate:offline` exited 0 (1,024 Luau contracts, 19 unchanged catalog snapshots, 124 Python tests). Runtime Jest compiled only; no Studio/Player/phone test.
+D11 validation: frozen install, standalone build and full `validate:offline` exited 0 (1,026 Luau contracts, 19 unchanged catalog snapshots, 124 Python tests). Runtime Jest compiled only; no Studio/Player/phone test.
+
+PR #192 P2 reserve visibility is fixed in the unmerged branch: unreleased reserves remain hidden after score expiry rather than appearing as inert targets. No owner action is required. Actual Roblox folder-destruction coverage is compiled but execution remains deferred by the orchestrator’s explicit no-Studio instruction.

@@ -1,5 +1,6 @@
 import { Workspace } from "@rbxts/services";
 import { clearProtection } from "./EngineBatchD7Runtime";
+import { applyGroundPhase } from "./EngineBatchD11Runtime";
 import { clearGroundDirector } from "./EngineBatchD5Runtime";
 import { takeArrival, FighterArrival, StandaloneAce } from "../shared/CampaignEncounters";
 import type { AceLivery } from "../shared/AssetSelection";
@@ -119,17 +120,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		const phases=BlueprintRunner.Phases(state);
 		const phase: MissionPhaseBlueprint | undefined=phases[state.phaseIndex];
 		if (!phase) return;
-		for (const enemy of session.enemies) if (enemy.typedGround) {
-			enemy.enabled=enemy.phaseOwner === state.phaseIndex && enemy.health>0 && enemy.typedGround.reinforceAfterSector===undefined;
-			// Later phases' targets stay hidden; an earlier phase's survivors stay standing but inert.
-			const shown=enemy.enabled || (enemy.health>0 && (enemy.phaseOwner ?? 0)<state.phaseIndex);
-			for(const item of enemy.model.GetDescendants()) if(item.IsA("BasePart")) {
-				item.Transparency=shown ? (item.GetAttribute("OriginalTransparency") as number ?? 0) : 1;
-				item.CanQuery=enemy.enabled && item.GetAttribute("FlightSolid") === true;
-			}
-			enemy.model.SetAttribute("SkybreakEnemy",enemy.enabled);
-			enemy.model.SetAttribute("RequiredTarget",enemy.enabled && enemy.required);
-		}
+		applyGroundPhase(session.enemies, state.phaseIndex);
 		if (phase.rearm) session.rearmGate=buildRearmGate(session.folder,phase.rearm);
 		combat.spawnAllies(session);
 		if (phase.execution?.activatePracticeTarget) activateGround(session);

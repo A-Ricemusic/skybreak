@@ -66,4 +66,6 @@ Main integration validation (2026-10-30): frozen install, standalone build and f
 
 D11 extends D5 city squads/desert columns with bounded sector-triggered hostile reserves, reuses D4 protected-city bomber holds and M05 service UI/clocks, enables explicit repair only for M15–M17 and extends D6 cheap contact detail to static armour (D-500–D-503). No catalog mission, unlock, snapshot or world changes. Practice/M01–M08 behavior remains unchanged; D11 does not activate M15/M16. Runtime Jest specs compile only; Studio, Player and phone acceptance are pending. See [next](next.md) and [blockers](blockers.md). Existing shipped history is unchanged.
 
-D11 validation: frozen install, standalone build and full `validate:offline` exited 0 (1,024 Luau contracts, 19 unchanged catalog snapshots, 124 Python tests). Runtime Jest compiled only; no Studio/Player/phone test.
+D11 validation: frozen install, standalone build and full `validate:offline` exited 0 (1,026 Luau contracts, 19 unchanged catalog snapshots, 124 Python tests). Runtime Jest compiled only; no Studio/Player/phone test.
+
+PR #192 review follow-up: reserve release is remembered per contact. A score deadline may advance to city bombers with an unsecured gate; those unreleased reserves stay hidden, non-queryable and disabled until the sortie folder is destroyed. Released reserves and ordinary earlier-phase survivors keep their existing presentation. Offline transition regression added; folder-destruction regression compiles for the orchestrator’s later Roblox run.
