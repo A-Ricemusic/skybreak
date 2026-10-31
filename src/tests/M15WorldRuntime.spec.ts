@@ -12,7 +12,11 @@ describe("M15 built world contact ownership",()=>{
    expect(built.targetVisuals.size()).toBe(M15_TARGETS.size());
    for(const t of M15_TARGETS){
     const model=built.targetVisuals.get(t.id)!;
-    expect(model).toBe(scene.FindFirstChild(t.id));
+    const adopted=scene.GetDescendants().filter(child=>child.IsA("Model")&&child.GetAttribute("TargetId")===t.id);
+    expect(adopted.size()).toBe(1);
+    expect(model).toBe(adopted[0]);
+    expect(model.Parent).toBe(scene);
+    expect(model.PrimaryPart?.Name).toBe("Aim");
     expect(model.GetDescendants().some(p=>p.IsA("BasePart"))).toBe(true);
    }
   });
