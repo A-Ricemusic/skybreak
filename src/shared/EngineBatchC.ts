@@ -1,9 +1,10 @@
+import { CarrierRearm, carrierRearmPose } from "./EngineBatchD5";
 import { finiteNumber, LandingPlan, landingDuration, landingPose, validateBatchB } from "./EngineBatchB";
 import { FlightMath, FlightState } from "./FlightMath";
 import type { MissionPhaseBlueprint, FlightPoint } from "./MissionCatalog";
 export interface ScoreThreshold { points: number; seconds: number; /** Keep fighting until expiry. */ waitForExpiry: boolean }
 export interface RadarJamming { visualLockRange: number; remainingCall: string; clearCall: string }
-export interface RearmPlan { zone: FlightPoint; radius: number; landing: LandingPlan; takeoffSeconds: number; missiles: boolean; special: boolean; health: boolean;
+export interface RearmPlan { carrier?: CarrierRearm; zone: FlightPoint; radius: number; landing: LandingPlan; takeoffSeconds: number; missiles: boolean; special: boolean; health: boolean;
 	/** Batch D1: refill the fitted gun's magazine; absent follows `missiles`. Needs `armament.gun`. */
 	gun?: boolean;
 	/** Hold on the runway for the TAKEOFF / CHANGE WEAPON menu (SortieCutaways). */ weaponMenu?: boolean; /** Tower cues by rearm time. */ radio?: { at: number; text: string }[] }
@@ -16,6 +17,7 @@ export function jammedLockAllowed(liveJammers: number, distance: number, plan?: 
 }
 export function rearmDuration(p: RearmPlan): number { return landingDuration(p.landing)+p.takeoffSeconds; }
 export function rearmPose(p: RearmPlan, elapsed: number): FlightState {
+	if(p.carrier) return carrierRearmPose(p,elapsed);
 	const duration=landingDuration(p.landing);
 	if (elapsed<duration) return landingPose(p.landing,elapsed);
 	const rollout=landingPose(p.landing,duration), t=math.clamp(elapsed-duration,0,p.takeoffSeconds), angle=math.rad(p.landing.headingDegrees);

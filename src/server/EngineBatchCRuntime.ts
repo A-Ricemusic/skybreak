@@ -106,6 +106,12 @@ export function buildRearmGate(parent: Instance, plan: RearmPlan): BasePart {
 	marker.Name = "Rearm gate"; marker.Shape = Enum.PartType.Ball; marker.Size = new Vector3(60, 60, 60);
 	marker.Anchored = true; marker.CanCollide = false; marker.CanTouch = false; marker.CanQuery = false;
 	marker.Color = Color3.fromRGB(108, 255, 176); marker.Material = Enum.Material.Neon; marker.Transparency = 0.45;
+	if(plan.carrier) {
+		const c=plan.carrier, deck=new Instance("Part"); deck.Name="Procedural service carrier deck";
+		deck.Size=new Vector3(c.width,8,c.length); deck.Anchored=true; deck.CanTouch=false;
+		deck.Color=Color3.fromRGB(62,72,80); deck.Material=Enum.Material.Metal;
+		deck.CFrame=new CFrame(c.centre.x,c.centre.y-10,c.centre.z).mul(CFrame.Angles(0,-math.rad(plan.landing.headingDegrees),0)); deck.Parent=marker;
+	}
 	marker.Position = new Vector3(start.x, start.y, start.z); marker.SetAttribute("ObjectiveRadius", 100); marker.Parent = parent;
 	const gui = new Instance("BillboardGui"); gui.Size = UDim2.fromOffset(170, 38); gui.AlwaysOnTop = true; gui.StudsOffsetWorldSpace = new Vector3(0, 60, 0); gui.Parent = marker;
 	const label = new Instance("TextLabel"); label.Size = UDim2.fromScale(1, 1); label.BackgroundTransparency = 0.25;

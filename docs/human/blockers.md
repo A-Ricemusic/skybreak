@@ -1,5 +1,9 @@
 # Blockers
 
+## D5 verification and mission integration (2026-10-30)
+
+No implementation blocker requiring owner input. Studio/Jest runtime, Player feel, phone readability, carrier approach/deck clearance and force-health tuning remain unverified. The implementation agent did not launch Studio or run test:roblox. M09 subtype inventory, exact points and authored routes remain mission readiness gaps; dormant engine support does not resolve them. No uploads or new audio. D4 #177 integration is checked by fetching/merging origin/main before the D5 PR.
+
 Owner tuning validation (2026-10-30): rebased on main 5034b39, preserving terrain performance, dormant worlds and D-120/D-121. Frozen install, build and validate:offline pass (848 Luau contracts, 124 Python tests); catalog fixture regenerated. Initial Jest exposed an outdated rear-wave assertion, now corrected. A subsequent attempt stalled at Studio startup during concurrent launches and produced no Jest summary. Final rebased Jest is deferred to the orchestrator’s merge queue: the priority mission 5 agent relaunched Studio during this task’s idle gate. This task cancelled its queued launch and closed its own Studio; no other Studio was stopped. No Player or phone balance verification is claimed.
 ## PR #176 review fixes (2026-10-30)
 

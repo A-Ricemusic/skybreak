@@ -1,5 +1,9 @@
 # Next
 
+## Engine batch D5 — dormant implementation
+
+D5 frozen install, build and full offline validation exited 0 (947 Luau contracts, 19 catalog snapshots, 124 Python tests); the output explicitly includes all six D5 cases. Review D5 before M09 mission authoring. Reconcile carrier pivot/deck geometry with the dormant M09 world; author explicit sectors, clear targets, force health and attack waves. Then use the orchestrator-owned Studio queue for carrier landing/catapult, skip/repeat/refill/paused clocks, sector progress, attacker LOS/loss and teardown checks. No mission opts in; D11/D12 extend the shared director for later ground-support missions.
+
 ## Engine batch D3 — rebased on main after D2 (#168); dormant
 
 D3 adds a mission-owned artillery escape, safe-band/terrain masking, bounded built-world canyon centreline audit, a locked area footprint and M7 solar panel/tower, flak and pillbox targets. Required-target strike → mission update → fresh 5:00 escape reuses batch B; high exits cannot win. No catalog mission opts in and frozen practice/M01 engine snapshots and catalog data are unchanged. See D-240–D-244 and the engine plan.
