@@ -1,6 +1,6 @@
 # Blockers
 
-Updated 2026-10-30 against main `9857358`. Publish succeeded per CI; no known deployment failure is recorded. Live status follows the owner's pipeline convention and does not establish observed Player quality. This reconciliation performs offline checks only.
+Updated 2026-10-30 against main `a04fdd6` (#177/#178 merged); no known deployment failure is recorded. Live status follows the owner's pipeline convention and does not establish observed Player quality. This reconciliation performs offline checks only.
 
 ## D5 verification and mission integration (2026-10-30)
 
@@ -8,10 +8,10 @@ Resolved PR #180 P2: sector-only windups no longer emit player lock warnings or 
 
 ## Resolved dependencies
 
-- M04 #149, M05 #148, terrain performance #158, story #159 and cutscenes #152 are merged. Practice/M01–M06 are live after #179 merges; their old review/unlock dependencies are resolved.
+- M04 #149, M05 #148, terrain performance #158, story #159 and cutscenes #152 are merged. Practice/M01–M07 are live by pipeline convention; their old review/unlock dependencies are resolved.
 - #172 targeting, #173 loading and #174 difficulty/allied budget are merged/live. Human balance, phone and rendered acceptance remain open.
-- Worlds 6–13 (#175, combining #164/#166/#167/#170) and 14–18 (#176) are built, merged and dormant. No stack rebase remains for those world PRs. #176 fixes M05–M13 weather lookup and all 18 environment registrations, M17 metadata and M18 foundations.
-- D1 #165, D2 #168 and D3 #171 are merged; #179 activates D1/D2 support for mission 6, while D3 remains dormant. Their former stack dependencies are resolved; engine merge alone does not activate missions 7–18. D4 #177 and mission 7 #178 remain open; mission 6 #179 is Live after merge; D5 #180 and D6 #182 remain open.
+- Worlds 6–18 (#175/#176) are merged; M06/M07 are active and M08 activates after #183 merges; M09–M18 remain dormant. No stack rebase remains for those world PRs. #176 fixes M05–M13 weather lookup and all 18 environment registrations, M17 metadata and M18 foundations.
+- D1–D4 (#165/#168/#171/#177) and mission 7 #178 are merged. M06 activates D1/D2, M07 D3; M08 #183 activates D4 after merge. D5 #180 and D6 #182 remain open.
 
 ## Remaining world/activation gaps
 
@@ -80,9 +80,17 @@ Sequential unlock after mission 5, finite stocks/rearm, score expiry and shared 
 
 D-260 retains 36 naval hulls, 40 yard contacts and 18 separately scored hull-owned components; the reference initial-40/credited-58 discrepancy remains unresolved. Sixteen hostile aircraft reflect owner pressure direction. Rendered reference comparison, real flight/ship sinking/SAM/anti-ship feel, service skip/clock behavior, load/clear timing and phone readability remain acceptance gaps. Player/phone not yet observed. No new audio or Blender asset upload.
 
-## Mission 7 review fixes (unmerged #178)
+## Mission 7 review fixes (merged #178)
 
 Resolved in code/offline coverage: ray masking beyond Roblox’s 15,000-stud single-cast limit, incorrect 617.216 ceiling, short initial ingress window, main/M06 merge conflicts and one-kill allied budget integration. The distant battery is authored because neither reference spec measures its position. Initial warning remains immediate, first impact is 60s; later salvos remain 25s apart. New actual-build first-step audit and masking Jest spec awaits the orchestrator’s Studio run. Player/phone balance, transition flight and rendered acceptance remain open; no Studio/Player test is claimed.
+
+## Mission 8 integration and acceptance
+
+D4 #177 and mission 7 #178 are merged; #183 is integrated onto current main. M08 unlocks only after sequential completion through M07; M09–M18 stay locked even with forged records. Live after #183 merges by pipeline convention; no known deployment failure. Studio verified: pending orchestrator run. Player/phone/rendered/balance acceptance remains open. Validate adopted mast without duplicate relay, both full clocks, six bomber endpoints, ignition and settlement. D-320–D-324 retain provisional roster/ranks/routes, support stand-ins and deferred service/finite-stock fidelity. No Studio, Roblox Jest, Player tests, new audio or asset uploads performed in this integration.
+
+### M08 catalog assertion corrected; Studio rerun pending
+
+M08 arrival regression follow-up (2026-10-30): the orchestrator reported 1,175/1,176 Studio Jest tests passing at `0227c1f`; the catalog opening-count test expected six immediate bombers instead of the authored one. Runtime inspection confirms D-272 scheduling and full-six-kill/6:00 completion accounting. The test now checks exact due slots/identities before and at every arrival, rejects duplicate admissions, and preserves full opening counts for unscheduled formations. A partial-kill timeout regression covers one through five kills. Studio rerun belongs to the orchestrator; this agent did not launch Studio or run Roblox Jest.
 
 ## Engine D6 verification and M10 activation
 

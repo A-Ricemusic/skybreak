@@ -1,14 +1,15 @@
 # Shipped
 
-Updated 2026-10-30 against main `199e7ee`; its publish workflow succeeded per CI. Practice and missions 1–7 are live after #178 merges in Roblox Player by the owner's pipeline convention. No new Studio, Player or phone test is claimed. Older entries describe behavior at their merge; later entries supersede tuning and dormant activation status.
+Updated 2026-10-30 against main `a04fdd6`; #177 and #178 are merged. Practice and missions 1–7 are live by pipeline convention; mission 8 will be live after #183 merges. No new Studio, Player or phone test is claimed. Older entries describe behavior at their merge; later entries supersede tuning and dormant activation status.
 
-Mission 7 #178 remains unmerged: masking/ceiling/ingress review fixes are prepared with offline regressions and actual-build Jest coverage pending the orchestrator. These changes are not listed as shipped.
-
-## Merged 2026-10-30, newest first
+## Merged and pending 2026-10-30, newest first
 
 | PR | Commit | Change | What the owner sees in Roblox Player |
 |---|---|---|---|
-| [#178](https://github.com/A-Ricemusic/skybreak/pull/178) | Merge pending | Mission 7 ARRAY BREAK playable | Live after merge by pipeline convention: unlock after mission 6, 51 ground /20 air, three-installation strike then canyon artillery escape. One allied kill budget; no new audio. Studio verified: pending orchestrator run. Player/phone not yet observed. |
+| [#183](https://github.com/A-Ricemusic/skybreak/pull/183) | Merge pending | Mission 8 OPEN FREQUENCY playable | Live after merge by pipeline convention: unlock after mission 7; ≥800 points / 7:00, six-bomber / 6:00 protected-mast hold and broadcast at 0:35. Provisional roster/ranks D-320–D-324. Studio: orchestrator reported 1,175/1,176 at `0227c1f`; opening-count assertion corrected for authored staggered arrivals, rerun pending. Player/phone not yet observed. |
+| [#182](https://github.com/A-Ricemusic/skybreak/pull/182) | `ea0045d` | D6 repeated artillery, parked/airborne dedupe, large-battle contacts, M10 types | No visible change — engine support, dormant. Mission 10 has not activated on main. |
+| [#180](https://github.com/A-Ricemusic/skybreak/pull/180) | `248e387` | D5 carrier-deck rearm, ground-force director and beach attackers | No visible change — engine support, dormant. Mission 9 has not activated on main. |
+| [#178](https://github.com/A-Ricemusic/skybreak/pull/178) | `a04fdd6` | Mission 7 ARRAY BREAK playable | Live after merge by pipeline convention: unlock after mission 6, 51 ground /20 air, three-installation strike then canyon artillery escape. One allied kill budget; no new audio. Studio verified: pending orchestrator run. Player/phone not yet observed. |
 | [#177](https://github.com/A-Ricemusic/skybreak/pull/177) | `6f17a95` | D4 queued air battles and timed bomber-intercept hold | No visible change — engine support, dormant. Mission 8 has not activated on main. |
 | [#179](https://github.com/A-Ricemusic/skybreak/pull/179) | `199e7ee` | Mission 6 IRON COAST playable | Live after merge by pipeline convention: unlocks after mission 5; harbour strike, score ≥3,000 in 15:00, optional runway rearm with finite ammo. Full Studio Jest 1,133/1,133 in the orchestrator’s run at `e5c2fd2`; Player/phone not yet observed. |
 | [#171](https://github.com/A-Ricemusic/skybreak/pull/171) | `9857358` | D3 canyon artillery escape, area strike and target types | No visible change — engine support, dormant. Mission 7 has not activated on main. |
