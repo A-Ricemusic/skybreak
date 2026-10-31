@@ -372,8 +372,13 @@ export const BlueprintRunner = {
 		else s.requiredGroundKills++;
 		s.phaseProgress++;
 		if (twist(s)) return true;
-		if (!p.interceptHold && !p.leaderWithdrawal && s.phaseProgress>=total(BlueprintRunner.ActivePhase(s)!)) advance(s);
+		if (!p.cruiseIntercept && !p.leaderWithdrawal && !p.interceptHold && s.phaseProgress>=total(BlueprintRunner.ActivePhase(s)!)) advance(s);
 		return true;
+	},
+	/** Director completion is separate from the score ledger: separation is never a kill. */
+	ResolveCruise(s: BlueprintState, complete: boolean): void {
+		if (s.outcome!==undefined || !BlueprintRunner.ActivePhase(s)?.cruiseIntercept) return;
+		if (complete) advance(s); else finish(s,"failed","protected_lost");
 	},
 	Objective(s: BlueprintState): BlueprintObjective {
 		if (s.outcome==="won" && s.phases[s.phases.size()-1].execution?.hudPhase === undefined) return {phase:"complete",objective:"Objective complete",objectiveProgress:1,objectiveTotal:1,tutorialStep:""};

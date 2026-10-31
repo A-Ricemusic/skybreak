@@ -1,6 +1,8 @@
 import { finiteNumber } from "./EngineBatchB";
 import { surfacePose, SurfaceRoute } from "./EngineBatchD2";
 import type { FlightPoint, MissionPhaseBlueprint } from "./MissionCatalog";
+/** Reserved sortie identities, shared by admission and runtime spawning. Rusk is never credited. */
+export const D12Identities = { leader: "d12_rusk", wingmen: ["d12_wingman_1", "d12_wingman_2", "d12_wingman_3", "d12_wingman_4"] } as const;
 /** Four normal required fighters; leader is a separate noncombat story actor. */
 export interface LeaderWithdrawal { departure: SurfaceRoute }
 /** A destroyed military bridge closes a route. Friendly witness routes must remain separate. */
@@ -28,7 +30,7 @@ export function validateBatchD12(phases: MissionPhaseBlueprint[], limit: number)
   const plan=p.leaderWithdrawal;
   if(plan) {
    assert(p.kind==="required_air" && p.count===4 && p.execution?.directSpawn===true,"Rusk needs four direct required wingmen");
-   assert(p.execution.launchDelay===undefined && !p.points && !p.returnLine && !p.landing && !p.rearm && !p.hazard && !p.scoreThreshold && (p.optionalRaiders ?? 0)===0 && (p.reinforce?.size() ?? 0)===0 && !p.eliteFormation && !p.bombers && !p.interceptHold && !p.twist && !p.execution.preservePursuers && !p.standaloneAce && !p.concurrentFighters && (p.fighterWaves?.size() ?? 0)===0,"Withdrawal owns its five-aircraft budget and cleanup");
+   assert(p.execution.launchDelay===undefined && !p.points && !p.returnLine && !p.landing && !p.rearm && !p.hazard && !p.scoreThreshold && (p.optionalRaiders ?? 0)===0 && (p.reinforce?.size() ?? 0)===0 && !p.eliteFormation && !p.cruiseIntercept && !p.spatialJamming && !p.protection && !p.bombers && !p.interceptHold && !p.twist && !p.execution.preservePursuers && !p.standaloneAce && !p.concurrentFighters && (p.fighterWaves?.size() ?? 0)===0,"Withdrawal owns its five-aircraft budget and cleanup");
    const r=plan.departure;
    assert(finiteNumber(r.speed) && r.speed>=100 && r.speed<=400 && r.waypoints.size()>=2 && r.waypoints.size()<=16,"Invalid leader route");
    for(const v of r.waypoints) assert(finiteNumber(v.x) && finiteNumber(v.y) && finiteNumber(v.z) && math.abs(v.x)<=limit && math.abs(v.z)<=limit && v.y>=170 && v.y<=2000 && v.y===r.waypoints[0].y,"Leader outside airspace");

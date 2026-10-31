@@ -1,4 +1,7 @@
+import { D12Identities } from "../shared/EngineBatchD12";
 import { clearLeader, stepLeader } from "./EngineBatchD12Runtime";
+import { clearCruise, cruiseKilled, stepCruise } from "./EngineBatchD10Runtime";
+import { clearAirships, stepAirships } from "./EngineBatchD9Runtime";
 import { stepProtection, protectedTarget, hitProtected, clearProtection } from "./EngineBatchD7Runtime";
 import { createCheapContact, cheapEligible, stepContacts, handoffParked, stepRepeatedArtillery } from "./EngineBatchD6Runtime";
 import { clearGroundDirector, stepGroundDirector, stepBeachAttacker } from "./EngineBatchD5Runtime";
@@ -555,6 +558,8 @@ function cleanupSession(session: CombatSession, restore = true): void {
 		if (session.player.Parent === Players) session.player.ReplicationFocus = session.previousReplicationFocus;
 	}
 	clearLeader(session);
+	clearCruise(session);
+	clearAirships(session);
 	clearProtection(session);
 	clearGroundDirector(session);
 	session.folder.Destroy();
@@ -793,8 +798,8 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 			groundAttack: options.arrival && "behaviour" in options.arrival && options.arrival.behaviour === "ground_attack",
 			scramble: options.arrival && "scramble" in options.arrival && options.arrival.scramble ? { spawn: { x:position.X,y:position.Y,z:position.Z }, heading: options.arrival.headingDegrees ?? 0, startedAt:session.elapsed } : undefined,
 			friendly: options.friendly, alliedAmmo: options.friendly ? AlliedRules.MissilesPerWingman : undefined,
-			id: handoffId ?? options.targetId ?? `${friendly ? "ally" : "air"}_${serial}_${missionSerial}`, name, model, health, maxHealth: health,
-			position, direction, velocity: direction.mul(300), kind: role === "ace" ? "ace" : "air", required: options.optional !== true && role !== "raider" && role !== "escort", enabled: true,
+			id: handoffId ?? options.targetId ?? (role === "bandit" && session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.leaderWithdrawal ? D12Identities.wingmen[index] : undefined) ?? `${friendly ? "ally" : "air"}_${serial}_${missionSerial}`, name, model, health, maxHealth: health,
+			position, direction, velocity: direction.mul(300), kind: role === "ace" ? "ace" : "air", required: (options.arrival !== undefined && "required" in options.arrival && options.arrival.required === true) || (options.optional !== true && role !== "raider" && role !== "escort"), enabled: true,
 			targetSlot: serial, fireTimer: role === "courier" ? math.huge : 4 + index * 1.5, windup: 0, mode: "attack", modeTimer: 0, passDirection: direction, side,
 			flares, flareTimer: 0, flareUntil: 0, speedBonus: 0, lockBreakTimer: TUNING.aceLockBreak[act - 1],
 			breakTimer: 0, breakUntil: 0, lockBreakChance, role, bomberSlot: options.bomberSlot, escortSlot: options.escortSlot,
@@ -810,7 +815,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 /** Fighter budget only. Opt-in non-firing route bombers have six separate slots; withdrawing jets do not count. */
 function liveAircraft(session: CombatSession): number {
 	let count = 0;
-	for (const enemy of session.enemies) if (ownsEnemy(session, enemy) && enemy.kind !== "ground" && (enemy.role !== "bomber" || (enemy.routeActor !== undefined && session.blueprintState !== undefined && BlueprintRunner.ActivePhase(session.blueprintState)?.concurrentFighters !== undefined))) count += 1;
+	for (const enemy of session.enemies) if (ownsEnemy(session, enemy) && !enemy.cruiseTarget && enemy.kind !== "ground" && (enemy.role !== "bomber" || (enemy.routeActor !== undefined && session.blueprintState !== undefined && BlueprintRunner.ActivePhase(session.blueprintState)?.concurrentFighters !== undefined))) count += 1;
 	return count;
 }
 /**
@@ -862,6 +867,7 @@ function destroyEnemy(session: CombatSession, enemy: Enemy, allied = false): voi
 	if (!sinkNavalTarget(session, enemy)) enemy.model.Destroy();
 	// Kills count every destruction, air and ground, so the HUD tally matches sessionTotalRequired.
 	if (session.blueprintState) session.kills = sessionAllKills(session);
+	cruiseKilled(session,enemy);
 	phaseDirector.Apply(session);
 	// A kill can fill a raider cap or clear a hazard without a phase change.
 	publishDamageable(session);
@@ -1171,7 +1177,8 @@ function stepEnemies(session: CombatSession, dt: number): void {
 	const maxCap = soft ? GENTLE.threatCap : tuned(session, TUNING.threatCap);
 	let live = 0, threats = 0, raidersAlive = 0;
 	for (const enemy of session.enemies) {
-		if (!ownsEnemy(session, enemy) || enemy.kind !== "air" || enemy.role === "courier" || (enemy.role === "bomber" && !enemy.routeActor) || (enemy.escortSlot !== undefined && !enemy.escortEngaged)) continue;
+ if(enemy.airshipJammer) continue;
+		if (!ownsEnemy(session, enemy) || enemy.cruiseTarget || enemy.kind !== "air" || enemy.role === "courier" || (enemy.role === "bomber" && !enemy.routeActor) || (enemy.escortSlot !== undefined && !enemy.escortEngaged)) continue;
 		live += 1;
 		if (enemy.windup > 0) threats += 1;
 		if (!enemy.required) raidersAlive += 1;
@@ -1182,8 +1189,9 @@ function stepEnemies(session: CombatSession, dt: number): void {
 	let flightReady = ThreatRules.FlightReady({ sinceLastWindup: session.elapsed - session.lastWindupAt, gate: flightGate, threats, cap });
 	for (let index = 0; index < session.enemies.size(); index++) {
 		const enemy = session.enemies[index];
+ if(enemy.airshipJammer) continue;
 		if (enemy.withdrawUntil !== undefined) { if (enemy.health > 0) stepWithdrawing(session, enemy, dt); continue; }
-		if (!ownsEnemy(session, enemy) || enemy.kind === "ground") continue;
+		if (!ownsEnemy(session, enemy) || enemy.cruiseTarget || enemy.kind === "ground") continue;
 		if(stepBeachAttacker(session,enemy,dt,line=>radio(session,line,4))) continue;
 		if (enemy.scramble) {
 			const elapsed=session.elapsed-enemy.scramble.startedAt;
@@ -1674,6 +1682,9 @@ function stepSession(session: CombatSession, dt: number): void {
 	}
 	session.inputSteps += 1;
 	stepLeader(session,dt,line=>radio(session,line,4));
+	stepCruise(session,dt);
+	if(session.crashReason || session.blueprintState?.outcome!==undefined) {finish(session);return;}
+	stepAirships(session);
 	stepProtection(session,dt,(line)=>radio(session,line,4));
 	stepGroundDirector(session,dt,line=>radio(session,line,4));
 	if(session.blueprintState?.outcome!==undefined) { finish(session); return; }

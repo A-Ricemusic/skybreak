@@ -1,5 +1,6 @@
+import { validateEncounterIdentities } from "../shared/CampaignEncounters";
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { bridgeRouteClosed, leaderPose, newWithdrawal, stepWithdrawal, validateBatchD12 } from "../shared/EngineBatchD12";
+import { D12Identities, bridgeRouteClosed, leaderPose, newWithdrawal, stepWithdrawal, validateBatchD12 } from "../shared/EngineBatchD12";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { MissionCatalog, MissionPhaseBlueprint } from "../shared/MissionCatalog";
 import { AlliedRules } from "../shared/AlliedRules";
@@ -58,6 +59,18 @@ describe("D12 protected leader and bridge rules",()=>{
   validateBatchD12([p],15360);
   p.bridgeClosures![0].hullIds.push("ship"); expect(rejects(()=>validateBatchD12([p],15360))).toBe(true);
   p.bridgeClosures![0].hullIds=["unknown"]; expect(rejects(()=>validateBatchD12([p],15360))).toBe(true);
+ });
+ it("shares D12 leader, wingman, bridge and turret identities with other batches in either phase order",()=>{
+  for(const id of [D12Identities.leader,...D12Identities.wingmen]) {
+   const other: MissionPhaseBlueprint={kind:"required_air",label:"Cruise",cruiseIntercept:{site:{x:0,y:0,z:0},targets:[{id,scoreRole:"air",speed:100,route:[]}]}};
+   for(const phases of [[phase(),other],[other,phase()]]) expect(rejects(()=>validateEncounterIdentities(phases))).toBe(true);
+  }
+  for(const targetType of ["bridge_section","gun_mount"] as const) {
+   const bridge: MissionPhaseBlueprint={kind:"required_ground",label:"Bridge",groundTargets:[{id:"shared",type:targetType,position:{x:0,y:0,z:0},yaw:0,required:true,scoreRole:"ground"}]};
+   const other: MissionPhaseBlueprint={kind:"required_air",label:"Protected",protection:{aircraft:[{id:"shared"}]} as MissionPhaseBlueprint["protection"]};
+   for(const phases of [[bridge,other],[other,bridge]]) expect(rejects(()=>validateEncounterIdentities(phases))).toBe(true);
+  }
+  validateEncounterIdentities([phase()]);
  });
  it("keeps all catalog missions dormant",()=>{
   for(let id=0;id<=18;id++) for(const p of MissionCatalog.Get(id).phases) { expect(p.leaderWithdrawal).toBeUndefined(); expect(p.bridgeClosures).toBeUndefined(); }
