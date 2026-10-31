@@ -1,5 +1,7 @@
 # Decisions
 
+2026-10-30 tooling decision (implementation agent): canonicalize catalog non-integers to six decimal places, preserving integers and mapping negative zero to zero on writes and both comparison operands. Raw floats were rejected because Luau trig differs across platforms; strings, booleans, keys and array ordering remain strictly compared.
+
 Last updated: 2026-10-30.
 
 | ID | Date | Decision | Alternatives considered | Why | Decided by | Status |

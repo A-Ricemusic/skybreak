@@ -1,5 +1,7 @@
 # SKYBREAK redesign dashboard
 
+PR #191 portability fix: catalog snapshots now canonicalize all non-integer numbers to six decimal places and negative zero to zero; integers and nonnumeric fields remain exact. Frozen install and full validate:offline exited 0; focused numeric edge checks passed. Linux CI verification is pending.
+
 M12 integration validation (2026-10-30): frozen install, build, required test:offline and manifest/catalog regeneration, and full validate:offline all exited 0 with the specified LUAU_BIN. Passed 1,088 Luau contracts, four loader probes, 19 catalog snapshots, three QA pilot scenarios and 124 Python tests. Story/radio inventory is 215 entries / 137 pending recordings; no audio generated. Catalog changes only M12; prerequisite mission definitions and every main decision record are preserved. D9/D10 cleanup paths remain unchanged; only M12 railgun models set LeaveWreck. Studio verified: pending orchestrator run. No Player tests claimed.
 
 Current integration: missions 1–11 are merged/live by pipeline convention. M12 #191 is merge pending; it becomes live by pipeline convention after merge and unlocks after M11. M13–M18 remain locked. Studio verified: pending orchestrator run. No Player tests claimed. Older entries below describe their original handoffs.

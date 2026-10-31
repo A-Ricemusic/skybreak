@@ -106,7 +106,7 @@
             "initial": 2,
             "role": "escort"
           },
-          "speed": 49.783597042018044,
+          "speed": 49.783597,
           "waypoints": [
             {
               "x": 0,
@@ -222,19 +222,19 @@
         "beat": "SERA: Follow the power line north. Their bombers are parked on the farm.",
         "chatter": [
           {
-            "at": 0.09090909090909091,
+            "at": 0.090909,
             "text": "FARM CONTROL: Bombers, start engines! Get them off the ground!"
           },
           {
-            "at": 0.36363636363636365,
+            "at": 0.363636,
             "text": "SERA: Four down. Their guns are still up, watch the base edges."
           },
           {
-            "at": 0.7272727272727273,
+            "at": 0.727273,
             "text": "FARM CONTROL: The pads are burning. Nobody takes off from here."
           },
           {
-            "at": 0.9090909090909091,
+            "at": 0.909091,
             "text": "LANTERN 2: One bomber left. Finish it, trainee."
           }
         ],
@@ -750,15 +750,15 @@
         "beat": "SERA: Enemy airspace. Site one is on the ridge north-west of you.",
         "chatter": [
           {
-            "at": 0.1111111111111111,
+            "at": 0.111111,
             "text": "LANTERN 2: Dome down. Good hit, trainee."
           },
           {
-            "at": 0.5555555555555556,
+            "at": 0.555556,
             "text": "SERA: Five domes down. Site two is on the saddle west-north-west."
           },
           {
-            "at": 0.8888888888888888,
+            "at": 0.888889,
             "text": "LANTERN 2: One dome left. Finish it and we go home."
           }
         ],
@@ -1180,14 +1180,14 @@
               "z": 0
             },
             {
-              "x": 286.2167011199731,
+              "x": 286.216701,
               "y": 0,
-              "z": 35.77708763999665
+              "z": 35.777088
             },
             {
-              "x": 572.4334022399462,
+              "x": 572.433402,
               "y": 0,
-              "z": 71.5541752799933
+              "z": 71.554175
             }
           ],
           "speed": 140,
@@ -1231,11 +1231,11 @@
         },
         "chatter": [
           {
-            "at": 0.3333333333333333,
+            "at": 0.333333,
             "text": "SERA: One courier down. Two still watching the road."
           },
           {
-            "at": 0.6666666666666666,
+            "at": 0.666667,
             "text": "LANTERN 2: One transport left. The trucks are counting on us."
           }
         ],
@@ -7987,7 +7987,7 @@
             "required": false,
             "scoreRole": "tanker",
             "type": "tanker",
-            "yaw": -8.594366926962348
+            "yaw": -8.594367
           },
           {
             "group": "shipping",
@@ -8045,7 +8045,7 @@
           "weaponMenu": true,
           "zone": {
             "x": -1024,
-            "y": 179.77867027929892,
+            "y": 179.77867,
             "z": 3280
           }
         },
@@ -10023,7 +10023,7 @@
           "weaponMenu": true,
           "zone": {
             "x": -6720,
-            "y": 179.77867027929892,
+            "y": 179.77867,
             "z": 8100
           }
         },
@@ -10156,11 +10156,11 @@
         "beat": "SERA: Copy before you cut. We need the signature, not just wreckage.",
         "chatter": [
           {
-            "at": 0.3333333333333333,
+            "at": 0.333333,
             "text": "SERA: Lira log copied. Keep moving to the next installation."
           },
           {
-            "at": 0.6666666666666666,
+            "at": 0.666667,
             "text": "SERA: Merel log copied. One transmitter remains."
           }
         ],
@@ -12571,15 +12571,15 @@
           "weaponMenu": true,
           "zone": {
             "lean": 0,
-            "pitch": -0.0523598775598299,
-            "qw": 0.9996573249755574,
-            "qx": -0.026176948307873156,
+            "pitch": -0.05236,
+            "qw": 0.999657,
+            "qx": -0.026177,
             "qy": 0,
             "qz": 0,
             "roll": 0,
             "speed": 80,
             "x": -32,
-            "y": 143.27457982493604,
+            "y": 143.27458,
             "yaw": 0,
             "z": 13000
           }
@@ -15224,7 +15224,7 @@
           "weaponMenu": true,
           "zone": {
             "x": -9600,
-            "y": 211.77867027929892,
+            "y": 211.77867,
             "z": 8868
           }
         },
@@ -15491,7 +15491,7 @@
               },
               "id": "m11_civilian_low",
               "route": {
-                "speed": 57.382295409,
+                "speed": 57.382295,
                 "waypoints": [
                   {
                     "x": -1440,
@@ -15631,7 +15631,7 @@
               },
               "id": "m11_civilian_high",
               "route": {
-                "speed": 57.595424681,
+                "speed": 57.595425,
                 "waypoints": [
                   {
                     "x": 2880,
@@ -15880,15 +15880,15 @@
         "beat": "SERA: Seven guns. Kill central ECM for radar. Sweeps end above 3,080 ft.",
         "chatter": [
           {
-            "at": 0.14285714285714285,
+            "at": 0.142857,
             "text": "SERA: Six live guns remain. Wreckage is no target."
           },
           {
-            "at": 0.5714285714285714,
+            "at": 0.571429,
             "text": "LANTERN 2: Three left. Watch the barrel sweep."
           },
           {
-            "at": 0.8571428571428571,
+            "at": 0.857143,
             "text": "SERA: One gun left. Keep clear of its firing line."
           }
         ],
@@ -15960,9 +15960,9 @@
             "health": 165,
             "id": "m12_gun_2",
             "position": {
-              "x": 1697.056274847714,
+              "x": 1697.056275,
               "y": 104,
-              "z": -1697.0562748477141
+              "z": -1697.056275
             },
             "required": true,
             "scoreRole": "ring_gun",
@@ -15976,7 +15976,7 @@
             "position": {
               "x": 2400,
               "y": 104,
-              "z": -1.4695761589768238e-13
+              "z": 0
             },
             "required": true,
             "scoreRole": "ring_gun",
@@ -15988,7 +15988,7 @@
             "health": 165,
             "id": "m12_gun_5",
             "position": {
-              "x": 2.9391523179536476e-13,
+              "x": 0,
               "y": 104,
               "z": 2400
             },
@@ -16002,9 +16002,9 @@
             "health": 165,
             "id": "m12_gun_6",
             "position": {
-              "x": -1697.056274847714,
+              "x": -1697.056275,
               "y": 104,
-              "z": 1697.0562748477143
+              "z": 1697.056275
             },
             "required": true,
             "scoreRole": "ring_gun",
@@ -16018,7 +16018,7 @@
             "position": {
               "x": -2400,
               "y": 104,
-              "z": 4.4087284769304714e-13
+              "z": 0
             },
             "required": true,
             "scoreRole": "ring_gun",
@@ -16030,9 +16030,9 @@
             "health": 165,
             "id": "m12_gun_8",
             "position": {
-              "x": -1697.0562748477143,
+              "x": -1697.056275,
               "y": 104,
-              "z": -1697.0562748477137
+              "z": -1697.056275
             },
             "required": true,
             "scoreRole": "ring_gun",
@@ -16057,216 +16057,216 @@
             "group": "defence",
             "id": "m12_defence_1",
             "position": {
-              "x": 296.5992123534364,
+              "x": 296.599212,
               "y": 104,
-              "z": -3286.644018939581
+              "z": -3286.644019
             },
             "required": false,
             "scoreRole": "aa",
             "type": "aa_gun",
-            "yaw": -5.156620156177409
+            "yaw": -5.15662
           },
           {
             "group": "defence",
             "id": "m12_defence_2",
             "position": {
-              "x": 1531.7661557823005,
+              "x": 1531.766156,
               "y": 104,
-              "z": -2922.9595351287217
+              "z": -2922.959535
             },
             "required": false,
             "scoreRole": "aa",
             "type": "aa_gun",
-            "yaw": -27.656620156177407
+            "yaw": -27.65662
           },
           {
             "group": "defence",
             "id": "m12_defence_3",
             "position": {
-              "x": 2533.735587488089,
+              "x": 2533.735587,
               "y": 104,
-              "z": -2114.280958788682
+              "z": -2114.280959
             },
             "required": false,
             "scoreRole": "aa",
             "type": "aa_gun",
-            "yaw": -50.156620156177404
+            "yaw": -50.15662
           },
           {
             "group": "defence",
             "id": "m12_defence_4",
             "position": {
-              "x": 3149.966744369112,
+              "x": 3149.966744,
               "y": 104,
-              "z": -983.7222724776832
+              "z": -983.722272
             },
             "required": false,
             "scoreRole": "aa",
             "type": "aa_gun",
-            "yaw": -72.65662015617741
+            "yaw": -72.65662
           },
           {
             "group": "defence",
             "id": "m12_defence_5",
             "position": {
-              "x": 3286.644018939581,
+              "x": 3286.644019,
               "y": 104,
-              "z": 296.59921235343654
+              "z": 296.599212
             },
             "required": false,
             "scoreRole": "aa",
             "type": "aa_gun",
-            "yaw": -95.15662015617741
+            "yaw": -95.15662
           },
           {
             "group": "defence",
             "id": "m12_defence_6",
             "position": {
-              "x": 2922.959535128722,
+              "x": 2922.959535,
               "y": 104,
-              "z": 1531.7661557823
+              "z": 1531.766156
             },
             "required": false,
             "scoreRole": "aa",
             "type": "aa_gun",
-            "yaw": -117.6566201561774
+            "yaw": -117.65662
           },
           {
             "group": "defence",
             "id": "m12_defence_7",
             "position": {
-              "x": 2114.2809587886823,
+              "x": 2114.280959,
               "y": 104,
-              "z": 2533.7355874880886
+              "z": 2533.735587
             },
             "required": false,
             "scoreRole": "aa",
             "type": "aa_gun",
-            "yaw": -140.1566201561774
+            "yaw": -140.15662
           },
           {
             "group": "defence",
             "id": "m12_defence_8",
             "position": {
-              "x": 983.7222724776841,
+              "x": 983.722272,
               "y": 104,
-              "z": 3149.966744369112
+              "z": 3149.966744
             },
             "required": false,
             "scoreRole": "aa",
             "type": "aa_gun",
-            "yaw": -162.6566201561774
+            "yaw": -162.65662
           },
           {
             "group": "defence",
             "id": "m12_defence_9",
             "position": {
-              "x": -296.59921235343563,
+              "x": -296.599212,
               "y": 104,
-              "z": 3286.644018939581
+              "z": 3286.644019
             },
             "required": false,
             "scoreRole": "aa",
             "type": "aa_gun",
-            "yaw": -185.1566201561774
+            "yaw": -185.15662
           },
           {
             "group": "defence",
             "id": "m12_defence_10",
             "position": {
-              "x": -1531.7661557823,
+              "x": -1531.766156,
               "y": 104,
-              "z": 2922.959535128722
+              "z": 2922.959535
             },
             "required": false,
             "sam": true,
             "scoreRole": "sam",
             "type": "sam",
-            "yaw": -207.65662015617738
+            "yaw": -207.65662
           },
           {
             "group": "defence",
             "id": "m12_defence_11",
             "position": {
-              "x": -2533.7355874880886,
+              "x": -2533.735587,
               "y": 104,
-              "z": 2114.2809587886823
+              "z": 2114.280959
             },
             "required": false,
             "sam": true,
             "scoreRole": "sam",
             "type": "sam",
-            "yaw": -230.15662015617738
+            "yaw": -230.15662
           },
           {
             "group": "defence",
             "id": "m12_defence_12",
             "position": {
-              "x": -3149.9667443691114,
+              "x": -3149.966744,
               "y": 104,
-              "z": 983.7222724776857
+              "z": 983.722272
             },
             "required": false,
             "sam": true,
             "scoreRole": "sam",
             "type": "sam",
-            "yaw": -252.65662015617738
+            "yaw": -252.65662
           },
           {
             "group": "defence",
             "id": "m12_defence_13",
             "position": {
-              "x": -3286.644018939581,
+              "x": -3286.644019,
               "y": 104,
-              "z": -296.5992123534354
+              "z": -296.599212
             },
             "required": false,
             "sam": true,
             "scoreRole": "sam",
             "type": "sam",
-            "yaw": -275.1566201561774
+            "yaw": -275.15662
           },
           {
             "group": "defence",
             "id": "m12_defence_14",
             "position": {
-              "x": -2922.959535128721,
+              "x": -2922.959535,
               "y": 104,
-              "z": -1531.766155782301
+              "z": -1531.766156
             },
             "required": false,
             "sam": true,
             "scoreRole": "sam",
             "type": "sam",
-            "yaw": -297.65662015617744
+            "yaw": -297.65662
           },
           {
             "group": "defence",
             "id": "m12_defence_15",
             "position": {
-              "x": -2114.2809587886823,
+              "x": -2114.280959,
               "y": 104,
-              "z": -2533.735587488088
+              "z": -2533.735587
             },
             "required": false,
             "sam": true,
             "scoreRole": "sam",
             "type": "sam",
-            "yaw": -320.1566201561774
+            "yaw": -320.15662
           },
           {
             "group": "defence",
             "id": "m12_defence_16",
             "position": {
-              "x": -983.7222724776859,
+              "x": -983.722272,
               "y": 104,
-              "z": -3149.9667443691114
+              "z": -3149.966744
             },
             "required": false,
             "sam": true,
             "scoreRole": "sam",
             "type": "sam",
-            "yaw": -342.6566201561774
+            "yaw": -342.65662
           }
         ],
         "jamming": {
@@ -16309,7 +16309,7 @@
           "weaponMenu": true,
           "zone": {
             "x": -8640,
-            "y": 235.77867027929892,
+            "y": 235.77867,
             "z": 7428
           }
         },
@@ -16330,9 +16330,9 @@
             {
               "bearingDegrees": 45,
               "source": {
-                "x": 1697.056274847714,
+                "x": 1697.056275,
                 "y": 184,
-                "z": -1697.0562748477141
+                "z": -1697.056275
               },
               "targetId": "m12_gun_2"
             },
@@ -16341,14 +16341,14 @@
               "source": {
                 "x": 2400,
                 "y": 184,
-                "z": -1.4695761589768238e-13
+                "z": 0
               },
               "targetId": "m12_gun_3"
             },
             {
               "bearingDegrees": 180,
               "source": {
-                "x": 2.9391523179536476e-13,
+                "x": 0,
                 "y": 184,
                 "z": 2400
               },
@@ -16357,9 +16357,9 @@
             {
               "bearingDegrees": 225,
               "source": {
-                "x": -1697.056274847714,
+                "x": -1697.056275,
                 "y": 184,
-                "z": 1697.0562748477143
+                "z": 1697.056275
               },
               "targetId": "m12_gun_6"
             },
@@ -16368,16 +16368,16 @@
               "source": {
                 "x": -2400,
                 "y": 184,
-                "z": 4.4087284769304714e-13
+                "z": 0
               },
               "targetId": "m12_gun_7"
             },
             {
               "bearingDegrees": 315,
               "source": {
-                "x": -1697.0562748477143,
+                "x": -1697.056275,
                 "y": 184,
-                "z": -1697.0562748477137
+                "z": -1697.056275
               },
               "targetId": "m12_gun_8"
             }

@@ -1,5 +1,7 @@
 # Next
 
+PR #191: verify Linux validate on the numeric snapshot portability fix before merge; existing runtime acceptance remains pending.
+
 M12 integration validation (2026-10-30): frozen install, build, required test:offline and manifest/catalog regeneration, and full validate:offline all exited 0 with the specified LUAU_BIN. Passed 1,088 Luau contracts, four loader probes, 19 catalog snapshots, three QA pilot scenarios and 124 Python tests. Story/radio inventory is 215 entries / 137 pending recordings; no audio generated. Catalog changes only M12; prerequisite mission definitions and every main decision record are preserved. D9/D10 cleanup paths remain unchanged; only M12 railgun models set LeaveWreck. Studio verified: pending orchestrator run. No Player tests claimed.
 
 Priority: review and merge M12 #191 after offline checks and orchestrator acceptance. Missions 1–11 are merged; older handoffs below are historical.

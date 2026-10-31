@@ -1,5 +1,7 @@
 # Blockers
 
+PR #191 Linux float drift is addressed by numeric snapshot canonicalization; Frozen install and full validate:offline exited 0; Linux CI verification is pending. Other generated checks were audited: voice-lines has no float fields, story-voice-script emits integer caps, world-report already formats floats to one decimal, and relay-tables checks a historical heading.
+
 M12 integration validation (2026-10-30): frozen install, build, required test:offline and manifest/catalog regeneration, and full validate:offline all exited 0 with the specified LUAU_BIN. Passed 1,088 Luau contracts, four loader probes, 19 catalog snapshots, three QA pilot scenarios and 124 Python tests. Story/radio inventory is 215 entries / 137 pending recordings; no audio generated. Catalog changes only M12; prerequisite mission definitions and every main decision record are preserved. D9/D10 cleanup paths remain unchanged; only M12 railgun models set LeaveWreck. Studio verified: pending orchestrator run. No Player tests claimed.
 
 M12 #191 integration: old D8 base resolved by replaying M12-only commits onto current main; prerequisite coverage and all decision records retained. Merge pending. Studio verified: pending orchestrator run. Player/phone, actual line-of-fire masking and rendered reference acceptance remain open; offline rule checks do not establish play quality. No asset/audio upload or Player test performed.
