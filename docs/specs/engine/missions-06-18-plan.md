@@ -193,6 +193,8 @@ D9 validation (2026-10-30): frozen install, build and full offline validation ex
 
 D9 integration validation (2026-10-30, main `06ca3e4`): `bun install --frozen-lockfile`, `bun run build` and full `validate:offline` with the prescribed `LUAU_BIN` each exited 0. Passed 1,040 Luau contracts, four loader guard probes, 19 unchanged catalog snapshots and 124 Python tests. All 94 offline spec registrations match runner imports and retain `checkedRequire`. D8 ground ECM / D9 airship validation coexistence passes offline; runtime counting/kill-call regressions compile but remain unrun. No Studio, `test:roblox` or Player test performed.
 
+M11 PR #189 / D-445: playable protected-air crossing; mission-local hull34/91/245 for Easy/Normal/Hard, deterministic shared-rule acquisition/interception and neglect/lapse/defence coverage. Unmerged; Studio/Player acceptance pending.
+
 ## Batch D10 implementation
 
 F26 is implemented as dormant `cruiseIntercept` on a dedicated required-air phase. No catalog entry opts in; practice, M01–M09, catalog data and frozen snapshots are unchanged. `EngineBatchD10.ts` validates a finite, one-generation release tree and compiles single-slot F6/BomberRules routes. `EngineBatchD10Runtime.ts` owns phase-active arrival/separation clocks, terrain-relative motion, procedural target Models and disposal. Minimal adapters connect phase ownership, scoring, radar and cleanup to existing services.
