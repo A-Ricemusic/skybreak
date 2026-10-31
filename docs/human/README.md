@@ -71,3 +71,9 @@ Main integration validation (2026-10-30): frozen install, standalone build and f
 Dormant D8 ground ECM, required-strike rearm, precision bomb, elite retreat/recovery and ring sweep contracts are integrated with main’s D6, M08 and D7 hooks. No catalog opt-ins or frozen snapshots change. See D-400–D-402 and the engine plan. Runtime Jest, Studio/Player and M12 acceptance remain pending.
 
 D8 main integration validation (2026-10-30, main `5d84486`): frozen install, build and full `validate:offline` with the prescribed `LUAU_BIN` each exited 0: 1,023 Luau contracts, 19 unchanged catalog snapshots, four loader guard probes and 124 Python tests. All 92 spec registrations match runner imports and retain both parents. No Studio, `test:roblox`, Player tests or uploads performed. D8 remains dormant; M12 dependent branch untouched.
+
+## D9 integration (2026-10-30)
+
+D9 remains dormant and unmerged on PR #188, now integrated with main’s D7, D8 and missions 8–9. No catalog or frozen snapshot changes. Static airship jammers, local corridor coverage and bounded protected-aircraft navigation holds coexist with D8 ground ECM. Practice and missions 1–9 retain main’s behaviour. Runtime Jest, Studio/Player and M13 acceptance remain pending.
+
+D9 integration validation (2026-10-30, main `06ca3e4`): `bun install --frozen-lockfile`, `bun run build` and full `validate:offline` with the prescribed `LUAU_BIN` each exited 0. Passed 1,040 Luau contracts, four loader guard probes, 19 unchanged catalog snapshots and 124 Python tests. All 94 offline spec registrations match runner imports and retain `checkedRequire`. D8 ground ECM / D9 airship validation coexistence passes offline; runtime counting/kill-call regressions compile but remain unrun. No Studio, `test:roblox` or Player test performed.

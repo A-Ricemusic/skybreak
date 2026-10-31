@@ -373,3 +373,11 @@ M09 #185 arrival-test correction (2026-10-30): D-342 is unchanged. The nine requ
 
 - **Status:** provisional implementation; dormant. **Decision maker:** implementation agent (2026-10-30).
 - Five required elite fighters form a one-defeat objective. The defeated elite represents the Vulture Two ejection/recovery story event; the other four retreat without credit. Required status protects the formation from allied kills. Optional named ace remains separate. Recovery flag persists through sortie phase updates and replicates on the session folder; account persistence/presentation belongs to mission integration. Alternative: kill all five; rejected by M12 ending evidence. D12 protected-leader lifecycle remains separate future work.
+
+## Engine batch D9 decisions (2026-10-30)
+
+| ID | Choice | Alternatives and rationale | Decision maker | Status |
+|---|---|---|---|---|
+| D-420 | Dormant, static, unarmed procedural airship class; D1 gun and existing optional-air kill ledger own damage and once-only points. Author health/score role and enough optional kill budget; M13 plans 32 ×100. Bomber role excludes armed allies without changing their approximately one-kill sortie budget. | New scoring/damage path or armed balloons would duplicate ownership or distort the sweep. No catalog or snapshot opt-in. | D9 implementation agent | Implemented; unmerged; runtime execution pending |
+| D-421 | Opt-in 3D capsule corridors count unique live airship sources at each observer; player radar/lock/target visibility share the existing batch C count hook. | Global any-alive suppression prevents local clearance. D8 F20 remains independent; future ground-spatial support needs explicit validation and runtime source admission. | D9 implementation agent | Implemented; dormant; dimensions provisional |
+| D-422 | Each D7 protected aircraft holds navigation locally for a cumulative authored 0–60 seconds, then permits dead reckoning; source death releases immediately. Health, hostile targeting, mission clocks and phase predicates stay authoritative. | Unbounded hold risks a softlock; points-based global clearance discards spatial intent. Actors remain phase-owned; M13 handoff and exact coverage must be authored during activation. | D9 implementation agent | Provisional original adaptation; no Player observation |

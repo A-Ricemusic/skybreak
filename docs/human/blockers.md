@@ -115,3 +115,9 @@ Main integration validation (2026-10-30): frozen install, standalone build and f
 D6/M08/D7 shared-hook integration is resolved. D8 remains dormant; runtime Jest, Studio/Player, ring timing/width, bomb feedback, elite recovery presentation and account persistence require mission acceptance. No owner input or upload is required. No Studio or Roblox Jest execution is claimed.
 
 D8 main integration validation (2026-10-30, main `5d84486`): frozen install, build and full `validate:offline` with the prescribed `LUAU_BIN` each exited 0: 1,023 Luau contracts, 19 unchanged catalog snapshots, four loader guard probes and 124 Python tests. All 92 spec registrations match runner imports and retain both parents. No Studio, `test:roblox`, Player tests or uploads performed. D8 remains dormant; M12 dependent branch untouched.
+
+## D9 integration and acceptance (2026-10-30)
+
+D7/D8 branch dependencies are resolved on PR #188. D8 ground ECM remains supported in global jamming phases; spatial corridors accept authored D9 airships only, and spatial ground ECM remains unsupported by design. M4 global aircraft jamming is unchanged. Runtime Jest execution, M13 activation, navigation tuning and visual/phone acceptance remain pending. No Studio or Player test is claimed.
+
+D9 integration validation (2026-10-30, main `06ca3e4`): `bun install --frozen-lockfile`, `bun run build` and full `validate:offline` with the prescribed `LUAU_BIN` each exited 0. Passed 1,040 Luau contracts, four loader guard probes, 19 unchanged catalog snapshots and 124 Python tests. All 94 offline spec registrations match runner imports and retain `checkedRequire`. D8 ground ECM / D9 airship validation coexistence passes offline; runtime counting/kill-call regressions compile but remain unrun. No Studio, `test:roblox` or Player test performed.
