@@ -37,6 +37,7 @@ describe("Dormant D4 intercept hold",()=>{
 	});
 	it("rejects malformed budgets, streams, hold clocks, sites and cues",()=>{
 		const mutations:((b:MissionBlueprint)=>void)[]=[
+			b=>{b.phases[0].concurrentRoutes=7;},b=>{b.phases[0].concurrentRoutes=0;},b=>{b.phases[0].concurrentRoutes=1.5;},b=>{b.phases[0].concurrentRoutes=0/0;},b=>{b.phases[0].concurrentFighters=undefined;b.phases[0].concurrentRoutes=2;},
 			b=>{b.phases[0].concurrentFighters=13;},b=>{b.phases[0].concurrentFighters=0/0;},b=>{b.phases[0].execution={directSpawn:true};},
 			b=>{b.phases[1].update!.countdownSeconds=undefined;},b=>{b.phases[1].bombers!.targetIds=undefined;},
 			b=>{b.phases[1].bombers!.arrivalSeconds=[0];},b=>{b.phases[1].bombers!.arrivalSeconds=[0,10,9,30,40,50];},b=>{b.phases[1].bombers!.speed=1;},

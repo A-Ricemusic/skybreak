@@ -76,16 +76,21 @@ export const WavePlan = {
 	/**
 	 * Takes what may spawn now from `queue` given `room` free slots: bandits first (the phase needs
 	 * them), then raiders, each in the order asked. The rest stays queued; drained requests are removed.
+	 * Optional `routeRoom` caps routed arrivals within the same total slots; blocked routes are skipped.
 	 * A request's `call` goes with its first batch.
 	 */
-	Admit(queue: AirRequest[], room: number): AirRequest[] {
+	Admit(queue: AirRequest[], room: number, routeRoom = room): AirRequest[] {
 		const batches: AirRequest[] = [];
 		let free = math.max(0, math.floor(room));
+		let routes = math.max(0, math.floor(routeRoom));
 		for (const role of ROLES) {
 			for (const request of queue) {
 				if (free <= 0) break;
 				if (request.role !== role || request.count <= 0) continue;
-				const count = math.min(free, request.count);
+				const routed = request.arrival !== undefined && "route" in request.arrival && request.arrival.route !== undefined;
+				const count = math.min(free, request.count, routed ? routes : free);
+				if (count <= 0) continue; // Skip a blocked patrol so pursuing fighters can still launch.
+				if (routed) routes -= count;
 				batches.push({ arrival: request.arrival, role, count, behind: request.behind, call: request.call });
 				request.count -= count; request.call = undefined; free -= count;
 			}

@@ -11,6 +11,9 @@ import { CampaignCoordinator, completeMission, normalizeProfile, serializeProfil
 import { canLaunchMission } from "../shared/CampaignProgress";
 import { FlightMath } from "../shared/FlightMath";
 import { MISSION_STORY_TEXT } from "../shared/StoryMissionText";
+import { WavePlan, AirRequest } from "../shared/WavePlan";
+import { takeArrival } from "../shared/CampaignEncounters";
+import { BomberRules } from "../shared/BomberRules";
 const strike=bp.phases[0];
 function groundScore() {return M10_TARGETS.reduce((n,t)=>n+bp.scoring!.points[t.scoreRole],0);}
 function earlier(fn:()=>void) {
@@ -45,6 +48,34 @@ describe("M10 River Line",()=>{
    expect(recordScoredKill(s,ledger,w.parkedSourceId!,first==="air"?"ground":"air",false,2,w.scoreRole)).toBe(false);
    expect(ledger.Total()).toBe(bp.scoring!.points[w.scoreRole]);
   }
+ });
+ it("ignores every helicopter while later pursuers and LOCKKEEPER launch on schedule within eight slots",()=>{
+  const queue:AirRequest[]=[], fired=new Set<string>(), destroyed=new Set<string>();
+  let live:{retireAt:number;routed:boolean}[]=[], admitted=0, peak=0;
+  const counts=new Map<string,number>();
+  for(let t=0;t<1200;t++) {
+   // Fighters are cleared in ten seconds; helicopters are NEVER killed, only route-retired.
+   live=live.filter(a=>a.retireAt>t);
+   for(const a of [...strike.fighterWaves!,strike.standaloneAce!]) {
+    if(takeArrival(a.id,a.trigger,{elapsed:t,phase:0,requiredKills:0,destroyed,targets:M10_TARGETS},fired))
+     queue.push({arrival:a,role:"name" in a?"ace":a.role,count:"name" in a?1:a.count,behind:false});
+   }
+   const routed=live.filter(a=>a.routed).size();
+   for(const batch of WavePlan.Admit(queue,strike.concurrentFighters!-live.size(),strike.concurrentRoutes!-routed)) {
+    const a=batch.arrival!, route="route" in a?a.route:undefined;
+    const duration=route?BomberRules.Create(route.waypoints,route.speed,[{x:0,y:0,z:0}]).duration:10;
+    if(route) expect(duration<90).toBe(true);
+    else expect(t).toBe(a.trigger.kind==="time"?a.trigger.seconds:0);
+    for(let i=0;i<batch.count;i++) live.push({retireAt:t+duration,routed:route!==undefined});
+    admitted+=batch.count;counts.set(a.id,(counts.get(a.id)??0)+batch.count);
+   }
+   expect(live.size()<=8).toBe(true);expect(live.filter(a=>a.routed).size()<=2).toBe(true);
+   expect(M10_TARGETS.size()+live.size()<=ContactBudget.maxContacts).toBe(true);
+   peak=math.max(peak,live.size());
+  }
+  expect(peak).toBe(8);expect(admitted).toBe(44);expect(queue.size()).toBe(0);
+  for(const wave of strike.fighterWaves!) expect(counts.get(wave.id)).toBe(wave.count);
+  expect(counts.get("m10_lockkeeper")).toBe(1);
  });
  it("holds the same strike until expiry; fails low score and destruction, pauses for rearm",()=>{
   const s=Runner.NewState(bp,0),ledger=new TargetScore(bp.scoring!);

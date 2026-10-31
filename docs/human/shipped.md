@@ -128,3 +128,5 @@ PR #144 merged as `7711b70`: dormant mission 4–5 worlds, with M05 owning envir
 ## Pending M10 branch (not shipped)
 
 RIVER LINE is in review on `feat/m10-mission`, depending on #182/#183/#185. It is not merged/live. Main `248e387` includes M07 #178, D4 #177 and D5 #180; older readiness prose above predates those merges. No new Player observation or deployment failure is claimed. See README/next/blockers/decisions for M10's branch state and acceptance gaps.
+
+The M10 helicopter-starvation review correction is also unmerged on #187: six pursuer slots reserved within eight total, two route slots and bounded patrols. It has not been observed in Studio or Player.

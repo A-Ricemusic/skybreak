@@ -16,7 +16,8 @@ for (let i=0;i<2;i++) {
  additions.push({id:`m10_crane_${i+1}`,type:"crane",position:{x:4210,y:48,z:-4100+i*300},yaw:0,required:false,scoreRole:"crane",group:"C"});
 }
 const patrol: FlightPoint[]=[];
-for(let lap=0;lap<12;lap++) for(const p of [{x:-4200,z:1600},{x:-2400,z:1600},{x:-2400,z:300},{x:-4200,z:300}]) patrol.push({...p,y:320});
+// One bounded patrol (~83 s); ignored helicopters retire through the normal route endpoint.
+for(const p of [{x:-4200,z:1600},{x:-2400,z:1600},{x:-2400,z:300},{x:-4200,z:300}]) patrol.push({...p,y:320});
 const waves: FighterArrival[] = [];
 for(let i=0;i<12;i++) {
  const transport=i===0, heli=i>=7, group=i<7?M10.districts[0]:M10.districts[1];
@@ -46,7 +47,7 @@ export const mission: MissionBlueprint = {
  scoring:{basis:"points",points:M10_POINTS,rank:{S:5400,A:4200,B:3800,C:3000}},
  primary:"Score 3,000 in 20:00; use valley cover during artillery warnings",
  briefing:MISSION_STORY_TEXT[10].briefing,debrief:MISSION_STORY_TEXT[10].debrief,failure:MISSION_STORY_TEXT[10].failure,ground:[],
- phases:[{kind:"score_threshold",label:"Break the river line",beat:MISSION_STORY_TEXT[10].radio[0],scoreThreshold:{points:3000,seconds:1200,waitForExpiry:true},chatter:[{at:0.3,text:MISSION_STORY_TEXT[10].radio[2]},{at:0.8,text:MISSION_STORY_TEXT[10].radio[3]}],concurrentFighters:8,cheapContacts:true,groundTargets:M10_TARGETS,fighterWaves:waves,repeatedArtillery:M10_ARTILLERY,
+ phases:[{kind:"score_threshold",label:"Break the river line",beat:MISSION_STORY_TEXT[10].radio[0],scoreThreshold:{points:3000,seconds:1200,waitForExpiry:true},chatter:[{at:0.3,text:MISSION_STORY_TEXT[10].radio[2]},{at:0.8,text:MISSION_STORY_TEXT[10].radio[3]}],concurrentFighters:8,concurrentRoutes:2,cheapContacts:true,groundTargets:M10_TARGETS,fighterWaves:waves,repeatedArtillery:M10_ARTILLERY,
  standaloneAce:{id:"m10_lockkeeper",name:"LOCKKEEPER",livery:"Vulture",health:165,behaviour:"dogfight",scoreRole:"ace",trigger:{kind:"time",seconds:960},headingDegrees:180},
  rearm:{zone:{x:gate.x,y:gate.y,z:gate.z},radius:1500,landing,takeoffSeconds:20,missiles:true,special:true,gun:true,health:false,weaponMenu:true,radio:[{at:0.5,text:MISSION_STORY_TEXT[10].radio[4]},{at:36,text:MISSION_STORY_TEXT[10].radio[5]}]},
  }],

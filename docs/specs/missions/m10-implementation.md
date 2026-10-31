@@ -37,7 +37,7 @@
 
 Twelve parked aircraft can become airborne once, using the same kill id; they never add twelve more score entries. Total finite airframes = 12 parked handoffs + 32 additional = **44**. The debrief source air tally totals 32 despite its opening 26-air map count; this slice preserves the known roles and adds twelve attacking fighters as owner-directed pressure. It does not claim 150 simultaneous contacts or source-exact ground/naval subtypes. All 124 dormant world ids remain adopted; extra contacts have separate `m10_parked_*`, `m10_pen_*`, `m10_crane_*` ids. Existing models and procedural geometry stand in for specialized aircraft and structures.
 
-Four LANTERN allies share one mission kill, without player credit. At most eight route aircraft/fighters are admitted together; finite waves queue. D6 bounds static detail to 24 nearby targets and two geometry changes per half-second. Route inventory permits 16 on D6 cheap-contact phases, preserving six elsewhere.
+Four LANTERN allies share one mission kill, without player credit. At most eight route aircraft/fighters are admitted together, with at most two routed helicopters so six slots remain for pursuing aircraft. Blocked routes yield to later fighters; helicopters retire after one patrol under 90 seconds without score. Finite waves queue. D6 bounds static detail to 24 nearby targets and two geometry changes per half-second. Route inventory permits 16 on D6 cheap-contact phases, preserving six elsewhere.
 
 ## Phases and failure
 
