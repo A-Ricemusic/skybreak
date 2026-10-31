@@ -77,7 +77,7 @@ describe("M11 High Crossing",()=>{
   const c=new CampaignCoordinator("m11-test",undefined,{now:()=>1000,defer:()=>undefined});c.load();const slot=c.getSlots()[0];slot.missions ??= {};
   for(let id=1;id<=18;id++) slot.missions[id]={completed:true};
   for(const missing of [10,8,3]) {slot.missions[missing]={completed:false};expect(canLaunchMission(11,slot)).toBe(false);slot.missions[missing]={completed:true};}
-  expect(canLaunchMission(11,slot)).toBe(true);expect(canLaunchMission(12,slot)).toBe(false);slot.missions[11]={completed:false};
+  expect(canLaunchMission(11,slot)).toBe(true);expect(canLaunchMission(12,slot)).toBe(true);expect(canLaunchMission(13,slot)).toBe(false);slot.missions[11]={completed:false};
   for(let id=1;id<=10;id++) {
    const earlier=MissionCatalog.Get(id);
    completeMission(c,1,id,true,{slot:1,missionId:id,kills:MissionCatalog.RequiredAirKills(earlier)+MissionCatalog.RequiredGroundKills(earlier),groundKills:MissionCatalog.RequiredGroundKills(earlier),completedPhases:MissionCatalog.TotalPhases(earlier),elapsed:100},()=>undefined,0);

@@ -4,6 +4,7 @@ import { clearCruise, cruiseKilled, stepCruise } from "./EngineBatchD10Runtime";
 import { clearAirships, stepAirships } from "./EngineBatchD9Runtime";
 import { stepProtection, protectedTarget, hitProtected, clearProtection, warnProtectedAttack } from "./EngineBatchD7Runtime";
 import { createCheapContact, cheapEligible, stepContacts, handoffParked, stepRepeatedArtillery } from "./EngineBatchD6Runtime";
+import { disableDestroyedTarget, destroyTargetVisual } from "./TargetDestruction";
 import { clearGroundDirector, stepGroundDirector, stepBeachAttacker } from "./EngineBatchD5Runtime";
 import { completeEliteRetreat, stepRingSweep } from "./EngineBatchD8Runtime";
 import { stepCanyon } from "./EngineBatchD3Runtime";
@@ -851,19 +852,13 @@ function destroyEnemy(session: CombatSession, enemy: Enemy, allied = false): voi
 		: sessionRecordKill(session, enemy.id, enemy.kind, enemy.required, os.clock(), enemy.scoreRole ?? enemy.role, enemy.typedGround?.type);
 	syncElapsed(session);
 	if (!accepted) { if (sessionOutcome(session) !== undefined) finish(session); return; }
-	enemy.health = 0;
+	disableDestroyedTarget(enemy);
 	if(elite && enemy.required && enemy.kind==="air") completeEliteRetreat(session,()=>withdrawAirborne(session),line=>radio(session,line,6));
 	announceJammerKill(session,enemy,line=>radio(session,line));
-	enemy.enabled = false;
-	enemy.model.SetAttribute("Health", 0);
-	enemy.model.SetAttribute("SkybreakEnemy", false);
-	enemy.model.SetAttribute("RequiredTarget", false);
-	enemy.damageable = false;
-	enemy.model.SetAttribute("Damageable", false);
 	// Fired before Destroy so the model reference still resolves on the client (its visual becomes the wreck).
 	if (enemy.kind === "ground") effect(session, "ground", enemy.position, { scale: math.clamp(enemy.model.GetExtentsSize().Magnitude / 60, 0.7, 2.2) });
 	else effect(session, enemy.kind, enemy.position, { velocity: enemy.velocity, model: enemy.model });
-	if (!sinkNavalTarget(session, enemy)) enemy.model.Destroy();
+	if (!sinkNavalTarget(session, enemy)) destroyTargetVisual(enemy.model, Color3.fromRGB(35, 35, 35));
 	// Kills count every destruction, air and ground, so the HUD tally matches sessionTotalRequired.
 	if (session.blueprintState) session.kills = sessionAllKills(session);
 	cruiseKilled(session,enemy);

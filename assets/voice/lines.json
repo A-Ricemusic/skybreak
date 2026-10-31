@@ -1393,8 +1393,8 @@
    "speaker": "SERA",
    "voice": "EXAVITQu4vr4xnSDxMaL",
    "tape": false,
-   "text": "SERA: Eight towers. The command array is his; the crater is your way in.",
-   "spoken": "Eight towers. The command array is his; the crater is your way in."
+   "text": "SERA: Seven guns. Kill central ECM for radar. Sweeps end above 3,080 ft.",
+   "spoken": "Seven guns. Kill central ECM for radar. Sweeps end above 3,080 ft."
   },
   {
    "id": "radio.m12.story.2",
@@ -1402,8 +1402,17 @@
    "speaker": "SERA",
    "voice": "EXAVITQu4vr4xnSDxMaL",
    "tape": false,
-   "text": "SERA: Ejection marked. Marines are moving.",
-   "spoken": "Ejection marked. Marines are moving."
+   "text": "SERA: Ring silent. Five elites inbound; one defeat will break them.",
+   "spoken": "Ring silent. Five elites inbound; one defeat will break them."
+  },
+  {
+   "id": "radio.m12.story.3",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Ejection marked. Marines are moving. Vulture Two is alive.",
+   "spoken": "Ejection marked. Marines are moving. Vulture Two is alive."
   },
   {
    "id": "radio.m13.story.1",
@@ -1890,6 +1899,42 @@
    "tape": false,
    "text": "ORCHARD TWO: They can see the escort. Stay with us to the ridge.",
    "spoken": "They can see the escort. Stay with us to the ridge."
+  },
+  {
+   "id": "radio.m12.p1.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Seven guns. Kill central ECM for radar. Sweeps end above 3,080 ft.",
+   "spoken": "Seven guns. Kill central ECM for radar. Sweeps end above 3,080 ft."
+  },
+  {
+   "id": "radio.m12.p1.chatter1",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Six live guns remain. Wreckage is no target.",
+   "spoken": "Six live guns remain. Wreckage is no target."
+  },
+  {
+   "id": "radio.m12.p1.chatter2",
+   "kind": "radio",
+   "speaker": "MARINE",
+   "voice": "IKne3meq5aSn9XLyUdCD",
+   "tape": false,
+   "text": "LANTERN 2: Three left. Watch the barrel sweep.",
+   "spoken": "Three left. Watch the barrel sweep."
+  },
+  {
+   "id": "radio.m12.p1.chatter3",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: One gun left. Keep clear of its firing line.",
+   "spoken": "One gun left. Keep clear of its firing line."
   }
  ]
 }
