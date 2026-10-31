@@ -48,7 +48,22 @@ describe("M09 GREEN BEACON",()=>{
   expect(recordScoredKill(s,ledger,M09_TARGETS[0].id,"ground",false,601,"radar")).toBe(false);
   const fired=new Set<string>(); const ctx={elapsed:624,phase:1,requiredKills:0,destroyed:new Set<string>(),targets:M09_TARGETS};
   expect(takeArrival(M09_ATTACK_WAVES[1].id,M09_ATTACK_WAVES[1].trigger,ctx,fired)).toBe(false); ctx.elapsed=625; expect(takeArrival(M09_ATTACK_WAVES[1].id,M09_ATTACK_WAVES[1].trigger,ctx,fired)).toBe(true); expect(takeArrival(M09_ATTACK_WAVES[1].id,M09_ATTACK_WAVES[1].trigger,ctx,fired)).toBe(false);
-  for(let i=0;i<9;i++) { expect(recordScoredKill(s,ledger,`attack-${i}`,"air",true,700+i,"attack")).toBe(true); if(i<8) expect(s.outcome).toBeUndefined(); }
+  // Clearing each admitted group cannot finish while later required waves are pending.
+  expect(BlueprintRunner.Total(BlueprintRunner.ActivePhase(s)!)).toBe(9);
+  for(let group=0;group<3;group++) {
+   const at=600+group*25;
+   for(let member=0;member<3;member++) {
+    const i=group*3+member;
+    expect(recordScoredKill(s,ledger,`attack-${i}`,"air",true,at+member,"attack")).toBe(true);
+    expect(recordScoredKill(s,ledger,`attack-${i}`,"air",true,at+member,"attack")).toBe(false);
+    if(i<8) { expect(s.outcome).toBeUndefined(); expect(s.phaseIndex).toBe(1); }
+   }
+   if(group<2) {
+    BlueprintRunner.Tick(s,at+24.999);
+    expect(s.phaseProgress).toBe((group+1)*3); expect(s.outcome).toBeUndefined();
+    expect(BlueprintRunner.Total(BlueprintRunner.ActivePhase(s)!)).toBe(9);
+   }
+  }
   expect(s.outcome).toBe("won"); expect(ledger.Total()).toBe(4160); expect(recordScoredKill(s,ledger,"attack-8","air",true,710,"attack")).toBe(false);
  });
  it("fails on insufficient score, phase-two expiry, player loss and a destroyed landing force",()=>{

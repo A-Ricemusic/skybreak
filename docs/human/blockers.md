@@ -1,5 +1,7 @@
 # Blockers
 
+**M09 arrival regression, 2026-10-30:** Orchestrator reported Studio Jest 1,219/1,220 at `21be233`: the sole failure expected nine generic opening bandits, but D5 authors three required trios at mission times 600/625/650. #185 corrects the test to check exact timed admissions and duplicates, retaining D4 slots and adding grouped/delayed-launch coverage. Runtime remains unchanged: completion requires all nine kills. An offline regression clears early trios without ending the phase. Frozen install, build and full offline validation exited 0 (1,023 Luau contracts, 19 catalog snapshots, 124 Python tests). The director regression compiles but requires the orchestrator’s Studio rerun; this task did not launch Studio or claim a Player test.
+
 Updated 2026-10-30 against main `085373c` (#178/#180/#182/#183 merged); no known deployment failure is recorded. Live status follows the owner's pipeline convention and does not establish observed Player quality. This reconciliation performs offline checks only.
 
 ## D5 verification and mission integration (2026-10-30)
