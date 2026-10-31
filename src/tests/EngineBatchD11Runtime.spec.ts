@@ -1,3 +1,4 @@
+import { engineRuntimeFixture } from "./EngineRuntimeFixture";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { Workspace } from "@rbxts/services";
 import { applyGroundPhase, completeRearmRepair, releaseZoneReserves } from "../server/EngineBatchD11Runtime";
@@ -20,7 +21,8 @@ describe("D11 runtime (compiled; Studio execution pending)",()=>{
  it("releases reserves through D5 only after clearance, freezes at service, never resurrects, and cleans on phase exit",()=>{
   const folder=new Instance("Folder");folder.Parent=Workspace;
   const t={...spec("reserve"),reinforceAfterSector:"city"}, model=createCheapContact(t);model.Parent=folder;model.PrimaryPart!.Transparency=1;
-  const b:MissionBlueprint={...MissionCatalog.Get(15),phases:[{kind:"score_threshold",label:"City",scoreThreshold:{points:1000,seconds:600,waitForExpiry:true},cheapContacts:true,groundTargets:[spec("gun"),t],groundProgress:{sectors:[{id:"city",kind:"troops",formation:"city_squad",clearTargetIds:["gun"],seconds:10,health:100,route:{speed:10,waypoints:[{x:0,y:40,z:0},{x:0,y:40,z:-100}]},advanceCall:"Advance",securedCall:"Secured",hitCall:"Hit"}]}}]};
+  // Identity is intentional: repair/armour policy is restricted to missions 15–17.
+  const b:MissionBlueprint={...engineRuntimeFixture(),id:15,phases:[{kind:"score_threshold",label:"City",scoreThreshold:{points:1000,seconds:600,waitForExpiry:true},cheapContacts:true,groundTargets:[spec("gun"),t],groundProgress:{sectors:[{id:"city",kind:"troops",formation:"city_squad",clearTargetIds:["gun"],seconds:10,health:100,route:{speed:10,waypoints:[{x:0,y:40,z:0},{x:0,y:40,z:-100}]},advanceCall:"Advance",securedCall:"Secured",hitCall:"Hit"}]}}]};
   // Optional ground kills are admitted only in a phase with authored groundTargets.
   MissionCatalog.ValidatePolicy(b);
   const bs=BlueprintRunner.NewState(b,0), e={id:t.id,model,typedGround:t,phaseOwner:0,kind:"ground",enabled:false,health:55,position:model.PrimaryPart!.Position} as Enemy;
@@ -29,7 +31,7 @@ describe("D11 runtime (compiled; Studio execution pending)",()=>{
    stepGroundDirector(s,10,()=>{});expect(e.enabled).toBe(false);bs.killedIds.add("gun");s.rearmElapsed=0;stepGroundDirector(s,10,()=>{});expect(e.enabled).toBe(false);s.rearmElapsed=undefined;
    stepGroundDirector(s,10,()=>{});expect(e.enabled).toBe(true);expect(model.GetAttribute("SkybreakEnemy")).toBe(true);expect(model.PrimaryPart!.Transparency).toBe(0);
    const actor=s.groundDirector!.actors[0];expect(actor.GetAttribute("Friendly")).toBe(true);expect(actor.CanQuery).toBe(false);expect(bs.killedIds.size()).toBe(1);
-   const ledger=new TargetScore({...MissionCatalog.Scoring(1),points:{ground:150}});expect(recordScoredKill(bs,ledger,e.id,"ground",false,1,"ground")).toBe(true);const points=ledger.Total();expect(points).toBe(150);expect(recordScoredKill(bs,ledger,e.id,"ground",false,2,"ground")).toBe(false);expect(ledger.Total()).toBe(points);
+   const ledger=new TargetScore({...MissionCatalog.Scoring(engineRuntimeFixture()),points:{ground:150}});expect(recordScoredKill(bs,ledger,e.id,"ground",false,1,"ground")).toBe(true);const points=ledger.Total();expect(points).toBe(150);expect(recordScoredKill(bs,ledger,e.id,"ground",false,2,"ground")).toBe(false);expect(ledger.Total()).toBe(points);
    e.health=0;e.enabled=false;releaseZoneReserves(s);expect(e.enabled).toBe(false);
    bs.phaseIndex=1;stepGroundDirector(s,1,()=>{});expect(s.groundDirector).toBeUndefined();expect(actor.Parent).toBeUndefined();
   } finally {clearGroundDirector(s);folder.Destroy();}
@@ -52,8 +54,8 @@ describe("D11 runtime (compiled; Studio execution pending)",()=>{
  });
  it("repairs at completed service only, retains historical damage and weapon menu behavior",()=>{
   const plan:RearmPlan={zone:{x:0,y:100,z:1000},radius:1500,landing:{touchdown:{x:0,y:100,z:0},headingDegrees:0,approachDistance:1000,rolloutDistance:150,approachSeconds:10,rolloutSeconds:3,glideDegrees:3},takeoffSeconds:8,missiles:true,special:true,health:true,weaponMenu:true};
-  const bp={...MissionCatalog.Get(15),phases:[{kind:"score_threshold" as const,label:"Support",scoreThreshold:{points:1000,seconds:600,waitForExpiry:true},rearm:plan}]},bs=BlueprintRunner.NewState(bp,os.clock());
-  const s={active:true,blueprint:bp,blueprintState:bs,pause:{used:0},state:landingPose(plan.landing,0),targetScore:new TargetScore(MissionCatalog.Scoring(1)),enemies:[],projectiles:[],special:SortieArmament.NewSpecial("salvo",undefined),missiles:0,health:35,damageTaken:65,lowestHealth:35} as unknown as CombatSession;
+  const bp={...engineRuntimeFixture(),id:15,phases:[{kind:"score_threshold" as const,label:"Support",scoreThreshold:{points:1000,seconds:600,waitForExpiry:true},rearm:plan}]},bs=BlueprintRunner.NewState(bp,os.clock());
+  const s={active:true,blueprint:bp,blueprintState:bs,pause:{used:0},state:landingPose(plan.landing,0),targetScore:new TargetScore(MissionCatalog.Scoring(engineRuntimeFixture())),enemies:[],projectiles:[],special:SortieArmament.NewSpecial("salvo",undefined),missiles:0,health:35,damageTaken:65,lowestHealth:35} as unknown as CombatSession;
   stepRearm(s,1,8,()=>{});expect(s.health).toBe(35);skipRearm(s,plan,()=>{});stepRearm(s,0.1,8,()=>{});expect(s.rearmMenu).toBe(0);expect(s.health).toBe(35);
   answerRearmMenu(s,"lance",()=>{});expect(s.special.kind).toBe("lance");skipRearm(s,plan,()=>{});stepRearm(s,0.1,8,()=>{});expect(s.health).toBe(100);expect(s.damageTaken).toBe(65);expect(s.lowestHealth).toBe(35);expect(s.missiles).toBe(8);expect(bs.rearmActive).toBeUndefined();
  });
@@ -70,7 +72,7 @@ describe("D11 runtime (compiled; Studio execution pending)",()=>{
  it("uses D6's 150-contact, 24-detail, two-changes budget for a desert armour battle",()=>{
   const folder=new Instance("Folder");folder.Parent=Workspace;
   try {const enemies:Enemy[]=[];for(let i=0;i<150;i++) {const t=spec(`tank-${i}`),model=createCheapContact(t);model.Parent=folder;enemies.push({id:t.id,model,typedGround:t,enabled:true,health:55,position:model.PrimaryPart!.Position} as Enemy);}
-   const bs=BlueprintRunner.NewState({...MissionCatalog.Get(16),phases:[{kind:"score_threshold",label:"Desert",cheapContacts:true}]},0),s={blueprintState:bs,enemies,state:{x:0,z:0}} as CombatSession;
+   const bs=BlueprintRunner.NewState({...engineRuntimeFixture(),id:16,phases:[{kind:"score_threshold",label:"Desert",cheapContacts:true}]},0),s={blueprintState:bs,enemies,state:{x:0,z:0}} as CombatSession;
    stepContacts(s,0.5);expect(enemies.filter(e=>e.model.GetAttribute("D6Detailed")===true).size()).toBe(2);for(let i=0;i<20;i++)stepContacts(s,0.5);expect(enemies.filter(e=>e.model.GetAttribute("D6Detailed")===true).size()).toBe(24);
   } finally {folder.Destroy();}
  });

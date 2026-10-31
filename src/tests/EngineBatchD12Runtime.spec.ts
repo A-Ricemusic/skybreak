@@ -1,16 +1,16 @@
+import { engineRuntimeFixture } from "./EngineRuntimeFixture";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { Workspace } from "@rbxts/services";
 import { clearLeader, stepLeader } from "../server/EngineBatchD12Runtime";
 import type { CombatSession, Enemy } from "../server/CombatSession";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
-import { MissionCatalog } from "../shared/MissionCatalog";
 import { PauseRules } from "../shared/SessionGuard";
 import { sinkNavalTarget, stepSurfaceTargets } from "../server/EngineBatchD2Runtime";
 function fixture() {
  const folder=new Instance("Folder"); folder.Parent=Workspace;
- const blueprint={...MissionCatalog.Get(1),phases:[{kind:"required_air" as const,label:"Wing",count:4,leaderWithdrawal:{departure:{waypoints:[{x:0,y:500,z:0},{x:-2000,y:500,z:0}],speed:200}}}]};
+ const blueprint={...engineRuntimeFixture(),phases:[{kind:"required_air" as const,label:"Wing",count:4,leaderWithdrawal:{departure:{waypoints:[{x:0,y:500,z:0},{x:-2000,y:500,z:0}],speed:200}}}]};
  const bs=BlueprintRunner.NewState(blueprint,0);
- const s={folder,blueprintState:bs,active:true,pause:PauseRules.New(),enemies:[],projectiles:[]} as unknown as CombatSession;
+ const s={folder,blueprint:bs.blueprint,blueprintState:bs,active:true,pause:PauseRules.New(),enemies:[],projectiles:[]} as unknown as CombatSession;
  return {folder,bs,s};
 }
 describe("D12 server lifecycle",()=>{

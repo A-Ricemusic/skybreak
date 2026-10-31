@@ -43,7 +43,7 @@ files.push("shared/VoiceDisclosure", "tests/VoiceDisclosure.spec");
 files.push("tests/M09Mission.spec", "tests/M10Mission.spec");
 files.push("shared/EngineBatchD10", "tests/EngineBatchD10.spec", "tests/EngineBatchD10Validation.spec");
 files.push("shared/EngineBatchD6", "tests/EngineBatchD6.spec");
-files.push("tests/EngineBatchD4Fixture", "shared/EngineBatchD4", "tests/EngineBatchD4.spec");
+files.push("tests/EngineRuntimeFixture", "tests/EngineBatchD4Fixture", "shared/EngineBatchD4", "tests/EngineBatchD4.spec");
 files.push("tests/M12Mission.spec", "tests/M13Mission.spec", "server/EngineBatchD7Runtime", "server/EngineBatchD9Runtime");
 files.push("server/TargetDestruction", "tests/TargetDestruction.spec");
 files.push("shared/EngineBatchD12", "tests/EngineBatchD12.spec");

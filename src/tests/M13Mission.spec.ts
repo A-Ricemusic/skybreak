@@ -22,6 +22,7 @@ function sweep() {const s=BlueprintRunner.NewState(mission,0);s.score=1300;Bluep
 describe("M13 EVIDENCE THROUGH THE GREY",()=>{
  it("validates clocks, world identity, gun and original subtitle story",()=>{
   MissionCatalog.ValidatePolicy(mission);expect(MissionCatalog.Available(13)).toBe(true);expect(mission.worldKey).toBe(M13_WORLD_KEY);
+  expect(MissionCatalog.WorldKey(MissionCatalog.Get(13))).toBe(M13_WORLD_KEY);expect(MissionCatalog.Airspace(13)).toEqual(MissionCatalog.Airspace(mission));
   expect(mission.phases.map(p=>p.kind)).toEqual(["score_threshold","required_air"]);
   expect(mission.phases[0].scoreThreshold).toEqual({points:1300,seconds:420,waitForExpiry:true});
   expect(mission.phases[1].update!.countdownSeconds).toBe(900);expect(mission.allies!.killBudget).toBe(1);

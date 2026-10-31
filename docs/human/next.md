@@ -137,3 +137,8 @@ PR #192 next check: orchestrator reruns Roblox Jest after the scoring-fixture co
 The corrected D11 scoring fixtures use an explicit 150-point ground award: M01’s default rating policy awards zero ground points, which made the prior unchanged-total check insufficient to prove score deduplication. Runtime admission/ledger code is unchanged.
 
 D11 fixture-fix validation (2026-10-30): `bun install --frozen-lockfile`, `bun run build` and the prescribed `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau" bun run validate:offline` each exited 0. Passed 1,077 Luau contracts, four negative loader probes, 19 unchanged catalog snapshots and 124 Python tests. No Studio, `test:roblox`, Player test, merge or upload was performed.
+
+
+### PR #195 fixture-fix verification
+
+Orchestrator: rerun the full Studio Jest suite after the D9 missing-session-blueprint fix, including the new M13 catalog-backed world-model adoption/fallback/phase-cleanup test. D5–D12 runtime fixtures now own their data; D11 keeps explicit 15/16 identities only for intentional repair/armour gates. No campaign placeholder is inherited. Mission 13 Player/phone acceptance remains pending.

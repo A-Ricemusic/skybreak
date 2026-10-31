@@ -169,3 +169,10 @@ PR #192 Studio failure triage: orchestrator reported 1,294/1,295 at `38c3e99`. T
 The corrected D11 scoring fixtures use an explicit 150-point ground award: M01’s default rating policy awards zero ground points, which made the prior unchanged-total check insufficient to prove score deduplication. Runtime admission/ledger code is unchanged.
 
 D11 fixture-fix validation (2026-10-30): `bun install --frozen-lockfile`, `bun run build` and the prescribed `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau" bun run validate:offline` each exited 0. Passed 1,077 Luau contracts, four negative loader probes, 19 unchanged catalog snapshots and 124 Python tests. No Studio, `test:roblox`, Player test, merge or upload was performed.
+
+
+### PR #195 D9 runtime regression triage (2026-10-30)
+
+The reported four D9 failures share one cause: their cast synthetic session omitted `blueprint`; M13 added `MissionCatalog.WorldKey(s.blueprint!)` to adopt world-drawn jammer models. This is not a missing M13 worldKey/airspace or replacement of a campaign slot. CombatService sets both blueprint and blueprintState. Fixed test setup now mirrors that invariant. A fresh test-owned blueprint prevents future campaign policy changes affecting D5–D12 fixtures (D11's gated identities are explicit); the D8 service plan is also local. D13 runtime coverage is absent on this branch. M13 lookup/model adoption and fallback now have a compiled Roblox regression, awaiting the orchestrator's Studio rerun. No production behavior changed; no new Studio/Player verification claimed.
+
+Validation for this fix: `bun install --frozen-lockfile`, `bun run build` and full `validate:offline` with the prescribed `LUAU_BIN` each exited 0 (1,126 Luau contracts, four loader guard probes, 19 catalog snapshots and 124 Python tests). M13 world/airspace lookup executed offline; Roblox model adoption/fallback regression compiled only. No Studio, `test:roblox`, Player test or upload.

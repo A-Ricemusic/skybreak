@@ -1,3 +1,4 @@
+import { engineRuntimeFixture } from "./EngineRuntimeFixture";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { Workspace } from "@rbxts/services";
 import { clearCruise, cruiseKilled, cruiseOccluded, stepCruise } from "../server/EngineBatchD10Runtime";
@@ -12,8 +13,8 @@ function fixture(p=plan()) {
  const folder=new Instance("Folder");folder.Parent=Workspace;
  const floor=new Instance("Part");floor.Size=new Vector3(4000,10,4000);floor.Position=new Vector3(0,45,0);floor.Anchored=true;floor.Parent=folder;
  const params=new RaycastParams();params.FilterType=Enum.RaycastFilterType.Include;params.FilterDescendantsInstances=[floor];
- const bs=BlueprintRunner.NewState({...MissionCatalog.Get(1),phases:[{kind:"required_air",label:"Intercept",count:p.targets.size(),cruiseIntercept:p}]},0);
- const session={active:true,cleaned:false,folder,player:{UserId:1},enemies:[],projectiles:[],state:{x:0,y:200,z:0},blueprintState:bs,pause:{used:0},collisionParams:params} as unknown as CombatSession;
+ const bs=BlueprintRunner.NewState({...engineRuntimeFixture(),phases:[{kind:"required_air",label:"Intercept",count:p.targets.size(),cruiseIntercept:p}]},0);
+ const session={active:true,cleaned:false,folder,player:{UserId:1},enemies:[],projectiles:[],state:{x:0,y:200,z:0},blueprint:bs.blueprint,blueprintState:bs,pause:{used:0},collisionParams:params} as unknown as CombatSession;
  return {s:session,folder,floor,params};
 }
 describe("D10 server lifecycle (Studio execution pending)",()=>{
@@ -22,7 +23,7 @@ describe("D10 server lifecycle (Studio execution pending)",()=>{
    for(let i=0;i<31;i++) stepCruise(s,0.1);
    expect(s.cruise!.states[0].status).toBe("separated");expect(s.enemies.size()).toBe(3);expect(s.blueprintState!.requiredAirKills).toBe(0);
    const child=s.cruise!.actors.get(1)!;expect(child.position.Y).toBe(110);expect(child.model.GetAttribute("Damageable")).toBe(true);expect(child.model.GetAttribute("RequiredTarget")).toBe(true);expect(child.windup).toBe(0);expect(child.flares).toBe(0);
-   const ledger=new TargetScore({...MissionCatalog.Scoring(1),points:{cruise:100}});
+   const ledger=new TargetScore({...MissionCatalog.Scoring(engineRuntimeFixture()),points:{cruise:100}});
    const live=[...s.cruise!.actors].map(([,actor])=>actor);
    for(const e of live) if(e?.enabled) {expect(recordScoredKill(s.blueprintState!,ledger,e.id,"air",true,0,"cruise")).toBe(true);expect(recordScoredKill(s.blueprintState!,ledger,e.id,"air",true,0,"cruise")).toBe(false);e.health=0;cruiseKilled(s,e);}
    stepCruise(s,0.1);expect(s.blueprintState!.outcome).toBe("won");expect(ledger.Total()).toBe(200);expect(s.cruise).toBeUndefined();

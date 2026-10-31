@@ -117,3 +117,10 @@ PR #192 runtime fixture correction: the orchestrator reported Studio Jest 1,294/
 The corrected D11 scoring fixtures use an explicit 150-point ground award: M01’s default rating policy awards zero ground points, which made the prior unchanged-total check insufficient to prove score deduplication. Runtime admission/ledger code is unchanged.
 
 D11 fixture-fix validation (2026-10-30): `bun install --frozen-lockfile`, `bun run build` and the prescribed `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau" bun run validate:offline` each exited 0. Passed 1,077 Luau contracts, four negative loader probes, 19 unchanged catalog snapshots and 124 Python tests. No Studio, `test:roblox`, Player test, merge or upload was performed.
+
+
+### PR #195 D9 fixture regression (2026-10-30)
+
+The orchestrator reported 1,346/1,350 Studio tests at `4936f610`; all four failures were synthetic D9 sessions missing `blueprint`, required by M13's world-model adoption lookup. M13 catalog world/airspace data is valid; production CombatService supplies the blueprint. The fix supplies coherent session blueprint/state/airspace, isolates D5–D12 runtime blueprints from campaign content, and adds M13 model adoption/fallback/phase-cleanup coverage. No D13 runtime spec exists on this branch. Studio rerun is pending; no Studio, Roblox Jest or Player test was run for this fix.
+
+Validation for this fix: `bun install --frozen-lockfile`, `bun run build` and full `validate:offline` with the prescribed `LUAU_BIN` each exited 0 (1,126 Luau contracts, four loader guard probes, 19 catalog snapshots and 124 Python tests). M13 world/airspace lookup executed offline; Roblox model adoption/fallback regression compiled only. No Studio, `test:roblox`, Player test or upload.

@@ -1,3 +1,4 @@
+import { engineRuntimeFixture } from "./EngineRuntimeFixture";
 import { AircraftCollision } from "../server/AircraftCollision";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { Workspace } from "@rbxts/services";
@@ -17,8 +18,8 @@ describe("D6 server lifecycle (Studio execution pending)",()=>{
   try {
    const enemies:Enemy[]=[];
    for(let i=0;i<150;i++) {const t=spec(i),model=createCheapContact(t);model.Parent=folder;expect(model.GetDescendants().size()).toBe(1);enemies.push({id:t.id,model,typedGround:t,health:55,enabled:true,position:model.PrimaryPart!.Position} as Enemy);}
-   const bs=BlueprintRunner.NewState({...MissionCatalog.Get(1),phases:[{kind:"score_threshold",label:"River",cheapContacts:true}]},0);
-   const session={blueprintState:bs,enemies,state:{x:0,z:0}} as CombatSession;
+   const bs=BlueprintRunner.NewState({...engineRuntimeFixture(),phases:[{kind:"score_threshold",label:"River",cheapContacts:true}]},0);
+   const session={blueprint:bs.blueprint,blueprintState:bs,enemies,state:{x:0,z:0}} as CombatSession;
    const count=()=>enemies.filter(e=>e.model.GetAttribute("D6Detailed")===true).size();
    stepContacts(session,0.49);expect(count()).toBe(0);stepContacts(session,0.01);expect(count()).toBe(2);
    for(let i=0;i<20;i++) stepContacts(session,0.5);expect(count()).toBe(ContactBudget.detailed);
@@ -41,7 +42,7 @@ describe("D6 server lifecycle (Studio execution pending)",()=>{
   const parked={id:t.id,kind:"ground",health:55,enabled:true,model:m} as Enemy;
   const session={enemies:[parked],target:parked,lockProgress:1} as CombatSession;
   expect(handoffParked(session,t.id)).toBe(t.id);expect(handoffParked(session,t.id)).toBeUndefined();expect(parked.enabled).toBe(false);expect(session.target).toBeUndefined();expect(session.lockProgress).toBe(0);
-  const b:MissionBlueprint={...MissionCatalog.Get(1),phases:[{kind:"score_threshold" as const,label:"River",groundTargets:[t],fighterWaves:[{id:"takeoff",parkedSourceId:t.id,count:1,role:"raider",scoreRole:t.scoreRole,trigger:{kind:"time",seconds:1}}],scoreThreshold:{points:9999,seconds:900,waitForExpiry:true}}]},bs=BlueprintRunner.NewState(b,0),score=new TargetScore(MissionCatalog.Scoring(b));
+  const b:MissionBlueprint={...engineRuntimeFixture(),phases:[{kind:"score_threshold" as const,label:"River",groundTargets:[t],fighterWaves:[{id:"takeoff",parkedSourceId:t.id,count:1,role:"raider",scoreRole:t.scoreRole,trigger:{kind:"time",seconds:1}}],scoreThreshold:{points:9999,seconds:900,waitForExpiry:true}}]},bs=BlueprintRunner.NewState(b,0),score=new TargetScore(MissionCatalog.Scoring(b));
   expect(recordScoredKill(bs,score,t.id,"air",false,1)).toBe(true);expect(recordScoredKill(bs,score,t.id,"ground",false,2)).toBe(false);
   const dead=createGroundTarget(t);try {session.enemies=[{...parked,model:dead,health:0}];expect(handoffParked(session,t.id)).toBeUndefined();} finally {dead.Destroy();}
  });
@@ -51,8 +52,8 @@ describe("D6 server lifecycle (Studio execution pending)",()=>{
    const floor=new Instance("Part");floor.Size=new Vector3(600,20,600);floor.Position=new Vector3(0,9990,0);floor.Anchored=true;floor.Parent=folder;
    const params=new RaycastParams();params.FilterType=Enum.RaycastFilterType.Include;params.FilterDescendantsInstances=[folder];
    const plan={startSeconds:2,salvos:2,ceiling:10585,source:{x:400,y:10300,z:0},warningSeconds:3,countdownSeconds:4,intervalSeconds:12,damage:30,clearance:60,channel:[{x:0,y:10300,z:-100},{x:0,y:10300,z:100}]};
-   const bs=BlueprintRunner.NewState({...MissionCatalog.Get(1),phases:[{kind:"score_threshold",label:"River",repeatedArtillery:plan},{kind:"required_air",count:1,label:"Exit"}]},0);
-   const session={blueprintState:bs,collisionParams:params,state:{x:0,y:10300,z:0},health:100,damageTaken:0,lowestHealth:100} as CombatSession;
+   const bs=BlueprintRunner.NewState({...engineRuntimeFixture(),phases:[{kind:"score_threshold",label:"River",repeatedArtillery:plan},{kind:"required_air",count:1,label:"Exit"}]},0);
+   const session={blueprint:bs.blueprint,blueprintState:bs,collisionParams:params,state:{x:0,y:10300,z:0},health:100,damageTaken:0,lowestHealth:100} as CombatSession;
    const say=(_:string)=>{};stepRepeatedArtillery(session,2,say);stepRepeatedArtillery(session,0,say);expect(session.health).toBe(100);
    stepRepeatedArtillery(session,7,say);expect(session.health).toBe(70);stepRepeatedArtillery(session,5,say);stepRepeatedArtillery(session,7,say);expect(session.health).toBe(40);
    bs.phaseIndex=1;stepRepeatedArtillery(session,1,say);expect(session.repeatedArtillery).toBeUndefined();expect(session.damageTaken).toBe(60);
