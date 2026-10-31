@@ -122,3 +122,5 @@ These merged gameplay changes are live through the automatic pipeline convention
 The earlier AC04 release (#92) was rejected and reverted (`b0737fa`). #77 (mission 1 tutorial rework) and #91 (TypeScript 5.9) were closed without merging.
 
 PR #144 merged as `7711b70`: dormant mission 4–5 worlds, with M05 owning environment/effects. PR #145 batch C review fixes remain unmerged; no Studio or Player observation from this pass.
+
+D4 status reconciliation (2026-10-30): engine support is unmerged above D3; no D4 change is claimed shipped or observed in Roblox Player.

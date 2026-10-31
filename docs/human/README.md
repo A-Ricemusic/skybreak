@@ -107,3 +107,5 @@ D2 review follow-up addresses the orchestrator’s approval-with-nits at `20d21e
 D2 test-fixture follow-up corrects the missing phase target list reported by the D3 Jest run; build/offline validation pass. No D2 Jest run or totals were obtained. The orchestrator deferred D2 Studio use until D1 (#165) merges and D2 rebases, prioritizing D1 and mission 5 first. No gameplay or level-status change.
 
 D2 integration update (2026-10-30): merged D1 `5a07c23` into #168 while retaining main’s targeting, mission 5 and worlds 6–13 plus D2’s naval changes and corrected test fixture. This changes no mission status relative to updated D1. Studio testing remains assigned to the orchestrator; no Studio launch or new Jest/Player observation during this merge.
+
+D4 engine support is in an unmerged stack above D3: finite queued air population, timed bomber interception and protected broadcast cue. M8 remains dormant; no mission progress or Player-quality claim changes. See [next](next.md) and D-270–D-274; independent review found and corrected silently skipped D4 offline tests.

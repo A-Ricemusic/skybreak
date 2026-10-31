@@ -1,5 +1,12 @@
 # Next
 
+## Engine batch D4 — stacked on D3; dormant
+
+D4 adds bounded fighter concurrency with finite queued inventory, staggered identified bomber arrivals, an intercept-plus-hold completion rule, a protected relay marker and once-only ignition subtitle/visual. The M8 contract fixture exercises 27 air contacts, ≥800 held for 7:00, then six western bombers and a fresh 6:00 clock. Killing all six early keeps the window running; survivor penetration, missing kills at zero or player destruction fail. No catalog activation, audio or asset upload. See D-270–D-273.
+
+Review correction: the original 898-contract green result did **not** execute the eight D4 tests: an exported fixture plus the offline adapter’s appended return caused a parse error silently returned by Luau require. The fixture now lives in a helper; every offline import rejects returned errors, with four negative loader probes. The suite now includes the eight original D4 tests plus slot-sampling parity and mission time-limit regressions. Revalidation exited 0: 908 Luau contracts (all 10 D4 cases), four loader-failure probes, 19 unchanged catalog snapshots and 124 Python tests. Frozen install/build passed. D4 director Jest specs compile; no Studio/Player test. Before M8 activation: reconcile provisional subtype/ace/support routes/rank cuts, author NW opening and west-to-site bomber routes, tune the ≤12 concurrent fighter cap (seven in the fixture), and verify the 35-second broadcast visual, gameplay and phone performance under the orchestrator Studio lease. Reconcile the stack before merging.
+
+## Engine batch D3 — stacked on D2; dormant
 ## Engine batch D3 — rebased on main after D2 (#168); dormant
 
 D3 adds a mission-owned artillery escape, safe-band/terrain masking, bounded built-world canyon centreline audit, a locked area footprint and M7 solar panel/tower, flak and pillbox targets. Required-target strike → mission update → fresh 5:00 escape reuses batch B; high exits cannot win. No catalog mission opts in and frozen practice/M01 engine snapshots and catalog data are unchanged. See D-240–D-244 and the engine plan.

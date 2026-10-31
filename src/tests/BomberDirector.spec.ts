@@ -148,3 +148,42 @@ describe("Bomber director integration", () => {
 		}
 	});
 });
+
+
+describe("D4 director contracts (compiled for orchestrator Studio lease)",()=>{
+	function stream() {
+		const bp=encounter(), p=bp.phases[0], b=p.bombers!;
+		p.update={objective:"Protect transmitter",radio:[],countdownSeconds:360};
+		p.interceptHold={site:{x:0,y:80,z:0},siteName:"VARDA TOWER",ignitionSecondsRemaining:35,ignitionCall:"Transmitter ignition."};
+		b.waypoints=[{x:-10000,y:700,z:0}]; b.escape={x:0,y:700,z:0};b.speed=50;
+		b.targetIds=["west-1","west-2","west-3","west-4","west-5","west-6"];
+		b.arrivalSeconds=[0,10,20,30,40,50];b.escorts={count:0,initial:0,role:"escort",aceName:"NONE",aceAt:0};
+		return bp;
+	}
+	it("admits the stream once per slot with stable target ids and no premature endpoint loss after kills",()=>{
+		const h=harness(stream());h.folder.Parent=game.GetService("Workspace");h.director.Apply(h.s);expect(h.calls.size()).toBe(1);
+		h.s.elapsed=9.99;h.director.Step(h.s);expect(h.calls.size()).toBe(1);
+		h.s.elapsed=10;h.director.Step(h.s);h.director.Step(h.s);expect(h.calls.size()).toBe(2);
+		expect(h.calls[1].options?.targetId).toBe("west-2");expect(h.calls[1].options?.bomberSlot).toBe(1);
+		expect(h.calls[1].options?.pose?.position.x).toBeCloseTo(-10000);
+		h.s.elapsed=50;h.director.Step(h.s);expect(h.calls.size()).toBe(6);
+		// Kill path removes every bomber; the route origin reaching escape cannot fail a cleared hold.
+		h.s.elapsed=250;h.director.Step(h.s);expect(h.s.blueprintState?.outcome).toBeUndefined();
+		h.s.blueprintState!.ignitionAnnounced=true;h.director.Step(h.s);
+		expect(h.s.navigationActor?.GetAttribute("BroadcastActive")).toBe(true);
+		h.folder.Destroy();
+	});
+	it("moves each bomber on its own arrival clock and fails when a survivor reaches the site",()=>{
+		const h=harness(stream());h.director.Apply(h.s);h.s.elapsed=50;h.director.Step(h.s);
+		for(let slot=0;slot<6;slot++) h.s.enemies.push({enabled:true,health:180,maxHealth:180,bomberSlot:slot,role:"bomber"} as Enemy);
+		h.s.elapsed=100;h.director.Step(h.s);
+		expect(h.s.enemies[0].position.X).toBeCloseTo(-5000);expect(h.s.enemies[5].position.X).toBeCloseTo(-7500);
+		h.s.enemies[0].health=0;h.s.elapsed=209.99;h.director.Step(h.s);expect(h.s.blueprintState?.outcome).toBeUndefined();
+		h.s.elapsed=210;h.director.Step(h.s);expect(h.s.blueprintState?.reason).toBe("bombers_escaped");h.folder.Destroy();
+	});
+	it("queues the initial 27 contacts at a seven-fighter ceiling without repeating the wave",()=>{
+		const bp=encounter();bp.phases=[{kind:"score_threshold",label:"Battle",concurrentFighters:7,scoreThreshold:{points:800,seconds:420,waitForExpiry:true},fighterWaves:[{id:"battle",count:27,role:"raider",scoreRole:"escort",trigger:{kind:"phase_start",phase:0}}]}];
+		const h=harness(bp);h.director.Apply(h.s);h.director.Step(h.s);h.director.Step(h.s);expect(h.calls.size()).toBe(7);expect(h.s.airQueue[0].count).toBe(20);
+		h.budget.fighters=6;h.director.Step(h.s);expect(h.calls.size()).toBe(8);expect(h.s.airQueue[0].count).toBe(19);h.folder.Destroy();
+	});
+});

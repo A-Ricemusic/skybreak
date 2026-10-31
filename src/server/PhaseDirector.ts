@@ -62,7 +62,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 	/** Spawns what the live-aircraft budget has room for now; the rest keeps waiting. */
 	function drainAir(session: CombatSession): void {
 		if (session.airQueue.size() === 0) return;
-		const room = WavePlan.Budget(extraRaiders(session)) - liveAircraft(session);
+		const room = ((session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.concurrentFighters) ?? WavePlan.Budget(extraRaiders(session))) - liveAircraft(session);
 		for (const batch of WavePlan.Admit(session.airQueue, room)) {
 			if (batch.arrival) {
 				const a=batch.arrival;
@@ -131,9 +131,13 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		else if (phase.bombers) {
 			const b = phase.bombers;
 			const route = compileBomberEncounter(b);
-			session.bomberEncounter = { route, startedAt: session.elapsed, laterSpawned: false, escortsSpawned: 0 };
+			session.bomberEncounter = { route, startedAt: session.elapsed, laterSpawned: false, escortsSpawned: 0, bombersSpawned: 0 };
 			const pose = BomberRules.Sample(route, 0);
-			for (let i = 0; i < b.count; i++) spawnAir(session, 1, BomberRules.Role.role, { pose: pose.slots[i], bomberSlot: i, targetId: b.targetIds?.[i] });
+			for (let i = 0; i < b.count; i++) {
+				if ((b.arrivalSeconds?.[i] ?? 0)>0) break;
+				spawnAir(session, 1, BomberRules.Role.role, { pose: pose.slots[i], bomberSlot: i, targetId: b.targetIds?.[i] });
+				session.bomberEncounter.bombersSpawned=i+1;
+			}
 			requestAir(session, b.escorts.initial, "escort");
 		}
 		else if (phase.kind === "required_air" && phase.execution?.launchDelay === undefined) {
@@ -174,18 +178,18 @@ export function createPhaseDirector(combat: PhaseCombat) {
 			session.navigationMarker=marker;
 			const gui=new Instance("BillboardGui"); gui.Size=UDim2.fromOffset(160,38); gui.AlwaysOnTop=true; gui.StudsOffsetWorldSpace=new Vector3(0,30,0); gui.Parent=marker;
 			const label=new Instance("TextLabel"); label.Size=UDim2.fromScale(1,1); label.BackgroundTransparency=.25;
-			label.BackgroundColor3=Color3.fromRGB(7,23,30); label.TextColor3=marker.Color; label.Text=phase.kind === "route" ? "FLIGHT BEACON" : phase.kind === "escort" ? "PROTECT CONVOY" : phase.kind === "defend" ? "PROTECT SITE" : "SIGNAL VOLUME";
+			label.BackgroundColor3=Color3.fromRGB(7,23,30); label.TextColor3=marker.Color; label.Text=phase.kind === "route" ? "FLIGHT BEACON" : phase.kind === "escort" ? "PROTECT CONVOY" : (phase.kind === "defend" || phase.interceptHold) ? "PROTECT SITE" : "SIGNAL VOLUME";
 			label.TextSize=13; label.Font=Enum.Font.GothamBold; label.Parent=gui;
-			if (phase.kind === "escort" || phase.kind === "defend" || phase.parkedEscort !== undefined) {
+			if (phase.kind === "escort" || phase.kind === "defend" || phase.interceptHold !== undefined || phase.parkedEscort !== undefined) {
 				const actorPoint=phase.parkedEscort ?? nav;
 				const coast=session.blueprint.region === "coastal_city" || session.blueprint.region === "coastal_harbor" || session.blueprint.region === "ocean_platform";
-				const name=actorName(session,phase.kind === "defend",coast);
-				const actor=coast ? MissionAssets.CreateHarborLaunch(name) : phase.kind === "defend" ? MissionAssets.CreateCommsRelay(name) : MissionAssets.CreateRelayTruck(name);
+				const name=phase.interceptHold?.siteName ?? actorName(session,phase.kind === "defend",coast);
+				const actor=phase.interceptHold ? MissionAssets.CreateCommsRelay(name) : coast ? MissionAssets.CreateHarborLaunch(name) : phase.kind === "defend" ? MissionAssets.CreateCommsRelay(name) : MissionAssets.CreateRelayTruck(name);
 				if (!session.active || !session.folder.Parent) {actor.Destroy(); return;}
 				// The escorted vehicle moves every step: weld it so one part replicates per move.
 				JetFactory.WeldAssembly(actor);
 				// Grounded from its own bounds and the surface under it: wheels on the road, a hull at the waterline.
-				const footing=ActorGrounding.Footing(actor,coast);
+				const footing=ActorGrounding.Footing(actor,coast && !phase.interceptHold);
 				session.actorFooting=footing;
 				const y=session.groundParams ? ActorGrounding.PivotY(footing,actorPoint.x,actorPoint.z,session.groundParams,actorPoint.y) : actorPoint.y;
 				actor.SetAttribute("ProtectedObjective",true); actor.Parent=session.folder; session.navigationActor=actor;
@@ -280,8 +284,17 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		if (active) {
 			const encounter = session.bomberEncounter;
 			if (active.bombers && encounter) {
-				const pose = BomberRules.Sample(encounter.route, session.elapsed - encounter.startedAt);
-				if (pose.escaped) { BlueprintRunner.EscapeBombers(bs); radio(session, active.bombers.escapeCall ?? "The bombers are through."); return; }
+				const routeElapsed=session.elapsed-encounter.startedAt;
+				const b=active.bombers;
+				for(let i=encounter.bombersSpawned ?? b.count;i<b.count;i++) {
+					const at=b.arrivalSeconds?.[i] ?? 0;
+					if(routeElapsed<at) break;
+					const arrivalPose=BomberRules.Sample(encounter.route,routeElapsed-at,i);
+					spawnAir(session,1,BomberRules.Role.role,{pose:arrivalPose.slots[0],bomberSlot:i,targetId:b.targetIds?.[i]});
+					encounter.bombersSpawned=i+1;
+				}
+				const pose = BomberRules.Sample(encounter.route, routeElapsed);
+				if (!active.interceptHold && pose.escaped) { BlueprintRunner.EscapeBombers(bs); radio(session, active.bombers.escapeCall ?? "The bombers are through."); return; }
 				if (laterEscortsDue(active.bombers, encounter, session.elapsed)) {
 					requestAir(session, 1, "ace");
 					requestAir(session, active.bombers.escorts.count - active.bombers.escorts.initial - 1, "escort");
@@ -295,7 +308,9 @@ export function createPhaseDirector(combat: PhaseCombat) {
 						if (enemy.health < enemy.maxHealth || player.sub(enemy.position).Magnitude <= 2300 || session.projectiles.some((p) => !p.hostile && p.target === enemy)) enemy.escortEngaged = true;
 						if (enemy.escortEngaged) continue;
 					}
-					const p = enemy.escortSlot !== undefined ? bomberEscortPose(pose.slots[0], enemy.escortSlot) : pose.slots[slot];
+					const individual=b.arrivalSeconds && enemy.bomberSlot !== undefined ? BomberRules.Sample(encounter.route,routeElapsed-(b.arrivalSeconds?.[enemy.bomberSlot] ?? 0),enemy.bomberSlot) : pose;
+					if (enemy.bomberSlot !== undefined && individual.escaped) { BlueprintRunner.EscapeBombers(bs); radio(session,b.escapeCall ?? "The bombers are through."); return; }
+					const p = enemy.escortSlot !== undefined ? bomberEscortPose(pose.slots[0], enemy.escortSlot) : individual.slots[b.arrivalSeconds ? 0 : slot];
 					enemy.position = new Vector3(p.position.x, p.position.y, p.position.z);
 					enemy.direction = new Vector3(p.facing.x, p.facing.y, p.facing.z);
 					enemy.velocity = enemy.direction.mul(encounter.route.speed);
@@ -332,6 +347,10 @@ export function createPhaseDirector(combat: PhaseCombat) {
 				radio(session,chatter[session.chatterIndex].text);
 				session.chatterIndex += 1;
 			}
+		}
+		if (active?.interceptHold && session.navigationActor && session.navigationActor.GetAttribute("BroadcastActive") !== (bs.ignitionAnnounced===true)) {
+			session.navigationActor.SetAttribute("BroadcastActive",bs.ignitionAnnounced===true);
+			if(bs.ignitionAnnounced) for(const part of session.navigationActor.GetDescendants()) if(part.IsA("BasePart")) { part.Color=Color3.fromRGB(75,238,212); part.Material=Enum.Material.Neon; }
 		}
 		const point=BlueprintRunner.NavigationPoint(bs);
 		if (point && session.navigationMarker) {

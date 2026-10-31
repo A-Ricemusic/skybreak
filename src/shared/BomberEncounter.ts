@@ -4,6 +4,8 @@ import type { MissionAirspacePolicy, MissionScoringPolicy } from "./MissionPolic
 
 /** Opt-in required_air encounter. count is the bomber count, never the escorts. */
 export interface BomberEncounter {
+	/** Seconds after phase entry for each bomber, ordered by slot. Absent: formation at entry. */
+	arrivalSeconds?: number[];
 	aircraft?: "transport";
 	scoreRole?: string;
 	targetIds?: string[];
@@ -18,7 +20,7 @@ export interface BomberEncounter {
 	escapeCall?: string;
 	escorts: { count: number; initial: number; role: "escort"; aceName: string; aceAt: number };
 }
-export interface BomberEncounterState { route: BomberRoute; startedAt: number; laterSpawned: boolean; escortsSpawned: number }
+export interface BomberEncounterState { route: BomberRoute; startedAt: number; laterSpawned: boolean; escortsSpawned: number; bombersSpawned?: number }
 const finite = (n: number) => n === n && math.abs(n) < math.huge;
 export function validateBomberEncounter(phase: MissionPhaseBlueprint, bounds: MissionAirspacePolicy, scoring: MissionScoringPolicy): void {
 	const b = phase.bombers;
