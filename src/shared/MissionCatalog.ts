@@ -127,6 +127,8 @@ export interface MissionPhaseBlueprint {
 	protection?: ProtectionPlan;
 	/** Finite waves queue within this opt-in concurrent fighter budget. */
 	concurrentFighters?: number;
+	/** Route aircraft share the total budget but cannot consume reserved pursuer slots. */
+	concurrentRoutes?: number;
 	interceptHold?: InterceptHold;
 	canyonEscape?: CanyonEscape;
 	repeatedArtillery?: RepeatedArtillery;

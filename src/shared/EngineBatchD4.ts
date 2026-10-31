@@ -19,6 +19,7 @@ export function validateBatchD4(phases: MissionPhaseBlueprint[], limit: number):
 			assert(p.execution?.directSpawn!==true,"D4 population must use queued admissions");
 			assert((p.fighterWaves ?? []).reduce((n,w)=>n+w.count,0)<=150,"D4 finite wave inventory exceeds 150");
 		}
+		if (p.concurrentRoutes !== undefined) assert(p.concurrentFighters !== undefined && finiteNumber(p.concurrentRoutes) && p.concurrentRoutes%1===0 && p.concurrentRoutes>=1 && p.concurrentRoutes<p.concurrentFighters,"Route budget must reserve at least one pursuer slot");
 		const h=p.interceptHold, b=p.bombers;
 		if (b?.arrivalSeconds) {
 			assert(h!==undefined && b.escorts.count===0,"Stream arrivals need an unescorted intercept hold");

@@ -92,7 +92,7 @@ describe("M09 GREEN BEACON",()=>{
   expect(finish(c,9)).toBe(false); expect(finish(c,8)).toBe(true); expect(highestUnlocked(c.getSlots()[0])).toBe(9);
   expect(finish(c,9,1)).toBe(true); expect(c.getSlots()[0].missions?.[9]?.completed===true).toBe(false);
   const ledger=new TargetScore(scoring); for(const t of M09_TARGETS) ledger.RecordKill(t.id,t.scoreRole); for(let i=0;i<9;i++) ledger.RecordKill(`a-${i}`,"attack");
-  expect(finish(c,9,2,ledger)).toBe(true); const saved=normalizeProfile(serializeProfile({version:3,slots:c.getSlots()})).slots[0]; expect(saved.missions![9].completed).toBe(true); expect(saved.missions![9].bestScore).toBe(4160); expect(canLaunchMission(10,saved)).toBe(false);
+  expect(finish(c,9,2,ledger)).toBe(true); const saved=normalizeProfile(serializeProfile({version:3,slots:c.getSlots()})).slots[0]; expect(saved.missions![9].completed).toBe(true); expect(saved.missions![9].bestScore).toBe(4160); expect(canLaunchMission(10,saved)).toBe(true); expect(canLaunchMission(11,saved)).toBe(false);
   const old=MISSIONS[7].available; MISSIONS[7].available=false; for(let id=1;id<=18;id++) saved.missions![id]={completed:true}; expect(highestUnlocked(saved)).toBe(7); expect(canLaunchMission(9,saved)).toBe(false); MISSIONS[7].available=old;
  }));
 });

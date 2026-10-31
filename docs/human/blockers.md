@@ -2,7 +2,7 @@
 
 **M09 arrival regression, 2026-10-30:** Orchestrator reported Studio Jest 1,219/1,220 at `21be233`: the sole failure expected nine generic opening bandits, but D5 authors three required trios at mission times 600/625/650. #185 corrects the test to check exact timed admissions and duplicates, retaining D4 slots and adding grouped/delayed-launch coverage. Runtime remains unchanged: completion requires all nine kills. An offline regression clears early trios without ending the phase. Frozen install, build and full offline validation exited 0 (1,023 Luau contracts, 19 catalog snapshots, 124 Python tests). The director regression compiles but requires the orchestrator’s Studio rerun; this task did not launch Studio or claim a Player test.
 
-Updated 2026-10-30 against main `085373c` (#178/#180/#182/#183 merged); no known deployment failure is recorded. Live status follows the owner's pipeline convention and does not establish observed Player quality. This reconciliation performs offline checks only.
+Updated 2026-10-30 against main `06ca3e4` (#178/#180/#182/#183 merged); no known deployment failure is recorded. Live status follows the owner's pipeline convention and does not establish observed Player quality. This reconciliation performs offline checks only.
 
 ## D5 verification and mission integration (2026-10-30)
 
@@ -12,7 +12,7 @@ Resolved PR #180 P2: sector-only windups no longer emit player lock warnings or 
 
 - M04 #149, M05 #148, terrain performance #158, story #159 and cutscenes #152 are merged. Practice/M01–M08 are live by pipeline convention; their old review/unlock dependencies are resolved.
 - #172 targeting, #173 loading and #174 difficulty/allied budget are merged/live. Human balance, phone and rendered acceptance remain open.
-- Worlds 6–18 (#175/#176) are merged; M06/M07/M08 are active; M09 activates after #185 merges; M10–M18 remain dormant. No stack rebase remains for those world PRs. #176 fixes M05–M13 weather lookup and all 18 environment registrations, M17 metadata and M18 foundations.
+- Worlds 6–18 (#175/#176) are merged; M06–M09 are active; M10 activates after #187 merges; M11–M18 remain dormant. No stack rebase remains for those world PRs. #176 fixes M05–M13 weather lookup and all 18 environment registrations, M17 metadata and M18 foundations.
 - D1–D4 (#165/#168/#171/#177) and mission 7 #178 are merged. M06 activates D1/D2, M07 D3; M08 #183 activates D4. D5 #180 and D6 #182 are merged; M09 #185 activates D5 after merge.
 
 ## Remaining world/activation gaps
@@ -74,7 +74,7 @@ Worlds #144 and engine #145 are merged and dormant; playable data/unlock remain 
 Mission 4 transports exit after about 4:43.5 despite a 12:00 HUD clock; pacing remains unresolved. Mission 5 reports dark rig/tankers, follow-up lighting fixes awaiting Studio re-check, and a cleanup dependency on #147. Main still locks missions 3–18. No Player test is claimed.
 
 AI voice disclosure missing: addressed on fix/ai-voice-disclosure (D-140), pending merge. Settings provides permanent provenance and the first voiced line triggers a once-per-session notice. Latest Studio log (2026-10-30T03:39:39Z) shows RBX::Studio::LoginDialog; Studio was not launched and visual verification remains unperformed.
-PR #149 fixes the old 4:43.5 transport exit to 6:48.33 (D-096), covered offline; Studio/owner pacing re-check remains pending. The re-review’s early jammer despawn is fixed in the branch: both routes derive from the transport hook at jammer altitude/110 studs/s, with duration regressions keeping radar jamming and 280 optional points available throughout the transport window. Its duplicate cleanup mechanism is replaced by #147’s shared gate (D-097), including failed/partial construction and player leave. Mission 5 reports dark rig/tankers, follow-up lighting fixes awaiting Studio re-check, and a cleanup dependency on #147. Main now includes #147 (`7d73c44`); missions 4–18 remain locked. No Player test is claimed.
+PR #149 fixes the old 4:43.5 transport exit to 6:48.33 (D-096), covered offline; Studio/owner pacing re-check remains pending. The re-review’s early jammer despawn is fixed in the branch: both routes derive from the transport hook at jammer altitude/110 studs/s, with duration regressions keeping radar jamming and 280 optional points available throughout the transport window. Its duplicate cleanup mechanism is replaced by #147’s shared gate (D-097), including failed/partial construction and player leave. Mission 5 reports dark rig/tankers, follow-up lighting fixes awaiting Studio re-check, and a cleanup dependency on #147. Main includes #147 (`7d73c44`); current release status is recorded in README. No Player test is claimed.
 
 ## Mission 6 acceptance (#179)
 
@@ -88,7 +88,7 @@ Resolved in code/offline coverage: ray masking beyond Roblox’s 15,000-stud sin
 
 ## Mission 8 integration and acceptance
 
-D4 #177 and mission 7 #178 are merged; #183 is integrated onto current main. M08 unlocks only after sequential completion through M07; M10–M18 stay locked even with forged records; M09 unlocks only after M08 once #185 merges. Live after #183 merge by pipeline convention; no known deployment failure. Studio verified: pending orchestrator run. Player/phone/rendered/balance acceptance remains open. Validate adopted mast without duplicate relay, both full clocks, six bomber endpoints, ignition and settlement. D-320–D-324 retain provisional roster/ranks/routes, support stand-ins and deferred service/finite-stock fidelity. No Studio, Roblox Jest, Player tests, new audio or asset uploads performed in this integration.
+D4 #177 and mission 7 #178 are merged; #183 is integrated onto current main. M08 unlocks only after sequential completion through M07; M11–M18 stay locked even with forged records; M09 unlocks only after M08 and M10 after M09. Live after #183 merge by pipeline convention; no known deployment failure. Studio verified: pending orchestrator run. Player/phone/rendered/balance acceptance remains open. Validate adopted mast without duplicate relay, both full clocks, six bomber endpoints, ignition and settlement. D-320–D-324 retain provisional roster/ranks/routes, support stand-ins and deferred service/finite-stock fidelity. No Studio, Roblox Jest, Player tests, new audio or asset uploads performed in this integration.
 
 ### M08 catalog assertion corrected; Studio rerun pending
 
@@ -96,13 +96,13 @@ M08 arrival regression follow-up (2026-10-30): the orchestrator reported 1,175/1
 
 ## Engine D6 verification and M10 activation
 
-D6 remains dormant. Runtime Jest, Studio, Player observations and 150-contact phone profiling remain pending under the orchestrator’s Studio lease. M10 roster, artillery cadence, rank thresholds and rendered-world acceptance remain unresolved. D4/D5 and mission 7 are now integrated; repeated artillery uses M7’s segmented masking rays. No uploads or owner action required.
+D6 activates for M10 in #187. Runtime Jest, Studio, Player observations and 150-contact phone profiling remain pending under the orchestrator’s Studio lease. M10 roster, artillery cadence, rank thresholds and rendered-world acceptance remain unresolved. D4/D5 and mission 7 are now integrated; repeated artillery uses M7’s segmented masking rays. No uploads or owner action required.
 
 D6 integration checks: frozen install, build and full offline validation exit 0 (993 Luau contracts, 19 catalog snapshots, 124 Python tests; four negative loader probes). D4+D6 admission/contact regressions added; runtime specs compiled only. No Studio, `test:roblox`, Player or phone test performed.
 
 ## M09 integration and acceptance
 
-Prerequisites #178, #180, #182 and #183 are merged; #185 is replayed onto main `085373c` and targets main. No implementation blocker requires owner input. Studio verified: pending orchestrator run. Player/phone/rendered comparisons remain pending; no Player tests claimed. The 55-contact reconstruction, ranks and 300-health landing-force budget remain provisional (D-340–D-344). No new audio, Blender assets or uploads.
+Prerequisites #178, #180, #182 and #183 are merged; #185 is merged as `06ca3e4`. No implementation blocker requires owner input. Studio verified: pending orchestrator run. Player/phone/rendered comparisons remain pending; no Player tests claimed. The 55-contact reconstruction, ranks and 300-health landing-force budget remain provisional (D-340–D-344). No new audio, Blender assets or uploads.
 
 ## D7 acceptance (merged, dormant)
 
@@ -116,7 +116,13 @@ D6/M08/D7 shared-hook integration is resolved. D8 remains dormant; runtime Jest,
 
 D8 main integration validation (2026-10-30, main `5d84486`): frozen install, build and full `validate:offline` with the prescribed `LUAU_BIN` each exited 0: 1,023 Luau contracts, 19 unchanged catalog snapshots, four loader guard probes and 124 Python tests. All 92 spec registrations match runner imports and retain both parents. No Studio, `test:roblox`, Player tests or uploads performed. D8 remains dormant; M12 dependent branch untouched.
 
-## D9 integration and acceptance (2026-10-30)
+## M10 #187 integration and acceptance
+
+Main `06ca3e4` includes D6/D7/D8 and M08/M09; branch dependencies are resolved. M10 goes live by pipeline convention after merge; no known deployment failure. Roster/role adaptations, artillery cadence, ranks and 150-contact phone cost remain provisional (D-380–D-383). Studio verified: pending orchestrator run. Runtime handoffs, real masking, service, protected-aircraft/elite regression execution, rendered quality and Player/phone acceptance remain open. No Player tests claimed.
+
+M10 main integration validation (2026-10-30, main `06ca3e4`): frozen install, standalone build, `test:offline`, and full `validate:offline` with `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau"` exited 0. Final suite: 1,042 Luau contracts, four negative loader probes, 19 catalog snapshots, three QA-pilot scenarios and 124 Python tests. All 94 specs match registration/import lists and retain checkedRequire. Regenerated 199 voice/story entries (121 pending recordings); every prior voice id and every non-M10 voice/catalog entry is preserved. M10 unlocks after M09; M11–M18 remain locked even with forged completions. The opt-in route cap preserves default admissions; D7 protected actors remain outside hostile rosters and D8 withdrawing actors do not consume route slots. Studio verified: pending orchestrator run. No Studio, Roblox Jest or Player tests, audio generation or asset uploads.
+
+## D9 acceptance (merged #188, dormant)
 
 D7/D8 branch dependencies are resolved on PR #188. D8 ground ECM remains supported in global jamming phases; spatial corridors accept authored D9 airships only, and spatial ground ECM remains unsupported by design. M4 global aircraft jamming is unchanged. Runtime Jest execution, M13 activation, navigation tuning and visual/phone acceptance remain pending. No Studio or Player test is claimed.
 

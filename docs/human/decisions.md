@@ -374,6 +374,30 @@ M09 #185 arrival-test correction (2026-10-30): D-342 is unchanged. The nine requ
 - **Status:** provisional implementation; dormant. **Decision maker:** implementation agent (2026-10-30).
 - Five required elite fighters form a one-defeat objective. The defeated elite represents the Vulture Two ejection/recovery story event; the other four retreat without credit. Required status protects the formation from allied kills. Optional named ace remains separate. Recovery flag persists through sortie phase updates and replicates on the session folder; account persistence/presentation belongs to mission integration. Alternative: kill all five; rejected by M12 ending evidence. D12 protected-leader lifecycle remains separate future work.
 
+## D-380 — M10 authored roster and world ownership
+
+- Decision maker: implementation agent under owner's mission-10 authorization, 2026-10-30. Status: proposed in review.
+- Adopt every existing M10 world target by stable id: 100 ground and 24 naval. Add two 200-point pens, two 20-point cranes and 12 parked aircraft. Map provisional tank drawings to barracks, radar to control towers, frigates to gunboat roles, tankers to container ships. Preserve the original layout ids and poses. These are authored role/silhouette adaptations; the reference's unresolved total/per-type roster is not claimed recovered.
+- Alternatives: invent an exact reference distribution or leave M10 locked. Chosen bounded slice retains the dormant world and records the uncertainty. D6 detail management may replace adopted static geometry by id; it never leaves duplicate contacts.
+
+## D-381 — Repeated artillery and fair terrain
+
+- Decision maker: implementation agent, 2026-10-30. Status: proposed in review.
+- Warn at 240 elapsed seconds, impact at 300, then every 120 through 1140 (eight impacts). Warning 45s + countdown 15s; 35 damage. Absolute safe ceiling Y=585 plus masking required. Source (15000,700,-15000); segmented casts <=1000 studs. A runway refuge at Y=300 and NE ingress use the world/collision surface; continuous river water takes precedence over corridor lowering.
+- Alternative: direct Roblox ray beyond 15,000 studs or terrain-relative ceiling. Rejected for incorrect masking/safety. Offline flight and cover probes establish an authored survivable route; engine ray agreement and high-pose recovery still require Studio acceptance.
+
+## D-382 — M10 pressure and allied budget
+
+- Decision maker: owner (more attacking aircraft; allies mostly for show), implemented 2026-10-30. Status: proposed in review.
+- 44 finite aircraft including one ace and twelve parked/airborne identities; eight concurrent queued fighter slots. Reference debrief air roster totals 32; twelve additional attacking fighters increase pressure. Four allies share a single whole-sortie kill budget, never credit the player. D6 cheap-contact phases permit at most 16 route aircraft in the finite inventory; earlier missions retain six. The live queue caps routes and fighters together at eight; an opt-in two-route ceiling reserves six slots for pursuing aircraft. Helicopters fly one bounded patrol (under 90 seconds), then retire without score through the existing endpoint path. Blocked patrol requests yield to later pursuers; finite inventory and allied limits stay unchanged. This fixes #187’s P2 starvation finding without raising concurrency.
+- Alternative: unbounded simultaneous waves or repeating reinforcements. Rejected for unfair pressure and phone cost. Existing aircraft models represent authored roles; new art is deferred.
+
+## D-383 — M10 ranks, stocks, settlement and story
+
+- Decision maker: implementation agent following spec ledger and owner constraints, 2026-10-30. Status: proposed in review.
+- One 1,200-second objective, 3,000-point minimum held until expiry. Rank C/B/A/S=3000/3800/4200/5400, within observed source brackets. Finite maximum 9,340: 7,360 static/parked and 1,980 additional airborne; allied loss can lower attainable score. Twelve handoffs cannot score twice. Reusable optional land rearm restores 58 missiles, 750 gun rounds and twelve selected special charges; 4AAM becomes a ground area footprint. No health repair.
+- Alternative: all-target victory, immediate threshold completion or using 6,190 as exact S cutoff. Rejected by mission evidence. Original MISSION_STORY_TEXT[10] subtitles retain chapter 9 Walking the storm and the next clear day; no Rusk identification, audio or Blender uploads.
+
 ## Engine batch D9 decisions (2026-10-30)
 
 | ID | Choice | Alternatives and rationale | Decision maker | Status |

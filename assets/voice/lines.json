@@ -1262,6 +1262,42 @@
    "spoken": "The corridor is open. Two civilian flights are ready."
   },
   {
+   "id": "radio.m10.story.3",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Pads waking up. Strike the aircraft before they climb.",
+   "spoken": "Pads waking up. Strike the aircraft before they climb."
+  },
+  {
+   "id": "radio.m10.story.4",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Docks and pen mouths feed this line. Cut their supply route.",
+   "spoken": "Docks and pen mouths feed this line. Cut their supply route."
+  },
+  {
+   "id": "radio.m10.story.5",
+   "kind": "radio",
+   "speaker": "RIM TOWER",
+   "voice": "pFZP5JQG7iQjIQuC4Bku",
+   "tape": false,
+   "text": "RIVER TOWER: Cleared to land southbound. Racks ready; damage stays.",
+   "spoken": "Cleared to land southbound. Racks ready; damage stays."
+  },
+  {
+   "id": "radio.m10.story.6",
+   "kind": "radio",
+   "speaker": "RIM TOWER",
+   "voice": "pFZP5JQG7iQjIQuC4Bku",
+   "tape": false,
+   "text": "RIVER TOWER: Ammunition aboard. Cleared for takeoff.",
+   "spoken": "Ammunition aboard. Cleared for takeoff."
+  },
+  {
    "id": "radio.m11.story.1",
    "kind": "radio",
    "speaker": "SERA",
@@ -1728,6 +1764,33 @@
    "tape": false,
    "text": "SERA: The landing is through. There is smoke over Teklan.",
    "spoken": "The landing is through. There is smoke over Teklan."
+  },
+  {
+   "id": "radio.m10.p1.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Keep the valley between you and the long-range guns.",
+   "spoken": "Keep the valley between you and the long-range guns."
+  },
+  {
+   "id": "radio.m10.p1.chatter1",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Pads waking up. Strike the aircraft before they climb.",
+   "spoken": "Pads waking up. Strike the aircraft before they climb."
+  },
+  {
+   "id": "radio.m10.p1.chatter2",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Docks and pen mouths feed this line. Cut their supply route.",
+   "spoken": "Docks and pen mouths feed this line. Cut their supply route."
   }
  ]
 }
