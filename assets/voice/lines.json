@@ -1899,6 +1899,42 @@
    "tape": false,
    "text": "ORCHARD TWO: They can see the escort. Stay with us to the ridge.",
    "spoken": "They can see the escort. Stay with us to the ridge."
+  },
+  {
+   "id": "radio.m12.p1.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Seven guns. Kill central ECM for radar. Sweeps end above 3,080 ft.",
+   "spoken": "Seven guns. Kill central ECM for radar. Sweeps end above 3,080 ft."
+  },
+  {
+   "id": "radio.m12.p1.chatter1",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Six live guns remain. Wreckage is no target.",
+   "spoken": "Six live guns remain. Wreckage is no target."
+  },
+  {
+   "id": "radio.m12.p1.chatter2",
+   "kind": "radio",
+   "speaker": "MARINE",
+   "voice": "IKne3meq5aSn9XLyUdCD",
+   "tape": false,
+   "text": "LANTERN 2: Three left. Watch the barrel sweep.",
+   "spoken": "Three left. Watch the barrel sweep."
+  },
+  {
+   "id": "radio.m12.p1.chatter3",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: One gun left. Keep clear of its firing line.",
+   "spoken": "One gun left. Keep clear of its firing line."
   }
  ]
 }

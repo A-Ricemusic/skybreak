@@ -1,3 +1,7 @@
+import { AlliedRules } from "../shared/AlliedRules";
+import { Difficulty } from "../shared/Difficulty";
+import { CombatBalance } from "../shared/CombatBalance";
+import { ThreatRules } from "../shared/ThreatRules";
 import { FlightMath } from "../shared/FlightMath";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { MissionCatalog, MISSIONS } from "../shared/MissionCatalog";
@@ -33,6 +37,8 @@ describe("M12 command ring",()=>{
   const max=ground+fighters*60+240+150; expect(max).toBe(3470);
   expect(bp.scoring!.rank).toEqual({S:2900,A:2400,B:2100,C:1750}); expect(max-240>=bp.scoring!.rank.S).toBe(true);
   expect(bp.allies!.killBudget).toBe(1); expect(bp.allies!.allowRequiredTargets).toBe(false); expect(bp.allies!.creditPlayerKills).toBe(false);
+  expect(strike.fighterWaves!.some(w=>w.count>0 && AlliedRules.CanEngage(bp.allies!,{required:false,enabled:true,health:100,role:w.role}))).toBe(true);
+  expect(AlliedRules.BudgetRemaining(bp.allies!,0)).toBe(true); expect(AlliedRules.BudgetRemaining(bp.allies!,1)).toBe(false);
   expect(strike.concurrentFighters).toBe(6); expect(strike.fighterWaves!.some(w=>w.route!==undefined)).toBe(false);
  });
  it("requires all seven guns; resets only the elite clock and ends on one defeat without retreat softlock",()=>{
@@ -64,8 +70,7 @@ describe("M12 command ring",()=>{
    const a=math.rad(g.bearingDegrees), p={x:g.source.x+1000*math.sin(a),y:500,z:g.source.z-1000*math.cos(a)};
    expect(inRingSweep(sweep,g,p)).toBe(true); expect(inRingSweep(sweep,g,{...p,y:901})).toBe(false);
    expect(inRingSweep(sweep,g,M12.start)).toBe(false);
-   // 160-stud/s cruise can leave an 80-stud half-width after a 3s reaction in well under 16s.
-   expect(3+2*sweep.halfWidth/160).toBeLessThan(16);
+   // The entire swept wedge is hazardous at impact; crossing one line is not an escape proof.
    const far={x:g.source.x+20000,y:500,z:g.source.z}; let casts=0,total=0;
    expect(artilleryMasked({...clock,source:g.source},far,(_o,d)=>{ const n=math.sqrt(d.x*d.x+d.y*d.y+d.z*d.z); expect(n).toBeLessThanOrEqual(1000.000001); casts++; total+=n; return total>=19000?1:undefined; })).toBe(true);
    expect(casts).toBeGreaterThan(15);
@@ -84,6 +89,26 @@ describe("M12 command ring",()=>{
    expect(jet.y).toBeGreaterThan(900);
    for(const g of sweep.guns) expect(inRingSweep(sweep,g,jet)).toBe(false);
   }
+ });
+ it("derives elite threat ordering from the same Act II health, damage and admission rules as combat",()=>{
+  const act=bp.act-1;
+  const budgets=Difficulty.Order.map(d=>({
+   hull:Difficulty.BanditHealth(d,bp.act,CombatBalance.banditHealth[act]),
+   damage:Difficulty.Scale(d,"hostileDamage",CombatBalance.hostileDamage[act]),
+   gate:ThreatRules.FlightGate(Difficulty.Scale(d,"hostileGate",CombatBalance.flightGate[act]),elite.count!,Difficulty.Scale(d,"flightDivisor",CombatBalance.flightDivisor[act])),
+   windup:Difficulty.Scale(d,"windup",CombatBalance.windup[act]),
+   cap:ThreatRules.ThreatCap(elite.count!,Difficulty.Scale(d,"threatCap",CombatBalance.threatCap[act])),
+  }));
+  for(let i=1;i<budgets.size();i++) {
+   expect(budgets[i].hull).toBeGreaterThan(budgets[i-1].hull);
+   expect(budgets[i].damage).toBeGreaterThan(budgets[i-1].damage);
+   expect(budgets[i].gate).toBeLessThan(budgets[i-1].gate);
+   expect(budgets[i].windup).toBeLessThan(budgets[i-1].windup);
+   expect(budgets[i].cap).toBeGreaterThanOrEqual(budgets[i-1].cap);
+  }
+  // Ring damage is an authored, difficulty-independent salvo, capped once per impact.
+  expect(sweep.intervalSeconds).toBeGreaterThanOrEqual(sweep.warningSeconds+sweep.countdownSeconds);
+  expect(elite.update!.countdownSeconds).toBe(600);
  });
  it("requires the whole sequential campaign, rejects forged records and settles only full wins",()=>{
   const availability=MISSIONS.map(m=>m.available);

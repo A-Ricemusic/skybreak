@@ -1,14 +1,23 @@
 # Next
 
-PR #189: final D-445 offline validation passed; next is orchestrator-owned Studio acceptance and independent review before merge. Validate both routes, attentive defence and a 30s lapse on each difficulty in actual flight. No Studio lease was used for this correction.
+M12 integration validation (2026-10-30): frozen install, build, required test:offline and manifest/catalog regeneration, and full validate:offline all exited 0 with the specified LUAU_BIN. Passed 1,088 Luau contracts, four loader probes, 19 catalog snapshots, three QA pilot scenarios and 124 Python tests. Story/radio inventory is 215 entries / 137 pending recordings; no audio generated. Catalog changes only M12; prerequisite mission definitions and every main decision record are preserved. D9/D10 cleanup paths remain unchanged; only M12 railgun models set LeaveWreck. Studio verified: pending orchestrator run. No Player tests claimed.
+
+Priority: review and merge M12 #191 after offline checks and orchestrator acceptance. Missions 1–11 are merged; older handoffs below are historical.
+
+## Mission 12 beta guide — THE COMMAND RING
+
+Complete M11 then launch M12. Silence all seven live guns within 15:00; the southeast wreck is scenery. Destroy central ECM for radar. Climb above Y900 (3,080 ft absolute) before a sweep impact; warnings total 16s and overlapping lines deal at most 25 damage per 30s cycle. Test actual terrain masking and barrel lines. Rearm southwest during strike: finite 54 missiles/14 special charges, gun refill, damage preserved, clock paused. Kill all guns to start a fresh 10:00 elite phase; defeat one of five, confirm recovery and four uncredited withdrawals. Check Easy/Normal/Hard pressure, one optional allied kill, retained gun wrecks, retry/end cleanup, results/save reload and M13 remaining locked. Studio verified: pending orchestrator run. Player/phone balance and rendered reference comparison remain unobserved.
+
+
+Historical pre-merge handoff for #189 (merged at 5c88368c): final D-445 offline validation passed; next is orchestrator-owned Studio acceptance and independent review before merge. Validate both routes, attentive defence and a 30s lapse on each difficulty in actual flight. No Studio lease was used for this correction.
 
 **M09 arrival regression, 2026-10-30:** Orchestrator reported Studio Jest 1,219/1,220 at `21be233`: the sole failure expected nine generic opening bandits, but D5 authors three required trios at mission times 600/625/650. #185 corrects the test to check exact timed admissions and duplicates, retaining D4 slots and adding grouped/delayed-launch coverage. Runtime remains unchanged: completion requires all nine kills. An offline regression clears early trios without ending the phase. Frozen install, build and full offline validation exited 0 (1,023 Luau contracts, 19 catalog snapshots, 124 Python tests). The director regression compiles but requires the orchestrator’s Studio rerun; this task did not launch Studio or claim a Player test.
 
-Updated 2026-10-30 against main `06ca3e4`. Practice and missions 1–9 are live by pipeline convention; M10 goes live after #187 merges. M11–M18 remain dormant. No Player observation is claimed.
+Updated 2026-10-30 against main `06ca3e4`. Practice and missions 1–11 are live by pipeline convention; M12 #191 is merge pending and M13–M18 remain dormant. No Player observation is claimed.
 
-1. **Review mission 10 [#187](https://github.com/A-Ricemusic/skybreak/pull/187).** Integrated on main `06ca3e4`; prerequisites #182/#183/#185 are merged. Studio verified: pending orchestrator run. Use the beta guide below before merge.
+1. **Verify merged mission 10 [#187](https://github.com/A-Ricemusic/skybreak/pull/187).** Integrated on main `06ca3e4`; prerequisites #182/#183/#185 are merged. Studio verified: pending orchestrator run. Use the beta guide below for acceptance.
 2. **Verify M07/M08 and M09 in the orchestrator's Studio session.** Check canyon ingress/masking, protected mast/bomber timing, beach sectors and carrier deck. Offline coverage does not establish Player quality.
-3. **Integrate missions 11–18 in order.** D6 #182 is merged and activated by M10 #187; D7/D8 remain opt-in for later missions. Retain provisional inventory/rank assumptions and runtime acceptance gaps.
+3. **Integrate missions 12–18 in order.** D6 #182 is merged and activated by M10 #187; D7 is active in M11; D8 is activated by M12. Retain provisional inventory/rank assumptions and runtime acceptance gaps.
 
 ## Mission 6 beta guide — IRON COAST (Live)
 

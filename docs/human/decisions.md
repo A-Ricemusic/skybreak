@@ -1,7 +1,5 @@
 # Decisions
 
-D-465 (2026-10-30, implementation agent; proposed in PR #191): only M12 live railgun world models opt into LeaveWreck. Retain and darken their geometry in the sortie folder after accepted kill admission; disable the actor, warnings, queued windup, queries and collisions. Folder destruction owns end/retry cleanup. Alternative separate wreck clones would duplicate geometry/lifecycle ownership; global retention would change other missions. Scoring remains one accepted kill per id.
-
 Last updated: 2026-10-30.
 
 | ID | Date | Decision | Alternatives considered | Why | Decided by | Status |
@@ -363,17 +361,17 @@ M09 #185 arrival-test correction (2026-10-30): D-342 is unchanged. The nine requ
 
 ## D-400 — D8 ground ECM and required-strike service
 
-- **Status:** provisional implementation; activated by M12 in review, pending runtime/mission acceptance. **Decision maker:** implementation agent within the engine plan (2026-10-30).
+- **Status:** provisional implementation; dormant, pending runtime/mission acceptance. **Decision maker:** implementation agent within the engine plan (2026-10-30).
 - Explicit ground ECM shares batch C's live-source radar/lock and clearance policy. Required-ground strikes may rearm using the same complete pause/refill/expiry/threat gates and preserved health. Alternative: fake airborne jammer or score objective; rejected because M12 is a required-ground strike with a ground emitter.
 
 ## D-401 — Precision bomb equivalent and ring salvo sweep
 
-- **Status:** provisional implementation; activated by M12 in review. **Decision maker:** implementation agent (2026-10-30).
+- **Status:** provisional implementation; dormant. **Decision maker:** implementation agent (2026-10-30).
 - SALVO precision conversion uses D3 ground-special plumbing and hits only the locked ground victim; special conversions are exclusive. No new ballistic projectile. Ring salvos test the whole authored bearing wedge at impact and use D3 segmented masking rays (1,000 studs per cast); overlapping lines pay at most one damage event. Alternative: continuous beam simulation; deferred pending M12 flight acceptance. Current wedge is an authored gameplay abstraction, not reference telemetry.
 
 ## D-402 — One-loss elite retreat and recovery story flag
 
-- **Status:** provisional implementation; activated by M12 in review. **Decision maker:** implementation agent (2026-10-30).
+- **Status:** provisional implementation; dormant. **Decision maker:** implementation agent (2026-10-30).
 - Five required elite fighters form a one-defeat objective. The defeated elite represents the Vulture Two ejection/recovery story event; the other four retreat without credit. Required status protects the formation from allied kills. Optional named ace remains separate. Recovery flag persists through sortie phase updates and replicates on the session folder; account persistence/presentation belongs to mission integration. Alternative: kill all five; rejected by M12 ending evidence. D12 protected-leader lifecycle remains separate future work.
 
 ## D-380 — M10 authored roster and world ownership
@@ -452,3 +450,17 @@ D-445 deterministic 0.05s budget results (low/high order; unobserved in Player):
 All defence waves clear by 275s, including a single lapse; no-lapse waves clear by 265s. The low band's first acquired windup is 115.55s, the high band's 5.50s; neither uses a fixed acquisition delay. Easy/Normal survival ratios are 1.141/1.339 (low/high); Normal/Hard are 1.216/1.463, exceeding the 10% margin on both routes. Neglect result times come from first lethal intercepted missile, not guaranteed gate damage. Worst lapse hit counts take the maximum independently over the two tested lapse bands.
 
 Final D-445 validation: frozen install, standalone build and full validate:offline exited 0 with the specified LUAU_BIN; 1,076 Luau contracts, four loader probes, 19 catalog snapshots, three QA pilot scenarios and 124 Python tests passed. Regenerated voice/story output remains 210 lines / 132 pending; only M11 changes in the catalog fixture. No Studio, test:roblox, Player test or upload was performed. Independent review and orchestrator Studio acceptance remain pending.
+
+## Mission 12 — PR #191 (merge pending)
+
+| D-460 | Adopt all 24 live world contacts by id: seven 250-point guns, one 100 ECM, nine 20 AA and seven 30 SAM. Exclude southeast scenery wreck. | Eight required kills contradicts seven-target/1750 ledger. Preserve dormant procedural world ownership. | Implementation agent from accepted spec | Proposed/in review |
+| D-461 | Finite 54/14 racks, 1200-round gun, SALVO guided bomb (180), optional required-strike rearm without healing. | Regeneration would erase service-strip purpose. Retain score/target damage and pause via D8/C paths. | Implementation agent | Proposed/in review |
+| D-462 | Four finite pursuing waves total 14 fighters plus optional 240-point CAIRN; six concurrent pursuers; four LANTERN share one kill, no required/player credit. No route aircraft. | More pressure than seven ordinary reference fighters; no patrol starvation. Full score 3470; reference subset remains 3050. | Owner pressure direction; agent tuning | Proposed/in review |
+| D-463 | C/B/A/S 1750/2100/2400/2900, inside observed bounds; seven-gun strike 900s then five-elite 600s update, first defeat ends encounter and identifies Vulture Two alive. | Killing all five conflicts with footage. Specific-identity pursuit would require changing D8; first-loss recovery avoids required-kill retreat softlocks. Completion record plus runner/session recovery represent story continuity; no new independent profile flag. | Implementation agent from spec/D8 | Proposed/in review |
+| D-464 | Sweep points outward, range6000, half-width80, 30-degree wedge; 8+8s warning, 30s cycle, 25 max damage, absolute Y>900 safe. Segmented <=1000-stud masking reused from D-285. | Unbounded altitude and multiplying overlapping lines are unfair. Initial south ingress lies outside range; safe altitude escape is covered by FlightMath; no lateral escape guarantee. Add optional ceiling only to M12, preserving dormant callers. Rendered/flying acceptance remains pending. | Implementation agent | Proposed/in review |
+
+D-465 (2026-10-30, implementation agent; proposed in PR #191): only M12 live railgun world models opt into LeaveWreck. Retain and darken their geometry in the sortie folder after accepted kill admission; disable the actor, warnings, queued windup, queries and collisions. Folder destruction owns end/retry cleanup. Alternative separate wreck clones would duplicate geometry/lifecycle ownership; global retention would change other missions. Scoring remains one accepted kill per id.
+
+D-466 (2026-10-30, integration agent): replay only M12 commits on main, preserve every released mission and engine contract. Optional raiders remain eligible for the single allied kill; no route actors compete for the six fighter slots. Fairness coverage derives elite Easy/Normal/Hard ordering from CombatBalance, Difficulty and ThreatRules; ring sweeps use a difficulty-independent 25-damage salvo. Remove the single-line crossing estimate because the entire wedge is tested at impact. Studio verified: pending orchestrator run.
+
+Validation for D-466: M12 integration validation (2026-10-30): frozen install, build, required test:offline and manifest/catalog regeneration, and full validate:offline all exited 0 with the specified LUAU_BIN. Passed 1,088 Luau contracts, four loader probes, 19 catalog snapshots, three QA pilot scenarios and 124 Python tests. Story/radio inventory is 215 entries / 137 pending recordings; no audio generated. Catalog changes only M12; prerequisite mission definitions and every main decision record are preserved. D9/D10 cleanup paths remain unchanged; only M12 railgun models set LeaveWreck. Studio verified: pending orchestrator run. No Player tests claimed.
