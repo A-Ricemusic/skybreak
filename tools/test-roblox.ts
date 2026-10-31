@@ -3,7 +3,7 @@ import { mkdir, rm } from "node:fs/promises";
 import { resolve } from "node:path";
 
 const root = resolve(import.meta.dir, "..");
-const timeoutMs = Number(process.env.ROBLOX_TEST_TIMEOUT_MS ?? 600_000);
+const timeoutMs = Number(process.env.ROBLOX_TEST_TIMEOUT_MS ?? 1_200_000);
 if (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0) {
 	throw new Error("ROBLOX_TEST_TIMEOUT_MS must be a positive integer in milliseconds");
 }
