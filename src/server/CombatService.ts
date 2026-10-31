@@ -794,7 +794,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 /** Fighter budget only. Opt-in non-firing route bombers have six separate slots; withdrawing jets do not count. */
 function liveAircraft(session: CombatSession): number {
 	let count = 0;
-	for (const enemy of session.enemies) if (ownsEnemy(session, enemy) && enemy.kind !== "ground" && enemy.role !== "bomber") count += 1;
+	for (const enemy of session.enemies) if (ownsEnemy(session, enemy) && enemy.kind !== "ground" && (enemy.role !== "bomber" || (enemy.routeActor !== undefined && session.blueprintState !== undefined && BlueprintRunner.ActivePhase(session.blueprintState)?.concurrentFighters !== undefined))) count += 1;
 	return count;
 }
 /**
