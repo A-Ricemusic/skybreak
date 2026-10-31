@@ -1,3 +1,5 @@
+import { AntiShipRules } from "../shared/EngineBatchD2";
+import { sinkNavalTarget, stepSurfaceTargets, stepSamDefence, antiShipObstructed } from "./EngineBatchD2Runtime";
 import { TargetPriority, type TargetCandidate, type ViewFrustum } from "../shared/TargetPriority";
 import { TargetView } from "./TargetView";
 import { LaunchCancellation } from "../shared/LaunchLoading";
@@ -837,7 +839,7 @@ function destroyEnemy(session: CombatSession, enemy: Enemy, allied = false): voi
 	// Fired before Destroy so the model reference still resolves on the client (its visual becomes the wreck).
 	if (enemy.kind === "ground") effect(session, "ground", enemy.position, { scale: math.clamp(enemy.model.GetExtentsSize().Magnitude / 60, 0.7, 2.2) });
 	else effect(session, enemy.kind, enemy.position, { velocity: enemy.velocity, model: enemy.model });
-	enemy.model.Destroy();
+	if (!sinkNavalTarget(session, enemy)) enemy.model.Destroy();
 	// Kills count every destruction, air and ground, so the HUD tally matches sessionTotalRequired.
 	if (session.blueprintState) session.kills = sessionAllKills(session);
 	phaseDirector.Apply(session);
@@ -899,12 +901,13 @@ function launchSpecialMissile(session: CombatSession, enemy: Enemy, lateral: num
 	const position = positionFor(session.state).add(forward.mul(14)).add(right.mul(lateral)).sub(new Vector3(0, 2.5, 0));
 	const direction = unitOr(forward.add(right.mul(lateral * 0.03)), forward);
 	const kind = session.special.kind;
+	const antiShip = kind === "lance" && session.blueprint?.armament?.antiShip === true;
 	if (session.blueprint?.pressure) enemy.playerThreatUntil = session.elapsed + 8;
 	// Special launches count toward accuracy the same as standard ones; their hits already do.
 	session.missilesFired += 1;
 	session.projectiles.push({
 		part: JetFactory.CreateMissile(session.folder, position, direction, false), position, direction, target: enemy, hostile: false, age: 0,
-		ace: false, damage: SpecialWeapons.MissileDamage(kind), speed: SpecialWeapons.MissileSpeed(kind), special: true,
+		ace: false, damage: antiShip ? AntiShipRules.Damage : SpecialWeapons.MissileDamage(kind), speed: antiShip ? AntiShipRules.Speed : SpecialWeapons.MissileSpeed(kind), special: true, antiShip,
 	});
 }
 /** Hostile missiles inside the flare cloud take the bait (ace missiles sometimes see through it). */
@@ -943,7 +946,8 @@ function activateSpecial(session: CombatSession): void {
 		}
 		targets = locked ? 1 : 0;
 	}
-	const decision = SpecialWeapons.Activate(state, targets);
+	const decision = state.kind === "lance" && session.blueprint?.armament?.antiShip
+		? AntiShipRules.Activate(state,targets,current?.typedGround?.type) : SpecialWeapons.Activate(state, targets);
 	if (decision.kind === "denied") { denyFire(session, decision.reason); return; }
 	if (state.kind === "uav") {
 		radio(session, "Recon drone up: all contacts marked", 3);
@@ -1075,9 +1079,9 @@ function stepAllies(session: CombatSession, dt: number, weaponsEnabled = true): 
 
 function stepGroundDefence(session: CombatSession, dt: number): void {
 	let firing=0;
-	for(const enemy of session.enemies) if(enemy.typedGround?.type === "aa_gun" && enemy.windup>0 && ownsEnemy(session,enemy)) firing++;
+	for(const enemy of session.enemies) if((enemy.typedGround?.type === "aa_gun" || enemy.typedGround?.type === "gun_mount") && enemy.windup>0 && ownsEnemy(session,enemy)) firing++;
 	for(const enemy of session.enemies) {
-		if(enemy.typedGround?.type !== "aa_gun") continue;
+		if(enemy.typedGround?.type !== "aa_gun" && enemy.typedGround?.type !== "gun_mount") continue;
 		const eligible=GroundAirDefence.Eligible(enemy.health>0,enemy.enabled,enemy.position.sub(positionFor(session.state)).Magnitude);
 		if(!eligible) { enemy.windup=0; enemy.model.SetAttribute("AttackWarning",false); if(enemy.warning) enemy.warning.Enabled=false; continue; }
 		enemy.fireTimer=math.max(0,enemy.fireTimer-dt);
@@ -1096,6 +1100,8 @@ function stepGroundDefence(session: CombatSession, dt: number): void {
 	}
 }
 function stepEnemies(session: CombatSession, dt: number): void {
+	stepSurfaceTargets(session,dt);
+	stepSamDefence(session,dt,attackWarning);
 	stepGroundDefence(session,dt);
 	if (session.health <= 0) return;
 	const playerPosition = positionFor(session.state);
@@ -1443,12 +1449,15 @@ function stepMissiles(session: CombatSession, dt: number): void {
 			}
 			// Hostile missiles steer for their whole flight; ace missiles turn harder.
 			const lead = math.clamp(distance / speed, 0, missile.hostile ? 0.9 : 0.65);
-			const delta = targetPosition.add(velocity.mul(lead)).sub(missile.position);
+			const aim = missile.antiShip ? AntiShipRules.Aim(point(missile.position), point(targetPosition), missile.target!.typedGround!.position.y) : undefined;
+			const delta = (aim ? new Vector3(aim.x,aim.y,aim.z) : targetPosition.add(velocity.mul(lead))).sub(missile.position);
 			// Player missiles turn much harder inside 300 studs so an orbit launch at 80 degrees off the nose still connects.
 			const playerTurn = distance < 300 ? 14 : 7;
 			missile.direction = unitOr(missile.direction.Lerp(unitOr(delta, missile.direction), FlightMath.DampAlpha(missile.hostile ? tuned(session, TUNING.missileTurn) + (missile.ace ? tuned(session, TUNING.aceMissileTurn) : 0) : playerTurn, dt)), missile.direction);
 			const nextPosition = missile.position.add(missile.direction.mul(speed * dt));
-			if (segmentDistance(targetPosition, missile.position, nextPosition) < (missile.hostile ? tuned(session, TUNING.missileFuse) : WeaponRules.FuseRadius)) {
+			if (antiShipObstructed(session,missile,nextPosition)) {
+				removed=true; effect(session,"missile",nextPosition);
+			} else if (segmentDistance(targetPosition, missile.position, nextPosition) < (missile.hostile ? tuned(session, TUNING.missileFuse) : WeaponRules.FuseRadius)) {
 				removed = true;
 				effect(session, "hit", targetPosition);
 				if (missile.hostile && missile.wingman) {
@@ -1839,7 +1848,7 @@ export const CombatService = {
 				assert(model.Parent === folder && model.PrimaryPart !== undefined, "Ground target must have a stationary aim center in its session");
 				const enemy: Enemy = {
 					typedGround:data?.spec, phaseOwner:data?.phase, scoreRole:data?.spec.scoreRole,
-				id: data?.spec.id ?? `ground_${index + 1}_${missionSerial}`, name: model.Name, model, health: 55, maxHealth: 55,
+				id: data?.spec.id ?? `ground_${index + 1}_${missionSerial}`, name: model.Name, model, health: data?.spec.health ?? 55, maxHealth: data?.spec.health ?? 55,
 					position: model.PrimaryPart.Position, direction: new Vector3(0, 0, -1), velocity: Vector3.zero,
 					kind: "ground", groundIndex: data ? -1 : index, required: data?.spec.required ?? true, enabled: false, fireTimer: 0, windup: 0,
 					mode: "attack", modeTimer: 0, passDirection: new Vector3(0, 0, -1), side: 1,

@@ -23,6 +23,8 @@ export type EnemyMode = "attack" | "extend" | "orbit" | "run";
 /** What an air enemy is: a required bandit, an optional raider, the courier of a chase phase, or the ace. */
 export type AirRole = "bandit" | "raider" | "courier" | "ace" | "bomber" | "escort";
 export interface Enemy {
+	surfaceOrigin?: CFrame;
+	surfaceStartedAt?: number;
 	typedGround?: TypedGroundTarget;
 	phaseOwner?: number;
 	scoreRole?: string;
@@ -89,6 +91,9 @@ export interface Projectile {
 	/** Hostile only: flight time at launch, so an evade can spot a missile in its last 1.2 s. */
 	life?: number;
 	/** Launched by the special slot: never refunded as a standard missile. */
+	/** Counts toward the ground-to-air threat budget until this projectile is removed. */
+	sam?: boolean;
+	antiShip?: boolean;
 	special?: boolean;
 	/** Hostile only: this missile has already rolled against the player's flare cloud. */
 	/** Which flare cloud (session.flareBursts) this missile already rolled against. */
@@ -99,6 +104,8 @@ export interface Projectile {
 	lostTrack?: boolean;
 }
 export interface CombatSession {
+	/** Collateral mount removal satisfies groups but never earns score or kills. */
+	retiredGroundIds?: Set<string>;
 	launchId?: number;
 	rearmStartedAt?: number;
 	rearmEpoch?: number;

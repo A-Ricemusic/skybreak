@@ -15,7 +15,7 @@ export interface SortieStock {
 	/** Special charges for the sortie; absent keeps the special's own charge count (still without recharge). */
 	specialCharges?: number;
 }
-export interface SortieArmament { gun?: GunFit; stock?: SortieStock }
+export interface SortieArmament { gun?: GunFit; stock?: SortieStock; /** Hull-only sea-skimming XLAA mode. */ antiShip?: true }
 /** Which stocks a rearm restores; `gun` absent follows `missiles`. */
 export interface RefillFlags { missiles: boolean; special: boolean; gun?: boolean }
 export interface Refill { missiles?: number; special?: SpecialState; gunRounds?: number }
@@ -34,7 +34,8 @@ function integer(value: unknown, low: number, high: number): boolean {
 export function validateArmament(armament: SortieArmament | undefined, rearmGun: boolean): void {
 	if (armament === undefined) { assert(!rearmGun, "Rearm gun refill needs a fitted gun"); return; }
 	assert(typeIs(armament, "table"), "Invalid armament");
-	assert(armament.gun !== undefined || armament.stock !== undefined, "Armament must fit a gun or finite stocks");
+	assert(armament.gun !== undefined || armament.stock !== undefined || armament.antiShip !== undefined, "Armament must fit a gun, finite stocks or anti-ship mode");
+	assert(armament.antiShip === undefined || armament.antiShip === true, "Invalid anti-ship fit");
 	if (armament.gun !== undefined) assert(typeIs(armament.gun, "table") && integer(armament.gun.rounds, 1, GUN_ROUNDS_MAX), "Invalid gun rounds");
 	else assert(!rearmGun, "Rearm gun refill needs a fitted gun");
 	if (armament.stock !== undefined) {

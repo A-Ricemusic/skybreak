@@ -89,3 +89,11 @@ Ordering rationale: D2 and D3 are the only hard blockers for the next two missio
 - **HUD:** `GUN n` leads the ammo line only when fitted; the line shrinks to fit its panel when the gun cell or a stock above eight makes it longer. Telemetry carries rounds in a new tail slot (index 33); legacy packet lengths are unchanged.
 
 Not done in D1 and recorded for later batches: a dedicated cannon firing sound (D-142 forbids new audio uploads; the gun is silent except impacts), a gun lead reticle, gun accuracy in the debrief, and any Studio/Player check (Studio is signed out; Jest specs compile but have not run).
+
+## 5. Batch D2 implementation (stacked on D1; unmerged)
+
+`EngineBatchD2.ts` defines surface-route sampling/validation, naval classes, SAM tuning and anti-ship aim rules. `EngineBatchD2Runtime.ts` owns moving independent hull/mount models, sinking and firing SAMs. Encounter validation rejects cross-phase/nested/non-hull parents, required or routed mounts, invalid health, firing non-SAMs, invalid water routes/speeds, initial yaw differing from the first leg by more than 0.1°, and out-of-envelope mounts. Hulls may author `health`; absent retains 55. Mount positions are initial world positions, transformed with the hull during movement. Procedural target geometry needs no new asset/audio uploads.
+
+No catalog mission opts in; practice/M01 engine snapshots and the full catalog remain unchanged. M6 can reuse batch C score hold and damage-preserving rearm without alteration. M6 roster, rank and world readiness are separate activation work. Area attack first belongs to M7/D3, and service weapon selection/separate clocks remain F24/D11. See D-190–D-193 for provisional gameplay contracts and outstanding Roblox verification.
+
+D2 review follow-up: SAM caps count both warmups and marked airborne SAM missiles (Easy/Normal/Ace: 1/2/3), using loop counts. Retired mount membership is read alongside the killed-id set by group arrival predicates, avoiding per-step union allocation. Anti-ship guidance aims 160 studs ahead at cruise height before terminal homing, has a dedicated hull-only refusal notice, and keeps XLAA range defined only in SpecialWeapons. Additional contracts cover admission, route yaw, retirement/group scoring, combined budgets and scenery obstruction.
