@@ -621,7 +621,7 @@ export class FlightController {
 			if (child.IsA("Model")) {
 				if (child.GetAttribute("SkybreakFriendly") === true) {
 					const position = this.enemies.GetFrame(child).Position;
-					contacts.push({ kind: "friendly", x: position.X, z: position.Z });
+					contacts.push({ kind: child.GetAttribute("ProtectedObjective") === true ? "protected" : "friendly", x: position.X, z: position.Z });
 				} else if (child.GetAttribute("SkybreakEnemy") === true) {
 					const ground = child.GetAttribute("TargetKind") === "ground";
 					const required = child.GetAttribute("RequiredTarget") === true;

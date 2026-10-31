@@ -75,6 +75,7 @@ function sweptDistance(p: FlightPoint, a: FlightPoint, b: FlightPoint): number {
 	return distance(p,{x:a.x+dx*t,y:a.y+dy*t,z:a.z+dz*t});
 }
 function total(p: MissionPhaseBlueprint): number {
+	if (p.protection) return p.protection.aircraft.size();
 	if (p.scoreThreshold) return p.scoreThreshold.points;
 	if (p.kind === "tutorial_move") return (p.execution?.movementDuration ?? 3)*2;
 	if (p.kind === "tutorial_target") return 1;
@@ -244,6 +245,12 @@ export const BlueprintRunner = {
 		// A skip lands on the runway hold when the plan has one (MISSION ACCOMPLISHED), else it ends at once.
 		if (skip && canSkipLanding(s.landingElapsed)) s.landingElapsed=landingSkipTarget(plan,s.landingElapsed);
 		if (s.landingElapsed>=landingDuration(plan)) advance(s);
+	},
+	ObserveProtection(s: BlueprintState, safe: number, lost: boolean): void {
+		if(s.outcome!==undefined || !BlueprintRunner.ActivePhase(s)?.protection) return;
+		if(lost) { s.protectedHealth=0; finish(s,"failed","protected_lost"); return; }
+		s.phaseProgress=safe;
+		if(safe>=total(BlueprintRunner.ActivePhase(s)!)) advance(s);
 	},
 	ActivePhase(s: BlueprintState): MissionPhaseBlueprint | undefined { return s.phases[s.phaseIndex]; },
 	/** The live phase list (authored phases plus twist inserts fired so far). Read-only for callers. */

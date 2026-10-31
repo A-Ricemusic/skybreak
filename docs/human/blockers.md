@@ -97,3 +97,9 @@ M08 arrival regression follow-up (2026-10-30): the orchestrator reported 1,175/1
 D6 remains dormant. Runtime Jest, Studio, Player observations and 150-contact phone profiling remain pending under the orchestrator’s Studio lease. M10 roster, artillery cadence, rank thresholds and rendered-world acceptance remain unresolved. D4/D5 and mission 7 are now integrated; repeated artillery uses M7’s segmented masking rays. No uploads or owner action required.
 
 D6 integration checks: frozen install, build and full offline validation exit 0 (993 Luau contracts, 19 catalog snapshots, 124 Python tests; four negative loader probes). D4+D6 admission/contact regressions added; runtime specs compiled only. No Studio, `test:roblox`, Player or phone test performed.
+
+## Dormant D7 acceptance
+
+PR #184 remains unmerged and dormant. The protected-target-only firing correction is retained. Main integration combines sector-attacker and committed protected-aircraft warning/service suppression while preserving player windup threats. No Studio or Player testing is performed here; route clearance, marker readability, both loss branches, all-safe completion and phone performance remain activation gates.
+
+Main integration validation (2026-10-30): frozen install, standalone build and full offline validation exited 0; 1,007 Luau contracts, 19 unchanged catalog snapshots and 124 Python tests. The combined sector/protected-target warning rule passes offline; service-entry runtime regressions compile but remain unrun. No Studio/Player test. Main at integration is `ea0045d` (D5/D6 merged, M08 not merged). D4/D6 admission logic is retained; this main revision has no `concurrentRoutes` option.
