@@ -15329,25 +15329,488 @@
   },
   {
     "act": 2,
-    "available": false,
-    "briefing": "Two civilian airliners carry the orchard survivors over the snowy saddle. One cannot climb. Move between their altitude bands and keep hostile fighters off both aircraft. These families trusted Teal; now they are trusting you.",
-    "codename": "In development",
-    "debrief": "Both airliners are clear. Sera matches Vulture Two's checkride signature to the forged orders. He is waiting over the command array.",
+    "airspace": {
+      "hardHalfWidth": 16000,
+      "radarRange": 24000,
+      "softHalfWidth": 15600,
+      "spawnLimit": 15600
+    },
+    "allies": {
+      "allowRequiredTargets": false,
+      "callsignPrefix": "LANTERN",
+      "count": 2,
+      "creditPlayerKills": false,
+      "formation": [
+        {
+          "x": -180,
+          "y": 30,
+          "z": 160
+        },
+        {
+          "x": 180,
+          "y": 30,
+          "z": 160
+        }
+      ],
+      "killBudget": 1,
+      "mayKill": true,
+      "model": "Kestrel"
+    },
+    "armament": {
+      "gun": {
+        "rounds": 1200
+      }
+    },
+    "available": true,
+    "briefing": "Two civilian airliners carry the orchard survivors over the snowy saddle. One cannot climb. Move between their altitude bands and keep hostile fighters off both aircraft. Sera matched Vulture Two’s checkride signature to the forged orders before takeoff. These families trusted Teal; now they are trusting you.",
+    "codename": "High crossing",
+    "countdownSeconds": 330,
+    "debrief": "Both airliners are clear. The passengers thank the escort as Vulture Two sends his challenge from the command array.",
     "environment": "farm_overcast",
     "failure": "The families did not make the crossing safely.",
     "ground": [],
     "id": 11,
-    "optionalRaiderMax": 0,
+    "optionalRaiderMax": 18,
     "phases": [
       {
-        "count": 1,
-        "kind": "required_air",
-        "label": "In development"
+        "beat": "SERA: One airliner cannot climb. Watch both altitude bands.",
+        "chatter": [
+          {
+            "at": 0.33,
+            "text": "SERA: Orchard Two stays low. Leave room to descend."
+          },
+          {
+            "at": 0.86,
+            "text": "ORCHARD TWO: They can see the escort. Stay with us to the ridge."
+          }
+        ],
+        "concurrentFighters": 6,
+        "fighterWaves": [
+          {
+            "attackProtected": "m11_civilian_high",
+            "call": "ORCHARD ONE: Fighters above the cloud. We need cover.",
+            "count": 3,
+            "headingDegrees": 180,
+            "id": "m11_high_first",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "spawn": {
+              "x": 4400,
+              "y": 2800,
+              "z": 3800
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 0
+            }
+          },
+          {
+            "attackProtected": "m11_civilian_high",
+            "call": "SERA: Another high group. Orchard One, keep your course.",
+            "count": 3,
+            "headingDegrees": 180,
+            "id": "m11_high_second",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "spawn": {
+              "x": 3800,
+              "y": 2800,
+              "z": 400
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 55
+            }
+          },
+          {
+            "attackProtected": "m11_civilian_low",
+            "call": "ORCHARD TWO: Cannot climb. Fighters on the saddle!",
+            "count": 4,
+            "headingDegrees": 180,
+            "id": "m11_low_first",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "spawn": {
+              "x": -3800,
+              "y": 900,
+              "z": -2600
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 110
+            }
+          },
+          {
+            "attackProtected": "m11_civilian_low",
+            "call": "SERA: More contacts low. Emergency crews await beyond the pass.",
+            "count": 4,
+            "headingDegrees": 180,
+            "id": "m11_low_second",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "spawn": {
+              "x": -3600,
+              "y": 900,
+              "z": -6200
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 170
+            }
+          },
+          {
+            "attackProtected": "m11_civilian_high",
+            "call": "ORCHARD ONE: Last ridge ahead. Three fighters closing high.",
+            "count": 3,
+            "headingDegrees": 180,
+            "id": "m11_high_last",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "spawn": {
+              "x": 2800,
+              "y": 2800,
+              "z": -9700
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 230
+            }
+          }
+        ],
+        "kind": "protected_air",
+        "label": "Protect Orchard One and Orchard Two",
+        "protection": {
+          "aircraft": [
+            {
+              "callsign": "ORCHARD TWO",
+              "health": 77,
+              "healthByDifficulty": {
+                "ace": 147,
+                "easy": 34,
+                "normal": 77
+              },
+              "id": "m11_civilian_low",
+              "route": {
+                "speed": 57.382295409,
+                "waypoints": [
+                  {
+                    "x": -1440,
+                    "y": 900,
+                    "z": 6240
+                  },
+                  {
+                    "x": -1456.464405,
+                    "y": 900,
+                    "z": 5500
+                  },
+                  {
+                    "x": -1503.598647,
+                    "y": 900,
+                    "z": 4760
+                  },
+                  {
+                    "x": -1574.935751,
+                    "y": 900,
+                    "z": 4020
+                  },
+                  {
+                    "x": -1660.688024,
+                    "y": 900,
+                    "z": 3280
+                  },
+                  {
+                    "x": -1749.089965,
+                    "y": 900,
+                    "z": 2540
+                  },
+                  {
+                    "x": -1828.012529,
+                    "y": 900,
+                    "z": 1800
+                  },
+                  {
+                    "x": -1886.627276,
+                    "y": 900,
+                    "z": 1060
+                  },
+                  {
+                    "x": -1916.892063,
+                    "y": 900,
+                    "z": 320
+                  },
+                  {
+                    "x": -1913.709868,
+                    "y": 900,
+                    "z": -420
+                  },
+                  {
+                    "x": -1872.36488,
+                    "y": 900,
+                    "z": -1160
+                  },
+                  {
+                    "x": -1793.990003,
+                    "y": 900,
+                    "z": -1900
+                  },
+                  {
+                    "x": -1681.766215,
+                    "y": 900,
+                    "z": -2640
+                  },
+                  {
+                    "x": -1540.248312,
+                    "y": 900,
+                    "z": -3380
+                  },
+                  {
+                    "x": -1375.180038,
+                    "y": 900,
+                    "z": -4120
+                  },
+                  {
+                    "x": -1193.260973,
+                    "y": 900,
+                    "z": -4860
+                  },
+                  {
+                    "x": -1001.874612,
+                    "y": 900,
+                    "z": -5600
+                  },
+                  {
+                    "x": -808.788698,
+                    "y": 900,
+                    "z": -6340
+                  },
+                  {
+                    "x": -621.839954,
+                    "y": 900,
+                    "z": -7080
+                  },
+                  {
+                    "x": -448.616013,
+                    "y": 900,
+                    "z": -7820
+                  },
+                  {
+                    "x": -296.147466,
+                    "y": 900,
+                    "z": -8560
+                  },
+                  {
+                    "x": -170.62251,
+                    "y": 900,
+                    "z": -9300
+                  },
+                  {
+                    "x": -77.135788,
+                    "y": 900,
+                    "z": -10040
+                  },
+                  {
+                    "x": -19.481621,
+                    "y": 900,
+                    "z": -10780
+                  },
+                  {
+                    "x": 0,
+                    "y": 900,
+                    "z": -11520
+                  }
+                ]
+              }
+            },
+            {
+              "callsign": "ORCHARD ONE",
+              "health": 77,
+              "healthByDifficulty": {
+                "ace": 147,
+                "easy": 34,
+                "normal": 77
+              },
+              "id": "m11_civilian_high",
+              "route": {
+                "speed": 57.595424681,
+                "waypoints": [
+                  {
+                    "x": 2880,
+                    "y": 2800,
+                    "z": 6240
+                  },
+                  {
+                    "x": 2847.07119,
+                    "y": 2800,
+                    "z": 5500
+                  },
+                  {
+                    "x": 2752.802705,
+                    "y": 2800,
+                    "z": 4760
+                  },
+                  {
+                    "x": 2610.128498,
+                    "y": 2800,
+                    "z": 4020
+                  },
+                  {
+                    "x": 2438.623953,
+                    "y": 2800,
+                    "z": 3280
+                  },
+                  {
+                    "x": 2261.820071,
+                    "y": 2800,
+                    "z": 2540
+                  },
+                  {
+                    "x": 2103.974941,
+                    "y": 2800,
+                    "z": 1800
+                  },
+                  {
+                    "x": 1986.745448,
+                    "y": 2800,
+                    "z": 1060
+                  },
+                  {
+                    "x": 1926.215874,
+                    "y": 2800,
+                    "z": 320
+                  },
+                  {
+                    "x": 1913.709868,
+                    "y": 2800,
+                    "z": -420
+                  },
+                  {
+                    "x": 1872.36488,
+                    "y": 2800,
+                    "z": -1160
+                  },
+                  {
+                    "x": 1793.990003,
+                    "y": 2800,
+                    "z": -1900
+                  },
+                  {
+                    "x": 1681.766215,
+                    "y": 2800,
+                    "z": -2640
+                  },
+                  {
+                    "x": 1540.248312,
+                    "y": 2800,
+                    "z": -3380
+                  },
+                  {
+                    "x": 1375.180038,
+                    "y": 2800,
+                    "z": -4120
+                  },
+                  {
+                    "x": 1193.260973,
+                    "y": 2800,
+                    "z": -4860
+                  },
+                  {
+                    "x": 1001.874612,
+                    "y": 2800,
+                    "z": -5600
+                  },
+                  {
+                    "x": 808.788698,
+                    "y": 2800,
+                    "z": -6340
+                  },
+                  {
+                    "x": 621.839954,
+                    "y": 2800,
+                    "z": -7080
+                  },
+                  {
+                    "x": 448.616013,
+                    "y": 2800,
+                    "z": -7820
+                  },
+                  {
+                    "x": 296.147466,
+                    "y": 2800,
+                    "z": -8560
+                  },
+                  {
+                    "x": 170.62251,
+                    "y": 2800,
+                    "z": -9300
+                  },
+                  {
+                    "x": 77.135788,
+                    "y": 2800,
+                    "z": -10040
+                  },
+                  {
+                    "x": 19.481621,
+                    "y": 2800,
+                    "z": -10780
+                  },
+                  {
+                    "x": 0,
+                    "y": 2800,
+                    "z": -11520
+                  }
+                ]
+              }
+            }
+          ],
+          "altitudeCeiling": 2800
+        },
+        "standaloneAce": {
+          "behaviour": "dogfight",
+          "call": "SERA: Rime crossing. Optional intercept; the families come first.",
+          "headingDegrees": 180,
+          "health": 165,
+          "id": "m11_rime",
+          "livery": "Vulture",
+          "name": "RIME",
+          "scoreRole": "ace",
+          "spawn": {
+            "x": 3000,
+            "y": 1900,
+            "z": -9000
+          },
+          "trigger": {
+            "kind": "time",
+            "seconds": 250
+          }
+        }
       }
     ],
-    "primary": "In development",
-    "region": "canyon_airfield",
-    "title": "Mission 11"
+    "primary": "Protect both airliners through the crossing in 5:30; either loss fails",
+    "region": "snow_mountains",
+    "scoring": {
+      "basis": "points",
+      "points": {
+        "ace": 240,
+        "fighter": 60
+      },
+      "rank": {
+        "A": 360,
+        "B": 240,
+        "C": 120,
+        "S": 780
+      }
+    },
+    "start": {
+      "headingDegrees": 315,
+      "kind": "airborne",
+      "speed": 160,
+      "x": 0,
+      "y": 735,
+      "z": 9600
+    },
+    "terrainRelativeWarnings": true,
+    "title": "HIGH CROSSING",
+    "worldKey": "m11_high_crossing"
   },
   {
     "act": 2,

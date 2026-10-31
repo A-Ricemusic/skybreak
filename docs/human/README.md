@@ -1,5 +1,7 @@
 # SKYBREAK redesign dashboard
 
+PR #189 remains unmerged: M11 High Crossing protects two airliners for 313.28s against 17 ordinary attackers and optional RIME. Final D-445 balance correction uses mission-local Easy/Normal/Hard hulls 34/77/147 and requires ≥10% neglect-survival ordering on each route. The offline budget now uses difficulty-scaled reloads, shared WavePlan admission with RIME slot occupancy, admission-time formations and the shared hostile launch offset. Frozen install, standalone build and full validate:offline exited 0 (1,076 Luau contracts, 19 catalog snapshots, three QA pilot scenarios, 124 Python tests). Main through 0450491 is included. Studio/Player/phone acceptance remains pending; this model does not establish faithful runtime balance.
+
 **M09 arrival regression, 2026-10-30:** Orchestrator reported Studio Jest 1,219/1,220 at `21be233`: the sole failure expected nine generic opening bandits, but D5 authors three required trios at mission times 600/625/650. #185 corrects the test to check exact timed admissions and duplicates, retaining D4 slots and adding grouped/delayed-launch coverage. Runtime remains unchanged: completion requires all nine kills. An offline regression clears early trios without ending the phase. Frozen install, build and full offline validation exited 0 (1,023 Luau contracts, 19 catalog snapshots, 124 Python tests). The director regression compiles but requires the orchestrator’s Studio rerun; this task did not launch Studio or claim a Player test.
 
 Updated 2026-10-30 against main `06ca3e4`, integrating mission 10 #187. Merged gameplay is live by the owner's automatic-pipeline convention; no Player test is claimed.
@@ -28,7 +30,7 @@ Mission 7 merged fixes in #178: absolute Y=585 ceiling, full segmented artillery
 | 8 | Shattered Skies | 1:39:16–1:52:39 | 7:00 + 6:00 hold | Yes | Yes; provisional D-320–D-324 | Playable #183; Studio verified: pending orchestrator run | Yes (pipeline) | Player/phone not yet observed |
 | 9 | Operation Bunker Shot | 1:56:14–2:14:14 | 10:00 + 7:00 + optional service | Yes | Yes; provisional D-340–D-344 | Playable #185; Studio verified: pending orchestrator run | Yes (pipeline) | Player/phone not yet observed |
 | 10 | Tango Line | 2:16:13–2:37:51 | 20:00 + optional service | Yes | Yes; provisional D-380–D-383 | Playable #187; Studio verified: pending orchestrator run | Live after #187 merges (pipeline) | Player/phone not yet observed |
-| 11 | Escort | 2:39:46–2:45:27 | 5.7 min | Yes | Yes | World built/dormant; mission integration pending | No | — |
+| 11 | High Crossing | 2:39:46–2:45:27 | 313.28s crossing / 5:30 limit | Yes | Yes; D-440–D-445 | Playable PR #189; offline correction in branch | No; unmerged | Pending |
 | 12 | Stonehenge Offensive | 2:48:27–3:04:55 | 16.5 min | Yes | Yes | World built/dormant; mission integration pending | No | — |
 | 13 | Safe Return | 3:08:30–3:18:42 | 10.2 min | Yes | Yes | World built/dormant; mission integration pending | No | — |
 | 14 | Breaking Arrows | 3:20:22–3:28:38 | 8.3 min | Yes | Yes | World built/dormant; mission integration pending | No | — |
