@@ -1,11 +1,12 @@
+import * as M14WorldActors from "./M14WorldActors";
 import { D12Identities } from "../shared/EngineBatchD12";
 import { clearLeader, stepLeader } from "./EngineBatchD12Runtime";
 import { dampedSteer, pursuitDestination, guidedDirection } from "../shared/EncounterKinematics";
 
-import { clearCruise, cruiseKilled, stepCruise } from "./EngineBatchD10Runtime";
+import * as EngineBatchD10Runtime from "./EngineBatchD10Runtime";
 import { clearAirships, stepAirships } from "./EngineBatchD9Runtime";
-import { stepProtection, protectedTarget, hitProtected, clearProtection, warnProtectedAttack } from "./EngineBatchD7Runtime";
-import { createCheapContact, cheapEligible, stepContacts, handoffParked, stepRepeatedArtillery } from "./EngineBatchD6Runtime";
+import * as EngineBatchD7Runtime from "./EngineBatchD7Runtime";
+import * as EngineBatchD6Runtime from "./EngineBatchD6Runtime";
 import { disableDestroyedTarget, destroyTargetVisual } from "./TargetDestruction";
 import { clearGroundDirector, stepGroundDirector, stepBeachAttacker } from "./EngineBatchD5Runtime";
 import { completeEliteRetreat, stepRingSweep } from "./EngineBatchD8Runtime";
@@ -561,9 +562,9 @@ function cleanupSession(session: CombatSession, restore = true): void {
 		if (session.player.Parent === Players) session.player.ReplicationFocus = session.previousReplicationFocus;
 	}
 	clearLeader(session);
-	clearCruise(session);
+	EngineBatchD10Runtime.clearCruise(session);
 	clearAirships(session);
-	clearProtection(session);
+	EngineBatchD7Runtime.clearProtection(session);
 	clearGroundDirector(session);
 	session.folder.Destroy();
 	session.projectiles.clear();
@@ -709,7 +710,7 @@ function attackWarning(model: Model): BillboardGui {
 }
 function spawnAir(session: CombatSession, count: number, role: AirRole, options: SpawnOptions = {}): void {
 	const parkedId=options.arrival && "parkedSourceId" in options.arrival ? options.arrival.parkedSourceId : undefined;
-	const handoffId=parkedId!==undefined ? handoffParked(session,parkedId) : undefined;
+	const handoffId=parkedId!==undefined ? EngineBatchD6Runtime.handoffParked(session,parkedId) : undefined;
 	if(parkedId!==undefined && handoffId===undefined) return;
 	const forward = directionFor(session.state);
 	const right = new Vector3(-forward.Z, 0, forward.X);
@@ -732,6 +733,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		if(eliteFit) name=`ELITE ${index+1}`;
 		const model = role === BomberRules.Role.role ? BomberFactory.Create(name, options.arrival && "aircraft" in options.arrival ? options.arrival.aircraft : session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.aircraft) : JetFactory.Create(name, options.friendly !== true, options.livery ?? (eliteFit ? "Elite" : role === "ace" ? AssetSelection.LiveryForAce(options.name, session.blueprint?.aceName) : undefined));
 		if (!session.active || session.folder.Parent === undefined) { model.Destroy(); return; }
+		if(options.arrival && index===0) M14WorldActors.claimM14WorldActor(session,options.arrival.id)?.Destroy();
 		// The replicated model is hidden on the client behind a smoothed local clone; only the clone draws trails.
 		JetFactory.SetTrails(model, false);
 		// Ordinary forward waves arrive 2600–3200 studs out at 60–75°; M01 raiders use its narrower head-on cone.
@@ -801,7 +803,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 			groundAttack: options.arrival && "behaviour" in options.arrival && options.arrival.behaviour === "ground_attack",
 			scramble: options.arrival && "scramble" in options.arrival && options.arrival.scramble ? { spawn: { x:position.X,y:position.Y,z:position.Z }, heading: options.arrival.headingDegrees ?? 0, startedAt:session.elapsed } : undefined,
 			friendly: options.friendly, alliedAmmo: options.friendly ? AlliedRules.MissilesPerWingman : undefined,
-			id: handoffId ?? options.targetId ?? (role === "bandit" && session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.leaderWithdrawal ? D12Identities.wingmen[index] : undefined) ?? `${friendly ? "ally" : "air"}_${serial}_${missionSerial}`, name, model, health, maxHealth: health,
+			id: handoffId ?? options.targetId ?? (session.missionId===14 && options.arrival && "count" in options.arrival && options.arrival.count===1 ? options.arrival.id : undefined) ?? (role === "bandit" && session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.leaderWithdrawal ? D12Identities.wingmen[index] : undefined) ?? `${friendly ? "ally" : "air"}_${serial}_${missionSerial}`, name, model, health, maxHealth: health,
 			position, direction, velocity: direction.mul(300), kind: role === "ace" ? "ace" : "air", required: (options.arrival !== undefined && "required" in options.arrival && options.arrival.required === true) || (options.optional !== true && role !== "raider" && role !== "escort"), enabled: true,
 			targetSlot: serial, fireTimer: role === "courier" ? math.huge : 4 + index * 1.5, windup: 0, mode: "attack", modeTimer: 0, passDirection: direction, side,
 			flares, flareTimer: 0, flareUntil: 0, speedBonus: 0, lockBreakTimer: TUNING.aceLockBreak[act - 1],
@@ -864,7 +866,7 @@ function destroyEnemy(session: CombatSession, enemy: Enemy, allied = false): voi
 	if (!sinkNavalTarget(session, enemy)) destroyTargetVisual(enemy.model, Color3.fromRGB(35, 35, 35));
 	// Kills count every destruction, air and ground, so the HUD tally matches sessionTotalRequired.
 	if (session.blueprintState) session.kills = sessionAllKills(session);
-	cruiseKilled(session,enemy);
+	EngineBatchD10Runtime.cruiseKilled(session,enemy);
 	phaseDirector.Apply(session);
 	// A kill can fill a raider cap or clear a hazard without a phase change.
 	publishDamageable(session);
@@ -908,7 +910,7 @@ function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy, 
 		if (target && session.blueprint?.pressure) target.playerThreatUntil = session.elapsed + 8;
 		session.missiles -= 1;
 		session.missilesFired += 1;
-		session.missileCooldown = 1.15;
+		session.missileCooldown = WeaponRules.MissileFireInterval;
 		damage = PLAYER_MISSILE_DAMAGE;
 		// Blind launches report on the weapons channel so story radio lines are never overwritten.
 		if (target === undefined) denyFire(session, "blind");
@@ -1212,7 +1214,7 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		const threatened = pressure !== undefined && ((enemy.playerThreatUntil ?? 0) > session.elapsed || session.target === enemy && session.lockProgress > 0.3
 			|| ThreatRules.Inbound(enemy, session.projectiles, missile => missile.allied ? undefined : missile.target, missile => missile.position.sub(enemy.position).Magnitude));
 		const focusPlayer = AlliedRules.PrioritisesPlayer(pressure, enemy.targetSlot ?? index, session.elapsed, toPlayer.Magnitude, tailDot, threatened);
-		const protectedAircraft = protectedTarget(session, enemy);
+		const protectedAircraft = EngineBatchD7Runtime.protectedTarget(session, enemy);
 		enemy.combatTarget = protectedAircraft ?? (focusPlayer ? undefined : nearestWingman(session, enemy));
 		const playerPosition = enemy.combatTarget?.position ?? positionFor(session.state);
 		const playerVelocity = enemy.combatTarget?.velocity ?? directionFor(session.state).mul(session.state.speed);
@@ -1349,7 +1351,7 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		}, protectedAircraft !== undefined)) {
 			enemy.windup = windupSeconds;
 			enemy.windupTarget = AlliedRules.CommitWindupTarget(enemy.combatTarget);
-			warnProtectedAttack(session, enemy.windupTarget, line=>radio(session,line,3,true));
+			EngineBatchD7Runtime.warnProtectedAttack(session, enemy.windupTarget, line=>radio(session,line,3,true));
 			enemy.warning!.Enabled = true;
 			enemy.model.SetAttribute("AttackWarning", true);
 			if (!ace) {
@@ -1493,11 +1495,11 @@ function stepMissiles(session: CombatSession, dt: number): void {
 				}
 			}
 			// Hostile missiles steer for their whole flight; ace missiles turn harder.
-			const lead = math.clamp(distance / speed, 0, missile.hostile ? 0.9 : 0.65);
+			const lead = math.clamp(distance / speed, 0, missile.hostile ? 0.9 : WeaponRules.MissileLeadMax);
 			const aim = missile.antiShip ? AntiShipRules.Aim(point(missile.position), point(targetPosition), missile.target!.typedGround!.position.y) : undefined;
 			const delta = (aim ? new Vector3(aim.x,aim.y,aim.z) : targetPosition.add(velocity.mul(lead))).sub(missile.position);
 			// Player missiles turn much harder inside 300 studs so an orbit launch at 80 degrees off the nose still connects.
-			const playerTurn = distance < 300 ? 14 : 7;
+			const playerTurn = WeaponRules.MissileTurnRate(distance);
             if(missile.hostile && !aim) {
                 const d=guidedDirection(point(missile.position),point(missile.direction),point(targetPosition),point(velocity),speed,0.9,tuned(session,TUNING.missileTurn)+(missile.ace?tuned(session,TUNING.aceMissileTurn):0),dt);
                 missile.direction=new Vector3(d.x,d.y,d.z);
@@ -1512,7 +1514,7 @@ function stepMissiles(session: CombatSession, dt: number): void {
 				effect(session, "hit", targetPosition);
 				if (missile.hostile && missile.wingman) {
 					const ally = missile.wingman;
-					if (hitProtected(session,ally,missile.damage,(line)=>radio(session,line,4))) {
+					if (EngineBatchD7Runtime.hitProtected(session,ally,missile.damage,(line)=>radio(session,line,4))) {
 						missile.part.Destroy(); session.projectiles.remove(index);
 						if(session.blueprintState?.outcome!==undefined) { finish(session); return; }
 						continue;
@@ -1683,16 +1685,16 @@ function stepSession(session: CombatSession, dt: number): void {
 	}
 	session.inputSteps += 1;
 	stepLeader(session,dt,line=>radio(session,line,4));
-	stepCruise(session,dt);
+	EngineBatchD10Runtime.stepCruise(session,dt);
 	if(session.crashReason || session.blueprintState?.outcome!==undefined) {finish(session);return;}
 	stepAirships(session);
-	stepProtection(session,dt,(line)=>radio(session,line,4));
+	EngineBatchD7Runtime.stepProtection(session,dt,(line)=>radio(session,line,4));
 	stepGroundDirector(session,dt,line=>radio(session,line,4));
 	if(session.blueprintState?.outcome!==undefined) { finish(session); return; }
 	stepCanyon(session,dt,(line)=>radio(session,line,4));
 	stepRingSweep(session,dt,line=>radio(session,line,4));
-	stepRepeatedArtillery(session,dt,(line)=>radio(session,line,4));
-	stepContacts(session,dt);
+	EngineBatchD6Runtime.stepRepeatedArtillery(session,dt,(line)=>radio(session,line,4));
+	EngineBatchD6Runtime.stepContacts(session,dt);
 	if(session.crashReason) { finish(session); return; }
 	if(session.health<=0) { refreshSession(session,os.clock()); return; }
 	if (session.blueprintState) {
@@ -1907,9 +1909,9 @@ export const CombatService = {
 			for(let phase=0;phase<expandedPhases.size();phase++) for(const spec of expandedPhases[phase].groundTargets ?? []) {
 				// The world's own drawing of this target when it has one, so every target exists exactly once.
 				const existing=world.targetVisuals?.get(spec.id);
-				const cheap=expandedPhases[phase].cheapContacts && cheapEligible(spec,blueprint.id);
+				const cheap=expandedPhases[phase].cheapContacts && EngineBatchD6Runtime.cheapEligible(spec,blueprint.id);
 				if(cheap) existing?.Destroy();
-				const model=cheap ? createCheapContact(spec) : existing ?? createGroundTarget(spec); world.targetVisuals?.delete(spec.id);
+				const model=cheap ? EngineBatchD6Runtime.createCheapContact(spec) : existing ?? createGroundTarget(spec); world.targetVisuals?.delete(spec.id);
 				model.Parent=folder; world.groundTargets.push(model); typed.set(model,{spec,phase});
 			}
 			const hiddenGround = session.blueprint ? MissionCatalog.HiddenGround(session.blueprint) : new Set<number>();

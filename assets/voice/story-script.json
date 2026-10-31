@@ -2104,6 +2104,30 @@
    "needsRecording": true
   },
   {
+   "id": "radio.m14.story.3",
+   "kind": "radio",
+   "speaker": "SERA",
+   "chip": "SERA",
+   "text": "SERA: New salvo. Carriers may split; watch for fresh contacts.",
+   "context": "Planned mission radio; future builder must wire this exact text",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 5,
+   "recordingId": null,
+   "needsRecording": true
+  },
+  {
+   "id": "radio.m14.story.4",
+   "kind": "radio",
+   "speaker": "SERA",
+   "chip": "SERA",
+   "text": "SERA: One final weapon. Leave the high aircraft; protect the dish.",
+   "context": "Planned mission radio; future builder must wire this exact text",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 5,
+   "recordingId": null,
+   "needsRecording": true
+  },
+  {
    "id": "radio.m15.story.1",
    "kind": "radio",
    "speaker": "SERA",
@@ -2793,6 +2817,42 @@
    "speaker": "SERA",
    "chip": "SERA",
    "text": "SERA: Vulture Two admits his handwriting. No name behind the order.",
+   "context": "Live mission phase/landing radio",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 5,
+   "recordingId": null,
+   "needsRecording": true
+  },
+  {
+   "id": "radio.m14.p1.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "chip": "SERA",
+   "text": "SERA: Missiles low over the ice. The dish must keep talking.",
+   "context": "Live mission phase/landing radio",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 5,
+   "recordingId": null,
+   "needsRecording": true
+  },
+  {
+   "id": "radio.m14.p2.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "chip": "SERA",
+   "text": "SERA: New salvo. Carriers may split; watch for fresh contacts.",
+   "context": "Live mission phase/landing radio",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 5,
+   "recordingId": null,
+   "needsRecording": true
+  },
+  {
+   "id": "radio.m14.p3.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "chip": "SERA",
+   "text": "SERA: One final weapon. Leave the high aircraft; protect the dish.",
    "context": "Live mission phase/landing radio",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,

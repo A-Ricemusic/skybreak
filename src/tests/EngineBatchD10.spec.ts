@@ -35,8 +35,8 @@ describe("D10 dormant cruise rules",()=>{
   expect(recordScoredKill(bs,score,"a","air",true,0,"cruise")).toBe(true);expect(recordScoredKill(bs,score,"a","air",true,0,"cruise")).toBe(false);expect(score.Total()).toBe(100);expect(bs.outcome).toBeUndefined();BlueprintRunner.ResolveCruise(bs,false);BlueprintRunner.ResolveCruise(bs,true);expect(bs.reason).toBe("protected_lost");expect(recordScoredKill(bs,score,"b","air",true,0,"cruise")).toBe(false);
   const won=BlueprintRunner.NewState(b,0);BlueprintRunner.ResolveCruise(won,true);expect(won.outcome).toBe("won");expect(won.requiredAirKills).toBe(0);
  });
- it("denies allied intercept engagement and player warnings; all catalog missions remain dormant",()=>{
+ it("denies allied intercept engagement and player warnings; only M14 opts into cruise intercepts",()=>{
   expect(AlliedRules.CanEngage({} as never,{required:true,role:"bomber",enabled:true,health:24})).toBe(false);expect(AlliedRules.WarnsPlayer(undefined,"cruise_site")).toBe(false);
-  for(let i=0;i<=18;i++) {const b=MissionCatalog.Get(i);if(b) for(const p of b.phases) expect(p.cruiseIntercept).toBeUndefined();}
+  for(let i=0;i<=18;i++) {const b=MissionCatalog.Get(i);if(b && i!==14) for(const p of b.phases) expect(p.cruiseIntercept).toBeUndefined();}
  });
 });

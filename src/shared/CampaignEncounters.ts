@@ -38,7 +38,7 @@ export interface FighterArrival {
 	parkedSourceId?: string;
 	/** D5: prioritise this friendly sector, never the player. */ attackSector?: string;
 	livery?: AceLivery;
-	aircraft?: "jammer" | "helicopter";
+	aircraft?: "jammer" | "helicopter" | "strategic_bomber";
 	route?: { waypoints: FlightPoint[]; speed: number };
 	id: string; trigger: ArrivalTrigger; count: number; role: "raider" | "escort"; scoreRole: string;
 	spawn?: FlightPoint; headingDegrees?: number; scramble?: boolean;
@@ -135,7 +135,7 @@ export function validateCampaignEncounters(blueprint: MissionBlueprint, phases: 
 		for (const wave of phase.fighterWaves ?? []) {
 			assert(wave.livery===undefined || ["Vulture","Elite","Rusk"].includes(wave.livery),"Invalid wave livery");
 			assert((wave.aircraft!==undefined)===(wave.route!==undefined),"Route aircraft needs route");
-			if(wave.route) { assert(wave.aircraft==="jammer" || wave.aircraft==="helicopter","Invalid route aircraft"); assert(wave.count<=6 && wave.scramble!==true,"Invalid route wave"); for(const p of wave.route.waypoints) point(p); assert(wave.route.speed<= (wave.aircraft==="helicopter" ? 80 : 200),"Route aircraft too fast"); BomberRules.Create(wave.route.waypoints,wave.route.speed); }
+			if(wave.route) { assert(wave.aircraft==="jammer" || wave.aircraft==="helicopter" || wave.aircraft==="strategic_bomber","Invalid route aircraft"); assert(wave.count<=6 && wave.scramble!==true,"Invalid route wave"); for(const p of wave.route.waypoints) point(p); assert(wave.route.speed<= (wave.aircraft==="helicopter" ? 80 : 200),"Route aircraft too fast"); BomberRules.Create(wave.route.waypoints,wave.route.speed); }
 			trigger(wave.trigger,owner); role(wave.scoreRole);
 			assert(finite(wave.count) && wave.count%1===0 && wave.count>=1 && wave.count<=32 && (wave.role==="raider" || wave.role==="escort"),"Invalid fighter wave");
 			if (wave.spawn) point(wave.spawn, phase.protection?.altitudeCeiling ?? 2000);
