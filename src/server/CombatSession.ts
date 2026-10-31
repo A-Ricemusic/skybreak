@@ -113,6 +113,7 @@ export interface Projectile {
 	lostTrack?: boolean;
 }
 export interface CombatSession {
+ m18Ascending?: {elapsed:number;actors:Enemy[]};
 	d13Phase?: number;
 	d13Gate?: Part;
 	d13Beacon?: Part;

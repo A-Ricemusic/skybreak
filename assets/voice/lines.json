@@ -1636,8 +1636,71 @@
    "speaker": "SERA",
    "voice": "EXAVITQu4vr4xnSDxMaL",
    "tape": false,
-   "text": "SERA: You are clear. His loop has stopped. Rusk is coming up alone.",
-   "spoken": "You are clear. His loop has stopped. Rusk is coming up alone."
+   "text": "SERA: Clear of the works. Loop stopped. Rusk is coming up alone.",
+   "spoken": "Clear of the works. Loop stopped. Rusk is coming up alone."
+  },
+  {
+   "id": "radio.m18.story.3",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Grooves run north. Line up outside; wings level inside.",
+   "spoken": "Grooves run north. Line up outside; wings level inside."
+  },
+  {
+   "id": "radio.m18.story.4",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: All three feeds must go. The central route is still sealed.",
+   "spoken": "All three feeds must go. The central route is still sealed."
+  },
+  {
+   "id": "radio.m18.story.5",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Feeds dark. Descend beyond the grooves. Level at 174 before amber.",
+   "spoken": "Feeds dark. Descend beyond the grooves. Level at 174 before amber."
+  },
+  {
+   "id": "radio.m18.story.6",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Gate opens in three seconds. Core left; exit north, then climb.",
+   "spoken": "Gate opens in three seconds. Core left; exit north, then climb."
+  },
+  {
+   "id": "radio.m18.story.7",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Core hits are not enough. Follow cyan all the way out.",
+   "spoken": "Core hits are not enough. Follow cyan all the way out."
+  },
+  {
+   "id": "radio.m18.story.8",
+   "kind": "radio",
+   "speaker": "RUSK",
+   "voice": "pNInz6obpgDQGcFmaJgB",
+   "tape": false,
+   "text": "RUSK: Without my relay, who do you think will hear you?",
+   "spoken": "Without my relay, who do you think will hear you?"
+  },
+  {
+   "id": "radio.m18.story.9",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: We will. Wing clear. Finish this in your own sky.",
+   "spoken": "We will. Wing clear. Finish this in your own sky."
   },
   {
    "id": "radio.m01.p1.beat",
@@ -2151,6 +2214,42 @@
    "tape": false,
    "text": "SERA: Keep turning over the guns. The flooded streets are no refuge.",
    "spoken": "Keep turning over the guns. The flooded streets are no refuge."
+  },
+  {
+   "id": "radio.m18.p1.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Generators first. Then the central vent. Leave yourself a way out.",
+   "spoken": "Generators first. Then the central vent. Leave yourself a way out."
+  },
+  {
+   "id": "radio.m18.p1.chatter1",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Grooves run north. Line up outside; wings level inside.",
+   "spoken": "Grooves run north. Line up outside; wings level inside."
+  },
+  {
+   "id": "radio.m18.p1.chatter2",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: All three feeds must go. The central route is still sealed.",
+   "spoken": "All three feeds must go. The central route is still sealed."
+  },
+  {
+   "id": "radio.m18.p2.chatter1",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Core hits are not enough. Follow cyan all the way out.",
+   "spoken": "Core hits are not enough. Follow cyan all the way out."
   }
  ]
 }

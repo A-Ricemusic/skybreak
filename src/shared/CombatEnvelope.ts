@@ -1,0 +1,2 @@
+/** Existing server envelope, extracted without retuning so mission fairness tests use the same values. */
+export const CombatEnvelope={aceStageSpeed:[30,40,55],missileSpeed:[580,660,740],missileLife:[7,8,9],missileFuse:[32,40,48],windup:[2.4,2,1.7],fireAimDot:[0.65,0.55,0.45],straightRelax:[0.2,0.25,0.3],fireRange:[[450,1700],[400,1900],[350,2100]],aceFlares:[2,3,4],aceLockBreak:[7,5.5,4],aceDamageBonus:2,missileTurn:[1.6,2.2,2.8],aceMissileTurn:[0.6,0.9,1.2]};

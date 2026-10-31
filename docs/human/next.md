@@ -1,3 +1,21 @@
+# Beta guide — all 18 missions
+
+1. Merge #197, #198, #199, then #200; #200 targets main.
+2. Orchestrator runs Studio verification (pending); owner then plays the full campaign in Roblox Player.
+3. Owner full-campaign checklist:
+   - Start a fresh slot and complete missions 1–18 in order; after each, inspect results, unlock only the next mission, exit/rejoin and confirm saved progress.
+   - Exercise practice, retry after failure, replay an earlier mission, and return to the current mission without losing progress.
+   - M01–M05: flight controls, combat/radar, refinery service and escape.
+   - M06–M10: canyon/strike objectives, protection, broadcast, beach squads, artillery and service.
+   - M11–M14: both airliners, command ring/ejection, evidence plane and all cruise salvos.
+   - M15–M17: city squads and bombers; desert column and repair; capital crossing, four wingmen and protected Rusk departure.
+   - M18: clear all three generators; descend and level before amber; timed gate, core, cyan escape; duel begins only outside; defeat Rusk within 5:00.
+   - Confirm final chapter, ending/results and completed save after rejoin; no mission 19; replay M18 and earlier missions.
+   - Repeat representative encounters on Easy/Normal/Hard and phone; record hull, timing, readability, camera/collision and any stalled objectives.
+4. Calibrate provisional ranks and duel difficulty from observed play. Offline scenarios are conditional evidence, not Player quality verification.
+
+No Player tests have been performed for this handoff. Historical plans follow.
+
 ## M17 beta guide — #199 Merge pending
 
 After M16, launch LAST WING. Earn 2,100 points and survive the full 12:00 capital battle. The eastern runway repairs health and restocks weapons while battle time pauses. Destroying the enemy bridge stops the supply hull route; the witness crossing is independent. Then defeat all four wingmen and wait for Rusk to depart within the 18:00 second phase. Rusk is protected and awards no kill. Check adopted target deletion, naval mounts, bridge clearance, service, optional air queues and withdrawal in Studio. Studio verified: pending orchestrator run. No Player tests performed.
@@ -210,3 +228,6 @@ M16 #198 shared-targeting review fix (2026-10-31; unmerged): fairness now select
 Shared-targeting fix validation: frozen install, build and full prescribed-LUAU_BIN validate:offline exited 0. Catalog snapshot changed only the two M16 town ingress coordinates. No merge or Studio/Player verification.
 
 M17 #199 replay validation (2026-10-31, M16 base `9752a5ad`): frozen install, standalone build, required test:offline/voice/story/catalog sequence and full prescribed-LUAU_BIN validate:offline each exited 0. Passed 1,201 offline Luau contracts, four loader probes, 475 module compilations, 197 require-graph nodes, 19 catalog snapshots, three QA pilot scenarios and 124 Python tests. All 113 base offline specs plus three M17 specs remain in both lists with checkedRequire. Runtime Jest compiled only; adopted models are tested by TargetId. Only M17 catalog snapshot changes; every base decision and non-M17 voice entry is preserved. Voice inventory: 239 entries / 161 pending recordings. No Studio, test:roblox, Player tests, uploads or merge performed. Studio verified: pending orchestrator run. #199 Merge pending; live by pipeline convention after merge.
+
+
+M18 #200 replay validation (2026-10-31, M17 base be746a10): frozen install, standalone build, test:offline plus voice/story/catalog regeneration, and full prescribed-LUAU_BIN validate:offline exited 0. Passed 1,210 Luau contracts, four loader probes, 483 module compilations, 201 require-graph nodes, 19 catalog snapshots, three QA pilot scenarios and 124 Python tests. Both lists retain all 118 offline specs and checkedRequire. Base decision text is preserved in full; every non-M18 voice entry is unchanged; only M18 catalog changes. Voice inventory: 250 entries / 172 pending recordings. Duel wins: Easy 107.16s / Normal 134.12s / Hard 199.92s. Runtime/world Jest compiled only. No Studio, test:roblox, Player tests, uploads or merge performed. Studio verified: pending orchestrator run. Merge pending; live by pipeline convention after merge.

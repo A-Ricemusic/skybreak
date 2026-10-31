@@ -69,7 +69,7 @@ describe("M17 Last Wing",()=>{
  });
  it("rejects forged unlocks, settles both phases once, and round trips points",()=>earlier(()=>{
   const c=new CampaignCoordinator("m17",undefined,{now:()=>1000,defer:()=>undefined});c.load();const slot=c.getSlots()[0];slot.missions??={};for(let i=1;i<=18;i++)slot.missions[i]={completed:true};
-  for(let i=1;i<=16;i++){slot.missions[i]={completed:false};expect(canLaunchMission(17,slot)).toBe(false);slot.missions[i]={completed:true};}expect(canLaunchMission(17,slot)).toBe(true);expect(canLaunchMission(18,slot)).toBe(false);
+  for(let i=1;i<=16;i++){slot.missions[i]={completed:false};expect(canLaunchMission(17,slot)).toBe(false);slot.missions[i]={completed:true};}expect(canLaunchMission(17,slot)).toBe(true);expect(canLaunchMission(18,slot)).toBe(true);
   for(let i=1;i<=16;i++)c.recordMissionResult(1,i,true,100,100);
   slot.missions[17]={completed:false};const ledger=score().ledger;
   const settle=(phases:number)=>completeMission(c,1,17,true,{slot:1,missionId:17,kills:4,groundKills:60,completedPhases:phases,elapsed:900,targetScore:ledger.Snapshot()},()=>undefined,0);

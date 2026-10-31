@@ -90,6 +90,7 @@ export function validateEncounterIdentities(phases: MissionPhaseBlueprint[]): vo
 			claim(D12Identities.leader);
 			for (const id of D12Identities.wingmen) claim(id);
 		}
+		for(const t of phase.batchD13?.ascending ?? []) claim(t.id);
 		for (const id of phase.bombers?.targetIds ?? []) claim(id);
 		for (const target of phase.groundTargets ?? []) claim(target.id);
 		for (const sector of phase.groundProgress?.sectors ?? []) claim(sector.id);

@@ -1,3 +1,4 @@
+import { FlightMath } from "./FlightMath";
 import type { EnvironmentSpec } from "./EnvironmentPresets";
 import { M06_ENVIRONMENT } from "./M06WorldPlan";
 import { surfaceGround, type WorldSurface } from "./CompactWorldSurface";
@@ -14,7 +15,19 @@ export function m18TargetLayout():WorldContact[]{return [
  ...[0,1,2,3,4,5,6,7,8,9,10,11].map(i=>({id:`m18_air_${i+1}`,type:i===11?"named_ace_slot":"elite_fighter",group:"optional_air",x:-10000+(i%6)*700,y:500,z:4000+math.floor(i/6)*800,yaw:0})),
  ...[0,1,2,3].map(i=>({id:`m18_ascending_${i+1}`,type:"ascending_missile_slot",group:"optional_missile",x:5000+i*400,y:400,z:-4000,yaw:0}))
 ];}
-export function m18VentRoute(){return [{x:0,y:617,z:-3400},{x:0,y:174,z:-3400},{x:0,y:174,z:-4000},{x:0,y:174,z:-7000},{x:0,y:1000,z:-7600}];}
+/** Smooth two-arc descent, then a straight enclosed run. Turn geometry uses the real cruise pitch radius. */
+export function m18VentRoute(){
+ const radius=FlightMath.CruiseSpeed/FlightMath.PitchRate,angle=0.65;
+ const points=[{x:0,y:617,z:-2960}];
+ let y=617,z=-2960;
+ for(let i=1;i<=24;i++){const a=angle*i/24;points.push({x:0,y:y-radius*(1-math.cos(a)),z:z-radius*math.sin(a)});}
+ y=points[points.size()-1].y;z=points[points.size()-1].z;
+ const drop=y-174-radius*(1-math.cos(angle));
+ y-=drop;z-=drop/math.tan(angle);points.push({x:0,y,z});
+ for(let i=1;i<=24;i++){const a=angle*(1-i/24);points.push({x:0,y:y-radius*(math.cos(a)-math.cos(angle)),z:z-radius*(math.sin(angle)-math.sin(a))});}
+ points.push({x:0,y:174,z:-3700},{x:0,y:174,z:-3800},{x:0,y:174,z:-7000});
+ return points;
+}
 export function buildM18Plan(seed=1818,checkpoint:()=>void=()=>{}){
  const d=worldDressing(M18_SURFACE,checkpoint),targets=m18TargetLayout();
  for(const sea of d.seaParts)sea.color=M18_ENVIRONMENT.water.color;
@@ -29,7 +42,7 @@ export function buildM18Plan(seed=1818,checkpoint:()=>void=()=>{}){
   }
  }
  for(const t of targets){if(t.type==="generator")d.part(t.id,t.x,144,t.z,60,80,40,"Metal",[132,175,181]);else if(t.type==="core")d.part(t.id,t.x,t.y,t.z,40,140,100,"Metal",[201,142,69]);}
- for(const t of targets)if(t.group==="optional_air"||t.group==="optional_missile")d.contact(t);
+ // Airborne inventory slots are spawned by runtime directors, never static scenery.
  // Separate vertical entry aperture at z=-3400. Roof starts after descent;
  // floor/side walls continue to an independent open north exit.
  for(let i=0;i<4;i++){const z=-3750-i*900;

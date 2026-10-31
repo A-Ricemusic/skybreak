@@ -23795,25 +23795,539 @@
     "worldKey": "m17_capital_assault"
   },
   {
+    "aceHealth": 2500,
+    "aceName": "RUSK",
     "act": 3,
-    "available": false,
+    "airspace": {
+      "hardHalfWidth": 15360,
+      "radarRange": 24000,
+      "softHalfWidth": 14000,
+      "spawnLimit": 14000
+    },
+    "allies": {
+      "allowRequiredTargets": false,
+      "callsignPrefix": "LANTERN",
+      "count": 4,
+      "creditPlayerKills": false,
+      "formation": [
+        {
+          "x": -180,
+          "y": 30,
+          "z": 180
+        },
+        {
+          "x": 180,
+          "y": 30,
+          "z": 180
+        },
+        {
+          "x": -320,
+          "y": 60,
+          "z": 360
+        },
+        {
+          "x": 320,
+          "y": 60,
+          "z": 360
+        }
+      ],
+      "killBudget": 1,
+      "mayKill": true,
+      "model": "Kestrel"
+    },
+    "available": true,
     "briefing": "Rusk's coastal relay works repeat his voice through the storm. Destroy three generators inside the grooves, run the central vent and escape. When the works fall silent, Rusk rises alone. Shoot him down in open air; then broadcast in your own voice.",
-    "codename": "In development",
-    "debrief": "Rusk is down. The relay is dark. Every harbour is listening for the trainee's voice.",
+    "codename": "The voice breaks",
+    "countdownSeconds": 1200,
+    "debrief": "Rusk is down. The relay is dark. You open the frequency in your own voice: the coast is free. Sera answers, then the harbours, one by one. Teal's evidence belongs to everyone now; no borrowed voice will speak for them again.",
     "environment": "farm_overcast",
     "failure": "The relay has not been silenced. Rusk still owns the frequency.",
     "ground": [],
     "id": 18,
-    "optionalRaiderMax": 0,
+    "optionalRaiderMax": 12,
     "phases": [
       {
+        "batchD13": {
+          "enclosed": true
+        },
+        "beat": "SERA: Generators first. Then the central vent. Leave yourself a way out.",
+        "chatter": [
+          {
+            "at": 0.25,
+            "text": "SERA: Grooves run north. Line up outside; wings level inside."
+          },
+          {
+            "at": 0.75,
+            "text": "SERA: All three feeds must go. The central route is still sealed."
+          }
+        ],
+        "concurrentFighters": 12,
+        "count": 3,
+        "fighterWaves": [
+          {
+            "count": 1,
+            "headingDegrees": 90,
+            "id": "m18_air_1",
+            "livery": "Elite",
+            "role": "raider",
+            "scoreRole": "elite",
+            "spawn": {
+              "x": -10000,
+              "y": 500,
+              "z": 4000
+            },
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 90,
+            "id": "m18_air_2",
+            "livery": "Elite",
+            "role": "raider",
+            "scoreRole": "elite",
+            "spawn": {
+              "x": -9300,
+              "y": 500,
+              "z": 4000
+            },
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 90,
+            "id": "m18_air_3",
+            "livery": "Elite",
+            "role": "raider",
+            "scoreRole": "elite",
+            "spawn": {
+              "x": -8600,
+              "y": 500,
+              "z": 4000
+            },
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 90,
+            "id": "m18_air_4",
+            "livery": "Elite",
+            "role": "raider",
+            "scoreRole": "elite",
+            "spawn": {
+              "x": -7900,
+              "y": 500,
+              "z": 4000
+            },
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 90,
+            "id": "m18_air_5",
+            "livery": "Elite",
+            "role": "raider",
+            "scoreRole": "elite",
+            "spawn": {
+              "x": -7200,
+              "y": 500,
+              "z": 4000
+            },
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 90,
+            "id": "m18_air_6",
+            "livery": "Elite",
+            "role": "raider",
+            "scoreRole": "elite",
+            "spawn": {
+              "x": -6500,
+              "y": 500,
+              "z": 4000
+            },
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 90,
+            "id": "m18_air_7",
+            "livery": "Elite",
+            "role": "raider",
+            "scoreRole": "elite",
+            "spawn": {
+              "x": -10000,
+              "y": 500,
+              "z": 4800
+            },
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 90,
+            "id": "m18_air_8",
+            "livery": "Elite",
+            "role": "raider",
+            "scoreRole": "elite",
+            "spawn": {
+              "x": -9300,
+              "y": 500,
+              "z": 4800
+            },
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 90,
+            "id": "m18_air_9",
+            "livery": "Elite",
+            "role": "raider",
+            "scoreRole": "elite",
+            "spawn": {
+              "x": -8600,
+              "y": 500,
+              "z": 4800
+            },
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 90,
+            "id": "m18_air_10",
+            "livery": "Elite",
+            "role": "raider",
+            "scoreRole": "elite",
+            "spawn": {
+              "x": -7900,
+              "y": 500,
+              "z": 4800
+            },
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 90,
+            "id": "m18_air_11",
+            "livery": "Elite",
+            "role": "raider",
+            "scoreRole": "elite",
+            "spawn": {
+              "x": -7200,
+              "y": 500,
+              "z": 4800
+            },
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          }
+        ],
+        "groundTargets": [
+          {
+            "group": "groove_1",
+            "id": "m18_generator_1",
+            "position": {
+              "x": -1920,
+              "y": 104,
+              "z": -2880
+            },
+            "required": true,
+            "scoreRole": "generator",
+            "type": "generator",
+            "yaw": 0
+          },
+          {
+            "group": "groove_2",
+            "id": "m18_generator_2",
+            "position": {
+              "x": 0,
+              "y": 104,
+              "z": -2880
+            },
+            "required": true,
+            "scoreRole": "generator",
+            "type": "generator",
+            "yaw": 0
+          },
+          {
+            "group": "groove_3",
+            "id": "m18_generator_3",
+            "position": {
+              "x": 1920,
+              "y": 104,
+              "z": -2880
+            },
+            "required": true,
+            "scoreRole": "generator",
+            "type": "generator",
+            "yaw": 0
+          }
+        ],
+        "kind": "required_ground",
+        "label": "Silence the three generators",
+        "standaloneAce": {
+          "behaviour": "dogfight",
+          "headingDegrees": 90,
+          "health": 165,
+          "id": "m18_air_12",
+          "livery": "Vulture",
+          "name": "LAST ECHO",
+          "scoreRole": "ace",
+          "spawn": {
+            "x": -6500,
+            "y": 1000,
+            "z": 4800
+          },
+          "trigger": {
+            "kind": "phase_start",
+            "phase": 0
+          }
+        }
+      },
+      {
+        "batchD13": {
+          "ascending": [
+            {
+              "end": {
+                "x": 5000,
+                "y": 2000,
+                "z": -4000
+              },
+              "id": "m18_ascending_1",
+              "speed": 20,
+              "start": {
+                "x": 5000,
+                "y": 400,
+                "z": -4000
+              }
+            },
+            {
+              "end": {
+                "x": 5400,
+                "y": 2000,
+                "z": -4000
+              },
+              "id": "m18_ascending_2",
+              "speed": 20,
+              "start": {
+                "x": 5400,
+                "y": 400,
+                "z": -4000
+              }
+            },
+            {
+              "end": {
+                "x": 5800,
+                "y": 2000,
+                "z": -4000
+              },
+              "id": "m18_ascending_3",
+              "speed": 20,
+              "start": {
+                "x": 5800,
+                "y": 400,
+                "z": -4000
+              }
+            },
+            {
+              "end": {
+                "x": 6200,
+                "y": 2000,
+                "z": -4000
+              },
+              "id": "m18_ascending_4",
+              "speed": 20,
+              "start": {
+                "x": 6200,
+                "y": 400,
+                "z": -4000
+              }
+            }
+          ],
+          "vent": {
+            "checkpoints": [
+              {
+                "center": {
+                  "x": 0,
+                  "y": 174,
+                  "z": -3700
+                },
+                "half": {
+                  "x": 70,
+                  "y": 45,
+                  "z": 30
+                }
+              },
+              {
+                "center": {
+                  "x": 0,
+                  "y": 174,
+                  "z": -3800
+                },
+                "half": {
+                  "x": 70,
+                  "y": 45,
+                  "z": 30
+                }
+              }
+            ],
+            "core": "m18_core",
+            "exit": {
+              "center": {
+                "x": 0,
+                "y": 174,
+                "z": -7000
+              },
+              "half": {
+                "x": 70,
+                "y": 45,
+                "z": 30
+              }
+            },
+            "gate": {
+              "center": {
+                "x": 0,
+                "y": 174,
+                "z": -3700
+              },
+              "half": {
+                "x": 70,
+                "y": 45,
+                "z": 30
+              }
+            },
+            "generators": [
+              "m18_generator_1",
+              "m18_generator_2",
+              "m18_generator_3"
+            ],
+            "openingSeconds": 3
+          }
+        },
+        "chatter": [
+          {
+            "at": 0.3,
+            "text": "SERA: Core hits are not enough. Follow cyan all the way out."
+          }
+        ],
         "count": 1,
-        "kind": "required_air",
-        "label": "In development"
+        "groundTargets": [
+          {
+            "group": "vent",
+            "id": "m18_core",
+            "position": {
+              "x": -130,
+              "y": 174,
+              "z": -4000
+            },
+            "required": true,
+            "scoreRole": "core",
+            "type": "core",
+            "yaw": 0
+          }
+        ],
+        "hidden": true,
+        "kind": "required_ground",
+        "label": "Break the core and escape",
+        "update": {
+          "countdownSeconds": 1800,
+          "objective": "Descend north of the grooves; cyan route, core, then north exit",
+          "radio": [
+            "SERA: Feeds dark. Descend beyond the grooves. Level at 174 before amber.",
+            "SERA: Gate opens in three seconds. Core left; exit north, then climb."
+          ]
+        }
+      },
+      {
+        "batchD13": {
+          "duel": {
+            "center": {
+              "x": 0,
+              "y": 1400,
+              "z": -2880
+            },
+            "maxY": 2400,
+            "minY": 800,
+            "radius": 5760
+          },
+          "environment": "m18_voice_breaks"
+        },
+        "kind": "ace",
+        "label": "Rusk · the last transmission",
+        "update": {
+          "countdownSeconds": 300,
+          "objective": "Rusk alone · five minutes · allies hold fire",
+          "radio": [
+            "SERA: Clear of the works. Loop stopped. Rusk is coming up alone.",
+            "RUSK: Without my relay, who do you think will hear you?",
+            "SERA: We will. Wing clear. Finish this in your own sky."
+          ]
+        }
       }
     ],
-    "primary": "In development",
+    "pressure": {
+      "forwardConeDegrees": 45,
+      "playerPriority": 1,
+      "tailDefence": true
+    },
+    "primary": "Three generators → central vent and escape → Rusk alone",
     "region": "canyon_airfield",
-    "title": "Mission 18"
+    "scoring": {
+      "basis": "points",
+      "points": {
+        "ace": 240,
+        "ascending": 300,
+        "core": 990,
+        "elite": 90,
+        "generator": 500
+      },
+      "rank": {
+        "A": 4200,
+        "B": 3300,
+        "C": 2730,
+        "S": 4920
+      }
+    },
+    "start": {
+      "headingDegrees": 0,
+      "kind": "airborne",
+      "speed": 160,
+      "x": 0,
+      "y": 617,
+      "z": 7680
+    },
+    "terrainRelativeWarnings": true,
+    "title": "CLEAR FREQUENCY",
+    "worldKey": "m18_voice_breaks"
   }
 ]

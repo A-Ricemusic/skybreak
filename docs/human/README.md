@@ -1,6 +1,10 @@
-M17 #199 — Merge pending. LAST WING adds the capital score battle, four wingmen and protected Rusk withdrawal. Live by pipeline convention after merge; M18 remains locked. Studio verified: pending orchestrator run. No Player tests performed.
+M18 #200 — Merge pending. All 18 missions are playable in this branch; M15–M18 become live by pipeline convention after their ordered merges. CLEAR FREQUENCY: generators → timed vent/core/escape → isolated 5:00 Rusk duel → campaign completion and replay. Studio verified: pending orchestrator run. No Player tests performed.
 
-M16 #198 — Merge pending. DUST ROAD adds 138 ground targets, 32 queued aircraft, three column legs and repair service. Live by pipeline convention after merge; M18 remains locked. Studio verified: pending orchestrator run. No Player tests performed.
+Current dashboard supersedes historical handoff notes below: all 18 missions playable; #197, #198, #199 then #200 merge in order.
+
+Historical M17 handoff: #199 — Merge pending. LAST WING adds the capital score battle, four wingmen and protected Rusk withdrawal. Live by pipeline convention after merge; M18 remains locked. Studio verified: pending orchestrator run. No Player tests performed.
+
+Historical M16 handoff: #198 — Merge pending. DUST ROAD adds 138 ground targets, 32 queued aircraft, three column legs and repair service. Live by pipeline convention after merge; M18 remains locked. Studio verified: pending orchestrator run. No Player tests performed.
 
 # M15 integration — #197 Merge pending
 
@@ -32,7 +36,7 @@ M13 #195: merged as e2c7fab2; live by pipeline convention. Seven-minute gun swee
 
 M12 integration validation (2026-10-30): frozen install, build, required test:offline and manifest/catalog regeneration, and full validate:offline all exited 0 with the specified LUAU_BIN. Passed 1,088 Luau contracts, four loader probes, 19 catalog snapshots, three QA pilot scenarios and 124 Python tests. Story/radio inventory is 215 entries / 137 pending recordings; no audio generated. Catalog changes only M12; prerequisite mission definitions and every main decision record are preserved. D9/D10 cleanup paths remain unchanged; only M12 railgun models set LeaveWreck. Studio verified: pending orchestrator run. No Player tests claimed.
 
-Current integration: missions 1–13 are merged/live by pipeline convention; M12 #191 merged as 351d7988. M13 #195 merged as e2c7fab2; live by pipeline convention. M14 #196 is merge pending; M15–M18 remain locked. Studio verified: pending orchestrator run. No Player tests claimed. Older entries below describe their original handoffs.
+Historical integration: missions 1–13 are merged/live by pipeline convention; M12 #191 merged as 351d7988. M13 #195 merged as e2c7fab2; live by pipeline convention. M14 #196 is merge pending; M15–M18 remain locked. Studio verified: pending orchestrator run. No Player tests claimed. Older entries below describe their original handoffs.
 
 Historical pre-merge handoff for #189 (now merged at 5c88368c): M11 High Crossing protects two airliners for 313.28s against 17 ordinary attackers and optional RIME. Final D-445 balance correction uses mission-local Easy/Normal/Hard hulls 34/77/147 and requires ≥10% neglect-survival ordering on each route. The offline budget now uses difficulty-scaled reloads, shared WavePlan admission with RIME slot occupancy, admission-time formations and the shared hostile launch offset. Frozen install, standalone build and full validate:offline exited 0 (1,076 Luau contracts, 19 catalog snapshots, three QA pilot scenarios, 124 Python tests). Main through 0450491 is included. Studio/Player/phone acceptance remains pending; this model does not establish faithful runtime balance.
 
@@ -40,7 +44,7 @@ Historical pre-merge handoff for #189 (now merged at 5c88368c): M11 High Crossin
 
 Updated 2026-10-30 against main `06ca3e4`, integrating mission 10 #187. Merged gameplay is live by the owner's automatic-pipeline convention; no Player test is claimed.
 
-**Practice and missions 1–13 are live by pipeline convention; M14 #196 is merge pending; M15–M18 remain locked.** M10 unlocks after M09: ≥3,000 points through the full 20:00, repeated artillery, parked/airborne handoffs and optional runway rearm. Studio verified: pending orchestrator run. Player/phone not yet observed. M10 activates D6, M11 activates D7, and M12 activates D8; M13 activates D9.
+**Historical handoff: practice and missions 1–13 are live by pipeline convention; M14 #196 is merge pending; M15–M18 remain locked.** M10 unlocks after M09: ≥3,000 points through the full 20:00, repeated artillery, parked/airborne handoffs and optional runway rearm. Studio verified: pending orchestrator run. Player/phone not yet observed. M10 activates D6, M11 activates D7, and M12 activates D8; M13 activates D9.
 
 Live changes include mission 5's refinery strike/rearm/escape (#148), closest-on-screen TGT cycling (#172), full-bleed loading with jet/progress/tips (#173), and harder M01/M02 with a shared allied kill budget of approximately one per sortie (#174). #176 also fixes weather lookup for M05–M13 and registers all 18 environments. Automatic acquisition remains nose-first; practice and missions 1–5 do not enable the dormant gun, finite stock, naval/SAM/anti-ship or canyon/area-strike contracts.
 
@@ -71,7 +75,7 @@ Mission 7 merged fixes in #178: absolute Y=585 ceiling, full segmented artillery
 | 15 | Emancipation | 3:32:45–3:47:38 | 14.9 min | Yes | Yes | Playable SILENT STREETS #197; Studio verified: pending orchestrator run | Live after #197 merges (pipeline); Merge pending | Pending; no Player test |
 | 16 | Whiskey Corridor | 3:50:50–4:12:27 | 20:00 + optional service | Yes | Yes; provisional D-620–D-623 | DUST ROAD; #198 Merge pending | Live by pipeline convention after merge | Studio verified: pending orchestrator run |
 | 17 | Siege of Farbanti | 4:14:30–4:32:17 | 12:00 score + up to 18:00 wing | Yes | Yes; provisional D-640–D-644 | LAST WING; #199 Merge pending | Live by pipeline convention after merge | Studio verified: pending orchestrator run |
-| 18 | Megalith | 4:36:59–4:46:22 | 9.4 min | Yes | Yes | World built/dormant; mission integration pending | No | — |
+| 18 | Megalith / CLEAR FREQUENCY | 4:36:59–4:46:22 | 20:00 generators + fresh 30:00 vent + 5:00 duel | Yes | Yes; D-660–D-664 | Playable #200; Merge pending | Live by pipeline convention after merge | Studio verified: pending orchestrator run |
 
 Footage times are internal reference cross-references, not shipped titles; see the [ledger](../../reference/ledger.md). World construction does not activate a mission. No new Studio or Player verification was performed for this reconciliation.
 
@@ -173,3 +177,6 @@ M16 #198 shared-targeting review fix (2026-10-31; unmerged): fairness now select
 Shared-targeting fix validation: frozen install, build and full prescribed-LUAU_BIN validate:offline exited 0. Catalog snapshot changed only the two M16 town ingress coordinates. No merge or Studio/Player verification.
 
 M17 #199 replay validation (2026-10-31, M16 base `9752a5ad`): frozen install, standalone build, required test:offline/voice/story/catalog sequence and full prescribed-LUAU_BIN validate:offline each exited 0. Passed 1,201 offline Luau contracts, four loader probes, 475 module compilations, 197 require-graph nodes, 19 catalog snapshots, three QA pilot scenarios and 124 Python tests. All 113 base offline specs plus three M17 specs remain in both lists with checkedRequire. Runtime Jest compiled only; adopted models are tested by TargetId. Only M17 catalog snapshot changes; every base decision and non-M17 voice entry is preserved. Voice inventory: 239 entries / 161 pending recordings. No Studio, test:roblox, Player tests, uploads or merge performed. Studio verified: pending orchestrator run. #199 Merge pending; live by pipeline convention after merge.
+
+
+M18 #200 replay validation (2026-10-31, M17 base be746a10): frozen install, standalone build, test:offline plus voice/story/catalog regeneration, and full prescribed-LUAU_BIN validate:offline exited 0. Passed 1,210 Luau contracts, four loader probes, 483 module compilations, 201 require-graph nodes, 19 catalog snapshots, three QA pilot scenarios and 124 Python tests. Both lists retain all 118 offline specs and checkedRequire. Base decision text is preserved in full; every non-M18 voice entry is unchanged; only M18 catalog changes. Voice inventory: 250 entries / 172 pending recordings. Duel wins: Easy 107.16s / Normal 134.12s / Hard 199.92s. Runtime/world Jest compiled only. No Studio, test:roblox, Player tests, uploads or merge performed. Studio verified: pending orchestrator run. Merge pending; live by pipeline convention after merge.
