@@ -1,3 +1,4 @@
+import { completeRearmRepair } from "./EngineBatchD11Runtime";
 import { spatialJammersAt } from "./EngineBatchD9Runtime";
 import { FlightMath } from "../shared/FlightMath";
 import { GunRules, SortieArmament } from "../shared/SortieArmament";
@@ -69,6 +70,7 @@ export function stepRearm(s: CombatSession, dt: number, maxMissiles: number, sen
 	const [fx,fy,fz] = FlightMath.ForwardOf(s.state);
 	s.aircraftFrame = CFrame.lookAt(position,position.add(new Vector3(fx,fy,fz)));
 	if (s.rearmElapsed >= rearmDuration(plan)) {
+		completeRearmRepair(s,plan.health);
 		if (plan.missiles) s.missiles = maxMissiles;
 		// M05 only confirms missile/special refill; damage is preserved. Default armament gives a fresh special
 		// exactly as before; a finite stock restores its own charges and the fitted gun's magazine (batch D1).

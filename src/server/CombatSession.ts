@@ -32,6 +32,8 @@ export interface Enemy {
 	surfaceOrigin?: CFrame;
 	surfaceStartedAt?: number;
 	typedGround?: TypedGroundTarget;
+	/** D11 gate passed during its owning phase; persists after the director is cleared. */
+	reserveReleased?: boolean;
 	phaseOwner?: number;
 	scoreRole?: string;
 	groundAttack?: boolean;
@@ -117,6 +119,7 @@ export interface CombatSession {
 	cruise?: CruiseRuntime;
  airshipPhase?: number;
 	ringArtillery?: { phase: number; state: ArtilleryState };
+	leaderWithdrawal?: import("./EngineBatchD12Runtime").LeaderRuntime;
 	protectedFlight?: {phase: number; actors: import("./EngineBatchD7Runtime").ProtectedActor[]};
 	contactClock?: number;
 	repeatedArtillery?: {phase:number;state:import("../shared/EngineBatchD6").ScheduledArtillery};

@@ -117,7 +117,7 @@ describe("M10 River Line",()=>{
   const c=new CampaignCoordinator("m10-forged",undefined,{now:()=>1000,defer:()=>undefined});c.load();const slot=c.getSlots()[0];slot.missions??={};
   for(let i=1;i<=18;i++) slot.missions[i]={completed:true};
   for(let missing=1;missing<=9;missing++) {slot.missions[missing]={completed:false};expect(canLaunchMission(10,slot)).toBe(false);slot.missions[missing]={completed:true};}
-  expect(canLaunchMission(10,slot)).toBe(true);expect(canLaunchMission(11,slot)).toBe(false);
+  expect(canLaunchMission(10,slot)).toBe(true);expect(canLaunchMission(11,slot)).toBe(true);expect(canLaunchMission(12,slot)).toBe(true);expect(canLaunchMission(13,slot)).toBe(false);
  }));
  it("settles a full win once and round-trips its points; rejects incomplete phases",()=>earlier(()=>{
   const c=new CampaignCoordinator("m10-settle",undefined,{now:()=>1000,defer:()=>undefined});c.load();const slot=c.getSlots()[0];slot.missions??={};

@@ -1,14 +1,26 @@
 # Shipped
 
+Unmerged PR #191 tooling update: canonical numeric catalog fixture prevents platform-specific Luau trig drift. No gameplay or Player change.
+
+M12 integration validation (2026-10-30): frozen install, build, required test:offline and manifest/catalog regeneration, and full validate:offline all exited 0 with the specified LUAU_BIN. Passed 1,088 Luau contracts, four loader probes, 19 catalog snapshots, three QA pilot scenarios and 124 Python tests. Story/radio inventory is 215 entries / 137 pending recordings; no audio generated. Catalog changes only M12; prerequisite mission definitions and every main decision record are preserved. D9/D10 cleanup paths remain unchanged; only M12 railgun models set LeaveWreck. Studio verified: pending orchestrator run. No Player tests claimed.
+
+| PR | Change | Status / owner observation |
+|---|---|---|
+| [#191](https://github.com/A-Ricemusic/skybreak/pull/191) | M12 THE COMMAND RING: seven guns in 15:00, strike rearm, fresh 10:00 elite/recovery; unlocks after M11 | Merge pending; live by pipeline convention after merge. Studio verified: pending orchestrator run. No Player test. |
+| [#192](https://github.com/A-Ricemusic/skybreak/pull/192) | `85ce755` | D11 ground-force extensions, repair rearm (M15–17 only), service clocks, cheap armour | No visible change — engine support, dormant. Missions 15–16 have not activated on main. |
+
+Merged final balance correction (#189, 5c88368c): PR #189 D-445 retunes M11 hulls to 34/77/147, asserts ≥10% Easy > Normal > Hard neglect survival on both routes, and corrects scaled reload/admission/formation/launch-offset modelling. Frozen install, build and full offline validation exited 0; regenerated catalog changes only M11. Merged/live by pipeline convention; no Player test is claimed.
+
 **M09 arrival regression, 2026-10-30:** Orchestrator reported Studio Jest 1,219/1,220 at `21be233`: the sole failure expected nine generic opening bandits, but D5 authors three required trios at mission times 600/625/650. #185 corrects the test to check exact timed admissions and duplicates, retaining D4 slots and adding grouped/delayed-launch coverage. Runtime remains unchanged: completion requires all nine kills. An offline regression clears early trios without ending the phase. Frozen install, build and full offline validation exited 0 (1,023 Luau contracts, 19 catalog snapshots, 124 Python tests). The director regression compiles but requires the orchestrator’s Studio rerun; this task did not launch Studio or claim a Player test.
 
-Updated 2026-10-30 against main `06ca3e4`. Practice and missions 1–9 are live by pipeline convention; M10 goes live after #187 merges. No new Studio, Player or phone test is claimed. Older entries describe behavior at their merge; later entries supersede tuning and dormant activation status.
+Updated 2026-10-30 against main `06ca3e4`. Practice and missions 1–9 are live by pipeline convention; M10 and M11 are now merged/live by pipeline convention. No new Studio, Player or phone test is claimed. Older entries describe behavior at their merge; later entries supersede tuning and dormant activation status.
 
 ## Merged and pending 2026-10-30, newest first
 
 | PR | Commit | Change | What the owner sees in Roblox Player |
 |---|---|---|---|
-| [#187](https://github.com/A-Ricemusic/skybreak/pull/187) | Merge pending | Mission 10 RIVER LINE playable | Live after merge by pipeline convention: after M09, ≥3,000 points / full 20:00, repeated artillery, parked/airborne handoffs and optional finite-weapon runway rearm; two route slots within eight total. D-380–D-383. Studio verified: pending orchestrator run. Player/phone not yet observed. |
+| [#189](https://github.com/A-Ricemusic/skybreak/pull/189) | `5c88368c` | M11 High Crossing | Live by pipeline convention; Studio/Player observation pending. |
+| [#187](https://github.com/A-Ricemusic/skybreak/pull/187) | `7ff07613` | Mission 10 RIVER LINE playable | Live after merge by pipeline convention: after M09, ≥3,000 points / full 20:00, repeated artillery, parked/airborne handoffs and optional finite-weapon runway rearm; two route slots within eight total. D-380–D-383. Studio verified: pending orchestrator run. Player/phone not yet observed. |
 | [#188](https://github.com/A-Ricemusic/skybreak/pull/188) | `f35430f` | D9 airship jammers and corridor jamming | No visible change — engine support, dormant. Mission 13 has not activated on main. |
 | [#185](https://github.com/A-Ricemusic/skybreak/pull/185) | `06ca3e4` | Mission 9 GREEN BEACON playable | Live after merge by pipeline convention: unlock after M08; ≥2,200 points / full 10:00 beach suppression, optional finite-weapon carrier rearm, then 7:00 defence against nine beach attackers. Provisional D-340–D-344; activates D5 D-290–D-293. Studio verified: pending orchestrator run. Player/phone not yet observed. |
 | [#186](https://github.com/A-Ricemusic/skybreak/pull/186) | `f4eb4db` | D8 ground ECM, guided bomb, elite retreat, ring sweep, M12 types | No visible change — engine support, dormant. Mission 12 has not activated on main. |
@@ -122,3 +134,9 @@ These merged gameplay changes are live through the automatic pipeline convention
 The earlier AC04 release (#92) was rejected and reverted (`b0737fa`). #77 (mission 1 tutorial rework) and #91 (TypeScript 5.9) were closed without merging.
 
 PR #144 merged as `7711b70`: dormant mission 4–5 worlds, with M05 owning environment/effects. PR #145 batch C is merged; no Studio or Player observation from this pass.
+
+PR #192 follow-up (unmerged): corrected the D11 runtime test’s score-phase fixture to include authored ground targets, a cheap-contact opt-in and score clock. The reported Studio failure was the scoring admission assertion at compiled line 133; earlier release/visibility assertions passed. Added offline rejection/admission/deduplication coverage. No shipped gameplay changes, deployment or Player verification is claimed; orchestrator Studio rerun pending.
+
+The corrected D11 scoring fixtures use an explicit 150-point ground award: M01’s default rating policy awards zero ground points, which made the prior unchanged-total check insufficient to prove score deduplication. Runtime admission/ledger code is unchanged.
+
+D11 fixture-fix validation (2026-10-30): `bun install --frozen-lockfile`, `bun run build` and the prescribed `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau" bun run validate:offline` each exited 0. Passed 1,077 Luau contracts, four negative loader probes, 19 unchanged catalog snapshots and 124 Python tests. No Studio, `test:roblox`, Player test, merge or upload was performed.

@@ -48,10 +48,10 @@ describe("D8 dormant rules",()=>{
  });
  it("validates live ring source identity, finite budgets and phase ownership",()=>{
   const p=strike(); p.ringSweep=sweep(); validateBatchD8([p],15360);
-  for(const patch of [{range:45001},{intervalSeconds:3},{damage:0/0},{halfWidth:0},{sweepDegrees:181}]) { p.ringSweep={...sweep(),...patch}; expect(rejects(()=>validateBatchD8([p],15360))).toBe(true); }
+  for(const patch of [{ceiling:0},{ceiling:2001},{ceiling:0/0},{range:45001},{intervalSeconds:3},{damage:0/0},{halfWidth:0},{sweepDegrees:181}]) { p.ringSweep={...sweep(),...patch}; expect(rejects(()=>validateBatchD8([p],15360))).toBe(true); }
   p.ringSweep=sweep(); p.ringSweep.guns[0].targetId="wreck"; expect(rejects(()=>validateBatchD8([p],15360))).toBe(true);
  });
- it("keeps every catalog phase opted out",()=>{
-  for(let id=0;id<=18;id++) for(const p of MissionCatalog.Get(id).phases) { expect(p.ringSweep).toBeUndefined(); expect(p.eliteFormation).toBeUndefined(); }
+ it("keeps other catalog phases opted out",()=>{
+  for(let id=0;id<=18;id++) if(id!==12) for(const p of MissionCatalog.Get(id).phases) { expect(p.ringSweep).toBeUndefined(); expect(p.eliteFormation).toBeUndefined(); }
  });
 });

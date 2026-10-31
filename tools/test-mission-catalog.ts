@@ -30,7 +30,13 @@ await Bun.write(path,script);
 const proc=Bun.spawn([requireLuauBin(),path],{stdout:"pipe",stderr:"pipe"});
 const [stdout,stderr,code]=await Promise.all([new Response(proc.stdout).text(),new Response(proc.stderr).text(),proc.exited]);
 if(code!==0)throw new Error(stderr);
+// Canonicalize both fixture writes and comparison operands: Luau trig can differ
+// in its last float digits across platforms. Preserve integer and nonnumeric data.
 function sorted(value: unknown): unknown {
+ if(typeof value==="number") {
+  const rounded=Number.isInteger(value) ? value : Number(value.toFixed(6));
+  return Object.is(rounded,-0) ? 0 : rounded;
+ }
  if(Array.isArray(value))return value.map(sorted);
  if(value!==null && typeof value==="object")return Object.fromEntries(Object.entries(value).sort(([a],[b])=>a.localeCompare(b)).map(([k,v])=>[k,sorted(v)]));
  return value;

@@ -1,3 +1,4 @@
+import type { DifficultyKind } from "./Difficulty";
 import { finiteNumber } from "./EngineBatchB";
 import type { FlightPoint, MissionPhaseBlueprint } from "./MissionCatalog";
 
@@ -5,7 +6,11 @@ export interface ProtectedAircraftPlan {
  id: string;
  callsign: string;
  health: number;
+ healthByDifficulty?: { easy: number; normal: number; ace: number };
  route: { waypoints: FlightPoint[]; speed: number };
+}
+export function protectedHealth(plan:ProtectedAircraftPlan,difficulty:DifficultyKind):number {
+ return plan.healthByDifficulty?.[difficulty] ?? plan.health;
 }
 export interface ProtectionPlan {
  aircraft: ProtectedAircraftPlan[];
@@ -65,6 +70,7 @@ export function validateBatchD7(phases: MissionPhaseBlueprint[], limit: number):
    assert(a.id.size()>0 && !ids.has(a.id),"Protected ids must be unique"); ids.add(a.id); localIds.add(a.id);
    assert(a.callsign.size()>0 && a.callsign.size()<=24,"Protected callsign must fit HUD");
    assert(finiteNumber(a.health) && a.health>0 && a.health<=1000,"Invalid protected health");
+   for(const h of a.healthByDifficulty ? [a.healthByDifficulty.easy,a.healthByDifficulty.normal,a.healthByDifficulty.ace] : []) assert(finiteNumber(h) && h>0 && h<=1000,"Invalid difficulty protected health");
    assert(finiteNumber(a.route.speed) && a.route.speed>=20 && a.route.speed<=200 && a.route.waypoints.size()>=2 && a.route.waypoints.size()<=32,"Invalid protected route");
    for(const v of a.route.waypoints) assert(finiteNumber(v.x) && finiteNumber(v.y) && finiteNumber(v.z) && math.abs(v.x)<=limit && math.abs(v.z)<=limit && v.y>=170 && v.y<=ceiling,"Protected route outside envelope");
    for(let i=1;i<a.route.waypoints.size();i++) { const a0=a.route.waypoints[i-1], b=a.route.waypoints[i]; assert((a0.x-b.x)**2+(a0.z-b.z)**2>1,"Protected route has duplicate/vertical leg"); }

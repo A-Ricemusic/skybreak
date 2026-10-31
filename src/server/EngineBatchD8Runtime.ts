@@ -1,3 +1,4 @@
+import { MISSION_STORY_TEXT } from "../shared/StoryMissionText";
 import { Workspace } from "@rbxts/services";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { artilleryMasked, newArtillery, stepArtillery } from "../shared/EngineBatchD3";
@@ -10,9 +11,9 @@ export function stepRingSweep(s: CombatSession, dt: number, say: (line: string)=
  if(s.ringArtillery?.phase!==bs.phaseIndex) s.ringArtillery={phase:bs.phaseIndex,state:newArtillery()};
  const state=s.ringArtillery!.state;
  // Reuse D3 timing and segmented masking (<=1,000 studs, never a >15,000-stud ray).
- const clock={...p,ceiling:2000,source:p.guns[0].source,channel:[],clearance:1};
+ const clock={...p,ceiling:p.ceiling ?? 2000,source:p.guns[0].source,channel:[],clearance:1};
  const event=stepArtillery(state,clock,dt);
- if(event.warning) say("RING BATTERY · CLEAR THE FIRING LINE");
+ if(event.warning) say(p.ceiling !== undefined ? `RING BATTERY · CLIMB ABOVE ${math.ceil(p.ceiling / 0.292608)} FT` : "RING BATTERY · CLEAR THE FIRING LINE");
  if(event.countdown) say(`RING SWEEP IN ${p.countdownSeconds} SECONDS`);
  if(!event.impact) return;
  for(const g of p.guns) {
@@ -33,5 +34,5 @@ export function completeEliteRetreat(s: CombatSession, withdraw: ()=>void, say: 
  s.airQueue.clear();
  withdraw();
  for(let i=s.projectiles.size()-1;i>=0;i--) if(s.projectiles[i].hostile) { s.projectiles[i].part.Destroy(); s.projectiles.remove(i); }
- say("VULTURE TWO EJECTED · RECOVERY DISPATCHED. ELITE FLIGHT WITHDRAWING.");
+ say(s.missionId === 12 ? MISSION_STORY_TEXT[12].radio[2] : "VULTURE TWO EJECTED · RECOVERY DISPATCHED. ELITE FLIGHT WITHDRAWING.");
 }
