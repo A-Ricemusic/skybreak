@@ -1,5 +1,5 @@
 import { FlightMath } from "../shared/FlightMath";
-import { SpecialWeapons } from "../shared/SpecialWeapons";
+import { GunRules, SortieArmament } from "../shared/SortieArmament";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { jammedLockAllowed, rearmDuration, rearmPose } from "../shared/EngineBatchC";
 import { PauseRules } from "../shared/SessionGuard";
@@ -24,7 +24,8 @@ export function announceJammerKill(s: CombatSession, enemy: Enemy, radio: (line:
 	radio(liveJammers(s)>0 ? plan.remainingCall : plan.clearCall);
 }
 /** Owns the complete fixed step. Pause simulation and shift the epoch by actual wall time.
-	* Re-entry requires leaving the zone, so a takeoff ending inside it cannot refill repeatedly. */
+	* Re-entry requires leaving the zone, so a takeoff ending inside it cannot refill repeatedly.
+	* `maxMissiles` is the sortie's rack capacity: eight by default, the finite stock under batch D1. */
 export function stepRearm(s: CombatSession, dt: number, maxMissiles: number, send: (message: unknown) => void, say?: (line: string) => void): boolean {
 	const bs = s.blueprintState, plan = bs && BlueprintRunner.ActivePhase(bs)?.rearm;
 	if (s.pause && PauseRules.Paused(s.pause)) return s.rearmElapsed !== undefined;
@@ -44,6 +45,7 @@ export function stepRearm(s: CombatSession, dt: number, maxMissiles: number, sen
 		bs.rearmActive = true;
 		s.rearmStartedAt = os.clock(); s.rearmEpoch = bs.startedAt;
 		s.rearmElapsed = 0; s.rearmLatched = true; s.lockProgress = 0;
+		if (s.gun) GunRules.Stop(s.gun);
 
 	}
 	// The TAKEOFF / CHANGE WEAPON menu holds the jet on the runway until answered (or REARM_MENU_SECONDS).
@@ -65,8 +67,12 @@ export function stepRearm(s: CombatSession, dt: number, maxMissiles: number, sen
 	s.aircraftFrame = CFrame.lookAt(position,position.add(new Vector3(fx,fy,fz)));
 	if (s.rearmElapsed >= rearmDuration(plan)) {
 		if (plan.missiles) s.missiles = maxMissiles;
-		// M05 only confirms missile/special refill; damage is preserved.
-		if (plan.special) s.special = SpecialWeapons.New(s.special.kind);
+		// M05 only confirms missile/special refill; damage is preserved. Default armament gives a fresh special
+		// exactly as before; a finite stock restores its own charges and the fitted gun's magazine (batch D1).
+		const armament = s.blueprint?.armament;
+		const refill = SortieArmament.Refill(plan, armament, s.special.kind);
+		if (refill.special) s.special = refill.special;
+		if (s.gun && refill.gunRounds !== undefined) GunRules.Refill(s.gun, refill.gunRounds);
 		bs.startedAt = (s.rearmEpoch ?? bs.startedAt) + os.clock() - (s.rearmStartedAt ?? os.clock());
 		bs.rearmActive = undefined; s.rearmElapsed = undefined; s.rearmMenu = undefined; s.rearmAnswered = undefined;
 		send({kind:"RearmComplete",state:s.state,sequence:s.stateSequence});
@@ -78,7 +84,8 @@ export function stepRearm(s: CombatSession, dt: number, maxMissiles: number, sen
 export function answerRearmMenu(s: CombatSession, special: unknown, send: (message: unknown) => void): boolean {
 	if (s.rearmElapsed === undefined || s.rearmMenu === undefined) return false;
 	const kind = takeoffChoice(special);
-	if (kind !== undefined && kind !== s.special.kind) s.special = SpecialWeapons.New(kind);
+	// Batch D1: a finite-stock sortie gets the new special's stock; default armament is SpecialWeapons.New exactly.
+	if (kind !== undefined && kind !== s.special.kind) s.special = SortieArmament.NewSpecial(kind, s.blueprint?.armament);
 	s.rearmMenu = undefined; s.rearmAnswered = true;
 	send({ kind: "RearmTakeoff", elapsed: s.rearmElapsed, special: s.special.kind });
 	return true;

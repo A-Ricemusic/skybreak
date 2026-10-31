@@ -176,6 +176,8 @@ export interface MissionLoading {
 	expectedParts?: number;
 }
 export interface Telemetry {
+	/** Batch D1: rounds left in the fitted gun; absent when the sortie has no gun. */
+	gunRounds?: number;
 	radarJammed?: boolean;
 	radarPartial?: boolean;
 	jamVisualRange?: number;

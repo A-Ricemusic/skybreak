@@ -8,6 +8,7 @@ import { MissionBlueprint } from "../shared/MissionCatalog";
 import { FlightInput, HudState } from "../shared/Types";
 import { ActionGateState, FireNotice } from "../shared/WeaponRules";
 import { SpecialState } from "../shared/SpecialWeapons";
+import type { GunState } from "../shared/SortieArmament";
 import { DifficultyKind } from "../shared/Difficulty";
 import { EvadeState } from "../shared/EvadeRules";
 import { AceStageState } from "../shared/AceRules";
@@ -138,6 +139,10 @@ export interface CombatSession {
 	evadeRemaining: number; regen: number; lockProgress: number;
 	/** Second weapon slot chosen at the briefing; authoritative charges, cooldown and effect timer. */
 	special: SpecialState;
+	/** Batch D1: the fitted gun (rounds, trigger, shot cooldown); absent unless the mission's armament fits one. */
+	gun?: GunState;
+	/** Gun line-of-fire filter (ground surfaces, water ignored), built on first use. */
+	gunParams?: RaycastParams;
 	/** Level chosen at the briefing; scales the act tuning through `tuned()` and enemy health. */
 	difficulty: DifficultyKind;
 	allies: Enemy[];

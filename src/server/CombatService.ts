@@ -39,6 +39,8 @@ import { LoadingGate } from "../shared/LoadingGate";
 import { countParts } from "../shared/MissionParts";
 import { FireNotice, WeaponRules } from "../shared/WeaponRules";
 import { SalvoCandidate, SpecialKind, SpecialWeapons } from "../shared/SpecialWeapons";
+import { GunCandidate, GunRules, SortieArmament } from "../shared/SortieArmament";
+import { gunOccluded, gunRaycastParams } from "./GunRuntime";
 import { Difficulty, DifficultyKind, DifficultyKnob } from "../shared/Difficulty";
 import { ThreatRules } from "../shared/ThreatRules";
 import { EvadeRules } from "../shared/EvadeRules";
@@ -61,7 +63,6 @@ let telemetryRemote: UnreliableRemoteEvent | undefined;
 let combatEffectRemote: RemoteEvent | undefined;
 let onFinished: FinishedCallback | undefined;
 const FIXED_STEP = 1 / 30;
-const MAX_MISSILES = WeaponRules.MaxMissiles;
 const PLAYER_MISSILE_DAMAGE = SpecialWeapons.StandardDamage;
 // Threat tuning indexed by act (1-3). Missions 1-2 use act 1. Every knob is a plain per-act array so the
 // difficulty selector can multiply it in tuned() without touching the combat code. Missions 1-4 use GENTLE
@@ -429,6 +430,7 @@ function sendTelemetry(session: CombatSession): void {
 		missiles: session.missiles, missileCooldown: session.missileCooldown, evadeCooldown: EvadeRules.Cooldown(session.evade, session.evadeRemaining),
 		// A points mission keeps its PTS line through the phases after its score threshold.
 		missionPoints: phase?.scoreThreshold || session.blueprint?.phases.some((p) => p.scoreThreshold !== undefined) ? session.targetScore.Total() : undefined,
+		gunRounds: session.gun?.rounds,
 		radarPartial: phase?.jamming ? liveJammers(session)===1 : undefined,
 		jamVisualRange: phase?.jamming && liveJammers(session)>0 ? phase.jamming.visualLockRange : undefined,
 		radarJammed: session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.jamming ? liveJammers(session)>0 : undefined,
@@ -810,7 +812,7 @@ function withdrawAirborne(session: CombatSession): void {
 		for (let index = session.projectiles.size() - 1; index >= 0; index--) {
 			const missile = session.projectiles[index];
 			if (missile.hostile || missile.target !== enemy) continue;
-			if (!missile.special && !missile.allied) session.missiles = math.min(MAX_MISSILES, session.missiles + 1);
+			if (!missile.special && !missile.allied) session.missiles = SortieArmament.Refund(session.missiles, session.blueprint?.armament);
 			missile.part.Destroy(); session.projectiles.remove(index);
 		}
 	}
@@ -872,7 +874,8 @@ function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy, 
 			canDamage: current ? sessionCanDamage(session, current.kind, current.required) : false,
 			lockRange: SpecialWeapons.StandardLockRange(session.special),
 		});
-		if (decision.kind === "denied") { denyFire(session, decision.reason); return; }
+		// A finite stock (batch D1) says the missiles are spent, not reloading.
+		if (decision.kind === "denied") { denyFire(session, decision.reason === "no_ammo" ? SortieArmament.EmptyNotice(session.blueprint?.armament) : decision.reason); return; }
 		position = positionFor(session.state).add(directionFor(session.state).mul(16)).sub(new Vector3(0, 2, 0));
 		direction = directionFor(session.state);
 		// session.target is the enemy the player's lock is building on; preserve that meaning with nose-aligned selection.
@@ -1490,18 +1493,65 @@ function stepMissiles(session: CombatSession, dt: number): void {
 	// the session itself when a kill settles the outcome.
 	refreshSession(session, os.clock());
 }
+/** GUN pressed: hold the trigger, or explain an empty magazine. Sorties without a fitted gun ignore it. */
+function startGun(session: CombatSession): void {
+	if (!session.gun) return;
+	const refused = GunRules.Start(session.gun);
+	if (refused) denyFire(session, refused);
+}
+/** One gun round on an enemy: the same ace staging and kill path as a missile hit, without a projectile. */
+function gunStrike(session: CombatSession, enemy: Enemy): void {
+	if (enemy.aceState && AceRules.Invulnerable(enemy.aceState, session.elapsed)) return;
+	let damage = GunRules.Damage;
+	if (enemy.aceState) damage = AceRules.CapHit(enemy.aceState, enemy.health, enemy.maxHealth, damage);
+	if (damage <= 0) return;
+	if (enemy.health <= damage) { destroyEnemy(session, enemy); return; }
+	const before = enemy.health;
+	enemy.health -= damage;
+	enemy.model.SetAttribute("Health", enemy.health);
+	if (enemy.aceState) { aceStage(session, enemy, before, enemy.health); publishEnemyDamageable(session, enemy); }
+}
+/**
+ * Batch D1 player gun, server-authoritative: the trigger state and magazine live here, each round is an
+ * instant line from the nose (GunRules.Resolve) checked against terrain, and kills use destroyEnemy.
+ */
+function stepGun(session: CombatSession, dt: number): void {
+	const gun = session.gun;
+	if (!gun) return;
+	const rounds = GunRules.Step(gun, dt);
+	if (rounds <= 0) return;
+	const origin = positionFor(session.state).add(directionFor(session.state).mul(16));
+	const forward = point(directionFor(session.state));
+	for (let round = 0; round < rounds && session.active; round++) {
+		const candidates: GunCandidate[] = session.enemies.map((enemy) => ({
+			position: point(enemy.position), ground: enemy.kind === "ground",
+			allowed: ownsEnemy(session, enemy) && enemy.enabled && enemy.health > 0 && enemy.withdrawUntil === undefined && sessionCanDamage(session, enemy.kind, enemy.required),
+		}));
+		const index = GunRules.Resolve(point(origin), forward, candidates);
+		if (index === undefined) continue;
+		const enemy = session.enemies[index];
+		if (session.groundParams) {
+			session.gunParams ??= gunRaycastParams(session.groundParams);
+			if (gunOccluded(session.gunParams, origin, enemy.position, enemy.model)) continue;
+		}
+		gun.hits += 1;
+		if (GunRules.TakeEffect(gun, session.elapsed)) effect(session, "hit", enemy.position, { scale: 0.5 });
+		gunStrike(session, enemy);
+	}
+}
 function stepSession(session: CombatSession, dt: number): void {
 	if (stepCutIn(session,dt,(message)=>missionState!.FireClient(session.player,message),(line)=>radio(session,line))) {
 		session.telemetryTime+=dt;
 		if(session.telemetryTime>=TELEMETRY_INTERVAL) { session.telemetryTime=0; sendTelemetry(session); }
 		return;
 	}
-	if (stepRearm(session,dt,MAX_MISSILES,(message)=>missionState!.FireClient(session.player,message),(line)=>radio(session,line))) {
+	if (stepRearm(session,dt,SortieArmament.MissileCapacity(session.blueprint?.armament),(message)=>missionState!.FireClient(session.player,message),(line)=>radio(session,line))) {
 		session.telemetryTime+=dt;
 		if(session.telemetryTime>=TELEMETRY_INTERVAL) { session.telemetryTime=0; sendTelemetry(session); }
 		return;
 	}
 	if (stepLanding(session,dt,(message)=>missionState!.FireClient(session.player,message),(line)=>radio(session,line,6))) {
+		if (session.gun) GunRules.Stop(session.gun);
 		session.aircraftFrame=frameFor(session.state);
 		if (sessionOutcome(session) !== undefined) finish(session);
 		else {
@@ -1540,11 +1590,12 @@ function stepSession(session: CombatSession, dt: number): void {
 	session.evadeRemaining = math.max(0, session.evadeRemaining - dt);
 	EvadeRules.Tick(session.evade, dt);
 	SpecialWeapons.Tick(session.special, dt);
-	session.regen += dt;
-	if (session.regen >= 2.5) { session.regen -= 2.5; session.missiles = math.min(MAX_MISSILES, session.missiles + 1); }
+	// Default rack: +1 missile every 2.5 s up to eight; an opted-in finite stock never regenerates.
+	const [missiles, regen] = SortieArmament.RackTick(session.missiles, session.regen, dt, session.blueprint?.armament);
+	session.missiles = missiles; session.regen = regen;
 	// Input silence (a suspended phone app, a dropped connection): centre the stick and ease the
 	// jet level, since a centred stick alone would now hold whatever dive it was in.
-	if (os.clock() - session.lastInput > 0.7) { session.input.x = 0; session.input.y = 0; session.input.assist = true; }
+	if (os.clock() - session.lastInput > 0.7) { session.input.x = 0; session.input.y = 0; session.input.assist = true; if (session.gun) GunRules.Stop(session.gun); }
 	// Mission 1 observes real control usage during its tutorial phases.
 	if (session.blueprintState) BlueprintRunner.ObserveControls(session.blueprintState, session.input.x, session.input.y, dt, os.clock());
 	if (sessionOutcome(session) !== undefined) { finish(session); return; }
@@ -1596,6 +1647,8 @@ function stepSession(session: CombatSession, dt: number): void {
 		session.lockProgress = staged ? 0 : inEnvelope
 			? math.min(1, session.lockProgress + dt / SpecialWeapons.LockBuildSeconds(session.special)) : math.max(0, session.lockProgress - dt * WeaponRules.LockDecayPerSecond);
 	}
+	stepGun(session, dt);
+	if (!session.active) return;
 	stepMissiles(session, dt);
 	if (!refreshSession(session, os.clock())) return;
 	session.stateTime += dt;
@@ -1657,6 +1710,7 @@ function pauseSession(session: CombatSession, now: number): void {
 	// A refused pause (budget spent) still answers, so the client un-freezes instead of waiting.
 	if (!PauseRules.Pause(session.pause, now)) { sendTelemetry(session); return; }
 	session.input.x = 0; session.input.y = 0;
+	if (session.gun) GunRules.Stop(session.gun);
 	sendTelemetry(session);
 }
 /**
@@ -1757,8 +1811,9 @@ export const CombatService = {
 				targetScore: new TargetScore(MissionCatalog.Scoring(missionId)),
 				player, slot, folder, aircraft, state, missionId, airspace: MissionCatalog.Airspace(missionId), lastWindupAt: -math.huge, radioSerial: 0, chatterIndex: 0,
 				input: { x: 0, y: 0, throttle: FlightMath.CruiseThrottle }, health: 100, kills: 0, elapsed: 0,
-				missiles: MAX_MISSILES, missileCooldown: 0, evadeRemaining: 0, regen: 0, lockProgress: 0,
-				special: SpecialWeapons.New(specialKind),
+				// Absent armament: eight regenerating missiles, the special's own charges and no gun (unchanged).
+				missiles: SortieArmament.MissileCapacity(blueprint.armament), missileCooldown: 0, evadeRemaining: 0, regen: 0, lockProgress: 0,
+				special: SortieArmament.NewSpecial(specialKind, blueprint.armament), gun: GunRules.New(blueprint.armament),
 				difficulty: difficultyKind,
 				allies: [], alliedKills: [], alliedFireAt: -math.huge, enemies: [], projectiles: [], telemetryTime: 0, lastInput: os.clock(), lastInputEvent: -math.huge,
 				active: true, finished: false, cleaned: false, previousReplicationFocus: player.ReplicationFocus,
@@ -1892,6 +1947,8 @@ export const CombatService = {
 				return;
 			}
 			if (!WeaponRules.IsActionKind(data.action)) return;
+			// Releasing the trigger is idempotent and always honoured: never rate-limited or dropped behind a yielded step.
+			if (data.action === "GunStop") { if (session.gun) GunRules.Stop(session.gun); return; }
 			// Rate limited per action kind: a TGT tap followed closely by FIRE still fires.
 			session.actionGate ??= WeaponRules.NewActionGate();
 			if (!WeaponRules.AcceptAction(session.actionGate, data.action, now)) return;
@@ -1936,6 +1993,7 @@ export const CombatService = {
 					if (enemy) selectTarget(session, enemy);
 				}
 				else if (action === "Special") activateSpecial(session);
+				else if (action === "GunStart") startGun(session);
 			}, (message) => abortSession(session, message));
 		}));
 		connections.push(Players.PlayerRemoving.Connect((player) => { CombatService.EndMission(player); launchCancellations.delete(player); }));

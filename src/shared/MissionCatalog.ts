@@ -1,4 +1,5 @@
 import { NightLighting, validateNightLighting } from "./NightLighting";
+import { SortieArmament, validateArmament } from "./SortieArmament";
 import { ScoreThreshold, RadarJamming, RearmPlan, validateBatchC } from "./EngineBatchC";
 import { CutInPlan, validateCutIn, validateRearmPresentation } from "./SortieCutaways";
 import { MissionUpdate, ReturnLine, LandingPlan, validateBatchB } from "./EngineBatchB";
@@ -19,6 +20,7 @@ import {
 } from "./MissionPolicy";
 import { WavePlan } from "./WavePlan";
 
+export type { SortieArmament } from "./SortieArmament";
 export type { EncounterRole, MissionAirspacePolicy, MissionPolicy, MissionScoringPolicy, MissionStartPolicy } from "./MissionPolicy";
 
 export type Act = 1 | 2 | 3;
@@ -185,6 +187,8 @@ export interface GroundTargetSpec {
 }
 
 export interface MissionBlueprint extends MissionPolicy {
+	/** Engine batch D1: fitted gun and finite sortie stocks. Absent keeps today's regenerating rack and no gun. */
+	armament?: SortieArmament;
 	nightLighting?: NightLighting;
 	terrainRelativeWarnings?: boolean;
 	id: number;
@@ -284,6 +288,7 @@ for (let index = -1; index < MISSIONS.size(); index++) {
 	assert(blueprint.terrainRelativeWarnings === undefined || typeIs(blueprint.terrainRelativeWarnings,"boolean"), "Invalid terrain warning flag");
 	if(blueprint.nightLighting) validateNightLighting(blueprint.nightLighting, (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 		validateBatchC(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
+	validateArmament(blueprint.armament, expandPhases(blueprint.phases).some(phase => phase.rearm?.gun === true));
 		validateBatchB(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateCutIn(expandPhases(blueprint.phases));
 	for (const phase of expandPhases(blueprint.phases)) if (phase.rearm) validateRearmPresentation(phase.rearm);
@@ -436,6 +441,7 @@ export const MissionCatalog = {
 		assert(blueprint.terrainRelativeWarnings === undefined || typeIs(blueprint.terrainRelativeWarnings,"boolean"),"Invalid terrain warning flag");
 		if(blueprint.nightLighting) validateNightLighting(blueprint.nightLighting, (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateBatchC(expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint).hardHalfWidth);
+	validateArmament(blueprint.armament, expandPhases(blueprint.phases).some(phase => phase.rearm?.gun === true));
 	validateBatchB(expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint).hardHalfWidth);
 	validateCutIn(expandPhases(blueprint.phases));
 	for (const phase of expandPhases(blueprint.phases)) if (phase.rearm) validateRearmPresentation(phase.rearm);

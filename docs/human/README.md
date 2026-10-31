@@ -36,6 +36,8 @@ Mission 3 merged in [#147](https://github.com/A-Ricemusic/skybreak/pull/147) and
 Mission 3 merged as #147 (`7d73c44`) and is live by the owner's pipeline convention, including the shared world gate (D-067). Mission 4 [#149](https://github.com/A-Ricemusic/skybreak/pull/149) and mission 5 [#148](https://github.com/A-Ricemusic/skybreak/pull/148) remain in review and locked on main. M04 now uses that gate and a 6:48.33 transport escape route (D-096/D-097); this revision has no Studio or Player verification. The orchestrator owns the Studio re-check and terrain performance follow-up.
 
 
+Engine plan for missions 6–18 and batch D1 (player gun, optional finite ammunition with rearm refills) are in review; D1 is dormant, so practice and missions 1–5 are unchanged (D-150–D-155). See [Next](next.md) and the [engine plan](../specs/engine/missions-06-18-plan.md).
+
 Audio policy update (D-142, owner, 2026-10-30): no further audio uploads; story continues in subtitles beyond existing approved voices and changed lines stay silent. The rejected bank is preserved at `evidence/voicebank01-rejected` (`ff4a78b`); [full incident case](../qa/audio-rejections/2026-10-30-voicebank01.md). This documentation adds no gameplay changes or Player verification.
 
 M14–M18 procedural worlds are in review on `feat/m14-m18-worlds`, dormant and unmerged. Offline geometry/build budgets are reported in their composition docs; Studio/Player/phone quality remains unverified. No catalog/unlock changes.

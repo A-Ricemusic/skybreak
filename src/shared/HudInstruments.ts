@@ -16,7 +16,7 @@ export function hullFraction(health: number): number {
 }
 
 export interface StatusCell {
-	key: "missile" | "special" | "evade";
+	key: "gun" | "missile" | "special" | "evade";
 	text: string;
 	tone: HudTone;
 }
@@ -72,6 +72,18 @@ export function statusLine(status: WeaponStatus): StatusCell[] {
 		{ key: "special", text: status.specialActive > 0 ? `${status.special} ON` : `${status.special} ${charges}`, tone: status.specialActive > 0 ? "warn" : charges <= 0 || status.specialCooldown > 0 ? "dim" : "normal" },
 		{ key: "evade", text: `EVD ${evades}`, tone: evades <= 0 ? "dim" : "normal" },
 	];
+}
+
+/**
+ * Batch D1 ammo line: "GUN 600" leads the line when the sortie fits a gun (absent otherwise, so
+ * missions without a gun keep the three-cell line), and the line fits itself to its panel when
+ * the gun cell or a finite stock above the eight-missile rack makes it longer than the layout's widest line.
+ */
+export function armamentStatusLine(status: WeaponStatus, gunRounds?: number): { cells: StatusCell[]; fit: boolean } {
+	const cells = statusLine(status);
+	if (gunRounds === undefined) return { cells, fit: math.floor(status.missiles) > WeaponRules.MaxMissiles };
+	const rounds = math.max(0, math.floor(gunRounds));
+	return { cells: [{ key: "gun", text: `GUN ${rounds}`, tone: rounds <= 0 ? "danger" : "normal" }, ...cells], fit: true };
 }
 
 /** Minutes and seconds, never negative: "04:07". */

@@ -96,7 +96,7 @@ Targeting: on a phone, tap an enemy target box to select it. Auto-targeting afte
 2. **Fly north.** You start in the air about 470 studs up with three LANTERN wingmen and a 15:00 countdown. Follow the red-and-white power line for about two minutes to the "farm" airfield.
 3. **Destroy eleven parked bombers.** Each is a red TGT; the mission ends when the last bomber is destroyed. No landing is required. The substation under the power line, seven hangars, four firing AA guns and the control tower are optional points.
 4. **Watch the air.** Two fighters meet you head-on around 35 seconds, two rise from the base as you approach, and one scrambles from the runway. The ace HARROW SIX arrives after four bombers; two more fighters arrive from the west valley after six.
-5. **Use missiles, gun or 4AAM.** There are no bombs. The 4AAM salvo can hit four targets per press and suits the parked rows.
+5. **Use missiles or 4AAM.** There are no bombs and, despite earlier wording here, no player gun in mission 2 (D-150). The 4AAM salvo can hit four targets per press and suits the parked rows.
 6. **Check scoring and persistence.** Bombers are 120 each; hangars 50; AA guns 20; tower and substation 100 each; fighters 60; ace 240. S ≥ 2,200, A ≥ 1,750, B ≥ 1,500, C ≥ 1,320. Everything destroyed totals 2,610. Afterward, confirm mission 1's saved score breakdown still appears through replays and a save reload.
 
 Most useful feedback: whether the base is easy to find and read; whether the parked bombers, pavement and optional targets look convincing; whether the AA and fighters create enough pressure; whether 15:00 and the rank cuts feel right; how the roughly 16-second desktop Studio load feels on your phone; and whether the briefing, radio and results are clear. Mission 2's rank cuts, failure rules and air roster remain assumptions awaiting owner feedback.
@@ -128,7 +128,7 @@ Mission 3 merged as `7d73c44` (#147) and is live by pipeline; it unlocks after m
 
 **Most useful feedback:** whether the domes and sites are easy to find in the mountains; how flying low in the valleys feels with the new LOW ALTITUDE warning; whether the update, the dashed line and the landing read clearly and feel right; whether 15:00 and the pressure feel right (the footage player took 5:35 plus 1:12 home); how the snow, rock and sky look.
 
-**Known:** the world took 35–88 seconds to build in Studio on a desktop (five measurements; mission 2 takes 16), so expect a long loading screen, After the results appear the server clears the mountains, which froze it for 17–46 s in Studio; launching another mission straight away currently shows "Clearing the last sortie. Your launch is queued..." (the pending launch UX change above moves this wait onto the loading screen) and starts by itself once that finishes (D-067). The mountains look terraced (large flat steps), and on low graphics quality distant ground may not draw (see Blockers). Phone load time and frame rate are not measured. There are no bombs; use missiles and the gun. Optional targets you leave behind stay standing but can no longer be scored after the update. The radar minimap does not draw the return line; the green cue points to it.
+**Known:** the world took 35–88 seconds to build in Studio on a desktop (five measurements; mission 2 takes 16), so expect a long loading screen, After the results appear the server clears the mountains, which froze it for 17–46 s in Studio; launching another mission straight away currently shows "Clearing the last sortie. Your launch is queued..." (the pending launch UX change above moves this wait onto the loading screen) and starts by itself once that finishes (D-067). The mountains look terraced (large flat steps), and on low graphics quality distant ground may not draw (see Blockers). Phone load time and frame rate are not measured. There are no bombs and no player gun (D-150); use missiles and specials. Optional targets you leave behind stay standing but can no longer be scored after the update. The radar minimap does not draw the return line; the green cue points to it.
 
 ## Missions 4–5 — in review
 
@@ -139,6 +139,19 @@ See [per-level status](levels.html). Mission 3 #147 is merged; mission 4 [#149](
 2. Confirm the D-096 transport escape at 6:48.33 (57,166.079 studs at 140 studs/s); offline tests enforce 6:30–7:00 and sample all transport positions inside soft airspace. The exit heads west back inside the world; the owner should judge this inland turn in beta. Jammers now follow the same hook at 110 studs/s and remain present through transport escape; re-check radar and point availability.
 3. Review and merge the `perf/m04-m05-terrain` PR after #149 (D-120). In a Studio Play terrain bench it cut M04 terrain from 66 s to 11.7 s and M05 from 107 s to 37 s; the cleanup is one native clear (M04 8–12 s) through the shared gate, and `M04World.Clear(cancelled)`/`M05World.Clear(cancelled)` stay the registered entry points. Sign Studio back in first (see Blockers), then re-measure the real campaign path and fix M05's water cost (still over 20 s). Real-phone performance remains unmeasured.
 4. Re-check M05 lighting and M03 terrain/LOD presentation. Earlier linked Studio evidence does not verify these M04 changes; no Player test is claimed.
+
+## Engine for missions 6–18 — plan written, batch D1 in review
+
+The [missions 6–18 engine plan](../specs/engine/missions-06-18-plan.md) lists 31 missing engine features from the mission and world specs, which missions need each, sizes and dependencies, and a batch order D1–D13 so missions can be built 6 → 18. In priority order:
+
+1. **D1 (this PR, in review): player gun, optional finite missile/special stocks, rearm refills them.** Nothing changes in practice or missions 1–5: no mission uses it yet (D-150, D-152). The gun is hold G / LT / touch GUN; it is only fitted where a mission opts in. Proposal D-151: enable it everywhere after you have tried it in mission 6 or 7.
+2. **D2 for mission 6:** SAMs that actually fire, ship hulls with separately targetable weapon mounts and sinking, ships that move, an anti-ship weapon.
+3. **D3 for mission 7:** incoming artillery (warning, countdown, safe-altitude band under the canyon rim), canyon flight checks, an area-attack weapon.
+4. **D4–D6 for missions 8–10:** intercept-and-hold objectives with a protected site, bigger air battles, carrier-deck rearm, friendly landing/column progress, repeated artillery.
+5. **D7–D9 for missions 11–13:** protected airliners/plane that enemies target, ground and airship radar jammers, rearm during a strike, guided bombs, elite retreat and ejection.
+6. **D10–D13 for missions 14–18:** cruise-missile intercepts, city/column support, rearm repair for missions 15–17 only (provisional D-156), Rusk's protected withdrawal, generators-unlock-core, the vent run and the final duel.
+
+D1 has offline tests only; its Roblox Jest specs compile but have not run because Studio is signed out (see Blockers). No Studio or Player check is claimed.
 
 ## Missions 6–9 — specs ready for review
 
