@@ -60,7 +60,7 @@ describe("Mission 6 data: the Iron Coast military quays", () => {
 		expect([M06_START.x, M06_START.y, M06_START.z, M06_START.headingDegrees]).toEqual([M06.start.x, M06.start.y, M06.start.z, 0]);
 		expect(MissionCatalog.CountdownSeconds(6)).toBe(900);
 		expect(MissionCatalog.MaxMissionSeconds(6)).toBe(900 + 900);
-		expect(MissionScore.ParSeconds(bp)).toBe(923);
+		expect(MissionScore.ParSeconds(bp)).toBe(925);
 		expect(bp.phases.size()).toBe(1);
 		expect(strike.kind).toBe("score_threshold");
 		expect(strike.scoreThreshold).toEqual({ points: 3000, seconds: 900, waitForExpiry: true });
@@ -125,7 +125,7 @@ describe("Mission 6 data: the Iron Coast military quays", () => {
 		expect(sum(yards)).toBe(1480);
 		for (const role of ["gun", "aa", "sam"]) expect(countOf(mounts, role)).toBe(6);
 		expect(sum(mounts)).toBe(480);
-		// The reference debrief credits GRND TGT x58 = 1,960; the 40 yard contacts plus 18 mounts reproduce it exactly.
+		// The reference debrief credits GRND TGT x58 = 1,960; our provisional 40 yard contacts plus 18 mounts match that aggregate, not a proven inventory.
 		expect(yards.size() + mounts.size()).toBe(58);
 		expect(sum(yards) + sum(mounts)).toBe(1960);
 	});
@@ -182,7 +182,7 @@ describe("Mission 6 data: the Iron Coast military quays", () => {
 				const length = math.sqrt((b.x - a.x) ** 2 + (b.z - a.z) ** 2), steps = math.ceil(length / 40);
 				for (let s = 0; s <= steps; s++) {
 					const x = a.x + (b.x - a.x) * s / steps, z = a.z + (b.z - a.z) * s / steps;
-					for (const [dx, dz] of [[0, 0], [180, 0], [-180, 0], [0, 180], [0, -180]]) expect(M06_SURFACE.nativeWater(x + dx, z + dz)).toBe(true);
+					for (const [dx, dz] of [[0, 0], [180, 0], [-180, 0], [0, 180], [0, -180]]) expect(M06_SURFACE.nativeWater!(x + dx, z + dz)).toBe(true);
 				}
 			}
 			// About three laps fit the 15:00 clock; the hull then holds at the end of its route.
@@ -282,13 +282,18 @@ describe("Mission 6 armament, rearm and allies", () => {
 		expect(rejects(() => validateArmament({ stock: { missiles: 60 } }, true))).toBe(true);
 		expect(rearmRadioDue(plan, 0, 1)).toEqual([plan.radio![0].text]);
 	});
-	it("keeps the wingmen for show: no kills, no credit, no required targets", () => {
+	it("limits the whole wing to one optional air kill, without player credit", () => {
 		const allies = bp.allies!;
 		expect(allies.count).toBe(3);
-		expect(AlliedRules.MayDestroy(allies)).toBe(false);
+		expect(AlliedRules.MayDestroy(allies)).toBe(true);
+		expect(allies.killBudget).toBe(1);
 		expect(AlliedRules.Credit(allies)).toBe(false);
 		const state = BlueprintRunner.NewState(bp, 0), ledger = new TargetScore(scoring);
 		expect(recordAlliedKill(state, ledger, [], allies, hulls[0].id, "ground", false, 5, hulls[0].scoreRole)).toBe(false);
+		const destroyed: string[] = [];
+		expect(recordAlliedKill(state, ledger, destroyed, allies, "m06_ally_victim", "air", false, 6, "raider")).toBe(true);
+		expect(recordAlliedKill(state, ledger, destroyed, allies, "m06_ally_second", "air", false, 7, "raider")).toBe(false);
+		expect(AlliedRules.ShotDamage(allies, destroyed.size(), false, 30)).toBe(0);
 		expect(ledger.Total()).toBe(0);
 	});
 });

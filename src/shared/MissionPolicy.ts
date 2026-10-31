@@ -46,9 +46,11 @@ export interface MissionAllies {
 	callsignPrefix: string;
 	/** Default true: allies may destroy eligible optional enemies. */
 	mayKill?: boolean;
+	/** Combined flight budget for the entire sortie; default 1, zero means formation only. */
+	killBudget?: number;
 	/** Default false: no player points, kill tally or objective credit. Proposed owner decision. */
 	creditPlayerKills?: boolean;
-	/** Default false; true requires explicit creditPlayerKills to keep objectives completable. */
+	/** Legacy metadata only: required targets are always protected by AlliedRules. */
 	allowRequiredTargets?: boolean;
 }
 
@@ -124,6 +126,7 @@ export function validateMissionPolicy(policy: MissionPolicy, missionId: number):
 			assert(offset.x * offset.x + offset.y * offset.y + offset.z * offset.z >= 6400, `${tag} allies need 80 studs clearance`);
 		}
 		for (const value of [a.mayKill, a.creditPlayerKills, a.allowRequiredTargets]) if (value !== undefined) assert(typeIs(value, "boolean"), `${tag} allies switches must be boolean`);
+		if (a.killBudget !== undefined) assert(finite(a.killBudget) && a.killBudget >= 0 && a.killBudget % 1 === 0, `${tag} allies.killBudget must be a nonnegative integer`);
 		assert(!a.allowRequiredTargets || a.creditPlayerKills === true, `${tag} required allied kills must explicitly credit objective progress`);
 	}
 	if (policy.countdownSeconds !== undefined) {

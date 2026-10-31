@@ -269,7 +269,7 @@ export const BlueprintRunner = {
 		if (s.outcome !== undefined || !finite(dt) || dt<=0 || dt>0.1) return;
 		for (const n of [from.x,from.y,from.z,to.x,to.y,to.z,threats,drainScale]) if (!finite(n)) return;
 		const p=BlueprintRunner.ActivePhase(s)!;
-		if (p.returnLine) { if (crossesReturnLine(p.returnLine,from,to)) { s.phaseProgress=1; advance(s); } return; }
+		if (p.returnLine) { if ((!p.canyonEscape || (from.y<=p.canyonEscape.ceiling && to.y<=p.canyonEscape.ceiling)) && crossesReturnLine(p.returnLine,from,to)) { s.phaseProgress=1; advance(s); } return; }
 		if (p.kind === "chase") {
 			s.phaseClock+=dt;
 			if (s.phaseClock+0.00001>=(p.seconds ?? 0)) finish(s,"failed","escaped");

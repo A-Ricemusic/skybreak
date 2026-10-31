@@ -50,7 +50,7 @@ export function m06OuterRoute(hull: M06Target): SurfaceRoute {
 	return { waypoints, speed: 18 };
 }
 // D-260: every world contact is one optional points target drawn once by the world: 36 naval hulls, the 40-contact
-// ground roster (yards) and 18 moored defence mounts, which the reference credits as extra ground kills (40 + 18 = 58).
+// ground roster (yards) and 18 moored defence mounts, as an explicit adaptation of the unresolved initial40/credited58 accounting (40 + 18 = 58).
 const targets: TypedGroundTarget[] = layout.map((t) => {
 	const spec: TypedGroundTarget = {
 		id: t.id, type: M06_TARGET_TYPES[t.type], position: { x: t.x, y: t.y, z: t.z }, yaw: math.deg(t.yaw),
@@ -131,8 +131,8 @@ export const mission: MissionBlueprint = {
 	armament: M06_ARMAMENT,
 	// D-267: ranks inside the footage bounds (C <= 3,050; A <= 4,250; S in (4,770, 5,060]).
 	scoring: { basis: "points", points, rank: { S: 5000, A: 4200, B: 3600, C: 3000 } },
-	// D-268: allies fly for show until the per-sortie allied kill budget (#174) lands; then they get its default of one.
-	allies: { count: 3, model: "Kestrel", callsignPrefix: "LANTERN", mayKill: false, creditPlayerKills: false, allowRequiredTargets: false,
+	// D-268: the whole allied group shares one kill for the sortie.
+	allies: { count: 3, model: "Kestrel", callsignPrefix: "LANTERN", killBudget: 1, creditPlayerKills: false, allowRequiredTargets: false,
 		formation: [{ x: -180, y: 20, z: 160 }, { x: 180, y: 20, z: 160 }, { x: 0, y: 40, z: 320 }] },
 	primary: "Score 3,000 points at the Iron Coast quays within 15:00",
 	briefing: MISSION_STORY_TEXT[6].briefing, debrief: MISSION_STORY_TEXT[6].debrief, failure: MISSION_STORY_TEXT[6].failure,

@@ -1,6 +1,9 @@
+import { stepCanyon } from "./EngineBatchD3Runtime";
+import { insideArea } from "../shared/EngineBatchD3";
 import { AntiShipRules } from "../shared/EngineBatchD2";
 import { sinkNavalTarget, stepSurfaceTargets, stepSamDefence, antiShipObstructed } from "./EngineBatchD2Runtime";
-import { TargetPriority, type TargetCandidate } from "../shared/TargetPriority";
+import { TargetPriority, type TargetCandidate, type ViewFrustum } from "../shared/TargetPriority";
+import { TargetView } from "./TargetView";
 import { LaunchCancellation } from "../shared/LaunchLoading";
 import { canSkipLanding } from "../shared/EngineBatchB";
 import { buildNightLighting } from "./NightLighting";
@@ -312,10 +315,18 @@ function lineOfSightBlocked(session: CombatSession, enemy: Enemy): boolean {
 	enemy.losBlocked = blocked;
 	return blocked;
 }
-/** Every targetable contact as the shared priority sees it; line of sight is checked for the leading few only. */
-function targetCandidates(session: CombatSession): TargetCandidate[] {
+/**
+ * Every targetable contact as the shared priority sees it. With a `view` (a TGT press) each contact also
+ * learns whether the player sees its box: inside the camera frustum and, under jamming, within visual
+ * range. Line of sight is checked for the leading few only: nose-leading for acquisition, nearest on
+ * screen for a press.
+ */
+function targetCandidates(session: CombatSession, view?: ViewFrustum): TargetCandidate[] {
 	const candidates: TargetCandidate[] = [];
 	const lockRange = SpecialWeapons.LockRange(session.special);
+	const jamming = session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.jamming;
+	const visualRange = view !== undefined && jamming && liveJammers(session) > 0 ? jamming.visualLockRange : undefined;
+	const camera = view === undefined ? undefined : new Vector3(view.position.x, view.position.y, view.position.z);
 	for (let id = 0; id < session.enemies.size(); id++) {
 		const enemy = session.enemies[id];
 		if (!ownsEnemy(session, enemy)) continue;
@@ -323,14 +334,20 @@ function targetCandidates(session: CombatSession): TargetCandidate[] {
 		// An ace that has broken off to call its wing is neither required nor worth the nose until it turns back in;
 		// anything this phase protects (a raider over the kill cap, a ground target during an air phase) is held too.
 		const retreatingAce = enemy.aceState !== undefined && !AceRules.Fights(enemy.aceState);
-		candidates.push({
+		const candidate: TargetCandidate = {
 			id, distance, dot,
 			required: enemy.required && !retreatingAce,
 			held: retreatingAce || !sessionCanDamage(session, enemy.kind, enemy.required),
 			inRange: distance <= WeaponRules.EnvelopeRange(lockRange, enemy.kind === "ground"),
-		});
+		};
+		if (view !== undefined && camera !== undefined) {
+			const withinVisual = visualRange === undefined || enemy.position.sub(camera).Magnitude <= visualRange;
+			candidate.onScreen = withinVisual && TargetPriority.InView(view, point(enemy.position));
+		}
+		candidates.push(candidate);
 	}
-	for (const candidate of TargetPriority.LosChecks(candidates)) candidate.blocked = lineOfSightBlocked(session, session.enemies[candidate.id]);
+	const checks = view === undefined ? TargetPriority.LosChecks(candidates) : TargetPriority.PressLosChecks(candidates);
+	for (const candidate of checks) candidate.blocked = lineOfSightBlocked(session, session.enemies[candidate.id]);
 	return candidates;
 }
 /** Automatic acquisition: the nose-best contact. The lock survives when that is still the current target. */
@@ -351,16 +368,21 @@ function selectTarget(session: CombatSession, enemy: Enemy): void {
 		phaseDirector.Apply(session);
 	}
 }
-/** TGT: snap to the nose-best, advance from it, and keep walking the order while presses come quickly. */
-function cycleTarget(session: CombatSession): void {
-	const candidates = targetCandidates(session);
+/**
+ * TGT: the closest contact the player can see on screen, or the second closest when that is already the
+ * target; presses within TargetPriority.CycleChainSeconds walk on through the order. The view comes from
+ * the client's payload (validated, bounded) or falls back to the jet's nose; see TargetView.
+ */
+function cycleTarget(session: CombatSession, rawView: unknown): void {
+	const view = TargetView.FromClient(rawView, positionFor(session.state), frameFor(session.state));
+	const candidates = targetCandidates(session, view);
 	const current = session.target === undefined ? undefined : session.enemies.indexOf(session.target);
 	const chain = session.cycle;
-	const cursor = chain !== undefined && chain.target === session.target && session.elapsed - chain.at <= TargetPriority.CycleChainSeconds ? chain.cursor : undefined;
-	const step = TargetPriority.Next(candidates, current, cursor);
-	if (step === undefined) return;
-	const enemy = session.enemies[step.id];
-	session.cycle = { target: enemy, cursor: step.cursor, at: session.elapsed };
+	const chained = chain !== undefined && chain.target === session.target && session.elapsed - chain.at <= TargetPriority.CycleChainSeconds;
+	const id = TargetPriority.Press(candidates, current, chained);
+	if (id === undefined) return;
+	const enemy = session.enemies[id];
+	session.cycle = { target: enemy, at: session.elapsed };
 	selectTarget(session, enemy);
 }
 /** Would a missile hurt `enemy` right now: owned, damageable this phase and, for an ace, not immune or held at a stage floor (strikeEnemy). */
@@ -907,6 +929,24 @@ function activateSpecial(session: CombatSession): void {
 	const state = session.special;
 	const current = ownsEnemy(session, session.target) ? session.target : undefined;
 	const range = SpecialWeapons.LockRange(state);
+	const area=state.kind === "salvo" ? session.blueprint?.armament?.areaAttack : undefined;
+	if(area) {
+		// A locked ground aim point seeds one footprint, never four independently guided hits.
+		if(!current || current.kind!=="ground" || !sessionCanDamage(session,current.kind,current.required) || session.lockProgress<WeaponRules.LockedAt) { denyFire(session,"special_no_target"); return; }
+		const [distance,dot]=targetMetrics(session,current);
+		if(!lockAllowed(session,distance) || distance>WeaponRules.EnvelopeRange(range,true) || dot<WeaponRules.LockDotFor(true)) { denyFire(session,"special_no_target"); return; }
+		const origin=positionFor(session.state), centre=current.position;
+		const params=session.gunParams ??= gunRaycastParams(session.groundParams!);
+		if(gunOccluded(params,origin,centre,current.model)) { denyFire(session,"special_no_target"); return; }
+		const decision=SpecialWeapons.Activate(state,1);
+		if(decision.kind==="denied") { denyFire(session,decision.reason); return; }
+		// Capture eligible targets before any kill can advance the phase/remove enemies.
+		const victims=session.enemies.filter(e=>ownsEnemy(session,e) && e.kind==="ground" && sessionCanDamage(session,e.kind,e.required) && insideArea(area,point(centre),point(e.position)) && !gunOccluded(params,origin,e.position,e.model));
+		JetFactory.Burst(session.folder,centre,Color3.fromRGB(255,190,100),area.radius);
+		for(const enemy of victims) { if(!session.active || sessionOutcome(session)!==undefined) break; if(ownsEnemy(session,enemy) && sessionCanDamage(session,enemy.kind,enemy.required)) gunStrike(session,enemy,area.damage); }
+		if(session.active) sendTelemetry(session);
+		return;
+	}
 	let targets = 1;
 	let salvo: number[] = [];
 	if (state.kind === "salvo") {
@@ -1026,7 +1066,7 @@ function stepAllies(session: CombatSession, dt: number, weaponsEnabled = true): 
 		const station = frame.PointToWorldSpace(new Vector3(offset.x, offset.y, offset.z));
 		let target: Enemy | undefined;
 		let range = AlliedRules.Range;
-		if (weaponsEnabled && ally.position.sub(player).Magnitude < AlliedRules.Leash) for (const enemy of session.enemies) {
+		if (weaponsEnabled && AlliedRules.BudgetRemaining(policy, session.alliedKills.size()) && ally.position.sub(player).Magnitude < AlliedRules.Leash) for (const enemy of session.enemies) {
 			const distance = enemy.position.sub(ally.position).Magnitude;
 			if (distance < range && AlliedRules.CanEngage(policy, enemy, weaponsEnabled) && canHurt(session, enemy)) { target = enemy; range = distance; }
 		}
@@ -1048,7 +1088,7 @@ function stepAllies(session: CombatSession, dt: number, weaponsEnabled = true): 
 				globalReady: true, evading: false, playerStraight: false, minRange: 300, maxRange: 1800, aimThreshold: 0.9, straightRelax: 0 })) {
 			const position = ally.position.add(ally.direction.mul(18));
 			session.projectiles.push({ part: JetFactory.CreateMissile(session.folder, position, ally.direction, false), position, direction: ally.direction,
-				target, hostile: false, allied: true, age: 0, ace: false, damage: AlliedRules.Damage, speed: WeaponRules.MissileSpeed });
+				target, hostile: false, allied: true, age: 0, ace: false, damage: math.random() < AlliedRules.HitChance ? AlliedRules.Damage : 0, speed: WeaponRules.MissileSpeed });
 			ally.alliedAmmo = (ally.alliedAmmo ?? 0) - 1;
 			ally.fireTimer = AlliedRules.Reload;
 			session.alliedFireAt = session.elapsed;
@@ -1059,9 +1099,9 @@ function stepAllies(session: CombatSession, dt: number, weaponsEnabled = true): 
 
 function stepGroundDefence(session: CombatSession, dt: number): void {
 	let firing=0;
-	for(const enemy of session.enemies) if((enemy.typedGround?.type === "aa_gun" || enemy.typedGround?.type === "gun_mount") && enemy.windup>0 && ownsEnemy(session,enemy)) firing++;
+	for(const enemy of session.enemies) if((enemy.typedGround?.type === "aa_gun" || enemy.typedGround?.type === "gun_mount" || enemy.typedGround?.type === "flak_gun") && enemy.windup>0 && ownsEnemy(session,enemy)) firing++;
 	for(const enemy of session.enemies) {
-		if(enemy.typedGround?.type !== "aa_gun" && enemy.typedGround?.type !== "gun_mount") continue;
+		if(enemy.typedGround?.type !== "aa_gun" && enemy.typedGround?.type !== "gun_mount" && enemy.typedGround?.type !== "flak_gun") continue;
 		const eligible=GroundAirDefence.Eligible(enemy.health>0,enemy.enabled,enemy.position.sub(positionFor(session.state)).Magnitude);
 		if(!eligible) { enemy.windup=0; enemy.model.SetAttribute("AttackWarning",false); if(enemy.warning) enemy.warning.Enabled=false; continue; }
 		enemy.fireTimer=math.max(0,enemy.fireTimer-dt);
@@ -1307,7 +1347,8 @@ function strikeEnemy(session: CombatSession, enemy: Enemy, index: number): boole
 	if (!allied) { session.missileHits += 1; enemy.playerThreatUntil = session.elapsed + 8; }
 	// Staged ace: the hit bursts harmlessly while it breaks away.
 	if (enemy.aceState && AceRules.Invulnerable(enemy.aceState, session.elapsed)) return true;
-	let damage = session.projectiles[index].damage > 0 ? session.projectiles[index].damage : PLAYER_MISSILE_DAMAGE;
+	let damage = allied ? session.projectiles[index].damage : session.projectiles[index].damage > 0 ? session.projectiles[index].damage : PLAYER_MISSILE_DAMAGE;
+	if (allied) damage = session.blueprint?.allies ? AlliedRules.ShotDamage(session.blueprint.allies, session.alliedKills.size(), enemy.required, damage) : 0;
 	// A heavy hit stops at the ace's next stage line, and a hit while it retreats or holds stops above it,
 	// so no stage (radio call, retreat, raiders, return) is skipped or cut short.
 	if (enemy.aceState) damage = AceRules.CapHit(enemy.aceState, enemy.health, enemy.maxHealth, damage);
@@ -1394,7 +1435,9 @@ function stepMissiles(session: CombatSession, dt: number): void {
 				missile.part.CFrame = CFrame.lookAt(nextPosition, nextPosition.add(missile.direction));
 			}
 		} else if (!removed) {
-			const targetPosition = missile.hostile ? missile.wingman?.position ?? positionFor(session.state) : missile.target!.position;
+			// Non-damaging allied shots visibly pass wide rather than reporting a hit on the aircraft.
+			const targetPosition = missile.hostile ? missile.wingman?.position ?? positionFor(session.state)
+				: missile.target!.position.add(missile.allied && missile.damage === 0 ? new Vector3(180, 90, 0) : Vector3.zero);
 			const velocity = missile.hostile ? missile.wingman?.velocity ?? directionFor(session.state).mul(session.state.speed) : missile.target!.velocity;
 			const speed = missile.speed;
 			const distance = targetPosition.sub(missile.position).Magnitude;
@@ -1486,9 +1529,9 @@ function startGun(session: CombatSession): void {
 	if (refused) denyFire(session, refused);
 }
 /** One gun round on an enemy: the same ace staging and kill path as a missile hit, without a projectile. */
-function gunStrike(session: CombatSession, enemy: Enemy): void {
+function gunStrike(session: CombatSession, enemy: Enemy, hitDamage = GunRules.Damage): void {
 	if (enemy.aceState && AceRules.Invulnerable(enemy.aceState, session.elapsed)) return;
-	let damage = GunRules.Damage;
+	let damage = hitDamage;
 	if (enemy.aceState) damage = AceRules.CapHit(enemy.aceState, enemy.health, enemy.maxHealth, damage);
 	if (damage <= 0) return;
 	if (enemy.health <= damage) { destroyEnemy(session, enemy); return; }
@@ -1604,6 +1647,9 @@ function stepSession(session: CombatSession, dt: number): void {
 		}
 	}
 	session.inputSteps += 1;
+	stepCanyon(session,dt,(line)=>radio(session,line,4));
+	if(session.crashReason) { finish(session); return; }
+	if(session.health<=0) { refreshSession(session,os.clock()); return; }
 	if (session.blueprintState) {
 		const bs=session.blueprintState, nav=BlueprintRunner.NavigationPoint(bs, session.state);
 		let threats=0;
@@ -1924,7 +1970,7 @@ export const CombatService = {
 		connections.push(remote(remotes, "CombatAction").OnServerEvent.Connect((player, payload: unknown) => {
 			const session = sessions.get(player);
 			if (!session?.active || !typeIs(payload, "table")) return;
-			const data = payload as { action?: unknown; serial?: unknown; target?: unknown; special?: unknown };
+			const data = payload as { action?: unknown; serial?: unknown; target?: unknown; special?: unknown; view?: unknown };
 			if (!typeIs(data.action, "string")) return;
 			const now = os.clock();
 			if (session.loading) {
@@ -1971,7 +2017,7 @@ export const CombatService = {
 				if (!LaunchStage.CanControl(false, session.launch, PauseRules.Paused(session.pause)) || !refreshSession(session, now)) return;
 				if (action === "FireMissile") launchMissile(session, false);
 				else if (action === "Evade") evade(session);
-				else if (action === "CycleTarget") cycleTarget(session);
+				else if (action === "CycleTarget") cycleTarget(session, data.view);
 				else if (action === "SelectTarget") {
 					const model = data.target;
 					if (!typeIs(model, "Instance") || !model.IsA("Model")) return;

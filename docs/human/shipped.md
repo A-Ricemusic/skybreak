@@ -1,5 +1,20 @@
 # Shipped
 
+Pending only (2026-10-30): D-220/D-221 difficulty/allied-flight tuning is unmerged. No new Player observation or deployment is claimed; see [Next](next.md).
+## PR #176 review fixes (2026-10-30)
+
+**Mission 5 client fix included:** the old weather lookup also dereferenced nil for every M05–M13 world key on main. The shared world-environment registry now resolves all eighteen server world keys, including M05, and safely ignores unknown/unset names. Desktop/phone/reduced-motion effects and phone cloud decks are checked against each environment; a static offline gate checks registry coverage against actual server registrations/publications. No Studio/Player observation is claimed.
+
+M18 groove/vent decks now include solid structural columns from Y0 to the unchanged Y104 flight floor; the local exit foundation continues beneath the over-water end. Floor widths support the walls across their complete footprints (244 groove /392 vent); core extends down to the deck. Generator-end floor modules extend40studs beyond each room end to carry the complete target footprint. Tests explicitly require all thirteen structural decks and check terrain contact/clearance across their footprints, wall/target/buttress support and the unchanged swept flight envelopes. This replaces the vacuous name-only M18 foundation check.
+
+M17 now matches the spec:18:20 and12,000ft cloud-base reference metadata. No adaptation is claimed. Build and full offline validation passed (exit0;856 Luau contracts,124 Python tests,18-key registry gate). Worlds remain dormant and unmerged.
+
+
+## M14–M18 review status (2026-10-30)
+
+The `feat/m14-m18-worlds` work is unmerged and dormant; it changes nothing in Roblox Player. Composition docs report offline geometry/count budgets. No Studio, Player or phone test is claimed. Existing merged/live history below is unchanged.
+
+
 Last updated: 2026-10-29, against `main` at `7d73c44`.
 M12/M13 worlds are **unmerged / world in review** in [PR #170](https://github.com/A-Ricemusic/skybreak/pull/170), dormant on `feat/m12-m13-worlds` above #167/#166/#164. [M12 table](../specs/worlds/m12-composition.md) · [M13 table](../specs/worlds/m13-composition.md). Offline estimates12.770960s/13.253200s; no mission selection, Player change, Studio/Player verification or asset upload. Decisions D-230–D-234. Existing shipped entries below are unchanged by this branch.
 
@@ -16,6 +31,7 @@ Last updated: 2026-10-29, against `main` at `088fbfc`.
 
 ## Pending, not merged
 
+- [#172](https://github.com/A-Ricemusic/skybreak/pull/172) TGT button (open): every press selects the closest enemy on screen, or the second closest when that is already the target; quick presses walk outward. Auto-targeting after a kill is unchanged (#157). Once merged the owner will see it in Roblox Player through the automatic pipeline; nothing from it is live yet. Decision D-210.
 - [#159](https://github.com/A-Ricemusic/skybreak/pull/159) Broken Relay 18-mission story and voice handoff: open. Once merged, M3 receives “An unlisted station” and the M4/M5 chapters are ready for their gameplay PRs; new and changed lines stay subtitle-only (D-142). Nothing from it is live yet.
 - [#152](https://github.com/A-Ricemusic/skybreak/pull/152) Cutscene modernization: open, stacked on #159. See [next](next.md).
 [Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). The new 18-mission campaign is live by pipeline: practice flight and missions 1–3 are playable; missions 4–18 are locked. The latest merged gameplay revision is `7d73c44` (#147, mission 3). The story remap (#159) aligns chapters/documents with the 18-mission campaign, preserves M5 escape and returns Vulture Lead at M17. New dialogue will be subtitle-only, with no new recordings (D-142); Studio/Player verification remains pending. Last recorded publish before the story remap returned place version **94** ([run](https://github.com/A-Ricemusic/skybreak/actions/runs/40963804844)). See [per-level status](levels.html). The 2026-10-29 publish logs confirmed the official place and returned place versions **85** (#130), **86** (#134), **87** (#140), **88** (#138), **88** (#137), **89** (#139), **90** (#141), **91** (#142) and **92** (#143). Gameplay merges are live through automatic CI/CD under the owner's convention; documentation-only changes add no game content. PR #131 merged only into `feat/campaign-switch-m01`, not `main`; #132 closed without merging, so neither is listed as shipped below.
