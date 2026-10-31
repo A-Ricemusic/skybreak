@@ -42,3 +42,11 @@ New/changed dialogue stays subtitle-only; no further audio uploads (D-142). Exis
 Main #179 is merged into the branch; M01–M06/practice behavior is preserved. Run the added M07WorldRuntime Jest spec in the orchestrator’s isolated Studio session: actual build, first-step D-242 success and blocked-route rejection, real terrain masking at ingress/exit, and a 25,000-stud masking line with near-aircraft cover. Confirm retained-pose ingress and 60s first impact (later 25s cycles) at Y=585 absolute. Offline flight covers cruise-speed Y=900/1800/3000, three headings and 3s reaction; challenging but fair phone flight still needs human observation. No Studio was launched by this implementation agent.
 
 M07 review-fix validation (2026-10-30): frozen install, build and full `validate:offline` exited 0; 967 Luau contracts and 19 catalog snapshots passed. Voice manifests regenerated; no audio generated/uploaded. Studio/Player not run by this agent.
+
+## D8 implementation — dormant review candidate
+
+Review the D8 ground-ECM/required-strike service, precision SALVO conversion, elite one-loss retreat/recovery flag and ring-sweep contracts (D-400–D-402). No mission opts in. Queue Studio/Jest under the orchestrator's single lease; then author M12's seven live guns/one wreck, optional ECM, scoring, five-elite cut-in/recovery presentation and world identity mapping. Confirm service clocks/damage and live-gun masking across the ring; no Player quality claim follows from offline checks. D6 #182/D7 #184 remain independent open work.
+
+D8 branch baseline is fetched `origin/main` `248e387`: D1–D5 are merged there (superseding historical open-D4/D5 notes above); D6 #182 and D7 #184 remain separate work. `shipped.md` is intentionally unchanged by this implementation task.
+
+D8 validation: `bun install --frozen-lockfile`, `bun run build` and full `validate:offline` with the prescribed `LUAU_BIN` exited 0: 991 Luau contracts, 19 unchanged catalog snapshots, 124 Python tests. Runtime Jest specs compile only; Studio execution remains pending.

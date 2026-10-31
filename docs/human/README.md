@@ -43,3 +43,7 @@ Footage times are internal reference cross-references, not shipped titles; see t
 - [Decisions](decisions.md): stable design records.
 
 M07 review-fix validation (2026-10-30): frozen install, build and full `validate:offline` exited 0; 967 Luau contracts and 19 catalog snapshots passed. Voice manifests regenerated; no audio generated/uploaded. Studio/Player not run by this agent.
+
+D8 review candidate (2026-10-30): dormant ground ECM, strike rearm, precision bomb, elite retreat/recovery story flag and railgun sweep/type contracts are implemented without catalog opt-ins. See D-400–D-402 and the engine plan's **Batch D8 implementation** section. Studio/Jest execution and M12 activation/flight acceptance remain pending. This entry does not change the 18-mission release table or claim Player verification.
+
+D8 branch baseline is fetched `origin/main` `248e387`: D1–D5 are merged there (superseding historical open-D4/D5 notes above); D6 #182 and D7 #184 remain separate work. `shipped.md` is intentionally unchanged by this implementation task.

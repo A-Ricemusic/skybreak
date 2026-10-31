@@ -83,3 +83,11 @@ D-260 retains 36 naval hulls, 40 yard contacts and 18 separately scored hull-own
 ## Mission 7 review fixes (unmerged #178)
 
 Resolved in code/offline coverage: ray masking beyond Roblox’s 15,000-stud single-cast limit, incorrect 617.216 ceiling, short initial ingress window, main/M06 merge conflicts and one-kill allied budget integration. The distant battery is authored because neither reference spec measures its position. Initial warning remains immediate, first impact is 60s; later salvos remain 25s apart. New actual-build first-step audit and masking Jest spec awaits the orchestrator’s Studio run. Player/phone balance, transition flight and rendered acceptance remain open; no Studio/Player test is claimed.
+
+## D8 verification and M12 integration (2026-10-30)
+
+D8 is dormant implementation only: no mission/world activation, Studio launch, test:roblox run or upload. Runtime Jest specs compile but execution is pending the orchestrator-owned Studio lease. Ring wedge timing/width, precision-bomb feedback, elite retreat/ejection presentation, account-level recovery persistence and M12 roster/ranks need mission integration and observed acceptance. No implementation blocker needs owner input. D6 #182/D7 #184 changes are not imported into this branch; reconcile shared hooks when they merge. Existing frozen snapshots and catalog data must remain unchanged.
+
+D8 branch baseline is fetched `origin/main` `248e387`: D1–D5 are merged there (superseding historical open-D4/D5 notes above); D6 #182 and D7 #184 remain separate work. `shipped.md` is intentionally unchanged by this implementation task.
+
+D8 validation: `bun install --frozen-lockfile`, `bun run build` and full `validate:offline` with the prescribed `LUAU_BIN` exited 0: 991 Luau contracts, 19 unchanged catalog snapshots, 124 Python tests. Runtime Jest specs compile only; Studio execution remains pending.

@@ -1,4 +1,5 @@
 import { clearGroundDirector, stepGroundDirector, stepBeachAttacker } from "./EngineBatchD5Runtime";
+import { completeEliteRetreat, stepRingSweep } from "./EngineBatchD8Runtime";
 import { stepCanyon } from "./EngineBatchD3Runtime";
 import { insideArea } from "../shared/EngineBatchD3";
 import { AntiShipRules } from "../shared/EngineBatchD2";
@@ -194,7 +195,7 @@ function lateralFor(state: FlightState, forward: Vector3): Vector3 {
 function unitOr(vector: Vector3, fallback: Vector3): Vector3 { return vector.Magnitude > 0.01 ? vector.Unit : fallback; }
 function point(vector: Vector3): { x: number; y: number; z: number } { return { x: vector.X, y: vector.Y, z: vector.Z }; }
 function ownsEnemy(session: CombatSession, enemy: Enemy | undefined): enemy is Enemy {
-	return enemy !== undefined && AlliedRules.PlayerTarget(enemy) && enemy.model.Parent === session.folder;
+	return enemy !== undefined && enemy.typedGround?.type !== "wreck" && AlliedRules.PlayerTarget(enemy) && enemy.model.Parent === session.folder;
 }
 function targetMetrics(session: CombatSession, enemy: Enemy): LuaTuple<[number, number]> {
 	const delta = enemy.position.sub(positionFor(session.state));
@@ -711,7 +712,9 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		else if (role === "courier") name = session.missionId === 24 ? "FUEL TANKER" : "COURIER";
 		else if (role === "bandit") { session.banditSerial += 1; name = string.format("BANDIT %02d", session.banditSerial); }
 		else { session.raiderSerial += 1; name = string.format("RAIDER %02d", session.raiderSerial); }
-		const model = role === BomberRules.Role.role ? BomberFactory.Create(name, options.arrival && "aircraft" in options.arrival ? options.arrival.aircraft : session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.aircraft) : JetFactory.Create(name, options.friendly !== true, options.livery ?? (role === "ace" ? AssetSelection.LiveryForAce(options.name, session.blueprint?.aceName) : undefined));
+		const eliteFit=role === "bandit" && session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.eliteFormation!==undefined;
+		if(eliteFit) name=`ELITE ${index+1}`;
+		const model = role === BomberRules.Role.role ? BomberFactory.Create(name, options.arrival && "aircraft" in options.arrival ? options.arrival.aircraft : session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.aircraft) : JetFactory.Create(name, options.friendly !== true, options.livery ?? (eliteFit ? "Elite" : role === "ace" ? AssetSelection.LiveryForAce(options.name, session.blueprint?.aceName) : undefined));
 		if (!session.active || session.folder.Parent === undefined) { model.Destroy(); return; }
 		// The replicated model is hidden on the client behind a smoothed local clone; only the clone draws trails.
 		JetFactory.SetTrails(model, false);
@@ -774,7 +777,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		if (friendly) { session.allySerial += 1; serial = session.allySerial; }
 		else { session.spawnSerial += 1; serial = session.spawnSerial; }
 		const enemy: Enemy = {
-			scoreRole: options.arrival?.scoreRole ?? (role === "bomber" && session.blueprintState ? BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.scoreRole : undefined),
+			scoreRole: options.arrival?.scoreRole ?? (eliteFit ? "bandit" : role === "bomber" && session.blueprintState ? BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.scoreRole : undefined),
 			routeActor: route ? {route,startedAt:session.elapsed,jammer:arrival !== undefined && "aircraft" in arrival && arrival.aircraft==="jammer"} : undefined,
 			phaseOwner: options.arrival && "attackSector" in options.arrival && options.arrival.attackSector!==undefined ? session.blueprintState?.phaseIndex : undefined,
 			attackSector: options.arrival && "attackSector" in options.arrival ? options.arrival.attackSector : undefined,
@@ -829,12 +832,14 @@ function withdrawAirborne(session: CombatSession): void {
 }
 function destroyEnemy(session: CombatSession, enemy: Enemy, allied = false): void {
 	if (!ownsEnemy(session, enemy)) return;
+	const elite = session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.eliteFormation;
 	const accepted = allied && session.blueprintState && session.blueprint?.allies
 		? recordAlliedKill(session.blueprintState, session.targetScore, session.alliedKills, session.blueprint.allies, enemy.id, enemy.kind, enemy.required, os.clock(), enemy.role, enemy.typedGround?.type, enemy.scoreRole ?? enemy.role)
 		: sessionRecordKill(session, enemy.id, enemy.kind, enemy.required, os.clock(), enemy.scoreRole ?? enemy.role, enemy.typedGround?.type);
 	syncElapsed(session);
 	if (!accepted) { if (sessionOutcome(session) !== undefined) finish(session); return; }
 	enemy.health = 0;
+	if(elite && enemy.required && enemy.kind==="air") completeEliteRetreat(session,()=>withdrawAirborne(session),line=>radio(session,line,6));
 	announceJammerKill(session,enemy,line=>radio(session,line));
 	enemy.enabled = false;
 	enemy.model.SetAttribute("Health", 0);
@@ -933,7 +938,8 @@ function activateSpecial(session: CombatSession): void {
 	const state = session.special;
 	const current = ownsEnemy(session, session.target) ? session.target : undefined;
 	const range = SpecialWeapons.LockRange(state);
-	const area=state.kind === "salvo" ? session.blueprint?.armament?.areaAttack : undefined;
+	const bomb=state.kind === "salvo" ? session.blueprint?.armament?.guidedBomb : undefined;
+	const area=state.kind === "salvo" ? (bomb ?? session.blueprint?.armament?.areaAttack) : undefined;
 	if(area) {
 		// A locked ground aim point seeds one footprint, never four independently guided hits.
 		if(!current || current.kind!=="ground" || !sessionCanDamage(session,current.kind,current.required) || session.lockProgress<WeaponRules.LockedAt) { denyFire(session,"special_no_target"); return; }
@@ -945,7 +951,7 @@ function activateSpecial(session: CombatSession): void {
 		const decision=SpecialWeapons.Activate(state,1);
 		if(decision.kind==="denied") { denyFire(session,decision.reason); return; }
 		// Capture eligible targets before any kill can advance the phase/remove enemies.
-		const victims=session.enemies.filter(e=>ownsEnemy(session,e) && e.kind==="ground" && sessionCanDamage(session,e.kind,e.required) && insideArea(area,point(centre),point(e.position)) && !gunOccluded(params,origin,e.position,e.model));
+		const victims=session.enemies.filter(e=>ownsEnemy(session,e) && e.kind==="ground" && (!bomb || e===current) && sessionCanDamage(session,e.kind,e.required) && insideArea(area,point(centre),point(e.position)) && !gunOccluded(params,origin,e.position,e.model));
 		JetFactory.Burst(session.folder,centre,Color3.fromRGB(255,190,100),area.radius);
 		for(const enemy of victims) { if(!session.active || sessionOutcome(session)!==undefined) break; if(ownsEnemy(session,enemy) && sessionCanDamage(session,enemy.kind,enemy.required)) gunStrike(session,enemy,area.damage); }
 		if(session.active) sendTelemetry(session);
@@ -1655,6 +1661,7 @@ function stepSession(session: CombatSession, dt: number): void {
 	stepGroundDirector(session,dt,line=>radio(session,line,4));
 	if(session.blueprintState?.outcome!==undefined) { finish(session); return; }
 	stepCanyon(session,dt,(line)=>radio(session,line,4));
+	stepRingSweep(session,dt,line=>radio(session,line,4));
 	if(session.crashReason) { finish(session); return; }
 	if(session.health<=0) { refreshSession(session,os.clock()); return; }
 	if (session.blueprintState) {

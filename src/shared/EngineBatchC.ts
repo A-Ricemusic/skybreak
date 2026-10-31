@@ -31,9 +31,9 @@ export function validateBatchC(phases: MissionPhaseBlueprint[], limit: number): 
 		assert((p.kind==="score_threshold")===(s!==undefined),"score_threshold needs exclusive plan");
 		if(s && i<phases.size()-1) assert(phases[i+1].update?.countdownSeconds!==undefined,"Score successor needs its own countdown");
 		if(s) { assert(p.update?.countdownSeconds===undefined || p.update.countdownSeconds===s.seconds,"Score phase owns its countdown"); positive(s.points); positive(s.seconds); assert(s.points%1===0 && s.seconds<=86400 && typeIs(s.waitForExpiry,"boolean"),"Invalid score threshold"); assert(p.twist===undefined && p.points===undefined && p.count===undefined,"Score phase owns progress"); }
-		if(p.jamming) { positive(p.jamming.visualLockRange); for(const line of [p.jamming.remainingCall,p.jamming.clearCall]) assert(line.size()>0 && line.size()<=72,"Invalid jammer radio"); assert((p.fighterWaves ?? []).some(w=>w.aircraft==="jammer"),"Jamming needs live jammer aircraft"); }
+		if(p.jamming) { positive(p.jamming.visualLockRange); for(const line of [p.jamming.remainingCall,p.jamming.clearCall]) assert(line.size()>0 && line.size()<=72,"Invalid jammer radio"); assert((p.fighterWaves ?? []).some(w=>w.aircraft==="jammer") || (p.groundTargets ?? []).some(t=>t.type==="ground_ecm" && t.ecm===true),"Jamming needs a live jammer source"); }
 		if(p.rearm) {
-			const r=p.rearm; assert(s!==undefined,"Rearm only in score phase"); assert(!r.health,"Rearm preserves damage"); positive(r.radius); positive(r.takeoffSeconds); assert(r.takeoffSeconds<=60 && r.radius<=2000,"Rearm budget exceeded");
+			const r=p.rearm; assert(s!==undefined || p.kind==="required_ground","Rearm needs a score or required-ground strike phase"); assert(!r.health,"Rearm preserves damage"); positive(r.radius); positive(r.takeoffSeconds); assert(r.takeoffSeconds<=60 && r.radius<=2000,"Rearm budget exceeded");
 			for(const n of [r.zone.x,r.zone.y,r.zone.z]) assert(finiteNumber(n),"Invalid rearm zone");
 			assert(math.abs(r.zone.x)<=limit && math.abs(r.zone.z)<=limit && r.zone.y>=0 && r.zone.y<=2000,"Rearm outside airspace");
 			const start=landingPose(r.landing,0);
