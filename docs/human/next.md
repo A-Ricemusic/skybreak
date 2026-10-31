@@ -1,5 +1,7 @@
 # Next
 
+M11 next: independently review D-444's91-health pressure fix, then flight-test altitude transitions/fairness after prerequisites merge. Release assertions and voice inventory findings remain integration work; they are outside this correction.
+
 Updated 2026-10-30 against main `ea0045d`: missions 1–7 and D1–D6 merged. Merged gameplay is live by pipeline convention; no Player observation is claimed.
 
 1. Review/merge dependencies #184 (D7), #183 (M08), #185 (M09), #187 (M10), then rebase M11. Do not merge M11 before them. D7 remains in re-review.

@@ -1,5 +1,7 @@
 # Shipped
 
+PR #189 review correction remains unmerged: M11 escorts use 91 health, with offline neglect/lapse/defence budgets in D-444. This is not a new live or Player-verified change.
+
 Updated 2026-10-30 against fetched main `ea0045d`: practice/missions 1–7 and D1–D6 are merged/live by the owner's automatic-pipeline convention. No new Studio, Player or phone test is claimed. Older entries describe behavior at their merge; later changes supersede dormant activation status.
 
 M11 HIGH CROSSING is unmerged on `feat/m11-mission`, in review and not live. It depends on #184/#183/#185/#187; D7 remains in re-review. See the dashboard and beta guide for its roster and pending acceptance.

@@ -1,5 +1,7 @@
 # SKYBREAK redesign dashboard
 
+M11 review correction (D-444): both escorts now have 91 health. Offline analytical cases cover sustained neglect loss before safety, one 30s recoverable lapse per band, and attentive defence. Unmerged PR #189; no Studio/Player test.
+
 Updated 2026-10-30 against fetched main `ea0045d` (D1–D6 and missions 1–7 merged). Merged gameplay is live by the owner's automatic-pipeline convention; no new Player test is claimed.
 
 **M11 HIGH CROSSING is implemented on `feat/m11-mission`, in review and unmerged.** It depends on #184, #183, #185, #187. The branch starts at D7 `77c4728`; missions 8–10 remain unavailable on this branch until their mission PRs merge and it is rebased. Sequential progression unlocks M11 only after all missions 1–10 are complete. D7 is a dependency in re-review, not a merged engine claim.
