@@ -1874,6 +1874,7 @@ export const CombatService = {
 		const session = sessions.get(player);
 		if (session) cleanupSession(session);
 	},
+	IsCompleting(player: Player): boolean { return completing.has(player); },
 	GetSession(player: Player): CombatSession | undefined { return sessions.get(player); },
 	StartMission(player: Player, slot: number, missionId = 1, special?: unknown, difficulty?: unknown, launchId?: number): LuaTuple<[boolean, string?]> {
 		if (!missionState || !onFinished) return $tuple(false, "CombatService is not initialized");
