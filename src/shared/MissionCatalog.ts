@@ -1,3 +1,4 @@
+import { EliteFormation, RingSweep, validateBatchD8 } from "./EngineBatchD8";
 import { ProtectionPlan, validateBatchD7 } from "./EngineBatchD7";
 import { RepeatedArtillery, validateBatchD6 } from "./EngineBatchD6";
 import { InterceptHold, validateBatchD4 } from "./EngineBatchD4";
@@ -120,6 +121,8 @@ export interface PhaseExecution {
 }
 
 export interface MissionPhaseBlueprint {
+	eliteFormation?: EliteFormation;
+	ringSweep?: RingSweep;
 	protection?: ProtectionPlan;
 	/** Finite waves queue within this opt-in concurrent fighter budget. */
 	concurrentFighters?: number;
@@ -306,6 +309,7 @@ for (let index = -1; index < MISSIONS.size(); index++) {
 	validateBatchD7(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
 	validateBatchD6(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth, blueprint.terrainRelativeWarnings === true);
 	validateBatchD4(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
+	validateBatchD8(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateBatchD5(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateBatchD3(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth, blueprint.terrainRelativeWarnings === true);
 		validateBatchB(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
@@ -464,6 +468,7 @@ export const MissionCatalog = {
 	validateBatchD7(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
 	validateBatchD6(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth, blueprint.terrainRelativeWarnings === true);
 	validateBatchD4(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
+	validateBatchD8(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateBatchD5(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateBatchD3(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth, blueprint.terrainRelativeWarnings === true);
 	validateBatchB(expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint).hardHalfWidth);
@@ -498,7 +503,7 @@ export const MissionCatalog = {
 	RequiredAirKills(blueprint: MissionBlueprint): number {
 		let total = 0;
 		for (const phase of expandPhases(blueprint.phases)) {
-			if (phase.kind === "required_air" || phase.kind === "chase") total += phase.count ?? 0;
+			if (phase.kind === "required_air" || phase.kind === "chase") total += phase.eliteFormation ? 1 : phase.count ?? 0;
 			else if (phase.kind === "ace") total += 1;
 		}
 		return total;

@@ -108,6 +108,7 @@ export interface Projectile {
 	lostTrack?: boolean;
 }
 export interface CombatSession {
+	ringArtillery?: { phase: number; state: ArtilleryState };
 	protectedFlight?: {phase: number; actors: import("./EngineBatchD7Runtime").ProtectedActor[]};
 	contactClock?: number;
 	repeatedArtillery?: {phase:number;state:import("../shared/EngineBatchD6").ScheduledArtillery};
