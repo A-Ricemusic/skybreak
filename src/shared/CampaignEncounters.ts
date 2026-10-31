@@ -20,6 +20,7 @@ export const GROUND_TARGET_LABELS: { readonly [K in GroundTargetType]: string } 
 	tanker: "TANKER", command_post: "COMMAND POST",
 };
 export interface TypedGroundTarget {
+ /** D11: hidden reserve, released when this same-phase friendly sector is secured. */ reinforceAfterSector?: string;
 	/** Mount positions are authored world positions; movement preserves the hull-local offset. */
 	ecm?: true;
 	naval?: true; parentId?: string; route?: SurfaceRoute; sam?: true; health?: number;
@@ -88,6 +89,7 @@ export function validateEncounterIdentities(phases: MissionPhaseBlueprint[]): vo
 		}
 		for (const id of phase.bombers?.targetIds ?? []) claim(id);
 		for (const target of phase.groundTargets ?? []) claim(target.id);
+		for (const sector of phase.groundProgress?.sectors ?? []) claim(sector.id);
 		for (const wave of phase.fighterWaves ?? []) claim(wave.id);
 		if (phase.standaloneAce) claim(phase.standaloneAce.id);
 		for (const target of phase.cruiseIntercept?.targets ?? []) claim(target.id);

@@ -1,4 +1,5 @@
 import { LeaderWithdrawal, BridgeClosure, validateBatchD12 } from "./EngineBatchD12";
+import { validateBatchD11 } from "./EngineBatchD11";
 import { CruisePlan, validateBatchD10 } from "./EngineBatchD10";
 import { SpatialJamming, validateBatchD9 } from "./EngineBatchD9";
 import { EliteFormation, RingSweep, validateBatchD8 } from "./EngineBatchD8";
@@ -313,7 +314,8 @@ for (let index = -1; index < MISSIONS.size(); index++) {
 	validateMissionPolicy(blueprint, id);
 	assert(blueprint.terrainRelativeWarnings === undefined || typeIs(blueprint.terrainRelativeWarnings,"boolean"), "Invalid terrain warning flag");
 	if(blueprint.nightLighting) validateNightLighting(blueprint.nightLighting, (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
-		validateBatchC(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
+		validateBatchC(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth, blueprint.id);
+	validateBatchD11(expandPhases(blueprint.phases),blueprint.id);
 	validateArmament(blueprint.armament, expandPhases(blueprint.phases).some(phase => phase.rearm?.gun === true));
 	validateBatchD10(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateBatchD9(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit, blueprint.armament?.gun !== undefined, blueprint.scoring?.basis === "points" ? blueprint.scoring.points : undefined);
@@ -475,7 +477,8 @@ export const MissionCatalog = {
 		validateMissionPolicy(blueprint, blueprint.id);
 		assert(blueprint.terrainRelativeWarnings === undefined || typeIs(blueprint.terrainRelativeWarnings,"boolean"),"Invalid terrain warning flag");
 		if(blueprint.nightLighting) validateNightLighting(blueprint.nightLighting, (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
-	validateBatchC(expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint).hardHalfWidth);
+	validateBatchC(expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint).hardHalfWidth, blueprint.id);
+	validateBatchD11(expandPhases(blueprint.phases),blueprint.id);
 	validateArmament(blueprint.armament, expandPhases(blueprint.phases).some(phase => phase.rearm?.gun === true));
 	validateBatchD10(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateBatchD9(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit, blueprint.armament?.gun !== undefined, blueprint.scoring?.basis === "points" ? blueprint.scoring.points : undefined);

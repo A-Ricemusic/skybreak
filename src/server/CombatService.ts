@@ -1,9 +1,12 @@
 import { D12Identities } from "../shared/EngineBatchD12";
 import { clearLeader, stepLeader } from "./EngineBatchD12Runtime";
+import { dampedSteer, pursuitDestination, guidedDirection } from "../shared/EncounterKinematics";
+
 import { clearCruise, cruiseKilled, stepCruise } from "./EngineBatchD10Runtime";
 import { clearAirships, stepAirships } from "./EngineBatchD9Runtime";
-import { stepProtection, protectedTarget, hitProtected, clearProtection } from "./EngineBatchD7Runtime";
+import { stepProtection, protectedTarget, hitProtected, clearProtection, warnProtectedAttack } from "./EngineBatchD7Runtime";
 import { createCheapContact, cheapEligible, stepContacts, handoffParked, stepRepeatedArtillery } from "./EngineBatchD6Runtime";
+import { disableDestroyedTarget, destroyTargetVisual } from "./TargetDestruction";
 import { clearGroundDirector, stepGroundDirector, stepBeachAttacker } from "./EngineBatchD5Runtime";
 import { completeEliteRetreat, stepRingSweep } from "./EngineBatchD8Runtime";
 import { stepCanyon } from "./EngineBatchD3Runtime";
@@ -103,15 +106,15 @@ const PLAYER_MISSILE_DAMAGE = SpecialWeapons.StandardDamage;
 //   breakSeconds    how long a break lasts; breakTurn the bandit's steering rate while breaking.
 const TUNING = {
 	hostileDamage: CombatBalance.hostileDamage,
-	windup: [2.4, 2.0, 1.7],
+	windup: CombatBalance.windup,
 	flightGate: CombatBalance.flightGate,
 	flightDivisor: CombatBalance.flightDivisor,
 	threatCap: CombatBalance.threatCap,
-	banditReload: [10, 7.5, 5.5],
+	banditReload: CombatBalance.banditReload,
 	aceReload: CombatBalance.aceReload,
 	fireAimDot: [0.65, 0.55, 0.45],
 	straightRelax: [0.2, 0.25, 0.3],
-	fireRange: [[450, 1700], [400, 1900], [350, 2100]],
+	fireRange: CombatBalance.fireRange,
 	banditHealth: CombatBalance.banditHealth,
 	banditFlares: [0, 0, 1],
 	lockBreakChance: [0.5, 1, 1],
@@ -121,8 +124,8 @@ const TUNING = {
 	aceSalvo: CombatBalance.aceSalvo,
 	missileTurn: [1.6, 2.2, 2.8],
 	aceMissileTurn: [0.6, 0.9, 1.2],
-	missileSpeed: [580, 660, 740],
-	missileLife: [7, 8, 9],
+	missileSpeed: CombatBalance.missileSpeed,
+	missileLife: CombatBalance.missileLife,
 	missileFuse: [32, 40, 48],
 	breakChance: [0.15, 0.4, 0.6],
 	breakSeconds: [1.4, 1.6, 1.8],
@@ -852,19 +855,13 @@ function destroyEnemy(session: CombatSession, enemy: Enemy, allied = false): voi
 		: sessionRecordKill(session, enemy.id, enemy.kind, enemy.required, os.clock(), enemy.scoreRole ?? enemy.role, enemy.typedGround?.type);
 	syncElapsed(session);
 	if (!accepted) { if (sessionOutcome(session) !== undefined) finish(session); return; }
-	enemy.health = 0;
+	disableDestroyedTarget(enemy);
 	if(elite && enemy.required && enemy.kind==="air") completeEliteRetreat(session,()=>withdrawAirborne(session),line=>radio(session,line,6));
 	announceJammerKill(session,enemy,line=>radio(session,line));
-	enemy.enabled = false;
-	enemy.model.SetAttribute("Health", 0);
-	enemy.model.SetAttribute("SkybreakEnemy", false);
-	enemy.model.SetAttribute("RequiredTarget", false);
-	enemy.damageable = false;
-	enemy.model.SetAttribute("Damageable", false);
 	// Fired before Destroy so the model reference still resolves on the client (its visual becomes the wreck).
 	if (enemy.kind === "ground") effect(session, "ground", enemy.position, { scale: math.clamp(enemy.model.GetExtentsSize().Magnitude / 60, 0.7, 2.2) });
 	else effect(session, enemy.kind, enemy.position, { velocity: enemy.velocity, model: enemy.model });
-	if (!sinkNavalTarget(session, enemy)) enemy.model.Destroy();
+	if (!sinkNavalTarget(session, enemy)) destroyTargetVisual(enemy.model, Color3.fromRGB(35, 35, 35));
 	// Kills count every destruction, air and ground, so the HUD tally matches sessionTotalRequired.
 	if (session.blueprintState) session.kills = sessionAllKills(session);
 	cruiseKilled(session,enemy);
@@ -883,7 +880,7 @@ function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy, 
 	let damage = 0;
 	if (hostile) {
 		if (!ownsEnemy(session, enemy) || enemy.kind === "ground") return;
-		position = enemy.position.add(enemy.direction.mul(18));
+		position = enemy.position.add(enemy.direction.mul(CombatBalance.hostileLaunchOffset));
 		direction = unitOr((enemy.windupTarget?.position ?? positionFor(session.state)).sub(position), enemy.direction);
 		const right = unitOr(new Vector3(-enemy.direction.Z, 0, enemy.direction.X), new Vector3(1, 0, 0));
 		const fanned = ThreatRules.SalvoDirection(point(direction), point(right), salvoIndex, salvoCount);
@@ -1045,7 +1042,8 @@ function stepWithdrawing(session: CombatSession, enemy: Enemy, dt: number): void
 }
 /** Same damped pursuit steering for both sides; player flight math is untouched. */
 function steerAircraft(direction: Vector3, desired: Vector3, turn: number, dt: number): Vector3 {
-	return unitOr(direction.Lerp(desired, FlightMath.DampAlpha(turn, dt)), direction);
+	const d=dampedSteer(point(direction),point(desired),turn,dt);
+ return new Vector3(d.x,d.y,d.z);
 }
 function liveWingman(session: CombatSession, ally: Enemy): boolean {
 	return ally.friendly === true && ally.enabled && ally.health > 0 && ally.model.Parent === session.folder;
@@ -1297,11 +1295,8 @@ function stepEnemies(session: CombatSession, dt: number): void {
 			const orbit = new Vector3(site!.x + math.sin(session.elapsed * .4 + index) * 240, 230, site!.z + math.cos(session.elapsed * .4 + index) * 240);
 			desired = unitOr(orbit.sub(enemy.position), enemy.direction);
 		} else {
-			const lead = math.clamp(separation / (350 + session.state.speed), 0.35, 1.8);
-			const weave = math.sin(session.elapsed * (ace ? 1.7 : 0.65) + index * 1.8) * (ace ? 125 : 45);
-			let destination = playerPosition.add(playerVelocity.mul(lead)).add(lateral.mul(weave)).add(new Vector3(0, ace ? math.sin(session.elapsed * 1.4) * 65 : 25, 0));
-			// Bracket from the side while far out; aces also bias toward the player's rear quarter.
-			if (separation > 1100) destination = destination.add(lateral.mul(enemy.side * 500));
+            const p=pursuitDestination(point(playerPosition),point(playerVelocity),point(lateral),separation,session.state.speed,session.elapsed,index,enemy.side,ace);
+            let destination=new Vector3(p.x,p.y,p.z);
 			if (ace && separation > 600) destination = destination.sub(playerForward.mul(250));
 			desired = unitOr(destination.sub(enemy.position), enemy.direction);
 		}
@@ -1354,6 +1349,7 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		}, protectedAircraft !== undefined)) {
 			enemy.windup = windupSeconds;
 			enemy.windupTarget = AlliedRules.CommitWindupTarget(enemy.combatTarget);
+			warnProtectedAttack(session, enemy.windupTarget, line=>radio(session,line,3,true));
 			enemy.warning!.Enabled = true;
 			enemy.model.SetAttribute("AttackWarning", true);
 			if (!ace) {
@@ -1502,7 +1498,12 @@ function stepMissiles(session: CombatSession, dt: number): void {
 			const delta = (aim ? new Vector3(aim.x,aim.y,aim.z) : targetPosition.add(velocity.mul(lead))).sub(missile.position);
 			// Player missiles turn much harder inside 300 studs so an orbit launch at 80 degrees off the nose still connects.
 			const playerTurn = distance < 300 ? 14 : 7;
+            if(missile.hostile && !aim) {
+                const d=guidedDirection(point(missile.position),point(missile.direction),point(targetPosition),point(velocity),speed,0.9,tuned(session,TUNING.missileTurn)+(missile.ace?tuned(session,TUNING.aceMissileTurn):0),dt);
+                missile.direction=new Vector3(d.x,d.y,d.z);
+            } else {
 			missile.direction = unitOr(missile.direction.Lerp(unitOr(delta, missile.direction), FlightMath.DampAlpha(missile.hostile ? tuned(session, TUNING.missileTurn) + (missile.ace ? tuned(session, TUNING.aceMissileTurn) : 0) : playerTurn, dt)), missile.direction);
+            }
 			const nextPosition = missile.position.add(missile.direction.mul(speed * dt));
 			if (antiShipObstructed(session,missile,nextPosition)) {
 				removed=true; effect(session,"missile",nextPosition);
@@ -1906,7 +1907,7 @@ export const CombatService = {
 			for(let phase=0;phase<expandedPhases.size();phase++) for(const spec of expandedPhases[phase].groundTargets ?? []) {
 				// The world's own drawing of this target when it has one, so every target exists exactly once.
 				const existing=world.targetVisuals?.get(spec.id);
-				const cheap=expandedPhases[phase].cheapContacts && cheapEligible(spec);
+				const cheap=expandedPhases[phase].cheapContacts && cheapEligible(spec,blueprint.id);
 				if(cheap) existing?.Destroy();
 				const model=cheap ? createCheapContact(spec) : existing ?? createGroundTarget(spec); world.targetVisuals?.delete(spec.id);
 				model.Parent=folder; world.groundTargets.push(model); typed.set(model,{spec,phase});

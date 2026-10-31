@@ -1,12 +1,25 @@
 # Next
 
+PR #191: verify Linux validate on the numeric snapshot portability fix before merge; existing runtime acceptance remains pending.
+
+M12 integration validation (2026-10-30): frozen install, build, required test:offline and manifest/catalog regeneration, and full validate:offline all exited 0 with the specified LUAU_BIN. Passed 1,088 Luau contracts, four loader probes, 19 catalog snapshots, three QA pilot scenarios and 124 Python tests. Story/radio inventory is 215 entries / 137 pending recordings; no audio generated. Catalog changes only M12; prerequisite mission definitions and every main decision record are preserved. D9/D10 cleanup paths remain unchanged; only M12 railgun models set LeaveWreck. Studio verified: pending orchestrator run. No Player tests claimed.
+
+Priority: review and merge M12 #191 after offline checks and orchestrator acceptance. Missions 1–11 are merged; older handoffs below are historical.
+
+## Mission 12 beta guide — THE COMMAND RING
+
+Complete M11 then launch M12. Silence all seven live guns within 15:00; the southeast wreck is scenery. Destroy central ECM for radar. Climb above Y900 (3,080 ft absolute) before a sweep impact; warnings total 16s and overlapping lines deal at most 25 damage per 30s cycle. Test actual terrain masking and barrel lines. Rearm southwest during strike: finite 54 missiles/14 special charges, gun refill, damage preserved, clock paused. Kill all guns to start a fresh 10:00 elite phase; defeat one of five, confirm recovery and four uncredited withdrawals. Check Easy/Normal/Hard pressure, one optional allied kill, retained gun wrecks, retry/end cleanup, results/save reload and M13 remaining locked. Studio verified: pending orchestrator run. Player/phone balance and rendered reference comparison remain unobserved.
+
+
+Historical pre-merge handoff for #189 (merged at 5c88368c): final D-445 offline validation passed; next is orchestrator-owned Studio acceptance and independent review before merge. Validate both routes, attentive defence and a 30s lapse on each difficulty in actual flight. No Studio lease was used for this correction.
+
 **M09 arrival regression, 2026-10-30:** Orchestrator reported Studio Jest 1,219/1,220 at `21be233`: the sole failure expected nine generic opening bandits, but D5 authors three required trios at mission times 600/625/650. #185 corrects the test to check exact timed admissions and duplicates, retaining D4 slots and adding grouped/delayed-launch coverage. Runtime remains unchanged: completion requires all nine kills. An offline regression clears early trios without ending the phase. Frozen install, build and full offline validation exited 0 (1,023 Luau contracts, 19 catalog snapshots, 124 Python tests). The director regression compiles but requires the orchestrator’s Studio rerun; this task did not launch Studio or claim a Player test.
 
-Updated 2026-10-30 against main `06ca3e4`. Practice and missions 1–9 are live by pipeline convention; M10 goes live after #187 merges. M11–M18 remain dormant. No Player observation is claimed.
+Updated 2026-10-30 against main `06ca3e4`. Practice and missions 1–11 are live by pipeline convention; M12 #191 is merge pending and M13–M18 remain dormant. No Player observation is claimed.
 
-1. **Review mission 10 [#187](https://github.com/A-Ricemusic/skybreak/pull/187).** Integrated on main `06ca3e4`; prerequisites #182/#183/#185 are merged. Studio verified: pending orchestrator run. Use the beta guide below before merge.
+1. **Verify merged mission 10 [#187](https://github.com/A-Ricemusic/skybreak/pull/187).** Integrated on main `06ca3e4`; prerequisites #182/#183/#185 are merged. Studio verified: pending orchestrator run. Use the beta guide below for acceptance.
 2. **Verify M07/M08 and M09 in the orchestrator's Studio session.** Check canyon ingress/masking, protected mast/bomber timing, beach sectors and carrier deck. Offline coverage does not establish Player quality.
-3. **Integrate missions 11–18 in order.** D6 #182 is merged and activated by M10 #187; D7/D8 remain opt-in for later missions. Retain provisional inventory/rank assumptions and runtime acceptance gaps.
+3. **Integrate missions 12–18 in order.** D6 #182 is merged and activated by M10 #187; D7 is active in M11; D8 is activated by M12. Retain provisional inventory/rank assumptions and runtime acceptance gaps.
 
 ## Mission 6 beta guide — IRON COAST (Live)
 
@@ -101,3 +114,15 @@ PR #193 is rebased by merge onto main `0450491` (D9, D10 and missions 9–10 inc
 Review D12, then activate M17 only after preceding missions and D11. Author separate witness/enemy bridge routes, four required wingmen, a departure clock and route; reuse D11's M17 repair contract after it merges.
 
 D12 integration validation: frozen install, standalone build and the full prescribed offline command each exited 0 (1,069 Luau contracts, 19 unchanged catalog snapshots, four loader guard probes, 124 Python tests). Runtime Jest compiled only; no Studio, `test:roblox` or Player run.
+
+## D11 review and activation handoff
+
+Review dormant D11 ground-support/service extensions (D-500–D-504); no mission opts in. M15/M16 activation must author clearance/reserve IDs, routes, D4 protected-city bomber phase and M15–M17 repair opt-ins, then verify rearm menu/skip/timeout with PC/gamepad/touch, sector threats, cleanup and once-only scoring. Include score-deadline → bomber transition with an unsecured reserve gate and sortie-folder cleanup (PR #192 regression). Run the compiled runtime Jest specs under the orchestrator's Studio lease and profile 150 armour contacts on phone before claiming performance or visual acceptance. D7–D10 and missions 8–10 are merged; their hooks and live behavior are preserved. No uploads needed.
+
+D11 main integration validation (2026-10-30, main `0450491`): `bun install --frozen-lockfile`, `bun run build` and the full prescribed `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau" bun run validate:offline` each exited 0. Passed 1,076 Luau contracts, four negative loader probes, 19 unchanged catalog snapshots and 124 Python tests; all 99 offline specs match staging/import lists. Runtime Jest compiled only; no Studio, `test:roblox`, Player/phone test or upload. D11 remains unmerged and dormant. D7–D10 and missions 8–10 are merged; live rearm menus/behavior, catalog data and frozen snapshots are preserved. Cheap armour eligibility is limited to M15–M17. Mission 11 has not merged at the final main refresh. No known deployment failure is recorded for merged work; no deployment claim is made for this branch.
+
+PR #192 next check: orchestrator reruns Roblox Jest after the scoring-fixture correction. Confirm release only after clearance, freeze during service, once-only score, no resurrection and phase-exit destruction; the previous 1,294/1,295 run reached the scoring assertion after visibility checks passed. No new runtime behavior or mission activation is included.
+
+The corrected D11 scoring fixtures use an explicit 150-point ground award: M01’s default rating policy awards zero ground points, which made the prior unchanged-total check insufficient to prove score deduplication. Runtime admission/ledger code is unchanged.
+
+D11 fixture-fix validation (2026-10-30): `bun install --frozen-lockfile`, `bun run build` and the prescribed `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau" bun run validate:offline` each exited 0. Passed 1,077 Luau contracts, four negative loader probes, 19 unchanged catalog snapshots and 124 Python tests. No Studio, `test:roblox`, Player test, merge or upload was performed.

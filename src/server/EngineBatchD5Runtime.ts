@@ -1,4 +1,5 @@
 import { closedBridgeRoute } from "./EngineBatchD12Runtime";
+import { releaseZoneReserves } from "./EngineBatchD11Runtime";
 import { surfacePose } from "../shared/EngineBatchD2";
 import { Workspace } from "@rbxts/services";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
@@ -28,6 +29,7 @@ export function stepGroundDirector(s: CombatSession, dt: number, say: (line:stri
  const closed=new Set<string>();
  for(const sector of plan.sectors) if(closedBridgeRoute(s,sector.id,"sector")) closed.add(sector.id);
  for(const line of stepGroundProgress(plan,runtime.states,cleared,dt,closed)) say(line);
+ releaseZoneReserves(s);
  for(let i=0;i<plan.sectors.size();i++) {
   const sector=plan.sectors[i], state=runtime.states[i], p=groundProgressPose(sector,state), actor=runtime.actors[i];
   actor.CFrame=new CFrame(p.x,p.y,p.z).mul(CFrame.Angles(0,math.rad(surfacePose(sector.route,state.elapsed).yaw),0)); actor.SetAttribute("Health",state.health); actor.SetAttribute("Secured",state.secured); actor.SetAttribute("Progress",state.elapsed/sector.seconds);
