@@ -2,6 +2,10 @@
 
 Updated 2026-10-30 against main `9857358`. Practice and missions 1–6 are Live after #179 merges; worlds 7–18 and D3 remain dormant. M06 activates merged D1/D2 contracts. Publish succeeded per CI; no new Player observation is claimed.
 
+## Engine batch D5 — dormant implementation
+
+D5 frozen install, build and full offline validation exited 0 (947 Luau contracts, 19 catalog snapshots, 124 Python tests); the output explicitly includes all six D5 cases. PR #180 P2 is fixed: offline shared threat-policy coverage passes; the new beach-windup/service-entry integration regression is compiled and awaits the orchestrator-owned Roblox run. Review D5 before M09 mission authoring. Reconcile carrier pivot/deck geometry with the dormant M09 world; author explicit sectors, clear targets, force health and attack waves. Then use the orchestrator-owned Studio queue for carrier landing/catapult, skip/repeat/refill/paused clocks, sector progress, attacker LOS/loss and teardown checks. No mission opts in; D11/D12 extend the shared director for later ground-support missions.
+
 1. **Merge D4 [#177](https://github.com/A-Ricemusic/skybreak/pull/177)** after review/checks and updating its base to main. D1/D2/D3 dependencies have merged. Queued air battles, timed bomber interception and protected relay support remain dormant until mission integration.
 2. **Finish mission 7 [#178](https://github.com/A-Ricemusic/skybreak/pull/178)** (in review). D3 is merged; retain mission 6 when updating the branch, retain #174's shared one-kill allied budget, and rerun progression/settlement checks. The proposal has a 15:00 three-installation strike and fresh 5:00 canyon escape; roster/ranks are provisional. Runtime canyon sweeps, transition pose, altitude masking and low southbound exit require verification.
 3. **Complete engine D5 [#180](https://github.com/A-Ricemusic/skybreak/pull/180)**, following the [engine plan](../specs/engine/missions-06-18-plan.md). Keep opt-in support dormant until a mission deliberately uses it; preserve current campaign behavior.
