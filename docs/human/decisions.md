@@ -2,6 +2,10 @@
 
 M13 replay validation (2026-10-30, base 351d7988): frozen install, standalone build, test:offline, voice/story/catalog regeneration and full validate:offline with the prescribed LUAU_BIN exited 0. Passed 1,118 Luau contracts, four loader guards, 19 catalog snapshots, three relay harness scenarios and 124 Python tests. All 103 prior specs plus M13 are staged and required with checkedRequire retained. Only M13's catalog entry differs; all 215 prior voice/story entries remain unchanged, with 223 total / 145 pending recordings. M12 numeric normalization and every prior decision record are preserved. Studio verified: pending orchestrator run. No Studio, test:roblox, Player tests or uploads performed. #195 merged as e2c7fab2; live by pipeline convention.
 
+D13-FIXTURE-001 (2026-10-31, implementation agent; implemented on PR #194, merge pending): share the production session initializer with D13 combat-step fixtures and type-check their enemies. Reject defensive nil defaults for required session fields: production already initializes evadeRemaining, the score ledger and pause state. Preserve movement and guided/blind projectile assertions; use a current monotonic blueprint clock to avoid unrelated sortie expiry. No mission activation or gameplay tuning.
+
+M13 replay validation (2026-10-30, base 351d7988): frozen install, standalone build, test:offline, voice/story/catalog regeneration and full validate:offline with the prescribed LUAU_BIN exited 0. Passed 1,118 Luau contracts, four loader guards, 19 catalog snapshots, three relay harness scenarios and 124 Python tests. All 103 prior specs plus M13 are staged and required with checkedRequire retained. Only M13's catalog entry differs; all 215 prior voice/story entries remain unchanged, with 223 total / 145 pending recordings. M12 numeric normalization and every prior decision record are preserved. Studio verified: pending orchestrator run. No Studio, test:roblox, Player tests or uploads performed. #195 remains merge pending.
+
 2026-10-30 tooling decision (implementation agent): canonicalize catalog non-integers to six decimal places, preserving integers and mapping negative zero to zero on writes and both comparison operands. Raw floats were rejected because Luau trig differs across platforms; strings, booleans, keys and array ordering remain strictly compared.
 
 Last updated: 2026-10-30.
@@ -439,6 +443,43 @@ The model bypasses PhaseDirector/CombatService call sites, instances and frame o
 | D-484 | Reject all cruise-phase twists; share one sortie-wide identity validator across D10 and campaign encounters, including bomber target IDs and cruise IDs. | M14 spec needs no twist. A halfway twist could clear surviving threats, and reused bomber identities could reject later cruise credit. Separate phase ordering checks would leave asymmetric gaps. | D10 review-fix implementation sub-agent, 2026-10-30 | Implemented in PR #190; dormant and unmerged |
 | D-485 | Extend D10’s shared authored identity namespace to D7 protected aircraft and D9 spatial airships across all phase orders. D8 elite actors retain generated runtime IDs and the existing one-loss retreat path. | Per-batch checks cannot catch cross-batch collisions; inventing authored elite IDs would change an unrelated dormant contract. | D10 main-integration implementation sub-agent, 2026-10-30 | Implemented in PR #190; dormant and unmerged |
 
+## D-540 — D13 dependency and vent phase ownership
+
+- **Status / maker:** provisional implementation decision, implementation agent, 2026-10-30; owner acceptance pending.
+- Three required typed generators precede one hidden required core. Ordered swept checkpoint boxes gate core targeting; core credit is held until a later exit crossing. Alternative: core destruction immediately completes M18. Rejected because the vent escape and original duel must occur first.
+- A timed amber shutter opens permanently, with HUD countdown and cyan route beacons. Checkpoint half-extents have a 20-stud minimum; retain existing four-stud fuselage collision/crash rules rather than introducing lethal graze volumes. Exact route/volume pacing requires flight acceptance.
+
+## D-541 — Isolated Rusk duel preserves sortie resources
+
+- **Status / maker:** provisional implementation decision, implementation agent, 2026-10-30; owner acceptance pending.
+- Final ace phase has its own 300-second clock; clear all projectiles and other fighters, disable structure weapons, allies hold fire and Rusk cannot select wingmen. Existing once-only ace kill admission owns the finale.
+- Preserve damage, rack, regeneration and specials; suppress withdrawal refunds at duel entry. Finite sortie stocks are rejected for D13. Alternative: refill/reset or reserve stock, rejected per m18 §10. Retry rebuilds fresh session/world state.
+
+## D-542 — Single environment owner across D13 transitions
+
+- **Status / maker:** accepted implementation constraint, implementation agent, 2026-10-30.
+- Optional transitions resolve M18 storm or standard preset keys with WorldEnvironments.resolveEnvironment and invoke WorldEnvironment.ApplySpec, replacing its existing named effects without reloading geometry. NightLighting owns only local lamps. Alternative: a second Lighting writer or world rebuild, rejected for conflicting ownership and resource continuity.
+- Shared validation avoids importing world builders into MissionCatalog (WorldPlan already imports MissionCatalog); runtime resolves the approved key before applying. Other dormant world keys are outside this phase opt-in.
+
+## D-543 — Enclosed targeting rejects scenery-occluded contacts
+
+- **Status / maker:** provisional implementation decision, implementation agent, 2026-10-30; owner acceptance pending.
+- Vent TGT candidates exclude occluded contacts before existing closest-on-screen/next ordering. Vent locks use uncached full player sightlines; missile impacts use the projectile geometry in D-544. Sightlines are split into at most 1,000-stud rays, without the exterior ground-footprint exemption that could ignore a roof. Alternative: existing cached exterior checks, rejected for stale doorway/roof visibility.
+- Existing target scoring and allied budget remain authoritative; cleared duel actors/projectiles earn no player points. Runtime visual/flight verification remains pending.
+
+## D-544 — Authoritative arena bounds and vent projectile geometry
+
+- **Status / maker:** implemented in unmerged PR #194; D13 review-fix agent, 2026-10-30.
+- The phase-owned required duel ace uses authored cylinder and altitude bounds in the authoritative movement step. Vent missiles sweep scenery along their own movement and impact segments, including blind and lost-track movement. Alternatives: the legacy movement clamp and player-origin missile impact checks; rejected because they override the arena or admit missiles through vent walls.
+- Both changes require the D13 phase opt-in; missions 1–10 retain legacy movement clamps and missile behavior. Runtime regressions compile; Studio execution remains pending.
+
+## D-545 — D13 composition with merged D9/D10
+
+- **Status / maker:** implemented in unmerged PR #194; main-integration implementation sub-agent, 2026-10-30.
+- Preserve main's D3–D10 validators, runtime lifecycle, D4/D6 budgets and route cap, spatial/global radar policy and director-owned cruise/hold completion. Vent completion additionally requires its exit; the duel retains once-only ace completion and its independent clock.
+- Generators and core join the shared authored identity namespace through typed ground targets. Reserve the phase-indexed D13 duel identity in that same validator and use it at spawn. Alternative: an unchecked generated duel ID; rejected to prevent cross-batch credit collisions.
+- Duel entry explicitly disposes any D10 cruise director and all in-flight projectiles without credit or refunds. D13 phases reject competing cruise, protection, spatial, elite and ring ownership. Both warning/rearm call sites retain sector warnings policy and suppress D7 protected-target windups.
+
 ## D-520 — Rusk excluded from TGT in dormant D12 (accepted implementation, 2026-10-30)
 Decision maker: D12 implementation agent within the owner's F25 scope. Rusk is a labelled, nonquery procedural command aircraft outside Enemy/damage registries. Alternative: lockable aircraft with a 25% health floor (m17 proposal). Exclusion avoids spending ammunition on an invulnerable target and preserves the story's M18 duel. Four required wingman kills start departure; no early withdrawal, fifth kill or leader points. No mission opts in.
 
@@ -496,6 +537,13 @@ D-465 (2026-10-30, implementation agent; proposed in PR #191): only M12 live rai
 D-466 (2026-10-30, integration agent): replay only M12 commits on main, preserve every released mission and engine contract. Optional raiders remain eligible for the single allied kill; no route actors compete for the six fighter slots. Fairness coverage derives elite Easy/Normal/Hard ordering from CombatBalance, Difficulty and ThreatRules; ring sweeps use a difficulty-independent 25-damage salvo. Remove the single-line crossing estimate because the entire wedge is tested at impact. Studio verified: pending orchestrator run.
 
 Validation for D-466: M12 integration validation (2026-10-30): frozen install, build, required test:offline and manifest/catalog regeneration, and full validate:offline all exited 0 with the specified LUAU_BIN. Passed 1,088 Luau contracts, four loader probes, 19 catalog snapshots, three QA pilot scenarios and 124 Python tests. Story/radio inventory is 215 entries / 137 pending recordings; no audio generated. Catalog changes only M12; prerequisite mission definitions and every main decision record are preserved. D9/D10 cleanup paths remain unchanged; only M12 railgun models set LeaveWreck. Studio verified: pending orchestrator run. No Player tests claimed.
+
+## D-546 — Compile emitted runtime modules before Studio
+
+- **Status / maker:** implemented in unmerged PR #194; implementation sub-agent, 2026-10-30.
+- Preserve batch-runtime calls through namespace imports in CombatService to reduce live Luau local registers. The D12/D13 composition pushed the prior per-symbol bindings beyond Luau’s 200-register limit; this is a compilation failure, not a require cycle.
+- Offline validation compiles every unmodified generated module with loadstring without executing it, and checks emitted server/shared requires for cycles. Erased type imports are not require edges. Negative register-overflow and self-cycle probes were rejected. Alternative: remove CombatService from the D13 spec; rejected because that would hide a real runtime load failure.
+- D13 remains dormant; missions 1–12, mission definitions and existing gameplay decisions are unchanged. Studio/Player verification remains with the orchestrator.
 
 ## Mission 13 — PR #195 (merge pending)
 

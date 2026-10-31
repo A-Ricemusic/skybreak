@@ -1,3 +1,4 @@
+import { BatchD13Phase, validateBatchD13 } from "./EngineBatchD13";
 import { LeaderWithdrawal, BridgeClosure, validateBatchD12 } from "./EngineBatchD12";
 import { validateBatchD11 } from "./EngineBatchD11";
 import { CruisePlan, validateBatchD10 } from "./EngineBatchD10";
@@ -125,6 +126,7 @@ export interface PhaseExecution {
 }
 
 export interface MissionPhaseBlueprint {
+	batchD13?: BatchD13Phase;
 	eliteFormation?: EliteFormation;
 	leaderWithdrawal?: LeaderWithdrawal;
 	bridgeClosures?: BridgeClosure[];
@@ -322,6 +324,7 @@ for (let index = -1; index < MISSIONS.size(); index++) {
 	validateBatchD7(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
 	validateBatchD6(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth, blueprint.terrainRelativeWarnings === true);
 	validateBatchD4(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
+	validateBatchD13(blueprint);
 	validateBatchD12(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
 	validateBatchD8(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateBatchD5(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
@@ -485,6 +488,7 @@ export const MissionCatalog = {
 	validateBatchD7(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
 	validateBatchD6(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth, blueprint.terrainRelativeWarnings === true);
 	validateBatchD4(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
+	validateBatchD13(blueprint);
 	validateBatchD12(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
 	validateBatchD8(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateBatchD5(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);

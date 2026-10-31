@@ -1,3 +1,4 @@
+import { newVent, stepVent, VentState } from "./EngineBatchD13";
 import { thresholdResult } from "./EngineBatchC";
 import { canSkipLanding, crossesReturnLine, landingDuration, landingSkipTarget, landingTimeRemaining } from "./EngineBatchB";
 import { FlightMath, FlightState } from "./FlightMath";
@@ -10,6 +11,7 @@ const PROTECT_DRAIN = 0.55;
 /** Each live hazard gun drains the protected actor like this many raiders. */
 const GUN_WEIGHT = 1.5;
 export interface BlueprintState {
+	vent?: VentState;
 	rearmActive?: boolean;
 	/** Sortie-persistent story outcome, survives phase updates. */
 	vultureTwoRecovered?: boolean;
@@ -97,6 +99,7 @@ function finish(s: BlueprintState, outcome: "won" | "failed", reason: BlueprintR
 }
 function enter(s: BlueprintState): void {
 	const p=s.phases[s.phaseIndex];
+	s.vent=p?.batchD13?.vent ? newVent() : undefined;
 	if (p?.scoreThreshold) { s.scorePhaseStarted=s.elapsed; s.countdownDeadline=s.elapsed+p.scoreThreshold.seconds; }
 	if (p?.update) {
 		s.updateSerial=(s.updateSerial ?? 0)+1; s.updateUntil=s.elapsed+8;
@@ -293,6 +296,7 @@ export const BlueprintRunner = {
 			const t=position ? math.clamp(((position.x-line.a.x)*dx+(position.z-line.a.z)*dz)/(dx*dx+dz*dz),0,1) : 0.5;
 			return {x:line.a.x+dx*t,y:line.markerY,z:line.a.z+dz*t};
 		}
+		if(p?.batchD13?.vent && s.vent) return p.batchD13.vent.checkpoints[s.vent.checkpoint]?.center ?? p.batchD13.vent.exit.center;
 		if (!p?.points) return undefined;
 		if (p.kind !== "escort") return p.points[s.pointIndex] ?? p.points[0];
 		const segment=math.clamp(s.phaseProgress/p.seconds!,0,1)*(p.points.size()-1);
@@ -309,6 +313,11 @@ export const BlueprintRunner = {
 		if (s.outcome !== undefined || !finite(dt) || dt<=0 || dt>0.1) return;
 		for (const n of [from.x,from.y,from.z,to.x,to.y,to.z,threats,drainScale]) if (!finite(n)) return;
 		const p=BlueprintRunner.ActivePhase(s)!;
+		if(p.batchD13?.vent && s.vent) {
+			stepVent(s.vent,p.batchD13.vent,s.killedIds,from,to,dt);
+			if(s.vent.exited) advance(s);
+			return;
+		}
 		if (p.returnLine) { if ((!p.canyonEscape || (from.y<=p.canyonEscape.ceiling && to.y<=p.canyonEscape.ceiling)) && crossesReturnLine(p.returnLine,from,to)) { s.phaseProgress=1; advance(s); } return; }
 		if (p.kind === "chase") {
 			s.phaseClock+=dt;
@@ -379,7 +388,7 @@ export const BlueprintRunner = {
 		else s.requiredGroundKills++;
 		s.phaseProgress++;
 		if (twist(s)) return true;
-		if (!p.cruiseIntercept && !p.leaderWithdrawal && !p.interceptHold && s.phaseProgress>=total(BlueprintRunner.ActivePhase(s)!) && (!p.protection?.accompaniment || (s.protectedSafe ?? 0)>=p.protection.aircraft.size())) advance(s);
+		if (!p.cruiseIntercept && !p.leaderWithdrawal && !p.interceptHold && !p.batchD13?.vent && s.phaseProgress>=total(BlueprintRunner.ActivePhase(s)!) && (!p.protection?.accompaniment || (s.protectedSafe ?? 0)>=p.protection.aircraft.size())) advance(s);
 		return true;
 	},
 	/** Director completion is separate from the score ledger: separation is never a kill. */
@@ -392,7 +401,7 @@ export const BlueprintRunner = {
 		const p=BlueprintRunner.ActivePhase(s) ?? s.phases[s.phases.size()-1];
 		const waiting=s.banditsDueAt !== undefined && !BlueprintRunner.BanditsDue(s);
 		const progress=s.outcome === "won" ? total(p) : p.kind === "tutorial_move" ? math.floor(s.turnObserved+1e-6)+math.floor(s.pitchObserved+1e-6) : p.kind === "tutorial_target" ? (s.cycled ? 1 : 0) : s.phaseProgress;
-		return {phase:p.execution?.hudPhase ?? p.kind,objective:waiting ? "Protection ends when bandits arrive; prepare to fight" : p.update?.objective ?? p.execution?.objective ?? p.label,
+		return {phase:p.execution?.hudPhase ?? p.kind,objective:p.batchD13?.vent && s.vent ? (s.vent.elapsed<p.batchD13.vent.openingSeconds ? `VENT OPENS IN ${math.ceil(p.batchD13.vent.openingSeconds-s.vent.elapsed)}s · HOLD AT ENTRY` : s.killedIds.has(p.batchD13.vent.core) ? "CORE DOWN · FOLLOW EXIT BEACON" : `VENT OPEN · CHECKPOINT ${s.vent.checkpoint+1}`) : waiting ? "Protection ends when bandits arrive; prepare to fight" : p.update?.objective ?? p.execution?.objective ?? p.label,
 			objectiveProgress:math.floor(progress),objectiveTotal:total(p),tutorialStep:p.tutorialStep ?? "",beat:p.beat};
 	},
 };
