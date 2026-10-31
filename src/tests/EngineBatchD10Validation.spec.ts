@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { validateBatchD10 } from "../shared/EngineBatchD10";
-import { validateCampaignEncounters } from "../shared/CampaignEncounters";
+import { validateEncounterIdentities, validateCampaignEncounters } from "../shared/CampaignEncounters";
 import { MissionCatalog, MissionPhaseBlueprint } from "../shared/MissionCatalog";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 
@@ -38,6 +38,18 @@ describe("D10 authoring admission regressions",()=>{
    expect(accepted(()=>MissionCatalog.ValidatePolicy(b))).toBe(false);
   }
   for(const source of sources("distinct")) for(const phases of [[source,intercept()],[intercept(),source]]) MissionCatalog.ValidatePolicy(blueprint(phases));
+ });
+ it("shares protected and spatial source identities with cruise and every encounter source",()=>{
+  const protectedPhase: MissionPhaseBlueprint={kind:"required_air",label:"Protected",protection:{aircraft:[{id:"shared-threat"}]} as MissionPhaseBlueprint["protection"]};
+  const spatialPhase: MissionPhaseBlueprint={kind:"required_air",label:"Spatial",spatialJamming:{airships:[{id:"shared-threat"}]} as MissionPhaseBlueprint["spatialJamming"]};
+  for(const added of [protectedPhase,spatialPhase]) {
+   for(const other of [...sources("shared-threat"),intercept()]) for(const phases of [[added,other],[other,added]]) {
+    expect(accepted(()=>validateEncounterIdentities(phases))).toBe(false);
+    expect(accepted(()=>validateBatchD10(phases,15360))).toBe(false);
+   }
+   validateEncounterIdentities([added,...sources("distinct").filter((_,i)=>i===0)]);
+  }
+  expect(accepted(()=>validateEncounterIdentities([protectedPhase,spatialPhase]))).toBe(false);
  });
  it("rejects duplicate cruise identities across phases and inside twist inserts",()=>{
   expect(accepted(()=>MissionCatalog.ValidatePolicy(blueprint([intercept(),intercept()])))).toBe(false);

@@ -1,4 +1,7 @@
 import { CruisePlan, validateBatchD10 } from "./EngineBatchD10";
+import { SpatialJamming, validateBatchD9 } from "./EngineBatchD9";
+import { EliteFormation, RingSweep, validateBatchD8 } from "./EngineBatchD8";
+import { ProtectionPlan, validateBatchD7 } from "./EngineBatchD7";
 import { RepeatedArtillery, validateBatchD6 } from "./EngineBatchD6";
 import { InterceptHold, validateBatchD4 } from "./EngineBatchD4";
 import { GroundProgressPlan, validateBatchD5 } from "./EngineBatchD5";
@@ -63,6 +66,7 @@ export type EnvironmentPreset =
 	| "ocean_night";
 
 export type PhaseKind =
+	| "protected_air"
 	// Teaching actions
 	| "tutorial_move"
 	| "tutorial_target"
@@ -119,6 +123,9 @@ export interface PhaseExecution {
 }
 
 export interface MissionPhaseBlueprint {
+	eliteFormation?: EliteFormation;
+	ringSweep?: RingSweep;
+	protection?: ProtectionPlan;
 	/** Finite waves queue within this opt-in concurrent fighter budget. */
 	concurrentFighters?: number;
 	interceptHold?: InterceptHold;
@@ -128,6 +135,7 @@ export interface MissionPhaseBlueprint {
 	cruiseIntercept?: CruisePlan;
 	scoreThreshold?: ScoreThreshold;
 	jamming?: RadarJamming;
+ spatialJamming?: SpatialJamming;
 	groundProgress?: GroundProgressPlan;
 	rearm?: RearmPlan;
 	/** HUD-less cut-in with the mission clock held (SortieCutaways). */
@@ -254,7 +262,7 @@ function expandPhases(phases: MissionPhaseBlueprint[]): MissionPhaseBlueprint[] 
 // Recompute optional counts after authored flight objectives are installed.
 for (const mission of MISSIONS) {
 	let optional = 0;
-	for (const phase of expandPhases(mission.phases)) optional += (phase.bombers?.escorts.count ?? 0) + (phase.optionalRaiders ?? 0) + (phase.standaloneAce ? 1 : 0) + (phase.fighterWaves ?? []).reduce((sum,w)=>sum+w.count,0);
+	for (const phase of expandPhases(mission.phases)) optional += (phase.bombers?.escorts.count ?? 0) + (phase.optionalRaiders ?? 0) + (phase.standaloneAce ? 1 : 0) + (phase.fighterWaves ?? []).reduce((sum,w)=>sum+(w.required ? 0 : w.count),0);
 	mission.optionalRaiderMax = optional;
 }
 
@@ -303,8 +311,11 @@ for (let index = -1; index < MISSIONS.size(); index++) {
 		validateBatchC(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateArmament(blueprint.armament, expandPhases(blueprint.phases).some(phase => phase.rearm?.gun === true));
 	validateBatchD10(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
+	validateBatchD9(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit, blueprint.armament?.gun !== undefined, blueprint.scoring?.basis === "points" ? blueprint.scoring.points : undefined);
+	validateBatchD7(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
 	validateBatchD6(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth, blueprint.terrainRelativeWarnings === true);
 	validateBatchD4(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
+	validateBatchD8(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateBatchD5(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateBatchD3(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth, blueprint.terrainRelativeWarnings === true);
 		validateBatchB(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
@@ -461,8 +472,11 @@ export const MissionCatalog = {
 	validateBatchC(expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint).hardHalfWidth);
 	validateArmament(blueprint.armament, expandPhases(blueprint.phases).some(phase => phase.rearm?.gun === true));
 	validateBatchD10(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
+	validateBatchD9(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit, blueprint.armament?.gun !== undefined, blueprint.scoring?.basis === "points" ? blueprint.scoring.points : undefined);
+	validateBatchD7(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
 	validateBatchD6(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth, blueprint.terrainRelativeWarnings === true);
 	validateBatchD4(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
+	validateBatchD8(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateBatchD5(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateBatchD3(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth, blueprint.terrainRelativeWarnings === true);
 	validateBatchB(expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint).hardHalfWidth);
@@ -497,7 +511,7 @@ export const MissionCatalog = {
 	RequiredAirKills(blueprint: MissionBlueprint): number {
 		let total = 0;
 		for (const phase of expandPhases(blueprint.phases)) {
-			if (phase.kind === "required_air" || phase.kind === "chase") total += phase.count ?? 0;
+			if (phase.kind === "required_air" || phase.kind === "chase") total += phase.eliteFormation ? 1 : phase.count ?? 0;
 			else if (phase.kind === "ace") total += 1;
 		}
 		return total;
@@ -549,7 +563,7 @@ export const MissionCatalog = {
 	},
 	/** Raiders a phase may lose when every wave brings `extra` more (Ace difficulty). */
 	RaiderCap(phase: MissionPhaseBlueprint, extra = 0): number {
-		return (phase.standaloneAce ? 1 : 0) + (phase.fighterWaves ?? []).reduce((sum,w) => sum+w.count,0) + (phase.bombers?.escorts.count ?? 0) + (phase.optionalRaiders ?? 0) + math.max(0, extra) * MissionCatalog.RaiderWaves(phase);
+		return (phase.standaloneAce ? 1 : 0) + (phase.fighterWaves ?? []).reduce((sum,w) => sum+(w.required ? 0 : w.count),0) + (phase.bombers?.escorts.count ?? 0) + (phase.optionalRaiders ?? 0) + math.max(0, extra) * MissionCatalog.RaiderWaves(phase);
 	},
 	/**
 	 * The most hostile aircraft a phase can have up at once if nothing held them back: every group a

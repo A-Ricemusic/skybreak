@@ -132,11 +132,11 @@ export const ThreatRules = {
 	PlayerStraight(inputX: number, inputY: number): boolean {
 		return math.abs(inputX) < STRAIGHT_STICK && math.abs(inputY) < STRAIGHT_STICK;
 	},
-	/** May this enemy start a missile windup right now? */
-	MayFire(gate: FireGate): boolean {
-		if (gate.evading || !gate.globalReady || gate.fireTimer > 0) return false;
+	/** Only protected-aircraft attackers ignore player evasion and always receive aim relaxation. */
+	MayFire(gate: FireGate, targetingProtectedAircraft = false): boolean {
+		if ((!targetingProtectedAircraft && gate.evading) || !gate.globalReady || gate.fireTimer > 0) return false;
 		if (gate.separation <= gate.minRange || gate.separation >= gate.maxRange) return false;
-		const required = gate.playerStraight ? gate.aimThreshold - gate.straightRelax : gate.aimThreshold;
+		const required = (targetingProtectedAircraft || gate.playerStraight) ? gate.aimThreshold - gate.straightRelax : gate.aimThreshold;
 		return gate.aimDot > required;
 	},
 	/** Is any player missile guided onto `enemy` within InboundRange? */

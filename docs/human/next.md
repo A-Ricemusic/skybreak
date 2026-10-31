@@ -1,23 +1,16 @@
 # Next
 
-## D10 / M14 integration
+**M09 arrival regression, 2026-10-30:** Orchestrator reported Studio Jest 1,219/1,220 at `21be233`: the sole failure expected nine generic opening bandits, but D5 authors three required trios at mission times 600/625/650. #185 corrects the test to check exact timed admissions and duplicates, retaining D4 slots and adding grouped/delayed-launch coverage. Runtime remains unchanged: completion requires all nine kills. An offline regression clears early trios without ending the phase. Frozen install, build and full offline validation exited 0 (1,023 Luau contracts, 19 catalog snapshots, 124 Python tests). The director regression compiles but requires the orchestrator’s Studio rerun; this task did not launch Studio or claim a Player test.
 
-D10 review fixes (#190, unmerged): cruise phases reject twists (M14 spec requires none), and D10/campaign validation share a sortie-wide uniqueness check for bomber, ground, wave, ace and cruise identities. Regression coverage includes both phase orders and twist-inserted phases. No mission opts in; M01–M08 data and runtime behavior are unchanged. No Studio/Player run or upload was performed.
+Updated 2026-10-30 against main `085373c`. Practice and missions 1–8 are live by pipeline convention; M09 goes live after #185 merges. M10–M18 remain dormant. No Player observation is claimed.
 
-D10 validation: frozen install, build and full offline validation exited 0 (1,010 Luau contracts, 19 catalog snapshots, 124 Python tests). Runtime Jest compiled only; no Studio run.
+1. **Review and merge mission 9 [#185](https://github.com/A-Ricemusic/skybreak/pull/185).** Prerequisites #178, #180, #182 and #183 are merged. Studio verified: pending orchestrator run; verify sequential M08→M09 unlock, both clocks, carrier service and landing-force defence.
+2. **Verify M07/M08 and M09 in the orchestrator's Studio session.** Check canyon ingress/masking, protected mast/bomber timing, beach sectors and carrier deck. Offline coverage does not establish Player quality.
+3. **Integrate missions 10–18 in order.** D6 #182 is merged and dormant; activate M10 against the engine plan. Retain provisional inventory/rank assumptions and runtime acceptance gaps.
 
-After review of dormant D10, author M14’s finite cruise/carrier/child roster, score-role values, staggered arrivals and terrain-audited routes using the existing world. Calibrate visual locks, missile/gun hit fairness, impact ordering, low-altitude radar, phone cost and carrier-before-release score totals in Studio/Player. Run the added runtime Jest suite under the orchestrator’s lease; this implementation task deliberately did not launch Studio. D7 #184, D8 #186 and D9 #188 remain separate open work; D10 does not depend on their files.
+## Mission 6 beta guide — IRON COAST (Live)
 
-Updated 2026-10-30 against main `a04fdd6`. Practice and missions 1–7 are live by pipeline convention. M08 will be live after #183 merges; worlds 9–18 remain dormant. No Player observation is claimed.
-
-1. **Review and merge mission 8 [#183](https://github.com/A-Ricemusic/skybreak/pull/183).** D4 #177 and M07 #178 are merged. Studio verified: pending orchestrator run; confirm clocks, protected mast adoption, bomber endpoint loss and sequential unlock.
-2. **Verify live M07 in the orchestrator's Studio session.** Check actual-world canyon masking/ingress, Y=585 ceiling and phone flight; offline coverage does not establish play quality.
-3. **D5 [#180](https://github.com/A-Ricemusic/skybreak/pull/180) is merged (dormant); complete D6 #182 next**, following the [engine plan](../specs/engine/missions-06-18-plan.md), keeping opt-in support dormant until mission activation.
-4. **Integrate missions 9–18 in order.** Worlds and specs exist; actors, counts, timing, failure, ranks, unlock and runtime acceptance remain.
-
-## Mission 6 beta guide — IRON COAST (Live after #179 merges)
-
-After #179 merges, complete mission 5 then launch mission 6. Verify the remapped Broken Relay chapter and original subtitle-only briefing/radio. Fly north from the airborne start into three military harbour basins; the fish market and worker district are untargetable scenery.
+Complete mission 5 then launch mission 6. Verify the remapped Broken Relay chapter and original subtitle-only briefing/radio. Fly north from the airborne start into three military harbour basins; the fish market and worker district are untargetable scenery.
 
 - Score at least 3,000 in 15:00 active time. Reaching the goal must hold until expiry; below goal at expiry or player destruction must fail. Check C/B/A/S at 3,000/3,600/4,200/5,000; maximum inventory is 6,800 points before the uncredited allied kill.
 - Attack 36 hulls, 40 yard contacts and 18 hull-owned defence components. SAMs warn/fire with the shared difficulty cap. Sinking a hull retires surviving mounts without free mount points; killing a mount first pays once. Three outer cruisers patrol inside native water.
@@ -42,13 +35,13 @@ New/changed dialogue stays subtitle-only; no further audio uploads (D-142). Exis
 
 ## Mission 7 verification handoff (#178, merged)
 
-Main #179 is merged into the branch; M01–M06/practice behavior is preserved. Run the added M07WorldRuntime Jest spec in the orchestrator’s isolated Studio session: actual build, first-step D-242 success and blocked-route rejection, real terrain masking at ingress/exit, and a 25,000-stud masking line with near-aircraft cover. Confirm retained-pose ingress and 60s first impact (later 25s cycles) at Y=585 absolute. Offline flight covers cruise-speed Y=900/1800/3000, three headings and 3s reaction; challenging but fair phone flight still needs human observation. No Studio was launched by this implementation agent.
+Mission 7 #178 is merged; M01–M06/practice behavior is preserved. Run the added M07WorldRuntime Jest spec in the orchestrator’s isolated Studio session: actual build, first-step D-242 success and blocked-route rejection, real terrain masking at ingress/exit, and a 25,000-stud masking line with near-aircraft cover. Confirm retained-pose ingress and 60s first impact (later 25s cycles) at Y=585 absolute. Offline flight covers cruise-speed Y=900/1800/3000, three headings and 3s reaction; challenging but fair phone flight still needs human observation. No Studio was launched by this implementation agent.
 
 M07 review-fix validation (2026-10-30): frozen install, build and full `validate:offline` exited 0; 967 Luau contracts and 19 catalog snapshots passed. Voice manifests regenerated; no audio generated/uploaded. Studio/Player not run by this agent.
 
-## Mission 8 beta guide — OPEN FREQUENCY (Live after #183 merges)
+## Mission 8 beta guide — OPEN FREQUENCY (Live)
 
-After #183 merges, complete mission 7 to unlock mission 8. Fly NW from the southeast start; the island mast is protected scenery, not a target. Original Broken Relay briefing/radio remains subtitle-only.
+Complete mission 7 to unlock mission 8. Fly NW from the southeast start; the island mast is protected scenery, not a target. Original Broken Relay briefing/radio remains subtitle-only.
 
 - Reach 800 points, then keep fighting until the full 7:00 expires. Expect a fresh 6:00 bomber clock without losing cumulative points.
 - Intercept all six bombers approaching from the west in 15-second steps. Any surviving bomber reaching the transmitter fails. Destroying the sixth early must not end the mission; defend until zero. At 0:35 the mast lights cyan and the broadcast starts; the debrief confirms two garrisons standing down.
@@ -59,3 +52,31 @@ After #183 merges, complete mission 7 to unlock mission 8. Fly NW from the south
 ## Engine D6 merged (#182) and M10 activation
 
 D6 integrates repeated artillery, parked/airborne credit ownership, bounded static contact detail and six M10 target types with main’s D4 air budget and D5 lifecycle. Next: orchestrator-owned runtime Jest/Studio checks, phone profiling with 150 contacts, then M10 roster/cadence/ranks and visual acceptance before activation. No mission enables D6.
+
+## Mission 9 beta guide — GREEN BEACON (live after #185 merges)
+
+After #185 merges, complete M08 to unlock GREEN BEACON. Score 2,200 points in the full 10:00 beach strike; reaching the goal early does not skip the clock. Three beach sectors have radar, batteries, bunkers, tanks, launchers, howitzers, AA and SAMs. Use the finite 60 missiles / 1,200 gun rounds / non-recharging special wisely; the area-strike special attacks ground clusters. The offshore carrier offers repeatable optional service in phase 1, refilling weapons while pausing active mission time and preserving damage. Check landing, skip, menu, relaunch and repeat at the actual deck.
+
+At expiry a visible update starts 7:00. Nine required attack jets arrive as three groups of three, 25 seconds apart, targeting the west, central and east landing forces. Clear each sector's two batteries during phase 1 to let its craft advance in phase 2; ground progress is feedback, not a compulsory all-ground-target quota. Each landing force has an original provisional 300-health budget; losing any force fails. All nine aircraft stopped wins; phase timeout or player destruction fails. Allies share one optional kill for the entire sortie and award no player score.
+
+Owner checks pending: readable HUD and beacons under overcast light; sector progress/hit cues; practical interception time and fairness; carrier deck clearance, paused service and finite refill; retry cleanup and duplicate settlement; phone frame rate/load time; approach skyline and target spacing against the accepted reference. No Studio launch, Jest Studio execution, Player observation or visual acceptance is claimed by this implementation agent.
+
+## D7 merged (#184); mission 11 activation next
+
+Review PR #184 after main integration and offline validation. Before M11 activation, author and inspect routes/health/roster, terrain clearance, markers, damage/loss branches and all-safe completion under the orchestrator’s Studio lease. No mission opts in; runtime Jest and Player/phone acceptance remain pending. See D-360–D-363 and the engine plan.
+
+Main integration validation (2026-10-30): frozen install, standalone build and full offline validation exited 0; 1,007 Luau contracts, 19 unchanged catalog snapshots and 124 Python tests. The combined sector/protected-target warning rule passes offline; service-entry runtime regressions compile but remain unrun. No Studio/Player test. Main at integration is `ea0045d` (D5/D6 merged, M08 not merged). D4/D6 admission logic is retained; this main revision has no `concurrentRoutes` option.
+
+## D8 implementation — dormant review candidate
+
+Review the integrated ground ECM/strike service, precision SALVO, elite retreat/recovery and ring sweep contracts (D-400–D-402). Runtime Jest belongs to the orchestrator’s Studio lease. M12 activation, roster/scoring, presentation and world mapping remain separate work; its dependent branch is untouched.
+
+D8 main integration validation (2026-10-30, main `5d84486`): frozen install, build and full `validate:offline` with the prescribed `LUAU_BIN` each exited 0: 1,023 Luau contracts, 19 unchanged catalog snapshots, four loader guard probes and 124 Python tests. All 92 spec registrations match runner imports and retain both parents. No Studio, `test:roblox`, Player tests or uploads performed. D8 remains dormant; M12 dependent branch untouched.
+
+## Dormant D9 follow-up
+
+Review PR #188’s integration with merged D7/D8 and missions 8–9. Keep D9 dormant until M13 activation; validate corridor placement, cumulative navigation holds, phase handoff, scoring and Player/phone readability. Spatial ground ECM requires a separately authored source/validation design before support.
+
+## D10 integration with current main (2026-10-30)
+
+PR #190 remains dormant and unmerged. Main D6–D9 and missions 8–9 are preserved; practice, mission catalog and frozen snapshots are unchanged. Cruise twists remain rejected. The shared sortie identity namespace now also includes protected aircraft and spatial airships; elites use generated runtime identities, with the existing elite retreat lifecycle preserved. M14 activation still needs authored routes/roster/scoring and Studio/Player/phone acceptance. No Studio, Player test or upload was performed. Integration validation passed: frozen install, build and full offline validation each exited 0; runtime Jest compiled only. Main was `f35430f`; mission 10 had not merged.

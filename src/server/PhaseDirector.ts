@@ -1,5 +1,6 @@
 import { clearCruise } from "./EngineBatchD10Runtime";
 import { Workspace } from "@rbxts/services";
+import { clearProtection } from "./EngineBatchD7Runtime";
 import { clearGroundDirector } from "./EngineBatchD5Runtime";
 import { takeArrival, FighterArrival, StandaloneAce } from "../shared/CampaignEncounters";
 import type { AceLivery } from "../shared/AssetSelection";
@@ -69,7 +70,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		for (const batch of WavePlan.Admit(session.airQueue, room)) {
 			if (batch.arrival) {
 				const a=batch.arrival;
-				spawnAir(session,batch.count,"aircraft" in a && a.aircraft ? "bomber" : batch.role,{ arrival:a, targetId: session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.targetIds !== undefined && ("name" in a || a.count === 1) ? a.id : undefined, optional:true, name: "name" in a ? a.name : undefined, livery: "livery" in a ? a.livery : undefined, aceHealth: "health" in a ? a.health : undefined });
+				spawnAir(session,batch.count,"aircraft" in a && a.aircraft ? "bomber" : batch.role,{ arrival:a, targetId: session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.targetIds !== undefined && ("name" in a || a.count === 1) ? a.id : undefined, optional:!("required" in a && a.required === true), name: "name" in a ? a.name : undefined, livery: "livery" in a ? a.livery : undefined, aceHealth: "health" in a ? a.health : undefined });
 			} else if (session.bomberEncounter && (batch.role === "escort" || batch.role === "ace")) {
 				const encounter = session.bomberEncounter;
 				const leading = BomberRules.Sample(encounter.route, session.elapsed - encounter.startedAt).slots[0];
@@ -101,6 +102,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		if (state.outcome !== undefined || session.appliedBlueprintPhaseIndex === state.phaseIndex) return;
 		clearCruise(session);
 		clearGroundDirector(session);
+		if (session.protectedFlight && session.protectedFlight.phase !== state.phaseIndex) clearProtection(session);
 		session.appliedBlueprintPhaseIndex=state.phaseIndex;
 		session.chatterIndex=0;
 		session.reinforceIndex=0;
@@ -120,9 +122,9 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		const phase: MissionPhaseBlueprint | undefined=phases[state.phaseIndex];
 		if (!phase) return;
 		for (const enemy of session.enemies) if (enemy.typedGround) {
-			enemy.enabled=enemy.phaseOwner === state.phaseIndex && enemy.health>0;
+			enemy.enabled=enemy.typedGround.type!=="wreck" && enemy.phaseOwner === state.phaseIndex && enemy.health>0;
 			// Later phases' targets stay hidden; an earlier phase's survivors stay standing but inert.
-			const shown=enemy.enabled || (enemy.health>0 && (enemy.phaseOwner ?? 0)<state.phaseIndex);
+			const shown=(enemy.typedGround.type==="wreck" && enemy.phaseOwner===state.phaseIndex) || enemy.enabled || (enemy.health>0 && (enemy.phaseOwner ?? 0)<state.phaseIndex);
 			for(const item of enemy.model.GetDescendants()) if(item.IsA("BasePart")) {
 				item.Transparency=shown ? (item.GetAttribute("OriginalTransparency") as number ?? 0) : 1;
 				item.CanQuery=enemy.enabled && item.GetAttribute("FlightSolid") === true;
@@ -146,7 +148,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 			}
 			requestAir(session, b.escorts.initial, "escort");
 		}
-		else if (phase.kind === "required_air" && !phase.cruiseIntercept && phase.execution?.launchDelay === undefined) {
+		else if (phase.kind === "required_air" && !phase.cruiseIntercept && !phase.fighterWaves?.some(w => w.required) && phase.execution?.launchDelay === undefined) {
 			if (phase.execution?.directSpawn) spawnAir(session,phase.count ?? 0,"bandit");
 			else {
 			// Staggered groups: the first now, the rest by WavePlan.Due (stepSession).
