@@ -1,5 +1,7 @@
 # SKYBREAK redesign dashboard
 
+D6 engine work is in review on `feat/engine-batch-d6`: dormant repeated artillery, parked/airborne credit deduplication, bounded static contact detail and six M10 target types (D-300–D-303). No mission opts in; Studio/runtime Jest/phone verification and M10 activation remain pending. See [engine plan](../specs/engine/missions-06-18-plan.md#7-batch-d6-implementation).
+
 Unmerged owner tuning (D-220/D-221): M01/M02 add four optional fighters each with higher rank cuts; shared allied flights default to one combined kill per sortie. Existing live gameplay stays as merged main until this PR merges. See [Next](next.md) for exact changes and owner checks.
 
 Last updated: 2026-10-29, against main `7d73c44` (mission 3 merged).

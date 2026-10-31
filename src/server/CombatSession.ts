@@ -105,6 +105,8 @@ export interface Projectile {
 	lostTrack?: boolean;
 }
 export interface CombatSession {
+	contactClock?: number;
+	repeatedArtillery?: {phase:number;state:import("../shared/EngineBatchD6").ScheduledArtillery};
 	artillery?: { phase: number; state: ArtilleryState };
 	/** Collateral mount removal satisfies groups but never earns score or kills. */
 	retiredGroundIds?: Set<string>;

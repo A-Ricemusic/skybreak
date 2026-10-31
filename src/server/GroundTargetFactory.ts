@@ -48,12 +48,19 @@ export function createGroundTarget(spec: TypedGroundTarget): Model {
 				part("Hull", new Vector3(50,25,220), new Vector3(0,5,0));
 				part("Bridge", new Vector3(35,30,40), new Vector3(0,30,65));
 			}
-		} else if (navalHull(spec.type)) {
+		} else if (navalHull(spec.type) && spec.type!=="gunboat") {
 			const length=spec.type==="missile_boat" ? 85 : spec.type==="cruiser" ? 260 : 200;
 			model.PrimaryPart!.Transparency=1;
 			part("Hull",new Vector3(spec.type==="submarine" ? 25 : 48,18,length),new Vector3(0,0,0));
 			part(spec.type==="submarine" ? "Sail" : "Bridge",new Vector3(22,22,32),new Vector3(0,18,length*0.25));
 			if(spec.type==="container_ship" || spec.type==="supply_ship") for(const z of [-55,-20,15]) part("Deck cargo",new Vector3(32,18,25),new Vector3(0,17,z));
+		} else if (spec.type === "gunboat") {
+			part("Hull",new Vector3(18,8,55),new Vector3(0,0,0)); part("Cabin",new Vector3(12,10,16),new Vector3(0,9,12));
+		} else if (spec.type === "container") { part("Cargo",new Vector3(16,16,40),new Vector3(0,8,0));
+		} else if (spec.type === "watchtower") { part("Stilts",new Vector3(8,40,8),new Vector3(0,20,0)); part("Lookout",new Vector3(20,10,20),new Vector3(0,45,0));
+		} else if (spec.type === "antenna") { part("Mast",new Vector3(3,60,3),new Vector3(0,30,0)); part("Aerial",new Vector3(25,3,3),new Vector3(0,52,0));
+		} else if (spec.type === "barracks") { part("Quarters",new Vector3(30,18,70),new Vector3(0,9,0));
+		} else if (spec.type === "sub_pen") { model.PrimaryPart!.Transparency=1; for(const x of [-55,55]) part("Pier wall",new Vector3(10,70,100),new Vector3(x,35,0)).Material=Enum.Material.Concrete; part("Roof",new Vector3(120,10,100),new Vector3(0,75,0)).Material=Enum.Material.Concrete;
 		} else if (spec.type === "containers") {
 			for(const x of [-18,0,18]) part("Container",new Vector3(16,16,40),new Vector3(x,8,0));
 		} else if (spec.type === "storage") { part("Storehouse",new Vector3(65,30,45),new Vector3(0,15,0)); }

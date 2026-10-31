@@ -1,3 +1,7 @@
+## Engine D6 verification and M10 activation (2026-10-30)
+
+D6 is dormant: runtime Jest, repeated hazard/terrain presentation, 150-contact phone performance and Player checks are pending the orchestrator's Studio queue. No Studio session or `test:roblox` was run. Deterministic geometry/LOS limits are covered offline and by compiled runtime specs; they are not measured frame-time budgets. Exact M10 roster, artillery cadence, rank thresholds and owner visual acceptance remain unresolved. No uploads or owner action required for this engine PR. Latest main was fetched/merged before PR creation; D4 #177 was still open, so combined D4/D6 validation awaits its merge. D5 remains separate. D6 offline validation exited 0 (941 Luau contracts, 124 Python tests); build and frozen install also exited 0.
+
 # Blockers
 
 Owner tuning validation (2026-10-30): rebased on main 5034b39, preserving terrain performance, dormant worlds and D-120/D-121. Frozen install, build and validate:offline pass (848 Luau contracts, 124 Python tests); catalog fixture regenerated. Initial Jest exposed an outdated rear-wave assertion, now corrected. A subsequent attempt stalled at Studio startup during concurrent launches and produced no Jest summary. Final rebased Jest is deferred to the orchestrator’s merge queue: the priority mission 5 agent relaunched Studio during this task’s idle gate. This task cancelled its queued launch and closed its own Studio; no other Studio was stopped. No Player or phone balance verification is claimed.

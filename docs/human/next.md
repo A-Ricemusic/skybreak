@@ -1,3 +1,7 @@
+## Engine D6 review and M10 activation (2026-10-30)
+
+D6 adds dormant repeated artillery, parked/airborne credit ownership, bounded static contact detail and six M10 target types. Review alongside D4's air budget and D5's separate work; no mission activates these opt-ins. Next: orchestrator-leased runtime Jest/Studio checks, phone profiling at 150 contacts, then resolve M10 roster/cadence/ranks and rendered world acceptance before activation. Offline checks do not establish Player quality.
+
 # Next
 
 ## Engine batch D3 — rebased on main after D2 (#168); dormant
