@@ -82,3 +82,9 @@ export function validateBatchD5(phases: MissionPhaseBlueprint[], limit: number):
   for(const w of phase.fighterWaves ?? []) if(w.attackSector!==undefined) assert(p!==undefined && p.sectors.some(s=>s.id===w.attackSector) && w.aircraft===undefined && w.route===undefined && w.scramble!==true,"Beach attacker needs a same-phase sector and fighter flight");
  }
 }
+
+/** Shared D5 strike envelope; caller supplies the authoritative world ray result. */
+export const SquadAttackRules = { range:1400, speed:285, warning:2, reload:8, damage:10 };
+export function squadStrikeReachable(distance:number, blocked:boolean):boolean {
+ return distance<=SquadAttackRules.range && !blocked;
+}

@@ -196,7 +196,7 @@ export const BlueprintRunner = {
 		if (threshold && finite(health) && health<=0) { finish(s,"failed","destroyed"); return; }
 		if(threshold) {
 			s.phaseProgress=math.min(threshold.points,s.score ?? 0);
-			const result=thresholdResult(threshold,s.score ?? 0,s.elapsed-(s.scorePhaseStarted ?? 0));
+			const result=thresholdResult(threshold,(threshold.requiredTargetIds ?? []).every(id=>s.killedIds.has(id)) ? s.score ?? 0 : 0,s.elapsed-(s.scorePhaseStarted ?? 0));
 			if(result==="failed") finish(s,"failed","timeout");
 			else if(result==="complete") { s.countdownDeadline=undefined; advance(s); }
 			return;
@@ -363,11 +363,12 @@ export const BlueprintRunner = {
 		if (!required && p.bombers) return (kind === "air" || kind === "ace") && s.phaseOptionalKills < MissionCatalog.RaiderCap(p,s.extraRaiders);
 		if (!required && p.execution?.raiderKillCap !== undefined) return kind === "air" && s.optionalAirKills<p.execution.raiderKillCap;
 		if (!required) return kind==="air" && s.phaseOptionalKills<MissionCatalog.RaiderCap(p,s.extraRaiders);
-		return (kind==="ace" && p.kind==="ace") || (kind==="ground" && (p.kind==="required_ground" || hazardLive(s)))
+		return (kind==="ace" && p.kind==="ace") || (kind==="ground" && (p.kind==="required_ground" || p.scoreThreshold?.requiredTargetIds!==undefined || hazardLive(s)))
 			|| (kind==="air" && (p.kind==="required_air" || p.kind==="chase"));
 	},
 	RecordKill(s: BlueprintState,id: string,kind: "air" | "ground" | "ace",required: boolean,now: number): boolean {
 		BlueprintRunner.Tick(s,now);
+		if (required && kind==="ground" && BlueprintRunner.ActivePhase(s)?.scoreThreshold?.requiredTargetIds && !BlueprintRunner.ActivePhase(s)!.scoreThreshold!.requiredTargetIds!.includes(id)) return false;
 		if (id==="" || s.killedIds.has(id) || !BlueprintRunner.CanDamage(s,kind,required)) return false;
 		s.killedIds.add(id);
 		if (!required && kind === "ground") { s.optionalGroundKills++; return true; }
@@ -376,6 +377,7 @@ export const BlueprintRunner = {
 		if (p.kind === "tutorial_missile") {
 			s.requiredGroundKills++; s.phaseProgress++; advanceTeaching(s); return true;
 		}
+		if (kind==="ground" && p.scoreThreshold?.requiredTargetIds) { s.requiredGroundKills++; return true; }
 		if (kind==="ground" && p.kind!=="required_ground") {
 			// A hazard target: a required ground kill that clears the way, not phase progress.
 			s.requiredGroundKills++; s.hazardAlive=math.max(0,s.hazardAlive-1);

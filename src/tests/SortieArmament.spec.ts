@@ -18,9 +18,9 @@ const ahead = (z: number, x = 0, ground = false, allowed = true): GunCandidate =
 const ORIGIN = { x: 0, y: 100, z: 0 }, NOSE = { x: 0, y: 0, z: -1 };
 
 describe("Engine batch D1: opt-in sortie armament", () => {
-	it("keeps missions other than missions 6, 7, 9, 10, 11, 12, 13 and 14 on today's rack: no armament, no gun", () => {
+	it("keeps missions other than missions 6, 7, 9, 10, 11, 12, 13, 14 and 15 on today's rack: no armament, no gun", () => {
 		for (let id = 0; id <= 18; id++) {
-			if (id === 6 || id === 7 || id === 9 || id === 10 || id === 11 || id === 12 || id === 13 || id === 14) continue;
+			if (id === 6 || id === 7 || id === 9 || id === 10 || id === 11 || id === 12 || id === 13 || id === 14 || id === 15) continue;
 			const blueprint = MissionCatalog.Get(id);
 			expect(blueprint.armament).toBeUndefined();
 			expect(GunRules.New(blueprint.armament)).toBeUndefined();

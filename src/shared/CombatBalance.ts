@@ -1,6 +1,9 @@
 // Normal's numeric combat envelope. CombatService keeps movement, aiming and defensive
 // maneuvers; these tables separate shooting pressure from objective length.
 export const CombatBalance = {
+	raiderHealth: 100, bomberHealth: 180, playerMissileCooldown: 1.15,
+	fireAimDot: [0.65, 0.55, 0.45],
+	straightRelax: [0.2, 0.25, 0.3],
 	/** Ordinary bandits and raiders must not accelerate past their pursuit cap when breaking away. */
 	banditSpeedCap: 350,
 	/** Hostile missile origin ahead of the aircraft nose. */

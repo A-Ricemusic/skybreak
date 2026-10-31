@@ -3,7 +3,7 @@ import { releaseZoneReserves } from "./EngineBatchD11Runtime";
 import { surfacePose } from "../shared/EngineBatchD2";
 import { Workspace } from "@rbxts/services";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
-import { attackSectorIndex, damageSector, groundProgressPose, newGroundProgress, SectorState, stepGroundProgress } from "../shared/EngineBatchD5";
+import { SquadAttackRules, squadStrikeReachable, attackSectorIndex, damageSector, groundProgressPose, newGroundProgress, SectorState, stepGroundProgress } from "../shared/EngineBatchD5";
 import { finiteNumber } from "../shared/EngineBatchB";
 import { PauseRules } from "../shared/SessionGuard";
 import type { CombatSession, Enemy } from "./CombatSession";
@@ -53,19 +53,19 @@ export function stepBeachAttacker(s: CombatSession, e: Enemy, dt: number, say:(l
  let desired=delta.Magnitude>1 ? delta.Unit : e.direction;
  if(distance<400) desired=e.direction.add(new Vector3(0,0.3,0)).Unit;
  if(s.collisionParams && Workspace.Raycast(e.position,e.direction.mul(250),s.collisionParams)) desired=new Vector3(desired.X,1,desired.Z).Unit;
- e.direction=e.direction.Lerp(desired,math.clamp(dt*1.5,0,1)).Unit; e.velocity=e.direction.mul(285); e.position=e.position.add(e.velocity.mul(dt));
+ e.direction=e.direction.Lerp(desired,math.clamp(dt*1.5,0,1)).Unit; e.velocity=e.direction.mul(SquadAttackRules.speed); e.position=e.position.add(e.velocity.mul(dt));
  e.position=new Vector3(math.clamp(e.position.X,-s.airspace.spawnLimit,s.airspace.spawnLimit),math.clamp(e.position.Y,170,2000),math.clamp(e.position.Z,-s.airspace.spawnLimit,s.airspace.spawnLimit));
  e.frame=CFrame.lookAt(e.position,e.position.add(e.direction));
  e.fireTimer=math.max(0,e.fireTimer-dt);
  if(e.windup>0) {
   e.windup=math.max(0,e.windup-dt);
   if(e.windup<=0) {
-   e.model.SetAttribute("AttackWarning",false); if(e.warning) e.warning.Enabled=false; e.fireTimer=8;
-   if(distance<=1400 && s.collisionParams && !Workspace.Raycast(e.position,target.sub(e.position),s.collisionParams)) {
-    if(damageSector(state,10)) say(sector.hitCall);
+   e.model.SetAttribute("AttackWarning",false); if(e.warning) e.warning.Enabled=false; e.fireTimer=SquadAttackRules.reload;
+   if(s.collisionParams && squadStrikeReachable(distance,Workspace.Raycast(e.position,target.sub(e.position),s.collisionParams)!==undefined)) {
+    if(damageSector(state,SquadAttackRules.damage)) say(sector.hitCall);
     if(state.health<=0 && s.blueprintState) { s.blueprintState.outcome="failed"; s.blueprintState.reason="protected_lost"; }
    }
   }
- } else if(e.fireTimer<=0 && distance<=1400) { e.windup=2; e.model.SetAttribute("AttackWarning",true); if(e.warning) e.warning.Enabled=true; }
+ } else if(e.fireTimer<=0 && distance<=SquadAttackRules.range) { e.windup=SquadAttackRules.warning; e.model.SetAttribute("AttackWarning",true); if(e.warning) e.warning.Enabled=true; }
  return true;
 }

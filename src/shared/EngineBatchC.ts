@@ -3,7 +3,7 @@ import { CarrierRearm, carrierRearmPose } from "./EngineBatchD5";
 import { finiteNumber, LandingPlan, landingDuration, landingPose, validateBatchB } from "./EngineBatchB";
 import { FlightMath, FlightState } from "./FlightMath";
 import type { MissionPhaseBlueprint, FlightPoint } from "./MissionCatalog";
-export interface ScoreThreshold { points: number; seconds: number; /** Keep fighting until expiry. */ waitForExpiry: boolean }
+export interface ScoreThreshold { /** Required city-strike objectives, checked at expiry. */ requiredTargetIds?: string[]; points: number; seconds: number; /** Keep fighting until expiry. */ waitForExpiry: boolean }
 export interface RadarJamming { visualLockRange: number; remainingCall: string; clearCall: string }
 export interface RearmPlan { carrier?: CarrierRearm; zone: FlightPoint; radius: number; landing: LandingPlan; takeoffSeconds: number; missiles: boolean; special: boolean; health: boolean;
 	/** Batch D1: refill the fitted gun's magazine; absent follows `missiles`. Needs `armament.gun`. */
@@ -32,6 +32,7 @@ export function validateBatchC(phases: MissionPhaseBlueprint[], limit: number, m
 		assert((p.kind==="score_threshold")===(s!==undefined),"score_threshold needs exclusive plan");
 		if(s && i<phases.size()-1) assert(phases[i+1].update?.countdownSeconds!==undefined,"Score successor needs its own countdown");
 		if(s) { assert(p.update?.countdownSeconds===undefined || p.update.countdownSeconds===s.seconds,"Score phase owns its countdown"); positive(s.points); positive(s.seconds); assert(s.points%1===0 && s.seconds<=86400 && typeIs(s.waitForExpiry,"boolean"),"Invalid score threshold"); assert(p.twist===undefined && p.points===undefined && p.count===undefined,"Score phase owns progress"); }
+		if(s?.requiredTargetIds) { assert(s.requiredTargetIds.size()>0 && new Set(s.requiredTargetIds).size()===s.requiredTargetIds.size(),"Unique score objectives required"); for(const id of s.requiredTargetIds) assert(p.groundTargets?.some(t=>t.id===id && t.required),"Score objective must identify a required ground contact"); }
 		if(p.jamming) { positive(p.jamming.visualLockRange); for(const line of [p.jamming.remainingCall,p.jamming.clearCall]) assert(line.size()>0 && line.size()<=72,"Invalid jammer radio"); assert(p.spatialJamming!==undefined || (p.fighterWaves ?? []).some(w=>w.aircraft==="jammer") || (p.groundTargets ?? []).some(t=>t.type==="ground_ecm" && t.ecm===true),"Jamming needs a live jammer source"); }
 		if(p.rearm) {
 			const r=p.rearm; assert(s!==undefined || p.kind==="required_ground","Rearm needs a score or required-ground strike phase"); assert(!r.health || repairAllowed(missionId,true),"Rearm preserves damage outside opted-in missions 15–17"); positive(r.radius); positive(r.takeoffSeconds); assert(r.takeoffSeconds<=60 && r.radius<=2000,"Rearm budget exceeded");

@@ -116,8 +116,8 @@ const TUNING = {
 	threatCap: CombatBalance.threatCap,
 	banditReload: CombatBalance.banditReload,
 	aceReload: CombatBalance.aceReload,
-	fireAimDot: [0.65, 0.55, 0.45],
-	straightRelax: [0.2, 0.25, 0.3],
+	fireAimDot: CombatBalance.fireAimDot,
+	straightRelax: CombatBalance.straightRelax,
 	fireRange: CombatBalance.fireRange,
 	banditHealth: CombatBalance.banditHealth,
 	banditFlares: [0, 0, 1],
@@ -137,7 +137,7 @@ const TUNING = {
 };
 /** Missions 1-4 (the rim's first sorties): the slowest gate, a small divisor, one threat at a time and no lock breaks. */
 const GENTLE = CombatBalance.gentle;
-const RAIDER_HEALTH = 100;
+const RAIDER_HEALTH = CombatBalance.raiderHealth;
 const COURIER_HEALTH = 160;
 /** Faster than cruise (255) but slower than full throttle (320): a chase you win by committing to it. */
 const COURIER_SPEED = 275;
@@ -797,7 +797,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 			: unitOr(positionFor(session.state).sub(position), forward.mul(-1));
 		model.Parent = session.folder;
 		model.PivotTo(CFrame.lookAt(position, position.add(direction)));
-		const baseHealth = role === "bomber" ? 180 : role === "ace" ? options.aceHealth ?? 165 : role === "bandit" ? TUNING.banditHealth[act - 1] : role === "courier" ? COURIER_HEALTH : RAIDER_HEALTH;
+		const baseHealth = role === "bomber" ? CombatBalance.bomberHealth : role === "ace" ? options.aceHealth ?? 165 : role === "bandit" ? TUNING.banditHealth[act - 1] : role === "courier" ? COURIER_HEALTH : RAIDER_HEALTH;
 		const health = math.floor(role === "bandit" ? Difficulty.BanditHealth(session.difficulty, act, baseHealth)
 			: role === "ace" ? Difficulty.Scale(session.difficulty, "aceHealth", baseHealth)
 			: Difficulty.SupportHealth(session.difficulty, baseHealth));
@@ -1536,17 +1536,10 @@ export function stepMissiles(session: CombatSession, dt: number): void {
 				}
 			}
 			// Hostile missiles steer for their whole flight; ace missiles turn harder.
-			const lead = math.clamp(distance / speed, 0, missile.hostile ? 0.9 : WeaponRules.MissileLeadMax);
 			const aim = missile.antiShip ? AntiShipRules.Aim(point(missile.position), point(targetPosition), missile.target!.typedGround!.position.y) : undefined;
-			const delta = (aim ? new Vector3(aim.x,aim.y,aim.z) : targetPosition.add(velocity.mul(lead))).sub(missile.position);
-			// Player missiles turn much harder inside 300 studs so an orbit launch at 80 degrees off the nose still connects.
-			const playerTurn = WeaponRules.MissileTurnRate(distance);
-            if(missile.hostile && !aim) {
-                const d=guidedDirection(point(missile.position),point(missile.direction),point(targetPosition),point(velocity),speed,0.9,tuned(session,TUNING.missileTurn)+(missile.ace?tuned(session,TUNING.aceMissileTurn):0),dt);
-                missile.direction=new Vector3(d.x,d.y,d.z);
-            } else {
-			missile.direction = unitOr(missile.direction.Lerp(unitOr(delta, missile.direction), FlightMath.DampAlpha(missile.hostile ? tuned(session, TUNING.missileTurn) + (missile.ace ? tuned(session, TUNING.aceMissileTurn) : 0) : playerTurn, dt)), missile.direction);
-            }
+			const turn = missile.hostile ? tuned(session, TUNING.missileTurn) + (missile.ace ? tuned(session, TUNING.aceMissileTurn) : 0) : WeaponRules.MissileTurnRate(distance);
+			const steered = guidedDirection(point(missile.position),point(missile.direction),aim ?? point(targetPosition),aim ? {x:0,y:0,z:0} : point(velocity),speed,missile.hostile ? 0.9 : WeaponRules.MissileLeadMax,turn,dt);
+			missile.direction = new Vector3(steered.x,steered.y,steered.z);
 			const nextPosition = missile.position.add(missile.direction.mul(speed * dt));
 			const fused = segmentDistance(targetPosition, missile.position, nextPosition) < (missile.hostile ? tuned(session, TUNING.missileFuse) : WeaponRules.FuseRadius);
 			const contact = ventPhase && fused ? contactPosition(missile.position, nextPosition, targetPosition) : nextPosition;

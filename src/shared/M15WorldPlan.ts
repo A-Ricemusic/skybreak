@@ -35,3 +35,12 @@ export function buildM15Plan(seed=1515,checkpoint:()=>void=()=>{}){
  return {key:M15_WORLD_KEY,seed,ops:d.ops,parts:[...d.seaParts,...d.parts],props:d.props,targets,routes:m15BomberRoutes()};
 }
 export const m15Counts=(p:ReturnType<typeof buildM15Plan>)=>compactWorldCounts(p,0);
+
+/** Runtime composition: airborne inventory IDs belong exclusively to live aircraft. */
+export function buildM15ScenePlan(seed=1515,checkpoint:()=>void=()=>{}) {
+ const plan=buildM15Plan(seed,checkpoint);
+ const airborne=new Set(plan.targets.filter(t=>t.group==="retaliation"||t.group==="optional_air").map(t=>t.id));
+ plan.parts=plan.parts.filter(p=>!airborne.has(p.name));
+ plan.targets=plan.targets.filter(t=>!airborne.has(t.id));
+ return plan;
+}

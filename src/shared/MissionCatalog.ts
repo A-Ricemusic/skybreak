@@ -537,6 +537,7 @@ export const MissionCatalog = {
 			if (phase.kind === "required_ground") total += phase.count ?? 0;
 			else if (phase.kind === "tutorial_missile") total += phase.count ?? 0;
 			total += phase.hazard?.count ?? 0;
+			total += phase.scoreThreshold?.requiredTargetIds?.size() ?? 0;
 		}
 		return total;
 	},
