@@ -49,7 +49,7 @@ describe("Dormant D3 mission rules",()=>{
   const plan=canyon(); expect(canyonSampleSafe(plan,p(),240)).toBe(true); expect(canyonSampleSafe(plan,p(),241)).toBe(false); expect(canyonSampleSafe(plan,p())).toBe(false); expect(canyonSampleSafe(plan,p(0,586),200)).toBe(false);
  });
  it("validates canyon lifecycle, finite budgets, fresh clock and terrain warning opt-in",()=>{
-  for(const patch of [{ceiling:0},{ceiling:math.huge},{damage:0/0},{intervalSeconds:2},{clearance:600},{channel:[p()]},{channel:[p(),p()]},{channel:[p(),p(0,600)]}]) { const b=bp(); b.phases[1].canyonEscape={...canyon(),...patch}; expect(rejects(b)).toBe(true); }
+  for(const patch of [{firstSalvoDelaySeconds:-1},{firstSalvoDelaySeconds:91},{firstSalvoDelaySeconds:math.huge},{firstSalvoDelaySeconds:0/0},{ceiling:0},{ceiling:math.huge},{damage:0/0},{intervalSeconds:2},{clearance:600},{channel:[p()]},{channel:[p(),p()]},{channel:[p(),p(0,600)]}]) { const b=bp(); b.phases[1].canyonEscape={...canyon(),...patch}; expect(rejects(b)).toBe(true); }
   let b=bp(); b.terrainRelativeWarnings=false; expect(rejects(b)).toBe(true);
   b=bp(); b.phases[1].update!.countdownSeconds=undefined; expect(rejects(b)).toBe(true);
   b=bp(); b.phases[0].canyonEscape=canyon(); expect(rejects(b)).toBe(true);

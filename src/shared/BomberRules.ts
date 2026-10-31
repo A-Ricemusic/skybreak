@@ -87,7 +87,9 @@ export const BomberRules = {
 	 * Escape refers to the formation origin, not each trailing slot: E2 supplies the north-end
 	 * endpoint and decides mission failure (D-024 provisional). Slot spacing is rigid through turns;
 	 * individual outer slots therefore have different instantaneous speeds from the origin. */
-	Sample(route: BomberRoute, time: number): BomberFormationPose {
+	Sample(route: BomberRoute, time: number, slotIndex?: number): BomberFormationPose {
+		// Stream callers need one independently timed aircraft, not six allocated slot poses.
+		assert(slotIndex===undefined || (slotIndex%1===0 && slotIndex>=0 && slotIndex<route.slots.size()),"BomberRules: invalid slot");
 		assert(finite(time), "BomberRules: invalid time");
 		const escaped = time >= route.duration;
 		const traveled = escaped ? route.length : math.clamp(time * route.speed, 0, route.length);
@@ -105,7 +107,7 @@ export const BomberRules = {
 		const position = curveAt(c, t), facing = unit(curveAt(c, t, true));
 		const right = unit(cross(facing, { x: 0, y: 1, z: 0 })), up = cross(right, facing);
 		return {
-			slots: route.slots.map((s) => ({ position: add(position, add(add(mul(right, s.x), mul(up, s.y)), mul(facing, -s.z))), facing: { ...facing } })),
+			slots: (slotIndex===undefined ? route.slots : [route.slots[slotIndex]]).map((s) => ({ position: add(position, add(add(mul(right, s.x), mul(up, s.y)), mul(facing, -s.z))), facing: { ...facing } })),
 			leg, distanceRemaining: route.length - traveled, escaped,
 		};
 	},

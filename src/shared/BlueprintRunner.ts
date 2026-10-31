@@ -19,6 +19,7 @@ export interface BlueprintState {
 	updateUntil?: number;
 	countdownDeadline?: number;
 	landingElapsed?: number;
+	ignitionAnnounced?: boolean;
 	turnObserved: number;
 	pitchObserved: number;
 	stepSince: number;
@@ -96,6 +97,7 @@ function enter(s: BlueprintState): void {
 		for (const line of p.update.radio) s.radioQueue.push(line);
 		if (p.update.countdownSeconds !== undefined) s.countdownDeadline=s.elapsed+p.update.countdownSeconds;
 	}
+	s.ignitionAnnounced=undefined;
 	s.landingElapsed=p?.landing ? 0 : undefined;
 }
 function advance(s: BlueprintState): void {
@@ -173,7 +175,10 @@ export const BlueprintRunner = {
 		s.startedAt = now; s.elapsed = 0;
 	},
 	EscapeBombers(s: BlueprintState): void {
-		if (BlueprintRunner.ActivePhase(s)?.bombers) finish(s, "failed", "bombers_escaped");
+		if (BlueprintRunner.ActivePhase(s)?.bombers && s.outcome === undefined) {
+			if (BlueprintRunner.ActivePhase(s)?.interceptHold) s.protectedHealth=0;
+			finish(s, "failed", "bombers_escaped");
+		}
 	},
 	Tick(s: BlueprintState, now: number, health=100): void {
 		if (s.outcome !== undefined || s.rearmActive || s.cutInActive || s.landingElapsed !== undefined || !finite(now)) return;
@@ -185,6 +190,18 @@ export const BlueprintRunner = {
 			const result=thresholdResult(threshold,s.score ?? 0,s.elapsed-(s.scorePhaseStarted ?? 0));
 			if(result==="failed") finish(s,"failed","timeout");
 			else if(result==="complete") { s.countdownDeadline=undefined; advance(s); }
+			return;
+		}
+		const hold=BlueprintRunner.ActivePhase(s)?.interceptHold;
+		if (hold) {
+			if (finite(health) && health<=0) { finish(s,"failed","destroyed"); return; }
+			if (!s.ignitionAnnounced && BlueprintRunner.TimeRemaining(s)<=hold.ignitionSecondsRemaining) {
+				s.ignitionAnnounced=true; s.radioQueue.push(hold.ignitionCall);
+			}
+			if (BlueprintRunner.TimeRemaining(s)<=0) {
+				if (s.phaseProgress>=total(BlueprintRunner.ActivePhase(s)!)) advance(s);
+				else finish(s,"failed","timeout");
+			}
 			return;
 		}
 		if (s.elapsed>=(s.countdownDeadline ?? MissionCatalog.CountdownSeconds(s.blueprint))) finish(s,"failed","timeout");
@@ -248,6 +265,7 @@ export const BlueprintRunner = {
 	HazardLive(s: BlueprintState): boolean { return hazardLive(s); },
 	NavigationPoint(s: BlueprintState, position?: FlightPoint): FlightPoint | undefined {
 		const p=BlueprintRunner.ActivePhase(s);
+		if (p?.interceptHold) return p.interceptHold.site;
 		if (p?.returnLine) {
 			const line=p.returnLine, dx=line.b.x-line.a.x, dz=line.b.z-line.a.z;
 			const t=position ? math.clamp(((position.x-line.a.x)*dx+(position.z-line.a.z)*dz)/(dx*dx+dz*dz),0,1) : 0.5;
@@ -275,6 +293,7 @@ export const BlueprintRunner = {
 			if (s.phaseClock+0.00001>=(p.seconds ?? 0)) finish(s,"failed","escaped");
 			return;
 		}
+		if (p.interceptHold) return;
 		const point=BlueprintRunner.NavigationPoint(s);
 		if (!point) return;
 		hazard(s,p);
@@ -336,7 +355,7 @@ export const BlueprintRunner = {
 		else s.requiredGroundKills++;
 		s.phaseProgress++;
 		if (twist(s)) return true;
-		if (s.phaseProgress>=total(BlueprintRunner.ActivePhase(s)!)) advance(s);
+		if (!p.interceptHold && s.phaseProgress>=total(BlueprintRunner.ActivePhase(s)!)) advance(s);
 		return true;
 	},
 	Objective(s: BlueprintState): BlueprintObjective {

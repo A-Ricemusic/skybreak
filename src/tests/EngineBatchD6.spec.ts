@@ -1,3 +1,5 @@
+import { validateBatchD4 } from "../shared/EngineBatchD4";
+import { WavePlan, AirRequest } from "../shared/WavePlan";
 import { TargetPriority } from "../shared/TargetPriority";
 import { TargetScore } from "../shared/TargetScore";
 import { recordScoredKill } from "../server/SortieScore";
@@ -7,7 +9,7 @@ import { ContactBudget, detailContacts, newSchedule, RepeatedArtillery, stepSche
 import { MissionCatalog, MissionPhaseBlueprint } from "../shared/MissionCatalog";
 import { GROUND_TARGET_LABELS } from "../shared/CampaignEncounters";
 import { navalHull } from "../shared/EngineBatchD2";
-export const schedule=():RepeatedArtillery=>({startSeconds:10,salvos:2,ceiling:585,source:{x:3000,y:1000,z:0},warningSeconds:3,countdownSeconds:4,intervalSeconds:12,damage:30,clearance:60,channel:[{x:0,y:300,z:0},{x:0,y:300,z:100}]});
+const schedule=():RepeatedArtillery=>({startSeconds:10,salvos:2,ceiling:585,source:{x:3000,y:1000,z:0},warningSeconds:3,countdownSeconds:4,intervalSeconds:12,damage:30,clearance:60,channel:[{x:0,y:300,z:0},{x:0,y:300,z:100}]});
 const phase=():MissionPhaseBlueprint=>({kind:"score_threshold",label:"River",cheapContacts:true,repeatedArtillery:schedule(),groundTargets:[{id:"parked",type:"parked_helicopter",position:{x:0,y:0,z:0},yaw:0,required:false,scoreRole:"air"}],fighterWaves:[{id:"scramble",parkedSourceId:"parked",count:1,role:"raider",scoreRole:"air",trigger:{kind:"time",seconds:30}}]});
 function valid(p:MissionPhaseBlueprint):boolean {const [ok]=pcall(()=>validateBatchD6([p],15360,true));return ok;}
 describe("Dormant D6 contracts",()=>{
@@ -36,13 +38,30 @@ describe("Dormant D6 contracts",()=>{
   expect(detailContacts([{id:"far",distanceSquared:2401**2}]).has("far")).toBe(false);
   contacts.push({id:"overflow",distanceSquared:0}); const [ok]=pcall(()=>detailContacts(contacts));expect(ok).toBe(false);
  });
+ it("combines 150 ground contacts with the D4 finite fighter queue without bypassing admission",()=>{
+  const p=phase();p.concurrentFighters=2;
+  p.groundTargets=[];p.fighterWaves=[];
+  for(let i=0;i<150;i++) {
+   p.groundTargets.push({id:`parked${i}`,type:"parked_helicopter",position:{x:i,y:0,z:0},yaw:0,required:false,scoreRole:"air"});
+   p.fighterWaves.push({id:`wave${i}`,parkedSourceId:`parked${i}`,count:1,role:"raider",scoreRole:"air",trigger:{kind:"time",seconds:1}});
+  }
+  validateBatchD4([p],15360);validateBatchD6([p],15360,true);
+  const queue:AirRequest[]=p.fighterWaves.map(arrival=>({arrival,role:arrival.role,count:arrival.count,behind:false}));
+  expect(WavePlan.Admit(queue,0).size()).toBe(0);expect(queue.size()).toBe(150);
+  const first=WavePlan.Admit(queue,p.concurrentFighters);expect(first.size()).toBe(2);expect(queue.size()).toBe(148);
+  expect(first[0].arrival?.id).toBe("wave0");expect(first[1].arrival?.id).toBe("wave1");
+  expect(WavePlan.Admit(queue,0).size()).toBe(0);
+  expect(WavePlan.Admit(queue,1)[0].arrival?.id).toBe("wave2");expect(queue.size()).toBe(147);
+  const [badAir]=pcall(()=>validateBatchD4([{...p,concurrentFighters:13}],15360));expect(badAir).toBe(false);
+  const [badGround]=pcall(()=>validateBatchD6([{...p,groundTargets:[...p.groundTargets!,{...p.groundTargets![0],id:"overflow"}]}],15360,true));expect(badGround).toBe(false);
+ });
  it("limits LOS work to four candidates for either 150-contact acquisition path",()=>{
   const contacts: {id:number;distance:number;dot:number;inRange:boolean;onScreen:boolean}[]=[];for(let i=0;i<150;i++) contacts.push({id:i,distance:i+1,dot:1,inRange:true,onScreen:true});
   expect(TargetPriority.LosChecks(contacts).size()).toBe(4);expect(TargetPriority.PressLosChecks(contacts).size()).toBe(4);
  });
  it("awards one score and one kill for either parked-first or airborne-first destruction",()=>{
   for(const first of ["air","ground"] as const) {
-   const b={...MissionCatalog.Get(1),phases:[{kind:"score_threshold" as const,label:"River",scoreThreshold:{points:9999,seconds:1200,waitForExpiry:true}}]};
+   const b={...MissionCatalog.Get(1),phases:[{...phase(),scoreThreshold:{points:9999,seconds:1200,waitForExpiry:true}}]};
    const state=BlueprintRunner.NewState(b,0),ledger=new TargetScore({...MissionCatalog.Scoring(b),points:{air:60}});
    expect(recordScoredKill(state,ledger,"same-airframe",first,false,1,"air")).toBe(true);
    expect(recordScoredKill(state,ledger,"same-airframe",first==="air" ? "ground" : "air",false,2,"air")).toBe(false);

@@ -3,7 +3,7 @@ import { describe, expect, it } from "@rbxts/jest-globals";
 import { Workspace } from "@rbxts/services";
 import { createCheapContact, handoffParked, setContactDetail, stepContacts, stepRepeatedArtillery } from "../server/EngineBatchD6Runtime";
 import { CombatSession, Enemy } from "../server/CombatSession";
-import { MissionCatalog } from "../shared/MissionCatalog";
+import { MissionBlueprint, MissionCatalog } from "../shared/MissionCatalog";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { TypedGroundTarget } from "../shared/CampaignEncounters";
 import { ContactBudget } from "../shared/EngineBatchD6";
@@ -41,7 +41,7 @@ describe("D6 server lifecycle (Studio execution pending)",()=>{
   const parked={id:t.id,kind:"ground",health:55,enabled:true,model:m} as Enemy;
   const session={enemies:[parked],target:parked,lockProgress:1} as CombatSession;
   expect(handoffParked(session,t.id)).toBe(t.id);expect(handoffParked(session,t.id)).toBeUndefined();expect(parked.enabled).toBe(false);expect(session.target).toBeUndefined();expect(session.lockProgress).toBe(0);
-  const b={...MissionCatalog.Get(1),phases:[{kind:"score_threshold" as const,label:"River",scoreThreshold:{points:9999,seconds:900,waitForExpiry:true}}]},bs=BlueprintRunner.NewState(b,0),score=new TargetScore(MissionCatalog.Scoring(b));
+  const b:MissionBlueprint={...MissionCatalog.Get(1),phases:[{kind:"score_threshold" as const,label:"River",groundTargets:[t],fighterWaves:[{id:"takeoff",parkedSourceId:t.id,count:1,role:"raider",scoreRole:t.scoreRole,trigger:{kind:"time",seconds:1}}],scoreThreshold:{points:9999,seconds:900,waitForExpiry:true}}]},bs=BlueprintRunner.NewState(b,0),score=new TargetScore(MissionCatalog.Scoring(b));
   expect(recordScoredKill(bs,score,t.id,"air",false,1)).toBe(true);expect(recordScoredKill(bs,score,t.id,"ground",false,2)).toBe(false);
   const dead=createGroundTarget(t);try {session.enemies=[{...parked,model:dead,health:0}];expect(handoffParked(session,t.id)).toBeUndefined();} finally {dead.Destroy();}
  });

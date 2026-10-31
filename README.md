@@ -83,7 +83,7 @@ The generation key needs sound-generation and subscription-read access. Final au
 
 Run `bun test:roblox` (or `bun run test:roblox`). Bun compiles the TypeScript, builds an isolated test place, launches authenticated Roblox Studio, and runs Jest in Roblox's Luau VM. This is not Bun's JavaScript test runner. Results are written to `build/jest-results.json`; full output is in `build/jest-output.log`.
 
-The runner defaults to the macOS Studio executable. Set `ROBLOX_STUDIO_PATH` for another installation. The runner defaults to a 600-second Studio deadline; set `ROBLOX_TEST_TIMEOUT_MS` to a positive integer in milliseconds for a longer world-integration run. Tests cover flight math, real engine instances/effects, save-slot isolation, delayed writes, and recovery from load/save errors. Test places disable normal game startup and automatic Rojo connection. Production places exclude `src/tests`.
+The runner defaults to the macOS Studio executable. Set `ROBLOX_STUDIO_PATH` for another installation. The runner defaults to a 1,200-second Studio deadline; set `ROBLOX_TEST_TIMEOUT_MS` to a positive integer in milliseconds for a longer world-integration run. Tests cover flight math, real engine instances/effects, save-slot isolation, delayed writes, and recovery from load/save errors. Test places disable normal game startup and automatic Rojo connection. Production places exclude `src/tests`.
 
 A small checked-in Bun patch applies the upstream roblox-ts runtime registration fix needed for Jest's isolated module environments. `bun install --frozen-lockfile` applies it automatically.
 

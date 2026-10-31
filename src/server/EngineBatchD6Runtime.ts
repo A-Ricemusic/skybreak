@@ -1,6 +1,6 @@
 import { Workspace } from "@rbxts/services";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
-import { artilleryExposed } from "../shared/EngineBatchD3";
+import { artilleryMasked, artilleryExposed } from "../shared/EngineBatchD3";
 import { ContactBudget, detailContacts, newSchedule, stepSchedule } from "../shared/EngineBatchD6";
 import { TypedGroundTarget, GROUND_TARGET_LABELS } from "../shared/CampaignEncounters";
 import { auditCanyon } from "./EngineBatchD3Runtime";
@@ -68,8 +68,8 @@ export function stepRepeatedArtillery(session: CombatSession, dt: number, say: (
 	if(event.warning) say("ARTILLERY · DESCEND AND USE VALLEY COVER");
 	if(event.countdown) say(`ARTILLERY IMPACT IN ${plan.countdownSeconds} SECONDS`);
 	if(!event.impact) return;
-	const player=new Vector3(session.state.x,session.state.y,session.state.z), source=new Vector3(plan.source.x,plan.source.y,plan.source.z);
-	const ray=Workspace.Raycast(source,player.sub(source),session.collisionParams);
-	if(!artilleryExposed(plan,player.Y,ray!==undefined && ray.Distance<player.sub(source).Magnitude-2)) {say("ARTILLERY · COVER HELD"); return;}
+	const player=new Vector3(session.state.x,session.state.y,session.state.z);
+	const masked=artilleryMasked(plan,session.state,(origin,delta)=>Workspace.Raycast(new Vector3(origin.x,origin.y,origin.z),new Vector3(delta.x,delta.y,delta.z),session.collisionParams)?.Distance);
+	if(!artilleryExposed(plan,player.Y,masked)) {say("ARTILLERY · COVER HELD"); return;}
 	const lost=math.min(session.health,plan.damage); session.health-=lost; session.damageTaken+=lost; session.lowestHealth=math.min(session.lowestHealth,session.health);
 }
