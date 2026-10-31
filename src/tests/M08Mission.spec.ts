@@ -14,7 +14,6 @@ const bp=MissionCatalog.Get(8), battle=bp.phases[0], hold=bp.phases[1];
 function ready() { const s=R.NewState(bp,0);s.score=800;R.Tick(s,420);return s; }
 function prerequisites(fn:()=>void) {
  const before=MISSIONS.map(m=>m.available);
- for(let i=0;i<7;i++) MISSIONS[i].available=true;
  const [ok,err]=pcall(fn);MISSIONS.forEach((m,i)=>m.available=before[i]);if(!ok) error(err,0);
 }
 describe("Mission 8 OPEN FREQUENCY",()=>{

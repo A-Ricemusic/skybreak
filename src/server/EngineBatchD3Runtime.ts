@@ -1,7 +1,7 @@
 import { sphereSweep } from "../shared/SphereSweep";
 import { Workspace } from "@rbxts/services";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
-import { canyonSampleSafe, artilleryExposed, newArtillery, stepArtillery, CanyonEscape } from "../shared/EngineBatchD3";
+import { canyonSampleSafe, artilleryMasked, artilleryExposed, newArtillery, stepArtillery, CanyonEscape } from "../shared/EngineBatchD3";
 import type { CombatSession } from "./CombatSession";
 
 /** Audit centreline at <=32-stud spacing, including entry, bends and exit. No missing-ground fallback. */
@@ -31,10 +31,9 @@ export function stepCanyon(session: CombatSession, dt: number, say: (line: strin
 	if(event.warning) say("ARTILLERY · DESCEND AND USE CANYON COVER");
 	if(event.countdown) say(`ARTILLERY IMPACT IN ${plan.countdownSeconds} SECONDS`);
 	if(!event.impact) return;
-	const player=new Vector3(session.state.x,session.state.y,session.state.z), source=new Vector3(plan.source.x,plan.source.y,plan.source.z);
-	const ray=Workspace.Raycast(source,player.sub(source),session.collisionParams);
-	const masked=ray!==undefined && ray.Distance<player.sub(source).Magnitude-2;
-	if(!artilleryExposed(plan,player.Y,masked)) return;
+	const player=session.state;
+ const masked=artilleryMasked(plan,player,(origin,delta)=>Workspace.Raycast(new Vector3(origin.x,origin.y,origin.z),new Vector3(delta.x,delta.y,delta.z),session.collisionParams)?.Distance);
+ if(!artilleryExposed(plan,player.y,masked)) return;
 	const lost=math.min(session.health,plan.damage);
 	session.health-=lost; session.damageTaken+=lost; session.lowestHealth=math.min(session.lowestHealth,session.health);
 }

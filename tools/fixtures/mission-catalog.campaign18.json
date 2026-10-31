@@ -10104,25 +10104,1115 @@
   },
   {
     "act": 2,
-    "available": false,
+    "airspace": {
+      "hardHalfWidth": 16000,
+      "radarRange": 24000,
+      "softHalfWidth": 15600,
+      "spawnLimit": 15600
+    },
+    "allies": {
+      "allowRequiredTargets": false,
+      "callsignPrefix": "LANTERN",
+      "count": 2,
+      "creditPlayerKills": false,
+      "formation": [
+        {
+          "x": -180,
+          "y": 30,
+          "z": 160
+        },
+        {
+          "x": 180,
+          "y": 30,
+          "z": 160
+        }
+      ],
+      "killBudget": 1,
+      "mayKill": true,
+      "model": "Kestrel"
+    },
+    "armament": {
+      "areaAttack": {
+        "damage": 180,
+        "depth": 80,
+        "radius": 220
+      },
+      "gun": {
+        "rounds": 1200
+      }
+    },
+    "available": true,
     "briefing": "Kiro's key needs matching logs from Lira and Merel. Cross the hills low at sunset, copy the array traffic and cut the transmitters. Long-range guns watch the ridges; drop into the canyon when they find you.",
-    "codename": "In development",
+    "codename": "Two ridges",
+    "countdownSeconds": 900,
     "debrief": "Three stations carry one signature. Varda's island transmitter can send the proof in thirty-five seconds.",
-    "environment": "farm_overcast",
+    "environment": "canyon_dusk",
     "failure": "The array logs are incomplete. The forgery still has room to hide.",
     "ground": [],
     "id": 7,
-    "optionalRaiderMax": 0,
+    "optionalRaiderMax": 20,
     "phases": [
       {
-        "count": 1,
-        "kind": "required_air",
-        "label": "In development"
+        "beat": "SERA: Copy before you cut. We need the signature, not just wreckage.",
+        "chatter": [
+          {
+            "at": 0.3333333333333333,
+            "text": "SERA: Lira log copied. Keep moving to the next installation."
+          },
+          {
+            "at": 0.6666666666666666,
+            "text": "SERA: Merel log copied. One transmitter remains."
+          }
+        ],
+        "count": 3,
+        "fighterWaves": [
+          {
+            "count": 6,
+            "headingDegrees": 180,
+            "id": "m07_approach",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          },
+          {
+            "count": 5,
+            "headingDegrees": 180,
+            "id": "m07_middle",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "approach",
+              "radius": 6500,
+              "x": 960,
+              "z": 0
+            }
+          },
+          {
+            "count": 5,
+            "headingDegrees": 160,
+            "id": "m07_plant",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "approach",
+              "radius": 6500,
+              "x": 0,
+              "z": -8640
+            }
+          },
+          {
+            "aircraft": "helicopter",
+            "count": 3,
+            "id": "m07_helicopters",
+            "role": "raider",
+            "route": {
+              "speed": 60,
+              "waypoints": [
+                {
+                  "x": -1100,
+                  "y": 400,
+                  "z": -9800
+                },
+                {
+                  "x": 1400,
+                  "y": 400,
+                  "z": -9800
+                },
+                {
+                  "x": 1400,
+                  "y": 400,
+                  "z": -7400
+                },
+                {
+                  "x": -1100,
+                  "y": 400,
+                  "z": -7400
+                },
+                {
+                  "x": -1100,
+                  "y": 400,
+                  "z": -9800
+                },
+                {
+                  "x": 1400,
+                  "y": 400,
+                  "z": -9800
+                },
+                {
+                  "x": 1400,
+                  "y": 400,
+                  "z": -7400
+                },
+                {
+                  "x": -1100,
+                  "y": 400,
+                  "z": -7400
+                },
+                {
+                  "x": -1100,
+                  "y": 400,
+                  "z": -9800
+                },
+                {
+                  "x": 1400,
+                  "y": 400,
+                  "z": -9800
+                },
+                {
+                  "x": 1400,
+                  "y": 400,
+                  "z": -7400
+                },
+                {
+                  "x": -1100,
+                  "y": 400,
+                  "z": -7400
+                },
+                {
+                  "x": -1100,
+                  "y": 400,
+                  "z": -9800
+                },
+                {
+                  "x": 1400,
+                  "y": 400,
+                  "z": -9800
+                },
+                {
+                  "x": 1400,
+                  "y": 400,
+                  "z": -7400
+                },
+                {
+                  "x": -1100,
+                  "y": 400,
+                  "z": -7400
+                },
+                {
+                  "x": -1100,
+                  "y": 400,
+                  "z": -9800
+                },
+                {
+                  "x": 1400,
+                  "y": 400,
+                  "z": -9800
+                },
+                {
+                  "x": 1400,
+                  "y": 400,
+                  "z": -7400
+                },
+                {
+                  "x": -1100,
+                  "y": 400,
+                  "z": -7400
+                },
+                {
+                  "x": -1100,
+                  "y": 400,
+                  "z": -9800
+                },
+                {
+                  "x": 1400,
+                  "y": 400,
+                  "z": -9800
+                },
+                {
+                  "x": 1400,
+                  "y": 400,
+                  "z": -7400
+                },
+                {
+                  "x": -1100,
+                  "y": 400,
+                  "z": -7400
+                },
+                {
+                  "x": -1100,
+                  "y": 400,
+                  "z": -9800
+                },
+                {
+                  "x": 1400,
+                  "y": 400,
+                  "z": -9800
+                },
+                {
+                  "x": 1400,
+                  "y": 400,
+                  "z": -7400
+                },
+                {
+                  "x": -1100,
+                  "y": 400,
+                  "z": -7400
+                },
+                {
+                  "x": -1100,
+                  "y": 400,
+                  "z": -9800
+                },
+                {
+                  "x": 1400,
+                  "y": 400,
+                  "z": -9800
+                },
+                {
+                  "x": 1400,
+                  "y": 400,
+                  "z": -7400
+                },
+                {
+                  "x": -1100,
+                  "y": 400,
+                  "z": -7400
+                },
+                {
+                  "x": -1100,
+                  "y": 400,
+                  "z": -9800
+                },
+                {
+                  "x": 1400,
+                  "y": 400,
+                  "z": -9800
+                },
+                {
+                  "x": 1400,
+                  "y": 400,
+                  "z": -7400
+                },
+                {
+                  "x": -1100,
+                  "y": 400,
+                  "z": -7400
+                },
+                {
+                  "x": -1100,
+                  "y": 400,
+                  "z": -9800
+                },
+                {
+                  "x": 1400,
+                  "y": 400,
+                  "z": -9800
+                },
+                {
+                  "x": 1400,
+                  "y": 400,
+                  "z": -7400
+                },
+                {
+                  "x": -1100,
+                  "y": 400,
+                  "z": -7400
+                }
+              ]
+            },
+            "scoreRole": "helicopter",
+            "trigger": {
+              "kind": "approach",
+              "radius": 6500,
+              "x": 0,
+              "z": -8640
+            }
+          }
+        ],
+        "groundTargets": [
+          {
+            "group": "south",
+            "id": "m07_south_solar_panel_1",
+            "position": {
+              "x": -600,
+              "y": 160,
+              "z": 6320
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "south",
+            "id": "m07_south_solar_panel_2",
+            "position": {
+              "x": -300,
+              "y": 160,
+              "z": 6320
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "south",
+            "id": "m07_south_solar_panel_3",
+            "position": {
+              "x": 0,
+              "y": 160,
+              "z": 6320
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "south",
+            "id": "m07_south_solar_panel_4",
+            "position": {
+              "x": 300,
+              "y": 160,
+              "z": 6320
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "south",
+            "id": "m07_south_solar_panel_5",
+            "position": {
+              "x": 600,
+              "y": 160,
+              "z": 6320
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "south",
+            "id": "m07_south_solar_panel_6",
+            "position": {
+              "x": -600,
+              "y": 160,
+              "z": 6720
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "south",
+            "id": "m07_south_solar_panel_7",
+            "position": {
+              "x": -300,
+              "y": 160,
+              "z": 6720
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "south",
+            "id": "m07_south_solar_panel_8",
+            "position": {
+              "x": 0,
+              "y": 160,
+              "z": 6720
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "south",
+            "id": "m07_south_solar_panel_9",
+            "position": {
+              "x": 300,
+              "y": 160,
+              "z": 6720
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "south",
+            "id": "m07_south_solar_panel_10",
+            "position": {
+              "x": 600,
+              "y": 160,
+              "z": 6720
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "south",
+            "id": "m07_south_solar_panel_11",
+            "position": {
+              "x": -600,
+              "y": 160,
+              "z": 7120
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "south",
+            "id": "m07_south_solar_panel_12",
+            "position": {
+              "x": -300,
+              "y": 160,
+              "z": 7120
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "south",
+            "id": "m07_south_solar_panel_13",
+            "position": {
+              "x": 0,
+              "y": 160,
+              "z": 7120
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "south",
+            "id": "m07_south_solar_panel_14",
+            "position": {
+              "x": 300,
+              "y": 160,
+              "z": 7120
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "south",
+            "id": "m07_south_solar_panel_15",
+            "position": {
+              "x": 600,
+              "y": 160,
+              "z": 7120
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "middle",
+            "id": "m07_middle_solar_panel_16",
+            "position": {
+              "x": -40,
+              "y": 190,
+              "z": -600
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "middle",
+            "id": "m07_middle_solar_panel_17",
+            "position": {
+              "x": 360,
+              "y": 190,
+              "z": -600
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "middle",
+            "id": "m07_middle_solar_panel_18",
+            "position": {
+              "x": 760,
+              "y": 190,
+              "z": -600
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "middle",
+            "id": "m07_middle_solar_panel_19",
+            "position": {
+              "x": 1160,
+              "y": 190,
+              "z": -600
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "middle",
+            "id": "m07_middle_solar_panel_20",
+            "position": {
+              "x": 1560,
+              "y": 190,
+              "z": -600
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "middle",
+            "id": "m07_middle_solar_panel_21",
+            "position": {
+              "x": -40,
+              "y": 190,
+              "z": -200
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "middle",
+            "id": "m07_middle_solar_panel_22",
+            "position": {
+              "x": 360,
+              "y": 190,
+              "z": -200
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "middle",
+            "id": "m07_middle_solar_panel_23",
+            "position": {
+              "x": 760,
+              "y": 190,
+              "z": -200
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "middle",
+            "id": "m07_middle_solar_panel_24",
+            "position": {
+              "x": 1160,
+              "y": 190,
+              "z": -200
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "middle",
+            "id": "m07_middle_solar_panel_25",
+            "position": {
+              "x": 1560,
+              "y": 190,
+              "z": -200
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "middle",
+            "id": "m07_middle_solar_panel_26",
+            "position": {
+              "x": -40,
+              "y": 190,
+              "z": 200
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "middle",
+            "id": "m07_middle_solar_panel_27",
+            "position": {
+              "x": 360,
+              "y": 190,
+              "z": 200
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "middle",
+            "id": "m07_middle_solar_panel_28",
+            "position": {
+              "x": 760,
+              "y": 190,
+              "z": 200
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "middle",
+            "id": "m07_middle_solar_panel_29",
+            "position": {
+              "x": 1160,
+              "y": 190,
+              "z": 200
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "middle",
+            "id": "m07_middle_solar_panel_30",
+            "position": {
+              "x": 1560,
+              "y": 190,
+              "z": 200
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "plant",
+            "id": "m07_plant_solar_panel_31",
+            "position": {
+              "x": -1000,
+              "y": 230,
+              "z": -9240
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "plant",
+            "id": "m07_plant_solar_panel_32",
+            "position": {
+              "x": -600,
+              "y": 230,
+              "z": -9240
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "plant",
+            "id": "m07_plant_solar_panel_33",
+            "position": {
+              "x": -200,
+              "y": 230,
+              "z": -9240
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "plant",
+            "id": "m07_plant_solar_panel_34",
+            "position": {
+              "x": 200,
+              "y": 230,
+              "z": -9240
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "plant",
+            "id": "m07_plant_solar_panel_35",
+            "position": {
+              "x": 600,
+              "y": 230,
+              "z": -9240
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "plant",
+            "id": "m07_plant_solar_panel_36",
+            "position": {
+              "x": -1000,
+              "y": 230,
+              "z": -8840
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "plant",
+            "id": "m07_plant_solar_panel_37",
+            "position": {
+              "x": -600,
+              "y": 230,
+              "z": -8840
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "plant",
+            "id": "m07_plant_solar_panel_38",
+            "position": {
+              "x": -200,
+              "y": 230,
+              "z": -8840
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "plant",
+            "id": "m07_plant_solar_panel_39",
+            "position": {
+              "x": 200,
+              "y": 230,
+              "z": -8840
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "plant",
+            "id": "m07_plant_solar_panel_40",
+            "position": {
+              "x": 600,
+              "y": 230,
+              "z": -8840
+            },
+            "required": false,
+            "scoreRole": "solar_panel",
+            "type": "solar_panel",
+            "yaw": 0
+          },
+          {
+            "group": "plant",
+            "id": "m07_plant_radar_42",
+            "position": {
+              "x": -1000,
+              "y": 230,
+              "z": -8040
+            },
+            "required": true,
+            "scoreRole": "radar",
+            "type": "radar_dome",
+            "yaw": 0
+          },
+          {
+            "group": "plant",
+            "id": "m07_plant_control_room_43",
+            "position": {
+              "x": -400,
+              "y": 230,
+              "z": -8040
+            },
+            "required": true,
+            "scoreRole": "control_room",
+            "type": "control_room",
+            "yaw": 0
+          },
+          {
+            "group": "plant",
+            "id": "m07_plant_solar_tower_44",
+            "position": {
+              "x": 400,
+              "y": 230,
+              "z": -8040
+            },
+            "required": true,
+            "scoreRole": "solar_tower",
+            "type": "solar_tower",
+            "yaw": 0
+          },
+          {
+            "group": "plant",
+            "id": "m07_plant_flak_45",
+            "position": {
+              "x": -1200,
+              "y": 230,
+              "z": -9500
+            },
+            "required": false,
+            "scoreRole": "flak",
+            "type": "flak_gun",
+            "yaw": 0
+          },
+          {
+            "group": "plant",
+            "id": "m07_plant_flak_46",
+            "position": {
+              "x": -400,
+              "y": 230,
+              "z": -9500
+            },
+            "required": false,
+            "scoreRole": "flak",
+            "type": "flak_gun",
+            "yaw": 0
+          },
+          {
+            "group": "plant",
+            "id": "m07_plant_sam_47",
+            "position": {
+              "x": 400,
+              "y": 230,
+              "z": -9500
+            },
+            "required": false,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": 0
+          },
+          {
+            "group": "plant",
+            "id": "m07_plant_sam_48",
+            "position": {
+              "x": 1200,
+              "y": 230,
+              "z": -9500
+            },
+            "required": false,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": 0
+          },
+          {
+            "group": "plant",
+            "id": "m07_plant_aa_49",
+            "position": {
+              "x": -1200,
+              "y": 230,
+              "z": -7780
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "plant",
+            "id": "m07_plant_aa_50",
+            "position": {
+              "x": -400,
+              "y": 230,
+              "z": -7780
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "plant",
+            "id": "m07_plant_pillbox_51",
+            "position": {
+              "x": 400,
+              "y": 230,
+              "z": -7780
+            },
+            "required": false,
+            "scoreRole": "pillbox",
+            "type": "pillbox",
+            "yaw": 0
+          },
+          {
+            "group": "plant",
+            "id": "m07_plant_pillbox_52",
+            "position": {
+              "x": 1200,
+              "y": 230,
+              "z": -7780
+            },
+            "required": false,
+            "scoreRole": "pillbox",
+            "type": "pillbox",
+            "yaw": 0
+          }
+        ],
+        "kind": "required_ground",
+        "label": "Copy logs; cut three transmitters",
+        "standaloneAce": {
+          "behaviour": "dogfight",
+          "headingDegrees": 180,
+          "health": 165,
+          "id": "m07_shale",
+          "livery": "Vulture",
+          "name": "SHALE",
+          "scoreRole": "ace",
+          "trigger": {
+            "kind": "approach",
+            "radius": 6000,
+            "x": 0,
+            "z": -8640
+          }
+        }
+      },
+      {
+        "canyonEscape": {
+          "ceiling": 585,
+          "channel": [
+            {
+              "x": 0,
+              "y": 180,
+              "z": -7000
+            },
+            {
+              "x": -1920,
+              "y": 144,
+              "z": -4800
+            },
+            {
+              "x": -3840,
+              "y": 112,
+              "z": 0
+            },
+            {
+              "x": -1920,
+              "y": 92,
+              "z": 5760
+            },
+            {
+              "x": 0,
+              "y": 88,
+              "z": 11520
+            }
+          ],
+          "clearance": 40,
+          "countdownSeconds": 7,
+          "damage": 35,
+          "firstSalvoDelaySeconds": 45,
+          "intervalSeconds": 25,
+          "source": {
+            "x": 10000,
+            "y": 1600,
+            "z": -12000
+          },
+          "warningSeconds": 8
+        },
+        "kind": "return_line",
+        "label": "Below 2,000 ft; escape south",
+        "returnLine": {
+          "a": {
+            "x": -1200,
+            "z": 11520
+          },
+          "b": {
+            "x": 1200,
+            "z": 11520
+          },
+          "direction": {
+            "x": 0,
+            "z": 1
+          },
+          "markerY": 200
+        },
+        "update": {
+          "countdownSeconds": 300,
+          "objective": "Descend below 2,000 ft; use canyon cover and exit south",
+          "radio": [
+            "SERA: Guns have the ridge. Take the canyon."
+          ]
+        }
       }
     ],
-    "primary": "In development",
-    "region": "canyon_airfield",
-    "title": "Mission 7"
+    "pressure": {
+      "forwardConeDegrees": 60,
+      "playerPriority": 0.8,
+      "tailDefence": true
+    },
+    "primary": "Destroy three marked installations in 15:00, then escape south in 5:00",
+    "region": "canyon_pass",
+    "scoring": {
+      "basis": "points",
+      "points": {
+        "aa": 20,
+        "ace": 240,
+        "control_room": 120,
+        "fighter": 60,
+        "flak": 40,
+        "helicopter": 50,
+        "pillbox": 60,
+        "radar": 100,
+        "sam": 30,
+        "solar_panel": 15,
+        "solar_tower": 120
+      },
+      "rank": {
+        "A": 1400,
+        "B": 1000,
+        "C": 340,
+        "S": 1600
+      }
+    },
+    "start": {
+      "headingDegrees": 0,
+      "kind": "airborne",
+      "speed": 160,
+      "x": 0,
+      "y": 968,
+      "z": 15360
+    },
+    "terrainRelativeWarnings": true,
+    "title": "ARRAY BREAK",
+    "worldKey": "m07_two_ridges"
   },
   {
     "act": 2,
