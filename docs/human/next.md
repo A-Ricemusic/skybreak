@@ -1,6 +1,6 @@
 # Next
 
-Priority: review the pending results-continuation PR, then verify first-time M01 → M02 on the owner’s phone (Normal). Confirm normal loading, repeated-tap protection, mouse/gamepad activation, M17 → M18, and M18 CAMPAIGN COMPLETE with no Next. Offline checks cannot establish device behavior.
+Priority: review the pending results-continuation PR, then verify first-time M01 → M02 on the owner’s phone (Normal). Confirm chapter 1 plays before M02 loading on first continuation, Skip proceeds through normal loading, replay with chapter 1 seen launches directly, and repeated-tap protection, mouse/gamepad activation, M17 → chapter 17 → M18, and M18 CAMPAIGN COMPLETE with no Next. Offline checks cannot establish device behavior.
 
 1. Owner: play practice and missions 1–18 in order on one save in Roblox Player, then replay selected missions on Easy, Normal and Hard/ACE. Practice: fly the pattern, hit the radar and confirm mission 1 stays accessible.
 2. For **every mission below**, record difficulty feel against the owner's “more enemies, harder” goal; allies should contribute approximately one shared kill per sortie without required-target theft. Check TGT picks the closest on-screen contact, repeated presses move outward/wrap and off-screen fallback works. Check available rearm/repair (damage preserved except repair-enabled M15–17), loading time, HUD/readability, failure/retry, unlocks and rank persistence after reload. Mark unavailable service as not applicable.

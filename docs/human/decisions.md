@@ -695,3 +695,12 @@ Implementation PR: [#200](https://github.com/A-Ricemusic/skybreak/pull/200); unm
 
 
 M18 #200 replay validation (2026-10-31, M17 base be746a10): frozen install, standalone build, test:offline plus voice/story/catalog regeneration, and full prescribed-LUAU_BIN validate:offline exited 0. Passed 1,210 Luau contracts, four loader probes, 483 module compilations, 201 require-graph nodes, 19 catalog snapshots, three QA pilot scenarios and 124 Python tests. Both lists retain all 118 offline specs and checkedRequire. Base decision text is preserved in full; every non-M18 voice entry is unchanged; only M18 catalog changes. Voice inventory: 250 entries / 172 pending recordings. Duel wins: Easy 107.16s / Normal 134.12s / Hard 199.92s. Runtime/world Jest compiled only. No Studio, test:roblox, Player tests, uploads or merge performed. Studio verified: pending orchestrator run. Merge pending; live by pipeline convention after merge.
+
+## D-665 — Results continuation preserves D-030 chapter order
+
+- **Decision:** Pending PR #202 routes Next and normal start through shared chapter gating. Unseen pre-mission chapters finish or Skip before the normal loading/RPC path; seen chapters launch directly. Next uses no cached client unlock gate.
+- **Alternatives:** Direct launch silently omits unseen chapters; reusing the old client unlock check restores the owner's silent-Next bug. Both rejected.
+- **Progress protection:** StartMission still resolves mission unlocks on fresh server state after result settlement. Seen markers require a matching played/skipped chapter acknowledgement for that unlocked mission; launches without acknowledgements do not mark chapters. The finale requires a recorded M18 win plus its finish/Skip acknowledgement. Cancellation does not acknowledge playback.
+- **Maker / status:** Implementation sub-agent under owner review-fix instruction, 2026-10-31; proposed in #202, unmerged. Offline tests only; no Studio or Player verification.
+
+Validation: `bun install --frozen-lockfile`, `bun run build`, and `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau" bun run validate:offline` exited 0. Added ChapterContinuation.spec to both runner lists; 1,223 Luau contracts passed, retaining missions 1–17 continuation, save-in-flight, M18 no-Next and loading debounce coverage.

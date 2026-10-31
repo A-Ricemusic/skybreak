@@ -1,5 +1,4 @@
 import { awaitResultSettlement } from "../shared/ResultContinuation";
-import { chapterBeforeMission } from "../shared/RelayStory";
 import { encodeCampaignSlot } from "../shared/CampaignWire";
 import { CampaignRequestBudget } from "./CampaignRequestBudget";
 import { DataStoreService, Players, RunService } from "@rbxts/services";
@@ -141,6 +140,7 @@ function listSlots(state: PlayerState): CampaignResponse {
 
 function startMission(state: PlayerState, payload: unknown): CampaignResponse {
 	const slot = typeIs(payload, "table") ? (payload as { slot?: unknown }).slot : undefined;
+	const playedChapter = typeIs(payload, "table") ? (payload as { playedChapter?: unknown }).playedChapter : undefined;
 	const requestedMission = typeIs(payload, "table") ? (payload as { missionId?: unknown }).missionId : undefined;
 	const launchId = typeIs(payload, "table") ? (payload as { launchId?: unknown }).launchId : undefined;
 	if (launchId !== undefined && (!typeIs(launchId, "number") || launchId !== launchId || launchId < 1 || launchId > 1e9 || launchId % 1 !== 0)) return refuse("Invalid launch generation.");
@@ -187,8 +187,8 @@ function startMission(state: PlayerState, payload: unknown): CampaignResponse {
 	state.activeSlot = slot;
 	state.activeMission = missionId;
 	state.coordinator.recordMissionStarted(slot, missionId, special, difficulty);
-	// The briefing chapter for this mission plays once per slot; retries and replays launch directly.
-	state.coordinator.recordCutsceneSeen(slot, chapterBeforeMission(missionId));
+	// A launch alone never implies the story was shown. Bind acknowledgement to the resolved, unlocked mission.
+	state.coordinator.acknowledgeChapter(slot, missionId, playedChapter);
 	return response(state);
 }
 
@@ -244,6 +244,11 @@ function handleRequest(player: Player, action: unknown, payload?: unknown): Camp
 	const [success, result] = xpcall(() => {
 		if (action === "ListSlots") return listSlots(state);
 		if (action === "StartMission") return startMission(state, payload);
+		if (action === "FinishFinale") {
+			const slot = typeIs(payload, "table") ? (payload as { slot?: unknown }).slot : undefined;
+			if (!isValidSlot(slot) || !waitForLoad(state) || !state.coordinator.acknowledgeChapter(slot, MISSION_COUNT, MISSION_COUNT)) return refuse("Complete the finale before recording its chapter.");
+			return response(state);
+		}
 		if (action === "ReturnToMenu") return returnToMenu(state);
 		if (action === "DeleteSlot") return deleteSlot(state, payload);
 		return refuse("Unknown campaign action.");
@@ -260,8 +265,6 @@ const onFinished: FinishedCallback = (player, won, stats) => {
 	const slotIndex = state.activeSlot;
 	const missionId = state.activeMission;
 	const recorded = completeMission(state.coordinator, slotIndex, missionId, won, stats, (message) => {
-		// Winning the finale unlocks and marks its closing chapter.
-		if (message.kind === "Completed" && message.missionId === MISSION_COUNT && slotIndex !== undefined) state.coordinator.recordCutsceneSeen(slotIndex, MISSION_COUNT);
 		if (player.Parent === Players) remotes!.MissionState.FireClient(player, message);
 	});
 	if (!recorded) {

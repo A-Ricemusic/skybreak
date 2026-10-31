@@ -1,6 +1,6 @@
 import { activateResultNext } from "../shared/ResultContinuation";
 import { VoiceDisclosureNotice } from "./VoiceDisclosureNotice";
-import { chapterBeforeMission, shouldPlayChapter } from "../shared/RelayStory";
+import { launchWithChapter } from "../shared/ChapterLaunch";
 import { canLaunchMission, highestUnlocked } from "../shared/CampaignProgress";
 import { isMissionReason } from "../shared/OutcomeReason";
 import { DeletionObservation } from "../shared/DeletionObservation";
@@ -50,6 +50,7 @@ import { InputModeContext } from "./Highlight";
 export function GameUI({ remotes, controller }: GameUIProps) {
 	const [cinematicId,setCinematicId]=useState(0);
 	const cinematicNext=useRef<()=>void>(()=>undefined);
+	const cinematicReturn=useRef<"briefing" | "outcome">("briefing");
 	const [screen, setScreen] = useState<Screen>("title");
 	const [viewport, setViewport] = useState(new Vector2(568, 320));
 	const [slots, setSlots] = useState<SaveSlot[] | undefined>();
@@ -283,7 +284,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			}
 		});
 	}, [applyResponseSlots, beginRequest, invoke, showToast]);
-	const launchMission = useCallback((missionId = selectedMissionRef.current, fromResult = false) => {
+	const launchMission = useCallback((missionId = selectedMissionRef.current, fromResult = false, playedChapter?: number) => {
 		if (busyRef.current || !mountedRef.current || !launchLoading.Begin(os.clock())) return;
 		selectedMissionRef.current = missionId;
 		setSelectedMission(missionId);
@@ -304,7 +305,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		toastRef.current++; setToast(undefined);
 		changeScreen(launchLoading.Screen());
 		beginRequest((requestId) => {
-			const [response, problem] = invoke("StartMission", { launchId: generation, slot: selectedSlot, missionId, special: selectedSpecialRef.current, difficulty: selectedDifficultyRef.current });
+			const [response, problem] = invoke("StartMission", { launchId: generation, slot: selectedSlot, missionId, playedChapter, special: selectedSpecialRef.current, difficulty: selectedDifficultyRef.current });
 			if (!mountedRef.current || requestRef.current !== requestId || !launchLoading.Current(generation)) return;
 			if (!response) {
 				launchLoading.Fail();
@@ -314,17 +315,20 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			} else if (response.slots) applyResponseSlots(response);
 		});
 	}, [applyResponseSlots, beginRequest, cancelRequests, changeScreen, invoke, launchLoading, selectedSlot, showToast]);
+	const startWithChapter = useCallback((missionId: number, fromResult: boolean = false) => {
+		if (busyRef.current || launchLoading.Pending() || screenRef.current === "cinematic") return;
+		selectedMissionRef.current = missionId; setSelectedMission(missionId);
+		cinematicReturn.current = fromResult ? "outcome" : "briefing";
+		const slot = slotsRef.current?.[selectedSlotRef.current - 1];
+		launchWithChapter(missionId, slot?.cutscenesSeen, slot?.missions?.[missionId]?.completed === true,
+			!fromResult && fromMissionMenuRef.current,
+			(playedChapter) => launchMission(missionId, fromResult, playedChapter),
+			(chapter, finish) => { cinematicNext.current = finish; setCinematicId(chapter); changeScreen("cinematic"); });
+	}, [launchMission, launchLoading, changeScreen]);
 	const startMission=useCallback(()=>{
-		if(busyRef.current || launchLoading.Pending() || !canLaunchMission(selectedMissionRef.current, slots?.[selectedSlotRef.current-1]))return;
-		const chapter=chapterBeforeMission(selectedMissionRef.current);
-		// Seen chapters skip; completed M1 gets an opening reprise only from the mission menu, never Retry/Next.
-		const seen=slots?.[selectedSlotRef.current-1]?.cutscenesSeen;
-		const completed=slots?.[selectedSlotRef.current-1]?.missions?.[selectedMissionRef.current]?.completed===true;
-		if(!shouldPlayChapter(selectedMissionRef.current,seen,completed,fromMissionMenuRef.current)){launchMission();return;}
-		cinematicNext.current=launchMission;
-		setCinematicId(chapter);
-		changeScreen("cinematic");
-	},[launchMission,launchLoading,changeScreen,slots]);
+		if (!canLaunchMission(selectedMissionRef.current, slotsRef.current?.[selectedSlotRef.current - 1])) return;
+		startWithChapter(selectedMissionRef.current);
+	}, [startWithChapter]);
 	const returnToMenu = useCallback(() => {
 		cancelRequests();
 		releaseJoystick();
@@ -357,8 +361,8 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	}, [applyResponseSlots, beginRequest, changeScreen, invoke, showToast]);
 	const retryMission = useCallback(() => restartMission(outcomeMissionRef.current), [restartMission]);
 	const nextMission = useCallback(() => {
-		activateResultNext(outcomeWonRef.current, outcomeMissionRef.current, (id) => launchMission(id, true));
-	}, [launchMission]);
+		activateResultNext(outcomeWonRef.current, outcomeMissionRef.current, (id) => startWithChapter(id, true));
+	}, [startWithChapter]);
 	// Stable handlers so the memoised menu screens bail out of mission-time re-renders.
 	const openCampaign = useCallback(() => { if (!busyRef.current) { changeScreen("slots"); loadSlots(); } }, [changeScreen, loadSlots]);
 	const chooseSlot = useCallback((slot: number) => {
@@ -707,7 +711,14 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				outcomeWonRef.current = won;
 				outcomeMissionRef.current = missionId;
 				if(won && missionId===MISSION_COUNT) {
-					setCinematicId(MISSION_COUNT);cinematicNext.current=()=>changeScreen("outcome");changeScreen("cinematic");
+					cinematicReturn.current="outcome";setCinematicId(MISSION_COUNT);cinematicNext.current=()=>{
+						changeScreen("outcome");
+						beginRequest((requestId) => {
+							const [response, problem] = invoke("FinishFinale", { slot: selectedSlotRef.current });
+							if (!mountedRef.current || requestRef.current !== requestId) return;
+							if (response) applyResponseSlots(response); else showToast(problem ?? "Chapter acknowledgement failed.", true);
+						});
+					};changeScreen("cinematic");
 				} else changeScreen("outcome");
 				const resultPersistence = normalizePersistence(finished.persistence ?? persistenceRef.current);
 				const saveText = won && finished.saved === true && resultPersistence === "cloud"
@@ -895,7 +906,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			<LoadingScreen visible={screen === "loading"} launched={screen === "mission"} missionId={selectedMission} progress={loadingProgress} phase={launchPhase} buildFolder={buildFolder} viewport={viewport} inputMode={inputMode} motion={!MotionPreference.reduced} />
 			<screengui key="SkybreakUI" DisplayOrder={20} IgnoreGuiInset={false} ResetOnSpawn={false} ScreenInsets={Enum.ScreenInsets.CoreUISafeInsets} ZIndexBehavior={Enum.ZIndexBehavior.Sibling}>
 				<frame ref={rootFrameRef} key="Root" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Change={rootChange}>
-					{screen === "cinematic" && <RelayCinematic id={cinematicId} viewport={viewport} onFinish={()=>{const continueStory=cinematicNext.current;changeScreen(cinematicId===MISSION_COUNT ? "outcome" : "briefing");continueStory();}} onCancel={()=>changeScreen(cinematicId===MISSION_COUNT ? "outcome" : "briefing")}/>}
+					{screen === "cinematic" && <RelayCinematic id={cinematicId} viewport={viewport} onFinish={()=>{const continueStory=cinematicNext.current;changeScreen(cinematicReturn.current);continueStory();}} onCancel={()=>changeScreen(cinematicReturn.current)}/>}
 					<VoiceDisclosureNotice />
 					<TitleScreen visible={screen === "title"} menu={menu} onCampaign={openCampaign} onSettings={openSettings} />
 					<CampaignScreen visible={screen === "slots"} menu={menu} slots={slots} busy={busy} persistence={persistence} onBack={goBack} onSlot={chooseSlot} confirmSlot={confirmSlot} onAskDelete={askDelete} onCancelDelete={cancelDelete} onDeleteSlot={deleteSlot} />

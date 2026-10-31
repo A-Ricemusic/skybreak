@@ -1,3 +1,4 @@
+import { chapterBeforeMission } from "../shared/RelayStory";
 import { readTargetScore, TargetScoreSnapshot } from "../shared/TargetScore";
 import { GameConfig } from "../shared/GameConfig";
 import { MissionCatalog, MISSION_COUNT } from "../shared/MissionCatalog";
@@ -608,6 +609,17 @@ export class CampaignCoordinator {
 		refreshDerived(slot);
 		this.markDirty();
 		return result;
+	}
+
+	/** A client acknowledgement may record only the chapter for an unlocked mission (or a won finale). */
+	public acknowledgeChapter(slotIndex: number, missionId: number, playedChapter: unknown): boolean {
+		if (!isValidSlot(slotIndex)) return false;
+		const slot = this.getSlots()[slotIndex - 1];
+		const finale = missionId === MISSION_COUNT && playedChapter === MISSION_COUNT;
+		if (finale ? slot.missions?.[MISSION_COUNT]?.completed !== true :
+			!canLaunchMission(missionId, slot) || playedChapter !== chapterBeforeMission(missionId)) return false;
+		this.recordCutsceneSeen(slotIndex, playedChapter as number);
+		return true;
 	}
 
 	public recordCutsceneSeen(slotIndex: number, cutsceneId: number): void {
