@@ -103,3 +103,9 @@ D6 integration checks: frozen install, build and full offline validation exit 0 
 PR #184 remains unmerged and dormant. The protected-target-only firing correction is retained. Main integration combines sector-attacker and committed protected-aircraft warning/service suppression while preserving player windup threats. No Studio or Player testing is performed here; route clearance, marker readability, both loss branches, all-safe completion and phone performance remain activation gates.
 
 Main integration validation (2026-10-30): frozen install, standalone build and full offline validation exited 0; 1,007 Luau contracts, 19 unchanged catalog snapshots and 124 Python tests. The combined sector/protected-target warning rule passes offline; service-entry runtime regressions compile but remain unrun. No Studio/Player test. Main at integration is `ea0045d` (D5/D6 merged, M08 not merged). D4/D6 admission logic is retained; this main revision has no `concurrentRoutes` option.
+
+## D8 verification and M12 integration (2026-10-30)
+
+D6/M08/D7 shared-hook integration is resolved. D8 remains dormant; runtime Jest, Studio/Player, ring timing/width, bomb feedback, elite recovery presentation and account persistence require mission acceptance. No owner input or upload is required. No Studio or Roblox Jest execution is claimed.
+
+D8 main integration validation (2026-10-30, main `5d84486`): frozen install, build and full `validate:offline` with the prescribed `LUAU_BIN` each exited 0: 1,023 Luau contracts, 19 unchanged catalog snapshots, four loader guard probes and 124 Python tests. All 92 spec registrations match runner imports and retain both parents. No Studio, `test:roblox`, Player tests or uploads performed. D8 remains dormant; M12 dependent branch untouched.

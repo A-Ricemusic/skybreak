@@ -346,3 +346,18 @@ Studio evidence for #179 at `e5c2fd2`: full Jest suite 1,133/1,133 in the orches
 | D-361 | Explicit phase ceiling 2,000–3,200; fixture bands 2,800/900. Piecewise-linear authored routes remain inside the envelope; hostile spawns/steering share this phase ceiling. Player physics unchanged. | Literal 23,000 ft exceeds flight envelope; D-016 compression is provisional. No global encounter-cap increase or silent clipping. World clearance and turns need flight review. | D7 implementation agent | Provisional adaptation, offline only |
 | D-362 | Explicit wave-to-aircraft priority, then nearest surviving protected aircraft; committed friendly missile destinations suppress player warnings/rearm threats. Only an actually selected protected aircraft bypasses player evade-window suppression and forces the relaxed aim threshold; ordinary armed wingmen and the player retain the prior firing conditions (PR #184 P2 correction). Accept D5 `attackSector` helper signature. | Generic player chasing misses escort pressure. Protected actors stay outside both combat rosters, cannot be targeted/locked or earn score, and consume no armed-allied kill budget. | D7 implementation agent | Implemented; runtime Jest execution pending |
 | D-363 | Original procedural civilian stand-ins, cyan identity/health PROTECT billboards and white square protected radar contacts; first damage subtitle warns once per aircraft. | New passenger meshes/audio would require separate approval and uploads. No uploads are authorized or performed; final art/readability/health/damage tuning are mission activation work. | D7 implementation agent | Dormant; visual/Player acceptance pending |
+
+## D-400 — D8 ground ECM and required-strike service
+
+- **Status:** provisional implementation; dormant, pending runtime/mission acceptance. **Decision maker:** implementation agent within the engine plan (2026-10-30).
+- Explicit ground ECM shares batch C's live-source radar/lock and clearance policy. Required-ground strikes may rearm using the same complete pause/refill/expiry/threat gates and preserved health. Alternative: fake airborne jammer or score objective; rejected because M12 is a required-ground strike with a ground emitter.
+
+## D-401 — Precision bomb equivalent and ring salvo sweep
+
+- **Status:** provisional implementation; dormant. **Decision maker:** implementation agent (2026-10-30).
+- SALVO precision conversion uses D3 ground-special plumbing and hits only the locked ground victim; special conversions are exclusive. No new ballistic projectile. Ring salvos test the whole authored bearing wedge at impact and use D3 segmented masking rays (1,000 studs per cast); overlapping lines pay at most one damage event. Alternative: continuous beam simulation; deferred pending M12 flight acceptance. Current wedge is an authored gameplay abstraction, not reference telemetry.
+
+## D-402 — One-loss elite retreat and recovery story flag
+
+- **Status:** provisional implementation; dormant. **Decision maker:** implementation agent (2026-10-30).
+- Five required elite fighters form a one-defeat objective. The defeated elite represents the Vulture Two ejection/recovery story event; the other four retreat without credit. Required status protects the formation from allied kills. Optional named ace remains separate. Recovery flag persists through sortie phase updates and replicates on the session folder; account persistence/presentation belongs to mission integration. Alternative: kill all five; rejected by M12 ending evidence. D12 protected-leader lifecycle remains separate future work.

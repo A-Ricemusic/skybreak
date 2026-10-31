@@ -61,3 +61,9 @@ D6 integration checks: frozen install, build and full offline validation exit 0 
 PR [#184](https://github.com/A-Ricemusic/skybreak/pull/184) adds protected-aircraft health/routes/markers, all-safe completion and immediate loss failure, airliner-priority attackers and an opt-in altitude envelope. It is unmerged and no catalog mission opts in. Main’s practice and missions 1–7 remain unchanged. D7 firing overrides apply only to selected protected aircraft; ordinary wingmen/player keep existing firing gates. Runtime Jest, Studio, Player and visual acceptance remain pending.
 
 Main integration validation (2026-10-30): frozen install, standalone build and full offline validation exited 0; 1,007 Luau contracts, 19 unchanged catalog snapshots and 124 Python tests. The combined sector/protected-target warning rule passes offline; service-entry runtime regressions compile but remain unrun. No Studio/Player test. Main at integration is `ea0045d` (D5/D6 merged, M08 not merged). D4/D6 admission logic is retained; this main revision has no `concurrentRoutes` option.
+
+## D8 main integration (2026-10-30)
+
+Dormant D8 ground ECM, required-strike rearm, precision bomb, elite retreat/recovery and ring sweep contracts are integrated with main’s D6, M08 and D7 hooks. No catalog opt-ins or frozen snapshots change. See D-400–D-402 and the engine plan. Runtime Jest, Studio/Player and M12 acceptance remain pending.
+
+D8 main integration validation (2026-10-30, main `5d84486`): frozen install, build and full `validate:offline` with the prescribed `LUAU_BIN` each exited 0: 1,023 Luau contracts, 19 unchanged catalog snapshots, four loader guard probes and 124 Python tests. All 92 spec registrations match runner imports and retain both parents. No Studio, `test:roblox`, Player tests or uploads performed. D8 remains dormant; M12 dependent branch untouched.
