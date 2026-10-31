@@ -29,7 +29,8 @@ import { CameraShake } from "./CameraShake";
 import type { KillFlash } from "./KillMarker";
 import { ImpactFeedback } from "../shared/ImpactFeedback";
 import { LAUNCH_REQUEST_TIMEOUT, LaunchLoading, type LaunchPhase } from "../shared/LaunchLoading";
-import { LoadingScreen } from "./LoadingScreen";
+import { LoadingScreen } from "../shared/LoadingScreen";
+import { MotionPreference } from "./MotionPreference";
 import { preloadMission } from "./MissionPreload";
 import { getMenuHintsLayout, getMenuLayout, getToastLayout, inputModeFromInputType, JOYSTICK_SIZE, type HudOptions, shouldAcceptInputModeChange, type ControlHint, type InputMode, type Rectangle } from "../shared/UILayout";
 import { BriefingScreen } from "./screens/BriefingScreen";
@@ -885,6 +886,8 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			<screengui key="SkybreakBackdrop" DisplayOrder={19} IgnoreGuiInset={true} ResetOnSpawn={false} ScreenInsets={Enum.ScreenInsets.None}>
 				<MenuBackdrop visible={!NO_MENU_CAMERA.has(screen)} menu={menu} viewport={viewport} />
 			</screengui>
+			{/* Its own full-bleed ScreenGuis above the menus: covers the top bar and notches (D-200). */}
+			<LoadingScreen visible={screen === "loading"} launched={screen === "mission"} missionId={selectedMission} progress={loadingProgress} phase={launchPhase} buildFolder={buildFolder} viewport={viewport} inputMode={inputMode} motion={!MotionPreference.reduced} />
 			<screengui key="SkybreakUI" DisplayOrder={20} IgnoreGuiInset={false} ResetOnSpawn={false} ScreenInsets={Enum.ScreenInsets.CoreUISafeInsets} ZIndexBehavior={Enum.ZIndexBehavior.Sibling}>
 				<frame ref={rootFrameRef} key="Root" BackgroundTransparency={1} Size={UDim2.fromScale(1, 1)} Change={rootChange}>
 					{screen === "cinematic" && <RelayCinematic id={cinematicId} viewport={viewport} onFinish={()=>{const continueStory=cinematicNext.current;changeScreen(cinematicId===MISSION_COUNT ? "outcome" : "briefing");continueStory();}} onCancel={()=>changeScreen(cinematicId===MISSION_COUNT ? "outcome" : "briefing")}/>}
@@ -892,7 +895,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					<TitleScreen visible={screen === "title"} menu={menu} onCampaign={openCampaign} onSettings={openSettings} />
 					<CampaignScreen visible={screen === "slots"} menu={menu} slots={slots} busy={busy} persistence={persistence} onBack={goBack} onSlot={chooseSlot} confirmSlot={confirmSlot} onAskDelete={askDelete} onCancelDelete={cancelDelete} onDeleteSlot={deleteSlot} />
 					<BriefingScreen visible={screen === "briefing"} menu={menu} selectedSlot={selectedSlot} selectedMission={selectedMission} slot={selectedSave} busy={busy} special={selectedSpecial} difficulty={selectedDifficulty} onBack={goBack} onLaunch={startMission} onMission={chooseMission} onSpecial={chooseSpecial} onDifficulty={chooseDifficulty} />
-					<LoadingScreen visible={screen === "loading"} missionId={selectedMission} progress={loadingProgress} phase={launchPhase} buildFolder={buildFolder} viewport={viewport} />
 					<MissionHud
 						visible={screen === "mission" && controller.CutInStatus() === undefined}
 						viewport={viewport}

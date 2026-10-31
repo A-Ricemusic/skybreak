@@ -1,5 +1,34 @@
 # Next
 
+## Owner difficulty and allied-flight tuning — unmerged (D-220/D-221, 2026-10-30)
+
+Validation on main 5034b39: frozen install/build and offline validation pass (848 Luau contracts). Final rebased Roblox Jest is deferred to the orchestrator’s merge queue so mission 5/D1 retain Studio priority; the queued local launch is cancelled. No full Jest pass is claimed.
+
+M01 keeps six required bombers, the same route/240-second escape and 10:00 clock. The T+120/halfway rear reinforcement grows from two to six: twelve optional raiders total, plus three escorts and the ace. The opening six-raider screen is unchanged. Normal maximum is 1,740; S/A/B/C = 1,560/1,200/600/500. S requires the ace plus substantial optional combat.
+
+M02 keeps eleven required parked bombers, all existing ground scenery/targets and the 15:00 clock. Two extra head-on fighters queue at T+75; two more queue after eight bomber kills. Twelve aircraft total including the ace; Normal maximum 2,850; S/A/B/C = 2,500/1,990/1,620/1,320. M02 adopts M01's 80% player-priority policy and Easy-safe tail-defence rules. Both missions retain the seven-fighter concurrent budget; queued fighters can remain unspawned if the player finishes objectives quickly.
+
+All missions using the shared allied flight now default to **one combined allied kill per sortie**, with a mission-tunable nonnegative integer `allies.killBudget` (zero disables combat). Required targets remain forbidden even with legacy opt-in flags. Allies fire at most one missile at a time, at eight-second group spacing, 20-second individual reload, 1,600-stud acquisition range and 35% damaging-shot chance at 30 damage. Impact and kill admission both enforce the budget; after spending it, surviving wingmen keep flying formation and avoiding terrain. No M03–M18 mission data or story/radio lines changed. M05 on main is dormant; its future allied flight inherits this default.
+
+Owner test after merge: fly M01/M02 on Easy and Normal; confirm both objectives remain achievable, the new pairs/rear wave attack the player, no more than seven hostile fighters coexist, and S takes optional combat. In M01–M04 (and M05 when integrated), watch the whole group: at most one kill per sortie, no required-target kills, continuing formation/radio and visible missiles before budget exhaustion. Retry to confirm the budget resets; check phone frame rate. These are automated contracts and proposed tuning, not a claimed Player playtest.
+
+
+## PR #176 review fixes (2026-10-30)
+
+**Mission 5 client fix included:** the old weather lookup also dereferenced nil for every M05–M13 world key on main. The shared world-environment registry now resolves all eighteen server world keys, including M05, and safely ignores unknown/unset names. Desktop/phone/reduced-motion effects and phone cloud decks are checked against each environment; a static offline gate checks registry coverage against actual server registrations/publications. No Studio/Player observation is claimed.
+
+M18 groove/vent decks now include solid structural columns from Y0 to the unchanged Y104 flight floor; the local exit foundation continues beneath the over-water end. Floor widths support the walls across their complete footprints (244 groove /392 vent); core extends down to the deck. Generator-end floor modules extend40studs beyond each room end to carry the complete target footprint. Tests explicitly require all thirteen structural decks and check terrain contact/clearance across their footprints, wall/target/buttress support and the unchanged swept flight envelopes. This replaces the vacuous name-only M18 foundation check.
+
+M17 now matches the spec:18:20 and12,000ft cloud-base reference metadata. No adaptation is claimed. Build and full offline validation passed (exit0;856 Luau contracts,124 Python tests,18-key registry gate). Worlds remain dormant and unmerged.
+
+
+## M14–M18 worlds — in review (2026-10-30)
+
+1. Review the five [M14](../specs/worlds/m14-composition.md), [M15](../specs/worlds/m15-composition.md), [M16](../specs/worlds/m16-composition.md), [M17](../specs/worlds/m17-composition.md), [M18](../specs/worlds/m18-composition.md) composition docs, complete target tables and budgets. One PR from main, no merge or mission activation.
+2. Later shared-Studio lease: compare polar night/cirrus, city readability, desert scale, flooded bridges, and enclosed-flight/core exit against accepted specs. Fly all approaches/overshoots; measure build/clear and phone costs. No new Studio/Player observation is claimed.
+3. Integrate mission-owned encounters, scoring/timers and cleanup. Resolve unknown ground subtypes, initial/credited count differences and cruise split predicates. M17 Rusk retreats after four wingmen; M18 must preserve damage, missile count/regeneration and charges through no-other-fire duel staging. Core destruction alone cannot win.
+
+
 Last updated: 2026-10-30.
 
 **TGT button (D-210, 2026-10-30, open PR [#172](https://github.com/A-Ricemusic/skybreak/pull/172)).** After playing, the owner found the target itself good but the button inconsistent. The PR makes every TGT press (PC key, gamepad Y, on-screen button) select the closest enemy on screen, or the second closest when the closest is already selected; quick presses keep walking outward. Automatic targeting after a kill is unchanged. Next: merge on green CI, then the owner checks it on a phone and on PC (steps under "Mission 2 beta test"). Spec: [targeting](../specs/engine/targeting.md).
@@ -34,6 +63,21 @@ Audio policy (D-142): continue the story in subtitles beyond existing approved v
 Confirming a launch after its story chapter immediately covers the world with the existing opaque loading screen. You will see “Building world…” with an animated bar and replicated planning/terrain/scenery phase when available, or “Waiting for the previous mission to clear…” during cleanup. The screen stays up through the existing replication/preload percentage and tower clearance; mission clocks and the carrier fly-off still begin through the existing Ready handshake. Launch inputs stay locked until flight starts. Refusals and build errors restore the briefing with the existing error toast; the queue and post-build readiness timeouts retain their existing bounds. PR [#160](https://github.com/A-Ricemusic/skybreak/pull/160) also bounds a silent launch request at 510 seconds (the server’s 390-second cleanup wait plus 120 seconds to build). On expiry you return to briefing with a timeout toast. Late responses and loading/start events cannot hijack a retry. The old launch is cancelled; while its server build still owns the world, retries say “still preparing” rather than building another world. If a server thread never recovers, retries remain refused until that server is restarted.
 
 Owner check after merge: launch practice and missions 1–3, including an immediate relaunch after results. Construction should stay hidden, the queue should advance automatically, and mission 1's carrier fly-off should follow loading. Offline regression tests cover the shared launch state machine; Studio verification is blocked: the attempted Jest launch displayed the login dialog (2026-10-29 PDT); no practice/M01–M03 or carrier-intro runtime check was performed. Another agent acquired Studio during the final lease interval; the accidental overlapping launch was stopped, and only this task’s processes were closed. Engine snapshots are unchanged.
+## Loading screen v2 — in review (not merged)
+
+Your feedback: the loading screen's dark panel didn't reach the screen edges, it looked like a plain box, and it felt empty during a 10–45 s load. After this PR merges, launching a mission will look like this (D-200):
+
+- **Edge to edge.** The screen covers everything, including behind Roblox's top-bar buttons and phone notches. All text stays inside the safe area.
+- **Mission title card.** At the top left: "MISSION 02" in orange, then the mission title in large type, the codename in teal and the region · weather line. Below that are the objective and a short excerpt from the briefing. On PC, the act name appears at the top right. Practice reads "PRACTICE FLIGHT".
+- **Your Kestrel.** The game's existing, approved Kestrel model sways slowly in a 3D window inside a teal HUD frame, with a scan line and a faint grid. The mission number appears very large and faint in the background. If you have switched off the cinematic "Camera motion" option, the jet, scan line and pulse hold still.
+- **Real progress.** Six segments are labelled CLEAR · PLAN · TERRAIN · SCENERY · SYNC · READY. They follow the phases the server and client actually report. The fill creeps forward during long phases and never moves backwards. The active segment pulses. A status line names the current step, for example "Shaping terrain…", "Syncing the world to your aircraft · 42%" or "Awaiting tower clearance". A mission clock (T+ 0:14) shows elapsed time. If the previous mission is still clearing, the screen says "Waiting for the previous mission to clear…" in orange.
+- **Tips.** A tip line rotates every 7 seconds and matches your device: keyboard, touch or gamepad.
+- **Transitions.** The world is covered instantly when you launch, and the content then fades in. When the mission starts, the bar fills and the whole screen fades into flight over about half a second. Mission 1's carrier fly-off starts underneath it as before. If a launch fails or times out, you go back to the briefing with the same error message as today.
+
+Unchanged: the launch state machine (watchdog, retry protection, refusal → briefing, no double launches). No images, audio or models were uploaded.
+
+**Please check after merge:** play mission 1, mission 2 and practice on PC and on your phone, in both portrait and landscape. Check that nothing of the world shows around the edges or behind the top-bar buttons. Check that the title and text are readable and clear of the notch, that the bar only moves forward, and that the fade into flight and the carrier fly-off look right. Agents have not tested this in Roblox Player. Phone frame rate during loading has not been measured.
+
 ## Mission 1 pressure tuning — proposed, unmerged
 
 - Owner feedback: wingmen absorbed too much attention and the bomber approach was too quiet. M01 alone opts into 80% player-priority targeting slots (revisited every eight seconds), close/tail/fire overrides (guided/special launches and player hits start an eight-second threat window). Tail breaks/jinking use existing break steering with three seconds of recovery after overshoot extends. Easy forces only tail breaks, keeps zero close-lock odds and rolled inbound breaks, and adds no flare; Normal/Ace force close-lock/inbound breaks and give hostile raiders/escorts one flare. Wingmen get no pressure flare. Mission 2 keeps legacy targeting and defence.
