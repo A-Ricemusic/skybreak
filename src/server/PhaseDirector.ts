@@ -1,3 +1,5 @@
+import { duelTargetId } from "../shared/EngineBatchD13";
+import { clearCruise } from "./EngineBatchD10Runtime";
 import { Workspace } from "@rbxts/services";
 import { clearProtection } from "./EngineBatchD7Runtime";
 import { clearGroundDirector } from "./EngineBatchD5Runtime";
@@ -65,8 +67,10 @@ export function createPhaseDirector(combat: PhaseCombat) {
 	/** Spawns what the live-aircraft budget has room for now; the rest keeps waiting. */
 	function drainAir(session: CombatSession): void {
 		if (session.airQueue.size() === 0) return;
-		const room = ((session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.concurrentFighters) ?? WavePlan.Budget(extraRaiders(session))) - liveAircraft(session);
-		for (const batch of WavePlan.Admit(session.airQueue, room)) {
+		const phase = session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState);
+		const room = (phase?.concurrentFighters ?? WavePlan.Budget(extraRaiders(session))) - liveAircraft(session);
+		const liveRoutes = phase?.concurrentRoutes === undefined ? 0 : session.enemies.filter(enemy => enemy.routeActor !== undefined && enemy.enabled && enemy.health>0 && enemy.withdrawUntil===undefined && enemy.model.Parent===session.folder).size();
+		for (const batch of WavePlan.Admit(session.airQueue, room, phase?.concurrentRoutes === undefined ? room : phase.concurrentRoutes-liveRoutes)) {
 			if (batch.arrival) {
 				const a=batch.arrival;
 				spawnAir(session,batch.count,"aircraft" in a && a.aircraft ? "bomber" : batch.role,{ arrival:a, targetId: session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.targetIds !== undefined && ("name" in a || a.count === 1) ? a.id : undefined, optional:!("required" in a && a.required === true), name: "name" in a ? a.name : undefined, livery: "livery" in a ? a.livery : undefined, aceHealth: "health" in a ? a.health : undefined });
@@ -99,6 +103,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		assert(session.blueprintState && session.blueprint, "blueprint phase application requires blueprint state");
 		const state=session.blueprintState;
 		if (state.outcome !== undefined || session.appliedBlueprintPhaseIndex === state.phaseIndex) return;
+		clearCruise(session);
 		clearGroundDirector(session);
 		if (session.protectedFlight && session.protectedFlight.phase !== state.phaseIndex) clearProtection(session);
 		session.appliedBlueprintPhaseIndex=state.phaseIndex;
@@ -146,7 +151,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 			}
 			requestAir(session, b.escorts.initial, "escort");
 		}
-		else if (phase.kind === "required_air" && !phase.fighterWaves?.some(w => w.required) && phase.execution?.launchDelay === undefined) {
+		else if (phase.kind === "required_air" && !phase.cruiseIntercept && !phase.fighterWaves?.some(w => w.required) && phase.execution?.launchDelay === undefined) {
 			if (phase.execution?.directSpawn) spawnAir(session,phase.count ?? 0,"bandit");
 			else {
 			// Staggered groups: the first now, the rest by WavePlan.Due (stepSession).
@@ -156,7 +161,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 			}
 		}
 		else if (phase.kind === "chase") spawnAir(session,phase.count ?? 1,"courier",{escape: phase.escape ? new Vector3(phase.escape.x,phase.escape.y,phase.escape.z) : undefined});
-		else if (phase.kind === "ace") spawnAir(session,1,"ace",{aceHealth: session.blueprint.aceHealth ?? 165});
+		else if (phase.kind === "ace") spawnAir(session,1,"ace",{aceHealth: session.blueprint.aceHealth ?? 165, targetId: phase.batchD13?.duel ? duelTargetId(state.phaseIndex) : undefined});
 		// Ace phases hold their raiders back for the ace's stage calls; reinforced phases keep part of theirs for mid-phase.
 		const initialRaiders=raiderWave(session,MissionCatalog.InitialRaiders(phase));
 		if (phase.execution?.directSpawn) spawnAir(session,initialRaiders,"raider");

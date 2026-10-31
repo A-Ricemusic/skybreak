@@ -1,3 +1,5 @@
+import { validateEncounterIdentities } from "../shared/CampaignEncounters";
+import { duelTargetId } from "../shared/EngineBatchD13";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { crossesVolume, ventObstructed, dependenciesMet, newVent, stepVent, validateBatchD13, VentRun } from "../shared/EngineBatchD13";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
@@ -27,6 +29,21 @@ describe("D13 dormant finale contracts",()=>{
   expect(rejects(()=>validateBatchD13(c))).toBe(true);
   const d=fixture(); d.phases[2].update!.countdownSeconds=299;
   expect(rejects(()=>validateBatchD13(d))).toBe(true);
+ });
+ it("reserves generator, core and duel credits across the sortie",()=>{
+  validateEncounterIdentities(fixture().phases);
+  for(const id of ["g1","core",duelTargetId(2)]) {
+   const b=fixture();
+   b.phases.push({kind:"required_ground",label:"Collision",groundTargets:[{...b.phases[0].groundTargets![0],id}]});
+   expect(rejects(()=>validateEncounterIdentities(b.phases))).toBe(true);
+  }
+ });
+ it("rejects competing cruise ownership in the vent or duel",()=>{
+  for(const index of [1,2]) {
+   const b=fixture();
+   b.phases[index].cruiseIntercept={site:{x:0,y:0,z:0},targets:[]};
+   expect(rejects(()=>validateBatchD13(b))).toBe(true);
+  }
  });
  it("rejects finite racks and unknown environments",()=>{
   const b=fixture(); b.armament={stock:{missiles:8}};

@@ -15,6 +15,8 @@ export interface VentRun {
 }
 export interface DuelArena { center: FlightPoint; radius: number; minY: number; maxY: number }
 export interface BatchD13Phase { vent?: VentRun; duel?: DuelArena; environment?: string }
+/** Reserved sortie identity, shared by admission and the authoritative spawn. */
+export function duelTargetId(phaseIndex: number): string { return `d13_duel_${phaseIndex}`; }
 export interface VentState { checkpoint: number; elapsed: number; exited: boolean }
 export function newVent(): VentState { return {checkpoint:0,elapsed:0,exited:false}; }
 /** Swept AABB catches fast crossings; generous authored boxes do not require centre hits. */
@@ -48,7 +50,7 @@ export function validateBatchD13(b: MissionBlueprint): void {
  for(const phase of phases) {
   const d=phase.batchD13;
   if(!d) continue;
-  assert(!phase.twist && !phase.rearm && !phase.returnLine && !phase.interceptHold,"D13 has exclusive phase ownership");
+  assert(!phase.twist && !phase.rearm && !phase.returnLine && !phase.interceptHold && !phase.cruiseIntercept && !phase.protection && !phase.spatialJamming && !phase.eliteFormation && !phase.ringSweep,"D13 has exclusive phase ownership");
   if(d.environment) assert(d.environment==="m18_voice_breaks" || ENVIRONMENTS[d.environment as EnvironmentPreset]!==undefined,"Unknown D13 environment");
   const v=d.vent;
   if(v) {

@@ -1,3 +1,4 @@
+import { clearCruise } from "./EngineBatchD10Runtime";
 import { AircraftCollision } from "./AircraftCollision";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { resolveEnvironment } from "../shared/WorldEnvironments";
@@ -44,6 +45,7 @@ export function stepBatchD13(s: CombatSession,say:(line:string)=>void): void {
    WorldEnvironment.ApplySpec(environment,d.environment);
   }
   if(d.duel) {
+   clearCruise(s);
    s.airQueue.clear();
    for(let i=s.projectiles.size()-1;i>=0;i--) { s.projectiles[i].part.Destroy(); s.projectiles.remove(i); }
    for(const e of s.enemies) {

@@ -1,9 +1,5 @@
 # Decisions
 
-## D-544 — Authoritative duel movement and vent projectile geometry
-
-Status: proposed in unmerged #194; decision maker: implementation agent following independent P2 review, 2026-10-30. Apply the active required phase-owned ace’s arena limits after movement instead of the legacy world clamp. Sweep guided, blind, hostile and lost-track missile segments only during vent phases, using ≤1,000-stud rays and projectile-origin impact checks. Stop fused movement checks at the closest projectile contact, so scenery beyond the target cannot cancel an earlier hit. Alternative: pre-movement bounding and player LOS at impact; rejected because they teleport Rusk and evaluate the wrong weapon path. Other missions retain their movement clamps and missile behavior.
-
 Last updated: 2026-10-30.
 
 | ID | Date | Decision | Alternatives considered | Why | Decided by | Status |
@@ -116,6 +112,7 @@ The recording may be copied; the game it shows belongs to Bandai Namco.
 | Pacing, difficulty curve, how each mission feels | Any image or audio taken from the footage |
 
 Internal documents may name reference missions by their original titles for cross-reference. Nothing shipped in the game does.
+
 
 The superseded AC04-specific adaptation/art/HUD/save decisions dropped with the rejected release remain historical in git, not current approvals. D-003 explicitly adopts a new cutover wipe; it does not restore the rejected release.
 
@@ -256,6 +253,7 @@ IDs D-150–D-156 checked against origin/main `227713b` (after #148, #149, #151,
 | D-155 | The gun has no firing sound; impacts use the existing approved metal-hit sounds and hit effect, with local cosmetic tracers. | Upload a cannon sound. Not allowed under D-142 (no further audio uploads). | Implementation agent, following D-142 | Merged; dormant |
 | D-156 | Rearm may repair damage to 0% where the footage shows it: missions 15, 16 and 17 only, as a per-mission opt-in built in batch D11. Every other rearm keeps batch C's damage-preserving rule. | Never repair (batch C rule); repair on every rearm. The footage shows repair in M15–M17 (65%→0%, damaged→0%, 25%→0%) and is silent elsewhere. | Owner side, relayed by the orchestrator 2026-10-30 | Provisional; build in D11 |
 
+
 ## Engine batch D2 decisions (2026-10-30)
 
 | ID | Choice | Alternatives and rationale | Decision maker | Status |
@@ -376,6 +374,49 @@ M09 #185 arrival-test correction (2026-10-30): D-342 is unchanged. The nine requ
 - **Status:** provisional implementation; dormant. **Decision maker:** implementation agent (2026-10-30).
 - Five required elite fighters form a one-defeat objective. The defeated elite represents the Vulture Two ejection/recovery story event; the other four retreat without credit. Required status protects the formation from allied kills. Optional named ace remains separate. Recovery flag persists through sortie phase updates and replicates on the session folder; account persistence/presentation belongs to mission integration. Alternative: kill all five; rejected by M12 ending evidence. D12 protected-leader lifecycle remains separate future work.
 
+## D-380 — M10 authored roster and world ownership
+
+- Decision maker: implementation agent under owner's mission-10 authorization, 2026-10-30. Status: proposed in review.
+- Adopt every existing M10 world target by stable id: 100 ground and 24 naval. Add two 200-point pens, two 20-point cranes and 12 parked aircraft. Map provisional tank drawings to barracks, radar to control towers, frigates to gunboat roles, tankers to container ships. Preserve the original layout ids and poses. These are authored role/silhouette adaptations; the reference's unresolved total/per-type roster is not claimed recovered.
+- Alternatives: invent an exact reference distribution or leave M10 locked. Chosen bounded slice retains the dormant world and records the uncertainty. D6 detail management may replace adopted static geometry by id; it never leaves duplicate contacts.
+
+## D-381 — Repeated artillery and fair terrain
+
+- Decision maker: implementation agent, 2026-10-30. Status: proposed in review.
+- Warn at 240 elapsed seconds, impact at 300, then every 120 through 1140 (eight impacts). Warning 45s + countdown 15s; 35 damage. Absolute safe ceiling Y=585 plus masking required. Source (15000,700,-15000); segmented casts <=1000 studs. A runway refuge at Y=300 and NE ingress use the world/collision surface; continuous river water takes precedence over corridor lowering.
+- Alternative: direct Roblox ray beyond 15,000 studs or terrain-relative ceiling. Rejected for incorrect masking/safety. Offline flight and cover probes establish an authored survivable route; engine ray agreement and high-pose recovery still require Studio acceptance.
+
+## D-382 — M10 pressure and allied budget
+
+- Decision maker: owner (more attacking aircraft; allies mostly for show), implemented 2026-10-30. Status: proposed in review.
+- 44 finite aircraft including one ace and twelve parked/airborne identities; eight concurrent queued fighter slots. Reference debrief air roster totals 32; twelve additional attacking fighters increase pressure. Four allies share a single whole-sortie kill budget, never credit the player. D6 cheap-contact phases permit at most 16 route aircraft in the finite inventory; earlier missions retain six. The live queue caps routes and fighters together at eight; an opt-in two-route ceiling reserves six slots for pursuing aircraft. Helicopters fly one bounded patrol (under 90 seconds), then retire without score through the existing endpoint path. Blocked patrol requests yield to later pursuers; finite inventory and allied limits stay unchanged. This fixes #187’s P2 starvation finding without raising concurrency.
+- Alternative: unbounded simultaneous waves or repeating reinforcements. Rejected for unfair pressure and phone cost. Existing aircraft models represent authored roles; new art is deferred.
+
+## D-383 — M10 ranks, stocks, settlement and story
+
+- Decision maker: implementation agent following spec ledger and owner constraints, 2026-10-30. Status: proposed in review.
+- One 1,200-second objective, 3,000-point minimum held until expiry. Rank C/B/A/S=3000/3800/4200/5400, within observed source brackets. Finite maximum 9,340: 7,360 static/parked and 1,980 additional airborne; allied loss can lower attainable score. Twelve handoffs cannot score twice. Reusable optional land rearm restores 58 missiles, 750 gun rounds and twelve selected special charges; 4AAM becomes a ground area footprint. No health repair.
+- Alternative: all-target victory, immediate threshold completion or using 6,190 as exact S cutoff. Rejected by mission evidence. Original MISSION_STORY_TEXT[10] subtitles retain chapter 9 Walking the storm and the next clear day; no Rusk identification, audio or Blender uploads.
+
+## Engine batch D9 decisions (2026-10-30)
+
+| ID | Choice | Alternatives and rationale | Decision maker | Status |
+|---|---|---|---|---|
+| D-420 | Dormant, static, unarmed procedural airship class; D1 gun and existing optional-air kill ledger own damage and once-only points. Author health/score role and enough optional kill budget; M13 plans 32 ×100. Bomber role excludes armed allies without changing their approximately one-kill sortie budget. | New scoring/damage path or armed balloons would duplicate ownership or distort the sweep. No catalog or snapshot opt-in. | D9 implementation agent | Implemented; unmerged; runtime execution pending |
+| D-421 | Opt-in 3D capsule corridors count unique live airship sources at each observer; player radar/lock/target visibility share the existing batch C count hook. | Global any-alive suppression prevents local clearance. D8 F20 remains independent; future ground-spatial support needs explicit validation and runtime source admission. | D9 implementation agent | Implemented; dormant; dimensions provisional |
+| D-422 | Each D7 protected aircraft holds navigation locally for a cumulative authored 0–60 seconds, then permits dead reckoning; source death releases immediately. Health, hostile targeting, mission clocks and phase predicates stay authoritative. | Unbounded hold risks a softlock; points-based global clearance discards spatial intent. Actors remain phase-owned; M13 handoff and exact coverage must be authored during activation. | D9 implementation agent | Provisional original adaptation; no Player observation |
+
+## Engine batch D10 decisions (2026-10-30)
+
+| ID | Choice | Alternatives and rationale | Decision maker | Status |
+|---|---|---|---|---|
+| D-480 | Dedicated dormant required-air cruise director; up to 32 identities, 12 reserved leaf slots, independent fighter admission. | Sharing fighter queues could starve either required intercepts or optional pressure. One separation generation and ordered parents bound work. | D10 implementation sub-agent | Proposed; no catalog activation |
+| D-481 | Separation retires parent without kill/points; children score individually. Pre-release carrier destruction scores that carrier only and cancels unreleased children without credit. Director completion ignores kill count; live endpoint arrival fails protected_lost before weapon settlement. | Synthetic child kills would inflate results. Pre-release cancellation and impact failure are explicit original assumptions, not reference failure observations. M14 author must reconcile reachable totals and carrier scoring. | D10 implementation sub-agent | Provisional; M14 integration pending |
+| D-482 | F6 routes, terrain/water +60 floor, collision sweep and fail-closed invalid terrain; radar ≤1,200 below 180 AGL, otherwise ≤2,200, with LOS. Visual TGT/locks remain available. Speed 60–180 and health 24; no flares. | Fixed low Y clips terrain; radar invisibility must not make visible fast targets unattackable. Numerical envelopes are provisional, not observed flight fairness. | D10 implementation sub-agent | Dormant; Studio/Player and phone acceptance pending |
+| D-483 | Procedural cruise/carrier aim hulls and existing score, weapons, warning/rearm and lifecycle ownership. No allied cruise kills; no new assets or audio. | New projectile/score systems duplicate ownership. Existing shared ally optional kill budget remains approximately one per mission. | D10 implementation sub-agent | Implemented in branch; runtime specs compiled, not run |
+| D-484 | Reject all cruise-phase twists; share one sortie-wide identity validator across D10 and campaign encounters, including bomber target IDs and cruise IDs. | M14 spec needs no twist. A halfway twist could clear surviving threats, and reused bomber identities could reject later cruise credit. Separate phase ordering checks would leave asymmetric gaps. | D10 review-fix implementation sub-agent, 2026-10-30 | Implemented in PR #190; dormant and unmerged |
+| D-485 | Extend D10’s shared authored identity namespace to D7 protected aircraft and D9 spatial airships across all phase orders. D8 elite actors retain generated runtime IDs and the existing one-loss retreat path. | Per-batch checks cannot catch cross-batch collisions; inventing authored elite IDs would change an unrelated dormant contract. | D10 main-integration implementation sub-agent, 2026-10-30 | Implemented in PR #190; dormant and unmerged |
+
 ## D-540 — D13 dependency and vent phase ownership
 
 - **Status / maker:** provisional implementation decision, implementation agent, 2026-10-30; owner acceptance pending.
@@ -399,3 +440,16 @@ M09 #185 arrival-test correction (2026-10-30): D-342 is unchanged. The nine requ
 - **Status / maker:** provisional implementation decision, implementation agent, 2026-10-30; owner acceptance pending.
 - Vent TGT candidates exclude occluded contacts before existing closest-on-screen/next ordering. Vent locks use uncached full player sightlines; missile impacts use the projectile geometry in D-544. Sightlines are split into at most 1,000-stud rays, without the exterior ground-footprint exemption that could ignore a roof. Alternative: existing cached exterior checks, rejected for stale doorway/roof visibility.
 - Existing target scoring and allied budget remain authoritative; cleared duel actors/projectiles earn no player points. Runtime visual/flight verification remains pending.
+
+## D-544 — Authoritative arena bounds and vent projectile geometry
+
+- **Status / maker:** implemented in unmerged PR #194; D13 review-fix agent, 2026-10-30.
+- The phase-owned required duel ace uses authored cylinder and altitude bounds in the authoritative movement step. Vent missiles sweep scenery along their own movement and impact segments, including blind and lost-track movement. Alternatives: the legacy movement clamp and player-origin missile impact checks; rejected because they override the arena or admit missiles through vent walls.
+- Both changes require the D13 phase opt-in; missions 1–10 retain legacy movement clamps and missile behavior. Runtime regressions compile; Studio execution remains pending.
+
+## D-545 — D13 composition with merged D9/D10
+
+- **Status / maker:** implemented in unmerged PR #194; main-integration implementation sub-agent, 2026-10-30.
+- Preserve main's D3–D10 validators, runtime lifecycle, D4/D6 budgets and route cap, spatial/global radar policy and director-owned cruise/hold completion. Vent completion additionally requires its exit; the duel retains once-only ace completion and its independent clock.
+- Generators and core join the shared authored identity namespace through typed ground targets. Reserve the phase-indexed D13 duel identity in that same validator and use it at spawn. Alternative: an unchecked generated duel ID; rejected to prevent cross-batch credit collisions.
+- Duel entry explicitly disposes any D10 cruise director and all in-flight projectiles without credit or refunds. D13 phases reject competing cruise, protection, spatial, elite and ring ownership. Both warning/rearm call sites retain sector warnings policy and suppress D7 protected-target windups.

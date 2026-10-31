@@ -42,6 +42,18 @@ describe("D13 Roblox runtime contracts (compiled; execution pending)",()=>{
    expect(lines.size()).toBe(1);expect(f.s.projectiles.size()).toBe(1);
   } finally {f.folder.Destroy();}
  });
+ it("clears an existing D10 director and its in-flight missiles without credits or refunds",()=>{
+  const f=fixture();try {
+   f.other.cruiseTarget=true;
+   f.s.cruise={phase:-1,elapsed:10,states:[],routes:[],actors:new Map([[0,f.other]])};
+   const part=new Instance("Part");part.Parent=f.folder;
+   f.s.projectiles.push({part,target:f.other,hostile:false} as Projectile);
+   stepBatchD13(f.s,()=>{});
+   expect(f.s.cruise).toBeUndefined();expect(f.other.model.Parent).toBeUndefined();
+   expect(f.s.projectiles.size()).toBe(0);expect(f.s.missiles).toBe(2);
+   expect(f.s.blueprintState!.killedIds.size()).toBe(0);
+  } finally {f.folder.Destroy();}
+ });
  it("bounds Rusk above the works and gives retry a fresh cleanup owner",()=>{
   const f=fixture();
   try {

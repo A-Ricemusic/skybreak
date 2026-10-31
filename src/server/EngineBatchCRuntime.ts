@@ -1,3 +1,4 @@
+import { spatialJammersAt } from "./EngineBatchD9Runtime";
 import { FlightMath } from "../shared/FlightMath";
 import { GunRules, SortieArmament } from "../shared/SortieArmament";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
@@ -10,6 +11,8 @@ import { AlliedRules } from "../shared/AlliedRules";
 import { CombatSession, Enemy } from "./CombatSession";
 
 export function liveJammers(s: CombatSession): number {
+	const spatial=spatialJammersAt(s,s.state);
+	if(spatial!==undefined) return spatial;
 	return s.enemies.filter(e => e.enabled && e.health > 0 && e.withdrawUntil === undefined && (e.routeActor?.jammer === true || e.typedGround?.ecm === true)).size();
 }
 export function lockAllowed(s: CombatSession, distance: number): boolean {
@@ -19,7 +22,7 @@ export function lockAllowed(s: CombatSession, distance: number): boolean {
 /** Called only by the accepted kill path, before phase compaction. */
 export function announceJammerKill(s: CombatSession, enemy: Enemy, radio: (line: string) => void): void {
 	const plan=s.blueprintState && BlueprintRunner.ActivePhase(s.blueprintState)?.jamming;
-	if(!plan || !(enemy.routeActor?.jammer || enemy.typedGround?.ecm) || enemy.health>0 || enemy.withdrawUntil!==undefined || enemy.jammerKillAnnounced) return;
+	if(!plan || !(enemy.routeActor?.jammer || enemy.typedGround?.ecm || enemy.airshipJammer) || enemy.health>0 || enemy.withdrawUntil!==undefined || enemy.jammerKillAnnounced) return;
 	enemy.jammerKillAnnounced=true;
 	radio(liveJammers(s)>0 ? plan.remainingCall : plan.clearCall);
 }
@@ -36,7 +39,7 @@ export function stepRearm(s: CombatSession, dt: number, maxMissiles: number, sen
 		if (distance > plan.radius || s.rearmLatched) return false;
 		const start = landingPose(plan.landing, 0);
 		const gateDistance = math.sqrt((s.state.x-start.x)**2+(s.state.y-start.y)**2+(s.state.z-start.z)**2);
-		if (gateDistance > 100 || s.projectiles.some(p => p.hostile && p.wingman === undefined) || s.enemies.some(e => e.enabled && e.health > 0 && e.windup > 0 && AlliedRules.WarnsPlayer(e.windupTarget, e.attackSector))) return false;
+		if (gateDistance > 100 || s.projectiles.some(p => p.hostile && p.wingman === undefined) || s.enemies.some(e => e.enabled && e.health > 0 && e.windup > 0 && e.attackProtected === undefined && AlliedRules.WarnsPlayer(e.windupTarget, e.attackSector))) return false;
 		// Settle the clock before entering: landing cannot rescue an already expired strike.
 		bs.score = s.targetScore.Total();
 		BlueprintRunner.Tick(bs, os.clock(), s.health);

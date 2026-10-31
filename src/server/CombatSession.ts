@@ -1,3 +1,4 @@
+import type { CruiseRuntime } from "./EngineBatchD10Runtime";
 import type { GroundDirectorRuntime } from "./EngineBatchD5Runtime";
 import type { ArtilleryState } from "../shared/EngineBatchD3";
 import type { TypedGroundTarget } from "../shared/CampaignEncounters";
@@ -25,6 +26,8 @@ export type EnemyMode = "attack" | "extend" | "orbit" | "run";
 /** What an air enemy is: a required bandit, an optional raider, the courier of a chase phase, or the ace. */
 export type AirRole = "bandit" | "raider" | "courier" | "ace" | "bomber" | "escort";
 export interface Enemy {
+	cruiseTarget?: true;
+ airshipJammer?: boolean;
 	attackProtected?: string;
 	surfaceOrigin?: CFrame;
 	surfaceStartedAt?: number;
@@ -111,6 +114,8 @@ export interface CombatSession {
 	d13Phase?: number;
 	d13Gate?: Part;
 	d13Beacon?: Part;
+	cruise?: CruiseRuntime;
+ airshipPhase?: number;
 	ringArtillery?: { phase: number; state: ArtilleryState };
 	protectedFlight?: {phase: number; actors: import("./EngineBatchD7Runtime").ProtectedActor[]};
 	contactClock?: number;
