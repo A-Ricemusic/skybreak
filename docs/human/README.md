@@ -42,4 +42,4 @@ Footage times are internal reference cross-references, not shipped titles; see t
 - [Blockers](blockers.md): remaining acceptance gaps and resolved dependencies.
 - [Decisions](decisions.md): stable design records.
 
-M07 review-fix validation (2026-10-30): frozen install, build and full `validate:offline` exited 0; 966 Luau contracts and 19 catalog snapshots passed. Voice manifests regenerated; no audio generated/uploaded. Studio/Player not run by this agent.
+M07 review-fix validation (2026-10-30): frozen install, build and full `validate:offline` exited 0; 967 Luau contracts and 19 catalog snapshots passed. Voice manifests regenerated; no audio generated/uploaded. Studio/Player not run by this agent.

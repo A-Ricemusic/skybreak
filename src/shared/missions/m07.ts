@@ -21,9 +21,9 @@ const route = [
 const helicopterRoute = [];
 for (let lap = 0; lap < 10; lap++) for (const point of route) helicopterRoute.push(point);
 const waves: FighterArrival[] = [
- { id: "m07_approach", trigger: { kind: "phase_start", phase: 0 }, count: 3, role: "raider", scoreRole: "fighter", headingDegrees: 180 },
- { id: "m07_middle", trigger: { kind: "approach", x: M07.middle.x, z: M07.middle.z, radius: 6500 }, count: 2, role: "raider", scoreRole: "fighter", headingDegrees: 180 },
- { id: "m07_plant", trigger: { kind: "approach", x: M07.plant.x, z: M07.plant.z, radius: 6500 }, count: 2, role: "raider", scoreRole: "fighter", headingDegrees: 160 },
+ { id: "m07_approach", trigger: { kind: "phase_start", phase: 0 }, count: 6, role: "raider", scoreRole: "fighter", headingDegrees: 180 },
+ { id: "m07_middle", trigger: { kind: "approach", x: M07.middle.x, z: M07.middle.z, radius: 6500 }, count: 5, role: "raider", scoreRole: "fighter", headingDegrees: 180 },
+ { id: "m07_plant", trigger: { kind: "approach", x: M07.plant.x, z: M07.plant.z, radius: 6500 }, count: 5, role: "raider", scoreRole: "fighter", headingDegrees: 160 },
  { id: "m07_helicopters", trigger: { kind: "approach", x: M07.plant.x, z: M07.plant.z, radius: 6500 }, count: 3, role: "raider", scoreRole: "helicopter", aircraft: "helicopter", route: { waypoints: helicopterRoute, speed: 60 } },
 ];
 export const mission: MissionBlueprint = {

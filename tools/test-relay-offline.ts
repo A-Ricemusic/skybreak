@@ -20,7 +20,6 @@ const files=["shared/RobloxAssetIds","shared/UploadedAssetOrientation","tests/M0
 	"tests/Flight.spec","shared/FlightPrediction","shared/TelemetryCodec","tests/FlightPrediction.spec",
 	// Ace Combat-style target boxes: validity, size, blink, ranking and touch keep-outs.
 	"shared/TargetPriority","tests/TargetPriority.spec","shared/TargetBoxes","tests/TargetBoxes.spec"];
-files.push("tests/M07Mission.spec");
 files.push("shared/CampaignEncounters", "shared/GroundAirDefence", "tests/EnginePracticeSnapshot", "tests/EngineM01Snapshot", "tests/CampaignEncounters.spec");
 files.push("shared/WorldEnvironments");
 files.push("shared/LateWorldDressing", "shared/M14Limits", "shared/M14WorldPlan", "shared/M15Limits", "shared/M15WorldPlan", "shared/M16Limits", "shared/M16WorldPlan", "shared/M17Limits", "shared/M17WorldPlan", "shared/M18Limits", "shared/M18WorldPlan", "tests/M14M18WorldPlan.spec");
@@ -44,7 +43,7 @@ files.push("shared/VoiceDisclosure", "tests/VoiceDisclosure.spec");
 files.push("shared/EngineBatchD3", "tests/EngineBatchD3.spec");
 files.push("shared/EngineBatchD2", "tests/EngineBatchD2.spec");
 files.push("shared/SortieArmament", "tests/SortieArmament.spec");
-files.push("shared/SortieCutaways", "tests/M05Mission.spec", "tests/M06Mission.spec");
+files.push("shared/SortieCutaways", "tests/M05Mission.spec", "tests/M06Mission.spec", "tests/M07Mission.spec");
 for(const file of files){
 	let source=await Bun.file(resolve(root,`out/${file === "shared/missions/index" ? "shared/missions/init" : file}.luau`)).text();
 	source=source.split("\n").filter(line=>!line.startsWith("local TS = require(")).map(line=>{

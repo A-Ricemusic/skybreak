@@ -41,11 +41,11 @@ describe("Mission 7 array strike and canyon escape", () => {
   expect(escape.update!.radio[0]).toBe(MISSION_STORY_TEXT[7].radio[1]); expect(bp.allies!.mayKill).toBe(true); expect(bp.allies!.killBudget).toBe(1);
   expect(bp.pressure!.playerPriority).toBe(0.8);
  });
- it("keeps the finite 11-air roster and every rank reachable below the 2,050-point maximum", () => {
-  expect(strike.fighterWaves!.reduce((n,w) => n+w.count, 1)).toBe(11);
+ it("keeps the finite 20-air roster and every rank reachable below the 2,590-point maximum", () => {
+  expect(strike.fighterWaves!.reduce((n,w) => n+w.count, 1)).toBe(20);
   const ground = M07_TARGETS.reduce((n,t) => n + bp.scoring!.points[t.scoreRole], 0);
   const air = strike.fighterWaves!.reduce((n,w) => n + w.count * bp.scoring!.points[w.scoreRole], 240);
-  expect(ground).toBe(1240); expect(air).toBe(810); expect(ground+air).toBe(2050);
+  expect(ground).toBe(1240); expect(air).toBe(1350); expect(ground+air).toBe(2590);
   expect(bp.scoring!.rank.S).toBe(1600); expect(ground+air >= bp.scoring!.rank.S).toBe(true);
  });
  it("requires every installation, resets only the phase clock and credits each id once", () => {
@@ -132,10 +132,18 @@ describe("Mission 7 array strike and canyon escape", () => {
   const slow=Runner.NewState(bp,0); clear(slow,new TargetScore(bp.scoring!)); Runner.Tick(slow,699.9); expect(slow.outcome).toBeUndefined(); Runner.Tick(slow,700); expect(slow.reason).toBe("timeout");
   for (const escaping of [false,true]) { const s=Runner.NewState(bp,0); if(escaping)clear(s,new TargetScore(bp.scoring!)); Runner.Tick(s,escaping?401:1,0); expect(s.reason).toBe("destroyed"); }
  });
+ it("rejects forged later records when mission 6 or an earlier prerequisite is missing", () => {
+  const c = new CampaignCoordinator("m07-forged", undefined, {now:()=>1000,defer:()=>undefined}); c.load();
+  const slot = c.getSlots()[0]; slot.missions ??= {};
+  for (let id = 1; id <= 18; id++) slot.missions[id] = {completed:true};
+  slot.missions[6] = {completed:false}; expect(canLaunchMission(7,slot)).toBe(false);
+  slot.missions[6] = {completed:true}; slot.missions[3] = {completed:false}; expect(canLaunchMission(7,slot)).toBe(false);
+  slot.missions[3] = {completed:true}; expect(canLaunchMission(7,slot)).toBe(true); expect(canLaunchMission(8,slot)).toBe(false);
+ });
  it("unlocks after fixtures completing 1–6, settles only full wins and preserves score across save", () => earlier(() => {
   const c=new CampaignCoordinator("m07-unlock",undefined,{now:()=>1000,defer:()=>undefined}); c.load();
   for(let id=1;id<=5;id++) finish(c,id);
-  expect(canLaunchMission(7,c.getSlots()[0])).toBe(false); finish(c,6); expect(canLaunchMission(7,c.getSlots()[0])).toBe(true);
+  expect(canLaunchMission(7,c.getSlots()[0])).toBe(false); expect(finish(c,7)).toBe(false); finish(c,6); expect(canLaunchMission(7,c.getSlots()[0])).toBe(true);
   finish(c,7,1); expect(c.getSlots()[0].missions?.[7]?.completed === true).toBe(false);
   finish(c,7,2,1200); expect(c.getSlots()[0].missions?.[7]?.completed === true).toBe(false);
   const ledger=new TargetScore(bp.scoring!); for(const t of M07_TARGETS)ledger.RecordKill(t.id,t.scoreRole);
