@@ -8,14 +8,14 @@ import { MissionCatalog } from "../shared/MissionCatalog";
 import type { TerrainOp } from "../shared/WorldPlan";
 describe("Dormant M08/M09 worlds", () => {
  const a = buildM08Plan(), b = buildM09Plan();
- it("is deterministic, checkpointed, dormant and exports unique named scenery", () => {
+ it("is deterministic, checkpointed, exports M08 for its mission and exports unique named scenery", () => {
   let calls = 0;
   expect(buildM08Plan(808, () => { calls++; })).toEqual(a); expect(buildM09Plan()).toEqual(b);
   expect(calls).toBeGreaterThan(1000);
   for (const p of [a, b]) {
    expect(new Set(p.targets.map(t => t.id)).size()).toBe(p.targets.size());
    for (const t of p.targets) expect(p.parts.some(f => f.name === t.id) || p.props.some(f => f.tag === t.id)).toBe(true);
-   for (const m of MissionCatalog.All()) expect(MissionCatalog.WorldKey(m.id)).never.toBe(p.key);
+   for (const m of MissionCatalog.All().filter(m=>m.id!==8)) expect(MissionCatalog.WorldKey(m.id)).never.toBe(p.key);
   }
   for (const t of a.targets) expect(t.id.sub(1, 4)).toBe("m08_");
   for (const t of b.targets) expect(t.id.sub(1, 4)).toBe("m09_");

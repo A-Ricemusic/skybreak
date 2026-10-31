@@ -4,6 +4,8 @@ import type { FlightPoint, MissionPhaseBlueprint } from "./MissionCatalog";
 
 /** No invented health budget: any surviving bomber reaching its endpoint loses the site. */
 export interface InterceptHold {
+	/** Optional existing world model id; renderer adopts it without moving or cloning it. */
+	siteId?: string;
 	site: FlightPoint;
 	siteName: string;
 	/** Original broadcast ignition subtitle and visual; no new audio. */
@@ -25,6 +27,7 @@ export function validateBatchD4(phases: MissionPhaseBlueprint[], limit: number):
 			for(const at of b.arrivalSeconds) { assert(finiteNumber(at) && at>=last && at< (p.update?.countdownSeconds ?? 0),"Invalid stream arrival time"); last=at; }
 		}
 		if (!h) continue;
+		assert(h.siteId===undefined || h.siteId.size()>0,"Empty protected world id");
 		const seconds=p.update?.countdownSeconds;
 		assert(p.kind==="required_air" && b!==undefined && b.count===p.count && b.targetIds!==undefined,"Intercept hold needs identified required bombers");
 		assert(seconds!==undefined && finiteNumber(seconds) && seconds>0,"Intercept hold needs a fresh phase clock");
