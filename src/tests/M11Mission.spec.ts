@@ -6,6 +6,7 @@ import { protectedDuration, protectedPose, stepProtected, damageProtected, prote
 import { BlueprintRunner as R } from "../shared/BlueprintRunner";
 import { TargetScore } from "../shared/TargetScore";
 import { CombatBalance } from "../shared/CombatBalance";
+import { WavePlan, AirRequest } from "../shared/WavePlan";
 import { Difficulty } from "../shared/Difficulty";
 import { ThreatRules } from "../shared/ThreatRules";
 import { AlliedRules } from "../shared/AlliedRules";
@@ -45,6 +46,20 @@ describe("M11 High Crossing",()=>{
   const gate={separation:900,aimDot:0.9,fireTimer:0,globalReady:true,evading:true,playerStraight:false,minRange:400,maxRange:1900,aimThreshold:0.55,straightRelax:0.25};
   expect(ThreatRules.MayFire(gate,true)).toBe(true);expect(ThreatRules.MayFire(gate,false)).toBe(false);
   expect(AlliedRules.PlayerTarget({friendly:true,enabled:true,health:140})).toBe(false);
+ });
+ it("uses all six pursuit slots with M10 route reservation absent, without losing queued attackers",()=>{
+  const phase=bp.phases[0];expect(phase.concurrentRoutes).toBeUndefined();
+  const queue:AirRequest[]=M11_WAVES.map(arrival=>({arrival,role:"raider",count:arrival.count,behind:false}));
+  queue.push({arrival:phase.standaloneAce!,role:"ace",count:1,behind:false});
+  let admitted=0;
+  while(queue.size()>0) {
+   const batch=WavePlan.Admit(queue,phase.concurrentFighters!);
+   const count=batch.reduce((n,w)=>n+w.count,0);
+   expect(count).toBeGreaterThan(0);expect(count).toBeLessThanOrEqual(6);
+   if(admitted===0) {expect(count).toBe(6);expect(batch[0].role).toBe("ace");}
+   admitted+=count;
+  }
+  expect(admitted).toBe(18);
  });
  it("bounds Normal pressure against a conservative ten-second intercept budget and warned windups",()=>{
   // Explicit analytical envelope, not a Player flight: 2 missiles/kill (5s replenishment),

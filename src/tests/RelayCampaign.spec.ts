@@ -96,8 +96,10 @@ describe("Released 18-mission campaign",()=>{
   for(let missing=1;missing<=10;missing++) {
    for(let id=1;id<=18;id++) slot.missions[id]={completed:true};
    slot.missions[missing]={completed:false};
-   expect(highestUnlocked(slot)).toBe(missing);expect(canLaunchMission(11,slot)).toBe(false);
-   expect(resolveMissionRequest(slot,11)[0]).toBeUndefined();
+   expect(highestUnlocked(slot)).toBe(missing);
+   for(const target of [10,11]) if(missing<target) {
+    expect(canLaunchMission(target,slot)).toBe(false);expect(resolveMissionRequest(slot,target)[0]).toBeUndefined();
+   }
   }
   for(let id=1;id<=11;id++) slot.missions[id]={completed:false};
   for(let id=1;id<=11;id++) {

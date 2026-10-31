@@ -46,7 +46,7 @@ describe("Dormant D7 protection contracts",()=>{
   expect(AlliedRules.PlayerTarget({friendly:true,enabled:true,health:100})).toBe(false);
   expect(AlliedRules.WarnsPlayer({})).toBe(false);expect(AlliedRules.WarnsPlayer(undefined,"beach")).toBe(false);expect(AlliedRules.WarnsPlayer(undefined)).toBe(true);
  });
- it("leaves practice, M01–M06 and all catalog opt-ins unchanged",()=>{
+ it("leaves practice and M01–M10 protection dormant",()=>{
   for(const b of MissionCatalog.All().filter(b=>b.id!==11)) for(const p of MissionCatalog.ExpandedPhases(b)) {expect(p.protection).toBeUndefined(); for(const w of p.fighterWaves ?? []) expect(w.attackProtected).toBeUndefined();}
  });
 });

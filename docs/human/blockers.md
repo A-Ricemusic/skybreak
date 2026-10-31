@@ -88,7 +88,7 @@ Resolved in code/offline coverage: ray masking beyond Roblox’s 15,000-stud sin
 
 ## Mission 8 integration and acceptance
 
-D4 #177 and mission 7 #178 are merged; #183 is integrated onto current main. M08 unlocks only after sequential completion through M07; M11–M18 stay locked even with forged records; M09 unlocks only after M08 and M10 after M09. Live after #183 merge by pipeline convention; no known deployment failure. Studio verified: pending orchestrator run. Player/phone/rendered/balance acceptance remains open. Validate adopted mast without duplicate relay, both full clocks, six bomber endpoints, ignition and settlement. D-320–D-324 retain provisional roster/ranks/routes, support stand-ins and deferred service/finite-stock fidelity. No Studio, Roblox Jest, Player tests, new audio or asset uploads performed in this integration.
+D4 #177 and mission 7 #178 are merged; #183 is integrated onto current main. M08 unlocks only after sequential completion through M07; M12–M18 stay locked even with forged records; M09 unlocks only after M08 and M10 after M09. Live after #183 merge by pipeline convention; no known deployment failure. Studio verified: pending orchestrator run. Player/phone/rendered/balance acceptance remains open. Validate adopted mast without duplicate relay, both full clocks, six bomber endpoints, ignition and settlement. D-320–D-324 retain provisional roster/ranks/routes, support stand-ins and deferred service/finite-stock fidelity. No Studio, Roblox Jest, Player tests, new audio or asset uploads performed in this integration.
 
 ### M08 catalog assertion corrected; Studio rerun pending
 
@@ -104,11 +104,11 @@ D6 integration checks: frozen install, build and full offline validation exit 0 
 
 Prerequisites #178, #180, #182 and #183 are merged; #185 is merged as `06ca3e4`. No implementation blocker requires owner input. Studio verified: pending orchestrator run. Player/phone/rendered comparisons remain pending; no Player tests claimed. The 55-contact reconstruction, ranks and 300-health landing-force budget remain provisional (D-340–D-344). No new audio, Blender assets or uploads.
 
-## D7 acceptance (merged, dormant)
+## D7 acceptance (merged; M11 activation in #189)
 
-PR #184 is merged (`5d84486`) and dormant. The protected-target-only firing correction is retained. Main integration combines sector-attacker and committed protected-aircraft warning/service suppression while preserving player windup threats. No Studio or Player testing is performed here; route clearance, marker readability, both loss branches, all-safe completion and phone performance remain activation gates.
+PR #184 is merged (`5d84486`); #189 activates it for M11. The protected-target-only firing correction is retained. Main integration combines sector-attacker and committed protected-aircraft warning/service suppression while preserving player windup threats. No Studio or Player testing is performed here; route clearance, marker readability, both loss branches, all-safe completion and phone performance remain activation gates.
 
-Main integration validation (2026-10-30): frozen install, standalone build and full offline validation exited 0; 1,007 Luau contracts, 19 unchanged catalog snapshots and 124 Python tests. The combined sector/protected-target warning rule passes offline; service-entry runtime regressions compile but remain unrun. No Studio/Player test. Main at integration is `ea0045d` (D5/D6 merged, M08 not merged). D4/D6 admission logic is retained; this main revision has no `concurrentRoutes` option.
+Main integration validation (2026-10-30): frozen install, standalone build and full offline validation exited 0; 1,007 Luau contracts, 19 unchanged catalog snapshots and 124 Python tests. The combined sector/protected-target warning rule passes offline; service-entry runtime regressions compile but remain unrun. No Studio/Player test. Historical D7 integration base was `ea0045d` (before M08); current main includes M08–M10 and M10’s opt-in `concurrentRoutes`.
 
 ## D8 verification and M12 integration (2026-10-30)
 
@@ -118,12 +118,18 @@ D8 main integration validation (2026-10-30, main `5d84486`): frozen install, bui
 
 ## M10 #187 integration and acceptance
 
-Main `06ca3e4` includes D6/D7/D8 and M08/M09; branch dependencies are resolved. M10 goes live by pipeline convention after merge; no known deployment failure. Roster/role adaptations, artillery cadence, ranks and 150-contact phone cost remain provisional (D-380–D-383). Studio verified: pending orchestrator run. Runtime handoffs, real masking, service, protected-aircraft/elite regression execution, rendered quality and Player/phone acceptance remain open. No Player tests claimed.
+Main `06ca3e4` includes D6/D7/D8 and M08/M09; branch dependencies are resolved. M10 is live by pipeline convention after #187 merged; no known deployment failure. Roster/role adaptations, artillery cadence, ranks and 150-contact phone cost remain provisional (D-380–D-383). Studio verified: pending orchestrator run. Runtime handoffs, real masking, service, protected-aircraft/elite regression execution, rendered quality and Player/phone acceptance remain open. No Player tests claimed.
 
-M10 main integration validation (2026-10-30, main `06ca3e4`): frozen install, standalone build, `test:offline`, and full `validate:offline` with `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau"` exited 0. Final suite: 1,042 Luau contracts, four negative loader probes, 19 catalog snapshots, three QA-pilot scenarios and 124 Python tests. All 94 specs match registration/import lists and retain checkedRequire. Regenerated 199 voice/story entries (121 pending recordings); every prior voice id and every non-M10 voice/catalog entry is preserved. M10 unlocks after M09; M11–M18 remain locked even with forged completions. The opt-in route cap preserves default admissions; D7 protected actors remain outside hostile rosters and D8 withdrawing actors do not consume route slots. Studio verified: pending orchestrator run. No Studio, Roblox Jest or Player tests, audio generation or asset uploads.
+M10 main integration validation (2026-10-30, main `06ca3e4`): frozen install, standalone build, `test:offline`, and full `validate:offline` with `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau"` exited 0. Final suite: 1,042 Luau contracts, four negative loader probes, 19 catalog snapshots, three QA-pilot scenarios and 124 Python tests. All 94 specs match registration/import lists and retain checkedRequire. Regenerated 199 voice/story entries (121 pending recordings); every prior voice id and every non-M10 voice/catalog entry is preserved. M10 unlocks after M09; #189 unlocks M11 after M10; M12–M18 remain locked even with forged completions. The opt-in route cap preserves default admissions; D7 protected actors remain outside hostile rosters and D8 withdrawing actors do not consume route slots. Studio verified: pending orchestrator run. No Studio, Roblox Jest or Player tests, audio generation or asset uploads.
 
 ## D9 acceptance (merged #188, dormant)
 
 D7/D8 branch dependencies are resolved on PR #188. D8 ground ECM remains supported in global jamming phases; spatial corridors accept authored D9 airships only, and spatial ground ECM remains unsupported by design. M4 global aircraft jamming is unchanged. Runtime Jest execution, M13 activation, navigation tuning and visual/phone acceptance remain pending. No Studio or Player test is claimed.
 
 D9 integration validation (2026-10-30, main `06ca3e4`): `bun install --frozen-lockfile`, `bun run build` and full `validate:offline` with the prescribed `LUAU_BIN` each exited 0. Passed 1,040 Luau contracts, four loader guard probes, 19 unchanged catalog snapshots and 124 Python tests. All 94 offline spec registrations match runner imports and retain `checkedRequire`. D8 ground ECM / D9 airship validation coexistence passes offline; runtime counting/kill-call regressions compile but remain unrun. No Studio, `test:roblox` or Player test performed.
+
+## Mission 11 integration and acceptance (#189)
+
+D7, D8, D9 and missions 8–10 are merged; main integration resolves the old D7 branch dependency. M11 goes live after #189 merges by pipeline convention; no known deployment failure. Studio verified: pending orchestrator run. Player/phone not yet observed. No Studio, Roblox Jest or Player tests performed.
+
+D-440–D-444 remain provisional: actual flight response across the two bands, 91-health fairness, adopted airliner appearance, incoming markers, cleanup and phone performance need orchestrator/owner observation. The 30s recovery and sustained-neglect checks are analytical, not engine steering or Player evidence. D8/D9 remain dormant; D9 navigation holds and M10 concurrentRoutes admission are retained. No owner input, new audio or upload is required for integration.

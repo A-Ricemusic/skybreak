@@ -159,28 +159,23 @@ No generator, network dependencies, JavaScript or build step is required. -->
   <dt>Owner test</dt><dd>Offline contracts checked; Studio/Jest, Player, phone and rendered comparison pending.</dd></dl>
 </article>
 
-<article class="card" id="level-10"><h2>10 · RIVER LINE</h2><span class="badge live">Live after merge</span><p class="muted">Reference: Tango Line</p><dl>
+<article class="card" id="level-10"><h2>10 · RIVER LINE</h2><span class="badge live">Live</span><p class="muted">Reference: Tango Line</p><dl>
 <dt>Implementation</dt><dd>One 20-minute score strike, 140 static/parked contacts, 44 finite airframes, eight queued fighter slots; repeated artillery, optional rearm and finite area weapon. Adopts 124 world ids.</dd>
 <dt>Dependencies</dt><dd>#182 D6, #183 M08, #185 M09. All merged on main; unlock after sequential M09 completion.</dd>
 <dt>Ranks</dt><dd>C 3,000 · B 3,800 · A 4,200 · S 5,400. Maximum 9,340; allied kills give no player credit.</dd>
 <dt>Owner test</dt><dd>Follow the <a href="next.md">M10 beta guide</a> and <a href="../specs/missions/m10-implementation.md">target, phase and rank tables</a>. Check artillery cover below absolute Y=585, NE ingress, repeated service, HUD and phone performance.</dd>
-<dt>Verification</dt><dd>Offline contracts only. Studio/Roblox Jest, rendered reference comparison and Player flight remain pending with the orchestrator. Live by pipeline convention after #187 merges. Studio verified: pending orchestrator run. No new audio or Blender uploads.</dd>
+<dt>Verification</dt><dd>Offline contracts only. Studio/Roblox Jest, rendered reference comparison and Player flight remain pending with the orchestrator. Live by pipeline convention after #187 merged. Studio verified: pending orchestrator run. No new audio or Blender uploads.</dd>
 </dl>
 </article>
 
-<article class="card" id="level-11"><h2>11 · Mission 11</h2><span class="badge review">Spec only</span><p class="muted">Reference: Escort</p><dl>
-  <dt>Reference footage</dt><dd>2:39:46–2:45:27</dd>
-  <dt>Pieces</dt><dd><ul class="pieces">
-    <li>Spec: ✓ merged <a href="../specs/missions/m11.md">mission</a> and <a href="../specs/worlds/m11.md">world</a></li>
-    <li>World: ✓ built/dormant (#175); <a href="../specs/worlds/m11-composition.md">composition and budget</a></li>
-    <li>Engine needs: D1–D3 merged/dormant; remaining integration follows engine plan</li>
-    <li>Mission data & unlock: — placeholder only; locked</li>
-    <li>Studio verified: —</li>
-    <li>Live: —</li></ul></dd>
-  <dt>Open PRs</dt><dd>None for playable mission at snapshot</dd>
-  <dt>Known issues</dt><dd>World awaits rendered/phone acceptance; encounter ceiling (2,000) blocks adopting the unclipped 2,800-stud high route; independent civilian actors remain open. Level stays locked.</dd>
-  <dt>Owner test</dt><dd>No playable test yet. Review the composition/target tables; authenticated Studio and Player flight tests remain pending.</dd></dl>
-</article>
+<article class="card" id="level-11"><h2>11 · HIGH CROSSING</h2><span class="badge live">Live after #189 merges</span><p class="muted">Reference: Escort</p><dl>
+<dt>Reference footage</dt><dd>2:39:46–2:45:27</dd>
+<dt>Pieces</dt><dd>Mission/world specs and #175 world integrated; #189 activates D7 protected aircraft. Unlock after M10; M12–M18 remain locked.</dd>
+<dt>Gameplay</dt><dd>Protect both 91-health airliners at Y=900/2,800 for 313.28s within 5:30. Either loss fails; both safe wins. 17 attackers, optional RIME; six pursuit slots; two allies share one uncredited kill. D-440–D-444.</dd>
+<dt>Studio verified: pending orchestrator run</dt><dd>No Player test performed. Live after merge by pipeline convention.</dd>
+<dt>Open PR</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/189">#189</a> — merge pending</dd>
+<dt>Known issues</dt><dd>Normal neglect/recovery is analytical only; real flight balance, rendered airliners, markers, terrain clearance, cleanup and phone acceptance remain pending.</dd>
+<dt>Owner test</dt><dd>Follow the <a href="next.md">M11 beta guide</a>; test both losses, both-safe finish, 30s recovery, save/retry, civilians excluded from targeting and scoring.</dd></dl></article>
 
 <article class="card" id="level-12"><h2>12 · Mission 12</h2><span class="badge review">Spec only</span><p class="muted">Reference: Stonehenge Offensive</p><dl>
   <dt>Reference footage</dt><dd>2:48:27–3:04:55</dd>
@@ -280,4 +275,4 @@ No generator, network dependencies, JavaScript or build step is required. -->
   <dt>Known issues</dt><dd>Spec assumptions and coverage gaps await review; no playable implementation, level remains locked and unavailable.</dd>
   <dt>Owner test</dt><dd>No playable test yet. Review the dormant world; rendered flight/phone acceptance pending.</dd></dl>
 </article>
-</section><footer><p>Sources: main 06ca3e4 plus PR #187, merged PR descriptions, <a href="README.md">dashboard</a> and <a href="../specs/missions/">mission specs 1–18</a>. Practice/M01–M09 are live; M10 is live after #187 merges; worlds 11–18 remain dormant. Studio evidence above is historical and does not establish Player quality.</p></footer></main></body></html>
+</section><footer><p>Sources: main 7ff0761 plus PR #189, merged PR descriptions, <a href="README.md">dashboard</a> and <a href="../specs/missions/">mission specs 1–18</a>. Practice/M01–M10 are live; M11 is live after #189 merges; worlds 12–18 remain dormant. Studio evidence above is historical and does not establish Player quality.</p></footer></main></body></html>
