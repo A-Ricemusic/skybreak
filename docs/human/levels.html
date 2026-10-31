@@ -176,21 +176,17 @@ No generator, network dependencies, JavaScript or build step is required. -->
 <dt>Ranks</dt><dd>C 1750 · B 2100 · A 2400 · S 2900; maximum 3470.</dd>
 <dt>Safety</dt><dd>16s sweep warning; 25 damage per salvo; above absolute Y=900 safe. Procedural assets only; no new audio uploads.</dd>
 <dt>Verification</dt><dd>Offline validation recorded in PR. Studio/Player/phone and reference framing pending; no Roblox Jest run by implementation agent.</dd>
-<dt>Live</dt><dd>Live by pipeline convention after #191 merges; merge pending.</dd></dl>
-<p>Merge pending. Studio verified: pending orchestrator run. No Player test claimed.</p></article>
+<dt>Live</dt><dd>Live by pipeline convention: #191 merged as 351d7988.</dd></dl>
+<p>Merged 351d7988. Studio verified: pending orchestrator run. No Player test claimed.</p></article>
 
-<article class="card" id="level-13"><h2>13 · Mission 13</h2><span class="badge review">Spec only</span><p class="muted">Reference: Safe Return</p><dl>
-  <dt>Reference footage</dt><dd>3:08:30–3:18:42</dd>
-  <dt>Pieces</dt><dd><ul class="pieces">
-    <li>Spec: ✓ merged <a href="../specs/missions/m13.md">mission</a> and <a href="../specs/worlds/m13.md">world</a></li>
-    <li>World: ✓ built/dormant (#175); <a href="../specs/worlds/m13-composition.md">composition and budget</a></li>
-    <li>Engine needs: D1–D3 merged/dormant; remaining integration follows engine plan</li>
-    <li>Mission data & unlock: — placeholder only; locked</li>
-    <li>Studio verified: —</li>
-    <li>Live: —</li></ul></dd>
-  <dt>Open PRs</dt><dd>None for playable mission at snapshot</dd>
-  <dt>Known issues</dt><dd>Spec assumptions and coverage gaps await review; world built/dormant; no playable implementation, level remains locked and unavailable.</dd>
-  <dt>Owner test</dt><dd>No playable test yet. Review the linked specs and composition before mission integration; rendered/flight acceptance remains pending.</dd></dl>
+<article class="card" id="level-13"><h2>13 · EVIDENCE THROUGH THE GREY</h2><span class="badge live">Live after merge</span><p class="muted">Reference: Safe Return</p><dl>
+<dt>Mission</dt><dd>Clear 32 visual-gun jammer airships: 1,300 in 7:00, then eight required attackers, two optional escort fighters and optional VEIL ace in 15:00. Protect Paper One until safe. Maximum 4,040; S/A/B/C 2,800/2,100/1,900/1,300.</dd>
+<dt>Dependencies</dt><dd>D9 #188; M10 #187, M11 #189, M12 #191. Sequential unlock after M12. Merge pending; live by pipeline convention after #195 merges.</dd>
+<dt>World and assets</dt><dd>Existing M13 ravine and procedural target models adopted by id; no audio/Blender uploads.</dd>
+<dt>Validation</dt><dd>Offline validation exited 0: 1,118 Luau contracts, 19 snapshots, three QA pilot scenarios, 124 Python tests; Studio verified: pending orchestrator run. Player/phone and rendered reference comparison not performed.</dd>
+<dt>Owner beta</dt><dd>Check visual gun approaches, local corridor clearance, health continuity, defensible interception, loss under sustained neglect, and safe friendly target exclusion. See next.md and decisions D-560–D-563.</dd>
+</dl>
+<p>Merge pending (#195); live by pipeline convention after merge. Studio verified: pending orchestrator run. No Player test.</p>
 </article>
 
 <p class="muted">PR #176 review correction: weather now resolves all M01–M18 keys (also fixes the M05–M13 client crash on main); M18 structural floors/support and M17 18:20 / 12,000ft metadata corrected. Offline only; no Player verification.</p>

@@ -1433,6 +1433,42 @@
    "spoken": "Fighters beyond the fog. Keep them off the evidence plane."
   },
   {
+   "id": "radio.m13.story.3",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Gun range: nine hundred studs. Keep the hull in your sight.",
+   "spoken": "Gun range: nine hundred studs. Keep the hull in your sight."
+  },
+  {
+   "id": "radio.m13.story.4",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Paper One has the copy and statement. Archive still ashore.",
+   "spoken": "Paper One has the copy and statement. Archive still ashore."
+  },
+  {
+   "id": "radio.m13.story.5",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Vulture Two admits his handwriting. No name behind the order.",
+   "spoken": "Vulture Two admits his handwriting. No name behind the order."
+  },
+  {
+   "id": "radio.m13.story.6",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Another pair through the grey. Stay with Paper One.",
+   "spoken": "Another pair through the grey. Stay with Paper One."
+  },
+  {
    "id": "radio.m14.story.1",
    "kind": "radio",
    "speaker": "SERA",
@@ -1935,6 +1971,42 @@
    "tape": false,
    "text": "SERA: One gun left. Keep clear of its firing line.",
    "spoken": "One gun left. Keep clear of its firing line."
+  },
+  {
+   "id": "radio.m13.p1.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Jammers in the ravine. Clear the plane a channel.",
+   "spoken": "Jammers in the ravine. Clear the plane a channel."
+  },
+  {
+   "id": "radio.m13.p1.chatter1",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Gun range: nine hundred studs. Keep the hull in your sight.",
+   "spoken": "Gun range: nine hundred studs. Keep the hull in your sight."
+  },
+  {
+   "id": "radio.m13.p1.chatter2",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Paper One has the copy and statement. Archive still ashore.",
+   "spoken": "Paper One has the copy and statement. Archive still ashore."
+  },
+  {
+   "id": "radio.m13.p2.chatter1",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Vulture Two admits his handwriting. No name behind the order.",
+   "spoken": "Vulture Two admits his handwriting. No name behind the order."
   }
  ]
 }

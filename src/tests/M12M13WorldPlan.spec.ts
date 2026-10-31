@@ -6,11 +6,11 @@ import { M13_AIRSPACE,M13_BUILD_LIMITS } from "../shared/M13Limits";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import type { TerrainOp,PartSpec } from "../shared/WorldPlan";
 const obstructed=(ps:PartSpec[],x:number,y:number,z:number,margin=0)=>ps.some(p=>p.solid&&math.abs(x-p.x)<p.sx/2+margin&&math.abs(z-p.z)<p.sz/2+margin&&math.abs(y-p.y)<p.sy/2+margin);
-describe("Dormant M12/M13 worlds",()=>{
+describe("Activated M12/M13 worlds",()=>{
  const a=buildM12Plan(),b=buildM13Plan();
- it("is deterministic, checkpointed, id-owned; M12 activated and M13 dormant",()=>{
+ it("is deterministic, checkpointed, id-owned; M12 and M13 activated",()=>{
   let calls=0; expect(buildM12Plan(1212,()=>{calls++;})).toEqual(a); expect(buildM13Plan()).toEqual(b);expect(calls).toBeGreaterThan(1000);
-  for(const p of [a,b]){expect(new Set(p.targets.map(t=>t.id)).size()).toBe(p.targets.size());for(const t of p.targets)expect(p.parts.some(f=>f.name===t.id)).toBe(true);for(const m of MissionCatalog.All()) if(m.id!==12)expect(MissionCatalog.WorldKey(m.id)).never.toBe(p.key);}
+  for(const p of [a,b]){expect(new Set(p.targets.map(t=>t.id)).size()).toBe(p.targets.size());for(const t of p.targets)expect(p.parts.some(f=>f.name===t.id)).toBe(true);for(const m of MissionCatalog.All()) if(m.id!==12 && m.id!==13)expect(MissionCatalog.WorldKey(m.id)).never.toBe(p.key);}
  });
  it("preserves eight radial pads, seven live guns, 24-kill inventory and distinct initial briefing",()=>{
   expect(M12.radius).toBe(2400);expect(M12.start.z).toBe(10080);expect(M12.service).toEqual({x:-8640,y:104,z:10560,length:2304,width:128,approachLength:3200});

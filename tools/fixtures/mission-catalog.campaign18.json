@@ -16474,25 +16474,1091 @@
   },
   {
     "act": 3,
-    "available": false,
+    "airspace": {
+      "hardHalfWidth": 16000,
+      "radarRange": 24000,
+      "softHalfWidth": 15600,
+      "spawnLimit": 15600
+    },
+    "allies": {
+      "allowRequiredTargets": false,
+      "callsignPrefix": "LANTERN",
+      "count": 2,
+      "creditPlayerKills": false,
+      "formation": [
+        {
+          "x": -180,
+          "y": 30,
+          "z": 160
+        },
+        {
+          "x": 180,
+          "y": 30,
+          "z": 160
+        }
+      ],
+      "killBudget": 1,
+      "model": "Kestrel"
+    },
+    "armament": {
+      "gun": {
+        "rounds": 1200
+      },
+      "stock": {
+        "missiles": 68,
+        "specialCharges": 16
+      }
+    },
+    "available": true,
     "briefing": "A slow reconnaissance plane carries the paper copy and Vulture Two's statement through a fog-filled ravine. Silence the airship jammers, then intercept the fighters before they reach it. The archive he points to is still on the ice coast.",
-    "codename": "In development",
+    "codename": "The evidence launch",
+    "countdownSeconds": 420,
     "debrief": "The evidence plane is clear. The crown station holds the first order; missiles are already on their way to silence it.",
     "environment": "farm_overcast",
     "failure": "The evidence plane did not get through. The paper trail is still trapped.",
     "ground": [],
     "id": 13,
-    "optionalRaiderMax": 0,
+    "optionalRaiderMax": 3,
     "phases": [
       {
-        "count": 1,
+        "beat": "SERA: Jammers in the ravine. Clear the plane a channel.",
+        "chatter": [
+          {
+            "at": 0.01,
+            "text": "SERA: Gun range: nine hundred studs. Keep the hull in your sight."
+          },
+          {
+            "at": 0.5,
+            "text": "SERA: Paper One has the copy and statement. Archive still ashore."
+          }
+        ],
+        "jamming": {
+          "clearCall": "PAPER ONE: This stretch is clear. Continuing north.",
+          "remainingCall": "PAPER ONE: Local interference. Holding navigation.",
+          "visualLockRange": 700
+        },
+        "kind": "score_threshold",
+        "label": "Gun the navigation jammers",
+        "protection": {
+          "accompaniment": true,
+          "aircraft": [
+            {
+              "callsign": "PAPER ONE",
+              "health": 75,
+              "id": "m13_evidence_plane",
+              "route": {
+                "speed": 46.703457,
+                "waypoints": [
+                  {
+                    "x": 0,
+                    "y": 383,
+                    "z": 11520
+                  },
+                  {
+                    "x": -3360,
+                    "y": 383,
+                    "z": 6240
+                  },
+                  {
+                    "x": 2400,
+                    "y": 383,
+                    "z": 0
+                  },
+                  {
+                    "x": -1920,
+                    "y": 383,
+                    "z": -5760
+                  },
+                  {
+                    "x": 0,
+                    "y": 383,
+                    "z": -11520
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "scoreThreshold": {
+          "points": 1300,
+          "seconds": 420,
+          "waitForExpiry": true
+        },
+        "spatialJamming": {
+          "airships": [
+            {
+              "health": 48,
+              "id": "m13_jammer_1",
+              "position": {
+                "x": -2580.909091,
+                "y": 450,
+                "z": 8800
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_2",
+              "position": {
+                "x": -2080.909091,
+                "y": 590,
+                "z": 8800
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_3",
+              "position": {
+                "x": -1126.363636,
+                "y": 730,
+                "z": 9200
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_4",
+              "position": {
+                "x": -626.363636,
+                "y": 870,
+                "z": 9200
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_5",
+              "position": {
+                "x": -4171.818182,
+                "y": 450,
+                "z": 6300
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_6",
+              "position": {
+                "x": -3671.818182,
+                "y": 590,
+                "z": 6300
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_7",
+              "position": {
+                "x": -2717.272727,
+                "y": 730,
+                "z": 6700
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_8",
+              "position": {
+                "x": -2217.272727,
+                "y": 870,
+                "z": 6700
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_9",
+              "position": {
+                "x": -1957.692308,
+                "y": 450,
+                "z": 3800
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_10",
+              "position": {
+                "x": -1457.692308,
+                "y": 590,
+                "z": 3800
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_11",
+              "position": {
+                "x": -1126.923077,
+                "y": 730,
+                "z": 4200
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_12",
+              "position": {
+                "x": -626.923077,
+                "y": 870,
+                "z": 4200
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_13",
+              "position": {
+                "x": 350,
+                "y": 450,
+                "z": 1300
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_14",
+              "position": {
+                "x": 850,
+                "y": 590,
+                "z": 1300
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_15",
+              "position": {
+                "x": 1180.769231,
+                "y": 730,
+                "z": 1700
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_16",
+              "position": {
+                "x": 1680.769231,
+                "y": 870,
+                "z": 1700
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_17",
+              "position": {
+                "x": 650,
+                "y": 450,
+                "z": -1200
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_18",
+              "position": {
+                "x": 1150,
+                "y": 590,
+                "z": -1200
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_19",
+              "position": {
+                "x": 2150,
+                "y": 730,
+                "z": -800
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_20",
+              "position": {
+                "x": 2650,
+                "y": 870,
+                "z": -800
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_21",
+              "position": {
+                "x": -1225,
+                "y": 450,
+                "z": -3700
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_22",
+              "position": {
+                "x": -725,
+                "y": 590,
+                "z": -3700
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_23",
+              "position": {
+                "x": 275,
+                "y": 730,
+                "z": -3300
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_24",
+              "position": {
+                "x": 775,
+                "y": 870,
+                "z": -3300
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_25",
+              "position": {
+                "x": -2623.333333,
+                "y": 450,
+                "z": -6200
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_26",
+              "position": {
+                "x": -2123.333333,
+                "y": 590,
+                "z": -6200
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_27",
+              "position": {
+                "x": -1556.666667,
+                "y": 730,
+                "z": -5800
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_28",
+              "position": {
+                "x": -1056.666667,
+                "y": 870,
+                "z": -5800
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_29",
+              "position": {
+                "x": -1790,
+                "y": 450,
+                "z": -8700
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_30",
+              "position": {
+                "x": -1290,
+                "y": 590,
+                "z": -8700
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_31",
+              "position": {
+                "x": -723.333333,
+                "y": 730,
+                "z": -8300
+              },
+              "scoreRole": "jammer"
+            },
+            {
+              "health": 48,
+              "id": "m13_jammer_32",
+              "position": {
+                "x": -223.333333,
+                "y": 870,
+                "z": -8300
+              },
+              "scoreRole": "jammer"
+            }
+          ],
+          "corridors": [
+            {
+              "a": {
+                "x": -1285.454545,
+                "y": 383,
+                "z": 9500
+              },
+              "b": {
+                "x": -2176.363636,
+                "y": 383,
+                "z": 8100
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_1"
+            },
+            {
+              "a": {
+                "x": -1285.454545,
+                "y": 383,
+                "z": 9500
+              },
+              "b": {
+                "x": -2176.363636,
+                "y": 383,
+                "z": 8100
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_2"
+            },
+            {
+              "a": {
+                "x": -1030.909091,
+                "y": 383,
+                "z": 9900
+              },
+              "b": {
+                "x": -1921.818182,
+                "y": 383,
+                "z": 8500
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_3"
+            },
+            {
+              "a": {
+                "x": -1030.909091,
+                "y": 383,
+                "z": 9900
+              },
+              "b": {
+                "x": -1921.818182,
+                "y": 383,
+                "z": 8500
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_4"
+            },
+            {
+              "a": {
+                "x": -2876.363636,
+                "y": 383,
+                "z": 7000
+              },
+              "b": {
+                "x": -2769.230769,
+                "y": 383,
+                "z": 5600
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_5"
+            },
+            {
+              "a": {
+                "x": -2876.363636,
+                "y": 383,
+                "z": 7000
+              },
+              "b": {
+                "x": -2769.230769,
+                "y": 383,
+                "z": 5600
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_6"
+            },
+            {
+              "a": {
+                "x": -2621.818182,
+                "y": 383,
+                "z": 7400
+              },
+              "b": {
+                "x": -3138.461538,
+                "y": 383,
+                "z": 6000
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_7"
+            },
+            {
+              "a": {
+                "x": -2621.818182,
+                "y": 383,
+                "z": 7400
+              },
+              "b": {
+                "x": -3138.461538,
+                "y": 383,
+                "z": 6000
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_8"
+            },
+            {
+              "a": {
+                "x": -1753.846154,
+                "y": 383,
+                "z": 4500
+              },
+              "b": {
+                "x": -461.538462,
+                "y": 383,
+                "z": 3100
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_9"
+            },
+            {
+              "a": {
+                "x": -1753.846154,
+                "y": 383,
+                "z": 4500
+              },
+              "b": {
+                "x": -461.538462,
+                "y": 383,
+                "z": 3100
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_10"
+            },
+            {
+              "a": {
+                "x": -2123.076923,
+                "y": 383,
+                "z": 4900
+              },
+              "b": {
+                "x": -830.769231,
+                "y": 383,
+                "z": 3500
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_11"
+            },
+            {
+              "a": {
+                "x": -2123.076923,
+                "y": 383,
+                "z": 4900
+              },
+              "b": {
+                "x": -830.769231,
+                "y": 383,
+                "z": 3500
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_12"
+            },
+            {
+              "a": {
+                "x": 553.846154,
+                "y": 383,
+                "z": 2000
+              },
+              "b": {
+                "x": 1846.153846,
+                "y": 383,
+                "z": 600
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_13"
+            },
+            {
+              "a": {
+                "x": 553.846154,
+                "y": 383,
+                "z": 2000
+              },
+              "b": {
+                "x": 1846.153846,
+                "y": 383,
+                "z": 600
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_14"
+            },
+            {
+              "a": {
+                "x": 184.615385,
+                "y": 383,
+                "z": 2400
+              },
+              "b": {
+                "x": 1476.923077,
+                "y": 383,
+                "z": 1000
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_15"
+            },
+            {
+              "a": {
+                "x": 184.615385,
+                "y": 383,
+                "z": 2400
+              },
+              "b": {
+                "x": 1476.923077,
+                "y": 383,
+                "z": 1000
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_16"
+            },
+            {
+              "a": {
+                "x": 2025,
+                "y": 383,
+                "z": -500
+              },
+              "b": {
+                "x": 975,
+                "y": 383,
+                "z": -1900
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_17"
+            },
+            {
+              "a": {
+                "x": 2025,
+                "y": 383,
+                "z": -500
+              },
+              "b": {
+                "x": 975,
+                "y": 383,
+                "z": -1900
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_18"
+            },
+            {
+              "a": {
+                "x": 2325,
+                "y": 383,
+                "z": -100
+              },
+              "b": {
+                "x": 1275,
+                "y": 383,
+                "z": -1500
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_19"
+            },
+            {
+              "a": {
+                "x": 2325,
+                "y": 383,
+                "z": -100
+              },
+              "b": {
+                "x": 1275,
+                "y": 383,
+                "z": -1500
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_20"
+            },
+            {
+              "a": {
+                "x": 150,
+                "y": 383,
+                "z": -3000
+              },
+              "b": {
+                "x": -900,
+                "y": 383,
+                "z": -4400
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_21"
+            },
+            {
+              "a": {
+                "x": 150,
+                "y": 383,
+                "z": -3000
+              },
+              "b": {
+                "x": -900,
+                "y": 383,
+                "z": -4400
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_22"
+            },
+            {
+              "a": {
+                "x": 450,
+                "y": 383,
+                "z": -2600
+              },
+              "b": {
+                "x": -600,
+                "y": 383,
+                "z": -4000
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_23"
+            },
+            {
+              "a": {
+                "x": 450,
+                "y": 383,
+                "z": -2600
+              },
+              "b": {
+                "x": -600,
+                "y": 383,
+                "z": -4000
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_24"
+            },
+            {
+              "a": {
+                "x": -1725,
+                "y": 383,
+                "z": -5500
+              },
+              "b": {
+                "x": -1540,
+                "y": 383,
+                "z": -6900
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_25"
+            },
+            {
+              "a": {
+                "x": -1725,
+                "y": 383,
+                "z": -5500
+              },
+              "b": {
+                "x": -1540,
+                "y": 383,
+                "z": -6900
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_26"
+            },
+            {
+              "a": {
+                "x": -1425,
+                "y": 383,
+                "z": -5100
+              },
+              "b": {
+                "x": -1673.333333,
+                "y": 383,
+                "z": -6500
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_27"
+            },
+            {
+              "a": {
+                "x": -1425,
+                "y": 383,
+                "z": -5100
+              },
+              "b": {
+                "x": -1673.333333,
+                "y": 383,
+                "z": -6500
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_28"
+            },
+            {
+              "a": {
+                "x": -1173.333333,
+                "y": 383,
+                "z": -8000
+              },
+              "b": {
+                "x": -706.666667,
+                "y": 383,
+                "z": -9400
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_29"
+            },
+            {
+              "a": {
+                "x": -1173.333333,
+                "y": 383,
+                "z": -8000
+              },
+              "b": {
+                "x": -706.666667,
+                "y": 383,
+                "z": -9400
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_30"
+            },
+            {
+              "a": {
+                "x": -1306.666667,
+                "y": 383,
+                "z": -7600
+              },
+              "b": {
+                "x": -840,
+                "y": 383,
+                "z": -9000
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_31"
+            },
+            {
+              "a": {
+                "x": -1306.666667,
+                "y": 383,
+                "z": -7600
+              },
+              "b": {
+                "x": -840,
+                "y": 383,
+                "z": -9000
+              },
+              "radius": 1100,
+              "sourceId": "m13_jammer_32"
+            }
+          ],
+          "navigationHoldSeconds": 20
+        }
+      },
+      {
+        "chatter": [
+          {
+            "at": 0.1,
+            "text": "SERA: Vulture Two admits his handwriting. No name behind the order."
+          }
+        ],
+        "concurrentFighters": 8,
+        "count": 8,
+        "fighterWaves": [
+          {
+            "attackProtected": "m13_evidence_plane",
+            "call": "SERA: Fighters beyond the fog. Keep them off the evidence plane.",
+            "count": 2,
+            "headingDegrees": 180,
+            "id": "m13_intercept_1",
+            "required": true,
+            "role": "raider",
+            "scoreRole": "fighter",
+            "spawn": {
+              "x": -3000,
+              "y": 850,
+              "z": -6500
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 420
+            }
+          },
+          {
+            "attackProtected": "m13_evidence_plane",
+            "call": "SERA: Another pair through the grey. Stay with Paper One.",
+            "count": 2,
+            "headingDegrees": 180,
+            "id": "m13_intercept_2",
+            "required": true,
+            "role": "raider",
+            "scoreRole": "fighter",
+            "spawn": {
+              "x": 3000,
+              "y": 850,
+              "z": -7400
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 450
+            }
+          },
+          {
+            "attackProtected": "m13_evidence_plane",
+            "call": "SERA: Another pair through the grey. Stay with Paper One.",
+            "count": 2,
+            "headingDegrees": 180,
+            "id": "m13_intercept_3",
+            "required": true,
+            "role": "raider",
+            "scoreRole": "fighter",
+            "spawn": {
+              "x": -3000,
+              "y": 850,
+              "z": -8300
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 480
+            }
+          },
+          {
+            "attackProtected": "m13_evidence_plane",
+            "call": "SERA: Another pair through the grey. Stay with Paper One.",
+            "count": 2,
+            "headingDegrees": 180,
+            "id": "m13_intercept_4",
+            "required": true,
+            "role": "raider",
+            "scoreRole": "fighter",
+            "spawn": {
+              "x": 3000,
+              "y": 850,
+              "z": -9200
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 510
+            }
+          },
+          {
+            "count": 2,
+            "headingDegrees": 180,
+            "id": "m13_escort_screen",
+            "role": "escort",
+            "scoreRole": "fighter",
+            "spawn": {
+              "x": -2200,
+              "y": 850,
+              "z": -6500
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 420
+            }
+          }
+        ],
         "kind": "required_air",
-        "label": "In development"
+        "label": "Stop the interceptors; protect Paper One",
+        "protection": {
+          "accompaniment": true,
+          "aircraft": [
+            {
+              "callsign": "PAPER ONE",
+              "health": 75,
+              "id": "m13_evidence_plane",
+              "route": {
+                "speed": 46.703457,
+                "waypoints": [
+                  {
+                    "x": 0,
+                    "y": 383,
+                    "z": 11520
+                  },
+                  {
+                    "x": -3360,
+                    "y": 383,
+                    "z": 6240
+                  },
+                  {
+                    "x": 2400,
+                    "y": 383,
+                    "z": 0
+                  },
+                  {
+                    "x": -1920,
+                    "y": 383,
+                    "z": -5760
+                  },
+                  {
+                    "x": 0,
+                    "y": 383,
+                    "z": -11520
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "standaloneAce": {
+          "behaviour": "dogfight",
+          "headingDegrees": 180,
+          "health": 165,
+          "id": "m13_veil",
+          "livery": "Vulture",
+          "name": "VEIL",
+          "scoreRole": "ace",
+          "spawn": {
+            "x": 3500,
+            "y": 1000,
+            "z": -9000
+          },
+          "trigger": {
+            "kind": "time",
+            "seconds": 470
+          }
+        },
+        "update": {
+          "countdownSeconds": 900,
+          "objective": "Destroy eight attackers and keep Paper One alive until safe",
+          "radio": [
+            "SERA: Fighters beyond the fog. Keep them off the evidence plane."
+          ]
+        }
       }
     ],
-    "primary": "In development",
+    "primary": "Gun the airship jammers: 1,300 in 7:00. Then stop eight attackers and escort Paper One to safety.",
     "region": "canyon_airfield",
-    "title": "Mission 13"
+    "scoring": {
+      "basis": "points",
+      "points": {
+        "ace": 240,
+        "fighter": 60,
+        "jammer": 100
+      },
+      "rank": {
+        "A": 2100,
+        "B": 1900,
+        "C": 1300,
+        "S": 2800
+      }
+    },
+    "start": {
+      "headingDegrees": 0,
+      "kind": "airborne",
+      "speed": 160,
+      "x": 0,
+      "y": 383,
+      "z": 11520
+    },
+    "terrainRelativeWarnings": true,
+    "title": "EVIDENCE THROUGH THE GREY",
+    "worldKey": "m13_evidence_ravine"
   },
   {
     "act": 3,

@@ -1,11 +1,16 @@
 # Blockers
 
+M13 replay validation (2026-10-30, base 351d7988): frozen install, standalone build, test:offline, voice/story/catalog regeneration and full validate:offline with the prescribed LUAU_BIN exited 0. Passed 1,118 Luau contracts, four loader guards, 19 catalog snapshots, three relay harness scenarios and 124 Python tests. All 103 prior specs plus M13 are staged and required with checkedRequire retained. Only M13's catalog entry differs; all 215 prior voice/story entries remain unchanged, with 223 total / 145 pending recordings. M12 numeric normalization and every prior decision record are preserved. Studio verified: pending orchestrator run. No Studio, test:roblox, Player tests or uploads performed. #195 remains merge pending.
+
 PR #191 Linux float drift is addressed by numeric snapshot canonicalization; Frozen install and full validate:offline exited 0; Linux CI verification is pending. Other generated checks were audited: voice-lines has no float fields, story-voice-script emits integer caps, world-report already formats floats to one decimal, and relay-tables checks a historical heading.
+
+M12 #191 merged as 351d7988; its numeric catalog normalization is preserved in M13.
+
+M13 #195: Merge pending. Seven-minute gun sweep (1,300 points; 32 airship jammers), then fresh 15:00 to defeat eight attackers and protect PAPER ONE. Two optional escorts give LANTERN eligible targets under its shared one-kill budget. Unlock requires missions 1–12. Live by pipeline convention after merge. Studio verified: pending orchestrator run. No Studio, Roblox or Player tests performed.
 
 M12 integration validation (2026-10-30): frozen install, build, required test:offline and manifest/catalog regeneration, and full validate:offline all exited 0 with the specified LUAU_BIN. Passed 1,088 Luau contracts, four loader probes, 19 catalog snapshots, three QA pilot scenarios and 124 Python tests. Story/radio inventory is 215 entries / 137 pending recordings; no audio generated. Catalog changes only M12; prerequisite mission definitions and every main decision record are preserved. D9/D10 cleanup paths remain unchanged; only M12 railgun models set LeaveWreck. Studio verified: pending orchestrator run. No Player tests claimed.
 
-M12 #191 integration: old D8 base resolved by replaying M12-only commits onto current main; prerequisite coverage and all decision records retained. Merge pending. Studio verified: pending orchestrator run. Player/phone, actual line-of-fire masking and rendered reference acceptance remain open; offline rule checks do not establish play quality. No asset/audio upload or Player test performed.
-
+M12 #191 integration: old D8 base resolved by replaying M12-only commits onto current main; prerequisite coverage and all decision records retained. Merged as 351d7988. Studio verified: pending orchestrator run. Player/phone, actual line-of-fire masking and rendered reference acceptance remain open; offline rule checks do not establish play quality. No asset/audio upload or Player test performed.
 
 M11 #189 merged at 5c88368c; historical final re-review: corrected the unscaled reload, FIFO-only admission, precomputed formations and aircraft-centre launch origins in the offline model; RIME now has admission priority and occupies a fighter slot. D-445 retunes hulls and explicitly checks ≥10% neglect ordering on both routes. The M11 catalog float/negative-zero portability blocker is corrected on main; full validate:offline exited 0. Runtime balance remains unproven: independent review and orchestrator Studio/Player/phone acceptance are pending.
 

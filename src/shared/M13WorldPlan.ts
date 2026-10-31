@@ -32,7 +32,7 @@ export function m13JammerLayout(){
 }
 export function m13Routes(){const points=new Array<{x:number;y:number;z:number}>();for(let i=0;i<=128;i++)points.push(m13RoutePoint(i/128));return [{id:"m13_evidence_plane",durationSeconds:418,points}];}
 export function buildM13Plan(seed=1313,checkpoint:()=>void=()=>{}){
- const terrain=compactSurface(M13_SURFACE,checkpoint),parts:PartSpec[]=[],props:PropSpec[]=[],jammers=m13JammerLayout(),p=m13RoutePoint(0.02);
+ const terrain=compactSurface(M13_SURFACE,checkpoint),parts:PartSpec[]=[],props:PropSpec[]=[],jammers=m13JammerLayout(),p=m13RoutePoint(0);
  const targets=[...jammers,{id:"m13_evidence_plane",type:"evidence_plane",group:"protected",...p,yaw:0}];
  const part=(name:string,x:number,y:number,z:number,sx:number,sy:number,sz:number,color:[number,number,number])=>parts.push({name,x,y,z,sx,sy,sz,color,yaw:0,material:"Metal",shape:"block",solid:true,grounded:false});
  // Original procedural review silhouettes, not combat actors or uploaded assets.
