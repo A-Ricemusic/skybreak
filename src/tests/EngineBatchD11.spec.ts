@@ -1,3 +1,5 @@
+import { recordScoredKill } from "../server/SortieScore";
+import { TargetScore } from "../shared/TargetScore";
 import { validateEncounterIdentities } from "../shared/CampaignEncounters";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { cheapArmourAllowed, cheapArmourEligible, repairAllowed, sectorReinforcementReady, validateBatchD11 } from "../shared/EngineBatchD11";
@@ -58,6 +60,17 @@ describe("Dormant D11 ground support and service",()=>{
   expect(stepGroundProgress(plan,states,new Set(["tank"]),10)).toEqual([]);
   expect(stepGroundProgress(plan,states,new Set(["tank","reserve"]),10)).toEqual(["Column advance","Road secured"]);
   expect(stepGroundProgress(plan,states,new Set(["tank","reserve"]),100)).toEqual([]);
+ });
+ it("admits a reserve score once only in an authored ground-target phase",()=>{
+  const p=phase(), bp={...MissionCatalog.Get(15),phases:[p]};MissionCatalog.ValidatePolicy(bp);
+  const missing=R.NewState({...bp,phases:[{...p,groundTargets:undefined}]},0), rejected=new TargetScore({...MissionCatalog.Scoring(1),points:{ground:150}});
+  expect(recordScoredKill(missing,rejected,"reserve","ground",false,1,"ground")).toBe(false);
+  expect(missing.killedIds.size()).toBe(0);expect(rejected.Total()).toBe(0);
+  const bs=R.NewState(bp,0), ledger=new TargetScore({...MissionCatalog.Scoring(1),points:{ground:150}});
+  expect(recordScoredKill(bs,ledger,"reserve","ground",false,1,"ground")).toBe(true);
+  const points=ledger.Total();expect(points).toBe(150);expect(bs.optionalGroundKills).toBe(1);
+  expect(recordScoredKill(bs,ledger,"reserve","ground",false,2,"ground")).toBe(false);
+  expect(ledger.Total()).toBe(points);expect(bs.killedIds.size()).toBe(1);expect(bs.optionalGroundKills).toBe(1);
  });
  it("rejects missing, required, circular and unbudgeted reserves",()=>{
   for(const mutate of [(p:MissionPhaseBlueprint)=>{p.groundTargets![1].reinforceAfterSector="missing";},(p:MissionPhaseBlueprint)=>{p.groundTargets![1].required=true;},(p:MissionPhaseBlueprint)=>{p.groundProgress!.sectors[0].clearTargetIds.push("reserve");},(p:MissionPhaseBlueprint)=>{p.cheapContacts=undefined;},(p:MissionPhaseBlueprint)=>{p.groundProgress!.sectors[0].kind="column";}]) {const p=phase();mutate(p);expect(pcall(()=>validateBatchD11([p],15))[0]).toBe(false);}

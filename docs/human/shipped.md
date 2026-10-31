@@ -122,3 +122,9 @@ These merged gameplay changes are live through the automatic pipeline convention
 The earlier AC04 release (#92) was rejected and reverted (`b0737fa`). #77 (mission 1 tutorial rework) and #91 (TypeScript 5.9) were closed without merging.
 
 PR #144 merged as `7711b70`: dormant mission 4–5 worlds, with M05 owning environment/effects. PR #145 batch C is merged; no Studio or Player observation from this pass.
+
+PR #192 follow-up (unmerged): corrected the D11 runtime test’s score-phase fixture to include authored ground targets, a cheap-contact opt-in and score clock. The reported Studio failure was the scoring admission assertion at compiled line 133; earlier release/visibility assertions passed. Added offline rejection/admission/deduplication coverage. No shipped gameplay changes, deployment or Player verification is claimed; orchestrator Studio rerun pending.
+
+The corrected D11 scoring fixtures use an explicit 150-point ground award: M01’s default rating policy awards zero ground points, which made the prior unchanged-total check insufficient to prove score deduplication. Runtime admission/ledger code is unchanged.
+
+D11 fixture-fix validation (2026-10-30): `bun install --frozen-lockfile`, `bun run build` and the prescribed `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau" bun run validate:offline` each exited 0. Passed 1,077 Luau contracts, four negative loader probes, 19 unchanged catalog snapshots and 124 Python tests. No Studio, `test:roblox`, Player test, merge or upload was performed.

@@ -20,14 +20,16 @@ describe("D11 runtime (compiled; Studio execution pending)",()=>{
  it("releases reserves through D5 only after clearance, freezes at service, never resurrects, and cleans on phase exit",()=>{
   const folder=new Instance("Folder");folder.Parent=Workspace;
   const t={...spec("reserve"),reinforceAfterSector:"city"}, model=createCheapContact(t);model.Parent=folder;model.PrimaryPart!.Transparency=1;
-  const b:MissionBlueprint={...MissionCatalog.Get(15),phases:[{kind:"score_threshold",label:"City",groundProgress:{sectors:[{id:"city",kind:"troops",formation:"city_squad",clearTargetIds:["gun"],seconds:10,health:100,route:{speed:10,waypoints:[{x:0,y:40,z:0},{x:0,y:40,z:-100}]},advanceCall:"Advance",securedCall:"Secured",hitCall:"Hit"}]}}]};
+  const b:MissionBlueprint={...MissionCatalog.Get(15),phases:[{kind:"score_threshold",label:"City",scoreThreshold:{points:1000,seconds:600,waitForExpiry:true},cheapContacts:true,groundTargets:[spec("gun"),t],groundProgress:{sectors:[{id:"city",kind:"troops",formation:"city_squad",clearTargetIds:["gun"],seconds:10,health:100,route:{speed:10,waypoints:[{x:0,y:40,z:0},{x:0,y:40,z:-100}]},advanceCall:"Advance",securedCall:"Secured",hitCall:"Hit"}]}}]};
+  // Optional ground kills are admitted only in a phase with authored groundTargets.
+  MissionCatalog.ValidatePolicy(b);
   const bs=BlueprintRunner.NewState(b,0), e={id:t.id,model,typedGround:t,phaseOwner:0,kind:"ground",enabled:false,health:55,position:model.PrimaryPart!.Position} as Enemy;
   const s={active:true,folder,blueprint:b,blueprintState:bs,enemies:[e],pause:{used:0}} as unknown as CombatSession;
   try {
    stepGroundDirector(s,10,()=>{});expect(e.enabled).toBe(false);bs.killedIds.add("gun");s.rearmElapsed=0;stepGroundDirector(s,10,()=>{});expect(e.enabled).toBe(false);s.rearmElapsed=undefined;
    stepGroundDirector(s,10,()=>{});expect(e.enabled).toBe(true);expect(model.GetAttribute("SkybreakEnemy")).toBe(true);expect(model.PrimaryPart!.Transparency).toBe(0);
    const actor=s.groundDirector!.actors[0];expect(actor.GetAttribute("Friendly")).toBe(true);expect(actor.CanQuery).toBe(false);expect(bs.killedIds.size()).toBe(1);
-   const ledger=new TargetScore(MissionCatalog.Scoring(1));expect(recordScoredKill(bs,ledger,e.id,"ground",false,1,"ground")).toBe(true);const points=ledger.Total();expect(recordScoredKill(bs,ledger,e.id,"ground",false,2,"ground")).toBe(false);expect(ledger.Total()).toBe(points);
+   const ledger=new TargetScore({...MissionCatalog.Scoring(1),points:{ground:150}});expect(recordScoredKill(bs,ledger,e.id,"ground",false,1,"ground")).toBe(true);const points=ledger.Total();expect(points).toBe(150);expect(recordScoredKill(bs,ledger,e.id,"ground",false,2,"ground")).toBe(false);expect(ledger.Total()).toBe(points);
    e.health=0;e.enabled=false;releaseZoneReserves(s);expect(e.enabled).toBe(false);
    bs.phaseIndex=1;stepGroundDirector(s,1,()=>{});expect(s.groundDirector).toBeUndefined();expect(actor.Parent).toBeUndefined();
   } finally {clearGroundDirector(s);folder.Destroy();}
