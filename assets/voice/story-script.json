@@ -1804,6 +1804,54 @@
    "needsRecording": true
   },
   {
+   "id": "radio.m10.story.3",
+   "kind": "radio",
+   "speaker": "SERA",
+   "chip": "SERA",
+   "text": "SERA: Pads waking up. Strike the aircraft before they climb.",
+   "context": "Planned mission radio; future builder must wire this exact text",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 5,
+   "recordingId": null,
+   "needsRecording": true
+  },
+  {
+   "id": "radio.m10.story.4",
+   "kind": "radio",
+   "speaker": "SERA",
+   "chip": "SERA",
+   "text": "SERA: Docks and pen mouths feed this line. Cut their supply route.",
+   "context": "Planned mission radio; future builder must wire this exact text",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 6,
+   "recordingId": null,
+   "needsRecording": true
+  },
+  {
+   "id": "radio.m10.story.5",
+   "kind": "radio",
+   "speaker": "RIM TOWER",
+   "chip": "RIVER TOWER",
+   "text": "RIVER TOWER: Cleared to land southbound. Racks ready; damage stays.",
+   "context": "Planned mission radio; future builder must wire this exact text",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 5,
+   "recordingId": null,
+   "needsRecording": true
+  },
+  {
+   "id": "radio.m10.story.6",
+   "kind": "radio",
+   "speaker": "RIM TOWER",
+   "chip": "RIVER TOWER",
+   "text": "RIVER TOWER: Ammunition aboard. Cleared for takeoff.",
+   "context": "Planned mission radio; future builder must wire this exact text",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 5,
+   "recordingId": null,
+   "needsRecording": true
+  },
+  {
    "id": "radio.m11.story.1",
    "kind": "radio",
    "speaker": "SERA",
@@ -2424,6 +2472,42 @@
    "context": "Live mission phase/landing radio",
    "emotion": "Concise operational urgency",
    "maxDurationSeconds": 5,
+   "recordingId": null,
+   "needsRecording": true
+  },
+  {
+   "id": "radio.m10.p1.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "chip": "SERA",
+   "text": "SERA: Keep the valley between you and the long-range guns.",
+   "context": "Live mission phase/landing radio",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 5,
+   "recordingId": null,
+   "needsRecording": true
+  },
+  {
+   "id": "radio.m10.p1.chatter1",
+   "kind": "radio",
+   "speaker": "SERA",
+   "chip": "SERA",
+   "text": "SERA: Pads waking up. Strike the aircraft before they climb.",
+   "context": "Live mission phase/landing radio",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 5,
+   "recordingId": null,
+   "needsRecording": true
+  },
+  {
+   "id": "radio.m10.p1.chatter2",
+   "kind": "radio",
+   "speaker": "SERA",
+   "chip": "SERA",
+   "text": "SERA: Docks and pen mouths feed this line. Cut their supply route.",
+   "context": "Live mission phase/landing radio",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 6,
    "recordingId": null,
    "needsRecording": true
   }

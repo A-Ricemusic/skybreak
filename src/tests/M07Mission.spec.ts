@@ -139,7 +139,7 @@ describe("Mission 7 array strike and canyon escape", () => {
   slot.missions[6] = {completed:false}; expect(canLaunchMission(7,slot)).toBe(false);
   slot.missions[6] = {completed:true}; slot.missions[3] = {completed:false}; expect(canLaunchMission(7,slot)).toBe(false);
   slot.missions[3] = {completed:true}; expect(canLaunchMission(7,slot)).toBe(true); expect(canLaunchMission(8,slot)).toBe(true); expect(canLaunchMission(9,slot)).toBe(true);
-  for(let id=10;id<=18;id++) expect(canLaunchMission(id,slot)).toBe(false);
+  for(let id=11;id<=18;id++) expect(canLaunchMission(id,slot)).toBe(false);
  });
  it("unlocks after fixtures completing 1–6, settles only full wins and preserves score across save", () => earlier(() => {
   const c=new CampaignCoordinator("m07-unlock",undefined,{now:()=>1000,defer:()=>undefined}); c.load();
