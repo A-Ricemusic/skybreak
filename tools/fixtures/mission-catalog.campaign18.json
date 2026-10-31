@@ -15483,7 +15483,7 @@
           "aircraft": [
             {
               "callsign": "ORCHARD TWO",
-              "health": 140,
+              "health": 91,
               "id": "m11_civilian_low",
               "route": {
                 "speed": 57.38229540846334,
@@ -15618,7 +15618,7 @@
             },
             {
               "callsign": "ORCHARD ONE",
-              "health": 140,
+              "health": 91,
               "id": "m11_civilian_high",
               "route": {
                 "speed": 57.5954246811721,

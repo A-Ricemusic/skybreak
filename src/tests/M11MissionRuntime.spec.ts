@@ -22,8 +22,8 @@ describe("M11 protected aircraft runtime",()=>{
    expect(protectedTarget(session,attacker)).toBe(high.aircraft);
    warnProtectedAttack(session,attacker.windupTarget,line=>{lines.push(line);});
    stepProtection(session,0,()=>{});
-   expect(high.label.Text.find("INCOMING")[0]).toBeDefined();expect(lines.size()).toBe(1);expect(lines[0].find("ORCHARD ONE")[0]).toBeDefined();expect(high.state.health).toBe(140);
-   hitProtected(session,high.aircraft,7,line=>{lines.push(line);});expect(lines.size()).toBe(2);expect(high.state.health).toBe(133);expect(low.state.health).toBe(140);
+   expect(high.label.Text.find("INCOMING")[0]).toBeDefined();expect(lines.size()).toBe(1);expect(lines[0].find("ORCHARD ONE")[0]).toBeDefined();expect(high.state.health).toBe(91);
+   hitProtected(session,high.aircraft,7,line=>{lines.push(line);});expect(lines.size()).toBe(2);expect(high.state.health).toBe(84);expect(low.state.health).toBe(91);
    stepProtection(session,314,()=>{});expect(session.blueprintState!.outcome).toBe("won");expect(session.protectedFlight).toBeUndefined();expect(folder.GetChildren().size()).toBe(0);
   } finally { clearProtection(session);folder.Destroy(); }
  });
