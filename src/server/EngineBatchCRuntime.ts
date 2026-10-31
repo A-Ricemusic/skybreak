@@ -36,7 +36,7 @@ export function stepRearm(s: CombatSession, dt: number, maxMissiles: number, sen
 		if (distance > plan.radius || s.rearmLatched) return false;
 		const start = landingPose(plan.landing, 0);
 		const gateDistance = math.sqrt((s.state.x-start.x)**2+(s.state.y-start.y)**2+(s.state.z-start.z)**2);
-		if (gateDistance > 100 || s.projectiles.some(p => p.hostile && p.wingman === undefined) || s.enemies.some(e => e.enabled && e.health > 0 && e.windup > 0 && AlliedRules.WarnsPlayer(e.windupTarget))) return false;
+		if (gateDistance > 100 || s.projectiles.some(p => p.hostile && p.wingman === undefined) || s.enemies.some(e => e.enabled && e.health > 0 && e.windup > 0 && AlliedRules.WarnsPlayer(e.windupTarget, e.attackSector))) return false;
 		// Settle the clock before entering: landing cannot rescue an already expired strike.
 		bs.score = s.targetScore.Total();
 		BlueprintRunner.Tick(bs, os.clock(), s.health);

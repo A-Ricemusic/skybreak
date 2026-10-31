@@ -416,7 +416,7 @@ function sendTelemetry(session: CombatSession): void {
 		if (EvadeRules.Decoys(range, (missile.life ?? 0) - missile.age)) evadeThreat = true;
 	}
 	// A windup is a lock warning, not a missile: evading now would waste the countermeasure.
-	for (const enemy of session.enemies) if (ownsEnemy(session, enemy) && enemy.windup > 0 && AlliedRules.WarnsPlayer(enemy.windupTarget)) { lockWarning = true; break; }
+	for (const enemy of session.enemies) if (ownsEnemy(session, enemy) && enemy.windup > 0 && AlliedRules.WarnsPlayer(enemy.windupTarget, enemy.attackSector)) { lockWarning = true; break; }
 	const target = ownsEnemy(session, session.target) ? session.target : undefined;
 	let distance = 0;
 	if (target) { const [targetDistance] = targetMetrics(session, target); distance = targetDistance; }

@@ -1,3 +1,4 @@
+import { AlliedRules } from "../shared/AlliedRules";
 import { stepRearm, skipRearm } from "../server/EngineBatchCRuntime";
 import { landingPose } from "../shared/EngineBatchB";
 import { RearmPlan } from "../shared/EngineBatchC";
@@ -38,6 +39,25 @@ describe("D5 server director and beach attacker",()=>{
   expect(s.missiles).toBe(40); expect(s.special.charges).toBe(5); expect(s.gun!.rounds).toBe(200); expect(s.health).toBe(25); expect(bs.rearmActive).toBeUndefined();
   s.state=landingPose(plan.landing,0); expect(stepRearm(s,1,40,()=>{})).toBe(false);
   s.state=FlightMath.FromPose(0,300,4000,0,0,160); stepRearm(s,1,40,()=>{}); s.state=landingPose(plan.landing,0); expect(stepRearm(s,1,40,()=>{})).toBe(true);
+ });
+ it("allows carrier entry during a beach windup while player windups still warn and block service",()=>{
+  const f=fixture(); try {
+   const plan: RearmPlan={zone:{x:0,y:150,z:1150},radius:1500,landing:{touchdown:{x:0,y:100,z:150},headingDegrees:0,approachDistance:1000,rolloutDistance:50,approachSeconds:10,rolloutSeconds:3,glideDegrees:3},takeoffSeconds:8,missiles:true,special:true,health:false,carrier:{centre:{x:0,y:100,z:0},width:150,length:560,catapult:{x:0,y:100,z:-240}}};
+   const bp={...f.bs.blueprint,phases:[{...f.bs.blueprint.phases[0],rearm:plan}]};
+   const s=f.session; s.blueprint=bp; s.blueprintState=BlueprintRunner.NewState(bp,os.clock());
+   s.state=landingPose(plan.landing,0); s.health=25; s.targetScore=new TargetScore(MissionCatalog.Scoring(1)); s.projectiles=[]; s.special=SortieArmament.NewSpecial("salvo",undefined);
+   f.enemy.enabled=true; f.enemy.health=100; s.enemies=[f.enemy];
+   stepGroundDirector(s,0.01,()=>{}); stepBeachAttacker(s,f.enemy,0.01,()=>{});
+   expect(f.enemy.windup).toBe(2); expect(f.enemy.model.GetAttribute("AttackWarning")).toBe(true);
+   expect(AlliedRules.WarnsPlayer(f.enemy.windupTarget,f.enemy.attackSector)).toBe(false);
+   // The same live windup, owned by the player instead, must retain both legacy threat effects.
+   const player={...f.enemy,attackSector:undefined,windupTarget:undefined}; s.enemies.push(player);
+   expect(AlliedRules.WarnsPlayer(player.windupTarget,player.attackSector)).toBe(true);
+   expect(stepRearm(s,0.1,40,()=>{})).toBe(false); expect(s.rearmElapsed).toBeUndefined();
+   s.enemies=[f.enemy]; const messages:{kind:string}[]=[];
+   expect(stepRearm(s,0.1,40,m=>messages.push(m as {kind:string}))).toBe(true);
+   expect(messages[0].kind).toBe("RearmStarted"); expect(s.blueprintState.rearmActive).toBe(true); expect(f.enemy.windup).toBe(2);
+  } finally { f.folder.Destroy(); }
  });
  it("creates friendly non-target actors after loading, progresses only on cleared targets and cleans on transition",()=>{
   const f=fixture(); try {
