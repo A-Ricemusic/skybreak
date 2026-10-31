@@ -49,3 +49,9 @@ M08 integration validation (2026-10-30): frozen install, `bun run build`, `test:
 M08 arrival regression follow-up (2026-10-30): the orchestrator reported 1,175/1,176 Studio Jest tests passing at `0227c1f`; the catalog opening-count test expected six immediate bombers instead of the authored one. Runtime inspection confirms D-272 scheduling and full-six-kill/6:00 completion accounting. The test now checks exact due slots/identities before and at every arrival, rejects duplicate admissions, and preserves full opening counts for unscheduled formations. A partial-kill timeout regression covers one through five kills. Studio rerun belongs to the orchestrator; this agent did not launch Studio or run Roblox Jest.
 
 M08 follow-up validation: `bun install --frozen-lockfile`, `bun run build`, and full `validate:offline` with the supplied `LUAU_BIN` each exited 0 (991 Luau contracts, 19 catalog snapshots, 124 Python tests). The director regression compiled; Studio execution remains pending. No gameplay/runtime changes.
+
+## D6 merged (#182, dormant)
+
+D6 engine work is merged (#182, `ea0045d`): dormant repeated artillery, parked/airborne credit deduplication, bounded static contact detail and six M10 target types (D-300–D-303). No mission opts in; Studio/runtime Jest/phone verification and M10 activation remain pending. See [engine plan](../specs/engine/missions-06-18-plan.md#7-batch-d6-implementation).
+
+D6 integration checks: frozen install, build and full offline validation exit 0 (993 Luau contracts, 19 catalog snapshots, 124 Python tests; four negative loader probes). D4+D6 admission/contact regressions added; runtime specs compiled only. No Studio, `test:roblox`, Player or phone test performed.

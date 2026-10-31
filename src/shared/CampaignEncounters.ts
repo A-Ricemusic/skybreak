@@ -4,10 +4,11 @@ import type { AceLivery } from "./AssetSelection";
 import type { MissionBlueprint, MissionPhaseBlueprint, FlightPoint } from "./MissionCatalog";
 import type { MissionAirspacePolicy, MissionScoringPolicy } from "./MissionPolicy";
 
-export const GROUND_TYPES = ["parked_bomber", "hangar", "aa_gun", "control_tower", "substation", "radar_dome", "parked_helicopter", "refinery", "fuel_tank", "pipeline", "oil_rig", "rig_tower", "ship", "crane", "sam", "control_room", "smokestack", "gas_tank", "pump_station", "destroyer", "cruiser", "submarine", "missile_boat", "supply_ship", "landing_ship", "container_ship", "gun_mount", "containers", "storage", "solar_panel", "solar_tower", "flak_gun", "pillbox", "tanker", "command_post", "artillery", "bunker", "tank", "vehicle"] as const;
+export const GROUND_TYPES = ["parked_bomber", "hangar", "aa_gun", "control_tower", "substation", "radar_dome", "parked_helicopter", "refinery", "fuel_tank", "pipeline", "oil_rig", "rig_tower", "ship", "crane", "sam", "control_room", "smokestack", "gas_tank", "pump_station", "destroyer", "cruiser", "submarine", "missile_boat", "supply_ship", "landing_ship", "container_ship", "gun_mount", "containers", "storage", "solar_panel", "solar_tower", "flak_gun", "pillbox", "tanker", "command_post", "artillery", "bunker", "tank", "vehicle", "container", "watchtower", "antenna", "barracks", "gunboat", "sub_pen"] as const;
 export type GroundTargetType = typeof GROUND_TYPES[number];
 /** HUD label (model name) of each typed ground target. */
 export const GROUND_TARGET_LABELS: { readonly [K in GroundTargetType]: string } = {
+	container:"CONTAINER", watchtower:"WATCHTOWER", antenna:"ANTENNA", barracks:"BARRACKS", gunboat:"GUNBOAT", sub_pen:"SUB PEN",
 	artillery: "ARTILLERY", bunker: "BUNKER", tank: "TANK", vehicle: "VEHICLE",
 	solar_panel: "SOLAR PANEL", solar_tower: "SOLAR TOWER", flak_gun: "FLAK GUN", pillbox: "PILLBOX",
 	parked_bomber: "BOMBER", hangar: "HANGAR", aa_gun: "AA GUN", control_tower: "CTRL TOWER", substation: "SUBSTATION", radar_dome: "RADAR",
@@ -27,6 +28,8 @@ export type ArrivalTrigger = { kind: "time"; seconds: number } | { kind: "ground
 	// The player's aircraft comes within `radius` horizontal studs of (x, z).
 	| { kind: "approach"; x: number; z: number; radius: number };
 export interface FighterArrival {
+	/** One optional parked contact becomes this single aircraft; shares its kill identity. */
+	parkedSourceId?: string;
 	/** D5: prioritise this friendly sector, never the player. */ attackSector?: string;
 	livery?: AceLivery;
 	aircraft?: "jammer" | "helicopter";

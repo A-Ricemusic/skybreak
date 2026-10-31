@@ -91,3 +91,9 @@ D4 #177 and mission 7 #178 are merged; #183 is integrated onto current main. M08
 ### M08 catalog assertion corrected; Studio rerun pending
 
 M08 arrival regression follow-up (2026-10-30): the orchestrator reported 1,175/1,176 Studio Jest tests passing at `0227c1f`; the catalog opening-count test expected six immediate bombers instead of the authored one. Runtime inspection confirms D-272 scheduling and full-six-kill/6:00 completion accounting. The test now checks exact due slots/identities before and at every arrival, rejects duplicate admissions, and preserves full opening counts for unscheduled formations. A partial-kill timeout regression covers one through five kills. Studio rerun belongs to the orchestrator; this agent did not launch Studio or run Roblox Jest.
+
+## Engine D6 verification and M10 activation
+
+D6 remains dormant. Runtime Jest, Studio, Player observations and 150-contact phone profiling remain pending under the orchestrator’s Studio lease. M10 roster, artillery cadence, rank thresholds and rendered-world acceptance remain unresolved. D4/D5 and mission 7 are now integrated; repeated artillery uses M7’s segmented masking rays. No uploads or owner action required.
+
+D6 integration checks: frozen install, build and full offline validation exit 0 (993 Luau contracts, 19 catalog snapshots, 124 Python tests; four negative loader probes). D4+D6 admission/contact regressions added; runtime specs compiled only. No Studio, `test:roblox`, Player or phone test performed.

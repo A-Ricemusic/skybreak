@@ -208,6 +208,21 @@ describe("D4 director contracts (compiled for orchestrator Studio lease)",()=>{
 		h.s.enemies[0].health=0;h.s.elapsed=209.99;h.director.Step(h.s);expect(h.s.blueprintState?.outcome).toBeUndefined();
 		h.s.elapsed=210;h.director.Step(h.s);expect(h.s.blueprintState?.outcome).toBe("failed");expect(h.s.blueprintState?.reason).toBe("bombers_escaped");h.folder.Destroy();
 	});
+ it("holds D6 parked handoffs until D4 admits a slot alongside 150 cheap contacts",()=>{
+  const bp=encounter();bp.phases=[{kind:"score_threshold",label:"D6 battle",cheapContacts:true,concurrentFighters:2,scoreThreshold:{points:9999,seconds:420,waitForExpiry:true},groundTargets:[],fighterWaves:[]}];
+  const phase=bp.phases[0];
+  for(let i=0;i<150;i++) phase.groundTargets!.push({id:`contact${i}`,type:i===0 ? "parked_helicopter" : "barracks",position:{x:i,y:0,z:0},yaw:0,required:false,scoreRole:"air"});
+  phase.fighterWaves!.push({id:"takeoff",parkedSourceId:"contact0",count:1,role:"raider",scoreRole:"air",trigger:{kind:"time",seconds:1}});
+  const h=harness(bp);
+  try {
+   h.budget.fighters=2;h.director.Apply(h.s);h.s.elapsed=1;h.director.Step(h.s);
+   expect(h.calls.size()).toBe(0);expect(h.s.airQueue.size()).toBe(1);
+   h.budget.fighters=1;h.director.Step(h.s);
+   expect(h.calls.size()).toBe(1);expect(h.calls[0].options?.arrival).toBe(phase.fighterWaves![0]);expect(h.s.airQueue.size()).toBe(0);
+   h.director.Step(h.s);expect(h.calls.size()).toBe(1);
+  } finally {h.folder.Destroy();}
+ });
+
 	it("queues the initial 27 contacts at a seven-fighter ceiling without repeating the wave",()=>{
 		const bp=encounter();bp.phases=[{kind:"score_threshold",label:"Battle",concurrentFighters:7,scoreThreshold:{points:800,seconds:420,waitForExpiry:true},fighterWaves:[{id:"battle",count:27,role:"raider",scoreRole:"escort",trigger:{kind:"phase_start",phase:0}}]}];
 		const h=harness(bp);h.director.Apply(h.s);h.director.Step(h.s);h.director.Step(h.s);expect(h.calls.size()).toBe(7);expect(h.s.airQueue[0].count).toBe(20);
