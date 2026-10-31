@@ -101,3 +101,9 @@ D6 integration checks: frozen install, build and full offline validation exit 0 
 ## M09 integration and acceptance
 
 Prerequisites #178, #180, #182 and #183 are merged; #185 is replayed onto main `085373c` and targets main. No implementation blocker requires owner input. Studio verified: pending orchestrator run. Player/phone/rendered comparisons remain pending; no Player tests claimed. The 55-contact reconstruction, ranks and 300-health landing-force budget remain provisional (D-340–D-344). No new audio, Blender assets or uploads.
+
+## D7 acceptance (merged, dormant)
+
+PR #184 is merged (`5d84486`) and dormant. The protected-target-only firing correction is retained. Main integration combines sector-attacker and committed protected-aircraft warning/service suppression while preserving player windup threats. No Studio or Player testing is performed here; route clearance, marker readability, both loss branches, all-safe completion and phone performance remain activation gates.
+
+Main integration validation (2026-10-30): frozen install, standalone build and full offline validation exited 0; 1,007 Luau contracts, 19 unchanged catalog snapshots and 124 Python tests. The combined sector/protected-target warning rule passes offline; service-entry runtime regressions compile but remain unrun. No Studio/Player test. Main at integration is `ea0045d` (D5/D6 merged, M08 not merged). D4/D6 admission logic is retained; this main revision has no `concurrentRoutes` option.
