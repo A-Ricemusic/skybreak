@@ -71,7 +71,7 @@ describe("Dormant D6 contracts",()=>{
  it("provides six M10 labels and naval lifecycle for the gunboat",()=>{
   expect([GROUND_TARGET_LABELS.container,GROUND_TARGET_LABELS.watchtower,GROUND_TARGET_LABELS.antenna,GROUND_TARGET_LABELS.barracks,GROUND_TARGET_LABELS.gunboat,GROUND_TARGET_LABELS.sub_pen]).toEqual(["CONTAINER","WATCHTOWER","ANTENNA","BARRACKS","GUNBOAT","SUB PEN"]);expect(navalHull("gunboat")).toBe(true);
  });
- it("keeps every catalog phase dormant",()=>{
-  for(let id=0;id<=18;id++) { const b=MissionCatalog.Get(id); if(b) for(const p of b.phases) {expect(p.repeatedArtillery).toBeUndefined();expect(p.cheapContacts).toBeUndefined();for(const w of p.fighterWaves ?? []) expect(w.parkedSourceId).toBeUndefined();} }
+ it("keeps catalog phases other than M10 dormant",()=>{
+  for(let id=0;id<=18;id++) { if(id===10) continue; const b=MissionCatalog.Get(id); if(b) for(const p of b.phases) {expect(p.repeatedArtillery).toBeUndefined();expect(p.cheapContacts).toBeUndefined();for(const w of p.fighterWaves ?? []) expect(w.parkedSourceId).toBeUndefined();} }
  });
 });

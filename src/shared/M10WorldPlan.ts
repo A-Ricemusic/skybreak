@@ -34,6 +34,8 @@ function wet(x: number, z: number): boolean {
  return x > math.min(a, b) - 480 && x < math.max(a, b) + 480 || M10.districts.some(b => math.abs(x - (b.x - 1800)) < 800 && math.abs(z - b.z) < 1800);
 }
 export function m10Height(x: number, z: number): number {
+ // D-381: clear NE ingress to A's runway; shared by scenery and collision.
+ if (!wet(x,z) && z >= 8000 && z <= 13000 && math.abs(x - 2940 * math.clamp((12480-z)/4480,0,1)) < 1000) return 64;
  if (math.abs(x + 9600) < 900 && math.abs(z - 12000) < 5000) return 64;
  if (math.abs(x - 2940) < 500 && math.abs(z - 6720) < 4600) return 64;
  if (wet(x, z)) return 32;

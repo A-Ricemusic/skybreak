@@ -122,7 +122,7 @@ export function validateCampaignEncounters(blueprint: MissionBlueprint, phases: 
 	};
 	for (let owner=0;owner<phases.size();owner++) {
 		const phase=phases[owner];
-		assert((phase.fighterWaves ?? []).filter(w=>w.aircraft!==undefined).reduce((sum,w)=>sum+w.count,0)<=6,"Route actor budget is six per phase");
+		assert((phase.fighterWaves ?? []).filter(w=>w.aircraft!==undefined).reduce((sum,w)=>sum+w.count,0)<=(phase.cheapContacts ? 16 : 6),"Route actor budget exceeded");
 		for (const wave of phase.fighterWaves ?? []) {
 			assert(wave.livery===undefined || ["Vulture","Elite","Rusk"].includes(wave.livery),"Invalid wave livery");
 			assert((wave.aircraft!==undefined)===(wave.route!==undefined),"Route aircraft needs route");

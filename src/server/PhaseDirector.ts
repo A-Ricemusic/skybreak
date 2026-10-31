@@ -66,8 +66,10 @@ export function createPhaseDirector(combat: PhaseCombat) {
 	/** Spawns what the live-aircraft budget has room for now; the rest keeps waiting. */
 	function drainAir(session: CombatSession): void {
 		if (session.airQueue.size() === 0) return;
-		const room = ((session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.concurrentFighters) ?? WavePlan.Budget(extraRaiders(session))) - liveAircraft(session);
-		for (const batch of WavePlan.Admit(session.airQueue, room)) {
+		const phase = session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState);
+		const room = (phase?.concurrentFighters ?? WavePlan.Budget(extraRaiders(session))) - liveAircraft(session);
+		const liveRoutes = phase?.concurrentRoutes === undefined ? 0 : session.enemies.filter(enemy => enemy.routeActor !== undefined && enemy.enabled && enemy.health>0 && enemy.withdrawUntil===undefined && enemy.model.Parent===session.folder).size();
+		for (const batch of WavePlan.Admit(session.airQueue, room, phase?.concurrentRoutes === undefined ? room : phase.concurrentRoutes-liveRoutes)) {
 			if (batch.arrival) {
 				const a=batch.arrival;
 				spawnAir(session,batch.count,"aircraft" in a && a.aircraft ? "bomber" : batch.role,{ arrival:a, targetId: session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.targetIds !== undefined && ("name" in a || a.count === 1) ? a.id : undefined, optional:!("required" in a && a.required === true), name: "name" in a ? a.name : undefined, livery: "livery" in a ? a.livery : undefined, aceHealth: "health" in a ? a.health : undefined });
