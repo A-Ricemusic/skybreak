@@ -1,5 +1,14 @@
 # Next
 
+## Engine batch D3 — rebased on main after D2 (#168); dormant
+
+D3 adds a mission-owned artillery escape, safe-band/terrain masking, bounded built-world canyon centreline audit, a locked area footprint and M7 solar panel/tower, flak and pillbox targets. Required-target strike → mission update → fresh 5:00 escape reuses batch B; high exits cannot win. No catalog mission opts in and frozen practice/M01 engine snapshots and catalog data are unchanged. See D-240–D-244 and the engine plan.
+
+Validation: frozen install/build and the full offline gate passed (793 Luau contracts, 19 catalog snapshots, 122 Python tests). All 12 D3 Jest cases passed during a shared-lease run after empty Studio checks spanning 305 seconds. That earlier full suite did not finish before the configured 60-second timeout and reported a D2 hull/group-credit fixture failure (now corrected in the merged D2 base); test-owned Studio exited. No full Jest pass or Player test is claimed.
+
+D3 review follow-up: canyon passage sweeps now use the shared segmented `sphereSweep`, so legs longer than Roblox’s 1,024-stud cast limit remain valid. A runtime regression covers a clear 2,000-stud leg and an offset obstruction in segment two that centreline floor rays cannot detect. Updated D2 `4b317f8` is merged into D3, including D1/current-main nose-first targeting, mission 5, worlds 6–13 and the corrected D2 hull/group fixture. All seven targeting functions in `CombatService.ts` were compared to current main and are identical; D3 canyon code and its long-leg regression are preserved. Post-merge `validate:offline` exited 0. Studio was not launched for this merge; the orchestrator owns updated-head runtime testing. The added Roblox regression is compiled, not yet executed in Studio.
+
+Before M7 activation: resolve or explicitly adopt provisional target counts/ranks, author the southbound canyon/exit and 585-stud ceiling, verify terrain/turn basins/transition pose and battery masking, fit finite stock/area attack as wanted, then fly warnings, damage, timeout, multi-target credit and replay in Roblox Player and on a phone. No new audio (D-142). D3 is engine support, not a playable M7 or a rendered-world acceptance claim.
 ## Owner difficulty and allied-flight tuning — unmerged (D-220/D-221, 2026-10-30)
 
 Validation on main 5034b39: frozen install/build and offline validation pass (848 Luau contracts). Final rebased Roblox Jest is deferred to the orchestrator’s merge queue so mission 5/D1 retain Studio priority; the queued local launch is cancelled. No full Jest pass is claimed.

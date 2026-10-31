@@ -1,3 +1,5 @@
+import { stepCanyon } from "./EngineBatchD3Runtime";
+import { insideArea } from "../shared/EngineBatchD3";
 import { AntiShipRules } from "../shared/EngineBatchD2";
 import { sinkNavalTarget, stepSurfaceTargets, stepSamDefence, antiShipObstructed } from "./EngineBatchD2Runtime";
 import { TargetPriority, type TargetCandidate, type ViewFrustum } from "../shared/TargetPriority";
@@ -927,6 +929,24 @@ function activateSpecial(session: CombatSession): void {
 	const state = session.special;
 	const current = ownsEnemy(session, session.target) ? session.target : undefined;
 	const range = SpecialWeapons.LockRange(state);
+	const area=state.kind === "salvo" ? session.blueprint?.armament?.areaAttack : undefined;
+	if(area) {
+		// A locked ground aim point seeds one footprint, never four independently guided hits.
+		if(!current || current.kind!=="ground" || !sessionCanDamage(session,current.kind,current.required) || session.lockProgress<WeaponRules.LockedAt) { denyFire(session,"special_no_target"); return; }
+		const [distance,dot]=targetMetrics(session,current);
+		if(!lockAllowed(session,distance) || distance>WeaponRules.EnvelopeRange(range,true) || dot<WeaponRules.LockDotFor(true)) { denyFire(session,"special_no_target"); return; }
+		const origin=positionFor(session.state), centre=current.position;
+		const params=session.gunParams ??= gunRaycastParams(session.groundParams!);
+		if(gunOccluded(params,origin,centre,current.model)) { denyFire(session,"special_no_target"); return; }
+		const decision=SpecialWeapons.Activate(state,1);
+		if(decision.kind==="denied") { denyFire(session,decision.reason); return; }
+		// Capture eligible targets before any kill can advance the phase/remove enemies.
+		const victims=session.enemies.filter(e=>ownsEnemy(session,e) && e.kind==="ground" && sessionCanDamage(session,e.kind,e.required) && insideArea(area,point(centre),point(e.position)) && !gunOccluded(params,origin,e.position,e.model));
+		JetFactory.Burst(session.folder,centre,Color3.fromRGB(255,190,100),area.radius);
+		for(const enemy of victims) { if(!session.active || sessionOutcome(session)!==undefined) break; if(ownsEnemy(session,enemy) && sessionCanDamage(session,enemy.kind,enemy.required)) gunStrike(session,enemy,area.damage); }
+		if(session.active) sendTelemetry(session);
+		return;
+	}
 	let targets = 1;
 	let salvo: number[] = [];
 	if (state.kind === "salvo") {
@@ -1079,9 +1099,9 @@ function stepAllies(session: CombatSession, dt: number, weaponsEnabled = true): 
 
 function stepGroundDefence(session: CombatSession, dt: number): void {
 	let firing=0;
-	for(const enemy of session.enemies) if((enemy.typedGround?.type === "aa_gun" || enemy.typedGround?.type === "gun_mount") && enemy.windup>0 && ownsEnemy(session,enemy)) firing++;
+	for(const enemy of session.enemies) if((enemy.typedGround?.type === "aa_gun" || enemy.typedGround?.type === "gun_mount" || enemy.typedGround?.type === "flak_gun") && enemy.windup>0 && ownsEnemy(session,enemy)) firing++;
 	for(const enemy of session.enemies) {
-		if(enemy.typedGround?.type !== "aa_gun" && enemy.typedGround?.type !== "gun_mount") continue;
+		if(enemy.typedGround?.type !== "aa_gun" && enemy.typedGround?.type !== "gun_mount" && enemy.typedGround?.type !== "flak_gun") continue;
 		const eligible=GroundAirDefence.Eligible(enemy.health>0,enemy.enabled,enemy.position.sub(positionFor(session.state)).Magnitude);
 		if(!eligible) { enemy.windup=0; enemy.model.SetAttribute("AttackWarning",false); if(enemy.warning) enemy.warning.Enabled=false; continue; }
 		enemy.fireTimer=math.max(0,enemy.fireTimer-dt);
@@ -1509,9 +1529,9 @@ function startGun(session: CombatSession): void {
 	if (refused) denyFire(session, refused);
 }
 /** One gun round on an enemy: the same ace staging and kill path as a missile hit, without a projectile. */
-function gunStrike(session: CombatSession, enemy: Enemy): void {
+function gunStrike(session: CombatSession, enemy: Enemy, hitDamage = GunRules.Damage): void {
 	if (enemy.aceState && AceRules.Invulnerable(enemy.aceState, session.elapsed)) return;
-	let damage = GunRules.Damage;
+	let damage = hitDamage;
 	if (enemy.aceState) damage = AceRules.CapHit(enemy.aceState, enemy.health, enemy.maxHealth, damage);
 	if (damage <= 0) return;
 	if (enemy.health <= damage) { destroyEnemy(session, enemy); return; }
@@ -1627,6 +1647,9 @@ function stepSession(session: CombatSession, dt: number): void {
 		}
 	}
 	session.inputSteps += 1;
+	stepCanyon(session,dt,(line)=>radio(session,line,4));
+	if(session.crashReason) { finish(session); return; }
+	if(session.health<=0) { refreshSession(session,os.clock()); return; }
 	if (session.blueprintState) {
 		const bs=session.blueprintState, nav=BlueprintRunner.NavigationPoint(bs, session.state);
 		let threats=0;

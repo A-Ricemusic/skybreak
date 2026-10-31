@@ -1,3 +1,4 @@
+import { CanyonEscape, validateBatchD3 } from "./EngineBatchD3";
 import { NightLighting, validateNightLighting } from "./NightLighting";
 import { SortieArmament, validateArmament } from "./SortieArmament";
 import { ScoreThreshold, RadarJamming, RearmPlan, validateBatchC } from "./EngineBatchC";
@@ -114,6 +115,7 @@ export interface PhaseExecution {
 }
 
 export interface MissionPhaseBlueprint {
+	canyonEscape?: CanyonEscape;
 	scoreThreshold?: ScoreThreshold;
 	jamming?: RadarJamming;
 	rearm?: RearmPlan;
@@ -289,6 +291,7 @@ for (let index = -1; index < MISSIONS.size(); index++) {
 	if(blueprint.nightLighting) validateNightLighting(blueprint.nightLighting, (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 		validateBatchC(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateArmament(blueprint.armament, expandPhases(blueprint.phases).some(phase => phase.rearm?.gun === true));
+	validateBatchD3(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth, blueprint.terrainRelativeWarnings === true);
 		validateBatchB(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateCutIn(expandPhases(blueprint.phases));
 	for (const phase of expandPhases(blueprint.phases)) if (phase.rearm) validateRearmPresentation(phase.rearm);
@@ -442,6 +445,7 @@ export const MissionCatalog = {
 		if(blueprint.nightLighting) validateNightLighting(blueprint.nightLighting, (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateBatchC(expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint).hardHalfWidth);
 	validateArmament(blueprint.armament, expandPhases(blueprint.phases).some(phase => phase.rearm?.gun === true));
+	validateBatchD3(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth, blueprint.terrainRelativeWarnings === true);
 	validateBatchB(expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint).hardHalfWidth);
 	validateCutIn(expandPhases(blueprint.phases));
 	for (const phase of expandPhases(blueprint.phases)) if (phase.rearm) validateRearmPresentation(phase.rearm);

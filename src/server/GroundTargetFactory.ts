@@ -57,8 +57,11 @@ export function createGroundTarget(spec: TypedGroundTarget): Model {
 		} else if (spec.type === "containers") {
 			for(const x of [-18,0,18]) part("Container",new Vector3(16,16,40),new Vector3(x,8,0));
 		} else if (spec.type === "storage") { part("Storehouse",new Vector3(65,30,45),new Vector3(0,15,0)); }
+		else if (spec.type === "solar_panel") { model.PrimaryPart!.Transparency=1; for(const x of [-18,0,18]) { const panel=part("Reflector",new Vector3(16,2,32),new Vector3(x,10,0)); panel.Color=Color3.fromRGB(55,105,145); panel.Material=Enum.Material.Glass; panel.CFrame=panel.CFrame.mul(CFrame.Angles(math.rad(20),0,0)); } }
+		else if (spec.type === "solar_tower") { part("Collector tower",new Vector3(14,100,14),new Vector3(0,50,0)); part("Receiver",new Vector3(26,18,26),new Vector3(0,105,0)); }
+		else if (spec.type === "pillbox") { part("Bunker",new Vector3(36,14,30),new Vector3(0,7,0)).Material=Enum.Material.Concrete; part("Firing slit",new Vector3(20,3,2),new Vector3(0,10,-16)).Color=Color3.fromRGB(20,25,25); }
 		else if (spec.type === "sam" && spec.sam) { part("Launcher",new Vector3(16,8,20),new Vector3(0,8,0)); for(const x of [-5,5]) part("Tube",new Vector3(3,4,22),new Vector3(x,15,-4)); }
-		else if (spec.type === "aa_gun" || spec.type === "gun_mount") { part("Turret",new Vector3(8,6,8),new Vector3(0,10,0)); part("Barrel",new Vector3(2,2,24),new Vector3(0,13,-10)); }
+		else if (spec.type === "aa_gun" || spec.type === "gun_mount" || spec.type === "flak_gun") { part("Turret",new Vector3(8,6,8),new Vector3(0,10,0)); part("Barrel",new Vector3(2,2,24),new Vector3(0,13,-10)); }
 		else if (spec.type === "parked_helicopter") { part("Cabin",new Vector3(10,10,24),new Vector3(0,10,0),true); part("Rotor",new Vector3(44,1,3),new Vector3(0,17,0)); part("Tail",new Vector3(3,4,28),new Vector3(0,10,20)); }
 		else if (spec.type === "radar_dome") part("Dome",new Vector3(34,34,34),new Vector3(0,23,0),true);
 		else if (spec.type === "hangar") { part("Hangar",new Vector3(65,25,55),new Vector3(0,12.5,0)); part("Door",new Vector3(45,20,1),new Vector3(0,10,-28)).Color=Color3.fromRGB(35,40,45); }
