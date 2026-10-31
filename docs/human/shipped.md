@@ -1,5 +1,7 @@
 # Shipped
 
+PR #194 unmerged fixture follow-up (2026-10-31): production launch and D13 combat-step tests share a complete session initializer; required enemy fixture fields are type-checked. This is not shipped or verified in Player. D13 stays dormant and mission 1–13 definitions are unchanged. Frozen install, build and full offline validation with the prescribed LUAU_BIN exited 0 (1,140 Luau contracts, 463 module compilations, 196 require-graph nodes, 19 catalog snapshots and 124 Python tests); Studio rerun belongs to the orchestrator.
+
 M13 replay validation (2026-10-30, base 351d7988): frozen install, standalone build, test:offline, voice/story/catalog regeneration and full validate:offline with the prescribed LUAU_BIN exited 0. Passed 1,118 Luau contracts, four loader guards, 19 catalog snapshots, three relay harness scenarios and 124 Python tests. All 103 prior specs plus M13 are staged and required with checkedRequire retained. Only M13's catalog entry differs; all 215 prior voice/story entries remain unchanged, with 223 total / 145 pending recordings. M12 numeric normalization and every prior decision record are preserved. Studio verified: pending orchestrator run. No Studio, test:roblox, Player tests or uploads performed. #195 remains merge pending.
 
 Merged PR #191 (351d7988) tooling update: canonical numeric catalog fixture prevents platform-specific Luau trig drift. No gameplay or Player change.
@@ -7,6 +9,10 @@ Merged PR #191 (351d7988) tooling update: canonical numeric catalog fixture prev
 | PR | Change | Status / owner observation |
 |---|---|---|
 | [#195](https://github.com/A-Ricemusic/skybreak/pull/195) | M13 EVIDENCE THROUGH THE GREY: 7:00 gun jammer sweep, fresh 15:00 evidence-plane interception, two optional escorts | Merge pending; live by pipeline convention after merge. Studio verified: pending orchestrator run. No Player test. |
+
+PR #194 load-failure follow-up (merging with this PR): batch-runtime namespace imports fix CombatService’s Luau register exhaustion, and validate:offline now checks compiled modules plus server require cycles. No gameplay activation, merge, deployment or observed Player result is claimed. Orchestrator Studio rerun is pending.
+
+Merged PR #191 tooling update: canonical numeric catalog fixture prevents platform-specific Luau trig drift. No gameplay or Player change.
 
 M12 integration validation (2026-10-30): frozen install, build, required test:offline and manifest/catalog regeneration, and full validate:offline all exited 0 with the specified LUAU_BIN. Passed 1,088 Luau contracts, four loader probes, 19 catalog snapshots, three QA pilot scenarios and 124 Python tests. Story/radio inventory is 215 entries / 137 pending recordings; no audio generated. Catalog changes only M12; prerequisite mission definitions and every main decision record are preserved. D9/D10 cleanup paths remain unchanged; only M12 railgun models set LeaveWreck. Studio verified: pending orchestrator run. No Player tests claimed.
 

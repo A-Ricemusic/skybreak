@@ -113,6 +113,9 @@ export interface Projectile {
 	lostTrack?: boolean;
 }
 export interface CombatSession {
+	d13Phase?: number;
+	d13Gate?: Part;
+	d13Beacon?: Part;
 	cruise?: CruiseRuntime;
  airshipPhase?: number;
 	ringArtillery?: { phase: number; state: ArtilleryState };

@@ -32,7 +32,9 @@ export function createGroundTarget(spec: TypedGroundTarget): Model {
 	};
 	if (spec.type !== "parked_bomber") {
 		model.PrimaryPart=part("Aim",new Vector3(12,8,12),new Vector3(0,4,0));
-		if (spec.type === "ship") {
+		if(spec.type==="generator" || spec.type==="core") {
+			model.PrimaryPart!.Transparency=1; part(spec.type,new Vector3(40,80,40),new Vector3(0,40,0));
+		} else if (spec.type === "ship") {
 			const loaded = UploadedAssets.Template(AssetSelection.TankerCandidates(UploadedAssetSpecs));
 			if (loaded) {
 				const aim = model.PrimaryPart!;

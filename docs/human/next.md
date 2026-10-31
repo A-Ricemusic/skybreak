@@ -1,5 +1,7 @@
 ## M13 review and beta guide — priority after M12 merge
 
+PR #194 next: orchestrator reruns Roblox Jest after the complete-session fixture fix, checking arena bounds over real enemy steps and all guided/blind wall, cover and legacy missile sweeps. The implementation agent will not launch Studio or run test:roblox. Keep D13 dormant; M18 activation and observed Player quality remain separate.
+
 M13 replay validation (2026-10-30, base 351d7988): frozen install, standalone build, test:offline, voice/story/catalog regeneration and full validate:offline with the prescribed LUAU_BIN exited 0. Passed 1,118 Luau contracts, four loader guards, 19 catalog snapshots, three relay harness scenarios and 124 Python tests. All 103 prior specs plus M13 are staged and required with checkedRequire retained. Only M13's catalog entry differs; all 215 prior voice/story entries remain unchanged, with 223 total / 145 pending recordings. M12 numeric normalization and every prior decision record are preserved. Studio verified: pending orchestrator run. No Studio, test:roblox, Player tests or uploads performed. #195 remains merge pending.
 
 M13 beta guide (after #195 merges; #191 merged as 351d7988): complete M12, launch EVIDENCE THROUGH THE GREY, hold gun on ravine airship hulls within 900 studs and reach 1,300 before 7:00. Check local navigation-jam clearance and carry-over PAPER ONE damage at the update. During the fresh 15:00, stop all eight required attackers and keep PAPER ONE alive until SAFE. LANTERN may remove one optional escort; required targets stay player-owned. Retry a failure and confirm M14 remains locked. Observe Easy/Normal/Hard fairness, phone target readability and destroyed hull collision cleanup. Studio verified: pending orchestrator run; Player quality remains unobserved.
@@ -11,6 +13,10 @@ On a campaign slot that has completed M12, launch **EVIDENCE THROUGH THE GREY**.
 Normal beta focus: prioritise the approaching pairs every 30 seconds from 7:00; ten 7.5-damage hits destroy the 75-hull evidence plane. First damage leaves nine hits of headroom. The 600-second route leaves about 180–200 seconds exposed after the update. The offline envelope includes acquisition/pursuit/missile travel and pair clearance at +25/+35 seconds; confirm these assumptions in Player. Check that attentive interception is defensible, neglect loses, gun approaches and labels remain readable in fog, phase handoff preserves hull/nav delay, and TGT never selects Paper One. Compare ingress, one jammer cluster, update and debrief against the accepted reference views before claiming visual fidelity. Studio/Player/phone checks have not been performed for this branch.
 
 # Next
+
+PR #194 priority: orchestrator reruns Roblox Jest on the load-failure fix. The failure was CombatService register exhaustion, not a D12/D13 require cycle. Offline module compilation and emitted-require cycle checks now run in validate:offline. D13 stays dormant; M18 authoring/activation and rendered acceptance remain separate. The branch includes merged D11/D12 contracts, superseding the older exclusion note below.
+
+PR #191: verify Linux validate on the numeric snapshot portability fix before merge; existing runtime acceptance remains pending.
 
 PR #191 merged as 351d7988 with numeric snapshot normalization; runtime acceptance remains pending.
 
@@ -117,6 +123,14 @@ Review PR #188’s integration with merged D7/D8 and missions 8–9. Keep D9 dor
 ## D10 integration with current main (2026-10-30)
 
 PR #190 remains dormant and unmerged. Main D6–D9 and missions 8–9 are preserved; practice, mission catalog and frozen snapshots are unchanged. Cruise twists remain rejected. The shared sortie identity namespace now also includes protected aircraft and spatial airships; elites use generated runtime identities, with the existing elite retreat lifecycle preserved. M14 activation still needs authored routes/roster/scoring and Studio/Player/phone acceptance. No Studio, Player test or upload was performed. Integration validation passed: frozen install, build and full offline validation each exited 0; runtime Jest compiled only. Main was `f35430f`; mission 10 had not merged.
+
+D13 acceptance: rerun the compiled complete `stepEnemies` vent-exit/arena-edge regressions and guided/blind vent missile wall/covered-player regressions in the orchestrator-owned Roblox session before mission authoring acceptance. Offline geometry coverage is available; no Studio run was performed here.
+
+## Batch D13 implementation
+
+Review the dormant D13 engine PR, then integrate M18 only in mission order after D9–D12 and mission readiness. Author generator/core/vent/duel plans from the existing M18 world; verify physical shutter clearance, occlusion, retry, independent 5:00 clock, no ammo refund/refill, and allied/structure silence in the orchestrator-owned Roblox session.
+
+D13 integration follow-up (unmerged #194): review the main-composed head and execute the compiled D13 runtime regressions in the orchestrator-owned session, including D10 cruise disposal at duel entry. Offline validation is green; M18 activation still waits on mission order and flight/rendered/phone acceptance. D11/D12 remain separate approved PRs; neither was imported into D13.
 
 ## D12 main integration (2026-10-30)
 
