@@ -1,3 +1,4 @@
+import { repairAllowed } from "./EngineBatchD11";
 import { CarrierRearm, carrierRearmPose } from "./EngineBatchD5";
 import { finiteNumber, LandingPlan, landingDuration, landingPose, validateBatchB } from "./EngineBatchB";
 import { FlightMath, FlightState } from "./FlightMath";
@@ -24,7 +25,7 @@ export function rearmPose(p: RearmPlan, elapsed: number): FlightState {
 	const distance=FlightMath.CruiseSpeed*t*t/(2*p.takeoffSeconds);
 	return FlightMath.FromPose(rollout.x+math.sin(angle)*distance,rollout.y+math.max(0,t-p.takeoffSeconds/2)*25,rollout.z-math.cos(angle)*distance,-angle,math.rad(8),math.max(35,FlightMath.CruiseSpeed*t/p.takeoffSeconds));
 }
-export function validateBatchC(phases: MissionPhaseBlueprint[], limit: number): void {
+export function validateBatchC(phases: MissionPhaseBlueprint[], limit: number, missionId?: number): void {
 	const positive=(n: number)=>assert(finiteNumber(n) && n>0,"Batch C needs finite positive values");
 	for(let i=0;i<phases.size();i++) {
 		const p=phases[i], s=p.scoreThreshold;
@@ -33,7 +34,7 @@ export function validateBatchC(phases: MissionPhaseBlueprint[], limit: number): 
 		if(s) { assert(p.update?.countdownSeconds===undefined || p.update.countdownSeconds===s.seconds,"Score phase owns its countdown"); positive(s.points); positive(s.seconds); assert(s.points%1===0 && s.seconds<=86400 && typeIs(s.waitForExpiry,"boolean"),"Invalid score threshold"); assert(p.twist===undefined && p.points===undefined && p.count===undefined,"Score phase owns progress"); }
 		if(p.jamming) { positive(p.jamming.visualLockRange); for(const line of [p.jamming.remainingCall,p.jamming.clearCall]) assert(line.size()>0 && line.size()<=72,"Invalid jammer radio"); assert(p.spatialJamming!==undefined || (p.fighterWaves ?? []).some(w=>w.aircraft==="jammer") || (p.groundTargets ?? []).some(t=>t.type==="ground_ecm" && t.ecm===true),"Jamming needs a live jammer source"); }
 		if(p.rearm) {
-			const r=p.rearm; assert(s!==undefined || p.kind==="required_ground","Rearm needs a score or required-ground strike phase"); assert(!r.health,"Rearm preserves damage"); positive(r.radius); positive(r.takeoffSeconds); assert(r.takeoffSeconds<=60 && r.radius<=2000,"Rearm budget exceeded");
+			const r=p.rearm; assert(s!==undefined || p.kind==="required_ground","Rearm needs a score or required-ground strike phase"); assert(!r.health || repairAllowed(missionId,true),"Rearm preserves damage outside opted-in missions 15–17"); positive(r.radius); positive(r.takeoffSeconds); assert(r.takeoffSeconds<=60 && r.radius<=2000,"Rearm budget exceeded");
 			for(const n of [r.zone.x,r.zone.y,r.zone.z]) assert(finiteNumber(n),"Invalid rearm zone");
 			assert(math.abs(r.zone.x)<=limit && math.abs(r.zone.z)<=limit && r.zone.y>=0 && r.zone.y<=2000,"Rearm outside airspace");
 			const start=landingPose(r.landing,0);
