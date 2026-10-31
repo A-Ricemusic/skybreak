@@ -82,6 +82,7 @@ function finite(n: number): boolean { return typeIs(n,"number") && n === n && ma
 /** One sortie-wide namespace for authored encounter/kill identities, independent of phase order. */
 export function validateEncounterIdentities(phases: MissionPhaseBlueprint[]): void {
 	const ids = new Set<string>();
+	let priorProtected=new Set<string>();
 	const claim = (id: string) => { assert(id.size()>0 && !ids.has(id), "Encounter ids must be unique and nonempty"); ids.add(id); };
 	for (const [index, phase] of ipairs(phases)) {
 		if (phase.batchD13?.duel) claim(duelTargetId(index-1));
@@ -95,7 +96,8 @@ export function validateEncounterIdentities(phases: MissionPhaseBlueprint[]): vo
 		for (const wave of phase.fighterWaves ?? []) claim(wave.id);
 		if (phase.standaloneAce) claim(phase.standaloneAce.id);
 		for (const target of phase.cruiseIntercept?.targets ?? []) claim(target.id);
-		for (const actor of phase.protection?.aircraft ?? []) claim(actor.id);
+		for (const actor of phase.protection?.aircraft ?? []) if (!phase.protection?.accompaniment || !priorProtected.has(actor.id)) claim(actor.id);
+		priorProtected=new Set(phase.protection?.accompaniment ? phase.protection.aircraft.map(a=>a.id) : []);
 		for (const airship of phase.spatialJamming?.airships ?? []) claim(airship.id);
 	}
 }

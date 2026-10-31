@@ -47,6 +47,6 @@ describe("Dormant D7 protection contracts",()=>{
   expect(AlliedRules.WarnsPlayer({})).toBe(false);expect(AlliedRules.WarnsPlayer(undefined,"beach")).toBe(false);expect(AlliedRules.WarnsPlayer(undefined)).toBe(true);
  });
  it("leaves practice, M01–M06 and all catalog opt-ins unchanged",()=>{
-  for(const b of MissionCatalog.All().filter(b=>b.id!==11)) for(const p of MissionCatalog.ExpandedPhases(b)) {expect(p.protection).toBeUndefined(); for(const w of p.fighterWaves ?? []) expect(w.attackProtected).toBeUndefined();}
+  for(const b of MissionCatalog.All().filter(b=>b.id!==11 && b.id!==13)) for(const p of MissionCatalog.ExpandedPhases(b)) {expect(p.protection).toBeUndefined(); for(const w of p.fighterWaves ?? []) expect(w.attackProtected).toBeUndefined();}
  });
 });

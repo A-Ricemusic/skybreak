@@ -19,6 +19,7 @@ export interface BlueprintState {
 	/** A HUD-less cut-in holds the mission clock like a rearm (SortieCutaways). */
 	cutInActive?: boolean;
 	score?: number;
+ protectedSafe?: number;
 	scorePhaseStarted?: number;
 	updateSerial?: number;
 	updateUntil?: number;
@@ -81,7 +82,7 @@ function sweptDistance(p: FlightPoint, a: FlightPoint, b: FlightPoint): number {
 }
 function total(p: MissionPhaseBlueprint): number {
 	if(p.eliteFormation) return 1;
-	if (p.protection) return p.protection.aircraft.size();
+	if (p.protection && !p.protection.accompaniment) return p.protection.aircraft.size();
 	if (p.scoreThreshold) return p.scoreThreshold.points;
 	if (p.kind === "tutorial_move") return (p.execution?.movementDuration ?? 3)*2;
 	if (p.kind === "tutorial_target") return 1;
@@ -109,7 +110,7 @@ function enter(s: BlueprintState): void {
 	s.landingElapsed=p?.landing ? 0 : undefined;
 }
 function advance(s: BlueprintState): void {
-	s.phaseIndex++; s.phaseProgress=0; s.pointIndex=0; s.phaseOptionalKills=0; s.protectedHealth=100; s.phaseTwisted=false;
+	s.phaseIndex++; s.protectedSafe=undefined; s.phaseProgress=0; s.pointIndex=0; s.phaseOptionalKills=0; s.protectedHealth=100; s.phaseTwisted=false;
 	s.phaseClock=0; s.hazardFired=false; s.hazardAlive=0;
 	s.stepSince=s.elapsed; s.cycled=false;
 	const nextPhase=s.phases[s.phaseIndex];
@@ -260,8 +261,14 @@ export const BlueprintRunner = {
 	ObserveProtection(s: BlueprintState, safe: number, lost: boolean): void {
 		if(s.outcome!==undefined || !BlueprintRunner.ActivePhase(s)?.protection) return;
 		if(lost) { s.protectedHealth=0; finish(s,"failed","protected_lost"); return; }
+		const p=BlueprintRunner.ActivePhase(s)!;
+		if(p.protection!.accompaniment) {
+		 s.protectedSafe=safe;
+		 if(p.kind==="required_air" && safe>=p.protection!.aircraft.size() && s.phaseProgress>=total(p)) advance(s);
+		 return;
+		}
 		s.phaseProgress=safe;
-		if(safe>=total(BlueprintRunner.ActivePhase(s)!)) advance(s);
+		if(safe>=total(p)) advance(s);
 	},
 	ActivePhase(s: BlueprintState): MissionPhaseBlueprint | undefined { return s.phases[s.phaseIndex]; },
 	/** The live phase list (authored phases plus twist inserts fired so far). Read-only for callers. */
@@ -381,7 +388,7 @@ export const BlueprintRunner = {
 		else s.requiredGroundKills++;
 		s.phaseProgress++;
 		if (twist(s)) return true;
-		if (!p.cruiseIntercept && !p.leaderWithdrawal && !p.interceptHold && !p.batchD13?.vent && s.phaseProgress>=total(BlueprintRunner.ActivePhase(s)!)) advance(s);
+		if (!p.cruiseIntercept && !p.leaderWithdrawal && !p.interceptHold && !p.batchD13?.vent && s.phaseProgress>=total(BlueprintRunner.ActivePhase(s)!) && (!p.protection?.accompaniment || (s.protectedSafe ?? 0)>=p.protection.aircraft.size())) advance(s);
 		return true;
 	},
 	/** Director completion is separate from the score ledger: separation is never a kill. */

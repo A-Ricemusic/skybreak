@@ -1,14 +1,23 @@
 # Shipped
 
-PR #194 load-failure follow-up is unmerged: batch-runtime namespace imports fix CombatService’s Luau register exhaustion, and validate:offline now checks compiled modules plus server require cycles. No gameplay activation, merge, deployment or observed Player result is claimed. Orchestrator Studio rerun is pending.
+M13 replay validation (2026-10-30, base 351d7988): frozen install, standalone build, test:offline, voice/story/catalog regeneration and full validate:offline with the prescribed LUAU_BIN exited 0. Passed 1,118 Luau contracts, four loader guards, 19 catalog snapshots, three relay harness scenarios and 124 Python tests. All 103 prior specs plus M13 are staged and required with checkedRequire retained. Only M13's catalog entry differs; all 215 prior voice/story entries remain unchanged, with 223 total / 145 pending recordings. M12 numeric normalization and every prior decision record are preserved. Studio verified: pending orchestrator run. No Studio, test:roblox, Player tests or uploads performed. #195 remains merge pending.
 
-Unmerged PR #191 tooling update: canonical numeric catalog fixture prevents platform-specific Luau trig drift. No gameplay or Player change.
+Merged PR #191 (351d7988) tooling update: canonical numeric catalog fixture prevents platform-specific Luau trig drift. No gameplay or Player change.
+
+| PR | Change | Status / owner observation |
+|---|---|---|
+| [#195](https://github.com/A-Ricemusic/skybreak/pull/195) | M13 EVIDENCE THROUGH THE GREY: 7:00 gun jammer sweep, fresh 15:00 evidence-plane interception, two optional escorts | Merge pending; live by pipeline convention after merge. Studio verified: pending orchestrator run. No Player test. |
+
+PR #194 load-failure follow-up (merging with this PR): batch-runtime namespace imports fix CombatService’s Luau register exhaustion, and validate:offline now checks compiled modules plus server require cycles. No gameplay activation, merge, deployment or observed Player result is claimed. Orchestrator Studio rerun is pending.
+
+Merged PR #191 tooling update: canonical numeric catalog fixture prevents platform-specific Luau trig drift. No gameplay or Player change.
 
 M12 integration validation (2026-10-30): frozen install, build, required test:offline and manifest/catalog regeneration, and full validate:offline all exited 0 with the specified LUAU_BIN. Passed 1,088 Luau contracts, four loader probes, 19 catalog snapshots, three QA pilot scenarios and 124 Python tests. Story/radio inventory is 215 entries / 137 pending recordings; no audio generated. Catalog changes only M12; prerequisite mission definitions and every main decision record are preserved. D9/D10 cleanup paths remain unchanged; only M12 railgun models set LeaveWreck. Studio verified: pending orchestrator run. No Player tests claimed.
 
 | PR | Change | Status / owner observation |
 |---|---|---|
-| [#191](https://github.com/A-Ricemusic/skybreak/pull/191) | M12 THE COMMAND RING: seven guns in 15:00, strike rearm, fresh 10:00 elite/recovery; unlocks after M11 | Merge pending; live by pipeline convention after merge. Studio verified: pending orchestrator run. No Player test. |
+| [#193](https://github.com/A-Ricemusic/skybreak/pull/193) | `545d1764` | D12 Rusk withdrawal, bridge route closures, naval turrets | No visible change — engine support, dormant. Mission 17 has not activated on main. |
+| [#191](https://github.com/A-Ricemusic/skybreak/pull/191) | M12 THE COMMAND RING: seven guns in 15:00, strike rearm, fresh 10:00 elite/recovery; unlocks after M11 | Merged 351d7988; live by pipeline convention. Studio verified: pending orchestrator run. No Player test. |
 | [#192](https://github.com/A-Ricemusic/skybreak/pull/192) | `85ce755` | D11 ground-force extensions, repair rearm (M15–17 only), service clocks, cheap armour | No visible change — engine support, dormant. Missions 15–16 have not activated on main. |
 
 Merged final balance correction (#189, 5c88368c): PR #189 D-445 retunes M11 hulls to 34/77/147, asserts ≥10% Easy > Normal > Hard neglect survival on both routes, and corrects scaled reload/admission/formation/launch-offset modelling. Frozen install, build and full offline validation exited 0; regenerated catalog changes only M11. Merged/live by pipeline convention; no Player test is claimed.
