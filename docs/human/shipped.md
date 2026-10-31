@@ -1,3 +1,7 @@
+## Main through `248e387` — 2026-10-30
+
+Merged/live by the owner's pipeline convention: M07 ARRAY BREAK #178, D4 queued air battles/interception #177, and D5 carrier service/ground-force director #180. M07 is sequential after M06; D4/D5 remain opt-in for their later mission integrations. No Player test by this agent. M10 remains an unmerged review branch with dependencies #182/#183/#185; it is not shipped.
+
 # Shipped
 
 **M09 arrival regression, 2026-10-30:** Orchestrator reported Studio Jest 1,219/1,220 at `21be233`: the sole failure expected nine generic opening bandits, but D5 authors three required trios at mission times 600/625/650. #185 corrects the test to check exact timed admissions and duplicates, retaining D4 slots and adding grouped/delayed-launch coverage. Runtime remains unchanged: completion requires all nine kills. An offline regression clears early trios without ending the phase. Frozen install, build and full offline validation exited 0 (1,023 Luau contracts, 19 catalog snapshots, 124 Python tests). The director regression compiles but requires the orchestrator’s Studio rerun; this task did not launch Studio or claim a Player test.
@@ -120,3 +124,7 @@ These merged gameplay changes are live through the automatic pipeline convention
 The earlier AC04 release (#92) was rejected and reverted (`b0737fa`). #77 (mission 1 tutorial rework) and #91 (TypeScript 5.9) were closed without merging.
 
 PR #144 merged as `7711b70`: dormant mission 4–5 worlds, with M05 owning environment/effects. PR #145 batch C is merged; no Studio or Player observation from this pass.
+
+## Pending M10 branch (not shipped)
+
+RIVER LINE is in review on `feat/m10-mission`, depending on #182/#183/#185. It is not merged/live. Main `248e387` includes M07 #178, D4 #177 and D5 #180; older readiness prose above predates those merges. No new Player observation or deployment failure is claimed. See README/next/blockers/decisions for M10's branch state and acceptance gaps.

@@ -159,18 +159,13 @@ No generator, network dependencies, JavaScript or build step is required. -->
   <dt>Owner test</dt><dd>Offline contracts checked; Studio/Jest, Player, phone and rendered comparison pending.</dd></dl>
 </article>
 
-<article class="card" id="level-10"><h2>10 · Mission 10</h2><span class="badge review">Spec only</span><p class="muted">Reference: Tango Line</p><dl>
-  <dt>Reference footage</dt><dd>2:16:13–2:37:51</dd>
-  <dt>Pieces</dt><dd><ul class="pieces">
-    <li>Spec: ✓ merged <a href="../specs/missions/m10.md">mission</a> and <a href="../specs/worlds/m10.md">world</a></li>
-    <li>World: ✓ built/dormant (#175); <a href="../specs/worlds/m10-composition.md">composition and budget</a></li>
-    <li>Engine needs: D1–D3 merged/dormant; remaining integration follows engine plan</li>
-    <li>Mission data & unlock: — placeholder only; locked</li>
-    <li>Studio verified: —</li>
-    <li>Live: —</li></ul></dd>
-  <dt>Open PRs</dt><dd>None for playable mission at snapshot</dd>
-  <dt>Known issues</dt><dd>PR #167 P1 river continuity fixed offline (generated-water flood-fill/centreline); estimate14.732s with1.268s headroom. World awaits rendered/phone acceptance; mission integration and source roster assumptions remain open. Level stays locked.</dd>
-  <dt>Owner test</dt><dd>No playable test yet. Review the composition/target tables; authenticated Studio and Player flight tests remain pending.</dd></dl>
+<article class="card" id="level-10"><h2>10 · RIVER LINE</h2><span class="badge review">In review</span><p class="muted">Reference: Tango Line</p><dl>
+<dt>Implementation</dt><dd>One 20-minute score strike, 140 static/parked contacts, 44 finite airframes, eight queued fighter slots; repeated artillery, optional rearm and finite area weapon. Adopts 124 world ids.</dd>
+<dt>Dependencies</dt><dd>#182 D6, #183 M08, #185 M09. Unlock after sequential M09 completion when those dependencies land.</dd>
+<dt>Ranks</dt><dd>C 3,000 · B 3,800 · A 4,200 · S 5,400. Maximum 9,340; allied kills give no player credit.</dd>
+<dt>Owner test</dt><dd>Follow the <a href="next.md">M10 beta guide</a> and <a href="../specs/missions/m10-implementation.md">target, phase and rank tables</a>. Check artillery cover below absolute Y=585, NE ingress, repeated service, HUD and phone performance.</dd>
+<dt>Verification</dt><dd>Offline contracts only. Studio/Roblox Jest, rendered reference comparison and Player flight remain pending with the orchestrator. Not merged/live. No new audio or Blender uploads.</dd>
+</dl>
 </article>
 
 <article class="card" id="level-11"><h2>11 · Mission 11</h2><span class="badge review">Spec only</span><p class="muted">Reference: Escort</p><dl>

@@ -20,7 +20,7 @@ describe("Dormant M10/M11 worlds", () => {
   for (const p of [a, b]) {
    expect(new Set(p.targets.map(t => t.id)).size()).toBe(p.targets.size());
    for (const t of p.targets) expect(p.parts.some(f => f.name === t.id) || t.type === "frigate" || t.type === "tanker").toBe(true);
-   for (const m of MissionCatalog.All()) expect(MissionCatalog.WorldKey(m.id)).never.toBe(p.key);
+   for (const m of MissionCatalog.All()) if(m.id!==10) expect(MissionCatalog.WorldKey(m.id)).never.toBe(p.key);
   }
  });
  it("preserves spec anchors, NE ingress, 100/24 scenery capacity and mission metadata", () => {
