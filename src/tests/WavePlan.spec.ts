@@ -93,4 +93,14 @@ describe("Staggered waves", () => {
 		expect(WavePlan.Admit(queue, 5)[0].count).toBe(1);
 		expect(queue.size()).toBe(0);
 	});
+	it("preserves unrestricted route admissions when the opt-in route cap is absent", () => {
+		for (const room of [-1, 0, 1, 2, 7, 8]) {
+			const route = { id: "patrol", route: { speed: 90, waypoints: [{x:0,y:400,z:0},{x:1000,y:400,z:0}] } } as AirRequest["arrival"];
+			const queue = (): AirRequest[] => [{ role:"raider",count:4,behind:false,arrival:route }, {role:"raider",count:4,behind:true}];
+			const legacy=queue(), explicit=queue();
+			expect(WavePlan.Admit(legacy,room)).toEqual(WavePlan.Admit(explicit,room,room));
+			expect(legacy).toEqual(explicit);
+		}
+	});
+
 });

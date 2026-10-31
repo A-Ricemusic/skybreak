@@ -62,7 +62,7 @@ describe("D11 runtime (compiled; Studio execution pending)",()=>{
  it("preserves armour aim, yaw, identity and health through LOD swaps",()=>{
   for(const targetType of ["tank","vehicle","artillery","bunker"] as const) {
    const t={...spec(targetType),type:targetType}, m=createCheapContact(t),full=createGroundTarget(t),aim=m.PrimaryPart!;
-   try {expect(cheapEligible(t)).toBe(true);expect(aim.CFrame).toEqual(full.PrimaryPart!.CFrame);m.SetAttribute("Health",23);setContactDetail(m,t,true);expect(m.PrimaryPart).toBe(aim);expect(m.GetAttribute("Health")).toBe(23);setContactDetail(m,t,false);expect(m.GetDescendants().size()).toBe(1);expect(m.GetAttribute("TargetId")).toBe(targetType);} finally {m.Destroy();full.Destroy();}
+   try {expect(cheapEligible(t,15)).toBe(true);for(let id=0;id<=10;id++) expect(cheapEligible(t,id)).toBe(false);expect(aim.CFrame).toEqual(full.PrimaryPart!.CFrame);m.SetAttribute("Health",23);setContactDetail(m,t,true);expect(m.PrimaryPart).toBe(aim);expect(m.GetAttribute("Health")).toBe(23);setContactDetail(m,t,false);expect(m.GetDescendants().size()).toBe(1);expect(m.GetAttribute("TargetId")).toBe(targetType);} finally {m.Destroy();full.Destroy();}
   }
  });
  it("uses D6's 150-contact, 24-detail, two-changes budget for a desert armour battle",()=>{

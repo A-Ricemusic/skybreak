@@ -14,6 +14,13 @@ function contact(id: string, gate?: string) {
  return { enemy, part, attributes };
 }
 describe("D11 score deadline reserve presentation", () => {
+ it("preserves D8 wreck scenery without enabling targeting or collision queries", () => {
+  const wreck=contact("wreck");wreck.enemy.typedGround!.type="wreck";
+  applyGroundPhase([wreck.enemy],0);
+  expect(wreck.part.Transparency).toBe(0.25);expect(wreck.enemy.enabled).toBe(false);expect(wreck.part.CanQuery).toBe(false);
+  expect(wreck.attributes.get("SkybreakEnemy")).toBe(false);
+  applyGroundPhase([wreck.enemy],-1);expect(wreck.part.Transparency).toBe(1);
+ });
  it("keeps an unsecured reserve hidden through score expiry into city bombers", () => {
   const bp = d4Fixture(); bp.id = 15;
   const plan = { sectors: [{ id: "city", kind: "troops" as const, clearTargetIds: ["gate-tank"], seconds: 10, health: 100, route: { speed: 10, waypoints: [{ x: 0, y: 40, z: 0 }, { x: 0, y: 40, z: -100 }] }, advanceCall: "Advance", securedCall: "Secured", hitCall: "Hit" }] };

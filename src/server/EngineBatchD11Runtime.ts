@@ -27,10 +27,10 @@ export function completeRearmRepair(s: CombatSession, optedIn: boolean): void {
 /** Shared phase presentation: D11 reserve state never changes legacy survivor visibility. */
 export function applyGroundPhase(enemies: Enemy[], phaseIndex: number): void {
 	for (const enemy of enemies) if (enemy.typedGround) {
-		enemy.enabled=enemy.phaseOwner === phaseIndex && enemy.health>0 && enemy.typedGround.reinforceAfterSector===undefined;
+		enemy.enabled=enemy.typedGround.type!=="wreck" && enemy.phaseOwner === phaseIndex && enemy.health>0 && enemy.typedGround.reinforceAfterSector===undefined;
 		// Only released reserves may become standing survivors; unopened gates stay hidden until sortie cleanup.
 		const released=enemy.typedGround.reinforceAfterSector===undefined || enemy.reserveReleased===true;
-		const shown=released && (enemy.enabled || (enemy.health>0 && (enemy.phaseOwner ?? 0)<phaseIndex));
+		const shown=released && ((enemy.typedGround.type==="wreck" && enemy.phaseOwner===phaseIndex) || enemy.enabled || (enemy.health>0 && (enemy.phaseOwner ?? 0)<phaseIndex));
 		for(const item of enemy.model.GetDescendants()) if(item.IsA("BasePart")) {
 			item.Transparency=shown ? (item.GetAttribute("OriginalTransparency") as number ?? 0) : 1;
 			item.CanQuery=enemy.enabled && item.GetAttribute("FlightSolid") === true;

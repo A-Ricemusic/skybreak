@@ -1,8 +1,9 @@
+import { protectedNavigationStep } from "./EngineBatchD9Runtime";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { damageProtected, protectedPose, protectionResult, stepProtected } from "../shared/EngineBatchD7";
 import type { ProtectedAircraftPlan, ProtectedState } from "../shared/EngineBatchD7";
 import type { CombatSession, Enemy } from "./CombatSession";
-export interface ProtectedActor { aircraft: Enemy; plan: ProtectedAircraftPlan; state: ProtectedState; label: TextLabel }
+export interface ProtectedActor { aircraft: Enemy; plan: ProtectedAircraftPlan; state: ProtectedState; label: TextLabel; navigationHeld?: number }
 
 function createActor(session: CombatSession, plan: ProtectedAircraftPlan): ProtectedActor {
  const model=new Instance("Model"); model.Name=plan.callsign;
@@ -43,12 +44,15 @@ export function stepProtection(session: CombatSession, dt: number, say:(line:str
  for(const a of actors) {
   if(a.state.safe) continue;
   a.state.health=a.aircraft.health;
-  stepProtected(a.state,a.plan,dt);
+  const nav=protectedNavigationStep(session,protectedPose(a.plan,a.state.elapsed).position,dt,a.navigationHeld ?? 0);
+  a.navigationHeld=nav.held;
+  a.aircraft.model.SetAttribute("NavigationJammed",nav.advance<dt);
+  stepProtected(a.state,a.plan,nav.advance);
   const pose=protectedPose(a.plan,a.state.elapsed), p=pose.position, d=pose.facing;
   a.aircraft.position=new Vector3(p.x,p.y,p.z); a.aircraft.direction=new Vector3(d.x,d.y,d.z);
-  a.aircraft.velocity=a.state.safe ? Vector3.zero : a.aircraft.direction.mul(a.plan.route.speed);
+  a.aircraft.velocity=a.state.safe ? Vector3.zero : a.aircraft.direction.mul(a.plan.route.speed*(dt>0 ? nav.advance/dt : 1));
   a.aircraft.model.PivotTo(CFrame.lookAt(a.aircraft.position,a.aircraft.position.add(a.aircraft.direction)));
-  a.label.Text=`PROTECT ${a.plan.callsign} · ${a.state.safe ? "SAFE" : `${math.ceil(a.state.health/a.plan.health*100)}%`}`;
+  a.label.Text=`PROTECT ${a.plan.callsign}${nav.advance<dt ? " · NAV JAM" : ""} · ${a.state.safe ? "SAFE" : `${math.ceil(a.state.health/a.plan.health*100)}%`}`;
   if(a.state.safe && a.aircraft.enabled) { a.aircraft.enabled=false; a.aircraft.model.Destroy(); say(`${a.plan.callsign} is safe.`); }
  }
  const result=protectionResult(actors.map(a=>a.state));

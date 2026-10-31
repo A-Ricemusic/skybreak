@@ -1,5 +1,6 @@
+import { validateEncounterIdentities } from "../shared/CampaignEncounters";
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { cheapArmourEligible, repairAllowed, sectorReinforcementReady, validateBatchD11 } from "../shared/EngineBatchD11";
+import { cheapArmourAllowed, cheapArmourEligible, repairAllowed, sectorReinforcementReady, validateBatchD11 } from "../shared/EngineBatchD11";
 import { GroundProgressPlan, newGroundProgress, stepGroundProgress, validateBatchD5 } from "../shared/EngineBatchD5";
 import { MissionCatalog, MissionPhaseBlueprint } from "../shared/MissionCatalog";
 import { BlueprintRunner as R } from "../shared/BlueprintRunner";
@@ -12,6 +13,34 @@ function phase(): MissionPhaseBlueprint {
 }
 function service():RearmPlan {return {zone:{x:0,y:100,z:1000},radius:1500,landing:{touchdown:{x:0,y:100,z:0},headingDegrees:0,approachDistance:1000,rolloutDistance:150,approachSeconds:10,rolloutSeconds:3,glideDegrees:3},takeoffSeconds:8,missiles:true,special:true,health:true,weaponMenu:true};}
 describe("Dormant D11 ground support and service",()=>{
+ it("keeps late armour disabled for every live and missing mission identity",()=>{
+  for(let id=0;id<=18;id++) expect(cheapArmourAllowed(id)).toBe(id>=15 && id<=17);
+  expect(cheapArmourAllowed(undefined)).toBe(false);
+ });
+ it("shares squad, column and reserve identities with every authored encounter source",()=>{
+  const sources:MissionPhaseBlueprint[]=[
+   {...phase(),groundProgress:undefined},
+   {kind:"required_air",label:"Bombers",bombers:{targetIds:["city"]}},
+   {kind:"required_air",label:"Fighters",fighterWaves:[{id:"city"}]},
+   {kind:"required_air",label:"Ace",standaloneAce:{id:"city"}},
+   {kind:"required_air",label:"Cruise",cruiseIntercept:{targets:[{id:"city"}]}},
+   {kind:"required_air",label:"Protected",protection:{aircraft:[{id:"city"}]}},
+   {kind:"required_air",label:"Spatial",spatialJamming:{airships:[{id:"city"}]}}
+  ] as MissionPhaseBlueprint[];
+  validateEncounterIdentities([phase()]);
+  sources[0].groundTargets![1].id="city";
+  for(const source of sources) expect(pcall(()=>validateEncounterIdentities([phase(),source]))[0]).toBe(false);
+  const duplicate=phase();duplicate.groundProgress!.sectors[1].id="city";
+  expect(pcall(()=>validateEncounterIdentities([duplicate]))[0]).toBe(false);
+ });
+ it("composes D8 strike rearm with D11 repair identity checks",()=>{
+  for(let id=0;id<=18;id++) {
+   const p:MissionPhaseBlueprint={kind:"required_ground",label:"Strike",rearm:service()};
+   expect(pcall(()=>validateBatchC([p],3000,id))[0]).toBe(id>=15 && id<=17);
+   p.rearm!.health=false;validateBatchC([p],3000,id);
+  }
+ });
+
  it("repairs only explicit mission 15–17 authoring identities",()=>{
   for(let id=0;id<=18;id++) {expect(repairAllowed(id,true)).toBe(id>=15 && id<=17);expect(repairAllowed(id,false)).toBe(false);}
   expect(repairAllowed(undefined,true)).toBe(false);
