@@ -4,10 +4,10 @@ Updated 2026-10-30 against main `9857358`. Publish succeeded per CI; no known de
 
 ## Resolved dependencies
 
-- M04 #149, M05 #148, terrain performance #158, story #159 and cutscenes #152 are merged. Practice/M01–M05 are live; their old review/unlock dependencies are resolved.
+- M04 #149, M05 #148, terrain performance #158, story #159 and cutscenes #152 are merged. Practice/M01–M06 are live after #179 merges; their old review/unlock dependencies are resolved.
 - #172 targeting, #173 loading and #174 difficulty/allied budget are merged/live. Human balance, phone and rendered acceptance remain open.
 - Worlds 6–13 (#175, combining #164/#166/#167/#170) and 14–18 (#176) are built, merged and dormant. No stack rebase remains for those world PRs. #176 fixes M05–M13 weather lookup and all 18 environment registrations, M17 metadata and M18 foundations.
-- D1 #165, D2 #168 and D3 #171 are merged and dormant. Their former stack dependencies are resolved; engine merge does not activate missions 6–18. D4 #177 and mission 7 #178 remain open; mission 6 and D5/D6 are in progress.
+- D1 #165, D2 #168 and D3 #171 are merged; #179 activates D1/D2 support for mission 6, while D3 remains dormant. Their former stack dependencies are resolved; engine merge alone does not activate missions 7–18. D4 #177 and mission 7 #178 remain open; mission 6 #179 is Live after merge; D5 #180 and D6 #182 remain open.
 
 ## Remaining world/activation gaps
 
@@ -69,3 +69,9 @@ Mission 4 transports exit after about 4:43.5 despite a 12:00 HUD clock; pacing r
 
 AI voice disclosure missing: addressed on fix/ai-voice-disclosure (D-140), pending merge. Settings provides permanent provenance and the first voiced line triggers a once-per-session notice. Latest Studio log (2026-10-30T03:39:39Z) shows RBX::Studio::LoginDialog; Studio was not launched and visual verification remains unperformed.
 PR #149 fixes the old 4:43.5 transport exit to 6:48.33 (D-096), covered offline; Studio/owner pacing re-check remains pending. The re-review’s early jammer despawn is fixed in the branch: both routes derive from the transport hook at jammer altitude/110 studs/s, with duration regressions keeping radar jamming and 280 optional points available throughout the transport window. Its duplicate cleanup mechanism is replaced by #147’s shared gate (D-097), including failed/partial construction and player leave. Mission 5 reports dark rig/tankers, follow-up lighting fixes awaiting Studio re-check, and a cleanup dependency on #147. Main now includes #147 (`7d73c44`); missions 4–18 remain locked. No Player test is claimed.
+
+## Mission 6 acceptance (#179)
+
+Sequential unlock after mission 5, finite stocks/rearm, score expiry and shared engine integration are implemented. Independent review approved #179; the orchestrator’s full Studio Jest suite passed 1,133/1,133 at `e5c2fd2`. This docs reconciliation does not rerun Studio or establish Player quality.
+
+D-260 retains 36 naval hulls, 40 yard contacts and 18 separately scored hull-owned components; the reference initial-40/credited-58 discrepancy remains unresolved. Sixteen hostile aircraft reflect owner pressure direction. Rendered reference comparison, real flight/ship sinking/SAM/anti-ship feel, service skip/clock behavior, load/clear timing and phone readability remain acceptance gaps. Player/phone not yet observed. No new audio or Blender asset upload.
