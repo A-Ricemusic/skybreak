@@ -2061,6 +2061,15 @@
    "tape": false,
    "text": "SERA: Loyalist troops below. Keep Rusk's armour off their streets.",
    "spoken": "Loyalist troops below. Keep Rusk's armour off their streets."
+  },
+  {
+   "id": "radio.m16.p1.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Clear the bunkers ahead of the column.",
+   "spoken": "Clear the bunkers ahead of the column."
   }
  ]
 }

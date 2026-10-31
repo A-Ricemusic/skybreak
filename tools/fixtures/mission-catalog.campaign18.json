@@ -20041,25 +20041,2262 @@
   },
   {
     "act": 3,
-    "available": false,
+    "airspace": {
+      "hardHalfWidth": 15360,
+      "radarRange": 24000,
+      "softHalfWidth": 14000,
+      "spawnLimit": 14000
+    },
+    "allies": {
+      "allowRequiredTargets": false,
+      "callsignPrefix": "LANTERN",
+      "count": 4,
+      "creditPlayerKills": false,
+      "formation": [
+        {
+          "x": -180,
+          "y": 20,
+          "z": 160
+        },
+        {
+          "x": 180,
+          "y": 20,
+          "z": 160
+        },
+        {
+          "x": -300,
+          "y": 40,
+          "z": 320
+        },
+        {
+          "x": 300,
+          "y": 40,
+          "z": 320
+        }
+      ],
+      "killBudget": 1,
+      "mayKill": true,
+      "model": "Kestrel"
+    },
+    "armament": {
+      "areaAttack": {
+        "damage": 180,
+        "depth": 100,
+        "radius": 400
+      },
+      "gun": {
+        "rounds": 1000
+      },
+      "stock": {
+        "missiles": 80,
+        "specialCharges": 16
+      }
+    },
+    "available": true,
     "briefing": "Parliament follows a loyalist column across the dry coast. Clear the crater, bunkers and ruined town ahead of its armour. The airbase can service you. Stay until both squads answer from the streets.",
-    "codename": "In development",
+    "codename": "The road home",
+    "countdownSeconds": 1200,
     "debrief": "The column is through. Recovery reaches the upper pass and finds Teal in his aircraft, his recorder still running. The witnesses head for parliament.",
     "environment": "farm_overcast",
     "failure": "The column cannot reach the town. Parliament is still outside its own city.",
     "ground": [],
     "id": 16,
-    "optionalRaiderMax": 0,
+    "optionalRaiderMax": 32,
     "phases": [
       {
-        "count": 1,
-        "kind": "required_air",
-        "label": "In development"
+        "beat": "SERA: Clear the bunkers ahead of the column.",
+        "cheapContacts": true,
+        "concurrentFighters": 11,
+        "concurrentRoutes": 2,
+        "fighterWaves": [
+          {
+            "attackSector": "m16_south",
+            "count": 3,
+            "headingDegrees": 180,
+            "id": "m16_open_strike",
+            "role": "raider",
+            "scoreRole": "strike",
+            "spawn": {
+              "x": 0,
+              "y": 650,
+              "z": 9600
+            },
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          },
+          {
+            "count": 2,
+            "headingDegrees": 180,
+            "id": "m16_open_cover",
+            "role": "raider",
+            "scoreRole": "strike",
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          },
+          {
+            "count": 3,
+            "headingDegrees": 90,
+            "id": "m16_open_stealth",
+            "role": "raider",
+            "scoreRole": "stealth",
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          },
+          {
+            "aircraft": "helicopter",
+            "count": 5,
+            "id": "m16_low_cover",
+            "role": "raider",
+            "route": {
+              "speed": 60,
+              "waypoints": [
+                {
+                  "x": -4200,
+                  "y": 360,
+                  "z": 3000
+                },
+                {
+                  "x": -4200,
+                  "y": 360,
+                  "z": -3000
+                }
+              ]
+            },
+            "scoreRole": "helicopter",
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 180,
+            "id": "m16_late_cover",
+            "role": "raider",
+            "scoreRole": "strike",
+            "trigger": {
+              "kind": "time",
+              "seconds": 540
+            }
+          },
+          {
+            "attackSector": "m16_south",
+            "call": "SERA: Strike aircraft inbound on the column. Break their attack.",
+            "count": 3,
+            "headingDegrees": 180,
+            "id": "m16_column_attack_1",
+            "role": "raider",
+            "scoreRole": "strike",
+            "spawn": {
+              "x": 0,
+              "y": 650,
+              "z": 8000
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 180
+            }
+          },
+          {
+            "attackSector": "m16_crater",
+            "call": "SERA: Strike aircraft inbound on the column. Break their attack.",
+            "count": 3,
+            "headingDegrees": 180,
+            "id": "m16_column_attack_2",
+            "role": "raider",
+            "scoreRole": "strike",
+            "spawn": {
+              "x": 0,
+              "y": 650,
+              "z": 2000
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 340
+            }
+          },
+          {
+            "attackSector": "m16_town",
+            "call": "SERA: Strike aircraft inbound on the column. Break their attack.",
+            "count": 3,
+            "headingDegrees": 180,
+            "id": "m16_column_attack_3",
+            "role": "raider",
+            "scoreRole": "strike",
+            "spawn": {
+              "x": 0,
+              "y": 650,
+              "z": -1000
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 500
+            }
+          },
+          {
+            "attackSector": "m16_south",
+            "call": "SERA: Strike aircraft inbound on the column. Break their attack.",
+            "count": 3,
+            "headingDegrees": 180,
+            "id": "m16_column_attack_4",
+            "role": "raider",
+            "scoreRole": "strike",
+            "spawn": {
+              "x": 0,
+              "y": 650,
+              "z": 8000
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 660
+            }
+          },
+          {
+            "attackSector": "m16_crater",
+            "call": "SERA: Strike aircraft inbound on the column. Break their attack.",
+            "count": 3,
+            "headingDegrees": 180,
+            "id": "m16_column_attack_5",
+            "role": "raider",
+            "scoreRole": "strike",
+            "spawn": {
+              "x": 0,
+              "y": 650,
+              "z": 2000
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 820
+            }
+          },
+          {
+            "attackSector": "m16_town",
+            "call": "SERA: Strike aircraft inbound on the column. Break their attack.",
+            "count": 3,
+            "headingDegrees": 180,
+            "id": "m16_column_attack_6",
+            "role": "raider",
+            "scoreRole": "strike",
+            "spawn": {
+              "x": 0,
+              "y": 650,
+              "z": -1000
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 980
+            }
+          }
+        ],
+        "groundProgress": {
+          "sectors": [
+            {
+              "advanceCall": "COLUMN: Southern road open. Rolling north.",
+              "clearTargetIds": [
+                "m16_ground_slot_1",
+                "m16_ground_slot_2",
+                "m16_ground_slot_3",
+                "m16_ground_slot_4"
+              ],
+              "formation": "desert_column",
+              "health": 320,
+              "hitCall": "COLUMN: Aircraft attacking our vehicles. We need cover!",
+              "id": "m16_south",
+              "kind": "column",
+              "route": {
+                "speed": 30,
+                "waypoints": [
+                  {
+                    "x": 0,
+                    "y": 104,
+                    "z": 9600
+                  },
+                  {
+                    "x": 0,
+                    "y": 104,
+                    "z": 4000
+                  }
+                ]
+              },
+              "seconds": 200,
+              "securedCall": "COLUMN: South secured. Reserve armour leaving cover."
+            },
+            {
+              "advanceCall": "COLUMN: Passing the crater. Keep the guns off us.",
+              "after": "m16_south",
+              "clearTargetIds": [
+                "m16_ground_slot_49",
+                "m16_ground_slot_50",
+                "m16_ground_slot_51",
+                "m16_ground_slot_52"
+              ],
+              "formation": "desert_column",
+              "health": 240,
+              "hitCall": "COLUMN: Aircraft attacking our vehicles. We need cover!",
+              "id": "m16_crater",
+              "kind": "column",
+              "route": {
+                "speed": 30,
+                "waypoints": [
+                  {
+                    "x": 0,
+                    "y": 104,
+                    "z": 4000
+                  },
+                  {
+                    "x": 0,
+                    "y": 104,
+                    "z": -6000
+                  }
+                ]
+              },
+              "seconds": 340,
+              "securedCall": "COLUMN: Crater road secured."
+            },
+            {
+              "advanceCall": "COLUMN: Entering town. Two squads moving in.",
+              "after": "m16_crater",
+              "clearTargetIds": [
+                "m16_ground_slot_97",
+                "m16_ground_slot_98",
+                "m16_ground_slot_99",
+                "m16_ground_slot_100"
+              ],
+              "formation": "desert_column",
+              "health": 240,
+              "hitCall": "COLUMN: Aircraft attacking our vehicles. We need cover!",
+              "id": "m16_town",
+              "kind": "column",
+              "route": {
+                "speed": 30,
+                "waypoints": [
+                  {
+                    "x": 0,
+                    "y": 104,
+                    "z": -6000
+                  },
+                  {
+                    "x": 1920,
+                    "y": 104,
+                    "z": -7680
+                  }
+                ]
+              },
+              "seconds": 100,
+              "securedCall": "COLUMN: Both squads answering from the streets."
+            }
+          ]
+        },
+        "groundTargets": [
+          {
+            "group": "line_1",
+            "id": "m16_ground_slot_1",
+            "position": {
+              "x": -2400,
+              "y": 92,
+              "z": 2880
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_1",
+            "id": "m16_ground_slot_2",
+            "position": {
+              "x": -1960,
+              "y": 92,
+              "z": 2880
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_1",
+            "id": "m16_ground_slot_3",
+            "position": {
+              "x": -1520,
+              "y": 92,
+              "z": 2880
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_1",
+            "id": "m16_ground_slot_4",
+            "position": {
+              "x": -1080,
+              "y": 92,
+              "z": 2880
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_1",
+            "id": "m16_ground_slot_5",
+            "position": {
+              "x": -640,
+              "y": 92,
+              "z": 2880
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_1",
+            "id": "m16_ground_slot_6",
+            "position": {
+              "x": -200,
+              "y": 92,
+              "z": 2880
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_1",
+            "id": "m16_ground_slot_7",
+            "position": {
+              "x": 240,
+              "y": 92,
+              "z": 2880
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_1",
+            "id": "m16_ground_slot_8",
+            "position": {
+              "x": 680,
+              "y": 92,
+              "z": 2880
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_1",
+            "id": "m16_ground_slot_9",
+            "position": {
+              "x": 1120,
+              "y": 92,
+              "z": 2880
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_1",
+            "id": "m16_ground_slot_10",
+            "position": {
+              "x": 1560,
+              "y": 92,
+              "z": 2880
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_1",
+            "id": "m16_ground_slot_11",
+            "position": {
+              "x": 2000,
+              "y": 92,
+              "z": 2880
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_1",
+            "id": "m16_ground_slot_12",
+            "position": {
+              "x": 2440,
+              "y": 92,
+              "z": 2880
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_2",
+            "id": "m16_ground_slot_13",
+            "position": {
+              "x": -2400,
+              "y": 92,
+              "z": 1980
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_2",
+            "id": "m16_ground_slot_14",
+            "position": {
+              "x": -1960,
+              "y": 92,
+              "z": 1980
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_2",
+            "id": "m16_ground_slot_15",
+            "position": {
+              "x": -1520,
+              "y": 92,
+              "z": 1980
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_2",
+            "id": "m16_ground_slot_16",
+            "position": {
+              "x": -1080,
+              "y": 92,
+              "z": 1980
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_2",
+            "id": "m16_ground_slot_17",
+            "position": {
+              "x": -640,
+              "y": 92,
+              "z": 1980
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_2",
+            "id": "m16_ground_slot_18",
+            "position": {
+              "x": -200,
+              "y": 92,
+              "z": 1980
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_2",
+            "id": "m16_ground_slot_19",
+            "position": {
+              "x": 240,
+              "y": 92,
+              "z": 1980
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_2",
+            "id": "m16_ground_slot_20",
+            "position": {
+              "x": 680,
+              "y": 92,
+              "z": 1980
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_2",
+            "id": "m16_ground_slot_21",
+            "position": {
+              "x": 1120,
+              "y": 92,
+              "z": 1980
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_2",
+            "id": "m16_ground_slot_22",
+            "position": {
+              "x": 1560,
+              "y": 92,
+              "z": 1980
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_2",
+            "id": "m16_ground_slot_23",
+            "position": {
+              "x": 2000,
+              "y": 92,
+              "z": 1980
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_2",
+            "id": "m16_ground_slot_24",
+            "position": {
+              "x": 2440,
+              "y": 92,
+              "z": 1980
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_3",
+            "id": "m16_ground_slot_25",
+            "position": {
+              "x": -2400,
+              "y": 92,
+              "z": 1080
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_3",
+            "id": "m16_ground_slot_26",
+            "position": {
+              "x": -1960,
+              "y": 92,
+              "z": 1080
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_3",
+            "id": "m16_ground_slot_27",
+            "position": {
+              "x": -1520,
+              "y": 92,
+              "z": 1080
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_3",
+            "id": "m16_ground_slot_28",
+            "position": {
+              "x": -1080,
+              "y": 92,
+              "z": 1080
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_3",
+            "id": "m16_ground_slot_29",
+            "position": {
+              "x": -640,
+              "y": 92,
+              "z": 1080
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_3",
+            "id": "m16_ground_slot_30",
+            "position": {
+              "x": -200,
+              "y": 92,
+              "z": 1080
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_3",
+            "id": "m16_ground_slot_31",
+            "position": {
+              "x": 240,
+              "y": 92,
+              "z": 1080
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_3",
+            "id": "m16_ground_slot_32",
+            "position": {
+              "x": 680,
+              "y": 92,
+              "z": 1080
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_3",
+            "id": "m16_ground_slot_33",
+            "position": {
+              "x": 1120,
+              "y": 92,
+              "z": 1080
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_3",
+            "id": "m16_ground_slot_34",
+            "position": {
+              "x": 1560,
+              "y": 92,
+              "z": 1080
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_3",
+            "id": "m16_ground_slot_35",
+            "position": {
+              "x": 2000,
+              "y": 92,
+              "z": 1080
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_3",
+            "id": "m16_ground_slot_36",
+            "position": {
+              "x": 2440,
+              "y": 92,
+              "z": 1080
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_4",
+            "id": "m16_ground_slot_37",
+            "position": {
+              "x": -2400,
+              "y": 92,
+              "z": 180
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_4",
+            "id": "m16_ground_slot_38",
+            "position": {
+              "x": -1960,
+              "y": 92,
+              "z": 180
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_4",
+            "id": "m16_ground_slot_39",
+            "position": {
+              "x": -1520,
+              "y": 92,
+              "z": 180
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_4",
+            "id": "m16_ground_slot_40",
+            "position": {
+              "x": -1080,
+              "y": 92,
+              "z": 180
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_4",
+            "id": "m16_ground_slot_41",
+            "position": {
+              "x": -640,
+              "y": 92,
+              "z": 180
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_4",
+            "id": "m16_ground_slot_42",
+            "position": {
+              "x": -200,
+              "y": 92,
+              "z": 180
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_4",
+            "id": "m16_ground_slot_43",
+            "position": {
+              "x": 240,
+              "y": 92,
+              "z": 180
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_4",
+            "id": "m16_ground_slot_44",
+            "position": {
+              "x": 680,
+              "y": 92,
+              "z": 180
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_4",
+            "id": "m16_ground_slot_45",
+            "position": {
+              "x": 1120,
+              "y": 92,
+              "z": 180
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_4",
+            "id": "m16_ground_slot_46",
+            "position": {
+              "x": 1560,
+              "y": 92,
+              "z": 180
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_4",
+            "id": "m16_ground_slot_47",
+            "position": {
+              "x": 2000,
+              "y": 92,
+              "z": 180
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_4",
+            "id": "m16_ground_slot_48",
+            "position": {
+              "x": 2440,
+              "y": 92,
+              "z": 180
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_5",
+            "id": "m16_ground_slot_49",
+            "position": {
+              "x": -2400,
+              "y": 92,
+              "z": -720
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_5",
+            "id": "m16_ground_slot_50",
+            "position": {
+              "x": -1960,
+              "y": 92,
+              "z": -720
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_5",
+            "id": "m16_ground_slot_51",
+            "position": {
+              "x": -1520,
+              "y": 92,
+              "z": -720
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_5",
+            "id": "m16_ground_slot_52",
+            "position": {
+              "x": -1080,
+              "y": 92,
+              "z": -720
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_5",
+            "id": "m16_ground_slot_53",
+            "position": {
+              "x": -640,
+              "y": 92,
+              "z": -720
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_5",
+            "id": "m16_ground_slot_54",
+            "position": {
+              "x": -200,
+              "y": 92,
+              "z": -720
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_5",
+            "id": "m16_ground_slot_55",
+            "position": {
+              "x": 240,
+              "y": 92,
+              "z": -720
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_5",
+            "id": "m16_ground_slot_56",
+            "position": {
+              "x": 680,
+              "y": 92,
+              "z": -720
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_5",
+            "id": "m16_ground_slot_57",
+            "position": {
+              "x": 1120,
+              "y": 92,
+              "z": -720
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_5",
+            "id": "m16_ground_slot_58",
+            "position": {
+              "x": 1560,
+              "y": 92,
+              "z": -720
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_5",
+            "id": "m16_ground_slot_59",
+            "position": {
+              "x": 2000,
+              "y": 92,
+              "z": -720
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_5",
+            "id": "m16_ground_slot_60",
+            "position": {
+              "x": 2440,
+              "y": 92,
+              "z": -720
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_6",
+            "id": "m16_ground_slot_61",
+            "position": {
+              "x": -2400,
+              "y": 92,
+              "z": -1620
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_6",
+            "id": "m16_ground_slot_62",
+            "position": {
+              "x": -1960,
+              "y": 92,
+              "z": -1620
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_6",
+            "id": "m16_ground_slot_63",
+            "position": {
+              "x": -1520,
+              "y": 92,
+              "z": -1620
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_6",
+            "id": "m16_ground_slot_64",
+            "position": {
+              "x": -1080,
+              "y": 92,
+              "z": -1620
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_6",
+            "id": "m16_ground_slot_65",
+            "position": {
+              "x": -640,
+              "y": 92,
+              "z": -1620
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_6",
+            "id": "m16_ground_slot_66",
+            "position": {
+              "x": -200,
+              "y": 92,
+              "z": -1620
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_6",
+            "id": "m16_ground_slot_67",
+            "position": {
+              "x": 240,
+              "y": 92,
+              "z": -1620
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_6",
+            "id": "m16_ground_slot_68",
+            "position": {
+              "x": 680,
+              "y": 92,
+              "z": -1620
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_6",
+            "id": "m16_ground_slot_69",
+            "position": {
+              "x": 1120,
+              "y": 92,
+              "z": -1620
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_6",
+            "id": "m16_ground_slot_70",
+            "position": {
+              "x": 1560,
+              "y": 92,
+              "z": -1620
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_6",
+            "id": "m16_ground_slot_71",
+            "position": {
+              "x": 2000,
+              "y": 92,
+              "z": -1620
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_6",
+            "id": "m16_ground_slot_72",
+            "position": {
+              "x": 2440,
+              "y": 92,
+              "z": -1620
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_7",
+            "id": "m16_ground_slot_73",
+            "position": {
+              "x": -2400,
+              "y": 60,
+              "z": -2520
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_7",
+            "id": "m16_ground_slot_74",
+            "position": {
+              "x": -1960,
+              "y": 92,
+              "z": -2520
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_7",
+            "id": "m16_ground_slot_75",
+            "position": {
+              "x": -1520,
+              "y": 92,
+              "z": -2520
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_7",
+            "id": "m16_ground_slot_76",
+            "position": {
+              "x": -1080,
+              "y": 92,
+              "z": -2520
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_7",
+            "id": "m16_ground_slot_77",
+            "position": {
+              "x": -640,
+              "y": 92,
+              "z": -2520
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_7",
+            "id": "m16_ground_slot_78",
+            "position": {
+              "x": -200,
+              "y": 92,
+              "z": -2520
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_7",
+            "id": "m16_ground_slot_79",
+            "position": {
+              "x": 240,
+              "y": 92,
+              "z": -2520
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_7",
+            "id": "m16_ground_slot_80",
+            "position": {
+              "x": 680,
+              "y": 92,
+              "z": -2520
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_7",
+            "id": "m16_ground_slot_81",
+            "position": {
+              "x": 1120,
+              "y": 92,
+              "z": -2520
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_7",
+            "id": "m16_ground_slot_82",
+            "position": {
+              "x": 1560,
+              "y": 92,
+              "z": -2520
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_7",
+            "id": "m16_ground_slot_83",
+            "position": {
+              "x": 2000,
+              "y": 92,
+              "z": -2520
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_7",
+            "id": "m16_ground_slot_84",
+            "position": {
+              "x": 2440,
+              "y": 92,
+              "z": -2520
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_8",
+            "id": "m16_ground_slot_85",
+            "position": {
+              "x": -2400,
+              "y": 60,
+              "z": -3420
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_8",
+            "id": "m16_ground_slot_86",
+            "position": {
+              "x": -1960,
+              "y": 92,
+              "z": -3420
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_8",
+            "id": "m16_ground_slot_87",
+            "position": {
+              "x": -1520,
+              "y": 92,
+              "z": -3420
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_8",
+            "id": "m16_ground_slot_88",
+            "position": {
+              "x": -1080,
+              "y": 92,
+              "z": -3420
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_8",
+            "id": "m16_ground_slot_89",
+            "position": {
+              "x": -640,
+              "y": 92,
+              "z": -3420
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_8",
+            "id": "m16_ground_slot_90",
+            "position": {
+              "x": -200,
+              "y": 92,
+              "z": -3420
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_8",
+            "id": "m16_ground_slot_91",
+            "position": {
+              "x": 240,
+              "y": 92,
+              "z": -3420
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_8",
+            "id": "m16_ground_slot_92",
+            "position": {
+              "x": 680,
+              "y": 92,
+              "z": -3420
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_8",
+            "id": "m16_ground_slot_93",
+            "position": {
+              "x": 1120,
+              "y": 92,
+              "z": -3420
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_8",
+            "id": "m16_ground_slot_94",
+            "position": {
+              "x": 1560,
+              "y": 92,
+              "z": -3420
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_8",
+            "id": "m16_ground_slot_95",
+            "position": {
+              "x": 2000,
+              "y": 92,
+              "z": -3420
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_8",
+            "id": "m16_ground_slot_96",
+            "position": {
+              "x": 2440,
+              "y": 92,
+              "z": -3420
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_9",
+            "id": "m16_ground_slot_97",
+            "position": {
+              "x": -2400,
+              "y": 60,
+              "z": -4320
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_9",
+            "id": "m16_ground_slot_98",
+            "position": {
+              "x": -1960,
+              "y": 92,
+              "z": -4320
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_9",
+            "id": "m16_ground_slot_99",
+            "position": {
+              "x": -1520,
+              "y": 92,
+              "z": -4320
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_9",
+            "id": "m16_ground_slot_100",
+            "position": {
+              "x": -1080,
+              "y": 92,
+              "z": -4320
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "line_9",
+            "id": "m16_ground_slot_101",
+            "position": {
+              "x": -640,
+              "y": 92,
+              "z": -4320
+            },
+            "required": false,
+            "scoreRole": "aa_gun",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "line_9",
+            "id": "m16_ground_slot_102",
+            "position": {
+              "x": -200,
+              "y": 92,
+              "z": -4320
+            },
+            "required": false,
+            "scoreRole": "aa_gun",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "line_9",
+            "id": "m16_ground_slot_103",
+            "position": {
+              "x": 240,
+              "y": 92,
+              "z": -4320
+            },
+            "required": false,
+            "scoreRole": "aa_gun",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "line_9",
+            "id": "m16_ground_slot_104",
+            "position": {
+              "x": 680,
+              "y": 92,
+              "z": -4320
+            },
+            "required": false,
+            "scoreRole": "aa_gun",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "line_9",
+            "id": "m16_ground_slot_105",
+            "position": {
+              "x": 1120,
+              "y": 92,
+              "z": -4320
+            },
+            "required": false,
+            "scoreRole": "aa_gun",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "line_9",
+            "id": "m16_ground_slot_106",
+            "position": {
+              "x": 1560,
+              "y": 92,
+              "z": -4320
+            },
+            "required": false,
+            "scoreRole": "aa_gun",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "line_9",
+            "id": "m16_ground_slot_107",
+            "position": {
+              "x": 2000,
+              "y": 92,
+              "z": -4320
+            },
+            "required": false,
+            "scoreRole": "aa_gun",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "line_9",
+            "id": "m16_ground_slot_108",
+            "position": {
+              "x": 2440,
+              "y": 92,
+              "z": -4320
+            },
+            "required": false,
+            "scoreRole": "aa_gun",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "line_10",
+            "id": "m16_ground_slot_109",
+            "position": {
+              "x": -2400,
+              "y": 92,
+              "z": -5220
+            },
+            "required": false,
+            "scoreRole": "aa_gun",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "line_10",
+            "id": "m16_ground_slot_110",
+            "position": {
+              "x": -1960,
+              "y": 92,
+              "z": -5220
+            },
+            "required": false,
+            "scoreRole": "aa_gun",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "line_10",
+            "id": "m16_ground_slot_111",
+            "position": {
+              "x": -1520,
+              "y": 92,
+              "z": -5220
+            },
+            "required": false,
+            "scoreRole": "aa_gun",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "line_10",
+            "id": "m16_ground_slot_112",
+            "position": {
+              "x": -1080,
+              "y": 92,
+              "z": -5220
+            },
+            "required": false,
+            "scoreRole": "aa_gun",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "line_10",
+            "id": "m16_ground_slot_113",
+            "position": {
+              "x": -640,
+              "y": 92,
+              "z": -5220
+            },
+            "required": false,
+            "scoreRole": "aa_gun",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "line_10",
+            "id": "m16_ground_slot_114",
+            "position": {
+              "x": -200,
+              "y": 92,
+              "z": -5220
+            },
+            "reinforceAfterSector": "m16_south",
+            "required": false,
+            "scoreRole": "aa_gun",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "line_10",
+            "id": "m16_ground_slot_115",
+            "position": {
+              "x": 240,
+              "y": 92,
+              "z": -5220
+            },
+            "reinforceAfterSector": "m16_south",
+            "required": false,
+            "scoreRole": "artillery",
+            "type": "artillery",
+            "yaw": 0
+          },
+          {
+            "group": "line_10",
+            "id": "m16_ground_slot_116",
+            "position": {
+              "x": 680,
+              "y": 92,
+              "z": -5220
+            },
+            "reinforceAfterSector": "m16_south",
+            "required": false,
+            "scoreRole": "artillery",
+            "type": "artillery",
+            "yaw": 0
+          },
+          {
+            "group": "line_10",
+            "id": "m16_ground_slot_117",
+            "position": {
+              "x": 1120,
+              "y": 92,
+              "z": -5220
+            },
+            "reinforceAfterSector": "m16_south",
+            "required": false,
+            "scoreRole": "artillery",
+            "type": "artillery",
+            "yaw": 0
+          },
+          {
+            "group": "line_10",
+            "id": "m16_ground_slot_118",
+            "position": {
+              "x": 1560,
+              "y": 92,
+              "z": -5220
+            },
+            "reinforceAfterSector": "m16_south",
+            "required": false,
+            "scoreRole": "artillery",
+            "type": "artillery",
+            "yaw": 0
+          },
+          {
+            "group": "line_10",
+            "id": "m16_ground_slot_119",
+            "position": {
+              "x": 2000,
+              "y": 92,
+              "z": -5220
+            },
+            "reinforceAfterSector": "m16_south",
+            "required": false,
+            "scoreRole": "artillery",
+            "type": "artillery",
+            "yaw": 0
+          },
+          {
+            "group": "line_10",
+            "id": "m16_ground_slot_120",
+            "position": {
+              "x": 2440,
+              "y": 92,
+              "z": -5220
+            },
+            "reinforceAfterSector": "m16_south",
+            "required": false,
+            "scoreRole": "artillery",
+            "type": "artillery",
+            "yaw": 0
+          },
+          {
+            "group": "line_11",
+            "id": "m16_ground_slot_121",
+            "position": {
+              "x": -2400,
+              "y": 92,
+              "z": -6120
+            },
+            "reinforceAfterSector": "m16_south",
+            "required": false,
+            "scoreRole": "artillery",
+            "type": "artillery",
+            "yaw": 0
+          },
+          {
+            "group": "line_11",
+            "id": "m16_ground_slot_122",
+            "position": {
+              "x": -1960,
+              "y": 92,
+              "z": -6120
+            },
+            "reinforceAfterSector": "m16_south",
+            "required": false,
+            "scoreRole": "artillery",
+            "type": "artillery",
+            "yaw": 0
+          },
+          {
+            "group": "line_11",
+            "id": "m16_ground_slot_123",
+            "position": {
+              "x": -1520,
+              "y": 92,
+              "z": -6120
+            },
+            "reinforceAfterSector": "m16_south",
+            "required": false,
+            "scoreRole": "artillery",
+            "type": "artillery",
+            "yaw": 0
+          },
+          {
+            "group": "line_11",
+            "id": "m16_ground_slot_124",
+            "position": {
+              "x": -1080,
+              "y": 92,
+              "z": -6120
+            },
+            "reinforceAfterSector": "m16_south",
+            "required": false,
+            "scoreRole": "artillery",
+            "type": "artillery",
+            "yaw": 0
+          },
+          {
+            "group": "line_11",
+            "id": "m16_ground_slot_125",
+            "position": {
+              "x": -640,
+              "y": 92,
+              "z": -6120
+            },
+            "reinforceAfterSector": "m16_south",
+            "required": false,
+            "scoreRole": "bunker",
+            "type": "bunker",
+            "yaw": 0
+          },
+          {
+            "group": "line_11",
+            "id": "m16_ground_slot_126",
+            "position": {
+              "x": -200,
+              "y": 92,
+              "z": -6120
+            },
+            "reinforceAfterSector": "m16_south",
+            "required": false,
+            "scoreRole": "bunker",
+            "type": "bunker",
+            "yaw": 0
+          },
+          {
+            "group": "line_11",
+            "id": "m16_ground_slot_127",
+            "position": {
+              "x": 240,
+              "y": 92,
+              "z": -6120
+            },
+            "reinforceAfterSector": "m16_south",
+            "required": false,
+            "scoreRole": "bunker",
+            "type": "bunker",
+            "yaw": 0
+          },
+          {
+            "group": "line_11",
+            "id": "m16_ground_slot_128",
+            "position": {
+              "x": 680,
+              "y": 92,
+              "z": -6120
+            },
+            "reinforceAfterSector": "m16_south",
+            "required": false,
+            "scoreRole": "bunker",
+            "type": "bunker",
+            "yaw": 0
+          },
+          {
+            "group": "line_11",
+            "id": "m16_ground_slot_129",
+            "position": {
+              "x": 1120,
+              "y": 92,
+              "z": -6120
+            },
+            "reinforceAfterSector": "m16_south",
+            "required": false,
+            "scoreRole": "bunker",
+            "type": "bunker",
+            "yaw": 0
+          },
+          {
+            "group": "line_11",
+            "id": "m16_ground_slot_130",
+            "position": {
+              "x": 1560,
+              "y": 92,
+              "z": -6120
+            },
+            "reinforceAfterSector": "m16_south",
+            "required": false,
+            "scoreRole": "bunker",
+            "type": "bunker",
+            "yaw": 0
+          },
+          {
+            "group": "line_11",
+            "id": "m16_ground_slot_131",
+            "position": {
+              "x": 2000,
+              "y": 92,
+              "z": -6120
+            },
+            "reinforceAfterSector": "m16_south",
+            "required": false,
+            "scoreRole": "bunker",
+            "type": "bunker",
+            "yaw": 0
+          },
+          {
+            "group": "line_11",
+            "id": "m16_ground_slot_132",
+            "position": {
+              "x": 2440,
+              "y": 92,
+              "z": -6120
+            },
+            "reinforceAfterSector": "m16_south",
+            "required": false,
+            "scoreRole": "bunker",
+            "type": "bunker",
+            "yaw": 0
+          },
+          {
+            "group": "line_12",
+            "id": "m16_ground_slot_133",
+            "position": {
+              "x": -2400,
+              "y": 92,
+              "z": -7020
+            },
+            "reinforceAfterSector": "m16_south",
+            "required": false,
+            "scoreRole": "vehicle",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "line_12",
+            "id": "m16_ground_slot_134",
+            "position": {
+              "x": -1960,
+              "y": 92,
+              "z": -7020
+            },
+            "reinforceAfterSector": "m16_south",
+            "required": false,
+            "scoreRole": "vehicle",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "line_12",
+            "id": "m16_ground_slot_135",
+            "position": {
+              "x": -1520,
+              "y": 92,
+              "z": -7020
+            },
+            "reinforceAfterSector": "m16_south",
+            "required": false,
+            "scoreRole": "vehicle",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "line_12",
+            "id": "m16_ground_slot_136",
+            "position": {
+              "x": -1080,
+              "y": 92,
+              "z": -7020
+            },
+            "reinforceAfterSector": "m16_south",
+            "required": false,
+            "scoreRole": "vehicle",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "line_12",
+            "id": "m16_ground_slot_137",
+            "position": {
+              "x": -640,
+              "y": 92,
+              "z": -7020
+            },
+            "reinforceAfterSector": "m16_south",
+            "required": false,
+            "scoreRole": "vehicle",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "line_12",
+            "id": "m16_ground_slot_138",
+            "position": {
+              "x": -200,
+              "y": 92,
+              "z": -7020
+            },
+            "reinforceAfterSector": "m16_south",
+            "required": false,
+            "scoreRole": "vehicle",
+            "type": "vehicle",
+            "yaw": 0
+          }
+        ],
+        "kind": "score_threshold",
+        "label": "Cover the road home",
+        "rearm": {
+          "gun": true,
+          "health": true,
+          "landing": {
+            "approachDistance": 2400,
+            "approachSeconds": 20,
+            "glideDegrees": 3,
+            "headingDegrees": 0,
+            "rolloutDistance": 900,
+            "rolloutSeconds": 15,
+            "touchdown": {
+              "x": -8640,
+              "y": 92,
+              "z": 8480
+            }
+          },
+          "missiles": true,
+          "radio": [
+            {
+              "at": 0.5,
+              "text": "SERVICE: Weapons and repairs underway. Battle clock held."
+            },
+            {
+              "at": 36,
+              "text": "SERVICE: Hull restored. Return to the column."
+            }
+          ],
+          "radius": 1500,
+          "special": true,
+          "takeoffSeconds": 20,
+          "weaponMenu": true,
+          "zone": {
+            "x": -8640,
+            "y": 217.77867,
+            "z": 10880
+          }
+        },
+        "scoreThreshold": {
+          "points": 3500,
+          "seconds": 1200,
+          "waitForExpiry": true
+        }
       }
     ],
-    "primary": "In development",
+    "pressure": {
+      "forwardConeDegrees": 45,
+      "playerPriority": 0.8,
+      "tailDefence": true
+    },
+    "primary": "Score 3,500 in 20:00; protect the column and clear its road",
     "region": "canyon_airfield",
-    "title": "Mission 16"
+    "scoring": {
+      "basis": "points",
+      "points": {
+        "aa_gun": 20,
+        "artillery": 60,
+        "bunker": 100,
+        "helicopter": 50,
+        "stealth": 120,
+        "strike": 60,
+        "tank": 50,
+        "vehicle": 25
+      },
+      "rank": {
+        "A": 6000,
+        "B": 4500,
+        "C": 3500,
+        "S": 7800
+      }
+    },
+    "start": {
+      "headingDegrees": 315,
+      "kind": "airborne",
+      "speed": 160,
+      "x": 0,
+      "y": 383,
+      "z": 9600
+    },
+    "terrainRelativeWarnings": true,
+    "title": "DUST ROAD",
+    "worldKey": "m16_road_home"
   },
   {
     "act": 3,

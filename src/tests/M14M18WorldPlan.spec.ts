@@ -33,7 +33,7 @@ describe("Dormant M14–M18 procedural worlds",()=>{
    let calls=0;expect(build(undefined,()=>{calls++;})).toEqual(worlds[i]);expect(calls).toBeGreaterThan(1000);
    const p=worlds[i];expect(p.props.size()).toBe(0);expect(new Set(p.targets.map(t=>t.id)).size()).toBe(p.targets.size());
    for(const t of p.targets){expect(t.id.sub(1,4)).toBe("m"+(14+i)+"_");expect(p.parts.some(f=>f.name===t.id)).toBe(true);}
-   for(const m of MissionCatalog.All().filter(m=>m.id!==14 && m.id!==15))expect(MissionCatalog.WorldKey(m.id)).never.toBe(p.key);
+   for(const m of MissionCatalog.All().filter(m=>m.id!==14 && m.id!==15 && m.id!==16))expect(MissionCatalog.WorldKey(m.id)).never.toBe(p.key);
   }
  });
  it("retains inventories, stages and proposed anchors separately from credited kills",()=>{
