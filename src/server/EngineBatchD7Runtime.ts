@@ -5,23 +5,31 @@ import type { CombatSession, Enemy } from "./CombatSession";
 export interface ProtectedActor { aircraft: Enemy; plan: ProtectedAircraftPlan; state: ProtectedState; label: TextLabel }
 
 function createActor(session: CombatSession, plan: ProtectedAircraftPlan): ProtectedActor {
- const model=new Instance("Model"); model.Name=plan.callsign;
+ // Adopt the dormant world's exact id; remove collision/query from every visible surface.
+ const existing=session.folder.GetDescendants().find(i=>i.IsA("Model") && i.Name===plan.id);
+ const model=existing?.IsA("Model") ? existing : new Instance("Model"); model.Name=plan.callsign;
+ const adopted=model.GetDescendants().filter((i): i is BasePart=>i.IsA("BasePart"));
+ for(const p of adopted) { p.Anchored=true; p.CanCollide=false; p.CanQuery=false; p.CanTouch=false; p.SetAttribute("FlightSolid",false); }
+ const pivot=adopted[0];
+ if(pivot) model.PrimaryPart=pivot;
  const part=(name:string,size:Vector3,offset:Vector3,color:Color3)=>{
   const p=new Instance("Part"); p.Name=name; p.Size=size; p.Position=offset; p.Color=color;
   p.Anchored=true; p.CanCollide=false; p.CanQuery=false; p.CanTouch=false; p.Parent=model; return p;
  };
  const white=Color3.fromRGB(222,232,240), cyan=Color3.fromRGB(65,205,255);
- const root=part("Civilian fuselage",new Vector3(8,8,48),Vector3.zero,white); model.PrimaryPart=root;
+ const root=pivot ?? part("Civilian fuselage",new Vector3(8,8,48),Vector3.zero,white); model.PrimaryPart=root;
+ if(!pivot) {
  part("Wings",new Vector3(50,2,12),new Vector3(0,0,2),white);
  part("Tailplane",new Vector3(20,2,7),new Vector3(0,1,20),cyan);
  part("Fin",new Vector3(2,10,9),new Vector3(0,6,18),cyan);
  part("Port engine",new Vector3(5,5,12),new Vector3(-14,-3,2),white);
  part("Starboard engine",new Vector3(5,5,12),new Vector3(14,-3,2),white);
+ }
  model.SetAttribute("SkybreakOwner",session.player.UserId); model.SetAttribute("SkybreakFriendly",true);
  model.SetAttribute("SkybreakEnemy",false); model.SetAttribute("Damageable",false); model.SetAttribute("RequiredTarget",false);
  model.SetAttribute("ProtectedObjective",true); model.SetAttribute("TargetKind","air"); model.SetAttribute("TargetId",plan.id);
  model.SetAttribute("Health",plan.health); model.SetAttribute("MaxHealth",plan.health);
- const marker=new Instance("BillboardGui"); marker.Name="Protected identity"; marker.Size=UDim2.fromOffset(240,28); marker.StudsOffset=new Vector3(0,15,0); marker.AlwaysOnTop=true; marker.MaxDistance=30000; marker.Adornee=root; marker.Parent=model;
+ const marker=new Instance("BillboardGui"); marker.Name="Protected identity"; marker.Size=UDim2.fromOffset(380,28); marker.StudsOffset=new Vector3(0,15,0); marker.AlwaysOnTop=true; marker.MaxDistance=30000; marker.Adornee=root; marker.Parent=model;
  const label=new Instance("TextLabel"); label.Size=UDim2.fromScale(1,1); label.BackgroundColor3=Color3.fromRGB(7,23,30); label.BackgroundTransparency=0.2; label.TextColor3=cyan; label.TextSize=14; label.Font=Enum.Font.GothamBold; label.Parent=marker;
  const pose=protectedPose(plan,0), position=new Vector3(pose.position.x,pose.position.y,pose.position.z), direction=new Vector3(pose.facing.x,pose.facing.y,pose.facing.z);
  model.PivotTo(CFrame.lookAt(position,position.add(direction))); model.Parent=session.folder;
@@ -48,7 +56,8 @@ export function stepProtection(session: CombatSession, dt: number, say:(line:str
   a.aircraft.position=new Vector3(p.x,p.y,p.z); a.aircraft.direction=new Vector3(d.x,d.y,d.z);
   a.aircraft.velocity=a.state.safe ? Vector3.zero : a.aircraft.direction.mul(a.plan.route.speed);
   a.aircraft.model.PivotTo(CFrame.lookAt(a.aircraft.position,a.aircraft.position.add(a.aircraft.direction)));
-  a.label.Text=`PROTECT ${a.plan.callsign} · ${a.state.safe ? "SAFE" : `${math.ceil(a.state.health/a.plan.health*100)}%`}`;
+  const incoming=session.enemies.some(e=>e.enabled && e.health>0 && e.windup>0 && e.windupTarget===a.aircraft);
+  a.label.Text=`${incoming ? "INCOMING · " : ""}PROTECT ${a.plan.callsign} · ${a.state.safe ? "SAFE" : `${math.ceil(a.state.health/a.plan.health*100)}%`}`;
   if(a.state.safe && a.aircraft.enabled) { a.aircraft.enabled=false; a.aircraft.model.Destroy(); say(`${a.plan.callsign} is safe.`); }
  }
  const result=protectionResult(actors.map(a=>a.state));
@@ -76,4 +85,10 @@ export function hitProtected(session: CombatSession, target: Enemy, damage: numb
  target.health=actor.state.health; target.model.SetAttribute("Health",target.health);
  if(target.health<=0 && session.blueprintState) BlueprintRunner.ObserveProtection(session.blueprintState,0,true);
  return true;
+}
+
+/** Called at windup commit, before launch; distinguishes civilian warnings from player locks. */
+export function warnProtectedAttack(session: CombatSession, target: Enemy | undefined, say:(line:string)=>void): void {
+ const actor=session.protectedFlight?.actors.find(a=>a.aircraft===target);
+ if(actor) say(`${actor.plan.callsign}: Missile lock on us! Intercept the attacker.`);
 }

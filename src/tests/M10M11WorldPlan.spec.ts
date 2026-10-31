@@ -15,12 +15,12 @@ function obstructed(parts: PartSpec[], props: PropSpec[], x: number, y: number, 
 }
 describe("Dormant M10/M11 worlds", () => {
  const a = buildM10Plan(), b = buildM11Plan();
- it("is deterministic, checkpointed, dormant and names every contact once", () => {
+ it("is deterministic, checkpointed, independently activated and names every contact once", () => {
   let calls = 0; expect(buildM10Plan(1010, () => { calls++; })).toEqual(a); expect(buildM11Plan()).toEqual(b); expect(calls).toBeGreaterThan(1000);
   for (const p of [a, b]) {
    expect(new Set(p.targets.map(t => t.id)).size()).toBe(p.targets.size());
    for (const t of p.targets) expect(p.parts.some(f => f.name === t.id) || t.type === "frigate" || t.type === "tanker").toBe(true);
-   for (const m of MissionCatalog.All()) expect(MissionCatalog.WorldKey(m.id)).never.toBe(p.key);
+   for (const m of MissionCatalog.All().filter(m=>m.id!==11)) expect(MissionCatalog.WorldKey(m.id)).never.toBe(p.key);
   }
  });
  it("preserves spec anchors, NE ingress, 100/24 scenery capacity and mission metadata", () => {

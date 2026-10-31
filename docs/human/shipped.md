@@ -1,8 +1,8 @@
 # Shipped
 
-Updated 2026-10-30 against main `199e7ee`; its publish workflow succeeded per CI. Practice and missions 1–7 are live after #178 merges in Roblox Player by the owner's pipeline convention. No new Studio, Player or phone test is claimed. Older entries describe behavior at their merge; later entries supersede tuning and dormant activation status.
+Updated 2026-10-30 against fetched main `ea0045d`: practice/missions 1–7 and D1–D6 are merged/live by the owner's automatic-pipeline convention. No new Studio, Player or phone test is claimed. Older entries describe behavior at their merge; later changes supersede dormant activation status.
 
-Mission 7 #178 remains unmerged: masking/ceiling/ingress review fixes are prepared with offline regressions and actual-build Jest coverage pending the orchestrator. These changes are not listed as shipped.
+M11 HIGH CROSSING is unmerged on `feat/m11-mission`, in review and not live. It depends on #184/#183/#185/#187; D7 remains in re-review. See the dashboard and beta guide for its roster and pending acceptance.
 
 ## Merged 2026-10-30, newest first
 

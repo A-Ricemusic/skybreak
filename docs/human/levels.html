@@ -11,9 +11,9 @@ No generator, network dependencies, JavaScript or build step is required. -->
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,sans-serif}main{max-width:1180px;margin:auto;padding:32px 20px}h1{font-size:2.4rem;line-height:1.15}h2{font-size:1.25rem;margin:0}a{color:var(--link);text-underline-offset:3px}a:focus-visible{outline:3px solid var(--link);outline-offset:4px}.muted,dt{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:18px}.card,.legend{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px}.badge{display:inline-block;border:1px solid currentColor;border-radius:20px;padding:2px 12px;font-weight:700;margin:10px 0}.live{color:var(--live)}.review{color:var(--review)}.pieces{padding-left:20px}dl{margin-bottom:0}dd{margin:0 0 12px}nav{margin:20px 0}code{overflow-wrap:anywhere}.legend{margin:24px 0}.legend p{margin:8px 0}footer{margin-top:28px}
 </style></head><body><main>
 <header><p class="muted">SKYBREAK / Campaign readiness</p><h1>Every level, at a glance</h1>
-<p>Updated 2026-10-30 · Main <code>199e7ee</code> · Publish workflow succeeded per CI.</p>
-<p>Practice and missions 1–7 are Live after #178 merges by the owner's automatic-pipeline convention. No new Studio or Player test is claimed.</p>
-<p>Missions 8–18 have built, dormant worlds and remain locked. Mission 6 is Live after #179 merges; Studio Jest passed 1,133/1,133 in the orchestrator’s run. Player/phone not yet observed. Mission 7 is Live after #178 merges; Studio verified: pending orchestrator run. D1/D2 are active for M06; M07 activates D3. Priorities: D4 #177, M07 #178, D5 #180, D6 #182, then M08–M18.</p>
+<p>Updated 2026-10-30 · Main <code>ea0045d</code> · M11 branch based on D7 <code>77c4728</code>.</p>
+<p>Practice and missions 1–7 are Live after #178 merged by the owner's automatic-pipeline convention. No new Studio or Player test is claimed.</p>
+<p>Missions 8–18 have built, dormant worlds and remain locked. Mission 6 is Live after #179 merges; Studio Jest passed 1,133/1,133 in the orchestrator’s run. Player/phone not yet observed. Mission 7 is Live after #178 merges; Studio verified: pending orchestrator run. D1/D2 are active for M06; M07 activates D3. D1–D6 and M01–M07 are merged. M11 HIGH CROSSING is in review, depends on #184/#183/#185/#187, and is not live. Priorities: review dependencies, rebase M11, then runtime/Player/phone acceptance.</p>
 <nav><a href="https://www.roblox.com/games/112911685457826">Play SKYBREAK ↗</a> · <a href="README.md">Human dashboard</a> · <a href="blockers.md">Blockers</a></nav>
 </header>
 <section class="legend" aria-labelledby="legend"><h2 id="legend">Fixed status legend</h2>
@@ -173,19 +173,7 @@ No generator, network dependencies, JavaScript or build step is required. -->
   <dt>Owner test</dt><dd>No playable test yet. Review the composition/target tables; authenticated Studio and Player flight tests remain pending.</dd></dl>
 </article>
 
-<article class="card" id="level-11"><h2>11 · Mission 11</h2><span class="badge review">Spec only</span><p class="muted">Reference: Escort</p><dl>
-  <dt>Reference footage</dt><dd>2:39:46–2:45:27</dd>
-  <dt>Pieces</dt><dd><ul class="pieces">
-    <li>Spec: ✓ merged <a href="../specs/missions/m11.md">mission</a> and <a href="../specs/worlds/m11.md">world</a></li>
-    <li>World: ✓ built/dormant (#175); <a href="../specs/worlds/m11-composition.md">composition and budget</a></li>
-    <li>Engine needs: D1–D3 merged/dormant; remaining integration follows engine plan</li>
-    <li>Mission data & unlock: — placeholder only; locked</li>
-    <li>Studio verified: —</li>
-    <li>Live: —</li></ul></dd>
-  <dt>Open PRs</dt><dd>None for playable mission at snapshot</dd>
-  <dt>Known issues</dt><dd>World awaits rendered/phone acceptance; encounter ceiling (2,000) blocks adopting the unclipped 2,800-stud high route; independent civilian actors remain open. Level stays locked.</dd>
-  <dt>Owner test</dt><dd>No playable test yet. Review the composition/target tables; authenticated Studio and Player flight tests remain pending.</dd></dl>
-</article>
+<article class="card" id="level-11"><h2>11 · HIGH CROSSING</h2><span class="badge review">In review</span><p class="muted">Reference: Escort · depends on #184, #183, #185, #187</p><dl><dt>Objective</dt><dd>Protect ORCHARD ONE at Y2800 and ORCHARD TWO at Y900; both safe around 5:13.28, limit 5:30. Either loss fails.</dd><dt>Pressure</dt><dd>17 ordinary attackers + optional RIME; six pursuit slots. Allies share one uncredited kill.</dd><dt>Ranks</dt><dd>C120 / B240 / A360 / S780; maximum1260.</dd><dt>Owner checks</dt><dd>Both altitude bands, independent damage/loss, INCOMING marker and callsign missile-lock warnings, no civilian TGT, all-safe settlement, save/reload and M10 prerequisite. Offline checks only; Studio/Player/phone and visual reference comparison pending. Not live.</dd></dl></article>
 
 <article class="card" id="level-12"><h2>12 · Mission 12</h2><span class="badge review">Spec only</span><p class="muted">Reference: Stonehenge Offensive</p><dl>
   <dt>Reference footage</dt><dd>2:48:27–3:04:55</dd>
