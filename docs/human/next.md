@@ -1,5 +1,7 @@
 # Next
 
+PR #194 priority: orchestrator reruns Roblox Jest on the load-failure fix. The failure was CombatService register exhaustion, not a D12/D13 require cycle. Offline module compilation and emitted-require cycle checks now run in validate:offline. D13 stays dormant; M18 authoring/activation and rendered acceptance remain separate. The branch includes merged D11/D12 contracts, superseding the older exclusion note below.
+
 PR #191: verify Linux validate on the numeric snapshot portability fix before merge; existing runtime acceptance remains pending.
 
 M12 integration validation (2026-10-30): frozen install, build, required test:offline and manifest/catalog regeneration, and full validate:offline all exited 0 with the specified LUAU_BIN. Passed 1,088 Luau contracts, four loader probes, 19 catalog snapshots, three QA pilot scenarios and 124 Python tests. Story/radio inventory is 215 entries / 137 pending recordings; no audio generated. Catalog changes only M12; prerequisite mission definitions and every main decision record are preserved. D9/D10 cleanup paths remain unchanged; only M12 railgun models set LeaveWreck. Studio verified: pending orchestrator run. No Player tests claimed.
