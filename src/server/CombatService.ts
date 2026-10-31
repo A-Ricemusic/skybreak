@@ -1,5 +1,5 @@
 import { clearAirships, stepAirships } from "./EngineBatchD9Runtime";
-import { stepProtection, protectedTarget, hitProtected, clearProtection } from "./EngineBatchD7Runtime";
+import { stepProtection, protectedTarget, hitProtected, clearProtection, warnProtectedAttack } from "./EngineBatchD7Runtime";
 import { createCheapContact, cheapEligible, stepContacts, handoffParked, stepRepeatedArtillery } from "./EngineBatchD6Runtime";
 import { clearGroundDirector, stepGroundDirector, stepBeachAttacker } from "./EngineBatchD5Runtime";
 import { completeEliteRetreat, stepRingSweep } from "./EngineBatchD8Runtime";
@@ -1348,6 +1348,7 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		}, protectedAircraft !== undefined)) {
 			enemy.windup = windupSeconds;
 			enemy.windupTarget = AlliedRules.CommitWindupTarget(enemy.combatTarget);
+			warnProtectedAttack(session, enemy.windupTarget, line=>radio(session,line,3,true));
 			enemy.warning!.Enabled = true;
 			enemy.model.SetAttribute("AttackWarning", true);
 			if (!ace) {

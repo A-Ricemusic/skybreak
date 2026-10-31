@@ -1312,8 +1312,80 @@
    "speaker": "SERA",
    "voice": "EXAVITQu4vr4xnSDxMaL",
    "tape": false,
-   "text": "SERA: Both flights are clear. I have a name for that handwriting.",
-   "spoken": "Both flights are clear. I have a name for that handwriting."
+   "text": "SERA: Both flights are clear. Vulture Two is calling from the array.",
+   "spoken": "Both flights are clear. Vulture Two is calling from the array."
+  },
+  {
+   "id": "radio.m11.story.3",
+   "kind": "radio",
+   "speaker": "TRUCK",
+   "voice": "cgSgspJ2msm6clMCkdW9",
+   "tape": false,
+   "text": "ORCHARD ONE: Fighters above the cloud. We need cover.",
+   "spoken": "Fighters above the cloud. We need cover."
+  },
+  {
+   "id": "radio.m11.story.4",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Another high group. Orchard One, keep your course.",
+   "spoken": "Another high group. Orchard One, keep your course."
+  },
+  {
+   "id": "radio.m11.story.5",
+   "kind": "radio",
+   "speaker": "TRUCK",
+   "voice": "cgSgspJ2msm6clMCkdW9",
+   "tape": false,
+   "text": "ORCHARD TWO: Cannot climb. Fighters on the saddle!",
+   "spoken": "Cannot climb. Fighters on the saddle!"
+  },
+  {
+   "id": "radio.m11.story.6",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: More contacts low. Emergency crews await beyond the pass.",
+   "spoken": "More contacts low. Emergency crews await beyond the pass."
+  },
+  {
+   "id": "radio.m11.story.7",
+   "kind": "radio",
+   "speaker": "TRUCK",
+   "voice": "cgSgspJ2msm6clMCkdW9",
+   "tape": false,
+   "text": "ORCHARD ONE: Last ridge ahead. Three fighters closing high.",
+   "spoken": "Last ridge ahead. Three fighters closing high."
+  },
+  {
+   "id": "radio.m11.story.8",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Rime crossing. Optional intercept; the families come first.",
+   "spoken": "Rime crossing. Optional intercept; the families come first."
+  },
+  {
+   "id": "radio.m11.story.9",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Orchard Two stays low. Leave room to descend.",
+   "spoken": "Orchard Two stays low. Leave room to descend."
+  },
+  {
+   "id": "radio.m11.story.10",
+   "kind": "radio",
+   "speaker": "TRUCK",
+   "voice": "cgSgspJ2msm6clMCkdW9",
+   "tape": false,
+   "text": "ORCHARD TWO: They can see the escort. Stay with us to the ridge.",
+   "spoken": "They can see the escort. Stay with us to the ridge."
   },
   {
    "id": "radio.m12.story.1",

@@ -75,7 +75,15 @@ Current lines in live missions: opening answer c00.b05 remains silent; changed c
 | radio.m10.story.5 | RIM TOWER / RIVER TOWER | RIVER TOWER: Cleared to land southbound. Racks ready; damage stays. | Planned mission radio; future builder must wire this exact text; Concise operational urgency | 5 |
 | radio.m10.story.6 | RIM TOWER / RIVER TOWER | RIVER TOWER: Ammunition aboard. Cleared for takeoff. | Planned mission radio; future builder must wire this exact text; Concise operational urgency | 5 |
 | radio.m11.story.1 | SERA / SERA | SERA: One airliner cannot climb. Watch both altitude bands. | Planned mission radio; future builder must wire this exact text; Concise operational urgency | 5 |
-| radio.m11.story.2 | SERA / SERA | SERA: Both flights are clear. I have a name for that handwriting. | Planned mission radio; future builder must wire this exact text; Concise operational urgency | 6 |
+| radio.m11.story.2 | SERA / SERA | SERA: Both flights are clear. Vulture Two is calling from the array. | Planned mission radio; future builder must wire this exact text; Concise operational urgency | 6 |
+| radio.m11.story.3 | TRUCK / ORCHARD ONE | ORCHARD ONE: Fighters above the cloud. We need cover. | Planned mission radio; future builder must wire this exact text; Concise operational urgency | 5 |
+| radio.m11.story.4 | SERA / SERA | SERA: Another high group. Orchard One, keep your course. | Planned mission radio; future builder must wire this exact text; Concise operational urgency | 5 |
+| radio.m11.story.5 | TRUCK / ORCHARD TWO | ORCHARD TWO: Cannot climb. Fighters on the saddle! | Planned mission radio; future builder must wire this exact text; Concise operational urgency | 5 |
+| radio.m11.story.6 | SERA / SERA | SERA: More contacts low. Emergency crews await beyond the pass. | Planned mission radio; future builder must wire this exact text; Concise operational urgency | 5 |
+| radio.m11.story.7 | TRUCK / ORCHARD ONE | ORCHARD ONE: Last ridge ahead. Three fighters closing high. | Planned mission radio; future builder must wire this exact text; Concise operational urgency | 5 |
+| radio.m11.story.8 | SERA / SERA | SERA: Rime crossing. Optional intercept; the families come first. | Planned mission radio; future builder must wire this exact text; Concise operational urgency | 5 |
+| radio.m11.story.9 | SERA / SERA | SERA: Orchard Two stays low. Leave room to descend. | Planned mission radio; future builder must wire this exact text; Concise operational urgency | 5 |
+| radio.m11.story.10 | TRUCK / ORCHARD TWO | ORCHARD TWO: They can see the escort. Stay with us to the ridge. | Planned mission radio; future builder must wire this exact text; Concise operational urgency | 6 |
 | radio.m12.story.1 | SERA / SERA | SERA: Eight towers. The command array is his; the crater is your way in. | Planned mission radio; future builder must wire this exact text; Concise operational urgency | 7 |
 | radio.m12.story.2 | SERA / SERA | SERA: Ejection marked. Marines are moving. | Planned mission radio; future builder must wire this exact text; Concise operational urgency | 5 |
 | radio.m13.story.1 | SERA / SERA | SERA: Jammers in the ravine. Clear the plane a channel. | Planned mission radio; future builder must wire this exact text; Concise operational urgency | 5 |

@@ -60,6 +60,6 @@ describe("Dormant D4 intercept hold",()=>{
 			expect(one.slots.size()).toBe(1);expect(one.slots[0]).toEqual(all.slots[slot]);expect(one.escaped).toBe(all.escaped);
 		}
 	});
-	it("leaves missions other than M08, M09 and M10 dormant",()=>{for(const b of MissionCatalog.All().filter(b=>b.id!==8 && b.id!==9 && b.id!==10)) for(const p of MissionCatalog.ExpandedPhases(b)) {expect(p.interceptHold).toBeUndefined();expect(p.concurrentFighters).toBeUndefined();expect(p.concurrentRoutes).toBeUndefined();expect(p.bombers?.arrivalSeconds).toBeUndefined();}});
+	it("leaves missions other than M08, M09, M10 and M11 dormant",()=>{for(const b of MissionCatalog.All().filter(b=>b.id!==8 && b.id!==9 && b.id!==10 && b.id!==11)) for(const p of MissionCatalog.ExpandedPhases(b)) {expect(p.interceptHold).toBeUndefined();expect(p.concurrentFighters).toBeUndefined();expect(p.concurrentRoutes).toBeUndefined();expect(p.bombers?.arrivalSeconds).toBeUndefined();}});
 	it("reserves route capacity only for M10",()=>{for(const b of MissionCatalog.All()) for(const p of MissionCatalog.ExpandedPhases(b)) expect(p.concurrentRoutes).toBe(b.id===10 ? 2 : undefined);});
 });
