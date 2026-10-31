@@ -1,8 +1,8 @@
 # SKYBREAK redesign dashboard
 
-Updated 2026-10-30 against main `a04fdd6` (#177 and #178 merged), integrating mission 8 #183. Merged gameplay is live in Roblox Player under the owner's automatic-pipeline convention; no Player test is claimed here.
+Updated 2026-10-30 against main `085373c` (#178, #180, #182 and #183 merged), integrating mission 9 #185. Merged gameplay is live by the owner's automatic-pipeline convention; no Player test is claimed.
 
-**Practice and missions 1–7 are live; mission 8 OPEN FREQUENCY will be live after #183 merges. Missions 9–18 remain locked, with their worlds built and dormant.** Mission 8 unlocks after mission 7: ≥800 points over 7:00, then six bombers approaching from the west to intercept during a fresh 6:00 hold protecting the broadcast mast. Studio verified: pending orchestrator run. Player/phone not yet observed. D1–D4 are merged; M06 activates D1/D2, M07 D3 and M08 D4. D5 #180 and D6 #182 remain open.
+**Practice and missions 1–8 are live; mission 9 GREEN BEACON will be live after #185 merges. Missions 10–18 remain locked, with worlds built and dormant.** M09 unlocks after M08: ≥2,200 points over the full 10:00 beach suppression, optional carrier-deck rearm, then 7:00 defence against nine beach attackers. Studio verified: pending orchestrator run. Player/phone not yet observed. D1–D6 are merged; M06 activates D1/D2, M07 D3, M08 D4 and M09 D5 (D-290–D-293).
 
 Live changes include mission 5's refinery strike/rearm/escape (#148), closest-on-screen TGT cycling (#172), full-bleed loading with jet/progress/tips (#173), and harder M01/M02 with a shared allied kill budget of approximately one per sortie (#174). #176 also fixes weather lookup for M05–M13 and registers all 18 environments. Automatic acquisition remains nose-first; practice and missions 1–5 do not enable the dormant gun, finite stock, naval/SAM/anti-ship or canyon/area-strike contracts.
 
@@ -21,10 +21,10 @@ Mission 7 merged fixes in #178: absolute Y=585 ceiling, full segmented artillery
 | 3 | The Northern Eye | 0:26:41–0:34:24 | 7.7 min | Yes | Yes | Playable | Yes (pipeline) | — |
 | 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | Yes | Playable | Yes (pipeline) | — |
 | 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | Yes | Playable | Yes (pipeline) | — |
-| 6 | Invincible Fleet | 1:03:01–1:20:00 | 15:00 active + optional service | Yes | Yes; provisional roster D-260 | ✓ #179 data/unlock; Studio ✓ full Jest 1,133/1,133 (orchestrator) | Live (pipeline after #179 merges) | Player/phone not yet observed |
+| 6 | Invincible Fleet | 1:03:01–1:20:00 | 15:00 active + optional service | Yes | Yes; provisional roster D-260 | ✓ #179 data/unlock; Studio ✓ full Jest 1,133/1,133 (orchestrator) | Yes (pipeline) | Player/phone not yet observed |
 | 7 | Deep Strike | 1:22:13–1:35:49 | 13.6 min | Yes | Yes | Playable #178; Studio verified: pending orchestrator run | Yes (pipeline) | — |
-| 8 | Shattered Skies | 1:39:16–1:52:39 | 7:00 + 6:00 hold | Yes | Yes; provisional D-320–D-324 | Playable #183; Studio verified: pending orchestrator run | Live after #183 merges (pipeline) | Player/phone not yet observed |
-| 9 | Operation Bunker Shot | 1:56:14–2:14:14 | 18.0 min | Yes | Yes | World built/dormant; mission integration pending | No | — |
+| 8 | Shattered Skies | 1:39:16–1:52:39 | 7:00 + 6:00 hold | Yes | Yes; provisional D-320–D-324 | Playable #183; Studio verified: pending orchestrator run | Yes (pipeline) | Player/phone not yet observed |
+| 9 | Operation Bunker Shot | 1:56:14–2:14:14 | 10:00 + 7:00 + optional service | Yes | Yes; provisional D-340–D-344 | Playable #185; Studio verified: pending orchestrator run | Live after #185 merges (pipeline) | Player/phone not yet observed |
 | 10 | Tango Line | 2:16:13–2:37:51 | 21.6 min | Yes | Yes | World built/dormant; mission integration pending | No | — |
 | 11 | Escort | 2:39:46–2:45:27 | 5.7 min | Yes | Yes | World built/dormant; mission integration pending | No | — |
 | 12 | Stonehenge Offensive | 2:48:27–3:04:55 | 16.5 min | Yes | Yes | World built/dormant; mission integration pending | No | — |
@@ -55,3 +55,5 @@ M08 follow-up validation: `bun install --frozen-lockfile`, `bun run build`, and 
 D6 engine work is merged (#182, `ea0045d`): dormant repeated artillery, parked/airborne credit deduplication, bounded static contact detail and six M10 target types (D-300–D-303). No mission opts in; Studio/runtime Jest/phone verification and M10 activation remain pending. See [engine plan](../specs/engine/missions-06-18-plan.md#7-batch-d6-implementation).
 
 D6 integration checks: frozen install, build and full offline validation exit 0 (993 Luau contracts, 19 catalog snapshots, 124 Python tests; four negative loader probes). D4+D6 admission/contact regressions added; runtime specs compiled only. No Studio, `test:roblox`, Player or phone test performed.
+
+M09 integration validation (2026-10-30): frozen install, `bun run build`, `test:offline` and full `validate:offline` with the supplied `LUAU_BIN` exited 0. Passed 1,009 Luau contracts, four negative loader probes, 19 catalog snapshots and 124 Python tests. All 90 offline specs match registration/import lists; checkedRequire remains. Combined inventories: 192 entries, 114 subtitle-only pending recordings; every existing line and non-M09 catalog entry preserved. Studio verified: pending orchestrator run. No Studio, Roblox Jest or Player test performed.

@@ -1,17 +1,17 @@
 # Blockers
 
-Updated 2026-10-30 against main `a04fdd6` (#177/#178 merged); no known deployment failure is recorded. Live status follows the owner's pipeline convention and does not establish observed Player quality. This reconciliation performs offline checks only.
+Updated 2026-10-30 against main `085373c` (#178/#180/#182/#183 merged); no known deployment failure is recorded. Live status follows the owner's pipeline convention and does not establish observed Player quality. This reconciliation performs offline checks only.
 
 ## D5 verification and mission integration (2026-10-30)
 
-Resolved PR #180 P2: sector-only windups no longer emit player lock warnings or prevent carrier service. Shared policy coverage and a beach-attacker-to-service integration regression preserve player windup warnings/service blocking. The integration case is compiled but awaits the orchestrator-owned Roblox test run. No implementation blocker requiring owner input. Studio/Jest runtime, Player feel, phone readability, carrier approach/deck clearance and force-health tuning remain unverified. The implementation agent did not launch Studio or run test:roblox. M09 subtype inventory, exact points and authored routes remain mission readiness gaps; dormant engine support does not resolve them. No uploads or new audio. D5 is updated against main `d1fb3a8`; D4 #177 remains a separate open dependency.
+Resolved PR #180 P2: sector-only windups no longer emit player lock warnings or prevent carrier service. Shared policy coverage and a beach-attacker-to-service integration regression preserve player windup warnings/service blocking. The integration case is compiled but awaits the orchestrator-owned Roblox test run. No implementation blocker requiring owner input. Studio/Jest runtime, Player feel, phone readability, carrier approach/deck clearance and force-health tuning remain unverified. The implementation agent did not launch Studio or run test:roblox. M09 adopts a provisional roster, points and routes under D-340–D-344; exact source inventory and runtime acceptance remain open. No uploads or new audio. D5 #180 and D4 #177 are merged; M09 #185 activates D5 (D-290–D-293) after merge.
 
 ## Resolved dependencies
 
-- M04 #149, M05 #148, terrain performance #158, story #159 and cutscenes #152 are merged. Practice/M01–M07 are live by pipeline convention; their old review/unlock dependencies are resolved.
+- M04 #149, M05 #148, terrain performance #158, story #159 and cutscenes #152 are merged. Practice/M01–M08 are live by pipeline convention; their old review/unlock dependencies are resolved.
 - #172 targeting, #173 loading and #174 difficulty/allied budget are merged/live. Human balance, phone and rendered acceptance remain open.
-- Worlds 6–18 (#175/#176) are merged; M06/M07 are active and M08 activates after #183 merges; M09–M18 remain dormant. No stack rebase remains for those world PRs. #176 fixes M05–M13 weather lookup and all 18 environment registrations, M17 metadata and M18 foundations.
-- D1–D4 (#165/#168/#171/#177) and mission 7 #178 are merged. M06 activates D1/D2, M07 D3; M08 #183 activates D4 after merge. D5 #180 and D6 #182 remain open.
+- Worlds 6–18 (#175/#176) are merged; M06/M07/M08 are active; M09 activates after #185 merges; M10–M18 remain dormant. No stack rebase remains for those world PRs. #176 fixes M05–M13 weather lookup and all 18 environment registrations, M17 metadata and M18 foundations.
+- D1–D4 (#165/#168/#171/#177) and mission 7 #178 are merged. M06 activates D1/D2, M07 D3; M08 #183 activates D4. D5 #180 and D6 #182 are merged; M09 #185 activates D5 after merge.
 
 ## Remaining world/activation gaps
 
@@ -86,7 +86,7 @@ Resolved in code/offline coverage: ray masking beyond Roblox’s 15,000-stud sin
 
 ## Mission 8 integration and acceptance
 
-D4 #177 and mission 7 #178 are merged; #183 is integrated onto current main. M08 unlocks only after sequential completion through M07; M09–M18 stay locked even with forged records. Live after #183 merges by pipeline convention; no known deployment failure. Studio verified: pending orchestrator run. Player/phone/rendered/balance acceptance remains open. Validate adopted mast without duplicate relay, both full clocks, six bomber endpoints, ignition and settlement. D-320–D-324 retain provisional roster/ranks/routes, support stand-ins and deferred service/finite-stock fidelity. No Studio, Roblox Jest, Player tests, new audio or asset uploads performed in this integration.
+D4 #177 and mission 7 #178 are merged; #183 is integrated onto current main. M08 unlocks only after sequential completion through M07; M10–M18 stay locked even with forged records; M09 unlocks only after M08 once #185 merges. Live after #183 merge by pipeline convention; no known deployment failure. Studio verified: pending orchestrator run. Player/phone/rendered/balance acceptance remains open. Validate adopted mast without duplicate relay, both full clocks, six bomber endpoints, ignition and settlement. D-320–D-324 retain provisional roster/ranks/routes, support stand-ins and deferred service/finite-stock fidelity. No Studio, Roblox Jest, Player tests, new audio or asset uploads performed in this integration.
 
 ### M08 catalog assertion corrected; Studio rerun pending
 
@@ -97,3 +97,7 @@ M08 arrival regression follow-up (2026-10-30): the orchestrator reported 1,175/1
 D6 remains dormant. Runtime Jest, Studio, Player observations and 150-contact phone profiling remain pending under the orchestrator’s Studio lease. M10 roster, artillery cadence, rank thresholds and rendered-world acceptance remain unresolved. D4/D5 and mission 7 are now integrated; repeated artillery uses M7’s segmented masking rays. No uploads or owner action required.
 
 D6 integration checks: frozen install, build and full offline validation exit 0 (993 Luau contracts, 19 catalog snapshots, 124 Python tests; four negative loader probes). D4+D6 admission/contact regressions added; runtime specs compiled only. No Studio, `test:roblox`, Player or phone test performed.
+
+## M09 integration and acceptance
+
+Prerequisites #178, #180, #182 and #183 are merged; #185 is replayed onto main `085373c` and targets main. No implementation blocker requires owner input. Studio verified: pending orchestrator run. Player/phone/rendered comparisons remain pending; no Player tests claimed. The 55-contact reconstruction, ranks and 300-health landing-force budget remain provisional (D-340–D-344). No new audio, Blender assets or uploads.

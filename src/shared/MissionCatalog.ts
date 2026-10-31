@@ -252,7 +252,7 @@ function expandPhases(phases: MissionPhaseBlueprint[]): MissionPhaseBlueprint[] 
 // Recompute optional counts after authored flight objectives are installed.
 for (const mission of MISSIONS) {
 	let optional = 0;
-	for (const phase of expandPhases(mission.phases)) optional += (phase.bombers?.escorts.count ?? 0) + (phase.optionalRaiders ?? 0) + (phase.standaloneAce ? 1 : 0) + (phase.fighterWaves ?? []).reduce((sum,w)=>sum+w.count,0);
+	for (const phase of expandPhases(mission.phases)) optional += (phase.bombers?.escorts.count ?? 0) + (phase.optionalRaiders ?? 0) + (phase.standaloneAce ? 1 : 0) + (phase.fighterWaves ?? []).reduce((sum,w)=>sum+(w.required ? 0 : w.count),0);
 	mission.optionalRaiderMax = optional;
 }
 
@@ -545,7 +545,7 @@ export const MissionCatalog = {
 	},
 	/** Raiders a phase may lose when every wave brings `extra` more (Ace difficulty). */
 	RaiderCap(phase: MissionPhaseBlueprint, extra = 0): number {
-		return (phase.standaloneAce ? 1 : 0) + (phase.fighterWaves ?? []).reduce((sum,w) => sum+w.count,0) + (phase.bombers?.escorts.count ?? 0) + (phase.optionalRaiders ?? 0) + math.max(0, extra) * MissionCatalog.RaiderWaves(phase);
+		return (phase.standaloneAce ? 1 : 0) + (phase.fighterWaves ?? []).reduce((sum,w) => sum+(w.required ? 0 : w.count),0) + (phase.bombers?.escorts.count ?? 0) + (phase.optionalRaiders ?? 0) + math.max(0, extra) * MissionCatalog.RaiderWaves(phase);
 	},
 	/**
 	 * The most hostile aircraft a phase can have up at once if nothing held them back: every group a

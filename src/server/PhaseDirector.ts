@@ -68,7 +68,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		for (const batch of WavePlan.Admit(session.airQueue, room)) {
 			if (batch.arrival) {
 				const a=batch.arrival;
-				spawnAir(session,batch.count,"aircraft" in a && a.aircraft ? "bomber" : batch.role,{ arrival:a, targetId: session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.targetIds !== undefined && ("name" in a || a.count === 1) ? a.id : undefined, optional:true, name: "name" in a ? a.name : undefined, livery: "livery" in a ? a.livery : undefined, aceHealth: "health" in a ? a.health : undefined });
+				spawnAir(session,batch.count,"aircraft" in a && a.aircraft ? "bomber" : batch.role,{ arrival:a, targetId: session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.targetIds !== undefined && ("name" in a || a.count === 1) ? a.id : undefined, optional:!("required" in a && a.required === true), name: "name" in a ? a.name : undefined, livery: "livery" in a ? a.livery : undefined, aceHealth: "health" in a ? a.health : undefined });
 			} else if (session.bomberEncounter && (batch.role === "escort" || batch.role === "ace")) {
 				const encounter = session.bomberEncounter;
 				const leading = BomberRules.Sample(encounter.route, session.elapsed - encounter.startedAt).slots[0];
@@ -144,7 +144,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 			}
 			requestAir(session, b.escorts.initial, "escort");
 		}
-		else if (phase.kind === "required_air" && phase.execution?.launchDelay === undefined) {
+		else if (phase.kind === "required_air" && !phase.fighterWaves?.some(w => w.required) && phase.execution?.launchDelay === undefined) {
 			if (phase.execution?.directSpawn) spawnAir(session,phase.count ?? 0,"bandit");
 			else {
 			// Staggered groups: the first now, the rest by WavePlan.Due (stepSession).
