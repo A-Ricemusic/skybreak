@@ -75,3 +75,7 @@ PR #149 fixes the old 4:43.5 transport exit to 6:48.33 (D-096), covered offline;
 Sequential unlock after mission 5, finite stocks/rearm, score expiry and shared engine integration are implemented. Independent review approved #179; the orchestrator’s full Studio Jest suite passed 1,133/1,133 at `e5c2fd2`. This docs reconciliation does not rerun Studio or establish Player quality.
 
 D-260 retains 36 naval hulls, 40 yard contacts and 18 separately scored hull-owned components; the reference initial-40/credited-58 discrepancy remains unresolved. Sixteen hostile aircraft reflect owner pressure direction. Rendered reference comparison, real flight/ship sinking/SAM/anti-ship feel, service skip/clock behavior, load/clear timing and phone readability remain acceptance gaps. Player/phone not yet observed. No new audio or Blender asset upload.
+
+## Mission 7 review fixes (unmerged #178)
+
+Resolved in code/offline coverage: ray masking beyond Roblox’s 15,000-stud single-cast limit, incorrect 617.216 ceiling, short initial ingress window, main/M06 merge conflicts and one-kill allied budget integration. The distant battery is authored because neither reference spec measures its position. Initial warning remains immediate, first impact is 60s; later salvos remain 25s apart. New actual-build first-step audit and masking Jest spec awaits the orchestrator’s Studio run. Player/phone balance, transition flight and rendered acceptance remain open; no Studio/Player test is claimed.

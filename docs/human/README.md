@@ -10,6 +10,8 @@ New and changed story dialogue stays subtitle-only: no further audio uploads (D-
 
 [Per-level status and owner checklist](levels.html) · [Play SKYBREAK](https://www.roblox.com/games/112911685457826)
 
+Mission 7 review fixes in #178: absolute Y=585 ceiling, full segmented artillery masking and a 60-second first impact for retained-pose canyon ingress. New real-world D-242 Jest coverage awaits the orchestrator; no Studio or Player verification claimed.
+
 ## Mission progress
 
 | # | Reference mission | Footage time | Gameplay length | Footage indexed | Spec written | Built | Live | Owner tested |
@@ -20,7 +22,7 @@ New and changed story dialogue stays subtitle-only: no further audio uploads (D-
 | 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | Yes | Playable | Yes (pipeline) | — |
 | 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | Yes | Playable | Yes (pipeline) | — |
 | 6 | Invincible Fleet | 1:03:01–1:20:00 | 15:00 active + optional service | Yes | Yes; provisional roster D-260 | ✓ #179 data/unlock; Studio ✓ full Jest 1,133/1,133 (orchestrator) | Live (pipeline after #179 merges) | Player/phone not yet observed |
-| 7 | Deep Strike | 1:22:13–1:35:49 | 13.6 min | Yes | Yes | World built/dormant; mission in review #178 | No | — |
+| 7 | Deep Strike | 1:22:13–1:35:49 | 13.6 min | Yes | Yes | Playable in #178 (unmerged); review fixes and offline checks, Studio pending | No | — |
 | 8 | Shattered Skies | 1:39:16–1:52:39 | 13.4 min | Yes | Yes | World built/dormant; mission integration pending | No | — |
 | 9 | Operation Bunker Shot | 1:56:14–2:14:14 | 18.0 min | Yes | Yes | World built/dormant; mission integration pending | No | — |
 | 10 | Tango Line | 2:16:13–2:37:51 | 21.6 min | Yes | Yes | World built/dormant; mission integration pending | No | — |
@@ -39,3 +41,5 @@ Footage times are internal reference cross-references, not shipped titles; see t
 - [Next](next.md): ordered implementation and owner checks.
 - [Blockers](blockers.md): remaining acceptance gaps and resolved dependencies.
 - [Decisions](decisions.md): stable design records.
+
+M07 review-fix validation (2026-10-30): frozen install, build and full `validate:offline` exited 0; 967 Luau contracts and 19 catalog snapshots passed. Voice manifests regenerated; no audio generated/uploaded. Studio/Player not run by this agent.
