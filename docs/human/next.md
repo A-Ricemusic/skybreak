@@ -10,6 +10,8 @@ After this PR merges, complete mission 5 then launch mission 6. Verify the remap
 - Six finite waves plus WARDEN LEAD provide 16 hostile aircraft (five above the reference roster). Three wingmen share one whole-sortie kill budget and give no player points. Check sustained pressure, service-entry safety and HUD readability on phone.
 - At expiry verify win/failure, points/rank/breakdown, replay/save reload, and mission 7 still locked. Verify no unlock before mission 5 or from forged completion requests.
 
+Frozen install/build and full `validate:offline` exited 0 (958 Luau contracts, 19 catalog snapshots, 124 Python tests).
+
 Studio/Jest, real flight feel, reference skyline comparison, load/clear timing and Player/phone checks are pending the orchestrator's Studio queue. No Studio or Player test was performed for this PR. No audio or asset upload is needed.
 
 ## Engine batch D3 — rebased on main after D2 (#168); dormant

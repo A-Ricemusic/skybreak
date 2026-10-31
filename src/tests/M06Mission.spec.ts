@@ -334,6 +334,8 @@ describe("Mission 6 flow: threshold, failure and settlement", () => {
 		});
 	});
 	it("fails below 3,000 at 15:00 and when shot down; a short or overlong result never settles as completed", () => {
+		const exact = BlueprintRunner.NewState(bp, 0); exact.score = 3000; BlueprintRunner.Tick(exact, 899);
+		expect(exact.outcome).toBeUndefined(); BlueprintRunner.Tick(exact, 900); expect(exact.outcome).toBe("won");
 		const low = BlueprintRunner.NewState(bp, 0); low.score = 2999; BlueprintRunner.Tick(low, 900);
 		expect(low.outcome).toBe("failed"); expect(low.reason).toBe("timeout");
 		const early = BlueprintRunner.NewState(bp, 0); early.score = 4000; BlueprintRunner.Tick(early, 120, 0);

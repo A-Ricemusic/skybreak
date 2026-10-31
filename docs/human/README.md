@@ -1,6 +1,6 @@
 # SKYBREAK redesign dashboard
 
-Current mission-6 status (2026-10-30): **In review**, playable on this branch after mission 5. One 15:00 phase, ≥3,000 points, optional land-runway rearm; 36 hulls + 40 yard contacts + 18 defence components + 16 aircraft. Offline validation recorded in the PR; Studio/Player verification pending. No audio/assets uploaded. Older dated entries below describe their original review state.
+Current mission-6 status (2026-10-30): **In review**, playable on this branch after mission 5. One 15:00 phase, ≥3,000 points, optional land-runway rearm; 36 hulls + 40 yard contacts + 18 defence components + 16 aircraft. Frozen install/build and full validate:offline exited 0 (958 Luau contracts, 19 catalog snapshots, 124 Python tests); Studio/Player verification pending. No audio/assets uploaded. Older dated entries below describe their original review state.
 
 Unmerged owner tuning (D-220/D-221): M01/M02 add four optional fighters each with higher rank cuts; shared allied flights default to one combined kill per sortie. Existing live gameplay stays as merged main until this PR merges. See [Next](next.md) for exact changes and owner checks.
 
@@ -61,8 +61,8 @@ M17 now matches the spec:18:20 and12,000ft cloud-base reference metadata. No ada
 | 1 | Sitting Duck | 0:06:30–0:11:24 | 4.9 min | Yes | Yes | Yes | Yes | Earlier tuning; current #134 tuning awaits feedback |
 | 2 | Imminent Threat | 0:15:38–0:22:34 | 6.9 min | Yes | Yes | Yes (#143) | Yes | — |
 | 3 | The Northern Eye | 0:26:41–0:34:24 | 7.7 min | Yes | Yes | Yes (#147 merged); world #139 and engine #141 merged | Yes (pipeline) | — |
-| 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | Yes | In review #149; shared cleanup gate and 6:48.33 escape fixed in branch, Studio re-check pending; load-time fix (D-120: 66→11.7 s terrain in a Studio bench) in a PR stacked on #149; assets #142, world #144 and engine #145 merged, dormant | No | — |
-| 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | Yes | In review #148; assets #142, world #144 and engine #145 merged, dormant | No | — |
+| 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | Yes | Merged #149; runtime verification history below | Yes (pipeline) | — |
+| 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | Yes | Merged #148; previous Studio evidence in shipped.md | Yes (pipeline) | — |
 | 6 | Invincible Fleet | 1:03:01–1:20:00 | 15:00 active + optional service | Yes | Yes; provisional roster D-260 | In review: IRON COAST, score/rearm/naval integration | No | Pending Studio/Player |
 | 7 | Deep Strike | 1:22:13–1:35:49 | 13.6 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m07.md), [world](../specs/worlds/m07.md)) | World in review / locked | No | — |
 | 8 | Shattered Skies | 1:39:16–1:52:39 | 13.4 min | Yes | Spec written / in review ([PR #155](https://github.com/A-Ricemusic/skybreak/pull/155); [mission](../specs/missions/m08.md), [world](../specs/worlds/m08.md)) | World in review / locked | No | — |

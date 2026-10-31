@@ -2,7 +2,7 @@
 
 ## Mission 6 integration (2026-10-30)
 
-- Resolved locally: interrupted checkpoint restored; shared engine merge conflicts use main's D1/D2/D3 code. Mission 6 adopts the dormant world's exact ids once, uses finite stocks/rearm and threshold expiry, and unlocks sequentially after mission 5.
+- Resolved locally: interrupted checkpoint restored; shared engine merge conflicts use main's D1/D2/D3 code. Mission 6 adopts the dormant world's exact ids once, uses finite stocks/rearm and threshold expiry, and unlocks sequentially after mission 5. The offline QA-pilot locked-mission fixture now uses mission 7.
 - Provisional roster decision D-260: retain 40 yard contacts plus 18 hull-owned components, separately accounted from 36 naval hulls. The reference's 40 initial ground versus 58 credited kills remains unexplained; this implementation is an explicit adaptation, not an exact reconstruction. Air rises from 11 to 16 under owner pressure direction.
 - Pending: orchestrator-owned Studio/Jest queue, rendered reference comparison, target adoption/sinking/anti-ship runtime behavior, service skip/clock checks, load/clear and phone readability. Offline tests do not establish observed playability. No new audio or Blender asset work/upload.
 
