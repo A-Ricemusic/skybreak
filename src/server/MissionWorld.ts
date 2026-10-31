@@ -1,3 +1,13 @@
+import { M14World } from "./M14World";
+import { M14_WORLD_KEY } from "../shared/M14WorldPlan";
+import { M15World } from "./M15World";
+import { M15_WORLD_KEY } from "../shared/M15WorldPlan";
+import { M16World } from "./M16World";
+import { M16_WORLD_KEY } from "../shared/M16WorldPlan";
+import { M17World } from "./M17World";
+import { M17_WORLD_KEY } from "../shared/M17WorldPlan";
+import { M18World } from "./M18World";
+import { M18_WORLD_KEY } from "../shared/M18WorldPlan";
 import { M12World } from "./M12World";
 import { M13World } from "./M13World";
 import { M12_WORLD_KEY } from "../shared/M12WorldPlan";
@@ -239,6 +249,26 @@ export const MissionWorld = {
 	/** `targetVisuals`: a world's own drawing of each typed target, keyed by target id; combat adopts them instead of building copies. */
 	Build(missionId: number, parent: Instance): { groundTargets: Model[]; targetVisuals?: Map<string, Model> } {
 		assert(MissionCatalog.Available(missionId), "Mission world is in development");
+		if (MissionCatalog.WorldKey(missionId) === M14_WORLD_KEY) {
+			Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();
+			return M14World.Build(parent);
+		}
+		if (MissionCatalog.WorldKey(missionId) === M15_WORLD_KEY) {
+			Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();
+			return M15World.Build(parent);
+		}
+		if (MissionCatalog.WorldKey(missionId) === M16_WORLD_KEY) {
+			Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();
+			return M16World.Build(parent);
+		}
+		if (MissionCatalog.WorldKey(missionId) === M17_WORLD_KEY) {
+			Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();
+			return M17World.Build(parent);
+		}
+		if (MissionCatalog.WorldKey(missionId) === M18_WORLD_KEY) {
+			Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();
+			return M18World.Build(parent);
+		}
 		if (MissionCatalog.WorldKey(missionId) === M01_WORLD_KEY) {
 			Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();
 			return M01World.Build(parent);

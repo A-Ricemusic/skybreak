@@ -1,9 +1,37 @@
+import { WORLD_ENVIRONMENTS, resolveEnvironment } from "../shared/WorldEnvironments";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { ENVIRONMENT_NAMES } from "../shared/EnvironmentPresets";
 import { PHONE_SHARE, lightningGap, phoneClouds, weatherPlan } from "../shared/WeatherRules";
 
 // Pure weather contracts; also run in the offline Luau VM.
 describe("Mission weather", () => {
+ it("resolves every registered world environment on desktop, phone and reduced motion",()=>{
+  expect(WORLD_ENVIRONMENTS.size()).toBe(18);
+  for(const [key,e] of WORLD_ENVIRONMENTS){
+   expect(resolveEnvironment(key)).toEqual(e);
+   for(const phone of [false,true])for(const reduced of [false,true]){
+    const p=weatherPlan(key,phone,reduced);
+    expect(p.rain!==undefined).toBe(e.weather==="storm");
+    expect(p.lightning!==undefined).toBe(e.weather==="storm");
+    expect(p.aurora!==undefined).toBe(e.weather==="aurora");
+    expect(p.drift!==undefined).toBe(e.weather==="dust"||e.weather==="fog");
+    if(p.rain)expect(p.rain.rate).toBeLessThanOrEqual(phone?220:520);
+   }
+   const trimmed=phoneClouds(key,e.clouds.cover,e.clouds.density);
+   // M01 retains its existing special deck policy, tested separately below.
+   if(e.weather==="storm"||e.weather==="fog"||e.sky==="overcast")expect(trimmed.cover).toBe(e.clouds.cover);
+   expect(trimmed.density).toBeLessThanOrEqual(0.18);
+  }
+  expect(weatherPlan("m14_aurora_shield",true,false).aurora).toBeDefined();
+  expect(weatherPlan("m18_voice_breaks",true,false).rain).toBeDefined();
+  expect(phoneClouds("m18_voice_breaks",0.25,0.3)).toEqual({cover:0.9,density:0.18});
+  for(const key of [undefined,"","unknown_world","m99_future_world"]){
+   expect(resolveEnvironment(key)).toBeUndefined();expect(weatherPlan(key,false,false)).toEqual({});
+   expect(phoneClouds(key,0.7,0.3)).toEqual({cover:0.25,density:0.18});
+  }
+  for(const key of ENVIRONMENT_NAMES)expect(resolveEnvironment(key)).toBeDefined();
+ });
+
 	it("resolves M04 clear-noon weather and phone clouds from its published world key", () => {
 		expect(weatherPlan("m04_inland_hills",false,false)).toEqual({});
 		expect(phoneClouds("m04_inland_hills",0.15,0.2)).toEqual({cover:0.15,density:0.18});
