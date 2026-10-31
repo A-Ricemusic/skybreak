@@ -1,5 +1,11 @@
 # SKYBREAK redesign dashboard
 
+## D10 branch status
+
+D10 validation: frozen install, build and full offline validation exited 0 (1,007 Luau contracts, 19 catalog snapshots, 124 Python tests). Runtime Jest compiled only; no Studio run.
+
+D10 F26 cruise-intercept support is implemented in `feat/engine-batch-d10`, unmerged and dormant; no mission opts in. Based on fetched main `085373c`: D1–D6 and M01–M08 are merged/live by pipeline convention (older dashboard paragraphs retain their historical PR status). M14 remains locked. No Studio/Player verification or upload was performed. See D-480–D-483 and the engine plan’s Batch D10 implementation section.
+
 Updated 2026-10-30 against main `a04fdd6` (#177 and #178 merged), integrating mission 8 #183. Merged gameplay is live in Roblox Player under the owner's automatic-pipeline convention; no Player test is claimed here.
 
 **Practice and missions 1–7 are live; mission 8 OPEN FREQUENCY will be live after #183 merges. Missions 9–18 remain locked, with their worlds built and dormant.** Mission 8 unlocks after mission 7: ≥800 points over 7:00, then six bombers approaching from the west to intercept during a fresh 6:00 hold protecting the broadcast mast. Studio verified: pending orchestrator run. Player/phone not yet observed. D1–D4 are merged; M06 activates D1/D2, M07 D3 and M08 D4. D5 #180 and D6 #182 remain open.

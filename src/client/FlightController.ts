@@ -622,7 +622,7 @@ export class FlightController {
 				if (child.GetAttribute("SkybreakFriendly") === true) {
 					const position = this.enemies.GetFrame(child).Position;
 					contacts.push({ kind: "friendly", x: position.X, z: position.Z });
-				} else if (child.GetAttribute("SkybreakEnemy") === true) {
+				} else if (child.GetAttribute("SkybreakEnemy") === true && child.GetAttribute("RadarDetected") !== false) {
 					const ground = child.GetAttribute("TargetKind") === "ground";
 					const required = child.GetAttribute("RequiredTarget") === true;
 					const kind: RadarContactKind = ground ? (required ? "ground" : "groundOptional") : required ? "required" : "optional";

@@ -1,5 +1,11 @@
 # Next
 
+## D10 / M14 integration
+
+D10 validation: frozen install, build and full offline validation exited 0 (1,007 Luau contracts, 19 catalog snapshots, 124 Python tests). Runtime Jest compiled only; no Studio run.
+
+After review of dormant D10, author M14’s finite cruise/carrier/child roster, score-role values, staggered arrivals and terrain-audited routes using the existing world. Calibrate visual locks, missile/gun hit fairness, impact ordering, low-altitude radar, phone cost and carrier-before-release score totals in Studio/Player. Run the added runtime Jest suite under the orchestrator’s lease; this implementation task deliberately did not launch Studio. D7 #184, D8 #186 and D9 #188 remain separate open work; D10 does not depend on their files.
+
 Updated 2026-10-30 against main `a04fdd6`. Practice and missions 1–7 are live by pipeline convention. M08 will be live after #183 merges; worlds 9–18 remain dormant. No Player observation is claimed.
 
 1. **Review and merge mission 8 [#183](https://github.com/A-Ricemusic/skybreak/pull/183).** D4 #177 and M07 #178 are merged. Studio verified: pending orchestrator run; confirm clocks, protected mast adoption, bomber endpoint loss and sequential unlock.

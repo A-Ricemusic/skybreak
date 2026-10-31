@@ -1,3 +1,4 @@
+import { clearCruise } from "./EngineBatchD10Runtime";
 import { Workspace } from "@rbxts/services";
 import { clearGroundDirector } from "./EngineBatchD5Runtime";
 import { takeArrival, FighterArrival, StandaloneAce } from "../shared/CampaignEncounters";
@@ -98,6 +99,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		assert(session.blueprintState && session.blueprint, "blueprint phase application requires blueprint state");
 		const state=session.blueprintState;
 		if (state.outcome !== undefined || session.appliedBlueprintPhaseIndex === state.phaseIndex) return;
+		clearCruise(session);
 		clearGroundDirector(session);
 		session.appliedBlueprintPhaseIndex=state.phaseIndex;
 		session.chatterIndex=0;
@@ -144,7 +146,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 			}
 			requestAir(session, b.escorts.initial, "escort");
 		}
-		else if (phase.kind === "required_air" && phase.execution?.launchDelay === undefined) {
+		else if (phase.kind === "required_air" && !phase.cruiseIntercept && phase.execution?.launchDelay === undefined) {
 			if (phase.execution?.directSpawn) spawnAir(session,phase.count ?? 0,"bandit");
 			else {
 			// Staggered groups: the first now, the rest by WavePlan.Due (stepSession).
