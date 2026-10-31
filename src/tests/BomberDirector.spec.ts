@@ -9,13 +9,14 @@ import { MissionCatalog, MissionBlueprint } from "../shared/MissionCatalog";
 import { BomberRules } from "../shared/BomberRules";
 import { bomberEscortPose } from "../shared/BomberEncounter";
 import { WavePlan } from "../shared/WavePlan";
+import { createCombatSession } from "../server/CombatSessionFactory";
+import { FlightMath } from "../shared/FlightMath";
 import { AssetSelection } from "../shared/AssetSelection";
 
 function harness(blueprint: MissionBlueprint) {
 	const folder = new Instance("Folder");
-	const s = { blueprint, blueprintState: BlueprintRunner.NewState(blueprint, 0), difficulty: "normal", elapsed: 0,
-		active: true, folder, enemies: [], projectiles: [], airQueue: [], spawnSerial: 0,
-		state: { x: 0, y: 700, z: 10000 } } as unknown as CombatSession;
+	const s = createCombatSession({} as Player, 1, folder, {} as Model, FlightMath.FromPose(0,700,10000,0,0,200), blueprint.id, "salvo", "normal", 0);
+	s.blueprint=blueprint; s.blueprintState=BlueprintRunner.NewState(blueprint,0);
 	const calls: { role: AirRole; options?: SpawnOptions }[] = [];
 	const radio: string[] = [], budget = { fighters: undefined as number | undefined };
 	const director = createPhaseDirector({

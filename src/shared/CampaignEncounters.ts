@@ -121,6 +121,7 @@ export function validateCampaignEncounters(blueprint: MissionBlueprint, phases: 
 		if (phase.groundTargets !== undefined) {
 			assert(phase.hazard === undefined && phase.twist === undefined,"Typed targets cannot share a legacy hazard/twist phase");
 			if (phase.kind === "required_ground") assert(required === phase.count && required>0,"Typed strike must match its required count");
+			else if (phase.scoreThreshold?.requiredTargetIds) assert(required===phase.scoreThreshold.requiredTargetIds.size() && (phase.groundTargets ?? []).every(t=>!t.required || phase.scoreThreshold!.requiredTargetIds!.includes(t.id)),"Score objectives must match required contacts");
 			else assert(required===0,"Required typed ground targets need a ground strike phase");
 		}
 	}

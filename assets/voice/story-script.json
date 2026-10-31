@@ -2858,6 +2858,18 @@
    "maxDurationSeconds": 5,
    "recordingId": null,
    "needsRecording": true
+  },
+  {
+   "id": "radio.m15.p1.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "chip": "SERA",
+   "text": "SERA: Loyalist troops below. Keep Rusk's armour off their streets.",
+   "context": "Live mission phase/landing radio",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 5,
+   "recordingId": null,
+   "needsRecording": true
   }
  ]
 }

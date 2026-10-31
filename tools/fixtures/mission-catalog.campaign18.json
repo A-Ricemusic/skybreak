@@ -18118,25 +18118,1926 @@
   },
   {
     "act": 3,
-    "available": false,
-    "briefing": "ORDER 0001 names Rusk. His relay holds the lit city on one repeated emergency. Silence it, cover the loyalist ground forces against armour and helicopters, then stop the bomber retaliation. Use the service stop if needed.",
-    "codename": "In development",
+    "airspace": {
+      "hardHalfWidth": 15360,
+      "radarRange": 24000,
+      "softHalfWidth": 14000,
+      "spawnLimit": 14000
+    },
+    "allies": {
+      "allowRequiredTargets": false,
+      "callsignPrefix": "LANTERN",
+      "count": 4,
+      "creditPlayerKills": false,
+      "formation": [
+        {
+          "x": -180,
+          "y": 20,
+          "z": 160
+        },
+        {
+          "x": 180,
+          "y": 20,
+          "z": 160
+        },
+        {
+          "x": -300,
+          "y": 40,
+          "z": 320
+        },
+        {
+          "x": 300,
+          "y": 40,
+          "z": 320
+        }
+      ],
+      "killBudget": 1,
+      "mayKill": true,
+      "model": "Kestrel"
+    },
+    "armament": {
+      "areaAttack": {
+        "damage": 180,
+        "depth": 80,
+        "radius": 220
+      },
+      "gun": {
+        "rounds": 1200
+      },
+      "stock": {
+        "missiles": 80,
+        "specialCharges": 16
+      }
+    },
+    "available": true,
+    "briefing": "ORDER 0001 names Rusk. His relay holds the lit city on one repeated emergency. Score 2,000 and silence the relay in ten minutes. Clear the marked street armour to move three loyalist squads; keep all three alive against attacking pairs. Then destroy all six bombers before they reach the city. The northwest runway refills weapons and repairs damage; the objective clock pauses during service.",
+    "codename": "A city answers",
+    "countdownSeconds": 600,
     "debrief": "The city hears silence for the first time since spring. Rusk addresses the trainee by his own name while parliament's column approaches the dry coast.",
     "environment": "farm_overcast",
     "failure": "The city remains under Rusk's voice and guns.",
     "ground": [],
     "id": 15,
-    "optionalRaiderMax": 0,
+    "optionalRaiderMax": 26,
     "phases": [
       {
-        "count": 1,
+        "beat": "SERA: Loyalist troops below. Keep Rusk's armour off their streets.",
+        "cheapContacts": true,
+        "concurrentFighters": 10,
+        "concurrentRoutes": 2,
+        "fighterWaves": [
+          {
+            "aircraft": "helicopter",
+            "count": 1,
+            "id": "m15_air_1",
+            "role": "raider",
+            "route": {
+              "speed": 55,
+              "waypoints": [
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": -2000
+                }
+              ]
+            },
+            "scoreRole": "helicopter",
+            "trigger": {
+              "kind": "time",
+              "seconds": 0
+            }
+          },
+          {
+            "aircraft": "helicopter",
+            "count": 1,
+            "id": "m15_air_2",
+            "role": "raider",
+            "route": {
+              "speed": 55,
+              "waypoints": [
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": -2000
+                }
+              ]
+            },
+            "scoreRole": "helicopter",
+            "trigger": {
+              "kind": "time",
+              "seconds": 45
+            }
+          },
+          {
+            "aircraft": "helicopter",
+            "count": 1,
+            "id": "m15_air_3",
+            "role": "raider",
+            "route": {
+              "speed": 55,
+              "waypoints": [
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": -2000
+                }
+              ]
+            },
+            "scoreRole": "helicopter",
+            "trigger": {
+              "kind": "time",
+              "seconds": 90
+            }
+          },
+          {
+            "aircraft": "helicopter",
+            "count": 1,
+            "id": "m15_air_4",
+            "role": "raider",
+            "route": {
+              "speed": 55,
+              "waypoints": [
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": 2000
+                },
+                {
+                  "x": -2000,
+                  "y": 600,
+                  "z": -2000
+                },
+                {
+                  "x": -6000,
+                  "y": 600,
+                  "z": -2000
+                }
+              ]
+            },
+            "scoreRole": "helicopter",
+            "trigger": {
+              "kind": "time",
+              "seconds": 135
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 180,
+            "id": "m15_air_5",
+            "role": "raider",
+            "scoreRole": "attack",
+            "trigger": {
+              "kind": "time",
+              "seconds": 120
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 180,
+            "id": "m15_air_6",
+            "role": "raider",
+            "scoreRole": "attack",
+            "trigger": {
+              "kind": "time",
+              "seconds": 165
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 180,
+            "id": "m15_air_7",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "time",
+              "seconds": 45
+            }
+          },
+          {
+            "attackSector": "m15_arch_squad",
+            "count": 2,
+            "headingDegrees": 180,
+            "id": "m15_pressure_0_0",
+            "role": "raider",
+            "scoreRole": "pressure",
+            "spawn": {
+              "x": -3840,
+              "y": 700,
+              "z": -3300
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 150
+            }
+          },
+          {
+            "attackSector": "m15_avenue_squad",
+            "count": 2,
+            "headingDegrees": 180,
+            "id": "m15_pressure_0_1",
+            "role": "raider",
+            "scoreRole": "pressure",
+            "spawn": {
+              "x": -1500,
+              "y": 700,
+              "z": -1600
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 210
+            }
+          },
+          {
+            "attackSector": "m15_relay_squad",
+            "count": 2,
+            "headingDegrees": 180,
+            "id": "m15_pressure_0_2",
+            "role": "raider",
+            "scoreRole": "pressure",
+            "spawn": {
+              "x": 2600,
+              "y": 700,
+              "z": -5100
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 270
+            }
+          },
+          {
+            "attackSector": "m15_arch_squad",
+            "count": 2,
+            "headingDegrees": 180,
+            "id": "m15_pressure_1_0",
+            "role": "raider",
+            "scoreRole": "pressure",
+            "spawn": {
+              "x": -3840,
+              "y": 700,
+              "z": -3300
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 330
+            }
+          },
+          {
+            "attackSector": "m15_avenue_squad",
+            "count": 2,
+            "headingDegrees": 180,
+            "id": "m15_pressure_1_1",
+            "role": "raider",
+            "scoreRole": "pressure",
+            "spawn": {
+              "x": -1500,
+              "y": 700,
+              "z": -1600
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 390
+            }
+          },
+          {
+            "attackSector": "m15_relay_squad",
+            "count": 2,
+            "headingDegrees": 180,
+            "id": "m15_pressure_1_2",
+            "role": "raider",
+            "scoreRole": "pressure",
+            "spawn": {
+              "x": 2600,
+              "y": 700,
+              "z": -5100
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 450
+            }
+          }
+        ],
+        "groundProgress": {
+          "sectors": [
+            {
+              "advanceCall": "GROUND: Street clear. Squad moving.",
+              "clearTargetIds": [
+                "m15_ground_slot_2",
+                "m15_ground_slot_3"
+              ],
+              "formation": "city_squad",
+              "health": 600,
+              "hitCall": "GROUND: Aircraft attacking our squad!",
+              "id": "m15_arch_squad",
+              "kind": "troops",
+              "route": {
+                "speed": 12,
+                "waypoints": [
+                  {
+                    "x": -3840,
+                    "y": 98,
+                    "z": -2100
+                  },
+                  {
+                    "x": -3840,
+                    "y": 98,
+                    "z": -2700
+                  }
+                ]
+              },
+              "seconds": 60,
+              "securedCall": "GROUND: District secured. Hold the sky."
+            },
+            {
+              "advanceCall": "GROUND: Street clear. Squad moving.",
+              "clearTargetIds": [
+                "m15_ground_slot_10",
+                "m15_ground_slot_11"
+              ],
+              "formation": "city_squad",
+              "health": 600,
+              "hitCall": "GROUND: Aircraft attacking our squad!",
+              "id": "m15_avenue_squad",
+              "kind": "troops",
+              "route": {
+                "speed": 12,
+                "waypoints": [
+                  {
+                    "x": -1500,
+                    "y": 98,
+                    "z": -400
+                  },
+                  {
+                    "x": -1500,
+                    "y": 98,
+                    "z": -1000
+                  }
+                ]
+              },
+              "seconds": 60,
+              "securedCall": "GROUND: District secured. Hold the sky."
+            },
+            {
+              "advanceCall": "GROUND: Street clear. Squad moving.",
+              "clearTargetIds": [
+                "m15_command_relay"
+              ],
+              "formation": "city_squad",
+              "health": 600,
+              "hitCall": "GROUND: Aircraft attacking our squad!",
+              "id": "m15_relay_squad",
+              "kind": "troops",
+              "route": {
+                "speed": 12,
+                "waypoints": [
+                  {
+                    "x": 2600,
+                    "y": 98,
+                    "z": -3900
+                  },
+                  {
+                    "x": 2600,
+                    "y": 98,
+                    "z": -4500
+                  }
+                ]
+              },
+              "seconds": 60,
+              "securedCall": "GROUND: District secured. Hold the sky."
+            }
+          ]
+        },
+        "groundTargets": [
+          {
+            "group": "city",
+            "id": "m15_command_relay",
+            "position": {
+              "x": 2880,
+              "y": 92,
+              "z": -4800
+            },
+            "required": true,
+            "scoreRole": "relay",
+            "type": "control_tower",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_2",
+            "position": {
+              "x": -6300,
+              "y": 92,
+              "z": -6000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_3",
+            "position": {
+              "x": -5400,
+              "y": 92,
+              "z": -6000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_4",
+            "position": {
+              "x": -4500,
+              "y": 92,
+              "z": -6000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_5",
+            "position": {
+              "x": -3600,
+              "y": 92,
+              "z": -6000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_6",
+            "position": {
+              "x": -2700,
+              "y": 92,
+              "z": -6000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_7",
+            "position": {
+              "x": -1800,
+              "y": 92,
+              "z": -6000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_8",
+            "position": {
+              "x": -900,
+              "y": 92,
+              "z": -6000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_9",
+            "position": {
+              "x": -7200,
+              "y": 92,
+              "z": -5000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_10",
+            "position": {
+              "x": -6300,
+              "y": 92,
+              "z": -5000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_11",
+            "position": {
+              "x": -5400,
+              "y": 92,
+              "z": -5000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_12",
+            "position": {
+              "x": -4500,
+              "y": 92,
+              "z": -5000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_13",
+            "position": {
+              "x": -3600,
+              "y": 92,
+              "z": -5000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_14",
+            "position": {
+              "x": -2700,
+              "y": 92,
+              "z": -5000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_15",
+            "position": {
+              "x": -1800,
+              "y": 92,
+              "z": -5000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_16",
+            "position": {
+              "x": -900,
+              "y": 92,
+              "z": -5000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_17",
+            "position": {
+              "x": -7200,
+              "y": 92,
+              "z": -4000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_18",
+            "position": {
+              "x": -6300,
+              "y": 92,
+              "z": -4000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_19",
+            "position": {
+              "x": -5400,
+              "y": 92,
+              "z": -4000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_20",
+            "position": {
+              "x": -4500,
+              "y": 92,
+              "z": -4000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_21",
+            "position": {
+              "x": -3600,
+              "y": 92,
+              "z": -4000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_22",
+            "position": {
+              "x": -2700,
+              "y": 92,
+              "z": -4000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_23",
+            "position": {
+              "x": -1800,
+              "y": 92,
+              "z": -4000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_24",
+            "position": {
+              "x": -900,
+              "y": 92,
+              "z": -4000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_25",
+            "position": {
+              "x": -7200,
+              "y": 92,
+              "z": -3000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_26",
+            "position": {
+              "x": -6300,
+              "y": 92,
+              "z": -3000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_27",
+            "position": {
+              "x": -5400,
+              "y": 92,
+              "z": -3000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_28",
+            "position": {
+              "x": -4500,
+              "y": 92,
+              "z": -3000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_29",
+            "position": {
+              "x": -3600,
+              "y": 92,
+              "z": -3000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_30",
+            "position": {
+              "x": -2700,
+              "y": 92,
+              "z": -3000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_31",
+            "position": {
+              "x": -1800,
+              "y": 92,
+              "z": -3000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_32",
+            "position": {
+              "x": -900,
+              "y": 92,
+              "z": -3000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_33",
+            "position": {
+              "x": -7200,
+              "y": 92,
+              "z": -2000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_34",
+            "position": {
+              "x": -6300,
+              "y": 92,
+              "z": -2000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_35",
+            "position": {
+              "x": -5400,
+              "y": 92,
+              "z": -2000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_36",
+            "position": {
+              "x": -4500,
+              "y": 92,
+              "z": -2000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_37",
+            "position": {
+              "x": -3600,
+              "y": 92,
+              "z": -2000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_38",
+            "position": {
+              "x": -2700,
+              "y": 92,
+              "z": -2000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_39",
+            "position": {
+              "x": -1800,
+              "y": 92,
+              "z": -2000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_40",
+            "position": {
+              "x": -900,
+              "y": 92,
+              "z": -2000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_41",
+            "position": {
+              "x": -7200,
+              "y": 92,
+              "z": -1000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_42",
+            "position": {
+              "x": -6300,
+              "y": 92,
+              "z": -1000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_43",
+            "position": {
+              "x": -5400,
+              "y": 92,
+              "z": -1000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_44",
+            "position": {
+              "x": -4500,
+              "y": 92,
+              "z": -1000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_45",
+            "position": {
+              "x": -3600,
+              "y": 92,
+              "z": -1000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_46",
+            "position": {
+              "x": -2700,
+              "y": 92,
+              "z": -1000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_47",
+            "position": {
+              "x": -1800,
+              "y": 92,
+              "z": -1000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_48",
+            "position": {
+              "x": -900,
+              "y": 92,
+              "z": -1000
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_49",
+            "position": {
+              "x": -7200,
+              "y": 92,
+              "z": 0
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_50",
+            "position": {
+              "x": -6300,
+              "y": 92,
+              "z": 0
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_51",
+            "position": {
+              "x": -5400,
+              "y": 92,
+              "z": 0
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_52",
+            "position": {
+              "x": -4500,
+              "y": 92,
+              "z": 0
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_53",
+            "position": {
+              "x": -3600,
+              "y": 92,
+              "z": 0
+            },
+            "required": false,
+            "scoreRole": "ground",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_54",
+            "position": {
+              "x": -2700,
+              "y": 92,
+              "z": 0
+            },
+            "reinforceAfterSector": "m15_arch_squad",
+            "required": false,
+            "scoreRole": "reserve",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_55",
+            "position": {
+              "x": -1800,
+              "y": 92,
+              "z": 0
+            },
+            "reinforceAfterSector": "m15_arch_squad",
+            "required": false,
+            "scoreRole": "reserve",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_56",
+            "position": {
+              "x": -900,
+              "y": 92,
+              "z": 0
+            },
+            "reinforceAfterSector": "m15_arch_squad",
+            "required": false,
+            "scoreRole": "reserve",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_57",
+            "position": {
+              "x": -7200,
+              "y": 92,
+              "z": 1000
+            },
+            "reinforceAfterSector": "m15_arch_squad",
+            "required": false,
+            "scoreRole": "reserve",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_58",
+            "position": {
+              "x": -6300,
+              "y": 92,
+              "z": 1000
+            },
+            "reinforceAfterSector": "m15_arch_squad",
+            "required": false,
+            "scoreRole": "reserve",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_59",
+            "position": {
+              "x": -5400,
+              "y": 92,
+              "z": 1000
+            },
+            "reinforceAfterSector": "m15_arch_squad",
+            "required": false,
+            "scoreRole": "reserve",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_60",
+            "position": {
+              "x": -4500,
+              "y": 92,
+              "z": 1000
+            },
+            "reinforceAfterSector": "m15_arch_squad",
+            "required": false,
+            "scoreRole": "reserve",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_61",
+            "position": {
+              "x": -3600,
+              "y": 92,
+              "z": 1000
+            },
+            "reinforceAfterSector": "m15_arch_squad",
+            "required": false,
+            "scoreRole": "reserve",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "city",
+            "id": "m15_ground_slot_62",
+            "position": {
+              "x": -2700,
+              "y": 92,
+              "z": 1000
+            },
+            "reinforceAfterSector": "m15_arch_squad",
+            "required": false,
+            "scoreRole": "reserve",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "airfield",
+            "id": "m15_transport_1",
+            "position": {
+              "x": -5400,
+              "y": 92,
+              "z": -10400
+            },
+            "required": false,
+            "scoreRole": "transport",
+            "type": "parked_bomber",
+            "yaw": 0
+          },
+          {
+            "group": "airfield",
+            "id": "m15_transport_2",
+            "position": {
+              "x": -5400,
+              "y": 92,
+              "z": -10140
+            },
+            "required": false,
+            "scoreRole": "transport",
+            "type": "parked_bomber",
+            "yaw": 0
+          },
+          {
+            "group": "airfield",
+            "id": "m15_transport_3",
+            "position": {
+              "x": -5400,
+              "y": 92,
+              "z": -9880
+            },
+            "required": false,
+            "scoreRole": "transport",
+            "type": "parked_bomber",
+            "yaw": 0
+          },
+          {
+            "group": "airfield",
+            "id": "m15_transport_4",
+            "position": {
+              "x": -5400,
+              "y": 92,
+              "z": -9620
+            },
+            "required": false,
+            "scoreRole": "transport",
+            "type": "parked_bomber",
+            "yaw": 0
+          },
+          {
+            "group": "airfield",
+            "id": "m15_transport_5",
+            "position": {
+              "x": -5400,
+              "y": 92,
+              "z": -9360
+            },
+            "required": false,
+            "scoreRole": "transport",
+            "type": "parked_bomber",
+            "yaw": 0
+          },
+          {
+            "group": "airfield",
+            "id": "m15_transport_6",
+            "position": {
+              "x": -5400,
+              "y": 92,
+              "z": -9100
+            },
+            "required": false,
+            "scoreRole": "transport",
+            "type": "parked_bomber",
+            "yaw": 0
+          },
+          {
+            "group": "airfield",
+            "id": "m15_transport_7",
+            "position": {
+              "x": -5400,
+              "y": 92,
+              "z": -8840
+            },
+            "required": false,
+            "scoreRole": "transport",
+            "type": "parked_bomber",
+            "yaw": 0
+          }
+        ],
+        "kind": "score_threshold",
+        "label": "Liberate the city; silence Rusk's relay",
+        "rearm": {
+          "gun": true,
+          "health": true,
+          "landing": {
+            "approachDistance": 2400,
+            "approachSeconds": 20,
+            "glideDegrees": 3,
+            "headingDegrees": 0,
+            "rolloutDistance": 900,
+            "rolloutSeconds": 15,
+            "touchdown": {
+              "x": -4800,
+              "y": 98,
+              "z": -8800
+            }
+          },
+          "missiles": true,
+          "radio": [
+            {
+              "at": 1,
+              "text": "CITY TOWER: Cleared northbound. Repairs and weapons ready."
+            },
+            {
+              "at": 36,
+              "text": "CITY TOWER: Repairs complete. Select weapons, then take off."
+            }
+          ],
+          "radius": 1500,
+          "special": true,
+          "takeoffSeconds": 15,
+          "weaponMenu": true,
+          "zone": {
+            "lean": 0,
+            "pitch": -0.05236,
+            "qw": 0.999657,
+            "qx": -0.026177,
+            "qy": 0,
+            "qz": 0,
+            "roll": 0,
+            "speed": 120,
+            "x": -4800,
+            "y": 223.77867,
+            "yaw": 0,
+            "z": -6400
+          }
+        },
+        "scoreThreshold": {
+          "points": 2000,
+          "requiredTargetIds": [
+            "m15_command_relay"
+          ],
+          "seconds": 600,
+          "waitForExpiry": true
+        },
+        "standaloneAce": {
+          "behaviour": "dogfight",
+          "headingDegrees": 180,
+          "health": 165,
+          "id": "m15_air_8",
+          "livery": "Vulture",
+          "name": "NIGHTWARD",
+          "scoreRole": "ace",
+          "trigger": {
+            "kind": "time",
+            "seconds": 300
+          }
+        }
+      },
+      {
+        "bombers": {
+          "count": 6,
+          "escape": {
+            "x": 2880,
+            "y": 850,
+            "z": -4800
+          },
+          "escapeCall": "GROUND: Bombers reached the city. We have lost the districts.",
+          "escorts": {
+            "aceAt": 0,
+            "aceName": "NONE",
+            "count": 0,
+            "initial": 0,
+            "role": "escort"
+          },
+          "speed": 55,
+          "targetIds": [
+            "m15_bomber_1",
+            "m15_bomber_2",
+            "m15_bomber_3",
+            "m15_bomber_4",
+            "m15_bomber_5",
+            "m15_bomber_6"
+          ],
+          "waypoints": [
+            {
+              "x": -9600,
+              "y": 850,
+              "z": -13440
+            },
+            {
+              "x": -4800,
+              "y": 850,
+              "z": -9000
+            }
+          ]
+        },
+        "concurrentFighters": 12,
+        "count": 6,
+        "fighterWaves": [
+          {
+            "count": 6,
+            "headingDegrees": 135,
+            "id": "m15_retaliation_cover",
+            "role": "raider",
+            "scoreRole": "pressure",
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 1
+            }
+          }
+        ],
         "kind": "required_air",
-        "label": "In development"
+        "label": "Stop the bomber retaliation",
+        "update": {
+          "countdownSeconds": 600,
+          "objective": "Destroy six bombers before they reach the city",
+          "radio": [
+            "SERA: Bombers incoming. They are turning on the city."
+          ]
+        }
       }
     ],
-    "primary": "In development",
+    "pressure": {
+      "forwardConeDegrees": 45,
+      "playerPriority": 0.8,
+      "tailDefence": true
+    },
+    "primary": "Score 2,000 and silence the relay in 10:00; protect squads, then stop six bombers",
     "region": "canyon_airfield",
-    "title": "Mission 15"
+    "scoring": {
+      "basis": "points",
+      "points": {
+        "ace": 240,
+        "attack": 60,
+        "bomber": 160,
+        "escort": 60,
+        "fighter": 150,
+        "ground": 45,
+        "helicopter": 80,
+        "pressure": 60,
+        "relay": 100,
+        "reserve": 40,
+        "transport": 100
+      },
+      "rank": {
+        "A": 4000,
+        "B": 3200,
+        "C": 2000,
+        "S": 4930
+      }
+    },
+    "start": {
+      "headingDegrees": 0,
+      "kind": "airborne",
+      "speed": 160,
+      "x": 0,
+      "y": 383,
+      "z": 7680
+    },
+    "terrainRelativeWarnings": true,
+    "title": "SILENT STREETS",
+    "worldKey": "m15_city_answers"
   },
   {
     "act": 3,
