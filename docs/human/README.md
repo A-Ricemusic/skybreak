@@ -1,8 +1,8 @@
 # SKYBREAK redesign dashboard
 
-Updated 2026-10-30 against main `9857358`. Publish workflow for this main revision succeeded per CI. Merged gameplay is live in Roblox Player under the owner's automatic-pipeline convention; no Player test is claimed here.
+Updated 2026-10-30 from main #181 (`d1fb3a8`), with mission 6 #179. Publish workflow for this main revision succeeded per CI. Merged gameplay is live in Roblox Player under the owner's automatic-pipeline convention; no Player test is claimed here.
 
-**Practice and missions 1–5 are live. Missions 6–18 remain locked, with their worlds built and dormant.** Mission 6 is in progress; mission 7 is in review [#178](https://github.com/A-Ricemusic/skybreak/pull/178). Engine D1–D3 are merged and dormant; D4 [#177](https://github.com/A-Ricemusic/skybreak/pull/177) awaits merge, D5/D6 are in progress.
+**Practice and missions 1–6 are Live by the owner’s pipeline convention after #179 merges. Missions 7–18 remain locked, with their worlds built and dormant.** Mission 6 IRON COAST unlocks after mission 5: harbour strike, ≥3,000 points in 15:00, finite ammo and optional runway rearm. Studio verified: full Jest suite 1,133/1,133 in the orchestrator’s run at `e5c2fd2`; Player/phone not yet observed. Mission 7 is in review [#178](https://github.com/A-Ricemusic/skybreak/pull/178). Engine D1–D3 are merged; mission 6 activates D1/D2 while D3 remains dormant; D4 [#177](https://github.com/A-Ricemusic/skybreak/pull/177) awaits merge, D5 #180 and D6 #182 remain open.
 
 Live changes include mission 5's refinery strike/rearm/escape (#148), closest-on-screen TGT cycling (#172), full-bleed loading with jet/progress/tips (#173), and harder M01/M02 with a shared allied kill budget of approximately one per sortie (#174). #176 also fixes weather lookup for M05–M13 and registers all 18 environments. Automatic acquisition remains nose-first; practice and missions 1–5 do not enable the dormant gun, finite stock, naval/SAM/anti-ship or canyon/area-strike contracts.
 
@@ -19,7 +19,7 @@ New and changed story dialogue stays subtitle-only: no further audio uploads (D-
 | 3 | The Northern Eye | 0:26:41–0:34:24 | 7.7 min | Yes | Yes | Playable | Yes (pipeline) | — |
 | 4 | Blockade | 0:36:36–0:42:42 | 6.1 min | Yes | Yes | Playable | Yes (pipeline) | — |
 | 5 | Lifeline | 0:44:42–0:58:13 | 13.5 min | Yes | Yes | Playable | Yes (pipeline) | — |
-| 6 | Invincible Fleet | 1:03:01–1:20:00 | 17.0 min | Yes | Yes | World built/dormant; mission in progress | No | — |
+| 6 | Invincible Fleet | 1:03:01–1:20:00 | 15:00 active + optional service | Yes | Yes; provisional roster D-260 | ✓ #179 data/unlock; Studio ✓ full Jest 1,133/1,133 (orchestrator) | Live (pipeline after #179 merges) | Player/phone not yet observed |
 | 7 | Deep Strike | 1:22:13–1:35:49 | 13.6 min | Yes | Yes | World built/dormant; mission in review #178 | No | — |
 | 8 | Shattered Skies | 1:39:16–1:52:39 | 13.4 min | Yes | Yes | World built/dormant; mission integration pending | No | — |
 | 9 | Operation Bunker Shot | 1:56:14–2:14:14 | 18.0 min | Yes | Yes | World built/dormant; mission integration pending | No | — |

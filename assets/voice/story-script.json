@@ -2234,6 +2234,66 @@
    "maxDurationSeconds": 6,
    "recordingId": null,
    "needsRecording": true
+  },
+  {
+   "id": "radio.m06.p1.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "chip": "SERA",
+   "text": "SERA: Iron Coast. Warships and fuel barges only; leave the market clear.",
+   "context": "Live mission phase/landing radio",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 6,
+   "recordingId": null,
+   "needsRecording": true
+  },
+  {
+   "id": "radio.m06.p1.chatter1",
+   "kind": "radio",
+   "speaker": "MARINE",
+   "chip": "LANTERN 2",
+   "text": "LANTERN 2: Ships are slipping their moorings. Catch them in the basin.",
+   "context": "Live mission phase/landing radio",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 5,
+   "recordingId": null,
+   "needsRecording": true
+  },
+  {
+   "id": "radio.m06.p1.chatter2",
+   "kind": "radio",
+   "speaker": "SERA",
+   "chip": "SERA",
+   "text": "SERA: Halfway. The pontoon SAMs are still awake. Mind the warnings.",
+   "context": "Live mission phase/landing radio",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 5,
+   "recordingId": null,
+   "needsRecording": true
+  },
+  {
+   "id": "radio.m06.p1.chatter3",
+   "kind": "radio",
+   "speaker": "MARINE",
+   "chip": "LANTERN 3",
+   "text": "LANTERN 3: Nearly there. Don't stop at the number, trainee.",
+   "context": "Live mission phase/landing radio",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 5,
+   "recordingId": null,
+   "needsRecording": true
+  },
+  {
+   "id": "radio.m06.p1.chatter4",
+   "kind": "radio",
+   "speaker": "SERA",
+   "chip": "SERA",
+   "text": "SERA: Harbour traffic copied. We can follow the orders inland.",
+   "context": "Live mission phase/landing radio",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 5,
+   "recordingId": null,
+   "needsRecording": true
   }
  ]
 }
