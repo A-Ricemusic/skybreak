@@ -8200,25 +8200,1907 @@
   },
   {
     "act": 1,
-    "available": false,
+    "airspace": {
+      "hardHalfWidth": 16000,
+      "radarRange": 24000,
+      "softHalfWidth": 15600,
+      "spawnLimit": 15600
+    },
+    "allies": {
+      "allowRequiredTargets": false,
+      "callsignPrefix": "LANTERN",
+      "count": 3,
+      "creditPlayerKills": false,
+      "formation": [
+        {
+          "x": -180,
+          "y": 20,
+          "z": 160
+        },
+        {
+          "x": 180,
+          "y": 20,
+          "z": 160
+        },
+        {
+          "x": 0,
+          "y": 40,
+          "z": 320
+        }
+      ],
+      "killBudget": 1,
+      "model": "Kestrel"
+    },
+    "armament": {
+      "antiShip": true,
+      "gun": {
+        "rounds": 1200
+      },
+      "stock": {
+        "missiles": 60
+      }
+    },
+    "available": true,
     "briefing": "Vulture Lead's guard-channel orders are signed by a man who died in spring. The chain ends at Iron Coast. Strike the docked warships and fuel barges; AA guards the docks. Workers and the fish market are nearby. Use the service stop if needed.",
-    "codename": "In development",
+    "codename": "Military quays",
+    "countdownSeconds": 900,
     "debrief": "The warships and fuel barges are gone. Harbour traffic gives Sera Kiro's signing key. Two more station logs will prove whose hand used it.",
-    "environment": "farm_overcast",
+    "environment": "ocean_clear",
     "failure": "The harbour supply line holds. Sera still has only one link in the order chain.",
     "ground": [],
     "id": 6,
-    "optionalRaiderMax": 0,
+    "optionalRaiderMax": 16,
     "phases": [
       {
-        "count": 1,
-        "kind": "required_air",
-        "label": "In development"
+        "beat": "SERA: Iron Coast. Warships and fuel barges only; leave the market clear.",
+        "chatter": [
+          {
+            "at": 0.25,
+            "text": "LANTERN 2: Ships are slipping their moorings. Catch them in the basin."
+          },
+          {
+            "at": 0.5,
+            "text": "SERA: Halfway. The pontoon SAMs are still awake. Mind the warnings."
+          },
+          {
+            "at": 0.9,
+            "text": "LANTERN 3: Nearly there. Don't stop at the number, trainee."
+          },
+          {
+            "at": 1,
+            "text": "SERA: Harbour traffic copied. We can follow the orders inland."
+          }
+        ],
+        "fighterWaves": [
+          {
+            "call": "SERA: Four fighters up from the harbour field. They saw you coming.",
+            "count": 4,
+            "headingDegrees": 180,
+            "id": "m06_harbour_cap",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "time",
+              "seconds": 20
+            }
+          },
+          {
+            "aircraft": "helicopter",
+            "call": "LANTERN 2: Helicopters lifting off the central quay.",
+            "count": 2,
+            "id": "m06_basin_helicopters",
+            "role": "raider",
+            "route": {
+              "speed": 60,
+              "waypoints": [
+                {
+                  "x": -1600,
+                  "y": 300,
+                  "z": -2640
+                },
+                {
+                  "x": 1600,
+                  "y": 300,
+                  "z": -2640
+                },
+                {
+                  "x": 1600,
+                  "y": 300,
+                  "z": -6240
+                },
+                {
+                  "x": -1600,
+                  "y": 300,
+                  "z": -6240
+                },
+                {
+                  "x": -1600,
+                  "y": 300,
+                  "z": -2640
+                },
+                {
+                  "x": 1600,
+                  "y": 300,
+                  "z": -2640
+                },
+                {
+                  "x": 1600,
+                  "y": 300,
+                  "z": -6240
+                },
+                {
+                  "x": -1600,
+                  "y": 300,
+                  "z": -6240
+                },
+                {
+                  "x": -1600,
+                  "y": 300,
+                  "z": -2640
+                },
+                {
+                  "x": 1600,
+                  "y": 300,
+                  "z": -2640
+                },
+                {
+                  "x": 1600,
+                  "y": 300,
+                  "z": -6240
+                },
+                {
+                  "x": -1600,
+                  "y": 300,
+                  "z": -6240
+                },
+                {
+                  "x": -1600,
+                  "y": 300,
+                  "z": -2640
+                },
+                {
+                  "x": 1600,
+                  "y": 300,
+                  "z": -2640
+                },
+                {
+                  "x": 1600,
+                  "y": 300,
+                  "z": -6240
+                },
+                {
+                  "x": -1600,
+                  "y": 300,
+                  "z": -6240
+                }
+              ]
+            },
+            "scoreRole": "helicopter",
+            "trigger": {
+              "kind": "approach",
+              "radius": 6000,
+              "x": 0,
+              "z": -3840
+            }
+          },
+          {
+            "call": "LANTERN 3: Two strike jets low over the east basin. Coming for us.",
+            "count": 2,
+            "headingDegrees": 230,
+            "id": "m06_strike_pair",
+            "role": "raider",
+            "scoreRole": "fighter_bomber",
+            "trigger": {
+              "kind": "approach",
+              "radius": 6000,
+              "x": 6720,
+              "z": -3840
+            }
+          },
+          {
+            "call": "HARBOUR CONTROL: All flights, launch! Defend the fleet!",
+            "count": 3,
+            "headingDegrees": 160,
+            "id": "m06_reserves",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "time",
+              "seconds": 200
+            }
+          },
+          {
+            "call": "SERA: Two more from the south, off the outer channel.",
+            "count": 2,
+            "headingDegrees": 20,
+            "id": "m06_outer_patrol",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "time",
+              "seconds": 420
+            }
+          },
+          {
+            "call": "LANTERN 2: Another pair inbound. They're throwing everything up.",
+            "count": 2,
+            "headingDegrees": 200,
+            "id": "m06_last_flight",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "time",
+              "seconds": 660
+            }
+          }
+        ],
+        "groundTargets": [
+          {
+            "group": "west",
+            "health": 110,
+            "id": "m06_west_destroyer_1",
+            "naval": true,
+            "position": {
+              "x": -7370,
+              "y": 32,
+              "z": -3780
+            },
+            "required": false,
+            "scoreRole": "destroyer",
+            "type": "destroyer",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "health": 110,
+            "id": "m06_west_destroyer_2",
+            "naval": true,
+            "position": {
+              "x": -6720,
+              "y": 32,
+              "z": -3780
+            },
+            "required": false,
+            "scoreRole": "destroyer",
+            "type": "destroyer",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "health": 165,
+            "id": "m06_west_cruiser_3",
+            "naval": true,
+            "position": {
+              "x": -6070,
+              "y": 32,
+              "z": -3780
+            },
+            "required": false,
+            "scoreRole": "cruiser",
+            "type": "cruiser",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "health": 165,
+            "id": "m06_west_cruiser_4",
+            "naval": true,
+            "position": {
+              "x": -7370,
+              "y": 32,
+              "z": -2880
+            },
+            "required": false,
+            "scoreRole": "cruiser",
+            "type": "cruiser",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "health": 110,
+            "id": "m06_west_submarine_5",
+            "naval": true,
+            "position": {
+              "x": -6720,
+              "y": 32,
+              "z": -2880
+            },
+            "required": false,
+            "scoreRole": "submarine",
+            "type": "submarine",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "id": "m06_west_missile_boat_6",
+            "naval": true,
+            "position": {
+              "x": -6070,
+              "y": 32,
+              "z": -2880
+            },
+            "required": false,
+            "scoreRole": "missile_boat",
+            "type": "missile_boat",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "health": 110,
+            "id": "m06_west_supply_ship_7",
+            "naval": true,
+            "position": {
+              "x": -7370,
+              "y": 32,
+              "z": -1980
+            },
+            "required": false,
+            "scoreRole": "supply_ship",
+            "type": "supply_ship",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "health": 110,
+            "id": "m06_west_landing_ship_8",
+            "naval": true,
+            "position": {
+              "x": -6720,
+              "y": 32,
+              "z": -1980
+            },
+            "required": false,
+            "scoreRole": "landing_ship",
+            "type": "landing_ship",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "health": 110,
+            "id": "m06_west_container_ship_9",
+            "naval": true,
+            "position": {
+              "x": -6070,
+              "y": 32,
+              "z": -1980
+            },
+            "required": false,
+            "scoreRole": "container_ship",
+            "type": "container_ship",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "health": 110,
+            "id": "m06_west_frigate_10",
+            "naval": true,
+            "position": {
+              "x": -7370,
+              "y": 32,
+              "z": -1080
+            },
+            "required": false,
+            "scoreRole": "frigate",
+            "type": "destroyer",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "health": 110,
+            "id": "m06_west_frigate_11",
+            "naval": true,
+            "position": {
+              "x": -6720,
+              "y": 32,
+              "z": -1080
+            },
+            "required": false,
+            "scoreRole": "frigate",
+            "type": "destroyer",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "health": 165,
+            "id": "m06_west_cruiser_12",
+            "naval": true,
+            "position": {
+              "x": -2352,
+              "y": 32,
+              "z": 3840
+            },
+            "required": false,
+            "route": {
+              "speed": 18,
+              "waypoints": [
+                {
+                  "x": -2352,
+                  "y": 32,
+                  "z": 3840
+                },
+                {
+                  "x": -2352,
+                  "y": 32,
+                  "z": 2960
+                },
+                {
+                  "x": -3152,
+                  "y": 32,
+                  "z": 2960
+                },
+                {
+                  "x": -3152,
+                  "y": 32,
+                  "z": 4640
+                },
+                {
+                  "x": -2352,
+                  "y": 32,
+                  "z": 4640
+                },
+                {
+                  "x": -2352,
+                  "y": 32,
+                  "z": 2960
+                },
+                {
+                  "x": -3152,
+                  "y": 32,
+                  "z": 2960
+                },
+                {
+                  "x": -3152,
+                  "y": 32,
+                  "z": 4640
+                },
+                {
+                  "x": -2352,
+                  "y": 32,
+                  "z": 4640
+                },
+                {
+                  "x": -2352,
+                  "y": 32,
+                  "z": 2960
+                },
+                {
+                  "x": -3152,
+                  "y": 32,
+                  "z": 2960
+                },
+                {
+                  "x": -3152,
+                  "y": 32,
+                  "z": 4640
+                },
+                {
+                  "x": -2352,
+                  "y": 32,
+                  "z": 4640
+                },
+                {
+                  "x": -2352,
+                  "y": 32,
+                  "z": 2960
+                }
+              ]
+            },
+            "scoreRole": "cruiser",
+            "type": "cruiser",
+            "yaw": 0
+          },
+          {
+            "group": "west_yard",
+            "id": "m06_west_yard_crane_13",
+            "position": {
+              "x": -7320,
+              "y": 48,
+              "z": -6430
+            },
+            "required": false,
+            "scoreRole": "crane",
+            "type": "crane",
+            "yaw": 0
+          },
+          {
+            "group": "west_yard",
+            "id": "m06_west_yard_containers_14",
+            "position": {
+              "x": -6920,
+              "y": 48,
+              "z": -6430
+            },
+            "required": false,
+            "scoreRole": "containers",
+            "type": "containers",
+            "yaw": 0
+          },
+          {
+            "group": "west_yard",
+            "id": "m06_west_yard_fuel_tank_15",
+            "position": {
+              "x": -6520,
+              "y": 48,
+              "z": -6430
+            },
+            "required": false,
+            "scoreRole": "fuel_tank",
+            "type": "fuel_tank",
+            "yaw": 0
+          },
+          {
+            "group": "west_yard",
+            "id": "m06_west_yard_gas_tank_16",
+            "position": {
+              "x": -6120,
+              "y": 48,
+              "z": -6430
+            },
+            "required": false,
+            "scoreRole": "gas_tank",
+            "type": "gas_tank",
+            "yaw": 0
+          },
+          {
+            "group": "west_yard",
+            "id": "m06_west_yard_storage_17",
+            "position": {
+              "x": -7320,
+              "y": 48,
+              "z": -5930
+            },
+            "required": false,
+            "scoreRole": "storage",
+            "type": "storage",
+            "yaw": 0
+          },
+          {
+            "group": "west_yard",
+            "id": "m06_west_yard_aa_18",
+            "position": {
+              "x": -6920,
+              "y": 48,
+              "z": -5930
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "west_yard",
+            "id": "m06_west_yard_sam_19",
+            "position": {
+              "x": -6520,
+              "y": 48,
+              "z": -5930
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": 0
+          },
+          {
+            "group": "west_yard",
+            "id": "m06_west_yard_containers_20",
+            "position": {
+              "x": -6120,
+              "y": 48,
+              "z": -5930
+            },
+            "required": false,
+            "scoreRole": "containers",
+            "type": "containers",
+            "yaw": 0
+          },
+          {
+            "group": "west_yard",
+            "id": "m06_west_yard_crane_21",
+            "position": {
+              "x": -7320,
+              "y": 48,
+              "z": -5430
+            },
+            "required": false,
+            "scoreRole": "crane",
+            "type": "crane",
+            "yaw": 0
+          },
+          {
+            "group": "west_yard",
+            "id": "m06_west_yard_fuel_tank_22",
+            "position": {
+              "x": -6920,
+              "y": 48,
+              "z": -5430
+            },
+            "required": false,
+            "scoreRole": "fuel_tank",
+            "type": "fuel_tank",
+            "yaw": 0
+          },
+          {
+            "group": "west_yard",
+            "id": "m06_west_yard_gas_tank_23",
+            "position": {
+              "x": -6520,
+              "y": 48,
+              "z": -5430
+            },
+            "required": false,
+            "scoreRole": "gas_tank",
+            "type": "gas_tank",
+            "yaw": 0
+          },
+          {
+            "group": "west_yard",
+            "id": "m06_west_yard_storage_24",
+            "position": {
+              "x": -6120,
+              "y": 48,
+              "z": -5430
+            },
+            "required": false,
+            "scoreRole": "storage",
+            "type": "storage",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "health": 110,
+            "id": "m06_central_destroyer_25",
+            "naval": true,
+            "position": {
+              "x": -650,
+              "y": 32,
+              "z": -4740
+            },
+            "required": false,
+            "scoreRole": "destroyer",
+            "type": "destroyer",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "health": 110,
+            "id": "m06_central_destroyer_26",
+            "naval": true,
+            "position": {
+              "x": 0,
+              "y": 32,
+              "z": -4740
+            },
+            "required": false,
+            "scoreRole": "destroyer",
+            "type": "destroyer",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "health": 165,
+            "id": "m06_central_cruiser_27",
+            "naval": true,
+            "position": {
+              "x": 650,
+              "y": 32,
+              "z": -4740
+            },
+            "required": false,
+            "scoreRole": "cruiser",
+            "type": "cruiser",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "health": 165,
+            "id": "m06_central_cruiser_28",
+            "naval": true,
+            "position": {
+              "x": -650,
+              "y": 32,
+              "z": -3840
+            },
+            "required": false,
+            "scoreRole": "cruiser",
+            "type": "cruiser",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "health": 110,
+            "id": "m06_central_submarine_29",
+            "naval": true,
+            "position": {
+              "x": 0,
+              "y": 32,
+              "z": -3840
+            },
+            "required": false,
+            "scoreRole": "submarine",
+            "type": "submarine",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "id": "m06_central_missile_boat_30",
+            "naval": true,
+            "position": {
+              "x": 650,
+              "y": 32,
+              "z": -3840
+            },
+            "required": false,
+            "scoreRole": "missile_boat",
+            "type": "missile_boat",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "health": 110,
+            "id": "m06_central_supply_ship_31",
+            "naval": true,
+            "position": {
+              "x": -650,
+              "y": 32,
+              "z": -2940
+            },
+            "required": false,
+            "scoreRole": "supply_ship",
+            "type": "supply_ship",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "health": 110,
+            "id": "m06_central_landing_ship_32",
+            "naval": true,
+            "position": {
+              "x": 0,
+              "y": 32,
+              "z": -2940
+            },
+            "required": false,
+            "scoreRole": "landing_ship",
+            "type": "landing_ship",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "health": 110,
+            "id": "m06_central_container_ship_33",
+            "naval": true,
+            "position": {
+              "x": 650,
+              "y": 32,
+              "z": -2940
+            },
+            "required": false,
+            "scoreRole": "container_ship",
+            "type": "container_ship",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "health": 110,
+            "id": "m06_central_frigate_34",
+            "naval": true,
+            "position": {
+              "x": -650,
+              "y": 32,
+              "z": -2040
+            },
+            "required": false,
+            "scoreRole": "frigate",
+            "type": "destroyer",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "health": 110,
+            "id": "m06_central_frigate_35",
+            "naval": true,
+            "position": {
+              "x": 0,
+              "y": 32,
+              "z": -2040
+            },
+            "required": false,
+            "scoreRole": "frigate",
+            "type": "destroyer",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "health": 165,
+            "id": "m06_central_cruiser_36",
+            "naval": true,
+            "position": {
+              "x": 0,
+              "y": 32,
+              "z": 3840
+            },
+            "required": false,
+            "route": {
+              "speed": 18,
+              "waypoints": [
+                {
+                  "x": 0,
+                  "y": 32,
+                  "z": 3840
+                },
+                {
+                  "x": 0,
+                  "y": 32,
+                  "z": 2960
+                },
+                {
+                  "x": 800,
+                  "y": 32,
+                  "z": 2960
+                },
+                {
+                  "x": 800,
+                  "y": 32,
+                  "z": 4640
+                },
+                {
+                  "x": 0,
+                  "y": 32,
+                  "z": 4640
+                },
+                {
+                  "x": 0,
+                  "y": 32,
+                  "z": 2960
+                },
+                {
+                  "x": 800,
+                  "y": 32,
+                  "z": 2960
+                },
+                {
+                  "x": 800,
+                  "y": 32,
+                  "z": 4640
+                },
+                {
+                  "x": 0,
+                  "y": 32,
+                  "z": 4640
+                },
+                {
+                  "x": 0,
+                  "y": 32,
+                  "z": 2960
+                },
+                {
+                  "x": 800,
+                  "y": 32,
+                  "z": 2960
+                },
+                {
+                  "x": 800,
+                  "y": 32,
+                  "z": 4640
+                },
+                {
+                  "x": 0,
+                  "y": 32,
+                  "z": 4640
+                },
+                {
+                  "x": 0,
+                  "y": 32,
+                  "z": 2960
+                }
+              ]
+            },
+            "scoreRole": "cruiser",
+            "type": "cruiser",
+            "yaw": 0
+          },
+          {
+            "group": "central_yard",
+            "id": "m06_central_yard_crane_37",
+            "position": {
+              "x": -600,
+              "y": 48,
+              "z": -7390
+            },
+            "required": false,
+            "scoreRole": "crane",
+            "type": "crane",
+            "yaw": 0
+          },
+          {
+            "group": "central_yard",
+            "id": "m06_central_yard_containers_38",
+            "position": {
+              "x": -200,
+              "y": 48,
+              "z": -7390
+            },
+            "required": false,
+            "scoreRole": "containers",
+            "type": "containers",
+            "yaw": 0
+          },
+          {
+            "group": "central_yard",
+            "id": "m06_central_yard_fuel_tank_39",
+            "position": {
+              "x": 200,
+              "y": 48,
+              "z": -7390
+            },
+            "required": false,
+            "scoreRole": "fuel_tank",
+            "type": "fuel_tank",
+            "yaw": 0
+          },
+          {
+            "group": "central_yard",
+            "id": "m06_central_yard_gas_tank_40",
+            "position": {
+              "x": 600,
+              "y": 48,
+              "z": -7390
+            },
+            "required": false,
+            "scoreRole": "gas_tank",
+            "type": "gas_tank",
+            "yaw": 0
+          },
+          {
+            "group": "central_yard",
+            "id": "m06_central_yard_storage_41",
+            "position": {
+              "x": -600,
+              "y": 48,
+              "z": -6890
+            },
+            "required": false,
+            "scoreRole": "storage",
+            "type": "storage",
+            "yaw": 0
+          },
+          {
+            "group": "central_yard",
+            "id": "m06_central_yard_aa_42",
+            "position": {
+              "x": -200,
+              "y": 48,
+              "z": -6890
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "central_yard",
+            "id": "m06_central_yard_sam_43",
+            "position": {
+              "x": 200,
+              "y": 48,
+              "z": -6890
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": 0
+          },
+          {
+            "group": "central_yard",
+            "id": "m06_central_yard_containers_44",
+            "position": {
+              "x": 600,
+              "y": 48,
+              "z": -6890
+            },
+            "required": false,
+            "scoreRole": "containers",
+            "type": "containers",
+            "yaw": 0
+          },
+          {
+            "group": "central_yard",
+            "id": "m06_central_yard_crane_45",
+            "position": {
+              "x": -600,
+              "y": 48,
+              "z": -6390
+            },
+            "required": false,
+            "scoreRole": "crane",
+            "type": "crane",
+            "yaw": 0
+          },
+          {
+            "group": "central_yard",
+            "id": "m06_central_yard_fuel_tank_46",
+            "position": {
+              "x": -200,
+              "y": 48,
+              "z": -6390
+            },
+            "required": false,
+            "scoreRole": "fuel_tank",
+            "type": "fuel_tank",
+            "yaw": 0
+          },
+          {
+            "group": "central_yard",
+            "id": "m06_central_yard_gas_tank_47",
+            "position": {
+              "x": 200,
+              "y": 48,
+              "z": -6390
+            },
+            "required": false,
+            "scoreRole": "gas_tank",
+            "type": "gas_tank",
+            "yaw": 0
+          },
+          {
+            "group": "central_yard",
+            "id": "m06_central_yard_storage_48",
+            "position": {
+              "x": 600,
+              "y": 48,
+              "z": -6390
+            },
+            "required": false,
+            "scoreRole": "storage",
+            "type": "storage",
+            "yaw": 0
+          },
+          {
+            "group": "central_yard",
+            "id": "m06_central_yard_aa_49",
+            "position": {
+              "x": -600,
+              "y": 48,
+              "z": -5890
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "central_yard",
+            "id": "m06_central_yard_sam_50",
+            "position": {
+              "x": -200,
+              "y": 48,
+              "z": -5890
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": 0
+          },
+          {
+            "group": "central_yard",
+            "id": "m06_central_yard_containers_51",
+            "position": {
+              "x": 200,
+              "y": 48,
+              "z": -5890
+            },
+            "required": false,
+            "scoreRole": "containers",
+            "type": "containers",
+            "yaw": 0
+          },
+          {
+            "group": "central_yard",
+            "id": "m06_central_yard_storage_52",
+            "position": {
+              "x": 600,
+              "y": 48,
+              "z": -5890
+            },
+            "required": false,
+            "scoreRole": "storage",
+            "type": "storage",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "health": 110,
+            "id": "m06_east_destroyer_53",
+            "naval": true,
+            "position": {
+              "x": 6070,
+              "y": 32,
+              "z": -4740
+            },
+            "required": false,
+            "scoreRole": "destroyer",
+            "type": "destroyer",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "health": 110,
+            "id": "m06_east_destroyer_54",
+            "naval": true,
+            "position": {
+              "x": 6720,
+              "y": 32,
+              "z": -4740
+            },
+            "required": false,
+            "scoreRole": "destroyer",
+            "type": "destroyer",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "health": 165,
+            "id": "m06_east_cruiser_55",
+            "naval": true,
+            "position": {
+              "x": 7370,
+              "y": 32,
+              "z": -4740
+            },
+            "required": false,
+            "scoreRole": "cruiser",
+            "type": "cruiser",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "health": 165,
+            "id": "m06_east_cruiser_56",
+            "naval": true,
+            "position": {
+              "x": 6070,
+              "y": 32,
+              "z": -3840
+            },
+            "required": false,
+            "scoreRole": "cruiser",
+            "type": "cruiser",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "health": 110,
+            "id": "m06_east_submarine_57",
+            "naval": true,
+            "position": {
+              "x": 6720,
+              "y": 32,
+              "z": -3840
+            },
+            "required": false,
+            "scoreRole": "submarine",
+            "type": "submarine",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "id": "m06_east_missile_boat_58",
+            "naval": true,
+            "position": {
+              "x": 7370,
+              "y": 32,
+              "z": -3840
+            },
+            "required": false,
+            "scoreRole": "missile_boat",
+            "type": "missile_boat",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "health": 110,
+            "id": "m06_east_supply_ship_59",
+            "naval": true,
+            "position": {
+              "x": 6070,
+              "y": 32,
+              "z": -2940
+            },
+            "required": false,
+            "scoreRole": "supply_ship",
+            "type": "supply_ship",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "health": 110,
+            "id": "m06_east_landing_ship_60",
+            "naval": true,
+            "position": {
+              "x": 6720,
+              "y": 32,
+              "z": -2940
+            },
+            "required": false,
+            "scoreRole": "landing_ship",
+            "type": "landing_ship",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "health": 110,
+            "id": "m06_east_container_ship_61",
+            "naval": true,
+            "position": {
+              "x": 7370,
+              "y": 32,
+              "z": -2940
+            },
+            "required": false,
+            "scoreRole": "container_ship",
+            "type": "container_ship",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "health": 110,
+            "id": "m06_east_frigate_62",
+            "naval": true,
+            "position": {
+              "x": 6070,
+              "y": 32,
+              "z": -2040
+            },
+            "required": false,
+            "scoreRole": "frigate",
+            "type": "destroyer",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "health": 110,
+            "id": "m06_east_frigate_63",
+            "naval": true,
+            "position": {
+              "x": 6720,
+              "y": 32,
+              "z": -2040
+            },
+            "required": false,
+            "scoreRole": "frigate",
+            "type": "destroyer",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "health": 165,
+            "id": "m06_east_cruiser_64",
+            "naval": true,
+            "position": {
+              "x": 2352,
+              "y": 32,
+              "z": 3840
+            },
+            "required": false,
+            "route": {
+              "speed": 18,
+              "waypoints": [
+                {
+                  "x": 2352,
+                  "y": 32,
+                  "z": 3840
+                },
+                {
+                  "x": 2352,
+                  "y": 32,
+                  "z": 2960
+                },
+                {
+                  "x": 3152,
+                  "y": 32,
+                  "z": 2960
+                },
+                {
+                  "x": 3152,
+                  "y": 32,
+                  "z": 4640
+                },
+                {
+                  "x": 2352,
+                  "y": 32,
+                  "z": 4640
+                },
+                {
+                  "x": 2352,
+                  "y": 32,
+                  "z": 2960
+                },
+                {
+                  "x": 3152,
+                  "y": 32,
+                  "z": 2960
+                },
+                {
+                  "x": 3152,
+                  "y": 32,
+                  "z": 4640
+                },
+                {
+                  "x": 2352,
+                  "y": 32,
+                  "z": 4640
+                },
+                {
+                  "x": 2352,
+                  "y": 32,
+                  "z": 2960
+                },
+                {
+                  "x": 3152,
+                  "y": 32,
+                  "z": 2960
+                },
+                {
+                  "x": 3152,
+                  "y": 32,
+                  "z": 4640
+                },
+                {
+                  "x": 2352,
+                  "y": 32,
+                  "z": 4640
+                },
+                {
+                  "x": 2352,
+                  "y": 32,
+                  "z": 2960
+                }
+              ]
+            },
+            "scoreRole": "cruiser",
+            "type": "cruiser",
+            "yaw": 0
+          },
+          {
+            "group": "east_yard",
+            "id": "m06_east_yard_crane_65",
+            "position": {
+              "x": 6120,
+              "y": 48,
+              "z": -7390
+            },
+            "required": false,
+            "scoreRole": "crane",
+            "type": "crane",
+            "yaw": 0
+          },
+          {
+            "group": "east_yard",
+            "id": "m06_east_yard_containers_66",
+            "position": {
+              "x": 6520,
+              "y": 48,
+              "z": -7390
+            },
+            "required": false,
+            "scoreRole": "containers",
+            "type": "containers",
+            "yaw": 0
+          },
+          {
+            "group": "east_yard",
+            "id": "m06_east_yard_fuel_tank_67",
+            "position": {
+              "x": 6920,
+              "y": 48,
+              "z": -7390
+            },
+            "required": false,
+            "scoreRole": "fuel_tank",
+            "type": "fuel_tank",
+            "yaw": 0
+          },
+          {
+            "group": "east_yard",
+            "id": "m06_east_yard_gas_tank_68",
+            "position": {
+              "x": 7320,
+              "y": 48,
+              "z": -7390
+            },
+            "required": false,
+            "scoreRole": "gas_tank",
+            "type": "gas_tank",
+            "yaw": 0
+          },
+          {
+            "group": "east_yard",
+            "id": "m06_east_yard_storage_69",
+            "position": {
+              "x": 6120,
+              "y": 48,
+              "z": -6890
+            },
+            "required": false,
+            "scoreRole": "storage",
+            "type": "storage",
+            "yaw": 0
+          },
+          {
+            "group": "east_yard",
+            "id": "m06_east_yard_aa_70",
+            "position": {
+              "x": 6520,
+              "y": 48,
+              "z": -6890
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "east_yard",
+            "id": "m06_east_yard_sam_71",
+            "position": {
+              "x": 6920,
+              "y": 48,
+              "z": -6890
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": 0
+          },
+          {
+            "group": "east_yard",
+            "id": "m06_east_yard_containers_72",
+            "position": {
+              "x": 7320,
+              "y": 48,
+              "z": -6890
+            },
+            "required": false,
+            "scoreRole": "containers",
+            "type": "containers",
+            "yaw": 0
+          },
+          {
+            "group": "east_yard",
+            "id": "m06_east_yard_crane_73",
+            "position": {
+              "x": 6120,
+              "y": 48,
+              "z": -6390
+            },
+            "required": false,
+            "scoreRole": "crane",
+            "type": "crane",
+            "yaw": 0
+          },
+          {
+            "group": "east_yard",
+            "id": "m06_east_yard_fuel_tank_74",
+            "position": {
+              "x": 6520,
+              "y": 48,
+              "z": -6390
+            },
+            "required": false,
+            "scoreRole": "fuel_tank",
+            "type": "fuel_tank",
+            "yaw": 0
+          },
+          {
+            "group": "east_yard",
+            "id": "m06_east_yard_gas_tank_75",
+            "position": {
+              "x": 6920,
+              "y": 48,
+              "z": -6390
+            },
+            "required": false,
+            "scoreRole": "gas_tank",
+            "type": "gas_tank",
+            "yaw": 0
+          },
+          {
+            "group": "east_yard",
+            "id": "m06_east_yard_storage_76",
+            "position": {
+              "x": 7320,
+              "y": 48,
+              "z": -6390
+            },
+            "required": false,
+            "scoreRole": "storage",
+            "type": "storage",
+            "yaw": 0
+          },
+          {
+            "group": "west_defence",
+            "id": "m06_west_defence_gun_77",
+            "parentId": "m06_west_destroyer_1",
+            "position": {
+              "x": -7190,
+              "y": 48,
+              "z": -3780
+            },
+            "required": false,
+            "scoreRole": "gun",
+            "type": "gun_mount",
+            "yaw": 0
+          },
+          {
+            "group": "west_defence",
+            "id": "m06_west_defence_aa_78",
+            "parentId": "m06_west_destroyer_2",
+            "position": {
+              "x": -6540,
+              "y": 48,
+              "z": -3780
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "west_defence",
+            "id": "m06_west_defence_sam_79",
+            "parentId": "m06_west_cruiser_3",
+            "position": {
+              "x": -5890,
+              "y": 48,
+              "z": -3780
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": 0
+          },
+          {
+            "group": "west_defence",
+            "id": "m06_west_defence_gun_80",
+            "parentId": "m06_west_cruiser_4",
+            "position": {
+              "x": -7190,
+              "y": 48,
+              "z": -2880
+            },
+            "required": false,
+            "scoreRole": "gun",
+            "type": "gun_mount",
+            "yaw": 0
+          },
+          {
+            "group": "west_defence",
+            "id": "m06_west_defence_aa_81",
+            "parentId": "m06_west_submarine_5",
+            "position": {
+              "x": -6540,
+              "y": 48,
+              "z": -2880
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "west_defence",
+            "id": "m06_west_defence_sam_82",
+            "parentId": "m06_west_missile_boat_6",
+            "position": {
+              "x": -5890,
+              "y": 48,
+              "z": -2880
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": 0
+          },
+          {
+            "group": "central_defence",
+            "id": "m06_central_defence_gun_83",
+            "parentId": "m06_central_destroyer_25",
+            "position": {
+              "x": -470,
+              "y": 48,
+              "z": -4740
+            },
+            "required": false,
+            "scoreRole": "gun",
+            "type": "gun_mount",
+            "yaw": 0
+          },
+          {
+            "group": "central_defence",
+            "id": "m06_central_defence_aa_84",
+            "parentId": "m06_central_destroyer_26",
+            "position": {
+              "x": 180,
+              "y": 48,
+              "z": -4740
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "central_defence",
+            "id": "m06_central_defence_sam_85",
+            "parentId": "m06_central_cruiser_27",
+            "position": {
+              "x": 830,
+              "y": 48,
+              "z": -4740
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": 0
+          },
+          {
+            "group": "central_defence",
+            "id": "m06_central_defence_gun_86",
+            "parentId": "m06_central_cruiser_28",
+            "position": {
+              "x": -470,
+              "y": 48,
+              "z": -3840
+            },
+            "required": false,
+            "scoreRole": "gun",
+            "type": "gun_mount",
+            "yaw": 0
+          },
+          {
+            "group": "central_defence",
+            "id": "m06_central_defence_aa_87",
+            "parentId": "m06_central_submarine_29",
+            "position": {
+              "x": 180,
+              "y": 48,
+              "z": -3840
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "central_defence",
+            "id": "m06_central_defence_sam_88",
+            "parentId": "m06_central_missile_boat_30",
+            "position": {
+              "x": 830,
+              "y": 48,
+              "z": -3840
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": 0
+          },
+          {
+            "group": "east_defence",
+            "id": "m06_east_defence_gun_89",
+            "parentId": "m06_east_destroyer_53",
+            "position": {
+              "x": 6250,
+              "y": 48,
+              "z": -4740
+            },
+            "required": false,
+            "scoreRole": "gun",
+            "type": "gun_mount",
+            "yaw": 0
+          },
+          {
+            "group": "east_defence",
+            "id": "m06_east_defence_aa_90",
+            "parentId": "m06_east_destroyer_54",
+            "position": {
+              "x": 6900,
+              "y": 48,
+              "z": -4740
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "east_defence",
+            "id": "m06_east_defence_sam_91",
+            "parentId": "m06_east_cruiser_55",
+            "position": {
+              "x": 7550,
+              "y": 48,
+              "z": -4740
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": 0
+          },
+          {
+            "group": "east_defence",
+            "id": "m06_east_defence_gun_92",
+            "parentId": "m06_east_cruiser_56",
+            "position": {
+              "x": 6250,
+              "y": 48,
+              "z": -3840
+            },
+            "required": false,
+            "scoreRole": "gun",
+            "type": "gun_mount",
+            "yaw": 0
+          },
+          {
+            "group": "east_defence",
+            "id": "m06_east_defence_aa_93",
+            "parentId": "m06_east_submarine_57",
+            "position": {
+              "x": 6900,
+              "y": 48,
+              "z": -3840
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "east_defence",
+            "id": "m06_east_defence_sam_94",
+            "parentId": "m06_east_missile_boat_58",
+            "position": {
+              "x": 7550,
+              "y": 48,
+              "z": -3840
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": 0
+          }
+        ],
+        "kind": "score_threshold",
+        "label": "Score 3,000 points before 15:00",
+        "rearm": {
+          "gun": true,
+          "health": false,
+          "landing": {
+            "approachDistance": 2400,
+            "approachSeconds": 20,
+            "glideDegrees": 3,
+            "headingDegrees": 180,
+            "rolloutDistance": 900,
+            "rolloutSeconds": 15,
+            "touchdown": {
+              "x": -6720,
+              "y": 54,
+              "z": 10500
+            }
+          },
+          "missiles": true,
+          "radio": [
+            {
+              "at": 0.5,
+              "text": "COAST TOWER: Trainee, cleared to land, runway one-eight. Wind calm."
+            },
+            {
+              "at": 9,
+              "text": "COAST TOWER: One mile. Slightly high. Ease it down."
+            },
+            {
+              "at": 20.5,
+              "text": "COAST TOWER: Down and rolling. Crews are bringing the racks out."
+            },
+            {
+              "at": 36,
+              "text": "COAST TOWER: Racks full, magazine full. Cleared for takeoff."
+            }
+          ],
+          "radius": 1500,
+          "special": true,
+          "takeoffSeconds": 20,
+          "weaponMenu": true,
+          "zone": {
+            "x": -6720,
+            "y": 179.77867027929892,
+            "z": 8100
+          }
+        },
+        "scoreThreshold": {
+          "points": 3000,
+          "seconds": 900,
+          "waitForExpiry": true
+        },
+        "standaloneAce": {
+          "behaviour": "dogfight",
+          "call": "WARDEN LEAD: Warden Lead. Those ships are my charge, trainee.",
+          "headingDegrees": 180,
+          "health": 165,
+          "id": "m06_warden_lead",
+          "livery": "Vulture",
+          "name": "WARDEN LEAD",
+          "scoreRole": "ace",
+          "stageLines": [
+            "WARDEN LEAD: You fly like Teal. He didn't listen either.",
+            "WARDEN LEAD: Warden is hit! Breaking off over the quays!"
+          ],
+          "trigger": {
+            "kind": "time",
+            "seconds": 510
+          }
+        }
       }
     ],
-    "primary": "In development",
-    "region": "canyon_airfield",
-    "title": "Mission 6"
+    "pressure": {
+      "forwardConeDegrees": 25,
+      "playerPriority": 0.8,
+      "tailDefence": true
+    },
+    "primary": "Score 3,000 points at the Iron Coast quays within 15:00",
+    "region": "coastal_harbor",
+    "scoring": {
+      "basis": "points",
+      "points": {
+        "aa": 20,
+        "ace": 240,
+        "container_ship": 100,
+        "containers": 40,
+        "crane": 40,
+        "cruiser": 120,
+        "destroyer": 100,
+        "fighter": 60,
+        "fighter_bomber": 60,
+        "frigate": 100,
+        "fuel_tank": 40,
+        "gas_tank": 40,
+        "gun": 30,
+        "helicopter": 50,
+        "landing_ship": 100,
+        "missile_boat": 60,
+        "sam": 30,
+        "storage": 40,
+        "submarine": 120,
+        "supply_ship": 100
+      },
+      "rank": {
+        "A": 4200,
+        "B": 3600,
+        "C": 3000,
+        "S": 5000
+      }
+    },
+    "start": {
+      "headingDegrees": 0,
+      "kind": "airborne",
+      "speed": 160,
+      "x": 0,
+      "y": 385,
+      "z": 9600
+    },
+    "terrainRelativeWarnings": true,
+    "title": "IRON COAST",
+    "worldKey": "m06_military_quays"
   },
   {
     "act": 2,

@@ -1,13 +1,13 @@
 # Shipped
 
-Updated 2026-10-30 against main `9857358`; its publish workflow succeeded per CI. Practice and missions 1–5 are live in Roblox Player by the owner's pipeline convention. No new Studio, Player or phone test is claimed. Older entries describe behavior at their merge; later entries supersede tuning and dormant activation status.
+Updated 2026-10-30 against main `9857358`; its publish workflow succeeded per CI. Practice and missions 1–6 are live after #179 merges in Roblox Player by the owner's pipeline convention. No new Studio, Player or phone test is claimed. Older entries describe behavior at their merge; later entries supersede tuning and dormant activation status.
 
 ## Merged 2026-10-30, newest first
 
 | PR | Commit | Change | What the owner sees in Roblox Player |
 |---|---|---|---|
 | [#177](https://github.com/A-Ricemusic/skybreak/pull/177) | (this merge) | D4 queued air battles and timed bomber-intercept hold | No visible change — engine support, dormant. Mission 8 has not activated on main. |
-| [#181](https://github.com/A-Ricemusic/skybreak/pull/181) | `d1fb3a8` | Test deadline and docs reconciliation | No visible change — Studio test deadline raised to 20 minutes; human docs reconciled. |
+| [#179](https://github.com/A-Ricemusic/skybreak/pull/179) | Merge pending | Mission 6 IRON COAST playable | Live after merge by pipeline convention: unlocks after mission 5; harbour strike, score ≥3,000 in 15:00, optional runway rearm with finite ammo. Full Studio Jest 1,133/1,133 in the orchestrator’s run at `e5c2fd2`; Player/phone not yet observed. |
 | [#171](https://github.com/A-Ricemusic/skybreak/pull/171) | `9857358` | D3 canyon artillery escape, area strike and target types | No visible change — engine support, dormant. Mission 7 has not activated on main. |
 | [#168](https://github.com/A-Ricemusic/skybreak/pull/168) | `989c802` | D2 naval mounts, firing SAMs and anti-ship fit | No visible change — engine support, dormant. Legacy SAMs remain inert unless opted in. |
 | [#165](https://github.com/A-Ricemusic/skybreak/pull/165) | `439bc66` | D1 player gun and finite ammunition | No visible change — engine support, dormant. Practice/M01–M05 keep their existing replenishing missiles and no gun. |
