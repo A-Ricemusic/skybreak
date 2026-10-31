@@ -49,7 +49,11 @@ export function carrierRearmPose(p: RearmPlan, elapsed: number): FlightState {
 export function validateBatchD5(phases: MissionPhaseBlueprint[], limit: number): void {
  const positive=(n:number,max:number)=>assert(finiteNumber(n) && n>0 && n<=max,"D5 invalid positive budget");
  const point=(p:FlightPoint)=>assert(finiteNumber(p.x) && finiteNumber(p.y) && finiteNumber(p.z) && math.abs(p.x)<=limit && math.abs(p.z)<=limit && p.y>=0 && p.y<=2000,"D5 point outside airspace");
+ const knownTargets = new Set<string>();
  for(const phase of phases) {
+  for(const t of phase.groundTargets ?? []) knownTargets.add(t.id);
+  const requiredWaves=(phase.fighterWaves ?? []).filter(w=>w.required);
+  if(requiredWaves.size()>0) assert(phase.kind==="required_air" && phase.bombers===undefined && requiredWaves.reduce((n,w)=>n+w.count,0)===phase.count && requiredWaves.every(w=>w.attackSector!==undefined),"Required waves must own the attack phase count");
   const r=phase.rearm, c=r?.carrier;
   if(r && c) {
    point(c.centre); point(c.catapult); positive(c.width,200); positive(c.length,600);
@@ -67,7 +71,7 @@ export function validateBatchD5(phases: MissionPhaseBlueprint[], limit: number):
     positive(s.seconds,3600); positive(s.health,2000); positive(s.route.speed,60);
     assert(["landing_craft","troops","column"].includes(s.kind),"Invalid friendly route kind");
     assert(s.clearTargetIds.size()>0 && s.clearTargetIds.size()<=128,"D5 sector needs bounded clear targets");
-    const targets=new Set<string>(); for(const id of s.clearTargetIds) { assert(!targets.has(id) && (phase.groundTargets ?? []).some(t=>t.id===id),"Unknown/duplicate sector target"); targets.add(id); }
+    const targets=new Set<string>(); for(const id of s.clearTargetIds) { assert(!targets.has(id) && knownTargets.has(id),"Unknown/duplicate sector target"); targets.add(id); }
     for(const line of [s.advanceCall,s.securedCall,s.hitCall]) assert(line.size()>0 && line.size()<=72,"Invalid sector radio");
     assert(s.route.waypoints.size()>=2 && s.route.waypoints.size()<=32,"Invalid friendly route");
     let length=0; for(let i=0;i<s.route.waypoints.size();i++) { const v=s.route.waypoints[i]; point(v); if(i>0) { const u=s.route.waypoints[i-1]; const leg=math.sqrt((v.x-u.x)**2+(v.z-u.z)**2); assert(leg>1 && v.y===u.y,"Friendly route needs distinct level legs"); length+=leg; } }
