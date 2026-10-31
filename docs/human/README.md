@@ -43,3 +43,9 @@ Footage times are internal reference cross-references, not shipped titles; see t
 - [Decisions](decisions.md): stable design records.
 
 M07 review-fix validation (2026-10-30): frozen install, build and full `validate:offline` exited 0; 967 Luau contracts and 19 catalog snapshots passed. Voice manifests regenerated; no audio generated/uploaded. Studio/Player not run by this agent.
+
+## D6 integration in review
+
+D6 engine work is in review on `feat/engine-batch-d6`: dormant repeated artillery, parked/airborne credit deduplication, bounded static contact detail and six M10 target types (D-300–D-303). No mission opts in; Studio/runtime Jest/phone verification and M10 activation remain pending. See [engine plan](../specs/engine/missions-06-18-plan.md#7-batch-d6-implementation).
+
+D6 integration checks: frozen install, build and full offline validation exit 0 (993 Luau contracts, 19 catalog snapshots, 124 Python tests; four negative loader probes). D4+D6 admission/contact regressions added; runtime specs compiled only. No Studio, `test:roblox`, Player or phone test performed.

@@ -83,3 +83,9 @@ D-260 retains 36 naval hulls, 40 yard contacts and 18 separately scored hull-own
 ## Mission 7 review fixes (unmerged #178)
 
 Resolved in code/offline coverage: ray masking beyond Roblox’s 15,000-stud single-cast limit, incorrect 617.216 ceiling, short initial ingress window, main/M06 merge conflicts and one-kill allied budget integration. The distant battery is authored because neither reference spec measures its position. Initial warning remains immediate, first impact is 60s; later salvos remain 25s apart. New actual-build first-step audit and masking Jest spec awaits the orchestrator’s Studio run. Player/phone balance, transition flight and rendered acceptance remain open; no Studio/Player test is claimed.
+
+## Engine D6 verification and M10 activation
+
+D6 remains dormant. Runtime Jest, Studio, Player observations and 150-contact phone profiling remain pending under the orchestrator’s Studio lease. M10 roster, artillery cadence, rank thresholds and rendered-world acceptance remain unresolved. D4/D5 and mission 7 are now integrated; repeated artillery uses M7’s segmented masking rays. No uploads or owner action required.
+
+D6 integration checks: frozen install, build and full offline validation exit 0 (993 Luau contracts, 19 catalog snapshots, 124 Python tests; four negative loader probes). D4+D6 admission/contact regressions added; runtime specs compiled only. No Studio, `test:roblox`, Player or phone test performed.
