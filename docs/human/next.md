@@ -1,6 +1,6 @@
 # Next
 
-PR #189: review D-445 per-difficulty escort budgets and deterministic encounter coverage, then orchestrator-owned Studio/Player acceptance. This branch is not merged; no Studio lease was used for the correction.
+PR #189: final D-445 offline validation passed; next is orchestrator-owned Studio acceptance and independent review before merge. Validate both routes, attentive defence and a 30s lapse on each difficulty in actual flight. No Studio lease was used for this correction.
 
 **M09 arrival regression, 2026-10-30:** Orchestrator reported Studio Jest 1,219/1,220 at `21be233`: the sole failure expected nine generic opening bandits, but D5 authors three required trios at mission times 600/625/650. #185 corrects the test to check exact timed admissions and duplicates, retaining D4 slots and adding grouped/delayed-launch coverage. Runtime remains unchanged: completion requires all nine kills. An offline regression clears early trios without ending the phase. Frozen install, build and full offline validation exited 0 (1,023 Luau contracts, 19 catalog snapshots, 124 Python tests). The director regression compiles but requires the orchestrator’s Studio rerun; this task did not launch Studio or claim a Player test.
 

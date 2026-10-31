@@ -1,6 +1,6 @@
 # Shipped
 
-Unmerged review correction: PR #189 D-445 changes M11 escort hull budgets and verifies acquisition/interception offline. This entry records branch status only; the correction is not yet merged/live and no Player test was performed.
+Unmerged final balance correction: PR #189 D-445 retunes M11 hulls to 34/77/147, asserts ≥10% Easy > Normal > Hard neglect survival on both routes, and corrects scaled reload/admission/formation/launch-offset modelling. Frozen install, build and full offline validation exited 0; regenerated catalog changes only M11. Branch status only; no Player test or merge is claimed.
 
 **M09 arrival regression, 2026-10-30:** Orchestrator reported Studio Jest 1,219/1,220 at `21be233`: the sole failure expected nine generic opening bandits, but D5 authors three required trios at mission times 600/625/650. #185 corrects the test to check exact timed admissions and duplicates, retaining D4 slots and adding grouped/delayed-launch coverage. Runtime remains unchanged: completion requires all nine kills. An offline regression clears early trios without ending the phase. Frozen install, build and full offline validation exited 0 (1,023 Luau contracts, 19 catalog snapshots, 124 Python tests). The director regression compiles but requires the orchestrator’s Studio rerun; this task did not launch Studio or claim a Player test.
 

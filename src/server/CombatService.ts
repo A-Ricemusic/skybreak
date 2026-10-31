@@ -882,7 +882,7 @@ function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy, 
 	let damage = 0;
 	if (hostile) {
 		if (!ownsEnemy(session, enemy) || enemy.kind === "ground") return;
-		position = enemy.position.add(enemy.direction.mul(18));
+		position = enemy.position.add(enemy.direction.mul(CombatBalance.hostileLaunchOffset));
 		direction = unitOr((enemy.windupTarget?.position ?? positionFor(session.state)).sub(position), enemy.direction);
 		const right = unitOr(new Vector3(-enemy.direction.Z, 0, enemy.direction.X), new Vector3(1, 0, 0));
 		const fanned = ThreatRules.SalvoDirection(point(direction), point(right), salvoIndex, salvoCount);

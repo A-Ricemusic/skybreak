@@ -7,21 +7,22 @@ import type { ProtectedAircraftPlan } from "../EngineBatchD7";
 
 // D-440: 17 ordinary attackers + optional ace; two independent, time-matched routes.
 // D-445: mission-local hull budgets; shared combat tuning is unchanged.
-export const M11_AIRCRAFT_HEALTH = 91;
-export const M11_HEALTH = { easy: 34, normal: 91, ace: 245 };
+export const M11_AIRCRAFT_HEALTH = 77;
+export const M11_HEALTH = { easy: 34, normal: 77, ace: 147 };
 export const M11_SAFE_SECONDS = 313.28;
 export const M11_AIRCRAFT: ProtectedAircraftPlan[] = [false, true].map(high => {
  const waypoints: FlightPoint[] = [];
  // Sample the same world curves inside D7's 32-waypoint route limit.
  for (let i=0;i<=24;i++) {
   const p=m11RoutePoint(high,i/24);
-  // JSON snapshots normalize -0; canonicalize the low route endpoint for stable saves.
-  waypoints.push({x:p.x===0 ? 0 : p.x,y:p.y,z:p.z});
+  // Bound platform trig rounding (macOS/Linux) and normalize -0 for catalog saves.
+  const x=math.round(p.x*1e6)/1e6, z=math.round(p.z*1e6)/1e6;
+  waypoints.push({x:x===0 ? 0 : x,y:p.y,z:z===0 ? 0 : z});
  }
  let distance=0;
  for(let i=1;i<waypoints.size();i++) { const a=waypoints[i-1],b=waypoints[i]; distance+=math.sqrt((b.x-a.x)**2+(b.z-a.z)**2); }
  return { id: high ? "m11_civilian_high" : "m11_civilian_low", callsign: high ? "ORCHARD ONE" : "ORCHARD TWO", health: M11_AIRCRAFT_HEALTH, healthByDifficulty: M11_HEALTH,
-  route: { waypoints, speed: distance/M11_SAFE_SECONDS } };
+  route: { waypoints, speed: math.round(distance/M11_SAFE_SECONDS*1e9)/1e9 } };
 });
 // Authored timing, not recovered source spawns. No route/patrol enemies consume the pursuit budget.
 export const M11_WAVES: FighterArrival[] = [

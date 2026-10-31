@@ -1,7 +1,7 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { Workspace } from "@rbxts/services";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
-import { mission } from "../shared/missions/m11";
+import { mission, M11_HEALTH } from "../shared/missions/m11";
 import { stepProtection, clearProtection, protectedTarget, hitProtected, warnProtectedAttack } from "../server/EngineBatchD7Runtime";
 import type { CombatSession, Enemy } from "../server/CombatSession";
 // Authored Jest integration; deliberately not run without an authorized Studio lease.
@@ -22,8 +22,8 @@ describe("M11 protected aircraft runtime",()=>{
    expect(protectedTarget(session,attacker)).toBe(high.aircraft);
    warnProtectedAttack(session,attacker.windupTarget,line=>{lines.push(line);});
    stepProtection(session,0,()=>{});
-   expect(high.label.Text.find("INCOMING")[0]).toBeDefined();expect(lines.size()).toBe(1);expect(lines[0].find("ORCHARD ONE")[0]).toBeDefined();expect(high.state.health).toBe(91);
-   hitProtected(session,high.aircraft,7,line=>{lines.push(line);});expect(lines.size()).toBe(2);expect(high.state.health).toBe(84);expect(low.state.health).toBe(91);
+   expect(high.label.Text.find("INCOMING")[0]).toBeDefined();expect(lines.size()).toBe(1);expect(lines[0].find("ORCHARD ONE")[0]).toBeDefined();expect(high.state.health).toBe(M11_HEALTH.normal);
+   hitProtected(session,high.aircraft,7,line=>{lines.push(line);});expect(lines.size()).toBe(2);expect(high.state.health).toBe(M11_HEALTH.normal-7);expect(low.state.health).toBe(M11_HEALTH.normal);
    stepProtection(session,314,()=>{});expect(session.blueprintState!.outcome).toBe("won");expect(session.protectedFlight).toBeUndefined();expect(folder.GetChildren().size()).toBe(0);
   } finally { clearProtection(session);folder.Destroy(); }
  });
