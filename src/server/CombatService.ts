@@ -1189,7 +1189,8 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		const threatened = pressure !== undefined && ((enemy.playerThreatUntil ?? 0) > session.elapsed || session.target === enemy && session.lockProgress > 0.3
 			|| ThreatRules.Inbound(enemy, session.projectiles, missile => missile.allied ? undefined : missile.target, missile => missile.position.sub(enemy.position).Magnitude));
 		const focusPlayer = AlliedRules.PrioritisesPlayer(pressure, enemy.targetSlot ?? index, session.elapsed, toPlayer.Magnitude, tailDot, threatened);
-		enemy.combatTarget = protectedTarget(session, enemy) ?? (focusPlayer ? undefined : nearestWingman(session, enemy));
+		const protectedAircraft = protectedTarget(session, enemy);
+		enemy.combatTarget = protectedAircraft ?? (focusPlayer ? undefined : nearestWingman(session, enemy));
 		const playerPosition = enemy.combatTarget?.position ?? positionFor(session.state);
 		const playerVelocity = enemy.combatTarget?.velocity ?? directionFor(session.state).mul(session.state.speed);
 		const ace = enemy.kind === "ace";
@@ -1323,9 +1324,9 @@ function stepEnemies(session: CombatSession, dt: number): void {
 			}
 		} else if (mayFire && (ace || flightReady) && ThreatRules.MayFire({
 			separation, aimDot, fireTimer: enemy.fireTimer, globalReady: true,
-			evading: enemy.combatTarget===undefined && session.evadeRemaining > 0, playerStraight: enemy.combatTarget!==undefined || playerStraight, minRange: fireMin, maxRange: ace ? fireMax + 200 : fireMax,
+			evading: session.evadeRemaining > 0, playerStraight, minRange: fireMin, maxRange: ace ? fireMax + 200 : fireMax,
 			aimThreshold, straightRelax,
-		})) {
+		}, protectedAircraft !== undefined)) {
 			enemy.windup = windupSeconds;
 			enemy.windupTarget = AlliedRules.CommitWindupTarget(enemy.combatTarget);
 			enemy.warning!.Enabled = true;
