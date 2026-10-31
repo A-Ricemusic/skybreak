@@ -1,3 +1,4 @@
+import { stepProtection, protectedTarget, hitProtected, clearProtection } from "./EngineBatchD7Runtime";
 import { stepCanyon } from "./EngineBatchD3Runtime";
 import { insideArea } from "../shared/EngineBatchD3";
 import { AntiShipRules } from "../shared/EngineBatchD2";
@@ -549,6 +550,7 @@ function cleanupSession(session: CombatSession, restore = true): void {
 		if (session.characterRoot?.Parent) session.characterRoot.Anchored = session.wasAnchored ?? false;
 		if (session.player.Parent === Players) session.player.ReplicationFocus = session.previousReplicationFocus;
 	}
+	clearProtection(session);
 	session.folder.Destroy();
 	session.projectiles.clear();
 	session.enemies.clear();
@@ -772,6 +774,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		if (friendly) { session.allySerial += 1; serial = session.allySerial; }
 		else { session.spawnSerial += 1; serial = session.spawnSerial; }
 		const enemy: Enemy = {
+			attackProtected: options.arrival && "attackProtected" in options.arrival ? options.arrival.attackProtected : undefined,
 			scoreRole: options.arrival?.scoreRole ?? (role === "bomber" && session.blueprintState ? BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.scoreRole : undefined),
 			routeActor: route ? {route,startedAt:session.elapsed,jammer:arrival !== undefined && "aircraft" in arrival && arrival.aircraft==="jammer"} : undefined,
 			groundAttack: options.arrival && "behaviour" in options.arrival && options.arrival.behaviour === "ground_attack",
@@ -1186,7 +1189,7 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		const threatened = pressure !== undefined && ((enemy.playerThreatUntil ?? 0) > session.elapsed || session.target === enemy && session.lockProgress > 0.3
 			|| ThreatRules.Inbound(enemy, session.projectiles, missile => missile.allied ? undefined : missile.target, missile => missile.position.sub(enemy.position).Magnitude));
 		const focusPlayer = AlliedRules.PrioritisesPlayer(pressure, enemy.targetSlot ?? index, session.elapsed, toPlayer.Magnitude, tailDot, threatened);
-		enemy.combatTarget = focusPlayer ? undefined : nearestWingman(session, enemy);
+		enemy.combatTarget = protectedTarget(session, enemy) ?? (focusPlayer ? undefined : nearestWingman(session, enemy));
 		const playerPosition = enemy.combatTarget?.position ?? positionFor(session.state);
 		const playerVelocity = enemy.combatTarget?.velocity ?? directionFor(session.state).mul(session.state.speed);
 		const ace = enemy.kind === "ace";
@@ -1294,7 +1297,7 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		enemy.direction = steerAircraft(oldDirection, desired, breaking ? breakTurn : ace ? 2.8 : 2.1, dt);
 		enemy.velocity = enemy.direction.mul(speed);
 		const moved = enemy.position.add(enemy.velocity.mul(dt));
-		enemy.position = new Vector3(math.clamp(moved.X, -(session.bomberEncounter || enemy.scoreRole !== undefined ? session.airspace.spawnLimit : 2700), session.bomberEncounter || enemy.scoreRole !== undefined ? session.airspace.spawnLimit : 2700), math.clamp(moved.Y, 170, 1000), math.clamp(moved.Z, -(session.bomberEncounter || enemy.scoreRole !== undefined ? session.airspace.spawnLimit : 2700), session.bomberEncounter || enemy.scoreRole !== undefined ? session.airspace.spawnLimit : 2700));
+		enemy.position = new Vector3(math.clamp(moved.X, -(session.bomberEncounter || enemy.scoreRole !== undefined ? session.airspace.spawnLimit : 2700), session.bomberEncounter || enemy.scoreRole !== undefined ? session.airspace.spawnLimit : 2700), math.clamp(moved.Y, 170, phase?.protection ? phase.protection.altitudeCeiling ?? 2000 : 1000), math.clamp(moved.Z, -(session.bomberEncounter || enemy.scoreRole !== undefined ? session.airspace.spawnLimit : 2700), session.bomberEncounter || enemy.scoreRole !== undefined ? session.airspace.spawnLimit : 2700));
 		const bank = math.clamp(-oldDirection.Cross(enemy.direction).Y * 26, -0.65, 0.65);
 		// Applied once per Heartbeat by flushPivots: a hitch's catch-up sub-steps replicate one CFrame, not five.
 		enemy.frame = CFrame.lookAt(enemy.position, enemy.position.add(enemy.direction)).mul(CFrame.Angles(0, 0, bank));
@@ -1320,7 +1323,7 @@ function stepEnemies(session: CombatSession, dt: number): void {
 			}
 		} else if (mayFire && (ace || flightReady) && ThreatRules.MayFire({
 			separation, aimDot, fireTimer: enemy.fireTimer, globalReady: true,
-			evading: session.evadeRemaining > 0, playerStraight, minRange: fireMin, maxRange: ace ? fireMax + 200 : fireMax,
+			evading: enemy.combatTarget===undefined && session.evadeRemaining > 0, playerStraight: enemy.combatTarget!==undefined || playerStraight, minRange: fireMin, maxRange: ace ? fireMax + 200 : fireMax,
 			aimThreshold, straightRelax,
 		})) {
 			enemy.windup = windupSeconds;
@@ -1482,6 +1485,11 @@ function stepMissiles(session: CombatSession, dt: number): void {
 				effect(session, "hit", targetPosition);
 				if (missile.hostile && missile.wingman) {
 					const ally = missile.wingman;
+					if (hitProtected(session,ally,missile.damage,(line)=>radio(session,line,4))) {
+						missile.part.Destroy(); session.projectiles.remove(index);
+						if(session.blueprintState?.outcome!==undefined) { finish(session); return; }
+						continue;
+					}
 					ally.health = math.max(0, ally.health - missile.damage);
 					ally.model.SetAttribute("Health", ally.health);
 					if (ally.health <= 0) {
@@ -1647,6 +1655,8 @@ function stepSession(session: CombatSession, dt: number): void {
 		}
 	}
 	session.inputSteps += 1;
+	stepProtection(session,dt,(line)=>radio(session,line,4));
+	if(session.blueprintState?.outcome!==undefined) { finish(session); return; }
 	stepCanyon(session,dt,(line)=>radio(session,line,4));
 	if(session.crashReason) { finish(session); return; }
 	if(session.health<=0) { refreshSession(session,os.clock()); return; }

@@ -1,3 +1,4 @@
+import { ProtectionPlan, validateBatchD7 } from "./EngineBatchD7";
 import { InterceptHold, validateBatchD4 } from "./EngineBatchD4";
 import { CanyonEscape, validateBatchD3 } from "./EngineBatchD3";
 import { NightLighting, validateNightLighting } from "./NightLighting";
@@ -60,6 +61,7 @@ export type EnvironmentPreset =
 	| "ocean_night";
 
 export type PhaseKind =
+	| "protected_air"
 	// Teaching actions
 	| "tutorial_move"
 	| "tutorial_target"
@@ -116,6 +118,7 @@ export interface PhaseExecution {
 }
 
 export interface MissionPhaseBlueprint {
+	protection?: ProtectionPlan;
 	/** Finite waves queue within this opt-in concurrent fighter budget. */
 	concurrentFighters?: number;
 	interceptHold?: InterceptHold;
@@ -295,6 +298,7 @@ for (let index = -1; index < MISSIONS.size(); index++) {
 	if(blueprint.nightLighting) validateNightLighting(blueprint.nightLighting, (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 		validateBatchC(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateArmament(blueprint.armament, expandPhases(blueprint.phases).some(phase => phase.rearm?.gun === true));
+	validateBatchD7(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
 	validateBatchD4(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
 	validateBatchD3(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth, blueprint.terrainRelativeWarnings === true);
 		validateBatchB(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
@@ -450,6 +454,7 @@ export const MissionCatalog = {
 		if(blueprint.nightLighting) validateNightLighting(blueprint.nightLighting, (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
 	validateBatchC(expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint).hardHalfWidth);
 	validateArmament(blueprint.armament, expandPhases(blueprint.phases).some(phase => phase.rearm?.gun === true));
+	validateBatchD7(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
 	validateBatchD4(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
 	validateBatchD3(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth, blueprint.terrainRelativeWarnings === true);
 	validateBatchB(expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint).hardHalfWidth);

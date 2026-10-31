@@ -1,6 +1,8 @@
 # Blockers
 
-Updated 2026-10-30 against main `9857358`. Publish succeeded per CI; no known deployment failure is recorded. Live status follows the owner's pipeline convention and does not establish observed Player quality. This reconciliation performs offline checks only.
+D7 (`feat/engine-batch-d7`) is dormant and unmerged. Runtime Jest specs compile, but Studio verification is explicitly deferred to the orchestrator’s lease. No Studio/Player observation is claimed. M11 still needs mission roster/trigger/route/health tuning, terrain clearance along high/low routes, procedural stand-in replacement or acceptance, marker readability and Player/phone checks. Frozen install/build/full offline validation exited 0 (977 Luau contracts, 19 catalog snapshots, 124 Python tests); these results do not resolve those activation gates.
+
+Updated 2026-10-30 against main `6f17a95`, with dormant D7 implementation on this branch. Publish succeeded per CI; no known deployment failure is recorded. Live status follows the owner's pipeline convention and does not establish observed Player quality. This reconciliation performs offline checks only.
 
 ## Resolved dependencies
 

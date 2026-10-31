@@ -29,7 +29,7 @@ export const AlliedRules = {
 	},
 	/** The windup target is copied once; undefined deliberately means the player. */
 	CommitWindupTarget<T>(target: T | undefined): T | undefined { return target; },
-	WarnsPlayer(target: unknown): boolean { return target === undefined; },
+	WarnsPlayer(target: unknown, attackSector?: string): boolean { return target === undefined && attackSector === undefined; },
 	/** Friendlies and hostiles advance independent ordinals. */
 	AirSerial(friendly: boolean, hostileSerial: number, alliedSerial: number): number { return friendly ? alliedSerial : hostileSerial; },
 	PlayerTarget(candidate: { friendly?: boolean; enabled: boolean; health: number }): boolean {
