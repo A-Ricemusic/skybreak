@@ -2,14 +2,17 @@
 
 D9 F21: review and integrate after D7 #184; reconcile the batch C source predicates with D8 #186 (F20). Then author M13’s 32-balloon/100-point sweep, phase handoff and protected route against dormant world anchors; inspect fog, gun readability and navigation under the orchestrator’s Studio lease before any unlock.
 
-Updated 2026-10-30 against main `6f17a95`, with dormant D7 implementation on this branch. Practice and missions 1–6 are Live after #179 merges; worlds 7–18 and D3 remain dormant. M06 activates merged D1/D2 contracts. Publish succeeded per CI; no new Player observation is claimed.
+Updated 2026-10-30 against main `9857358`. Practice and missions 1–6 are Live after #179 merges; worlds 7–18 and D3 remain dormant. M06 activates merged D1/D2 contracts. Publish succeeded per CI; no new Player observation is claimed.
 
-1. **Integrate merged D4 [#177](https://github.com/A-Ricemusic/skybreak/pull/177) into M08** after its mission slice is authored and reviewed. D1–D4 are merged. Queued air battles, timed bomber interception and protected relay support remain dormant until mission integration.
-2. **Finish mission 7 [#178](https://github.com/A-Ricemusic/skybreak/pull/178)** (in review). D3 is merged; retain mission 6 when updating the branch, integrate #174's allied budget, and rerun progression/settlement checks. The proposal has a 15:00 three-installation strike and fresh 5:00 canyon escape; roster/ranks are provisional. Runtime canyon sweeps, transition pose, altitude masking and low southbound exit require verification.
+## Engine batch D5 — dormant implementation
+
+D5 frozen install, build and full offline validation exited 0 (947 Luau contracts, 19 catalog snapshots, 124 Python tests); the output explicitly includes all six D5 cases. PR #180 P2 is fixed: offline shared threat-policy coverage passes; the new beach-windup/service-entry integration regression is compiled and awaits the orchestrator-owned Roblox run. Review D5 before M09 mission authoring. Reconcile carrier pivot/deck geometry with the dormant M09 world; author explicit sectors, clear targets, force health and attack waves. Then use the orchestrator-owned Studio queue for carrier landing/catapult, skip/repeat/refill/paused clocks, sector progress, attacker LOS/loss and teardown checks. No mission opts in; D11/D12 extend the shared director for later ground-support missions.
+
+1. **Merge D4 [#177](https://github.com/A-Ricemusic/skybreak/pull/177)** after review/checks and updating its base to main. D1/D2/D3 dependencies have merged. Queued air battles, timed bomber interception and protected relay support remain dormant until mission integration.
+2. **Finish mission 7 [#178](https://github.com/A-Ricemusic/skybreak/pull/178)** (in review). D3 is merged; retain mission 6 when updating the branch, retain #174's shared one-kill allied budget, and rerun progression/settlement checks. The proposal has a 15:00 three-installation strike and fresh 5:00 canyon escape; roster/ranks are provisional. Runtime canyon sweeps, transition pose, altitude masking and low southbound exit require verification.
 3. **Complete engine D5 [#180](https://github.com/A-Ricemusic/skybreak/pull/180)**, following the [engine plan](../specs/engine/missions-06-18-plan.md). Keep opt-in support dormant until a mission deliberately uses it; preserve current campaign behavior.
 4. **Complete engine D6 [#182](https://github.com/A-Ricemusic/skybreak/pull/182)** after D5, preserving opt-in support and current campaign behavior.
-5. **Review dormant engine D7** (`feat/engine-batch-d7`): independent protected aircraft, airliner-priority attackers and compressed altitude bands. PR #184 now limits firing overrides to protected-aircraft targets, with offline regression coverage for ordinary wingmen/player gates and protected-aircraft behavior. Orchestrator runs the compiled Jest specs under its Studio lease; inspect routes/markers/damage and failure branches before M11 activation. No catalog mission opts in.
-6. **Integrate missions 8–18 in order.** All worlds are built/dormant (#175/#176), all mission/world specs exist. Mission actors, target identity/count reconciliation, phases, clock/failure/rank rules, unlock/settlement and runtime acceptance remain. M08 uses D4; later engine batches follow the engine plan. Built scenery alone is not a playable mission.
+5. **Integrate missions 8–18 in order.** All worlds are built/dormant (#175/#176), all mission/world specs exist. Mission actors, target identity/count reconciliation, phases, clock/failure/rank rules, unlock/settlement and runtime acceptance remain. M08 uses D4; later engine batches follow the engine plan. Built scenery alone is not a playable mission.
 
 ## Mission 6 beta guide — IRON COAST (Live after #179 merges)
 
@@ -35,3 +38,19 @@ The orchestrator’s full Studio Jest suite passed 1,133/1,133 at `e5c2fd2`. Rea
 - M05: after M04, score 2000 by 10:00; try the green REARM beacon and TAKEOFF / CHANGE WEAPON (including controller). At update, check Vulture cut-in and south escape within 4:00. Ranks S/A/B/C 4000/3000/2500/2000. Report night readability, weather, phone load, results and replay/save persistence. Reported Studio build was 17.30–17.96 s; this is not a phone/Player measurement.
 
 New/changed dialogue stays subtitle-only; no further audio uploads (D-142). Existing approved voice remains. See [blockers](blockers.md) and [per-level checklists](levels.html). This task does not launch Studio or run Roblox Jest.
+
+## Mission 7 review handoff (#178, unmerged)
+
+Main #179 is merged into the branch; M01–M06/practice behavior is preserved. Run the added M07WorldRuntime Jest spec in the orchestrator’s isolated Studio session: actual build, first-step D-242 success and blocked-route rejection, real terrain masking at ingress/exit, and a 25,000-stud masking line with near-aircraft cover. Confirm retained-pose ingress and 60s first impact (later 25s cycles) at Y=585 absolute. Offline flight covers cruise-speed Y=900/1800/3000, three headings and 3s reaction; challenging but fair phone flight still needs human observation. No Studio was launched by this implementation agent.
+
+M07 review-fix validation (2026-10-30): frozen install, build and full `validate:offline` exited 0; 967 Luau contracts and 19 catalog snapshots passed. Voice manifests regenerated; no audio generated/uploaded. Studio/Player not run by this agent.
+
+## Engine D6 review and M10 activation
+
+D6 integrates repeated artillery, parked/airborne credit ownership, bounded static contact detail and six M10 target types with main’s D4 air budget and D5 lifecycle. Next: orchestrator-owned runtime Jest/Studio checks, phone profiling with 150 contacts, then M10 roster/cadence/ranks and visual acceptance before activation. No mission enables D6.
+
+## Dormant D7 integration
+
+Review PR #184 after main integration and offline validation. Before M11 activation, author and inspect routes/health/roster, terrain clearance, markers, damage/loss branches and all-safe completion under the orchestrator’s Studio lease. No mission opts in; runtime Jest and Player/phone acceptance remain pending. See D-360–D-363 and the engine plan.
+
+Main integration validation (2026-10-30): frozen install, standalone build and full offline validation exited 0; 1,007 Luau contracts, 19 unchanged catalog snapshots and 124 Python tests. The combined sector/protected-target warning rule passes offline; service-entry runtime regressions compile but remain unrun. No Studio/Player test. Main at integration is `ea0045d` (D5/D6 merged, M08 not merged). D4/D6 admission logic is retained; this main revision has no `concurrentRoutes` option.

@@ -1,3 +1,4 @@
+import type { GroundDirectorRuntime } from "./EngineBatchD5Runtime";
 import type { ArtilleryState } from "../shared/EngineBatchD3";
 import type { TypedGroundTarget } from "../shared/CampaignEncounters";
 import type { BomberEncounterState } from "../shared/BomberEncounter";
@@ -32,6 +33,7 @@ export interface Enemy {
 	phaseOwner?: number;
 	scoreRole?: string;
 	groundAttack?: boolean;
+	attackSector?: string;
 	scramble?: { spawn: import("../shared/MissionCatalog").FlightPoint; heading: number; startedAt: number };
 	friendly?: boolean;
 	combatTarget?: Enemy;
@@ -109,9 +111,12 @@ export interface Projectile {
 export interface CombatSession {
  airshipPhase?: number;
 	protectedFlight?: {phase: number; actors: import("./EngineBatchD7Runtime").ProtectedActor[]};
+	contactClock?: number;
+	repeatedArtillery?: {phase:number;state:import("../shared/EngineBatchD6").ScheduledArtillery};
 	artillery?: { phase: number; state: ArtilleryState };
 	/** Collateral mount removal satisfies groups but never earns score or kills. */
 	retiredGroundIds?: Set<string>;
+	groundDirector?: GroundDirectorRuntime;
 	launchId?: number;
 	rearmStartedAt?: number;
 	rearmEpoch?: number;

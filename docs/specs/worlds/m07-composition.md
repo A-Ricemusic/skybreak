@@ -12,7 +12,7 @@ Arid sandstone hills frame a northbound trail: south arrays (0,160,6720), middle
 
 The south array footprint is narrowed to 1600×1400 around its unchanged anchor so its west edge does not obstruct the canyon. Other fields are 2600×2000; panels/required installations/defences have separate nonoverlapping supported footprints. Three required installation poses and 41 panel poses plus eight defensive poses reproduce the credited 52-ground reconstruction, not the unresolved initial 51-ground inventory.
 
-The canyon begins at (0,-7000), passes the exact A/B/C sketch XZ bends (-1920,-4800), (-3840,0), (-1920,5760), then reaches (0,11520). Floor descends 100→64→32→12→8; a broad low floor and sealed rock walls permit a 256-stud-wide flight tube sampled every 64 studs, 56 studs above the interpolated floor with at least 32 studs of ground clearance. Flight tube including a 24-stud upper envelope remains below the absolute artillery ceiling Y=617.216. This is geometry, not artillery simulation. Route length is about 20.2 km / 126 s at 160 studs/s, within the reference two-minute withdrawal without compressing the world. No runway/service was observed for M07 and none is invented.
+The canyon begins at (0,-7000), passes the exact A/B/C sketch XZ bends (-1920,-4800), (-3840,0), (-1920,5760), then reaches (0,11520). Floor descends 100→64→32→12→8; a broad low floor and sealed rock walls permit a 256-stud-wide flight tube sampled every 64 studs, 80 studs above the interpolated floor with at least 32 studs of ground clearance. Flight tube including a 24-stud upper envelope remains below the absolute artillery ceiling Y=585. This is geometry, not artillery simulation. Route length is about 20.2 km / 126 s at 160 studs/s, within the reference two-minute withdrawal without compressing the world. No runway/service was observed for M07 and none is invented.
 
 ## Terrain and lifecycle
 
@@ -95,3 +95,5 @@ All positions studs; yaw radians. IDs count a contact once, independent of its v
 | m07_plant_aa_50 | aa | plant | -400 | 230 | -7780 | 0 |
 | m07_plant_pillbox_51 | pillbox | plant | 400 | 230 | -7780 | 0 |
 | m07_plant_pillbox_52 | pillbox | plant | 1200 | 230 | -7780 | 0 |
+
+M07 activation uses the absolute sea-datum Y=585 ceiling (D-240), never a Y=32 offset. Centreline tops at Y=180, leaving 405 studs of ceiling margin; exit Y=88 leaves 497. The distant battery stays at (10000,1600,-12000): neither mission nor world reference fixes its coordinate. Masking casts cover the entire battery-to-aircraft line in ≤1,000-stud segments. The first-step D-242 audit is exercised against `M07World.Build` in `M07WorldRuntime.spec.ts`; Studio execution is pending the orchestrator.

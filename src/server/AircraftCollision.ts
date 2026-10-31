@@ -11,6 +11,8 @@ export const AircraftCollision = {
 		params.FilterType = Enum.RaycastFilterType.Include;
 		const surfaces: Instance[] = [Workspace.Terrain];
 		for (const item of folder.GetDescendants()) {
+			// Opt-in D6 models replace cosmetic children; retain one stable allowlist entry.
+			if (item.IsA("Model") && item.GetAttribute("D6Detailed") !== undefined) surfaces.push(item);
 			if (item.IsA("BasePart") && item.GetAttribute("FlightSolid") === true) surfaces.push(item);
 		}
 		params.FilterDescendantsInstances = surfaces;

@@ -48,18 +48,27 @@ export function createGroundTarget(spec: TypedGroundTarget): Model {
 				part("Hull", new Vector3(50,25,220), new Vector3(0,5,0));
 				part("Bridge", new Vector3(35,30,40), new Vector3(0,30,65));
 			}
-		} else if (navalHull(spec.type)) {
+		} else if (navalHull(spec.type) && spec.type!=="gunboat") {
 			const length=spec.type==="missile_boat" ? 85 : spec.type==="cruiser" ? 260 : 200;
 			model.PrimaryPart!.Transparency=1;
 			part("Hull",new Vector3(spec.type==="submarine" ? 25 : 48,18,length),new Vector3(0,0,0));
 			part(spec.type==="submarine" ? "Sail" : "Bridge",new Vector3(22,22,32),new Vector3(0,18,length*0.25));
 			if(spec.type==="container_ship" || spec.type==="supply_ship") for(const z of [-55,-20,15]) part("Deck cargo",new Vector3(32,18,25),new Vector3(0,17,z));
+		} else if (spec.type === "gunboat") {
+			part("Hull",new Vector3(18,8,55),new Vector3(0,0,0)); part("Cabin",new Vector3(12,10,16),new Vector3(0,9,12));
+		} else if (spec.type === "container") { part("Cargo",new Vector3(16,16,40),new Vector3(0,8,0));
+		} else if (spec.type === "watchtower") { part("Stilts",new Vector3(8,40,8),new Vector3(0,20,0)); part("Lookout",new Vector3(20,10,20),new Vector3(0,45,0));
+		} else if (spec.type === "antenna") { part("Mast",new Vector3(3,60,3),new Vector3(0,30,0)); part("Aerial",new Vector3(25,3,3),new Vector3(0,52,0));
+		} else if (spec.type === "barracks") { part("Quarters",new Vector3(30,18,70),new Vector3(0,9,0));
+		} else if (spec.type === "sub_pen") { model.PrimaryPart!.Transparency=1; for(const x of [-55,55]) part("Pier wall",new Vector3(10,70,100),new Vector3(x,35,0)).Material=Enum.Material.Concrete; part("Roof",new Vector3(120,10,100),new Vector3(0,75,0)).Material=Enum.Material.Concrete;
 		} else if (spec.type === "containers") {
 			for(const x of [-18,0,18]) part("Container",new Vector3(16,16,40),new Vector3(x,8,0));
 		} else if (spec.type === "storage") { part("Storehouse",new Vector3(65,30,45),new Vector3(0,15,0)); }
 		else if (spec.type === "solar_panel") { model.PrimaryPart!.Transparency=1; for(const x of [-18,0,18]) { const panel=part("Reflector",new Vector3(16,2,32),new Vector3(x,10,0)); panel.Color=Color3.fromRGB(55,105,145); panel.Material=Enum.Material.Glass; panel.CFrame=panel.CFrame.mul(CFrame.Angles(math.rad(20),0,0)); } }
 		else if (spec.type === "solar_tower") { part("Collector tower",new Vector3(14,100,14),new Vector3(0,50,0)); part("Receiver",new Vector3(26,18,26),new Vector3(0,105,0)); }
-		else if (spec.type === "pillbox") { part("Bunker",new Vector3(36,14,30),new Vector3(0,7,0)).Material=Enum.Material.Concrete; part("Firing slit",new Vector3(20,3,2),new Vector3(0,10,-16)).Color=Color3.fromRGB(20,25,25); }
+		else if (spec.type === "artillery") { part("Gun carriage",new Vector3(16,6,22),new Vector3(0,5,0)); part("Long barrel",new Vector3(3,3,38),new Vector3(0,11,-15)); }
+		else if (spec.type === "tank" || spec.type === "vehicle") { part("Chassis",new Vector3(18,8,30),new Vector3(0,6,0)); for(const x of [-9,9]) part("Running gear",new Vector3(4,6,28),new Vector3(x,3,0)); part(spec.type === "tank" ? "Turret" : "Cab",new Vector3(12,7,12),new Vector3(0,13,0)); if(spec.type === "tank") part("Cannon",new Vector3(2,2,25),new Vector3(0,14,-15)); }
+		else if (spec.type === "bunker" || spec.type === "pillbox") { part("Bunker",new Vector3(36,14,30),new Vector3(0,7,0)).Material=Enum.Material.Concrete; part("Firing slit",new Vector3(20,3,2),new Vector3(0,10,-16)).Color=Color3.fromRGB(20,25,25); }
 		else if (spec.type === "sam" && spec.sam) { part("Launcher",new Vector3(16,8,20),new Vector3(0,8,0)); for(const x of [-5,5]) part("Tube",new Vector3(3,4,22),new Vector3(x,15,-4)); }
 		else if (spec.type === "aa_gun" || spec.type === "gun_mount" || spec.type === "flak_gun") { part("Turret",new Vector3(8,6,8),new Vector3(0,10,0)); part("Barrel",new Vector3(2,2,24),new Vector3(0,13,-10)); }
 		else if (spec.type === "parked_helicopter") { part("Cabin",new Vector3(10,10,24),new Vector3(0,10,0),true); part("Rotor",new Vector3(44,1,3),new Vector3(0,17,0)); part("Tail",new Vector3(3,4,28),new Vector3(0,10,20)); }
