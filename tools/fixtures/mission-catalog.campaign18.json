@@ -15484,6 +15484,11 @@
             {
               "callsign": "ORCHARD TWO",
               "health": 91,
+              "healthByDifficulty": {
+                "ace": 245,
+                "easy": 34,
+                "normal": 91
+              },
               "id": "m11_civilian_low",
               "route": {
                 "speed": 57.38229540846334,
@@ -15619,6 +15624,11 @@
             {
               "callsign": "ORCHARD ONE",
               "health": 91,
+              "healthByDifficulty": {
+                "ace": 245,
+                "easy": 34,
+                "normal": 91
+              },
               "id": "m11_civilian_high",
               "route": {
                 "speed": 57.5954246811721,

@@ -1863,6 +1863,33 @@
    "tape": false,
    "text": "SERA: Docks and pen mouths feed this line. Cut their supply route.",
    "spoken": "Docks and pen mouths feed this line. Cut their supply route."
+  },
+  {
+   "id": "radio.m11.p1.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: One airliner cannot climb. Watch both altitude bands.",
+   "spoken": "One airliner cannot climb. Watch both altitude bands."
+  },
+  {
+   "id": "radio.m11.p1.chatter1",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Orchard Two stays low. Leave room to descend.",
+   "spoken": "Orchard Two stays low. Leave room to descend."
+  },
+  {
+   "id": "radio.m11.p1.chatter2",
+   "kind": "radio",
+   "speaker": "TRUCK",
+   "voice": "cgSgspJ2msm6clMCkdW9",
+   "tape": false,
+   "text": "ORCHARD TWO: They can see the escort. Stay with us to the ridge.",
+   "spoken": "They can see the escort. Stay with us to the ridge."
   }
  ]
 }

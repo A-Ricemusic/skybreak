@@ -2606,6 +2606,42 @@
    "maxDurationSeconds": 6,
    "recordingId": null,
    "needsRecording": true
+  },
+  {
+   "id": "radio.m11.p1.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "chip": "SERA",
+   "text": "SERA: One airliner cannot climb. Watch both altitude bands.",
+   "context": "Live mission phase/landing radio",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 5,
+   "recordingId": null,
+   "needsRecording": true
+  },
+  {
+   "id": "radio.m11.p1.chatter1",
+   "kind": "radio",
+   "speaker": "SERA",
+   "chip": "SERA",
+   "text": "SERA: Orchard Two stays low. Leave room to descend.",
+   "context": "Live mission phase/landing radio",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 5,
+   "recordingId": null,
+   "needsRecording": true
+  },
+  {
+   "id": "radio.m11.p1.chatter2",
+   "kind": "radio",
+   "speaker": "TRUCK",
+   "chip": "ORCHARD TWO",
+   "text": "ORCHARD TWO: They can see the escort. Stay with us to the ridge.",
+   "context": "Live mission phase/landing radio",
+   "emotion": "Concise operational urgency",
+   "maxDurationSeconds": 6,
+   "recordingId": null,
+   "needsRecording": true
   }
  ]
 }

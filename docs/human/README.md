@@ -30,7 +30,7 @@ Mission 7 merged fixes in #178: absolute Y=585 ceiling, full segmented artillery
 | 8 | Shattered Skies | 1:39:16–1:52:39 | 7:00 + 6:00 hold | Yes | Yes; provisional D-320–D-324 | Playable #183; Studio verified: pending orchestrator run | Yes (pipeline) | Player/phone not yet observed |
 | 9 | Operation Bunker Shot | 1:56:14–2:14:14 | 10:00 + 7:00 + optional service | Yes | Yes; provisional D-340–D-344 | Playable #185; Studio verified: pending orchestrator run | Yes (pipeline) | Player/phone not yet observed |
 | 10 | Tango Line | 2:16:13–2:37:51 | 20:00 + optional service | Yes | Yes; provisional D-380–D-383 | Playable #187; Studio verified: pending orchestrator run | Live after #187 merges (pipeline) | Player/phone not yet observed |
-| 11 | High Crossing | 2:28:14–2:36:15 | 313.28s crossing / 5:30 limit | Yes | Yes; D-440–D-445 | Playable PR #189; offline correction in branch | No; unmerged | Pending |
+| 11 | High Crossing | 2:39:46–2:45:27 | 313.28s crossing / 5:30 limit | Yes | Yes; D-440–D-445 | Playable PR #189; offline correction in branch | No; unmerged | Pending |
 | 12 | Stonehenge Offensive | 2:48:27–3:04:55 | 16.5 min | Yes | Yes | World built/dormant; mission integration pending | No | — |
 | 13 | Safe Return | 3:08:30–3:18:42 | 10.2 min | Yes | Yes | World built/dormant; mission integration pending | No | — |
 | 14 | Breaking Arrows | 3:20:22–3:28:38 | 8.3 min | Yes | Yes | World built/dormant; mission integration pending | No | — |
@@ -81,3 +81,7 @@ M10 main integration validation (2026-10-30, main `06ca3e4`): frozen install, st
 D9 remains dormant and unmerged on PR #188, now integrated with main’s D7, D8 and missions 8–9. No catalog or frozen snapshot changes. Static airship jammers, local corridor coverage and bounded protected-aircraft navigation holds coexist with D8 ground ECM. Practice and missions 1–9 retain main’s behaviour. Runtime Jest, Studio/Player and M13 acceptance remain pending.
 
 D9 integration validation (2026-10-30, main `06ca3e4`): `bun install --frozen-lockfile`, `bun run build` and full `validate:offline` with the prescribed `LUAU_BIN` each exited 0. Passed 1,040 Luau contracts, four loader guard probes, 19 unchanged catalog snapshots and 124 Python tests. All 94 offline spec registrations match runner imports and retain `checkedRequire`. D8 ground ECM / D9 airship validation coexistence passes offline; runtime counting/kill-call regressions compile but remain unrun. No Studio, `test:roblox` or Player test performed.
+
+## D10 integration with current main (2026-10-30)
+
+PR #190 remains dormant and unmerged. Main D6–D9 and missions 8–9 are preserved; practice, mission catalog and frozen snapshots are unchanged. Cruise twists remain rejected. The shared sortie identity namespace now also includes protected aircraft and spatial airships; elites use generated runtime identities, with the existing elite retreat lifecycle preserved. M14 activation still needs authored routes/roster/scoring and Studio/Player/phone acceptance. No Studio, Player test or upload was performed. Integration validation passed: frozen install, build and full offline validation each exited 0; runtime Jest compiled only. Main was `f35430f`; mission 10 had not merged.

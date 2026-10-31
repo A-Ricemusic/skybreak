@@ -1,3 +1,4 @@
+import { clearCruise } from "./EngineBatchD10Runtime";
 import { Workspace } from "@rbxts/services";
 import { clearProtection } from "./EngineBatchD7Runtime";
 import { clearGroundDirector } from "./EngineBatchD5Runtime";
@@ -101,6 +102,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		assert(session.blueprintState && session.blueprint, "blueprint phase application requires blueprint state");
 		const state=session.blueprintState;
 		if (state.outcome !== undefined || session.appliedBlueprintPhaseIndex === state.phaseIndex) return;
+		clearCruise(session);
 		clearGroundDirector(session);
 		if (session.protectedFlight && session.protectedFlight.phase !== state.phaseIndex) clearProtection(session);
 		session.appliedBlueprintPhaseIndex=state.phaseIndex;
@@ -148,7 +150,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 			}
 			requestAir(session, b.escorts.initial, "escort");
 		}
-		else if (phase.kind === "required_air" && !phase.fighterWaves?.some(w => w.required) && phase.execution?.launchDelay === undefined) {
+		else if (phase.kind === "required_air" && !phase.cruiseIntercept && !phase.fighterWaves?.some(w => w.required) && phase.execution?.launchDelay === undefined) {
 			if (phase.execution?.directSpawn) spawnAir(session,phase.count ?? 0,"bandit");
 			else {
 			// Staggered groups: the first now, the rest by WavePlan.Due (stepSession).
