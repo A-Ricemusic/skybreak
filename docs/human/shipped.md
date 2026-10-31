@@ -1,49 +1,38 @@
 # Shipped
 
-Pending only (2026-10-30): D-220/D-221 difficulty/allied-flight tuning is unmerged. No new Player observation or deployment is claimed; see [Next](next.md).
-## PR #176 review fixes (2026-10-30)
+Updated 2026-10-30 against main `9857358`; its publish workflow succeeded per CI. Practice and missions 1–5 are live in Roblox Player by the owner's pipeline convention. No new Studio, Player or phone test is claimed. Older entries describe behavior at their merge; later entries supersede tuning and dormant activation status.
 
-**Mission 5 client fix included:** the old weather lookup also dereferenced nil for every M05–M13 world key on main. The shared world-environment registry now resolves all eighteen server world keys, including M05, and safely ignores unknown/unset names. Desktop/phone/reduced-motion effects and phone cloud decks are checked against each environment; a static offline gate checks registry coverage against actual server registrations/publications. No Studio/Player observation is claimed.
+## Merged 2026-10-30, newest first
 
-M18 groove/vent decks now include solid structural columns from Y0 to the unchanged Y104 flight floor; the local exit foundation continues beneath the over-water end. Floor widths support the walls across their complete footprints (244 groove /392 vent); core extends down to the deck. Generator-end floor modules extend40studs beyond each room end to carry the complete target footprint. Tests explicitly require all thirteen structural decks and check terrain contact/clearance across their footprints, wall/target/buttress support and the unchanged swept flight envelopes. This replaces the vacuous name-only M18 foundation check.
-
-M17 now matches the spec:18:20 and12,000ft cloud-base reference metadata. No adaptation is claimed. Build and full offline validation passed (exit0;856 Luau contracts,124 Python tests,18-key registry gate). Worlds remain dormant and unmerged.
-
-
-## M14–M18 review status (2026-10-30)
-
-The `feat/m14-m18-worlds` work is unmerged and dormant; it changes nothing in Roblox Player. Composition docs report offline geometry/count budgets. No Studio, Player or phone test is claimed. Existing merged/live history below is unchanged.
-
-
-Last updated: 2026-10-29, against `main` at `7d73c44`.
-M12/M13 worlds are **unmerged / world in review** in [PR #170](https://github.com/A-Ricemusic/skybreak/pull/170), dormant on `feat/m12-m13-worlds` above #167/#166/#164. [M12 table](../specs/worlds/m12-composition.md) · [M13 table](../specs/worlds/m13-composition.md). Offline estimates12.770960s/13.253200s; no mission selection, Player change, Studio/Player verification or asset upload. Decisions D-230–D-234. Existing shipped entries below are unchanged by this branch.
-
-PR [#167](https://github.com/A-Ricemusic/skybreak/pull/167) remains **unmerged / in review**. Its P1 M10 disconnected-river fix adds a generated-water flood-fill and full-centreline regression; revised M10 estimate14.731517s (1.268483s headroom), M11 unchanged14.455200s. No Player content or Studio verification is claimed.
-
-M10/M11 worlds are **in review**, dormant on `feat/m10-m11-worlds`, stacked on [#166](https://github.com/A-Ricemusic/skybreak/pull/166) above #164. [M10 composition and complete target table](../specs/worlds/m10-composition.md) · [M11 composition and routes](../specs/worlds/m11-composition.md). No mission unlock, Studio/Player/phone verification, asset export or upload. Decisions D-180–D-183.
-
-
-M06/M07 world work is **unmerged / in review** on `feat/m06-m07-worlds`; it changes no currently selectable mission or Player experience. See [M06](../specs/worlds/m06-composition.md) and [M07](../specs/worlds/m07-composition.md). Review fixes add the local #158 chunk/yield budget model (10.265 s / 14.501 s), distant M06 sea Parts and corrected detail counts. No Studio/Player verification or new asset upload is claimed.
-
-Last updated: 2026-10-29, against `main` at `088fbfc`.
-
-[Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). The new 18-mission campaign is live by pipeline: practice flight and missions 1–3 are playable; missions 4–18 are locked. The latest merged gameplay revision is `7d73c44` (#147, mission 3). The story remap (#159, open, not yet merged) would align chapters/documents with the 18-mission campaign, preserves M5 escape and returns Vulture Lead at M17. New dialogue will be subtitle-only, with no new recordings (D-142); Studio/Player verification remains pending. Last recorded publish before the story remap returned place version **94** ([run](https://github.com/A-Ricemusic/skybreak/actions/runs/40963804844)). See [per-level status](levels.html). The 2026-10-29 publish logs confirmed the official place and returned place versions **85** (#130), **86** (#134), **87** (#140), **88** (#138), **88** (#137), **89** (#139), **90** (#141), **91** (#142) and **92** (#143). Gameplay merges are live through automatic CI/CD under the owner's convention; documentation-only changes add no game content. PR #131 merged only into `feat/campaign-switch-m01`, not `main`; #132 closed without merging, so neither is listed as shipped below.
-
-## Pending, not merged
-
-- [#172](https://github.com/A-Ricemusic/skybreak/pull/172) TGT button (open): every press selects the closest enemy on screen, or the second closest when that is already the target; quick presses walk outward. Auto-targeting after a kill is unchanged (#157). Once merged the owner will see it in Roblox Player through the automatic pipeline; nothing from it is live yet. Decision D-210.
-- [#159](https://github.com/A-Ricemusic/skybreak/pull/159) Broken Relay 18-mission story and voice handoff: open. Once merged, M3 receives “An unlisted station” and the M4/M5 chapters are ready for their gameplay PRs; new and changed lines stay subtitle-only (D-142). Nothing from it is live yet.
-- [#152](https://github.com/A-Ricemusic/skybreak/pull/152) Cutscene modernization: open, stacked on #159. See [next](next.md).
-[Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). The new 18-mission campaign is live by pipeline: practice flight and missions 1–3 are playable; missions 4–18 are locked. The latest merged gameplay revision is `7d73c44` (#147, mission 3). The story remap (#159) aligns chapters/documents with the 18-mission campaign, preserves M5 escape and returns Vulture Lead at M17. New dialogue will be subtitle-only, with no new recordings (D-142); Studio/Player verification remains pending. Last recorded publish before the story remap returned place version **94** ([run](https://github.com/A-Ricemusic/skybreak/actions/runs/40963804844)). See [per-level status](levels.html). The 2026-10-29 publish logs confirmed the official place and returned place versions **85** (#130), **86** (#134), **87** (#140), **88** (#138), **88** (#137), **89** (#139), **90** (#141), **91** (#142) and **92** (#143). Gameplay merges are live through automatic CI/CD under the owner's convention; documentation-only changes add no game content. PR #131 merged only into `feat/campaign-switch-m01`, not `main`; #132 closed without merging, so neither is listed as shipped below.
-Last updated: 2026-10-29, against `main` at `7d73c44` (#147).
-
-[Play SKYBREAK in Roblox Player](https://www.roblox.com/games/112911685457826). The new 18-mission campaign is live by pipeline: practice flight and missions 1–3 are playable; missions 4–18 are locked. The latest merged gameplay revision is `7d73c44` (#147, mission 3 and the shared cleanup gate). PR #149 remains unmerged; its lifecycle/route fixes are not live. No Player test was performed here. Earlier recorded successful publish returned place version **94** ([run](https://github.com/A-Ricemusic/skybreak/actions/runs/40963804844)). See [per-level status](levels.html). The 2026-10-29 publish logs confirmed the official place and returned place versions **85** (#130), **86** (#134), **87** (#140), **88** (#138), **88** (#137), **89** (#139), **90** (#141), **91** (#142) and **92** (#143). Gameplay merges are live through automatic CI/CD under the owner's convention; documentation-only changes add no game content. PR #131 merged only into `feat/campaign-switch-m01`, not `main`; #132 closed without merging, so neither is listed as shipped below.
+| PR | Commit | Change | What the owner sees in Roblox Player |
+|---|---|---|---|
+| [#177](https://github.com/A-Ricemusic/skybreak/pull/177) | (this merge) | D4 queued air battles and timed bomber-intercept hold | No visible change — engine support, dormant. Mission 8 has not activated on main. |
+| [#181](https://github.com/A-Ricemusic/skybreak/pull/181) | `d1fb3a8` | Test deadline and docs reconciliation | No visible change — Studio test deadline raised to 20 minutes; human docs reconciled. |
+| [#171](https://github.com/A-Ricemusic/skybreak/pull/171) | `9857358` | D3 canyon artillery escape, area strike and target types | No visible change — engine support, dormant. Mission 7 has not activated on main. |
+| [#168](https://github.com/A-Ricemusic/skybreak/pull/168) | `989c802` | D2 naval mounts, firing SAMs and anti-ship fit | No visible change — engine support, dormant. Legacy SAMs remain inert unless opted in. |
+| [#165](https://github.com/A-Ricemusic/skybreak/pull/165) | `439bc66` | D1 player gun and finite ammunition | No visible change — engine support, dormant. Practice/M01–M05 keep their existing replenishing missiles and no gun. |
+| [#172](https://github.com/A-Ricemusic/skybreak/pull/172) | `e62495c` | Closest-on-screen TGT | TGT chooses the closest on-screen enemy, or next closest if already selected; quick presses walk outward and wrap. No visible contacts falls back to closest overall. Automatic acquisition stays nose-first. |
+| [#173](https://github.com/A-Ricemusic/skybreak/pull/173) | `4bad208` | Full-bleed loading screen | Mission title/briefing, animated approved jet, six-stage progress, elapsed clock and device tips; safe text insets and reduced-motion support. |
+| [#176](https://github.com/A-Ricemusic/skybreak/pull/176) | `e770f77` | Worlds 14–18 and shared weather registry | Worlds are built/dormant, with no selectable missions. Visible fix: M05–M13 weather lookup resolves safely; all 18 environments are registered. M17 metadata and M18 structural supports corrected. |
+| [#174](https://github.com/A-Ricemusic/skybreak/pull/174) | `96680d3` | Harder M01/M02 and allied kill cap | Four extra optional fighters per mission; higher ranks. M01 S/A/B/C 1560/1200/600/500; M02 2500/1990/1620/1320. Allies share a default one-kill budget per sortie, then maintain formation. |
+| [#148](https://github.com/A-Ricemusic/skybreak/pull/148) | `227713b` | Mission 5 LIGHTS OFF playable | After mission 4: night rig/refinery strike, 2000 points by 10:00, optional runway rearm/weapon menu, then Vulture cut-in and a 4:00 southbound escape. Ranks 4000/3000/2500/2000. |
+| [#175](https://github.com/A-Ricemusic/skybreak/pull/175) | `5034b39` | Worlds 6–13 | No visible change — worlds built and dormant; combines #164/#166/#167/#170 without activating missions. |
+| [#158](https://github.com/A-Ricemusic/skybreak/pull/158) | `948bf25` | M04/M05 terrain performance | Floorless shell, 0.25 s terrain budget and single native gate clear. M05 campaign-path Studio build reported about 18 s; phone timing unverified. |
+| [#169](https://github.com/A-Ricemusic/skybreak/pull/169) | `cfb51e0` | Generated manifests | No visible change — regenerated voice manifest/catalog fixture. |
+| [#149](https://github.com/A-Ricemusic/skybreak/pull/149) | `af18e33` | Mission 4 BLIND COURIERS playable | After mission 3: jammed transport intercept, shared world cleanup gate and corrected escape routes. |
+| [#152](https://github.com/A-Ricemusic/skybreak/pull/152) | `9ee6bf1` | Cutscene modernization | Modern set dressing, approved desk props and transactional teardown. |
+| [#159](https://github.com/A-Ricemusic/skybreak/pull/159) | `9168e09` | 18-mission story remap | Broken Relay chapters aligned to the campaign; new/changed lines subtitle-only. |
+| [#156](https://github.com/A-Ricemusic/skybreak/pull/156) | `a7e9e9a` | Avatar death fix | No spawned Roblox avatar, default health bar or avatar-death red flash. |
+| [#157](https://github.com/A-Ricemusic/skybreak/pull/157) | `b761519` | Nose-order acquisition and touch targeting | Automatic targets favor the nose; phone enemy boxes can be tapped. TGT press behavior subsequently updated by #172. |
+| [#151](https://github.com/A-Ricemusic/skybreak/pull/151) | `6edf02a` | M01 pressure | Forward interceptors and player-priority pressure; later #174 expands waves/ranks. |
+| [#160](https://github.com/A-Ricemusic/skybreak/pull/160) | `96a9cf2` | Loading before construction | Loading covers launch before world construction begins. |
+| [#163](https://github.com/A-Ricemusic/skybreak/pull/163) | `6df703f` | Audio rejection evidence | No visible change — rejection case preserved; no new upload. |
+| [#162](https://github.com/A-Ricemusic/skybreak/pull/162) | `9dbeebc` | AI voice disclosure | Settings and first playback disclose AI character voices. |
 
 ## Merged 2026-10-29, newest first
 
 | PR | Commit | Title | Kind | What you will see |
 |---|---|---|---|---|
-| #147 | `7d73c44` | Mission 3 playable after mission 2 | Gameplay | Nine radar domes in snowy mountains, then return and land with the film; live by pipeline convention. This story PR performs no new Player test. |
 | #147 | `7d73c44` | feat(m03): playable radar strike and shared world lifecycle | **Gameplay: mission 3** | NOBODY SIGNED unlocks after mission 2: nine radars, south return and automatic landing. Cleanup runs through the shared gate; subsequent launches queue. Live by pipeline convention; this revision performed no Player verification. |
 | #145 | `088fbfc` | feat(engine): dormant batch C | Gameplay code, unused | Dormant jamming and mission 4–5 engine contracts; no additional playable level. |
 | #144 | `7711b70` | feat(world): dormant M04 inland hills and M05 night refinery | Gameplay world, unused | Nothing yet. Mission 4's inland hills (three transports, two jammers, nine escorts and an ace; 1,540 points) and mission 5's night refinery and oil rig (rig 2,400 points; full inventory 4,500) are merged but not selected by any mission. |
@@ -121,6 +110,4 @@ These merged gameplay changes are live through the automatic pipeline convention
 
 The earlier AC04 release (#92) was rejected and reverted (`b0737fa`). #77 (mission 1 tutorial rework) and #91 (TypeScript 5.9) were closed without merging.
 
-PR #144 merged as `7711b70`: dormant mission 4–5 worlds, with M05 owning environment/effects. PR #145 batch C review fixes remain unmerged; no Studio or Player observation from this pass.
-
-D4 status reconciliation (2026-10-30): engine support is unmerged above D3; no D4 change is claimed shipped or observed in Roblox Player.
+PR #144 merged as `7711b70`: dormant mission 4–5 worlds, with M05 owning environment/effects. PR #145 batch C is merged; no Studio or Player observation from this pass.
