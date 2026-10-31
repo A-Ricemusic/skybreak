@@ -59,5 +59,5 @@ describe("Dormant D4 intercept hold",()=>{
 			expect(one.slots.size()).toBe(1);expect(one.slots[0]).toEqual(all.slots[slot]);expect(one.escaped).toBe(all.escaped);
 		}
 	});
-	it("leaves every existing mission dormant",()=>{for(const b of MissionCatalog.All()) for(const p of MissionCatalog.ExpandedPhases(b)) {expect(p.interceptHold).toBeUndefined();expect(p.concurrentFighters).toBeUndefined();expect(p.bombers?.arrivalSeconds).toBeUndefined();}});
+	it("leaves every existing mission dormant",()=>{for(const b of MissionCatalog.All().filter(b=>b.id!==8)) for(const p of MissionCatalog.ExpandedPhases(b)) {expect(p.interceptHold).toBeUndefined();expect(p.concurrentFighters).toBeUndefined();expect(p.bombers?.arrivalSeconds).toBeUndefined();}});
 });

@@ -1,3 +1,4 @@
+import { Workspace } from "@rbxts/services";
 import { takeArrival, FighterArrival, StandaloneAce } from "../shared/CampaignEncounters";
 import type { AceLivery } from "../shared/AssetSelection";
 import { BomberRules, BomberSlotPose } from "../shared/BomberRules";
@@ -108,7 +109,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		session.navigationMarker?.Destroy(); session.navigationMarker=undefined;
 		session.returnLineMarker?.Destroy(); session.returnLineMarker=undefined;
 		session.rearmGate?.Destroy(); session.rearmGate=undefined;
-		session.navigationActor?.Destroy(); session.navigationActor=undefined; session.actorFooting=undefined;
+		if (session.navigationActor?.GetAttribute("WorldOwnedProtectedSite") !== true) session.navigationActor?.Destroy(); session.navigationActor=undefined; session.actorFooting=undefined;
 		// The live list, not the catalog: twists splice new objectives in after the phase that fired them.
 		const phases=BlueprintRunner.Phases(state);
 		const phase: MissionPhaseBlueprint | undefined=phases[state.phaseIndex];
@@ -184,8 +185,15 @@ export function createPhaseDirector(combat: PhaseCombat) {
 				const actorPoint=phase.parkedEscort ?? nav;
 				const coast=session.blueprint.region === "coastal_city" || session.blueprint.region === "coastal_harbor" || session.blueprint.region === "ocean_platform";
 				const name=phase.interceptHold?.siteName ?? actorName(session,phase.kind === "defend",coast);
-				const actor=phase.interceptHold ? MissionAssets.CreateCommsRelay(name) : coast ? MissionAssets.CreateHarborLaunch(name) : phase.kind === "defend" ? MissionAssets.CreateCommsRelay(name) : MissionAssets.CreateRelayTruck(name);
-				if (!session.active || !session.folder.Parent) {actor.Destroy(); return;}
+				const siteId=phase.interceptHold?.siteId;
+				const world=siteId ? Workspace.FindFirstChild(session.blueprint.worldKey ?? "",true) : undefined;
+				const existing=siteId ? world?.FindFirstChild(siteId) : undefined;
+				const adopted=existing?.IsA("Model") ? existing : undefined;
+				const actor=adopted ?? (phase.interceptHold ? MissionAssets.CreateCommsRelay(name) : coast ? MissionAssets.CreateHarborLaunch(name) : phase.kind === "defend" ? MissionAssets.CreateCommsRelay(name) : MissionAssets.CreateRelayTruck(name));
+				if (!session.active || !session.folder.Parent) {if (!adopted) actor.Destroy(); return;}
+				if (adopted) {
+					actor.SetAttribute("WorldOwnedProtectedSite",true);actor.SetAttribute("ProtectedObjective",true);session.navigationActor=actor;
+				} else {
 				// The escorted vehicle moves every step: weld it so one part replicates per move.
 				JetFactory.WeldAssembly(actor);
 				// Grounded from its own bounds and the surface under it: wheels on the road, a hull at the waterline.
@@ -194,6 +202,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 				const y=session.groundParams ? ActorGrounding.PivotY(footing,actorPoint.x,actorPoint.z,session.groundParams,actorPoint.y) : actorPoint.y;
 				actor.SetAttribute("ProtectedObjective",true); actor.Parent=session.folder; session.navigationActor=actor;
 				actor.PivotTo(new CFrame(actorPoint.x,y,actorPoint.z));
+				}
 			}
 		}
 		// Refresh only at phase transitions: includes new protected actors and drops destroyed ones.
