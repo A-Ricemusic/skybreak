@@ -15,7 +15,7 @@ export function attachBomberGeometry(model: Model, template: Model): void {
 
 /** Route bomber visual. No upload/generation of Blender content happens here. */
 export const BomberFactory = {
-	Create(name = "HeavyBomber", aircraft?: "transport" | "jammer" | "helicopter"): Model {
+	Create(name = "HeavyBomber", aircraft?: "transport" | "jammer" | "helicopter" | "strategic_bomber"): Model {
 		const model = new Instance("Model");
 		model.Name = name;
 		const root = new Instance("Part");

@@ -385,8 +385,8 @@ describe("Mission 6 unlock", () => {
 			const forged = d.getSlots()[0];
 			forged.missions ??= {};
 			for (let id = 1; id <= 18; id++) forged.missions[id] = { completed: true };
-			expect(highestUnlocked(forged)).toBe(13);
-			for(let id=14;id<=18;id++) expect(canLaunchMission(id,forged)).toBe(false);
+			expect(highestUnlocked(forged)).toBe(14);
+			for(let id=15;id<=18;id++) expect(canLaunchMission(id,forged)).toBe(false);
 			expect(canLaunchMission(7, forged)).toBe(true); expect(canLaunchMission(8, forged)).toBe(true); expect(canLaunchMission(9, forged)).toBe(true);
 		});
 		expect(notified).toBe(0);

@@ -20,7 +20,7 @@ import { JetFactory } from "../shared/JetFactory";
 import { AircraftCollision } from "./AircraftCollision";
 import { ActorGrounding } from "./ActorGrounding";
 import type { CombatSession, AirRole, Enemy } from "./CombatSession";
-import { fixedRaiders } from "./PhaseDirectorRules";
+import { authoredAirRequest, fixedRaiders } from "./PhaseDirectorRules";
 import { buildRearmGate } from "./EngineBatchCRuntime";
 
 export interface SpawnOptions {
@@ -284,7 +284,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 			const fired=session.arrivalsFired ?? new Set<string>(); session.arrivalsFired=fired;
 			const context={ elapsed:session.elapsed, phase:bs.phaseIndex, requiredKills:bs.requiredAirKills+bs.requiredGroundKills+(bs.aceKilled ? 1 : 0), destroyed:bs.killedIds, retired:session.retiredGroundIds, targets:session.arrivalTargets, player:{ x:session.state.x, z:session.state.z } };
 			for(const arrival of [...(active.fighterWaves ?? []), ...(active.standaloneAce ? [active.standaloneAce] : [])]) {
-				if(takeArrival(arrival.id,arrival.trigger,context,fired)) session.airQueue.push({ arrival, role: "name" in arrival ? "ace" : arrival.role, count: "name" in arrival ? 1 : arrival.count, behind:false, call: arrival.call });
+				if(takeArrival(arrival.id,arrival.trigger,context,fired)) session.airQueue.push(authoredAirRequest(arrival));
 			}
 		}
 		for(const enemy of session.enemies) if(enemy.routeActor && enemy.enabled && enemy.health>0 && enemy.withdrawUntil===undefined) {

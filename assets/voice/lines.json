@@ -1487,6 +1487,24 @@
    "spoken": "Archive received. Order zero-zero-zero-one. Rusk."
   },
   {
+   "id": "radio.m14.story.3",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: New salvo. Carriers may split; watch for fresh contacts.",
+   "spoken": "New salvo. Carriers may split; watch for fresh contacts."
+  },
+  {
+   "id": "radio.m14.story.4",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: One final weapon. Leave the high aircraft; protect the dish.",
+   "spoken": "One final weapon. Leave the high aircraft; protect the dish."
+  },
+  {
    "id": "radio.m15.story.1",
    "kind": "radio",
    "speaker": "SERA",
@@ -2007,6 +2025,33 @@
    "tape": false,
    "text": "SERA: Vulture Two admits his handwriting. No name behind the order.",
    "spoken": "Vulture Two admits his handwriting. No name behind the order."
+  },
+  {
+   "id": "radio.m14.p1.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Missiles low over the ice. The dish must keep talking.",
+   "spoken": "Missiles low over the ice. The dish must keep talking."
+  },
+  {
+   "id": "radio.m14.p2.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: New salvo. Carriers may split; watch for fresh contacts.",
+   "spoken": "New salvo. Carriers may split; watch for fresh contacts."
+  },
+  {
+   "id": "radio.m14.p3.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: One final weapon. Leave the high aircraft; protect the dish.",
+   "spoken": "One final weapon. Leave the high aircraft; protect the dish."
   }
  ]
 }

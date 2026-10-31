@@ -60,6 +60,6 @@ describe("Dormant D4 intercept hold",()=>{
 			expect(one.slots.size()).toBe(1);expect(one.slots[0]).toEqual(all.slots[slot]);expect(one.escaped).toBe(all.escaped);
 		}
 	});
-	it("leaves missions other than M08–M13 dormant",()=>{for(const b of MissionCatalog.All().filter(b=>b.id!==8 && b.id!==9 && b.id!==10 && b.id!==11 && b.id!==12 && b.id!==13)) for(const p of MissionCatalog.ExpandedPhases(b)) {expect(p.interceptHold).toBeUndefined();expect(p.concurrentFighters).toBeUndefined();expect(p.concurrentRoutes).toBeUndefined();expect(p.bombers?.arrivalSeconds).toBeUndefined();}});
-	it("reserves route capacity only for M10",()=>{for(const b of MissionCatalog.All()) for(const p of MissionCatalog.ExpandedPhases(b)) expect(p.concurrentRoutes).toBe(b.id===10 ? 2 : undefined);});
+	it("leaves missions other than M08–M14 dormant",()=>{for(const b of MissionCatalog.All().filter(b=>b.id!==8 && b.id!==9 && b.id!==10 && b.id!==11 && b.id!==12 && b.id!==13 && b.id!==14)) for(const p of MissionCatalog.ExpandedPhases(b)) {expect(p.interceptHold).toBeUndefined();expect(p.concurrentFighters).toBeUndefined();expect(p.concurrentRoutes).toBeUndefined();expect(p.bombers?.arrivalSeconds).toBeUndefined();}});
+	it("reserves route capacity only for M10 and M14",()=>{for(const b of MissionCatalog.All()) for(const p of MissionCatalog.ExpandedPhases(b)) expect(p.concurrentRoutes).toBe(b.id===10 ? 2 : b.id===14 ? 1 : undefined);});
 });

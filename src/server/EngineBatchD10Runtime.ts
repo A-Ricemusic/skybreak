@@ -1,3 +1,4 @@
+import { claimM14WorldActor } from "./M14WorldActors";
 import { Workspace } from "@rbxts/services";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { BomberRoute, BomberRules } from "../shared/BomberRules";
@@ -23,7 +24,7 @@ function retire(s: CombatSession, e: Enemy): void {
 export function clearCruise(s: CombatSession): void { if(s.cruise) for(const [,e] of s.cruise.actors) retire(s,e); s.cruise=undefined; }
 export function createCruise(s: CombatSession, index: number): Enemy {
  const runtime=s.cruise!, plan=BlueprintRunner.ActivePhase(s.blueprintState!)!.cruiseIntercept!, t=plan.targets[index];
- const model=new Instance("Model"), aim=new Instance("Part"); model.Name=t.separateSeconds===undefined ? "CRUISE" : "CARRIER";
+ const model=claimM14WorldActor(s,t.id) ?? new Instance("Model"), aim=new Instance("Part"); model.Name=t.separateSeconds===undefined ? "CRUISE" : "CARRIER";
  aim.Name="Aim"; aim.Size=new Vector3(8,6,24);aim.Anchored=true;aim.CanCollide=false;aim.CanTouch=false;aim.CanQuery=true;aim.Material=Enum.Material.Neon;aim.Color=Color3.fromRGB(240,110,65);aim.Parent=model;model.PrimaryPart=aim;
  const p=BomberRules.Sample(runtime.routes[index],0).slots[0],position=new Vector3(p.position.x,p.position.y,p.position.z),direction=new Vector3(p.facing.x,p.facing.y,p.facing.z);
  const floor=s.collisionParams && Workspace.Raycast(new Vector3(position.X,4096,position.Z),new Vector3(0,-8192,0),s.collisionParams);

@@ -92,6 +92,9 @@ export const WeaponRules = {
 	UnguidedLifetime: 5,
 	GuidedLifetime: 8,
 	MissileSpeed: 750,
+	MissileFireInterval: 1.15,
+	MissileLeadMax: 0.65,
+	MissileTurnRate(distance: number): number { return distance < 300 ? 14 : 7; },
 	IsActionKind(value: unknown): value is CombatActionKind {
 		return ACTION_KINDS.includes(value as CombatActionKind);
 	},

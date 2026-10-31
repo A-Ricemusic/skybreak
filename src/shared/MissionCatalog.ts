@@ -525,7 +525,7 @@ export const MissionCatalog = {
 	RequiredAirKills(blueprint: MissionBlueprint): number {
 		let total = 0;
 		for (const phase of expandPhases(blueprint.phases)) {
-			if (phase.kind === "required_air" || phase.kind === "chase") total += phase.eliteFormation ? 1 : phase.count ?? 0;
+			if (phase.kind === "required_air" || phase.kind === "chase") total += phase.cruiseIntercept ? 0 : phase.eliteFormation ? 1 : phase.count ?? 0;
 			else if (phase.kind === "ace") total += 1;
 		}
 		return total;

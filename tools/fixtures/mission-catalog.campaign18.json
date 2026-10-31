@@ -17562,25 +17562,559 @@
   },
   {
     "act": 3,
-    "available": false,
-    "briefing": "The crown station stands on the ice coast under the aurora. Its archive holds the first signed order. Stop every low-flying cruise missile before it reaches the dish; keep it transmitting until the record is received.",
-    "codename": "In development",
+    "airspace": {
+      "hardHalfWidth": 15360,
+      "radarRange": 24000,
+      "softHalfWidth": 14000,
+      "spawnLimit": 14000
+    },
+    "allies": {
+      "allowRequiredTargets": false,
+      "callsignPrefix": "LANTERN",
+      "count": 2,
+      "creditPlayerKills": false,
+      "formation": [
+        {
+          "x": -180,
+          "y": 30,
+          "z": 160
+        },
+        {
+          "x": 180,
+          "y": 30,
+          "z": 160
+        }
+      ],
+      "killBudget": 1,
+      "mayKill": true,
+      "model": "Kestrel"
+    },
+    "available": true,
+    "briefing": "The crown station stands on the ice coast under the aurora. Its archive holds the first signed order. Stop every low-flying cruise missile before it reaches the dish. Three salvos share twenty minutes. Carriers can split; every released child must be intercepted. Fighters are distractions. Keep the archive transmitting until the record is received.",
+    "codename": "Aurora shield",
+    "countdownSeconds": 1200,
     "debrief": "Archive received. ORDER 0001: RUSK, AIR MARSHAL. Sera finally has a name for the voice holding the city.",
     "environment": "farm_overcast",
     "failure": "The dish fell before the whole archive arrived. The first signature is lost.",
     "ground": [],
     "id": 14,
-    "optionalRaiderMax": 0,
+    "optionalRaiderMax": 10,
     "phases": [
       {
-        "count": 1,
+        "beat": "SERA: Missiles low over the ice. The dish must keep talking.",
+        "concurrentFighters": 8,
+        "concurrentRoutes": 1,
+        "count": 5,
+        "cruiseIntercept": {
+          "site": {
+            "x": 1920,
+            "y": 150,
+            "z": 9600
+          },
+          "targets": [
+            {
+              "arrivalSeconds": 20,
+              "id": "m14_cruise_1",
+              "route": [
+                {
+                  "x": 1200,
+                  "y": 150,
+                  "z": -7680
+                },
+                {
+                  "x": 1920,
+                  "y": 150,
+                  "z": 9600
+                }
+              ],
+              "scoreRole": "cruise",
+              "speed": 90
+            },
+            {
+              "arrivalSeconds": 32,
+              "id": "m14_cruise_2",
+              "route": [
+                {
+                  "x": 1440,
+                  "y": 150,
+                  "z": -7680
+                },
+                {
+                  "x": 1920,
+                  "y": 150,
+                  "z": 9600
+                }
+              ],
+              "scoreRole": "cruise",
+              "speed": 90
+            },
+            {
+              "arrivalSeconds": 44,
+              "id": "m14_cruise_3",
+              "route": [
+                {
+                  "x": 1680,
+                  "y": 150,
+                  "z": -7680
+                },
+                {
+                  "x": 1920,
+                  "y": 150,
+                  "z": 9600
+                }
+              ],
+              "scoreRole": "cruise",
+              "speed": 90
+            },
+            {
+              "arrivalSeconds": 56,
+              "id": "m14_cruise_4",
+              "route": [
+                {
+                  "x": 1200,
+                  "y": 150,
+                  "z": -7680
+                },
+                {
+                  "x": 1920,
+                  "y": 150,
+                  "z": 9600
+                }
+              ],
+              "scoreRole": "cruise",
+              "speed": 90
+            },
+            {
+              "arrivalSeconds": 68,
+              "id": "m14_cruise_5",
+              "route": [
+                {
+                  "x": 1440,
+                  "y": 150,
+                  "z": -7680
+                },
+                {
+                  "x": 1920,
+                  "y": 150,
+                  "z": 9600
+                }
+              ],
+              "scoreRole": "cruise",
+              "speed": 90
+            }
+          ]
+        },
+        "fighterWaves": [
+          {
+            "count": 1,
+            "headingDegrees": 180,
+            "id": "m14_air_1",
+            "role": "raider",
+            "scoreRole": "stealth_fighter",
+            "spawn": {
+              "group": "optional_air",
+              "id": "m14_air_1",
+              "type": "stealth_fighter",
+              "x": -4800,
+              "y": 900,
+              "yaw": 0,
+              "z": -6000
+            },
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 180,
+            "id": "m14_air_2",
+            "role": "raider",
+            "scoreRole": "stealth_fighter",
+            "spawn": {
+              "group": "optional_air",
+              "id": "m14_air_2",
+              "type": "stealth_fighter",
+              "x": -3600,
+              "y": 900,
+              "yaw": 0,
+              "z": -6000
+            },
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          },
+          {
+            "count": 1,
+            "headingDegrees": 180,
+            "id": "m14_air_3",
+            "role": "raider",
+            "scoreRole": "stealth_fighter",
+            "spawn": {
+              "group": "optional_air",
+              "id": "m14_air_3",
+              "type": "stealth_fighter",
+              "x": -2400,
+              "y": 900,
+              "yaw": 0,
+              "z": -6000
+            },
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          }
+        ],
         "kind": "required_air",
-        "label": "In development"
+        "label": "Intercept the ice-coast salvo"
+      },
+      {
+        "beat": "SERA: New salvo. Carriers may split; watch for fresh contacts.",
+        "concurrentFighters": 8,
+        "concurrentRoutes": 1,
+        "count": 12,
+        "cruiseIntercept": {
+          "site": {
+            "x": 1920,
+            "y": 150,
+            "z": 9600
+          },
+          "targets": [
+            {
+              "arrivalSeconds": 20,
+              "id": "m14_carrier_1",
+              "route": [
+                {
+                  "x": 1680,
+                  "y": 150,
+                  "z": -7680
+                },
+                {
+                  "x": 1920,
+                  "y": 150,
+                  "z": 9600
+                }
+              ],
+              "scoreRole": "cruise_carrier",
+              "separateSeconds": 20,
+              "speed": 90
+            },
+            {
+              "id": "m14_cruise_6",
+              "parentId": "m14_carrier_1",
+              "route": [
+                {
+                  "x": 1704.997589,
+                  "y": 150,
+                  "z": -5880.173586
+                },
+                {
+                  "x": 1920,
+                  "y": 150,
+                  "z": 9600
+                }
+              ],
+              "scoreRole": "cruise",
+              "speed": 90
+            },
+            {
+              "id": "m14_cruise_7",
+              "parentId": "m14_carrier_1",
+              "route": [
+                {
+                  "x": 1704.997589,
+                  "y": 150,
+                  "z": -5880.173586
+                },
+                {
+                  "x": 1920,
+                  "y": 150,
+                  "z": 9600
+                }
+              ],
+              "scoreRole": "cruise",
+              "speed": 90
+            },
+            {
+              "id": "m14_cruise_8",
+              "parentId": "m14_carrier_1",
+              "route": [
+                {
+                  "x": 1704.997589,
+                  "y": 150,
+                  "z": -5880.173586
+                },
+                {
+                  "x": 1920,
+                  "y": 150,
+                  "z": 9600
+                }
+              ],
+              "scoreRole": "cruise",
+              "speed": 90
+            },
+            {
+              "arrivalSeconds": 60,
+              "id": "m14_carrier_2",
+              "route": [
+                {
+                  "x": 1680,
+                  "y": 150,
+                  "z": -7680
+                },
+                {
+                  "x": 1920,
+                  "y": 150,
+                  "z": 9600
+                }
+              ],
+              "scoreRole": "cruise_carrier",
+              "separateSeconds": 20,
+              "speed": 90
+            },
+            {
+              "id": "m14_cruise_9",
+              "parentId": "m14_carrier_2",
+              "route": [
+                {
+                  "x": 1704.997589,
+                  "y": 150,
+                  "z": -5880.173586
+                },
+                {
+                  "x": 1920,
+                  "y": 150,
+                  "z": 9600
+                }
+              ],
+              "scoreRole": "cruise",
+              "speed": 90
+            },
+            {
+              "id": "m14_cruise_10",
+              "parentId": "m14_carrier_2",
+              "route": [
+                {
+                  "x": 1704.997589,
+                  "y": 150,
+                  "z": -5880.173586
+                },
+                {
+                  "x": 1920,
+                  "y": 150,
+                  "z": 9600
+                }
+              ],
+              "scoreRole": "cruise",
+              "speed": 90
+            },
+            {
+              "id": "m14_cruise_11",
+              "parentId": "m14_carrier_2",
+              "route": [
+                {
+                  "x": 1704.997589,
+                  "y": 150,
+                  "z": -5880.173586
+                },
+                {
+                  "x": 1920,
+                  "y": 150,
+                  "z": 9600
+                }
+              ],
+              "scoreRole": "cruise",
+              "speed": 90
+            },
+            {
+              "arrivalSeconds": 110,
+              "id": "m14_cruise_12",
+              "route": [
+                {
+                  "x": 1680,
+                  "y": 150,
+                  "z": -7680
+                },
+                {
+                  "x": 1920,
+                  "y": 150,
+                  "z": 9600
+                }
+              ],
+              "scoreRole": "cruise",
+              "speed": 90
+            },
+            {
+              "arrivalSeconds": 128,
+              "id": "m14_cruise_13",
+              "route": [
+                {
+                  "x": 1200,
+                  "y": 150,
+                  "z": -7680
+                },
+                {
+                  "x": 1920,
+                  "y": 150,
+                  "z": 9600
+                }
+              ],
+              "scoreRole": "cruise",
+              "speed": 90
+            },
+            {
+              "arrivalSeconds": 146,
+              "id": "m14_cruise_14",
+              "route": [
+                {
+                  "x": 1440,
+                  "y": 150,
+                  "z": -7680
+                },
+                {
+                  "x": 1920,
+                  "y": 150,
+                  "z": 9600
+                }
+              ],
+              "scoreRole": "cruise",
+              "speed": 90
+            },
+            {
+              "arrivalSeconds": 164,
+              "id": "m14_cruise_15",
+              "route": [
+                {
+                  "x": 1680,
+                  "y": 150,
+                  "z": -7680
+                },
+                {
+                  "x": 1920,
+                  "y": 150,
+                  "z": 9600
+                }
+              ],
+              "scoreRole": "cruise",
+              "speed": 90
+            }
+          ]
+        },
+        "fighterWaves": [
+          {
+            "count": 6,
+            "headingDegrees": 180,
+            "id": "m14_pressure",
+            "role": "raider",
+            "scoreRole": "stealth_fighter",
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 1
+            }
+          }
+        ],
+        "kind": "required_air",
+        "label": "Stop the separating weapons"
+      },
+      {
+        "beat": "SERA: One final weapon. Leave the high aircraft; protect the dish.",
+        "concurrentFighters": 8,
+        "concurrentRoutes": 1,
+        "count": 1,
+        "cruiseIntercept": {
+          "site": {
+            "x": 1920,
+            "y": 150,
+            "z": 9600
+          },
+          "targets": [
+            {
+              "arrivalSeconds": 45,
+              "id": "m14_cruise_16",
+              "route": [
+                {
+                  "x": 1200,
+                  "y": 150,
+                  "z": -7680
+                },
+                {
+                  "x": 1920,
+                  "y": 150,
+                  "z": 9600
+                }
+              ],
+              "scoreRole": "high_value_cruise",
+              "speed": 90
+            }
+          ]
+        },
+        "fighterWaves": [
+          {
+            "aircraft": "strategic_bomber",
+            "count": 1,
+            "id": "m14_air_4",
+            "role": "escort",
+            "route": {
+              "speed": 140,
+              "waypoints": [
+                {
+                  "x": -1200,
+                  "y": 1800,
+                  "z": -6000
+                },
+                {
+                  "x": -1200,
+                  "y": 1800,
+                  "z": 12000
+                }
+              ]
+            },
+            "scoreRole": "strategic_bomber",
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 2
+            }
+          }
+        ],
+        "kind": "required_air",
+        "label": "Intercept the final weapon"
       }
     ],
-    "primary": "In development",
+    "pressure": {
+      "forwardConeDegrees": 45,
+      "playerPriority": 0.8,
+      "tailDefence": true
+    },
+    "primary": "Stop every cruise weapon before it hits the crown station",
     "region": "canyon_airfield",
-    "title": "Mission 14"
+    "scoring": {
+      "basis": "points",
+      "points": {
+        "cruise": 100,
+        "cruise_carrier": 300,
+        "high_value_cruise": 200,
+        "stealth_fighter": 120,
+        "strategic_bomber": 200
+      },
+      "rank": {
+        "A": 2000,
+        "B": 1850,
+        "C": 1700,
+        "S": 2260
+      }
+    },
+    "start": {
+      "headingDegrees": 0,
+      "kind": "airborne",
+      "speed": 160,
+      "x": 0,
+      "y": 617,
+      "z": 0
+    },
+    "terrainRelativeWarnings": true,
+    "title": "AURORA SHIELD",
+    "worldKey": "m14_aurora_shield"
   },
   {
     "act": 3,

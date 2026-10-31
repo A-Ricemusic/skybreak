@@ -1,3 +1,4 @@
+import * as M14WorldActors from "./M14WorldActors";
 import * as CombatSessionFactory from "./CombatSessionFactory";
 // Keep batch helpers namespaced: per-symbol imports exhausted Luau's 200 local registers.
 import { boundDuelPosition, projectileContact, ventObstructed } from "../shared/EngineBatchD13";
@@ -745,6 +746,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		if(eliteFit) name=`ELITE ${index+1}`;
 		const model = role === BomberRules.Role.role ? BomberFactory.Create(name, options.arrival && "aircraft" in options.arrival ? options.arrival.aircraft : session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.aircraft) : JetFactory.Create(name, options.friendly !== true, (EngineBatchD13.duelActive(session) && role==="ace" ? "Rusk" : options.livery) ?? (eliteFit ? "Elite" : role === "ace" ? AssetSelection.LiveryForAce(options.name, session.blueprint?.aceName) : undefined));
 		if (!session.active || session.folder.Parent === undefined) { model.Destroy(); return; }
+		if(options.arrival && index===0) M14WorldActors.claimM14WorldActor(session,options.arrival.id)?.Destroy();
 		// The replicated model is hidden on the client behind a smoothed local clone; only the clone draws trails.
 		JetFactory.SetTrails(model, false);
 		// Ordinary forward waves arrive 2600–3200 studs out at 60–75°; M01 raiders use its narrower head-on cone.
@@ -814,7 +816,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 			groundAttack: options.arrival && "behaviour" in options.arrival && options.arrival.behaviour === "ground_attack",
 			scramble: options.arrival && "scramble" in options.arrival && options.arrival.scramble ? { spawn: { x:position.X,y:position.Y,z:position.Z }, heading: options.arrival.headingDegrees ?? 0, startedAt:session.elapsed } : undefined,
 			friendly: options.friendly, alliedAmmo: options.friendly ? AlliedRules.MissilesPerWingman : undefined,
-			id: handoffId ?? options.targetId ?? (role === "bandit" && session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.leaderWithdrawal ? D12Identities.wingmen[index] : undefined) ?? `${friendly ? "ally" : "air"}_${serial}_${missionSerial}`, name, model, health, maxHealth: health,
+			id: handoffId ?? options.targetId ?? (session.missionId===14 && options.arrival && "count" in options.arrival && options.arrival.count===1 ? options.arrival.id : undefined) ?? (role === "bandit" && session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.leaderWithdrawal ? D12Identities.wingmen[index] : undefined) ?? `${friendly ? "ally" : "air"}_${serial}_${missionSerial}`, name, model, health, maxHealth: health,
 			position, direction, velocity: direction.mul(300), kind: role === "ace" ? "ace" : "air", required: (options.arrival !== undefined && "required" in options.arrival && options.arrival.required === true) || (options.optional !== true && role !== "raider" && role !== "escort"), enabled: true,
 			targetSlot: serial, fireTimer: role === "courier" ? math.huge : 4 + index * 1.5, windup: 0, mode: "attack", modeTimer: 0, passDirection: direction, side,
 			flares, flareTimer: 0, flareUntil: 0, speedBonus: 0, lockBreakTimer: TUNING.aceLockBreak[act - 1],
@@ -921,7 +923,7 @@ function launchMissile(session: CombatSession, hostile: boolean, enemy?: Enemy, 
 		if (target && session.blueprint?.pressure) target.playerThreatUntil = session.elapsed + 8;
 		session.missiles -= 1;
 		session.missilesFired += 1;
-		session.missileCooldown = 1.15;
+		session.missileCooldown = WeaponRules.MissileFireInterval;
 		damage = PLAYER_MISSILE_DAMAGE;
 		// Blind launches report on the weapons channel so story radio lines are never overwritten.
 		if (target === undefined) denyFire(session, "blind");
@@ -1534,11 +1536,11 @@ export function stepMissiles(session: CombatSession, dt: number): void {
 				}
 			}
 			// Hostile missiles steer for their whole flight; ace missiles turn harder.
-			const lead = math.clamp(distance / speed, 0, missile.hostile ? 0.9 : 0.65);
+			const lead = math.clamp(distance / speed, 0, missile.hostile ? 0.9 : WeaponRules.MissileLeadMax);
 			const aim = missile.antiShip ? AntiShipRules.Aim(point(missile.position), point(targetPosition), missile.target!.typedGround!.position.y) : undefined;
 			const delta = (aim ? new Vector3(aim.x,aim.y,aim.z) : targetPosition.add(velocity.mul(lead))).sub(missile.position);
 			// Player missiles turn much harder inside 300 studs so an orbit launch at 80 degrees off the nose still connects.
-			const playerTurn = distance < 300 ? 14 : 7;
+			const playerTurn = WeaponRules.MissileTurnRate(distance);
             if(missile.hostile && !aim) {
                 const d=guidedDirection(point(missile.position),point(missile.direction),point(targetPosition),point(velocity),speed,0.9,tuned(session,TUNING.missileTurn)+(missile.ace?tuned(session,TUNING.aceMissileTurn):0),dt);
                 missile.direction=new Vector3(d.x,d.y,d.z);
