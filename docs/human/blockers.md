@@ -87,3 +87,7 @@ Resolved in code/offline coverage: ray masking beyond Roblox’s 15,000-stud sin
 ## Mission 8 integration and acceptance
 
 D4 #177 and mission 7 #178 are merged; #183 is integrated onto current main. M08 unlocks only after sequential completion through M07; M09–M18 stay locked even with forged records. Live after #183 merges by pipeline convention; no known deployment failure. Studio verified: pending orchestrator run. Player/phone/rendered/balance acceptance remains open. Validate adopted mast without duplicate relay, both full clocks, six bomber endpoints, ignition and settlement. D-320–D-324 retain provisional roster/ranks/routes, support stand-ins and deferred service/finite-stock fidelity. No Studio, Roblox Jest, Player tests, new audio or asset uploads performed in this integration.
+
+### M08 catalog assertion corrected; Studio rerun pending
+
+M08 arrival regression follow-up (2026-10-30): the orchestrator reported 1,175/1,176 Studio Jest tests passing at `0227c1f`; the catalog opening-count test expected six immediate bombers instead of the authored one. Runtime inspection confirms D-272 scheduling and full-six-kill/6:00 completion accounting. The test now checks exact due slots/identities before and at every arrival, rejects duplicate admissions, and preserves full opening counts for unscheduled formations. A partial-kill timeout regression covers one through five kills. Studio rerun belongs to the orchestrator; this agent did not launch Studio or run Roblox Jest.

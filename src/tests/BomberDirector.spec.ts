@@ -127,18 +127,41 @@ describe("Bomber director integration", () => {
 		expect(h.s.blueprintState?.reason).toBe("bombers_escaped");
 		expect(h.radio[h.radio.size() - 1]).toBe(b.escapeCall); h.folder.Destroy();
 	});
-	it("preserves every current combat phase's opening required roles and counts", () => {
+	it("preserves every current combat phase's required roles, opening counts and authored arrivals", () => {
 		for (const bp of MissionCatalog.All()) for (const phase of MissionCatalog.ExpandedPhases(bp)) {
 			if (phase.kind !== "required_air" && phase.kind !== "chase" && phase.kind !== "ace") continue;
 			const h = harness({ ...bp, phases: [phase] }); h.director.Apply(h.s);
 			if (phase.bombers) {
-                expect(h.calls.filter((c) => c.role === "bomber").size()).toBe(phase.bombers.count);
-                expect(h.calls.filter((c) => c.role === "escort" && c.options?.optional).size()).toBe(phase.bombers.escorts.initial);
-                expect(h.calls.filter((c) => c.role === "bandit").size()).toBe(0);
-                expect(h.s.bomberEncounter).toBeDefined();
-                h.folder.Destroy();
-                continue;
-            }
+				const bombers = phase.bombers;
+				// Unscheduled formations still require their full count at opening.
+				// Streams require exactly the slots due on the phase-relative clock.
+				const expectDue = (elapsed: number) => {
+					const expectedSlots: number[] = [];
+					for (let slot = 0; slot < bombers.count; slot++) {
+						if ((bombers.arrivalSeconds?.[slot] ?? 0) <= elapsed) expectedSlots.push(slot);
+					}
+					const spawned = h.calls.filter((c) => c.role === "bomber");
+					expect(spawned.size()).toBe(expectedSlots.size());
+					expect(spawned.map((c) => c.options?.bomberSlot)).toEqual(expectedSlots);
+					for (const call of spawned) expect(call.options?.targetId).toBe(bombers.targetIds?.[call.options!.bomberSlot!]);
+					expect(h.s.bomberEncounter?.bombersSpawned).toBe(expectedSlots.size());
+				};
+				expectDue(0);
+				expect(h.calls.filter((c) => c.role === "escort" && c.options?.optional).size()).toBe(bombers.escorts.initial);
+				expect(h.calls.filter((c) => c.role === "bandit").size()).toBe(0);
+				expect(h.s.bomberEncounter).toBeDefined();
+				let previousArrival = 0;
+				for (const at of bombers.arrivalSeconds ?? []) {
+					if (at <= previousArrival) continue;
+					previousArrival = at;
+					h.s.elapsed = at - 0.001; h.director.Step(h.s); expectDue(h.s.elapsed);
+					h.s.elapsed = at; h.director.Step(h.s); expectDue(at);
+					h.director.Step(h.s); expectDue(at); // A repeated step cannot duplicate a slot.
+				}
+				expect(h.calls.filter((c) => c.role === "bomber").size()).toBe(bombers.count);
+				h.folder.Destroy();
+				continue;
+			}
 			const role = phase.kind === "ace" ? "ace" : phase.kind === "chase" ? "courier" : "bandit";
 			const count = phase.kind === "ace" ? 1 : phase.kind === "chase" ? phase.count ?? 1
 				: phase.execution?.launchDelay !== undefined ? 0 : phase.execution?.directSpawn ? phase.count ?? 0 : math.ceil((phase.count ?? 0) / (phase.groups ?? 1));

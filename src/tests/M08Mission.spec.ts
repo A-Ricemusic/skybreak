@@ -42,6 +42,15 @@ describe("Mission 8 OPEN FREQUENCY",()=>{
   const calls=s.radioQueue.size();R.Tick(s,746);expect(s.radioQueue.size()).toBe(calls);
   R.Tick(s,779.99);expect(s.outcome).toBeUndefined();R.Tick(s,780);expect(s.outcome).toBe("won");expect(s.elapsed).toBe(780);
  });
+ it("requires all six authored bombers at expiry even after partial stream kills",()=>{
+  for(let killed=1;killed<M08_BOMBER_IDS.size();killed++) {
+   const s=ready();
+   for(let slot=0;slot<killed;slot++) expect(R.RecordKill(s,M08_BOMBER_IDS[slot],"air",true,421+slot*15)).toBe(true);
+   expect(s.requiredAirKills).toBe(killed);expect(s.phaseProgress).toBe(killed);
+   R.Tick(s,779.99);expect(s.phaseIndex).toBe(1);expect(s.outcome).toBeUndefined();
+   R.Tick(s,780);expect(s.outcome).toBe("failed");expect(s.reason).toBe("timeout");
+  }
+ });
  it("streams bombers west to site on separate clocks, with fair travel time before failure",()=>{
   const b=hold.bombers!,route=compileBomberEncounter(b);
   expect(b.arrivalSeconds).toEqual([0,15,30,45,60,75]);expect(route.duration>250).toBe(true);expect(route.duration+75<=360).toBe(true);
