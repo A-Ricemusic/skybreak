@@ -5,6 +5,7 @@ M12 integration validation (2026-10-30): frozen install, build, required test:of
 | PR | Change | Status / owner observation |
 |---|---|---|
 | [#191](https://github.com/A-Ricemusic/skybreak/pull/191) | M12 THE COMMAND RING: seven guns in 15:00, strike rearm, fresh 10:00 elite/recovery; unlocks after M11 | Merge pending; live by pipeline convention after merge. Studio verified: pending orchestrator run. No Player test. |
+| [#192](https://github.com/A-Ricemusic/skybreak/pull/192) | `85ce755` | D11 ground-force extensions, repair rearm (M15–17 only), service clocks, cheap armour | No visible change — engine support, dormant. Missions 15–16 have not activated on main. |
 
 Merged final balance correction (#189, 5c88368c): PR #189 D-445 retunes M11 hulls to 34/77/147, asserts ≥10% Easy > Normal > Hard neglect survival on both routes, and corrects scaled reload/admission/formation/launch-offset modelling. Frozen install, build and full offline validation exited 0; regenerated catalog changes only M11. Merged/live by pipeline convention; no Player test is claimed.
 
