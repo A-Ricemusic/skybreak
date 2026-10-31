@@ -19,6 +19,7 @@ Merged PR #191 (351d7988) tooling update: canonical numeric catalog fixture prev
 | PR | Change | Status / owner observation |
 |---|---|---|
 | [#196](https://github.com/A-Ricemusic/skybreak/pull/196) | M14 AURORA SHIELD: three cruise salvos, splitting carriers, continuous-flight intercept witness | Merge pending; live by pipeline convention after merge. Studio verified: pending orchestrator run. No Player test. |
+| [#194](https://github.com/A-Ricemusic/skybreak/pull/194) | `bf197f50` | D13 generators, vent run, Rusk duel arena, environment transition | No visible change — engine support, dormant. Mission 18 has not activated on main. |
 | [#195](https://github.com/A-Ricemusic/skybreak/pull/195) | M13 EVIDENCE THROUGH THE GREY: 7:00 gun jammer sweep, fresh 15:00 evidence-plane interception, two optional escorts | Merged e2c7fab2; live by pipeline convention. Studio verified: pending orchestrator run. No Player test. |
 
 PR #194 load-failure follow-up (merging with this PR): batch-runtime namespace imports fix CombatService’s Luau register exhaustion, and validate:offline now checks compiled modules plus server require cycles. No gameplay activation, merge, deployment or observed Player result is claimed. Orchestrator Studio rerun is pending.
