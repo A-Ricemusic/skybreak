@@ -1,15 +1,26 @@
+## M13 review and beta guide — priority after M12 merge
+
+M13 replay validation (2026-10-30, base 351d7988): frozen install, standalone build, test:offline, voice/story/catalog regeneration and full validate:offline with the prescribed LUAU_BIN exited 0. Passed 1,118 Luau contracts, four loader guards, 19 catalog snapshots, three relay harness scenarios and 124 Python tests. All 103 prior specs plus M13 are staged and required with checkedRequire retained. Only M13's catalog entry differs; all 215 prior voice/story entries remain unchanged, with 223 total / 145 pending recordings. M12 numeric normalization and every prior decision record are preserved. Studio verified: pending orchestrator run. No Studio, test:roblox, Player tests or uploads performed. #195 remains merge pending.
+
+M13 beta guide (after #195 merges; #191 merged as 351d7988): complete M12, launch EVIDENCE THROUGH THE GREY, hold gun on ravine airship hulls within 900 studs and reach 1,300 before 7:00. Check local navigation-jam clearance and carry-over PAPER ONE damage at the update. During the fresh 15:00, stop all eight required attackers and keep PAPER ONE alive until SAFE. LANTERN may remove one optional escort; required targets stay player-owned. Retry a failure and confirm M14 remains locked. Observe Easy/Normal/Hard fairness, phone target readability and destroyed hull collision cleanup. Studio verified: pending orchestrator run; Player quality remains unobserved.
+
+Dependencies #188, #187, #189 and #191 are merged; M12 is 351d7988. Review #195 after its offline checks; then run orchestrator-owned Studio acceptance.
+
+On a campaign slot that has completed M12, launch **EVIDENCE THROUGH THE GREY**. Gun controls are the existing opt-in D1 controls. Visually approach airship hulls within 900 studs; 1,200 rounds cover 384 perfect-hit rounds for all 32. Score at least 1,300 by 7:00; reaching the minimum early allows further jammer scoring. Local interference holds Paper One for at most 20 seconds total. At expiry, retain points and switch to 15:00. Destroy eight required attackers while defending the cyan PROTECT aircraft; Two optional escort fighters give LANTERN eligible targets within its combined one-kill budget; VEIL is optional. Maximum player score is 4,040; S remains 2,800 without optional kills. Completion requires both all eight kills and safe arrival. Losing Paper One or missing either clock fails.
+
+Normal beta focus: prioritise the approaching pairs every 30 seconds from 7:00; ten 7.5-damage hits destroy the 75-hull evidence plane. First damage leaves nine hits of headroom. The 600-second route leaves about 180–200 seconds exposed after the update. The offline envelope includes acquisition/pursuit/missile travel and pair clearance at +25/+35 seconds; confirm these assumptions in Player. Check that attentive interception is defensible, neglect loses, gun approaches and labels remain readable in fog, phase handoff preserves hull/nav delay, and TGT never selects Paper One. Compare ingress, one jammer cluster, update and debrief against the accepted reference views before claiming visual fidelity. Studio/Player/phone checks have not been performed for this branch.
+
 # Next
 
-PR #191: verify Linux validate on the numeric snapshot portability fix before merge; existing runtime acceptance remains pending.
+PR #191 merged as 351d7988 with numeric snapshot normalization; runtime acceptance remains pending.
 
 M12 integration validation (2026-10-30): frozen install, build, required test:offline and manifest/catalog regeneration, and full validate:offline all exited 0 with the specified LUAU_BIN. Passed 1,088 Luau contracts, four loader probes, 19 catalog snapshots, three QA pilot scenarios and 124 Python tests. Story/radio inventory is 215 entries / 137 pending recordings; no audio generated. Catalog changes only M12; prerequisite mission definitions and every main decision record are preserved. D9/D10 cleanup paths remain unchanged; only M12 railgun models set LeaveWreck. Studio verified: pending orchestrator run. No Player tests claimed.
 
-Priority: review and merge M12 #191 after offline checks and orchestrator acceptance. Missions 1–11 are merged; older handoffs below are historical.
+Priority: review M13 #195, then orchestrator acceptance. Missions 1–12 are merged/live by pipeline convention; older handoffs below are historical.
 
 ## Mission 12 beta guide — THE COMMAND RING
 
-Complete M11 then launch M12. Silence all seven live guns within 15:00; the southeast wreck is scenery. Destroy central ECM for radar. Climb above Y900 (3,080 ft absolute) before a sweep impact; warnings total 16s and overlapping lines deal at most 25 damage per 30s cycle. Test actual terrain masking and barrel lines. Rearm southwest during strike: finite 54 missiles/14 special charges, gun refill, damage preserved, clock paused. Kill all guns to start a fresh 10:00 elite phase; defeat one of five, confirm recovery and four uncredited withdrawals. Check Easy/Normal/Hard pressure, one optional allied kill, retained gun wrecks, retry/end cleanup, results/save reload and M13 remaining locked. Studio verified: pending orchestrator run. Player/phone balance and rendered reference comparison remain unobserved.
-
+Complete M11 then launch M12. Silence all seven live guns within 15:00; the southeast wreck is scenery. Destroy central ECM for radar. Climb above Y900 (3,080 ft absolute) before a sweep impact; warnings total 16s and overlapping lines deal at most 25 damage per 30s cycle. Test actual terrain masking and barrel lines. Rearm southwest during strike: finite 54 missiles/14 special charges, gun refill, damage preserved, clock paused. Kill all guns to start a fresh 10:00 elite phase; defeat one of five, confirm recovery and four uncredited withdrawals. Check Easy/Normal/Hard pressure, one optional allied kill, retained gun wrecks, retry/end cleanup, results/save reload and M13 unlocking after #195 merges. Studio verified: pending orchestrator run. Player/phone balance and rendered reference comparison remain unobserved.
 
 Historical pre-merge handoff for #189 (merged at 5c88368c): final D-445 offline validation passed; next is orchestrator-owned Studio acceptance and independent review before merge. Validate both routes, attentive defence and a 30s lapse on each difficulty in actual flight. No Studio lease was used for this correction.
 
@@ -126,3 +137,8 @@ PR #192 next check: orchestrator reruns Roblox Jest after the scoring-fixture co
 The corrected D11 scoring fixtures use an explicit 150-point ground award: M01’s default rating policy awards zero ground points, which made the prior unchanged-total check insufficient to prove score deduplication. Runtime admission/ledger code is unchanged.
 
 D11 fixture-fix validation (2026-10-30): `bun install --frozen-lockfile`, `bun run build` and the prescribed `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau" bun run validate:offline` each exited 0. Passed 1,077 Luau contracts, four negative loader probes, 19 unchanged catalog snapshots and 124 Python tests. No Studio, `test:roblox`, Player test, merge or upload was performed.
+
+
+### PR #195 fixture-fix verification
+
+Orchestrator: rerun the full Studio Jest suite after the D9 missing-session-blueprint fix, including the new M13 catalog-backed world-model adoption/fallback/phase-cleanup test. D5–D12 runtime fixtures now own their data; D11 keeps explicit 15/16 identities only for intentional repair/armour gates. No campaign placeholder is inherited. Mission 13 Player/phone acceptance remains pending.

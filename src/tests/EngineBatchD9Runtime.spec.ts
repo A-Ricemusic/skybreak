@@ -1,3 +1,5 @@
+import { M13_WORLD_KEY } from "../shared/M13WorldPlan";
+import { MissionCatalog } from "../shared/MissionCatalog";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { Workspace } from "@rbxts/services";
 import { clearAirships, spatialJammersAt, stepAirships, protectedNavigationStep } from "../server/EngineBatchD9Runtime";
@@ -9,10 +11,28 @@ import type { CombatSession } from "../server/CombatSession";
 function fixture() {
  const folder=new Instance("Folder");folder.Parent=Workspace;
  const bs=BlueprintRunner.NewState(d9Fixture(),0);
- const s={folder,player:{UserId:1},blueprintState:bs,enemies:[],state:{x:1000,y:900,z:4500}} as unknown as CombatSession;
+ const s={folder,player:{UserId:1},blueprint:bs.blueprint,airspace:MissionCatalog.Airspace(bs.blueprint),blueprintState:bs,enemies:[],state:{x:1000,y:900,z:4500}} as unknown as CombatSession;
  return {s,bs,folder};
 }
 describe("D9 runtime (execution deferred to orchestrator Studio lease)",()=>{
+ it("resolves M13 session world/airspace and adopts world jammers, then clears them on phase exit",()=>{
+  const blueprint=MissionCatalog.Get(13),bs=BlueprintRunner.NewState(blueprint,0);
+  const folder=new Instance("Folder");folder.Parent=Workspace;
+  const scene=new Instance("Folder");scene.Name=MissionCatalog.WorldKey(blueprint);scene.Parent=folder;
+  const airspace=MissionCatalog.Airspace(blueprint);
+  const s={folder,player:{UserId:1},blueprint,airspace,blueprintState:bs,enemies:[]} as unknown as CombatSession;
+  try {
+   expect(scene.Name).toBe(M13_WORLD_KEY);expect(airspace.spawnLimit>0).toBe(true);
+   const plan=BlueprintRunner.ActivePhase(bs)!.spatialJamming!;
+   const drawn=new Instance("Model");drawn.Name=plan.airships[0].id;
+   const hull=new Instance("Part");hull.Anchored=true;hull.Parent=drawn;drawn.PrimaryPart=hull;drawn.Parent=scene;
+   stepAirships(s);stepAirships(s);
+   expect(s.enemies.size()).toBe(plan.airships.size());expect(s.enemies[0].model).toBe(drawn);
+   expect(drawn.Parent).toBe(folder);expect(s.enemies[0].position).toEqual(new Vector3(plan.airships[0].position.x,plan.airships[0].position.y,plan.airships[0].position.z));
+   expect(s.enemies[1].model.Parent).toBe(folder);
+   bs.phaseIndex=1;stepAirships(s);expect(s.enemies.size()).toBe(0);expect(drawn.Parent).toBeUndefined();
+  } finally {clearAirships(s);folder.Destroy();}
+ });
  it("creates one static unarmed air target, no duplicate spawns; local radar/locks recover away from coverage",()=>{
   const {s,folder}=fixture();try {
    stepAirships(s);stepAirships(s);expect(s.enemies.size()).toBe(1);

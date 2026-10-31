@@ -1,6 +1,7 @@
+import { MissionCatalog } from "../shared/MissionCatalog";
 import { protectedNavigationStep } from "./EngineBatchD9Runtime";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
-import { protectedHealth, damageProtected, protectedPose, protectionResult, stepProtected } from "../shared/EngineBatchD7";
+import { sameProtectedPlan, protectedHealth, damageProtected, protectedPose, protectionResult, stepProtected } from "../shared/EngineBatchD7";
 import type { ProtectedAircraftPlan, ProtectedState } from "../shared/EngineBatchD7";
 import type { CombatSession, Enemy } from "./CombatSession";
 export interface ProtectedActor { aircraft: Enemy; plan: ProtectedAircraftPlan; state: ProtectedState; label: TextLabel; navigationHeld?: number }
@@ -34,6 +35,7 @@ function createActor(session: CombatSession, plan: ProtectedAircraftPlan): Prote
  model.SetAttribute("Health",plan.health); model.SetAttribute("MaxHealth",plan.health);
  const marker=new Instance("BillboardGui"); marker.Name="Protected identity"; marker.Size=UDim2.fromOffset(380,28); marker.StudsOffset=new Vector3(0,15,0); marker.AlwaysOnTop=true; marker.MaxDistance=30000; marker.Adornee=root; marker.Parent=model;
  const label=new Instance("TextLabel"); label.Size=UDim2.fromScale(1,1); label.BackgroundColor3=Color3.fromRGB(7,23,30); label.BackgroundTransparency=0.2; label.TextColor3=cyan; label.TextSize=14; label.Font=Enum.Font.GothamBold; label.Parent=marker;
+ for(const c of model.GetDescendants()) if(c.IsA("BasePart")) {c.CanCollide=false;c.CanQuery=false;c.CanTouch=false;}
  const pose=protectedPose(plan,0), position=new Vector3(pose.position.x,pose.position.y,pose.position.z), direction=new Vector3(pose.facing.x,pose.facing.y,pose.facing.z);
  model.PivotTo(CFrame.lookAt(position,position.add(direction))); model.Parent=session.folder;
  const aircraft: Enemy={id:plan.id,name:plan.callsign,model,health:plan.health,maxHealth:plan.health,position,direction,velocity:direction.mul(plan.route.speed),kind:"air",friendly:true,required:false,enabled:true,fireTimer:0,windup:0,mode:"run",modeTimer:0,passDirection:direction,side:1,flares:0,flareTimer:0,speedBonus:0,lockBreakTimer:0,flareUntil:0,breakTimer:0,breakUntil:0,lockBreakChance:0,hiddenParts:[]};
@@ -43,12 +45,18 @@ export function clearProtection(session: CombatSession): void {
  for(const a of session.protectedFlight?.actors ?? []) { a.aircraft.enabled=false; a.aircraft.model.Destroy(); }
  session.protectedFlight=undefined;
 }
+/** PhaseDirector calls this before cleaning phase-owned actors; never heal or reset navigation. */
+export function retainProtection(session: CombatSession): boolean {
+ const bs=session.blueprintState, plan=bs && BlueprintRunner.ActivePhase(bs)?.protection, flight=session.protectedFlight;
+ if(!bs || !plan?.accompaniment || !flight || flight.actors.size()!==plan.aircraft.size() || !plan.aircraft.every((a,i)=>sameProtectedPlan(a,flight.actors[i].plan))) return false;
+ flight.phase=bs.phaseIndex; return true;
+}
 /** Called only in active flight; session folder teardown also owns every model. */
 export function stepProtection(session: CombatSession, dt: number, say:(line:string)=>void): void {
  const bs=session.blueprintState, plan=bs && BlueprintRunner.ActivePhase(bs)?.protection;
  if(!bs || !plan) { if(session.protectedFlight) clearProtection(session); return; }
  if(session.protectedFlight?.phase!==bs.phaseIndex) {
-  clearProtection(session); session.protectedFlight={phase:bs.phaseIndex,actors:plan.aircraft.map(a=>createActor(session,a))};
+  if(!retainProtection(session)) { clearProtection(session); session.protectedFlight={phase:bs.phaseIndex,actors:plan.aircraft.map(a=>createActor(session,a))}; }
  }
  const actors=session.protectedFlight!.actors;
  for(const a of actors) {
@@ -68,9 +76,9 @@ export function stepProtection(session: CombatSession, dt: number, say:(line:str
  }
  const result=protectionResult(actors.map(a=>a.state));
  BlueprintRunner.ObserveProtection(bs,actors.filter(a=>a.state.safe).size(),result==="lost");
- if(result==="safe") say("CONTROL: All protected aircraft are safe.");
- // Safe detached models are destroyed here; phase transition must not retain a target.
- if(result!==undefined) clearProtection(session);
+ if(result==="safe" && !plan.accompaniment) say("CONTROL: All protected aircraft are safe.");
+ // Accompanying phases retain safe state until their kill objective is also met.
+ if(result==="lost" || (result==="safe" && !plan.accompaniment)) clearProtection(session);
 }
 export function protectedTarget(session: CombatSession, hostile: Enemy): Enemy | undefined {
  if(hostile.attackProtected===undefined) return undefined;

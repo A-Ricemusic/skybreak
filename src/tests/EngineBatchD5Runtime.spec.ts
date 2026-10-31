@@ -1,3 +1,4 @@
+import { engineRuntimeFixture } from "./EngineRuntimeFixture";
 import { AlliedRules } from "../shared/AlliedRules";
 import { stepRearm, skipRearm } from "../server/EngineBatchCRuntime";
 import { landingPose } from "../shared/EngineBatchB";
@@ -19,8 +20,8 @@ function fixture() {
  const scenery=new Instance("Folder"); scenery.Parent=folder;
  const params=new RaycastParams(); params.FilterType=Enum.RaycastFilterType.Include; params.FilterDescendantsInstances=[scenery];
  const plan: GroundProgressPlan={sectors:[{id:"beach",kind:"landing_craft",clearTargetIds:["gun"],seconds:10,health:20,route:{speed:10,waypoints:[{x:0,y:40,z:0},{x:0,y:40,z:-100}]},advanceCall:"Advance",securedCall:"Secured",hitCall:"Beach hit"}]};
- const bs=BlueprintRunner.NewState({...MissionCatalog.Get(1),phases:[{kind:"score_threshold",label:"Beach",scoreThreshold:{points:100,seconds:100,waitForExpiry:true},groundProgress:plan}]},0);
- const session={active:true,pause:{used:0},folder,blueprintState:bs,collisionParams:params,airspace:{spawnLimit:3000}} as unknown as CombatSession;
+ const bs=BlueprintRunner.NewState({...engineRuntimeFixture(),phases:[{kind:"score_threshold",label:"Beach",scoreThreshold:{points:100,seconds:100,waitForExpiry:true},groundProgress:plan}]},0);
+ const session={active:true,pause:{used:0},folder,blueprint:bs.blueprint,blueprintState:bs,collisionParams:params,airspace:{spawnLimit:3000}} as unknown as CombatSession;
  const model=new Instance("Model"); model.Parent=folder;
  const enemy={model,phaseOwner:0,attackSector:"beach",position:new Vector3(0,280,300),direction:new Vector3(0,0,-1),fireTimer:0,windup:0} as Enemy;
  return {folder,scenery,session,enemy,bs};
@@ -28,9 +29,9 @@ function fixture() {
 describe("D5 server director and beach attacker",()=>{
  it("reuses carrier service pause/skip, finite ammo refill and leave-zone latch without repairing damage",()=>{
   const plan: RearmPlan={zone:{x:0,y:150,z:1150},radius:1500,landing:{touchdown:{x:0,y:100,z:150},headingDegrees:0,approachDistance:1000,rolloutDistance:50,approachSeconds:10,rolloutSeconds:3,glideDegrees:3},takeoffSeconds:8,missiles:true,special:true,health:false,carrier:{centre:{x:0,y:100,z:0},width:150,length:560,catapult:{x:0,y:100,z:-240}}};
-  const bp={...MissionCatalog.Get(1),armament:{stock:{missiles:40,specialCharges:5},gun:{rounds:200}},phases:[{kind:"score_threshold" as const,label:"Beach",scoreThreshold:{points:1000,seconds:600,waitForExpiry:true},rearm:plan}]};
+  const bp={...engineRuntimeFixture(),armament:{stock:{missiles:40,specialCharges:5},gun:{rounds:200}},phases:[{kind:"score_threshold" as const,label:"Beach",scoreThreshold:{points:1000,seconds:600,waitForExpiry:true},rearm:plan}]};
   const bs=BlueprintRunner.NewState(bp,os.clock());
-  const s={active:true,blueprint:bp,blueprintState:bs,pause:PauseRules.New(),state:landingPose(plan.landing,0),targetScore:new TargetScore(MissionCatalog.Scoring(1)),enemies:[],projectiles:[],special:SortieArmament.NewSpecial("salvo",bp.armament),gun:GunRules.New(bp.armament),missiles:0,health:25} as unknown as CombatSession;
+  const s={active:true,blueprint:bp,blueprintState:bs,pause:PauseRules.New(),state:landingPose(plan.landing,0),targetScore:new TargetScore(MissionCatalog.Scoring(engineRuntimeFixture())),enemies:[],projectiles:[],special:SortieArmament.NewSpecial("salvo",bp.armament),gun:GunRules.New(bp.armament),missiles:0,health:25} as unknown as CombatSession;
   s.special.charges=0; s.gun!.rounds=0;
   expect(stepRearm(s,1,40,()=>{})).toBe(true); expect(bs.rearmActive).toBe(true);
   PauseRules.Pause(s.pause,os.clock()); stepRearm(s,30,40,()=>{}); expect(s.rearmElapsed).toBe(1); PauseRules.Resume(s.pause,os.clock());
@@ -45,7 +46,7 @@ describe("D5 server director and beach attacker",()=>{
    const plan: RearmPlan={zone:{x:0,y:150,z:1150},radius:1500,landing:{touchdown:{x:0,y:100,z:150},headingDegrees:0,approachDistance:1000,rolloutDistance:50,approachSeconds:10,rolloutSeconds:3,glideDegrees:3},takeoffSeconds:8,missiles:true,special:true,health:false,carrier:{centre:{x:0,y:100,z:0},width:150,length:560,catapult:{x:0,y:100,z:-240}}};
    const bp={...f.bs.blueprint,phases:[{...f.bs.blueprint.phases[0],rearm:plan}]};
    const s=f.session; s.blueprint=bp; s.blueprintState=BlueprintRunner.NewState(bp,os.clock());
-   s.state=landingPose(plan.landing,0); s.health=25; s.targetScore=new TargetScore(MissionCatalog.Scoring(1)); s.projectiles=[]; s.special=SortieArmament.NewSpecial("salvo",undefined);
+   s.state=landingPose(plan.landing,0); s.health=25; s.targetScore=new TargetScore(MissionCatalog.Scoring(engineRuntimeFixture())); s.projectiles=[]; s.special=SortieArmament.NewSpecial("salvo",undefined);
    f.enemy.enabled=true; f.enemy.health=100; s.enemies=[f.enemy];
    stepGroundDirector(s,0.01,()=>{}); stepBeachAttacker(s,f.enemy,0.01,()=>{});
    expect(f.enemy.windup).toBe(2); expect(f.enemy.model.GetAttribute("AttackWarning")).toBe(true);

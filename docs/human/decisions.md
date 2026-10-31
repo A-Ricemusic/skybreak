@@ -1,5 +1,7 @@
 # Decisions
 
+M13 replay validation (2026-10-30, base 351d7988): frozen install, standalone build, test:offline, voice/story/catalog regeneration and full validate:offline with the prescribed LUAU_BIN exited 0. Passed 1,118 Luau contracts, four loader guards, 19 catalog snapshots, three relay harness scenarios and 124 Python tests. All 103 prior specs plus M13 are staged and required with checkedRequire retained. Only M13's catalog entry differs; all 215 prior voice/story entries remain unchanged, with 223 total / 145 pending recordings. M12 numeric normalization and every prior decision record are preserved. Studio verified: pending orchestrator run. No Studio, test:roblox, Player tests or uploads performed. #195 remains merge pending.
+
 2026-10-30 tooling decision (implementation agent): canonicalize catalog non-integers to six decimal places, preserving integers and mapping negative zero to zero on writes and both comparison operands. Raw floats were rejected because Luau trig differs across platforms; strings, booleans, keys and array ordering remain strictly compared.
 
 Last updated: 2026-10-30.
@@ -114,7 +116,6 @@ The recording may be copied; the game it shows belongs to Bandai Namco.
 | Pacing, difficulty curve, how each mission feels | Any image or audio taken from the footage |
 
 Internal documents may name reference missions by their original titles for cross-reference. Nothing shipped in the game does.
-
 
 The superseded AC04-specific adaptation/art/HUD/save decisions dropped with the rejected release remain historical in git, not current approvals. D-003 explicitly adopts a new cutover wipe; it does not restore the rejected release.
 
@@ -254,7 +255,6 @@ IDs D-150–D-156 checked against origin/main `227713b` (after #148, #149, #151,
 | D-154 | Gun controls: G on keyboard, LT on gamepad, a round GUN button on touch drawn only when the sortie fits a gun (above the action row, or beside it on Studio's compact grid). Release is always honoured and never rate-limited; pause, landing, rearm, 0.7 s of input silence and an empty magazine stop firing. | Hold FIRE for gun; mouse right button. Rejected: overloads the missile button and conflicts with camera use. | Implementation agent | Merged; dormant |
 | D-155 | The gun has no firing sound; impacts use the existing approved metal-hit sounds and hit effect, with local cosmetic tracers. | Upload a cannon sound. Not allowed under D-142 (no further audio uploads). | Implementation agent, following D-142 | Merged; dormant |
 | D-156 | Rearm may repair damage to 0% where the footage shows it: missions 15, 16 and 17 only, as a per-mission opt-in built in batch D11. Every other rearm keeps batch C's damage-preserving rule. | Never repair (batch C rule); repair on every rearm. The footage shows repair in M15–M17 (65%→0%, damaged→0%, 25%→0%) and is silent elsewhere. | Owner side, relayed by the orchestrator 2026-10-30 | Provisional; build in D11 |
-
 
 ## Engine batch D2 decisions (2026-10-30)
 
@@ -418,7 +418,6 @@ M09 #185 arrival-test correction (2026-10-30): D-342 is unchanged. The nine requ
 | D-443 | M11 unlocks after the complete1–10 chain; base D7 and depend on#184,#183,#185,#187. Story uses remapped chapter10; checkride reveal precedes takeoff and debrief hands off Vulture Two's challenge. | Do not copy dependencies into this branch or expose an early unlock. ORCHARD speaker aliases reuse existing TRUCK editorial metadata only; manifests initially expanded to195 entries/117 unrecorded; after merging main, the current inventory is210/132. All new dialogue subtitle-only; no audio or Blender assets/uploads. No Studio/test:roblox during implementation. | Owner task direction | In review; dependency rebase and runtime acceptance pending |
 | D-444 | Retune only M11 civilian health to 91 each (13 Normal hits), retaining 17 attackers, timings and shared combat behavior. | 140 health made low escort neglect mathematically harmless. Rejected global fire/damage changes. CombatService now reads unchanged windup/reload/speed/life/range tables from CombatBalance so budgets cannot silently drift from engine constants. Missions 1–8 retain identical numeric tuning. | M11 review-fix implementation agent under owner pressure/fairness direction | Offline analytical regression; Studio/Player not run |
 
-
 ## D-445 — M11 difficulty budgets and encounter regression (2026-10-30)
 
 Decision maker: implementation agent addressing independent PR #189 re-review. Status: implemented on PR #189, unmerged; supersedes D-444's fixed 91 hull and assumed acquisition/hit balance evidence.
@@ -472,7 +471,6 @@ The corrected D11 scoring fixtures use an explicit 150-point ground award: M01�
 
 D11 fixture-fix validation (2026-10-30): `bun install --frozen-lockfile`, `bun run build` and the prescribed `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau" bun run validate:offline` each exited 0. Passed 1,077 Luau contracts, four negative loader probes, 19 unchanged catalog snapshots and 124 Python tests. No Studio, `test:roblox`, Player test, merge or upload was performed.
 
-
 D-445 deterministic 0.05s budget results (low/high order; unobserved in Player):
 
 | Difficulty | Hull each / hits to loss | Neglect loss time low / high | Attentive hits low / high | Worst single-lapse hits low / high | Minimum surviving hull with lapse |
@@ -498,3 +496,14 @@ D-465 (2026-10-30, implementation agent; proposed in PR #191): only M12 live rai
 D-466 (2026-10-30, integration agent): replay only M12 commits on main, preserve every released mission and engine contract. Optional raiders remain eligible for the single allied kill; no route actors compete for the six fighter slots. Fairness coverage derives elite Easy/Normal/Hard ordering from CombatBalance, Difficulty and ThreatRules; ring sweeps use a difficulty-independent 25-damage salvo. Remove the single-line crossing estimate because the entire wedge is tested at impact. Studio verified: pending orchestrator run.
 
 Validation for D-466: M12 integration validation (2026-10-30): frozen install, build, required test:offline and manifest/catalog regeneration, and full validate:offline all exited 0 with the specified LUAU_BIN. Passed 1,088 Luau contracts, four loader probes, 19 catalog snapshots, three QA pilot scenarios and 124 Python tests. Story/radio inventory is 215 entries / 137 pending recordings; no audio generated. Catalog changes only M12; prerequisite mission definitions and every main decision record are preserved. D9/D10 cleanup paths remain unchanged; only M12 railgun models set LeaveWreck. Studio verified: pending orchestrator run. No Player tests claimed.
+
+## Mission 13 — PR #195 (merge pending)
+
+| ID | Decision | Alternatives / rationale | Decision maker | Status |
+|---|---|---|---|---|
+| D-560 | Adopt 32 world jammer models and PAPER ONE by exact authored id; disable flight solidity on adopted aircraft. | Separate actors would leave duplicate scenery or invisible collisions after destruction. | M13 implementation agent | Implemented; Studio verified: pending orchestrator run |
+| D-561 | Preserve the same protected actor, health and navigation clock through adjacent accompanying phases; route 600s, local hold capped at 20s. | Recreating at update heals damage and resets progress. | M13 implementation agent | Offline contracts; runtime pending |
+| D-562 | 7:00 / 1,300-point gun sweep, fresh 15:00 / eight required pursuers plus safety; 32 ×100 jammer points, ordinary fighters 60, VEIL 240. | Original pressure adaptation; required kills never replaced by allied credit. | M13 implementation agent | Provisional balance; no Player test |
+| D-563 | Two optional escorts remain eligible for LANTERN's shared one-kill budget, no player credit. All arrivals are pursuers; no route actors compete for slots. | Required-only contacts would starve allies. Mixed routes would require concurrentRoutes. | M13 implementation agent | Implemented |
+| D-564 | Replace assumed acquisition/kill schedules with conditional damage/fire envelopes using CombatBalance, Difficulty, ThreatRules and protectedHealth; Easy > Normal > Hard reaction budget. Sweep damage/rate are difficulty invariant with equal clock slack. | Fixed acquisition and despawn timing cannot prove survival. These bounds establish neither actual acquisition nor hit/flight outcomes. | Integration agent under reviewer direction | Offline analytical checks; Studio/Player acceptance pending |
+| D-565 | Replay M13 onto M12 plus main; retain every prerequisite's tests, catalog/voice entries and existing decision records. Unlock only after the full 1–12 chain, release ceiling 13. | Old D9 base loses later engine and mission contracts. | Owner instruction / integration agent | Merge pending; live by pipeline convention after merge |

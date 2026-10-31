@@ -1,3 +1,4 @@
+import { engineRuntimeFixture } from "./EngineRuntimeFixture";
 import { recordScoredKill } from "../server/SortieScore";
 import { TargetScore } from "../shared/TargetScore";
 import { validateEncounterIdentities } from "../shared/CampaignEncounters";
@@ -50,7 +51,7 @@ describe("Dormant D11 ground support and service",()=>{
  it("validates repair through both batch C and catalog authoring without weakening defaults",()=>{
   for(let id=0;id<=18;id++) {const p={...phase(),rearm:service()};const [ok]=pcall(()=>validateBatchC([p],3000,id));expect(ok).toBe(id>=15 && id<=17);}
   const p={...phase(),rearm:service()};expect(pcall(()=>validateBatchC([p],3000))[0]).toBe(false);
-  const bp={...MissionCatalog.Get(15),phases:[p]};MissionCatalog.ValidatePolicy(bp);
+  const bp={...engineRuntimeFixture(),id:15,phases:[p]};MissionCatalog.ValidatePolicy(bp);
  });
  it("extends the existing D5 director with squads, columns and once-only reserve gates",()=>{
   const p=phase(), plan=p.groundProgress!, states=newGroundProgress(plan);validateBatchD5([p],3000);validateBatchD11([p],15);
@@ -62,11 +63,11 @@ describe("Dormant D11 ground support and service",()=>{
   expect(stepGroundProgress(plan,states,new Set(["tank","reserve"]),100)).toEqual([]);
  });
  it("admits a reserve score once only in an authored ground-target phase",()=>{
-  const p=phase(), bp={...MissionCatalog.Get(15),phases:[p]};MissionCatalog.ValidatePolicy(bp);
-  const missing=R.NewState({...bp,phases:[{...p,groundTargets:undefined}]},0), rejected=new TargetScore({...MissionCatalog.Scoring(1),points:{ground:150}});
+  const p=phase(), bp={...engineRuntimeFixture(),id:15,phases:[p]};MissionCatalog.ValidatePolicy(bp);
+  const missing=R.NewState({...bp,phases:[{...p,groundTargets:undefined}]},0), rejected=new TargetScore({...MissionCatalog.Scoring(engineRuntimeFixture()),points:{ground:150}});
   expect(recordScoredKill(missing,rejected,"reserve","ground",false,1,"ground")).toBe(false);
   expect(missing.killedIds.size()).toBe(0);expect(rejected.Total()).toBe(0);
-  const bs=R.NewState(bp,0), ledger=new TargetScore({...MissionCatalog.Scoring(1),points:{ground:150}});
+  const bs=R.NewState(bp,0), ledger=new TargetScore({...MissionCatalog.Scoring(engineRuntimeFixture()),points:{ground:150}});
   expect(recordScoredKill(bs,ledger,"reserve","ground",false,1,"ground")).toBe(true);
   const points=ledger.Total();expect(points).toBe(150);expect(bs.optionalGroundKills).toBe(1);
   expect(recordScoredKill(bs,ledger,"reserve","ground",false,2,"ground")).toBe(false);

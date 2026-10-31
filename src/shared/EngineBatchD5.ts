@@ -54,7 +54,7 @@ export function validateBatchD5(phases: MissionPhaseBlueprint[], limit: number):
  for(const phase of phases) {
   for(const t of phase.groundTargets ?? []) knownTargets.add(t.id);
   const requiredWaves=(phase.fighterWaves ?? []).filter(w=>w.required);
-  if(requiredWaves.size()>0) assert(phase.kind==="required_air" && phase.bombers===undefined && requiredWaves.reduce((n,w)=>n+w.count,0)===phase.count && requiredWaves.every(w=>w.attackSector!==undefined),"Required waves must own the attack phase count");
+  if(requiredWaves.size()>0) assert(phase.kind==="required_air" && phase.bombers===undefined && requiredWaves.reduce((n,w)=>n+w.count,0)===phase.count && requiredWaves.every(w=>w.attackSector!==undefined || w.attackProtected!==undefined),"Required waves must own the attack phase count");
   const r=phase.rearm, c=r?.carrier;
   if(r && c) {
    point(c.centre); point(c.catapult); positive(c.width,200); positive(c.length,600);

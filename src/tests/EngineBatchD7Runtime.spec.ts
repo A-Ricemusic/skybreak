@@ -1,3 +1,4 @@
+import { MissionCatalog } from "../shared/MissionCatalog";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { Workspace, Players } from "@rbxts/services";
 import { clearProtection, hitProtected, protectedTarget, stepProtection } from "../server/EngineBatchD7Runtime";
@@ -7,7 +8,7 @@ import { d7Fixture } from "./EngineBatchD7Fixture";
 function fixture() {
  const folder=new Instance("Folder");folder.Parent=Workspace;
  const bs=BlueprintRunner.NewState(d7Fixture(),0);
- const session={folder,player:{UserId:Players.GetPlayers()[0]?.UserId ?? 1},blueprintState:bs,enemies:[],allies:[],projectiles:[],alliedKills:[]} as unknown as CombatSession;
+ const session={folder,player:{UserId:Players.GetPlayers()[0]?.UserId ?? 1},blueprint:bs.blueprint,airspace:MissionCatalog.Airspace(bs.blueprint),blueprintState:bs,enemies:[],allies:[],projectiles:[],alliedKills:[]} as unknown as CombatSession;
  return {session,folder,bs};
 }
 describe("D7 protected aircraft Roblox integration (Studio pending)",()=>{
