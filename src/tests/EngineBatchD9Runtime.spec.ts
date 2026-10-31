@@ -2,7 +2,7 @@ import { describe, expect, it } from "@rbxts/jest-globals";
 import { Workspace } from "@rbxts/services";
 import { clearAirships, spatialJammersAt, stepAirships, protectedNavigationStep } from "../server/EngineBatchD9Runtime";
 import { stepProtection, clearProtection } from "../server/EngineBatchD7Runtime";
-import { liveJammers, lockAllowed } from "../server/EngineBatchCRuntime";
+import { announceJammerKill, liveJammers, lockAllowed } from "../server/EngineBatchCRuntime";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { d9Fixture } from "./EngineBatchD9Fixture";
 import type { CombatSession } from "../server/CombatSession";
@@ -21,6 +21,23 @@ describe("D9 runtime (execution deferred to orchestrator Studio lease)",()=>{
    s.state.x=8000;expect(liveJammers(s)).toBe(0);expect(lockAllowed(s,10000)).toBe(true);
    expect(spatialJammersAt(s,{x:1000,y:900,z:4500})).toBe(1);
    a.health=0;expect(spatialJammersAt(s,{x:1000,y:900,z:4500})).toBe(0);
+  } finally {clearAirships(s);folder.Destroy();}
+ });
+ it("preserves global ground/aircraft ECM and airship kill calls across spatial phase opt-in",()=>{
+  const {s,folder}=fixture();try {
+   stepAirships(s);const airship=s.enemies[0],phase=BlueprintRunner.ActivePhase(s.blueprintState!)!;
+   const ground={...airship,id:"ecm",airshipJammer:undefined,typedGround:{ecm:true}} as typeof airship;
+   const aircraft={...airship,id:"legacy",airshipJammer:undefined,routeActor:{jammer:true}} as typeof airship;
+   s.enemies.push(ground,aircraft);
+   expect(liveJammers(s)).toBe(1);
+   s.state.x=8000;expect(liveJammers(s)).toBe(0);
+   const lines=new Array<string>();s.state.x=1000;airship.health=0;
+   announceJammerKill(s,airship,line=>lines.push(line));announceJammerKill(s,airship,line=>lines.push(line));
+   expect(lines.size()).toBe(1);expect(lines[0]).toBe(phase.jamming!.clearCall);
+   phase.spatialJamming=undefined;expect(liveJammers(s)).toBe(2);
+   ground.health=0;announceJammerKill(s,ground,line=>lines.push(line));expect(lines[1]).toBe(phase.jamming!.remainingCall);
+   aircraft.health=0;announceJammerKill(s,aircraft,line=>lines.push(line));expect(lines[2]).toBe(phase.jamming!.clearCall);
+   expect(liveJammers(s)).toBe(0);
   } finally {clearAirships(s);folder.Destroy();}
  });
  it("holds the covered protected aircraft independently, releases on source death or hold budget",()=>{

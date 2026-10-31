@@ -138,7 +138,8 @@ describe("Mission 7 array strike and canyon escape", () => {
   for (let id = 1; id <= 18; id++) slot.missions[id] = {completed:true};
   slot.missions[6] = {completed:false}; expect(canLaunchMission(7,slot)).toBe(false);
   slot.missions[6] = {completed:true}; slot.missions[3] = {completed:false}; expect(canLaunchMission(7,slot)).toBe(false);
-  slot.missions[3] = {completed:true}; expect(canLaunchMission(7,slot)).toBe(true); expect(canLaunchMission(8,slot)).toBe(false);
+  slot.missions[3] = {completed:true}; expect(canLaunchMission(7,slot)).toBe(true); expect(canLaunchMission(8,slot)).toBe(true); expect(canLaunchMission(9,slot)).toBe(true);
+  for(let id=10;id<=18;id++) expect(canLaunchMission(id,slot)).toBe(false);
  });
  it("unlocks after fixtures completing 1–6, settles only full wins and preserves score across save", () => earlier(() => {
   const c=new CampaignCoordinator("m07-unlock",undefined,{now:()=>1000,defer:()=>undefined}); c.load();
@@ -150,6 +151,7 @@ describe("Mission 7 array strike and canyon escape", () => {
   finish(c,7,2,550,ledger);
   const saved=normalizeProfile(serializeProfile({version:3,slots:c.getSlots()})).slots[0].missions![7];
   expect(saved.completed).toBe(true); expect(saved.bestScore).toBe(1240); expect(saved.bestTargetScore?.total).toBe(1240);
-  expect(canLaunchMission(8,c.getSlots()[0])).toBe(false);
+  expect(canLaunchMission(8,c.getSlots()[0])).toBe(true);
+  expect(canLaunchMission(9,c.getSlots()[0])).toBe(false);
  }));
 });

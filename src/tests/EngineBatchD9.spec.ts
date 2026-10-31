@@ -1,3 +1,6 @@
+import { validateBatchC } from "../shared/EngineBatchC";
+import { validateBatchD8 } from "../shared/EngineBatchD8";
+import { validateBatchD9 } from "../shared/EngineBatchD9";
 import { GunRules } from "../shared/SortieArmament";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { coveringJammers, inJammingCorridor, navigationStep } from "../shared/EngineBatchD9";
@@ -50,6 +53,14 @@ describe("D9 dormant spatial jammer rules",()=>{
   for(const a0 of p.airships) {expect(BlueprintRunner.RecordKill(s,a0.id,"air",false,1)).toBe(true);ledger.RecordKill(a0.id,a0.scoreRole);}
   expect(ledger.Total()).toBe(3200);expect(s.outcome).toBeUndefined();
   p.airships.push({...a,id:"overflow"});expect(pcall(()=>MissionCatalog.ValidatePolicy(b))[0]).toBe(false);
+ });
+ it("validates D8 global ground ECM alongside D9 airship corridors without admitting ground corridor sources",()=>{
+  const b=d9Fixture(), spatial=b.phases[0];
+  const ground={kind:"required_ground" as const,label:"ECM",count:1,jamming:spatial.jamming,groundTargets:[{id:"ecm",type:"ground_ecm" as const,position:{x:0,y:50,z:0},yaw:0,required:true,scoreRole:"ground",ecm:true as const}]};
+  const phases=[ground,spatial];
+  validateBatchC(phases,15360);validateBatchD8(phases,15360);validateBatchD9(phases,15360,true,b.scoring!.points);
+  spatial.spatialJamming!.corridors[0].sourceId="ecm";
+  expect(pcall(()=>validateBatchD9(phases,15360,true,b.scoring!.points))[0]).toBe(false);
  });
  it("keeps all catalog missions and practice dormant",()=>{for(const b of MissionCatalog.All()) for(const p of MissionCatalog.ExpandedPhases(b)) expect(p.spatialJamming).toBeUndefined();});
 });

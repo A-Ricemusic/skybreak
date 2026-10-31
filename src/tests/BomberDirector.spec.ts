@@ -6,6 +6,7 @@ import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { MissionCatalog, MissionBlueprint } from "../shared/MissionCatalog";
 import { BomberRules } from "../shared/BomberRules";
 import { bomberEscortPose } from "../shared/BomberEncounter";
+import { WavePlan } from "../shared/WavePlan";
 import { AssetSelection } from "../shared/AssetSelection";
 
 function harness(blueprint: MissionBlueprint) {
@@ -127,22 +128,135 @@ describe("Bomber director integration", () => {
 		expect(h.s.blueprintState?.reason).toBe("bombers_escaped");
 		expect(h.radio[h.radio.size() - 1]).toBe(b.escapeCall); h.folder.Destroy();
 	});
-	it("preserves every current combat phase's opening required roles and counts", () => {
-		for (const bp of MissionCatalog.All()) for (const phase of MissionCatalog.ExpandedPhases(bp)) {
+	it("preserves every current combat phase's required roles, opening counts and authored arrivals", () => {
+		// Keep scheduling paths covered even when no current mission uses one.
+		const fixtures: MissionBlueprint[] = [
+			{ ...encounter(), phases: [{ kind: "required_air", label: "Timed groups", count: 6, groups: 3, stagger: 12 }] },
+			{ ...encounter(), phases: [{ kind: "required_air", label: "Kill-gated groups", count: 6, groups: 3, groupAt: [1 / 3, 2 / 3] }] },
+			{ ...encounter(), phases: [{ kind: "required_air", label: "Delayed launch", count: 6, execution: { launchDelay: 4 } }] },
+			{ ...encounter(), phases: [{ kind: "required_air", label: "Authored waves", count: 6, fighterWaves: [
+				{ id: "late", required: true, role: "raider", scoreRole: "attack", count: 2, trigger: { kind: "time", seconds: 20 } },
+				{ id: "opening", required: true, role: "escort", scoreRole: "attack", count: 2, trigger: { kind: "time", seconds: 0 } },
+				{ id: "middle", required: true, role: "raider", scoreRole: "attack", count: 2, trigger: { kind: "time", seconds: 10 } },
+			] }] },
+		];
+		for (const bp of [...MissionCatalog.All(), ...fixtures]) for (const phase of MissionCatalog.ExpandedPhases(bp)) {
 			if (phase.kind !== "required_air" && phase.kind !== "chase" && phase.kind !== "ace") continue;
 			const h = harness({ ...bp, phases: [phase] }); h.director.Apply(h.s);
 			if (phase.bombers) {
-                expect(h.calls.filter((c) => c.role === "bomber").size()).toBe(phase.bombers.count);
-                expect(h.calls.filter((c) => c.role === "escort" && c.options?.optional).size()).toBe(phase.bombers.escorts.initial);
-                expect(h.calls.filter((c) => c.role === "bandit").size()).toBe(0);
-                expect(h.s.bomberEncounter).toBeDefined();
-                h.folder.Destroy();
-                continue;
-            }
+				const bombers = phase.bombers;
+				// Unscheduled formations still require their full count at opening.
+				// Streams require exactly the slots due on the phase-relative clock.
+				const expectDue = (elapsed: number) => {
+					const expectedSlots: number[] = [];
+					for (let slot = 0; slot < bombers.count; slot++) {
+						if ((bombers.arrivalSeconds?.[slot] ?? 0) <= elapsed) expectedSlots.push(slot);
+					}
+					const spawned = h.calls.filter((c) => c.role === "bomber");
+					expect(spawned.size()).toBe(expectedSlots.size());
+					expect(spawned.map((c) => c.options?.bomberSlot)).toEqual(expectedSlots);
+					for (const call of spawned) expect(call.options?.targetId).toBe(bombers.targetIds?.[call.options!.bomberSlot!]);
+					expect(h.s.bomberEncounter?.bombersSpawned).toBe(expectedSlots.size());
+				};
+				expectDue(0);
+				expect(h.calls.filter((c) => c.role === "escort" && c.options?.optional).size()).toBe(bombers.escorts.initial);
+				expect(h.calls.filter((c) => c.role === "bandit").size()).toBe(0);
+				expect(h.s.bomberEncounter).toBeDefined();
+				let previousArrival = 0;
+				for (const at of bombers.arrivalSeconds ?? []) {
+					if (at <= previousArrival) continue;
+					previousArrival = at;
+					h.s.elapsed = at - 0.001; h.director.Step(h.s); expectDue(h.s.elapsed);
+					h.s.elapsed = at; h.director.Step(h.s); expectDue(at);
+					h.director.Step(h.s); expectDue(at); // A repeated step cannot duplicate a slot.
+				}
+				expect(h.calls.filter((c) => c.role === "bomber").size()).toBe(bombers.count);
+				h.folder.Destroy();
+				continue;
+			}
+			const arrivals = phase.fighterWaves?.filter(w => w.required) ?? [];
+			if (arrivals.size() > 0) {
+				// Authored waves replace generic bandits. Time triggers use mission time,
+				// not the D4 route clock. Keep the isolated phase at t=0 to check its opening.
+				const times: number[] = [];
+				for (const wave of arrivals) {
+					// Fail loudly if the catalog introduces a new required trigger contract.
+					assert(wave.trigger.kind === "time", "Required wave needs a trigger stimulus in this test");
+					times.push(wave.trigger.seconds);
+				}
+				times.sort((a, b) => a < b);
+				const expectDue = (elapsed: number) => {
+					let total = 0;
+					for (const wave of arrivals) {
+						assert(wave.trigger.kind === "time");
+						const due = wave.trigger.seconds <= elapsed ? wave.count : 0;
+						const calls = h.calls.filter(c => c.options?.arrival?.id === wave.id);
+						expect(calls.size()).toBe(due);
+						for (const call of calls) {
+							expect(call.role).toBe(wave.role);
+							expect(call.options?.optional).toBe(false);
+							expect(call.options?.arrival).toBe(wave);
+						}
+						total += due;
+					}
+					expect(h.calls.filter(c => c.options?.optional !== true).size()).toBe(total);
+					expect(h.calls.filter(c => c.role === "bandit").size()).toBe(0);
+					expect(h.s.airQueue.size()).toBe(0);
+				};
+				// No real actors live in this spy harness. Remove its cumulative-call
+				// budget proxy so later admissions are tested independently of combat losses.
+				h.budget.fighters = 0;
+				h.director.Step(h.s); expectDue(0);
+				let previousArrival = 0;
+				for (const at of times) {
+					if (at <= previousArrival) continue;
+					previousArrival = at;
+					h.s.elapsed = at - 0.001; h.director.Step(h.s); expectDue(h.s.elapsed);
+					h.s.elapsed = at; h.director.Step(h.s); expectDue(at);
+					h.director.Apply(h.s); h.director.Step(h.s); expectDue(at);
+					h.s.elapsed = at + 0.001; h.director.Step(h.s); expectDue(h.s.elapsed);
+				}
+				expect(arrivals.reduce((n, w) => n + w.count, 0)).toBe(phase.count);
+				expect(h.calls.filter(c => c.options?.optional === false).size()).toBe(phase.count);
+				expect(h.s.bomberEncounter).toBeUndefined(); h.folder.Destroy();
+				continue;
+			}
 			const role = phase.kind === "ace" ? "ace" : phase.kind === "chase" ? "courier" : "bandit";
 			const count = phase.kind === "ace" ? 1 : phase.kind === "chase" ? phase.count ?? 1
 				: phase.execution?.launchDelay !== undefined ? 0 : phase.execution?.directSpawn ? phase.count ?? 0 : math.ceil((phase.count ?? 0) / (phase.groups ?? 1));
 			expect(h.calls.filter((c) => c.role === role).size()).toBe(count);
+			if (phase.kind === "required_air") {
+				// Opening expectations above still include the actual live-aircraft cap.
+				// Drain queues with free slots, then exercise every later group/launch.
+				h.budget.fighters = 0; h.director.Step(h.s);
+				if (phase.execution?.launchDelay !== undefined) {
+					const at = phase.execution.launchDelay;
+					// Isolating a phase bypasses advance(), which normally sets this deadline.
+					h.s.blueprintState!.banditsDueAt = at;
+					BlueprintRunner.Tick(h.s.blueprintState!, at - 0.001);
+					h.director.LaunchDue(h.s);
+					expect(h.calls.filter(c => c.role === role).size()).toBe(0);
+					BlueprintRunner.Tick(h.s.blueprintState!, at);
+					h.director.LaunchDue(h.s); h.director.LaunchDue(h.s);
+				} else if (h.s.wave) {
+					const wave = h.s.wave;
+					let expected = wave.plan[0];
+					for (let group = 1; group < wave.plan.size(); group++) {
+						const at = wave.lastAt + (phase.stagger ?? WavePlan.DefaultStagger);
+						const share = phase.groupAt?.[group - 1];
+						if (share !== undefined) h.s.blueprintState!.phaseProgress = math.ceil(share * (phase.count ?? 0)) - 1;
+						h.s.elapsed = at - 0.001; h.director.Step(h.s);
+						expect(h.calls.filter(c => c.role === role).size()).toBe(expected);
+						if (share !== undefined) h.s.blueprintState!.phaseProgress++;
+						h.s.elapsed = at; h.director.Step(h.s);
+						expected += wave.plan[group];
+						expect(h.calls.filter(c => c.role === role).size()).toBe(expected);
+						h.director.Step(h.s);
+						expect(h.calls.filter(c => c.role === role).size()).toBe(expected);
+					}
+				}
+				expect(h.calls.filter(c => c.role === role).size()).toBe(phase.count ?? 0);
+			}
 			if (role === "ace") expect(h.calls.filter((c) => c.role === "ace")[0].options?.name).toBeUndefined();
 			expect(h.s.bomberEncounter).toBeUndefined(); h.folder.Destroy();
 		}

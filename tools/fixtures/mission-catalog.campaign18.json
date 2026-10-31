@@ -11216,47 +11216,1602 @@
   },
   {
     "act": 2,
-    "available": false,
+    "airspace": {
+      "hardHalfWidth": 16000,
+      "radarRange": 24000,
+      "softHalfWidth": 15600,
+      "spawnLimit": 15600
+    },
+    "allies": {
+      "allowRequiredTargets": false,
+      "callsignPrefix": "LANTERN",
+      "count": 3,
+      "creditPlayerKills": false,
+      "formation": [
+        {
+          "x": -180,
+          "y": 20,
+          "z": 160
+        },
+        {
+          "x": 180,
+          "y": 20,
+          "z": 160
+        },
+        {
+          "x": 0,
+          "y": 40,
+          "z": 320
+        }
+      ],
+      "killBudget": 1,
+      "model": "Kestrel"
+    },
+    "available": true,
     "briefing": "Varda's island transmitter will broadcast Teal's thirty-five seconds. Sera stays in the tower. Hold the tropical island's sky against the fighters and bomber wave until the signal is out, then clear the remaining attackers.",
-    "codename": "In development",
+    "codename": "The loyalist window",
+    "countdownSeconds": 420,
     "debrief": "The broadcast is out. Three garrisons heard it. Two stood down and are coming ashore to join us.",
-    "environment": "farm_overcast",
+    "environment": "ocean_clear",
     "failure": "The transmitter could not hold the window. The garrisons have not heard the proof.",
     "ground": [],
     "id": 8,
-    "optionalRaiderMax": 0,
+    "optionalRaiderMax": 41,
     "phases": [
       {
-        "count": 1,
+        "beat": "SERA: I stay in the tower. Keep bombers off the transmitter.",
+        "concurrentFighters": 8,
+        "fighterWaves": [
+          {
+            "count": 8,
+            "headingDegrees": 135,
+            "id": "m08_opening",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          },
+          {
+            "count": 8,
+            "headingDegrees": 225,
+            "id": "m08_second",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "time",
+              "seconds": 75
+            }
+          },
+          {
+            "count": 8,
+            "headingDegrees": 90,
+            "id": "m08_reserves",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "time",
+              "seconds": 160
+            }
+          },
+          {
+            "count": 8,
+            "headingDegrees": 180,
+            "id": "m08_last_flight",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "time",
+              "seconds": 270
+            }
+          },
+          {
+            "aircraft": "jammer",
+            "count": 1,
+            "id": "m08_tanker",
+            "role": "raider",
+            "route": {
+              "speed": 100,
+              "waypoints": [
+                {
+                  "x": -9000,
+                  "y": 1500,
+                  "z": -9000
+                },
+                {
+                  "x": 9000,
+                  "y": 1500,
+                  "z": -9000
+                },
+                {
+                  "x": 9000,
+                  "y": 1500,
+                  "z": -4000
+                },
+                {
+                  "x": -9000,
+                  "y": 1500,
+                  "z": -4000
+                },
+                {
+                  "x": -9000,
+                  "y": 1500,
+                  "z": -9000
+                },
+                {
+                  "x": 9000,
+                  "y": 1500,
+                  "z": -9000
+                },
+                {
+                  "x": 9000,
+                  "y": 1500,
+                  "z": -4000
+                },
+                {
+                  "x": -9000,
+                  "y": 1500,
+                  "z": -4000
+                },
+                {
+                  "x": -9000,
+                  "y": 1500,
+                  "z": -9000
+                },
+                {
+                  "x": 9000,
+                  "y": 1500,
+                  "z": -9000
+                },
+                {
+                  "x": 9000,
+                  "y": 1500,
+                  "z": -4000
+                },
+                {
+                  "x": -9000,
+                  "y": 1500,
+                  "z": -4000
+                }
+              ]
+            },
+            "scoreRole": "tanker",
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 0
+            }
+          },
+          {
+            "aircraft": "jammer",
+            "count": 1,
+            "id": "m08_radar",
+            "role": "raider",
+            "route": {
+              "speed": 100,
+              "waypoints": [
+                {
+                  "x": -9000,
+                  "y": 1500,
+                  "z": -10000
+                },
+                {
+                  "x": 9000,
+                  "y": 1500,
+                  "z": -10000
+                },
+                {
+                  "x": 9000,
+                  "y": 1500,
+                  "z": -5000
+                },
+                {
+                  "x": -9000,
+                  "y": 1500,
+                  "z": -5000
+                },
+                {
+                  "x": -9000,
+                  "y": 1500,
+                  "z": -10000
+                },
+                {
+                  "x": 9000,
+                  "y": 1500,
+                  "z": -10000
+                },
+                {
+                  "x": 9000,
+                  "y": 1500,
+                  "z": -5000
+                },
+                {
+                  "x": -9000,
+                  "y": 1500,
+                  "z": -5000
+                },
+                {
+                  "x": -9000,
+                  "y": 1500,
+                  "z": -10000
+                },
+                {
+                  "x": 9000,
+                  "y": 1500,
+                  "z": -10000
+                },
+                {
+                  "x": 9000,
+                  "y": 1500,
+                  "z": -5000
+                },
+                {
+                  "x": -9000,
+                  "y": 1500,
+                  "z": -5000
+                }
+              ]
+            },
+            "scoreRole": "radar",
+            "trigger": {
+              "kind": "time",
+              "seconds": 60
+            }
+          }
+        ],
+        "kind": "score_threshold",
+        "label": "Score 800 points before 7:00",
+        "scoreThreshold": {
+          "points": 800,
+          "seconds": 420,
+          "waitForExpiry": true
+        },
+        "standaloneAce": {
+          "behaviour": "dogfight",
+          "headingDegrees": 90,
+          "health": 165,
+          "id": "m08_prism",
+          "livery": "Vulture",
+          "name": "PRISM LEAD",
+          "scoreRole": "ace",
+          "trigger": {
+            "kind": "time",
+            "seconds": 300
+          }
+        }
+      },
+      {
+        "bombers": {
+          "arrivalSeconds": [
+            0,
+            15,
+            30,
+            45,
+            60,
+            75
+          ],
+          "count": 6,
+          "escape": {
+            "x": 1920,
+            "y": 700,
+            "z": 0
+          },
+          "escapeCall": "SERA: A bomber reached the tower. We have lost the transmitter.",
+          "escorts": {
+            "aceAt": 0,
+            "aceName": "NONE",
+            "count": 0,
+            "initial": 0,
+            "role": "escort"
+          },
+          "speed": 60,
+          "targetIds": [
+            "m08_west_bomber_1",
+            "m08_west_bomber_2",
+            "m08_west_bomber_3",
+            "m08_west_bomber_4",
+            "m08_west_bomber_5",
+            "m08_west_bomber_6"
+          ],
+          "waypoints": [
+            {
+              "x": -13440,
+              "y": 700,
+              "z": -960
+            },
+            {
+              "x": -5760,
+              "y": 700,
+              "z": -960
+            }
+          ]
+        },
+        "concurrentFighters": 6,
+        "count": 6,
+        "fighterWaves": [
+          {
+            "count": 6,
+            "headingDegrees": 90,
+            "id": "m08_cover",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "phase_start",
+              "phase": 1
+            }
+          }
+        ],
+        "interceptHold": {
+          "ignitionCall": "SERA: Transmitter is live. Hold this sky for thirty-five seconds.",
+          "ignitionSecondsRemaining": 35,
+          "site": {
+            "x": 1920,
+            "y": 90,
+            "z": 0
+          },
+          "siteId": "m08_broadcast_mast",
+          "siteName": "VARDA TRANSMITTER"
+        },
         "kind": "required_air",
-        "label": "In development"
+        "label": "Intercept bombers; hold broadcast",
+        "update": {
+          "countdownSeconds": 360,
+          "objective": "Destroy six western bombers; protect the transmitter until 0:00",
+          "radio": [
+            "SERA: Six bombers west. Keep them off the tower until the window closes."
+          ]
+        }
       }
     ],
-    "primary": "In development",
-    "region": "canyon_airfield",
-    "title": "Mission 8"
+    "pressure": {
+      "forwardConeDegrees": 25,
+      "playerPriority": 0.8,
+      "tailDefence": true
+    },
+    "primary": "Score 800 in 7:00, then intercept six western bombers and hold the transmitter for 6:00",
+    "region": "ocean_platform",
+    "scoring": {
+      "basis": "points",
+      "points": {
+        "ace": 240,
+        "bomber": 150,
+        "escort": 60,
+        "fighter": 60,
+        "radar": 140,
+        "tanker": 150
+      },
+      "rank": {
+        "A": 2400,
+        "B": 1700,
+        "C": 800,
+        "S": 2900
+      }
+    },
+    "start": {
+      "headingDegrees": 315,
+      "kind": "airborne",
+      "speed": 160,
+      "x": 7680,
+      "y": 851,
+      "z": 7680
+    },
+    "terrainRelativeWarnings": true,
+    "title": "OPEN FREQUENCY",
+    "worldKey": "m08_island_broadcast"
   },
   {
     "act": 2,
-    "available": false,
-    "briefing": "The garrisons that stood down are landing under the weather. Loyalist frigates cover them. Clear the coastal pillboxes, artillery and AA so the troops reach shore. The carrier can service you between attacks.",
-    "codename": "In development",
+    "airspace": {
+      "hardHalfWidth": 16000,
+      "radarRange": 24000,
+      "softHalfWidth": 15600,
+      "spawnLimit": 15600
+    },
+    "allies": {
+      "allowRequiredTargets": false,
+      "callsignPrefix": "LANTERN",
+      "count": 3,
+      "creditPlayerKills": false,
+      "formation": [
+        {
+          "x": -180,
+          "y": 30,
+          "z": 160
+        },
+        {
+          "x": 180,
+          "y": 30,
+          "z": 160
+        },
+        {
+          "x": 0,
+          "y": 50,
+          "z": 320
+        }
+      ],
+      "killBudget": 1,
+      "model": "Kestrel"
+    },
+    "armament": {
+      "areaAttack": {
+        "damage": 180,
+        "depth": 80,
+        "radius": 220
+      },
+      "gun": {
+        "rounds": 1200
+      },
+      "stock": {
+        "missiles": 60
+      }
+    },
+    "available": true,
+    "briefing": "The garrisons that stood down are landing under the weather. Loyalist frigates cover them. Score 2,200 in ten minutes against the coastal guns, then stop nine attack jets in seven minutes. Clear each beach's two batteries to release its landing craft. Keep all three landing forces alive. Weapons are finite; the offshore carrier can rearm you during the beach strike.",
+    "codename": "The frigate ring",
+    "countdownSeconds": 600,
     "debrief": "The landing holds. Then the Marshal answers Varda's broadcast: the Teklan orchard burns, and his guns close the river valleys.",
-    "environment": "farm_overcast",
+    "environment": "ocean_clear",
     "failure": "The beach guns still hold the landing offshore.",
     "ground": [],
     "id": 9,
-    "optionalRaiderMax": 0,
+    "optionalRaiderMax": 12,
     "phases": [
       {
-        "count": 1,
+        "beat": "SERA: Green beacon is ours. Clear the guns above the beach.",
+        "chatter": [
+          {
+            "at": 0.5,
+            "text": "SERA: Teal taught us: weather hides a turn. Keep moving."
+          }
+        ],
+        "concurrentFighters": 8,
+        "fighterWaves": [
+          {
+            "aircraft": "helicopter",
+            "count": 1,
+            "id": "m09_west_helicopter",
+            "role": "raider",
+            "route": {
+              "speed": 55,
+              "waypoints": [
+                {
+                  "x": -8680,
+                  "y": 650,
+                  "z": 0
+                },
+                {
+                  "x": -6680,
+                  "y": 650,
+                  "z": 0
+                },
+                {
+                  "x": -6680,
+                  "y": 650,
+                  "z": -1600
+                },
+                {
+                  "x": -8680,
+                  "y": 650,
+                  "z": -1600
+                }
+              ]
+            },
+            "scoreRole": "helicopter",
+            "trigger": {
+              "kind": "approach",
+              "radius": 6000,
+              "x": -7680,
+              "z": 0
+            }
+          },
+          {
+            "aircraft": "helicopter",
+            "count": 1,
+            "id": "m09_central_helicopter",
+            "role": "raider",
+            "route": {
+              "speed": 55,
+              "waypoints": [
+                {
+                  "x": -1000,
+                  "y": 650,
+                  "z": -960
+                },
+                {
+                  "x": 1000,
+                  "y": 650,
+                  "z": -960
+                },
+                {
+                  "x": 1000,
+                  "y": 650,
+                  "z": -2560
+                },
+                {
+                  "x": -1000,
+                  "y": 650,
+                  "z": -2560
+                }
+              ]
+            },
+            "scoreRole": "helicopter",
+            "trigger": {
+              "kind": "approach",
+              "radius": 6000,
+              "x": 0,
+              "z": -960
+            }
+          },
+          {
+            "aircraft": "helicopter",
+            "count": 1,
+            "id": "m09_east_helicopter",
+            "role": "raider",
+            "route": {
+              "speed": 55,
+              "waypoints": [
+                {
+                  "x": 6680,
+                  "y": 650,
+                  "z": 0
+                },
+                {
+                  "x": 8680,
+                  "y": 650,
+                  "z": 0
+                },
+                {
+                  "x": 8680,
+                  "y": 650,
+                  "z": -1600
+                },
+                {
+                  "x": 6680,
+                  "y": 650,
+                  "z": -1600
+                }
+              ]
+            },
+            "scoreRole": "helicopter",
+            "trigger": {
+              "kind": "approach",
+              "radius": 6000,
+              "x": 7680,
+              "z": 0
+            }
+          },
+          {
+            "count": 4,
+            "headingDegrees": 180,
+            "id": "m09_cover",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "time",
+              "seconds": 20
+            }
+          },
+          {
+            "count": 4,
+            "headingDegrees": 160,
+            "id": "m09_reserve",
+            "role": "raider",
+            "scoreRole": "fighter",
+            "trigger": {
+              "kind": "time",
+              "seconds": 240
+            }
+          }
+        ],
+        "groundTargets": [
+          {
+            "group": "west",
+            "id": "m09_west_radar_1",
+            "position": {
+              "x": -8680,
+              "y": 180,
+              "z": -600
+            },
+            "required": false,
+            "scoreRole": "radar",
+            "type": "radar_dome",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "id": "m09_central_radar_2",
+            "position": {
+              "x": -1000,
+              "y": 180,
+              "z": -1560
+            },
+            "required": false,
+            "scoreRole": "radar",
+            "type": "radar_dome",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "id": "m09_east_radar_3",
+            "position": {
+              "x": 6680,
+              "y": 180,
+              "z": -600
+            },
+            "required": false,
+            "scoreRole": "radar",
+            "type": "radar_dome",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "id": "m09_west_radar_4",
+            "position": {
+              "x": -8180,
+              "y": 180,
+              "z": -600
+            },
+            "required": false,
+            "scoreRole": "radar",
+            "type": "radar_dome",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "id": "m09_central_radar_5",
+            "position": {
+              "x": -500,
+              "y": 180,
+              "z": -1560
+            },
+            "required": false,
+            "scoreRole": "radar",
+            "type": "radar_dome",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "id": "m09_east_radar_6",
+            "position": {
+              "x": 7180,
+              "y": 180,
+              "z": -600
+            },
+            "required": false,
+            "scoreRole": "radar",
+            "type": "radar_dome",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "id": "m09_west_radar_7",
+            "position": {
+              "x": -7680,
+              "y": 180,
+              "z": -600
+            },
+            "required": false,
+            "scoreRole": "radar",
+            "type": "radar_dome",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "id": "m09_central_radar_8",
+            "position": {
+              "x": 0,
+              "y": 180,
+              "z": -1560
+            },
+            "required": false,
+            "scoreRole": "radar",
+            "type": "radar_dome",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "id": "m09_east_radar_9",
+            "position": {
+              "x": 7680,
+              "y": 180,
+              "z": -600
+            },
+            "required": false,
+            "scoreRole": "radar",
+            "type": "radar_dome",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "id": "m09_west_battery_10",
+            "position": {
+              "x": -7180,
+              "y": 180,
+              "z": -600
+            },
+            "required": false,
+            "scoreRole": "battery",
+            "type": "artillery",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "id": "m09_central_battery_11",
+            "position": {
+              "x": 500,
+              "y": 180,
+              "z": -1560
+            },
+            "required": false,
+            "scoreRole": "battery",
+            "type": "artillery",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "id": "m09_east_battery_12",
+            "position": {
+              "x": 8180,
+              "y": 180,
+              "z": -600
+            },
+            "required": false,
+            "scoreRole": "battery",
+            "type": "artillery",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "id": "m09_west_battery_13",
+            "position": {
+              "x": -6680,
+              "y": 180,
+              "z": -600
+            },
+            "required": false,
+            "scoreRole": "battery",
+            "type": "artillery",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "id": "m09_central_battery_14",
+            "position": {
+              "x": 1000,
+              "y": 180,
+              "z": -1560
+            },
+            "required": false,
+            "scoreRole": "battery",
+            "type": "artillery",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "id": "m09_east_battery_15",
+            "position": {
+              "x": 8680,
+              "y": 180,
+              "z": -600
+            },
+            "required": false,
+            "scoreRole": "battery",
+            "type": "artillery",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "id": "m09_west_pillbox_16",
+            "position": {
+              "x": -8680,
+              "y": 180,
+              "z": -880
+            },
+            "required": false,
+            "scoreRole": "pillbox",
+            "type": "bunker",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "id": "m09_central_pillbox_17",
+            "position": {
+              "x": -1000,
+              "y": 180,
+              "z": -1840
+            },
+            "required": false,
+            "scoreRole": "pillbox",
+            "type": "bunker",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "id": "m09_east_pillbox_18",
+            "position": {
+              "x": 6680,
+              "y": 180,
+              "z": -880
+            },
+            "required": false,
+            "scoreRole": "pillbox",
+            "type": "bunker",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "id": "m09_west_pillbox_19",
+            "position": {
+              "x": -8180,
+              "y": 180,
+              "z": -880
+            },
+            "required": false,
+            "scoreRole": "pillbox",
+            "type": "bunker",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "id": "m09_central_pillbox_20",
+            "position": {
+              "x": -500,
+              "y": 180,
+              "z": -1840
+            },
+            "required": false,
+            "scoreRole": "pillbox",
+            "type": "bunker",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "id": "m09_east_pillbox_21",
+            "position": {
+              "x": 7180,
+              "y": 180,
+              "z": -880
+            },
+            "required": false,
+            "scoreRole": "pillbox",
+            "type": "bunker",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "id": "m09_west_pillbox_22",
+            "position": {
+              "x": -7680,
+              "y": 180,
+              "z": -880
+            },
+            "required": false,
+            "scoreRole": "pillbox",
+            "type": "bunker",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "id": "m09_central_pillbox_23",
+            "position": {
+              "x": 0,
+              "y": 180,
+              "z": -1840
+            },
+            "required": false,
+            "scoreRole": "pillbox",
+            "type": "bunker",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "id": "m09_east_pillbox_24",
+            "position": {
+              "x": 7680,
+              "y": 180,
+              "z": -880
+            },
+            "required": false,
+            "scoreRole": "pillbox",
+            "type": "bunker",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "id": "m09_west_pillbox_25",
+            "position": {
+              "x": -7180,
+              "y": 180,
+              "z": -880
+            },
+            "required": false,
+            "scoreRole": "pillbox",
+            "type": "bunker",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "id": "m09_central_pillbox_26",
+            "position": {
+              "x": 500,
+              "y": 180,
+              "z": -1840
+            },
+            "required": false,
+            "scoreRole": "pillbox",
+            "type": "bunker",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "id": "m09_east_pillbox_27",
+            "position": {
+              "x": 8180,
+              "y": 180,
+              "z": -880
+            },
+            "required": false,
+            "scoreRole": "pillbox",
+            "type": "bunker",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "id": "m09_west_pillbox_28",
+            "position": {
+              "x": -6680,
+              "y": 180,
+              "z": -880
+            },
+            "required": false,
+            "scoreRole": "pillbox",
+            "type": "bunker",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "id": "m09_central_pillbox_29",
+            "position": {
+              "x": 1000,
+              "y": 180,
+              "z": -1840
+            },
+            "required": false,
+            "scoreRole": "pillbox",
+            "type": "bunker",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "id": "m09_east_pillbox_30",
+            "position": {
+              "x": 8680,
+              "y": 180,
+              "z": -880
+            },
+            "required": false,
+            "scoreRole": "pillbox",
+            "type": "bunker",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "id": "m09_west_pillbox_31",
+            "position": {
+              "x": -8680,
+              "y": 180,
+              "z": -1160
+            },
+            "required": false,
+            "scoreRole": "pillbox",
+            "type": "bunker",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "id": "m09_central_tank_32",
+            "position": {
+              "x": -1000,
+              "y": 180,
+              "z": -2120
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "id": "m09_east_tank_33",
+            "position": {
+              "x": 6680,
+              "y": 180,
+              "z": -1160
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "id": "m09_west_tank_34",
+            "position": {
+              "x": -8180,
+              "y": 180,
+              "z": -1160
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "id": "m09_central_tank_35",
+            "position": {
+              "x": -500,
+              "y": 180,
+              "z": -2120
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "id": "m09_east_tank_36",
+            "position": {
+              "x": 7180,
+              "y": 180,
+              "z": -1160
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "id": "m09_west_tank_37",
+            "position": {
+              "x": -7680,
+              "y": 180,
+              "z": -1160
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "id": "m09_central_tank_38",
+            "position": {
+              "x": 0,
+              "y": 180,
+              "z": -2120
+            },
+            "required": false,
+            "scoreRole": "tank",
+            "type": "tank",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "id": "m09_east_launcher_39",
+            "position": {
+              "x": 7680,
+              "y": 180,
+              "z": -1160
+            },
+            "required": false,
+            "scoreRole": "launcher",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "id": "m09_west_launcher_40",
+            "position": {
+              "x": -7180,
+              "y": 180,
+              "z": -1160
+            },
+            "required": false,
+            "scoreRole": "launcher",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "id": "m09_central_launcher_41",
+            "position": {
+              "x": 500,
+              "y": 180,
+              "z": -2120
+            },
+            "required": false,
+            "scoreRole": "launcher",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "id": "m09_east_launcher_42",
+            "position": {
+              "x": 8180,
+              "y": 180,
+              "z": -1160
+            },
+            "required": false,
+            "scoreRole": "launcher",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "id": "m09_west_launcher_43",
+            "position": {
+              "x": -6680,
+              "y": 180,
+              "z": -1160
+            },
+            "required": false,
+            "scoreRole": "launcher",
+            "type": "vehicle",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "id": "m09_central_howitzer_44",
+            "position": {
+              "x": 1000,
+              "y": 180,
+              "z": -2120
+            },
+            "required": false,
+            "scoreRole": "howitzer",
+            "type": "artillery",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "id": "m09_east_howitzer_45",
+            "position": {
+              "x": 8680,
+              "y": 180,
+              "z": -1160
+            },
+            "required": false,
+            "scoreRole": "howitzer",
+            "type": "artillery",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "id": "m09_west_howitzer_46",
+            "position": {
+              "x": -8680,
+              "y": 180,
+              "z": -1440
+            },
+            "required": false,
+            "scoreRole": "howitzer",
+            "type": "artillery",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "id": "m09_central_aa_47",
+            "position": {
+              "x": -1000,
+              "y": 180,
+              "z": -2400
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "id": "m09_east_aa_48",
+            "position": {
+              "x": 6680,
+              "y": 180,
+              "z": -1440
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "id": "m09_west_aa_49",
+            "position": {
+              "x": -8180,
+              "y": 180,
+              "z": -1440
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "id": "m09_central_aa_50",
+            "position": {
+              "x": -500,
+              "y": 180,
+              "z": -2400
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "id": "m09_east_aa_51",
+            "position": {
+              "x": 7180,
+              "y": 180,
+              "z": -1440
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "id": "m09_west_aa_52",
+            "position": {
+              "x": -7680,
+              "y": 180,
+              "z": -1440
+            },
+            "required": false,
+            "scoreRole": "aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "central",
+            "id": "m09_central_aa_53",
+            "position": {
+              "x": 0,
+              "y": 180,
+              "z": -2400
+            },
+            "required": false,
+            "scoreRole": "heavy_aa",
+            "type": "aa_gun",
+            "yaw": 0
+          },
+          {
+            "group": "east",
+            "id": "m09_east_sam_54",
+            "position": {
+              "x": 7680,
+              "y": 180,
+              "z": -1440
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": 0
+          },
+          {
+            "group": "west",
+            "id": "m09_west_sam_55",
+            "position": {
+              "x": -7180,
+              "y": 180,
+              "z": -1440
+            },
+            "required": false,
+            "sam": true,
+            "scoreRole": "sam",
+            "type": "sam",
+            "yaw": 0
+          }
+        ],
+        "kind": "score_threshold",
+        "label": "Suppress the three beach sectors",
+        "rearm": {
+          "carrier": {
+            "catapult": {
+              "x": 24.5155,
+              "y": 72,
+              "z": 11260
+            },
+            "centre": {
+              "x": 0,
+              "y": 72,
+              "z": 11520
+            },
+            "length": 560,
+            "width": 150
+          },
+          "gun": true,
+          "health": false,
+          "landing": {
+            "approachDistance": 1360,
+            "approachSeconds": 17,
+            "glideDegrees": 3,
+            "headingDegrees": 0,
+            "rolloutDistance": 160,
+            "rolloutSeconds": 4,
+            "touchdown": {
+              "x": -32,
+              "y": 72,
+              "z": 11640
+            }
+          },
+          "missiles": true,
+          "radio": [
+            {
+              "at": 1,
+              "text": "DECK: Green deck. Bring her down on the angled stripe."
+            },
+            {
+              "at": 23,
+              "text": "DECK: Weapons aboard. Taxi to the bow for launch."
+            }
+          ],
+          "radius": 1500,
+          "special": true,
+          "takeoffSeconds": 10,
+          "weaponMenu": true,
+          "zone": {
+            "lean": 0,
+            "pitch": -0.0523598775598299,
+            "qw": 0.9996573249755574,
+            "qx": -0.026176948307873156,
+            "qy": 0,
+            "qz": 0,
+            "roll": 0,
+            "speed": 80,
+            "x": -32,
+            "y": 143.27457982493604,
+            "yaw": 0,
+            "z": 13000
+          }
+        },
+        "scoreThreshold": {
+          "points": 2200,
+          "seconds": 600,
+          "waitForExpiry": true
+        },
+        "standaloneAce": {
+          "behaviour": "dogfight",
+          "headingDegrees": 180,
+          "health": 165,
+          "id": "m09_squall",
+          "livery": "Vulture",
+          "name": "SQUALL",
+          "scoreRole": "ace",
+          "trigger": {
+            "kind": "time",
+            "seconds": 300
+          }
+        }
+      },
+      {
+        "chatter": [
+          {
+            "at": 1,
+            "text": "SERA: The landing is through. There is smoke over Teklan."
+          }
+        ],
+        "concurrentFighters": 9,
+        "count": 9,
+        "fighterWaves": [
+          {
+            "attackSector": "west",
+            "call": "SERA: Three attack jets closing on the west landing.",
+            "count": 3,
+            "headingDegrees": 205,
+            "id": "m09_west_attack",
+            "required": true,
+            "role": "raider",
+            "scoreRole": "attack",
+            "spawn": {
+              "x": -5180,
+              "y": 900,
+              "z": -4800
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 600
+            }
+          },
+          {
+            "attackSector": "central",
+            "call": "SERA: Three attack jets closing on the central landing.",
+            "count": 3,
+            "headingDegrees": 205,
+            "id": "m09_central_attack",
+            "required": true,
+            "role": "raider",
+            "scoreRole": "attack",
+            "spawn": {
+              "x": 2500,
+              "y": 900,
+              "z": -5760
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 625
+            }
+          },
+          {
+            "attackSector": "east",
+            "call": "SERA: Three attack jets closing on the east landing.",
+            "count": 3,
+            "headingDegrees": 205,
+            "id": "m09_east_attack",
+            "required": true,
+            "role": "raider",
+            "scoreRole": "attack",
+            "spawn": {
+              "x": 10180,
+              "y": 900,
+              "z": -4800
+            },
+            "trigger": {
+              "kind": "time",
+              "seconds": 650
+            }
+          }
+        ],
+        "groundProgress": {
+          "sectors": [
+            {
+              "advanceCall": "SHORE: west guns clear. Landing craft advancing.",
+              "clearTargetIds": [
+                "m09_west_battery_10",
+                "m09_west_battery_13"
+              ],
+              "health": 300,
+              "hitCall": "SHORE: west landing force under air attack!",
+              "id": "west",
+              "kind": "landing_craft",
+              "route": {
+                "speed": 20,
+                "waypoints": [
+                  {
+                    "x": -7680,
+                    "y": 40,
+                    "z": 1800
+                  },
+                  {
+                    "x": -7680,
+                    "y": 40,
+                    "z": 100
+                  }
+                ]
+              },
+              "seconds": 90,
+              "securedCall": "SHORE: west beach secured."
+            },
+            {
+              "advanceCall": "SHORE: central guns clear. Landing craft advancing.",
+              "clearTargetIds": [
+                "m09_central_battery_11",
+                "m09_central_battery_14"
+              ],
+              "health": 300,
+              "hitCall": "SHORE: central landing force under air attack!",
+              "id": "central",
+              "kind": "landing_craft",
+              "route": {
+                "speed": 20,
+                "waypoints": [
+                  {
+                    "x": 0,
+                    "y": 40,
+                    "z": 840
+                  },
+                  {
+                    "x": 0,
+                    "y": 40,
+                    "z": -860
+                  }
+                ]
+              },
+              "seconds": 90,
+              "securedCall": "SHORE: central beach secured."
+            },
+            {
+              "advanceCall": "SHORE: east guns clear. Landing craft advancing.",
+              "clearTargetIds": [
+                "m09_east_battery_12",
+                "m09_east_battery_15"
+              ],
+              "health": 300,
+              "hitCall": "SHORE: east landing force under air attack!",
+              "id": "east",
+              "kind": "landing_craft",
+              "route": {
+                "speed": 20,
+                "waypoints": [
+                  {
+                    "x": 7680,
+                    "y": 40,
+                    "z": 1800
+                  },
+                  {
+                    "x": 7680,
+                    "y": 40,
+                    "z": 100
+                  }
+                ]
+              },
+              "seconds": 90,
+              "securedCall": "SHORE: east beach secured."
+            }
+          ]
+        },
         "kind": "required_air",
-        "label": "In development"
+        "label": "Stop the beach attackers",
+        "update": {
+          "countdownSeconds": 420,
+          "objective": "Stop all nine attack jets; protect the landing forces",
+          "radio": [
+            "SERA: Attack jets inbound. Keep them off the green beacons."
+          ]
+        }
       }
     ],
-    "primary": "In development",
-    "region": "canyon_airfield",
-    "title": "Mission 9"
+    "pressure": {
+      "forwardConeDegrees": 45,
+      "playerPriority": 0.8,
+      "tailDefence": true
+    },
+    "primary": "Score 2,200 in 10:00; stop nine attack jets in 7:00",
+    "region": "coastal_harbor",
+    "scoring": {
+      "basis": "points",
+      "points": {
+        "aa": 20,
+        "ace": 240,
+        "attack": 100,
+        "battery": 80,
+        "fighter": 60,
+        "heavy_aa": 40,
+        "helicopter": 50,
+        "howitzer": 60,
+        "launcher": 70,
+        "pillbox": 60,
+        "radar": 80,
+        "sam": 30,
+        "tank": 50
+      },
+      "rank": {
+        "A": 4000,
+        "B": 3200,
+        "C": 2200,
+        "S": 4400
+      }
+    },
+    "start": {
+      "headingDegrees": 0,
+      "kind": "airborne",
+      "speed": 160,
+      "x": 0,
+      "y": 126,
+      "z": 7680
+    },
+    "terrainRelativeWarnings": true,
+    "title": "GREEN BEACON",
+    "worldKey": "m09_frigate_landing"
   },
   {
     "act": 2,
