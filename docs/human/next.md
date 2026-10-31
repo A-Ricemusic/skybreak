@@ -1,5 +1,7 @@
 # Next
 
+D9 F21: review and integrate after D7 #184; reconcile the batch C source predicates with D8 #186 (F20). Then author M13’s 32-balloon/100-point sweep, phase handoff and protected route against dormant world anchors; inspect fog, gun readability and navigation under the orchestrator’s Studio lease before any unlock.
+
 Updated 2026-10-30 against main `6f17a95`, with dormant D7 implementation on this branch. Practice and missions 1–6 are Live after #179 merges; worlds 7–18 and D3 remain dormant. M06 activates merged D1/D2 contracts. Publish succeeded per CI; no new Player observation is claimed.
 
 1. **Integrate merged D4 [#177](https://github.com/A-Ricemusic/skybreak/pull/177) into M08** after its mission slice is authored and reviewed. D1–D4 are merged. Queued air battles, timed bomber interception and protected relay support remain dormant until mission integration.
