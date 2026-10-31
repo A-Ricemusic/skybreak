@@ -1701,6 +1701,33 @@
    "tape": false,
    "text": "SERA: Transmitter is live. Hold this sky for thirty-five seconds.",
    "spoken": "Transmitter is live. Hold this sky for thirty-five seconds."
+  },
+  {
+   "id": "radio.m09.p1.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Green beacon is ours. Clear the guns above the beach.",
+   "spoken": "Green beacon is ours. Clear the guns above the beach."
+  },
+  {
+   "id": "radio.m09.p1.chatter1",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Teal taught us: weather hides a turn. Keep moving.",
+   "spoken": "Teal taught us: weather hides a turn. Keep moving."
+  },
+  {
+   "id": "radio.m09.p2.chatter1",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: The landing is through. There is smoke over Teklan.",
+   "spoken": "The landing is through. There is smoke over Teklan."
   }
  ]
 }

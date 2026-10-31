@@ -65,14 +65,4 @@ export function stepBatchD13(s: CombatSession,say:(line:string)=>void): void {
   const target=d.vent.checkpoints[bs.vent.checkpoint]?.center ?? d.vent.exit.center;
   if(s.d13Beacon) s.d13Beacon.Position=new Vector3(target.x,target.y,target.z);
  }
- if(d.duel) for(const e of s.enemies) if(e.enabled && e.health>0 && e.kind==="ace") {
-  const a=d.duel,delta=new Vector3(e.position.X-a.center.x,0,e.position.Z-a.center.z);
-  if(delta.Magnitude>a.radius || e.position.Y<a.minY || e.position.Y>a.maxY) {
-   const flat=delta.Magnitude>a.radius ? delta.Unit.mul(a.radius) : delta;
-   e.position=new Vector3(a.center.x+flat.X,math.clamp(e.position.Y,a.minY,a.maxY),a.center.z+flat.Z);
-   const inward=new Vector3(a.center.x-e.position.X,0,a.center.z-e.position.Z);
-   if(inward.Magnitude>0.01) e.direction=inward.Unit;
-   e.frame=CFrame.lookAt(e.position,e.position.add(e.direction));
-  }
- }
 }

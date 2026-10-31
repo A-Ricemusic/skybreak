@@ -1,4 +1,4 @@
-import { ventObstructed } from "../shared/EngineBatchD13";
+import { boundDuelPosition, projectileContact, ventObstructed } from "../shared/EngineBatchD13";
 import { d13TargetAllowed, duelActive, stepBatchD13 } from "./EngineBatchD13Runtime";
 import { stepProtection, protectedTarget, hitProtected, clearProtection } from "./EngineBatchD7Runtime";
 import { createCheapContact, cheapEligible, stepContacts, handoffParked, stepRepeatedArtillery } from "./EngineBatchD6Runtime";
@@ -804,7 +804,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 			scramble: options.arrival && "scramble" in options.arrival && options.arrival.scramble ? { spawn: { x:position.X,y:position.Y,z:position.Z }, heading: options.arrival.headingDegrees ?? 0, startedAt:session.elapsed } : undefined,
 			friendly: options.friendly, alliedAmmo: options.friendly ? AlliedRules.MissilesPerWingman : undefined,
 			id: handoffId ?? options.targetId ?? `${friendly ? "ally" : "air"}_${serial}_${missionSerial}`, name, model, health, maxHealth: health,
-			position, direction, velocity: direction.mul(300), kind: role === "ace" ? "ace" : "air", required: options.optional !== true && role !== "raider" && role !== "escort", enabled: true,
+			position, direction, velocity: direction.mul(300), kind: role === "ace" ? "ace" : "air", required: (options.arrival !== undefined && "required" in options.arrival && options.arrival.required === true) || (options.optional !== true && role !== "raider" && role !== "escort"), enabled: true,
 			targetSlot: serial, fireTimer: role === "courier" ? math.huge : 4 + index * 1.5, windup: 0, mode: "attack", modeTimer: 0, passDirection: direction, side,
 			flares, flareTimer: 0, flareUntil: 0, speedBonus: 0, lockBreakTimer: TUNING.aceLockBreak[act - 1],
 			breakTimer: 0, breakUntil: 0, lockBreakChance, role, bomberSlot: options.bomberSlot, escortSlot: options.escortSlot,
@@ -1149,7 +1149,7 @@ function stepGroundDefence(session: CombatSession, dt: number): void {
 		}
 	}
 }
-function stepEnemies(session: CombatSession, dt: number): void {
+export function stepEnemies(session: CombatSession, dt: number): void {
 	stepSurfaceTargets(session,dt);
 	stepSamDefence(session,dt,attackWarning);
 	stepGroundDefence(session,dt);
@@ -1326,7 +1326,13 @@ function stepEnemies(session: CombatSession, dt: number): void {
 		enemy.direction = steerAircraft(oldDirection, desired, breaking ? breakTurn : ace ? 2.8 : 2.1, dt);
 		enemy.velocity = enemy.direction.mul(speed);
 		const moved = enemy.position.add(enemy.velocity.mul(dt));
-		enemy.position = new Vector3(math.clamp(moved.X, -(session.bomberEncounter || enemy.scoreRole !== undefined ? session.airspace.spawnLimit : 2700), session.bomberEncounter || enemy.scoreRole !== undefined ? session.airspace.spawnLimit : 2700), math.clamp(moved.Y, 170, phase?.protection ? phase.protection.altitudeCeiling ?? 2000 : 1000), math.clamp(moved.Z, -(session.bomberEncounter || enemy.scoreRole !== undefined ? session.airspace.spawnLimit : 2700), session.bomberEncounter || enemy.scoreRole !== undefined ? session.airspace.spawnLimit : 2700));
+		const arena = enemy.kind === "ace" && enemy.required && enemy.phaseOwner === session.blueprintState?.phaseIndex ? phase?.batchD13?.duel : undefined;
+		if (arena) {
+			const bounded = boundDuelPosition(point(moved), arena);
+			enemy.position = new Vector3(bounded.x, bounded.y, bounded.z);
+		} else {
+			enemy.position = new Vector3(math.clamp(moved.X, -(session.bomberEncounter || enemy.scoreRole !== undefined ? session.airspace.spawnLimit : 2700), session.bomberEncounter || enemy.scoreRole !== undefined ? session.airspace.spawnLimit : 2700), math.clamp(moved.Y, 170, phase?.protection ? phase.protection.altitudeCeiling ?? 2000 : 1000), math.clamp(moved.Z, -(session.bomberEncounter || enemy.scoreRole !== undefined ? session.airspace.spawnLimit : 2700), session.bomberEncounter || enemy.scoreRole !== undefined ? session.airspace.spawnLimit : 2700));
+		}
 		const bank = math.clamp(-oldDirection.Cross(enemy.direction).Y * 26, -0.65, 0.65);
 		// Applied once per Heartbeat by flushPivots: a hitch's catch-up sub-steps replicate one CFrame, not five.
 		enemy.frame = CFrame.lookAt(enemy.position, enemy.position.add(enemy.direction)).mul(CFrame.Angles(0, 0, bank));
@@ -1375,7 +1381,7 @@ function segmentDistance(target: Vector3, startPosition: Vector3, endPosition: V
  * that projectile: a kill removed it (and may have spliced the list) or ended the session.
  */
 function strikeEnemy(session: CombatSession, enemy: Enemy, index: number): boolean {
-	if(session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.batchD13?.vent && lineOfSightBlocked(session,enemy)) return true;
+	if (ventProjectileBlocked(session, session.projectiles[index].position, enemy.position, enemy)) return true;
 	const allied = session.projectiles[index].allied === true;
 	if(allied && duelActive(session)) return false;
 	if (!allied) { session.missileHits += 1; enemy.playerThreatUntil = session.elapsed + 8; }
@@ -1433,8 +1439,21 @@ function aceStage(session: CombatSession, enemy: Enemy, before: number, after: n
 	const fallback = retreats ? `${enemy.name}: Not bad, trainee. Wing, on me.` : aceState.stage === 1 ? `${enemy.name}: Not bad, trainee. Again.` : `${enemy.name}: Enough. Head on.`;
 	radio(session, lines?.[aceState.stage - 1] ?? fallback);
 }
-function stepMissiles(session: CombatSession, dt: number): void {
+/** Opt-in only: no scenery raycasts are added to legacy missile movement. */
+function ventProjectileBlocked(session: CombatSession, start: Vector3, finish: Vector3, target?: Enemy): boolean {
+ if (!session.blueprintState || !BlueprintRunner.ActivePhase(session.blueprintState)?.batchD13?.vent) return false;
+ return ventObstructed(point(start), point(finish), (o,d) => {
+  const hit=Workspace.Raycast(new Vector3(o.x,o.y,o.z),new Vector3(d.x,d.y,d.z),session.collisionParams);
+  return hit && !(target && hit.Instance.IsDescendantOf(target.model)) && occludes(hit) ? hit.Distance : undefined;
+ }, 0);
+}
+function contactPosition(start: Vector3, finish: Vector3, target: Vector3): Vector3 {
+ const p=projectileContact(point(start),point(finish),point(target));
+ return new Vector3(p.x,p.y,p.z);
+}
+export function stepMissiles(session: CombatSession, dt: number): void {
 	phaseDirector.TutorialHint(session);
+	const ventPhase = session.blueprintState !== undefined && BlueprintRunner.ActivePhase(session.blueprintState)?.batchD13?.vent !== undefined;
 	for (let index = session.projectiles.size() - 1; index >= 0; index--) {
 		const missile = session.projectiles[index];
 		missile.age += dt;
@@ -1450,7 +1469,11 @@ function stepMissiles(session: CombatSession, dt: number): void {
 			const nextPosition = missile.position.add(missile.direction.mul(missile.speed * dt));
 			const hit = WeaponRules.Fuse(point(missile.position), point(nextPosition), session.enemies, (enemy) => point(enemy.position),
 				(enemy) => ownsEnemy(session, enemy) && sessionCanDamage(session, enemy.kind, enemy.required));
-			if (hit !== undefined) {
+			const contact = ventPhase && hit !== undefined ? contactPosition(missile.position, nextPosition, session.enemies[hit].position) : nextPosition;
+			if (ventProjectileBlocked(session, missile.position, contact, hit !== undefined ? session.enemies[hit] : undefined)) {
+				removed = true;
+			} else if (hit !== undefined) {
+				if (ventPhase) missile.position = contact;
 				const enemy = session.enemies[hit];
 				removed = true;
 				// Flares decoy blind shots exactly like guided ones.
@@ -1490,7 +1513,9 @@ function stepMissiles(session: CombatSession, dt: number): void {
 				if (ThreatRules.LosesTrack({ breaking: target.breakUntil > session.elapsed, distance, previousDistance: missile.lastDistance ?? distance, fuseRadius: WeaponRules.FuseRadius })) {
 					if (missile.allied) { missile.part.Destroy(); session.projectiles.remove(index); continue; }
 					missile.target = undefined; missile.lostTrack = true;
-					missile.position = missile.position.add(missile.direction.mul(speed * dt));
+					const driftPosition = missile.position.add(missile.direction.mul(speed * dt));
+					if (ventProjectileBlocked(session, missile.position, driftPosition)) { missile.part.Destroy(); session.projectiles.remove(index); continue; }
+					missile.position = driftPosition;
 					missile.part.CFrame = CFrame.lookAt(missile.position, missile.position.add(missile.direction));
 					continue;
 				}
@@ -1509,9 +1534,12 @@ function stepMissiles(session: CombatSession, dt: number): void {
 			const playerTurn = distance < 300 ? 14 : 7;
 			missile.direction = unitOr(missile.direction.Lerp(unitOr(delta, missile.direction), FlightMath.DampAlpha(missile.hostile ? tuned(session, TUNING.missileTurn) + (missile.ace ? tuned(session, TUNING.aceMissileTurn) : 0) : playerTurn, dt)), missile.direction);
 			const nextPosition = missile.position.add(missile.direction.mul(speed * dt));
-			if (antiShipObstructed(session,missile,nextPosition)) {
+			const fused = segmentDistance(targetPosition, missile.position, nextPosition) < (missile.hostile ? tuned(session, TUNING.missileFuse) : WeaponRules.FuseRadius);
+			const contact = ventPhase && fused ? contactPosition(missile.position, nextPosition, targetPosition) : nextPosition;
+			if (ventProjectileBlocked(session, missile.position, contact, missile.target) || antiShipObstructed(session,missile,nextPosition)) {
 				removed=true; effect(session,"missile",nextPosition);
-			} else if (segmentDistance(targetPosition, missile.position, nextPosition) < (missile.hostile ? tuned(session, TUNING.missileFuse) : WeaponRules.FuseRadius)) {
+			} else if (fused) {
+				if (ventPhase) missile.position = contact;
 				removed = true;
 				effect(session, "hit", targetPosition);
 				if (missile.hostile && missile.wingman) {

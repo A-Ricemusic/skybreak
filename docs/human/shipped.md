@@ -1,12 +1,19 @@
 # Shipped
 
-Updated 2026-10-30 against main `a04fdd6`; #177 and #178 are merged. Practice and missions 1–7 are live by pipeline convention; mission 8 will be live after #183 merges. No new Studio, Player or phone test is claimed. Older entries describe behavior at their merge; later entries supersede tuning and dormant activation status.
+D13 PR #194 review corrections are unmerged and therefore are not listed as shipped gameplay. Main’s merged changes below retain their existing pipeline status; this implementation task made no Player observation.
+
+**M09 arrival regression, 2026-10-30:** Orchestrator reported Studio Jest 1,219/1,220 at `21be233`: the sole failure expected nine generic opening bandits, but D5 authors three required trios at mission times 600/625/650. #185 corrects the test to check exact timed admissions and duplicates, retaining D4 slots and adding grouped/delayed-launch coverage. Runtime remains unchanged: completion requires all nine kills. An offline regression clears early trios without ending the phase. Frozen install, build and full offline validation exited 0 (1,023 Luau contracts, 19 catalog snapshots, 124 Python tests). The director regression compiles but requires the orchestrator’s Studio rerun; this task did not launch Studio or claim a Player test.
+
+Updated 2026-10-30 against main `06ca3e4`. Practice and missions 1–8 are live by pipeline convention; M09 is live after merged #185. No new Studio, Player or phone test is claimed. Older entries describe behavior at their merge; later entries supersede tuning and dormant activation status.
 
 ## Merged and pending 2026-10-30, newest first
 
 | PR | Commit | Change | What the owner sees in Roblox Player |
 |---|---|---|---|
-| [#183](https://github.com/A-Ricemusic/skybreak/pull/183) | Merge pending | Mission 8 OPEN FREQUENCY playable | Live after merge by pipeline convention: unlock after mission 7; ≥800 points / 7:00, six-bomber / 6:00 protected-mast hold and broadcast at 0:35. Provisional roster/ranks D-320–D-324. Studio: orchestrator reported 1,175/1,176 at `0227c1f`; opening-count assertion corrected for authored staggered arrivals, rerun pending. Player/phone not yet observed. |
+| [#185](https://github.com/A-Ricemusic/skybreak/pull/185) | Merged 2026-10-30 | Mission 9 GREEN BEACON playable | Live by pipeline convention: unlock after M08; ≥2,200 points / full 10:00 beach suppression, optional finite-weapon carrier rearm, then 7:00 defence against nine beach attackers. Provisional D-340–D-344; activates D5 D-290–D-293. Studio verified: pending orchestrator run. Player/phone not yet observed. |
+| [#186](https://github.com/A-Ricemusic/skybreak/pull/186) | `f4eb4db` | D8 ground ECM, guided bomb, elite retreat, ring sweep, M12 types | No visible change — engine support, dormant. Mission 12 has not activated on main. |
+| [#184](https://github.com/A-Ricemusic/skybreak/pull/184) | `5d84486` | D7 protected aircraft, airliner-priority attackers, altitude envelope | No visible change — engine support, dormant. Mission 11 has not activated on main. |
+| [#183](https://github.com/A-Ricemusic/skybreak/pull/183) | `085373c` | Mission 8 OPEN FREQUENCY playable | Live after merge by pipeline convention: unlock after mission 7; ≥800 points / 7:00, six-bomber / 6:00 protected-mast hold and broadcast at 0:35. Provisional roster/ranks D-320–D-324. Studio: orchestrator reported 1,175/1,176 at `0227c1f`; opening-count assertion corrected for authored staggered arrivals, rerun pending. Player/phone not yet observed. |
 | [#182](https://github.com/A-Ricemusic/skybreak/pull/182) | `ea0045d` | D6 repeated artillery, parked/airborne dedupe, large-battle contacts, M10 types | No visible change — engine support, dormant. Mission 10 has not activated on main. |
 | [#180](https://github.com/A-Ricemusic/skybreak/pull/180) | `248e387` | D5 carrier-deck rearm, ground-force director and beach attackers | No visible change — engine support, dormant. Mission 9 has not activated on main. |
 | [#178](https://github.com/A-Ricemusic/skybreak/pull/178) | `a04fdd6` | Mission 7 ARRAY BREAK playable | Live after merge by pipeline convention: unlock after mission 6, 51 ground /20 air, three-installation strike then canyon artillery escape. One allied kill budget; no new audio. Studio verified: pending orchestrator run. Player/phone not yet observed. |

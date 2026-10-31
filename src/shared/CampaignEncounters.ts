@@ -30,6 +30,7 @@ export type ArrivalTrigger = { kind: "time"; seconds: number } | { kind: "ground
 	// The player's aircraft comes within `radius` horizontal studs of (x, z).
 	| { kind: "approach"; x: number; z: number; radius: number };
 export interface FighterArrival {
+	/** Authored required attack waves replace generic bandit groups. */ required?: true;
 	attackProtected?: string;
 	/** One optional parked contact becomes this single aircraft; shares its kill identity. */
 	parkedSourceId?: string;

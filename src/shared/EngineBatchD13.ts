@@ -72,14 +72,27 @@ export function validateBatchD13(b: MissionBlueprint): void {
  }
 }
 /** Full enclosed sightline, with every engine ray <=1,000 studs (Roblox cap: 15,000). */
-export function ventObstructed(a: FlightPoint,b: FlightPoint,cast:(origin:FlightPoint,delta:FlightPoint)=>number|undefined):boolean {
+export function ventObstructed(a: FlightPoint,b: FlightPoint,cast:(origin:FlightPoint,delta:FlightPoint)=>number|undefined, margin=2):boolean {
  const dx=b.x-a.x,dy=b.y-a.y,dz=b.z-a.z,length=math.sqrt(dx*dx+dy*dy+dz*dz);
  if(!finiteNumber(length) || length>100000) return true;
- if(length<=2) return false;
- for(let offset=0;offset<length-2;offset+=1000) {
-  const size=math.min(1000,length-2-offset);
+ if(length<=margin) return false;
+ for(let offset=0;offset<length-margin;offset+=1000) {
+  const size=math.min(1000,length-margin-offset);
   const hit=cast({x:a.x+dx*offset/length,y:a.y+dy*offset/length,z:a.z+dz*offset/length},{x:dx*size/length,y:dy*size/length,z:dz*size/length});
   if(hit!==undefined) return true;
  }
  return false;
+}
+
+/** Authored cylindrical arena, applied after integration instead of the legacy world clamp. */
+export function boundDuelPosition(p: FlightPoint,a: DuelArena): FlightPoint {
+ const dx=p.x-a.center.x,dz=p.z-a.center.z,r=math.sqrt(dx*dx+dz*dz);
+ const scale=r>a.radius ? a.radius/r : 1;
+ return {x:a.center.x+dx*scale,y:math.clamp(p.y,a.minY,a.maxY),z:a.center.z+dz*scale};
+}
+/** Projectile contact point on a swept segment; stop checking at the fuse, not beyond the target. */
+export function projectileContact(a: FlightPoint,b: FlightPoint,target: FlightPoint): FlightPoint {
+ const dx=b.x-a.x,dy=b.y-a.y,dz=b.z-a.z,n=dx*dx+dy*dy+dz*dz;
+ const t=n>0 ? math.clamp(((target.x-a.x)*dx+(target.y-a.y)*dy+(target.z-a.z)*dz)/n,0,1) : 0;
+ return {x:a.x+dx*t,y:a.y+dy*t,z:a.z+dz*t};
 }
