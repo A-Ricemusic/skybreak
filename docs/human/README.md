@@ -1,5 +1,12 @@
 # SKYBREAK redesign dashboard
 
+## D12 implementation handoff (2026-10-30)
+
+Current base: `f4eb4db`; D1–D8 and missions 1–8 are merged/live by the owner's pipeline convention. D9 #188, D10 #190 and D11 #192 are separate open work. This D12 branch adds dormant four-wingman/protected Rusk departure, typed bridge route closures and existing D2 naval-mount reuse. M17 remains locked; its world stays dormant. Frozen install, build and full offline validation exited 0 (1,030 Luau contracts, 124 Python tests, unchanged catalog snapshots). Runtime Jest specs compile but were not run. No catalog/snapshot change and no Player observation. Older status entries below retain their original historical scope.
+
+D12 is unmerged engine support, not shipped M17 gameplay. Validation and remaining limitations are recorded in the engine plan; D-520–D-523 define the choices. The earlier mission progress table remains a historical record; M08 is now merged/live and M09–M18 remain locked.
+
+
 Updated 2026-10-30 against main `a04fdd6` (#177 and #178 merged), integrating mission 8 #183. Merged gameplay is live in Roblox Player under the owner's automatic-pipeline convention; no Player test is claimed here.
 
 **Practice and missions 1–7 are live; mission 8 OPEN FREQUENCY will be live after #183 merges. Missions 9–18 remain locked, with their worlds built and dormant.** Mission 8 unlocks after mission 7: ≥800 points over 7:00, then six bombers approaching from the west to intercept during a fresh 6:00 hold protecting the broadcast mast. Studio verified: pending orchestrator run. Player/phone not yet observed. D1–D4 are merged; M06 activates D1/D2, M07 D3 and M08 D4. D5 #180 and D6 #182 remain open.

@@ -1,5 +1,12 @@
 # Blockers
 
+## D12 implementation handoff (2026-10-30)
+
+Current base: `f4eb4db`; D1–D8 and missions 1–8 are merged/live by the owner's pipeline convention. D9 #188, D10 #190 and D11 #192 are separate open work. This D12 branch adds dormant four-wingman/protected Rusk departure, typed bridge route closures and existing D2 naval-mount reuse. M17 remains locked; its world stays dormant. Frozen install, build and full offline validation exited 0 (1,030 Luau contracts, 124 Python tests, unchanged catalog snapshots). Runtime Jest specs compile but were not run. No catalog/snapshot change and no Player observation. Older status entries below retain their original historical scope.
+
+No implementation blocker requiring owner input. D11 repair remains pending integration; main still forbids repair. Runtime Jest, Studio visuals, leader departure pacing, bridge military/friendly route separation and phone quality are unverified. This agent does not launch Studio or run `test:roblox`. No audio/Blender assets/uploads. `shipped.md` was reviewed and deliberately left unchanged because this PR is unmerged.
+
+
 Updated 2026-10-30 against main `a04fdd6` (#177/#178 merged); no known deployment failure is recorded. Live status follows the owner's pipeline convention and does not establish observed Player quality. This reconciliation performs offline checks only.
 
 ## D5 verification and mission integration (2026-10-30)

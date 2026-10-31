@@ -1,3 +1,4 @@
+import { clearLeader, stepLeader } from "./EngineBatchD12Runtime";
 import { stepProtection, protectedTarget, hitProtected, clearProtection } from "./EngineBatchD7Runtime";
 import { createCheapContact, cheapEligible, stepContacts, handoffParked, stepRepeatedArtillery } from "./EngineBatchD6Runtime";
 import { clearGroundDirector, stepGroundDirector, stepBeachAttacker } from "./EngineBatchD5Runtime";
@@ -553,6 +554,7 @@ function cleanupSession(session: CombatSession, restore = true): void {
 		if (session.characterRoot?.Parent) session.characterRoot.Anchored = session.wasAnchored ?? false;
 		if (session.player.Parent === Players) session.player.ReplicationFocus = session.previousReplicationFocus;
 	}
+	clearLeader(session);
 	clearProtection(session);
 	clearGroundDirector(session);
 	session.folder.Destroy();
@@ -718,7 +720,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		else if (role === "courier") name = session.missionId === 24 ? "FUEL TANKER" : "COURIER";
 		else if (role === "bandit") { session.banditSerial += 1; name = string.format("BANDIT %02d", session.banditSerial); }
 		else { session.raiderSerial += 1; name = string.format("RAIDER %02d", session.raiderSerial); }
-		const eliteFit=role === "bandit" && session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.eliteFormation!==undefined;
+		const eliteFit=role === "bandit" && session.blueprintState && (BlueprintRunner.ActivePhase(session.blueprintState)?.eliteFormation!==undefined || BlueprintRunner.ActivePhase(session.blueprintState)?.leaderWithdrawal!==undefined);
 		if(eliteFit) name=`ELITE ${index+1}`;
 		const model = role === BomberRules.Role.role ? BomberFactory.Create(name, options.arrival && "aircraft" in options.arrival ? options.arrival.aircraft : session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.aircraft) : JetFactory.Create(name, options.friendly !== true, options.livery ?? (eliteFit ? "Elite" : role === "ace" ? AssetSelection.LiveryForAce(options.name, session.blueprint?.aceName) : undefined));
 		if (!session.active || session.folder.Parent === undefined) { model.Destroy(); return; }
@@ -1671,6 +1673,7 @@ function stepSession(session: CombatSession, dt: number): void {
 		}
 	}
 	session.inputSteps += 1;
+	stepLeader(session,dt,line=>radio(session,line,4));
 	stepProtection(session,dt,(line)=>radio(session,line,4));
 	stepGroundDirector(session,dt,line=>radio(session,line,4));
 	if(session.blueprintState?.outcome!==undefined) { finish(session); return; }

@@ -1,5 +1,12 @@
 # Next
 
+## D12 implementation handoff (2026-10-30)
+
+Current base: `f4eb4db`; D1–D8 and missions 1–8 are merged/live by the owner's pipeline convention. D9 #188, D10 #190 and D11 #192 are separate open work. This D12 branch adds dormant four-wingman/protected Rusk departure, typed bridge route closures and existing D2 naval-mount reuse. M17 remains locked; its world stays dormant. Frozen install, build and full offline validation exited 0 (1,030 Luau contracts, 124 Python tests, unchanged catalog snapshots). Runtime Jest specs compile but were not run. No catalog/snapshot change and no Player observation. Older status entries below retain their original historical scope.
+
+Review D12, then integrate it into M17 only after preceding missions and D11 repair (#192). Author separate witness/enemy crossings, four required wingmen and an 18:00 update/departure route. Reuse D11’s M17 `rearm.health` allowlist; do not duplicate repair. Orchestrator must run compiled runtime Jest and arrange rendered/Player/phone acceptance before activation.
+
+
 Updated 2026-10-30 against main `a04fdd6`. Practice and missions 1–7 are live by pipeline convention. M08 will be live after #183 merges; worlds 9–18 remain dormant. No Player observation is claimed.
 
 1. **Review and merge mission 8 [#183](https://github.com/A-Ricemusic/skybreak/pull/183).** D4 #177 and M07 #178 are merged. Studio verified: pending orchestrator run; confirm clocks, protected mast adoption, bomber endpoint loss and sequential unlock.

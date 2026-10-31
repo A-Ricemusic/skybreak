@@ -361,3 +361,15 @@ Studio evidence for #179 at `e5c2fd2`: full Jest suite 1,133/1,133 in the orches
 
 - **Status:** provisional implementation; dormant. **Decision maker:** implementation agent (2026-10-30).
 - Five required elite fighters form a one-defeat objective. The defeated elite represents the Vulture Two ejection/recovery story event; the other four retreat without credit. Required status protects the formation from allied kills. Optional named ace remains separate. Recovery flag persists through sortie phase updates and replicates on the session folder; account persistence/presentation belongs to mission integration. Alternative: kill all five; rejected by M12 ending evidence. D12 protected-leader lifecycle remains separate future work.
+
+## D-520 — Rusk excluded from TGT in dormant D12 (accepted implementation, 2026-10-30)
+Decision maker: D12 implementation agent within the owner's F25 scope. Rusk is a labelled, nonquery procedural command aircraft outside Enemy/damage registries. Alternative: lockable aircraft with a 25% health floor (m17 proposal). Exclusion avoids spending ammunition on an invulnerable target and preserves the story's M18 duel. Four required wingman kills start departure; no early withdrawal, fifth kill or leader points. No mission opts in.
+
+## D-521 — Departure is required phase completion (accepted implementation, 2026-10-30)
+Decision maker: D12 implementation agent. Existing required-player kills and once-only ledger advance to four, then await a bounded server-owned route departure. Sortie/folder departure flag persists; D8 ejection flag is separate. Alternative: instant success on the fourth kill, rejected because departure must occur. Pause/service/cut-in freeze the actor; phase/session teardown destroys it. Authored clock includes departure reserve; missing the clock remains normal timeout failure.
+
+## D-522 — Bridge destruction closes explicit routes (accepted implementation, 2026-10-30)
+Decision maker: D12 implementation agent. Same-phase military bridge targets close named D5 sector/D2 hull routes at their current pose; unrelated routes are preserved. Alternative: automatic pathfinding/detours, rejected without authored navigation geometry/evidence. Authors must keep the loyalist/witness crossing distinct from the destructible enemy crossing and must not make an indispensable route depend on a closed crossing. Closure adds no score or sector-secured events. Existing D2 hull/mount ownership, naval turret firing and collateral retirement are reused unchanged.
+
+## D-523 — M17 repair waits for D11 integration (accepted implementation, 2026-10-30)
+Decision maker: D12 implementation agent, following owner direction. Do not depend on unmerged #192 or duplicate its allowlist. M17 activation must reuse D11 `rearm.health` after merge (M15–M17 only); main's damage-preserving service remains unchanged here. Alternative: ship a parallel repair path, rejected to avoid conflicting ownership. D12 is dormant; no Studio, audio or asset upload authorized/performed.

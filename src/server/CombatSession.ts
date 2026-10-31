@@ -109,6 +109,7 @@ export interface Projectile {
 }
 export interface CombatSession {
 	ringArtillery?: { phase: number; state: ArtilleryState };
+	leaderWithdrawal?: import("./EngineBatchD12Runtime").LeaderRuntime;
 	protectedFlight?: {phase: number; actors: import("./EngineBatchD7Runtime").ProtectedActor[]};
 	contactClock?: number;
 	repeatedArtillery?: {phase:number;state:import("../shared/EngineBatchD6").ScheduledArtillery};

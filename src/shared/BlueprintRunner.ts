@@ -13,6 +13,7 @@ export interface BlueprintState {
 	rearmActive?: boolean;
 	/** Sortie-persistent story outcome, survives phase updates. */
 	vultureTwoRecovered?: boolean;
+	ruskDeparted?: boolean;
 	/** A HUD-less cut-in holds the mission clock like a rearm (SortieCutaways). */
 	cutInActive?: boolean;
 	score?: number;
@@ -249,6 +250,10 @@ export const BlueprintRunner = {
 		if (skip && canSkipLanding(s.landingElapsed)) s.landingElapsed=landingSkipTarget(plan,s.landingElapsed);
 		if (s.landingElapsed>=landingDuration(plan)) advance(s);
 	},
+	ObserveLeaderDeparture(s: BlueprintState): void {
+		if(s.outcome!==undefined || !BlueprintRunner.ActivePhase(s)?.leaderWithdrawal || s.phaseProgress<4) return;
+		s.ruskDeparted=true; advance(s);
+	},
 	ObserveProtection(s: BlueprintState, safe: number, lost: boolean): void {
 		if(s.outcome!==undefined || !BlueprintRunner.ActivePhase(s)?.protection) return;
 		if(lost) { s.protectedHealth=0; finish(s,"failed","protected_lost"); return; }
@@ -335,6 +340,7 @@ export const BlueprintRunner = {
 		if (s.outcome !== undefined) return false;
 		const p=BlueprintRunner.ActivePhase(s);
 		if (!p) return false;
+		if(p.leaderWithdrawal && required && s.phaseProgress>=4) return false;
 		if (p.kind === "tutorial_missile") return required && kind === "ground" && s.phaseProgress === 0;
 		if (!required && kind === "ground" && p.groundTargets !== undefined) return true;
 		if (!required && p.standaloneAce && kind === "ace") return true;
@@ -366,7 +372,7 @@ export const BlueprintRunner = {
 		else s.requiredGroundKills++;
 		s.phaseProgress++;
 		if (twist(s)) return true;
-		if (!p.interceptHold && s.phaseProgress>=total(BlueprintRunner.ActivePhase(s)!)) advance(s);
+		if (!p.interceptHold && !p.leaderWithdrawal && s.phaseProgress>=total(BlueprintRunner.ActivePhase(s)!)) advance(s);
 		return true;
 	},
 	Objective(s: BlueprintState): BlueprintObjective {

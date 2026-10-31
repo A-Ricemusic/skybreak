@@ -1,3 +1,4 @@
+import { clearLeader } from "./EngineBatchD12Runtime";
 import { Workspace } from "@rbxts/services";
 import { clearProtection } from "./EngineBatchD7Runtime";
 import { clearGroundDirector } from "./EngineBatchD5Runtime";
@@ -100,6 +101,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		const state=session.blueprintState;
 		if (state.outcome !== undefined || session.appliedBlueprintPhaseIndex === state.phaseIndex) return;
 		clearGroundDirector(session);
+		clearLeader(session);
 		if (session.protectedFlight && session.protectedFlight.phase !== state.phaseIndex) clearProtection(session);
 		session.appliedBlueprintPhaseIndex=state.phaseIndex;
 		session.chatterIndex=0;
