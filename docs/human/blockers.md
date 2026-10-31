@@ -1,5 +1,9 @@
 # Blockers
 
+## D12 route-stop review follow-up (2026-10-30)
+
+PR #193 P2 stale naval-mount velocity is fixed: route closure clears guidance velocity on the hull and every attached mount while preserving their last assembled pose. Moving D2 code is unchanged. Runtime regression execution remains pending the orchestrator; no Studio or Player verification is claimed.
+
 ## D12 implementation handoff (2026-10-30)
 
 Current base: `f4eb4db`; D1–D8 and missions 1–8 are merged/live by the owner's pipeline convention. D9 #188, D10 #190 and D11 #192 are separate open work. This D12 branch adds dormant four-wingman/protected Rusk departure, typed bridge route closures and existing D2 naval-mount reuse. M17 remains locked; its world stays dormant. Frozen install, build and full offline validation exited 0 (1,030 Luau contracts, 124 Python tests, unchanged catalog snapshots). Runtime Jest specs compile but were not run. No catalog/snapshot change and no Player observation. Older status entries below retain their original historical scope.

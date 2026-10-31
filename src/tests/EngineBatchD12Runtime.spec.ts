@@ -43,10 +43,14 @@ describe("D12 server lifecycle",()=>{
    f.bs.phases[0].bridgeClosures=[{targetId:"bridge",sectorIds:[],hullIds:["hull"]}];
    const model=new Instance("Model"), root=new Instance("Part"); root.Anchored=true; root.Parent=model; model.PrimaryPart=root; model.Parent=f.folder;
    const hull={id:"hull",model,position:Vector3.zero,velocity:Vector3.zero,health:100,enabled:true,typedGround:{id:"hull",type:"destroyer",position:{x:0,y:0,z:0},yaw:0,naval:true,route:{waypoints:[{x:0,y:0,z:0},{x:0,y:0,z:-100}],speed:10}}} as Enemy;
-   const mountModel=model.Clone(); mountModel.Parent=f.folder;
-   const mount={...hull,id:"mount",model:mountModel,typedGround:{id:"mount",type:"gun_mount",parentId:"hull"}} as Enemy;
-   f.s.enemies=[hull,mount]; stepSurfaceTargets(f.s,1); const position=hull.position;
+   const mountModel=model.Clone(); mountModel.PivotTo(new CFrame(5,10,0)); mountModel.Parent=f.folder;
+   const mount={...hull,id:"mount",model:mountModel,position:mountModel.PrimaryPart!.Position,typedGround:{id:"mount",type:"gun_mount",parentId:"hull"}} as Enemy;
+   f.s.enemies=[hull,mount]; stepSurfaceTargets(f.s,1); const position=hull.position, mountPosition=mount.position, mountPivot=mountModel.GetPivot();
+   expect(hull.velocity.Magnitude>0).toBe(true); expect(mount.velocity).toEqual(hull.velocity);
+   expect(mount.position.sub(hull.position)).toEqual(new Vector3(5,10,0));
    f.bs.killedIds.add("bridge"); stepSurfaceTargets(f.s,10); expect(hull.position).toEqual(position); expect(hull.velocity).toEqual(Vector3.zero);
+   expect(mount.velocity).toEqual(Vector3.zero); expect(mount.position).toEqual(mountPosition); expect(mountModel.GetPivot()).toEqual(mountPivot);
+   stepSurfaceTargets(f.s,1); expect(mount.velocity).toEqual(Vector3.zero); expect(mount.position.sub(hull.position)).toEqual(new Vector3(5,10,0));
    expect(sinkNavalTarget(f.s,hull)).toBe(true); expect(mount.enabled).toBe(false); expect(mount.health).toBe(0);
    expect(f.s.retiredGroundIds!.has("mount")).toBe(true); expect(f.bs.killedIds.has("mount")).toBe(false);
   } finally {f.folder.Destroy();}

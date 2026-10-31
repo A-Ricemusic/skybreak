@@ -29,7 +29,13 @@ export function stepSurfaceTargets(session: CombatSession, dt: number): void {
 	for(const hull of session.enemies) {
 		const spec=hull.typedGround;
 		if(!spec?.route || !hull.enabled || hull.health<=0) continue;
-		if(closedBridgeRoute(session,hull.id,"hull")) { hull.velocity=Vector3.zero; continue; }
+		if(closedBridgeRoute(session,hull.id,"hull")) {
+			// Freeze the assembled last pose and clear guidance velocity on every attached target.
+			for(const e of session.enemies) {
+				if(e===hull || e.typedGround?.parentId===hull.id) e.velocity=Vector3.zero;
+			}
+			continue;
+		}
 		hull.surfaceStartedAt=(hull.surfaceStartedAt ?? 0)+dt;
 		const pose=surfacePose(spec.route,hull.surfaceStartedAt);
 		const authored=new CFrame(spec.position.x,spec.position.y,spec.position.z).mul(CFrame.Angles(0,math.rad(spec.yaw),0));
