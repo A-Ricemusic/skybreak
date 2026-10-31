@@ -13,7 +13,7 @@ Resolved PR #180 P2: sector-only windups no longer emit player lock warnings or 
 - M04 #149, M05 #148, terrain performance #158, story #159 and cutscenes #152 are merged. Practice/M01–M06 are live after #179 merges; their old review/unlock dependencies are resolved.
 - #172 targeting, #173 loading and #174 difficulty/allied budget are merged/live. Human balance, phone and rendered acceptance remain open.
 - Worlds 6–13 (#175, combining #164/#166/#167/#170) and 14–18 (#176) are built, merged and dormant. No stack rebase remains for those world PRs. #176 fixes M05–M13 weather lookup and all 18 environment registrations, M17 metadata and M18 foundations.
-- D1 #165, D2 #168 and D3 #171 are merged; #179 activates D1/D2 support for mission 6, while D3 remains dormant. Their former stack dependencies are resolved; engine merge alone does not activate missions 7–18. D4 #177 and mission 7 #178 remain open; mission 6 #179 is Live after merge; D5 #180 and D6 #182 remain open.
+- D1 #165, D2 #168 and D3 #171 are merged; #179 activates D1/D2 support for mission 6, while D3 remains dormant. Their former stack dependencies are resolved; engine merge alone does not activate missions 7–18. D4 #177, D5 #180, D6 #182 and mission 7 #178 are merged; missions 6–7 are live by the pipeline convention. M08 #183, M09 #185 and M10 #187 remain open.
 
 ## Remaining world/activation gaps
 

@@ -1,3 +1,4 @@
+import { GunRules } from "../shared/SortieArmament";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { coveringJammers, inJammingCorridor, navigationStep } from "../shared/EngineBatchD9";
 import { MissionCatalog } from "../shared/MissionCatalog";
@@ -30,12 +31,25 @@ describe("D9 dormant spatial jammer rules",()=>{
   const changes=[(b:ReturnType<typeof d9Fixture>)=>{b.scoring!.points.jammer=0;},(b:ReturnType<typeof d9Fixture>)=>{b.armament=undefined;},(b:ReturnType<typeof d9Fixture>)=>{b.phases[0].spatialJamming!.corridors[0].sourceId="missing";},(b:ReturnType<typeof d9Fixture>)=>{b.phases[0].spatialJamming!.navigationHoldSeconds=math.huge;},(b:ReturnType<typeof d9Fixture>)=>{b.phases[0].spatialJamming!.airships[0].position.y=0;},(b:ReturnType<typeof d9Fixture>)=>{b.phases[0].spatialJamming!.corridors[0].radius=0;},(b:ReturnType<typeof d9Fixture>)=>{b.phases[0].execution=undefined;}];
   for(const change of changes) {const b=d9Fixture();change(b);expect(pcall(()=>MissionCatalog.ValidatePolicy(b))[0]).toBe(false);}
  });
+ it("resolves the authored airship through D1 visual gun targeting",()=>{
+  const a=d9Fixture().phases[0].spatialJamming!.airships[0];
+  expect(GunRules.Resolve({x:a.position.x,y:a.position.y,z:a.position.z+200},{x:0,y:0,z:-1},[{position:a.position,ground:false,allowed:true}])).toBe(0);
+ });
  it("uses the accepted once-only optional air kill path and cannot be claimed by armed allies",()=>{
   const b=d9Fixture(),s=BlueprintRunner.NewState(b,0);
   expect(BlueprintRunner.RecordKill(s,"balloon","air",false,1)).toBe(true);expect(BlueprintRunner.RecordKill(s,"balloon","air",false,1)).toBe(false);
   const ledger=new TargetScore({basis:"points",points:{jammer:100},rank:{S:400,A:300,B:200,C:100}});
   ledger.RecordKill("balloon","jammer");ledger.RecordKill("balloon","jammer");expect(ledger.Total()).toBe(100);
   expect(AlliedRules.CanEngage({} as Parameters<typeof AlliedRules.CanEngage>[0],{role:"bomber",required:false,enabled:true,health:60})).toBe(false);
+ });
+ it("admits all 32 M13 balloons without a thirteenth-kill cutoff, and bounds the 33rd",()=>{
+  const b=d9Fixture(),p=b.phases[0].spatialJamming!,a=p.airships[0],c=p.corridors[0];
+  p.airships=[];p.corridors=[];
+  for(let i=0;i<32;i++) {p.airships.push({...a,id:`balloon${i}`});p.corridors.push({...c,sourceId:`balloon${i}`});}
+  MissionCatalog.ValidatePolicy(b);const s=BlueprintRunner.NewState(b,0),ledger=new TargetScore(b.scoring!);
+  for(const a0 of p.airships) {expect(BlueprintRunner.RecordKill(s,a0.id,"air",false,1)).toBe(true);ledger.RecordKill(a0.id,a0.scoreRole);}
+  expect(ledger.Total()).toBe(3200);expect(s.outcome).toBeUndefined();
+  p.airships.push({...a,id:"overflow"});expect(pcall(()=>MissionCatalog.ValidatePolicy(b))[0]).toBe(false);
  });
  it("keeps all catalog missions and practice dormant",()=>{for(const b of MissionCatalog.All()) for(const p of MissionCatalog.ExpandedPhases(b)) expect(p.spatialJamming).toBeUndefined();});
 });

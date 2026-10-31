@@ -50,9 +50,9 @@ export function stepProtection(session: CombatSession, dt: number, say:(line:str
   stepProtected(a.state,a.plan,nav.advance);
   const pose=protectedPose(a.plan,a.state.elapsed), p=pose.position, d=pose.facing;
   a.aircraft.position=new Vector3(p.x,p.y,p.z); a.aircraft.direction=new Vector3(d.x,d.y,d.z);
-  a.aircraft.velocity=a.state.safe ? Vector3.zero : a.aircraft.direction.mul(a.plan.route.speed);
+  a.aircraft.velocity=a.state.safe ? Vector3.zero : a.aircraft.direction.mul(a.plan.route.speed*(dt>0 ? nav.advance/dt : 1));
   a.aircraft.model.PivotTo(CFrame.lookAt(a.aircraft.position,a.aircraft.position.add(a.aircraft.direction)));
-  a.label.Text=`PROTECT ${a.plan.callsign} · ${a.state.safe ? "SAFE" : `${math.ceil(a.state.health/a.plan.health*100)}%`}`;
+  a.label.Text=`PROTECT ${a.plan.callsign}${nav.advance<dt ? " · NAV JAM" : ""} · ${a.state.safe ? "SAFE" : `${math.ceil(a.state.health/a.plan.health*100)}%`}`;
   if(a.state.safe && a.aircraft.enabled) { a.aircraft.enabled=false; a.aircraft.model.Destroy(); say(`${a.plan.callsign} is safe.`); }
  }
  const result=protectionResult(actors.map(a=>a.state));
