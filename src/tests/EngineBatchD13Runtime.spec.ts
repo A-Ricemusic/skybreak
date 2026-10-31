@@ -1,9 +1,10 @@
+import { createCombatSession } from "../server/CombatSessionFactory";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { stepEnemies, stepMissiles } from "../server/CombatService";
 import { FlightMath } from "../shared/FlightMath";
 import { Workspace } from "@rbxts/services";
 import { stepBatchD13, d13TargetAllowed, duelActive } from "../server/EngineBatchD13Runtime";
-import type { CombatSession, Enemy, Projectile } from "../server/CombatSession";
+import type { Enemy, Projectile } from "../server/CombatSession";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { MissionCatalog, MissionBlueprint } from "../shared/MissionCatalog";
 import { SortieArmament } from "../shared/SortieArmament";
@@ -12,11 +13,19 @@ function fixture() {
  const bp={...MissionCatalog.Get(18),phases:[{kind:"ace" as const,label:"Rusk",update:{objective:"Duel",radio:[],countdownSeconds:300},batchD13:{duel:{center:{x:0,y:1000,z:0},radius:2000,minY:800,maxY:2400}}}]};
  const actor=(kind:Enemy["kind"],required:boolean,phaseOwner:number)=>{
   const model=new Instance("Model");model.Parent=folder;
-  return {kind,required,phaseOwner,model,enabled:true,health:100,windup:2,position:new Vector3(0,1000,0),direction:new Vector3(0,0,-1),velocity:Vector3.zero,maxHealth:100,fireTimer:100,mode:"attack",modeTimer:0,side:1,passDirection:new Vector3(0,0,-1),flares:0,flareTimer:0,speedBonus:0,lockBreakTimer:100,breakTimer:100,breakUntil:0} as Enemy;
+  const enemy: Enemy = {id:kind,name:kind,hiddenParts:[],lockBreakChance:0,flareUntil:0,kind,required,phaseOwner,model,enabled:true,health:100,windup:2,position:new Vector3(0,1000,0),direction:new Vector3(0,0,-1),velocity:Vector3.zero,maxHealth:100,fireTimer:100,mode:"attack",modeTimer:0,side:1,passDirection:new Vector3(0,0,-1),flares:0,flareTimer:0,speedBonus:0,lockBreakTimer:100,breakTimer:100,breakUntil:0};
+  return enemy;
  };
  const rusk=actor("ace",true,0),other=actor("air",false,-1),gun=actor("ground",false,-1),ally=actor("air",false,-1);
  const special=SortieArmament.NewSpecial("salvo",undefined);
- const s={folder,blueprint:bp,blueprintState:BlueprintRunner.NewState(bp,0),airQueue:[{count:2,role:"raider",behind:false}],enemies:[other,gun,rusk],allies:[ally],projectiles:[],missiles:2,regen:1.25,special,health:37,missionId:18,difficulty:"normal",elapsed:10,stepCount:1,lastWindupAt:10,input:{x:0,y:0},state:FlightMath.FromPose(0,1000,-2000,0,0,300),airspace:{spawnLimit:10000},active:true,cleaned:true,missileHits:0,lockProgress:1,target:other} as unknown as CombatSession;
+ // Player identity is unused: cleaned sessions suppress remotes, and no launch/world setup runs.
+ const player={} as Player,aircraft=new Instance("Model");aircraft.Parent=folder;
+ const s=createCombatSession(player,1,folder,aircraft,FlightMath.FromPose(0,1000,-2000,0,0,300),18,"salvo","normal",os.clock());
+ s.blueprint=bp;s.blueprintState=BlueprintRunner.NewState(bp,os.clock());
+ s.airQueue=[{count:2,role:"raider",behind:false}];s.enemies=[other,gun,rusk];s.allies=[ally];
+ s.missiles=2;s.regen=1.25;s.special=special;s.health=37;s.elapsed=10;s.stepCount=1;s.lastWindupAt=10;
+ // Suppress effect delivery while exercising the real movement/projectile steps without remotes.
+ s.cleaned=true;s.lockProgress=1;s.target=other;
  return {folder,s,rusk,other,gun,ally,special};
 }
 describe("D13 Roblox runtime contracts (compiled; execution pending)",()=>{
@@ -97,7 +106,7 @@ describe("D13 complete combat movement and projectile steps (execution pending)"
    const vent={generators:[],core:"core",checkpoints:[],openingSeconds:3,gate:volume,exit:volume};
    const bp: MissionBlueprint={...MissionCatalog.Get(18),phases:[{kind:"required_ground" as const,label:"Core",count:1,batchD13:{vent}}]};
    if(mode==="legacy") bp.phases[0].batchD13=undefined;
-   f.s.blueprint=bp;f.s.blueprintState=BlueprintRunner.NewState(bp,0);f.s.blueprintState.vent={elapsed:4,checkpoint:0,exited:false};
+   f.s.blueprint=bp;f.s.blueprintState=BlueprintRunner.NewState(bp,os.clock());f.s.blueprintState.vent={elapsed:4,checkpoint:0,exited:false};
    const scenery=new Instance("Part");scenery.Anchored=true;scenery.Size=wall ? new Vector3(40,40,4) : new Vector3(4,40,400);
    scenery.Position=wall ? new Vector3(0,1200,60) : new Vector3(100,1200,0);scenery.Parent=f.folder;
    const params=new RaycastParams();params.FilterType=Enum.RaycastFilterType.Include;params.FilterDescendantsInstances=[scenery];f.s.collisionParams=params;

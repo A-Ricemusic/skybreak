@@ -1,3 +1,4 @@
+import * as CombatSessionFactory from "./CombatSessionFactory";
 // Keep batch helpers namespaced: per-symbol imports exhausted Luau's 200 local registers.
 import { boundDuelPosition, projectileContact, ventObstructed } from "../shared/EngineBatchD13";
 import * as EngineBatchD13 from "./EngineBatchD13Runtime";
@@ -32,7 +33,6 @@ import { LaunchStage } from "../shared/LaunchStage";
 import { AlliedRules } from "../shared/AlliedRules";
 import type { MissionReason } from "../shared/OutcomeReason";
 import { createPhaseDirector, SpawnOptions } from "./PhaseDirector";
-import { fixedRaiders } from "./PhaseDirectorRules";
 import { CombatSession, Enemy, AirRole, TargetKind } from "./CombatSession";
 export type { CombatSession } from "./CombatSession";
 import { airspaceWarning, clampAirSpawn } from "../shared/WorldAirspace";
@@ -46,7 +46,7 @@ import { JetFactory } from "../shared/JetFactory";
 import { BomberFactory } from "../shared/BomberFactory";
 import { BomberRules } from "../shared/BomberRules";
 import { recordAlliedKill, recordScoredKill } from "./SortieScore";
-import { TargetScore, targetScoreStats } from "../shared/TargetScore";
+import { targetScoreStats } from "../shared/TargetScore";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { MissionCatalog, MissionPhaseBlueprint } from "../shared/MissionCatalog";
 import { CombatEffectPacket, FinishedCallback, FlightInput, HudState, MissionLoading, MissionStats, Remotes } from "../shared/Types";
@@ -155,7 +155,7 @@ const STATE_INTERVAL = 1 / 20;
 const TELEMETRY_INTERVAL = 0.1;
 /** FlightInput token bucket: the client sends at most 20 Hz; anything far above that is dropped. */
 const INPUT_RATE = 60;
-const INPUT_BURST = 10;
+
 function sessionAct(session: CombatSession): 1 | 2 | 3 {
 	return session.missionId <= 2 ? 1 : session.blueprint!.act;
 }
@@ -1930,24 +1930,8 @@ export const CombatService = {
 			aircraft.Parent = folder;
 			const state = blueprint.start ? LaunchStage.Pose(MissionCatalog.Start(missionId)) : FlightMath.NewState();
 			aircraft.PivotTo(frameFor(state));
-			const session: CombatSession = {
-				launchId,
-				targetScore: new TargetScore(MissionCatalog.Scoring(missionId)),
-				player, slot, folder, aircraft, state, missionId, airspace: MissionCatalog.Airspace(missionId), lastWindupAt: -math.huge, radioSerial: 0, chatterIndex: 0,
-				input: { x: 0, y: 0, throttle: FlightMath.CruiseThrottle }, health: 100, kills: 0, elapsed: 0,
-				// Absent armament: eight regenerating missiles, the special's own charges and no gun (unchanged).
-				missiles: SortieArmament.MissileCapacity(blueprint.armament), missileCooldown: 0, evadeRemaining: 0, regen: 0, lockProgress: 0,
-				special: SortieArmament.NewSpecial(specialKind, blueprint.armament), gun: GunRules.New(blueprint.armament),
-				difficulty: difficultyKind,
-				allies: [], alliedKills: [], alliedFireAt: -math.huge, enemies: [], projectiles: [], telemetryTime: 0, lastInput: os.clock(), lastInputEvent: -math.huge,
-				active: true, finished: false, cleaned: false, previousReplicationFocus: player.ReplicationFocus,
-				inputClientTime: 0, inputFresh: false, inputSteps: 0, inputTokens: INPUT_BURST, inputTokensAt: os.clock(), stateTime: 0, stateSequence: 0, telemetrySequence: 0,
-				missilesFired: 0, missileHits: 0, flareBursts: 0, damageTaken: 0, lowestHealth: 100, evades: 0,
-				evade: EvadeRules.New(), guard: StepGuard.New(), pause: PauseRules.New(), pauseAck: 0, settlement: Settlement.New(),
-				banditSerial: 0, raiderSerial: 0, spawnSerial: 0, allySerial: 0, reinforceIndex: 0, airQueue: [], stepCount: 0,
-			};
-			session.blueprint = MissionCatalog.Get(missionId);
-			session.blueprintState = BlueprintRunner.NewState(session.blueprint, startedAt, fixedRaiders(session.blueprint) ? 0 : Difficulty.Behaviour(difficultyKind).extraRaiders);
+			const session = CombatSessionFactory.createCombatSession(player, slot, folder, aircraft, state,
+				missionId, specialKind, difficultyKind, startedAt, launchId);
 			// Hazard targets and hidden strikes stay out of sight until their phase lights them.
 			const typed = new Map<Model, {spec: import("../shared/CampaignEncounters").TypedGroundTarget; phase: number}>();
 			const expandedPhases = MissionCatalog.ExpandedPhases(blueprint);
@@ -2037,7 +2021,7 @@ export const CombatService = {
 			const now = os.clock();
 			// Heartbeat runs refreshSession every frame, so this unguarded handler only takes input.
 			// A token bucket caps the packet rate whatever the stamps claim.
-			session.inputTokens = math.min(INPUT_BURST, session.inputTokens + (now - session.inputTokensAt) * INPUT_RATE);
+			session.inputTokens = math.min(CombatSessionFactory.SessionInputBurst, session.inputTokens + (now - session.inputTokensAt) * INPUT_RATE);
 			session.inputTokensAt = now;
 			if (session.inputTokens < 1) return;
 			session.inputTokens -= 1;

@@ -1,5 +1,7 @@
 # Shipped
 
+PR #194 unmerged fixture follow-up (2026-10-31): production launch and D13 combat-step tests share a complete session initializer; required enemy fixture fields are type-checked. This is not shipped or verified in Player. D13 stays dormant and mission 1–13 definitions are unchanged. Frozen install, build and full offline validation with the prescribed LUAU_BIN exited 0 (1,140 Luau contracts, 463 module compilations, 196 require-graph nodes, 19 catalog snapshots and 124 Python tests); Studio rerun belongs to the orchestrator.
+
 M13 replay validation (2026-10-30, base 351d7988): frozen install, standalone build, test:offline, voice/story/catalog regeneration and full validate:offline with the prescribed LUAU_BIN exited 0. Passed 1,118 Luau contracts, four loader guards, 19 catalog snapshots, three relay harness scenarios and 124 Python tests. All 103 prior specs plus M13 are staged and required with checkedRequire retained. Only M13's catalog entry differs; all 215 prior voice/story entries remain unchanged, with 223 total / 145 pending recordings. M12 numeric normalization and every prior decision record are preserved. Studio verified: pending orchestrator run. No Studio, test:roblox, Player tests or uploads performed. #195 remains merge pending.
 
 Merged PR #191 (351d7988) tooling update: canonical numeric catalog fixture prevents platform-specific Luau trig drift. No gameplay or Player change.
