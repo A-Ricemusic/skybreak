@@ -2,6 +2,10 @@
 
 Updated 2026-10-30 against main `a04fdd6` (#177/#178 merged); no known deployment failure is recorded. Live status follows the owner's pipeline convention and does not establish observed Player quality. This reconciliation performs offline checks only.
 
+## D5 verification and mission integration (2026-10-30)
+
+Resolved PR #180 P2: sector-only windups no longer emit player lock warnings or prevent carrier service. Shared policy coverage and a beach-attacker-to-service integration regression preserve player windup warnings/service blocking. The integration case is compiled but awaits the orchestrator-owned Roblox test run. No implementation blocker requiring owner input. Studio/Jest runtime, Player feel, phone readability, carrier approach/deck clearance and force-health tuning remain unverified. The implementation agent did not launch Studio or run test:roblox. M09 subtype inventory, exact points and authored routes remain mission readiness gaps; dormant engine support does not resolve them. No uploads or new audio. D5 is updated against main `d1fb3a8`; D4 #177 remains a separate open dependency.
+
 ## Resolved dependencies
 
 - M04 #149, M05 #148, terrain performance #158, story #159 and cutscenes #152 are merged. Practice/M01–M07 are live by pipeline convention; their old review/unlock dependencies are resolved.

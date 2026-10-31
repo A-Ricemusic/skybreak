@@ -86,6 +86,7 @@ describe("Dormant allied flight contracts", () => {
 		expect(recomputed).toBeUndefined();
 		const player = AlliedRules.CommitWindupTarget<typeof wingman>(undefined);
 		expect(AlliedRules.WarnsPlayer(player)).toBe(true);
+		expect(AlliedRules.WarnsPlayer(player, "beach")).toBe(false);
 		expect(player).toBeUndefined();
 	});
 	it("uses hysteresis for ordinary hostiles and keeps aces and couriers focused on the player", () => {

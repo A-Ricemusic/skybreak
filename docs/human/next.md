@@ -4,7 +4,7 @@ Updated 2026-10-30 against main `a04fdd6`. Practice and missions 1–7 are live 
 
 1. **Review and merge mission 8 [#183](https://github.com/A-Ricemusic/skybreak/pull/183).** D4 #177 and M07 #178 are merged. Studio verified: pending orchestrator run; confirm clocks, protected mast adoption, bomber endpoint loss and sequential unlock.
 2. **Verify live M07 in the orchestrator's Studio session.** Check actual-world canyon masking/ingress, Y=585 ceiling and phone flight; offline coverage does not establish play quality.
-3. **Complete D5 #180 then D6 #182**, following the [engine plan](../specs/engine/missions-06-18-plan.md), keeping opt-in support dormant until mission activation.
+3. **D5 [#180](https://github.com/A-Ricemusic/skybreak/pull/180) is merged (dormant); complete D6 #182 next**, following the [engine plan](../specs/engine/missions-06-18-plan.md), keeping opt-in support dormant until mission activation.
 4. **Integrate missions 9–18 in order.** Worlds and specs exist; actors, counts, timing, failure, ranks, unlock and runtime acceptance remain.
 
 ## Mission 6 beta guide — IRON COAST (Live after #179 merges)

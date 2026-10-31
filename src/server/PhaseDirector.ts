@@ -1,4 +1,5 @@
 import { Workspace } from "@rbxts/services";
+import { clearGroundDirector } from "./EngineBatchD5Runtime";
 import { takeArrival, FighterArrival, StandaloneAce } from "../shared/CampaignEncounters";
 import type { AceLivery } from "../shared/AssetSelection";
 import { BomberRules, BomberSlotPose } from "../shared/BomberRules";
@@ -97,6 +98,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 		assert(session.blueprintState && session.blueprint, "blueprint phase application requires blueprint state");
 		const state=session.blueprintState;
 		if (state.outcome !== undefined || session.appliedBlueprintPhaseIndex === state.phaseIndex) return;
+		clearGroundDirector(session);
 		session.appliedBlueprintPhaseIndex=state.phaseIndex;
 		session.chatterIndex=0;
 		session.reinforceIndex=0;
