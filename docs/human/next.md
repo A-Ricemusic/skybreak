@@ -118,6 +118,14 @@ Review PR #188’s integration with merged D7/D8 and missions 8–9. Keep D9 dor
 
 PR #190 remains dormant and unmerged. Main D6–D9 and missions 8–9 are preserved; practice, mission catalog and frozen snapshots are unchanged. Cruise twists remain rejected. The shared sortie identity namespace now also includes protected aircraft and spatial airships; elites use generated runtime identities, with the existing elite retreat lifecycle preserved. M14 activation still needs authored routes/roster/scoring and Studio/Player/phone acceptance. No Studio, Player test or upload was performed. Integration validation passed: frozen install, build and full offline validation each exited 0; runtime Jest compiled only. Main was `f35430f`; mission 10 had not merged.
 
+## D12 main integration (2026-10-30)
+
+PR #193 is rebased by merge onto main `0450491` (D9, D10 and missions 9–10 included); D11 #192 is excluded. D12 remains dormant and M17 locked. Practice and missions 1–10 retain main's catalog and frozen snapshots. D12 keeps protected Rusk/four required wingmen, bridge-linked closures and the reviewed hull/mount velocity fix. D7–D10 radar, protected-target warning suppression, D8 retreat and D4/D6 admission budgets including `concurrentRoutes` remain composed. No Studio, Roblox Jest or Player test was performed.
+
+Review D12, then activate M17 only after preceding missions and D11. Author separate witness/enemy bridge routes, four required wingmen, a departure clock and route; reuse D11's M17 repair contract after it merges.
+
+D12 integration validation: frozen install, standalone build and the full prescribed offline command each exited 0 (1,069 Luau contracts, 19 unchanged catalog snapshots, four loader guard probes, 124 Python tests). Runtime Jest compiled only; no Studio, `test:roblox` or Player run.
+
 ## D11 review and activation handoff
 
 Review dormant D11 ground-support/service extensions (D-500–D-504); no mission opts in. M15/M16 activation must author clearance/reserve IDs, routes, D4 protected-city bomber phase and M15–M17 repair opt-ins, then verify rearm menu/skip/timeout with PC/gamepad/touch, sector threats, cleanup and once-only scoring. Include score-deadline → bomber transition with an unsecured reserve gate and sortie-folder cleanup (PR #192 regression). Run the compiled runtime Jest specs under the orchestrator's Studio lease and profile 150 armour contacts on phone before claiming performance or visual acceptance. D7–D10 and missions 8–10 are merged; their hooks and live behavior are preserved. No uploads needed.

@@ -214,6 +214,27 @@ D10 main integration (2026-10-30): composed with `f35430f` (D6–D9 and missions
 
 Integration validation: frozen install, standalone build and the full requested offline command exited 0. Runtime Jest compiled only; no Studio launch or `test:roblox` run.
 
+## Batch D12 implementation
+
+Implemented against main `f4eb4db` (D1–D8 and M01–M08 merged), opt-in and dormant. No catalog mission, frozen snapshot or unlock changes. `EngineBatchD12.ts` owns pure withdrawal/bridge rules; `EngineBatchD12Runtime.ts` owns the disposable procedural leader. D-520–D-523 record the authoring decisions.
+
+- `phase.leaderWithdrawal: { departure: SurfaceRoute }` requires exactly four direct required wingmen, a fresh clock, no other hostile wave/ace/elite lifecycle, and bounded departure time (≤120 seconds, with >30 seconds reserve in the authored clock). D8's five-elite/one-defeat/ejection remains unchanged. D12 reuses elite wingman visuals and the existing once-only player score ledger; required status blocks allied engagement and in-flight allied damage. Four kills hold the phase until server-observed departure, then set sortie `ruskDeparted` and folder `RuskDeparted` without a fifth kill or points.
+- Rusk is deliberately **excluded from TGT and all damage**. The labelled nonquery, noncolliding procedural command aircraft waits at the route's first point and departs only when his four wingmen are down. It is outside Enemy registries, so guided/blind/gun/area weapons cannot accidentally kill him. This chooses the exclusion alternative to m17's provisional 25% damage-floor proposal; survival cannot become an invulnerable red target or an early-retreat softlock. The approved story map's four kills then coastal departure is preserved; M18's killable duel is a separate future actor.
+- `bridge_section` is a typed military target with a procedural fallback. `phase.bridgeClosures: [{ targetId, sectorIds, hullIds }]` closes explicitly linked D5 ground and D2 naval routes after the scored destruction. Actors freeze at their current route pose; no teleport, free score or secured-sector flag. Unlinked witness/friendly bridge routes continue. Mission authors must keep indispensable witness routes independent; this implements closure, not invented rerouting/navigation geometry. Closing a secured/completed route does not undo its progress. Normal phase teardown resets closure by phase ownership.
+- Naval turrets reuse existing D2 `gun_mount` / `aa_gun` / opted-in `sam` children with `parentId`, existing firing budgets and hull-local movement. Hull sinking retires mounts without collateral kill/score credit. No new naval damage subsystem.
+- M17 repair remains an integration dependency on D11 **#192**: after it merges, author M17's existing `rearm.health: true` opt-in under D11's M15–M17 allowlist. D12 neither imports unmerged D11 code nor lifts main's current repair ban. D9 #188 and D10 #190 are now merged; their runtime hooks remain composed.
+- Existing D5 sector-target and D7 committed protected-target warning/rearm threat policies remain in effect. No leader weapon/warning path, new raycasts (therefore no >15,000-stud rays), contact scans, world asset uploads or audio uploads. Hostile formation is four fighters plus one lightweight story silhouette, within existing D4/D6 budgets.
+
+Validation: `bun install --frozen-lockfile`, `bun run build`, and `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau" bun run validate:offline` all exited 0: 1,030 offline Luau contracts, 124 Python tests and unchanged catalog snapshots. Pure Jest-compatible specs are registered in both offline copy and require lists; server Jest specs compile but are not executed here. No Studio launch, Roblox Jest run, Player flight, rendered fidelity or phone-performance claim. M17 remains locked with its existing dormant world; route coordinates, visual acceptance, inventory and rank calibration still belong to mission integration.
+
+## D12 main integration (2026-10-30)
+
+PR #193 is rebased by merge onto main `0450491` (D9, D10 and missions 9–10 included); D11 #192 is excluded. D12 remains dormant and M17 locked. Practice and missions 1–10 retain main's catalog and frozen snapshots. D12 keeps protected Rusk/four required wingmen, bridge-linked closures and the reviewed hull/mount velocity fix. D7–D10 radar, protected-target warning suppression, D8 retreat and D4/D6 admission budgets including `concurrentRoutes` remain composed. No Studio, Roblox Jest or Player test was performed.
+
+D-524 reserves the leader/four wingman ids in the shared credited-id namespace, including collisions against other encounter batches. Bridge and turret ids remain covered by ground-target claims. All 98 pure spec registrations match `run.luau` imports and retain `checkedRequire`. `shipped.md` is identical to main.
+
+D12 integration validation: frozen install, standalone build and the full prescribed offline command each exited 0 (1,069 Luau contracts, 19 unchanged catalog snapshots, four loader guard probes, 124 Python tests). Runtime Jest compiled only; no Studio, `test:roblox` or Player run.
+
 ## Batch D11 implementation
 
 Integrated with main `0450491`, including D1–D10 and M01–M10. All new contracts are opt-in and dormant: no mission catalog data, frozen snapshots or world plans change. All earlier batch hooks are preserved.

@@ -12,6 +12,7 @@ M12 integration validation (2026-10-30): frozen install, build, required test:of
 
 | PR | Change | Status / owner observation |
 |---|---|---|
+| [#193](https://github.com/A-Ricemusic/skybreak/pull/193) | `545d1764` | D12 Rusk withdrawal, bridge route closures, naval turrets | No visible change — engine support, dormant. Mission 17 has not activated on main. |
 | [#191](https://github.com/A-Ricemusic/skybreak/pull/191) | M12 THE COMMAND RING: seven guns in 15:00, strike rearm, fresh 10:00 elite/recovery; unlocks after M11 | Merged 351d7988; live by pipeline convention. Studio verified: pending orchestrator run. No Player test. |
 | [#192](https://github.com/A-Ricemusic/skybreak/pull/192) | `85ce755` | D11 ground-force extensions, repair rearm (M15–17 only), service clocks, cheap armour | No visible change — engine support, dormant. Missions 15–16 have not activated on main. |
 
