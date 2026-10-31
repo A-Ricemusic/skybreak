@@ -1586,6 +1586,51 @@
    "spoken": "That's two thousand. Keep burning it until the clock runs out."
   },
   {
+   "id": "radio.m06.p1.beat",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Iron Coast. Warships and fuel barges only; leave the market clear.",
+   "spoken": "Iron Coast. Warships and fuel barges only; leave the market clear."
+  },
+  {
+   "id": "radio.m06.p1.chatter1",
+   "kind": "radio",
+   "speaker": "MARINE",
+   "voice": "IKne3meq5aSn9XLyUdCD",
+   "tape": false,
+   "text": "LANTERN 2: Ships are slipping their moorings. Catch them in the basin.",
+   "spoken": "Ships are slipping their moorings. Catch them in the basin."
+  },
+  {
+   "id": "radio.m06.p1.chatter2",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Halfway. The pontoon SAMs are still awake. Mind the warnings.",
+   "spoken": "Halfway. The pontoon SAMs are still awake. Mind the warnings."
+  },
+  {
+   "id": "radio.m06.p1.chatter3",
+   "kind": "radio",
+   "speaker": "MARINE",
+   "voice": "IKne3meq5aSn9XLyUdCD",
+   "tape": false,
+   "text": "LANTERN 3: Nearly there. Don't stop at the number, trainee.",
+   "spoken": "Nearly there. Don't stop at the number, trainee."
+  },
+  {
+   "id": "radio.m06.p1.chatter4",
+   "kind": "radio",
+   "speaker": "SERA",
+   "voice": "EXAVITQu4vr4xnSDxMaL",
+   "tape": false,
+   "text": "SERA: Harbour traffic copied. We can follow the orders inland.",
+   "spoken": "Harbour traffic copied. We can follow the orders inland."
+  },
+  {
    "id": "radio.m07.p1.beat",
    "kind": "radio",
    "speaker": "SERA",

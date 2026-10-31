@@ -22,11 +22,12 @@ describe("Dormant M06/M07 worlds", () => {
   // Main's WorldCompositionCounts (#158) now charges water too, so the legacy figures legitimately differ.
   expect(water.legacyEstimatedSeconds).toBeGreaterThan(land.legacyEstimatedSeconds);
  });
- it("is deterministic, checkpointed, and selected only by its mission", () => {
+ it("is deterministic, checkpointed, selected only by missions 6 and 7", () => {
   let checkpoints = 0;
   expect(buildM06Plan(606, () => { checkpoints++; })).toEqual(a);
   expect(buildM07Plan()).toEqual(b); expect(checkpoints).toBeGreaterThan(1000);
-  for (const mission of MissionCatalog.All()) { expect(MissionCatalog.WorldKey(mission.id)).never.toBe(a.key); if (mission.id === 7) expect(MissionCatalog.WorldKey(mission.id)).toBe(b.key); else expect(MissionCatalog.WorldKey(mission.id)).never.toBe(b.key); }
+  for (const mission of MissionCatalog.All()) { if (mission.id !== 6) expect(MissionCatalog.WorldKey(mission.id)).never.toBe(a.key); if (mission.id !== 7) expect(MissionCatalog.WorldKey(mission.id)).never.toBe(b.key); }
+  expect(MissionCatalog.WorldKey(6)).toBe(a.key); expect(MissionCatalog.WorldKey(7)).toBe(b.key);
  });
  it("exports unique ids, provisional counts and the exact sketch anchors", () => {
   for (const [plan, prefix] of [[a, "m06_"], [b, "m07_"]] as const) {
@@ -114,7 +115,7 @@ describe("Dormant M06/M07 worlds", () => {
   for (let i = 1; i < M07_CANYON.size(); i++) {
    const a = M07_CANYON[i - 1], c = M07_CANYON[i], dx = c.x - a.x, dz = c.z - a.z, len = math.sqrt(dx * dx + dz * dz); length += len;
    for (let s = 0; s <= len; s += 64) {
-    const x = a.x + dx * s / len, z = a.z + dz * s / len, y = a.floor + (c.floor - a.floor) * s / len + 56;
+    const x = a.x + dx * s / len, z = a.z + dz * s / len, y = a.floor + (c.floor - a.floor) * s / len + 80;
     expect(y + 24).toBeLessThan(M07.artilleryCeiling);
     for (const offset of [-128, 0, 128]) {
      const px = x + dz / len * offset, pz = z - dx / len * offset;

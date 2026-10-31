@@ -1,8 +1,9 @@
+import { FlightMath } from "../shared/FlightMath";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { MissionCatalog, MISSIONS } from "../shared/MissionCatalog";
 import { M07_TARGETS, M07_SCENERY_ID } from "../shared/missions/m07";
-import { M07, m07TargetLayout, m07Height } from "../shared/M07WorldPlan";
-import { canyonSampleSafe, artilleryExposed, newArtillery, stepArtillery } from "../shared/EngineBatchD3";
+import { M07, m07TargetLayout, m07Height, m07Ground } from "../shared/M07WorldPlan";
+import { canyonSampleSafe, artilleryExposed, newArtillery, stepArtillery, artilleryMasked } from "../shared/EngineBatchD3";
 import { BlueprintRunner as Runner } from "../shared/BlueprintRunner";
 import { TargetScore } from "../shared/TargetScore";
 import { recordScoredKill } from "../server/SortieScore";
@@ -37,7 +38,7 @@ describe("Mission 7 array strike and canyon escape", () => {
   }
   expect(required.reduce((n,t) => n + bp.scoring!.points[t.scoreRole], 0)).toBe(340);
   expect(bp.briefing).toBe(MISSION_STORY_TEXT[7].briefing); expect(strike.beat).toBe(MISSION_STORY_TEXT[7].radio[0]);
-  expect(escape.update!.radio[0]).toBe(MISSION_STORY_TEXT[7].radio[1]); expect(bp.allies!.mayKill).toBe(false);
+  expect(escape.update!.radio[0]).toBe(MISSION_STORY_TEXT[7].radio[1]); expect(bp.allies!.mayKill).toBe(true); expect(bp.allies!.killBudget).toBe(1);
   expect(bp.pressure!.playerPriority).toBe(0.8);
  });
  it("keeps the finite 11-air roster and every rank reachable below the 2,050-point maximum", () => {
@@ -58,18 +59,73 @@ describe("Mission 7 array strike and canyon escape", () => {
   Runner.ObserveFlight(s, {x:0,y:200,z:11500}, {x:0,y:200,z:11540}, 0.1, 502); expect(s.outcome).toBe("won");
  });
  it("audits every centreline leg at 32-stud spacing below the world ceiling, with clearance", () => {
-  expect(plan.ceiling).toBe(M07.artilleryCeiling);
+  expect(plan.ceiling).toBe(585); expect(plan.ceiling).toBe(M07.artilleryCeiling);
   for (let i = 1; i < plan.channel.size(); i++) {
    const a=plan.channel[i-1], b=plan.channel[i], steps=math.ceil(math.sqrt((b.x-a.x)**2+(b.z-a.z)**2)/32);
    for (let j=0;j<=steps;j++) {
     const t=j/steps, p={x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t,z:a.z+(b.z-a.z)*t};
-    expect(canyonSampleSafe(plan,p,m07Height(p.x,p.z))).toBe(true);
+    expect(canyonSampleSafe(plan,p,m07Height(p.x,p.z))).toBe(true); expect(plan.ceiling-p.y).toBeGreaterThan(400);
    }
   }
   expect(artilleryExposed(plan,200,false)).toBe(true); expect(artilleryExposed(plan,200,true)).toBe(false);
   expect(artilleryExposed(plan,plan.ceiling+1,true)).toBe(true);
   const battery=newArtillery(); expect(stepArtillery(battery,plan,1).warning).toBe(true);
-  expect(stepArtillery(battery,plan,7).countdown).toBe(true); expect(stepArtillery(battery,plan,7).impact).toBe(true);
+  expect(stepArtillery(battery,plan,52).countdown).toBe(true); expect(stepArtillery(battery,plan,7).impact).toBe(true);
+ });
+ it("segments a >15,000-stud line through cover near the aircraft, including seams and endpoint exclusion", () => {
+  const player={x:0,y:88,z:11520}, a=plan.source;
+  const length=math.sqrt((player.x-a.x)**2+(player.y-a.y)**2+(player.z-a.z)**2);
+  expect(length).toBeGreaterThan(25000);
+  for (const obstruction of [1000,15000,length-50,length-2.1,length-1]) {
+   let travelled=0, casts=0;
+   const masked=artilleryMasked(plan,player,(_origin,delta)=>{
+    const size=math.sqrt(delta.x**2+delta.y**2+delta.z**2);
+    expect(size).toBeLessThanOrEqual(1000.000001); casts++;
+    const hit=obstruction>=travelled && obstruction<=travelled+size ? obstruction-travelled : undefined;
+    travelled+=size; return hit;
+   });
+   expect(masked).toBe(obstruction<length-2); expect(casts>0).toBe(true);
+  }
+  let total=0;
+  expect(artilleryMasked(plan,player,(_a,d)=>{total+=math.sqrt(d.x**2+d.y**2+d.z**2);return undefined;})).toBe(false);
+  expect(total).toBeCloseTo(length,4);
+ });
+ it("allows retained above-ceiling finishing poses to reach canyon cover before the first impact", () => {
+  // Real 30 Hz flight, cruise throttle, 3s reaction, initially north/east/south
+  // and level/climbing. No teleport, attitude reset or privileged speed.
+  for (const altitude of [900,1800,3000]) for (const heading of [0,math.pi/2,math.pi]) {
+   const jet=FlightMath.FromPose(-1000,altitude,-8040,heading,0.2,160);
+   const hazard=newArtillery(); let reached=false, waypoint=0, elapsed=0;
+   const route=[{x:0,y:300,z:-7000},{x:-1920,y:144,z:-4800}];
+   for(let i=0;i<1800;i++) {
+    const target=route[waypoint], dx=target.x-jet.x,dz=target.z-jet.z, horizontal=math.sqrt(dx*dx+dz*dz);
+    if(horizontal<240 && math.abs(jet.y-target.y)<80) {
+     if(waypoint===0) waypoint=1;
+     else { reached=true; break; }
+    }
+    const pitch=math.clamp(math.atan2(target.y-jet.y,math.max(horizontal,300)),-0.65,0.4);
+    const active=elapsed>=3;
+    FlightMath.Step(jet,{x:active ? math.clamp(-FlightMath.WrapAngle(math.atan2(-dx,-dz)-jet.yaw)*4,-1,1) : 0,y:active ? math.clamp((pitch-jet.pitch)*4,-1,1) : 0,throttle:FlightMath.CruiseThrottle},1/30,bp.airspace);
+    elapsed+=1/30;
+    expect(jet.y-m07Height(jet.x,jet.z)).toBeGreaterThan(plan.clearance);
+    expect(stepArtillery(hazard,plan,1/30).impact).toBe(false);
+   }
+   expect(reached).toBe(true); expect(jet.y).toBeLessThan(585); expect(elapsed).toBeLessThan(55);
+   // Sample the authored built-surface heights along the complete masking line.
+   // Roblox engine ray agreement is covered separately by M07WorldRuntime.
+   expect(artilleryMasked(plan,jet,(a,d)=>{
+    const size=math.sqrt(d.x*d.x+d.y*d.y+d.z*d.z), steps=math.ceil(size/4);
+    for(let k=0;k<=steps;k++) { const t=k/steps; if(a.y+d.y*t<=m07Ground(a.x+d.x*t,a.z+d.z*t)) return size*t; }
+    return undefined;
+   })).toBe(true);
+  }
+  // First salvo at 60s, next at 85s; extra ingress applies once only.
+  const h=newArtillery(); expect(stepArtillery(h,plan,1).warning).toBe(true);
+  expect(stepArtillery(h,plan,51).countdown).toBe(false);
+  expect(stepArtillery(h,plan,1).countdown).toBe(true);
+  expect(stepArtillery(h,plan,7).impact).toBe(true);
+  stepArtillery(h,plan,10); expect(h.cycle).toBe(1);
+  expect(stepArtillery(h,plan,15).impact).toBe(true);
  });
  it("fails strike expiry, independent escape expiry and destruction in either phase", () => {
   const strikeTimeout=Runner.NewState(bp,0); Runner.Tick(strikeTimeout,900); expect(strikeTimeout.reason).toBe("timeout");

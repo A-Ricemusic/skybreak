@@ -32,8 +32,8 @@ export const mission: MissionBlueprint = {
  start: { kind: "airborne", ...M07.start, speed: 160 }, countdownSeconds: 900, terrainRelativeWarnings: true,
  armament: { gun: { rounds: 1200 }, areaAttack: { radius: 220, depth: 80, damage: 180 } },
  pressure: { playerPriority: 0.8, forwardConeDegrees: 60, tailDefence: true },
- // #174 is unmerged: no unlimited allied kills; adopt its one-kill budget after rebase.
- allies: { count: 2, model: "Kestrel", callsignPrefix: "LANTERN", mayKill: false, creditPlayerKills: false, allowRequiredTargets: false,
+ // Shared one-kill sortie budget from #174; no player credit or required kills.
+ allies: { count: 2, model: "Kestrel", callsignPrefix: "LANTERN", mayKill: true, killBudget: 1, creditPlayerKills: false, allowRequiredTargets: false,
   formation: [{ x: -180, y: 30, z: 160 }, { x: 180, y: 30, z: 160 }] },
  scoring: { basis: "points", points: { solar_panel: 15, radar: 100, control_room: 120, solar_tower: 120, flak: 40, sam: 30, aa: 20, pillbox: 60, fighter: 60, helicopter: 50, ace: 240 }, rank: { S: 1600, A: 1400, B: 1000, C: 340 } },
  primary: "Destroy three marked installations in 15:00, then escape south in 5:00",
@@ -47,7 +47,7 @@ export const mission: MissionBlueprint = {
   { kind: "return_line", label: "Below 2,000 ft; escape south",
    update: { objective: "Descend below 2,000 ft; use canyon cover and exit south", countdownSeconds: 300, radio: [MISSION_STORY_TEXT[7].radio[1]] },
    returnLine: { a: { x: -1200, z: M07.escape.z }, b: { x: 1200, z: M07.escape.z }, direction: { x: 0, z: 1 }, markerY: 200 },
-   canyonEscape: { ceiling: M07.artilleryCeiling, source: { x: 10000, y: 1600, z: -12000 }, warningSeconds: 8, countdownSeconds: 7, intervalSeconds: 25, damage: 35, clearance: 40,
+   canyonEscape: { ceiling: M07.artilleryCeiling, source: { x: 10000, y: 1600, z: -12000 }, firstSalvoDelaySeconds: 45, warningSeconds: 8, countdownSeconds: 7, intervalSeconds: 25, damage: 35, clearance: 40,
     channel: M07_CANYON.map(p => ({ x: p.x, y: p.floor + 80, z: p.z })) },
   },
  ],

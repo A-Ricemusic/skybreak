@@ -1,6 +1,5 @@
 import { Lighting, UserInputService, Workspace } from "@rbxts/services";
 import { ENVIRONMENT_ATTRIBUTE } from "../shared/EnvironmentPresets";
-import type { EnvironmentPreset } from "../shared/MissionCatalog";
 import { phoneClouds } from "../shared/WeatherRules";
 
 // Phone-only render trims, applied locally (Lighting and Terrain changes made on
@@ -13,7 +12,7 @@ import { phoneClouds } from "../shared/WeatherRules";
 // Memory heuristics such as Stats:GetTotalMemoryUsageMb are unreliable across
 // devices, so the rule is simply "touch device".
 
-const preset = () => Lighting.GetAttribute(ENVIRONMENT_ATTRIBUTE) as EnvironmentPreset | undefined;
+const preset = () => Lighting.GetAttribute(ENVIRONMENT_ATTRIBUTE) as string | undefined;
 
 function trimEffect(item: Instance): void {
 	if (item.IsA("BloomEffect") || item.IsA("SunRaysEffect") || item.IsA("DepthOfFieldEffect")) item.Enabled = false;

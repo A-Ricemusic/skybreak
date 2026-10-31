@@ -362,11 +362,11 @@ describe("Mission 5 unlock", () => {
 			finish(d, 4);
 			expect(canLaunchMission(5, d.getSlots()[0])).toBe(true);
 			expect(canLaunchMission(6, d.getSlots()[0])).toBe(false);
-			// A forged slot claiming every mission still stops at the first unreleased mission after 5.
+			// A forged slot claiming every mission still stops at the last released mission (7 since mission 7's release).
 			const forged = d.getSlots()[0];
 			forged.missions ??= {};
 			for (let id = 1; id <= 18; id++) forged.missions[id] = { completed: true };
-			expect(highestUnlocked(forged)).toBe(5);
+			expect(highestUnlocked(forged)).toBe(7);
 			void slot;
 		});
 		expect(notified).toBe(0);

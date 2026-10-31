@@ -1,6 +1,5 @@
 import { Lighting, TweenService, UserInputService, Workspace } from "@rbxts/services";
 import { ENVIRONMENT_ATTRIBUTE } from "../shared/EnvironmentPresets";
-import type { EnvironmentPreset } from "../shared/MissionCatalog";
 import { WEATHER_VOLUME, lightningGap, weatherPlan, type DriftSpec, type RainSpec, type WeatherPlan } from "../shared/WeatherRules";
 import { MotionPreference } from "./MotionPreference";
 
@@ -189,7 +188,7 @@ export const Weather = {
 		};
 		const apply = () => {
 			generation += 1;
-			plan = weatherPlan(Lighting.GetAttribute(ENVIRONMENT_ATTRIBUTE) as EnvironmentPreset | undefined, phone, MotionPreference.reduced);
+			plan = weatherPlan(Lighting.GetAttribute(ENVIRONMENT_ATTRIBUTE) as string | undefined, phone, MotionPreference.reduced);
 			volume?.Destroy(); volume = undefined;
 			sky?.Destroy(); sky = aurora(plan);
 			flash.Brightness = 0;
