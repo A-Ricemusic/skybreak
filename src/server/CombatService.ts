@@ -1,3 +1,5 @@
+import { ventObstructed } from "../shared/EngineBatchD13";
+import { d13TargetAllowed, duelActive, stepBatchD13 } from "./EngineBatchD13Runtime";
 import { stepProtection, protectedTarget, hitProtected, clearProtection } from "./EngineBatchD7Runtime";
 import { createCheapContact, cheapEligible, stepContacts, handoffParked, stepRepeatedArtillery } from "./EngineBatchD6Runtime";
 import { clearGroundDirector, stepGroundDirector, stepBeachAttacker } from "./EngineBatchD5Runtime";
@@ -197,7 +199,7 @@ function lateralFor(state: FlightState, forward: Vector3): Vector3 {
 function unitOr(vector: Vector3, fallback: Vector3): Vector3 { return vector.Magnitude > 0.01 ? vector.Unit : fallback; }
 function point(vector: Vector3): { x: number; y: number; z: number } { return { x: vector.X, y: vector.Y, z: vector.Z }; }
 function ownsEnemy(session: CombatSession, enemy: Enemy | undefined): enemy is Enemy {
-	return enemy !== undefined && enemy.typedGround?.type !== "wreck" && AlliedRules.PlayerTarget(enemy) && enemy.model.Parent === session.folder;
+	return enemy !== undefined && d13TargetAllowed(session,enemy) && enemy.typedGround?.type !== "wreck" && AlliedRules.PlayerTarget(enemy) && enemy.model.Parent === session.folder;
 }
 function targetMetrics(session: CombatSession, enemy: Enemy): LuaTuple<[number, number]> {
 	const delta = enemy.position.sub(positionFor(session.state));
@@ -302,6 +304,13 @@ function occludes(hit: RaycastResult): boolean {
 }
 /** Cached per enemy and refreshed at most every TargetPriority.LosInterval, so a TGT burst or a kill chain never fans out into raycasts every frame. */
 function lineOfSightBlocked(session: CombatSession, enemy: Enemy): boolean {
+ if(session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.batchD13?.vent) {
+  return ventObstructed(session.state,point(enemy.position),(o,d)=>{
+   const hit=Workspace.Raycast(new Vector3(o.x,o.y,o.z),new Vector3(d.x,d.y,d.z),session.collisionParams);
+   return hit && !hit.Instance.IsDescendantOf(enemy.model) && occludes(hit) ? hit.Distance : undefined;
+  });
+ }
+
 	if (enemy.losAt !== undefined && session.elapsed - enemy.losAt < TargetPriority.LosInterval) return enemy.losBlocked === true;
 	enemy.losAt = session.elapsed;
 	const origin = positionFor(session.state);
@@ -349,6 +358,9 @@ function targetCandidates(session: CombatSession, view?: ViewFrustum): TargetCan
 			candidate.onScreen = withinVisual && TargetPriority.InView(view, point(enemy.position));
 		}
 		candidates.push(candidate);
+	}
+	if(session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.batchD13?.vent) {
+		for(let i=candidates.size()-1;i>=0;i--) if(lineOfSightBlocked(session,session.enemies[candidates[i].id])) candidates.remove(i);
 	}
 	const checks = view === undefined ? TargetPriority.LosChecks(candidates) : TargetPriority.PressLosChecks(candidates);
 	for (const candidate of checks) candidate.blocked = lineOfSightBlocked(session, session.enemies[candidate.id]);
@@ -714,13 +726,13 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 		else if (role === "bomber") name = options.arrival && "aircraft" in options.arrival ? string.upper(options.arrival.aircraft ?? "AIRCRAFT") : session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.aircraft === "transport" ? "HEAVY TRANSPORT" : "HEAVY BOMBER";
 		else if (options.arrival?.livery === "Elite") name = `ELITE SQUADRON ${index + 1}`;
 		else if (role === "escort") name = `ESCORT ${session.spawnSerial + 1}`;
-		else if (role === "ace") name = session.blueprint?.aceName ?? "ACE";
+		else if (role === "ace") name = duelActive(session) ? "RUSK" : session.blueprint?.aceName ?? "ACE";
 		else if (role === "courier") name = session.missionId === 24 ? "FUEL TANKER" : "COURIER";
 		else if (role === "bandit") { session.banditSerial += 1; name = string.format("BANDIT %02d", session.banditSerial); }
 		else { session.raiderSerial += 1; name = string.format("RAIDER %02d", session.raiderSerial); }
 		const eliteFit=role === "bandit" && session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.eliteFormation!==undefined;
 		if(eliteFit) name=`ELITE ${index+1}`;
-		const model = role === BomberRules.Role.role ? BomberFactory.Create(name, options.arrival && "aircraft" in options.arrival ? options.arrival.aircraft : session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.aircraft) : JetFactory.Create(name, options.friendly !== true, options.livery ?? (eliteFit ? "Elite" : role === "ace" ? AssetSelection.LiveryForAce(options.name, session.blueprint?.aceName) : undefined));
+		const model = role === BomberRules.Role.role ? BomberFactory.Create(name, options.arrival && "aircraft" in options.arrival ? options.arrival.aircraft : session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.aircraft) : JetFactory.Create(name, options.friendly !== true, (duelActive(session) && role==="ace" ? "Rusk" : options.livery) ?? (eliteFit ? "Elite" : role === "ace" ? AssetSelection.LiveryForAce(options.name, session.blueprint?.aceName) : undefined));
 		if (!session.active || session.folder.Parent === undefined) { model.Destroy(); return; }
 		// The replicated model is hidden on the client behind a smoothed local clone; only the clone draws trails.
 		JetFactory.SetTrails(model, false);
@@ -786,7 +798,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 			attackProtected: options.arrival && "attackProtected" in options.arrival ? options.arrival.attackProtected : undefined,
 			scoreRole: options.arrival?.scoreRole ?? (eliteFit ? "bandit" : role === "bomber" && session.blueprintState ? BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.scoreRole : undefined),
 			routeActor: route ? {route,startedAt:session.elapsed,jammer:arrival !== undefined && "aircraft" in arrival && arrival.aircraft==="jammer"} : undefined,
-			phaseOwner: options.arrival && "attackSector" in options.arrival && options.arrival.attackSector!==undefined ? session.blueprintState?.phaseIndex : undefined,
+			phaseOwner: session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.batchD13?.duel ? session.blueprintState.phaseIndex : options.arrival && "attackSector" in options.arrival && options.arrival.attackSector!==undefined ? session.blueprintState?.phaseIndex : undefined,
 			attackSector: options.arrival && "attackSector" in options.arrival ? options.arrival.attackSector : undefined,
 			groundAttack: options.arrival && "behaviour" in options.arrival && options.arrival.behaviour === "ground_attack",
 			scramble: options.arrival && "scramble" in options.arrival && options.arrival.scramble ? { spawn: { x:position.X,y:position.Y,z:position.Z }, heading: options.arrival.headingDegrees ?? 0, startedAt:session.elapsed } : undefined,
@@ -830,7 +842,7 @@ function withdrawAirborne(session: CombatSession): void {
 		for (let index = session.projectiles.size() - 1; index >= 0; index--) {
 			const missile = session.projectiles[index];
 			if (missile.hostile || missile.target !== enemy) continue;
-			if (!missile.special && !missile.allied) session.missiles = SortieArmament.Refund(session.missiles, session.blueprint?.armament);
+			if (!duelActive(session) && !missile.special && !missile.allied) session.missiles = SortieArmament.Refund(session.missiles, session.blueprint?.armament);
 			missile.part.Destroy(); session.projectiles.remove(index);
 		}
 	}
@@ -1043,6 +1055,7 @@ function liveWingman(session: CombatSession, ally: Enemy): boolean {
 	return ally.friendly === true && ally.enabled && ally.health > 0 && ally.model.Parent === session.folder;
 }
 function nearestWingman(session: CombatSession, hostile: Enemy): Enemy | undefined {
+	if(duelActive(session)) return undefined;
 	if (hostile.kind === "ace" || hostile.role === "courier") return undefined;
 	const playerDistance = positionFor(session.state).sub(hostile.position).Magnitude;
 	const current = hostile.combatTarget;
@@ -1362,7 +1375,9 @@ function segmentDistance(target: Vector3, startPosition: Vector3, endPosition: V
  * that projectile: a kill removed it (and may have spliced the list) or ended the session.
  */
 function strikeEnemy(session: CombatSession, enemy: Enemy, index: number): boolean {
+	if(session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.batchD13?.vent && lineOfSightBlocked(session,enemy)) return true;
 	const allied = session.projectiles[index].allied === true;
+	if(allied && duelActive(session)) return false;
 	if (!allied) { session.missileHits += 1; enemy.playerThreatUntil = session.elapsed + 8; }
 	// Staged ace: the hit bursts harmlessly while it breaks away.
 	if (enemy.aceState && AceRules.Invulnerable(enemy.aceState, session.elapsed)) return true;
@@ -1554,6 +1569,7 @@ function startGun(session: CombatSession): void {
 }
 /** One gun round on an enemy: the same ace staging and kill path as a missile hit, without a projectile. */
 function gunStrike(session: CombatSession, enemy: Enemy, hitDamage = GunRules.Damage): void {
+	if(session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.batchD13?.vent && lineOfSightBlocked(session,enemy)) return;
 	if (enemy.aceState && AceRules.Invulnerable(enemy.aceState, session.elapsed)) return;
 	let damage = hitDamage;
 	if (enemy.aceState) damage = AceRules.CapHit(enemy.aceState, enemy.health, enemy.maxHealth, damage);
@@ -1653,6 +1669,7 @@ function stepSession(session: CombatSession, dt: number): void {
 	if (session.blueprintState) BlueprintRunner.ObserveControls(session.blueprintState, session.input.x, session.input.y, dt, os.clock());
 	if (sessionOutcome(session) !== undefined) { finish(session); return; }
 	phaseDirector.Apply(session);
+	stepBatchD13(session,line=>radio(session,line,4));
 	phaseDirector.LaunchDue(session);
 	const from={x:session.state.x,y:session.state.y,z:session.state.z};
 	if (session.inputFresh) { session.inputFresh = false; session.inputSteps = 0; }
@@ -1696,7 +1713,8 @@ function stepSession(session: CombatSession, dt: number): void {
 	session.aircraftFrame = flightFrame;
 	// The evade window stays open for a moment after the press, so a phone's round trip does not eat the timing.
 	if (EvadeRules.Open(session.evade)) decoyEvade(session);
-	stepAllies(session, dt);
+	stepBatchD13(session,line=>radio(session,line,4));
+	stepAllies(session, dt, !duelActive(session));
 	stepEnemies(session, dt);
 	if (session.health <= 0) { refreshSession(session, os.clock()); return; }
 	if (!ownsEnemy(session, session.target)) acquireTarget(session);
@@ -1704,7 +1722,7 @@ function stepSession(session: CombatSession, dt: number): void {
 		const [distance, dot] = targetMetrics(session, session.target);
 		const ground = session.target.kind === "ground";
 		// Air targets lock inside 40 degrees and 1800 studs; ground targets keep the wide 80 degree, 2450-stud cone.
-		const inEnvelope = lockAllowed(session,distance) && distance <= WeaponRules.EnvelopeRange(SpecialWeapons.LockRange(session.special), ground) && dot >= WeaponRules.LockDotFor(ground);
+		const inEnvelope = (!(session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.batchD13?.vent) || !lineOfSightBlocked(session,session.target)) && lockAllowed(session,distance) && distance <= WeaponRules.EnvelopeRange(SpecialWeapons.LockRange(session.special), ground) && dot >= WeaponRules.LockDotFor(ground);
 		const staged = session.target.aceState !== undefined && AceRules.Invulnerable(session.target.aceState, session.elapsed);
 		session.lockProgress = staged ? 0 : inEnvelope
 			? math.min(1, session.lockProgress + dt / SpecialWeapons.LockBuildSeconds(session.special)) : math.max(0, session.lockProgress - dt * WeaponRules.LockDecayPerSecond);

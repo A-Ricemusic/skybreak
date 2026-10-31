@@ -1,5 +1,9 @@
 # Next
 
+## Batch D13 implementation
+
+Review the dormant D13 engine PR, then integrate M18 only in mission order after D9–D12 and mission readiness. Author generator/core/vent/duel plans from the existing M18 world; verify physical shutter clearance, occlusion, retry, independent 5:00 clock, no ammo refund/refill, and allied/structure silence in the orchestrator-owned Roblox session.
+
 Updated 2026-10-30 against main `a04fdd6`. Practice and missions 1–7 are live by pipeline convention. M08 will be live after #183 merges; worlds 9–18 remain dormant. No Player observation is claimed.
 
 1. **Review and merge mission 8 [#183](https://github.com/A-Ricemusic/skybreak/pull/183).** D4 #177 and M07 #178 are merged. Studio verified: pending orchestrator run; confirm clocks, protected mast adoption, bomber endpoint loss and sequential unlock.

@@ -361,3 +361,27 @@ Studio evidence for #179 at `e5c2fd2`: full Jest suite 1,133/1,133 in the orches
 
 - **Status:** provisional implementation; dormant. **Decision maker:** implementation agent (2026-10-30).
 - Five required elite fighters form a one-defeat objective. The defeated elite represents the Vulture Two ejection/recovery story event; the other four retreat without credit. Required status protects the formation from allied kills. Optional named ace remains separate. Recovery flag persists through sortie phase updates and replicates on the session folder; account persistence/presentation belongs to mission integration. Alternative: kill all five; rejected by M12 ending evidence. D12 protected-leader lifecycle remains separate future work.
+
+## D-540 — D13 dependency and vent phase ownership
+
+- **Status / maker:** provisional implementation decision, implementation agent, 2026-10-30; owner acceptance pending.
+- Three required typed generators precede one hidden required core. Ordered swept checkpoint boxes gate core targeting; core credit is held until a later exit crossing. Alternative: core destruction immediately completes M18. Rejected because the vent escape and original duel must occur first.
+- A timed amber shutter opens permanently, with HUD countdown and cyan route beacons. Checkpoint half-extents have a 20-stud minimum; retain existing four-stud fuselage collision/crash rules rather than introducing lethal graze volumes. Exact route/volume pacing requires flight acceptance.
+
+## D-541 — Isolated Rusk duel preserves sortie resources
+
+- **Status / maker:** provisional implementation decision, implementation agent, 2026-10-30; owner acceptance pending.
+- Final ace phase has its own 300-second clock; clear all projectiles and other fighters, disable structure weapons, allies hold fire and Rusk cannot select wingmen. Existing once-only ace kill admission owns the finale.
+- Preserve damage, rack, regeneration and specials; suppress withdrawal refunds at duel entry. Finite sortie stocks are rejected for D13. Alternative: refill/reset or reserve stock, rejected per m18 §10. Retry rebuilds fresh session/world state.
+
+## D-542 — Single environment owner across D13 transitions
+
+- **Status / maker:** accepted implementation constraint, implementation agent, 2026-10-30.
+- Optional transitions resolve M18 storm or standard preset keys with WorldEnvironments.resolveEnvironment and invoke WorldEnvironment.ApplySpec, replacing its existing named effects without reloading geometry. NightLighting owns only local lamps. Alternative: a second Lighting writer or world rebuild, rejected for conflicting ownership and resource continuity.
+- Shared validation avoids importing world builders into MissionCatalog (WorldPlan already imports MissionCatalog); runtime resolves the approved key before applying. Other dormant world keys are outside this phase opt-in.
+
+## D-543 — Enclosed targeting rejects scenery-occluded contacts
+
+- **Status / maker:** provisional implementation decision, implementation agent, 2026-10-30; owner acceptance pending.
+- Vent TGT candidates exclude occluded contacts before existing closest-on-screen/next ordering. Vent locks/impacts use uncached full sightlines, split into at most 1,000-stud rays, without the exterior ground-footprint exemption that could ignore a roof. Alternative: existing cached exterior checks, rejected for stale doorway/roof visibility.
+- Existing target scoring and allied budget remain authoritative; cleared duel actors/projectiles earn no player points. Runtime visual/flight verification remains pending.

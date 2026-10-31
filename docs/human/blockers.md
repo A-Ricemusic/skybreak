@@ -1,5 +1,9 @@
 # Blockers
 
+## D13 acceptance gaps
+
+No implementation blocker requiring owner input. M18 remains dormant; no Studio, Roblox Jest or Player test was performed. Offline checks do not establish vent flight feel, shutter approach fairness, phone HUD legibility, Rusk balance or rendered storm continuity. Existing crash rules are retained; authored volume tuning and world/core target adoption belong to M18 activation. No known deployment failure from this unmerged work; no uploads.
+
 Updated 2026-10-30 against main `a04fdd6` (#177/#178 merged); no known deployment failure is recorded. Live status follows the owner's pipeline convention and does not establish observed Player quality. This reconciliation performs offline checks only.
 
 ## D5 verification and mission integration (2026-10-30)
@@ -109,3 +113,5 @@ Main integration validation (2026-10-30): frozen install, standalone build and f
 D6/M08/D7 shared-hook integration is resolved. D8 remains dormant; runtime Jest, Studio/Player, ring timing/width, bomb feedback, elite recovery presentation and account persistence require mission acceptance. No owner input or upload is required. No Studio or Roblox Jest execution is claimed.
 
 D8 main integration validation (2026-10-30, main `5d84486`): frozen install, build and full `validate:offline` with the prescribed `LUAU_BIN` each exited 0: 1,023 Luau contracts, 19 unchanged catalog snapshots, four loader guard probes and 124 Python tests. All 92 spec registrations match runner imports and retain both parents. No Studio, `test:roblox`, Player tests or uploads performed. D8 remains dormant; M12 dependent branch untouched.
+
+D13 validation: frozen Bun install and build passed; full offline validation exited 0 with 1,032 Luau contracts and 124 Python tests, catalog/frozen snapshots unchanged. D13 Roblox runtime Jest cases compile and cover once-only cleanup, resource preservation, actor isolation and bounds; they were not executed. No Studio or Player test is claimed.

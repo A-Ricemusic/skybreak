@@ -1,5 +1,9 @@
 # SKYBREAK redesign dashboard
 
+## Batch D13 implementation (unmerged)
+
+Dormant generator/core dependency, timed vent checkpoints/exit, isolated Rusk duel and environment-transition support is prepared on feat/engine-batch-d13. No mission opts in; M18 remains locked. No Studio/Player observation or uploads. See engine plan and D-540–D-543.
+
 Updated 2026-10-30 against main `a04fdd6` (#177 and #178 merged), integrating mission 8 #183. Merged gameplay is live in Roblox Player under the owner's automatic-pipeline convention; no Player test is claimed here.
 
 **Practice and missions 1–7 are live; mission 8 OPEN FREQUENCY will be live after #183 merges. Missions 9–18 remain locked, with their worlds built and dormant.** Mission 8 unlocks after mission 7: ≥800 points over 7:00, then six bombers approaching from the west to intercept during a fresh 6:00 hold protecting the broadcast mast. Studio verified: pending orchestrator run. Player/phone not yet observed. D1–D4 are merged; M06 activates D1/D2, M07 D3 and M08 D4. D5 #180 and D6 #182 remain open.
