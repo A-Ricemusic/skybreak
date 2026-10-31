@@ -1,3 +1,4 @@
+import { clearAirships, stepAirships } from "./EngineBatchD9Runtime";
 import { stepProtection, protectedTarget, hitProtected, clearProtection } from "./EngineBatchD7Runtime";
 import { createCheapContact, cheapEligible, stepContacts, handoffParked, stepRepeatedArtillery } from "./EngineBatchD6Runtime";
 import { clearGroundDirector, stepGroundDirector, stepBeachAttacker } from "./EngineBatchD5Runtime";
@@ -553,6 +554,7 @@ function cleanupSession(session: CombatSession, restore = true): void {
 		if (session.characterRoot?.Parent) session.characterRoot.Anchored = session.wasAnchored ?? false;
 		if (session.player.Parent === Players) session.player.ReplicationFocus = session.previousReplicationFocus;
 	}
+	clearAirships(session);
 	clearProtection(session);
 	clearGroundDirector(session);
 	session.folder.Destroy();
@@ -1169,6 +1171,7 @@ function stepEnemies(session: CombatSession, dt: number): void {
 	const maxCap = soft ? GENTLE.threatCap : tuned(session, TUNING.threatCap);
 	let live = 0, threats = 0, raidersAlive = 0;
 	for (const enemy of session.enemies) {
+ if(enemy.airshipJammer) continue;
 		if (!ownsEnemy(session, enemy) || enemy.kind !== "air" || enemy.role === "courier" || (enemy.role === "bomber" && !enemy.routeActor) || (enemy.escortSlot !== undefined && !enemy.escortEngaged)) continue;
 		live += 1;
 		if (enemy.windup > 0) threats += 1;
@@ -1180,6 +1183,7 @@ function stepEnemies(session: CombatSession, dt: number): void {
 	let flightReady = ThreatRules.FlightReady({ sinceLastWindup: session.elapsed - session.lastWindupAt, gate: flightGate, threats, cap });
 	for (let index = 0; index < session.enemies.size(); index++) {
 		const enemy = session.enemies[index];
+ if(enemy.airshipJammer) continue;
 		if (enemy.withdrawUntil !== undefined) { if (enemy.health > 0) stepWithdrawing(session, enemy, dt); continue; }
 		if (!ownsEnemy(session, enemy) || enemy.kind === "ground") continue;
 		if(stepBeachAttacker(session,enemy,dt,line=>radio(session,line,4))) continue;
@@ -1671,6 +1675,7 @@ function stepSession(session: CombatSession, dt: number): void {
 		}
 	}
 	session.inputSteps += 1;
+	stepAirships(session);
 	stepProtection(session,dt,(line)=>radio(session,line,4));
 	stepGroundDirector(session,dt,line=>radio(session,line,4));
 	if(session.blueprintState?.outcome!==undefined) { finish(session); return; }
