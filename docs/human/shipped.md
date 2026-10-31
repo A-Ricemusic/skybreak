@@ -1,5 +1,6 @@
 | PR | Status | Result after merge |
 |---|---|---|
+| #199 | Merge pending | M17 LAST WING; live by pipeline convention after merge. Studio verified: pending orchestrator run. No Player tests performed. |
 | #198 | Merge pending | M16 DUST ROAD; live by pipeline convention after merge. Studio verified: pending orchestrator run. No Player tests performed. |
 
 # M15 integration — #197 Merge pending
@@ -189,3 +190,5 @@ M16 #198 replay validation (2026-10-31, M15 base `caf2889a`, including original 
 M16 #198 shared-targeting review fix (2026-10-31; unmerged): fairness now selects through shared TargetPriority auto/TGT rules over live attackers and persistent/routed cover. Scripted warning-bearing steering and TGT cycling retain lock-cone/time, homing, fuse, seeker and difficulty checks. Selection-failure injection must fail attentive protection. Town attack ingress moved from Z=-6500 to Z=-1000 after shared selection exposed a stationary Normal defense loss; other mission timing/positions unchanged. Stationary defense leaves Easy 90/170/180 hull and Normal/Hard 10/100/150; moving defense leaves Easy 140/180/180 and Normal/Hard 80/90/200. Missiles: stationary 42/63/63, moving 42/64/64. Studio/Player acceptance remains pending; no Studio or test:roblox run performed.
 
 Shared-targeting fix validation: frozen install, build and full prescribed-LUAU_BIN validate:offline exited 0. Catalog snapshot changed only the two M16 town ingress coordinates. No merge or Studio/Player verification.
+
+M17 #199 replay validation (2026-10-31, M16 base `9752a5ad`): frozen install, standalone build, required test:offline/voice/story/catalog sequence and full prescribed-LUAU_BIN validate:offline each exited 0. Passed 1,201 offline Luau contracts, four loader probes, 475 module compilations, 197 require-graph nodes, 19 catalog snapshots, three QA pilot scenarios and 124 Python tests. All 113 base offline specs plus three M17 specs remain in both lists with checkedRequire. Runtime Jest compiled only; adopted models are tested by TargetId. Only M17 catalog snapshot changes; every base decision and non-M17 voice entry is preserved. Voice inventory: 239 entries / 161 pending recordings. No Studio, test:roblox, Player tests, uploads or merge performed. Studio verified: pending orchestrator run. #199 Merge pending; live by pipeline convention after merge.

@@ -15,19 +15,30 @@ export function m17TargetLayout():WorldContact[]{
  for(let i=0;i<4;i++)ts.push({id:`m17_rusk_wingman_${i+1}`,type:"elite_wingman",group:"elite",x:-1800+i*1200,y:1200,z:-3840,yaw:0});
  const types=["attack_helicopter","attack_helicopter","attack_helicopter","attack_helicopter","fighter","fighter","fighter","fighter","active_fighter","active_fighter","active_fighter","tiltrotor","tiltrotor","tiltrotor","tiltrotor","s37_slot","euro_fighter","euro_fighter"];
  for(let i=0;i<types.size();i++)ts.push({id:`m17_air_${i+1}`,type:types[i],group:"optional_air",x:-10000+(i%9)*1000,y:650,z:4000+math.floor(i/9)*800,yaw:0});
- ts.push({id:"m17_rusk",type:"rusk_retreat",group:"elite",...M17.elite,yaw:0});return ts;
+ for(let i=48;i<55;i++){const t=ts[i],h=ts[55+(i-48)%4];t.x=h.x;t.y=80;t.z=h.z+(i<52?-60:60);t.group="naval_mount";}
+ ts.push({id:"m17_rusk",type:"rusk_retreat",group:"elite",...M17.elite,yaw:0});ts.push({id:"m17_enemy_bridge",type:"bridge_section",group:"bridge",x:-1920,y:126,z:-4800,yaw:0});return ts;
 }
 export function buildM17Plan(seed=1717,checkpoint:()=>void=()=>{}){
  const d=worldDressing(M17_SURFACE,checkpoint),targets=m17TargetLayout();
  for(const sea of d.seaParts)sea.color=M17_ENVIRONMENT.water.color;
- for(const t of targets)if(t.group==="naval")d.part(t.id,t.x,48,t.z,100,32,280,"Metal");else d.contact(t,t.group==="capital");
- for(let i=0;i<80;i++){const x=900+(i%10)*950,z=-8500+math.floor(i/10)*1250;if(targets.some(t=>t.group==="capital"&&math.abs(t.x-x)<280&&math.abs(t.z-z)<280)||m17Ground(x,z)===32||math.abs(x-1920)<600&&math.abs(z+6720)<600)continue;const h=70+(i%4)*28;d.part("m17_city_"+i,x,80+h/2,z,360,h,360);}
+ for(const t of targets)if(t.group==="naval")d.part(t.id,t.x,48,t.z,100,32,280,"Metal");else if(t.group!=="bridge"&&t.group!=="elite"&&t.group!=="optional_air")d.contact(t,t.group==="capital");
+ for(let i=0;i<80;i++){const x=900+(i%10)*950,z=-8500+math.floor(i/10)*1250;if(targets.some(t=>t.group==="capital"&&math.abs(t.x-x)<280&&math.abs(t.z-z)<280)||math.abs(x-3840)<320&&z>=-2600&&z<=600||m17Ground(x,z)===32||math.abs(x-1920)<600&&math.abs(z+6720)<600)continue;const h=70+(i%4)*28;d.part("m17_city_"+i,x,80+h/2,z,360,h,360);}
  // Sparse drowned skyline is below the elite battle/retreat tube.
  for(let i=0;i<18;i++)d.part("m17_flooded_"+i,-6400+(i%6)*650,60,-500+math.floor(i/6)*900,200,100,240);
  for(const [id,x,z] of [["m17_friendly_bridge",3840,-960],["m17_enemy_bridge",-1920,-4800]] as const){
   for(let i=0;i<3;i++)d.part(id,x,110,z+(i-1)*1024,180,32,1024);
  }
+ d.runway("m17_service",11000,6200);
  d.foundation("m17_parliament",1920,-6720,500);d.part("m17_parliament",1920,156,-6720,460,128,380);
  return {key:M17_WORLD_KEY,seed,ops:d.ops,parts:[...d.seaParts,...d.parts],props:d.props,targets,routes:[{id:"m17_rusk_exit",points:[M17.elite,M17.exit]}]};
 }
 export const m17Counts=(p:ReturnType<typeof buildM17Plan>)=>compactWorldCounts(p,0);
+
+/** Live combat directors own optional aircraft, wingmen and Rusk. */
+export function buildM17ScenePlan(seed=1717,checkpoint:()=>void=()=>{}) {
+ const plan=buildM17Plan(seed,checkpoint);
+ const airborne=new Set(plan.targets.filter(t=>t.group==="elite"||t.group==="optional_air").map(t=>t.id));
+ plan.targets=plan.targets.filter(t=>!airborne.has(t.id));
+ plan.parts=plan.parts.filter(p=>!airborne.has(p.name));
+ return plan;
+}
