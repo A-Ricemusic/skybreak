@@ -1,3 +1,4 @@
+import { activateResultNext } from "../shared/ResultContinuation";
 import { VoiceDisclosureNotice } from "./VoiceDisclosureNotice";
 import { chapterBeforeMission, shouldPlayChapter } from "../shared/RelayStory";
 import { canLaunchMission, highestUnlocked } from "../shared/CampaignProgress";
@@ -282,14 +283,16 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			}
 		});
 	}, [applyResponseSlots, beginRequest, invoke, showToast]);
-	const launchMission = useCallback(() => {
+	const launchMission = useCallback((missionId = selectedMissionRef.current, fromResult = false) => {
 		if (busyRef.current || !mountedRef.current || !launchLoading.Begin(os.clock())) return;
+		selectedMissionRef.current = missionId;
+		setSelectedMission(missionId);
 		const generation = launchLoading.Generation();
 		task.delay(LAUNCH_REQUEST_TIMEOUT, () => {
 			if (!mountedRef.current || !launchLoading.Watchdog(generation, os.clock())) return;
 			loadingSerialRef.current++;
 			cancelRequests();
-			changeScreen(launchLoading.Screen());
+			changeScreen(fromResult ? "outcome" : launchLoading.Screen());
 			showToast("World preparation timed out. Request another launch.", true);
 			// Bypasses the server foreground request lock; cancellation retains world ownership until the old build stops.
 			task.spawn(() => invoke("CancelLaunch", { launchId: generation }));
@@ -301,16 +304,16 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		toastRef.current++; setToast(undefined);
 		changeScreen(launchLoading.Screen());
 		beginRequest((requestId) => {
-			const [response, problem] = invoke("StartMission", { launchId: generation, slot: selectedSlot, missionId: selectedMission, special: selectedSpecialRef.current, difficulty: selectedDifficultyRef.current });
+			const [response, problem] = invoke("StartMission", { launchId: generation, slot: selectedSlot, missionId, special: selectedSpecialRef.current, difficulty: selectedDifficultyRef.current });
 			if (!mountedRef.current || requestRef.current !== requestId || !launchLoading.Current(generation)) return;
 			if (!response) {
 				launchLoading.Fail();
 				loadingSerialRef.current++;
-				changeScreen(launchLoading.Screen());
+				changeScreen(fromResult ? "outcome" : launchLoading.Screen());
 				showToast(problem ?? "Command rejected the request.", true);
 			} else if (response.slots) applyResponseSlots(response);
 		});
-	}, [applyResponseSlots, beginRequest, cancelRequests, changeScreen, invoke, launchLoading, selectedMission, selectedSlot, showToast]);
+	}, [applyResponseSlots, beginRequest, cancelRequests, changeScreen, invoke, launchLoading, selectedSlot, showToast]);
 	const startMission=useCallback(()=>{
 		if(busyRef.current || launchLoading.Pending() || !canLaunchMission(selectedMissionRef.current, slots?.[selectedSlotRef.current-1]))return;
 		const chapter=chapterBeforeMission(selectedMissionRef.current);
@@ -352,8 +355,10 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			changeScreen("briefing");
 		});
 	}, [applyResponseSlots, beginRequest, changeScreen, invoke, showToast]);
-	const retryMission = useCallback(() => restartMission(selectedMissionRef.current), [restartMission]);
-	const nextMission = useCallback(() => { const id = selectedMissionRef.current+1; if(canLaunchMission(id,slots?.[selectedSlotRef.current-1])) restartMission(id); }, [restartMission, slots]);
+	const retryMission = useCallback(() => restartMission(outcomeMissionRef.current), [restartMission]);
+	const nextMission = useCallback(() => {
+		activateResultNext(outcomeWonRef.current, outcomeMissionRef.current, (id) => launchMission(id, true));
+	}, [launchMission]);
 	// Stable handlers so the memoised menu screens bail out of mission-time re-renders.
 	const openCampaign = useCallback(() => { if (!busyRef.current) { changeScreen("slots"); loadSlots(); } }, [changeScreen, loadSlots]);
 	const chooseSlot = useCallback((slot: number) => {

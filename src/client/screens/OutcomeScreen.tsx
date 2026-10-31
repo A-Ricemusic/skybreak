@@ -1,3 +1,4 @@
+import { nextResultMission } from "../../shared/ResultContinuation";
 import React, { useEffect, useRef, useState } from "@rbxts/react";
 import { Difficulty, type DifficultyKind } from "../../shared/Difficulty";
 import { failureCause, type MissionReason } from "../../shared/OutcomeReason";
@@ -162,7 +163,7 @@ function OutcomeScreenImpl({
 					<uilistlayout Padding={new UDim(0,compact ? 4 : 6)} SortOrder={Enum.SortOrder.LayoutOrder}/>
 					<frame key="Accent" LayoutOrder={1} BackgroundColor3={outcome.won ? C.Accent : C.Danger} BorderSizePixel={0} Size={UDim2.fromOffset(32, 2)} />
 					<Label name="OutcomeEyebrow" layoutOrder={2} text={outcome.missionId === 0 ? "PRACTICE · CHECKOUT" : `MISSION ${string.format("%02d",outcome.missionId)}/${MISSION_COUNT} · ${mission.title}`} color={C.Orange} textSize={compact ? 10 : 11} font={Enum.Font.GothamBold} size={new UDim2(1, -8, 0, 14)} />
-					<Label name="OutcomeTitle" layoutOrder={3} text={outcome.won ? "MISSION ACCOMPLISHED" : "MISSION FAILED"} color={outcome.won ? C.Ivory : C.Danger} textSize={headerSize} minTextSize={14} font={Enum.Font.GothamBlack} size={new UDim2(1, -8, 0, headerSize + 4)} />
+					<Label name="OutcomeTitle" layoutOrder={3} text={campaignComplete ? "CAMPAIGN COMPLETE" : outcome.won ? "MISSION ACCOMPLISHED" : "MISSION FAILED"} color={outcome.won ? C.Ivory : C.Danger} textSize={headerSize} minTextSize={14} font={Enum.Font.GothamBlack} size={new UDim2(1, -8, 0, headerSize + 4)} />
 					<frame key="RankBlock" LayoutOrder={4} BackgroundTransparency={1} Size={new UDim2(1, -8, 0, rankSize)}>
 						<textlabel key="RankLetter" BackgroundTransparency={1} Size={UDim2.fromOffset(rankSize, rankSize)} Font={Enum.Font.GothamBlack} Text={outcome.rank} TextColor3={rankColor} TextSize={rankSize} TextXAlignment={Enum.TextXAlignment.Left} />
 						<textlabel key="RankCaption" BackgroundTransparency={1} Position={UDim2.fromOffset(rankSize + 6, 0)} Size={new UDim2(1, -rankSize - 6, 0, 12)} Font={Enum.Font.GothamBold} Text={outcome.targetScore ? "RANK  ·  POINTS" : "RANK  ·  SCORE"} TextColor3={C.Faint} TextSize={10} TextXAlignment={Enum.TextXAlignment.Left} />
@@ -177,8 +178,8 @@ function OutcomeScreenImpl({
 					{stats.map((line, index) => <DebriefRow key={line.key} line={line} order={41 + index} shown={objectives.size() + index < shown} compact={compact} />)}
 					<Label name="SaveStatus" layoutOrder={60} text={outcome.saveText} visible={outcome.saveText !== ""} color={outcome.saveColor} textSize={compact ? 10 : 11} font={Enum.Font.GothamBold} size={new UDim2(1, -8, 0, 0)} automaticSize={Enum.AutomaticSize.Y} textWrapped={true} />
 				</scrollingframe>
-				{outcome.won ? !campaignComplete && MissionCatalog.Available(outcome.missionId+1) ? (
-					<FooterButtons compact={compact} primaryName="Mission1NextMissionButton" primaryText={`NEXT: MISSION ${string.format("%02d",outcome.missionId+1)}`} secondaryName="ReturnToMenuButton" secondaryText="MAIN MENU" busy={busy} onPrimary={onNext} onSecondary={onReturn} />
+				{outcome.won ? nextResultMission(outcome.won, outcome.missionId) !== undefined ? (
+					<FooterButtons compact={compact} primaryName="Mission1NextMissionButton" primaryText={busy ? "PREPARING SORTIE..." : `NEXT: MISSION ${string.format("%02d",outcome.missionId+1)}`} secondaryName="ReturnToMenuButton" secondaryText="MAIN MENU" busy={busy} onPrimary={onNext} onSecondary={onReturn} />
 				) : (
 					<FooterButtons compact={compact} primaryName="ReturnToMenuButton" primaryText="RETURN TO MENU" secondaryName="RetryButton" secondaryText={retryText} busy={busy} onPrimary={onReturn} onSecondary={onRetry} />
 				) : (

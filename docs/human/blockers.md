@@ -1,5 +1,7 @@
 # Blockers and acceptance gaps
 
+Open owner-reported Player bug (main c1266e30, M01 Normal, phone): NEXT: MISSION 02 silently does nothing even after cloud confirmation. Root cause: GameUI.nextMission checks stale pre-sortie slots before sending any remote; Completed never refreshes them. Existing restartMission also stops at briefing. Pending PR removes that client authority check, uses the normal launch/loading path, and queues the server request while settlement releases its session. Timeout/refusal shows an error and returns to results for retry. Pending cloud writes do not block authoritative in-session progression. Offline regression coverage added; owner device verification remains open.
+
 No campaign implementation or merge dependency remains: practice, M01–M18 and engine batches D1–D13 are on main `4594c365`.
 
 | Open item | Impact / assumption | Needed action |

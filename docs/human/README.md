@@ -1,16 +1,16 @@
 # SKYBREAK campaign dashboard
 
-Updated 2026-10-31 against main `4594c365` (#200).
+Updated 2026-10-31 against main `c1266e30` (#201); results continuation fix pending PR.
 
 Practice and all 18 campaign missions are merged and live by the owner's automatic-pipeline convention. Play through the campaign next: [Play SKYBREAK](https://www.roblox.com/games/112911685457826). Sequential unlocks still require completing preceding missions.
 
-All missions passed the orchestrator's full Studio Jest suite before merge (reported by the orchestrator; final M18 suite 1,450/1,450). This documentation reconciliation did not launch Studio or perform Player tests. Player tested: not yet for the current campaign; earlier owner feedback on M01 predates the latest tuning. Missions 6–18 have no Player/phone playtests. Rendered quality, human difficulty, provisional ranks/counts, real loading time and phone performance remain unverified.
+All missions passed the orchestrator's full Studio Jest suite before merge (reported by the orchestrator; final M18 suite 1,450/1,450). This documentation reconciliation did not launch Studio or perform Player tests. Owner Player report on current main: M01 completed on Normal on a phone, but NEXT: MISSION 02 did nothing despite cloud-save confirmation. The pending results fix has offline coverage only; no agent Player or Studio test. Missions 6–18 have no Player/phone playtests. Rendered quality, human difficulty, provisional ranks/counts, real loading time and phone performance remain unverified.
 
 Publish snapshot: latest 20 main runs checked; all 20 succeeded, including M18 run [41187517345](https://github.com/A-Ricemusic/skybreak/actions/runs/41187517345) completed successfully. No failure in that sample. Live is a pipeline convention, not an observed Player result.
 
 | Mission | Title | PR | Merge commit | Studio verified | Player tested |
 |---|---|---|---|---|---|
-| 1 | OUR OWN PAINT | [#130](https://github.com/A-Ricemusic/skybreak/pull/130) | `4891e8a1` | ✓ 750/750 (#130) | not yet |
+| 1 | OUR OWN PAINT | [#130](https://github.com/A-Ricemusic/skybreak/pull/130) | `4891e8a1` | ✓ 750/750 (#130) | Owner: Normal phone win; Next broken on c1266e30; fix device test pending |
 | 2 | NO ANIMALS | [#143](https://github.com/A-Ricemusic/skybreak/pull/143) | `68f2df51` | ✓ reported pass | not yet |
 | 3 | NOBODY SIGNED | [#147](https://github.com/A-Ricemusic/skybreak/pull/147) | `7d73c44c` | ✓ 845/845 | not yet |
 | 4 | BLIND COURIERS | [#149](https://github.com/A-Ricemusic/skybreak/pull/149) | `af18e335` | ✓ 865/865 | not yet |

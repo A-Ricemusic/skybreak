@@ -1,3 +1,4 @@
+import { awaitResultSettlement } from "../shared/ResultContinuation";
 import { chapterBeforeMission } from "../shared/RelayStory";
 import { encodeCampaignSlot } from "../shared/CampaignWire";
 import { CampaignRequestBudget } from "./CampaignRequestBudget";
@@ -18,6 +19,7 @@ import {
 } from "./CampaignRepository";
 
 interface CombatApi {
+	IsCompleting(player: Player): boolean;
 	StartMission(player: Player, slot: number, missionId?: number, special?: unknown, difficulty?: unknown, launchId?: number): LuaTuple<[boolean, string?]>;
 	EndMission(player: Player): void;
 	CancelLaunch(player: Player, launchId: number): void;
@@ -150,6 +152,14 @@ function startMission(state: PlayerState, payload: unknown): CampaignResponse {
 		return refuse("Your cloud save could not be loaded; mission start is blocked to protect it.");
 	}
 	if (!combatService) return refuse("Flight systems are not installed in this build.");
+	// Results can arrive before settlement releases its session. Keep this RPC pending
+	// (client is on the loading screen), then use fresh authoritative progression.
+	if (!awaitResultSettlement({
+		completing: () => combatService!.IsCompleting(state.player),
+		present: () => !state.closing && state.player.Parent === Players,
+		now: () => os.clock(),
+		wait: () => { task.wait(); },
+	})) return refuse("Your mission result is still settling. Please retry the launch.");
 	const saveSlot = state.coordinator.getSlots()[slot - 1];
 	const [missionId, missionError] = resolveMissionRequest(saveSlot, requestedMission);
 	if (missionId === undefined) return refuse(missionError ?? "Choose a valid mission.");
