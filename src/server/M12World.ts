@@ -14,6 +14,7 @@ export const M12World={
   for(const t of M12_TARGETS) {
    const model=scene.FindFirstChild(t.id);
    assert(model!==undefined && model.IsA("Model"),`M12 target ${t.id} missing`);
+   if(t.type === "railgun_emplacement") model.SetAttribute("LeaveWreck",true);
    targetVisuals.set(t.id,adoptGroundTarget(model,t.id,t.type));
   }
   parent.SetAttribute("WorldTargetVisuals",targetVisuals.size());

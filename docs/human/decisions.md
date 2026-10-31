@@ -1,5 +1,7 @@
 # Decisions
 
+D-465 (2026-10-30, implementation agent; proposed in PR #191): only M12 live railgun world models opt into LeaveWreck. Retain and darken their geometry in the sortie folder after accepted kill admission; disable the actor, warnings, queued windup, queries and collisions. Folder destruction owns end/retry cleanup. Alternative separate wreck clones would duplicate geometry/lifecycle ownership; global retention would change other missions. Scoring remains one accepted kill per id.
+
 Last updated: 2026-10-30.
 
 | ID | Date | Decision | Alternatives considered | Why | Decided by | Status |
