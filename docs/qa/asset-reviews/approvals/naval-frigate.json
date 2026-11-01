@@ -1,0 +1,20 @@
+{
+  "asset": "naval-frigate",
+  "exportVersion": "naval-kit-2",
+  "embeddedTextures": {
+    "naval-frigate-color.png": "cdd2ab772cb368b87fe29bf0ebe57a90987569d4989c1c03ea12ddea27f64787",
+    "naval-frigate-normal.png": "dc31a5ab4a09a1cb895b89e9d41f5fa5390d9fd71bc71a3dbbf53636868cb383",
+    "naval-frigate-roughness.png": "c54037b7d9c734024b9c52a2bc1c773f384c7b86f7ada64f6fb396a9962d59e5",
+    "naval-frigate-metalness.png": "99e2783597edf491cae3de0d88ce322a4a91a2abd937f6f60ac6f7830e2b52f0"
+  },
+  "uploadSet": {
+    "naval-frigate.fbx": "15a7923a25f98061e7a74cad7923ee680ee64d57c10678757c85d87d27f3348c"
+  },
+  "reviewedAt": "2026-11-01",
+  "record": "docs/qa/asset-reviews/naval-kit/independent-safety-review-2026-11-01.md",
+  "approved": true,
+  "score": "10/10",
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "uploadAssetType": "Model",
+  "checklistSha256": "e1f7a54511a98a69bca51cb7f9bf98ed8039475b8cb78f5e301a7da4a1cfd130"
+}

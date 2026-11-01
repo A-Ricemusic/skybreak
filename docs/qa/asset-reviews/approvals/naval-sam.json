@@ -1,0 +1,20 @@
+{
+  "asset": "naval-sam",
+  "exportVersion": "naval-kit-2",
+  "embeddedTextures": {
+    "naval-sam-color.png": "c09900997d1431309974aafaefa0e557decb17936001d7ae5533a2cef3287e75",
+    "naval-sam-normal.png": "8063a01e407fc099432609f162f7f1eeaa0dd081c48736fe7c77e6a168072e61",
+    "naval-sam-roughness.png": "4023aaee389d1d7c9d8475639b58fc2b9d94e9cdbd29bfd908cf8dc2833c7264",
+    "naval-sam-metalness.png": "0381df73b5f7b74d6f1f4a89e7937789320c52df98541fac5ebc8da7e5629da8"
+  },
+  "uploadSet": {
+    "naval-sam.fbx": "f2d5595d6510c75ba5544624bcb6dd3c7e5633141a374ac588153087e72f0bb6"
+  },
+  "reviewedAt": "2026-11-01",
+  "record": "docs/qa/asset-reviews/naval-kit/independent-safety-review-2026-11-01.md",
+  "approved": true,
+  "score": "10/10",
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "uploadAssetType": "Model",
+  "checklistSha256": "6afa4aed027b186007055443e769f9bc87ae5d44a2c1508ef44deb12029d8a65"
+}
