@@ -216,7 +216,7 @@ export interface GroundTargetSpec {
 }
 
 export interface MissionBlueprint extends MissionPolicy {
-	/** Engine batch D1: fitted gun and finite sortie stocks. Absent keeps today's regenerating rack and no gun. */
+	/** Sortie armament: fitted gun and finite sortie stocks. Absent keeps the regenerating rack and no gun. */
 	armament?: SortieArmament;
 	nightLighting?: NightLighting;
 	terrainRelativeWarnings?: boolean;
@@ -455,7 +455,7 @@ function resolveBlueprint(value: number | MissionBlueprint): MissionBlueprint {
 }
 
 export const MissionCatalog = {
-	/** M3-M27 changed layout; older best times belong to the shorter sorties. */
+	/** Best-time comparability: ids 3+ changed layout when the campaign was rebuilt, so their earlier records (version 1) are kept but never compared with new times. */
 	TimeVersion(id: number): number { return id >= 3 ? 2 : 1; },
 	Get(id: number): MissionBlueprint {
 		return resolveBlueprint(id);

@@ -1,6 +1,6 @@
 import type { GuidedBomb } from "./RingSweepRules";
 import { AreaAttack, validateAreaAttack } from "./ArtilleryRules";
-// Engine batch D1: the player gun and opt-in finite sortie ammunition.
+// Sortie armament (formerly engine batch D1): the player gun and opt-in finite sortie ammunition.
 // Pure rules shared by the server (authoritative) and the HUD (presentation).
 // A mission without `armament` keeps today's sortie exactly: no gun, an eight-missile
 // rack regenerating one missile every 2.5 s, and the special's own charges and recharge.

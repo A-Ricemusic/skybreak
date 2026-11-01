@@ -88,7 +88,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 			if (batch.call !== undefined) radio(session, batch.call);
 		}
 	}
-	/** Bandits or raiders for missions 3-27: they spawn as the live-aircraft budget allows (WavePlan). */
+	/** Bandits or raiders from a phase's authored count: they spawn as the live-aircraft budget allows (WavePlan). */
 	function requestAir(session: CombatSession, count: number, role: AirRequest["role"], behind = false, call?: string): void {
 		if (count <= 0) return;
 		session.airQueue.push({ role, count, behind, call });

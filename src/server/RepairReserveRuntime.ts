@@ -25,7 +25,7 @@ export function completeRearmRepair(s: CombatSession, optedIn: boolean): void {
  if(repairAllowed(s.blueprint?.id,optedIn) && s.health>0) s.health=100;
 }
 
-/** Shared phase presentation: D11 reserve state never changes legacy survivor visibility. */
+/** Shared phase presentation: reserve state never changes the visibility of surviving targets from earlier phases. */
 export function applyGroundPhase(enemies: Enemy[], phaseIndex: number): void {
 	for (const enemy of enemies) if (enemy.typedGround) {
 		enemy.enabled=enemy.typedGround.type!=="wreck" && enemy.phaseOwner === phaseIndex && enemy.health>0 && enemy.typedGround.reinforceAfterSector===undefined;

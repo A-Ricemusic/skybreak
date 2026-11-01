@@ -2,7 +2,8 @@ import type { EnvironmentSpec } from "./EnvironmentPresets";
 import { fillVoxels, terrainJobs } from "./TerrainSchedule";
 import { polyDist, terrainTop, type TerrainOp, type PartSpec, type PropSpec, type TerrainMaterial } from "./WorldPlan";
 
-/** Dormant C1 composition. No mission catalog or legacy planner imports this module. */
+// Mission 1 world composition (reference "Sitting Duck"), built by server/M01World.ts.
+/** Voxels per terrain fill job when the mission 1 world is written. */
 export const M01_FILL_CHUNK = 65536;
 export { M01, M01_WORLD_KEY } from "./M01Geometry";
 import { M01, M01_WORLD_KEY } from "./M01Geometry";

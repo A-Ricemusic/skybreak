@@ -15,7 +15,7 @@ export function sectorReinforcementReady(id: string | undefined, plan?: GroundPr
  for(let i=0;i<plan.sectors.size();i++) if(plan.sectors[i].id===id) return states[i]?.secured===true && states[i].health>0;
  return false;
 }
-/** Keep live D6 scenery/rendering unchanged; armour expansion belongs to dormant late missions. */
+/** Cheap armour rendering is opt-in for missions 15-17; other missions keep their full ground-target models. */
 export function cheapArmourAllowed(missionId?: number): boolean { return missionId===15 || missionId===16 || missionId===17; }
 /** Armed/moving armour must retain its original firing, collision and aim geometry. */
 export function cheapArmourEligible(spec: TypedGroundTarget): boolean {
