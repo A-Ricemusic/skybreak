@@ -1,5 +1,7 @@
 # Next
 
+Military kit activation (2026-10-31, proposed/unmerged): all ten IDs assigned after independent 10/10 approval and owner-reported moderation APPROVED. On merge, realistic tanks, SAMs, AA, artillery, bunkers, radar, trucks, fuel, barracks and containers replace matching target visuals in M02/M03/M05/M06/M07/M09/M10/M12/M15/M16/M17; per-type mission list in the [upload record](../qa/asset-reviews/military-ground-kit/upload-record-2026-10-31.md). Existing proxies, procedural failure fallback and bounded preload remain. No Player quality verification. Next: observe Player orientation, fit, D6 transitions and phone performance after merge.
+
 PR #216 post-merge validation (2026-10-31): `bun install --frozen-lockfile` and prescribed `LUAU_BIN` `bun run validate:offline` both exited 0; 1,225 Luau contracts and 154 Python tests passed. No uploads or secret reads.
 
 PR #216 immediate next step: finish prescribed offline validation and check GitGuardian after a normal push. Third independent security review passed per owner handoff; no upload or merge is part of this implementation task.
@@ -12,7 +14,6 @@ PR #216: review and merge upload-gate hardening; PR207 ground-kit evidence becom
 
 Review the pending D-668 upload-gate PR: preserve the audio ban and legacy HALT; permit only committed, byte-matched independently reviewed models. No upload is part of this task.
 
-Military ground kit: review the ten exact FBX exports, all baked maps and multi-angle assembled previews in [the packet](../qa/asset-reviews/military-ground-kit/README.md). Obtain independent 10/10 safety approval before a separately authorized upload; then verify footprint fitting, orientation, D6 detail transitions and phone performance. Current branch keeps IDs unset and existing stand-ins visible.
 
 Priority: verify the merged #202 results-continuation fix with first-time M01 → M02 on the owner’s phone (Normal). Confirm chapter 1 plays before M02 loading on first continuation, Skip proceeds through normal loading, replay with chapter 1 seen launches directly, and repeated-tap protection, mouse/gamepad activation, M17 → chapter 17 → M18, and M18 CAMPAIGN COMPLETE with no Next. Offline checks cannot establish device behavior.
 
