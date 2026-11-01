@@ -1,5 +1,9 @@
 # Decisions
 
+PR #216 post-merge validation (2026-10-31): `bun install --frozen-lockfile` and prescribed `LUAU_BIN` `bun run validate:offline` both exited 0; 1,225 Luau contracts and 154 Python tests passed. No uploads or secret reads.
+
+Decision ID reconciliation (2026-10-31): retain main’s D-666 military-kit record; assign the separate upload-gate record and its round-2 clarification D-668. D-667 remains unchanged. This resolves the parallel ID collision without dropping either decision.
+
 D-668 round-2 clarification (2026-10-31, implementation sub-agent; unmerged): derive shared audio/model journal, lock and HALT paths from pwd.getpwuid(os.getuid()).pw_dir. Refuse real uploads on HOME/Path.home mismatch or a symlinked canonical state directory rather than following redirected state. Negative decisions block any matching uploaded/dependency hash or matching asset/export version even with different hashes; positive decisions must cover the complete manifest. Environment-derived state and FBX-only negative matching are rejected because both bypass account/review gates.
 
 PR #216 round-2 validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 154 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merge pending.

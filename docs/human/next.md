@@ -1,5 +1,9 @@
 # Next
 
+PR #216 post-merge validation (2026-10-31): `bun install --frozen-lockfile` and prescribed `LUAU_BIN` `bun run validate:offline` both exited 0; 1,225 Luau contracts and 154 Python tests passed. No uploads or secret reads.
+
+PR #216 immediate next step: finish prescribed offline validation and check GitGuardian after a normal push. Third independent security review passed per owner handoff; no upload or merge is part of this implementation task.
+
 PR #216: resolve merge checks after the third independent security review passed, then merge when accepted. Implementation uses OS account state and blocks negatives on any dependency hash or the same asset/export version. No upload authorized by this task.
 
 PR #216 round-2 validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 154 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merge pending.

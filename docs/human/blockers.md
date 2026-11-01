@@ -1,5 +1,9 @@
 # Blockers and acceptance gaps
 
+PR #216 post-merge validation (2026-10-31): `bun install --frozen-lockfile` and prescribed `LUAU_BIN` `bun run validate:offline` both exited 0; 1,225 Luau contracts and 154 Python tests passed. No uploads or secret reads.
+
+PR #216 merge-check follow-up (2026-10-31): third independent security review passed per owner handoff; five human-doc conflicts resolved against main `5eec0d06`. Credential-like test syntax removed without changing the fake account directory. GitGuardian recheck pending; no history rewrite, ignore rule, uploads or secret reads.
+
 PR #216 round-2 P1s: fixes implemented, third independent security review passed; merge checks pending. HOME cannot select state; real uploads refuse mismatched home or symlinked canonical state. Texture-only and same-asset/version REJECTs or scores below 10 block the full upload. Prior heavy-bomber/carrier rejection blockers remain in force.
 
 PR #216 round-2 validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 154 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merge pending.
