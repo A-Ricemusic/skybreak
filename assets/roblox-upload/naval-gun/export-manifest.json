@@ -1,0 +1,12 @@
+{
+  "asset": "naval-gun",
+  "exportVersion": "naval-kit-2",
+  "creator": "SKYBREAK build agent via tools/assets/naval_kit.py (this PR)",
+  "files": {
+    "naval-gun-color.png": "8a2cf32f42b95660f03a7837ae986ccfddae9d1e31496de64dd74782e97a0ce7",
+    "naval-gun-normal.png": "1b7ef6bee014503d8d326354a6f8913c37de0fee35f96c1ccb7e61aeae0f4ca3",
+    "naval-gun-roughness.png": "1511dae1e9a9d75b0cecd1be87b82e407ce6e4d580a153f7133f320bdda079d9",
+    "naval-gun-metalness.png": "7f31c1b7e5a82dd2ddbf2b3857317e013723394715bdeef293b92297200df7d4",
+    "naval-gun.fbx": "d40e31a5a0f1b6b0a429b0eb283869a457cfc140ae9399983747c6831d17a63e"
+  }
+}
