@@ -2,7 +2,7 @@
 
 PR #216 post-merge validation (2026-10-31): `bun install --frozen-lockfile` and prescribed `LUAU_BIN` `bun run validate:offline` both exited 0; 1,225 Luau contracts and 154 Python tests passed. No uploads or secret reads.
 
-PR #216 merge-check follow-up (unmerged, 2026-10-31): main through #207 reconciled and credential-like test patterns removed. Third independent security review passed per owner handoff. No Player-visible change, upload or secret read; GitGuardian recheck pending.
+PR #216 merge-check follow-up (unmerged, 2026-10-31): main through #207 reconciled and credential-like test patterns removed. Third independent security review passed per owner handoff. No Player-visible change, upload or secret read; GitGuardian recheck failed on historical commit `3575dead` only (incident 39368345); no new-commit finding reported.
 
 Pending, not shipped: PR #216 round-2 fixes close HOME/state-directory redirection and dependency-only or same-export rejection bypasses. No upload, gameplay change, credential read, canonical-state access, Studio or Player verification.
 
