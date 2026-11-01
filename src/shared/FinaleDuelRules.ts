@@ -1,4 +1,4 @@
-// Mission 18 finale: vent run volumes, duel arena bounds and ascending targets (pure). Formerly EngineBatchD13; the blueprint field is still `batchD13`.
+// Mission 18 finale: vent run volumes, duel arena bounds and ascending targets (pure). Formerly EngineBatchD13; the blueprint field is `finale`.
 import type { FlightPoint, MissionBlueprint, MissionPhaseBlueprint } from "./MissionCatalog";
 import { finiteNumber } from "./LandingRules";
 import { ENVIRONMENTS } from "./EnvironmentPresets";
@@ -41,16 +41,16 @@ export function stepVent(s: VentState,p: VentRun,killed: ReadonlySet<string>,a: 
  if(s.checkpoint===p.checkpoints.size() && s.elapsed>=p.openingSeconds && killed.has(p.core) && !crossesVolume(p.exit,a,a) && crossesVolume(p.exit,a,b)) s.exited=true;
 }
 export function validateFinaleDuel(b: MissionBlueprint): void {
- const phases=b.phases, used=phases.some(p=>p.batchD13!==undefined);
+ const phases=b.phases, used=phases.some(p=>p.finale!==undefined);
  if(!used) return;
  assert(b.id===18 && !b.armament?.stock,"D13 requires M18 regenerating rack");
- const vents=phases.filter(p=>p.batchD13?.vent!==undefined),duels=phases.filter(p=>p.batchD13?.duel!==undefined);
+ const vents=phases.filter(p=>p.finale?.vent!==undefined),duels=phases.filter(p=>p.finale?.duel!==undefined);
  assert(vents.size()===1 && duels.size()===1,"D13 needs one vent and one duel");
  const vi=phases.indexOf(vents[0]),di=phases.indexOf(duels[0]);
  assert(phases.every(p=>!p.twist),"D13 uses a fixed reveal sequence");
  assert(vi>0 && di===vi+1 && di===phases.size()-1,"D13 reveal, vent and final duel must be ordered");
  for(const phase of phases) {
-  const d:FinaleDuelPhase | undefined=phase.batchD13;
+  const d:FinaleDuelPhase | undefined=phase.finale;
   if(!d) continue;
   assert(!phase.twist && !phase.rearm && !phase.returnLine && !phase.interceptHold && !phase.cruiseIntercept && !phase.protection && !phase.spatialJamming && !phase.eliteFormation && !phase.ringSweep,"D13 has exclusive phase ownership");
   if(d.environment) assert(d.environment==="m18_voice_breaks" || ENVIRONMENTS[d.environment as EnvironmentPreset]!==undefined,"Unknown D13 environment");

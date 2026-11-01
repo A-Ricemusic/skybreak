@@ -351,7 +351,7 @@ describe("Bomber director integration", () => {
 				}
 				expect(h.calls.filter(c => c.role === role).size()).toBe(phase.count ?? 0);
 			}
-			if (role === "ace" && !phase.batchD13?.duel) expect(h.calls.filter((c) => c.role === "ace")[0].options?.name).toBeUndefined();
+			if (role === "ace" && !phase.finale?.duel) expect(h.calls.filter((c) => c.role === "ace")[0].options?.name).toBeUndefined();
 			expect(h.s.bomberEncounter).toBeUndefined(); h.folder.Destroy();
 		}
 	});
