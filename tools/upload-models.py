@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 import re
 import stat
+import subprocess
 import sys
 from typing import Any
 
@@ -69,6 +70,14 @@ def prepare(asset: str) -> dict[str, Any]:
     digest = hashlib.sha256(content).hexdigest()
     if digest != upload_set[filename]:
         raise RuntimeError(f"{asset}: FBX SHA-256 differs from approval; re-review required")
+    committed = ru.require_model_review(filename, content, digest, root=ROOT)
+    if approval != committed:
+        raise RuntimeError(f"{asset}: working approval differs from committed safety review")
+    for texture, texture_digest in approval.get("embeddedTextures", {}).items():
+        if not re.fullmatch(r"[A-Za-z0-9_.-]+", texture):
+            raise RuntimeError("Invalid texture filename in approval")
+        if hashlib.sha256(read_file(folder / texture, ru.MAX_MODEL_BYTES)).hexdigest() != texture_digest:
+            raise RuntimeError(f"{asset}: texture SHA-256 differs from approval; re-review required")
     checklist_bytes = read_file(folder / "checklist.json", 1_000_000)
     if hashlib.sha256(checklist_bytes).hexdigest() != approval.get("checklistSha256"):
         raise RuntimeError(f"{asset}: checklist SHA-256 differs from approval")
@@ -93,14 +102,28 @@ def prepare(asset: str) -> dict[str, Any]:
 
 
 def upload(plan: dict[str, Any], key: str) -> dict[str, Any]:
-    ru.gate(plan["journalKey"])
+    ru.gate(plan["journalKey"], asset_type="Model")
     return ru.submit_and_moderate(
         plan["asset"], plan["journalKey"], plan["item"], plan["content"], plan["sha256"],
         plan["asset"] + ".fbx", "SKYBREAK original reviewed game Model with embedded textures.",
-        plan["reviewer"], key, "Roblox rejected Model; account uploads are now halted", asset_type="Model")
+        plan["reviewer"], key, "Roblox rejected Model; model uploads are now halted", asset_type="Model")
+
+
+def fetch_origin() -> None:
+    subprocess.run(["git", "fetch", "origin"], cwd=ROOT, check=True, capture_output=True)
 
 
 def main(argv: list[str] | None = None) -> None:
+    names = ("STATE", "JOURNAL", "HALT", "AUDIO_HALT", "MODEL_HALT")
+    previous = {name: getattr(ru, name) for name in names}
+    try:
+        _main(argv)
+    finally:
+        for name, value in previous.items():
+            setattr(ru, name, value)
+
+
+def _main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--key-file", type=Path)
     parser.add_argument("--state-dir", type=Path, help="Override shared state for isolated offline verification")
@@ -109,10 +132,17 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
     if not args.dry_run and args.key_file is None:
         parser.error("--key-file is required unless --dry-run is used")
-    if args.state_dir is not None:
-        ru.STATE = args.state_dir
+    if args.state_dir is not None and not args.dry_run:
+        raise RuntimeError("--state-dir is permitted only with --dry-run; network uploads require canonical state")
+    if not args.dry_run:
+        canonical = ru.validate_state_location()
+        fetch_origin()
+    if not args.dry_run or args.state_dir is not None:
+        ru.STATE = canonical if not args.dry_run else args.state_dir
         ru.JOURNAL = ru.STATE / "journal-3407487520.json"
         ru.HALT = ru.STATE / "HALT-3407487520"
+        ru.AUDIO_HALT = ru.STATE / "HALT-audio-3407487520"
+        ru.MODEL_HALT = ru.STATE / "HALT-models-3407487520"
     ru.STATE.mkdir(mode=0o700, parents=True, exist_ok=True)
     with (ru.STATE / "audio-upload.lock").open("a") as lock:
         try:
@@ -122,10 +152,10 @@ def main(argv: list[str] | None = None) -> None:
         # Dry runs never excuse unresolved entries, including this asset's own.
         # Actual runs allow only their own entry so interrupted operations resume.
         if args.dry_run:
-            ru.gate()
+            ru.gate(asset_type="Model")
         plans = []
         for asset in dict.fromkeys(args.assets):
-            ru.gate(None if args.dry_run else f"{asset}/{asset}.fbx")
+            ru.gate(None if args.dry_run else f"{asset}/{asset}.fbx", asset_type="Model")
             plans.append(prepare(asset))
         if args.dry_run:
             for plan in plans:

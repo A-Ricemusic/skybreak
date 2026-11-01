@@ -1,0 +1,22 @@
+{
+  "asset": "WarehouseGeometry",
+  "exportVersion": "embedded-json-v1-f7ff528eb4b2",
+  "files": {
+    "WarehouseGeometry.json": "f7ff528eb4b213bd3c530fb78cc332abbbbecb639dacc7463d221f8e0acd9fbd"
+  },
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "creator": "SKYBREAK build agent via tools/build-mission-assets.py (committed under Anthony Rice's git identity, 6529e64e026d24b0796054eb4bd8007db7958d62)",
+  "reviewDate": "2026-10-31",
+  "policyLinks": [
+    "https://www.roblox.com/termsofuse",
+    "https://en.help.roblox.com/hc/en-us/articles/115004647846-Roblox-Terms-of-Use",
+    "https://en.help.roblox.com/hc/en-us/articles/203313410-Roblox-Community-Standards/",
+    "https://about.roblox.com/community-standards",
+    "https://create.roblox.com/docs/marketplace/marketplace-policy",
+    "https://create.roblox.com/docs/production/publishing/rights-manager",
+    "https://en.help.roblox.com/hc/en-us/articles/15869919570708-Age-Restricted-Content-on-Roblox"
+  ],
+  "score": 10,
+  "verdict": "APPROVE",
+  "sourceReview": "docs/qa/asset-reviews/2026-10-31-pr217-embedded-mesh-review.md"
+}

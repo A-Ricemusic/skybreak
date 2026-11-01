@@ -1,0 +1,12 @@
+{
+  "asset": "VantaGeometry",
+  "creator": "SKYBREAK build agent via tools/build-enemy-aircraft.py (committed under Anthony Rice's git identity, 30631682b9cc52b354e49bf7a412c65d1273af33)",
+  "exportVersion": "embedded-json-v1-1319ecd6c4db",
+  "files": {
+    "VantaGeometry.json": "1319ecd6c4db6d8260c565959bff22e22f4dc036f023a8771ac3955b0168b5d3"
+  },
+  "source": "assets/aircraft/vanta.mesh.json",
+  "generator": "tools/build-enemy-aircraft.py",
+  "sourceCommit": "30631682b9cc52b354e49bf7a412c65d1273af33",
+  "note": "Version label identifies the exact existing embedded bytes; no mesh re-export was performed."
+}

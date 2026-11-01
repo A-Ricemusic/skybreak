@@ -23847,9 +23847,6 @@
     "optionalRaiderMax": 12,
     "phases": [
       {
-        "batchD13": {
-          "enclosed": true
-        },
         "beat": "SERA: Generators first. Then the central vent. Leave yourself a way out.",
         "chatter": [
           {
@@ -24052,6 +24049,9 @@
             }
           }
         ],
+        "finale": {
+          "enclosed": true
+        },
         "groundTargets": [
           {
             "group": "groove_1",
@@ -24115,7 +24115,14 @@
         }
       },
       {
-        "batchD13": {
+        "chatter": [
+          {
+            "at": 0.3,
+            "text": "SERA: Core hits are not enough. Follow cyan all the way out."
+          }
+        ],
+        "count": 1,
+        "finale": {
           "ascending": [
             {
               "end": {
@@ -24234,13 +24241,6 @@
             "openingSeconds": 3
           }
         },
-        "chatter": [
-          {
-            "at": 0.3,
-            "text": "SERA: Core hits are not enough. Follow cyan all the way out."
-          }
-        ],
-        "count": 1,
         "groundTargets": [
           {
             "group": "vent",
@@ -24269,7 +24269,7 @@
         }
       },
       {
-        "batchD13": {
+        "finale": {
           "duel": {
             "center": {
               "x": 0,

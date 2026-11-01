@@ -1,0 +1,13 @@
+{
+  "asset": "military-containers",
+  "creator": "military ground kit implementation agent",
+  "exportVersion": "military-ground-kit-1",
+  "files": {
+    "military-containers-color.png": "d072bee7f36d52d3d5eab963ba0f976ae235855af9234d2c960d7129d7b2b0d6",
+    "military-containers-metalness.png": "c98c849d2a897e9936e0f4d712e347c4ab3bb041a86ad7cc19237d202f6d25f3",
+    "military-containers-normal.png": "44da437029c7d4f5d146ca74521d3494a7244d9031b18a7d0205f846f7fcdf7e",
+    "military-containers-roughness.png": "5028f67c709aabb033057ae063555452889c344ee5c2210a6b0e7336669fbcc1",
+    "military-containers.fbx": "35ef2eb36f74f1e85dd359c668b94f4e4084be39605b2a1c9e6706f32618bdf3"
+  },
+  "provenance": "docs/qa/asset-reviews/military-ground-kit/independent-safety-review-2026-10-31.md"
+}

@@ -11,7 +11,7 @@ import { TargetScore } from "../shared/TargetScore";
 import { recordScoredKill } from "../server/SortieScore";
 import { CampaignCoordinator, completeMission, normalizeProfile, serializeProfile } from "../server/CampaignRepository";
 import { canLaunchMission } from "../shared/CampaignProgress";
-import { jammedLockAllowed } from "../shared/EngineBatchC";
+import { jammedLockAllowed } from "../shared/RearmRules";
 import { MissionFinished } from "../shared/Types";
 const bp=MissionCatalog.Get(4), p=bp.phases[0], b=p.bombers!, waves=p.fighterWaves!, ace=p.standaloneAce!;
 function stats(id:number) { const m=MissionCatalog.Get(id); return {slot:1,missionId:id,kills:MissionCatalog.RequiredAirKills(m)+MissionCatalog.RequiredGroundKills(m),groundKills:MissionCatalog.RequiredGroundKills(m),completedPhases:MissionCatalog.TotalPhases(m),elapsed:100}; }

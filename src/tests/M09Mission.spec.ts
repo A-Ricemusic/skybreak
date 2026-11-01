@@ -7,9 +7,9 @@ import { MissionScore } from "../shared/MissionScore";
 import { SortieArmament } from "../shared/SortieArmament";
 import { TargetScore } from "../shared/TargetScore";
 import { recordScoredKill, recordAlliedKill } from "../server/SortieScore";
-import { newGroundProgress, stepGroundProgress, damageSector, validateBatchD5 } from "../shared/EngineBatchD5";
-import { landingDuration, landingPose } from "../shared/EngineBatchB";
-import { rearmDuration, rearmPose } from "../shared/EngineBatchC";
+import { newGroundProgress, stepGroundProgress, damageSector, validateGroundSectorPhases } from "../shared/GroundSectorRules";
+import { landingDuration, landingPose } from "../shared/LandingRules";
+import { rearmDuration, rearmPose } from "../shared/RearmRules";
 import { canLaunchMission, highestUnlocked } from "../shared/CampaignProgress";
 import { CampaignCoordinator, completeMission, normalizeProfile, serializeProfile } from "../server/CampaignRepository";
 import { takeArrival } from "../shared/CampaignEncounters";
@@ -75,7 +75,7 @@ describe("M09 GREEN BEACON",()=>{
   damageSector(states[1],300); expect(states[1].health).toBe(0); for(const t of M09_TARGETS) cleared.add(t.id); stepGroundProgress(plan,states,cleared,100); expect(states[1].secured).toBe(false);
  });
  it("uses deck-safe carrier landing, taxi, fly-off and paused service",()=>{
-  const p=M09_REARM; validateBatchD5(mission.phases,16000); expect(SortieArmament.Refill(p,mission.armament,"salvo").missiles).toBe(60); expect(SortieArmament.Refill(p,mission.armament,"salvo").gunRounds).toBe(1200); expect(p.health).toBe(false); expect(p.gun).toBe(true); expect(p.special).toBe(true);
+  const p=M09_REARM; validateGroundSectorPhases(mission.phases,16000); expect(SortieArmament.Refill(p,mission.armament,"salvo").missiles).toBe(60); expect(SortieArmament.Refill(p,mission.armament,"salvo").gunRounds).toBe(1200); expect(p.health).toBe(false); expect(p.gun).toBe(true); expect(p.special).toBe(true);
   expect(p.landing.touchdown.y).toBe(M09_SERVICE.deckY+6); const rollout=landingPose(p.landing,landingDuration(p.landing)); expect(rollout.z).toBe(11480);
   expect(rearmPose(p,rearmDuration(p)).z).toBeLessThan(p.carrier!.catapult.z);
   const s=BlueprintRunner.NewState(mission,0); s.rearmActive=true; BlueprintRunner.Tick(s,900); expect(s.elapsed).toBe(0); expect(s.outcome).toBeUndefined();

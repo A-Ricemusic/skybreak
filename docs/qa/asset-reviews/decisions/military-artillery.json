@@ -1,0 +1,21 @@
+{
+  "asset": "military-artillery",
+  "exportVersion": "military-ground-kit-1-track2",
+  "files": {
+    "military-artillery-color.png": "a2bced731a106701737b437d204af6cdfc0dad1ae10a75426d28f262aea643f4",
+    "military-artillery-metalness.png": "5007eb8ecde6e746612b3fe9b58ab202653d2dee7b7d0b1f24a98bf822fadade",
+    "military-artillery-normal.png": "3d0fa8174158170a3b7d42a7fd10a56eba13dd9ec534ff597a6bf7de5fd6198c",
+    "military-artillery-roughness.png": "c8dab95fb23d608e38a9bfa53f2bf79c1d5c3902e58164e3b360c865dbc6a707",
+    "military-artillery.fbx": "1a0e91dd74c9da144883b5c2799e276df1501e8f3ff4ad8f797185755608ed48"
+  },
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "creator": "military ground kit implementation agent",
+  "reviewDate": "2026-10-31",
+  "policyLinks": [
+    "https://www.roblox.com/termsofuse",
+    "https://en.help.roblox.com/hc/en-us/articles/203313410-Roblox-Community-Standards/"
+  ],
+  "score": 10,
+  "verdict": "APPROVE",
+  "sourceReview": "docs/qa/asset-reviews/military-ground-kit/independent-safety-review-2026-10-31.md"
+}

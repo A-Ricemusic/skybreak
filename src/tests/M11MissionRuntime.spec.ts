@@ -2,7 +2,7 @@ import { describe, expect, it } from "@rbxts/jest-globals";
 import { Workspace } from "@rbxts/services";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { mission, M11_HEALTH } from "../shared/missions/m11";
-import { stepProtection, clearProtection, protectedTarget, hitProtected, warnProtectedAttack } from "../server/EngineBatchD7Runtime";
+import { stepProtection, clearProtection, protectedTarget, hitProtected, warnProtectedAttack } from "../server/ProtectedAircraftRuntime";
 import type { CombatSession, Enemy } from "../server/CombatSession";
 // Authored Jest integration; deliberately not run without an authorized Studio lease.
 describe("M11 protected aircraft runtime",()=>{

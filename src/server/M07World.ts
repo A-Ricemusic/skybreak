@@ -1,3 +1,5 @@
+import { WorldAssets } from "./WorldAssets";
+import { MILITARY_GROUND_ASSETS } from "../shared/MilitaryGroundKit";
 import { adoptGroundTarget } from "./GroundTargetFactory";
 import { M07_SCENERY_ID, M07_TARGET_TYPES } from "../shared/missions/m07";
 import { buildM07Plan, M07_ENVIRONMENT, M07_WORLD_KEY, m07TargetLayout } from "../shared/M07WorldPlan";
@@ -8,6 +10,7 @@ import { registerWorldClear } from "./WorldLifecycleRuntime";
 /** One native clear, isolated by the world-lifecycle gate. */
 export const M07World = {
  Build: (parent: Instance, seed = 707) => {
+  WorldAssets.Preload(MILITARY_GROUND_ASSETS);
   const built = buildComposition(parent, M07_ENVIRONMENT, checkpoint => buildM07Plan(seed, checkpoint), M07_BUILD_LIMITS.descendants, 14000, 0.25);
   const scene = parent.FindFirstChild(M07_WORLD_KEY);
   assert(scene !== undefined, "M07 scene missing");

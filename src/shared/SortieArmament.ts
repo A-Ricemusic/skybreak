@@ -1,5 +1,5 @@
-import type { GuidedBomb } from "./EngineBatchD8";
-import { AreaAttack, validateAreaAttack } from "./EngineBatchD3";
+import type { GuidedBomb } from "./RingSweepRules";
+import { AreaAttack, validateAreaAttack } from "./ArtilleryRules";
 // Engine batch D1: the player gun and opt-in finite sortie ammunition.
 // Pure rules shared by the server (authoritative) and the HUD (presentation).
 // A mission without `armament` keeps today's sortie exactly: no gun, an eight-missile

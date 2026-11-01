@@ -1,16 +1,16 @@
-import { duelTargetId } from "../shared/EngineBatchD13";
-import { clearLeader } from "./EngineBatchD12Runtime";
-import { clearCruise } from "./EngineBatchD10Runtime";
+import { duelTargetId } from "../shared/FinaleDuelRules";
+import { clearLeader } from "./LeaderWithdrawalRuntime";
+import { clearCruise } from "./CruiseMissileRuntime";
 import { Workspace } from "@rbxts/services";
-import { clearProtection, retainProtection } from "./EngineBatchD7Runtime";
-import { applyGroundPhase } from "./EngineBatchD11Runtime";
-import { clearGroundDirector } from "./EngineBatchD5Runtime";
+import { clearProtection, retainProtection } from "./ProtectedAircraftRuntime";
+import { applyGroundPhase } from "./RepairReserveRuntime";
+import { clearGroundDirector } from "./GroundSectorRuntime";
 import { takeArrival, FighterArrival, StandaloneAce } from "../shared/CampaignEncounters";
 import type { AceLivery } from "../shared/AssetSelection";
 import { BomberRules, BomberSlotPose } from "../shared/BomberRules";
 import { bomberEscortPose, compileBomberEncounter, laterEscortsDue, reinforcementFraction } from "../shared/BomberEncounter";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
-import { returnLineDots, type ReturnLine } from "../shared/EngineBatchB";
+import { returnLineDots, type ReturnLine } from "../shared/LandingRules";
 import { MissionCatalog, MissionPhaseBlueprint } from "../shared/MissionCatalog";
 import { WavePlan, AirRequest } from "../shared/WavePlan";
 import { Difficulty } from "../shared/Difficulty";
@@ -21,7 +21,7 @@ import { AircraftCollision } from "./AircraftCollision";
 import { ActorGrounding } from "./ActorGrounding";
 import type { CombatSession, AirRole, Enemy } from "./CombatSession";
 import { authoredAirRequest, fixedRaiders } from "./PhaseDirectorRules";
-import { buildRearmGate } from "./EngineBatchCRuntime";
+import { buildRearmGate } from "./RearmRuntime";
 
 export interface SpawnOptions {
 	targetId?: string;
@@ -154,7 +154,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 			}
 		}
 		else if (phase.kind === "chase") spawnAir(session,phase.count ?? 1,"courier",{escape: phase.escape ? new Vector3(phase.escape.x,phase.escape.y,phase.escape.z) : undefined});
-		else if (phase.kind === "ace") spawnAir(session,1,"ace",{aceHealth: session.blueprint.aceHealth ?? 165, targetId: phase.batchD13?.duel ? duelTargetId(state.phaseIndex) : undefined});
+		else if (phase.kind === "ace") spawnAir(session,1,"ace",{aceHealth: session.blueprint.aceHealth ?? 165, targetId: phase.finale?.duel ? duelTargetId(state.phaseIndex) : undefined});
 		// Ace phases hold their raiders back for the ace's stage calls; reinforced phases keep part of theirs for mid-phase.
 		const initialRaiders=raiderWave(session,MissionCatalog.InitialRaiders(phase));
 		if (phase.execution?.directSpawn) spawnAir(session,initialRaiders,"raider");

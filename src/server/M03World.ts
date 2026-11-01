@@ -1,3 +1,5 @@
+import { WorldAssets } from "./WorldAssets";
+import { MILITARY_GROUND_ASSETS } from "../shared/MilitaryGroundKit";
 import { Lighting, Workspace } from "@rbxts/services";
 import { buildM03Plan, M03, M03_ENVIRONMENT, M03_FILL_CHUNK, M03_TERRAIN_BUDGET, M03_WORLD_KEY, type M03Target } from "../shared/M03WorldPlan";
 import { M03_TARGET_TYPES } from "../shared/missions/m03";
@@ -46,6 +48,7 @@ export function placeM03Target(parent: Instance, t: M03Target): Model {
  */
 export const M03World = {
 	Build(parent: Instance, seed = 303): { groundTargets: Model[]; targetVisuals: Map<string, Model> } {
+  WorldAssets.Preload(MILITARY_GROUND_ASSETS);
 		const start = os.clock();
 		let slice = start, longest = 0;
 		parent.SetAttribute("WorldBuildPhase", "plan");

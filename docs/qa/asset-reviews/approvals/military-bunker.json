@@ -1,0 +1,20 @@
+{
+  "asset": "military-bunker",
+  "exportVersion": "military-ground-kit-1",
+  "embeddedTextures": {
+    "military-bunker-color.png": "14f41da43bac606412e7e0866328f90bf130cec5130463e42560d0bb0c06e51b",
+    "military-bunker-metalness.png": "a958736551e83599a152ffdb126691902340569c1d15af803c820a002ed5b284",
+    "military-bunker-normal.png": "44da437029c7d4f5d146ca74521d3494a7244d9031b18a7d0205f846f7fcdf7e",
+    "military-bunker-roughness.png": "0738bde613528196c7e9ce0ce14568bd791d910d6ddac79799ce7bf4f6e63267"
+  },
+  "uploadSet": {
+    "military-bunker.fbx": "bc9bbf7a15fb380722b5734c0cb964db04ca65bcd357d6b11083a4c903565ab7"
+  },
+  "reviewedAt": "2026-10-31",
+  "record": "docs/qa/asset-reviews/military-ground-kit/independent-safety-review-2026-10-31.md",
+  "approved": true,
+  "score": "10/10",
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "uploadAssetType": "Model",
+  "checklistSha256": "72983e0dacefe21b6aac5884f5d149fa060523b96bb40c9c68ded8a9361a68ed"
+}

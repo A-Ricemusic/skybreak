@@ -1,16 +1,8 @@
 #!/usr/bin/env python3
-"""Upload final, reviewed SKYBREAK Ogg effects; never publishes the place.
+"""Audio uploads are permanently disabled by owner decision (2026-10-31).
 
-Uses the same account journal/halt file as tools/upload-voice.py. Every new
-asset must pass review, operation completion AND explicit moderation approval.
-Re-running resumes recorded operations rather than consuming another upload.
-Credentials are read privately from --key-file and never stored in the game.
-
-python3 tools/upload-audio.py --key-file <private-file> [--only cueId] [--dry-run]
-Review format in assets/audio/review.json: commercialUsePermitted: true,
-files: {cueId: {sha256, approved: true, transcript: "", reviewer, method}}.
-This tool only accepts non-vocal SFX; voice recordings need a separate human
-listening review with the owner's transcript/identity/licensing checks.
+Offline --dry-run preflight is retained; real runs refuse before key reads.
+The shared legacy/audio HALTs and audio-upload.lock remain in force.
 """
 from __future__ import annotations
 
@@ -74,7 +66,7 @@ def upload(cue: dict[str, Any], review: dict[str, Any], key: str) -> dict[str, A
         raise RuntimeError(f"{name}: audio changed since upload; use a new versioned filename")
     return submit_and_moderate(name, journal_key, item, content, digest, filename,
                                "Original non-vocal aircraft game sound effect. No speech or music.",
-                               checked.get("reviewer"), key, "Roblox rejected audio; account uploads are now halted")
+                               checked.get("reviewer"), key, "Roblox rejected audio; audio uploads are now halted")
 
 
 def write_bank(spec: dict[str, Any], uploaded: dict[str, Any]) -> None:
@@ -101,6 +93,8 @@ def main() -> None:
     parser.add_argument("--only")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
+    if not args.dry_run:
+        gate(asset_type="Audio")
     STATE.mkdir(mode=0o700, parents=True, exist_ok=True)
     with (STATE / "audio-upload.lock").open("w") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)

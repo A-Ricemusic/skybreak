@@ -1,0 +1,20 @@
+{
+  "asset": "military-sam",
+  "exportVersion": "military-ground-kit-1",
+  "embeddedTextures": {
+    "military-sam-color.png": "e6b3ff9100dfe52fcadb60ad253c45b0d9cf3ef293e3d2776f81348950b10ca8",
+    "military-sam-metalness.png": "221c680db798ffbf248c8321a0e059a8a8592bd9f0f7d180d16a41f96cc019c4",
+    "military-sam-normal.png": "d1a9db169359d16de2f074ae35db6500f6a65c2728bd4514b42842cf0c57ff9b",
+    "military-sam-roughness.png": "08aad0f2a0796194a1bb2a3a8ec2de0349cadf371ac460369b6ac39aa3ba7dfb"
+  },
+  "uploadSet": {
+    "military-sam.fbx": "f10ce9a6716456be8db2b8e634246e78f35aa2ec96ddaf6417cbd8da743560bf"
+  },
+  "reviewedAt": "2026-10-31",
+  "record": "docs/qa/asset-reviews/military-ground-kit/independent-safety-review-2026-10-31.md",
+  "approved": true,
+  "score": "10/10",
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "uploadAssetType": "Model",
+  "checklistSha256": "f84d80fd4c60faa13e5e4b0aef076c1b4f27c0978c109c4cb1e2bbf266f48afd"
+}

@@ -1,8 +1,8 @@
 import { MISSION_STORY_TEXT } from "../StoryMissionText";
 import type { MissionBlueprint, FlightPoint } from "../MissionCatalog";
 import type { FighterArrival, TypedGroundTarget } from "../CampaignEncounters";
-import type { GroundProgressPlan } from "../EngineBatchD5";
-import { landingPose } from "../EngineBatchB";
+import type { GroundProgressPlan } from "../GroundSectorRules";
+import { landingPose } from "../LandingRules";
 import { M15, M15_WORLD_KEY, m15TargetLayout } from "../M15WorldPlan";
 import { M15_AIRSPACE } from "../M15Limits";
 

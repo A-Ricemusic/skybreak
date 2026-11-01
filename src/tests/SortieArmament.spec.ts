@@ -5,7 +5,7 @@ import { WeaponRules } from "../shared/WeaponRules";
 import { TelemetryCodec, TelemetryNumbers } from "../shared/TelemetryCodec";
 import { Telemetry } from "../shared/Types";
 import { MissionCatalog, MissionBlueprint } from "../shared/MissionCatalog";
-import { RearmPlan, validateBatchC } from "../shared/EngineBatchC";
+import { RearmPlan, validateRearmPhases } from "../shared/RearmRules";
 import { armamentStatusLine, statusLine } from "../shared/HudInstruments";
 import { getHudLayout, hudObstacles, MIN_TOUCH_TARGET, rectangleInside, rectanglesOverlap, STICK_MAX_SIZE, STICK_MIN_SIZE, JOYSTICK_SIZE, type Rectangle } from "../shared/UILayout";
 
@@ -75,7 +75,7 @@ describe("Engine batch D1: opt-in sortie armament", () => {
 		expect(rejects(() => MissionCatalog.ValidatePolicy(strike({ gun: { rounds: 600 }, stock: { missiles: 48 } }, { ...rearm, gun: true })))).toBe(false);
 		expect(rejects(() => MissionCatalog.ValidatePolicy(strike(undefined, { ...rearm, gun: true })))).toBe(true);
 		expect(rejects(() => MissionCatalog.ValidatePolicy(strike({ stock: { missiles: 0 } })))).toBe(true);
-		expect(rejects(() => validateBatchC([{ kind: "score_threshold", label: "Strike", scoreThreshold: { points: 1, seconds: 60, waitForExpiry: true }, rearm: { ...rearm, gun: "yes" as never } }], 15000))).toBe(true);
+		expect(rejects(() => validateRearmPhases([{ kind: "score_threshold", label: "Strike", scoreThreshold: { points: 1, seconds: 60, waitForExpiry: true }, rearm: { ...rearm, gun: "yes" as never } }], 15000))).toBe(true);
 	});
 	it("holds the trigger at ten rounds a second and releases it when the magazine runs dry", () => {
 		const gun = GunRules.New({ gun: { rounds: 12 } })!;

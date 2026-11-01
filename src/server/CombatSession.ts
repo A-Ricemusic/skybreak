@@ -1,6 +1,6 @@
-import type { CruiseRuntime } from "./EngineBatchD10Runtime";
-import type { GroundDirectorRuntime } from "./EngineBatchD5Runtime";
-import type { ArtilleryState } from "../shared/EngineBatchD3";
+import type { CruiseRuntime } from "./CruiseMissileRuntime";
+import type { GroundDirectorRuntime } from "./GroundSectorRuntime";
+import type { ArtilleryState } from "../shared/ArtilleryRules";
 import type { TypedGroundTarget } from "../shared/CampaignEncounters";
 import type { BomberEncounterState } from "../shared/BomberEncounter";
 import type { MissionAirspacePolicy } from "../shared/MissionPolicy";
@@ -120,10 +120,10 @@ export interface CombatSession {
 	cruise?: CruiseRuntime;
  airshipPhase?: number;
 	ringArtillery?: { phase: number; state: ArtilleryState };
-	leaderWithdrawal?: import("./EngineBatchD12Runtime").LeaderRuntime;
-	protectedFlight?: {phase: number; actors: import("./EngineBatchD7Runtime").ProtectedActor[]};
+	leaderWithdrawal?: import("./LeaderWithdrawalRuntime").LeaderRuntime;
+	protectedFlight?: {phase: number; actors: import("./ProtectedAircraftRuntime").ProtectedActor[]};
 	contactClock?: number;
-	repeatedArtillery?: {phase:number;state:import("../shared/EngineBatchD6").ScheduledArtillery};
+	repeatedArtillery?: {phase:number;state:import("../shared/ContactInventoryRules").ScheduledArtillery};
 	artillery?: { phase: number; state: ArtilleryState };
 	/** Collateral mount removal satisfies groups but never earns score or kills. */
 	retiredGroundIds?: Set<string>;
