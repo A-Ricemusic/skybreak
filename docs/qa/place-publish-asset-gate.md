@@ -50,3 +50,9 @@ Validation (2026-10-31): `bun install --frozen-lockfile`, `bun run build`, and p
 Rebuild verification (2026-10-31): frozen install and build exited 0. The strict parser accepted the exact built place against a temporary Git fixture containing this PR’s unchanged evidence: 13 blobs and 39 catalog references. Real origin/main authorization still exits 1 for missing merged approvals, as required. No PNG was included: none of the supplied renders is at most 200 KB. All render filenames and hashes remain in the review.
 
 PR #217 final validation: frozen install, standalone build, and prescribed LUAU_BIN validate:offline all exited 0; 1,225 Luau contracts and 162 Python tests passed. GitGuardian and guard passed after history cleanup; CI validate pending at recording. No publish/upload or Player test.
+
+## PR #218 military catalog integration
+
+The current build references 49 catalog IDs. All ten military manifest entries include approvedUpload provenance (model ID, approval upload/dependency hashes, owner-reported APPROVED moderation on 2026-10-31 and source record). The existing gate still trusts only identical committed origin/main manifest and ID-table bytes. These metadata fields document provenance; they do not bypass that merged-evidence requirement. The inventory regression compares the compiled reference set to the populated source catalog rather than a fixed count.
+
+Validation completed: frozen install, standalone build, build:place and prescribed LUAU_BIN validate:offline all exited 0 (163 Python tests). Strict offline validate authorized 13 blobs and 49 IDs using a temporary post-merge Git evidence fixture; production refs were unchanged. No upload, publish, secret read, canonical upload-state access, Studio or Player test.
