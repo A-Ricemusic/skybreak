@@ -1,3 +1,4 @@
+import { assertWorldInstanceBudget } from "./WorldInstanceBudget";
 import { WorldAssets } from "./WorldAssets";
 import { MILITARY_GROUND_ASSETS } from "../shared/MilitaryGroundKit";
 import { Lighting, Workspace } from "@rbxts/services";
@@ -80,7 +81,7 @@ export const M03World = {
 		// Each target model is drawn once here and adopted by id: HUD label, TargetId and an aim root.
 		const targetVisuals = new Map<string, Model>();
 		for (const t of plan.targets) targetVisuals.set(t.id, adoptGroundTarget(placeM03Target(scene, t), t.id, M03_TARGET_TYPES[t.type]));
-		assert(scene.GetDescendants().size() <= M03.budget.descendants, "M03 descendants exceeded budget");
+		assertWorldInstanceBudget(scene, M03.budget.descendants);
 		parent.SetAttribute("WorldBuildPhase", "done");
 		parent.SetAttribute("WorldBuildSeconds", os.clock() - start);
 		parent.SetAttribute("Composition", plan.key);
