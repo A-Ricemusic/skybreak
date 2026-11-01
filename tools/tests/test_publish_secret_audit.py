@@ -2,6 +2,7 @@
 import contextlib
 import importlib.util
 import io
+import json
 import os
 from pathlib import Path
 import subprocess
@@ -19,7 +20,7 @@ import _http
 
 
 class PublishSecretAuditTests(unittest.TestCase):
-    def run_publish(self, status="200", curl_exit="0", value="fake-audit-value", gate_exit="0"):
+    def run_publish(self, status="200", curl_exit="0", value="fake-audit-value", gate_exit="0", body=None):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
             def executable(name, body):
@@ -29,6 +30,7 @@ class PublishSecretAuditTests(unittest.TestCase):
             executable("python3", '''case "$1" in
               *check-place-voice.py) echo "$2" > "$FIXTURE/voice-path";;
               *check-place-assets.py) echo "$2" > "$FIXTURE/asset-path"; exit "$GATE_EXIT";;
+              -I) exec "$REAL_PYTHON" "$@";;
               esac
             ''')
             executable("git", "exit 0\n")
@@ -36,7 +38,7 @@ class PublishSecretAuditTests(unittest.TestCase):
             executable("curl", '''printf '%s\\n' "$@" > "$FIXTURE/arguments"
               cat > "$FIXTURE/headers"
               while [ "$#" -gt 0 ]; do
-                if [ "$1" = -o ]; then shift; printf '%s' "$ROBLOX_API_KEY" > "$1"; fi
+                if [ "$1" = -o ]; then shift; printf '%s' "$FAKE_BODY" > "$1"; fi
                 shift
               done
               printf '%s' "$FAKE_STATUS"
@@ -45,18 +47,20 @@ class PublishSecretAuditTests(unittest.TestCase):
             artifact = root / "input.rbxlx"
             artifact.write_text("synthetic place")
             env = {**os.environ, "PATH": str(root) + os.pathsep + os.environ["PATH"],
-                   "FIXTURE": str(root), "ROBLOX_API_KEY": value,
+                   "FIXTURE": str(root), "ROBLOX_API_KEY": value, "REAL_PYTHON": sys.executable,
+                   "FAKE_BODY": json.dumps({"versionNumber": 42, "reflected": value}) if body is None else body,
                    "ROBLOX_PLACE_ID": "112911685457826", "ROBLOX_UNIVERSE_ID": "10772984313",
                    "FAKE_STATUS": status, "CURL_EXIT": curl_exit, "GATE_EXIT": gate_exit}
             result = subprocess.run(["bash", "-x", str(TOOLS / "publish-place.sh"), str(artifact)],
                                     env=env, capture_output=True, text=True)
-            self.assertNotIn(value, result.stdout + result.stderr)
+            self.assertNotIn(value.rstrip("\r\n"), result.stdout + result.stderr)
             arguments = (root / "arguments").read_text() if (root / "arguments").exists() else ""
-            self.assertNotIn(value, arguments)
+            self.assertNotIn(value.rstrip("\r\n"), arguments)
             if arguments:
                 self.assertEqual(arguments.splitlines()[0], "--disable")
-                self.assertIn("-o\n/dev/null\n", arguments)
-                self.assertEqual((root / "headers").read_text(), "x-api-key: " + value + "\n")
+                response_path = Path(arguments.splitlines()[arguments.splitlines().index("-o") + 1])
+                self.assertFalse(response_path.exists(), "private response must be removed")
+                self.assertEqual((root / "headers").read_bytes(), ("x-api-key: " + value.rstrip("\r\n") + "\n").encode())
                 voice = (root / "voice-path").read_text().strip()
                 self.assertEqual(voice, (root / "asset-path").read_text().strip())
                 self.assertNotEqual(voice, str(artifact))
@@ -66,6 +70,24 @@ class PublishSecretAuditTests(unittest.TestCase):
     def test_success_discards_remote_body_and_keeps_key_off_argv_and_trace(self):
         result, _ = self.run_publish()
         self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn(" version 42\n", result.stdout)
+
+    def test_trailing_newline_and_crlf_are_removed_before_validation_and_header(self):
+        for ending in ("\n", "\r\n"):
+            with self.subTest(ending=repr(ending)):
+                result, _ = self.run_publish(value="fake-audit-value" + ending)
+                self.assertEqual(result.returncode, 0, result.stderr)
+                self.assertIn(" version 42\n", result.stdout)
+
+    def test_version_diagnostic_rejects_nonintegers_without_remote_text(self):
+        for body in ('{"versionNumber": "fake-audit-value"}',
+                     '{"versionNumber": true}', '{"versionNumber": 4.2}',
+                     '{"versionNumber": -1}', '{"other": "fake-audit-value"}',
+                     'fake-audit-value'):
+            with self.subTest(body=body):
+                result, _ = self.run_publish(body=body)
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("no valid numeric versionNumber", result.stderr)
 
     def test_http_and_transport_failures_return_nonzero_without_remote_text(self):
         for status, code in (("403", "0"), ("000", "7")):
@@ -73,7 +95,9 @@ class PublishSecretAuditTests(unittest.TestCase):
             self.assertNotEqual(result.returncode, 0)
 
     def test_gate_failure_and_injected_header_never_call_curl(self):
-        for options in ({"gate_exit": "1"}, {"value": "fake-value\nInjected: fake"}):
+        for options in ({"gate_exit": "1"}, {"value": "fake-value\nInjected: fake"},
+                        {"value": "fake-value\rInjected: fake"}, {"value": "fake\tvalue"},
+                        {"value": "fake-value \r\n"}):
             result, arguments = self.run_publish(**options)
             self.assertNotEqual(result.returncode, 0)
             self.assertEqual(arguments, "")
