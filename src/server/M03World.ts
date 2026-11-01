@@ -1,3 +1,4 @@
+import { WorldBuildScheduler } from "./WorldBuildScheduler";
 import { assertWorldInstanceBudget } from "./WorldInstanceBudget";
 import { Lighting, Workspace } from "@rbxts/services";
 import { buildM03Plan, M03, M03_ENVIRONMENT, M03_FILL_CHUNK, M03_WORLD_KEY, type M03Target } from "../shared/M03WorldPlan";
@@ -53,7 +54,7 @@ export const M03World = {
 		const plan = buildM03Plan(seed, () => {
 			const dt = os.clock() - slice;
 			longest = math.max(longest, dt);
-			if (dt >= 0.004) { task.wait(); slice = os.clock(); }
+			if (dt >= 0.004) { WorldBuildScheduler.Pause(); slice = os.clock(); }
 		});
 		parent.SetAttribute("WorldPlanSeconds", os.clock() - start);
 		parent.SetAttribute("WorldPlanLongestSlice", longest);
@@ -73,7 +74,7 @@ export const M03World = {
 		for (let i = 0; i < plan.parts.size(); i++) {
 			const p = plan.parts[i];
 			Scenery.Part(scene, p.name, new Vector3(p.sx, p.sy, p.sz), new Vector3(p.x, p.y, p.z), Color3.fromRGB(...p.color), material(p.material), { shape: p.shape === "ball" ? Enum.PartType.Ball : Enum.PartType.Block, flightSolid: p.solid, castShadow: false });
-			if (i % 32 === 31) task.wait();
+			if (i % 32 === 31) WorldBuildScheduler.Pause();
 		}
 		// Each target model is drawn once here and adopted by id: HUD label, TargetId and an aim root.
 		const targetVisuals = new Map<string, Model>();

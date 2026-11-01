@@ -1,7 +1,9 @@
 // Instance assembly regressions; compiled offline, executed only by the Studio Jest runner.
-import { afterEach, beforeEach, describe, expect, it, jest } from "@rbxts/jest-globals";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, jest } from "@rbxts/jest-globals";
 import { UploadedAssets } from "../shared/UploadedAssets";
-import { RobloxAssetIds } from "../shared/RobloxAssetIds";
+import { UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
+import { WorldBuildScheduler } from "../server/WorldBuildScheduler";
+import { WorldAssets } from "../server/WorldAssets";
 import { MILITARY_GROUND_ASSETS } from "../shared/MilitaryGroundKit";
 import type { UploadedAssetName } from "../shared/UploadedAssetSpecs";
 import { TerrainWriter } from "../server/TerrainWriter";
@@ -47,29 +49,51 @@ import { M18World } from "../server/M18World";
 import { M18_BUILD_LIMITS } from "../shared/M18Limits";
 
 let parent: Folder;
-let meshCount = 2, attachmentCount = 1;
-beforeEach(() => {
- parent = new Instance("Folder");
- meshCount = 2; attachmentCount = 1;
- // No terrain writes, environment mutations or network requests in these assembly tests.
- jest.spyOn(TerrainWriter, "Write").mockImplementation(() => ({ jobs: 0, yields: 0, longest: 0, total: 0 }));
- jest.spyOn(WorldEnvironment, "ApplySpec").mockImplementation(() => undefined);
- const ids: Partial<Record<UploadedAssetName, number>> = {};
- for (const name of MILITARY_GROUND_ASSETS) ids[name] = RobloxAssetIds[name];
- UploadedAssets.Configure({ ids, probe: () => true, loader: () => {
+let attachmentCount = 1;
+let loads = 0;
+const ids: Partial<Record<UploadedAssetName, number>> = {};
+const names = new Map<number, UploadedAssetName>();
+for (let i = 0; i < MILITARY_GROUND_ASSETS.size(); i++) {
+ const name = MILITARY_GROUND_ASSETS[i];
+ // Synthetic IDs keep fixture failures distinct from real InsertService failures.
+ ids[name] = 900001 + i; names.set(900001 + i, name);
+}
+function configureFixtures(): void {
+ UploadedAssets.Configure({ ids, probe: () => true, loader: (id) => {
+  loads++;
+  const name = names.get(id)!;
   const container = new Instance("Model");
-  for (let i = 0; i < meshCount; i++) {
-   const mesh = new Instance("MeshPart"); mesh.Size = new Vector3(8, 8, 8); mesh.Parent = container;
+  for (let i = 0; i < 2; i++) {
+   const mesh = new Instance("MeshPart");
+   // Overlapping parts retain the authored aspect ratio, unlike the old 8-stud cubes.
+   mesh.Size = UploadedAssetSpecs[name].authoredSize; mesh.Parent = container;
    new Instance("SurfaceAppearance").Parent = mesh;
    for (let j = 0; j < attachmentCount; j++) new Instance("Attachment").Parent = mesh;
   }
   return container;
  } });
+ UploadedAssets.Preload([...MILITARY_GROUND_ASSETS], 0.25);
+ for (const name of MILITARY_GROUND_ASSETS) expect(UploadedAssets.Cached([name])).toBeDefined();
+}
+let m03Plan: ReturnType<typeof buildM03Plan>;
+beforeAll(() => {
+ configureFixtures();
+ m03Plan = buildM03Plan();
+});
+beforeEach(() => {
+ parent = new Instance("Folder");
+ // Keep complete plans/dressing/targets, but omit frame pacing in assembly tests.
+ // Never replace Roblox task functions: only the mutable scheduler object is mocked.
+ jest.spyOn(WorldBuildScheduler, "Pause").mockImplementation(() => undefined);
+ jest.spyOn(TerrainWriter, "Write").mockImplementation(() => ({ jobs: 0, yields: 0, longest: 0, total: 0 }));
+ jest.spyOn(WorldEnvironment, "ApplySpec").mockImplementation(() => undefined);
+ WorldAssets.SetPreloadTimeout(0.25);
 });
 afterEach(() => {
- jest.restoreAllMocks();
- UploadedAssets.Configure(); parent.Destroy();
+ jest.restoreAllMocks(); parent.Destroy();
+ WorldAssets.SetPreloadTimeout();
 });
+afterAll(() => UploadedAssets.Configure());
 
 describe("world caps with uploaded military model structure", () => {
  it("builds M01 within its base cap with separately bounded mesh/appearance/attachment instances", () => {
@@ -95,7 +119,7 @@ describe("world caps with uploaded military model structure", () => {
   expect(counts.models).toBeGreaterThan(0);
  }, 120000);
  it("keeps M03 procedural even when military templates are already cached", () => {
-  UploadedAssets.Preload(["MilitaryRadar", "MilitaryAa"], 30);
+  UploadedAssets.Preload(["MilitaryRadar", "MilitaryAa"], 0.25);
   M03World.Build(parent);
   const scene = parent.GetChildren().find(child => child.IsA("Folder"))!;
   const counts = worldInstanceCounts(scene);
@@ -272,11 +296,11 @@ describe("world caps with uploaded military model structure", () => {
 
  }, 120000);
  it("avoids M03 military mesh replication while preserving every target and aim", () => {
-  meshCount = 1; attachmentCount = 0;
+  // M03 must ignore the same cached two-mesh templates used by every other case.
   const built = M03World.Build(parent);
   const scene = parent.GetChildren().find(child => child.IsA("Folder"))!;
   const counts = worldInstanceCounts(scene);
-  expect(counts.base).toBe(m03Counts(buildM03Plan()).descendants - 1);
+  expect(counts.base).toBe(m03Counts(m03Plan).descendants - 1);
   expect(counts.models).toBe(0);
   expect(counts.kit).toBe(0);
   expect(scene.GetDescendants().size()).toBeLessThanOrEqual(M03.budget.descendants);
@@ -295,9 +319,12 @@ describe("world caps with uploaded military model structure", () => {
   new Instance("Part").Parent = parent;
   expect(() => assertWorldInstanceBudget(parent, 0)).toThrow();
  });
+ it("reuses one template load per kit ID across world builds", () => {
+  expect(loads).toBe(MILITARY_GROUND_ASSETS.size());
+ });
  it("rejects oversized decorations before hiding the collision proxy", () => {
   attachmentCount = 24;
-  UploadedAssets.Preload(["MilitaryTank"], 30);
+  configureFixtures();
   const model = createGroundTarget({ id: "budget-tank", type: "tank", position: { x: 0, y: 0, z: 0 }, yaw: 0, required: true, scoreRole: "primary" });
   model.Parent = parent;
   expect(model.GetAttribute("UploadedAsset")).toBeUndefined();

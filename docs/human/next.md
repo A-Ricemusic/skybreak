@@ -4,7 +4,7 @@
 
 Updated 2026-11-01 against main `556a6807`.
 
-1. **Owner signs in to Studio once.** The auto-update (0.745.563 → 0.745.0.7451137) left Studio signed out, blocking every Studio run.
+1. **Orchestrator reruns military fixture acceptance.** Owner is signed in on Studio 0.745.0.7451137; the supplied November 1 main run exposes synthetic 8-stud fixture failures. `fix/military-kit-load` is unmerged; review its corrected fixtures and optional real-ID diagnostic before coordinated Studio acceptance. See [investigation](../qa/military-kit-load-investigation.md).
 2. **Run `bun run test:roblox` in Studio**, in coordinated queue order: #203 Practice + 18-mission launch/settlement smoke; #205 planning/cleanup freeze and load-time acceptance; #210 table-driven world dispatch; #221 dormant naval integration; #227 session-factory fixtures; #231 missing touch GUN button/ammo HUD on gun sorties and trigger release; #233 ground kills cannot satisfy air-kill requirements; #235 M7 helicopters underground. Include merged #220/#236 M3 regressions. All eight open PRs require Studio acceptance; offline passes cannot replace it. #205 measured freezes up to 74 s, mostly previous-world cleanup; cooperative cleanup and 0.15 s terrain slices remain unaccepted. Preserve #236 floor removal/procedural-only policy when reconciling #205.
 
    **Follow-ups after #205 lands:** M9 landing craft buried in terrain (`M09WorldPlan.ts`); standard missiles skip scenery occlusion outside enclosed phases (`CombatService.ts:1121`); `tools/test-relay-offline.ts` lacks child-process timeouts; `tools/tests/test_place_assets.py` needs a prebuilt place. Restore M3 military visuals once the crash cause is confirmed.
