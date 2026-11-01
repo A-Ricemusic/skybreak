@@ -75,7 +75,7 @@ export function statusLine(status: WeaponStatus): StatusCell[] {
 }
 
 /**
- * Sortie-armament ammo line: "GUN 600" leads the line when the sortie fits a gun (absent otherwise, so
+ * Batch D1 ammo line: "GUN 600" leads the line when the sortie fits a gun (absent otherwise, so
  * missions without a gun keep the three-cell line), and the line fits itself to its panel when
  * the gun cell or a finite stock above the eight-missile rack makes it longer than the layout's widest line.
  */

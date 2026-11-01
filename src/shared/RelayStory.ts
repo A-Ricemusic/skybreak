@@ -174,6 +174,8 @@ export const STORY: StoryChapter[] = [
 export function storyFor(id:number): StoryChapter { assert(id%1===0 && id>=0 && id<STORY.size(),"Invalid story chapter"); return STORY[id]; }
 /** Shared by the client selection and server seen marker. */
 export function chapterBeforeMission(id:number): number { assert(id%1===0 && id>=0 && id<=18,"Invalid mission"); return math.max(0,id-1); }
+/** Chapters reachable with the current mission release flags; finale remains dormant. */
+export function reachableStoryChapters(): number[] { return [0,1,2]; }
 /** D-030 Q8: opening reprise on completed M1 launches from the mission menu only. Retry/Next honour seen flags. */
 export function shouldPlayChapter(missionId:number,seen:number[] | undefined,completed:boolean,fromMissionMenu:boolean): boolean {
  return (missionId===1 && completed && fromMissionMenu) || !(seen?.includes(chapterBeforeMission(missionId)) ?? false);

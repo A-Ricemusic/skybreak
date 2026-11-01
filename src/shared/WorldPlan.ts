@@ -8,14 +8,11 @@ import { UploadedAssetSpecs } from "./UploadedAssetSpecs";
 import { polyDist } from "./Polyline";
 export { polyDist };
 
-// Pure world-plan primitives: terrain voxel operations, primitive parts,
-// uploaded-model placements and ground-target sites as plain numbers, plus the
-// geometry helpers (terrainTop, polyDist, frigateBerth, ...) that every
-// MNNWorldPlan module builds on. The server MNNWorld modules execute a plan; the
-// specs audit the same plan offline (no Studio): flight points clear of terrain,
-// targets on ground, boats on water, nothing floating, and the mobile budget.
-// WorldPlanner below is the retired 27-mission campaign's generated planner,
-// kept only for its offline audits (WorldPlan.spec, TerrainSchedule.spec).
+// Pure world plans for missions 3-27: every terrain voxel operation, primitive
+// part, uploaded-model placement and ground-target site of a mission world, as
+// plain numbers. The server (RelayWorld) executes a plan; the specs audit the
+// same plan offline (no Studio): flight points clear of terrain, targets on
+// ground, escort boats on water, nothing floating, and the mobile budget.
 //
 // Conventions: studs, Y up. Terrain ops are written in list order and overwrite
 // what is there (as Roblox Fill* does), except `bump`, which only adds. Yaw is a
@@ -1242,7 +1239,7 @@ export function countPlan(plan: WorldPlan): WorldCounts {
 }
 
 export const WorldPlanner = {
-	/** The retired campaign's deterministic plan for legacy ids 3-27 (cached). No live mission uses it. */
+	/** The deterministic plan for missions 3-27 (cached). */
 	Build(id: number, blueprint?: MissionBlueprint): WorldPlan {
 		assert(id >= 3 && id <= 27, `No world plan for mission ${id}`);
 		if (blueprint !== undefined) return build(id, blueprint);
