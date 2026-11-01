@@ -16,6 +16,8 @@ const root = resolve(import.meta.dir, "..");
 const dest = resolve(root, "build/offline-relay");
 
 const MODULES: string[] = [
+	// Calibrated load gates and frozen pre-PR corridor height-field regression.
+	"tests/MissionLoadBudget.spec", "tests/M03M05Baseline", "tests/CorridorClearance.spec",
 	// Frozen captures of the retired 27-mission campaign; several live specs still use them as fixtures.
 	"tests/legacy/LegacyStory", "tests/LegacyCampaign.spec", "tests/LegacyCatalog", "tests/LegacyPhaseRosters",
 	"tests/LegacyAirspaceCapture", "tests/LegacyScoringCapture",
