@@ -1,3 +1,4 @@
+import { planProfiler } from "./PlanProfiler";
 import { MILITARY_GROUND_ASSETS } from "../shared/MilitaryGroundKit";
 import { Workspace } from "@rbxts/services";
 import { buildM02Plan, M02, M02_ENVIRONMENT, M02_FILL_CHUNK, M02_WORLD_KEY, m02TargetLayout } from "../shared/M02WorldPlan";
@@ -18,15 +19,10 @@ export const M02World = {
 	Build(parent: Instance, seed = 202): { groundTargets: Model[]; targetVisuals: Map<string, Model> } {
   WorldAssets.Preload(MILITARY_GROUND_ASSETS);
 		const start = os.clock();
-		let slice = start, longest = 0;
 		parent.SetAttribute("WorldBuildPhase", "plan");
-		const plan = buildM02Plan(seed, () => {
-			const elapsed = os.clock() - slice;
-			longest = math.max(longest, elapsed);
-			if (elapsed >= 0.004) { task.wait(); slice = os.clock(); }
-		});
-		parent.SetAttribute("WorldPlanSeconds", os.clock() - start);
-		parent.SetAttribute("WorldPlanLongestSlice", longest);
+		const profile = planProfiler(parent);
+		const plan = buildM02Plan(seed, profile.checkpoint);
+		profile.finish();
 		const names = plan.props.map((p) => p.asset);
 		WorldAssets.Start(names);
 		task.spawn(() => UploadedAssets.Preload(["HeavyBomber"], 0));
@@ -44,6 +40,7 @@ export const M02World = {
 		const timing = TerrainWriter.Write(plan.ops, 0.008, M02_FILL_CHUNK);
 		parent.SetAttribute("WorldTerrainReadySeconds", os.clock() - start);
 		parent.SetAttribute("WorldTerrainLongest", timing.longest);
+	parent.SetAttribute("WorldTerrainLongestBatch", timing.longestBatch);
 		parent.SetAttribute("WorldTerrainJobs", timing.jobs);
 		parent.SetAttribute("WorldBuildPhase", "dressing");
 		for (let i = 0; i < plan.parts.size(); i++) {

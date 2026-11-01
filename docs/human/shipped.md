@@ -6,6 +6,10 @@ PR #218 gate integration (2026-10-31, unmerged): merged current main; the ten mi
 
 Military kit activation (2026-10-31, proposed/unmerged): all ten IDs assigned after independent 10/10 approval and owner-reported moderation APPROVED. On merge, realistic tanks, SAMs, AA, artillery, bunkers, radar, trucks, fuel, barracks and containers replace matching target visuals in M02/M03/M05/M06/M07/M09/M10/M12/M15/M16/M17; per-type mission list in the [upload record](../qa/asset-reviews/military-ground-kit/upload-record-2026-10-31.md). Existing proxies, procedural failure fallback and bounded preload remain. No Player quality verification.
 
+Validation for PR #205 planning follow-up: frozen install, build and prescribed LUAU_BIN validate:offline all EXIT 0; 1,248 pure Luau contracts, 36 plan fingerprint/performance checks and 162 Python tests passed. Largest measured offline checkpoint gap was 0.0105 s; this is not a Studio heartbeat measurement. No Studio/Player test performed.
+
+Pending, not shipped — PR #205 planning follow-up (2026-10-31): merged origin/main into perf/m03-m05-load, preserving military-kit adoption and terrain tuning. Proposed allocation/sea-merge fixes and 50 ms plan checkpoints preserve frozen output fingerprints for all 18 missions. Added Studio phase/slice/memory diagnostics and offline performance regression checks. No Roblox upload, Studio run, Player test or PR merge performed here; existing live worlds remain the previously merged versions.
+
 PR #216 post-merge validation (2026-10-31): `bun install --frozen-lockfile` and prescribed `LUAU_BIN` `bun run validate:offline` both exited 0; 1,225 Luau contracts and 154 Python tests passed. No uploads or secret reads.
 
 PR #216 merge-check follow-up (unmerged, 2026-10-31): main through #207 reconciled and credential-like test patterns removed. Third independent security review passed per owner handoff. No Player-visible change, upload or secret read; GitGuardian recheck failed on historical commit `3575dead` only (incident 39368345); no new-commit finding reported.

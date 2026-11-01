@@ -6,6 +6,10 @@ PR #218 gate integration (2026-10-31, unmerged): merged current main; the ten mi
 
 Military kit activation (2026-10-31, proposed/unmerged): all ten IDs assigned after independent 10/10 approval and owner-reported moderation APPROVED. On merge, realistic tanks, SAMs, AA, artillery, bunkers, radar, trucks, fuel, barracks and containers replace matching target visuals in M02/M03/M05/M06/M07/M09/M10/M12/M15/M16/M17; per-type mission list in the [upload record](../qa/asset-reviews/military-ground-kit/upload-record-2026-10-31.md). Existing proxies, procedural failure fallback and bounded preload remain. No Player quality verification. Next: observe Player orientation, fit, D6 transitions and phone performance after merge.
 
+Validation for PR #205 planning follow-up: frozen install, build and prescribed LUAU_BIN validate:offline all EXIT 0; 1,248 pure Luau contracts, 36 plan fingerprint/performance checks and 162 Python tests passed. Largest measured offline checkpoint gap was 0.0105 s; this is not a Studio heartbeat measurement. No Studio/Player test performed.
+
+1. PR #205: orchestrator runs the full sequential Studio suite on the new head. Compare MISSION_STUDIO_BUILD and MISSION_PLAN_PHASE rows, especially planCPU versus plan wall, planSlice, planYields, memoryBeforeKB/memoryAfterKB and instancesBefore/instancesAfter for M11–M14. Required gates: every mission total ≤16 s, heartbeat gap ≤0.3 s, plan slice ≤0.1 s. If CPU stays small while wall grows, investigate Studio engine scheduling/GC rather than treating the whole plan wall interval as script work. No merge authorized in this implementation task.
+
 PR #216 post-merge validation (2026-10-31): `bun install --frozen-lockfile` and prescribed `LUAU_BIN` `bun run validate:offline` both exited 0; 1,225 Luau contracts and 154 Python tests passed. No uploads or secret reads.
 
 PR #216 immediate next step: finish prescribed offline validation and check GitGuardian after a normal push. Third independent security review passed per owner handoff; no upload or merge is part of this implementation task.

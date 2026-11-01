@@ -16,7 +16,7 @@ export function m15TargetLayout():WorldContact[]{
  return ts;
 }
 export function m15BomberRoutes(){return m15TargetLayout().filter(t=>t.type==="bomber").map(t=>({id:t.id,points:[{x:t.x,y:t.y,z:t.z},{x:2880,y:900,z:-4800}]}));}
-export function buildM15Plan(seed=1515,checkpoint:()=>void=()=>{}){
+export function buildM15Plan(seed=1515,checkpoint:(phase?:string)=>void=()=>{}){
  const d=worldDressing(M15_SURFACE,checkpoint),targets=m15TargetLayout();
  for(const sea of d.seaParts)sea.color=M15_ENVIRONMENT.water.color;
  for(const t of targets)if(t.id!=="m15_command_relay")d.contact(t,t.group!=="retaliation"&&t.group!=="optional_air");
@@ -37,7 +37,7 @@ export function buildM15Plan(seed=1515,checkpoint:()=>void=()=>{}){
 export const m15Counts=(p:ReturnType<typeof buildM15Plan>)=>compactWorldCounts(p,0);
 
 /** Runtime composition: airborne inventory IDs belong exclusively to live aircraft. */
-export function buildM15ScenePlan(seed=1515,checkpoint:()=>void=()=>{}) {
+export function buildM15ScenePlan(seed=1515,checkpoint:(phase?:string)=>void=()=>{}) {
  const plan=buildM15Plan(seed,checkpoint);
  const airborne=new Set(plan.targets.filter(t=>t.group==="retaliation"||t.group==="optional_air").map(t=>t.id));
  plan.parts=plan.parts.filter(p=>!airborne.has(p.name));

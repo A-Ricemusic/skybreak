@@ -1,8 +1,10 @@
+import { planProfiler } from "./PlanProfiler";
+import { WORLD_FILL_CHUNK as COMPACT_FILL_CHUNK } from "../shared/CompactWorldSurface";
 import { Workspace } from "@rbxts/services";
 import type { EnvironmentSpec } from "../shared/EnvironmentPresets";
 import type { PartSpec, PropSpec, TerrainOp } from "../shared/WorldPlan";
 import { UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
-import { WORLD_FILL_CHUNK, WORLD_TERRAIN_BUDGET } from "../shared/SealedWorldSurface";
+import { WORLD_TERRAIN_BUDGET } from "../shared/SealedWorldSurface";
 import { clearTerrainIfDirty } from "./TerrainState";
 import { Scenery } from "./Scenery";
 import { material, TerrainWriter } from "./TerrainWriter";
@@ -28,12 +30,12 @@ function available(name: string): WorldAssetName | undefined {
 export function compositionClear(cancelled: () => boolean): void {
  if (!cancelled()) clearTerrainIfDirty();
 }
-export function buildComposition(parent: Instance, environment: EnvironmentSpec, makePlan: (checkpoint: () => void) => Composition, descendantLimit: number, cloudFeet: number, terrainBudget = WORLD_TERRAIN_BUDGET): { groundTargets: Model[] } {
- const start = os.clock(); let slice = start, longest = 0;
+export function buildComposition(parent: Instance, environment: EnvironmentSpec, makePlan: (checkpoint: (phase?: string) => void) => Composition, descendantLimit: number, cloudFeet: number, terrainBudget = WORLD_TERRAIN_BUDGET, fillChunk = COMPACT_FILL_CHUNK): { groundTargets: Model[] } {
+ const start = os.clock();
  parent.SetAttribute("WorldBuildPhase", "plan");
- const plan = makePlan(() => { const dt = os.clock() - slice; longest = math.max(longest, dt); if (dt >= 0.004) { task.wait(); slice = os.clock(); } });
- parent.SetAttribute("WorldPlanSeconds", os.clock() - start);
- parent.SetAttribute("WorldPlanLongestSlice", longest);
+ const profile = planProfiler(parent);
+ const plan = makePlan(profile.checkpoint);
+ profile.finish();
  const names: WorldAssetName[] = plan.props.map(p => p.asset);
  for (const t of plan.targets) { const name = candidate(t); if (name !== undefined) { const key = available(name); if (key !== undefined) names.push(key); } }
  WorldAssets.Start(names);
@@ -48,13 +50,16 @@ export function buildComposition(parent: Instance, environment: EnvironmentSpec,
   const m = new Instance("Model"); m.Name = t.id; m.SetAttribute("TargetType", t.type); m.SetAttribute("LayoutGroup", t.group); m.Parent = scene; models.set(t.id, m);
  }
  parent.SetAttribute("WorldBuildPhase", "terrain");
- const timing = TerrainWriter.Write(plan.ops, terrainBudget, WORLD_FILL_CHUNK);
- parent.SetAttribute("WorldTerrainReadySeconds", os.clock() - start); parent.SetAttribute("WorldTerrainLongest", timing.longest); parent.SetAttribute("WorldTerrainJobs", timing.jobs);
+ const timing = TerrainWriter.Write(plan.ops, terrainBudget, fillChunk);
+ parent.SetAttribute("WorldTerrainReadySeconds", os.clock() - start); parent.SetAttribute("WorldTerrainLongest", timing.longest);
+	parent.SetAttribute("WorldTerrainLongestBatch", timing.longestBatch); parent.SetAttribute("WorldTerrainJobs", timing.jobs);
+ parent.SetAttribute("WorldTerrainWorkSeconds", timing.total);
+ parent.SetAttribute("WorldTerrainYields", timing.yields);
  parent.SetAttribute("WorldBuildPhase", "dressing");
  for (let i = 0; i < plan.parts.size(); i++) {
   const p = plan.parts[i], owner = models.get(p.name) ?? scene, at = new Vector3(p.x, p.y, p.z);
-  if (p.shape === "cylinder") Scenery.Cylinder(owner, p.name, p.sx, p.sy, at, Color3.fromRGB(...p.color), material(p.material), { flightSolid: p.solid, castShadow: false });
-  else Scenery.Part(owner, p.name, new Vector3(p.sx, p.sy, p.sz), new CFrame(at).mul(CFrame.Angles(0, p.yaw, 0)), Color3.fromRGB(...p.color), material(p.material), { flightSolid: p.solid, castShadow: false });
+  if (p.shape === "cylinder") Scenery.Cylinder(owner, p.name, p.sx, p.sy, at, Color3.fromRGB(...p.color), material(p.material), { flightSolid: p.solid, castShadow: false, transparency: p.transparency, reflectance: p.reflectance });
+  else Scenery.Part(owner, p.name, new Vector3(p.sx, p.sy, p.sz), new CFrame(at).mul(CFrame.Angles(0, p.yaw, 0)), Color3.fromRGB(...p.color), material(p.material), { flightSolid: p.solid, castShadow: false, transparency: p.transparency, reflectance: p.reflectance });
   if (i % 32 === 31) task.wait();
  }
  let missing = 0;

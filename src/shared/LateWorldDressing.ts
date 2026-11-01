@@ -3,7 +3,7 @@ import type { WorldSurface } from "./CompactWorldSurface";
 import { compactSurface, surfaceGround } from "./CompactWorldSurface";
 import { compactWorldCounts } from "./M06M07WorldCounts";
 export interface WorldContact { id:string; type:string; group:string; x:number; y:number; z:number; yaw:number }
-export function worldDressing(surface:WorldSurface, checkpoint:()=>void){
+export function worldDressing(surface:WorldSurface, checkpoint:(phase?:string)=>void){
  const terrain=compactSurface(surface,checkpoint), parts:PartSpec[]=[], props:PropSpec[]=[];
  const part=(name:string,x:number,y:number,z:number,sx:number,sy:number,sz:number,material="Concrete",color:[number,number,number]=[117,124,128],solid=true)=>{
   parts.push({name,x,y,z,sx,sy,sz,material,color,solid,yaw:0,shape:"block",grounded:false});

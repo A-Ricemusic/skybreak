@@ -58,9 +58,10 @@ describe("Dormant M04/M05 world compositions", () => {
     for (const [sx, sz, draft] of [[64, 360, 16], [spec.size.X, spec.size.Z, spec.groundOffset]])
      for (const [x, z] of footprint(t.x, t.z, sx, sz, t.yaw)) {
       expect(t.y - draft - m05Ground(x, z)).toBeGreaterThanOrEqual(8);
-      // Water-only sea column (D-121): native water to the surface, nothing solid within 8 studs of the keel.
+      // Sea caps replace opaque native water, retaining the waterline and authored keel clearance.
       const column = terrainTop(b.ops, x, z);
-      expect(column.water).toBe(32);
+      const sea = b.parts.find(p => p.name === "Sea" && math.abs(x - p.x) <= p.sx / 2 && math.abs(z - p.z) <= p.sz / 2);
+      expect(sea !== undefined && sea.solid && sea.y + sea.sy / 2 === 32).toBe(true);
       expect(t.y - draft - column.solid).toBeGreaterThanOrEqual(8);
      }
    }
@@ -98,7 +99,7 @@ describe("Dormant M04/M05 world compositions", () => {
    for (const [x, z] of footprint(p.x, p.z, spec.size.X * p.scale, spec.size.Z * p.scale, p.yaw)) {
     if (p.asset === "OilPlatform") {
      // Piled marine structure: sea supports its waterline; legs enter the bed.
-     expect(terrainTop(b.ops, x, z).water).toBe(p.y);
+     expect(b.parts.some(sea => sea.name === "Sea" && sea.y + sea.sy / 2 === p.y && math.abs(x - sea.x) <= sea.sx / 2 && math.abs(z - sea.z) <= sea.sz / 2)).toBe(true);
      expect(m05Ground(x, z)).toBeLessThan(p.y);
     } else {
      expect(p.y - m05Ground(x, z)).toBeGreaterThanOrEqual(8);
@@ -157,6 +158,17 @@ describe("Dormant M04/M05 world compositions", () => {
      for (let v = begin; v < begin + length; v += 128) { const key = `${axis},${edge},${v}`, list = walls.get(key) ?? []; list.push({lo, hi}); walls.set(key, list); }
     }
    }
+   for (const part of p.parts) if (part.name === "Sea") {
+    expect(part.solid).toBe(true); expect(part.y + part.sy / 2).toBe(32);
+    expect(part.color).toEqual(M05_ENVIRONMENT.water.color);
+    expect(part.reflectance).toBe(M05_ENVIRONMENT.water.reflectance);
+    expect(part.transparency).toBe(0);
+    for (let x = part.x - part.sx / 2; x < part.x + part.sx / 2; x += 128)
+     for (let z = part.z - part.sz / 2; z < part.z + part.sz / 2; z += 128) {
+      expect(ground(x + 64, z + 64)).toBeLessThan(32);
+      waterCaps.set(`${x},${z}`, ground(x + 64, z + 64));
+     }
+   }
    for (const [key, h] of waterCaps) if (!caps.has(key)) caps.set(key, h);
    let gaps = 0;
    for (let x = -WORLD_HALF; x < WORLD_HALF; x += 128) for (let z = -WORLD_HALF; z < WORLD_HALF; z += 128) {
@@ -169,7 +181,10 @@ describe("Dormant M04/M05 world compositions", () => {
    expect(gaps).toBe(0);
    for (const x of [-12000, 0, 12000]) for (const z of [-12000, 0, 12000]) {
     const t = terrainTop(p.ops, x + 17, z + 17);
-    if (t.solid === -math.huge) { expect(t.water).toBe(32); expect(ground(x + 17, z + 17)).toBeLessThan(32); }
+    if (t.solid === -math.huge) {
+     const sea = p.parts.some(part => part.name === "Sea" && math.abs(x + 17 - part.x) <= part.sx / 2 && math.abs(z + 17 - part.z) <= part.sz / 2);
+     expect(t.water === 32 || sea).toBe(true); expect(ground(x + 17, z + 17)).toBeLessThan(32);
+    }
     else expect(t.solid).toBe(ground(x + 17, z + 17));
    }
    expect(surfaceSide(surface, 0, 0)).toBeGreaterThanOrEqual(128);

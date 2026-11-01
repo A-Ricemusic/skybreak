@@ -1,3 +1,4 @@
+import { planProfiler } from "./PlanProfiler";
 import { Lighting, Workspace } from "@rbxts/services";
 import { AssetSelection } from "../shared/AssetSelection";
 import { M01_CARRIER_MODEL, M01_CARRIER_PLACEMENT } from "../shared/M01CarrierPlan";
@@ -64,15 +65,9 @@ export const M01World = {
 	Build(parent: Instance, seed = 101): { groundTargets: Model[] } {
 		const start = os.clock();
 		parent.SetAttribute("WorldBuildPhase", "plan");
-		let slice = start, longestPlanSlice = 0;
-		const checkpoint = () => {
-			const elapsed = os.clock() - slice;
-			longestPlanSlice = math.max(longestPlanSlice, elapsed);
-			if (elapsed >= 0.004) { task.wait(); slice = os.clock(); }
-		};
-		const plan = buildM01Plan(seed, checkpoint);
-		parent.SetAttribute("WorldPlanSeconds", os.clock() - start);
-		parent.SetAttribute("WorldPlanLongestSlice", longestPlanSlice);
+		const profile = planProfiler(parent);
+		const plan = buildM01Plan(seed, profile.checkpoint);
+		profile.finish();
 		parent.SetAttribute("WorldBuildPhase", "environment");
 		const names = plan.props.map((p) => p.asset);
 		const carrierAssets = AssetSelection.CarrierCandidates(UploadedAssetSpecs) as WorldAssetName[];
@@ -90,6 +85,7 @@ export const M01World = {
 		const terrain = TerrainWriter.Write(plan.ops, 0.008, M01_FILL_CHUNK);
 		parent.SetAttribute("WorldTerrainReadySeconds", os.clock() - start);
 		parent.SetAttribute("WorldTerrainLongest", terrain.longest);
+	parent.SetAttribute("WorldTerrainLongestBatch", terrain.longestBatch);
 		parent.SetAttribute("WorldTerrainJobs", terrain.jobs);
 		task.wait();
 		parent.SetAttribute("WorldBuildPhase", "dressing");

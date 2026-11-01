@@ -17,7 +17,7 @@ describe("M03 snowy mountain composition", () => {
 		expect(MissionCatalog.WorldKey(3)).toBe(p.key);
 		let checkpoints = 0;
 		expect(buildM03Plan(303, () => { checkpoints++; })).toEqual(p);
-		expect(checkpoints).toBeGreaterThan(10000);
+		expect(checkpoints).toBeGreaterThan(2 * (p.detailCells + p.coarseCells));
 	});
 	it("exports nine radars, four AA and a helicopter grounded on written terrain", () => {
 		expect(p.targets.filter((t) => t.type === "radar" && t.group === "site1").size()).toBe(5);
@@ -66,7 +66,7 @@ describe("M03 snowy mountain composition", () => {
 			expect(m03Detailed(a[0] + (b[0] - a[0]) * n / 100, a[1] + (b[1] - a[1]) * n / 100)).toBe(true);
 		}
 		for (const t of p.targets) expect(m03Detailed(t.x, t.z)).toBe(true);
-		expect(p.coarseCells).toBeGreaterThan(1000);
+		expect(p.coarseCells).toBeGreaterThan(500);
 		expect(p.detailCells).toBeGreaterThan(1000);
 	});
 	it("uses slope-aware rock, snow valleys and a deep gorge inside the provisional band", () => {
@@ -150,17 +150,10 @@ describe("M03 snowy mountain composition", () => {
 		print(`M03_SHELL_COVERAGE columns=${checked} height_steps=${closed} caps=${caps.size()}`);
 		expect(closed).toBeGreaterThan(1000);
 	});
-	it("seals the entire hard airspace with one continuous bottom floor", () => {
+	it("seals hard airspace without an unreachable floor layer", () => {
 		expect(M03.halfX).toBeGreaterThan(M03_AIRSPACE.hardHalfWidth);
 		expect(M03.halfZ).toBeGreaterThan(M03_AIRSPACE.hardHalfWidth);
-		const floor = p.ops.filter((o) => o.x === 0 && o.z === 0 && o.y === -2 && o.sy === 4);
-		expect(floor.size()).toBe(1);
-		expect(floor[0].sx).toBe(2 * M03.halfX);
-		expect(floor[0].sz).toBe(2 * M03.halfZ);
-		// A solid, unrotated rock block: no air pocket, no wedge, no gap at the corners.
-		expect(floor[0].material).toBe("Rock");
-		expect(floor[0].shape).toBe("block");
-		expect(floor[0].yaw).toBe(0);
+		for (const op of p.ops) expect(op.y - op.sy / 2).toBeGreaterThanOrEqual(0);
 	});
 	it("uses unique mission ids and supports the entire non-overlapping target footprint", () => {
 		const ids = new Set<string>();

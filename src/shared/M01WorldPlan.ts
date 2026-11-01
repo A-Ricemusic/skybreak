@@ -3,7 +3,7 @@ import { fillVoxels, terrainJobs } from "./TerrainSchedule";
 import { polyDist, terrainTop, type TerrainOp, type PartSpec, type PropSpec, type TerrainMaterial } from "./WorldPlan";
 
 /** Dormant C1 composition. No mission catalog or legacy planner imports this module. */
-export const M01_FILL_CHUNK = 65536;
+export const M01_FILL_CHUNK = 262144;
 export { M01, M01_WORLD_KEY } from "./M01Geometry";
 import { M01, M01_WORLD_KEY } from "./M01Geometry";
 
@@ -56,7 +56,35 @@ export function m01Height(x: number, z: number): number {
 export function m01Block(material: TerrainMaterial, x: number, y: number, z: number, sx: number, sy: number, sz: number): TerrainOp {
 	return { shape: "block", material, x, y, z, sx, sy, sz, yaw: 0 };
 }
-export function buildM01Plan(seed = 101, checkpoint: () => void = () => {}): M01Plan {
+/** Merge disjoint voxel-aligned land columns sharing exactly the same material and height.
+ * Water remains first; only the non-overlapping land partition is regrouped. */
+export function mergeLandColumns(ops: TerrainOp[], checkpoint: (phase?: string) => void = () => {}): TerrainOp[] {
+ let merged = ops;
+ for (const axis of ["x", "z"] as const) {
+  const groups = new Map<string, TerrainOp[]>();
+  for (const o of merged) {
+   const key = `${o.material},${o.y},${o.sy},${axis === "x" ? o.z : o.x},${axis === "x" ? o.sz : o.sx}`;
+   const group = groups.get(key) ?? []; group.push(o); groups.set(key, group);
+   checkpoint("land.merge");
+  }
+  merged = [];
+  for (const [, group] of groups) {
+   group.sort((a, b) => a[axis] < b[axis]);
+   let run = { ...group[0] };
+   for (let i = 1; i < group.size(); i++) {
+    const following = group[i], size = axis === "x" ? "sx" : "sz";
+    if (run[axis] + run[size] / 2 === following[axis] - following[size] / 2) {
+     const low = run[axis] - run[size] / 2;
+     run[size] += following[size]; run[axis] = low + run[size] / 2;
+    } else { merged.push(run); run = { ...following }; }
+   }
+   merged.push(run);
+   checkpoint("land.merge");
+  }
+ }
+ return merged;
+}
+export function buildM01Plan(seed = 101, checkpoint: (phase?: string) => void = () => {}): M01Plan {
 	const p: M01Plan = { key: M01_WORLD_KEY, seed, ops: [], parts: [], props: [], detailCells: 0, coarseCells: 0 };
 	// Native water retains the coastal/launch depth. A single uniform visual sea
 	// surface below replaces the mixed Part/voxel surface (and its rectangular joins).
@@ -99,7 +127,7 @@ export function buildM01Plan(seed = 101, checkpoint: () => void = () => {}): M01
 			const localOps: TerrainOp[] = [];
 			for (let i = first; i < p.ops.size(); i++) localOps.push(p.ops[i]);
 			landTiles.set(tileKey(x, z), localOps);
-			checkpoint();
+			checkpoint("surface.sample");
 		}
 	}
 	const part = (name: string, x: number, y: number, z: number, sx: number, sy: number, sz: number, color: [number, number, number], solid = false) => p.parts.push({ name, shape: "block", x, y, z, sx, sy, sz, yaw: 0, color, material: "SmoothPlastic", solid, grounded: solid });
@@ -113,7 +141,7 @@ export function buildM01Plan(seed = 101, checkpoint: () => void = () => {}): M01
 	// disconnected rectangular foam Parts on this calm/slight sea.
 	part("Runway", -1280, 74, -3200, 180, 4, 2880, [34, 49, 59], true);
 	part("Apron", -1504, 74, -3200, 256, 4, 1536, [75, 86, 94], true);
-	const prop = (asset: PropSpec["asset"], x: number, z: number, scale = 1) => { p.props.push({ asset, x, y: terrainTop(landTiles.get(tileKey(x, z)) ?? [], x, z).solid, z, yaw: 0, scale, tint: 0 }); checkpoint(); };
+	const prop = (asset: PropSpec["asset"], x: number, z: number, scale = 1) => { p.props.push({ asset, x, y: terrainTop(landTiles.get(tileKey(x, z)) ?? [], x, z).solid, z, yaw: 0, scale, tint: 0 }); checkpoint("surface.sample"); };
 	for (let i = 0; i < 8; i++) prop("Hangar", -1568, -3800 + i * 180);
 	prop("ControlTower", -1024, -3000);
 	for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) prop(i % 3 === 0 ? "OfficeMidrise" : "ApartmentBlock", 896 + i * 100, -384 + j * 180, 0.8);
@@ -126,7 +154,8 @@ export function buildM01Plan(seed = 101, checkpoint: () => void = () => {}): M01
 		const x = -1728 + random() * 3456, z = -4800 + random() * 8640;
 		if (m01Height(x, z) > 100 && m01Height(x, z) < 400 && !inside(x, z, M01.city) && !inside(x, z, M01.airbase)) prop("Pine", x, z, 1 + random() * 0.5);
 	}
-	checkpoint();
+	checkpoint("surface.sample");
+	p.ops = [p.ops[0], p.ops[1], ...mergeLandColumns(p.ops.filter((_, i) => i >= 2), checkpoint)];
 	return p;
 }
 export function m01Counts(p: M01Plan) {

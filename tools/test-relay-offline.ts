@@ -105,6 +105,8 @@ const MODULES: string[] = [
 	"tests/M03WorldPlan.spec", "shared/M02WorldPlan", "shared/M02Limits", "tests/M02WorldPlan.spec", "shared/Polyline",
 ];
 
+MODULES.push("tests/MissionLoadBudget.spec", "tests/M03M05Baseline", "tests/CorridorClearance.spec");
+
 const duplicates = MODULES.filter((entry, index) => MODULES.indexOf(entry) !== index);
 if (duplicates.length > 0) throw new Error(`Duplicate offline modules: ${duplicates.join(", ")}`);
 const SPECS = MODULES.filter((entry) => entry.endsWith(".spec"));

@@ -143,6 +143,7 @@ export const RelayWorld = {
 		parent.SetAttribute("WorldTerrainYields", terrain.yields);
 		parent.SetAttribute("WorldTerrainSeconds", terrain.total);
 		parent.SetAttribute("WorldTerrainLongest", terrain.longest);
+	parent.SetAttribute("WorldTerrainLongestBatch", terrain.longestBatch);
 		parent.SetAttribute("WorldPreloadLate", late.size());
 		parent.SetAttribute("WorldBuildSeconds", os.clock() - started);
 		if (late.size() > 0) warn(`[RelayWorld] ${plan.name}: ${late.join(", ")} still loading after the preload deadline; placed fallbacks`);
