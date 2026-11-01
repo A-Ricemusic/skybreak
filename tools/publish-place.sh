@@ -19,18 +19,28 @@ fi
 # Reject stale local artifacts before any upload request. This is not a live audio test.
 python3 tools/check-place-voice.py "$PLACE_FILE"
 
+# Pin the checked bytes for all retries; never POST a mutable build artifact.
 RESPONSE_FILE="$(mktemp)"
-trap 'rm -f "$RESPONSE_FILE"' EXIT
+PLACE_SNAPSHOT="$(mktemp)"
+trap 'rm -f "$RESPONSE_FILE" "$PLACE_SNAPSHOT"' EXIT
+cp "$PLACE_FILE" "$PLACE_SNAPSHOT"
+chmod 400 "$PLACE_SNAPSHOT"
+git fetch origin main
+# CI checkouts are shallow; the HALT baseline needs the previous main tip.
+if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+	git fetch --deepen=2 origin main
+fi
 
 URL="https://apis.roblox.com/universes/v1/${ROBLOX_UNIVERSE_ID}/places/${ROBLOX_PLACE_ID}/versions?versionType=Published"
 
 # Roblox answers 409 "Server is busy" while the place is locked, e.g. by an open Team Create session.
 for ATTEMPT in 1 2 3; do
+	python3 tools/check-place-assets.py "$PLACE_SNAPSHOT" --publish
 	# Header via stdin keeps the key out of curl's argv (visible in ps); fresh stdin per attempt.
 	STATUS="$(printf 'x-api-key: %s\n' "$ROBLOX_API_KEY" | curl --silent --show-error -X POST "$URL" \
 		-H @- \
 		-H "Content-Type: application/xml" \
-		--data-binary "@${PLACE_FILE}" \
+		--data-binary "@${PLACE_SNAPSHOT}" \
 		-o "$RESPONSE_FILE" -w "%{http_code}")"
 	[ "$STATUS" = "409" ] && [ "$ATTEMPT" -lt 3 ] || break
 	echo "Roblox is busy (attempt $ATTEMPT); retrying in 60 seconds." >&2

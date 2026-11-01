@@ -3,11 +3,11 @@ import { mission, M14_SALVOS } from "../shared/missions/m14";
 import { FlightMath } from "../shared/FlightMath";
 import { WeaponRules as W, Point } from "../shared/WeaponRules";
 import { BomberRules } from "../shared/BomberRules";
-import { cruiseRadar, cruiseRoute } from "../shared/EngineBatchD10";
+import { cruiseRadar, cruiseRoute } from "../shared/CruiseMissileRules";
 import { Difficulty, DifficultyKind } from "../shared/Difficulty";
 import { SortieArmament } from "../shared/SortieArmament";
 import { SpecialWeapons } from "../shared/SpecialWeapons";
-import { CruiseBudget } from "../shared/EngineBatchD10";
+import { CruiseBudget } from "../shared/CruiseMissileRules";
 import { m14Ground } from "../shared/M14WorldPlan";
 
 import { authoredAirRequest } from "../server/PhaseDirectorRules";

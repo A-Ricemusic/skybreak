@@ -1,8 +1,8 @@
-import { RearmPlan, rearmPose } from "../shared/EngineBatchC";
+import { RearmPlan, rearmPose } from "../shared/RearmRules";
 import type { CutInPlan } from "../shared/SortieCutaways";
 import type { SpecialKind } from "../shared/SpecialWeapons";
 import { EliteCutIn } from "./EliteCutIn";
-import { canSkipLanding, LandingPlan, landingAccomplishedAt, landingDistance, landingPose } from "../shared/EngineBatchB";
+import { canSkipLanding, LandingPlan, landingAccomplishedAt, landingDistance, landingPose } from "../shared/LandingRules";
 import { LaunchStage, LaunchStageState } from "../shared/LaunchStage";
 import type { FlightControlHandoff } from "../shared/Types";
 import { ContextActionService, GuiService, Players, RunService, UserInputService, Workspace } from "@rbxts/services";

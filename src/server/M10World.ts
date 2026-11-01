@@ -1,3 +1,5 @@
+import { WorldAssets } from "./WorldAssets";
+import { MILITARY_GROUND_ASSETS } from "../shared/MilitaryGroundKit";
 import { buildM10Plan, M10_ENVIRONMENT, M10_WORLD_KEY } from "../shared/M10WorldPlan";
 import { M10_WORLD_TARGETS } from "../shared/missions/m10";
 import { adoptGroundTarget } from "./GroundTargetFactory";
@@ -7,6 +9,7 @@ import { clearTerrainIfDirty } from "./TerrainState";
 import { registerWorldClear } from "./WorldLifecycleRuntime";
 export const M10World = {
  Build: (parent: Instance, seed = 1010) => {
+  WorldAssets.Preload(MILITARY_GROUND_ASSETS);
   const built=buildComposition(parent,M10_ENVIRONMENT,checkpoint=>buildM10Plan(seed,checkpoint),M10_BUILD_LIMITS.descendants,14000,0.25);
   const scene=parent.FindFirstChild(M10_WORLD_KEY);
   assert(scene!==undefined,"M10 scene missing");

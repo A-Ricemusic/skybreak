@@ -1,0 +1,12 @@
+{
+  "asset": "RadarGeometry",
+  "creator": "SKYBREAK build agent via tools/build-mission-assets.py (committed under Anthony Rice's git identity, 6529e64e026d24b0796054eb4bd8007db7958d62)",
+  "exportVersion": "embedded-json-v1-a9bb6625100f",
+  "files": {
+    "RadarGeometry.json": "a9bb6625100f9f9992eab2a54fb012fe6e47109db8857cca8f99596cb98b9b4f"
+  },
+  "source": "assets/mission/radar.mesh.json",
+  "generator": "tools/build-mission-assets.py",
+  "sourceCommit": "6529e64e026d24b0796054eb4bd8007db7958d62",
+  "note": "Version label identifies the exact existing embedded bytes; no mesh re-export was performed."
+}

@@ -1,21 +1,8 @@
 #!/usr/bin/env python3
-"""Upload reviewed SKYBREAK voice-over banks to Roblox; never publishes the place.
+"""Voice uploads are permanently disabled by owner decision (2026-10-31).
 
-Same account journal, HALT file and lock as tools/upload-audio.py. A bank is
-only uploaded when assets/voice/review.json approves its exact sha256 with
-transcript-match evidence, its moderation checklist passed every automated
-check, and assets/voice/stt.json shows no line under 90 % for that file. Every
-upload must complete AND be explicitly approved by moderation; one rejection
-writes the HALT file and stops all uploads for the account. Re-running resumes
-recorded operations instead of consuming another upload slot.
-
-python3 tools/upload-voice.py --key-file <private-file> [--only voiceBank01] [--dry-run]
-
-Review format (assets/voice/review.json), written by the independent reviewer:
-{"commercialUsePermitted": true,
- "banks": {"voiceBank01": {"sha256": "...", "approved": true, "reviewer": "...",
-           "method": "listened to the whole bank against checklists/voiceBank01.json",
-           "transcriptMatch": {"engine": "...", "meanRate": 0.99, "minRate": 0.9, "flagged": []}}}}
+Offline --dry-run preflight is retained; real runs refuse before key reads.
+The shared legacy/audio HALTs and audio-upload.lock remain in force.
 """
 import argparse
 import fcntl
@@ -75,7 +62,7 @@ def upload(bank, review, stt, key):
         raise RuntimeError(f"{name}: journal entry {entry} has a different file")
     return submit_and_moderate(name, entry, item, content, digest, bank["file"],
                                "Original voice-over dialogue for a fictional flight game. Synthetic premade voices; no music.",
-                               checked.get("reviewer"), key, "Roblox rejected voice audio; account uploads are now halted")
+                               checked.get("reviewer"), key, "Roblox rejected voice audio; audio uploads are now halted")
 
 
 def write_banks(plan, uploaded):
@@ -96,6 +83,8 @@ def main():
     parser.add_argument("--only")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
+    if not args.dry_run:
+        gate(asset_type="Audio")
     STATE.mkdir(mode=0o700, parents=True, exist_ok=True)
     # Same lock as the effects uploader: the two tools never write the shared journal at once.
     with (STATE / "audio-upload.lock").open("w") as lock:

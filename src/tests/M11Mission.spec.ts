@@ -2,7 +2,7 @@ import { describe, expect, it } from "@rbxts/jest-globals";
 import { MissionCatalog, MISSIONS } from "../shared/MissionCatalog";
 import { mission as bp, M11_AIRCRAFT, M11_WAVES, M11_SAFE_SECONDS, M11_AIRCRAFT_HEALTH } from "../shared/missions/m11";
 import { m11CivilianLayout, m11Ground } from "../shared/M11WorldPlan";
-import { protectedDuration, protectedPose, stepProtected, damageProtected, protectionResult, ProtectedState } from "../shared/EngineBatchD7";
+import { protectedDuration, protectedPose, stepProtected, damageProtected, protectionResult, ProtectedState } from "../shared/ProtectedAircraftRules";
 import { BlueprintRunner as R } from "../shared/BlueprintRunner";
 import { TargetScore } from "../shared/TargetScore";
 import { CombatBalance } from "../shared/CombatBalance";

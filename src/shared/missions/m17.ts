@@ -3,7 +3,7 @@ import type { MissionBlueprint } from "../MissionCatalog";
 import type { FighterArrival, TypedGroundTarget } from "../CampaignEncounters";
 import { M17, M17_WORLD_KEY, m17TargetLayout } from "../M17WorldPlan";
 import { M17_AIRSPACE } from "../M17Limits";
-import { landingPose } from "../EngineBatchB";
+import { landingPose } from "../LandingRules";
 // D-640: provisional subtype allocation; the aggregate score ledger is evidence-backed.
 export const M17_POINTS = { tank:50, aa:20, sam:60, mount:50, bridge:0, battleship:200, destroyer:140, submarine:120, supply:120, helicopter:50, fighter:60, active:120, tiltrotor:50, scout:60, interceptor:60, bandit:150 };
 const layout=m17TargetLayout();

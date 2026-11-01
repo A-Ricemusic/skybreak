@@ -2,7 +2,7 @@ import { describe, expect, it } from "@rbxts/jest-globals";
 import { mission as bp, M17_TARGETS, M17_WAVES } from "../shared/missions/m17";
 import { buildM17Plan, buildM17ScenePlan } from "../shared/M17WorldPlan";
 import { FlightMath as F } from "../shared/FlightMath";
-import { completeRearmRepair } from "../server/EngineBatchD11Runtime";
+import { completeRearmRepair } from "../server/RepairReserveRuntime";
 import { createCombatSession } from "../server/CombatSessionFactory";
 function session(id:number,hp:number) {const s=createCombatSession({} as Player,1,{} as Folder,{} as Model,F.FromPose(0,1200,0,0,0,160),id,"salvo","normal",0);s.health=hp;return s;}
 

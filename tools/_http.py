@@ -12,7 +12,7 @@ import json
 import math
 from pathlib import Path
 import time
-from typing import Any
+from typing import Any, Callable
 import urllib.error
 import urllib.request
 
@@ -80,7 +80,8 @@ def _retry_delay(value: str | None, attempt: int) -> float:
 
 
 def request_json(request: urllib.request.Request, *, timeout: float = 90,
-                 deadline: float | None = None) -> dict[str, Any]:
+                 deadline: float | None = None,
+                 before_attempt: Callable[[], None] | None = None) -> dict[str, Any]:
     """Fetch bounded JSON with safe errors and a finite retry/deadline budget.
 
     Only reads retry 5xx. A failed upload POST may already have created an asset;
@@ -90,6 +91,8 @@ def request_json(request: urllib.request.Request, *, timeout: float = 90,
     if deadline is None:
         deadline = time.monotonic() + timeout * MAX_ATTEMPTS + MAX_RETRY_DELAY * (MAX_ATTEMPTS - 1)
     for attempt in range(MAX_ATTEMPTS):
+        if before_attempt is not None:
+            before_attempt()
         try:
             with open(request, timeout=min(timeout, remaining(deadline))) as response:
                 chunks = []

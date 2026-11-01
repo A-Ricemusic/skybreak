@@ -6,7 +6,7 @@ import { ThreatRules } from "../shared/ThreatRules";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { mission as bp, M14_SALVOS, M14_SITE } from "../shared/missions/m14";
 import { MissionCatalog, MISSIONS } from "../shared/MissionCatalog";
-import { cruiseRoute, cruiseDestroyed, cruiseComplete, newCruiseStates } from "../shared/EngineBatchD10";
+import { cruiseRoute, cruiseDestroyed, cruiseComplete, newCruiseStates } from "../shared/CruiseMissileRules";
 import { BomberRules } from "../shared/BomberRules";
 import { BlueprintRunner as Runner } from "../shared/BlueprintRunner";
 import { TargetScore } from "../shared/TargetScore";

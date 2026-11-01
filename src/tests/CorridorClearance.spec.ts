@@ -5,7 +5,7 @@ import { buildM05Plan, M05 } from "../shared/M05WorldPlan";
 import { m03Ground as rawM03, baselineM04 as rawM04, baselineM05 as rawM05 } from "./M03M05Baseline";
 import { M03_LANDING, M03_START_ALTITUDE, M03_RETURN_LINE } from "../shared/missions/m03";
 import { M05_REARM_LANDING } from "../shared/missions/m05";
-import { landingPose, landingDuration } from "../shared/EngineBatchB";
+import { landingPose, landingDuration } from "../shared/LandingRules";
 import type { TerrainOp, PartSpec } from "../shared/WorldPlan";
 
 // Index actual emitted caps, curtains and flight-solid Sea parts. Ground lookup

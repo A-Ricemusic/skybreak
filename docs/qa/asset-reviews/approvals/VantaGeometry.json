@@ -1,0 +1,14 @@
+{
+  "asset": "VantaGeometry",
+  "exportVersion": "embedded-json-v1-1319ecd6c4db",
+  "embeddedTextures": {},
+  "uploadSet": {
+    "VantaGeometry.json": "1319ecd6c4db6d8260c565959bff22e22f4dc036f023a8771ac3955b0168b5d3"
+  },
+  "reviewedAt": "2026-10-31",
+  "record": "docs/qa/asset-reviews/2026-10-31-pr217-embedded-mesh-review.md",
+  "approved": true,
+  "score": "10/10",
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "note": "Embedded JSON only, not FBX or referenced uploaded models. Any change requires a new review. No moderation guarantee."
+}

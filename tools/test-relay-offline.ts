@@ -1,67 +1,121 @@
 // Executes compiled pure domain contracts in the official standalone Luau VM.
 // This does NOT start Studio, emulate Roblox, or count as a Roblox Jest run.
-import {mkdir} from "node:fs/promises";
-import {resolve} from "node:path";
-import {requireLuauBin} from "./luau-bin";
-const root=resolve(import.meta.dir,".."),dest=resolve(root,"build/offline-relay");
-await mkdir(dest,{recursive:true});
-const files=["tests/M17Fairness.spec","tests/M17Mission.spec","tests/M17Review.spec","tests/M16Fairness.spec","tests/M16Mission.spec","shared/RobloxAssetIds","shared/UploadedAssetOrientation","tests/M04M05Assets.spec","tests/legacy/LegacyStory","tests/LegacyCampaign.spec","shared/M01Geometry","tests/LegacyCatalog", ...Array.from({length:27},(_,i)=>`tests/legacy/legacy${String(i+1).padStart(2,"0")}`),"shared/LaunchStage","shared/InitialTelemetry","tests/CountdownFlyoff.spec","shared/AlliedRules","tests/AlliedRules.spec","tests/LegacyPhaseRosters","shared/OutcomeReason","shared/BomberEncounter","tests/BomberEncounter.spec","shared/M01Limits","tests/LegacyAirspaceCapture","tests/MissionAirspace.spec","server/PhaseDirectorRules","tests/PhaseDirector.spec","shared/M01WorldPlan","tests/M01WorldPlan.spec","shared/M01CarrierPlan","tests/M01CarrierPlan.spec","server/SortieScore","shared/OutcomePoints","tests/LegacyScoringCapture","tests/AuthoritativeScoring.spec","shared/BomberRules","tests/BomberRules.spec","shared/WorldAirspace","shared/DeletionObservation","server/CampaignRequestBudget","tests/DeletionObservation.spec","tests/WeaponRules.spec","shared/VoiceReadiness","tests/VoiceReadiness.spec","shared/AudioRules","tests/AudioRules.spec","shared/AssetSelection","tests/AssetSelection.spec","shared/CombatBalance","tests/CombatBalance.spec","shared/MissionPacing","shared/TargetScore","tests/TargetScore.spec","tests/MissionScore.spec","shared/CinematicInput","tests/CinematicInput.spec","shared/CinematicLayout","tests/CinematicLayout.spec","shared/CinematicStaging","tests/CinematicStaging.spec","shared/Teardown","shared/CinematicSet","tests/CinematicSet.spec","shared/StoryDocuments","tests/StoryDocuments.spec","shared/NavigationPilot","shared/FlightMath","shared/MissionPolicy","shared/MissionCatalog","shared/BlueprintRunner","shared/MissionLayouts","shared/RelayStory","shared/GameConfig","shared/Difficulty","shared/MissionScore","tests/MissionPolicy.spec","tests/Difficulty.spec","shared/WeaponRules","shared/SpecialWeapons","shared/ExplosionFx","tests/ExplosionFx.spec","shared/EngineFx","tests/EngineFx.spec","shared/ImpactFeedback","tests/ImpactFeedback.spec","shared/ThreatRules","tests/ThreatRules.spec","shared/EvadeRules","tests/EvadeRules.spec","shared/AceRules","tests/AceRules.spec","shared/WavePlan","tests/WavePlan.spec","shared/SessionGuard","tests/SessionGuard.spec","shared/ActorPlacement","tests/ActorPlacement.spec","tests/UnifiedMissionRunner.spec","shared/CampaignProgress","server/CampaignRepository","tests/DeletionStatus.spec","tests/RelayCampaign.spec","tests/BlueprintProgress.spec",
-	// Round-2 HUD rules (pure layout, warnings, radar, evade, radio, settings).
-	"shared/UILayout","tests/UILayout.spec","shared/NavigationLayout","tests/NavigationLayout.spec","shared/FlightWarnings","tests/FlightWarnings.spec",
-	"shared/RadarMath","tests/RadarMath.spec","shared/EvadeGauge","tests/EvadeGauge.spec","shared/VoiceCues","shared/VoiceBanks","shared/VoiceLines","tests/VoiceLines.spec","shared/RadioQueue","tests/RadioQueue.spec",
-	"shared/PlayerSettings","tests/PlayerSettings.spec","shared/TouchSticks","tests/TouchSticks.spec",
-	// Ace-style HUD instruments (hull bar, ammo line, clock).
-	"shared/HudInstruments","tests/HudInstruments.spec",
-	// PR #38's touch control rectangles, frozen across HUD scales and stick sizes.
-	"tests/TouchControls.spec",
-	// World realism: the pure world plans, their audit and the environment table.
-	"shared/UploadedAssetSpecs","shared/EnvironmentPresets","shared/TerrainSchedule","shared/WorldDistricts","shared/WorldPlan","shared/WorldAudit","tests/WorldPlan.spec","tests/TerrainSchedule.spec","shared/LegacyWorlds","tests/LegacyWorlds.spec","tests/EnvironmentPresets.spec","shared/WeatherRules","tests/WeatherRules.spec",
-	// Flight model: rate-commanded attitude, loops, attitude hold, prediction and the state packet.
-	"tests/Flight.spec","shared/FlightPrediction","shared/TelemetryCodec","tests/FlightPrediction.spec",
-	// Ace Combat-style target boxes: validity, size, blink, ranking and touch keep-outs.
-	"shared/TargetPriority","tests/TargetPriority.spec","shared/TargetBoxes","tests/TargetBoxes.spec"];
-files.push("shared/CampaignEncounters", "shared/GroundAirDefence", "tests/EnginePracticeSnapshot", "tests/EngineM01Snapshot", "tests/CampaignEncounters.spec");
-files.push("shared/WorldEnvironments");
-files.push("shared/LateWorldDressing", "shared/M14Limits", "shared/M14WorldPlan", "shared/M15Limits", "shared/M15WorldPlan", "shared/M16Limits", "shared/M16WorldPlan", "shared/M17Limits", "shared/M17WorldPlan", "shared/M18Limits", "shared/M18WorldPlan", "tests/M14M18WorldPlan.spec");
-files.push("shared/M12Limits", "shared/M13Limits", "shared/M12WorldPlan", "shared/M13WorldPlan", "tests/M12M13WorldPlan.spec");
-files.push("shared/M10Limits", "shared/M11Limits", "shared/M10WorldPlan", "shared/M11WorldPlan", "tests/M10M11WorldPlan.spec");
-files.push("shared/M08Limits", "shared/M09Limits", "shared/M08WorldPlan", "shared/M09WorldPlan", "tests/M08M09WorldPlan.spec");
-files.push("shared/M06M07WorldCounts", "shared/CompactWorldSurface", "shared/M06Limits", "shared/M07Limits", "shared/M06WorldPlan", "shared/M07WorldPlan", "tests/M06M07WorldPlan.spec");
-files.push("shared/SealedWorldSurface", "shared/WorldCompositionCounts", "shared/M04Limits", "shared/M05Limits", "shared/M04WorldPlan", "shared/M05WorldPlan", "tests/M04M05WorldPlan.spec");
-files.push("shared/M03WorldPlan", "shared/M03Limits", "tests/M03WorldPlan.spec", "tests/M03Mission.spec");
-files.push("shared/LaunchLoading", "tests/LaunchLoading.spec");
-files.push("shared/LoadingScreenModel", "tests/LoadingScreenModel.spec");
-files.push("shared/WorldLifecycle", "tests/WorldLifecycle.spec");
-files.push("shared/M02WorldPlan", "shared/M02Limits", "tests/M02WorldPlan.spec");
-files.push("tests/M04Mission.spec", "shared/Polyline", "tests/M02Mission.spec", "tests/CampaignCompletionPersistence.spec");
-files.push("shared/CountdownDisplay", "shared/CampaignWire", "tests/CampaignWire.spec");
-files.push("shared/missions/index", "shared/missions/practice", "shared/missions/Phases", ...Array.from({length:18},(_,i)=>`shared/missions/m${String(i+1).padStart(2,"0")}`));
-files.push("shared/StoryMissionText");
-files.push("shared/EngineBatchB", "tests/EngineBatchB.spec");
-files.push("shared/EngineBatchC", "shared/NightLighting", "tests/EngineBatchC.spec");
-files.push("shared/VoiceDisclosure", "tests/VoiceDisclosure.spec");
-files.push("tests/M15Mission.spec", "tests/M15Fairness.spec", "server/CombatSessionFactory", "tests/M14FlightStrategy.spec", "tests/M09Mission.spec", "tests/M10Mission.spec", "tests/M14Mission.spec");
-files.push("shared/EngineBatchD10", "tests/EngineBatchD10.spec", "tests/EngineBatchD10Validation.spec");
-files.push("shared/EngineBatchD6", "tests/EngineBatchD6.spec");
-files.push("tests/EngineRuntimeFixture", "tests/EngineBatchD4Fixture", "shared/EngineBatchD4", "tests/EngineBatchD4.spec");
-files.push("tests/M12Mission.spec", "tests/M13Mission.spec", "server/EngineBatchD7Runtime", "server/EngineBatchD9Runtime");
-files.push("server/TargetDestruction", "tests/TargetDestruction.spec");
-files.push("shared/EngineBatchD12", "tests/EngineBatchD12.spec");
-files.push("shared/CombatMotion", "tests/M18DuelCombat.spec", "shared/CombatEnvelope", "shared/M18FinaleRules", "tests/M18Mission.spec");
-files.push("shared/EngineBatchD13", "tests/EngineBatchD13.spec", "tests/EngineBatchD13Combat.spec");
-files.push("shared/EngineBatchD8", "tests/EngineBatchD8.spec");
-files.push("tests/ProtectedAircraftFire.spec");
-files.push("server/EngineBatchD11Runtime", "tests/EngineBatchD11PhaseExit.spec", "shared/EngineBatchD11", "tests/EngineBatchD11.spec");
-files.push("shared/EngineBatchD9", "tests/EngineBatchD9Fixture", "tests/EngineBatchD9.spec");
-files.push("shared/EncounterKinematics", "tests/M11Mission.spec", "tests/M11Encounter.spec");
-files.push("shared/EngineBatchD7", "tests/EngineBatchD7Fixture", "tests/EngineBatchD7.spec");
-files.push("shared/EngineBatchD5", "tests/EngineBatchD5.spec");
-files.push("shared/EngineBatchD3", "tests/EngineBatchD3.spec");
-files.push("shared/EngineBatchD2", "tests/EngineBatchD2.spec");
-files.push("shared/SortieArmament", "tests/SortieArmament.spec");
-files.push("shared/SortieCutaways", "tests/M05Mission.spec", "tests/M06Mission.spec", "tests/M07Mission.spec", "tests/M08Mission.spec");
-files.push("tests/MissionLoadBudget.spec", "tests/M03M05Baseline", "tests/CorridorClearance.spec");
-files.push("shared/ResultContinuation", "tests/ResultContinuation.spec", "shared/ChapterLaunch", "tests/ChapterContinuation.spec");
+//
+// Every module listed in MODULES is copied from rbxtsc's `out/` into build/offline-relay with its
+// `TS.import` lines rewritten to plain `require("./Name")` calls and `@rbxts/jest-globals` replaced
+// by the matcher subset in OfflineAssertions.luau. Every entry ending in `.spec` is then required by
+// the generated run.luau, so a spec is registered once, here. Constraints for a module to qualify:
+//   - pure Luau: no Roblox services or globals (GameConfig and UploadedAssetSpecs get Vector3/CFrame shims);
+//   - every module it requires at runtime is also listed (type-only imports are erased by rbxtsc).
+// Studio-only runtime specs stay out of this list and run through `bun run test:roblox`.
+import { mkdir } from "node:fs/promises";
+import { resolve } from "node:path";
+import { requireLuauBin } from "./luau-bin";
+
+const root = resolve(import.meta.dir, "..");
+const dest = resolve(root, "build/offline-relay");
+
+const MODULES: string[] = [
+	// Calibrated load gates and frozen pre-PR corridor height-field regression.
+	"tests/MissionLoadBudget.spec", "tests/M03M05Baseline", "tests/CorridorClearance.spec",
+	// Frozen captures of the retired 27-mission campaign; several live specs still use them as fixtures.
+	"tests/legacy/LegacyStory", "tests/LegacyCampaign.spec", "tests/LegacyCatalog", "tests/LegacyPhaseRosters",
+	"tests/LegacyAirspaceCapture", "tests/LegacyScoringCapture",
+	...Array.from({ length: 27 }, (_, i) => `tests/legacy/legacy${String(i + 1).padStart(2, "0")}`),
+	// Mission catalog, the 18 blueprints and the per-mission contract specs.
+	"tests/M17Fairness.spec", "tests/M17Mission.spec", "tests/M17Review.spec", "tests/M16Fairness.spec",
+	"tests/M16Mission.spec", "tests/M04M05Assets.spec", "shared/MissionPacing", "shared/MissionPolicy",
+	"shared/MissionCatalog", "shared/MissionLayouts", "shared/RelayStory", "tests/MissionPolicy.spec",
+	"tests/UnifiedMissionRunner.spec", "tests/M03Mission.spec", "tests/M04Mission.spec", "tests/M02Mission.spec",
+	"shared/missions/index", "shared/missions/practice", "shared/missions/Phases", "shared/StoryMissionText",
+	"tests/M15Mission.spec", "tests/M15Fairness.spec", "server/CombatSessionFactory", "tests/M14FlightStrategy.spec",
+	"tests/M09Mission.spec", "tests/M10Mission.spec", "tests/M14Mission.spec", "tests/M12Mission.spec",
+	"tests/M13Mission.spec", "tests/M18DuelCombat.spec", "shared/M18FinaleRules", "tests/M18Mission.spec",
+	"tests/M11Mission.spec", "tests/M11Encounter.spec", "tests/M05Mission.spec", "tests/M06Mission.spec",
+	"tests/M07Mission.spec", "tests/M08Mission.spec",
+	...Array.from({ length: 18 }, (_, i) => `shared/missions/m${String(i + 1).padStart(2, "0")}`),
+	// Opt-in engine features (formerly EngineBatch B, C, D2-D13): pure rules, fixtures and specs.
+	"shared/LandingRules", "tests/LandingRules.spec", "shared/RearmRules", "shared/NightLighting",
+	"tests/RearmRules.spec", "shared/CruiseMissileRules", "tests/CruiseMissileRules.spec",
+	"tests/CruiseMissileValidation.spec", "shared/ContactInventoryRules", "tests/ContactInventoryRules.spec",
+	"tests/EngineRuntimeFixture", "tests/InterceptHoldFixture", "shared/InterceptHoldRules",
+	"tests/InterceptHoldRules.spec", "server/ProtectedAircraftRuntime", "server/JammerCorridorRuntime",
+	"server/TargetDestruction", "tests/TargetDestruction.spec", "shared/LeaderWithdrawalRules",
+	"tests/LeaderWithdrawalRules.spec", "shared/CombatMotion", "shared/CombatEnvelope", "shared/FinaleDuelRules",
+	"tests/FinaleDuelRules.spec", "tests/FinaleDuelCombat.spec", "shared/RingSweepRules", "tests/RingSweepRules.spec",
+	"tests/ProtectedAircraftFire.spec", "server/RepairReserveRuntime", "tests/RepairReservePhaseExit.spec",
+	"shared/RepairReserveRules", "tests/RepairReserveRules.spec", "shared/JammerCorridorRules",
+	"tests/JammerCorridorFixture", "tests/JammerCorridorRules.spec", "shared/EncounterKinematics",
+	"shared/ProtectedAircraftRules", "tests/ProtectedAircraftFixture", "tests/ProtectedAircraftRules.spec",
+	"shared/GroundSectorRules", "tests/GroundSectorRules.spec", "shared/ArtilleryRules", "tests/ArtilleryRules.spec",
+	"shared/SurfaceTargetRules", "tests/SurfaceTargetRules.spec", "shared/SortieArmament", "tests/SortieArmament.spec",
+	"shared/SortieCutaways",
+	// Campaign progression, saves, launch handoff and result continuation.
+	"shared/LaunchStage", "shared/InitialTelemetry", "tests/CountdownFlyoff.spec", "shared/DeletionObservation",
+	"server/CampaignRequestBudget", "tests/DeletionObservation.spec", "shared/CampaignProgress",
+	"server/CampaignRepository", "tests/DeletionStatus.spec", "tests/RelayCampaign.spec",
+	"tests/BlueprintProgress.spec", "shared/LaunchLoading", "tests/LaunchLoading.spec", "shared/LoadingScreenModel",
+	"tests/LoadingScreenModel.spec", "shared/WorldLifecycle", "tests/WorldLifecycle.spec",
+	"tests/CampaignCompletionPersistence.spec", "shared/CountdownDisplay", "shared/CampaignWire",
+	"tests/CampaignWire.spec", "shared/ResultContinuation", "tests/ResultContinuation.spec", "shared/ChapterLaunch",
+	"tests/ChapterContinuation.spec",
+	// Combat rules: weapons, waves, aces, bombers, allies, scoring and phase direction.
+	"shared/AlliedRules", "tests/AlliedRules.spec", "shared/OutcomeReason", "shared/BomberEncounter",
+	"tests/BomberEncounter.spec", "tests/MissionAirspace.spec", "server/PhaseDirectorRules", "tests/PhaseDirector.spec",
+	"server/SortieScore", "shared/OutcomePoints", "tests/AuthoritativeScoring.spec", "shared/BomberRules",
+	"tests/BomberRules.spec", "shared/WorldAirspace", "tests/WeaponRules.spec", "shared/CombatBalance",
+	"tests/CombatBalance.spec", "shared/TargetScore", "tests/TargetScore.spec", "tests/MissionScore.spec",
+	"shared/NavigationPilot", "shared/FlightMath", "shared/BlueprintRunner", "shared/GameConfig", "shared/Difficulty",
+	"shared/MissionScore", "tests/Difficulty.spec", "shared/WeaponRules", "shared/SpecialWeapons", "shared/ThreatRules",
+	"tests/ThreatRules.spec", "shared/EvadeRules", "tests/EvadeRules.spec", "shared/AceRules", "tests/AceRules.spec",
+	"shared/WavePlan", "tests/WavePlan.spec", "shared/SessionGuard", "tests/SessionGuard.spec", "shared/ActorPlacement",
+	"tests/ActorPlacement.spec", "shared/CampaignEncounters", "shared/GroundAirDefence", "tests/EnginePracticeSnapshot",
+	"tests/EngineM01Snapshot", "tests/CampaignEncounters.spec",
+	// Flight model, telemetry packet, HUD layout, warnings, radar, target boxes and touch controls.
+	"shared/UILayout", "tests/UILayout.spec", "shared/NavigationLayout", "tests/NavigationLayout.spec",
+	"shared/FlightWarnings", "tests/FlightWarnings.spec", "shared/RadarMath", "tests/RadarMath.spec",
+	"shared/EvadeGauge", "tests/EvadeGauge.spec", "shared/PlayerSettings", "tests/PlayerSettings.spec",
+	"shared/TouchSticks", "tests/TouchSticks.spec", "shared/HudInstruments", "tests/HudInstruments.spec",
+	"tests/TouchControls.spec", "tests/Flight.spec", "shared/FlightPrediction", "shared/TelemetryCodec",
+	"tests/FlightPrediction.spec", "shared/TargetPriority", "tests/TargetPriority.spec", "shared/TargetBoxes",
+	"tests/TargetBoxes.spec",
+	// Effects, audio, voice, radio and cinematics.
+	"shared/VoiceReadiness", "tests/VoiceReadiness.spec", "shared/AudioRules", "tests/AudioRules.spec",
+	"shared/AssetSelection", "tests/AssetSelection.spec", "shared/CinematicInput", "tests/CinematicInput.spec",
+	"shared/CinematicLayout", "tests/CinematicLayout.spec", "shared/CinematicStaging", "tests/CinematicStaging.spec",
+	"shared/Teardown", "shared/CinematicSet", "tests/CinematicSet.spec", "shared/StoryDocuments",
+	"tests/StoryDocuments.spec", "shared/ExplosionFx", "tests/ExplosionFx.spec", "shared/EngineFx",
+	"tests/EngineFx.spec", "shared/ImpactFeedback", "tests/ImpactFeedback.spec", "shared/VoiceCues",
+	"shared/VoiceBanks", "shared/VoiceLines", "tests/VoiceLines.spec", "shared/RadioQueue", "tests/RadioQueue.spec",
+	"shared/VoiceDisclosure", "tests/VoiceDisclosure.spec",
+	// World plans, limits, terrain, environments and uploaded asset specs.
+	"shared/RobloxAssetIds", "shared/UploadedAssetOrientation", "shared/M01Geometry", "shared/M01Limits",
+	"shared/M01WorldPlan", "tests/M01WorldPlan.spec", "shared/M01CarrierPlan", "tests/M01CarrierPlan.spec",
+	"shared/UploadedAssetSpecs", "shared/MilitaryGroundKit", "tests/MilitaryGroundKit.spec", "shared/EnvironmentPresets", "shared/TerrainSchedule", "shared/WorldDistricts",
+	"shared/WorldPlan", "shared/WorldAudit", "tests/WorldPlan.spec", "tests/TerrainSchedule.spec",
+	"shared/LegacyWorlds", "tests/LegacyWorlds.spec", "tests/EnvironmentPresets.spec", "shared/WeatherRules",
+	"tests/WeatherRules.spec", "shared/WorldEnvironments", "shared/LateWorldDressing", "shared/M14Limits",
+	"shared/M14WorldPlan", "shared/M15Limits", "shared/M15WorldPlan", "shared/M16Limits", "shared/M16WorldPlan",
+	"shared/M17Limits", "shared/M17WorldPlan", "shared/M18Limits", "shared/M18WorldPlan", "tests/M14M18WorldPlan.spec",
+	"shared/M12Limits", "shared/M13Limits", "shared/M12WorldPlan", "shared/M13WorldPlan", "tests/M12M13WorldPlan.spec",
+	"shared/M10Limits", "shared/M11Limits", "shared/M10WorldPlan", "shared/M11WorldPlan", "tests/M10M11WorldPlan.spec",
+	"shared/M08Limits", "shared/M09Limits", "shared/M08WorldPlan", "shared/M09WorldPlan", "tests/M08M09WorldPlan.spec",
+	"shared/M06M07WorldCounts", "shared/CompactWorldSurface", "shared/M06Limits", "shared/M07Limits",
+	"shared/M06WorldPlan", "shared/M07WorldPlan", "tests/M06M07WorldPlan.spec", "shared/SealedWorldSurface",
+	"shared/WorldCompositionCounts", "shared/M04Limits", "shared/M05Limits", "shared/M04WorldPlan",
+	"shared/M05WorldPlan", "tests/M04M05WorldPlan.spec", "shared/M03WorldPlan", "shared/M03Limits",
+	"tests/M03WorldPlan.spec", "shared/M02WorldPlan", "shared/M02Limits", "tests/M02WorldPlan.spec", "shared/Polyline",
+];
+
+const duplicates = MODULES.filter((entry, index) => MODULES.indexOf(entry) !== index);
+if (duplicates.length > 0) throw new Error(`Duplicate offline modules: ${duplicates.join(", ")}`);
+const SPECS = MODULES.filter((entry) => entry.endsWith(".spec"));
+
+/** Offline file name of a staged module: the last path segment, except the missions index. */
+function stagedName(entry: string): string {
+	return entry === "shared/missions/index" ? "MissionIndex" : entry.split("/").at(-1)!;
+}
+
 // Some standalone Luau versions return a module's load error as a string.
 // Guard every import, including transitive dependencies, and every top-level spec.
 const checkedRequire = `local rawRequire = require
@@ -71,22 +125,32 @@ local function require(path)
  return result
 end
 `;
-for(const file of files){
-	let source=await Bun.file(resolve(root,`out/${file === "shared/missions/index" ? "shared/missions/init" : file}.luau`)).text();
-	source=source.split("\n").filter(line=>!line.startsWith("local TS = require(")).map(line=>{
-		if(!line.includes("TS.import("))return line;
-		const strings=[...line.matchAll(/"([^"\n]+)"/g)];const rawName=strings.at(-1)?.[1]; const name=rawName === "missions" ? "MissionIndex" : rawName === "index" ? "MissionIndex" : rawName;
-		if(!name)throw new Error(`Cannot adapt dependency: ${line}`);
-		return line.replace(/TS\.import\(.*\)/,`require("./${line.includes('"jest-globals"') ? "OfflineAssertions" : name}")`);
-	}).join("\n");
-	if(source.includes("TS."))throw new Error(`Unadapted runtime dependency in ${file}`);
-	if(file.endsWith("GameConfig"))source='local Vector3={new=function(...)return {...}end}; local CFrame={lookAt=function(...)return {...}end}\n'+source;
-	if(file.endsWith("UploadedAssetSpecs"))source='local Vector3={new=function(x,y,z)return {X=x,Y=y,Z=z}end}\n'+source;
-	source=checkedRequire+source;
-	if(file.endsWith(".spec"))source+="\nreturn true\n";
-	await Bun.write(resolve(dest,`${file === "shared/missions/index" ? "MissionIndex" : file.split("/").at(-1)}.luau`),source);
+
+await mkdir(dest, { recursive: true });
+for (const entry of MODULES) {
+	const compiled = entry === "shared/missions/index" ? "shared/missions/init" : entry;
+	let source = await Bun.file(resolve(root, `out/${compiled}.luau`)).text();
+	source = source
+		.split("\n")
+		.filter((line) => !line.startsWith("local TS = require("))
+		.map((line) => {
+			if (!line.includes("TS.import(")) return line;
+			const strings = [...line.matchAll(/"([^"\n]+)"/g)];
+			const rawName = strings.at(-1)?.[1];
+			const name = rawName === "missions" || rawName === "index" ? "MissionIndex" : rawName;
+			if (!name) throw new Error(`Cannot adapt dependency: ${line}`);
+			return line.replace(/TS\.import\(.*\)/, `require("./${line.includes('"jest-globals"') ? "OfflineAssertions" : name}")`);
+		})
+		.join("\n");
+	if (source.includes("TS.")) throw new Error(`Unadapted runtime dependency in ${entry}`);
+	if (entry.endsWith("GameConfig")) source = "local Vector3={new=function(...)return {...}end}; local CFrame={lookAt=function(...)return {...}end}\n" + source;
+	if (entry.endsWith("UploadedAssetSpecs")) source = "local Vector3={new=function(x,y,z)return {X=x,Y=y,Z=z}end}\n" + source;
+	source = checkedRequire + source;
+	if (entry.endsWith(".spec")) source += "\nreturn true\n";
+	await Bun.write(resolve(dest, `${stagedName(entry)}.luau`), source);
 }
-await Bun.write(resolve(dest,"OfflineAssertions.luau"),`
+
+await Bun.write(resolve(dest, "OfflineAssertions.luau"), `
 local passed,failed=0,0
 local function deepEqual(a,b)
  if type(a)~="table" or type(b)~="table" then return a==b end
@@ -123,25 +187,34 @@ return { expect=expect,
  it=function(name,fn) local ok,err=pcall(fn);if ok then passed+=1;print("PASS "..name) else failed+=1;print("FAIL "..name..": "..tostring(err)) end end,
  result=function() print("OFFLINE_LUAU_RESULT passed="..passed.." failed="..failed);assert(failed==0,"Offline domain contracts failed") end }
 `);
-await Bun.write(resolve(dest,"run.luau"),checkedRequire+'require("./MissionLoadBudget.spec")\nrequire("./CorridorClearance.spec")\nrequire("./ChapterContinuation.spec")\nrequire("./ResultContinuation.spec")\nrequire("./M18DuelCombat.spec")\nrequire("./M18Mission.spec")\nrequire("./M17Fairness.spec")\nrequire("./M17Mission.spec")\nrequire("./M17Review.spec")\nrequire("./M16Fairness.spec")\nrequire("./M16Mission.spec")\nrequire("./M15Mission.spec")\nrequire("./M15Fairness.spec")\nrequire("./M14Mission.spec")\nrequire("./M14FlightStrategy.spec")\nrequire("./EngineBatchD13Combat.spec")\nrequire("./EngineBatchD13.spec")\nrequire("./M13Mission.spec")\nrequire("./EngineBatchD12.spec")\nrequire("./M12Mission.spec")\nrequire("./TargetDestruction.spec")\nrequire("./EngineBatchD11.spec")\nrequire("./EngineBatchD11PhaseExit.spec")\nrequire("./M11Encounter.spec")\nrequire("./M11Mission.spec")\n'+'require("./EngineBatchD10.spec")\nrequire("./EngineBatchD10Validation.spec")\nrequire("./M10Mission.spec")\nrequire("./EngineBatchD9.spec")\nrequire("./M09Mission.spec")\nrequire("./EngineBatchD8.spec")\nrequire("./EngineBatchD7.spec")\nrequire("./ProtectedAircraftFire.spec")\nrequire("./M08Mission.spec")\nrequire("./EngineBatchD6.spec")\nrequire("./EngineBatchD5.spec")\nrequire("./M07Mission.spec")\nrequire("./LoadingScreenModel.spec")\nrequire("./M14M18WorldPlan.spec")\nrequire("./EngineBatchD4.spec")\nrequire("./M06Mission.spec")\nrequire("./EngineBatchD3.spec")\nrequire("./EngineBatchD2.spec")\nrequire("./SortieArmament.spec")\nrequire("./M12M13WorldPlan.spec")\nrequire("./M10M11WorldPlan.spec")\nrequire("./M08M09WorldPlan.spec")\nrequire("./M06M07WorldPlan.spec")\nrequire("./M04Mission.spec")\nrequire("./TargetPriority.spec")\nrequire("./LaunchLoading.spec")\nrequire("./VoiceDisclosure.spec")\nrequire("./EngineBatchC.spec")\nrequire("./M04M05WorldPlan.spec")\nrequire("./CampaignCompletionPersistence.spec")\nrequire("./M02Mission.spec")\nrequire("./M05Mission.spec")\nrequire("./M04M05Assets.spec")\nrequire("./EngineBatchB.spec")\nrequire("./M03WorldPlan.spec")\nrequire("./M03Mission.spec")\nrequire("./WorldLifecycle.spec")\nrequire("./CampaignEncounters.spec")\nrequire("./CampaignWire.spec")\nrequire("./CountdownFlyoff.spec")\nrequire("./AlliedRules.spec")\nrequire("./MissionAirspace.spec")\nrequire("./DeletionObservation.spec")\nrequire("./WeaponRules.spec")\nrequire("./VoiceReadiness.spec")\nrequire("./CombatBalance.spec")\nrequire("./TargetScore.spec")\nrequire("./AuthoritativeScoring.spec")\nrequire("./MissionScore.spec")\nrequire("./MissionPolicy.spec")\nrequire("./DeletionStatus.spec")\nrequire("./LegacyCampaign.spec")\nrequire("./RelayCampaign.spec")\nrequire("./BlueprintProgress.spec")\nrequire("./CinematicInput.spec")\nrequire("./CinematicLayout.spec")\nrequire("./CinematicStaging.spec")\nrequire("./CinematicSet.spec")\nrequire("./StoryDocuments.spec")\nrequire("./ExplosionFx.spec")\nrequire("./EngineFx.spec")\nrequire("./ImpactFeedback.spec")\nrequire("./Difficulty.spec")\nrequire("./ThreatRules.spec")\nrequire("./EvadeRules.spec")\nrequire("./AceRules.spec")\nrequire("./WavePlan.spec")\nrequire("./SessionGuard.spec")\nrequire("./ActorPlacement.spec")\nrequire("./UnifiedMissionRunner.spec")\nrequire("./UILayout.spec")\nrequire("./NavigationLayout.spec")\nrequire("./FlightWarnings.spec")\nrequire("./RadarMath.spec")\nrequire("./EvadeGauge.spec")\nrequire("./RadioQueue.spec")\nrequire("./VoiceLines.spec")\nrequire("./PlayerSettings.spec")\nrequire("./TouchSticks.spec")\nrequire("./AssetSelection.spec")\nrequire("./AudioRules.spec")\nrequire("./HudInstruments.spec")\nrequire("./TouchControls.spec")\nrequire("./WorldPlan.spec")\nrequire("./EnvironmentPresets.spec")\nrequire("./WeatherRules.spec")\nrequire("./TerrainSchedule.spec")\nrequire("./LegacyWorlds.spec")\nrequire("./Flight.spec")\nrequire("./FlightPrediction.spec")\nrequire("./TargetBoxes.spec")\nrequire("./BomberRules.spec")\nrequire("./M02WorldPlan.spec")\nrequire("./M01WorldPlan.spec")\nrequire("./M01CarrierPlan.spec")\nrequire("./PhaseDirector.spec")\nrequire("./BomberEncounter.spec")\nrequire("./OfflineAssertions").result()\n');
-const executable=requireLuauBin();
+
+// Every staged spec runs, in registration order, then the shared counter reports.
+const runScript = checkedRequire
+	+ SPECS.map((entry) => `require("./${stagedName(entry)}")\n`).join("")
+	+ 'require("./OfflineAssertions").result()\n';
+await Bun.write(resolve(dest, "run.luau"), runScript);
+
+const executable = requireLuauBin();
 // Prove that parse errors, returned error strings, runtime errors and failed
 // transitive imports all stop the process instead of silently skipping coverage.
 for (const [kind, source] of Object.entries({
- parse: "return {}\nreturn true\n",
- string: 'return "synthetic module failure"\n',
- runtime: 'error("synthetic runtime failure")\n',
- nested: checkedRequire+'return require("./guard-parse")\n',
+	parse: "return {}\nreturn true\n",
+	string: 'return "synthetic module failure"\n',
+	runtime: 'error("synthetic runtime failure")\n',
+	nested: checkedRequire + 'return require("./guard-parse")\n',
 })) {
- await Bun.write(resolve(dest,`guard-${kind}.luau`),source);
- await Bun.write(resolve(dest,"guard-run.luau"),checkedRequire+`require("./guard-${kind}")\n`);
- const probe=Bun.spawn([executable,resolve(dest,"guard-run.luau")],{cwd:root,stdout:"pipe",stderr:"pipe"});
- const [out,err,status]=await Promise.all([new Response(probe.stdout).text(),new Response(probe.stderr).text(),probe.exited]);
- if(status===0 || !(out+err).includes("synthetic") && !(out+err).includes("guard-parse")) throw new Error(`Module error guard failed: ${kind}: ${out}${err}`);
+	await Bun.write(resolve(dest, `guard-${kind}.luau`), source);
+	await Bun.write(resolve(dest, "guard-run.luau"), checkedRequire + `require("./guard-${kind}")\n`);
+	const probe = Bun.spawn([executable, resolve(dest, "guard-run.luau")], { cwd: root, stdout: "pipe", stderr: "pipe" });
+	const [out, err, status] = await Promise.all([new Response(probe.stdout).text(), new Response(probe.stderr).text(), probe.exited]);
+	if (status === 0 || (!(out + err).includes("synthetic") && !(out + err).includes("guard-parse"))) throw new Error(`Module error guard failed: ${kind}: ${out}${err}`);
 }
 console.log("OFFLINE_MODULE_GUARD passed=4 failed=0");
-const proc=Bun.spawn([executable,resolve(dest,"run.luau")],{cwd:root,stdout:"pipe",stderr:"pipe"});
-const [stdout,stderr,code]=await Promise.all([new Response(proc.stdout).text(),new Response(proc.stderr).text(),proc.exited]);
-console.log(stdout);if(stderr)console.error(stderr);
-await Bun.write(resolve(root,"build/relay-offline-results.log"),stdout+stderr);
-if(code!==0)process.exitCode=code;
+console.log(`OFFLINE_SPECS registered=${SPECS.length}`);
+
+const proc = Bun.spawn([executable, resolve(dest, "run.luau")], { cwd: root, stdout: "pipe", stderr: "pipe" });
+const [stdout, stderr, code] = await Promise.all([new Response(proc.stdout).text(), new Response(proc.stderr).text(), proc.exited]);
+console.log(stdout);
+if (stderr) console.error(stderr);
+await Bun.write(resolve(root, "build/relay-offline-results.log"), stdout + stderr);
+if (code !== 0) process.exitCode = code;

@@ -1,8 +1,8 @@
 import { MISSION_STORY_TEXT } from "../StoryMissionText";
 import type { MissionBlueprint } from "../MissionCatalog";
 import type { FighterArrival, GroundTargetType, TypedGroundTarget } from "../CampaignEncounters";
-import type { GroundProgressPlan } from "../EngineBatchD5";
-import { landingPose } from "../EngineBatchB";
+import type { GroundProgressPlan } from "../GroundSectorRules";
+import { landingPose } from "../LandingRules";
 import { M16, M16_WORLD_KEY, m16ColumnRoute, m16TargetLayout } from "../M16WorldPlan";
 
 // D-620: provisional subtype split, not a recovered reference inventory. Sum = 6,830.

@@ -1,7 +1,7 @@
 import { MISSION_STORY_TEXT } from "../StoryMissionText";
 import type { MissionBlueprint } from "../MissionCatalog";
-import type { ProtectedAircraftPlan } from "../EngineBatchD7";
-import type { SpatialJamming } from "../EngineBatchD9";
+import type { ProtectedAircraftPlan } from "../ProtectedAircraftRules";
+import type { SpatialJamming } from "../JammerCorridorRules";
 import type { FighterArrival } from "../CampaignEncounters";
 import { CombatBalance } from "../CombatBalance";
 import { M13, M13_WORLD_KEY, M13_ANCHORS, m13JammerLayout, m13RouteX } from "../M13WorldPlan";

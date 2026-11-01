@@ -13,7 +13,7 @@ local ok,err=xpcall(function()
  local C=require(server.CampaignService);local Combat=require(server.CombatService)
  local Catalog=require(game.ReplicatedStorage.Shared.MissionCatalog).MissionCatalog
  local Repo=require(server.CampaignRepository)
- local Jam=require(server.EngineBatchCRuntime)
+ local Jam=require(server.RearmRuntime)
  repeat task.wait(1) until game.ReplicatedStorage:FindFirstChild('Remotes')
  task.wait(5)
  local request=function(id)return C.QARequest(player,'StartMission',{slot=1,missionId=id,difficulty='easy'})end

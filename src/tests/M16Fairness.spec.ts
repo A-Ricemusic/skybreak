@@ -4,7 +4,7 @@ import { WavePlan, AirRequest } from "../shared/WavePlan";
 import { BomberRules } from "../shared/BomberRules";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { mission, M16_COLUMN, M16_WAVES } from "../shared/missions/m16";
-import { SquadAttackRules as A, newGroundProgress, damageSector, stepGroundProgress, groundProgressPose } from "../shared/EngineBatchD5";
+import { SquadAttackRules as A, newGroundProgress, damageSector, stepGroundProgress, groundProgressPose } from "../shared/GroundSectorRules";
 import { authoredAirPose, takeArrival } from "../shared/CampaignEncounters";
 import { WeaponRules as W, Point } from "../shared/WeaponRules";
 import { FlightMath as F } from "../shared/FlightMath";

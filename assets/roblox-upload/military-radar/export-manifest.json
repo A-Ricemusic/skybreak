@@ -1,0 +1,13 @@
+{
+  "asset": "military-radar",
+  "creator": "military ground kit implementation agent",
+  "exportVersion": "military-ground-kit-1",
+  "files": {
+    "military-radar-color.png": "aecdc46ea087b8a211c67b78351e6e329eba6aa1c5c4abfcdb37f0bc3889a2c7",
+    "military-radar-metalness.png": "8aeeb64fa1958c7b23f2deb58d32607a8020edce79bbdcc1f6f1239b05b416b7",
+    "military-radar-normal.png": "ad83a68143ce988777cc56eeecdb995c5a54c0de1102e04f3115204923b41d15",
+    "military-radar-roughness.png": "e5a7e6b63e94745c2b964370c71ddedc45cb75fba94fc2df9b2bfb7bbc186925",
+    "military-radar.fbx": "45674bc98d39f180214277f4f3385b3b8dda92fcc82d2b49314c81f4610c8462"
+  },
+  "provenance": "docs/qa/asset-reviews/military-ground-kit/independent-safety-review-2026-10-31.md"
+}
