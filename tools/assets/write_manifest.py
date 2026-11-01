@@ -16,7 +16,6 @@ real-world size.
 from __future__ import annotations
 
 import json
-import hashlib
 import sys
 from pathlib import Path
 
@@ -26,7 +25,6 @@ SPECS = ROOT / "src" / "shared" / "UploadedAssetSpecs.ts"
 
 # Folder name -> RobloxAssetIds key, in manifest order.
 KEYS = {
-    **{"naval-"+folder: "Naval"+key for folder,key in [("frigate","Frigate"),("destroyer","Destroyer"),("cruiser","Cruiser"),("container-ship","ContainerShip"),("supply-ship","SupplyShip"),("landing-ship","LandingShip"),("missile-boat","MissileBoat"),("submarine","Submarine"),("landing-craft","LandingCraft"),("gun","Gun"),("aa","Aa"),("sam","Sam")]},
     **{f"military-{k.lower()}": f"Military{k}" for k in ("Tank", "Sam", "Aa", "Artillery", "Bunker", "Radar", "Truck", "Fuel", "Barracks", "Containers")},
     "kestrel": "Kestrel",
     "vanta": "Vanta",
@@ -93,7 +91,7 @@ def ts_vec(values) -> str:
 def texture_limit(folder: str) -> int:
     if folder in PROCEDURAL or folder in {"heavy-bomber", "heavy-transport", "radar-jammer", "attack-helicopter"}:
         return 1024
-    return 256 if folder in SMALL_PROPS or folder.startswith(("military-", "naval-")) else 512
+    return 256 if folder in SMALL_PROPS or folder.startswith("military-") else 512
 
 
 def game_scale(folder: str, authored) -> float:
@@ -110,8 +108,6 @@ def scaled(values, k: float) -> list[float]:
 
 def main() -> None:
     entries, specs, problems = [], [], []
-    manifest_path = UPLOAD / "manifest.json"
-    prior = {a["folder"]: a for a in json.loads(manifest_path.read_text())["assets"]} if manifest_path.exists() else {}
     for folder, key in KEYS.items():
         path = UPLOAD / folder / "checklist.json"
         if not path.exists():
@@ -185,16 +181,6 @@ def main() -> None:
     if problems:
         print("\n".join(problems), file=sys.stderr)
         raise SystemExit(1)
-    # Preserve previously committed upload evidence only for byte-identical exports.
-    # Regeneration must not silently erase the ground-kit place-gate provenance.
-    for entry in entries:
-        evidence = prior.get(entry["folder"], {}).get("approvedUpload")
-        if evidence:
-            files = {**evidence["uploadSet"], **evidence["embeddedTextures"]}
-            if all((UPLOAD / entry["folder"] / name).is_file() and
-                   hashlib.sha256((UPLOAD / entry["folder"] / name).read_bytes()).hexdigest() == digest
-                   for name, digest in files.items()):
-                entry["approvedUpload"] = evidence
     manifest = {
         "schema": "skybreak.roblox-upload-manifest.v1",
         "studMetres": 0.28,

@@ -1,3 +1,5 @@
+# PR gate. Runs the same composite action as the main publish workflow, without secrets.
+# Markdown-only and docs/** changes skip it (and the publish), so docs PRs show no check.
 name: Validate PR
 
 on:

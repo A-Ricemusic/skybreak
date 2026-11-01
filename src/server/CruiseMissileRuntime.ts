@@ -23,7 +23,7 @@ function retire(s: CombatSession, e: Enemy): void {
  for(let i=s.projectiles.size()-1;i>=0;i--) if(s.projectiles[i].target===e) {s.projectiles[i].part.Destroy();s.projectiles.remove(i);}
 }
 export function clearCruise(s: CombatSession): void { if(s.cruise) for(const [,e] of s.cruise.actors) retire(s,e); s.cruise=undefined; }
-export function createCruise(s: CombatSession, index: number): Enemy {
+function createCruise(s: CombatSession, index: number): Enemy {
  const runtime=s.cruise!, plan=BlueprintRunner.ActivePhase(s.blueprintState!)!.cruiseIntercept!, t=plan.targets[index];
  const model=claimM14WorldActor(s,t.id) ?? new Instance("Model"), aim=new Instance("Part"); model.Name=t.separateSeconds===undefined ? "CRUISE" : "CARRIER";
  aim.Name="Aim"; aim.Size=new Vector3(8,6,24);aim.Anchored=true;aim.CanCollide=false;aim.CanTouch=false;aim.CanQuery=true;aim.Material=Enum.Material.Neon;aim.Color=Color3.fromRGB(240,110,65);aim.Parent=model;model.PrimaryPart=aim;

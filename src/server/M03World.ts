@@ -1,6 +1,4 @@
 import { assertWorldInstanceBudget } from "./WorldInstanceBudget";
-import { WorldAssets } from "./WorldAssets";
-import { MILITARY_GROUND_ASSETS } from "../shared/MilitaryGroundKit";
 import { Lighting, Workspace } from "@rbxts/services";
 import { buildM03Plan, M03, M03_ENVIRONMENT, M03_FILL_CHUNK, M03_WORLD_KEY, type M03Target } from "../shared/M03WorldPlan";
 import { M03_TARGET_TYPES } from "../shared/missions/m03";
@@ -10,7 +8,7 @@ import { material, TerrainWriter } from "./TerrainWriter";
 import { WorldEnvironment } from "./WorldEnvironment";
 
 /** Primitive stand-ins only; combat adopts each model by id as its typed target. */
-export function placeM03Target(parent: Instance, t: M03Target): Model {
+function placeM03Target(parent: Instance, t: M03Target): Model {
 	const m = new Instance("Model");
 	m.Name = t.id;
 	m.SetAttribute("TargetType", t.type);
@@ -44,12 +42,11 @@ export function placeM03Target(parent: Instance, t: M03Target): Model {
 }
 
 
-/** Mission 3's world. No uploads or asset downloads. Every m03TargetLayout site is drawn exactly once, as its
+/** Mission 3's world. Uses procedural target visuals to avoid military mesh/PBR residency on mobile. Every m03TargetLayout site is drawn exactly once, as its
  * own model keyed by target id in `targetVisuals`; combat adopts those models instead of building copies.
  */
 export const M03World = {
 	Build(parent: Instance, seed = 303): { groundTargets: Model[]; targetVisuals: Map<string, Model> } {
-  WorldAssets.Preload(MILITARY_GROUND_ASSETS);
 		const start = os.clock();
 		let slice = start, longest = 0;
 		parent.SetAttribute("WorldBuildPhase", "plan");
@@ -80,7 +77,7 @@ export const M03World = {
 		}
 		// Each target model is drawn once here and adopted by id: HUD label, TargetId and an aim root.
 		const targetVisuals = new Map<string, Model>();
-		for (const t of plan.targets) targetVisuals.set(t.id, adoptGroundTarget(placeM03Target(scene, t), t.id, M03_TARGET_TYPES[t.type]));
+		for (const t of plan.targets) targetVisuals.set(t.id, adoptGroundTarget(placeM03Target(scene, t), t.id, M03_TARGET_TYPES[t.type], false));
 		assertWorldInstanceBudget(scene, M03.budget.descendants);
 		parent.SetAttribute("WorldBuildPhase", "done");
 		parent.SetAttribute("WorldBuildSeconds", os.clock() - start);

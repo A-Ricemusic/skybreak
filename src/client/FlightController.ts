@@ -125,7 +125,7 @@ function stateFrom(frame: CFrame): FlightState {
 	const [right, up, back] = [frame.RightVector, frame.UpVector, frame.LookVector.mul(-1)];
 	return FlightMath.SetBasis(state, right.X, right.Y, right.Z, up.X, up.Y, up.Z, back.X, back.Y, back.Z);
 }
-export function createTargetCue(playerGui: Instance): [ScreenGui, Frame, UIStroke, TextLabel, TextLabel] {
+function createTargetCue(playerGui: Instance): [ScreenGui, Frame, UIStroke, TextLabel, TextLabel] {
 	const gui = new Instance("ScreenGui");
 	gui.Name = "SkybreakFlightTargeting";
 	gui.IgnoreGuiInset = true;

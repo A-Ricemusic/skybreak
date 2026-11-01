@@ -17,7 +17,7 @@ export const FIXED_SECONDS = 3;
 const CHUNK = 128;
 const span = (centre: number, size: number) => math.floor((centre + size / 2 - 0.01) / CHUNK) - math.floor((centre - size / 2) / CHUNK) + 1;
 /** 128-stud terrain chunks one axis-aligned or yawed block job touches (bounding box). */
-export function chunkTouches(o: TerrainOp): number {
+function chunkTouches(o: TerrainOp): number {
  const c = math.abs(math.cos(o.yaw)), s = math.abs(math.sin(o.yaw));
  return span(o.x, c * o.sx + s * o.sz) * span(o.y, o.sy) * span(o.z, s * o.sx + c * o.sz);
 }

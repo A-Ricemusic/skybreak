@@ -68,7 +68,7 @@ export const RobloxAssetIds: Record<UploadedAssetName, number | undefined> = {
 	MilitaryFuel: 96014055896534, // Independently reviewed 10/10; moderation APPROVED 2026-10-31.
 	MilitaryBarracks: 132667525903898, // Independently reviewed 10/10; moderation APPROVED 2026-10-31.
 	MilitaryContainers: 135400126796799, // Independently reviewed 10/10; moderation APPROVED 2026-10-31.
-	// Dormant naval kit: pending independent exact-file safety review; no uploads.
+	// Dormant naval kit: exact exports independently approved on main; no model IDs or uploads.
 	NavalFrigate: undefined,
 	NavalDestroyer: undefined,
 	NavalCruiser: undefined,
