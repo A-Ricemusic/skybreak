@@ -1,0 +1,12 @@
+{
+  "asset": "RunwayTileGeometry",
+  "creator": "SKYBREAK build agent via tools/build-world-kit.py (committed under Anthony Rice's git identity, 483abdf1ece1e5182d394a4a48fae38e94ad41c1)",
+  "exportVersion": "embedded-json-v1-fd324b43eebe",
+  "files": {
+    "RunwayTileGeometry.json": "fd324b43eebe5199c35a963d72d369e8f0b50932f061e38863bba65be406ab79"
+  },
+  "source": "assets/mission/runwaytile.mesh.json",
+  "generator": "tools/build-world-kit.py",
+  "sourceCommit": "483abdf1ece1e5182d394a4a48fae38e94ad41c1",
+  "note": "Version label identifies the exact existing embedded bytes; no mesh re-export was performed."
+}

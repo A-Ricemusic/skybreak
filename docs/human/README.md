@@ -1,10 +1,30 @@
 # SKYBREAK campaign dashboard
 
-Updated 2026-10-31 against main `c1266e30` (#201); results continuation and chapter-gating fix pending PR #202.
+PR #218 ledger repair (2026-10-31, unmerged): merged main f8f3693e; added all ten military Model IDs, source FBX paths, full approval hashes and dated review/moderation evidence to docs/qa/uploaded-assets.md. Corrected the Studio Jest inventory expectation from 39 to 49; the test checks numbers/count, not Markdown. Extended the existing Python military provenance contract to verify ledger rows. Studio rerun and Player observation remain pending; no upload, publish or secret access performed. Validation: frozen install, build and prescribed LUAU_BIN validate:offline all exited 0 (163 Python tests). Studio Jest compiled but was not run.
+
+PR #218 gate integration (2026-10-31, unmerged): merged current main; the ten military manifest entries now retain owner-reported APPROVED moderation dated 2026-10-31, model IDs and exact approval-record hashes. Gate authorization still requires identical origin/main evidence; no exemption or private journal access. Offline build authorization is checked against a temporary post-merge Git fixture. Validation completed: frozen install, standalone build, build:place and prescribed LUAU_BIN validate:offline all exited 0 (163 Python tests). Strict offline validate authorized 13 blobs and 49 IDs using a temporary post-merge Git evidence fixture; production refs were unchanged. No upload, publish, secret read, canonical upload-state access, Studio or Player test.
+
+Military kit activation (2026-10-31, proposed/unmerged): all ten IDs assigned after independent 10/10 approval and owner-reported moderation APPROVED. On merge, realistic tanks, SAMs, AA, artillery, bunkers, radar, trucks, fuel, barracks and containers replace matching target visuals in M02/M03/M05/M06/M07/M09/M10/M12/M15/M16/M17; per-type mission list in the [upload record](../qa/asset-reviews/military-ground-kit/upload-record-2026-10-31.md). Existing proxies, procedural failure fallback and bounded preload remain. No Player quality verification.
+
+PR #216 post-merge validation (2026-10-31): `bun install --frozen-lockfile` and prescribed `LUAU_BIN` `bun run validate:offline` both exited 0; 1,225 Luau contracts and 154 Python tests passed. No uploads or secret reads.
+
+PR #216 merge reconciliation (2026-10-31): merged main `5eec0d06` (#207), preserving #202 and military-kit records. Third independent uploader security review passed per owner handoff. Test account mocks now avoid credential-like syntax; GitGuardian recheck failed on historical commit `3575dead` only (incident 39368345); no new-commit finding reported. Upload gate decision is D-668 (D-666 remains the military kit).
+
+PR #216 round-2 fixes (merged d33c9a94): OS account home anchors all shared upload state; real runs reject HOME/Path.home mismatches and symlinked canonical directories. Any negative decision matching an FBX/dependency hash or the same asset/export version blocks upload; approvals still require the complete export set.
+
+PR #216 round-2 validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 154 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merged in #216 as d33c9a94.
+
+PR #216 security follow-up (merged d33c9a94): canonical real-upload state; merged origin/main JSON decisions and creator manifests; per-attempt HALTs. Audio remains permanently blocked. Eleven historical approvals and ten PR207 ground-kit approvals transcribed; heavy-bomber/carrier reupload blocked by earlier same-hash incomplete REJECT. No uploads or Player verification.
+
+Pending tooling (D-668): audio/voice uploads stay permanently disabled; exact-hash models with committed independent 10/10 APPROVE evidence may pass a separate model HALT. No assets uploaded.
+
+
+
+Updated 2026-10-31 against main `cb8e1d10` (#202); results continuation and chapter-gating fix merged/live by pipeline convention; device acceptance remains open.
 
 Practice and all 18 campaign missions are merged and live by the owner's automatic-pipeline convention. Play through the campaign next: [Play SKYBREAK](https://www.roblox.com/games/112911685457826). Sequential unlocks still require completing preceding missions.
 
-All missions passed the orchestrator's full Studio Jest suite before merge (reported by the orchestrator; final M18 suite 1,450/1,450). This documentation reconciliation did not launch Studio or perform Player tests. Owner Player report on current main: M01 completed on Normal on a phone, but NEXT: MISSION 02 did nothing despite cloud-save confirmation. The pending results fix shares D-030 chapter gating with menu launches: unseen chapters play before Next loads the next mission, seen chapters launch directly, and seen flags require completion/Skip acknowledgements validated against server progression. The pending results fix has offline coverage only; no agent Player or Studio test. Missions 6–18 have no Player/phone playtests. Rendered quality, human difficulty, provisional ranks/counts, real loading time and phone performance remain unverified.
+All missions passed the orchestrator's full Studio Jest suite before merge (reported by the orchestrator; final M18 suite 1,450/1,450). This documentation reconciliation did not launch Studio or perform Player tests. Owner Player report before #202: M01 completed on Normal on a phone, but NEXT: MISSION 02 did nothing despite cloud-save confirmation. The merged results fix shares D-030 chapter gating with menu launches: unseen chapters play before Next loads the next mission, seen chapters launch directly, and seen flags require completion/Skip acknowledgements validated against server progression. The merged results fix has offline coverage only; no agent Player or Studio test. Missions 6–18 have no Player/phone playtests. Rendered quality, human difficulty, provisional ranks/counts, real loading time and phone performance remain unverified.
 
 PR #202 follow-up validation (2026-10-31): frozen install, build, and prescribed-LUAU_BIN validate:offline exited 0; 1,223 offline Luau contracts, 487 module compilations, 202 require-graph nodes and 124 Python tests passed. ChapterContinuation.spec is in both offline runner lists. No Studio, test:roblox or Player run.
 
@@ -36,3 +56,7 @@ Publish snapshot: latest 20 main runs checked; all 20 succeeded, including M18 r
 Practice: merged in [#130](https://github.com/A-Ricemusic/skybreak/pull/130), `4891e8a1`; Studio verified: ✓; Player tested: not yet.
 
 [Level cards](levels.html) · [Shipped history](shipped.md) · [Playthrough checklist](next.md) · [Blockers](blockers.md) · [Decision records](decisions.md)
+
+PR #217: rebuilt on merged #216/main; independent 10/10 review records for all 13 embedded meshes are included. Production authorization requires their merge; offline CI uses inventory plus regressions.
+
+PR #217 final validation: frozen install, standalone build, and prescribed LUAU_BIN validate:offline all exited 0; 1,225 Luau contracts and 162 Python tests passed. GitGuardian and guard passed after history cleanup; CI validate pending at recording. No publish/upload or Player test.

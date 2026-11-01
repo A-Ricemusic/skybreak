@@ -1,0 +1,21 @@
+{
+  "asset": "heavy-transport",
+  "exportVersion": "heavy-transport-1",
+  "files": {
+    "heavy-transport-color.png": "111a9545e4cc5951eb0a60e4afa172de7fd409bbd759c30286083d45ee216518",
+    "heavy-transport-metalness.png": "197f3d216f14ae3448c8e92889440b47804c3d6f4349e6a3e4dd3d54f5a3cca6",
+    "heavy-transport-normal.png": "ad80160a4cc90ad81cd99aa6dde9c29422f117ada708d3a3558975aa5c555f72",
+    "heavy-transport-roughness.png": "7cbebd6082c8fd73ffa42b72b74ab2b22c699f2edf6e9e8ff4dc36eebc7689de",
+    "heavy-transport.fbx": "b6ec50634826a176b57de4c7a84208fe0e3931d783a589fd8cd01f505ee06408"
+  },
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "creator": "Claude Opus 5.5 asset implementation agent",
+  "reviewDate": "2026-10-29T19:09:49Z",
+  "policyLinks": [
+    "https://www.roblox.com/termsofuse",
+    "https://en.help.roblox.com/hc/en-us/articles/203313410-Roblox-Community-Standards/"
+  ],
+  "score": 10,
+  "verdict": "APPROVE",
+  "sourceReview": "docs/qa/asset-reviews/2026-10-29-pr137-review-1.md"
+}

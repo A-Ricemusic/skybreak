@@ -1,7 +1,7 @@
 import { MISSION_STORY_TEXT } from "../StoryMissionText";
 import type { MissionBlueprint, FlightPoint } from "../MissionCatalog";
 import type { FighterArrival, GroundTargetType, TypedGroundTarget } from "../CampaignEncounters";
-import { landingPose } from "../EngineBatchB";
+import { landingPose } from "../LandingRules";
 import { M10, M10_WORLD_KEY, m10TargetLayout } from "../M10WorldPlan";
 import { M10_AIRSPACE } from "../M10Limits";
 

@@ -1,11 +1,31 @@
 # Shipped
 
-Pending PR (unmerged): fix results Next after the owner’s M01 Normal phone playtest. Cached pre-sortie slots silently rejected newly unlocked missions. Next now shares normal start’s unseen-chapter check, then requests an authoritative launch with the normal loading screen after playback or Skip; seen chapters launch directly. Launching alone never records a chapter as seen; the finale is also acknowledged only after playback/Skip. The server waits for result settlement, then retains its progression/session/world gates. Missions 1–17 continue; M18 says CAMPAIGN COMPLETE without Next. Errors return to results with a visible message and retryable Next. Offline coverage only; no agent Player/Studio test.
+PR #218 ledger repair (2026-10-31, unmerged): merged main f8f3693e; added all ten military Model IDs, source FBX paths, full approval hashes and dated review/moderation evidence to docs/qa/uploaded-assets.md. Corrected the Studio Jest inventory expectation from 39 to 49; the test checks numbers/count, not Markdown. Extended the existing Python military provenance contract to verify ledger rows. Studio rerun and Player observation remain pending; no upload, publish or secret access performed. Validation: frozen install, build and prescribed LUAU_BIN validate:offline all exited 0 (163 Python tests). Studio Jest compiled but was not run.
 
-Main `4594c365`, newest first in first-parent merge order. Each PR appears once; older descriptions describe the change at its merge, with later mission rows identifying activation. Commits are the actual main squash/merge commits. Gameplay is live by pipeline convention. No Player verification claimed. All mission integrations passed the orchestrator’s Studio Jest suite before merge; M18: 1,450/1,450. This pass performed offline validation only.
+PR #218 gate integration (2026-10-31, unmerged): merged current main; the ten military manifest entries now retain owner-reported APPROVED moderation dated 2026-10-31, model IDs and exact approval-record hashes. Gate authorization still requires identical origin/main evidence; no exemption or private journal access. Offline build authorization is checked against a temporary post-merge Git fixture. Validation completed: frozen install, standalone build, build:place and prescribed LUAU_BIN validate:offline all exited 0 (163 Python tests). Strict offline validate authorized 13 blobs and 49 IDs using a temporary post-merge Git evidence fixture; production refs were unchanged. No upload, publish, secret read, canonical upload-state access, Studio or Player test.
+
+Military kit activation (2026-10-31, proposed/unmerged): all ten IDs assigned after independent 10/10 approval and owner-reported moderation APPROVED. On merge, realistic tanks, SAMs, AA, artillery, bunkers, radar, trucks, fuel, barracks and containers replace matching target visuals in M02/M03/M05/M06/M07/M09/M10/M12/M15/M16/M17; per-type mission list in the [upload record](../qa/asset-reviews/military-ground-kit/upload-record-2026-10-31.md). Existing proxies, procedural failure fallback and bounded preload remain. No Player quality verification.
+
+PR #216 post-merge validation (2026-10-31): `bun install --frozen-lockfile` and prescribed `LUAU_BIN` `bun run validate:offline` both exited 0; 1,225 Luau contracts and 154 Python tests passed. No uploads or secret reads.
+
+PR #216 merge-check follow-up (unmerged, 2026-10-31): main through #207 reconciled and credential-like test patterns removed. Third independent security review passed per owner handoff. No Player-visible change, upload or secret read; GitGuardian recheck failed on historical commit `3575dead` only (incident 39368345); no new-commit finding reported.
+
+Pending, not shipped: PR #216 round-2 fixes close HOME/state-directory redirection and dependency-only or same-export rejection bypasses. No upload, gameplay change, credential read, canonical-state access, Studio or Player verification.
+
+PR #216 round-2 validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 154 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merged in #216 as d33c9a94.
+
+Pending, not shipped: PR #216 security hardening and approval migration. No gameplay change, upload, Studio/Player observation or canonical account-state access. Existing live models remain as before.
+
+Pending D-668 upload-gate tooling is unmerged and has no Player-visible change. No new assets uploaded; shipped entries below describe previously merged work.
+
+
+Merged #202 (`cb8e1d10`): fix results Next after the owner’s M01 Normal phone playtest. Cached pre-sortie slots silently rejected newly unlocked missions. Next now shares normal start’s unseen-chapter check, then requests an authoritative launch with the normal loading screen after playback or Skip; seen chapters launch directly. Launching alone never records a chapter as seen; the finale is also acknowledged only after playback/Skip. The server waits for result settlement, then retains its progression/session/world gates. Missions 1–17 continue; M18 says CAMPAIGN COMPLETE without Next. Errors return to results with a visible message and retryable Next. Offline coverage only; no agent Player/Studio test.
+
+Main `cb8e1d10`, newest first in first-parent merge order. Each PR appears once; older descriptions describe the change at its merge, with later mission rows identifying activation. Commits are the actual main squash/merge commits. Gameplay is live by pipeline convention. No Player verification claimed. All mission integrations passed the orchestrator’s Studio Jest suite before merge; M18: 1,450/1,450. This pass performed offline validation only.
 
 | PR | Merge commit | Change | What the owner sees in Roblox Player |
 |---|---|---|---|
+| [#202](https://github.com/A-Ricemusic/skybreak/pull/202) | `cb8e1d10` | Fix results Next and chapter gating | Merged/live by pipeline convention; offline validation passed before merge. Owner phone/device acceptance remains open. |
 | [#200](https://github.com/A-Ricemusic/skybreak/pull/200) | `4594c365` | feat(m18): finale — generators, vent run and the Rusk duel (replayed onto main after mission 17) | CLEAR FREQUENCY: Three generators → timed vent/shutter/core/exit → isolated 5:00 Rusk duel; check carried damage/ammo, ending, campaign completion and replay. Live (pipeline); Player tested: not yet. |
 | [#199](https://github.com/A-Ricemusic/skybreak/pull/199) | `f68d81d5` | feat(m17): capital support and Rusk's last wing (replayed onto main after mission 16) | LAST WING: Score 2,100 through 12:00, defeat four required wingmen within fresh 18:00, protected Rusk withdrawal, bridge route closure and runway repair. Live (pipeline); Player tested: not yet. |
 | [#198](https://github.com/A-Ricemusic/skybreak/pull/198) | `6e04cc5a` | feat(m16): desert column ground support (replayed onto main after mission 15) | DUST ROAD: Clear column roads across three legs, protect squads from queued attackers, reach 3,500 through 20:00 and verify repair service. Live (pipeline); Player tested: not yet. |
@@ -106,3 +126,5 @@ Main `4594c365`, newest first in first-parent merge order. Each PR appears once;
 | [#96](https://github.com/A-Ricemusic/skybreak/pull/96) | `22d84b22` | chore: phase 0 setup for the AC04-structured redesign | These five pages, the redesign plan, and the gitignored footage folder. No game change. |
 | [#95](https://github.com/A-Ricemusic/skybreak/pull/95) | `0fb47579` | chore: second cleanup pass for a fresh baseline | No game change. |
 | [#94](https://github.com/A-Ricemusic/skybreak/pull/94) | `5a01aa65` | chore: tidy repo after AC04 revert; archive dated reports, drop one-off tools | No game change. |
+
+PR #217 remains unmerged: cleaned history and embedded-mesh approval integration. No publish, upload, Studio or Player test performed.

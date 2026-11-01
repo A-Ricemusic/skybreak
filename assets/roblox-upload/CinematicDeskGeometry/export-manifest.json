@@ -1,0 +1,12 @@
+{
+  "asset": "CinematicDeskGeometry",
+  "creator": "SKYBREAK build agent via tools/build-cinematic-props.py (committed under Anthony Rice's git identity, d31ed1dff5f04ef6f590c0fe7f01f64744bff3d5)",
+  "exportVersion": "embedded-json-v1-f4b7117c03fe",
+  "files": {
+    "CinematicDeskGeometry.json": "f4b7117c03fec922cc4119b7b8e44284fe3c3c625160c2cad302a5fa156f2004"
+  },
+  "source": "assets/mission/cinematicdesk.mesh.json",
+  "generator": "tools/build-cinematic-props.py",
+  "sourceCommit": "d31ed1dff5f04ef6f590c0fe7f01f64744bff3d5",
+  "note": "Version label identifies the exact existing embedded bytes; no mesh re-export was performed."
+}

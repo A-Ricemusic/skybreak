@@ -1,0 +1,12 @@
+{
+  "asset": "WarehouseGeometry",
+  "creator": "SKYBREAK build agent via tools/build-mission-assets.py (committed under Anthony Rice's git identity, 6529e64e026d24b0796054eb4bd8007db7958d62)",
+  "exportVersion": "embedded-json-v1-f7ff528eb4b2",
+  "files": {
+    "WarehouseGeometry.json": "f7ff528eb4b213bd3c530fb78cc332abbbbecb639dacc7463d221f8e0acd9fbd"
+  },
+  "source": "assets/mission/warehouse.mesh.json",
+  "generator": "tools/build-mission-assets.py",
+  "sourceCommit": "6529e64e026d24b0796054eb4bd8007db7958d62",
+  "note": "Version label identifies the exact existing embedded bytes; no mesh re-export was performed."
+}

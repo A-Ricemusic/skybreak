@@ -1,0 +1,14 @@
+{
+  "asset": "RadarGeometry",
+  "exportVersion": "embedded-json-v1-a9bb6625100f",
+  "embeddedTextures": {},
+  "uploadSet": {
+    "RadarGeometry.json": "a9bb6625100f9f9992eab2a54fb012fe6e47109db8857cca8f99596cb98b9b4f"
+  },
+  "reviewedAt": "2026-10-31",
+  "record": "docs/qa/asset-reviews/2026-10-31-pr217-embedded-mesh-review.md",
+  "approved": true,
+  "score": "10/10",
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "note": "Embedded JSON only, not FBX or referenced uploaded models. Any change requires a new review. No moderation guarantee."
+}

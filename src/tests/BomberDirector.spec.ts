@@ -1,7 +1,7 @@
 // Studio only: director scheduling and replicated actor poses use actual Instances/CFrames.
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { Workspace } from "@rbxts/services";
-import { clearCruise, cruiseKilled, stepCruise } from "../server/EngineBatchD10Runtime";
+import { clearCruise, cruiseKilled, stepCruise } from "../server/CruiseMissileRuntime";
 import { createPhaseDirector, SpawnOptions } from "../server/PhaseDirector";
 import { AirRole, CombatSession, Enemy } from "../server/CombatSession";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
@@ -351,7 +351,7 @@ describe("Bomber director integration", () => {
 				}
 				expect(h.calls.filter(c => c.role === role).size()).toBe(phase.count ?? 0);
 			}
-			if (role === "ace" && !phase.batchD13?.duel) expect(h.calls.filter((c) => c.role === "ace")[0].options?.name).toBeUndefined();
+			if (role === "ace" && !phase.finale?.duel) expect(h.calls.filter((c) => c.role === "ace")[0].options?.name).toBeUndefined();
 			expect(h.s.bomberEncounter).toBeUndefined(); h.folder.Destroy();
 		}
 	});

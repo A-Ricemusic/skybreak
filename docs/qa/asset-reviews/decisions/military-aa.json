@@ -1,0 +1,21 @@
+{
+  "asset": "military-aa",
+  "exportVersion": "military-ground-kit-1",
+  "files": {
+    "military-aa-color.png": "51e8732f2cbb517a0b7d19711a97d574bd3be601d7e971a15439d90aa412f4fa",
+    "military-aa-metalness.png": "c409dbf9a8a752354d5ef9be216dc700cc12177f93c8e7dbdb1e704eb22d7c92",
+    "military-aa-normal.png": "8cafd0c47b204082c34d822790085e1f889ea54cf2d3c253f72c245e2e98c367",
+    "military-aa-roughness.png": "3a575e4db6143371c71dacd9f6f1d61baf5ab7a761c4825b5462a17ea33d3775",
+    "military-aa.fbx": "ac7e8453d2077034c4baf5ae7906c911122e8b764fe2902afadff66cf91ba606"
+  },
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "creator": "military ground kit implementation agent",
+  "reviewDate": "2026-10-31",
+  "policyLinks": [
+    "https://www.roblox.com/termsofuse",
+    "https://en.help.roblox.com/hc/en-us/articles/203313410-Roblox-Community-Standards/"
+  ],
+  "score": 10,
+  "verdict": "APPROVE",
+  "sourceReview": "docs/qa/asset-reviews/military-ground-kit/independent-safety-review-2026-10-31.md"
+}

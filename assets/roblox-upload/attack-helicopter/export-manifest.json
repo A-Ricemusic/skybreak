@@ -1,0 +1,13 @@
+{
+  "asset": "attack-helicopter",
+  "creator": "Claude Opus 5.5 asset implementation agent",
+  "exportVersion": "attack-helicopter-1",
+  "files": {
+    "attack-helicopter-color.png": "beb365399430e3aae3815d5c92505ea2f8f6061de8fac7ab949e0b7ba767c6a6",
+    "attack-helicopter-metalness.png": "03ce3f783f3230a6dbb440036e5c10ea57687f6a06d0e7158497364078f81ddf",
+    "attack-helicopter-normal.png": "077c2aef48a0c2e941fcde516bcab0110ee808947bb297a7952e6b7a5a6d2258",
+    "attack-helicopter-roughness.png": "502741b1e349ba054db1ab6aa094a2cfeef1c6909ef313e2b9c09e82355aa4e2",
+    "attack-helicopter.fbx": "d31e015e7959c55ec534d48454e27cbb668d87ec6a3f6bf111edb9acdb74dd29"
+  },
+  "provenance": "docs/qa/asset-reviews/2026-10-29-pr137-review-1.md"
+}

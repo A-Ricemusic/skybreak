@@ -1,5 +1,5 @@
 import type { M05LightAnchor } from "./M05WorldPlan";
-import { finiteNumber } from "./EngineBatchB";
+import { finiteNumber } from "./LandingRules";
 import type { FlightPoint } from "./MissionCatalog";
 export interface LightField { origin: FlightPoint; rows: number; columns: number; spacing: number; realLights: number }
 export interface SearchlightPlan { position: FlightPoint; heading: number; sweep: number; period: number; length: number }

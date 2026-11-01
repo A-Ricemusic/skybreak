@@ -1,6 +1,6 @@
-import { duelTargetId, newVent, stepVent, VentState } from "./EngineBatchD13";
-import { thresholdResult } from "./EngineBatchC";
-import { canSkipLanding, crossesReturnLine, landingDuration, landingSkipTarget, landingTimeRemaining } from "./EngineBatchB";
+import { duelTargetId, newVent, stepVent, VentState } from "./FinaleDuelRules";
+import { thresholdResult } from "./RearmRules";
+import { canSkipLanding, crossesReturnLine, landingDuration, landingSkipTarget, landingTimeRemaining } from "./LandingRules";
 import { FlightMath, FlightState } from "./FlightMath";
 import { FlightPoint, MissionBlueprint, MissionCatalog, MissionPhaseBlueprint } from "./MissionCatalog";
 import { GameConfig } from "./GameConfig";
@@ -99,7 +99,7 @@ function finish(s: BlueprintState, outcome: "won" | "failed", reason: BlueprintR
 }
 function enter(s: BlueprintState): void {
 	const p=s.phases[s.phaseIndex];
-	s.vent=p?.batchD13?.vent ? newVent() : undefined;
+	s.vent=p?.finale?.vent ? newVent() : undefined;
 	if (p?.scoreThreshold) { s.scorePhaseStarted=s.elapsed; s.countdownDeadline=s.elapsed+p.scoreThreshold.seconds; }
 	if (p?.update) {
 		s.updateSerial=(s.updateSerial ?? 0)+1; s.updateUntil=s.elapsed+8;
@@ -296,7 +296,7 @@ export const BlueprintRunner = {
 			const t=position ? math.clamp(((position.x-line.a.x)*dx+(position.z-line.a.z)*dz)/(dx*dx+dz*dz),0,1) : 0.5;
 			return {x:line.a.x+dx*t,y:line.markerY,z:line.a.z+dz*t};
 		}
-		if(p?.batchD13?.vent && s.vent) return p.batchD13.vent.checkpoints[s.vent.checkpoint]?.center ?? p.batchD13.vent.exit.center;
+		if(p?.finale?.vent && s.vent) return p.finale.vent.checkpoints[s.vent.checkpoint]?.center ?? p.finale.vent.exit.center;
 		if (!p?.points) return undefined;
 		if (p.kind !== "escort") return p.points[s.pointIndex] ?? p.points[0];
 		const segment=math.clamp(s.phaseProgress/p.seconds!,0,1)*(p.points.size()-1);
@@ -313,8 +313,8 @@ export const BlueprintRunner = {
 		if (s.outcome !== undefined || !finite(dt) || dt<=0 || dt>0.1) return;
 		for (const n of [from.x,from.y,from.z,to.x,to.y,to.z,threats,drainScale]) if (!finite(n)) return;
 		const p=BlueprintRunner.ActivePhase(s)!;
-		if(p.batchD13?.vent && s.vent) {
-			stepVent(s.vent,p.batchD13.vent,s.killedIds,from,to,dt);
+		if(p.finale?.vent && s.vent) {
+			stepVent(s.vent,p.finale.vent,s.killedIds,from,to,dt);
 			if(s.vent.exited) advance(s);
 			return;
 		}
@@ -360,7 +360,7 @@ export const BlueprintRunner = {
 		if (p.kind === "tutorial_missile") return required && kind === "ground" && s.phaseProgress === 0;
 		if (!required && kind === "ground" && p.groundTargets !== undefined) return true;
 		if (!required && p.standaloneAce && kind === "ace") return true;
-  if(!required && kind==="ace" && p.batchD13?.vent && p.execution?.preservePursuers) return !s.optionalAceKilled;
+  if(!required && kind==="ace" && p.finale?.vent && p.execution?.preservePursuers) return !s.optionalAceKilled;
 		if (!required && p.bombers) return (kind === "air" || kind === "ace") && s.phaseOptionalKills < MissionCatalog.RaiderCap(p,s.extraRaiders);
 		if (!required && p.execution?.raiderKillCap !== undefined) return kind === "air" && s.optionalAirKills<p.execution.raiderKillCap;
 		if (!required) return kind==="air" && s.phaseOptionalKills<MissionCatalog.RaiderCap(p,s.extraRaiders);
@@ -371,16 +371,16 @@ export const BlueprintRunner = {
 		BlueprintRunner.Tick(s,now);
 		if (required && kind==="ground" && BlueprintRunner.ActivePhase(s)?.scoreThreshold?.requiredTargetIds && !BlueprintRunner.ActivePhase(s)!.scoreThreshold!.requiredTargetIds!.includes(id)) return false;
 		if (id==="" || s.killedIds.has(id) || !BlueprintRunner.CanDamage(s,kind,required)) return false;
-  if(required && s.phases.some(phase=>phase.batchD13?.vent!==undefined)) {
+  if(required && s.phases.some(phase=>phase.finale?.vent!==undefined)) {
    const phase=BlueprintRunner.ActivePhase(s)!;
    if(phase.groundTargets && !phase.groundTargets.some(t=>t.required && t.id===id)) return false;
-   if(phase.batchD13?.duel && id!==duelTargetId(s.phaseIndex)) return false;
-   const vent=phase.batchD13?.vent;
+   if(phase.finale?.duel && id!==duelTargetId(s.phaseIndex)) return false;
+   const vent=phase.finale?.vent;
    if(vent && (!s.vent || s.vent.elapsed<vent.openingSeconds || s.vent.checkpoint<vent.checkpoints.size())) return false;
   }
 		s.killedIds.add(id);
 		if (!required && kind === "ground") { s.optionalGroundKills++; return true; }
-		if (!required) { if (kind === "ace" && (BlueprintRunner.ActivePhase(s)?.standaloneAce || BlueprintRunner.ActivePhase(s)?.batchD13?.vent)) s.optionalAceKilled=true; s.optionalAirKills++; s.phaseOptionalKills++; return true; }
+		if (!required) { if (kind === "ace" && (BlueprintRunner.ActivePhase(s)?.standaloneAce || BlueprintRunner.ActivePhase(s)?.finale?.vent)) s.optionalAceKilled=true; s.optionalAirKills++; s.phaseOptionalKills++; return true; }
 		const p=BlueprintRunner.ActivePhase(s)!;
 		if (p.kind === "tutorial_missile") {
 			s.requiredGroundKills++; s.phaseProgress++; advanceTeaching(s); return true;
@@ -398,7 +398,7 @@ export const BlueprintRunner = {
 		else s.requiredGroundKills++;
 		s.phaseProgress++;
 		if (twist(s)) return true;
-		if (!p.cruiseIntercept && !p.leaderWithdrawal && !p.interceptHold && !p.batchD13?.vent && s.phaseProgress>=total(BlueprintRunner.ActivePhase(s)!) && (!p.protection?.accompaniment || (s.protectedSafe ?? 0)>=p.protection.aircraft.size())) advance(s);
+		if (!p.cruiseIntercept && !p.leaderWithdrawal && !p.interceptHold && !p.finale?.vent && s.phaseProgress>=total(BlueprintRunner.ActivePhase(s)!) && (!p.protection?.accompaniment || (s.protectedSafe ?? 0)>=p.protection.aircraft.size())) advance(s);
 		return true;
 	},
 	/** Director completion is separate from the score ledger: separation is never a kill. */
@@ -411,7 +411,7 @@ export const BlueprintRunner = {
 		const p=BlueprintRunner.ActivePhase(s) ?? s.phases[s.phases.size()-1];
 		const waiting=s.banditsDueAt !== undefined && !BlueprintRunner.BanditsDue(s);
 		const progress=s.outcome === "won" ? total(p) : p.kind === "tutorial_move" ? math.floor(s.turnObserved+1e-6)+math.floor(s.pitchObserved+1e-6) : p.kind === "tutorial_target" ? (s.cycled ? 1 : 0) : s.phaseProgress;
-		return {phase:p.execution?.hudPhase ?? p.kind,objective:p.batchD13?.vent && s.vent ? (s.vent.elapsed<p.batchD13.vent.openingSeconds ? `VENT OPENS IN ${math.ceil(p.batchD13.vent.openingSeconds-s.vent.elapsed)}s · HOLD AT ENTRY` : s.killedIds.has(p.batchD13.vent.core) ? "CORE DOWN · FOLLOW EXIT BEACON" : `VENT OPEN · CHECKPOINT ${s.vent.checkpoint+1}`) : waiting ? "Protection ends when bandits arrive; prepare to fight" : p.update?.objective ?? p.execution?.objective ?? p.label,
+		return {phase:p.execution?.hudPhase ?? p.kind,objective:p.finale?.vent && s.vent ? (s.vent.elapsed<p.finale.vent.openingSeconds ? `VENT OPENS IN ${math.ceil(p.finale.vent.openingSeconds-s.vent.elapsed)}s · HOLD AT ENTRY` : s.killedIds.has(p.finale.vent.core) ? "CORE DOWN · FOLLOW EXIT BEACON" : `VENT OPEN · CHECKPOINT ${s.vent.checkpoint+1}`) : waiting ? "Protection ends when bandits arrive; prepare to fight" : p.update?.objective ?? p.execution?.objective ?? p.label,
 			objectiveProgress:math.floor(progress),objectiveTotal:total(p),tutorialStep:p.tutorialStep ?? "",beat:p.beat};
 	},
 };

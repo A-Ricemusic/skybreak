@@ -1,0 +1,12 @@
+{
+  "asset": "KestrelGeometry",
+  "creator": "SKYBREAK build agent via tools/build-aircraft.py (committed under Anthony Rice's git identity, 4b7f96a98158d17aa81bb2fb59c0a9fbcdf53e5a)",
+  "exportVersion": "embedded-json-v1-dffa6a3bd713",
+  "files": {
+    "KestrelGeometry.json": "dffa6a3bd713a8563b1f2e037ef424cf30210a2b0319ea8e832bc60652b90338"
+  },
+  "source": "assets/aircraft/kestrel.mesh.json",
+  "generator": "tools/build-aircraft.py",
+  "sourceCommit": "4b7f96a98158d17aa81bb2fb59c0a9fbcdf53e5a",
+  "note": "Version label identifies the exact existing embedded bytes; no mesh re-export was performed."
+}

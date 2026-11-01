@@ -1,0 +1,14 @@
+{
+  "asset": "GrainSiloGeometry",
+  "exportVersion": "embedded-json-v1-269bb66dffaa",
+  "embeddedTextures": {},
+  "uploadSet": {
+    "GrainSiloGeometry.json": "269bb66dffaa970912785713b592b90d185629543c44fe7bc89b9360d14fddfe"
+  },
+  "reviewedAt": "2026-10-31",
+  "record": "docs/qa/asset-reviews/2026-10-31-pr217-embedded-mesh-review.md",
+  "approved": true,
+  "score": "10/10",
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "note": "Embedded JSON only, not FBX or referenced uploaded models. Any change requires a new review. No moderation guarantee."
+}

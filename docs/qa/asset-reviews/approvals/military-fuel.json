@@ -1,0 +1,20 @@
+{
+  "asset": "military-fuel",
+  "exportVersion": "military-ground-kit-1",
+  "embeddedTextures": {
+    "military-fuel-color.png": "45126ad36e6545e2b71698086b894d2269a51e6e2f73f1ba1d0fd5e862ff0e00",
+    "military-fuel-metalness.png": "0454a9e82124f21dee89e64ef47016f89854fc5a1dc7b215a77e6f3795c6f8ca",
+    "military-fuel-normal.png": "eb26d39d61bdb327cf89080f60ba6dcc55f39d0c9552c69cd9c3a9a10088796e",
+    "military-fuel-roughness.png": "7c189577f6d765bac7244230c04ba2eccd5d478f4047457c2531b1f6cc603fc0"
+  },
+  "uploadSet": {
+    "military-fuel.fbx": "def28d8711bcb096d700d47a743f2c5dd7a143b3230a20aed774b27cf922fe63"
+  },
+  "reviewedAt": "2026-10-31",
+  "record": "docs/qa/asset-reviews/military-ground-kit/independent-safety-review-2026-10-31.md",
+  "approved": true,
+  "score": "10/10",
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "uploadAssetType": "Model",
+  "checklistSha256": "87dc3592c5a52d0392203fd9d6e67ed6022b3aa2dcf52f67e90f483d2100f3e5"
+}

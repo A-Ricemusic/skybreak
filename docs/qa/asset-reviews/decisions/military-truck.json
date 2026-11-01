@@ -1,0 +1,21 @@
+{
+  "asset": "military-truck",
+  "exportVersion": "military-ground-kit-1-rack2",
+  "files": {
+    "military-truck-color.png": "b4e28ac571eb969088aeb1a8e2010b1154953d6934c96c152750ef6747781349",
+    "military-truck-metalness.png": "ee8478ffc394c1ca2a4b9e70d3dfb9579b43db1d0e4eb5f83f30cac0eaba855f",
+    "military-truck-normal.png": "49c6361e5e339e5a6a73f177718faf7cffb3cd604e5e14c455393ca8125a12f2",
+    "military-truck-roughness.png": "3bccbb4136eca0892cd978bbd8ee3cc2e175d3ea0eff057d4688693324fb06fb",
+    "military-truck.fbx": "0a951d1bd5d9a1525a279bb757235224cbb2634a24df42f7c50601dbd1745c15"
+  },
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "creator": "military ground kit implementation agent",
+  "reviewDate": "2026-10-31",
+  "policyLinks": [
+    "https://www.roblox.com/termsofuse",
+    "https://en.help.roblox.com/hc/en-us/articles/203313410-Roblox-Community-Standards/"
+  ],
+  "score": 10,
+  "verdict": "APPROVE",
+  "sourceReview": "docs/qa/asset-reviews/military-ground-kit/independent-safety-review-2026-10-31.md"
+}

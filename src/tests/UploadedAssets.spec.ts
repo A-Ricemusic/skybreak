@@ -1,3 +1,4 @@
+import { adoptGroundTarget } from "../server/GroundTargetFactory";
 import { afterEach, describe, expect, it } from "@rbxts/jest-globals";
 import { Workspace } from "@rbxts/services";
 import { WorldAssets } from "../server/WorldAssets";
@@ -99,7 +100,7 @@ describe("Uploaded asset loader with procedural fallback", () => {
 			expect((id as number) > 0 && (id as number) % 1 === 0).toBe(true);
 			count += 1;
 		}
-		expect(count).toBe(39);
+		expect(count).toBe(49);
 		expect(AssetSelection.BomberCandidates(UploadedAssetSpecs)).toEqual(["HeavyBomber"]);
 		expect(AssetSelection.CarrierCandidates(UploadedAssetSpecs)).toEqual(["Carrier"]);
 	});
@@ -428,4 +429,38 @@ describe("Uploaded asset loader with procedural fallback", () => {
 		expect(WorldAssets.Has("Farmhouse")).toBe(true);
 		expect(WorldAssets.Place("Farmhouse", parent, new CFrame())?.GetAttribute("GeometrySource")).toBe("Uploaded");
 	});
+});
+
+
+describe("dormant military ground-kit decoration", () => {
+ it("keeps the old aim, query proxies and footprint when a textured mesh replaces the drawing", () => {
+  UploadedAssets.Configure({ ids: { MilitaryTank: 1 }, probe, loader: () => fakeUpload("MilitaryTank") });
+  WorldAssets.Preload(["MilitaryTank"]);
+  const model = track(new Instance("Model"));
+  const proxy = new Instance("Part"); proxy.Size = new Vector3(40,24,56);
+  proxy.CFrame = new CFrame(300,72,-900); proxy.Anchored=true; proxy.CanQuery=true; proxy.Parent=model;
+  const frame=proxy.CFrame, size=proxy.Size;
+  adoptGroundTarget(model,"stable_tank","tank");
+  expect(model.PrimaryPart!.Position.sub(frame.Position).Magnitude).toBeLessThan(1e-3);
+  expect(proxy.Size).toEqual(size); expect(proxy.CFrame).toEqual(frame);
+  expect(proxy.Transparency).toBe(1); expect(proxy.CanQuery).toBe(true);
+  expect(proxy.GetAttribute("GroundKitQuery")).toBe(true);
+  const visual=model.FindFirstChild("MilitaryTank") as Model;
+  expect(visual).toBeDefined();
+  const [bounds, extent]=visual.GetBoundingBox();
+  expect(extent.X<=size.X+.01 && extent.Y<=size.Y+.01 && extent.Z<=size.Z+.01).toBe(true);
+  expect(bounds.Position.Y-extent.Y/2).toBeCloseTo(frame.Position.Y-size.Y/2,3);
+  for (const p of visual.GetDescendants()) if(p.IsA("BasePart")) {
+   expect(p.CanQuery).toBe(false); expect(p.GetAttribute("GroundKitQuery")).toBe(false);
+  }
+ });
+ it("leaves the stand-in visible and aim unchanged after a load failure", () => {
+  UploadedAssets.Configure({ids:{MilitaryTank:1},loader:()=>error("unavailable")});
+  WorldAssets.Preload(["MilitaryTank"]);
+  const model=track(new Instance("Model")), proxy=new Instance("Part");
+  proxy.Size=new Vector3(40,24,56); proxy.Position=new Vector3(20,30,40); proxy.Parent=model;
+  adoptGroundTarget(model,"stable_tank","tank");
+  expect(proxy.Transparency).toBe(0); expect(model.GetAttribute("UploadedAsset")).toBeUndefined();
+  expect(model.PrimaryPart!.Position).toEqual(proxy.Position);
+ });
 });

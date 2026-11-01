@@ -1,4 +1,4 @@
-import { M07_SAFE_CEILING } from "./EngineBatchD3";
+import { M07_SAFE_CEILING } from "./ArtilleryRules";
 import type { PartSpec } from "./WorldPlan";
 import { compactSurface, surfaceGround, type WorldSurface } from "./CompactWorldSurface";
 import { compactWorldCounts } from "./M06M07WorldCounts";

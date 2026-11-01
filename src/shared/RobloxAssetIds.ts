@@ -58,4 +58,14 @@ export const RobloxAssetIds: Record<UploadedAssetName, number | undefined> = {
 	CinematicFieldRecorder: 87111261775563,
 	CinematicStatusBoard: 105938775214679,
 	CinematicTapeTin: 86951943477271,
+	MilitaryTank: 133660866420591, // Independently reviewed 10/10; moderation APPROVED 2026-10-31.
+	MilitarySam: 73161839960138, // Independently reviewed 10/10; moderation APPROVED 2026-10-31.
+	MilitaryAa: 101616884598832, // Independently reviewed 10/10; moderation APPROVED 2026-10-31.
+	MilitaryArtillery: 95847143971617, // Independently reviewed 10/10; moderation APPROVED 2026-10-31.
+	MilitaryBunker: 99767408434768, // Independently reviewed 10/10; moderation APPROVED 2026-10-31.
+	MilitaryRadar: 124278667774667, // Independently reviewed 10/10; moderation APPROVED 2026-10-31.
+	MilitaryTruck: 137019773488099, // Independently reviewed 10/10; moderation APPROVED 2026-10-31.
+	MilitaryFuel: 96014055896534, // Independently reviewed 10/10; moderation APPROVED 2026-10-31.
+	MilitaryBarracks: 132667525903898, // Independently reviewed 10/10; moderation APPROVED 2026-10-31.
+	MilitaryContainers: 135400126796799, // Independently reviewed 10/10; moderation APPROVED 2026-10-31.
 };

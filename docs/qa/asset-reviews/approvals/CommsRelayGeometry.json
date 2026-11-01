@@ -1,0 +1,14 @@
+{
+  "asset": "CommsRelayGeometry",
+  "exportVersion": "embedded-json-v1-b733bf72a790",
+  "embeddedTextures": {},
+  "uploadSet": {
+    "CommsRelayGeometry.json": "b733bf72a7906f04775b6ccd72c0a70a054d3cb014e347a0adea22f3d4af794d"
+  },
+  "reviewedAt": "2026-10-31",
+  "record": "docs/qa/asset-reviews/2026-10-31-pr217-embedded-mesh-review.md",
+  "approved": true,
+  "score": "10/10",
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "note": "Embedded JSON only, not FBX or referenced uploaded models. Any change requires a new review. No moderation guarantee."
+}
