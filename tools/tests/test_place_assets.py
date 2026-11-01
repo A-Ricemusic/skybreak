@@ -76,10 +76,19 @@ class PlaceAssetsTests(unittest.TestCase):
                                 (root / manifest["idsTable"]).read_text(), re.M))
         military = [a for a in manifest["assets"] if a["folder"].startswith("military-")]
         self.assertEqual(len(military), 10)
+        ledger = (root / "docs/qa/uploaded-assets.md").read_text()
         for asset in military:
             record = asset["approvedUpload"]
             approval = json.loads((root / record["approval"]).read_text())
             self.assertEqual(record["assetId"], table[asset["robloxAssetIdsKey"]])
+            row = next(line for line in ledger.splitlines()
+                       if line.startswith(f"| {asset['folder']} |"))
+            self.assertIn(f"| {record['assetId']} | Model |", row)
+            self.assertIn("10/10 2026-10-31", row)
+            self.assertIn("APPROVED 2026-10-31", row)
+            for filename, digest in approval["uploadSet"].items():
+                self.assertIn(f"assets/roblox-upload/{asset['folder']}/{filename}", row)
+                self.assertIn(digest, row)
             self.assertEqual(record["moderation"], "APPROVED")
             self.assertEqual(record["moderationDate"], "2026-10-31")
             for field in ("uploadSet", "embeddedTextures"):
