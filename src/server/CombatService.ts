@@ -210,7 +210,7 @@ function occludes(hit: RaycastResult): boolean {
 }
 /** Cached per enemy and refreshed at most every TargetPriority.LosInterval, so a TGT burst or a kill chain never fans out into raycasts every frame. */
 function enclosedPhase(session:CombatSession):boolean {
- const d=session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.batchD13;
+ const d=session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.finale;
  return d?.vent!==undefined || d?.enclosed===true;
 }
 function lineOfSightBlocked(session: CombatSession, enemy: Enemy): boolean {
@@ -575,7 +575,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 			attackProtected: options.arrival && "attackProtected" in options.arrival ? options.arrival.attackProtected : undefined,
 			scoreRole: options.arrival?.scoreRole ?? (eliteFit ? "bandit" : role === "bomber" && session.blueprintState ? BlueprintRunner.ActivePhase(session.blueprintState)?.bombers?.scoreRole : undefined),
 			routeActor: route ? {route,startedAt:session.elapsed,jammer:arrival !== undefined && "aircraft" in arrival && arrival.aircraft==="jammer"} : undefined,
-			phaseOwner: session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.batchD13?.duel ? session.blueprintState.phaseIndex : options.arrival && "attackSector" in options.arrival && options.arrival.attackSector!==undefined ? session.blueprintState?.phaseIndex : undefined,
+			phaseOwner: session.blueprintState && BlueprintRunner.ActivePhase(session.blueprintState)?.finale?.duel ? session.blueprintState.phaseIndex : options.arrival && "attackSector" in options.arrival && options.arrival.attackSector!==undefined ? session.blueprintState?.phaseIndex : undefined,
 			attackSector: options.arrival && "attackSector" in options.arrival ? options.arrival.attackSector : undefined,
 			groundAttack: options.arrival && "behaviour" in options.arrival && options.arrival.behaviour === "ground_attack",
 			scramble: options.arrival && "scramble" in options.arrival && options.arrival.scramble ? { spawn: { x:position.X,y:position.Y,z:position.Z }, heading: options.arrival.headingDegrees ?? 0, startedAt:session.elapsed } : undefined,
@@ -1099,7 +1099,7 @@ export function stepEnemies(session: CombatSession, dt: number): void {
 		enemy.direction = steerAircraft(oldDirection, desired, breaking ? breakTurn : ace ? 2.8 : 2.1, dt);
 		enemy.velocity = enemy.direction.mul(speed);
 		const moved = enemy.position.add(enemy.velocity.mul(dt));
-		const arena = enemy.kind === "ace" && enemy.required && enemy.phaseOwner === session.blueprintState?.phaseIndex ? phase?.batchD13?.duel : undefined;
+		const arena = enemy.kind === "ace" && enemy.required && enemy.phaseOwner === session.blueprintState?.phaseIndex ? phase?.finale?.duel : undefined;
 		if (arena) {
 			const bounded = boundDuelPosition(point(moved), arena);
 			enemy.position = new Vector3(bounded.x, bounded.y, bounded.z);

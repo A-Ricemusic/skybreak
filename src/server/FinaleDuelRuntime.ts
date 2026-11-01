@@ -8,16 +8,16 @@ import type { CombatSession, Enemy } from "./CombatSession";
 
 /** Session-scoped ownership. New retry session restores the world through its normal builder. */
 export function duelActive(s: CombatSession): boolean {
- return s.blueprintState!==undefined && BlueprintRunner.ActivePhase(s.blueprintState)?.batchD13?.duel!==undefined;
+ return s.blueprintState!==undefined && BlueprintRunner.ActivePhase(s.blueprintState)?.finale?.duel!==undefined;
 }
 export function finaleTargetAllowed(s: CombatSession,e: Enemy): boolean {
- const bs=s.blueprintState,d=bs && BlueprintRunner.ActivePhase(bs)?.batchD13;
+ const bs=s.blueprintState,d=bs && BlueprintRunner.ActivePhase(bs)?.finale;
  if(d?.duel) return e.kind==="ace" && e.required && e.phaseOwner===bs!.phaseIndex;
  if(d?.vent && e.id===d.vent.core) return bs!.vent!==undefined && bs!.vent!.elapsed>=d.vent.openingSeconds && bs!.vent!.checkpoint>=d.vent.checkpoints.size();
  return true;
 }
 export function stepFinaleDuel(s: CombatSession,say:(line:string)=>void): void {
- const bs=s.blueprintState,d=bs && BlueprintRunner.ActivePhase(bs)?.batchD13;
+ const bs=s.blueprintState,d=bs && BlueprintRunner.ActivePhase(bs)?.finale;
  if(!bs || !d) return;
  if(s.d13Phase!==bs.phaseIndex) {
   s.d13Gate?.Destroy(); s.d13Gate=undefined;

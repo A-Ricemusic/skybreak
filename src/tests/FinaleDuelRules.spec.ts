@@ -12,14 +12,14 @@ function fixture():MissionBlueprint {
  const v=vent();
  return {...MissionCatalog.Get(18),armament:undefined,phases:[
   {kind:"required_ground",label:"Generators",count:3,groundTargets:v.generators.map(id=>({id,type:"generator",required:true,scoreRole:"ground",position:{x:0,y:104,z:-2880},yaw:0}))},
-  {kind:"required_ground",label:"Vent core",count:1,hidden:true,update:{objective:"Core",radio:["Vent revealed"],countdownSeconds:1800},groundTargets:[{id:"core",type:"core",required:true,scoreRole:"ground",position:{x:-130,y:174,z:-4000},yaw:0}],batchD13:{vent:v}},
-  {kind:"ace",label:"Rusk",update:{objective:"Duel",radio:["Rusk alone"],countdownSeconds:300},batchD13:{duel:{center:{x:0,y:1000,z:-2880},radius:5760,minY:800,maxY:2400},environment:"m18_voice_breaks"}}
+  {kind:"required_ground",label:"Vent core",count:1,hidden:true,update:{objective:"Core",radio:["Vent revealed"],countdownSeconds:1800},groundTargets:[{id:"core",type:"core",required:true,scoreRole:"ground",position:{x:-130,y:174,z:-4000},yaw:0}],finale:{vent:v}},
+  {kind:"ace",label:"Rusk",update:{objective:"Duel",radio:["Rusk alone"],countdownSeconds:300},finale:{duel:{center:{x:0,y:1000,z:-2880},radius:5760,minY:800,maxY:2400},environment:"m18_voice_breaks"}}
  ]};
 }
 function rejects(fn:()=>void):boolean { const [ok]=pcall(fn);return !ok; }
 describe("D13 dormant finale contracts",()=>{
  it("leaves practice and missions 1–17 dormant",()=>{
-  for(let i=0;i<18;i++) expect(MissionCatalog.Get(i).phases.some(p=>p.batchD13!==undefined)).toBe(false);
+  for(let i=0;i<18;i++) expect(MissionCatalog.Get(i).phases.some(p=>p.finale!==undefined)).toBe(false);
  });
  it("validates ordered generator reveal, a single hidden core and final isolated duel",()=>{
   validateFinaleDuel(fixture());
@@ -48,7 +48,7 @@ describe("D13 dormant finale contracts",()=>{
  it("rejects finite racks and unknown environments",()=>{
   const b=fixture(); b.armament={stock:{missiles:8}};
   expect(rejects(()=>validateFinaleDuel(b))).toBe(true);
-  b.armament=undefined;b.phases[2].batchD13!.environment="missing";
+  b.armament=undefined;b.phases[2].finale!.environment="missing";
   expect(rejects(()=>validateFinaleDuel(b))).toBe(true);
   expect(resolveEnvironment("m18_voice_breaks")?.weather).toBe("storm");
  });

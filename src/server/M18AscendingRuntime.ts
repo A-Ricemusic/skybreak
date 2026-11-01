@@ -5,7 +5,7 @@ import { CruiseBudget } from "../shared/CruiseMissileRules";
 import type { CombatSession, Enemy } from "./CombatSession";
 /** Opt-in optional exterior missiles. No D10 director, admission slots, weapons or endpoint failure. */
 export function stepM18Ascending(s:CombatSession,dt:number):void {
- const plan=s.blueprintState && BlueprintRunner.ActivePhase(s.blueprintState)?.batchD13?.ascending;
+ const plan=s.blueprintState && BlueprintRunner.ActivePhase(s.blueprintState)?.finale?.ascending;
  if(!finiteNumber(dt) || dt<=0 || dt>0.1 || s.missionId!==18 || !plan || !s.active || s.blueprintState?.outcome!==undefined) return;
  if(!s.m18Ascending) {
   const actors:Enemy[]=[];

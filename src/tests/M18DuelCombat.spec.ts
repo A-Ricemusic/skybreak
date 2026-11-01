@@ -19,7 +19,7 @@ interface Shot { p:Point; d:Point; age:number; hostile:boolean; last:number; gui
 function forward(s: Parameters<typeof F.ForwardOf>[0]):Point {const [x,y,z]=F.ForwardOf(s);return {x,y,z};}
 /** Fixed 50 Hz, no random hit rolls. Input policy sees target pose and incoming warnings only. */
 function combat(difficulty:DifficultyKind,attentive:boolean,dt=0.02) {
- const arena=bp.phases[2].batchD13!.duel!,stage=A.New(),evade=V.New();
+ const arena=bp.phases[2].finale!.duel!,stage=A.New(),evade=V.New();
  // Representative clear-air entry: vent exit, level cruise, Rusk approaching from ahead.
  const player=F.FromPose(0,1000,-7100,0,0,F.CruiseSpeed);
  let enemy:Point={x:600,y:1200,z:-8500},direction=M.Unit(M.Sub(player,enemy)),pass=direction;
