@@ -1,0 +1,12 @@
+{
+  "asset": "RelayTruckGeometry",
+  "creator": "SKYBREAK build agent via tools/build-relay-assets.py (committed under Anthony Rice's git identity, 83da53e6c8ea5360625d0cf184c91de83153693a)",
+  "exportVersion": "embedded-json-v1-3b012a19a0fd",
+  "files": {
+    "RelayTruckGeometry.json": "3b012a19a0fdcf69157eed7a8826961334a934dfbad62256b95851f5d367a3b6"
+  },
+  "source": "assets/mission/relaytruck.mesh.json",
+  "generator": "tools/build-relay-assets.py",
+  "sourceCommit": "83da53e6c8ea5360625d0cf184c91de83153693a",
+  "note": "Version label identifies the exact existing embedded bytes; no mesh re-export was performed."
+}

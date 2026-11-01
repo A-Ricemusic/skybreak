@@ -6,11 +6,11 @@ PR #216 immediate next step: finish prescribed offline validation and check GitG
 
 PR #216: resolve merge checks after the third independent security review passed, then merge when accepted. Implementation uses OS account state and blocks negatives on any dependency hash or the same asset/export version. No upload authorized by this task.
 
-PR #216 round-2 validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 154 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merge pending.
+PR #216 round-2 validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 154 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merged in #216 as d33c9a94.
 
 PR #216: review and merge upload-gate hardening; PR207 ground-kit evidence becomes usable only after both PRs merge. Heavy-bomber/carrier cannot be reuploaded under the strict any-REJECT rule. Other exports lacking sufficient hash-bound independent 10/10 evidence remain unapproved; see docs/qa/asset-reviews/upload-approval-format.md.
 
-Review the pending D-668 upload-gate PR: preserve the audio ban and legacy HALT; permit only committed, byte-matched independently reviewed models. No upload is part of this task.
+Preserve merged D-668 upload-gate policy (#216): preserve the audio ban and legacy HALT; permit only committed, byte-matched independently reviewed models. No upload is part of this task.
 
 Military ground kit: review the ten exact FBX exports, all baked maps and multi-angle assembled previews in [the packet](../qa/asset-reviews/military-ground-kit/README.md). Obtain independent 10/10 safety approval before a separately authorized upload; then verify footprint fitting, orientation, D6 detail transitions and phone performance. Current branch keeps IDs unset and existing stand-ins visible.
 
@@ -47,3 +47,5 @@ After the playthrough, prioritize tuning from recorded failures:
 2. Revisit modelled-only fairness: M11 escort hull budgets, M14 warning/evasion assumptions and M15–17 protection scenarios omit parts of a complete human sortie. Test actual targeting, terrain/assembled scenery LOS, ground clearance, hostile AI and carried damage.
 3. Calibrate the M18 Rusk duel using actual entry poses, damaged hull, depleted rack/specials, input/network delay and phone reaction time. Deterministic wins (Easy 107.16s / Normal 134.12s / Hard 199.92s) establish conditional reachability, not finale feel.
 4. Address observed visual/loading/controller issues: M03 distant terrain and return guidance, M05 night props and real-controller service menu, plus any new campaign observations. Keep new dialogue subtitle-only; audio uploads remain halted by owner instruction (D-142).
+
+PR #217: review and merge the place publication gate and exact embedded-mesh approvals; production authorization uses origin/main evidence.

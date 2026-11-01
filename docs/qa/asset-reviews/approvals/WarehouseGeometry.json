@@ -1,0 +1,14 @@
+{
+  "asset": "WarehouseGeometry",
+  "exportVersion": "embedded-json-v1-f7ff528eb4b2",
+  "embeddedTextures": {},
+  "uploadSet": {
+    "WarehouseGeometry.json": "f7ff528eb4b213bd3c530fb78cc332abbbbecb639dacc7463d221f8e0acd9fbd"
+  },
+  "reviewedAt": "2026-10-31",
+  "record": "docs/qa/asset-reviews/2026-10-31-pr217-embedded-mesh-review.md",
+  "approved": true,
+  "score": "10/10",
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "note": "Embedded JSON only, not FBX or referenced uploaded models. Any change requires a new review. No moderation guarantee."
+}

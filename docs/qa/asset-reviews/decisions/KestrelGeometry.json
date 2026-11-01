@@ -1,0 +1,22 @@
+{
+  "asset": "KestrelGeometry",
+  "exportVersion": "embedded-json-v1-dffa6a3bd713",
+  "files": {
+    "KestrelGeometry.json": "dffa6a3bd713a8563b1f2e037ef424cf30210a2b0319ea8e832bc60652b90338"
+  },
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "creator": "SKYBREAK build agent via tools/build-aircraft.py (committed under Anthony Rice's git identity, 4b7f96a98158d17aa81bb2fb59c0a9fbcdf53e5a)",
+  "reviewDate": "2026-10-31",
+  "policyLinks": [
+    "https://www.roblox.com/termsofuse",
+    "https://en.help.roblox.com/hc/en-us/articles/115004647846-Roblox-Terms-of-Use",
+    "https://en.help.roblox.com/hc/en-us/articles/203313410-Roblox-Community-Standards/",
+    "https://about.roblox.com/community-standards",
+    "https://create.roblox.com/docs/marketplace/marketplace-policy",
+    "https://create.roblox.com/docs/production/publishing/rights-manager",
+    "https://en.help.roblox.com/hc/en-us/articles/15869919570708-Age-Restricted-Content-on-Roblox"
+  ],
+  "score": 10,
+  "verdict": "APPROVE",
+  "sourceReview": "docs/qa/asset-reviews/2026-10-31-pr217-embedded-mesh-review.md"
+}
