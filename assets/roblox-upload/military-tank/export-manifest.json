@@ -1,0 +1,13 @@
+{
+  "asset": "military-tank",
+  "creator": "military ground kit implementation agent",
+  "exportVersion": "military-ground-kit-1-track2",
+  "files": {
+    "military-tank-color.png": "eb17b726085c5434f24d62a0cfdfca6a2d3e7f279248aa189743f634538f4786",
+    "military-tank-metalness.png": "c1c8564eba328c836e7426be3e63206c2703418e78a620b11b12f4a1d59085c3",
+    "military-tank-normal.png": "d08a02bd054b45e2d3bac99feaf0fa6c7cde2fdba9b7e689f9a010f9bff5a8ad",
+    "military-tank-roughness.png": "87865e1660d9af67bfbcd84adac63687da8bb8c6ca9d0e77d0c4ce027f0af017",
+    "military-tank.fbx": "a20614334fb1a5bd1afc0c4cfd0415560aee49d3c234e8d2464c165ed2b82afe"
+  },
+  "provenance": "docs/qa/asset-reviews/military-ground-kit/independent-safety-review-2026-10-31.md"
+}

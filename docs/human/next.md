@@ -1,5 +1,17 @@
 # Next
 
+PR #216 post-merge validation (2026-10-31): `bun install --frozen-lockfile` and prescribed `LUAU_BIN` `bun run validate:offline` both exited 0; 1,225 Luau contracts and 154 Python tests passed. No uploads or secret reads.
+
+PR #216 immediate next step: finish prescribed offline validation and check GitGuardian after a normal push. Third independent security review passed per owner handoff; no upload or merge is part of this implementation task.
+
+PR #216: resolve merge checks after the third independent security review passed, then merge when accepted. Implementation uses OS account state and blocks negatives on any dependency hash or the same asset/export version. No upload authorized by this task.
+
+PR #216 round-2 validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 154 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merge pending.
+
+PR #216: review and merge upload-gate hardening; PR207 ground-kit evidence becomes usable only after both PRs merge. Heavy-bomber/carrier cannot be reuploaded under the strict any-REJECT rule. Other exports lacking sufficient hash-bound independent 10/10 evidence remain unapproved; see docs/qa/asset-reviews/upload-approval-format.md.
+
+Review the pending D-668 upload-gate PR: preserve the audio ban and legacy HALT; permit only committed, byte-matched independently reviewed models. No upload is part of this task.
+
 Military ground kit: review the ten exact FBX exports, all baked maps and multi-angle assembled previews in [the packet](../qa/asset-reviews/military-ground-kit/README.md). Obtain independent 10/10 safety approval before a separately authorized upload; then verify footprint fitting, orientation, D6 detail transitions and phone performance. Current branch keeps IDs unset and existing stand-ins visible.
 
 Priority: verify the merged #202 results-continuation fix with first-time M01 → M02 on the owner’s phone (Normal). Confirm chapter 1 plays before M02 loading on first continuation, Skip proceeds through normal loading, replay with chapter 1 seen launches directly, and repeated-tap protection, mouse/gamepad activation, M17 → chapter 17 → M18, and M18 CAMPAIGN COMPLETE with no Next. Offline checks cannot establish device behavior.

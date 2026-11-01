@@ -1,0 +1,22 @@
+{
+  "asset": "heavy-bomber",
+  "exportVersion": "heavy-bomber-2",
+  "files": {
+    "heavy-bomber-color.png": "97a4627891cebeb6ed76e0f821139c832bacebda88de43bf51a30f0a12f3dd02",
+    "heavy-bomber-normal.png": "52302633254558072f23ad854a4c86343253858d48aecb29cd224051a82ee3e0",
+    "heavy-bomber-roughness.png": "45df7d95cb0e9a1c5bb56b15875ad4e163ba045e42b041844c65ca214465e0af",
+    "heavy-bomber-metalness.png": "c563eeeb72d9b3ed9c5d5d7506a8c3405cb5e37443fa1c40f1bf51e5e87a428b",
+    "heavy-bomber.fbx": "e4b242711e722d6a76ba8d87454a8f80902f10eb35764b5b8308955838cff5a3"
+  },
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "creator": "Claude Opus 5.5 asset implementation agent",
+  "reviewDate": "2026-10-29",
+  "policyLinks": [
+    "https://www.roblox.com/termsofuse",
+    "https://en.help.roblox.com/hc/en-us/articles/203313410-Roblox-Community-Standards/"
+  ],
+  "score": null,
+  "verdict": "REJECT",
+  "sourceReview": "docs/qa/asset-reviews/2026-10-28-pr107-review-2.md",
+  "note": "Incomplete review; no numeric score. Later review 3 approved unchanged bytes, but the requested strictest-decision rule blocks these hashes regardless of supersession."
+}

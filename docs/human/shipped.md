@@ -1,5 +1,17 @@
 # Shipped
 
+PR #216 post-merge validation (2026-10-31): `bun install --frozen-lockfile` and prescribed `LUAU_BIN` `bun run validate:offline` both exited 0; 1,225 Luau contracts and 154 Python tests passed. No uploads or secret reads.
+
+PR #216 merge-check follow-up (unmerged, 2026-10-31): main through #207 reconciled and credential-like test patterns removed. Third independent security review passed per owner handoff. No Player-visible change, upload or secret read; GitGuardian recheck failed on historical commit `3575dead` only (incident 39368345); no new-commit finding reported.
+
+Pending, not shipped: PR #216 round-2 fixes close HOME/state-directory redirection and dependency-only or same-export rejection bypasses. No upload, gameplay change, credential read, canonical-state access, Studio or Player verification.
+
+PR #216 round-2 validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 154 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merge pending.
+
+Pending, not shipped: PR #216 security hardening and approval migration. No gameplay change, upload, Studio/Player observation or canonical account-state access. Existing live models remain as before.
+
+Pending D-668 upload-gate tooling is unmerged and has no Player-visible change. No new assets uploaded; shipped entries below describe previously merged work.
+
 Asset branch note (2026-10-31, unmerged): military ground kit is **not shipped** and not uploaded. All ten new IDs remain unset, so Roblox Player retains existing ground-target visuals. See [review packet](../qa/asset-reviews/military-ground-kit/README.md). This entry records pending scope only; the merged ledger below remains the shipped history.
 
 Merged #202 (`cb8e1d10`): fix results Next after the owner’s M01 Normal phone playtest. Cached pre-sortie slots silently rejected newly unlocked missions. Next now shares normal start’s unseen-chapter check, then requests an authoritative launch with the normal loading screen after playback or Skip; seen chapters launch directly. Launching alone never records a chapter as seen; the finale is also acknowledged only after playback/Skip. The server waits for result settlement, then retains its progression/session/world gates. Missions 1–17 continue; M18 says CAMPAIGN COMPLETE without Next. Errors return to results with a visible message and retryable Next. Offline coverage only; no agent Player/Studio test.

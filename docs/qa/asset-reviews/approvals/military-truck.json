@@ -1,0 +1,20 @@
+{
+  "asset": "military-truck",
+  "exportVersion": "military-ground-kit-1-rack2",
+  "embeddedTextures": {
+    "military-truck-color.png": "b4e28ac571eb969088aeb1a8e2010b1154953d6934c96c152750ef6747781349",
+    "military-truck-metalness.png": "ee8478ffc394c1ca2a4b9e70d3dfb9579b43db1d0e4eb5f83f30cac0eaba855f",
+    "military-truck-normal.png": "49c6361e5e339e5a6a73f177718faf7cffb3cd604e5e14c455393ca8125a12f2",
+    "military-truck-roughness.png": "3bccbb4136eca0892cd978bbd8ee3cc2e175d3ea0eff057d4688693324fb06fb"
+  },
+  "uploadSet": {
+    "military-truck.fbx": "0a951d1bd5d9a1525a279bb757235224cbb2634a24df42f7c50601dbd1745c15"
+  },
+  "reviewedAt": "2026-10-31",
+  "record": "docs/qa/asset-reviews/military-ground-kit/independent-safety-review-2026-10-31.md",
+  "approved": true,
+  "score": "10/10",
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "uploadAssetType": "Model",
+  "checklistSha256": "539681d5fe74d527559a5c09a5a0ced693c630e381caa66fa3cc641ad4bc0e92"
+}

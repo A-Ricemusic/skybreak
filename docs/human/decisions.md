@@ -1,5 +1,15 @@
 # Decisions
 
+PR #216 post-merge validation (2026-10-31): `bun install --frozen-lockfile` and prescribed `LUAU_BIN` `bun run validate:offline` both exited 0; 1,225 Luau contracts and 154 Python tests passed. No uploads or secret reads.
+
+Decision ID reconciliation (2026-10-31): retain main’s D-666 military-kit record; assign the separate upload-gate record and its round-2 clarification D-668. D-667 remains unchanged. This resolves the parallel ID collision without dropping either decision.
+
+D-668 round-2 clarification (2026-10-31, implementation sub-agent; unmerged): derive shared audio/model journal, lock and HALT paths from pwd.getpwuid(os.getuid()).pw_dir. Refuse real uploads on HOME/Path.home mismatch or a symlinked canonical state directory rather than following redirected state. Negative decisions block any matching uploaded/dependency hash or matching asset/export version even with different hashes; positive decisions must cover the complete manifest. Environment-derived state and FBX-only negative matching are rejected because both bypass account/review gates.
+
+PR #216 round-2 validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 154 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merge pending.
+
+D-667 (2026-10-31; owner security brief; implemented on unmerged PR #216): real uploads use canonical account state and fetched origin/main evidence. One strict hash-complete final JSON APPROVE/10 and separate creator manifest are required; any same-hash REJECT/lesser score wins even over a later approval. Alternatives rejected: Markdown grep, local HEAD trust, caller-selected real state, one-time retry checks. Identity checks do not prove independence; orchestrator assignment plus merged PR review supplies the process gate.
+
 D-666 — Military ground kit (2026-10-31). Decision maker: owner request, implementation agent. Status: proposed in unmerged asset branch. Use ten original procedural Blender meshes with one 256² PBR atlas each and ≤2,500 triangles, dormant IDs, existing procedural fallback and invisible original collision/aim proxies. Alternative: replace gameplay geometry or stretch models to generic bounds; rejected to preserve existing targeting and silhouettes. Uniform fit keeps visuals inside current envelopes; D6 retains far Part LOD. No people, skin textures, text or real insignia. Independent exact-file 10/10 safety review remains mandatory before upload. Specialist landmarks and all-mesh terrain are separate work.
 
 M13 replay validation (2026-10-30, base 351d7988): frozen install, standalone build, test:offline, voice/story/catalog regeneration and full validate:offline with the prescribed LUAU_BIN exited 0. Passed 1,118 Luau contracts, four loader guards, 19 catalog snapshots, three relay harness scenarios and 124 Python tests. All 103 prior specs plus M13 are staged and required with checkedRequire retained. Only M13's catalog entry differs; all 215 prior voice/story entries remain unchanged, with 223 total / 145 pending recordings. M12 numeric normalization and every prior decision record are preserved. Studio verified: pending orchestrator run. No Studio, test:roblox, Player tests or uploads performed. #195 merged as e2c7fab2; live by pipeline convention.
@@ -706,3 +716,15 @@ M18 #200 replay validation (2026-10-31, M17 base be746a10): frozen install, stan
 - **Maker / status:** Implementation sub-agent under owner review-fix instruction, 2026-10-31; merged in #202 (`cb8e1d10`). Offline tests only; no Studio or Player verification.
 
 Validation: `bun install --frozen-lockfile`, `bun run build`, and `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau" bun run validate:offline` exited 0. Added ChapterContinuation.spec to both runner lists; 1,223 Luau contracts passed, retaining missions 1–17 continuation, save-in-flight, M18 no-Next and loading debounce coverage.
+
+## D-668 — Separate audio and reviewed-model upload gates (2026-10-31)
+
+- **Decision maker:** Owner; implementation pending in this tooling PR.
+- **Decision:** Audio/voice uploads remain permanently disabled in code, even without HALT files. Both legacy `HALT-3407487520` and new `HALT-audio-3407487520` count as audio halts; never delete or migrate the legacy file. Preserve the shared journal lock.
+- **Models:** Allow only byte-matched FBX uploads backed by committed independent 10/10 APPROVE records in `docs/qa/asset-reviews/`, with matching texture hashes. Recheck the review in the shared helper, including resumed operations. A model moderation rejection writes a separate `HALT-models-3407487520`, blocking all model/mesh/image classes.
+- **Alternatives:** A global HALT unnecessarily blocks approved models; removing the legacy HALT or relying on file presence alone could reopen audio uploads. Both rejected.
+- **Scope/status:** Tooling only, unmerged; no real uploads, credential reads, Studio or Player testing. Existing shipped game assets and audio remain unchanged.
+
+Validation for D-668: `bun install --frozen-lockfile` and `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau" bun run validate:offline` exited 0. Passed 1,223 Luau contracts, 487 module compilations, 202 require-graph nodes, 19 catalog snapshots and 135 Python tests. No real upload or credential read; upload tests use temporary state and fake networking.
+
+Round-2 D-668 validation: frozen install and prescribed `LUAU_BIN` `validate:offline` exited 0, including 1,223 Luau contracts, 487 module compilations and 154 Python tests. New regressions cover HOME and Path.home mismatches, existing/dangling state-directory symlinks, texture-only negatives (including scores below 10), same-export rejection with different hashes, and full approval followed by subset rejection. Temporary account state and fake networking only; no real uploads, secrets, canonical-state access, Studio or Player tests. Third independent security review passed; merge checks remain pending.

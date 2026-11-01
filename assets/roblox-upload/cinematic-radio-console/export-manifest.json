@@ -1,0 +1,13 @@
+{
+  "asset": "cinematic-radio-console",
+  "creator": "cinematic desk-set implementation agent",
+  "exportVersion": "cinematic-radio-console-1",
+  "files": {
+    "cinematic-radio-console-color.png": "7643e62f9fb36869e7879519a9ba09aa71e5e56807989210c66b520853f8e23c",
+    "cinematic-radio-console-metalness.png": "7e901ea9d5de81bc4a8192814b16b46aac210af3e83db0cbfd9ea44cf66b997f",
+    "cinematic-radio-console-normal.png": "5d9939e99a9c3b6098640273a06fafe582273ed62411ec23822c42dda875fc64",
+    "cinematic-radio-console-roughness.png": "8f3c546dc1e8bcd440e61c45d195ab62926019cdf8e7a8525c3e6fbce3bba671",
+    "cinematic-radio-console.fbx": "8398f60a2363852be9e900dc146c211fb190e7faf4c92484c364ded70e4e0ca6"
+  },
+  "provenance": "docs/qa/asset-reviews/2026-10-29-pr152-review-1.md"
+}

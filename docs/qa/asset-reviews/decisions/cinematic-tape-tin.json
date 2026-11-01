@@ -1,0 +1,21 @@
+{
+  "asset": "cinematic-tape-tin",
+  "exportVersion": "cinematic-tape-tin-1",
+  "files": {
+    "cinematic-tape-tin-color.png": "afb65106433dcc2a9a0598a32df7fa2c096d23aef99c02c2531d2537324fe39a",
+    "cinematic-tape-tin-metalness.png": "12fea72b464e890e6c2cbe634ec01591fec8cee76b583feab55050d85af17ed3",
+    "cinematic-tape-tin-normal.png": "22c37c727230a4652298a953be1ca8cf6a3befc1e3f0f121361cedf243c078f6",
+    "cinematic-tape-tin-roughness.png": "275abb4432657b5144f9370befc6a4f3f5eaa87dc7aeb6413cdb2be5d1af32ef",
+    "cinematic-tape-tin.fbx": "e65aa071ff3441468603abe610412cf6d5824a14e5a23f761ef2ccd61f3a913a"
+  },
+  "reviewer": "Claude Opus 5.5 independent reviewer",
+  "creator": "cinematic desk-set implementation agent",
+  "reviewDate": "2026-10-30T04:13:02Z",
+  "policyLinks": [
+    "https://www.roblox.com/termsofuse",
+    "https://en.help.roblox.com/hc/en-us/articles/203313410-Roblox-Community-Standards/"
+  ],
+  "score": 10,
+  "verdict": "APPROVE",
+  "sourceReview": "docs/qa/asset-reviews/2026-10-29-pr152-review-1.md"
+}

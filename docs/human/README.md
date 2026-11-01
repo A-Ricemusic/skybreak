@@ -1,5 +1,17 @@
 # SKYBREAK campaign dashboard
 
+PR #216 post-merge validation (2026-10-31): `bun install --frozen-lockfile` and prescribed `LUAU_BIN` `bun run validate:offline` both exited 0; 1,225 Luau contracts and 154 Python tests passed. No uploads or secret reads.
+
+PR #216 merge reconciliation (2026-10-31): merged main `5eec0d06` (#207), preserving #202 and military-kit records. Third independent uploader security review passed per owner handoff. Test account mocks now avoid credential-like syntax; GitGuardian recheck failed on historical commit `3575dead` only (incident 39368345); no new-commit finding reported. Upload gate decision is D-668 (D-666 remains the military kit).
+
+PR #216 round-2 fixes (unmerged): OS account home anchors all shared upload state; real runs reject HOME/Path.home mismatches and symlinked canonical directories. Any negative decision matching an FBX/dependency hash or the same asset/export version blocks upload; approvals still require the complete export set.
+
+PR #216 round-2 validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 154 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merge pending.
+
+PR #216 security follow-up (unmerged): canonical real-upload state; merged origin/main JSON decisions and creator manifests; per-attempt HALTs. Audio remains permanently blocked. Eleven historical approvals and ten PR207 ground-kit approvals transcribed; heavy-bomber/carrier reupload blocked by earlier same-hash incomplete REJECT. No uploads or Player verification.
+
+Pending tooling (D-668): audio/voice uploads stay permanently disabled; exact-hash models with committed independent 10/10 APPROVE evidence may pass a separate model HALT. No assets uploaded.
+
 2026-10-31 asset branch status: ten original Blender military ground-kit models and dormant runtime integration are in preparation on `assets/military-ground-kit`; unmerged, IDs unset, no upload or Studio/Player test. Independent exact-export 10/10 review is required before any future upload. Evidence: [review packet](../qa/asset-reviews/military-ground-kit/README.md). Campaign mission progress below is unchanged.
 
 Military kit validation: frozen install, build and prescribed offline validation exit 0 (1,225 contracts; 489 compiled modules; 124 Python tests). Exact FBX round-trip verification passes; no Studio/Player or safety approval claimed. [Validation details](../qa/asset-reviews/military-ground-kit/validation.md).
