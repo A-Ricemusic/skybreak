@@ -7,7 +7,9 @@ import { WORLD_FILL_CHUNK } from "./SealedWorldSurface";
  * 6.4 s, M02 5.3 s, M05 14.0 s). Every yield then costs a whole engine frame once a 32k-stud
  * world exists: about 0.2 s for land, rising to 0.42 s when half the work is water (M05).
  * Yield overhead is calibrated ONLY at 0.25 s; runtime slice changes must never
- * reduce this estimate without a new calibration. Estimates exclude cleanup, replication and cold assets.
+ * reduce this estimate without a new calibration. Runtime is capped at 0.15 s
+ * after the first isolated run measured 0.33–0.49 s heartbeat gaps at 0.25 s.
+ * These coefficients remain the old calibration, not a prediction for the new slice. Estimates exclude cleanup, replication and cold assets.
  */
 export const CALIBRATED_TERRAIN_SLICE = 0.25;
 export const TOUCH_SECONDS = 0.07e-3;

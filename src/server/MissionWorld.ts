@@ -1,3 +1,4 @@
+import { destroyWorld } from "./WorldDisposal";
 import { M14World } from "./M14World";
 import { M14_WORLD_KEY } from "../shared/M14WorldPlan";
 import { M15World } from "./M15World";
@@ -250,61 +251,61 @@ export const MissionWorld = {
 	Build(missionId: number, parent: Instance): { groundTargets: Model[]; targetVisuals?: Map<string, Model> } {
 		assert(MissionCatalog.Available(missionId), "Mission world is in development");
 		if (MissionCatalog.WorldKey(missionId) === M14_WORLD_KEY) {
-			Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();
+			destroyWorld(Workspace.FindFirstChild("World")); beginTerrainWrite();
 			return M14World.Build(parent);
 		}
 		if (MissionCatalog.WorldKey(missionId) === M15_WORLD_KEY) {
-			Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();
+			destroyWorld(Workspace.FindFirstChild("World")); beginTerrainWrite();
 			return M15World.Build(parent);
 		}
 		if (MissionCatalog.WorldKey(missionId) === M16_WORLD_KEY) {
-			Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();
+			destroyWorld(Workspace.FindFirstChild("World")); beginTerrainWrite();
 			return M16World.Build(parent);
 		}
 		if (MissionCatalog.WorldKey(missionId) === M17_WORLD_KEY) {
-			Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();
+			destroyWorld(Workspace.FindFirstChild("World")); beginTerrainWrite();
 			return M17World.Build(parent);
 		}
 		if (MissionCatalog.WorldKey(missionId) === M18_WORLD_KEY) {
-			Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();
+			destroyWorld(Workspace.FindFirstChild("World")); beginTerrainWrite();
 			return M18World.Build(parent);
 		}
 		if (MissionCatalog.WorldKey(missionId) === M01_WORLD_KEY) {
-			Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();
+			destroyWorld(Workspace.FindFirstChild("World")); beginTerrainWrite();
 			return M01World.Build(parent);
 		}
 		if (MissionCatalog.WorldKey(missionId) === M02_WORLD_KEY) {
-			Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();
+			destroyWorld(Workspace.FindFirstChild("World")); beginTerrainWrite();
 			return M02World.Build(parent);
 		}
 		if (MissionCatalog.WorldKey(missionId) === M03_WORLD_KEY) {
-			Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();
+			destroyWorld(Workspace.FindFirstChild("World")); beginTerrainWrite();
 			return M03World.Build(parent);
 		}
 		if (MissionCatalog.WorldKey(missionId) === M04_WORLD_KEY || MissionCatalog.WorldKey(missionId) === M05_WORLD_KEY) {
-			Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();
+			destroyWorld(Workspace.FindFirstChild("World")); beginTerrainWrite();
 			return MissionCatalog.WorldKey(missionId) === M04_WORLD_KEY ? M04World.Build(parent) : M05World.Build(parent);
 		}
 		if (MissionCatalog.WorldKey(missionId) === M06_WORLD_KEY || MissionCatalog.WorldKey(missionId) === M07_WORLD_KEY) {
-			Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();
+			destroyWorld(Workspace.FindFirstChild("World")); beginTerrainWrite();
 			return MissionCatalog.WorldKey(missionId) === M06_WORLD_KEY ? M06World.Build(parent) : M07World.Build(parent);
 		}
 		if (MissionCatalog.WorldKey(missionId) === M10_WORLD_KEY || MissionCatalog.WorldKey(missionId) === M11_WORLD_KEY) {
-			Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();
+			destroyWorld(Workspace.FindFirstChild("World")); beginTerrainWrite();
 			return MissionCatalog.WorldKey(missionId) === M10_WORLD_KEY ? M10World.Build(parent) : M11World.Build(parent);
 		}
 		if (MissionCatalog.WorldKey(missionId) === M08_WORLD_KEY || MissionCatalog.WorldKey(missionId) === M09_WORLD_KEY) {
-			Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();
+			destroyWorld(Workspace.FindFirstChild("World")); beginTerrainWrite();
 			return MissionCatalog.WorldKey(missionId) === M08_WORLD_KEY ? M08World.Build(parent) : M09World.Build(parent);
 		}
         if (MissionCatalog.WorldKey(missionId) === M12_WORLD_KEY || MissionCatalog.WorldKey(missionId) === M13_WORLD_KEY) {
-            Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();
+            destroyWorld(Workspace.FindFirstChild("World")); beginTerrainWrite();
             return MissionCatalog.WorldKey(missionId) === M12_WORLD_KEY ? M12World.Build(parent) : M13World.Build(parent);
         }
 		const late = WorldAssets.Preload(UPLOADS[missionId === 0 ? 1 : 2]);
 		if (late.size() > 0) warn(`[MissionWorld] M${missionId}: ${late.join(", ")} still loading after the preload deadline; placing fallbacks`);
 		parent.SetAttribute("WorldPreloadLate", late.size());
-		Workspace.FindFirstChild("World")?.Destroy();
+		destroyWorld(Workspace.FindFirstChild("World"));
 		beginTerrainWrite();
 		WorldEnvironment.Apply(MissionCatalog.Get(missionId).environment);
 		const scenery = new Instance("Folder");

@@ -24,15 +24,15 @@ const clears = new Map<string, WorldClear>();
 /**
  * Registers a world's own clear, keyed by its catalog world key (MissionCatalog.WorldKey). It runs in its own
  * thread through the world gate (WorldLifecycle): it may yield in bounded jobs, should return once `cancelled()`
- * is true, and must leave no mission terrain behind; on success it should call markTerrainClean() (TerrainState) so
- * the next build skips the native clear. Worlds without one use a native Terrain:Clear().
+ * is true, retaining unfinished work for retry. Successful terrain cleanup drains TerrainState
+ * completely. Worlds without one drain the same tracked terrain cleanup queue.
  */
 export function registerWorldClear(worldKey: string, clear: WorldClear): void {
 	assert(worldKey.size() > 0, "World clear needs a world key");
 	clears.set(worldKey, clear);
 }
 export function worldClear(worldKey?: string): WorldClear {
-	return (worldKey !== undefined ? clears.get(worldKey) : undefined) ?? (() => clearTerrainIfDirty());
+	return (worldKey !== undefined ? clears.get(worldKey) : undefined) ?? ((cancelled) => clearTerrainIfDirty(cancelled));
 }
 /** The server's single world gate (see WorldLifecycle). */
 export const worldLifecycle = new WorldLifecycle(robloxScheduler);

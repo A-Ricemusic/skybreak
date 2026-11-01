@@ -21,15 +21,9 @@ function available(name: string): WorldAssetName | undefined {
  const key = name as WorldAssetName;
  return UploadedAssetSpecs[key] !== undefined ? key : undefined;
 }
-/**
- * The M04/M05 world clear, run by the world gate in its own thread, for a finished or a partly built world.
- * Measured in Studio Play: Air-filling M04's shell in bounded jobs took 14 s and the native clear that still had
- * to follow took 8 s more (an Air-filled extent stays allocated), so one native Terrain:Clear() is the cheapest
- * correct clear; the floorless shell (SealedWorldSurface) keeps it about 8-12 s. A native call cannot stop
- * part-way, so `cancelled` only skips a clear that has not started.
- */
+/** Shared cooperative clear for finished and partial builds; the gate owns completion. */
 export function compositionClear(cancelled: () => boolean): void {
- if (!cancelled()) clearTerrainIfDirty();
+ clearTerrainIfDirty(cancelled);
 }
 export function buildComposition(parent: Instance, environment: EnvironmentSpec, makePlan: (checkpoint: (phase?: string) => void) => Composition, descendantLimit: number, cloudFeet: number, terrainBudget = WORLD_TERRAIN_BUDGET, fillChunk = COMPACT_FILL_CHUNK): { groundTargets: Model[] } {
  const start = os.clock();

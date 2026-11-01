@@ -1,5 +1,7 @@
 # Next
 
+PR #205 priority: orchestrator reruns the isolated Studio perf suite and M2→M3 regression after this teardown revision. Check every row and final cleanup, exact M3 error if any, cleanup queue completion, and retained terrain allocation/memory across repeated campaigns. Recalibrate only from measured work/yields in the resulting log; do not reduce estimates from the proposed 0.15 s runtime slice alone.
+
 PR #205 next: orchestrator runs `bun run test:roblox:perf` (only MissionWorldBuild.perf; 60-minute outer deadline, 55-minute test deadline), then the default suite. Inspect MISSION_HEARTBEAT_GAP spans and MISSION_PERF_ROW table; fix any script-owned isolated stall before timing acceptance. Outputs: build/jest-perf-output.log and build/jest-perf-results.json. Existing cheap plan bounds/fingerprints remain always on; no Studio run by implementation agent.
 
 PR #218 ledger repair (2026-10-31, unmerged): merged main f8f3693e; added all ten military Model IDs, source FBX paths, full approval hashes and dated review/moderation evidence to docs/qa/uploaded-assets.md. Corrected the Studio Jest inventory expectation from 39 to 49; the test checks numbers/count, not Markdown. Extended the existing Python military provenance contract to verify ledger rows. Studio rerun and Player observation remain pending; no upload, publish or secret access performed. Validation: frozen install, build and prescribed LUAU_BIN validate:offline all exited 0 (163 Python tests). Studio Jest compiled but was not run.

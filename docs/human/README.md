@@ -1,5 +1,9 @@
 # SKYBREAK campaign dashboard
 
+Validation for the cooperative cleanup revision: frozen install, build and prescribed LUAU_BIN validate:offline all EXIT 0; 503 Luau modules, 1,248 Luau contracts, 36 plan fingerprint/performance checks and 163 Python tests passed. Studio regressions compiled only; no Studio or Player execution.
+
+PR #205 cooperative teardown follow-up (2026-10-31, unmerged): native Terrain:Clear replaced by a resumable queue of tracked 128-stud chunks; world instances drain leaf-first through the lifecycle gate. M03 descendant-cap correction belongs to the separate hotfix/m03-descendant-cap PR; no cap assertions change here. Runtime terrain budget capped at 0.15 s; estimator retains old 0.25 s calibration, so its estimates are not fresh acceptance evidence. Perf reports failures and continues all 18 missions; new Studio M2→M3 regression awaits orchestrator execution. No Studio or Player test performed here.
+
 Validation for this perf-isolation revision: frozen install, build and prescribed LUAU_BIN validate:offline all EXIT 0; 502 Luau modules compiled, 1,248 Luau contracts, 36 plan fingerprint/performance checks and 163 Python tests passed. No Studio or Player execution; isolated heartbeat acceptance and default-suite elapsed time remain unverified.
 
 PR #205 isolated performance follow-up (2026-10-31, unmerged): merged main a06d05f9 and the planning branch. `bun run test:roblox:perf` selects only the 18-world performance test; default Studio Jest retains the existing calibrated plan/count, determinism, Sea and corridor regressions without 18 extra engine builds. Default timeout is 20 minutes; isolated perf timeout is 60 minutes. New phase-span heartbeat diagnostics include cleanup, plan, preload, terrain, placement and Sea. Studio/Player not run here; performance acceptance remains pending.

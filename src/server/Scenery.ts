@@ -158,25 +158,24 @@ export function Shoreline(parent: Instance, x: number, z: number, width: number,
  * Two voxel operations per lobe; sand and shallows come from `Shoreline`.
  */
 export function TerrainIsland(x: number, z: number, width: number, depth: number, top: number, yaw = 0): void {
-	const terrain = Workspace.Terrain;
 	const base = new CFrame(x, 0, z).mul(CFrame.Angles(0, yaw, 0));
 	const rockHeight = top - 4 - HIDDEN_FLOOR; // bottom at HIDDEN_FLOOR, not 20 studs further down
 	for (const [lx, lz, r] of lobes(width, depth)) {
-		terrain.FillCylinder(base.mul(new CFrame(lx, (top - 4) - rockHeight / 2, lz)), rockHeight, r, Enum.Material.Rock);
-		terrain.FillCylinder(base.mul(new CFrame(lx, top - 5, lz)), 10, r - 45, Enum.Material.Grass);
+		const at = base.PointToWorldSpace(new Vector3(lx, 0, lz));
+		TerrainWriter.Write([{ shape: "cylinder", material: "Rock", x: at.X, y: base.Position.Y + (top - 4) - rockHeight / 2, z: at.Z, sx: r, sy: rockHeight, sz: r, yaw: 0 }]);
+		TerrainWriter.Write([{ shape: "cylinder", material: "Grass", x: at.X, y: base.Position.Y + top - 5, z: at.Z, sx: r - 45, sy: 10, sz: r - 45, yaw: 0 }]);
 	}
 }
 
 /** A rounded hill: rock dome with a grass crown, carved flat below the sea. Three voxel operations. */
 export function TerrainHill(x: number, z: number, radius: number, base: number, peak: number): void {
-	const terrain = Workspace.Terrain;
-	terrain.FillBall(new Vector3(x, peak - radius, z), radius, Enum.Material.Rock);
-	terrain.FillBall(new Vector3(x, peak - radius * 0.82 + 2, z), radius * 0.82, Enum.Material.Grass);
-	if (base < peak - radius) terrain.FillBlock(new CFrame(x, (base + peak - radius) / 2, z), new Vector3(radius * 1.5, peak - radius - base + 8, radius * 1.5), Enum.Material.Rock);
+	TerrainWriter.Write([{ shape: "ball", material: "Rock", x, y: peak - radius, z, sx: radius, sy: radius, sz: radius, yaw: 0 }]);
+	TerrainWriter.Write([{ shape: "ball", material: "Grass", x, y: peak - radius * 0.82 + 2, z, sx: radius * 0.82, sy: radius * 0.82, sz: radius * 0.82, yaw: 0 }]);
+	if (base < peak - radius) TerrainWriter.Write([{ shape: "block", material: "Rock", x, y: (base + peak - radius) / 2, z, sx: radius * 1.5, sy: peak - radius - base + 8, sz: radius * 1.5, yaw: 0 }]);
 	// The ball reaches peak - 2r (down to ~-400 for big hills); everything under the
-	// sea is invisible, so carve it back to air in the same synchronous batch.
+	// sea is invisible, so carve it back to air in the same ordered batch.
 	const bottom = peak - radius * 2;
-	if (bottom < HIDDEN_FLOOR) terrain.FillBlock(new CFrame(x, (bottom - 4 + HIDDEN_FLOOR) / 2, z), new Vector3(radius * 2 + 8, HIDDEN_FLOOR - bottom + 4, radius * 2 + 8), Enum.Material.Air);
+	if (bottom < HIDDEN_FLOOR) TerrainWriter.Write([{ shape: "block", material: "Air", x, y: (bottom - 4 + HIDDEN_FLOOR) / 2, z, sx: radius * 2 + 8, sy: HIDDEN_FLOOR - bottom + 4, sz: radius * 2 + 8, yaw: 0 }]);
 }
 
 /**

@@ -1,8 +1,9 @@
+import { destroyWorld } from "../server/WorldDisposal";
 import { fakeIds, fakeUpload, probe } from "./WorldBuildFixtures";
 import { robloxScheduler, worldClear } from "../server/WorldLifecycleRuntime";
 import { WorldLifecycle } from "../shared/WorldLifecycle";
 import { M04_WORLD_KEY } from "../shared/M04WorldPlan";
-import { terrainDirty } from "../server/TerrainState";
+import { clearTerrainIfDirty, terrainDirty } from "../server/TerrainState";
 import { M01 } from "../shared/M01Geometry";
 import { compileBomberEncounter } from "../shared/BomberEncounter";
 import { BomberRules } from "../shared/BomberRules";
@@ -26,7 +27,7 @@ import {M01_ENVIRONMENT} from "../shared/M01WorldPlan";
 // Deterministic uploads: one textured MeshPart per world asset at its authored size, so the
 // placement and grounding checks below exercise the uploaded-clone path without InsertService.
 function cleanup(fixture: Folder | undefined): void {
-	fixture?.Destroy();Workspace.Terrain.Clear();
+	destroyWorld(fixture);clearTerrainIfDirty();
 	Workspace.Terrain.FindFirstChild("MissionClouds")?.Destroy();
 	for(const name of ["MissionAtmosphere","MissionGrade","MissionSky","MissionBloom"])Lighting.FindFirstChild(name)?.Destroy();
 }
@@ -37,7 +38,7 @@ describe("Released campaign world integration (Studio only)",()=>{
  let fixture: Folder | undefined;
  beforeAll(()=>UploadedAssets.Configure({ids:fakeIds(),probe,loader:fakeUpload}));
  afterAll(()=>UploadedAssets.Configure());
- afterEach(()=>{cleanup(fixture);fixture=undefined;Lighting.FindFirstChild("M01SunRays")?.Destroy();});
+ afterEach(()=>{cleanup(fixture);fixture=undefined;Lighting.FindFirstChild("M01SunRays")?.Destroy();UploadedAssets.Configure({ids:fakeIds(),probe,loader:fakeUpload});});
  for(const id of [0,1])it(`builds and disposes released sortie ${id}`,()=>{
   fixture=new Instance("Folder");fixture.Name="CampaignWorldFixture";fixture.Parent=Workspace;
   const bp=MissionCatalog.Get(id),world=MissionWorld.Build(id,fixture);
@@ -109,6 +110,23 @@ describe("Released campaign world integration (Studio only)",()=>{
   expect(MissionWorld.Build(0,again).groundTargets.size()).toBe(1);again.Destroy();
   MissionWorld.RestoreMenu();expect(Workspace.FindFirstChild("World")).toBeDefined();
  },180000);
+ it("builds M2 then M3 in one session with military-kit decorations",()=>{
+  UploadedAssets.Configure({ids:fakeIds(true),probe,loader:fakeUpload});
+  fixture=new Instance("Folder");fixture.Parent=Workspace;
+  MissionWorld.Build(2,fixture);
+  expect(fixture.GetAttribute("WorldBuildPhase")).toBe("done");
+  const old=fixture;
+  const gate=new WorldLifecycle(robloxScheduler);
+  gate.Cleanup({clear:(cancelled)=>{destroyWorld(old);worldClear(MissionCatalog.WorldKey(2))(cancelled);},restore:()=>{}});
+  expect(gate.AwaitIdle()).toBe(true);
+  expect(terrainDirty()).toBe(false);
+  expect(old.Parent).toBeUndefined();
+  fixture=new Instance("Folder");fixture.Parent=Workspace;
+  const world=MissionWorld.Build(3,fixture);
+  expect(fixture.GetAttribute("WorldBuildPhase")).toBe("done");
+  expect(world.targetVisuals!.size()).toBe(MissionCatalog.Get(3).phases[0].groundTargets!.size());
+  expect(fixture.GetDescendants().some(i=>i.GetAttribute("UploadedAsset")!==undefined)).toBe(true);
+ },480000);
  it("builds mission 3 with every typed target drawn once by the world and a raised runway, ready for combat to adopt",()=>{
   fixture=new Instance("Folder");fixture.Name="CampaignWorldFixture";fixture.Parent=Workspace;
   const specs=MissionCatalog.Get(3).phases[0].groundTargets!,world=MissionWorld.Build(3,fixture);

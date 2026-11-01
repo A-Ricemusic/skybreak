@@ -1,5 +1,9 @@
 # Shipped
 
+Validation for the cooperative cleanup revision: frozen install, build and prescribed LUAU_BIN validate:offline all EXIT 0; 503 Luau modules, 1,248 Luau contracts, 36 plan fingerprint/performance checks and 163 Python tests passed. Studio regressions compiled only; no Studio or Player execution.
+
+Pending, not shipped — PR #205 cooperative cleanup follow-up (2026-10-31): tracked chunk teardown and leaf-first prop/Sea disposal replace synchronous mega-clears; all-row perf reporting proposed; M03 cap correction belongs to separate hotfix/m03-descendant-cap. Existing merged/live mission status is unchanged. No Studio, Player, upload or merge performed by this agent.
+
 PR #205 perf isolation follow-up (2026-10-31, unmerged): runner, diagnostic and test changes only; no new live gameplay claim. Main a06d05f9 (including #217–#219 and military kit integration) reconciled into this work. The 18-build loop moves out of default Studio tests; calibrated terrain slices, plan determinism, Sea geometry and corridor checks are preserved. Studio and Player verification pending.
 
 PR #218 ledger repair (2026-10-31, unmerged): merged main f8f3693e; added all ten military Model IDs, source FBX paths, full approval hashes and dated review/moderation evidence to docs/qa/uploaded-assets.md. Corrected the Studio Jest inventory expectation from 39 to 49; the test checks numbers/count, not Markdown. Extended the existing Python military provenance contract to verify ledger rows. Studio rerun and Player observation remain pending; no upload, publish or secret access performed. Validation: frozen install, build and prescribed LUAU_BIN validate:offline all exited 0 (163 Python tests). Studio Jest compiled but was not run.

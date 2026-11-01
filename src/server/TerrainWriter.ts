@@ -1,3 +1,4 @@
+import { trackTerrainJob } from "./TerrainState";
 import { worldTraceScope } from "./WorldBuildTrace";
 import { Workspace } from "@rbxts/services";
 import { runBudgeted, terrainJobs, FILL_CHUNK, TERRAIN_BUDGET, type BudgetRun, type TerrainJob } from "../shared/TerrainSchedule";
@@ -49,6 +50,7 @@ function writeBump(terrain: Terrain, job: TerrainJob, mat: Enum.Material): void 
 }
 
 function run(terrain: Terrain, job: TerrainJob): void {
+	trackTerrainJob(job);
 	const o = job.op;
 	const mat = o.material === "Air" ? Enum.Material.Air : o.material === "Water" ? Enum.Material.Water : material(o.material);
 	if (job.region !== undefined) writeBump(terrain, job, mat);
@@ -66,7 +68,7 @@ export const TerrainWriter = {
 		const endTrace = worldTraceScope("terrain-batches");
 		try {
 			const terrain = Workspace.Terrain, jobs = terrainJobs(ops, fillChunk);
-			const timing = runBudgeted(jobs, (job) => run(terrain, job), { budget, clock: os.clock, pause: () => task.wait(), cancelled });
+			const timing = runBudgeted(jobs, (job) => run(terrain, job), { budget: math.min(budget, 0.15), clock: os.clock, pause: () => task.wait(), cancelled });
 			return { ...timing, jobs: jobs.size() };
 		} finally { endTrace(); }
 	},
