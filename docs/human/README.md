@@ -8,6 +8,8 @@ All missions passed the orchestrator's full Studio Jest suite before merge (repo
 
 PR #202 follow-up validation (2026-10-31): frozen install, build, and prescribed-LUAU_BIN validate:offline exited 0; 1,223 offline Luau contracts, 487 module compilations, 202 require-graph nodes and 124 Python tests passed. ChapterContinuation.spec is in both offline runner lists. No Studio, test:roblox or Player run.
 
+PR #203 smoke follow-up (2026-10-31, unmerged): orchestrator's first Studio run passed 1,463 other tests but stopped on Practice because the voxel check iterated `ReadVoxels.Size` (a Vector3). The helper now indexes numeric cells using Size, checks legacy Practice ground models separately from typed mission contacts, and includes a metadata/occupied-cell regression. Each mission reports its own row despite assertion failures; production completion/settlement still supplies unlocks, and genuine launch/settlement failures remain failures rather than fabricated progression. Frozen install, build and prescribed-LUAU_BIN offline validation exited 0 (1,223 Luau contracts, 489 module compilations, 202 require-graph nodes and 124 Python tests). The new smoke regression is compiled but awaits Studio execution. Studio rerun belongs to the orchestrator; no new Studio or Player verification is claimed.
+
 Publish snapshot: latest 20 main runs checked; all 20 succeeded, including M18 run [41187517345](https://github.com/A-Ricemusic/skybreak/actions/runs/41187517345) completed successfully. No failure in that sample. Live is a pipeline convention, not an observed Player result.
 
 | Mission | Title | PR | Merge commit | Studio verified | Player tested |

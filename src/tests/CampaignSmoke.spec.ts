@@ -15,11 +15,19 @@ import { takeArrival } from "../shared/CampaignEncounters";
 import { canLaunchMission } from "../shared/CampaignProgress";
 import { nextResultMission } from "../shared/ResultContinuation";
 import { MissionFinished, Remotes } from "../shared/Types";
-import { assertSmokeAdoption, assertSmokeSpawn, forceSmokeVictory } from "./helpers/CampaignSmoke";
+import { assertEmptySmokeVoxels, assertSmokeAdoption, assertSmokeSpawn, forceSmokeVictory } from "./helpers/CampaignSmoke";
 
 // One sequential save, one actual world lease, no client, no DataStore, no Heartbeat.
 // Full terrain stays enabled: this is a world integration test, not a plan/fixture test.
 describe("campaign production launch → world → settlement → Next (Studio)", () => {
+ it("checks only numeric voxel cells, including the far corner, when Size metadata is present", () => {
+  const occupancy = [[[0, 0]], [[0, 0]]] as ReadVoxelsArray<number>;
+  occupancy.Size = new Vector3(2, 1, 2);
+  assertEmptySmokeVoxels(occupancy);
+  occupancy[1][0][1] = 0.5;
+  const [ok] = pcall(() => assertEmptySmokeVoxels(occupancy));
+  expect(ok).toBe(false);
+ });
  it("flies a bounded smoke window for Practice and all 18 missions on one legitimate save", () => {
   const started = os.clock(), errors: string[] = [], results: MissionFinished[] = [];
   const log = LogService.MessageOut.Connect((message, kind) => {
@@ -41,23 +49,37 @@ describe("campaign production launch → world → settlement → Next (Studio)"
   try {
    expect(canLaunchMission(2,coordinator.getSlots()[0])).toBe(false);
    let buildStart = os.clock();
-   expect(campaign.request("StartMission", {slot:1,missionId:0,launchId:1}).ok).toBe(true);
+   const failures: string[] = [];
    for (let id = 0; id <= 18; id++) {
-    const before = id===0 ? 0 : errors.size();
-    const s = CombatService.GetSession(player)!;
+    const before = errors.size(), problems: string[] = [];
+    // A failed Next/build must still produce a row for this mission and every later mission.
+    const [launched, launchProblem] = pcall(() => {
+     if (CombatService.GetSession(player) === undefined) {
+      buildStart = os.clock();
+      const response = campaign.request("StartMission", {slot:1,missionId:id,launchId:id+1});
+      assert(response.ok, response.error ?? "Campaign launch refused");
+     }
+    });
+    if (!launched) problems.push(`launch: ${tostring(launchProblem)}`);
+    const s = CombatService.GetSession(player);
     const buildMs = math.floor((os.clock()-buildStart)*1000);
+    const targetCount = s?.enemies.size() ?? 0;
     const [ok, problem] = pcall(() => {
+     assert(s !== undefined && s.missionId === id, "Expected production mission session");
      expect(s).toBeDefined(); expect(s.missionId).toBe(id); expect(s.folder.Parent).toBe(root);
      expect(buildMs).toBeLessThan(20000);
-     const count = assertSmokeAdoption(s);
+     assertSmokeAdoption(s);
      assertSmokeSpawn(s);
-     expect(s.blueprintState!.phaseIndex).toBe(0);
+     const state = s.blueprintState, blueprint = s.blueprint;
+     assert(state !== undefined && blueprint !== undefined, "Expected production blueprint state");
+     expect(state.phaseIndex).toBe(0);
      expect(s.appliedBlueprintPhaseIndex).toBe(0);
      combat.begin(s);
      // Complete the authored fly-off before checking combat roles.
      for (let n=0; n<100 && s.launch; n++) combat.step(s,1/30);
      expect(s.launch).toBeUndefined();
-     const phase = BlueprintRunner.ActivePhase(s.blueprintState!)!;
+     const phase = BlueprintRunner.ActivePhase(state);
+     assert(phase !== undefined, "Expected an opening phase");
      combat.direct(s);
      if(phase.cruiseIntercept) for(const target of phase.cruiseIntercept.targets.filter(t=>t.parentId===undefined && (t.arrivalSeconds ?? 0)<=1/30)) {
       const contact=s.enemies.find(e=>e.id===target.id)!;
@@ -82,18 +104,18 @@ describe("campaign production launch → world → settlement → Next (Studio)"
       expect(s.crashReason).never.toBe("internal_error");
       expect(s.active).toBe(true);
       s.state={...pose}; s.health=100; s.lastInput=os.clock();
-      s.blueprintState!.startedAt=os.clock()-n/30;
+      state.startedAt=os.clock()-n/30;
       combat.step(s,1/30); combat.flush(s);
      }
      expect(s.crashReason).never.toBe("internal_error");
      expect(s.stepCount).toBeGreaterThanOrEqual(900);
      // Later contacts are intentionally hidden until their owning phase. Apply each phase
      // through the production director, then check every enabled required contact's ownership.
-     const phases = MissionCatalog.ExpandedPhases(s.blueprint!);
-     s.blueprintState!.phases = phases;
+     const phases = MissionCatalog.ExpandedPhases(blueprint);
+     state.phases = phases;
      for(let index=0;index<phases.size();index++) {
-      s.blueprintState!.phaseIndex=index; s.blueprintState!.phaseProgress=0;
-      s.blueprintState!.outcome=undefined; s.elapsed=0; combat.apply(s);
+      state.phaseIndex=index; state.phaseProgress=0;
+      state.outcome=undefined; s.elapsed=0; combat.apply(s);
       // Staggered bombers are materialized by the same generalized arrival director.
       const b=phases[index].bombers;
       if(b) {
@@ -129,7 +151,7 @@ describe("campaign production launch → world → settlement → Next (Studio)"
       if(vent) {
        const core=s.enemies.find(e=>e.id===vent.core)!;
        expect(core).toBeDefined(); expect(combat.owns(s,core)).toBe(false);
-       s.blueprintState!.vent={...newVent(),elapsed:vent.openingSeconds,checkpoint:vent.checkpoints.size()};
+       state.vent={...newVent(),elapsed:vent.openingSeconds,checkpoint:vent.checkpoints.size()};
        expect(combat.owns(s,core)).toBe(true); expect(combat.damageable(s,core)).toBe(true);
       }
       for(const e of s.enemies.filter(e=>e.required && e.enabled && e.health>0 && e.withdrawUntil===undefined)) {
@@ -137,7 +159,14 @@ describe("campaign production launch → world → settlement → Next (Studio)"
        if(e.kind==="ground" && e.phaseOwner===index ) expect(combat.damageable(s,e)).toBe(true);
       }
      }
-     forceSmokeVictory(s); combat.finish(s);
+    });
+    if (!ok) problems.push(`checks: ${tostring(problem)}`);
+    // Even failed assertions must settle the legitimate sortie to unlock the next one.
+    // Never forge progression if launch/settlement itself failed: later rows report the refusal.
+    const [advanced, advanceProblem] = pcall(() => {
+     assert(s !== undefined && s.missionId === id, "No matching sortie to settle");
+     const resultIndex = results.size();
+     if (!s.finished) { forceSmokeVictory(s); combat.finish(s); }
      expect(CombatService.IsCompleting(player)).toBe(true);
      // Issue Next while the result is still settling: the real request must wait,
      // commit fresh progression, release the old session and build the next world.
@@ -153,12 +182,17 @@ describe("campaign production launch → world → settlement → Next (Studio)"
      }
      expect(s.cleaned).toBe(true); expect(s.folder.Parent).toBeUndefined();
      expect(root.GetChildren().size()).toBe(nextMission===undefined ? 0 : 1);
-     expect(results[id].kind).toBe("Completed"); expect(results[id].missionId).toBe(id);
-     expect(errors.size()).toBe(before);
-     print(`CAMPAIGN_SMOKE | ${id} | ${buildMs} | ${count} | ${errors.size()-before}`);
+     const result = results[resultIndex];
+     expect(result).toBeDefined();
+     expect(result.kind).toBe("Completed"); expect(result.missionId).toBe(id);
     });
-    if(!ok) { print(`CAMPAIGN_SMOKE | ${id} | ${buildMs} | ${s?.enemies.size() ?? 0} | FAIL ${tostring(problem)}; ${errors.join("; ")}`); error(problem); }
+    if (!advanced) problems.push(`advance: ${tostring(advanceProblem)}`);
+    for (let n = before; n < errors.size(); n++) problems.push(errors[n]);
+    const report = problems.size() === 0 ? "0" : `FAIL ${problems.join("; ")}`;
+    print(`CAMPAIGN_SMOKE | ${id} | ${buildMs} | ${targetCount} | ${report}`);
+    if (problems.size() > 0) failures.push(`M${id}: ${problems.join("; ")}`);
    }
+   if (failures.size() > 0) error(`Campaign smoke failures:\n${failures.join("\n")}`);
    expect(os.clock()-started).toBeLessThan(290);
   } finally {
    CombatService.EndMission(player);

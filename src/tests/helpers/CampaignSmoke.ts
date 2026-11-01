@@ -4,9 +4,18 @@ import { CombatSession } from "../../server/CombatSession";
 import { MissionCatalog } from "../../shared/MissionCatalog";
 import { nextResultMission } from "../../shared/ResultContinuation";
 
+/** ReadVoxels arrays also contain Size: Vector3. Generalized iteration visits that key. */
+export function assertEmptySmokeVoxels(occupancy: ReadVoxelsArray<number>): void {
+ const size = occupancy.Size;
+ for (let x = 0; x < size.X; x++) for (let y = 0; y < size.Y; y++) for (let z = 0; z < size.Z; z++) {
+  expect(occupancy[x][y][z]).toBe(0);
+ }
+}
+
 /** Test-only forced completion. It deliberately bypasses objective play, never settlement or unlocks. */
 export function forceSmokeVictory(s: CombatSession): void {
- const bs = s.blueprintState!, bp = s.blueprint!;
+ const bs = s.blueprintState, bp = s.blueprint;
+ assert(bs !== undefined && bp !== undefined, "Production session must have blueprint state");
  bs.phaseIndex = MissionCatalog.TotalPhases(bp);
  bs.requiredGroundKills = MissionCatalog.RequiredGroundKills(bp);
  bs.requiredAirKills = MissionCatalog.RequiredAirKills(bp);
@@ -27,16 +36,28 @@ export function assertSmokeSpawn(s: CombatSession): void {
  const ground = Workspace.Raycast(new Vector3(p.X, 8192, p.Z), new Vector3(0, -15000, 0), params);
  expect(p.Y).toBeGreaterThan((ground?.Position.Y ?? 0) + 8);
  const [, occupancy] = Workspace.Terrain.ReadVoxels(new Region3(p.sub(new Vector3(4,4,4)), p.add(new Vector3(4,4,4))).ExpandToGrid(4), 4);
- for (const plane of occupancy) for (const row of plane) for (const cell of row) expect(cell).toBe(0);
+ assertEmptySmokeVoxels(occupancy);
  // Production collision filter excludes aircraft/invisible aim roots and includes authored solid scenery.
- expect(Workspace.Spherecast(p, 6, new Vector3(0, 1, 0), s.collisionParams)).toBeUndefined();
+ const collision = s.collisionParams;
+ assert(collision !== undefined, "Production session must have collision filters");
+ expect(Workspace.Spherecast(p, 6, new Vector3(0, 1, 0), collision)).toBeUndefined();
  const overlap = new OverlapParams(); overlap.FilterType = Enum.RaycastFilterType.Include;
- overlap.FilterDescendantsInstances = s.collisionParams!.FilterDescendantsInstances;
+ overlap.FilterDescendantsInstances = collision.FilterDescendantsInstances;
  expect(Workspace.GetPartBoundsInRadius(p, 4, overlap).size()).toBe(0);
 }
 
 export function assertSmokeAdoption(s: CombatSession): number {
- const phases = MissionCatalog.ExpandedPhases(s.blueprint!);
+ const blueprint = s.blueprint;
+ assert(blueprint !== undefined, "Production session must have a blueprint");
+ const phases = MissionCatalog.ExpandedPhases(blueprint);
+ // Practice uses blueprint.ground and generated identities, without typed phase ownership.
+ const legacy = s.enemies.filter(e => e.kind === "ground" && e.typedGround === undefined);
+ expect(legacy.size()).toBe(blueprint.ground.size());
+ for (let index = 0; index < legacy.size(); index++) {
+  expect(legacy[index].groundIndex).toBe(index);
+  expect(legacy[index].model.Parent).toBe(s.folder);
+  expect(legacy[index].model.PrimaryPart).toBeDefined();
+ }
  const ids = new Set<string>();
  for (let index = 0; index < phases.size(); index++) for (const spec of phases[index].groundTargets ?? []) {
   if (!spec.required) continue;
