@@ -103,7 +103,7 @@ Constraints to remember:
 
 - **Luau's 200-local limit per function.** `check-luau-modules.ts` compiles every emitted module and fails on it. Module-level imports count as locals, which is why `CombatService.ts` imports feature runtimes as namespaces. Prefer extracting a module over adding imports to a large file.
 - **Offline modules must be pure.** A module in `MODULES` may not touch Roblox services or globals (only `GameConfig` and `UploadedAssetSpecs` get shims). Type-only imports are erased; runtime dependencies must be listed too.
-- **Frozen fixtures are contracts.** The catalog snapshot and the voice line ids fail validation when mission data changes. Regenerate them deliberately and say so in the PR. (`tools/test-phase-director-parity.ts` and its `phase-director.before.json` fixture are a manual check, not part of the gate.)
+- **Frozen fixtures are contracts.** The catalog snapshot and the voice line ids fail validation when mission data changes. Regenerate them deliberately and say so in the PR.
 - **Test fixtures use the production factory.** Build sessions with `CombatSessionFactory.createCombatSession` rather than hand-written literals so new session fields cannot silently diverge.
 
 ## Conventions
