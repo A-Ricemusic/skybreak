@@ -97,6 +97,45 @@ function detailedTile(x: number, z: number): boolean {
 	for (let dx = 0; dx <= 1024; dx += 128) for (let dz = 0; dz <= 1024; dz += 128) if (m03Detailed(x + dx, z + dz)) return true;
 	return false;
 }
+// Preserve the pre-coarsening sampled height field, including its 64-stud target
+// refinement. A coarse cap must not rise above ANY old column it replaces:
+// otherwise its cap/curtains can dam a low flight path (notably the gorge).
+const baselineDetail = new Map<string, boolean>();
+function baselineGround(x: number, z: number): number {
+	const tx = math.floor((x + M03.halfX) / 512) * 512 - M03.halfX;
+	const tz = math.floor((z + M03.halfZ) / 512) * 512 - M03.halfZ;
+	const key = `${tx},${tz}`;
+	let detailed = baselineDetail.get(key);
+	if (detailed === undefined) {
+		detailed = false;
+		for (let dx = 0; dx <= 512; dx += 128) for (let dz = 0; dz <= 512; dz += 128)
+			if (m03Detailed(tx + dx, tz + dz)) detailed = true;
+		baselineDetail.set(key, detailed);
+	}
+	let side = detailed ? 128 : 512;
+	let cx = tx + math.floor((x - tx) / side) * side, cz = tz + math.floor((z - tz) / side) * side;
+	if (side === 128) for (const t of TARGET_POSITIONS) {
+		if (t[0] >= cx - 128 && t[0] <= cx + 256 && t[1] >= cz - 128 && t[1] <= cz + 256) {
+			side = 64;
+			cx += math.floor((x - cx) / side) * side; cz += math.floor((z - cz) / side) * side;
+			break;
+		}
+	}
+	return m03Height(cx + math.min(side, M03.halfX - cx) / 2, cz + math.min(side, M03.halfZ - cz) / 2);
+}
+const clearanceTops = new Map<string, number>();
+function clearanceTop(x: number, z: number, sx: number, sz: number): number {
+	const key = `${x},${z},${sx},${sz}`;
+	const cached = clearanceTops.get(key);
+	if (cached !== undefined) return cached;
+	let top = m03Height(x + sx / 2, z + sz / 2);
+	// Both grids share a 64-stud origin. Every former column is represented,
+	// including truncated boundary cells. Curtains lie wholly in the higher cap.
+	for (let dx = 0; dx < sx; dx += 64) for (let dz = 0; dz < sz; dz += 64)
+		top = math.min(top, baselineGround(x + dx, z + dz));
+	clearanceTops.set(key, top);
+	return top;
+}
 function cellAt(x: number, z: number) {
 	const tx = math.floor((x + M03.halfX) / 1024) * 1024 - M03.halfX;
 	const tz = math.floor((z + M03.halfZ) / 1024) * 1024 - M03.halfZ;
@@ -107,7 +146,7 @@ function cellAt(x: number, z: number) {
 		cx += math.floor((x - cx) / side) * side; cz += math.floor((z - cz) / side) * side;
 	}
 	const sx = math.min(side, M03.halfX - cx), sz = math.min(side, M03.halfZ - cz);
-	return { x: cx, z: cz, sx, sz, top: m03Height(cx + sx / 2, cz + sz / 2) };
+	return { x: cx, z: cz, sx, sz, top: clearanceTop(cx, cz, sx, sz) };
 }
 export function m03Ground(x: number, z: number): number {
 	return cellAt(x, z).top;
