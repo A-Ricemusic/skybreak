@@ -6,6 +6,7 @@ import importlib.util
 import io
 import json
 from pathlib import Path
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -13,6 +14,8 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import roblox_upload as ru
+
+REAL_HTTP = ru.http
 
 spec = importlib.util.spec_from_file_location("upload_models", Path(__file__).resolve().parents[1] / "upload-models.py")
 models = importlib.util.module_from_spec(spec)
@@ -26,9 +29,11 @@ class UploadModelsTests(unittest.TestCase):
         self.root = Path(temp.name)
         self.state = self.root / "state"
         self.state.mkdir()
-        for obj, name, value in ((models, "ROOT", self.root), (ru, "STATE", self.state),
+        for obj, name, value in ((models, "ROOT", self.root), (ru, "ROOT", self.root), (ru, "STATE", self.state),
                                   (ru, "JOURNAL", self.state / "journal-3407487520.json"),
-                                  (ru, "HALT", self.state / "HALT-3407487520")):
+                                  (ru, "HALT", self.state / "HALT-3407487520"),
+                                  (ru, "MODEL_HALT", self.state / "HALT-models"),
+                                  (ru, "AUDIO_HALT", self.state / "HALT-audio")):
             patcher = patch.object(obj, name, value)
             patcher.start()
             self.addCleanup(patcher.stop)
@@ -44,8 +49,17 @@ class UploadModelsTests(unittest.TestCase):
         self.approval_path.parent.mkdir(parents=True)
         self.checklist = {"exportVersion": "jet-2", "checks": {k: {"value": True} for k in models.REQUIRED_CHECKS}}
         self.approval = {"approved": True, "reviewer": "independent reviewer", "uploadAssetType": "Model",
+                         "score": "10/10", "record": "docs/qa/asset-reviews/review.md",
                          "uploadSet": {"jet.fbx": hashlib.sha256(self.content).hexdigest()}, "exportVersion": "jet-2"}
         self.write_checklist()
+        self.record_path = self.root / "docs/qa/asset-reviews/review.md"
+        self.record_path.write_text("Independent review. Score 10/10. VERDICT: APPROVE")
+        self.git("init", "-q")
+        self.git("add", "docs")
+        self.git("-c", "user.name=Test", "-c", "user.email=test@example.invalid", "commit", "-qm", "review")
+
+    def git(self, *args):
+        return subprocess.run(["git", *args], cwd=self.root, check=True, capture_output=True)
 
     def write_approval(self):
         self.approval_path.write_text(json.dumps(self.approval))
@@ -55,6 +69,61 @@ class UploadModelsTests(unittest.TestCase):
         (self.folder / "checklist.json").write_bytes(data)
         self.approval["checklistSha256"] = hashlib.sha256(data).hexdigest()
         self.write_approval()
+
+    def commit_evidence(self):
+        self.git("add", "docs")
+        self.git("-c", "user.name=Test", "-c", "user.email=test@example.invalid", "commit", "-qm", "updated review")
+
+    def test_uncommitted_approval_refused(self):
+        self.approval["note"] = "uncommitted"
+        self.write_approval()
+        self.refuse("differs from committed")
+
+    def test_missing_committed_record_refused(self):
+        self.git("rm", "--cached", "docs/qa/asset-reviews/review.md")
+        self.git("-c", "user.name=Test", "-c", "user.email=test@example.invalid", "commit", "-qm", "remove review")
+        self.refuse("Missing committed")
+
+    def test_texture_hash_mismatch_refused(self):
+        texture = self.folder / "jet-color.png"
+        texture.write_bytes(b"reviewed texture")
+        self.approval["embeddedTextures"] = {texture.name: hashlib.sha256(texture.read_bytes()).hexdigest()}
+        self.write_approval()
+        self.commit_evidence()
+        texture.write_bytes(b"changed texture")
+        self.refuse("texture SHA-256")
+
+    def test_direct_shared_helper_cannot_skip_review(self):
+        content = b"unreviewed FBX"
+        with self.assertRaisesRegex(RuntimeError, "matching committed"):
+            ru.submit_and_moderate("jet", "jet/jet.fbx", None, content,
+                                   hashlib.sha256(content).hexdigest(), "jet.fbx", "desc",
+                                   "independent reviewer", "fake-test-token", "rejected", asset_type="Model")
+        self.assertFalse(ru.JOURNAL.exists())
+
+    def test_committed_record_hash_cannot_be_replaced_in_working_tree(self):
+        content = b"changed FBX"
+        (self.folder / "jet.fbx").write_bytes(content)
+        self.approval["uploadSet"]["jet.fbx"] = hashlib.sha256(content).hexdigest()
+        self.write_approval()
+        self.refuse("matching committed")
+
+    def test_nonperfect_or_rejected_review_refused(self):
+        self.approval["score"] = "9/10"
+        self.write_approval()
+        self.commit_evidence()
+        self.refuse("10/10 APPROVE")
+        self.approval["score"] = "10/10"
+        self.write_approval()
+        self.record_path.write_text("10/10 VERDICT: REJECT")
+        self.commit_evidence()
+        self.refuse("VERDICT: APPROVE")
+
+    def test_legacy_audio_halt_and_rejection_allow_reviewed_model(self):
+        ru.HALT.write_text("voice rejected")
+        ru.record("voice/old.ogg", {"state": ru.REJECTED})
+        self.assertIn("jet.fbx", self.dry())
+        self.assertEqual(ru.HALT.read_text(), "voice rejected")
 
     def dry(self):
         output = io.StringIO()
@@ -109,17 +178,20 @@ class UploadModelsTests(unittest.TestCase):
     def test_export_version_mismatch(self):
         self.checklist["exportVersion"] = "jet-3"
         self.write_checklist()
+        self.commit_evidence()
         self.refuse("exportVersion")
 
     def test_missing_export_version(self):
         del self.approval["exportVersion"]
         del self.checklist["exportVersion"]
         self.write_checklist()
+        self.commit_evidence()
         self.refuse("exportVersion")
 
     def test_false_check(self):
         self.checklist["checks"]["noText"]["value"] = False
         self.write_checklist()
+        self.commit_evidence()
         self.refuse("value: true")
 
     def test_empty_missing_flat_and_additional_false_checks(self):
@@ -127,14 +199,15 @@ class UploadModelsTests(unittest.TestCase):
                        {**self.checklist["checks"], "extra": {"value": False}}):
             self.checklist["checks"] = checks
             self.write_checklist()
-            self.refuse("value: true")
+            self.commit_evidence()
+        self.refuse("value: true")
 
     def test_halt(self):
-        ru.HALT.write_text("halted")
-        self.refuse("Account halted")
+        ru.MODEL_HALT.write_text("halted")
+        self.refuse("Model uploads halted")
 
     def test_unresolved_journal(self):
-        ru.record("audio/earlier.ogg", {"state": "UNKNOWN"})
+        ru.record("model/earlier.fbx", {"state": "UNKNOWN", "assetType": "Model"})
         self.refuse("Unresolved account upload")
 
     def test_dry_run_no_network_or_key_or_journal_write(self):
@@ -170,6 +243,16 @@ class UploadModelsTests(unittest.TestCase):
         with patch.object(ru, "http", side_effect=responses) as http, contextlib.redirect_stdout(io.StringIO()):
             result = models.upload(models.prepare("jet"), "fake-test-token")
         return result, http
+
+    def test_reviewed_model_passes_real_transport_validation_with_fake_network(self):
+        responses = [{"operationId": "op1"}, {"done": True, "response": {"assetId": "42"}},
+                     {"moderationResult": {"moderationState": "Approved"}}]
+        with patch.object(ru, "http", wraps=REAL_HTTP), \
+                patch.object(ru._http, "request_json", side_effect=responses) as request, \
+                contextlib.redirect_stdout(io.StringIO()):
+            result = models.upload(models.prepare("jet"), "fake-test-token")
+        self.assertEqual(result["state"], ru.APPROVED)
+        self.assertEqual(request.call_count, 3)
 
     def test_success_journals_id_and_only_fbx_multipart(self):
         result, http = self.fake_upload([{"operationId": "op1"}, {"done": True, "response": {"assetId": "42"}},
@@ -213,10 +296,10 @@ class UploadModelsTests(unittest.TestCase):
         self.journal_item(assetId="42")
         with self.assertRaisesRegex(RuntimeError, "rejected Model"):
             self.fake_upload([{"moderationResult": {"moderationState": "Rejected"}}])
-        self.assertTrue(ru.HALT.exists())
+        self.assertTrue(ru.MODEL_HALT.exists())
         self.assertEqual(ru.load_journal()["uploads"]["jet/jet.fbx"]["state"], ru.REJECTED)
-        with self.assertRaisesRegex(RuntimeError, "Account halted"):
-            ru.gate("jet/jet.fbx")
+        with self.assertRaisesRegex(RuntimeError, "Model uploads halted"):
+            ru.gate("jet/jet.fbx", asset_type="Model")
 
     def test_unknown_moderation_stops_without_resubmitting(self):
         self.journal_item(assetId="42")

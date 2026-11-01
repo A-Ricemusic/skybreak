@@ -1,5 +1,7 @@
 # Next
 
+Review the pending D-666 upload-gate PR: preserve the audio ban and legacy HALT; permit only committed, byte-matched independently reviewed models. No upload is part of this task.
+
 Priority: review the pending results-continuation PR, then verify first-time M01 → M02 on the owner’s phone (Normal). Confirm chapter 1 plays before M02 loading on first continuation, Skip proceeds through normal loading, replay with chapter 1 seen launches directly, and repeated-tap protection, mouse/gamepad activation, M17 → chapter 17 → M18, and M18 CAMPAIGN COMPLETE with no Next. Offline checks cannot establish device behavior.
 
 1. Owner: play practice and missions 1–18 in order on one save in Roblox Player, then replay selected missions on Easy, Normal and Hard/ACE. Practice: fly the pattern, hit the radar and confirm mission 1 stays accessible.

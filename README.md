@@ -66,18 +66,17 @@ Keep `rojo serve` running in a separate terminal. The companion's state is avail
 
 The non-vocal combat library lives in `assets/audio`. `cues.json` defines the 25 effects; `upload-plan.json` maps them into eight Roblox assets to conserve upload slots. `src/shared/SoundBank.ts` contains only approved Roblox IDs and native playback/loop regions. Engines respond to throttle, missile motors follow projectiles, explosions use positional emitters, and cockpit warnings have a single priority order. Transient sounds, missile motors and enemy engines have client-side caps and clean up between sorties.
 
-The production workflow uses Python with FFmpeg, plus `faster-whisper` for local speech screening:
+Audio/voice uploads are permanently blocked by the owner (2026-10-31), even if halt files are absent. Existing approved playback remains. Historical preparation uses Python with FFmpeg and `faster-whisper`; offline preflight does not authorize upload:
 
 ```sh
 python3 tools/build-audio.py --key-file "$ELEVENLABS_KEY_FILE" --ffmpeg "$FFMPEG_BIN"
 python3 tools/pack-audio.py --ffmpeg "$FFMPEG_BIN"
 python3 tools/review-audio.py
 python3 tools/upload-audio.py --key-file "$ROBLOX_KEY_FILE" --dry-run
-python3 tools/upload-audio.py --key-file "$ROBLOX_KEY_FILE"
 bun run build:place
 ```
 
-The generation key needs sound-generation and subscription-read access. Final audio requires paid-plan provenance. Generation caches raw takes in ignored `build/audio`; do not regenerate approved or submitted files, since their upload journal hashes must remain stable. The uploader resumes recorded operations, checks the shared account journal and halt file, and only writes approved IDs into the sound bank. It cannot publish a place. Review records explicitly distinguish automated non-vocal screening from human listening. Any future voice recordings require the owner's transcript, identity, licensing and independent listening checks before upload.
+The generation key needs sound-generation and subscription-read access. Final audio requires paid-plan provenance. Generation caches raw takes in ignored `build/audio`; do not regenerate approved or submitted files, since their upload journal hashes must remain stable. Real audio/voice upload runs refuse before reading credentials. The legacy account HALT remains an audio halt and must not be removed. Review records explicitly distinguish automated non-vocal screening from human listening. Future voice recordings remain blocked by the same code ban.
 
 ## Roblox Jest tests
 
@@ -134,7 +133,7 @@ These tools are run by hand and are not part of any test script:
 - `bun tools/render-hud-mock.ts [filter]` renders static HUD PNG mocks into `docs/design/` with headless Chrome (`CHROME_BIN` overrides the default macOS Chrome path).
 - `Blender --background --factory-startup --python tools/assets/verify_fbx.py` round-trips every exported FBX in `assets/roblox-upload/` through Blender's importer and compares it with its checklist.
 
-`tools/upload-audio.py` and `tools/upload-voice.py` share the account upload journal, HALT gate and polling in `tools/roblox_upload.py` (unit-tested by `python3 -m unittest discover -s tools/tests`).
+`tools/upload-audio.py`, `tools/upload-voice.py` and `tools/upload-models.py` share the journal and `audio-upload.lock` in `tools/roblox_upload.py`. Audio/voice is permanently disabled. Models use `HALT-models-3407487520`; only exact FBX/texture hashes in committed independent 10/10 APPROVE evidence are allowed. A model rejection halts model/mesh/image uploads. Unit tests use isolated state and mocked networking: `python3 -m unittest discover -s tools/tests`.
 
 `bun run validate:offline` is the shared PR and publish gate. Install Bun 1.3.14,
 Aftman 0.3.0 with the Rojo version in `aftman.toml`, Python 3.12,

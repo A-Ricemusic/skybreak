@@ -704,3 +704,13 @@ M18 #200 replay validation (2026-10-31, M17 base be746a10): frozen install, stan
 - **Maker / status:** Implementation sub-agent under owner review-fix instruction, 2026-10-31; proposed in #202, unmerged. Offline tests only; no Studio or Player verification.
 
 Validation: `bun install --frozen-lockfile`, `bun run build`, and `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau" bun run validate:offline` exited 0. Added ChapterContinuation.spec to both runner lists; 1,223 Luau contracts passed, retaining missions 1–17 continuation, save-in-flight, M18 no-Next and loading debounce coverage.
+
+## D-666 — Separate audio and reviewed-model upload gates (2026-10-31)
+
+- **Decision maker:** Owner; implementation pending in this tooling PR.
+- **Decision:** Audio/voice uploads remain permanently disabled in code, even without HALT files. Both legacy `HALT-3407487520` and new `HALT-audio-3407487520` count as audio halts; never delete or migrate the legacy file. Preserve the shared journal lock.
+- **Models:** Allow only byte-matched FBX uploads backed by committed independent 10/10 APPROVE records in `docs/qa/asset-reviews/`, with matching texture hashes. Recheck the review in the shared helper, including resumed operations. A model moderation rejection writes a separate `HALT-models-3407487520`, blocking all model/mesh/image classes.
+- **Alternatives:** A global HALT unnecessarily blocks approved models; removing the legacy HALT or relying on file presence alone could reopen audio uploads. Both rejected.
+- **Scope/status:** Tooling only, unmerged; no real uploads, credential reads, Studio or Player testing. Existing shipped game assets and audio remain unchanged.
+
+Validation for D-666: `bun install --frozen-lockfile` and `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau" bun run validate:offline` exited 0. Passed 1,223 Luau contracts, 487 module compilations, 202 require-graph nodes, 19 catalog snapshots and 135 Python tests. No real upload or credential read; upload tests use temporary state and fake networking.

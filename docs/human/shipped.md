@@ -1,5 +1,7 @@
 # Shipped
 
+Pending D-666 upload-gate tooling is unmerged and has no Player-visible change. No new assets uploaded; shipped entries below describe previously merged work.
+
 Pending PR (unmerged): fix results Next after the owner’s M01 Normal phone playtest. Cached pre-sortie slots silently rejected newly unlocked missions. Next now shares normal start’s unseen-chapter check, then requests an authoritative launch with the normal loading screen after playback or Skip; seen chapters launch directly. Launching alone never records a chapter as seen; the finale is also acknowledged only after playback/Skip. The server waits for result settlement, then retains its progression/session/world gates. Missions 1–17 continue; M18 says CAMPAIGN COMPLETE without Next. Errors return to results with a visible message and retryable Next. Offline coverage only; no agent Player/Studio test.
 
 Main `4594c365`, newest first in first-parent merge order. Each PR appears once; older descriptions describe the change at its merge, with later mission rows identifying activation. Commits are the actual main squash/merge commits. Gameplay is live by pipeline convention. No Player verification claimed. All mission integrations passed the orchestrator’s Studio Jest suite before merge; M18: 1,450/1,450. This pass performed offline validation only.

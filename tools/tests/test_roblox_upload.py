@@ -21,11 +21,14 @@ class RobloxUploadJournalTests(unittest.TestCase):
         self.state = Path(self.temp.name)
         self.journal = self.state / "journal-3407487520.json"
         self.halt = self.state / "HALT-3407487520"
-        for name, value in (("STATE", self.state), ("JOURNAL", self.journal), ("HALT", self.halt)):
+        for name, value in (("STATE", self.state), ("JOURNAL", self.journal), ("HALT", self.halt), ("AUDIO_HALT", self.state / "HALT-audio"), ("MODEL_HALT", self.state / "HALT-models")):
             patcher = patch.object(ru, name, value)
             patcher.start()
             self.addCleanup(patcher.stop)
         self.addCleanup(self.temp.cleanup)
+        review = patch.object(ru, "require_model_review", return_value={})
+        review.start()
+        self.addCleanup(review.stop)
 
     def write_journal(self, uploads):
         self.journal.write_text(json.dumps({"uploads": uploads}))
@@ -55,30 +58,49 @@ class RobloxUploadJournalTests(unittest.TestCase):
         self.assertEqual(ru.load_journal(), {"uploads": {"audio/x.ogg": {"state": APPROVED}}})
 
     def test_gate_passes_empty_or_all_approved(self):
-        ru.gate()
+        ru.gate(asset_type="Model")
         self.write_journal({"audio/a.ogg": {"state": APPROVED}, "voice/b-123.ogg": {"state": APPROVED}})
-        ru.gate()
-        ru.gate("audio/a.ogg")
+        ru.gate(asset_type="Model")
+        ru.gate("audio/a.ogg", asset_type="Model")
 
-    def test_gate_halt_file_blocks_everything(self):
-        self.halt.write_text("rejected\n")
-        with self.assertRaisesRegex(RuntimeError, "^Account halted by Roblox moderation; no uploads are permitted$"):
-            ru.gate()
-        with self.assertRaisesRegex(RuntimeError, "Account halted"):
-            ru.gate("audio/a.ogg")
+    def test_legacy_and_audio_halts_only_block_audio(self):
+        for halt in (ru.HALT, ru.AUDIO_HALT):
+            halt.write_text("rejected")
+            ru.gate(asset_type="Model")
+            with self.assertRaisesRegex(RuntimeError, "Audio halted"):
+                ru.gate()
+            self.assertEqual(halt.read_text(), "rejected")
 
-    def test_gate_blocks_other_unresolved_uploads(self):
-        self.write_journal({"audio/a.ogg": {"state": APPROVED}, "voice/b-123.ogg": {"state": "UPLOADING"}})
-        with self.assertRaisesRegex(RuntimeError, r"^Unresolved account upload voice/b-123\.ogg: UPLOADING$"):
-            ru.gate()
-        with self.assertRaisesRegex(RuntimeError, "Unresolved account upload voice/b-123.ogg"):
-            ru.gate("audio/a.ogg")
-        ru.gate("voice/b-123.ogg")
+    def test_audio_hard_blocked_without_halts(self):
+        with patch.object(ru, "http") as http:
+            with self.assertRaisesRegex(RuntimeError, "permanently disabled"):
+                ru.submit_and_moderate("cue", "audio/cue.ogg", None, b"OggS", "d" * 64,
+                                       "cue.ogg", "desc", "rev", "key", "rejected")
+            http.assert_not_called()
+        self.assertFalse(self.journal.exists())
 
-    def test_gate_treats_missing_state_as_unresolved(self):
-        self.write_journal({"audio/a.ogg": {}})
-        with self.assertRaisesRegex(RuntimeError, r"^Unresolved account upload audio/a\.ogg: None$"):
-            ru.gate()
+    def test_raw_http_audio_post_is_hard_blocked(self):
+        body = (b'--test\r\nContent-Disposition: form-data; name="request"\r\n\r\n'
+                b'{"assetType":"Audio"}\r\n--test\r\n'
+                b'Content-Disposition: form-data; name="fileContent"; filename="cue.ogg"\r\n\r\nOggS\r\n--test--\r\n')
+        with patch.object(ru._http, "request_json") as request:
+            with self.assertRaisesRegex(RuntimeError, "permanently disabled"):
+                ru.http("POST", ru.API + "/assets", "unused", body, "multipart/form-data; boundary=test")
+            request.assert_not_called()
+
+    def test_model_halt_blocks_all_model_classes(self):
+        ru.MODEL_HALT.write_text("rejected")
+        for kind in ("Model", "Mesh", "MeshPart", "Image", "Decal"):
+            with self.assertRaisesRegex(RuntimeError, "Model uploads halted"):
+                ru.gate(asset_type=kind)
+
+    def test_gate_blocks_models_but_ignores_audio_journal(self):
+        self.write_journal({"voice/b.ogg": {"state": REJECTED}})
+        ru.gate(asset_type="Model")
+        ru.record("model/x.fbx", {"state": "UPLOADING", "assetType": "Model"})
+        with self.assertRaisesRegex(RuntimeError, "Unresolved account upload"):
+            ru.gate(asset_type="Model")
+        ru.gate("model/x.fbx", asset_type="Model")
 
     def test_record_merges_and_removes(self):
         self.write_journal({"voice/b-123.ogg": {"state": APPROVED}})
@@ -114,6 +136,8 @@ class RobloxUploadJournalTests(unittest.TestCase):
 
     def run_upload(self, responses, item=None):
         calls = []
+        if item is not None:
+            item = {"assetType": "Model", **item}
 
         def fake_http(method, url, key, body=None, content_type=None, *, deadline=None):
             calls.append((method, url))
@@ -124,8 +148,8 @@ class RobloxUploadJournalTests(unittest.TestCase):
 
         with patch.object(ru, "http", fake_http), patch.object(ru.time, "sleep"), \
                 contextlib.redirect_stdout(io.StringIO()):
-            result = ru.submit_and_moderate("cue", "audio/cue.ogg", item, b"OggS", "d" * 64, "cue.ogg",
-                                            "desc", "rev", "key", "Roblox rejected audio; account uploads are now halted")
+            result = ru.submit_and_moderate("cue", "model/cue.fbx", item, b"fbx", "d" * 64, "cue.fbx",
+                                            "desc", "rev", "key", "Roblox rejected Model; model uploads are now halted", asset_type="Model")
         return result, calls
 
     def test_submit_and_moderate_approved(self):
@@ -133,18 +157,18 @@ class RobloxUploadJournalTests(unittest.TestCase):
                                          {"moderationResult": {"moderationState": "Approved"}}])
         self.assertEqual(result["assetId"], "42")
         self.assertEqual(result["state"], APPROVED)
-        self.assertEqual(ru.load_journal()["uploads"]["audio/cue.ogg"]["state"], APPROVED)
+        self.assertEqual(ru.load_journal()["uploads"]["model/cue.fbx"]["state"], APPROVED)
         self.assertEqual(calls[0], ("POST", ru.API + "/assets"))
         self.assertFalse(self.halt.exists())
 
     def test_submit_and_moderate_rejection_writes_halt(self):
-        with self.assertRaisesRegex(RuntimeError, "^Roblox rejected audio; account uploads are now halted$"):
+        with self.assertRaisesRegex(RuntimeError, "^Roblox rejected Model; model uploads are now halted$"):
             self.run_upload([{"moderationResult": {"moderationState": "Rejected"}}],
                             item={"sha256": "d" * 64, "assetId": "42", "state": "UPLOADING"})
-        self.assertEqual(self.halt.read_text(), "audio/cue.ogg asset 42 rejected by moderation\n")
-        self.assertEqual(ru.load_journal()["uploads"]["audio/cue.ogg"]["state"], REJECTED)
-        with self.assertRaisesRegex(RuntimeError, "Account halted"):
-            ru.gate()
+        self.assertEqual(ru.MODEL_HALT.read_text(), "model/cue.fbx asset 42 rejected by moderation\n")
+        self.assertEqual(ru.load_journal()["uploads"]["model/cue.fbx"]["state"], REJECTED)
+        with self.assertRaisesRegex(RuntimeError, "Model uploads halted"):
+            ru.gate(asset_type="Model")
 
     def test_submit_client_error_clears_journal_entry(self):
         error = urllib.error.HTTPError(ru.API + "/assets", 400, "bad", {}, io.BytesIO(b"nope"))
@@ -156,9 +180,9 @@ class RobloxUploadJournalTests(unittest.TestCase):
         error = urllib.error.HTTPError(ru.API + "/assets", 503, "busy", {}, io.BytesIO(b"later"))
         with self.assertRaisesRegex(RuntimeError, "HTTP 503"):
             self.run_upload([error])
-        self.assertEqual(ru.load_journal()["uploads"]["audio/cue.ogg"]["state"], "SUBMITTING")
-        with self.assertRaisesRegex(RuntimeError, "Unresolved account upload audio/cue.ogg: SUBMITTING"):
-            ru.gate()
+        self.assertEqual(ru.load_journal()["uploads"]["model/cue.fbx"]["state"], "SUBMITTING")
+        with self.assertRaisesRegex(RuntimeError, "Unresolved account upload model/cue.fbx: SUBMITTING"):
+            ru.gate(asset_type="Model")
 
     def test_journaled_item_without_operation_is_ambiguous(self):
         with self.assertRaisesRegex(RuntimeError, "ambiguous"):

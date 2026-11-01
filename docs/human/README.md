@@ -1,5 +1,7 @@
 # SKYBREAK campaign dashboard
 
+Pending tooling (D-666): audio/voice uploads stay permanently disabled; exact-hash models with committed independent 10/10 APPROVE evidence may pass a separate model HALT. No assets uploaded.
+
 Updated 2026-10-31 against main `c1266e30` (#201); results continuation and chapter-gating fix pending PR #202.
 
 Practice and all 18 campaign missions are merged and live by the owner's automatic-pipeline convention. Play through the campaign next: [Play SKYBREAK](https://www.roblox.com/games/112911685457826). Sequential unlocks still require completing preceding missions.

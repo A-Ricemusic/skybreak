@@ -26,6 +26,10 @@ spec = importlib.util.spec_from_file_location("upload_audio_security", Path(__fi
 audio = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(audio)
 
+voice_spec = importlib.util.spec_from_file_location("upload_voice_security", Path(__file__).resolve().parents[1] / "upload-voice.py")
+voice = importlib.util.module_from_spec(voice_spec)
+voice_spec.loader.exec_module(voice)
+
 SECRET = "private-credential-must-never-appear"
 
 
@@ -259,6 +263,10 @@ class AudioPathSecurityTests(NoNetworkTests):
         temp = tempfile.TemporaryDirectory()
         self.addCleanup(temp.cleanup)
         self.base = Path(temp.name)
+        for name in ("HALT", "AUDIO_HALT", "MODEL_HALT", "JOURNAL"):
+            patcher = patch.object(ru, name, self.base / name)
+            patcher.start()
+            self.addCleanup(patcher.stop)
         self.root = self.base / "repo"
         self.assets = self.root / "assets/audio"
         self.assets.mkdir(parents=True)
@@ -270,6 +278,16 @@ class AudioPathSecurityTests(NoNetworkTests):
         self.digest = hashlib.sha256(self.content).hexdigest()
         self.review = {"commercialUsePermitted": True, "files": {"cue": {
             "sha256": self.digest, "approved": True, "transcript": "", "reviewer": "human", "method": "listened"}}}
+
+    def test_audio_and_voice_clis_refuse_before_key_read_or_state_changes(self):
+        for module in (audio, voice):
+            state = self.base / "must-not-be-created"
+            with patch.object(module, "STATE", state), \
+                    patch.object(sys, "argv", ["upload.py", "--key-file", "/unused"]), \
+                    patch.object(Path, "read_text", side_effect=AssertionError("No files should be read")), \
+                    self.assertRaisesRegex(RuntimeError, "permanently disabled"):
+                module.main()
+            self.assertFalse(state.exists())
 
     def test_valid_audio_still_uses_existing_upload_interface(self):
         (self.assets / "cue.ogg").write_bytes(self.content)
@@ -343,7 +361,7 @@ class AudioPathSecurityTests(NoNetworkTests):
         with patch.object(audio, "STATE", self.base / "state"), patch.object(audio, "HALT", self.base / "HALT"), \
                 patch.object(sys, "argv", ["upload-audio.py", "--key-file", "/unused"]), \
                 patch.object(audio._http, "read_key_file") as read_key, patch.object(audio, "upload") as upload:
-            with self.assertRaisesRegex(RuntimeError, "cue ID"):
+            with self.assertRaisesRegex(RuntimeError, "permanently disabled"):
                 audio.main()
         upload.assert_not_called()
         read_key.assert_not_called()
@@ -369,14 +387,19 @@ class PollSecurityTests(NoNetworkTests):
         temp = tempfile.TemporaryDirectory()
         self.addCleanup(temp.cleanup)
         self.state = Path(temp.name)
-        for name, value in (("JOURNAL", self.state / "journal.json"), ("HALT", self.state / "HALT")):
+        review = patch.object(ru, "require_model_review", return_value={})
+        review.start()
+        self.addCleanup(review.stop)
+        for name, value in (("JOURNAL", self.state / "journal.json"), ("HALT", self.state / "HALT"), ("MODEL_HALT", self.state / "HALT-models")):
             patcher = patch.object(ru, name, value)
             patcher.start()
             self.addCleanup(patcher.stop)
 
-    def submit(self, item=None, filename="cue.ogg"):
-        return ru.submit_and_moderate("cue", "audio/cue.ogg", item, b"OggS", "d" * 64, filename,
-                                     "desc", "human", SECRET, "Roblox rejected audio; account uploads are now halted")
+    def submit(self, item=None, filename="cue.fbx"):
+        if item is not None:
+            item = {"assetType": "Model", "sha256": "d" * 64, **item}
+        return ru.submit_and_moderate("cue", "model/cue.fbx", item, b"fbx", "d" * 64, filename,
+                                     "desc", "human", SECRET, "Roblox rejected Model; model uploads are now halted", asset_type="Model")
 
     def test_shared_deadline_bounds_submission_operation_and_sleep(self):
         now = [100.0]
@@ -395,7 +418,7 @@ class PollSecurityTests(NoNetworkTests):
         self.assertEqual(deadlines, [110, 110])
         self.assertEqual(http.call_count, 2)
         self.assertEqual(now[0], 110)
-        self.assertEqual(ru.load_journal()["uploads"]["audio/cue.ogg"]["state"], "UPLOADING")
+        self.assertEqual(ru.load_journal()["uploads"]["model/cue.fbx"]["state"], "UPLOADING")
 
     def test_moderation_uses_the_same_deadline(self):
         deadlines = []
@@ -423,7 +446,7 @@ class PollSecurityTests(NoNetworkTests):
                     self.submit()
                 self.assert_private(raised.exception)
                 self.assertEqual(http.call_count, 1)
-                self.assertEqual(ru.load_journal()["uploads"]["audio/cue.ogg"]["state"], "SUBMITTING")
+                self.assertEqual(ru.load_journal()["uploads"]["model/cue.fbx"]["state"], "SUBMITTING")
 
     def test_known_asset_path_response_is_supported(self):
         responses = [{"path": "operations/op1"}, {"done": True, "response": {"path": "assets/42"}},
@@ -438,7 +461,7 @@ class PollSecurityTests(NoNetworkTests):
             with self.subTest(status=error.status), patch.object(ru, "http", side_effect=error):
                 with self.assertRaises(RuntimeError):
                     self.submit()
-                self.assertEqual(ru.load_journal()["uploads"]["audio/cue.ogg"]["state"], "SUBMITTING")
+                self.assertEqual(ru.load_journal()["uploads"]["model/cue.fbx"]["state"], "SUBMITTING")
 
     def test_moderation_pending_and_remote_text_are_bounded_and_not_persisted(self):
         with patch.object(ru, "http", return_value={"moderationResult": {"moderationState": SECRET}}) as http, \
@@ -448,14 +471,14 @@ class PollSecurityTests(NoNetworkTests):
         self.assertEqual(http.call_count, 60)
         self.assert_private(raised.exception)
         self.assertNotIn(SECRET, ru.JOURNAL.read_text())
-        self.assertFalse(ru.HALT.exists())
+        self.assertFalse(ru.MODEL_HALT.exists())
 
     def test_prefixed_moderation_rejection_halts_account(self):
         with patch.object(ru, "http", return_value={"moderationResult": {"moderationState": ru.REJECTED}}):
-            with self.assertRaisesRegex(RuntimeError, "rejected audio"):
+            with self.assertRaisesRegex(RuntimeError, "rejected Model"):
                 self.submit({"assetId": "42"})
-        self.assertTrue(ru.HALT.exists())
-        self.assertEqual(ru.load_journal()["uploads"]["audio/cue.ogg"]["state"], ru.REJECTED)
+        self.assertTrue(ru.MODEL_HALT.exists())
+        self.assertEqual(ru.load_journal()["uploads"]["model/cue.fbx"]["state"], ru.REJECTED)
 
     def test_multipart_header_injection_fails_before_any_request_or_journal_write(self):
         with patch.object(ru, "http") as http:

@@ -1,15 +1,19 @@
 """Shared Roblox Open Cloud upload journal, HALT gate and polling for SKYBREAK tools.
 
-Imported by the Audio, Voice and Model upload tools. All tools share
-one account journal and HALT file: a single moderation rejection halts every
-upload for the account, and no new upload starts while another is unresolved.
+Audio uploads are permanently disabled. Legacy/audio HALTs apply only to audio;
+model-class rejections halt models, meshes and images. The journal is shared,
+with unresolved operations serialized within each asset class.
 Callers hold STATE / "audio-upload.lock" while using these helpers.
 """
 from __future__ import annotations
 
+from email.parser import BytesParser
+from email.policy import default
+import hashlib
 import json
 from pathlib import Path
 import re
+import subprocess
 import time
 from typing import Any
 import urllib.error
@@ -21,6 +25,9 @@ import _http
 STATE = Path.home() / ".skybreak-roblox-uploads"
 JOURNAL = STATE / "journal-3407487520.json"
 HALT = STATE / "HALT-3407487520"
+AUDIO_HALT = STATE / "HALT-audio-3407487520"
+MODEL_HALT = STATE / "HALT-models-3407487520"
+ROOT = Path(__file__).resolve().parent.parent
 API = "https://apis.roblox.com/assets/v1"
 APPROVED = "MODERATION_STATE_APPROVED"
 REJECTED = "MODERATION_STATE_REJECTED"
@@ -39,12 +46,66 @@ def load_journal() -> dict[str, Any]:
     return json.loads(JOURNAL.read_text()) if JOURNAL.exists() else {"uploads": {}}
 
 
-def gate(own: str | None = None) -> None:
-    if HALT.exists():
-        raise RuntimeError("Account halted by Roblox moderation; no uploads are permitted")
+def asset_class(asset_type: str) -> str:
+    if asset_type in {"Audio", "Voice"}:
+        return "audio"
+    if asset_type in {"Model", "Mesh", "MeshPart", "Image", "Decal"}:
+        return "models"
+    raise RuntimeError("Unsupported upload asset type")
+
+
+def gate(own: str | None = None, *, asset_type: str = "Audio") -> None:
+    kind = asset_class(asset_type)
+    if kind == "audio":
+        if HALT.exists() or AUDIO_HALT.exists():
+            raise RuntimeError("Audio halted by Roblox moderation; audio/voice uploads are permanently disabled")
+        raise RuntimeError("Audio/voice uploads are permanently disabled by owner decision")
+    if MODEL_HALT.exists():
+        raise RuntimeError("Model uploads halted by Roblox moderation")
     for name, item in load_journal()["uploads"].items():
-        if name != own and item.get("state") != APPROVED:
+        # Older audio journal entries predate assetType. Unknown entries fail closed.
+        entry_type = item.get("assetType")
+        is_audio = entry_type in {"Audio", "Voice"} or (
+            entry_type is None and name.startswith(("audio/", "voice/")))
+        if not is_audio and name != own and item.get("state") != APPROVED:
             raise RuntimeError(f"Unresolved account upload {name}: {item.get('state')}")
+
+
+def committed_file(path: str, *, root: Path | None = None) -> bytes:
+    """Read evidence from HEAD, never from uncommitted working-tree approvals."""
+    root = ROOT if root is None else root
+    parts = Path(path).parts
+    if not parts or Path(path).is_absolute() or ".." in parts or not path.startswith("docs/qa/asset-reviews/"):
+        raise RuntimeError("Safety review must be inside docs/qa/asset-reviews")
+    result = subprocess.run(["git", "show", "HEAD:" + path], cwd=root, capture_output=True)
+    if result.returncode:
+        raise RuntimeError("Missing committed independent safety-review record")
+    return result.stdout
+
+
+def require_model_review(filename: str, content: bytes, digest: str, *,
+                         root: Path | None = None) -> dict[str, Any]:
+    """Require exact bytes in a committed independent 10/10 APPROVE record."""
+    root = ROOT if root is None else root
+    if hashlib.sha256(content).hexdigest() != digest:
+        raise RuntimeError("Upload SHA-256 differs from content")
+    if not re.fullmatch(r"[A-Za-z0-9_-]+\.fbx", filename):
+        raise RuntimeError("Invalid FBX upload filename")
+    approval = json.loads(committed_file(
+        "docs/qa/asset-reviews/approvals/" + filename[:-4] + ".json", root=root))
+    reviewer = approval.get("reviewer")
+    if (approval.get("approved") is not True or approval.get("score") != "10/10"
+            or not isinstance(reviewer, str) or "independent" not in reviewer.lower()
+            or approval.get("uploadAssetType") != "Model"
+            or approval.get("uploadSet") != {filename: digest}):
+        raise RuntimeError("Missing matching committed independent 10/10 APPROVE safety review")
+    record_path = approval.get("record")
+    if not isinstance(record_path, str):
+        raise RuntimeError("Missing committed safety-review verdict record")
+    verdict = committed_file(record_path, root=root).decode("utf-8")
+    if not re.search(r"VERDICT\s*:\s*APPROVE\b", verdict, re.I) or "10/10" not in verdict:
+        raise RuntimeError("Safety-review record requires 10/10 and VERDICT: APPROVE")
+    return approval
 
 
 def record(name: str, value: dict[str, Any] | None) -> None:
@@ -65,9 +126,29 @@ def http(method: str, url: str, key: str, body: bytes | None = None,
                (method == "GET" and re.fullmatch(
                    re.escape(API) + r"/(?:operations/[A-Za-z0-9_-]{1,128}|assets/[0-9]{1,20}\?readMask=moderationResult)", url)))
     if not allowed:
-        raise RuntimeError("Endpoint outside audio asset upload/status allowlist")
+        raise RuntimeError("Endpoint outside asset upload/status allowlist")
     if not key or len(key) > 8192 or any(not 33 <= ord(c) <= 126 for c in key):
         raise RuntimeError("Invalid API key")
+    if method == "POST":
+        # The transport helper is also callable directly. Never allow raw POSTs
+        # to bypass the audio ban, model gate or committed byte review.
+        if not content_type or not content_type.startswith("multipart/form-data; boundary=") or not body:
+            raise RuntimeError("Upload POST requires reviewed Model multipart content")
+        message = BytesParser(policy=default).parsebytes(
+            ("Content-Type: " + content_type + "\r\nMIME-Version: 1.0\r\n\r\n").encode() + body)
+        parts = list(message.iter_parts())
+        if len(parts) != 2 or [part.get_param("name", header="content-disposition") for part in parts] != ["request", "fileContent"]:
+            raise RuntimeError("Invalid upload multipart content")
+        metadata = json.loads(parts[0].get_payload(decode=True))
+        kind = metadata.get("assetType")
+        if asset_class(kind) == "audio":
+            gate(asset_type=kind)
+        if MODEL_HALT.exists():
+            raise RuntimeError("Model uploads halted by Roblox moderation")
+        if kind != "Model":
+            raise RuntimeError("Unsupported upload asset type")
+        data = parts[1].get_payload(decode=True)
+        require_model_review(parts[1].get_filename(), data, hashlib.sha256(data).hexdigest())
     headers = {"x-api-key": key}
     if content_type:
         headers["Content-Type"] = content_type
@@ -112,17 +193,16 @@ def submit_and_moderate(name: str, entry: str, item: dict[str, Any] | None,
                         asset_type: str = "Audio") -> dict[str, Any]:
     """Submit once, then poll operation and moderation within one time budget.
 
-    The caller has already run gate(entry), looked up `item` in the journal and
-    verified its sha256. Returns the approved journal item.
+    The shared gate and committed review are checked even for direct callers. Returns the approved journal item.
     """
+    gate(entry, asset_type=asset_type)
     deadline = time.monotonic() + POLL_TIMEOUT_SECONDS
-    if asset_type == "Audio":
-        if not re.fullmatch(r"[A-Za-z0-9_-]+\.ogg", filename) or not content.startswith(b"OggS") or len(content) >= MAX_AUDIO_BYTES:
-            raise RuntimeError("Invalid Ogg upload content or filename")
-        content_type = "audio/ogg"
-    elif asset_type == "Model":
+    if asset_type == "Model":
         if not re.fullmatch(r"[A-Za-z0-9_-]+\.fbx", filename) or not 0 < len(content) < MAX_MODEL_BYTES:
             raise RuntimeError("Invalid FBX upload content or filename (must be below 50 MB)")
+        require_model_review(filename, content, digest)
+        if item and (item.get("sha256") != digest or item.get("assetType") != asset_type):
+            raise RuntimeError("Journal hash/type differs from reviewed upload")
         content_type = "model/fbx"
     else:
         raise RuntimeError("Unsupported upload asset type")
@@ -180,7 +260,7 @@ def submit_and_moderate(name: str, entry: str, item: dict[str, Any] | None,
         item["state"] = state or "UNKNOWN"
         record(entry, item)
         if state == REJECTED:
-            HALT.write_text(f"{entry} asset {item['assetId']} rejected by moderation\n")
+            MODEL_HALT.write_text(f"{entry} asset {item['assetId']} rejected by moderation\n")
             raise RuntimeError(rejected_message)
         if state == APPROVED:
             print(f"{name}: approved asset {item['assetId']}", flush=True)
