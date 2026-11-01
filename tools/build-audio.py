@@ -9,6 +9,7 @@ measurement reports are kept under ignored build/audio. Never logs credentials.
 import argparse
 import array
 import hashlib
+import http.client
 import json
 import math
 from pathlib import Path
@@ -36,13 +37,12 @@ def main():
     parser.add_argument("--ffmpeg", required=True)
     parser.add_argument("--only")
     args = parser.parse_args()
-    key = Path(args.key_file).read_text().strip()
+    key = _http.read_key_file(Path(args.key_file))
     account_request = urllib.request.Request("https://api.elevenlabs.io/v1/user/subscription", headers={"xi-api-key": key})
-    with _http.open(account_request, timeout=30) as response:
-        subscription = json.load(response)
+    subscription = _http.request_json(account_request, timeout=30)
     tier = subscription.get("tier")
     if not tier or tier == "free":
-        raise RuntimeError("Final game effects require an ElevenLabs plan with commercial rights; current tier: " + str(tier))
+        raise RuntimeError("Final game effects require an ElevenLabs plan with commercial rights")
     spec = json.loads((ASSETS / "cues.json").read_text())
     WORK.mkdir(parents=True, exist_ok=True)
     provenance_path = ASSETS / "provenance.json"
@@ -69,7 +69,10 @@ def main():
                     content = response.read()
                     billed = response.headers.get("character-cost")
             except urllib.error.HTTPError as error:
-                raise RuntimeError(f"ElevenLabs HTTP {error.code}: {error.read().decode()[:600]}") from None
+                error.close()
+                raise RuntimeError(f"ElevenLabs HTTP {error.code}") from None
+            except (OSError, http.client.HTTPException, ValueError):
+                raise RuntimeError("Audio response failed") from None
             raw.write_bytes(content)
             save(request_file, request)
             provenance[name] = {"provider": spec["provider"], "model": spec["model"], "request": request,
