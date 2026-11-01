@@ -4,7 +4,7 @@ import { MissionCatalog, MISSIONS } from "../shared/MissionCatalog";
 import { BlueprintRunner as Runner } from "../shared/BlueprintRunner";
 import { TargetScore } from "../shared/TargetScore";
 import { recordScoredKill } from "../server/SortieScore";
-import { D12Identities, bridgeRouteClosed, newWithdrawal, stepWithdrawal, routeDuration } from "../shared/EngineBatchD12";
+import { WithdrawalIdentities, bridgeRouteClosed, newWithdrawal, stepWithdrawal, routeDuration } from "../shared/LeaderWithdrawalRules";
 import { buildM17Plan, m17Ground, m17TargetLayout } from "../shared/M17WorldPlan";
 import { AlliedRules } from "../shared/AlliedRules";
 import { WavePlan, AirRequest } from "../shared/WavePlan";
@@ -30,13 +30,13 @@ describe("M17 Last Wing",()=>{
  });
  it("waits the full 12 minutes, fails neglect and destruction, requires four kills AND departure",()=>{
   const {s,ledger}=score();Runner.Tick(s,719);expect(s.phaseIndex).toBe(0);Runner.Tick(s,720);expect(s.phaseIndex).toBe(1);
-  for(let i=0;i<4;i++)recordScoredKill(s,ledger,D12Identities.wingmen[i],"air",true,721+i,"bandit");
-  expect(s.outcome).toBeUndefined();expect(ledger.Total()).toBe(3710);expect(recordScoredKill(s,ledger,D12Identities.wingmen[0],"air",true,726,"bandit")).toBe(false);
+  for(let i=0;i<4;i++)recordScoredKill(s,ledger,WithdrawalIdentities.wingmen[i],"air",true,721+i,"bandit");
+  expect(s.outcome).toBeUndefined();expect(ledger.Total()).toBe(3710);expect(recordScoredKill(s,ledger,WithdrawalIdentities.wingmen[0],"air",true,726,"bandit")).toBe(false);
   const w=newWithdrawal();expect(stepWithdrawal(w,elite.leaderWithdrawal!,3,1000)).toBe(false);expect(w.elapsed).toBe(0);
   expect(stepWithdrawal(w,elite.leaderWithdrawal!,4,routeDuration(elite.leaderWithdrawal!.departure))).toBe(true);
   Runner.ObserveLeaderDeparture(s);expect(s.outcome).toBe("won");expect(s.ruskDeparted).toBe(true);
   const early=score().s;Runner.Tick(early,720);Runner.ObserveLeaderDeparture(early);expect(early.outcome).toBeUndefined();
-  const exact=score();Runner.Tick(exact.s,720);for(const id of D12Identities.wingmen)recordScoredKill(exact.s,exact.ledger,id,"air",true,1800,"bandit");Runner.Tick(exact.s,1800);Runner.ObserveLeaderDeparture(exact.s);expect(exact.s.outcome).toBe("failed");
+  const exact=score();Runner.Tick(exact.s,720);for(const id of WithdrawalIdentities.wingmen)recordScoredKill(exact.s,exact.ledger,id,"air",true,1800,"bandit");Runner.Tick(exact.s,1800);Runner.ObserveLeaderDeparture(exact.s);expect(exact.s.outcome).toBe("failed");
   const low=Runner.NewState(bp,0);Runner.Tick(low,720);expect(low.outcome).toBe("failed");
   const dead=Runner.NewState(bp,0);Runner.Tick(dead,1,0);expect(dead.reason).toBe("destroyed");
   const late=score().s;Runner.Tick(late,720);Runner.Tick(late,1800);expect(late.outcome).toBe("failed");

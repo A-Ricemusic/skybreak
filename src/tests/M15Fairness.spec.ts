@@ -3,7 +3,7 @@ import { guidedDirection } from "../shared/EncounterKinematics";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { mission as bp, M15_GROUND, M15_WAVES } from "../shared/missions/m15";
 import { buildM15ScenePlan, m15Ground } from "../shared/M15WorldPlan";
-import { damageSector, groundProgressPose, newGroundProgress, SquadAttackRules as D5, squadStrikeReachable, stepGroundProgress } from "../shared/EngineBatchD5";
+import { damageSector, groundProgressPose, newGroundProgress, SquadAttackRules as D5, squadStrikeReachable, stepGroundProgress } from "../shared/GroundSectorRules";
 import { FlightMath } from "../shared/FlightMath";
 import { NavigationPilot } from "../shared/NavigationPilot";
 import { WeaponRules as W, Point } from "../shared/WeaponRules";

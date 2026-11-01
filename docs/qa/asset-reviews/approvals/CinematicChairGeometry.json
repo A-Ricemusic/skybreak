@@ -1,0 +1,14 @@
+{
+  "asset": "CinematicChairGeometry",
+  "exportVersion": "embedded-json-v1-59a7f1a93db9",
+  "embeddedTextures": {},
+  "uploadSet": {
+    "CinematicChairGeometry.json": "59a7f1a93db923911fad5a84c289636219f83ba882b99ed2c29d916ae937f514"
+  },
+  "reviewedAt": "2026-10-31",
+  "record": "docs/qa/asset-reviews/2026-10-31-pr217-embedded-mesh-review.md",
+  "approved": true,
+  "score": "10/10",
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "note": "Embedded JSON only, not FBX or referenced uploaded models. Any change requires a new review. No moderation guarantee."
+}

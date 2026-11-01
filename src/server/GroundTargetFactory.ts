@@ -1,6 +1,6 @@
 import { MILITARY_GROUND_KIT } from "../shared/MilitaryGroundKit";
 import { WorldAssets } from "./WorldAssets";
-import { navalHull } from "../shared/EngineBatchD2";
+import { navalHull } from "../shared/SurfaceTargetRules";
 import { AssetSelection } from "../shared/AssetSelection";
 import { UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
 import { UploadedAssets } from "../shared/UploadedAssets";

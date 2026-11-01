@@ -1,4 +1,4 @@
-import { protectedDuration } from "./EngineBatchD7";
+import { protectedDuration } from "./ProtectedAircraftRules";
 import { Act, MissionBlueprint, MissionCatalog, MissionPhaseBlueprint } from "./MissionCatalog";
 
 // Design estimates for an average phone pilot on Normal, NOT live measurements.

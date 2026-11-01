@@ -1,0 +1,14 @@
+{
+  "asset": "RelayTruckGeometry",
+  "exportVersion": "embedded-json-v1-3b012a19a0fd",
+  "embeddedTextures": {},
+  "uploadSet": {
+    "RelayTruckGeometry.json": "3b012a19a0fdcf69157eed7a8826961334a934dfbad62256b95851f5d367a3b6"
+  },
+  "reviewedAt": "2026-10-31",
+  "record": "docs/qa/asset-reviews/2026-10-31-pr217-embedded-mesh-review.md",
+  "approved": true,
+  "score": "10/10",
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "note": "Embedded JSON only, not FBX or referenced uploaded models. Any change requires a new review. No moderation guarantee."
+}

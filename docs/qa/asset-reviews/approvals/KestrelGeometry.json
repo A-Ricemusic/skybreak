@@ -1,0 +1,14 @@
+{
+  "asset": "KestrelGeometry",
+  "exportVersion": "embedded-json-v1-dffa6a3bd713",
+  "embeddedTextures": {},
+  "uploadSet": {
+    "KestrelGeometry.json": "dffa6a3bd713a8563b1f2e037ef424cf30210a2b0319ea8e832bc60652b90338"
+  },
+  "reviewedAt": "2026-10-31",
+  "record": "docs/qa/asset-reviews/2026-10-31-pr217-embedded-mesh-review.md",
+  "approved": true,
+  "score": "10/10",
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "note": "Embedded JSON only, not FBX or referenced uploaded models. Any change requires a new review. No moderation guarantee."
+}

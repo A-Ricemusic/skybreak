@@ -6,11 +6,11 @@ PR #216 post-merge validation (2026-10-31): `bun install --frozen-lockfile` and 
 
 PR #216 merge reconciliation (2026-10-31): merged main `5eec0d06` (#207), preserving #202 and military-kit records. Third independent uploader security review passed per owner handoff. Test account mocks now avoid credential-like syntax; GitGuardian recheck failed on historical commit `3575dead` only (incident 39368345); no new-commit finding reported. Upload gate decision is D-668 (D-666 remains the military kit).
 
-PR #216 round-2 fixes (unmerged): OS account home anchors all shared upload state; real runs reject HOME/Path.home mismatches and symlinked canonical directories. Any negative decision matching an FBX/dependency hash or the same asset/export version blocks upload; approvals still require the complete export set.
+PR #216 round-2 fixes (merged d33c9a94): OS account home anchors all shared upload state; real runs reject HOME/Path.home mismatches and symlinked canonical directories. Any negative decision matching an FBX/dependency hash or the same asset/export version blocks upload; approvals still require the complete export set.
 
-PR #216 round-2 validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 154 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merge pending.
+PR #216 round-2 validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 154 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merged in #216 as d33c9a94.
 
-PR #216 security follow-up (unmerged): canonical real-upload state; merged origin/main JSON decisions and creator manifests; per-attempt HALTs. Audio remains permanently blocked. Eleven historical approvals and ten PR207 ground-kit approvals transcribed; heavy-bomber/carrier reupload blocked by earlier same-hash incomplete REJECT. No uploads or Player verification.
+PR #216 security follow-up (merged d33c9a94): canonical real-upload state; merged origin/main JSON decisions and creator manifests; per-attempt HALTs. Audio remains permanently blocked. Eleven historical approvals and ten PR207 ground-kit approvals transcribed; heavy-bomber/carrier reupload blocked by earlier same-hash incomplete REJECT. No uploads or Player verification.
 
 Pending tooling (D-668): audio/voice uploads stay permanently disabled; exact-hash models with committed independent 10/10 APPROVE evidence may pass a separate model HALT. No assets uploaded.
 
@@ -50,3 +50,7 @@ Publish snapshot: latest 20 main runs checked; all 20 succeeded, including M18 r
 Practice: merged in [#130](https://github.com/A-Ricemusic/skybreak/pull/130), `4891e8a1`; Studio verified: ✓; Player tested: not yet.
 
 [Level cards](levels.html) · [Shipped history](shipped.md) · [Playthrough checklist](next.md) · [Blockers](blockers.md) · [Decision records](decisions.md)
+
+PR #217: rebuilt on merged #216/main; independent 10/10 review records for all 13 embedded meshes are included. Production authorization requires their merge; offline CI uses inventory plus regressions.
+
+PR #217 final validation: frozen install, standalone build, and prescribed LUAU_BIN validate:offline all exited 0; 1,225 Luau contracts and 162 Python tests passed. GitGuardian and guard passed after history cleanup; CI validate pending at recording. No publish/upload or Player test.

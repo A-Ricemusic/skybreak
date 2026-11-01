@@ -1,0 +1,22 @@
+{
+  "asset": "CinematicChairGeometry",
+  "exportVersion": "embedded-json-v1-59a7f1a93db9",
+  "files": {
+    "CinematicChairGeometry.json": "59a7f1a93db923911fad5a84c289636219f83ba882b99ed2c29d916ae937f514"
+  },
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "creator": "SKYBREAK build agent via tools/build-cinematic-props.py (committed under Anthony Rice's git identity, d31ed1dff5f04ef6f590c0fe7f01f64744bff3d5)",
+  "reviewDate": "2026-10-31",
+  "policyLinks": [
+    "https://www.roblox.com/termsofuse",
+    "https://en.help.roblox.com/hc/en-us/articles/115004647846-Roblox-Terms-of-Use",
+    "https://en.help.roblox.com/hc/en-us/articles/203313410-Roblox-Community-Standards/",
+    "https://about.roblox.com/community-standards",
+    "https://create.roblox.com/docs/marketplace/marketplace-policy",
+    "https://create.roblox.com/docs/production/publishing/rights-manager",
+    "https://en.help.roblox.com/hc/en-us/articles/15869919570708-Age-Restricted-Content-on-Roblox"
+  ],
+  "score": 10,
+  "verdict": "APPROVE",
+  "sourceReview": "docs/qa/asset-reviews/2026-10-31-pr217-embedded-mesh-review.md"
+}

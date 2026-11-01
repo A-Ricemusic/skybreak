@@ -8,9 +8,9 @@ import { MissionScore } from "../shared/MissionScore";
 import { AlliedRules } from "../shared/AlliedRules";
 import { canLaunchMission, highestUnlocked } from "../shared/CampaignProgress";
 import { CampaignCoordinator, completeMission, normalizeProfile, serializeProfile } from "../server/CampaignRepository";
-import { landingDuration, landingPose, validateBatchB } from "../shared/EngineBatchB";
-import { validateBatchC } from "../shared/EngineBatchC";
-import { AntiShipRules, navalHull, SamRules, surfacePose, validateNavalTargets } from "../shared/EngineBatchD2";
+import { landingDuration, landingPose, validateLandingPhases } from "../shared/LandingRules";
+import { validateRearmPhases } from "../shared/RearmRules";
+import { AntiShipRules, navalHull, SamRules, surfacePose, validateNavalTargets } from "../shared/SurfaceTargetRules";
 import { SortieArmament, validateArmament } from "../shared/SortieArmament";
 import { SpecialWeapons } from "../shared/SpecialWeapons";
 import { pointsLine, rearmRadioDue } from "../shared/SortieCutaways";
@@ -276,9 +276,9 @@ describe("Mission 6 armament, rearm and allies", () => {
 		// The start is well outside the rearm zone, and the harbour SAMs cannot reach the approach.
 		expect(math.sqrt((M06_START.x - plan.zone.x) ** 2 + (M06_START.z - plan.zone.z) ** 2) > plan.radius + 1000).toBe(true);
 		for (const sam of targets.filter((t) => t.sam)) expect(math.sqrt((sam.position.x - gate.x) ** 2 + (sam.position.z - gate.z) ** 2) > SamRules.Range + plan.radius).toBe(true);
-		validateBatchC(bp.phases, M06_AIRSPACE.hardHalfWidth);
-		validateBatchB(bp.phases, M06_AIRSPACE.hardHalfWidth);
-		expect(rejects(() => validateBatchC([{ ...strike, rearm: { ...plan, health: true } }], M06_AIRSPACE.hardHalfWidth))).toBe(true);
+		validateRearmPhases(bp.phases, M06_AIRSPACE.hardHalfWidth);
+		validateLandingPhases(bp.phases, M06_AIRSPACE.hardHalfWidth);
+		expect(rejects(() => validateRearmPhases([{ ...strike, rearm: { ...plan, health: true } }], M06_AIRSPACE.hardHalfWidth))).toBe(true);
 		expect(rejects(() => validateArmament({ stock: { missiles: 60 } }, true))).toBe(true);
 		expect(rearmRadioDue(plan, 0, 1)).toEqual([plan.radio![0].text]);
 	});

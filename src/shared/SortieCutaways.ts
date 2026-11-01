@@ -1,5 +1,5 @@
-import { canSkipLanding, finiteNumber, landingDuration } from "./EngineBatchB";
-import { rearmDuration, type RearmPlan } from "./EngineBatchC";
+import { canSkipLanding, finiteNumber, landingDuration } from "./LandingRules";
+import { rearmDuration, type RearmPlan } from "./RearmRules";
 import type { MissionScoringPolicy } from "./MissionPolicy";
 import { SpecialWeapons, type SpecialKind } from "./SpecialWeapons";
 

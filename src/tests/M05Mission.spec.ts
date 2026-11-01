@@ -8,8 +8,8 @@ import { MissionScore } from "../shared/MissionScore";
 import { AlliedRules } from "../shared/AlliedRules";
 import { canLaunchMission, highestUnlocked } from "../shared/CampaignProgress";
 import { CampaignCoordinator, completeMission, normalizeProfile, serializeProfile } from "../server/CampaignRepository";
-import { landingDuration, landingPose, validateBatchB } from "../shared/EngineBatchB";
-import { rearmDuration, validateBatchC } from "../shared/EngineBatchC";
+import { landingDuration, landingPose, validateLandingPhases } from "../shared/LandingRules";
+import { rearmDuration, validateRearmPhases } from "../shared/RearmRules";
 import { validateNightLighting } from "../shared/NightLighting";
 import { cutInCaption, cutInDue, pointsLine, rearmClock, rearmMenuDue, rearmRadioDue, REARM_LANDING_CLOCK, REARM_TAKEOFF_CLOCK, takeoffChoice, validateCutIn } from "../shared/SortieCutaways";
 import { buildM05Plan, M05, M05_TARGET_POINTS, M05_WORLD_KEY, m05LightAnchors, m05TargetLayout } from "../shared/M05WorldPlan";
@@ -283,9 +283,9 @@ describe("Mission 5 rearm, weapon menu and cut-in presentation", () => {
 		expect(plan.landing.touchdown.z > north && rollout.z < south).toBe(true);
 		expect(plan.landing.touchdown.y).toBe(M05.runway.y + 6);
 		expect(math.sqrt((gate.x - plan.zone.x) ** 2 + (gate.y - plan.zone.y) ** 2 + (gate.z - plan.zone.z) ** 2)).toBeLessThan(1e-6);
-		validateBatchC(bp.phases, M05_AIRSPACE.hardHalfWidth);
-		validateBatchB(bp.phases, M05_AIRSPACE.hardHalfWidth);
-		expect(rejects(() => validateBatchC([{ ...strike, rearm: { ...plan, health: true } }, escape], M05_AIRSPACE.hardHalfWidth))).toBe(true);
+		validateRearmPhases(bp.phases, M05_AIRSPACE.hardHalfWidth);
+		validateLandingPhases(bp.phases, M05_AIRSPACE.hardHalfWidth);
+		expect(rejects(() => validateRearmPhases([{ ...strike, rearm: { ...plan, health: true } }, escape], M05_AIRSPACE.hardHalfWidth))).toBe(true);
 	});
 	it("runs the reference's LANDING 3:00 and TAKEOFF 1:00 clocks and holds the jet for TAKEOFF / CHANGE WEAPON", () => {
 		const plan = M05_REARM, landed = landingDuration(plan.landing);

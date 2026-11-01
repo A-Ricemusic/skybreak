@@ -3,7 +3,7 @@ import type { MissionBlueprint, FlightPoint } from "../MissionCatalog";
 import type { FighterArrival } from "../CampaignEncounters";
 import { M11, M11_WORLD_KEY, m11RoutePoint } from "../M11WorldPlan";
 import { M11_AIRSPACE } from "../M11Limits";
-import type { ProtectedAircraftPlan } from "../EngineBatchD7";
+import type { ProtectedAircraftPlan } from "../ProtectedAircraftRules";
 
 // D-440: 17 ordinary attackers + optional ace; two independent, time-matched routes.
 // D-445: mission-local hull budgets; shared combat tuning is unchanged.

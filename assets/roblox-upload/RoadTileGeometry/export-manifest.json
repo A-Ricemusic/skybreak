@@ -1,0 +1,12 @@
+{
+  "asset": "RoadTileGeometry",
+  "creator": "SKYBREAK build agent via tools/build-world-kit.py (committed under Anthony Rice's git identity, 483abdf1ece1e5182d394a4a48fae38e94ad41c1)",
+  "exportVersion": "embedded-json-v1-f9afdf9c83fe",
+  "files": {
+    "RoadTileGeometry.json": "f9afdf9c83fe9c789381780ff10f92be5d53ecfa136b5e02113b82017b52cdbb"
+  },
+  "source": "assets/mission/roadtile.mesh.json",
+  "generator": "tools/build-world-kit.py",
+  "sourceCommit": "483abdf1ece1e5182d394a4a48fae38e94ad41c1",
+  "note": "Version label identifies the exact existing embedded bytes; no mesh re-export was performed."
+}

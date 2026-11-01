@@ -1,0 +1,12 @@
+{
+  "asset": "GrainSiloGeometry",
+  "creator": "SKYBREAK build agent via tools/build-relay-assets.py (committed under Anthony Rice's git identity, 83da53e6c8ea5360625d0cf184c91de83153693a)",
+  "exportVersion": "embedded-json-v1-269bb66dffaa",
+  "files": {
+    "GrainSiloGeometry.json": "269bb66dffaa970912785713b592b90d185629543c44fe7bc89b9360d14fddfe"
+  },
+  "source": "assets/mission/grainsilo.mesh.json",
+  "generator": "tools/build-relay-assets.py",
+  "sourceCommit": "83da53e6c8ea5360625d0cf184c91de83153693a",
+  "note": "Version label identifies the exact existing embedded bytes; no mesh re-export was performed."
+}

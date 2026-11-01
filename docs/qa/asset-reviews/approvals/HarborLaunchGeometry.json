@@ -1,0 +1,14 @@
+{
+  "asset": "HarborLaunchGeometry",
+  "exportVersion": "embedded-json-v1-3a2ec598eaad",
+  "embeddedTextures": {},
+  "uploadSet": {
+    "HarborLaunchGeometry.json": "3a2ec598eaadbdc7fc9b6a73abab21d2c1979c5383eca8c4a28707c432374108"
+  },
+  "reviewedAt": "2026-10-31",
+  "record": "docs/qa/asset-reviews/2026-10-31-pr217-embedded-mesh-review.md",
+  "approved": true,
+  "score": "10/10",
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "note": "Embedded JSON only, not FBX or referenced uploaded models. Any change requires a new review. No moderation guarantee."
+}

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { arrivalDue, TriggerContext, TypedGroundTarget } from "../shared/CampaignEncounters";
-import { crossesReturnLine, landingAccomplishedAt, landingDistance, landingDuration, landingPose, landingRadioDue, returnLineDots } from "../shared/EngineBatchB";
+import { crossesReturnLine, landingAccomplishedAt, landingDistance, landingDuration, landingPose, landingRadioDue, returnLineDots } from "../shared/LandingRules";
 import { FlightMath } from "../shared/FlightMath";
 import { LaunchStage } from "../shared/LaunchStage";
 import { MissionCatalog } from "../shared/MissionCatalog";
