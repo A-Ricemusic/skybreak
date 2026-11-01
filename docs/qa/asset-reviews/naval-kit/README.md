@@ -1,0 +1,304 @@
+# Naval kit — pending independent review
+
+Status: **NOT APPROVED; NOT UPLOADED**. Reviewer/date/verdict: unassigned / pending / pending. Creator cannot approve these exports. No Studio or Player verification.
+
+Creator provenance: **SKYBREAK build agent via tools/assets/naval_kit.py (this PR)**. Export version: `naval-kit-2`. Original procedural modelling and procedural atlas textures only; no third-party sources. One joined mesh, one atlas material, four 256×256 PBR maps, maximum 2,400 triangles per asset. No crew, people, skin, text, real names, hull numbers, national insignia, flags or ensigns. Static weapons use sealed barrels and canisters. Creator declarations are not independent review evidence.
+
+Before ANY upload, an independent reviewer must inspect exact FBX exports, all textures and assembled UV/material appearance on every surface and relevant angle; consult current [Roblox Terms](https://www.roblox.com/termsofuse), [Community Standards](https://en.help.roblox.com/hc/en-us/articles/203313410-Roblox-Community-Standards/) and applicable linked policies; record reviewer/date, hashes, previews examined, findings and explicit 10/10 approval in the existing `docs/qa/asset-reviews/approvals/*.json` format. No approval record is fabricated by this creator. Re-export requires new review. A maximum project judgment cannot guarantee moderation or account outcomes.
+
+## Mission inventory (source-derived, not observed in Player)
+
+| Mission | Hulls / scenery | Separate mounts |
+|---|---|---|
+| M06 | 36: 6 destroyers, 9 cruisers, 3 submarines, 3 missile boats, 3 supply ships, 3 landing ships, 3 container ships, 6 frigates | 18 defence pontoons: 6 gun, 6 AA, 6 SAM; original +180 X offset / Y48 retained |
+| M09 | 6 frigates and 6 friendly landing craft; existing Carrier remains | No new mounts invented; shore batteries unchanged |
+| M17 | 4: cruiser, destroyer, submarine, supply ship | 7 guns: existing Y80 and Z−60/+60 offsets retained |
+
+Evidence: `m06TargetLayout`, `buildM09Plan`, `M17_TARGETS`. M06 frigate combat labels remain destroyer; visual lookup preserves the layout frigate class. M17 unresolved layout hulls retain the existing typed combat allocation. No new target IDs, mount offsets, health, scores, routes or sinking rules.
+
+## Integration and pivots
+
+`NavalKit.ts` maps hull classes and naval-only mounts. Bottom-centre pivots and uniform fit within the pre-decoration bounds follow the military ground kit pattern. Aim is captured first; original parts remain query/collision proxies and fallback. Visuals are non-queryable, non-colliding and non-flight-solid. Each placement is individually bounded by the existing 24-instance kit allowance and counted by WorldInstanceBudget; oversized imports are destroyed before proxies are hidden. M09 scenery overlays preserve its original hull/well proxies and existing uploaded frigate fallback. All 12 IDs remain undefined. No FBX is embedded in the place. Mounts are separate target-owned models and retain D2/D12 ownership, promotion, route and death semantics.
+
+Future owner import: preserve single mesh/material, bottom-centre pivot, authored units and -Z bow; verify fit, alignment, sinking and phone rendering before activation. These exports contain no fused weapon targets. Review packet and offline checks cannot establish actual device performance.
+
+Rebuild: `JOBS=1 sh tools/assets/build-all.sh naval-frigate naval-destroyer naval-cruiser naval-container-ship naval-supply-ship naval-landing-ship naval-missile-boat naval-submarine naval-landing-craft naval-gun naval-aa naval-sam`; then `python3 tools/assets/naval_kit_packet.py`. Bump export version before changing exports.
+
+## Exact files and hashes
+
+### naval-aa
+
+Version `naval-kit-2`, triangles 260/2400; size [10.0, 9.5, 21.65]; pivot `bottom-center`; asset ID undefined.
+
+| Path | SHA-256 |
+|---|---|
+| `assets/roblox-upload/naval-aa/checklist.json` | `fab0ec902f4c1a77687f70a55193892defbf8979febdd034bc181c955ac89fae` |
+| `assets/roblox-upload/naval-aa/contact-sheet.png` | `5123093b117f6d9e2275a2b805c6d6d9c23d12d0cace8d101fd196e1b149322f` |
+| `assets/roblox-upload/naval-aa/naval-aa-color.png` | `d68b1e33f04b1d7d6adf4c86ffb644e81a0fcc00a8c5e209096dcedf506355c9` |
+| `assets/roblox-upload/naval-aa/naval-aa-metalness.png` | `d7a3e01adb81f0c9b835019dc6d86e1b3d04b2ba41aa0335c0f1bbcb9f009cdf` |
+| `assets/roblox-upload/naval-aa/naval-aa-normal.png` | `464945b76b73d258c21ca446f84c43a37793cedadf48d650879a6c5966fd3fed` |
+| `assets/roblox-upload/naval-aa/naval-aa-roughness.png` | `8d81d5f99e98b4ddfa673905cd648374ff271bfff3f9ed0b56611eaa6c73935d` |
+| `assets/roblox-upload/naval-aa/naval-aa.fbx` | `93b83ee18aeb21c34260be1729d249cc2eada76d2c6ceb1cea78c176b7a1e4d6` |
+| `assets/roblox-upload/naval-aa/preview-3q-front-left.png` | `b480a65daaa2b928e23190cc56e1d244860818cda593f1cc18438e215c2b4e17` |
+| `assets/roblox-upload/naval-aa/preview-3q-rear-left.png` | `623328490a6ee96dbcb66de10eed0f0010ca8342b685db3d95ec0a147de570b2` |
+| `assets/roblox-upload/naval-aa/preview-3q-rear-right.png` | `3f21f5d93936ba56ee2d3b1fcfcbdfa763969dfe73ea09fd8f2f6d52bd7232ed` |
+| `assets/roblox-upload/naval-aa/preview-3q.png` | `bab1ef667e7c3ada2b9d093cf3d811e1cb8c50db99db4719e2a45e0c3b5f799a` |
+| `assets/roblox-upload/naval-aa/preview-back.png` | `0a17e09081aa6e4c5b68705a5145881616f242a83a166338d8d6b4531f23c8f6` |
+| `assets/roblox-upload/naval-aa/preview-bottom.png` | `92e6000df4b389b78a1ba2f41f9b4f4d42dfb921206da882730116b722e5d329` |
+| `assets/roblox-upload/naval-aa/preview-front.png` | `bc3c107b522f54bbdaa1ef1e66dbb4c360cef6e4c1c9b8cace1ee95231682c08` |
+| `assets/roblox-upload/naval-aa/preview-side-right.png` | `4d0845d6b40b2cd7668756ee304c952dd696cbefc6e82e25eee919c67a217972` |
+| `assets/roblox-upload/naval-aa/preview-side.png` | `63c6b0b5c3ceea60dc007ce11781cef9d062be262d99316551d07161f248426d` |
+| `assets/roblox-upload/naval-aa/preview-top.png` | `ae4fccce3ac6b6d9b931cb5c8df89a1e01180e9f1d6b04309f8603fa12d917ed` |
+### naval-container-ship
+
+Version `naval-kit-2`, triangles 812/2400; size [44.0, 59.5, 280.0]; pivot `bottom-center`; asset ID undefined.
+
+| Path | SHA-256 |
+|---|---|
+| `assets/roblox-upload/naval-container-ship/checklist.json` | `14bef29bf858d130f95de71fa8aaaee52b332ad74fcc58c2b407acc2de3c05be` |
+| `assets/roblox-upload/naval-container-ship/contact-sheet.png` | `267c47a58475434b62e5c4fbeea66f82cd8b62751bd6bdd282686202d2e3dbf8` |
+| `assets/roblox-upload/naval-container-ship/naval-container-ship-color.png` | `8484bfca0be4f0599ea3a952d71f439b7a996fca032d8f86b84f2a39f681e075` |
+| `assets/roblox-upload/naval-container-ship/naval-container-ship-metalness.png` | `2225577be2fe14f2e23541e264d14b2698e6a4de42bb11f1a43d1bd31eccac44` |
+| `assets/roblox-upload/naval-container-ship/naval-container-ship-normal.png` | `237e5ea2478788ee0dc94834d70a57db463e1807c395114ef10b79a8f61177f1` |
+| `assets/roblox-upload/naval-container-ship/naval-container-ship-roughness.png` | `c0bad516390abcddd6ab22ecf4b8e3a4191aa130d1e43da60b6734d1510a23e9` |
+| `assets/roblox-upload/naval-container-ship/naval-container-ship.fbx` | `91350b4857cf30e6d4923e37dd77fd5b4b0903d5c040ba0c79e9b355af63459c` |
+| `assets/roblox-upload/naval-container-ship/preview-3q-front-left.png` | `7b75c2add0ef96fdd40476db32738e7cd868e6ba6d22742ec78f4cdfd3710f7b` |
+| `assets/roblox-upload/naval-container-ship/preview-3q-rear-left.png` | `7be82b90633a7981f393cb88d55aa6f518a9b6810a0d12080e9963b46b53478b` |
+| `assets/roblox-upload/naval-container-ship/preview-3q-rear-right.png` | `10c9c0da60c65e45f9bf2d463799f219c39b5b351cd89770dab8d2d3e3d46d69` |
+| `assets/roblox-upload/naval-container-ship/preview-3q.png` | `32264f9bba837d29ad877d90ed594d12768f66a83b762ce9ade3a5c1d94327b9` |
+| `assets/roblox-upload/naval-container-ship/preview-back.png` | `078c2150f43127197ca6c87748c2d293cc6f38b6480d0422075d8ae010085ee6` |
+| `assets/roblox-upload/naval-container-ship/preview-bottom.png` | `7d570d65bc4fcd0f88e2686218633c8ff809ffe737f7aae00f5fd66f02d4bcb9` |
+| `assets/roblox-upload/naval-container-ship/preview-front.png` | `256b863ed279251d0270a8bf44d0b31553aed1b8b25535594892df90b0581dae` |
+| `assets/roblox-upload/naval-container-ship/preview-side-right.png` | `bd2bf99afae936dd1044bab3e72366d8fb459fcf4ee2048d1aba9bfdc1344fef` |
+| `assets/roblox-upload/naval-container-ship/preview-side.png` | `1e50123134f66ba78096635b061c924b7b289103b535c5d409f2d5c87dcc1e29` |
+| `assets/roblox-upload/naval-container-ship/preview-top.png` | `4cc61d7a948cd4916befd5d4ae646aceb84dd9f572c0c75b80ad595a4b461f86` |
+### naval-cruiser
+
+Version `naval-kit-2`, triangles 544/2400; size [40.0, 62.0, 310.0]; pivot `bottom-center`; asset ID undefined.
+
+| Path | SHA-256 |
+|---|---|
+| `assets/roblox-upload/naval-cruiser/checklist.json` | `480865a7190ac7fbda3f210b1d86c18229452742ccdbdd3d8dde4f22b93dc4c0` |
+| `assets/roblox-upload/naval-cruiser/contact-sheet.png` | `0e847d94039191b7a4e3deb699c502e88bf5cc48ee11c3b49b25f09c25ecbb31` |
+| `assets/roblox-upload/naval-cruiser/naval-cruiser-color.png` | `f5b64b51d225dc8ce74a73186733ec79c6586a4e34d4bf0acb6900d86e1ff624` |
+| `assets/roblox-upload/naval-cruiser/naval-cruiser-metalness.png` | `ba86fb3932b2ceecdb28ff25e89aeaea0e6e1329ed8b7932053835ac7eb84510` |
+| `assets/roblox-upload/naval-cruiser/naval-cruiser-normal.png` | `fcad8a2f05d012e6e283b3bd1a0e87fd951eece672f82388d719f62f29dcd4f6` |
+| `assets/roblox-upload/naval-cruiser/naval-cruiser-roughness.png` | `ddade07571bdb27b24a6f2997cf36bab21291bba952c6aca952f7bb2a68dde20` |
+| `assets/roblox-upload/naval-cruiser/naval-cruiser.fbx` | `983bd839010fcd32cb6ba25646d50e1a58c78a947b0afff273ad5b9483947818` |
+| `assets/roblox-upload/naval-cruiser/preview-3q-front-left.png` | `53bc56476501b56e0e139cbcf7853dd28b1758528adb6b508b33f8e043808144` |
+| `assets/roblox-upload/naval-cruiser/preview-3q-rear-left.png` | `266a8fda81a847f5f6aaa218c3e8f8f235a213c4b17e6d8f54bcea332af52933` |
+| `assets/roblox-upload/naval-cruiser/preview-3q-rear-right.png` | `a66515aa12844caa1712b30d317b1bf2c413bed371539d0875c659d7e595b36d` |
+| `assets/roblox-upload/naval-cruiser/preview-3q.png` | `e556d212006ad69b99804a16a9713ec9623e49e52798b092279633a614e5f85f` |
+| `assets/roblox-upload/naval-cruiser/preview-back.png` | `d373a7820f898d2eba9babc6265396a79c05af1e0ed7987089762d9bc88fdcbd` |
+| `assets/roblox-upload/naval-cruiser/preview-bottom.png` | `3203b6b058203b70859f33f493d1ae9e89087b21e69a25c7077bd37b02e085c8` |
+| `assets/roblox-upload/naval-cruiser/preview-front.png` | `dace51fb61c326fd3fa9cec161bdd1bf103168a706a800a71099be8d53d93126` |
+| `assets/roblox-upload/naval-cruiser/preview-side-right.png` | `a6d322a71a66d1a65d2258ce1c00e292277bb30abd713f9fc2cefb3d9a94ed5a` |
+| `assets/roblox-upload/naval-cruiser/preview-side.png` | `ca523529f380eeacfa16f6c0a726425b8440b82b74b81363b6f223d581b78263` |
+| `assets/roblox-upload/naval-cruiser/preview-top.png` | `7d7dc67621e3d067d3067081363ca19ec43347e9ca369db9116f3eae64b22716` |
+### naval-destroyer
+
+Version `naval-kit-2`, triangles 512/2400; size [34.0, 59.5, 270.0]; pivot `bottom-center`; asset ID undefined.
+
+| Path | SHA-256 |
+|---|---|
+| `assets/roblox-upload/naval-destroyer/checklist.json` | `34c9b09cdc81b185a958cb8ac83932dbed1dcc36fbb4f302eb692c9a4c667a4b` |
+| `assets/roblox-upload/naval-destroyer/contact-sheet.png` | `bc53763ab62f3b3f1bc0e6145eeb4186d6e18c109dced03990203ca3687ce9b5` |
+| `assets/roblox-upload/naval-destroyer/naval-destroyer-color.png` | `4fe91b256911b1281d9043dc14558c2855842d7d4d6496cec5cf03f05369553d` |
+| `assets/roblox-upload/naval-destroyer/naval-destroyer-metalness.png` | `af87307e440ccc9cf2a48b07dd1fc33d76b3944585498d92d7c7a88d4a0eaf21` |
+| `assets/roblox-upload/naval-destroyer/naval-destroyer-normal.png` | `da1eb6b3d1735c4990f4d3a41236b222efd618885a9cf482d6a31b95deb6ab33` |
+| `assets/roblox-upload/naval-destroyer/naval-destroyer-roughness.png` | `54f65f781d837739ade35d86ad2bd29cfd31b173f345d8935ef2da6bc22ded05` |
+| `assets/roblox-upload/naval-destroyer/naval-destroyer.fbx` | `a0ca71c777112eaecd2ab0fd147768c6ea501dc202a3a6bfa034b54a356077f5` |
+| `assets/roblox-upload/naval-destroyer/preview-3q-front-left.png` | `77a6602a9255625c30d78dccf69ec69b84032cbe548a580c73326543777fd6cf` |
+| `assets/roblox-upload/naval-destroyer/preview-3q-rear-left.png` | `6b0fc804e0f5ef2bcad17b666fea0c174d4e8a01a61cc031a38bfaf95bb3beba` |
+| `assets/roblox-upload/naval-destroyer/preview-3q-rear-right.png` | `86f0614e47ad377e6d02da72b26b32824d0d8ad45cdc98f278f96decd94e77b9` |
+| `assets/roblox-upload/naval-destroyer/preview-3q.png` | `db5e11c1d377785b2ec520984f53e437a510302488069b4e58155e599af4abda` |
+| `assets/roblox-upload/naval-destroyer/preview-back.png` | `3cb6d5d2164e22265b486c1f6c7c2d1b1721c49e134c27ac992ea67c75651b29` |
+| `assets/roblox-upload/naval-destroyer/preview-bottom.png` | `3823f02ba3822d6769d8b0b4f2e9801ec097383cacef3a5ea61c44ca341008a6` |
+| `assets/roblox-upload/naval-destroyer/preview-front.png` | `3aacd35f2f2e9ab6f91a78440d3e7a1397917310b6c2195473d9ba9eb5cf3fa9` |
+| `assets/roblox-upload/naval-destroyer/preview-side-right.png` | `64e299558232af81a9d5d25c5cb4a83118ae26028e09249124162dc974631d45` |
+| `assets/roblox-upload/naval-destroyer/preview-side.png` | `75d671825ead6ad8cebb7e76ba529a03e4620244f541dac8c800fd7f1cfcfda1` |
+| `assets/roblox-upload/naval-destroyer/preview-top.png` | `55567abea2bb37280af772c04e02a64fb152514ca2148b5ac2638f119e41cdda` |
+### naval-frigate
+
+Version `naval-kit-2`, triangles 508/2400; size [30.0, 63.0, 240.0]; pivot `bottom-center`; asset ID undefined.
+
+| Path | SHA-256 |
+|---|---|
+| `assets/roblox-upload/naval-frigate/checklist.json` | `e1f7a54511a98a69bca51cb7f9bf98ed8039475b8cb78f5e301a7da4a1cfd130` |
+| `assets/roblox-upload/naval-frigate/contact-sheet.png` | `2cebf3fb594831b1cc0934bceb82c1e3eeb175cad9e1271a39328952e9f61a67` |
+| `assets/roblox-upload/naval-frigate/naval-frigate-color.png` | `cdd2ab772cb368b87fe29bf0ebe57a90987569d4989c1c03ea12ddea27f64787` |
+| `assets/roblox-upload/naval-frigate/naval-frigate-metalness.png` | `99e2783597edf491cae3de0d88ce322a4a91a2abd937f6f60ac6f7830e2b52f0` |
+| `assets/roblox-upload/naval-frigate/naval-frigate-normal.png` | `dc31a5ab4a09a1cb895b89e9d41f5fa5390d9fd71bc71a3dbbf53636868cb383` |
+| `assets/roblox-upload/naval-frigate/naval-frigate-roughness.png` | `c54037b7d9c734024b9c52a2bc1c773f384c7b86f7ada64f6fb396a9962d59e5` |
+| `assets/roblox-upload/naval-frigate/naval-frigate.fbx` | `15a7923a25f98061e7a74cad7923ee680ee64d57c10678757c85d87d27f3348c` |
+| `assets/roblox-upload/naval-frigate/preview-3q-front-left.png` | `1fb0cc894dcdacff93be69eaaa2d1f33183aac0dcc5ceade1d7356df5320b42b` |
+| `assets/roblox-upload/naval-frigate/preview-3q-rear-left.png` | `aa84a6370931ace66aa59b5ba05e06597ef427f7069ef7af8e133968bf9476d7` |
+| `assets/roblox-upload/naval-frigate/preview-3q-rear-right.png` | `b4f5a7f929f52d5944dbc899958bb274e8ba6355aee99246fc8df9b9a58dfb3d` |
+| `assets/roblox-upload/naval-frigate/preview-3q.png` | `08285c72c9c6732d93b558b752f9d0a8a8a502366148b06167a1c5ba94706573` |
+| `assets/roblox-upload/naval-frigate/preview-back.png` | `e320907f0be98504981003bd1a4c67200d003104ca19e1369a97052ed04bda3c` |
+| `assets/roblox-upload/naval-frigate/preview-bottom.png` | `4f277275c8437df9c146ce2de6075a78dbf6817adffd3b596e9427ba8591df76` |
+| `assets/roblox-upload/naval-frigate/preview-front.png` | `ec5f7c45f076ecb561da440ce66757603c1b8f69ac7afb6f71aa318bc3e28667` |
+| `assets/roblox-upload/naval-frigate/preview-side-right.png` | `b20eb49a32f2eb9c9455d56c264ec2d7e3cb251f53c6abbca6239f754a8c7799` |
+| `assets/roblox-upload/naval-frigate/preview-side.png` | `5529fa96351d364f34edf286751dbb2922942d75513d52ac365d34f617948dba` |
+| `assets/roblox-upload/naval-frigate/preview-top.png` | `3afd8091fa0730b8cb37cca91a61806e9a50a38bd70c2c5dafcaf04860953a6d` |
+### naval-gun
+
+Version `naval-kit-2`, triangles 188/2400; size [10.0, 9.55, 21.65]; pivot `bottom-center`; asset ID undefined.
+
+| Path | SHA-256 |
+|---|---|
+| `assets/roblox-upload/naval-gun/checklist.json` | `00bc818e93eb4d8ffca2ed2d9199c4b8eb387433548bd199dcffbe824428e8a6` |
+| `assets/roblox-upload/naval-gun/contact-sheet.png` | `d9959d34b989491e0b33beed2963c02ffd93fa60e39e1ab6104160a1b26ca7e8` |
+| `assets/roblox-upload/naval-gun/naval-gun-color.png` | `8a2cf32f42b95660f03a7837ae986ccfddae9d1e31496de64dd74782e97a0ce7` |
+| `assets/roblox-upload/naval-gun/naval-gun-metalness.png` | `7f31c1b7e5a82dd2ddbf2b3857317e013723394715bdeef293b92297200df7d4` |
+| `assets/roblox-upload/naval-gun/naval-gun-normal.png` | `1b7ef6bee014503d8d326354a6f8913c37de0fee35f96c1ccb7e61aeae0f4ca3` |
+| `assets/roblox-upload/naval-gun/naval-gun-roughness.png` | `1511dae1e9a9d75b0cecd1be87b82e407ce6e4d580a153f7133f320bdda079d9` |
+| `assets/roblox-upload/naval-gun/naval-gun.fbx` | `d40e31a5a0f1b6b0a429b0eb283869a457cfc140ae9399983747c6831d17a63e` |
+| `assets/roblox-upload/naval-gun/preview-3q-front-left.png` | `c49e16b0759af24c77890f2bd6ebc10d12156c0be66621d1f5c5c2ee2c352741` |
+| `assets/roblox-upload/naval-gun/preview-3q-rear-left.png` | `54cf784eca5ced53abf0dbbcfb77d50361519f3e7a3163b3406cc53305225f42` |
+| `assets/roblox-upload/naval-gun/preview-3q-rear-right.png` | `014cf128ab42359ba844a4cedfdbab84df36e19cba879587ce2194236cde14f8` |
+| `assets/roblox-upload/naval-gun/preview-3q.png` | `68f9b2ccdcc008e3afe10d251d82d96e4b9fa5ed787f716336ace59f116a0d79` |
+| `assets/roblox-upload/naval-gun/preview-back.png` | `5d5184d01a0a7d58fded7ee4c519b4d71f425937159d25e7bb19f661a3907b27` |
+| `assets/roblox-upload/naval-gun/preview-bottom.png` | `07b0f56da3cd63fb276f1572d1062760cc5e1f98fae8e94245e23c7c68c49ff9` |
+| `assets/roblox-upload/naval-gun/preview-front.png` | `19d7694861fd5e2eb6ff7768fbf7c0ad03cc34c41041a949d42f9155a5448f38` |
+| `assets/roblox-upload/naval-gun/preview-side-right.png` | `1fa859d7dcc5b40d061ef5efc2cc7b116061d3c45d36ed3ab511290b46331cef` |
+| `assets/roblox-upload/naval-gun/preview-side.png` | `6dd16c509c3d9d89d61287db1f6cb706519a3e2e8f025e105190f1c6a9c70a91` |
+| `assets/roblox-upload/naval-gun/preview-top.png` | `dabfd4440f0e547ba58387954c4a03d7dd0704e2bf2532963702689a97ecc40b` |
+### naval-landing-craft
+
+Version `naval-kit-2`, triangles 120/2400; size [28.0, 28.0, 90.0]; pivot `bottom-center`; asset ID undefined.
+
+| Path | SHA-256 |
+|---|---|
+| `assets/roblox-upload/naval-landing-craft/checklist.json` | `9e7bd9aad716e69e7fd4829d8a837b08b8cb6b94f7f52f6754ae91151138004a` |
+| `assets/roblox-upload/naval-landing-craft/contact-sheet.png` | `ddf55b4e9011deb7e2a788da15beea9c34aab4b2976df2e94661671fa3f549c1` |
+| `assets/roblox-upload/naval-landing-craft/naval-landing-craft-color.png` | `b54f2d5fbd414faa0edb4b9691f621dc406d12d6089a292d3264d62aa00e8a2d` |
+| `assets/roblox-upload/naval-landing-craft/naval-landing-craft-metalness.png` | `c91325000a20f519d85dd4de260d4f98d82efd920ece8e8c516247f642b4b94a` |
+| `assets/roblox-upload/naval-landing-craft/naval-landing-craft-normal.png` | `44da437029c7d4f5d146ca74521d3494a7244d9031b18a7d0205f846f7fcdf7e` |
+| `assets/roblox-upload/naval-landing-craft/naval-landing-craft-roughness.png` | `13458c3011d7319957ff6d10b98b4528f848cfd60f2ffa869a42bfb36b2d1cc0` |
+| `assets/roblox-upload/naval-landing-craft/naval-landing-craft.fbx` | `6cd9508665d80af057d70e336875c145944b018c0abe48a9e7353ea8f489373f` |
+| `assets/roblox-upload/naval-landing-craft/preview-3q-front-left.png` | `b8d5c299008122eca58142a0ff9e0648ca66addce21cb4e86ffae2220a818346` |
+| `assets/roblox-upload/naval-landing-craft/preview-3q-rear-left.png` | `00f4af718bc9d92a93f2cca49c9ecd12c041ce61ddb5e98cdc59aa8958125c77` |
+| `assets/roblox-upload/naval-landing-craft/preview-3q-rear-right.png` | `a3d99a928e99edbf06da401e8893f0fba6922ed80258750bd9fda3373d47c46d` |
+| `assets/roblox-upload/naval-landing-craft/preview-3q.png` | `4a0a752df7e2c7c13f9a252b9022e0b7390d8d52f5e87bf48473156080bac404` |
+| `assets/roblox-upload/naval-landing-craft/preview-back.png` | `1558597cd7fabfbb5811ba5aa022e13dc78d6036975c480c9b4f771567fe590e` |
+| `assets/roblox-upload/naval-landing-craft/preview-bottom.png` | `de53a3eab48c2383bfbc3ef8c1285dab5b0502cafe3fbe049989b91df7b9f39d` |
+| `assets/roblox-upload/naval-landing-craft/preview-front.png` | `0f1574c1b66bf43c7eeb51b4a5893b06b7eeacc1974b2a1e2009731ed9b66478` |
+| `assets/roblox-upload/naval-landing-craft/preview-side-right.png` | `692ca04188f35cfbd3bec26f21e915d2a3d3dc9021c48f55bd105d9bb4dbf54d` |
+| `assets/roblox-upload/naval-landing-craft/preview-side.png` | `016cee997e2636fd71617ef4bfdc9502505055a43e6bb6f2b88cd77ae4593c87` |
+| `assets/roblox-upload/naval-landing-craft/preview-top.png` | `080eeba4e4b00d99862ab2086e1379caf35b962dd9ba472ef4637d74f16aa8d8` |
+### naval-landing-ship
+
+Version `naval-kit-2`, triangles 452/2400; size [40.0, 59.5, 220.0]; pivot `bottom-center`; asset ID undefined.
+
+| Path | SHA-256 |
+|---|---|
+| `assets/roblox-upload/naval-landing-ship/checklist.json` | `7a716faa5ef3f6215bccb1a486e356da223b07a053873dc5517e19943993de89` |
+| `assets/roblox-upload/naval-landing-ship/contact-sheet.png` | `d22d5ea3458f091d853dfaa667b55728f747ff32c1c67a9ebacfa6906cd8b07f` |
+| `assets/roblox-upload/naval-landing-ship/naval-landing-ship-color.png` | `add886df5d7a02169f3ba867c67f7546bfb4f04b0e5ba2c1edb35d869039e977` |
+| `assets/roblox-upload/naval-landing-ship/naval-landing-ship-metalness.png` | `814e40f2a3da46fbf4b72c628b9dfb92d6f3950522ce4b5748c76dc464fdd7e0` |
+| `assets/roblox-upload/naval-landing-ship/naval-landing-ship-normal.png` | `26ec8ba9f4fcf489e30dbd95d873c2b7bf7b1a72979ac06aac031c341a3ea886` |
+| `assets/roblox-upload/naval-landing-ship/naval-landing-ship-roughness.png` | `e95f792572e0b51a99843631ee34837e265fd9a4cd808e25440e7f2a3587b1b9` |
+| `assets/roblox-upload/naval-landing-ship/naval-landing-ship.fbx` | `dc032ec7e752db25b512f1dcb1ea9f58c74fb787979708d140cbe93e78e6406f` |
+| `assets/roblox-upload/naval-landing-ship/preview-3q-front-left.png` | `64286d26d5027f2a61330e63efacf318381497433edcac10fed3dd74a39d4fcd` |
+| `assets/roblox-upload/naval-landing-ship/preview-3q-rear-left.png` | `4fe6fa9027953edc63546a5b180f322fdcd292044c86184ff9261ab60e9a0e13` |
+| `assets/roblox-upload/naval-landing-ship/preview-3q-rear-right.png` | `87071af3dadbe5f3816bdc46e40e7348e0fd1eb08a7326a7bed144d74bfc21e7` |
+| `assets/roblox-upload/naval-landing-ship/preview-3q.png` | `b95973000f2daa27ddcff32022116ba7849ef6d07ae2ca1265ed9246aa2f3c8a` |
+| `assets/roblox-upload/naval-landing-ship/preview-back.png` | `3928bdef8f37358833f942a1d65d0574ec291169e28f9a01f1a9a920c0023a28` |
+| `assets/roblox-upload/naval-landing-ship/preview-bottom.png` | `49a9105b4f3cf4f3d89422951b25d8e667b693aecb65aee62f1cca10a810fcd2` |
+| `assets/roblox-upload/naval-landing-ship/preview-front.png` | `7dcfdf3c2fa691e8526a21c71fcc0dd45654e74fb1801d3a48740993058e0006` |
+| `assets/roblox-upload/naval-landing-ship/preview-side-right.png` | `e2b1f4fc4e7b6fa1b8e5fbb5b1cc01d939409f82b3af6d8c93b31b12856ab09a` |
+| `assets/roblox-upload/naval-landing-ship/preview-side.png` | `0a86d024f81f24990772fe66d53beed7ae5a274f9f5f04ebc12aadfc227150eb` |
+| `assets/roblox-upload/naval-landing-ship/preview-top.png` | `f9330dbf66446196eee2cad956cbfdc7af6fff9210699681356aa1059af651c0` |
+### naval-missile-boat
+
+Version `naval-kit-2-profile2`, triangles 452/2400; size [18.0, 37.4, 105.0]; pivot `bottom-center`; asset ID undefined.
+
+| Path | SHA-256 |
+|---|---|
+| `assets/roblox-upload/naval-missile-boat/checklist.json` | `24df397a6abf2c258d51aad681d135e02afbf9f2f38f2c939246943f4ffd31a1` |
+| `assets/roblox-upload/naval-missile-boat/contact-sheet.png` | `872a5a1c9973b93d5113a68b2f688f286a8342d091acc5e864006387cb4d0387` |
+| `assets/roblox-upload/naval-missile-boat/naval-missile-boat-color.png` | `1d7d41437fb2e2b1e13d2089b301ba73641247eb598daa526a3adc13e50ee11f` |
+| `assets/roblox-upload/naval-missile-boat/naval-missile-boat-metalness.png` | `ffd363de1f578cfb56ad4a4d737d13a16a23efe0b86aca40b08b5a1583de8430` |
+| `assets/roblox-upload/naval-missile-boat/naval-missile-boat-normal.png` | `adcf94cd2516c68e4bb4604481aa3d3c75e7f4e237e0bd6e920bd79ff1c6fc1b` |
+| `assets/roblox-upload/naval-missile-boat/naval-missile-boat-roughness.png` | `da842cecedf066799fde56c111b702949e5d6393118b7c7609b846ab88ff3916` |
+| `assets/roblox-upload/naval-missile-boat/naval-missile-boat.fbx` | `8cc6d0029bc3c74a48b857695277e8b215877f32bd50179d52bef186130e110e` |
+| `assets/roblox-upload/naval-missile-boat/preview-3q-front-left.png` | `82a2430e51870234f0b71c92e55795414471a8f39ef1ab535f3ba9c47d4ec1cb` |
+| `assets/roblox-upload/naval-missile-boat/preview-3q-rear-left.png` | `45411ce415c44dfcd344642cf512c2dcae519fda5e444d344ae05f5f9a905246` |
+| `assets/roblox-upload/naval-missile-boat/preview-3q-rear-right.png` | `c05e999a0b3ff2805ca54688e2344d0f131b5e0ed45a101dc4aab4a8d4e08122` |
+| `assets/roblox-upload/naval-missile-boat/preview-3q.png` | `960cfe5035f4a197b0e3ecb0f17018d8e83e736a8ef7790b74960b1146ddfcea` |
+| `assets/roblox-upload/naval-missile-boat/preview-back.png` | `100cdabfd921e662db967e9d4af8416329f33c920ac0f56ec487b758ee9d14db` |
+| `assets/roblox-upload/naval-missile-boat/preview-bottom.png` | `ec4667f3e51bff14a0554a79a3c299eab2a347aa6ca705cf972945970cefd47c` |
+| `assets/roblox-upload/naval-missile-boat/preview-front.png` | `1852b8f1bc7ea6d7924c7654d0c935683a7af97525b2e20aba9454db9688cc45` |
+| `assets/roblox-upload/naval-missile-boat/preview-side-right.png` | `d15dd15e96d37d736c75ba9272f337f897bfeb00603545a98fb3065c424385e8` |
+| `assets/roblox-upload/naval-missile-boat/preview-side.png` | `97d6a113a6dba3f5f750971fd5d3c81cbd3ca6bf82d62c0b3963a30ec4f153ea` |
+| `assets/roblox-upload/naval-missile-boat/preview-top.png` | `8dce3a8343f14f644e4d885d65df48d5f4a6641fc9931839ef4881105fe33e8c` |
+### naval-sam
+
+Version `naval-kit-2`, triangles 188/2400; size [10.0, 14.363, 15.039]; pivot `bottom-center`; asset ID undefined.
+
+| Path | SHA-256 |
+|---|---|
+| `assets/roblox-upload/naval-sam/checklist.json` | `6afa4aed027b186007055443e769f9bc87ae5d44a2c1508ef44deb12029d8a65` |
+| `assets/roblox-upload/naval-sam/contact-sheet.png` | `c6144873eed6ea1f84028785f6613c9ab30248f66d7bee3254e7c51fcb8caac9` |
+| `assets/roblox-upload/naval-sam/naval-sam-color.png` | `c09900997d1431309974aafaefa0e557decb17936001d7ae5533a2cef3287e75` |
+| `assets/roblox-upload/naval-sam/naval-sam-metalness.png` | `0381df73b5f7b74d6f1f4a89e7937789320c52df98541fac5ebc8da7e5629da8` |
+| `assets/roblox-upload/naval-sam/naval-sam-normal.png` | `8063a01e407fc099432609f162f7f1eeaa0dd081c48736fe7c77e6a168072e61` |
+| `assets/roblox-upload/naval-sam/naval-sam-roughness.png` | `4023aaee389d1d7c9d8475639b58fc2b9d94e9cdbd29bfd908cf8dc2833c7264` |
+| `assets/roblox-upload/naval-sam/naval-sam.fbx` | `f2d5595d6510c75ba5544624bcb6dd3c7e5633141a374ac588153087e72f0bb6` |
+| `assets/roblox-upload/naval-sam/preview-3q-front-left.png` | `16e3497f4610a21820c061a38191b5b160902b2bab550c5b4618a6203372dc31` |
+| `assets/roblox-upload/naval-sam/preview-3q-rear-left.png` | `da949988743008b464bf6f81ed718aa1ee03d8e99774d4a95ea6114643d1a6df` |
+| `assets/roblox-upload/naval-sam/preview-3q-rear-right.png` | `48018dc0e4a11c1fadaad6dabe9e8198bbe7960c40b144d8afae663cabd19ad2` |
+| `assets/roblox-upload/naval-sam/preview-3q.png` | `26c23f0fc66f8b7264d5902632d7916ed182ccb0ada672be5725cb17f3e8825a` |
+| `assets/roblox-upload/naval-sam/preview-back.png` | `a606c37b25fc69f9f2cda7fc6b4c84dc801b261d7e45c8a375baea7c4dbd7d1e` |
+| `assets/roblox-upload/naval-sam/preview-bottom.png` | `dc4ee29d7d8934666cfeac4b9b7d1af87d8d19b756c487b431ea610552c94123` |
+| `assets/roblox-upload/naval-sam/preview-front.png` | `72566816e9fe678d05b46d4ba85c98c3598f7740ffa96f62328bdf86243b268a` |
+| `assets/roblox-upload/naval-sam/preview-side-right.png` | `a0fb0929e6722f2b0cb1c587867500a44d1429eec438506ce9630f6faf432c6a` |
+| `assets/roblox-upload/naval-sam/preview-side.png` | `ee04e7d13090b5505704fadcb4000ea092147e0f82953fd55b5038ecf066e74a` |
+| `assets/roblox-upload/naval-sam/preview-top.png` | `df6d52af9d9724fe5b18c35d79b551d5abd9be14bd18831ba465dfb708e44a10` |
+### naval-submarine
+
+Version `naval-kit-2`, triangles 284/2400; size [28.0, 39.0, 200.0]; pivot `bottom-center`; asset ID undefined.
+
+| Path | SHA-256 |
+|---|---|
+| `assets/roblox-upload/naval-submarine/checklist.json` | `6af60736161d5f27ec2361fe8691ec72a3e612ddc253f574b786ee62a2648ce2` |
+| `assets/roblox-upload/naval-submarine/contact-sheet.png` | `00751906e0e74ef4c36e35f20cd9f1b726664b325d4eab3c14cb11ec7d237e41` |
+| `assets/roblox-upload/naval-submarine/naval-submarine-color.png` | `bb189e54b322c6c26f5206c3fead05db8f4009962892995da3120b1a2cfecdb0` |
+| `assets/roblox-upload/naval-submarine/naval-submarine-metalness.png` | `89c0d9592d666e4acaa7f90efef317419b0c841826d7ec155928578fa1867a06` |
+| `assets/roblox-upload/naval-submarine/naval-submarine-normal.png` | `beb4941a516ed42a4276c23251c6283ba564eec1bc989f0800034420300bcf91` |
+| `assets/roblox-upload/naval-submarine/naval-submarine-roughness.png` | `9859b044dfd2fba1c54c23a2796d4263c5f76f2833b30b5ff53150c4257d3cf5` |
+| `assets/roblox-upload/naval-submarine/naval-submarine.fbx` | `29bbfecdbf48f1f327c8572a4b11ba3c6fa81b5c9f75fa6fa61999f7bc6b5a76` |
+| `assets/roblox-upload/naval-submarine/preview-3q-front-left.png` | `214efcc041897bcd6ff95d0852de4a6d061cf9f0203a8b56a70c9291d0ae770f` |
+| `assets/roblox-upload/naval-submarine/preview-3q-rear-left.png` | `55d89565277bc66c8151cc223de21afa5e1adff0daee05675b1e0ca9624dbb9f` |
+| `assets/roblox-upload/naval-submarine/preview-3q-rear-right.png` | `55e2d9354c5fa989ed0ae28c58c6cb11796e32067a59a627fb13d09e29a484e0` |
+| `assets/roblox-upload/naval-submarine/preview-3q.png` | `e89ea486abe31b6140ed10c95d4cc79335d1db91b1d1a09490cc24ba788fe01c` |
+| `assets/roblox-upload/naval-submarine/preview-back.png` | `ee2d3b4183abf7665d5d496656629459613497b88d599410847e7f9a32016a74` |
+| `assets/roblox-upload/naval-submarine/preview-bottom.png` | `394bf4cd2e952d638eed79f89859b1041836af90798f0b1364440cc63d18f1e1` |
+| `assets/roblox-upload/naval-submarine/preview-front.png` | `f4379238ba964ccd3cf0214bc30edcf940cb63e628cae7b23272cd0896bdc13a` |
+| `assets/roblox-upload/naval-submarine/preview-side-right.png` | `b50ea95eebc0a66a025d48feba008da8445f5091e1a11c5c94ef9c743937a8c1` |
+| `assets/roblox-upload/naval-submarine/preview-side.png` | `b098f54334ebc9db554a63e83f47871c47de4647a5de32d91438d660903b0287` |
+| `assets/roblox-upload/naval-submarine/preview-top.png` | `f4daf67382a21a6e3c881fee447687ad4dc47fc2e717160ae9b55061dd485b9a` |
+### naval-supply-ship
+
+Version `naval-kit-2`, triangles 476/2400; size [40.0, 59.5, 240.0]; pivot `bottom-center`; asset ID undefined.
+
+| Path | SHA-256 |
+|---|---|
+| `assets/roblox-upload/naval-supply-ship/checklist.json` | `62984e179920518f1a63c5cd312b80ae6ea920f8c0b7f421ca1a88ac5203965b` |
+| `assets/roblox-upload/naval-supply-ship/contact-sheet.png` | `dca73066b20aec7683e0e490dbac33e636d18571fd2c34487d89f91d2383b16c` |
+| `assets/roblox-upload/naval-supply-ship/naval-supply-ship-color.png` | `49e877155b57790e4d4e073f8d5d317f0d249fe64ebe0058f2029aab6c1184cb` |
+| `assets/roblox-upload/naval-supply-ship/naval-supply-ship-metalness.png` | `8025811f18b1819906994201e498f48df9a490a2a936813eb27aa767d1433ca9` |
+| `assets/roblox-upload/naval-supply-ship/naval-supply-ship-normal.png` | `8929612275d6322b1d7c7bdbe81495586b1cbb7d0f6d59e744af22b34802b7f2` |
+| `assets/roblox-upload/naval-supply-ship/naval-supply-ship-roughness.png` | `a2cfed45cf830711b63db54aa91e14d4eeef003bf31c77c791689da171fa3f37` |
+| `assets/roblox-upload/naval-supply-ship/naval-supply-ship.fbx` | `6f3dac33a96b40be68c6080a6bf2c29467f4c8a65015e9f9c20fcfc351dedd08` |
+| `assets/roblox-upload/naval-supply-ship/preview-3q-front-left.png` | `e17fedaebf479f29961725c0ad1b809992614d38093530ef99b177cb42ce7458` |
+| `assets/roblox-upload/naval-supply-ship/preview-3q-rear-left.png` | `ce846eef7fcec18419fa6e6e1442306b3b4c92e30bf6ab2a1537fddc6dce9e32` |
+| `assets/roblox-upload/naval-supply-ship/preview-3q-rear-right.png` | `3733dbaf5e6ddb65b8d21cc8da1f5d09d1d679fa3681363a4e66ff3f53c777b4` |
+| `assets/roblox-upload/naval-supply-ship/preview-3q.png` | `2a7b84e127432d0f7ccc8f53accb13e1c2f549caaf58be57bec8e0298939d6d6` |
+| `assets/roblox-upload/naval-supply-ship/preview-back.png` | `469c3f869f689364e5b183dbc8b387f5497d23e722a606b060a08431cc32f3a3` |
+| `assets/roblox-upload/naval-supply-ship/preview-bottom.png` | `74618bf3252f70c83e3ef05dd4a82513fd1c0f0d089a2587ffc1beb021fe8b8e` |
+| `assets/roblox-upload/naval-supply-ship/preview-front.png` | `a11bcf601f6bd991ab002a8106a1f894cee6ecd53213f714c263f804e8375f0d` |
+| `assets/roblox-upload/naval-supply-ship/preview-side-right.png` | `96f0756ceb66510d0aaaaef10b2415541e31bc0f2588c1444a9bd1394f09f6b0` |
+| `assets/roblox-upload/naval-supply-ship/preview-side.png` | `d9d43832e0b5af76d578454b541c7bf021d81c725f855807e36f626f8029ed87` |
+| `assets/roblox-upload/naval-supply-ship/preview-top.png` | `bfb74e0990d26e1cb5fd14fdc005f0ea10cc0b4a8fd0574d52c464c351b3f20a` |

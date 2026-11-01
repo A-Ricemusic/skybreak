@@ -13,7 +13,7 @@ export const REARM_TAKEOFF_CLOCK = 60;
 export const REARM_MENU_SECONDS = 30;
 export type RearmStage = "landing" | "menu" | "takeoff";
 /** Server-observed rearm progress; `menu` is set while the TAKEOFF / CHANGE WEAPON menu waits for an answer. */
-export function rearmStage(plan: RearmPlan, elapsed: number, menu: boolean): RearmStage {
+function rearmStage(plan: RearmPlan, elapsed: number, menu: boolean): RearmStage {
 	if (menu) return "menu";
 	return elapsed < landingDuration(plan.landing) ? "landing" : "takeoff";
 }

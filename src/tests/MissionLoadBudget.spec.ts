@@ -1,3 +1,5 @@
+import { runBudgeted, terrainJobs } from "../shared/TerrainSchedule";
+import { M03_FILL_CHUNK } from "../shared/M03WorldPlan";
 import { worldCounts } from "../shared/WorldCompositionCounts";
 import { M03_TERRAIN_BUDGET } from "../shared/M03WorldPlan";
 import { M04_TERRAIN_BUDGET } from "../shared/M04WorldPlan";
@@ -43,7 +45,24 @@ describe("Campaign loading estimates", () => {
  it("keeps M03 within the 16-second modeled build budget", () => {
   const counts = m03Counts(buildM03Plan());
   print(`MISSION_LOAD_ESTIMATE mission=03 seconds=${counts.estimatedSeconds} jobs=${counts.jobs}`);
+  // Floor-free #205 geometry; retain the old 0.25 s calibration, runtime clamps to 0.15 s.
+  expect(counts.voxels).toBe(139976064);
+  expect(counts.jobs).toBe(10087);
+  expect(counts.touches).toBe(97432);
+  expect(counts.estimatedSeconds).toBeCloseTo(15.42024, 5);
   expect(counts.estimatedSeconds).toBeLessThanOrEqual(16);
+ });
+ it("executes every floor-free M03 terrain job across 0.15-second slices", () => {
+  const jobs = terrainJobs(buildM03Plan().ops, M03_FILL_CHUNK);
+  let now = 0, written = 0, cells = 0;
+  const timing = runBudgeted(jobs, job => {
+   expect(job.op.y - job.op.sy / 2).toBeGreaterThanOrEqual(0);
+   now += 0.01; written++; cells += job.cells;
+  }, { budget: 0.15, clock: () => now, pause: () => { now += 1 / 60; } });
+  expect(written).toBe(10087);
+  expect(cells).toBe(139976064);
+  expect(timing.yields).toBeGreaterThan(0);
+  expect(timing.longestBatch).toBeLessThanOrEqual(0.16 + 1e-9);
  });
  it("keeps M04 within the 16-second modeled build budget", () => {
   const counts = m04Counts(buildM04Plan());

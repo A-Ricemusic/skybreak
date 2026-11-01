@@ -20,6 +20,7 @@ import argparse
 import array
 import concurrent.futures
 import hashlib
+import http.client
 import json
 import os
 from pathlib import Path
@@ -107,9 +108,14 @@ def record_index(key, entry):
 def api(method, path, key, body=None, headers=None, timeout=120, raw=False):
     request = urllib.request.Request(API + path, data=body, method=method,
                                      headers={"xi-api-key": key, **(headers or {})})
-    with _http.open(request, timeout=timeout) as response:
-        data = response.read()
-        return (data, dict(response.headers)) if raw else json.loads(data)
+    try:
+        with _http.open(request, timeout=timeout) as response:
+            data = response.read()
+            return (data, dict(response.headers)) if raw else json.loads(data)
+    except urllib.error.HTTPError:
+        raise  # open() already strips remote error text; callers need retry status.
+    except (OSError, http.client.HTTPException, ValueError):
+        raise _http.HTTPFailure("Audio response failed") from None
 
 
 def subscription(key):
@@ -152,7 +158,7 @@ def cmd_plan(args):
 
 def cmd_generate(args):
     cast = casting()
-    key = Path(args.key_file).read_text().strip()
+    key = _http.read_key_file(Path(args.key_file))
     todo = pending(cast, lines())
     if args.only:
         wanted = set(args.only.split(","))
@@ -188,23 +194,24 @@ def cmd_generate(args):
                 audio, headers = api("POST", path, key, body, {"Content-Type": "application/json", "Accept": "audio/mpeg"}, raw=True)
                 break
             except urllib.error.HTTPError as error:
-                detail = error.read().decode()[:300]
+                error.close()
+                detail = "HTTP request failed"
                 if error.code in (429, 500, 502, 503) and attempt < 2:
                     time.sleep(4 * (attempt + 1))
                     continue
                 with lock:
                     state["failed"].append((line["id"], error.code, detail))
                 return
-            except (urllib.error.URLError, TimeoutError) as error:
+            except (urllib.error.URLError, TimeoutError, _http.HTTPFailure):
                 if attempt < 2:
                     time.sleep(4 * (attempt + 1))
                     continue
                 with lock:
-                    state["failed"].append((line["id"], "network", str(error)))
+                    state["failed"].append((line["id"], "network", "HTTP transport failed"))
                 return
         if not audio.startswith(b"ID3") and audio[:2] not in (b"\xff\xfb", b"\xff\xf3", b"\xff\xf2"):
             with lock:
-                state["failed"].append((line["id"], "format", audio[:80]))
+                state["failed"].append((line["id"], "format", "Invalid audio response"))
             return
         target = raw_path(ckey)
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -440,7 +447,7 @@ def transcribe(key, path):
 
 
 def cmd_stt(args):
-    key = Path(args.key_file).read_text().strip()
+    key = _http.read_key_file(Path(args.key_file))
     plan = load_json(VOICE / "upload-plan.json")
     transcripts = load_json(VOICE / "transcripts.json")
     store = CACHE / "stt"
@@ -546,7 +553,7 @@ def cmd_checklist(args):
 
 def cmd_voices(args):
     """Record each cast voice's library category (premade) for the licence check."""
-    key = Path(args.key_file).read_text().strip()
+    key = _http.read_key_file(Path(args.key_file))
     data = api("GET", "/v1/voices", key)
     category = {v["voice_id"]: v.get("category") for v in data["voices"]}
     cast = casting()

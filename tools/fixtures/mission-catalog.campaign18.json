@@ -10157,11 +10157,11 @@
         "chatter": [
           {
             "at": 0.333333,
-            "text": "SERA: Lira log copied. Keep moving to the next installation."
+            "text": "SERA: First array log copied. Keep moving to the next installation."
           },
           {
             "at": 0.666667,
-            "text": "SERA: Merel log copied. One transmitter remains."
+            "text": "SERA: Second array log copied. One transmitter remains."
           }
         ],
         "count": 3,
@@ -23689,7 +23689,7 @@
           "radio": [
             {
               "at": 1,
-              "text": "RIM TOWER: Eastern runway clear. Weapons only; no hull repair."
+              "text": "RIM TOWER: Eastern runway clear. Weapons and hull repairs available."
             }
           ],
           "radius": 1500,

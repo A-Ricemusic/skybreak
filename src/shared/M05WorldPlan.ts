@@ -24,7 +24,7 @@ export const M05_ENVIRONMENT: EnvironmentSpec = {
  water: { color: [17, 25, 32], reflectance: 0.35, transparency: 0, waveSize: 0.05, waveSpeed: 2 }, weather: "none",
 };
 export const m05Coast = (z: number) => math.min(-256, -4000 + z * 0.52);
-export function m05Height(x: number, z: number): number {
+function m05Height(x: number, z: number): number {
  // The refinery is inland of the north/south coast; flatten its full foundation.
  if (math.abs(x + 8900) < 1600 && math.abs(z + 7000) < 2100) return 36;
  if (math.abs(x + 1024) < 768 && math.abs(z - 6700) < 2048) return 36;
@@ -32,7 +32,7 @@ export function m05Height(x: number, z: number): number {
  if (inland < 0) return 8; // Keel Y=16: eight studs clear across the navigable sea.
  return math.floor((36 + math.clamp((inland - 2000) / 3500, 0, 1) * (96 + 192 * math.abs(math.sin(x / 2100) * math.cos(z / 2700)))) / 4) * 4;
 }
-export function m05Detailed(x: number, z: number): boolean {
+function m05Detailed(x: number, z: number): boolean {
  // Flat seabed needs no fine tiles: retain detail only at land foundations.
  return math.abs(x + 8900) < 1300 && math.abs(z + 7000) < 1800
   || math.abs(x + 1024) < 800 && math.abs(z - 6700) < 1800;

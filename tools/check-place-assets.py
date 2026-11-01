@@ -32,6 +32,11 @@ class Blob:
 
 
 def inventory(content: bytes) -> tuple[list[Blob], set[str]]:
+    """Extract every embedded blob and referenced asset id from an XML place.
+
+    Blobs are StringValue payloads (``<Name>.json``), BinaryString and SharedString bytes
+    (``<sha256>.bin``) including unused shared blobs. References are ``rbxassetid://`` numbers on
+    visual properties plus the ids compiled into the RobloxAssetIds module. Unknown URIs fail closed."""
     # ElementTree does not fetch external entities. Reject DTDs explicitly too.
     if b"<!DOCTYPE" in content or b"<!ENTITY" in content:
         raise RuntimeError("Place DTD/entities refused")
@@ -41,7 +46,10 @@ def inventory(content: bytes) -> tuple[list[Blob], set[str]]:
     blobs, references = [], set()
     shared = {}
     for entry in root.findall("./SharedStrings/SharedString"):
-        shared[entry.get("md5")] = base64.b64decode("".join((entry.text or "").split()), validate=True)
+        identifier = entry.get("md5")
+        if not identifier or identifier in shared:
+            raise RuntimeError("Missing or duplicate shared blob identifier")
+        shared[identifier] = base64.b64decode("".join((entry.text or "").split()), validate=True)
     for item in root.iter("Item"):
         props = item.find("Properties")
         if props is None:
@@ -84,6 +92,7 @@ def inventory(content: bytes) -> tuple[list[Blob], set[str]]:
 
 
 def approved_ids(root: Path) -> set[str]:
+    """Asset ids in the committed origin/main catalog: keys named in the upload manifest, values from RobloxAssetIds.ts."""
     manifest = upload.strict_json(upload.committed_file("assets/roblox-upload/manifest.json", root=root))
     if manifest.get("idsTable") != "src/shared/RobloxAssetIds.ts":
         raise RuntimeError("Unexpected uploaded asset catalog")
@@ -93,6 +102,8 @@ def approved_ids(root: Path) -> set[str]:
 
 
 def validate(content: bytes, *, root: Path = ROOT) -> tuple[list[Blob], set[str]]:
+    """Authorize a place: every blob needs a committed embedded approval and every referenced id a catalog entry.
+    Collects all failures before refusing so the report is complete."""
     blobs, references = inventory(content)
     failures = []
     for blob in blobs:
@@ -113,6 +124,8 @@ def validate(content: bytes, *, root: Path = ROOT) -> tuple[list[Blob], set[str]
 
 
 def main_geometry_hashes(root: Path) -> set[str]:
+    """Hashes of the geometry the previous main tip would have embedded, using its project mapping and
+    mesh JSON. Used only to decide whether a publish adds new embedded bytes."""
     # Reproduce package-aircraft.ts JSON.stringify, using the previous main commit's project mapping.
     project = json.loads(subprocess.run(["git", "show", "origin/main^:default.project.json"],
                          cwd=root, check=True, capture_output=True).stdout)
@@ -132,6 +145,7 @@ def main_geometry_hashes(root: Path) -> set[str]:
 
 
 def check_publish_halt(blobs: list[Blob], *, root: Path = ROOT) -> None:
+    """Consult the canonical model HALT only when the place embeds bytes the previous main tip did not."""
     newly_embedded = {b.sha256 for b in blobs} - main_geometry_hashes(root)
     if newly_embedded:
         upload.validate_state_location()

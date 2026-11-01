@@ -20,13 +20,13 @@ export function m11RoutePoint(high: boolean, t: number): M11Point {
  const blend = (1 - math.cos(math.pi * u)) / 2;
  return { x: first ? startX + (midX - startX) * blend : midX * (1 - blend), y: high ? 2800 : 900, z };
 }
-export function m11Routes() {
+function m11Routes() {
  return [false, true].map(high => ({ id: high ? "m11_civilian_high" : "m11_civilian_low", durationSeconds: 313.28, points: new Array<M11Point>() } )).map((r, i) => {
   for (let j = 0; j <= 64; j++) r.points.push(m11RoutePoint(i === 1, j / 64));
   return r;
  });
 }
-export function m11Height(x: number, z: number): number {
+function m11Height(x: number, z: number): number {
  const low = m11RoutePoint(false, math.clamp((6240 - z) / 17760, 0, 1));
  if (math.abs(x - low.x) < 1000 || math.abs(x) < 1500 && z > 7500) return 480;
  return 520 + 4 * math.floor(57 * math.abs(math.sin(x / 2100) * math.cos(z / 2900)));

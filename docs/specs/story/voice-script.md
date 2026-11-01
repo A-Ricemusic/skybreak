@@ -106,7 +106,7 @@ Current lines in live missions: opening answer c00.b05 remains silent; changed c
 | radio.m17.story.3 | SERA / SERA | SERA: East bridge is friendly. Break the western supply line. | Planned mission radio; future builder must wire this exact text; Concise operational urgency | 5 |
 | radio.m17.story.4 | SERA / SERA | SERA: Keep turning over the guns. The flooded streets are no refuge. | Planned mission radio; future builder must wire this exact text; Concise operational urgency | 6 |
 | radio.m17.story.5 | SERA / SERA | SERA: Four red targets. Rusk is leaving them for the coast. | Planned mission radio; future builder must wire this exact text; Concise operational urgency | 5 |
-| radio.m17.story.6 | RIM TOWER / RIM TOWER | RIM TOWER: Eastern runway clear. Weapons only; no hull repair. | Planned mission radio; future builder must wire this exact text; Concise operational urgency | 5 |
+| radio.m17.story.6 | RIM TOWER / RIM TOWER | RIM TOWER: Eastern runway clear. Weapons and hull repairs available. | Planned mission radio; future builder must wire this exact text; Concise operational urgency | 5 |
 | radio.m17.story.7 | MARINE / MARINE | MARINE: East crossing clear. Witness convoy moving. | Planned mission radio; future builder must wire this exact text; Concise operational urgency | 5 |
 | radio.m17.story.8 | MARINE / MARINE | MARINE: Witnesses across. Parliament is within reach. | Planned mission radio; future builder must wire this exact text; Concise operational urgency | 5 |
 | radio.m17.story.9 | MARINE / MARINE | MARINE: Crossing under fire! | Planned mission radio; future builder must wire this exact text; Concise operational urgency | 5 |
@@ -148,8 +148,8 @@ Current lines in live missions: opening answer c00.b05 remains silent; changed c
 | radio.m06.p1.chatter3 | MARINE / LANTERN 3 | LANTERN 3: Nearly there. Don't stop at the number, trainee. | Live mission phase/landing radio; Concise operational urgency | 5 |
 | radio.m06.p1.chatter4 | SERA / SERA | SERA: Harbour traffic copied. We can follow the orders inland. | Live mission phase/landing radio; Concise operational urgency | 5 |
 | radio.m07.p1.beat | SERA / SERA | SERA: Copy before you cut. We need the signature, not just wreckage. | Live mission phase/landing radio; Concise operational urgency | 6 |
-| radio.m07.p1.chatter1 | SERA / SERA | SERA: Lira log copied. Keep moving to the next installation. | Live mission phase/landing radio; Concise operational urgency | 5 |
-| radio.m07.p1.chatter2 | SERA / SERA | SERA: Merel log copied. One transmitter remains. | Live mission phase/landing radio; Concise operational urgency | 5 |
+| radio.m07.p1.chatter1 | SERA / SERA | SERA: First array log copied. Keep moving to the next installation. | Live mission phase/landing radio; Concise operational urgency | 5 |
+| radio.m07.p1.chatter2 | SERA / SERA | SERA: Second array log copied. One transmitter remains. | Live mission phase/landing radio; Concise operational urgency | 5 |
 | radio.m08.p1.beat | SERA / SERA | SERA: I stay in the tower. Keep bombers off the transmitter. | Live mission phase/landing radio; Concise operational urgency | 5 |
 | radio.m08.p2.ignition | SERA / SERA | SERA: Transmitter is live. Hold this sky for thirty-five seconds. | Live mission phase/landing radio; Concise operational urgency | 5 |
 | radio.m09.p1.beat | SERA / SERA | SERA: Green beacon is ours. Clear the guns above the beach. | Live mission phase/landing radio; Concise operational urgency | 5 |

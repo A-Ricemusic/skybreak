@@ -12,7 +12,7 @@ export function m13RouteX(z:number):number {
  return 0;
 }
 export function m13RoutePoint(t:number){const z=11520-23040*t;return {x:m13RouteX(z),y:383,z};}
-export function m13Height(x:number,z:number):number {
+function m13Height(x:number,z:number):number {
  // Reserve the entire cell's swept route, including steep bends at LOD boundaries.
  const row=math.floor(z/1024)*1024,a=m13RouteX(row),b=m13RouteX(row+1024);
  if(x>=math.min(a,b)-1100&&x<=math.max(a,b)+1100)return 128;
@@ -30,7 +30,7 @@ export function m13JammerLayout(){
  }
  return ts;
 }
-export function m13Routes(){const points=new Array<{x:number;y:number;z:number}>();for(let i=0;i<=128;i++)points.push(m13RoutePoint(i/128));return [{id:"m13_evidence_plane",durationSeconds:418,points}];}
+function m13Routes(){const points=new Array<{x:number;y:number;z:number}>();for(let i=0;i<=128;i++)points.push(m13RoutePoint(i/128));return [{id:"m13_evidence_plane",durationSeconds:418,points}];}
 export function buildM13Plan(seed=1313,checkpoint:(phase?:string)=>void=()=>{}){
  const terrain=compactSurface(M13_SURFACE,checkpoint),parts:PartSpec[]=[],props:PropSpec[]=[],jammers=m13JammerLayout(),p=m13RoutePoint(0);
  const targets=[...jammers,{id:"m13_evidence_plane",type:"evidence_plane",group:"protected",...p,yaw:0}];

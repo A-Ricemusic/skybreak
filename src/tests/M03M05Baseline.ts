@@ -1,4 +1,6 @@
 // Frozen pre-PR height fields from origin/main cb8e1d101bfa66f41c34870035e38919dd689ef4.
+// #236 removes a buried floor only; it does not change this playable height field.
+// Keep these samples frozen so #205 clearance checks cannot hide raised terrain.
 // Intentionally independent of the current world height/detail functions.
 import { polyDist } from "../shared/Polyline";
 const M03_BUILD_LIMITS = {};

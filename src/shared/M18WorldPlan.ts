@@ -6,7 +6,7 @@ import { worldDressing, compactWorldCounts, type WorldContact } from "./LateWorl
 export const M18_WORLD_KEY="m18_voice_breaks";
 export const M18={start:{x:0,y:617,z:7680,headingDegrees:0},grooves:[-1920,0,1920],width:180,clearHeight:140,floor:104,roof:244,core:{x:-130,y:174,z:-4000},duel:{x:0,z:-2880,radius:5760,minY:800,maxY:2400,seconds:300},assaultSeconds:1200,coreSeconds:1800};
 export const M18_ENVIRONMENT:EnvironmentSpec={...M06_ENVIRONMENT,water:{...M06_ENVIRONMENT.water,color:[52,67,79]},label:"Grey storm relay 08:00",clock:8,sky:"overcast",weather:"storm",brightness:1.3,ambient:[94,105,115],outdoorAmbient:[128,139,147],clouds:{cover:0.9,density:0.3,color:[144,152,161]},atmosphere:{density:0.38,offset:0,haze:2.5,glare:0,color:[156,168,180],decay:[86,98,112]}};
-export function m18Height(x:number,z:number):number{return math.abs(x)<4096&&z<0&&z>=-6144?80:32;}
+function m18Height(x:number,z:number):number{return math.abs(x)<4096&&z<0&&z>=-6144?80:32;}
 export const M18_SURFACE:WorldSurface={height:m18Height,detail:()=>false,material:(x,z)=>m18Height(x,z)===32?"Water":"Rock",nativeWater:()=>false};
 export const m18Ground=(x:number,z:number)=>surfaceGround(M18_SURFACE,x,z);
 export function m18TargetLayout():WorldContact[]{return [

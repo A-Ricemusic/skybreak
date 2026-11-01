@@ -150,10 +150,17 @@ describe("M03 snowy mountain composition", () => {
 		print(`M03_SHELL_COVERAGE columns=${checked} height_steps=${closed} caps=${caps.size()}`);
 		expect(closed).toBeGreaterThan(1000);
 	});
-	it("seals hard airspace without an unreachable floor layer", () => {
+	it("avoids the inaccessible full-world floor that amplified loading and cleanup", () => {
 		expect(M03.halfX).toBeGreaterThan(M03_AIRSPACE.hardHalfWidth);
 		expect(M03.halfZ).toBeGreaterThan(M03_AIRSPACE.hardHalfWidth);
+		// Surface continuity and every LOD/perimeter curtain are checked exhaustively above.
+		// No operation allocates a second surface below that sealed playable surface.
 		for (const op of p.ops) expect(op.y - op.sy / 2).toBeGreaterThanOrEqual(0);
+		const counts = m03Counts(p);
+		expect(counts.voxels).toBeLessThan(150e6);
+		// Pre-hotfix plan: 206,784,672 writes, of which 59,969,536 were bottom floor.
+		// #205 coarsens caps/curtains after #236 removes 59,969,536 floor writes.
+		expect(counts.voxels).toBe(139976064);
 	});
 	it("uses unique mission ids and supports the entire non-overlapping target footprint", () => {
 		const ids = new Set<string>();

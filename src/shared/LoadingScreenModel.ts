@@ -45,10 +45,6 @@ function finite(value: number, fallback: number): number {
 	return value === value && value !== math.huge && value !== -math.huge ? value : fallback;
 }
 
-export function isWorldBuildPhase(value: unknown): value is WorldBuildPhase {
-	return value === "plan" || value === "environment" || value === "terrain" || value === "dressing" || value === "done";
-}
-
 /** Maps what the client knows (launch phase, server build attribute, preload fraction) to a segment and words. */
 export function loadingStage(input: LoadingInput): LoadingStage {
 	if (input.phase === "queued")

@@ -39,7 +39,18 @@ class HTTPFailure(RuntimeError):
 
 
 def open(request: urllib.request.Request, timeout: float):
-    return OPENER.open(request, timeout=timeout)
+    try:
+        return OPENER.open(request, timeout=timeout)
+    except urllib.error.HTTPError as error:
+        # Legacy generation callers also use open(). Keep retry status, but
+        # discard remote reason/body/URL text before it reaches their logs.
+        status = error.code
+        retry_after = error.headers.get("Retry-After") if error.headers else None
+        error.close()
+        headers = {"Retry-After": retry_after} if retry_after else {}
+        raise urllib.error.HTTPError(request.full_url, status, "HTTP request failed", headers, None) from None
+    except (OSError, urllib.error.URLError, http.client.HTTPException, ValueError):
+        raise HTTPFailure("HTTP transport failed") from None
 
 
 def read_key_file(path: Path) -> str:

@@ -20,17 +20,17 @@ export const M04_ENVIRONMENT: EnvironmentSpec = {
  bloom: { intensity: 0.05, size: 24, threshold: 2 }, sky: "day", starCount: 0, sunSize: 14, moonSize: 0,
  water: { color: [55, 74, 80], reflectance: 0.1, transparency: 0, waveSize: 0, waveSpeed: 0 }, weather: "none",
 };
-export function m04Height(x: number, z: number): number {
+function m04Height(x: number, z: number): number {
  const valley = polyDist(x, z, M04.river);
  const relief = 150 + 420 * math.abs(math.sin(x / 2600 + z / 5100) * math.cos(z / 2300));
  return math.floor((24 + relief * math.clamp((valley - 128) / 1500, 0, 1)) / 4) * 4;
 }
-export function m04Detailed(x: number, z: number): boolean {
+function m04Detailed(x: number, z: number): boolean {
  // Only the middle route band needs near-ground detail in this aerial mission.
  return polyDist(x, z, [[-3000, 2000], [2000, -10000]]) < 320;
 }
 /** Snap each short rotated strip inside one sampled cell, avoiding every terrain step. */
-export function m04Tracks() {
+function m04Tracks() {
  const out: Array<{x: number; z: number; yaw: number}> = [];
  for (let i = 0; i < 32; i++) {
   const z = -14000 + i * 880, x = -1800 + 2400 * math.sin(z / 4200);

@@ -5,7 +5,7 @@ import { worldDressing, compactWorldCounts, type WorldContact } from "./LateWorl
 export const M14_WORLD_KEY="m14_aurora_shield";
 export const M14={start:{x:0,y:617,z:0,headingDegrees:0},station:{x:1920,z:9600},missileKills:16,ordinaryKills:15,highValueKills:1,seconds:1200,cloudType:"cirrus",cloudFeet:14000};
 export const M14_ENVIRONMENT:EnvironmentSpec={...M06_ENVIRONMENT,label:"Polar cirrus night 02:56",clock:2+56/60,sky:"night",starCount:2500,brightness:0.6,ambient:[40,57,75],outdoorAmbient:[65,81,96],clouds:{cover:0.1,density:0.08,color:[143,164,184]},weather:"aurora",water:{...M06_ENVIRONMENT.water,color:[8,18,29]}};
-export function m14Height(x:number,z:number):number{
+function m14Height(x:number,z:number):number{
  if(x<3072)return 32;
  if(z>8192&&x<5120)return 128;
  return 512+128*math.floor(math.abs(math.sin(x/4096)*math.cos(z/4096))*2);

@@ -159,7 +159,7 @@ export function m03Material(x: number, z: number): TerrainMaterial {
 	return z > 9600 && x > 3000 ? "Ground" : "Snow";
 }
 /** Structural foundation spans all sampled terrain under the target footprint. */
-export function m03TargetSupport(x: number, z: number): { bottom: number; top: number } {
+function m03TargetSupport(x: number, z: number): { bottom: number; top: number } {
 	let bottom = math.huge, top = 0;
 	for (let dx = -24; dx <= 24; dx += 4) for (let dz = -24; dz <= 24; dz += 4) {
 		const h = m03Ground(x + dx, z + dz);
@@ -183,7 +183,9 @@ export function m03TargetLayout(): M03Target[] {
 export function buildM03Plan(seed = 303, checkpoint: (phase?: string) => void = () => {}): M03Plan {
 	const p: M03Plan = { key: M03_WORLD_KEY, seed, ops: [], parts: [], targets: m03TargetLayout(), detailCells: 0, coarseCells: 0 };
 	const block = (material: TerrainMaterial, x: number, z: number, sx: number, sz: number, bottom: number, top: number) => p.ops.push({ shape: "block", material, x, y: (bottom + top) / 2, z, sx, sy: top - bottom, sz, yaw: 0 });
-	// Caps and perimeter curtains seal hard airspace; the buried floor is unreachable.
+	// Surface caps cover the entire hard airspace and perimeter curtains reach Y=0.
+	// As in M04/M05, omit the inaccessible bottom floor: it alone wrote 60M
+	// voxels and allocated terrain chunks across the full 31k-stud footprint.
 	// Cache the adaptive surface on a 64-stud address grid. It also lets walls
 	// follow fine/coarse joins without evaluating the height function per edge.
 	const cells: Array<{ x: number; z: number; sx: number; sz: number; top: number }> = [];

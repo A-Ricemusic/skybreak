@@ -1591,8 +1591,8 @@
    "speaker": "RIM TOWER",
    "voice": "pFZP5JQG7iQjIQuC4Bku",
    "tape": false,
-   "text": "RIM TOWER: Eastern runway clear. Weapons only; no hull repair.",
-   "spoken": "Eastern runway clear. Weapons only; no hull repair."
+   "text": "RIM TOWER: Eastern runway clear. Weapons and hull repairs available.",
+   "spoken": "Eastern runway clear. Weapons and hull repairs available."
   },
   {
    "id": "radio.m17.story.7",
@@ -1969,8 +1969,8 @@
    "speaker": "SERA",
    "voice": "EXAVITQu4vr4xnSDxMaL",
    "tape": false,
-   "text": "SERA: Lira log copied. Keep moving to the next installation.",
-   "spoken": "Lira log copied. Keep moving to the next installation."
+   "text": "SERA: First array log copied. Keep moving to the next installation.",
+   "spoken": "First array log copied. Keep moving to the next installation."
   },
   {
    "id": "radio.m07.p1.chatter2",
@@ -1978,8 +1978,8 @@
    "speaker": "SERA",
    "voice": "EXAVITQu4vr4xnSDxMaL",
    "tape": false,
-   "text": "SERA: Merel log copied. One transmitter remains.",
-   "spoken": "Merel log copied. One transmitter remains."
+   "text": "SERA: Second array log copied. One transmitter remains.",
+   "spoken": "Second array log copied. One transmitter remains."
   },
   {
    "id": "radio.m08.p1.beat",

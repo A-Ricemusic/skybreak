@@ -17,6 +17,7 @@ from pathlib import Path
 import re
 import subprocess
 import time
+import tempfile
 from typing import Any
 import urllib.error
 import urllib.request
@@ -30,6 +31,7 @@ def account_home() -> Path:
 
 
 def canonical_state() -> Path:
+    """Shared upload state directory for every tool on this account."""
     return account_home() / ".skybreak-roblox-uploads"
 
 
@@ -61,6 +63,7 @@ MAX_MODEL_BYTES = 50_000_000
 
 
 def validate_upload_state() -> None:
+    """Refuse real uploads unless the module paths still point at the canonical state."""
     state = validate_state_location()
     expected = {"STATE": state, "JOURNAL": state / "journal-3407487520.json",
                 "HALT": state / "HALT-3407487520", "AUDIO_HALT": state / "HALT-audio-3407487520",
@@ -70,16 +73,28 @@ def validate_upload_state() -> None:
 
 
 def save(path: Path, value: Any) -> None:
-    temp = path.with_suffix(path.suffix + ".tmp")
-    temp.write_text(json.dumps(value, indent=2) + "\n")
-    temp.replace(path)
+    """Write JSON atomically (temp file then rename) so a crash never truncates the journal."""
+    # A predictable .tmp name could follow a pre-planted symlink or collide
+    # with another writer. mkstemp creates a private, exclusive sibling.
+    descriptor, name = tempfile.mkstemp(prefix=path.name + ".", suffix=".tmp", dir=path.parent)
+    temp = Path(name)
+    try:
+        with os.fdopen(descriptor, "w") as output:
+            output.write(json.dumps(value, indent=2) + "\n")
+            output.flush()
+            os.fsync(output.fileno())
+        temp.replace(path)
+    finally:
+        temp.unlink(missing_ok=True)
 
 
 def load_journal() -> dict[str, Any]:
+    """Read the shared journal; an absent journal is an empty one."""
     return json.loads(JOURNAL.read_text()) if JOURNAL.exists() else {"uploads": {}}
 
 
 def asset_class(asset_type: str) -> str:
+    """Map a Roblox asset type to the HALT class it belongs to: "audio" or "models"."""
     if asset_type in {"Audio", "Voice"}:
         return "audio"
     if asset_type in {"Model", "Mesh", "MeshPart", "Image", "Decal"}:
@@ -88,6 +103,8 @@ def asset_class(asset_type: str) -> str:
 
 
 def gate(own: str | None = None, *, asset_type: str = "Audio") -> None:
+    """Fail closed before any upload: audio is always refused; models need no model HALT and no
+    unresolved non-audio journal entry other than ``own`` (so an interrupted upload can resume)."""
     kind = asset_class(asset_type)
     if kind == "audio":
         if HALT.exists() or AUDIO_HALT.exists():
@@ -217,6 +234,7 @@ def require_model_review(filename: str, content: bytes, digest: str, *,
 
 
 def record(name: str, value: dict[str, Any] | None) -> None:
+    """Upsert (or delete, when ``value`` is None) one journal entry against the newest journal on disk."""
     # Merge the newest journal instead of overwriting entries from other tools.
     state = load_journal()
     if value is None:
@@ -228,6 +246,10 @@ def record(name: str, value: dict[str, Any] | None) -> None:
 
 def http(method: str, url: str, key: str, body: bytes | None = None,
          content_type: str | None = None, *, deadline: float | None = None) -> dict[str, Any]:
+    """Keyed Open Cloud request on the asset upload/status allowlist.
+
+    A POST is re-parsed and re-gated (audio ban, model HALT, committed review) here and again before
+    every retry, so direct callers cannot bypass ``submit_and_moderate``."""
     # Match the entire URL, including method and query. Prefix matching also
     # admitted /assets-unrelated and attacker-controlled query strings.
     allowed = ((method == "POST" and url == API + "/assets") or
@@ -247,7 +269,16 @@ def http(method: str, url: str, key: str, body: bytes | None = None,
         parts = list(message.iter_parts())
         if len(parts) != 2 or [part.get_param("name", header="content-disposition") for part in parts] != ["request", "fileContent"]:
             raise RuntimeError("Invalid upload multipart content")
-        metadata = json.loads(parts[0].get_payload(decode=True))
+        # Reject ambiguous wire representations rather than relying on Roblox
+        # and Python to choose the same duplicate header/JSON field or encoding.
+        for part in [message, *parts]:
+            names = [name.casefold() for name, _ in part.raw_items()]
+            if (len(names) != len(set(names)) or part.defects
+                    or part.get("Content-Transfer-Encoding") is not None):
+                raise RuntimeError("Ambiguous upload multipart content")
+        if any(part.get_content_disposition() != "form-data" for part in parts):
+            raise RuntimeError("Invalid upload multipart disposition")
+        metadata = strict_json(parts[0].get_payload(decode=True))
         kind = metadata.get("assetType")
         if asset_class(kind) == "audio":
             gate(asset_type=kind)
@@ -274,6 +305,7 @@ def http(method: str, url: str, key: str, body: bytes | None = None,
 
 
 def moderation(key: str, asset: str, *, deadline: float | None = None) -> str | None:
+    """Return the asset's moderation state as one of the two known constants, or None while pending/unknown."""
     data = http("GET", f"{API}/assets/{asset}?readMask=moderationResult", key, deadline=deadline)
     result = data.get("moderationResult")
     state = result.get("moderationState") if isinstance(result, dict) else None
@@ -283,6 +315,7 @@ def moderation(key: str, asset: str, *, deadline: float | None = None) -> str | 
 
 
 def _identifier(value: Any, kind: str, key: str) -> str:
+    """Validate an operation or asset id returned by Roblox and make sure it does not echo the key."""
     pattern = r"[0-9]{1,20}" if kind == "asset" else r"[A-Za-z0-9_-]{1,128}"
     if (not isinstance(value, (str, int)) or not re.fullmatch(pattern, str(value))
             or (key and key in str(value))):
@@ -291,6 +324,7 @@ def _identifier(value: Any, kind: str, key: str) -> str:
 
 
 def _result_id(result: dict[str, Any], kind: str, key: str) -> str:
+    """Read ``<kind>Id`` or the ``path`` form of an id from an Open Cloud response."""
     value = result.get(kind + "Id")
     if not value:
         path = result.get("path")
@@ -300,6 +334,7 @@ def _result_id(result: dict[str, Any], kind: str, key: str) -> str:
 
 
 def _pause(seconds: float, deadline: float) -> None:
+    """Sleep without overrunning the deadline; raises once the deadline has passed."""
     time.sleep(min(seconds, _http.remaining(deadline)))
     _http.remaining(deadline)
 

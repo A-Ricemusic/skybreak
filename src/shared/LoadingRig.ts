@@ -11,7 +11,7 @@ import { ReplicatedStorage, TweenService } from "@rbxts/services";
 export const JET_TEMPLATE_FOLDER = "RelayStoryModels";
 export const JET_TEMPLATE_NAME = "CinematicKestrel";
 
-export function findJetTemplate(root: Instance = ReplicatedStorage): Model | undefined {
+function findJetTemplate(root: Instance = ReplicatedStorage): Model | undefined {
 	const jet = root.FindFirstChild(JET_TEMPLATE_FOLDER)?.FindFirstChild(JET_TEMPLATE_NAME);
 	return jet?.IsA("Model") ? jet : undefined;
 }
@@ -42,7 +42,7 @@ export function whenJetTemplate(found: (template: Model) => void, root: Instance
 }
 
 /** Camera poses for the slow sweep, looking at the jet's bounds centre (nose along -Z). */
-export function jetCameraPoses(radius: number, fieldOfView: number): [CFrame, CFrame] {
+function jetCameraPoses(radius: number, fieldOfView: number): [CFrame, CFrame] {
 	const distance = (radius / math.tan(math.rad(fieldOfView) / 2)) * 1.08;
 	const pose = (yaw: number, pitch: number, roll: number) => {
 		const position = new Vector3(math.sin(yaw) * math.cos(pitch), math.sin(pitch), -math.cos(yaw) * math.cos(pitch)).mul(distance);

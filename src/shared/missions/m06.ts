@@ -41,7 +41,7 @@ export function m06MountParent(mount: M06Target): M06Target | undefined {
  * D-263: the three outer-channel cruisers slip their moorings and patrol the native-water channel (|x| < 3,400,
  * Z 2,740-4,940; legs Z 2,960-4,640 keep the 360-stud hull inside) at 18 studs/s: north first (their drawn heading), then a rectangle away from the centreline, three laps.
  */
-export function m06OuterRoute(hull: M06Target): SurfaceRoute {
+function m06OuterRoute(hull: M06Target): SurfaceRoute {
 	const side = hull.x < -1 ? -1 : 1, x = hull.x, wide = x + side * 800;
 	const waypoints: FlightPoint[] = [{ x, y: hull.y, z: hull.z }, { x, y: hull.y, z: 2960 }];
 	for (let lap = 0; lap < 3; lap++) {

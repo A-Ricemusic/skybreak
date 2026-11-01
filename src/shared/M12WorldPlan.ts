@@ -6,7 +6,7 @@ import { M06_ENVIRONMENT } from "./M06WorldPlan";
 export const M12_WORLD_KEY = "m12_command_ring";
 export const M12 = { half: 16384, radius: 2400, start: { x: 0, y: 500, z: 10080, headingDegrees: 0 }, service: { x: -8640, y: 104, z: 10560, length: 2304, width: 128, approachLength: 3200 }, briefing: { air: 3, ground: 18, total: 21 }, kills: { ground: 24, air: 9 }, strikeSeconds: 900, eliteSeconds: 600 };
 export const M12_ENVIRONMENT: EnvironmentSpec = { ...M06_ENVIRONMENT, label: "Clear arid daylight 10:08", clock: 10 + 8/60, sky: "day", brightness: 2.5, ambient: [161,151,132], outdoorAmbient: [186,178,158], atmosphere: { density: 0.22, offset: 0, haze: 1.3, glare: 0.4, color: [204,222,235], decay: [161,151,132] }, clouds: { cover: 0.1, density: 0.1, color: [240,242,242] } };
-export function m12Height(x: number, z: number): number {
+function m12Height(x: number, z: number): number {
  if (math.abs(x + 8640) < 1400 && math.abs(z - 10560) < 5000 || math.abs(x) < 1800 && z > 3500) return 80;
  const r = math.sqrt(x*x+z*z);
  if (r < 4200) return 80;

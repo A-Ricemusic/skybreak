@@ -1,0 +1,25 @@
+{
+  "asset": "naval-missile-boat",
+  "exportVersion": "naval-kit-2-profile2",
+  "creator": "SKYBREAK build agent via tools/assets/naval_kit.py (this PR)",
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "reviewDate": "2026-11-01",
+  "files": {
+    "naval-missile-boat-color.png": "1d7d41437fb2e2b1e13d2089b301ba73641247eb598daa526a3adc13e50ee11f",
+    "naval-missile-boat-normal.png": "adcf94cd2516c68e4bb4604481aa3d3c75e7f4e237e0bd6e920bd79ff1c6fc1b",
+    "naval-missile-boat-roughness.png": "da842cecedf066799fde56c111b702949e5d6393118b7c7609b846ab88ff3916",
+    "naval-missile-boat-metalness.png": "ffd363de1f578cfb56ad4a4d737d13a16a23efe0b86aca40b08b5a1583de8430",
+    "naval-missile-boat.fbx": "8cc6d0029bc3c74a48b857695277e8b215877f32bd50179d52bef186130e110e"
+  },
+  "policyLinks": [
+    "https://www.roblox.com/termsofuse",
+    "https://en.help.roblox.com/hc/en-us/articles/115004647846-Roblox-Terms-of-Use",
+    "https://en.help.roblox.com/hc/en-us/articles/203313410-Roblox-Community-Standards/",
+    "https://about.roblox.com/community-standards",
+    "https://en.help.roblox.com/hc/en-us/articles/15869919570708-Age-Restricted-Content-on-Roblox",
+    "https://create.roblox.com/docs/production/publishing/ip-guidelines"
+  ],
+  "sourceReview": "docs/qa/asset-reviews/naval-kit/independent-safety-review-2026-11-01.md",
+  "score": 10,
+  "verdict": "APPROVE"
+}

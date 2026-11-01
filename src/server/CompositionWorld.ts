@@ -1,6 +1,7 @@
 import { traceWorldPhase } from "./WorldBuildTrace";
 import { planProfiler } from "./PlanProfiler";
 import { WORLD_FILL_CHUNK as COMPACT_FILL_CHUNK } from "../shared/CompactWorldSurface";
+import { assertWorldInstanceBudget } from "./WorldInstanceBudget";
 import { Workspace } from "@rbxts/services";
 import type { EnvironmentSpec } from "../shared/EnvironmentPresets";
 import type { PartSpec, PropSpec, TerrainOp } from "../shared/WorldPlan";
@@ -88,7 +89,7 @@ export function buildComposition(parent: Instance, environment: EnvironmentSpec,
   if (t.y === 32) { part("Hull", 64, 32, 360, 0); part("Deck", 56, 12, 310, 20); part("Bridge", 44, t.type === "submarine" ? 12 : 40, 36, t.type === "submarine" ? 24 : 42, 120); }
   else { part("Fuselage", 12, 12, 64, 0); part("Wing or rotor", t.type === "helicopter" ? 50 : 70, 2, 8, 8); part("Tail", 24, 3, 12, 4, 26); if (t.type === "jammer") part("Radar dome", 26, 5, 26, 12); }
  }
- assert(scene.GetDescendants().size() <= descendantLimit, `${plan.key} descendants exceed budget`);
+ assertWorldInstanceBudget(scene, descendantLimit);
  parent.SetAttribute("CloudBaseReferenceFeet", cloudFeet);
  parent.SetAttribute("WorldPropsMissing", missing); parent.SetAttribute("WorldBuildSeconds", os.clock() - start); parent.SetAttribute("Composition", plan.key); parent.SetAttribute("WorldBuildPhase", "done"); traceWorldPhase("build-tail");
  return { groundTargets: [] };

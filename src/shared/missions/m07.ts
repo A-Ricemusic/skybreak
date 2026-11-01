@@ -42,7 +42,7 @@ export const mission: MissionBlueprint = {
   { kind: "required_ground", count: 3, label: "Copy logs; cut three transmitters", beat: MISSION_STORY_TEXT[7].radio[0],
    groundTargets: M07_TARGETS, fighterWaves: waves,
    standaloneAce: { id: "m07_shale", name: "SHALE", livery: "Vulture", health: 165, behaviour: "dogfight", scoreRole: "ace", trigger: { kind: "approach", x: M07.plant.x, z: M07.plant.z, radius: 6000 }, headingDegrees: 180 },
-   chatter: [{ at: 1 / 3, text: "SERA: Lira log copied. Keep moving to the next installation." }, { at: 2 / 3, text: "SERA: Merel log copied. One transmitter remains." }],
+   chatter: [{ at: 1 / 3, text: "SERA: First array log copied. Keep moving to the next installation." }, { at: 2 / 3, text: "SERA: Second array log copied. One transmitter remains." }],
   },
   { kind: "return_line", label: "Below 2,000 ft; escape south",
    update: { objective: "Descend below 2,000 ft; use canyon cover and exit south", countdownSeconds: 300, radio: [MISSION_STORY_TEXT[7].radio[1]] },

@@ -1658,13 +1658,13 @@ export const CombatService = {
 			CombatRemotes.missionState!.FireClient(player, loading);
 		});
 		if (!ok) {
-			warn(`SKYBREAK mission construction failed: mission=${missionId} phase=${folder.GetAttribute("WorldBuildPhase")} elapsed=${os.clock() - startedAt} error=${tostring(result)}`);
+			// Log before cleanup: its native terrain clear can stall, hiding the original failure.
+			warn(`SKYBREAK mission construction failed: mission=${missionId} phase=${tostring(folder.GetAttribute("WorldBuildPhase"))} elapsed=${os.clock() - startedAt}s error=${tostring(result)}`);
 			const session = sessions.get(player);
 			if (session) cleanupSession(session, false);
 			// A partly built world (the player may have left) is cleared through the same gate.
 			restoreMenu(MissionCatalog.WorldKey(missionId), folder);
 			buildingMission = false;
-			warn(`SKYBREAK mission construction failed: ${tostring(result)}`);
 			return $tuple(false, "The mission world could not be built. Please retry.");
 		}
 		buildingMission = false;

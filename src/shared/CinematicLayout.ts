@@ -109,7 +109,7 @@ export function getCinematicLayout(width: number, height: number, large = false)
 }
 
 /** Text slot for a measured line (or the chapter's tallest line), clamped between one line and the cap. */
-export function cinematicTextSlot(layout: CinematicLayout, textHeight: number): number {
+function cinematicTextSlot(layout: CinematicLayout, textHeight: number): number {
 	return math.min(math.max(textHeight, layout.lineHeight + 4), layout.maxTextHeight);
 }
 

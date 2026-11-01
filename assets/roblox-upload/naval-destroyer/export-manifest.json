@@ -1,0 +1,12 @@
+{
+  "asset": "naval-destroyer",
+  "exportVersion": "naval-kit-2",
+  "creator": "SKYBREAK build agent via tools/assets/naval_kit.py (this PR)",
+  "files": {
+    "naval-destroyer-color.png": "4fe91b256911b1281d9043dc14558c2855842d7d4d6496cec5cf03f05369553d",
+    "naval-destroyer-normal.png": "da1eb6b3d1735c4990f4d3a41236b222efd618885a9cf482d6a31b95deb6ab33",
+    "naval-destroyer-roughness.png": "54f65f781d837739ade35d86ad2bd29cfd31b173f345d8935ef2da6bc22ded05",
+    "naval-destroyer-metalness.png": "af87307e440ccc9cf2a48b07dd1fc33d76b3944585498d92d7c7a88d4a0eaf21",
+    "naval-destroyer.fbx": "a0ca71c777112eaecd2ab0fd147768c6ea501dc202a3a6bfa034b54a356077f5"
+  }
+}

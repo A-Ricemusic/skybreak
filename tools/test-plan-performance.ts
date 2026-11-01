@@ -1,5 +1,8 @@
 // Run after test-relay-offline has staged the compiled planners. No Studio or engine shims.
 // Frozen fingerprints captured at merge revision 37028404 before planner edits.
+// M03 hash 3511608759 already excludes the buried floor at that revision.
+// #236 preserves that output here; do not recapture fingerprints from the merged implementation.
+// Floor-free writes/jobs/touches are pinned separately in MissionLoadBudget.spec.ts.
 // Covers every enumerable plan field, not counts alone. See D-669 for M01 normalization.
 import { resolve } from "node:path";
 import { requireLuauBin } from "./luau-bin";

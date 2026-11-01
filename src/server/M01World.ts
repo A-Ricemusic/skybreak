@@ -1,5 +1,6 @@
 import { traceWorldPhase } from "./WorldBuildTrace";
 import { planProfiler } from "./PlanProfiler";
+import { assertWorldInstanceBudget } from "./WorldInstanceBudget";
 import { Lighting, Workspace } from "@rbxts/services";
 import { AssetSelection } from "../shared/AssetSelection";
 import { M01_CARRIER_MODEL, M01_CARRIER_PLACEMENT } from "../shared/M01CarrierPlan";
@@ -111,8 +112,7 @@ export const M01World = {
 			if (i % 8 === 7) task.wait();
 		}
 		placeM01Carrier(scene, carrierAssets);
-		const descendants = scene.GetDescendants().size();
-		assert(descendants + 4 <= M01.budget.descendants, "M01 approved template descendants exceeded budget; do not select before re-audit");
+		assertWorldInstanceBudget(scene, M01.budget.descendants, 4);
 		parent.SetAttribute("WorldPropsMissing", missing);
 		parent.SetAttribute("WorldBuildPhase", "done"); traceWorldPhase("build-tail");
 		parent.SetAttribute("WorldBuildSeconds", os.clock() - start);
