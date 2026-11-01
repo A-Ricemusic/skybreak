@@ -1,5 +1,7 @@
 # Decisions
 
+PR #221 reconciliation preserves the existing naval approval decisions and manifests exactly from main. Integration references remain undefined until uploads; preserve #220 bounded kit fallback and #236 M3 procedural-only targets. This implements existing decisions without changing their approval scope.
+
 D-670 (implementation agent, 2026-11-01, proposed): omit M03’s inaccessible bottom floor using the existing M04/M05 floorless-shell approach; retain every surface cap and perimeter curtain. Omit all M3 uploaded military decoration, including already-cached assets. Alternative: keep 60M redundant voxel writes and block on all ten kit loads. Owner-reported mobile application crash remains unresolved pending device/server evidence. Owner reports the Roblox app still closes on mobile when launching M3 on live main 36e949d0 after #220. Second hotfix pending: remove inaccessible 60M-voxel bottom floor, keep all M3 targets procedural with zero military meshes/PBR maps, and log construction error phase before recovery. Live cause unconfirmed; Not Studio/Player tested. See [investigation](../qa/m03-crash-second-hotfix.md).
 
 Status reconciliation 2026-11-01 against main `36e949d0`. Existing decision bodies and historical validation statements are preserved; historical “pending” test statements do not assert current acceptance. Current blockers and evidence are in README.md and blockers.md.

@@ -89,7 +89,7 @@ const MODULES: string[] = [
 	// World plans, limits, terrain, environments and uploaded asset specs.
 	"shared/RobloxAssetIds", "shared/UploadedAssetOrientation", "shared/M01Geometry", "shared/M01Limits",
 	"shared/M01WorldPlan", "tests/M01WorldPlan.spec", "shared/M01CarrierPlan", "tests/M01CarrierPlan.spec",
-	"shared/UploadedAssetSpecs", "shared/MilitaryGroundKit", "tests/MilitaryGroundKit.spec", "shared/EnvironmentPresets", "shared/TerrainSchedule", "shared/WorldDistricts",
+	"shared/UploadedAssetSpecs", "shared/MilitaryGroundKit", "shared/NavalKit", "tests/NavalKit.spec", "tests/MilitaryGroundKit.spec", "shared/EnvironmentPresets", "shared/TerrainSchedule", "shared/WorldDistricts",
 	"shared/WorldPlan", "shared/WorldAudit", "tests/WorldPlan.spec", "tests/TerrainSchedule.spec",
 	"shared/LegacyWorlds", "tests/LegacyWorlds.spec", "tests/EnvironmentPresets.spec", "shared/WeatherRules",
 	"tests/WeatherRules.spec", "shared/WorldEnvironments", "shared/LateWorldDressing", "shared/M14Limits",

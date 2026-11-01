@@ -1,5 +1,7 @@
 # Shipped
 
+Unmerged PR #221 reconciliation: integration only; approved naval assets remain byte-identical to main. This is not a shipped gameplay change. No uploads, Studio or Player verification performed.
+
 M3 crash mitigation #236 merged as `364a7413`, live as Roblox version 148, published 2026-11-01. It removes the inaccessible bottom floor, temporarily uses procedural targets with no military meshes/PBR maps, and logs construction errors before recovery. The owner-reported mobile app crash remains open: cause unconfirmed, awaiting owner phone retest. Not Studio/Player tested. Restore M3 military visuals only once the crash cause is confirmed. See [investigation](../qa/m03-crash-second-hotfix.md).
 
 Updated 2026-11-01 against main `556a6807`. Newest first in main history. Gameplay merges are live by the owner’s automatic-pipeline convention; this is not a claim of Player observation. Assets-only merges do not activate models. Open #203/#205/#210/#221/#227/#231/#233/#235 are not shipped.

@@ -1,3 +1,4 @@
+import { decorateNavalScenery } from "./NavalDecoration";
 import { assertWorldInstanceBudget } from "./WorldInstanceBudget";
 import { Workspace } from "@rbxts/services";
 import type { EnvironmentSpec } from "../shared/EnvironmentPresets";
@@ -61,6 +62,7 @@ export function buildComposition(parent: Instance, environment: EnvironmentSpec,
  let missing = 0;
  for (let pi = 0; pi < plan.props.size(); pi++) {
   const p = plan.props[pi], propOwner = p.tag !== undefined ? models.get(p.tag) ?? scene : scene;
+  const previous = p.asset === "Frigate" && plan.key === "m09_frigate_landing" ? new Set(propOwner.GetChildren()) : undefined;
   if (WorldAssets.PlaceUploaded(p.asset, propOwner, new CFrame(p.x, p.y, p.z).mul(CFrame.Angles(0, p.yaw, 0)), p.scale) === undefined) {
    missing++;
    const size = UploadedAssetSpecs[p.asset].size.mul(p.scale);
@@ -76,6 +78,14 @@ export function buildComposition(parent: Instance, environment: EnvironmentSpec,
     standIn("Platform derrick stand-in", new Vector3(24, 120, 24), new Vector3(p.x + 50, 180, p.z));
    } else standIn(`${p.asset} stand-in`, size, new Vector3(p.x, p.y + size.Y / 2 - UploadedAssetSpecs[p.asset].groundOffset * p.scale, p.z));
   }
+  if (previous !== undefined) {
+   const proxies: BasePart[] = [];
+   for (const child of propOwner.GetChildren()) if (!previous.has(child)) {
+    if (child.IsA("BasePart")) proxies.push(child);
+    for (const d of child.GetDescendants()) if (d.IsA("BasePart")) proxies.push(d);
+   }
+   decorateNavalScenery(propOwner, "NavalFrigate", proxies);
+  }
    // Eight placements per frame, as M02 does: one frame per prop cost M04's 120 pines two seconds.
    if (pi % 8 === 7) task.wait();
  }
@@ -88,6 +98,17 @@ export function buildComposition(parent: Instance, environment: EnvironmentSpec,
   const part = (label: string, sx: number, sy: number, sz: number, y: number, z = 0) => Scenery.Part(owner, label, new Vector3(sx, sy, sz), frame.mul(new CFrame(0, y, z)), Color3.fromRGB(101, 111, 120), Enum.Material.Metal, { flightSolid: true, castShadow: false });
   if (t.y === 32) { part("Hull", 64, 32, 360, 0); part("Deck", 56, 12, 310, 20); part("Bridge", 44, t.type === "submarine" ? 12 : 40, 36, t.type === "submarine" ? 24 : 42, 120); }
   else { part("Fuselage", 12, 12, 64, 0); part("Wing or rotor", t.type === "helicopter" ? 50 : 70, 2, 8, 8); part("Tail", 24, 3, 12, 4, 26); if (t.type === "jammer") part("Radar dome", 26, 5, 26, 12); }
+ }
+ if (plan.key === "m09_frigate_landing") {
+  const hulls: BasePart[] = [], wells: BasePart[] = [];
+  for (const p of scene.GetChildren()) if (p.IsA("BasePart")) {
+   if (p.Name === "Friendly landing craft hull") hulls.push(p);
+   if (p.Name === "Friendly landing craft well") wells.push(p);
+  }
+  for (const hull of hulls) {
+   const well = wells.find(p => p.Position.X === hull.Position.X && p.Position.Z === hull.Position.Z);
+   decorateNavalScenery(scene, "NavalLandingCraft", well !== undefined ? [hull,well] : [hull]);
+  }
  }
  assertWorldInstanceBudget(scene, descendantLimit);
  parent.SetAttribute("CloudBaseReferenceFeet", cloudFeet);

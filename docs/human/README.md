@@ -1,5 +1,7 @@
 # SKYBREAK campaign dashboard
 
+PR #221 integration reconciled with main: naval models remain dormant with all 12 IDs undefined. Main’s approved exports/manifests and #220 budget fallback / #236 M3 procedural-only targets are preserved. Validation: frozen-lockfile install, all 12 naval upload dry-runs, and validate:offline passed (EXIT 0; 1,228 Luau / 179 Python tests); no Studio/Player test or upload performed.
+
 **M3 crash blocker OPEN — mitigated; owner phone retest pending.** M3 crash mitigation #236 merged as `364a7413`, live as Roblox version 148, published 2026-11-01. It removes the inaccessible bottom floor, temporarily uses procedural targets with no military meshes/PBR maps, and logs construction errors before recovery. The owner-reported mobile app crash remains open: cause unconfirmed, awaiting owner phone retest. Not Studio/Player tested. Restore M3 military visuals only once the crash cause is confirmed. See [investigation](../qa/m03-crash-second-hotfix.md).
 
 Updated 2026-11-01 against main `556a6807` (#234). Practice and all 18 missions are **Live** under the owner's automatic-pipeline convention; sequential unlocks require preceding completions. [Play SKYBREAK](https://www.roblox.com/games/112911685457826).

@@ -1,5 +1,7 @@
 # Blockers
 
+PR #221 merge conflicts resolved against main without changing approved asset bytes or upload evidence. Naval activation remains blocked on uploads/model IDs; Studio/Player acceptance remains outstanding. No key requested or upload attempted.
+
 ## Urgent open: M3 mobile crash — mitigated, awaiting owner phone retest
 
 M3 crash mitigation #236 merged as `364a7413`, live as Roblox version 148, published 2026-11-01. It removes the inaccessible bottom floor, temporarily uses procedural targets with no military meshes/PBR maps, and logs construction errors before recovery. The owner-reported mobile app crash remains open: cause unconfirmed, awaiting owner phone retest. Not Studio/Player tested. Restore M3 military visuals only once the crash cause is confirmed. See [investigation](../qa/m03-crash-second-hotfix.md).

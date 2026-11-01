@@ -1,3 +1,4 @@
+import { NAVAL_ASSETS } from "../shared/NavalKit";
 // Instance assembly regressions; compiled offline, executed only by the Studio Jest runner.
 import { afterEach, beforeEach, describe, expect, it, jest } from "@rbxts/jest-globals";
 import { UploadedAssets } from "../shared/UploadedAssets";
@@ -56,6 +57,7 @@ beforeEach(() => {
  jest.spyOn(WorldEnvironment, "ApplySpec").mockImplementation(() => undefined);
  const ids: Partial<Record<UploadedAssetName, number>> = {};
  for (const name of MILITARY_GROUND_ASSETS) ids[name] = RobloxAssetIds[name];
+ for (const name of NAVAL_ASSETS) ids[name] = 1; // synthetic local loader, no network
  UploadedAssets.Configure({ ids, probe: () => true, loader: () => {
   const container = new Instance("Model");
   for (let i = 0; i < meshCount; i++) {

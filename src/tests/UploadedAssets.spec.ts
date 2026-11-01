@@ -464,3 +464,31 @@ describe("dormant military ground-kit decoration", () => {
   expect(model.PrimaryPart!.Position).toEqual(proxy.Position);
  });
 });
+
+describe("naval visual proxy contract", () => {
+ it("decorates a naval mount at its old aim without introducing a query target", () => {
+  UploadedAssets.Configure({ ids: { NavalGun: 1 }, probe, loader: () => fakeUpload("NavalGun") });
+  WorldAssets.Preload(["NavalGun"]);
+  const model=track(new Instance("Model")), proxy=new Instance("Part");
+  proxy.Size=new Vector3(40,24,56); proxy.Position=new Vector3(300,80,-2460); proxy.CanQuery=true; proxy.Parent=model;
+  model.SetAttribute("LayoutGroup","naval_mount");
+  const frame=proxy.CFrame, size=proxy.Size;
+  adoptGroundTarget(model,"stable_mount","gun_mount");
+  expect(model.PrimaryPart!.Position).toEqual(frame.Position);
+  expect(proxy.CFrame).toEqual(frame);expect(proxy.Size).toEqual(size);expect(proxy.Transparency).toBe(1);
+  const visual=model.FindFirstChild("NavalGun") as Model;
+  expect(visual.GetAttribute("GroundKitBudgeted")).toBe(true);
+  for(const p of visual.GetDescendants()) if(p.IsA("BasePart")) {
+   expect(p.CanQuery).toBe(false);expect(p.CanCollide).toBe(false);expect(p.GetAttribute("FlightSolid")).toBe(false);
+  }
+ });
+ it("retains the prior military mount appearance when naval IDs are unavailable", () => {
+  UploadedAssets.Configure({ids:{MilitaryAa:1},probe,loader:()=>fakeUpload("MilitaryAa")});
+  WorldAssets.Preload(["MilitaryAa","NavalGun"]);
+  const model=track(new Instance("Model")), proxy=new Instance("Part");
+  proxy.Size=new Vector3(40,24,56);proxy.Parent=model;model.SetAttribute("LayoutGroup","naval_mount");
+  adoptGroundTarget(model,"stable_mount","gun_mount");
+  expect(model.FindFirstChild("NavalGun")).toBeUndefined();
+  expect(model.FindFirstChild("MilitaryAa")).toBeDefined();
+ });
+});

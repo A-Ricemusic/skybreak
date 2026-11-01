@@ -1,5 +1,7 @@
 # Next
 
+PR #221 is reconciled with main and remains integration-only and dormant pending uploads/model IDs and gameplay acceptance. Keep #236 M3 procedural-only targets and #220 instance-budget fallback.
+
 **Urgent priority:** owner retests M3 on phone after merged #236; capture console/timing and connection outcome if it still fails. M3 crash mitigation #236 merged as `364a7413`, live as Roblox version 148, published 2026-11-01. It removes the inaccessible bottom floor, temporarily uses procedural targets with no military meshes/PBR maps, and logs construction errors before recovery. The owner-reported mobile app crash remains open: cause unconfirmed, awaiting owner phone retest. Not Studio/Player tested. Restore M3 military visuals only once the crash cause is confirmed. See [investigation](../qa/m03-crash-second-hotfix.md).
 
 Updated 2026-11-01 against main `556a6807`.
