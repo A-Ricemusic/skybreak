@@ -117,7 +117,7 @@ def upload(plan: dict[str, Any], key: str) -> dict[str, Any]:
 
 def fetch_origin() -> None:
     """Refresh origin so committed-evidence checks compare against the real main tip."""
-    subprocess.run(["git", "fetch", "origin"], cwd=ROOT, check=True, capture_output=True)
+    subprocess.run(["git", "fetch", "origin", "+refs/heads/main:refs/remotes/origin/main"], cwd=ROOT, check=True, capture_output=True)
 
 
 def main(argv: list[str] | None = None) -> None:

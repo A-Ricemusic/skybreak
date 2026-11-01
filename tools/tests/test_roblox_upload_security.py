@@ -83,12 +83,15 @@ class HttpSecurityTests(NoNetworkTests):
             self.assertLessEqual(call.kwargs["timeout"], 90)
 
     def test_retry_after_http_date_is_honored(self):
-        future = format_datetime(datetime.now(timezone.utc) + timedelta(seconds=10), usegmt=True)
+        now = datetime(2026, 1, 1, tzinfo=timezone.utc)
+        future = format_datetime(now + timedelta(seconds=10), usegmt=True)
         error, _ = self.http_error(429, {"Retry-After": future})
-        with patch.object(_http, "open", side_effect=[error, io.BytesIO(b'{}')]), patch.object(_http.time, "sleep") as sleep:
+        with patch.object(_http, "datetime") as clock, \
+                patch.object(_http, "open", side_effect=[error, io.BytesIO(b'{}')]), \
+                patch.object(_http.time, "sleep") as sleep:
+            clock.now.return_value = now
             _http.request_json(self.request())
-        self.assertGreaterEqual(sleep.call_args.args[0], 8)
-        self.assertLessEqual(sleep.call_args.args[0], 10)
+        sleep.assert_called_once_with(10)
 
     def test_excessive_retry_after_fails_instead_of_retrying_early(self):
         error, body = self.http_error(429, {"Retry-After": "3600"})
