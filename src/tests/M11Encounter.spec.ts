@@ -1,7 +1,7 @@
 import { dampedSteer, pursuitDestination, guidedDirection } from "../shared/EncounterKinematics";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { M11_AIRCRAFT, M11_WAVES, M11_SAFE_SECONDS, M11_HEALTH, mission } from "../shared/missions/m11";
-import { protectedHealth, protectedPose } from "../shared/EngineBatchD7";
+import { protectedHealth, protectedPose } from "../shared/ProtectedAircraftRules";
 import { authoredAirPose } from "../shared/CampaignEncounters";
 import { Difficulty, DifficultyKind } from "../shared/Difficulty";
 import { CombatBalance as B } from "../shared/CombatBalance";

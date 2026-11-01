@@ -4,7 +4,7 @@ import type { MissionBlueprint } from "../MissionCatalog";
 import type { TypedGroundTarget } from "../CampaignEncounters";
 import { M18, M18_WORLD_KEY, m18TargetLayout } from "../M18WorldPlan";
 import { M18_AIRSPACE } from "../M18Limits";
-import type { VentRun } from "../EngineBatchD13";
+import type { VentRun } from "../FinaleDuelRules";
 
 export const M18_TARGETS: TypedGroundTarget[] = m18TargetLayout().filter(t=>t.type==="generator" || t.type==="core").map(t=>({id:t.id,type:t.type as "generator"|"core",position:{x:t.x,y:t.y,z:t.z},yaw:0,required:true,scoreRole:t.type,group:t.group}));
 const volume=(z:number)=>({center:{x:0,y:174,z},half:{x:70,y:45,z:30}});

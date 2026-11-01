@@ -2,6 +2,26 @@
 
 Written 2026-10-30 against `origin/main` **6df703f** (after #147, #155, #153, #154, #162, #163). This is a source review of the mission specs (`docs/specs/missions/m06.md`–`m18.md`, §2–§3 and §10 "Engine gaps") and world specs (`docs/specs/worlds/m06.md`–`m18.md`), checked against the code on main. It is not a Studio or Roblox Player observation. Batch D1 (this PR) is the only part implemented here.
 
+> **Module names (2026-10-31):** the `EngineBatch*` files named below were renamed after features. Batch letters in this plan and in the mission specs still identify the work packages; the code lives at:
+>
+> | Batch | Shared rules (pure) | Server runtime |
+> |---|---|---|
+> | B | `LandingRules.ts` | `LandingRuntime.ts` |
+> | C | `RearmRules.ts` | `RearmRuntime.ts` |
+> | D1 | `SortieArmament.ts` | (in `RearmRuntime.ts` / `CombatService.ts`) |
+> | D2 | `SurfaceTargetRules.ts` | `SurfaceTargetRuntime.ts` |
+> | D3 | `ArtilleryRules.ts` | `ArtilleryRuntime.ts` |
+> | D4 | `InterceptHoldRules.ts` | (in `PhaseDirector.ts` and `BlueprintRunner.ts`) |
+> | D5 | `GroundSectorRules.ts` | `GroundSectorRuntime.ts` |
+> | D6 | `ContactInventoryRules.ts` | `ContactInventoryRuntime.ts` |
+> | D7 | `ProtectedAircraftRules.ts` | `ProtectedAircraftRuntime.ts` |
+> | D8 | `RingSweepRules.ts` | `RingSweepRuntime.ts` |
+> | D9 | `JammerCorridorRules.ts` | `JammerCorridorRuntime.ts` |
+> | D10 | `CruiseMissileRules.ts` | `CruiseMissileRuntime.ts` |
+> | D11 | `RepairReserveRules.ts` | `RepairReserveRuntime.ts` |
+> | D12 | `LeaderWithdrawalRules.ts` | `LeaderWithdrawalRuntime.ts` |
+> | D13 | `FinaleDuelRules.ts` (blueprint field remains `batchD13`) | `FinaleDuelRuntime.ts` |
+
 ## 1. What main already has (do not rebuild)
 
 | Batch | Capability on main | Where |

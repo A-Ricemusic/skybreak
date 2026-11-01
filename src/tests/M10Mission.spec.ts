@@ -5,8 +5,8 @@ import { M10, m10TargetLayout, m10Height, m10Ground } from "../shared/M10WorldPl
 import { BlueprintRunner as Runner } from "../shared/BlueprintRunner";
 import { TargetScore } from "../shared/TargetScore";
 import { recordScoredKill } from "../server/SortieScore";
-import { artilleryMasked, artilleryExposed, canyonSampleSafe } from "../shared/EngineBatchD3";
-import { newSchedule, stepSchedule, ContactBudget } from "../shared/EngineBatchD6";
+import { artilleryMasked, artilleryExposed, canyonSampleSafe } from "../shared/ArtilleryRules";
+import { newSchedule, stepSchedule, ContactBudget } from "../shared/ContactInventoryRules";
 import { CampaignCoordinator, completeMission, normalizeProfile, serializeProfile } from "../server/CampaignRepository";
 import { canLaunchMission } from "../shared/CampaignProgress";
 import { FlightMath } from "../shared/FlightMath";

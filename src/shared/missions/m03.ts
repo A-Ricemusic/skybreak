@@ -1,5 +1,5 @@
 import type { FighterArrival, GroundTargetType, StandaloneAce, TypedGroundTarget } from "../CampaignEncounters";
-import type { LandingPlan, ReturnLine } from "../EngineBatchB";
+import type { LandingPlan, ReturnLine } from "../LandingRules";
 import type { MissionBlueprint } from "../MissionCatalog";
 import type { MissionStartPolicy } from "../MissionPolicy";
 import { M03, M03_RUNWAY_TOP, M03_WORLD_KEY, m03TargetLayout, type M03Target } from "../M03WorldPlan";

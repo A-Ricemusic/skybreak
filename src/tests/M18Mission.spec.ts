@@ -1,11 +1,11 @@
-import { crossesVolume as crosses } from "../shared/EngineBatchD13";
+import { crossesVolume as crosses } from "../shared/FinaleDuelRules";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { mission as bp, M18_TARGETS, M18_VENT as v } from "../shared/missions/m18";
 import { MissionCatalog, MISSIONS } from "../shared/MissionCatalog";
 import { BlueprintRunner as R } from "../shared/BlueprintRunner";
 import { buildM18Plan, m18Ground, m18TargetLayout, m18VentRoute } from "../shared/M18WorldPlan";
 import { M18_ASCENDING, ascendingPose } from "../shared/M18FinaleRules";
-import { duelTargetId, newVent, stepVent, ventObstructed } from "../shared/EngineBatchD13";
+import { duelTargetId, newVent, stepVent, ventObstructed } from "../shared/FinaleDuelRules";
 import { FlightMath } from "../shared/FlightMath";
 import { WeaponRules } from "../shared/WeaponRules";
 import { AlliedRules } from "../shared/AlliedRules";

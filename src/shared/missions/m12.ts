@@ -3,8 +3,8 @@ import type { MissionBlueprint } from "../MissionCatalog";
 import type { TypedGroundTarget, GroundTargetType } from "../CampaignEncounters";
 import { M12, M12_WORLD_KEY, m12TargetLayout } from "../M12WorldPlan";
 import { M12_AIRSPACE } from "../M12Limits";
-import { landingPose } from "../EngineBatchB";
-import type { LandingPlan } from "../EngineBatchB";
+import { landingPose } from "../LandingRules";
+import type { LandingPlan } from "../LandingRules";
 
 // D-460: adopt world ids; southeast wreck remains scenery, never a combat actor.
 const types: { [key: string]: GroundTargetType } = { ring_gun: "railgun_emplacement", ground_ecm: "ground_ecm", aa: "aa_gun", sam: "sam" };

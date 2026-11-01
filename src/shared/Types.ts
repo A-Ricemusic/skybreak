@@ -272,7 +272,7 @@ export interface MissionFinished extends MissionStats {
 	bestScore?: number;
 	bestRank?: string;
 }
-export interface LandingStarted { kind: "LandingStarted"; plan: import("./EngineBatchB").LandingPlan }
+export interface LandingStarted { kind: "LandingStarted"; plan: import("./LandingRules").LandingPlan }
 /** The server accepted a landing skip; `elapsed` is its authoritative landing time (the runway hold). */
 export interface LandingSkipped { kind: "LandingSkipped"; elapsed: number }
 /** The launch is queued until the previous world's cleanup completes; the request stays open. */
