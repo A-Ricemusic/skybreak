@@ -68,3 +68,20 @@ All four passed an independent 10/10 safety review ([record](asset-reviews/2026-
 | cinematic-field-recorder | 87111261775563 | cinematic-field-recorder-1 | `0ec0ad7de0cd375e6dc20c6c558581fc153a8ae27aee1f477b0bf5f1d40a13da` |
 | cinematic-status-board | 105938775214679 | cinematic-status-board-1 | `313dc862ef36680c52aeb3b9756c2f6a5a737fbe369f5dc660f492c42dbd94f8` |
 | cinematic-tape-tin | 86951943477271 | cinematic-tape-tin-1 | `e65aa071ff3441468603abe610412cf6d5824a14e5a23f761ef2ccd61f3a913a` |
+
+## Military ground kit (2026-10-31)
+
+Independent review: **GPT-6.1 Sol, 10/10 on 2026-10-31** ([record](asset-reviews/military-ground-kit/independent-safety-review-2026-10-31.md)). Moderation: **APPROVED 2026-10-31**, as reported by the owner in the [upload record](asset-reviews/military-ground-kit/upload-record-2026-10-31.md). Full FBX hashes below come from the matching `asset-reviews/approvals/military-*.json` records.
+
+| Asset | Model asset ID | Type | Source FBX | Export version | FBX SHA-256 | Independent review | Moderation |
+|---|---|---|---|---|---|---|---|
+| military-aa | 101616884598832 | Model | `assets/roblox-upload/military-aa/military-aa.fbx` | military-ground-kit-1 | `ac7e8453d2077034c4baf5ae7906c911122e8b764fe2902afadff66cf91ba606` | 10/10 2026-10-31 | APPROVED 2026-10-31 |
+| military-artillery | 95847143971617 | Model | `assets/roblox-upload/military-artillery/military-artillery.fbx` | military-ground-kit-1-track2 | `1a0e91dd74c9da144883b5c2799e276df1501e8f3ff4ad8f797185755608ed48` | 10/10 2026-10-31 | APPROVED 2026-10-31 |
+| military-barracks | 132667525903898 | Model | `assets/roblox-upload/military-barracks/military-barracks.fbx` | military-ground-kit-1 | `d4847b3fe1382d5df4f9bd055e0a3fc37b0c72d198193c2c9686dc0fa404888f` | 10/10 2026-10-31 | APPROVED 2026-10-31 |
+| military-bunker | 99767408434768 | Model | `assets/roblox-upload/military-bunker/military-bunker.fbx` | military-ground-kit-1 | `bc9bbf7a15fb380722b5734c0cb964db04ca65bcd357d6b11083a4c903565ab7` | 10/10 2026-10-31 | APPROVED 2026-10-31 |
+| military-containers | 135400126796799 | Model | `assets/roblox-upload/military-containers/military-containers.fbx` | military-ground-kit-1 | `35ef2eb36f74f1e85dd359c668b94f4e4084be39605b2a1c9e6706f32618bdf3` | 10/10 2026-10-31 | APPROVED 2026-10-31 |
+| military-fuel | 96014055896534 | Model | `assets/roblox-upload/military-fuel/military-fuel.fbx` | military-ground-kit-1 | `def28d8711bcb096d700d47a743f2c5dd7a143b3230a20aed774b27cf922fe63` | 10/10 2026-10-31 | APPROVED 2026-10-31 |
+| military-radar | 124278667774667 | Model | `assets/roblox-upload/military-radar/military-radar.fbx` | military-ground-kit-1 | `45674bc98d39f180214277f4f3385b3b8dda92fcc82d2b49314c81f4610c8462` | 10/10 2026-10-31 | APPROVED 2026-10-31 |
+| military-sam | 73161839960138 | Model | `assets/roblox-upload/military-sam/military-sam.fbx` | military-ground-kit-1 | `f10ce9a6716456be8db2b8e634246e78f35aa2ec96ddaf6417cbd8da743560bf` | 10/10 2026-10-31 | APPROVED 2026-10-31 |
+| military-tank | 133660866420591 | Model | `assets/roblox-upload/military-tank/military-tank.fbx` | military-ground-kit-1-track2 | `a20614334fb1a5bd1afc0c4cfd0415560aee49d3c234e8d2464c165ed2b82afe` | 10/10 2026-10-31 | APPROVED 2026-10-31 |
+| military-truck | 137019773488099 | Model | `assets/roblox-upload/military-truck/military-truck.fbx` | military-ground-kit-1-rack2 | `0a951d1bd5d9a1525a279bb757235224cbb2634a24df42f7c50601dbd1745c15` | 10/10 2026-10-31 | APPROVED 2026-10-31 |

@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 import subprocess
 import os
+import re
 import tempfile
 import hashlib
 import unittest
@@ -47,7 +48,13 @@ class PlaceAssetsTests(unittest.TestCase):
         root = ET.fromstring(path.read_bytes())
         blobs, refs = gate.inventory(path.read_bytes())
         self.assertEqual(len(blobs), 13)
-        self.assertEqual(len(refs), 39)
+        # Derive catalog IDs from the source inventory, independently of the
+        # compiled-place extractor, so new approved uploads need no magic count.
+        manifest = json.loads((TOOLS.parent / "assets/roblox-upload/manifest.json").read_text())
+        table = (TOOLS.parent / manifest["idsTable"]).read_text()
+        keys = {asset["robloxAssetIdsKey"] for asset in manifest["assets"]}
+        expected = {value for key, value in re.findall(r"^\s*(\w+):\s*([1-9][0-9]*),", table, re.M) if key in keys}
+        self.assertEqual(refs, expected)
         # An integrity regression against the current build, no invented approval.
         approved = {b.sha256 for b in blobs}
         def exact(name, content, digest, **kwargs):
@@ -61,6 +68,34 @@ class PlaceAssetsTests(unittest.TestCase):
             prop.text = json.dumps(data, separators=(",", ":"))
             with self.assertRaisesRegex(RuntimeError, "Changed vertex"):
                 gate.validate(ET.tostring(root))
+
+    def test_military_upload_provenance_matches_approved_exports(self):
+        root = TOOLS.parent
+        manifest = json.loads((root / "assets/roblox-upload/manifest.json").read_text())
+        table = dict(re.findall(r"^\s*(\w+):\s*([1-9][0-9]*),",
+                                (root / manifest["idsTable"]).read_text(), re.M))
+        military = [a for a in manifest["assets"] if a["folder"].startswith("military-")]
+        self.assertEqual(len(military), 10)
+        ledger = (root / "docs/qa/uploaded-assets.md").read_text()
+        for asset in military:
+            record = asset["approvedUpload"]
+            approval = json.loads((root / record["approval"]).read_text())
+            self.assertEqual(record["assetId"], table[asset["robloxAssetIdsKey"]])
+            row = next(line for line in ledger.splitlines()
+                       if line.startswith(f"| {asset['folder']} |"))
+            self.assertIn(f"| {record['assetId']} | Model |", row)
+            self.assertIn("10/10 2026-10-31", row)
+            self.assertIn("APPROVED 2026-10-31", row)
+            for filename, digest in approval["uploadSet"].items():
+                self.assertIn(f"assets/roblox-upload/{asset['folder']}/{filename}", row)
+                self.assertIn(digest, row)
+            self.assertEqual(record["moderation"], "APPROVED")
+            self.assertEqual(record["moderationDate"], "2026-10-31")
+            for field in ("uploadSet", "embeddedTextures"):
+                self.assertEqual(record[field], approval[field])
+                for filename, digest in record[field].items():
+                    self.assertEqual(hashlib.sha256((root / "assets/roblox-upload" /
+                                                    asset["folder"] / filename).read_bytes()).hexdigest(), digest)
 
     def test_real_merged_records_pass_then_tampering_or_local_only_fails(self):
         with tempfile.TemporaryDirectory() as folder:

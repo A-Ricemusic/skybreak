@@ -1,16 +1,10 @@
 # Military ground kit — independent review packet
 
-Status: **PENDING — NOT APPROVED, NOT UPLOADED**. Creator: implementation agent. Reviewer: unassigned. Review date/verdict: pending. No 10/10 safety assessment has been performed.
-
-All ten RobloxAssetIds are undefined. No Studio launch, upload or Player test. Before any upload an independent reviewer must inspect the exact FBX exports, all four included textures and their assembled UV/material appearance from every relevant angle, consult current official policies (including applicable linked policies), record reviewer/date and explicitly approve 10/10. A re-export invalidates any approval. A maximum project safety judgment cannot guarantee moderation outcomes.
-
-Policies for the reviewer to consult at review time: [Terms](https://www.roblox.com/termsofuse), [Community Standards](https://en.help.roblox.com/hc/en-us/articles/203313410-Roblox-Community-Standards/). This packet does not claim a current-policy review.
-
-Original procedural modeling only, no external models or textures. No figures, skin, text, flags, insignia or unit markings. Static covered gun barrels and sealed launch canisters are present: reviewer must assess them explicitly. Generator precheck booleans are creator declarations, not independent approval. No approval JSON is created.
+Status: **independently approved 10/10; uploaded; Roblox moderation APPROVED 2026-10-31** (owner handoff). See [independent review](independent-safety-review-2026-10-31.md) for reviewer, exact hashes, assembled inspection and policies; see [upload record](upload-record-2026-10-31.md) for all ten IDs and mission coverage. Runtime activation is proposed in `assets/military-kit-live`, not merged/live yet. No Studio/Player test in this task.
 
 Generator: `tools/assets/military_ground_kit.py`, invoked through `tools/assets/build.py`. One atlas material and one mesh per model, four 256² PBR maps, maximum 2,500 triangles; centimetre FBX convention and bottom-centre pivot from skyasset. No Blender source file required; scripts regenerate every export. Versions are pinned per checklist. Track revisions have suffix `-track2`; truck rack revision has suffix `-rack2`.
 
-Runtime: `MilitaryGroundKit.ts` maps types; `GroundTargetFactory` fits each visual uniformly within the original bounds, retains invisible original query proxies and pre-decoration aim, and uses `WorldAssets.PlaceUploaded` with unchanged fallback on unset/failed IDs. World preload is bounded. D6 detail promotion uses the same factory; far cheap contacts deliberately keep their existing low-cost Part LOD. No target ID/position/footprint/health/score changes. Specialist generators, core and railguns are excluded. M10 semantic aliases are preserved; M15 already types 61 slots as vehicle, so this kit uses trucks there without inferring new barracks/tank roles. Future upload integration must verify orientation and appearance in Player; this branch cannot establish phone rendering or frame cost.
+Runtime: `MilitaryGroundKit.ts` maps types; `GroundTargetFactory` fits each visual uniformly within the original bounds, retains invisible original query proxies and pre-decoration aim, and uses `WorldAssets.PlaceUploaded` with unchanged fallback on unset/failed IDs. World preload is bounded. D6 detail promotion uses the same factory; far cheap contacts deliberately keep their existing low-cost Part LOD. No target ID/position/footprint/health/score changes. Specialist generators, core and railguns are excluded. M10 semantic aliases are preserved; M15 already types 61 slots as vehicle, so this kit uses trucks there without inferring new barracks/tank roles. Player follow-up must verify orientation and appearance; offline activation checks cannot establish phone rendering or frame cost.
 
 ## Mission inventory
 
@@ -37,7 +31,7 @@ Every file below is relative to its asset folder under `assets/roblox-upload/`. 
 
 ### military-aa
 
-Version `military-ground-kit-1`; 192 / 2500 triangles; size [12.0, 14.0, 21.894] studs; pivot `bottom-center`; ID unset.
+Version `military-ground-kit-1`; 192 / 2500 triangles; size [12.0, 14.0, 21.894] studs; pivot `bottom-center`; ID assigned; moderation APPROVED 2026-10-31 (see upload record).
 
 | File | SHA-256 |
 |---|---|
@@ -61,11 +55,11 @@ Version `military-ground-kit-1`; 192 / 2500 triangles; size [12.0, 14.0, 21.894]
 
 Preview list: `preview-front.png`, `preview-side.png`, `preview-top.png`, `preview-3q.png`, `preview-back.png`, `preview-side-right.png`, `preview-bottom.png`, `preview-3q-front-left.png`, `preview-3q-rear-right.png`, `preview-3q-rear-left.png`. Contact sheet: `contact-sheet.png`.
 
-Reviewer findings / exact-file inspection / policy links actually consulted / verdict: **pending**.
+Reviewer findings, exact-file inspection, policies and explicit 10/10 verdict: see independent review linked above.
 
 ### military-artillery
 
-Version `military-ground-kit-1-track2`; 1620 / 2500 triangles; size [17.52, 14.4, 33.5] studs; pivot `bottom-center`; ID unset.
+Version `military-ground-kit-1-track2`; 1620 / 2500 triangles; size [17.52, 14.4, 33.5] studs; pivot `bottom-center`; ID assigned; moderation APPROVED 2026-10-31 (see upload record).
 
 | File | SHA-256 |
 |---|---|
@@ -89,11 +83,11 @@ Version `military-ground-kit-1-track2`; 1620 / 2500 triangles; size [17.52, 14.4
 
 Preview list: `preview-front.png`, `preview-side.png`, `preview-top.png`, `preview-3q.png`, `preview-back.png`, `preview-side-right.png`, `preview-bottom.png`, `preview-3q-front-left.png`, `preview-3q-rear-right.png`, `preview-3q-rear-left.png`. Contact sheet: `contact-sheet.png`.
 
-Reviewer findings / exact-file inspection / policy links actually consulted / verdict: **pending**.
+Reviewer findings, exact-file inspection, policies and explicit 10/10 verdict: see independent review linked above.
 
 ### military-barracks
 
-Version `military-ground-kit-1`; 164 / 2500 triangles; size [30.0, 19.0, 70.0] studs; pivot `bottom-center`; ID unset.
+Version `military-ground-kit-1`; 164 / 2500 triangles; size [30.0, 19.0, 70.0] studs; pivot `bottom-center`; ID assigned; moderation APPROVED 2026-10-31 (see upload record).
 
 | File | SHA-256 |
 |---|---|
@@ -117,11 +111,11 @@ Version `military-ground-kit-1`; 164 / 2500 triangles; size [30.0, 19.0, 70.0] s
 
 Preview list: `preview-front.png`, `preview-side.png`, `preview-top.png`, `preview-3q.png`, `preview-back.png`, `preview-side-right.png`, `preview-bottom.png`, `preview-3q-front-left.png`, `preview-3q-rear-right.png`, `preview-3q-rear-left.png`. Contact sheet: `contact-sheet.png`.
 
-Reviewer findings / exact-file inspection / policy links actually consulted / verdict: **pending**.
+Reviewer findings, exact-file inspection, policies and explicit 10/10 verdict: see independent review linked above.
 
 ### military-bunker
 
-Version `military-ground-kit-1`; 76 / 2500 triangles; size [36.0, 14.055, 30.0] studs; pivot `bottom-center`; ID unset.
+Version `military-ground-kit-1`; 76 / 2500 triangles; size [36.0, 14.055, 30.0] studs; pivot `bottom-center`; ID assigned; moderation APPROVED 2026-10-31 (see upload record).
 
 | File | SHA-256 |
 |---|---|
@@ -145,11 +139,11 @@ Version `military-ground-kit-1`; 76 / 2500 triangles; size [36.0, 14.055, 30.0] 
 
 Preview list: `preview-front.png`, `preview-side.png`, `preview-top.png`, `preview-3q.png`, `preview-back.png`, `preview-side-right.png`, `preview-bottom.png`, `preview-3q-front-left.png`, `preview-3q-rear-right.png`, `preview-3q-rear-left.png`. Contact sheet: `contact-sheet.png`.
 
-Reviewer findings / exact-file inspection / policy links actually consulted / verdict: **pending**.
+Reviewer findings, exact-file inspection, policies and explicit 10/10 verdict: see independent review linked above.
 
 ### military-containers
 
-Version `military-ground-kit-1`; 900 / 2500 triangles; size [31.45, 24.0, 36.3] studs; pivot `bottom-center`; ID unset.
+Version `military-ground-kit-1`; 900 / 2500 triangles; size [31.45, 24.0, 36.3] studs; pivot `bottom-center`; ID assigned; moderation APPROVED 2026-10-31 (see upload record).
 
 | File | SHA-256 |
 |---|---|
@@ -173,11 +167,11 @@ Version `military-ground-kit-1`; 900 / 2500 triangles; size [31.45, 24.0, 36.3] 
 
 Preview list: `preview-front.png`, `preview-side.png`, `preview-top.png`, `preview-3q.png`, `preview-back.png`, `preview-side-right.png`, `preview-bottom.png`, `preview-3q-front-left.png`, `preview-3q-rear-right.png`, `preview-3q-rear-left.png`. Contact sheet: `contact-sheet.png`.
 
-Reviewer findings / exact-file inspection / policy links actually consulted / verdict: **pending**.
+Reviewer findings, exact-file inspection, policies and explicit 10/10 verdict: see independent review linked above.
 
 ### military-fuel
 
-Version `military-ground-kit-1`; 976 / 2500 triangles; size [36.4, 26.5, 16.4] studs; pivot `bottom-center`; ID unset.
+Version `military-ground-kit-1`; 976 / 2500 triangles; size [36.4, 26.5, 16.4] studs; pivot `bottom-center`; ID assigned; moderation APPROVED 2026-10-31 (see upload record).
 
 | File | SHA-256 |
 |---|---|
@@ -201,11 +195,11 @@ Version `military-ground-kit-1`; 976 / 2500 triangles; size [36.4, 26.5, 16.4] s
 
 Preview list: `preview-front.png`, `preview-side.png`, `preview-top.png`, `preview-3q.png`, `preview-back.png`, `preview-side-right.png`, `preview-bottom.png`, `preview-3q-front-left.png`, `preview-3q-rear-right.png`, `preview-3q-rear-left.png`. Contact sheet: `contact-sheet.png`.
 
-Reviewer findings / exact-file inspection / policy links actually consulted / verdict: **pending**.
+Reviewer findings, exact-file inspection, policies and explicit 10/10 verdict: see independent review linked above.
 
 ### military-radar
 
-Version `military-ground-kit-1`; 480 / 2500 triangles; size [18.0, 31.0, 19.75] studs; pivot `bottom-center`; ID unset.
+Version `military-ground-kit-1`; 480 / 2500 triangles; size [18.0, 31.0, 19.75] studs; pivot `bottom-center`; ID assigned; moderation APPROVED 2026-10-31 (see upload record).
 
 | File | SHA-256 |
 |---|---|
@@ -229,11 +223,11 @@ Version `military-ground-kit-1`; 480 / 2500 triangles; size [18.0, 31.0, 19.75] 
 
 Preview list: `preview-front.png`, `preview-side.png`, `preview-top.png`, `preview-3q.png`, `preview-back.png`, `preview-side-right.png`, `preview-bottom.png`, `preview-3q-front-left.png`, `preview-3q-rear-right.png`, `preview-3q-rear-left.png`. Contact sheet: `contact-sheet.png`.
 
-Reviewer findings / exact-file inspection / policy links actually consulted / verdict: **pending**.
+Reviewer findings, exact-file inspection, policies and explicit 10/10 verdict: see independent review linked above.
 
 ### military-sam
 
-Version `military-ground-kit-1`; 688 / 2500 triangles; size [15.2, 16.53, 25.0] studs; pivot `bottom-center`; ID unset.
+Version `military-ground-kit-1`; 688 / 2500 triangles; size [15.2, 16.53, 25.0] studs; pivot `bottom-center`; ID assigned; moderation APPROVED 2026-10-31 (see upload record).
 
 | File | SHA-256 |
 |---|---|
@@ -257,11 +251,11 @@ Version `military-ground-kit-1`; 688 / 2500 triangles; size [15.2, 16.53, 25.0] 
 
 Preview list: `preview-front.png`, `preview-side.png`, `preview-top.png`, `preview-3q.png`, `preview-back.png`, `preview-side-right.png`, `preview-bottom.png`, `preview-3q-front-left.png`, `preview-3q-rear-right.png`, `preview-3q-rear-left.png`. Contact sheet: `contact-sheet.png`.
 
-Reviewer findings / exact-file inspection / policy links actually consulted / verdict: **pending**.
+Reviewer findings, exact-file inspection, policies and explicit 10/10 verdict: see independent review linked above.
 
 ### military-tank
 
-Version `military-ground-kit-1-track2`; 1620 / 2500 triangles; size [17.52, 12.0, 33.5] studs; pivot `bottom-center`; ID unset.
+Version `military-ground-kit-1-track2`; 1620 / 2500 triangles; size [17.52, 12.0, 33.5] studs; pivot `bottom-center`; ID assigned; moderation APPROVED 2026-10-31 (see upload record).
 
 | File | SHA-256 |
 |---|---|
@@ -285,11 +279,11 @@ Version `military-ground-kit-1-track2`; 1620 / 2500 triangles; size [17.52, 12.0
 
 Preview list: `preview-front.png`, `preview-side.png`, `preview-top.png`, `preview-3q.png`, `preview-back.png`, `preview-side-right.png`, `preview-bottom.png`, `preview-3q-front-left.png`, `preview-3q-rear-right.png`, `preview-3q-rear-left.png`. Contact sheet: `contact-sheet.png`.
 
-Reviewer findings / exact-file inspection / policy links actually consulted / verdict: **pending**.
+Reviewer findings, exact-file inspection, policies and explicit 10/10 verdict: see independent review linked above.
 
 ### military-truck
 
-Version `military-ground-kit-1-rack2`; 728 / 2500 triangles; size [15.2, 12.25, 25.0] studs; pivot `bottom-center`; ID unset.
+Version `military-ground-kit-1-rack2`; 728 / 2500 triangles; size [15.2, 12.25, 25.0] studs; pivot `bottom-center`; ID assigned; moderation APPROVED 2026-10-31 (see upload record).
 
 | File | SHA-256 |
 |---|---|
@@ -313,4 +307,4 @@ Version `military-ground-kit-1-rack2`; 728 / 2500 triangles; size [15.2, 12.25, 
 
 Preview list: `preview-front.png`, `preview-side.png`, `preview-top.png`, `preview-3q.png`, `preview-back.png`, `preview-side-right.png`, `preview-bottom.png`, `preview-3q-front-left.png`, `preview-3q-rear-right.png`, `preview-3q-rear-left.png`. Contact sheet: `contact-sheet.png`.
 
-Reviewer findings / exact-file inspection / policy links actually consulted / verdict: **pending**.
+Reviewer findings, exact-file inspection, policies and explicit 10/10 verdict: see independent review linked above.

@@ -5,10 +5,22 @@ import { UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
 import { MissionCatalog } from "../shared/MissionCatalog";
 
 describe("military ground kit contracts", () => {
- it("keeps all ten kit assets dormant and bottom-centred world meshes", () => {
+ it("pins all ten approved upload IDs and bottom-centred world meshes", () => {
   expect(MILITARY_GROUND_ASSETS.size()).toBe(10);
+  const approvedIds = {
+   MilitaryAa: 101616884598832,
+   MilitaryArtillery: 95847143971617,
+   MilitaryBarracks: 132667525903898,
+   MilitaryBunker: 99767408434768,
+   MilitaryContainers: 135400126796799,
+   MilitaryFuel: 96014055896534,
+   MilitaryRadar: 124278667774667,
+   MilitarySam: 73161839960138,
+   MilitaryTank: 133660866420591,
+   MilitaryTruck: 137019773488099,
+  };
   for (const name of MILITARY_GROUND_ASSETS) {
-   expect(RobloxAssetIds[name]).toBeUndefined();
+   expect(RobloxAssetIds[name]).toBe(approvedIds[name]);
    expect(UploadedAssetSpecs[name].kind).toBe("world");
    expect(UploadedAssetSpecs[name].groundOffset).toBe(0);
   }

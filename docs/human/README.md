@@ -1,5 +1,11 @@
 # SKYBREAK campaign dashboard
 
+PR #218 ledger repair (2026-10-31, unmerged): merged main f8f3693e; added all ten military Model IDs, source FBX paths, full approval hashes and dated review/moderation evidence to docs/qa/uploaded-assets.md. Corrected the Studio Jest inventory expectation from 39 to 49; the test checks numbers/count, not Markdown. Extended the existing Python military provenance contract to verify ledger rows. Studio rerun and Player observation remain pending; no upload, publish or secret access performed. Validation: frozen install, build and prescribed LUAU_BIN validate:offline all exited 0 (163 Python tests). Studio Jest compiled but was not run.
+
+PR #218 gate integration (2026-10-31, unmerged): merged current main; the ten military manifest entries now retain owner-reported APPROVED moderation dated 2026-10-31, model IDs and exact approval-record hashes. Gate authorization still requires identical origin/main evidence; no exemption or private journal access. Offline build authorization is checked against a temporary post-merge Git fixture. Validation completed: frozen install, standalone build, build:place and prescribed LUAU_BIN validate:offline all exited 0 (163 Python tests). Strict offline validate authorized 13 blobs and 49 IDs using a temporary post-merge Git evidence fixture; production refs were unchanged. No upload, publish, secret read, canonical upload-state access, Studio or Player test.
+
+Military kit activation (2026-10-31, proposed/unmerged): all ten IDs assigned after independent 10/10 approval and owner-reported moderation APPROVED. On merge, realistic tanks, SAMs, AA, artillery, bunkers, radar, trucks, fuel, barracks and containers replace matching target visuals in M02/M03/M05/M06/M07/M09/M10/M12/M15/M16/M17; per-type mission list in the [upload record](../qa/asset-reviews/military-ground-kit/upload-record-2026-10-31.md). Existing proxies, procedural failure fallback and bounded preload remain. No Player quality verification.
+
 PR #216 post-merge validation (2026-10-31): `bun install --frozen-lockfile` and prescribed `LUAU_BIN` `bun run validate:offline` both exited 0; 1,225 Luau contracts and 154 Python tests passed. No uploads or secret reads.
 
 PR #216 merge reconciliation (2026-10-31): merged main `5eec0d06` (#207), preserving #202 and military-kit records. Third independent uploader security review passed per owner handoff. Test account mocks now avoid credential-like syntax; GitGuardian recheck failed on historical commit `3575dead` only (incident 39368345); no new-commit finding reported. Upload gate decision is D-668 (D-666 remains the military kit).
@@ -12,9 +18,7 @@ PR #216 security follow-up (merged d33c9a94): canonical real-upload state; merge
 
 Pending tooling (D-668): audio/voice uploads stay permanently disabled; exact-hash models with committed independent 10/10 APPROVE evidence may pass a separate model HALT. No assets uploaded.
 
-2026-10-31 asset branch status: ten original Blender military ground-kit models and dormant runtime integration are in preparation on `assets/military-ground-kit`; unmerged, IDs unset, no upload or Studio/Player test. Independent exact-export 10/10 review is required before any future upload. Evidence: [review packet](../qa/asset-reviews/military-ground-kit/README.md). Campaign mission progress below is unchanged.
 
-Military kit validation: frozen install, build and prescribed offline validation exit 0 (1,225 contracts; 489 compiled modules; 124 Python tests). Exact FBX round-trip verification passes; no Studio/Player or safety approval claimed. [Validation details](../qa/asset-reviews/military-ground-kit/validation.md).
 
 Updated 2026-10-31 against main `cb8e1d10` (#202); results continuation and chapter-gating fix merged/live by pipeline convention; device acceptance remains open.
 
