@@ -46,7 +46,10 @@ def inventory(content: bytes) -> tuple[list[Blob], set[str]]:
     blobs, references = [], set()
     shared = {}
     for entry in root.findall("./SharedStrings/SharedString"):
-        shared[entry.get("md5")] = base64.b64decode("".join((entry.text or "").split()), validate=True)
+        identifier = entry.get("md5")
+        if not identifier or identifier in shared:
+            raise RuntimeError("Missing or duplicate shared blob identifier")
+        shared[identifier] = base64.b64decode("".join((entry.text or "").split()), validate=True)
     for item in root.iter("Item"):
         props = item.find("Properties")
         if props is None:

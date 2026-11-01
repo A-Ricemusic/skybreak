@@ -17,6 +17,7 @@ from pathlib import Path
 import re
 import subprocess
 import time
+import tempfile
 from typing import Any
 import urllib.error
 import urllib.request
@@ -73,9 +74,18 @@ def validate_upload_state() -> None:
 
 def save(path: Path, value: Any) -> None:
     """Write JSON atomically (temp file then rename) so a crash never truncates the journal."""
-    temp = path.with_suffix(path.suffix + ".tmp")
-    temp.write_text(json.dumps(value, indent=2) + "\n")
-    temp.replace(path)
+    # A predictable .tmp name could follow a pre-planted symlink or collide
+    # with another writer. mkstemp creates a private, exclusive sibling.
+    descriptor, name = tempfile.mkstemp(prefix=path.name + ".", suffix=".tmp", dir=path.parent)
+    temp = Path(name)
+    try:
+        with os.fdopen(descriptor, "w") as output:
+            output.write(json.dumps(value, indent=2) + "\n")
+            output.flush()
+            os.fsync(output.fileno())
+        temp.replace(path)
+    finally:
+        temp.unlink(missing_ok=True)
 
 
 def load_journal() -> dict[str, Any]:
@@ -259,7 +269,16 @@ def http(method: str, url: str, key: str, body: bytes | None = None,
         parts = list(message.iter_parts())
         if len(parts) != 2 or [part.get_param("name", header="content-disposition") for part in parts] != ["request", "fileContent"]:
             raise RuntimeError("Invalid upload multipart content")
-        metadata = json.loads(parts[0].get_payload(decode=True))
+        # Reject ambiguous wire representations rather than relying on Roblox
+        # and Python to choose the same duplicate header/JSON field or encoding.
+        for part in [message, *parts]:
+            names = [name.casefold() for name, _ in part.raw_items()]
+            if (len(names) != len(set(names)) or part.defects
+                    or part.get("Content-Transfer-Encoding") is not None):
+                raise RuntimeError("Ambiguous upload multipart content")
+        if any(part.get_content_disposition() != "form-data" for part in parts):
+            raise RuntimeError("Invalid upload multipart disposition")
+        metadata = strict_json(parts[0].get_payload(decode=True))
         kind = metadata.get("assetType")
         if asset_class(kind) == "audio":
             gate(asset_type=kind)
