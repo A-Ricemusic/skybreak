@@ -2,7 +2,7 @@ import type { EnvironmentPreset } from "./MissionCatalog";
 
 // One table for every mission environment. Pure numbers only (no Roblox types)
 // so the offline Luau runner can audit it; the server converts it to Lighting,
-// Atmosphere, Clouds, Sky, bloom and Terrain water (RelayWorld), and the client
+// Atmosphere, Clouds, Sky, bloom and Terrain water (server/WorldEnvironment), and the client
 // reads `weather` for rain, lightning, dust and the aurora (client/Weather.ts).
 // Every preset must be visibly distinct: see EnvironmentPresets.spec for the
 // pairwise contract.

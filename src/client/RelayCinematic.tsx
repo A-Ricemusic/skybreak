@@ -50,7 +50,7 @@ function cloneFurniture(models:Instance | undefined,scene:Folder,name:string,pos
 	const [,size]=template.GetBoundingBox();
 	return cloneModel(template,scene,name,new CFrame(ORIGIN.add(position).add(new Vector3(0,size.Y/2,0))).mul(CFrame.Angles(0,yaw,0)));
 }
-/** An uploaded desk prop (dormant until its RobloxAssetIds entry is set), seated so its recorded anchor lands on `target`. */
+/** An uploaded desk prop (the procedural prop stands in when its upload is missing), seated so its recorded anchor lands on `target`. */
 function seatProp(models:Instance | undefined,scene:Folder,name:CinematicPropAsset,target:CFrame): Model | undefined {
 	const template=models?.FindFirstChild(name);
 	if(!template?.IsA("Model") || template.GetAttribute("GeometrySource")!=="Uploaded")return undefined;
