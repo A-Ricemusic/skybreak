@@ -99,7 +99,7 @@ export function sendTelemetry(session: CombatSession): void {
  * before the reference to it arrives (reliable events are ordered with
  * instance replication; unreliable ones are not).
  */
-export function sendHud(session: CombatSession, objective: ReturnType<typeof sessionObjective>, target: Enemy | undefined, phase: MissionPhaseBlueprint | undefined): void {
+function sendHud(session: CombatSession, objective: ReturnType<typeof sessionObjective>, target: Enemy | undefined, phase: MissionPhaseBlueprint | undefined): void {
 	const nav = session.blueprintState ? BlueprintRunner.NavigationPoint(session.blueprintState, session.state) : undefined;
 	const previous = session.hud;
 	const targetKind = target ? (target.kind === "ground" ? "ground" : "air") : "";
@@ -122,7 +122,7 @@ export function sendHud(session: CombatSession, objective: ReturnType<typeof ses
 }
 
 /** Only the reliable HudState (radio, FIRE refusals, target, objective), sent at once if anything in it changed. */
-export function sendHudNow(session: CombatSession): void {
+function sendHudNow(session: CombatSession): void {
 	if (session.player.Parent !== Players) return;
 	const target = ownsEnemy(session, session.target) ? session.target : undefined;
 	sendHud(session, sessionObjective(session), target, session.blueprintState ? BlueprintRunner.ActivePhase(session.blueprintState) : undefined);

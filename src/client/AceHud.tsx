@@ -213,7 +213,7 @@ export function HudBanner({ name, text, color, stroke, metrics, blink = false, y
 }
 
 /** Ammo line as RichText: each cell in its own tone, joined by dim separators. */
-export function statusText(cells: StatusCell[], separator: string): string {
+function statusText(cells: StatusCell[], separator: string): string {
 	const tint = (text: string, tone: HudTone) => `<font color="#${TONE_COLOR[tone].ToHex()}">${text}</font>`;
 	return cells.map((cell) => tint(cell.text, cell.tone)).join(tint(separator, "dim"));
 }

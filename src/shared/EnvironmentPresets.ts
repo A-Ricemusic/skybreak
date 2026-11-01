@@ -119,7 +119,7 @@ export function lampsOn(preset: EnvironmentPreset): boolean {
 	return e.sky === "night" || e.sky === "dusk" || e.weather === "storm" || e.weather === "fog";
 }
 /** Colour distance in 0..255 units for the distinctness contract. */
-export function rgbDistance(a: Rgb, b: Rgb): number {
+function rgbDistance(a: Rgb, b: Rgb): number {
 	return math.sqrt((a[0] - b[0]) * (a[0] - b[0]) + (a[1] - b[1]) * (a[1] - b[1]) + (a[2] - b[2]) * (a[2] - b[2]));
 }
 /** Two presets are "visibly distinct" when at least two independent channels differ by a clear margin. */

@@ -16,7 +16,7 @@ export function restOn(model: Model, baseY: number): void {
  * Fit uniformly inside the old bounds; no stretched vehicles or expanded hitboxes.
  * Capture bounds and aim BEFORE decoration: uploaded detail never moves the lock point.
  */
-export function decorateGroundTarget(model: Model, targetType: GroundTargetType, bounds: CFrame, size: Vector3): void {
+function decorateGroundTarget(model: Model, targetType: GroundTargetType, bounds: CFrame, size: Vector3): void {
  const asset = MILITARY_GROUND_KIT[targetType];
  if (asset === undefined) return;
  const authored = UploadedAssetSpecs[asset].size;

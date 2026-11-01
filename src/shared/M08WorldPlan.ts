@@ -19,7 +19,7 @@ export const M08_ENVIRONMENT: EnvironmentSpec = {
  grade: { saturation: 0.02, contrast: 0.06, brightness: 0, tint: [255, 253, 243] },
  water: { color: [28, 68, 106], reflectance: 0.25, transparency: 0, waveSize: 0.1, waveSpeed: 5 },
 };
-export function m08Height(x: number, z: number): number {
+function m08Height(x: number, z: number): number {
  // Whole complex, roads and their full sampled cells sit on a level shelf.
  if (math.abs(x - 1920) < 1700 && math.abs(z) < 1300) return 76;
  const r = math.sqrt(((x - 1920) / 5900) ** 2 + (z / 4300) ** 2);

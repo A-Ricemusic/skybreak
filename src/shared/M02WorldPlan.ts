@@ -26,7 +26,6 @@ export const M02_ENVIRONMENT: EnvironmentSpec = {
 	bloom: { intensity: 0, size: 20, threshold: 2 }, sky: "overcast", starCount: 0, sunSize: 0, moonSize: 0,
 	water: { color: [72, 94, 85], reflectance: 0.1, transparency: 0, waveSize: 0.05, waveSpeed: 3 }, weather: "none",
 };
-export const M02_CLOUD_BASE = 32 + 8000 * 0.3048 * 0.96;
 const inside = (x: number, z: number, r: { x: number; z: number; hx: number; hz: number }, skirt = 0) => math.abs(x - r.x) <= r.hx + skirt && math.abs(z - r.z) <= r.hz + skirt;
 export function m02Detailed(x: number, z: number): boolean {
 	return polyDist(x, z, M02.route) <= M02.corridorHalf || inside(x, z, M02.base, 256) || inside(x, z, M02.substation);

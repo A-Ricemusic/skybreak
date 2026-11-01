@@ -19,7 +19,7 @@ const LOS_MAX_RANGE = 5000;
 const LOS_MARGIN = 5;
 const LOS_FOOTPRINT_PAD = 10;
 /** Where the line-of-sight ray aims and the horizontal radius inside which a hit is the target's own ground, not cover. */
-export function losAim(enemy: Enemy): LuaTuple<[Vector3, number]> {
+function losAim(enemy: Enemy): LuaTuple<[Vector3, number]> {
 	if (enemy.kind !== "ground") return $tuple(enemy.position, 0);
 	const [frame, size] = enemy.model.GetBoundingBox();
 	return $tuple(frame.Position.add(new Vector3(0, size.Y / 2, 0)), math.max(size.X, size.Z) / 2 + LOS_FOOTPRINT_PAD);

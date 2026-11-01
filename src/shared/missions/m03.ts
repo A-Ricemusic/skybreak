@@ -102,5 +102,3 @@ export const mission: MissionBlueprint = {
 	}],
 };
 
-/** Site centres, for authoring tests and the beta guide. */
-export const M03_SITES = { site1, site2 };

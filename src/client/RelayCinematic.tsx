@@ -16,7 +16,7 @@ import { UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
 const ORIGIN=new Vector3(0,6000,0);
 const vec=(p:Vec)=>new Vector3(p.x,p.y,p.z),col=(c:Rgb)=>Color3.fromRGB(c.r,c.g,c.b),rgb=(c:Color3):Rgb=>({r:c.R*255,g:c.G*255,b:c.B*255});
 /** Seconds a cinematic beat stays on screen: clamp(characters/14, 5, 9). */
-export function beatDuration(text:string): number { return math.clamp(text.size()/14,5,9); }
+function beatDuration(text:string): number { return math.clamp(text.size()/14,5,9); }
 function prop(parent:Instance,name:string,size:Vector3,pos:Vector3,color:Color3,material:Enum.Material=Enum.Material.Metal): Part {
 	const p=new Instance("Part"); p.Name=name; p.Size=size; p.Position=ORIGIN.add(pos); p.Color=color; p.Material=material;
 	p.Anchored=true; p.CanCollide=false; p.CanTouch=false; p.CanQuery=false; p.Parent=parent; return p;
