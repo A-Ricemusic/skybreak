@@ -436,20 +436,22 @@ export function completeMission(
 		!canLaunchMission(missionId, coordinator.getSlots()[activeSlot - 1])
 	) return false;
 	const groundKills = isFiniteNumber(stats.groundKills) ? math.max(0, math.floor(stats.groundKills)) : 0;
+	const kills = isFiniteNumber(stats.kills) ? math.max(0, math.floor(stats.kills)) : 0;
+	// Combat's kill tally includes ground targets; only the remainder can satisfy air objectives.
+	const airKills = math.max(0, kills - groundKills);
 	const elapsed = isFiniteNumber(stats.elapsed) ? stats.elapsed : 0;
 
 	const blueprint = MissionCatalog.Get(missionId);
 	const requiredAirKills = MissionCatalog.RequiredAirKills(blueprint);
 	const requiredGroundKills = MissionCatalog.RequiredGroundKills(blueprint);
-	const objectivesMet = stats.kills >= requiredAirKills && groundKills >= requiredGroundKills;
+	const objectivesMet = isFiniteNumber(stats.kills) && groundKills <= kills && airKills >= requiredAirKills && groundKills >= requiredGroundKills;
 	const flightObjectivesMet = stats.completedPhases === MissionCatalog.TotalPhases(blueprint);
 	const qualifiedWin = won && flightObjectivesMet && objectivesMet && elapsed > 0 && elapsed < MissionCatalog.MaxMissionSeconds(missionId);
-	const kills = isFiniteNumber(stats.kills) ? math.max(0, math.floor(stats.kills)) : 0;
 	const par = MissionScore.ParSeconds(MissionCatalog.Get(missionId));
 	const policy = MissionCatalog.Scoring(missionId);
 	const scored = MissionScore.Compute({
 		won: qualifiedWin,
-		airKills: math.max(0, kills - groundKills),
+		airKills,
 		groundKills,
 		elapsed,
 		par,
