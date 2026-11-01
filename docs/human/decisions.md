@@ -753,3 +753,10 @@ Merge the M3 world-instance-budget hotfix without the usual Studio Jest run beca
 Date: 2026-11-01. Decision maker: owner/orchestrator, as recorded in the reconciliation brief. Status: adopted; #226 `ceb9bc20` and #228 `ea8c1e62` merged; #221 integration open/dormant.
 
 Land exports, generator scripts, independent strict 10/10 approvals, decision records and export manifests separately from runtime integration. Alternative: hold the entire naval kit for Studio availability. Rationale: make exact approved assets and upload-gate evidence available while Studio is signed out. The 12 models have not been uploaded and are not in game; upload awaits secure Open Cloud key delivery. Runtime acceptance still requires Studio Jest for #221; activation is separate from asset approval/upload. Any changed export or dependency requires fresh independent review.
+
+
+## D-672 — #236 urgent no-Studio merge exception
+
+Date: 2026-11-01. Decision maker: owner/orchestrator, as recorded in the audit brief. Status: adopted; #236 merged as `364a7413`, live as Roblox version 148, published 2026-11-01; Studio regression and owner phone retest pending.
+
+Merge the urgent M3 memory-pressure mitigation without the usual Studio run while Studio is signed out, in response to the owner-reported mobile application crash. Alternative: leave the suspected terrain/military-asset pressure unchanged until Studio sign-in. Rationale: conservatively reduce pressure by removing the inaccessible bottom floor and temporarily using procedural M3 targets, while retaining diagnostics and the outstanding acceptance obligation. Cause remains unconfirmed; not Studio/Player tested. Restore military visuals once the crash cause is confirmed. This specific exception does not waive Studio acceptance for other open PRs.
