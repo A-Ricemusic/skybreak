@@ -1967,7 +1967,7 @@ export const CombatService = {
 				for (const item of model.GetDescendants()) {
 					if (item.IsA("BasePart")) {
 						if (data) item.SetAttribute("OriginalTransparency",item.Transparency);
-						item.Anchored = true; item.CanCollide = false; item.CanTouch = false; item.CanQuery = item.Transparency < 1;
+						item.Anchored = true; item.CanCollide = false; item.CanTouch = false; item.CanQuery = (item.GetAttribute("GroundKitQuery") as boolean | undefined) ?? item.Transparency < 1;
 						item.SetAttribute("FlightSolid", item.CanQuery);
 						if (hideUntilActivated) { enemy.hiddenParts.push({ part: item, transparency: item.Transparency }); item.Transparency = 1; item.CanQuery = false; }
 					}

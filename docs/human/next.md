@@ -1,14 +1,16 @@
 # Next
 
-PR #216: independently re-review the round-2 HOME/symlink and negative-decision fixes, then merge when accepted. Implementation uses OS account state and blocks negatives on any dependency hash or the same asset/export version. No upload authorized by this task.
+PR #216: resolve merge checks after the third independent security review passed, then merge when accepted. Implementation uses OS account state and blocks negatives on any dependency hash or the same asset/export version. No upload authorized by this task.
 
 PR #216 round-2 validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 154 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merge pending.
 
 PR #216: review and merge upload-gate hardening; PR207 ground-kit evidence becomes usable only after both PRs merge. Heavy-bomber/carrier cannot be reuploaded under the strict any-REJECT rule. Other exports lacking sufficient hash-bound independent 10/10 evidence remain unapproved; see docs/qa/asset-reviews/upload-approval-format.md.
 
-Review the pending D-666 upload-gate PR: preserve the audio ban and legacy HALT; permit only committed, byte-matched independently reviewed models. No upload is part of this task.
+Review the pending D-668 upload-gate PR: preserve the audio ban and legacy HALT; permit only committed, byte-matched independently reviewed models. No upload is part of this task.
 
-Priority: review the pending results-continuation PR, then verify first-time M01 → M02 on the owner’s phone (Normal). Confirm chapter 1 plays before M02 loading on first continuation, Skip proceeds through normal loading, replay with chapter 1 seen launches directly, and repeated-tap protection, mouse/gamepad activation, M17 → chapter 17 → M18, and M18 CAMPAIGN COMPLETE with no Next. Offline checks cannot establish device behavior.
+Military ground kit: review the ten exact FBX exports, all baked maps and multi-angle assembled previews in [the packet](../qa/asset-reviews/military-ground-kit/README.md). Obtain independent 10/10 safety approval before a separately authorized upload; then verify footprint fitting, orientation, D6 detail transitions and phone performance. Current branch keeps IDs unset and existing stand-ins visible.
+
+Priority: verify the merged #202 results-continuation fix with first-time M01 → M02 on the owner’s phone (Normal). Confirm chapter 1 plays before M02 loading on first continuation, Skip proceeds through normal loading, replay with chapter 1 seen launches directly, and repeated-tap protection, mouse/gamepad activation, M17 → chapter 17 → M18, and M18 CAMPAIGN COMPLETE with no Next. Offline checks cannot establish device behavior.
 
 1. Owner: play practice and missions 1–18 in order on one save in Roblox Player, then replay selected missions on Easy, Normal and Hard/ACE. Practice: fly the pattern, hit the radar and confirm mission 1 stays accessible.
 2. For **every mission below**, record difficulty feel against the owner's “more enemies, harder” goal; allies should contribute approximately one shared kill per sortie without required-target theft. Check TGT picks the closest on-screen contact, repeated presses move outward/wrap and off-screen fallback works. Check available rearm/repair (damage preserved except repair-enabled M15–17), loading time, HUD/readability, failure/retry, unlocks and rank persistence after reload. Mark unavailable service as not applicable.

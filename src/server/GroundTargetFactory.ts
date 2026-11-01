@@ -1,3 +1,5 @@
+import { MILITARY_GROUND_KIT } from "../shared/MilitaryGroundKit";
+import { WorldAssets } from "./WorldAssets";
 import { navalHull } from "../shared/EngineBatchD2";
 import { AssetSelection } from "../shared/AssetSelection";
 import { UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
@@ -9,12 +11,31 @@ export function restOn(model: Model, baseY: number): void {
 	const [bounds, size] = model.GetBoundingBox();
 	model.PivotTo(model.GetPivot().add(new Vector3(0, baseY - (bounds.Position.Y - size.Y / 2), 0)));
 }
+/** Cosmetic replacement only: original geometry remains the exact collision/target proxy.
+ * Fit uniformly inside the old bounds; no stretched vehicles or expanded hitboxes.
+ * Capture bounds and aim BEFORE decoration: uploaded detail never moves the lock point.
+ */
+export function decorateGroundTarget(model: Model, targetType: GroundTargetType, bounds: CFrame, size: Vector3): void {
+ const asset = MILITARY_GROUND_KIT[targetType];
+ if (asset === undefined) return;
+ const authored = UploadedAssetSpecs[asset].size;
+ const scale = math.min(size.X / authored.X, size.Y / authored.Y, size.Z / authored.Z);
+ const proxies = model.GetDescendants();
+ const visual = WorldAssets.PlaceUploaded(asset, model, bounds.mul(new CFrame(0, -size.Y / 2, 0)), scale);
+ if (visual === undefined) return;
+ for (const p of proxies) if (p.IsA("BasePart")) { p.SetAttribute("GroundKitQuery", p.Transparency < 1); p.Transparency = 1; }
+ for (const p of visual.GetDescendants()) if (p.IsA("BasePart")) {
+  p.SetAttribute("GroundKitQuery", false); p.CanQuery = false; p.CanCollide = false; p.CanTouch = false; p.SetAttribute("FlightSolid", false);
+ }
+ model.SetAttribute("UploadedAsset", asset);
+}
 /**
  * A world's own visual becomes a typed target: renamed to its HUD label, tagged with the spec id and
  * given an invisible stationary aim centre (the PrimaryPart combat locks and homes on).
  */
 export function adoptGroundTarget(model: Model, id: string, targetType: GroundTargetType): Model {
-	const [bounds] = model.GetBoundingBox();
+	const [bounds, size] = model.GetBoundingBox();
+	decorateGroundTarget(model, targetType, bounds, size);
 	const aim = new Instance("Part");
 	aim.Name = "Aim"; aim.Size = new Vector3(4, 4, 4); aim.CFrame = new CFrame(bounds.Position); aim.Transparency = 1;
 	aim.Anchored = true; aim.CanCollide = false; aim.CanTouch = false; aim.CanQuery = false; aim.Parent = model;
@@ -23,7 +44,7 @@ export function adoptGroundTarget(model: Model, id: string, targetType: GroundTa
 	model.SetAttribute("TargetId", id);
 	return model;
 }
-/** Fallback visual for worlds that do not draw a target themselves; retains spec ids/positions and stationary aim roots. No uploads. */
+/** Fallback visual for worlds that do not draw a target themselves; retains spec ids/positions and stationary aim roots. Keeps the procedural fallback when the dormant kit is unavailable. */
 export function createGroundTarget(spec: TypedGroundTarget): Model {
 	const model = spec.type === "parked_bomber" ? BomberFactory.Create(spec.type) : new Instance("Model");
 	const part = (name: string, size: Vector3, at: Vector3, ball=false) => {
@@ -87,6 +108,8 @@ export function createGroundTarget(spec: TypedGroundTarget): Model {
 	model.PivotTo(spec.type === "ship" ? placement.mul(model.GetPivot()) : placement);
 	// A parked bomber's pivot is its fuselage centre: rest the hull on the ground instead of sinking it.
 	if (spec.type === "parked_bomber") restOn(model, spec.position.y);
+	const [bounds, size] = model.GetBoundingBox();
+	decorateGroundTarget(model, spec.type, bounds, size);
 	model.Name = GROUND_TARGET_LABELS[spec.type];
 	model.SetAttribute("TargetId", spec.id);
 	return model;

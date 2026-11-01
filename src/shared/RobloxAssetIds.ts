@@ -58,4 +58,14 @@ export const RobloxAssetIds: Record<UploadedAssetName, number | undefined> = {
 	CinematicFieldRecorder: 87111261775563,
 	CinematicStatusBoard: 105938775214679,
 	CinematicTapeTin: 86951943477271,
+	MilitaryTank: undefined, // Pending independent safety review and upload.
+	MilitarySam: undefined, // Pending independent safety review and upload.
+	MilitaryAa: undefined, // Pending independent safety review and upload.
+	MilitaryArtillery: undefined, // Pending independent safety review and upload.
+	MilitaryBunker: undefined, // Pending independent safety review and upload.
+	MilitaryRadar: undefined, // Pending independent safety review and upload.
+	MilitaryTruck: undefined, // Pending independent safety review and upload.
+	MilitaryFuel: undefined, // Pending independent safety review and upload.
+	MilitaryBarracks: undefined, // Pending independent safety review and upload.
+	MilitaryContainers: undefined, // Pending independent safety review and upload.
 };

@@ -6,13 +6,17 @@ PR #216 round-2 validation: frozen install and prescribed validate:offline both 
 
 PR #216 security follow-up (unmerged): canonical real-upload state; merged origin/main JSON decisions and creator manifests; per-attempt HALTs. Audio remains permanently blocked. Eleven historical approvals and ten PR207 ground-kit approvals transcribed; heavy-bomber/carrier reupload blocked by earlier same-hash incomplete REJECT. No uploads or Player verification.
 
-Pending tooling (D-666): audio/voice uploads stay permanently disabled; exact-hash models with committed independent 10/10 APPROVE evidence may pass a separate model HALT. No assets uploaded.
+Pending tooling (D-668): audio/voice uploads stay permanently disabled; exact-hash models with committed independent 10/10 APPROVE evidence may pass a separate model HALT. No assets uploaded.
 
-Updated 2026-10-31 against main `c1266e30` (#201); results continuation and chapter-gating fix pending PR #202.
+2026-10-31 asset branch status: ten original Blender military ground-kit models and dormant runtime integration are in preparation on `assets/military-ground-kit`; unmerged, IDs unset, no upload or Studio/Player test. Independent exact-export 10/10 review is required before any future upload. Evidence: [review packet](../qa/asset-reviews/military-ground-kit/README.md). Campaign mission progress below is unchanged.
+
+Military kit validation: frozen install, build and prescribed offline validation exit 0 (1,225 contracts; 489 compiled modules; 124 Python tests). Exact FBX round-trip verification passes; no Studio/Player or safety approval claimed. [Validation details](../qa/asset-reviews/military-ground-kit/validation.md).
+
+Updated 2026-10-31 against main `cb8e1d10` (#202); results continuation and chapter-gating fix merged/live by pipeline convention; device acceptance remains open.
 
 Practice and all 18 campaign missions are merged and live by the owner's automatic-pipeline convention. Play through the campaign next: [Play SKYBREAK](https://www.roblox.com/games/112911685457826). Sequential unlocks still require completing preceding missions.
 
-All missions passed the orchestrator's full Studio Jest suite before merge (reported by the orchestrator; final M18 suite 1,450/1,450). This documentation reconciliation did not launch Studio or perform Player tests. Owner Player report on current main: M01 completed on Normal on a phone, but NEXT: MISSION 02 did nothing despite cloud-save confirmation. The pending results fix shares D-030 chapter gating with menu launches: unseen chapters play before Next loads the next mission, seen chapters launch directly, and seen flags require completion/Skip acknowledgements validated against server progression. The pending results fix has offline coverage only; no agent Player or Studio test. Missions 6–18 have no Player/phone playtests. Rendered quality, human difficulty, provisional ranks/counts, real loading time and phone performance remain unverified.
+All missions passed the orchestrator's full Studio Jest suite before merge (reported by the orchestrator; final M18 suite 1,450/1,450). This documentation reconciliation did not launch Studio or perform Player tests. Owner Player report before #202: M01 completed on Normal on a phone, but NEXT: MISSION 02 did nothing despite cloud-save confirmation. The merged results fix shares D-030 chapter gating with menu launches: unseen chapters play before Next loads the next mission, seen chapters launch directly, and seen flags require completion/Skip acknowledgements validated against server progression. The merged results fix has offline coverage only; no agent Player or Studio test. Missions 6–18 have no Player/phone playtests. Rendered quality, human difficulty, provisional ranks/counts, real loading time and phone performance remain unverified.
 
 PR #202 follow-up validation (2026-10-31): frozen install, build, and prescribed-LUAU_BIN validate:offline exited 0; 1,223 offline Luau contracts, 487 module compilations, 202 require-graph nodes and 124 Python tests passed. ChapterContinuation.spec is in both offline runner lists. No Studio, test:roblox or Player run.
 

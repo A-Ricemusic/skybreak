@@ -6,6 +6,696 @@
   "idsTable": "src/shared/RobloxAssetIds.ts",
   "assets": [
     {
+      "folder": "military-tank",
+      "robloxAssetIdsKey": "MilitaryTank",
+      "title": "Ground kit tank",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "military-tank.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "military-tank-color.png",
+          "role": "color"
+        },
+        {
+          "file": "military-tank-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "military-tank-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "military-tank-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        17.52,
+        12.0,
+        33.5
+      ],
+      "gameSizeStuds": [
+        17.52,
+        12.0,
+        33.5
+      ],
+      "usage": "Dormant ground-target visual; existing proxy retains collision, aim and score.",
+      "triangleCount": 1620,
+      "textures": [
+        "military-tank-color.png 256x256",
+        "military-tank-normal.png 256x256",
+        "military-tank-roughness.png 256x256",
+        "military-tank-metalness.png 256x256"
+      ],
+      "textureLimit": 256,
+      "robloxSizeStuds": [
+        17.52,
+        12.0,
+        33.5
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "military-tank/preview-front.png",
+        "military-tank/preview-side.png",
+        "military-tank/preview-top.png",
+        "military-tank/preview-3q.png",
+        "military-tank/preview-back.png",
+        "military-tank/preview-side-right.png",
+        "military-tank/preview-bottom.png",
+        "military-tank/preview-3q-front-left.png",
+        "military-tank/preview-3q-rear-right.png",
+        "military-tank/preview-3q-rear-left.png"
+      ]
+    },
+    {
+      "folder": "military-sam",
+      "robloxAssetIdsKey": "MilitarySam",
+      "title": "Ground kit sam",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "military-sam.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "military-sam-color.png",
+          "role": "color"
+        },
+        {
+          "file": "military-sam-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "military-sam-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "military-sam-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        15.2,
+        16.53,
+        25.0
+      ],
+      "gameSizeStuds": [
+        15.2,
+        16.53,
+        25.0
+      ],
+      "usage": "Dormant ground-target visual; existing proxy retains collision, aim and score.",
+      "triangleCount": 688,
+      "textures": [
+        "military-sam-color.png 256x256",
+        "military-sam-normal.png 256x256",
+        "military-sam-roughness.png 256x256",
+        "military-sam-metalness.png 256x256"
+      ],
+      "textureLimit": 256,
+      "robloxSizeStuds": [
+        15.2,
+        16.53,
+        25.0
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "military-sam/preview-front.png",
+        "military-sam/preview-side.png",
+        "military-sam/preview-top.png",
+        "military-sam/preview-3q.png",
+        "military-sam/preview-back.png",
+        "military-sam/preview-side-right.png",
+        "military-sam/preview-bottom.png",
+        "military-sam/preview-3q-front-left.png",
+        "military-sam/preview-3q-rear-right.png",
+        "military-sam/preview-3q-rear-left.png"
+      ]
+    },
+    {
+      "folder": "military-aa",
+      "robloxAssetIdsKey": "MilitaryAa",
+      "title": "Ground kit aa",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "military-aa.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "military-aa-color.png",
+          "role": "color"
+        },
+        {
+          "file": "military-aa-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "military-aa-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "military-aa-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        12.0,
+        14.0,
+        21.894
+      ],
+      "gameSizeStuds": [
+        12.0,
+        14.0,
+        21.894
+      ],
+      "usage": "Dormant ground-target visual; existing proxy retains collision, aim and score.",
+      "triangleCount": 192,
+      "textures": [
+        "military-aa-color.png 256x256",
+        "military-aa-normal.png 256x256",
+        "military-aa-roughness.png 256x256",
+        "military-aa-metalness.png 256x256"
+      ],
+      "textureLimit": 256,
+      "robloxSizeStuds": [
+        12.0,
+        14.0,
+        21.894
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "military-aa/preview-front.png",
+        "military-aa/preview-side.png",
+        "military-aa/preview-top.png",
+        "military-aa/preview-3q.png",
+        "military-aa/preview-back.png",
+        "military-aa/preview-side-right.png",
+        "military-aa/preview-bottom.png",
+        "military-aa/preview-3q-front-left.png",
+        "military-aa/preview-3q-rear-right.png",
+        "military-aa/preview-3q-rear-left.png"
+      ]
+    },
+    {
+      "folder": "military-artillery",
+      "robloxAssetIdsKey": "MilitaryArtillery",
+      "title": "Ground kit artillery",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "military-artillery.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "military-artillery-color.png",
+          "role": "color"
+        },
+        {
+          "file": "military-artillery-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "military-artillery-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "military-artillery-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        17.52,
+        14.4,
+        33.5
+      ],
+      "gameSizeStuds": [
+        17.52,
+        14.4,
+        33.5
+      ],
+      "usage": "Dormant ground-target visual; existing proxy retains collision, aim and score.",
+      "triangleCount": 1620,
+      "textures": [
+        "military-artillery-color.png 256x256",
+        "military-artillery-normal.png 256x256",
+        "military-artillery-roughness.png 256x256",
+        "military-artillery-metalness.png 256x256"
+      ],
+      "textureLimit": 256,
+      "robloxSizeStuds": [
+        17.52,
+        14.4,
+        33.5
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "military-artillery/preview-front.png",
+        "military-artillery/preview-side.png",
+        "military-artillery/preview-top.png",
+        "military-artillery/preview-3q.png",
+        "military-artillery/preview-back.png",
+        "military-artillery/preview-side-right.png",
+        "military-artillery/preview-bottom.png",
+        "military-artillery/preview-3q-front-left.png",
+        "military-artillery/preview-3q-rear-right.png",
+        "military-artillery/preview-3q-rear-left.png"
+      ]
+    },
+    {
+      "folder": "military-bunker",
+      "robloxAssetIdsKey": "MilitaryBunker",
+      "title": "Ground kit bunker",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "military-bunker.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "military-bunker-color.png",
+          "role": "color"
+        },
+        {
+          "file": "military-bunker-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "military-bunker-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "military-bunker-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        36.0,
+        14.055,
+        30.0
+      ],
+      "gameSizeStuds": [
+        36.0,
+        14.055,
+        30.0
+      ],
+      "usage": "Dormant ground-target visual; existing proxy retains collision, aim and score.",
+      "triangleCount": 76,
+      "textures": [
+        "military-bunker-color.png 256x256",
+        "military-bunker-normal.png 256x256",
+        "military-bunker-roughness.png 256x256",
+        "military-bunker-metalness.png 256x256"
+      ],
+      "textureLimit": 256,
+      "robloxSizeStuds": [
+        36.0,
+        14.055,
+        30.0
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "military-bunker/preview-front.png",
+        "military-bunker/preview-side.png",
+        "military-bunker/preview-top.png",
+        "military-bunker/preview-3q.png",
+        "military-bunker/preview-back.png",
+        "military-bunker/preview-side-right.png",
+        "military-bunker/preview-bottom.png",
+        "military-bunker/preview-3q-front-left.png",
+        "military-bunker/preview-3q-rear-right.png",
+        "military-bunker/preview-3q-rear-left.png"
+      ]
+    },
+    {
+      "folder": "military-radar",
+      "robloxAssetIdsKey": "MilitaryRadar",
+      "title": "Ground kit radar",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "military-radar.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "military-radar-color.png",
+          "role": "color"
+        },
+        {
+          "file": "military-radar-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "military-radar-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "military-radar-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        18.0,
+        31.0,
+        19.75
+      ],
+      "gameSizeStuds": [
+        18.0,
+        31.0,
+        19.75
+      ],
+      "usage": "Dormant ground-target visual; existing proxy retains collision, aim and score.",
+      "triangleCount": 480,
+      "textures": [
+        "military-radar-color.png 256x256",
+        "military-radar-normal.png 256x256",
+        "military-radar-roughness.png 256x256",
+        "military-radar-metalness.png 256x256"
+      ],
+      "textureLimit": 256,
+      "robloxSizeStuds": [
+        18.0,
+        31.0,
+        19.75
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "military-radar/preview-front.png",
+        "military-radar/preview-side.png",
+        "military-radar/preview-top.png",
+        "military-radar/preview-3q.png",
+        "military-radar/preview-back.png",
+        "military-radar/preview-side-right.png",
+        "military-radar/preview-bottom.png",
+        "military-radar/preview-3q-front-left.png",
+        "military-radar/preview-3q-rear-right.png",
+        "military-radar/preview-3q-rear-left.png"
+      ]
+    },
+    {
+      "folder": "military-truck",
+      "robloxAssetIdsKey": "MilitaryTruck",
+      "title": "Ground kit truck",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "military-truck.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "military-truck-color.png",
+          "role": "color"
+        },
+        {
+          "file": "military-truck-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "military-truck-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "military-truck-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        15.2,
+        12.25,
+        25.0
+      ],
+      "gameSizeStuds": [
+        15.2,
+        12.25,
+        25.0
+      ],
+      "usage": "Dormant ground-target visual; existing proxy retains collision, aim and score.",
+      "triangleCount": 728,
+      "textures": [
+        "military-truck-color.png 256x256",
+        "military-truck-normal.png 256x256",
+        "military-truck-roughness.png 256x256",
+        "military-truck-metalness.png 256x256"
+      ],
+      "textureLimit": 256,
+      "robloxSizeStuds": [
+        15.2,
+        12.25,
+        25.0
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "military-truck/preview-front.png",
+        "military-truck/preview-side.png",
+        "military-truck/preview-top.png",
+        "military-truck/preview-3q.png",
+        "military-truck/preview-back.png",
+        "military-truck/preview-side-right.png",
+        "military-truck/preview-bottom.png",
+        "military-truck/preview-3q-front-left.png",
+        "military-truck/preview-3q-rear-right.png",
+        "military-truck/preview-3q-rear-left.png"
+      ]
+    },
+    {
+      "folder": "military-fuel",
+      "robloxAssetIdsKey": "MilitaryFuel",
+      "title": "Ground kit fuel",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "military-fuel.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "military-fuel-color.png",
+          "role": "color"
+        },
+        {
+          "file": "military-fuel-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "military-fuel-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "military-fuel-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        36.4,
+        26.5,
+        16.4
+      ],
+      "gameSizeStuds": [
+        36.4,
+        26.5,
+        16.4
+      ],
+      "usage": "Dormant ground-target visual; existing proxy retains collision, aim and score.",
+      "triangleCount": 976,
+      "textures": [
+        "military-fuel-color.png 256x256",
+        "military-fuel-normal.png 256x256",
+        "military-fuel-roughness.png 256x256",
+        "military-fuel-metalness.png 256x256"
+      ],
+      "textureLimit": 256,
+      "robloxSizeStuds": [
+        36.4,
+        26.5,
+        16.4
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "military-fuel/preview-front.png",
+        "military-fuel/preview-side.png",
+        "military-fuel/preview-top.png",
+        "military-fuel/preview-3q.png",
+        "military-fuel/preview-back.png",
+        "military-fuel/preview-side-right.png",
+        "military-fuel/preview-bottom.png",
+        "military-fuel/preview-3q-front-left.png",
+        "military-fuel/preview-3q-rear-right.png",
+        "military-fuel/preview-3q-rear-left.png"
+      ]
+    },
+    {
+      "folder": "military-barracks",
+      "robloxAssetIdsKey": "MilitaryBarracks",
+      "title": "Ground kit barracks",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "military-barracks.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "military-barracks-color.png",
+          "role": "color"
+        },
+        {
+          "file": "military-barracks-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "military-barracks-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "military-barracks-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        30.0,
+        19.0,
+        70.0
+      ],
+      "gameSizeStuds": [
+        30.0,
+        19.0,
+        70.0
+      ],
+      "usage": "Dormant ground-target visual; existing proxy retains collision, aim and score.",
+      "triangleCount": 164,
+      "textures": [
+        "military-barracks-color.png 256x256",
+        "military-barracks-normal.png 256x256",
+        "military-barracks-roughness.png 256x256",
+        "military-barracks-metalness.png 256x256"
+      ],
+      "textureLimit": 256,
+      "robloxSizeStuds": [
+        30.0,
+        19.0,
+        70.0
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "military-barracks/preview-front.png",
+        "military-barracks/preview-side.png",
+        "military-barracks/preview-top.png",
+        "military-barracks/preview-3q.png",
+        "military-barracks/preview-back.png",
+        "military-barracks/preview-side-right.png",
+        "military-barracks/preview-bottom.png",
+        "military-barracks/preview-3q-front-left.png",
+        "military-barracks/preview-3q-rear-right.png",
+        "military-barracks/preview-3q-rear-left.png"
+      ]
+    },
+    {
+      "folder": "military-containers",
+      "robloxAssetIdsKey": "MilitaryContainers",
+      "title": "Ground kit containers",
+      "variantOf": null,
+      "upload": [
+        {
+          "file": "military-containers.fbx",
+          "robloxAssetType": "Model",
+          "from": "FBX (textures embedded)"
+        }
+      ],
+      "embeddedTextures": [
+        {
+          "file": "military-containers-color.png",
+          "role": "color"
+        },
+        {
+          "file": "military-containers-normal.png",
+          "role": "normal"
+        },
+        {
+          "file": "military-containers-roughness.png",
+          "role": "rough"
+        },
+        {
+          "file": "military-containers-metalness.png",
+          "role": "metal"
+        }
+      ],
+      "fbxMetresPerStud": 0.01,
+      "expectedImportSizeStuds": [
+        31.45,
+        24.0,
+        36.3
+      ],
+      "gameSizeStuds": [
+        31.45,
+        24.0,
+        36.3
+      ],
+      "usage": "Dormant ground-target visual; existing proxy retains collision, aim and score.",
+      "triangleCount": 900,
+      "textures": [
+        "military-containers-color.png 256x256",
+        "military-containers-normal.png 256x256",
+        "military-containers-roughness.png 256x256",
+        "military-containers-metalness.png 256x256"
+      ],
+      "textureLimit": 256,
+      "robloxSizeStuds": [
+        31.45,
+        24.0,
+        36.3
+      ],
+      "allChecksTrue": true,
+      "previews": [
+        "military-containers/preview-front.png",
+        "military-containers/preview-side.png",
+        "military-containers/preview-top.png",
+        "military-containers/preview-3q.png",
+        "military-containers/preview-back.png",
+        "military-containers/preview-side-right.png",
+        "military-containers/preview-bottom.png",
+        "military-containers/preview-3q-front-left.png",
+        "military-containers/preview-3q-rear-right.png",
+        "military-containers/preview-3q-rear-left.png"
+      ]
+    },
+    {
       "folder": "kestrel",
       "robloxAssetIdsKey": "Kestrel",
       "title": "Kestrel player fighter",

@@ -33,7 +33,8 @@ class UploadModelsTests(unittest.TestCase):
         self.root = Path(temp.name)
         self.state = self.root / ".skybreak-roblox-uploads"
         self.state.mkdir()
-        home = patch.object(ru.pwd, "getpwuid", return_value=SimpleNamespace(pw_dir=str(self.root)))
+        account = SimpleNamespace(**{"pw_dir": str(self.root)})
+        home = patch.object(ru.pwd, "getpwuid", return_value=account)
         home.start()
         self.addCleanup(home.stop)
         env = patch.dict(os.environ, {"HOME": str(self.root)})

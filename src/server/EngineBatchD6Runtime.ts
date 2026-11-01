@@ -25,7 +25,11 @@ export function setContactDetail(model: Model, spec: TypedGroundTarget, detailed
 	if(detailed) {
 		const full=createGroundTarget(spec);
 		for(const child of full.GetChildren()) if(child!==full.PrimaryPart) {
-			if(child.IsA("BasePart")) { child.SetAttribute("OriginalTransparency",child.Transparency); child.SetAttribute("FlightSolid",child.Transparency<1); child.CanQuery=child.Transparency<1; }
+			for (const p of [child, ...child.GetDescendants()]) if(p.IsA("BasePart")) {
+    p.SetAttribute("OriginalTransparency",p.Transparency);
+    p.CanQuery=(p.GetAttribute("GroundKitQuery") as boolean | undefined) ?? p.Transparency<1;
+    p.SetAttribute("FlightSolid",p.CanQuery);
+   }
 			child.Parent=model;
 		}
 		full.Destroy();
