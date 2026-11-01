@@ -1,5 +1,7 @@
 # Blockers
 
+2026-11-01 lifecycle Jest investigation (unmerged `fix/jest-lifecycle-hang`, based on main `3ed084dd`): supplied main and main+#231 logs stop after the expected runtime-spec warning with no summary. Studio is now available to the orchestrator; the earlier sign-in blocker below is superseded for this run. #238 separately repairs military fixtures/pacing and does not change this runtime spec. This branch removes direct native terrain clears from the runtime spec, tests the same dirty-state transitions with an injected clear operation, bounds scheduler waits, cancels test threads and unregisters test clears in afterEach, and restores budget-fixture terrain colors/lighting children. The native terrain test is the only unbounded operation found in that spec; its exact stalled call/engine cause is not proven from buffered logs. Studio confirmation is still required; no Studio/Player run or upload was performed here. Mission/live status is unchanged.
+
 ## Urgent open: M3 mobile crash — mitigated, awaiting owner phone retest
 
 M3 crash mitigation #236 merged as `364a7413`, live as Roblox version 148, published 2026-11-01. It removes the inaccessible bottom floor, temporarily uses procedural targets with no military meshes/PBR maps, and logs construction errors before recovery. The owner-reported mobile app crash remains open: cause unconfirmed, awaiting owner phone retest. Not Studio/Player tested. Restore M3 military visuals only once the crash cause is confirmed. See [investigation](../qa/m03-crash-second-hotfix.md).

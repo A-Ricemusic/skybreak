@@ -1,5 +1,6 @@
 // Instance assembly regressions; compiled offline, executed only by the Studio Jest runner.
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, jest } from "@rbxts/jest-globals";
+import { Lighting, Workspace } from "@rbxts/services";
 import { UploadedAssets } from "../shared/UploadedAssets";
 import { UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
 import { WorldBuildScheduler } from "../server/WorldBuildScheduler";
@@ -48,6 +49,9 @@ import { M17_BUILD_LIMITS } from "../shared/M17Limits";
 import { M18World } from "../server/M18World";
 import { M18_BUILD_LIMITS } from "../shared/M18Limits";
 
+const materials = [Enum.Material.Grass, Enum.Material.LeafyGrass, Enum.Material.Ground, Enum.Material.Mud, Enum.Material.Rock, Enum.Material.Sand, Enum.Material.Snow];
+let colors: Color3[] = [];
+let lightingChildren: Instance[] = [];
 let parent: Folder;
 let attachmentCount = 1;
 let loads = 0;
@@ -81,6 +85,8 @@ beforeAll(() => {
  m03Plan = buildM03Plan();
 });
 beforeEach(() => {
+ colors = materials.map(material => Workspace.Terrain.GetMaterialColor(material));
+ lightingChildren = Lighting.GetChildren();
  parent = new Instance("Folder");
  // Keep complete plans/dressing/targets, but omit frame pacing in assembly tests.
  // Never replace Roblox task functions: only the mutable scheduler object is mocked.
@@ -91,6 +97,8 @@ beforeEach(() => {
 });
 afterEach(() => {
  jest.restoreAllMocks(); parent.Destroy();
+ materials.forEach((material, i) => Workspace.Terrain.SetMaterialColor(material, colors[i]));
+ for (const child of Lighting.GetChildren()) if (!lightingChildren.includes(child)) child.Destroy();
  WorldAssets.SetPreloadTimeout();
 });
 afterAll(() => UploadedAssets.Configure());

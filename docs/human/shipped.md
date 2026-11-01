@@ -1,5 +1,7 @@
 # Shipped
 
+2026-11-01 verification update: supplied main `3ed084dd` and main+#231 Studio logs stall in the lifecycle runtime suite without a summary. The orchestrator now has Studio access; earlier sign-in notes below are historical. Unmerged `fix/jest-lifecycle-hang` isolates terrain-state tests and bounds/restores runtime work; #238 independently repairs military fixtures/pacing. Exact stalled native call is unconfirmed; coordinated Studio rerun pending. This work ran no Studio/Player tests and changes no mission/live status.
+
 M3 crash mitigation #236 merged as `364a7413`, live as Roblox version 148, published 2026-11-01. It removes the inaccessible bottom floor, temporarily uses procedural targets with no military meshes/PBR maps, and logs construction errors before recovery. The owner-reported mobile app crash remains open: cause unconfirmed, awaiting owner phone retest. Not Studio/Player tested. Restore M3 military visuals only once the crash cause is confirmed. See [investigation](../qa/m03-crash-second-hotfix.md).
 
 Updated 2026-11-01 against main `556a6807`. Newest first in main history. Gameplay merges are live by the owner’s automatic-pipeline convention; this is not a claim of Player observation. Assets-only merges do not activate models. Open #203/#205/#210/#221/#227/#231/#233/#235 are not shipped.
