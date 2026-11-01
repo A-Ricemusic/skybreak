@@ -100,7 +100,7 @@ function toWorld(lx: number, lz: number, yaw: number): [number, number] {
 /** Yaw that turns local +X along (dx, dz). */
 function axisYaw(dx: number, dz: number): number { return math.atan2(-dz, dx); }
 /** Yaw that points an asset's front (-Z) along (dx, dz). */
-export function faceYaw(dx: number, dz: number): number { return math.atan2(-dx, -dz); }
+function faceYaw(dx: number, dz: number): number { return math.atan2(-dx, -dz); }
 interface Rect { x: number; z: number; hx: number; hz: number; yaw: number }
 function rectPointDist(r: Rect, px: number, pz: number): number {
 	const [lx, lz] = toLocal(px - r.x, pz - r.z, r.yaw);
@@ -108,7 +108,7 @@ function rectPointDist(r: Rect, px: number, pz: number): number {
 	return math.sqrt(ex * ex + ez * ez);
 }
 /** Distance between a rectangle and a polyline (sampled every 6 studs). */
-export function rectPolyDist(r: Rect, points: number[][]): number {
+function rectPolyDist(r: Rect, points: number[][]): number {
 	let best = math.huge;
 	if (points.size() === 1) return rectPointDist(r, points[0][0], points[0][1]);
 	for (let i = 1; i < points.size(); i++) {
@@ -146,7 +146,7 @@ function opReach(op: TerrainOp): number {
 	return math.sqrt(op.sx * op.sx + op.sz * op.sz) / 2;
 }
 /** Vertical interval an op covers at (x, z), if any. */
-export function opSpan(op: TerrainOp, x: number, z: number): [number, number] | undefined {
+function opSpan(op: TerrainOp, x: number, z: number): [number, number] | undefined {
 	const dx = x - op.x, dz = z - op.z, reach = opReach(op);
 	if (math.abs(dx) > reach || math.abs(dz) > reach) return undefined;
 	if (op.shape === "ball") {
@@ -169,7 +169,7 @@ export function opSpan(op: TerrainOp, x: number, z: number): [number, number] | 
 }
 export interface Segment { lo: number; hi: number; material: TerrainMaterial }
 /** The terrain column at (x, z): ops painted in order, overwrite semantics (bumps only add). */
-export function terrainColumn(ops: TerrainOp[], x: number, z: number): Segment[] {
+function terrainColumn(ops: TerrainOp[], x: number, z: number): Segment[] {
 	let segments: Segment[] = [];
 	for (const op of ops) {
 		const span = opSpan(op, x, z);
@@ -262,7 +262,7 @@ function pushSegment(out: AirSample[], a: FlightPoint, b: FlightPoint, ceiling: 
 	}
 }
 /** Where terrain and structures must stay low: authored flight points, route legs, ceilings, signal volumes and the spawn. */
-export function airSamples(bp: MissionBlueprint): AirSample[] {
+function airSamples(bp: MissionBlueprint): AirSample[] {
 	const out: AirSample[] = [];
 	const start = FlightMath.NewState();
 	const spawn = { x: start.x, y: start.y, z: start.z };
@@ -842,7 +842,7 @@ function clearOfWater(ctx: Ctx, r: Rect, extra: number): boolean {
 	return ctx.plan.waterPaths.every((p) => rectPolyDist(r, p.points) >= waterClear(p) + extra);
 }
 /** Top of the uploaded quay when its waterline sits on the sea surface. */
-export function quayDeck(): number {
+function quayDeck(): number {
 	const q = UploadedAssetSpecs.HarbourQuay;
 	return WATER_Y - q.groundOffset + q.size.Y;
 }

@@ -10,7 +10,7 @@ import { material, TerrainWriter } from "./TerrainWriter";
 import { WorldEnvironment } from "./WorldEnvironment";
 
 /** Primitive stand-ins only; combat adopts each model by id as its typed target. */
-export function placeM03Target(parent: Instance, t: M03Target): Model {
+function placeM03Target(parent: Instance, t: M03Target): Model {
 	const m = new Instance("Model");
 	m.Name = t.id;
 	m.SetAttribute("TargetType", t.type);

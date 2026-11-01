@@ -117,7 +117,7 @@ export function m03Material(x: number, z: number): TerrainMaterial {
 	return z > 9600 && x > 3000 ? "Ground" : "Snow";
 }
 /** Structural foundation spans all sampled terrain under the target footprint. */
-export function m03TargetSupport(x: number, z: number): { bottom: number; top: number } {
+function m03TargetSupport(x: number, z: number): { bottom: number; top: number } {
 	let bottom = math.huge, top = 0;
 	for (let dx = -24; dx <= 24; dx += 4) for (let dz = -24; dz <= 24; dz += 4) {
 		const h = m03Ground(x + dx, z + dz);

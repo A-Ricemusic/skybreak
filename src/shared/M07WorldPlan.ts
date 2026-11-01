@@ -25,7 +25,7 @@ export const M07_CANYON = [
  { x: 0, z: -7000, floor: 100 }, { x: -1920, z: -4800, floor: 64 },
  { x: -3840, z: 0, floor: 32 }, { x: -1920, z: 5760, floor: 12 }, { x: 0, z: 11520, floor: 8 },
 ];
-export function m07CanyonSample(x: number, z: number): { distance: number; floor: number } {
+function m07CanyonSample(x: number, z: number): { distance: number; floor: number } {
  let distance = math.huge, floor = 8;
  for (let i = 1; i < M07_CANYON.size(); i++) {
   const a = M07_CANYON[i - 1], b = M07_CANYON[i], dx = b.x - a.x, dz = b.z - a.z;

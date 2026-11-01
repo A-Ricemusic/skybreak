@@ -4,6 +4,7 @@ import type { FighterArrival, GroundTargetType, TypedGroundTarget } from "../Cam
 import type { GroundProgressPlan } from "../GroundSectorRules";
 import { landingPose } from "../LandingRules";
 import { M16, M16_WORLD_KEY, m16ColumnRoute, m16TargetLayout } from "../M16WorldPlan";
+import { M16_AIRSPACE } from "../M16Limits";
 
 // D-620: provisional subtype split, not a recovered reference inventory. Sum = 6,830.
 export const M16_POINTS = { tank:50, aa_gun:20, artillery:60, bunker:100, vehicle:25, strike:60, stealth:120, helicopter:50 };
@@ -36,7 +37,7 @@ const landing={touchdown:{x:M16.service.x,y:92,z:8480},headingDegrees:0,approach
 const gate=landingPose(landing,0);
 export const mission: MissionBlueprint = {
  id:16,act:3,codename:"The road home",title:"DUST ROAD",region:"canyon_airfield",environment:"farm_overcast",available:true,worldKey:M16_WORLD_KEY,
- airspace:{softHalfWidth:14000,hardHalfWidth:15360,spawnLimit:14000,radarRange:24000},start:{kind:"airborne",...M16.start,speed:160},countdownSeconds:1200,terrainRelativeWarnings:true,
+ airspace:M16_AIRSPACE,start:{kind:"airborne",...M16.start,speed:160},countdownSeconds:1200,terrainRelativeWarnings:true,
  armament:{gun:{rounds:1000},stock:{missiles:80,specialCharges:16},areaAttack:{radius:400,depth:100,damage:180}},
  pressure:{playerPriority:0.8,forwardConeDegrees:45,tailDefence:true},
  allies:{count:4,model:"Kestrel",callsignPrefix:"LANTERN",mayKill:true,killBudget:1,creditPlayerKills:false,allowRequiredTargets:false,formation:[{x:-180,y:20,z:160},{x:180,y:20,z:160},{x:-300,y:40,z:320},{x:300,y:40,z:320}]},
