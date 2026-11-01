@@ -16,6 +16,8 @@ import { TargetScore } from "../shared/TargetScore";
 import { SortieArmament } from "../shared/SortieArmament";
 import { recordScoredKill } from "../server/SortieScore";
 import { interceptHoldFixture } from "./InterceptHoldFixture";
+import { sessionFixture } from "./SessionFixture";
+import { FlightMath } from "../shared/FlightMath";
 function spec(id:string):TypedGroundTarget {return {id,type:"tank",position:{x:0,y:100,z:0},yaw:45,required:false,scoreRole:"ground"};}
 describe("D11 runtime (compiled; Studio execution pending)",()=>{
  it("releases reserves through D5 only after clearance, freezes at service, never resurrects, and cleans on phase exit",()=>{
@@ -26,7 +28,7 @@ describe("D11 runtime (compiled; Studio execution pending)",()=>{
   // Optional ground kills are admitted only in a phase with authored groundTargets.
   MissionCatalog.ValidatePolicy(b);
   const bs=BlueprintRunner.NewState(b,0), e={id:t.id,model,typedGround:t,phaseOwner:0,kind:"ground",enabled:false,health:55,position:model.PrimaryPart!.Position} as Enemy;
-  const s={active:true,folder,blueprint:b,blueprintState:bs,enemies:[e],pause:{used:0}} as unknown as CombatSession;
+  const s=sessionFixture(b,{folder});s.blueprintState=bs;s.enemies=[e];
   try {
    stepGroundDirector(s,10,()=>{});expect(e.enabled).toBe(false);bs.killedIds.add("gun");s.rearmElapsed=0;stepGroundDirector(s,10,()=>{});expect(e.enabled).toBe(false);s.rearmElapsed=undefined;
    stepGroundDirector(s,10,()=>{});expect(e.enabled).toBe(true);expect(model.GetAttribute("SkybreakEnemy")).toBe(true);expect(model.PrimaryPart!.Transparency).toBe(0);
@@ -55,7 +57,7 @@ describe("D11 runtime (compiled; Studio execution pending)",()=>{
  it("repairs at completed service only, retains historical damage and weapon menu behavior",()=>{
   const plan:RearmPlan={zone:{x:0,y:100,z:1000},radius:1500,landing:{touchdown:{x:0,y:100,z:0},headingDegrees:0,approachDistance:1000,rolloutDistance:150,approachSeconds:10,rolloutSeconds:3,glideDegrees:3},takeoffSeconds:8,missiles:true,special:true,health:true,weaponMenu:true};
   const bp={...engineRuntimeFixture(),id:15,phases:[{kind:"score_threshold" as const,label:"Support",scoreThreshold:{points:1000,seconds:600,waitForExpiry:true},rearm:plan}]},bs=BlueprintRunner.NewState(bp,os.clock());
-  const s={active:true,blueprint:bp,blueprintState:bs,pause:{used:0},state:landingPose(plan.landing,0),targetScore:new TargetScore(MissionCatalog.Scoring(engineRuntimeFixture())),enemies:[],projectiles:[],special:SortieArmament.NewSpecial("salvo",undefined),missiles:0,health:35,damageTaken:65,lowestHealth:35} as unknown as CombatSession;
+  const s=sessionFixture(bp,{state:landingPose(plan.landing,0)});s.blueprintState=bs;s.missiles=0;s.health=35;s.damageTaken=65;s.lowestHealth=35;
   stepRearm(s,1,8,()=>{});expect(s.health).toBe(35);skipRearm(s,plan,()=>{});stepRearm(s,0.1,8,()=>{});expect(s.rearmMenu).toBe(0);expect(s.health).toBe(35);
   answerRearmMenu(s,"lance",()=>{});expect(s.special.kind).toBe("lance");skipRearm(s,plan,()=>{});stepRearm(s,0.1,8,()=>{});expect(s.health).toBe(100);expect(s.damageTaken).toBe(65);expect(s.lowestHealth).toBe(35);expect(s.missiles).toBe(8);expect(bs.rearmActive).toBeUndefined();
  });
@@ -72,7 +74,7 @@ describe("D11 runtime (compiled; Studio execution pending)",()=>{
  it("uses D6's 150-contact, 24-detail, two-changes budget for a desert armour battle",()=>{
   const folder=new Instance("Folder");folder.Parent=Workspace;
   try {const enemies:Enemy[]=[];for(let i=0;i<150;i++) {const t=spec(`tank-${i}`),model=createCheapContact(t);model.Parent=folder;enemies.push({id:t.id,model,typedGround:t,enabled:true,health:55,position:model.PrimaryPart!.Position} as Enemy);}
-   const bs=BlueprintRunner.NewState({...engineRuntimeFixture(),id:16,phases:[{kind:"score_threshold",label:"Desert",cheapContacts:true}]},0),s={blueprintState:bs,enemies,state:{x:0,z:0}} as CombatSession;
+   const bs=BlueprintRunner.NewState({...engineRuntimeFixture(),id:16,phases:[{kind:"score_threshold",label:"Desert",cheapContacts:true}]},0),s=sessionFixture(bs.blueprint,{state:FlightMath.FromPose(0,0,0,0,0,160)});s.blueprintState=bs;s.enemies=enemies;
    stepContacts(s,0.5);expect(enemies.filter(e=>e.model.GetAttribute("D6Detailed")===true).size()).toBe(2);for(let i=0;i<20;i++)stepContacts(s,0.5);expect(enemies.filter(e=>e.model.GetAttribute("D6Detailed")===true).size()).toBe(24);
   } finally {folder.Destroy();}
  });

@@ -5,10 +5,11 @@ import { clearProtection, hitProtected, protectedTarget, stepProtection } from "
 import type { CombatSession, Enemy } from "../server/CombatSession";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { protectedAircraftFixture } from "./ProtectedAircraftFixture";
+import { sessionFixture } from "./SessionFixture";
 function fixture() {
  const folder=new Instance("Folder");folder.Parent=Workspace;
  const bs=BlueprintRunner.NewState(protectedAircraftFixture(),0);
- const session={folder,player:{UserId:Players.GetPlayers()[0]?.UserId ?? 1},blueprint:bs.blueprint,airspace:MissionCatalog.Airspace(bs.blueprint),blueprintState:bs,enemies:[],allies:[],projectiles:[],alliedKills:[]} as unknown as CombatSession;
+ const session=sessionFixture(bs.blueprint,{folder,userId:Players.GetPlayers()[0]?.UserId ?? 1});session.blueprintState=bs;
  return {session,folder,bs};
 }
 describe("D7 protected aircraft Roblox integration (Studio pending)",()=>{

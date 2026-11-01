@@ -11,6 +11,7 @@ import { CombatSession, Enemy, Projectile } from "../server/CombatSession";
 import { createGroundTarget } from "../server/GroundTargetFactory";
 import { TypedGroundTarget } from "../shared/CampaignEncounters";
 import { FlightMath } from "../shared/FlightMath";
+import { sessionFixture } from "./SessionFixture";
 function target(spec: TypedGroundTarget, folder: Folder): Enemy {
 	const model=createGroundTarget(spec); model.Parent=folder;
 	return {id:spec.id,typedGround:spec,model,position:model.PrimaryPart!.Position,velocity:Vector3.zero,enabled:true,health:55,windup:0,fireTimer:0} as Enemy;
@@ -19,7 +20,7 @@ const spec=(id: string): TypedGroundTarget=>({id,type:"cruiser",position:{x:0,y:
 function fixture() {
 	const folder=new Instance("Folder");
 	const hull=target(spec("h"),folder), mount=target({...spec("m"),type:"sam",route:undefined,parentId:"h",position:{x:0,y:30,z:-20},sam:true},folder);
-	const s={folder,enemies:[hull,mount],projectiles:[],state:FlightMath.FromPose(0,400,-1000,0,0,160),difficulty:"normal"} as unknown as CombatSession;
+	const s=sessionFixture(MissionCatalog.Get(1),{folder,state:FlightMath.FromPose(0,400,-1000,0,0,160)}); s.enemies=[hull,mount];
 	return {s,hull,mount,folder};
 }
 const warning=(m: Model)=>{const w=new Instance("BillboardGui");w.Parent=m;return w;};

@@ -4,13 +4,14 @@ import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { mission, M11_HEALTH } from "../shared/missions/m11";
 import { stepProtection, clearProtection, protectedTarget, hitProtected, warnProtectedAttack } from "../server/ProtectedAircraftRuntime";
 import type { CombatSession, Enemy } from "../server/CombatSession";
+import { sessionFixture } from "./SessionFixture";
 // Authored Jest integration; deliberately not run without an authorized Studio lease.
 describe("M11 protected aircraft runtime",()=>{
  it("adopts world ids once, keeps priority, and warns on HUD/radio before a civilian hit",()=>{
   const folder=new Instance("Folder");folder.Parent=Workspace;
   const existing=new Instance("Model");existing.Name="m11_civilian_low";existing.Parent=folder;
   const hull=new Instance("Part");hull.Position=new Vector3(-1440,900,6240);hull.Parent=existing;
-  const session={folder,player:{UserId:1},blueprintState:BlueprintRunner.NewState(mission,0),enemies:[],allies:[],projectiles:[],alliedKills:[]} as unknown as CombatSession;
+  const session=sessionFixture(mission,{folder});session.blueprintState=BlueprintRunner.NewState(mission,0);
   const lines:string[]=[];
   try {
    stepProtection(session,0,line=>{lines.push(line);});

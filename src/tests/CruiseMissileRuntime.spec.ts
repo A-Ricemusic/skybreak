@@ -8,13 +8,15 @@ import { CruisePlan } from "../shared/CruiseMissileRules";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { recordScoredKill } from "../server/SortieScore";
 import { TargetScore } from "../shared/TargetScore";
+import { sessionFixture } from "./SessionFixture";
+import { FlightMath } from "../shared/FlightMath";
 const plan=():CruisePlan=>({site:{x:1000,y:100,z:0},targets:[{id:"carrier",speed:100,scoreRole:"cruise",route:[{x:0,y:100,z:0},{x:1000,y:100,z:0}],separateSeconds:3},{id:"child1",parentId:"carrier",speed:100,scoreRole:"cruise",route:[{x:300,y:100,z:0},{x:1000,y:100,z:0}]},{id:"child2",parentId:"carrier",speed:100,scoreRole:"cruise",route:[{x:300,y:100,z:0},{x:1000,y:100,z:0}]}]});
 function fixture(p=plan()) {
  const folder=new Instance("Folder");folder.Parent=Workspace;
  const floor=new Instance("Part");floor.Size=new Vector3(4000,10,4000);floor.Position=new Vector3(0,45,0);floor.Anchored=true;floor.Parent=folder;
  const params=new RaycastParams();params.FilterType=Enum.RaycastFilterType.Include;params.FilterDescendantsInstances=[floor];
  const bs=BlueprintRunner.NewState({...engineRuntimeFixture(),phases:[{kind:"required_air",label:"Intercept",count:p.targets.size(),cruiseIntercept:p}]},0);
- const session={active:true,cleaned:false,folder,player:{UserId:1},enemies:[],projectiles:[],state:{x:0,y:200,z:0},blueprint:bs.blueprint,blueprintState:bs,pause:{used:0},collisionParams:params} as unknown as CombatSession;
+ const session=sessionFixture(bs.blueprint,{folder,state:FlightMath.FromPose(0,200,0,0,0,160)});session.blueprintState=bs;session.collisionParams=params;
  return {s:session,folder,floor,params};
 }
 describe("D10 server lifecycle (Studio execution pending)",()=>{

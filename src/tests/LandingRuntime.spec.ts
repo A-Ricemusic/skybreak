@@ -6,6 +6,7 @@ import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { FlightMath } from "../shared/FlightMath";
 import { LandingPlan } from "../shared/LandingRules";
+import { sessionFixture } from "./SessionFixture";
 
 // Studio-only paths: real query filtering and the server's fixed-step cinematic adapter.
 describe("Engine batch B runtime adapters (Studio)",()=>{
@@ -13,7 +14,7 @@ describe("Engine batch B runtime adapters (Studio)",()=>{
   const surface=new Instance("Part");surface.Anchored=true;surface.CanCollide=false;surface.Size=new Vector3(100,10,100);surface.Position=new Vector3(0,800,0);surface.Parent=Workspace;
   const params=new RaycastParams();params.FilterType=Enum.RaycastFilterType.Include;params.FilterDescendantsInstances=[surface];params.RespectCanCollide=false;
   const state=FlightMath.FromPose(0,850,0,0,0,160);
-  const session={state,collisionParams:params,blueprint:{...MissionCatalog.Get(1),terrainRelativeWarnings:true}} as CombatSession;
+  const session=sessionFixture({...MissionCatalog.Get(1),terrainRelativeWarnings:true},{state});session.collisionParams=params;
   const [ok,message]=pcall(()=>{
    expect(sampleClearance(session,0)).toBe(45);surface.Position=new Vector3(0,700,0);
    expect(sampleClearance(session,0.05)).toBe(45);expect(sampleClearance(session,0.11)).toBe(145);
@@ -24,7 +25,7 @@ describe("Engine batch B runtime adapters (Studio)",()=>{
   const plan: LandingPlan={touchdown:{x:6000,y:90,z:12000},headingDegrees:0,approachDistance:2400,rolloutDistance:400,approachSeconds:30,rolloutSeconds:10,glideDegrees:3};
   const bp={...MissionCatalog.Get(1),phases:[{kind:"landing" as const,label:"Landing",landing:plan}]};
   const bs=BlueprintRunner.NewState(bp,0);bs.elapsed=123;
-  const session={state:FlightMath.NewState(),blueprintState:bs} as CombatSession;
+  const session=sessionFixture(bp);session.blueprintState=bs;
   const messages: string[]=[];
   expect(stepLanding(session,20,m=>messages.push(tostring(m)))).toBe(true);expect(session.state.y).toBeGreaterThan(90);
   expect(stepLanding(session,20,m=>messages.push(tostring(m)))).toBe(true);expect(bs.outcome).toBe("won");expect(bs.elapsed).toBe(123);expect(messages.size()).toBe(1);
@@ -34,7 +35,7 @@ describe("Engine batch B runtime adapters (Studio)",()=>{
    countdownSeconds:180,accomplishedSeconds:4,radio:[{at:0.5,text:"one"},{at:7,text:"two"},{at:20,text:"skipped"},{at:34.5,text:"three"}]};
   const bp={...MissionCatalog.Get(1),phases:[{kind:"landing" as const,label:"Landing",landing:plan}]};
   const bs=BlueprintRunner.NewState(bp,0);
-  const session={state:FlightMath.NewState(),blueprintState:bs} as CombatSession;
+  const session=sessionFixture(bp);session.blueprintState=bs;
   const said: string[]=[],sent: defined[]=[];
   for(let i=0;i<300;i++) stepLanding(session,1/30,m=>sent.push(m as defined),l=>said.push(l));
   expect(said).toEqual(["one","two"]);expect(BlueprintRunner.TimeRemaining(bs)).toBeCloseTo(170);
