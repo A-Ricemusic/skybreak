@@ -19,8 +19,9 @@ import m01_assets  # noqa: E402
 import m04_m05_assets  # noqa: E402
 import world  # noqa: E402
 import military_ground_kit  # noqa: E402
+import naval_kit  # noqa: E402
 
-BUILDERS = {**aircraft.BUILDERS, **aircraft_v2.BUILDERS, **world.BUILDERS, **m01_assets.BUILDERS, **m04_m05_assets.BUILDERS, **cinematic_assets.BUILDERS, **military_ground_kit.BUILDERS}
+BUILDERS = {**aircraft.BUILDERS, **aircraft_v2.BUILDERS, **world.BUILDERS, **m01_assets.BUILDERS, **m04_m05_assets.BUILDERS, **cinematic_assets.BUILDERS, **military_ground_kit.BUILDERS, **naval_kit.BUILDERS}
 
 
 def main() -> None:

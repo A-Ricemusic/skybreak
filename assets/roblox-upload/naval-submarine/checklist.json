@@ -1,0 +1,137 @@
+{
+  "name": "naval-submarine",
+  "title": "Naval kit submarine",
+  "variantOf": null,
+  "exportVersion": "naval-kit-2",
+  "robloxAssetType": "Model",
+  "usage": "Dormant cosmetic naval kit; existing target and collision proxies retained.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "naval-submarine.fbx",
+    "bytes": 110668
+  },
+  "triangleCount": 284,
+  "triangleLimit": 2400,
+  "objects": [
+    {
+      "name": "naval-submarine",
+      "triangles": 284
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "naval-submarine-color.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 26964
+    },
+    {
+      "role": "normal",
+      "file": "naval-submarine-normal.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 14262
+    },
+    {
+      "role": "rough",
+      "file": "naval-submarine-roughness.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 25322
+    },
+    {
+      "role": "metal",
+      "file": "naval-submarine-metalness.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 3817
+    }
+  ],
+  "robloxSizeStuds": [
+    28.0,
+    39.0,
+    200.0
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 0.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png",
+    "preview-back.png",
+    "preview-side-right.png",
+    "preview-bottom.png",
+    "preview-3q-front-left.png",
+    "preview-3q-rear-right.png",
+    "preview-3q-rear-left.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "Textures are baked from noise, grids and masks only; no letters, numbers, words, call signs or codes in mesh or texture."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national or unit markings; shape is an original design, not a copy of any real vehicle or building."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or face-like arrangements."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "No gore, blood or damage imagery; at most empty pylons or a covered deck mount."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "SKYBREAK build agent via tools/assets/naval_kit.py (this PR). Original procedural modelling and textures only; no people, text, insignia, flags or national markings."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": [],
+  "sha256": {
+    "contact-sheet.png": "00751906e0e74ef4c36e35f20cd9f1b726664b325d4eab3c14cb11ec7d237e41",
+    "naval-submarine-color.png": "bb189e54b322c6c26f5206c3fead05db8f4009962892995da3120b1a2cfecdb0",
+    "naval-submarine-metalness.png": "89c0d9592d666e4acaa7f90efef317419b0c841826d7ec155928578fa1867a06",
+    "naval-submarine-normal.png": "beb4941a516ed42a4276c23251c6283ba564eec1bc989f0800034420300bcf91",
+    "naval-submarine-roughness.png": "9859b044dfd2fba1c54c23a2796d4263c5f76f2833b30b5ff53150c4257d3cf5",
+    "naval-submarine.fbx": "29bbfecdbf48f1f327c8572a4b11ba3c6fa81b5c9f75fa6fa61999f7bc6b5a76",
+    "preview-3q-front-left.png": "214efcc041897bcd6ff95d0852de4a6d061cf9f0203a8b56a70c9291d0ae770f",
+    "preview-3q-rear-left.png": "55d89565277bc66c8151cc223de21afa5e1adff0daee05675b1e0ca9624dbb9f",
+    "preview-3q-rear-right.png": "55e2d9354c5fa989ed0ae28c58c6cb11796e32067a59a627fb13d09e29a484e0",
+    "preview-3q.png": "e89ea486abe31b6140ed10c95d4cc79335d1db91b1d1a09490cc24ba788fe01c",
+    "preview-back.png": "ee2d3b4183abf7665d5d496656629459613497b88d599410847e7f9a32016a74",
+    "preview-bottom.png": "394bf4cd2e952d638eed79f89859b1041836af90798f0b1364440cc63d18f1e1",
+    "preview-front.png": "f4379238ba964ccd3cf0214bc30edcf940cb63e628cae7b23272cd0896bdc13a",
+    "preview-side-right.png": "b50ea95eebc0a66a025d48feba008da8445f5091e1a11c5c94ef9c743937a8c1",
+    "preview-side.png": "b098f54334ebc9db554a63e83f47871c47de4647a5de32d91438d660903b0287",
+    "preview-top.png": "f4daf67382a21a6e3c881fee447687ad4dc47fc2e717160ae9b55061dd485b9a"
+  },
+  "previewNotes": {
+    "preview-front.png": "Orthographic from ahead (the model's front, Roblox -Z).",
+    "preview-side.png": "Orthographic from the left (port), Blender +X.",
+    "preview-top.png": "Orthographic from above, front at the top, the model's right (starboard) on the image's right.",
+    "preview-3q.png": "Perspective from ahead, the right (starboard), above.",
+    "preview-back.png": "Orthographic from behind.",
+    "preview-side-right.png": "Orthographic from the right (starboard).",
+    "preview-bottom.png": "Orthographic from below.",
+    "preview-3q-front-left.png": "Perspective from ahead, the left (port), above.",
+    "preview-3q-rear-right.png": "Perspective from behind, the right (starboard), above.",
+    "preview-3q-rear-left.png": "Perspective from behind, the left (port), above."
+  },
+  "kitVersion": "naval-kit-2",
+  "reviewStatus": "PENDING independent exact-file 10/10 review; NOT approved; NOT uploaded",
+  "contactSheet": "contact-sheet.png"
+}

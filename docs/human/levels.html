@@ -11,7 +11,9 @@ No generator, network dependencies, JavaScript or build step is required. -->
 :root{color-scheme:light dark;--bg:#f2f5fa;--panel:#fff;--ink:#182638;--muted:#485b71;--line:#cad5e1;--link:#125bac;--live:#17623e;--review:#744b00}
 @media(prefers-color-scheme:dark){:root{--bg:#101923;--panel:#192635;--ink:#eef4fc;--muted:#bdcbdc;--line:#41546a;--link:#9ccaff;--live:#8ee5b3;--review:#ffcf7b}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,sans-serif}main{max-width:1180px;margin:auto;padding:32px 20px}h1{font-size:2.4rem;line-height:1.15}h2{font-size:1.25rem;margin:0}a{color:var(--link);text-underline-offset:3px}a:focus-visible{outline:3px solid var(--link);outline-offset:4px}.muted,dt{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:18px}.card,.legend{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px}.badge{display:inline-block;border:1px solid currentColor;border-radius:20px;padding:2px 12px;font-weight:700;margin:10px 0}.live{color:var(--live)}.review{color:var(--review)}.pieces{padding-left:20px}dl{margin-bottom:0}dd{margin:0 0 12px}nav{margin:20px 0}code{overflow-wrap:anywhere}.legend{margin:24px 0}.legend p{margin:8px 0}footer{margin-top:28px}
-</style></head><body><main>
+</style></head><body>
+<p>Unmerged naval kit: M06, M09 and M17 have dormant cosmetic integration with 12 original Blender exports. IDs unset; independent safety review/upload/activation pending. Existing fallback remains; no Studio or Player verification. <a href="../qa/asset-reviews/naval-kit/README.md">Review packet</a>.</p>
+<main>
 <!-- PR #217 reconciliation: tooling and embedded-mesh approvals only; Practice and missions 1–18 status unchanged. No Player verification performed. -->
 <p class="review">M03 world-build hotfix (2026-10-31, proposed/unmerged): #218 is merged at main a06d05f9. M3 may have failed to build in the live game since that commit; reported Studio failure is consistent with the post-decoration cap: 145 base descendants + 13 × (Model + MeshPart + SurfaceAppearance) = 184, exceeding 148. Pending fix preserves the 148 base-instance cap and separately bounds each military decoration at 24 instances including its root; oversized imports retain procedural visuals. M02's analogous post-adoption guard and M01/shared M04–M18 composition guards use the same accounting. Gameplay, target IDs and collision/aim proxies are unchanged. Audit: Practice/MissionWorld/RelayWorld only warn on part counts; M04–M18 composition guards run before kit adoption, and the shared decorator now bounds every kit placement. No asset upload, Studio or Player test performed. Assembly regressions for M01–M18 compile but await orchestrator Studio execution.</p>
 <header><p class="muted">SKYBREAK / Campaign readiness</p><h1>Every level, at a glance</h1>
@@ -124,7 +126,7 @@ No generator, network dependencies, JavaScript or build step is required. -->
   <dt>Merged PR</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/179">#179</a> · <code>199e7eed</code> · Player tested: not yet</dd>
   <dt>Known issues</dt><dd>Provisional 36 hull /40 yard /18 component roster (D-260);16 hostile air. Studio Jest passed; Player/phone not yet observed. Rendered appearance, flight feel and load remain unverified.</dd>
   <dt>Owner test</dt><dd>Score 3,000 through 15:00, ship hull/component credit, SAM warnings, finite ammunition and runway 18 service. See next.md for shared targeting, difficulty, service and phone checks.</dd></dl>
-</article>
+<p class="muted">Naval art: unmerged dormant kit; IDs unset, independent safety review and later upload pending. Current fallback remains; frozen install, build and prescribed offline validation exited 0 (1,228 Luau contracts; 165 Python tests). No new Player verification.</p></article>
 
 <article class="card" id="level-7"><h2>07 · ARRAY BREAK</h2><span class="badge live">Live</span><p class="muted">Reference: Deep Strike · 1:22:13–1:35:49</p><dl>
 <dt>Mission</dt><dd>Sequential unlock after mission 6. 51 ground contacts and 20 optional hostile aircraft; three marked installations in 15:00, then fresh 5:00 southbound canyon escape below 2,000 ft with terrain cover.</dd>
@@ -159,7 +161,7 @@ No generator, network dependencies, JavaScript or build step is required. -->
   <dt>Merged PR</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/185">#185</a> · <code>06ca3e44</code> · Player tested: not yet</dd>
   <dt>Known issues</dt><dd>Provisional 55-contact roster, ranks and landing health; merged; no Player test.</dd>
   <dt>Owner test</dt><dd>Score 2,200 through 10:00, carrier deck approach/rearm, landing-force survival and all nine timed attackers in 7:00 defence. See next.md for shared targeting, difficulty, service and phone checks.</dd></dl>
-</article>
+<p class="muted">Naval art: unmerged dormant kit; IDs unset, independent safety review and later upload pending. Current fallback remains; frozen install, build and prescribed offline validation exited 0 (1,228 Luau contracts; 165 Python tests). No new Player verification.</p></article>
 
 <article class="card" id="level-10"><h2>10 · RIVER LINE</h2><span class="badge live">Live</span><p class="muted">Reference: Tango Line</p><dl>
 <dt>Implementation</dt><dd>One 20-minute score strike, 140 static/parked contacts, 44 finite airframes, eight queued fighter slots; repeated artillery, optional rearm and finite area weapon. Adopts 124 world ids.</dd>
@@ -234,7 +236,7 @@ No generator, network dependencies, JavaScript or build step is required. -->
   <dt>Merged PR</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/199">#199</a> · <code>f68d81d5</code> · Player tested: not yet</dd>
   <dt>Known issues</dt><dd>Provisional subtype allocation and rank cuts require visual/balance acceptance.</dd>
   <dt>Owner test</dt><dd>Score 2,100 through 12:00, defeat four required wingmen within fresh 18:00, protected Rusk withdrawal, bridge route closure and runway repair. See next.md for shared targeting, difficulty, service and phone checks.</dd></dl>
-</article>
+<p class="muted">Naval art: unmerged dormant kit; IDs unset, independent safety review and later upload pending. Current fallback remains; frozen install, build and prescribed offline validation exited 0 (1,228 Luau contracts; 165 Python tests). No new Player verification.</p></article>
 
 <article class="card" id="level-18"><h2>18 · Clear Frequency</h2><span class="badge live">Live</span><p class="muted">Reference: Megalith</p><dl>
   <dt>Reference footage</dt><dd>4:36:59–4:46:22</dd>

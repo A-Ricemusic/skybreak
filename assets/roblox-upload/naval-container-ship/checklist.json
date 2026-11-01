@@ -1,0 +1,137 @@
+{
+  "name": "naval-container-ship",
+  "title": "Naval kit container-ship",
+  "variantOf": null,
+  "exportVersion": "naval-kit-2",
+  "robloxAssetType": "Model",
+  "usage": "Dormant cosmetic naval kit; existing target and collision proxies retained.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "naval-container-ship.fbx",
+    "bytes": 180604
+  },
+  "triangleCount": 812,
+  "triangleLimit": 2400,
+  "objects": [
+    {
+      "name": "naval-container-ship",
+      "triangles": 812
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "naval-container-ship-color.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 60561
+    },
+    {
+      "role": "normal",
+      "file": "naval-container-ship-normal.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 3105
+    },
+    {
+      "role": "rough",
+      "file": "naval-container-ship-roughness.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 55262
+    },
+    {
+      "role": "metal",
+      "file": "naval-container-ship-metalness.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 6853
+    }
+  ],
+  "robloxSizeStuds": [
+    44.0,
+    59.5,
+    280.0
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 0.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png",
+    "preview-back.png",
+    "preview-side-right.png",
+    "preview-bottom.png",
+    "preview-3q-front-left.png",
+    "preview-3q-rear-right.png",
+    "preview-3q-rear-left.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "Textures are baked from noise, grids and masks only; no letters, numbers, words, call signs or codes in mesh or texture."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national or unit markings; shape is an original design, not a copy of any real vehicle or building."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or face-like arrangements."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "No gore, blood or damage imagery; at most empty pylons or a covered deck mount."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "SKYBREAK build agent via tools/assets/naval_kit.py (this PR). Original procedural modelling and textures only; no people, text, insignia, flags or national markings."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": [],
+  "sha256": {
+    "contact-sheet.png": "267c47a58475434b62e5c4fbeea66f82cd8b62751bd6bdd282686202d2e3dbf8",
+    "naval-container-ship-color.png": "8484bfca0be4f0599ea3a952d71f439b7a996fca032d8f86b84f2a39f681e075",
+    "naval-container-ship-metalness.png": "2225577be2fe14f2e23541e264d14b2698e6a4de42bb11f1a43d1bd31eccac44",
+    "naval-container-ship-normal.png": "237e5ea2478788ee0dc94834d70a57db463e1807c395114ef10b79a8f61177f1",
+    "naval-container-ship-roughness.png": "c0bad516390abcddd6ab22ecf4b8e3a4191aa130d1e43da60b6734d1510a23e9",
+    "naval-container-ship.fbx": "91350b4857cf30e6d4923e37dd77fd5b4b0903d5c040ba0c79e9b355af63459c",
+    "preview-3q-front-left.png": "7b75c2add0ef96fdd40476db32738e7cd868e6ba6d22742ec78f4cdfd3710f7b",
+    "preview-3q-rear-left.png": "7be82b90633a7981f393cb88d55aa6f518a9b6810a0d12080e9963b46b53478b",
+    "preview-3q-rear-right.png": "10c9c0da60c65e45f9bf2d463799f219c39b5b351cd89770dab8d2d3e3d46d69",
+    "preview-3q.png": "32264f9bba837d29ad877d90ed594d12768f66a83b762ce9ade3a5c1d94327b9",
+    "preview-back.png": "078c2150f43127197ca6c87748c2d293cc6f38b6480d0422075d8ae010085ee6",
+    "preview-bottom.png": "7d570d65bc4fcd0f88e2686218633c8ff809ffe737f7aae00f5fd66f02d4bcb9",
+    "preview-front.png": "256b863ed279251d0270a8bf44d0b31553aed1b8b25535594892df90b0581dae",
+    "preview-side-right.png": "bd2bf99afae936dd1044bab3e72366d8fb459fcf4ee2048d1aba9bfdc1344fef",
+    "preview-side.png": "1e50123134f66ba78096635b061c924b7b289103b535c5d409f2d5c87dcc1e29",
+    "preview-top.png": "4cc61d7a948cd4916befd5d4ae646aceb84dd9f572c0c75b80ad595a4b461f86"
+  },
+  "previewNotes": {
+    "preview-front.png": "Orthographic from ahead (the model's front, Roblox -Z).",
+    "preview-side.png": "Orthographic from the left (port), Blender +X.",
+    "preview-top.png": "Orthographic from above, front at the top, the model's right (starboard) on the image's right.",
+    "preview-3q.png": "Perspective from ahead, the right (starboard), above.",
+    "preview-back.png": "Orthographic from behind.",
+    "preview-side-right.png": "Orthographic from the right (starboard).",
+    "preview-bottom.png": "Orthographic from below.",
+    "preview-3q-front-left.png": "Perspective from ahead, the left (port), above.",
+    "preview-3q-rear-right.png": "Perspective from behind, the right (starboard), above.",
+    "preview-3q-rear-left.png": "Perspective from behind, the left (port), above."
+  },
+  "kitVersion": "naval-kit-2",
+  "reviewStatus": "PENDING independent exact-file 10/10 review; NOT approved; NOT uploaded",
+  "contactSheet": "contact-sheet.png"
+}

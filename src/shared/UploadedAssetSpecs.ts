@@ -4,7 +4,7 @@
 // attachments and hinges are in-game studs: authoredSize x gameScale, where aircraft are
 // fitted to the procedural aircraft's length and world props keep their authored size.
 
-export type UploadedAssetName = "MilitaryTank" | "MilitarySam" | "MilitaryAa" | "MilitaryArtillery" | "MilitaryBunker" | "MilitaryRadar" | "MilitaryTruck" | "MilitaryFuel" | "MilitaryBarracks" | "MilitaryContainers" | "Kestrel" | "Vanta" | "VantaVulture" | "VantaRusk" | "KestrelV2" | "VantaV2" | "VantaV2Vulture" | "VantaV2Rusk" | "HeavyBomber" | "Carrier" | "HeavyTransport" | "RadarJammer" | "FuelTanker" | "AttackHelicopter" | "VantaV2Elite" | "Frigate" | "OilPlatform" | "HarbourQuay" | "ContainerStack" | "GantryCrane" | "Hangar" | "ControlTower" | "OfficeMidrise" | "ApartmentBlock" | "CityTower" | "Farmhouse" | "Barn" | "GrainSilo" | "RadarDish" | "RelayMast" | "Pine" | "Broadleaf" | "RockA" | "RockB" | "RockC" | "CinematicRadioConsole" | "CinematicFieldRecorder" | "CinematicStatusBoard" | "CinematicTapeTin";
+export type UploadedAssetName = "NavalFrigate" | "NavalDestroyer" | "NavalCruiser" | "NavalContainerShip" | "NavalSupplyShip" | "NavalLandingShip" | "NavalMissileBoat" | "NavalSubmarine" | "NavalLandingCraft" | "NavalGun" | "NavalAa" | "NavalSam" | "MilitaryTank" | "MilitarySam" | "MilitaryAa" | "MilitaryArtillery" | "MilitaryBunker" | "MilitaryRadar" | "MilitaryTruck" | "MilitaryFuel" | "MilitaryBarracks" | "MilitaryContainers" | "Kestrel" | "Vanta" | "VantaVulture" | "VantaRusk" | "KestrelV2" | "VantaV2" | "VantaV2Vulture" | "VantaV2Rusk" | "HeavyBomber" | "Carrier" | "HeavyTransport" | "RadarJammer" | "FuelTanker" | "AttackHelicopter" | "VantaV2Elite" | "Frigate" | "OilPlatform" | "HarbourQuay" | "ContainerStack" | "GantryCrane" | "Hangar" | "ControlTower" | "OfficeMidrise" | "ApartmentBlock" | "CityTower" | "Farmhouse" | "Barn" | "GrainSilo" | "RadarDish" | "RelayMast" | "Pine" | "Broadleaf" | "RockA" | "RockB" | "RockC" | "CinematicRadioConsole" | "CinematicFieldRecorder" | "CinematicStatusBoard" | "CinematicTapeTin";
 
 export interface HingeSpec {
 	from: Vector3;
@@ -29,6 +29,102 @@ export interface UploadedAssetSpec {
 }
 
 export const UploadedAssetSpecs: Record<UploadedAssetName, UploadedAssetSpec> = {
+	NavalFrigate: {
+		folder: "naval-frigate",
+		kind: "world",
+		size: new Vector3(30, 63, 240),
+		authoredSize: new Vector3(30, 63, 240),
+		gameScale: 1,
+		groundOffset: 0,
+	},
+	NavalDestroyer: {
+		folder: "naval-destroyer",
+		kind: "world",
+		size: new Vector3(34, 59.5, 270),
+		authoredSize: new Vector3(34, 59.5, 270),
+		gameScale: 1,
+		groundOffset: 0,
+	},
+	NavalCruiser: {
+		folder: "naval-cruiser",
+		kind: "world",
+		size: new Vector3(40, 62, 310),
+		authoredSize: new Vector3(40, 62, 310),
+		gameScale: 1,
+		groundOffset: 0,
+	},
+	NavalContainerShip: {
+		folder: "naval-container-ship",
+		kind: "world",
+		size: new Vector3(44, 59.5, 280),
+		authoredSize: new Vector3(44, 59.5, 280),
+		gameScale: 1,
+		groundOffset: 0,
+	},
+	NavalSupplyShip: {
+		folder: "naval-supply-ship",
+		kind: "world",
+		size: new Vector3(40, 59.5, 240),
+		authoredSize: new Vector3(40, 59.5, 240),
+		gameScale: 1,
+		groundOffset: 0,
+	},
+	NavalLandingShip: {
+		folder: "naval-landing-ship",
+		kind: "world",
+		size: new Vector3(40, 59.5, 220),
+		authoredSize: new Vector3(40, 59.5, 220),
+		gameScale: 1,
+		groundOffset: 0,
+	},
+	NavalMissileBoat: {
+		folder: "naval-missile-boat",
+		kind: "world",
+		size: new Vector3(18, 37.4, 105),
+		authoredSize: new Vector3(18, 37.4, 105),
+		gameScale: 1,
+		groundOffset: 0,
+	},
+	NavalSubmarine: {
+		folder: "naval-submarine",
+		kind: "world",
+		size: new Vector3(28, 39, 200),
+		authoredSize: new Vector3(28, 39, 200),
+		gameScale: 1,
+		groundOffset: 0,
+	},
+	NavalLandingCraft: {
+		folder: "naval-landing-craft",
+		kind: "world",
+		size: new Vector3(28, 28, 90),
+		authoredSize: new Vector3(28, 28, 90),
+		gameScale: 1,
+		groundOffset: 0,
+	},
+	NavalGun: {
+		folder: "naval-gun",
+		kind: "world",
+		size: new Vector3(10, 9.55, 21.65),
+		authoredSize: new Vector3(10, 9.55, 21.65),
+		gameScale: 1,
+		groundOffset: 0,
+	},
+	NavalAa: {
+		folder: "naval-aa",
+		kind: "world",
+		size: new Vector3(10, 9.5, 21.65),
+		authoredSize: new Vector3(10, 9.5, 21.65),
+		gameScale: 1,
+		groundOffset: 0,
+	},
+	NavalSam: {
+		folder: "naval-sam",
+		kind: "world",
+		size: new Vector3(10, 14.363, 15.039),
+		authoredSize: new Vector3(10, 14.363, 15.039),
+		gameScale: 1,
+		groundOffset: 0,
+	},
 	MilitaryTank: {
 		folder: "military-tank",
 		kind: "world",
