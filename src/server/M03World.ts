@@ -1,3 +1,4 @@
+import { traceWorldPhase } from "./WorldBuildTrace";
 import { planProfiler } from "./PlanProfiler";
 import { WorldAssets } from "./WorldAssets";
 import { MILITARY_GROUND_ASSETS } from "../shared/MilitaryGroundKit";
@@ -51,7 +52,7 @@ export const M03World = {
 	Build(parent: Instance, seed = 303): { groundTargets: Model[]; targetVisuals: Map<string, Model> } {
   WorldAssets.Preload(MILITARY_GROUND_ASSETS);
 		const start = os.clock();
-		parent.SetAttribute("WorldBuildPhase", "plan");
+		parent.SetAttribute("WorldBuildPhase", "plan"); traceWorldPhase("setup");
 		const profile = planProfiler(parent);
 		const plan = buildM03Plan(seed, profile.checkpoint);
 		profile.finish();
@@ -70,7 +71,7 @@ export const M03World = {
 		parent.SetAttribute("WorldTerrainJobs", timing.jobs);
  parent.SetAttribute("WorldTerrainWorkSeconds", timing.total);
  parent.SetAttribute("WorldTerrainYields", timing.yields);
-		parent.SetAttribute("WorldBuildPhase", "dressing");
+		parent.SetAttribute("WorldBuildPhase", "dressing"); traceWorldPhase("prop-composition-placement");
 		for (let i = 0; i < plan.parts.size(); i++) {
 			const p = plan.parts[i];
 			Scenery.Part(scene, p.name, new Vector3(p.sx, p.sy, p.sz), new Vector3(p.x, p.y, p.z), Color3.fromRGB(...p.color), material(p.material), { shape: p.shape === "ball" ? Enum.PartType.Ball : Enum.PartType.Block, flightSolid: p.solid, castShadow: false });
@@ -80,7 +81,7 @@ export const M03World = {
 		const targetVisuals = new Map<string, Model>();
 		for (const t of plan.targets) targetVisuals.set(t.id, adoptGroundTarget(placeM03Target(scene, t), t.id, M03_TARGET_TYPES[t.type]));
 		assert(scene.GetDescendants().size() <= M03.budget.descendants, "M03 descendants exceeded budget");
-		parent.SetAttribute("WorldBuildPhase", "done");
+		parent.SetAttribute("WorldBuildPhase", "done"); traceWorldPhase("build-tail");
 		parent.SetAttribute("WorldBuildSeconds", os.clock() - start);
 		parent.SetAttribute("Composition", plan.key);
 		parent.SetAttribute("WorldTargetVisuals", targetVisuals.size());

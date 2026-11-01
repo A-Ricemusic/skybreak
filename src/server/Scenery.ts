@@ -1,3 +1,4 @@
+import { worldTraceScope } from "./WorldBuildTrace";
 import { CONTROL_TOWER_PARTS, HANGAR_PARTS } from "../shared/MenuWorldGeometry";
 import { JetFactory } from "../shared/JetFactory";
 import { Workspace } from "@rbxts/services";
@@ -50,6 +51,7 @@ export const PALETTES = {
 };
 
 export function Part(parent: Instance, name: string, size: Vector3, at: CFrame | Vector3, color: Color3, material: Enum.Material = Enum.Material.Concrete, options: PartOptions = {}): BasePart {
+	const endTrace = worldTraceScope(name === "Sea" ? "sea-parts" : "part-placement");
 	const object = (options.className === "WedgePart" ? new Instance("WedgePart") : new Instance("Part")) as BasePart;
 	object.Name = name;
 	object.Size = size;
@@ -70,6 +72,7 @@ export function Part(parent: Instance, name: string, size: Vector3, at: CFrame |
 	object.Parent = parent;
 	sinceYield += 1;
 	if (sinceYield >= YIELD_EVERY) { sinceYield = 0; task.wait(); }
+	endTrace();
 	return object;
 }
 

@@ -1,3 +1,4 @@
+import { fakeIds, fakeUpload, probe } from "./WorldBuildFixtures";
 import { robloxScheduler, worldClear } from "../server/WorldLifecycleRuntime";
 import { WorldLifecycle } from "../shared/WorldLifecycle";
 import { M04_WORLD_KEY } from "../shared/M04WorldPlan";
@@ -6,17 +7,15 @@ import { M01 } from "../shared/M01Geometry";
 import { compileBomberEncounter } from "../shared/BomberEncounter";
 import { BomberRules } from "../shared/BomberRules";
 import {afterAll,afterEach,beforeAll,describe,expect,it} from "@rbxts/jest-globals";
-import {Lighting,RunService,Workspace} from "@rbxts/services";
+import {Lighting,Workspace} from "@rbxts/services";
 import {MissionWorld} from "../server/MissionWorld";
 import {WorldAssets} from "../server/WorldAssets";
 import {MissionCatalog} from "../shared/MissionCatalog";
 import {AircraftCollision} from "../server/AircraftCollision";
 import {PART_BUDGET} from "../server/Scenery";
 import {ENVIRONMENT_ATTRIBUTE} from "../shared/EnvironmentPresets";
-import {SURFACE_MAPS,type SurfaceMap} from "../shared/AssetSelection";
 import {UploadedAssets} from "../shared/UploadedAssets";
-import {UploadedAssetSpecs,type UploadedAssetName} from "../shared/UploadedAssetSpecs";
-import {WorldPlanner,type PropAsset} from "../shared/WorldPlan";
+import {UploadedAssetSpecs} from "../shared/UploadedAssetSpecs";
 import {buildNightLighting} from "../server/NightLighting";
 import {GROUND_TARGET_LABELS} from "../shared/CampaignEncounters";
 import {M05_ENVIRONMENT,M05_WORLD_KEY} from "../shared/M05WorldPlan";
@@ -26,23 +25,6 @@ import {M01_ENVIRONMENT} from "../shared/M01WorldPlan";
 
 // Deterministic uploads: one textured MeshPart per world asset at its authored size, so the
 // placement and grounding checks below exercise the uploaded-clone path without InsertService.
-const WORLD: PropAsset[]=["Frigate","OilPlatform","HarbourQuay","ContainerStack","GantryCrane","Hangar","ControlTower","OfficeMidrise","ApartmentBlock","CityTower","Farmhouse","Barn","GrainSilo","RadarDish","RelayMast","Pine","Broadleaf","RockA","RockB","RockC"];
-const probe=(appearance: SurfaceAppearance,map: SurfaceMap)=>appearance.GetAttribute(`Fake${map}`)===true;
-function fakeIds(): Partial<Record<UploadedAssetName,number>> {
-	const ids: Partial<Record<UploadedAssetName,number>>={};
-	WORLD.forEach((name,i)=>ids[name]=9000+i);
-	return ids;
-}
-function fakeUpload(assetId: number): Model {
-	const name=WORLD[assetId-9000],spec=UploadedAssetSpecs[name];
-	const container=new Instance("Model");
-	const part=new Instance("MeshPart");
-	part.Name=spec.folder;part.Size=spec.authoredSize;part.CFrame=new CFrame(300,40,-200);
-	const appearance=new Instance("SurfaceAppearance");
-	for(const map of SURFACE_MAPS)appearance.SetAttribute(`Fake${map}`,true);
-	appearance.Parent=part;part.Parent=container;
-	return container;
-}
 function cleanup(fixture: Folder | undefined): void {
 	fixture?.Destroy();Workspace.Terrain.Clear();
 	Workspace.Terrain.FindFirstChild("MissionClouds")?.Destroy();
@@ -56,33 +38,6 @@ describe("Released campaign world integration (Studio only)",()=>{
  beforeAll(()=>UploadedAssets.Configure({ids:fakeIds(),probe,loader:fakeUpload}));
  afterAll(()=>UploadedAssets.Configure());
  afterEach(()=>{cleanup(fixture);fixture=undefined;Lighting.FindFirstChild("M01SunRays")?.Destroy();});
- // Measure heartbeat gaps through every build phase, including its final synchronous tail.
- for (let id = 1; id <= 18; id++) it(`bounds actual Studio build time and heartbeat gaps for M${id}`, () => {
-  fixture = new Instance("Folder"); fixture.Name = `WorldTimingFixture_M${id}`; fixture.Parent = Workspace;
-  RunService.Heartbeat.Wait();
-  const memoryBefore = gcinfo(), instancesBefore = Workspace.GetDescendants().size();
-  let previous = os.clock(), maxGap = 0, beats = 0;
-  const heartbeat = RunService.Heartbeat.Connect(() => {
-   const now = os.clock(); maxGap = math.max(maxGap, now - previous); previous = now; beats++;
-  });
-  let seconds = 0;
-  try {
-   const start = os.clock();
-   MissionWorld.Build(id, fixture);
-   seconds = os.clock() - start;
-   maxGap = math.max(maxGap, os.clock() - previous);
-   // Observe the next heartbeat too, so a blocking final phase cannot escape measurement.
-   RunService.Heartbeat.Wait();
-  } finally { heartbeat.Disconnect(); }
-  const batch = fixture.GetAttribute("WorldTerrainLongestBatch") as number;
-  print(`MISSION_STUDIO_BUILD mission=${id} seconds=${seconds} maxHeartbeatGap=${maxGap} heartbeats=${beats} maxTerrainBatch=${batch} plan=${fixture.GetAttribute("WorldPlanSeconds")} planCPU=${fixture.GetAttribute("WorldPlanCPUSeconds")} planSlice=${fixture.GetAttribute("WorldPlanLongestSlice")} planYields=${fixture.GetAttribute("WorldPlanYields")} memoryBeforeKB=${memoryBefore} memoryAfterKB=${gcinfo()} instancesBefore=${instancesBefore} instancesAfter=${Workspace.GetDescendants().size()} terrainReady=${fixture.GetAttribute("WorldTerrainReadySeconds")} terrainWork=${fixture.GetAttribute("WorldTerrainWorkSeconds")} yields=${fixture.GetAttribute("WorldTerrainYields")} longestJob=${fixture.GetAttribute("WorldTerrainLongest")} (fake uploads; excludes cleanup/replication/device load)`);
-  expect(beats).toBeGreaterThan(0);
-  expect(seconds).toBeGreaterThan(0);
-  expect(fixture.GetAttribute("WorldPlanLongestSlice") as number).toBeLessThanOrEqual(0.1);
-  expect(batch).toBeLessThanOrEqual(0.3);
-  expect(maxGap).toBeLessThanOrEqual(0.3);
-  expect(seconds).toBeLessThanOrEqual(16);
- }, 180000);
  for(const id of [0,1])it(`builds and disposes released sortie ${id}`,()=>{
   fixture=new Instance("Folder");fixture.Name="CampaignWorldFixture";fixture.Parent=Workspace;
   const bp=MissionCatalog.Get(id),world=MissionWorld.Build(id,fixture);

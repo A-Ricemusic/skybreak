@@ -1,8 +1,10 @@
+import { worldTraceScope } from "./WorldBuildTrace";
 /** Per-build instrumentation: no retained plans, instances, connections or module caches.
  * CPU excludes task.wait; wall includes engine scheduling. MicroProfiler labels are
  * closed before yielding so another thread's work is never attributed to this slice.
  */
 export function planProfiler(parent: Instance) {
+ const endTrace = worldTraceScope("plan");
  const start = os.clock(), memory = gcinfo();
  let last = start, slice = start, cpu = 0, longest = 0, yields = 0;
  const phases = new Map<string, number>();
@@ -21,6 +23,7 @@ export function planProfiler(parent: Instance) {
   checkpoint,
   finish() {
    checkpoint("composition", true);
+   endTrace();
    parent.SetAttribute("WorldPlanSeconds", os.clock() - start);
    parent.SetAttribute("WorldPlanCPUSeconds", cpu);
    parent.SetAttribute("WorldPlanLongestSlice", longest);

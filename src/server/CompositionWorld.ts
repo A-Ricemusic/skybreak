@@ -1,3 +1,4 @@
+import { traceWorldPhase } from "./WorldBuildTrace";
 import { planProfiler } from "./PlanProfiler";
 import { WORLD_FILL_CHUNK as COMPACT_FILL_CHUNK } from "../shared/CompactWorldSurface";
 import { Workspace } from "@rbxts/services";
@@ -32,7 +33,7 @@ export function compositionClear(cancelled: () => boolean): void {
 }
 export function buildComposition(parent: Instance, environment: EnvironmentSpec, makePlan: (checkpoint: (phase?: string) => void) => Composition, descendantLimit: number, cloudFeet: number, terrainBudget = WORLD_TERRAIN_BUDGET, fillChunk = COMPACT_FILL_CHUNK): { groundTargets: Model[] } {
  const start = os.clock();
- parent.SetAttribute("WorldBuildPhase", "plan");
+ parent.SetAttribute("WorldBuildPhase", "plan"); traceWorldPhase("setup");
  const profile = planProfiler(parent);
  const plan = makePlan(profile.checkpoint);
  profile.finish();
@@ -55,7 +56,7 @@ export function buildComposition(parent: Instance, environment: EnvironmentSpec,
 	parent.SetAttribute("WorldTerrainLongestBatch", timing.longestBatch); parent.SetAttribute("WorldTerrainJobs", timing.jobs);
  parent.SetAttribute("WorldTerrainWorkSeconds", timing.total);
  parent.SetAttribute("WorldTerrainYields", timing.yields);
- parent.SetAttribute("WorldBuildPhase", "dressing");
+ parent.SetAttribute("WorldBuildPhase", "dressing"); traceWorldPhase("prop-composition-placement");
  for (let i = 0; i < plan.parts.size(); i++) {
   const p = plan.parts[i], owner = models.get(p.name) ?? scene, at = new Vector3(p.x, p.y, p.z);
   if (p.shape === "cylinder") Scenery.Cylinder(owner, p.name, p.sx, p.sy, at, Color3.fromRGB(...p.color), material(p.material), { flightSolid: p.solid, castShadow: false, transparency: p.transparency, reflectance: p.reflectance });
@@ -95,6 +96,6 @@ export function buildComposition(parent: Instance, environment: EnvironmentSpec,
  }
  assert(scene.GetDescendants().size() <= descendantLimit, `${plan.key} descendants exceed budget`);
  parent.SetAttribute("CloudBaseReferenceFeet", cloudFeet);
- parent.SetAttribute("WorldPropsMissing", missing); parent.SetAttribute("WorldBuildSeconds", os.clock() - start); parent.SetAttribute("Composition", plan.key); parent.SetAttribute("WorldBuildPhase", "done");
+ parent.SetAttribute("WorldPropsMissing", missing); parent.SetAttribute("WorldBuildSeconds", os.clock() - start); parent.SetAttribute("Composition", plan.key); parent.SetAttribute("WorldBuildPhase", "done"); traceWorldPhase("build-tail");
  return { groundTargets: [] };
 }

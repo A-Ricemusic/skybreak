@@ -1,3 +1,4 @@
+import { worldTraceScope } from "./WorldBuildTrace";
 import { Workspace } from "@rbxts/services";
 
 // Measured in Studio: a native Terrain:Clear() of mission 3 froze the server 17.6 s; clearing its voxels to Air in
@@ -8,9 +9,12 @@ import { Workspace } from "@rbxts/services";
 let dirty = true;
 /** Native Terrain:Clear() only if something may have written terrain since the terrain was last known empty. */
 export function clearTerrainIfDirty(): void {
-	if (!dirty) return;
-	Workspace.Terrain.Clear();
-	dirty = false;
+	const endTrace = worldTraceScope("previous-world-cleanup");
+	try {
+		if (!dirty) return;
+		Workspace.Terrain.Clear();
+		dirty = false;
+	} finally { endTrace(); }
 }
 /** A world is about to write terrain: start from empty terrain, then mark it written. */
 export function beginTerrainWrite(): void {

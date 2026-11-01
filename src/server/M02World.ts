@@ -1,3 +1,4 @@
+import { traceWorldPhase } from "./WorldBuildTrace";
 import { planProfiler } from "./PlanProfiler";
 import { MILITARY_GROUND_ASSETS } from "../shared/MilitaryGroundKit";
 import { Workspace } from "@rbxts/services";
@@ -19,7 +20,7 @@ export const M02World = {
 	Build(parent: Instance, seed = 202): { groundTargets: Model[]; targetVisuals: Map<string, Model> } {
   WorldAssets.Preload(MILITARY_GROUND_ASSETS);
 		const start = os.clock();
-		parent.SetAttribute("WorldBuildPhase", "plan");
+		parent.SetAttribute("WorldBuildPhase", "plan"); traceWorldPhase("setup");
 		const profile = planProfiler(parent);
 		const plan = buildM02Plan(seed, profile.checkpoint);
 		profile.finish();
@@ -42,7 +43,7 @@ export const M02World = {
 		parent.SetAttribute("WorldTerrainLongest", timing.longest);
 	parent.SetAttribute("WorldTerrainLongestBatch", timing.longestBatch);
 		parent.SetAttribute("WorldTerrainJobs", timing.jobs);
-		parent.SetAttribute("WorldBuildPhase", "dressing");
+		parent.SetAttribute("WorldBuildPhase", "dressing"); traceWorldPhase("prop-composition-placement");
 		for (let i = 0; i < plan.parts.size(); i++) {
 			const p = plan.parts[i], at = new Vector3(p.x, p.y, p.z), color = Color3.fromRGB(...p.color), owner = p.target !== undefined ? visual(p.target) : scene;
 			if (p.shape === "cylinder") Scenery.Cylinder(owner, p.name, p.sx, p.sy, at, color, material(p.material), { flightSolid: p.solid, castShadow: false });
@@ -85,7 +86,7 @@ export const M02World = {
 		parent.SetAttribute("WorldPropsMissing", missing);
 		parent.SetAttribute("WorldBuildSeconds", os.clock() - start);
 		parent.SetAttribute("Composition", plan.key);
-		parent.SetAttribute("WorldBuildPhase", "done");
+		parent.SetAttribute("WorldBuildPhase", "done"); traceWorldPhase("build-tail");
 		parent.SetAttribute("WorldTargetVisuals", visuals.size());
 		return { groundTargets: [], targetVisuals: visuals };
 	},

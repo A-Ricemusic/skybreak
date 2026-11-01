@@ -1,3 +1,4 @@
+import { traceWorldPhase } from "./WorldBuildTrace";
 import { planProfiler } from "./PlanProfiler";
 import { Lighting, Workspace } from "@rbxts/services";
 import { AssetSelection } from "../shared/AssetSelection";
@@ -64,7 +65,7 @@ function placeM01Carrier(parent: Instance, candidates: WorldAssetName[]): Model 
 export const M01World = {
 	Build(parent: Instance, seed = 101): { groundTargets: Model[] } {
 		const start = os.clock();
-		parent.SetAttribute("WorldBuildPhase", "plan");
+		parent.SetAttribute("WorldBuildPhase", "plan"); traceWorldPhase("setup");
 		const profile = planProfiler(parent);
 		const plan = buildM01Plan(seed, profile.checkpoint);
 		profile.finish();
@@ -88,7 +89,7 @@ export const M01World = {
 	parent.SetAttribute("WorldTerrainLongestBatch", terrain.longestBatch);
 		parent.SetAttribute("WorldTerrainJobs", terrain.jobs);
 		task.wait();
-		parent.SetAttribute("WorldBuildPhase", "dressing");
+		parent.SetAttribute("WorldBuildPhase", "dressing"); traceWorldPhase("prop-composition-placement");
 		for (let i = 0; i < plan.parts.size(); i++) {
 			const p = plan.parts[i];
 			Scenery.Part(scene, p.name, new Vector3(p.sx, p.sy, p.sz), new Vector3(p.x, p.y, p.z), Color3.fromRGB(...p.color), material(p.material), { flightSolid: p.solid, castShadow: false });
@@ -113,7 +114,7 @@ export const M01World = {
 		const descendants = scene.GetDescendants().size();
 		assert(descendants + 4 <= M01.budget.descendants, "M01 approved template descendants exceeded budget; do not select before re-audit");
 		parent.SetAttribute("WorldPropsMissing", missing);
-		parent.SetAttribute("WorldBuildPhase", "done");
+		parent.SetAttribute("WorldBuildPhase", "done"); traceWorldPhase("build-tail");
 		parent.SetAttribute("WorldBuildSeconds", os.clock() - start);
 		parent.SetAttribute("Composition", plan.key);
 		return { groundTargets: [] };
