@@ -1,5 +1,9 @@
 # Decisions
 
+Validation for PR #205 planning follow-up: frozen install, build and prescribed LUAU_BIN validate:offline all EXIT 0; 1,248 pure Luau contracts, 36 plan fingerprint/performance checks and 162 Python tests passed. Largest measured offline checkpoint gap was 0.0105 s; this is not a Studio heartbeat measurement. No Studio/Player test performed.
+
+D-669 — PR #205 cooperative planning (2026-10-31; decision maker: implementation sub-agent, proposed): retain deterministic algorithms and exact ordered output rather than committing large full-plan datasets or retaining every generated plan in memory. Use numeric shell-grid addresses, stable linear sea compaction and per-build 50 ms yielding with phase profiling. Keep bounded M03 deterministic clearance caches. Frozen complete-plan fingerprints come from merge revision 37028404 before these edits; M01 alone normalizes independent nonoverlapping land-op order because its groups iterate a hash map. Both forward and reverse offline passes compare all 18 plans, measure CPU/checkpoint gaps, and bound checkpoint work. Reviewed .25 s terrain slicing, calibration, M05 sea parts and corridor clearance remain in place. Engine acceptance awaits the orchestrator.
+
 PR #216 post-merge validation (2026-10-31): `bun install --frozen-lockfile` and prescribed `LUAU_BIN` `bun run validate:offline` both exited 0; 1,225 Luau contracts and 154 Python tests passed. No uploads or secret reads.
 
 Decision ID reconciliation (2026-10-31): retain main’s D-666 military-kit record; assign the separate upload-gate record and its round-2 clarification D-668. D-667 remains unchanged. This resolves the parallel ID collision without dropping either decision.

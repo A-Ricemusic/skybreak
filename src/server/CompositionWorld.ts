@@ -1,3 +1,4 @@
+import { planProfiler } from "./PlanProfiler";
 import { WORLD_FILL_CHUNK as COMPACT_FILL_CHUNK } from "../shared/CompactWorldSurface";
 import { Workspace } from "@rbxts/services";
 import type { EnvironmentSpec } from "../shared/EnvironmentPresets";
@@ -29,12 +30,12 @@ function available(name: string): WorldAssetName | undefined {
 export function compositionClear(cancelled: () => boolean): void {
  if (!cancelled()) clearTerrainIfDirty();
 }
-export function buildComposition(parent: Instance, environment: EnvironmentSpec, makePlan: (checkpoint: () => void) => Composition, descendantLimit: number, cloudFeet: number, terrainBudget = WORLD_TERRAIN_BUDGET, fillChunk = COMPACT_FILL_CHUNK): { groundTargets: Model[] } {
- const start = os.clock(); let slice = start, longest = 0;
+export function buildComposition(parent: Instance, environment: EnvironmentSpec, makePlan: (checkpoint: (phase?: string) => void) => Composition, descendantLimit: number, cloudFeet: number, terrainBudget = WORLD_TERRAIN_BUDGET, fillChunk = COMPACT_FILL_CHUNK): { groundTargets: Model[] } {
+ const start = os.clock();
  parent.SetAttribute("WorldBuildPhase", "plan");
- const plan = makePlan(() => { const dt = os.clock() - slice; longest = math.max(longest, dt); if (dt >= 0.004) { task.wait(); slice = os.clock(); } });
- parent.SetAttribute("WorldPlanSeconds", os.clock() - start);
- parent.SetAttribute("WorldPlanLongestSlice", longest);
+ const profile = planProfiler(parent);
+ const plan = makePlan(profile.checkpoint);
+ profile.finish();
  const names: WorldAssetName[] = plan.props.map(p => p.asset);
  for (const t of plan.targets) { const name = candidate(t); if (name !== undefined) { const key = available(name); if (key !== undefined) names.push(key); } }
  WorldAssets.Start(names);

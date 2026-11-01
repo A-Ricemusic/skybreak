@@ -25,7 +25,7 @@ export function m12TargetLayout(): M12Contact[] {
  for (let i=0;i<16;i++) { const a=i*math.pi/8+0.09; ts.push({ id:`m12_defence_${i+1}`, type:i<9?"aa":"sam", group:"defence", x:3300*math.sin(a), y:104,z:-3300*math.cos(a),yaw:-a,live:true }); }
  return ts;
 }
-export function buildM12Plan(seed=1212, checkpoint: () => void = () => {}) {
+export function buildM12Plan(seed=1212, checkpoint: (phase?: string) => void = () => {}) {
  const terrain=compactSurface(M12_SURFACE,checkpoint), parts: PartSpec[]=[], props: PropSpec[]=[];
  const part=(name:string,x:number,y:number,z:number,sx:number,sy:number,sz:number,yaw=0,material="Concrete",color:[number,number,number]=[163,153,130]) => parts.push({name,x,y,z,sx,sy,sz,yaw,material,color,shape:"block",solid:true,grounded:false});
  const targets=m12TargetLayout();

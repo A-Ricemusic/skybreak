@@ -56,7 +56,7 @@ export function m04TargetLayout(): M04Target[] {
  for (let i = 0; i < 10; i++) add(i === 9 ? "ace" : "escort", i, -5500 + (i % 5) * 480, 1000 + (i % 3) * 160, 3800 + math.floor(i / 5) * 900, i < 5 || i === 9 ? "initial_escorts" : "reinforcements");
  return out;
 }
-export function buildM04Plan(seed = 404, checkpoint: () => void = () => {}) {
+export function buildM04Plan(seed = 404, checkpoint: (phase?: string) => void = () => {}) {
  const terrain = sealedSurface(M04_SURFACE, checkpoint), parts: PartSpec[] = [], props: PropSpec[] = [];
  // Pale valley tracks; no invented settlement, highway, coast or airbase.
  for (const {x, z, yaw} of m04Tracks()) {

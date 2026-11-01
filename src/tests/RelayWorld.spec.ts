@@ -58,8 +58,9 @@ describe("Released campaign world integration (Studio only)",()=>{
  afterEach(()=>{cleanup(fixture);fixture=undefined;Lighting.FindFirstChild("M01SunRays")?.Destroy();});
  // Measure heartbeat gaps through every build phase, including its final synchronous tail.
  for (let id = 1; id <= 18; id++) it(`bounds actual Studio build time and heartbeat gaps for M${id}`, () => {
-  fixture = new Instance("Folder"); fixture.Name = "WorldTimingFixture"; fixture.Parent = Workspace;
+  fixture = new Instance("Folder"); fixture.Name = `WorldTimingFixture_M${id}`; fixture.Parent = Workspace;
   RunService.Heartbeat.Wait();
+  const memoryBefore = gcinfo(), instancesBefore = Workspace.GetDescendants().size();
   let previous = os.clock(), maxGap = 0, beats = 0;
   const heartbeat = RunService.Heartbeat.Connect(() => {
    const now = os.clock(); maxGap = math.max(maxGap, now - previous); previous = now; beats++;
@@ -74,9 +75,10 @@ describe("Released campaign world integration (Studio only)",()=>{
    RunService.Heartbeat.Wait();
   } finally { heartbeat.Disconnect(); }
   const batch = fixture.GetAttribute("WorldTerrainLongestBatch") as number;
-  print(`MISSION_STUDIO_BUILD mission=${id} seconds=${seconds} maxHeartbeatGap=${maxGap} heartbeats=${beats} maxTerrainBatch=${batch} plan=${fixture.GetAttribute("WorldPlanSeconds")} terrainReady=${fixture.GetAttribute("WorldTerrainReadySeconds")} terrainWork=${fixture.GetAttribute("WorldTerrainWorkSeconds")} yields=${fixture.GetAttribute("WorldTerrainYields")} longestJob=${fixture.GetAttribute("WorldTerrainLongest")} (fake uploads; excludes cleanup/replication/device load)`);
+  print(`MISSION_STUDIO_BUILD mission=${id} seconds=${seconds} maxHeartbeatGap=${maxGap} heartbeats=${beats} maxTerrainBatch=${batch} plan=${fixture.GetAttribute("WorldPlanSeconds")} planCPU=${fixture.GetAttribute("WorldPlanCPUSeconds")} planSlice=${fixture.GetAttribute("WorldPlanLongestSlice")} planYields=${fixture.GetAttribute("WorldPlanYields")} memoryBeforeKB=${memoryBefore} memoryAfterKB=${gcinfo()} instancesBefore=${instancesBefore} instancesAfter=${Workspace.GetDescendants().size()} terrainReady=${fixture.GetAttribute("WorldTerrainReadySeconds")} terrainWork=${fixture.GetAttribute("WorldTerrainWorkSeconds")} yields=${fixture.GetAttribute("WorldTerrainYields")} longestJob=${fixture.GetAttribute("WorldTerrainLongest")} (fake uploads; excludes cleanup/replication/device load)`);
   expect(beats).toBeGreaterThan(0);
   expect(seconds).toBeGreaterThan(0);
+  expect(fixture.GetAttribute("WorldPlanLongestSlice") as number).toBeLessThanOrEqual(0.1);
   expect(batch).toBeLessThanOrEqual(0.3);
   expect(maxGap).toBeLessThanOrEqual(0.3);
   expect(seconds).toBeLessThanOrEqual(16);

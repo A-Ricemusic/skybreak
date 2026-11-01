@@ -37,7 +37,7 @@ export function surfaceGround(surface: WorldSurface, x: number, z: number): numb
  const side = surfaceSide(surface, x, z);
  return surface.height(math.floor(x / side) * side + side / 2, math.floor(z / side) * side + side / 2);
 }
-export function sealedSurface(surface: WorldSurface, checkpoint: () => void) {
+export function sealedSurface(surface: WorldSurface, checkpoint: (phase?: string) => void) {
  const half = WORLD_HALF, ops: TerrainOp[] = [];
  const seaParts: PartSpec[] = [];
  const p = { ops, seaParts, detailCells: 0, coarseCells: 0 };
@@ -61,8 +61,9 @@ export function sealedSurface(surface: WorldSurface, checkpoint: () => void) {
   ops.push({ shape: "block", material, x, y, z, sx, sy, sz, yaw: 0 });
  };
  const cells: Array<{x: number; z: number; sx: number; sz: number; top: number}> = [];
- const heights = new Map<string, number>();
- const key = (x: number, z: number) => `${x},${z}`;
+ const heights = new Map<number, number>();
+ // Numeric addresses avoid allocating/interning a string for every sampled cell and edge.
+ const key = (x: number, z: number) => ((x + WORLD_HALF) / 128 + 1) * 258 + (z + WORLD_HALF) / 128 + 1;
  for (let x = -half; x < half; x += 1024) for (let z = -half; z < half; z += 1024) {
   const side = surfaceSide(surface, x, z);
   for (let dx = 0; dx < 1024; dx += side) for (let dz = 0; dz < 1024; dz += side) {
@@ -71,7 +72,7 @@ export function sealedSurface(surface: WorldSurface, checkpoint: () => void) {
    for (let gx = c.x; gx < c.x + side; gx += 128) for (let gz = c.z; gz < c.z + side; gz += 128) heights.set(key(gx, gz), c.top);
    if (side === 128) p.detailCells++; else p.coarseCells++;
   }
-  checkpoint();
+  checkpoint("surface.sample");
  }
 	for (const c of cells) {
 		const cx = c.x + c.sx / 2, cz = c.z + c.sz / 2;
@@ -98,7 +99,7 @@ export function sealedSurface(surface: WorldSurface, checkpoint: () => void) {
 		wall("z", c.z + c.sz, c.x, c.sx);
 		if (c.x === -half) wall("x", c.x, c.z, c.sz, true);
 		if (c.z === -half) wall("z", c.z, c.x, c.sx, true);
-		checkpoint();
+		checkpoint("surface.emit");
 	}
 
  // Native water exactly bounds each sampled shore tile. Ships use Y=32.
@@ -118,15 +119,19 @@ export function sealedSurface(surface: WorldSurface, checkpoint: () => void) {
   const other = axis === "x" ? "z" : "x", size = axis === "x" ? "sx" : "sz", otherSize = axis === "x" ? "sz" : "sx";
   seaParts.sort((a, b) => a[other] !== b[other] ? a[other] < b[other]
    : a[otherSize] !== b[otherSize] ? a[otherSize] < b[otherSize] : a[axis] < b[axis]);
+  let written = 0;
   for (let i = 0; i < seaParts.size(); i++) {
    const a = seaParts[i];
    while (i + 1 < seaParts.size()) {
     const b = seaParts[i + 1];
     if (a[other] !== b[other] || a[otherSize] !== b[otherSize] || a[axis] + a[size] / 2 !== b[axis] - b[size] / 2 || a[size] + b[size] > 2048
      || math.floor((a[axis] - a[size] / 2) / 2048) !== math.floor((b[axis] + b[size] / 2 - 0.01) / 2048)) break;
-    a[axis] = (a[axis] - a[size] / 2 + b[axis] + b[size] / 2) / 2; a[size] += b[size]; seaParts.remove(i + 1);
+    a[axis] = (a[axis] - a[size] / 2 + b[axis] + b[size] / 2) / 2; a[size] += b[size]; i++;
    }
+   seaParts[written++] = a;
+   checkpoint("sea.merge");
   }
+  while (seaParts.size() > written) seaParts.pop();
  }
  return p;
 }

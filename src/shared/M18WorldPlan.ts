@@ -28,7 +28,7 @@ export function m18VentRoute(){
  points.push({x:0,y:174,z:-3700},{x:0,y:174,z:-3800},{x:0,y:174,z:-7000});
  return points;
 }
-export function buildM18Plan(seed=1818,checkpoint:()=>void=()=>{}){
+export function buildM18Plan(seed=1818,checkpoint:(phase?:string)=>void=()=>{}){
  const d=worldDressing(M18_SURFACE,checkpoint),targets=m18TargetLayout();
  for(const sea of d.seaParts)sea.color=M18_ENVIRONMENT.water.color;
  // Structural floor/support columns run from Y=0 to the unchanged deck Y=104.

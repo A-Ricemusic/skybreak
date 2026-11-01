@@ -100,6 +100,7 @@ function detailedTile(x: number, z: number): boolean {
 // Preserve the pre-coarsening sampled height field, including its 64-stud target
 // refinement. A coarse cap must not rise above ANY old column it replaces:
 // otherwise its cap/curtains can dam a low flight path (notably the gorge).
+// Fixed-world deterministic caches only; out-of-world queries are never retained.
 const baselineDetail = new Map<string, boolean>();
 function baselineGround(x: number, z: number): number {
 	const tx = math.floor((x + M03.halfX) / 512) * 512 - M03.halfX;
@@ -110,7 +111,7 @@ function baselineGround(x: number, z: number): number {
 		detailed = false;
 		for (let dx = 0; dx <= 512; dx += 128) for (let dz = 0; dz <= 512; dz += 128)
 			if (m03Detailed(tx + dx, tz + dz)) detailed = true;
-		baselineDetail.set(key, detailed);
+		if (tx >= -M03.halfX && tx < M03.halfX && tz >= -M03.halfZ && tz < M03.halfZ) baselineDetail.set(key, detailed);
 	}
 	let side = detailed ? 128 : 512;
 	let cx = tx + math.floor((x - tx) / side) * side, cz = tz + math.floor((z - tz) / side) * side;
@@ -133,7 +134,7 @@ function clearanceTop(x: number, z: number, sx: number, sz: number): number {
 	// including truncated boundary cells. Curtains lie wholly in the higher cap.
 	for (let dx = 0; dx < sx; dx += 64) for (let dz = 0; dz < sz; dz += 64)
 		top = math.min(top, baselineGround(x + dx, z + dz));
-	clearanceTops.set(key, top);
+	if (x >= -M03.halfX && x < M03.halfX && z >= -M03.halfZ && z < M03.halfZ) clearanceTops.set(key, top);
 	return top;
 }
 function cellAt(x: number, z: number) {
@@ -179,15 +180,16 @@ export function m03TargetLayout(): M03Target[] {
 	add("m03_s2_helicopter", "helicopter", "site2", -10080, -8480, math.pi / 2);
 	return targets;
 }
-export function buildM03Plan(seed = 303, checkpoint: () => void = () => {}): M03Plan {
+export function buildM03Plan(seed = 303, checkpoint: (phase?: string) => void = () => {}): M03Plan {
 	const p: M03Plan = { key: M03_WORLD_KEY, seed, ops: [], parts: [], targets: m03TargetLayout(), detailCells: 0, coarseCells: 0 };
 	const block = (material: TerrainMaterial, x: number, z: number, sx: number, sz: number, bottom: number, top: number) => p.ops.push({ shape: "block", material, x, y: (bottom + top) / 2, z, sx, sy: top - bottom, sz, yaw: 0 });
 	// Caps and perimeter curtains seal hard airspace; the buried floor is unreachable.
 	// Cache the adaptive surface on a 64-stud address grid. It also lets walls
 	// follow fine/coarse joins without evaluating the height function per edge.
 	const cells: Array<{ x: number; z: number; sx: number; sz: number; top: number }> = [];
-	const heights = new Map<string, number>();
-	const key = (x: number, z: number) => `${x},${z}`;
+	const heights = new Map<number, number>();
+	// Numeric addresses avoid allocating/interning a string for every sampled cell and edge.
+ const key = (x: number, z: number) => ((x + M03.halfX) / 64 + 1) * 512 + (z + M03.halfX) / 64 + 1;
 	for (let x = -M03.halfX; x < M03.halfX; x += 1024) for (let z = -M03.halfZ; z < M03.halfZ; z += 1024) {
 		const side = detailedTile(x, z) ? 256 : 1024;
 		for (let dx = 0; dx < math.min(1024, M03.halfX - x); dx += side) for (let dz = 0; dz < math.min(1024, M03.halfZ - z); dz += side) {
@@ -197,10 +199,10 @@ export function buildM03Plan(seed = 303, checkpoint: () => void = () => {}): M03
 				cells.push(c);
 				for (let gx = c.x; gx < c.x + c.sx; gx += 64) for (let gz = c.z; gz < c.z + c.sz; gz += 64) heights.set(key(gx, gz), c.top);
 				if (fine <= M03.detail) p.detailCells++; else p.coarseCells++;
-				checkpoint();
+				checkpoint("surface.sample");
 			}
 		}
-		checkpoint();
+		checkpoint("surface.sample");
 	}
 	for (const c of cells) {
 		const cx = c.x + c.sx / 2, cz = c.z + c.sz / 2;
@@ -228,7 +230,7 @@ export function buildM03Plan(seed = 303, checkpoint: () => void = () => {}): M03
 		wall("z", c.z + c.sz, c.x, c.sx);
 		if (c.x === -M03.halfX) wall("x", c.x, c.z, c.sz, true);
 		if (c.z === -M03.halfZ) wall("z", c.z, c.x, c.sx, true);
-		checkpoint();
+		checkpoint("surface.emit");
 	}
 	const part = (name: string, x: number, y: number, z: number, sx: number, sy: number, sz: number, color: [number, number, number], solid = false) => p.parts.push({ name, shape: "block", x, y, z, sx, sy, sz, yaw: 0, material: "Concrete", color, solid, grounded: solid });
 	// Native moon direction is tied to the sun. A non-solid untextured distant

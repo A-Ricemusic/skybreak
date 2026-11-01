@@ -77,7 +77,7 @@ export function m05LightAnchors(): M05LightAnchor[] {
  for (let i = 0; i < 25; i++) for (const s of [-1, 1]) add("runway", -1024 + s * 52, 50, 5260 + i * 120);
  return out;
 }
-export function buildM05Plan(seed = 505, checkpoint: () => void = () => {}) {
+export function buildM05Plan(seed = 505, checkpoint: (phase?: string) => void = () => {}) {
  const terrain = sealedSurface(M05_SURFACE, checkpoint), parts: PartSpec[] = [...terrain.seaParts], props: PropSpec[] = [];
  const part = (name: string, x: number, y: number, z: number, sx: number, sy: number, sz: number, shape: PartSpec["shape"] = "block", color: [number, number, number] = [72, 78, 80]) => parts.push({ name, x, y, z, sx, sy, sz, shape, color, material: "Metal", yaw: 0, solid: true, grounded: false });
  // Foundations rise 12 studs above the flat native terrain (D-056).

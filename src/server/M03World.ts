@@ -1,3 +1,4 @@
+import { planProfiler } from "./PlanProfiler";
 import { WorldAssets } from "./WorldAssets";
 import { MILITARY_GROUND_ASSETS } from "../shared/MilitaryGroundKit";
 import { Lighting, Workspace } from "@rbxts/services";
@@ -50,15 +51,10 @@ export const M03World = {
 	Build(parent: Instance, seed = 303): { groundTargets: Model[]; targetVisuals: Map<string, Model> } {
   WorldAssets.Preload(MILITARY_GROUND_ASSETS);
 		const start = os.clock();
-		let slice = start, longest = 0;
 		parent.SetAttribute("WorldBuildPhase", "plan");
-		const plan = buildM03Plan(seed, () => {
-			const dt = os.clock() - slice;
-			longest = math.max(longest, dt);
-			if (dt >= 0.004) { task.wait(); slice = os.clock(); }
-		});
-		parent.SetAttribute("WorldPlanSeconds", os.clock() - start);
-		parent.SetAttribute("WorldPlanLongestSlice", longest);
+		const profile = planProfiler(parent);
+		const plan = buildM03Plan(seed, profile.checkpoint);
+		profile.finish();
 		WorldEnvironment.ApplySpec(M03_ENVIRONMENT, M03_WORLD_KEY);
 		Workspace.Terrain.SetMaterialColor(Enum.Material.Snow, Color3.fromRGB(227, 236, 242));
 		Workspace.Terrain.SetMaterialColor(Enum.Material.Rock, Color3.fromRGB(62, 70, 78));

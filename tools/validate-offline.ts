@@ -28,6 +28,7 @@ await run(["bun", "tools/test-results-wiring.ts"]);
 await run(["bun", "tools/test-m03-builder-contract.ts"]);
 await run(["bun", "tools/test-world-environments.ts"]);
 await run(["bun", "tools/test-relay-offline.ts"], /^OFFLINE_LUAU_RESULT passed=(\d+) failed=0$/gm, 538);
+await run(["bun", "tools/test-plan-performance.ts"], /^PLAN_PERFORMANCE passed=(36) failed=0$/gm, 36);
 await run(["bun", "tools/voice-lines.ts", "--check"]);
 await run(["bun", "tools/story-voice-script.ts", "--check"]);
 await run(["bun", "tools/test-mission-catalog.ts"], /^MISSION_CATALOG_SNAPSHOT passed=(\d+) failed=0/gm, 19);

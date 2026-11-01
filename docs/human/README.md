@@ -1,5 +1,9 @@
 # SKYBREAK campaign dashboard
 
+Validation for PR #205 planning follow-up: frozen install, build and prescribed LUAU_BIN validate:offline all EXIT 0; 1,248 pure Luau contracts, 36 plan fingerprint/performance checks and 162 Python tests passed. Largest measured offline checkpoint gap was 0.0105 s; this is not a Studio heartbeat measurement. No Studio/Player test performed.
+
+PR #205 planning follow-up (2026-10-31, unmerged): owner/orchestrator supplied a full sequential Studio run with 17 timing assertion failures (M14 plan 73.96 s; max heartbeat gap 72.97 s). This supersedes prior loading estimates, not gameplay integration results. Numeric shell-grid addresses, linear sea merging, 50 ms cooperative plan budgets and phase profiling are proposed. Every mission retains ≤16 s build / ≤0.3 s heartbeat assertions; plan CPU slices must also be ≤0.1 s. Studio/Player have not been run by this implementation agent; orchestrator rerun required. All 18 mission statuses below remain merged/live for their existing implementation, not for this pending optimization.
+
 PR #216 post-merge validation (2026-10-31): `bun install --frozen-lockfile` and prescribed `LUAU_BIN` `bun run validate:offline` both exited 0; 1,225 Luau contracts and 154 Python tests passed. No uploads or secret reads.
 
 PR #216 merge reconciliation (2026-10-31): merged main `5eec0d06` (#207), preserving #202 and military-kit records. Third independent uploader security review passed per owner handoff. Test account mocks now avoid credential-like syntax; GitGuardian recheck failed on historical commit `3575dead` only (incident 39368345); no new-commit finding reported. Upload gate decision is D-668 (D-666 remains the military kit).

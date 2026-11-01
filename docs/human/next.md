@@ -1,5 +1,9 @@
 # Next
 
+Validation for PR #205 planning follow-up: frozen install, build and prescribed LUAU_BIN validate:offline all EXIT 0; 1,248 pure Luau contracts, 36 plan fingerprint/performance checks and 162 Python tests passed. Largest measured offline checkpoint gap was 0.0105 s; this is not a Studio heartbeat measurement. No Studio/Player test performed.
+
+1. PR #205: orchestrator runs the full sequential Studio suite on the new head. Compare MISSION_STUDIO_BUILD and MISSION_PLAN_PHASE rows, especially planCPU versus plan wall, planSlice, planYields, memoryBeforeKB/memoryAfterKB and instancesBefore/instancesAfter for M11–M14. Required gates: every mission total ≤16 s, heartbeat gap ≤0.3 s, plan slice ≤0.1 s. If CPU stays small while wall grows, investigate Studio engine scheduling/GC rather than treating the whole plan wall interval as script work. No merge authorized in this implementation task.
+
 PR #216 post-merge validation (2026-10-31): `bun install --frozen-lockfile` and prescribed `LUAU_BIN` `bun run validate:offline` both exited 0; 1,225 Luau contracts and 154 Python tests passed. No uploads or secret reads.
 
 PR #216 immediate next step: finish prescribed offline validation and check GitGuardian after a normal push. Third independent security review passed per owner handoff; no upload or merge is part of this implementation task.
