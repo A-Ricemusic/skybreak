@@ -704,3 +704,9 @@ M18 #200 replay validation (2026-10-31, M17 base be746a10): frozen install, stan
 - **Maker / status:** Implementation sub-agent under owner review-fix instruction, 2026-10-31; proposed in #202, unmerged. Offline tests only; no Studio or Player verification.
 
 Validation: `bun install --frozen-lockfile`, `bun run build`, and `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau" bun run validate:offline` exited 0. Added ChapterContinuation.spec to both runner lists; 1,223 Luau contracts passed, retaining missions 1–17 continuation, save-in-flight, M18 no-Next and loading debounce coverage.
+
+## D-666 — Preserve native surfaces while reducing loading frame waits
+
+- **Decision:** Proposed loading PR coalesces M01’s equal-material/equal-height adjacent land columns with no occupancy change, and retains M03–05 visible/collidable geography, water, dressing and mission poses. Remove only M03’s unreachable buried floor (same caps/curtains proof as D-120). Use 262,144-voxel calls and whole sampled water tiles, split on the existing voxel grid. Runtime and estimator share mission budgets: M03 0.5 s, M04 0.3 s, M05 3 s. M06–18 retain their existing 0.25 s schedule and 65,536-voxel caps.
+- **Alternatives:** Far-sea Parts would alter native water appearance; shrinking geography or delaying visible decoration changes accepted scenery. Retaining the old 0.25 s M05 slices leaves a 37.441 s estimate. Longer loading slices preserve surfaces but trade responsiveness during loading for fewer expensive full-frame waits.
+- **Maker / status:** Implementation sub-agent under owner instruction, 2026-10-31; proposed, unmerged. Estimator uses existing touch/frame calibration extrapolated to these budgets, not fresh Studio or phone evidence. Orchestrator owns Studio verification. CombatService is unchanged. No uploads.

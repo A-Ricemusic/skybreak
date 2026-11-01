@@ -1,7 +1,7 @@
 import { weatherPlan, phoneClouds } from "../shared/WeatherRules";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { buildM01Plan, M01, M01_ENVIRONMENT, M01_FILL_CHUNK, m01Counts, m01Detailed, m01Height } from "../shared/M01WorldPlan";
+import { buildM01Plan, mergeLandColumns, m01Block, M01, M01_ENVIRONMENT, M01_FILL_CHUNK, m01Counts, m01Detailed, m01Height } from "../shared/M01WorldPlan";
 import { distinctChannels, ENVIRONMENTS, ENVIRONMENT_NAMES } from "../shared/EnvironmentPresets";
 import { UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
 import { terrainJobs } from "../shared/TerrainSchedule";
@@ -51,8 +51,19 @@ describe("Unselected full-scale M01 world", () => {
 	it("grounds dressing on the actual planned land", () => {
 		for (const p of plan.props) if (p.asset !== "HarbourQuay") expect(p.y).toBe(terrainTop(plan.ops, p.x, p.z).solid);
 	});
+	it("coalesces land columns without changing occupied voxels or materials", () => {
+		const original = [m01Block("Rock", 2, 4, 2, 4, 8, 4), m01Block("Rock", 6, 4, 2, 4, 8, 4),
+			m01Block("Rock", 2, 4, 6, 4, 8, 4), m01Block("Rock", 6, 4, 6, 4, 8, 4),
+			m01Block("Sand", 10, 4, 2, 4, 8, 4), m01Block("Rock", 2, 12, 2, 4, 8, 4)];
+		const merged = mergeLandColumns(original);
+		expect(merged.size()).toBe(3);
+		for (let x = -2; x <= 14; x += 4) for (let y = -2; y <= 18; y += 4) for (let z = -2; z <= 10; z += 4) {
+			const materials = (ops: typeof original) => ops.filter(o => math.abs(x - o.x) < o.sx / 2 && math.abs(y - o.y) < o.sy / 2 && math.abs(z - o.z) < o.sz / 2).map(o => o.material);
+			expect(materials(merged)).toEqual(materials(original));
+		}
+	});
 	it("bounds each M01 native fill without raising shared limits", () => {
-		for (const job of terrainJobs(plan.ops, M01_FILL_CHUNK)) expect(job.cells).toBeLessThanOrEqual(65536);
+		for (const job of terrainJobs(plan.ops, M01_FILL_CHUNK)) expect(job.cells).toBeLessThanOrEqual(M01_FILL_CHUNK);
 	});
 	it("stays within explicit new budgets without changing old limits", () => {
 		const c = m01Counts(plan);
@@ -62,7 +73,7 @@ describe("Unselected full-scale M01 world", () => {
 		expect(c.parts).toBeLessThanOrEqual(M01.budget.parts);
 		expect(c.props).toBeLessThanOrEqual(M01.budget.props);
 		expect(c.descendants).toBeLessThanOrEqual(M01.budget.descendants);
-		expect(c.estimatedSeconds).toBeLessThan(30);
+		expect(c.estimatedSeconds).toBeLessThanOrEqual(16);
 	});
 	it("has a distinct calm dry early-afternoon environment", () => {
 		for (const key of ENVIRONMENT_NAMES) expect(distinctChannels(M01_ENVIRONMENT, ENVIRONMENTS[key])).toBeGreaterThanOrEqual(2);

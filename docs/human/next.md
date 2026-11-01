@@ -1,5 +1,7 @@
 # Next
 
+1. Review the unmerged loading PR; orchestrator runs Studio Jest's `MISSION_STUDIO_BUILD` cases for all 18 missions, then cold/warm M01/M03–05, failure/retry, native clear and replication timing. Inspect M05's 3-second loading work slices before acceptance. Check native water, hull waterlines, terrain silhouettes, flight collisions, spawn/target poses and phone stalls. The ≤16 s offline estimates do not establish device load times.
+
 Priority: review the pending results-continuation PR, then verify first-time M01 → M02 on the owner’s phone (Normal). Confirm chapter 1 plays before M02 loading on first continuation, Skip proceeds through normal loading, replay with chapter 1 seen launches directly, and repeated-tap protection, mouse/gamepad activation, M17 → chapter 17 → M18, and M18 CAMPAIGN COMPLETE with no Next. Offline checks cannot establish device behavior.
 
 1. Owner: play practice and missions 1–18 in order on one save in Roblox Player, then replay selected missions on Easy, Normal and Hard/ACE. Practice: fly the pattern, hit the radar and confirm mission 1 stays accessible.

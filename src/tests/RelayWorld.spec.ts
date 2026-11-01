@@ -56,6 +56,15 @@ describe("Released campaign world integration (Studio only)",()=>{
  beforeAll(()=>UploadedAssets.Configure({ids:fakeIds(),probe,loader:fakeUpload}));
  afterAll(()=>UploadedAssets.Configure());
  afterEach(()=>{cleanup(fixture);fixture=undefined;Lighting.FindFirstChild("M01SunRays")?.Destroy();});
+ // Campaign-path timings, intentionally separate from the pure 16 s estimate gate.
+ for (let id = 1; id <= 18; id++) it(`records actual Studio build time for M${id}`, () => {
+  fixture = new Instance("Folder"); fixture.Name = "WorldTimingFixture"; fixture.Parent = Workspace;
+  const start = os.clock();
+  MissionWorld.Build(id, fixture);
+  const seconds = os.clock() - start;
+  print(`MISSION_STUDIO_BUILD mission=${id} seconds=${seconds} plan=${fixture.GetAttribute("WorldPlanSeconds")} terrainReady=${fixture.GetAttribute("WorldTerrainReadySeconds")} terrainWork=${fixture.GetAttribute("WorldTerrainWorkSeconds")} yields=${fixture.GetAttribute("WorldTerrainYields")} longestJob=${fixture.GetAttribute("WorldTerrainLongest")} (fake uploads; excludes cleanup/replication/device load)`);
+  expect(seconds).toBeGreaterThan(0);
+ }, 180000);
  for(const id of [0,1])it(`builds and disposes released sortie ${id}`,()=>{
   fixture=new Instance("Folder");fixture.Name="CampaignWorldFixture";fixture.Parent=Workspace;
   const bp=MissionCatalog.Get(id),world=MissionWorld.Build(id,fixture);

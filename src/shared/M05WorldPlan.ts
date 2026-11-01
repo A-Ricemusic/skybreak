@@ -1,3 +1,6 @@
+/** Loading only: retain native opaque water and amortize its expensive full-frame yields.
+ * This permits up to 3 s of server work per resumption; Studio/device acceptance is still required. */
+export const M05_TERRAIN_BUDGET = 3;
 import type { EnvironmentSpec } from "./EnvironmentPresets";
 import type { PartSpec, PropSpec } from "./WorldPlan";
 import { sealedSurface, surfaceGround, type WorldSurface } from "./SealedWorldSurface";
@@ -119,4 +122,4 @@ export function buildM05Plan(seed = 505, checkpoint: () => void = () => {}) {
  }
  return { ...terrain, key: M05_WORLD_KEY, seed, parts, props, targets: m05TargetLayout(), lightAnchors: m05LightAnchors() };
 }
-export const m05Counts = (p: ReturnType<typeof buildM05Plan>) => worldCounts(p, 5 * 4);
+export const m05Counts = (p: ReturnType<typeof buildM05Plan>) => worldCounts(p, 5 * 4, M05_TERRAIN_BUDGET);

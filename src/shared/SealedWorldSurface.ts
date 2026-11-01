@@ -18,7 +18,7 @@ export interface WorldSurface {
  waterColumns?: boolean;
 }
 export const WORLD_HALF = 16384;
-export const WORLD_FILL_CHUNK = 65536;
+export const WORLD_FILL_CHUNK = 262144;
 /** Seconds of terrain work per resumption while an M04/M05 world builds behind the loading screen.
  * Every yield costs a whole engine frame (Studio Play measured 0.16-0.42 s per yield once a
  * 32k-stud world exists), so the shared 8 ms budget spent most of M04's 66 s waiting. The
@@ -83,14 +83,10 @@ export function sealedSurface(surface: WorldSurface, checkpoint: () => void) {
 	}
 
  // Native water exactly bounds each sampled shore tile. Ships use Y=32.
- // Deep flat water uses long strips rather than the scheduler's square cuts:
- // a 1024×24×128 strip is 49,152 voxels (1024×32×128 water columns: 65,536), within the 65,536-job cap.
- // This preserves full depth/coverage while avoiding twice as many Fill calls.
+ // Keep each water tile whole; the scheduler tiles larger calls on voxel planes.
  for (const c of cells) if (c.top < 32) {
   const bottom = surface.waterColumns === true ? math.max(0, c.top - 8) : c.top;
-  const strip = 32 - bottom > 16 ? 128 : c.sz;
-  for (let dz = 0; dz < c.sz; dz += strip)
-   block("Water", c.x + c.sx / 2, c.z + dz + strip / 2, c.sx, strip, bottom, 32);
+  block("Water", c.x + c.sx / 2, c.z + c.sz / 2, c.sx, c.sz, bottom, 32);
  }
  return p;
 }

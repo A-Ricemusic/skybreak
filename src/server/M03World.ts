@@ -1,5 +1,5 @@
 import { Lighting, Workspace } from "@rbxts/services";
-import { buildM03Plan, M03, M03_ENVIRONMENT, M03_FILL_CHUNK, M03_WORLD_KEY, type M03Target } from "../shared/M03WorldPlan";
+import { buildM03Plan, M03, M03_ENVIRONMENT, M03_FILL_CHUNK, M03_TERRAIN_BUDGET, M03_WORLD_KEY, type M03Target } from "../shared/M03WorldPlan";
 import { M03_TARGET_TYPES } from "../shared/missions/m03";
 import { adoptGroundTarget } from "./GroundTargetFactory";
 import { Scenery } from "./Scenery";
@@ -64,10 +64,12 @@ export const M03World = {
 		rays.Name = "M03SunRays"; rays.Intensity = 0.12; rays.Spread = 0.85; rays.Parent = Lighting;
 		const scene = new Instance("Folder"); scene.Name = M03_WORLD_KEY; scene.Parent = parent;
 		parent.SetAttribute("WorldBuildPhase", "terrain");
-		const timing = TerrainWriter.Write(plan.ops, 0.008, M03_FILL_CHUNK);
+		const timing = TerrainWriter.Write(plan.ops, M03_TERRAIN_BUDGET, M03_FILL_CHUNK);
 		parent.SetAttribute("WorldTerrainReadySeconds", os.clock() - start);
 		parent.SetAttribute("WorldTerrainLongest", timing.longest);
 		parent.SetAttribute("WorldTerrainJobs", timing.jobs);
+ parent.SetAttribute("WorldTerrainWorkSeconds", timing.total);
+ parent.SetAttribute("WorldTerrainYields", timing.yields);
 		parent.SetAttribute("WorldBuildPhase", "dressing");
 		for (let i = 0; i < plan.parts.size(); i++) {
 			const p = plan.parts[i];

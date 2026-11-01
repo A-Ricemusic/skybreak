@@ -1,8 +1,9 @@
+import { WORLD_FILL_CHUNK as COMPACT_FILL_CHUNK } from "../shared/CompactWorldSurface";
 import { Workspace } from "@rbxts/services";
 import type { EnvironmentSpec } from "../shared/EnvironmentPresets";
 import type { PartSpec, PropSpec, TerrainOp } from "../shared/WorldPlan";
 import { UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
-import { WORLD_FILL_CHUNK, WORLD_TERRAIN_BUDGET } from "../shared/SealedWorldSurface";
+import { WORLD_TERRAIN_BUDGET } from "../shared/SealedWorldSurface";
 import { clearTerrainIfDirty } from "./TerrainState";
 import { Scenery } from "./Scenery";
 import { material, TerrainWriter } from "./TerrainWriter";
@@ -28,7 +29,7 @@ function available(name: string): WorldAssetName | undefined {
 export function compositionClear(cancelled: () => boolean): void {
  if (!cancelled()) clearTerrainIfDirty();
 }
-export function buildComposition(parent: Instance, environment: EnvironmentSpec, makePlan: (checkpoint: () => void) => Composition, descendantLimit: number, cloudFeet: number, terrainBudget = WORLD_TERRAIN_BUDGET): { groundTargets: Model[] } {
+export function buildComposition(parent: Instance, environment: EnvironmentSpec, makePlan: (checkpoint: () => void) => Composition, descendantLimit: number, cloudFeet: number, terrainBudget = WORLD_TERRAIN_BUDGET, fillChunk = COMPACT_FILL_CHUNK): { groundTargets: Model[] } {
  const start = os.clock(); let slice = start, longest = 0;
  parent.SetAttribute("WorldBuildPhase", "plan");
  const plan = makePlan(() => { const dt = os.clock() - slice; longest = math.max(longest, dt); if (dt >= 0.004) { task.wait(); slice = os.clock(); } });
@@ -48,8 +49,10 @@ export function buildComposition(parent: Instance, environment: EnvironmentSpec,
   const m = new Instance("Model"); m.Name = t.id; m.SetAttribute("TargetType", t.type); m.SetAttribute("LayoutGroup", t.group); m.Parent = scene; models.set(t.id, m);
  }
  parent.SetAttribute("WorldBuildPhase", "terrain");
- const timing = TerrainWriter.Write(plan.ops, terrainBudget, WORLD_FILL_CHUNK);
+ const timing = TerrainWriter.Write(plan.ops, terrainBudget, fillChunk);
  parent.SetAttribute("WorldTerrainReadySeconds", os.clock() - start); parent.SetAttribute("WorldTerrainLongest", timing.longest); parent.SetAttribute("WorldTerrainJobs", timing.jobs);
+ parent.SetAttribute("WorldTerrainWorkSeconds", timing.total);
+ parent.SetAttribute("WorldTerrainYields", timing.yields);
  parent.SetAttribute("WorldBuildPhase", "dressing");
  for (let i = 0; i < plan.parts.size(); i++) {
   const p = plan.parts[i], owner = models.get(p.name) ?? scene, at = new Vector3(p.x, p.y, p.z);

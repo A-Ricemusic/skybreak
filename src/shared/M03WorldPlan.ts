@@ -1,12 +1,14 @@
 import type { EnvironmentSpec } from "./EnvironmentPresets";
-import { fillVoxels, terrainJobs } from "./TerrainSchedule";
+import { worldCounts } from "./WorldCompositionCounts";
+import { WORLD_FILL_CHUNK } from "./SealedWorldSurface";
 import { polyDist } from "./Polyline";
 import type { TerrainOp, PartSpec, TerrainMaterial } from "./WorldPlan";
 
 import { M03_BUILD_LIMITS } from "./M03Limits";
 
 export const M03_WORLD_KEY = "m03_snow_radar";
-export const M03_FILL_CHUNK = 65536;
+export const M03_FILL_CHUNK = WORLD_FILL_CHUNK;
+export const M03_TERRAIN_BUDGET = 0.5;
 // An eight-stud pavement slab from the lowland terrain (80) up to 88. Mission 2 measured smooth terrain
 // drawing 4-6 studs above its voxels (D-056), which hid a four-stud slab; the landing base follows suit.
 export const M03_RUNWAY_TOP = 88;
@@ -141,9 +143,7 @@ export function m03TargetLayout(): M03Target[] {
 export function buildM03Plan(seed = 303, checkpoint: () => void = () => {}): M03Plan {
 	const p: M03Plan = { key: M03_WORLD_KEY, seed, ops: [], parts: [], targets: m03TargetLayout(), detailCells: 0, coarseCells: 0 };
 	const block = (material: TerrainMaterial, x: number, z: number, sx: number, sz: number, bottom: number, top: number) => p.ops.push({ shape: "block", material, x, y: (bottom + top) / 2, z, sx, sy: top - bottom, sz, yaw: 0 });
-	// Continuous rock floor seals the underside; perimeter curtains meet it outside
-	// the hard airspace, so negative-altitude flight cannot enter the shell.
-	block("Rock", 0, 0, M03.halfX * 2, M03.halfZ * 2, -4, 0);
+	// Caps and perimeter curtains seal hard airspace; the buried floor is unreachable.
 	// Cache the adaptive surface on a 64-stud address grid. It also lets walls
 	// follow fine/coarse joins without evaluating the height function per edge.
 	const cells: Array<{ x: number; z: number; sx: number; sz: number; top: number }> = [];
@@ -216,12 +216,7 @@ export function buildM03Plan(seed = 303, checkpoint: () => void = () => {}): M03
 	return p;
 }
 export function m03Counts(p: M03Plan) {
-	let voxels = 0;
-	for (const op of p.ops) voxels += fillVoxels(op);
-	const jobs = terrainJobs(p.ops, M03_FILL_CHUNK).size();
-	// Model parts per target plus the invisible aim root each gains when combat adopts it by id.
 	const targetParts = 9 * 2 + 4 * 3 + 7 + p.targets.size();
-	return { voxels, jobs, parts: p.parts.size() + targetParts, descendants: p.parts.size() + targetParts + p.targets.size() + 1,
-		// Same measured M01 tuned cold rate and 2x reserve used by M02.
-		estimatedSeconds: 2 * (jobs / 27494 * 7.915 + 1) };
+	const counts = worldCounts({ ...p, props: [] }, targetParts, M03_TERRAIN_BUDGET, M03_FILL_CHUNK);
+	return { ...counts, descendants: counts.parts + p.targets.size() + 1 };
 }
