@@ -2,6 +2,8 @@
 
 Pending `perf/m03-m05-load` (2026-10-31), unmerged: loading estimates M01 **19.963 → 13.466 s**, M03 **19.613 → 14.734 s**, M04 **16.160 → 15.104 s**, M05 **37.441 → 15.828 s**. M01 coalesces identical adjacent land columns; M03 removes only its unreachable buried floor and adopts chunk/yield estimation; M04/M05 retain all native terrain/water, scenery and mission poses. Larger 262,144-voxel fills and loading-only work budgets of 0.5 / 0.3 / 3 s reduce redundant work and frame waits. M05 can stall server work for 3 s during loading: these are extrapolated estimator results, **not measured device times**. M06–M18 are already ≤16 s; M10 is closest at 14.739 s. A new all-18 offline gate and Studio timing cases cover every mission. Studio/test:roblox/Player were deliberately not run; orchestrator timing and device acceptance remain pending. No gameplay changes or uploads.
 
+Validation for proposed [PR #205](https://github.com/A-Ricemusic/skybreak/pull/205): frozen install, build and prescribed-LUAU_BIN `validate:offline` exited 0; 1,242 Luau contracts, all 18 load estimates, module compile guard and 124 Python tests passed. Studio/Player measurements remain pending; no Studio or `test:roblox` run.
+
 Updated 2026-10-31 against main `c1266e30` (#201); results continuation and chapter-gating fix pending PR #202.
 
 Practice and all 18 campaign missions are merged and live by the owner's automatic-pipeline convention. Play through the campaign next: [Play SKYBREAK](https://www.roblox.com/games/112911685457826). Sequential unlocks still require completing preceding missions.

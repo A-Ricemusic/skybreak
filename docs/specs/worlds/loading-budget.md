@@ -34,3 +34,7 @@ The model retains 0.07 ms per solid chunk touch, 0.2 ms per water touch, 0.2 s p
 The lifecycle gate still completes native clear before a new build. No asynchronous decoration is introduced: all terrain and scenery exist before the mission becomes ready. CombatService is unchanged, including its Luau local limit. No assets are uploaded.
 
 `MissionLoadBudget.spec.ts` explicitly asserts ≤16 s for every mission and is in both offline runner lists. Existing geometry and budget tests remain. `RelayWorld.spec.ts` has one campaign-path Studio case per mission printing `MISSION_STUDIO_BUILD` with elapsed build time, plan time, terrain-ready time, terrain work, yields and longest native job when available. Uploads are fake fixtures; those times exclude cleanup/replication and do not establish phone performance. Existing M02–M05 integration timing logs remain. Studio and `test:roblox` were deliberately not run by this implementation sub-agent; the orchestrator owns those measurements.
+
+## Offline validation
+
+Frozen install, `bun run build`, and `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau" bun run validate:offline` all exited 0. The final log records all 18 estimates above and `OFFLINE_LUAU_RESULT passed=1242 failed=0`; the Luau module guard, 19 catalog snapshots and 124 Python tests passed. Generated world counts are current. No Studio, `test:roblox`, Player or phone timing was performed.
