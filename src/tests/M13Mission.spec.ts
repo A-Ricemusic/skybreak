@@ -1,14 +1,14 @@
 import { Difficulty } from "../shared/Difficulty";
-import { retainProtection, type ProtectedActor } from "../server/EngineBatchD7Runtime";
+import { retainProtection, type ProtectedActor } from "../server/ProtectedAircraftRuntime";
 import type { CombatSession } from "../server/CombatSession";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { mission, M13_PLANE, M13_JAMMING, M13_WAVES, M13_ESCORTS, M13_HEALTH } from "../shared/missions/m13";
 import { MissionCatalog, MISSIONS } from "../shared/MissionCatalog";
 import { m13JammerLayout, m13Ground, m13RouteX, M13_WORLD_KEY } from "../shared/M13WorldPlan";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
-import { coveringJammers, navigationStep } from "../shared/EngineBatchD9";
-import { protectedHealth, protectedDuration, protectedPose, stepProtected, damageProtected, protectionResult, sameProtectedPlan } from "../shared/EngineBatchD7";
-import type { ProtectedState } from "../shared/EngineBatchD7";
+import { coveringJammers, navigationStep } from "../shared/JammerCorridorRules";
+import { protectedHealth, protectedDuration, protectedPose, stepProtected, damageProtected, protectionResult, sameProtectedPlan } from "../shared/ProtectedAircraftRules";
+import type { ProtectedState } from "../shared/ProtectedAircraftRules";
 import { AlliedRules } from "../shared/AlliedRules";
 import { ThreatRules } from "../shared/ThreatRules";
 import { GunRules } from "../shared/SortieArmament";

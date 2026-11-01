@@ -1,7 +1,7 @@
-import { finiteNumber } from "../shared/EngineBatchB";
+import { finiteNumber } from "../shared/LandingRules";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { ascendingPose } from "../shared/M18FinaleRules";
-import { CruiseBudget } from "../shared/EngineBatchD10";
+import { CruiseBudget } from "../shared/CruiseMissileRules";
 import type { CombatSession, Enemy } from "./CombatSession";
 /** Opt-in optional exterior missiles. No D10 director, admission slots, weapons or endpoint failure. */
 export function stepM18Ascending(s:CombatSession,dt:number):void {

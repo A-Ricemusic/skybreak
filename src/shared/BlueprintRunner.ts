@@ -1,6 +1,6 @@
-import { duelTargetId, newVent, stepVent, VentState } from "./EngineBatchD13";
-import { thresholdResult } from "./EngineBatchC";
-import { canSkipLanding, crossesReturnLine, landingDuration, landingSkipTarget, landingTimeRemaining } from "./EngineBatchB";
+import { duelTargetId, newVent, stepVent, VentState } from "./FinaleDuelRules";
+import { thresholdResult } from "./RearmRules";
+import { canSkipLanding, crossesReturnLine, landingDuration, landingSkipTarget, landingTimeRemaining } from "./LandingRules";
 import { FlightMath, FlightState } from "./FlightMath";
 import { FlightPoint, MissionBlueprint, MissionCatalog, MissionPhaseBlueprint } from "./MissionCatalog";
 import { GameConfig } from "./GameConfig";

@@ -13,7 +13,7 @@ import { WeaponRules as W } from "../shared/WeaponRules";
 import { EvadeRules as V } from "../shared/EvadeRules";
 import { SortieArmament as Rack } from "../shared/SortieArmament";
 import { SpecialWeapons } from "../shared/SpecialWeapons";
-import { boundDuelPosition } from "../shared/EngineBatchD13";
+import { boundDuelPosition } from "../shared/FinaleDuelRules";
 import { mission as bp } from "../shared/missions/m18";
 interface Shot { p:Point; d:Point; age:number; hostile:boolean; last:number; guided:boolean }
 function forward(s: Parameters<typeof F.ForwardOf>[0]):Point {const [x,y,z]=F.ForwardOf(s);return {x,y,z};}

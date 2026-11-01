@@ -1,6 +1,6 @@
-import { duelTargetId } from "./EngineBatchD13";
-import { D12Identities } from "./EngineBatchD12";
-import { validateNavalTargets, SurfaceRoute } from "./EngineBatchD2";
+import { duelTargetId } from "./FinaleDuelRules";
+import { WithdrawalIdentities } from "./LeaderWithdrawalRules";
+import { validateNavalTargets, SurfaceRoute } from "./SurfaceTargetRules";
 import { BomberRules } from "./BomberRules";
 import type { AceLivery } from "./AssetSelection";
 import type { MissionBlueprint, MissionPhaseBlueprint, FlightPoint } from "./MissionCatalog";
@@ -87,8 +87,8 @@ export function validateEncounterIdentities(phases: MissionPhaseBlueprint[]): vo
 	for (const [index, phase] of ipairs(phases)) {
 		if (phase.batchD13?.duel) claim(duelTargetId(index-1));
 		if (phase.leaderWithdrawal) {
-			claim(D12Identities.leader);
-			for (const id of D12Identities.wingmen) claim(id);
+			claim(WithdrawalIdentities.leader);
+			for (const id of WithdrawalIdentities.wingmen) claim(id);
 		}
 		for(const t of phase.batchD13?.ascending ?? []) claim(t.id);
 		for (const id of phase.bombers?.targetIds ?? []) claim(id);

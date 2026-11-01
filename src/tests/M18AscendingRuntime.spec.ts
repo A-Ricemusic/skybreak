@@ -1,7 +1,7 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { Workspace } from "@rbxts/services";
 import { stepM18Ascending } from "../server/M18AscendingRuntime";
-import { stepBatchD13 } from "../server/EngineBatchD13Runtime";
+import { stepFinaleDuel } from "../server/FinaleDuelRuntime";
 import { mission } from "../shared/missions/m18";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { M18_ASCENDING } from "../shared/M18FinaleRules";
@@ -28,7 +28,7 @@ describe("M18 optional ascending runtime (execution pending Studio)",()=>{
  });
  it("duel transition clears every optional launch without resetting damage/rack progress",()=>{
   const {session:s,folder,bs}=fixture();try{
-   stepM18Ascending(s,0.1);bs.phaseIndex=2;stepBatchD13(s,()=>undefined);
+   stepM18Ascending(s,0.1);bs.phaseIndex=2;stepFinaleDuel(s,()=>undefined);
    for(const e of s.enemies){expect(e.enabled).toBe(false);expect(e.model.Parent).toBeUndefined();}
    expect(s.health).toBe(37);expect(s.missiles).toBe(2);expect(s.regen).toBe(1.25);expect(bs.killedIds.size()).toBe(3);
    stepM18Ascending(s,0.1);expect(s.enemies.size()).toBe(4);

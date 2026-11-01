@@ -3,7 +3,7 @@ import { describe, expect, it } from "@rbxts/jest-globals";
 import { MissionCatalog, MISSIONS } from "../shared/MissionCatalog";
 import { M07_TARGETS, M07_SCENERY_ID } from "../shared/missions/m07";
 import { M07, m07TargetLayout, m07Height, m07Ground } from "../shared/M07WorldPlan";
-import { canyonSampleSafe, artilleryExposed, newArtillery, stepArtillery, artilleryMasked } from "../shared/EngineBatchD3";
+import { canyonSampleSafe, artilleryExposed, newArtillery, stepArtillery, artilleryMasked } from "../shared/ArtilleryRules";
 import { BlueprintRunner as Runner } from "../shared/BlueprintRunner";
 import { TargetScore } from "../shared/TargetScore";
 import { recordScoredKill } from "../server/SortieScore";

@@ -1,7 +1,7 @@
 import { MISSION_STORY_TEXT } from "../StoryMissionText";
 import type { MissionBlueprint } from "../MissionCatalog";
-import type { CruisePlan, CruiseTarget } from "../EngineBatchD10";
-import { cruiseRoute } from "../EngineBatchD10";
+import type { CruisePlan, CruiseTarget } from "../CruiseMissileRules";
+import { cruiseRoute } from "../CruiseMissileRules";
 import { BomberRules } from "../BomberRules";
 import { M14, M14_WORLD_KEY, m14TargetLayout } from "../M14WorldPlan";
 import { M14_AIRSPACE } from "../M14Limits";
