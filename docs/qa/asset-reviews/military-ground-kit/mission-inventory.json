@@ -1,0 +1,4580 @@
+[
+  {
+    "mission": "2",
+    "id": "m02_bomber_1",
+    "type": "parked_bomber",
+    "kit": "-"
+  },
+  {
+    "mission": "2",
+    "id": "m02_bomber_2",
+    "type": "parked_bomber",
+    "kit": "-"
+  },
+  {
+    "mission": "2",
+    "id": "m02_bomber_3",
+    "type": "parked_bomber",
+    "kit": "-"
+  },
+  {
+    "mission": "2",
+    "id": "m02_bomber_4",
+    "type": "parked_bomber",
+    "kit": "-"
+  },
+  {
+    "mission": "2",
+    "id": "m02_bomber_5",
+    "type": "parked_bomber",
+    "kit": "-"
+  },
+  {
+    "mission": "2",
+    "id": "m02_bomber_6",
+    "type": "parked_bomber",
+    "kit": "-"
+  },
+  {
+    "mission": "2",
+    "id": "m02_bomber_7",
+    "type": "parked_bomber",
+    "kit": "-"
+  },
+  {
+    "mission": "2",
+    "id": "m02_bomber_8",
+    "type": "parked_bomber",
+    "kit": "-"
+  },
+  {
+    "mission": "2",
+    "id": "m02_bomber_9",
+    "type": "parked_bomber",
+    "kit": "-"
+  },
+  {
+    "mission": "2",
+    "id": "m02_bomber_10",
+    "type": "parked_bomber",
+    "kit": "-"
+  },
+  {
+    "mission": "2",
+    "id": "m02_bomber_11",
+    "type": "parked_bomber",
+    "kit": "-"
+  },
+  {
+    "mission": "2",
+    "id": "m02_hangar_12",
+    "type": "hangar",
+    "kit": "-"
+  },
+  {
+    "mission": "2",
+    "id": "m02_hangar_13",
+    "type": "hangar",
+    "kit": "-"
+  },
+  {
+    "mission": "2",
+    "id": "m02_hangar_14",
+    "type": "hangar",
+    "kit": "-"
+  },
+  {
+    "mission": "2",
+    "id": "m02_hangar_15",
+    "type": "hangar",
+    "kit": "-"
+  },
+  {
+    "mission": "2",
+    "id": "m02_hangar_16",
+    "type": "hangar",
+    "kit": "-"
+  },
+  {
+    "mission": "2",
+    "id": "m02_hangar_17",
+    "type": "hangar",
+    "kit": "-"
+  },
+  {
+    "mission": "2",
+    "id": "m02_hangar_18",
+    "type": "hangar",
+    "kit": "-"
+  },
+  {
+    "mission": "2",
+    "id": "m02_aa_19",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "2",
+    "id": "m02_aa_20",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "2",
+    "id": "m02_aa_21",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "2",
+    "id": "m02_aa_22",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "2",
+    "id": "m02_control_tower_23",
+    "type": "control_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "2",
+    "id": "m02_substation_24",
+    "type": "substation",
+    "kit": "-"
+  },
+  {
+    "mission": "3",
+    "id": "m03_s1_radar_1",
+    "type": "radar_dome",
+    "kit": "MilitaryRadar"
+  },
+  {
+    "mission": "3",
+    "id": "m03_s1_radar_2",
+    "type": "radar_dome",
+    "kit": "MilitaryRadar"
+  },
+  {
+    "mission": "3",
+    "id": "m03_s1_radar_3",
+    "type": "radar_dome",
+    "kit": "MilitaryRadar"
+  },
+  {
+    "mission": "3",
+    "id": "m03_s1_radar_4",
+    "type": "radar_dome",
+    "kit": "MilitaryRadar"
+  },
+  {
+    "mission": "3",
+    "id": "m03_s1_radar_5",
+    "type": "radar_dome",
+    "kit": "MilitaryRadar"
+  },
+  {
+    "mission": "3",
+    "id": "m03_s2_radar_1",
+    "type": "radar_dome",
+    "kit": "MilitaryRadar"
+  },
+  {
+    "mission": "3",
+    "id": "m03_s2_radar_2",
+    "type": "radar_dome",
+    "kit": "MilitaryRadar"
+  },
+  {
+    "mission": "3",
+    "id": "m03_s2_radar_3",
+    "type": "radar_dome",
+    "kit": "MilitaryRadar"
+  },
+  {
+    "mission": "3",
+    "id": "m03_s2_radar_4",
+    "type": "radar_dome",
+    "kit": "MilitaryRadar"
+  },
+  {
+    "mission": "3",
+    "id": "m03_s1_aa_1",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "3",
+    "id": "m03_s2_aa_1",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "3",
+    "id": "m03_s2_aa_2",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "3",
+    "id": "m03_s2_aa_3",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "3",
+    "id": "m03_s2_helicopter",
+    "type": "parked_helicopter",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_crane_1",
+    "type": "crane",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_tower_2",
+    "type": "rig_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_control_room_3",
+    "type": "control_room",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_sam_4",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_aa_5",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_tower_6",
+    "type": "rig_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_crane_7",
+    "type": "crane",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_tower_8",
+    "type": "rig_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_control_room_9",
+    "type": "control_room",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_sam_10",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_aa_11",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_tower_12",
+    "type": "rig_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_crane_13",
+    "type": "crane",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_tower_14",
+    "type": "rig_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_control_room_15",
+    "type": "control_room",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_sam_16",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_aa_17",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_tower_18",
+    "type": "rig_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_crane_19",
+    "type": "crane",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_tower_20",
+    "type": "rig_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_control_room_21",
+    "type": "control_room",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_sam_22",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_aa_23",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_tower_24",
+    "type": "rig_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_crane_25",
+    "type": "crane",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_tower_26",
+    "type": "rig_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_control_room_27",
+    "type": "control_room",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_sam_28",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_aa_29",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_tower_30",
+    "type": "rig_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_crane_31",
+    "type": "crane",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_tower_32",
+    "type": "rig_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_control_room_33",
+    "type": "control_room",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_sam_34",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_aa_35",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_tower_36",
+    "type": "rig_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_crane_37",
+    "type": "crane",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_tower_38",
+    "type": "rig_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_control_room_39",
+    "type": "control_room",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_sam_40",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_aa_41",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_tower_42",
+    "type": "rig_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_crane_43",
+    "type": "crane",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_tower_44",
+    "type": "rig_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_control_room_45",
+    "type": "control_room",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_sam_46",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_aa_47",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "5",
+    "id": "m05_rig_tower_48",
+    "type": "rig_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_fuel_tank_large_49",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_fuel_tank_50",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_fuel_tank_51",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_gas_tank_52",
+    "type": "gas_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_smokestack_53",
+    "type": "smokestack",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_pump_station_54",
+    "type": "pump_station",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_refinery_command_55",
+    "type": "command_post",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_aa_56",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_fuel_tank_large_57",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_fuel_tank_58",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_fuel_tank_59",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_gas_tank_60",
+    "type": "gas_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_refinery_unit_61",
+    "type": "refinery",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_pump_station_62",
+    "type": "pump_station",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_control_room_63",
+    "type": "control_room",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_aa_64",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_fuel_tank_large_65",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_fuel_tank_66",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_fuel_tank_67",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_gas_tank_68",
+    "type": "gas_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_refinery_unit_69",
+    "type": "refinery",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_pump_station_70",
+    "type": "pump_station",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_control_room_71",
+    "type": "control_room",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_aa_72",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_fuel_tank_large_73",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_fuel_tank_74",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_fuel_tank_75",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_gas_tank_76",
+    "type": "gas_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_refinery_unit_77",
+    "type": "refinery",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_pump_station_78",
+    "type": "pump_station",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_control_room_79",
+    "type": "control_room",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_aa_80",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_fuel_tank_large_81",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_fuel_tank_82",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_fuel_tank_83",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_gas_tank_84",
+    "type": "gas_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_refinery_unit_85",
+    "type": "refinery",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_pump_station_86",
+    "type": "pump_station",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_control_room_87",
+    "type": "control_room",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_refinery_aa_88",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "5",
+    "id": "m05_shipping_tanker_89",
+    "type": "tanker",
+    "kit": "-"
+  },
+  {
+    "mission": "5",
+    "id": "m05_shipping_tanker_90",
+    "type": "tanker",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_destroyer_1",
+    "type": "destroyer",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_destroyer_2",
+    "type": "destroyer",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_cruiser_3",
+    "type": "cruiser",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_cruiser_4",
+    "type": "cruiser",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_submarine_5",
+    "type": "submarine",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_missile_boat_6",
+    "type": "missile_boat",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_supply_ship_7",
+    "type": "supply_ship",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_landing_ship_8",
+    "type": "landing_ship",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_container_ship_9",
+    "type": "container_ship",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_frigate_10",
+    "type": "destroyer",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_frigate_11",
+    "type": "destroyer",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_cruiser_12",
+    "type": "cruiser",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_yard_crane_13",
+    "type": "crane",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_yard_containers_14",
+    "type": "containers",
+    "kit": "MilitaryContainers"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_yard_fuel_tank_15",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_yard_gas_tank_16",
+    "type": "gas_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_yard_storage_17",
+    "type": "storage",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_yard_aa_18",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_yard_sam_19",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_yard_containers_20",
+    "type": "containers",
+    "kit": "MilitaryContainers"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_yard_crane_21",
+    "type": "crane",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_yard_fuel_tank_22",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_yard_gas_tank_23",
+    "type": "gas_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_yard_storage_24",
+    "type": "storage",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_destroyer_25",
+    "type": "destroyer",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_destroyer_26",
+    "type": "destroyer",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_cruiser_27",
+    "type": "cruiser",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_cruiser_28",
+    "type": "cruiser",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_submarine_29",
+    "type": "submarine",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_missile_boat_30",
+    "type": "missile_boat",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_supply_ship_31",
+    "type": "supply_ship",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_landing_ship_32",
+    "type": "landing_ship",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_container_ship_33",
+    "type": "container_ship",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_frigate_34",
+    "type": "destroyer",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_frigate_35",
+    "type": "destroyer",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_cruiser_36",
+    "type": "cruiser",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_yard_crane_37",
+    "type": "crane",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_yard_containers_38",
+    "type": "containers",
+    "kit": "MilitaryContainers"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_yard_fuel_tank_39",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_yard_gas_tank_40",
+    "type": "gas_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_yard_storage_41",
+    "type": "storage",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_yard_aa_42",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_yard_sam_43",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_yard_containers_44",
+    "type": "containers",
+    "kit": "MilitaryContainers"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_yard_crane_45",
+    "type": "crane",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_yard_fuel_tank_46",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_yard_gas_tank_47",
+    "type": "gas_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_yard_storage_48",
+    "type": "storage",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_yard_aa_49",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_yard_sam_50",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_yard_containers_51",
+    "type": "containers",
+    "kit": "MilitaryContainers"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_yard_storage_52",
+    "type": "storage",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_destroyer_53",
+    "type": "destroyer",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_destroyer_54",
+    "type": "destroyer",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_cruiser_55",
+    "type": "cruiser",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_cruiser_56",
+    "type": "cruiser",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_submarine_57",
+    "type": "submarine",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_missile_boat_58",
+    "type": "missile_boat",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_supply_ship_59",
+    "type": "supply_ship",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_landing_ship_60",
+    "type": "landing_ship",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_container_ship_61",
+    "type": "container_ship",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_frigate_62",
+    "type": "destroyer",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_frigate_63",
+    "type": "destroyer",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_cruiser_64",
+    "type": "cruiser",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_yard_crane_65",
+    "type": "crane",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_yard_containers_66",
+    "type": "containers",
+    "kit": "MilitaryContainers"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_yard_fuel_tank_67",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_yard_gas_tank_68",
+    "type": "gas_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_yard_storage_69",
+    "type": "storage",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_yard_aa_70",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_yard_sam_71",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_yard_containers_72",
+    "type": "containers",
+    "kit": "MilitaryContainers"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_yard_crane_73",
+    "type": "crane",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_yard_fuel_tank_74",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_yard_gas_tank_75",
+    "type": "gas_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_yard_storage_76",
+    "type": "storage",
+    "kit": "-"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_defence_gun_77",
+    "type": "gun_mount",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_defence_aa_78",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_defence_sam_79",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_defence_gun_80",
+    "type": "gun_mount",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_defence_aa_81",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "6",
+    "id": "m06_west_defence_sam_82",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_defence_gun_83",
+    "type": "gun_mount",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_defence_aa_84",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_defence_sam_85",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_defence_gun_86",
+    "type": "gun_mount",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_defence_aa_87",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "6",
+    "id": "m06_central_defence_sam_88",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_defence_gun_89",
+    "type": "gun_mount",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_defence_aa_90",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_defence_sam_91",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_defence_gun_92",
+    "type": "gun_mount",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_defence_aa_93",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "6",
+    "id": "m06_east_defence_sam_94",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "7",
+    "id": "m07_south_solar_panel_1",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_south_solar_panel_2",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_south_solar_panel_3",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_south_solar_panel_4",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_south_solar_panel_5",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_south_solar_panel_6",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_south_solar_panel_7",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_south_solar_panel_8",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_south_solar_panel_9",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_south_solar_panel_10",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_south_solar_panel_11",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_south_solar_panel_12",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_south_solar_panel_13",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_south_solar_panel_14",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_south_solar_panel_15",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_middle_solar_panel_16",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_middle_solar_panel_17",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_middle_solar_panel_18",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_middle_solar_panel_19",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_middle_solar_panel_20",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_middle_solar_panel_21",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_middle_solar_panel_22",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_middle_solar_panel_23",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_middle_solar_panel_24",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_middle_solar_panel_25",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_middle_solar_panel_26",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_middle_solar_panel_27",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_middle_solar_panel_28",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_middle_solar_panel_29",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_middle_solar_panel_30",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_plant_solar_panel_31",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_plant_solar_panel_32",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_plant_solar_panel_33",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_plant_solar_panel_34",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_plant_solar_panel_35",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_plant_solar_panel_36",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_plant_solar_panel_37",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_plant_solar_panel_38",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_plant_solar_panel_39",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_plant_solar_panel_40",
+    "type": "solar_panel",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_plant_radar_42",
+    "type": "radar_dome",
+    "kit": "MilitaryRadar"
+  },
+  {
+    "mission": "7",
+    "id": "m07_plant_control_room_43",
+    "type": "control_room",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_plant_solar_tower_44",
+    "type": "solar_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "7",
+    "id": "m07_plant_flak_45",
+    "type": "flak_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "7",
+    "id": "m07_plant_flak_46",
+    "type": "flak_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "7",
+    "id": "m07_plant_sam_47",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "7",
+    "id": "m07_plant_sam_48",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "7",
+    "id": "m07_plant_aa_49",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "7",
+    "id": "m07_plant_aa_50",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "7",
+    "id": "m07_plant_pillbox_51",
+    "type": "pillbox",
+    "kit": "MilitaryBunker"
+  },
+  {
+    "mission": "7",
+    "id": "m07_plant_pillbox_52",
+    "type": "pillbox",
+    "kit": "MilitaryBunker"
+  },
+  {
+    "mission": "9",
+    "id": "m09_west_radar_1",
+    "type": "radar_dome",
+    "kit": "MilitaryRadar"
+  },
+  {
+    "mission": "9",
+    "id": "m09_central_radar_2",
+    "type": "radar_dome",
+    "kit": "MilitaryRadar"
+  },
+  {
+    "mission": "9",
+    "id": "m09_east_radar_3",
+    "type": "radar_dome",
+    "kit": "MilitaryRadar"
+  },
+  {
+    "mission": "9",
+    "id": "m09_west_radar_4",
+    "type": "radar_dome",
+    "kit": "MilitaryRadar"
+  },
+  {
+    "mission": "9",
+    "id": "m09_central_radar_5",
+    "type": "radar_dome",
+    "kit": "MilitaryRadar"
+  },
+  {
+    "mission": "9",
+    "id": "m09_east_radar_6",
+    "type": "radar_dome",
+    "kit": "MilitaryRadar"
+  },
+  {
+    "mission": "9",
+    "id": "m09_west_radar_7",
+    "type": "radar_dome",
+    "kit": "MilitaryRadar"
+  },
+  {
+    "mission": "9",
+    "id": "m09_central_radar_8",
+    "type": "radar_dome",
+    "kit": "MilitaryRadar"
+  },
+  {
+    "mission": "9",
+    "id": "m09_east_radar_9",
+    "type": "radar_dome",
+    "kit": "MilitaryRadar"
+  },
+  {
+    "mission": "9",
+    "id": "m09_west_battery_10",
+    "type": "artillery",
+    "kit": "MilitaryArtillery"
+  },
+  {
+    "mission": "9",
+    "id": "m09_central_battery_11",
+    "type": "artillery",
+    "kit": "MilitaryArtillery"
+  },
+  {
+    "mission": "9",
+    "id": "m09_east_battery_12",
+    "type": "artillery",
+    "kit": "MilitaryArtillery"
+  },
+  {
+    "mission": "9",
+    "id": "m09_west_battery_13",
+    "type": "artillery",
+    "kit": "MilitaryArtillery"
+  },
+  {
+    "mission": "9",
+    "id": "m09_central_battery_14",
+    "type": "artillery",
+    "kit": "MilitaryArtillery"
+  },
+  {
+    "mission": "9",
+    "id": "m09_east_battery_15",
+    "type": "artillery",
+    "kit": "MilitaryArtillery"
+  },
+  {
+    "mission": "9",
+    "id": "m09_west_pillbox_16",
+    "type": "bunker",
+    "kit": "MilitaryBunker"
+  },
+  {
+    "mission": "9",
+    "id": "m09_central_pillbox_17",
+    "type": "bunker",
+    "kit": "MilitaryBunker"
+  },
+  {
+    "mission": "9",
+    "id": "m09_east_pillbox_18",
+    "type": "bunker",
+    "kit": "MilitaryBunker"
+  },
+  {
+    "mission": "9",
+    "id": "m09_west_pillbox_19",
+    "type": "bunker",
+    "kit": "MilitaryBunker"
+  },
+  {
+    "mission": "9",
+    "id": "m09_central_pillbox_20",
+    "type": "bunker",
+    "kit": "MilitaryBunker"
+  },
+  {
+    "mission": "9",
+    "id": "m09_east_pillbox_21",
+    "type": "bunker",
+    "kit": "MilitaryBunker"
+  },
+  {
+    "mission": "9",
+    "id": "m09_west_pillbox_22",
+    "type": "bunker",
+    "kit": "MilitaryBunker"
+  },
+  {
+    "mission": "9",
+    "id": "m09_central_pillbox_23",
+    "type": "bunker",
+    "kit": "MilitaryBunker"
+  },
+  {
+    "mission": "9",
+    "id": "m09_east_pillbox_24",
+    "type": "bunker",
+    "kit": "MilitaryBunker"
+  },
+  {
+    "mission": "9",
+    "id": "m09_west_pillbox_25",
+    "type": "bunker",
+    "kit": "MilitaryBunker"
+  },
+  {
+    "mission": "9",
+    "id": "m09_central_pillbox_26",
+    "type": "bunker",
+    "kit": "MilitaryBunker"
+  },
+  {
+    "mission": "9",
+    "id": "m09_east_pillbox_27",
+    "type": "bunker",
+    "kit": "MilitaryBunker"
+  },
+  {
+    "mission": "9",
+    "id": "m09_west_pillbox_28",
+    "type": "bunker",
+    "kit": "MilitaryBunker"
+  },
+  {
+    "mission": "9",
+    "id": "m09_central_pillbox_29",
+    "type": "bunker",
+    "kit": "MilitaryBunker"
+  },
+  {
+    "mission": "9",
+    "id": "m09_east_pillbox_30",
+    "type": "bunker",
+    "kit": "MilitaryBunker"
+  },
+  {
+    "mission": "9",
+    "id": "m09_west_pillbox_31",
+    "type": "bunker",
+    "kit": "MilitaryBunker"
+  },
+  {
+    "mission": "9",
+    "id": "m09_central_tank_32",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "9",
+    "id": "m09_east_tank_33",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "9",
+    "id": "m09_west_tank_34",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "9",
+    "id": "m09_central_tank_35",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "9",
+    "id": "m09_east_tank_36",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "9",
+    "id": "m09_west_tank_37",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "9",
+    "id": "m09_central_tank_38",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "9",
+    "id": "m09_east_launcher_39",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "9",
+    "id": "m09_west_launcher_40",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "9",
+    "id": "m09_central_launcher_41",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "9",
+    "id": "m09_east_launcher_42",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "9",
+    "id": "m09_west_launcher_43",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "9",
+    "id": "m09_central_howitzer_44",
+    "type": "artillery",
+    "kit": "MilitaryArtillery"
+  },
+  {
+    "mission": "9",
+    "id": "m09_east_howitzer_45",
+    "type": "artillery",
+    "kit": "MilitaryArtillery"
+  },
+  {
+    "mission": "9",
+    "id": "m09_west_howitzer_46",
+    "type": "artillery",
+    "kit": "MilitaryArtillery"
+  },
+  {
+    "mission": "9",
+    "id": "m09_central_aa_47",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "9",
+    "id": "m09_east_aa_48",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "9",
+    "id": "m09_west_aa_49",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "9",
+    "id": "m09_central_aa_50",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "9",
+    "id": "m09_east_aa_51",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "9",
+    "id": "m09_west_aa_52",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "9",
+    "id": "m09_central_aa_53",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "9",
+    "id": "m09_east_sam_54",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "9",
+    "id": "m09_west_sam_55",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_container_1",
+    "type": "container",
+    "kit": "MilitaryContainers"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_barracks_2",
+    "type": "barracks",
+    "kit": "MilitaryBarracks"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_tank_3",
+    "type": "barracks",
+    "kit": "MilitaryBarracks"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_aa_4",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_sam_5",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_antenna_6",
+    "type": "antenna",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_watchtower_7",
+    "type": "watchtower",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_flak_8",
+    "type": "flak_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_fuel_9",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_radar_10",
+    "type": "control_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_container_11",
+    "type": "container",
+    "kit": "MilitaryContainers"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_barracks_12",
+    "type": "barracks",
+    "kit": "MilitaryBarracks"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_tank_13",
+    "type": "barracks",
+    "kit": "MilitaryBarracks"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_aa_14",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_sam_15",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_antenna_16",
+    "type": "antenna",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_watchtower_17",
+    "type": "watchtower",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_flak_18",
+    "type": "flak_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_fuel_19",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_radar_20",
+    "type": "control_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_container_21",
+    "type": "container",
+    "kit": "MilitaryContainers"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_barracks_22",
+    "type": "barracks",
+    "kit": "MilitaryBarracks"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_tank_23",
+    "type": "barracks",
+    "kit": "MilitaryBarracks"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_aa_24",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_sam_25",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_frigate_1",
+    "type": "gunboat",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_frigate_2",
+    "type": "gunboat",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_tanker_3",
+    "type": "container_ship",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_tanker_4",
+    "type": "container_ship",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_gunboat_5",
+    "type": "gunboat",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_A_gunboat_6",
+    "type": "gunboat",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_container_1",
+    "type": "container",
+    "kit": "MilitaryContainers"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_barracks_2",
+    "type": "barracks",
+    "kit": "MilitaryBarracks"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_tank_3",
+    "type": "barracks",
+    "kit": "MilitaryBarracks"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_aa_4",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_sam_5",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_antenna_6",
+    "type": "antenna",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_watchtower_7",
+    "type": "watchtower",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_flak_8",
+    "type": "flak_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_fuel_9",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_radar_10",
+    "type": "control_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_container_11",
+    "type": "container",
+    "kit": "MilitaryContainers"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_barracks_12",
+    "type": "barracks",
+    "kit": "MilitaryBarracks"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_tank_13",
+    "type": "barracks",
+    "kit": "MilitaryBarracks"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_aa_14",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_sam_15",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_antenna_16",
+    "type": "antenna",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_watchtower_17",
+    "type": "watchtower",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_flak_18",
+    "type": "flak_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_fuel_19",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_radar_20",
+    "type": "control_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_container_21",
+    "type": "container",
+    "kit": "MilitaryContainers"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_barracks_22",
+    "type": "barracks",
+    "kit": "MilitaryBarracks"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_tank_23",
+    "type": "barracks",
+    "kit": "MilitaryBarracks"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_aa_24",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_sam_25",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_frigate_1",
+    "type": "gunboat",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_frigate_2",
+    "type": "gunboat",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_tanker_3",
+    "type": "container_ship",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_tanker_4",
+    "type": "container_ship",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_gunboat_5",
+    "type": "gunboat",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_B_gunboat_6",
+    "type": "gunboat",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_container_1",
+    "type": "container",
+    "kit": "MilitaryContainers"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_barracks_2",
+    "type": "barracks",
+    "kit": "MilitaryBarracks"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_tank_3",
+    "type": "barracks",
+    "kit": "MilitaryBarracks"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_aa_4",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_sam_5",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_antenna_6",
+    "type": "antenna",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_watchtower_7",
+    "type": "watchtower",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_flak_8",
+    "type": "flak_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_fuel_9",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_radar_10",
+    "type": "control_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_container_11",
+    "type": "container",
+    "kit": "MilitaryContainers"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_barracks_12",
+    "type": "barracks",
+    "kit": "MilitaryBarracks"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_tank_13",
+    "type": "barracks",
+    "kit": "MilitaryBarracks"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_aa_14",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_sam_15",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_antenna_16",
+    "type": "antenna",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_watchtower_17",
+    "type": "watchtower",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_flak_18",
+    "type": "flak_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_fuel_19",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_radar_20",
+    "type": "control_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_container_21",
+    "type": "container",
+    "kit": "MilitaryContainers"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_barracks_22",
+    "type": "barracks",
+    "kit": "MilitaryBarracks"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_tank_23",
+    "type": "barracks",
+    "kit": "MilitaryBarracks"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_aa_24",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_sam_25",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_frigate_1",
+    "type": "gunboat",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_frigate_2",
+    "type": "gunboat",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_tanker_3",
+    "type": "container_ship",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_tanker_4",
+    "type": "container_ship",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_gunboat_5",
+    "type": "gunboat",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_C_gunboat_6",
+    "type": "gunboat",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_container_1",
+    "type": "container",
+    "kit": "MilitaryContainers"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_barracks_2",
+    "type": "barracks",
+    "kit": "MilitaryBarracks"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_tank_3",
+    "type": "barracks",
+    "kit": "MilitaryBarracks"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_aa_4",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_sam_5",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_antenna_6",
+    "type": "antenna",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_watchtower_7",
+    "type": "watchtower",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_flak_8",
+    "type": "flak_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_fuel_9",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_radar_10",
+    "type": "control_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_container_11",
+    "type": "container",
+    "kit": "MilitaryContainers"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_barracks_12",
+    "type": "barracks",
+    "kit": "MilitaryBarracks"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_tank_13",
+    "type": "barracks",
+    "kit": "MilitaryBarracks"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_aa_14",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_sam_15",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_antenna_16",
+    "type": "antenna",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_watchtower_17",
+    "type": "watchtower",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_flak_18",
+    "type": "flak_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_fuel_19",
+    "type": "fuel_tank",
+    "kit": "MilitaryFuel"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_radar_20",
+    "type": "control_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_container_21",
+    "type": "container",
+    "kit": "MilitaryContainers"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_barracks_22",
+    "type": "barracks",
+    "kit": "MilitaryBarracks"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_tank_23",
+    "type": "barracks",
+    "kit": "MilitaryBarracks"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_aa_24",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_sam_25",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_frigate_1",
+    "type": "gunboat",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_frigate_2",
+    "type": "gunboat",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_tanker_3",
+    "type": "container_ship",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_tanker_4",
+    "type": "container_ship",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_river_submarine_5",
+    "type": "submarine",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_D_river_submarine_6",
+    "type": "submarine",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_pen_1",
+    "type": "sub_pen",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_crane_1",
+    "type": "crane",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_pen_2",
+    "type": "sub_pen",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_crane_2",
+    "type": "crane",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_parked_1",
+    "type": "parked_bomber",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_parked_2",
+    "type": "parked_bomber",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_parked_3",
+    "type": "parked_bomber",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_parked_4",
+    "type": "parked_bomber",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_parked_5",
+    "type": "parked_bomber",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_parked_6",
+    "type": "parked_bomber",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_parked_7",
+    "type": "parked_bomber",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_parked_8",
+    "type": "parked_helicopter",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_parked_9",
+    "type": "parked_helicopter",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_parked_10",
+    "type": "parked_helicopter",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_parked_11",
+    "type": "parked_helicopter",
+    "kit": "-"
+  },
+  {
+    "mission": "10",
+    "id": "m10_parked_12",
+    "type": "parked_helicopter",
+    "kit": "-"
+  },
+  {
+    "mission": "12",
+    "id": "m12_gun_1",
+    "type": "railgun_emplacement",
+    "kit": "-"
+  },
+  {
+    "mission": "12",
+    "id": "m12_gun_2",
+    "type": "railgun_emplacement",
+    "kit": "-"
+  },
+  {
+    "mission": "12",
+    "id": "m12_gun_3",
+    "type": "railgun_emplacement",
+    "kit": "-"
+  },
+  {
+    "mission": "12",
+    "id": "m12_gun_5",
+    "type": "railgun_emplacement",
+    "kit": "-"
+  },
+  {
+    "mission": "12",
+    "id": "m12_gun_6",
+    "type": "railgun_emplacement",
+    "kit": "-"
+  },
+  {
+    "mission": "12",
+    "id": "m12_gun_7",
+    "type": "railgun_emplacement",
+    "kit": "-"
+  },
+  {
+    "mission": "12",
+    "id": "m12_gun_8",
+    "type": "railgun_emplacement",
+    "kit": "-"
+  },
+  {
+    "mission": "12",
+    "id": "m12_ecm",
+    "type": "ground_ecm",
+    "kit": "-"
+  },
+  {
+    "mission": "12",
+    "id": "m12_defence_1",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "12",
+    "id": "m12_defence_2",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "12",
+    "id": "m12_defence_3",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "12",
+    "id": "m12_defence_4",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "12",
+    "id": "m12_defence_5",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "12",
+    "id": "m12_defence_6",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "12",
+    "id": "m12_defence_7",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "12",
+    "id": "m12_defence_8",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "12",
+    "id": "m12_defence_9",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "12",
+    "id": "m12_defence_10",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "12",
+    "id": "m12_defence_11",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "12",
+    "id": "m12_defence_12",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "12",
+    "id": "m12_defence_13",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "12",
+    "id": "m12_defence_14",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "12",
+    "id": "m12_defence_15",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "12",
+    "id": "m12_defence_16",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "15",
+    "id": "m15_command_relay",
+    "type": "control_tower",
+    "kit": "-"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_2",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_3",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_4",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_5",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_6",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_7",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_8",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_9",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_10",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_11",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_12",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_13",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_14",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_15",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_16",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_17",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_18",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_19",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_20",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_21",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_22",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_23",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_24",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_25",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_26",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_27",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_28",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_29",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_30",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_31",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_32",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_33",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_34",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_35",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_36",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_37",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_38",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_39",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_40",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_41",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_42",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_43",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_44",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_45",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_46",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_47",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_48",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_49",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_50",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_51",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_52",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_53",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_54",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_55",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_56",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_57",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_58",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_59",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_60",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_61",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_ground_slot_62",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "15",
+    "id": "m15_transport_1",
+    "type": "parked_bomber",
+    "kit": "-"
+  },
+  {
+    "mission": "15",
+    "id": "m15_transport_2",
+    "type": "parked_bomber",
+    "kit": "-"
+  },
+  {
+    "mission": "15",
+    "id": "m15_transport_3",
+    "type": "parked_bomber",
+    "kit": "-"
+  },
+  {
+    "mission": "15",
+    "id": "m15_transport_4",
+    "type": "parked_bomber",
+    "kit": "-"
+  },
+  {
+    "mission": "15",
+    "id": "m15_transport_5",
+    "type": "parked_bomber",
+    "kit": "-"
+  },
+  {
+    "mission": "15",
+    "id": "m15_transport_6",
+    "type": "parked_bomber",
+    "kit": "-"
+  },
+  {
+    "mission": "15",
+    "id": "m15_transport_7",
+    "type": "parked_bomber",
+    "kit": "-"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_1",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_2",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_3",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_4",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_5",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_6",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_7",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_8",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_9",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_10",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_11",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_12",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_13",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_14",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_15",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_16",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_17",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_18",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_19",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_20",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_21",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_22",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_23",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_24",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_25",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_26",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_27",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_28",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_29",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_30",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_31",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_32",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_33",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_34",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_35",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_36",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_37",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_38",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_39",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_40",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_41",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_42",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_43",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_44",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_45",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_46",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_47",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_48",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_49",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_50",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_51",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_52",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_53",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_54",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_55",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_56",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_57",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_58",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_59",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_60",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_61",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_62",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_63",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_64",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_65",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_66",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_67",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_68",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_69",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_70",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_71",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_72",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_73",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_74",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_75",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_76",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_77",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_78",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_79",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_80",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_81",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_82",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_83",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_84",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_85",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_86",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_87",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_88",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_89",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_90",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_91",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_92",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_93",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_94",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_95",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_96",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_97",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_98",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_99",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_100",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_101",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_102",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_103",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_104",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_105",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_106",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_107",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_108",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_109",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_110",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_111",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_112",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_113",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_114",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_115",
+    "type": "artillery",
+    "kit": "MilitaryArtillery"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_116",
+    "type": "artillery",
+    "kit": "MilitaryArtillery"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_117",
+    "type": "artillery",
+    "kit": "MilitaryArtillery"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_118",
+    "type": "artillery",
+    "kit": "MilitaryArtillery"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_119",
+    "type": "artillery",
+    "kit": "MilitaryArtillery"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_120",
+    "type": "artillery",
+    "kit": "MilitaryArtillery"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_121",
+    "type": "artillery",
+    "kit": "MilitaryArtillery"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_122",
+    "type": "artillery",
+    "kit": "MilitaryArtillery"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_123",
+    "type": "artillery",
+    "kit": "MilitaryArtillery"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_124",
+    "type": "artillery",
+    "kit": "MilitaryArtillery"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_125",
+    "type": "bunker",
+    "kit": "MilitaryBunker"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_126",
+    "type": "bunker",
+    "kit": "MilitaryBunker"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_127",
+    "type": "bunker",
+    "kit": "MilitaryBunker"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_128",
+    "type": "bunker",
+    "kit": "MilitaryBunker"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_129",
+    "type": "bunker",
+    "kit": "MilitaryBunker"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_130",
+    "type": "bunker",
+    "kit": "MilitaryBunker"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_131",
+    "type": "bunker",
+    "kit": "MilitaryBunker"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_132",
+    "type": "bunker",
+    "kit": "MilitaryBunker"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_133",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_134",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_135",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_136",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_137",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "16",
+    "id": "m16_ground_slot_138",
+    "type": "vehicle",
+    "kit": "MilitaryTruck"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_1",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_2",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_3",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_4",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_5",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_6",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_7",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_8",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_9",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_10",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_11",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_12",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_13",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_14",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_15",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_16",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_17",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_18",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_19",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_20",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_21",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_22",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_23",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_24",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_25",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_26",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_27",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_28",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_29",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_30",
+    "type": "tank",
+    "kit": "MilitaryTank"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_31",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_32",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_33",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_34",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_35",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_36",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_37",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_38",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_39",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_40",
+    "type": "aa_gun",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_41",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_42",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_43",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_44",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_45",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_46",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_47",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_48",
+    "type": "sam",
+    "kit": "MilitarySam"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_49",
+    "type": "gun_mount",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_50",
+    "type": "gun_mount",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_51",
+    "type": "gun_mount",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_52",
+    "type": "gun_mount",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_53",
+    "type": "gun_mount",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_54",
+    "type": "gun_mount",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "17",
+    "id": "m17_ground_slot_55",
+    "type": "gun_mount",
+    "kit": "MilitaryAa"
+  },
+  {
+    "mission": "17",
+    "id": "m17_hull_1",
+    "type": "cruiser",
+    "kit": "-"
+  },
+  {
+    "mission": "17",
+    "id": "m17_hull_2",
+    "type": "destroyer",
+    "kit": "-"
+  },
+  {
+    "mission": "17",
+    "id": "m17_hull_3",
+    "type": "submarine",
+    "kit": "-"
+  },
+  {
+    "mission": "17",
+    "id": "m17_hull_4",
+    "type": "supply_ship",
+    "kit": "-"
+  },
+  {
+    "mission": "17",
+    "id": "m17_enemy_bridge",
+    "type": "bridge_section",
+    "kit": "-"
+  },
+  {
+    "mission": "18",
+    "id": "m18_generator_1",
+    "type": "generator",
+    "kit": "-"
+  },
+  {
+    "mission": "18",
+    "id": "m18_generator_2",
+    "type": "generator",
+    "kit": "-"
+  },
+  {
+    "mission": "18",
+    "id": "m18_generator_3",
+    "type": "generator",
+    "kit": "-"
+  },
+  {
+    "mission": "18",
+    "id": "m18_core",
+    "type": "core",
+    "kit": "-"
+  }
+]

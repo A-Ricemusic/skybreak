@@ -4,7 +4,7 @@
 // attachments and hinges are in-game studs: authoredSize x gameScale, where aircraft are
 // fitted to the procedural aircraft's length and world props keep their authored size.
 
-export type UploadedAssetName = "Kestrel" | "Vanta" | "VantaVulture" | "VantaRusk" | "KestrelV2" | "VantaV2" | "VantaV2Vulture" | "VantaV2Rusk" | "HeavyBomber" | "Carrier" | "HeavyTransport" | "RadarJammer" | "FuelTanker" | "AttackHelicopter" | "VantaV2Elite" | "Frigate" | "OilPlatform" | "HarbourQuay" | "ContainerStack" | "GantryCrane" | "Hangar" | "ControlTower" | "OfficeMidrise" | "ApartmentBlock" | "CityTower" | "Farmhouse" | "Barn" | "GrainSilo" | "RadarDish" | "RelayMast" | "Pine" | "Broadleaf" | "RockA" | "RockB" | "RockC" | "CinematicRadioConsole" | "CinematicFieldRecorder" | "CinematicStatusBoard" | "CinematicTapeTin";
+export type UploadedAssetName = "MilitaryTank" | "MilitarySam" | "MilitaryAa" | "MilitaryArtillery" | "MilitaryBunker" | "MilitaryRadar" | "MilitaryTruck" | "MilitaryFuel" | "MilitaryBarracks" | "MilitaryContainers" | "Kestrel" | "Vanta" | "VantaVulture" | "VantaRusk" | "KestrelV2" | "VantaV2" | "VantaV2Vulture" | "VantaV2Rusk" | "HeavyBomber" | "Carrier" | "HeavyTransport" | "RadarJammer" | "FuelTanker" | "AttackHelicopter" | "VantaV2Elite" | "Frigate" | "OilPlatform" | "HarbourQuay" | "ContainerStack" | "GantryCrane" | "Hangar" | "ControlTower" | "OfficeMidrise" | "ApartmentBlock" | "CityTower" | "Farmhouse" | "Barn" | "GrainSilo" | "RadarDish" | "RelayMast" | "Pine" | "Broadleaf" | "RockA" | "RockB" | "RockC" | "CinematicRadioConsole" | "CinematicFieldRecorder" | "CinematicStatusBoard" | "CinematicTapeTin";
 
 export interface HingeSpec {
 	from: Vector3;
@@ -29,6 +29,86 @@ export interface UploadedAssetSpec {
 }
 
 export const UploadedAssetSpecs: Record<UploadedAssetName, UploadedAssetSpec> = {
+	MilitaryTank: {
+		folder: "military-tank",
+		kind: "world",
+		size: new Vector3(17.52, 12, 33.5),
+		authoredSize: new Vector3(17.52, 12, 33.5),
+		gameScale: 1,
+		groundOffset: 0,
+	},
+	MilitarySam: {
+		folder: "military-sam",
+		kind: "world",
+		size: new Vector3(15.2, 16.53, 25),
+		authoredSize: new Vector3(15.2, 16.53, 25),
+		gameScale: 1,
+		groundOffset: 0,
+	},
+	MilitaryAa: {
+		folder: "military-aa",
+		kind: "world",
+		size: new Vector3(12, 14, 21.894),
+		authoredSize: new Vector3(12, 14, 21.894),
+		gameScale: 1,
+		groundOffset: 0,
+	},
+	MilitaryArtillery: {
+		folder: "military-artillery",
+		kind: "world",
+		size: new Vector3(17.52, 14.4, 33.5),
+		authoredSize: new Vector3(17.52, 14.4, 33.5),
+		gameScale: 1,
+		groundOffset: 0,
+	},
+	MilitaryBunker: {
+		folder: "military-bunker",
+		kind: "world",
+		size: new Vector3(36, 14.055, 30),
+		authoredSize: new Vector3(36, 14.055, 30),
+		gameScale: 1,
+		groundOffset: 0,
+	},
+	MilitaryRadar: {
+		folder: "military-radar",
+		kind: "world",
+		size: new Vector3(18, 31, 19.75),
+		authoredSize: new Vector3(18, 31, 19.75),
+		gameScale: 1,
+		groundOffset: 0,
+	},
+	MilitaryTruck: {
+		folder: "military-truck",
+		kind: "world",
+		size: new Vector3(15.2, 12.25, 25),
+		authoredSize: new Vector3(15.2, 12.25, 25),
+		gameScale: 1,
+		groundOffset: 0,
+	},
+	MilitaryFuel: {
+		folder: "military-fuel",
+		kind: "world",
+		size: new Vector3(36.4, 26.5, 16.4),
+		authoredSize: new Vector3(36.4, 26.5, 16.4),
+		gameScale: 1,
+		groundOffset: 0,
+	},
+	MilitaryBarracks: {
+		folder: "military-barracks",
+		kind: "world",
+		size: new Vector3(30, 19, 70),
+		authoredSize: new Vector3(30, 19, 70),
+		gameScale: 1,
+		groundOffset: 0,
+	},
+	MilitaryContainers: {
+		folder: "military-containers",
+		kind: "world",
+		size: new Vector3(31.45, 24, 36.3),
+		authoredSize: new Vector3(31.45, 24, 36.3),
+		gameScale: 1,
+		groundOffset: 0,
+	},
 	Kestrel: {
 		folder: "kestrel",
 		kind: "aircraft",

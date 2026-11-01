@@ -1,3 +1,5 @@
+import { WorldAssets } from "./WorldAssets";
+import { MILITARY_GROUND_ASSETS } from "../shared/MilitaryGroundKit";
 import { buildM12Plan, M12_ENVIRONMENT, M12_WORLD_KEY } from "../shared/M12WorldPlan";
 import { M12_BUILD_LIMITS } from "../shared/M12Limits";
 import { buildComposition } from "./CompositionWorld";
@@ -7,6 +9,7 @@ import { adoptGroundTarget } from "./GroundTargetFactory";
 import { M12_TARGETS } from "../shared/missions/m12";
 export const M12World={
  Build:(parent:Instance,seed=1212)=>{
+  WorldAssets.Preload(MILITARY_GROUND_ASSETS);
   const built=buildComposition(parent,M12_ENVIRONMENT,checkpoint=>buildM12Plan(seed,checkpoint),M12_BUILD_LIMITS.descendants,12000,0.25);
   const scene=parent.FindFirstChild(M12_WORLD_KEY);
   assert(scene!==undefined,"M12 scene missing");

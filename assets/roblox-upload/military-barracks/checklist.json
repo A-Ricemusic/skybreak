@@ -1,0 +1,137 @@
+{
+  "name": "military-barracks",
+  "title": "Ground kit barracks",
+  "variantOf": null,
+  "exportVersion": "military-ground-kit-1",
+  "robloxAssetType": "Model",
+  "usage": "Dormant ground-target visual; existing proxy retains collision, aim and score.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "military-barracks.fbx",
+    "bytes": 134380
+  },
+  "triangleCount": 164,
+  "triangleLimit": 2500,
+  "objects": [
+    {
+      "name": "military-barracks",
+      "triangles": 164
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "military-barracks-color.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 51428
+    },
+    {
+      "role": "normal",
+      "file": "military-barracks-normal.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 1500
+    },
+    {
+      "role": "rough",
+      "file": "military-barracks-roughness.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 48076
+    },
+    {
+      "role": "metal",
+      "file": "military-barracks-metalness.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 4010
+    }
+  ],
+  "robloxSizeStuds": [
+    30.0,
+    19.0,
+    70.0
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 0.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png",
+    "preview-back.png",
+    "preview-side-right.png",
+    "preview-bottom.png",
+    "preview-3q-front-left.png",
+    "preview-3q-rear-right.png",
+    "preview-3q-rear-left.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "Textures are baked from noise, grids and masks only; no letters, numbers, words, call signs or codes in mesh or texture."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national or unit markings; shape is an original design, not a copy of any real vehicle or building."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or face-like arrangements."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Original hard-surface equipment; creator precheck, independent inspection pending."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "Static original military equipment, sealed tubes/barrels, no crew, ammunition, firing effects, gore or celebratory presentation. Creator precheck only; independent policy review required."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": [],
+  "sha256": {
+    "contact-sheet.png": "93f6447c9b99b7ec43ec0d2fb59068825c004dd91cee21d1f98a04e9cbf82911",
+    "military-barracks-color.png": "83399210687ddfed4737da6d0221be9834df36606e2f9f6c731f857d3111057f",
+    "military-barracks-metalness.png": "966068dd0c23c60abeffaa37e2c5701bf72985d38acde8ca90619f242925df38",
+    "military-barracks-normal.png": "44da437029c7d4f5d146ca74521d3494a7244d9031b18a7d0205f846f7fcdf7e",
+    "military-barracks-roughness.png": "20a410eea3e47aff6e1ef8dbdacc605c5460275671d4fc739798a953c0630bf0",
+    "military-barracks.fbx": "d4847b3fe1382d5df4f9bd055e0a3fc37b0c72d198193c2c9686dc0fa404888f",
+    "preview-3q-front-left.png": "36dc3a8e493c3383f2e0c5b0cb4235c64d1531bf117b6ec5f549d9ba912cb641",
+    "preview-3q-rear-left.png": "b7e43abecca16ab8fd2dacdd11f18668b4045393c7e6ff1bd54db9e7ee33048d",
+    "preview-3q-rear-right.png": "be6d25e003be311bfe73264e7bb838f5820d6c0bac5c9df4fa18926912121b7a",
+    "preview-3q.png": "590076c9d448b17888c9e790b59e6c26e3e83f579cfa5886281a29501a3797cd",
+    "preview-back.png": "d57f7244ad40bee8d8b35ad48a19ae5be2543dd61a88e705f2f46f431f50f80a",
+    "preview-bottom.png": "f793afee1509f5cf22ab86665e4b0fde50c41ad6960d12d79ad7b3a87526b39c",
+    "preview-front.png": "6b88ff67c1e241ad8c5e8cff735d8f639dde0c2bb26a9cb0c9b7d98a895d659b",
+    "preview-side-right.png": "4bddfec28926bdc53a5a42e78afd022dadb9859500ae5b35b1bda50bb699b790",
+    "preview-side.png": "3748c65f5447f72801f35544ea542bf1aac98a6e2ccea2a5bcbe7cddded038c4",
+    "preview-top.png": "ee19295782c033bccf3616e94cda4db09fc6cff8a675a101598d6391bb558e17"
+  },
+  "previewNotes": {
+    "preview-front.png": "Orthographic from ahead (the model's front, Roblox -Z).",
+    "preview-side.png": "Orthographic from the left (port), Blender +X.",
+    "preview-top.png": "Orthographic from above, front at the top, the model's right (starboard) on the image's right.",
+    "preview-3q.png": "Perspective from ahead, the right (starboard), above.",
+    "preview-back.png": "Orthographic from behind.",
+    "preview-side-right.png": "Orthographic from the right (starboard).",
+    "preview-bottom.png": "Orthographic from below.",
+    "preview-3q-front-left.png": "Perspective from ahead, the left (port), above.",
+    "preview-3q-rear-right.png": "Perspective from behind, the right (starboard), above.",
+    "preview-3q-rear-left.png": "Perspective from behind, the left (port), above."
+  },
+  "kitVersion": "military-ground-kit-1",
+  "reviewStatus": "PENDING independent exact-file 10/10 safety review; NOT approved; NOT uploaded; dormant IDs",
+  "contactSheet": "contact-sheet.png"
+}

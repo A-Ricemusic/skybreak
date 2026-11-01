@@ -1,3 +1,4 @@
+import { MILITARY_GROUND_ASSETS } from "../shared/MilitaryGroundKit";
 import { Workspace } from "@rbxts/services";
 import { buildM02Plan, M02, M02_ENVIRONMENT, M02_FILL_CHUNK, M02_WORLD_KEY, m02TargetLayout } from "../shared/M02WorldPlan";
 import { BomberFactory } from "../shared/BomberFactory";
@@ -15,6 +16,7 @@ import { WorldEnvironment } from "./WorldEnvironment";
  */
 export const M02World = {
 	Build(parent: Instance, seed = 202): { groundTargets: Model[]; targetVisuals: Map<string, Model> } {
+  WorldAssets.Preload(MILITARY_GROUND_ASSETS);
 		const start = os.clock();
 		let slice = start, longest = 0;
 		parent.SetAttribute("WorldBuildPhase", "plan");

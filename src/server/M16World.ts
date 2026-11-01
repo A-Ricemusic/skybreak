@@ -1,3 +1,5 @@
+import { WorldAssets } from "./WorldAssets";
+import { MILITARY_GROUND_ASSETS } from "../shared/MilitaryGroundKit";
 import { buildM16ScenePlan, M16_ENVIRONMENT, M16_WORLD_KEY } from "../shared/M16WorldPlan";
 import { M16_BUILD_LIMITS } from "../shared/M16Limits";
 import { M16_TARGETS } from "../shared/missions/m16";
@@ -6,6 +8,7 @@ import { adoptGroundTarget } from "./GroundTargetFactory";
 import { registerWorldClear } from "./WorldLifecycleRuntime";
 export const M16World = {
  Build(parent: Instance, seed = 1616) {
+  WorldAssets.Preload(MILITARY_GROUND_ASSETS);
   const built = buildComposition(parent, M16_ENVIRONMENT, c => buildM16ScenePlan(seed,c), M16_BUILD_LIMITS.descendants, 3000, 0.25);
   const scene = parent.FindFirstChild(M16_WORLD_KEY);
   assert(scene !== undefined, "M16 scene missing");

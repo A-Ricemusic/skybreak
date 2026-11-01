@@ -25,6 +25,7 @@ SPECS = ROOT / "src" / "shared" / "UploadedAssetSpecs.ts"
 
 # Folder name -> RobloxAssetIds key, in manifest order.
 KEYS = {
+    **{f"military-{k.lower()}": f"Military{k}" for k in ("Tank", "Sam", "Aa", "Artillery", "Bunker", "Radar", "Truck", "Fuel", "Barracks", "Containers")},
     "kestrel": "Kestrel",
     "vanta": "Vanta",
     "vanta-vulture": "VantaVulture",
@@ -90,7 +91,7 @@ def ts_vec(values) -> str:
 def texture_limit(folder: str) -> int:
     if folder in PROCEDURAL or folder in {"heavy-bomber", "heavy-transport", "radar-jammer", "attack-helicopter"}:
         return 1024
-    return 256 if folder in SMALL_PROPS else 512
+    return 256 if folder in SMALL_PROPS or folder.startswith("military-") else 512
 
 
 def game_scale(folder: str, authored) -> float:
