@@ -299,7 +299,6 @@ export function environmentName(environment: EnvironmentPreset): string {
 	return string.upper(parts[parts.size() - 1]);
 }
 
-// Validate at module load so a bad authoring edit fails the server immediately.
 function inBounds(point: FlightPoint): boolean {
 	return math.abs(point.x) <= 2400 && math.abs(point.z) <= 2400 && point.y >= 40 && point.y <= 900;
 }
@@ -308,32 +307,41 @@ function reinforceTotal(phase: MissionPhaseBlueprint): number {
 	if (phase.reinforce) for (const wave of phase.reinforce) total += wave.count;
 	return total;
 }
-assert(MISSION_COUNT === 18, "SKYBREAK must ship 18 numbered missions");
-for (let index = -1; index < MISSIONS.size(); index++) {
-	const blueprint = index === -1 ? PRACTICE : MISSIONS[index];
-	const id = blueprint.id;
-	assert(id === index + 1, `Mission ${index + 1} must have id ${index + 1}`);
+/**
+ * Feature contracts shared by the load-time check and `MissionCatalog.ValidatePolicy`:
+ * the mission policy, every opt-in engine feature's phase validator, armament, cut-ins
+ * and the typed encounter roster. Throws on the first violated contract.
+ */
+function validateBlueprintContracts(blueprint: MissionBlueprint, id: number): void {
+	const airspace = blueprint.airspace ?? LEGACY_MISSION_AIRSPACE;
+	const scoring = blueprint.scoring ?? LEGACY_MISSION_SCORING;
+	const phases = expandPhases(blueprint.phases);
 	validateMissionPolicy(blueprint, id);
-	assert(blueprint.terrainRelativeWarnings === undefined || typeIs(blueprint.terrainRelativeWarnings,"boolean"), "Invalid terrain warning flag");
-	if(blueprint.nightLighting) validateNightLighting(blueprint.nightLighting, (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
-		validateRearmPhases(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth, blueprint.id);
-	validateRepairReservePhases(expandPhases(blueprint.phases),blueprint.id);
-	validateArmament(blueprint.armament, expandPhases(blueprint.phases).some(phase => phase.rearm?.gun === true));
-	validateCruiseMissilePhases(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
-	validateJammerCorridorPhases(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit, blueprint.armament?.gun !== undefined, blueprint.scoring?.basis === "points" ? blueprint.scoring.points : undefined);
-	validateProtectedAircraftPhases(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
-	validateContactInventoryPhases(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth, blueprint.terrainRelativeWarnings === true);
-	validateInterceptHoldPhases(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
+	assert(blueprint.terrainRelativeWarnings === undefined || typeIs(blueprint.terrainRelativeWarnings, "boolean"), "Invalid terrain warning flag");
+	if (blueprint.nightLighting) validateNightLighting(blueprint.nightLighting, airspace.hardHalfWidth);
+	validateRearmPhases(phases, airspace.hardHalfWidth, blueprint.id);
+	validateRepairReservePhases(phases, blueprint.id);
+	validateArmament(blueprint.armament, phases.some((phase) => phase.rearm?.gun === true));
+	validateCruiseMissilePhases(phases, airspace.hardHalfWidth);
+	validateJammerCorridorPhases(phases, airspace.spawnLimit, blueprint.armament?.gun !== undefined, scoring.basis === "points" ? scoring.points : undefined);
+	validateProtectedAircraftPhases(phases, airspace.spawnLimit);
+	validateContactInventoryPhases(phases, airspace.hardHalfWidth, blueprint.terrainRelativeWarnings === true);
+	validateInterceptHoldPhases(phases, airspace.spawnLimit);
 	validateFinaleDuel(blueprint);
-	validateLeaderWithdrawalPhases(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
-	validateRingSweepPhases(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
-	validateGroundSectorPhases(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
-	validateArtilleryPhases(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth, blueprint.terrainRelativeWarnings === true);
-		validateLandingPhases(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
-	validateCutIn(expandPhases(blueprint.phases));
-	for (const phase of expandPhases(blueprint.phases)) if (phase.rearm) validateRearmPresentation(phase.rearm);
-	validateCampaignEncounters(blueprint, expandPhases(blueprint.phases), blueprint.airspace ?? LEGACY_MISSION_AIRSPACE, blueprint.scoring ?? LEGACY_MISSION_SCORING);
+	validateLeaderWithdrawalPhases(phases, airspace.spawnLimit);
+	validateRingSweepPhases(phases, airspace.hardHalfWidth);
+	validateGroundSectorPhases(phases, airspace.hardHalfWidth);
+	validateArtilleryPhases(phases, airspace.hardHalfWidth, blueprint.terrainRelativeWarnings === true);
+	validateLandingPhases(phases, airspace.hardHalfWidth);
+	validateCutIn(phases);
+	for (const phase of phases) if (phase.rearm) validateRearmPresentation(phase.rearm);
 	assert(blueprint.phases.size() >= 1, `Mission ${id} must have at least one phase`);
+	validateCampaignEncounters(blueprint, phases, airspace, scoring);
+	for (const phase of phases) validateBomberEncounter(phase, airspace, scoring);
+}
+
+/** Authoring limits only the shipped catalog must meet: text lengths, twists, flight volumes, waves, hazards, ground counts. */
+function validateBlueprintAuthoring(blueprint: MissionBlueprint, id: number): void {
 	assert(blueprint.failure.size() > 0 && blueprint.failure.size() <= 120, `Mission ${id} needs a short failure outcome`);
 	for (const line of [...(blueprint.aceStages ?? []), ...(blueprint.aceReturns ?? [])]) assert(line.size() <= 72, `Mission ${id} ace radio must fit 72 characters`);
 	let requiredAce = 0;
@@ -356,7 +364,6 @@ for (let index = -1; index < MISSIONS.size(); index++) {
 	}
 	for (const phase of expandPhases(blueprint.phases)) {
 		const tag = `Mission ${id} phase ${phase.kind}`;
-		validateBomberEncounter(phase, blueprint.airspace ?? LEGACY_MISSION_AIRSPACE, blueprint.scoring ?? LEGACY_MISSION_SCORING);
 		assert(phase.label.size() > 0 && phase.label.size() <= 40, `${tag} label must fit 40 characters`);
 		if (phase.beat) assert(phase.beat.size() <= 72, `${tag} beat must fit 72 characters`);
 		if (phase.kind === "ace") requiredAce += 1;
@@ -429,6 +436,16 @@ for (let index = -1; index < MISSIONS.size(); index++) {
 	if (blueprint.aceReturns) assert(requiredAce === 1 && blueprint.aceReturns.size() === 2, `Mission ${id} needs two ace return lines and an ace`);
 }
 
+// Validate at module load so a bad authoring edit fails the server immediately.
+assert(MISSION_COUNT === 18, "SKYBREAK must ship 18 numbered missions");
+for (let index = -1; index < MISSIONS.size(); index++) {
+	const blueprint = index === -1 ? PRACTICE : MISSIONS[index];
+	const id = blueprint.id;
+	assert(id === index + 1, `Mission ${index + 1} must have id ${index + 1}`);
+	validateBlueprintContracts(blueprint, id);
+	validateBlueprintAuthoring(blueprint, id);
+}
+
 function resolveBlueprint(value: number | MissionBlueprint): MissionBlueprint {
 	if (typeIs(value, "number")) {
 		assert(value >= 0 && value <= MISSION_COUNT && value % 1 === 0, `Unknown mission id: ${tostring(value)}`);
@@ -475,30 +492,9 @@ export const MissionCatalog = {
 	Available(value: number | MissionBlueprint): boolean {
 		return resolveBlueprint(value).available ?? true;
 	},
-	/** Exposed for authoring tests and future catalog builders; throws on an invalid policy. */
+	/** Exposed for authoring tests and future catalog builders; throws on an invalid policy or feature contract. */
 	ValidatePolicy(blueprint: MissionBlueprint): void {
-		validateMissionPolicy(blueprint, blueprint.id);
-		assert(blueprint.terrainRelativeWarnings === undefined || typeIs(blueprint.terrainRelativeWarnings,"boolean"),"Invalid terrain warning flag");
-		if(blueprint.nightLighting) validateNightLighting(blueprint.nightLighting, (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
-	validateRearmPhases(expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint).hardHalfWidth, blueprint.id);
-	validateRepairReservePhases(expandPhases(blueprint.phases),blueprint.id);
-	validateArmament(blueprint.armament, expandPhases(blueprint.phases).some(phase => phase.rearm?.gun === true));
-	validateCruiseMissilePhases(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
-	validateJammerCorridorPhases(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit, blueprint.armament?.gun !== undefined, blueprint.scoring?.basis === "points" ? blueprint.scoring.points : undefined);
-	validateProtectedAircraftPhases(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
-	validateContactInventoryPhases(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth, blueprint.terrainRelativeWarnings === true);
-	validateInterceptHoldPhases(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
-	validateFinaleDuel(blueprint);
-	validateLeaderWithdrawalPhases(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).spawnLimit);
-	validateRingSweepPhases(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
-	validateGroundSectorPhases(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth);
-	validateArtilleryPhases(expandPhases(blueprint.phases), (blueprint.airspace ?? LEGACY_MISSION_AIRSPACE).hardHalfWidth, blueprint.terrainRelativeWarnings === true);
-	validateLandingPhases(expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint).hardHalfWidth);
-	validateCutIn(expandPhases(blueprint.phases));
-	for (const phase of expandPhases(blueprint.phases)) if (phase.rearm) validateRearmPresentation(phase.rearm);
-		assert(blueprint.phases.size()>0,"Mission needs a phase");
-		validateCampaignEncounters(blueprint, expandPhases(blueprint.phases), MissionCatalog.Airspace(blueprint), MissionCatalog.Scoring(blueprint));
-		for (const phase of expandPhases(blueprint.phases)) validateBomberEncounter(phase, blueprint.airspace ?? LEGACY_MISSION_AIRSPACE, blueprint.scoring ?? LEGACY_MISSION_SCORING);
+		validateBlueprintContracts(blueprint, blueprint.id);
 	},
 	All(): MissionBlueprint[] {
 		return MISSIONS;
