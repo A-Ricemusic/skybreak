@@ -1,6 +1,8 @@
 # Decisions
 
-PR #216 follow-up validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 148 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merge pending.
+D-666 round-2 clarification (2026-10-31, implementation sub-agent; unmerged): derive shared audio/model journal, lock and HALT paths from pwd.getpwuid(os.getuid()).pw_dir. Refuse real uploads on HOME/Path.home mismatch or a symlinked canonical state directory rather than following redirected state. Negative decisions block any matching uploaded/dependency hash or matching asset/export version even with different hashes; positive decisions must cover the complete manifest. Environment-derived state and FBX-only negative matching are rejected because both bypass account/review gates.
+
+PR #216 round-2 validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 154 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merge pending.
 
 D-667 (2026-10-31; owner security brief; implemented on unmerged PR #216): real uploads use canonical account state and fetched origin/main evidence. One strict hash-complete final JSON APPROVE/10 and separate creator manifest are required; any same-hash REJECT/lesser score wins even over a later approval. Alternatives rejected: Markdown grep, local HEAD trust, caller-selected real state, one-time retry checks. Identity checks do not prove independence; orchestrator assignment plus merged PR review supplies the process gate.
 
@@ -718,3 +720,5 @@ Validation: `bun install --frozen-lockfile`, `bun run build`, and `LUAU_BIN="/Us
 - **Scope/status:** Tooling only, unmerged; no real uploads, credential reads, Studio or Player testing. Existing shipped game assets and audio remain unchanged.
 
 Validation for D-666: `bun install --frozen-lockfile` and `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau" bun run validate:offline` exited 0. Passed 1,223 Luau contracts, 487 module compilations, 202 require-graph nodes, 19 catalog snapshots and 135 Python tests. No real upload or credential read; upload tests use temporary state and fake networking.
+
+Round-2 D-666 validation: frozen install and prescribed `LUAU_BIN` `validate:offline` exited 0, including 1,223 Luau contracts, 487 module compilations and 154 Python tests. New regressions cover HOME and Path.home mismatches, existing/dangling state-directory symlinks, texture-only negatives (including scores below 10), same-export rejection with different hashes, and full approval followed by subset rejection. Temporary account state and fake networking only; no real uploads, secrets, canonical-state access, Studio or Player tests. Independent re-review and merge remain pending.

@@ -1,6 +1,8 @@
 # Shipped
 
-PR #216 follow-up validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 148 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merge pending.
+Pending, not shipped: PR #216 round-2 fixes close HOME/state-directory redirection and dependency-only or same-export rejection bypasses. No upload, gameplay change, credential read, canonical-state access, Studio or Player verification.
+
+PR #216 round-2 validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 154 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merge pending.
 
 Pending, not shipped: PR #216 security hardening and approval migration. No gameplay change, upload, Studio/Player observation or canonical account-state access. Existing live models remain as before.
 

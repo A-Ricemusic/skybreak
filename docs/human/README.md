@@ -1,6 +1,8 @@
 # SKYBREAK campaign dashboard
 
-PR #216 follow-up validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 148 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merge pending.
+PR #216 round-2 fixes (unmerged): OS account home anchors all shared upload state; real runs reject HOME/Path.home mismatches and symlinked canonical directories. Any negative decision matching an FBX/dependency hash or the same asset/export version blocks upload; approvals still require the complete export set.
+
+PR #216 round-2 validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 154 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merge pending.
 
 PR #216 security follow-up (unmerged): canonical real-upload state; merged origin/main JSON decisions and creator manifests; per-attempt HALTs. Audio remains permanently blocked. Eleven historical approvals and ten PR207 ground-kit approvals transcribed; heavy-bomber/carrier reupload blocked by earlier same-hash incomplete REJECT. No uploads or Player verification.
 

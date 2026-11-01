@@ -17,6 +17,9 @@ REJECTED = "MODERATION_STATE_REJECTED"
 
 class RobloxUploadJournalTests(unittest.TestCase):
     def setUp(self):
+        location = patch.object(ru, "validate_upload_state")
+        location.start()
+        self.addCleanup(location.stop)
         self.temp = tempfile.TemporaryDirectory()
         self.state = Path(self.temp.name)
         self.journal = self.state / "journal-3407487520.json"
@@ -40,7 +43,7 @@ class RobloxUploadJournalTests(unittest.TestCase):
 
     def test_default_paths_are_shared_account_files(self):
         source = (Path(__file__).resolve().parents[1] / "roblox_upload.py").read_text()
-        self.assertIn('Path.home() / ".skybreak-roblox-uploads"', source)
+        self.assertIn("pwd.getpwuid(os.getuid()).pw_dir", source)
         self.assertIn('STATE / "journal-3407487520.json"', source)
         self.assertIn('STATE / "HALT-3407487520"', source)
 

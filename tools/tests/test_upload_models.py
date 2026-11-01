@@ -5,6 +5,7 @@ import hashlib
 import importlib.util
 import io
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -13,6 +14,7 @@ import unittest
 import urllib.error
 import shutil
 from unittest.mock import patch
+from types import SimpleNamespace
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import roblox_upload as ru
@@ -29,9 +31,15 @@ class UploadModelsTests(unittest.TestCase):
         temp = tempfile.TemporaryDirectory()
         self.addCleanup(temp.cleanup)
         self.root = Path(temp.name)
-        self.state = self.root / "state"
+        self.state = self.root / ".skybreak-roblox-uploads"
         self.state.mkdir()
-        for obj, name, value in ((models, "CANONICAL_STATE", self.state), (models, "ROOT", self.root), (ru, "ROOT", self.root), (ru, "STATE", self.state),
+        home = patch.object(ru.pwd, "getpwuid", return_value=SimpleNamespace(pw_dir=str(self.root)))
+        home.start()
+        self.addCleanup(home.stop)
+        env = patch.dict(os.environ, {"HOME": str(self.root)})
+        env.start()
+        self.addCleanup(env.stop)
+        for obj, name, value in ((models, "ROOT", self.root), (ru, "ROOT", self.root), (ru, "STATE", self.state),
                                   (ru, "JOURNAL", self.state / "journal-3407487520.json"),
                                   (ru, "HALT", self.state / "HALT-3407487520"),
                                   (ru, "MODEL_HALT", self.state / "HALT-models-3407487520"),
@@ -129,6 +137,79 @@ class UploadModelsTests(unittest.TestCase):
             self.decision_path.write_text(json.dumps(self.decision))
             self.commit_evidence()
             self.refuse("10/10 APPROVE")
+
+    def test_home_override_refused_before_fetch_state_key_or_upload(self):
+        ru.MODEL_HALT.write_text("canonical halt")
+        alternate = self.root / "alternate-home"
+        with patch.dict(os.environ, {"HOME": str(alternate)}), \
+                patch.object(models, "fetch_origin") as fetch, patch.object(models, "prepare") as prepare:
+            self.assertEqual(ru.canonical_state(), self.state)
+            with self.assertRaisesRegex(RuntimeError, "account home"):
+                models.main(["jet", "--key-file", "unused"])
+            with self.assertRaisesRegex(RuntimeError, "account home"):
+                ru.validate_upload_state()
+        fetch.assert_not_called()
+        prepare.assert_not_called()
+        self.assertFalse(alternate.exists())
+        self.assertEqual(ru.MODEL_HALT.read_text(), "canonical halt")
+
+    def test_path_home_mismatch_refused_even_with_matching_home_environment(self):
+        with patch.object(Path, "home", return_value=self.root / "other"), \
+                self.assertRaisesRegex(RuntimeError, "account home"):
+            ru.validate_state_location()
+
+    def test_symlinked_canonical_state_refused_before_access(self):
+        self.state.rmdir()
+        alternate = self.root / "redirected-state"
+        for exists in (False, True):
+            if exists:
+                alternate.mkdir()
+            self.state.symlink_to(alternate, target_is_directory=True)
+            with patch.object(models, "fetch_origin") as fetch, \
+                    self.assertRaisesRegex(RuntimeError, "symlink"):
+                models.main(["jet", "--key-file", "unused"])
+            fetch.assert_not_called()
+            with self.assertRaisesRegex(RuntimeError, "symlink"):
+                ru.validate_upload_state()
+            self.state.unlink()
+        self.assertEqual(list(alternate.iterdir()), [])
+
+    def add_reviewed_texture(self):
+        texture = b"reviewed embedded texture"
+        (self.folder / "jet-color.png").write_bytes(texture)
+        self.approval["embeddedTextures"] = {"jet-color.png": hashlib.sha256(texture).hexdigest()}
+        self.write_approval()
+        self.manifest["files"] = {**self.approval["uploadSet"], **self.approval["embeddedTextures"]}
+        self.decision["files"] = self.manifest["files"]
+        self.manifest_path.write_text(json.dumps(self.manifest))
+        self.decision_path.write_text(json.dumps(self.decision))
+        self.commit_evidence()
+
+    def test_texture_only_negative_decision_blocks_even_another_asset(self):
+        self.add_reviewed_texture()
+        self.dry()  # Full-set approval is valid before any rejection.
+        for verdict, score in (("REJECT", 10), ("APPROVE", 9)):
+            reject = {**self.decision, "asset": "other", "exportVersion": "other-1",
+                      "files": self.approval["embeddedTextures"], "verdict": verdict, "score": score}
+            self.decision_path.with_name("negative.json").write_text(json.dumps(reject))
+            self.commit_evidence()
+            self.refuse("REJECT/lesser score")
+
+    def test_same_asset_version_reject_blocks_different_hashes(self):
+        reject = {**self.decision, "files": {"other.fbx": "0" * 64}, "verdict": "REJECT"}
+        self.decision_path.with_name("negative.json").write_text(json.dumps(reject))
+        self.commit_evidence()
+        self.refuse("REJECT/lesser score")
+
+    def test_full_approve_then_later_texture_subset_reject_blocks(self):
+        self.add_reviewed_texture()
+        self.dry()
+        reject = {**self.decision, "files": self.approval["embeddedTextures"],
+                  "verdict": "REJECT", "reviewDate": "2026-11-01"}
+        # Sort after the approval as well as having a later date.
+        self.decision_path.with_name("zz-later-rejection.json").write_text(json.dumps(reject))
+        self.commit_evidence()
+        self.refuse("REJECT/lesser score")
 
     def test_state_dir_cannot_redirect_real_upload(self):
         alternate = self.root / "alternate"

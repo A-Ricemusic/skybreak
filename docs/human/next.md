@@ -1,6 +1,8 @@
 # Next
 
-PR #216 follow-up validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 148 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merge pending.
+PR #216: independently re-review the round-2 HOME/symlink and negative-decision fixes, then merge when accepted. Implementation uses OS account state and blocks negatives on any dependency hash or the same asset/export version. No upload authorized by this task.
+
+PR #216 round-2 validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 154 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merge pending.
 
 PR #216: review and merge upload-gate hardening; PR207 ground-kit evidence becomes usable only after both PRs merge. Heavy-bomber/carrier cannot be reuploaded under the strict any-REJECT rule. Other exports lacking sufficient hash-bound independent 10/10 evidence remain unapproved; see docs/qa/asset-reviews/upload-approval-format.md.
 

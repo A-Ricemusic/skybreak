@@ -1,6 +1,8 @@
 # Blockers and acceptance gaps
 
-PR #216 follow-up validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 148 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merge pending.
+PR #216 round-2 P1s: fixes implemented, independent re-review pending. HOME cannot select state; real uploads refuse mismatched home or symlinked canonical state. Texture-only and same-asset/version REJECTs or scores below 10 block the full upload. Prior heavy-bomber/carrier rejection blockers remain in force.
+
+PR #216 round-2 validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 154 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merge pending.
 
 PR #216 (unmerged): heavy-bomber and carrier have an incomplete REJECT for the same revision-2 hashes later approved. Strictest-decision rule now refuses reupload. PR207 assets/evidence await merge; other insufficiently documented exports remain unapproved (full list in docs/qa/asset-reviews/upload-approval-format.md). No existing live asset is changed. State-dir, local-only review and retry bypass fixes implemented and validated offline.
 

@@ -384,6 +384,9 @@ class AudioPathSecurityTests(NoNetworkTests):
 class PollSecurityTests(NoNetworkTests):
     def setUp(self):
         super().setUp()
+        location = patch.object(ru, "validate_upload_state")
+        location.start()
+        self.addCleanup(location.stop)
         temp = tempfile.TemporaryDirectory()
         self.addCleanup(temp.cleanup)
         self.state = Path(temp.name)

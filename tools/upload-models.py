@@ -18,7 +18,6 @@ import _http
 import roblox_upload as ru
 
 ROOT = Path(__file__).resolve().parent.parent
-CANONICAL_STATE = Path.home() / ".skybreak-roblox-uploads"
 REQUIRED_CHECKS = {"noText", "noLogosOrBrands", "noRealMilitaryInsignia", "noFaces",
                    "noSuggestiveShapes", "noGoreOrWeaponsGlorification", "originalDesign"}
 
@@ -136,9 +135,10 @@ def _main(argv: list[str] | None = None) -> None:
     if args.state_dir is not None and not args.dry_run:
         raise RuntimeError("--state-dir is permitted only with --dry-run; network uploads require canonical state")
     if not args.dry_run:
+        canonical = ru.validate_state_location()
         fetch_origin()
     if not args.dry_run or args.state_dir is not None:
-        ru.STATE = CANONICAL_STATE if not args.dry_run else args.state_dir
+        ru.STATE = canonical if not args.dry_run else args.state_dir
         ru.JOURNAL = ru.STATE / "journal-3407487520.json"
         ru.HALT = ru.STATE / "HALT-3407487520"
         ru.AUDIO_HALT = ru.STATE / "HALT-audio-3407487520"

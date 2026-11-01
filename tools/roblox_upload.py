@@ -11,6 +11,8 @@ from email.parser import BytesParser
 from email.policy import default
 import hashlib
 import json
+import os
+import pwd
 from pathlib import Path
 import re
 import subprocess
@@ -22,7 +24,29 @@ import uuid
 
 import _http
 
-STATE = Path.home() / ".skybreak-roblox-uploads"
+def account_home() -> Path:
+    """Read the OS account database, never the caller-controlled HOME."""
+    return Path(pwd.getpwuid(os.getuid()).pw_dir)
+
+
+def canonical_state() -> Path:
+    return account_home() / ".skybreak-roblox-uploads"
+
+
+def validate_state_location() -> Path:
+    """Fail closed before state access, credentials or network on real runs."""
+    home = account_home()
+    if (not home.is_absolute() or Path.home() != home
+            or ("HOME" in os.environ and Path(os.environ["HOME"]) != home)):
+        raise RuntimeError("HOME/Path.home differs from OS account home; uploads refused")
+    state = canonical_state()
+    # Reject even dangling symlinks. Do not follow redirected state to inspect it.
+    if state.is_symlink():
+        raise RuntimeError("Canonical upload state directory must not be a symlink")
+    return state
+
+
+STATE = canonical_state()
 JOURNAL = STATE / "journal-3407487520.json"
 HALT = STATE / "HALT-3407487520"
 AUDIO_HALT = STATE / "HALT-audio-3407487520"
@@ -34,6 +58,15 @@ REJECTED = "MODERATION_STATE_REJECTED"
 POLL_TIMEOUT_SECONDS = 600
 MAX_AUDIO_BYTES = 20_000_000
 MAX_MODEL_BYTES = 50_000_000
+
+
+def validate_upload_state() -> None:
+    state = validate_state_location()
+    expected = {"STATE": state, "JOURNAL": state / "journal-3407487520.json",
+                "HALT": state / "HALT-3407487520", "AUDIO_HALT": state / "HALT-audio-3407487520",
+                "MODEL_HALT": state / "HALT-models-3407487520"}
+    if any(globals()[name] != path for name, path in expected.items()):
+        raise RuntimeError("Real uploads require canonical journal and HALT paths")
 
 
 def save(path: Path, value: Any) -> None:
@@ -151,6 +184,12 @@ def require_model_review(filename: str, content: bytes, digest: str, *,
         hashes = decision.get("files")
         if not isinstance(hashes, dict):
             raise RuntimeError("Invalid safety decision files")
+        overlaps = bool(set(files.values()).intersection(hashes.values()))
+        same_export = decision.get("asset") == asset and decision.get("exportVersion") == version
+        negative = (decision.get("verdict") != "APPROVE" or type(decision.get("score")) is not int
+                    or decision["score"] != 10)
+        if negative and (overlaps or same_export):
+            raise RuntimeError("Safety decision requires 10/10 APPROVE; REJECT/lesser score blocks these bytes or export")
         if digest not in hashes.values():
             continue
         reviewer = decision.get("reviewer")
@@ -211,6 +250,7 @@ def http(method: str, url: str, key: str, body: bytes | None = None,
         kind = metadata.get("assetType")
         if asset_class(kind) == "audio":
             gate(asset_type=kind)
+        validate_upload_state()
         if MODEL_HALT.exists():
             raise RuntimeError("Model uploads halted by Roblox moderation")
         if kind != "Model":
@@ -222,6 +262,7 @@ def http(method: str, url: str, key: str, body: bytes | None = None,
         headers["Content-Type"] = content_type
     request = urllib.request.Request(url, data=body, method=method, headers=headers)
     def before_attempt():
+        validate_upload_state()
         if MODEL_HALT.exists():
             raise RuntimeError("Model uploads halted by Roblox moderation")
         if method == "POST":
@@ -270,6 +311,8 @@ def submit_and_moderate(name: str, entry: str, item: dict[str, Any] | None,
 
     The shared gate and committed review are checked even for direct callers. Returns the approved journal item.
     """
+    if asset_class(asset_type) != "audio":
+        validate_upload_state()
     gate(entry, asset_type=asset_type)
     deadline = time.monotonic() + POLL_TIMEOUT_SECONDS
     if asset_type == "Model":
