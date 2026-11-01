@@ -21,13 +21,13 @@ export const mission: MissionBlueprint={
  primary:"Three generators → central vent and escape → Rusk alone",
  briefing:MISSION_STORY_TEXT[18].briefing,debrief:MISSION_STORY_TEXT[18].debrief,failure:MISSION_STORY_TEXT[18].failure,ground:[],
  phases:[
-  {kind:"required_ground",count:3,label:"Silence the three generators",batchD13:{enclosed:true},beat:MISSION_STORY_TEXT[18].radio[0],groundTargets:M18_TARGETS.filter(t=>t.type==="generator"),concurrentFighters:12,
+  {kind:"required_ground",count:3,label:"Silence the three generators",finale:{enclosed:true},beat:MISSION_STORY_TEXT[18].radio[0],groundTargets:M18_TARGETS.filter(t=>t.type==="generator"),concurrentFighters:12,
    fighterWaves:m18TargetLayout().filter(t=>t.type==="elite_fighter").map(t=>({id:t.id,count:1,role:"raider" as const,scoreRole:"elite",livery:"Elite" as const,spawn:{x:t.x,y:t.y,z:t.z},headingDegrees:90,trigger:{kind:"phase_start" as const,phase:0}})),
    standaloneAce:{id:"m18_air_12",name:"LAST ECHO",livery:"Vulture",health:165,behaviour:"dogfight",scoreRole:"ace",spawn:{x:-6500,y:1000,z:4800},headingDegrees:90,trigger:{kind:"phase_start",phase:0}},
    chatter:[{at:0.25,text:MISSION_STORY_TEXT[18].radio[2]},{at:0.75,text:MISSION_STORY_TEXT[18].radio[3]}]},
   {kind:"required_ground",count:1,hidden:true,label:"Break the core and escape",execution:{preservePursuers:true,raiderKillCap:16},groundTargets:M18_TARGETS.filter(t=>t.type==="core"),
-   update:{objective:"Descend north of the grooves; cyan route, core, then north exit",countdownSeconds:M18.coreSeconds,radio:[MISSION_STORY_TEXT[18].radio[4],MISSION_STORY_TEXT[18].radio[5]]},batchD13:{vent:M18_VENT,ascending:M18_ASCENDING},
+   update:{objective:"Descend north of the grooves; cyan route, core, then north exit",countdownSeconds:M18.coreSeconds,radio:[MISSION_STORY_TEXT[18].radio[4],MISSION_STORY_TEXT[18].radio[5]]},finale:{vent:M18_VENT,ascending:M18_ASCENDING},
    chatter:[{at:0.3,text:MISSION_STORY_TEXT[18].radio[6]}]},
-  {kind:"ace",label:"Rusk · the last transmission",update:{objective:"Rusk alone · five minutes · allies hold fire",countdownSeconds:300,radio:[MISSION_STORY_TEXT[18].radio[1],MISSION_STORY_TEXT[18].radio[7],MISSION_STORY_TEXT[18].radio[8]]},batchD13:{duel:{center:{x:0,y:1400,z:M18.duel.z},radius:M18.duel.radius,minY:M18.duel.minY,maxY:M18.duel.maxY},environment:M18_WORLD_KEY}},
+  {kind:"ace",label:"Rusk · the last transmission",update:{objective:"Rusk alone · five minutes · allies hold fire",countdownSeconds:300,radio:[MISSION_STORY_TEXT[18].radio[1],MISSION_STORY_TEXT[18].radio[7],MISSION_STORY_TEXT[18].radio[8]]},finale:{duel:{center:{x:0,y:1400,z:M18.duel.z},radius:M18.duel.radius,minY:M18.duel.minY,maxY:M18.duel.maxY},environment:M18_WORLD_KEY}},
  ],
 };

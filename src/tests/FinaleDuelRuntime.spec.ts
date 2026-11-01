@@ -10,7 +10,7 @@ import { MissionCatalog, MissionBlueprint } from "../shared/MissionCatalog";
 import { SortieArmament } from "../shared/SortieArmament";
 function fixture() {
  const folder=new Instance("Folder");folder.Parent=Workspace;
- const bp={...MissionCatalog.Get(18),phases:[{kind:"ace" as const,label:"Rusk",update:{objective:"Duel",radio:[],countdownSeconds:300},batchD13:{duel:{center:{x:0,y:1000,z:0},radius:2000,minY:800,maxY:2400}}}]};
+ const bp={...MissionCatalog.Get(18),phases:[{kind:"ace" as const,label:"Rusk",update:{objective:"Duel",radio:[],countdownSeconds:300},finale:{duel:{center:{x:0,y:1000,z:0},radius:2000,minY:800,maxY:2400}}}]};
  const actor=(kind:Enemy["kind"],required:boolean,phaseOwner:number)=>{
   const model=new Instance("Model");model.Parent=folder;
   const enemy: Enemy = {id:kind,name:kind,hiddenParts:[],lockBreakChance:0,flareUntil:0,kind,required,phaseOwner,model,enabled:true,health:100,windup:2,position:new Vector3(0,1000,0),direction:new Vector3(0,0,-1),velocity:Vector3.zero,maxHealth:100,fireTimer:100,mode:"attack",modeTimer:0,side:1,passDirection:new Vector3(0,0,-1),flares:0,flareTimer:0,speedBonus:0,lockBreakTimer:100,breakTimer:100,breakUntil:0};
@@ -81,7 +81,7 @@ describe("D13 complete combat movement and projectile steps (execution pending)"
  it("keeps the vent exit and every arena edge inside the authored cylinder across combat steps",()=>{
   const f=fixture(); try {
    const arena={center:{x:0,y:1000,z:-2880},radius:5760,minY:800,maxY:2400};
-   f.s.blueprint!.phases[0].batchD13={duel:arena};f.rusk.windup=0;
+   f.s.blueprint!.phases[0].finale={duel:arena};f.rusk.windup=0;
    stepFinaleDuel(f.s,()=>{});
    for(const position of [new Vector3(0,174,-7000),new Vector3(0,1800,-7000),new Vector3(5760,2400,-2880),new Vector3(-5760,800,-2880),new Vector3(0,2400,2880),new Vector3(0,800,-8640)]) {
     f.rusk.position=position;
@@ -92,7 +92,7 @@ describe("D13 complete combat movement and projectile steps (execution pending)"
     }
     if(position.Z===-7000) expect(f.rusk.position.Z).toBeLessThan(-6000);
    }
-   f.s.blueprint!.phases[0].batchD13=undefined;
+   f.s.blueprint!.phases[0].finale=undefined;
    f.rusk.position=new Vector3(4000,2000,-7000);stepEnemies(f.s,1/60);
    expect(f.rusk.position.X).toBe(2700);expect(f.rusk.position.Y).toBe(1000);expect(f.rusk.position.Z).toBe(-2700);
   } finally {f.folder.Destroy();}
@@ -104,8 +104,8 @@ describe("D13 complete combat movement and projectile steps (execution pending)"
    f.s.enemies=[core];f.s.allies=[];f.s.state=FlightMath.FromPose(200,1200,100,0,0,300);
    const volume={center:{x:0,y:1200,z:0},half:{x:50,y:50,z:50}};
    const vent={generators:[],core:"core",checkpoints:[],openingSeconds:3,gate:volume,exit:volume};
-   const bp: MissionBlueprint={...MissionCatalog.Get(18),phases:[{kind:"required_ground" as const,label:"Core",count:1,batchD13:{vent}}]};
-   if(mode==="legacy") bp.phases[0].batchD13=undefined;
+   const bp: MissionBlueprint={...MissionCatalog.Get(18),phases:[{kind:"required_ground" as const,label:"Core",count:1,finale:{vent}}]};
+   if(mode==="legacy") bp.phases[0].finale=undefined;
    f.s.blueprint=bp;f.s.blueprintState=BlueprintRunner.NewState(bp,os.clock());f.s.blueprintState.vent={elapsed:4,checkpoint:0,exited:false};
    const scenery=new Instance("Part");scenery.Anchored=true;scenery.Size=wall ? new Vector3(40,40,4) : new Vector3(4,40,400);
    scenery.Position=wall ? new Vector3(0,1200,60) : new Vector3(100,1200,0);scenery.Parent=f.folder;

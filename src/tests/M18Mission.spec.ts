@@ -26,7 +26,7 @@ describe("M18 playable finale",()=>{
   expect(bp.countdownSeconds).toBe(1200);expect(bp.phases[1].update!.countdownSeconds).toBe(1800);expect(bp.phases[2].update!.countdownSeconds).toBe(300);
   for(const t of M18_TARGETS){const world=m18TargetLayout().find(w=>w.id===t.id)!;expect(t.position).toEqual({x:world.x,y:world.y,z:world.z});expect(t.required).toBe(true);}
   const ids=[...M18_TARGETS.map(t=>t.id),...bp.phases[0].fighterWaves!.map(t=>t.id),bp.phases[0].standaloneAce!.id,...M18_ASCENDING.map(t=>t.id),duelTargetId(2)];expect(new Set(ids).size()).toBe(21);
-  const invalid={...bp,phases:bp.phases.map(p=>({...p}))};invalid.phases[1].batchD13={...bp.phases[1].batchD13,ascending:M18_ASCENDING.map((t,i)=>i===0?{...t,id:v.core}:t)};
+  const invalid={...bp,phases:bp.phases.map(p=>({...p}))};invalid.phases[1].finale={...bp.phases[1].finale,ascending:M18_ASCENDING.map((t,i)=>i===0?{...t,id:v.core}:t)};
   const [ok]=pcall(()=>MissionCatalog.ValidatePolicy(invalid));expect(ok).toBe(false);
   const ledger=new TargetScore(bp.scoring!);for(let i=0;i<11;i++)ledger.RecordKill(`e${i}`,"elite");ledger.RecordKill("named","ace");for(const t of M18_TARGETS)ledger.RecordKill(t.id,t.scoreRole);for(const t of M18_ASCENDING)ledger.RecordKill(t.id,"ascending");expect(ledger.Total()).toBe(4920);ledger.RecordKill("rusk","ace");expect(ledger.Total()).toBe(5160);
   expect(bp.scoring!.rank).toEqual({S:4920,A:4200,B:3300,C:2730});expect(5160-240).toBeGreaterThanOrEqual(bp.scoring!.rank.S);
