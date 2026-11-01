@@ -1,3 +1,4 @@
+import { GROUND_KIT_BUDGET_ATTRIBUTE, GROUND_KIT_INSTANCE_ALLOWANCE } from "./WorldInstanceBudget";
 import { MILITARY_GROUND_KIT } from "../shared/MilitaryGroundKit";
 import { WorldAssets } from "./WorldAssets";
 import { navalHull } from "../shared/SurfaceTargetRules";
@@ -23,6 +24,13 @@ export function decorateGroundTarget(model: Model, targetType: GroundTargetType,
  const proxies = model.GetDescendants();
  const visual = WorldAssets.PlaceUploaded(asset, model, bounds.mul(new CFrame(0, -size.Y / 2, 0)), scale);
  if (visual === undefined) return;
+ // Fail back to the unchanged proxies before hiding anything if a future import grows.
+ if (1 + visual.GetDescendants().size() > GROUND_KIT_INSTANCE_ALLOWANCE) {
+  visual.Destroy();
+  warn(`Ground kit ${asset} exceeds ${GROUND_KIT_INSTANCE_ALLOWANCE} instances; retaining procedural visual`);
+  return;
+ }
+ visual.SetAttribute(GROUND_KIT_BUDGET_ATTRIBUTE, true);
  for (const p of proxies) if (p.IsA("BasePart")) { p.SetAttribute("GroundKitQuery", p.Transparency < 1); p.Transparency = 1; }
  for (const p of visual.GetDescendants()) if (p.IsA("BasePart")) {
   p.SetAttribute("GroundKitQuery", false); p.CanQuery = false; p.CanCollide = false; p.CanTouch = false; p.SetAttribute("FlightSolid", false);
