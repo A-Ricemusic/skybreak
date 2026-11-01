@@ -1,5 +1,7 @@
 # Decisions
 
+D-666 — Military ground kit (2026-10-31). Decision maker: owner request, implementation agent. Status: proposed in unmerged asset branch. Use ten original procedural Blender meshes with one 256² PBR atlas each and ≤2,500 triangles, dormant IDs, existing procedural fallback and invisible original collision/aim proxies. Alternative: replace gameplay geometry or stretch models to generic bounds; rejected to preserve existing targeting and silhouettes. Uniform fit keeps visuals inside current envelopes; D6 retains far Part LOD. No people, skin textures, text or real insignia. Independent exact-file 10/10 safety review remains mandatory before upload. Specialist landmarks and all-mesh terrain are separate work.
+
 M13 replay validation (2026-10-30, base 351d7988): frozen install, standalone build, test:offline, voice/story/catalog regeneration and full validate:offline with the prescribed LUAU_BIN exited 0. Passed 1,118 Luau contracts, four loader guards, 19 catalog snapshots, three relay harness scenarios and 124 Python tests. All 103 prior specs plus M13 are staged and required with checkedRequire retained. Only M13's catalog entry differs; all 215 prior voice/story entries remain unchanged, with 223 total / 145 pending recordings. M12 numeric normalization and every prior decision record are preserved. Studio verified: pending orchestrator run. No Studio, test:roblox, Player tests or uploads performed. #195 merged as e2c7fab2; live by pipeline convention.
 
 D13-FIXTURE-001 (2026-10-31, implementation agent; implemented on PR #194, merge pending): share the production session initializer with D13 combat-step fixtures and type-check their enemies. Reject defensive nil defaults for required session fields: production already initializes evadeRemaining, the score ledger and pause state. Preserve movement and guided/blind projectile assertions; use a current monotonic blueprint clock to avoid unrelated sortie expiry. No mission activation or gameplay tuning.
@@ -698,9 +700,9 @@ M18 #200 replay validation (2026-10-31, M17 base be746a10): frozen install, stan
 
 ## D-665 — Results continuation preserves D-030 chapter order
 
-- **Decision:** Pending PR #202 routes Next and normal start through shared chapter gating. Unseen pre-mission chapters finish or Skip before the normal loading/RPC path; seen chapters launch directly. Next uses no cached client unlock gate.
+- **Decision:** Merged PR #202 routes Next and normal start through shared chapter gating. Unseen pre-mission chapters finish or Skip before the normal loading/RPC path; seen chapters launch directly. Next uses no cached client unlock gate.
 - **Alternatives:** Direct launch silently omits unseen chapters; reusing the old client unlock check restores the owner's silent-Next bug. Both rejected.
 - **Progress protection:** StartMission still resolves mission unlocks on fresh server state after result settlement. Seen markers require a matching played/skipped chapter acknowledgement for that unlocked mission; launches without acknowledgements do not mark chapters. The finale requires a recorded M18 win plus its finish/Skip acknowledgement. Cancellation does not acknowledge playback.
-- **Maker / status:** Implementation sub-agent under owner review-fix instruction, 2026-10-31; proposed in #202, unmerged. Offline tests only; no Studio or Player verification.
+- **Maker / status:** Implementation sub-agent under owner review-fix instruction, 2026-10-31; merged in #202 (`cb8e1d10`). Offline tests only; no Studio or Player verification.
 
 Validation: `bun install --frozen-lockfile`, `bun run build`, and `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau" bun run validate:offline` exited 0. Added ChapterContinuation.spec to both runner lists; 1,223 Luau contracts passed, retaining missions 1–17 continuation, save-in-flight, M18 no-Next and loading debounce coverage.

@@ -1,0 +1,137 @@
+{
+  "name": "military-containers",
+  "title": "Ground kit containers",
+  "variantOf": null,
+  "exportVersion": "military-ground-kit-1",
+  "robloxAssetType": "Model",
+  "usage": "Dormant ground-target visual; existing proxy retains collision, aim and score.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "military-containers.fbx",
+    "bytes": 158364
+  },
+  "triangleCount": 900,
+  "triangleLimit": 2500,
+  "objects": [
+    {
+      "name": "military-containers",
+      "triangles": 900
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "military-containers-color.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 58083
+    },
+    {
+      "role": "normal",
+      "file": "military-containers-normal.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 1500
+    },
+    {
+      "role": "rough",
+      "file": "military-containers-roughness.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 46932
+    },
+    {
+      "role": "metal",
+      "file": "military-containers-metalness.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 4599
+    }
+  ],
+  "robloxSizeStuds": [
+    31.45,
+    24.0,
+    36.3
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 0.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png",
+    "preview-back.png",
+    "preview-side-right.png",
+    "preview-bottom.png",
+    "preview-3q-front-left.png",
+    "preview-3q-rear-right.png",
+    "preview-3q-rear-left.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "Textures are baked from noise, grids and masks only; no letters, numbers, words, call signs or codes in mesh or texture."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national or unit markings; shape is an original design, not a copy of any real vehicle or building."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or face-like arrangements."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Original hard-surface equipment; creator precheck, independent inspection pending."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "Static original military equipment, sealed tubes/barrels, no crew, ammunition, firing effects, gore or celebratory presentation. Creator precheck only; independent policy review required."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "Authored procedurally in tools/assets from original dimensions; no third-party meshes or scans."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": [],
+  "sha256": {
+    "contact-sheet.png": "068698f2e5b195523bd93e9376e9e4cabc2f3d1bb80bc32c225ac4d810c97a3d",
+    "military-containers-color.png": "d072bee7f36d52d3d5eab963ba0f976ae235855af9234d2c960d7129d7b2b0d6",
+    "military-containers-metalness.png": "c98c849d2a897e9936e0f4d712e347c4ab3bb041a86ad7cc19237d202f6d25f3",
+    "military-containers-normal.png": "44da437029c7d4f5d146ca74521d3494a7244d9031b18a7d0205f846f7fcdf7e",
+    "military-containers-roughness.png": "5028f67c709aabb033057ae063555452889c344ee5c2210a6b0e7336669fbcc1",
+    "military-containers.fbx": "35ef2eb36f74f1e85dd359c668b94f4e4084be39605b2a1c9e6706f32618bdf3",
+    "preview-3q-front-left.png": "f1aac9aa610911b93318c83d7e9b6077ce15741660fdfaaa6297cace2b834b14",
+    "preview-3q-rear-left.png": "325adcc261bac547615a36d059ea3afedc7741f647f55b736c0b20163cc1efe5",
+    "preview-3q-rear-right.png": "17f0202453e897b9f08c22c00ccdbf1b79c47e92a138631cd74d21f062e7201f",
+    "preview-3q.png": "99a8cf1333d108c6d7407417db76ade34dff5dc67ec139f4a437e8ba98e459c2",
+    "preview-back.png": "8aa0736c0ce20de3d215d6a63995811c8abd6f0f7a11f2d15525ae64a2223f12",
+    "preview-bottom.png": "36e422b61da18c6c194c60e545721dba9f360250ccaba811efe698ccd981f151",
+    "preview-front.png": "6b6ee050928f4e82a7e326cbf08c1d35059f6ea4f86b4e54c8d2f11e9654e7a6",
+    "preview-side-right.png": "98e879b6cace171309445ae669450f38d5a86c1c0c77e1315f0087ecdcb0bb17",
+    "preview-side.png": "d84439012fefd05f165952135f1f7188eaf9a66ddf252fc4e861c566b4cc6f56",
+    "preview-top.png": "431ec924ef70005b651f2fe0aa5cec2fbfa74bb8f3319438ff21d21e907ca770"
+  },
+  "previewNotes": {
+    "preview-front.png": "Orthographic from ahead (the model's front, Roblox -Z).",
+    "preview-side.png": "Orthographic from the left (port), Blender +X.",
+    "preview-top.png": "Orthographic from above, front at the top, the model's right (starboard) on the image's right.",
+    "preview-3q.png": "Perspective from ahead, the right (starboard), above.",
+    "preview-back.png": "Orthographic from behind.",
+    "preview-side-right.png": "Orthographic from the right (starboard).",
+    "preview-bottom.png": "Orthographic from below.",
+    "preview-3q-front-left.png": "Perspective from ahead, the left (port), above.",
+    "preview-3q-rear-right.png": "Perspective from behind, the right (starboard), above.",
+    "preview-3q-rear-left.png": "Perspective from behind, the left (port), above."
+  },
+  "kitVersion": "military-ground-kit-1",
+  "reviewStatus": "PENDING independent exact-file 10/10 safety review; NOT approved; NOT uploaded; dormant IDs",
+  "contactSheet": "contact-sheet.png"
+}

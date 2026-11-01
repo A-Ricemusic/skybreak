@@ -1,3 +1,5 @@
+import { WorldAssets } from "./WorldAssets";
+import { MILITARY_GROUND_ASSETS } from "../shared/MilitaryGroundKit";
 import { registerWorldClear } from "./WorldLifecycleRuntime";
 import { buildM05Plan, M05_ENVIRONMENT, M05_WORLD_KEY, m05TargetLayout } from "../shared/M05WorldPlan";
 import { M05_BUILD_LIMITS } from "../shared/M05Limits";
@@ -12,6 +14,7 @@ import { adoptGroundTarget } from "./GroundTargetFactory";
  */
 export const M05World = {
 	Build(parent: Instance, seed = 505): { groundTargets: Model[]; targetVisuals: Map<string, Model> } {
+  WorldAssets.Preload(MILITARY_GROUND_ASSETS);
 		const built = buildComposition(parent, M05_ENVIRONMENT, checkpoint => buildM05Plan(seed, checkpoint), M05_BUILD_LIMITS.descendants, 14000);
 		const scene = parent.FindFirstChild(M05_WORLD_KEY);
 		assert(scene !== undefined, "M05 scene folder is missing");
