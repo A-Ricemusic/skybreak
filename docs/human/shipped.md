@@ -1,15 +1,16 @@
 # Shipped
 
-| Pending PR | Merge commit | Proposed change | Player status |
-|---|---|---|---|
-| hotfix/m03-crash-2 | Unmerged | M3 terrain/PBR memory mitigation and construction diagnostics | Not live; Not Studio/Player tested; reported mobile application crash remains open |
+M3 crash mitigation #236 merged as `364a7413`, live as Roblox version 148, published 2026-11-01. It removes the inaccessible bottom floor, temporarily uses procedural targets with no military meshes/PBR maps, and logs construction errors before recovery. The owner-reported mobile app crash remains open: cause unconfirmed, awaiting owner phone retest. Not Studio/Player tested. Restore M3 military visuals only once the crash cause is confirmed. See [investigation](../qa/m03-crash-second-hotfix.md).
 
-Owner reports the Roblox app still closes on mobile when launching M3 on live main 36e949d0 after #220. Second hotfix pending: remove inaccessible 60M-voxel bottom floor, keep all M3 targets procedural with zero military meshes/PBR maps, and log construction error phase before recovery. Live cause unconfirmed; Not Studio/Player tested. See [investigation](../qa/m03-crash-second-hotfix.md).
-
-Updated 2026-11-01 against main `36e949d0`. Newest first in main history. Gameplay merges are live by the owner’s automatic-pipeline convention; this is not a claim of Player observation. Assets-only merges do not activate models. Open #205/#203/#210/#221/#227 are not shipped.
+Updated 2026-11-01 against main `556a6807`. Newest first in main history. Gameplay merges are live by the owner’s automatic-pipeline convention; this is not a claim of Player observation. Assets-only merges do not activate models. Open #203/#205/#210/#221/#227/#231/#233/#235 are not shipped.
 
 | PR | Merge commit | Change | What the owner sees in Roblox Player |
 |---|---|---|---|
+| [#234](https://github.com/A-Ricemusic/skybreak/pull/234) | `556a6807` | Publish/generation secret-reflection hardening | Tools only; no Player change. |
+| [#236](https://github.com/A-Ricemusic/skybreak/pull/236) | `364a7413` | M3 terrain and military-asset memory mitigation | Merged/live as Roblox version 148, published 2026-11-01; temporary procedural M3 targets. Mitigation for owner-reported mobile app crash; cause unconfirmed. Not Studio/Player tested; owner asked to retest M3 on phone. |
+| [#232](https://github.com/A-Ricemusic/skybreak/pull/232) | `c7e4dc62` | Align M7/M17 radio text with mission rules | M17 tower correctly says hull repairs available; M7 chatter no longer names installations in a fixed order. Live by pipeline convention; no Player test claimed. |
+| [#230](https://github.com/A-Ricemusic/skybreak/pull/230) | `c4b799e1` | Upload-gate parsing, journal temp-file hardening and flaky Python test fix | Tools only; no Player change. |
+| [#229](https://github.com/A-Ricemusic/skybreak/pull/229) | `4f5d38bb` | Reconcile human dashboard with main and Studio blockers | Documentation only; no Player change. |
 | [#225](https://github.com/A-Ricemusic/skybreak/pull/225) | `36e949d0` | refactor: drop four dead exports and un-export 47 file-local functions | Internal export cleanup; no intended Player behavior change. |
 | [#224](https://github.com/A-Ricemusic/skybreak/pull/224) | `98ae385b` | tools: inventory README, docstrings on the upload and publish gate modules, named CI steps | Tools documentation and CI step names; no Player change. |
 | [#223](https://github.com/A-Ricemusic/skybreak/pull/223) | `073dbfce` | docs: mark the redesign plan and engine readiness review as historical; complete the specs index | Historical documentation/index correction; no Player change. |
