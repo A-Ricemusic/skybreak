@@ -50,7 +50,7 @@ Two causes dominate. First, every yield costs a whole engine frame once a 32k-st
 
 `worldCounts` now estimates `work + yields × frame + 3 s`. Here work is touches × 0.07 ms (water 0.2 ms), yields is work / 0.25 s, and frame is 0.2 s plus 0.45 s × the water share of work. This is calibrated at the shipped 0.25 s budget only: the frame cost at much smaller budgets was lower (25 ms per yield at 8 ms), so the model does not extrapolate to other budgets. It gives M04 16.2 s, against the bench's 11.7 s terrain plus about 3 s of other phases, and M05 42.8 s.
 
-The 0.25 s budget means the server can stall up to about 0.6 s (one resumption plus the longest job, 0.33–0.37 s) while the loading screen is up. The world is single-player and no combat runs during this phase. Studio Play shares one machine between server and client; a live server and a phone client split this differently, and phone load time remains unmeasured.
+The historical scheduler could exceed its 0.25 s configured slice by one native job (0.33–0.37 s in these benchmarks); native calls cannot be preempted. PR #205 review fixes restore this configuration rather than extrapolating to multi-second slices, record maximum accumulated terrain batch time, and make all-18 Studio build cases assert ≤0.3 s batches and Heartbeat gaps plus ≤16 s total builds. These new assertions have not been run in Studio by the implementation agent. Current estimates for M03/M04/M05 are 18.134 / 16.160 / 37.441 s, and the strict offline gates expose those overruns. Phone load time remains unmeasured.
 
 ## Target layout
 

@@ -6,7 +6,7 @@ import { M01 } from "../shared/M01Geometry";
 import { compileBomberEncounter } from "../shared/BomberEncounter";
 import { BomberRules } from "../shared/BomberRules";
 import {afterAll,afterEach,beforeAll,describe,expect,it} from "@rbxts/jest-globals";
-import {Lighting,Workspace} from "@rbxts/services";
+import {Lighting,RunService,Workspace} from "@rbxts/services";
 import {MissionWorld} from "../server/MissionWorld";
 import {WorldAssets} from "../server/WorldAssets";
 import {MissionCatalog} from "../shared/MissionCatalog";
@@ -56,14 +56,30 @@ describe("Released campaign world integration (Studio only)",()=>{
  beforeAll(()=>UploadedAssets.Configure({ids:fakeIds(),probe,loader:fakeUpload}));
  afterAll(()=>UploadedAssets.Configure());
  afterEach(()=>{cleanup(fixture);fixture=undefined;Lighting.FindFirstChild("M01SunRays")?.Destroy();});
- // Campaign-path timings, intentionally separate from the pure 16 s estimate gate.
- for (let id = 1; id <= 18; id++) it(`records actual Studio build time for M${id}`, () => {
+ // Measure heartbeat gaps through every build phase, including its final synchronous tail.
+ for (let id = 1; id <= 18; id++) it(`bounds actual Studio build time and heartbeat gaps for M${id}`, () => {
   fixture = new Instance("Folder"); fixture.Name = "WorldTimingFixture"; fixture.Parent = Workspace;
-  const start = os.clock();
-  MissionWorld.Build(id, fixture);
-  const seconds = os.clock() - start;
-  print(`MISSION_STUDIO_BUILD mission=${id} seconds=${seconds} plan=${fixture.GetAttribute("WorldPlanSeconds")} terrainReady=${fixture.GetAttribute("WorldTerrainReadySeconds")} terrainWork=${fixture.GetAttribute("WorldTerrainWorkSeconds")} yields=${fixture.GetAttribute("WorldTerrainYields")} longestJob=${fixture.GetAttribute("WorldTerrainLongest")} (fake uploads; excludes cleanup/replication/device load)`);
+  RunService.Heartbeat.Wait();
+  let previous = os.clock(), maxGap = 0, beats = 0;
+  const heartbeat = RunService.Heartbeat.Connect(() => {
+   const now = os.clock(); maxGap = math.max(maxGap, now - previous); previous = now; beats++;
+  });
+  let seconds = 0;
+  try {
+   const start = os.clock();
+   MissionWorld.Build(id, fixture);
+   seconds = os.clock() - start;
+   maxGap = math.max(maxGap, os.clock() - previous);
+   // Observe the next heartbeat too, so a blocking final phase cannot escape measurement.
+   RunService.Heartbeat.Wait();
+  } finally { heartbeat.Disconnect(); }
+  const batch = fixture.GetAttribute("WorldTerrainLongestBatch") as number;
+  print(`MISSION_STUDIO_BUILD mission=${id} seconds=${seconds} maxHeartbeatGap=${maxGap} heartbeats=${beats} maxTerrainBatch=${batch} plan=${fixture.GetAttribute("WorldPlanSeconds")} terrainReady=${fixture.GetAttribute("WorldTerrainReadySeconds")} terrainWork=${fixture.GetAttribute("WorldTerrainWorkSeconds")} yields=${fixture.GetAttribute("WorldTerrainYields")} longestJob=${fixture.GetAttribute("WorldTerrainLongest")} (fake uploads; excludes cleanup/replication/device load)`);
+  expect(beats).toBeGreaterThan(0);
   expect(seconds).toBeGreaterThan(0);
+  expect(batch).toBeLessThanOrEqual(0.3);
+  expect(maxGap).toBeLessThanOrEqual(0.3);
+  expect(seconds).toBeLessThanOrEqual(16);
  }, 180000);
  for(const id of [0,1])it(`builds and disposes released sortie ${id}`,()=>{
   fixture=new Instance("Folder");fixture.Name="CampaignWorldFixture";fixture.Parent=Workspace;

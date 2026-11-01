@@ -1,3 +1,7 @@
+import { worldCounts } from "../shared/WorldCompositionCounts";
+import { M03_TERRAIN_BUDGET } from "../shared/M03WorldPlan";
+import { M04_TERRAIN_BUDGET } from "../shared/M04WorldPlan";
+import { M05_TERRAIN_BUDGET } from "../shared/M05WorldPlan";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { buildM01Plan, m01Counts } from "../shared/M01WorldPlan";
 import { buildM02Plan, m02Counts } from "../shared/M02WorldPlan";
@@ -20,6 +24,12 @@ import { buildM18Plan, m18Counts } from "../shared/M18WorldPlan";
 
 /** Pure estimator gate, also run offline. Actual build timing lives in RelayWorld.spec. */
 describe("Campaign loading estimates", () => {
+ it("keeps runtime slices within calibration and charges calibrated yields", () => {
+  for (const budget of [M03_TERRAIN_BUDGET, M04_TERRAIN_BUDGET, M05_TERRAIN_BUDGET]) expect(budget).toBeLessThanOrEqual(0.25);
+  // 64 water touches = .0128 s work, one .65 s yield, plus 3 s fixed.
+  const c = worldCounts({ops: [{shape: "block", material: "Water", x: 512, y: 16, z: 512, sx: 1024, sy: 32, sz: 1024, yaw: 0}], parts: [], props: []}, 0);
+  expect(c.estimatedSeconds).toBeCloseTo(3.6628, 6);
+ });
  it("keeps M01 within the 16-second modeled build budget", () => {
   const counts = m01Counts(buildM01Plan());
   print(`MISSION_LOAD_ESTIMATE mission=01 seconds=${counts.estimatedSeconds} jobs=${counts.jobs}`);

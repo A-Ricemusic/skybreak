@@ -39,6 +39,7 @@ describe("Terrain write scheduler", () => {
 		expect(run.yields).toBe(3);
 		expect(run.longest).toBeCloseTo(0.02, 6);
 		expect(run.total).toBeCloseTo(0.05, 6);
+		expect(run.longestBatch).toBeCloseTo(0.02, 6);
 	});
 	it("never runs more than one budget plus one job between yields on the heaviest worlds", () => {
 		// Cost model: 40 ns per filled voxel, 250 ns per bump cell (the Luau loop) - only the ratio matters here.

@@ -90,6 +90,7 @@ export const M01World = {
 		const terrain = TerrainWriter.Write(plan.ops, 0.008, M01_FILL_CHUNK);
 		parent.SetAttribute("WorldTerrainReadySeconds", os.clock() - start);
 		parent.SetAttribute("WorldTerrainLongest", terrain.longest);
+	parent.SetAttribute("WorldTerrainLongestBatch", terrain.longestBatch);
 		parent.SetAttribute("WorldTerrainJobs", terrain.jobs);
 		task.wait();
 		parent.SetAttribute("WorldBuildPhase", "dressing");

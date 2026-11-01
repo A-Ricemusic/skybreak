@@ -67,6 +67,7 @@ export const M03World = {
 		const timing = TerrainWriter.Write(plan.ops, M03_TERRAIN_BUDGET, M03_FILL_CHUNK);
 		parent.SetAttribute("WorldTerrainReadySeconds", os.clock() - start);
 		parent.SetAttribute("WorldTerrainLongest", timing.longest);
+	parent.SetAttribute("WorldTerrainLongestBatch", timing.longestBatch);
 		parent.SetAttribute("WorldTerrainJobs", timing.jobs);
  parent.SetAttribute("WorldTerrainWorkSeconds", timing.total);
  parent.SetAttribute("WorldTerrainYields", timing.yields);

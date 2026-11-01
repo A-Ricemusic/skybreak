@@ -1,8 +1,33 @@
 # SKYBREAK campaign dashboard
 
-Pending `perf/m03-m05-load` (2026-10-31), unmerged: loading estimates M01 **19.963 → 13.466 s**, M03 **19.613 → 14.734 s**, M04 **16.160 → 15.104 s**, M05 **37.441 → 15.828 s**. M01 coalesces identical adjacent land columns; M03 removes only its unreachable buried floor and adopts chunk/yield estimation; M04/M05 retain all native terrain/water, scenery and mission poses. Larger 262,144-voxel fills and loading-only work budgets of 0.5 / 0.3 / 3 s reduce redundant work and frame waits. M05 can stall server work for 3 s during loading: these are extrapolated estimator results, **not measured device times**. M06–M18 are already ≤16 s; M10 is closest at 14.739 s. A new all-18 offline gate and Studio timing cases cover every mission. Studio/test:roblox/Player were deliberately not run; orchestrator timing and device acceptance remain pending. No gameplay changes or uploads.
+PR [#205](https://github.com/A-Ricemusic/skybreak/pull/205) review fix (2026-10-31), unmerged: M03–M05 loading slices restored to **0.25 s**; estimator yield overhead fixed to its **0.25 s calibration**, with no runtime-budget parameter. Exact consecutive same-material box unions reduce native fill calls while preserving terrain occupancy, materials and overwrite order. Targets, corridors, spawns, water and scenery are unchanged. Calibrated estimates are **M03 18.134 s, M04 16.160 s, M05 37.441 s**: the strict 16 s gates remain failing, not relaxed. M05 already touches each of its 41,760 water chunks once; water alone has a continuous calibrated lower bound of **33.067 s** including fixed overhead, before solid terrain. Fewer calls alone cannot make this footprint fit 16 s under this model. Studio cases log total time, maximum terrain batch and maximum Heartbeat gap, asserting 16 s / 0.3 s. Runtime yields cannot preempt a native Fill; those assertions must establish responsiveness in Studio. No Studio, test:roblox, Player test or upload performed. Orchestrator acceptance remains open.
 
-Validation for proposed [PR #205](https://github.com/A-Ricemusic/skybreak/pull/205): frozen install, build and prescribed-LUAU_BIN `validate:offline` exited 0; 1,242 Luau contracts, all 18 load estimates, module compile guard and 124 Python tests passed. Studio/Player measurements remain pending; no Studio or `test:roblox` run.
+Review-fix validation (2026-10-31): `bun install --frozen-lockfile` and `bun run build` exited 0. Prescribed-LUAU_BIN `validate:offline` exited **1**: **1,238 contracts passed, five failed**, all strict load-estimate assertions for M03/M04/M05 (three campaign cases plus M03 and M04/M05 world-budget cases). Module compilation (488), require graph (202), four loader guards and static environment/builder checks passed before the estimator failure stopped validation; later validation stages did not run. This does **not** satisfy the requested all-green validation. No limits, assertions or calibration costs were loosened. No Studio, Roblox Jest or Player tests were run.
+
+Calibrated estimates in seconds (not measured Studio/Player times):
+
+| Mission | Estimate | 16 s gate |
+|---|---:|---|
+| M01 | 13.466 | pass |
+| M02 | 10.467 | pass |
+| M03 | 18.134 | **fail** |
+| M04 | 16.160 | **fail** |
+| M05 | 37.441 | **fail** |
+| M06 | 10.265 | pass |
+| M07 | 14.501 | pass |
+| M08 | 4.235 | pass |
+| M09 | 10.474 | pass |
+| M10 | 14.739 | pass |
+| M11 | 14.455 | pass |
+| M12 | 12.771 | pass |
+| M13 | 13.253 | pass |
+| M14 | 7.022 | pass |
+| M15 | 11.352 | pass |
+| M16 | 12.300 | pass |
+| M17 | 7.283 | pass |
+| M18 | 3.702 | pass |
+
+Exact material/box coverage comparison against the uncoalesced builder passed for M04 and M05 (including every cap, curtain and water box). Native plan operations: M04 8,563 → 8,450; M05 3,255 → 2,100. Chunk touches and calibrated time remain unchanged; fewer calls are not claimed as a model-budget pass.
 
 Updated 2026-10-31 against main `c1266e30` (#201); results continuation and chapter-gating fix pending PR #202.
 

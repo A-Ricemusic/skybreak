@@ -42,6 +42,7 @@ export const M02World = {
 		const timing = TerrainWriter.Write(plan.ops, 0.008, M02_FILL_CHUNK);
 		parent.SetAttribute("WorldTerrainReadySeconds", os.clock() - start);
 		parent.SetAttribute("WorldTerrainLongest", timing.longest);
+	parent.SetAttribute("WorldTerrainLongestBatch", timing.longestBatch);
 		parent.SetAttribute("WorldTerrainJobs", timing.jobs);
 		parent.SetAttribute("WorldBuildPhase", "dressing");
 		for (let i = 0; i < plan.parts.size(); i++) {

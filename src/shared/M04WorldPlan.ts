@@ -1,4 +1,4 @@
-export const M04_TERRAIN_BUDGET = 0.3;
+export const M04_TERRAIN_BUDGET = 0.25;
 import type { EnvironmentSpec } from "./EnvironmentPresets";
 import type { PartSpec, PropSpec } from "./WorldPlan";
 import { polyDist } from "./Polyline";
@@ -71,4 +71,4 @@ export function buildM04Plan(seed = 404, checkpoint: () => void = () => {}) {
  }
  return { ...terrain, key: M04_WORLD_KEY, seed, parts, props, targets: m04TargetLayout() };
 }
-export const m04Counts = (p: ReturnType<typeof buildM04Plan>) => worldCounts(p, 15 * 4, M04_TERRAIN_BUDGET);
+export const m04Counts = (p: ReturnType<typeof buildM04Plan>) => worldCounts(p, 15 * 4);

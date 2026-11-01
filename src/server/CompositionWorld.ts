@@ -50,7 +50,8 @@ export function buildComposition(parent: Instance, environment: EnvironmentSpec,
  }
  parent.SetAttribute("WorldBuildPhase", "terrain");
  const timing = TerrainWriter.Write(plan.ops, terrainBudget, fillChunk);
- parent.SetAttribute("WorldTerrainReadySeconds", os.clock() - start); parent.SetAttribute("WorldTerrainLongest", timing.longest); parent.SetAttribute("WorldTerrainJobs", timing.jobs);
+ parent.SetAttribute("WorldTerrainReadySeconds", os.clock() - start); parent.SetAttribute("WorldTerrainLongest", timing.longest);
+	parent.SetAttribute("WorldTerrainLongestBatch", timing.longestBatch); parent.SetAttribute("WorldTerrainJobs", timing.jobs);
  parent.SetAttribute("WorldTerrainWorkSeconds", timing.total);
  parent.SetAttribute("WorldTerrainYields", timing.yields);
  parent.SetAttribute("WorldBuildPhase", "dressing");

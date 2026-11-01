@@ -39,7 +39,23 @@ export function sealedSurface(surface: WorldSurface, checkpoint: () => void) {
  const half = WORLD_HALF, ops: TerrainOp[] = [];
  const p = { ops, detailCells: 0, coarseCells: 0 };
  const block = (material: TerrainMaterial, x: number, z: number, sx: number, sz: number, bottom: number, top: number) => {
-  if (top > bottom) ops.push({ shape: "block", material, x, y: (bottom + top) / 2, z, sx, sy: top - bottom, sz, yaw: 0 });
+  if (top <= bottom) return;
+  const y = (bottom + top) / 2, sy = top - bottom, last = ops[ops.size() - 1];
+  // Consecutive identical-material boxes may be unioned exactly. Never reorder across
+  // a curtain or a different material: their overwrite order controls visible edges.
+  // Stay within the scheduler cap and its global 1024-stud tiles to avoid new splits.
+  if (last !== undefined && last.material === material && last.y === y && last.sy === sy
+   && (last.sx * last.sz + sx * sz) * sy / 64 <= WORLD_FILL_CHUNK) {
+   if (last.x === x && last.sx === sx && last.z + last.sz / 2 === z - sz / 2
+    && math.floor((z + sz / 2 - 0.01) / 1024) === math.floor((last.z - last.sz / 2) / 1024)) {
+    last.z = (last.z - last.sz / 2 + z + sz / 2) / 2; last.sz += sz; return;
+   }
+   if (last.z === z && last.sz === sz && last.x + last.sx / 2 === x - sx / 2
+    && math.floor((x + sx / 2 - 0.01) / 1024) === math.floor((last.x - last.sx / 2) / 1024)) {
+    last.x = (last.x - last.sx / 2 + x + sx / 2) / 2; last.sx += sx; return;
+   }
+  }
+  ops.push({ shape: "block", material, x, y, z, sx, sy, sz, yaw: 0 });
  };
  const cells: Array<{x: number; z: number; sx: number; sz: number; top: number}> = [];
  const heights = new Map<string, number>();

@@ -8,7 +8,7 @@ import { M03_BUILD_LIMITS } from "./M03Limits";
 
 export const M03_WORLD_KEY = "m03_snow_radar";
 export const M03_FILL_CHUNK = WORLD_FILL_CHUNK;
-export const M03_TERRAIN_BUDGET = 0.5;
+export const M03_TERRAIN_BUDGET = 0.25;
 // An eight-stud pavement slab from the lowland terrain (80) up to 88. Mission 2 measured smooth terrain
 // drawing 4-6 studs above its voxels (D-056), which hid a four-stud slab; the landing base follows suit.
 export const M03_RUNWAY_TOP = 88;
@@ -217,6 +217,6 @@ export function buildM03Plan(seed = 303, checkpoint: () => void = () => {}): M03
 }
 export function m03Counts(p: M03Plan) {
 	const targetParts = 9 * 2 + 4 * 3 + 7 + p.targets.size();
-	const counts = worldCounts({ ...p, props: [] }, targetParts, M03_TERRAIN_BUDGET, M03_FILL_CHUNK);
+	const counts = worldCounts({ ...p, props: [] }, targetParts, M03_FILL_CHUNK);
 	return { ...counts, descendants: counts.parts + p.targets.size() + 1 };
 }

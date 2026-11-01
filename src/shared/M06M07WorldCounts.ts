@@ -12,7 +12,7 @@ export function chunkTouches(o: TerrainOp): number {
  return span(o.x, c * o.sx + s * o.sz) * span(o.y, o.sy) * span(o.z, s * o.sx + c * o.sz);
 }
 export function compactWorldCounts(p: {ops: TerrainOp[]; parts: PartSpec[]; props: PropSpec[]}, targetParts: number) {
- const legacy = worldCounts(p, targetParts, 0.25, WORLD_FILL_CHUNK);
+ const legacy = worldCounts(p, targetParts, WORLD_FILL_CHUNK);
  let solidTouches = 0, waterTouches = 0;
  for (const job of terrainJobs(p.ops, WORLD_FILL_CHUNK)) {
   if (job.op.material === "Water") waterTouches += chunkTouches(job.op);
