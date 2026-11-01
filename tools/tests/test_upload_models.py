@@ -10,6 +10,8 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import urllib.error
+import shutil
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -29,15 +31,15 @@ class UploadModelsTests(unittest.TestCase):
         self.root = Path(temp.name)
         self.state = self.root / "state"
         self.state.mkdir()
-        for obj, name, value in ((models, "ROOT", self.root), (ru, "ROOT", self.root), (ru, "STATE", self.state),
+        for obj, name, value in ((models, "CANONICAL_STATE", self.state), (models, "ROOT", self.root), (ru, "ROOT", self.root), (ru, "STATE", self.state),
                                   (ru, "JOURNAL", self.state / "journal-3407487520.json"),
                                   (ru, "HALT", self.state / "HALT-3407487520"),
-                                  (ru, "MODEL_HALT", self.state / "HALT-models"),
-                                  (ru, "AUDIO_HALT", self.state / "HALT-audio")):
+                                  (ru, "MODEL_HALT", self.state / "HALT-models-3407487520"),
+                                  (ru, "AUDIO_HALT", self.state / "HALT-audio-3407487520")):
             patcher = patch.object(obj, name, value)
             patcher.start()
             self.addCleanup(patcher.stop)
-        for obj, name in ((ru, "http"), (ru._http, "open"), (ru._http, "read_key_file")):
+        for obj, name in ((models, "fetch_origin"), (ru, "http"), (ru._http, "open"), (ru._http, "read_key_file")):
             patcher = patch.object(obj, name, side_effect=AssertionError("Unexpected network or key read"))
             patcher.start()
             self.addCleanup(patcher.stop)
@@ -54,9 +56,20 @@ class UploadModelsTests(unittest.TestCase):
         self.write_checklist()
         self.record_path = self.root / "docs/qa/asset-reviews/review.md"
         self.record_path.write_text("Independent review. Score 10/10. VERDICT: APPROVE")
+        self.manifest_path = self.folder / "export-manifest.json"
+        self.decision_path = self.root / "docs/qa/asset-reviews/decisions/jet.json"
+        self.decision_path.parent.mkdir()
+        self.manifest = dict(asset="jet", creator="build agent", exportVersion="jet-2", files=self.approval["uploadSet"])
+        self.decision = dict(self.manifest, reviewer="independent reviewer", score=10, verdict="APPROVE",
+                             reviewDate="2026-10-31", policyLinks=["https://www.roblox.com/termsofuse",
+                             "https://en.help.roblox.com/hc/en-us/articles/203313410-Roblox-Community-Standards/"],
+                             sourceReview="docs/qa/asset-reviews/review.md")
+        self.manifest_path.write_text(json.dumps(self.manifest))
+        self.decision_path.write_text(json.dumps(self.decision))
         self.git("init", "-q")
-        self.git("add", "docs")
+        self.git("add", "docs", "assets")
         self.git("-c", "user.name=Test", "-c", "user.email=test@example.invalid", "commit", "-qm", "review")
+        self.git("update-ref", "refs/remotes/origin/main", "HEAD")
 
     def git(self, *args):
         return subprocess.run(["git", *args], cwd=self.root, check=True, capture_output=True)
@@ -71,8 +84,9 @@ class UploadModelsTests(unittest.TestCase):
         self.write_approval()
 
     def commit_evidence(self):
-        self.git("add", "docs")
+        self.git("add", "docs", "assets")
         self.git("-c", "user.name=Test", "-c", "user.email=test@example.invalid", "commit", "-qm", "updated review")
+        self.git("update-ref", "refs/remotes/origin/main", "HEAD")
 
     def test_uncommitted_approval_refused(self):
         self.approval["note"] = "uncommitted"
@@ -82,6 +96,7 @@ class UploadModelsTests(unittest.TestCase):
     def test_missing_committed_record_refused(self):
         self.git("rm", "--cached", "docs/qa/asset-reviews/review.md")
         self.git("-c", "user.name=Test", "-c", "user.email=test@example.invalid", "commit", "-qm", "remove review")
+        self.git("update-ref", "refs/remotes/origin/main", "HEAD")
         self.refuse("Missing committed")
 
     def test_texture_hash_mismatch_refused(self):
@@ -91,7 +106,7 @@ class UploadModelsTests(unittest.TestCase):
         self.write_approval()
         self.commit_evidence()
         texture.write_bytes(b"changed texture")
-        self.refuse("texture SHA-256")
+        self.refuse("manifest")
 
     def test_direct_shared_helper_cannot_skip_review(self):
         content = b"unreviewed FBX"
@@ -106,18 +121,124 @@ class UploadModelsTests(unittest.TestCase):
         (self.folder / "jet.fbx").write_bytes(content)
         self.approval["uploadSet"]["jet.fbx"] = hashlib.sha256(content).hexdigest()
         self.write_approval()
-        self.refuse("matching committed")
+        self.refuse("differs from committed")
 
     def test_nonperfect_or_rejected_review_refused(self):
-        self.approval["score"] = "9/10"
-        self.write_approval()
+        for score, verdict in ((9, "APPROVE"), (10, "REJECT")):
+            self.decision.update(score=score, verdict=verdict)
+            self.decision_path.write_text(json.dumps(self.decision))
+            self.commit_evidence()
+            self.refuse("10/10 APPROVE")
+
+    def test_state_dir_cannot_redirect_real_upload(self):
+        alternate = self.root / "alternate"
+        with patch.object(models, "prepare") as prepare, patch.object(models, "fetch_origin") as fetch:
+            with self.assertRaisesRegex(RuntimeError, "only with --dry-run"):
+                models.main(["jet", "--state-dir", str(alternate), "--key-file", "unused"])
+        prepare.assert_not_called()
+        fetch.assert_not_called()
+        self.assertFalse(alternate.exists())
+
+    def test_real_run_reinstates_canonical_halt_after_poisoned_globals(self):
+        ru.MODEL_HALT.write_text("canonical halt")
+        alternate = self.root / "alternate"
+        with patch.object(ru, "STATE", alternate), patch.object(ru, "MODEL_HALT", alternate / "HALT"), \
+                patch.object(models, "fetch_origin"):
+            with self.assertRaisesRegex(RuntimeError, "Model uploads halted"):
+                models.main(["jet", "--key-file", "unused"])
+        self.assertFalse(alternate.exists())
+
+    def test_dry_state_override_is_restored_and_never_sends(self):
+        alternate = self.root / "alternate"
+        with contextlib.redirect_stdout(io.StringIO()):
+            models.main(["jet", "--dry-run", "--state-dir", str(alternate)])
+        self.assertEqual(ru.STATE, self.state)
+        self.assertEqual(ru.MODEL_HALT, self.state / "HALT-models-3407487520")
+        self.assertFalse((alternate / "journal-3407487520.json").exists())
+
+    def test_wrong_hash_in_final_decision_refused(self):
+        self.decision["files"] = {"jet.fbx": "0" * 64}
+        self.decision_path.write_text(json.dumps(self.decision))
         self.commit_evidence()
-        self.refuse("10/10 APPROVE")
-        self.approval["score"] = "10/10"
-        self.write_approval()
-        self.record_path.write_text("10/10 VERDICT: REJECT")
+        self.refuse("Missing or ambiguous")
+
+    def test_earlier_approve_later_reject_blocks_same_hash(self):
+        reject = {**self.decision, "verdict": "REJECT", "reviewDate": "2026-11-01"}
+        self.decision_path.with_name("jet-rejection.json").write_text(json.dumps(reject))
         self.commit_evidence()
-        self.refuse("VERDICT: APPROVE")
+        self.refuse("REJECT/lesser score")
+
+    def test_multiple_even_positive_final_decisions_are_ambiguous(self):
+        self.decision_path.with_name("jet-second.json").write_text(json.dumps(self.decision))
+        self.commit_evidence()
+        self.refuse("ambiguous")
+
+    def test_creator_and_creator_markers_cannot_review(self):
+        for identity in ("build agent", "BUILD AGENT", "independent creator", "self review", "implementation agent"):
+            self.decision["reviewer"] = identity
+            self.decision_path.write_text(json.dumps(self.decision))
+            self.commit_evidence()
+            self.refuse("non-independent")
+
+    def test_local_only_commit_is_not_merged_evidence(self):
+        self.decision["note"] = "only HEAD"
+        self.decision_path.write_text(json.dumps(self.decision))
+        self.git("add", "docs")
+        self.git("-c", "user.name=Test", "-c", "user.email=test@example.invalid", "commit", "-qm", "local only")
+        self.refuse("differs from committed origin/main")
+
+    def test_uncommitted_or_local_only_extra_decision_refused(self):
+        self.decision_path.with_name("jet-uncommitted.json").write_text(json.dumps(self.decision))
+        self.refuse("local-only")
+
+    def test_local_source_review_or_manifest_edits_refused(self):
+        for path in (self.record_path, self.manifest_path):
+            original = path.read_bytes()
+            path.write_bytes(original + b" ")
+            self.refuse("differs from committed")
+            path.write_bytes(original)
+
+    def test_duplicate_decision_fields_refused(self):
+        self.decision_path.write_text(self.decision_path.read_text()[:-1] + ', "verdict":"REJECT"}')
+        self.commit_evidence()
+        self.refuse("duplicate JSON")
+
+    def test_halt_created_between_post_and_poll_retries(self):
+        # Exercise real multipart checks, real retry loop, and fake transport only.
+        for stage in ("POST", "GET"):
+            ru.MODEL_HALT.unlink(missing_ok=True)
+            ru.JOURNAL.unlink(missing_ok=True)
+            calls = []
+            def transport(request, timeout):
+                calls.append(request.get_method())
+                if stage == "GET" and len(calls) == 1:
+                    return io.BytesIO(b'{"operationId":"op1"}')
+                raise urllib.error.HTTPError(request.full_url, 429, "busy", {}, io.BytesIO())
+            with patch.object(ru, "http", wraps=REAL_HTTP), patch.object(ru._http, "open", side_effect=transport), \
+                    patch.object(ru._http.time, "sleep", side_effect=lambda _: ru.MODEL_HALT.write_text("new HALT")):
+                with self.assertRaisesRegex(RuntimeError, "Model uploads halted"):
+                    models.upload(models.prepare("jet"), "fake-test-token")
+            self.assertEqual(calls, ["POST"] if stage == "POST" else ["POST", "GET"])
+
+    def test_existing_markdown_table_reviews_pass_after_merge(self):
+        repository = Path(__file__).resolve().parents[2]
+        for asset in ("heavy-transport", "cinematic-field-recorder"):
+            approval_path = Path("docs/qa/asset-reviews/approvals") / (asset + ".json")
+            approval = json.loads((repository / approval_path).read_text())
+            decision_path = Path("docs/qa/asset-reviews/decisions") / (asset + ".json")
+            manifest_path = Path("assets/roblox-upload") / asset / "export-manifest.json"
+            manifest = json.loads((repository / manifest_path).read_text())
+            paths = [approval_path, decision_path, manifest_path, Path(approval["record"])]
+            paths += [manifest_path.parent / name for name in manifest["files"]]
+            for path in paths:
+                target = self.root / path
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(repository / path, target)
+            self.commit_evidence()
+            content = (self.root / manifest_path.parent / (asset + ".fbx")).read_bytes()
+            self.assertEqual(ru.require_model_review(asset + ".fbx", content,
+                             hashlib.sha256(content).hexdigest()), approval)
+
 
     def test_legacy_audio_halt_and_rejection_allow_reviewed_model(self):
         ru.HALT.write_text("voice rejected")
@@ -236,7 +357,7 @@ class UploadModelsTests(unittest.TestCase):
             self.refuse("regular file below")
 
     def test_batch_preflight_before_key_or_network(self):
-        with self.assertRaisesRegex(RuntimeError, "missing or unreadable"):
+        with patch.object(models, "fetch_origin"), self.assertRaisesRegex(RuntimeError, "missing or unreadable"):
             models.main(["--key-file", "unused-fake-path", "jet", "missing"])
 
     def fake_upload(self, responses):
@@ -328,7 +449,7 @@ class UploadModelsTests(unittest.TestCase):
     def test_cli_success_with_fake_key_reader_and_http(self):
         responses = [{"operationId": "op1"}, {"done": True, "response": {"assetId": "42"}},
                      {"moderationResult": {"moderationState": "Approved"}}]
-        with patch.object(models._http, "read_key_file", return_value="fake-test-token") as read_key, \
+        with patch.object(models, "fetch_origin"), patch.object(models._http, "read_key_file", return_value="fake-test-token") as read_key, \
                 patch.object(ru, "http", side_effect=responses), contextlib.redirect_stdout(io.StringIO()) as output:
             models.main(["--key-file", "unused-fake-path", "jet"])
         read_key.assert_called_once_with(Path("unused-fake-path"))
@@ -339,7 +460,7 @@ class UploadModelsTests(unittest.TestCase):
         self.journal_item(operationId="op1")
         responses = [{"done": True, "response": {"assetId": "42"}},
                      {"moderationResult": {"moderationState": "Approved"}}]
-        with patch.object(models._http, "read_key_file", return_value="fake-test-token"), \
+        with patch.object(models, "fetch_origin"), patch.object(models._http, "read_key_file", return_value="fake-test-token"), \
                 patch.object(ru, "http", side_effect=responses) as http, contextlib.redirect_stdout(io.StringIO()):
             models.main(["--key-file", "unused-fake-path", "jet"])
         self.assertTrue(all(c.args[0] == "GET" for c in http.call_args_list))

@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 import re
 import stat
+import subprocess
 import sys
 from typing import Any
 
@@ -17,6 +18,7 @@ import _http
 import roblox_upload as ru
 
 ROOT = Path(__file__).resolve().parent.parent
+CANONICAL_STATE = Path.home() / ".skybreak-roblox-uploads"
 REQUIRED_CHECKS = {"noText", "noLogosOrBrands", "noRealMilitaryInsignia", "noFaces",
                    "noSuggestiveShapes", "noGoreOrWeaponsGlorification", "originalDesign"}
 
@@ -108,7 +110,21 @@ def upload(plan: dict[str, Any], key: str) -> dict[str, Any]:
         plan["reviewer"], key, "Roblox rejected Model; model uploads are now halted", asset_type="Model")
 
 
+def fetch_origin() -> None:
+    subprocess.run(["git", "fetch", "origin"], cwd=ROOT, check=True, capture_output=True)
+
+
 def main(argv: list[str] | None = None) -> None:
+    names = ("STATE", "JOURNAL", "HALT", "AUDIO_HALT", "MODEL_HALT")
+    previous = {name: getattr(ru, name) for name in names}
+    try:
+        _main(argv)
+    finally:
+        for name, value in previous.items():
+            setattr(ru, name, value)
+
+
+def _main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--key-file", type=Path)
     parser.add_argument("--state-dir", type=Path, help="Override shared state for isolated offline verification")
@@ -117,8 +133,12 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
     if not args.dry_run and args.key_file is None:
         parser.error("--key-file is required unless --dry-run is used")
-    if args.state_dir is not None:
-        ru.STATE = args.state_dir
+    if args.state_dir is not None and not args.dry_run:
+        raise RuntimeError("--state-dir is permitted only with --dry-run; network uploads require canonical state")
+    if not args.dry_run:
+        fetch_origin()
+    if not args.dry_run or args.state_dir is not None:
+        ru.STATE = CANONICAL_STATE if not args.dry_run else args.state_dir
         ru.JOURNAL = ru.STATE / "journal-3407487520.json"
         ru.HALT = ru.STATE / "HALT-3407487520"
         ru.AUDIO_HALT = ru.STATE / "HALT-audio-3407487520"

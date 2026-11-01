@@ -1,0 +1,20 @@
+{
+  "asset": "military-barracks",
+  "exportVersion": "military-ground-kit-1",
+  "embeddedTextures": {
+    "military-barracks-color.png": "83399210687ddfed4737da6d0221be9834df36606e2f9f6c731f857d3111057f",
+    "military-barracks-metalness.png": "966068dd0c23c60abeffaa37e2c5701bf72985d38acde8ca90619f242925df38",
+    "military-barracks-normal.png": "44da437029c7d4f5d146ca74521d3494a7244d9031b18a7d0205f846f7fcdf7e",
+    "military-barracks-roughness.png": "20a410eea3e47aff6e1ef8dbdacc605c5460275671d4fc739798a953c0630bf0"
+  },
+  "uploadSet": {
+    "military-barracks.fbx": "d4847b3fe1382d5df4f9bd055e0a3fc37b0c72d198193c2c9686dc0fa404888f"
+  },
+  "reviewedAt": "2026-10-31",
+  "record": "docs/qa/asset-reviews/military-ground-kit/independent-safety-review-2026-10-31.md",
+  "approved": true,
+  "score": "10/10",
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "uploadAssetType": "Model",
+  "checklistSha256": "d2d3d66117bf8037b4ae76b33c2a0ed9bfdef68daa6f7f8a63f1399904b3e4bd"
+}

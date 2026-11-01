@@ -72,39 +72,107 @@ def gate(own: str | None = None, *, asset_type: str = "Audio") -> None:
 
 
 def committed_file(path: str, *, root: Path | None = None) -> bytes:
-    """Read evidence from HEAD, never from uncommitted working-tree approvals."""
+    """Require fetched origin/main evidence and identical working bytes.
+
+    Callers fetch origin before real runs. A local HEAD commit is not approval.
+    """
     root = ROOT if root is None else root
-    parts = Path(path).parts
-    if not parts or Path(path).is_absolute() or ".." in parts or not path.startswith("docs/qa/asset-reviews/"):
-        raise RuntimeError("Safety review must be inside docs/qa/asset-reviews")
-    result = subprocess.run(["git", "show", "HEAD:" + path], cwd=root, capture_output=True)
+    if Path(path).is_absolute() or ".." in Path(path).parts:
+        raise RuntimeError("Invalid evidence path")
+    result = subprocess.run(["git", "show", "origin/main:" + path], cwd=root, capture_output=True)
     if result.returncode:
-        raise RuntimeError("Missing committed independent safety-review record")
+        raise RuntimeError("Missing committed origin/main independent safety-review record")
+    local = root / path
+    if not local.is_file() or local.is_symlink() or local.read_bytes() != result.stdout:
+        raise RuntimeError("Local evidence differs from committed origin/main safety review")
     return result.stdout
+
+
+def strict_json(content: bytes) -> dict[str, Any]:
+    def pairs(items):
+        result = {}
+        for key, value in items:
+            if key in result:
+                raise RuntimeError("Ambiguous duplicate JSON decision field")
+            result[key] = value
+        return result
+    value = json.loads(content, object_pairs_hook=pairs)
+    if not isinstance(value, dict):
+        raise RuntimeError("Expected safety evidence object")
+    return value
 
 
 def require_model_review(filename: str, content: bytes, digest: str, *,
                          root: Path | None = None) -> dict[str, Any]:
-    """Require exact bytes in a committed independent 10/10 APPROVE record."""
+    """Exact manifest plus final decisions; negative decisions always win.
+
+    Identity checks cannot prove independence: an orchestrator-assigned reviewer
+    and PR merge provide that process guarantee. No substring grants approval.
+    """
     root = ROOT if root is None else root
     if hashlib.sha256(content).hexdigest() != digest:
         raise RuntimeError("Upload SHA-256 differs from content")
     if not re.fullmatch(r"[A-Za-z0-9_-]+\.fbx", filename):
         raise RuntimeError("Invalid FBX upload filename")
-    approval = json.loads(committed_file(
-        "docs/qa/asset-reviews/approvals/" + filename[:-4] + ".json", root=root))
-    reviewer = approval.get("reviewer")
-    if (approval.get("approved") is not True or approval.get("score") != "10/10"
-            or not isinstance(reviewer, str) or "independent" not in reviewer.lower()
-            or approval.get("uploadAssetType") != "Model"
-            or approval.get("uploadSet") != {filename: digest}):
+    asset = filename[:-4]
+    approval = strict_json(committed_file(
+        "docs/qa/asset-reviews/approvals/" + asset + ".json", root=root))
+    if approval.get("uploadSet") != {filename: digest}:
         raise RuntimeError("Missing matching committed independent 10/10 APPROVE safety review")
-    record_path = approval.get("record")
-    if not isinstance(record_path, str):
-        raise RuntimeError("Missing committed safety-review verdict record")
-    verdict = committed_file(record_path, root=root).decode("utf-8")
-    if not re.search(r"VERDICT\s*:\s*APPROVE\b", verdict, re.I) or "10/10" not in verdict:
-        raise RuntimeError("Safety-review record requires 10/10 and VERDICT: APPROVE")
+    folder = "assets/roblox-upload/" + asset + "/"
+    manifest = strict_json(committed_file(folder + "export-manifest.json", root=root))
+    files = manifest.get("files")
+    creator = manifest.get("creator")
+    version = manifest.get("exportVersion")
+    if (not isinstance(creator, str) or not creator.strip() or not isinstance(version, str) or not version
+            or version != approval.get("exportVersion") or not isinstance(files, dict)
+            or files != {**approval.get("embeddedTextures", {}), **approval["uploadSet"]}):
+        raise RuntimeError("Invalid creator/exportVersion/files in export manifest")
+    for name, sha in files.items():
+        if (not re.fullmatch(r"[A-Za-z0-9_-]+\.(?:fbx|png)", name)
+                or not isinstance(sha, str) or not re.fullmatch(r"[0-9a-f]{64}", sha)):
+            raise RuntimeError("Invalid dependency hash/path")
+        data = committed_file(folder + name, root=root)
+        if name == filename and data != content:
+            raise RuntimeError("Uploaded FBX differs from committed origin/main asset")
+        if hashlib.sha256(data).hexdigest() != sha:
+            raise RuntimeError("Uploaded file/dependency SHA-256 differs from manifest")
+    # All decision JSONs are authoritative, not just a selected positive record.
+    directory = "docs/qa/asset-reviews/decisions"
+    listing = subprocess.run(["git", "ls-tree", "-r", "--name-only", "origin/main", "--", directory],
+                             cwd=root, capture_output=True, check=True).stdout.decode().splitlines()
+    local = {str(p.relative_to(root)) for p in (root / directory).rglob("*.json")}
+    paths = {p for p in listing if p.endswith(".json")}
+    if paths != local:
+        raise RuntimeError("Uncommitted/local-only or missing safety decision records")
+    matches = []
+    for path in sorted(paths):
+        decision = strict_json(committed_file(path, root=root))
+        hashes = decision.get("files")
+        if not isinstance(hashes, dict):
+            raise RuntimeError("Invalid safety decision files")
+        if digest not in hashes.values():
+            continue
+        reviewer = decision.get("reviewer")
+        policies = decision.get("policyLinks")
+        if (decision.get("verdict") != "APPROVE" or type(decision.get("score")) is not int
+                or decision["score"] != 10):
+            raise RuntimeError("Safety decision requires 10/10 APPROVE; REJECT/lesser score blocks these bytes")
+        if (decision.get("asset") != asset or hashes != files or decision.get("exportVersion") != version
+                or decision.get("creator") != creator or not isinstance(reviewer, str) or not reviewer.strip()
+                or reviewer.casefold().strip() == creator.casefold().strip()
+                or any(marker in reviewer.casefold() for marker in ("creator", "self", "implementation", "author"))
+                or creator.casefold().strip() in reviewer.casefold()
+                or not re.fullmatch(r"\d{4}-\d{2}-\d{2}(?:T.*Z)?", str(decision.get("reviewDate", "")))
+                or not isinstance(policies, list) or not {
+                    "https://www.roblox.com/termsofuse",
+                    "https://en.help.roblox.com/hc/en-us/articles/203313410-Roblox-Community-Standards/"
+                }.issubset(policies)):
+            raise RuntimeError("Invalid or non-independent matching safety decision")
+        committed_file(decision.get("sourceReview", ""), root=root)
+        matches.append(decision)
+    if len(matches) != 1:
+        raise RuntimeError("Missing or ambiguous matching committed 10/10 APPROVE decision")
     return approval
 
 
@@ -153,7 +221,14 @@ def http(method: str, url: str, key: str, body: bytes | None = None,
     if content_type:
         headers["Content-Type"] = content_type
     request = urllib.request.Request(url, data=body, method=method, headers=headers)
-    return _http.request_json(request, timeout=90, deadline=deadline)
+    def before_attempt():
+        if MODEL_HALT.exists():
+            raise RuntimeError("Model uploads halted by Roblox moderation")
+        if method == "POST":
+            if asset_class(kind) == "audio":
+                gate(asset_type=kind)
+            require_model_review(parts[1].get_filename(), data, hashlib.sha256(data).hexdigest())
+    return _http.request_json(request, timeout=90, deadline=deadline, before_attempt=before_attempt)
 
 
 def moderation(key: str, asset: str, *, deadline: float | None = None) -> str | None:

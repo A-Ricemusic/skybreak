@@ -1,5 +1,9 @@
 # Blockers and acceptance gaps
 
+PR #216 follow-up validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 148 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merge pending.
+
+PR #216 (unmerged): heavy-bomber and carrier have an incomplete REJECT for the same revision-2 hashes later approved. Strictest-decision rule now refuses reupload. PR207 assets/evidence await merge; other insufficiently documented exports remain unapproved (full list in docs/qa/asset-reviews/upload-approval-format.md). No existing live asset is changed. State-dir, local-only review and retry bypass fixes implemented and validated offline.
+
 Open owner-reported Player bug (main c1266e30, M01 Normal, phone): NEXT: MISSION 02 silently does nothing even after cloud confirmation. Root cause: GameUI.nextMission checks stale pre-sortie slots before sending any remote; Completed never refreshes them. Existing restartMission also stops at briefing. Pending PR removes that client authority check, uses the normal launch/loading path, and queues the server request while settlement releases its session. Timeout/refusal shows an error and returns to results for retry. Pending cloud writes do not block authoritative in-session progression. Review also found Next bypassed unseen chapters and launch automatically recorded them seen, violating D-030. PR #202 now shares chapter gating without restoring stale unlock checks, binds played/skipped chapter acknowledgement to an unlocked mission, and records the finale after its callback rather than victory. Offline regression coverage added; PR remains unmerged and owner device verification remains open.
 
 No campaign implementation or merge dependency remains: practice, M01–M18 and engine batches D1–D13 are on main `4594c365`.

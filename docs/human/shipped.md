@@ -1,5 +1,9 @@
 # Shipped
 
+PR #216 follow-up validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 148 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merge pending.
+
+Pending, not shipped: PR #216 security hardening and approval migration. No gameplay change, upload, Studio/Player observation or canonical account-state access. Existing live models remain as before.
+
 Pending D-666 upload-gate tooling is unmerged and has no Player-visible change. No new assets uploaded; shipped entries below describe previously merged work.
 
 Pending PR (unmerged): fix results Next after the owner’s M01 Normal phone playtest. Cached pre-sortie slots silently rejected newly unlocked missions. Next now shares normal start’s unseen-chapter check, then requests an authoritative launch with the normal loading screen after playback or Skip; seen chapters launch directly. Launching alone never records a chapter as seen; the finale is also acknowledged only after playback/Skip. The server waits for result settlement, then retains its progression/session/world gates. Missions 1–17 continue; M18 says CAMPAIGN COMPLETE without Next. Errors return to results with a visible message and retryable Next. Offline coverage only; no agent Player/Studio test.

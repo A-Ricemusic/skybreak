@@ -1,0 +1,13 @@
+{
+  "asset": "vanta-v2-elite",
+  "creator": "Claude Opus 5.5 asset implementation agent",
+  "exportVersion": "vanta-v2-elite-3",
+  "files": {
+    "vanta-v2-elite-color.png": "0ab8e3734bf2aa71cb8a249ec4df09b9e6204cf28c24d8cc51d69787056d8b81",
+    "vanta-v2-elite-metalness.png": "4cdef17d497dc4437ee43ea34d43737aa479e2c90ad0def16c617d31675d7563",
+    "vanta-v2-elite-normal.png": "c9af57a8a365d5ab3a0604f139eb3f8f3de4c721b43477169448f9570534f785",
+    "vanta-v2-elite-roughness.png": "ea171072345864503d96b1c439879722666fd1071b405fdd4cd52d86753bf159",
+    "vanta-v2-elite.fbx": "2fdcf40547df8f11dfd13d15b6b08535c87add64a6db5363c79da3dc2a2b8ada"
+  },
+  "provenance": "docs/qa/asset-reviews/2026-10-29-pr137-review-3.md"
+}
