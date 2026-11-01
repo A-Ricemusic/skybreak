@@ -136,7 +136,7 @@ def strict_json(content: bytes) -> dict[str, Any]:
 
 
 def require_model_review(filename: str, content: bytes, digest: str, *,
-                         root: Path | None = None) -> dict[str, Any]:
+                         root: Path | None = None, embedded: bool = False) -> dict[str, Any]:
     """Exact manifest plus final decisions; negative decisions always win.
 
     Identity checks cannot prove independence: an orchestrator-assigned reviewer
@@ -145,9 +145,10 @@ def require_model_review(filename: str, content: bytes, digest: str, *,
     root = ROOT if root is None else root
     if hashlib.sha256(content).hexdigest() != digest:
         raise RuntimeError("Upload SHA-256 differs from content")
-    if not re.fullmatch(r"[A-Za-z0-9_-]+\.fbx", filename):
-        raise RuntimeError("Invalid FBX upload filename")
-    asset = filename[:-4]
+    extension = r"(?:json|mesh|png|bin)" if embedded else "fbx"
+    if not re.fullmatch(r"[A-Za-z0-9_-]+\." + extension, filename):
+        raise RuntimeError("Invalid embedded asset filename" if embedded else "Invalid FBX upload filename")
+    asset = filename.rsplit(".", 1)[0]
     approval = strict_json(committed_file(
         "docs/qa/asset-reviews/approvals/" + asset + ".json", root=root))
     if approval.get("uploadSet") != {filename: digest}:
@@ -162,7 +163,7 @@ def require_model_review(filename: str, content: bytes, digest: str, *,
             or files != {**approval.get("embeddedTextures", {}), **approval["uploadSet"]}):
         raise RuntimeError("Invalid creator/exportVersion/files in export manifest")
     for name, sha in files.items():
-        if (not re.fullmatch(r"[A-Za-z0-9_-]+\.(?:fbx|png)", name)
+        if (not re.fullmatch(r"[A-Za-z0-9_-]+\.(?:fbx|png|json|mesh|bin)", name)
                 or not isinstance(sha, str) or not re.fullmatch(r"[0-9a-f]{64}", sha)):
             raise RuntimeError("Invalid dependency hash/path")
         data = committed_file(folder + name, root=root)

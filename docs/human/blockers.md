@@ -6,11 +6,11 @@ PR #216 post-merge validation (2026-10-31): `bun install --frozen-lockfile` and 
 
 PR #216 merge-check follow-up (2026-10-31): third independent security review passed per owner handoff; five human-doc conflicts resolved against main `5eec0d06`. Credential-like test syntax removed without changing the fake account directory. GitGuardian recheck failed on historical commit `3575dead` only (incident 39368345); no new-commit finding reported; no history rewrite, ignore rule, uploads or secret reads.
 
-PR #216 round-2 P1s: fixes implemented, third independent security review passed; merge checks pending. HOME cannot select state; real uploads refuse mismatched home or symlinked canonical state. Texture-only and same-asset/version REJECTs or scores below 10 block the full upload. Prior heavy-bomber/carrier rejection blockers remain in force.
+PR #216 round-2 P1s: fixes implemented, third independent security review passed; merged d33c9a94. HOME cannot select state; real uploads refuse mismatched home or symlinked canonical state. Texture-only and same-asset/version REJECTs or scores below 10 block the full upload. Prior heavy-bomber/carrier rejection blockers remain in force.
 
-PR #216 round-2 validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 154 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merge pending.
+PR #216 round-2 validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 154 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merged in #216 as d33c9a94.
 
-PR #216 (unmerged): heavy-bomber and carrier have an incomplete REJECT for the same revision-2 hashes later approved. Strictest-decision rule now refuses reupload. PR207 assets/evidence await merge; other insufficiently documented exports remain unapproved (full list in docs/qa/asset-reviews/upload-approval-format.md). No existing live asset is changed. State-dir, local-only review and retry bypass fixes implemented and validated offline.
+PR #216 (merged d33c9a94): heavy-bomber and carrier have an incomplete REJECT for the same revision-2 hashes later approved. Strictest-decision rule now refuses reupload. PR207 assets/evidence await merge; other insufficiently documented exports remain unapproved (full list in docs/qa/asset-reviews/upload-approval-format.md). No existing live asset is changed. State-dir, local-only review and retry bypass fixes implemented and validated offline.
 
 Military kit activation gate (2026-10-31): independent safety review is pending for all ten exports; no upload authorized or attempted. Creator declarations are not approval. Keep IDs undefined until an independent reviewer records exact hashes, all surfaces/material/UV inspection, current policies consulted and explicit 10/10 approval. No Studio/Player quality or mobile performance evidence from this task. See [packet](../qa/asset-reviews/military-ground-kit/README.md).
 
@@ -31,3 +31,5 @@ Resolved: all sequential mission/engine dependencies and stale branch ancestry/m
 Publish check (2026-10-31): latest 20 main “Publish to Roblox” runs showed 20 successes, including [M18 run 41187517345](https://github.com/A-Ricemusic/skybreak/actions/runs/41187517345) successful; no failure in that sample. Live status follows the owner's pipeline convention and is separate from observed Player quality.
 
 Pending tooling change (2026-10-31, D-666): split the audio and model HALTs. The legacy voice rejection and audio journal no longer block reviewed model uploads. A model-class rejection writes `HALT-models-3407487520` and blocks models/meshes/images. Shared `audio-upload.lock` stays in place. No uploads or state-file migrations performed.
+
+PR #217: missing embedded-mesh review resolved by independent GPT-6.1 Sol 10/10 approvals for all 13 exports. Historical #216 commits removed from PR ancestry; GitGuardian recheck pending. Production approvals remain pending merge.

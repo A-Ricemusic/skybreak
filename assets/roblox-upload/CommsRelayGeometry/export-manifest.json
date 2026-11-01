@@ -1,0 +1,12 @@
+{
+  "asset": "CommsRelayGeometry",
+  "creator": "SKYBREAK build agent via tools/build-relay-assets.py (committed under Anthony Rice's git identity, 83da53e6c8ea5360625d0cf184c91de83153693a)",
+  "exportVersion": "embedded-json-v1-b733bf72a790",
+  "files": {
+    "CommsRelayGeometry.json": "b733bf72a7906f04775b6ccd72c0a70a054d3cb014e347a0adea22f3d4af794d"
+  },
+  "source": "assets/mission/commsrelay.mesh.json",
+  "generator": "tools/build-relay-assets.py",
+  "sourceCommit": "83da53e6c8ea5360625d0cf184c91de83153693a",
+  "note": "Version label identifies the exact existing embedded bytes; no mesh re-export was performed."
+}

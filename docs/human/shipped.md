@@ -6,7 +6,7 @@ PR #216 merge-check follow-up (unmerged, 2026-10-31): main through #207 reconcil
 
 Pending, not shipped: PR #216 round-2 fixes close HOME/state-directory redirection and dependency-only or same-export rejection bypasses. No upload, gameplay change, credential read, canonical-state access, Studio or Player verification.
 
-PR #216 round-2 validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 154 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merge pending.
+PR #216 round-2 validation: frozen install and prescribed validate:offline both exit 0; 1,223 Luau contracts, 487 module compilations, 154 Python tests. No real uploads, secrets, canonical upload state, Studio or Player tests. Merged in #216 as d33c9a94.
 
 Pending, not shipped: PR #216 security hardening and approval migration. No gameplay change, upload, Studio/Player observation or canonical account-state access. Existing live models remain as before.
 
@@ -121,3 +121,5 @@ Main `cb8e1d10`, newest first in first-parent merge order. Each PR appears once;
 | [#96](https://github.com/A-Ricemusic/skybreak/pull/96) | `22d84b22` | chore: phase 0 setup for the AC04-structured redesign | These five pages, the redesign plan, and the gitignored footage folder. No game change. |
 | [#95](https://github.com/A-Ricemusic/skybreak/pull/95) | `0fb47579` | chore: second cleanup pass for a fresh baseline | No game change. |
 | [#94](https://github.com/A-Ricemusic/skybreak/pull/94) | `5a01aa65` | chore: tidy repo after AC04 revert; archive dated reports, drop one-off tools | No game change. |
+
+PR #217 remains unmerged: cleaned history and embedded-mesh approval integration. No publish, upload, Studio or Player test performed.
