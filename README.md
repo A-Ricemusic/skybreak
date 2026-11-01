@@ -1,6 +1,6 @@
 # SKYBREAK: Broken Relay
 
-An original mobile-first arcade jet combat campaign for Roblox, written in TypeScript with roblox-ts, React Lua, and Rojo. Choose one of four persistent campaign slots and fly an original 27-mission campaign in one Roblox place. Each sortie builds its world on launch and removes it after the result.
+An original mobile-first arcade jet combat campaign for Roblox, written in TypeScript with roblox-ts, React Lua, and Rojo. Choose one of four persistent campaign slots and fly an 18-mission campaign (plus a practice flight) in one Roblox place. Agents and contributors: start with the [architecture map](docs/architecture/README.md) and [AGENTS.md](AGENTS.md). Each sortie builds its world on launch and removes it after the result.
 
 ## Controls and campaign
 
@@ -12,12 +12,11 @@ An original mobile-first arcade jet combat campaign for Roblox, written in TypeS
 - Pause: the `II` button (top-left), `P` on keyboard, or opening the Roblox menu (`Esc`, the menu button, the gamepad menu) or switching away from the app pauses the sortie; the server holds the clock for up to 5 minutes. Resuming always takes an explicit RESUME press (or `P`). The pause card also offers SETTINGS and MAIN MENU.
 - Settings (title screen or pause card): invert pitch, level assist (off by default; on, a centred stick eases the jet back to wings-level), camera shake strength, HUD scale (80–130 %; touch never shrinks below 100 % so buttons stay at least 44 px), stick size, music and effects volume. Values are kept for the session as attributes on `PlayerGui` (`InvertY`, `LevelAssist`, `CameraShake`, `HudScale`, `StickScale`, `MusicVolume`, `SfxVolume`).
 - Targets are selected automatically; TGT cycles contacts. Keep the selected target in range and ahead until the bracket reads LOCKED, then FIRE launches guided missiles. Early FIRE launches unguided. The briefing's objective card shows the mission's par time (and your best time) before launch.
-- Mission 1 — First Flight: learn pitch/turn, select and destroy a ground radar, then defeat three pursuing bandits.
-- Mission 2 — Iron Coast: defeat three bandits, destroy five Blender-authored warehouses while five optional raiders pursue you, then defeat a faster, tougher ace.
-- Missions 3–27 follow Teal’s recordings through authored canyon, farm, relay, harbor and city compositions. Ordered flight gates, low-altitude scans, signal orbits, convoy escorts and protected-site defense accompany escalating combat.
+- Practice flight: learn pitch/turn, select and destroy a ground radar, then defeat pursuing bandits.
+- Missions 1–18 follow the reference-footage specs in `docs/specs/missions/` and `docs/specs/worlds/`: bomber intercepts, airfield strikes, night fuel-complex raids with rearm, canyon runs, protected convoys, jamming corridors, cruise-missile defence and the finale duel. The owner-facing status of every level is in [docs/human/levels.html](docs/human/levels.html).
 - Impact feedback is client-only: hull hits shake the chase camera (firmer on heavy hits), confirmed kills pop a short top-centre callout (`SPLASH ONE`, `SPLASH TWO`…, `TARGET DESTROYED`, `ACE DOWN`) and flash the destroyed target's bracket, and an ace kill adds a brief camera hit-stop, FOV punch and white flash. Turning cinematic Camera motion OFF also disables shake and the hit-stop camera moves for the session.
-- Opening, inter-mission and finale cinematics render three to eight staged story beats with subtitles, skip, pause and motion/text controls. Browse all 27 sorties, unlock sequentially and replay completed missions.
-- Existing v2 saves safely resume at Mission 3 after completing the original two sorties; all four slots retain their records.
+- Opening, inter-mission and finale cinematics render staged story beats with subtitles, skip, pause and motion/text controls. Missions unlock sequentially; completed missions can be replayed.
+- Older save versions are migrated on load (`src/server/CampaignRepository.ts`); all four slots retain their records.
 - Each mission has a server-enforced 900-second deadline. Success unlocks the next mission; failure supports retry. Required kills and completion are server-authoritative.
 - Published experiences save four slots to DataStore; an unpublished local Studio file clearly uses session-only saves.
 
@@ -37,10 +36,13 @@ Open `build/skybreak.rbxlx` in Roblox Studio. Open the Rojo plugin in the Plugin
 
 ## Source files
 
-- `src/server`: server scripts
-- `src/client`: player scripts
-- `src/shared`: shared modules
+- `src/server`: server authority (campaign, combat loop, world construction)
+- `src/client`: player scripts (flight controller, React Lua UI, effects)
+- `src/shared`: pure rules shared by server, client and offline tests
+- `src/tests`: `@rbxts/jest` specs; `tools/`: validation and asset tooling
 - `default.project.json`: the place structure and Rojo mappings
+
+The [architecture map](docs/architecture/README.md) explains how these connect.
 
 Run `bun run watch` in another terminal while editing TypeScript/TSX. Keep Rojo connected to sync changes into Studio. Studio edits are not automatically written back to the repository. Save code in this repository; publish the place through Studio when ready.
 
@@ -118,9 +120,9 @@ A realistic textured set for upload as Roblox Model assets (Kestrel, Vanta, two 
 
 Studio's documented `CreateAssetAsync` upload route currently reports “not available yet” in this installation, so the project does not depend on that upload API. A regenerated FBX is ready for Studio's manual 3D Importer.
 
-## Broken Relay campaign validation
+## Campaign validation
 
-Read [the architecture and all 27 mission definitions](docs/broken-relay.md). Do not launch Studio, `test:roblox` or a Rojo server without the parent’s exclusive lease.
+Read the [architecture map](docs/architecture/README.md) for where missions, worlds and tests live; [docs/broken-relay.md](docs/broken-relay.md) records the retired 27-mission campaign. Do not launch Studio, `test:roblox` or a Rojo server without the parent’s exclusive lease.
 
 `bun run test:offline` runs the compiled pure-domain contracts in the standalone Luau CLI (set `LUAU_BIN`). It does not replace Roblox Jest or live gameplay.
 
