@@ -128,3 +128,9 @@ Main `cb8e1d10`, newest first in first-parent merge order. Each PR appears once;
 | [#94](https://github.com/A-Ricemusic/skybreak/pull/94) | `5a01aa65` | chore: tidy repo after AC04 revert; archive dated reports, drop one-off tools | No game change. |
 
 PR #217 remains unmerged: cleaned history and embedded-mesh approval integration. No publish, upload, Studio or Player test performed.
+
+## Campaign smoke follow-up — 2026-10-31
+
+Unmerged #203 follow-up: harness resilience and construction diagnostics only; no Player behavior fix claimed. M3 world/cleanup repair remains owned by #205. The earlier owner-supplied Studio run reported 1468 passed / 1 failed; this revision has not been run in Studio or Player. Offline validation results are recorded at handback.
+
+Validation for this #203 follow-up: `bun install --frozen-lockfile`, `bun run build`, and `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau" bun run validate:offline` all exited 0. Offline Luau: 1225 passed / 0 failed; 496 modules compiled; Python: 163 passed. New Studio smoke regression cases compile only; no Studio or Player run. The smoke suite has a 30-minute outer bound so slow builds can still produce all 19 rows; each mission retains its 20-second build assertion.

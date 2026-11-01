@@ -1578,7 +1578,7 @@ export const CombatService = {
 		const folder = new Instance("Folder");
 		folder.Name = `Mission_${player.UserId}_${missionSerial}`;
 		folder.Parent = missionRoot;
-		const [ok, result] = pcall(() => {
+		const [ok, result] = xpcall(() => {
 			CombatRemotes.missionState!.FireClient(player, { kind: "Building", missionId, folder, launchId });
 			const world = MissionWorld.Build(missionId, folder);
 			assert(!cancelled(), "Launch request expired");
@@ -1656,15 +1656,15 @@ export const CombatService = {
 			}
 			const loading: MissionLoading = { kind: "Loading", launchId, slot, missionId, aircraft, expectedParts: countParts(folder) };
 			CombatRemotes.missionState!.FireClient(player, loading);
-		});
+		}, (err) => debug.traceback(tostring(err)));
 		buildingMission = false;
 		if (!ok) {
 			const session = sessions.get(player);
 			if (session) cleanupSession(session, false);
+			warn(`SKYBREAK mission construction failed: M${missionId} phase=${tostring(folder.GetAttribute("WorldBuildPhase"))} elapsed=${os.clock() - startedAt}s plan=${tostring(folder.GetAttribute("WorldPlanSeconds"))} terrain=${tostring(folder.GetAttribute("WorldTerrainReadySeconds"))}: ${tostring(result)}`);
 			folder.Destroy();
 			// A partly built world (the player may have left) is cleared through the same gate.
 			restoreMenu(MissionCatalog.WorldKey(missionId));
-			warn(`SKYBREAK mission construction failed: ${tostring(result)}`);
 			return $tuple(false, "The mission world could not be built. Please retry.");
 		}
 		return $tuple(true);

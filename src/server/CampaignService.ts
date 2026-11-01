@@ -331,6 +331,16 @@ export function installCampaignSmokePlayer(player: Player, coordinator: Campaign
   budget: new CampaignRequestBudget(), lastRecovery: -math.huge, closing: false });
  return {
   request: (action: string, payload?: unknown) => handleRequest(player, action, payload),
+  recover: (missionId: number) => {
+   assert(RunService.IsStudio() && game.Workspace.GetAttribute("SkybreakTestMode") === true, "Test place only");
+   assert(!combat.IsCompleting(player) && combat.GetSession(player) === undefined, "Release sortie before smoke recovery");
+   const state = states.get(player)!;
+   state.activeSlot = undefined; state.activeMission = undefined; state.activeLaunchId = undefined;
+   // Use repository validation and derived unlocks; never alter a cloud-backed profile.
+   assert(coordinator.getPersistence() === "session", "Smoke recovery requires session-only persistence");
+   for (let id = 1; id <= missionId; id++) coordinator.recordMissionResult(1, id, true, 0, 30);
+   state.budget = new CampaignRequestBudget();
+  },
   restore: () => { states.delete(player); remotes = previous.remotes; combatService = previous.combatService; },
  };
 }

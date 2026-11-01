@@ -1,8 +1,21 @@
 import { expect } from "@rbxts/jest-globals";
 import { Workspace } from "@rbxts/services";
 import { CombatSession } from "../../server/CombatSession";
+import { BlueprintRunner } from "../../shared/BlueprintRunner";
 import { MissionCatalog } from "../../shared/MissionCatalog";
 import { nextResultMission } from "../../shared/ResultContinuation";
+
+/** Jest assertion failures are tables, sometimes containing nested/cyclic matcher values. */
+export function smokeError(value: unknown, seen = new Set<defined>(), depth = 0): string {
+ if (!typeIs(value, "table")) return tostring(value);
+ if (seen.has(value)) return "[cycle]";
+ if (depth >= 6) return "[depth limit]";
+ seen.add(value);
+ const fields: string[] = [];
+ for (const [key, item] of pairs(value)) fields.push(`${tostring(key)}: ${smokeError(item, seen, depth + 1)}`);
+ seen.delete(value);
+ return `{${fields.join(", ")}}`;
+}
 
 /** ReadVoxels arrays also contain Size: Vector3. Generalized iteration visits that key. */
 export function assertEmptySmokeVoxels(occupancy: ReadVoxelsArray<number>): void {
@@ -16,12 +29,29 @@ export function assertEmptySmokeVoxels(occupancy: ReadVoxelsArray<number>): void
 export function forceSmokeVictory(s: CombatSession): void {
  const bs = s.blueprintState, bp = s.blueprint;
  assert(bs !== undefined && bp !== undefined, "Production session must have blueprint state");
- bs.phaseIndex = MissionCatalog.TotalPhases(bp);
+ // Match terminal state even after the phase inspection pass replaced the phase list.
+ bs.phases = MissionCatalog.ExpandedPhases(bp);
+ bs.phaseIndex = bs.phases.size();
+ const final = bs.phases[bs.phases.size() - 1];
+ bs.phaseProgress = final.count ?? 1;
  bs.requiredGroundKills = MissionCatalog.RequiredGroundKills(bp);
  bs.requiredAirKills = MissionCatalog.RequiredAirKills(bp);
  bs.aceKilled = false;
  bs.elapsed = math.max(30, bs.elapsed);
  bs.outcome = "won"; bs.reason = "complete";
+ // M2 ends in required_ground, rather than an ace/landing. Exercise that phase's
+ // actual completion rule with its required target ids; optional AA/ace never block it.
+ if (final.kind === "required_ground" && final.groundTargets !== undefined && !final.scoreThreshold) {
+  bs.phaseIndex = bs.phases.size() - 1; bs.phaseProgress = 0;
+  bs.requiredGroundKills -= final.count ?? 0;
+  bs.outcome = undefined; bs.reason = undefined;
+  bs.startedAt = os.clock() - bs.elapsed;
+  for (const target of final.groundTargets) if (target.required) {
+   bs.killedIds.delete(target.id);
+   assert(BlueprintRunner.RecordKill(bs, target.id, "ground", true, os.clock()), `Forced ground kill refused: ${target.id}`);
+  }
+  assert(bs.outcome === "won", "Required ground phase did not complete");
+ }
  s.kills = bs.requiredAirKills + bs.requiredGroundKills;
  s.active = true; s.finished = false; s.crashReason = undefined;
 }

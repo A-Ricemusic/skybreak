@@ -62,3 +62,9 @@ Practice: merged in [#130](https://github.com/A-Ricemusic/skybreak/pull/130), `4
 PR #217: rebuilt on merged #216/main; independent 10/10 review records for all 13 embedded meshes are included. Production authorization requires their merge; offline CI uses inventory plus regressions.
 
 PR #217 final validation: frozen install, standalone build, and prescribed LUAU_BIN validate:offline all exited 0; 1,225 Luau contracts and 162 Python tests passed. GitGuardian and guard passed after history cleanup; CI validate pending at recording. No publish/upload or Player test.
+
+## Campaign smoke follow-up — 2026-10-31
+
+PR #203 follow-up (unmerged): campaign smoke now records asset-preload fallback warnings, serializes matcher tables, completes M2's required-ground phase through production kill admission, attributes each build to its own mission row, and recovers session-only progression after a failure. All 19 rows remain required; real failures fail the suite. Studio rerun belongs to the orchestrator. Production world/cleanup changes belong exclusively to #205.
+
+Validation for this #203 follow-up: `bun install --frozen-lockfile`, `bun run build`, and `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau" bun run validate:offline` all exited 0. Offline Luau: 1225 passed / 0 failed; 496 modules compiled; Python: 163 passed. New Studio smoke regression cases compile only; no Studio or Player run. The smoke suite has a 30-minute outer bound so slow builds can still produce all 19 rows; each mission retains its 20-second build assertion.
