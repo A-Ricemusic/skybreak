@@ -39,7 +39,7 @@ export function m04Tracks() {
  }
  return out;
 }
-export const M04_SURFACE: WorldSurface = {
+export const M04_SURFACE: WorldSurface = { waterColumns: true,
  height: m04Height, detail: m04Detailed,
  material: (x, z) => m04Tracks().some(t => t.x === x && t.z === z) ? "Ground" : polyDist(x, z, M04.river) < 160 ? "Mud" : math.sin(x / 640) * math.cos(z / 768) > 0.65 ? "Grass" : "LeafyGrass",
 };

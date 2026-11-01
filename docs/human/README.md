@@ -1,8 +1,6 @@
 # SKYBREAK campaign dashboard
 
-PR [#205](https://github.com/A-Ricemusic/skybreak/pull/205) review fix (2026-10-31), unmerged: M03–M05 loading slices restored to **0.25 s**; estimator yield overhead fixed to its **0.25 s calibration**, with no runtime-budget parameter. Exact consecutive same-material box unions reduce native fill calls while preserving terrain occupancy, materials and overwrite order. Targets, corridors, spawns, water and scenery are unchanged. Calibrated estimates are **M03 18.134 s, M04 16.160 s, M05 37.441 s**: the strict 16 s gates remain failing, not relaxed. M05 already touches each of its 41,760 water chunks once; water alone has a continuous calibrated lower bound of **33.067 s** including fixed overhead, before solid terrain. Fewer calls alone cannot make this footprint fit 16 s under this model. Studio cases log total time, maximum terrain batch and maximum Heartbeat gap, asserting 16 s / 0.3 s. Runtime yields cannot preempt a native Fill; those assertions must establish responsiveness in Studio. No Studio, test:roblox, Player test or upload performed. Orchestrator acceptance remains open.
-
-Review-fix validation (2026-10-31): `bun install --frozen-lockfile` and `bun run build` exited 0. Prescribed-LUAU_BIN `validate:offline` exited **1**: **1,238 contracts passed, five failed**, all strict load-estimate assertions for M03/M04/M05 (three campaign cases plus M03 and M04/M05 world-budget cases). Module compilation (488), require graph (202), four loader guards and static environment/builder checks passed before the estimator failure stopped validation; later validation stages did not run. This does **not** satisfy the requested all-green validation. No limits, assertions or calibration costs were loosened. No Studio, Roblox Jest or Player tests were run.
+PR [#205](https://github.com/A-Ricemusic/skybreak/pull/205), 2026-10-31, unmerged: M05 open ocean now uses 181 flight-solid Sea Parts at Y=32 instead of native terrain water. Matching colour [17,25,32], opacity and reflectance 0.35; flat Parts cannot reproduce native waves. Exact shore-cell unions stay within 2,048 studs, with exhaustive coverage/curtain tests. Aircraft collision, low-altitude probes and actor grounding recognize Sea; gun rays exclude Sea just as they ignore terrain water. Tanker/rig/refinery poses stay unchanged. M03 uses 256-stud route / 1,024-stud distant sampling with 64-stud target refinement and one-voxel lower-cap curtain overlap. M04 removes submerged mud caps with native water-only columns. Estimates: **M03 15.968 s, M04 15.890 s, M05 7.260 s** (previously 18.134 / 16.160 / 37.441). Estimator, fill cap, 0.25 s slices and all 18 strict 16 s gates remain unchanged. M05 Part allowance increases 400→500 for the explicit water geometry (444 total planned including target allowance); descendant cap remains 1,100 (820 planned). Studio total-time / heartbeat assertions remain 16 s / 0.3 s. Frozen install, build and prescribed-LUAU_BIN validate:offline exited 0 (1,243 Luau contracts, all 18 load gates, 488 compiled modules and 124 Python tests); Studio/test:roblox/Player were not run, no upload or merge. Orchestrator owns runtime/visual acceptance.
 
 Calibrated estimates in seconds (not measured Studio/Player times):
 
@@ -10,9 +8,9 @@ Calibrated estimates in seconds (not measured Studio/Player times):
 |---|---:|---|
 | M01 | 13.466 | pass |
 | M02 | 10.467 | pass |
-| M03 | 18.134 | **fail** |
-| M04 | 16.160 | **fail** |
-| M05 | 37.441 | **fail** |
+| M03 | 15.968 | pass |
+| M04 | 15.890 | pass |
+| M05 | 7.260 | pass |
 | M06 | 10.265 | pass |
 | M07 | 14.501 | pass |
 | M08 | 4.235 | pass |

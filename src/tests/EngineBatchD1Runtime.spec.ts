@@ -61,6 +61,11 @@ describe("Batch D1 runtime paths (Studio lease required to execute)", () => {
 			expect(gunOccluded(params, from, aim, target)).toBe(true);
 			far.Parent = undefined;
 			expect(gunOccluded(params, from, aim, target)).toBe(false);
+   const sea = block("Sea", -250, new Vector3(40, 40, 2));
+   surfaces.FilterDescendantsInstances = [target, sea];
+   const seaParams = gunRaycastParams(surfaces);
+   expect(seaParams.FilterDescendantsInstances.includes(sea)).toBe(false);
+   expect(gunOccluded(seaParams, from, aim, target)).toBe(false);
 		} finally { folder.Destroy(); }
 	});
 });

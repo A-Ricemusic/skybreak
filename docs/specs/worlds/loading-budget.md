@@ -1,14 +1,14 @@
 # Campaign loading estimate gate — proposed 2026-10-31
 
-Baseline: origin/main `cb8e1d10`. Values are pure-plan composition estimates in seconds, not measured build, replication or phone load times. M01/M02 retain their older job-based calibration; M03 switches from that older job model to the chunk-touch/yield model used by M04 onward. M06–M18 retain their original schedules and estimates. The audit’s M01 ~10.33 s figure was stale: source actually reports 19.963 s. M01 also needs this fix; no M06–M18 mission exceeds 16 s.
+Pure-plan estimates, not Studio, replication or phone measurements. M03–M05 before values are PR #205 head 2da7e335; M01 before is main cb8e1d10. Other mission schedules are unchanged.
 
 | Mission | Before estimate (s) | Proposed estimate (s) |
 |---|---:|---:|
 | M01 | 19.963 | 13.466 |
 | M02 | 10.467 | 10.467 |
-| M03 | 19.613 | 14.734 |
-| M04 | 16.160 | 15.104 |
-| M05 | 37.441 | 15.828 |
+| M03 | 18.134 | 15.968 |
+| M04 | 16.160 | 15.890 |
+| M05 | 37.441 | 7.260 |
 | M06 | 10.265 | 10.265 |
 | M07 | 14.501 | 14.501 |
 | M08 | 4.235 | 4.235 |
@@ -23,18 +23,12 @@ Baseline: origin/main `cb8e1d10`. Values are pure-plan composition estimates in 
 | M17 | 7.283 | 7.283 |
 | M18 | 3.702 | 3.702 |
 
-M01 merges adjacent non-overlapping land blocks with identical materials and vertical bounds, preserving its original water operations, Parts and props. Its fill cap rises to 262,144 voxels; the old job-based estimator and 8 ms budget remain. A standalone Luau comparison against the pre-merge plan verified identical 16-stud land-column intervals/materials, native water operations and all Parts/props (25,152 → 14,047 planned operations). The audit’s smaller M01 number must not be used as the baseline.
+PR [#205](https://github.com/A-Ricemusic/skybreak/pull/205), 2026-10-31, unmerged: M05 open ocean now uses 181 flight-solid Sea Parts at Y=32 instead of native terrain water. Matching colour [17,25,32], opacity and reflectance 0.35; flat Parts cannot reproduce native waves. Exact shore-cell unions stay within 2,048 studs, with exhaustive coverage/curtain tests. Aircraft collision, low-altitude probes and actor grounding recognize Sea; gun rays exclude Sea just as they ignore terrain water. Tanker/rig/refinery poses stay unchanged. M03 uses 256-stud route / 1,024-stud distant sampling with 64-stud target refinement and one-voxel lower-cap curtain overlap. M04 removes submerged mud caps with native water-only columns. Estimates: **M03 15.968 s, M04 15.890 s, M05 7.260 s** (previously 18.134 / 16.160 / 37.441). Estimator, fill cap, 0.25 s slices and all 18 strict 16 s gates remain unchanged. M05 Part allowance increases 400→500 for the explicit water geometry (444 total planned including target allowance); descendant cap remains 1,100 (820 planned). Studio total-time / heartbeat assertions remain 16 s / 0.3 s. Frozen install, build and prescribed-LUAU_BIN validate:offline exited 0 (1,243 Luau contracts, all 18 load gates, 488 compiled modules and 124 Python tests); Studio/test:roblox/Player were not run, no upload or merge. Orchestrator owns runtime/visual acceptance.
 
-M03: 30,590 → 29,566 scheduled calls. Its caps, shared-edge curtains, terrain sampling, materials, runway, scenery and target poses remain unchanged; only the buried Y=-4..0 floor is removed. Exhaustive existing cap/join/perimeter tests establish the shell is closed through hard airspace, so the removed floor cannot be seen or collided with from flyable airspace. Loading budget changes from 8 ms to 0.5 s, with 262,144-voxel calls.
+The calibrated model retains 0.07 ms per solid chunk touch, 0.2 ms per water touch, 0.2 s plus water-share frame penalty per yield and 3 s fixed overhead. Calibration is fixed at 0.25 s independently of runtime settings. Runtime slices remain 0.25 s and calls remain capped at 262,144 voxels. No cleanup, cold asset or replication claim is included. M01 retains the existing exact equal-column merge.
 
-M04: 11,584 → 8,563 calls. M05: 8,861 → 5,205 calls. Native water tiles keep exactly the same footprints, depth, opacity and top Y=32; the existing scheduler partitions whole tiles on voxel planes instead of the planner pre-splitting into 128-stud strips. Caps, curtains, land, dressing and target IDs/poses remain unchanged. Fill cap rises from 65,536 to 262,144 voxels; loading work budgets change from 0.25 s to 0.3 / 3 s respectively. Native water remains native water, including the existing tanker keel clearance.
+M03 scheduled jobs fall 29,566→10,466; changed mountain sampling is intentional, not an identical-geometry claim. M04 retains all sampled heights/materials above the river surface, replacing submerged caps with water. M05 retains all land caps/curtains and original shoreline cells; opaque Sea tops seal each sea column at Y=32 and cover the full 32,768-stud world through hard airspace. No native sea water is required by its authored ships/rigs. Original industrial geometry and lights stay in place.
 
-The model retains 0.07 ms per solid chunk touch, 0.2 ms per water touch, 0.2 s plus water-share frame penalty per yield, and 3 s fixed overhead. Its new budget argument is also passed to the runtime writer. Extrapolating the historic calibration to longer slices needs Studio acceptance. In particular M05 may hold the server for 3 s per loading resumption (plus one bounded call), trading longer individual loading stalls for fewer costly frame waits. This is not proof of faster device loading. Cleanup, cold uploads, replication and combat activation are outside the model.
+All 18 MissionLoadBudget cases and the Studio total build-time / max Heartbeat-gap assertions remain. AircraftCollision already classifies Sea as crash_water; ActorPlacement recognizes it as water. Client low-altitude raycasts include FlightSolid Sea. Gun rays now remove Sea from the explicit include list to match IgnoreWater. Existing crash/actor tests remain, plus a gun-water regression and exhaustive sea cell, edge and Part-dimension checks. Splash kill text/effects do not depend on native water; flat Parts do not animate waves, so the night ocean appearance needs a Studio look.
 
-The lifecycle gate still completes native clear before a new build. No asynchronous decoration is introduced: all terrain and scenery exist before the mission becomes ready. CombatService is unchanged, including its Luau local limit. No assets are uploaded.
-
-`MissionLoadBudget.spec.ts` explicitly asserts ≤16 s for every mission and is in both offline runner lists. Existing geometry and budget tests remain. `RelayWorld.spec.ts` has one campaign-path Studio case per mission printing `MISSION_STUDIO_BUILD` with elapsed build time, plan time, terrain-ready time, terrain work, yields and longest native job when available. Uploads are fake fixtures; those times exclude cleanup/replication and do not establish phone performance. Existing M02–M05 integration timing logs remain. Studio and `test:roblox` were deliberately not run by this implementation sub-agent; the orchestrator owns those measurements.
-
-## Offline validation
-
-Frozen install, `bun run build`, and `LUAU_BIN="/Users/pelicannurse/Projects/test app/build/offline-luau/luau" bun run validate:offline` all exited 0. The final log records all 18 estimates above and `OFFLINE_LUAU_RESULT passed=1242 failed=0`; the Luau module guard, 19 catalog snapshots and 124 Python tests passed. Generated world counts are current. No Studio, `test:roblox`, Player or phone timing was performed.
+Validation: frozen install, build and full prescribed-LUAU_BIN offline gate exited 0. Result: OFFLINE_LUAU_RESULT passed=1243 failed=0; 19 catalog snapshots, module/require guards, generated world counts and 124 Python tests passed. No Studio or test:roblox run. The added engine gun/Sea regression was compiled, not executed.

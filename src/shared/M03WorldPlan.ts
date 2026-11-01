@@ -14,7 +14,7 @@ export const M03_TERRAIN_BUDGET = 0.25;
 export const M03_RUNWAY_TOP = 88;
 const PAVEMENT_DEPTH = 8;
 export const M03 = {
-	halfX: 15488, halfZ: 15488, bottom: 0, coarse: 512, detail: 128, targetDetail: 64, corridorHalf: 640,
+	halfX: 15488, halfZ: 15488, bottom: 0, coarse: 1024, detail: 256, targetDetail: 64, corridorHalf: 640,
 	valley: 80, summit: 944, scale: 0.96,
 	start: { x: 12000, y: 640, z: 9120, headingDegrees: 47.3 }, // CFrame yaw: -Z toward NW
 	site1: { x: -480, z: -2400 }, site2: { x: -10080, z: -8160 },
@@ -89,20 +89,20 @@ function targetPositions(): number[][] {
 }
 const TARGET_POSITIONS = targetPositions();
 function targetTile(x: number, z: number): boolean {
-	for (const t of TARGET_POSITIONS) if (t[0] >= x - 128 && t[0] <= x + 256 && t[1] >= z - 128 && t[1] <= z + 256) return true;
+	for (const t of TARGET_POSITIONS) if (t[0] >= x - 128 && t[0] <= x + 384 && t[1] >= z - 128 && t[1] <= z + 384) return true;
 	return false;
 }
-/** Whole 512-stud tiles refine to 128 along the flight reservation. */
+/** Whole 1024-stud tiles refine to 256 along the flight reservation. */
 function detailedTile(x: number, z: number): boolean {
-	for (let dx = 0; dx <= 512; dx += 128) for (let dz = 0; dz <= 512; dz += 128) if (m03Detailed(x + dx, z + dz)) return true;
+	for (let dx = 0; dx <= 1024; dx += 128) for (let dz = 0; dz <= 1024; dz += 128) if (m03Detailed(x + dx, z + dz)) return true;
 	return false;
 }
 function cellAt(x: number, z: number) {
-	const tx = math.floor((x + M03.halfX) / 512) * 512 - M03.halfX;
-	const tz = math.floor((z + M03.halfZ) / 512) * 512 - M03.halfZ;
-	let side = detailedTile(tx, tz) ? 128 : 512;
+	const tx = math.floor((x + M03.halfX) / 1024) * 1024 - M03.halfX;
+	const tz = math.floor((z + M03.halfZ) / 1024) * 1024 - M03.halfZ;
+	let side = detailedTile(tx, tz) ? 256 : 1024;
 	let cx = tx + math.floor((x - tx) / side) * side, cz = tz + math.floor((z - tz) / side) * side;
-	if (side === 128 && targetTile(cx, cz)) {
+	if (side === 256 && targetTile(cx, cz)) {
 		side = 64;
 		cx += math.floor((x - cx) / side) * side; cz += math.floor((z - cz) / side) * side;
 	}
@@ -149,15 +149,15 @@ export function buildM03Plan(seed = 303, checkpoint: () => void = () => {}): M03
 	const cells: Array<{ x: number; z: number; sx: number; sz: number; top: number }> = [];
 	const heights = new Map<string, number>();
 	const key = (x: number, z: number) => `${x},${z}`;
-	for (let x = -M03.halfX; x < M03.halfX; x += 512) for (let z = -M03.halfZ; z < M03.halfZ; z += 512) {
-		const side = detailedTile(x, z) ? 128 : 512;
-		for (let dx = 0; dx < math.min(512, M03.halfX - x); dx += side) for (let dz = 0; dz < math.min(512, M03.halfZ - z); dz += side) {
-			const fine = side === 128 && targetTile(x + dx, z + dz) ? 64 : side;
+	for (let x = -M03.halfX; x < M03.halfX; x += 1024) for (let z = -M03.halfZ; z < M03.halfZ; z += 1024) {
+		const side = detailedTile(x, z) ? 256 : 1024;
+		for (let dx = 0; dx < math.min(1024, M03.halfX - x); dx += side) for (let dz = 0; dz < math.min(1024, M03.halfZ - z); dz += side) {
+			const fine = side === 256 && targetTile(x + dx, z + dz) ? 64 : side;
 			for (let fx = 0; fx < side && x + dx + fx < M03.halfX; fx += fine) for (let fz = 0; fz < side && z + dz + fz < M03.halfZ; fz += fine) {
 				const c = cellAt(x + dx + fx, z + dz + fz);
 				cells.push(c);
 				for (let gx = c.x; gx < c.x + c.sx; gx += 64) for (let gz = c.z; gz < c.z + c.sz; gz += 64) heights.set(key(gx, gz), c.top);
-				if (fine <= 128) p.detailCells++; else p.coarseCells++;
+				if (fine <= M03.detail) p.detailCells++; else p.coarseCells++;
 				checkpoint();
 			}
 		}
@@ -167,6 +167,7 @@ export function buildM03Plan(seed = 303, checkpoint: () => void = () => {}): M03
 		const cx = c.x + c.sx / 2, cz = c.z + c.sz / 2;
 		// One 8-stud cap replaces the rock body plus snow overlay.
 		block(m03Material(cx, cz), cx, cz, c.sx, c.sz, c.top - 8, c.top);
+		// One voxel of overlap into the lower cap seals each step without touching a second buried chunk.
 		// Each shared edge is emitted once, in equal-height runs. Four-stud
 		// vertical rock curtains close the hollow shell, including LOD joins.
 		const wall = (axis: "x" | "z", edge: number, start: number, length: number, negative = false) => {
@@ -176,7 +177,7 @@ export function buildM03Plan(seed = 303, checkpoint: () => void = () => {}): M03
 				const lo = math.min(previous, c.top), hi = math.max(previous, c.top);
 				const offset = (c.top > previous ? -2 : 2) * (negative ? -1 : 1);
 				block("Rock", axis === "x" ? edge + offset : (run + finish) / 2, axis === "z" ? edge + offset : (run + finish) / 2,
-					axis === "x" ? 4 : finish - run, axis === "z" ? 4 : finish - run, math.max(0, lo - 8), hi);
+					axis === "x" ? 4 : finish - run, axis === "z" ? 4 : finish - run, math.max(0, lo - 4), hi);
 			};
 			for (let v = start; v < start + length; v += 64) {
 				const neighbor = heights.get(axis === "x" ? key(negative ? edge - 64 : edge, v) : key(v, negative ? edge - 64 : edge)) ?? 0;

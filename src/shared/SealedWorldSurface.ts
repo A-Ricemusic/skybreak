@@ -1,4 +1,4 @@
-import type { TerrainOp, TerrainMaterial } from "./WorldPlan";
+import type { TerrainOp, TerrainMaterial, PartSpec } from "./WorldPlan";
 /** M03 shell topology without M03's floor: aligned caps, shared-edge curtains.
  * The 128-stud address grid covers every fine/coarse join. Every column of the
  * 32,768-stud square has a cap whose bottom is at or above Y=0, and perimeter
@@ -16,6 +16,8 @@ export interface WorldSurface {
   * nothing below its surface is seen, so the water itself seals the column (D-121).
   */
  waterColumns?: boolean;
+ /** Opaque open sea seals the column with a queryable Part instead of native voxels. */
+ sea?: { color: [number, number, number]; reflectance: number; transparency: number };
 }
 export const WORLD_HALF = 16384;
 export const WORLD_FILL_CHUNK = 262144;
@@ -37,7 +39,8 @@ export function surfaceGround(surface: WorldSurface, x: number, z: number): numb
 }
 export function sealedSurface(surface: WorldSurface, checkpoint: () => void) {
  const half = WORLD_HALF, ops: TerrainOp[] = [];
- const p = { ops, detailCells: 0, coarseCells: 0 };
+ const seaParts: PartSpec[] = [];
+ const p = { ops, seaParts, detailCells: 0, coarseCells: 0 };
  const block = (material: TerrainMaterial, x: number, z: number, sx: number, sz: number, bottom: number, top: number) => {
   if (top <= bottom) return;
   const y = (bottom + top) / 2, sy = top - bottom, last = ops[ops.size() - 1];
@@ -101,8 +104,29 @@ export function sealedSurface(surface: WorldSurface, checkpoint: () => void) {
  // Native water exactly bounds each sampled shore tile. Ships use Y=32.
  // Keep each water tile whole; the scheduler tiles larger calls on voxel planes.
  for (const c of cells) if (c.top < 32) {
+  if (surface.sea !== undefined) {
+   seaParts.push({ name: "Sea", shape: "block", x: c.x + c.sx / 2, y: 30, z: c.z + c.sz / 2,
+    sx: c.sx, sy: 4, sz: c.sz, yaw: 0, material: "SmoothPlastic", color: surface.sea.color,
+    reflectance: surface.sea.reflectance, transparency: surface.sea.transparency, solid: true, grounded: false });
+   continue;
+  }
   const bottom = surface.waterColumns === true ? math.max(0, c.top - 8) : c.top;
   block("Water", c.x + c.sx / 2, c.z + c.sz / 2, c.sx, c.sz, bottom, 32);
+ }
+ // Exact rectangular unions: no rectangle crosses a land cell, and no Part exceeds 2048.
+ for (const axis of ["x", "z", "x", "z"] as const) {
+  const other = axis === "x" ? "z" : "x", size = axis === "x" ? "sx" : "sz", otherSize = axis === "x" ? "sz" : "sx";
+  seaParts.sort((a, b) => a[other] !== b[other] ? a[other] < b[other]
+   : a[otherSize] !== b[otherSize] ? a[otherSize] < b[otherSize] : a[axis] < b[axis]);
+  for (let i = 0; i < seaParts.size(); i++) {
+   const a = seaParts[i];
+   while (i + 1 < seaParts.size()) {
+    const b = seaParts[i + 1];
+    if (a[other] !== b[other] || a[otherSize] !== b[otherSize] || a[axis] + a[size] / 2 !== b[axis] - b[size] / 2 || a[size] + b[size] > 2048
+     || math.floor((a[axis] - a[size] / 2) / 2048) !== math.floor((b[axis] + b[size] / 2 - 0.01) / 2048)) break;
+    a[axis] = (a[axis] - a[size] / 2 + b[axis] + b[size] / 2) / 2; a[size] += b[size]; seaParts.remove(i + 1);
+   }
+  }
  }
  return p;
 }

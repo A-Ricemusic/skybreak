@@ -57,8 +57,8 @@ export function buildComposition(parent: Instance, environment: EnvironmentSpec,
  parent.SetAttribute("WorldBuildPhase", "dressing");
  for (let i = 0; i < plan.parts.size(); i++) {
   const p = plan.parts[i], owner = models.get(p.name) ?? scene, at = new Vector3(p.x, p.y, p.z);
-  if (p.shape === "cylinder") Scenery.Cylinder(owner, p.name, p.sx, p.sy, at, Color3.fromRGB(...p.color), material(p.material), { flightSolid: p.solid, castShadow: false });
-  else Scenery.Part(owner, p.name, new Vector3(p.sx, p.sy, p.sz), new CFrame(at).mul(CFrame.Angles(0, p.yaw, 0)), Color3.fromRGB(...p.color), material(p.material), { flightSolid: p.solid, castShadow: false });
+  if (p.shape === "cylinder") Scenery.Cylinder(owner, p.name, p.sx, p.sy, at, Color3.fromRGB(...p.color), material(p.material), { flightSolid: p.solid, castShadow: false, transparency: p.transparency, reflectance: p.reflectance });
+  else Scenery.Part(owner, p.name, new Vector3(p.sx, p.sy, p.sz), new CFrame(at).mul(CFrame.Angles(0, p.yaw, 0)), Color3.fromRGB(...p.color), material(p.material), { flightSolid: p.solid, castShadow: false, transparency: p.transparency, reflectance: p.reflectance });
   if (i % 32 === 31) task.wait();
  }
  let missing = 0;

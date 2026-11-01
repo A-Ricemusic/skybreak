@@ -17,7 +17,7 @@ describe("M03 snowy mountain composition", () => {
 		expect(MissionCatalog.WorldKey(3)).toBe(p.key);
 		let checkpoints = 0;
 		expect(buildM03Plan(303, () => { checkpoints++; })).toEqual(p);
-		expect(checkpoints).toBeGreaterThan(10000);
+		expect(checkpoints).toBeGreaterThan(2 * (p.detailCells + p.coarseCells));
 	});
 	it("exports nine radars, four AA and a helicopter grounded on written terrain", () => {
 		expect(p.targets.filter((t) => t.type === "radar" && t.group === "site1").size()).toBe(5);
@@ -66,7 +66,7 @@ describe("M03 snowy mountain composition", () => {
 			expect(m03Detailed(a[0] + (b[0] - a[0]) * n / 100, a[1] + (b[1] - a[1]) * n / 100)).toBe(true);
 		}
 		for (const t of p.targets) expect(m03Detailed(t.x, t.z)).toBe(true);
-		expect(p.coarseCells).toBeGreaterThan(1000);
+		expect(p.coarseCells).toBeGreaterThan(500);
 		expect(p.detailCells).toBeGreaterThan(1000);
 	});
 	it("uses slope-aware rock, snow valleys and a deep gorge inside the provisional band", () => {
