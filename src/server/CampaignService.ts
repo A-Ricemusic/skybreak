@@ -318,3 +318,19 @@ export const CampaignService = {
 		});
 	},
 };
+
+/** Test-place-only registration: no DataStores, PlayerAdded connections or RPC replacement.
+ * Requests still enter the exact handler installed as CampaignRequest.OnServerInvoke.
+ */
+export function installCampaignSmokePlayer(player: Player, coordinator: CampaignCoordinator, transport: Remotes, combat: CombatApi) {
+ assert(RunService.IsStudio() && game.Workspace.GetAttribute("SkybreakTestMode") === true, "Test place only");
+ assert(!initialized && states.size() === 0, "Campaign service must be uninitialized");
+ const previous = { remotes, combatService };
+ remotes = transport; combatService = combat;
+ states.set(player, { player, coordinator, loaded: true, loadStarted: true, requestBusy: false,
+  budget: new CampaignRequestBudget(), lastRecovery: -math.huge, closing: false });
+ return {
+  request: (action: string, payload?: unknown) => handleRequest(player, action, payload),
+  restore: () => { states.delete(player); remotes = previous.remotes; combatService = previous.combatService; },
+ };
+}

@@ -77,6 +77,7 @@ const sessions = new Map<Player, CombatSession>();
 const launchCancellations = new Map<Player, LaunchCancellation>();
 const completing = new Set<Player>();
 const connections: RBXScriptConnection[] = [];
+let smokePlayer: Player | undefined; // only installed by the gated Studio seam below
 let missionSerial = 0;
 let buildingMission = false;
 let missionRoot: Instance | undefined;
@@ -1884,7 +1885,7 @@ export const CombatService = {
 		const specialKind: SpecialKind = SpecialWeapons.IsKind(special) ? special : SpecialWeapons.Default;
 		if (difficulty !== undefined && !Difficulty.IsKind(difficulty)) return $tuple(false, "Choose a valid difficulty");
 		const difficultyKind: DifficultyKind = Difficulty.Coerce(difficulty);
-		if (!typeIs(player, "Instance") || !player.IsA("Player") || player.Parent !== Players) return $tuple(false, "Player is unavailable");
+		if (((smokePlayer === undefined || player !== smokePlayer) && (!typeIs(player, "Instance") || !player.IsA("Player"))) || player.Parent !== Players) return $tuple(false, "Player is unavailable");
 		if (completing.has(player)) return $tuple(false, "Your mission result is still being saved");
 		if (sessions.has(player)) return $tuple(false, "A mission is already in progress or its result is being saved");
 		if (buildingMission) return $tuple(false, "The previous launch is still preparing. Please wait before retrying.");
@@ -2142,3 +2143,32 @@ export const CombatService = {
 		}));
 	},
 };
+
+/** Studio Jest seam: absent player identity and outbound transport are replaced; StartMission, factory, world gate and settlement stay real.
+ * Does not connect Heartbeat. The caller owns fixed stepping and must restore after cleanup.
+ * Never installed by server startup and unavailable outside the dedicated test place.
+ */
+export function installCampaignSmokeCombat(player: Player, root: Folder, transport: Remotes, finished: FinishedCallback) {
+ assert(RunService.IsStudio() && Workspace.GetAttribute("SkybreakTestMode") === true, "Test place only");
+ assert(sessions.size() === 0 && connections.size() === 0 && !buildingMission, "Combat service must be idle/uninitialized");
+ const previous = { missionRoot, missionState, flightStateRemote, telemetryRemote, combatEffectRemote, onFinished };
+ smokePlayer = player;
+ missionRoot = root; missionState = transport.MissionState; flightStateRemote = transport.FlightState;
+ telemetryRemote = transport.Telemetry; combatEffectRemote = transport.CombatEffect; onFinished = finished;
+ return {
+  begin: beginPlay,
+  step: stepSession,
+  flush: flushPivots,
+  apply: (session: CombatSession) => phaseDirector.Apply(session),
+  direct: (session: CombatSession) => { phaseDirector.Step(session); EngineBatchD10.stepCruise(session, 1/30); },
+  finish,
+  owns: ownsEnemy,
+  damageable: (session: CombatSession, enemy: Enemy) => ownsEnemy(session, enemy) && enemy.enabled && enemy.health > 0 && sessionCanDamage(session, enemy.kind, enemy.required),
+  restore: () => {
+   assert(sessions.size() === 0 && !buildingMission && worldLifecycle.Idle(), "Clean up before restoring combat transport");
+   smokePlayer = undefined;
+   missionRoot = previous.missionRoot; missionState = previous.missionState; flightStateRemote = previous.flightStateRemote;
+   telemetryRemote = previous.telemetryRemote; combatEffectRemote = previous.combatEffectRemote; onFinished = previous.onFinished;
+  },
+ };
+}
