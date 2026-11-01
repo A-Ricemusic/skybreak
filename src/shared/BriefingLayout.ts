@@ -32,7 +32,7 @@ export interface BriefingLayout {
 }
 
 /** Three touch targets in one row; launch keeps the largest share. */
-export function getBriefingDock(panelWidth: number): BriefingDock {
+function getBriefingDock(panelWidth: number): BriefingDock {
 	const gap = 8;
 	const narrow = panelWidth < 330;
 	const back = narrow ? MIN_TOUCH_TARGET + 8 : 92;

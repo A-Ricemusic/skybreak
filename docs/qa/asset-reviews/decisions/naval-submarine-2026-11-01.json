@@ -1,0 +1,25 @@
+{
+  "asset": "naval-submarine",
+  "exportVersion": "naval-kit-2",
+  "creator": "SKYBREAK build agent via tools/assets/naval_kit.py (this PR)",
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "reviewDate": "2026-11-01",
+  "files": {
+    "naval-submarine-color.png": "bb189e54b322c6c26f5206c3fead05db8f4009962892995da3120b1a2cfecdb0",
+    "naval-submarine-normal.png": "beb4941a516ed42a4276c23251c6283ba564eec1bc989f0800034420300bcf91",
+    "naval-submarine-roughness.png": "9859b044dfd2fba1c54c23a2796d4263c5f76f2833b30b5ff53150c4257d3cf5",
+    "naval-submarine-metalness.png": "89c0d9592d666e4acaa7f90efef317419b0c841826d7ec155928578fa1867a06",
+    "naval-submarine.fbx": "29bbfecdbf48f1f327c8572a4b11ba3c6fa81b5c9f75fa6fa61999f7bc6b5a76"
+  },
+  "policyLinks": [
+    "https://www.roblox.com/termsofuse",
+    "https://en.help.roblox.com/hc/en-us/articles/115004647846-Roblox-Terms-of-Use",
+    "https://en.help.roblox.com/hc/en-us/articles/203313410-Roblox-Community-Standards/",
+    "https://about.roblox.com/community-standards",
+    "https://en.help.roblox.com/hc/en-us/articles/15869919570708-Age-Restricted-Content-on-Roblox",
+    "https://create.roblox.com/docs/production/publishing/ip-guidelines"
+  ],
+  "sourceReview": "docs/qa/asset-reviews/naval-kit/independent-safety-review-2026-11-01.md",
+  "score": 10,
+  "verdict": "APPROVE"
+}

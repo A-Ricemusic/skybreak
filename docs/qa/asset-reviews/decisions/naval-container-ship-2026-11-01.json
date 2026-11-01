@@ -1,0 +1,25 @@
+{
+  "asset": "naval-container-ship",
+  "exportVersion": "naval-kit-2",
+  "creator": "SKYBREAK build agent via tools/assets/naval_kit.py (this PR)",
+  "reviewer": "GPT-6.1 Sol independent reviewer",
+  "reviewDate": "2026-11-01",
+  "files": {
+    "naval-container-ship-color.png": "8484bfca0be4f0599ea3a952d71f439b7a996fca032d8f86b84f2a39f681e075",
+    "naval-container-ship-normal.png": "237e5ea2478788ee0dc94834d70a57db463e1807c395114ef10b79a8f61177f1",
+    "naval-container-ship-roughness.png": "c0bad516390abcddd6ab22ecf4b8e3a4191aa130d1e43da60b6734d1510a23e9",
+    "naval-container-ship-metalness.png": "2225577be2fe14f2e23541e264d14b2698e6a4de42bb11f1a43d1bd31eccac44",
+    "naval-container-ship.fbx": "91350b4857cf30e6d4923e37dd77fd5b4b0903d5c040ba0c79e9b355af63459c"
+  },
+  "policyLinks": [
+    "https://www.roblox.com/termsofuse",
+    "https://en.help.roblox.com/hc/en-us/articles/115004647846-Roblox-Terms-of-Use",
+    "https://en.help.roblox.com/hc/en-us/articles/203313410-Roblox-Community-Standards/",
+    "https://about.roblox.com/community-standards",
+    "https://en.help.roblox.com/hc/en-us/articles/15869919570708-Age-Restricted-Content-on-Roblox",
+    "https://create.roblox.com/docs/production/publishing/ip-guidelines"
+  ],
+  "sourceReview": "docs/qa/asset-reviews/naval-kit/independent-safety-review-2026-11-01.md",
+  "score": 10,
+  "verdict": "APPROVE"
+}

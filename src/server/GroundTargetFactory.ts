@@ -1,3 +1,4 @@
+import { GROUND_KIT_BUDGET_ATTRIBUTE, GROUND_KIT_INSTANCE_ALLOWANCE } from "./WorldInstanceBudget";
 import { MILITARY_GROUND_KIT } from "../shared/MilitaryGroundKit";
 import { WorldAssets } from "./WorldAssets";
 import { navalHull } from "../shared/SurfaceTargetRules";
@@ -15,7 +16,7 @@ export function restOn(model: Model, baseY: number): void {
  * Fit uniformly inside the old bounds; no stretched vehicles or expanded hitboxes.
  * Capture bounds and aim BEFORE decoration: uploaded detail never moves the lock point.
  */
-export function decorateGroundTarget(model: Model, targetType: GroundTargetType, bounds: CFrame, size: Vector3): void {
+function decorateGroundTarget(model: Model, targetType: GroundTargetType, bounds: CFrame, size: Vector3): void {
  const asset = MILITARY_GROUND_KIT[targetType];
  if (asset === undefined) return;
  const authored = UploadedAssetSpecs[asset].size;
@@ -23,6 +24,13 @@ export function decorateGroundTarget(model: Model, targetType: GroundTargetType,
  const proxies = model.GetDescendants();
  const visual = WorldAssets.PlaceUploaded(asset, model, bounds.mul(new CFrame(0, -size.Y / 2, 0)), scale);
  if (visual === undefined) return;
+ // Fail back to the unchanged proxies before hiding anything if a future import grows.
+ if (1 + visual.GetDescendants().size() > GROUND_KIT_INSTANCE_ALLOWANCE) {
+  visual.Destroy();
+  warn(`Ground kit ${asset} exceeds ${GROUND_KIT_INSTANCE_ALLOWANCE} instances; retaining procedural visual`);
+  return;
+ }
+ visual.SetAttribute(GROUND_KIT_BUDGET_ATTRIBUTE, true);
  for (const p of proxies) if (p.IsA("BasePart")) { p.SetAttribute("GroundKitQuery", p.Transparency < 1); p.Transparency = 1; }
  for (const p of visual.GetDescendants()) if (p.IsA("BasePart")) {
   p.SetAttribute("GroundKitQuery", false); p.CanQuery = false; p.CanCollide = false; p.CanTouch = false; p.SetAttribute("FlightSolid", false);
@@ -33,9 +41,9 @@ export function decorateGroundTarget(model: Model, targetType: GroundTargetType,
  * A world's own visual becomes a typed target: renamed to its HUD label, tagged with the spec id and
  * given an invisible stationary aim centre (the PrimaryPart combat locks and homes on).
  */
-export function adoptGroundTarget(model: Model, id: string, targetType: GroundTargetType): Model {
+export function adoptGroundTarget(model: Model, id: string, targetType: GroundTargetType, uploadedDecoration = true): Model {
 	const [bounds, size] = model.GetBoundingBox();
-	decorateGroundTarget(model, targetType, bounds, size);
+	if (uploadedDecoration) decorateGroundTarget(model, targetType, bounds, size);
 	const aim = new Instance("Part");
 	aim.Name = "Aim"; aim.Size = new Vector3(4, 4, 4); aim.CFrame = new CFrame(bounds.Position); aim.Transparency = 1;
 	aim.Anchored = true; aim.CanCollide = false; aim.CanTouch = false; aim.CanQuery = false; aim.Parent = model;

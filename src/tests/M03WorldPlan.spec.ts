@@ -150,17 +150,16 @@ describe("M03 snowy mountain composition", () => {
 		print(`M03_SHELL_COVERAGE columns=${checked} height_steps=${closed} caps=${caps.size()}`);
 		expect(closed).toBeGreaterThan(1000);
 	});
-	it("seals the entire hard airspace with one continuous bottom floor", () => {
+	it("avoids the inaccessible full-world floor that amplified loading and cleanup", () => {
 		expect(M03.halfX).toBeGreaterThan(M03_AIRSPACE.hardHalfWidth);
 		expect(M03.halfZ).toBeGreaterThan(M03_AIRSPACE.hardHalfWidth);
-		const floor = p.ops.filter((o) => o.x === 0 && o.z === 0 && o.y === -2 && o.sy === 4);
-		expect(floor.size()).toBe(1);
-		expect(floor[0].sx).toBe(2 * M03.halfX);
-		expect(floor[0].sz).toBe(2 * M03.halfZ);
-		// A solid, unrotated rock block: no air pocket, no wedge, no gap at the corners.
-		expect(floor[0].material).toBe("Rock");
-		expect(floor[0].shape).toBe("block");
-		expect(floor[0].yaw).toBe(0);
+		// Surface continuity and every LOD/perimeter curtain are checked exhaustively above.
+		// No operation allocates a second surface below that sealed playable surface.
+		for (const op of p.ops) expect(op.y - op.sy / 2).toBeGreaterThanOrEqual(0);
+		const counts = m03Counts(p);
+		expect(counts.voxels).toBeLessThan(150e6);
+		// Pre-hotfix plan: 206,784,672 writes, of which 59,969,536 were bottom floor.
+		expect(counts.voxels).toBe(206784672 - 59969536);
 	});
 	it("uses unique mission ids and supports the entire non-overlapping target footprint", () => {
 		const ids = new Set<string>();

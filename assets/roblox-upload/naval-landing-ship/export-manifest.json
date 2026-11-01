@@ -1,0 +1,12 @@
+{
+  "asset": "naval-landing-ship",
+  "exportVersion": "naval-kit-2",
+  "creator": "SKYBREAK build agent via tools/assets/naval_kit.py (this PR)",
+  "files": {
+    "naval-landing-ship-color.png": "add886df5d7a02169f3ba867c67f7546bfb4f04b0e5ba2c1edb35d869039e977",
+    "naval-landing-ship-normal.png": "26ec8ba9f4fcf489e30dbd95d873c2b7bf7b1a72979ac06aac031c341a3ea886",
+    "naval-landing-ship-roughness.png": "e95f792572e0b51a99843631ee34837e265fd9a4cd808e25440e7f2a3587b1b9",
+    "naval-landing-ship-metalness.png": "814e40f2a3da46fbf4b72c628b9dfb92d6f3950522ce4b5748c76dc464fdd7e0",
+    "naval-landing-ship.fbx": "dc032ec7e752db25b512f1dcb1ea9f58c74fb787979708d140cbe93e78e6406f"
+  }
+}

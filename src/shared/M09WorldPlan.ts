@@ -26,7 +26,7 @@ export const M09_ENVIRONMENT: EnvironmentSpec = {
  grade: { saturation: -0.35, contrast: 0.08, brightness: -0.02, tint: [220, 235, 225] },
  water: { color: [43, 62, 60], reflectance: 0.12, transparency: 0, waveSize: 0.15, waveSpeed: 6 },
 };
-export function m09Height(x: number, z: number): number {
+function m09Height(x: number, z: number): number {
  for (const b of M09.beaches) {
   if (math.abs(x - b.x) < 1700 && z > b.z - 2100 && z < b.z + 650) return z > b.z - 256 ? 40 : 168;
  }

@@ -1,3 +1,4 @@
+import { assertWorldInstanceBudget } from "./WorldInstanceBudget";
 import { MILITARY_GROUND_ASSETS } from "../shared/MilitaryGroundKit";
 import { Workspace } from "@rbxts/services";
 import { buildM02Plan, M02, M02_ENVIRONMENT, M02_FILL_CHUNK, M02_WORLD_KEY, m02TargetLayout } from "../shared/M02WorldPlan";
@@ -84,7 +85,7 @@ export const M02World = {
 			model.SetAttribute("LayoutGroup", t.group);
 			adoptGroundTarget(model, id, M02_TARGET_TYPES[t.type]);
 		}
-		assert(scene.GetDescendants().size() + 4 <= M02.budget.descendants, "M02 actual descendants exceed audited budget");
+		assertWorldInstanceBudget(scene, M02.budget.descendants, 4);
 		parent.SetAttribute("WorldPropsMissing", missing);
 		parent.SetAttribute("WorldBuildSeconds", os.clock() - start);
 		parent.SetAttribute("Composition", plan.key);
