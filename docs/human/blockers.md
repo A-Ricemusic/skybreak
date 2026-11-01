@@ -1,5 +1,9 @@
 # Blockers
 
+## Urgent open: M3 mobile application crash after #220
+
+Owner reports the Roblox app still closes on mobile when launching M3 on live main 36e949d0 after #220. Second hotfix pending: remove inaccessible 60M-voxel bottom floor, keep all M3 targets procedural with zero military meshes/PBR maps, and log construction error phase before recovery. Live cause unconfirmed; Not Studio/Player tested. See [investigation](../qa/m03-crash-second-hotfix.md).
+
 Updated 2026-11-01 against main `36e949d0`.
 
 ## Open

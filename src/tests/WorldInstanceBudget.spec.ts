@@ -94,7 +94,8 @@ describe("world caps with uploaded military model structure", () => {
   expect(counts.base + counts.kit).toBe(scene.GetDescendants().size());
   expect(counts.models).toBeGreaterThan(0);
  }, 120000);
- it("builds M03 within its base cap with separately bounded mesh/appearance/attachment instances", () => {
+ it("keeps M03 procedural even when military templates are already cached", () => {
+  UploadedAssets.Preload(["MilitaryRadar", "MilitaryAa"], 30);
   M03World.Build(parent);
   const scene = parent.GetChildren().find(child => child.IsA("Folder"))!;
   const counts = worldInstanceCounts(scene);
@@ -103,7 +104,7 @@ describe("world caps with uploaded military model structure", () => {
   expect(counts.kit).toBe(counts.models * 7);
   expect(counts.kit <= counts.models * GROUND_KIT_INSTANCE_ALLOWANCE).toBe(true);
   expect(counts.base + counts.kit).toBe(scene.GetDescendants().size());
-  expect(counts.models).toBeGreaterThan(0);
+  expect(counts.models).toBe(0);
  }, 120000);
  it("builds M04 within its base cap with separately bounded mesh/appearance/attachment instances", () => {
   M04World.Build(parent);
@@ -270,15 +271,15 @@ describe("world caps with uploaded military model structure", () => {
   expect(counts.base + counts.kit).toBe(scene.GetDescendants().size());
 
  }, 120000);
- it("reproduces M03's old failure with today's single mesh + appearance export", () => {
+ it("avoids M03 military mesh replication while preserving every target and aim", () => {
   meshCount = 1; attachmentCount = 0;
   const built = M03World.Build(parent);
   const scene = parent.GetChildren().find(child => child.IsA("Folder"))!;
   const counts = worldInstanceCounts(scene);
   expect(counts.base).toBe(m03Counts(buildM03Plan()).descendants - 1);
-  expect(counts.models).toBe(13); // nine radar and four AA; helicopter stays procedural
-  expect(counts.kit).toBe(39);
-  expect(scene.GetDescendants().size()).toBeGreaterThan(M03.budget.descendants);
+  expect(counts.models).toBe(0);
+  expect(counts.kit).toBe(0);
+  expect(scene.GetDescendants().size()).toBeLessThanOrEqual(M03.budget.descendants);
   expect(() => assertWorldInstanceBudget(scene, M03.budget.descendants)).never.toThrow();
   expect(built.targetVisuals.size()).toBe(14);
   for (const [id, model] of built.targetVisuals) {

@@ -1,5 +1,11 @@
 # Shipped
 
+| Pending PR | Merge commit | Proposed change | Player status |
+|---|---|---|---|
+| hotfix/m03-crash-2 | Unmerged | M3 terrain/PBR memory mitigation and construction diagnostics | Not live; Not Studio/Player tested; reported mobile application crash remains open |
+
+Owner reports the Roblox app still closes on mobile when launching M3 on live main 36e949d0 after #220. Second hotfix pending: remove inaccessible 60M-voxel bottom floor, keep all M3 targets procedural with zero military meshes/PBR maps, and log construction error phase before recovery. Live cause unconfirmed; Not Studio/Player tested. See [investigation](../qa/m03-crash-second-hotfix.md).
+
 Updated 2026-11-01 against main `36e949d0`. Newest first in main history. Gameplay merges are live by the owner’s automatic-pipeline convention; this is not a claim of Player observation. Assets-only merges do not activate models. Open #205/#203/#210/#221/#227 are not shipped.
 
 | PR | Merge commit | Change | What the owner sees in Roblox Player |
