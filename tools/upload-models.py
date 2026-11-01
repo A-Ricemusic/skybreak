@@ -42,6 +42,7 @@ def read_file(path: Path, limit: int) -> bytes:
 
 
 def read_object(content: bytes, label: str) -> dict[str, Any]:
+    """Parse JSON that must be an object; errors name the file role, never its content."""
     try:
         value = json.loads(content)
     except (ValueError, UnicodeError):
@@ -52,6 +53,10 @@ def read_object(content: bytes, label: str) -> dict[str, Any]:
 
 
 def prepare(asset: str) -> dict[str, Any]:
+    """Validate one asset offline and return its upload plan.
+
+    Checks the working approval record, the committed review (``require_model_review``), texture and
+    checklist hashes, the export version, every checklist value and the journal state. No network."""
     if not re.fullmatch(r"[A-Za-z0-9_-]+", asset):
         raise RuntimeError("Invalid asset name; use letters, digits, underscores or hyphens")
     filename = asset + ".fbx"
@@ -102,6 +107,7 @@ def prepare(asset: str) -> dict[str, Any]:
 
 
 def upload(plan: dict[str, Any], key: str) -> dict[str, Any]:
+    """Gate again, then submit the planned Model and poll moderation through the shared journal."""
     ru.gate(plan["journalKey"], asset_type="Model")
     return ru.submit_and_moderate(
         plan["asset"], plan["journalKey"], plan["item"], plan["content"], plan["sha256"],
@@ -110,10 +116,12 @@ def upload(plan: dict[str, Any], key: str) -> dict[str, Any]:
 
 
 def fetch_origin() -> None:
+    """Refresh origin so committed-evidence checks compare against the real main tip."""
     subprocess.run(["git", "fetch", "origin"], cwd=ROOT, check=True, capture_output=True)
 
 
 def main(argv: list[str] | None = None) -> None:
+    """CLI entry; restores the shared module's state paths even when ``_main`` raises."""
     names = ("STATE", "JOURNAL", "HALT", "AUDIO_HALT", "MODEL_HALT")
     previous = {name: getattr(ru, name) for name in names}
     try:
