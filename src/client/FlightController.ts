@@ -41,7 +41,7 @@ const FLIGHT_KEYS: Enum.KeyCode[] = [
 	Enum.KeyCode.Q, Enum.KeyCode.E, Enum.KeyCode.LeftShift, Enum.KeyCode.ButtonL1, Enum.KeyCode.ButtonR1,
 	Enum.KeyCode.Space, Enum.KeyCode.F, Enum.KeyCode.Tab, Enum.KeyCode.R, Enum.KeyCode.C,
 	Enum.KeyCode.ButtonR2, Enum.KeyCode.ButtonB, Enum.KeyCode.ButtonY, Enum.KeyCode.ButtonX, Enum.KeyCode.Thumbstick1, Enum.KeyCode.Thumbstick2,
-	// Batch D1 gun (hold): G on keyboard, LT on a gamepad. Only sent when the sortie has a fitted gun.
+	// Sortie gun (hold): G on keyboard, LT on a gamepad. Only sent when the sortie has a fitted gun.
 	Enum.KeyCode.G, Enum.KeyCode.ButtonL2,
 ];
 /** Drone-marked contacts: one glyph per hostile, dimmer than the selected target's cue. */

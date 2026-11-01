@@ -1381,7 +1381,7 @@ function gunStrike(session: CombatSession, enemy: Enemy, hitDamage = GunRules.Da
 	if (enemy.aceState) { aceStage(session, enemy, before, enemy.health); publishEnemyDamageable(session, enemy); }
 }
 /**
- * Batch D1 player gun, server-authoritative: the trigger state and magazine live here, each round is an
+ * Player gun (SortieArmament), server-authoritative: the trigger state and magazine live here, each round is an
  * instant line from the nose (GunRules.Resolve) checked against terrain, and kills use destroyEnemy.
  */
 function stepGun(session: CombatSession, dt: number): void {

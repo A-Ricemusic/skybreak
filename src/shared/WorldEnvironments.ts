@@ -19,7 +19,7 @@ import { M18_ENVIRONMENT, M18_WORLD_KEY } from "./M18WorldPlan";
 import { ENVIRONMENTS, type EnvironmentSpec } from "./EnvironmentPresets";
 import type { EnvironmentPreset } from "./MissionCatalog";
 
-/** Keys published by mission world builders to Lighting, including dormant worlds.
+/** Environment per campaign world key, as published by the mission world builders to Lighting.
  * Keep this table aligned with server registrations (checked by the offline gate).
  */
 export const WORLD_ENVIRONMENTS = new Map<string, EnvironmentSpec>([

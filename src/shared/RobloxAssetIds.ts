@@ -22,10 +22,10 @@ export const RobloxAssetIds: Record<UploadedAssetName, number | undefined> = {
 	VantaV2: 93195734008147,
 	VantaV2Vulture: 101186966862069,
 	VantaV2Rusk: 93509098875902,
-	// Approved 2026-10-28; dormant bomber encounter and mission 1 world only.
+	// Approved 2026-10-28; used by the bomber encounter and the mission 1 world.
 	HeavyBomber: 112476761254185,
 	Carrier: 118082412288291,
-	// Approved 2026-10-29; reserved for missions 4–5, no live sortie consumers.
+	// Approved 2026-10-29; placed by the composition worlds of missions 4–5 (server/CompositionWorld).
 	HeavyTransport: 135095912449793,
 	RadarJammer: 80069408823339,
 	FuelTanker: 83861380699092,

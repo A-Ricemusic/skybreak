@@ -16,7 +16,7 @@ import { WavePlan, AirRequest } from "../shared/WavePlan";
 import { BomberRules } from "../shared/BomberRules";
 import { AlliedRules } from "../shared/AlliedRules";
 import { encodeCampaignSlot, normalizeMissionRecords } from "../shared/CampaignWire";
-import { STORY, storyFor, MARSHAL, RUSK, shouldPlayChapter, chapterBeforeMission, reachableStoryChapters } from "../shared/RelayStory";
+import { STORY, storyFor, MARSHAL, RUSK, shouldPlayChapter, chapterBeforeMission } from "../shared/RelayStory";
 import { MissionCatalog as Legacy } from "./LegacyCatalog";
 const bp = MissionCatalog.Get(1);
 function fresh() { const c = new CampaignCoordinator("campaign18",undefined,{now:()=>1000,defer:()=>undefined}); c.load(); return c; }
@@ -119,8 +119,8 @@ describe("Released 18-mission campaign",()=>{
   const slot=normalizeProfile(serializeProfile({version:3,slots:c.getSlots()})).slots[0];
   expect(slot.missions?.[0]?.completed).toBe(true);expect(slot.mission1Completed).toBe(false);expect(highestUnlocked(slot)).toBe(1);
  });
- it("reaches the three live chapters and retains later chapters dormant",()=>{
-  expect(reachableStoryChapters()).toEqual([0,1,2]);expect(STORY.size()).toBe(19);
+ it("keeps the nineteen story chapters with their authored beats",()=>{
+  expect(STORY.size()).toBe(19);
   expect(STORY[0].beats[5].text).toBe("An empty chair and a checkout nobody's signing. Fine. I'll fly the pattern.");
  });
  it("maps every mission to D-030 and keeps the closing chapter after M18",()=>{
