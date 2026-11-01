@@ -1810,24 +1810,24 @@ export const CombatService = {
 export function installCampaignSmokeCombat(player: Player, root: Folder, transport: Remotes, finished: FinishedCallback) {
  assert(RunService.IsStudio() && Workspace.GetAttribute("SkybreakTestMode") === true, "Test place only");
  assert(sessions.size() === 0 && connections.size() === 0 && !buildingMission, "Combat service must be idle/uninitialized");
- const previous = { missionRoot, missionState, flightStateRemote, telemetryRemote, combatEffectRemote, onFinished };
+ const previous = { missionRoot, onFinished, missionState: CombatRemotes.missionState, flightState: CombatRemotes.flightState, telemetry: CombatRemotes.telemetry, combatEffect: CombatRemotes.combatEffect };
  smokePlayer = player;
- missionRoot = root; missionState = transport.MissionState; flightStateRemote = transport.FlightState;
- telemetryRemote = transport.Telemetry; combatEffectRemote = transport.CombatEffect; onFinished = finished;
+ missionRoot = root; CombatRemotes.missionState = transport.MissionState; CombatRemotes.flightState = transport.FlightState;
+ CombatRemotes.telemetry = transport.Telemetry; CombatRemotes.combatEffect = transport.CombatEffect; onFinished = finished;
  return {
   begin: beginPlay,
   step: stepSession,
   flush: flushPivots,
   apply: (session: CombatSession) => phaseDirector.Apply(session),
-  direct: (session: CombatSession) => { phaseDirector.Step(session); EngineBatchD10.stepCruise(session, 1/30); },
+  direct: (session: CombatSession) => { phaseDirector.Step(session); CruiseMissileRuntime.stepCruise(session, 1/30); },
   finish,
   owns: ownsEnemy,
   damageable: (session: CombatSession, enemy: Enemy) => ownsEnemy(session, enemy) && enemy.enabled && enemy.health > 0 && sessionCanDamage(session, enemy.kind, enemy.required),
   restore: () => {
    assert(sessions.size() === 0 && !buildingMission && worldLifecycle.Idle(), "Clean up before restoring combat transport");
    smokePlayer = undefined;
-   missionRoot = previous.missionRoot; missionState = previous.missionState; flightStateRemote = previous.flightStateRemote;
-   telemetryRemote = previous.telemetryRemote; combatEffectRemote = previous.combatEffectRemote; onFinished = previous.onFinished;
+   missionRoot = previous.missionRoot; CombatRemotes.missionState = previous.missionState; CombatRemotes.flightState = previous.flightState;
+   CombatRemotes.telemetry = previous.telemetry; CombatRemotes.combatEffect = previous.combatEffect; onFinished = previous.onFinished;
   },
  };
 }

@@ -4,8 +4,8 @@ import { CombatService, installCampaignSmokeCombat } from "../server/CombatServi
 import { CampaignService, installCampaignSmokePlayer } from "../server/CampaignService";
 import { CampaignCoordinator } from "../server/CampaignRepository";
 import { worldLifecycle } from "../server/WorldLifecycleRuntime";
-import { stepCruise } from "../server/EngineBatchD10Runtime";
-import { newVent } from "../shared/EngineBatchD13";
+import { stepCruise } from "../server/CruiseMissileRuntime";
+import { newVent } from "../shared/FinaleDuelRules";
 import { WorldAssets } from "../server/WorldAssets";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
@@ -147,7 +147,7 @@ describe("campaign production launch → world → settlement → Next (Studio)"
        expect(practiceTargets.size()).toBe(1);
        expect(combat.damageable(s,practiceTargets[0])).toBe(true);
       }
-      const vent=phases[index].batchD13?.vent;
+      const vent=phases[index].finale?.vent;
       if(vent) {
        const core=s.enemies.find(e=>e.id===vent.core)!;
        expect(core).toBeDefined(); expect(combat.owns(s,core)).toBe(false);
