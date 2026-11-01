@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import ts from "typescript";
 
 const source = ts.createSourceFile("M03World.ts", await Bun.file(new URL("../src/server/M03World.ts", import.meta.url)).text(), ts.ScriptTarget.Latest, true);
+assert.doesNotMatch(source.text, /WorldAssets\.(?:Preload|Start|Place)/,
+ "M03 must not load or place military mesh/PBR decoration during the mobile crash mitigation");
 let builds = 0;
 function visit(node: ts.Node) {
  if (ts.isMethodDeclaration(node) && node.name.getText(source) === "Build") {
@@ -22,7 +24,7 @@ function visit(node: ts.Node) {
   }
   check(node);
   assert.equal(returns, 1);
-  assert.match(node.getText(source), /adoptGroundTarget\(placeM03Target\(scene, t\), t\.id, M03_TARGET_TYPES\[t\.type\]\)/, "Each layout target is drawn once and adopted by id");
+  assert.match(node.getText(source), /adoptGroundTarget\(placeM03Target\(scene, t\), t\.id, M03_TARGET_TYPES\[t\.type\], false\)/, "Each layout target is drawn once and adopted by id");
  }
  ts.forEachChild(node, visit);
 }

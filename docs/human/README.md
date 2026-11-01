@@ -1,5 +1,7 @@
 # SKYBREAK campaign dashboard
 
+**M3 crash blocker OPEN.** Owner reports the Roblox app still closes on mobile when launching M3 on live main 36e949d0 after #220. Second hotfix pending: remove inaccessible 60M-voxel bottom floor, keep all M3 targets procedural with zero military meshes/PBR maps, and log construction error phase before recovery. Live cause unconfirmed; Not Studio/Player tested. See [investigation](../qa/m03-crash-second-hotfix.md).
+
 Updated 2026-11-01 against main `36e949d0` (#225). Practice and all 18 missions are **Live** under the owner's automatic-pipeline convention; sequential unlocks require preceding completions. [Play SKYBREAK](https://www.roblox.com/games/112911685457826).
 
 #202 fixed results Next and story chapter gating. #218 activated ten independently reviewed, moderation-approved military models: tank, SAM, AA, artillery, bunker, radar, truck, fuel, barracks and containers. #220 (`9793b6d8`) fixed M3 failing to build after that activation by separating base-instance limits from bounded military decoration. It merged as an exception without the usual Studio Jest run because Studio is signed out; that run remains pending. No Player verification of the hotfix is claimed.
@@ -14,7 +16,7 @@ The table records historical mission-integration Studio results reported by the 
 |---|---|---|---|---|---|
 | 1 | OUR OWN PAINT | [#130](https://github.com/A-Ricemusic/skybreak/pull/130) | `4891e8a1` | ✓ 750/750 (#130) | Owner: Normal phone win; Next broken on c1266e30; fix device test pending |
 | 2 | NO ANIMALS | [#143](https://github.com/A-Ricemusic/skybreak/pull/143) | `68f2df51` | ✓ reported pass | not yet |
-| 3 | NOBODY SIGNED | [#147](https://github.com/A-Ricemusic/skybreak/pull/147) | `7d73c44c` | ✓ 845/845 | not yet |
+| 3 | NOBODY SIGNED | [#147](https://github.com/A-Ricemusic/skybreak/pull/147) | `7d73c44c` | ✓ 845/845 (historical) | Owner reports mobile app exit on 36e949d0; second hotfix pending |
 | 4 | BLIND COURIERS | [#149](https://github.com/A-Ricemusic/skybreak/pull/149) | `af18e335` | ✓ 865/865 | not yet |
 | 5 | LIGHTS OFF | [#148](https://github.com/A-Ricemusic/skybreak/pull/148) | `227713be` | ✓ 972/972 | not yet |
 | 6 | IRON COAST | [#179](https://github.com/A-Ricemusic/skybreak/pull/179) | `199e7eed` | ✓ 1,133/1,133 | not yet |

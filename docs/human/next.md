@@ -1,5 +1,7 @@
 # Next
 
+**Urgent priority:** review the second M3 hotfix and capture one failing launch with server console/timing and connection outcome. Owner reports the Roblox app still closes on mobile when launching M3 on live main 36e949d0 after #220. Second hotfix pending: remove inaccessible 60M-voxel bottom floor, keep all M3 targets procedural with zero military meshes/PBR maps, and log construction error phase before recovery. Live cause unconfirmed; Not Studio/Player tested. See [investigation](../qa/m03-crash-second-hotfix.md).
+
 Updated 2026-11-01 against main `36e949d0`.
 
 1. **Owner signs in to Studio once.** The auto-update (0.745.563 → 0.745.0.7451137) left Studio signed out, blocking every Studio run.

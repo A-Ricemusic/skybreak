@@ -141,9 +141,9 @@ export function m03TargetLayout(): M03Target[] {
 export function buildM03Plan(seed = 303, checkpoint: () => void = () => {}): M03Plan {
 	const p: M03Plan = { key: M03_WORLD_KEY, seed, ops: [], parts: [], targets: m03TargetLayout(), detailCells: 0, coarseCells: 0 };
 	const block = (material: TerrainMaterial, x: number, z: number, sx: number, sz: number, bottom: number, top: number) => p.ops.push({ shape: "block", material, x, y: (bottom + top) / 2, z, sx, sy: top - bottom, sz, yaw: 0 });
-	// Continuous rock floor seals the underside; perimeter curtains meet it outside
-	// the hard airspace, so negative-altitude flight cannot enter the shell.
-	block("Rock", 0, 0, M03.halfX * 2, M03.halfZ * 2, -4, 0);
+	// Surface caps cover the entire hard airspace and perimeter curtains reach Y=0.
+	// As in M04/M05, omit the inaccessible bottom floor: it alone wrote 60M
+	// voxels and allocated terrain chunks across the full 31k-stud footprint.
 	// Cache the adaptive surface on a 64-stud address grid. It also lets walls
 	// follow fine/coarse joins without evaluating the height function per edge.
 	const cells: Array<{ x: number; z: number; sx: number; sz: number; top: number }> = [];
