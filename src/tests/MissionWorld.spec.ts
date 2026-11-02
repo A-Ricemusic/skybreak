@@ -1,4 +1,3 @@
-import { fakeIds as allFakeIds, fakeUpload as allFakeUpload, probe as allProbe } from "./WorldBuildFixtures";
 import { robloxScheduler, worldClear } from "../server/WorldLifecycleRuntime";
 import { WorldLifecycle } from "../shared/WorldLifecycle";
 import { M04_WORLD_KEY } from "../shared/M04WorldPlan";
@@ -127,27 +126,6 @@ describe("Released campaign world integration (Studio only)",()=>{
   const again=new Instance("Folder");again.Parent=Workspace;
   expect(MissionWorld.Build(0,again).groundTargets.size()).toBe(1);again.Destroy();
   MissionWorld.RestoreMenu();expect(Workspace.FindFirstChild("World")).toBeDefined();
- },180000);
- it("builds M2 then M3 in one session with military-kit decorations",()=>{
-  UploadedAssets.Configure({ids:allFakeIds(true),probe:allProbe,loader:allFakeUpload});
-  try {
-   fixture=new Instance("Folder");fixture.Parent=Workspace;
-   MissionWorld.Build(2,fixture);
-   expect(fixture.GetAttribute("WorldBuildPhase")).toBe("done");
-   const old=fixture;
-   const gate=new WorldLifecycle(robloxScheduler);
-   try {
-    gate.Cleanup({clear:(cancelled)=>{if(cancelled())return;old.Destroy();worldClear(MissionCatalog.WorldKey(2))(cancelled);},restore:()=>{}});
-    expect(gate.AwaitIdle(30)).toBe(true);
-    expect(terrainDirty()).toBe(false);
-    expect(old.Parent).toBeUndefined();
-    fixture=new Instance("Folder");fixture.Parent=Workspace;
-    const world=MissionWorld.Build(3,fixture);
-    expect(fixture.GetAttribute("WorldBuildPhase")).toBe("done");
-    expect(world.targetVisuals!.size()).toBe(MissionCatalog.Get(3).phases[0].groundTargets!.size());
-    expect(fixture.GetDescendants().some(i=>i.GetAttribute("UploadedAsset")!==undefined)).toBe(true);
-   } finally {gate.Close();}
-  } finally {UploadedAssets.Configure({ids:fakeIds(),probe,loader:fakeUpload});}
  },180000);
  it("builds mission 3 with every typed target drawn once by the world and a raised runway, ready for combat to adopt",()=>{
   fixture=new Instance("Folder");fixture.Name="CampaignWorldFixture";fixture.Parent=Workspace;

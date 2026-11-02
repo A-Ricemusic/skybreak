@@ -1,3 +1,4 @@
+import { NAVAL_ASSETS } from "../shared/NavalKit";
 import { WorldAssets } from "./WorldAssets";
 import { MILITARY_GROUND_ASSETS } from "../shared/MilitaryGroundKit";
 import { buildM09Plan, M09_ENVIRONMENT, M09_WORLD_KEY, m09TargetLayout } from "../shared/M09WorldPlan";
@@ -10,7 +11,7 @@ import { registerWorldClear } from "./WorldLifecycleRuntime";
 /** D-340: adopt the 55 world-drawn beach contacts by stable id, with no duplicate combat geometry. */
 export const M09World = {
 	Build(parent: Instance, seed = 909): { groundTargets: Model[]; targetVisuals: Map<string, Model> } {
-  WorldAssets.Preload(MILITARY_GROUND_ASSETS);
+  WorldAssets.Preload([...MILITARY_GROUND_ASSETS, ...NAVAL_ASSETS]);
 		const built = buildComposition(parent, M09_ENVIRONMENT, checkpoint => buildM09Plan(seed, checkpoint), M09_BUILD_LIMITS.descendants, 14000, 0.25);
 		const scene = parent.FindFirstChild(M09_WORLD_KEY);
 		assert(scene !== undefined, "M09 scene folder is missing");

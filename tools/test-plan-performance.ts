@@ -3,7 +3,12 @@
 // M03 hash 3511608759 already excludes the buried floor at that revision.
 // #236 preserves that output here; do not recapture fingerprints from the merged implementation.
 // Floor-free writes/jobs/touches are pinned separately in MissionLoadBudget.spec.ts.
-// Covers every enumerable plan field, not counts alone. See D-669 for M01 normalization.
+// M11 route X uses libm cosine: macOS/Linux differ in the last floating-point bits.
+// Quantize only those route coordinates to integer millionths of a stud for hashing.
+// Frozen M11 hash 244079870 was captured independently from compiled 37028404;
+// its original macOS hash was verified as 2802350694 before normalization.
+// Every other field remains exact; production plans are never modified.
+// Covers every enumerable plan field, not counts alone (M01 independent ops are sorted).
 import { resolve } from "node:path";
 import { requireLuauBin } from "./luau-bin";
 const root = resolve(import.meta.dir, "..");
@@ -22,7 +27,21 @@ let source = `local function hash(value)
  visit(value);return h
 end
 
-local baseline={3190489972,4127043566,3511608759,328657816,3045054979,2299562210,3618195384,981040680,3209937394,4114654245,2802350694,105356167,4053897778,1006650437,3968923461,862187324,149552753,3266528156}
+local function fingerprint(plan,id)
+ if id~=11 then return hash(plan) end
+ local canonical=table.clone(plan);canonical.routes={}
+ for _,route in plan.routes do
+  local r=table.clone(route);r.points={}
+  for _,point in route.points do
+   local p=table.clone(point);p.x=math.floor(p.x*1000000+0.5)
+   table.insert(r.points,p)
+  end
+  table.insert(canonical.routes,r)
+ end
+ return hash(canonical)
+end
+
+local baseline={3190489972,4127043566,3511608759,328657816,3045054979,2299562210,3618195384,981040680,3209937394,4114654245,244079870,105356167,4053897778,1006650437,3968923461,862187324,149552753,3266528156}
 local builders={}
 `;
 for (let id = 1; id <= 18; id++) {
@@ -45,7 +64,18 @@ for pass=1,2 do for index=1,18 do
  table.sort(decorated,function(a,b) return a.h<b.h end)
  p.ops={} for _,entry in decorated do table.insert(p.ops,entry.op) end
  end
- local actual=hash(p)
+ local actual=fingerprint(p,id)
+ if id==11 and pass==1 then
+  local point=p.routes[1].points[2];local original=point.x
+  point.x=original+1e-10
+  assert(fingerprint(p,id)==actual,"M11 route fingerprint must tolerate libm rounding")
+  point.x=original+0.001
+  assert(fingerprint(p,id)~=actual,"M11 route fingerprint must detect changed coordinates")
+  point.x=original
+  point.y+=1
+  assert(fingerprint(p,id)~=actual,"M11 non-X route fields must remain exact")
+  point.y-=1
+ end
  print("MISSION_PLAN_OFFLINE mission="..id.." pass="..pass.." seconds="..seconds.." maxCheckpointGap="..longest.." checkpoints="..calls.." hash="..actual)
  for phase,work in phases do print("MISSION_PLAN_OFFLINE_PHASE mission="..id.." phase="..phase.." seconds="..work) end
  assert(actual==baseline[id],"Plan output changed for M"..id)
