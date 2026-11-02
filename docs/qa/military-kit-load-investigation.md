@@ -1,5 +1,7 @@
 # Military kit load investigation — 2026-11-01
 
+Follow-up: #239 now contains/supersedes #238. The orchestrator’s #238 run still took 835 s with M16/M03 timeouts and a later lifecycle hang. Full-world budget assembly described below is replaced on #239 by small synchronous fixtures; see [current investigation](jest-lifecycle-hang-investigation.md). This document retains the earlier fixture findings.
+
 Scope: main `3ed084dd`; supplied `/tmp/sq-main/build/jest-studio.log`, read-only. No Studio, Player, uploads, credentials or deployment in this investigation.
 
 ## Findings
