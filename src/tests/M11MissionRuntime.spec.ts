@@ -25,7 +25,8 @@ describe("M11 protected aircraft runtime",()=>{
    stepProtection(session,0,()=>{});
    expect(high.label.Text.find("INCOMING")[0]).toBeDefined();expect(lines.size()).toBe(1);expect(lines[0].find("ORCHARD ONE")[0]).toBeDefined();expect(high.state.health).toBe(M11_HEALTH.normal);
    hitProtected(session,high.aircraft,7,line=>{lines.push(line);});expect(lines.size()).toBe(2);expect(high.state.health).toBe(M11_HEALTH.normal-7);expect(low.state.health).toBe(M11_HEALTH.normal);
-   stepProtection(session,314,()=>{});expect(session.blueprintState!.outcome).toBe("won");expect(session.protectedFlight).toBeUndefined();expect(folder.GetChildren().size()).toBe(0);
+   // Protection owns the civilian models; the session fixture also contains the player aircraft.
+   stepProtection(session,314,()=>{});expect(session.blueprintState!.outcome).toBe("won");expect(session.protectedFlight).toBeUndefined();expect(folder.GetChildren()).toEqual([session.aircraft]);
   } finally { clearProtection(session);folder.Destroy(); }
  });
 });
