@@ -1,10 +1,12 @@
+import { NAVAL_ASSETS } from "../shared/NavalKit";
+import { decorateNavalScenery } from "../server/NavalDecoration";
 // Small engine assembly contracts only. Full plan/cap coverage lives in M01–M18 WorldPlan specs
 // (also executed offline). Never generate full terrain plans or launch complete world builds here.
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "@rbxts/jest-globals";
 import { UploadedAssets } from "../shared/UploadedAssets";
 import { UploadedAssetSpecs, type UploadedAssetName } from "../shared/UploadedAssetSpecs";
 import { MILITARY_GROUND_ASSETS, MILITARY_GROUND_KIT } from "../shared/MilitaryGroundKit";
-import { assertWorldInstanceBudget, worldInstanceCounts, GROUND_KIT_INSTANCE_ALLOWANCE } from "../server/WorldInstanceBudget";
+import { assertWorldInstanceBudget, worldInstanceCounts, GROUND_KIT_INSTANCE_ALLOWANCE, kitInstanceAllowance } from "../server/WorldInstanceBudget";
 import { adoptGroundTarget, createGroundTarget } from "../server/GroundTargetFactory";
 import { buildM03TargetVisuals } from "../server/M03World";
 import { M03, m03TargetLayout } from "../shared/M03WorldPlan";
@@ -17,8 +19,9 @@ const active: thread[] = [];
 const SUITE_LIMIT = 90; // Leave headroom below the requested 120-second whole-file budget.
 const ids: Partial<Record<UploadedAssetName, number>> = {};
 const names = new Map<number, UploadedAssetName>();
-for (let i = 0; i < MILITARY_GROUND_ASSETS.size(); i++) {
- const name = MILITARY_GROUND_ASSETS[i];
+const fixtureAssets: UploadedAssetName[] = [...MILITARY_GROUND_ASSETS, ...NAVAL_ASSETS];
+for (let i = 0; i < fixtureAssets.size(); i++) {
+ const name = fixtureAssets[i];
  ids[name] = 900001 + i; names.set(900001 + i, name);
 }
 function stopWork(): void {
@@ -58,7 +61,7 @@ function configureFixtures(attachments = 1): void {
  } });
  // Template loads directly through the synchronous fake loader. Preload spawns threads even
  // for fake IDs; avoiding it makes fixture completion and cleanup independent of scheduler timing.
- for (const name of MILITARY_GROUND_ASSETS) expect(UploadedAssets.Template([name])).toBeDefined();
+ for (const name of fixtureAssets) expect(UploadedAssets.Template([name])).toBeDefined();
 }
 function proxy(targetType: GroundTargetType, id: string): Model {
  const model = new Instance("Model"); model.Parent = parent;
@@ -97,6 +100,55 @@ describe("world instance budgets with bounded uploaded military fixtures", () =>
   expect(counts.base + counts.kit).toBe(parent.GetDescendants().size());
   expect(counts.kit <= counts.models * GROUND_KIT_INSTANCE_ALLOWANCE).toBe(true);
  });
+ budgetTest("accounts for every naval hull and mounted weapon without a world build", () => {
+  const cases: [GroundTargetType, string | undefined, string | undefined, UploadedAssetName][] = [
+   ["destroyer", "frigate", undefined, "NavalFrigate"],
+   ["destroyer", undefined, undefined, "NavalDestroyer"],
+   ["cruiser", undefined, undefined, "NavalCruiser"],
+   ["container_ship", undefined, undefined, "NavalContainerShip"],
+   ["supply_ship", undefined, undefined, "NavalSupplyShip"],
+   ["landing_ship", undefined, undefined, "NavalLandingShip"],
+   ["missile_boat", undefined, undefined, "NavalMissileBoat"],
+   ["submarine", undefined, undefined, "NavalSubmarine"],
+   ["gun_mount", undefined, "naval_mount", "NavalGun"],
+   ["aa_gun", undefined, "naval_mount", "NavalAa"],
+   ["sam", undefined, "naval_mount", "NavalSam"],
+  ];
+  for (const [targetType, layoutType, group, asset] of cases) {
+   const model = new Instance("Model"); model.Parent = parent;
+   model.SetAttribute("TargetType", layoutType); model.SetAttribute("LayoutGroup", group);
+   for (let i = 0; i < 2; i++) {
+    const part = new Instance("Part"); part.Size = new Vector3(40, 24, 56); part.Parent = model;
+   }
+   adoptGroundTarget(model, `budget-${asset}`, targetType);
+   expect(model.GetAttribute("UploadedAsset")).toBe(asset);
+   expect(worldInstanceCounts(model).kit).toBe(7);
+   expect(worldInstanceCounts(model).kit <= kitInstanceAllowance(asset)).toBe(true);
+  }
+  const counts = worldInstanceCounts(parent);
+  expect(counts.models).toBe(cases.size()); expect(counts.kit).toBe(cases.size() * 7);
+  assertWorldInstanceBudget(parent, counts.base);
+ });
+ budgetTest("bounds naval scenery and retains its collision proxy", () => {
+  for (const asset of ["NavalFrigate", "NavalLandingCraft"] as const) {
+   const part = new Instance("Part"); part.Size = new Vector3(64, 32, 360); part.Parent = parent;
+   decorateNavalScenery(parent, asset, [part]);
+   expect(part.Transparency).toBe(1); expect(part.CanCollide).toBe(true);
+  }
+  expect(worldInstanceCounts(parent).models).toBe(2);
+  expect(worldInstanceCounts(parent).kit).toBe(14);
+  assertWorldInstanceBudget(parent, 2);
+ });
+ budgetTest("rejects oversized naval targets and scenery before hiding proxies", () => {
+  configureFixtures(24);
+  const model = proxy("destroyer", "oversized-naval");
+  expect(model.GetAttribute("UploadedAsset")).toBeUndefined();
+  expect(worldInstanceCounts(model).kit).toBe(0);
+  expect(model.GetDescendants().some(child => child.IsA("BasePart") && child.Transparency === 0)).toBe(true);
+  const part = new Instance("Part"); part.Parent = parent;
+  decorateNavalScenery(parent, "NavalLandingCraft", [part]);
+  expect(part.Transparency).toBe(0); expect(worldInstanceCounts(parent).kit).toBe(0);
+ });
  budgetTest("accounts for the complete M16 ground roster without generating its terrain surface", () => {
   for (const target of M16_TARGETS) proxy(target.type, target.id);
   const counts = worldInstanceCounts(parent);
@@ -129,7 +181,7 @@ describe("world instance budgets with bounded uploaded military fixtures", () =>
  });
  budgetTest("reuses one template load per kit ID across all placements", () => {
   proxy("tank", "reuse-a"); proxy("tank", "reuse-b");
-  expect(loads).toBe(MILITARY_GROUND_ASSETS.size());
+  expect(loads).toBe(fixtureAssets.size());
  });
  budgetTest("cancels an unexpected yield before its continuation can run", () => {
   let suspended: thread | undefined;
