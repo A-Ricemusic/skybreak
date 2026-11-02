@@ -19,7 +19,7 @@ export const M06_ENVIRONMENT: EnvironmentSpec = {
  bloom: { intensity: 0.1, size: 24, threshold: 1.6 }, sky: "day", starCount: 0, sunSize: 20, moonSize: 0,
  water: { color: [77, 85, 67], reflectance: 0.15, transparency: 0, waveSize: 0.08, waveSpeed: 4 }, weather: "none",
 };
-export function m06Height(x: number, z: number): number {
+function m06Height(x: number, z: number): number {
  if (x >= 9600 && x <= 11200 && z >= -7000 && z <= -5400) return 36;
  if (math.abs(x + 6720) < 1400 && math.abs(z - 11520) < 2200) return 36;
  for (const b of M06.basins) if (math.abs(x - b.x) < 2800 && z < b.z - 1800 && z > b.z - 4300) return 36;

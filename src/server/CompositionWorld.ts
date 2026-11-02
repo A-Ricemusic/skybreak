@@ -1,3 +1,4 @@
+import { WorldBuildScheduler } from "./WorldBuildScheduler";
 import { assertWorldInstanceBudget } from "./WorldInstanceBudget";
 import { Workspace } from "@rbxts/services";
 import type { EnvironmentSpec } from "../shared/EnvironmentPresets";
@@ -32,7 +33,7 @@ export function compositionClear(cancelled: () => boolean): void {
 export function buildComposition(parent: Instance, environment: EnvironmentSpec, makePlan: (checkpoint: () => void) => Composition, descendantLimit: number, cloudFeet: number, terrainBudget = WORLD_TERRAIN_BUDGET): { groundTargets: Model[] } {
  const start = os.clock(); let slice = start, longest = 0;
  parent.SetAttribute("WorldBuildPhase", "plan");
- const plan = makePlan(() => { const dt = os.clock() - slice; longest = math.max(longest, dt); if (dt >= 0.004) { task.wait(); slice = os.clock(); } });
+ const plan = makePlan(() => { const dt = os.clock() - slice; longest = math.max(longest, dt); if (dt >= 0.004) { WorldBuildScheduler.Pause(); slice = os.clock(); } });
  parent.SetAttribute("WorldPlanSeconds", os.clock() - start);
  parent.SetAttribute("WorldPlanLongestSlice", longest);
  const names: WorldAssetName[] = plan.props.map(p => p.asset);
@@ -56,7 +57,7 @@ export function buildComposition(parent: Instance, environment: EnvironmentSpec,
   const p = plan.parts[i], owner = models.get(p.name) ?? scene, at = new Vector3(p.x, p.y, p.z);
   if (p.shape === "cylinder") Scenery.Cylinder(owner, p.name, p.sx, p.sy, at, Color3.fromRGB(...p.color), material(p.material), { flightSolid: p.solid, castShadow: false });
   else Scenery.Part(owner, p.name, new Vector3(p.sx, p.sy, p.sz), new CFrame(at).mul(CFrame.Angles(0, p.yaw, 0)), Color3.fromRGB(...p.color), material(p.material), { flightSolid: p.solid, castShadow: false });
-  if (i % 32 === 31) task.wait();
+  if (i % 32 === 31) WorldBuildScheduler.Pause();
  }
  let missing = 0;
  for (let pi = 0; pi < plan.props.size(); pi++) {
@@ -77,7 +78,7 @@ export function buildComposition(parent: Instance, environment: EnvironmentSpec,
    } else standIn(`${p.asset} stand-in`, size, new Vector3(p.x, p.y + size.Y / 2 - UploadedAssetSpecs[p.asset].groundOffset * p.scale, p.z));
   }
    // Eight placements per frame, as M02 does: one frame per prop cost M04's 120 pines two seconds.
-   if (pi % 8 === 7) task.wait();
+   if (pi % 8 === 7) WorldBuildScheduler.Pause();
  }
  for (const t of plan.targets) {
   const name = candidate(t); if (name === undefined && t.type !== "submarine") continue;

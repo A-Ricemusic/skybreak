@@ -27,9 +27,15 @@ const clears = new Map<string, WorldClear>();
  * is true, and must leave no mission terrain behind; on success it should call markTerrainClean() (TerrainState) so
  * the next build skips the native clear. Worlds without one use a native Terrain:Clear().
  */
-export function registerWorldClear(worldKey: string, clear: WorldClear): void {
+export function registerWorldClear(worldKey: string, clear: WorldClear): () => void {
 	assert(worldKey.size() > 0, "World clear needs a world key");
+	const previous = clears.get(worldKey);
 	clears.set(worldKey, clear);
+	return () => {
+		if (clears.get(worldKey) !== clear) return;
+		if (previous !== undefined) clears.set(worldKey, previous);
+		else clears.delete(worldKey);
+	};
 }
 export function worldClear(worldKey?: string): WorldClear {
 	return (worldKey !== undefined ? clears.get(worldKey) : undefined) ?? (() => clearTerrainIfDirty());

@@ -39,6 +39,11 @@ let gunTouchSerial = 0;
  * trigger source and releases when that input ends anywhere, so a finger sliding off never sticks the gun on.
  */
 export function GunButton({ rectangle, rounds, onTrigger }: { rectangle: Rectangle; rounds: number; onTrigger: (source: string, held: boolean) => void }) {
+	const heldInputs = useRef(new Map<string, () => void>());
+	useEffect(() => () => {
+		// Input mode/layout changes can unmount the button before the finger lifts.
+		for (const [, release] of heldInputs.current) release();
+	}, []);
 	const empty = rounds <= 0;
 	return (
 		<textbutton
@@ -64,11 +69,15 @@ export function GunButton({ rectangle, rounds, onTrigger }: { rectangle: Rectang
 					gunTouchSerial += 1;
 					const source = `touch${gunTouchSerial}`;
 					onTrigger(source, true);
-					const connection = input.GetPropertyChangedSignal("UserInputState").Connect(() => {
-						if (input.UserInputState !== Enum.UserInputState.End && input.UserInputState !== Enum.UserInputState.Cancel) return;
+					const release = () => {
 						connection.Disconnect();
+						heldInputs.current.delete(source);
 						onTrigger(source, false);
+					};
+					const connection = input.GetPropertyChangedSignal("UserInputState").Connect(() => {
+						if (input.UserInputState === Enum.UserInputState.End || input.UserInputState === Enum.UserInputState.Cancel) release();
 					});
+					heldInputs.current.set(source, release);
 				},
 			}}
 		>

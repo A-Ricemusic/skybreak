@@ -1,0 +1,137 @@
+{
+  "name": "naval-frigate",
+  "title": "Naval kit frigate",
+  "variantOf": null,
+  "exportVersion": "naval-kit-2",
+  "robloxAssetType": "Model",
+  "usage": "Dormant cosmetic naval kit; existing target and collision proxies retained.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "naval-frigate.fbx",
+    "bytes": 149276
+  },
+  "triangleCount": 508,
+  "triangleLimit": 2400,
+  "objects": [
+    {
+      "name": "naval-frigate",
+      "triangles": 508
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "naval-frigate-color.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 47174
+    },
+    {
+      "role": "normal",
+      "file": "naval-frigate-normal.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 5000
+    },
+    {
+      "role": "rough",
+      "file": "naval-frigate-roughness.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 43859
+    },
+    {
+      "role": "metal",
+      "file": "naval-frigate-metalness.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 5511
+    }
+  ],
+  "robloxSizeStuds": [
+    30.0,
+    63.0,
+    240.0
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 0.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png",
+    "preview-back.png",
+    "preview-side-right.png",
+    "preview-bottom.png",
+    "preview-3q-front-left.png",
+    "preview-3q-rear-right.png",
+    "preview-3q-rear-left.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "Textures are baked from noise, grids and masks only; no letters, numbers, words, call signs or codes in mesh or texture."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national or unit markings; shape is an original design, not a copy of any real vehicle or building."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or face-like arrangements."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "No gore, blood or damage imagery; at most empty pylons or a covered deck mount."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "SKYBREAK build agent via tools/assets/naval_kit.py (this PR). Original procedural modelling and textures only; no people, text, insignia, flags or national markings."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": [],
+  "sha256": {
+    "contact-sheet.png": "2cebf3fb594831b1cc0934bceb82c1e3eeb175cad9e1271a39328952e9f61a67",
+    "naval-frigate-color.png": "cdd2ab772cb368b87fe29bf0ebe57a90987569d4989c1c03ea12ddea27f64787",
+    "naval-frigate-metalness.png": "99e2783597edf491cae3de0d88ce322a4a91a2abd937f6f60ac6f7830e2b52f0",
+    "naval-frigate-normal.png": "dc31a5ab4a09a1cb895b89e9d41f5fa5390d9fd71bc71a3dbbf53636868cb383",
+    "naval-frigate-roughness.png": "c54037b7d9c734024b9c52a2bc1c773f384c7b86f7ada64f6fb396a9962d59e5",
+    "naval-frigate.fbx": "15a7923a25f98061e7a74cad7923ee680ee64d57c10678757c85d87d27f3348c",
+    "preview-3q-front-left.png": "1fb0cc894dcdacff93be69eaaa2d1f33183aac0dcc5ceade1d7356df5320b42b",
+    "preview-3q-rear-left.png": "aa84a6370931ace66aa59b5ba05e06597ef427f7069ef7af8e133968bf9476d7",
+    "preview-3q-rear-right.png": "b4f5a7f929f52d5944dbc899958bb274e8ba6355aee99246fc8df9b9a58dfb3d",
+    "preview-3q.png": "08285c72c9c6732d93b558b752f9d0a8a8a502366148b06167a1c5ba94706573",
+    "preview-back.png": "e320907f0be98504981003bd1a4c67200d003104ca19e1369a97052ed04bda3c",
+    "preview-bottom.png": "4f277275c8437df9c146ce2de6075a78dbf6817adffd3b596e9427ba8591df76",
+    "preview-front.png": "ec5f7c45f076ecb561da440ce66757603c1b8f69ac7afb6f71aa318bc3e28667",
+    "preview-side-right.png": "b20eb49a32f2eb9c9455d56c264ec2d7e3cb251f53c6abbca6239f754a8c7799",
+    "preview-side.png": "5529fa96351d364f34edf286751dbb2922942d75513d52ac365d34f617948dba",
+    "preview-top.png": "3afd8091fa0730b8cb37cca91a61806e9a50a38bd70c2c5dafcaf04860953a6d"
+  },
+  "previewNotes": {
+    "preview-front.png": "Orthographic from ahead (the model's front, Roblox -Z).",
+    "preview-side.png": "Orthographic from the left (port), Blender +X.",
+    "preview-top.png": "Orthographic from above, front at the top, the model's right (starboard) on the image's right.",
+    "preview-3q.png": "Perspective from ahead, the right (starboard), above.",
+    "preview-back.png": "Orthographic from behind.",
+    "preview-side-right.png": "Orthographic from the right (starboard).",
+    "preview-bottom.png": "Orthographic from below.",
+    "preview-3q-front-left.png": "Perspective from ahead, the left (port), above.",
+    "preview-3q-rear-right.png": "Perspective from behind, the right (starboard), above.",
+    "preview-3q-rear-left.png": "Perspective from behind, the left (port), above."
+  },
+  "kitVersion": "naval-kit-2",
+  "reviewStatus": "PENDING independent exact-file 10/10 review; NOT approved; NOT uploaded",
+  "contactSheet": "contact-sheet.png"
+}

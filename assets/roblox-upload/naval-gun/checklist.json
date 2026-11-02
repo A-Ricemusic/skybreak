@@ -1,0 +1,137 @@
+{
+  "name": "naval-gun",
+  "title": "Naval kit gun",
+  "variantOf": null,
+  "exportVersion": "naval-kit-2",
+  "robloxAssetType": "Model",
+  "usage": "Dormant cosmetic naval kit; existing target and collision proxies retained.",
+  "generator": "tools/assets/build.py",
+  "fbx": {
+    "file": "naval-gun.fbx",
+    "bytes": 110620
+  },
+  "triangleCount": 188,
+  "triangleLimit": 2400,
+  "objects": [
+    {
+      "name": "naval-gun",
+      "triangles": 188
+    }
+  ],
+  "textures": [
+    {
+      "role": "color",
+      "file": "naval-gun-color.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 35867
+    },
+    {
+      "role": "normal",
+      "file": "naval-gun-normal.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 6954
+    },
+    {
+      "role": "rough",
+      "file": "naval-gun-roughness.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 28988
+    },
+    {
+      "role": "metal",
+      "file": "naval-gun-metalness.png",
+      "width": 256,
+      "height": 256,
+      "bytes": 5639
+    }
+  ],
+  "robloxSizeStuds": [
+    10.0,
+    9.55,
+    21.65
+  ],
+  "studMetres": 0.28,
+  "fbxMetresPerStud": 0.01,
+  "pivot": "bottom-center",
+  "groundOffsetStuds": 0.0,
+  "previews": [
+    "preview-front.png",
+    "preview-side.png",
+    "preview-top.png",
+    "preview-3q.png",
+    "preview-back.png",
+    "preview-side-right.png",
+    "preview-bottom.png",
+    "preview-3q-front-left.png",
+    "preview-3q-rear-right.png",
+    "preview-3q-rear-left.png"
+  ],
+  "checks": {
+    "noText": {
+      "value": true,
+      "note": "Textures are baked from noise, grids and masks only; no letters, numbers, words, call signs or codes in mesh or texture."
+    },
+    "noLogosOrBrands": {
+      "value": true,
+      "note": "No company, product or brand marks; colour fields and wear only."
+    },
+    "noRealMilitaryInsignia": {
+      "value": true,
+      "note": "No roundels, flags, national or unit markings; shape is an original design, not a copy of any real vehicle or building."
+    },
+    "noFaces": {
+      "value": true,
+      "note": "No faces, figures or face-like arrangements."
+    },
+    "noSuggestiveShapes": {
+      "value": true,
+      "note": "Ordinary hard-surface or natural forms reviewed in all four previews."
+    },
+    "noGoreOrWeaponsGlorification": {
+      "value": true,
+      "note": "No gore, blood or damage imagery; at most empty pylons or a covered deck mount."
+    },
+    "originalDesign": {
+      "value": true,
+      "note": "SKYBREAK build agent via tools/assets/naval_kit.py (this PR). Original procedural modelling and textures only; no people, text, insignia, flags or national markings."
+    }
+  },
+  "allChecksTrue": true,
+  "variants": [],
+  "sha256": {
+    "contact-sheet.png": "d9959d34b989491e0b33beed2963c02ffd93fa60e39e1ab6104160a1b26ca7e8",
+    "naval-gun-color.png": "8a2cf32f42b95660f03a7837ae986ccfddae9d1e31496de64dd74782e97a0ce7",
+    "naval-gun-metalness.png": "7f31c1b7e5a82dd2ddbf2b3857317e013723394715bdeef293b92297200df7d4",
+    "naval-gun-normal.png": "1b7ef6bee014503d8d326354a6f8913c37de0fee35f96c1ccb7e61aeae0f4ca3",
+    "naval-gun-roughness.png": "1511dae1e9a9d75b0cecd1be87b82e407ce6e4d580a153f7133f320bdda079d9",
+    "naval-gun.fbx": "d40e31a5a0f1b6b0a429b0eb283869a457cfc140ae9399983747c6831d17a63e",
+    "preview-3q-front-left.png": "c49e16b0759af24c77890f2bd6ebc10d12156c0be66621d1f5c5c2ee2c352741",
+    "preview-3q-rear-left.png": "54cf784eca5ced53abf0dbbcfb77d50361519f3e7a3163b3406cc53305225f42",
+    "preview-3q-rear-right.png": "014cf128ab42359ba844a4cedfdbab84df36e19cba879587ce2194236cde14f8",
+    "preview-3q.png": "68f9b2ccdcc008e3afe10d251d82d96e4b9fa5ed787f716336ace59f116a0d79",
+    "preview-back.png": "5d5184d01a0a7d58fded7ee4c519b4d71f425937159d25e7bb19f661a3907b27",
+    "preview-bottom.png": "07b0f56da3cd63fb276f1572d1062760cc5e1f98fae8e94245e23c7c68c49ff9",
+    "preview-front.png": "19d7694861fd5e2eb6ff7768fbf7c0ad03cc34c41041a949d42f9155a5448f38",
+    "preview-side-right.png": "1fa859d7dcc5b40d061ef5efc2cc7b116061d3c45d36ed3ab511290b46331cef",
+    "preview-side.png": "6dd16c509c3d9d89d61287db1f6cb706519a3e2e8f025e105190f1c6a9c70a91",
+    "preview-top.png": "dabfd4440f0e547ba58387954c4a03d7dd0704e2bf2532963702689a97ecc40b"
+  },
+  "previewNotes": {
+    "preview-front.png": "Orthographic from ahead (the model's front, Roblox -Z).",
+    "preview-side.png": "Orthographic from the left (port), Blender +X.",
+    "preview-top.png": "Orthographic from above, front at the top, the model's right (starboard) on the image's right.",
+    "preview-3q.png": "Perspective from ahead, the right (starboard), above.",
+    "preview-back.png": "Orthographic from behind.",
+    "preview-side-right.png": "Orthographic from the right (starboard).",
+    "preview-bottom.png": "Orthographic from below.",
+    "preview-3q-front-left.png": "Perspective from ahead, the left (port), above.",
+    "preview-3q-rear-right.png": "Perspective from behind, the right (starboard), above.",
+    "preview-3q-rear-left.png": "Perspective from behind, the left (port), above."
+  },
+  "kitVersion": "naval-kit-2",
+  "reviewStatus": "PENDING independent exact-file 10/10 review; NOT approved; NOT uploaded",
+  "contactSheet": "contact-sheet.png"
+}

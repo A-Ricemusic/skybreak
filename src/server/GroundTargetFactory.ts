@@ -16,7 +16,7 @@ export function restOn(model: Model, baseY: number): void {
  * Fit uniformly inside the old bounds; no stretched vehicles or expanded hitboxes.
  * Capture bounds and aim BEFORE decoration: uploaded detail never moves the lock point.
  */
-export function decorateGroundTarget(model: Model, targetType: GroundTargetType, bounds: CFrame, size: Vector3): void {
+function decorateGroundTarget(model: Model, targetType: GroundTargetType, bounds: CFrame, size: Vector3): void {
  const asset = MILITARY_GROUND_KIT[targetType];
  if (asset === undefined) return;
  const authored = UploadedAssetSpecs[asset].size;
@@ -41,9 +41,9 @@ export function decorateGroundTarget(model: Model, targetType: GroundTargetType,
  * A world's own visual becomes a typed target: renamed to its HUD label, tagged with the spec id and
  * given an invisible stationary aim centre (the PrimaryPart combat locks and homes on).
  */
-export function adoptGroundTarget(model: Model, id: string, targetType: GroundTargetType): Model {
+export function adoptGroundTarget(model: Model, id: string, targetType: GroundTargetType, uploadedDecoration = true): Model {
 	const [bounds, size] = model.GetBoundingBox();
-	decorateGroundTarget(model, targetType, bounds, size);
+	if (uploadedDecoration) decorateGroundTarget(model, targetType, bounds, size);
 	const aim = new Instance("Part");
 	aim.Name = "Aim"; aim.Size = new Vector3(4, 4, 4); aim.CFrame = new CFrame(bounds.Position); aim.Transparency = 1;
 	aim.Anchored = true; aim.CanCollide = false; aim.CanTouch = false; aim.CanQuery = false; aim.Parent = model;

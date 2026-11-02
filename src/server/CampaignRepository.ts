@@ -99,7 +99,7 @@ function slotAt(rawSlots: Map<string, StoredSlot> | StoredSlot[], index: number)
 	return undefined;
 }
 
-export function blankSlot(index: number): SaveSlot {
+function blankSlot(index: number): SaveSlot {
 	return {
 		index,
 		occupied: false,
@@ -119,12 +119,12 @@ function positiveTime(value: unknown): number | undefined {
 	return isFiniteNumber(value) && value > 0 ? value : undefined;
 }
 
-export function isValidMission(value: unknown): value is number {
+function isValidMission(value: unknown): value is number {
 	return isFiniteNumber(value) && value % 1 === 0 && value >= 0 && value <= MISSION_COUNT;
 }
 
 /** Resume at the lowest-numbered unfinished mission, or 1 for a fresh slot. */
-export function resumeMission(slot: SaveSlot): number {
+function resumeMission(slot: SaveSlot): number {
 	return highestUnlocked(slot);
 }
 
@@ -306,7 +306,7 @@ function rankOf(value: unknown): MissionRank | undefined {
 	return MissionScore.IsRank(value) ? value : undefined;
 }
 
-export function mergeSlot(storedRaw: unknown, desiredRaw: unknown, index: number): SaveSlot {
+function mergeSlot(storedRaw: unknown, desiredRaw: unknown, index: number): SaveSlot {
 	const stored = normalizeSlot(storedRaw, index);
 	const desired = normalizeSlot(desiredRaw, index);
 	// A deleted slot starts a new generation; never merge progress back in from an older one.
@@ -402,7 +402,7 @@ export function serializeProfile(profile: CampaignProfile): StoredProfile {
 	return { version: SAVE_VERSION, slots };
 }
 
-export function clientSlots(profile: CampaignProfile): SaveSlot[] {
+function clientSlots(profile: CampaignProfile): SaveSlot[] {
 	return profile.slots.map((slot, offset) => normalizeSlot(slot, offset + 1));
 }
 
@@ -436,20 +436,22 @@ export function completeMission(
 		!canLaunchMission(missionId, coordinator.getSlots()[activeSlot - 1])
 	) return false;
 	const groundKills = isFiniteNumber(stats.groundKills) ? math.max(0, math.floor(stats.groundKills)) : 0;
+	const kills = isFiniteNumber(stats.kills) ? math.max(0, math.floor(stats.kills)) : 0;
+	// Combat's kill tally includes ground targets; only the remainder can satisfy air objectives.
+	const airKills = math.max(0, kills - groundKills);
 	const elapsed = isFiniteNumber(stats.elapsed) ? stats.elapsed : 0;
 
 	const blueprint = MissionCatalog.Get(missionId);
 	const requiredAirKills = MissionCatalog.RequiredAirKills(blueprint);
 	const requiredGroundKills = MissionCatalog.RequiredGroundKills(blueprint);
-	const objectivesMet = stats.kills >= requiredAirKills && groundKills >= requiredGroundKills;
+	const objectivesMet = isFiniteNumber(stats.kills) && groundKills <= kills && airKills >= requiredAirKills && groundKills >= requiredGroundKills;
 	const flightObjectivesMet = stats.completedPhases === MissionCatalog.TotalPhases(blueprint);
 	const qualifiedWin = won && flightObjectivesMet && objectivesMet && elapsed > 0 && elapsed < MissionCatalog.MaxMissionSeconds(missionId);
-	const kills = isFiniteNumber(stats.kills) ? math.max(0, math.floor(stats.kills)) : 0;
 	const par = MissionScore.ParSeconds(MissionCatalog.Get(missionId));
 	const policy = MissionCatalog.Scoring(missionId);
 	const scored = MissionScore.Compute({
 		won: qualifiedWin,
-		airKills: math.max(0, kills - groundKills),
+		airKills,
 		groundKills,
 		elapsed,
 		par,

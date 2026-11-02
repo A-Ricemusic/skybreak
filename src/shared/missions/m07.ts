@@ -14,9 +14,10 @@ export const M07_TARGETS: TypedGroundTarget[] = m07TargetLayout().filter(t => t.
  id: t.id, type: M07_TARGET_TYPES[t.type], position: { x: t.x, y: t.y, z: t.z }, yaw: math.deg(t.yaw),
  required: t.type === "radar" || t.type === "control_room" || t.type === "solar_tower", scoreRole: t.type, group: t.group,
 }));
+// Keep the complete three-aircraft curved patrol above the quantized ridge surface.
 const route = [
- { x: -1100, y: 400, z: -9800 }, { x: 1400, y: 400, z: -9800 },
- { x: 1400, y: 400, z: -7400 }, { x: -1100, y: 400, z: -7400 },
+ { x: -1100, y: 640, z: -9800 }, { x: 1400, y: 640, z: -9800 },
+ { x: 1400, y: 640, z: -7400 }, { x: -1100, y: 640, z: -7400 },
 ];
 const helicopterRoute = [];
 for (let lap = 0; lap < 10; lap++) for (const point of route) helicopterRoute.push(point);
@@ -42,7 +43,7 @@ export const mission: MissionBlueprint = {
   { kind: "required_ground", count: 3, label: "Copy logs; cut three transmitters", beat: MISSION_STORY_TEXT[7].radio[0],
    groundTargets: M07_TARGETS, fighterWaves: waves,
    standaloneAce: { id: "m07_shale", name: "SHALE", livery: "Vulture", health: 165, behaviour: "dogfight", scoreRole: "ace", trigger: { kind: "approach", x: M07.plant.x, z: M07.plant.z, radius: 6000 }, headingDegrees: 180 },
-   chatter: [{ at: 1 / 3, text: "SERA: Lira log copied. Keep moving to the next installation." }, { at: 2 / 3, text: "SERA: Merel log copied. One transmitter remains." }],
+   chatter: [{ at: 1 / 3, text: "SERA: First array log copied. Keep moving to the next installation." }, { at: 2 / 3, text: "SERA: Second array log copied. One transmitter remains." }],
   },
   { kind: "return_line", label: "Below 2,000 ft; escape south",
    update: { objective: "Descend below 2,000 ft; use canyon cover and exit south", countdownSeconds: 300, radio: [MISSION_STORY_TEXT[7].radio[1]] },

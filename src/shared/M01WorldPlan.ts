@@ -53,7 +53,7 @@ export function m01Height(x: number, z: number): number {
 	h = terraceHeight(h, x, z, M01.airbase);
 	return math.floor(h / 4) * 4;
 }
-export function m01Block(material: TerrainMaterial, x: number, y: number, z: number, sx: number, sy: number, sz: number): TerrainOp {
+function m01Block(material: TerrainMaterial, x: number, y: number, z: number, sx: number, sy: number, sz: number): TerrainOp {
 	return { shape: "block", material, x, y, z, sx, sy, sz, yaw: 0 };
 }
 export function buildM01Plan(seed = 101, checkpoint: () => void = () => {}): M01Plan {

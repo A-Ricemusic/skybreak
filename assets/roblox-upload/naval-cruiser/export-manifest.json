@@ -1,0 +1,12 @@
+{
+  "asset": "naval-cruiser",
+  "exportVersion": "naval-kit-2",
+  "creator": "SKYBREAK build agent via tools/assets/naval_kit.py (this PR)",
+  "files": {
+    "naval-cruiser-color.png": "f5b64b51d225dc8ce74a73186733ec79c6586a4e34d4bf0acb6900d86e1ff624",
+    "naval-cruiser-normal.png": "fcad8a2f05d012e6e283b3bd1a0e87fd951eece672f82388d719f62f29dcd4f6",
+    "naval-cruiser-roughness.png": "ddade07571bdb27b24a6f2997cf36bab21291bba952c6aca952f7bb2a68dde20",
+    "naval-cruiser-metalness.png": "ba86fb3932b2ceecdb28ff25e89aeaea0e6e1329ed8b7932053835ac7eb84510",
+    "naval-cruiser.fbx": "983bd839010fcd32cb6ba25646d50e1a58c78a947b0afff273ad5b9483947818"
+  }
+}

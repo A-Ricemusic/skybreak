@@ -125,7 +125,7 @@ function stateFrom(frame: CFrame): FlightState {
 	const [right, up, back] = [frame.RightVector, frame.UpVector, frame.LookVector.mul(-1)];
 	return FlightMath.SetBasis(state, right.X, right.Y, right.Z, up.X, up.Y, up.Z, back.X, back.Y, back.Z);
 }
-export function createTargetCue(playerGui: Instance): [ScreenGui, Frame, UIStroke, TextLabel, TextLabel] {
+function createTargetCue(playerGui: Instance): [ScreenGui, Frame, UIStroke, TextLabel, TextLabel] {
 	const gui = new Instance("ScreenGui");
 	gui.Name = "SkybreakFlightTargeting";
 	gui.IgnoreGuiInset = true;
@@ -328,7 +328,7 @@ export class FlightController {
 			}
 			else if(message.kind==="CutInStarted" && this.active) {
 				const start=data as {plan:CutInPlan;subjects:Model[]};
-				this.cutIn?.Stop(); this.cutIn=new EliteCutIn(start.plan,start.subjects.filter((m)=>typeIs(m,"Instance"))); this.keys.clear();
+				this.cutIn?.Stop(); this.cutIn=new EliteCutIn(start.plan,start.subjects.filter((m)=>typeIs(m,"Instance"))); this.keys.clear(); this.ReleaseGun();
 			}
 			else if(message.kind==="CutInComplete" && this.cutIn) {
 				const handoff=data as FlightControlHandoff; if(this.predictor) FlightPrediction.Handoff(this.predictor,handoff.state,handoff.sequence);
@@ -503,7 +503,7 @@ export class FlightController {
 	public HasGun(): boolean { return this.telemetry.gunRounds !== undefined; }
 	/** Hold or release one gun input; GunStart on the first held source, GunStop when the last lets go. */
 	public SetGunTrigger(source: string, held: boolean): void {
-		const usable = this.active && !this.paused && !this.landing && !this.rearm && !this.launchIntro && this.HasGun();
+		const usable = this.active && !this.paused && !this.landing && !this.rearm && !this.cutIn && !this.launchIntro && this.HasGun();
 		if (held && usable) this.gunSources.add(source); else this.gunSources.delete(source);
 		const now = this.gunSources.size() > 0;
 		if (now === this.gunHeld) return;
@@ -1048,6 +1048,7 @@ export class FlightController {
 		}));
 		this.connections.push(UserInputService.InputEnded.Connect((input) => { if (input.UserInputType === Enum.UserInputType.MouseButton2) this.mouseSteer = false; }));
 		const clearInput = () => {
+			this.ReleaseGun();
 			this.keys.clear(); this.mouseSteer = false; this.touchInput = Vector2.zero; this.gamepadInput = Vector2.zero; this.throttleStick = 0; this.touchThrottleAxis = 0;
 		};
 		this.connections.push(UserInputService.TextBoxFocused.Connect(clearInput));

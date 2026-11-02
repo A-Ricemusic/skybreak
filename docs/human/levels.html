@@ -4,18 +4,17 @@ Verify origin/main, gh pr view, docs/specs/missions and Publish to Roblox logs.
 Keep all 19 articles and the fixed legend. Update affected human docs in the same PR.
 No generator, network dependencies, JavaScript or build step is required. -->
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<!-- PR #218 gate integration (2026-10-31, unmerged): merged current main; the ten military manifest entries now retain owner-reported APPROVED moderation dated 2026-10-31, model IDs and exact approval-record hashes. Gate authorization still requires identical origin/main evidence; no exemption or private journal access. Offline build authorization is checked against a temporary post-merge Git fixture. Validation completed: frozen install, standalone build, build:place and prescribed LUAU_BIN validate:offline all exited 0 (163 Python tests). Strict offline validate authorized 13 blobs and 49 IDs using a temporary post-merge Git evidence fixture; production refs were unchanged. No upload, publish, secret read, canonical upload-state access, Studio or Player test. -->
-<!-- PR #218 ledger repair (2026-10-31, unmerged): merged main f8f3693e; added all ten military Model IDs, source FBX paths, full approval hashes and dated review/moderation evidence to docs/qa/uploaded-assets.md. Corrected the Studio Jest inventory expectation from 39 to 49; the test checks numbers/count, not Markdown. Extended the existing Python military provenance contract to verify ledger rows. Studio rerun and Player observation remain pending; no upload, publish or secret access performed. Validation: frozen install, build and prescribed LUAU_BIN validate:offline all exited 0 (163 Python tests). Studio Jest compiled but was not run. -->
 <title>SKYBREAK · Level status</title>
 <style>
 :root{color-scheme:light dark;--bg:#f2f5fa;--panel:#fff;--ink:#182638;--muted:#485b71;--line:#cad5e1;--link:#125bac;--live:#17623e;--review:#744b00}
 @media(prefers-color-scheme:dark){:root{--bg:#101923;--panel:#192635;--ink:#eef4fc;--muted:#bdcbdc;--line:#41546a;--link:#9ccaff;--live:#8ee5b3;--review:#ffcf7b}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,sans-serif}main{max-width:1180px;margin:auto;padding:32px 20px}h1{font-size:2.4rem;line-height:1.15}h2{font-size:1.25rem;margin:0}a{color:var(--link);text-underline-offset:3px}a:focus-visible{outline:3px solid var(--link);outline-offset:4px}.muted,dt{color:var(--muted)}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:18px}.card,.legend{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px}.badge{display:inline-block;border:1px solid currentColor;border-radius:20px;padding:2px 12px;font-weight:700;margin:10px 0}.live{color:var(--live)}.review{color:var(--review)}.pieces{padding-left:20px}dl{margin-bottom:0}dd{margin:0 0 12px}nav{margin:20px 0}code{overflow-wrap:anywhere}.legend{margin:24px 0}.legend p{margin:8px 0}footer{margin-top:28px}
 </style></head><body><main>
-<!-- PR #217 reconciliation: tooling and embedded-mesh approvals only; Practice and missions 1–18 status unchanged. No Player verification performed. -->
-<p class="review">M03 world-build hotfix (2026-10-31, proposed/unmerged): #218 is merged at main a06d05f9. M3 may have failed to build in the live game since that commit; reported Studio failure is consistent with the post-decoration cap: 145 base descendants + 13 × (Model + MeshPart + SurfaceAppearance) = 184, exceeding 148. Pending fix preserves the 148 base-instance cap and separately bounds each military decoration at 24 instances including its root; oversized imports retain procedural visuals. M02's analogous post-adoption guard and M01/shared M04–M18 composition guards use the same accounting. Gameplay, target IDs and collision/aim proxies are unchanged. Audit: Practice/MissionWorld/RelayWorld only warn on part counts; M04–M18 composition guards run before kit adoption, and the shared decorator now bounds every kit placement. No asset upload, Studio or Player test performed. Assembly regressions for M01–M18 compile but await orchestrator Studio execution.</p>
+<p class="review">M3 hotfix #220 merged as <code>9793b6d8</code>: fixes world-build failure after military activation. Studio Jest was skipped as a recorded exception while Studio was signed out; November 1 main Jest reports synthetic military fixture failures. Corrected fixture acceptance and Player observation remain pending.</p>
+<p class="review">OPEN M3 crash blocker: mitigation #236 merged as <code>364a7413</code>, live version 148, published 2026-11-01. Temporary procedural targets and floor removal reduce memory pressure; cause unconfirmed; awaiting owner phone retest. Restore military visuals once cause is confirmed. Not Studio/Player tested. <a href="../qa/m03-crash-second-hotfix.md">Investigation</a>.</p>
+<p class="review">2026-11-01 Jest update: #238 still timed out M16/M03 in an 835 s budget suite, then stalled in lifecycle runtime. Unmerged #239 now contains/supersedes #238 and replaces full budget-world builds with bounded synchronous kit/target fixtures; full plan budgets remain in plan specs. Runtime bounds/cleanup remain. Orchestrator rerun of #239 alone pending; no new Studio/Player verification or level/live status change. <a href="../qa/jest-lifecycle-hang-investigation.md">Investigation</a>.</p>
 <header><p class="muted">SKYBREAK / Campaign readiness</p><h1>Every level, at a glance</h1>
-<p>Updated 2026-10-31 · Main <code>4594c365</code> · #200 merged.</p><p>Practice and missions 1–18 are merged and live by the owner’s automatic-pipeline convention. All mission integrations passed the orchestrator’s Studio Jest suite; M18: 1,450/1,450. Player tested: not yet. Phone performance and human balance remain unverified. Latest publish snapshot: 19 successes; M18 run successful; no failure in the latest 20.</p><nav><a href="https://www.roblox.com/games/112911685457826">Play SKYBREAK ↗</a> · <a href="README.md">Human dashboard</a> · <a href="next.md">Owner checklist</a></nav>
+<p>Updated 2026-11-01 · Main <code>556a6807</code>. Practice and all 18 missions are Live by pipeline convention. Historical mission-integration Studio results below are reported orchestrator evidence, not a current-main pass. Owner signed in for the November 1 main run; synthetic military fixture correction awaits Studio acceptance. Open #203/#205/#210/#221/#227/#231/#233/#235 still need coordinated acceptance. No Player/phone verification of missions 6–18. Owner previously won M01 on Normal on a phone; Next fix device acceptance pending.</p><p>Naval #226/#228 are assets-only: 12 models independently approved strict 10/10, not uploaded or in game; key via secure prompt pending. #221 runtime integration remains open/dormant. Audio uploads permanently blocked.</p><nav><a href="https://www.roblox.com/games/112911685457826">Play SKYBREAK ↗</a> · <a href="README.md">Human dashboard</a> · <a href="next.md">Owner checklist</a></nav>
 <p>Military kit activation merged (#218, a06d05f9, 2026-10-31): approved uploaded meshes for matching contacts in M02/M03/M05/M06/M07/M09/M10/M12/M15/M16/M17; original collision/aim proxies and procedural fallback retained. No Player verification. <a href="../qa/asset-reviews/military-ground-kit/upload-record-2026-10-31.md">IDs, moderation and per-type mission coverage</a>.</p>
 </header>
 <section class="legend" aria-labelledby="legend"><h2 id="legend">Fixed status legend</h2>
@@ -33,7 +32,7 @@ No generator, network dependencies, JavaScript or build step is required. -->
     <li>World: ✓ merged</li>
     <li>Engine needs: ✓ merged</li>
     <li>Mission data & unlock: ✓ merged</li>
-    <li>Studio verified: ✓ orchestrator full-suite pass</li>
+    <li>Historical Studio verified: ✓ orchestrator full-suite pass</li>
     <li>Live: ✓ merged; pipeline convention</li></ul></dd>
   <dt>Merged PR</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/130">#130</a> · <code>4891e8a1</code> · Player tested: not yet</dd>
   <dt>Known issues</dt><dd>No new level-specific issue recorded; Player quality has not been agent-verified. Avatar-death fix (<a href="https://github.com/A-Ricemusic/skybreak/pull/156">PR #156</a>, merged): the Roblox avatar used to fall and die at every world build/teardown, showing the default zero health bar and red flash; the game now spawns no avatar and hides that GUI. Studio-verified on this level; not Player-tested.</dd>
@@ -47,7 +46,7 @@ No generator, network dependencies, JavaScript or build step is required. -->
     <li>World: ✓ merged</li>
     <li>Engine needs: ✓ merged</li>
     <li>Mission data & unlock: ✓ merged</li>
-    <li>Studio verified: ✓ 750/750 (#130)</li>
+    <li>Historical Studio verified: ✓ 750/750 (#130)</li>
     <li>Live: ✓ merged; pipeline convention</li></ul></dd>
   <dt>Merged PR</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/130">#130</a> · <code>4891e8a1</code> · Player tested: not yet</dd>
   <dt>Live tuning; owner check pending</dt><dd>D-220/D-221: four more queued rear raiders (12 total); six required bombers unchanged. Normal maximum 1740, ranks S/A/B/C 1560/1200/600/500. Allies share one kill per sortie then resume formation. Test Easy objective completion, Normal pressure and phone performance on live main.</dd>
@@ -62,7 +61,7 @@ No generator, network dependencies, JavaScript or build step is required. -->
     <li>World: ✓ merged</li>
     <li>Engine needs: ✓ merged</li>
     <li>Mission data & unlock: ✓ merged</li>
-    <li>Studio verified: ✓ reported pass</li>
+    <li>Historical Studio verified: ✓ reported pass</li>
     <li>Live: ✓ merged; pipeline convention</li></ul></dd>
   <dt>Merged PR</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/143">#143</a> · <code>68f2df51</code> · Player tested: not yet</dd>
   <dt>Live tuning; owner check pending</dt><dd>D-220/D-221: extra fighter pairs at 75 seconds and eight bomber kills; 12 aircraft total including ace, at most seven concurrent. Eleven parked bombers unchanged. Player-priority pressure; maximum 2850, ranks 2500/1990/1620/1320. Allies share one kill per sortie. Human Easy/Normal/phone check pending.</dd>
@@ -70,7 +69,7 @@ No generator, network dependencies, JavaScript or build step is required. -->
   <dt>Owner test</dt><dd>Follow power lines, destroy eleven parked bombers, check added fighter pairs and ace pressure. See next.md for shared targeting, difficulty, service and phone checks.</dd></dl>
 </article>
 
-<article class="card" id="level-3"><h2>03 · NOBODY SIGNED</h2><span class="badge live">Live</span><p class="muted">Reference: The Northern Eye<br>NOBODY SIGNED is playable after mission 2</p><dl>
+<article class="card" id="level-3"><p class="review">Owner-reported mobile crash mitigated by merged #236 (version 148); awaiting owner phone retest. M3 temporarily uses procedural targets. Live deployment does not establish playability. Not Studio/Player tested.</p><p>M3 construction hotfix #220 is merged/live; post-hotfix Studio Jest and Player verification pending.</p><h2>03 · NOBODY SIGNED</h2><span class="badge live">Live</span><p class="muted">Reference: The Northern Eye<br>NOBODY SIGNED is playable after mission 2</p><dl>
   <dt>Reference footage</dt><dd>0:26:41–0:34:24</dd>
   <dt>Pieces</dt><dd><ul class="pieces">
     <li>Spec: ✓ mission spec</li>
@@ -80,7 +79,7 @@ No generator, network dependencies, JavaScript or build step is required. -->
     <li>Studio verified: historical 845/845; current #218 build failure reported</li>
     <li>Live: ✓ merged; pipeline convention</li></ul></dd>
   <dt>Merged PR</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/147">#147</a> · <code>7d73c44c</code> · Player tested: not yet</dd>
-  <dt>Known issues</dt><dd>Urgent: M3 may fail to build since military kit activation a06d05f9 (#218): uploaded decoration raises 145 base descendants to 184 against the 148 cap. Hotfix proposed/unmerged; Studio rerun and Player verification pending. PR reports 35–88 s Studio loading, terraced mountains, poor distant terrain at low quality; return line absent from minimap and landing compass concern.</dd>
+  <dt>Known issues</dt><dd>M3 budget failure after military activation #218 is fixed by merged #220 (9793b6d8); post-hotfix Studio rerun and Player verification pending. PR reports 35–88 s Studio loading, terraced mountains, poor distant terrain at low quality; return line absent from minimap and landing compass concern.</dd>
   <dt>Owner test</dt><dd>Destroy nine radars, update-clock reset, south return, automatic landing/skip and results. See next.md for shared targeting, difficulty, service and phone checks.</dd></dl>
 </article>
 
@@ -91,7 +90,7 @@ No generator, network dependencies, JavaScript or build step is required. -->
     <li>World: ✓ merged</li>
     <li>Engine needs: ✓ merged</li>
     <li>Mission data & unlock: ✓ merged <a href="https://github.com/A-Ricemusic/skybreak/pull/149">#149</a></li>
-    <li>Studio verified: ✓ 865/865</li>
+    <li>Historical Studio verified: ✓ 865/865</li>
     <li>Live: ✓ merged; pipeline convention</li></ul></dd>
   <dt>Merged PR</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/149">#149</a> · <code>af18e335</code> · Player tested: not yet</dd>
   <dt>Known issues</dt><dd>PR #149 now uses the shared #147 cleanup gate and a 6:48.33 escape (D-096/D-097), validated offline. The exit heads west back inside the world for owner beta judgment; jammer routes now share the hook and outlast transports. Player lifecycle acceptance remains open. #158 terrain performance is merged; earlier loading measurements precede it. No Player verification.</dd>
@@ -105,7 +104,7 @@ No generator, network dependencies, JavaScript or build step is required. -->
     <li>World: ✓ merged</li>
     <li>Engine needs: ✓ merged</li>
     <li>Mission data & unlock: ✓ merged <a href="https://github.com/A-Ricemusic/skybreak/pull/148">#148</a></li>
-    <li>Studio verified: ✓ 972/972</li>
+    <li>Historical Studio verified: ✓ 972/972</li>
     <li>Live: ✓ merged; pipeline convention</li></ul></dd>
   <dt>Merged PR</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/148">#148</a> · <code>227713be</code> · Player tested: not yet</dd>
   <dt>Known issues</dt><dd>World build is about 18 s on the campaign path after #158 (Jest harness 46 s). The rig and tankers are still dark between lights. SAMs do not fire; the elite flight does not prefer allies; no bombs. The gamepad menu is unverified with a real controller. Evidence: <a href="../qa/m05/2026-10-30/README.md">QA 2026-10-30</a>.</dd>
@@ -119,7 +118,7 @@ No generator, network dependencies, JavaScript or build step is required. -->
     <li>World: ✓ merged; adopted targets from <a href="../specs/worlds/m06-composition.md">composition and target table</a></li>
     <li>Engine: ✓ shared D1 finite stocks/gun, D2 ships/SAM/anti-ship, batch C score/rearm</li>
     <li>Mission data & unlock: ✓ #179; sequential after mission 5</li>
-    <li>Studio verified: ✓ 1,133/1,133</li>
+    <li>Historical Studio verified: ✓ 1,133/1,133</li>
     <li>Live: ✓ merged; pipeline convention</li></ul></dd>
   <dt>Merged PR</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/179">#179</a> · <code>199e7eed</code> · Player tested: not yet</dd>
   <dt>Known issues</dt><dd>Provisional 36 hull /40 yard /18 component roster (D-260);16 hostile air. Studio Jest passed; Player/phone not yet observed. Rendered appearance, flight feel and load remain unverified.</dd>
@@ -129,9 +128,9 @@ No generator, network dependencies, JavaScript or build step is required. -->
 <article class="card" id="level-7"><h2>07 · ARRAY BREAK</h2><span class="badge live">Live</span><p class="muted">Reference: Deep Strike · 1:22:13–1:35:49</p><dl>
 <dt>Mission</dt><dd>Sequential unlock after mission 6. 51 ground contacts and 20 optional hostile aircraft; three marked installations in 15:00, then fresh 5:00 southbound canyon escape below 2,000 ft with terrain cover.</dd>
 <dt>Pieces</dt><dd>World #175 and engine D1–D3 merged; mission data/unlock <a href="https://github.com/A-Ricemusic/skybreak/pull/178">#178</a>. Shared one-kill allied budget. Original subtitles; no new audio.</dd>
-<dt>Verification</dt><dd>Studio verified: ✓ orchestrator full-suite pass. Player tested: not yet. Live (pipeline).</dd>
-<dt>Known issues</dt><dd>Provisional roster/ranks D-280–D-284. S 1,600; maximum 2,590 before allied kill. Rendered comparison, canyon flight, artillery masking and load/clear timing remain unverified.</dd>
-<dt>Owner test</dt><dd>Destroy three installations, retain strike pose into canyon ingress, respect absolute Y=585 ceiling and terrain masking, cross south exit before timeout. See next.md for shared targeting, difficulty, service and phone checks.</dd></dl><p>Merged <a href="https://github.com/A-Ricemusic/skybreak/pull/178">#178</a> · <code>a04fdd61</code>. Studio verified: ✓. Player tested: not yet.</p></article>
+<dt>Verification</dt><dd>Historical Studio verified: ✓ orchestrator full-suite pass. Player tested: not yet. Live (pipeline).</dd>
+<dt>Known issues</dt><dd>Merged #232 (<code>c7e4dc62</code>): chatter no longer names installations in a fixed order; no Player test claimed. Open #235 addresses helicopters underground. Provisional roster/ranks D-280–D-284. S 1,600; maximum 2,590 before allied kill. Rendered comparison, canyon flight, artillery masking and load/clear timing remain unverified.</dd>
+<dt>Owner test</dt><dd>Destroy three installations, retain strike pose into canyon ingress, respect absolute Y=585 ceiling and terrain masking, cross south exit before timeout. See next.md for shared targeting, difficulty, service and phone checks.</dd></dl><p>Merged <a href="https://github.com/A-Ricemusic/skybreak/pull/178">#178</a> · <code>a04fdd61</code>. Historical Studio verified: ✓. Player tested: not yet.</p></article>
 
 <article class="card" id="level-8"><h2>08 · OPEN FREQUENCY</h2><span class="badge live">Live</span><p class="muted">Reference: Shattered Skies</p><dl>
   <dt>Reference footage</dt><dd>1:39:16–1:52:39</dd>
@@ -140,7 +139,7 @@ No generator, network dependencies, JavaScript or build step is required. -->
     <li>World: ✓ built/active (#175); <a href="../specs/worlds/m08-composition.md">composition and budget</a></li>
     <li>Engine needs: D4 #177 and mission 7 #178 merged</li>
     <li>Mission data & unlock: ✓ OPEN FREQUENCY; unlocks after mission 7 (#183 merged)</li>
-    <li>Studio verified: ✓ orchestrator full-suite pass</li>
+    <li>Historical Studio verified: ✓ orchestrator full-suite pass</li>
     <li>Live: ✓ merged; pipeline convention</li></ul></dd>
   <dt>Merged PR</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/183">#183</a> · <code>085373c8</code> · Player tested: not yet</dd>
   <dt>Known issues</dt><dd>Playable: 800 points / 7:00, six west bombers / 6:00 hold, protected mast and 35-second broadcast. Roster/ranks provisional. Live by pipeline convention; Player/phone not yet observed.</dd>
@@ -154,7 +153,7 @@ No generator, network dependencies, JavaScript or build step is required. -->
     <li>World: ✓ built (#175); activated by #185; <a href="../specs/worlds/m09-composition.md">composition and budget</a></li>
     <li>Engine needs: D1–D6 merged; D5 #180 activated here (D-290–D-293)</li>
     <li>Mission data & unlock: ✓ GREEN BEACON in #185; unlock after M08</li>
-    <li>Studio verified: ✓ orchestrator full-suite pass</li>
+    <li>Historical Studio verified: ✓ orchestrator full-suite pass</li>
     <li>Live: ✓ merged; pipeline convention</li></ul></dd>
   <dt>Merged PR</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/185">#185</a> · <code>06ca3e44</code> · Player tested: not yet</dd>
   <dt>Known issues</dt><dd>Provisional 55-contact roster, ranks and landing health; merged; no Player test.</dd>
@@ -166,30 +165,30 @@ No generator, network dependencies, JavaScript or build step is required. -->
 <dt>Dependencies</dt><dd>#182 D6, #183 M08, #185 M09. All merged on main; unlock after sequential M09 completion.</dd>
 <dt>Ranks</dt><dd>C 3,000 · B 3,800 · A 4,200 · S 5,400. Maximum 9,340; allied kills give no player credit.</dd>
 <dt>Owner test</dt><dd>Score 3,000 through full 20:00, repeated artillery cover, parked/airborne credit deduplication, finite area weapon and repeated runway service. See next.md for shared targeting, difficulty, service and phone checks.</dd>
-<dt>Verification</dt><dd>Studio verified: ✓ orchestrator full-suite pass. Player tested: not yet. Live (pipeline).</dd>
+<dt>Verification</dt><dd>Historical Studio verified: ✓ orchestrator full-suite pass. Player tested: not yet. Live (pipeline).</dd>
 </dl>
-<p>Merged <a href="https://github.com/A-Ricemusic/skybreak/pull/187">#187</a> · <code>7ff07613</code>. Studio verified: ✓. Player tested: not yet.</p></article>
+<p>Merged <a href="https://github.com/A-Ricemusic/skybreak/pull/187">#187</a> · <code>7ff07613</code>. Historical Studio verified: ✓. Player tested: not yet.</p></article>
 
-<article class="card" id="level-11"><h2>11 · HIGH CROSSING</h2><span class="badge live">Live</span><p class="muted">Reference: Escort · depends on #184, #183, #185, #187</p><dl><dt>Objective</dt><dd>Protect ORCHARD ONE at Y2800 and ORCHARD TWO at Y900; both safe around 5:13.28, limit 5:30. Either loss fails.</dd><dt>Pressure</dt><dd>17 ordinary attackers + optional RIME; six pursuit slots. Allies share one uncredited kill.</dd><dt>Ranks</dt><dd>C120 / B240 / A360 / S780; maximum1260.</dd><dt>Owner checks</dt><dd>Both altitude bands, independent damage/loss, INCOMING marker and callsign missile-lock warnings, no civilian TGT, all-safe settlement, save/reload and M10 prerequisite. Studio verified: ✓ orchestrator; Player/phone and visual comparison pending. Merged in #189; live by pipeline convention.</dd></dl><p>Merged <a href="https://github.com/A-Ricemusic/skybreak/pull/189">#189</a> · <code>5c88368c</code>. Studio verified: ✓. Player tested: not yet.</p></article>
+<article class="card" id="level-11"><h2>11 · HIGH CROSSING</h2><span class="badge live">Live</span><p class="muted">Reference: Escort · depends on #184, #183, #185, #187</p><dl><dt>Objective</dt><dd>Protect ORCHARD ONE at Y2800 and ORCHARD TWO at Y900; both safe around 5:13.28, limit 5:30. Either loss fails.</dd><dt>Pressure</dt><dd>17 ordinary attackers + optional RIME; six pursuit slots. Allies share one uncredited kill.</dd><dt>Ranks</dt><dd>C120 / B240 / A360 / S780; maximum1260.</dd><dt>Owner checks</dt><dd>Both altitude bands, independent damage/loss, INCOMING marker and callsign missile-lock warnings, no civilian TGT, all-safe settlement, save/reload and M10 prerequisite. Historical Studio verified: ✓ orchestrator; Player/phone and visual comparison pending. Merged in #189; live by pipeline convention.</dd></dl><p>Merged <a href="https://github.com/A-Ricemusic/skybreak/pull/189">#189</a> · <code>5c88368c</code>. Historical Studio verified: ✓. Player tested: not yet.</p></article>
 
 <article class="card" id="level-12"><h2>12 · THE COMMAND RING</h2><span class="badge live">Live</span><p class="muted">Reference: Stonehenge Offensive</p><dl>
 <dt>Mission</dt><dd>Seven required guns in 15:00; optional ECM, AA/SAM, service strip and CAIRN. Five elites enter on a fresh 10:00 clock; one defeat marks Vulture Two's recovery and withdraws survivors.</dd>
 <dt>Dependencies</dt><dd>D8 #186, M09 #185, M10 #187, M11; sequential unlock after mission 11.</dd>
 <dt>Ranks</dt><dd>C 1750 · B 2100 · A 2400 · S 2900; maximum 3470.</dd>
 <dt>Safety</dt><dd>16s sweep warning; 25 damage per salvo; above absolute Y=900 safe. Procedural assets only; no new audio uploads.</dd>
-<dt>Verification</dt><dd>Studio verified: ✓ orchestrator full-suite pass. Player tested: not yet. Live (pipeline).</dd>
+<dt>Verification</dt><dd>Historical Studio verified: ✓ orchestrator full-suite pass. Player tested: not yet. Live (pipeline).</dd>
 <dt>Live</dt><dd>Live by pipeline convention: #191 merged as 351d7988.</dd></dl>
-<p>Merged 351d7988. Studio verified: ✓ orchestrator full-suite pass</p><p>Merged <a href="https://github.com/A-Ricemusic/skybreak/pull/191">#191</a> · <code>351d7988</code>. Studio verified: ✓. Player tested: not yet.</p></article>
+<p>Merged 351d7988. Historical Studio verified: ✓ orchestrator full-suite pass</p><p>Merged <a href="https://github.com/A-Ricemusic/skybreak/pull/191">#191</a> · <code>351d7988</code>. Historical Studio verified: ✓. Player tested: not yet.</p></article>
 
 <article class="card" id="level-13"><h2>13 · EVIDENCE THROUGH THE GREY</h2><span class="badge live">Live</span><p class="muted">Reference: Safe Return</p><dl>
 <dt>Mission</dt><dd>Clear 32 visual-gun jammer airships: 1,300 in 7:00, then eight required attackers, two optional escort fighters and optional VEIL ace in 15:00. Protect Paper One until safe. Maximum 4,040; S/A/B/C 2,800/2,100/1,900/1,300.</dd>
 <dt>Dependencies</dt><dd>D9 #188; M10 #187, M11 #189, M12 #191. Sequential unlock after M12. Merged e2c7fab2; live by pipeline convention.</dd>
 <dt>World and assets</dt><dd>Existing M13 ravine and procedural target models adopted by id; no audio/Blender uploads.</dd>
-<dt>Validation</dt><dd>Offline validation exited 0: 1,118 Luau contracts, 19 snapshots, three QA pilot scenarios, 124 Python tests; Studio verified: ✓ orchestrator full-suite pass</dd>
+<dt>Validation</dt><dd>Offline validation exited 0: 1,118 Luau contracts, 19 snapshots, three QA pilot scenarios, 124 Python tests; Historical Studio verified: ✓ orchestrator full-suite pass</dd>
 <dt>Owner beta</dt><dd>Check visual gun approaches, local corridor clearance, health continuity, defensible interception, loss under sustained neglect, and safe friendly target exclusion. See next.md and decisions D-560–D-563.</dd>
 </dl>
 
-<p>Merged <a href="https://github.com/A-Ricemusic/skybreak/pull/195">#195</a> · <code>e2c7fab2</code>. Studio verified: ✓. Player tested: not yet.</p></article>
+<p>Merged <a href="https://github.com/A-Ricemusic/skybreak/pull/195">#195</a> · <code>e2c7fab2</code>. Historical Studio verified: ✓. Player tested: not yet.</p></article>
 
 <p class="muted">PR #176 review correction: weather now resolves all M01–M18 keys (also fixes the M05–M13 client crash on main); M18 structural floors/support and M17 18:20 / 12,000ft metadata corrected. Offline only; no Player verification.</p>
 <article class="card" id="level-14"><h2>14 · Aurora shield</h2><span class="badge live">Live</span><p>Three cruise-intercept salvos share20:00; 16 credited missile slots, nine optional fighters and one strategic bomber. Any impact loses; separation earns no credit.</p><dl>
@@ -197,16 +196,16 @@ No generator, network dependencies, JavaScript or build step is required. -->
 <dt>World</dt><dd>Existing procedural aurora coast; crown station protected/non-scoreable. Mobile actors claim authored world IDs.</dd>
 <dt>Dependencies</dt><dd>D1–D12 and M01–M13 retained; M13 #195 merged as e2c7fab2. Sequential unlock after13.</dd>
 <dt>Ranks</dt><dd>C1700 / B1850 / A2000 / S2260 provisional; maximum2980.</dd>
-<dt>Validation</dt><dd>Frozen install, build and full offline gate EXIT 0: 1,144 Luau contracts, 19 snapshots, 124 Python tests. Studio verified: ✓ orchestrator full-suite pass</dd>
+<dt>Validation</dt><dd>Frozen install, build and full offline gate EXIT 0: 1,144 Luau contracts, 19 snapshots, 124 Python tests. Historical Studio verified: ✓ orchestrator full-suite pass</dd>
 <dt>Owner beta</dt><dd>See next.md for intercept, separation, pressure, score and failure checks.</dd></dl>
 
-<p>Merged <a href="https://github.com/A-Ricemusic/skybreak/pull/196">#196</a> · <code>80273894</code>. Studio verified: ✓. Player tested: not yet.</p></article>
+<p>Merged <a href="https://github.com/A-Ricemusic/skybreak/pull/196">#196</a> · <code>80273894</code>. Historical Studio verified: ✓. Player tested: not yet.</p></article>
 
 <article class="card" id="level-15"><h2>15 · SILENT STREETS</h2><span class="badge live">Live</span><p class="muted">Reference: Emancipation</p><dl>
 <dt>Mission</dt><dd>Full 10:00 city strike, required command relay, three squads and gated reserves; six-bomber retaliation with fresh 10:00. Optional runway repair/rearm.</dd>
 <dt>Dependencies</dt><dd>D11 #192; M11–M14 #189/#191/#195/#196 merged. Unlock only after M14.</dd>
 <dt>Ledger</dt><dd>Normal maximum 6,370 before allied kill; provisional C/B/A/S 2,000/3,200/4,000/4,930. Generic ground subtypes remain unresolved.</dd>
-<dt>Verification</dt><dd>Studio verified: ✓ orchestrator full-suite pass. Player tested: not yet. Live (pipeline).</dd></dl><p>Merged <a href="https://github.com/A-Ricemusic/skybreak/pull/197">#197</a> · <code>d40b9706</code>. Studio verified: ✓. Player tested: not yet.</p></article>
+<dt>Verification</dt><dd>Historical Studio verified: ✓ orchestrator full-suite pass. Player tested: not yet. Live (pipeline).</dd></dl><p>Merged <a href="https://github.com/A-Ricemusic/skybreak/pull/197">#197</a> · <code>d40b9706</code>. Historical Studio verified: ✓. Player tested: not yet.</p></article>
 
 <article class="card" id="level-16"><h2>16 · DUST ROAD</h2><span class="badge live">Live</span><p class="muted">Reference: Whiskey Corridor</p><dl>
   <dt>Reference footage</dt><dd>3:50:50–4:12:27</dd>
@@ -215,7 +214,7 @@ No generator, network dependencies, JavaScript or build step is required. -->
     <li>World: ✓ activated in #198; <a href="../specs/worlds/m16-composition.md">composition and budget</a></li>
     <li>Engine: merged D1–D13; D11 ground support activated</li>
     <li>Mission data & unlock: ✓ authored; unlock after M15 and all predecessors</li>
-    <li>Studio verified: ✓ orchestrator full-suite pass</li>
+    <li>Historical Studio verified: ✓ orchestrator full-suite pass</li>
     <li>Live: ✓ merged; pipeline convention</li></ul></dd>
   <dt>Merged PR</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/198">#198</a> · <code>6e04cc5a</code> · Player tested: not yet</dd>
   <dt>Known issues</dt><dd>138 ground contacts, 32 queued aircraft; 20:00 / 3,500 points; column survival and repair service. Player pacing and phone acceptance pending.</dd>
@@ -229,10 +228,10 @@ No generator, network dependencies, JavaScript or build step is required. -->
     <li>World: ✓ adopted ground models; airborne scenery removed; <a href="../specs/worlds/m17-composition.md">composition and budget</a></li>
     <li>Engine: integrated D1–D13; D11 repair and D12 withdrawal reused</li>
     <li>Mission data & unlock: LAST WING available after M16</li>
-    <li>Studio verified: ✓ orchestrator full-suite pass</li>
+    <li>Historical Studio verified: ✓ orchestrator full-suite pass</li>
     <li>Live: ✓ merged; pipeline convention</li></ul></dd>
   <dt>Merged PR</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/199">#199</a> · <code>f68d81d5</code> · Player tested: not yet</dd>
-  <dt>Known issues</dt><dd>Provisional subtype allocation and rank cuts require visual/balance acceptance.</dd>
+  <dt>Known issues</dt><dd>Merged #232 (<code>c7e4dc62</code>): tower correctly says hull repairs available; no Player test claimed. Provisional subtype allocation and rank cuts require visual/balance acceptance.</dd>
   <dt>Owner test</dt><dd>Score 2,100 through 12:00, defeat four required wingmen within fresh 18:00, protected Rusk withdrawal, bridge route closure and runway repair. See next.md for shared targeting, difficulty, service and phone checks.</dd></dl>
 </article>
 
@@ -243,10 +242,10 @@ No generator, network dependencies, JavaScript or build step is required. -->
     <li>World: ✓ built (#176), adopted by ID on main; <a href="../specs/worlds/m18-composition.md">composition and budget</a></li>
     <li>Engine: D13 integrated on base</li>
     <li>Mission data & unlock: implemented on M17; unlocks after released/completed M17 and all predecessors</li>
-    <li>Studio verified: ✓ 1,450/1,450</li>
+    <li>Historical Studio verified: ✓ 1,450/1,450</li>
     <li>Live: ✓ merged; pipeline convention</li></ul></dd>
   <dt>Merged PR</dt><dd><a href="https://github.com/A-Ricemusic/skybreak/pull/200">#200</a> · <code>4594c365</code> · Player tested: not yet</dd>
   <dt>Known issues</dt><dd>Provisional rank cuts; Player and phone acceptance pending.</dd>
   <dt>Owner test</dt><dd>Three generators → timed vent/shutter/core/exit → isolated 5:00 Rusk duel; check carried damage/ammo, ending, campaign completion and replay. See next.md for shared targeting, difficulty, service and phone checks.</dd></dl>
 </article>
-</section><footer><p>All 18 missions merged; Studio verified: ✓ (orchestrator). Player tested: not yet. Play through in order and record phone performance, loading and difficulty. <a href="README.md">Dashboard</a> · <a href="next.md">Checklist</a></p></footer></main></body></html>
+</section><footer><p>Practice and all 18 missions Live by pipeline convention. Historical Studio evidence is scoped to mission integrations; #220/#236 and eight open PRs still need Studio runs. Player/phone quality remains unverified; see <a href="next.md">priority checklist</a>.</p></footer></main></body></html>

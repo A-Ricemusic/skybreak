@@ -28,6 +28,44 @@ function roundTrip(c: CampaignCoordinator) {
 }
 
 describe("Campaign completion persistence (offline and Roblox Jest)", () => {
+	for (const missing of [1, 6]) it(`does not substitute ground kills for ${missing} missing mission 1 air kills`, () => {
+		const c = fresh(), bp = MissionCatalog.Get(1);
+		let result: MissionFinished | undefined;
+		completeMission(c, 1, 1, true, {
+			slot: 1, missionId: 1, kills: 6, groundKills: missing,
+			completedPhases: MissionCatalog.TotalPhases(bp), elapsed: 100,
+		}, message => { result = message; }, 0);
+		expect(result?.kind).toBe("Failed");
+		expect(c.getSlots()[0].missions?.[1]?.completed).toBeUndefined();
+		expect(c.getSlots()[0].missions?.[2]).toBeUndefined();
+		expect(roundTrip(c).missions?.[1]).toBeUndefined();
+	});
+
+	it("accepts all six air kills alongside extra ground kills", () => {
+		const c = fresh();
+		let result: MissionFinished | undefined;
+		completeMission(c, 1, 1, true, {
+			slot: 1, missionId: 1, kills: 9, groundKills: 3,
+			completedPhases: MissionCatalog.TotalPhases(MissionCatalog.Get(1)), elapsed: 100,
+		}, message => { result = message; }, 0);
+		expect(result?.kind).toBe("Completed");
+		expect(roundTrip(c).missions?.[1]?.completed).toBe(true);
+	});
+
+	for (const kills of [math.huge, 0 / 0, 0]) it(`rejects inconsistent/nonfinite kill totals (${kills})`, () => {
+		const c = fresh();
+		// Mission 2 has only ground requirements; even there, ground kills cannot exceed the total.
+		finish(c, 1);
+		const bp = MissionCatalog.Get(2);
+		let result: MissionFinished | undefined;
+		completeMission(c, 1, 2, true, {
+			slot: 1, missionId: 2, kills, groundKills: MissionCatalog.RequiredGroundKills(bp),
+			completedPhases: MissionCatalog.TotalPhases(bp), elapsed: 100,
+		}, message => { result = message; }, 0);
+		expect(result?.kind).toBe("Failed");
+		expect(roundTrip(c).missions?.[2]).toBeUndefined();
+	});
+
 	it("retains mission 1's entire saved record after legitimate mission 2 completion and serialization", () => {
 		const c = fresh();
 		expect(finish(c, 1, breakdown())).toBe(true);

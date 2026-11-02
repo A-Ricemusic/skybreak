@@ -1,6 +1,8 @@
 # SKYBREAK redesign plan: rebuild the campaign on the Ace Combat 04 reference
 
-Status: DRAFT for owner review. Nothing in this document is approved or started.
+> **Historical document (status updated 2026-11-01).** This is the plan as drafted on 2026-10-28, kept as the record of how the 18-mission campaign was scoped. It is not current status. The owner's decisions D-011 to D-016 (`docs/human/decisions.md`, 2026-10-28) changed it before work began: the Broken Relay story was kept and condensed to 18 chapters instead of writing an original AC04-shaped story (so phase 2C and the `systems/` specs were not produced as written), and missions and worlds follow the reference procedurally. The campaign was then built roughly along phases 0 to 6, with the remaining phase-7 cleanup tracked in `docs/human/next.md`. All 18 missions and Practice have been merged and are live since 2026-10-31; see `docs/human/README.md` for status and `docs/architecture/README.md` for the code as it is now. Section 7's open questions were answered in `decisions.md`.
+
+Status at writing: DRAFT for owner review. Nothing in this document was approved or started when it was written.
 Written 2026-10-28. Reference footage: "Ace Combat 04: Shattered Skies. Full campaign [HD 1080p 60fps]" by GamePlayShare, 4 h 52 min, https://youtu.be/lO7bCwQOYUs
 
 ## 1. Goal and boundaries

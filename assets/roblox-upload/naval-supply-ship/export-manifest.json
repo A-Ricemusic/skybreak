@@ -1,0 +1,12 @@
+{
+  "asset": "naval-supply-ship",
+  "exportVersion": "naval-kit-2",
+  "creator": "SKYBREAK build agent via tools/assets/naval_kit.py (this PR)",
+  "files": {
+    "naval-supply-ship-color.png": "49e877155b57790e4d4e073f8d5d317f0d249fe64ebe0058f2029aab6c1184cb",
+    "naval-supply-ship-normal.png": "8929612275d6322b1d7c7bdbe81495586b1cbb7d0f6d59e744af22b34802b7f2",
+    "naval-supply-ship-roughness.png": "a2cfed45cf830711b63db54aa91e14d4eeef003bf31c77c791689da171fa3f37",
+    "naval-supply-ship-metalness.png": "8025811f18b1819906994201e498f48df9a490a2a936813eb27aa767d1433ca9",
+    "naval-supply-ship.fbx": "6f3dac33a96b40be68c6080a6bf2c29467f4c8a65015e9f9c20fcfc351dedd08"
+  }
+}
