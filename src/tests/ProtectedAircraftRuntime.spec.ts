@@ -5,10 +5,11 @@ import { clearProtection, hitProtected, protectedTarget, stepProtection } from "
 import type { CombatSession, Enemy } from "../server/CombatSession";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { protectedAircraftFixture } from "./ProtectedAircraftFixture";
+import { sessionFixture } from "./SessionFixture";
 function fixture() {
  const folder=new Instance("Folder");folder.Parent=Workspace;
  const bs=BlueprintRunner.NewState(protectedAircraftFixture(),0);
- const session={folder,player:{UserId:Players.GetPlayers()[0]?.UserId ?? 1},blueprint:bs.blueprint,airspace:MissionCatalog.Airspace(bs.blueprint),blueprintState:bs,enemies:[],allies:[],projectiles:[],alliedKills:[]} as unknown as CombatSession;
+ const session=sessionFixture(bs.blueprint,{folder,userId:Players.GetPlayers()[0]?.UserId ?? 1});session.blueprintState=bs;
  return {session,folder,bs};
 }
 describe("D7 protected aircraft Roblox integration (Studio pending)",()=>{
@@ -32,10 +33,12 @@ describe("D7 protected aircraft Roblox integration (Studio pending)",()=>{
  it("retires safe aircraft and missile destinations; completes only when both safe and cleans phase changes",()=>{
   const f=fixture();try {
    stepProtection(f.session,200,()=>{});expect(f.bs.outcome).toBeUndefined();expect(protectedTarget(f.session,{attackProtected:"high",position:Vector3.zero} as Enemy)).toBe(f.session.protectedFlight!.actors[1].aircraft);
-   stepProtection(f.session,10,()=>{});expect(f.bs.outcome).toBe("won");expect(f.session.protectedFlight).toBeUndefined();expect(f.folder.GetChildren().size()).toBe(0);
+   // Only phase-owned civilians retire; the player aircraft must remain.
+   stepProtection(f.session,10,()=>{});expect(f.bs.outcome).toBe("won");expect(f.session.protectedFlight).toBeUndefined();expect(f.folder.GetChildren()).toEqual([f.session.aircraft]);
   } finally {clearProtection(f.session);f.folder.Destroy();}
  });
  it("destroys phase-owned aircraft on transition and supports idempotent cleanup",()=>{
-  const f=fixture();try {stepProtection(f.session,0,()=>{});f.bs.phaseIndex++;stepProtection(f.session,0,()=>{});clearProtection(f.session);expect(f.folder.GetChildren().size()).toBe(0);} finally {f.folder.Destroy();}
+  // Exact remaining-child identity also rejects leaked civilians or unrelated fixture children.
+  const f=fixture();try {stepProtection(f.session,0,()=>{});f.bs.phaseIndex++;stepProtection(f.session,0,()=>{});clearProtection(f.session);expect(f.folder.GetChildren()).toEqual([f.session.aircraft]);} finally {f.folder.Destroy();}
  });
 });
