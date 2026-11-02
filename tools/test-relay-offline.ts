@@ -54,6 +54,7 @@ const MODULES: string[] = [
 	"server/CampaignRepository", "tests/DeletionStatus.spec", "tests/RelayCampaign.spec",
 	"tests/BlueprintProgress.spec", "shared/LaunchLoading", "tests/LaunchLoading.spec", "shared/LoadingScreenModel",
 	"tests/LoadingScreenModel.spec", "shared/WorldLifecycle", "tests/WorldLifecycle.spec",
+	"shared/TerrainWriteState", "tests/TerrainWriteState.spec",
 	"tests/CampaignCompletionPersistence.spec", "shared/CountdownDisplay", "shared/CampaignWire",
 	"tests/CampaignWire.spec", "shared/ResultContinuation", "tests/ResultContinuation.spec", "shared/ChapterLaunch",
 	"tests/ChapterContinuation.spec",

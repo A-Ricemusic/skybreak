@@ -454,6 +454,25 @@ describe("dormant military ground-kit decoration", () => {
    expect(p.CanQuery).toBe(false); expect(p.GetAttribute("GroundKitQuery")).toBe(false);
   }
  });
+ it("rejects an 8-stud military cube without retrying or hiding the procedural proxy", () => {
+  let loads = 0;
+  UploadedAssets.Configure({ ids: { MilitaryTank: 900099 }, probe: () => true, loader: () => {
+   loads++;
+   const container = new Instance("Model"), mesh = new Instance("MeshPart");
+   mesh.Size = new Vector3(8, 8, 8); mesh.Parent = container;
+   new Instance("SurfaceAppearance").Parent = mesh;
+   return container;
+  } });
+  WorldAssets.Preload(["MilitaryTank"]);
+  WorldAssets.Preload(["MilitaryTank"]);
+  expect(loads).toBe(1);
+  expect(UploadedAssets.Cached(["MilitaryTank"])).toBeUndefined();
+  const model = track(new Instance("Model")), proxy = new Instance("Part");
+  proxy.Parent = model;
+  adoptGroundTarget(model, "cube_rejected", "tank");
+  expect(proxy.Transparency).toBe(0);
+  expect(model.GetAttribute("UploadedAsset")).toBeUndefined();
+ });
  it("leaves the stand-in visible and aim unchanged after a load failure", () => {
   UploadedAssets.Configure({ids:{MilitaryTank:1},loader:()=>error("unavailable")});
   WorldAssets.Preload(["MilitaryTank"]);

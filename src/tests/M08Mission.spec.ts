@@ -73,7 +73,7 @@ describe("Mission 8 OPEN FREQUENCY",()=>{
  });
  it("requires sequential mission 7 completion, rejects forged launch/results and persists full settlement",()=>prerequisites(()=>{
   const c=new CampaignCoordinator("m08",undefined,{now:()=>1000,defer:()=>undefined});c.load();
-  const finish=(id:number,phases=MissionCatalog.TotalPhases(MissionCatalog.Get(id)),elapsed=100,ledger?:TargetScore)=>completeMission(c,1,id,true,{slot:1,missionId:id,kills:MissionCatalog.RequiredAirKills(MissionCatalog.Get(id)),groundKills:MissionCatalog.RequiredGroundKills(MissionCatalog.Get(id)),completedPhases:phases,elapsed,targetScore:ledger?.Snapshot()},()=>undefined,0);
+  const finish=(id:number,phases=MissionCatalog.TotalPhases(MissionCatalog.Get(id)),elapsed=100,ledger?:TargetScore)=>completeMission(c,1,id,true,{slot:1,missionId:id,kills:MissionCatalog.RequiredAirKills(MissionCatalog.Get(id))+MissionCatalog.RequiredGroundKills(MissionCatalog.Get(id)),groundKills:MissionCatalog.RequiredGroundKills(MissionCatalog.Get(id)),completedPhases:phases,elapsed,targetScore:ledger?.Snapshot()},()=>undefined,0);
   expect(finish(8)).toBe(false);expect(canLaunchMission(8,c.getSlots()[0])).toBe(false);
   for(let id=1;id<=6;id++) expect(finish(id)).toBe(true);
   expect(highestUnlocked(c.getSlots()[0])).toBe(7);expect(finish(8)).toBe(false);expect(finish(7)).toBe(true);

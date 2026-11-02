@@ -9,8 +9,8 @@ import { UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
 import { WATER_Y, WORLD_BUDGET, WorldPlanner, propBox, solidTopWithin, surfaceAt, terrainTop, type WorldPlan } from "../shared/WorldPlan";
 
 // Pure world-plan contracts for missions 3-27; also run in the offline Luau VM.
-// The engine half (the plan executed into Terrain, parts and uploaded clones)
-// is covered by RelayWorld.spec in Roblox Jest.
+// Historical pure-plan coverage is retained here. Live campaign dispatch is covered
+// by MissionWorld.spec; bounded uploaded assembly is covered by WorldInstanceBudget.spec.
 const ids: number[] = [];
 for (let id = 3; id <= 27; id++) ids.push(id);
 

@@ -9,15 +9,14 @@ import { GunRules, SortieArmament } from "../shared/SortieArmament";
 import type { RearmPlan } from "../shared/RearmRules";
 import { Workspace } from "@rbxts/services";
 import { gunOccluded, gunRaycastParams } from "../server/GunRuntime";
+import { sessionFixture } from "./SessionFixture";
 
 const plan: RearmPlan = { zone: { x: 0, y: 145.7786702793, z: 2400 }, radius: 2000, landing: { touchdown: { x: 0, y: 20, z: 0 }, headingDegrees: 0, approachDistance: 2400, rolloutDistance: 400, approachSeconds: 30, rolloutSeconds: 10, glideDegrees: 3 }, takeoffSeconds: 10, missiles: true, special: true, health: false };
 function session(armament: MissionBlueprint["armament"], rearm: RearmPlan = plan): CombatSession {
 	const bp: MissionBlueprint = { ...MissionCatalog.Get(1), armament, phases: [{ kind: "score_threshold", label: "Strike", scoreThreshold: { points: 2000, seconds: 600, waitForExpiry: true }, rearm }] };
-	return {
-		active: true, blueprint: bp, blueprintState: BlueprintRunner.NewState(bp, os.clock()), state: FlightMath.FromPose(0, 145.7786702793, 2400, 0, 0, 160),
-		targetScore: new TargetScore(MissionCatalog.Scoring(1)), enemies: [], projectiles: [], special: SortieArmament.NewSpecial("flares", armament),
-		gun: GunRules.New(armament), missiles: 0, health: 40, stateSequence: 1,
-	} as unknown as CombatSession;
+	const s = sessionFixture(bp, { special: "flares", state: FlightMath.FromPose(0, 145.7786702793, 2400, 0, 0, 160) });
+	s.blueprintState = BlueprintRunner.NewState(bp, os.clock()); s.missiles = 0; s.health = 40; s.stateSequence = 1;
+	return s;
 }
 describe("Batch D1 runtime paths (Studio lease required to execute)", () => {
 	it("restores a finite stock, its special charges and the gun magazine on rearm, and releases the trigger", () => {
