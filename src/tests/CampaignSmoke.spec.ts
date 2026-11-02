@@ -97,7 +97,6 @@ describe("campaign production launch → world → settlement → Next (Studio)"
   print("CAMPAIGN_SMOKE | mission | build ms (launch, excluding previous cleanup) | targets | errors");
   try {
    expect(canLaunchMission(2,coordinator.getSlots()[0])).toBe(false);
-   let buildStart = os.clock();
    const failures: string[] = [];
    for (let id = 0; id <= 18; id++) {
     const before = errors.size(), warningBefore = warnings.size(), problems: string[] = [];
@@ -107,6 +106,7 @@ describe("campaign production launch → world → settlement → Next (Studio)"
      failures.push(`M${id}: ${reason}`);
      continue;
     }
+    let buildStart: number | undefined;
     // A failed Next/build must still produce a row for this mission and every later mission.
     const [launched, launchProblem] = pcall(() => {
      if (CombatService.GetSession(player) === undefined) {
@@ -120,7 +120,7 @@ describe("campaign production launch → world → settlement → Next (Studio)"
     });
     if (!launched) problems.push(`launch: ${smokeError(launchProblem)}`);
     const s = CombatService.GetSession(player);
-    const buildMs = math.floor((os.clock()-buildStart)*1000);
+    const buildMs = buildStart === undefined ? undefined : math.floor((os.clock()-buildStart)*1000);
     const targetCount = s?.enemies.size() ?? 0;
     const [ok, problem] = pcall(() => boundedWorldWork(`campaign M${id} checks`, () => {
      assert(s !== undefined && s.missionId === id, "Expected production mission session");
@@ -220,7 +220,7 @@ describe("campaign production launch → world → settlement → Next (Studio)"
      }
     }, 15));
     // A budget failure must not suppress launch/combat/settlement coverage.
-    if (buildMs >= BUILD_BUDGET_MS) problems.push(`build ${buildMs}ms exceeded ${BUILD_BUDGET_MS}ms acceptance budget`);
+    if (buildMs !== undefined && buildMs >= BUILD_BUDGET_MS) problems.push(`build ${buildMs}ms exceeded ${BUILD_BUDGET_MS}ms acceptance budget`);
     if (!ok) problems.push(`checks: ${smokeError(problem)}`);
     // Even failed assertions must settle the legitimate sortie to unlock the next one.
     // Failed launch/settlement is recorded; session-only recovery keeps later rows independent.
@@ -255,7 +255,7 @@ describe("campaign production launch → world → settlement → Next (Studio)"
     if (!worldLifecycle.AwaitIdle(65)) { cleanupFailed = true; problems.push("cleanup did not release within 65 seconds"); }
     if (cleanupFailed) problems.push("cleanup worker failed; later launches disabled");
     const report = problems.size() === 0 ? "0" : `FAIL ${problems.join("; ")}`;
-    print(`CAMPAIGN_SMOKE | ${id} | ${buildMs} | ${targetCount} | ${report}${warnings.size() > warningBefore ? `; WARNING ${warnings.filter((_, i) => i >= warningBefore).join("; ")}` : ""}`);
+    print(`CAMPAIGN_SMOKE | ${id} | ${buildMs ?? "unavailable"} | ${targetCount} | ${report}${warnings.size() > warningBefore ? `; WARNING ${warnings.filter((_, i) => i >= warningBefore).join("; ")}` : ""}`);
     if (problems.size() > 0) failures.push(`M${id}: ${problems.join("; ")}`);
    }
    if (failures.size() > 0) error(`Campaign smoke failures:\n${failures.join("\n")}`);
