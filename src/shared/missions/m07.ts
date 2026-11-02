@@ -14,9 +14,10 @@ export const M07_TARGETS: TypedGroundTarget[] = m07TargetLayout().filter(t => t.
  id: t.id, type: M07_TARGET_TYPES[t.type], position: { x: t.x, y: t.y, z: t.z }, yaw: math.deg(t.yaw),
  required: t.type === "radar" || t.type === "control_room" || t.type === "solar_tower", scoreRole: t.type, group: t.group,
 }));
+// Keep the complete three-aircraft curved patrol above the quantized ridge surface.
 const route = [
- { x: -1100, y: 400, z: -9800 }, { x: 1400, y: 400, z: -9800 },
- { x: 1400, y: 400, z: -7400 }, { x: -1100, y: 400, z: -7400 },
+ { x: -1100, y: 640, z: -9800 }, { x: 1400, y: 640, z: -9800 },
+ { x: 1400, y: 640, z: -7400 }, { x: -1100, y: 640, z: -7400 },
 ];
 const helicopterRoute = [];
 for (let lap = 0; lap < 10; lap++) for (const point of route) helicopterRoute.push(point);
