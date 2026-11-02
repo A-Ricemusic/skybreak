@@ -1,3 +1,4 @@
+import { destroyWorld } from "./WorldDisposal";
 import { M14World } from "./M14World";
 import { M14_WORLD_KEY } from "../shared/M14WorldPlan";
 import { M15World } from "./M15World";
@@ -172,13 +173,13 @@ export const MissionWorld = {
 			const key = MissionCatalog.WorldKey(missionId);
 			const build = WORLD_BUILDERS.get(key);
 			assert(build !== undefined, `Mission ${missionId} has no world builder for key ${key}`);
-			Workspace.FindFirstChild("World")?.Destroy(); beginTerrainWrite();
+			destroyWorld(Workspace.FindFirstChild("World")); beginTerrainWrite();
 			return build(parent);
 		}
 		const late = WorldAssets.Preload(PRACTICE_UPLOADS);
 		if (late.size() > 0) warn(`[MissionWorld] M${missionId}: ${late.join(", ")} still loading after the preload deadline; placing fallbacks`);
 		parent.SetAttribute("WorldPreloadLate", late.size());
-		Workspace.FindFirstChild("World")?.Destroy();
+		destroyWorld(Workspace.FindFirstChild("World"));
 		beginTerrainWrite();
 		WorldEnvironment.Apply(MissionCatalog.Get(missionId).environment);
 		const scenery = new Instance("Folder");

@@ -71,7 +71,7 @@ export function m10TargetLayout(): M10Target[] {
  }
  return targets;
 }
-export function buildM10Plan(seed = 1010, checkpoint: () => void = () => {}) {
+export function buildM10Plan(seed = 1010, checkpoint: (phase?: string) => void = () => {}) {
  const terrain = compactSurface(M10_SURFACE, checkpoint), parts: PartSpec[] = [...terrain.seaParts], props: PropSpec[] = [];
  const part = (name: string, x: number, y: number, z: number, sx: number, sy: number, sz: number, material = "Concrete", color: [number, number, number] = [104, 110, 96]) => parts.push({ name, x, y, z, sx, sy, sz, material, color, yaw: 0, shape: "block", solid: true, grounded: false });
  const targets = m10TargetLayout();
