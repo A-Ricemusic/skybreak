@@ -11,13 +11,19 @@ export function planProfiler(parent: Instance) {
  let label = "composition";
  debug.profilebegin(`WorldPlan/${label}`);
  const checkpoint = (phase = "composition", done = false) => {
-  const now = os.clock(), dt = now - last;
-  cpu += dt; phases.set(phase, (phases.get(phase) ?? 0) + dt);
-  longest = math.max(longest, now - slice);
-  debug.profileend();
-  if (!done && now - slice >= 0.05) { yields++; task.wait(); slice = os.clock(); }
-  last = os.clock(); label = phase;
-  if (!done) debug.profilebegin(`WorldPlan/${label}`);
+  const now = os.clock();
+  const yielding = !done && now - slice >= 0.05;
+  // Most checkpoints only check the slice clock. Attribute spans and touch the
+  // MicroProfiler only at phase boundaries/yields, rather than for every cell.
+  if (done || yielding || phase !== label) {
+   const dt = now - last;
+   cpu += dt; phases.set(label, (phases.get(label) ?? 0) + dt);
+   longest = math.max(longest, now - slice);
+   debug.profileend();
+   if (yielding) { yields++; task.wait(); slice = os.clock(); }
+   last = yielding ? slice : now; label = phase;
+   if (!done) debug.profilebegin(`WorldPlan/${label}`);
+  }
  };
  return {
   checkpoint,

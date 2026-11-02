@@ -1,4 +1,4 @@
-import { plansEqual, testCheckpoint } from "./TestPacing";
+import { plansEqual } from "./TestPacing";
 import { weatherPlan, phoneClouds } from "../shared/WeatherRules";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { describe, expect, it } from "@rbxts/jest-globals";
@@ -19,7 +19,6 @@ describe("Unselected full-scale M01 world", () => {
 	});
 	it("covers every route leg and civic/start footprint with detailed sampling", () => {
 		for (let i = 1; i < M01.route.size(); i++) for (let t = 0; t <= 1; t += 0.02) {
-			testCheckpoint();
 			const a = M01.route[i - 1], b = M01.route[i];
 			expect(m01Detailed(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t)).toBe(true);
 		}
@@ -34,7 +33,6 @@ describe("Unselected full-scale M01 world", () => {
 	});
 	it("covers the full sea with one consistent opaque surface above native water", () => {
 		for (let x = -16382; x < 16384; x += 256) for (let z = -16382; z < 16384; z += 256) {
-			testCheckpoint();
 			let surfaces = 0;
 			for (const p of plan.parts) if (p.name === "Far sea" && math.abs(x - p.x) < p.sx / 2 && math.abs(z - p.z) < p.sz / 2) surfaces++;
 			expect(surfaces).toBeGreaterThanOrEqual(1);
@@ -47,7 +45,6 @@ describe("Unselected full-scale M01 world", () => {
 		expect(plansEqual(buildM01Plan(101, () => { checkpoints++; }), plan)).toBe(true);
 		expect(checkpoints).toBeGreaterThan(1000);
 		for (const p of plan.parts) {
-			testCheckpoint();
 			expect(p.name).never.toBe("Shore surf");
 			if (p.name === "Far sea") { expect(p.sx).toBeLessThanOrEqual(2048); expect(p.sz).toBeLessThanOrEqual(2048); }
 		}
@@ -62,7 +59,6 @@ describe("Unselected full-scale M01 world", () => {
 		const merged = mergeLandColumns(original);
 		expect(merged.size()).toBe(3);
 		for (let x = -2; x <= 14; x += 4) for (let y = -2; y <= 18; y += 4) for (let z = -2; z <= 10; z += 4) {
-			testCheckpoint();
 			const materials = (ops: typeof original) => ops.filter(o => math.abs(x - o.x) < o.sx / 2 && math.abs(y - o.y) < o.sy / 2 && math.abs(z - o.z) < o.sz / 2).map(o => o.material);
 			expect(materials(merged)).toEqual(materials(original));
 		}

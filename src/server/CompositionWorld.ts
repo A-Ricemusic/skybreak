@@ -23,9 +23,9 @@ function available(name: string): WorldAssetName | undefined {
  const key = name as WorldAssetName;
  return UploadedAssetSpecs[key] !== undefined ? key : undefined;
 }
-/** Shared cooperative clear for finished and partial builds; the gate owns completion. */
+/** Native dirty-state clear for finished and partial builds; the gate owns completion. */
 export function compositionClear(cancelled: () => boolean): void {
- clearTerrainIfDirty(cancelled);
+ if (!cancelled()) clearTerrainIfDirty();
 }
 export function buildComposition(parent: Instance, environment: EnvironmentSpec, makePlan: (checkpoint: (phase?: string) => void) => Composition, descendantLimit: number, cloudFeet: number, terrainBudget = WORLD_TERRAIN_BUDGET, fillChunk = WORLD_FILL_CHUNK): { groundTargets: Model[] } {
  const start = os.clock();

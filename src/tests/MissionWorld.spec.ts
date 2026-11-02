@@ -1,36 +1,51 @@
-import { boundedWorldWork, cancelWorldWork } from "./BoundedWorldWork";
-import { destroyWorld } from "../server/WorldDisposal";
-import { fakeIds, fakeUpload, probe } from "./WorldBuildFixtures";
+import { fakeIds as allFakeIds, fakeUpload as allFakeUpload, probe as allProbe } from "./WorldBuildFixtures";
 import { robloxScheduler, worldClear } from "../server/WorldLifecycleRuntime";
 import { WorldLifecycle } from "../shared/WorldLifecycle";
 import { M04_WORLD_KEY } from "../shared/M04WorldPlan";
-import { clearTerrainIfDirty, terrainDirty } from "../server/TerrainState";
+import { terrainDirty } from "../server/TerrainState";
 import { M01 } from "../shared/M01Geometry";
 import { compileBomberEncounter } from "../shared/BomberEncounter";
 import { BomberRules } from "../shared/BomberRules";
 import {afterAll,afterEach,beforeAll,describe,expect,it} from "@rbxts/jest-globals";
 import {Lighting,Workspace} from "@rbxts/services";
-import {MissionWorld as RealMissionWorld} from "../server/MissionWorld";
+import {MissionWorld} from "../server/MissionWorld";
 import {WorldAssets} from "../server/WorldAssets";
 import {MissionCatalog} from "../shared/MissionCatalog";
 import {AircraftCollision} from "../server/AircraftCollision";
 import {PART_BUDGET} from "../server/Scenery";
 import {ENVIRONMENT_ATTRIBUTE} from "../shared/EnvironmentPresets";
+import {SURFACE_MAPS,type SurfaceMap} from "../shared/AssetSelection";
 import {UploadedAssets} from "../shared/UploadedAssets";
-import {UploadedAssetSpecs} from "../shared/UploadedAssetSpecs";
+import {UploadedAssetSpecs,type UploadedAssetName} from "../shared/UploadedAssetSpecs";
+import {WorldPlanner,type PropAsset} from "../shared/WorldPlan";
 import {buildNightLighting} from "../server/NightLighting";
 import {GROUND_TARGET_LABELS} from "../shared/CampaignEncounters";
 import {M05_ENVIRONMENT,M05_WORLD_KEY} from "../shared/M05WorldPlan";
 import {M01_ENVIRONMENT} from "../shared/M01WorldPlan";
 
-const MissionWorld = { ...RealMissionWorld, Build: (id: number, parent: Instance) => boundedWorldWork(`M${id} build`, () => RealMissionWorld.Build(id, parent)) };
-
 /** Engine integration only. Included in Roblox Jest; never run by the offline VM (WorldPlan.spec audits the plans there). */
 
 // Deterministic uploads: one textured MeshPart per world asset at its authored size, so the
 // placement and grounding checks below exercise the uploaded-clone path without InsertService.
+const WORLD: PropAsset[]=["Frigate","OilPlatform","HarbourQuay","ContainerStack","GantryCrane","Hangar","ControlTower","OfficeMidrise","ApartmentBlock","CityTower","Farmhouse","Barn","GrainSilo","RadarDish","RelayMast","Pine","Broadleaf","RockA","RockB","RockC"];
+const probe=(appearance: SurfaceAppearance,map: SurfaceMap)=>appearance.GetAttribute(`Fake${map}`)===true;
+function fakeIds(): Partial<Record<UploadedAssetName,number>> {
+	const ids: Partial<Record<UploadedAssetName,number>>={};
+	WORLD.forEach((name,i)=>ids[name]=9000+i);
+	return ids;
+}
+function fakeUpload(assetId: number): Model {
+	const name=WORLD[assetId-9000],spec=UploadedAssetSpecs[name];
+	const container=new Instance("Model");
+	const part=new Instance("MeshPart");
+	part.Name=spec.folder;part.Size=spec.authoredSize;part.CFrame=new CFrame(300,40,-200);
+	const appearance=new Instance("SurfaceAppearance");
+	for(const map of SURFACE_MAPS)appearance.SetAttribute(`Fake${map}`,true);
+	appearance.Parent=part;part.Parent=container;
+	return container;
+}
 function cleanup(fixture: Folder | undefined): void {
-	destroyWorld(fixture);clearTerrainIfDirty();
+	fixture?.Destroy();Workspace.Terrain.Clear();
 	Workspace.Terrain.FindFirstChild("MissionClouds")?.Destroy();
 	for(const name of ["MissionAtmosphere","MissionGrade","MissionSky","MissionBloom"])Lighting.FindFirstChild(name)?.Destroy();
 }
@@ -39,10 +54,9 @@ const inUploaded=(item: Instance)=>item.FindFirstAncestorWhichIsA("Model")?.GetA
 
 describe("Released campaign world integration (Studio only)",()=>{
  let fixture: Folder | undefined;
- const gates: WorldLifecycle[] = [];
  beforeAll(()=>UploadedAssets.Configure({ids:fakeIds(),probe,loader:fakeUpload}));
  afterAll(()=>UploadedAssets.Configure());
- afterEach(()=>{cancelWorldWork();for(const gate of gates)gate.Close();gates.clear();boundedWorldWork("campaign cleanup", () => cleanup(fixture), 30);fixture=undefined;Lighting.FindFirstChild("M01SunRays")?.Destroy();UploadedAssets.Configure({ids:fakeIds(),probe,loader:fakeUpload});},35000);
+ afterEach(()=>{cleanup(fixture);fixture=undefined;Lighting.FindFirstChild("M01SunRays")?.Destroy();});
  for(const id of [0,1])it(`builds and disposes released sortie ${id}`,()=>{
   fixture=new Instance("Folder");fixture.Name="CampaignWorldFixture";fixture.Parent=Workspace;
   const bp=MissionCatalog.Get(id),world=MissionWorld.Build(id,fixture);
@@ -106,31 +120,35 @@ describe("Released campaign world integration (Studio only)",()=>{
   expect(world.groundTargets.size()).toBe(0);expect(fixture.GetAttribute("WorldBuildPhase")).toBe("done");
   expect(fixture.GetDescendants().some(i=>i.IsA("Model") && i.Name.sub(1,4)==="m04_")).toBe(false);
   print(`M04_STUDIO_BUILD seconds=${fixture.GetAttribute("WorldBuildSeconds")} terrain=${fixture.GetAttribute("WorldTerrainReadySeconds")} jobs=${fixture.GetAttribute("WorldTerrainJobs")} descendants=${fixture.GetDescendants().size()} (fake world uploads)`);
-  const gate=new WorldLifecycle(robloxScheduler);gates.push(gate);
+  const gate=new WorldLifecycle(robloxScheduler);
   gate.Cleanup({clear:worldClear(M04_WORLD_KEY),restore:()=>MissionWorld.RestoreMenu()});
-  expect(gate.Idle()).toBe(false);expect(gate.AwaitIdle(30)).toBe(true);
+  expect(gate.Idle()).toBe(false);expect(gate.AwaitIdle()).toBe(true);
   expect(terrainDirty()).toBe(false);
   const again=new Instance("Folder");again.Parent=Workspace;
   expect(MissionWorld.Build(0,again).groundTargets.size()).toBe(1);again.Destroy();
   MissionWorld.RestoreMenu();expect(Workspace.FindFirstChild("World")).toBeDefined();
  },180000);
  it("builds M2 then M3 in one session with military-kit decorations",()=>{
-  UploadedAssets.Configure({ids:fakeIds(true),probe,loader:fakeUpload});
-  fixture=new Instance("Folder");fixture.Parent=Workspace;
-  MissionWorld.Build(2,fixture);
-  expect(fixture.GetAttribute("WorldBuildPhase")).toBe("done");
-  const old=fixture;
-  const gate=new WorldLifecycle(robloxScheduler);gates.push(gate);
-  gate.Cleanup({clear:(cancelled)=>{destroyWorld(old);worldClear(MissionCatalog.WorldKey(2))(cancelled);},restore:()=>{}});
-  expect(gate.AwaitIdle(30)).toBe(true);
-  expect(terrainDirty()).toBe(false);
-  expect(old.Parent).toBeUndefined();
-  fixture=new Instance("Folder");fixture.Parent=Workspace;
-  const world=MissionWorld.Build(3,fixture);
-  expect(fixture.GetAttribute("WorldBuildPhase")).toBe("done");
-  expect(world.targetVisuals!.size()).toBe(MissionCatalog.Get(3).phases[0].groundTargets!.size());
-  expect(fixture.GetDescendants().some(i=>i.GetAttribute("UploadedAsset")!==undefined)).toBe(true);
- },480000);
+  UploadedAssets.Configure({ids:allFakeIds(true),probe:allProbe,loader:allFakeUpload});
+  try {
+   fixture=new Instance("Folder");fixture.Parent=Workspace;
+   MissionWorld.Build(2,fixture);
+   expect(fixture.GetAttribute("WorldBuildPhase")).toBe("done");
+   const old=fixture;
+   const gate=new WorldLifecycle(robloxScheduler);
+   try {
+    gate.Cleanup({clear:(cancelled)=>{if(cancelled())return;old.Destroy();worldClear(MissionCatalog.WorldKey(2))(cancelled);},restore:()=>{}});
+    expect(gate.AwaitIdle(30)).toBe(true);
+    expect(terrainDirty()).toBe(false);
+    expect(old.Parent).toBeUndefined();
+    fixture=new Instance("Folder");fixture.Parent=Workspace;
+    const world=MissionWorld.Build(3,fixture);
+    expect(fixture.GetAttribute("WorldBuildPhase")).toBe("done");
+    expect(world.targetVisuals!.size()).toBe(MissionCatalog.Get(3).phases[0].groundTargets!.size());
+    expect(fixture.GetDescendants().some(i=>i.GetAttribute("UploadedAsset")!==undefined)).toBe(true);
+   } finally {gate.Close();}
+  } finally {UploadedAssets.Configure({ids:fakeIds(),probe,loader:fakeUpload});}
+ },180000);
  it("builds mission 3 with every typed target drawn once by the world and a raised runway, ready for combat to adopt",()=>{
   fixture=new Instance("Folder");fixture.Name="CampaignWorldFixture";fixture.Parent=Workspace;
   const specs=MissionCatalog.Get(3).phases[0].groundTargets!,world=MissionWorld.Build(3,fixture);
@@ -189,7 +207,7 @@ describe("Released campaign world integration (Studio only)",()=>{
   expect(fixture.GetDescendants().filter((i)=>i.IsA("PointLight")).size()).toBe(16);
   print(`M05_STUDIO_BUILD seconds=${string.format("%.2f",seconds)} world=${fixture.GetAttribute("WorldBuildSeconds")} terrain=${fixture.GetAttribute("WorldTerrainReadySeconds")} jobs=${fixture.GetAttribute("WorldTerrainJobs")} missing=${fixture.GetAttribute("WorldPropsMissing")} descendants=${fixture.GetDescendants().size()} (fake uploads)`);
   // No night leaks into mission 1: the lights leave with the world and mission 1 applies its own sky.
-  boundedWorldWork("between-sortie cleanup", () => cleanup(fixture), 30);
+  cleanup(fixture);
   fixture=new Instance("Folder");fixture.Name="CampaignWorldFixture";fixture.Parent=Workspace;
   MissionWorld.Build(1,fixture);
   expect(Lighting.GetAttribute(ENVIRONMENT_ATTRIBUTE)).toBe("m01_sea_island");
