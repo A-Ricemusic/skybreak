@@ -13,6 +13,7 @@ import { MissionCatalog } from "../shared/MissionCatalog";
 import { RingSweep } from "../shared/RingSweepRules";
 import { FlightMath } from "../shared/FlightMath";
 import { createGroundTarget } from "../server/GroundTargetFactory";
+import { sessionFixture } from "./SessionFixture";
 function fixture() {
  const folder=new Instance("Folder"); folder.Parent=Workspace;
  const p: RingSweep={guns:[{targetId:"gun",source:{x:0,y:10000,z:20000},bearingDegrees:0}],warningSeconds:2,countdownSeconds:2,intervalSeconds:12,damage:25,sweepDegrees:90,halfWidth:30,range:45000};
@@ -20,7 +21,7 @@ function fixture() {
  const bs=BlueprintRunner.NewState({...engineRuntimeFixture(),phases:[phase]},0);
  const params=new RaycastParams(); params.FilterType=Enum.RaycastFilterType.Include; params.FilterDescendantsInstances=[folder];
  const gun={id:"gun",enabled:true,health:100,phaseOwner:0} as Enemy;
- const session={blueprint:bs.blueprint,blueprintState:bs,folder,enemies:[gun],projectiles:[],airQueue:[],collisionParams:params,state:FlightMath.FromPose(0,10000,0,0,0,160),health:100,damageTaken:0,lowestHealth:100} as unknown as CombatSession;
+ const session=sessionFixture(bs.blueprint,{folder,state:FlightMath.FromPose(0,10000,0,0,0,160)}); session.blueprintState=bs; session.enemies=[gun]; session.collisionParams=params;
  return {folder,session,gun};
 }
 describe("D8 runtime contracts (Studio pending)",()=>{
@@ -68,7 +69,7 @@ describe("D8 runtime contracts (Studio pending)",()=>{
   const plan={zone:{x:0,y:100,z:1000},radius:1500,landing:{touchdown:{x:0,y:100,z:0},headingDegrees:0,approachDistance:1000,rolloutDistance:150,approachSeconds:10,rolloutSeconds:3,glideDegrees:3},takeoffSeconds:8,missiles:true,special:true,health:false,weaponMenu:false};
   const bp={...engineRuntimeFixture(),phases:[{kind:"required_ground" as const,label:"Strike",count:7,rearm:plan}]};
   const bs=BlueprintRunner.NewState(bp,os.clock()); bs.phaseProgress=2; bs.requiredGroundKills=2;
-  const s={active:true,blueprint:bp,blueprintState:bs,pause:PauseRules.New(),state:landingPose(plan.landing,0),targetScore:new TargetScore(MissionCatalog.Scoring(engineRuntimeFixture())),enemies:[],projectiles:[],special:SortieArmament.NewSpecial("salvo",undefined),missiles:0,health:35} as unknown as CombatSession;
+  const s=sessionFixture(bp,{state:landingPose(plan.landing,0)}); s.blueprintState=bs; s.missiles=0; s.health=35;
   s.enemies=[{enabled:true,health:100,windup:2} as Enemy]; expect(stepRearm(s,1,40,()=>{})).toBe(false);
   s.enemies[0].attackSector="beach"; expect(stepRearm(s,1,40,()=>{})).toBe(true);
   PauseRules.Pause(s.pause,os.clock()); stepRearm(s,30,40,()=>{}); expect(s.rearmElapsed).toBe(1); PauseRules.Resume(s.pause,os.clock());

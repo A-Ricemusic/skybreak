@@ -1,5 +1,7 @@
 # Blockers
 
+PR #227 acceptance (2026-11-01): supplied Studio log `/tmp/sq-227/build/jest-studio.log` reports 1,464 passed / 3 failed against main `3ed084dd`. Source comparison identifies the extra folder child as `SessionFixture`'s `FixtureAircraft`; old partial fixtures had no player model. Fixed all three cleanup assertions to require exactly `session.aircraft` remaining, preserving leak detection and player ownership. No production cleanup change. Latest main `4ec963aa` merged; frozen install and prescribed `LUAU_BIN` offline validation exited 0 (179 Python tests); Studio acceptance remains open for the orchestrator. No Studio/Player run performed here.
+
 2026-11-01 Jest follow-up: #238 at `5e40a109` still took 835 s in WorldInstanceBudget, timed out M16 (120 s) and the second M03 test (20 s), then stalled in WorldLifecycleRuntime. **Unmerged #239 now contains/supersedes #238.** Budget tests no longer generate full worlds/terrain plans; small synchronous fixtures cover kit accounting, all 138 M16 targets and shared M03 target assembly, with cancellation/cleanup and a 90 s whole-file target. Full plan budgets remain in existing offline/Studio plan specs. Installed Jest closes timed-out executors; surviving detached work and the exact runtime stall are unconfirmed. Orchestrator reruns #239 alone; this session ran no Studio/Player tests or uploads. Mission/live status is unchanged. See [investigation](../qa/jest-lifecycle-hang-investigation.md).
 
 ## Urgent open: M3 mobile crash — mitigated, awaiting owner phone retest

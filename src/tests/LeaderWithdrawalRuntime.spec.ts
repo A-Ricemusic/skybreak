@@ -6,11 +6,12 @@ import type { CombatSession, Enemy } from "../server/CombatSession";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { PauseRules } from "../shared/SessionGuard";
 import { sinkNavalTarget, stepSurfaceTargets } from "../server/SurfaceTargetRuntime";
+import { sessionFixture } from "./SessionFixture";
 function fixture() {
  const folder=new Instance("Folder"); folder.Parent=Workspace;
  const blueprint={...engineRuntimeFixture(),phases:[{kind:"required_air" as const,label:"Wing",count:4,leaderWithdrawal:{departure:{waypoints:[{x:0,y:500,z:0},{x:-2000,y:500,z:0}],speed:200}}}]};
  const bs=BlueprintRunner.NewState(blueprint,0);
- const s={folder,blueprint:bs.blueprint,blueprintState:bs,active:true,pause:PauseRules.New(),enemies:[],projectiles:[]} as unknown as CombatSession;
+ const s=sessionFixture(bs.blueprint,{folder}); s.blueprintState=bs;
  return {folder,bs,s};
 }
 describe("D12 server lifecycle",()=>{

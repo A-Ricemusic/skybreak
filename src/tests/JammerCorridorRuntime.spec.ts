@@ -8,10 +8,12 @@ import { announceJammerKill, liveJammers, lockAllowed } from "../server/RearmRun
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { jammerCorridorFixture } from "./JammerCorridorFixture";
 import type { CombatSession } from "../server/CombatSession";
+import { sessionFixture } from "./SessionFixture";
+import { FlightMath } from "../shared/FlightMath";
 function fixture() {
  const folder=new Instance("Folder");folder.Parent=Workspace;
  const bs=BlueprintRunner.NewState(jammerCorridorFixture(),0);
- const s={folder,player:{UserId:1},blueprint:bs.blueprint,airspace:MissionCatalog.Airspace(bs.blueprint),blueprintState:bs,enemies:[],state:{x:1000,y:900,z:4500}} as unknown as CombatSession;
+ const s=sessionFixture(bs.blueprint,{folder,state:FlightMath.FromPose(1000,900,4500,0,0,160)});s.blueprintState=bs;
  return {s,bs,folder};
 }
 describe("D9 runtime (execution deferred to orchestrator Studio lease)",()=>{
@@ -20,7 +22,7 @@ describe("D9 runtime (execution deferred to orchestrator Studio lease)",()=>{
   const folder=new Instance("Folder");folder.Parent=Workspace;
   const scene=new Instance("Folder");scene.Name=MissionCatalog.WorldKey(blueprint);scene.Parent=folder;
   const airspace=MissionCatalog.Airspace(blueprint);
-  const s={folder,player:{UserId:1},blueprint,airspace,blueprintState:bs,enemies:[]} as unknown as CombatSession;
+  const s=sessionFixture(blueprint,{folder});s.blueprintState=bs;
   try {
    expect(scene.Name).toBe(M13_WORLD_KEY);expect(airspace.spawnLimit>0).toBe(true);
    const plan=BlueprintRunner.ActivePhase(bs)!.spatialJamming!;

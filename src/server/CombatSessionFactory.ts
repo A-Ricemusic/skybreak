@@ -1,6 +1,6 @@
 import type { CombatSession } from "./CombatSession";
 import { TargetScore } from "../shared/TargetScore";
-import { MissionCatalog } from "../shared/MissionCatalog";
+import { MissionCatalog, type MissionBlueprint } from "../shared/MissionCatalog";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { fixedRaiders } from "./PhaseDirectorRules";
 import { FlightMath, FlightState } from "../shared/FlightMath";
@@ -16,11 +16,17 @@ export const SessionInputBurst = 10;
 export function createCombatSession(player: Player, slot: number, folder: Folder, aircraft: Model,
  state: FlightState, missionId: number, specialKind: SpecialKind, difficultyKind: DifficultyKind,
  startedAt: number, launchId?: number): CombatSession {
- const blueprint = MissionCatalog.Get(missionId);
+ return createBlueprintSession(player, slot, folder, aircraft, state, MissionCatalog.Get(missionId), specialKind, difficultyKind, startedAt, launchId);
+}
+
+/** The same defaults for an explicit blueprint (specs with synthetic missions). Scoring and airspace policies come from the blueprint. */
+export function createBlueprintSession(player: Player, slot: number, folder: Folder, aircraft: Model,
+ state: FlightState, blueprint: MissionBlueprint, specialKind: SpecialKind, difficultyKind: DifficultyKind,
+ startedAt: number, launchId?: number): CombatSession {
  const session: CombatSession = {
 	launchId,
-	targetScore: new TargetScore(MissionCatalog.Scoring(missionId)),
-	player, slot, folder, aircraft, state, missionId, airspace: MissionCatalog.Airspace(missionId), lastWindupAt: -math.huge, radioSerial: 0, chatterIndex: 0,
+	targetScore: new TargetScore(MissionCatalog.Scoring(blueprint)),
+	player, slot, folder, aircraft, state, missionId: blueprint.id, airspace: MissionCatalog.Airspace(blueprint), lastWindupAt: -math.huge, radioSerial: 0, chatterIndex: 0,
 	input: { x: 0, y: 0, throttle: FlightMath.CruiseThrottle }, health: 100, kills: 0, elapsed: 0,
 	// Absent armament: eight regenerating missiles, the special's own charges and no gun (unchanged).
 	missiles: SortieArmament.MissileCapacity(blueprint.armament), missileCooldown: 0, evadeRemaining: 0, regen: 0, lockProgress: 0,

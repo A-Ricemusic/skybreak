@@ -14,6 +14,7 @@ import { FlightMath } from "../shared/FlightMath";
 import { SpecialWeapons } from "../shared/SpecialWeapons";
 import { createGroundTarget } from "../server/GroundTargetFactory";
 import { buildNightLighting } from "../server/NightLighting";
+import { sessionFixture } from "./SessionFixture";
 const lighting={clock:Lighting.ClockTime,brightness:Lighting.Brightness,ambient:Lighting.Ambient};
 afterEach(()=>{UploadedAssets.Configure();Lighting.ClockTime=lighting.clock;Lighting.Brightness=lighting.brightness;Lighting.Ambient=lighting.ambient;});
 describe("Batch C runtime paths (Studio lease required to execute)",()=>{
@@ -21,7 +22,7 @@ describe("Batch C runtime paths (Studio lease required to execute)",()=>{
 		const plan={zone:{x:0,y:145.7786702793,z:2400},radius:2000,landing:{touchdown:{x:0,y:20,z:0},headingDegrees:0,approachDistance:2400,rolloutDistance:400,approachSeconds:30,rolloutSeconds:10,glideDegrees:3},takeoffSeconds:10,missiles:true,special:true,health:false};
 		const bp={...MissionCatalog.Get(1),phases:[{kind:"score_threshold" as const,label:"Strike",scoreThreshold:{points:2000,seconds:600,waitForExpiry:true},rearm:plan}]};
 		const state=BlueprintRunner.NewState(bp,os.clock());
-		const s={active:true,blueprintState:state,state:FlightMath.FromPose(0,145.7786702793,2400,0,0,160),targetScore:new TargetScore(MissionCatalog.Scoring(1)),enemies:[],projectiles:[],special:SpecialWeapons.New("salvo"),missiles:0,health:10,stateSequence:1} as unknown as CombatSession;
+		const s=sessionFixture(bp,{state:FlightMath.FromPose(0,145.7786702793,2400,0,0,160)});s.blueprintState=state;s.special=SpecialWeapons.New("salvo");s.missiles=0;s.health=10;s.stateSequence=1;
 		s.state=FlightMath.FromPose(0,100,0,0,0,160);expect(stepRearm(s,1,52,()=>{})).toBe(false);
 		s.state=FlightMath.FromPose(0,145.7786702793,2400,0,0,160);
 		s.projectiles=[{hostile:true} as CombatSession["projectiles"][number]];expect(stepRearm(s,1,52,()=>{})).toBe(false);expect(s.projectiles.size()).toBe(1);s.projectiles=[];
@@ -71,7 +72,8 @@ describe("Batch C runtime paths (Studio lease required to execute)",()=>{
 		const bp=MissionCatalog.Get(5),plan=bp.phases[0].rearm!,landed=landingDuration(plan.landing),gate=landingPose(plan.landing,0);
 		const make=()=>{
 			const state=BlueprintRunner.NewState(bp,os.clock());
-			return {active:true,blueprintState:state,state:FlightMath.FromPose(gate.x,gate.y,gate.z,0,0,160),targetScore:new TargetScore(MissionCatalog.Scoring(5)),enemies:[],projectiles:[],special:SpecialWeapons.New("uav"),missiles:0,health:40,stateSequence:1} as unknown as CombatSession;
+			const s=sessionFixture(bp,{state:FlightMath.FromPose(gate.x,gate.y,gate.z,0,0,160)});s.blueprintState=state;s.special=SpecialWeapons.New("uav");s.missiles=0;s.health=40;s.stateSequence=1;
+			return s;
 		};
 		const s=make(),messages:{kind:string}[]=[],send=(m:unknown)=>messages.push(m as {kind:string}),said:string[]=[];
 		expect(stepRearm(s,1,52,send,l=>said.push(l))).toBe(true);expect(messages[0].kind).toBe("RearmStarted");expect(said).toEqual([plan.radio![0].text]);
@@ -92,7 +94,7 @@ describe("Batch C runtime paths (Studio lease required to execute)",()=>{
 		const bp=MissionCatalog.Get(5),start=os.clock()-612,state=BlueprintRunner.NewState(bp,start);state.score=2000;
 		BlueprintRunner.Tick(state,start+600);expect(state.phaseIndex).toBe(1);BlueprintRunner.Tick(state,start+612);
 		const subject=(role:string)=>({enabled:true,health:100,scoreRole:role,model:new Instance("Model")} as unknown as Enemy);
-		const s={active:true,blueprintState:state,enemies:[subject("elite"),subject("ace")],state:FlightMath.FromPose(0,500,0,0,0,160),stateSequence:3} as unknown as CombatSession;
+		const s=sessionFixture(bp,{state:FlightMath.FromPose(0,500,0,0,0,160)});s.blueprintState=state;s.enemies=[subject("elite"),subject("ace")];s.stateSequence=3;
 		const messages:{kind:string;subjects?:Model[]}[]=[],said:string[]=[];
 		expect(stepCutIn(s,0.5,m=>messages.push(m as {kind:string}),l=>said.push(l))).toBe(true);
 		expect(messages[0].kind).toBe("CutInStarted");expect(messages[0].subjects![0]).toBe(s.enemies[1].model);expect(state.cutInActive).toBe(true);
