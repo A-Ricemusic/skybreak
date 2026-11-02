@@ -24,7 +24,8 @@ function visit(node: ts.Node) {
   }
   check(node);
   assert.equal(returns, 1);
-  assert.match(node.getText(source), /adoptGroundTarget\(placeM03Target\(scene, t\), t\.id, M03_TARGET_TYPES\[t\.type\], false\)/, "Each layout target is drawn once and adopted by id");
+  assert.match(node.getText(source), /buildM03TargetVisuals\(scene, plan\.targets\)/, "Full world uses the tested target-only assembly");
+  assert.match(source.text, /adoptGroundTarget\(placeM03Target\(scene, t\), t\.id, M03_TARGET_TYPES\[t\.type\], false\)/, "Each layout target is drawn once without military decoration");
  }
  ts.forEachChild(node, visit);
 }

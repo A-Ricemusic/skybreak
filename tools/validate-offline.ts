@@ -26,6 +26,7 @@ await run(["bun", "tools/check-luau-modules.ts"], /^LUAU_MODULE_COMPILE passed=(
 await run(["bun", "tools/test-voice-disclosure-ui.ts"]);
 await run(["bun", "tools/test-results-wiring.ts"]);
 await run(["bun", "tools/test-m03-builder-contract.ts"]);
+await run(["bun", "tools/test-world-budget-fixtures.ts"]);
 await run(["bun", "tools/test-world-environments.ts"]);
 await run(["bun", "tools/test-relay-offline.ts"], /^OFFLINE_LUAU_RESULT passed=(\d+) failed=0$/gm, 538);
 await run(["bun", "tools/voice-lines.ts", "--check"]);

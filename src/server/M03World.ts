@@ -1,3 +1,4 @@
+import { WorldBuildScheduler } from "./WorldBuildScheduler";
 import { assertWorldInstanceBudget } from "./WorldInstanceBudget";
 import { Lighting, Workspace } from "@rbxts/services";
 import { buildM03Plan, M03, M03_ENVIRONMENT, M03_FILL_CHUNK, M03_WORLD_KEY, type M03Target } from "../shared/M03WorldPlan";
@@ -42,6 +43,13 @@ function placeM03Target(parent: Instance, t: M03Target): Model {
 }
 
 
+/** Target-only assembly, shared by the full world and bounded instance-budget regressions. */
+export function buildM03TargetVisuals(scene: Instance, targets: M03Target[]): Map<string, Model> {
+ const visuals = new Map<string, Model>();
+ for (const t of targets) visuals.set(t.id, adoptGroundTarget(placeM03Target(scene, t), t.id, M03_TARGET_TYPES[t.type], false));
+ return visuals;
+}
+
 /** Mission 3's world. Uses procedural target visuals to avoid military mesh/PBR residency on mobile. Every m03TargetLayout site is drawn exactly once, as its
  * own model keyed by target id in `targetVisuals`; combat adopts those models instead of building copies.
  */
@@ -53,7 +61,7 @@ export const M03World = {
 		const plan = buildM03Plan(seed, () => {
 			const dt = os.clock() - slice;
 			longest = math.max(longest, dt);
-			if (dt >= 0.004) { task.wait(); slice = os.clock(); }
+			if (dt >= 0.004) { WorldBuildScheduler.Pause(); slice = os.clock(); }
 		});
 		parent.SetAttribute("WorldPlanSeconds", os.clock() - start);
 		parent.SetAttribute("WorldPlanLongestSlice", longest);
@@ -73,11 +81,10 @@ export const M03World = {
 		for (let i = 0; i < plan.parts.size(); i++) {
 			const p = plan.parts[i];
 			Scenery.Part(scene, p.name, new Vector3(p.sx, p.sy, p.sz), new Vector3(p.x, p.y, p.z), Color3.fromRGB(...p.color), material(p.material), { shape: p.shape === "ball" ? Enum.PartType.Ball : Enum.PartType.Block, flightSolid: p.solid, castShadow: false });
-			if (i % 32 === 31) task.wait();
+			if (i % 32 === 31) WorldBuildScheduler.Pause();
 		}
 		// Each target model is drawn once here and adopted by id: HUD label, TargetId and an aim root.
-		const targetVisuals = new Map<string, Model>();
-		for (const t of plan.targets) targetVisuals.set(t.id, adoptGroundTarget(placeM03Target(scene, t), t.id, M03_TARGET_TYPES[t.type], false));
+		const targetVisuals = buildM03TargetVisuals(scene, plan.targets);
 		assertWorldInstanceBudget(scene, M03.budget.descendants);
 		parent.SetAttribute("WorldBuildPhase", "done");
 		parent.SetAttribute("WorldBuildSeconds", os.clock() - start);
