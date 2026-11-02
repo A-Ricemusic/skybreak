@@ -45,6 +45,15 @@ export function regionCells(r: GridRegion): number {
 	return ((r.max[0] - r.min[0]) / 4) * ((r.max[1] - r.min[1]) / 4) * ((r.max[2] - r.min[2]) / 4);
 }
 
+/** Exact full-voxel box: only these may use FillRegion instead of the rotated shape rasterizer. */
+export function alignedBlockRegion(o: TerrainOp): GridRegion | undefined {
+ if (o.shape !== "block" || o.yaw !== 0) return undefined;
+ const min: [number, number, number] = [o.x-o.sx/2,o.y-o.sy/2,o.z-o.sz/2];
+ const max: [number, number, number] = [o.x+o.sx/2,o.y+o.sy/2,o.z+o.sz/2];
+ for (let axis=0;axis<3;axis++) if (min[axis]%4!==0 || max[axis]%4!==0) return undefined;
+ return {min,max};
+}
+
 /** Voxels a Fill op touches (the same estimate the plan's voxel-write count uses). */
 export function fillVoxels(o: TerrainOp): number {
 	if (o.shape === "block") return o.sx * o.sy * o.sz / 64;
@@ -111,6 +120,44 @@ export function terrainJobs(ops: TerrainOp[], fillChunk = FILL_CHUNK): TerrainJo
 		else splitFill(o, out, fillChunk);
 	}
 	return out;
+}
+
+/** Coalesce full-voxel boxes within a same-material run only. Such writes commute;
+ * different materials and curved/partial voxels are ordering barriers. Operates
+ * on execution jobs, never the retained plan or its fingerprint. */
+export function coalesceTerrainJobs(jobs: TerrainJob[], limit = FILL_CHUNK): TerrainJob[] {
+ const out: TerrainJob[] = [];
+ let run: TerrainJob[] = [];
+ const flush = () => {
+  for (const axis of ["x", "z", "y"] as const) {
+   const size = axis === "x" ? "sx" : axis === "z" ? "sz" : "sy";
+   const a = axis === "x" ? "y" : "x", b = axis === "z" ? "y" : "z";
+   const sa = a === "x" ? "sx" : "sy", sb = b === "y" ? "sy" : "sz";
+   run.sort((l,r) => {
+    const x=l.op,y=r.op;
+    for (const key of [a,b,sa,sb,axis] as const) if(x[key]!==y[key]) return x[key]<y[key];
+    return false;
+   });
+   const merged: TerrainJob[] = [];
+   for (const job of run) {
+    const prev=merged[merged.size()-1], o=job.op, p=prev?.op;
+    if(p!==undefined && p[a]===o[a] && p[b]===o[b] && p[sa]===o[sa] && p[sb]===o[sb]
+     && p[axis]+p[size]/2===o[axis]-o[size]/2 && prev.cells+job.cells<=limit) {
+     p[axis]=(p[axis]-p[size]/2+o[axis]+o[size]/2)/2;
+     p[size]+=o[size]; prev.cells+=job.cells;
+    } else merged.push({op:{...o},cells:job.cells});
+   }
+   run=merged;
+  }
+  for(const job of run) out.push(job);
+  run=[];
+ };
+ for(const job of jobs) {
+  if(job.region!==undefined || alignedBlockRegion(job.op)===undefined) { flush(); out.push(job); continue; }
+  if(run.size()>0 && run[0].op.material!==job.op.material) flush();
+  run.push(job);
+ }
+ flush(); return out;
 }
 
 export interface BudgetRun { yields: number; longest: number; longestBatch: number; total: number }

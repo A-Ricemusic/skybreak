@@ -1,6 +1,6 @@
 import { worldTraceScope } from "./WorldBuildTrace";
 import { Workspace } from "@rbxts/services";
-import { runBudgeted, terrainJobs, FILL_CHUNK, TERRAIN_BUDGET, type BudgetRun, type TerrainJob } from "../shared/TerrainSchedule";
+import { coalesceTerrainJobs, alignedBlockRegion, runBudgeted, terrainJobs, FILL_CHUNK, TERRAIN_BUDGET, type BudgetRun, type TerrainJob } from "../shared/TerrainSchedule";
 import { bumpProfile, type TerrainOp } from "../shared/WorldPlan";
 
 // Executes planned terrain ops (shared/WorldPlan) as bounded jobs
@@ -52,7 +52,11 @@ function run(terrain: Terrain, job: TerrainJob): void {
 	const o = job.op;
 	const mat = o.material === "Air" ? Enum.Material.Air : o.material === "Water" ? Enum.Material.Water : material(o.material);
 	if (job.region !== undefined) writeBump(terrain, job, mat);
-	else if (o.shape === "block") terrain.FillBlock(yawFrame(o.x, o.y, o.z, o.yaw), new Vector3(o.sx, o.sy, o.sz), mat);
+	else if (alignedBlockRegion(o) !== undefined) {
+  const r = alignedBlockRegion(o)!;
+  terrain.FillRegion(new Region3(new Vector3(...r.min), new Vector3(...r.max)), 4, mat);
+ }
+ else if (o.shape === "block") terrain.FillBlock(yawFrame(o.x, o.y, o.z, o.yaw), new Vector3(o.sx, o.sy, o.sz), mat);
 	else if (o.shape === "wedge") terrain.FillWedge(yawFrame(o.x, o.y, o.z, o.yaw), new Vector3(o.sx, o.sy, o.sz), mat);
 	else if (o.shape === "ball") terrain.FillBall(new Vector3(o.x, o.y, o.z), o.sx, mat);
 	else terrain.FillCylinder(new CFrame(o.x, o.y, o.z), o.sy, o.sx, mat);
@@ -65,7 +69,7 @@ export const TerrainWriter = {
 	Write(ops: TerrainOp[], budget = TERRAIN_BUDGET, fillChunk = FILL_CHUNK, cancelled?: () => boolean): BudgetRun & { jobs: number } {
 		const endTrace = worldTraceScope("terrain-batches");
 		try {
-			const terrain = Workspace.Terrain, jobs = terrainJobs(ops, fillChunk);
+			const terrain = Workspace.Terrain, jobs = coalesceTerrainJobs(terrainJobs(ops, fillChunk), fillChunk);
 			const timing = runBudgeted(jobs, (job) => run(terrain, job), { budget, clock: os.clock, pause: () => task.wait(), cancelled });
 			return { ...timing, jobs: jobs.size() };
 		} finally { endTrace(); }

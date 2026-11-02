@@ -1,6 +1,6 @@
 import { MissionCatalog } from "./LegacyCatalog";
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { BUMP_CHUNK, FILL_CHUNK, TERRAIN_BUDGET, UNSPLIT_MAX, bumpRegion, regionCells, runBudgeted, terrainJobs, type TerrainJob } from "../shared/TerrainSchedule";
+import { alignedBlockRegion, coalesceTerrainJobs, BUMP_CHUNK, FILL_CHUNK, TERRAIN_BUDGET, UNSPLIT_MAX, bumpRegion, regionCells, runBudgeted, terrainJobs, type TerrainJob } from "../shared/TerrainSchedule";
 import { WorldPlanner, terrainTop, type TerrainOp } from "../shared/WorldPlan";
 
 // The terrain-write scheduler (pure; also run in the offline Luau VM). The server
@@ -109,4 +109,27 @@ describe("Terrain write scheduler", () => {
 			expect(WorldPlanner.Counts(plan).bumpCells).toBe(jobs.filter((j) => j.region !== undefined).reduce((sum, j) => sum + j.cells, 0));
 		}
 	});
+});
+
+// Small exhaustive voxel oracle: prove overwrite order and geometry, not just job counts.
+describe("Full-voxel terrain execution", () => {
+ const box=(x:number,y:number,z:number,sx:number,sy:number,sz:number,material="Rock"):TerrainOp=>({shape:"block",x,y,z,sx,sy,sz,yaw:0,material:material as TerrainOp["material"]});
+ it("uses region fills only when every face is on the voxel lattice",()=>{
+  expect(alignedBlockRegion(box(4,4,4,8,8,8))).toEqual({min:[0,0,0],max:[8,8,8]});
+  expect(alignedBlockRegion(box(5,4,4,8,8,8))).toBeUndefined();
+  expect(alignedBlockRegion({...box(4,4,4,8,8,8),yaw:0.1})).toBeUndefined();
+ });
+ it("coalesces all three axes without crossing material barriers or mutating plans",()=>{
+  const ops:TerrainOp[]=[];
+  for(const x of [2,6]) for(const y of [2,6]) for(const z of [2,6]) ops.push(box(x,y,z,4,4,4));
+  ops.push(box(2,2,2,4,4,4,"Grass"),box(2,2,2,4,4,4));
+  const snapshot=ops.map(o=>({...o}));
+  const jobs=coalesceTerrainJobs(terrainJobs(ops),8);
+  expect(jobs.size()).toBe(3); expect(ops).toEqual(snapshot);
+  for(let x=0;x<8;x+=4)for(let y=0;y<8;y+=4)for(let z=0;z<8;z+=4){
+   const sample=(items:TerrainOp[])=>{let mat="Air";for(const o of items) if(x>=o.x-o.sx/2&&x<o.x+o.sx/2&&y>=o.y-o.sy/2&&y<o.y+o.sy/2&&z>=o.z-o.sz/2&&z<o.z+o.sz/2)mat=o.material;return mat;};
+   expect(sample(jobs.map(j=>j.op))).toBe(sample(ops));
+  }
+  expect(coalesceTerrainJobs(terrainJobs(snapshot),1).size()).toBe(10);
+ });
 });
