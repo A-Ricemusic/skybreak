@@ -18,7 +18,8 @@
     "test:radio:offline": "bun run build && bun tools/test-radio-delivery.ts",
     "docs:relay-tables": "bun tools/relay-tables.ts",
     "docs:world-counts": "bun tools/world-report.ts",
-    "test:voice:offline": "bun run build && bun tools/test-voice-offline.ts && python3 -m unittest discover -s tools/tests -p test_place_voice.py"
+    "test:voice:offline": "bun run build && bun tools/test-voice-offline.ts && python3 -m unittest discover -s tools/tests -p test_place_voice.py",
+    "test:roblox:perf": "bun tools/test-roblox.ts --perf"
   },
   "devDependencies": {
     "@rbxts/compiler-types": "3.0.0-types.0",

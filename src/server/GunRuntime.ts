@@ -5,7 +5,8 @@ import { GunRules } from "../shared/SortieArmament";
 export function gunRaycastParams(surfaces: RaycastParams): RaycastParams {
 	const params = new RaycastParams();
 	params.FilterType = surfaces.FilterType;
-	params.FilterDescendantsInstances = surfaces.FilterDescendantsInstances;
+	params.FilterDescendantsInstances = surfaces.FilterDescendantsInstances.filter(item =>
+  !(item.IsA("BasePart") && (item.Name === "Sea" || item.Name === "River")));
 	params.RespectCanCollide = surfaces.RespectCanCollide;
 	params.IgnoreWater = true;
 	return params;

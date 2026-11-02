@@ -1,5 +1,8 @@
 import { decorateNavalScenery } from "./NavalDecoration";
 import { WorldBuildScheduler } from "./WorldBuildScheduler";
+import { traceWorldPhase } from "./WorldBuildTrace";
+import { planProfiler } from "./PlanProfiler";
+
 import { assertWorldInstanceBudget } from "./WorldInstanceBudget";
 import { Workspace } from "@rbxts/services";
 import type { EnvironmentSpec } from "../shared/EnvironmentPresets";
@@ -21,22 +24,16 @@ function available(name: string): WorldAssetName | undefined {
  const key = name as WorldAssetName;
  return UploadedAssetSpecs[key] !== undefined ? key : undefined;
 }
-/**
- * The M04/M05 world clear, run by the world gate in its own thread, for a finished or a partly built world.
- * Measured in Studio Play: Air-filling M04's shell in bounded jobs took 14 s and the native clear that still had
- * to follow took 8 s more (an Air-filled extent stays allocated), so one native Terrain:Clear() is the cheapest
- * correct clear; the floorless shell (SealedWorldSurface) keeps it about 8-12 s. A native call cannot stop
- * part-way, so `cancelled` only skips a clear that has not started.
- */
+/** Native dirty-state clear for finished and partial builds; the gate owns completion. */
 export function compositionClear(cancelled: () => boolean): void {
  if (!cancelled()) clearTerrainIfDirty();
 }
-export function buildComposition(parent: Instance, environment: EnvironmentSpec, makePlan: (checkpoint: () => void) => Composition, descendantLimit: number, cloudFeet: number, terrainBudget = WORLD_TERRAIN_BUDGET): { groundTargets: Model[] } {
- const start = os.clock(); let slice = start, longest = 0;
- parent.SetAttribute("WorldBuildPhase", "plan");
- const plan = makePlan(() => { const dt = os.clock() - slice; longest = math.max(longest, dt); if (dt >= 0.004) { WorldBuildScheduler.Pause(); slice = os.clock(); } });
- parent.SetAttribute("WorldPlanSeconds", os.clock() - start);
- parent.SetAttribute("WorldPlanLongestSlice", longest);
+export function buildComposition(parent: Instance, environment: EnvironmentSpec, makePlan: (checkpoint: (phase?: string) => void) => Composition, descendantLimit: number, cloudFeet: number, terrainBudget = WORLD_TERRAIN_BUDGET, fillChunk = WORLD_FILL_CHUNK): { groundTargets: Model[] } {
+ const start = os.clock();
+ parent.SetAttribute("WorldBuildPhase", "plan"); traceWorldPhase("setup");
+ const profile = planProfiler(parent);
+ const plan = makePlan(profile.checkpoint);
+ profile.finish();
  const names: WorldAssetName[] = plan.props.map(p => p.asset);
  for (const t of plan.targets) { const name = candidate(t); if (name !== undefined) { const key = available(name); if (key !== undefined) names.push(key); } }
  WorldAssets.Start(names);
@@ -51,14 +48,19 @@ export function buildComposition(parent: Instance, environment: EnvironmentSpec,
   const m = new Instance("Model"); m.Name = t.id; m.SetAttribute("TargetType", t.type); m.SetAttribute("LayoutGroup", t.group); m.Parent = scene; models.set(t.id, m);
  }
  parent.SetAttribute("WorldBuildPhase", "terrain");
- const timing = TerrainWriter.Write(plan.ops, terrainBudget, WORLD_FILL_CHUNK);
- parent.SetAttribute("WorldTerrainReadySeconds", os.clock() - start); parent.SetAttribute("WorldTerrainLongest", timing.longest); parent.SetAttribute("WorldTerrainJobs", timing.jobs);
- parent.SetAttribute("WorldBuildPhase", "dressing");
+ const timing = TerrainWriter.Write(plan.ops, terrainBudget, fillChunk);
+ parent.SetAttribute("WorldTerrainReadySeconds", os.clock() - start); parent.SetAttribute("WorldTerrainLongest", timing.longest);
+	parent.SetAttribute("WorldTerrainLongestBatch", timing.longestBatch); parent.SetAttribute("WorldTerrainJobs", timing.jobs);
+ parent.SetAttribute("WorldTerrainWorkSeconds", timing.total);
+ parent.SetAttribute("WorldTerrainYields", timing.yields);
+ parent.SetAttribute("WorldBuildPhase", "dressing"); traceWorldPhase("prop-composition-placement");
+ let dressingSlice = os.clock();
+ const paceDressing = () => { if (os.clock() - dressingSlice >= 0.015) { WorldBuildScheduler.Pause(); dressingSlice = os.clock(); } };
  for (let i = 0; i < plan.parts.size(); i++) {
   const p = plan.parts[i], owner = models.get(p.name) ?? scene, at = new Vector3(p.x, p.y, p.z);
-  if (p.shape === "cylinder") Scenery.Cylinder(owner, p.name, p.sx, p.sy, at, Color3.fromRGB(...p.color), material(p.material), { flightSolid: p.solid, castShadow: false });
-  else Scenery.Part(owner, p.name, new Vector3(p.sx, p.sy, p.sz), new CFrame(at).mul(CFrame.Angles(0, p.yaw, 0)), Color3.fromRGB(...p.color), material(p.material), { flightSolid: p.solid, castShadow: false });
-  if (i % 32 === 31) WorldBuildScheduler.Pause();
+  if (p.shape === "cylinder") Scenery.Cylinder(owner, p.name, p.sx, p.sy, at, Color3.fromRGB(...p.color), material(p.material), { flightSolid: p.solid, castShadow: false, transparency: p.transparency, reflectance: p.reflectance });
+  else Scenery.Part(owner, p.name, new Vector3(p.sx, p.sy, p.sz), new CFrame(at).mul(CFrame.Angles(0, p.yaw, 0)), Color3.fromRGB(...p.color), material(p.material), { flightSolid: p.solid, castShadow: false, transparency: p.transparency, reflectance: p.reflectance });
+  paceDressing();
  }
  let missing = 0;
  for (let pi = 0; pi < plan.props.size(); pi++) {
@@ -87,8 +89,8 @@ export function buildComposition(parent: Instance, environment: EnvironmentSpec,
    }
    decorateNavalScenery(propOwner, "NavalFrigate", proxies);
   }
-   // Eight placements per frame, as M02 does: one frame per prop cost M04's 120 pines two seconds.
-   if (pi % 8 === 7) WorldBuildScheduler.Pause();
+   // Pace by work time: a fixed count spends whole frames on cheap placements.
+   paceDressing();
  }
  for (const t of plan.targets) {
   const name = candidate(t); if (name === undefined && t.type !== "submarine") continue;
@@ -113,6 +115,6 @@ export function buildComposition(parent: Instance, environment: EnvironmentSpec,
  }
  assertWorldInstanceBudget(scene, descendantLimit);
  parent.SetAttribute("CloudBaseReferenceFeet", cloudFeet);
- parent.SetAttribute("WorldPropsMissing", missing); parent.SetAttribute("WorldBuildSeconds", os.clock() - start); parent.SetAttribute("Composition", plan.key); parent.SetAttribute("WorldBuildPhase", "done");
+ parent.SetAttribute("WorldPropsMissing", missing); parent.SetAttribute("WorldBuildSeconds", os.clock() - start); parent.SetAttribute("Composition", plan.key); parent.SetAttribute("WorldBuildPhase", "done"); traceWorldPhase("build-tail");
  return { groundTargets: [] };
 }

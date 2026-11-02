@@ -16,6 +16,7 @@ const root = resolve(import.meta.dir, "..");
 const dest = resolve(root, "build/offline-relay");
 
 const MODULES: string[] = [
+ "tests/TestPacing",
 	// Frozen captures of the retired 27-mission campaign; several live specs still use them as fixtures.
 	"tests/legacy/LegacyStory", "tests/LegacyCampaign.spec", "tests/LegacyCatalog", "tests/LegacyPhaseRosters",
 	"tests/LegacyAirspaceCapture", "tests/LegacyScoringCapture",
@@ -105,6 +106,8 @@ const MODULES: string[] = [
 	"shared/M05WorldPlan", "tests/M04M05WorldPlan.spec", "shared/M03WorldPlan", "shared/M03Limits",
 	"tests/M03WorldPlan.spec", "shared/M02WorldPlan", "shared/M02Limits", "tests/M02WorldPlan.spec", "shared/Polyline",
 ];
+
+MODULES.push("tests/MissionLoadBudget.spec", "tests/M03M05Baseline", "tests/CorridorClearance.spec");
 
 const duplicates = MODULES.filter((entry, index) => MODULES.indexOf(entry) !== index);
 if (duplicates.length > 0) throw new Error(`Duplicate offline modules: ${duplicates.join(", ")}`);

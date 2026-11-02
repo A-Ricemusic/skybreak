@@ -1,3 +1,4 @@
+import { plansEqual } from "./TestPacing";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { buildM03Plan, M03, M03_ENVIRONMENT, M03_FILL_CHUNK, M03_RUNWAY_TOP, m03Counts, m03Detailed, m03Ground, m03Height, m03Material } from "../shared/M03WorldPlan";
 import type { TerrainOp } from "../shared/WorldPlan";
@@ -16,8 +17,8 @@ describe("M03 snowy mountain composition", () => {
 		for (const bp of MissionCatalog.All()) if (bp.id !== 3) expect(MissionCatalog.WorldKey(bp.id)).never.toBe(p.key);
 		expect(MissionCatalog.WorldKey(3)).toBe(p.key);
 		let checkpoints = 0;
-		expect(buildM03Plan(303, () => { checkpoints++; })).toEqual(p);
-		expect(checkpoints).toBeGreaterThan(10000);
+		expect(plansEqual(buildM03Plan(303, () => { checkpoints++; }), p)).toBe(true);
+		expect(checkpoints).toBeGreaterThan(2 * (p.detailCells + p.coarseCells));
 	});
 	it("exports nine radars, four AA and a helicopter grounded on written terrain", () => {
 		expect(p.targets.filter((t) => t.type === "radar" && t.group === "site1").size()).toBe(5);
@@ -66,7 +67,7 @@ describe("M03 snowy mountain composition", () => {
 			expect(m03Detailed(a[0] + (b[0] - a[0]) * n / 100, a[1] + (b[1] - a[1]) * n / 100)).toBe(true);
 		}
 		for (const t of p.targets) expect(m03Detailed(t.x, t.z)).toBe(true);
-		expect(p.coarseCells).toBeGreaterThan(1000);
+		expect(p.coarseCells).toBeGreaterThan(500);
 		expect(p.detailCells).toBeGreaterThan(1000);
 	});
 	it("uses slope-aware rock, snow valleys and a deep gorge inside the provisional band", () => {
@@ -112,7 +113,7 @@ describe("M03 snowy mountain composition", () => {
 			expect(m03Ground(c.x, c.z)).toBe(top);
 			for (let gx = c.x - c.sx / 2; gx < c.x + c.sx / 2; gx += 64) for (let gz = c.z - c.sz / 2; gz < c.z + c.sz / 2; gz += 64) {
 				const index = ((gx + M03.halfX) / 64) * columns + (gz + M03.halfZ) / 64;
-				expect(grid[index]).toBe(undefined);
+				if (grid[index] !== undefined) error(`M03 overlapping cap at ${gx},${gz}`);
 				grid[index] = top;
 			}
 		}
@@ -138,11 +139,11 @@ describe("M03 snowy mountain composition", () => {
 					// The tall side owns the four-stud wall, all the way down to the lower cap (or Y=0 outside).
 					const wallAt = edge + (top > neighbor ? -sign * 2 : sign * 2);
 					const lo = math.min(top, neighbor), hi = math.max(top, neighbor);
-					const covering = (walls.get(`${axis}${wallAt}`) ?? []).filter((o) => {
+					const covered = (walls.get(`${axis}${wallAt}`) ?? []).some((o) => {
 						const from = axis === "x" ? o.z - o.sz / 2 : o.x - o.sx / 2, to = axis === "x" ? o.z + o.sz / 2 : o.x + o.sx / 2;
 						return from <= v && to >= v + 64 && o.y - o.sy / 2 <= lo && o.y + o.sy / 2 >= hi;
 					});
-					expect(covering.size()).toBeGreaterThan(0);
+					if (!covered) error(`M03 missing curtain at ${axis}=${wallAt}, column=${v}`);
 					closed++;
 				}
 			}
@@ -159,7 +160,8 @@ describe("M03 snowy mountain composition", () => {
 		const counts = m03Counts(p);
 		expect(counts.voxels).toBeLessThan(150e6);
 		// Pre-hotfix plan: 206,784,672 writes, of which 59,969,536 were bottom floor.
-		expect(counts.voxels).toBe(206784672 - 59969536);
+		// #205 coarsens caps/curtains after #236 removes 59,969,536 floor writes.
+		expect(counts.voxels).toBe(139976064);
 	});
 	it("uses unique mission ids and supports the entire non-overlapping target footprint", () => {
 		const ids = new Set<string>();

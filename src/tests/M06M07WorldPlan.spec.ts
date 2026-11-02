@@ -1,3 +1,4 @@
+import { plansEqual } from "./TestPacing";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { buildM06Plan, m06Counts, m06Ground, M06, M06_ENVIRONMENT } from "../shared/M06WorldPlan";
 import { buildM07Plan, m07Counts, m07Ground, M07, M07_CANYON, M07_ENVIRONMENT } from "../shared/M07WorldPlan";
@@ -24,8 +25,8 @@ describe("Dormant M06/M07 worlds", () => {
  });
  it("is deterministic, checkpointed, selected only by missions 6 and 7", () => {
   let checkpoints = 0;
-  expect(buildM06Plan(606, () => { checkpoints++; })).toEqual(a);
-  expect(buildM07Plan()).toEqual(b); expect(checkpoints).toBeGreaterThan(1000);
+  expect(plansEqual(buildM06Plan(606, () => { checkpoints++; }), a)).toBe(true);
+  expect(plansEqual(buildM07Plan(), b)).toBe(true); expect(checkpoints).toBeGreaterThan(1000);
   for (const mission of MissionCatalog.All()) { if (mission.id !== 6) expect(MissionCatalog.WorldKey(mission.id)).never.toBe(a.key); if (mission.id !== 7) expect(MissionCatalog.WorldKey(mission.id)).never.toBe(b.key); }
   expect(MissionCatalog.WorldKey(6)).toBe(a.key); expect(MissionCatalog.WorldKey(7)).toBe(b.key);
  });
