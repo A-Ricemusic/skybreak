@@ -42,7 +42,7 @@ export function m08TargetLayout() {
   { id: "m08_broadcast_power", type: "power", group: "broadcast", x: 2400, y: 90, z: 0, yaw: 0 },
  ];
 }
-export function buildM08Plan(seed = 808, checkpoint: () => void = () => {}) {
+export function buildM08Plan(seed = 808, checkpoint: (phase?: string) => void = () => {}) {
  const terrain = compactSurface(M08_SURFACE, checkpoint), parts: PartSpec[] = [...terrain.seaParts], props: PropSpec[] = [];
  const part = (name: string, x: number, y: number, z: number, sx: number, sy: number, sz: number, material = "Concrete", color: [number, number, number] = [165, 169, 156]) => parts.push({ name, x, y, z, sx, sy, sz, material, color, shape: "block", yaw: 0, solid: true, grounded: false });
  part("Broadcast foundation", 1920, 78, 0, 1600, 24, 1000);

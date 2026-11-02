@@ -21,7 +21,7 @@ export function m16TargetLayout():WorldContact[]{
  return ts;
 }
 export function m16ColumnRoute(){return [{x:0,y:104,z:9600},{x:0,y:104,z:4000},{x:0,y:104,z:-6000},{x:1920,y:104,z:-7680}];}
-export function buildM16Plan(seed=1616,checkpoint:()=>void=()=>{}){
+export function buildM16Plan(seed=1616,checkpoint:(phase?:string)=>void=()=>{}){
  const d=worldDressing(M16_SURFACE,checkpoint),targets=m16TargetLayout();
  for(const t of targets)d.contact(t,t.group!=="air_cover");
  d.runway("m16_runway",-8640,7680);
@@ -32,7 +32,7 @@ export function buildM16Plan(seed=1616,checkpoint:()=>void=()=>{}){
 export const m16Counts=(p:ReturnType<typeof buildM16Plan>)=>compactWorldCounts(p,0);
 
 /** Live directors own airborne contacts and the moving column. */
-export function buildM16ScenePlan(seed=1616,checkpoint:()=>void=()=>{}) {
+export function buildM16ScenePlan(seed=1616,checkpoint:(phase?:string)=>void=()=>{}) {
  const plan=buildM16Plan(seed,checkpoint);
  const airborne=new Set(plan.targets.filter(t=>t.group==="air_cover").map(t=>t.id));
  plan.targets=plan.targets.filter(t=>!airborne.has(t.id));

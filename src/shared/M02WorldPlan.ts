@@ -87,7 +87,7 @@ function detailTile(x: number, z: number): boolean {
 	for (let dx = 0; dx <= 256; dx += 64) for (let dz = 0; dz <= 256; dz += 64) if (m02Detailed(x + dx, z + dz)) return true;
 	return false;
 }
-export function buildM02Plan(seed = 202, checkpoint: () => void = () => {}): M02Plan {
+export function buildM02Plan(seed = 202, checkpoint: (phase?: string) => void = () => {}): M02Plan {
 	const p: M02Plan = { key: M02_WORLD_KEY, seed, ops: [], parts: [], props: [], beams: [], detailCells: 0, coarseCells: 0 };
 	// Coalesce identical neighbouring columns without reducing 64/16-stud sampling.
 	// Native fills stay under the same 65,536-cell bound; all surfaces are unchanged.
@@ -114,7 +114,7 @@ export function buildM02Plan(seed = 202, checkpoint: () => void = () => {}): M02
 	for (let x = -M02.half; x < M02.half; x += 256) for (let z = -M02.half; z < M02.half; z += 256) {
 		const side = detailTile(x, z) ? 64 : 256;
 		for (let dx = 0; dx < 256; dx += side) for (let dz = 0; dz < 256; dz += side) tile(x + dx, z + dz, side);
-		checkpoint();
+		checkpoint("surface.sample");
 	}
 	const part = (name: string, x: number, y: number, z: number, sx: number, sy: number, sz: number, color: [number, number, number], shape: PartSpec["shape"] = "block", solid = false, target?: string) => p.parts.push({ name, x, y, z, sx, sy, sz, color, shape, material: "SmoothPlastic", yaw: 0, solid, grounded: false, target });
 	// One consistent opaque lake surface, no mixed native/Part seam; 16-stud sampled shore clips it.
@@ -180,7 +180,7 @@ export function buildM02Plan(seed = 202, checkpoint: () => void = () => {}): M02
 		part("Hedgerow", x, m02Ground(x, z) + 6, z, 400, 12, 12, [47, 65, 42]);
 		if (i % 3 === 0) p.props.push({ asset: i % 2 === 0 ? "Barn" : "Farmhouse", x: x + 240, y: m02Ground(x + 240, z), z, yaw: 0, scale: 1, tint: 0 });
 	}
-	checkpoint();
+	checkpoint("surface.sample");
 	return p;
 }
 export function m02Counts(p: M02Plan) {

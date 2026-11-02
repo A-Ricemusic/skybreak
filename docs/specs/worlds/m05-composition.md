@@ -1,5 +1,7 @@
 # M05 dormant world composition
 
+> Pending loading optimization (2026-10-31): current proposed estimate **15.828 s**, gate **16 s**. Older counts/timings below are historical. Native reachable surfaces and scenery are preserved; M03 alone drops its unreachable buried floor. Shared fill cap is now 262,144 voxels; loading slices M03/M04/M05 = 0.5/0.3/3 s. These extrapolate prior calibration and are not fresh Studio/device measurements. See D-666; orchestrator measures actual builds.
+
 Built against [world reference](m05.md) and [mission reference](../missions/m05.md). Pure plan: `src/shared/M05WorldPlan.ts`; server adapter: `src/server/M05World.ts`. New key `m05_night_refinery` is registered but no mission selects it. Not playable, merged or visually verified by this PR.
 
 Pre-dawn coast in a 32,768-stud square, north = −Z, land west and sea east. Base (−1024,6700), offshore rig (9600,−7500), refinery (−8900,−7000); first tanker (1800,840), second near the rig (8000,−5600). These positions follow the suggested triangle; individual target positions and per-type counts are provisional (mission spec A3).

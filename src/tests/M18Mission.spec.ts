@@ -1,3 +1,4 @@
+import { testCheckpoint } from "./TestPacing";
 import { crossesVolume as crosses } from "../shared/FinaleDuelRules";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { mission as bp, M18_TARGETS, M18_VENT as v } from "../shared/missions/m18";
@@ -24,7 +25,7 @@ describe("M18 playable finale",()=>{
  it("validates authored ids, adopted world targets, phase clocks, original story and raw ledger",()=>{
   MissionCatalog.ValidatePolicy(bp);expect(bp.available).toBe(true);expect(bp.phases.size()).toBe(3);
   expect(bp.countdownSeconds).toBe(1200);expect(bp.phases[1].update!.countdownSeconds).toBe(1800);expect(bp.phases[2].update!.countdownSeconds).toBe(300);
-  for(const t of M18_TARGETS){const world=m18TargetLayout().find(w=>w.id===t.id)!;expect(t.position).toEqual({x:world.x,y:world.y,z:world.z});expect(t.required).toBe(true);}
+  for(const t of M18_TARGETS){ testCheckpoint();const world=m18TargetLayout().find(w=>w.id===t.id)!;expect(t.position).toEqual({x:world.x,y:world.y,z:world.z});expect(t.required).toBe(true);}
   const ids=[...M18_TARGETS.map(t=>t.id),...bp.phases[0].fighterWaves!.map(t=>t.id),bp.phases[0].standaloneAce!.id,...M18_ASCENDING.map(t=>t.id),duelTargetId(2)];expect(new Set(ids).size()).toBe(21);
   const invalid={...bp,phases:bp.phases.map(p=>({...p}))};invalid.phases[1].finale={...bp.phases[1].finale,ascending:M18_ASCENDING.map((t,i)=>i===0?{...t,id:v.core}:t)};
   const [ok]=pcall(()=>MissionCatalog.ValidatePolicy(invalid));expect(ok).toBe(false);
@@ -52,7 +53,7 @@ describe("M18 playable finale",()=>{
  });
  it("credits optional launches only once, never makes departure required, preserves rack progress",()=>{
   const s=generators(),ledger=new TargetScore(bp.scoring!);
-  for(const t of M18_ASCENDING){expect(ascendingPose(t,100).y).toBe(t.end.y);expect(t.start.y).toBeGreaterThan(m18Ground(t.start.x,t.start.z)+100);expect(recordScoredKill(s,ledger,t.id,"air",false,2,"ascending")).toBe(true);expect(recordScoredKill(s,ledger,t.id,"air",false,2,"ascending")).toBe(false);}
+  for(const t of M18_ASCENDING){ testCheckpoint();expect(ascendingPose(t,100).y).toBe(t.end.y);expect(t.start.y).toBeGreaterThan(m18Ground(t.start.x,t.start.z)+100);expect(recordScoredKill(s,ledger,t.id,"air",false,2,"ascending")).toBe(true);expect(recordScoredKill(s,ledger,t.id,"air",false,2,"ascending")).toBe(false);}
   expect(ledger.Total()).toBe(1200);
   // Real opening fighters persist into the vent; their remaining credits cannot consume launch capacity.
   expect(bp.phases[1].execution!.preservePursuers).toBe(true);
@@ -67,17 +68,17 @@ describe("M18 playable finale",()=>{
   expect(radius).toBe(128);expect(FlightMath.CruiseSpeed/FlightMath.TurnRate).toBeLessThan(150);
   // Follow an actual bounded-stick dive and recovery; no instantaneous attitude changes.
   const s=FlightMath.FromPose(0,617,-2960,0,0,FlightMath.CruiseSpeed);let levelling=false,min=math.huge;
-  for(let i=0;i<2000 && s.z>-7100;i++){
+  for(let i=0;i<2000 && s.z>-7100;i++){ testCheckpoint();
    const before={x:s.x,y:s.y,z:s.z};
    if(s.y<=174+radius*(1-math.cos(s.pitch))+2)levelling=true;
    const pitch=levelling?(s.pitch< -0.005?1:0):(s.pitch> -0.65?-1:0);
    FlightMath.Step(s,{x:0,y:pitch,throttle:FlightMath.CruiseThrottle},0.02,bp.airspace);
-   for(const p of parts){const a={center:{x:p.x,y:p.y,z:p.z},half:{x:p.sx/2+24,y:p.sy/2+24,z:p.sz/2+24}};
+   for(const p of parts){ testCheckpoint();const a={center:{x:p.x,y:p.y,z:p.z},half:{x:p.sx/2+24,y:p.sy/2+24,z:p.sz/2+24}};
     // Swept AABB cast is the same segmented LOS primitive's supplied collision predicate.
-    expect(ventObstructed(before,s,(o,d)=>{
+    if (ventObstructed(before,s,(o,d)=>{
      const finish={x:o.x+d.x,y:o.y+d.y,z:o.z+d.z};
      return crosses(a,o,finish)?0:undefined;
-    },0)).toBe(false);
+    },0)) error(`M18 vent collision at step ${i}, part ${p.name}`);
    }
    if(s.z< -3700){min=math.min(min,s.y);expect(math.abs(s.y-174)).toBeLessThan(8);}
   }
@@ -94,7 +95,7 @@ describe("M18 playable finale",()=>{
   const ledger=new TargetScore(bp.scoring!);for(const t of M18_TARGETS)ledger.RecordKill(t.id,t.scoreRole);ledger.RecordKill(duelTargetId(2),"ace");
   const c=new CampaignCoordinator("m18",undefined,{now:()=>1000,defer:()=>undefined});c.load();
   expect(canLaunchMission(18,c.getSlots()[0])).toBe(false);
-  for(let id=1;id<=18;id++){
+  for(let id=1;id<=18;id++){ testCheckpoint();
    const b=MissionCatalog.Get(id);expect(canLaunchMission(id,c.getSlots()[0])).toBe(true);
    expect(completeMission(c,1,id,true,{slot:1,missionId:id,kills:MissionCatalog.RequiredAirKills(b)+MissionCatalog.RequiredGroundKills(b),groundKills:MissionCatalog.RequiredGroundKills(b),completedPhases:MissionCatalog.TotalPhases(b),elapsed:100,...(id===18?{targetScore:ledger.Snapshot()}:{})},()=>undefined,0)).toBe(true);
   }

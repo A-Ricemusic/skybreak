@@ -1,7 +1,9 @@
 import { WorldBuildScheduler } from "./WorldBuildScheduler";
+import { traceWorldPhase } from "./WorldBuildTrace";
+import { planProfiler } from "./PlanProfiler";
 import { assertWorldInstanceBudget } from "./WorldInstanceBudget";
 import { Lighting, Workspace } from "@rbxts/services";
-import { buildM03Plan, M03, M03_ENVIRONMENT, M03_FILL_CHUNK, M03_WORLD_KEY, type M03Target } from "../shared/M03WorldPlan";
+import { buildM03Plan, M03, M03_ENVIRONMENT, M03_FILL_CHUNK, M03_TERRAIN_BUDGET, M03_WORLD_KEY, type M03Target } from "../shared/M03WorldPlan";
 import { M03_TARGET_TYPES } from "../shared/missions/m03";
 import { adoptGroundTarget } from "./GroundTargetFactory";
 import { Scenery } from "./Scenery";
@@ -56,15 +58,10 @@ export function buildM03TargetVisuals(scene: Instance, targets: M03Target[]): Ma
 export const M03World = {
 	Build(parent: Instance, seed = 303): { groundTargets: Model[]; targetVisuals: Map<string, Model> } {
 		const start = os.clock();
-		let slice = start, longest = 0;
-		parent.SetAttribute("WorldBuildPhase", "plan");
-		const plan = buildM03Plan(seed, () => {
-			const dt = os.clock() - slice;
-			longest = math.max(longest, dt);
-			if (dt >= 0.004) { WorldBuildScheduler.Pause(); slice = os.clock(); }
-		});
-		parent.SetAttribute("WorldPlanSeconds", os.clock() - start);
-		parent.SetAttribute("WorldPlanLongestSlice", longest);
+		parent.SetAttribute("WorldBuildPhase", "plan"); traceWorldPhase("setup");
+		const profile = planProfiler(parent);
+		const plan = buildM03Plan(seed, profile.checkpoint);
+		profile.finish();
 		WorldEnvironment.ApplySpec(M03_ENVIRONMENT, M03_WORLD_KEY);
 		Workspace.Terrain.SetMaterialColor(Enum.Material.Snow, Color3.fromRGB(227, 236, 242));
 		Workspace.Terrain.SetMaterialColor(Enum.Material.Rock, Color3.fromRGB(62, 70, 78));
@@ -73,11 +70,14 @@ export const M03World = {
 		rays.Name = "M03SunRays"; rays.Intensity = 0.12; rays.Spread = 0.85; rays.Parent = Lighting;
 		const scene = new Instance("Folder"); scene.Name = M03_WORLD_KEY; scene.Parent = parent;
 		parent.SetAttribute("WorldBuildPhase", "terrain");
-		const timing = TerrainWriter.Write(plan.ops, 0.008, M03_FILL_CHUNK);
+		const timing = TerrainWriter.Write(plan.ops, M03_TERRAIN_BUDGET, M03_FILL_CHUNK);
 		parent.SetAttribute("WorldTerrainReadySeconds", os.clock() - start);
 		parent.SetAttribute("WorldTerrainLongest", timing.longest);
+	parent.SetAttribute("WorldTerrainLongestBatch", timing.longestBatch);
 		parent.SetAttribute("WorldTerrainJobs", timing.jobs);
-		parent.SetAttribute("WorldBuildPhase", "dressing");
+ parent.SetAttribute("WorldTerrainWorkSeconds", timing.total);
+ parent.SetAttribute("WorldTerrainYields", timing.yields);
+		parent.SetAttribute("WorldBuildPhase", "dressing"); traceWorldPhase("prop-composition-placement");
 		for (let i = 0; i < plan.parts.size(); i++) {
 			const p = plan.parts[i];
 			Scenery.Part(scene, p.name, new Vector3(p.sx, p.sy, p.sz), new Vector3(p.x, p.y, p.z), Color3.fromRGB(...p.color), material(p.material), { shape: p.shape === "ball" ? Enum.PartType.Ball : Enum.PartType.Block, flightSolid: p.solid, castShadow: false });
@@ -86,7 +86,7 @@ export const M03World = {
 		// Each target model is drawn once here and adopted by id: HUD label, TargetId and an aim root.
 		const targetVisuals = buildM03TargetVisuals(scene, plan.targets);
 		assertWorldInstanceBudget(scene, M03.budget.descendants);
-		parent.SetAttribute("WorldBuildPhase", "done");
+		parent.SetAttribute("WorldBuildPhase", "done"); traceWorldPhase("build-tail");
 		parent.SetAttribute("WorldBuildSeconds", os.clock() - start);
 		parent.SetAttribute("Composition", plan.key);
 		parent.SetAttribute("WorldTargetVisuals", targetVisuals.size());

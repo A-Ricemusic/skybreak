@@ -1,3 +1,5 @@
+/** Calibrated responsive loading slice; never trade server responsiveness for an estimate. */
+export const M05_TERRAIN_BUDGET = 0.25;
 import type { EnvironmentSpec } from "./EnvironmentPresets";
 import type { PartSpec, PropSpec } from "./WorldPlan";
 import { sealedSurface, surfaceGround, type WorldSurface } from "./SealedWorldSurface";
@@ -35,9 +37,9 @@ function m05Detailed(x: number, z: number): boolean {
  return math.abs(x + 8900) < 1300 && math.abs(z + 7000) < 1800
   || math.abs(x + 1024) < 800 && math.abs(z - 6700) < 1800;
 }
-/** Sea cells are opaque native water from Y=0 to 32 with no rock under it (D-121); m05Height's 8 stays the
- * nominal bed used for keel clearance, and the real clearance below every keel is 16 studs of water. */
-export const M05_SURFACE: WorldSurface = { height: m05Height, detail: m05Detailed, material: (x, z) => m05Height(x, z) < 32 ? "Mud" : x < -11000 ? "LeafyGrass" : "Ground", waterColumns: true };
+/** Opaque flight-solid Sea caps at Y=32; no native water or buried floor is needed.
+ * The nominal bed remains Y=8 for layout/keel checks; authored tanker and rig poses are unchanged. */
+export const M05_SURFACE: WorldSurface = { height: m05Height, detail: m05Detailed, material: (x, z) => m05Height(x, z) < 32 ? "Mud" : x < -11000 ? "LeafyGrass" : "Ground", waterColumns: true, sea: M05_ENVIRONMENT.water };
 export const m05Ground = (x: number, z: number) => surfaceGround(M05_SURFACE, x, z);
 export type M05TargetType = "crane" | "tower" | "control_room" | "sam" | "aa" | "fuel_tank_large" | "fuel_tank" | "gas_tank" | "refinery_unit" | "smokestack" | "pump_station" | "refinery_command" | "tanker" | "helicopter";
 /** Observed points except SAM=50 (observed range 30–50) and pump=40 (unread).
@@ -75,8 +77,8 @@ export function m05LightAnchors(): M05LightAnchor[] {
  for (let i = 0; i < 25; i++) for (const s of [-1, 1]) add("runway", -1024 + s * 52, 50, 5260 + i * 120);
  return out;
 }
-export function buildM05Plan(seed = 505, checkpoint: () => void = () => {}) {
- const terrain = sealedSurface(M05_SURFACE, checkpoint), parts: PartSpec[] = [], props: PropSpec[] = [];
+export function buildM05Plan(seed = 505, checkpoint: (phase?: string) => void = () => {}) {
+ const terrain = sealedSurface(M05_SURFACE, checkpoint), parts: PartSpec[] = [...terrain.seaParts], props: PropSpec[] = [];
  const part = (name: string, x: number, y: number, z: number, sx: number, sy: number, sz: number, shape: PartSpec["shape"] = "block", color: [number, number, number] = [72, 78, 80]) => parts.push({ name, x, y, z, sx, sy, sz, shape, color, material: "Metal", yaw: 0, solid: true, grounded: false });
  // Foundations rise 12 studs above the flat native terrain (D-056).
  for (const x of [-9428, -8372]) for (const z of [-7768, -6232]) part("Refinery foundation", x, 40, z, 1056, 16, 1536);

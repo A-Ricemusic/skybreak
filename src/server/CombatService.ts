@@ -1,3 +1,4 @@
+import { destroyWorld } from "./WorldDisposal";
 import * as M14WorldActors from "./M14WorldActors";
 import * as CombatSessionFactory from "./CombatSessionFactory";
 import { sessions } from "./SessionRegistry";
@@ -218,16 +219,16 @@ function cycleTarget(session: CombatSession, rawView: unknown): void {
 function sessionCompletedPhases(session: CombatSession, _won: boolean): number | undefined {
  return session.blueprintState?.phaseIndex;
 }
-/** Seconds the result has to reach the player before the (server-blocking) terrain clear starts. */
+/** Seconds the result has to reach the player before cooperative disposal starts. */
 const MENU_RESTORE_DELAY = 1;
 /**
  * Clears the finished world and rebuilds the menu through the shared world gate (WorldLifecycle). Returns at once:
  * settlement and release never wait. Clearing mission 3's terrain measured 10-30 s, past the script execution
- * limit, so it runs isolated; StartMission waits for the gate, so no launch builds on top of a world being cleared.
+ * limit, so it runs isolated and cooperatively; StartMission waits for the gate, so no launch builds on top of a world being cleared.
  */
-function restoreMenu(worldKey?: string): void {
+function restoreMenu(worldKey?: string, root?: Instance): void {
 	if (sessions.size() > 0) return;
-	worldLifecycle.Cleanup({ clear: worldClear(worldKey), delaySeconds: MENU_RESTORE_DELAY, restore: () => {
+	worldLifecycle.Cleanup({ clear: (cancelled) => { destroyWorld(root, cancelled); worldClear(worldKey)(cancelled); }, delaySeconds: MENU_RESTORE_DELAY, restore: () => {
 		if (sessions.size() > 0 || buildingMission) return;
 		MissionWorld.RestoreMenu();
 	} });
@@ -246,11 +247,11 @@ function cleanupSession(session: CombatSession, restore = true): void {
 	JammerCorridorRuntime.clearAirships(session);
 	ProtectedAircraftRuntime.clearProtection(session);
 	GroundSectorRuntime.clearGroundDirector(session);
-	session.folder.Destroy();
+	if (restore) restoreMenu(MissionCatalog.WorldKey(session.missionId), session.folder);
+	else destroyWorld(session.folder);
 	session.projectiles.clear();
 	session.enemies.clear();
 	session.target = undefined;
-	if (restore) restoreMenu(MissionCatalog.WorldKey(session.missionId));
 }
 /** Debrief counters handed to the completion callback. */
 function missionStats(session: CombatSession, won: boolean): MissionStats {
@@ -1656,17 +1657,17 @@ export const CombatService = {
 			const loading: MissionLoading = { kind: "Loading", launchId, slot, missionId, aircraft, expectedParts: countParts(folder) };
 			CombatRemotes.missionState!.FireClient(player, loading);
 		});
-		buildingMission = false;
 		if (!ok) {
 			// Log before cleanup: its native terrain clear can stall, hiding the original failure.
 			warn(`SKYBREAK mission construction failed: mission=${missionId} phase=${tostring(folder.GetAttribute("WorldBuildPhase"))} elapsed=${os.clock() - startedAt}s error=${tostring(result)}`);
 			const session = sessions.get(player);
 			if (session) cleanupSession(session, false);
-			folder.Destroy();
 			// A partly built world (the player may have left) is cleared through the same gate.
-			restoreMenu(MissionCatalog.WorldKey(missionId));
+			restoreMenu(MissionCatalog.WorldKey(missionId), folder);
+			buildingMission = false;
 			return $tuple(false, "The mission world could not be built. Please retry.");
 		}
+		buildingMission = false;
 		return $tuple(true);
 	},
 	Init(remotes: Remotes | Instance, finishedCallback: FinishedCallback): void {

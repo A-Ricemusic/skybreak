@@ -1,3 +1,4 @@
+import { plansEqual, testCheckpoint } from "./TestPacing";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { buildM04Plan, M04, M04_ENVIRONMENT, M04_SURFACE, m04Counts, m04Ground } from "../shared/M04WorldPlan";
 import { buildM05Plan, M05, M05_ENVIRONMENT, M05_SURFACE, m05Counts, m05Ground, m05Coast, M05_TARGET_POINTS } from "../shared/M05WorldPlan";
@@ -19,14 +20,15 @@ describe("Dormant M04/M05 world compositions", () => {
  const a = buildM04Plan(), b = buildM05Plan();
  it("is deterministic, cooperatively planned with only M04 activated", () => {
   let checkpoints = 0;
-  expect(buildM04Plan(404, () => { checkpoints++; })).toEqual(a);
-  expect(buildM05Plan()).toEqual(b); expect(checkpoints).toBeGreaterThan(1000);
+  expect(plansEqual(buildM04Plan(404, () => { checkpoints++; }), a)).toBe(true);
+  expect(plansEqual(buildM05Plan(), b)).toBe(true); expect(checkpoints).toBeGreaterThan(1000);
   // Mission 4 selects the inland hills and mission 5 the night refinery; nothing else selects either composition.
   for (const bp of MissionCatalog.All()) { if (bp.id !== 4) expect(MissionCatalog.WorldKey(bp.id)).never.toBe(a.key); if (bp.id !== 5) expect(MissionCatalog.WorldKey(bp.id)).never.toBe(b.key); }
   expect(MissionCatalog.WorldKey(5)).toBe(b.key);
  });
  it("exports unique prefixed ids, required air counts and NNE contact poses", () => {
   for (const [targets, prefix] of [[a.targets, "m04_"], [b.targets, "m05_"]] as const) {
+   testCheckpoint();
    const ids = new Set<string>();
    for (const t of targets) { expect(t.id.sub(1, 4)).toBe(prefix); expect(ids.has(t.id)).toBe(false); ids.add(t.id); }
   }
@@ -49,6 +51,7 @@ describe("Dormant M04/M05 world compositions", () => {
   expect(b.targets.filter(t => t.type === "tanker").size()).toBe(2);
   expect(b.targets.filter(t => t.type === "helicopter").size()).toBe(3);
   for (const t of b.targets) {
+   testCheckpoint();
    if (t.group === "rig") { expect(t.y).toBe(120); expect(m05Ground(t.x, t.z)).toBe(8); }
    if (t.group === "refinery") { expect(t.y).toBe(48); expect(m05Ground(t.x, t.z)).toBe(36); }
    if (t.type === "tanker") {
@@ -57,10 +60,12 @@ describe("Dormant M04/M05 world compositions", () => {
     const spec = UploadedAssetSpecs.FuelTanker;
     for (const [sx, sz, draft] of [[64, 360, 16], [spec.size.X, spec.size.Z, spec.groundOffset]])
      for (const [x, z] of footprint(t.x, t.z, sx, sz, t.yaw)) {
+      testCheckpoint();
       expect(t.y - draft - m05Ground(x, z)).toBeGreaterThanOrEqual(8);
-      // Water-only sea column (D-121): native water to the surface, nothing solid within 8 studs of the keel.
+      // Sea caps replace opaque native water, retaining the waterline and authored keel clearance.
       const column = terrainTop(b.ops, x, z);
-      expect(column.water).toBe(32);
+      const sea = b.parts.find(p => p.name === "Sea" && math.abs(x - p.x) <= p.sx / 2 && math.abs(z - p.z) <= p.sz / 2);
+      expect(sea !== undefined && sea.solid && sea.y + sea.sy / 2 === 32).toBe(true);
       expect(t.y - draft - column.solid).toBeGreaterThanOrEqual(8);
      }
    }
@@ -73,8 +78,10 @@ describe("Dormant M04/M05 world compositions", () => {
  it("supports every refinery and rig footprint without target overlaps", () => {
   const ground = b.targets.filter(t => t.group === "rig" || t.group === "refinery");
   for (const t of ground) {
+   testCheckpoint();
    const radius = t.type === "fuel_tank_large" ? 68 : t.type === "fuel_tank" ? 50 : 40;
    for (const dx of [-radius, radius]) for (const dz of [-radius, radius]) {
+    testCheckpoint();
     if (t.group === "refinery") expect(m05Ground(t.x + dx, t.z + dz)).toBe(36);
     const decks = b.parts.filter(p => p.name === (t.group === "rig" ? "Rig working deck" : "Refinery foundation"));
     expect(decks.some(p => math.abs(t.x + dx - p.x) <= p.sx / 2 && math.abs(t.z + dz - p.z) <= p.sz / 2 && p.y + p.sy / 2 === t.y)).toBe(true);
@@ -86,6 +93,7 @@ describe("Dormant M04/M05 world compositions", () => {
  });
  it("supports and clears every rotated track centre and corner", () => {
   for (const p of a.parts) for (const [x, z] of footprint(p.x, p.z, p.sx, p.sz, p.yaw)) {
+   testCheckpoint();
    const ground = terrainTop(a.ops, x, z);
    expect(ground.solid).toBe(p.y - p.sy / 2);
    expect(a.ops.some(op => op.material === "Ground" && op.y + op.sy / 2 === ground.solid && math.abs(x - op.x) < op.sx / 2 && math.abs(z - op.z) < op.sz / 2)).toBe(true);
@@ -94,11 +102,13 @@ describe("Dormant M04/M05 world compositions", () => {
  });
  it("supports every prop footprint including the tower and waterline platform", () => {
   for (const p of b.props) {
+   testCheckpoint();
    const spec = UploadedAssetSpecs[p.asset];
    for (const [x, z] of footprint(p.x, p.z, spec.size.X * p.scale, spec.size.Z * p.scale, p.yaw)) {
+    testCheckpoint();
     if (p.asset === "OilPlatform") {
      // Piled marine structure: sea supports its waterline; legs enter the bed.
-     expect(terrainTop(b.ops, x, z).water).toBe(p.y);
+     expect(b.parts.some(sea => sea.name === "Sea" && sea.y + sea.sy / 2 === p.y && math.abs(x - sea.x) <= sea.sx / 2 && math.abs(z - sea.z) <= sea.sz / 2)).toBe(true);
      expect(m05Ground(x, z)).toBeLessThan(p.y);
     } else {
      expect(p.y - m05Ground(x, z)).toBeGreaterThanOrEqual(8);
@@ -117,8 +127,10 @@ describe("Dormant M04/M05 world compositions", () => {
  });
  it("caps Part dimensions and enforces Studio-calibrated budgets", () => {
   for (const [p, counts, limits] of [[a, m04Counts(a), M04_BUILD_LIMITS], [b, m05Counts(b), M05_BUILD_LIMITS]] as const) {
+   testCheckpoint();
    print(`${p.key} BUDGET voxels=${counts.voxels} jobs=${counts.jobs} parts=${counts.parts} props=${counts.props} descendants=${counts.descendants} estimatedSeconds=${counts.estimatedSeconds}`);
    for (const prop of p.props) {
+    testCheckpoint();
     const size = UploadedAssetSpecs[prop.asset].size;
     for (const dim of [size.X, size.Y, size.Z]) expect(dim * prop.scale).toBeLessThanOrEqual(2048);
    }
@@ -131,6 +143,7 @@ describe("Dormant M04/M05 world compositions", () => {
  });
  it("caps every column above Y=0 and seals perimeters beyond the hard airspace", () => {
   for (const [p, surface, ground, airspace] of [[a, M04_SURFACE, m04Ground, M04_AIRSPACE], [b, M05_SURFACE, m05Ground, M05_AIRSPACE]] as const) {
+   testCheckpoint();
    // No floor layer: the hollow below the caps is reachable only from below Y=0 outside the
    // terrain square, which lies beyond hard airspace. Every column is capped (gaps below).
    expect(WORLD_HALF).toBeGreaterThan(airspace.hardHalfWidth);
@@ -143,6 +156,7 @@ describe("Dormant M04/M05 world compositions", () => {
    // of the cell's sampled top (its bottom + 8) when curtains are matched against neighbours.
    const waterCaps = new Map<string, number>();
    for (const op of p.ops) {
+    testCheckpoint();
     if (op.material === "Water") {
      const x0 = op.x - op.sx / 2, z0 = op.z - op.sz / 2, lo = op.y - op.sy / 2;
      for (let x = x0; x < x0 + op.sx; x += 128) for (let z = z0; z < z0 + op.sz; z += 128) waterCaps.set(`${x},${z}`, lo + 8);
@@ -157,19 +171,38 @@ describe("Dormant M04/M05 world compositions", () => {
      for (let v = begin; v < begin + length; v += 128) { const key = `${axis},${edge},${v}`, list = walls.get(key) ?? []; list.push({lo, hi}); walls.set(key, list); }
     }
    }
+   for (const part of p.parts) if (part.name === "Sea") {
+    testCheckpoint();
+    expect(part.solid).toBe(true); expect(part.y + part.sy / 2).toBe(32);
+    expect(part.color).toEqual(M05_ENVIRONMENT.water.color);
+    expect(part.reflectance).toBe(M05_ENVIRONMENT.water.reflectance);
+    expect(part.transparency).toBe(0);
+    for (let x = part.x - part.sx / 2; x < part.x + part.sx / 2; x += 128)
+     for (let z = part.z - part.sz / 2; z < part.z + part.sz / 2; z += 128) {
+      testCheckpoint();
+      expect(ground(x + 64, z + 64)).toBeLessThan(32);
+      waterCaps.set(`${x},${z}`, ground(x + 64, z + 64));
+     }
+   }
    for (const [key, h] of waterCaps) if (!caps.has(key)) caps.set(key, h);
    let gaps = 0;
    for (let x = -WORLD_HALF; x < WORLD_HALF; x += 128) for (let z = -WORLD_HALF; z < WORLD_HALF; z += 128) {
+    testCheckpoint();
     const h = caps.get(`${x},${z}`); if (h === undefined) { gaps++; continue; }
     for (const [axis, edge, v, nx, nz] of [["x", x + 128, z, x + 128, z], ["z", z + 128, x, x, z + 128], ...(x === -WORLD_HALF ? [["x", x, z, x - 128, z]] : []), ...(z === -WORLD_HALF ? [["z", z, x, x, z - 128]] : [])] as Array<[string, number, number, number, number]>) {
+     testCheckpoint();
      const neighbor = caps.get(`${nx},${nz}`) ?? 0;
      if (h !== neighbor && !(walls.get(`${axis},${edge},${v}`) ?? []).some(w => w.lo <= math.max(0, math.min(h, neighbor) - 8) && w.hi >= math.max(h, neighbor))) gaps++;
     }
    }
    expect(gaps).toBe(0);
    for (const x of [-12000, 0, 12000]) for (const z of [-12000, 0, 12000]) {
+    testCheckpoint();
     const t = terrainTop(p.ops, x + 17, z + 17);
-    if (t.solid === -math.huge) { expect(t.water).toBe(32); expect(ground(x + 17, z + 17)).toBeLessThan(32); }
+    if (t.solid === -math.huge) {
+     const sea = p.parts.some(part => part.name === "Sea" && math.abs(x + 17 - part.x) <= part.sx / 2 && math.abs(z + 17 - part.z) <= part.sz / 2);
+     expect(t.water === 32 || sea).toBe(true); expect(ground(x + 17, z + 17)).toBeLessThan(32);
+    }
     else expect(t.solid).toBe(ground(x + 17, z + 17));
    }
    expect(surfaceSide(surface, 0, 0)).toBeGreaterThanOrEqual(128);

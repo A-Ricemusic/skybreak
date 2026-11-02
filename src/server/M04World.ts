@@ -1,10 +1,11 @@
+import { WORLD_FILL_CHUNK } from "../shared/SealedWorldSurface";
 import { registerWorldClear } from "./WorldLifecycleRuntime";
-import { buildM04Plan, M04_ENVIRONMENT, M04_WORLD_KEY } from "../shared/M04WorldPlan";
+import { buildM04Plan, M04_TERRAIN_BUDGET, M04_ENVIRONMENT, M04_WORLD_KEY } from "../shared/M04WorldPlan";
 import { M04_BUILD_LIMITS } from "../shared/M04Limits";
 import { buildComposition, compositionClear } from "./CompositionWorld";
 /** Combat owns all moving contacts; no static aircraft copies are built. */
 export const M04World = {
- Build: (parent: Instance, seed = 404) => buildComposition(parent, M04_ENVIRONMENT, checkpoint => ({ ...buildM04Plan(seed, checkpoint), targets: [] }), M04_BUILD_LIMITS.descendants, 5500),
+ Build: (parent: Instance, seed = 404) => buildComposition(parent, M04_ENVIRONMENT, checkpoint => ({ ...buildM04Plan(seed, checkpoint), targets: [] }), M04_BUILD_LIMITS.descendants, 5500, M04_TERRAIN_BUDGET, WORLD_FILL_CHUNK),
  /** One clear for normal exit and partial construction, owned by the shared world gate (see compositionClear). */
  Clear: compositionClear,
 };

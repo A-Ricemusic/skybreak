@@ -1,3 +1,4 @@
+import { testCheckpoint } from "./TestPacing";
 import {describe,expect,it} from "@rbxts/jest-globals";
 import {NavigationPilot} from "../shared/NavigationPilot";
 import {FlightMath} from "../shared/FlightMath";
@@ -45,6 +46,7 @@ function flyPhase(p: MissionPhaseBlueprint,extra: number,killEvery: number): {pe
 	ask("raider",wave(MissionCatalog.InitialRaiders(p)));
 	if(p.kind==="ace"){const r=p.optionalRaiders ?? 0;ask("raider",wave(math.ceil(r/2)));ask("raider",wave(r-math.ceil(r/2)));}
 	for(let t=1;t<=600;t++){
+		testCheckpoint();
 		drain();
 		if(kills && killEvery>0 && t%killEvery===0 && (!air || bandits>0)){killed+=1;if(air)bandits-=1;}
 		if(kills && killed>=count)return {peak,flown,cleared:true};
@@ -60,11 +62,13 @@ describe("Broken Relay campaign contracts",()=>{
 		expect(MISSIONS.size()).toBe(27);expect(LEVEL_LAYOUTS.size()).toBe(27);expect(STORY.size()).toBe(28);
 		const compositions=new Set<string>(),names=new Set<string>(),signatures=new Set<string>();
 		for(const bp of MISSIONS){
+			testCheckpoint();
 			expect(bp.id).toBe(names.size()+1);names.add(bp.title);compositions.add(LEVEL_LAYOUTS[bp.id-1].name);
 			expect(bp.act).toBe(math.ceil(bp.id/9));
 			expect(MissionCatalog.RequiredGroundKills(bp)).toBe(bp.ground.size());
 			// Twist inserts are real objectives: every authoring rule applies to the expanded list.
 			for(const p of MissionCatalog.ExpandedPhases(bp)){
+				testCheckpoint();
 				if(p.points){
 					expect(p.points.size()>0).toBe(true);
 					for(const point of p.points){expect(math.abs(point.x)<2300 && math.abs(point.z)<2300 && point.y>=40 && point.y<=900).toBe(true);}
@@ -113,6 +117,7 @@ describe("Broken Relay campaign contracts",()=>{
 		// Ace tuning (round 2: three-stage fights) and mid-phase reinforcements on every hold.
 		expect(MissionCatalog.Get(9).aceHealth).toBe(200);expect(MissionCatalog.Get(18).aceHealth).toBe(260);expect(MissionCatalog.Get(27).aceHealth).toBe(320);
 		for(const [id,kind] of [[5,"escort"],[8,"defend"],[12,"escort"],[20,"escort"],[23,"defend"],[25,"escort"]] as [number,string][]){
+			testCheckpoint();
 			const phase=MissionCatalog.Get(id).phases.find((p)=>p.kind===kind)!;
 			expect((phase.optionalRaiders ?? 0)>=4).toBe(true);expect((phase.reinforce?.size() ?? 0)>=1).toBe(true);
 		}
@@ -122,6 +127,7 @@ describe("Broken Relay campaign contracts",()=>{
 		expect(MissionCatalog.TotalPhases(MissionCatalog.Get(1))).toBe(4);expect(MissionCatalog.TotalPhases(MissionCatalog.Get(2))).toBe(3);
 		const speakers=new Set<string>([TEAL,SERA,MARSHAL,RUSK,TRAINEE,LOG,RECORDER,VULTURE_TWO]);
 		for(let i=0;i<STORY.size();i++){
+			testCheckpoint();
 			const c=STORY[i];expect(c.id).toBe(i);expect(c.beats.size()>=3 && c.beats.size()<=8).toBe(true);
 			for(const beat of c.beats){expect(beat.text.size()>=12 && beat.text.size()<=160).toBe(true);expect(speakers.has(beat.speaker)).toBe(true);}
 			// Every bridge ends with the trainee answering in their own voice; the finale ends on the roster card.
@@ -139,9 +145,12 @@ describe("Broken Relay campaign contracts",()=>{
 	});
 	it("never flies more than seven hostile aircraft at once on Normal and Ace, and every phase still clears",()=>{
 		for(const bp of MISSIONS){
+			testCheckpoint();
 			if(bp.id<=2)continue; // the legacy missions spawn directly and stay under five
 			for(const p of MissionCatalog.ExpandedPhases(bp)){
+				testCheckpoint();
 				for(const extra of [0,1]){
+					testCheckpoint();
 					const budget=WavePlan.Budget(extra);
 					// A pilot who never scores: every timer fires, every group is due, and the budget still holds.
 					const idle=flyPhase(p,extra,0);
@@ -178,8 +187,10 @@ describe("Broken Relay campaign contracts",()=>{
 		const overAce=new Set<string>(["8:Protect Varda's control tower","20:Shatter the eastern wing","23:Defend the command frigate"]);
 		const seen=new Set<string>();
 		for(const bp of MISSIONS){
+			testCheckpoint();
 			if(bp.id<=2)continue; // the legacy missions keep their original flows
 			for(const p of MissionCatalog.ExpandedPhases(bp)){
+				testCheckpoint();
 				const key=`${bp.id}:${p.label}`;
 				if(p.kind==="required_air" || p.kind==="required_ground"){
 					if(p.count===1)expect(p.reinforce).toBeUndefined();
@@ -202,6 +213,7 @@ describe("Broken Relay campaign contracts",()=>{
 		const average=(act: 1 | 2 | 3)=>{let sum=0,n=0;for(const bp of MissionCatalog.ByAct(act))if(bp.id>=3){sum+=par(bp.id);n+=1;}return sum/n;};
 		let twists=0;const twistTexts=new Set<string>();
 		for(const bp of MissionCatalog.All()){
+			testCheckpoint();
 			const value=par(bp.id);
 			if(bp.id<=2)continue;
 			expect(value >= 180 && value <= 450).toBe(true);
@@ -211,6 +223,7 @@ describe("Broken Relay campaign contracts",()=>{
 			expect(flow.size()>=4 && flow.size()<=7).toBe(true);
 			const kinds=new Set<string>(),labels=new Set<string>();
 			for(let beat=0;beat<flow.size();beat++){
+				testCheckpoint();
 				kinds.add(flow[beat].kind);labels.add(flow[beat].label);
 				if(beat>0)expect(flow[beat].kind!==flow[beat-1].kind).toBe(true);
 			}
@@ -291,6 +304,7 @@ describe("Broken Relay campaign contracts",()=>{
 	});
 	it("ends every mission on a terminal phase whose completion wins the sortie",()=>{
 		for(const bp of MISSIONS){
+			testCheckpoint();
 			const expanded=MissionCatalog.ExpandedPhases(bp);
 			expect(expanded.size()).toBe(MissionCatalog.TotalPhases(bp));
 			expect(expanded.size()>=bp.phases.size()).toBe(true);
@@ -305,6 +319,7 @@ describe("Broken Relay campaign contracts",()=>{
 					for(let i=0;i<(BlueprintRunner.Total(last));i++)BlueprintRunner.RecordKill(state,`t${i}`,kind,true,1+i);
 				}else{
 					for(let i=0;i<4000 && state.outcome===undefined;i++){
+						testCheckpoint();
 						const point=BlueprintRunner.NavigationPoint(state)!;const observed={...point,y:math.max(250,point.y)};
 						BlueprintRunner.ObserveFlight(state,observed,observed,.1,1+i*.1);
 						clearHazards(state,1+i*.1);
@@ -318,6 +333,7 @@ describe("Broken Relay campaign contracts",()=>{
 		const state=BlueprintRunner.NewState(bp,100);let now=100,serial=0;
 		const expanded=MissionCatalog.ExpandedPhases(bp);let radios=0;
 		while(state.outcome===undefined && now<90+GameConfig.Campaign.MissionTimeLimit){
+			testCheckpoint();
 			const phase=BlueprintRunner.ActivePhase(state)!;
 			const previous=state.phaseIndex;
 			// Whatever the sortie does, the live list never deviates from the expanded catalog flow.
@@ -347,10 +363,12 @@ describe("Broken Relay campaign contracts",()=>{
 	for(const bp of MISSIONS.filter((b)=>b.id>=3)) it(`flies M${bp.id} navigation volumes with legal stick and throttle`,()=>{
 		const expanded: MissionPhaseBlueprint[]=MissionCatalog.ExpandedPhases(bp);
 		for(let index=0;index<expanded.size();index++){
+			testCheckpoint();
 			const phase=expanded[index];if(!phase.points)continue;
 			const run=BlueprintRunner.NewState(bp,0);run.phases=expanded;run.phaseIndex=index;
 			const flight=FlightMath.NewState();let clock=0;
 			while(run.phaseIndex===index && run.outcome===undefined && clock<240){
+				testCheckpoint();
 				const point=BlueprintRunner.NavigationPoint(run)!;
 				const input=NavigationPilot.Controls(flight,point,phase.radius!,phase.kind!=="route",phase.ceiling);
 				expect(math.abs(input.x)<=1 && math.abs(input.y)<=1 && input.throttle>=0 && input.throttle<=1).toBe(true);
@@ -371,12 +389,14 @@ describe("Broken Relay campaign contracts",()=>{
 		expect(BlueprintRunner.RecordKill(state,"marshal","ace",true,10)).toBe(false);
 		let now=10;
 		while(BlueprintRunner.ActivePhase(state)?.kind==="recon"){
+			testCheckpoint();
 			const point=BlueprintRunner.NavigationPoint(state)!;now+=.1;
 			BlueprintRunner.ObserveFlight(state,point,point,.1,now);
 		}
 		expect(BlueprintRunner.RecordKill(state,"marshal","ace",true,now)).toBe(true);
 		expect(state.outcome).toBeUndefined();expect(BlueprintRunner.ActivePhase(state)?.kind).toBe("route");
 		while(BlueprintRunner.ActivePhase(state)?.kind==="route"){
+			testCheckpoint();
 			const point=BlueprintRunner.NavigationPoint(state)!;now+=.1;
 			BlueprintRunner.ObserveFlight(state,point,point,.1,now);
 		}
@@ -413,6 +433,7 @@ describe("Broken Relay campaign contracts",()=>{
 		const limit=GameConfig.Campaign.MissionTimeLimit;
 		expect(BlueprintRunner.Duration).toBe(limit);
 		for(const bp of MISSIONS.filter((b)=>b.id>=3)){
+			testCheckpoint();
 			const state=BlueprintRunner.NewState(bp,10);BlueprintRunner.Tick(state,30);BlueprintRunner.Tick(state,20);
 			expect(state.elapsed).toBe(20);BlueprintRunner.Tick(state,limit+9);expect(state.outcome).toBeUndefined();
 			BlueprintRunner.Tick(state,limit+10);expect(state.reason).toBe("timeout");
@@ -429,9 +450,11 @@ describe("Broken Relay campaign contracts",()=>{
 describe("Mission structure review contracts", () => {
 	it("keeps quiet holds short and flies to fresh garrison and fuel-hose positions", () => {
 		for (const bp of MISSIONS) for (const phase of MissionCatalog.ExpandedPhases(bp)) {
+			testCheckpoint();
 			if (phase.kind === "signal" && (phase.optionalRaiders ?? 0) === 0 && !phase.hazard) expect(phase.seconds! <= 20).toBe(true);
 		}
 		for (const id of [15, 22]) {
+			testCheckpoint();
 			const phases = MissionCatalog.ExpandedPhases(MissionCatalog.Get(id));
 			const lastScan = phases.filter((p) => p.kind === "recon").pop()!;
 			const previous = phases.filter((p) => p !== lastScan && (id === 15 ? p.kind === "route" : p.kind === "recon"))[0];

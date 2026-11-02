@@ -53,7 +53,7 @@ export function m09TargetLayout(): M09Target[] {
   return { id: `m09_${b.group}_${kind}_${i + 1}`, type: kind, group: b.group, x, y: 180, z, yaw: 0 };
  });
 }
-export function buildM09Plan(seed = 909, checkpoint: () => void = () => {}) {
+export function buildM09Plan(seed = 909, checkpoint: (phase?: string) => void = () => {}) {
  const terrain = compactSurface(M09_SURFACE, checkpoint), parts: PartSpec[] = [...terrain.seaParts], props: PropSpec[] = [];
  const part = (name: string, x: number, y: number, z: number, sx: number, sy: number, sz: number, material = "Concrete", color: [number, number, number] = [100, 110, 100]) => parts.push({ name, x, y, z, sx, sy, sz, material, color, shape: "block", yaw: 0, solid: true, grounded: false });
  for (const b of M09.beaches) {
