@@ -36,7 +36,7 @@ export const m11Ground = (x: number, z: number) => surfaceGround(M11_SURFACE, x,
 export function m11CivilianLayout() {
  return m11Routes().map(r => ({ id: r.id, type: "civilian", group: "protected", ...r.points[0], yaw: 0 }));
 }
-export function buildM11Plan(seed = 1111, checkpoint: () => void = () => {}) {
+export function buildM11Plan(seed = 1111, checkpoint: (phase?: string) => void = () => {}) {
  const terrain = compactSurface(M11_SURFACE, checkpoint), parts: PartSpec[] = [], props: PropSpec[] = [], targets = m11CivilianLayout();
  // Original primitive passenger silhouettes for dormant review; future actor integration adopts ids.
  for (const t of targets) for (const [sx, sy, sz, dy, dz] of [[8, 8, 50, 0, 0], [48, 2, 12, 0, 2], [20, 2, 8, 2, 20], [2, 10, 8, 5, 20]]) parts.push({ name: t.id, x: t.x, y: t.y + dy, z: t.z + dz, sx, sy, sz, yaw: 0, material: "SmoothPlastic", color: [226, 235, 240], shape: "block", solid: true, grounded: false });

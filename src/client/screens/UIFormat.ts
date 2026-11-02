@@ -79,6 +79,7 @@ function sanitizeTelemetry(payload: Telemetry, previous: Telemetry): Telemetry {
 		altitude: finite(payload.altitude, previous.altitude),
 		kills: math.clamp(math.floor(finite(payload.kills, previous.kills)), 0, 99),
 		total: math.clamp(math.floor(finite(payload.total, previous.total)), 1, 99),
+		gunRounds: typeIs(payload.gunRounds, "number") ? math.max(0, math.floor(finite(payload.gunRounds, 0))) : undefined,
 		missiles: math.max(0, math.floor(finite(payload.missiles, previous.missiles))),
 		missileCooldown: math.max(0, finite(payload.missileCooldown, previous.missileCooldown)),
 		evadeCooldown: math.max(0, finite(payload.evadeCooldown, previous.evadeCooldown)),

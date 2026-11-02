@@ -21,7 +21,7 @@ export function surfaceGround(surface: WorldSurface, x: number, z: number): numb
  const side = surfaceSide(surface, x, z);
  return surface.height(math.floor(x / side) * side + side / 2, math.floor(z / side) * side + side / 2);
 }
-export function compactSurface(surface: WorldSurface, checkpoint: () => void) {
+export function compactSurface(surface: WorldSurface, checkpoint: (phase?: string) => void) {
  const half = WORLD_HALF, ops: TerrainOp[] = [];
  const seaParts: PartSpec[] = [];
  const farSea: Array<{x: number; z: number; sx: number; sz: number}> = [];
@@ -31,8 +31,9 @@ export function compactSurface(surface: WorldSurface, checkpoint: () => void) {
  };
  // Floorless: all caps and edge curtains remain at/above Y=0.
  const cells: Array<{x: number; z: number; sx: number; sz: number; top: number}> = [];
- const heights = new Map<string, number>();
- const key = (x: number, z: number) => `${x},${z}`;
+ const heights = new Map<number, number>();
+ // Numeric addresses avoid allocating/interning a string for every sampled cell and edge.
+ const key = (x: number, z: number) => ((x + WORLD_HALF) / 128 + 1) * 258 + (z + WORLD_HALF) / 128 + 1;
  for (let x = -half; x < half; x += 1024) for (let z = -half; z < half; z += 1024) {
   const side = surfaceSide(surface, x, z);
   for (let dx = 0; dx < 1024; dx += side) for (let dz = 0; dz < 1024; dz += side) {
@@ -41,7 +42,7 @@ export function compactSurface(surface: WorldSurface, checkpoint: () => void) {
    for (let gx = c.x; gx < c.x + side; gx += 128) for (let gz = c.z; gz < c.z + side; gz += 128) heights.set(key(gx, gz), c.top);
    if (side === 256) p.detailCells++; else p.coarseCells++;
   }
-  checkpoint();
+  checkpoint("surface.sample");
  }
 	for (const c of cells) {
 		const cx = c.x + c.sx / 2, cz = c.z + c.sz / 2;
@@ -73,21 +74,25 @@ export function compactSurface(surface: WorldSurface, checkpoint: () => void) {
 		wall("z", c.z + c.sz, c.x, c.sx);
 		if (c.x === -half) wall("x", c.x, c.z, c.sz, true);
 		if (c.z === -half) wall("z", c.z, c.x, c.sx, true);
-		checkpoint();
+		checkpoint("surface.emit");
 	}
 
  // Merge distant sea rectangles without crossing land/native-water cells. Roblox Parts cap at 2048.
  for (const axis of ["x", "z"] as const) {
   const other = axis === "x" ? "z" : "x", size = axis === "x" ? "sx" : "sz", otherSize = axis === "x" ? "sz" : "sx";
   farSea.sort((a, b) => a[other] === b[other] ? a[axis] < b[axis] : a[other] < b[other]);
+  let written = 0;
   for (let i = 0; i < farSea.size(); i++) {
    const a = farSea[i];
    while (i + 1 < farSea.size()) {
     const b = farSea[i + 1];
     if (a[other] !== b[other] || a[otherSize] !== b[otherSize] || a[axis] + a[size] !== b[axis] || a[size] + b[size] > 2048) break;
-    a[size] += b[size]; farSea.remove(i + 1);
+    a[size] += b[size]; i++;
    }
+   farSea[written++] = a;
+   checkpoint("sea.merge");
   }
+  while (farSea.size() > written) farSea.pop();
  }
  for (const c of farSea) seaParts.push({ name: "Sea", shape: "block", x: c.x + c.sx / 2, y: 30, z: c.z + c.sz / 2,
   sx: c.sx, sy: 4, sz: c.sz, yaw: 0, material: "SmoothPlastic", color: [77, 85, 67], solid: true, grounded: false });

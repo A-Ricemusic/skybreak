@@ -1,3 +1,6 @@
+import { WorldBuildScheduler } from "./WorldBuildScheduler";
+import { traceWorldPhase } from "./WorldBuildTrace";
+import { planProfiler } from "./PlanProfiler";
 import { assertWorldInstanceBudget } from "./WorldInstanceBudget";
 import { MILITARY_GROUND_ASSETS } from "../shared/MilitaryGroundKit";
 import { Workspace } from "@rbxts/services";
@@ -19,15 +22,10 @@ export const M02World = {
 	Build(parent: Instance, seed = 202): { groundTargets: Model[]; targetVisuals: Map<string, Model> } {
   WorldAssets.Preload(MILITARY_GROUND_ASSETS);
 		const start = os.clock();
-		let slice = start, longest = 0;
-		parent.SetAttribute("WorldBuildPhase", "plan");
-		const plan = buildM02Plan(seed, () => {
-			const elapsed = os.clock() - slice;
-			longest = math.max(longest, elapsed);
-			if (elapsed >= 0.004) { task.wait(); slice = os.clock(); }
-		});
-		parent.SetAttribute("WorldPlanSeconds", os.clock() - start);
-		parent.SetAttribute("WorldPlanLongestSlice", longest);
+		parent.SetAttribute("WorldBuildPhase", "plan"); traceWorldPhase("setup");
+		const profile = planProfiler(parent);
+		const plan = buildM02Plan(seed, profile.checkpoint);
+		profile.finish();
 		const names = plan.props.map((p) => p.asset);
 		WorldAssets.Start(names);
 		task.spawn(() => UploadedAssets.Preload(["HeavyBomber"], 0));
@@ -45,18 +43,19 @@ export const M02World = {
 		const timing = TerrainWriter.Write(plan.ops, 0.008, M02_FILL_CHUNK);
 		parent.SetAttribute("WorldTerrainReadySeconds", os.clock() - start);
 		parent.SetAttribute("WorldTerrainLongest", timing.longest);
+	parent.SetAttribute("WorldTerrainLongestBatch", timing.longestBatch);
 		parent.SetAttribute("WorldTerrainJobs", timing.jobs);
-		parent.SetAttribute("WorldBuildPhase", "dressing");
+		parent.SetAttribute("WorldBuildPhase", "dressing"); traceWorldPhase("prop-composition-placement");
 		for (let i = 0; i < plan.parts.size(); i++) {
 			const p = plan.parts[i], at = new Vector3(p.x, p.y, p.z), color = Color3.fromRGB(...p.color), owner = p.target !== undefined ? visual(p.target) : scene;
 			if (p.shape === "cylinder") Scenery.Cylinder(owner, p.name, p.sx, p.sy, at, color, material(p.material), { flightSolid: p.solid, castShadow: false });
 			else Scenery.Part(owner, p.name, new Vector3(p.sx, p.sy, p.sz), new CFrame(at).mul(CFrame.Angles(0, p.yaw, 0)), color, material(p.material), { flightSolid: p.solid, castShadow: false });
-			if (i % 32 === 31) task.wait();
+			if (i % 32 === 31) WorldBuildScheduler.Pause();
 		}
 		for (let i = 0; i < plan.beams.size(); i++) {
 			const b = plan.beams[i], a = new Vector3(...b.a), finish = new Vector3(...b.b);
 			Scenery.Part(scene, b.name, new Vector3(b.name === "Power cable" ? 0.5 : 2, 2, finish.sub(a).Magnitude), CFrame.lookAt(a.add(finish).div(2), finish), Color3.fromRGB(...b.color), Enum.Material.Metal, { flightSolid: false, castShadow: false });
-			if (i % 32 === 31) task.wait();
+			if (i % 32 === 31) WorldBuildScheduler.Pause();
 		}
 		// Native Clouds has no controllable base height: 8,000 ft is metadata, not a false altitude claim.
 		parent.SetAttribute("CloudBaseReferenceFeet", 8000);
@@ -69,7 +68,7 @@ export const M02World = {
 				const model = WorldAssets.PlaceUploaded(p.asset, scene, frame, p.scale) ?? (missing++, WorldAssets.Place(p.asset, scene, frame, p.scale));
 				if (model !== undefined) { model.Name = p.tag; visuals.set(p.tag, model); }
 			} else if (WorldAssets.PlaceUploaded(p.asset, scene, frame, p.scale) === undefined) missing++;
-			if (i % 8 === 7) task.wait();
+			if (i % 8 === 7) WorldBuildScheduler.Pause();
 		}
 		const bomber = UploadedAssets.Cached(["HeavyBomber"]);
 		for (const t of m02TargetLayout()) if (t.type === "bomber") {
@@ -89,7 +88,7 @@ export const M02World = {
 		parent.SetAttribute("WorldPropsMissing", missing);
 		parent.SetAttribute("WorldBuildSeconds", os.clock() - start);
 		parent.SetAttribute("Composition", plan.key);
-		parent.SetAttribute("WorldBuildPhase", "done");
+		parent.SetAttribute("WorldBuildPhase", "done"); traceWorldPhase("build-tail");
 		parent.SetAttribute("WorldTargetVisuals", visuals.size());
 		return { groundTargets: [], targetVisuals: visuals };
 	},

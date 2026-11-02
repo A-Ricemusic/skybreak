@@ -16,6 +16,7 @@ const root = resolve(import.meta.dir, "..");
 const dest = resolve(root, "build/offline-relay");
 
 const MODULES: string[] = [
+ "tests/TestPacing",
 	// Frozen captures of the retired 27-mission campaign; several live specs still use them as fixtures.
 	"tests/legacy/LegacyStory", "tests/LegacyCampaign.spec", "tests/LegacyCatalog", "tests/LegacyPhaseRosters",
 	"tests/LegacyAirspaceCapture", "tests/LegacyScoringCapture",
@@ -54,6 +55,7 @@ const MODULES: string[] = [
 	"server/CampaignRepository", "tests/DeletionStatus.spec", "tests/RelayCampaign.spec",
 	"tests/BlueprintProgress.spec", "shared/LaunchLoading", "tests/LaunchLoading.spec", "shared/LoadingScreenModel",
 	"tests/LoadingScreenModel.spec", "shared/WorldLifecycle", "tests/WorldLifecycle.spec",
+	"shared/TerrainWriteState", "tests/TerrainWriteState.spec",
 	"tests/CampaignCompletionPersistence.spec", "shared/CountdownDisplay", "shared/CampaignWire",
 	"tests/CampaignWire.spec", "shared/ResultContinuation", "tests/ResultContinuation.spec", "shared/ChapterLaunch",
 	"tests/ChapterContinuation.spec",
@@ -89,7 +91,7 @@ const MODULES: string[] = [
 	// World plans, limits, terrain, environments and uploaded asset specs.
 	"shared/RobloxAssetIds", "shared/UploadedAssetOrientation", "shared/M01Geometry", "shared/M01Limits",
 	"shared/M01WorldPlan", "tests/M01WorldPlan.spec", "shared/M01CarrierPlan", "tests/M01CarrierPlan.spec",
-	"shared/UploadedAssetSpecs", "shared/MilitaryGroundKit", "tests/MilitaryGroundKit.spec", "shared/EnvironmentPresets", "shared/TerrainSchedule", "shared/WorldDistricts",
+	"shared/UploadedAssetSpecs", "shared/MilitaryGroundKit", "shared/NavalKit", "tests/NavalKit.spec", "tests/MilitaryGroundKit.spec", "shared/EnvironmentPresets", "shared/TerrainSchedule", "shared/WorldDistricts",
 	"shared/WorldPlan", "shared/WorldAudit", "tests/WorldPlan.spec", "tests/TerrainSchedule.spec",
 	"shared/LegacyWorlds", "tests/LegacyWorlds.spec", "tests/EnvironmentPresets.spec", "shared/WeatherRules",
 	"tests/WeatherRules.spec", "shared/WorldEnvironments", "shared/LateWorldDressing", "shared/M14Limits",
@@ -104,6 +106,8 @@ const MODULES: string[] = [
 	"shared/M05WorldPlan", "tests/M04M05WorldPlan.spec", "shared/M03WorldPlan", "shared/M03Limits",
 	"tests/M03WorldPlan.spec", "shared/M02WorldPlan", "shared/M02Limits", "tests/M02WorldPlan.spec", "shared/Polyline",
 ];
+
+MODULES.push("tests/MissionLoadBudget.spec", "tests/M03M05Baseline", "tests/CorridorClearance.spec");
 
 const duplicates = MODULES.filter((entry, index) => MODULES.indexOf(entry) !== index);
 if (duplicates.length > 0) throw new Error(`Duplicate offline modules: ${duplicates.join(", ")}`);

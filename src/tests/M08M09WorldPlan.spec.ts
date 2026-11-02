@@ -1,3 +1,4 @@
+import { plansEqual } from "./TestPacing";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { buildM08Plan, m08Counts, m08Ground, M08, M08_ENVIRONMENT } from "../shared/M08WorldPlan";
 import { buildM09Plan, m09Counts, m09Ground, M09, M09_SERVICE, M09_ENVIRONMENT } from "../shared/M09WorldPlan";
@@ -10,7 +11,7 @@ describe("Dormant M08/M09 worlds", () => {
  const a = buildM08Plan(), b = buildM09Plan();
  it("is deterministic, checkpointed, exports M08 and M09 for their missions and exports unique named scenery", () => {
   let calls = 0;
-  expect(buildM08Plan(808, () => { calls++; })).toEqual(a); expect(buildM09Plan()).toEqual(b);
+  expect(plansEqual(buildM08Plan(808, () => { calls++; }), a)).toBe(true); expect(plansEqual(buildM09Plan(), b)).toBe(true);
   expect(calls).toBeGreaterThan(1000);
   for (const p of [a, b]) {
    expect(new Set(p.targets.map(t => t.id)).size()).toBe(p.targets.size());

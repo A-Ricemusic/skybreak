@@ -59,7 +59,7 @@ export function m07TargetLayout(): M07Target[] {
  for (let i = 0; i < types.size(); i++) add(types[i], "plant", -1200 + (i % 4) * 800, 230, i < 4 ? -9500 : -7780);
  return out;
 }
-export function buildM07Plan(seed = 707, checkpoint: () => void = () => {}) {
+export function buildM07Plan(seed = 707, checkpoint: (phase?: string) => void = () => {}) {
  const terrain = compactSurface(M07_SURFACE, checkpoint), parts: PartSpec[] = [];
  const part = (name: string, x: number, y: number, z: number, sx: number, sy: number, sz: number, material = "Concrete", color: [number, number, number] = [129, 112, 88], shape: PartSpec["shape"] = "block") => parts.push({ name, x, y, z, sx, sy, sz, material, color, shape, yaw: 0, solid: true, grounded: false });
  for (const f of [M07.south, M07.middle, M07.plant]) {

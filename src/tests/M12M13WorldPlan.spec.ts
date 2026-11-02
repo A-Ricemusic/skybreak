@@ -1,3 +1,4 @@
+import { plansEqual } from "./TestPacing";
 import { describe,expect,it } from "@rbxts/jest-globals";
 import { buildM12Plan,m12Counts,m12Ground,M12,M12_ENVIRONMENT } from "../shared/M12WorldPlan";
 import { buildM13Plan,m13Counts,m13Ground,m13RoutePoint,M13,M13_ENVIRONMENT,M13_ANCHORS } from "../shared/M13WorldPlan";
@@ -9,7 +10,7 @@ const obstructed=(ps:PartSpec[],x:number,y:number,z:number,margin=0)=>ps.some(p=
 describe("Activated M12/M13 worlds",()=>{
  const a=buildM12Plan(),b=buildM13Plan();
  it("is deterministic, checkpointed, id-owned; M12 and M13 activated",()=>{
-  let calls=0; expect(buildM12Plan(1212,()=>{calls++;})).toEqual(a); expect(buildM13Plan()).toEqual(b);expect(calls).toBeGreaterThan(1000);
+  let calls=0; expect(plansEqual(buildM12Plan(1212,()=>{calls++;}), a)).toBe(true); expect(plansEqual(buildM13Plan(), b)).toBe(true);expect(calls).toBeGreaterThan(1000);
   for(const p of [a,b]){expect(new Set(p.targets.map(t=>t.id)).size()).toBe(p.targets.size());for(const t of p.targets)expect(p.parts.some(f=>f.name===t.id)).toBe(true);for(const m of MissionCatalog.All()) if(m.id!==12 && m.id!==13)expect(MissionCatalog.WorldKey(m.id)).never.toBe(p.key);}
  });
  it("preserves eight radial pads, seven live guns, 24-kill inventory and distinct initial briefing",()=>{

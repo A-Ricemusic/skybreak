@@ -1,4 +1,7 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
+import { boundedWorldWork, cancelWorldWork } from "./BoundedWorldWork";
+import { WorldCleanup, WorldLifecycle } from "../shared/WorldLifecycle";
+import { MissionWorld } from "../server/MissionWorld";
 import { LogService, Players, Workspace } from "@rbxts/services";
 import { CAMPAIGN_COMMAND_COOLDOWN } from "../server/CampaignRequestBudget";
 import { CombatService, installCampaignSmokeCombat } from "../server/CombatService";
@@ -16,6 +19,11 @@ import { takeArrival } from "../shared/CampaignEncounters";
 import { canLaunchMission } from "../shared/CampaignProgress";
 import { MissionFinished, Remotes } from "../shared/Types";
 import { smokeError, assertEmptySmokeVoxels, assertSmokeAdoption, assertSmokeSpawn, forceSmokeVictory } from "./helpers/CampaignSmoke";
+
+// D-203-BOUNDS: retain the 20s launch acceptance target after #205; old-base timings
+// are not a current-main baseline. 30s is a cancellation deadline, not a passing budget.
+const BUILD_BUDGET_MS = 20_000;
+const BUILD_DEADLINE_SECONDS = 30;
 
 // One sequential save, one actual world lease, no client, no DataStore, no Heartbeat.
 // Full terrain stays enabled: this is a world integration test, not a plan/fixture test.
@@ -63,16 +71,47 @@ describe("campaign production launch → world → settlement → Next (Studio)"
   const combat = installCampaignSmokeCombat(player, root, remotes, CampaignService.OnFinished);
   const campaign = installCampaignSmokePlayer(player, coordinator, remotes, CombatService);
   WorldAssets.SetPreloadTimeout(0); // existing test hook: do not wait on optional uploaded dressing
-  print("CAMPAIGN_SMOKE | mission | build ms | targets | errors");
+  const originalWorld = { ...MissionWorld };
+  const worldMethods = MissionWorld as unknown as { Build: (this: void, self: typeof MissionWorld, id: number, folder: Instance) => ReturnType<typeof MissionWorld.Build> };
+  const originalBuild = worldMethods.Build;
+  // Explicit Luau receiver preserves the class method's self when saved/restored.
+  const cleanupMethod = worldLifecycle as unknown as { Cleanup: (this: void, self: WorldLifecycle, job: WorldCleanup) => void };
+  const originalCleanup = cleanupMethod.Cleanup;
+  let cleanupFailed = false;
+  // Cancel only the builder worker. Throw into StartMission's xpcall so it releases
+  // buildingMission and destroys the partial folder; never cancel the request thread.
+  worldMethods.Build = (_self, id, folder) => boundedWorldWork(`campaign M${id} build`, () => originalWorld.Build(id, folder), BUILD_DEADLINE_SECONDS);
+  // Cleanup runs in detached production workers. Bound those too, before the Jest
+  // deadline, and refuse further launches if a clear/restore could not complete.
+  cleanupMethod.Cleanup = (_self, job) => originalCleanup(worldLifecycle, {
+   ...job,
+   clear: (cancelled) => {
+    try { boundedWorldWork("campaign clear", () => job.clear(cancelled), 30); }
+    catch (err) { cleanupFailed = true; error(smokeError(err)); }
+   },
+   restore: () => {
+    try { boundedWorldWork("campaign menu restore", job.restore, 30); }
+    catch (err) { cleanupFailed = true; error(smokeError(err)); }
+   },
+  });
+  print("CAMPAIGN_SMOKE | mission | build ms (launch, excluding previous cleanup) | targets | errors");
   try {
    expect(canLaunchMission(2,coordinator.getSlots()[0])).toBe(false);
    let buildStart = os.clock();
    const failures: string[] = [];
    for (let id = 0; id <= 18; id++) {
     const before = errors.size(), warningBefore = warnings.size(), problems: string[] = [];
+    if (cleanupFailed || os.clock() - started > 1500) {
+     const reason = cleanupFailed ? "previous cleanup failed; refusing overlapping worlds" : "suite work deadline reached";
+     print(`CAMPAIGN_SMOKE | ${id} | unavailable | 0 | FAIL ${reason}`);
+     failures.push(`M${id}: ${reason}`);
+     continue;
+    }
     // A failed Next/build must still produce a row for this mission and every later mission.
     const [launched, launchProblem] = pcall(() => {
      if (CombatService.GetSession(player) === undefined) {
+      assert(worldLifecycle.AwaitIdle(65), "Previous world cleanup did not release within 65 seconds");
+      assert(!cleanupFailed, "Previous world cleanup failed");
       task.wait(CAMPAIGN_COMMAND_COOLDOWN);
       buildStart = os.clock();
       const response = campaign.request("StartMission", {slot:1,missionId:id,launchId:id+1});
@@ -83,10 +122,10 @@ describe("campaign production launch → world → settlement → Next (Studio)"
     const s = CombatService.GetSession(player);
     const buildMs = math.floor((os.clock()-buildStart)*1000);
     const targetCount = s?.enemies.size() ?? 0;
-    const [ok, problem] = pcall(() => {
+    const [ok, problem] = pcall(() => boundedWorldWork(`campaign M${id} checks`, () => {
      assert(s !== undefined && s.missionId === id, "Expected production mission session");
      expect(s).toBeDefined(); expect(s.missionId).toBe(id); expect(s.folder.Parent).toBe(root);
-     expect(buildMs).toBeLessThan(20000);
+
      assertSmokeAdoption(s);
      assertSmokeSpawn(s);
      const state = s.blueprintState, blueprint = s.blueprint;
@@ -125,6 +164,7 @@ describe("campaign production launch → world → settlement → Next (Studio)"
       s.state={...pose}; s.health=100; s.lastInput=os.clock();
       state.startedAt=os.clock()-n/30;
       combat.step(s,1/30); combat.flush(s);
+      if (n % 30 === 0) task.wait();
      }
      expect(s.crashReason).never.toBe("internal_error");
      expect(s.stepCount).toBeGreaterThanOrEqual(900);
@@ -178,7 +218,9 @@ describe("campaign production launch → world → settlement → Next (Studio)"
        if(e.kind==="ground" && e.phaseOwner===index ) expect(combat.damageable(s,e)).toBe(true);
       }
      }
-    });
+    }, 15));
+    // A budget failure must not suppress launch/combat/settlement coverage.
+    if (buildMs >= BUILD_BUDGET_MS) problems.push(`build ${buildMs}ms exceeded ${BUILD_BUDGET_MS}ms acceptance budget`);
     if (!ok) problems.push(`checks: ${smokeError(problem)}`);
     // Even failed assertions must settle the legitimate sortie to unlock the next one.
     // Failed launch/settlement is recorded; session-only recovery keeps later rows independent.
@@ -210,6 +252,8 @@ describe("campaign production launch → world → settlement → Next (Studio)"
      const [recovered, recoveryProblem] = pcall(() => campaign.recover(id));
      if (!recovered) problems.push(`recovery: ${smokeError(recoveryProblem)}`);
     }
+    if (!worldLifecycle.AwaitIdle(65)) { cleanupFailed = true; problems.push("cleanup did not release within 65 seconds"); }
+    if (cleanupFailed) problems.push("cleanup worker failed; later launches disabled");
     const report = problems.size() === 0 ? "0" : `FAIL ${problems.join("; ")}`;
     print(`CAMPAIGN_SMOKE | ${id} | ${buildMs} | ${targetCount} | ${report}${warnings.size() > warningBefore ? `; WARNING ${warnings.filter((_, i) => i >= warningBefore).join("; ")}` : ""}`);
     if (problems.size() > 0) failures.push(`M${id}: ${problems.join("; ")}`);
@@ -218,9 +262,15 @@ describe("campaign production launch → world → settlement → Next (Studio)"
    expect(os.clock()-started).toBeLessThan(1790);
   } finally {
    CombatService.EndMission(player);
-   expect(worldLifecycle.AwaitIdle(45)).toBe(true);
-   WorldAssets.SetPreloadTimeout(); campaign.restore(); combat.restore();
-   root.Destroy(); log.Disconnect();
+   try {
+    expect(worldLifecycle.AwaitIdle(65)).toBe(true);
+   } finally {
+    cancelWorldWork();
+    worldMethods.Build = originalBuild; cleanupMethod.Cleanup = originalCleanup;
+    WorldAssets.SetPreloadTimeout();
+    try { campaign.restore(); combat.restore(); }
+    finally { root.Destroy(); log.Disconnect(); }
+   }
   }
  }, 1800000);
 });

@@ -11,6 +11,8 @@ import { ContactBudget } from "../shared/ContactInventoryRules";
 import { createGroundTarget } from "../server/GroundTargetFactory";
 import { recordScoredKill } from "../server/SortieScore";
 import { TargetScore } from "../shared/TargetScore";
+import { sessionFixture } from "./SessionFixture";
+import { FlightMath } from "../shared/FlightMath";
 const spec=(i:number):TypedGroundTarget=>({id:`prop${i}`,type:"barracks",position:{x:i*4,y:0,z:0},yaw:0,required:false,scoreRole:"ground"});
 describe("D6 server lifecycle (Studio execution pending)",()=>{
  it("keeps 150 distant contacts at one Part, caps detail at 24 and changes at two per tick",()=>{
@@ -19,7 +21,7 @@ describe("D6 server lifecycle (Studio execution pending)",()=>{
    const enemies:Enemy[]=[];
    for(let i=0;i<150;i++) {const t=spec(i),model=createCheapContact(t);model.Parent=folder;expect(model.GetDescendants().size()).toBe(1);enemies.push({id:t.id,model,typedGround:t,health:55,enabled:true,position:model.PrimaryPart!.Position} as Enemy);}
    const bs=BlueprintRunner.NewState({...engineRuntimeFixture(),phases:[{kind:"score_threshold",label:"River",cheapContacts:true}]},0);
-   const session={blueprint:bs.blueprint,blueprintState:bs,enemies,state:{x:0,z:0}} as CombatSession;
+   const session=sessionFixture(bs.blueprint,{folder,state:FlightMath.FromPose(0,0,0,0,0,160)});session.blueprintState=bs;session.enemies=enemies;
    const count=()=>enemies.filter(e=>e.model.GetAttribute("D6Detailed")===true).size();
    stepContacts(session,0.49);expect(count()).toBe(0);stepContacts(session,0.01);expect(count()).toBe(2);
    for(let i=0;i<20;i++) stepContacts(session,0.5);expect(count()).toBe(ContactBudget.detailed);
@@ -53,7 +55,7 @@ describe("D6 server lifecycle (Studio execution pending)",()=>{
    const params=new RaycastParams();params.FilterType=Enum.RaycastFilterType.Include;params.FilterDescendantsInstances=[folder];
    const plan={startSeconds:2,salvos:2,ceiling:10585,source:{x:400,y:10300,z:0},warningSeconds:3,countdownSeconds:4,intervalSeconds:12,damage:30,clearance:60,channel:[{x:0,y:10300,z:-100},{x:0,y:10300,z:100}]};
    const bs=BlueprintRunner.NewState({...engineRuntimeFixture(),phases:[{kind:"score_threshold",label:"River",repeatedArtillery:plan},{kind:"required_air",count:1,label:"Exit"}]},0);
-   const session={blueprint:bs.blueprint,blueprintState:bs,collisionParams:params,state:{x:0,y:10300,z:0},health:100,damageTaken:0,lowestHealth:100} as CombatSession;
+   const session=sessionFixture(bs.blueprint,{folder,state:FlightMath.FromPose(0,10300,0,0,0,160)});session.blueprintState=bs;session.collisionParams=params;
    const say=(_:string)=>{};stepRepeatedArtillery(session,2,say);stepRepeatedArtillery(session,0,say);expect(session.health).toBe(100);
    stepRepeatedArtillery(session,7,say);expect(session.health).toBe(70);stepRepeatedArtillery(session,5,say);stepRepeatedArtillery(session,7,say);expect(session.health).toBe(40);
    bs.phaseIndex=1;stepRepeatedArtillery(session,1,say);expect(session.repeatedArtillery).toBeUndefined();expect(session.damageTaken).toBe(60);

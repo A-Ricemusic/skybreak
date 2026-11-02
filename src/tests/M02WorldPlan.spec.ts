@@ -1,3 +1,4 @@
+import { plansEqual } from "./TestPacing";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { buildM02Plan, M02, M02_ENVIRONMENT, M02_FILL_CHUNK, M02_RUNWAY, M02_PAVEMENT_TOP, m02Counts, m02Detailed, m02Ground, m02Height, m02TargetLayout } from "../shared/M02WorldPlan";
 import { M02_AIRSPACE, M02_START } from "../shared/M02Limits";
@@ -26,7 +27,7 @@ const targetBounds = targets.map((t) => {
 describe("Mission 2 farmland composition", () => {
 	const plan = buildM02Plan();
 	it("is deterministic and selected only by mission 2", () => {
-		expect(buildM02Plan()).toEqual(plan);
+		expect(plansEqual(buildM02Plan(), plan)).toBe(true);
 		expect(buildM02Plan(203).props).never.toEqual(plan.props);
 		for (const bp of MissionCatalog.All()) expect(MissionCatalog.WorldKey(bp.id) === plan.key).toBe(bp.id === 2);
 		expect(MissionCatalog.WorldKey(0)).never.toBe(plan.key);

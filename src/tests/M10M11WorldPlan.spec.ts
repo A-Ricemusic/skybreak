@@ -1,3 +1,4 @@
+import { plansEqual } from "./TestPacing";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { buildM10Plan, m10Counts, m10Ground, m10RiverX, M10, M10_ENVIRONMENT } from "../shared/M10WorldPlan";
 import { buildM11Plan, m11Counts, m11Ground, m11RoutePoint, M11, M11_ENVIRONMENT } from "../shared/M11WorldPlan";
@@ -16,7 +17,7 @@ function obstructed(parts: PartSpec[], props: PropSpec[], x: number, y: number, 
 describe("Dormant M10/M11 worlds", () => {
  const a = buildM10Plan(), b = buildM11Plan();
  it("is deterministic, checkpointed, independently activated and names every contact once", () => {
-  let calls = 0; expect(buildM10Plan(1010, () => { calls++; })).toEqual(a); expect(buildM11Plan()).toEqual(b); expect(calls).toBeGreaterThan(1000);
+  let calls = 0; expect(plansEqual(buildM10Plan(1010, () => { calls++; }), a)).toBe(true); expect(plansEqual(buildM11Plan(), b)).toBe(true); expect(calls).toBeGreaterThan(1000);
   for (const p of [a, b]) {
    expect(new Set(p.targets.map(t => t.id)).size()).toBe(p.targets.size());
    for (const t of p.targets) expect(p.parts.some(f => f.name === t.id) || t.type === "frigate" || t.type === "tanker").toBe(true);

@@ -1,4 +1,5 @@
-import { GROUND_KIT_BUDGET_ATTRIBUTE, GROUND_KIT_INSTANCE_ALLOWANCE } from "./WorldInstanceBudget";
+import { navalVisual } from "../shared/NavalKit";
+import { GROUND_KIT_BUDGET_ATTRIBUTE, GROUND_KIT_INSTANCE_ALLOWANCE, kitInstanceAllowance } from "./WorldInstanceBudget";
 import { MILITARY_GROUND_KIT } from "../shared/MilitaryGroundKit";
 import { WorldAssets } from "./WorldAssets";
 import { navalHull } from "../shared/SurfaceTargetRules";
@@ -16,8 +17,9 @@ export function restOn(model: Model, baseY: number): void {
  * Fit uniformly inside the old bounds; no stretched vehicles or expanded hitboxes.
  * Capture bounds and aim BEFORE decoration: uploaded detail never moves the lock point.
  */
-function decorateGroundTarget(model: Model, targetType: GroundTargetType, bounds: CFrame, size: Vector3): void {
- const asset = MILITARY_GROUND_KIT[targetType];
+export function decorateGroundTarget(model: Model, targetType: GroundTargetType, bounds: CFrame, size: Vector3): void {
+ const navalAsset = navalVisual(targetType, model.GetAttribute("TargetType") as string | undefined, model.GetAttribute("LayoutGroup") as string | undefined);
+ const asset = navalAsset !== undefined && WorldAssets.Has(navalAsset) ? navalAsset : MILITARY_GROUND_KIT[targetType];
  if (asset === undefined) return;
  const authored = UploadedAssetSpecs[asset].size;
  const scale = math.min(size.X / authored.X, size.Y / authored.Y, size.Z / authored.Z);
@@ -25,7 +27,7 @@ function decorateGroundTarget(model: Model, targetType: GroundTargetType, bounds
  const visual = WorldAssets.PlaceUploaded(asset, model, bounds.mul(new CFrame(0, -size.Y / 2, 0)), scale);
  if (visual === undefined) return;
  // Fail back to the unchanged proxies before hiding anything if a future import grows.
- if (1 + visual.GetDescendants().size() > GROUND_KIT_INSTANCE_ALLOWANCE) {
+ if (1 + visual.GetDescendants().size() > kitInstanceAllowance(asset)) {
   visual.Destroy();
   warn(`Ground kit ${asset} exceeds ${GROUND_KIT_INSTANCE_ALLOWANCE} instances; retaining procedural visual`);
   return;
@@ -117,6 +119,7 @@ export function createGroundTarget(spec: TypedGroundTarget): Model {
 	// A parked bomber's pivot is its fuselage centre: rest the hull on the ground instead of sinking it.
 	if (spec.type === "parked_bomber") restOn(model, spec.position.y);
 	const [bounds, size] = model.GetBoundingBox();
+ if (spec.parentId !== undefined) model.SetAttribute("LayoutGroup", "naval_mount");
 	decorateGroundTarget(model, spec.type, bounds, size);
 	model.Name = GROUND_TARGET_LABELS[spec.type];
 	model.SetAttribute("TargetId", spec.id);

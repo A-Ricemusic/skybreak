@@ -1,3 +1,4 @@
+import { worldTraceScope } from "./WorldBuildTrace";
 import type { AircraftAssetName } from "../shared/AssetSelection";
 import { UploadedAssets } from "../shared/UploadedAssets";
 import { UploadedAssetName, UploadedAssetSpecs } from "../shared/UploadedAssetSpecs";
@@ -145,11 +146,17 @@ export const WorldAssets = {
 	},
 	/** Loads every template in parallel, waiting at most the preload timeout; returns the names still loading. */
 	Preload(names: WorldAssetName[]): WorldAssetName[] {
-		return UploadedAssets.Preload(names, preloadTimeout) as WorldAssetName[];
+		const endTrace = worldTraceScope("asset-preload");
+		try {
+			return UploadedAssets.Preload(names, preloadTimeout) as WorldAssetName[];
+		} finally { endTrace(); }
 	},
 	/** Starts every template load without waiting (shared with Preload, so nothing loads twice). */
 	Start(names: WorldAssetName[]): void {
-		UploadedAssets.Preload(names, 0);
+		const endTrace = worldTraceScope("asset-preload-start");
+		try {
+			UploadedAssets.Preload(names, 0);
+		} finally { endTrace(); }
 	},
 	/** Test hook: shorten (or restore, with no argument) the preload deadline. */
 	SetPreloadTimeout(seconds = PRELOAD_TIMEOUT): void {

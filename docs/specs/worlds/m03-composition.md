@@ -1,5 +1,7 @@
 # Mission 3 — dormant snowy mountain composition
 
+> Pending loading optimization (2026-10-31): current proposed estimate **14.734 s**, gate **16 s**. Older counts/timings below are historical. Native reachable surfaces and scenery are preserved; M03 alone drops its unreachable buried floor. Shared fill cap is now 262,144 voxels; loading slices M03/M04/M05 = 0.5/0.3/3 s. These extrapolate prior calibration and are not fresh Studio/device measurements. See D-666; orchestrator measures actual builds.
+
 Implementation consumes [m03.md](m03.md) and the [mission spec](../missions/m03.md), without newly inspecting video or claiming visual correspondence. World key `m03_snow_radar` is registered in `MissionWorld`; no catalog entry selects it. Practice and mission 1 retain their existing builders, presets, limits and report counts. No combat, mission data, catalog, flight math, streaming settings, uploaded assets change. The README, next steps, blockers and decisions now record this dormant PR; shipped.md remains unchanged.
 
 ## Scale, coordinate system and flight band

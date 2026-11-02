@@ -1,3 +1,4 @@
+import { BomberRules } from "../shared/BomberRules";
 import { FlightMath } from "../shared/FlightMath";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { MissionCatalog, MISSIONS } from "../shared/MissionCatalog";
@@ -47,6 +48,20 @@ describe("Mission 7 array strike and canyon escape", () => {
   const air = strike.fighterWaves!.reduce((n,w) => n + w.count * bp.scoring!.points[w.scoreRole], 240);
   expect(ground).toBe(1240); expect(air).toBe(1350); expect(ground+air).toBe(2590);
   expect(bp.scoring!.rank.S).toBe(1600); expect(ground+air >= bp.scoring!.rank.S).toBe(true);
+ });
+ it("keeps all three helicopter patrol slots clear of terrain along the runtime curves", () => {
+  const wave = strike.fighterWaves!.find(w => w.id === "m07_helicopters")!;
+  const route = wave.route!;
+  const slots = [0, 1, 2].map(i => ({ x: i * 60, y: 0, z: 0 }));
+  const compiled = BomberRules.Create(route.waypoints, route.speed, slots);
+  // The runtime uses these Hermite curves and offsets, not straight waypoint legs.
+  // Half-second samples are 30 studs apart, finer than the 256-stud terrain cells.
+  for (let t = 0; t <= compiled.duration; t += 0.5) {
+   for (const slot of BomberRules.Sample(compiled, t).slots) {
+    const p = slot.position;
+    expect(p.y - m07Ground(p.x, p.z)).toBeGreaterThanOrEqual(120);
+   }
+  }
  });
  it("requires every installation, resets only the phase clock and credits each id once", () => {
   const s = Runner.NewState(bp, 0), ledger = new TargetScore(bp.scoring!);

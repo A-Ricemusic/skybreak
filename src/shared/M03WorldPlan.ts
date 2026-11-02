@@ -1,18 +1,20 @@
 import type { EnvironmentSpec } from "./EnvironmentPresets";
-import { fillVoxels, terrainJobs } from "./TerrainSchedule";
+import { worldCounts } from "./WorldCompositionCounts";
+import { WORLD_FILL_CHUNK } from "./SealedWorldSurface";
 import { polyDist } from "./Polyline";
 import type { TerrainOp, PartSpec, TerrainMaterial } from "./WorldPlan";
 
 import { M03_BUILD_LIMITS } from "./M03Limits";
 
 export const M03_WORLD_KEY = "m03_snow_radar";
-export const M03_FILL_CHUNK = 65536;
+export const M03_FILL_CHUNK = WORLD_FILL_CHUNK;
+export const M03_TERRAIN_BUDGET = 0.25;
 // An eight-stud pavement slab from the lowland terrain (80) up to 88. Mission 2 measured smooth terrain
 // drawing 4-6 studs above its voxels (D-056), which hid a four-stud slab; the landing base follows suit.
 export const M03_RUNWAY_TOP = 88;
 const PAVEMENT_DEPTH = 8;
 export const M03 = {
-	halfX: 15488, halfZ: 15488, bottom: 0, coarse: 512, detail: 128, targetDetail: 64, corridorHalf: 640,
+	halfX: 15488, halfZ: 15488, bottom: 0, coarse: 1024, detail: 256, targetDetail: 64, corridorHalf: 640,
 	valley: 80, summit: 944, scale: 0.96,
 	start: { x: 12000, y: 640, z: 9120, headingDegrees: 47.3 }, // CFrame yaw: -Z toward NW
 	site1: { x: -480, z: -2400 }, site2: { x: -10080, z: -8160 },
@@ -87,25 +89,65 @@ function targetPositions(): number[][] {
 }
 const TARGET_POSITIONS = targetPositions();
 function targetTile(x: number, z: number): boolean {
-	for (const t of TARGET_POSITIONS) if (t[0] >= x - 128 && t[0] <= x + 256 && t[1] >= z - 128 && t[1] <= z + 256) return true;
+	for (const t of TARGET_POSITIONS) if (t[0] >= x - 128 && t[0] <= x + 384 && t[1] >= z - 128 && t[1] <= z + 384) return true;
 	return false;
 }
-/** Whole 512-stud tiles refine to 128 along the flight reservation. */
+/** Whole 1024-stud tiles refine to 256 along the flight reservation. */
 function detailedTile(x: number, z: number): boolean {
-	for (let dx = 0; dx <= 512; dx += 128) for (let dz = 0; dz <= 512; dz += 128) if (m03Detailed(x + dx, z + dz)) return true;
+	for (let dx = 0; dx <= 1024; dx += 128) for (let dz = 0; dz <= 1024; dz += 128) if (m03Detailed(x + dx, z + dz)) return true;
 	return false;
 }
-function cellAt(x: number, z: number) {
+// Preserve the pre-coarsening sampled height field, including its 64-stud target
+// refinement. A coarse cap must not rise above ANY old column it replaces:
+// otherwise its cap/curtains can dam a low flight path (notably the gorge).
+// Fixed-world deterministic caches only; out-of-world queries are never retained.
+const baselineDetail = new Map<string, boolean>();
+function baselineGround(x: number, z: number): number {
 	const tx = math.floor((x + M03.halfX) / 512) * 512 - M03.halfX;
 	const tz = math.floor((z + M03.halfZ) / 512) * 512 - M03.halfZ;
-	let side = detailedTile(tx, tz) ? 128 : 512;
+	const key = `${tx},${tz}`;
+	let detailed = baselineDetail.get(key);
+	if (detailed === undefined) {
+		detailed = false;
+		for (let dx = 0; dx <= 512; dx += 128) for (let dz = 0; dz <= 512; dz += 128)
+			if (m03Detailed(tx + dx, tz + dz)) detailed = true;
+		if (tx >= -M03.halfX && tx < M03.halfX && tz >= -M03.halfZ && tz < M03.halfZ) baselineDetail.set(key, detailed);
+	}
+	let side = detailed ? 128 : 512;
 	let cx = tx + math.floor((x - tx) / side) * side, cz = tz + math.floor((z - tz) / side) * side;
-	if (side === 128 && targetTile(cx, cz)) {
+	if (side === 128) for (const t of TARGET_POSITIONS) {
+		if (t[0] >= cx - 128 && t[0] <= cx + 256 && t[1] >= cz - 128 && t[1] <= cz + 256) {
+			side = 64;
+			cx += math.floor((x - cx) / side) * side; cz += math.floor((z - cz) / side) * side;
+			break;
+		}
+	}
+	return m03Height(cx + math.min(side, M03.halfX - cx) / 2, cz + math.min(side, M03.halfZ - cz) / 2);
+}
+const clearanceTops = new Map<string, number>();
+function clearanceTop(x: number, z: number, sx: number, sz: number): number {
+	const key = `${x},${z},${sx},${sz}`;
+	const cached = clearanceTops.get(key);
+	if (cached !== undefined) return cached;
+	let top = m03Height(x + sx / 2, z + sz / 2);
+	// Both grids share a 64-stud origin. Every former column is represented,
+	// including truncated boundary cells. Curtains lie wholly in the higher cap.
+	for (let dx = 0; dx < sx; dx += 64) for (let dz = 0; dz < sz; dz += 64)
+		top = math.min(top, baselineGround(x + dx, z + dz));
+	if (x >= -M03.halfX && x < M03.halfX && z >= -M03.halfZ && z < M03.halfZ) clearanceTops.set(key, top);
+	return top;
+}
+function cellAt(x: number, z: number) {
+	const tx = math.floor((x + M03.halfX) / 1024) * 1024 - M03.halfX;
+	const tz = math.floor((z + M03.halfZ) / 1024) * 1024 - M03.halfZ;
+	let side = detailedTile(tx, tz) ? 256 : 1024;
+	let cx = tx + math.floor((x - tx) / side) * side, cz = tz + math.floor((z - tz) / side) * side;
+	if (side === 256 && targetTile(cx, cz)) {
 		side = 64;
 		cx += math.floor((x - cx) / side) * side; cz += math.floor((z - cz) / side) * side;
 	}
 	const sx = math.min(side, M03.halfX - cx), sz = math.min(side, M03.halfZ - cz);
-	return { x: cx, z: cz, sx, sz, top: m03Height(cx + sx / 2, cz + sz / 2) };
+	return { x: cx, z: cz, sx, sz, top: clearanceTop(cx, cz, sx, sz) };
 }
 export function m03Ground(x: number, z: number): number {
 	return cellAt(x, z).top;
@@ -138,7 +180,7 @@ export function m03TargetLayout(): M03Target[] {
 	add("m03_s2_helicopter", "helicopter", "site2", -10080, -8480, math.pi / 2);
 	return targets;
 }
-export function buildM03Plan(seed = 303, checkpoint: () => void = () => {}): M03Plan {
+export function buildM03Plan(seed = 303, checkpoint: (phase?: string) => void = () => {}): M03Plan {
 	const p: M03Plan = { key: M03_WORLD_KEY, seed, ops: [], parts: [], targets: m03TargetLayout(), detailCells: 0, coarseCells: 0 };
 	const block = (material: TerrainMaterial, x: number, z: number, sx: number, sz: number, bottom: number, top: number) => p.ops.push({ shape: "block", material, x, y: (bottom + top) / 2, z, sx, sy: top - bottom, sz, yaw: 0 });
 	// Surface caps cover the entire hard airspace and perimeter curtains reach Y=0.
@@ -147,26 +189,28 @@ export function buildM03Plan(seed = 303, checkpoint: () => void = () => {}): M03
 	// Cache the adaptive surface on a 64-stud address grid. It also lets walls
 	// follow fine/coarse joins without evaluating the height function per edge.
 	const cells: Array<{ x: number; z: number; sx: number; sz: number; top: number }> = [];
-	const heights = new Map<string, number>();
-	const key = (x: number, z: number) => `${x},${z}`;
-	for (let x = -M03.halfX; x < M03.halfX; x += 512) for (let z = -M03.halfZ; z < M03.halfZ; z += 512) {
-		const side = detailedTile(x, z) ? 128 : 512;
-		for (let dx = 0; dx < math.min(512, M03.halfX - x); dx += side) for (let dz = 0; dz < math.min(512, M03.halfZ - z); dz += side) {
-			const fine = side === 128 && targetTile(x + dx, z + dz) ? 64 : side;
+	const heights = new Map<number, number>();
+	// Numeric addresses avoid allocating/interning a string for every sampled cell and edge.
+ const key = (x: number, z: number) => ((x + M03.halfX) / 64 + 1) * 512 + (z + M03.halfX) / 64 + 1;
+	for (let x = -M03.halfX; x < M03.halfX; x += 1024) for (let z = -M03.halfZ; z < M03.halfZ; z += 1024) {
+		const side = detailedTile(x, z) ? 256 : 1024;
+		for (let dx = 0; dx < math.min(1024, M03.halfX - x); dx += side) for (let dz = 0; dz < math.min(1024, M03.halfZ - z); dz += side) {
+			const fine = side === 256 && targetTile(x + dx, z + dz) ? 64 : side;
 			for (let fx = 0; fx < side && x + dx + fx < M03.halfX; fx += fine) for (let fz = 0; fz < side && z + dz + fz < M03.halfZ; fz += fine) {
 				const c = cellAt(x + dx + fx, z + dz + fz);
 				cells.push(c);
 				for (let gx = c.x; gx < c.x + c.sx; gx += 64) for (let gz = c.z; gz < c.z + c.sz; gz += 64) heights.set(key(gx, gz), c.top);
-				if (fine <= 128) p.detailCells++; else p.coarseCells++;
-				checkpoint();
+				if (fine <= M03.detail) p.detailCells++; else p.coarseCells++;
+				checkpoint("surface.sample");
 			}
 		}
-		checkpoint();
+		checkpoint("surface.sample");
 	}
 	for (const c of cells) {
 		const cx = c.x + c.sx / 2, cz = c.z + c.sz / 2;
 		// One 8-stud cap replaces the rock body plus snow overlay.
 		block(m03Material(cx, cz), cx, cz, c.sx, c.sz, c.top - 8, c.top);
+		// One voxel of overlap into the lower cap seals each step without touching a second buried chunk.
 		// Each shared edge is emitted once, in equal-height runs. Four-stud
 		// vertical rock curtains close the hollow shell, including LOD joins.
 		const wall = (axis: "x" | "z", edge: number, start: number, length: number, negative = false) => {
@@ -176,7 +220,7 @@ export function buildM03Plan(seed = 303, checkpoint: () => void = () => {}): M03
 				const lo = math.min(previous, c.top), hi = math.max(previous, c.top);
 				const offset = (c.top > previous ? -2 : 2) * (negative ? -1 : 1);
 				block("Rock", axis === "x" ? edge + offset : (run + finish) / 2, axis === "z" ? edge + offset : (run + finish) / 2,
-					axis === "x" ? 4 : finish - run, axis === "z" ? 4 : finish - run, math.max(0, lo - 8), hi);
+					axis === "x" ? 4 : finish - run, axis === "z" ? 4 : finish - run, math.max(0, lo - 4), hi);
 			};
 			for (let v = start; v < start + length; v += 64) {
 				const neighbor = heights.get(axis === "x" ? key(negative ? edge - 64 : edge, v) : key(v, negative ? edge - 64 : edge)) ?? 0;
@@ -188,7 +232,7 @@ export function buildM03Plan(seed = 303, checkpoint: () => void = () => {}): M03
 		wall("z", c.z + c.sz, c.x, c.sx);
 		if (c.x === -M03.halfX) wall("x", c.x, c.z, c.sz, true);
 		if (c.z === -M03.halfZ) wall("z", c.z, c.x, c.sx, true);
-		checkpoint();
+		checkpoint("surface.emit");
 	}
 	const part = (name: string, x: number, y: number, z: number, sx: number, sy: number, sz: number, color: [number, number, number], solid = false) => p.parts.push({ name, shape: "block", x, y, z, sx, sy, sz, yaw: 0, material: "Concrete", color, solid, grounded: solid });
 	// Native moon direction is tied to the sun. A non-solid untextured distant
@@ -216,12 +260,7 @@ export function buildM03Plan(seed = 303, checkpoint: () => void = () => {}): M03
 	return p;
 }
 export function m03Counts(p: M03Plan) {
-	let voxels = 0;
-	for (const op of p.ops) voxels += fillVoxels(op);
-	const jobs = terrainJobs(p.ops, M03_FILL_CHUNK).size();
-	// Model parts per target plus the invisible aim root each gains when combat adopts it by id.
 	const targetParts = 9 * 2 + 4 * 3 + 7 + p.targets.size();
-	return { voxels, jobs, parts: p.parts.size() + targetParts, descendants: p.parts.size() + targetParts + p.targets.size() + 1,
-		// Same measured M01 tuned cold rate and 2x reserve used by M02.
-		estimatedSeconds: 2 * (jobs / 27494 * 7.915 + 1) };
+	const counts = worldCounts({ ...p, props: [] }, targetParts, M03_FILL_CHUNK);
+	return { ...counts, descendants: counts.parts + p.targets.size() + 1 };
 }

@@ -7,13 +7,14 @@ import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { FlightMath } from "../shared/FlightMath";
 import { createGroundTarget } from "../server/GroundTargetFactory";
+import { sessionFixture } from "./SessionFixture";
 function fixture() {
  const folder=new Instance("Folder"); folder.Parent=Workspace;
  const floor=new Instance("Part"); floor.Anchored=true; floor.Size=new Vector3(600,20,600); floor.Position=new Vector3(0,9990,0); floor.Parent=folder;
  const params=new RaycastParams(); params.FilterType=Enum.RaycastFilterType.Include; params.FilterDescendantsInstances=[folder];
  const plan: CanyonEscape={ceiling:10585,source:{x:400,y:10300,z:0},warningSeconds:3,countdownSeconds:4,intervalSeconds:12,damage:30,clearance:60,channel:[{x:0,y:10300,z:-100},{x:0,y:10300,z:100}]};
  const bs=BlueprintRunner.NewState({...MissionCatalog.Get(1),phases:[{kind:"return_line",label:"Escape",canyonEscape:plan}]},0);
- const session={blueprintState:bs,collisionParams:params,state:FlightMath.FromPose(0,10300,0,0,0,160),health:100,damageTaken:0,lowestHealth:100} as unknown as CombatSession;
+ const session=sessionFixture(bs.blueprint,{folder,state:FlightMath.FromPose(0,10300,0,0,0,160)}); session.blueprintState=bs; session.collisionParams=params;
  return {folder,floor,params,plan,session};
 }
 describe("D3 Roblox terrain and hazard integration",()=>{

@@ -1,3 +1,4 @@
+import { plansEqual } from "./TestPacing";
 import { describe,expect,it } from "@rbxts/jest-globals";
 import { buildM14Plan,m14Counts,m14Ground,M14,M14_ENVIRONMENT,m14Routes } from "../shared/M14WorldPlan";
 import { buildM15Plan,m15Counts,m15Ground,M15,m15BomberRoutes } from "../shared/M15WorldPlan";
@@ -30,7 +31,7 @@ describe("Dormant M14–M18 procedural worlds",()=>{
  const worlds=[a,b,c,d,e],grounds=[m14Ground,m15Ground,m16Ground,m17Ground,m18Ground];
  it("exports deterministic id-owned scenery without changing catalog selection",()=>{
   for(const [i,build]of [buildM14Plan,buildM15Plan,buildM16Plan,buildM17Plan,buildM18Plan].map((build,i)=>[i,build] as const)){
-   let calls=0;expect(build(undefined,()=>{calls++;})).toEqual(worlds[i]);expect(calls).toBeGreaterThan(1000);
+   let calls=0;expect(plansEqual(build(undefined,()=>{calls++;}), worlds[i])).toBe(true);expect(calls).toBeGreaterThan(1000);
    const p=worlds[i];expect(p.props.size()).toBe(0);expect(new Set(p.targets.map(t=>t.id)).size()).toBe(p.targets.size());
    for(const t of p.targets){expect(t.id.sub(1,4)).toBe("m"+(14+i)+"_");expect(p.parts.some(f=>f.name===t.id)).toBe(!((i===3&&(t.group==="elite"||t.group==="optional_air")) || (i===4&&(t.group==="optional_air"||t.group==="optional_missile"))));}
    for(const m of MissionCatalog.All().filter(m=>m.id!==14 && m.id!==15 && m.id!==16 && m.id!==17 && m.id!==18))expect(MissionCatalog.WorldKey(m.id)).never.toBe(p.key);

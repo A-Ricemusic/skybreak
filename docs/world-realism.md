@@ -99,7 +99,7 @@ grid-aligned regions the hills read and write (the executor's own regions, not t
 | Mission | Theme | Environment | Terrain ops | Voxel writes (M) | Hill cells (M) | Parts | Props | Trees | Rocks | Buildings | Ships | Unique meshes | Instances |
 |---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
 | Practice | Legacy training islands | canyon_noon | engine-built | - | - | - | - | - | - | - | - | - | - |
-| M1 | Sea and island | sea overcast afternoon | 25152 | 207.7 | - | 307 | 161 | - | - | - | - | - | 955 |
+| M1 | Sea and island | sea overcast afternoon | 14047 | 207.7 | - | 307 | 161 | - | - | - | - | - | 955 |
 
 Current worlds only. Practice is engine-built; numeric counts require Studio. M1 counts are pure-plan estimates including the carrier stand-in allowance, not assembled runtime measurements.
 M1 budgets: 340 parts, 240 props, 1300 descendants, 260M voxel writes, 30000 scheduled jobs. Practice retains the 600 primitive-part engine budget.
