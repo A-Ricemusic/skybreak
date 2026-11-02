@@ -18,7 +18,7 @@ export function m17TargetLayout():WorldContact[]{
  for(let i=48;i<55;i++){const t=ts[i],h=ts[55+(i-48)%4];t.x=h.x;t.y=80;t.z=h.z+(i<52?-60:60);t.group="naval_mount";}
  ts.push({id:"m17_rusk",type:"rusk_retreat",group:"elite",...M17.elite,yaw:0});ts.push({id:"m17_enemy_bridge",type:"bridge_section",group:"bridge",x:-1920,y:126,z:-4800,yaw:0});return ts;
 }
-export function buildM17Plan(seed=1717,checkpoint:()=>void=()=>{}){
+export function buildM17Plan(seed=1717,checkpoint:(phase?:string)=>void=()=>{}){
  const d=worldDressing(M17_SURFACE,checkpoint),targets=m17TargetLayout();
  for(const sea of d.seaParts)sea.color=M17_ENVIRONMENT.water.color;
  for(const t of targets)if(t.group==="naval")d.part(t.id,t.x,48,t.z,100,32,280,"Metal");else if(t.group!=="bridge"&&t.group!=="elite"&&t.group!=="optional_air")d.contact(t,t.group==="capital");
@@ -35,7 +35,7 @@ export function buildM17Plan(seed=1717,checkpoint:()=>void=()=>{}){
 export const m17Counts=(p:ReturnType<typeof buildM17Plan>)=>compactWorldCounts(p,0);
 
 /** Live combat directors own optional aircraft, wingmen and Rusk. */
-export function buildM17ScenePlan(seed=1717,checkpoint:()=>void=()=>{}) {
+export function buildM17ScenePlan(seed=1717,checkpoint:(phase?:string)=>void=()=>{}) {
  const plan=buildM17Plan(seed,checkpoint);
  const airborne=new Set(plan.targets.filter(t=>t.group==="elite"||t.group==="optional_air").map(t=>t.id));
  plan.targets=plan.targets.filter(t=>!airborne.has(t.id));

@@ -52,7 +52,7 @@ export function m06TargetLayout(): M06Target[] {
  for (const b of M06.basins) for (let i = 0; i < 6; i++) add(i % 3 === 0 ? "gun" : i % 3 === 1 ? "aa" : "sam", `${b.group}_defence`, b.x - 650 + (i % 3) * 650 + 180, 48, b.z - 900 + math.floor(i / 3) * 900);
  return out;
 }
-export function buildM06Plan(seed = 606, checkpoint: () => void = () => {}) {
+export function buildM06Plan(seed = 606, checkpoint: (phase?: string) => void = () => {}) {
  const terrain = compactSurface(M06_SURFACE, checkpoint), parts: PartSpec[] = [...terrain.seaParts], props: PropSpec[] = [];
  const part = (name: string, x: number, y: number, z: number, sx: number, sy: number, sz: number, shape: PartSpec["shape"] = "block", material = "Concrete", color: [number, number, number] = [99, 103, 98]) => parts.push({ name, x, y, z, sx, sy, sz, shape, material, color, yaw: 0, solid: true, grounded: false });
  for (const b of M06.basins) {

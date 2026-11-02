@@ -1,3 +1,8 @@
+import { boundedWorldWork } from "./BoundedWorldWork";
+import { destroyWorld } from "../server/WorldDisposal";
+import { TerrainWriter } from "../server/TerrainWriter";
+import { Workspace } from "@rbxts/services";
+import { beginTerrainWrite, clearTerrainIfDirty, terrainDirty } from "../server/TerrainState";
 import { afterEach, describe, expect, it } from "@rbxts/jest-globals";
 import { registerWorldClear, robloxScheduler, worldClear } from "../server/WorldLifecycleRuntime";
 import { IsolatedWork, LifecycleScheduler, WorldLifecycle } from "../shared/WorldLifecycle";
@@ -66,5 +71,37 @@ describe("World lifecycle runtime (Studio)", () => {
 		expect(worldClear("lifecycle_test_world")).never.toBe(original);
 		unregister();
 		expect(worldClear("lifecycle_test_world")).toBe(original);
+	});
+});
+
+// Cooperative cleanup remains covered alongside main's bounded gate fixtures.
+describe("Cooperative world cleanup", () => {
+ afterEach(() => boundedWorldWork("cleanup regression teardown", () => { destroyWorld(); clearTerrainIfDirty(); }, 5), 7000);
+	it("retains an interrupted instance tree and drains it on retry", () => {
+		const root = new Instance("Folder"); root.Parent = Workspace;
+		for (let i = 0; i < 256; i++) { const part = new Instance("Part"); part.Anchored = true; part.Parent = root; }
+		let visits = 0;
+		destroyWorld(root, () => ++visits > 64);
+		expect(root.Parent).toBe(Workspace);
+		expect(root.GetChildren().size()).toBeGreaterThan(0);
+		expect(root.GetChildren().size()).toBeLessThan(256);
+		destroyWorld();
+		expect(root.Parent).toBeUndefined();
+		expect(root.GetChildren().size()).toBe(0);
+	});
+	it("resumes a cancelled terrain clear and leaves no tracked voxels behind", () => {
+		const probe = (): number => {
+			const [, occupancy] = Workspace.Terrain.ReadVoxels(new Region3(new Vector3(9000, 4000, 9000), new Vector3(9008, 4008, 9008)), 4);
+			return occupancy[0][0][0];
+		};
+		beginTerrainWrite();
+		TerrainWriter.Write([{shape:"block",material:"Rock",x:9004,y:4004,z:9004,sx:8,sy:8,sz:8,yaw:0}]);
+		expect(terrainDirty()).toBe(true);
+		clearTerrainIfDirty(()=>true);
+		expect(terrainDirty()).toBe(true);
+		expect(probe()).toBeGreaterThan(0);
+		clearTerrainIfDirty();
+		expect(terrainDirty()).toBe(false);
+		expect(probe()).toBe(0);
 	});
 });

@@ -1,3 +1,4 @@
+import { testCheckpoint } from "./TestPacing";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { FlightMath } from "../shared/FlightMath";
 import { WorldAirspace } from "../shared/WorldAirspace";
@@ -36,9 +37,11 @@ describe("Mission world plans", () => {
 		const route = MissionCatalog.ExpandedPhases(MissionCatalog.Get(11)).find((p) => p.kind === "route")!;
 		const points = [{ x: 820, z: -780 }, ...route.points!, { x: 0, z: -1650 }];
 		for (let i = 1; i < points.size(); i++) {
+			testCheckpoint();
 			const a = points[i - 1], b = points[i];
 			const n = math.ceil(math.sqrt((b.x - a.x) ** 2 + (b.z - a.z) ** 2) / 10);
 			for (let k = 0; k <= n; k++) {
+				testCheckpoint();
 				const s = surfaceAt(plan, a.x + (b.x - a.x) * k / n, a.z + (b.z - a.z) * k / n);
 				expect(s.kind).toBe("part");
 				expect(s.name === "Road" || s.name === "Target apron").toBe(true);
@@ -50,9 +53,11 @@ describe("Mission world plans", () => {
 		// heading and altitude for 600 studs (3.75 s at 800 mph, 1 s at 3000).
 		// M25 has no route phase; its escort is not a route-exit clearance test.
 		for (const id of [3, 7, 11, 12, 19, 21]) {
+			testCheckpoint();
 			let auditedExits = 0;
 			const plan = WorldPlanner.Build(id, MissionCatalog.Get(id));
 			for (const phase of MissionCatalog.ExpandedPhases(MissionCatalog.Get(id))) {
+				testCheckpoint();
 				const pts = phase.points ?? [];
 				if (phase.kind !== "route" || pts.size() < 2) continue;
 				auditedExits += 1;
@@ -60,6 +65,7 @@ describe("Mission world plans", () => {
 				const dx = b.x - a.x, dz = b.z - a.z, len = math.sqrt(dx * dx + dz * dz);
 				expect(len).toBeGreaterThan(0);
 				for (let d = 0; d <= FlightMath.MaxSpeed; d += 20) {
+					testCheckpoint();
 					expect(solidTopWithin(plan, b.x + dx / len * d, b.z + dz / len * d, 80)).toBeLessThan(b.y - 40);
 				}
 			}
@@ -72,12 +78,14 @@ describe("Mission world plans", () => {
 		expect(WorldAirspace.soft).toBeLessThan(WorldAirspace.hard);
 		expect(WorldAirspace.hard).toBeLessThan(4000);
 		for (const id of [3, 5, 19]) {
+			testCheckpoint();
 			const plan = WorldPlanner.Build(id, MissionCatalog.Get(id));
 			expect(plan.props.filter((p) => p.tag === "OuterDistrict").size()).toBeGreaterThan(15);
 			// At each junction the full surface is paved; the access spur connects
 			// to the longitudinal road instead of stopping short of it.
 			for (const [x, z] of [[3400, 1100], [3400, -600], [3400, 600], [3300, 1100]]) expect(surfaceAt(plan, x, z).kind).toBe("part");
 			for (const p of plan.parts) if (p.mesh !== undefined) {
+				testCheckpoint();
 				expect([p.sx, p.sy, p.sz]).toEqual(KIT_BOUNDS[p.mesh]);
 				expect(math.max(math.abs(p.x) + p.sx / 2, math.abs(p.z) + p.sz / 2)).toBeLessThan(WorldAirspace.hard);
 			}
@@ -85,11 +93,13 @@ describe("Mission world plans", () => {
 		const m3 = WorldPlanner.Build(3, MissionCatalog.Get(3));
 		// Sweep the runway and both approaches: no prop/terrain buried in pavement.
 		for (let z = -850; z <= 850; z += 25) {
+			testCheckpoint();
 			for (const x of [2910, 2950, 2990]) expect(surfaceAt(m3, x, z).y).toBeLessThan(46);
 		}
 		expect(WorldPlanner.Build(5, MissionCatalog.Get(5)).parts.some((p) => p.mesh === "RunwayTile")).toBe(false);
 	});
 	for (const id of ids) {
+		testCheckpoint();
 		it(`M${id} keeps flight points clear, targets grounded, nothing floating and the budget`, () => {
 			const result = auditPlan(WorldPlanner.Build(id, MissionCatalog.Get(id)), MissionCatalog.Get(id));
 			const shown = result.problems.size() > 8 ? [...result.problems.filter((_, i) => i < 8), `... ${result.problems.size() - 8} more`] : result.problems;
@@ -99,6 +109,7 @@ describe("Mission world plans", () => {
 	}
 	it("uses the uploaded models everywhere they fit", () => {
 		for (const id of ids) {
+			testCheckpoint();
 			const plan = WorldPlanner.Build(id, MissionCatalog.Get(id)), bp = MissionCatalog.Get(id), c = WorldPlanner.Counts(plan);
 			const has = (asset: string) => plan.props.filter((p) => p.asset === asset).size();
 			if (plan.theme === "farm" || plan.theme === "coast") {
@@ -132,6 +143,7 @@ describe("Mission world plans", () => {
 	});
 	it("uses Terrain water for every coast and ocean mission and keeps land missions dry", () => {
 		for (const id of ids) {
+			testCheckpoint();
 			const plan = WorldPlanner.Build(id, MissionCatalog.Get(id));
 			const wet = plan.ops.some((o) => o.material === "Water");
 			expect(wet).toBe(plan.theme === "coast" || plan.theme === "ocean" || plan.ops.some((o) => o.material === "Water" && o.sx === 160));
@@ -141,6 +153,7 @@ describe("Mission world plans", () => {
 	it("keeps every escort, defend and parked launch afloat along its whole path", () => {
 		let checked = 0;
 		for (const id of ids) {
+			testCheckpoint();
 			const plan = WorldPlanner.Build(id, MissionCatalog.Get(id));
 			const wet = plan.theme === "coast" || plan.theme === "ocean";
 			if (wet) expect(plan.waterPaths.size() > 0 || MissionCatalog.ExpandedPhases(MissionCatalog.Get(id)).every((p) => p.kind !== "escort" && p.kind !== "defend" && p.parkedEscort === undefined)).toBe(true);
@@ -160,14 +173,17 @@ describe("Mission world plans", () => {
 	it("moors every frigate over a berth deeper than its keel", () => {
 		let frigates = 0;
 		for (const id of ids) {
+			testCheckpoint();
 			const plan = WorldPlanner.Build(id, MissionCatalog.Get(id));
 			for (const p of plan.props) {
+				testCheckpoint();
 				if (p.asset !== "Frigate") continue;
 				frigates += 1;
 				const box = propBox(p);
 				expect(box.bottom).toBe(WATER_Y - UploadedAssetSpecs.Frigate.groundOffset);
 				const c = math.cos(p.yaw), s = math.sin(p.yaw);
 				for (const lx of [-box.rect.hx, 0, box.rect.hx]) for (const lz of [-box.rect.hz, -box.rect.hz / 2, 0, box.rect.hz / 2, box.rect.hz]) {
+					testCheckpoint();
 					const x = p.x + c * lx + s * lz, z = p.z - s * lx + c * lz, t = terrainTop(plan.ops, x, z);
 					expect(`M${id} hull (${math.floor(x)}, ${math.floor(z)}): water ${t.water}, seabed ok ${t.solid <= box.bottom - KEEL_MIN}`).toBe(`M${id} hull (${math.floor(x)}, ${math.floor(z)}): water ${WATER_Y}, seabed ok true`);
 				}

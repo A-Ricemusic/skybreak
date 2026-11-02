@@ -1,3 +1,4 @@
+import { destroyWorld } from "./WorldDisposal";
 import { JetFactory } from "../shared/JetFactory";
 import { Lighting, Workspace } from "@rbxts/services";
 import { GameConfig } from "../shared/GameConfig";
@@ -237,7 +238,7 @@ function buildAirbase(parent: Instance): Model {
 
 export const WorldBuilder = {
 	Build(): { World: Folder; MenuCamera: CFrame } {
-		Workspace.FindFirstChild("World")?.Destroy();
+		destroyWorld(Workspace.FindFirstChild("World"));
 		buildLighting();
 		const world = new Instance("Folder");
 		world.Name = "World";

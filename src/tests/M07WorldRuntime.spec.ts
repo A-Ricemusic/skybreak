@@ -1,3 +1,8 @@
+import { boundedWorldWork, cancelWorldWork } from "./BoundedWorldWork";
+import { destroyWorld } from "../server/WorldDisposal";
+import { beforeEach, afterAll } from "@rbxts/jest-globals";
+import { UploadedAssets } from "../shared/UploadedAssets";
+import { fakeIds, fakeUpload, probe } from "./WorldBuildFixtures";
 import { afterEach, describe, expect, it } from "@rbxts/jest-globals";
 import { Workspace } from "@rbxts/services";
 import { M07World } from "../server/M07World";
@@ -8,13 +13,18 @@ import { MissionCatalog } from "../shared/MissionCatalog";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import type { CombatSession } from "../server/CombatSession";
 
+beforeEach(() => UploadedAssets.Configure({ ids: fakeIds(true), probe, loader: fakeUpload }));
+afterAll(() => UploadedAssets.Configure());
+
 describe("M07 built-world D-242 first-step audit", () => {
  let folder: Folder | undefined;
- afterEach(() => { folder?.Destroy(); M07World.Clear(() => false); });
+ afterEach(() => { cancelWorldWork();
+  boundedWorldWork("M07 cleanup", () => { destroyWorld(folder); M07World.Clear(() => false); }, 30);
+  folder = undefined;
+ }, 35000);
  it("accepts the real composition and initializes artillery on the first escape step", () => {
-  M07World.Clear(() => false);
   folder=new Instance("Folder"); folder.Name="M07AuditFixture"; folder.Parent=Workspace;
-  M07World.Build(folder);
+  boundedWorldWork("M07 build", () => { M07World.Clear(() => false); return M07World.Build(folder!); });
   const params=AircraftCollision.Parameters(folder), bp=MissionCatalog.Get(7), plan=bp.phases[1].canyonEscape!;
   expect(auditCanyon(plan,params)).toBe(true);
   const state=BlueprintRunner.NewState(bp,0); state.phaseIndex=1;

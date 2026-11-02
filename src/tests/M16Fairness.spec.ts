@@ -1,3 +1,4 @@
+import { testCheckpoint } from "./TestPacing";
 import { TargetPriority } from "../shared/TargetPriority";
 import { guidedDirection } from "../shared/EncounterKinematics";
 import { WavePlan, AirRequest } from "../shared/WavePlan";
@@ -23,7 +24,7 @@ const dot=(a:Point,b:Point)=>a.x*b.x+a.y*b.y+a.z*b.z;
 const steer=(a:Point,b:Point,n:number)=>unit(add(mul(a,1-n),mul(b,n)));
 // Terrain LOS only. Authored props/actors are an explicit remaining Player acceptance gap.
 function los(a:Point,b:Point):boolean {
- for(let i=0;i<=20;i++) {const p=add(a,mul(sub(b,a),i/20));if(p.y<=m16Height(p.x,p.z)) return false;}return true;
+ for(let i=0;i<=20;i++) { testCheckpoint();const p=add(a,mul(sub(b,a),i/20));if(p.y<=m16Height(p.x,p.z)) return false;}return true;
 }
 interface Attacker {p:Point;d:Point;v:Point;hp:number;sector:number;fire:number;wind:number;flares:number;flareUntil:number;admittedAt:number;breakUntil:number;}
 interface Shot {p:Point;d:Point;target:Attacker;age:number;last?:number;lost:boolean;}
@@ -32,7 +33,7 @@ function fly(kind:DifficultyKind,attentive:boolean,moving=false,fault="none") {
  const queue:AirRequest[]=[],cover:{until:number;routed:boolean;contact:Attacker;route?:ReturnType<typeof BomberRules.Create>;born:number}[]=[];
  const enemies:Attacker[]=[],shots:Shot[]=[];let lastPress=-math.huge;let target:Attacker|undefined,lock=0,cool=0,spent=0,kills=0,decoys=0,maxKillDelay=0;
  const start=mission.start!;const player=F.FromPose(start.x,start.y,start.z,-math.rad(start.headingDegrees),0,0);player.speed=start.speed!;
- for(let tick=0;tick<24000;tick++) {
+ for(let tick=0;tick<24000;tick++) { testCheckpoint();
   const now=tick*dt;
   if(moving) {
    const cleared=new Set<string>();for(let i=0;i<3;i++) if(now>=[60,300,650][i]) for(const id of M16_COLUMN.sectors[i].clearTargetIds) cleared.add(id);
@@ -40,11 +41,11 @@ function fly(kind:DifficultyKind,attentive:boolean,moving=false,fault="none") {
   }
   for(let i=cover.size()-1;i>=0;i--)if(cover[i].until<=now)cover.remove(i);
   for(const w of M16_WAVES) if(takeArrival(w.id,w.trigger,{elapsed:now,phase:0,requiredKills:0,destroyed:new Set<string>(),targets:[]},fired))queue.push({arrival:w,role:w.role,count:w.count,behind:false});
-  for(const batch of WavePlan.Admit(queue,mission.phases[0].concurrentFighters!-cover.size()-enemies.filter(e=>e.hp>0).size(),mission.phases[0].concurrentRoutes!-cover.filter(e=>e.routed).size())) {
+  for(const batch of WavePlan.Admit(queue,mission.phases[0].concurrentFighters!-cover.size()-enemies.filter(e=>e.hp>0).size(),mission.phases[0].concurrentRoutes!-cover.filter(e=>e.routed).size())) { testCheckpoint();
    const w=batch.arrival!;
    if(!("attackSector" in w)||!w.attackSector){
     const route="route" in w?w.route:undefined;
-    for(let i=0;i<batch.count;i++) {
+    for(let i=0;i<batch.count;i++) { testCheckpoint();
      const path=route?BomberRules.Create(route.waypoints,route.speed,[{x:i*60,y:0,z:0}]):undefined;
      const heading=w.headingDegrees??0;
      const pose=authoredAirPose(w.spawn??{x:player.x-math.sin(math.rad(heading))*2800,y:math.max(240,player.y),z:player.z+math.cos(math.rad(heading))*2800},heading,i,false,0);
@@ -53,11 +54,11 @@ function fly(kind:DifficultyKind,attentive:boolean,moving=false,fault="none") {
     }
     continue;
    }
-   for(let i=0;i<batch.count;i++) {const pose=authoredAirPose(w.spawn!,w.headingDegrees!,i,false,0);
+   for(let i=0;i<batch.count;i++) { testCheckpoint();const pose=authoredAirPose(w.spawn!,w.headingDegrees!,i,false,0);
     enemies.push({p:pose.position,d:pose.facing,v:mul(pose.facing,A.speed),hp:Difficulty.SupportHealth(kind,100),sector:M16_COLUMN.sectors.findIndex(s=>s.id===w.attackSector),fire:4+i*1.5,wind:0,flares:AlliedRules.PressureFlare(mission.pressure,false,w.role,kind)?1:0,flareUntil:0,admittedAt:now,breakUntil:0});
    }
   }
-  for(const e of enemies) if(e.hp>0) {
+  for(const e of enemies) if(e.hp>0) { testCheckpoint();
    const p=groundProgressPose(M16_COLUMN.sectors[e.sector],states[e.sector]),distance=len(sub(p,e.p));
    let desired=unit(sub(add(p,{x:0,y:240,z:0}),e.p));if(distance<400) desired=unit(add(e.d,{x:0,y:0.3,z:0}));
    e.d=steer(e.d,desired,dt*1.5);e.v=mul(e.d,A.speed);e.p=add(e.p,mul(e.v,dt));e.p.y=math.clamp(e.p.y,170,2000);
@@ -67,7 +68,7 @@ function fly(kind:DifficultyKind,attentive:boolean,moving=false,fault="none") {
   }
   // Cover remains live and selectable; routed contacts follow their authored paths.
   // Pursuing cover is an envelope approximation, not a Player survivability test.
-  for(const c of cover) {
+  for(const c of cover) { testCheckpoint();
    if(c.route)c.contact.p=BomberRules.Sample(c.route,now-c.born).slots[0].position;
    else {const e=c.contact;e.d=steer(e.d,unit(sub(player,e.p)),dt*1.5);e.v=mul(e.d,A.speed);e.p=add(e.p,mul(e.v,dt));}
   }
@@ -107,7 +108,7 @@ function fly(kind:DifficultyKind,attentive:boolean,moving=false,fault="none") {
     shots.push({p:{x:player.x,y:player.y,z:player.z},d:nose,target,age:0,lost:false});spent++;cool=CombatBalance.playerMissileCooldown;
    }
   }
-  for(let i=shots.size()-1;i>=0;i--) {
+  for(let i=shots.size()-1;i>=0;i--) { testCheckpoint();
    const s=shots[i],e=s.target,distance=len(sub(e.p,s.p));s.age+=dt;
    if(T.ShouldFlare(distance,e.flares,0)) {e.flares--;e.flareUntil=now+T.FlareSeconds;}
    if(T.FlareDecoys(distance,e.flareUntil,now)) {decoys++;shots.remove(i);continue;}
@@ -124,7 +125,7 @@ function fly(kind:DifficultyKind,attentive:boolean,moving=false,fault="none") {
 }
 describe("M16 rule-derived response envelope",()=>{
  it("fails attentive protection when acquisition or guidance is broken",()=>{
-  for(const fault of ["acquisition","homing"]) {
+  for(const fault of ["acquisition","homing"]) { testCheckpoint();
    const r=fly("normal",true,false,fault);
    expect(r.kills===21&&r.states.every(s=>s.health>0)).toBe(false);
    if(fault==="acquisition") {expect(r.kills).toBe(0);expect(r.spent).toBe(0);expect(r.failedAt).toBeLessThan(180);}
@@ -144,14 +145,14 @@ describe("M16 rule-derived response envelope",()=>{
   // Persistent cover's REAL flight gate still orders overall threat strictly.
   const gates=Difficulty.Order.map(d=>T.FlightGate(Difficulty.Scale(d,"hostileGate",CombatBalance.flightGate[2]),6,Difficulty.Scale(d,"flightDivisor",CombatBalance.flightDivisor[2])));
   expect(gates[0]).toBeGreaterThan(gates[1]);expect(gates[1]).toBeGreaterThan(gates[2]);
- });
+ },120000);
  it("also defends a clearance-gated moving column with the same flight strategy",()=>{
-  for(const kind of Difficulty.Order) {
+  for(const kind of Difficulty.Order) { testCheckpoint();
    const response=fly(kind,true,true);
    print(kind,"moving",response.kills,response.spent,response.states[0].health,response.states[1].health,response.states[2].health);
    expect(response.maxKillDelay).toBeLessThan(159);expect(response.kills).toBe(21);expect(response.states.every(s=>s.health>0 && s.secured)).toBe(true);expect(response.spent).toBeLessThanOrEqual(80);
   }
- });
+ },120000);
  it("terrain LOS blocks low shots rather than awarding damage through terrain",()=>{
   expect(los({x:0,y:70,z:9600},{x:0,y:104,z:9600})).toBe(false);
   expect(los({x:0,y:650,z:9600},{x:0,y:104,z:9600})).toBe(true);

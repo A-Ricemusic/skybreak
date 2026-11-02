@@ -1,4 +1,6 @@
 import { WorldBuildScheduler } from "./WorldBuildScheduler";
+import { traceWorldPhase } from "./WorldBuildTrace";
+import { planProfiler } from "./PlanProfiler";
 import { assertWorldInstanceBudget } from "./WorldInstanceBudget";
 import { Lighting, Workspace } from "@rbxts/services";
 import { AssetSelection } from "../shared/AssetSelection";
@@ -65,16 +67,10 @@ function placeM01Carrier(parent: Instance, candidates: WorldAssetName[]): Model 
 export const M01World = {
 	Build(parent: Instance, seed = 101): { groundTargets: Model[] } {
 		const start = os.clock();
-		parent.SetAttribute("WorldBuildPhase", "plan");
-		let slice = start, longestPlanSlice = 0;
-		const checkpoint = () => {
-			const elapsed = os.clock() - slice;
-			longestPlanSlice = math.max(longestPlanSlice, elapsed);
-			if (elapsed >= 0.004) { WorldBuildScheduler.Pause(); slice = os.clock(); }
-		};
-		const plan = buildM01Plan(seed, checkpoint);
-		parent.SetAttribute("WorldPlanSeconds", os.clock() - start);
-		parent.SetAttribute("WorldPlanLongestSlice", longestPlanSlice);
+		parent.SetAttribute("WorldBuildPhase", "plan"); traceWorldPhase("setup");
+		const profile = planProfiler(parent);
+		const plan = buildM01Plan(seed, profile.checkpoint);
+		profile.finish();
 		parent.SetAttribute("WorldBuildPhase", "environment");
 		const names = plan.props.map((p) => p.asset);
 		const carrierAssets = AssetSelection.CarrierCandidates(UploadedAssetSpecs) as WorldAssetName[];
@@ -92,9 +88,10 @@ export const M01World = {
 		const terrain = TerrainWriter.Write(plan.ops, 0.008, M01_FILL_CHUNK);
 		parent.SetAttribute("WorldTerrainReadySeconds", os.clock() - start);
 		parent.SetAttribute("WorldTerrainLongest", terrain.longest);
+	parent.SetAttribute("WorldTerrainLongestBatch", terrain.longestBatch);
 		parent.SetAttribute("WorldTerrainJobs", terrain.jobs);
 		WorldBuildScheduler.Pause();
-		parent.SetAttribute("WorldBuildPhase", "dressing");
+		parent.SetAttribute("WorldBuildPhase", "dressing"); traceWorldPhase("prop-composition-placement");
 		for (let i = 0; i < plan.parts.size(); i++) {
 			const p = plan.parts[i];
 			Scenery.Part(scene, p.name, new Vector3(p.sx, p.sy, p.sz), new Vector3(p.x, p.y, p.z), Color3.fromRGB(...p.color), material(p.material), { flightSolid: p.solid, castShadow: false });
@@ -118,7 +115,7 @@ export const M01World = {
 		placeM01Carrier(scene, carrierAssets);
 		assertWorldInstanceBudget(scene, M01.budget.descendants, 4);
 		parent.SetAttribute("WorldPropsMissing", missing);
-		parent.SetAttribute("WorldBuildPhase", "done");
+		parent.SetAttribute("WorldBuildPhase", "done"); traceWorldPhase("build-tail");
 		parent.SetAttribute("WorldBuildSeconds", os.clock() - start);
 		parent.SetAttribute("Composition", plan.key);
 		return { groundTargets: [] };

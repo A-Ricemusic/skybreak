@@ -113,7 +113,7 @@ export function terrainJobs(ops: TerrainOp[], fillChunk = FILL_CHUNK): TerrainJo
 	return out;
 }
 
-export interface BudgetRun { yields: number; longest: number; total: number }
+export interface BudgetRun { yields: number; longest: number; longestBatch: number; total: number }
 export interface BudgetOptions { budget: number; clock: () => number; pause: () => void; cancelled?: () => boolean }
 
 /**
@@ -121,7 +121,7 @@ export interface BudgetOptions { budget: number; clock: () => number; pause: () 
  * seconds. Reports the yields, the longest single item and the total work time.
  */
 export function runBudgeted<T>(items: T[], work: (item: T) => void, options: BudgetOptions): BudgetRun {
-	let yields = 0, longest = 0, total = 0;
+	let yields = 0, longest = 0, longestBatch = 0, total = 0;
 	let slice = options.clock();
 	for (const item of items) {
 		if (options.cancelled?.()) break;
@@ -130,11 +130,12 @@ export function runBudgeted<T>(items: T[], work: (item: T) => void, options: Bud
 		const finish = options.clock();
 		longest = math.max(longest, finish - start);
 		total += finish - start;
+		longestBatch = math.max(longestBatch, finish - slice);
 		if (finish - slice >= options.budget) {
 			options.pause();
 			yields += 1;
 			slice = options.clock();
 		}
 	}
-	return { yields, longest, total };
+	return { yields, longest, longestBatch, total };
 }

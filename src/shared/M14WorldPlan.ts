@@ -21,7 +21,7 @@ export function m14TargetLayout():WorldContact[]{
  return ts;
 }
 export function m14Routes(){return [1200,1440,1680,1920].map((x,i)=>({id:`m14_corridor_${i+1}`,points:[{x,y:150,z:-7680},{x,y:150,z:8800}]}));}
-export function buildM14Plan(seed=1414,checkpoint:()=>void=()=>{}){
+export function buildM14Plan(seed=1414,checkpoint:(phase?:string)=>void=()=>{}){
  const d=worldDressing(M14_SURFACE,checkpoint),targets=m14TargetLayout();
  for(const sea of d.seaParts)sea.color=M14_ENVIRONMENT.water.color;
  for(const t of targets)if(t.group==="intercept"||t.group==="optional_air")d.part(t.id,t.x,t.y,t.z,8,8,36,"Metal",[187,194,200]);else{

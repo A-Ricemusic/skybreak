@@ -1,3 +1,4 @@
+import { plansEqual, testCheckpoint } from "./TestPacing";
 import { describe,expect,it } from "@rbxts/jest-globals";
 import { buildM12Plan,m12Counts,m12Ground,M12,M12_ENVIRONMENT } from "../shared/M12WorldPlan";
 import { buildM13Plan,m13Counts,m13Ground,m13RoutePoint,M13,M13_ENVIRONMENT,M13_ANCHORS } from "../shared/M13WorldPlan";
@@ -9,7 +10,7 @@ const obstructed=(ps:PartSpec[],x:number,y:number,z:number,margin=0)=>ps.some(p=
 describe("Activated M12/M13 worlds",()=>{
  const a=buildM12Plan(),b=buildM13Plan();
  it("is deterministic, checkpointed, id-owned; M12 and M13 activated",()=>{
-  let calls=0; expect(buildM12Plan(1212,()=>{calls++;})).toEqual(a); expect(buildM13Plan()).toEqual(b);expect(calls).toBeGreaterThan(1000);
+  let calls=0; expect(plansEqual(buildM12Plan(1212,()=>{calls++;}), a)).toBe(true); expect(plansEqual(buildM13Plan(), b)).toBe(true);expect(calls).toBeGreaterThan(1000);
   for(const p of [a,b]){expect(new Set(p.targets.map(t=>t.id)).size()).toBe(p.targets.size());for(const t of p.targets)expect(p.parts.some(f=>f.name===t.id)).toBe(true);for(const m of MissionCatalog.All()) if(m.id!==12 && m.id!==13)expect(MissionCatalog.WorldKey(m.id)).never.toBe(p.key);}
  });
  it("preserves eight radial pads, seven live guns, 24-kill inventory and distinct initial briefing",()=>{
@@ -52,9 +53,11 @@ describe("Activated M12/M13 worlds",()=>{
  });
  it("seals every column and shared edge down to Y=0 beyond hard airspace without a floor", () => {
   for (const [p, airspace] of [[a, M12_AIRSPACE], [b, M13_AIRSPACE]] as const) {
+   testCheckpoint();
    expect(16384).toBeGreaterThan(airspace.hardHalfWidth);
    const caps = new Map<string, number>(), walls = new Map<string, TerrainOp[]>();
    for (const op of [...p.ops, ...p.parts.filter(f => f.name === "Sea").map(f => ({ ...f, shape: "block" as const, material: "Water" as const }))]) {
+    testCheckpoint();
     expect(op.y - op.sy / 2).toBeGreaterThanOrEqual(0);
     if (op.sx >= 128 && op.sz >= 128) {
      for (let x = op.x - op.sx / 2; x < op.x + op.sx / 2; x += 128) for (let z = op.z - op.sz / 2; z < op.z + op.sz / 2; z += 128) { expect(caps.has(`${x},${z}`)).toBe(false); caps.set(`${x},${z}`, op.y + op.sy / 2); }
@@ -66,8 +69,10 @@ describe("Activated M12/M13 worlds",()=>{
    }
    let gaps = 0;
    for (let x = -16384; x < 16384; x += 128) for (let z = -16384; z < 16384; z += 128) {
+    testCheckpoint();
     const h = caps.get(`${x},${z}`); if (h === undefined) { gaps++; continue; }
     for (const [axis, edge, v, nx, nz] of [["x", x + 128, z, x + 128, z], ["z", z + 128, x, x, z + 128], ...(x === -16384 ? [["x", x, z, x - 128, z]] : []), ...(z === -16384 ? [["z", z, x, x, z - 128]] : [])] as Array<[string, number, number, number, number]>) {
+     testCheckpoint();
      const n = caps.get(`${nx},${nz}`) ?? 0;
      if (n !== h && !(walls.get(`${axis},${edge},${v}`) ?? []).some(w => w.y - w.sy / 2 <= math.max(0, math.min(h, n) - 8) && w.y + w.sy / 2 >= math.max(h, n))) gaps++;
     }

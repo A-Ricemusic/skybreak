@@ -1,13 +1,23 @@
+import { boundedWorldWork, cancelWorldWork } from "./BoundedWorldWork";
+import { destroyWorld } from "../server/WorldDisposal";
+import { beforeEach, afterAll, afterEach } from "@rbxts/jest-globals";
+import { UploadedAssets } from "../shared/UploadedAssets";
+import { fakeIds, fakeUpload, probe } from "./WorldBuildFixtures";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { M17World } from "../server/M17World";
 import { M17_WORLD_KEY, m17TargetLayout } from "../shared/M17WorldPlan";
 import { M17_TARGETS } from "../shared/missions/m17";
 
+beforeEach(() => UploadedAssets.Configure({ ids: fakeIds(true), probe, loader: fakeUpload }));
+afterAll(() => UploadedAssets.Configure());
+
 describe("M17 built world contact ownership",()=>{
+ let folder: Folder | undefined;
+ afterEach(() => { cancelWorldWork(); boundedWorldWork("M17 cleanup", () => { destroyWorld(folder); M17World.Clear(() => false); }, 30); folder = undefined; }, 35000);
  it("builds no airborne scenery and adopts every ground contact",()=>{
-  const folder=new Instance("Folder");
+  folder=new Instance("Folder");
   const [ok,failure]=pcall(()=>{
-   const built=M17World.Build(folder),scene=folder.FindFirstChild(M17_WORLD_KEY)!;
+   const built=boundedWorldWork("M17 build", () => M17World.Build(folder!)),scene=folder!.FindFirstChild(M17_WORLD_KEY)!;
    for(const t of m17TargetLayout().filter(t=>t.group==="elite"||t.group==="optional_air"))expect(scene.FindFirstChild(t.id)).toBeUndefined();
    expect(built.targetVisuals.size()).toBe(M17_TARGETS.size());
    for(const t of M17_TARGETS){
@@ -20,7 +30,7 @@ describe("M17 built world contact ownership",()=>{
     expect(model.GetDescendants().some(p=>p.IsA("BasePart"))).toBe(true);
    }
   });
-  folder.Destroy();M17World.Clear(()=>false);
+
   if(!ok)error(failure);
  },120000);
 });

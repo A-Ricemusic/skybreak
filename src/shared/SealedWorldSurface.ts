@@ -1,4 +1,4 @@
-import type { TerrainOp, TerrainMaterial } from "./WorldPlan";
+import type { TerrainOp, TerrainMaterial, PartSpec } from "./WorldPlan";
 /** M03 shell topology without M03's floor: aligned caps, shared-edge curtains.
  * The 128-stud address grid covers every fine/coarse join. Every column of the
  * 32,768-stud square has a cap whose bottom is at or above Y=0, and perimeter
@@ -16,9 +16,11 @@ export interface WorldSurface {
   * nothing below its surface is seen, so the water itself seals the column (D-121).
   */
  waterColumns?: boolean;
+ /** Opaque open sea seals the column with a queryable Part instead of native voxels. */
+ sea?: { color: [number, number, number]; reflectance: number; transparency: number };
 }
 export const WORLD_HALF = 16384;
-export const WORLD_FILL_CHUNK = 65536;
+export const WORLD_FILL_CHUNK = 262144;
 /** Seconds of terrain work per resumption while an M04/M05 world builds behind the loading screen.
  * Every yield costs a whole engine frame (Studio Play measured 0.16-0.42 s per yield once a
  * 32k-stud world exists), so the shared 8 ms budget spent most of M04's 66 s waiting. The
@@ -35,15 +37,33 @@ export function surfaceGround(surface: WorldSurface, x: number, z: number): numb
  const side = surfaceSide(surface, x, z);
  return surface.height(math.floor(x / side) * side + side / 2, math.floor(z / side) * side + side / 2);
 }
-export function sealedSurface(surface: WorldSurface, checkpoint: () => void) {
+export function sealedSurface(surface: WorldSurface, checkpoint: (phase?: string) => void) {
  const half = WORLD_HALF, ops: TerrainOp[] = [];
- const p = { ops, detailCells: 0, coarseCells: 0 };
+ const seaParts: PartSpec[] = [];
+ const p = { ops, seaParts, detailCells: 0, coarseCells: 0 };
  const block = (material: TerrainMaterial, x: number, z: number, sx: number, sz: number, bottom: number, top: number) => {
-  if (top > bottom) ops.push({ shape: "block", material, x, y: (bottom + top) / 2, z, sx, sy: top - bottom, sz, yaw: 0 });
+  if (top <= bottom) return;
+  const y = (bottom + top) / 2, sy = top - bottom, last = ops[ops.size() - 1];
+  // Consecutive identical-material boxes may be unioned exactly. Never reorder across
+  // a curtain or a different material: their overwrite order controls visible edges.
+  // Stay within the scheduler cap and its global 1024-stud tiles to avoid new splits.
+  if (last !== undefined && last.material === material && last.y === y && last.sy === sy
+   && (last.sx * last.sz + sx * sz) * sy / 64 <= WORLD_FILL_CHUNK) {
+   if (last.x === x && last.sx === sx && last.z + last.sz / 2 === z - sz / 2
+    && math.floor((z + sz / 2 - 0.01) / 1024) === math.floor((last.z - last.sz / 2) / 1024)) {
+    last.z = (last.z - last.sz / 2 + z + sz / 2) / 2; last.sz += sz; return;
+   }
+   if (last.z === z && last.sz === sz && last.x + last.sx / 2 === x - sx / 2
+    && math.floor((x + sx / 2 - 0.01) / 1024) === math.floor((last.x - last.sx / 2) / 1024)) {
+    last.x = (last.x - last.sx / 2 + x + sx / 2) / 2; last.sx += sx; return;
+   }
+  }
+  ops.push({ shape: "block", material, x, y, z, sx, sy, sz, yaw: 0 });
  };
  const cells: Array<{x: number; z: number; sx: number; sz: number; top: number}> = [];
- const heights = new Map<string, number>();
- const key = (x: number, z: number) => `${x},${z}`;
+ const heights = new Map<number, number>();
+ // Numeric addresses avoid allocating/interning a string for every sampled cell and edge.
+ const key = (x: number, z: number) => ((x + WORLD_HALF) / 128 + 1) * 258 + (z + WORLD_HALF) / 128 + 1;
  for (let x = -half; x < half; x += 1024) for (let z = -half; z < half; z += 1024) {
   const side = surfaceSide(surface, x, z);
   for (let dx = 0; dx < 1024; dx += side) for (let dz = 0; dz < 1024; dz += side) {
@@ -52,7 +72,7 @@ export function sealedSurface(surface: WorldSurface, checkpoint: () => void) {
    for (let gx = c.x; gx < c.x + side; gx += 128) for (let gz = c.z; gz < c.z + side; gz += 128) heights.set(key(gx, gz), c.top);
    if (side === 128) p.detailCells++; else p.coarseCells++;
   }
-  checkpoint();
+  checkpoint("surface.sample");
  }
 	for (const c of cells) {
 		const cx = c.x + c.sx / 2, cz = c.z + c.sz / 2;
@@ -79,18 +99,39 @@ export function sealedSurface(surface: WorldSurface, checkpoint: () => void) {
 		wall("z", c.z + c.sz, c.x, c.sx);
 		if (c.x === -half) wall("x", c.x, c.z, c.sz, true);
 		if (c.z === -half) wall("z", c.z, c.x, c.sx, true);
-		checkpoint();
+		checkpoint("surface.emit");
 	}
 
  // Native water exactly bounds each sampled shore tile. Ships use Y=32.
- // Deep flat water uses long strips rather than the scheduler's square cuts:
- // a 1024×24×128 strip is 49,152 voxels (1024×32×128 water columns: 65,536), within the 65,536-job cap.
- // This preserves full depth/coverage while avoiding twice as many Fill calls.
+ // Keep each water tile whole; the scheduler tiles larger calls on voxel planes.
  for (const c of cells) if (c.top < 32) {
+  if (surface.sea !== undefined) {
+   seaParts.push({ name: "Sea", shape: "block", x: c.x + c.sx / 2, y: 30, z: c.z + c.sz / 2,
+    sx: c.sx, sy: 4, sz: c.sz, yaw: 0, material: "SmoothPlastic", color: surface.sea.color,
+    reflectance: surface.sea.reflectance, transparency: surface.sea.transparency, solid: true, grounded: false });
+   continue;
+  }
   const bottom = surface.waterColumns === true ? math.max(0, c.top - 8) : c.top;
-  const strip = 32 - bottom > 16 ? 128 : c.sz;
-  for (let dz = 0; dz < c.sz; dz += strip)
-   block("Water", c.x + c.sx / 2, c.z + dz + strip / 2, c.sx, strip, bottom, 32);
+  block("Water", c.x + c.sx / 2, c.z + c.sz / 2, c.sx, c.sz, bottom, 32);
+ }
+ // Exact rectangular unions: no rectangle crosses a land cell, and no Part exceeds 2048.
+ for (const axis of ["x", "z", "x", "z"] as const) {
+  const other = axis === "x" ? "z" : "x", size = axis === "x" ? "sx" : "sz", otherSize = axis === "x" ? "sz" : "sx";
+  seaParts.sort((a, b) => a[other] !== b[other] ? a[other] < b[other]
+   : a[otherSize] !== b[otherSize] ? a[otherSize] < b[otherSize] : a[axis] < b[axis]);
+  let written = 0;
+  for (let i = 0; i < seaParts.size(); i++) {
+   const a = seaParts[i];
+   while (i + 1 < seaParts.size()) {
+    const b = seaParts[i + 1];
+    if (a[other] !== b[other] || a[otherSize] !== b[otherSize] || a[axis] + a[size] / 2 !== b[axis] - b[size] / 2 || a[size] + b[size] > 2048
+     || math.floor((a[axis] - a[size] / 2) / 2048) !== math.floor((b[axis] + b[size] / 2 - 0.01) / 2048)) break;
+    a[axis] = (a[axis] - a[size] / 2 + b[axis] + b[size] / 2) / 2; a[size] += b[size]; i++;
+   }
+   seaParts[written++] = a;
+   checkpoint("sea.merge");
+  }
+  while (seaParts.size() > written) seaParts.pop();
  }
  return p;
 }
