@@ -83,7 +83,8 @@ export class EnemySmoothing {
 		return entry;
 	}
 	private readonly tracked = new Map<Model, Smoothed>();
-	private readonly pending = new Map<Model, RBXScriptConnection>();
+	/** Models still waiting for replication to deliver an air TargetKind and a PrimaryPart. */
+	private readonly pending = new Map<Model, RBXScriptConnection[]>();
 	private readonly connections: RBXScriptConnection[] = [];
 	public Start(folder: Instance): void {
 		this.Stop();
@@ -92,16 +93,14 @@ export class EnemySmoothing {
 		this.connections.push(folder.ChildAdded.Connect((child) => this.consider(child)));
 		this.connections.push(
 			folder.ChildRemoved.Connect((child) => {
-				if (!child.IsA("Model")) return;
-				this.pending.get(child)?.Disconnect();
-				this.pending.delete(child);
+				if (child.IsA("Model")) this.dropPending(child);
 			}),
 		);
 	}
 	public Stop(): void {
 		for (const connection of this.connections) connection.Disconnect();
 		this.connections.clear();
-		for (const [, connection] of this.pending) connection.Disconnect();
+		for (const [, connections] of this.pending) for (const connection of connections) connection.Disconnect();
 		this.pending.clear();
 		for (const [model] of this.tracked) this.release(model);
 		instances.delete(this);
@@ -143,25 +142,38 @@ export class EnemySmoothing {
 	}
 	private consider(child: Instance): void {
 		if (!child.IsA("Model") || this.tracked.has(child) || this.pending.has(child)) return;
-		if (child.GetAttribute("TargetKind") === "air") {
-			this.track(child);
-			return;
-		}
-		// Attributes can land a frame after the instance when replication batches split;
-		// a model that already has a non-air TargetKind never needs the wait.
-		if (child.GetAttribute("TargetKind") !== undefined) return;
-		const connection = child.AttributeChanged.Connect(() => {
-			const kind = child.GetAttribute("TargetKind");
-			if (kind === undefined) return;
-			connection.Disconnect();
-			this.pending.delete(child);
-			if (kind === "air" && child.IsDescendantOf(Workspace)) this.track(child);
-		});
-		this.pending.set(child, connection);
+		const kind = child.GetAttribute("TargetKind");
+		// A model that already has a non-air TargetKind never needs the wait.
+		if (kind !== undefined && kind !== "air") return;
+		if (kind === "air" && this.track(child)) return;
+		// Replication batches can split: the TargetKind attribute and the PrimaryPart
+		// reference may each land after the instance, in either order. Keep waiting
+		// until both exist (removal and Stop drop the wait).
+		const retry = () => {
+			const current = child.GetAttribute("TargetKind");
+			if (current === undefined) return;
+			if (current !== "air" || !child.IsDescendantOf(Workspace)) {
+				this.dropPending(child);
+				return;
+			}
+			if (this.track(child)) this.dropPending(child);
+		};
+		this.pending.set(child, [
+			child.AttributeChanged.Connect(retry),
+			child.GetPropertyChangedSignal("PrimaryPart").Connect(retry),
+		]);
 	}
-	private track(model: Model): void {
+	private dropPending(model: Model): void {
+		const connections = this.pending.get(model);
+		if (!connections) return;
+		this.pending.delete(model);
+		for (const connection of connections) connection.Disconnect();
+	}
+	/** Swaps `model` for a smoothed local clone; false while its PrimaryPart has not replicated. */
+	private track(model: Model): boolean {
+		if (this.tracked.has(model)) return true;
 		const root = model.PrimaryPart;
-		if (this.tracked.has(model) || root === undefined) return;
+		if (root === undefined) return false;
 		const hide = (item: Instance) => {
 			if (item.IsA("BasePart")) item.LocalTransparencyModifier = 1;
 			else if (JetFactory.IsCosmetic(item)) item.Enabled = false;
@@ -177,7 +189,7 @@ export class EnemySmoothing {
 		const visualRoot = visual.PrimaryPart;
 		if (visualRoot === undefined) {
 			visual.Destroy();
-			return;
+			return false;
 		}
 		const frame = root.CFrame;
 		visualRoot.CFrame = frame;
@@ -201,6 +213,7 @@ export class EnemySmoothing {
 			}),
 		);
 		this.tracked.set(model, entry);
+		return true;
 	}
 	private release(model: Model): void {
 		const entry = this.tracked.get(model);
