@@ -196,6 +196,11 @@ const MODULES: string[] = [
 	"tests/EngineM01Snapshot",
 	"tests/CampaignEncounters.spec",
 	// Flight model, telemetry packet, HUD layout, warnings, radar, target boxes and touch controls.
+	"shared/UILayoutGeometry",
+	"shared/UILayoutInput",
+	"shared/UILayoutMenu",
+	"shared/UILayoutOverlay",
+	"shared/UILayoutHud",
 	"shared/UILayout",
 	"tests/UILayout.spec",
 	"shared/NavigationLayout",
