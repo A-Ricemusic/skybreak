@@ -3,7 +3,7 @@
 // Owns one GameAudio, the ContextActionService binds, RenderStepped step and the hidden-part/cue instances.
 // Constructed once by index.client.tsx; GameUI reads it through props and FlightController.GetActive().
 import { RearmPlan, rearmPose } from "../shared/RearmRules";
-import type { CutInPlan } from "../shared/SortieCutaways";
+import { isCutInPlan, isLandingPlan, isRearmPlan } from "../shared/CinematicPayload";
 import type { SpecialKind } from "../shared/SpecialWeapons";
 import { EliteCutIn } from "./EliteCutIn";
 import {
@@ -412,10 +412,11 @@ export class FlightController {
 				if (!typeIs(data, "table")) return;
 				const message = data as Partial<Omit<HudState, "kind">> & { kind?: string };
 				if (message.kind === "RearmStarted" && this.active) {
-					// Cinematic plans are server tables read later in render; a malformed packet is ignored.
+					// Cinematic plans are read every render frame: shape-check every consumed field (CinematicPayload)
+					// before touching state, so a malformed packet changes nothing.
 					const plan = (data as { plan?: unknown }).plan;
-					if (!typeIs(plan, "table")) return;
-					this.rearm = { plan: plan as RearmPlan, elapsed: 0 };
+					if (!isRearmPlan(plan)) return;
+					this.rearm = { plan, elapsed: 0 };
 					this.keys.clear();
 					this.ReleaseGun();
 					for (const part of this.visual?.GetDescendants() ?? [])
@@ -436,12 +437,13 @@ export class FlightController {
 					}
 				} else if (message.kind === "CutInStarted" && this.active) {
 					const start = data as { plan?: unknown; subjects?: unknown };
-					if (!typeIs(start.plan, "table") || !typeIs(start.subjects, "table")) return;
-					this.cutIn?.Stop();
-					this.cutIn = new EliteCutIn(
-						start.plan as CutInPlan,
-						(start.subjects as defined[]).filter((m): m is Model => typeIs(m, "Instance")),
+					if (!isCutInPlan(start.plan) || !typeIs(start.subjects, "table")) return;
+					// EliteCutIn pivots and clones its subjects, so only Models qualify.
+					const subjects = (start.subjects as defined[]).filter(
+						(m): m is Model => typeIs(m, "Instance") && m.IsA("Model"),
 					);
+					this.cutIn?.Stop();
+					this.cutIn = new EliteCutIn(start.plan, subjects);
 					this.keys.clear();
 					this.ReleaseGun();
 				} else if (message.kind === "CutInComplete" && this.cutIn) {
@@ -458,8 +460,8 @@ export class FlightController {
 						if (part.IsA("BasePart")) part.LocalTransparencyModifier = 0;
 				} else if (message.kind === "LandingStarted" && this.active) {
 					const plan = (data as { plan?: unknown }).plan;
-					if (!typeIs(plan, "table")) return;
-					this.landing = { plan: plan as LandingPlan, elapsed: 0 };
+					if (!isLandingPlan(plan)) return;
+					this.landing = { plan, elapsed: 0 };
 					this.keys.clear();
 					this.ReleaseGun();
 					// The replicated aircraft is already hidden; hide the predicted clone for cockpit flight.
@@ -1464,6 +1466,12 @@ export class FlightController {
 			warn("SKYBREAK flight start is missing its replicated aircraft");
 			return false;
 		}
+		// Validate the optional server launch state before any state changes; a malformed one falls back to the pivot.
+		const initialState = missionData.initialState;
+		const launchState =
+			initialState !== undefined && FlightPrediction.IsLaunchState(initialState) ? initialState : undefined;
+		if (initialState !== undefined && launchState === undefined)
+			warn("SKYBREAK flight start ignored a malformed initial state; using the aircraft pivot");
 		this.aircraft = missionData.aircraft;
 		this.active = true;
 		// eslint-disable-next-line @typescript-eslint/no-this-alias -- Publish this instance to the module-level active-controller reference.
@@ -1507,10 +1515,7 @@ export class FlightController {
 		// the first FlightState packet corrects speed and anything else within 50 ms.
 		this.launchIntro = missionData.launchIntro === true ? { elapsed: 0 } : undefined;
 		this.launchCameraTime = this.launchIntro === undefined ? CAMERA_HANDOFF_SECONDS : 0;
-		this.predictor = FlightPrediction.New(
-			missionData.initialState ?? stateFrom(this.visualFrame),
-			missionData.airspace,
-		);
+		this.predictor = FlightPrediction.New(launchState ?? stateFrom(this.visualFrame), missionData.airspace);
 		const camera = Workspace.CurrentCamera;
 		if (camera) {
 			if (this.launchIntro !== undefined) this.visualFrame = frameFor(this.predictor.state);

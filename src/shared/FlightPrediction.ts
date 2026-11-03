@@ -70,6 +70,11 @@ function zero(): FlightState {
 // Scratch tables reused by Reconcile so a server packet allocates nothing.
 const scratchMatch = zero();
 const scratchError = zero();
+/** Reject degenerate attitudes and overflow even when every component is finite. */
+function usableAttitude(qw: number, qx: number, qy: number, qz: number): boolean {
+	const lengthSquared = qw * qw + qx * qx + qy * qy + qz * qz;
+	return FlightMath.IsFinite(lengthSquared) && lengthSquared >= 0.5;
+}
 function copyInto(target: FlightState, source: FlightState): void {
 	for (const key of ALL) target[key] = source[key];
 }
@@ -176,6 +181,14 @@ export const FlightPrediction = {
 		const state = value as Partial<Record<(typeof KEYS)[number], unknown>>;
 		for (const key of KEYS) if (!FlightMath.IsFinite(state[key])) return false;
 		return true;
+	},
+
+	/**
+	 * `IsState` plus Decode's attitude check: a usable launch state for `New`. Rejects degenerate or overflowing
+	 * quaternion norms, which are finite componentwise but would poison FlightMath.Sync.
+	 */
+	IsLaunchState(value: unknown): value is FlightState {
+		return FlightPrediction.IsState(value) && usableAttitude(value.qw, value.qx, value.qy, value.qz);
 	},
 
 	/** Reliable launch handoff: preserve the displayed pose and blend every remaining authoritative gap. */
@@ -334,8 +347,7 @@ export const FlightPrediction = {
 		for (let index = 0; index < PACKET_FIELDS; index++) if (!FlightMath.IsFinite(values[index])) return undefined;
 		const n = values as number[];
 		// Reject degenerate attitudes and overflow even when every component is finite.
-		const lengthSquared = n[4] * n[4] + n[5] * n[5] + n[6] * n[6] + n[7] * n[7];
-		if (!FlightMath.IsFinite(lengthSquared) || lengthSquared < 0.5) return undefined;
+		if (!usableAttitude(n[4], n[5], n[6], n[7])) return undefined;
 		const state = FlightMath.Normalize({
 			x: n[1],
 			y: n[2],

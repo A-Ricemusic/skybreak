@@ -32,6 +32,17 @@ describe("client flight prediction and reconciliation", () => {
 		partial.speed = undefined;
 		expect(FlightPrediction.IsState(partial)).toBe(false);
 	});
+	it("accepts a launch state only with a usable attitude quaternion", () => {
+		const state = FlightMath.NewState();
+		expect(FlightPrediction.IsLaunchState(state)).toBe(true);
+		expect(FlightPrediction.IsLaunchState({})).toBe(false);
+		expect(FlightPrediction.IsLaunchState(undefined)).toBe(false);
+		expect(FlightPrediction.IsLaunchState({ ...state, qw: 0, qx: 0, qy: 0, qz: 0 })).toBe(false);
+		expect(FlightPrediction.IsLaunchState({ ...state, qw: 1e200 })).toBe(false);
+		expect(FlightPrediction.IsLaunchState({ ...state, x: 1 / 0 })).toBe(false);
+		// A real authored start pose (any finite position, heading and speed) is accepted unchanged.
+		expect(FlightPrediction.IsLaunchState(FlightMath.FromPose(120, 400, -900, math.rad(37), 0, 150))).toBe(true);
+	});
 	it("ignores non-finite frame deltas without corrupting pending corrections or history", () => {
 		const [predictor, now] = flown(0.5);
 		const server = copy(predictor.state);
