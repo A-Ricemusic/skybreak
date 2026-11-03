@@ -5,11 +5,16 @@ function fixture(initial?: unknown, maxAttempts = 1) {
 	let stored = initial;
 	let writes = 0;
 	let attempts = 0;
+	let failLoads = 0;
 	const deferred: (() => void)[] = [];
 	const coordinator = new CampaignCoordinator(
 		"schema",
 		{
 			load() {
+				if (failLoads > 0) {
+					failLoads -= 1;
+					error("transient load failure");
+				}
 				return stored;
 			},
 			update(_key, transform) {
@@ -25,6 +30,7 @@ function fixture(initial?: unknown, maxAttempts = 1) {
 				deferred.push(fn);
 			},
 			maxAttempts,
+			retryWait: () => undefined,
 			warn: () => undefined,
 			now: () => 1000,
 		},
@@ -32,6 +38,9 @@ function fixture(initial?: unknown, maxAttempts = 1) {
 	return {
 		coordinator,
 		attempts: () => attempts,
+		failNextLoads: (count: number) => {
+			failLoads = count;
+		},
 		writes: () => writes,
 		stored: () => stored,
 		replace: (value: unknown) => {
@@ -111,6 +120,25 @@ describe("Campaign fail-closed schema", () => {
 		expect(f.stored()).toBe(unsupported);
 		expect(f.coordinator.hasCloudLoaded()).toBe(false);
 		f.replace({ version: 3, slots: {} });
+		expect(f.coordinator.recover()).toBe(true);
+		f.drain();
+		expect(f.coordinator.hasCloudLoaded()).toBe(true);
+		expect(f.coordinator.getLoadError()).toBeUndefined();
+		expect(f.writes()).toBe(1);
+		expect(normalizeProfile(f.stored()).slots[0].missions?.[1]?.completed).toBe(true);
+	});
+
+	it("still retries transient recovery errors after an earlier schema refusal", () => {
+		const f = fixture(undefined, 3);
+		f.coordinator.load();
+		const unsupported = { version: 4, slots: {} };
+		f.replace(unsupported);
+		f.coordinator.recordMissionResult(1, 1, true, 6, 100);
+		f.drain();
+		expect(f.attempts()).toBe(1);
+		expect(f.coordinator.getLoadError()).toBeDefined();
+		f.replace({ version: 3, slots: {} });
+		f.failNextLoads(1);
 		expect(f.coordinator.recover()).toBe(true);
 		f.drain();
 		expect(f.coordinator.hasCloudLoaded()).toBe(true);

@@ -580,6 +580,8 @@ export class CampaignCoordinator {
 	private persistence: Persistence;
 	private cloudLoaded = false;
 	private loadError?: string;
+	/** Counts schema/structure refusals so a retry loop can tell a refusal raised by its own operation from a stale one. */
+	private schemaRefusals = 0;
 	private dirty = false;
 	private writeRunning = false;
 	private writeScheduled = false;
@@ -776,6 +778,7 @@ export class CampaignCoordinator {
 		const issue = profileReadError(raw);
 		if (issue !== undefined) {
 			this.loadError = issue;
+			this.schemaRefusals += 1;
 			this.cloudLoaded = false;
 			error(issue);
 		}
@@ -858,13 +861,15 @@ export class CampaignCoordinator {
 
 	private tryOperation(name: string, callback: () => unknown): LuaTuple<[boolean, unknown]> {
 		let lastError: unknown;
+		const refusalsBefore = this.schemaRefusals;
 		for (let attempt = 1; attempt <= this.maxAttempts; attempt++) {
 			const [success, result] = pcall(callback);
 			if (success) return $tuple(true, result);
 			lastError = result;
 			this.logWarning(`SKYBREAK ${name} attempt ${attempt} failed: ${tostring(result)}`);
-			// Structural/schema refusals require a fresh explicit load, never an automatic write retry.
-			if (this.loadError !== undefined) break;
+			// A schema/structure refusal raised by this operation needs a fresh explicit load, never an automatic
+			// retry. A stale refusal from an earlier operation must not stop transient-error retries (e.g. recovery).
+			if (this.schemaRefusals !== refusalsBefore) break;
 			if (attempt < this.maxAttempts) this.retryWait(attempt);
 		}
 		return $tuple(false, lastError);
