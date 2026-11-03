@@ -34,7 +34,7 @@ Not everything in `src/shared/` runs in the standalone Luau CLI. Check which gro
 | Pure but not registered offline | `BriefingLayout`, `SaveSlotLayout` (candidates for `MODULES`); `Types` is type-only | Studio Jest only |
 | Generated audio bank | `SoundBank` | `tools/test-audio-offline.ts` (engine-double simulation of compiled `GameAudio`) |
 
-The cinematic and voice harnesses (`tools/test-cinematic-offline.ts`, `tools/test-voice-offline.ts`) run compiled `client/RelayCinematic` and `client/VoicePlayer` against engine doubles, using shared modules that are already in the pure list. `tools/test-audio-offline.ts` does the same for `client/GameAudio`. These are deterministic simulations, not Roblox playback tests.
+The cinematic and voice harnesses (`tools/test-cinematic-offline.ts`, `tools/test-voice-offline.ts`) run compiled `client/RelayCinematic`, `client/CinematicStage` and `client/VoicePlayer` against engine doubles, using shared modules that are already in the pure list. `tools/test-audio-offline.ts` does the same for `client/GameAudio`. These are deterministic simulations, not Roblox playback tests.
 
 ### Client module map
 
@@ -47,6 +47,8 @@ The cinematic and voice harnesses (`tools/test-cinematic-offline.ts`, `tools/tes
 | `AceHud.tsx` | Ace-style line-art HUD pieces (reticle, labels, instrument and warning boxes, banner, status panel). |
 | `TargetBoxOverlay.ts` | Pooled boxes on every valid in-view target, using the server's `Damageable` attribute. |
 | `RelayCinematic.tsx` | Story cinematics: staged beats, subtitles, skip/pause and motion/text controls. |
+| `CinematicStage.ts` | Scene construction for the story cinematics: per-beat scenes (`sceneFor`), stage lighting and effects. Extracted from RelayCinematic. |
+| `useTouchSticks.ts` | Touch steering/throttle pads, finger tracking, tap-to-target and input-mode switching for GameUI. |
 | `shared/LoadingScreen.tsx`, `shared/LoadingRig.ts` | Loading overlay (React) and its imperative jet viewport, scan line and tween faders. |
 | `EnemySmoothing.ts` | Hides replicated enemy jets and draws locally dead-reckoned clones between server updates. |
 | `MissileTrails.ts` | Local smoke and motor flame for replicated missile parts. |
@@ -62,13 +64,14 @@ The cinematic and voice harnesses (`tools/test-cinematic-offline.ts`, `tools/tes
 - `src/server/SessionTuning.ts`: per-act threat tuning tables and the difficulty knob used by `CombatService` and the combat runtimes.
 - `src/shared/Finite.ts`: the shared finite-number guards (replaces per-module `finite` copies).
 - `src/shared/InputStamp.ts`: staleness and reset rules for `FlightInput` packet stamps.
+- `src/shared/OutcomeModel.ts`: the pure results-screen model built from a `MissionFinished` payload (extracted from GameUI so it runs offline).
 
 ### Tools that read source or compiled text
 
 These checks match literal text, so renaming or moving the code they read breaks `validate:offline`. Update them in the same PR:
 
 - `tools/test-results-wiring.ts`: substrings in `src/server/CombatService.ts`, `src/server/CampaignService.ts`, `src/client/GameUI.tsx`, `src/client/RelayCinematic.tsx` and two `screens/` files.
-- `tools/test-voice-offline.ts`: patches compiled `out/client/RelayCinematic.luau` at the `local function RelayCinematic(_param)` marker.
+- `tools/test-voice-offline.ts`: stages compiled `client/CinematicStage` and replaces its `sceneFor`, `stageLighting` and `stageEffects` exports before `client/RelayCinematic` binds them.
 - `tools/test-radio-delivery.ts`: slices compiled `FlightController.luau` and `GameUI.luau` and runs them against `RadioQueue`.
 - `tools/test-client-gun-input.ts`: extracts code from compiled `FlightController.luau` and `HudControls.luau`.
 - `tools/test-m03-builder-contract.ts`: parses `src/server/M03World.ts`.
