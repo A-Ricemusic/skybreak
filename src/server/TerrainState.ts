@@ -5,7 +5,7 @@ import { TerrainWriteState } from "../shared/TerrainWriteState";
 // than asking native Clear to traverse the entire tall, hollow world's extent.
 // Keep the footprint until every write finishes: a failed/cancelled build or clear
 // must still be recoverable. Untracked legacy terrain retains native cleanup.
-import { terrainCleanupOp, terrainBoundsOp } from "../shared/TerrainSchedule";
+import { terrainCleanupFootprint, terrainCleanupOp, terrainBoundsOp, UNSPLIT_MAX } from "../shared/TerrainSchedule";
 import type { TerrainOp } from "../shared/WorldPlan";
 import { TerrainWriter } from "./TerrainWriter";
 // Server-only storage survives module reloads without replicating the large plan.
@@ -42,7 +42,11 @@ const state = new TerrainWriteState(() => {
  }
  else {
   const started = os.clock();
-  const timing = TerrainWriter.Write(footprint, 0.25);
+  let slice = started;
+  const cleanup = terrainCleanupFootprint(footprint, () => {
+   if (os.clock()-slice >= 0.1) { task.wait(); slice = os.clock(); }
+  });
+  const timing = TerrainWriter.Write(cleanup, 0.25, UNSPLIT_MAX);
   print(`MISSION_TERRAIN_CLEANUP mode=sparse seconds=${os.clock()-started} jobs=${timing.jobs} work=${timing.total} yields=${timing.yields}`);
  }
  footprint = undefined; saveFootprint(); canTrack = false;
