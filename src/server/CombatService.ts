@@ -21,7 +21,7 @@ import {
 	sessionTick,
 	sessionOutcome,
 	sessionReason,
-	canHurt,
+	steerAircraft,
 } from "./SessionQueries";
 import {
 	occludes,
@@ -48,7 +48,7 @@ import { boundDuelPosition, projectileContact, ventObstructed } from "../shared/
 import * as FinaleDuelRuntime from "./FinaleDuelRuntime";
 import { WithdrawalIdentities } from "../shared/LeaderWithdrawalRules";
 import * as LeaderWithdrawalRuntime from "./LeaderWithdrawalRuntime";
-import { dampedSteer, pursuitDestination, guidedDirection } from "../shared/EncounterKinematics";
+import { pursuitDestination, guidedDirection } from "../shared/EncounterKinematics";
 import * as CruiseMissileRuntime from "./CruiseMissileRuntime";
 import * as JammerCorridorRuntime from "./JammerCorridorRuntime";
 import * as ProtectedAircraftRuntime from "./ProtectedAircraftRuntime";
@@ -60,6 +60,8 @@ import * as ArtilleryRuntime from "./ArtilleryRuntime";
 import { insideArea } from "../shared/ArtilleryRules";
 import { AntiShipRules } from "../shared/SurfaceTargetRules";
 import * as SurfaceTargetRuntime from "./SurfaceTargetRuntime";
+import * as AlliedWingRuntime from "./AlliedWingRuntime";
+import * as GroundDefenceRuntime from "./GroundDefenceRuntime";
 import { TargetPriority } from "../shared/TargetPriority";
 import { TargetView } from "./TargetView";
 import { LaunchCancellation } from "../shared/LaunchLoading";
@@ -71,7 +73,6 @@ import * as LandingRuntime from "./LandingRuntime";
 import { worldClear, worldLifecycle } from "./WorldLifecycleRuntime";
 import { awaitLaunchSlot, type LaunchSlot } from "../shared/WorldLifecycle";
 import { createGroundTarget } from "./GroundTargetFactory";
-import { GroundAirDefence } from "../shared/GroundAirDefence";
 import { authoredAirPose, airSpawnHeight, scramblePose } from "../shared/CampaignEncounters";
 import { LaunchStage } from "../shared/LaunchStage";
 import { AlliedRules } from "../shared/AlliedRules";
@@ -386,27 +387,6 @@ function activateGround(session: CombatSession, start = 0, count = math.huge): v
 		markTarget(session, enemy);
 	}
 }
-function attackWarning(model: Model): BillboardGui {
-	const warning = new Instance("BillboardGui");
-	warning.Name = "MissileWarning";
-	warning.Adornee = model.PrimaryPart;
-	warning.Size = UDim2.fromOffset(135, 28);
-	warning.StudsOffsetWorldSpace = new Vector3(0, 18, 0);
-	warning.MaxDistance = 2300;
-	warning.AlwaysOnTop = true;
-	warning.Enabled = false;
-	warning.Parent = model;
-	const label = new Instance("TextLabel");
-	label.Size = UDim2.fromScale(1, 1);
-	label.BackgroundTransparency = 1;
-	label.Font = Enum.Font.GothamBold;
-	label.TextSize = 16;
-	label.TextColor3 = Color3.fromRGB(255, 130, 85);
-	label.TextStrokeTransparency = 0.2;
-	label.Text = "MISSILE WARNING";
-	label.Parent = warning;
-	return warning;
-}
 function spawnAir(session: CombatSession, count: number, role: AirRole, options: SpawnOptions = {}): void {
 	const parkedId =
 		options.arrival && "parkedSourceId" in options.arrival ? options.arrival.parkedSourceId : undefined;
@@ -689,7 +669,7 @@ function spawnAir(session: CombatSession, count: number, role: AirRole, options:
 			aceState: role === "ace" ? AceRules.New() : undefined,
 			escape: options.escape,
 			hiddenParts: [],
-			warning: attackWarning(model),
+			warning: GroundDefenceRuntime.missileWarning(model),
 		};
 		markTarget(session, enemy);
 		(options.friendly ? session.allies : session.enemies).push(enemy);
@@ -1087,229 +1067,10 @@ function stepWithdrawing(session: CombatSession, enemy: Enemy, dt: number): void
 	enemy.frame = CFrame.lookAt(enemy.position, enemy.position.add(enemy.direction));
 }
 /** Same damped pursuit steering for both sides; player flight math is untouched. */
-function steerAircraft(direction: Vector3, desired: Vector3, turn: number, dt: number): Vector3 {
-	const d = dampedSteer(point(direction), point(desired), turn, dt);
-	return new Vector3(d.x, d.y, d.z);
-}
-function liveWingman(session: CombatSession, ally: Enemy): boolean {
-	return ally.friendly === true && ally.enabled && ally.health > 0 && ally.model.Parent === session.folder;
-}
-function nearestWingman(session: CombatSession, hostile: Enemy): Enemy | undefined {
-	if (FinaleDuelRuntime.duelActive(session)) return undefined;
-	if (hostile.kind === "ace" || hostile.role === "courier") return undefined;
-	const playerDistance = positionFor(session.state).sub(hostile.position).Magnitude;
-	const current = hostile.combatTarget;
-	if (
-		current !== undefined &&
-		liveWingman(session, current) &&
-		AlliedRules.HostileTargetsWingman(
-			hostile.kind,
-			hostile.role,
-			playerDistance,
-			current.position.sub(hostile.position).Magnitude,
-			true,
-		)
-	)
-		return current;
-	let nearest: Enemy | undefined;
-	let distance = math.huge;
-	for (const ally of session.allies) {
-		const range = ally.position.sub(hostile.position).Magnitude;
-		if (liveWingman(session, ally) && range < distance) {
-			distance = range;
-			nearest = ally;
-		}
-	}
-	return nearest !== undefined &&
-		AlliedRules.HostileTargetsWingman(hostile.kind, hostile.role, playerDistance, distance, false)
-		? nearest
-		: undefined;
-}
-/** Director calls this once: casualties persist across phases, no respawn. */
-function spawnAllies(session: CombatSession): void {
-	const policy = session.blueprint?.allies;
-	if (!policy || session.alliesSpawned) return;
-	session.alliesSpawned = true;
-	const frame = frameFor(session.state);
-	for (let index = 0; index < AlliedRules.Count(policy); index++) {
-		const offset = policy.formation[index];
-		const position = frame.PointToWorldSpace(new Vector3(offset.x, offset.y, offset.z));
-		spawnAir(session, 1, "raider", {
-			friendly: true,
-			optional: true,
-			name: `${policy.callsignPrefix} ${index + 1}`,
-			pose: { position: point(position), facing: point(directionFor(session.state)) },
-		});
-	}
-}
-function stepAllies(session: CombatSession, dt: number, weaponsEnabled = true): void {
-	const policy = session.blueprint?.allies;
-	if (!policy) return;
-	const player = positionFor(session.state);
-	const frame = frameFor(session.state);
-	let inFlight = 0;
-	for (const missile of session.projectiles) if (missile.allied) inFlight += 1;
-	for (let index = 0; index < session.allies.size(); index++) {
-		const ally = session.allies[index];
-		if (!liveWingman(session, ally)) continue;
-		const offset = policy.formation[index];
-		const station = frame.PointToWorldSpace(new Vector3(offset.x, offset.y, offset.z));
-		let target: Enemy | undefined;
-		let range = AlliedRules.Range;
-		if (
-			weaponsEnabled &&
-			AlliedRules.BudgetRemaining(policy, session.alliedKills.size()) &&
-			ally.position.sub(player).Magnitude < AlliedRules.Leash
-		)
-			for (const enemy of session.enemies) {
-				const distance = enemy.position.sub(ally.position).Magnitude;
-				if (
-					distance < range &&
-					AlliedRules.CanEngage(policy, enemy, weaponsEnabled) &&
-					canHurt(session, enemy)
-				) {
-					target = enemy;
-					range = distance;
-				}
-			}
-		const destination = target ? target.position.add(target.velocity.mul(math.min(range / 600, 0.65))) : station;
-		let desired = unitOr(destination.sub(ally.position), directionFor(session.state));
-		if (
-			(session.stepCount + index) % AVOID_EVERY === 0 &&
-			session.collisionParams &&
-			Workspace.Raycast(ally.position, ally.direction.mul(AVOID_RANGE), session.collisionParams)
-		)
-			ally.pullUpUntil = session.elapsed + 0.8;
-		if ((ally.pullUpUntil ?? 0) > session.elapsed) desired = unitOr(desired.add(new Vector3(0, 2, 0)), desired);
-		if (target && range < 280)
-			desired = unitOr(ally.direction.add(frame.RightVector.mul(index % 2 === 0 ? 1 : -1)), ally.direction);
-		ally.direction = steerAircraft(ally.direction, desired, 2.1, dt);
-		const speed = target
-			? math.clamp(session.state.speed + 24, 285, CombatBalance.banditSpeedCap)
-			: AlliedRules.FormationSpeed(session.state.speed, station.sub(ally.position).Magnitude);
-		ally.velocity = ally.direction.mul(speed);
-		const moved = ally.position.add(ally.velocity.mul(dt));
-		ally.position = new Vector3(
-			math.clamp(moved.X, -session.airspace.spawnLimit, session.airspace.spawnLimit),
-			math.max(170, moved.Y),
-			math.clamp(moved.Z, -session.airspace.spawnLimit, session.airspace.spawnLimit),
-		);
-		ally.frame = CFrame.lookAt(ally.position, ally.position.add(ally.direction));
-		ally.fireTimer = math.max(0, ally.fireTimer - dt);
-		if (
-			target &&
-			(ally.alliedAmmo ?? 0) > 0 &&
-			inFlight < AlliedRules.MaxInFlight &&
-			session.elapsed - session.alliedFireAt >= AlliedRules.FlightSpacing &&
-			ThreatRules.MayFire({
-				separation: range,
-				aimDot: ally.direction.Dot(unitOr(target.position.sub(ally.position), ally.direction)),
-				fireTimer: ally.fireTimer,
-				globalReady: true,
-				evading: false,
-				playerStraight: false,
-				minRange: 300,
-				maxRange: 1800,
-				aimThreshold: 0.9,
-				straightRelax: 0,
-			})
-		) {
-			const position = ally.position.add(ally.direction.mul(18));
-			session.projectiles.push({
-				part: JetFactory.CreateMissile(session.folder, position, ally.direction, false),
-				position,
-				direction: ally.direction,
-				target,
-				hostile: false,
-				allied: true,
-				age: 0,
-				ace: false,
-				damage: math.random() < AlliedRules.HitChance ? AlliedRules.Damage : 0,
-				speed: WeaponRules.MissileSpeed,
-			});
-			ally.alliedAmmo = (ally.alliedAmmo ?? 0) - 1;
-			ally.fireTimer = AlliedRules.Reload;
-			session.alliedFireAt = session.elapsed;
-			inFlight += 1;
-		}
-	}
-}
-
-function stepGroundDefence(session: CombatSession, dt: number): void {
-	let firing = 0;
-	for (const enemy of session.enemies)
-		if (
-			(enemy.typedGround?.type === "aa_gun" ||
-				enemy.typedGround?.type === "gun_mount" ||
-				enemy.typedGround?.type === "flak_gun") &&
-			enemy.windup > 0 &&
-			ownsEnemy(session, enemy)
-		)
-			firing++;
-	for (const enemy of session.enemies) {
-		if (
-			enemy.typedGround?.type !== "aa_gun" &&
-			enemy.typedGround?.type !== "gun_mount" &&
-			enemy.typedGround?.type !== "flak_gun"
-		)
-			continue;
-		const eligible = GroundAirDefence.Eligible(
-			enemy.health > 0,
-			enemy.enabled,
-			enemy.position.sub(positionFor(session.state)).Magnitude,
-		);
-		if (!eligible) {
-			enemy.windup = 0;
-			enemy.model.SetAttribute("AttackWarning", false);
-			if (enemy.warning) enemy.warning.Enabled = false;
-			continue;
-		}
-		enemy.fireTimer = math.max(0, enemy.fireTimer - dt);
-		if (enemy.windup > 0) {
-			enemy.windup -= dt;
-			if (enemy.windup <= 0) {
-				const target = positionFor(session.state),
-					delta = target.sub(enemy.position);
-				const tracer = new Instance("Part");
-				tracer.Name = "AA tracer burst";
-				tracer.Anchored = true;
-				tracer.CanCollide = false;
-				tracer.CanTouch = false;
-				tracer.CanQuery = false;
-				tracer.Material = Enum.Material.Neon;
-				tracer.Color = Color3.fromRGB(255, 180, 75);
-				tracer.Size = new Vector3(1, 1, delta.Magnitude);
-				tracer.CFrame = CFrame.lookAt(enemy.position.add(delta.mul(0.5)), target);
-				tracer.Parent = session.folder;
-				task.delay(0.15, () => tracer.Destroy());
-				if (GroundAirDefence.Hit(math.random(), session.difficulty, session.evadeRemaining > 0)) {
-					const damage = GroundAirDefence.Damage;
-					session.health = math.max(0, session.health - damage);
-					session.damageTaken += damage;
-					session.lowestHealth = math.min(session.lowestHealth, session.health);
-					if (session.health <= 0) return;
-				}
-				enemy.fireTimer = GroundAirDefence.Reload;
-				enemy.model.SetAttribute("AttackWarning", false);
-				if (enemy.warning) enemy.warning.Enabled = false;
-			}
-		} else if (enemy.fireTimer <= 0 && GroundAirDefence.Admit(firing)) {
-			firing++;
-			enemy.windup = GroundAirDefence.Windup;
-			enemy.model.SetAttribute("AttackWarning", true);
-			if (!enemy.warning) {
-				enemy.warning = attackWarning(enemy.model);
-				const label = enemy.warning.FindFirstChildOfClass("TextLabel");
-				if (label) label.Text = "AA FIRING";
-			}
-			enemy.warning.Enabled = true;
-		}
-	}
-}
 export function stepEnemies(session: CombatSession, dt: number): void {
 	SurfaceTargetRuntime.stepSurfaceTargets(session, dt);
-	SurfaceTargetRuntime.stepSamDefence(session, dt, attackWarning);
-	stepGroundDefence(session, dt);
+	SurfaceTargetRuntime.stepSamDefence(session, dt, GroundDefenceRuntime.missileWarning);
+	GroundDefenceRuntime.stepGroundDefence(session, dt);
 	if (session.health <= 0) return;
 
 	const playerForward = directionFor(session.state);
@@ -1425,7 +1186,8 @@ export function stepEnemies(session: CombatSession, dt: number): void {
 			threatened,
 		);
 		const protectedAircraft = ProtectedAircraftRuntime.protectedTarget(session, enemy);
-		enemy.combatTarget = protectedAircraft ?? (focusPlayer ? undefined : nearestWingman(session, enemy));
+		enemy.combatTarget =
+			protectedAircraft ?? (focusPlayer ? undefined : AlliedWingRuntime.nearestWingman(session, enemy));
 		const playerPosition = enemy.combatTarget?.position ?? positionFor(session.state);
 		const playerVelocity = enemy.combatTarget?.velocity ?? directionFor(session.state).mul(session.state.speed);
 		const ace = enemy.kind === "ace";
@@ -1652,7 +1414,7 @@ export function stepEnemies(session: CombatSession, dt: number): void {
 				if (
 					windupSeparation < 2300 &&
 					aceFighting &&
-					(windupTarget === undefined || liveWingman(session, windupTarget))
+					(windupTarget === undefined || AlliedWingRuntime.liveWingman(session, windupTarget))
 				) {
 					const salvo = ace ? aceSalvo : 1;
 					for (let shot = 0; shot < salvo; shot++) launchMissile(session, true, enemy, shot, salvo);
@@ -1826,7 +1588,7 @@ export function stepMissiles(session: CombatSession, dt: number): void {
 						? WeaponRules.UnguidedLifetime
 						: WeaponRules.GuidedLifetime) ||
 			(!missile.hostile && !blind && !ownsEnemy(session, missile.target)) ||
-			(missile.wingman !== undefined && !liveWingman(session, missile.wingman)) ||
+			(missile.wingman !== undefined && !AlliedWingRuntime.liveWingman(session, missile.wingman)) ||
 			(missile.allied === true &&
 				(session.blueprint?.allies === undefined ||
 					!AlliedRules.CanEngage(session.blueprint.allies, missile.target!)));
@@ -2162,7 +1924,7 @@ function stepSession(session: CombatSession, dt: number): void {
 		}
 		session.aircraftFrame = frameFor(session.state);
 		// Wingmen visibly hold station through the scripted path; hostiles and all weapons remain frozen.
-		stepAllies(session, dt, false);
+		AlliedWingRuntime.stepAllies(session, dt, false);
 		if (ready) {
 			session.input = { x: 0, y: 0, throttle: FlightMath.CruiseThrottle };
 			session.inputClientTime = 0;
@@ -2310,7 +2072,7 @@ function stepSession(session: CombatSession, dt: number): void {
 	if (EvadeRules.Open(session.evade)) decoyEvade(session);
 	stepM18Ascending(session, dt);
 	FinaleDuelRuntime.stepFinaleDuel(session, (line) => radio(session, line, 4));
-	stepAllies(session, dt, !FinaleDuelRuntime.duelActive(session));
+	AlliedWingRuntime.stepAllies(session, dt, !FinaleDuelRuntime.duelActive(session));
 	stepEnemies(session, dt);
 	if (session.health <= 0) {
 		refreshSession(session, os.clock());
@@ -2426,7 +2188,7 @@ function resumeSession(session: CombatSession, now: number): boolean {
 }
 
 const phaseDirector = createPhaseDirector({
-	spawnAllies,
+	spawnAllies: (session) => AlliedWingRuntime.spawnAllies(session, spawnAir),
 	spawnAir,
 	activateGround,
 	withdrawAirborne,
