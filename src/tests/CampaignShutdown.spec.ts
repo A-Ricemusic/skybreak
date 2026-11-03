@@ -78,7 +78,7 @@ describe("Campaign shutdown shared deadline", () => {
 
 	it("also waits for a profile load still running during removal", () => {
 		let clock = 0;
-		const coordinator = new CampaignCoordinator("loading");
+		const coordinator = new CampaignCoordinator("loading", undefined, { defer: (fn) => fn() });
 		const shutdown = new CampaignShutdown(
 			() => clock,
 			() => {
