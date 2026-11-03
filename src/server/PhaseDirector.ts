@@ -49,7 +49,7 @@ const RETURN_DOT_LENGTH = 160,
 	RETURN_DOT_SPACING = 400,
 	RETURN_DOT_LIFT = 24;
 
-export interface PhaseCombat {
+interface PhaseCombat {
 	spawnAllies: (session: CombatSession) => void;
 	spawnAir: (session: CombatSession, count: number, role: AirRole, options?: SpawnOptions) => void;
 	activateGround: (session: CombatSession, start?: number, count?: number) => void;
@@ -144,7 +144,7 @@ export function createPhaseDirector(combat: PhaseCombat) {
 			if (batch.call !== undefined) radio(session, batch.call);
 		}
 	}
-	/** Bandits or raiders for missions 3-27: they spawn as the live-aircraft budget allows (WavePlan). */
+	/** Bandits or raiders for the blueprint-driven missions: they spawn as the live-aircraft budget allows (WavePlan). */
 	function requestAir(
 		session: CombatSession,
 		count: number,
@@ -163,9 +163,6 @@ export function createPhaseDirector(combat: PhaseCombat) {
 			8: "VARDA TOWER",
 			12: "TRANSMITTER TRUCK",
 			18: "MARINE PICKUP",
-			20: "EVIDENCE LAUNCH",
-			23: "COMMAND FRIGATE",
-			25: "LANDING CRAFT",
 		};
 		return names[session.missionId] ?? (coast ? "LOYALIST LAUNCH" : defend ? "LOYALIST TOWER" : "LOYALIST TRUCK");
 	}
