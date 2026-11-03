@@ -17,7 +17,7 @@ An original mobile-first arcade jet combat campaign for Roblox, written in TypeS
 - Impact feedback is client-only: hull hits shake the chase camera (firmer on heavy hits), confirmed kills pop a short top-centre callout (`SPLASH ONE`, `SPLASH TWO`…, `TARGET DESTROYED`, `ACE DOWN`) and flash the destroyed target's bracket, and an ace kill adds a brief camera hit-stop, FOV punch and white flash. Turning cinematic Camera motion OFF also disables shake and the hit-stop camera moves for the session.
 - Opening, inter-mission and finale cinematics render staged story beats with subtitles, skip, pause and motion/text controls. Missions unlock sequentially; completed missions can be replayed.
 - Older save versions are migrated on load (`src/server/CampaignRepository.ts`); all four slots retain their records.
-- Each mission has a server-enforced 900-second deadline. Success unlocks the next mission; failure supports retry. Required kills and completion are server-authoritative.
+- Each mission has a server-enforced clock. Missions author their own (`countdownSeconds` in `src/shared/missions/`: mission 1 starts at 600 s, mission 16 at 1200 s) and phases can reset it on entry; a mission that sets none falls back to the 900-second compatibility default (`GameConfig.Campaign.MissionTimeLimit`, applied by `MissionCatalog.CountdownSeconds`). Success unlocks the next mission; failure supports retry. Required kills and completion are server-authoritative.
 - Published experiences save four slots to DataStore; an unpublished local Studio file clearly uses session-only saves.
 
 ## Setup
@@ -40,7 +40,7 @@ Open `build/skybreak.rbxlx` in Roblox Studio. Open the Rojo plugin in the Plugin
 
 - `src/server`: server authority (campaign, combat loop, world construction)
 - `src/client`: player scripts (flight controller, React Lua UI, effects)
-- `src/shared`: pure rules shared by server, client and offline tests
+- `src/shared`: code shared by server, client and tests: mostly pure rules (run in the offline Luau suite), plus a few engine adapters that only run in Studio
 - `src/tests`: `@rbxts/jest` specs; `tools/`: validation and asset tooling
 - `default.project.json`: the place structure and Rojo mappings
 
