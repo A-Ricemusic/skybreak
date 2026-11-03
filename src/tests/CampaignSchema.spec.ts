@@ -8,8 +8,10 @@ function fixture(initial?: unknown) {
 	const coordinator = new CampaignCoordinator(
 		"schema",
 		{
-			load: () => stored,
-			update: (_key, transform) => {
+			load() {
+				return stored;
+			},
+			update(_key, transform) {
 				const updated = transform(stored);
 				writes++;
 				stored = updated;

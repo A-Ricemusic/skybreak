@@ -2,12 +2,13 @@ import { describe, expect, it } from "@rbxts/jest-globals";
 import { CampaignCoordinator, normalizeProfile } from "../server/CampaignRepository";
 import { CampaignShutdown } from "../server/CampaignShutdown";
 
-function fixture(writeAt: number) {
+function fixture(writeAt: number, duringWait?: () => void) {
 	let clock = 0;
 	let stored: unknown;
 	const deferred: (() => void)[] = [];
 	const wait = () => {
 		clock += 1;
+		duringWait?.();
 		if (clock >= writeAt) {
 			const write = deferred.shift();
 			if (write) write();
@@ -16,8 +17,10 @@ function fixture(writeAt: number) {
 	const coordinator = new CampaignCoordinator(
 		"slow",
 		{
-			load: () => undefined,
-			update: (_key, transform) => {
+			load() {
+				return undefined;
+			},
+			update(_key, transform) {
 				stored = transform(stored);
 				return stored;
 			},
@@ -48,6 +51,21 @@ describe("Campaign shutdown shared deadline", () => {
 		expect(f.clock()).toBe(12);
 		expect(f.shutdown.pending()).toBe(0);
 		expect(normalizeProfile(f.stored()).slots[0].missions?.[1]?.completed).toBe(true);
+	});
+
+	it("joins a PlayerRemoving flush that is still running when BindToClose starts", () => {
+		let joined = false;
+		let waitedUntil = 0;
+		const f = fixture(12, () => {
+			if (joined) return;
+			joined = true;
+			expect(f.shutdown.awaitDeadline(f.clock() + 28)).toBe(true);
+			waitedUntil = f.clock();
+		});
+		expect(f.shutdown.flushPlayer(f.coordinator)).toBe(true);
+		expect(joined).toBe(true);
+		expect(waitedUntil).toBe(12);
+		expect(f.shutdown.pending()).toBe(0);
 	});
 
 	it("retains unresolved state until the shared deadline and reports failure", () => {

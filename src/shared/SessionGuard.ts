@@ -94,9 +94,9 @@ export interface SettlementState {
 export interface SettlementHooks {
 	/** Cosmetic: the final explosion and the outcome on the HUD. A throw is warned and ignored. */
 	announce: () => void;
-	/** Builds the result and schedules `complete` (task.defer); a throw means nothing was scheduled. */
+	/** Admits the result synchronously, then schedules `complete` (task.defer); a throw means nothing was scheduled. */
 	schedule: (complete: () => void) => void;
-	/** In the completion task: save the result and report it to the player. */
+	/** In the completion task: await cloud confirmation and report the already-admitted result. */
 	save: () => void;
 	/** The result was not saved: tell the player so the result screen does not wait. */
 	unsaved: () => void;

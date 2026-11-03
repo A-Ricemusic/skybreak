@@ -14,7 +14,7 @@ describe("TargetScore", () => {
 		for (let mission = 0; mission <= 18; mission++) {
 			const policy = MissionCatalog.Scoring(mission);
 			const ledger = new TargetScore(policy);
-			for (const [role] of pairs(policy.points)) ledger.RecordKill(role, role);
+			for (const [role] of pairs(policy.points)) ledger.RecordKill(tostring(role), tostring(role));
 			expect(readTargetScore(ledger.Snapshot())).toBeDefined();
 		}
 	});

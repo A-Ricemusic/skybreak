@@ -102,8 +102,10 @@ describe("Campaign completion persistence (offline and Roblox Jest)", () => {
 			const c = new CampaignCoordinator(
 				"settlement",
 				{
-					load: () => undefined,
-					update: (_key, transform) => {
+					load() {
+						return undefined;
+					},
+					update(_key, transform) {
 						stored = transform(stored);
 						return stored;
 					},

@@ -437,6 +437,7 @@ export function installCampaignSmokePlayer(
 	});
 	return {
 		request: (action: string, payload?: unknown) => handleRequest(player, action, payload),
+		remove: () => shutdownPlayer(player),
 		recover: (missionId: number) => {
 			assert(
 				RunService.IsStudio() && game.Workspace.GetAttribute("SkybreakTestMode") === true,
