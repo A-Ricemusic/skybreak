@@ -1,10 +1,12 @@
+// GameUI: the client root component. Routes between title, slots, campaign, briefing, cinematic, loading,
+// mission HUD, outcome and pause/settings screens; owns the CampaignRequest/MissionState remote plumbing,
+// the radio and telemetry subscribers, and the per-frame HUD clock. Touch sticks live in useTouchSticks and
+// the results-screen model in OutcomeModel. mountGameUI mounts it under PlayerGui.
 import { activateResultNext } from "../shared/ResultContinuation";
 import { VoiceDisclosureNotice } from "./VoiceDisclosureNotice";
 import { launchWithChapter } from "../shared/ChapterLaunch";
 import { canLaunchMission, highestUnlocked } from "../shared/CampaignProgress";
-import { isMissionReason } from "../shared/OutcomeReason";
 import { DeletionObservation } from "../shared/DeletionObservation";
-import { stickVector, TouchSticks } from "../shared/TouchSticks";
 import { initialTelemetry } from "../shared/InitialTelemetry";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "@rbxts/react";
 import { flightWarning } from "../shared/FlightWarnings";
@@ -31,7 +33,6 @@ import type {
 import { MissionCatalog, MISSION_COUNT } from "../shared/MissionCatalog";
 import { MissionScore } from "../shared/MissionScore";
 import { finiteOr } from "../shared/Finite";
-import { isTargetScoreSnapshot } from "../shared/TargetScore";
 import { SpecialKind, SpecialWeapons } from "../shared/SpecialWeapons";
 import { C, HUD } from "./Theme";
 import { Difficulty, DifficultyKind } from "../shared/Difficulty";
@@ -51,7 +52,6 @@ import {
 	inputModeFromInputType,
 	JOYSTICK_SIZE,
 	type HudOptions,
-	shouldAcceptInputModeChange,
 	type ControlHint,
 	type InputMode,
 } from "../shared/UILayout";
@@ -73,7 +73,9 @@ import {
 	sanitizeTelemetry,
 	scaleRectangle,
 } from "./screens/UIFormat";
-import { glyphCache, readInputMode } from "./screens/UIInput";
+import { readInputMode } from "./screens/UIInput";
+import { useTouchSticks } from "./useTouchSticks";
+import { buildOutcome, outcomeMissionId } from "../shared/OutcomeModel";
 import { TitleScreen } from "./screens/TitleScreen";
 import { StatusToast } from "./screens/StatusToast";
 import {
@@ -188,12 +190,16 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 	const outcomeWonRef = useRef(true);
 	const outcomeMissionRef = useRef(1);
 	const rootFrameRef = useRef<Frame>();
-	const joystickRef = useRef<Frame>();
-	const knobRef = useRef<Frame>();
-	const touches = useMemo(() => new TouchSticks<InputObject>(), []);
-	const touchEndConnections = useMemo(() => new Map<InputObject, RBXScriptConnection>(), []);
-	const throttleJoystickRef = useRef<Frame>();
-	const throttleKnobRef = useRef<Frame>();
+	const {
+		joystickRef,
+		knobRef,
+		throttleJoystickRef,
+		throttleKnobRef,
+		joystickBegan,
+		throttleBegan,
+		releaseJoystick,
+		applyInputMode,
+	} = useTouchSticks({ controller, inMissionRef, inputModeRef, mountedRef, setInputMode, setHintUntil });
 	const loadingSerialRef = useRef(0);
 	const slotsRef = useRef<SaveSlot[] | undefined>();
 	const deletionObservation = useMemo(() => new DeletionObservation(), []);
@@ -207,32 +213,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		}
 		setScreen(destination);
 	}, []);
-	const releaseJoystick = useCallback(() => {
-		for (const [, connection] of touchEndConnections) connection.Disconnect();
-		touchEndConnections.clear();
-		touches.Clear();
-		controller.SetTouchThrottleAxis(0);
-		if (throttleKnobRef.current) throttleKnobRef.current.Position = UDim2.fromScale(0.5, 0.5);
-		if (knobRef.current) knobRef.current.Position = UDim2.fromScale(0.5, 0.5);
-		controller.SetInput(0, 0);
-	}, [controller]);
-	const applyInputMode = useCallback(
-		(nextMode: InputMode) => {
-			const current = inputModeRef.current;
-			if (!shouldAcceptInputModeChange(current, nextMode, touches.Held())) return;
-			if (current === "touch") releaseJoystick();
-			inputModeRef.current = nextMode;
-			glyphCache.clear();
-			if (!mountedRef.current) return;
-			setInputMode(nextMode);
-			setHintUntil(os.clock() + 6);
-		},
-		[releaseJoystick],
-	);
-	const endJoystickTouch = useCallback(() => {
-		releaseJoystick();
-		applyInputMode(readInputMode());
-	}, [applyInputMode, releaseJoystick]);
 	// Gamepad focus follows the delete confirmation: KEEP while it is open, then back to that slot's row.
 	const setDeleteConfirm = useCallback((slot: number | undefined) => {
 		if (slot !== undefined) slotFocusRef.current = slot;
@@ -695,132 +675,12 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			key.Disconnect();
 		};
 	}, [pauseSortie, resumeSortie]);
-	const moveJoystick = useCallback(
-		(input: InputObject) => {
-			const joystick = joystickRef.current;
-			const knob = knobRef.current;
-			if (!joystick || !knob || !inMissionRef.current) return;
-			const stick = stickVector(
-				input.Position.X,
-				input.Position.Y,
-				joystick.AbsolutePosition.X,
-				joystick.AbsolutePosition.Y,
-				joystick.AbsoluteSize.X,
-			);
-			// The knob sits inside the (possibly HUD-scaled) frame: convert screen pixels back to its units.
-			const unit = joystick.AbsoluteSize.X / math.max(1, joystick.Size.X.Offset);
-			knob.Position = new UDim2(0.5, stick.offsetX / unit, 0.5, stick.offsetY / unit);
-			controller.SetInput(stick.x, stick.y);
-		},
-		[controller],
-	);
-	const releaseTouch = useCallback(
-		(input: InputObject) => {
-			if (touches.steering === input) {
-				controller.SetInput(0, 0);
-				if (knobRef.current) knobRef.current.Position = UDim2.fromScale(0.5, 0.5);
-			}
-			if (touches.throttle === input) {
-				controller.SetTouchThrottleAxis(0);
-				if (throttleKnobRef.current) throttleKnobRef.current.Position = UDim2.fromScale(0.5, 0.5);
-			}
-			touchEndConnections.get(input)?.Disconnect();
-			touchEndConnections.delete(input);
-			touches.End(input);
-			applyInputMode(readInputMode());
-		},
-		[controller, touches, applyInputMode],
-	);
-	const trackTouchEnd = useCallback(
-		(input: InputObject) => {
-			touchEndConnections.set(
-				input,
-				input.GetPropertyChangedSignal("UserInputState").Connect(() => {
-					if (
-						input.UserInputState === Enum.UserInputState.End ||
-						input.UserInputState === Enum.UserInputState.Cancel
-					)
-						releaseTouch(input);
-				}),
-			);
-		},
-		[releaseTouch, touchEndConnections],
-	);
-	const joystickBegan = useCallback(
-		(input: InputObject) => {
-			if (
-				!inMissionRef.current ||
-				GuiService.MenuIsOpen ||
-				UserInputService.GetFocusedTextBox() ||
-				inputModeRef.current !== "touch" ||
-				input.UserInputType !== Enum.UserInputType.Touch
-			)
-				return;
-			if (!touches.Begin("steering", input)) return;
-			trackTouchEnd(input);
-			moveJoystick(input);
-		},
-		[moveJoystick, trackTouchEnd],
-	);
-	// The stick's InputBegan only covers its own frame. World boxes need the unconsumed screen touches too.
-	useEffect(() => {
-		const began = UserInputService.TouchStarted.Connect((input, processed) => {
-			if (
-				processed ||
-				!inMissionRef.current ||
-				inputModeRef.current !== "touch" ||
-				GuiService.MenuIsOpen ||
-				UserInputService.GetFocusedTextBox()
-			)
-				return;
-			controller.TryTapTarget(input.Position);
-		});
-		return () => began.Disconnect();
-	}, [controller]);
-	const moveThrottle = useCallback(
-		(input: InputObject) => {
-			const stick = throttleJoystickRef.current;
-			const knob = throttleKnobRef.current;
-			if (!stick || !knob || !inMissionRef.current) return;
-			const radius = math.max(1, stick.AbsoluteSize.Y * 0.34);
-			const offset = math.clamp(
-				input.Position.Y - stick.AbsolutePosition.Y - stick.AbsoluteSize.Y / 2,
-				-radius,
-				radius,
-			);
-			const unit = stick.AbsoluteSize.Y / math.max(1, stick.Size.Y.Offset);
-			knob.Position = new UDim2(0.5, 0, 0.5, offset / unit);
-			controller.SetTouchThrottleAxis(-offset / radius);
-		},
-		[controller],
-	);
-	const throttleBegan = useCallback(
-		(input: InputObject) => {
-			if (
-				!inMissionRef.current ||
-				GuiService.MenuIsOpen ||
-				UserInputService.GetFocusedTextBox() ||
-				inputModeRef.current !== "touch" ||
-				input.UserInputType !== Enum.UserInputType.Touch
-			)
-				return;
-			if (!touches.Begin("throttle", input)) return;
-			trackTouchEnd(input);
-			moveThrottle(input);
-		},
-		[moveThrottle, trackTouchEnd],
-	);
 	useEffect(() => {
 		mountedRef.current = true;
 		return () => {
 			mountedRef.current = false;
 			requestRef.current++;
 			toastRef.current++;
-			for (const [, connection] of touchEndConnections) connection.Disconnect();
-			touchEndConnections.clear();
-			touches.Clear();
-			controller.SetTouchThrottleAxis(0);
-			controller.SetInput(0, 0);
 			controller.Stop();
 		};
 	}, [controller]);
@@ -834,31 +694,6 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 			for (const connection of connections) connection.Disconnect();
 		};
 	}, [applyInputMode]);
-	useEffect(() => {
-		const changed = UserInputService.InputChanged.Connect((input) => {
-			const active = touches.steering;
-			if (
-				input.UserInputState === Enum.UserInputState.Cancel ||
-				input.UserInputState === Enum.UserInputState.End
-			) {
-				releaseTouch(input);
-				return;
-			}
-			if (active && input === active) moveJoystick(input);
-			if (input === touches.throttle) moveThrottle(input);
-		});
-		const ended = UserInputService.InputEnded.Connect(releaseTouch);
-		const focus = UserInputService.WindowFocusReleased.Connect(endJoystickTouch);
-		const menu = GuiService.MenuOpened.Connect(endJoystickTouch);
-		const textFocus = UserInputService.TextBoxFocused.Connect(endJoystickTouch);
-		return () => {
-			changed.Disconnect();
-			ended.Disconnect();
-			focus.Disconnect();
-			menu.Disconnect();
-			textFocus.Disconnect();
-		};
-	}, [endJoystickTouch, moveJoystick, moveThrottle, releaseTouch]);
 	useEffect(() => {
 		if (screen !== "mission") releaseJoystick();
 	}, [releaseJoystick, screen]);
@@ -1008,9 +843,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				const current = telemetryRef.current;
 				const won = finished.kind === "Completed";
 				controller.ResultAudio(won);
-				const missionId = MissionCatalog.IsValidId(finished.missionId)
-					? finished.missionId
-					: (current.missionId ?? 1);
+				const missionId = outcomeMissionId(finished, current);
 				selectedMissionRef.current = missionId;
 				setSelectedMission(missionId);
 				outcomeWonRef.current = won;
@@ -1030,78 +863,13 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 					changeScreen("cinematic");
 				} else changeScreen("outcome");
 				const resultPersistence = normalizePersistence(finished.persistence ?? persistenceRef.current);
-				const saveText =
-					won && finished.saved === true && resultPersistence === "cloud"
-						? "FLIGHT RECORD SAVED TO CLOUD"
-						: resultPersistence === "session"
-							? "RESULT HELD FOR THIS SESSION ONLY"
-							: resultPersistence === "unavailable"
-								? "SAVE SERVICE UNAVAILABLE — RESULT MAY NOT PERSIST"
-								: won
-									? "RESULT RECEIVED — SAVE NOT CONFIRMED"
-									: "";
-				const targetScore = isTargetScoreSnapshot(finished.targetScore) ? finished.targetScore : undefined;
-				const count = (value: unknown, fallback = 0) => math.max(0, math.floor(finiteOr(value, fallback)));
-				const kills = count(finished.kills, current.kills);
-				const groundKills = math.min(kills, count(finished.groundKills, current.groundKills ?? 0));
-				const elapsed = math.max(0, finiteOr(finished.elapsed, current.elapsed));
-				const par =
-					finiteOr(finished.par, 0) > 0
-						? finished.par!
-						: MissionScore.ParSeconds(MissionCatalog.Get(missionId));
-				const missilesFired = count(finished.missilesFired);
-				const missileHits = math.min(missilesFired, count(finished.missileHits));
-				const damageTaken = math.clamp(finiteOr(finished.damageTaken, 100 - current.health), 0, 100);
-				// The server scores the run; an older or fallback message is scored here for display only.
-				const fallback = MissionScore.Compute(
-					{
-						won,
-						airKills: kills - groundKills,
-						groundKills,
-						elapsed,
-						par,
-						missilesFired,
-						missileHits,
-						damageTaken,
-						difficulty: Difficulty.IsKind(finished.difficulty) ? finished.difficulty : undefined,
-						targetPoints: targetScore?.total,
-					},
-					MissionCatalog.Scoring(missionId),
+				setOutcome(
+					buildOutcome(finished, current, resultPersistence, {
+						accent: C.Accent,
+						muted: C.Muted,
+						orange: C.Orange,
+					}),
 				);
-				setOutcome({
-					won,
-					missionId,
-					targetScore: MissionCatalog.Scoring(missionId).basis === "points" ? targetScore : undefined,
-					airKills: kills - groundKills,
-					optionalKills: count(finished.optionalKills),
-					groundKills,
-					elapsed,
-					par,
-					completedPhases: count(
-						finished.completedPhases,
-						won ? MissionCatalog.TotalPhases(MissionCatalog.Get(missionId)) : 0,
-					),
-					missilesFired,
-					missileHits,
-					damageTaken,
-					lowestHealth: math.clamp(finiteOr(finished.lowestHealth, current.health), 0, 100),
-					evades: count(finished.evades),
-					score: finiteOr(finished.score, -1) >= 0 ? math.floor(finished.score!) : fallback.score,
-					rank: MissionScore.IsRank(finished.rank) ? finished.rank : fallback.rank,
-					newBestScore: finished.newBestScore === true,
-					newBestRank: finished.newBestRank === true,
-					bestScore: finiteOr(finished.bestScore, -1) >= 0 ? math.floor(finished.bestScore!) : undefined,
-					bestRank: MissionScore.IsRank(finished.bestRank) ? finished.bestRank : undefined,
-					reason: isMissionReason(finished.reason) ? finished.reason : undefined,
-					difficulty: Difficulty.IsKind(finished.difficulty) ? finished.difficulty : undefined,
-					saveText,
-					saveColor:
-						won && finished.saved === true && resultPersistence === "cloud"
-							? C.Accent
-							: resultPersistence === "cloud"
-								? C.Muted
-								: C.Orange,
-				});
 			}
 		};
 		const connection = remotes.MissionState.OnClientEvent.Connect((raw: unknown) => onMissionState(raw));
