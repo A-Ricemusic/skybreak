@@ -7,6 +7,7 @@ export const GameConfig = {
 		DataStoreName: "SkybreakCampaign18_v1",
 		// Fresh namespace; schema v3 stores practice plus 18 numbered mission records.
 		// No old namespace is read, migrated or deleted.
+		// Only same-namespace v1/v2 migrations and v3 are supported; other schemas are read-only.
 		SaveVersion: 3,
 		SlotCount: 4,
 		MissionCount: 18,

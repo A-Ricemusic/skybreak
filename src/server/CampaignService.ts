@@ -150,7 +150,7 @@ function listSlots(state: PlayerState): CampaignResponse {
 		}
 	}
 	if (state.coordinator.getPersistence() === "unavailable")
-		return refuse("Campaign saves are temporarily unavailable.");
+		return refuse(state.coordinator.getLoadError() ?? "Campaign saves are temporarily unavailable.");
 	return response(state);
 }
 
@@ -169,7 +169,10 @@ function startMission(state: PlayerState, payload: unknown): CampaignResponse {
 	if (!isValidSlot(slot)) return refuse("Choose a valid campaign slot (1-4).");
 	if (!waitForLoad(state)) return refuse("Campaign data is still loading. Please try again.");
 	if (state.coordinator.getPersistence() === "unavailable") {
-		return refuse("Your cloud save could not be loaded; mission start is blocked to protect it.");
+		return refuse(
+			state.coordinator.getLoadError() ??
+				"Your cloud save could not be loaded; mission start is blocked to protect it.",
+		);
 	}
 	if (!combatService) return refuse("Flight systems are not installed in this build.");
 	// Results can arrive before settlement releases its session. Keep this RPC pending
@@ -241,7 +244,7 @@ function deleteSlot(state: PlayerState, payload: unknown): CampaignResponse {
 	if (!isValidSlot(slot)) return refuse("Choose a valid campaign slot (1-4).");
 	if (!waitForLoad(state)) return refuse("Campaign data is still loading. Please try again.");
 	if (state.coordinator.getPersistence() === "unavailable")
-		return refuse("Campaign saves are temporarily unavailable.");
+		return refuse(state.coordinator.getLoadError() ?? "Campaign saves are temporarily unavailable.");
 	if (state.activeSlot !== undefined || state.activeMission !== undefined)
 		return refuse("Finish the current mission before deleting a save.");
 	state.coordinator.deleteSlot(slot);

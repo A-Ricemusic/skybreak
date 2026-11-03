@@ -304,16 +304,40 @@ export function blankProfile(): CampaignProfile {
 	return { version: SAVE_VERSION, slots };
 }
 
-export function normalizeProfile(raw: unknown): CampaignProfile {
-	const profile = blankProfile();
-	if (!typeIs(raw, "table")) return profile;
+/** Only a missing key is fresh. Existing unreadable data must never become a writable blank. */
+export function profileReadError(raw: unknown): string | undefined {
+	if (raw === undefined) return undefined;
+	if (!typeIs(raw, "table"))
+		return "Campaign save has an invalid profile structure; saving is disabled to protect it.";
 	const stored = raw as StoredProfile;
-	const rawSlots = stored.slots;
-	if (!typeIs(rawSlots, "table")) return profile;
-	const storedVersion = isFiniteNumber(stored.version) ? stored.version : 1;
-	const legacyV1 = storedVersion < 2;
+	if (stored.version !== 1 && stored.version !== 2 && stored.version !== SAVE_VERSION)
+		return "Campaign save uses an unsupported schema version; saving is disabled. Please rejoin an updated server.";
+	if (!typeIs(stored.slots, "table"))
+		return "Campaign save has an invalid slot container; saving is disabled to protect it.";
+	let entries = 0;
+	for (const [key, slot] of pairs(stored.slots as unknown as Record<string, unknown>)) {
+		entries++;
+		// At most four numeric and four string compatibility keys. Bound even malformed containers.
+		if (entries > SLOT_COUNT * 2 || !typeIs(slot, "table"))
+			return "Campaign save has invalid slot entries; saving is disabled to protect it.";
+		let validKey = false;
+		for (let id = 1; id <= SLOT_COUNT; id++) if (key === tostring(id) || (key as unknown) === id) validKey = true;
+		if (!validKey) return "Campaign save has invalid slot keys; saving is disabled to protect it.";
+	}
+	return undefined;
+}
+
+export function normalizeProfile(raw: unknown): CampaignProfile {
+	const issue = profileReadError(raw);
+	assert(issue === undefined, issue);
+	const profile = blankProfile();
+	if (raw === undefined) return profile;
+	const stored = raw as StoredProfile;
+	// Explicit supported migrations: v1 completion belongs to M1; v2 legacy mission fields
+	// become v3 records in normalizeSlot. v3 keeps its per-mission records.
+	const legacyV1 = stored.version === 1;
 	for (let index = 1; index <= SLOT_COUNT; index++)
-		profile.slots[index - 1] = normalizeSlot(slotAt(rawSlots, index), index, legacyV1);
+		profile.slots[index - 1] = normalizeSlot(slotAt(stored.slots!, index), index, legacyV1);
 	return profile;
 }
 
@@ -551,6 +575,7 @@ export class CampaignCoordinator {
 	private readonly wait: () => void;
 	private persistence: Persistence;
 	private cloudLoaded = false;
+	private loadError?: string;
 	private dirty = false;
 	private writeRunning = false;
 	private writeScheduled = false;
@@ -584,12 +609,17 @@ export class CampaignCoordinator {
 			this.persistence = "session";
 			return true;
 		}
-		const [success, stored] = this.tryOperation("profile load", () => this.store!.load(this.key));
+		const [success, stored] = this.tryOperation("profile load", () => {
+			const raw = this.store!.load(this.key);
+			this.checkReadable(raw);
+			return normalizeProfile(raw);
+		});
 		if (!success) {
 			this.persistence = "unavailable";
 			return false;
 		}
 		this.profile = mergeProfiles(stored, this.profile);
+		this.loadError = undefined;
 		this.cloudLoaded = true;
 		this.persistence = "cloud";
 		if (this.dirty) this.queueSave();
@@ -734,6 +764,19 @@ export class CampaignCoordinator {
 		return this.persistence;
 	}
 
+	public getLoadError(): string | undefined {
+		return this.loadError;
+	}
+
+	private checkReadable(raw: unknown): void {
+		const issue = profileReadError(raw);
+		if (issue !== undefined) {
+			this.loadError = issue;
+			this.cloudLoaded = false;
+			error(issue);
+		}
+	}
+
 	public hasCloudLoaded(): boolean {
 		return this.cloudLoaded;
 	}
@@ -775,9 +818,15 @@ export class CampaignCoordinator {
 		while (this.dirty) {
 			this.dirty = false;
 			const desired = normalizeProfile(this.profile);
-			const [success, stored] = this.tryOperation("profile save", () =>
-				this.store!.update(this.key, (current) => serializeProfile(mergeProfiles(current, desired))),
-			);
+			const [success, stored] = this.tryOperation("profile save", () => {
+				const saved = this.store!.update(this.key, (current) => {
+					// UpdateAsync can observe a newer deployment's record after our successful load.
+					this.checkReadable(current);
+					return serializeProfile(mergeProfiles(current, desired));
+				});
+				this.checkReadable(saved);
+				return normalizeProfile(saved);
+			});
 			if (!success) {
 				this.dirty = true;
 				this.persistence = "unavailable";
