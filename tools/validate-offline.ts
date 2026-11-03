@@ -12,8 +12,8 @@ const STEP_TIMEOUT_MS = positiveEnv("VALIDATE_STEP_TIMEOUT_MS") ?? 900_000;
 // `bun tools/test-relay-offline.ts` (OFFLINE_SPECS registered=N and
 // OFFLINE_LUAU_RESULT passed=N) so a silently dropped spec fails the gate.
 // Raise both whenever specs are added; lowering either needs a reviewed reason.
-const OFFLINE_SPEC_FLOOR = 131;
-const OFFLINE_PASS_FLOOR = 1333;
+const OFFLINE_SPEC_FLOOR = 133;
+const OFFLINE_PASS_FLOOR = 1354;
 
 interface Summary {
 	pattern: RegExp;

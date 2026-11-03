@@ -2,7 +2,8 @@ import { describe, expect, it } from "@rbxts/jest-globals";
 import { isCutInPlan, isLandingPlan, isRearmPlan } from "../shared/CinematicPayload";
 import { FlightPrediction } from "../shared/FlightPrediction";
 import { LaunchStage } from "../shared/LaunchStage";
-import type { LandingPlan } from "../shared/LandingRules";
+import { landingPose, type LandingPlan } from "../shared/LandingRules";
+import { isFiniteNumber } from "../shared/Finite";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import type { RearmPlan } from "../shared/RearmRules";
 import type { CutInPlan } from "../shared/SortieCutaways";
@@ -81,6 +82,37 @@ describe("cinematic MissionState payload guards", () => {
 		expect(isLandingPlan({ ...landing, rolloutSeconds: -1 })).toBe(false);
 		expect(isLandingPlan({ ...landing, accomplishedSeconds: NAN })).toBe(false);
 		expect(isLandingPlan({ ...landing, accomplishedSeconds: 2 })).toBe(true);
+	});
+	it("rejects finite but overflowing landing and rearm inputs", () => {
+		expect(isLandingPlan({ ...landing, touchdown: { x: 0, y: 1e300, z: 0 } })).toBe(false);
+		expect(isLandingPlan({ ...landing, touchdown: { x: -1e300, y: 20, z: 0 } })).toBe(false);
+		expect(isLandingPlan({ ...landing, approachDistance: 1e300 })).toBe(false);
+		expect(isLandingPlan({ ...landing, rolloutDistance: 1e300 })).toBe(false);
+		expect(isLandingPlan({ ...landing, approachSeconds: 1e-300 })).toBe(false);
+		expect(isLandingPlan({ ...landing, rolloutSeconds: 1e-300 })).toBe(false);
+		expect(isLandingPlan({ ...landing, approachSeconds: 1e300 })).toBe(false);
+		expect(isLandingPlan({ ...landing, glideDegrees: 90 })).toBe(false);
+		expect(isLandingPlan({ ...landing, headingDegrees: 1e300 })).toBe(false);
+		expect(isLandingPlan({ ...landing, accomplishedSeconds: 1e300 })).toBe(false);
+		expect(isRearmPlan({ ...rearm, landing: { ...landing, touchdown: { x: 0, y: 1e300, z: 0 } } })).toBe(false);
+		expect(isRearmPlan({ ...rearm, landing: { ...landing, rolloutSeconds: 1e-300 } })).toBe(false);
+		expect(isRearmPlan({ ...rearm, takeoffSeconds: 1e-300 })).toBe(false);
+		expect(isRearmPlan({ ...rearm, carrier: { catapult: { x: 0, y: 30, z: 1e300 } } })).toBe(false);
+		// Within-bound extremes still yield a finite pose throughout.
+		const extreme: LandingPlan = {
+			...landing,
+			touchdown: { x: 1e5, y: 1e5, z: -1e5 },
+			approachDistance: 1e5,
+			rolloutDistance: 1e5,
+			approachSeconds: 0.05,
+			rolloutSeconds: 0.05,
+			glideDegrees: 45,
+		};
+		expect(isLandingPlan(extreme)).toBe(true);
+		for (const t of [0, 0.025, 0.05, 0.075, 0.1]) {
+			const pose = landingPose(extreme, t);
+			for (const value of [pose.x, pose.y, pose.z, pose.speed]) expect(isFiniteNumber(value)).toBe(true);
+		}
 	});
 	it("rejects a rearm without a valid nested landing, takeoff clock or carrier catapult", () => {
 		expect(isRearmPlan(rearm)).toBe(true);

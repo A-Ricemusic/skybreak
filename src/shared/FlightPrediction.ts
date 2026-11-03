@@ -110,7 +110,9 @@ export const FlightPrediction = {
 		}
 		const state = zero();
 		copyInto(state, initial);
-		FlightMath.Sync(state);
+		// Unit-scale the attitude as Decode does: IsLaunchState admits any usable norm, and Sync derives angles
+		// from the quaternion as given. A unit quaternion is unchanged to rounding, so its derived angles are too.
+		FlightMath.Normalize(state);
 		return {
 			airspace: resolveAirspace(limits),
 			state,
