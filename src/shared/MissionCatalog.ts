@@ -426,7 +426,7 @@ function validateBlueprintAuthoring(blueprint: MissionBlueprint, id: number): vo
 	for (const phase of expandPhases(blueprint.phases)) {
 		const tag = `Mission ${id} phase ${phase.kind}`;
 		assert(phase.label.size() > 0 && phase.label.size() <= 40, `${tag} label must fit 40 characters`);
-		if (phase.beat) assert(phase.beat.size() <= 72, `${tag} beat must fit 72 characters`);
+		if (phase.beat !== undefined) assert(phase.beat.size() <= 72, `${tag} beat must fit 72 characters`);
 		if (phase.kind === "ace") requiredAce += 1;
 		if (phase.kind === "required_air" || phase.kind === "required_ground" || phase.kind === "chase") {
 			assert((phase.count ?? 0) >= 1, `${tag} needs count >= 1`);

@@ -38,7 +38,7 @@ assert(primitives.includes("onActivated={onPrimary}"));
 const launch = ui.slice(ui.indexOf("const launchMission ="), ui.indexOf("const startMission ="));
 assert(launch.indexOf("changeScreen(launchLoading.Screen())") < launch.indexOf('invoke("StartMission"'));
 assert(launch.includes("missionId, playedChapter, special:"));
-assert(launch.match(/changeScreen\(fromResult \? "outcome" : launchLoading.Screen\(\)\)/g)?.length === 2);
+assert(launch.match(/changeScreen\(fromResult === true \? "outcome" : launchLoading.Screen\(\)\)/g)?.length === 2);
 assert(launch.includes('showToast(problem ?? "Command rejected the request.", true)'));
 const start = service.slice(service.indexOf("function startMission("), service.indexOf("function deleteSlot("));
 assert(start.indexOf("awaitResultSettlement(") < start.indexOf("resolveMissionRequest("));

@@ -26,8 +26,8 @@ export default tseslint.config(
 		},
 		rules: {
 			...roblox.configs.recommended.rules,
-			// Existing truthiness and array iteration need a separate behavior review.
-			"roblox-ts/lua-truthiness": "warn",
+			// Explicit Luau presence checks and reviewed array iteration.
+			"roblox-ts/lua-truthiness": "error",
 			"roblox-ts/no-array-pairs": "warn",
 			// Valid roblox-ts 3 LuaTuple/$tuple usage; migration would alter return semantics.
 			"roblox-ts/no-user-defined-lua-tuple": "off",

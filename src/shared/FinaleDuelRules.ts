@@ -118,7 +118,7 @@ export function validateFinaleDuel(b: MissionBlueprint): void {
 				!phase.ringSweep,
 			"D13 has exclusive phase ownership",
 		);
-		if (d.environment)
+		if (d.environment !== undefined)
 			assert(
 				d.environment === "m18_voice_breaks" || ENVIRONMENTS[d.environment as EnvironmentPreset] !== undefined,
 				"Unknown D13 environment",

@@ -69,7 +69,7 @@ describe("M10 River Line", () => {
 		expect(linked.size()).toBe(12);
 		expect(waves.reduce((n, w) => n + w.count, 1)).toBe(44);
 		let maximum = groundScore() + 240;
-		for (const w of waves) if (!w.parkedSourceId) maximum += w.count * bp.scoring!.points[w.scoreRole];
+		for (const w of waves) if (w.parkedSourceId === undefined) maximum += w.count * bp.scoring!.points[w.scoreRole];
 		expect(groundScore()).toBe(7360);
 		expect(maximum).toBe(9340);
 		expect(bp.scoring!.rank).toEqual({ S: 5400, A: 4200, B: 3800, C: 3000 });

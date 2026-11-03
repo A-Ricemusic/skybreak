@@ -36,7 +36,7 @@ export const NavigationPilot = {
 			tz = point.z + math.sin(angle) * orbitRadius;
 		}
 		const desiredYaw = math.atan2(state.x - tx, state.z - tz);
-		const altitude = math.clamp(point.y, 210, ceiling ? ceiling - 55 : 850);
+		const altitude = math.clamp(point.y, 210, ceiling !== undefined ? ceiling - 55 : 850);
 		const [x, y] = NavigationPilot.Steer(state, desiredYaw, math.clamp((altitude - state.y) / 400, -0.4, 0.4));
 		// Preserve the pilot’s established 195/240 studs/s route and orbit timing.
 		return { x, y, throttle: FlightMath.ThrottleForSpeed(orbit || distance < 700 ? 195 : 240) };

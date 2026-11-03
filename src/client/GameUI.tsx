@@ -308,7 +308,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		if (!mountedRef.current) return;
 		const serial = ++toastRef.current;
 		setToast({ message, isError });
-		if (sticky) return;
+		if (sticky === true) return;
 		task.delay(4, () => {
 			if (mountedRef.current && toastRef.current === serial) setToast(undefined);
 		});
@@ -390,7 +390,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				if (!mountedRef.current || !launchLoading.Watchdog(generation, os.clock())) return;
 				loadingSerialRef.current++;
 				cancelRequests();
-				changeScreen(fromResult ? "outcome" : launchLoading.Screen());
+				changeScreen(fromResult === true ? "outcome" : launchLoading.Screen());
 				showToast("World preparation timed out. Request another launch.", true);
 				// Bypasses the server foreground request lock; cancellation retains world ownership until the old build stops.
 				task.spawn(() => invoke("CancelLaunch", { launchId: generation }));
@@ -416,7 +416,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				if (!response) {
 					launchLoading.Fail();
 					loadingSerialRef.current++;
-					changeScreen(fromResult ? "outcome" : launchLoading.Screen());
+					changeScreen(fromResult === true ? "outcome" : launchLoading.Screen());
 					showToast(problem ?? "Command rejected the request.", true);
 				} else if (response.slots) applyResponseSlots(response);
 			});
