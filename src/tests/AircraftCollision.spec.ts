@@ -3,13 +3,18 @@ import { Workspace } from "@rbxts/services";
 import { AircraftCollision } from "../server/AircraftCollision";
 import { Scenery } from "../server/Scenery";
 import { JetFactory } from "../shared/JetFactory";
+import { WORLD_HOOK_TIMEOUT_MS, worldHookCleanup } from "./helpers/IntegrationTimeouts";
 
 describe("authoritative aircraft surface sweeps", () => {
 	let fixture: Folder;
-	afterEach(() => {
-		fixture?.Destroy();
-		Workspace.Terrain.Clear();
-	});
+	afterEach(
+		() =>
+			worldHookCleanup("AircraftCollision", () => {
+				fixture?.Destroy();
+				Workspace.Terrain.Clear();
+			}),
+		WORLD_HOOK_TIMEOUT_MS,
+	);
 	function setup(): Folder {
 		fixture = new Instance("Folder");
 		fixture.Parent = Workspace;

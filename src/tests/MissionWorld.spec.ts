@@ -12,66 +12,28 @@ import { MissionCatalog } from "../shared/MissionCatalog";
 import { AircraftCollision } from "../server/AircraftCollision";
 import { PART_BUDGET } from "../server/Scenery";
 import { ENVIRONMENT_ATTRIBUTE } from "../shared/EnvironmentPresets";
-import { SURFACE_MAPS, type SurfaceMap } from "../shared/AssetSelection";
 import { UploadedAssets } from "../shared/UploadedAssets";
-import { UploadedAssetSpecs, type UploadedAssetName } from "../shared/UploadedAssetSpecs";
-import { type PropAsset } from "../shared/WorldPlan";
 import { buildNightLighting } from "../server/NightLighting";
 import { GROUND_TARGET_LABELS } from "../shared/CampaignEncounters";
 import { M05_ENVIRONMENT, M05_WORLD_KEY } from "../shared/M05WorldPlan";
 import { M01_ENVIRONMENT } from "../shared/M01WorldPlan";
+import { fakeIds, fakeUpload, probe } from "./WorldBuildFixtures";
+import { WORLD_HOOK_TIMEOUT_MS, worldHookCleanup } from "./helpers/IntegrationTimeouts";
 
 /** Engine integration only. Included in Roblox Jest; never run by the offline VM (WorldPlan.spec audits the plans there). */
 
-// Deterministic uploads: one textured MeshPart per world asset at its authored size, so the
-// placement and grounding checks below exercise the uploaded-clone path without InsertService.
-const WORLD: PropAsset[] = [
-	"Frigate",
-	"OilPlatform",
-	"HarbourQuay",
-	"ContainerStack",
-	"GantryCrane",
-	"Hangar",
-	"ControlTower",
-	"OfficeMidrise",
-	"ApartmentBlock",
-	"CityTower",
-	"Farmhouse",
-	"Barn",
-	"GrainSilo",
-	"RadarDish",
-	"RelayMast",
-	"Pine",
-	"Broadleaf",
-	"RockA",
-	"RockB",
-	"RockC",
-];
-const probe = (appearance: SurfaceAppearance, map: SurfaceMap) => appearance.GetAttribute(`Fake${map}`) === true;
-function fakeIds(): Partial<Record<UploadedAssetName, number>> {
-	const ids: Partial<Record<UploadedAssetName, number>> = {};
-	WORLD.forEach((name, i) => (ids[name] = 9000 + i));
-	return ids;
-}
-function fakeUpload(assetId: number): Model {
-	const name = WORLD[assetId - 9000],
-		spec = UploadedAssetSpecs[name];
-	const container = new Instance("Model");
-	const part = new Instance("MeshPart");
-	part.Name = spec.folder;
-	part.Size = spec.authoredSize;
-	part.CFrame = new CFrame(300, 40, -200);
-	const appearance = new Instance("SurfaceAppearance");
-	for (const map of SURFACE_MAPS) appearance.SetAttribute(`Fake${map}`, true);
-	appearance.Parent = part;
-	part.Parent = container;
-	return container;
-}
-function cleanup(fixture: Folder | undefined): void {
+/** The yielding part of cleanup: destroy the fixture and erase its terrain. */
+function clearWorld(fixture: Folder | undefined): void {
 	fixture?.Destroy();
 	// Exercise the same sparse owner as production. Native Clear traverses the
 	// retained tall campaign bounds and leaves the owner's dirty bit stale.
 	clearTerrainIfDirty();
+}
+function cleanup(fixture: Folder | undefined): void {
+	clearWorld(fixture);
+	verifyCleared();
+}
+function verifyCleared(): void {
 	expect(terrainDirty()).toBe(false);
 	// Small samples cover Practice water, a curved island and the highest hill.
 	// This also catches a clean marker being set before the footprint is erased.
@@ -101,13 +63,18 @@ const inUploaded = (item: Instance) =>
 
 describe("Released campaign world integration (Studio only)", () => {
 	let fixture: Folder | undefined;
+	// Deterministic uploads (WorldBuildFixtures default mode: the first 20 world assets): one
+	// textured MeshPart per asset at its authored size, so the placement and grounding checks
+	// below exercise the uploaded-clone path without InsertService.
 	beforeAll(() => UploadedAssets.Configure({ ids: fakeIds(), probe, loader: fakeUpload }));
 	afterAll(() => UploadedAssets.Configure());
 	afterEach(() => {
-		cleanup(fixture);
+		const target = fixture;
 		fixture = undefined;
+		worldHookCleanup("MissionWorld", () => clearWorld(target));
+		verifyCleared();
 		Lighting.FindFirstChild("M01SunRays")?.Destroy();
-	});
+	}, WORLD_HOOK_TIMEOUT_MS);
 	for (const id of [0, 1])
 		it(`builds and disposes released sortie ${id}`, () => {
 			fixture = new Instance("Folder");
