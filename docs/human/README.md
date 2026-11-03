@@ -1,3 +1,16 @@
+**Current state, 2026-11-03** (main `6fe63112`). The cleanup sweep merged #248–#271 (24 PRs): mostly behaviour-preserving refactors, plus the small Player-visible and save-behaviour changes listed in [shipped.md](shipped.md) (mission-end hold #267, enemy smoothing #264, malformed-packet guards #258/#266, input/launch bounds #248, save retry/spacing #253, fail-closed mission records #270, runner-sourced kill settlement #269; deletion-epoch bookkeeping #271, nothing visible to the player). They are live under the pipeline convention. Every completed main publish run succeeded, including the final one for `6fe63112`. Cancelled runs were queued runs superseded by a later merge. **No Roblox Player or phone verification was performed.** Practice and missions 1–18 keep their existing statuses, and the table below is unchanged.
+
+Latest evidence:
+- Offline: `bun run validate:offline` exited 0 on every merged PR (latest on main+#271: 1,396 Luau checks passed, 0 failed).
+- Studio Jest (orchestrator, Studio 0.745.0.7451137, heavily loaded machine): best combined run 1,639/1,640 on main plus #264–#267, #269 and #270 v1. The only failure was CampaignSmoke world-build time (M10 30.0 s, M12 30.6 s, M16 25.3 s); an earlier run failed on M7 at 30.2 s. Persistence specs on main+#271: 146/147; the one failure was CampaignSmoke M12 at 30.7 s.
+
+Open:
+- CampaignSmoke reliability: needs a quiet-machine run.
+- Deletion-epoch phase 2 enablement: phase 1 shipped in #271. The F1 deletion race stays live until phase 2 (D-676).
+- #241: M07 terrain cleanup.
+- Dependabot #245 and #246.
+- Owner phone playthrough, which comes first in [next.md](next.md).
+
 2026-11-02 reconciliation against main `8dead0bf` (orchestrator, end of session). Merged and live under the pipeline convention today: #203 campaign smoke, #205 planner performance, #240 terrain cleanup, #242 Prettier + ESLint gate with full-codebase reformat, #243 lint warnings cleared and all baseline rules promoted to error, #244 campaign persistence audit fixes (D-675). Every "(unmerged)" or "candidate" note below that refers to these PRs is historical and superseded. Open PRs: #241 M07 terrain cleanup (needs `bun run format && bun run lint:fix` after the reformat before it can merge), Dependabot #245 (@rbxts/types patch) and #246 (ESLint 10 major; do not merge without re-validating `eslint.config.mjs`). An independent security and codebase audit found no critical or high issues: client-to-server remotes, flight authority, rate limits, DataStore handling, resource caps and CI secrets verified sound; its four medium/low persistence findings are fixed in #244. No Studio Jest, Player test, upload or balance change in this session; mission status table and level statuses are unchanged.
 
 2026-11-02 persistence audit candidate (unmerged): F1–F4 implemented with regression specs; no gameplay/balance or Practice/M01–M18 status changes. Save durability, shutdown coordination and fail-closed schema policy (D-675) await PR review and the later Studio Jest runner. Studio/Player not run; no live-quality claim. Existing mission progress table remains authoritative.

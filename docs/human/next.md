@@ -1,3 +1,24 @@
+2026-11-03 reconciliation against main `6fe63112` after the cleanup sweep (#248–#271 merged). This supersedes the 2026-11-02 list below. Item (2) there, the Studio Jest acceptance of #242–#244, is superseded by today's orchestrator runs: all persistence, allied, AA, combat and finale specs passed. No Player or phone test was done in this sweep. Priorities, in order:
+
+1. **Owner phone playthrough first.** Retest M3 (version 148+), then play Practice → M18 once on one save and keep a log. This gates every tuning decision. The implementers asked for these checks along the way:
+   - Mission end: win one and lose one. The last explosion should play, and firing should be impossible during the 1.2 s hold (#267).
+   - M5/M6 rearm and landing, and M9 carrier rearm.
+   - One elite cut-in (M5 or M12) and the M1 chapter-1 cutscene.
+   - Finish Practice once and check the debrief numbers and colours.
+   - One touch sortie on a phone: sticks, tap-to-target and switching input type.
+2. **CampaignSmoke world-build timing.** Mission world builds go over the smoke budget under load. Observed on main plus sweep PRs: M7 30.2 s (22 s budget), M12 30.6 s and 30.7 s (22 s), M10 30.0 s (25 s) and M16 25.3 s (25 s). The failing missions differ from run to run, and the machine was heavily loaded by parallel agent gates. Next step: one sequential Studio run on a quiet machine, to tell load apart from a regression. This continues the "Campaign launch performance (M10/M13/M16)" item below and relates to #241.
+3. **Rebase #241** (M07 terrain cleanup; still open) and apply `bun run format && bun run lint:fix`.
+4. **Enable deletion-epoch phase 2 (audit F1).** Phase 1 shipped in #271 (epoch ids are recorded; conflict rules stay off). Phase 2, the actual fix, means setting `DELETION_EPOCH_CONFLICTS = true`. Do not do that until a rollout/drain plan guarantees two things: no server from before the epoch change is still running, and no server with the flag off still has pending writes. An independent review reproduced a mixed off/on double-delete where a flag-off server's pending write emptied a slot (D-676). The F1 race stays live until phase 2 ships.
+5. **Sweep follow-ups (not done):**
+   - Hull damage is counted differently for AA hits and missile hits. This needs an owner call on what `damageTaken` should mean.
+   - optionalKills counts only optional air kills.
+   - M18 authors optionalRaiderMax 16, but the derived value is 12.
+   - Pull weapon/projectile handling out of CombatService.
+   - Further extraction from FlightController and GameUI.
+   - Replace the launch-wiring source-text check with a behavioural test.
+   - Per-user session lease as the broader persistence fix.
+6. Then the remaining 2026-11-02 items, in order: difficulty pass ("more enemies, harder"), Creator Store music and gun audio, leaderboards/badges, free-flight lobby, second airframe/liveries.
+
 2026-11-02 reconciliation against main `8dead0bf`: #203, #205, #240, #242, #243 and #244 are merged; their "(unmerged)" items below are superseded. Next, in priority order: (1) owner phone retest of M3 (version 148+) and one full Practice→M18 phone playthrough with a log, which gates every tuning decision; (2) run the Studio Jest suite on main `8dead0bf` to accept the #242–#244 regressions (new specs: CampaignSchema, CampaignServiceSettlement, CampaignShutdown); (3) rebase #241 and apply `bun run format && bun run lint:fix`; (4) difficulty pass per the owner's "more enemies, harder" direction; (5) music and gun audio from the Roblox Creator Store (uploads remain blocked, library use is not); (6) leaderboards/badges; (7) free-flight lobby; (8) second airframe/liveries. Assessment detail: `reports/skybreak-assessment-2026-11-02.html` (untracked, orchestrator-produced).
 
 2026-11-02 persistence audit candidate: review the F1–F4 durability PR and run the compiled Jest regressions in the orchestrator-owned Studio runner before merge consideration. This agent does not run Studio or merge. Preserve existing performance and Player-quality follow-ups below; no new gameplay/balance work or level-status change.
