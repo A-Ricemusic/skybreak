@@ -1,3 +1,12 @@
+// MissionCatalog: the authored campaign — Practice plus the 18 numbered missions — and everything
+// that describes a mission to the rest of the game: the `MissionBlueprint` / phase blueprint types,
+// the load-time authoring and feature-contract validation (asserts at require time, so a bad
+// blueprint fails the build and every test), and the `MissionCatalog` query namespace that
+// server, client and tools use to read effective policy (countdown, airspace, start, scoring,
+// peak airborne, optional raiders). Owned by shared/; mission text and layouts are authored in
+// `missions/mNN.ts`. INVARIANT: the serialised catalog is frozen by `tools/test-mission-catalog.ts`
+// against `tools/fixtures/mission-catalog.campaign18.json`; any data change (even a removed key)
+// must regenerate that snapshot with `--update` and be called out in the PR.
 import { FinaleDuelPhase, validateFinaleDuel } from "./FinaleDuelRules";
 import { LeaderWithdrawal, BridgeClosure, validateLeaderWithdrawalPhases } from "./LeaderWithdrawalRules";
 import { validateRepairReservePhases } from "./RepairReserveRules";
@@ -32,13 +41,16 @@ import {
 import { WavePlan } from "./WavePlan";
 
 export type { SortieArmament } from "./SortieArmament";
-export type {
-	EncounterRole,
-	MissionAirspacePolicy,
-	MissionPolicy,
-	MissionScoringPolicy,
-	MissionStartPolicy,
-} from "./MissionPolicy";
+
+/** Longest radio/beat/chatter line the HUD radio strip shows without truncation (characters). */
+const RADIO_LINE_MAX_CHARS = 72;
+/** Tolerance when comparing a kill-fraction threshold (`at * count`) against whole kill counts. */
+const FRACTION_EPSILON = 1e-5;
+/** Authored flight points must lie within this horizontal half-width of the world origin (studs). */
+const FLIGHT_BOUNDS_HALF_WIDTH = 2400;
+/** Authored flight points must lie within this altitude band (studs). */
+const FLIGHT_BOUNDS_MIN_ALTITUDE = 40;
+const FLIGHT_BOUNDS_MAX_ALTITUDE = 900;
 
 export type Act = 1 | 2 | 3;
 
@@ -52,7 +64,7 @@ export type MissionRegion =
 	| "ocean_platform"
 	| "snow_mountains";
 
-export type GroundAsset = "radar" | "warehouse" | "comms_relay" | "grain_silo";
+type GroundAsset = "radar" | "warehouse" | "comms_relay" | "grain_silo";
 
 export type EnvironmentPreset =
 	| "canyon_dawn"
@@ -74,7 +86,7 @@ export type EnvironmentPreset =
 	| "ocean_clear"
 	| "ocean_night";
 
-export type PhaseKind =
+type PhaseKind =
 	| "protected_air"
 	// Teaching actions
 	| "tutorial_move"
@@ -132,7 +144,7 @@ export interface PhaseTwist {
 }
 
 /** Execution details preserving the original training and harbor sortie choreography. */
-export interface PhaseExecution {
+interface PhaseExecution {
 	minimumDwell?: number;
 	movementDuration?: number;
 	practice?: boolean;
@@ -232,7 +244,7 @@ export interface FlightPoint {
 	z: number;
 }
 
-export interface GroundTargetSpec {
+interface GroundTargetSpec {
 	asset: GroundAsset;
 	name: string;
 	/** World-space XZ placement (studs). Y is grounded by the world builder. */
@@ -277,8 +289,6 @@ export interface MissionBlueprint extends MissionPolicy {
 	aceStages?: string[];
 	/** Radio lines when the ace turns back in after each retreat. */
 	aceReturns?: string[];
-	/** Historical catalog tag, retained for data/API compatibility; never selects a runner. */
-	legacy?: 1 | 2;
 }
 
 export const PRACTICE = practice;
@@ -293,21 +303,29 @@ function expandPhases(phases: MissionPhaseBlueprint[]): MissionPhaseBlueprint[] 
 	}
 	return expanded;
 }
-// Recompute optional counts after authored flight objectives are installed.
-for (const mission of MISSIONS) {
-	let optional = 0;
-	for (const phase of expandPhases(mission.phases))
-		optional +=
-			(phase.bombers?.escorts.count ?? 0) +
-			(phase.optionalRaiders ?? 0) +
-			(phase.standaloneAce ? 1 : 0) +
-			(phase.fighterWaves ?? []).reduce((sum, w) => sum + (w.required ? 0 : w.count), 0);
-	mission.optionalRaiderMax = optional;
+/**
+ * `optionalRaiderMax` is derived, not authored. Once the authored flight objectives are installed,
+ * every numbered mission's value is recomputed from its expanded phase list (bomber escorts, optional
+ * raiders, standalone aces and non-required fighter waves), overwriting any number written in
+ * `missions/mNN.ts`. `MissionCatalog.MaxOptionalRaiders` then returns this derived value.
+ */
+function applyDerivedOptionalRaiderMax(catalog: MissionBlueprint[]): void {
+	for (const mission of catalog) {
+		let optional = 0;
+		for (const phase of expandPhases(mission.phases))
+			optional +=
+				(phase.bombers?.escorts.count ?? 0) +
+				(phase.optionalRaiders ?? 0) +
+				(phase.standaloneAce ? 1 : 0) +
+				(phase.fighterWaves ?? []).reduce((sum, w) => sum + (w.required ? 0 : w.count), 0);
+		mission.optionalRaiderMax = optional;
+	}
 }
+applyDerivedOptionalRaiderMax(MISSIONS);
 
 export const MISSION_COUNT = MISSIONS.size();
 
-/** Display names for the three campaign acts (see the story outline above). */
+/** Act title shown beside the act numeral on the briefing, loading and campaign screens, keyed by `Act`. */
 export const ACT_NAMES: { readonly [act: number]: string } = {
 	1: "RIM STATIC",
 	2: "PLATEAU SIGNAL",
@@ -335,7 +353,12 @@ export function environmentName(environment: EnvironmentPreset): string {
 }
 
 function inBounds(point: FlightPoint): boolean {
-	return math.abs(point.x) <= 2400 && math.abs(point.z) <= 2400 && point.y >= 40 && point.y <= 900;
+	return (
+		math.abs(point.x) <= FLIGHT_BOUNDS_HALF_WIDTH &&
+		math.abs(point.z) <= FLIGHT_BOUNDS_HALF_WIDTH &&
+		point.y >= FLIGHT_BOUNDS_MIN_ALTITUDE &&
+		point.y <= FLIGHT_BOUNDS_MAX_ALTITUDE
+	);
 }
 function reinforceTotal(phase: MissionPhaseBlueprint): number {
 	let total = 0;
@@ -393,14 +416,20 @@ function validateBlueprintAuthoring(blueprint: MissionBlueprint, id: number): vo
 		`Mission ${id} needs a short failure outcome`,
 	);
 	for (const line of [...(blueprint.aceStages ?? []), ...(blueprint.aceReturns ?? [])])
-		assert(line.size() <= 72, `Mission ${id} ace radio must fit 72 characters`);
+		assert(
+			line.size() <= RADIO_LINE_MAX_CHARS,
+			`Mission ${id} ace radio must fit ${RADIO_LINE_MAX_CHARS} characters`,
+		);
 	let requiredAce = 0;
 	let groundCount = 0;
 	for (const phase of blueprint.phases)
 		if (phase.twist) {
 			const tag = `Mission ${id} phase ${phase.kind} twist`;
 			assert(phase.twist.at > 0 && phase.twist.at <= 1, `${tag} at must be within (0, 1]`);
-			assert(phase.twist.text.size() > 0 && phase.twist.text.size() <= 72, `${tag} needs a short radio line`);
+			assert(
+				phase.twist.text.size() > 0 && phase.twist.text.size() <= RADIO_LINE_MAX_CHARS,
+				`${tag} needs a short radio line`,
+			);
 			assert(phase.twist.insert.size() >= 1, `${tag} must insert at least one phase`);
 			for (const inserted of phase.twist.insert)
 				assert(inserted.twist === undefined, `${tag} may not nest twists`);
@@ -418,7 +447,7 @@ function validateBlueprintAuthoring(blueprint: MissionBlueprint, id: number): vo
 				// otherwise the twist would only fire on the completing kill and silently be a no-op.
 				const span = phase.kind === "ace" ? 1 : (phase.count ?? 0);
 				assert(
-					math.ceil(phase.twist.at * span - 1e-5) < span,
+					math.ceil(phase.twist.at * span - FRACTION_EPSILON) < span,
 					`${tag} with mode "now" would only fire on the completing kill`,
 				);
 			}
@@ -426,7 +455,11 @@ function validateBlueprintAuthoring(blueprint: MissionBlueprint, id: number): vo
 	for (const phase of expandPhases(blueprint.phases)) {
 		const tag = `Mission ${id} phase ${phase.kind}`;
 		assert(phase.label.size() > 0 && phase.label.size() <= 40, `${tag} label must fit 40 characters`);
-		if ((phase.beat ?? "") !== "") assert(phase.beat!.size() <= 72, `${tag} beat must fit 72 characters`);
+		if ((phase.beat ?? "") !== "")
+			assert(
+				phase.beat!.size() <= RADIO_LINE_MAX_CHARS,
+				`${tag} beat must fit ${RADIO_LINE_MAX_CHARS} characters`,
+			);
 		if (phase.kind === "ace") requiredAce += 1;
 		if (phase.kind === "required_air" || phase.kind === "required_ground" || phase.kind === "chase") {
 			assert((phase.count ?? 0) >= 1, `${tag} needs count >= 1`);
@@ -446,7 +479,10 @@ function validateBlueprintAuthoring(blueprint: MissionBlueprint, id: number): vo
 		if (phase.points) {
 			assert(phase.points.size() > 0, `${tag} needs at least one point`);
 			for (const point of phase.points)
-				assert(inBounds(point), `${tag} point is outside the flyable area or 40-900 altitude`);
+				assert(
+					inBounds(point),
+					`${tag} point is outside the flyable area or ${FLIGHT_BOUNDS_MIN_ALTITUDE}-${FLIGHT_BOUNDS_MAX_ALTITUDE} altitude`,
+				);
 			assert((phase.radius ?? 0) > 0, `${tag} needs radius > 0`);
 			if (
 				phase.kind === "recon" ||
@@ -493,7 +529,7 @@ function validateBlueprintAuthoring(blueprint: MissionBlueprint, id: number): vo
 					const at: number = phase.groupAt[index];
 					// A share the groups already out cannot reach would strand the phase.
 					assert(
-						at > previous && at < 1 && math.ceil(at * (phase.count ?? 0) - 1e-5) <= spawned,
+						at > previous && at < 1 && math.ceil(at * (phase.count ?? 0) - FRACTION_EPSILON) <= spawned,
 						`${tag} groupAt shares must rise and be reachable`,
 					);
 					previous = at;
@@ -503,7 +539,10 @@ function validateBlueprintAuthoring(blueprint: MissionBlueprint, id: number): vo
 			if (phase.groupCalls) {
 				assert(phase.groupCalls.size() <= plan.size() - 1, `${tag} has more group calls than later groups`);
 				for (const line of phase.groupCalls)
-					assert(line.size() > 0 && line.size() <= 72, `${tag} group calls need a short radio line`);
+					assert(
+						line.size() > 0 && line.size() <= RADIO_LINE_MAX_CHARS,
+						`${tag} group calls need a short radio line`,
+					);
 			}
 		}
 		if (phase.hazard) {
@@ -518,7 +557,7 @@ function validateBlueprintAuthoring(blueprint: MissionBlueprint, id: number): vo
 				`${tag} hazard needs at in [0, 1) and a count`,
 			);
 			assert(
-				phase.hazard.text.size() > 0 && phase.hazard.text.size() <= 72,
+				phase.hazard.text.size() > 0 && phase.hazard.text.size() <= RADIO_LINE_MAX_CHARS,
 				`${tag} hazard needs a short radio line`,
 			);
 			groundCount += phase.hazard.count;
@@ -541,7 +580,7 @@ function validateBlueprintAuthoring(blueprint: MissionBlueprint, id: number): vo
 		if (phase.chatter)
 			for (const line of phase.chatter) {
 				assert(line.at >= 0 && line.at <= 1, `${tag} chatter.at must be within 0-1`);
-				assert(line.text.size() > 0 && line.text.size() <= 72, `${tag} chatter needs text`);
+				assert(line.text.size() > 0 && line.text.size() <= RADIO_LINE_MAX_CHARS, `${tag} chatter needs text`);
 			}
 	}
 	assert(
@@ -576,7 +615,11 @@ function resolveBlueprint(value: number | MissionBlueprint): MissionBlueprint {
 }
 
 export const MissionCatalog = {
-	/** M3-M27 changed layout; older best times belong to the shorter sorties. */
+	/**
+	 * Best-time record version stored with each `MissionRecord` by CampaignRepository: Practice, M1 and
+	 * M2 are version 1; M3 onward are version 2 (their layouts changed after the first best times were
+	 * saved, so older records for those ids are not comparable). Do not change without a save migration.
+	 */
 	TimeVersion(id: number): number {
 		return id >= 3 ? 2 : 1;
 	},
@@ -741,12 +784,12 @@ export const MissionCatalog = {
 			let spawned = 0;
 			for (let index = 0; index < plan.size(); index++) {
 				const at = index > 0 ? phase.groupAt?.[index - 1] : undefined;
-				if (at !== undefined && k + 1e-5 < at * count) break;
+				if (at !== undefined && k + FRACTION_EPSILON < at * count) break;
 				spawned += plan[index];
 			}
 			let up = air ? math.max(0, spawned - k) : 0;
 			up += initial;
-			for (const entry of reinforce) if (k + 1e-5 >= entry.at * count) up += wave(entry.count);
+			for (const entry of reinforce) if (k + FRACTION_EPSILON >= entry.at * count) up += wave(entry.count);
 			peak = math.max(peak, up);
 		}
 		return peak;

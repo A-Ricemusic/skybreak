@@ -23,6 +23,5 @@ export const mission: MissionBlueprint = {
 			{ asset: "warehouse", name: "WAREHOUSE 4", x: -350, z: -1550 },
 			{ asset: "warehouse", name: "WAREHOUSE 5", x: 350, z: -1550 },
 		],
-	legacy: 2,
 	optionalRaiderMax: 5,
 };

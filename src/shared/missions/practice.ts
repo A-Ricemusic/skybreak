@@ -54,5 +54,4 @@ export const mission: MissionBlueprint = {
 		},
 	],
 	ground: [{ asset: "radar", name: "TRAINING RADAR", x: 0, z: -850 }],
-	legacy: 1,
 };
