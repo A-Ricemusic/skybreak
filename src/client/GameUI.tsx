@@ -304,7 +304,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		else if (screenRef.current === "briefing") changeScreen("slots");
 	}, [changeScreen]);
 	/** `sticky` keeps the toast until another toast or the Loading screen replaces it (a queued launch). */
-	const showToast = useCallback((message: string, isError: boolean, sticky = false) => {
+	const showToast = useCallback((message: string, isError: boolean, sticky: boolean = false) => {
 		if (!mountedRef.current) return;
 		const serial = ++toastRef.current;
 		setToast({ message, isError });
@@ -381,7 +381,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		});
 	}, [applyResponseSlots, beginRequest, invoke, showToast]);
 	const launchMission = useCallback(
-		(missionId = selectedMissionRef.current, fromResult = false, playedChapter?: number) => {
+		(missionId = selectedMissionRef.current, fromResult: boolean = false, playedChapter?: number) => {
 			if (busyRef.current || !mountedRef.current || !launchLoading.Begin(os.clock())) return;
 			selectedMissionRef.current = missionId;
 			setSelectedMission(missionId);

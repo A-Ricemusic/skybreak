@@ -34,7 +34,7 @@ export default tseslint.config(
 			// Avoid autofixes that change scheduling or tuple binding behavior.
 			"roblox-ts/prefer-task-library": "off",
 			"roblox-ts/misleading-lua-tuple-checks": "off",
-			// Existing intentional fire-and-forget call; retain its behavior.
+			// Intentional discarded values require a local explanation.
 			"no-void": "error",
 		},
 	},
