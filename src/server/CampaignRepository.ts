@@ -572,6 +572,11 @@ function counter(value: unknown): number {
 }
 
 /** Owns one player's locally authoritative profile and its serialized cloud writes. */
+/** Per-attempt-loop state so a schema refusal is attributed to the operation that raised it. */
+interface OperationScope {
+	refused: boolean;
+}
+
 export class CampaignCoordinator {
 	private profile = blankProfile();
 	private readonly deletions = new Map<number, SlotDeletion>();
@@ -580,8 +585,6 @@ export class CampaignCoordinator {
 	private persistence: Persistence;
 	private cloudLoaded = false;
 	private loadError?: string;
-	/** Thread that raised the latest schema/structure refusal, so a retry loop only reacts to its own refusal. */
-	private refusalThread?: thread;
 	private dirty = false;
 	private writeRunning = false;
 	private writeScheduled = false;
@@ -615,9 +618,9 @@ export class CampaignCoordinator {
 			this.persistence = "session";
 			return true;
 		}
-		const [success, stored] = this.tryOperation("profile load", () => {
+		const [success, stored] = this.tryOperation("profile load", (scope) => {
 			const raw = this.store!.load(this.key);
-			this.checkReadable(raw);
+			this.checkReadable(raw, scope);
 			return normalizeProfile(raw);
 		});
 		if (!success) {
@@ -774,11 +777,11 @@ export class CampaignCoordinator {
 		return this.loadError;
 	}
 
-	private checkReadable(raw: unknown): void {
+	private checkReadable(raw: unknown, scope: OperationScope): void {
 		const issue = profileReadError(raw);
 		if (issue !== undefined) {
 			this.loadError = issue;
-			this.refusalThread = coroutine.running();
+			scope.refused = true;
 			this.cloudLoaded = false;
 			error(issue);
 		}
@@ -825,13 +828,13 @@ export class CampaignCoordinator {
 		while (this.dirty) {
 			this.dirty = false;
 			const desired = normalizeProfile(this.profile);
-			const [success, stored] = this.tryOperation("profile save", () => {
+			const [success, stored] = this.tryOperation("profile save", (scope) => {
 				const saved = this.store!.update(this.key, (current) => {
 					// UpdateAsync can observe a newer deployment's record after our successful load.
-					this.checkReadable(current);
+					this.checkReadable(current, scope);
 					return serializeProfile(mergeProfiles(current, desired));
 				});
-				this.checkReadable(saved);
+				this.checkReadable(saved, scope);
 				return normalizeProfile(saved);
 			});
 			if (!success) {
@@ -859,23 +862,19 @@ export class CampaignCoordinator {
 		this.writeRunning = false;
 	}
 
-	private tryOperation(name: string, callback: () => unknown): LuaTuple<[boolean, unknown]> {
+	private tryOperation(name: string, callback: (scope: OperationScope) => unknown): LuaTuple<[boolean, unknown]> {
 		let lastError: unknown;
-		const currentThread = coroutine.running();
-		// A refusal this thread raised in an earlier operation is stale for this one.
-		if (this.refusalThread === currentThread) this.refusalThread = undefined;
+		// Operation-local refusal flag: the callback's closure captures it, so the attribution does not depend on
+		// which thread the engine uses to run a DataStore transform, and a concurrent operation cannot set it.
+		const scope: OperationScope = { refused: false };
 		for (let attempt = 1; attempt <= this.maxAttempts; attempt++) {
-			const [success, result] = pcall(callback);
+			const [success, result] = pcall(() => callback(scope));
 			if (success) return $tuple(true, result);
 			lastError = result;
 			this.logWarning(`SKYBREAK ${name} attempt ${attempt} failed: ${tostring(result)}`);
 			// A schema/structure refusal raised by this operation needs a fresh explicit load, never an automatic
-			// retry. Refusals raised by other threads (a concurrent load while this write yielded) or stale ones
-			// must not stop transient-error retries.
-			if (this.refusalThread === currentThread) {
-				this.refusalThread = undefined;
-				break;
-			}
+			// retry. Transient errors keep retrying even if another operation refused a record meanwhile.
+			if (scope.refused) break;
 			if (attempt < this.maxAttempts) this.retryWait(attempt);
 		}
 		return $tuple(false, lastError);
