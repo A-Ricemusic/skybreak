@@ -18,5 +18,4 @@ export const mission: MissionBlueprint = {
 			{ execution: { launchDelay: 4, directSpawn: true, hudPhase: "tutorial_bandits", objective: "Live flight: select a bandit, aim for LOCK, fire; EVADE incoming missiles" }, kind: "required_air", label: "Intercept three bandits", count: 3, beat: "Bandits in 4s. Protection ends on arrival; impacts then fatal." },
 		],
 	ground: [{ asset: "radar", name: "TRAINING RADAR", x: 0, z: -850 }],
-	legacy: 1,
 };
