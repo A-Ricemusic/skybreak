@@ -25,7 +25,10 @@ function prerequisites(fn: () => void) {
 }
 function fullLedger() {
 	const ledger = new TargetScore(bp.scoring!);
-	for (const p of M14_SALVOS) for (const t of p.targets) if (!t.separateSeconds) ledger.RecordKill(t.id, t.scoreRole);
+	for (const p of M14_SALVOS)
+		for (const t of p.targets)
+			if (t.separateSeconds === undefined || t.separateSeconds === 0 || t.separateSeconds !== t.separateSeconds)
+				ledger.RecordKill(t.id, t.scoreRole);
 	for (let i = 0; i < 9; i++) ledger.RecordKill(`fighter_${i}`, "stealth_fighter");
 	ledger.RecordKill("bomber", "strategic_bomber");
 	return ledger;
@@ -36,7 +39,17 @@ describe("M14 Aurora shield", () => {
 		expect(bp.available).toBe(true);
 		expect(bp.phases.size()).toBe(3);
 		const leaves = M14_SALVOS.reduce<string[]>(
-			(ids, p) => [...ids, ...p.targets.filter((t) => !t.separateSeconds).map((t) => t.id)],
+			(ids, p) => [
+				...ids,
+				...p.targets
+					.filter(
+						(t) =>
+							t.separateSeconds === undefined ||
+							t.separateSeconds === 0 ||
+							t.separateSeconds !== t.separateSeconds,
+					)
+					.map((t) => t.id),
+			],
 			[],
 		);
 		expect(leaves.size()).toBe(16);
@@ -81,7 +94,7 @@ describe("M14 Aurora shield", () => {
 		});
 		expect(reaction[0]).toBeGreaterThan(reaction[1]);
 		expect(reaction[1]).toBeGreaterThan(reaction[2]);
-		for (const d of Difficulty.Order) {
+		for (const _d of Difficulty.Order) {
 			expect(bp.phases[2].concurrentRoutes).toBe(1);
 		}
 		expect(bp.countdownSeconds).toBe(1200);
@@ -89,7 +102,13 @@ describe("M14 Aurora shield", () => {
 	it("reconciles the 1700 missile ledger, increased pressure and attainable provisional ranks", () => {
 		let missile = 0;
 		for (const p of M14_SALVOS)
-			for (const t of p.targets) if (!t.separateSeconds) missile += bp.scoring!.points[t.scoreRole];
+			for (const t of p.targets)
+				if (
+					t.separateSeconds === undefined ||
+					t.separateSeconds === 0 ||
+					t.separateSeconds !== t.separateSeconds
+				)
+					missile += bp.scoring!.points[t.scoreRole];
 		expect(missile).toBe(1700);
 		expect(fullLedger().Total()).toBe(2980);
 		expect(fullLedger().Total() - 120 >= bp.scoring!.rank.S).toBe(true);
@@ -112,7 +131,7 @@ describe("M14 Aurora shield", () => {
 			const states = newCruiseStates(plan);
 			for (let i = 0; i < plan.targets.size(); i++) {
 				const t = plan.targets[i];
-				if (t.parentId) continue;
+				if ((t.parentId ?? "") !== "") continue;
 				states[i].status = "active";
 				cruiseDestroyed(plan, states, i);
 				expect(recordScoredKill(state, ledger, t.id, "air", true, 10, t.scoreRole)).toBe(true);
@@ -133,7 +152,11 @@ describe("M14 Aurora shield", () => {
 			ledger = new TargetScore(bp.scoring!);
 		for (const p of M14_SALVOS) {
 			for (const t of p.targets)
-				if (!t.separateSeconds)
+				if (
+					t.separateSeconds === undefined ||
+					t.separateSeconds === 0 ||
+					t.separateSeconds !== t.separateSeconds
+				)
 					expect(recordScoredKill(s, ledger, t.id, "air", true, 10, t.scoreRole)).toBe(true);
 			expect(s.outcome).toBeUndefined();
 			Runner.ResolveCruise(s, true);

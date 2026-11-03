@@ -1,5 +1,4 @@
 import type { Remotes } from "../../shared/Types";
-import type { Rectangle } from "../../shared/UILayout";
 import type { FlightController } from "../FlightController";
 
 const MENU_SCREEN_FRAMES = {

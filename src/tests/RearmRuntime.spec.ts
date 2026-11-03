@@ -18,7 +18,6 @@ import { landingDuration, landingPose } from "../shared/LandingRules";
 import { CombatSession } from "../server/CombatSession";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { MissionCatalog } from "../shared/MissionCatalog";
-import { TargetScore } from "../shared/TargetScore";
 import { FlightMath } from "../shared/FlightMath";
 import { SpecialWeapons } from "../shared/SpecialWeapons";
 import { createGroundTarget } from "../server/GroundTargetFactory";

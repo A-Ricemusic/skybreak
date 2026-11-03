@@ -26,16 +26,16 @@ export default tseslint.config(
 		},
 		rules: {
 			...roblox.configs.recommended.rules,
-			// Existing truthiness and array iteration need a separate behavior review.
-			"roblox-ts/lua-truthiness": "warn",
-			"roblox-ts/no-array-pairs": "warn",
+			// Explicit Luau presence checks and reviewed array iteration.
+			"roblox-ts/lua-truthiness": "error",
+			"roblox-ts/no-array-pairs": "error",
 			// Valid roblox-ts 3 LuaTuple/$tuple usage; migration would alter return semantics.
 			"roblox-ts/no-user-defined-lua-tuple": "off",
 			// Avoid autofixes that change scheduling or tuple binding behavior.
 			"roblox-ts/prefer-task-library": "off",
 			"roblox-ts/misleading-lua-tuple-checks": "off",
-			// Existing intentional fire-and-forget call; retain its behavior.
-			"no-void": "warn",
+			// Intentional discarded values require a local explanation.
+			"no-void": "error",
 		},
 	},
 	{
@@ -45,13 +45,13 @@ export default tseslint.config(
 	{
 		files,
 		rules: {
-			// Baseline existing unused bindings and permissive tool types without mass edits.
-			"@typescript-eslint/no-unused-vars": "warn",
-			"@typescript-eslint/no-explicit-any": "warn",
-			// Existing Roblox callback aliases, dynamic require, and marker interface are intentional.
-			"@typescript-eslint/no-this-alias": "warn",
-			"@typescript-eslint/no-require-imports": "warn",
-			"@typescript-eslint/no-empty-object-type": "warn",
+			// Intentional unused callback/destructuring bindings use an underscore prefix.
+			"@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_", caughtErrorsIgnorePattern: "^_" }],
+			"@typescript-eslint/no-explicit-any": "error",
+			// Intentional exceptions require a local explanation.
+			"@typescript-eslint/no-this-alias": "error",
+			"@typescript-eslint/no-require-imports": "error",
+			"@typescript-eslint/no-empty-object-type": "error",
 		},
 	},
 	{ ...prettier, files },

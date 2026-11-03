@@ -1,8 +1,7 @@
-import { MissionCatalog } from "../shared/MissionCatalog";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { Workspace, Players } from "@rbxts/services";
 import { clearProtection, hitProtected, protectedTarget, stepProtection } from "../server/ProtectedAircraftRuntime";
-import type { CombatSession, Enemy } from "../server/CombatSession";
+import type { Enemy } from "../server/CombatSession";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { protectedAircraftFixture } from "./ProtectedAircraftFixture";
 import { sessionFixture } from "./SessionFixture";

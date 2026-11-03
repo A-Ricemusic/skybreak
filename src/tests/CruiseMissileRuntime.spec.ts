@@ -2,7 +2,6 @@ import { engineRuntimeFixture } from "./EngineRuntimeFixture";
 import { describe, expect, it } from "@rbxts/jest-globals";
 import { Workspace } from "@rbxts/services";
 import { clearCruise, cruiseKilled, cruiseOccluded, stepCruise } from "../server/CruiseMissileRuntime";
-import { CombatSession } from "../server/CombatSession";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { CruisePlan } from "../shared/CruiseMissileRules";
 import { MissionCatalog } from "../shared/MissionCatalog";

@@ -13,7 +13,6 @@ import {
 	point,
 	ownsEnemy,
 	targetMetrics,
-	sessionTotalRequired,
 	sessionAllKills,
 	syncElapsed,
 	sessionGroundKills,
@@ -51,7 +50,6 @@ import * as FinaleDuelRuntime from "./FinaleDuelRuntime";
 import { WithdrawalIdentities } from "../shared/LeaderWithdrawalRules";
 import * as LeaderWithdrawalRuntime from "./LeaderWithdrawalRuntime";
 import { dampedSteer, pursuitDestination, guidedDirection } from "../shared/EncounterKinematics";
-
 import * as CruiseMissileRuntime from "./CruiseMissileRuntime";
 import * as JammerCorridorRuntime from "./JammerCorridorRuntime";
 import * as ProtectedAircraftRuntime from "./ProtectedAircraftRuntime";
@@ -63,7 +61,7 @@ import * as ArtilleryRuntime from "./ArtilleryRuntime";
 import { insideArea } from "../shared/ArtilleryRules";
 import { AntiShipRules } from "../shared/SurfaceTargetRules";
 import * as SurfaceTargetRuntime from "./SurfaceTargetRuntime";
-import { TargetPriority, type TargetCandidate, type ViewFrustum } from "../shared/TargetPriority";
+import { TargetPriority } from "../shared/TargetPriority";
 import { TargetView } from "./TargetView";
 import { LaunchCancellation } from "../shared/LaunchLoading";
 import { canSkipLanding } from "../shared/LandingRules";
@@ -77,39 +75,27 @@ import { GroundAirDefence } from "../shared/GroundAirDefence";
 import { authoredAirPose, airSpawnHeight, scramblePose } from "../shared/CampaignEncounters";
 import { LaunchStage } from "../shared/LaunchStage";
 import { AlliedRules } from "../shared/AlliedRules";
-import type { MissionReason } from "../shared/OutcomeReason";
 import { createPhaseDirector, SpawnOptions } from "./PhaseDirector";
-import { CombatSession, Enemy, AirRole, TargetKind } from "./CombatSession";
+import { CombatSession, Enemy, AirRole } from "./CombatSession";
 export type { CombatSession } from "./CombatSession";
-import { airspaceWarning, clampAirSpawn } from "../shared/WorldAirspace";
-import { GameConfig } from "../shared/GameConfig";
+import { clampAirSpawn } from "../shared/WorldAirspace";
 import { CombatBalance } from "../shared/CombatBalance";
 import { AircraftCollision } from "./AircraftCollision";
 import { Players, RunService, Workspace } from "@rbxts/services";
-import { FlightMath, FlightState } from "../shared/FlightMath";
+import { FlightMath } from "../shared/FlightMath";
 import { AssetSelection } from "../shared/AssetSelection";
 import { JetFactory } from "../shared/JetFactory";
 import { BomberFactory } from "../shared/BomberFactory";
 import { BomberRules } from "../shared/BomberRules";
-import { recordAlliedKill, recordScoredKill } from "./SortieScore";
+import { recordAlliedKill } from "./SortieScore";
 import { targetScoreStats } from "../shared/TargetScore";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
-import { MissionCatalog, MissionPhaseBlueprint } from "../shared/MissionCatalog";
-import {
-	CombatEffectPacket,
-	FinishedCallback,
-	FlightInput,
-	HudState,
-	MissionLoading,
-	MissionStats,
-	Remotes,
-} from "../shared/Types";
-import { ExplosionKind } from "../shared/ExplosionFx";
+import { MissionCatalog } from "../shared/MissionCatalog";
+import { FinishedCallback, MissionLoading, MissionStats, Remotes } from "../shared/Types";
 import { FlightPrediction } from "../shared/FlightPrediction";
-import { TelemetryCodec } from "../shared/TelemetryCodec";
 import { LoadingGate } from "../shared/LoadingGate";
 import { countParts } from "../shared/MissionParts";
-import { FireNotice, WeaponRules } from "../shared/WeaponRules";
+import { WeaponRules } from "../shared/WeaponRules";
 import { SalvoCandidate, SpecialKind, SpecialWeapons } from "../shared/SpecialWeapons";
 import { GunCandidate, GunRules, SortieArmament } from "../shared/SortieArmament";
 import { gunOccluded, gunRaycastParams } from "./GunRuntime";
@@ -1402,9 +1388,9 @@ export function stepEnemies(session: CombatSession, dt: number): void {
 	SurfaceTargetRuntime.stepSamDefence(session, dt, attackWarning);
 	stepGroundDefence(session, dt);
 	if (session.health <= 0) return;
-	const playerPosition = positionFor(session.state);
+
 	const playerForward = directionFor(session.state);
-	const playerVelocity = playerForward.mul(session.state.speed);
+
 	const lateral = lateralFor(session.state, playerForward);
 	const phase = session.blueprintState ? BlueprintRunner.ActivePhase(session.blueprintState) : undefined;
 	const site = session.blueprintState

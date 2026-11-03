@@ -246,8 +246,9 @@ export function validateEncounterIdentities(phases: MissionPhaseBlueprint[]): vo
 		assert(id.size() > 0 && !ids.has(id), "Encounter ids must be unique and nonempty");
 		ids.add(id);
 	};
-	for (const [index, phase] of ipairs(phases)) {
-		if (phase.finale?.duel) claim(duelTargetId(index - 1));
+	for (let index = 0; index < phases.size(); index++) {
+		const phase = phases[index];
+		if (phase.finale?.duel) claim(duelTargetId(index));
 		if (phase.leaderWithdrawal) {
 			claim(WithdrawalIdentities.leader);
 			for (const id of WithdrawalIdentities.wingmen) claim(id);

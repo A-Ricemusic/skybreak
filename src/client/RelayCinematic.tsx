@@ -711,7 +711,10 @@ function sceneFor(chapter: StoryChapter, track: (undo: () => void) => void): Sta
 		}
 	// Burned orchard (CinematicStaging.orchardBurned): charred stumps with a few embers where the trees stood, no smoke particles (phones).
 	if (burned)
-		for (const [i, spot] of ipairs(ORCHARD_SPOTS)) {
+		for (let index = 0; index < ORCHARD_SPOTS.size(); index++) {
+			const spot = ORCHARD_SPOTS[index];
+			// Preserve the original one-based orchard height/ember pattern.
+			const i = index + 1;
 			prop(
 				scene,
 				"Charred tree",

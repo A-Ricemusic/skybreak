@@ -69,8 +69,7 @@ export const M03_LANDING: LandingPlan = {
 };
 // D-062: the reference roster. Two fighter-bombers head-on and three escorts from the start; site 1's five
 // domes bring two fighters and the ace from between the sites. Every fighter is 60 points, the ace 240.
-const site1 = M03.site1,
-	site2 = M03.site2;
+
 const waves: FighterArrival[] = [
 	{
 		id: "m03_strike_pair",

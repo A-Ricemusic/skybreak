@@ -30,7 +30,6 @@ import type {
 } from "../shared/Types";
 import { MissionCatalog, MISSION_COUNT } from "../shared/MissionCatalog";
 import { MissionScore } from "../shared/MissionScore";
-import { WeaponRules } from "../shared/WeaponRules";
 import { SpecialKind, SpecialWeapons } from "../shared/SpecialWeapons";
 import { C, HUD } from "./Theme";
 import { Difficulty, DifficultyKind } from "../shared/Difficulty";
@@ -53,7 +52,6 @@ import {
 	shouldAcceptInputModeChange,
 	type ControlHint,
 	type InputMode,
-	type Rectangle,
 } from "../shared/UILayout";
 import { BriefingScreen } from "./screens/BriefingScreen";
 import { CampaignScreen } from "./screens/CampaignScreen";
@@ -69,7 +67,6 @@ import {
 	normalizePersistence,
 	normalizeSlots,
 	RADIO_SECONDS,
-	resumeMission,
 	safeString,
 	sanitizeTelemetry,
 	scaleRectangle,
@@ -307,11 +304,11 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		else if (screenRef.current === "briefing") changeScreen("slots");
 	}, [changeScreen]);
 	/** `sticky` keeps the toast until another toast or the Loading screen replaces it (a queued launch). */
-	const showToast = useCallback((message: string, isError: boolean, sticky = false) => {
+	const showToast = useCallback((message: string, isError: boolean, sticky: boolean = false) => {
 		if (!mountedRef.current) return;
 		const serial = ++toastRef.current;
 		setToast({ message, isError });
-		if (sticky) return;
+		if (sticky === true) return;
 		task.delay(4, () => {
 			if (mountedRef.current && toastRef.current === serial) setToast(undefined);
 		});
@@ -384,7 +381,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 		});
 	}, [applyResponseSlots, beginRequest, invoke, showToast]);
 	const launchMission = useCallback(
-		(missionId = selectedMissionRef.current, fromResult = false, playedChapter?: number) => {
+		(missionId = selectedMissionRef.current, fromResult: boolean = false, playedChapter?: number) => {
 			if (busyRef.current || !mountedRef.current || !launchLoading.Begin(os.clock())) return;
 			selectedMissionRef.current = missionId;
 			setSelectedMission(missionId);
@@ -393,7 +390,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				if (!mountedRef.current || !launchLoading.Watchdog(generation, os.clock())) return;
 				loadingSerialRef.current++;
 				cancelRequests();
-				changeScreen(fromResult ? "outcome" : launchLoading.Screen());
+				changeScreen(fromResult === true ? "outcome" : launchLoading.Screen());
 				showToast("World preparation timed out. Request another launch.", true);
 				// Bypasses the server foreground request lock; cancellation retains world ownership until the old build stops.
 				task.spawn(() => invoke("CancelLaunch", { launchId: generation }));
@@ -419,7 +416,7 @@ export function GameUI({ remotes, controller }: GameUIProps) {
 				if (!response) {
 					launchLoading.Fail();
 					loadingSerialRef.current++;
-					changeScreen(fromResult ? "outcome" : launchLoading.Screen());
+					changeScreen(fromResult === true ? "outcome" : launchLoading.Screen());
 					showToast(problem ?? "Command rejected the request.", true);
 				} else if (response.slots) applyResponseSlots(response);
 			});

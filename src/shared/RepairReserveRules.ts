@@ -26,7 +26,12 @@ export function cheapArmourAllowed(missionId?: number): boolean {
 }
 /** Armed/moving armour must retain its original firing, collision and aim geometry. */
 export function cheapArmourEligible(spec: TypedGroundTarget): boolean {
-	return ["tank", "vehicle", "artillery", "bunker"].includes(spec.type) && !spec.route && !spec.parentId && !spec.sam;
+	return (
+		["tank", "vehicle", "artillery", "bunker"].includes(spec.type) &&
+		!spec.route &&
+		(spec.parentId ?? "") === "" &&
+		!spec.sam
+	);
 }
 export function validateRepairReservePhases(phases: MissionPhaseBlueprint[], missionId?: number): void {
 	for (const p of phases) {

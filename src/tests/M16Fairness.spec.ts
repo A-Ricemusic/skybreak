@@ -106,7 +106,7 @@ function fly(kind: DifficultyKind, attentive: boolean, moving = false, fault = "
 			mission.phases[0].concurrentRoutes! - cover.filter((e) => e.routed).size(),
 		)) {
 			const w = batch.arrival!;
-			if (!("attackSector" in w) || !w.attackSector) {
+			if (!("attackSector" in w) || (w.attackSector ?? "") === "") {
 				const route = "route" in w ? w.route : undefined;
 				for (let i = 0; i < batch.count; i++) {
 					const path = route

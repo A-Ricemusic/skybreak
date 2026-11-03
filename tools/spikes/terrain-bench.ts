@@ -2,12 +2,14 @@
 import { resolve } from "node:path";
 const root = resolve(import.meta.dir, "../..");
 const project = await Bun.file(resolve(root, "default.project.json")).json();
-function absolute(v: any) {
-	if (v && typeof v === "object")
-		for (const [k, x] of Object.entries(v)) {
-			if (k === "$path") v[k] = resolve(root, x as string);
+function absolute(v: unknown) {
+	if (v && typeof v === "object") {
+		const record = v as Record<string, unknown>;
+		for (const [k, x] of Object.entries(record)) {
+			if (k === "$path") record[k] = resolve(root, x as string);
 			else absolute(x);
 		}
+	}
 }
 absolute(project);
 project.tree.ServerScriptService.TerrainBench = { $path: resolve(root, "tools/spikes/terrain-bench.server.luau") };

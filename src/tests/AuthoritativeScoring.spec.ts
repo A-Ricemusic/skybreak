@@ -15,16 +15,7 @@ import { targetScoreLines } from "../shared/OutcomePoints";
 import { TargetScore, targetScoreStats, readTargetScore } from "../shared/TargetScore";
 import { MissionFinished, MissionStats } from "../shared/Types";
 import { getMenuLayout } from "../shared/UILayout";
-import { LEGACY_SCORING_CAPTURE } from "./LegacyScoringCapture";
 
-// Deterministic, complete table serialization, independent of Lua hash iteration order.
-function canonical(value: unknown): string {
-	if (!typeIs(value, "table")) return tostring(value);
-	const entries: { key: string; value: unknown }[] = [];
-	for (const [key, item] of pairs(value)) entries.push({ key: tostring(key), value: item });
-	entries.sort((a, b) => a.key < b.key);
-	return `{${entries.map((entry) => `${entry.key}=${canonical(entry.value)}`).join(",")}}`;
-}
 function coordinator(): CampaignCoordinator {
 	const c = new CampaignCoordinator("scoring-test", undefined, { now: () => 1000, defer: () => undefined });
 	c.load();

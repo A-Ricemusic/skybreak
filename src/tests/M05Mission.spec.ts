@@ -558,6 +558,7 @@ describe("Mission 5 unlock", () => {
 			expect(highestUnlocked(forged)).toBe(18);
 			expect(canLaunchMission(18, forged)).toBe(true);
 			expect(canLaunchMission(19, forged)).toBe(false);
+			// eslint-disable-next-line no-void -- Intentional discard of the fixture slot; no side effects.
 			void slot;
 		});
 		expect(notified).toBe(0);

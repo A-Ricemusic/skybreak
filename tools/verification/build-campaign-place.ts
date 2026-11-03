@@ -2,12 +2,14 @@
 import { resolve } from "node:path";
 const root = resolve(import.meta.dir, "../..");
 const project = await Bun.file(resolve(root, "default.project.json")).json();
-function absolute(value: any) {
-	if (value && typeof value === "object")
-		for (const [key, item] of Object.entries(value)) {
-			if (key === "$path") value[key] = resolve(root, item as string);
+function absolute(value: unknown) {
+	if (value && typeof value === "object") {
+		const record = value as Record<string, unknown>;
+		for (const [key, item] of Object.entries(record)) {
+			if (key === "$path") record[key] = resolve(root, item as string);
 			else absolute(item);
 		}
+	}
 }
 absolute(project);
 const scripts = project.tree.StarterPlayer.StarterPlayerScripts;

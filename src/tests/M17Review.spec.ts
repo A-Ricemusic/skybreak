@@ -1,5 +1,5 @@
 import { describe, expect, it } from "@rbxts/jest-globals";
-import { mission as bp, M17_TARGETS, M17_WAVES } from "../shared/missions/m17";
+import { mission as bp, M17_TARGETS } from "../shared/missions/m17";
 import { buildM17Plan, buildM17ScenePlan } from "../shared/M17WorldPlan";
 import { FlightMath as F } from "../shared/FlightMath";
 import { completeRearmRepair } from "../server/RepairReserveRuntime";

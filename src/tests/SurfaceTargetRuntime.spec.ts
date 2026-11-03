@@ -12,7 +12,7 @@ import {
 	stepSamDefence,
 	antiShipObstructed,
 } from "../server/SurfaceTargetRuntime";
-import { CombatSession, Enemy, Projectile } from "../server/CombatSession";
+import { Enemy, Projectile } from "../server/CombatSession";
 import { createGroundTarget } from "../server/GroundTargetFactory";
 import { TypedGroundTarget } from "../shared/CampaignEncounters";
 import { FlightMath } from "../shared/FlightMath";

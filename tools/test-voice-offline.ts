@@ -13,7 +13,7 @@ const root = resolve(import.meta.dir, ".."),
 await mkdir(dest, { recursive: true });
 await writeAudioUseAllowlist();
 const json = async (name: string) => Bun.file(resolve(root, `assets/voice/${name}.json`)).json();
-const [plan, uploaded, transcripts, lines, casting] = await Promise.all([
+const [plan, uploaded, transcripts, _lines, casting] = await Promise.all([
 	json("upload-plan"),
 	json("uploaded"),
 	json("transcripts"),

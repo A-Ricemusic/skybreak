@@ -9,7 +9,7 @@ import {
 	hitProtected,
 	warnProtectedAttack,
 } from "../server/ProtectedAircraftRuntime";
-import type { CombatSession, Enemy } from "../server/CombatSession";
+import type { Enemy } from "../server/CombatSession";
 import { sessionFixture } from "./SessionFixture";
 // Authored Jest integration; deliberately not run without an authorized Studio lease.
 describe("M11 protected aircraft runtime", () => {
