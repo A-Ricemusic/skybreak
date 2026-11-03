@@ -25,6 +25,9 @@ const script = `
 local FlightController = {}
 local Vector2 = {zero = {}}
 local EliteCutIn = {new = function() return {} end}
+-- Stand-in for shared/CinematicPayload (its real guards run in the offline CinematicPayload spec): the slice only
+-- needs a reject/accept split to prove a malformed plan is refused before any gun or cut-in state changes.
+local isCutInPlan = function(plan) return type(plan) == 'table' and type(plan.captions) == 'table' end
 ${gun}
 local sent = {}
 local self = setmetatable({active=true, telemetry={gunRounds=100}, gunSources={}, gunHeld=false, keys={},
@@ -48,9 +51,15 @@ end
 self:SetGunTrigger('keyboard',true)
 local message = {kind='CutInStarted'}
 local data = {plan={}, subjects={}}
-if false then
+local function cutInStarted()
+ if false then
 ${cutIn}
+ end
 end
+cutInStarted()
+assert(self.cutIn == nil and self.gunHeld, 'a malformed cut-in plan must change nothing')
+data = {plan={captions={}}, subjects={}}
+cutInStarted()
 assert(self.cutIn and not self.gunHeld and next(self.gunSources)==nil and sent[#sent]=='GunStop')
 local before=#sent
 self:SetGunTrigger('touch',true)
@@ -59,7 +68,7 @@ self.cutIn=nil
 self:SetGunTrigger('touch',true)
 assert(self.gunHeld and sent[#sent]=='GunStart','fresh post-cut-in press must start')
 self:ReleaseGun()
-print('CLIENT_GUN_INPUT passed=6 failed=0; compiled callbacks only, engine input routing NOT tested')
+print('CLIENT_GUN_INPUT passed=7 failed=0; compiled callbacks only, engine input routing NOT tested')
 `;
 const dir = resolve(root, "build/client-gun-input");
 await mkdir(dir, { recursive: true });

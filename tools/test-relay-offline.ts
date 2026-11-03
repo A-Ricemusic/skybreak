@@ -233,6 +233,9 @@ const MODULES: string[] = [
 	"shared/FlightPrediction",
 	"shared/TelemetryCodec",
 	"tests/FlightPrediction.spec",
+	// Wire-shape guards for the rearm/landing/cut-in MissionState packets.
+	"shared/CinematicPayload",
+	"tests/CinematicPayload.spec",
 	"shared/TargetPriority",
 	"tests/TargetPriority.spec",
 	"shared/TargetBoxes",
