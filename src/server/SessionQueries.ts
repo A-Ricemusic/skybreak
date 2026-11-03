@@ -1,13 +1,15 @@
 // Read-only views of a CombatSession used by the combat loop, telemetry and
 // settlement: kill tallies, outcome, objective text, ownership and geometry
-// helpers. No Instances are created and nothing here mutates the world.
+// helpers, plus pure vector helpers (unitOr, point, steerAircraft). Contract:
+// nothing here writes session state, creates Instances or mutates the world.
+// Clock, score and progression writes live in SessionProgress.
 import * as FinaleDuelRuntime from "./FinaleDuelRuntime";
 import { AlliedRules } from "../shared/AlliedRules";
 import type { MissionReason } from "../shared/OutcomeReason";
 import { CombatSession, Enemy, TargetKind } from "./CombatSession";
 import { FlightMath, FlightState } from "../shared/FlightMath";
 import { dampedSteer } from "../shared/EncounterKinematics";
-import { recordScoredKill } from "./SortieScore";
+import { runnerAllKills, runnerGroundKills } from "./SortieScore";
 import { BlueprintRunner } from "../shared/BlueprintRunner";
 import { MissionCatalog } from "../shared/MissionCatalog";
 import { AceRules } from "../shared/AceRules";
@@ -86,22 +88,14 @@ export function sessionRequiredKills(session: CombatSession): number {
 	return state.requiredAirKills + (state.aceKilled ? 1 : 0) + ground;
 }
 
-/** Every destruction, air and ground, required or optional. */
+/** Every destruction, air and ground, required or optional: settlement's total kills, derived from the runner. */
 export function sessionAllKills(session: CombatSession): number {
-	return (
-		sessionRequiredKills(session) +
-		(session.blueprintState?.optionalAirKills ?? 0) +
-		(session.blueprintState?.optionalGroundKills ?? 0)
-	);
+	return runnerAllKills(session.blueprintState);
 }
 
-/** Sync elapsed from the authoritative runner. */
-export function syncElapsed(session: CombatSession): void {
-	if (session.blueprintState) session.elapsed = session.blueprintState.elapsed;
-}
-
+/** Required and optional ground destructions: settlement's ground kills, derived from the same runner state. */
 export function sessionGroundKills(session: CombatSession): number {
-	return (session.blueprintState?.requiredGroundKills ?? 0) + (session.blueprintState?.optionalGroundKills ?? 0);
+	return runnerGroundKills(session.blueprintState);
 }
 
 export function sessionCanDamage(session: CombatSession, kind: TargetKind, required: boolean): boolean {
@@ -110,36 +104,6 @@ export function sessionCanDamage(session: CombatSession, kind: TargetKind, requi
 		return BlueprintRunner.CanDamage(session.blueprintState, stateKind, required);
 	}
 	return false;
-}
-
-export function sessionRecordKill(
-	session: CombatSession,
-	id: string,
-	kind: TargetKind,
-	required: boolean,
-	now: number,
-	role?: string,
-	breakdownRole?: string,
-): boolean {
-	if (session.blueprintState)
-		return recordScoredKill(
-			session.blueprintState,
-			session.targetScore,
-			id,
-			kind,
-			required,
-			now,
-			role,
-			breakdownRole,
-		);
-	return false;
-}
-
-export function sessionTick(session: CombatSession, now: number, health: number): void {
-	if (session.blueprintState) {
-		session.blueprintState.score = session.targetScore.Total();
-		BlueprintRunner.Tick(session.blueprintState, now, health);
-	}
 }
 
 export function sessionOutcome(session: CombatSession): "won" | "failed" | undefined {

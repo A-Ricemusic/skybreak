@@ -70,7 +70,6 @@ export function createBlueprintSession(
 		chatterIndex: 0,
 		input: { x: 0, y: 0, throttle: FlightMath.CruiseThrottle },
 		health: 100,
-		kills: 0,
 		elapsed: 0,
 		// Absent armament: eight regenerating missiles, the special's own charges and no gun (unchanged).
 		missiles: SortieArmament.MissileCapacity(blueprint.armament),

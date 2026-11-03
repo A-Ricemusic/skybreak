@@ -194,7 +194,6 @@ export interface CombatSession {
 	/** Last TGT press: a quick follow-up press on the same target walks on to the next-closest instead of snapping back to the closest. */
 	cycle?: { target: Enemy; at: number };
 	health: number;
-	kills: number;
 	elapsed: number;
 	missiles: number;
 	missileCooldown: number;
